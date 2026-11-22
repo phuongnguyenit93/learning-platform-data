@@ -1,121 +1,121 @@
-# Automatic module hình thành từ JAR thiếu module descriptor
+# Automatic Modules Formed from JARs Missing a Module Descriptor
 
-Trong Java Platform Module System (JPMS), một thư viện JAR chưa có `module-info.class` vẫn có thể được đưa vào module path và sử dụng như một module. Java gọi loại module này là **automatic module**.
+In the Java Platform Module System (JPMS), a JAR library without a `module-info.class` can still be placed on the module path and used as a module. Java refers to this type of module as an **automatic module**.
 
-Automatic module là cơ chế hỗ trợ chuyển đổi thư viện từ classpath sang module path. Nó cho phép module mới phụ thuộc vào JAR cũ mà chưa cần sửa ngay mã nguồn của thư viện đó. Tuy nhiên, automatic module có ranh giới truy cập rộng hơn explicit named module, vì vậy nên xem đây là bước chuyển tiếp và đánh giá kỹ trước khi dùng lâu dài.
+An automatic module is a mechanism that supports migrating libraries from the classpath to the module path. It allows a new module to depend on a legacy JAR without immediately modifying the source code of that library. However, an automatic module has broader access boundaries than an explicit named module, so it should be treated as a transitional step and carefully evaluated before long-term use.
 
-Có một điểm thuật ngữ cần phân biệt: một **modular JAR** đúng nghĩa đã có module descriptor. Automatic module hình thành từ một JAR chưa có descriptor, tức một thư viện JAR chưa được modular hóa tường minh, khi JAR đó được đặt trên module path.
+There is a terminological distinction to keep in mind: a true **modular JAR** already has a module descriptor. An automatic module is formed from a JAR that does not have a descriptor—that is, a JAR library that has not yet been explicitly modularized—when that JAR is placed on the module path.
 
-## Mục tiêu
+## Objectives
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích điều kiện để một JAR trở thành automatic module.
-- Phân biệt JAR trên classpath, automatic module và explicit named module.
-- Xác định tên automatic module từ manifest hoặc tên file JAR.
-- Hiểu phạm vi đọc và export rộng của automatic module.
-- Khai báo `requires` tới automatic module từ một named module.
-- Kiểm tra automatic module bằng các công cụ của JDK và lập lộ trình chuyển sang explicit module.
+- Explain the condition for a JAR to become an automatic module.
+- Distinguish between a JAR on the classpath, an automatic module, and an explicit named module.
+- Determine an automatic module's name from the manifest or the JAR file name.
+- Understand the broad readability and export scope of an automatic module.
+- Declare `requires` on an automatic module from a named module.
+- Inspect automatic modules using JDK tools and plan a migration path to an explicit module.
 
-## 1. Automatic module là gì?
+## 1. What Is an Automatic Module?
 
-Một JAR không chứa module descriptor có thể được Java xem như automatic module khi đặt trên module path.
+A JAR that does not contain a module descriptor can be treated by Java as an automatic module when placed on the module path.
 
-Module descriptor tường minh thường là file `module-info.class` ở gốc JAR. File này được tạo từ mã nguồn `module-info.java` và khai báo tên module, dependency, package export, opens, uses và provides.
+An explicit module descriptor is typically the `module-info.class` file at the root of the JAR. This file is compiled from `module-info.java` source code and declares the module name, dependencies, exported packages, opens, uses, and provides.
 
-Nếu JAR không có descriptor tường minh và được đặt trên module path, Java suy ra một module name và áp dụng các quy tắc mặc định của automatic module.
+If a JAR lacks an explicit descriptor and is placed on the module path, Java derives a module name and applies the default rules of an automatic module.
 
-Ví dụ:
+Example:
 
 ~~~text
 libs/
 └── legacy-utils-2.4.1.jar
 ~~~
 
-Giả sử JAR `legacy-utils-2.4.1.jar` không có `module-info.class`. Khi đặt thư mục `libs` trên module path, Java có thể xem JAR này như một automatic module.
+Suppose the JAR `legacy-utils-2.4.1.jar` does not have `module-info.class`. When the `libs` directory is placed on the module path, Java can treat this JAR as an automatic module.
 
-Điều quan trọng là vị trí của JAR:
+What matters is the location of the JAR:
 
-- JAR nằm trên classpath: các class thuộc unnamed module tương ứng với class loader.
-- JAR không có module descriptor nằm trên module path: JAR được xem như automatic module.
-- JAR có module descriptor nằm trên module path: JAR là explicit named module.
+- JAR on the classpath: its classes belong to the unnamed module corresponding to the class loader.
+- JAR without a module descriptor on the module path: the JAR is treated as an automatic module.
+- JAR with a module descriptor on the module path: the JAR is an explicit named module.
 
-Chỉ chuyển một JAR từ classpath sang module path đã có thể làm thay đổi cách Java tổ chức và giải quyết dependency của nó.
+Simply moving a JAR from the classpath to the module path can change how Java organizes and resolves its dependencies.
 
-## 2. Xác định tên automatic module
+## 2. Determining the Automatic Module Name
 
-Automatic module cần có một tên để module khác có thể khai báo `requires tên-module;`. Java xác định tên theo thứ tự ưu tiên.
+An automatic module needs a name so that other modules can declare `requires module-name;`. Java determines the name according to an order of precedence.
 
-### 2.1. Dùng Automatic-Module-Name trong manifest
+### 2.1. Using Automatic-Module-Name in the Manifest
 
-Nhà phát hành thư viện có thể khai báo thuộc tính `Automatic-Module-Name` trong file manifest của JAR.
+A library publisher can declare the `Automatic-Module-Name` attribute in the JAR's manifest file.
 
-Ví dụ nội dung `META-INF/MANIFEST.MF`:
+Example contents of `META-INF/MANIFEST.MF`:
 
 ~~~text
 Manifest-Version: 1.0
 Automatic-Module-Name: com.acme.legacyutils
 ~~~
 
-Khi JAR không có module descriptor nhưng có thuộc tính này, Java dùng `com.acme.legacyutils` làm tên automatic module.
+When a JAR has no module descriptor but has this attribute, Java uses `com.acme.legacyutils` as the automatic module name.
 
-Ưu điểm:
+Advantages:
 
-- Tên module ổn định qua các lần đổi phiên bản JAR.
-- Tên file có thể thay đổi mà client vẫn dùng cùng tên trong `requires`.
-- Nhà phát hành có thể chọn tên theo namespace của tổ chức.
-- Người sử dụng không phải phụ thuộc vào thuật toán suy ra tên từ filename.
+- The module name remains stable across JAR version changes.
+- The file name can change while clients continue using the same name in `requires`.
+- The publisher can choose a name matching the organization's namespace.
+- Consumers do not have to rely on the algorithm that derives a name from the filename.
 
-Lưu ý: `Automatic-Module-Name` chỉ cung cấp tên module. Nó không phải module descriptor và không khai báo dependency, exports hay opens. JAR vẫn là automatic module cho tới khi có module descriptor tường minh.
+Note: `Automatic-Module-Name` only provides the module name. It is not a module descriptor and does not declare dependencies, exports, or opens. The JAR remains an automatic module until it has an explicit module descriptor.
 
-### 2.2. Suy ra tên từ filename
+### 2.2. Deriving the Name from the Filename
 
-Nếu manifest không có `Automatic-Module-Name`, Java suy ra tên từ tên file JAR.
+If the manifest does not have `Automatic-Module-Name`, Java derives the name from the JAR file name.
 
-Ví dụ:
+Example:
 
 ~~~text
 legacy-utils-2.4.1.jar
 ~~~
 
-Tên module được suy ra có thể là:
+The derived module name may be:
 
 ~~~text
 legacy.utils
 ~~~
 
-Quá trình suy ra tên về cơ bản gồm:
+The name derivation process essentially consists of:
 
-1. Bỏ phần mở rộng `.jar`.
-2. Nhận diện và loại bỏ hậu tố phiên bản ở cuối tên nếu có dạng phiên bản được hỗ trợ.
-3. Thay các ký tự không phải chữ hoặc số bằng dấu chấm.
-4. Gộp các dấu chấm liên tiếp và loại bỏ dấu chấm ở đầu hoặc cuối.
+1. Removing the `.jar` extension.
+2. Detecting and stripping the trailing version suffix if it matches a supported version format.
+3. Replacing non-alphanumeric characters with dots.
+4. Collapsing consecutive dots and stripping leading or trailing dots.
 
-Ví dụ khác:
+Other examples:
 
-| Tên JAR | Tên automatic module minh họa |
+| JAR Name | Illustrative Automatic Module Name |
 |---|---|
 | `legacy-utils-2.4.1.jar` | `legacy.utils` |
 | `http-client.jar` | `http.client` |
 | `acme_json-1.2.jar` | `acme.json` |
 
-Kết quả chính xác phụ thuộc quy tắc suy ra tên của JDK và filename thực tế. Vì vậy, hãy kiểm tra bằng công cụ JDK thay vì tự đoán tên trong module descriptor.
+The exact result depends on the JDK's name derivation rules and the actual filename. Therefore, check with JDK tools instead of guessing the name in a module descriptor.
 
-### 2.3. Vì sao nên đặt Automatic-Module-Name?
+### 2.3. Why Should You Set Automatic-Module-Name?
 
-Nếu tên module phụ thuộc filename, việc đổi tên artifact hoặc cách đóng gói có thể làm tên module suy ra thay đổi. Những module đã khai báo `requires` theo tên cũ sẽ phải cập nhật.
+If the module name depends on the filename, renaming the artifact or changing how it is packaged can alter the derived module name. Modules that already declared `requires` with the old name would have to be updated.
 
-Nhà phát hành thư viện nên đặt `Automatic-Module-Name` ổn định ngay cả khi chưa chuyển sang explicit module. Khi sau này bổ sung `module-info.class` với cùng tên, client có thể tiếp tục sử dụng cùng tên module.
+Library publishers should set a stable `Automatic-Module-Name` even before migrating to an explicit module. When `module-info.class` is added later with the same name, clients can continue using the same module name.
 
-## 3. Đặc điểm truy cập của automatic module
+## 3. Access Characteristics of an Automatic Module
 
-Automatic module được thiết kế để giúp thư viện cũ hoạt động trong module system với ít thay đổi nhất. Vì vậy, nó có các quy tắc mặc định rộng hơn explicit named module.
+Automatic modules are designed to help legacy libraries work in the module system with minimal changes. As a result, they have broader default rules than explicit named modules.
 
-### 3.1. Tất cả package được export
+### 3.1. All Packages Are Exported
 
-Automatic module được xem như export tất cả package của nó. Module khác đọc automatic module có thể sử dụng các kiểu đủ điều kiện trong những package đó theo quy tắc truy cập Java.
+An automatic module is treated as exporting all of its packages. Other modules that read the automatic module can use eligible types in those packages according to Java access rules.
 
-Ví dụ JAR có cấu trúc:
+Example JAR structure:
 
 ~~~text
 legacy-utils.jar
@@ -124,53 +124,53 @@ legacy-utils.jar
     └── internal/ConnectionPool.class
 ~~~
 
-Nếu JAR trở thành automatic module, cả package `com.acme.legacy.api` và `com.acme.legacy.internal` đều được export theo quy tắc automatic module.
+If the JAR becomes an automatic module, both the `com.acme.legacy.api` and `com.acme.legacy.internal` packages are exported under automatic module rules.
 
-Điều này có nghĩa package có tên `internal` không được bảo vệ như package nội bộ của explicit named module. Nếu class trong package đó đủ quyền truy cập Java, module khác đọc automatic module có thể tham chiếu tới nó.
+This means a package named `internal` is not protected like an internal package of an explicit named module. If a class in that package has sufficient Java accessibility, other modules reading the automatic module can reference it.
 
-Vì vậy, automatic module chưa cung cấp mức đóng gói chặt như module có descriptor tường minh.
+Therefore, an automatic module does not yet provide encapsulation as strict as a module with an explicit descriptor.
 
-### 3.2. Automatic module đọc các module khác trong cấu hình
+### 3.2. An Automatic Module Reads Other Modules in the Configuration
 
-Automatic module được xem là đọc mọi module khác trong cấu hình module, bao gồm các module có tên và unnamed module nếu có.
+An automatic module is considered to read all other modules in the module configuration, including named modules and the unnamed module if present.
 
-Điều này giúp JAR cũ có thể tiếp tục tham chiếu tới các dependency vốn được đặt trên classpath trong quá trình chuyển đổi. Tuy nhiên, quan hệ đọc rộng làm cho dependency thực tế khó thể hiện rõ trong đồ thị.
+This allows legacy JARs to continue referencing dependencies that would otherwise be placed on the classpath during migration. However, broad readability makes actual dependencies harder to express clearly in the module graph.
 
-Ví dụ:
+Example:
 
 ~~~text
 com.acme.app ──requires──> legacy.utils
 
-legacy.utils có thể đọc các module khác
-trong cấu hình module của ứng dụng.
+legacy.utils can read other modules
+in the application's module configuration.
 ~~~
 
-Module app vẫn phải khai báo `requires legacy.utils;` để đọc automatic module. Quy tắc automatic module tự đọc rộng không có nghĩa mọi named module khác đều tự động đọc được automatic module.
+The app module still must declare `requires legacy.utils;` to read the automatic module. The rule that an automatic module broadly reads others does not mean every other named module automatically reads the automatic module.
 
-### 3.3. Không có module descriptor để kiểm soát ranh giới
+### 3.3. No Module Descriptor to Control Boundaries
 
-Automatic module không có `module-info.class` tường minh để khai báo:
+An automatic module has no explicit `module-info.class` to declare:
 
-- Các dependency cụ thể bằng `requires`.
-- Package công khai bằng `exports`.
-- Package mở cho reflection bằng `opens`.
-- Service được tiêu thụ bằng `uses`.
-- Service provider bằng `provides ... with ...`.
+- Specific dependencies via `requires`.
+- Public packages via `exports`.
+- Packages opened for reflection via `opens`.
+- Consumed services via `uses`.
+- Service providers via `provides ... with ...`.
 
-Các hành vi mặc định của automatic module thay thế một phần các khai báo này trong giai đoạn tương thích. Đó là lý do automatic module thuận tiện khi chuyển đổi nhưng không phải lựa chọn tốt nhất để kiểm soát kiến trúc lâu dài.
+The default behaviors of an automatic module partially substitute for these declarations during the compatibility phase. That is why automatic modules are convenient during migration but are not the best choice for long-term architectural control.
 
-## 4. Dùng automatic module từ named module
+## 4. Using an Automatic Module from a Named Module
 
-Giả sử có thư viện cũ:
+Suppose there is a legacy library:
 
 ~~~text
 libs/
 └── legacy-utils-2.4.1.jar
 ~~~
 
-JAR không có `module-info.class` và manifest không khai báo `Automatic-Module-Name`. Theo tên file, Java suy ra module name là `legacy.utils`.
+The JAR has no `module-info.class` and the manifest does not declare `Automatic-Module-Name`. From the file name, Java derives the module name `legacy.utils`.
 
-Module app có thể khai báo:
+The app module can declare:
 
 ~~~java
 module com.acme.app {
@@ -178,7 +178,7 @@ module com.acme.app {
 }
 ~~~
 
-Sau đó mã nguồn có thể import class trong package được automatic module export:
+Then the source code can import classes in packages exported by the automatic module:
 
 ~~~java
 package com.acme.app;
@@ -193,152 +193,152 @@ public class Main {
 }
 ~~~
 
-Để biên dịch, đặt JAR trên module path cùng với source module:
+To compile, place the JAR on the module path alongside the module sources:
 
 ~~~bash
 javac --module-path "libs" --module-source-path src -d out -m com.acme.app
 ~~~
 
-Trên Windows, dấu phân cách giữa nhiều vị trí module path là dấu chấm phẩy. Trên Linux và macOS, dùng dấu hai chấm.
+On Windows, the separator between multiple module path locations is a semicolon. On Linux and macOS, use a colon.
 
-Chạy ứng dụng trên Windows:
+Run the application on Windows:
 
 ~~~bash
 java --module-path "out;libs" -m com.acme.app/com.acme.app.Main
 ~~~
 
-Chạy ứng dụng trên Linux hoặc macOS:
+Run the application on Linux or macOS:
 
 ~~~bash
 java --module-path "out:libs" -m com.acme.app/com.acme.app.Main
 ~~~
 
-Nếu tên automatic module thực tế không phải `legacy.utils`, khai báo `requires` phải dùng đúng tên mà Java xác định. Dùng `jar --describe-module` để kiểm tra.
+If the actual automatic module name is not `legacy.utils`, the `requires` declaration must use the exact name determined by Java. Use `jar --describe-module` to check.
 
-## 5. Phân biệt classpath, automatic module và explicit module
+## 5. Distinguishing Classpath, Automatic Module, and Explicit Module
 
-Cùng một JAR có thể được xử lý khác nhau tùy vị trí và nội dung:
+The same JAR can be handled differently depending on its location and contents:
 
-| Trường hợp | Cách Java xem xét |
+| Case | How Java Treats It |
 |---|---|
-| JAR không có descriptor trên classpath | Class thuộc unnamed module |
-| JAR không có descriptor trên module path | Automatic module |
-| JAR có module descriptor trên module path | Explicit named module |
-| JAR chỉ có `Automatic-Module-Name` nhưng không có descriptor trên module path | Vẫn là automatic module, dùng tên trong manifest |
+| JAR without descriptor on the classpath | Classes belong to the unnamed module |
+| JAR without descriptor on the module path | Automatic module |
+| JAR with module descriptor on the module path | Explicit named module |
+| JAR with only `Automatic-Module-Name` and no descriptor on the module path | Still an automatic module, using the name from the manifest |
 
-Một số điểm cần nhớ:
+Some points to remember:
 
-- Đặt JAR lên classpath không kích hoạt automatic module.
-- Thuộc tính `Automatic-Module-Name` không biến JAR thành explicit named module.
-- Một JAR có `module-info.class` và nằm trên module path được xem là explicit module.
-- Automatic module không có ranh giới exports được thiết kế rõ ràng như explicit module.
+- Placing a JAR on the classpath does not activate an automatic module.
+- The `Automatic-Module-Name` attribute does not turn a JAR into an explicit named module.
+- A JAR that has `module-info.class` and is on the module path is treated as an explicit module.
+- An automatic module does not have clearly designed export boundaries like an explicit module.
 
-Sự khác biệt này quan trọng khi chuyển ứng dụng từ classpath sang module path. Một ứng dụng có thể biên dịch được ở cấu hình cũ nhưng phát sinh lỗi nếu các dependency không được đặt đúng vị trí hoặc tên module suy ra khác với tên đã khai báo.
+This distinction matters when migrating an application from the classpath to the module path. An application may compile in the old configuration yet fail if dependencies are not placed in the right locations or if the derived module name differs from the declared name.
 
-## 6. Kiểm tra automatic module bằng công cụ JDK
+## 6. Inspecting Automatic Modules with JDK Tools
 
-### 6.1. Dùng jar --describe-module
+### 6.1. Using jar --describe-module
 
-Kiểm tra JAR:
+Inspect the JAR:
 
 ~~~bash
 jar --describe-module --file libs/legacy-utils-2.4.1.jar
 ~~~
 
-Với JAR không có descriptor, đầu ra cho biết không tìm thấy module descriptor và module được suy ra là automatic module. Công cụ cũng hiển thị tên module được xác định.
+For a JAR without a descriptor, the output indicates that no module descriptor was found and that the module is derived as an automatic module. The tool also displays the determined module name.
 
-Nếu JAR có manifest chứa `Automatic-Module-Name`, kiểm tra tên được hiển thị để dùng đúng trong `requires`.
+If the JAR has a manifest containing `Automatic-Module-Name`, verify the displayed name so you use the exact name in `requires`.
 
-### 6.2. Liệt kê module có thể quan sát
+### 6.2. Listing Observable Modules
 
-Có thể dùng:
+You can use:
 
 ~~~bash
 java --module-path libs --list-modules
 ~~~
 
-Lệnh này liệt kê các module hệ thống và module có thể quan sát từ module path được cung cấp. Tìm tên automatic module trong danh sách để xác nhận Java nhận diện artifact.
+This command lists system modules and observable modules from the supplied module path. Look for the automatic module name in the list to confirm that Java recognizes the artifact.
 
-### 6.3. Kiểm tra dependency của JAR
+### 6.3. Checking JAR Dependencies
 
-Dùng `jdeps` để xem các dependency mà bytecode của thư viện tham chiếu:
+Use `jdeps` to inspect the dependencies referenced by the library's bytecode:
 
 ~~~bash
 jdeps --module-path libs --list-deps libs/legacy-utils-2.4.1.jar
 ~~~
 
-Để xem phân tích ở cấp module hoặc package, điều chỉnh tùy chọn `jdeps` theo mục tiêu. Kết quả giúp phát hiện dependency mà thư viện cũ đang sử dụng, nhưng vẫn cần kiểm tra cấu hình runtime và các cơ chế nạp class động.
+To view analysis at the module or package level, adjust the `jdeps` options according to your goal. The results help uncover dependencies used by the legacy library, though you still need to check runtime configuration and dynamic class-loading mechanisms.
 
-## 7. Hạn chế của automatic module
+## 7. Limitations of Automatic Modules
 
-### 7.1. API bị công bố quá rộng
+### 7.1. Overly Broad API Exposure
 
-Vì tất cả package được export, module khác có thể bắt đầu phụ thuộc vào những class vốn được tác giả thư viện xem là implementation.
+Because all packages are exported, other modules can start depending on classes that the library author considered implementation details.
 
-Ví dụ, client có thể import class từ package `internal`. Khi thư viện chuyển sang explicit module và chỉ export package API, client đó sẽ không còn biên dịch được.
+For example, a client might import a class from an `internal` package. When the library transitions to an explicit module and exports only API packages, that client will no longer compile.
 
-### 7.2. Dependency không được khai báo rõ ràng
+### 7.2. Dependencies Are Not Explicitly Declared
 
-Automatic module đọc các module khác trong cấu hình. Điều này có thể che giấu một số dependency chưa được mô hình hóa trong module descriptor.
+An automatic module reads other modules in the configuration. This can mask some dependencies that have not yet been modeled in a module descriptor.
 
-Khi chuyển sang explicit module, những dependency thực sự cần thiết phải được khai báo rõ ràng. Các thiếu sót có thể chỉ xuất hiện sau khi ranh giới module được siết chặt.
+When migrating to an explicit module, the actually needed dependencies must be explicitly declared. Omissions may only surface after module boundaries are tightened.
 
-### 7.3. Khó đánh giá hợp đồng API
+### 7.3. Difficult to Evaluate the API Contract
 
-Không có danh sách export tường minh khiến người duy trì khó xác định package nào được hỗ trợ như API lâu dài. Client có thể phụ thuộc vào bất kỳ package nào mà automatic module công bố.
+Without an explicit exports list, it is hard for maintainers to determine which packages are supported as long-term API. Clients can depend on any package exposed by the automatic module.
 
-### 7.4. Tên suy ra có thể không ổn định
+### 7.4. Derived Names Can Be Unstable
 
-Nếu tên module được suy ra từ filename, đổi tên JAR có thể làm tên module thay đổi. Việc khai báo `Automatic-Module-Name` giúp ổn định tên trong giai đoạn chuyển tiếp.
+If the module name is derived from the filename, renaming the JAR can change the module name. Declaring `Automatic-Module-Name` helps stabilize the name during the transitional period.
 
-## 8. Lộ trình chuyển từ automatic module sang explicit module
+## 8. Migration Path from Automatic Module to Explicit Module
 
-Khi thư viện đã sẵn sàng modular hóa, có thể chuyển dần theo quy trình:
+When the library is ready to be modularized, you can transition gradually using this process:
 
-1. Xác định tên module ổn định, ưu tiên tên đã được công bố qua `Automatic-Module-Name`.
-2. Kiểm kê package và các API mà client đang sử dụng.
-3. Dùng `jdeps` để hỗ trợ tìm dependency ở cấp module.
-4. Viết `module-info.java` với các chỉ thị `requires` phù hợp.
-5. Chỉ export package thực sự là API; giữ implementation ở package không export.
-6. Thêm `opens` nếu framework cần deep reflection.
-7. Khai báo `uses` và `provides` nếu module tham gia ServiceLoader.
-8. Biên dịch và chạy các client để phát hiện dependency hoặc package access bị thiếu.
-9. Phát hành explicit modular JAR và kiểm tra lại tên module mà client sử dụng.
+1. Determine a stable module name, preferring the name already published via `Automatic-Module-Name`.
+2. Inventory the packages and APIs that clients are using.
+3. Use `jdeps` to help discover module-level dependencies.
+4. Write `module-info.java` with the appropriate `requires` directives.
+5. Export only packages that are truly API; keep implementation in non-exported packages.
+6. Add `opens` if a framework needs deep reflection.
+7. Declare `uses` and `provides` if the module participates in ServiceLoader.
+8. Compile and run clients to catch missing dependencies or package access issues.
+9. Release the explicit modular JAR and re-verify the module name used by clients.
 
-JDK có công cụ hỗ trợ sinh module descriptor ban đầu:
+The JDK includes a tool to help generate an initial module descriptor:
 
 ~~~bash
 jdeps --generate-module-info generated-modules libs/legacy-utils-2.4.1.jar
 ~~~
 
-Mã được sinh chỉ là điểm khởi đầu. Cần xem lại các dependency, package export, reflection và service configuration trước khi sử dụng descriptor trong bản phát hành.
+The generated code is only a starting point. You must review dependencies, package exports, reflection, and service configuration before using the descriptor in a release.
 
-Sau khi JAR có descriptor tường minh và được đặt trên module path, nó trở thành explicit named module. Khi đó, dependency và ranh giới package được kiểm soát theo module descriptor thay vì các quy tắc rộng của automatic module.
+Once the JAR has an explicit descriptor and is placed on the module path, it becomes an explicit named module. At that point, dependencies and package boundaries are governed by the module descriptor rather than the broad rules of an automatic module.
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-**Tình huống 1:** Một JAR không có `module-info.class` được đặt trên classpath. Nó có tự động trở thành automatic module không?
+**Scenario 1:** A JAR without `module-info.class` is placed on the classpath. Does it automatically become an automatic module?
 
-**Trả lời:** Không. JAR trên classpath thuộc unnamed module. Automatic module hình thành khi JAR không có descriptor được đặt trên module path.
+**Answer:** No. A JAR on the classpath belongs to the unnamed module. An automatic module is formed when a JAR without a descriptor is placed on the module path.
 
-**Tình huống 2:** Một JAR không có descriptor nhưng manifest có `Automatic-Module-Name: com.acme.legacy`. Tên module được dùng là gì?
+**Scenario 2:** A JAR has no descriptor, but its manifest has `Automatic-Module-Name: com.acme.legacy`. What module name is used?
 
-**Trả lời:** `com.acme.legacy`. JAR vẫn là automatic module vì manifest chỉ cung cấp tên, không thay thế module descriptor.
+**Answer:** `com.acme.legacy`. The JAR is still an automatic module because the manifest only supplies the name and does not replace a module descriptor.
 
-**Tình huống 3:** Automatic module có export package nội bộ không?
+**Scenario 3:** Does an automatic module export internal packages?
 
-**Trả lời:** Theo quy tắc automatic module, tất cả package của nó được export. Đây là một trong những lý do automatic module có ranh giới đóng gói rộng hơn explicit module.
+**Answer:** Under automatic module rules, all of its packages are exported. This is one reason an automatic module has broader encapsulation boundaries than an explicit module.
 
-**Tình huống 4:** Module app có cần khai báo `requires legacy.utils;` khi muốn sử dụng automatic module đó không?
+**Scenario 4:** Does the app module need to declare `requires legacy.utils;` when it wants to use that automatic module?
 
-**Trả lời:** Có. Quy tắc đọc rộng của automatic module áp dụng cho chiều automatic module đọc các module khác; nó không tự tạo quan hệ đọc ngược từ app đến automatic module.
+**Answer:** Yes. The broad readability rule of an automatic module applies in the direction of the automatic module reading other modules; it does not automatically create a reverse readability relationship from the app to the automatic module.
 
-**Tình huống 5:** Thư viện đã có `Automatic-Module-Name` có phải là explicit named module không?
+**Scenario 5:** Is a library that already has `Automatic-Module-Name` an explicit named module?
 
-**Trả lời:** Không. Nếu thiếu `module-info.class`, thư viện vẫn là automatic module khi nằm trên module path.
+**Answer:** No. If `module-info.class` is missing, the library is still an automatic module when located on the module path.
 
-**Tình huống 6:** Vì sao nên chuyển automatic module sang explicit module khi có thể?
+**Scenario 6:** Why should you migrate an automatic module to an explicit module when possible?
 
-**Trả lời:** Explicit module cho phép khai báo dependency và package export rõ ràng, giảm bề mặt API bị công bố và giúp phát hiện sớm dependency không hợp lệ.
+**Answer:** Explicit modules allow clear declaration of dependencies and package exports, reduce the exposed API surface, and help detect invalid dependencies early.
 
-Khi gặp một JAR cũ, hãy kiểm tra vị trí đặt JAR, sự hiện diện của `module-info.class`, manifest và tên module mà JDK suy ra. Từ đó xác định nó là unnamed module, automatic module hay explicit named module trước khi thiết kế các dòng `requires` của ứng dụng.
+When encountering a legacy JAR, check where the JAR is placed, the presence of `module-info.class`, the manifest, and the module name derived by the JDK. From there, determine whether it is an unnamed module, an automatic module, or an explicit named module before designing the application's `requires` clauses.

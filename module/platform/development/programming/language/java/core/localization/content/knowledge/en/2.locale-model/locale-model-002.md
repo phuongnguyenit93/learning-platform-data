@@ -1,84 +1,84 @@
-# Thành phần language, script, region và variant trong Java `Locale`
+# Language, Script, Region, and Variant Components in Java `Locale`
 
-## 1. Bản chất của `Locale`
+## 1. Nature of `Locale`
 
-`java.util.Locale` định danh ngôn ngữ, hệ chữ viết và quy ước vùng miền được dùng trong bản địa hóa (localization). Bốn thành phần quan trọng của mô hình là:
+`java.util.Locale` identifies the language, writing system, and regional conventions used in localization. The four key components of the model are:
 
-| Thành phần | Câu hỏi nó trả lời | Ví dụ | Getter Java |
+| Component | Question it answers | Examples | Java Getter |
 |---|---|---|---|
-| `language` | Dùng ngôn ngữ nào? | `vi`, `en`, `sr`, `zh` | `getLanguage()` |
-| `script` | Viết bằng hệ chữ nào? | `Latn`, `Cyrl`, `Hans`, `Hant` | `getScript()` |
-| `region` | Ưu tiên quy ước vùng nào? | `VN`, `US`, `TW`, `419` | `getCountry()` |
-| `variant` | Có biến thể chuyên biệt nào? | `POSIX`, `rozaj` | `getVariant()` |
+| `language` | Which language is used? | `vi`, `en`, `sr`, `zh` | `getLanguage()` |
+| `script` | Which writing system is it written in? | `Latn`, `Cyrl`, `Hans`, `Hant` | `getScript()` |
+| `region` | Which regional conventions are preferred? | `VN`, `US`, `TW`, `419` | `getCountry()` |
+| `variant` | Is there any specialized variant? | `POSIX`, `rozaj` | `getVariant()` |
 
-Các thành phần diễn tả những chiều khác nhau. Một ngôn ngữ có thể được viết bằng nhiều hệ chữ; một vùng có thể dùng nhiều ngôn ngữ; cùng một ngôn ngữ có thể có quy ước trình bày khác ở các vùng. `Locale` còn có **extensions** (ví dụ lịch hoặc hệ chữ số), nằm ngoài bốn thành phần trên.
+The components describe different dimensions. A single language can be written in multiple scripts; a single region can use multiple languages; the same language can have different presentation conventions across regions. `Locale` also has **extensions** (such as calendar or numbering system), which sit outside the four components above.
 
-`Locale` là một **định danh/ngữ cảnh** cho API, không phải kho bản dịch, không biểu diễn múi giờ và không suy ra vị trí địa lý thực tế của người dùng. Có một `Locale` hợp lệ cũng không bảo đảm hệ thống có bản dịch hoặc dữ liệu chuyên biệt cho locale đó.
+`Locale` is an **identifier/context** for APIs, not a translation repository, does not represent a time zone, and does not infer the user's actual geographic location. Having a valid `Locale` also does not guarantee that the system has translations or dedicated data for that locale.
 
-## 2. BCP 47: Biểu diễn thành language tag
+## 2. BCP 47: Representation as a language tag
 
-Thẻ ngôn ngữ IETF BCP 47 thường có dạng:
+An IETF BCP 47 language tag typically has the form:
 
 ```text
 language[-Script][-REGION][-variant...][-extension...]
 ```
 
-Các subtag phân cách bằng dấu gạch nối `-`. Quy ước dễ đọc là language chữ thường (`en`), script viết hoa chữ đầu (`Latn`), region chữ hoa (`US`), variant thường viết chữ thường. Java chuẩn hóa một số trường khi xây dựng `Locale`; không dựa vào kiểu chữ để suy đoán nội dung.
+Subtags are separated by a hyphen `-`. The readable convention is lowercase language (`en`), title-case script (`Latn`), uppercase region (`US`), and usually lowercase variant. Java normalizes some fields when constructing a `Locale`; do not rely on letter casing to infer meaning.
 
-| Language tag | Language | Script | Region | Variant | Ý nghĩa |
+| Language tag | Language | Script | Region | Variant | Meaning |
 |---|---|---|---|---|---|
-| `vi-VN` | `vi` | trống | `VN` | trống | Tiếng Việt tại Việt Nam |
-| `en-US` | `en` | trống | `US` | trống | Tiếng Anh tại Hoa Kỳ |
-| `en-GB` | `en` | trống | `GB` | trống | Tiếng Anh tại Anh |
-| `sr-Latn-RS` | `sr` | `Latn` | `RS` | trống | Tiếng Serbia, chữ Latin, tại Serbia |
-| `sr-Cyrl-RS` | `sr` | `Cyrl` | `RS` | trống | Tiếng Serbia, chữ Cyrillic, tại Serbia |
-| `zh-Hant-TW` | `zh` | `Hant` | `TW` | trống | Tiếng Trung, chữ Hán phồn thể, tại Đài Loan |
-| `en-US-POSIX` | `en` | trống | `US` | `POSIX` | Một biến thể POSIX |
+| `vi-VN` | `vi` | empty | `VN` | empty | Vietnamese in Vietnam |
+| `en-US` | `en` | empty | `US` | empty | English in the United States |
+| `en-GB` | `en` | empty | `GB` | empty | English in the United Kingdom |
+| `sr-Latn-RS` | `sr` | `Latn` | `RS` | empty | Serbian, Latin script, in Serbia |
+| `sr-Cyrl-RS` | `sr` | `Cyrl` | `RS` | empty | Serbian, Cyrillic script, in Serbia |
+| `zh-Hant-TW` | `zh` | `Hant` | `TW` | empty | Chinese, Traditional Han script, in Taiwan |
+| `en-US-POSIX` | `en` | empty | `US` | `POSIX` | A POSIX variant |
 
-Trường **không xuất hiện** thực sự là trường rỗng trong đối tượng, không phải giá trị mặc định được tự điền. `zh-TW` không khai báo script, dù ứng dụng có thể suy đoán từ dữ liệu văn hóa. Nếu chính hệ chữ là điều kiện chọn nội dung, nên dùng tag tường minh như `zh-Hant-TW`.
+A field that is **absent** is genuinely an empty field in the object, not a default value automatically filled in. `zh-TW` does not declare a script, even though applications might infer one from cultural data. If the script itself is a condition for selecting content, use an explicit tag such as `zh-Hant-TW`.
 
-## 3. `language` — ngôn ngữ
+## 3. `language` — language
 
-`language` xác định ngôn ngữ được yêu cầu, thường sử dụng mã ISO 639 như `vi` (tiếng Việt), `en` (tiếng Anh), `fr` (tiếng Pháp), `ja` (tiếng Nhật), `zh` (tiếng Trung), `sr` (tiếng Serbia). Mã ngôn ngữ phổ biến có hai hoặc ba chữ cái; BCP 47 cho phép thêm các dạng cú pháp hợp lệ khác. `getLanguage()` trả về mã được chuẩn hóa chữ thường.
+`language` identifies the requested language, usually using ISO 639 codes such as `vi` (Vietnamese), `en` (English), `fr` (French), `ja` (Japanese), `zh` (Chinese), `sr` (Serbian). Common language codes have two or three letters; BCP 47 allows other valid syntactic forms. `getLanguage()` returns the code normalized to lowercase.
 
-Điểm cốt lõi: **language không đồng nghĩa quốc gia**. `en` không mặc nhiên là `en-US`; `fr` không mặc nhiên là `fr-FR`. Language cũng không chỉ định script nếu script bị bỏ trống. Với ứng dụng chỉ cần chọn ngôn ngữ chung, `Locale.forLanguageTag("en")` có thể đủ. Nếu lựa chọn quy tắc ngày, tiền tệ hay cách viết cụ thể, cần xem thêm region/script.
+Key point: **language is not synonymous with country**. `en` does not implicitly mean `en-US`; `fr` does not implicitly mean `fr-FR`. Language also does not specify a script if script is left empty. For an application that only needs to select a generic language, `Locale.forLanguageTag("en")` may suffice. When selecting specific date, currency, or spelling rules, check region/script as well.
 
-## 4. `script` — hệ chữ viết
+## 4. `script` — writing system
 
-`script` dùng mã ISO 15924 gồm **bốn chữ cái**; các ví dụ gồm `Latn` (Latin), `Cyrl` (Cyrillic), `Hans` (Hán giản thể), `Hant` (Hán phồn thể) và `Arab` (Ả Rập). `getScript()` trả về mã với chữ đầu viết hoa khi trường này hiện diện.
+`script` uses a **four-letter** ISO 15924 code; examples include `Latn` (Latin), `Cyrl` (Cyrillic), `Hans` (Simplified Han), `Hant` (Traditional Han), and `Arab` (Arabic). `getScript()` returns the code with the first letter capitalized when present.
 
-Script có ý nghĩa thực tế khi cùng một language tồn tại ở nhiều hệ chữ:
+Script is practically significant when the same language exists in multiple writing systems:
 
-- `sr-Latn` và `sr-Cyrl` đều là tiếng Serbia, nhưng sử dụng chữ Latin và Cyrillic.
-- `zh-Hans` và `zh-Hant` đều có language `zh`, nhưng phân biệt hệ chữ Hán giản thể/phồn thể.
+- `sr-Latn` and `sr-Cyrl` are both Serbian, but use Latin and Cyrillic scripts.
+- `zh-Hans` and `zh-Hant` both have language `zh`, but distinguish Simplified and Traditional Han scripts.
 
-`Hans`/`Hant` là **script**, không phải region. Script cũng khác **encoding**: `Latn` không có nghĩa là UTF-8; việc mã hóa byte thuộc API khác (chẳng hạn `StandardCharsets.UTF_8`). Nếu chỉ so `getLanguage()` mà bỏ script, ứng dụng có thể phục vụ bộ chữ không phù hợp.
+`Hans`/`Hant` is a **script**, not a region. Script also differs from **encoding**: `Latn` does not mean UTF-8; byte encoding belongs to a different API (such as `StandardCharsets.UTF_8`). If you only compare `getLanguage()` and ignore script, the application may serve the wrong character set/writing system.
 
-## 5. `region` — quốc gia hoặc khu vực
+## 5. `region` — country or area
 
-`region` thường là mã quốc gia ISO 3166-1 hai chữ cái (`VN`, `US`, `FR`, `TW`) hoặc mã khu vực UN M.49 ba chữ số (`001` là thế giới, `419` là Mỹ Latinh). Cấu trúc API Java có sự khác biệt tên gọi: `Locale.Builder.setRegion(...)` để đặt region, nhưng `Locale.getCountry()` để đọc nó. Với mã chữ, giá trị được chuẩn hóa chữ hoa; mã vùng số giữ nguyên.
+`region` is usually a two-letter ISO 3166-1 country code (`VN`, `US`, `FR`, `TW`) or a three-digit UN M.49 area code (`001` for World, `419` for Latin America). Java's API structure has a naming difference: `Locale.Builder.setRegion(...)` sets the region, whereas `Locale.getCountry()` reads it. For letter codes, the value is normalized to uppercase; numeric region codes remain unchanged.
 
-`en-US` và `en-GB` cùng language nhưng khác region; `en-CA` và `fr-CA` cùng region nhưng khác language. Region hỗ trợ lựa chọn định dạng số, ngày tháng, tiền tệ và các quy ước địa phương, nhưng **không tự quyết định** toàn bộ dữ liệu. Kết quả còn tùy API, phiên bản JDK và dữ liệu locale/provider.
+`en-US` and `en-GB` share the same language but have different regions; `en-CA` and `fr-CA` share the same region but have different languages. Region helps select number, date, currency formatting, and local conventions, but **does not solely determine** all data. The result still depends on the API, JDK version, and locale/provider data.
 
-Không dùng region thay cho **múi giờ** hoặc **tiền tệ cố định**: một quốc gia có thể có nhiều múi giờ, còn các quy tắc tiền tệ có thể thay đổi. Dùng `java.time.ZoneId` và `java.util.Currency` khi nghiệp vụ cần định danh chuyên biệt.
+Do not use region in place of a **time zone** or **fixed currency**: a country can have multiple time zones, and currency rules can change. Use `java.time.ZoneId` and `java.util.Currency` when business logic requires dedicated identifiers.
 
-## 6. `variant` — biến thể chuyên biệt
+## 6. `variant` — specialized variant
 
-`variant` biểu thị biến thể cụ thể chưa được mô tả đầy đủ bằng language + script + region. `getVariant()` trả chuỗi rỗng khi không có variant.
+`variant` indicates a specific variant not fully described by language + script + region. `getVariant()` returns an empty string when no variant is present.
 
-BCP 47 yêu cầu mỗi subtag variant có **5–8 ký tự chữ/số**, hoặc **4 ký tự với ký tự đầu là số**. Có thể có nhiều variant. `POSIX` và `rozaj` là ví dụ có cú pháp phù hợp. `Locale.Builder.setVariant(...)` kiểm tra cú pháp và có thể ném `IllformedLocaleException` khi sai. Nó **không** tự xác thực mỗi mã có được đăng ký hay có ý nghĩa thực tế trong dữ liệu locale.
+BCP 47 requires each variant subtag to be **5–8 alphanumeric characters**, or **4 characters starting with a digit**. Multiple variants may be present. `POSIX` and `rozaj` are examples with valid syntax. `Locale.Builder.setVariant(...)` validates syntax and can throw `IllformedLocaleException` when invalid. It **does not** automatically validate whether each code is registered or has practical meaning in locale data.
 
-Ba ví dụ cần phân biệt:
+Three examples to distinguish:
 
-- `en-US`: variant rỗng.
-- `en-US-POSIX`: variant là `POSIX`.
-- `en-US-u-nu-thai`: variant vẫn rỗng; phần `u-nu-thai` là **Unicode locale extension** chỉ hệ chữ số `thai`. Lấy bằng `getUnicodeLocaleType("nu")`.
+- `en-US`: empty variant.
+- `en-US-POSIX`: variant is `POSIX`.
+- `en-US-u-nu-thai`: variant is still empty; the `u-nu-thai` part is a **Unicode locale extension** specifying the `thai` numbering system. Retrieve it using `getUnicodeLocaleType("nu")`.
 
-Tương tự, `u-ca-japanese` chỉ lựa chọn hệ lịch thuộc extension, không phải variant. Không dùng variant để nhét ID người dùng, tenant, thông tin giờ hoặc cấu hình tùy ý. Constructor legacy `new Locale(language, country, variant)` có thể chứa variant không theo cú pháp BCP 47; việc chuyển ngược sang language tag có thể gây vấn đề tương thích. Với mã mới, ưu tiên `Locale.Builder` và các tag chuẩn.
+Similarly, `u-ca-japanese` specifies selecting a calendar system belonging to extensions, not variant. Do not use variant to stuff user IDs, tenants, time information, or arbitrary configuration. The legacy constructor `new Locale(language, country, variant)` may hold a variant that does not follow BCP 47 syntax; converting back to a language tag can cause compatibility issues. For new code, prefer `Locale.Builder` and standard tags.
 
-## 7. Ví dụ Java 17+ chạy được: đọc đủ bốn thành phần
+## 7. Runnable Java 17+ example: reading all four components
 
-Tạo tệp `LocalePartsDemo.java`:
+Create the file `LocalePartsDemo.java`:
 
 ```java
 import java.util.Locale;
@@ -113,14 +113,14 @@ public class LocalePartsDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ```bash
 javac LocalePartsDemo.java
 java LocalePartsDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 tag=en-US | language=en | script=(trong) | region=US | variant=(trong)
@@ -129,20 +129,20 @@ tag=zh-Hant-TW | language=zh | script=Hant | region=TW | variant=(trong)
 tag=en-US-POSIX | language=en | script=(trong) | region=US | variant=POSIX
 ```
 
-`(trong)` chỉ là ký hiệu do hàm `display` tự đặt để trình bày; các getter thực tế trả về `""` cho thành phần thiếu. Đặc biệt, getter region mang tên `getCountry()`, không có `getRegion()` tương ứng.
+`(trong)` is merely a label chosen by the `display` method for presentation; the actual getters return `""` for missing components. Notably, the region getter is named `getCountry()`, with no corresponding `getRegion()`.
 
-## 8. Tạo `Locale`, chuyển đổi và kiểm tra cú pháp
+## 8. Creating `Locale`, converting, and checking syntax
 
-### Từ language tag BCP 47
+### From a BCP 47 language tag
 
 ```java
 Locale locale = Locale.forLanguageTag("sr-Latn-RS");
 String tag = locale.toLanguageTag(); // "sr-Latn-RS"
 ```
 
-`forLanguageTag(...)` thích hợp để chuyển language tag hợp lệ thành `Locale`. Nhưng nó **không phải công cụ xác thực nghiêm ngặt**: khi gặp subtag sai, nó có thể bỏ qua phần không hợp lệ mà không ném ngoại lệ.
+`forLanguageTag(...)` is suitable for converting a valid language tag into a `Locale`. However, it is **not a strict validation tool**: when encountering an invalid subtag, it may ignore the invalid part without throwing an exception.
 
-### Từ các trường riêng biệt
+### From individual fields
 
 ```java
 Locale locale = new Locale.Builder()
@@ -154,9 +154,9 @@ Locale locale = new Locale.Builder()
 System.out.println(locale.toLanguageTag()); // sr-Latn-RS
 ```
 
-`Builder` phù hợp khi biểu mẫu/cấu hình cung cấp từng thành phần. Nó kiểm tra cú pháp language, script, region, variant và extension; đối với chuỗi sai cú pháp, có thể ném `IllformedLocaleException`. Tuy nhiên, một tổ hợp **đúng cú pháp** vẫn có thể không có tài nguyên hay không được ứng dụng hỗ trợ.
+`Builder` is suitable when a form/configuration provides each component individually. It validates the syntax of language, script, region, variant, and extension; for syntactically invalid strings, it can throw `IllformedLocaleException`. However, a **syntactically valid** combination may still lack resources or not be supported by the application.
 
-Ví dụ đầy đủ về kiểm tra language tag với Builder, lưu `ValidateLocaleTag.java`:
+Full example of validating a language tag with Builder, saved as `ValidateLocaleTag.java`:
 
 ```java
 import java.util.IllformedLocaleException;
@@ -178,31 +178,31 @@ public class ValidateLocaleTag {
 }
 ```
 
-Chạy `javac ValidateLocaleTag.java` rồi `java ValidateLocaleTag`. Đầu ra:
+Run `javac ValidateLocaleTag.java` then `java ValidateLocaleTag`. Output:
 
 ```text
 sr-Latn-RS
 ```
 
-`Locale.Builder.setLanguageTag(...)` có thể phát hiện lỗi cú pháp, nhưng xác thực danh sách locale được hỗ trợ là chính sách riêng của ứng dụng. Nếu dữ liệu đầu vào là cả header `Accept-Language` với trọng số `q=...`, phải xử lý theo cú pháp negotiation thích hợp (chẳng hạn `Locale.LanguageRange`/`Locale.lookup`), không truyền toàn bộ header làm một language tag.
+`Locale.Builder.setLanguageTag(...)` can detect syntax errors, but validating against the list of supported locales is the application's own policy. If the input data is an entire `Accept-Language` header with `q=...` weights, process it with appropriate negotiation syntax (such as `Locale.LanguageRange`/`Locale.lookup`) rather than passing the whole header as a single language tag.
 
-### Tại sao chọn `toLanguageTag()` thay vì `toString()`?
+### Why choose `toLanguageTag()` instead of `toString()`?
 
-`Locale.toString()` sử dụng biểu diễn lịch sử của Java, có thể chứa dấu `_` và các phần script/extension theo cấu trúc không phải BCP 47. Khi lưu hoặc trao đổi locale với API, dùng `toLanguageTag()`; để đọc lại, dùng `forLanguageTag(...)` hoặc `Builder`. Không tự tách `toString()` theo dấu gạch dưới để suy ra đủ bốn thành phần.
+`Locale.toString()` uses Java's historical representation, which may contain `_` and script/extension parts in a non-BCP 47 structure. When storing or exchanging a locale with APIs, use `toLanguageTag()`; to read it back, use `forLanguageTag(...)` or `Builder`. Do not manually split `toString()` by underscores to infer all four components.
 
-## 9. Áp dụng trong bản địa hóa
+## 9. Applying in localization
 
-Các thành phần khác nhau dẫn đến lựa chọn khác nhau:
+Different needs lead to different choices:
 
-| Nhu cầu | Thành phần liên quan | Ví dụ |
+| Need | Relevant component(s) | Examples |
 |---|---|---|
-| Chọn văn bản dịch | Language và đôi khi script | `vi`; `sr-Latn` |
-| Chọn đúng hệ chữ | Script | `sr-Latn` / `sr-Cyrl` |
-| Chọn quy ước định dạng theo vùng | Language + region | `en-US` / `en-GB` |
-| Nhận diện biến thể hiếm đã được định nghĩa | Variant | `sl-rozaj` |
-| Chọn hệ số hoặc lịch | Unicode extension, không phải variant | `en-US-u-nu-thai`; `ja-JP-u-ca-japanese` |
+| Select translated text | Language and sometimes script | `vi`; `sr-Latn` |
+| Select the right script | Script | `sr-Latn` / `sr-Cyrl` |
+| Select regional formatting conventions | Language + region | `en-US` / `en-GB` |
+| Identify a rare defined variant | Variant | `sl-rozaj` |
+| Select numbering system or calendar | Unicode extension, not variant | `en-US-u-nu-thai`; `ja-JP-u-ca-japanese` |
 
-Ví dụ API định dạng nhận locale làm tham số, lưu tệp `FormatWithLocale.java`:
+Example of a formatting API taking a locale as a parameter, saved as `FormatWithLocale.java`:
 
 ```java
 import java.text.NumberFormat;
@@ -219,32 +219,32 @@ public class FormatWithLocale {
 }
 ```
 
-Chạy `javac FormatWithLocale.java` rồi `java FormatWithLocale`. Dấu nhóm, dấu thập phân, ký hiệu tiền tệ và khoảng trắng có thể khác nhau theo JDK/provider/dữ liệu locale; vì vậy **không hardcode một stdout duy nhất** cho ví dụ này. `Locale` xác định yêu cầu ngữ cảnh, còn `NumberFormat` thực hiện định dạng.
+Run `javac FormatWithLocale.java` then `java FormatWithLocale`. Grouping separators, decimal separators, currency symbols, and whitespace may vary across JDKs/providers/locale data; therefore **do not hardcode a single stdout** for this example. `Locale` specifies the context request, while `NumberFormat` performs the formatting.
 
-`ResourceBundle` cũng dùng `Locale` để tìm bundle thích hợp. Khi tài nguyên của tổ hợp yêu cầu không tồn tại, cơ chế tìm kiếm có thể fallback sang ngôn ngữ/vùng ít cụ thể hơn, locale mặc định hoặc bundle gốc theo quy tắc của `ResourceBundle`. Đừng suy ra rằng một `Locale` hợp lệ sẽ có bản dịch đầy đủ; nên kiểm thử nội dung thực sự trả về sau fallback.
+`ResourceBundle` also uses `Locale` to find the appropriate bundle. When resources for the requested combination do not exist, the lookup mechanism may fall back to a less specific language/region, the default locale, or the root bundle according to `ResourceBundle` rules. Do not assume that a valid `Locale` will have complete translations; test the actual content returned after fallback.
 
-Một số API dùng default locale nếu không truyền đối tượng. Trong ứng dụng máy chủ xử lý nhiều người dùng, nên **truyền `Locale` tường minh cho từng lời gọi**. `Locale.setDefault(...)` thay đổi trạng thái mặc định toàn cục, có thể tác động đến luồng/request khác. Java còn phân biệt mặc định cho `Locale.Category.DISPLAY` và `Locale.Category.FORMAT`.
+Some APIs use the default locale if no object is passed. In a server application handling multiple users, **pass `Locale` explicitly to every call**. `Locale.setDefault(...)` mutates global default state, which can affect other threads/requests. Java also distinguishes defaults for `Locale.Category.DISPLAY` and `Locale.Category.FORMAT`.
 
-## 10. Lỗi phổ biến và cách tránh
+## 10. Common mistakes and how to avoid them
 
-1. **Nhầm `language` với `region`**: `en` là tiếng Anh, `US` là Hoa Kỳ; `en-US` chứa cả hai.
-2. **Bỏ qua script**: `sr-Latn-RS` và `sr-Cyrl-RS` khác hệ chữ, dù language và region trùng nhau.
-3. **Suy ra hệ chữ từ region**: `zh-TW` không khai báo `Hant`; dùng `zh-Hant-TW` khi yêu cầu phải rõ.
-4. **Dùng region thay múi giờ**: region không xác định duy nhất `ZoneId`; xử lý múi giờ bằng API ngày giờ.
-5. **Nhầm variant với extension**: `getVariant()` không trả `nu-thai`; dùng `getUnicodeLocaleType("nu")`.
-6. **Dùng `en_US` như thẻ BCP 47**: tag chuẩn là `en-US`; legacy Java có thể dùng dấu `_` trong `toString()`.
-7. **Coi `forLanguageTag` là validator**: phương thức có thể chấp nhận một phần chuỗi; dùng `Builder` và kiểm tra danh sách hỗ trợ nếu cần chặt chẽ.
-8. **Coi `Builder` là validator ngữ nghĩa**: nó chỉ xác nhận dạng cú pháp hợp lệ, không chứng minh mã đã đăng ký hay có tài nguyên dịch.
-9. **Thao tác default locale trong mỗi request**: dễ ảnh hưởng luồng khác; truyền locale tường minh.
-10. **Dùng tên hiển thị làm ID**: `getDisplayName(...)` có thể thay đổi theo ngôn ngữ hiển thị/dữ liệu JDK; dùng đối tượng `Locale` và language tag để định danh.
+1. **Confusing `language` with `region`**: `en` is English, `US` is the United States; `en-US` contains both.
+2. **Ignoring script**: `sr-Latn-RS` and `sr-Cyrl-RS` differ in script, even though language and region match.
+3. **Inferring script from region**: `zh-TW` does not declare `Hant`; use `zh-Hant-TW` when the requirement must be explicit.
+4. **Using region instead of time zone**: region does not uniquely identify a `ZoneId`; handle time zones using the date/time API.
+5. **Confusing variant with extension**: `getVariant()` does not return `nu-thai`; use `getUnicodeLocaleType("nu")`.
+6. **Using `en_US` as a BCP 47 tag**: the standard tag is `en-US`; legacy Java may use `_` in `toString()`.
+7. **Treating `forLanguageTag` as a validator**: the method may accept part of a string; use `Builder` and check the supported list when strictness is required.
+8. **Treating `Builder` as a semantic validator**: it only verifies valid syntactic form, not that codes are registered or have translation resources.
+9. **Mutating the default locale per request**: easily affects other threads; pass the locale explicitly.
+10. **Using display names as IDs**: `getDisplayName(...)` can change depending on display language/JDK data; use the `Locale` object and language tag as identifiers.
 
-## 11. Kiểm tra kiến thức
+## 11. Knowledge check
 
-- `sr-Latn-RS` so với `sr-Cyrl-RS`: khác **script**.
-- `en-US` so với `en-GB`: khác **region**.
+- `sr-Latn-RS` vs `sr-Cyrl-RS`: differs in **script**.
+- `en-US` vs `en-GB`: differs in **region**.
 - `zh-Hant-TW`: `language=zh`, `script=Hant`, `region=TW`, `variant=""`.
-- `en-US-POSIX`: có **variant**; `en-US-u-nu-thai`: có **Unicode extension**, variant rỗng.
-- Đọc region bằng `getCountry()`; lưu/truyền BCP 47 bằng `toLanguageTag()`.
-- Chỉ khai báo các thành phần thực sự biết; khi tính năng phải phân biệt script/vùng/variant, khai báo chúng rõ ràng và kiểm thử cơ chế fallback.
+- `en-US-POSIX`: has a **variant**; `en-US-u-nu-thai`: has a **Unicode extension**, empty variant.
+- Read region with `getCountry()`; store/pass BCP 47 with `toLanguageTag()`.
+- Only declare components you actually know; when a feature must distinguish script/region/variant, declare them explicitly and test the fallback mechanism.
 
-**Tham khảo:** [Java SE 17 — Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html) · [Java SE 17 — Locale.Builder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.Builder.html) · [IANA Language Subtag Registry](https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry).
+**References:** [Java SE 17 — Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html) · [Java SE 17 — Locale.Builder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.Builder.html) · [IANA Language Subtag Registry](https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry).

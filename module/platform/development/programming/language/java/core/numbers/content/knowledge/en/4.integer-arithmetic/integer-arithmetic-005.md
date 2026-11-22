@@ -1,173 +1,173 @@
-# Phép toán đơn ngôi và tiền tố, hậu tố `++`, `--` trong Java
+# Unary Operations and Prefix/Postfix `++`, `--` in Java
 
-**Toán tử đơn ngôi** (*unary operator*) tác động lên một toán hạng, chẳng hạn `-x` hoặc `~mask`. Hai toán tử **tăng một đơn vị `++`** và **giảm một đơn vị `--`** có hai cách viết: đặt **trước** biến (`++i`, `--i`) hoặc **sau** biến (`i++`, `i--`). Điểm quan trọng nhất là cả hai dạng đều thay đổi biến, nhưng **giá trị mà biểu thức trả về khác nhau**.
+A **unary operator** operates on a single operand, such as `-x` or `~mask`. The **increment `++`** and **decrement `--`** operators have two forms: placed **before** the variable (`++i`, `--i`) or **after** the variable (`i++`, `i--`). The most important point is that both forms modify the variable, but **the value returned by the expression is different**.
 
-Trong phạm vi số học nguyên, cần hiểu đồng thời kiểu của kết quả, phạm vi giá trị, tràn số, thứ tự đánh giá và điều kiện để toán hạng có thể thay đổi. Bài này dùng Java 17+ và phân biệt các ví dụ chạy độc lập với những dòng chỉ dùng để minh họa lỗi biên dịch.
+Within integer arithmetic, you must understand result types, value ranges, overflow, evaluation order, and what makes an operand modifiable. This lesson uses Java 17+ and distinguishes standalone runnable examples from lines used solely to illustrate compile errors.
 
-## 1. Các toán tử đơn ngôi liên quan
+## 1. Relevant Unary Operators
 
-| Cú pháp | Tên | Ý nghĩa | Kiểu toán hạng |
+| Syntax | Name | Meaning | Operand types |
 | --- | --- | --- | --- |
-| `+x` | Dấu cộng đơn ngôi | Lấy giá trị số sau *unary numeric promotion*; không đổi dấu | Kiểu số nguyên hoặc số thực |
-| `-x` | Dấu trừ đơn ngôi | Đổi dấu giá trị số sau *unary numeric promotion* | Kiểu số nguyên hoặc số thực |
-| `~x` | Bù bit (*bitwise complement*) | Đảo từng bit của giá trị đã nâng kiểu | Chỉ kiểu số nguyên |
-| `!flag` | Phủ định logic | `true` thành `false` và ngược lại | `boolean` hoặc `Boolean` (unboxing) |
-| `++x` / `x++` | Tăng tiền tố / hậu tố | Thay đổi biến bằng cách tăng 1; khác ở giá trị trả về | Biến có kiểu số nguyên/số thực hoặc wrapper số tương ứng |
-| `--x` / `x--` | Giảm tiền tố / hậu tố | Thay đổi biến bằng cách giảm 1; khác ở giá trị trả về | Biến có kiểu số nguyên/số thực hoặc wrapper số tương ứng |
+| `+x` | Unary plus | Takes the numeric value after *unary numeric promotion*; does not change sign | Integer or floating-point types |
+| `-x` | Unary minus | Negates the numeric value after *unary numeric promotion* | Integer or floating-point types |
+| `~x` | Bitwise complement | Inverts every bit of the promoted value | Integer types only |
+| `!flag` | Logical negation | `true` becomes `false` and vice versa | `boolean` or `Boolean` (unboxing) |
+| `++x` / `x++` | Prefix / postfix increment | Modifies the variable by adding 1; differs in returned value | Variable of integer/floating-point type or corresponding numeric wrapper |
+| `--x` / `x--` | Prefix / postfix decrement | Modifies the variable by subtracting 1; differs in returned value | Variable of integer/floating-point type or corresponding numeric wrapper |
 
-`+` và `-` cũng tồn tại ở **dạng nhị nguyên**: `a + b` cộng hai số, `a - b` trừ hai số. Java xác định dạng đang dùng dựa trên cấu trúc biểu thức:
+`+` and `-` also exist in **binary form**: `a + b` adds two numbers, `a - b` subtracts two numbers. Java determines which form is used from the expression structure:
 
 ```java
 int a = 5;
-int positive = +a; // 5: cộng đơn ngôi
-int negative = -a; // -5: trừ đơn ngôi
-int sum = a + 2;   // 7: cộng nhị nguyên
-int difference = a - 2; // 3: trừ nhị nguyên
+int positive = +a; // 5: unary plus
+int negative = -a; // -5: unary minus
+int sum = a + 2;   // 7: binary addition
+int difference = a - 2; // 3: binary subtraction
 ```
 
-`+` đơn ngôi **không phải toán tử nối chuỗi**: `+"abc"` không hợp lệ. Toán tử logic `!` chỉ áp dụng cho boolean; không có quy tắc kiểu C/C++ coi `0` tương đương `false`:
+Unary `+` is **not a string concatenation operator**: `+"abc"` is invalid. The logical operator `!` applies only to booleans; there is no C/C++-style rule treating `0` as `false`:
 
 ```java
 boolean enabled = true;
 boolean disabled = !enabled; // false
-// boolean invalid = !0;      // lỗi: int không phải boolean
-// int invalidBits = ~true;    // lỗi: ~ không nhận boolean
+// boolean invalid = !0;      // error: int is not boolean
+// int invalidBits = ~true;    // error: ~ does not accept boolean
 ```
 
-## 2. Nâng kiểu số học đơn ngôi (*unary numeric promotion*)
+## 2. Unary Numeric Promotion
 
-Với `+x`, `-x` và `~x`, Java thực hiện *unary numeric promotion* trước khi tạo kết quả. Đây là khác biệt dễ bỏ sót khi toán hạng là `byte`, `short` hoặc `char`.
+For `+x`, `-x`, and `~x`, Java performs *unary numeric promotion* before producing a result. This is an easily overlooked distinction when the operand is `byte`, `short`, or `char`.
 
-| Kiểu toán hạng | Kiểu kết quả của `+x`, `-x` | Kiểu kết quả của `~x` |
+| Operand type | Result type of `+x`, `-x` | Result type of `~x` |
 | --- | --- | --- |
 | `byte`, `short`, `char` | `int` | `int` |
 | `int` | `int` | `int` |
 | `long` | `long` | `long` |
-| `float` | `float` | Không hợp lệ |
-| `double` | `double` | Không hợp lệ |
+| `float` | `float` | Invalid |
+| `double` | `double` | Invalid |
 
-Wrapper số như `Byte` có thể được *unbox* rồi nâng kiểu; nếu giá trị wrapper là `null` thì việc unboxing có thể gây `NullPointerException`.
+Numeric wrappers such as `Byte` can be *unboxed* and then promoted; if the wrapper value is `null`, unboxing throws a `NullPointerException`.
 
-Ví dụ:
+For example:
 
 ```java
 byte b = 5;
-int x = +b;  // +b có kiểu int
-int y = -b;  // -b có kiểu int
-int z = ~b;  // ~b có kiểu int, giá trị -6
+int x = +b;  // +b has type int
+int y = -b;  // -b has type int
+int z = ~b;  // ~b has type int, value -6
 
-// byte wrong = -b; // lỗi: kết quả int không tự gán về byte
-byte converted = (byte) -b; // -5, ép kiểu có chủ đích
+// byte wrong = -b; // error: int result cannot be assigned directly to byte
+byte converted = (byte) -b; // -5, explicit cast
 ```
 
-Điểm cần phân biệt: **`b++` vẫn cập nhật biến `b` theo kiểu `byte`**, dù `+b` và `-b` tạo kết quả kiểu `int`. Quy tắc đặc biệt của `++`/`--` sẽ được giải thích bên dưới.
+Key distinction: **`b++` still updates the variable `b` as `byte`**, even though `+b` and `-b` produce an `int` result. The special rules for `++`/`--` are explained below.
 
-### Bù bit `~` và biểu diễn bù hai
+### Bitwise Complement `~` and Two's Complement Representation
 
-Với `int`, `~` đảo toàn bộ 32 bit; với `long`, đảo toàn bộ 64 bit. Ta có đồng nhất thức toán học theo biểu diễn bù hai:
+For `int`, `~` inverts all 32 bits; for `long`, it inverts all 64 bits. We have the mathematical identity in two's complement representation:
 
 ```text
 ~x == -x - 1
 ```
 
-Ví dụ:
+For example:
 
 ```java
 int mask = 0b1010; // 10
 int oppositeBits = ~mask; // -11
 ```
 
-`~10` không ra `0b0101` (5), vì `int` có **32 bit**, gồm cả các bit 0 bên trái bốn bit thấp. Đảo tất cả 32 bit tạo ra giá trị âm `-11`. Muốn **chỉ đảo bốn bit thấp**, dùng mặt nạ:
+`~10` does not produce `0b0101` (`5`), because `int` has **32 bits**, including the leading zero bits to the left of the lowest four bits. Inverting all 32 bits yields the negative value `-11`. To **invert only the lowest four bits**, apply a mask:
 
 ```java
 int lowFourFlipped = (~0b1010) & 0b1111; // 0b0101 = 5
 ```
 
-Đừng nhầm `~` với `!`: `~` làm việc trên bit số nguyên, còn `!` làm việc trên giá trị logic.
+Do not confuse `~` with `!`: `~` operates on integer bits, whereas `!` operates on logical boolean values.
 
-## 3. `++` và `--`: tác dụng phụ và giá trị của biểu thức
+## 3. `++` and `--`: Side Effects and Expression Values
 
-Mỗi toán tử tăng/giảm vừa **đọc giá trị cũ**, vừa **ghi giá trị mới** vào biến. Về giá trị dùng trong một biểu thức lớn hơn:
+Each increment/decrement operator both **reads the old value** and **writes the new value** back into the variable. Regarding the value used in a larger expression:
 
-- **Tiền tố `++i`:** tăng biến `i` trước; giá trị biểu thức là **giá trị mới**.
-- **Hậu tố `i++`:** tăng biến `i`; giá trị biểu thức là **giá trị cũ**.
-- **Tiền tố `--i`:** giảm biến trước; giá trị biểu thức là **giá trị mới**.
-- **Hậu tố `i--`:** giảm biến; giá trị biểu thức là **giá trị cũ**.
+- **Prefix `++i`:** increments variable `i` first; the expression value is the **new value**.
+- **Postfix `i++`:** increments variable `i`; the expression value is the **old value**.
+- **Prefix `--i`:** decrements variable first; the expression value is the **new value**.
+- **Postfix `i--`:** decrements variable; the expression value is the **old value**.
 
-Giả sử ban đầu `i = 5`. Mỗi hàng trong bảng sau là **một lần chạy độc lập** bắt đầu từ 5:
+Assume initially `i = 5`. Each row in the following table is an **independent run** starting from `5`:
 
-| Biểu thức | Giá trị biểu thức | Giá trị `i` sau biểu thức |
+| Expression | Expression value | Value of `i` after expression |
 | --- | ---: | ---: |
 | `++i` | 6 | 6 |
 | `i++` | 5 | 6 |
 | `--i` | 4 | 4 |
 | `i--` | 5 | 4 |
 
-Ví dụ hậu tố:
+Postfix example:
 
 ```java
 int i = 5;
 int old = i++; // old = 5; i = 6
 ```
 
-Ví dụ tiền tố:
+Prefix example:
 
 ```java
 int i = 5;
 int current = ++i; // current = 6; i = 6
 ```
 
-Khi **dùng như một câu lệnh độc lập**, `i++` và `++i` đều làm `i` tăng một. Khác biệt quan trọng khi kết quả biểu thức được dùng, ví dụ `int a = i++;` hoặc `System.out.println(++i);`.
+When **used as a standalone statement**, both `i++` and `++i` increment `i` by one. The difference matters when the expression's value is used, such as `int a = i++;` or `System.out.println(++i);`.
 
-Tương tự `i--` và `--i` đều giảm một khi đứng một mình, nhưng cách trả về giá trị cũ/mới vẫn khác nhau.
+Similarly, `i--` and `--i` both decrement by one when standing alone, while still differing in returning the old vs. new value.
 
-### Đọc output từ đầu đến cuối
+### Reading Output from Top to Bottom
 
-Tệp Java hoàn chỉnh sẽ có ở phần 9. Với hai câu lệnh này:
+A complete Java file is provided in section 9. Given these two statements:
 
 ```java
 int n = 3;
-System.out.println(n++); // in 3; sau đó n thành 4
-System.out.println(++n); // n thành 5; in 5
+System.out.println(n++); // prints 3; then n becomes 4
+System.out.println(++n); // n becomes 5; prints 5
 ```
 
-Output theo đúng thứ tự là `3` rồi `5`. Không thể hiểu hậu tố theo nghĩa “tăng muộn ở một thời điểm tùy ý”; tác dụng ghi vào biến xảy ra trong quá trình đánh giá biểu thức đó. Chỉ **giá trị trả về của biểu thức hậu tố** là giá trị trước khi tăng/giảm.
+The output in exact order is `3` then `5`. Do not interpret postfix as "incrementing lazily at some arbitrary later time"; the write to the variable happens during evaluation of that expression. Only the **return value of the postfix expression** is the pre-increment/decrement value.
 
-## 4. Kiểu của `++`/`--` và vì sao `byte` vẫn tăng được
+## 4. Types of `++`/`--` and Why `byte` Can Still Be Incremented
 
-Với `++`/`--`, toán hạng phải là một **biến** có kiểu số. Java lấy giá trị của biến, thực hiện phép tăng/giảm theo quy tắc số học, rồi **chuyển kết quả trở lại kiểu của biến** trước khi lưu. Giá trị của biểu thức tăng/giảm cũng có kiểu của biến đó.
+For `++`/`--`, the operand must be a **variable** of numeric type. Java reads the variable's value, performs the increment/decrement under numeric arithmetic rules, and then **converts the result back to the variable's type** before storing it. The value of the increment/decrement expression also has the variable's type.
 
-Do vậy:
+Therefore:
 
 ```java
 byte count = 127;
-count++;  // hợp lệ: byte từ 127 tràn sang -128
-byte result = count++; // hợp lệ: kết quả hậu tố cũng có kiểu byte
+count++;  // valid: byte overflows from 127 to -128
+byte result = count++; // valid: postfix result also has type byte
 ```
 
-Khác với:
+Contrast with:
 
 ```java
 byte count = 5;
-// byte invalid = count + 1; // lỗi: count + 1 có kiểu int
-// byte invalid2 = +count;   // lỗi: +count có kiểu int
-count++;                   // hợp lệ: phép ++ có quy tắc chuyển kiểu đặc biệt
+// byte invalid = count + 1; // error: count + 1 has type int
+// byte invalid2 = +count;   // error: +count has type int
+count++;                   // valid: ++ has a special conversion rule
 ```
 
-Câu `count++` **không tương đương về kiểu** với việc viết một phép gán `count = count + 1;`, vì biểu thức `count + 1` là `int`. `count += 1;` cũng hợp lệ trong nhiều trường hợp nhưng là toán tử gán kết hợp có quy tắc riêng và cần hiểu hệ quả ép kiểu.
+The statement `count++` is **not type-equivalent** to writing an assignment `count = count + 1;`, because the expression `count + 1` is `int`. `count += 1;` is also valid in many cases, but it is a compound assignment operator with its own rules whose casting implications must be understood.
 
-Điểm chú ý đối với wrapper:
+A point to watch with wrappers:
 
 ```java
 Integer boxed = 3;
-boxed++;  // unbox Integer -> int, tăng, box lại thành Integer
+boxed++;  // unbox Integer -> int, increment, rebox to Integer
 // Integer missing = null;
-// missing++; // biên dịch được nhưng ném NullPointerException lúc chạy
+// missing++; // compiles, but throws NullPointerException at runtime
 ```
 
-Wrapper `Integer` là tham chiếu tới object; đây là phép **gán lại biến tham chiếu tới một giá trị mới được boxing**, không có chuyện thay đổi nội dung object `Integer` bất biến.
+The `Integer` wrapper is an object reference; this operation **reassigns the reference variable to a newly boxed value**, rather than mutating an immutable `Integer` object's internals.
 
-`char` cũng là kiểu nguyên 16 bit không dấu và có thể tăng:
+`char` is also a 16-bit unsigned integer type and can be incremented:
 
 ```java
 char letter = 'A';
@@ -175,22 +175,22 @@ letter++;                // 'B'
 int code = letter;       // 66
 ```
 
-Không dùng `++` trên `boolean`, `String` hoặc `BigInteger`. Với `BigInteger`, nên gọi `add(BigInteger.ONE)` để tạo giá trị mới.
+Do not use `++` on `boolean`, `String`, or `BigInteger`. For `BigInteger`, call `add(BigInteger.ONE)` to produce a new value.
 
-## 5. Biến nào là toán hạng hợp lệ của `++` và `--`?
+## 5. Which Variables Are Valid Operands for `++` and `--`?
 
-Toán tử tăng/giảm phải tác động lên **biến có thể gán được** (*assignable variable*) có kiểu số. Ví dụ:
+Increment/decrement operators must act on an **assignable variable** of numeric type. For example:
 
 ```java
 int local = 1;
-local++;                 // biến cục bộ
+local++;                 // local variable
 int[] items = {4};
-items[0]++;              // phần tử mảng
+items[0]++;              // array element
 Counter counter = new Counter();
-counter.value++;         // field có thể gán
+counter.value++;         // assignable field
 ```
 
-`Counter` ở trên là một class minh họa, ví dụ:
+`Counter` above is an illustrative class, for example:
 
 ```java
 class Counter {
@@ -198,45 +198,45 @@ class Counter {
 }
 ```
 
-Các trường hợp dưới đây sai nếu bỏ dấu chú thích:
+The cases below are invalid if uncommented:
 
 ```java
-// 5++;                 // literal không phải biến
-// (2 + 3)++;           // giá trị phép cộng không phải biến
-// getNumber()++;       // giá trị trả về của method không phải biến
+// 5++;                 // literal is not a variable
+// (2 + 3)++;           // addition result is not a variable
+// getNumber()++;       // method return value is not a variable
 final int limit = 10;
-// limit++;             // final không thể gán lại
+// limit++;             // final variable cannot be reassigned
 ```
 
-Một biến cục bộ phải được **gán chắc chắn trước khi tăng/giảm**, vì `++` và `--` luôn cần đọc giá trị cũ:
+A local variable must be **definitely assigned before incrementing/decrementing**, because `++` and `--` always need to read the old value:
 
 ```java
 void example() {
     int number;
-    // number++; // lỗi biên dịch: number chưa được khởi tạo
+    // number++; // compile error: number is not initialized
     number = 0;
-    number++;    // hợp lệ
+    number++;    // valid
 }
 ```
 
-Đoạn `example()` chỉ là một method minh họa đặt trong class; không có method `main` nên không độc lập để chạy.
+The `example()` snippet is only an illustrative method inside a class; without a `main` method, it is not standalone runnable.
 
-## 6. Thứ tự đánh giá trong biểu thức có nhiều lần tăng
+## 6. Evaluation Order in Expressions with Multiple Increments
 
-Java đánh giá các toán hạng theo thứ tự xác định từ **trái sang phải**. Vì vậy Java cho kết quả xác định đối với biểu thức như sau:
+Java evaluates operands in a deterministic order from **left to right**. Thus Java defines a deterministic result for expressions like:
 
 ```java
 int i = 1;
 int sum = i++ + ++i;
 ```
 
-Diễn tiến:
+Trace:
 
-1. Đánh giá toán hạng bên trái `i++`: lấy giá trị biểu thức là `1` rồi cập nhật `i = 2`.
-2. Đánh giá toán hạng bên phải `++i`: cập nhật `i = 3` rồi lấy giá trị biểu thức là `3`.
-3. Cộng `1 + 3` thành `4`; sau câu lệnh, `i = 3`.
+1. Evaluate the left operand `i++`: yields expression value `1`, then updates `i = 2`.
+2. Evaluate the right operand `++i`: updates `i = 3`, then yields expression value `3`.
+3. Add `1 + 3` to get `4`; after the statement, `i = 3`.
 
-Do đó `sum == 4` và `i == 3`. Đây là hành vi Java xác định, nhưng kiểu mã trên **khó đọc và dễ bảo trì sai**. Trong code ứng dụng, ưu tiên tách ra:
+Thus `sum == 4` and `i == 3`. This is well-defined Java behavior, but code like this is **hard to read and error-prone to maintain**. In application code, prefer splitting it up:
 
 ```java
 int i = 1;
@@ -247,20 +247,20 @@ int right = i;
 int sum = left + right; // 4; i = 3
 ```
 
-Chỉ đọc `i++` và `++i` theo ý nghĩa giá trị cũ/mới; không dựa vào mẹo ghi nhớ mơ hồ “trước thì trước, sau thì sau” mà quên theo dõi biến được cập nhật lúc nào.
+Always read `i++` and `++i` by their old/new value semantics; do not rely on vague mnemonics like "before means before, after means after" while forgetting to track when the variable is updated.
 
-### Bẫy: `i = i++`
+### Trap: `i = i++`
 
 ```java
 int i = 1;
 i = i++;
 ```
 
-Phép `i++` tạo giá trị biểu thức **`1`**, đồng thời cập nhật biến lên 2. Sau đó phép gán bên ngoài ghi **`1`** trở lại `i`. Kết quả cuối cùng vẫn là **`i == 1`**.
+`i++` produces the expression value **`1`**, while updating the variable to `2`. Then the outer assignment writes **`1`** back into `i`. The final result remains **`i == 1`**.
 
-Đây là ví dụ điển hình cho thấy hậu tố có hai kết quả cần phân biệt: *side effect* lên biến và *giá trị biểu thức được sử dụng*. Nếu chỉ muốn tăng, viết riêng `i++;`. Đừng kết hợp gán lại cùng một biến.
+This is a classic example showing that postfix has two distinct effects: the *side effect* on the variable and the *expression value used*. If you only want to increment, write `i++;` by itself. Never combine it with assigning back to the same variable.
 
-### Thứ tự đánh giá với phần tử mảng
+### Evaluation Order with Array Elements
 
 ```java
 int[] values = {3};
@@ -268,13 +268,13 @@ int index = 0;
 int previous = values[index++]++;
 ```
 
-Java đánh giá mảng và chỉ số, nên phần tử được chọn là `values[0]`; đồng thời `index` tăng lên 1. Toán tử hậu tố trên phần tử trả giá trị cũ `3` rồi ghi `4` vào `values[0]`. Kết quả: `previous == 3`, `values[0] == 4` và `index == 1`.
+Java evaluates the array and index first, selecting `values[0]`, while `index` increments to `1`. The postfix operator on the element returns the old value `3` and writes `4` into `values[0]`. Result: `previous == 3`, `values[0] == 4`, and `index == 1`.
 
-Khi chỉ cần tăng một phần tử, cách `values[index]++;` thường dễ hiểu hơn; tăng cả `index` và phần tử trong cùng biểu thức có thể gây nhầm lẫn.
+When you only need to increment an element, `values[index]++;` is usually clearer; incrementing both `index` and the element in the same expression can cause confusion.
 
-## 7. Tràn số và các giá trị biên
+## 7. Overflow and Boundary Values
 
-`++`, `--` không tự ném exception khi số nguyên primitive vượt phạm vi. Java số nguyên có độ rộng cố định; các phép tính có thể **tràn** (*overflow*).
+`++` and `--` do not automatically throw exceptions when primitive integers go out of range. Java integers have fixed width; operations can **overflow**.
 
 ```java
 int max = Integer.MAX_VALUE; // 2147483647
@@ -287,49 +287,49 @@ byte b = Byte.MAX_VALUE;     // 127
 b++;                        // -128
 ```
 
-Cũng cần chú ý toán tử trừ đơn ngôi tại biên:
+Also pay attention to unary minus at boundaries:
 
 ```java
 int min = Integer.MIN_VALUE;
-int negated = -min; // vẫn -2147483648 do int không biểu diễn được +2147483648
-long exact = -(long) min; // 2147483648: mở rộng trước rồi đổi dấu
+int negated = -min; // still -2147483648 because int cannot represent +2147483648
+long exact = -(long) min; // 2147483648: widen first, then negate
 ```
 
-Nếu bài toán yêu cầu phát hiện tràn thay vì chấp nhận quay vòng, sử dụng `Math.addExact(x, 1)`, `Math.subtractExact(x, 1)` hoặc `Math.negateExact(x)` khi phù hợp cho kiểu `int`/`long`. Ví dụ `Math.incrementExact(Integer.MAX_VALUE)` ném `ArithmeticException` thay vì trả số âm. Những method này **không được gọi ngầm** bởi `++`/`--`.
+If the problem requires detecting overflow rather than accepting wraparound, use `Math.addExact(x, 1)`, `Math.subtractExact(x, 1)`, or `Math.negateExact(x)` where appropriate for `int`/`long`. For instance, `Math.incrementExact(Integer.MAX_VALUE)` throws `ArithmeticException` instead of returning a negative number. These methods are **not called implicitly** by `++`/`--`.
 
-Với số thực `float`/`double`, `++`/`--` vẫn hợp lệ; nhưng do độ chính xác hữu hạn, tăng 1 có thể **không làm giá trị thay đổi** ở độ lớn nhất định. Tránh dùng số thực nhị phân cho tiền tệ; đây là vấn đề độ chính xác số học, không phải riêng toán tử `++`.
+For `float`/`double` floating-point types, `++`/`--` are still valid; however, due to finite precision, adding `1` may **leave the value unchanged** at sufficiently large magnitudes. Avoid binary floating-point for currency; that is a numeric precision issue, not specific to `++`.
 
-## 8. Lỗi thường gặp và cách sửa
+## 8. Common Mistakes and Fixes
 
-| Nhầm lẫn / lỗi | Giải thích đúng |
+| Misconception / bug | Correct explanation |
 | --- | --- |
-| “`i++` và `++i` luôn trả về cùng giá trị” | Chúng cùng tăng biến, nhưng hậu tố trả giá trị cũ; tiền tố trả giá trị mới |
-| “`System.out.println(i++)` sẽ in giá trị mới” | `println` nhận giá trị cũ của biểu thức hậu tố |
-| “`-b` có kiểu `byte` nếu `b` là byte” | Unary numeric promotion khiến kết quả có kiểu `int` |
-| “`~0b1010` bằng `0b0101`” | `~` đảo đủ 32 bit của `int` nên ra `-11`; muốn chỉ 4 bit, cần mặt nạ |
-| “`byte b = 127; b++;` là lỗi biên dịch” | Hợp lệ; khi tăng sẽ tràn về `-128` |
-| “`i = i++;` giúp tăng i” | Phép gán cuối cùng ghi đè thay đổi, khiến `i` giữ giá trị cũ |
-| “Có thể viết `5++` hoặc `getNumber()++`” | Toán hạng phải là biến gán được, không phải literal hay giá trị method |
-| “`final int n = 1; n++;` hợp lệ” | Không thể gán lại biến `final` |
-| “`Integer n = null; n++;` tự khởi tạo n thành 1” | Unboxing `null` gây `NullPointerException` |
-| “`i++` luôn an toàn khi nhiều thread cùng chạy” | Đọc, cộng và ghi là các bước; `++` không bảo đảm cập nhật nguyên tử giữa nhiều thread |
+| "`i++` and `++i` always return the same value" | Both increment the variable, but postfix returns the old value; prefix returns the new value |
+| "`System.out.println(i++)` will print the new value" | `println` receives the old value of the postfix expression |
+| "`-b` has type `byte` if `b` is byte" | Unary numeric promotion makes the result type `int` |
+| "`~0b1010` equals `0b0101`" | `~` flips all 32 bits of `int`, giving `-11`; to flip only 4 bits, apply a mask |
+| "`byte b = 127; b++;` is a compile error" | Valid; incrementing wraps around to `-128` |
+| "`i = i++;` increments `i`" | The final assignment overwrites the increment, leaving `i` with its old value |
+| "You can write `5++` or `getNumber()++`" | The operand must be an assignable variable, not a literal or method return value |
+| "`final int n = 1; n++;` is valid" | A `final` variable cannot be reassigned |
+| "`Integer n = null; n++;` initializes `n` to 1" | Unboxing `null` throws `NullPointerException` |
+| "`i++` is always thread-safe across multiple threads" | Read, add, and write are separate steps; `++` does not guarantee atomic updates across threads |
 
-### Ghi chú về nhiều luồng
+### Note on Multithreading
 
-`counter++` trên biến dùng chung **không phải thao tác nguyên tử**. Hai thread có thể đọc cùng giá trị và ghi đè kết quả của nhau, dẫn đến mất lần tăng. Nếu cần bộ đếm dùng chung, một lựa chọn là `AtomicInteger`:
+`counter++` on a shared variable is **not an atomic operation**. Two threads can read the same value and overwrite each other's updates, causing lost increments. If a shared counter is needed, one option is `AtomicInteger`:
 
 ```java
 java.util.concurrent.atomic.AtomicInteger counter =
         new java.util.concurrent.atomic.AtomicInteger(0);
-int old = counter.getAndIncrement(); // trả giá trị cũ
-int current = counter.incrementAndGet(); // trả giá trị mới
+int old = counter.getAndIncrement(); // returns old value
+int current = counter.incrementAndGet(); // returns new value
 ```
 
-Đây là ví dụ nhỏ đối chiếu ngữ nghĩa hậu tố/tiền tố; việc thiết kế đồng bộ giữa thread là chủ đề riêng.
+This is a small example contrasting postfix/prefix semantics; thread synchronization design is a separate topic.
 
-## 9. Chương trình chạy độc lập trên Java 17+
+## 9. Standalone Runnable Program on Java 17+
 
-Tạo tệp **`UnaryOperatorsDemo.java`**:
+Create a file **`UnaryOperatorsDemo.java`**:
 
 ```java
 public class UnaryOperatorsDemo {
@@ -378,14 +378,14 @@ public class UnaryOperatorsDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ```bash
 javac UnaryOperatorsDemo.java
 java UnaryOperatorsDemo
 ```
 
-Output chính xác:
+Exact output:
 
 ```text
 postIncValue=5
@@ -412,17 +412,17 @@ negMinInt=-2147483648
 negMinLong=2147483648
 ```
 
-Đọc từng dòng theo hai câu hỏi: **biến đã thay đổi thành gì?** và **giá trị biểu thức được truyền cho `println` là gì?** Ví dụ `postIncValue=5` đi kèm `afterPostInc=6` là bằng chứng rõ ràng rằng hậu tố trả giá trị cũ nhưng đã cập nhật biến.
+Read each line by asking two questions: **what did the variable change to?** and **what expression value was passed to `println`?** For example, `postIncValue=5` followed by `afterPostInc=6` clearly proves that postfix returns the old value while already updating the variable.
 
-## 10. Quy trình giải bài toán có `++`/`--`
+## 10. Step-by-Step Process for Solving `++`/`--` Expressions
 
-Khi phân tích một biểu thức, làm theo thứ tự:
+When analyzing an expression, follow this order:
 
-1. **Kiểm tra toán hạng:** `++`/`--` cần biến số gán được, đã được gán trước khi đọc và không phải `final` không thể cập nhật.
-2. **Xác định vị trí toán tử:** tiền tố trả giá trị sau thay đổi, hậu tố trả giá trị trước thay đổi.
-3. **Theo dõi tác dụng phụ:** cập nhật giá trị biến đúng một bước tăng/giảm (có thể tràn hoặc chịu quy tắc số thực).
-4. **Theo dõi thứ tự tính biểu thức:** Java đánh giá các toán hạng từ trái sang phải; nếu một biến xuất hiện nhiều lần, ghi lại cả giá trị trả về và giá trị biến tại mỗi bước.
-5. **Kiểm tra kiểu:** `+`, `-`, `~` có nâng kiểu số học; `++`, `--` lưu kết quả trở lại kiểu biến và có thể thu hẹp/tràn.
-6. **Ưu tiên viết rõ:** trong mã sản phẩm, tránh trộn nhiều lần tăng/giảm hoặc vừa gán vừa hậu tố trên cùng biến. Chia thành các câu lệnh độc lập khi logic không cần biểu thức phức tạp.
+1. **Check the operand:** `++`/`--` requires an assignable numeric variable, definitely assigned before reading, and not an unmodifiable `final` variable.
+2. **Identify operator position:** prefix returns the value after modification; postfix returns the value before modification.
+3. **Track the side effect:** update the variable's value by exactly one increment/decrement step (subject to overflow or floating-point rules).
+4. **Track evaluation order:** Java evaluates operands from left to right; if a variable appears multiple times, record both the returned value and the variable's value at each step.
+5. **Check types:** `+`, `-`, `~` apply numeric promotion; `++`, `--` store the result back into the variable's type and can narrow/overflow.
+6. **Prefer clear code:** in production code, avoid mixing multiple increments/decrements or combining assignment with postfix on the same variable. Split into separate statements when logic does not need complex expressions.
 
-**Điểm cần nhớ:** `++i` trả giá trị **mới**, `i++` trả giá trị **cũ**, nhưng cả hai đều tăng biến. Dấu `+`/`-` đơn ngôi và `~` lại tuân theo quy tắc nâng kiểu số học; hiểu rõ kiểu, thứ tự đánh giá và giá trị biên giúp tránh lỗi khó phát hiện.
+**Key Takeaway:** `++i` returns the **new** value and `i++` returns the **old** value, but both increment the variable. Unary `+`/`-` and `~` follow numeric promotion rules; clearly understanding types, evaluation order, and boundary values helps avoid hard-to-spot bugs.

@@ -1,75 +1,75 @@
-# Khoảng trắng, vị trí ký hiệu và định dạng âm theo dữ liệu locale
+# Whitespace, Symbol Position, and Negative Formatting by Locale Data
 
-Một số tiền không chỉ là số có thêm ký hiệu tiền tệ. Cùng giá trị **1234,50 EUR**, người dùng ở các vùng khác nhau có thể quen với ký hiệu đứng **trước** hoặc **sau** con số, dùng dấu **chấm** hay **phẩy** làm dấu thập phân, có hoặc không có **khoảng trắng** giữa số và ký hiệu, và thể hiện số âm bằng dấu trừ hay cặp ngoặc. Ngay cả khi nhìn giống dấu cách thông thường, ký tự thực tế có thể là **U+0020 SPACE**, **U+00A0 NO-BREAK SPACE** hoặc **U+202F NARROW NO-BREAK SPACE**.
+A monetary amount is not merely a number with a currency symbol appended. For the same value **1234.50 EUR**, users in different regions may expect the symbol **before** or **after** the number, use a **period** or a **comma** as the decimal separator, have or omit **whitespace** between the number and the symbol, and represent negative values with a minus sign or parentheses. Even when a character looks like a regular space, the actual character may be **U+0020 SPACE**, **U+00A0 NO-BREAK SPACE**, or **U+202F NARROW NO-BREAK SPACE**.
 
-Trong Java Core, **NumberFormat.getCurrencyInstance(locale)** và các lớp **DecimalFormat**, **DecimalFormatSymbols** sử dụng dữ liệu locale của runtime để tạo cách biểu diễn tiền tệ. Bài học này đi sâu vào **khoảng trắng, vị trí ký hiệu và cách định dạng giá trị âm**, cách quan sát chúng một cách chính xác, thiết kế mẫu tùy chỉnh khi cần, và phân biệt định dạng dành cho người đọc với dữ liệu tiền tệ dùng trong nghiệp vụ.
+In Java Core, **NumberFormat.getCurrencyInstance(locale)** along with **DecimalFormat** and **DecimalFormatSymbols** use the runtime's locale data to produce currency representations. This lesson goes into detail on **whitespace, symbol position, and negative value formatting**, how to inspect them accurately, how to design custom patterns when needed, and how to distinguish human-readable formatting from business-domain monetary data.
 
-## 1. Tách giá trị tiền khỏi cách biểu diễn
+## 1. Separating monetary value from its presentation
 
-Một đối tượng nghiệp vụ có thể chứa:
+A business object may contain:
 
-- **Giá trị số:** chẳng hạn một **BigDecimal** biểu diễn 1234.50.
-- **Đơn vị tiền:** mã ISO 4217 như **EUR**, **USD**, **VND** được thể hiện bằng **java.util.Currency**.
-- **Locale hiển thị:** ví dụ **en-US**, **de-DE**, **fr-FR** hoặc **vi-VN**.
-- **Chính sách trình bày:** quy định vị trí ký hiệu, khoảng trắng, số chữ số thập phân, dấu âm hoặc kiểu kế toán nếu sản phẩm yêu cầu.
+- **Numeric value:** for example, a **BigDecimal** representing 1234.50.
+- **Currency unit:** an ISO 4217 code such as **EUR**, **USD**, or **VND** represented by **java.util.Currency**.
+- **Display locale:** for example, **en-US**, **de-DE**, **fr-FR**, or **vi-VN**.
+- **Presentation policy:** rules for symbol position, whitespace, number of decimal digits, negative sign, or accounting style if required by the product.
 
-Bốn điều trên không đồng nghĩa. Một người chọn giao diện tiếng Việt vẫn có thể thanh toán bằng EUR. **Currency** không quyết định ngôn ngữ giao diện; **Locale** không chứng minh giao dịch dùng loại tiền nào; **NumberFormat** không quy đổi tỷ giá.
+These four things are not synonymous. A user who selects a Vietnamese UI can still pay in EUR. **Currency** does not determine UI language; **Locale** does not prove which currency a transaction uses; **NumberFormat** does not perform exchange-rate conversion.
 
-Mô hình đúng:
+The proper model:
 
 ~~~text
 Money = (BigDecimal amount, Currency currency)
                          +
-             Locale người xem
+                   Viewer locale
                          +
-             Chính sách hiển thị
+                   Display policy
                          |
                          v
-            Chuỗi tiền đã định dạng
+              Formatted money string
 ~~~
 
-Nếu mục tiêu là lưu trữ hoặc truyền dữ liệu qua API, hãy lưu **amount** và **currency** thành các trường dữ liệu có kiểu. Chuỗi như **1.234,50 €** chỉ là đầu ra phục vụ con người, không nên trở thành biểu diễn chuẩn duy nhất của giá trị tiền.
+If the goal is storage or data transfer over an API, store **amount** and **currency** as typed data fields. A string like **1.234,50 €** is purely output for human readers and should not become the sole canonical representation of a monetary value.
 
-## 2. Locale ảnh hưởng những thuộc tính nào?
+## 2. Which properties does a locale affect?
 
-Đối với định dạng tiền, runtime có thể cung cấp những thông tin sau:
+For currency formatting, the runtime can supply the following information:
 
-| Thuộc tính | Vai trò |
+| Property | Role |
 | --- | --- |
-| **Decimal separator** | Ký hiệu phân cách phần nguyên và phần thập phân |
-| **Grouping separator** | Ký hiệu phân nhóm hàng nghìn và các nhóm khác |
-| **Currency symbol** | Ký hiệu hiển thị như **€**, **$**, **₫** hoặc dạng phân biệt khác |
-| **Currency pattern** | Cấu trúc quy định vị trí ký hiệu và khoảng trắng |
-| **Negative subpattern/prefix/suffix** | Cách biểu diễn giá trị âm |
-| **Fraction digits** | Số chữ số tối thiểu/tối đa trong cấu hình formatter |
-| **Digit symbols** | Hệ chữ số, dấu trừ và các ký hiệu liên quan |
+| **Decimal separator** | Symbol separating the integer part and the fractional part |
+| **Grouping separator** | Symbol grouping thousands and other digit groups |
+| **Currency symbol** | Display symbol such as **€**, **$**, **₫**, or another disambiguating form |
+| **Currency pattern** | Structure defining symbol placement and whitespace |
+| **Negative subpattern/prefix/suffix** | How negative values are represented |
+| **Fraction digits** | Minimum/maximum number of digits in the formatter configuration |
+| **Digit symbols** | Digit set, minus sign, and related symbols |
 
-Trong Java, các thông tin này được lấy chủ yếu qua **NumberFormat** và cấu hình của **DecimalFormat** cùng **DecimalFormatSymbols**. Phần lớn runtime Java hiện đại tích hợp dữ liệu địa phương hóa từ CLDR, nhưng chi tiết có thể đổi khi nâng cấp bản JDK, dữ liệu locale hoặc provider.
+In Java, this information is obtained primarily through **NumberFormat** and the configuration of **DecimalFormat** together with **DecimalFormatSymbols**. Most modern Java runtimes bundle localization data from CLDR, though details may change when upgrading JDK versions, locale data, or providers.
 
-**Đừng viết test giả định rằng mọi bản JDK luôn cho cùng một chuỗi tiền từng byte.** Nên biết bạn đang kiểm thử khả năng bản địa hóa của runtime hay hợp đồng định dạng riêng của ứng dụng.
+**Do not write tests assuming that every JDK version always produces the exact same currency string byte for byte.** Know whether you are testing the runtime's localization behavior or your application's own formatting contract.
 
-## 3. Vị trí ký hiệu tiền tệ có thể thay đổi theo locale
+## 3. Currency symbol position can vary by locale
 
-Có ít nhất ba kiểu thường gặp về mặt trải nghiệm:
+From a user-experience perspective, there are at least three common styles:
 
 ~~~text
-Ký hiệu trước số:       €1,234.50
-Ký hiệu sau số:         1.234,50 €
-Mã tiền thay ký hiệu:   EUR 1,234.50
+Symbol before number:            €1,234.50
+Symbol after number:             1.234,50 €
+Currency code instead of symbol: EUR 1,234.50
 ~~~
 
-Đây là những dạng minh họa, **không phải bảng cam kết output chính xác của mọi JDK**. Thực tế ký hiệu có thể cần khoảng trắng đặc biệt, vị trí có thể thay đổi giữa mã ISO và ký hiệu, và giá trị âm có thể đặt dấu trừ ở vị trí khác.
+These are illustrative forms, **not a table guaranteeing exact output across every JDK**. In practice, the symbol may require special whitespace, placement may differ between the ISO code and the symbol, and negative values may place the minus sign in different positions.
 
-Một lỗi phổ biến là tự nối:
+A common mistake is manual concatenation:
 
 ~~~java
 String display = currency.getSymbol(locale)
         + numberFormatter.format(amount);
 ~~~
 
-Đoạn trên chỉ là minh họa. Nó ngầm bắt ký hiệu đứng trước, không quan tâm khoảng cách, dấu âm hoặc mẫu tiền tệ của locale. Với một số vùng, chính sách tự ghép này tạo ra cách trình bày không tự nhiên.
+The snippet above is illustrative only. It implicitly forces the symbol in front, ignoring spacing, negative signs, or the locale's currency pattern. For some regions, this manual concatenation policy produces an unnatural presentation.
 
-Thay vào đó, để runtime quyết định theo locale:
+Instead, let the runtime decide based on the locale:
 
 ~~~java
 NumberFormat money =
@@ -78,49 +78,49 @@ money.setCurrency(currency);
 String display = money.format(amount);
 ~~~
 
-Đoạn này cần import **java.text.NumberFormat**, biến **Locale locale**, **Currency currency** và giá trị **amount**. Hàm factory quyết định bố cục dựa trên locale; **setCurrency** chỉ định đơn vị tiền cụ thể. Giá trị **amount** không được tự chuyển đổi tỷ giá.
+This snippet requires importing **java.text.NumberFormat**, along with variables **Locale locale**, **Currency currency**, and value **amount**. The factory method determines the layout from the locale; **setCurrency** specifies the exact currency unit. The **amount** value is not converted by an exchange rate.
 
-### 3.1. Ký hiệu tiền không phải lúc nào cũng duy nhất
+### 3.1. Currency symbols are not always unique
 
-**$** có thể được dùng cho nhiều đồng tiền. **Currency.getSymbol(locale)** có thể trả về một ký hiệu địa phương hóa hoặc dạng phân biệt như mã tiền tùy trường hợp và dữ liệu runtime. Vì vậy:
+**$** can be used for multiple currencies. **Currency.getSymbol(locale)** may return a localized symbol or a disambiguated form such as a currency code depending on the case and runtime data. Therefore:
 
-- Giao dịch và lưu trữ phải dựa vào **mã tiền ISO**, không dựa vào ký hiệu hiển thị.
-- Ký hiệu trước/sau số phải tuân thủ pattern, không suy từ ký hiệu.
-- Nếu sản phẩm cần luôn in **USD**, **CAD** hay **AUD**, có thể dùng mẫu cho mã ISO hoặc in mã tiền thành phần riêng, nhưng phải giữ vị trí, khoảng trắng và dấu âm theo hợp đồng đã chọn.
+- Transactions and storage must rely on the **ISO currency code**, not the display symbol.
+- Whether the symbol appears before or after the number must follow the pattern, rather than being inferred from the symbol.
+- If a product always needs to print **USD**, **CAD**, or **AUD**, you can use a pattern for the ISO code or render the currency code as a separate component, while preserving placement, whitespace, and negative signs according to the chosen contract.
 
-Không nên giả định một ký tự **$** đủ để suy ra Currency trong parser hoặc trong hóa đơn.
+Never assume a single **$** character is enough to infer a Currency in a parser or on an invoice.
 
-## 4. Khoảng trắng Unicode trong chuỗi tiền
+## 4. Unicode whitespace in currency strings
 
-Các chuỗi dưới đây có thể giống nhau ở một font, nhưng khác code point:
+The sequences below may look identical in some fonts, yet have different code points:
 
-| Code point | Tên | Đặc tính cần biết |
+| Code point | Name | Key characteristic |
 | --- | --- | --- |
-| **U+0020** | SPACE | Dấu cách thường, có thể cho phép xuống dòng |
-| **U+00A0** | NO-BREAK SPACE (NBSP) | Dấu cách không ngắt dòng |
-| **U+202F** | NARROW NO-BREAK SPACE (NNBSP) | Dấu cách hẹp, không ngắt dòng |
-| **U+2009** | THIN SPACE | Dấu cách mảnh, không nhất thiết là ký tự được một locale tiền tệ dùng |
-| **U+200E / U+200F** | LEFT-TO-RIGHT MARK / RIGHT-TO-LEFT MARK | Ký tự điều hướng hai chiều, **không phải dấu cách** |
-| **U+061C** | ARABIC LETTER MARK | Dấu điều hướng bidi, **không phải dấu cách** |
+| **U+0020** | SPACE | Regular space, may allow line wrapping |
+| **U+00A0** | NO-BREAK SPACE (NBSP) | Non-breaking space |
+| **U+202F** | NARROW NO-BREAK SPACE (NNBSP) | Narrow, non-breaking space |
+| **U+2009** | THIN SPACE | Thin space, not necessarily the character used by a currency locale |
+| **U+200E / U+200F** | LEFT-TO-RIGHT MARK / RIGHT-TO-LEFT MARK | Bidirectional control characters, **not spaces** |
+| **U+061C** | ARABIC LETTER MARK | Bidi directional mark, **not a space** |
 
-Ví dụ một chuỗi **1 234,50 €** có thể sử dụng **NNBSP** để nhóm chữ số và **NBSP** giữa số với ký hiệu €. Nếu bạn thay tất cả ký tự khoảng trắng bằng U+0020, kết quả có thể trông giống ban đầu nhưng thay đổi hành vi xuống dòng và quy tắc hiển thị.
+For example, a string **1 234,50 €** may use **NNBSP** for digit grouping and **NBSP** between the number and the € symbol. If you replace all whitespace characters with U+0020, the result may look the same initially but change line-wrapping behavior and display rules.
 
-**Không gán cố định rằng tất cả locale tiếng Pháp luôn dùng U+202F và U+00A0.** Tập dữ liệu locale và phiên bản JDK có thể khác. Kiểm tra **code point của chuỗi thực tế** là cách đáng tin hơn việc nhìn chuỗi trên terminal.
+**Do not hardcode an assumption that every French locale always uses U+202F and U+00A0.** Locale datasets and JDK versions may differ. Inspecting the **code points of the actual string** is far more reliable than visually inspecting output in a terminal.
 
-### 4.1. Vì sao không nên dùng trim hoặc replaceAll một cách tùy tiện?
+### 4.1. Why shouldn't you use trim or replaceAll arbitrarily?
 
-Trong Java:
+In Java:
 
-- **String.trim()** có quy tắc loại bỏ các ký tự ở hai đầu theo khoảng mã nhỏ, không phải bộ xử lý Unicode whitespace đầy đủ.
-- **String.strip()** dựa vào **Character.isWhitespace**, vốn không xem mọi ký tự no-break space là whitespace cần bỏ.
-- Biểu thức chính quy **\\s** theo cấu hình mặc định không thể được mặc nhiên xem là “mọi khoảng trắng Unicode”.
-- **Character.isSpaceChar** và **Character.isWhitespace** có phạm vi khác nhau; kiểm tra chúng theo mục đích.
+- **String.trim()** removes characters at both ends using a small code range rule, not a full Unicode whitespace processor.
+- **String.strip()** relies on **Character.isWhitespace**, which does not treat every no-break space character as whitespace to remove.
+- The regex **\\s** in its default configuration cannot be assumed to match "all Unicode whitespace".
+- **Character.isSpaceChar** and **Character.isWhitespace** have different scopes; check them according to your intent.
 
-Đặc biệt, việc thay hàng loạt khoảng trắng trong chuỗi tiền có thể biến NBSP thành SPACE, làm số và ký hiệu bị tách sang hai dòng trên giao diện. Nên giữ nguyên output formatter khi gửi cho tầng hiển thị, hoặc áp dụng một quy tắc chuẩn hóa được kiểm thử kỹ nếu thực sự cần.
+In particular, bulk-replacing spaces in a currency string can turn NBSP into SPACE, causing the number and symbol to wrap onto two separate lines in the UI. Preserve the formatter output as-is when sending it to the presentation layer, or apply a thoroughly tested normalization rule if truly required.
 
-### 4.2. Cách kiểm tra chính xác code point
+### 4.2. How to inspect code points accurately
 
-Khi chuỗi trông có khoảng cách lạ, dùng **String.codePoints()** để kiểm tra. Đây là phương pháp không phụ thuộc font và không làm mất ký tự vô hình.
+When a string appears to have unusual spacing, use **String.codePoints()** to inspect it. This approach is font-independent and never loses invisible characters.
 
 **File CurrencyCodePoints.java**
 
@@ -147,20 +147,20 @@ public class CurrencyCodePoints {
 }
 ~~~
 
-Lưu thành **CurrencyCodePoints.java**, chạy:
+Save as **CurrencyCodePoints.java**, and run:
 
 ~~~bash
 javac -encoding UTF-8 CurrencyCodePoints.java
 java CurrencyCodePoints
 ~~~
 
-Output đầu tiên bắt đầu bằng **locale=fr-FR**; các dòng tiếp theo cho biết độ dài UTF-16 và từng code point của chính output do runtime hiện tại sinh ra. **Không cố định toàn bộ stdout** vì đây là công cụ chẩn đoán trực tiếp sự khác biệt dữ liệu locale của JDK. Hãy đối chiếu những code point như **U+0020**, **U+00A0**, **U+202F**, ký hiệu tiền và chữ số.
+The first output line starts with **locale=fr-FR**; the subsequent lines show the UTF-16 length and each code point of the exact output produced by the current runtime. **Do not hardcode the entire stdout** because this is a diagnostic tool directly observing differences in JDK locale data. Check code points such as **U+0020**, **U+00A0**, **U+202F**, the currency symbol, and the digits.
 
-Lưu ý **String.length()** đếm đơn vị UTF-16, còn **codePoints()** duyệt các điểm mã Unicode. Không nhầm hai số đo khi chuỗi có ký tự ngoài BMP.
+Note that **String.length()** counts UTF-16 code units, whereas **codePoints()** iterates over Unicode code points. Do not confuse the two measurements when strings contain supplementary characters outside the BMP.
 
-## 5. Ví dụ khảo sát nhiều locale mà không tự khẳng định dấu cách
+## 5. Surveying multiple locales without assuming spaces
 
-Chạy cùng một giá trị và **cùng một Currency** dưới một vài locale là cách thấy khác biệt trong bố cục mà không trộn nó với việc đổi đơn vị tiền.
+Running the same value and the **same Currency** under several locales reveals layout differences without mixing them up with currency-unit changes.
 
 **File CurrencyLocaleSurvey.java**
 
@@ -195,22 +195,22 @@ public class CurrencyLocaleSurvey {
 }
 ~~~
 
-Lưu **CurrencyLocaleSurvey.java**, chạy:
+Save **CurrencyLocaleSurvey.java**, and run:
 
 ~~~bash
 javac -encoding UTF-8 CurrencyLocaleSurvey.java
 java CurrencyLocaleSurvey
 ~~~
 
-Chương trình in bốn dòng bắt đầu lần lượt bằng **en-US:**, **de-DE:**, **fr-FR:** và **vi-VN:**. Phần giá trị sau dấu hai chấm phụ thuộc dữ liệu locale của JDK: vị trí ký hiệu, dấu âm, khoảng trắng và dấu phân cách có thể khác. Đó là điều cần quan sát chứ không nên hardcode thành một stdout duy nhất cho tất cả bản phát hành Java.
+The program prints four lines starting respectively with **en-US:**, **de-DE:**, **fr-FR:**, and **vi-VN:**. The value after the colon depends on the JDK's locale data: symbol placement, negative sign, whitespace, and separators may differ. That is something to observe rather than hardcode as a single stdout across all Java releases.
 
-**Vì sao dùng cùng EUR?** Nếu để factory tự chọn currency từ locale, khác biệt xuất ra còn bao gồm việc en-US mặc định USD, de-DE mặc định EUR và vi-VN có thể gợi ý VND. Cùng một currency giúp phép so sánh tập trung vào quy tắc định dạng.
+**Why use the same EUR?** If you let the factory choose the currency from the locale, the differences in output would also include en-US defaulting to USD, de-DE defaulting to EUR, and vi-VN potentially suggesting VND. Using the same currency keeps the comparison focused on formatting rules.
 
-**Vì sao dùng số âm?** Nó cho thấy vị trí dấu âm so với ký hiệu và số, không chỉ vị trí ký hiệu so với số dương.
+**Why use a negative number?** It reveals where the negative sign goes relative to both the symbol and the digits, not only the symbol position for positive numbers.
 
-## 6. Các kiểu hiển thị âm: dấu trừ, prefix/suffix, dấu ngoặc
+## 6. Negative display styles: minus sign, prefix/suffix, parentheses
 
-Định dạng tiền âm có thể có các cấu trúc khác nhau theo locale hoặc theo yêu cầu thiết kế:
+Negative currency formatting can take different structures depending on the locale or design requirements:
 
 ~~~text
 -€1,234.50
@@ -220,45 +220,45 @@ Chương trình in bốn dòng bắt đầu lần lượt bằng **en-US:**, **d
 (1.234,50 €)
 ~~~
 
-Các chuỗi trên là **kiểu biểu diễn minh họa**, không phải cam kết mọi kiểu đều do mỗi locale tự động tạo ra. Việc dùng ngoặc tròn thường gặp trong một số báo cáo kế toán; nó không nhất thiết là pattern mặc định của **NumberFormat.getCurrencyInstance(locale)** cho cùng locale.
+The strings above are **illustrative representations**, not a guarantee that every style is automatically produced by every locale. Parentheses are common in certain accounting reports; they are not necessarily the default pattern of **NumberFormat.getCurrencyInstance(locale)** for the same locale.
 
-Trong **DecimalFormat**, formatter có thể có:
+In **DecimalFormat**, a formatter can have:
 
-- **Positive prefix** và **positive suffix**.
-- **Negative prefix** và **negative suffix**.
-- **Pattern dương và âm** ngăn cách bằng dấu chấm phẩy trong ngữ pháp pattern.
-- Ký hiệu dấu âm từ **DecimalFormatSymbols**, có thể được áp dụng khi không đặt nhánh âm riêng.
+- **Positive prefix** and **positive suffix**.
+- **Negative prefix** and **negative suffix**.
+- **Positive and negative patterns** separated by a semicolon in pattern syntax.
+- A negative sign symbol from **DecimalFormatSymbols**, which may be applied when no separate negative subpattern is specified.
 
-Nhánh âm quan trọng vì nó quy định cả vị trí dấu và phần văn bản đi kèm. Đừng xử lý số âm bằng cách nối dấu trừ phía trước chuỗi tiền dương: bạn có thể tạo ra sai vị trí dấu, hai dấu trừ hoặc mất kiểu trình bày mà locale định nghĩa.
+The negative subpattern matters because it governs both sign placement and surrounding text. Do not handle negative numbers by prepending a minus sign to a positive currency string: you risk misplacing the sign, producing double minus signs, or losing the locale's defined formatting style.
 
-### 6.1. Pattern tiền tệ của DecimalFormat
+### 6.1. DecimalFormat currency patterns
 
-Một ví dụ pattern tùy chỉnh:
+An example custom pattern:
 
 ~~~text
 ¤#,##0.00;(¤#,##0.00)
 ~~~
 
-Trong pattern chuẩn:
+In the standard pattern:
 
-- **¤** là placeholder biểu diễn ký hiệu tiền tệ.
-- **#,##0.00** mô tả chữ số, dấu phân nhóm và hai chữ số thập phân.
-- **;** tách nhánh dương và âm.
-- **(...)** tạo cách biểu diễn số âm bằng cặp ngoặc.
+- **¤** is the placeholder representing the currency symbol.
+- **#,##0.00** describes digits, grouping separators, and two decimal places.
+- **;** separates the positive and negative subpatterns.
+- **(...)** creates parenthesized formatting for negative numbers.
 
-Với symbols Hoa Kỳ và một currency phù hợp, pattern đó có thể tạo dạng **$1,234.50** và **($1,234.50)**. Chú ý: **pattern được ứng dụng viết tường minh**, không phải khẳng định kiểu kế toán mặc định của locale đó.
+With US symbols and an appropriate currency, that pattern can produce **$1,234.50** and **($1,234.50)**. Note: **this pattern is explicitly written by the application**, not an assertion about that locale's default accounting style.
 
-Nếu ứng dụng cần in mã ISO thay cho ký hiệu, pattern có thể dùng **¤¤** tùy định dạng mong muốn; cần kiểm tra hỗ trợ của runtime và bố cục khi kết hợp cùng dấu âm/khoảng trắng. Không tự thay ký hiệu bằng **String.replace** sau khi format, vì điều đó có thể làm mất cấu trúc của pattern.
+If an application needs to print the ISO code instead of the symbol, the pattern can use **¤¤** depending on the desired format; verify runtime support and layout when combined with negative signs/whitespace. Do not manually replace the symbol with **String.replace** after formatting, as that can break the pattern's structure.
 
-### 6.2. Prefix và suffix không phải lúc nào cũng chỉ có dấu trừ
+### 6.2. Prefixes and suffixes are not always just a minus sign
 
-Một DecimalFormat có thể cung cấp **getPositivePrefix()**, **getPositiveSuffix()**, **getNegativePrefix()**, **getNegativeSuffix()** và các setter tương ứng. Khi inspect formatter được tạo bởi factory, các chuỗi này hữu ích để hiểu dấu âm và vị trí ký hiệu.
+A DecimalFormat exposes **getPositivePrefix()**, **getPositiveSuffix()**, **getNegativePrefix()**, **getNegativeSuffix()**, and their corresponding setters. When inspecting a formatter returned by a factory, these strings are useful for understanding the negative sign and symbol position.
 
-Nhưng chỉ xem prefix/suffix chưa đủ để kết luận toàn bộ code point đầu ra: phần số còn có dấu nhóm, dấu thập phân, chữ số bản địa và dấu hiệu bidi.
+However, inspecting prefixes and suffixes alone is not enough to determine every output code point: the numeric portion also includes grouping separators, decimal separators, native digits, and bidi marks.
 
-## 7. Ví dụ hoàn toàn xác định: khoảng trắng và định dạng âm tự cấu hình
+## 7. Fully deterministic example: custom whitespace and negative formatting
 
-Khi cần một hợp đồng output **bất biến** cho báo cáo cụ thể, ứng dụng có thể tự thiết lập pattern và symbols, thay vì phụ thuộc kiểu mặc định của locale. Ví dụ sau cố ý dùng **NNBSP** (U+202F) giữa các nhóm chữ số, dấu phẩy làm thập phân, SPACE (U+0020) trước mã **EUR**, và dấu ngoặc cho số âm.
+When an **immutable** output contract is needed for a specific report, an application can configure its own pattern and symbols rather than relying on locale defaults. The following example intentionally uses **NNBSP** (U+202F) between digit groups, a comma as the decimal separator, SPACE (U+0020) before the **EUR** code, and parentheses for negative numbers.
 
 **File ExplicitCurrencyLayout.java**
 
@@ -308,14 +308,14 @@ public class ExplicitCurrencyLayout {
 }
 ~~~
 
-Biên dịch/chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 ExplicitCurrencyLayout.java
 java ExplicitCurrencyLayout
 ~~~
 
-**Stdout chính xác theo cấu hình tường minh:**
+**Exact stdout under this explicit configuration:**
 
 ~~~text
 positive=1<NNBSP>234,50 EUR
@@ -323,58 +323,58 @@ negative=(1<NNBSP>234,50 EUR)
 spaces=U+202F,U+0020
 ~~~
 
-Trong đoạn code, **\\u202F** biểu diễn Unicode NARROW NO-BREAK SPACE; khi biên dịch Java, escape Unicode được xử lý và ký tự NNBSP xuất hiện trong literal. Hàm **visible** thay nó bằng một nhãn dễ đọc chỉ để chẩn đoán. Dòng **spaces** sử dụng **Character.isSpaceChar** để nhận diện các ký tự kiểu space separator; kết quả có cả **U+202F** giữa các nhóm và **U+0020** trước **EUR**.
+In the code, **\\u202F** represents Unicode NARROW NO-BREAK SPACE; during Java compilation, the Unicode escape is processed and the NNBSP character appears in the literal. The **visible** helper replaces it with a readable label purely for diagnostics. The **spaces** line uses **Character.isSpaceChar** to detect space-separator characters; the output contains both **U+202F** between digit groups and **U+0020** before **EUR**.
 
-Chú ý về chính sách:
+Notes on policy:
 
-1. Đây là **định dạng do ứng dụng quy định**, không phải mặc định của Đức, Pháp hay Việt Nam.
-2. **EUR** là hậu tố literal cố định. Trong ứng dụng thực tế, cần lấy Currency từ dữ liệu giao dịch và chọn định dạng phù hợp; không hardcode EUR nếu sản phẩm xử lý nhiều đồng tiền.
-3. Dấu ngoặc được tạo qua **nhánh âm**; không phải phép trừ hay cách mã hóa số âm trong cơ sở dữ liệu.
-4. Pattern dùng cú pháp chuẩn **#,##0.00** dù dấu được in thực tế là NNBSP và phẩy.
-5. **BigDecimal** giữ giá trị chính xác; formatter không thay đổi nội dung BigDecimal.
+1. This is an **application-defined format**, not the default for Germany, France, or Vietnam.
+2. **EUR** is a fixed literal suffix. In a real application, obtain the Currency from transaction data and choose the appropriate format; do not hardcode EUR if the product handles multiple currencies.
+3. Parentheses are produced via the **negative subpattern**; they are not subtraction or a database encoding of negative numbers.
+4. The pattern uses standard syntax **#,##0.00** even though the actually printed separators are NNBSP and comma.
+5. **BigDecimal** preserves exact value; the formatter does not mutate the BigDecimal's contents.
 
-Nếu nghiệp vụ muốn cùng hợp đồng nhưng ký hiệu thật của Currency, hãy định nghĩa rõ vị trí của ký hiệu và dùng DecimalFormat/NumberFormat phù hợp thay vì chèn chuỗi tùy tiện sau khi đã định dạng.
+If the business wants the same contract but with the Currency's real symbol, explicitly define symbol placement and use DecimalFormat/NumberFormat appropriately instead of arbitrarily inserting strings after formatting.
 
-## 8. Pattern chuẩn và pattern bản địa hóa
+## 8. Standard patterns vs. localized patterns
 
-Một ngộ nhận là thấy chuỗi **1.234,50 €** rồi dùng chuỗi pattern **#.##0,00 €** với **applyPattern(...)**. Trong cú pháp pattern chuẩn của Java:
+A common misconception is seeing the string **1.234,50 €** and then passing the pattern string **#.##0,00 €** to **applyPattern(...)**. In Java's standard pattern syntax:
 
-- **.** là vị trí thập phân **trong pattern**.
-- **,** biểu diễn nhóm chữ số **trong pattern**.
-- **0** là chữ số bắt buộc.
-- **#** là chữ số tùy chọn.
-- **¤** là ký hiệu tiền tệ đặc biệt.
-- **;** tách nhánh dương/âm.
+- **.** is the decimal position **in the pattern**.
+- **,** represents digit grouping **in the pattern**.
+- **0** is a required digit.
+- **#** is an optional digit.
+- **¤** is the special currency symbol placeholder.
+- **;** separates the positive and negative subpatterns.
 
-Ký tự thực tế in ra lấy từ **DecimalFormatSymbols**. Vì vậy pattern chuẩn **#,##0.00** áp vào symbols **de-DE** có thể hiển thị số như **1.234,50**.
+The actual characters printed come from **DecimalFormatSymbols**. Thus, the standard pattern **#,##0.00** applied to **de-DE** symbols can display numbers like **1.234,50**.
 
-Khi thực sự cần mẫu được viết bằng các ký hiệu địa phương, dùng **applyLocalizedPattern(...)** và **toLocalizedPattern(...)** với symbols tương ứng, không dùng nhầm **applyPattern**. Với cấu hình ứng dụng, mẫu chuẩn thường dễ quản lý và ít nhầm hơn.
+When you genuinely need a pattern written using localized symbols, use **applyLocalizedPattern(...)** and **toLocalizedPattern(...)** with the corresponding symbols, rather than calling **applyPattern** by mistake. For application configuration, standard patterns are usually easier to manage and less error-prone.
 
-Các phép thay thế pattern đơn giản không giải quyết hết khoảng trắng hoặc ký hiệu âm; pattern phải được kiểm thử với currency, số dương, số âm, số 0 và các mức giá trị.
+Simple pattern substitutions do not solve all whitespace or negative-sign issues; patterns must be tested with currencies, positive values, negative values, zero, and varying magnitudes.
 
-## 9. DecimalFormatSymbols chứa ký hiệu nào liên quan đến tiền?
+## 9. Which currency-related symbols does DecimalFormatSymbols hold?
 
-**DecimalFormatSymbols** cung cấp các API đáng chú ý:
+**DecimalFormatSymbols** provides notable APIs:
 
-| API | Công dụng |
+| API | Purpose |
 | --- | --- |
-| **getDecimalSeparator()** | Dấu thập phân số thông thường |
-| **getGroupingSeparator()** | Dấu phân nhóm chữ số |
-| **getMonetaryDecimalSeparator()** | Dấu thập phân được dùng trong ngữ cảnh tiền tệ |
-| **getCurrencySymbol()** | Ký hiệu tiền đang cấu hình |
-| **getInternationalCurrencySymbol()** | Mã tiền ISO 4217 |
-| **getMinusSign()** | Ký tự dấu trừ |
-| **getPercent() / getPerMill()** | Ký hiệu phần trăm/phần nghìn |
-| **getZeroDigit()** | Ký tự số 0 dùng cho bộ chữ số thích hợp |
-| **getExponentSeparator()** | Ký hiệu phân cách mũ trong định dạng khoa học |
+| **getDecimalSeparator()** | Standard numeric decimal separator |
+| **getGroupingSeparator()** | Digit grouping separator |
+| **getMonetaryDecimalSeparator()** | Decimal separator used in currency contexts |
+| **getCurrencySymbol()** | Configured currency symbol |
+| **getInternationalCurrencySymbol()** | ISO 4217 currency code |
+| **getMinusSign()** | Minus sign character |
+| **getPercent() / getPerMill()** | Percent / per-mille symbol |
+| **getZeroDigit()** | Zero digit character for the appropriate digit set |
+| **getExponentSeparator()** | Exponent separator in scientific notation |
 
-Các getter/setter giúp quan sát hoặc thay đổi từng phần. Ví dụ, nếu muốn dấu thập phân tiền tệ khác dấu thập phân thường, có **setMonetaryDecimalSeparator(...)**. Không đồng nhất điều đó với dấu thập phân mọi loại số.
+Getters and setters allow inspecting or modifying individual parts. For instance, if you want a monetary decimal separator different from the regular decimal separator, there is **setMonetaryDecimalSeparator(...)**. Do not conflate that with the decimal separator for all number types.
 
-Một điểm quan trọng: **DecimalFormatSymbols** chứa một số ký hiệu, nhưng **không phải toàn bộ bố cục tiền tệ nằm trong một ký hiệu đơn lẻ**. Vị trí Currency, tiền tố/hậu tố âm và các khoảng trắng gắn với chúng còn được mô tả bởi **pattern của DecimalFormat** được runtime lựa chọn. Vì vậy muốn kiểm tra vị trí ký hiệu, cần quan sát cả pattern và output.
+An important point: **DecimalFormatSymbols** holds several symbols, yet **not all of a currency layout resides in a single symbol**. Currency placement, negative prefixes/suffixes, and their attached whitespace are also described by the **DecimalFormat pattern** chosen by the runtime. Therefore, to check symbol placement, inspect both the pattern and the formatted output.
 
-### 9.1. Có thể lấy DecimalFormat từ NumberFormat không?
+### 9.1. Can you obtain a DecimalFormat from NumberFormat?
 
-Thông thường factory tiền tệ trên các JDK phổ biến trả về DecimalFormat, nhưng hợp đồng phương thức **NumberFormat.getCurrencyInstance(locale)** trả kiểu **NumberFormat**. Không nên luôn ép kiểu mà không kiểm tra.
+Normally, currency factories on common JDKs return a DecimalFormat, but the method contract of **NumberFormat.getCurrencyInstance(locale)** returns **NumberFormat**. You should not always cast without checking.
 
 ~~~java
 NumberFormat number =
@@ -387,74 +387,74 @@ if (number instanceof DecimalFormat decimal) {
 }
 ~~~
 
-Đây là đoạn minh họa trong một phương thức, cần import **java.text.NumberFormat**, **java.text.DecimalFormat** và biến **locale**. Với Java 17+, cú pháp **instanceof DecimalFormat decimal** hợp lệ. Nếu provider trả lớp NumberFormat khác, nhánh kiểm tra không chạy; vẫn có thể sử dụng factory để định dạng.
+This is an illustrative snippet inside a method, requiring imports for **java.text.NumberFormat**, **java.text.DecimalFormat**, and a **locale** variable. On Java 17+, the syntax **instanceof DecimalFormat decimal** is valid. If a provider returns a different NumberFormat subclass, the check branch does not run; you can still use the factory for formatting.
 
-**toPattern()** trả pattern chuẩn hiện hành. **toLocalizedPattern()** trả pattern theo ký hiệu của symbols. Chúng phục vụ chẩn đoán/trình bày cấu hình, không phải cách duy nhất để dựng lại toàn bộ hành vi đã tùy chỉnh của một formatter bất kỳ.
+**toPattern()** returns the current standard pattern. **toLocalizedPattern()** returns the pattern formatted with the symbols' characters. They serve for diagnostics and inspecting configuration, not as the sole way to reconstruct every customized behavior of an arbitrary formatter.
 
-### 9.2. Đổi ký hiệu sau khi tạo formatter
+### 9.2. Changing symbols after creating a formatter
 
-Nếu thay đổi symbols của formatter đã tạo, hãy dùng **getDecimalFormatSymbols()**, sửa bản trả về rồi **setDecimalFormatSymbols(...)** để cập nhật. Không trông đợi một object symbols bên ngoài được sửa sau constructor sẽ tự cập nhật mọi formatter đã tồn tại.
+If modifying the symbols of an already created formatter, call **getDecimalFormatSymbols()**, modify the returned copy, and then call **setDecimalFormatSymbols(...)** to apply the update. Do not expect an external symbols object mutated after construction to automatically update every existing formatter.
 
-**DecimalFormat và NumberFormat có trạng thái mutable**, không mặc nhiên thread-safe. Tránh chia sẻ rồi thay currency, grouping, negative prefix/suffix giữa hai request đồng thời.
+**DecimalFormat and NumberFormat have mutable state** and are not thread-safe by default. Avoid sharing an instance and mutating currency, grouping, or negative prefix/suffix across concurrent requests.
 
-## 10. Khoảng trắng và dấu âm trong văn bản hai chiều
+## 10. Whitespace and negative signs in bidirectional text
 
-Với các ngôn ngữ viết từ phải sang trái (RTL), ký hiệu tiền, chữ số và dấu âm có thể cần những ký tự điều hướng bidirectional để hiển thị đúng. Một chuỗi Unicode có thể chứa **U+200E**, **U+200F** hoặc **U+061C**, dù không nhìn thấy chúng.
+For right-to-left (RTL) languages, currency symbols, digits, and negative signs may require bidirectional control characters to display properly. A Unicode string may contain **U+200E**, **U+200F**, or **U+061C** even though they are invisible.
 
-Cần phân biệt:
+Distinguish between:
 
-- **Khoảng trắng:** tách phần số và ký hiệu, có thể cấm ngắt dòng.
-- **Dấu âm:** có ý nghĩa về dấu giá trị và trình bày.
-- **Ký tự điều hướng bidi:** giúp văn bản hiển thị đúng thứ tự trực quan trong ngữ cảnh trộn hướng trái/phải.
+- **Whitespace:** separates the number and symbol, and may prevent line breaks.
+- **Negative sign:** carries value-sign and presentation semantics.
+- **Bidi directional characters:** help text render in the correct visual order in mixed left/right contexts.
 
-Không tự xóa mọi ký tự “vô hình” trước khi hiển thị tiền tệ. Làm vậy có thể khiến dấu âm và ký hiệu bị đảo hướng khi một chuỗi RTL được đặt trong trang LTR. Nếu có yêu cầu bảo mật/chuẩn hóa đầu vào, cần tách **chuỗi hiển thị** và **giá trị được parse**; không xử lý bằng thao tác xóa ký tự hàng loạt không có chính sách.
+Do not blindly strip all "invisible" characters before displaying currency. Doing so can cause negative signs and symbols to invert order when an RTL string is embedded inside an LTR page. If security or input-normalization rules apply, separate the **display string** from the **parsed value**; do not process them with policy-free bulk character stripping.
 
-Trong HTML hoặc ứng dụng UI, hướng văn bản và thành phần giao diện cũng ảnh hưởng thứ tự hiển thị. Đừng kết luận rằng dữ liệu đã sai chỉ vì terminal khác trình duyệt; kiểm tra code point, locale, Unicode bidi và rendering context.
+In HTML or UI applications, text direction and UI components also affect visual ordering. Never conclude that data is corrupt just because a terminal renders differently from a browser; check code points, locale, Unicode bidi, and the rendering context.
 
-## 11. Định dạng âm và yêu cầu kế toán
+## 11. Negative formatting and accounting requirements
 
-Nhiều hệ thống tài chính muốn phân biệt:
+Many financial systems distinguish among:
 
-- **Biểu diễn âm phổ thông:** sử dụng dấu trừ ở vị trí được locale hỗ trợ.
-- **Biểu diễn kế toán:** có thể dùng ngoặc hoặc quy tắc được tổ chức xác định.
-- **Biểu diễn báo cáo:** có thể dùng cột riêng chỉ debit/credit, màu sắc hoặc chữ, nhưng không được coi màu sắc là thông tin âm duy nhất.
+- **General negative display:** uses a minus sign in the position supported by the locale.
+- **Accounting display:** may use parentheses or organization-defined rules.
+- **Report display:** may use separate columns for debit/credit, colors, or labels, though color must never be the sole indicator of a negative value.
 
-Java Core **NumberFormat.getCurrencyInstance(locale)** cung cấp kiểu tiền tệ địa phương hóa theo dữ liệu của JDK. Không suy rằng nó luôn có một phương thức riêng chọn “accounting style” tương đương mọi sản phẩm ICU/CLDR. Nếu báo cáo kế toán yêu cầu **(1,234.50)**, hãy viết pattern âm bằng DecimalFormat hoặc chọn formatter phù hợp, rồi kiểm thử.
+Java Core's **NumberFormat.getCurrencyInstance(locale)** provides localized currency styles based on JDK data. Do not assume it always provides a dedicated method to select an "accounting style" matching every ICU/CLDR product. If an accounting report requires **(1,234.50)**, write the negative subpattern in DecimalFormat or select an appropriate formatter, and test it.
 
-Cần quan tâm đến **âm không**:
+Pay attention to **negative zero**:
 
-- Với **double**, giá trị **-0.0** tồn tại và có thể có cách trình bày khác 0.0.
-- Với **BigDecimal**, dấu của một giá trị số 0 không được giữ như một trạng thái âm tương đương double.
-- Khi làm tròn một số âm rất nhỏ tới 0.00, chuỗi đầu ra có thể giữ dấu âm theo formatter, dù giá trị hiển thị không còn phần khác 0.
+- With **double**, the value **-0.0** exists and may format differently from 0.0.
+- With **BigDecimal**, the sign of a zero value is not preserved as a negative state equivalent to double.
+- When rounding a very small negative number to 0.00, the output string may retain a negative sign under the formatter even though the displayed value has no non-zero digits left.
 
-Nếu nghiệp vụ quy định không hiển thị **-0,00**, cần quyết định ngưỡng và chuẩn hóa dữ liệu **trước** bước format, đặc biệt khi kết quả làm tròn về 0. Không nên sửa chuỗi đầu ra bằng replace dấu trừ một cách tùy tiện vì dễ gây lỗi với dấu trừ địa phương hóa và các ký hiệu bidi.
+If business rules prohibit displaying **-0.00**, decide the threshold and normalize the data **before** the formatting step, especially when rounding produces zero. Do not fix the output string by arbitrarily replacing minus signs, as that easily breaks localized minus signs and bidi markers.
 
-## 12. Rounding và số chữ số thập phân là quyết định riêng
+## 12. Rounding and decimal places are separate decisions
 
-Vị trí ký hiệu và khoảng trắng không xác định chính xác số chữ số phần lẻ. **Currency.getDefaultFractionDigits()** cung cấp một thông tin về số chữ số thập phân mặc định của currency; giá trị có thể là **-1** khi không áp dụng. **NumberFormat.getCurrencyInstance(locale)** sẽ có quy tắc fraction digits theo cấu hình của nó và dữ liệu locale.
+Symbol position and whitespace do not dictate the exact number of fractional digits. **Currency.getDefaultFractionDigits()** provides metadata on a currency's default number of decimal places; the value can be **-1** when not applicable. **NumberFormat.getCurrencyInstance(locale)** carries fraction-digit rules from its configuration and locale data.
 
-Tuy nhiên:
+However:
 
-1. Giá trị nghiệp vụ như **BigDecimal("1234.50")** không tự thay đổi vì formatter in hai chữ số.
-2. Một đồng tiền có thể có quy tắc làm tròn tiền mặt khác số chữ số dùng cho thanh toán điện tử.
-3. **setCurrency(...)** là khai báo currency, không quy đổi giá trị và không thay thế việc đặt fraction digits/rounding theo chính sách nghiệp vụ.
-4. Nếu phải in một số chữ số xác định, hãy cấu hình **setMinimumFractionDigits**, **setMaximumFractionDigits** và **setRoundingMode** một cách tường minh.
+1. A business value such as **BigDecimal("1234.50")** does not change by itself just because a formatter prints two digits.
+2. A currency may have cash rounding rules that differ from the digit precision used for electronic payments.
+3. **setCurrency(...)** declares the currency; it does not convert values and does not replace setting fraction digits or rounding per business policy.
+4. If a specific number of digits must be printed, configure **setMinimumFractionDigits**, **setMaximumFractionDigits**, and **setRoundingMode** explicitly.
 
-Với dữ liệu tài chính, tránh thực hiện phép tính tiền bằng **double** khi cần độ chính xác thập phân. Ưu tiên **BigDecimal** và quy tắc rounding nghiệp vụ, sau đó mới đưa cho formatter. Format là **trình bày**, không phải tính toán tỷ giá hoặc kiểm tra số dư.
+For financial data, avoid performing monetary arithmetic with **double** when decimal precision is required. Prefer **BigDecimal** and business rounding rules first, and pass the result to the formatter afterward. Formatting is **presentation**, not exchange-rate calculation or balance verification.
 
-## 13. Phân tích chuỗi tiền đã bản địa hóa: rủi ro mất thông tin
+## 13. Parsing localized currency strings: risk of information loss
 
-Nếu chuỗi có một dấu cách no-break và dấu âm được bản địa hóa, parser sử dụng **NumberFormat** theo locale khác có thể đọc sai hoặc bỏ phần chuỗi. Không coi **Double.parseDouble("1 234,50 €")** là một parser tiền tệ theo locale; API này không được thiết kế để hiểu mọi ký hiệu địa phương hóa.
+If a string contains a no-break space and a localized negative sign, a parser using **NumberFormat** under a different locale can misread it or drop part of the string. Do not treat **Double.parseDouble("1 234,50 €")** as a locale-aware currency parser; that API is not designed to understand localized symbols.
 
-Khi cần đọc input người dùng:
+When user input must be parsed:
 
-1. **Xác định locale của input**, không lấy ngầm locale server.
-2. Tạo formatter phù hợp và chỉ định Currency theo hợp đồng.
-3. Với DecimalFormat, có thể cấu hình **setParseBigDecimal(true)** khi cần BigDecimal.
-4. Dùng **ParsePosition** để kiểm tra toàn bộ văn bản đã được tiêu thụ; không chỉ kiểm tra parse trả một Number.
-5. Xác minh Currency kỳ vọng, khoảng giá trị, chữ số và dấu âm theo yêu cầu sản phẩm.
+1. **Determine the input's locale** instead of implicitly using the server locale.
+2. Create an appropriate formatter and assign the Currency according to the contract.
+3. With DecimalFormat, you can configure **setParseBigDecimal(true)** when BigDecimal is needed.
+4. Use **ParsePosition** to verify that the entire text was consumed; do not merely check that parse returns a Number.
+5. Verify the expected Currency, value range, digit constraints, and negative sign per product requirements.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ~~~java
 DecimalFormat decimal = new DecimalFormat(
@@ -471,107 +471,107 @@ if (amount == null || pos.getIndex() != input.length()) {
 }
 ~~~
 
-Đây là đoạn minh họa trong phương thức, cần import **DecimalFormat**, **DecimalFormatSymbols**, **Locale**, **ParsePosition**. Nó parse **số**, không tự xác nhận mã tiền trong một chuỗi tổng hợp. Với input như **1.234,50 €**, phải có chính sách nhận diện đơn vị tiền và khoảng trắng, không chỉ gỡ ký hiệu rồi parse số.
+This is an illustrative snippet inside a method, requiring imports for **DecimalFormat**, **DecimalFormatSymbols**, **Locale**, and **ParsePosition**. It parses a **number**, and does not automatically validate a currency code inside a composite string. For input like **1.234,50 €**, you need an explicit policy to recognize the currency unit and whitespace rather than simply stripping the symbol and parsing a number.
 
-**Parser có thể lenient** về phân nhóm hoặc ký tự; việc tiêu thụ hết văn bản không phải là validator đầy đủ cho mọi yêu cầu nhập số. Khi dữ liệu là hợp đồng máy, thay vì parse chuỗi tiền đã format, hãy dùng cấu trúc dữ liệu có **amount** và **currency** riêng.
+**The parser can be lenient** regarding grouping or characters; consuming the entire text is not a complete validator for every numeric-input requirement. When data is part of a machine-to-machine contract, instead of parsing formatted currency strings, use a data structure with separate **amount** and **currency** fields.
 
-## 14. Những sai lầm thường gặp
+## 14. Common mistakes
 
-### Sai lầm 1: Luôn đặt ký hiệu tiền phía trước
+### Mistake 1: Always placing the currency symbol in front
 
-Tự nối **Currency.getSymbol(locale) + amount** sẽ bỏ qua vị trí và khoảng trắng theo mẫu. Dùng **NumberFormat.getCurrencyInstance(locale)** hoặc một pattern đã được sản phẩm quy định.
+Manual concatenation like **Currency.getSymbol(locale) + amount** ignores pattern-defined placement and whitespace. Use **NumberFormat.getCurrencyInstance(locale)** or a product-defined pattern.
 
-### Sai lầm 2: Coi mọi khoảng trống là U+0020
+### Mistake 2: Treating all whitespace as U+0020
 
-NBSP và NNBSP có thể được dùng để ngăn ngắt dòng hoặc tạo khoảng cách hẹp. Chuỗi nhìn giống nhau nhưng byte/code point khác nhau. Dùng **String.codePoints()** để xác minh; không chuẩn hóa bừa bằng trim, strip hay regex.
+NBSP and NNBSP may be used to prevent line breaks or create narrow spacing. Strings that look alike can have different bytes and code points. Use **String.codePoints()** to verify; do not blindly normalize with trim, strip, or regex.
 
-### Sai lầm 3: Giả định output fr-FR/de-DE bất biến giữa mọi JDK
+### Mistake 3: Assuming fr-FR/de-DE output is invariant across all JDKs
 
-Dữ liệu CLDR, locale provider và ký hiệu tiền có thể được cập nhật. Kiểm thử hành vi theo locale hoặc cố định runtime/formatter nếu phải so khớp exact. Tránh golden test phụ thuộc mặc định ngầm của máy CI.
+CLDR data, locale providers, and currency symbols can be updated. Test locale-sensitive behavior or pin the runtime/formatter if exact matching is required. Avoid golden tests that implicitly depend on a CI machine's defaults.
 
-### Sai lầm 4: Tự thêm dấu trừ trước chuỗi tiền
+### Mistake 4: Manually prepending a minus sign to a currency string
 
-Điều này có thể làm sai bố cục âm của locale hoặc pattern kế toán. Format trực tiếp **giá trị âm** với formatter phù hợp; nếu cần kiểu kế toán, định nghĩa nhánh âm trong pattern.
+This can break the locale's negative layout or accounting pattern. Format the **negative value** directly with the appropriate formatter; if an accounting style is needed, define the negative subpattern.
 
-### Sai lầm 5: Hiểu ngoặc tròn là quy tắc mặc định toàn cầu
+### Mistake 5: Assuming parentheses are a global default
 
-**(€1,234.50)** có thể là lựa chọn của báo cáo kế toán; không phải locale nào cũng mặc định dùng ngoặc. Viết rõ lựa chọn sản phẩm và kiểm thử số âm.
+**(€1,234.50)** may be an accounting-report choice; not every locale defaults to parentheses. Document the product choice explicitly and test negative numbers.
 
-### Sai lầm 6: Trộn currency với locale
+### Mistake 6: Confusing currency with locale
 
-Locale có thể gợi ý currency thông thường cho vùng, nhưng không biết đơn vị giao dịch. Một hóa đơn USD cho người dùng ở Việt Nam phải giữ mã USD từ nghiệp vụ.
+A locale can suggest a typical currency for a region, but it does not know the transaction unit. A USD invoice for a user in Vietnam must preserve the USD code from the business domain.
 
-### Sai lầm 7: Dùng ký hiệu hiển thị làm mã tiền
+### Mistake 7: Using the display symbol as a currency code
 
-Ký hiệu **$** không xác định duy nhất USD. Dùng **Currency.getCurrencyCode()** hoặc mã tiền từ dữ liệu giao dịch để lưu trữ/kiểm tra.
+The **$** symbol does not uniquely identify USD. Use **Currency.getCurrencyCode()** or the currency code from transaction data for storage and validation.
 
-### Sai lầm 8: Dùng formatter mutable làm singleton rồi đổi currency mỗi request
+### Mistake 8: Sharing a mutable formatter as a singleton and mutating currency per request
 
-**NumberFormat** và **DecimalFormat** không nên chia sẻ có sửa đổi đồng thời. Tạo instance theo nhu cầu hoặc có chiến lược đồng bộ/cách ly rõ ràng; không thay đổi **Locale.setDefault** để xử lý từng người dùng.
+**NumberFormat** and **DecimalFormat** must not be shared with concurrent mutation. Create instances per need or apply a clear synchronization/isolation strategy; never mutate **Locale.setDefault** per user.
 
-### Sai lầm 9: Đồng nhất chuẩn hóa chuỗi với chuẩn hóa giá trị tiền
+### Mistake 9: Equating string normalization with monetary value normalization
 
-Xóa dấu cách và ký hiệu sau khi format có thể làm mất ngữ nghĩa hiển thị. Giá trị nghiệp vụ phải được giữ ở dạng dữ liệu có kiểu; chuỗi địa phương hóa chỉ là view.
+Stripping spaces and symbols after formatting can destroy presentation semantics. Business values must stay in typed data fields; localized strings are strictly a view.
 
-### Sai lầm 10: Test bằng mắt thay vì inspect Unicode
+### Mistake 10: Testing by eye instead of inspecting Unicode
 
-Terminal, browser và font có thể hiện các dấu cách trông giống nhau. Nếu có nghi ngờ, log code point hoặc so sánh chuỗi có tính đến Unicode, không chỉ xem ảnh chụp màn hình.
+Terminals, browsers, and fonts can render different spaces identically. When in doubt, log code points or compare strings with Unicode awareness, not just screenshots.
 
-## 15. Ma trận kiểm thử thiết yếu
+## 15. Essential test matrix
 
-| Trường hợp | Điều cần xác minh |
+| Case | What to verify |
 | --- | --- |
-| Cùng EUR ở **en-US**, **de-DE**, **fr-FR**, **vi-VN** | Ký hiệu, vị trí và phân cách theo locale của runtime |
-| Giá trị **1234.5**, **-1234.5**, **0** | Bố cục dương/âm và số 0 |
-| Giá trị rất nhỏ âm gần 0 | Quy tắc rounding và cách hiển thị âm không |
-| Chuỗi có U+00A0/U+202F | Không làm mất no-break space khi render/xử lý |
-| Mẫu explicit với NNBSP | Test được output code point chính xác |
-| Currency khác currency mặc định locale | Giữ đúng đơn vị tiền giao dịch |
-| Pattern kế toán có ngoặc | Dạng âm rõ ràng và không phụ thuộc ngầm locale |
-| Chuỗi RTL có ký tự bidi | Dấu âm, ký hiệu và số không bị đảo sai hướng |
-| Parse input dùng đúng locale | Không phân tích sai dấu nhóm/thập phân |
-| ParsePosition sau parse | Không bỏ sót hậu tố hoặc phần dư |
-| JDK và CLDR bản khác | Phát hiện thay đổi output mặc dù locale giống nhau |
-| Request đồng thời khác locale/currency | Không rò rỉ cấu hình formatter giữa request |
+| Same EUR across **en-US**, **de-DE**, **fr-FR**, **vi-VN** | Symbol, placement, and separators per runtime locale |
+| Values **1234.5**, **-1234.5**, **0** | Positive/negative layout and zero |
+| Very small negative value near 0 | Rounding rule and negative-zero display behavior |
+| Strings with U+00A0/U+202F | No-break spaces are not lost during rendering/processing |
+| Explicit pattern with NNBSP | Exact code-point output can be asserted |
+| Currency different from locale default | Preserves the actual transaction currency unit |
+| Accounting pattern with parentheses | Clear negative format without implicit locale dependence |
+| RTL strings with bidi characters | Negative sign, symbol, and digits are not misordered |
+| Parsing input with correct locale | No misinterpretation of grouping/decimal separators |
+| ParsePosition after parse | No trailing suffix or leftover characters ignored |
+| Different JDK and CLDR versions | Detects output shifts even when the locale is unchanged |
+| Concurrent requests with different locales/currencies | No formatter configuration leaks across requests |
 
-Với ứng dụng có hợp đồng xuất dữ liệu máy bất biến, thử thêm các test không dùng locale người dùng: **BigDecimal.toPlainString()** hoặc một định dạng số kỹ thuật được chỉ định rõ thường phù hợp hơn chuỗi định dạng tiền tệ. Đầu ra JSON nên có giá trị và currency riêng.
+For applications with immutable machine-data export contracts, prefer tests independent of user locales: **BigDecimal.toPlainString()** or a clearly specified technical numeric format is generally more appropriate than a currency-formatted string. JSON output should carry value and currency separately.
 
-Nếu snapshot test so sánh từng ký tự của chuỗi tiền, phải quyết định liệu muốn test **dữ liệu locale của runtime** hay **quy tắc ứng dụng**. Với quy tắc ứng dụng, kiểm soát DecimalFormatSymbols và pattern tường minh. Với dữ liệu locale, chạy và kiểm chứng trên các JDK nằm trong danh sách hỗ trợ.
+If snapshot tests compare currency strings character by character, decide whether you want to test **runtime locale data** or **application rules**. For application rules, control DecimalFormatSymbols and the pattern explicitly. For locale data, run and verify against the supported JDK versions.
 
-## 16. Quy trình chẩn đoán khi dev và production hiển thị tiền khác nhau
+## 16. Diagnostic workflow when dev and production format currency differently
 
-Giả sử dev hiển thị ký hiệu EUR cách số bằng một khoảng, nhưng máy chủ có khoảng hẹp hoặc dấu âm ở nơi khác. Phân tích theo các bước:
+Suppose dev shows the EUR symbol separated from the number by a regular space, while production shows a narrow space or puts the negative sign elsewhere. Analyze step by step:
 
-1. **So sánh dữ liệu gốc:** BigDecimal amount, currency code và việc số có âm hay không.
-2. **So sánh locale:** giá trị locale được truyền thực sự cho NumberFormat, không chỉ default JVM.
-3. **So sánh JDK:** phiên bản runtime và dữ liệu locale/provider có thể khác.
-4. **In code point của output:** phát hiện U+0020, U+00A0, U+202F hoặc ký tự bidi.
-5. **Inspect formatter:** nếu là DecimalFormat, xem pattern, positive/negative prefix/suffix, symbols.
-6. **Kiểm tra custom code:** tìm chỗ tự nối ký hiệu, replace whitespace, xóa dấu âm hoặc format trước rồi format lại.
-7. **Đối chiếu hợp đồng sản phẩm:** định dạng theo người dùng hay phải cố định cho báo cáo/tài liệu.
-8. **Sửa tại tầng đúng:** truyền locale/currency tường minh hoặc thiết lập pattern và symbols riêng nếu yêu cầu ổn định từng ký tự.
-9. **Bổ sung kiểm thử:** gồm cả số âm, khoảng trắng Unicode và thay đổi runtime.
+1. **Compare raw data:** BigDecimal amount, currency code, and whether the number is negative.
+2. **Compare locales:** the actual locale passed to NumberFormat, not only the JVM default.
+3. **Compare JDKs:** runtime versions and locale data/providers may differ.
+4. **Print output code points:** detect U+0020, U+00A0, U+202F, or bidi characters.
+5. **Inspect the formatter:** if it is a DecimalFormat, inspect its pattern, positive/negative prefix/suffix, and symbols.
+6. **Check custom code:** look for manual symbol concatenation, whitespace replacement, minus-sign stripping, or formatting twice.
+7. **Check the product contract:** whether formatting should follow user locale or stay fixed for a report/document.
+8. **Fix at the right layer:** pass explicit locale/currency or configure a custom pattern and symbols if character-for-character stability is required.
+9. **Add tests:** cover negative numbers, Unicode spaces, and runtime variations.
 
-Không kết luận “bug Java” chỉ vì một chuỗi khác nhau: định dạng bản địa hóa **được phép** khác khi dữ liệu locale thay đổi. Điều cần làm là xác định xem khác biệt đó có phù hợp hợp đồng của sản phẩm hay không.
+Do not jump to calling it a "Java bug" simply because two strings differ: localized formatting is **allowed** to change when locale data updates. The task is to determine whether that difference aligns with your product contract.
 
-## 17. Checklist triển khai
+## 17. Implementation checklist
 
-- Xác định **amount** và **Currency** riêng khỏi chuỗi hiển thị.
-- Chọn **Locale** của người xem hoặc locale được tổ chức quy định.
-- Dùng **NumberFormat.getCurrencyInstance(locale)** khi mong muốn quy tắc bản địa hóa của runtime.
-- Gọi **setCurrency(currency)** với đơn vị tiền đúng giao dịch, không chỉ suy từ locale.
-- Không tự nối ký hiệu tiền vào trước/sau số trừ khi hợp đồng yêu cầu một layout đặc biệt đã được kiểm thử.
-- Bảo toàn các khoảng trắng Unicode và ký tự bidi có ý nghĩa trình bày.
-- Đừng coi mọi dấu cách là U+0020; chẩn đoán bằng code point.
-- Format giá trị âm trực tiếp; chọn pattern kế toán nếu sản phẩm yêu cầu, không tự ghép dấu trừ.
-- Nếu phải cố định từng ký tự, cấu hình **DecimalFormatSymbols** và pattern tường minh.
-- Kiểm soát rounding, fraction digits, tiền mặt/điện tử và trường hợp âm không theo nghiệp vụ.
-- Không parse chuỗi hiển thị bằng cách bỏ ký hiệu thủ công; nếu cần parse, biết locale và validate toàn bộ input.
-- Không chia sẻ formatter mutable giữa các request thiếu cách ly; không dùng Locale.setDefault theo người dùng.
-- Kiểm thử ít nhất số dương, số âm, số 0, tiền khác locale, Unicode spaces, JDK/CLDR và môi trường UI LTR/RTL nếu có hỗ trợ.
+- Separate **amount** and **Currency** from display strings.
+- Choose the viewer's **Locale** or an organization-defined locale.
+- Use **NumberFormat.getCurrencyInstance(locale)** when runtime localization rules are desired.
+- Call **setCurrency(currency)** with the transaction's actual currency unit, not merely inferred from the locale.
+- Do not manually prepend or append currency symbols unless the contract specifies a custom tested layout.
+- Preserve Unicode whitespace and bidi characters that carry presentation meaning.
+- Never assume every space is U+0020; diagnose using code points.
+- Format negative values directly; select an accounting pattern if required by the product rather than prepending a minus sign.
+- If exact character stability is required, configure **DecimalFormatSymbols** and the pattern explicitly.
+- Control rounding, fraction digits, cash vs. electronic precision, and negative-zero behavior per business rules.
+- Do not parse display strings by manually stripping symbols; if parsing is needed, know the locale and validate the entire input.
+- Do not share mutable formatters across requests without isolation; never use Locale.setDefault per user.
+- Test at least positive numbers, negative numbers, zero, non-locale currencies, Unicode spaces, JDK/CLDR versions, and LTR/RTL UI environments if supported.
 
-## 18. Tổng kết
+## 18. Summary
 
-**Khoảng trắng, vị trí ký hiệu và định dạng âm của chuỗi tiền tệ là kết quả phối hợp giữa locale, dữ liệu JDK, Currency, pattern và DecimalFormatSymbols.** Sự khác nhau không chỉ nằm ở dấu phẩy hay dấu chấm: khoảng trắng có thể là NBSP/NNBSP, dấu âm có thể đứng ở nhiều vị trí, và cách viết kế toán bằng ngoặc có thể là yêu cầu riêng của sản phẩm.
+**Whitespace, symbol placement, and negative formatting in currency strings are the combined result of locale, JDK data, Currency, pattern, and DecimalFormatSymbols.** Differences go beyond commas versus periods: spaces may be NBSP/NNBSP, negative signs can appear in multiple positions, and parenthesized accounting notation may be a product-specific requirement.
 
-Với giao diện đa ngôn ngữ, hãy để **NumberFormat.getCurrencyInstance(locale)** thể hiện quy tắc địa phương hóa rồi chỉ định currency thực tế. Với báo cáo có hợp đồng cố định từng ký tự, hãy dùng pattern và DecimalFormatSymbols tường minh, nhất là về khoảng trắng và nhánh âm. Dù ở trường hợp nào, luôn giữ **giá trị tiền có kiểu và mã tiền tệ riêng**, kiểm tra code point khi có nghi ngờ, và coi chuỗi đã format là cách trình bày dành cho người đọc chứ không phải nguồn dữ liệu tài chính.
+For multilingual interfaces, let **NumberFormat.getCurrencyInstance(locale)** apply localized rules and then assign the actual currency. For reports with a character-exact contract, use an explicit pattern and DecimalFormatSymbols, especially for whitespace and the negative subpattern. In all cases, keep **typed monetary values and currency codes separate**, inspect code points when in doubt, and treat formatted strings as presentation for human readers rather than a financial source of truth.

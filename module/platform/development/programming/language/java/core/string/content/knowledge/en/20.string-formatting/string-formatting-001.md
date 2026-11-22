@@ -1,18 +1,18 @@
-# String.format, String.formatted và Formatter trong Java
+# String.format, String.formatted, and Formatter in Java
 
-## 1. Vì sao cần định dạng chuỗi?
+## 1. Why Do We Need String Formatting?
 
-Khi tạo thông báo, báo cáo, log hay dòng dữ liệu trình bày cho người đọc, ta thường muốn ghép **văn bản cố định** với những giá trị có kiểu khác nhau: chuỗi, số nguyên, số thực, ngày giờ. Nối nhiều đoạn bằng toán tử `+` có thể khiến mã dài và khó căn chỉnh. Java cung cấp ba API cùng dựa trên **cú pháp format string**:
+When creating messages, reports, logs, or data lines presented to readers, we often want to combine **fixed text** with values of different types: strings, integers, floating-point numbers, dates and times. Concatenating many segments with the `+` operator can make code long and hard to align. Java provides three APIs all based on **format string syntax**:
 
-- `String.format(...)`: tạo một `String` mới từ mẫu định dạng và các đối số.
-- `String.formatted(...)`: gọi mẫu định dạng như một phương thức trên chính `String`, từ Java 15.
-- `java.util.Formatter`: đối tượng định dạng có trạng thái, có thể ghi nhiều lần vào một đích như `StringBuilder` hoặc `Appendable`.
+- `String.format(...)`: creates a new `String` from a format template and arguments.
+- `String.formatted(...)`: invokes the format template as a method on the `String` itself, since Java 15.
+- `java.util.Formatter`: a stateful formatting object that can write multiple times to a destination such as `StringBuilder` or `Appendable`.
 
-Mục tiêu của bài: đọc đúng ký hiệu `%...`, kiểm soát độ rộng và số chữ số thập phân, chọn đúng `Locale`, phân biệt ba API, biết cách xử lý lỗi format và chọn công cụ phù hợp.
+Lesson objectives: read `%...` specifiers accurately, control width and decimal places, choose the right `Locale`, distinguish the three APIs, know how to handle formatting errors, and choose the appropriate tool.
 
-## 2. String.format: định dạng một lần thành chuỗi
+## 2. String.format: One-Time Formatting into a String
 
-Hai overload quan trọng:
+Two important overloads:
 
 ```java
 public static String format(String format, Object... args);
@@ -20,104 +20,104 @@ public static String format(String format, Object... args);
 public static String format(Locale l, String format, Object... args);
 ```
 
-Đối số đầu là **mẫu** chứa văn bản cố định và các *format specifier* (ký hiệu bắt đầu bằng `%`). Các đối số tiếp theo cung cấp giá trị thay vào những vị trí đó.
+The first argument is a **template** containing fixed text and *format specifiers* (symbols starting with `%`). Subsequent arguments supply values to substitute into those positions.
 
 ```java
 import java.util.Locale;
 
 String text = String.format(
         Locale.US,
-        "Tên: %s | Tuổi: %d | Điểm: %.2f",
+        "Name: %s | Age: %d | Score: %.2f",
         "An", 20, 8.75
 );
-// "Tên: An | Tuổi: 20 | Điểm: 8.75"
+// "Name: An | Age: 20 | Score: 8.75"
 ```
 
-Ở ví dụ này: `%s` biểu diễn chuỗi, `%d` biểu diễn số nguyên dạng thập phân, `%.2f` hiển thị số thực với **2 chữ số sau dấu thập phân**. `Locale.US` giúp cách in dấu thập phân ổn định, ngay cả khi máy chạy sử dụng locale khác.
+In this example: `%s` represents a string, `%d` represents a decimal integer, and `%.2f` displays a floating-point number with **2 digits after the decimal point**. `Locale.US` keeps the decimal point consistent, even when the machine running the code uses a different locale.
 
-Nếu không truyền `Locale`, `String.format(String, Object...)` sử dụng **default FORMAT locale** của JVM (`Locale.getDefault(Locale.Category.FORMAT)`). Vì vậy cùng một mẫu định dạng số có thể tạo dấu phân cách khác nhau trên hai máy. Khi kết quả cần nhất quán trong tài liệu, bài kiểm thử hoặc giao tiếp giữa hệ thống, hãy truyền locale tường minh.
+If `Locale` is not passed, `String.format(String, Object...)` uses the JVM's **default FORMAT locale** (`Locale.getDefault(Locale.Category.FORMAT)`). Therefore, the same numeric format template can produce different separators on two machines. When results must be consistent in documentation, tests, or inter-system communication, pass a locale explicitly.
 
-`String.format` trả chuỗi mới, không thay đổi biến mẫu, đối số hay `String` nguồn.
+`String.format` returns a new string without modifying the template variable, arguments, or source `String`.
 
-## 3. String.formatted: viết gọn từ mẫu chuỗi
+## 3. String.formatted: Concise Formatting from a String Template
 
-Từ Java 15, `String` có phương thức thể hiện trực tiếp quan hệ “mẫu này được định dạng bằng các giá trị sau”:
+Since Java 15, `String` has a method that directly expresses the relationship "this template is formatted with the following values":
 
 ```java
 public String formatted(Object... args);
 ```
 
-Ví dụ:
+Example:
 
 ```java
-String title = "Chào %s, bạn có %d thông báo."
+String title = "Hello %s, you have %d notifications."
         .formatted("Linh", 3);
 
-// "Chào Linh, bạn có 3 thông báo."
+// "Hello Linh, you have 3 notifications."
 ```
 
-So sánh hai cách có cùng mục đích:
+Compare two approaches with the same purpose:
 
 ```java
-String a = String.format("Mã: %s, số lượng: %d", "P01", 7);
-String b = "Mã: %s, số lượng: %d".formatted("P01", 7);
+String a = String.format("Code: %s, quantity: %d", "P01", 7);
+String b = "Code: %s, quantity: %d".formatted("P01", 7);
 ```
 
-Trong cùng môi trường locale, `a` và `b` có cùng nội dung. `formatted(...)` thuận tiện khi mẫu chuỗi đã có sẵn dưới dạng biểu thức `String`, ví dụ một text block nhiều dòng. Nó dùng các quy tắc định dạng của `Formatter`, tương tự `String.format`.
+In the same locale environment, `a` and `b` have the same content. `formatted(...)` is convenient when the string template is already available as a `String` expression, such as a multi-line text block. It uses `Formatter` formatting rules, similar to `String.format`.
 
-**Khác biệt cần nhớ:** `String.formatted(...)` **không có overload nhận `Locale`**. Khi cần định dạng số/ngày theo locale cụ thể, chọn `String.format(locale, mẫu, đốiSố...)` hoặc `Formatter` được cấu hình locale. Cả `format` lẫn `formatted` đều tạo kết quả `String` mới.
+**Key difference to remember:** `String.formatted(...)` **has no overload accepting `Locale`**. When you need to format numbers or dates according to a specific locale, choose `String.format(locale, template, args...)` or a `Formatter` configured with a locale. Both `format` and `formatted` create a new `String` result.
 
-## 4. Cấu trúc format specifier: đủ để bắt đầu
+## 4. Format Specifier Structure: Enough to Get Started
 
-Ba API cùng sử dụng cú pháp của `Formatter`: `%[argument_index$][flags][width][.precision]conversion`. Dấu ngoặc vuông là ký hiệu mô tả thành phần tùy chọn, không phải ký tự gõ vào mẫu. Chỉ số đối số bắt đầu từ **1**; `conversion` quyết định loại giá trị, chẳng hạn `%s` (chuỗi), `%d` (số nguyên), `%f` (số thực), `%tF` (ngày). `%%` in dấu phần trăm và `%n` chèn kết thúc dòng theo nền tảng; hai ký hiệu này không tiêu thụ đối số.
+All three APIs use `Formatter` syntax: `%[argument_index$][flags][width][.precision]conversion`. Square brackets are notation describing optional components, not characters typed into the template. Argument indices start at **1**; `conversion` determines the value type, such as `%s` (string), `%d` (integer), `%f` (floating-point), `%tF` (date). `%%` prints a percent sign and `%n` inserts a platform-specific line separator; these two symbols do not consume arguments.
 
 ```java
-String line = String.format(Locale.US, "%s: %d mục, tổng %.2f", "Giỏ", 3, 12.5);
-// "Giỏ: 3 mục, tổng 12.50"
+String line = String.format(Locale.US, "%s: %d items, total %.2f", "Cart", 3, 12.5);
+// "Cart: 3 items, total 12.50"
 ```
 
-Đây là lớp cú pháp chung giúp bạn hiểu cả ba API. Việc phân tích đầy đủ các tổ hợp chỉ số, flags và conversion là trọng tâm của các bài chuyên sâu tiếp theo trong chương.
+This is the shared syntax layer that helps you understand all three APIs. Thoroughly analyzing all combinations of indices, flags, and conversions is the focus of the subsequent in-depth lessons in this chapter.
 
-## 5. Width, precision và flags: những khác biệt thiết yếu
+## 5. Width, Precision, and Flags: Essential Differences
 
-`width` là **độ rộng tối thiểu** của trường xuất, không tự cắt văn bản. Dấu `-` căn trái; flag `0` đệm số 0 cho kiểu số phù hợp. `precision` phụ thuộc conversion: `%.2f` in hai chữ số thập phân, còn `%.3s` giới hạn chuỗi còn tối đa ba ký tự.
+`width` is the **minimum width** of the output field; it does not automatically truncate text. The `-` sign left-aligns; the `0` flag zero-pads compatible numeric types. `precision` depends on the conversion: `%.2f` prints two decimal digits, whereas `%.3s` limits a string to at most three characters.
 
 ```java
 String s = String.format(Locale.US, "|%-6s|%04d|%.2f|", "AB", 7, 2.5);
 // "|AB    |0007|2.50|"
 ```
 
-Không phải flag hay precision nào cũng tương thích với mọi conversion: ví dụ `%.2d` và `%05s` không hợp lệ. Định dạng chỉ thay đổi văn bản đầu ra, không làm tròn hoặc sửa biến dữ liệu gốc.
+Not every flag or precision is compatible with every conversion: for example, `%.2d` and `%05s` are invalid. Formatting only changes the output text; it does not round or modify the original data variable.
 
-## 6. Chọn lại hoặc đổi thứ tự đối số
+## 6. Reselecting or Reordering Arguments
 
-Thông thường `%s`, `%d` nhận đối số lần lượt từ trái sang phải. `%2$s` chọn đối số thứ hai, còn `%1$d` chọn đối số thứ nhất; flag `<` tái sử dụng đối số của specifier có đối số trước đó.
+Normally `%s` and `%d` receive arguments sequentially from left to right. `%2$s` selects the second argument, while `%1$d` selects the first argument; the `<` flag reuses the argument of the preceding specifier that took an argument.
 
 ```java
-String reordered = String.format("%2$s mua %1$d món", 3, "Lan");
-// "Lan mua 3 món"
+String reordered = String.format("%2$s bought %1$d items", 3, "Lan");
+// "Lan bought 3 items"
 String reused = String.format("%s -> %<S", "java");
 // "java -> JAVA"
 ```
 
-Việc chỉ định đối số hữu ích khi câu thông báo đổi trật tự từ. Với bản địa hóa câu hoàn chỉnh theo ngôn ngữ, chương này còn giới thiệu `MessageFormat` và `ResourceBundle`.
+Specifying argument indices is useful when a message changes word order. For full language localization of complete sentences, this chapter also introduces `MessageFormat` and `ResourceBundle`.
 
-## 7. Locale thuộc về kết quả, không thuộc về mẫu
+## 7. Locale Belongs to the Output, Not the Template
 
-`String.format(format, args)` và `String.formatted(args)` dùng locale mặc định cho định dạng (`Locale.Category.FORMAT`). `String.format(locale, format, args)` cho phép chọn rõ quy ước dấu thập phân, phân nhóm số hoặc chữ hoa; bản thân mẫu văn bản cố định không được dịch tự động.
+`String.format(format, args)` and `String.formatted(args)` use the default locale for formatting (`Locale.Category.FORMAT`). `String.format(locale, format, args)` lets you explicitly choose conventions for decimal points, digit grouping, or uppercase letters; the fixed template text itself is not automatically translated.
 
 ```java
 String us = String.format(Locale.US, "%,.2f", 12345.5);       // 12,345.50
 String de = String.format(Locale.GERMANY, "%,.2f", 12345.5);  // 12.345,50
 ```
 
-Chọn locale theo người đọc; khi cần dữ liệu cho máy, tuân thủ chuẩn serialization của giao thức. Không thay đổi `Locale.setDefault` theo từng request trong ứng dụng đa luồng.
+Choose the locale for the reader; when data is meant for machines, follow the protocol's serialization standard. Do not change `Locale.setDefault` per request in a multithreaded application.
 
-## 8. Formatter: định dạng nhiều lần vào cùng đích
+## 8. Formatter: Formatting Multiple Times to the Same Destination
 
-`Formatter` thuộc `java.util`, triển khai `Closeable` và `Flushable`. Nó có các lời gọi `format(...)` tương tự, nhưng ghi vào **đích đầu ra** được gắn với đối tượng. Đích có thể là `StringBuilder`, `Writer`, `OutputStream` hoặc các đối tượng hỗ trợ cách thức ghi tương thích, tùy constructor.
+`Formatter` belongs to `java.util` and implements `Closeable` and `Flushable`. It has similar `format(...)` calls, but writes to an **output destination** attached to the object. The destination can be a `StringBuilder`, `Writer`, `OutputStream`, or objects supporting compatible writing mechanisms, depending on the constructor.
 
-Ví dụ ghi tuần tự vào `StringBuilder`:
+Example writing sequentially to a `StringBuilder`:
 
 ```java
 import java.util.Formatter;
@@ -126,23 +126,23 @@ import java.util.Locale;
 StringBuilder builder = new StringBuilder();
 
 try (Formatter formatter = new Formatter(builder, Locale.US)) {
-    formatter.format("Mã: %04d; ", 7);
-    formatter.format("Giá: %,.2f", 1234.5);
+    formatter.format("Code: %04d; ", 7);
+    formatter.format("Price: %,.2f", 1234.5);
 }
 
 System.out.println(builder);
-// Mã: 0007; Giá: 1,234.50
+// Code: 0007; Price: 1,234.50
 ```
 
-`format(...)` trên `Formatter` trả chính `Formatter` nên có thể gọi nối tiếp. Trong ví dụ, cả hai lời gọi ghi vào cùng `builder`; `StringBuilder` vẫn đọc được sau khi đóng `Formatter`. Dùng `try-with-resources` để đóng `Formatter` khi không dùng nữa, nhất là khi đích là tài nguyên I/O cần quản lý.
+`format(...)` on `Formatter` returns the `Formatter` itself, so calls can be chained. In the example, both calls write to the same `builder`; `StringBuilder` remains readable after closing the `Formatter`. Use `try-with-resources` to close `Formatter` when no longer needed, especially when the destination is a managed I/O resource.
 
-Cần lưu ý **đóng `Formatter` có thể đóng luôn đích đầu ra** nếu đích cũng là `Closeable`. Không tự tạo một `Formatter` rồi đóng nó trên `System.out` khi bạn vẫn cần tiếp tục ghi ra console. Có thể dùng `System.out.printf(...)` hoặc `System.out.format(...)` để ghi trực tiếp vào luồng chuẩn trong trường hợp đơn giản.
+Note that **closing `Formatter` may also close the output destination** if the destination is also `Closeable`. Do not create a `Formatter` and close it on `System.out` when you still need to continue writing to the console. You can use `System.out.printf(...)` or `System.out.format(...)` to write directly to standard output in simple cases.
 
-`Formatter` cũng có `locale()` để biết locale liên kết và `ioException()` để kiểm tra lỗi `IOException` mà formatter ghi nhận khi thao tác với đích đầu ra. Khi ghi tệp hoặc luồng, đừng chỉ kiểm tra chuỗi kết quả mà bỏ qua trạng thái I/O. Một đối tượng `Formatter` dùng chung cũng không nên được giả định là an toàn khi nhiều luồng cùng gọi; hãy tự kiểm soát truy cập đồng thời nếu cần.
+`Formatter` also has `locale()` to inspect the associated locale and `ioException()` to check for any `IOException` recorded by the formatter while operating on the output destination. When writing to a file or stream, do not just inspect the resulting string and ignore I/O status. A shared `Formatter` object should also not be assumed thread-safe when called concurrently by multiple threads; manage concurrent access yourself if needed.
 
-## 9. Chương trình Java 17+ chạy độc lập
+## 9. Standalone Runnable Java 17+ Program
 
-Tạo tệp tên `FormattingDemo.java` với toàn bộ nội dung:
+Create a file named `FormattingDemo.java` with the following complete content:
 
 ```java
 import java.time.LocalDate;
@@ -154,11 +154,11 @@ public class FormattingDemo {
         Locale us = Locale.US;
 
         String product = String.format(
-                us, "Sản phẩm: %s | SL: %d | Giá: %,.2f",
-                "Bút", 3, 1234.5);
+                us, "Product: %s | Qty: %d | Price: %,.2f",
+                "Pen", 3, 1234.5);
         System.out.println(product);
 
-        String greeting = "Xin chào %s (%d tuổi)"
+        String greeting = "Hello %s (%d years old)"
                 .formatted("Mai", 21);
         System.out.println(greeting);
 
@@ -167,12 +167,12 @@ public class FormattingDemo {
 
         System.out.println(
                 String.format(us,
-                        "%2$s mua %1$d món; %2$s đã thanh toán.",
+                        "%2$s bought %1$d items; %2$s has paid.",
                         3, "Lan"));
 
         System.out.println(
                 String.format(us,
-                        "Ngày: %tF", LocalDate.of(2026, 10, 23)));
+                        "Date: %tF", LocalDate.of(2026, 10, 23)));
 
         System.out.println(
                 String.format(us, "US: %,.2f", 12345.5));
@@ -190,66 +190,66 @@ public class FormattingDemo {
 }
 ```
 
-Biên dịch và chạy (đảm bảo tệp nguồn được lưu dưới UTF-8):
+Compile and run (ensure the source file is saved as UTF-8):
 
 ```bash
 javac -encoding UTF-8 FormattingDemo.java
 java FormattingDemo
 ```
 
-Kết quả stdout chính xác:
+Exact stdout output:
 
 ```text
-Sản phẩm: Bút | SL: 3 | Giá: 1,234.50
-Xin chào Mai (21 tuổi)
+Product: Pen | Qty: 3 | Price: 1,234.50
+Hello Mai (21 years old)
 |     cat|dog     |
-Lan mua 3 món; Lan đã thanh toán.
-Ngày: 2026-10-23
+Lan bought 3 items; Lan has paid.
+Date: 2026-10-23
 US: 12,345.50
 DE: 12.345,50
 A=0007; B=2.5
 ```
 
-Các dòng minh họa lần lượt `String.format`, `String.formatted`, căn lề, chỉ số đối số, định dạng ngày, locale và cách dùng lại `Formatter`. Ví dụ chọn ngày xác định và `Locale` tường minh ở các chuyển đổi cần locale để kết quả dễ kiểm tra.
+The lines illustrate `String.format`, `String.formatted`, alignment, argument indices, date formatting, locale, and reusing `Formatter`, respectively. The example chooses a deterministic date and explicit `Locale` for locale-sensitive conversions so the output is easy to verify.
 
-## 10. Ngày giờ trong Formatter
+## 10. Date and Time in Formatter
 
-`%tF` định dạng ngày theo `yyyy-MM-dd`; `%tT` định dạng giờ theo `HH:mm:ss`, nếu đối số thực sự cung cấp các trường thời gian cần thiết. Ví dụ, `String.format(Locale.US, "%tF", LocalDate.of(2026, 10, 23))` cho `2026-10-23` (cần import `LocalDate`). `LocalDate` không có giờ để dùng với `%tT`. Các yêu cầu parse, múi giờ hoặc pattern ngày giờ phong phú nên dùng `DateTimeFormatter`.
+`%tF` formats a date as `yyyy-MM-dd`; `%tT` formats time as `HH:mm:ss`, if the argument actually provides the required time fields. For example, `String.format(Locale.US, "%tF", LocalDate.of(2026, 10, 23))` yields `2026-10-23` (requires importing `LocalDate`). `LocalDate` does not have an hour to use with `%tT`. Requirements involving parsing, time zones, or rich date-time patterns should use `DateTimeFormatter`.
 
-## 11. Lỗi đầu vào và ngoại lệ định dạng
+## 11. Input Errors and Formatting Exceptions
 
-Compiler thường không kiểm tra việc khớp giữa conversion và đối số. Ví dụ `%d` với chuỗi `"42"` gây `IllegalFormatConversionException`, thiếu đối số gây `MissingFormatArgumentException`, flag/precision sai có thể gây các lớp khác của `IllegalFormatException`. Đối số `(Object) null` với `%s` hiển thị `"null"`, còn `%b` với chuỗi `"false"` lại cho `"true"` vì đó là đối tượng không null.
+The compiler usually does not check compatibility between conversions and arguments. For example, `%d` with the string `"42"` causes `IllegalFormatConversionException`, missing arguments cause `MissingFormatArgumentException`, and invalid flags/precision can cause other subclasses of `IllegalFormatException`. Passing `(Object) null` to `%s` displays `"null"`, while `%b` with the string `"false"` gives `"true"` because it is a non-null object.
 
-Với văn bản từ người dùng chứa `%`, hãy đưa văn bản đó vào đối số `%s` thay vì coi nó là format string. Chọn `%%` khi muốn in dấu phần trăm ngay trong mẫu; dùng `%n` cho kết thúc dòng theo nền tảng, hoặc `\n` khi giao thức yêu cầu LF cố định. Khi đóng `Formatter` gắn với đích I/O, nhớ kiểm tra và quản lý vòng đời của đích như ở mục 8.
+For user-supplied text containing `%`, pass that text as an `%s` argument rather than treating it as a format string. Choose `%%` when you want to print a percent sign directly in the template; use `%n` for platform-dependent line endings, or `\n` when a protocol requires a fixed LF. When closing a `Formatter` attached to an I/O destination, remember to check and manage the destination's lifecycle as described in Section 8.
 
-## 12. Chọn API phù hợp
+## 12. Choosing the Right API
 
-| Nhu cầu | Gợi ý | Lý do |
+| Need | Recommendation | Reason |
 | --- | --- | --- |
-| Một câu thông báo, chủ động chỉ định locale | `String.format(Locale, ...)` | Mẫu, đối số và locale rõ ràng trong một lệnh |
-| Một mẫu `String` ngắn, dùng locale mặc định | `template.formatted(args)` | Đọc thuận khi mẫu là receiver |
-| Xây dựng dần nhiều đoạn định dạng | `Formatter` + `StringBuilder` | Có thể gọi `format` nhiều lần vào cùng đích |
-| In trực tiếp ra stdout | `System.out.printf(...)` hoặc `format(...)` | Không cần tạo chuỗi trung gian nếu chỉ cần in |
-| Ngày giờ phức tạp | `DateTimeFormatter` | Kiểm soát pattern, locale và các kiểu thời gian |
-| Số theo quy tắc tiền tệ/hiển thị chuyên biệt | `NumberFormat` hoặc `DecimalFormat` phù hợp | Có quy tắc biểu diễn số và tiền tệ chuyên dụng |
+| A single message, explicitly specifying locale | `String.format(Locale, ...)` | Template, arguments, and locale are clear in one call |
+| A short `String` template, using default locale | `template.formatted(args)` | Reads naturally when the template is the receiver |
+| Incrementally building multiple formatted segments | `Formatter` + `StringBuilder` | Can call `format` multiple times onto the same destination |
+| Printing directly to stdout | `System.out.printf(...)` or `format(...)` | No need to create an intermediate string if only printing is needed |
+| Complex dates and times | `DateTimeFormatter` | Controls patterns, locales, and temporal types |
+| Numbers following specialized currency/display rules | Appropriate `NumberFormat` or `DecimalFormat` | Has dedicated rules for representing numbers and currencies |
 
-Các công cụ không loại trừ nhau. Ví dụ một chương trình có thể dùng `DateTimeFormatter` tạo phần ngày theo quy tắc riêng, sau đó đưa chuỗi đó vào `String.format` cùng những trường khác.
+These tools are not mutually exclusive. For example, a program can use `DateTimeFormatter` to build the date portion according to custom rules, then pass that string into `String.format` alongside other fields.
 
-## 13. Bài tập tự luyện: chọn đúng API
+## 13. Self-Practice Exercises: Choosing the Right API
 
-**Bài 1.** Cần tạo một chuỗi báo cáo với dấu phân cách số ổn định ở Mỹ. Chọn `String.format(Locale.US, "Tổng: %,.2f", 1234.5)` để nhận `"Tổng: 1,234.50"`.
+**Exercise 1.** You need to build a report string with stable US number separators. Choose `String.format(Locale.US, "Total: %,.2f", 1234.5)` to get `"Total: 1,234.50"`.
 
-**Bài 2.** Mẫu đã nằm trong biến `String template = "Xin chào %s"`, chỉ cần locale mặc định. Dùng `template.formatted("Mai")`, kết quả `"Xin chào Mai"`. Nếu cần locale cụ thể, chuyển sang `String.format(locale, template, "Mai")`.
+**Exercise 2.** The template is already in the variable `String template = "Hello %s"`, and only the default locale is needed. Use `template.formatted("Mai")`, resulting in `"Hello Mai"`. If a specific locale is needed, switch to `String.format(locale, template, "Mai")`.
 
-**Bài 3.** Cần ghi nhiều lần vào một `StringBuilder` mà không tạo nhiều chuỗi trung gian: tạo `Formatter(builder, locale)` và gọi `format(...)` liên tiếp. Sau đó đóng formatter; nếu đích là `Closeable`, việc đóng formatter có thể đóng luôn đích, nên quản lý tài nguyên có chủ đích.
+**Exercise 3.** You need to write multiple times to a `StringBuilder` without creating many intermediate strings: create `Formatter(builder, locale)` and call `format(...)` successively. Then close the formatter; if the destination is `Closeable`, closing the formatter may also close the destination, so manage resources intentionally.
 
-## 14. Ghi nhớ
+## 14. Key Takeaways
 
-1. `String.format` là phương thức **tĩnh**, phù hợp cho một lần định dạng và có overload nhận `Locale`.
-2. `String.formatted` là phương thức **instance** từ Java 15, ngắn gọn khi mẫu định dạng đã là `String`; không có overload `Locale`.
-3. `Formatter` là đối tượng có thể **ghi nhiều lần vào cùng một đích** và cần chú ý vòng đời tài nguyên, đặc biệt khi đích là luồng I/O.
-4. Format specifier có thứ tự `%[index$][flags][width][.precision]conversion`; **width** và **precision** có ý nghĩa khác nhau.
-5. Chọn đúng conversion cho **kiểu dữ liệu thật**; sai kiểu/thiếu đối số/flag không hợp lệ có thể gây ngoại lệ runtime.
-6. Với kết quả cần nhất quán, chỉ định `Locale` tường minh. Định dạng để trình bày không thay thế thao tác parse, tính toán chính xác hoặc serialization.
+1. `String.format` is a **static** method, suited for one-off formatting and offers an overload accepting `Locale`.
+2. `String.formatted` is an **instance** method since Java 15, concise when the format template is already a `String`; it has no `Locale` overload.
+3. `Formatter` is an object that can **write multiple times to the same destination** and requires attention to resource lifecycles, especially when the destination is an I/O stream.
+4. A format specifier has the order `%[index$][flags][width][.precision]conversion`; **width** and **precision** have different meanings.
+5. Choose the right conversion for the **actual data type**; wrong types, missing arguments, or invalid flags can cause runtime exceptions.
+6. For consistent results, specify `Locale` explicitly. Formatting for display does not replace parsing, exact arithmetic, or serialization.
 
-Tài liệu tham khảo chính thức: [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html), [Java SE 17 — Formatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Formatter.html), [Java SE 17 — Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html).
+Official references: [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html), [Java SE 17 — Formatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Formatter.html), [Java SE 17 — Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html).

@@ -1,31 +1,31 @@
-# BOM, console, terminal và nguồn gốc chữ bị lỗi mã hóa trong Java
+# BOM, Console, Terminal, and the Origins of Garbled Characters in Java
 
-## Mục tiêu
+## Objectives
 
-Khi chương trình Java đọc một tệp tiếng Việt rồi in ra `Tiáº¿ng Viá»‡t`, `CafÃ©`, các ô vuông hoặc ký hiệu `�`, nguyên nhân không nhất thiết nằm ở phông chữ. Dữ liệu ký tự đã đi qua nhiều tầng: **bytes trên đĩa/mạng → charset decoder → `String` Java → charset encoder → stdout/terminal hoặc tệp → bộ giải mã và font nơi hiển thị**. Chỉ cần một tầng dùng sai quy ước, chữ có thể thành *mojibake* (văn bản lỗi mã) hoặc ký tự thay thế.
+When a Java program reads a Vietnamese file and prints `Tiáº¿ng Viá»‡t`, `CafÃ©`, boxes, or `�` symbols, the root cause is not necessarily the font. Character data travels through multiple layers: **bytes on disk/network → charset decoder → Java `String` → charset encoder → stdout/terminal or file → display decoder and font**. If just one layer applies the wrong convention, text can turn into *mojibake* (garbled text) or replacement characters.
 
-BOM (*Byte Order Mark*) là dấu byte ở **đầu một số dạng văn bản Unicode**, giúp nhận biết thứ tự byte của UTF-16/UTF-32 và đôi khi được dùng như chữ ký UTF-8. BOM không thay thế việc xác định charset rõ ràng. Console/terminal lại có cơ chế giải mã, code page và font riêng; charset mặc định của JVM không nhất thiết là charset mà nơi nhận stdout dùng.
+A BOM (*Byte Order Mark*) is a byte marker at the **beginning of certain Unicode text formats** that helps identify UTF-16/UTF-32 byte order and is sometimes used as a UTF-8 signature. A BOM does not replace explicitly specifying the charset. Meanwhile, consoles/terminals have their own decoding, code page, and font mechanisms; the JVM's default charset is not necessarily the charset used by whatever consumes stdout.
 
-Sau bài, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt **byte**, **Unicode code point**, **UTF-8/UTF-16**, **charset**, **BOM**, **stdout** và **font rendering**.
-- Nhận diện byte BOM phổ biến: `EF BB BF` (UTF-8), `FE FF` và `FF FE` (UTF-16).
-- Phân tích khi nào BOM UTF-8 trở thành ký tự `U+FEFF` trong `String`, và tại sao chỉ nên loại nó ở đúng ranh giới dữ liệu.
-- Hiểu đường đi khi `System.out.println` gửi văn bản đến terminal, IDE, pipeline, tệp log hoặc CI.
-- Dùng `StandardCharsets.UTF_8` và API đọc/ghi có charset tường minh trong Java 17+.
-- Nhận diện giới hạn của `Charset.defaultCharset()` và khác biệt giữa JDK 17 với các JDK mới hơn.
-- Phân biệt **decode sai**, **encode sai**, **mất dữ liệu do replacement**, **double encoding**, **bản thân font thiếu glyph**.
-- Viết thử nghiệm byte-level, so sánh hex/code point, dùng decoder `REPORT` và xử lý lỗi đúng tầng thay vì “thử thay dấu”.
-- Xác định hướng khắc phục hợp lý cho file, JSON/HTTP, CSV, cửa sổ console và pipeline build.
+- Distinguish **bytes**, **Unicode code points**, **UTF-8/UTF-16**, **charset**, **BOM**, **stdout**, and **font rendering**.
+- Recognize common BOM byte sequences: `EF BB BF` (UTF-8), `FE FF`, and `FF FE` (UTF-16).
+- Analyze when a UTF-8 BOM becomes the `U+FEFF` character in a `String`, and why it should only be stripped at the right data boundary.
+- Understand the path `System.out.println` takes to terminals, IDEs, pipelines, log files, or CI.
+- Use `StandardCharsets.UTF_8` and explicit-charset read/write APIs in Java 17+.
+- Recognize the limits of `Charset.defaultCharset()` and differences between JDK 17 and newer JDKs.
+- Distinguish **wrong decode**, **wrong encode**, **data loss from replacement**, **double encoding**, and **missing font glyphs**.
+- Write byte-level tests, compare hex/code points, use `REPORT` decoders, and fix errors at the right layer instead of “trying character replacements.”
+- Determine sound fixes for files, JSON/HTTP, CSV, console windows, and build pipelines.
 
-Đây là bài thuộc nhóm **Charset và I/O**. Điểm mấu chốt không phải ghi nhớ một câu lệnh sửa terminal, mà là xác định chính xác **đầu nào tạo byte, charset nào diễn giải byte và nơi nào hiển thị ký tự**.
+This lesson belongs to **Charset and I/O**. The core takeaway is not memorizing a single terminal command, but pinpointing **which side produces bytes, which charset interprets bytes, and where characters are rendered**.
 
-## 1. Mô hình đúng: ký tự và byte là hai tầng khác nhau
+## 1. The Right Model: Characters and Bytes Are Two Separate Layers
 
-Trong Java, `String` là một chuỗi ký tự Unicode ở mức API. Khi ghi ra file hoặc stream byte, Java phải **encode** chuỗi thành byte theo charset. Khi đọc byte vào `String`, Java phải **decode** byte theo charset.
+In Java, a `String` is an API-level sequence of Unicode characters. When writing to a file or byte stream, Java must **encode** the string into bytes using a charset. When reading bytes into a `String`, Java must **decode** the bytes using a charset.
 
 ```text
-      Nguồn ký tự Java                    Đích byte
+      Java character source               Byte destination
        String "Tiếng Việt"
               |
         encode UTF-8
@@ -40,76 +40,76 @@ Trong Java, `String` là một chuỗi ký tự Unicode ở mức API. Khi ghi r
               |
           render/font
               v
-        Chữ người dùng thấy
+        Characters seen by user
 ```
 
-Đường đi đúng yêu cầu bên ghi và bên đọc thống nhất charset hoặc giao thức có cơ chế nhận diện charset đáng tin.
+The correct path requires both writer and reader to agree on the charset, or the protocol to provide a reliable charset identification mechanism.
 
-Ví dụ ký tự `ế` có code point `U+1EBF`. Khi mã hóa UTF-8, nó thành ba byte `E1 BA BF`. Nếu ba byte này bị đọc theo ISO-8859-1, kết quả không còn là `ế`; chúng được hiểu thành ba code point khác. Nếu chuyển tiếp chuỗi đã đọc sai rồi lại encode UTF-8, hệ thống có thể tạo một tệp hợp lệ về mặt UTF-8 **nhưng nội dung đã sai**.
+For example, the character `ế` has code point `U+1EBF`. When UTF-8 encoded, it becomes three bytes `E1 BA BF`. If those three bytes are read as ISO-8859-1, the result is no longer `ế`; they are interpreted as three different code points. If that misread string is forwarded and re-encoded as UTF-8, the system can produce a valid UTF-8 file **whose content is already corrupted**.
 
-Cần phân biệt:
+Distinguish carefully:
 
-| Thuật ngữ | Ý nghĩa |
+| Term | Meaning |
 | --- | --- |
-| **Unicode code point** | Số định danh của ký tự/dấu, ví dụ `U+1EBF` |
-| **Charset** | Quy tắc ánh xạ giữa chuỗi ký tự và chuỗi byte, ví dụ UTF-8 |
-| **Encoding** | Chuyển ký tự thành byte |
-| **Decoding** | Chuyển byte thành ký tự |
-| **BOM** | Một chuỗi byte ở đầu dữ liệu được dùng làm dấu nhận dạng/byte-order trong một số encoding |
-| **Mojibake** | Văn bản sai hình dạng vì byte đã được giải mã/biến đổi theo charset sai |
-| **Replacement character** | `U+FFFD`, thường xuất hiện khi decoder thay dữ liệu byte không hợp lệ |
-| **Font/glyph issue** | Ký tự Unicode đúng nhưng hệ thống vẽ thiếu glyph hoặc shaping phù hợp |
+| **Unicode code point** | Numeric identifier of a character/mark, e.g., `U+1EBF` |
+| **Charset** | Rules mapping between character sequences and byte sequences, e.g., UTF-8 |
+| **Encoding** | Converting characters into bytes |
+| **Decoding** | Converting bytes into characters |
+| **BOM** | A leading byte sequence used as an identifier/byte-order marker in some encodings |
+| **Mojibake** | Garbled text caused by bytes being decoded/transformed under the wrong charset |
+| **Replacement character** | `U+FFFD`, commonly appearing when a decoder replaces invalid byte data |
+| **Font/glyph issue** | Valid Unicode characters, yet the renderer lacks glyphs or proper shaping |
 
-**Thay font không sửa được một `String` đã bị decode thành các code point sai.** Ngược lại, nếu `String` vẫn đúng nhưng font thiếu chữ, đổi charset của tệp không giải quyết vấn đề hiển thị.
+**Changing the font cannot fix a `String` already decoded into the wrong code points.** Conversely, if the `String` is right yet the font lacks characters, changing the file's charset will not solve the display problem.
 
-## 2. UTF-8, UTF-16 và Byte Order Mark
+## 2. UTF-8, UTF-16, and Byte Order Mark
 
-### 2.1. UTF-8 không cần thứ tự byte
+### 2.1. UTF-8 Needs No Byte Order
 
-UTF-8 mã hóa một code point bằng từ một đến bốn byte, có cấu trúc xác định nên **không có lựa chọn big-endian hay little-endian** cho từng đơn vị mã như UTF-16. Vì thế UTF-8 **không cần BOM để xác định byte order**.
+UTF-8 encodes a code point in one to four bytes with a fixed structure, so there is **no big-endian or little-endian choice** per code unit as in UTF-16. Therefore UTF-8 **does not need a BOM to determine byte order**.
 
-Một số tệp UTF-8 được ghi bắt đầu bằng ba byte:
+Some UTF-8 files are written starting with three bytes:
 
 ```text
 EF BB BF
 ```
 
-Đây là **UTF-8 BOM** — thực chất là biểu diễn UTF-8 của `U+FEFF`. Nó đôi khi được dùng như chữ ký cho phần mềm cần nhận biết UTF-8. Nhưng BOM UTF-8 không phải điều kiện bắt buộc, và trong nhiều giao thức hoặc công cụ xử lý dữ liệu nó gây phiền phức vì bị coi là một ký tự đầu nội dung.
+This is the **UTF-8 BOM**—essentially the UTF-8 representation of `U+FEFF`. It is occasionally used as a signature for software needing to recognize UTF-8. However, a UTF-8 BOM is not mandatory, and in many protocols or data tools it causes trouble by being treated as a leading content character.
 
-Ví dụ tệp CSV có BOM UTF-8 có thể khiến chương trình parser không xử lý BOM nhận tên cột đầu tiên là `"\uFEFFid"` chứ không phải `"id"`. Người nhìn bằng editor thường không thấy ký tự này.
+For example, a CSV file with a UTF-8 BOM can cause a BOM-unaware parser to read the first column name as `"\uFEFFid"` instead of `"id"`. Humans viewing the file in an editor usually cannot see this character.
 
-**Không viết BOM UTF-8 theo thói quen.** Hãy xem hợp đồng file/đích nhận có yêu cầu BOM hay không. Khi giao tiếp giữa các dịch vụ hoặc lưu JSON/CSV, charset nên được khai báo và thống nhất, không phụ thuộc một dấu byte không bắt buộc.
+**Do not write a UTF-8 BOM out of habit.** Check whether the file/consumer contract requires a BOM. When communicating between services or storing JSON/CSV, the charset should be declared and agreed upon rather than relying on an optional byte marker.
 
-### 2.2. UTF-16 cần xét endianness
+### 2.2. UTF-16 Requires Considering Endianness
 
-UTF-16 dùng các code unit 16-bit. Khi serialize thành byte, mỗi code unit phải được ghi theo một thứ tự byte:
+UTF-16 uses 16-bit code units. When serialized to bytes, each code unit must be written in a byte order:
 
-- **Big-endian (BE)**: byte có trọng số cao trước.
-- **Little-endian (LE)**: byte có trọng số thấp trước.
+- **Big-endian (BE)**: most significant byte first.
+- **Little-endian (LE)**: least significant byte first.
 
-BOM cho UTF-16 thường là:
+Common BOMs for UTF-16 are:
 
-| Dạng | Byte đầu | Ý nghĩa |
+| Form | Leading bytes | Meaning |
 | --- | --- | --- |
-| UTF-16BE có BOM | `FE FF` | Byte order big-endian |
-| UTF-16LE có BOM | `FF FE` | Byte order little-endian |
-| UTF-8 có BOM | `EF BB BF` | Chữ ký UTF-8; không liên quan endianness |
+| UTF-16BE with BOM | `FE FF` | Big-endian byte order |
+| UTF-16LE with BOM | `FF FE` | Little-endian byte order |
+| UTF-8 with BOM | `EF BB BF` | UTF-8 signature; unrelated to endianness |
 
-Ví dụ, code point `U+FEFF` khi biểu diễn bằng UTF-16BE cho `FE FF` và bằng UTF-16LE cho `FF FE`. Nếu phần mềm đoán sai thứ tự byte của dữ liệu UTF-16, nó có thể cho code point khác hoặc lỗi giải mã.
+For example, code point `U+FEFF` yields `FE FF` in UTF-16BE and `FF FE` in UTF-16LE. If software guesses the wrong byte order for UTF-16 data, it can produce different code points or decoding failures.
 
-`StandardCharsets.UTF_16` xử lý dạng UTF-16 có BOM để xác định byte order; `UTF_16BE` và `UTF_16LE` chọn thứ tự tường minh. Sự khác nhau giữa các charset này ảnh hưởng việc có xử lý BOM làm metadata hay coi `U+FEFF` là ký tự. Không nên coi cả ba là alias luôn có hành vi giống nhau.
+`StandardCharsets.UTF_16` handles UTF-16 with a BOM to determine byte order; `UTF_16BE` and `UTF_16LE` select an explicit order. Differences among these charsets affect whether a BOM is treated as metadata or as a `U+FEFF` character. Do not treat all three as interchangeable aliases.
 
-### 2.3. UTF-32 và những dấu mở đầu khác
+### 2.3. UTF-32 and Other Leading Markers
 
-UTF-32 cũng có BE/LE, các BOM hay gặp là `00 00 FE FF` (BE) và `FF FE 00 00` (LE). Tuy nhiên, `java.nio.charset.StandardCharsets` **không khai báo hằng UTF-32** như một charset chuẩn bắt buộc; nếu code phụ thuộc UTF-32, cần kiểm tra charset/provider thực tế trước khi dùng.
+UTF-32 also has BE/LE forms, with common BOMs `00 00 FE FF` (BE) and `FF FE 00 00` (LE). However, `java.nio.charset.StandardCharsets` **does not declare UTF-32 constants** as mandatory standard charsets; if code depends on UTF-32, verify actual charset/provider support before use.
 
-Bài chủ yếu tập trung vào UTF-8/UTF-16 vì hai dạng này phổ biến trong hệ thống Java. Không đoán encoding của tệp chỉ bằng vài byte đầu nếu không có BOM: một chuỗi byte có thể hợp lệ theo nhiều encoding. Khi không có metadata, phát hiện charset bằng thống kê chỉ là **suy đoán**, không thể bảo đảm 100%.
+This lesson focuses primarily on UTF-8 and UTF-16 since both are common in Java systems. Do not guess a file's encoding from just the first few bytes without a BOM: a byte sequence can be valid under multiple encodings. Without metadata, statistical charset detection is only a **guess**, never 100% guaranteed.
 
-## 3. Java xử lý BOM UTF-8 như thế nào?
+## 3. How Does Java Handle a UTF-8 BOM?
 
-Đây là điều dễ bất ngờ: khi giải mã `EF BB BF` bằng `StandardCharsets.UTF_8`, một số API Java tổng quát **giữ `U+FEFF` như ký tự đầu chuỗi** thay vì tự bỏ.
+This often surprises developers: when decoding `EF BB BF` with `StandardCharsets.UTF_8`, several general Java APIs **keep `U+FEFF` as the first character of the string** instead of stripping it automatically.
 
-Ví dụ:
+Example:
 
 ```java
 byte[] bytes = {
@@ -122,20 +122,20 @@ System.out.println(text.length());
 System.out.println((int) text.charAt(0));
 ```
 
-Đây là đoạn minh họa trong phương thức có import `java.nio.charset.StandardCharsets`. Kết quả:
+This is a method-body snippet importing `java.nio.charset.StandardCharsets`. Output:
 
 ```text
 4
 65279
 ```
 
-`65279` là giá trị thập phân của `U+FEFF`. Mặc dù màn hình có thể trông như chỉ hiện `ABC`, bên trong `text` có bốn code unit; chuỗi này không bằng `"ABC"` theo `equals`.
+`65279` is the decimal value of `U+FEFF`. Even though a screen might look like it only displays `ABC`, `text` internally contains four code units; this string is not `equals` to `"ABC"`.
 
-Tương tự, `Files.readString(path, StandardCharsets.UTF_8)` đọc tệp có BOM UTF-8 và có thể trả chuỗi bắt đầu bằng `U+FEFF`. API không có hợp đồng chung tự xóa mọi BOM của mọi charset; cách xử lý phụ thuộc bộ giải mã, thư viện và định dạng.
+Similarly, `Files.readString(path, StandardCharsets.UTF_8)` reading a file with a UTF-8 BOM may return a string starting with `U+FEFF`. Java APIs have no universal contract to strip all BOMs for all charsets; handling depends on the decoder, library, and format.
 
-### Loại BOM đúng chỗ
+### Stripping BOM in the Right Place
 
-Nếu một định dạng **cho phép BOM UTF-8 như chữ ký** và quy định không coi nó là dữ liệu nội dung, có thể loại **một ký tự `U+FEFF` ở đầu** sau khi decode:
+If a format **permits a UTF-8 BOM as a signature** and specifies it is not content data, you can strip **a single leading `U+FEFF`** after decoding:
 
 ```java
 static String stripLeadingBom(String s) {
@@ -143,100 +143,100 @@ static String stripLeadingBom(String s) {
 }
 ```
 
-Đây là phương thức đặt trong một lớp Java; không phải chương trình độc lập. Không xóa `U+FEFF` ở mọi vị trí trong văn bản bằng `replace(...)` một cách vô điều kiện: nếu dữ liệu cho phép các ký tự điều khiển/định dạng có ý nghĩa khác, thao tác đó sẽ làm thay đổi nội dung.
+This is a helper method inside a Java class, not a standalone program. Never unconditionally strip `U+FEFF` everywhere in text with `replace(...)`: if data allows meaningful formatting/control characters, that alters content.
 
-**Quan trọng:** chỉ loại BOM nếu *file format/ứng dụng* xác định BOM là metadata. Đối với giao thức cấm BOM, có thể đúng hơn là **từ chối input** và báo lỗi rõ. Đừng làm sạch âm thầm khiến dữ liệu sai schema được chấp nhận.
+**Important:** strip a BOM only if the *file format/application* defines the BOM as metadata. For protocols that forbid a BOM, it may be more appropriate to **reject the input** and report a clear error. Do not silently sanitize schema-violating inputs into acceptance.
 
-### Tại sao dấu BOM xuất hiện trong tên header?
+### Why Does a BOM Appear Inside Header Names?
 
-Nếu tệp CSV là:
+If a CSV file is:
 
 ```text
 EF BB BF 69 64 2C 6E 61 6D 65 ...
 BOM       i  d  ,  n  a  m  e ...
 ```
 
-và parser không bỏ BOM, tên cột đầu tiên trở thành `"\uFEFFid"`. Khi code truy cập `columns.get("id")`, nó có thể không tìm thấy dù người dùng nhìn file thấy cột `id`.
+and the parser does not strip the BOM, the first column name becomes `"\uFEFFid"`. When code accesses `columns.get("id")`, lookup fails even though the user opens the file and sees an `id` column.
 
-Cách xử lý tốt: xác định encoding từ schema, đọc đúng charset, xử lý BOM **ở đầu stream hoặc đầu file** theo quy tắc định dạng rồi mới parse CSV; không tự chuyển/đổi tên mọi cột để che mất vấn đề.
+Proper handling: determine the encoding from the schema, read with the right charset, handle the BOM **at the start of the stream or file** per format rules, and only then parse CSV; do not rename columns ad hoc to mask the issue.
 
-## 4. Nguồn gốc chữ bị lỗi mã hóa: mojibake
+## 4. Origin of Garbled Text: Mojibake
 
-Một ví dụ đơn giản:
+A simple example:
 
 ```text
-Chuỗi gốc:       Café
-UTF-8 bytes:     43 61 66 C3 A9
-Đọc nhầm Latin-1: CafÃ©
+Original string:   Café
+UTF-8 bytes:       43 61 66 C3 A9
+Misread Latin-1:   CafÃ©
 ```
 
-Ở đây `é` được encode UTF-8 thành `C3 A9`, nhưng nếu hai byte đó bị giải mã theo ISO-8859-1/Latin-1, chúng thành `Ã` và `©`. Kết quả là **hai ký tự sai**; về sau dù hiển thị bằng font tốt vẫn có `CafÃ©`, vì `String` bên trong đã không còn là `Café`.
+Here `é` is UTF-8 encoded as `C3 A9`, yet if those two bytes are decoded as ISO-8859-1/Latin-1, they become `Ã` and `©`. The result is **two wrong characters**; afterward, even displaying with a good font still shows `CafÃ©`, because the internal `String` is no longer `Café`.
 
-Với tiếng Việt, mô thức tương tự có thể tạo các cụm như `Tiáº¿ng`, `Viá»‡t`. Tùy bảng mã một byte và byte cụ thể, có ký tự điều khiển hoặc dấu câu khác; không phải mọi hệ thống đều tạo **chính xác cùng chuỗi mojibake**. Ví dụ Windows-1252 và ISO-8859-1 khác nhau ở một số byte từ `80` tới `9F`.
+With Vietnamese, a similar pattern produces fragments like `Tiáº¿ng`, `Viá»‡t`. Depending on the single-byte encoding and exact bytes, control characters or different punctuation appear; not every system produces **the exact same mojibake string**. For instance, Windows-1252 and ISO-8859-1 differ on several bytes from `80` to `9F`.
 
-### Các kiểu lỗi thường gặp
+### Common Error Symptoms
 
-| Biểu hiện | Nguyên nhân khả dĩ | Cần kiểm tra |
+| Symptom | Possible cause | What to check |
 | --- | --- | --- |
-| `CafÃ©`, `Tiáº¿ng` | Byte UTF-8 bị decode như single-byte charset | Hex file / charset đọc |
-| `���` hoặc dấu `�` | Byte sai encoding hoặc decoder thay dữ liệu malformed | Byte gốc, `CodingErrorAction` |
-| Dấu `?` thay ký tự Unicode | Encoder không biểu diễn được ký tự rồi thay bằng `?` | Charset lúc ghi, dữ liệu đã mất |
-| Ký tự `ï»¿` ở đầu | BOM UTF-8 bị decode sai như Windows-1252 | Ba byte mở đầu `EF BB BF` |
-| Ký tự vô hình `U+FEFF` ở đầu | BOM UTF-8 bị giữ sau decode UTF-8 | `codePointAt(0)` |
-| Editor đúng, terminal sai | Charset stdout/terminal không khớp hoặc font thiếu glyph | Redirect stdout ra file và xem hex |
-| File đọc đúng, JSON/HTTP sai | Header/schema không đúng, có decode/encode thêm ở gateway | Raw network bytes, content type |
-| Chỉ một số ký tự thành ô vuông | Có thể là font/glyph thiếu | Kiểm tra code point vẫn đúng không |
+| `CafÃ©`, `Tiáº¿ng` | UTF-8 bytes decoded as a single-byte charset | File hex / reading charset |
+| `���` or `�` | Wrong-encoding bytes or decoder replaced malformed data | Original bytes, `CodingErrorAction` |
+| `?` replacing Unicode letters | Encoder could not represent characters and substituted `?` | Writing charset, data already lost |
+| Leading `ï»¿` characters | UTF-8 BOM misdecoded as Windows-1252 | Leading three bytes `EF BB BF` |
+| Invisible leading `U+FEFF` | UTF-8 BOM kept after UTF-8 decode | `codePointAt(0)` |
+| Editor works, terminal fails | Mismatched stdout/terminal charset or missing font glyphs | Redirect stdout to a file and inspect hex |
+| File reads fine, JSON/HTTP breaks | Wrong header/schema, extra decode/encode at gateway | Raw network bytes, content type |
+| Only some characters are boxes | Likely missing font/glyph | Check whether code points are still right |
 
-Bảng này giúp định hướng điều tra, không chứng minh nguyên nhân chỉ bằng mắt nhìn. Có trường hợp văn bản đã bị encode/decode sai **nhiều lần**, và chuỗi lỗi nhìn phức tạp hơn.
+This table guides investigation rather than proving root cause by sight alone. Sometimes text has been mis-encoded/decoded **multiple times**, making the garbled string look more complex.
 
-### Lỗi decode khác lỗi encode
+### Wrong Decode Differs from Wrong Encode
 
-**Decode sai:** byte gốc đúng nhưng được diễn giải thành ký tự sai.
+**Wrong decode:** original bytes are right, yet interpreted into wrong characters.
 
 ```text
-UTF-8 bytes của é: C3 A9
+UTF-8 bytes of é: C3 A9
         |
 decode ISO-8859-1
         v
-Ký tự: Ã©
+Characters: Ã©
 ```
 
-**Encode sai hoặc thay thế:** chuỗi Java chứa ký tự đúng, nhưng nó được ghi bằng charset không hỗ trợ ký tự ấy. Encoder có thể thay bằng byte `3F` tương ứng dấu `?`. Khi đó dữ liệu đã mất, không thể suy lại chính xác ký tự ban đầu chỉ từ dấu `?`.
+**Wrong encode or replacement:** the Java string holds the right characters, yet is written using a charset that does not support them. The encoder may replace them with byte `3F` (`?`). At that point data is lost, and the original character cannot be recovered reliably from `?` alone.
 
-**Hiển thị sai:** byte stream đúng và `String` đúng, nhưng terminal/renderer dùng charset sai hoặc font không có glyph. Trường hợp này thường có thể sửa ở tầng hiển thị **không cần đụng tới dữ liệu gốc**.
+**Wrong display:** the byte stream and `String` are both right, yet the terminal/renderer uses the wrong charset or lacks glyphs in its font. This can usually be fixed at the display layer **without touching the original data**.
 
-## 5. Một code point sai không thể sửa bằng Normalize
+## 5. A Wrong Code Point Cannot Be Fixed with Normalizer
 
-`java.text.Normalizer` xử lý Unicode normalization như NFC/NFD. Nó giải quyết quan hệ chuẩn tắc giữa một ký tự ghép sẵn và chuỗi dấu kết hợp, ví dụ chữ tiếng Việt `ế` so với `e + circumflex + acute`.
+`java.text.Normalizer` handles Unicode normalization such as NFC/NFD. It resolves canonical equivalence between a precomposed character and a sequence of combining marks, such as Vietnamese `ế` vs. `e + circumflex + acute`.
 
-Nhưng `"CafÃ©"` không phải một dạng NFD của `"Café"`. Chúng chứa những code point **khác nghĩa** do giải mã sai charset. Vì thế:
+However, `"CafÃ©"` is not an NFD form of `"Café"`. It contains **semantically different** code points caused by decoding with the wrong charset. Therefore:
 
 ```java
 Normalizer.normalize(broken, Normalizer.Form.NFC)
 ```
 
-không phải giải pháp tổng quát để khôi phục chữ bị mojibake.
+is not a general fix for recovering mojibake text.
 
-Đôi khi có thể “phục hồi” chuỗi mojibake bằng cách encode lại theo charset sai đã dùng, rồi decode theo charset gốc. Nhưng chỉ thực hiện an toàn khi **biết chắc đường biến đổi trước đó và chưa mất byte**. Nếu hệ thống đã thay dữ liệu bằng `?` hoặc `U+FFFD`, hoặc đã áp dụng nhiều bước chuyển đổi, có thể không thể khôi phục nguyên bản.
+Sometimes a mojibake string can be “recovered” by re-encoding with the wrong charset that was used and then decoding with the original charset. Yet this is safe only when **you know the exact prior transformation and no bytes were lost**. If the system already replaced data with `?` or `U+FFFD`, or applied multiple transformation steps, exact recovery may be impossible.
 
-**Ưu tiên lấy lại byte nguồn** và đọc đúng charset; đừng sửa một loạt bằng việc thay `Ã` hoặc `áº` thủ công.
+**Prefer retrieving the original source bytes** and reading with the right charset; do not batch-fix by manually replacing `Ã` or `áº`.
 
-## 6. Java 17 và các JDK mới hơn: charset mặc định thay đổi ra sao?
+## 6. Java 17 and Newer JDKs: How Does the Default Charset Change?
 
-Một số API Java nếu không truyền charset sẽ dùng **default charset**. Trên Java 17 và nhiều JDK cũ, charset mặc định có thể phụ thuộc hệ điều hành, locale và cấu hình môi trường. Vì vậy cùng một chương trình có thể đọc/ghi byte khác nhau ở các máy.
+Certain Java APIs use the **default charset** when no charset is passed. On Java 17 and older JDKs, the default charset can depend on the operating system, locale, and environment settings. Thus the same program may read/write different bytes on different machines.
 
-Từ **JDK 18**, JEP 400 chuẩn hóa mặc định của các API Java liên quan về UTF-8 theo chính sách mới, với các trường hợp tương thích được quy định. Nhưng sự thay đổi này **không có nghĩa mọi byte input/output của tất cả chương trình Java đều tự trở thành UTF-8**, càng không chứng minh stdout, terminal, file cũ và API bên ngoài đã thống nhất.
+Starting in **JDK 18**, JEP 400 standardizes the default of relevant Java APIs to UTF-8 under the new policy, with documented compatibility options. Yet this change **does not mean all byte input/output in every Java program automatically becomes UTF-8**, nor does it prove stdout, terminals, legacy files, and external APIs are aligned.
 
-Ví dụ những điểm cần phân biệt:
+Things to distinguish:
 
-- `Charset.defaultCharset()` cho biết default charset của runtime theo hợp đồng của nó.
-- `System.getProperty("file.encoding")` có thể phản ánh cấu hình mặc định nhưng không nên dùng nó như phương thức điều khiển mọi stream trong toàn ứng dụng; hành vi được hỗ trợ phụ thuộc phiên bản JDK.
-- `System.console()` có thể là `null` khi chương trình chạy trong IDE, background service, pipeline hoặc stdout bị redirect.
-- `Console.charset()` (có trong Java 17) cho biết charset của console được kết nối **khi có console**.
-- `System.out` là `PrintStream` do runtime tạo với cơ chế liên quan môi trường stdout; **đừng mặc định nó có cùng charset với `Charset.defaultCharset()`** ở mọi nơi.
-- `System.err` và `System.out` có thể tới những đích khác nhau, mỗi đích có chính sách ghi/hiển thị riêng.
+- `Charset.defaultCharset()` reports the runtime default charset per its contract.
+- `System.getProperty("file.encoding")` may reflect default settings, yet should not be used to control every stream across the application; supported behavior depends on the JDK version.
+- `System.console()` can be `null` when running in an IDE, background service, pipeline, or when stdout is redirected.
+- `Console.charset()` (available in Java 17) reports the attached console's charset **when a console exists**.
+- `System.out` is a `PrintStream` created by the runtime with stdout-environment mechanisms; **do not assume it always shares the same charset as `Charset.defaultCharset()`** everywhere.
+- `System.err` and `System.out` may go to different destinations, each with its own write/display policy.
 
-### Một đoạn chẩn đoán môi trường
+### An Environment Diagnostic Snippet
 
 ```java
 import java.io.Console;
@@ -254,89 +254,89 @@ if (console != null) {
 }
 ```
 
-Đây là đoạn minh họa trong phương thức. **Không ghi stdout cố định** vì kết quả phụ thuộc nơi chạy; cần dùng nó để kiểm tra thực tế.
+This is a method-body snippet. **No fixed stdout is shown** because output depends on the runtime environment; use it for live inspection.
 
-Nếu `console == null`, chương trình không thể suy rằng không có terminal hiển thị hoặc rằng stdout chắc chắn dùng UTF-8. Trong IDE, terminal giả, CI runner hoặc lệnh redirect, khái niệm `Console` của Java có thể không tồn tại dù có nơi thu nhận output.
+If `console == null`, the program cannot infer that no display terminal exists or that stdout definitely uses UTF-8. Inside IDEs, pseudo-terminals, CI runners, or redirected commands, Java's `Console` object may not exist even though something consumes output.
 
-Không dùng các system property nội bộ, không được Java API bảo đảm như một hợp đồng portable, để lập luận rằng mọi stdout trên mọi JDK đã được sửa.
+Do not rely on internal system properties not guaranteed by the Java API as a portable contract to claim all stdout across all JDKs is fixed.
 
-## 7. Console và terminal: stdout đi qua những lớp nào?
+## 7. Console and Terminal: Which Layers Does Stdout Pass Through?
 
-Một chuỗi in bằng:
+A string printed with:
 
 ```java
 System.out.println("Tiếng Việt");
 ```
 
-cần ít nhất những bước sau:
+goes through at least these steps:
 
 ```text
 Java source/bytecode
         |
-String với code point Unicode
+String with Unicode code points
         |
-System.out / PrintStream: encode ký tự thành byte
+System.out / PrintStream: encode characters to bytes
         |
 stdout stream
         |
   +-------------------------+
   | terminal / IDE / CI     |
-  | giải mã byte thành chữ  |
-  | chọn font và render     |
+  | decode bytes to text    |
+  | select font and render  |
   +-------------------------+
         |
-Người dùng nhìn thấy văn bản
+Text seen by user
 ```
 
-Ngoài ra nếu stdout bị redirect:
+Additionally, if stdout is redirected:
 
 ```text
 java App > output.txt
 ```
 
-thì byte đi vào **file**, không trực tiếp vào trình vẽ terminal. Khi mở `output.txt`, editor lại phải chọn encoding thích hợp. Nếu byte đúng nhưng editor tự nhận encoding sai, bạn có thể nhìn thấy mojibake dù chương trình đã ghi đúng byte.
+the bytes go into a **file**, not directly to the terminal renderer. When opening `output.txt`, the editor must also pick the right encoding. If the bytes are right yet the editor guesses the wrong encoding, you can see mojibake even though the program wrote the right bytes.
 
-### Terminal, shell và console không phải một thứ
+### Terminal, Shell, and Console Are Not the Same Thing
 
-- **Shell** như PowerShell, `cmd.exe` hoặc Bash phân tích lệnh, quoting, pipeline và một số bước chuyển đổi stdin/stdout.
-- **Terminal emulator/console host** hiển thị glyph, xử lý input/output và có thể gắn với một code page.
-- **JVM** mã hóa ký tự do `System.out` viết thành byte trước khi đưa ra stdout.
-- **Font renderer** vẽ glyph từ Unicode code point. Thiếu glyph có thể cho ô vuông dù byte/code point hoàn toàn đúng.
+- **Shell** such as PowerShell, `cmd.exe`, or Bash parses commands, quoting, pipelines, and certain stdin/stdout conversions.
+- **Terminal emulator/console host** renders glyphs, handles input/output, and may be tied to a code page.
+- **JVM** encodes characters written to `System.out` into bytes before emitting to stdout.
+- **Font renderer** draws glyphs from Unicode code points. Missing glyphs produce boxes even when bytes and code points are 100% right.
 
-Vì vậy câu “đã chuyển terminal sang UTF-8” chỉ nói **một phần** của đường đi; vẫn cần kiểm tra JVM, shell và những công cụ trong pipeline.
+Thus saying “I switched the terminal to UTF-8” covers only **part** of the path; you must still check the JVM, shell, and tools in the pipeline.
 
-### Windows: code page và PowerShell
+### Windows: Code Pages and PowerShell
 
-Trong các môi trường Windows, lệnh:
+In Windows environments, the command:
 
 ```powershell
 chcp
 ```
 
-hiển thị code page hiện tại của console host trong bối cảnh phù hợp; một số môi trường cho phép chọn UTF-8 bằng `chcp 65001`. Tuy nhiên, **code page không đồng nghĩa charset của mọi chương trình con hay mọi thao tác ghi tệp**.
+displays the console host's active code page in appropriate contexts; some environments allow selecting UTF-8 via `chcp 65001`. However, **a code page does not define the charset of every child program or file write operation**.
 
-PowerShell còn có những thiết lập/khác biệt theo phiên bản, ví dụ:
+PowerShell also has version-dependent settings and differences, such as:
 
-- `[Console]::OutputEncoding` liên quan encoding dùng cho console output theo .NET trong một số đường đi.
-- `$OutputEncoding` có thể ảnh hưởng cách PowerShell mã hóa text khi gửi qua stdin của native command.
-- `Out-File` và toán tử redirect `>` có hành vi encoding khác nhau giữa Windows PowerShell 5.1 và PowerShell phiên bản mới.
-- Windows PowerShell 5.1 có một số thao tác ghi file dùng UTF-16LE BOM theo mặc định, còn các đường dẫn khác có thể dùng encoding khác. **Không giả định mọi lệnh ghi file trong PowerShell 5.1 có cùng mặc định.**
+- `[Console]::OutputEncoding` relates to the .NET console output encoding in certain paths.
+- `$OutputEncoding` can affect how PowerShell encodes text sent to a native command's stdin.
+- `Out-File` and the `>` redirection operator have different encoding behaviors between Windows PowerShell 5.1 and newer PowerShell versions.
+- Windows PowerShell 5.1 uses UTF-16LE with BOM by default for certain file-writing operations, while other paths use different encodings. **Do not assume every file-writing command in PowerShell 5.1 shares the same default.**
 
-Ví dụ, đưa source hoặc lệnh vào stdin của công cụ Java từ một pipeline PowerShell có thể tạo byte BOM/encoding khác điều công cụ mong đợi. Nếu ký tự `U+FEFF` bị coi là một ký tự trong mã nguồn chứ không phải dấu file, một parser có thể báo lỗi `illegal character: '\ufeff'`.
+For example, piping source code or commands into a Java tool's stdin from a PowerShell pipeline can emit BOM/encoding bytes unexpected by the tool. If `U+FEFF` is parsed as a source character rather than a file marker, a parser can report `illegal character: '\ufeff'`.
 
-Không có một câu lệnh Windows duy nhất được bảo đảm khắc phục mọi vấn đề. Cần xác định **đường truyền cụ thể**: output của Java, stdin qua PowerShell, file redirect, hoặc văn bản hiển thị.
+There is no single Windows command guaranteed to fix every issue. Identify the **exact path**: Java output, stdin via PowerShell, redirected files, or rendered text.
 
-### Linux, macOS, Docker và CI
+### Linux, macOS, Docker, and CI
 
-Nhiều môi trường hiện đại dùng UTF-8, nhưng không nên xem đó là hợp đồng mọi container/pipeline. Một process có thể nhận byte UTF-8 qua stdout, trong khi trình thu log/terminal giả định encoding khác. CI có thể ghi nhận stdout thành tệp rồi phục vụ qua web UI; đường đi này có thêm tầng decode.
+Many modern environments use UTF-8, yet never treat that as a universal contract for every container/pipeline. One process may emit UTF-8 bytes to stdout while a log collector/terminal assumes another encoding. CI may capture stdout into a file and serve it via a web UI, adding another decode layer.
 
-Khi chạy trong Docker, cần xem metadata môi trường và cách log driver/collector đọc byte; thay `LANG` hoặc locale hệ điều hành không tự sửa một file vốn đã bị decode sai trước đó.
+When running in Docker, inspect environment metadata and how log drivers/collectors read bytes; changing `LANG` or OS locale will not automatically fix a file already misdecoded earlier.
 
-## 8. Chọn API Java có charset tường minh
+## 8. Choosing Java APIs with Explicit Charsets
 
-### 8.1. API nên dùng cho tệp văn bản UTF-8
+### 8.1. Recommended APIs for UTF-8 Text Files
 
-Trong Java 17+, ưu tiên:
+In Java 17+, prefer:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -349,65 +349,65 @@ Files.writeString(path, "Tiếng Việt", StandardCharsets.UTF_8);
 String text = Files.readString(path, StandardCharsets.UTF_8);
 ```
 
-Đây là đoạn minh họa trong phương thức có khai báo hoặc xử lý `IOException`. Khi chỉ định `UTF_8`, ý định được thể hiện rõ: không phụ thuộc charset mặc định của JVM và không tự cần một BOM để Java biết encoding.
+This is a snippet inside a method declaring or handling `IOException`. Specifying `UTF_8` states the intent clearly: independent of the JVM default charset and needing no BOM for Java to know the encoding.
 
-`Files.writeString(path, text)` và `Files.readString(path)` đã có mặc định **UTF-8 theo hợp đồng API** kể từ khi được bổ sung vào Java 11; truyền tham số charset vẫn nên dùng khi muốn làm rõ giao ước hoặc viết mã nhất quán với những API khác.
+`Files.writeString(path, text)` and `Files.readString(path)` already default to **UTF-8 per the API contract** since they were added in Java 11; passing the charset parameter is still recommended to make the contract explicit or stay consistent with other APIs.
 
-Các API thường cần chú ý:
+Common APIs to watch:
 
-| API | Chính sách cần nhớ |
+| API | Policy to remember |
 | --- | --- |
-| `Files.readString(path, UTF_8)` | Decode UTF-8 được chỉ định |
-| `Files.writeString(path, text, UTF_8)` | Encode UTF-8 được chỉ định; không tự thêm UTF-8 BOM |
-| `Files.newBufferedReader(path, UTF_8)` | Reader với charset rõ |
-| `Files.newBufferedWriter(path, UTF_8)` | Writer với charset rõ |
-| `new InputStreamReader(in, UTF_8)` | Decode stream bytes thành ký tự |
-| `new OutputStreamWriter(out, UTF_8)` | Encode ký tự thành stream bytes |
-| `new FileReader(file)` trên Java 17 | Dùng default charset nếu không chỉ định |
-| `new FileReader(file, charset)` | Dùng charset được truyền |
-| `new String(bytes, UTF_8)` | Decode byte với UTF-8 |
-| `text.getBytes(UTF_8)` | Encode chuỗi với UTF-8 |
+| `Files.readString(path, UTF_8)` | Explicit UTF-8 decode |
+| `Files.writeString(path, text, UTF_8)` | Explicit UTF-8 encode; does not automatically add a UTF-8 BOM |
+| `Files.newBufferedReader(path, UTF_8)` | Reader with explicit charset |
+| `Files.newBufferedWriter(path, UTF_8)` | Writer with explicit charset |
+| `new InputStreamReader(in, UTF_8)` | Decodes stream bytes to characters |
+| `new OutputStreamWriter(out, UTF_8)` | Encodes characters to stream bytes |
+| `new FileReader(file)` on Java 17 | Uses default charset if omitted |
+| `new FileReader(file, charset)` | Uses the passed charset |
+| `new String(bytes, UTF_8)` | Decodes bytes as UTF-8 |
+| `text.getBytes(UTF_8)` | Encodes string as UTF-8 |
 
-Chú ý không nên nói “mọi API `Files` đều dùng default charset”: `readString`/`writeString` mặc định UTF-8 theo hợp đồng, trong khi các API khác phải xem overload cụ thể.
+Be careful not to claim “all `Files` APIs use the default charset”: `readString`/`writeString` default to UTF-8 by contract, whereas other APIs require checking the exact overload.
 
-### 8.2. StandardCharsets thay tên chuỗi
+### 8.2. StandardCharsets Instead of String Names
 
-Thay vì viết:
+Instead of writing:
 
 ```java
 new String(bytes, "UTF-8");
 ```
 
-có thể dùng:
+use:
 
 ```java
 new String(bytes, StandardCharsets.UTF_8);
 ```
 
-`StandardCharsets.UTF_8` là hằng chuẩn được Java bảo đảm hỗ trợ, tránh lỗi gõ sai tên encoding và thể hiện mục đích rõ. Một số charset tương thích cũ có thể truy cập qua `Charset.forName("windows-1252")` nếu thực sự cần và môi trường hỗ trợ, nhưng đừng dùng charset đó thay UTF-8 cho dữ liệu mới chỉ vì terminal có hiện tượng lỗi.
+`StandardCharsets.UTF_8` is a standard constant guaranteed by Java, avoiding typos in encoding names and making intent clear. Certain legacy charsets can be accessed via `Charset.forName("windows-1252")` if genuinely required and supported by the environment, yet never use such a charset instead of UTF-8 for new data merely because a terminal displays errors.
 
-### 8.3. JSON, HTTP, CSV và properties có hợp đồng riêng
+### 8.3. JSON, HTTP, CSV, and Properties Have Separate Contracts
 
-Đừng chuyển text từ API hay database thành một charset chỉ vì muốn terminal hiển thị đẹp.
+Do not convert API or database text to another charset just to make a terminal look pretty.
 
-- **JSON trao đổi hiện đại:** xác định UTF-8 theo giao thức, đồng thời dùng thư viện JSON chuẩn; việc có BOM hoặc không phải theo định dạng. RFC 8259 yêu cầu UTF-8 cho JSON giữa các hệ thống không nằm trong cùng một môi trường đóng, và sender không nên thêm BOM.
-- **HTTP:** charset có thể do loại media, specification và `Content-Type` quyết định. Đừng tự suy mọi body là text UTF-8 nếu giao thức khác nói khác.
-- **CSV:** bản thân tên CSV không bảo đảm charset; hai phía cần thống nhất charset, delimiter, escape và chính sách BOM.
-- **Java `Properties`:** `Properties.load(InputStream)` có hợp đồng đọc ISO-8859-1 với Unicode escapes, còn `Properties.load(Reader)` theo charset của `Reader`. Đừng nhầm hai API với đường nạp tài nguyên `ResourceBundle`/`PropertyResourceBundle` trên JDK hiện đại.
-- **Database/JDBC:** truyền text bằng API kiểu ký tự, thiết lập client/server encoding và schema đúng; không encode một `String` thành byte tùy tiện rồi lưu vào cột văn bản để tránh lỗi console.
+- **Modern JSON exchange:** mandates UTF-8 per protocol and uses a standard JSON library; BOM presence/absence follows the spec. RFC 8259 requires UTF-8 for JSON exchanged outside closed ecosystems, and senders must not add a BOM.
+- **HTTP:** charset can be governed by media type, specification, and `Content-Type`. Do not assume every body is UTF-8 text if another protocol says otherwise.
+- **CSV:** the name CSV itself guarantees no charset; both sides must agree on charset, delimiter, escaping, and BOM policy.
+- **Java `Properties`:** `Properties.load(InputStream)` has an ISO-8859-1 contract with Unicode escapes, whereas `Properties.load(Reader)` uses the `Reader`'s charset. Do not confuse these two APIs with `ResourceBundle`/`PropertyResourceBundle` resource loading on modern JDKs.
+- **Database/JDBC:** pass text via character-typed APIs, configure client/server encoding and schema properly; never encode a `String` into arbitrary bytes and store them in a text column to dodge console glitches.
 
-Charset của **dữ liệu lưu trữ** và charset của **log đang hiển thị** phải được kiểm soát độc lập.
+The charset of **stored data** and the charset of **displayed logs** must be controlled independently.
 
-## 9. Decoder nghiêm ngặt và ký tự thay thế U+FFFD
+## 9. Strict Decoders and the U+FFFD Replacement Character
 
-Một mảng byte có thể **không hợp lệ theo UTF-8**. Ví dụ byte `C3 28` gồm một byte bắt đầu chuỗi đa byte nhưng byte tiếp theo không phải continuation byte.
+A byte array can be **invalid UTF-8**. For instance, bytes `C3 28` have a multi-byte leading byte followed by a byte that is not a continuation byte.
 
-Có hai chính sách phổ biến:
+Two common policies exist:
 
-1. **Thay lỗi bằng ký tự replacement** để chương trình vẫn tạo được text và tiếp tục hiển thị.
-2. **Báo lỗi ngay** vì dữ liệu phải tuân thủ nghiêm ngặt UTF-8.
+1. **Replace errors with a replacement character** so the program still constructs text and continues displaying.
+2. **Fail immediately** because data must strictly conform to UTF-8.
 
-Trong Java:
+In Java:
 
 ```java
 byte[] malformed = {(byte) 0xC3, (byte) 0x28};
@@ -418,9 +418,9 @@ String permissive = new String(
 System.out.println(permissive.contains("\uFFFD"));
 ```
 
-Đây là đoạn minh họa trong một phương thức; kết quả `true` cho thấy decoder sử dụng replacement.
+This is a method-body snippet; printing `true` shows the decoder applied replacement.
 
-Nếu nhập liệu yêu cầu **không chấp nhận UTF-8 malformed**, dùng `CharsetDecoder`:
+If ingestion requires **rejecting malformed UTF-8**, use `CharsetDecoder`:
 
 ```java
 import java.nio.ByteBuffer;
@@ -434,21 +434,21 @@ try {
             .onUnmappableCharacter(CodingErrorAction.REPORT)
             .decode(ByteBuffer.wrap(malformed));
 } catch (CharacterCodingException ex) {
-    // Từ chối payload không phải UTF-8 hợp lệ.
+    // Reject payload that is not valid UTF-8.
 }
 ```
 
-Đây là đoạn minh họa trong một phương thức có `malformed` đã khai báo. `REPORT` giúp tránh việc một payload sai bị “chấp nhận” bằng cách âm thầm thay byte không hợp lệ.
+This is a snippet inside a method where `malformed` is already declared. `REPORT` prevents an invalid payload from being “accepted” by silently replacing invalid bytes.
 
-**Không thể luôn khôi phục ký tự ban đầu từ `U+FFFD`.** Nếu byte gốc không còn và nhiều chuỗi byte khác nhau đều bị thay bằng cùng ký tự, thông tin đã mất. Tương tự, byte `3F` do encoder thay bằng dấu `?` không chứa cách phục hồi chắc chắn code point gốc.
+**You cannot always recover the original character from `U+FFFD`.** Once original bytes are gone and multiple different byte sequences map to the same replacement character, the information is lost. Likewise, a `3F` byte emitted by an encoder as `?` offers no reliable way to recover the original code point.
 
-Không tùy tiện xóa mọi `U+FFFD` rồi coi dữ liệu đã sạch; có thể che đi lỗi truyền dữ liệu quan trọng.
+Do not arbitrarily delete every `U+FFFD` and consider the data clean; that can hide critical transmission errors.
 
-## 10. Ví dụ Java 17+ chạy độc lập: bytes, BOM và lỗi decode
+## 10. Standalone Java 17+ Example: Bytes, BOM, and Decode Errors
 
-Ví dụ tạo một tệp tạm rồi xóa khi xong, tránh sửa dữ liệu trong project. Nó in **hex và code point** thay vì phụ thuộc terminal có hiển thị tiếng Việt đúng hay không.
+This example creates a temporary file and deletes it when done, avoiding modifying project data. It prints **hex and code points** rather than relying on whether the terminal renders Vietnamese properly.
 
-Tạo tệp `CharsetAndBomDemo.java`:
+Create `CharsetAndBomDemo.java`:
 
 ```java
 import java.nio.ByteBuffer;
@@ -549,14 +549,14 @@ public class CharsetAndBomDemo {
 }
 ```
 
-Lệnh biên dịch và chạy bằng JDK 17+:
+Compile and run commands using JDK 17+:
 
 ```bash
 javac -encoding UTF-8 CharsetAndBomDemo.java
 java CharsetAndBomDemo
 ```
 
-Stdout đã kiểm chứng, không phụ thuộc font chữ của console:
+Verified stdout, independent of console font:
 
 ```text
 UTF-8 hex: 5469e1babf6e67205669e1bb8774
@@ -572,219 +572,219 @@ UTF-16 header: feff
 UTF-16 round-trip: true
 ```
 
-### Giải thích chính xác output
+### Exact Output Explanation
 
-- `UTF-8 hex` là dãy byte của `Tiếng Việt`. Chữ `ế` tương ứng `E1 BA BF`; chữ `ệ` tương ứng `E1 BB 87`.
-- `UTF-8 round-trip: true` chứng minh khi encode/decode cùng UTF-8, chuỗi khôi phục chính xác.
-- `Latin-1 equals original: false` và dãy code point cho thấy decode nhầm byte thành **những ký tự khác** chứ không phải lỗi font.
-- `writeString adds BOM: false` chứng minh thao tác ghi UTF-8 bình thường không tự chèn ba byte `EF BB BF`.
-- Khi chương trình **chủ động thêm BOM** và đọc lại bằng UTF-8, ký tự đầu là `U+FEFF`; loại đúng ký tự đầu giúp so sánh được với dữ liệu gốc.
-- `replacement occurs: true` minh họa cách decode mặc định cho byte malformed có thể thay bằng `U+FFFD`.
-- `strict decoder: rejected` cho thấy `CharsetDecoder` cấu hình `REPORT` phát hiện byte malformed.
-- `UTF-16 header: feff` chứng minh `StandardCharsets.UTF_16` có thể ghi BOM của dạng UTF-16BE mặc định ở đầu; decoder UTF-16 tương ứng đọc lại được chuỗi.
+- `UTF-8 hex` is the byte sequence of `Tiếng Việt`. Letter `ế` corresponds to `E1 BA BF`; letter `ệ` corresponds to `E1 BB 87`.
+- `UTF-8 round-trip: true` proves encoding and decoding with the same UTF-8 recovers the exact string.
+- `Latin-1 equals original: false` and the code point list show misdecoding bytes turns them into **different characters** rather than a font bug.
+- `writeString adds BOM: false` proves normal UTF-8 writing does not automatically prepend `EF BB BF`.
+- When the program **explicitly prepends a BOM** and reads back as UTF-8, the first character is `U+FEFF`; stripping that leading character matches the original data.
+- `replacement occurs: true` illustrates how default decoding of malformed bytes can substitute `U+FFFD`.
+- `strict decoder: rejected` shows a `CharsetDecoder` configured with `REPORT` detects malformed bytes.
+- `UTF-16 header: feff` proves `StandardCharsets.UTF_16` writes the default UTF-16BE BOM at the start; the matching UTF-16 decoder reads the string back.
 
-Mục đích chính của ví dụ là kiểm tra **byte và code point**. Nếu terminal hiển thị chữ Việt bị lỗi, stdout chứa hex và giá trị `U+...` vẫn giúp bạn phân biệt chính xác dữ liệu đã thay đổi ở đâu.
+The primary goal of the example is inspecting **bytes and code points**. If the terminal renders Vietnamese incorrectly, stdout containing hex and `U+...` values still lets you pinpoint where the data changed.
 
-## 11. Biên dịch Java source và charset của tệp nguồn
+## 11. Compiling Java Sources and Source File Charset
 
-Đường đi của **source code** cần tách khỏi charset của stdout và dữ liệu runtime.
+The **source code** path must be kept separate from stdout and runtime data charsets.
 
 ```text
 .java file bytes
      |
-javac decode source theo encoding
+javac decodes source per encoding
      |
-Class file với constant String
+Class file with String constants
      |
-JVM chạy chương trình
+JVM runs program
      |
-System.out encode khi in
+System.out encodes on print
      |
-Terminal decode/render
+Terminal decodes/renders
 ```
 
-Nếu tệp `.java` chứa chữ Việt thật (không phải Unicode escape) nhưng `javac` đọc source theo encoding sai, bytecode có thể chứa ký tự sai **ngay từ lúc biên dịch**. Lúc đó sửa terminal không làm class file tự đúng lại.
+If a `.java` file contains literal Vietnamese characters (not Unicode escapes) yet `javac` reads the source with the wrong encoding, the bytecode can contain wrong characters **right from compile time**. Fixing the terminal afterward will not fix the compiled class file.
 
-Trên JDK 17, lựa chọn rõ là:
+On JDK 17, the explicit option is:
 
 ```bash
 javac -encoding UTF-8 Main.java
 ```
 
-Hãy bảo đảm tệp source thực sự được lưu UTF-8. Lệnh trên chỉ quy định cách compiler đọc source, không tự chuyển tệp gốc từ Windows-1258, UTF-16 hay charset legacy khác thành UTF-8.
+Ensure the source file is actually saved as UTF-8. That command only tells the compiler how to read the source; it does not convert a file from Windows-1258, UTF-16, or another legacy charset into UTF-8.
 
-Trong các hệ thống build như Maven/Gradle, nên khai báo source encoding/charset của resource filtering rõ ràng. Không coi tên file `.java` hoặc `.properties` là bằng chứng nội dung bên trong đang ở UTF-8.
+In build systems like Maven/Gradle, declare source encoding and resource-filtering charsets explicitly. Never treat a `.java` or `.properties` filename extension as proof the contents inside are UTF-8.
 
-### Unicode escape trong ví dụ có ích nhưng không thay kiểm tra pipeline
+### Unicode Escapes in Examples Help, Yet Do Not Replace Pipeline Checks
 
-Viết:
+Writing:
 
 ```java
 String name = "Ti\u1EBFng Vi\u1EC7t";
 ```
 
-cho phép source phần literal sử dụng ASCII nhưng runtime tạo đúng chữ Việt. Điều này giảm phụ thuộc terminal/editor trong ví dụ giáo dục, nhưng không nên dùng escape cho mọi văn bản dịch ở ứng dụng thực. Với nội dung i18n, ưu tiên file tài nguyên đúng encoding, pipeline build đáng tin và test round-trip.
+lets the literal source stay ASCII while creating proper Vietnamese text at runtime. This reduces terminal/editor dependency in educational examples, yet you should not escape every translated string in real applications. For i18n content, prefer properly encoded resource files, reliable build pipelines, and round-trip tests.
 
-## 12. Chẩn đoán theo từng tầng, không sửa bằng đoán mò
+## 12. Diagnose Layer by Layer, Never Fix by Guessing
 
-Khi gặp chữ lỗi, làm theo thứ tự:
+When encountering garbled text, follow this order:
 
-### Bước 1 — xác định dữ liệu bắt đầu ở đâu
+### Step 1 — Identify Where the Data Originates
 
-Nguồn có thể là:
+The source could be:
 
-- Tệp văn bản/CSV/JSON đọc từ đĩa.
-- Request HTTP hoặc response từ dịch vụ khác.
-- Bản ghi database trả về qua JDBC.
-- File properties/resource bundle.
-- Literal được biên dịch trong `.class`.
-- Text do người dùng nhập qua console/stdin.
+- A text/CSV/JSON file read from disk.
+- An HTTP request or response from another service.
+- A database record returned via JDBC.
+- A properties file or resource bundle.
+- A literal compiled into a `.class` file.
+- Text typed by a user via console/stdin.
 
-Không thể đưa ra lời giải thích “sai UTF-8” chính xác nếu chưa biết **nguồn byte**, bên gửi và định dạng được công bố.
+You cannot provide an accurate “wrong UTF-8” diagnosis without knowing the **byte source**, sender, and declared format.
 
-### Bước 2 — giữ byte gốc trước khi sửa
+### Step 2 — Preserve Original Bytes Before Fixing
 
-Nếu đọc tệp, xem các byte đầu và vài byte quanh ký tự lỗi. Ví dụ dùng Java:
+If reading a file, inspect the leading bytes and a few bytes around the garbled character. For example, in Java:
 
 ```java
 byte[] raw = Files.readAllBytes(path);
 System.out.println(HexFormat.of().formatHex(raw));
 ```
 
-Đây là đoạn minh họa trong phương thức với `path` kiểu `Path` và import `Files`/`HexFormat`. Khi tệp lớn, chỉ in một vùng byte cần thiết, không xả dữ liệu nhạy cảm vào log.
+This is a method-body snippet with `path` of type `Path` and `Files`/`HexFormat` imports. For large files, print only the relevant byte window and never dump sensitive data into logs.
 
-Nhìn thấy `EF BB BF` tại offset 0 cho biết có dấu mở đầu UTF-8 BOM; nhìn thấy `E1 BA BF` cho biết các byte phù hợp với chữ `ế` theo UTF-8. Nhưng **một số byte khớp không chứng minh toàn bộ file hợp lệ UTF-8**: nếu cần, dùng decoder strict trên toàn payload.
+Seeing `EF BB BF` at offset 0 indicates a leading UTF-8 BOM; seeing `E1 BA BF` indicates bytes matching `ế` in UTF-8. Yet **a few matching bytes do not prove the entire file is valid UTF-8**: if needed, run a strict decoder across the entire payload.
 
-### Bước 3 — decode bằng charset theo hợp đồng
+### Step 3 — Decode Using the Contracted Charset
 
-Không chọn charset theo “máy hiện đang là Windows” hoặc “file có chữ tiếng Việt”. Chọn theo metadata/đặc tả: UTF-8, UTF-16 hoặc charset legacy được nhà cung cấp dữ liệu công bố.
+Do not pick a charset based on “this machine runs Windows” or “the file has Vietnamese text.” Choose per metadata/specification: UTF-8, UTF-16, or the legacy charset published by the data provider.
 
-Nếu không có metadata, dùng công cụ nhận diện charset như **gợi ý** rồi kiểm tra với nguồn gốc và nội dung dự kiến; không coi charset detection thống kê là chân lý chắc chắn.
+If metadata is absent, use charset detection tools as **hints** and verify against the producer and expected content; never treat statistical charset detection as infallible truth.
 
-### Bước 4 — kiểm tra String trước khi in
+### Step 4 — Inspect the String Before Printing
 
-So sánh code point, không dựa hoàn toàn vào console:
+Compare code points instead of relying solely on the console:
 
 ```java
-String value = ...; // Giá trị nhận từ nguồn đã đọc
+String value = ...; // Value received from the read source
 value.codePoints()
      .forEach(cp -> System.out.printf("U+%04X%n", cp));
 ```
 
-Đây là đoạn minh họa trong phương thức với `value` đã được khai báo. Vì định dạng `U+XXXX` dùng ASCII, kết quả giúp xác định `String` đang chứa ký tự đúng hay đã chứa mojibake.
+This is a method-body snippet with `value` already declared. Because `U+XXXX` formatting uses ASCII, the output reveals whether the `String` holds the right characters or already contains mojibake.
 
-Nếu `String` đã sai, hãy sửa bước decode/nguồn. Nếu `String` đúng nhưng terminal hiển thị sai, tập trung vào stdout encoder, terminal decoder và font.
+If the `String` is already wrong, fix the decode/source step. If the `String` is right yet the terminal displays wrong characters, focus on the stdout encoder, terminal decoder, and font.
 
-### Bước 5 — tách stdout khỏi terminal
+### Step 5 — Separate Stdout from the Terminal
 
-Thử redirect output ra tệp rồi xem hex tệp đó. Lưu ý chính shell/redirect có thể có hành vi encoding riêng, nên nếu cần kiểm chứng tuyệt đối, hãy cho Java ghi một tệp bằng `Files.writeString(..., UTF_8)` và xem raw bytes.
+Try redirecting output to a file and inspecting its hex. Note that the shell/redirection itself may apply its own encoding behavior, so for absolute verification have Java write a file directly using `Files.writeString(..., UTF_8)` and inspect the raw bytes.
 
-Nếu tệp Java ghi tường minh UTF-8 đúng mà màn hình terminal sai, không nên sửa dữ liệu trong database. Nếu tệp stdout có byte sai, cần xem encoder của `System.out` hoặc lớp chuyển đổi của pipeline.
+If the file explicitly written by Java in UTF-8 is right while the terminal screen is wrong, do not alter data in the database. If the stdout file has wrong bytes, inspect `System.out`'s encoder or pipeline conversion layers.
 
-### Bước 6 — xem chế độ thay thế lỗi
+### Step 6 — Check Error Replacement Mode
 
-Khi gặp `�` hoặc `?`, xác định nó được tạo ở bước nào. Nếu là decoder hoặc encoder thay thế, cần xem lại byte nguồn sớm nhất. Một bước đã thay dữ liệu có thể làm việc khôi phục chính xác không còn khả thi.
+When encountering `�` or `?`, identify which step produced it. If a decoder or encoder substituted it, inspect the earliest source bytes. A step that already replaced data may render exact recovery impossible.
 
-### Bước 7 — bổ sung test regression
+### Step 7 — Add Regression Tests
 
-Tạo fixture có:
+Build fixtures containing:
 
-- Tiếng Việt có dấu: `Tiếng Việt`, `đ`, `ắ`, `ệ`.
-- Chữ Latin có dấu như `Café`.
-- Một ký tự ngoài BMP như emoji để kiểm tra surrogate/UTF-8 4 byte.
-- Tệp UTF-8 có và không có BOM.
-- Tệp UTF-16BE/LE có BOM theo đặc tả đang hỗ trợ.
-- Byte UTF-8 malformed để test `REPORT`.
-- Dữ liệu có tên cột CSV đầu tiên bị `U+FEFF`.
-- Kịch bản redirect stdout/CI nếu ứng dụng phụ thuộc log.
+- Accented Vietnamese: `Tiếng Việt`, `đ`, `ắ`, `ệ`.
+- Accented Latin such as `Café`.
+- A non-BMP character such as an emoji to test surrogates / 4-byte UTF-8.
+- UTF-8 files with and without BOM.
+- UTF-16BE/LE files with BOM per supported specifications.
+- Malformed UTF-8 bytes to test `REPORT`.
+- Data whose first CSV column name is affected by `U+FEFF`.
+- Stdout/CI redirection scenarios if the application depends on logs.
 
-Kết quả test nên xác minh **byte, code point, tên charset và các exception**, không chỉ là một screenshot trông có vẻ đúng.
+Test assertions should verify **bytes, code points, charset names, and exceptions**, not just a screenshot that looks right.
 
-## 13. Những hướng khắc phục sai phổ biến
+## 13. Common Wrong Fixes
 
-### “Bỏ BOM ở mọi chỗ”
+### “Strip BOM Everywhere”
 
-Sai: một file không có BOM thì không cần loại, còn `U+FEFF` nằm giữa nội dung có thể cần được xử lý theo chính sách riêng. BOM của UTF-16 khác UTF-8. Nên chỉ loại hoặc từ chối BOM ở đầu theo đúng format và charset.
+Wrong: a file without a BOM needs no stripping, whereas `U+FEFF` in the middle of content may require a specific policy. UTF-16 BOMs differ from UTF-8. Only strip or reject a leading BOM per the exact format and charset.
 
-### “Chỉ cần đổi font”
+### “Just Change the Font”
 
-Nếu `String` đã thành `CafÃ©`, font không khôi phục `é`. Font chỉ sửa được việc **glyph không hiển thị** khi code point vẫn đúng.
+If a `String` has already become `CafÃ©`, changing the font cannot restore `é`. Fonts only fix **missing glyph rendering** when code points are still right.
 
-### “Chỉ cần đổi `file.encoding`”
+### “Just Change `file.encoding`”
 
-Trên các JDK, `file.encoding` và default charset có cơ chế được xác định theo phiên bản; JVM runtime, console, shell, công cụ build và file I/O có thể không đồng bộ. Dù đổi default charset, những lời gọi đã có `StandardCharsets.UTF_8` vẫn dùng UTF-8 theo tham số; file bị hỏng trước đó cũng không tự sửa.
+Across JDKs, `file.encoding` and the default charset follow version-specific mechanisms; JVM runtime, console, shell, build tools, and file I/O can still be out of sync. Even when changing the default charset, calls already passing `StandardCharsets.UTF_8` keep using UTF-8; previously corrupted files do not repair themselves either.
 
-### “Chỉ cần đổi PowerShell sang UTF-8”
+### “Just Switch PowerShell to UTF-8”
 
-Đổi encoding của một lớp đường đi không chắc sửa lớp khác, đặc biệt là native stdin, stdout, redirect file và editor đọc file. Hãy kiểm tra byte thực tế ở mỗi ranh giới.
+Changing the encoding of one layer in the path does not guarantee fixing other layers, especially native stdin, stdout, file redirection, and editors reading files. Inspect actual bytes at every boundary.
 
-### “Đã decode được String thì chắc đúng”
+### “If It Decoded to a String, It Must Be Right”
 
-Một `String` có thể chứa mojibake hợp lệ về mặt Unicode. Decoder dùng replacement có thể trả chuỗi dù byte nguồn sai. Thành công của API không chứng minh **ngữ nghĩa text** đã khôi phục đúng.
+A `String` can hold Unicode-valid mojibake. A replacing decoder can return a string despite bad source bytes. API success does not prove **text semantics** were preserved accurately.
 
-### “Lỗi dấu nên chạy NFC”
+### “Broken Diacritics? Run NFC”
 
-NFC/NFD giúp thống nhất cách biểu diễn **chuẩn tắc** của dấu Unicode, không sửa những code point được tạo do decode UTF-8 thành Latin-1. Khi chỉ có mojibake, normalize sẽ giữ nguyên sai lầm về charset.
+NFC/NFD unifies **canonical** representations of Unicode accents, not code points produced by decoding UTF-8 as Latin-1. When mojibake exists, normalizing keeps the wrong-charset error intact.
 
-### “Đọc UTF-8 thì BOM luôn tự biến mất”
+### “Reading UTF-8 Always Removes the BOM Automatically”
 
-Không đúng cho nhiều API Java thường dùng: `new String(bytes, UTF_8)` và `Files.readString(path, UTF_8)` có thể giữ `U+FEFF` trong text. Hãy kiểm tra contract của thư viện/format rồi xử lý có chủ đích.
+False for many common Java APIs: `new String(bytes, UTF_8)` and `Files.readString(path, UTF_8)` can retain `U+FEFF` in the text. Check the library/format contract and handle it deliberately.
 
-### “Một lần thấy ký tự `�` là sửa bằng replaceAll”
+### “Whenever You See `�`, Fix It with replaceAll”
 
-`U+FFFD` có thể đại diện cho nhiều tình huống malformed khác nhau. Xóa nó có thể che lỗi mất dữ liệu. Nên dùng decoder strict khi yêu cầu dữ liệu nguyên vẹn và truy ngược byte nguồn.
+`U+FFFD` can represent many distinct malformed situations. Deleting it masks data-loss errors. Use a strict decoder when data integrity is required and trace back to the source bytes.
 
-## 14. Checklist cho dự án Java thực tế
+## 14. Checklist for Real-World Java Projects
 
-| Câu hỏi | Hướng xử lý |
+| Question | Approach |
 | --- | --- |
-| Dữ liệu lưu/trao đổi theo charset nào? | Ghi vào schema, hợp đồng HTTP/file và test |
-| Java đọc/ghi bằng API nào? | Truyền `StandardCharsets.UTF_8` hoặc charset được quy định |
-| Có BOM không? | Xác định chính sách ở byte đầu, không xóa mọi ký tự vô hình |
-| JVM version nào? | Phân biệt mặc định JDK 17 với JDK 18+ |
-| Default charset có được dùng ngầm không? | Tránh khi dữ liệu cần ổn định qua môi trường |
-| `System.console()` có tồn tại? | Không suy từ nó về mọi stdout redirect |
-| Shell/terminal/CI đọc stdout bằng gì? | Kiểm tra encoder → bytes → decoder → font |
-| Có hiện `U+FFFD` hoặc `?`? | Tìm bước replacement trước khi thông tin mất |
-| File CSV header có ký tự ẩn? | Kiểm tra `U+FEFF` ở đầu sau khi decode |
-| Có nhập liệu từ charset legacy? | Chuyển đổi tại ranh giới biết rõ charset gốc |
-| Có dùng byte/string để ký hoặc hash? | Không đổi encoding/normalization mà không theo hợp đồng |
-| Có kiểm thử dữ liệu Unicode đa ngôn ngữ? | Kiểm tra byte, code point và round-trip |
-| Có log byte gốc chứa bí mật? | Tránh lộ dữ liệu, chỉ log vùng/snapshot đã kiểm soát |
+| Which charset stores/exchanges data? | Document in schema, HTTP/file contracts, and tests |
+| Which Java APIs read/write it? | Pass `StandardCharsets.UTF_8` or the specified charset |
+| Is a BOM present? | Define policy on leading bytes; never delete all invisible characters |
+| Which JVM version? | Distinguish JDK 17 defaults from JDK 18+ |
+| Is the default charset used implicitly? | Avoid when data must be stable across environments |
+| Does `System.console()` exist? | Do not infer all redirected stdout behavior from it |
+| How do shell/terminal/CI read stdout? | Check encoder → bytes → decoder → font |
+| Do `U+FFFD` or `?` appear? | Find the replacement step before information is lost |
+| Does a CSV header have hidden chars? | Check leading `U+FEFF` after decoding |
+| Is data ingested from legacy charsets? | Convert at the boundary where source charset is known |
+| Are bytes/strings signed or hashed? | Never alter encoding or normalization outside contract |
+| Is multilingual Unicode tested? | Verify bytes, code points, and round-trips |
+| Do raw-byte logs contain secrets? | Avoid data leaks; log only controlled slices/snapshots |
 
-## 15. Bài tập tự kiểm tra
+## 15. Self-Check Exercises
 
-**Bài 1 — byte và ký tự.** Chữ `é` có UTF-8 bytes nào? Vì sao decode `C3 A9` bằng Latin-1 tạo `Ã©`? Phân biệt lỗi này với trường hợp font không vẽ được `é`.
+**Exercise 1 — Bytes and characters.** What are the UTF-8 bytes of `é`? Why does decoding `C3 A9` as Latin-1 yield `Ã©`? Distinguish this bug from a font failing to draw `é`.
 
-**Bài 2 — BOM.** Nêu byte mở đầu UTF-8 BOM, UTF-16BE BOM và UTF-16LE BOM. Vì sao UTF-8 không cần BOM cho thứ tự byte? Khi nào UTF-8 BOM có thể được xem là dấu nhận dạng hữu ích, và khi nào nên cấm?
+**Exercise 2 — BOM.** State the leading bytes of UTF-8 BOM, UTF-16BE BOM, and UTF-16LE BOM. Why does UTF-8 need no BOM for byte order? When can a UTF-8 BOM be considered a useful identifier, and when should it be forbidden?
 
-**Bài 3 — Java đọc tệp.** Viết code dùng `Files.readString(path, UTF_8)`. Một tệp bắt đầu `EF BB BF`, kết quả `codePointAt(0)` là gì? Đề xuất cách chỉ bỏ một BOM đầu nếu format cho phép.
+**Exercise 3 — Java reading files.** Write code using `Files.readString(path, UTF_8)`. Given a file starting with `EF BB BF`, what is `codePointAt(0)`? Propose how to strip only a single leading BOM if the format allows it.
 
-**Bài 4 — printf và stdout.** Một literal Java đã đúng Unicode nhưng terminal Windows hiển thị sai. Bạn sẽ kiểm tra `String` trước khi in, byte đã đi qua stdout, code page, font và đường redirect theo thứ tự nào?
+**Exercise 4 — Printf and stdout.** A Java literal has valid Unicode yet a Windows terminal displays it wrong. In what order would you inspect the `String` before printing, bytes sent through stdout, code page, font, and redirection path?
 
-**Bài 5 — JDK.** So sánh rủi ro default charset trên Java 17 với thay đổi JEP 400 từ Java 18. Vì sao `Charset.defaultCharset() == UTF_8` vẫn chưa chứng minh console hoặc toàn bộ file cũ là UTF-8?
+**Exercise 5 — JDK.** Compare default-charset risks on Java 17 with JEP 400 changes starting in Java 18. Why does `Charset.defaultCharset() == UTF_8` still not prove the console or all legacy files are UTF-8?
 
-**Bài 6 — malformed UTF-8.** Với hai byte `C3 28`, thử `new String(bytes, UTF_8)` và `UTF_8.newDecoder().onMalformedInput(REPORT)`. Cách nào có thể trả chuỗi chứa `U+FFFD`, cách nào phải báo lỗi?
+**Exercise 6 — Malformed UTF-8.** With two bytes `C3 28`, try `new String(bytes, UTF_8)` and `UTF_8.newDecoder().onMalformedInput(REPORT)`. Which can return a string containing `U+FFFD`, and which must report an error?
 
-**Bài 7 — CSV.** Một file `id,name` có BOM UTF-8 ở đầu. Vì sao parser có thể không tìm thấy cột `id`? Nếu sản phẩm hỗ trợ cả file có và không BOM, bạn sẽ đặt bước xử lý ở đâu?
+**Exercise 7 — CSV.** An `id,name` file has a leading UTF-8 BOM. Why might a parser fail to find the `id` column? If a product supports files both with and without a BOM, where would you place the handling step?
 
-**Bài 8 — build.** Một tệp Java UTF-8 chứa literal tiếng Việt được compiler đọc với charset sai. Sửa mã output của terminal có đủ không? Nêu cách biên dịch với `-encoding UTF-8` và test code point của literal.
+**Exercise 8 — Build.** A UTF-8 Java file containing Vietnamese literals is read by the compiler with the wrong charset. Is fixing the terminal's output encoding enough? Explain how to compile with `-encoding UTF-8` and test literal code points.
 
-**Bài 9 — pipeline nhiều lớp.** Một service nhận UTF-8 nhưng decode sai rồi ghi lại thành UTF-8. Tệp đầu ra có thể hợp lệ UTF-8 nhưng văn bản sai như thế nào? Khi nào sửa bằng cách encode/decode lại còn khả thi?
+**Exercise 9 — Multi-layer pipeline.** A service receives UTF-8, decodes it with the wrong charset, and writes it back out as UTF-8. How can the output file be valid UTF-8 yet have corrupted text? When is fixing by re-encoding/decoding still feasible?
 
-**Bài 10 — bảo vệ dữ liệu.** Một payload có `U+FFFD` và một payload khác có glyph thiếu trong font. Hai tình huống này có khác nhau về tính toàn vẹn dữ liệu không? Thiết kế test để xác định nguyên nhân.
+**Exercise 10 — Data protection.** One payload has `U+FFFD` and another has missing glyphs in a font. Do these two cases differ in data integrity? Design a test to pinpoint the cause.
 
-## 16. Kết luận
+## 16. Conclusion
 
-Lỗi mã hóa không phải một vấn đề duy nhất của terminal. Để có chữ tiếng Việt đúng, cần kiểm soát **charset ở từng ranh giới byte ↔ ký tự**. `String` trong Java có thể đúng hoặc sai độc lập với font đang vẽ nó. Khi đọc UTF-8 thành Latin-1, các byte đúng tạo ra code point sai; khi ghi bằng charset không biểu diễn được chữ, encoder có thể thay bằng `?`; khi decode malformed bytes, dữ liệu có thể bị thay bằng `U+FFFD` và không còn khôi phục chính xác được.
+Garbled characters are not a single terminal issue. To get accurate Vietnamese text, you must control the **charset at every byte ↔ character boundary**. A Java `String` can be right or wrong independently of the font rendering it. When UTF-8 is read as Latin-1, valid bytes produce wrong code points; when writing with a charset unable to represent characters, an encoder can substitute `?`; when decoding malformed bytes, data can be replaced with `U+FFFD` and become impossible to recover accurately.
 
-**BOM** giúp nhận diện byte order ở UTF-16 và đôi khi được dùng như chữ ký UTF-8, nhưng không được tự áp dụng hoặc tự xóa ở mọi định dạng. `Files.readString(..., UTF_8)` vẫn có thể giữ `U+FEFF` ở đầu nội dung nếu byte BOM UTF-8 tồn tại.
+A **BOM** helps identify byte order in UTF-16 and is sometimes used as a UTF-8 signature, yet must never be applied or stripped blindly across all formats. `Files.readString(..., UTF_8)` can still retain `U+FEFF` at the start of content if UTF-8 BOM bytes are present.
 
-Trong Java 17+, ưu tiên API với `StandardCharsets.UTF_8` hoặc charset được schema công bố; ghi rõ source encoding ở build; khi phát hiện lỗi, kiểm tra **raw bytes → decoder → String code points → encoder → stdout/terminal → font**. Với payload nghiêm ngặt, cấu hình `CharsetDecoder` dùng `CodingErrorAction.REPORT` để không âm thầm che dữ liệu malformed.
+In Java 17+, prefer APIs with `StandardCharsets.UTF_8` or schema-declared charsets; specify source encoding in builds; when diagnosing bugs, inspect **raw bytes → decoder → String code points → encoder → stdout/terminal → font**. For strict payloads, configure `CharsetDecoder` with `CodingErrorAction.REPORT` so malformed data is never silently masked.
 
-**Nguyên tắc cốt lõi:** *Đừng chữa chữ lỗi bằng cách đoán encoding hoặc thay font. Tìm đúng tầng đã biến byte thành ký tự sai, rồi sửa giao ước charset tại ranh giới đó.*
+**Core principle:** *Do not fix garbled text by guessing encodings or swapping fonts. Find the exact layer that turned bytes into wrong characters, and fix the charset contract at that boundary.*
 
-### Tài liệu tham khảo
+### References
 
 - [`Charset` – Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/Charset.html)
 - [`StandardCharsets` – Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/StandardCharsets.html)

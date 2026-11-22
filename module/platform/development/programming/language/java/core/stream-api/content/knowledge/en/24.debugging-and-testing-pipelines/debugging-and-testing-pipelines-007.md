@@ -1,14 +1,14 @@
-# Đối chiếu kết quả tuần tự và song song
+# Comparing Sequential and Parallel Results
 
-Java Stream API cho phép đổi cách thực thi của nhiều pipeline chỉ bằng `parallel()` hoặc `parallelStream()`. Tuy nhiên, **chạy được** không có nghĩa **cho kết quả đúng**. Một pipeline tuần tự có thể trông hoàn toàn hợp lý nhưng khi thực thi song song lại mất phần tử, đếm sai, phát sinh ngoại lệ không ổn định hoặc trả các giá trị khác nhau giữa các lượt chạy. Muốn gỡ lỗi, trước tiên phải xác định **kết quả nào cần giống nhau về ngữ nghĩa**, sau đó mới viết phép so sánh tương ứng.
+The Java Stream API lets you switch execution modes on many pipelines simply by calling `parallel()` or `parallelStream()`. However, **running without errors** does not mean **producing the right result**. A sequential pipeline can look completely reasonable yet lose elements, miscount, throw intermittent exceptions, or return different values across runs when executed in parallel. To debug effectively, you must first determine **which outputs must be semantically identical**, and only then write the matching comparison.
 
-Bài thuộc chương **Gỡ lỗi và kiểm thử pipeline** của module `JAVA_STREAM_API`. Ta sẽ xây cách đối chiếu kết quả tuần tự và song song với `filter`, `map`, `reduce`, `collect`, `groupingBy`, các phép toán có thứ tự và các thao tác dừng sớm. Đồng thời, bài phân tích vì sao kết quả có thể khác do side effect, accumulator chia sẻ, phép gộp sai, sai số dấu phẩy động, thứ tự không được bảo đảm hoặc nguồn dữ liệu thay đổi; cuối cùng là bộ kiểm thử có thể tái lập và quy trình chẩn đoán khi sự cố chỉ xuất hiện với parallel stream.
+This lesson belongs to the **Debugging and Testing Pipelines** chapter of the `JAVA_STREAM_API` module. We will build techniques for comparing sequential and parallel results across `filter`, `map`, `reduce`, `collect`, `groupingBy`, ordered operations, and short-circuiting operations. At the same time, we analyze why outputs can diverge due to side effects, shared accumulators, invalid merge functions, floating-point rounding, unguaranteed ordering, or mutating sources—concluding with a reproducible test suite and a diagnostic workflow for parallel-only failures.
 
-Các ví dụ chính dùng **Java 8 trở lên**, trừ những đoạn kiểm thử minh họa JUnit Jupiter có phụ thuộc thư viện kiểm thử. Những lệnh Java đặt ở mức cao nhất trong các ví dụ cần được đưa vào phương thức (chẳng hạn `main`) hoặc chạy trong JShell; các lớp/helper có thể lưu riêng. `Stream` là API xử lý dữ liệu khai báo và lazy; việc bật parallel không làm mất những yêu cầu về an toàn trạng thái, vòng đời nguồn I/O hoặc giới hạn hiệu năng.
+Main examples use **Java 8 or higher**, except JUnit Jupiter test illustrations that require the testing library dependency. Top-level Java statements in snippets should be placed inside a method (such as `main`) or run in JShell; helper classes can be saved separately. `Stream` is a declarative, lazy data-processing API; enabling `parallel` does not waive requirements around state safety, I/O resource lifecycles, or performance bounds.
 
-## 1. Mục tiêu không phải lúc nào cũng là so sánh hai chuỗi in ra
+## 1. The Goal Is Not Always Comparing Two Printed Strings
 
-Xét pipeline sau:
+Consider the following pipeline:
 
 ```java
 import java.util.Arrays;
@@ -31,9 +31,9 @@ System.out.println(sequential); // [25, 9, 1]
 System.out.println(parallel);   // [25, 9, 1]
 ```
 
-Nguồn là `List` có **encounter order** theo vị trí. Cả `filter` và `map` ở đây không thay đổi encounter order; `Collectors.toList()` thu thập theo thứ tự gặp phần tử. Do đó, với dữ liệu cố định và các hàm thuần, hai danh sách **phải có nội dung và thứ tự như nhau**.
+The source is a `List` with positional **encounter order**. Neither `filter` nor `map` alters encounter order here; `Collectors.toList()` collects elements in encounter order. Therefore, with fixed data and pure functions, both lists **must match in both content and order**.
 
-Nhưng xem ví dụ khác:
+Now look at a different example:
 
 ```java
 import java.util.Set;
@@ -50,61 +50,61 @@ Set<Integer> b = source.parallelStream()
 System.out.println(a.equals(b)); // true
 ```
 
-`Set` không có yêu cầu thứ tự duyệt ở ví dụ này. Nếu in hai tập hợp ra và thấy thứ tự khác, đó **không nhất thiết là lỗi**: điều cần so là **các phần tử thuộc tập hợp**, không phải thứ tự hiển thị.
+`Set` has no traversal-order requirement in this example. If printing both sets shows different iteration orders, that is **not necessarily a bug**: what matters is **which elements belong to the set**, not display order.
 
-**Nguyên tắc đầu tiên:** định nghĩa **hợp đồng đầu ra** rồi chọn cách so sánh. Không dùng `toString()` hoặc log luồng làm tiêu chí đúng/sai cho mọi pipeline.
+**First principle:** define the **output contract** before choosing how to compare. Never use `toString()` or thread logs as a universal pass/fail oracle for every pipeline.
 
-## 2. Các hợp đồng kết quả thường gặp cần phân biệt
+## 2. Common Result Contracts to Distinguish
 
-| Dạng kết quả | Điều cần so sánh | Không được giả định |
+| Result shape | What to compare | What never to assume |
 | --- | --- | --- |
-| `List<T>` từ nguồn ordered, collector giữ order | Cùng số phần tử, cùng giá trị tại cùng vị trí | Luồng chạy cùng thứ tự thời gian |
-| `Set<T>` | Cùng phần tử theo `equals/hashCode` | Thứ tự lặp, thứ tự in giống nhau |
-| `Map<K,V>` đếm/tổng theo khóa | Cùng khóa và giá trị theo từng khóa | Thứ tự duyệt Map giống nhau |
-| Kết quả `double` của phép tổng hợp | Đúng trong sai số đã định nghĩa; xử lý `NaN`/vô cực riêng | Luôn bằng nhau từng bit |
-| Phép chọn `findFirst` trên nguồn ordered | Cùng phần tử đầu theo encounter order | Số lần predicate được gọi giống nhau |
-| Phép chọn `findAny` | Một phần tử **bất kỳ** thỏa điều kiện, hoặc rỗng đúng hợp đồng | Cùng phần tử được chọn mỗi lần |
-| `forEach` có side effect | Không nên coi side effect là kết quả chuẩn | Thứ tự callback hoặc thread cố định |
-| `groupingByConcurrent(..., toList())` | Nhóm và đa tập phần tử trong từng nhóm nếu không yêu cầu order | Thứ tự phần tử trong mỗi nhóm |
+| `List<T>` from ordered source, order-preserving collector | Same size, same value at every index | Threads ran in chronological order |
+| `Set<T>` | Same elements by `equals/hashCode` | Identical iteration or print order |
+| `Map<K,V>` counting/summing by key | Same keys and per-key values | Identical Map iteration order |
+| `double` aggregation result | Within defined tolerance; handle `NaN`/infinity separately | Always bitwise identical |
+| `findFirst` on ordered source | Same first element in encounter order | Same number of predicate invocations |
+| `findAny` | **Any** element matching condition, or empty per contract | Same element picked every run |
+| `forEach` with side effects | Should not treat side effects as standard output | Fixed callback order or thread |
+| `groupingByConcurrent(..., toList())` | Groups and element multisets per group when order isn't required | Element order within each group |
 
-Một **đa tập** (*multiset*) là tập hợp có tính cả số lần lặp. Ví dụ `[A,A,B]` và `[A,B,B]` có cùng Set `{A,B}` nhưng **không cùng đa tập**. Khi thứ tự không quan trọng nhưng số lần xuất hiện quan trọng, chỉ chuyển về `Set` sẽ làm mất thông tin kiểm thử.
+A **multiset** (*bag*) tracks multiplicity as well as membership. For instance, `[A,A,B]` and `[A,B,B]` share the same Set `{A,B}` yet are **not the same multiset**. When order doesn't matter but occurrence counts do, converting blindly to a `Set` discards vital test information.
 
-Nếu nghiệp vụ cần “bản ghi mới nhất”, hãy định nghĩa một khóa sắp xếp/tie-breaker rõ ràng, chứ không để quá trình song song tự quyết định bản ghi nào là cuối cùng.
+If business logic needs the "latest record," define an explicit sort key or tie-breaker instead of letting parallel execution pick whichever record happens to finish last.
 
-## 3. Vì sao một pipeline có thể đúng khi tuần tự nhưng sai khi song song?
+## 3. Why Can a Pipeline Pass Sequentially Yet Fail in Parallel?
 
-Có bốn nhóm nguyên nhân thường gặp:
+Four common categories of root causes:
 
-1. **Chia sẻ trạng thái mutable ngoài pipeline**: nhiều luồng cùng sửa `ArrayList`, `HashMap`, biến đếm hoặc đối tượng không thread-safe.
-2. **Phép rút gọn không hợp lệ**: thiếu identity đúng, accumulator/combiner không tương thích, phép toán không kết hợp (*associative*).
-3. **Giả định encounter order không được cam kết**: `findAny`, `forEach`, `unordered` hoặc collector concurrent/unordered.
-4. **Khác biệt số học và nguồn**: floating point, tràn số, dữ liệu nguồn bị sửa trong khi duyệt hoặc hàm phụ thuộc đồng hồ, random, I/O ngoài.
+1. **Sharing mutable state outside the pipeline**: multiple threads concurrently mutate an `ArrayList`, `HashMap`, counter, or non-thread-safe object.
+2. **Invalid reductions**: wrong identity, incompatible accumulator/combiner, or non-*associative* operation.
+3. **Unwarranted encounter-order assumptions**: `findAny`, `forEach`, `unordered`, or concurrent/unordered collectors.
+4. **Numeric and source discrepancies**: floating-point rounding, overflow, mutating the source mid-traversal, or functions reading clocks, random generators, or external I/O.
 
-`parallel()` chỉ thay đổi **chế độ thực thi**; nó không tự cấp mutex cho biến mutable bên ngoài, không sửa một combiner sai, và không tạo bản sao bất biến của nguồn.
+`parallel()` only switches the **execution mode**; it does not add locks around external mutable variables, fix a broken combiner, or snapshot a mutable source.
 
-### Minh họa hai con đường thu thập
+### Illustrating the two collection paths
 
 ```text
-TUẦN TỰ
+SEQUENTIAL
   source -> map/filter -> accumulator A -> result
 
-SONG SONG, collector KHÔNG concurrent
+PARALLEL, NON-concurrent collector
   source
-    |---- phần 1 -> A1 --\
-    |---- phần 2 -> A2 ---+--> combiner --> result
-    |---- phần 3 -> A3 --/
+    |---- chunk 1 -> A1 --\
+    |---- chunk 2 -> A2 ---+--> combiner --> result
+    |---- chunk 3 -> A3 --/
 
-SONG SONG, collector concurrent phù hợp
-  source -> nhiều tác vụ -> cùng accumulator A an toàn -> result
+PARALLEL, proper concurrent collector
+  source -> multiple tasks -> shared thread-safe accumulator A -> result
 ```
 
-Phần lớn Collector chuẩn không yêu cầu bạn chia sẻ một container giữa các nhánh. Việc `Collectors.toList()` có thể hoạt động đúng với parallel stream **không đồng nghĩa** `ArrayList` là thread-safe để bạn tự gọi `add` từ `parallel().forEach(...)`.
+Most standard Collectors do not require sharing one container across branches. The fact that `Collectors.toList()` works on parallel streams **does not mean** `ArrayList` is thread-safe for calling `add` inside `parallel().forEach(...)`.
 
-## 4. Xây một phép đối chiếu tái sử dụng
+## 4. Building a Reusable Comparison Helper
 
-Để kiểm tra cùng một pipeline ở hai chế độ, cần **hai Stream mới từ cùng một dữ liệu ổn định**. Một Stream đã chạy terminal operation không thể chạy lại.
+To test the same pipeline in both modes, you need **two fresh Streams over the same stable data**. A Stream that has already run a terminal operation cannot run again.
 
-Dưới đây là helper dùng với nguồn có thể tạo lại trong bộ nhớ:
+Below is a helper for re-creatable in-memory sources:
 
 ```java
 import java.util.Objects;
@@ -146,7 +146,7 @@ public final class StreamComparison {
 }
 ```
 
-Cách dùng cho List có thứ tự:
+Usage for an ordered `List`:
 
 ```java
 import java.util.Arrays;
@@ -165,21 +165,21 @@ StreamComparison.assertEquivalent(
 );
 ```
 
-Các điểm cần lưu ý:
+Things to keep in mind:
 
-- `freshSource.get()` phải trả **Stream mới mỗi lần**, không trả cùng một Stream đã tiêu thụ.
-- Dữ liệu ở hai lần thử phải **ổn định và có ý nghĩa như nhau**; nếu nguồn thay đổi, phép so sánh có thể không hợp lệ.
-- `pipeline` phải không dựa vào biến mutable bên ngoài, thời gian hiện tại hoặc random chưa được cố định; nó phải thực hiện **terminal operation** và trả kết quả đã hoàn tất, không trả một Stream lazy phụ thuộc nguồn đã đóng.
-- `try-with-resources` giúp đóng Stream trong helper. Với `List`, `close()` thường không có tài nguyên cần giải phóng; với nguồn I/O, việc đóng có ý nghĩa thực.
-- `BiPredicate` cho phép so sánh theo **ngữ nghĩa** thay vì luôn dùng `equals`.
+- `freshSource.get()` must return **a new Stream each time**, never the same consumed Stream.
+- The data across both runs must be **stable and semantically identical**; if the source mutates, the comparison is invalid.
+- `pipeline` must not depend on external mutable variables, wall-clock time, or unseeded randomness; it must execute a **terminal operation** and return a completed result, not a lazy Stream tied to a closed source.
+- `try-with-resources` ensures the helper closes each Stream. For `List`, `close()` normally releases nothing; for I/O sources, closing truly matters.
+- `BiPredicate` allows **semantic comparison** instead of forcing `equals` everywhere.
 
-Nếu factory nguồn ném `IOException` đã kiểm tra (*checked exception*), `Supplier<Stream<T>>` không có `throws IOException` phù hợp; nên dùng helper khác với giao diện nguồn có thể ném ngoại lệ, hoặc mở tệp riêng trong hai khối `try` như phần sau.
+If the source factory throws a checked `IOException`, `Supplier<Stream<T>>` does not declare `throws IOException`; use a throwing functional interface or open the file separately in two `try` blocks as shown later.
 
-**Không** đưa một `Iterator` một lần, `BufferedReader` đã bị đóng hoặc một đối tượng Stream dùng lại vào factory này rồi kỳ vọng hai lần chạy đọc được cùng dữ liệu.
+**Never** pass a single-use `Iterator`, an already-closed `BufferedReader`, or a reused Stream instance to this factory expecting both runs to read the same data.
 
-## 5. Kiểm thử pipeline giữ encounter order
+## 5. Testing Pipelines That Preserve Encounter Order
 
-Với nguồn ordered và phép biến đổi stateless, thứ tự kết quả phải được giữ khi terminal operation có hợp đồng giữ thứ tự.
+With an ordered source and stateless transformations, output order must be preserved when the terminal operation guarantees ordering.
 
 ```java
 import java.util.Arrays;
@@ -206,29 +206,29 @@ System.out.println(a);         // [APPLE, BANANA, APPLE, CHERRY]
 System.out.println(a.equals(b)); // true
 ```
 
-Đây là phép so sánh bằng `List.equals`: vừa kiểm tra số phần tử, vừa kiểm tra từng vị trí. Không cần tự sắp xếp hai danh sách, vì thao tác sắp xếp **có thể che giấu lỗi mất thứ tự** mà nghiệp vụ muốn phát hiện.
+This compares using `List.equals`, checking both element count and every index. Do not sort both lists before comparing, because sorting **can mask ordering bugs** that business logic needs to catch.
 
-### sorted và quy tắc hòa điểm
+### `sorted` and tie-breaking rules
 
-Khi sắp xếp đối tượng, comparator nên xác định thứ tự đầy đủ nếu muốn đầu ra ổn định ở những điểm có cùng khóa chính.
+When sorting objects, the comparator should specify a total order whenever deterministic output is required across equal primary keys.
 
 ```java
 import java.util.Comparator;
 
-// Ví dụ định nghĩa comparator cho một kiểu Employee có id và score.
+// Example comparator definition for an Employee type with id and score.
 Comparator<Employee> order = Comparator
         .comparingInt(Employee::score)
         .reversed()
         .thenComparing(Employee::id);
 ```
 
-Đây là mẫu minh họa giả định `Employee` có `score()` và `id()`. Nếu chỉ so sánh `score`, nhiều nhân viên có cùng điểm có thể hòa điểm. Với nguồn ordered, `sorted` có yêu cầu ổn định thích hợp, nhưng với nguồn unordered hoặc các thao tác khác không giữ order, muốn kết quả độc lập với encounter order thì nên bổ sung khóa phụ `id`.
+This snippet assumes `Employee` has `score()` and `id()`. If you compare only `score`, multiple employees with equal scores tie. On ordered sources, `sorted` has stability guarantees, yet on unordered sources or pipelines that drop order, adding the secondary key `id` keeps results independent of encounter order.
 
-Không sửa các trường dùng trong comparator hoặc `hashCode` của phần tử trong lúc Stream đang duyệt.
+Never mutate fields used in comparators or `hashCode` while a Stream is traversing elements.
 
-## 6. Đối chiếu Set, Map và thống kê nhóm
+## 6. Comparing `Set`, `Map`, and Group Statistics
 
-### Set: so theo phần tử, không so theo chuỗi in ra
+### `Set`: compare by elements, not printed string
 
 ```java
 import java.util.Arrays;
@@ -248,9 +248,9 @@ if (!seq.equals(par)) {
 }
 ```
 
-Không nên dùng `seq.toString().equals(par.toString())`. Cả hai Set có thể chứa cùng giá trị nhưng duyệt theo thứ tự khác.
+Do not use `seq.toString().equals(par.toString())`. Both Sets can hold identical elements while iterating in different orders.
 
-### Map: so theo khóa và số lượng
+### `Map`: compare by keys and counts
 
 ```java
 import java.util.Arrays;
@@ -276,15 +276,15 @@ ConcurrentMap<String, Long> par = levels.parallelStream()
                 Collectors.counting()
         ));
 
-System.out.println(seq);            // Không dựa vào thứ tự in Map
+System.out.println(seq);            // Do not rely on Map print order
 System.out.println(seq.equals(par)); // true
 ```
 
-`groupingByConcurrent` không cam kết encounter order của phần tử trong từng nhóm. Nhưng ở đây chỉ lưu **số lượng** theo khóa, nên so sánh bằng `Map.equals` là phù hợp. Với dữ liệu cố định và phép đếm không tràn, `ERROR=3`, `WARN=2`, `INFO=1`.
+`groupingByConcurrent` does not guarantee encounter order for elements inside each group. Here, however, it only stores per-key **counts**, so `Map.equals` is completely valid. With fixed data and non-overflowing counts, `ERROR=3`, `WARN=2`, `INFO=1`.
 
-### Khi giá trị Map là List và thứ tự không được cam kết
+### When Map values are `List`s and order is not guaranteed
 
-Nếu mỗi nhóm lưu danh sách, phép so sánh trực tiếp `List.equals` có thể thất bại chỉ vì **thứ tự phần tử trong nhóm** khác nhau. Khi nghiệp vụ không quan tâm thứ tự trong nhóm nhưng quan tâm số lần lặp, tạo bản sao rồi sắp xếp để so như **đa tập**:
+If each group holds a list, direct `List.equals` can fail solely because **element order within a group** differs. When the business ignores intra-group order yet cares about multiplicity, copy and sort each group's list to compare as a **multiset**:
 
 ```java
 import java.util.ArrayList;
@@ -308,16 +308,16 @@ static Map<String, List<Integer>> canonicalize(
 }
 ```
 
-`canonicalize` giữ nguyên số lần xuất hiện của mỗi giá trị nhờ **không loại trùng**. Nó giả định khóa chuỗi không null và mỗi danh sách chứa số nguyên khác null để `TreeMap`/`Collections.sort` hoạt động theo thứ tự tự nhiên; hãy điều chỉnh nếu mô hình dữ liệu cho phép null.
+`canonicalize` preserves every occurrence's multiplicity by **not deduplicating**. It assumes non-null string keys and non-null integers so `TreeMap`/`Collections.sort` work in natural order; adjust if your data model allows nulls.
 
-Quan trọng: **chỉ** chuẩn hóa khi hợp đồng thật sự không yêu cầu thứ tự. Nếu cần giữ thứ tự trong từng nhóm, việc sắp xếp trước khi so có thể che mất bug.
+Crucially: canonicalize **only** when the contract genuinely ignores order. If intra-group order must be preserved, sorting before comparing masks real bugs.
 
-## 7. findFirst, findAny và short-circuit
+## 7. `findFirst`, `findAny`, and Short-Circuiting
 
-Hai thao tác này có hợp đồng khác nhau:
+These two operations have distinct contracts:
 
-- `findFirst()`: trên Stream **có encounter order**, trả phần tử đầu theo thứ tự ấy nếu tồn tại.
-- `findAny()`: được phép trả **bất kỳ** phần tử nào, hữu ích khi không cần thứ tự hoặc muốn giảm phối hợp song song.
+- `findFirst()`: on a Stream **with encounter order**, returns the first matching element in that order if one exists.
+- `findAny()`: may return **any** matching element, useful when order isn't needed or to reduce parallel coordination.
 
 ```java
 import java.util.Arrays;
@@ -339,7 +339,7 @@ System.out.println(firstSequential.equals(
         firstParallel));                       // true
 ```
 
-Nhưng:
+However:
 
 ```java
 Optional<Integer> anyParallel = numbers.parallelStream()
@@ -353,11 +353,11 @@ if (!anyParallel.isPresent()
 }
 ```
 
-Vì danh sách có hai số chẵn, `findAny` có thể chọn 8 hoặc 14; **không nên yêu cầu nó luôn chọn 8**. Trong test tổng quát, hãy xác minh phần tử được trả về **thuộc tập nghiệm**, và việc có/không có kết quả đúng khi tập nghiệm rỗng/không rỗng.
+Since the list contains two even numbers, `findAny` may return 8 or 14; **never require it to always pick 8**. In general tests, verify the returned element **belongs to the valid solution set**, and that presence/absence matches whether the solution set is empty.
 
-### Kiểm thử anyMatch, allMatch, noneMatch
+### Testing `anyMatch`, `allMatch`, `noneMatch`
 
-Với predicate thuần và đầu vào cố định, các kết quả logic này phải giữ nguyên giữa sequential và parallel. Tuy nhiên, **số lần predicate được gọi không nhất thiết giống nhau**, do short-circuit:
+With pure predicates and fixed inputs, these boolean results must match between sequential and parallel. However, **how many times the predicate runs need not match**, due to short-circuiting:
 
 ```java
 boolean seq = numbers.stream().anyMatch(n -> n > 10);
@@ -366,11 +366,11 @@ boolean par = numbers.parallelStream().anyMatch(n -> n > 10);
 System.out.println(seq == par); // true
 ```
 
-Không viết test kỳ vọng `peek` hoặc predicate được gọi đúng `k` lần ở parallel pipeline. Một phần tử thỏa điều kiện có thể đã được tìm thấy trong khi các tác vụ khác vẫn xử lý một số phần tử.
+Never write tests expecting `peek` or a predicate to be called exactly `k` times in a parallel pipeline. One task may find a match while sibling tasks are still evaluating other elements.
 
-### limit, skip và unordered
+### `limit`, `skip`, and `unordered`
 
-Với nguồn ordered, `limit(n)` có ý nghĩa lấy **n phần tử đầu theo encounter order**. Nếu dùng `unordered()`, phép chọn phần tử được phép khác:
+On an ordered source, `limit(n)` means taking **the first n elements in encounter order**. If `unordered()` is applied, the chosen elements are permitted to differ:
 
 ```java
 List<Integer> sample = numbers.parallelStream()
@@ -379,11 +379,11 @@ List<Integer> sample = numbers.parallelStream()
         .collect(java.util.stream.Collectors.toList());
 ```
 
-Test hợp lý cho ví dụ này là `sample.size() == 2` và mỗi phần tử thuộc nguồn; **không bắt buộc** kết quả là `[5,8]`. `unordered()` không phải phép xáo trộn ngẫu nhiên, nhưng bỏ ràng buộc thứ tự có thể đổi ngữ nghĩa của việc chọn phần tử đầu.
+A valid test here checks `sample.size() == 2` and every element belongs to the source; **do not require** the result to be `[5,8]`. `unordered()` is not a random shuffle, yet dropping order constraints changes the semantics of taking leading elements.
 
-## 8. Side effect là nguồn bug phổ biến nhất
+## 8. Side Effects Are the Most Common Source of Bugs
 
-### Ví dụ sai: nhiều luồng cùng thêm vào ArrayList
+### Wrong example: multiple threads adding to an `ArrayList`
 
 ```java
 import java.util.ArrayList;
@@ -392,17 +392,17 @@ import java.util.stream.IntStream;
 
 List<Integer> shared = new ArrayList<>();
 
-// SAI: ArrayList không an toàn cho nhiều luồng cùng add.
+// WRONG: ArrayList is not safe for concurrent add from multiple threads.
 IntStream.range(0, 100_000)
         .parallel()
         .forEach(shared::add);
 
-// Không được khẳng định shared.size() luôn bằng 100_000.
+// Never assume shared.size() will always equal 100_000.
 ```
 
-Kết quả có thể bị thiếu phần tử, gặp lỗi hoặc đôi khi tình cờ đúng. Thử chạy 100 lần mà không gặp lỗi vẫn **không chứng minh thread-safe**.
+The result can drop elements, throw exceptions, or occasionally pass by sheer luck. Running 100 times without failing **does not prove thread safety**.
 
-Thay bằng collector:
+Replace with a collector:
 
 ```java
 import java.util.List;
@@ -418,18 +418,18 @@ System.out.println(safe.size()); // 100000
 System.out.println(safe.get(0));  // 0
 ```
 
-Với nguồn `IntStream.range` ordered và `toList`, List kết quả giữ thứ tự gặp. Trong ví dụ đầu, `forEach` **không cam kết** gọi theo thứ tự nguồn; kể cả nếu dùng cấu trúc dữ liệu đồng bộ để tránh race, thứ tự thêm phần tử cũng không tự nhiên được bảo đảm.
+With an ordered `IntStream.range` source and `toList`, the resulting List preserves encounter order. In the first snippet, `forEach` **does not guarantee** calling in source order; even switching to a synchronized collection to prevent data races wouldn't preserve insertion order.
 
-### Không dùng bộ đếm mutable ngoài pipeline
+### Do not use external mutable counters
 
 ```java
 int[] count = {0};
 
-// SAI: cập nhật shared count[0]++ không nguyên tử.
+// WRONG: updating shared count[0]++ is non-atomic.
 numbers.parallelStream().forEach(n -> count[0]++);
 ```
 
-Đếm đúng:
+Count properly:
 
 ```java
 long countEven = numbers.parallelStream()
@@ -439,25 +439,25 @@ long countEven = numbers.parallelStream()
 System.out.println(countEven); // 2
 ```
 
-Dùng `AtomicInteger` có thể tránh một loại race khi tăng bộ đếm, nhưng **không tự làm phép biến đổi có side effect trở nên non-interfering, deterministic hoặc đúng thứ tự**. Nếu mục tiêu chỉ là thống kê, hãy dùng `count`, `sum`, `reduce` hoặc `collect`.
+Using `AtomicInteger` avoids lost increments, yet **does not make side-effecting transformations non-interfering, deterministic, or ordered**. When the goal is aggregation, use `count`, `sum`, `reduce`, or `collect`.
 
-### Lỗi khác: thay đổi nguồn trong khi duyệt
+### Another bug: mutating the source during traversal
 
 ```java
-// SAI: không sửa cấu trúc source từ một thao tác đang duyệt source.
+// WRONG: do not structurally modify source while traversing it.
 source.parallelStream()
         .forEach(n -> source.remove(n));
 ```
 
-Một nguồn như `ArrayList` không chịu được kiểu can thiệp cấu trúc này theo hợp đồng Stream. Tương tự, đọc và sửa cùng một `HashMap` ở các thao tác `map` hoặc `filter` có thể tạo kết quả khó dự đoán.
+A source like `ArrayList` cannot tolerate structural interference under the Stream contract. Similarly, reading and mutating the same `HashMap` inside `map` or `filter` leads to unpredictable behavior.
 
-Hãy biến đổi thành một cấu trúc **mới** rồi thay nguồn sau khi pipeline hoàn tất, thay vì can thiệp vào nguồn đang được tiêu thụ.
+Transform into a **new** structure and replace the source only after the pipeline completes, rather than mutating the source while it is being consumed.
 
-## 9. Gỡ lỗi reduce: identity, associativity, compatibility
+## 9. Debugging `reduce`: Identity, Associativity, Compatibility
 
-Phép rút gọn đúng cho parallel stream cần tuân thủ các hợp đồng về phần tử đồng nhất và phép kết hợp.
+Correct parallel reductions must obey identity and associativity contracts.
 
-### Sai: phép trừ không kết hợp
+### Wrong: non-associative subtraction
 
 ```java
 import java.util.Arrays;
@@ -472,19 +472,19 @@ int par = values.parallelStream()
         .reduce(0, (a, b) -> a - b);
 
 System.out.println(seq); // -10
-System.out.println(par); // Không có bảo đảm phải bằng -10
+System.out.println(par); // Not guaranteed to equal -10
 ```
 
-Vì:
+Because:
 
 ```text
 (10 - 3) - 2 = 5
 10 - (3 - 2) = 9
 ```
 
-Đổi cách gom nhánh làm kết quả thay đổi. `reduce` trên parallel stream có thể kết hợp kết quả từng phần theo cách khác sequential, nên không thể dùng phép trừ như một phép gộp có tính kết hợp.
+Changing how branches are grouped changes the result. A parallel `reduce` can combine partial results differently than sequential execution, so subtraction cannot be used as an associative combiner.
 
-Sửa khi mục tiêu thật là tính tổng:
+Fix when the real goal is summing:
 
 ```java
 int sumSeq = values.stream().reduce(0, Integer::sum);
@@ -494,10 +494,10 @@ System.out.println(sumSeq); // 10
 System.out.println(sumSeq == sumPar); // true
 ```
 
-### Sai: identity không thực sự đồng nhất
+### Wrong: non-identity initial value
 
 ```java
-// SAI nếu muốn tính tổng của phần tử nguồn.
+// WRONG if trying to sum source elements.
 int seqWithWrongIdentity = values.stream()
         .reduce(10, Integer::sum);
 
@@ -505,11 +505,11 @@ int parWithWrongIdentity = values.parallelStream()
         .reduce(10, Integer::sum);
 ```
 
-Ở đây `10` **không phải identity** của phép cộng. Sequential cộng thêm 10 một lần, nhưng parallel có thể cộng thêm identity vào nhiều phân hoạch. Nếu yêu cầu là tổng, identity phải là `0`.
+Here `10` **is not an identity** for addition. Sequential adds 10 once, whereas parallel can inject the identity across multiple partitions. If summing, the identity must be `0`.
 
-Với phép tìm cực đại trên số âm, dùng `reduce(Integer::max)` trả `Optional<Integer>` hoặc chọn identity thật sự phù hợp miền dữ liệu; không mặc định `reduce(0, Integer::max)` sẽ đúng.
+For finding the maximum over negative numbers, use `reduce(Integer::max)` returning `Optional<Integer>` or choose an identity genuinely valid for the domain; never assume `reduce(0, Integer::max)` is always right.
 
-### Ba tham số reduce cũng có combiner
+### Three-argument `reduce` also has a combiner
 
 ```java
 import java.util.Arrays;
@@ -535,20 +535,20 @@ System.out.println(lengthSeq);           // 6
 System.out.println(lengthSeq == lengthPar); // true
 ```
 
-Với `reduce(identity, accumulator, combiner)`, phải kiểm tra:
+For `reduce(identity, accumulator, combiner)`, verify:
 
-- Identity là trạng thái khởi đầu thích hợp.
-- Combiner có tính kết hợp.
-- Combiner tương thích với cách accumulator thêm từng phần tử.
-- Cả hai hàm không can thiệp vào dữ liệu nguồn hoặc một đối tượng mutable dùng chung.
+- `identity` is a valid initial state.
+- `combiner` is associative.
+- `combiner` is compatible with how `accumulator` incorporates each element.
+- Neither function interferes with the source or any shared mutable object.
 
-Đừng đánh tráo `reduce` immutable với `collect` mutable để chia sẻ `ArrayList` làm identity; cách làm đó dễ vi phạm hợp đồng khi có nhiều nhánh.
+Never confuse immutable `reduce` with mutable `collect` by sharing an `ArrayList` as `identity`; that breaks the contract across multiple branches.
 
-## 10. collect: vì sao container mutable vẫn có thể an toàn?
+## 10. `collect`: Why Can a Mutable Container Still Be Safe?
 
-`collect(supplier, accumulator, combiner)` cho phép framework cấp **nhiều container riêng**, rồi gộp chúng bằng combiner. Một container `ArrayList` hoặc class accumulator không thread-safe **vẫn có thể dùng đúng** nếu không chia sẻ nó giữa các nhánh và không khai báo concurrent sai.
+`collect(supplier, accumulator, combiner)` lets the framework allocate **separate containers** and merge them via `combiner`. A non-thread-safe `ArrayList` or accumulator class **can still be completely safe** when not shared across branches and not falsely marked concurrent.
 
-Ví dụ tổng hợp số lượng và tổng:
+Example aggregating count and sum:
 
 ```java
 import java.util.Arrays;
@@ -591,28 +591,28 @@ System.out.println(sequential.sum());   // 15
 System.out.println(parallel.sum());     // 15
 ```
 
-Điểm quan trọng:
+Key points:
 
-- `Stats::new` tạo instance mới mỗi khi Supplier được gọi.
-- `add` chỉ cập nhật đúng accumulator đang được giao.
-- `merge` cộng đủ trạng thái hai phân hoạch; không bỏ phần tử.
-- Kết quả `Stats` được đọc **sau** khi collect hoàn tất, không có tác vụ ngoài đang sửa nó.
+- `Stats::new` creates a fresh instance each time the Supplier is called.
+- `add` updates only the accumulator instance handed to it.
+- `merge` combines full state from both partitions without dropping elements.
+- `Stats` is read **after** `collect` finishes, with no external task modifying it.
 
-Nếu Supplier trả lại cùng `Stats` được tạo ngoài Stream, đó là sai lầm chia sẻ trạng thái. Nếu combiner chỉ trả một phía và không gộp, parallel có thể thiếu số lượng hoặc tổng.
+If the Supplier returns the same `Stats` created outside the Stream, that is a shared-state bug. If the combiner returns only one side without merging, parallel runs lose counts or sums.
 
-Với Collector tự viết, phải phân biệt `Collector.Characteristics.CONCURRENT` với `Spliterator.CONCURRENT` và việc source chạy parallel. Đừng công bố `CONCURRENT` nếu accumulator không cho phép nhiều luồng cùng gọi trên một container.
+For custom Collectors, distinguish `Collector.Characteristics.CONCURRENT` from `Spliterator.CONCURRENT` and parallel execution. Never declare `CONCURRENT` unless the accumulator safely supports concurrent calls on a single container.
 
-## 11. Số thực: đúng về nghiệp vụ không đồng nghĩa bằng từng bit
+## 11. Floating-Point Numbers: Business Correctness Does Not Mean Bitwise Equality
 
-Phép cộng số dấu phẩy động không có tính kết hợp tuyệt đối do làm tròn:
+Floating-point addition is not strictly associative due to rounding:
 
 ```text
-(1e16 + 1) + (-1e16) có thể thành 0
-1e16 + (1 + (-1e16)) cũng có thể thành 0
-nhưng cách nhóm và thứ tự khác có thể giữ hoặc mất các số nhỏ
+(1e16 + 1) + (-1e16) can become 0
+1e16 + (1 + (-1e16)) can also become 0
+yet different groupings and orders can keep or lose small numbers
 ```
 
-Ví dụ so sánh:
+Comparison example:
 
 ```java
 import java.util.Arrays;
@@ -628,13 +628,13 @@ double sequential = amounts.stream()
 double parallel = amounts.parallelStream()
         .reduce(0.0, Double::sum);
 
-System.out.println(sequential); // 1.0 theo thứ tự gộp tuần tự này
-System.out.println(parallel);   // Có thể khác do thứ tự gộp
+System.out.println(sequential); // 1.0 under this sequential grouping order
+System.out.println(parallel);   // May differ due to grouping order
 ```
 
-Tổng chính xác trong toán học là `2.0`. Một số cách cộng số thực làm tròn mất số `1.0` và có thể cho kết quả khác. Không nên viết test luôn yêu cầu hai `double` **bằng nhau từng bit** cho mọi dạng reduction song song.
+The exact mathematical sum is `2.0`. Some floating-point summation orders round away `1.0` and produce different numbers. Avoid writing tests that unconditionally require two `double`s to be **bitwise identical** across every parallel reduction.
 
-### So sánh có dung sai
+### Comparing with tolerance
 
 ```java
 static boolean approximatelyEqual(
@@ -661,14 +661,14 @@ static boolean approximatelyEqual(
 }
 ```
 
-Hàm này:
+This helper:
 
-- So sánh từng bit khi hai số bằng nhau đúng theo `doubleToLongBits`.
-- Loại các trường hợp `NaN`/vô cực không khớp; với `NaN` ở cả hai vế, quy tắc bit chuẩn hóa của phương thức có thể coi chúng tương đương. Nếu ứng dụng cần coi mọi `NaN` là lỗi dữ liệu, hãy kiểm tra riêng trước.
-- Dùng kết hợp ngưỡng tuyệt đối và tương đối; **ngưỡng phải được xác định từ yêu cầu nghiệp vụ**, không chọn tùy tiện để che bug.
-- Không giải quyết được tràn số nguyên, sai đơn vị hoặc lỗi công thức. Dung sai chỉ dành cho sai số số học được chấp nhận.
+- Matches bitwise-identical values via `doubleToLongBits`.
+- Rejects mismatched `NaN`/infinity cases; when both sides are `NaN`, canonical bit comparison treats them as equal. If your application must treat any `NaN` as a data error, check for `NaN` explicitly first.
+- Combines absolute and relative tolerances; **thresholds must come from business requirements**, never chosen arbitrarily to hide bugs.
+- Does not solve integer overflow, unit mismatches, or wrong formulas. Tolerance is solely for acceptable numeric rounding.
 
-Nếu tiền tệ yêu cầu kết quả **chính xác**, hãy dùng `BigDecimal` (với chính sách scale/rounding rõ ràng) hoặc số nguyên đơn vị nhỏ nhất thay vì `double`:
+When monetary calculations require **exact** results, use `BigDecimal` (with an explicit scale/rounding policy) or integer minor units instead of `double`:
 
 ```java
 import java.math.BigDecimal;
@@ -690,11 +690,11 @@ BigDecimal par = money.parallelStream()
 System.out.println(seq.compareTo(par) == 0); // true
 ```
 
-Ví dụ này dùng `BigDecimal.add` không có `MathContext` nên phép cộng thập phân là chính xác; nếu sử dụng làm tròn ở các bước trung gian, cần đánh giá lại tính kết hợp của phép toán.
+This example uses `BigDecimal.add` without a `MathContext`, so decimal addition is exact; if rounding is applied at intermediate steps, associativity must be re-evaluated.
 
-## 12. Tràn số nguyên: hai kết quả giống nhau vẫn có thể cùng sai
+## 12. Integer Overflow: Two Matching Results Can Still Both Be Wrong
 
-Giả sử có các số lớn và kết quả vượt miền của `int`:
+Suppose inputs are large and the sum exceeds `int` range:
 
 ```java
 import java.util.Arrays;
@@ -707,13 +707,13 @@ List<Integer> values = Arrays.asList(
 int seq = values.stream().mapToInt(Integer::intValue).sum();
 int par = values.parallelStream().mapToInt(Integer::intValue).sum();
 
-System.out.println(seq);          // -2147483648 do overflow int
-System.out.println(seq == par);  // true, nhưng tổng nghiệp vụ sai
+System.out.println(seq);          // -2147483648 due to int overflow
+System.out.println(seq == par);  // true, yet the business sum is wrong
 ```
 
-Phép cộng số nguyên `int` có hành vi overflow theo ngữ nghĩa Java; hai pipeline có thể cùng trả kết quả không mong muốn trong miền nghiệp vụ. Vì vậy **đối chiếu sequential/parallel là điều kiện cần, không phải bằng chứng đầy đủ về đúng đắn**.
+`int` addition wraps on overflow per Java semantics; both pipelines can return the same invalid business total. Thus **sequential-vs.-parallel comparison is a necessary check, not sufficient proof of correctness**.
 
-Nếu tổng không vượt miền `long`, có thể nâng kiểu trước khi cộng:
+If the sum fits within `long`, widen before summing:
 
 ```java
 long safeSum = values.stream()
@@ -723,15 +723,15 @@ long safeSum = values.stream()
 System.out.println(safeSum); // 2147483648
 ```
 
-Khi tổng có thể vượt `Long.MAX_VALUE`, cần số học lớn hơn hoặc cơ chế phát hiện tràn. Cũng không mặc định `Math.addExact` có cùng hành vi ngoại lệ ở mọi thứ tự gộp nếu các tổng trung gian có thể vượt giới hạn dù kết quả cuối cùng nằm trong miền.
+When sums can exceed `Long.MAX_VALUE`, use wider arithmetic or overflow detection. Do not assume `Math.addExact` throws identically under every merge order if intermediate partial sums can exceed bounds even when the final sum fits.
 
-Một bộ test tốt cần kiểm tra **giá trị kỳ vọng độc lập** bằng mô hình số học đúng, không chỉ so `seq.equals(par)`.
+A solid test suite verifies **an independent expected value** using the right numeric model, rather than only asserting `seq.equals(par)`.
 
-## 13. Debug pipeline bằng bước trung gian có kiểm soát
+## 13. Debugging Pipelines With Controlled Intermediate Steps
 
-Khi thấy kết quả khác nhau, đừng lập tức thêm `println` vào mọi `map` rồi suy luận từ thứ tự log. Trong parallel stream, log từ nhiều thread thường xen kẽ và có thể làm thay đổi timing.
+When results diverge, don't immediately litter `println` inside every `map` and deduce behavior from log order. In parallel streams, logs from multiple threads interleave and can alter execution timing.
 
-### Đoạn pipeline mẫu
+### Sample pipeline
 
 ```java
 import java.util.Arrays;
@@ -751,16 +751,16 @@ static List<String> pipeline(Stream<String> lines) {
 }
 ```
 
-Các bước kiểm tra có hệ thống:
+Systematic inspection steps:
 
-1. **Nguồn:** số lượng phần tử, tính bất biến, encounter order và các giá trị null.
-2. **Bộ lọc:** xác nhận phần tử nào đáng được giữ bằng ví dụ nhỏ có kết quả kỳ vọng.
-3. **Biến đổi:** làm rõ hàm có thuần, stateless và không sửa nguồn không.
-4. **Thao tác stateful:** `distinct`/`sorted`/`limit` có yêu cầu thứ tự hoặc bộ nhớ nào?
-5. **Terminal:** kiểu kết quả có cam kết thứ tự không? Collector có combiner đúng không?
-6. **So sánh:** dùng phương thức so đúng hợp đồng (`List.equals`, `Map.equals`, đa tập, dung sai...).
+1. **Source:** element count, immutability, encounter order, and nulls.
+2. **Filters:** confirm which elements should survive using a small example with known output.
+3. **Transformations:** verify functions are pure, stateless, and do not mutate the source.
+4. **Stateful ops:** check memory or ordering requirements of `distinct`/`sorted`/`limit`.
+5. **Terminal:** does the result type guarantee order? Does the Collector have a valid combiner?
+6. **Comparison:** use a contract-aligned comparison (`List.equals`, `Map.equals`, multiset, tolerance, etc.).
 
-### peek hữu ích để quan sát, không phải oracle kiểm thử
+### `peek` helps observe, not serve as a test oracle
 
 ```java
 long result = Arrays.asList(1, 2, 3, 4)
@@ -770,13 +770,13 @@ long result = Arrays.asList(1, 2, 3, 4)
         .count();
 ```
 
-Lệnh này không bảo đảm `peek` được gọi đúng bốn lần. Một số pipeline có nguồn `SIZED` và terminal `count()` có thể được tối ưu mà không cần duyệt từng phần tử; vì vậy `peek` có thể không chạy. Ngay cả khi chạy, thứ tự log song song không phải thứ tự dữ liệu.
+This does not guarantee `peek` runs four times. Pipelines with a `SIZED` source and `count()` can optimize without traversing every element, so `peek` might not run at all. Even when it does, parallel log order is not data order.
 
-Dùng `peek` để **chẩn đoán tạm thời**, không làm phần logic nghiệp vụ và không đặt assertion dựa trên số dòng log hoặc tên thread.
+Use `peek` for **temporary diagnostics**, never as business logic and never writing assertions on log line counts or thread names.
 
-## 14. Test bằng JUnit: kiểm tra kết quả thay vì lịch luồng
+## 14. Testing with JUnit: Assert Outcomes Instead of Thread Schedules
 
-Ví dụ sau dùng **JUnit Jupiter** và cần thêm dependency tương ứng vào dự án kiểm thử; phần Java Stream không phụ thuộc JUnit.
+The following example uses **JUnit Jupiter** and requires that test dependency in the project; the Java Stream code itself does not depend on JUnit.
 
 ```java
 import java.util.List;
@@ -814,11 +814,11 @@ class ParallelPipelineTest {
 }
 ```
 
-**Lưu ý kiểm tra giá trị kỳ vọng:** `9998 * 9998` vẫn nằm trong miền `int`, nên biểu thức không bị tràn ở ví dụ này. Khi tăng miền lên giá trị lớn hơn, chuyển phép nhân sang `long` và chọn kiểu List phù hợp.
+**Expected-value note:** `9998 * 9998` still fits within `int`, so it does not overflow in this example. When increasing the range further, switch multiplication to `long` and use the appropriate List type.
 
-JUnit `assertEquals` so bằng `List.equals` nên kiểm tra cả thứ tự. Nếu yêu cầu không quan tâm thứ tự, hãy dùng phép chuẩn hóa hoặc so theo đa tập, không áp đặt thứ tự chỉ vì framework trả List.
+JUnit's `assertEquals` uses `List.equals`, checking order as well. If requirements ignore order, canonicalize or compare multisets rather than imposing order solely because the framework returned a List.
 
-### Test nhiều bộ dữ liệu có seed cố định
+### Testing multiple datasets with fixed seeds
 
 ```java
 import java.util.List;
@@ -866,44 +866,44 @@ class GroupingPropertyTest {
 }
 ```
 
-Việc dùng seed cố định giúp tái hiện ca lỗi. `Random.ints` ở đoạn này được tiêu thụ **tuần tự trước khi** chạy hai phiên bản pipeline trên cùng List đã tạo. Không chia sẻ một Random mutable trong `parallel().map(...)` rồi hy vọng từng phần tử có cùng số random ở cả hai chế độ.
+Fixed seeds make failing cases reproducible. `Random.ints` here is consumed **sequentially before** running both pipeline modes over the generated List. Never share a mutable `Random` inside `parallel().map(...)` expecting identical random draws per element across modes.
 
-40 bộ dữ liệu có thể tìm thấy lỗi phụ thuộc dữ liệu, nhưng **không thể chứng minh** mọi interleaving an toàn. Nếu xuất hiện race hiếm, cần phân tích trạng thái chia sẻ và công cụ kiểm thử concurrency phù hợp, không chỉ tăng số vòng lặp.
+Testing 40 datasets can catch data-dependent bugs, yet **cannot prove** every interleaving is safe. If a rare race appears, analyze shared state with proper concurrency tools instead of merely raising iteration counts.
 
-## 15. Kiểm tra nhiều kích thước và cách phân hoạch
+## 15. Test Across Varied Sizes and Partitionings
 
-Một combiner sai có thể không lộ ở bộ dữ liệu quá nhỏ, do framework không chia nhánh như mong đợi. Hãy thử:
+A broken combiner may stay hidden on tiny inputs if the framework never splits work as expected. Test:
 
-| Dữ liệu | Lỗi có thể phát hiện |
+| Dataset | Bugs it can expose |
 | --- | --- |
-| Nguồn rỗng | Identity, Optional, collector không có phần tử |
-| Một phần tử | Khởi tạo, finisher, trường hợp không cần combiner |
-| Hai phần tử | Đầu tiên/cuối cùng, gộp hai trạng thái |
-| Số lượng lẻ | Bỏ sót phần tử cuối hoặc nhóm không đủ |
-| Nhiều giá trị trùng | `distinct`, đếm theo nhóm, merge khi trùng khóa |
-| Giá trị âm, 0 và số cực lớn | Identity sai, overflow, floorDiv |
-| Dữ liệu có null nếu được phép | Null handling trong mapper/classifier |
-| Danh sách ordered và nguồn unordered | Các yêu cầu encounter order khác nhau |
-| 10, 100, 1000, 100000 phần tử | Nhiều cách chia nhánh và chi phí bộ nhớ |
-| Nhiều lần chạy parallel | Tái hiện race không ổn định |
+| Empty source | Identity, Optional, empty collector behavior |
+| One element | Initialization, finisher, combiner-skipped path |
+| Two elements | First/last handling, merging two states |
+| Odd count | Dropping final element or uneven chunks |
+| Many duplicates | `distinct`, group counts, duplicate-key merges |
+| Negative, 0, and huge values | Wrong identity, overflow, `floorDiv` |
+| Inputs with nulls (if permitted) | Null handling in mapper/classifier |
+| Ordered lists and unordered sources | Differing encounter-order requirements |
+| 10, 100, 1,000, 100,000 elements | Diverse splitting trees and memory cost |
+| Repeated parallel runs | Reproducing intermittent races |
 
-Đối với một phép tổng hợp đúng, nên kiểm tra thêm **tính độc lập với cách phân nhóm**. Ví dụ cộng số:
+For a sound aggregation, also test **independence from grouping structure**. For addition:
 
 ```text
 ((a + b) + c) == (a + (b + c))
 ```
 
-Với số nguyên không tràn, phép cộng đáp ứng tính kết hợp. Với phép nối chuỗi, thứ tự toán hạng thường quan trọng nhưng phép ghép có thể kết hợp nếu giữ đúng thứ tự; với trừ hoặc chia, phép toán nói chung không kết hợp.
+For non-overflowing integers, addition is associative. For string joining, operand order matters yet concatenation is associative if order is preserved; for subtraction or division, operations are generally non-associative.
 
-### Thay đổi số luồng không phải oracle
+### Changing thread counts is not a test oracle
 
-Đừng viết test phụ thuộc vào `ForkJoinPool.commonPool().getParallelism()` hoặc yêu cầu các thread cụ thể xuất hiện. Số luồng, cách tách `Spliterator` và lịch thực thi thuộc môi trường và implementation; chúng có thể thay đổi theo JDK hoặc máy chạy.
+Never write tests tied to `ForkJoinPool.commonPool().getParallelism()` or expecting specific worker threads to appear. Thread counts, `Spliterator` splitting, and execution schedules belong to the runtime environment and implementation; they can vary across JDKs and machines.
 
-Một test đúng nên khẳng định **ngữ nghĩa kết quả** và hợp đồng an toàn, không ràng buộc vào sơ đồ luồng nội bộ.
+A sound test asserts **result semantics** and safety contracts, not internal thread layouts.
 
-## 16. Đối chiếu với nguồn I/O: mở hai lượt riêng
+## 16. Comparing on I/O Sources: Open Two Separate Passes
 
-Với `Files.lines`, mỗi lần tạo Stream thường giữ tài nguyên cần đóng. Không được tiêu thụ một Stream hai lần.
+With `Files.lines`, each Stream normally holds a resource requiring closure. Never consume the same Stream twice.
 
 ```java
 import java.io.IOException;
@@ -936,7 +936,7 @@ static Map<String, Long> countLogLevels(
 }
 ```
 
-Đối chiếu:
+Comparison:
 
 ```java
 Map<String, Long> sequential = countLogLevels(path, false);
@@ -947,83 +947,83 @@ if (!sequential.equals(parallel)) {
 }
 ```
 
-Hai lời gọi **mở hai Stream riêng** và đóng chúng bằng `try-with-resources`. Đây là phép so có ý nghĩa chỉ khi tệp **không bị thay đổi** giữa hai lượt. Trong test tự động, nên tạo fixture cố định; trong hệ thống đang ghi log, hãy dùng snapshot hoặc dữ liệu bất biến trước khi so sánh.
+Both calls **open two separate Streams** and close them with `try-with-resources`. This comparison is meaningful only if the file **is not modified** between passes. In automated tests, use a fixed fixture; on live log files, capture an immutable snapshot before comparing.
 
-`Files.lines` có thể ném `IOException` lúc mở và `UncheckedIOException` lúc tiêu thụ dữ liệu lazy. Đừng bắt mọi ngoại lệ rồi thay bằng Map rỗng: như vậy có thể làm hai nhánh “bằng nhau” dù cả hai đều thất bại khi đọc.
+`Files.lines` can throw `IOException` on open and `UncheckedIOException` during lazy traversal. Never catch all exceptions and substitute an empty Map: that could make both modes appear "equal" even though both failed to read.
 
-Khi dùng `BufferedReader.lines()`, phải đóng Reader ở nơi sở hữu nó. `collect`/`count`/`findFirst` không tự đóng nguồn I/O. Bật parallel không miễn trừ trách nhiệm vòng đời này.
+When using `BufferedReader.lines()`, close the Reader where it is owned. `collect`/`count`/`findFirst` do not close I/O sources automatically. Enabling parallel never waives this lifecycle responsibility.
 
-## 17. Performance test khác correctness test
+## 17. Performance Testing Differs from Correctness Testing
 
-So sánh thời gian chạy không trả lời câu hỏi “hai kết quả có cùng nghĩa không”. Để đánh giá parallel:
+Comparing elapsed time never answers "do both outputs mean the same thing?" When evaluating parallel execution:
 
-1. **Chứng minh đúng:** so với oracle/kết quả kỳ vọng và so ngữ nghĩa sequential–parallel.
-2. **Cố định dữ liệu:** cùng kích thước, phân bố giá trị, nguồn và điều kiện.
-3. **Tách hiệu ứng I/O:** benchmark đọc tệp khác với benchmark xử lý dữ liệu trong bộ nhớ.
-4. **Warm-up và lặp lại:** JIT, GC và scheduling làm một lần đo không đại diện.
-5. **Đo memory/throughput/latency:** song song có thể tăng throughput nhưng làm tăng bộ đệm, cấp phát và phối hợp.
-6. **Không dùng `System.out.println` trong pipeline đang đo:** log đồng bộ có thể chi phối toàn bộ thời gian.
-7. **Đánh giá theo môi trường:** CPU, JDK, cấu trúc nguồn, số nhóm và tính chất Collector ảnh hưởng kết quả.
+1. **Prove correctness first:** compare against an oracle/expected result and verify sequential–parallel equivalence.
+2. **Fix the input:** identical size, value distribution, source, and conditions.
+3. **Isolate I/O effects:** benchmarking file reads differs from benchmarking in-memory processing.
+4. **Warm up and repeat:** JIT, GC, and scheduling make a single timing meaningless.
+5. **Measure memory/throughput/latency:** parallelism may raise throughput while increasing buffering, allocation, and coordination overhead.
+6. **Remove `System.out.println` from measured pipelines:** synchronized console logging can dominate runtime.
+7. **Evaluate per environment:** CPU cores, JDK, source structure, group counts, and Collector traits all affect performance.
 
-Ví dụ `parallel().sorted().collect(toList())` có thể tốn nhiều bộ nhớ và chi phí phối hợp; một phép `map` rẻ trên vài trăm phần tử thường không có lợi khi chia nhánh.
+For example, `parallel().sorted().collect(toList())` can incur heavy memory and coordination costs; a cheap `map` over a few hundred elements rarely benefits from splitting.
 
-Đối với Java, có thể dùng framework benchmark chuyên dụng như JMH trong giai đoạn đo hiệu năng. Nhưng **không cần benchmark** mới có thể kiểm tra tính đúng đắn của một pipeline; hai hoạt động có mục tiêu riêng.
+In Java, use a dedicated microbenchmark harness like JMH when measuring performance. Still, **you never need a benchmark** to verify pipeline correctness; the two activities have separate goals.
 
-## 18. Quy trình chẩn đoán khi phát hiện sai khác
+## 18. Diagnostic Workflow When Differences Appear
 
 ```text
-Phát hiện sequential != parallel
+Detected sequential != parallel
                |
                v
-  Hai lượt có thật sự cùng dữ liệu?
-       | Không -> cố định snapshot / input
-       v Có
-  Hợp đồng có cho phép khác thứ tự?
-       | Có -> so Set/Map/đa tập/điều kiện nghiệm
-       v Không hoặc vẫn sai
-  Có state mutable dùng chung/side effect?
-       | Có -> bỏ side effect, dùng collector đúng
-       v Không
-  Reduce/combiner có identity và associative?
-       | Không -> sửa phép tổng hợp
-       v Có
-  Có double/NaN/overflow/parse lỗi?
-       | Có -> kiểm tra oracle số học & tolerance
-       v Không
-  Có unordered/short-circuit/source lifecycle?
-       | Có -> sửa test theo hợp đồng
-       v Không
-  Thu nhỏ input + seed cố định + nhiều lần parallel
+  Did both passes see the exact same data?
+       | No  -> freeze snapshot / input
+       v Yes
+  Does the contract permit different ordering?
+       | Yes -> compare Set/Map/multiset/solution criteria
+       v No, or still wrong
+  Is there shared mutable state / side effects?
+       | Yes -> remove side effects, use proper collector
+       v No
+  Are reduce/combiner valid identity & associative?
+       | No  -> fix aggregation operation
+       v Yes
+  Any double/NaN/overflow/parse errors?
+       | Yes -> check numeric oracle & tolerance
+       v No
+  Any unordered/short-circuit/source lifecycle issue?
+       | Yes -> align test with contract
+       v No
+  Shrink input + fix seed + repeat parallel runs
                |
                v
-  Báo lỗi có fixture, kỳ vọng, kết quả, JDK
+  File bug with fixture, expected, actual, JDK
 ```
 
-Một báo cáo bug hữu ích nên kèm: input tối giản, quy tắc kết quả kỳ vọng, code pipeline, chế độ sequential/parallel, seed nếu có, kiểu Collector, môi trường JDK, và chính xác lỗi là **giá trị sai**, **thiếu phần tử**, **sai thứ tự**, **exception** hay **không hoàn tất**.
+A useful bug report includes: minimal input, expected result rule, pipeline code, sequential/parallel mode, seed if any, Collector type, JDK environment, and whether the failure is **wrong value**, **missing element**, **wrong order**, **exception**, or **non-termination**.
 
-Đừng gắn nhãn “bug của Java parallel stream” trước khi xác minh hợp đồng của accumulator, comparator, source và các lambda đã được tuân thủ.
+Never blame a "Java parallel stream bug" before verifying that the accumulator, comparator, source, and lambdas all obey their contracts.
 
-## 19. Bài tập thực hành
+## 19. Practice Exercises
 
-### Bài tập A: đối chiếu ordered List
+### Exercise A: Comparing ordered Lists
 
-Tạo các số từ 0 tới 999, lấy số chẵn, bình phương trên `long`, thu về List. So kết quả tuần tự và song song theo thứ tự, sau đó cố ý thay `collect(toList())` bằng `forEach` ghi vào List dùng chung và giải thích vì sao phiên bản sau không hợp lệ.
+Generate numbers from 0 to 999, keep even numbers, square them as `long`, and collect to a List. Compare sequential and parallel outputs by order, then intentionally replace `collect(toList())` with `forEach` writing to a shared List and explain why the second version is invalid.
 
-**Tiêu chí:** List so bằng `equals`; số phần tử chính xác; không có shared mutable state trong pipeline đúng.
+**Criteria:** Lists compared via `equals`; exact element count; no shared mutable state in the valid pipeline.
 
-### Bài tập B: kiểm tra grouping có khóa trùng
+### Exercise B: Testing grouping with duplicate keys
 
-Từ các chuỗi:
+From the tokens:
 
 ```text
 ERROR WARN INFO ERROR ERROR WARN
 ```
 
-Tạo `Map<String,Long>` bằng `groupingBy(..., counting())` và so với `groupingByConcurrent(..., counting())`. Xác minh `ERROR=3`, `WARN=2`, `INFO=1`; không so theo thứ tự in Map.
+Build `Map<String,Long>` with `groupingBy(..., counting())` and compare against `groupingByConcurrent(..., counting())`. Verify `ERROR=3`, `WARN=2`, `INFO=1`; never compare Map print order.
 
-### Bài tập C: tạo một test thất bại có chủ đích
+### Exercise C: Creating an intentional failing test
 
-Dùng:
+Use:
 
 ```java
 Arrays.asList(1, 2, 3, 4)
@@ -1031,82 +1031,82 @@ Arrays.asList(1, 2, 3, 4)
         .reduce(0, (a, b) -> a - b);
 ```
 
-So với phiên bản tuần tự. Giải thích bằng tính không kết hợp của phép trừ. Sau đó đổi sang `Integer::sum` với identity 0 và kiểm tra bằng tổng kỳ vọng 10.
+Compare with the sequential version. Explain using non-associativity of subtraction. Then switch to `Integer::sum` with identity 0 and verify against the expected sum 10.
 
-### Bài tập D: kiểm tra hàm chọn phần tử
+### Exercise D: Testing element-selection operations
 
-Dùng nguồn `[5,8,11,14,17]` và predicate số chẵn. Test `findFirst` phải trả 8 trong cả hai chế độ; test `findAny` chỉ đòi kết quả thuộc `{8,14}`. Thử nguồn không có số chẵn và xác minh `Optional.empty()`.
+Use source `[5,8,11,14,17]` and an even-number predicate. Test that `findFirst` returns 8 in both modes; test that `findAny` returns an element in `{8,14}`. Test a source with no even numbers and verify `Optional.empty()`.
 
-### Bài tập E: dữ liệu phát sinh có seed cố định
+### Exercise E: Generated data with a fixed seed
 
-Tạo 50 bộ dữ liệu số nguyên gồm giá trị âm, 0, dương và phần tử trùng. Kiểm tra histogram `value -> Math.floorDiv(value, 10)` bằng `groupingBy(counting())` trong hai chế độ. Thêm một phép kiểm tra độc lập rằng tổng số phần tử trong các bucket bằng độ dài nguồn.
+Generate 50 integer datasets containing negative numbers, 0, positive numbers, and duplicates. Verify histogram `value -> Math.floorDiv(value, 10)` using `groupingBy(counting())` in both modes. Add an independent check that total bucket counts equal the source length.
 
-### Bài tập F: thống kê nguồn I/O
+### Exercise F: Summarizing an I/O source
 
-Tạo tệp log nhỏ có các dòng `INFO:...`, `WARN:...`, `ERROR:...`. Chạy `countLogLevels(path,false)` và `countLogLevels(path,true)` trên cùng snapshot bất biến. Kiểm tra Map đúng, file được đóng và dữ liệu lỗi được báo rõ.
+Create a small log file containing `INFO:...`, `WARN:...`, and `ERROR:...` lines. Run `countLogLevels(path,false)` and `countLogLevels(path,true)` over the same immutable snapshot. Verify the Map is right, the file is closed, and read failures are surfaced clearly.
 
-## 20. Những sai lầm thường gặp
+## 20. Common Mistakes
 
-| Sai lầm | Vì sao dẫn đến kết luận sai | Cách sửa |
+| Mistake | Why it leads to wrong conclusions | Fix |
 | --- | --- | --- |
-| So `Map.toString()` hoặc `Set.toString()` | Thứ tự lặp không phải hợp đồng kết quả | So `Map.equals`/`Set.equals` |
-| Sắp xếp List đầu ra dù nghiệp vụ cần order | Có thể che lỗi mất thứ tự | So `List.equals` trực tiếp |
-| Đổi sang Set khi có phần tử lặp | Mất tần suất từng giá trị | So đa tập hoặc danh sách chuẩn hóa có giữ lặp |
-| Đòi `findAny` luôn trả cùng giá trị | `findAny` được phép chọn phần tử khác | So điều kiện nghiệm/membership |
-| Kiểm tra số lời gọi predicate trong `anyMatch` | Short-circuit không có lịch cố định | Kiểm tra boolean kết quả |
-| Thấy log `peek` khác thứ tự rồi báo lỗi | Log xen kẽ, `peek` có thể bị bỏ qua | Kiểm tra output, không kiểm tra log |
-| Dùng `parallel().forEach(sharedList::add)` | `ArrayList` không thread-safe | `collect(toList())` |
-| Dùng `reduce` với phép trừ | Không associative | Phép gộp hợp lệ hoặc thiết kế khác |
-| Identity của `reduce` không phù hợp | Có thể cộng identity nhiều lần khi chia nhánh | Dùng identity đúng |
-| Combiner bỏ qua một nhánh | Mất dữ liệu khi parallel | Gộp đủ các accumulator |
-| Supplier trả cùng container mutable | Race/đếm trùng khi có nhiều nhánh | Mỗi lần Supplier tạo container mới |
-| So `double` bằng từng bit trong mọi trường hợp | Thứ tự làm tròn khác | Tolerance có cơ sở hoặc số học chính xác |
-| Hai nhánh trả cùng số nguyên tràn rồi coi là đúng | Cùng lỗi overflow | So với oracle miền số phù hợp |
-| Chạy tuần tự rồi song song trên cùng Stream | Stream đã bị tiêu thụ | Tạo nguồn Stream mới |
-| Đọc cùng tệp log đang bị ghi cho hai lượt so | Hai nguồn dữ liệu không giống nhau | Snapshot/fixture bất biến |
-| Bật `unordered()` để “tăng tốc” rồi vẫn yêu cầu limit đầu | Hợp đồng thứ tự đã bị bỏ | Giữ order nếu nghiệp vụ cần |
-| Dùng một lần chạy parallel làm bằng chứng thread-safe | Race có thể hiếm | Phân tích hợp đồng, test nhiều cách phân hoạch |
-| So benchmark trước khi xác minh correctness | Nhanh nhưng có thể sai | Kiểm tra kết quả trước, đo hiệu năng sau |
-| Quên đóng `Files.lines` | Rò rỉ tài nguyên I/O | `try-with-resources` |
+| Comparing `Map.toString()` or `Set.toString()` | Iteration order is not part of the result contract | Compare `Map.equals`/`Set.equals` |
+| Sorting output Lists when order is required | Masks order-loss bugs | Compare `List.equals` directly |
+| Converting to `Set` when duplicates exist | Discards element frequencies | Compare multisets or sorted copies preserving duplicates |
+| Requiring `findAny` to return the same value | `findAny` may pick any valid match | Assert solution criteria / membership |
+| Asserting predicate call counts in `anyMatch` | Short-circuiting has no fixed schedule | Assert the boolean result |
+| Seeing out-of-order `peek` logs and reporting a bug | Logs interleave; `peek` may be skipped | Assert output, not logs |
+| Using `parallel().forEach(sharedList::add)` | `ArrayList` is not thread-safe | `collect(toList())` |
+| Using `reduce` with subtraction | Non-associative | Use a valid associative op or different design |
+| Wrong `reduce` identity | Identity may be applied across multiple splits | Use the true mathematical identity |
+| Combiner ignores one branch | Loses data in parallel | Merge both accumulators completely |
+| Supplier returns the same mutable container | Races/double-counting across branches | Allocate a fresh container per Supplier call |
+| Bitwise-comparing `double` everywhere | Rounding varies with grouping order | Principled tolerance or exact decimal/integer math |
+| Passing when both modes overflow identically | Both suffer the same overflow bug | Compare against an appropriately typed oracle |
+| Running sequential then parallel on one Stream | Stream is already consumed | Open a fresh Stream from source |
+| Reading a live log file being written during comparison | Two runs see different inputs | Immutable snapshot/fixture |
+| Enabling `unordered()` for speed then expecting first items via `limit` | Order contract was dropped | Keep order if business needs it |
+| Treating one parallel run as thread-safety proof | Races can be rare | Audit contracts and test varied splits |
+| Benchmarking before verifying correctness | Fast yet wrong | Verify results first, benchmark later |
+| Forgetting to close `Files.lines` | I/O resource leak | `try-with-resources` |
 
-## 21. Checklist trước khi chấp nhận một parallel pipeline
+## 21. Checklist Before Accepting a Parallel Pipeline
 
-1. Nguồn dữ liệu của hai lần đối chiếu có **giống nhau** và không bị sửa trong lúc duyệt không?
-2. Các hàm `filter`, `map`, classifier và comparator có **stateless, non-interfering** không?
-3. Có dùng một `ArrayList`/`HashMap`/counter mutable bên ngoài được nhiều luồng sửa không?
-4. `reduce` có identity, accumulator, combiner và associativity đúng không?
-5. `collect` có Supplier trả container mới, combiner gộp đủ dữ liệu và characteristics đúng không?
-6. Output là ordered List, Set, Map, đa tập, một cực trị hay số thực? **Phép so sánh đã đúng kiểu ngữ nghĩa chưa?**
-7. Với `findAny`, `limit`, `unordered()`, ta có đang áp đặt yêu cầu thứ tự không được cam kết không?
-8. Có xử lý nguồn rỗng, một phần tử, khóa trùng, null, giá trị âm, overflow, `NaN`/vô cực khi cần không?
-9. Test có một **oracle kỳ vọng độc lập**, hay chỉ so hai kết quả có thể cùng sai?
-10. Đã thử các kích thước và seed tái lập khác nhau, không phụ thuộc tên thread hay lịch thực thi chưa?
-11. Nếu nguồn là I/O, đã tạo hai lượt nguồn hợp lệ và đóng tài nguyên đúng chưa?
-12. Sau khi correctness đạt, có số đo thực nghiệm chứng minh parallel giúp bài toán thực tế không?
+1. Do both comparison runs read **identical** data without mid-traversal mutation?
+2. Are `filter`, `map`, classifiers, and comparators **stateless and non-interfering**?
+3. Is any external mutable `ArrayList`/`HashMap`/counter accessed by multiple threads?
+4. Does `reduce` have valid identity, accumulator, combiner, and associativity?
+5. Does `collect` have a fresh-container Supplier, complete combiner, and accurate characteristics?
+6. Is the output an ordered List, Set, Map, multiset, single extreme, or floating-point number? **Does the comparison match its semantic contract?**
+7. With `findAny`, `limit`, or `unordered()`, are we imposing ordering guarantees the API does not make?
+8. Have we handled empty sources, single elements, duplicate keys, nulls, negatives, overflow, and `NaN`/infinity where needed?
+9. Does the test have an **independent expected-value oracle**, rather than only comparing two runs that could fail together?
+10. Have we tested multiple sizes and reproducible seeds without depending on thread names or schedules?
+11. For I/O sources, did both passes open valid streams and close resources properly?
+12. Once correctness is established, do empirical measurements show parallelism actually helps the real workload?
 
-## 22. Câu hỏi tự kiểm tra
+## 22. Self-Check Questions
 
-1. Hai Stream có thể dùng lại cùng một instance sau terminal operation không? **Không**, phải tạo Stream mới.
-2. Với `List` ordered và `Collectors.toList()`, ta nên so gì? **Số phần tử, giá trị và thứ tự**, ví dụ bằng `List.equals`.
-3. Với `Set`, hai lần in khác thứ tự có phải bug không? **Không**, hãy so phần tử theo `Set.equals`.
-4. Khi Map chỉ chứa `Long` đếm theo khóa, so Map thế nào? **`Map.equals`**, không dựa vào thứ tự in.
-5. Nếu Map chứa danh sách unordered có phần tử lặp, dùng `Set` để chuẩn hóa có đúng không? **Không**, sẽ làm mất tần suất; dùng đa tập hoặc bản sao được sắp xếp.
-6. `findFirst` trên nguồn ordered có giữ ý nghĩa phần tử đầu khi parallel không? **Có**, theo encounter order.
-7. `findAny` có buộc trả giống `findFirst` không? **Không**.
-8. Vì sao không nên assert số lần predicate được gọi ở `anyMatch`? **Do short-circuit và chia nhánh có thể khác nhau**.
-9. Tại sao `parallel().forEach(arrayList::add)` nguy hiểm? **Nhiều luồng sửa một List không thread-safe**.
-10. `Collectors.toList()` có thể dùng trên parallel stream dù `ArrayList` không thread-safe không? **Có**, collector xử lý bộ chứa theo hợp đồng.
-11. Phép trừ có thích hợp làm combiner của reduction song song không? **Không**, vì không associative.
-12. Identity của phép cộng phải là gì? **0**, không phải giá trị tùy ý như 10.
-13. Combiner chỉ trả nhánh trái có gì sai? **Có thể làm mất dữ liệu nhánh phải**.
-14. Tại sao hai tổng `double` có thể khác một chút? **Do thay thứ tự gom và sai số làm tròn**.
-15. Tại sao `seq == parallel` chưa đủ chứng minh kết quả số nguyên đúng? **Cả hai có thể cùng overflow**.
-16. Khi nào nên dùng `BigDecimal` thay `double`? **Khi yêu cầu kết quả thập phân chính xác theo quy tắc nghiệp vụ**.
-17. `peek` có phải phép kiểm tra số lần xử lý phần tử đáng tin cậy không? **Không**, pipeline có thể tối ưu bỏ lời gọi.
-18. Test dựa vào thread name hoặc số luồng có ổn định qua JDK không? **Không**.
-19. Với nguồn `Files.lines`, phải làm gì khi chạy hai cách xử lý? **Mở hai Stream riêng, đọc cùng snapshot và đóng từng nguồn**.
-20. Correctness test và performance test có cùng mục tiêu không? **Không**; kiểm tra đúng đắn trước khi đo tốc độ.
-21. Nên làm gì với bug chỉ xuất hiện khi parallel? **Cố định input/seed, thu nhỏ ví dụ, kiểm tra state/combiner/order và lưu fixture tái hiện**.
-22. Bằng chứng quan trọng nhất khi so kết quả là gì? **Hợp đồng ngữ nghĩa đầu ra cộng với một oracle kỳ vọng độc lập**.
+1. Can two runs reuse the same `Stream` instance after a terminal operation? **No**, create a fresh Stream.
+2. With an ordered `List` and `Collectors.toList()`, what should you compare? **Count, values, and order**, e.g. via `List.equals`.
+3. With a `Set`, is a different print order across runs a bug? **No**, compare membership via `Set.equals`.
+4. When a Map stores only `Long` counts per key, how should Maps be compared? **`Map.equals`**, not print order.
+5. If a Map holds unordered lists with duplicate elements, is converting values to `Set` valid? **No**, that loses frequencies; use multisets or sorted copies.
+6. Does `findFirst` on an ordered source preserve first-element semantics in parallel? **Yes**, by encounter order.
+7. Must `findAny` return the same element as `findFirst`? **No**.
+8. Why avoid asserting predicate invocation counts in `anyMatch`? **Because short-circuiting and work splitting can vary**.
+9. Why is `parallel().forEach(arrayList::add)` dangerous? **Multiple threads mutate a non-thread-safe List**.
+10. Can `Collectors.toList()` run safely on parallel streams even though `ArrayList` isn't thread-safe? **Yes**, the collector manages per-branch containers per contract.
+11. Is subtraction suitable as a combiner in parallel reduction? **No**, because it is not associative.
+12. What must the identity for addition be? **`0`**, never an arbitrary value like 10.
+13. What is wrong with a combiner that only returns the left branch? **It drops the right branch's data**.
+14. Why can two `double` sums differ slightly? **Grouping order and floating-point rounding**.
+15. Why is `seq == parallel` insufficient to prove integer sums are right? **Both can overflow identically**.
+16. When should `BigDecimal` replace `double`? **When exact decimal results are required by business rules**.
+17. Is `peek` a reliable way to count processed elements? **No**, pipelines may optimize away calls.
+18. Are tests asserting thread names or worker counts portable across JDKs? **No**.
+19. With `Files.lines`, what must you do when comparing two execution modes? **Open two separate Streams, read the same snapshot, and close each source**.
+20. Do correctness tests and performance tests share the same goal? **No**; verify correctness before measuring speed.
+21. What should you do for a parallel-only bug? **Freeze input/seed, shrink the case, inspect state/combiner/order, and save a reproducible fixture**.
+22. What is the strongest evidence when comparing outputs? **The semantic output contract paired with an independent expected-value oracle**.
 
-**Nguyên tắc áp dụng:** Đối chiếu tuần tự và song song không phải là so hai dòng log hay hai chuỗi `toString()`. Hãy **cố định dữ liệu**, dùng **hai Stream mới**, xác định **ngữ nghĩa kết quả**, và kiểm tra từng yếu tố quyết định tính đúng: lambda thuần, trạng thái không chia sẻ, identity/associativity/combiner hợp lệ, yêu cầu thứ tự, floating point, overflow và vòng đời nguồn I/O. Khi sequential và parallel có kết quả tương đương **theo đúng hợp đồng**, vẫn cần oracle độc lập để tránh trường hợp cả hai cùng sai. Chỉ sau đó mới đánh giá lợi ích hiệu năng của parallel stream.
+**Rule of thumb:** Comparing sequential and parallel execution does not mean diffing two log streams or `toString()` outputs. **Freeze the data**, open **two fresh Streams**, define the **output semantics**, and verify every factor governing correctness: pure lambdas, unshared state, valid identity/associativity/combiners, ordering requirements, floating-point tolerances, overflow bounds, and I/O resource lifecycles. Even when sequential and parallel agree **per contract**, keep an independent oracle so both cannot fail identically—and only then benchmark whether parallelism actually pays off.

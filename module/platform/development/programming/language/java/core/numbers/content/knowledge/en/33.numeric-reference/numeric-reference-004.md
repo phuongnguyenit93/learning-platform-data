@@ -1,21 +1,21 @@
-# Bảng tra cứu: NaN, signed zero, equals và compare trong Java
+# Reference Table: NaN, Signed Zero, equals, and compare in Java
 
-## 1. Mục tiêu: phân biệt bốn khái niệm “bằng nhau”
+## 1. Goal: Distinguishing Four Concepts of "Equality"
 
-Trong Java, các kiểu dấu phẩy động `float` và `double` tuân theo ngữ nghĩa IEEE 754 được Java quy định. Một số giá trị đặc biệt có cách so sánh khác trực giác số học thông thường:
+In Java, the floating-point types `float` and `double` follow Java's specified IEEE 754 semantics. Several special values compare differently from ordinary arithmetic intuition:
 
-- **NaN (Not a Number)**: giá trị đặc biệt biểu thị kết quả không xác định theo phép toán floating-point, ví dụ `0.0 / 0.0`.
-- **Signed zero**: có cả `+0.0` và `-0.0`. Hai giá trị bằng nhau qua toán tử số học `==`, nhưng không giống nhau ở mọi thao tác, ví dụ `1.0 / +0.0` và `1.0 / -0.0`.
-- **`==`, `!=`, `<`, `>`, `<=`, `>=` trên primitive**: áp dụng quy tắc **so sánh số học**, trong đó NaN không được xem là bằng bất kỳ số nào, kể cả chính nó.
-- **`Double.equals` / `Float.equals` và `Double.compare` / `Float.compare`**: sử dụng **quy tắc bình đẳng và thứ tự dành cho wrapper**, được thiết kế nhất quán để dùng làm khóa trong collection và sắp xếp.
+- **NaN (Not a Number)**: a special value representing an undefined result of a floating-point operation, such as `0.0 / 0.0`.
+- **Signed zero**: both `+0.0` and `-0.0` exist. The two values compare equal under the arithmetic operator `==`, yet behave differently in certain operations, such as `1.0 / +0.0` and `1.0 / -0.0`.
+- **`==`, `!=`, `<`, `>`, `<=`, `>=` on primitives**: apply **numerical comparison** rules, in which NaN is not considered equal to any number, including itself.
+- **`Double.equals` / `Float.equals` and `Double.compare` / `Float.compare`**: use **wrapper equality and ordering rules**, designed consistently for use as collection keys and for sorting.
 
-Vì vậy, cùng nhìn vào hai giá trị `double` mà lựa chọn API khác nhau có thể cho kết quả khác nhau. Đây không phải lỗi của Java; đó là những **hợp đồng so sánh khác nhau**.
+Therefore, looking at the exact same two `double` values, choosing different APIs can yield different results. This is not a Java bug; these are **different comparison contracts**.
 
-Bài này là bảng tra cứu cho Java 17+, kèm ví dụ chạy độc lập, các trường hợp NaN với payload khác nhau, signed zero, hash/sorted collections và cách chọn phép so sánh theo bài toán.
+This lesson is a reference table for Java 17+, including a standalone runnable example, NaN cases with different payloads, signed zero, hash/sorted collections, and how to choose the comparison method by problem.
 
-## 2. Bảng nhanh: toán tử primitive và wrapper
+## 2. Quick Table: Primitive Operators and Wrappers
 
-Giả sử:
+Suppose:
 
 ~~~java
 double nan = Double.NaN;
@@ -23,34 +23,34 @@ double positiveZero = 0.0;
 double negativeZero = -0.0;
 ~~~
 
-Đây là các khai báo **trong thân một phương thức**; chương trình hoàn chỉnh nằm ở phần 8.
+These are declarations **inside a method body**; the complete program is in Section 8.
 
-| Phép kiểm tra | Kết quả Java | Lý do |
+| Check | Java Result | Reason |
 |---|---|---|
-| `Double.NaN == Double.NaN` | `false` | NaN không bằng bất kỳ giá trị nào bằng primitive `==` |
-| `Double.NaN != Double.NaN` | `true` | Phép `!=` có kết quả true nếu có NaN |
-| `Double.NaN < 1.0` | `false` | Quan hệ thứ tự primitive với NaN là unordered |
-| `Double.NaN > 1.0` | `false` | Tương tự |
-| `Double.NaN <= 1.0` | `false` | Tương tự |
-| `Double.NaN >= 1.0` | `false` | Tương tự |
-| `Double.NaN == Double.POSITIVE_INFINITY` | `false` | Infinity là giá trị riêng, không phải NaN |
-| `0.0 == -0.0` | `true` | Hai zero bằng nhau theo so sánh số học |
-| `0.0 < -0.0` | `false` | Không có chênh lệch giá trị số học |
-| `0.0 > -0.0` | `false` | Tương tự |
-| `Double.valueOf(nan).equals(Double.valueOf(nan))` | `true` | Wrapper xem các NaN là bằng nhau |
-| `Double.valueOf(-0.0).equals(Double.valueOf(0.0))` | `false` | Wrapper phân biệt bit dấu của zero |
-| `Double.compare(nan, nan)` | `0` | Hai NaN cùng vị trí trong thứ tự wrapper |
-| `Double.compare(nan, Double.POSITIVE_INFINITY)` | Số dương (`1` ở JDK 17) | NaN xếp **sau** mọi giá trị số, kể cả +Infinity |
-| `Double.compare(-0.0, +0.0)` | Số âm (`-1` ở JDK 17) | `-0.0` xếp trước `+0.0` |
-| `Double.compare(+0.0, -0.0)` | Số dương (`1` ở JDK 17) | `+0.0` xếp sau `-0.0` |
+| `Double.NaN == Double.NaN` | `false` | NaN is not equal to any value via primitive `==` |
+| `Double.NaN != Double.NaN` | `true` | `!=` evaluates to true if either side is NaN |
+| `Double.NaN < 1.0` | `false` | Primitive ordering with NaN is unordered |
+| `Double.NaN > 1.0` | `false` | Same |
+| `Double.NaN <= 1.0` | `false` | Same |
+| `Double.NaN >= 1.0` | `false` | Same |
+| `Double.NaN == Double.POSITIVE_INFINITY` | `false` | Infinity is a distinct value, not NaN |
+| `0.0 == -0.0` | `true` | Both zeros are equal under numerical comparison |
+| `0.0 < -0.0` | `false` | No numerical value difference |
+| `0.0 > -0.0` | `false` | Same |
+| `Double.valueOf(nan).equals(Double.valueOf(nan))` | `true` | Wrapper treats all NaNs as equal |
+| `Double.valueOf(-0.0).equals(Double.valueOf(0.0))` | `false` | Wrapper distinguishes the sign bit of zero |
+| `Double.compare(nan, nan)` | `0` | Two NaNs share the same position in wrapper order |
+| `Double.compare(nan, Double.POSITIVE_INFINITY)` | Positive number (`1` in JDK 17) | NaN sorts **after** all numeric values, including +Infinity |
+| `Double.compare(-0.0, +0.0)` | Negative number (`-1` in JDK 17) | `-0.0` sorts before `+0.0` |
+| `Double.compare(+0.0, -0.0)` | Positive number (`1` in JDK 17) | `+0.0` sorts after `-0.0` |
 
-**Mẹo nhớ:** nếu cần so sánh giá trị dấu phẩy động theo toán tử số học, `==` và `<` có quy tắc về NaN/zero riêng. Nếu cần một **thứ tự toàn phần để sắp xếp**, `Double.compare` và `Float.compare` là API phù hợp.
+**Memory tip:** if you need to compare floating-point values using arithmetic operators, `==` and `<` have specific rules for NaN/zero. If you need a **total order for sorting**, `Double.compare` and `Float.compare` are the appropriate APIs.
 
-Các ví dụ trong bảng dùng `Double.NaN` kiểu primitive `double`, không phải đối tượng `Double`. Sự khác nhau giữa primitive và wrapper trở nên rõ trong những đoạn tiếp theo.
+The examples in the table use `Double.NaN` of primitive type `double`, not `Double` objects. The difference between primitives and wrappers becomes clear in the following sections.
 
-## 3. NaN và toán tử primitive
+## 3. NaN and Primitive Operators
 
-NaN có thể hình thành từ phép toán dấu phẩy động không xác định:
+NaN can arise from undefined floating-point operations:
 
 ~~~java
 double undefined = 0.0 / 0.0;
@@ -60,14 +60,14 @@ System.out.println(undefined); // NaN
 System.out.println(infinity);  // Infinity
 ~~~
 
-Không nên suy luận NaN như một số lớn hoặc nhỏ. Khi ít nhất một toán hạng là NaN:
+Do not think of NaN as a very large or very small number. When at least one operand is NaN:
 
-- `==` trả `false`, kể cả khi biểu thức so sánh NaN với chính NaN.
-- `!=` trả `true`.
-- Các phép `<`, `<=`, `>`, `>=` đều trả `false`.
-- Do đó hai điều kiện `!(a < b)` và `a >= b` **không tương đương** khi có NaN: với `a = NaN`, `!(a < b)` là true trong khi `a >= b` false.
+- `==` returns `false`, even when comparing NaN with NaN itself.
+- `!=` returns `true`.
+- `<`, `<=`, `>`, and `>=` all return `false`.
+- Consequently, the two conditions `!(a < b)` and `a >= b` are **not equivalent** when NaN is present: for `a = NaN`, `!(a < b)` is true while `a >= b` is false.
 
-Ví dụ:
+Example:
 
 ~~~java
 double a = Double.NaN;
@@ -80,17 +80,17 @@ System.out.println(a >= b);  // false
 System.out.println(!(a < b)); // true
 ~~~
 
-**Không phát hiện NaN bằng `x == Double.NaN`.** Điều kiện đó luôn false cho mọi giá trị x, kể cả NaN. Dùng:
+**Do not detect NaN with `x == Double.NaN`.** That condition is always false for every value of `x`, including NaN. Use:
 
 ~~~java
 boolean invalid = Double.isNaN(a);
 ~~~
 
-Với `float`, dùng `Float.isNaN(value)`. Nếu cần loại bỏ mọi giá trị không hữu hạn (cả NaN lẫn ±Infinity), dùng `Double.isFinite(value)` hoặc `Float.isFinite(value)` (có trong Java 17).
+For `float`, use `Float.isNaN(value)`. If you need to reject all non-finite values (both NaN and ±Infinity), use `Double.isFinite(value)` or `Float.isFinite(value)` (available in Java 17).
 
-### Infinity không phải NaN
+### Infinity Is Not NaN
 
-`Double.POSITIVE_INFINITY` và `Double.NEGATIVE_INFINITY` là các giá trị có thứ tự số học:
+`Double.POSITIVE_INFINITY` and `Double.NEGATIVE_INFINITY` are numerically ordered values:
 
 ~~~java
 System.out.println(Double.NEGATIVE_INFINITY < -1e300); // true
@@ -99,9 +99,9 @@ System.out.println(Double.isNaN(Double.POSITIVE_INFINITY)); // false
 System.out.println(Double.isInfinite(Double.POSITIVE_INFINITY)); // true
 ~~~
 
-Với kiểu `double`, phép chia `1.0 / 0.0` trả +Infinity và `-1.0 / 0.0` trả -Infinity theo quy tắc floating-point. Nhưng phép chia **số nguyên** `1 / 0` hoặc `int x / intZero` ném `ArithmeticException`; đừng gom hai trường hợp làm một.
+With `double`, `1.0 / 0.0` returns +Infinity and `-1.0 / 0.0` returns -Infinity under floating-point rules. However, **integer** division `1 / 0` or `int x / intZero` throws `ArithmeticException`; do not lump both cases together.
 
-Nếu dữ liệu nhập phải là số hữu hạn, việc kiểm tra `!Double.isNaN(x)` **chưa đủ**: Infinity không phải NaN. Quy tắc hữu ích:
+If input data must be a finite number, checking `!Double.isNaN(x)` is **not enough**: Infinity is not NaN. Useful rule:
 
 ~~~java
 if (!Double.isFinite(x)) {
@@ -109,23 +109,23 @@ if (!Double.isFinite(x)) {
 }
 ~~~
 
-Đây là đoạn trong một method có biến `x` kiểu double.
+This is a snippet inside a method with a `double` variable `x`.
 
-## 4. Signed zero: vì sao 0.0 bằng -0.0 nhưng không hoàn toàn giống nhau?
+## 4. Signed Zero: Why 0.0 Equals -0.0 Yet Is Not Completely Identical
 
-IEEE 754 có hai biểu diễn zero:
+IEEE 754 has two zero representations:
 
-- `+0.0`: bit dấu bằng 0.
-- `-0.0`: bit dấu bằng 1.
+- `+0.0`: sign bit is 0.
+- `-0.0`: sign bit is 1.
 
-Toán tử `==` trên primitive coi chúng **bằng nhau**, vì cùng giá trị zero theo phép so sánh số học:
+The primitive `==` operator treats them as **equal**, because they have the same zero value under numerical comparison:
 
 ~~~java
 System.out.println(0.0 == -0.0); // true
 System.out.println(-0.0 < +0.0);  // false
 ~~~
 
-Nhưng trong một số phép toán, dấu zero ảnh hưởng kết quả:
+However, in certain operations, the sign of zero affects the result:
 
 ~~~java
 System.out.println(1.0 / +0.0); // Infinity
@@ -135,18 +135,18 @@ System.out.println(Math.min(-0.0, +0.0)); // -0.0
 System.out.println(Math.max(-0.0, +0.0)); // 0.0
 ~~~
 
-`Math.min` và `Math.max` cho `double` có quy tắc dấu zero: `-0.0` được xem là nhỏ hơn `+0.0` khi hai đối số đều là zero khác dấu. Nếu một toán hạng là NaN, kết quả của hai hàm này là NaN theo API Java. Vì vậy đừng sử dụng min/max như một cách để **loại NaN** khỏi dữ liệu.
+`Math.min` and `Math.max` for `double` have a signed-zero rule: `-0.0` is considered smaller than `+0.0` when both arguments are zeros of opposite signs. If either operand is NaN, both methods return NaN per the Java API. Therefore, do not use min/max as a way to **filter out NaN** from data.
 
-Biểu diễn chuỗi cũng có thể giữ dấu:
+String representation can also preserve the sign:
 
 ~~~java
 System.out.println(Double.toString(-0.0)); // -0.0
 System.out.println(Double.toString(+0.0)); // 0.0
 ~~~
 
-Nếu bài toán chỉ cần biết hai giá trị số học có bằng nhau không, so sánh `+0.0 == -0.0` là true. Nếu bài toán có ý nghĩa phân biệt dấu zero (ví dụ kết quả tính 1/x, serialization theo bit, kiểm tra chính xác đầu ra), không được mặc định hai biểu diễn hoàn toàn thay thế cho nhau.
+If the problem only needs to know whether two values are numerically equal, `+0.0 == -0.0` is true. If distinguishing the sign of zero matters (e.g., results of computing 1/x, bit-level serialization, exact output checks), do not assume the two representations are completely interchangeable.
 
-### Bit pattern của hai zero
+### Bit Patterns of the Two Zeros
 
 ~~~java
 long positiveBits = Double.doubleToRawLongBits(+0.0);
@@ -154,52 +154,52 @@ long negativeBits = Double.doubleToRawLongBits(-0.0);
 System.out.println(positiveBits == negativeBits); // false
 ~~~
 
-Trên dạng IEEE 754 binary64 của Java, bit sign khác nhau. `Double.doubleToLongBits` cũng giữ sự khác nhau này cho ±0.0.
+In Java's IEEE 754 binary64 format, the sign bit differs. `Double.doubleToLongBits` also preserves this distinction for ±0.0.
 
-**Chú ý:** chữ “signed zero” không có nghĩa rằng `-0.0 < 0.0` trong mọi API. Toán tử primitive `<` trả false, nhưng `Double.compare(-0.0, +0.0) < 0` là true theo thứ tự wrapper được định nghĩa riêng.
+**Note:** the term "signed zero" does not mean that `-0.0 < 0.0` in every API. The primitive `<` operator returns false, whereas `Double.compare(-0.0, +0.0) < 0` is true under the wrapper's separately defined ordering.
 
-## 5. Double.equals và Double.compare: khác toán tử == ra sao?
+## 5. Double.equals and Double.compare: How Do They Differ from ==?
 
 ### 5.1. Double.equals
 
-`Double.equals(Object)` so sánh hai **đối tượng Double** theo bit biểu diễn, với NaN được canonicalize. Kết quả khác so sánh primitive ở hai chỗ quan trọng:
+`Double.equals(Object)` compares two **Double objects** by their bit representation, with NaN canonicalized. The result differs from primitive comparison in two key places:
 
-| Cặp giá trị | Primitive `a == b` | `Double.valueOf(a).equals(Double.valueOf(b))` |
+| Value Pair | Primitive `a == b` | `Double.valueOf(a).equals(Double.valueOf(b))` |
 |---|---|---|
-| `1.0` và `1.0` | true | true |
-| `1.0` và `2.0` | false | false |
-| `+0.0` và `-0.0` | **true** | **false** |
-| `NaN` và `NaN` | **false** | **true** |
-| `NaN` và `+Infinity` | false | false |
-| `+Infinity` và `+Infinity` | true | true |
-| `-Infinity` và `-Infinity` | true | true |
+| `1.0` and `1.0` | true | true |
+| `1.0` and `2.0` | false | false |
+| `+0.0` and `-0.0` | **true** | **false** |
+| `NaN` and `NaN` | **false** | **true** |
+| `NaN` and `+Infinity` | false | false |
+| `+Infinity` and `+Infinity` | true | true |
+| `-Infinity` and `-Infinity` | true | true |
 
-Định nghĩa này giúp `Double` dùng được với `equals`/`hashCode` trong `HashMap`, `HashSet` và các collection thông thường. Hai giá trị Double mà `equals` xem là bằng nhau có `hashCode` bằng nhau.
+This definition allows `Double` to work properly with `equals`/`hashCode` in `HashMap`, `HashSet`, and standard collections. Any two `Double` values considered equal by `equals` have equal `hashCode`s.
 
-**Không dùng `==` để so sánh hai đối tượng `Double` nếu bạn cần equality giá trị.** Khi cả hai toán hạng là reference `Double`, toán tử `==` so sánh **tham chiếu**. Khi một bên bị unbox sang primitive, hành vi lại chuyển sang so sánh số học và có thể phát sinh `NullPointerException`.
+**Do not use `==` to compare two `Double` objects if you need value equality.** When both operands are `Double` references, `==` compares **references**. When one side is unboxed to primitive, behavior switches to numerical comparison and can raise `NullPointerException`.
 
 ~~~java
 Double left = Double.valueOf(1.5);
 Double right = Double.valueOf(1.5);
 
 System.out.println(left.equals(right)); // true
-// left == right: không dùng để suy ra value-equality.
+// left == right: do not use to infer value-equality.
 ~~~
 
-Nếu hai reference `Double` có thể null, dùng `Objects.equals(left, right)` khi muốn quy tắc equality wrapper có xử lý null; nếu null không hợp lệ, kiểm tra đầu vào rồi dùng `left.equals(right)`. `Objects.equals` **không chuyển sang primitive `==`**, do đó vẫn phân biệt signed zero và coi NaN bằng NaN.
+If two `Double` references can be null, use `Objects.equals(left, right)` when you want null-safe wrapper equality rules; if null is invalid, validate the input first and then use `left.equals(right)`. `Objects.equals` **does not fall back to primitive `==`**, so it still distinguishes signed zeros and treats NaN as equal to NaN.
 
-### 5.2. Double.compare và compareTo
+### 5.2. Double.compare and compareTo
 
-`Double.compare(double a, double b)` và `Double.compareTo(Double other)` xây dựng **thứ tự toàn phần** để sắp xếp, cho phép đặt NaN vào một vị trí xác định:
+`Double.compare(double a, double b)` and `Double.compareTo(Double other)` establish a **total order** for sorting, placing NaN at a well-defined position:
 
 ~~~text
--Infinity < số âm hữu hạn < -0.0 < +0.0
-          < số dương hữu hạn < +Infinity < NaN
+-Infinity < finite negative numbers < -0.0 < +0.0
+          < finite positive numbers < +Infinity < NaN
 ~~~
 
-Đó là thứ tự quan trọng nhất cần nhớ. Mọi NaN được đặt bằng nhau **theo compare**, dù có payload bit khác nhau. Dù có kết quả là số âm/0/số dương, không nên viết điều kiện dựa trên `compare(...) == -1` hay `== 1`; hợp đồng của các API compare nói chung chỉ yêu cầu dấu, dùng `< 0`, `== 0`, `> 0`.
+That is the most important ordering to remember. All NaNs are treated as equal **under compare**, even if they have different payload bits. Although results may be negative/0/positive, do not write conditions relying on `compare(...) == -1` or `== 1`; the general contract of compare APIs only specifies the sign, so use `< 0`, `== 0`, `> 0`.
 
-Ví dụ:
+Example:
 
 ~~~java
 System.out.println(Double.compare(-0.0, +0.0)); // -1
@@ -209,11 +209,11 @@ System.out.println(Double.compare(
         Double.NaN, Double.POSITIVE_INFINITY)); // 1
 ~~~
 
-**Quy tắc bao trùm:** với hai giá trị primitive double a, b (kể cả NaN, ±0.0), biểu thức `Double.compare(a,b) == 0` nhất quán với `Double.valueOf(a).equals(Double.valueOf(b))`. Nhưng chúng **không nhất quán với primitive `a == b`** tại NaN và signed zero.
+**Overarching rule:** for any two primitive double values `a`, `b` (including NaN, ±0.0), the expression `Double.compare(a,b) == 0` is consistent with `Double.valueOf(a).equals(Double.valueOf(b))`. However, they are **not consistent with primitive `a == b`** at NaN and signed zero.
 
-### 5.3. Float có quy tắc tương ứng
+### 5.3. Float Has Corresponding Rules
 
-`Float.equals`, `Float.compare` và `Float.compareTo` tuân theo cách xử lý NaN và signed zero tương tự, nhưng trên bit-width **binary32**, khác độ chính xác và miền giá trị `double` (binary64).
+`Float.equals`, `Float.compare`, and `Float.compareTo` follow the same NaN and signed-zero handling, but at **binary32** bit width, differing from `double` (binary64) in precision and value range.
 
 ~~~java
 System.out.println(Float.NaN == Float.NaN); // false
@@ -222,44 +222,44 @@ System.out.println(Float.compare(-0.0f, +0.0f)); // -1
 System.out.println(Float.valueOf(-0.0f).equals(+0.0f)); // false
 ~~~
 
-Nếu đối tượng wrapper khác lớp, `Double.valueOf(1.0).equals(Float.valueOf(1.0f))` là **false**: `Double.equals` chỉ nhận đối tượng kiểu Double, không tự quy đổi Float sang Double để so sánh.
+If the wrapper objects belong to different classes, `Double.valueOf(1.0).equals(Float.valueOf(1.0f))` is **false**: `Double.equals` only accepts objects of type `Double` and does not convert `Float` to `Double` for comparison.
 
-## 6. Bảng lựa chọn API theo mục đích
+## 6. API Selection Table by Purpose
 
-| Mục đích | Cách nên chọn | Ý nghĩa cần nắm |
+| Purpose | Recommended Approach | Key Semantics to Know |
 |---|---|---|
-| Kiểm tra hai primitive bằng nhau theo phép toán dấu phẩy động | `a == b` | NaN khác mọi giá trị, ±0.0 bằng nhau |
-| Kiểm tra hai primitive khác nhau | `a != b` | True khi một bên NaN, kể cả hai bên NaN |
-| Loại bỏ NaN | `Double.isNaN(a)` | Không dùng `a == Double.NaN` |
-| Từ chối cả NaN và Infinity | `Double.isFinite(a)` | Hữu hạn mới được chấp nhận |
-| Kiểm tra wrapper value-equality | `Double.valueOf(a).equals(Double.valueOf(b))` | NaN bằng NaN, ±0.0 khác nhau |
-| Kiểm tra wrapper với khả năng null | `Objects.equals(left, right)` | Áp dụng equals của wrapper, null-safe |
-| Sắp xếp một cột double | `Double.compare(a,b)` | Thứ tự tổng thể, NaN sau +Infinity |
-| So sánh theo hợp đồng SortedSet/SortedMap dùng Double | `Double.compare` hoặc thứ tự tự nhiên | Trùng khóa khi compare == 0 |
-| Phân biệt raw bit/payload của NaN | `Double.doubleToRawLongBits(x)` | Không dùng equals/compare để giữ payload |
-| Kiểm tra giá trị gần bằng theo dung sai | Một predicate riêng với sai số rõ ràng | Không biến thành equals/hashCode/order |
-| Sắp xếp theo “NaN trước” hoặc “NaN là missing” | Comparator/policy riêng | Phải giữ thứ tự bắc cầu và nhất quán |
-| Tính toán tiền/độ chính xác thập phân | BigDecimal hoặc đơn vị nguyên | Không kỳ vọng primitive double luôn chính xác |
+| Check if two primitives are equal under floating-point arithmetic | `a == b` | NaN differs from every value, ±0.0 are equal |
+| Check if two primitives differ | `a != b` | True when either side is NaN, including both NaN |
+| Filter out NaN | `Double.isNaN(a)` | Do not use `a == Double.NaN` |
+| Reject both NaN and Infinity | `Double.isFinite(a)` | Only finite numbers accepted |
+| Check wrapper value-equality | `Double.valueOf(a).equals(Double.valueOf(b))` | NaN equals NaN, ±0.0 differ |
+| Check wrappers when null is possible | `Objects.equals(left, right)` | Applies wrapper equals, null-safe |
+| Sort a double column | `Double.compare(a,b)` | Total order, NaN after +Infinity |
+| Compare per SortedSet/SortedMap contract using Double | `Double.compare` or natural order | Duplicate keys when compare == 0 |
+| Distinguish raw bits/payload of NaN | `Double.doubleToRawLongBits(x)` | Do not use equals/compare to preserve payload |
+| Check approximate equality within tolerance | A separate predicate with explicit tolerance | Do not turn into equals/hashCode/order |
+| Sort with "NaN first" or "NaN as missing" | Custom Comparator/policy | Must preserve transitivity and consistency |
+| Money/decimal precision arithmetic | BigDecimal or integer units | Do not expect primitive double to always be exact |
 
-Đối với dữ liệu đầu vào bên ngoài, việc định nghĩa **chính sách NaN/Infinity** trước khi so sánh quan trọng hơn chọn đúng một toán tử. Ví dụ khi giá trị NaN nghĩa là “không đo được”, nghiệp vụ có thể muốn từ chối, đưa cuối danh sách hoặc xử lý thiếu dữ liệu; những chính sách này là khác nhau.
+For external input data, defining the **NaN/Infinity policy** before comparing is more important than choosing a single operator. For instance, when NaN means "not measured", the business logic might reject it, place it at the end of a list, or handle missing data; these policies are distinct.
 
-## 7. NaN payload, bit chuẩn hóa và hashCode
+## 7. NaN Payload, Canonical Bits, and hashCode
 
-NaN không chỉ có một raw bit pattern duy nhất. Trong biểu diễn IEEE 754 có nhiều cách biểu diễn NaN khác nhau; Java cho phép quan sát raw bits từ một giá trị `double` bằng:
+NaN does not have just a single raw bit pattern. In IEEE 754 representation, there are many different NaN encodings; Java lets you inspect the raw bits of a `double` value via:
 
 ~~~java
 long raw = Double.doubleToRawLongBits(value);
 ~~~
 
-Một phương thức khác:
+Another method:
 
 ~~~java
 long normalized = Double.doubleToLongBits(value);
 ~~~
 
-`Double.doubleToLongBits` **canonicalize các NaN**: mọi NaN cho cùng mẫu bit NaN chuẩn khi gọi phương thức này. `Double.equals` sử dụng ngữ nghĩa tương thích với kết quả `doubleToLongBits`, nhờ vậy **hai NaN khác raw payload vẫn equal**. `Double.hashCode` cũng thống nhất với equality này.
+`Double.doubleToLongBits` **canonicalizes NaNs**: all NaNs yield the same canonical NaN bit pattern when this method is called. `Double.equals` uses semantics compatible with the result of `doubleToLongBits`, so **two NaNs with different raw payloads still compare equal**. `Double.hashCode` is also consistent with this equality.
 
-Ví dụ hai payload khác nhau:
+Example of two different payloads:
 
 ~~~java
 double a = Double.longBitsToDouble(0x7ff8000000000001L);
@@ -272,9 +272,9 @@ System.out.println(Double.valueOf(a).equals(b)); // true
 System.out.println(Double.compare(a, b));        // 0
 ~~~
 
-Các raw bit pattern trên được tạo và đọc trong cùng chương trình Java 17 theo API. Tuy vậy, **đừng dùng payload NaN như kênh lưu metadata lâu dài** mà không có hợp đồng serialization và platform rõ ràng: các phép toán hay đường truyền/định dạng có thể canonicalize hoặc không bảo toàn raw payload. Nếu cần lưu **chính xác bit**, làm việc trực tiếp với raw bit integer theo format cụ thể, không dựa vào phép toán trên double.
+The raw bit patterns above are constructed and read within the same Java 17 program per the API. Even so, **do not use NaN payloads as a long-term metadata storage channel** without an explicit serialization and platform contract: operations, transport layers, or formatting can canonicalize or fail to preserve raw payloads. If you need to store **exact bits**, work directly with raw integer bits in a specific format rather than relying on `double` operations.
 
-`Double.doubleToRawLongBits` và `Double.doubleToLongBits` đều giữ được khác biệt raw signed-zero:
+Both `Double.doubleToRawLongBits` and `Double.doubleToLongBits` preserve the raw signed-zero difference:
 
 ~~~java
 System.out.println(
@@ -282,11 +282,11 @@ System.out.println(
         == Double.doubleToLongBits(+0.0)); // false
 ~~~
 
-Với `Float` có cặp API tương ứng `Float.floatToRawIntBits` và `Float.floatToIntBits`. Khi số là NaN, `Float.floatToIntBits` canonicalize tương tự.
+For `Float`, there is a corresponding pair of APIs: `Float.floatToRawIntBits` and `Float.floatToIntBits`. When the value is NaN, `Float.floatToIntBits` canonicalizes similarly.
 
-## 8. Chương trình Java 17+ hoàn chỉnh và output chính xác
+## 8. Complete Java 17+ Program and Exact Output
 
-Lưu file **`FloatingCompareTableDemo.java`**:
+Save the file **`FloatingCompareTableDemo.java`**:
 
 ~~~java
 import java.util.Arrays;
@@ -364,14 +364,14 @@ public class FloatingCompareTableDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac FloatingCompareTableDemo.java
 java FloatingCompareTableDemo
 ~~~
 
-**Kết quả stdout đã kiểm chứng trên Java 17:**
+**Verified stdout output on Java 17:**
 
 ~~~text
 primitive NaN == NaN: false
@@ -402,28 +402,28 @@ Float.compare(NaN, NaN): 0
 Float.compare(-0.0f, +0.0f): -1
 ~~~
 
-Chương trình không dùng số ngẫu nhiên, nên các kết quả không phụ thuộc lịch chạy. Các mã bit payload NaN được tạo tường minh, còn `TreeSet` in theo thứ tự tự nhiên của `Double`; `HashSet` chỉ in **size**, không dựa vào thứ tự duyệt không được bảo đảm.
+The program uses no random numbers, so the results do not depend on execution schedule. The NaN payload bit patterns are constructed explicitly, and `TreeSet` prints according to `Double`'s natural order; `HashSet` prints only its **size**, without relying on an unguaranteed iteration order.
 
-## 9. Collection: HashSet, TreeSet, HashMap, TreeMap
+## 9. Collections: HashSet, TreeSet, HashMap, TreeMap
 
-Hai loại collection sử dụng hai hợp đồng khác nhau:
+The two collection families use two different contracts:
 
-- `HashSet<Double>` / `HashMap<Double,...>` dùng `Double.equals` và `Double.hashCode` để xác định khóa trùng.
-- `TreeSet<Double>` / `TreeMap<Double,...>` dùng `Double.compareTo` hoặc `Comparator` được cung cấp; với thứ tự tự nhiên, comparator trả 0 thì được xem là cùng vị trí khóa.
+- `HashSet<Double>` / `HashMap<Double,...>` use `Double.equals` and `Double.hashCode` to detect duplicate keys.
+- `TreeSet<Double>` / `TreeMap<Double,...>` use `Double.compareTo` or a supplied `Comparator`; under natural ordering, keys where the comparator returns 0 are considered at the same key position.
 
-May mắn là `Double.compareTo` **nhất quán với `Double.equals`**, kể cả NaN và signed zero, nên với giá trị Double thuần túy, hai loại cấu trúc cùng phân biệt hai zero và gộp tất cả NaN thành một khóa theo khái niệm equality tương ứng.
+Fortunately, `Double.compareTo` is **consistent with `Double.equals`**, including NaN and signed zero, so for pure `Double` values both structures distinguish the two zeros and collapse all NaNs into a single key under their respective equality concepts.
 
-| Dữ liệu thêm vào | HashSet kích thước | TreeSet kích thước tự nhiên | Giải thích |
+| Inserted Data | HashSet Size | Natural-Order TreeSet Size | Explanation |
 |---|---:|---:|---|
-| `+0.0`, `-0.0` | 2 | 2 | Hai zero không equal theo wrapper và compare khác 0 |
-| `NaN`, `NaN` | 1 | 1 | NaN wrapper equal và compare = 0 |
-| Hai NaN raw payload khác nhau | 1 | 1 | Payload bị canonicalize trong equality |
-| `-0.0`, `+0.0`, ba NaN | 3 | 3 | Có ba nhóm khóa theo wrapper |
-| `1.0`, `1.0` | 1 | 1 | Trùng nhau hoàn toàn |
+| `+0.0`, `-0.0` | 2 | 2 | The two zeros are not wrapper-equal and compare nonzero |
+| `NaN`, `NaN` | 1 | 1 | NaNs are wrapper-equal and compare = 0 |
+| Two NaNs with different raw payloads | 1 | 1 | Payloads are canonicalized in equality |
+| `-0.0`, `+0.0`, three NaNs | 3 | 3 | Three distinct key groups under wrapper rules |
+| `1.0`, `1.0` | 1 | 1 | Completely identical |
 
-**Không áp dụng quy tắc primitive `==` để đoán hành vi `HashSet<Double>`.** Nếu `NaN == NaN` false mà collection vẫn gộp NaN, đó là do collection dùng wrapper `equals` chứ không dùng primitive `==`.
+**Do not apply primitive `==` rules to predict `HashSet<Double>` behavior.** If `NaN == NaN` is false yet the collection still deduplicates NaN, that is because the collection uses wrapper `equals` rather than primitive `==`.
 
-Ví dụ tra cứu Map:
+Map lookup example:
 
 ~~~java
 Map<Double, String> map = new HashMap<>();
@@ -437,15 +437,15 @@ System.out.println(map.get(-0.0));          // negative
 System.out.println(map.get(+0.0));          // positive
 ~~~
 
-Đây là code **trong method**, cần import `java.util.Map` và `java.util.HashMap`. Nếu dùng `TreeMap` với thứ tự tự nhiên của `Double`, cấu trúc vẫn phân biệt hai zero và coi các NaN là cùng khóa.
+This is code **inside a method**, requiring imports for `java.util.Map` and `java.util.HashMap`. If using `TreeMap` with `Double`'s natural ordering, the structure still distinguishes the two zeros and treats NaNs as the same key.
 
-**Cẩn thận comparator tùy biến**: nếu thay comparator bằng một quy tắc mà `compare(a,b) == 0` trong khi `!a.equals(b)`, ý nghĩa trùng khóa của TreeSet/TreeMap khác HashSet/HashMap. Điều này có thể là lựa chọn có chủ đích, nhưng phải được tài liệu hóa và kiểm thử.
+**Beware of custom comparators**: if you replace the comparator with a rule where `compare(a,b) == 0` while `!a.equals(b)`, key uniqueness in TreeSet/TreeMap will differ from HashSet/HashMap. That may be an intentional choice, but it must be documented and tested.
 
-## 10. Sắp xếp dữ liệu có NaN: ba chính sách hay gặp
+## 10. Sorting Data Containing NaN: Three Common Policies
 
-### Chính sách A — Giữ thứ tự tự nhiên Java
+### Policy A — Keep Java Natural Order
 
-Dùng `Double.compare`, `Comparator.comparingDouble`, `Arrays.sort(double[])` hoặc `DoubleStream.sorted()` tùy cấu trúc dữ liệu. NaN đứng cuối, signed zero được phân biệt thứ tự:
+Use `Double.compare`, `Comparator.comparingDouble`, `Arrays.sort(double[])`, or `DoubleStream.sorted()` depending on the data structure. NaN comes last, and signed zeros are ordered separately:
 
 ~~~java
 double[] values = {
@@ -457,11 +457,11 @@ System.out.println(java.util.Arrays.toString(values));
 // [-Infinity, -3.0, -0.0, 0.0, Infinity, NaN]
 ~~~
 
-Đoạn trên nằm trong phương thức. Chính sách này tiện để sort, nhưng **không đồng nghĩa NaN là “số lớn nhất” theo toán học**; nó chỉ có vị trí quy ước trong thứ tự wrapper.
+The snippet above sits inside a method. This policy is convenient for sorting, but **does not mean NaN is mathematically "the largest number"**; it merely has a conventional position in the wrapper ordering.
 
-### Chính sách B — Từ chối NaN và vô cực
+### Policy B — Reject NaN and Infinity
 
-Nếu cột chứa dữ liệu kinh doanh bắt buộc hữu hạn, kiểm tra trước:
+If a business data column must contain finite numbers, validate upfront:
 
 ~~~java
 static double requireFinite(double x) {
@@ -472,17 +472,17 @@ static double requireFinite(double x) {
 }
 ~~~
 
-Đây là method trong class. Khi đã từ chối NaN/Infinity, logic xử lý bớt nhiều trường hợp bất ngờ. Nhưng signed zero vẫn có thể tồn tại nếu API cho phép; quyết định có normalize ±0.0 hay không theo yêu cầu dữ liệu.
+This is a method inside a class. Once NaN/Infinity are rejected, processing logic avoids many unexpected edge cases. However, signed zero can still exist if the API permits it; decide whether to normalize ±0.0 according to data requirements.
 
-### Chính sách C — NaN là dữ liệu thiếu
+### Policy C — Treat NaN as Missing Data
 
-Nếu NaN đại diện “không có kết quả đo”, có thể tách thành **trạng thái thiếu dữ liệu** bằng một kiểu mô hình rõ ràng, thay vì dựa vào một giá trị double có tính chất so sánh đặc biệt. Khi sắp xếp, ứng dụng phải định nghĩa “thiếu” đứng trước/sau và có được tính vào thống kê hay không.
+If NaN represents "no measurement", you can separate it into an explicit **missing-data state** using a clear domain model type, rather than relying on a `double` value with special comparison properties. When sorting, the application must define whether "missing" comes first/last and whether it participates in statistics.
 
-Nếu chọn custom comparator, nó phải tuân theo hợp đồng `Comparator` (phản đối xứng về dấu, bắc cầu, nhất quán). Đừng đặt một so sánh “gần bằng theo epsilon” làm comparator rồi dùng `TreeSet`: quan hệ gần bằng có thể không bắc cầu, khiến sorted collection hoạt động không đáng tin.
+If you choose a custom comparator, it must obey the `Comparator` contract (antisymmetry of sign, transitivity, consistency). Do not turn an "approximately equal within epsilon" check into a comparator and pass it to `TreeSet`: approximate equality may fail transitivity, causing sorted collections to behave unreliably.
 
-## 11. So sánh “gần bằng”: khác equality và khác NaN handling
+## 11. "Approximate Equality": Different from Equality and NaN Handling
 
-Với số thực, hai công thức toán học tương đương có thể cho kết quả hơi khác do sai số làm tròn. Nhiều bài toán cần kiểm tra dung sai:
+With floating-point numbers, two mathematically equivalent formulas can yield slightly different results due to rounding error. Many problems require a tolerance check:
 
 ~~~java
 static boolean approximatelyEqual(double a, double b, double epsilon) {
@@ -494,21 +494,21 @@ static boolean approximatelyEqual(double a, double b, double epsilon) {
 }
 ~~~
 
-Đây là **predicate minh họa** với chính sách từ chối NaN/Infinity. Nó cũng có giới hạn: phép trừ `a - b` có thể overflow thành Infinity khi a/b ở biên rất lớn, kể cả khi riêng a và b hữu hạn; điều này cần được thiết kế và kiểm thử nếu dùng cho phạm vi floating cực đoan. Dung sai tuyệt đối chỉ phù hợp khi đơn vị và quy mô dữ liệu hợp lý; đôi khi cần dung sai tương đối hoặc kết hợp hai loại.
+This is an **illustrative predicate** with a policy that rejects NaN/Infinity. It also has limitations: the subtraction `a - b` can overflow to Infinity when `a`/`b` are near extreme bounds, even when `a` and `b` are individually finite; this must be designed for and tested if used across extreme floating-point ranges. Absolute tolerance is only appropriate when units and data scale are reasonable; sometimes relative tolerance or a combination of both is needed.
 
-Điểm quan trọng:
+Key points:
 
-- `Double.compare(a,b) == 0` **không phải kiểm tra gần bằng**.
-- `a == b` trên primitive **không phải kiểm tra gần bằng**.
-- Với NaN, predicate trên trả false chủ động, thay vì trông vào một quy tắc suy diễn.
-- Với ±0.0, `Math.abs(a-b) <= epsilon` trả true khi epsilon ≥ 0; đó là quyết định **nghiệp vụ của predicate**, khác wrapper equality.
-- Không override `equals`/`hashCode` chỉ vì một phép tính cần sai số dung sai.
+- `Double.compare(a,b) == 0` **is not an approximate equality check**.
+- `a == b` on primitives **is not an approximate equality check**.
+- For NaN, the predicate above proactively returns false rather than relying on an implicit rule.
+- For ±0.0, `Math.abs(a-b) <= epsilon` returns true when `epsilon >= 0`; that is a **domain decision of the predicate**, distinct from wrapper equality.
+- Do not override `equals`/`hashCode` simply because a calculation needs a tolerance margin.
 
-Ví dụ không bắc cầu: A = 0.00, B = 0.09, C = 0.18 và epsilon = 0.10. A gần B, B gần C, nhưng A không gần C. Vì vậy quan hệ này **không thể** thay cho equality dùng làm khóa HashMap hoặc thứ tự comparator một cách trực tiếp.
+Non-transitivity example: A = 0.00, B = 0.09, C = 0.18, and epsilon = 0.10. A is close to B, B is close to C, yet A is not close to C. Hence this relation **cannot** directly replace equality for HashMap keys or comparator ordering.
 
-## 12. Bẫy về ép kiểu, boxing, null và BigDecimal
+## 12. Pitfalls with Casting, Boxing, Null, and BigDecimal
 
-### 12.1. primitive và wrapper không luôn so sánh cùng cách
+### 12.1. Primitives and Wrappers Do Not Always Compare the Same Way
 
 ~~~java
 Double obj = Double.valueOf(Double.NaN);
@@ -518,11 +518,11 @@ System.out.println(obj.equals(Double.valueOf(raw))); // true
 System.out.println(obj.doubleValue() == raw);         // false
 ~~~
 
-`obj.equals` sử dụng wrapper equality; `obj.doubleValue() == raw` dùng primitive `==`. Nếu `obj` null, `obj.doubleValue()` ném `NullPointerException`.
+`obj.equals` uses wrapper equality; `obj.doubleValue() == raw` uses primitive `==`. If `obj` is null, `obj.doubleValue()` throws `NullPointerException`.
 
-Trong generic collections như `List<Double>`, các phần tử thường được boxing thành Double; các thao tác `contains` và `remove(Object)` áp dụng `equals`, không phải primitive `==`. Do đó `list.contains(Double.NaN)` có thể true ngay cả khi `Double.NaN == Double.NaN` false.
+In generic collections such as `List<Double>`, elements are typically boxed into `Double`; operations like `contains` and `remove(Object)` apply `equals`, not primitive `==`. Thus `list.contains(Double.NaN)` can be true even though `Double.NaN == Double.NaN` is false.
 
-### 12.2. Float và Double không equal chỉ vì số nhìn giống nhau
+### 12.2. Float and Double Are Not Equal Just Because Numbers Look Alike
 
 ~~~java
 Object a = Double.valueOf(1.0);
@@ -530,11 +530,11 @@ Object b = Float.valueOf(1.0f);
 System.out.println(a.equals(b)); // false
 ~~~
 
-Đó là hai lớp wrapper khác nhau. Nếu cần chuyển đổi kiểu để so sánh số học, phải xác định phép chuyển kiểu và vấn đề precision. Với số lớn, chuyển long sang double có thể mất chính xác; không tự ép mọi kiểu sang double rồi kết luận hai giá trị giống nhau.
+They are two different wrapper classes. If type conversion is needed for numerical comparison, you must account for the conversion operation and precision issues. For large numbers, converting `long` to `double` can lose precision; do not blindly cast every type to `double` and conclude two values are identical.
 
-### 12.3. BigDecimal có hợp đồng hoàn toàn khác
+### 12.3. BigDecimal Has a Completely Different Contract
 
-`BigDecimal` không có NaN hay ±Infinity như các primitive floating. Ngoài ra, `BigDecimal.equals` kiểm tra cả **giá trị và scale**, trong khi `BigDecimal.compareTo` so sánh theo giá trị số:
+`BigDecimal` has neither NaN nor ±Infinity like floating-point primitives. Additionally, `BigDecimal.equals` checks both **value and scale**, whereas `BigDecimal.compareTo` compares by numerical value:
 
 ~~~java
 java.math.BigDecimal x = new java.math.BigDecimal("2.0");
@@ -543,37 +543,37 @@ System.out.println(x.equals(y));      // false
 System.out.println(x.compareTo(y));   // 0
 ~~~
 
-Đây chỉ là **đối chiếu để không nhầm hợp đồng**, không phải quy tắc NaN/signed zero của Double. `BigDecimal.valueOf(Double.NaN)` không tạo một giá trị BigDecimal NaN hợp lệ: nó ném `NumberFormatException`. Nếu chuyển dữ liệu floating sang BigDecimal, cần xử lý NaN/Infinity trước và cân nhắc signed zero vì biểu diễn thập phân không giữ cùng ngữ nghĩa dấu zero như double.
+This is merely a **contrast so contracts are not confused**, not a NaN/signed-zero rule of `Double`. `BigDecimal.valueOf(Double.NaN)` does not create a valid NaN BigDecimal value: it throws `NumberFormatException`. When converting floating-point data to BigDecimal, handle NaN/Infinity first and consider signed zero because decimal representation does not retain the same signed-zero semantics as `double`.
 
-## 13. Checklist khi review lỗi so sánh floating-point
+## 13. Checklist When Reviewing Floating-Point Comparison Bugs
 
-1. **Biến thực sự là primitive hay wrapper?** `==` giữa hai reference wrapper kiểm tra identity; `==` trên primitive hoặc có unboxing kiểm tra giá trị floating.
-2. **Dữ liệu có thể chứa NaN?** Nếu có, so sánh primitive bất đẳng thức có thể đều false, còn `!=` true. Sử dụng `isNaN` khi cần phát hiện.
-3. **Có thể chứa Infinity?** `isNaN` không chặn Infinity; nếu cần giá trị hữu hạn, `isFinite`.
-4. **Signed zero có ý nghĩa không?** Nếu cần giữ khác biệt dấu, dùng wrapper equality, `Double.compare` hoặc bit API; nếu chỉ cần zero số học, primitive `==` xem chúng như nhau.
-5. **Đang sort hay dùng SortedSet?** Chọn `Double.compare` hoặc comparator hợp đồng rõ; không đưa `(a,b) -> a < b ? -1 : (a > b ? 1 : 0)` vào TreeSet khi có NaN vì nó coi NaN bằng tất cả giá trị và có thể vi phạm tính nhất quán.
-6. **Đang dùng HashMap/HashSet?** Phải suy luận từ `Double.equals/hashCode`, không phải primitive `==`.
-7. **Cần nhận biết payload của NaN?** Dùng `doubleToRawLongBits` và giao thức lưu bit rõ ràng.
-8. **Cần kiểm tra gần bằng?** Viết predicate cục bộ có yêu cầu dung sai; không thay đổi global equals và không dùng làm sorted comparator tùy tiện.
-9. **Đang chuyển kiểu?** Có thể mất precision hoặc làm mất trạng thái không hữu hạn; không coi cast là bước trung tính.
-10. **Định nghĩa nghiệp vụ khi thiếu dữ liệu?** “NaN = missing” là một chính sách, không được tự suy từ thứ tự Double.compare.
+1. **Is the variable actually a primitive or a wrapper?** `==` between two wrapper references checks identity; `==` on primitives or with unboxing checks floating-point value.
+2. **Can the data contain NaN?** If so, primitive inequality comparisons can all evaluate to false, while `!=` evaluates to true. Use `isNaN` when detection is needed.
+3. **Can it contain Infinity?** `isNaN` does not block Infinity; if finite values are required, use `isFinite`.
+4. **Does signed zero matter?** If sign distinction must be preserved, use wrapper equality, `Double.compare`, or bit APIs; if only numerical zero matters, primitive `==` treats them as equal.
+5. **Are you sorting or using a SortedSet?** Choose `Double.compare` or a comparator with a clear contract; do not pass `(a,b) -> a < b ? -1 : (a > b ? 1 : 0)` to `TreeSet` when NaN may appear, because it treats NaN as equal to all values and can violate consistency.
+6. **Are you using HashMap/HashSet?** Reason from `Double.equals/hashCode`, not primitive `==`.
+7. **Do you need to identify NaN payloads?** Use `doubleToRawLongBits` and an explicit bit-storage protocol.
+8. **Do you need approximate comparison?** Write a local predicate with tolerance requirements; do not alter global `equals` and do not arbitrarily use it as a sorted comparator.
+9. **Are you converting types?** Precision can be lost or non-finite states altered; do not treat casting as a neutral step.
+10. **Have you defined business behavior for missing data?** "NaN = missing" is a policy, not something to infer solely from `Double.compare` ordering.
 
-### Các câu hỏi kiểm thử tối thiểu
+### Minimum Test Questions
 
-- `Double.NaN == Double.NaN` có false không?
-- `Double.isNaN(Double.NaN)` có true không?
-- `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))` có true không?
-- `Double.compare(Double.NaN, Double.POSITIVE_INFINITY) > 0` có true không?
-- `+0.0 == -0.0` có true không?
-- `Double.compare(-0.0,+0.0) < 0` có true không?
-- `Double.valueOf(-0.0).equals(Double.valueOf(+0.0))` có false không?
-- `1.0/-0.0` có -Infinity không?
-- Một HashSet<Double> nhận 2 zero khác dấu và 3 NaN có size = 3 không?
-- Một TreeSet<Double> với dữ liệu đó có đúng `[-0.0, 0.0, NaN]` theo thứ tự tự nhiên không?
+- Is `Double.NaN == Double.NaN` false?
+- Is `Double.isNaN(Double.NaN)` true?
+- Is `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))` true?
+- Is `Double.compare(Double.NaN, Double.POSITIVE_INFINITY) > 0` true?
+- Is `+0.0 == -0.0` true?
+- Is `Double.compare(-0.0,+0.0) < 0` true?
+- Is `Double.valueOf(-0.0).equals(Double.valueOf(+0.0))` false?
+- Is `1.0/-0.0` equal to -Infinity?
+- Does a `HashSet<Double>` receiving 2 oppositely signed zeros and 3 NaNs have size = 3?
+- Does a `TreeSet<Double>` with that data produce `[-0.0, 0.0, NaN]` in natural order?
 
-## 14. Bài tập và đáp án
+## 14. Exercises and Answers
 
-**Bài 1.** Dự đoán kết quả của các biểu thức sau, nêu rõ primitive hay wrapper:
+**Exercise 1.** Predict the output of the following expressions, stating clearly whether primitive or wrapper semantics apply:
 
 ~~~java
 double a = Double.NaN;
@@ -582,38 +582,38 @@ System.out.println(Double.compare(a, a) == 0);
 System.out.println(Double.valueOf(a).equals(a));
 ~~~
 
-**Bài 2.** Vì sao `0.0 == -0.0` là true nhưng `Double.valueOf(0.0).equals(-0.0)` là false? Nêu một phép toán làm lộ sự khác biệt.
+**Exercise 2.** Why is `0.0 == -0.0` true while `Double.valueOf(0.0).equals(-0.0)` is false? Name an operation that exposes the difference.
 
-**Bài 3.** Dự đoán tập sau khi sắp xếp bằng `TreeSet<Double>` với `-0.0`, `+0.0`, `Double.NaN`, `Double.POSITIVE_INFINITY`. Vì sao NaN ở cuối?
+**Exercise 3.** Predict the sorted set in `TreeSet<Double>` for `-0.0`, `+0.0`, `Double.NaN`, and `Double.POSITIVE_INFINITY`. Why is NaN at the end?
 
-**Bài 4.** Bạn nhận số đo sensor có thể trả NaN và Infinity. Đề xuất quy tắc kiểm tra trước khi tính trung bình và trước khi lưu vào database.
+**Exercise 4.** You receive sensor readings that may return NaN and Infinity. Propose validation rules before computing an average and before saving to a database.
 
-**Bài 5.** Hai NaN có raw payload khác nhau. `Double.equals` và `Double.compare` trả gì? Cần API nào để giữ được sự khác nhau của raw bit?
+**Exercise 5.** Two NaNs have different raw payloads. What do `Double.equals` and `Double.compare` return? Which API is needed to preserve the raw bit difference?
 
-**Bài 6.** Một comparator viết:
+**Exercise 6.** A comparator is written as:
 
 ~~~java
 Comparator<Double> bad = (x, y) -> x < y ? -1 : x > y ? 1 : 0;
 ~~~
 
-Tại sao không nên dùng `bad` với giá trị có NaN trong `TreeSet`? Đề xuất thay thế.
+Why should `bad` not be used with values containing NaN in a `TreeSet`? Propose a replacement.
 
-**Đáp án:**
+**Answers:**
 
-1. `false`, `true`, `true`. Trong biểu thức thứ ba, `Double.equals(Object)` nhận tham số `a` được boxing sang Double, nên NaN bằng NaN.
-2. Primitive equality coi hai zero bằng số học; wrapper phân biệt bit dấu. `1.0 / -0.0` cho -Infinity, khác +Infinity của `1.0 / +0.0`.
-3. `[-0.0, 0.0, Infinity, NaN]` theo thứ tự Double.compare; NaN được đặt sau mọi giá trị số.
-4. Nếu nghiệp vụ chỉ chấp nhận số hữu hạn, dùng `Double.isFinite(x)` để từ chối cả NaN và ±Infinity; xác định riêng quy tắc thiếu dữ liệu và đảm bảo dữ liệu được kiểm tra trước khi lưu/tính.
-5. `Double.equals` true và `Double.compare` trả 0; dùng `Double.doubleToRawLongBits` để phân biệt raw payload khi cần.
-6. Comparator đó trả 0 giữa NaN và nhiều giá trị khác nhau, không tạo thứ tự phù hợp. Dùng `Double::compare` hoặc comparator tùy biến có xử lý NaN rõ và giữ các tính chất thứ tự.
+1. `false`, `true`, `true`. In the third expression, `Double.equals(Object)` receives argument `a` boxed into `Double`, so NaN equals NaN.
+2. Primitive equality treats both zeros as numerically equal; the wrapper distinguishes the sign bit. `1.0 / -0.0` yields -Infinity, unlike +Infinity from `1.0 / +0.0`.
+3. `[-0.0, 0.0, Infinity, NaN]` according to `Double.compare` ordering; NaN is placed after all numeric values.
+4. If the domain only accepts finite numbers, use `Double.isFinite(x)` to reject both NaN and ±Infinity; define missing-data rules separately and ensure data is validated before storing/computing.
+5. `Double.equals` returns true and `Double.compare` returns 0; use `Double.doubleToRawLongBits` to distinguish raw payloads when needed.
+6. That comparator returns 0 between NaN and many different values, failing to establish a proper ordering. Use `Double::compare` or a custom comparator that handles NaN explicitly while preserving ordering properties.
 
-## 15. Tài liệu Java 17
+## 15. Java 17 References
 
 - Java SE 17 — `Double` (`equals`, `compare`, `compareTo`, `isNaN`, `doubleToLongBits`, `doubleToRawLongBits`): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html
 - Java SE 17 — `Float`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html
 - Java SE 17 — `Math.min`/`max`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html
 - Java SE 17 — `Comparator`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Comparator.html
-- Java Language Specification 17 — `15.20.1 Numerical Comparison Operators` và `15.21.1 Numerical Equality Operators`: https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html
-- Java SE 17 — `TreeSet` và `HashSet`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/TreeSet.html
+- Java Language Specification 17 — `15.20.1 Numerical Comparison Operators` and `15.21.1 Numerical Equality Operators`: https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html
+- Java SE 17 — `TreeSet` and `HashSet`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/TreeSet.html
 
-**Ghi nhớ:** với primitive, **NaN không bằng NaN** và **+0.0 bằng -0.0**. Với `Double.equals` và `Double.compare`, hai quy tắc ấy **đảo lại ở hai điểm đặc biệt**: mọi NaN được xem là bằng nhau và signed zero được phân biệt. Hãy chọn API theo đúng nhu cầu: số học, hash key, sắp xếp hay bảo toàn raw bits.
+**Takeaway:** for primitives, **NaN does not equal NaN** and **+0.0 equals -0.0**. For `Double.equals` and `Double.compare`, those two rules **flip at both special points**: all NaNs are treated as equal and signed zeros are distinguished. Choose the API that matches your exact need: arithmetic, hash key, sorting, or preserving raw bits.

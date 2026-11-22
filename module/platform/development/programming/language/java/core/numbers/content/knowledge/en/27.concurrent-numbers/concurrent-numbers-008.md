@@ -1,8 +1,8 @@
-# BigInteger, BigDecimal bất biến nhưng cập nhật tham chiếu dùng chung vẫn cần phối hợp
+# BigInteger and BigDecimal Are Immutable, Yet Updating Shared References Still Needs Coordination
 
-## 1. Tình huống: giá trị an toàn, phép cập nhật có thể mất dữ liệu
+## 1. Scenario: The Value Is Safe, the Update Can Lose Data
 
-`java.math.BigInteger` và `java.math.BigDecimal` là các kiểu số **bất biến** (*immutable*): sau khi tạo đối tượng, giá trị và biểu diễn của chính đối tượng đó không bị thay đổi bởi các phép cộng, trừ, nhân, chia. Phép toán tạo **đối tượng kết quả**, rồi trả về tham chiếu đến kết quả.
+`java.math.BigInteger` and `java.math.BigDecimal` are **immutable** numeric types: once an object is created, its value and representation are never modified by addition, subtraction, multiplication, or division. Operations create a **result object** and return a reference to that result.
 
 ~~~java
 BigInteger before = new BigInteger("100");
@@ -12,109 +12,109 @@ System.out.println(before); // 100
 System.out.println(after);  // 101
 ~~~
 
-Đây là đặc tính rất tốt khi chia sẻ **một đối tượng giá trị** cho nhiều luồng: các luồng có thể cùng đọc và tính toán trên đối tượng đó mà không phải khóa riêng chỉ để bảo vệ nội dung của `BigInteger` hay `BigDecimal`.
+This is a great property when sharing **a value object** across multiple threads: threads can concurrently read and compute on that object without needing locks merely to protect the internal contents of `BigInteger` or `BigDecimal`.
 
-Tuy nhiên, có khác biệt quan trọng giữa hai thao tác:
+However, there is an important distinction between two operations:
 
-1. **Đọc một số bất biến:** nhiều luồng cùng đọc `BigDecimal price` hoặc `BigInteger constant`, không ai thay đổi nội dung số.
-2. **Cập nhật một tham chiếu dùng chung:** nhiều luồng chạy `balance = balance.add(delta)` để đặt tham chiếu `balance` sang một đối tượng mới.
+1. **Reading an immutable number:** multiple threads read `BigDecimal price` or `BigInteger constant`, and nobody alters the number's contents.
+2. **Updating a shared reference:** multiple threads run `balance = balance.add(delta)` to point the `balance` reference to a new object.
 
-Trường hợp thứ hai chứa chuỗi **đọc → tính → ghi**. Việc tính toán `add()` có thể an toàn, nhưng toàn bộ chuỗi đọc–sửa–ghi không tự động trở thành một hành động nguyên tử (*atomic*).
+The second case contains a **read → compute → write** sequence. Computing `add()` may be safe, but the entire read–modify–write sequence does not automatically become an *atomic* action.
 
 ~~~java
-// Đoạn minh họa: biến balance được chia sẻ giữa nhiều luồng.
+// Illustrative snippet: balance is shared across multiple threads.
 balance = balance.add(new BigDecimal("1.00"));
 ~~~
 
-Giả sử cả luồng A và B cùng thấy `balance = 10.00`:
+Suppose both Thread A and Thread B observe `balance = 10.00`:
 
-| Thời điểm | Luồng A | Luồng B | Tham chiếu balance |
+| Step | Thread A | Thread B | `balance` reference |
 |---|---|---|---|
-| 1 | Đọc đối tượng giá trị `10.00` | | `10.00` |
-| 2 | | Đọc đối tượng giá trị `10.00` | `10.00` |
-| 3 | Tạo đối tượng mới `11.00` | | `10.00` |
-| 4 | | Tạo đối tượng mới `11.00` | `10.00` |
-| 5 | Gán balance = `11.00` | | `11.00` |
-| 6 | | Gán balance = `11.00` | `11.00` |
+| 1 | Reads value object `10.00` | | `10.00` |
+| 2 | | Reads value object `10.00` | `10.00` |
+| 3 | Creates new object `11.00` | | `10.00` |
+| 4 | | Creates new object `11.00` | `10.00` |
+| 5 | Assigns balance = `11.00` | | `11.00` |
+| 6 | | Assigns balance = `11.00` | `11.00` |
 
-Sau hai lần cộng, giá trị cuối vẫn chỉ là **11.00**, trong khi mong đợi **12.00**. Đây là *lost update* (mất cập nhật). Không đối tượng `BigDecimal` nào bị sửa bên trong; lỗi nằm ở cách các luồng phối hợp cập nhật **tham chiếu chung**.
+After two additions, the final value is still only **11.00**, while **12.00** was expected. This is a *lost update*. No `BigDecimal` object was mutated internally; the bug lies in how threads coordinate updates to the **shared reference**.
 
-## 2. Phân biệt immutability, visibility và atomicity
+## 2. Distinguishing Immutability, Visibility, and Atomicity
 
-Ba thuộc tính này giải quyết ba vấn đề khác nhau:
+These three properties solve three different problems:
 
-| Thuộc tính | Câu hỏi | BigInteger/BigDecimal giúp gì? |
+| Property | Question | What does BigInteger/BigDecimal help with? |
 |---|---|---|
-| **Immutability** (bất biến) | Nội dung của một đối tượng có bị sửa sau khi tạo không? | Có: phép số học không thay đổi toán hạng |
-| **Visibility** (khả năng nhìn thấy thay đổi) | Khi luồng A thay tham chiếu, luồng B có nhìn thấy tham chiếu mới đúng theo quy tắc bộ nhớ không? | Bản thân tính bất biến không tạo quan hệ happens-before cho việc thay một trường tham chiếu dùng chung |
-| **Atomicity** (nguyên tử) | Phép cập nhật đọc–tính–ghi có diễn ra như một bước duy nhất đối với luồng khác không? | Không: phải phối hợp bằng khóa hoặc thao tác atomic |
+| **Immutability** | Can an object's contents be modified after creation? | Yes: arithmetic operations do not mutate operands |
+| **Visibility** | When Thread A swaps the reference, does Thread B see the new reference per memory rules? | Immutability itself does not create a happens-before relationship for replacing a shared reference field |
+| **Atomicity** | Does the read–compute–write update occur as a single step relative to other threads? | No: must coordinate using locks or atomic operations |
 
-Ví dụ:
+Example:
 
 ~~~java
 private BigDecimal balance = new BigDecimal("0.00");
 
-// CẢNH BÁO: nếu gọi đồng thời từ nhiều luồng, không có atomicity.
+// WARNING: if called concurrently from multiple threads, there is no atomicity.
 void deposit(BigDecimal delta) {
     balance = balance.add(delta);
 }
 ~~~
 
-Không thể coi `BigDecimal` là "thread-safe" rồi kết luận phương thức `deposit` này cũng thread-safe. Khả năng sử dụng an toàn đối tượng bất biến **không truyền tự động** cho biến hoặc container chứa tham chiếu đến nó.
+You cannot call `BigDecimal` "thread-safe" and conclude this `deposit` method is also thread-safe. Safe use of an immutable object **does not automatically transfer** to the variable or container holding a reference to it.
 
-Tương tự, `BigInteger counter = counter.add(BigInteger.ONE)` không tương đương `AtomicInteger.incrementAndGet()` chỉ vì `BigInteger` bất biến.
+Similarly, `BigInteger counter = counter.add(BigInteger.ONE)` is not equivalent to `AtomicInteger.incrementAndGet()` merely because `BigInteger` is immutable.
 
-### Trường final không có nghĩa trạng thái luôn bất biến
+### A final Field Does Not Always Mean Mutable State Is Frozen
 
 ~~~java
 final BigDecimal taxRate = new BigDecimal("0.10");
-// taxRate = new BigDecimal("0.20"); // Không biên dịch: không thể gán lại biến final.
+// taxRate = new BigDecimal("0.20"); // Does not compile: cannot reassign a final variable.
 ~~~
 
-Một trường `final BigDecimal` không thể được gán lại qua trường đó sau khi khởi tạo; kết hợp tính bất biến của `BigDecimal`, đây là mô hình tốt để chia sẻ giá trị cố định khi đối tượng được tạo và công bố đúng.
+A `final BigDecimal` field cannot be reassigned through that field after initialization; combined with `BigDecimal`'s immutability, this is a good pattern for sharing fixed values when the object is properly constructed and published.
 
-Nhưng:
+However:
 
 ~~~java
 final AtomicReference<BigDecimal> balance =
         new AtomicReference<>(BigDecimal.ZERO);
 
-balance.set(new BigDecimal("1.00")); // Hợp lệ!
+balance.set(new BigDecimal("1.00")); // Valid!
 ~~~
 
-`final` ở đây chỉ giữ cố định **tham chiếu đến đối tượng AtomicReference**, không khóa trạng thái bên trong `AtomicReference`.
+Here `final` only fixes **the reference to the `AtomicReference` object**; it does not lock the state inside `AtomicReference`.
 
-## 3. Vì sao volatile chưa giải quyết mất cập nhật?
+## 3. Why Doesn't volatile Solve Lost Updates?
 
-Có thể khai báo:
+You might declare:
 
 ~~~java
 private volatile BigDecimal balance = BigDecimal.ZERO;
 ~~~
 
-`volatile` đảm bảo các thao tác đọc/ghi của **trường tham chiếu** có quy tắc visibility/ordering do Java Memory Model quy định; với các thao tác `volatile`, một lần ghi xảy ra trước các lần đọc tiếp sau trong thứ tự đồng bộ thích hợp. Đọc/ghi một tham chiếu riêng lẻ cũng là thao tác nguyên tử ở cấp truy cập tham chiếu.
+`volatile` ensures that reads and writes of the **reference field** obey visibility/ordering rules defined by the Java Memory Model; with `volatile` operations, a write happens-before subsequent reads in the proper synchronization order. Reading or writing a single reference is also atomic at the reference-access level.
 
-Nhưng đoạn sau vẫn **không nguyên tử**:
+Yet the following statement is still **not atomic**:
 
 ~~~java
 balance = balance.add(BigDecimal.ONE);
 ~~~
 
-Thực chất nó gồm:
+In effect, it consists of:
 
 ~~~java
 BigDecimal old = balance;            // volatile read
-BigDecimal next = old.add(BigDecimal.ONE); // tính toán cục bộ
+BigDecimal next = old.add(BigDecimal.ONE); // local computation
 balance = next;                      // volatile write
 ~~~
 
-Hai luồng hoàn toàn có thể đọc cùng `old` rồi cùng ghi một `next` bằng nhau. `volatile` giúp luồng thấy các lần ghi đúng theo memory model; nó **không khóa ba bước lại thành một giao dịch**.
+Two threads can easily read the same `old` and both write equal `next` values. `volatile` helps threads see writes according to the memory model; it **does not lock the three steps into a single transaction**.
 
-Khi chỉ có **một luồng ghi** và nhiều luồng đọc cấu hình/snapshot bất biến, một trường `volatile` có thể đủ nếu nhu cầu thực sự chỉ là xuất bản giá trị mới và không có bất biến đa trường. Với **nhiều luồng cùng cập nhật dựa trên giá trị cũ**, cần cơ chế phối hợp toàn bộ chuỗi read–modify–write.
+When there is only **one writer thread** and multiple threads reading an immutable config/snapshot, a `volatile` field may suffice if the real requirement is simply publishing new values without multi-field invariants. With **multiple threads concurrently updating based on the old value**, a mechanism coordinating the entire read–modify–write sequence is needed.
 
-## 4. Cách 1: synchronized bao trùm đọc–tính–ghi
+## 4. Approach 1: synchronized Covering Read–Compute–Write
 
-Giải pháp rõ ràng nhất cho đối tượng có trạng thái chia sẻ là bảo vệ thao tác cập nhật bằng cùng một monitor:
+The clearest solution for an object with shared state is guarding update operations with the same monitor:
 
 ~~~java
 import java.math.BigDecimal;
@@ -132,15 +132,15 @@ public final class SynchronizedBalance {
 }
 ~~~
 
-`synchronized` trên hai phương thức instance sử dụng khóa monitor của **cùng instance** `SynchronizedBalance`:
+`synchronized` on the two instance methods locks on the monitor of **the same `SynchronizedBalance` instance**:
 
-- Chỉ một luồng có thể chạy các đoạn được bảo vệ bởi monitor ấy tại một thời điểm.
-- Luồng đang gọi `deposit` phải hoàn thành toàn bộ đọc–tính–ghi trước khi luồng khác đi vào một phương thức được bảo vệ bởi cùng khóa.
-- Việc mở và đóng monitor thiết lập quan hệ happens-before liên quan, giúp các lần đọc thông qua cùng khóa thấy trạng thái được cập nhật đúng cách.
+- Only one thread can run sections guarded by that monitor at a time.
+- A thread calling `deposit` must complete the entire read–compute–write before another thread enters a method guarded by the same lock.
+- Acquiring and releasing the monitor establishes the relevant happens-before relationship, allowing reads through the same lock to observe the properly updated state.
 
-`snapshot()` trả một `BigDecimal` bất biến. Luồng khác có thể giữ lại đối tượng trả về mà không sợ nó bị sửa bên trong; nhưng đó là **ảnh chụp tại thời điểm đọc**, không tự phản ánh các lần nạp tiền tiếp theo.
+`snapshot()` returns an immutable `BigDecimal`. Other threads can hold onto the returned object without fear of internal mutation; however, it is a **snapshot at read time** and does not automatically reflect subsequent deposits.
 
-Có thể dùng khối `synchronized(lock)` thay vì khóa trên `this`:
+You can use a `synchronized(lock)` block instead of locking on `this`:
 
 ~~~java
 private final Object lock = new Object();
@@ -159,17 +159,17 @@ BigInteger snapshot() {
 }
 ~~~
 
-Khóa riêng giúp kiểm soát rõ ai có quyền phối hợp. Điều thiết yếu là **mọi đường đọc/ghi tham gia cùng quy tắc đồng bộ**: nếu một phương thức bỏ qua khóa, các bảo đảm nhất quán của lớp có thể bị phá vỡ.
+A private lock gives clear control over who can participate in coordination. Crucially, **all read/write paths must participate in the same synchronization rule**: if one method bypasses the lock, the class's consistency guarantees can break.
 
-### Khi chọn synchronized?
+### When to Choose synchronized?
 
-`synchronized` phù hợp khi có nhiều bất biến phải duy trì cùng lúc: kiểm tra số dư rồi trừ, cộng nhiều trường, hoặc đọc một snapshot gồm các giá trị liên quan. Nó cũng làm mã dễ hiểu khi số thao tác không nhiều.
+`synchronized` fits when multiple invariants must be maintained together: checking balance before deducting, adding across multiple fields, or reading a snapshot of related values. It also keeps code easy to understand when the number of operations is modest.
 
-Ví dụ, chuyển tiền giữa hai số dư được lưu trong **cùng một đối tượng** phải cập nhật cả hai dưới một khóa phù hợp, nếu yêu cầu cả hai thay đổi nguyên tử. Hai `AtomicReference<BigDecimal>` độc lập không tự tạo một giao dịch nguyên tử gồm cả hai tài khoản. Trong hệ thống dùng cơ sở dữ liệu hoặc nhiều tiến trình, khóa Java trong một JVM cũng **không thay thế** transaction/locking của kho dữ liệu chung.
+For example, transferring money between two balances stored in **the same object** must update both under an appropriate lock if both must change atomically. Two independent `AtomicReference<BigDecimal>` instances do not automatically form an atomic transaction across both accounts. In systems using a database or multiple processes, Java locks in one JVM also **do not replace** transactions/locking in the shared data store.
 
-## 5. Cách 2: AtomicReference<BigInteger> và CAS
+## 5. Approach 2: AtomicReference<BigInteger> and CAS
 
-`AtomicReference<T>` giữ một tham chiếu với các thao tác atomic. Kết hợp với giá trị bất biến `BigInteger` hoặc `BigDecimal`, nó giúp thực hiện cập nhật kiểu copy-on-write:
+`AtomicReference<T>` holds a reference with atomic operations. Combined with immutable `BigInteger` or `BigDecimal` values, it enables copy-on-write style updates:
 
 ~~~java
 import java.math.BigInteger;
@@ -182,7 +182,7 @@ counter.updateAndGet(old -> old.add(BigInteger.ONE));
 BigInteger result = counter.get();
 ~~~
 
-`updateAndGet` làm cập nhật nguyên tử đối với các luồng cùng sử dụng `AtomicReference` đó. Logic của nó có thể hình dung như một vòng lặp **compare-and-set (CAS)**:
+`updateAndGet` performs an atomic update with respect to threads sharing that `AtomicReference`. Its logic can be pictured as a **compare-and-set (CAS)** loop:
 
 ~~~java
 BigInteger previous;
@@ -193,42 +193,42 @@ do {
 } while (!counter.compareAndSet(previous, next));
 ~~~
 
-Nếu luồng khác đã đổi tham chiếu giữa `get()` và `compareAndSet()`, CAS thất bại; vòng lặp đọc giá trị mới rồi tính lại, **không ghi đè cập nhật của luồng khác**.
+If another thread changed the reference between `get()` and `compareAndSet()`, CAS fails; the loop reads the new value and recomputes, **without overwriting the other thread's update**.
 
-### Phân biệt phương thức AtomicReference
+### Distinguishing AtomicReference Methods
 
-| Phương thức | Ngữ nghĩa |
+| Method | Semantics |
 |---|---|
-| `get()` | Đọc tham chiếu hiện tại theo ngữ nghĩa bộ nhớ của atomic variable |
-| `set(newValue)` | Ghi tham chiếu mới; **không** tự bảo vệ chuỗi read–modify–write được viết bên ngoài |
-| `compareAndSet(expected, update)` | Chỉ đổi nếu tham chiếu hiện tại chính là `expected` |
-| `updateAndGet(operator)` | Tính hàm cập nhật và trả **giá trị mới** sau lần cập nhật thành công |
-| `getAndUpdate(operator)` | Cập nhật theo hàm rồi trả **giá trị cũ** của lần cập nhật thành công |
-| `accumulateAndGet(value, operator)` | Gộp giá trị hiện tại và tham số bằng hàm, trả giá trị mới |
-| `getAndAccumulate(value, operator)` | Tương tự nhưng trả giá trị cũ của lần cập nhật thành công |
+| `get()` | Reads current reference with atomic variable memory semantics |
+| `set(newValue)` | Writes new reference; **does not** protect an external read–modify–write sequence |
+| `compareAndSet(expected, update)` | Swaps only if the current reference is `expected` |
+| `updateAndGet(operator)` | Evaluates update function and returns **new value** after successful update |
+| `getAndUpdate(operator)` | Updates via function and returns **old value** of successful update |
+| `accumulateAndGet(value, operator)` | Combines current value and argument via function, returning new value |
+| `getAndAccumulate(value, operator)` | Same, but returns old value of successful update |
 
-Một lỗi rất phổ biến là viết:
+A very common mistake is writing:
 
 ~~~java
 AtomicReference<BigDecimal> balance =
         new AtomicReference<>(new BigDecimal("0.00"));
 
-// SAI khi nhiều luồng cùng cập nhật:
+// WRONG when multiple threads update concurrently:
 balance.set(balance.get().add(new BigDecimal("1.00")));
 ~~~
 
-Đoạn trên vẫn là get → add → set; `get()` và `set()` riêng lẻ an toàn **không khiến sự kết hợp trở thành nguyên tử**. Dùng:
+The snippet above is still get → add → set; individually safe `get()` and `set()` **do not make the combination atomic**. Use:
 
 ~~~java
 BigDecimal delta = new BigDecimal("1.00");
 balance.updateAndGet(old -> old.add(delta));
 ~~~
 
-Chỉ những writer cùng tuân thủ nguyên tắc atomic update/CAS mới bảo toàn tính đúng đắn của cập nhật đó. Một writer khác tự ý gọi `set` bằng giá trị cũ có thể phá chính sách cộng dồn của hệ thống.
+Only writers obeying the atomic update/CAS discipline preserve the correctness of that update. Another writer calling `set` directly with an old value can break the system's accumulation policy.
 
-### CAS so sánh tham chiếu, không so sánh giá trị BigDecimal
+### CAS Compares References, Not BigDecimal Values
 
-`compareAndSet` kiểm tra nhận dạng tham chiếu (`==`), **không gọi `equals()`** và cũng không dùng `compareTo()` của `BigDecimal`:
+`compareAndSet` checks reference identity (`==`), **not calling `equals()`** and not using `BigDecimal.compareTo()`:
 
 ~~~java
 AtomicReference<BigDecimal> ref =
@@ -237,43 +237,43 @@ AtomicReference<BigDecimal> ref =
 BigDecimal another = new BigDecimal("1.0");
 boolean updated =
         ref.compareAndSet(another, new BigDecimal("2.0"));
-// updated == false: another khác đối tượng đang được lưu.
+// updated == false: another is a different object from the stored one.
 ~~~
 
-Dù `another.equals(ref.get())` đúng ở đầu ví dụ, CAS thất bại vì `another` là một instance khác. Với CAS loop, cách đúng là lấy `expected` từ chính `ref.get()` rồi thử đổi. Tránh dựa vào so sánh biểu diễn số để quyết định tính đúng của CAS.
+Even though `another.equals(ref.get())` is true at the start of the example, CAS fails because `another` is a different instance. In a CAS loop, the proper way is obtaining `expected` directly from `ref.get()` before attempting the swap. Avoid relying on numeric value equality to determine CAS correctness.
 
-## 6. Rất quan trọng: hàm truyền cho updateAndGet có thể chạy nhiều lần
+## 6. Very Important: Functions Passed to updateAndGet May Run Multiple Times
 
-Ở mức triển khai, `AtomicReference.updateAndGet` có thể gọi hàm cập nhật nhiều lần khi xảy ra tranh chấp. Do đó lambda nên là **hàm không có side effect**, chỉ tính kết quả mới từ đầu vào:
+At the implementation level, `AtomicReference.updateAndGet` can invoke the update function multiple times when contention occurs. Therefore, the lambda should be a **side-effect-free function**, computing only the new result from its input:
 
 ~~~java
 AtomicReference<BigDecimal> total =
         new AtomicReference<>(new BigDecimal("0.00"));
 BigDecimal price = new BigDecimal("10.25");
 
-// ĐÚNG: hàm tính toán, không thực hiện side effect.
+// RIGHT: pure computation, performs no side effects.
 BigDecimal updated = total.updateAndGet(current -> current.add(price));
 ~~~
 
-Không nên ghi log sự kiện nghiệp vụ, gửi email, gọi API thanh toán, tăng bộ đếm ngoài hoặc ghi database bên trong lambda cập nhật, vì lambda đó **có thể được thử lại**:
+Do not log business events, send emails, call payment APIs, increment external counters, or write to a database inside an update lambda, because that lambda **can be retried**:
 
 ~~~java
-// KHÔNG NÊN: side effect có thể xảy ra nhiều lần khi CAS bị tranh chấp.
+// AVOID: side effects can occur multiple times under CAS contention.
 // total.updateAndGet(current -> {
 //     externalPaymentService.charge(price);
 //     return current.add(price);
 // });
 ~~~
 
-Lưu ý quan trọng: điều này **không có nghĩa** mọi lần gọi `updateAndGet` sẽ thực hiện cập nhật nhiều lần. Một lời gọi thành công cập nhật giá trị một lần, nhưng phần **tính toán lambda** có thể lặp lại nhiều lần. Đó là lý do callback phải không gây side effect và nên dựa duy nhất trên giá trị hiện tại cùng các tham số bất biến.
+Important note: this **does not mean** every call to `updateAndGet` commits multiple updates. One successful call updates the value once, whereas the **lambda evaluation** may repeat multiple times. That is why the callback must be side-effect-free and rely solely on the current value and immutable arguments.
 
-Trong nghiệp vụ thật, hãy hoàn tất thay đổi trạng thái rồi mới phát sự kiện theo một cơ chế đảm bảo *exactly-once* hoặc idempotency thích hợp. Nếu cập nhật cần có giao dịch với hệ thống bên ngoài, một CAS trên bộ nhớ JVM chưa đủ.
+In real business workflows, complete the state transition first and then emit events using an appropriate *exactly-once* or idempotency mechanism. If an update requires transactionality with an external system, a CAS in JVM memory is insufficient.
 
-## 7. Ví dụ đầy đủ: tái hiện lost update và sửa bằng AtomicReference, synchronized
+## 7. Complete Example: Reproducing Lost Updates and Fixing with AtomicReference, synchronized
 
-Chương trình sau chủ ý dùng hai `CountDownLatch` để **bắt buộc** hai luồng cùng đọc một giá trị trước khi ghi, do đó tái hiện mất cập nhật một cách có kiểm soát, tránh dựa vào thời điểm chạy ngẫu nhiên. Sau đó, chương trình dùng `updateAndGet` cho `BigInteger` và `BigDecimal`, đồng thời dùng `synchronized` cho số dư.
+The following program intentionally uses two `CountDownLatch` instances to **force** two threads to read the same value before writing, thereby reproducing lost updates deterministically rather than relying on random timing. Afterward, the program uses `updateAndGet` for `BigInteger` and `BigDecimal`, along with `synchronized` for a balance.
 
-Tạo tệp `ImmutableNumbersConcurrencyDemo.java`:
+Create `ImmutableNumbersConcurrencyDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -374,14 +374,14 @@ public class ImmutableNumbersConcurrencyDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng Java 17+:
+Compile and run with Java 17+:
 
 ~~~bash
 javac ImmutableNumbersConcurrencyDemo.java
 java ImmutableNumbersConcurrencyDemo
 ~~~
 
-**Kết quả stdout chính xác:**
+**Exact stdout output:**
 
 ~~~text
 immutable: 100 -> 101
@@ -391,46 +391,46 @@ locked balance: 20.00
 atomic balance: 20.00
 ~~~
 
-Giải thích từng phần:
+Part-by-part explanation:
 
-1. `original` không đổi từ 100: `add()` tạo kết quả mới 101.
-2. Hai luồng đọc `shared = 0` trước khi được phép ghi; cả hai tính `0 + 1` và dùng `set(1)`. Dù `shared` là `AtomicReference`, phép cập nhật **do người viết tách thành get + set** khiến kết quả bằng 1 thay vì 2.
-3. Với `updateAndGet(old -> old.add(ONE))`, mỗi luồng tăng 1.000 lần nên tổng đúng bằng 2.000.
-4. `SynchronizedWallet.deposit()` dùng chung monitor cho mỗi thao tác cộng `BigDecimal("0.10")`. Hai luồng mỗi luồng 100 lần cho đúng 20.00.
-5. `AtomicReference<BigDecimal>.updateAndGet()` tạo số mới từ snapshot hiện tại rồi CAS; cũng cho đúng 20.00.
+1. `original` remains unchanged at 100: `add()` creates a new result 101.
+2. Both threads read `shared = 0` before being allowed to write; both compute `0 + 1` and call `set(1)`. Even though `shared` is an `AtomicReference`, **splitting the update into get + set** leaves 1 instead of 2.
+3. With `updateAndGet(old -> old.add(ONE))`, each thread increments 1,000 times, so the sum is exact at 2,000.
+4. `SynchronizedWallet.deposit()` shares a monitor for each `BigDecimal("0.10")` addition. Two threads running 100 times each yield exactly 20.00.
+5. `AtomicReference<BigDecimal>.updateAndGet()` creates a new number from the current snapshot and runs CAS; it also yields exactly 20.00.
 
-Kết quả của phần `lost update` được tạo có chủ đích nhờ latch; nó không chứng minh `AtomicReference.set()` có lỗi. Phần sai là sử dụng **hai thao tác atomic riêng lẻ** thay cho một phép update atomic. Ví dụ cũng không cần dùng `Thread.sleep` để hy vọng race xảy ra.
+The `lost update` output is intentionally forced via latches; it does not prove `AtomicReference.set()` is buggy. The bug is using **two separate atomic operations** instead of one atomic update operation. The example also avoids `Thread.sleep` hoping for a race to occur.
 
-Các phép tính dùng `BigDecimal("0.10")` được tạo từ chuỗi để biểu diễn thập phân chính xác. Không dùng `new BigDecimal(0.1)` cho ví dụ này vì `double 0.1` không biểu diễn chính xác số thập phân một phần mười.
+Calculations use `BigDecimal("0.10")` constructed from a string for exact decimal representation. Do not use `new BigDecimal(0.1)` in this example because `double 0.1` does not represent decimal one-tenth exactly.
 
-## 8. AtomicReference hay synchronized: nên chọn thế nào?
+## 8. AtomicReference or synchronized: How to Choose?
 
-| Nhu cầu | Cách tiếp cận hợp lý | Giới hạn cần nhớ |
+| Need | Reasonable approach | Limitations to remember |
 |---|---|---|
-| Chia sẻ một hằng số `BigDecimal` giữa nhiều luồng chỉ đọc | Trường `final` / công bố đối tượng đúng | Không có trạng thái cộng dồn cần cập nhật |
-| Một writer công bố snapshot số mới, nhiều reader chỉ đọc | `volatile BigDecimal` hoặc `AtomicReference<BigDecimal>` | Chưa giải quyết nhiều writer cùng read–modify–write |
-| Nhiều writer tăng một số nguyên lớn | `AtomicReference<BigInteger>.updateAndGet` hoặc khóa | Hàm cập nhật thuần, có thể bị gọi lại; tranh chấp cao có thể tốn CAS |
-| Nhiều writer cộng dồn một giá trị thập phân | `AtomicReference<BigDecimal>.updateAndGet` hoặc khóa | Chọn scale/rounding đúng theo nghiệp vụ |
-| Cập nhật nhiều trường hoặc kiểm tra rồi thay đổi nhiều giá trị liên quan | `synchronized`/`ReentrantLock` hay snapshot bất biến được đổi nguyên tử | Bảo vệ toàn bộ invariant, mọi đường truy cập theo cùng giao thức |
-| Bộ đếm `int`/`long` đơn giản | `AtomicInteger`/`AtomicLong`; có thể xem `LongAdder` cho chỉ số thống kê | Không cần `BigInteger` nếu miền giá trị nhỏ; LongAdder.sum() không là snapshot nguyên tử khi có ghi đồng thời |
-| Giao dịch trải nhiều JVM hoặc database | Transaction/locking/conditional update phù hợp kho dữ liệu | Khóa và atomic ở một JVM không đảm bảo đồng bộ liên tiến trình |
+| Sharing a `BigDecimal` constant among read-only threads | `final` field / proper object publication | No accumulated state to update |
+| One writer publishing new numeric snapshots, many read-only readers | `volatile BigDecimal` or `AtomicReference<BigDecimal>` | Does not solve multiple writers doing read–modify–write |
+| Multiple writers incrementing a large integer | `AtomicReference<BigInteger>.updateAndGet` or lock | Pure update function, may be re-invoked; high contention costs CAS retries |
+| Multiple writers accumulating a decimal value | `AtomicReference<BigDecimal>.updateAndGet` or lock | Pick scale/rounding per business rules |
+| Updating multiple fields or checking then changing multiple related values | `synchronized`/`ReentrantLock` or an immutable snapshot swapped atomically | Protect the whole invariant; every access path follows the same protocol |
+| Simple `int`/`long` counter | `AtomicInteger`/`AtomicLong`; consider `LongAdder` for statistics | No need for `BigInteger` if range is small; `LongAdder.sum()` is not an atomic snapshot during concurrent writes |
+| Transactions spanning multiple JVMs or databases | Appropriate transaction/locking/conditional update at the data store | Locks and atomics in a single JVM do not guarantee cross-process synchronization |
 
-Không có lớp `AtomicBigDecimal` hay `AtomicBigInteger` chuẩn trong `java.util.concurrent.atomic`. `AtomicReference<T>` hỗ trợ làm việc với các loại đối tượng bất biến như vậy.
+There are no standard `AtomicBigDecimal` or `AtomicBigInteger` classes in `java.util.concurrent.atomic`. `AtomicReference<T>` supports working with such immutable object types.
 
-`AtomicReference` không có khóa truyền thống nhưng không đồng nghĩa luôn nhanh hơn `synchronized`. Càng nhiều luồng tranh chấp, CAS có thể thất bại và phải tính lại `BigDecimal`/`BigInteger` nhiều lần, phát sinh thêm đối tượng. Với phép cập nhật phức tạp hoặc invariant nhiều trường, khóa có thể đơn giản và hiệu quả hơn. Chọn cơ chế theo tính đúng đắn trước, sau đó benchmark bằng workload thực.
+`AtomicReference` avoids traditional locks, which does not automatically mean it is faster than `synchronized`. The more threads contend, the more CAS attempts can fail and have to recompute `BigDecimal`/`BigInteger` repeatedly, allocating extra objects. For complex updates or multi-field invariants, locks can be simpler and more efficient. Choose for correctness first, then benchmark with real workloads.
 
-## 9. Khi cập nhật phụ thuộc điều kiện: kiểm tra và thay đổi phải cùng một bước
+## 9. When Updates Depend on Conditions: Check and Change Must Be One Step
 
-Không chỉ phép cộng mới gặp race. Ví dụ rút tiền:
+Addition is not the only operation that suffers from races. Example withdrawal:
 
 ~~~java
-// SAI: get và set tách rời; hai luồng có thể đều vượt qua điều kiện.
+// WRONG: get and set are separate; two threads can both pass the check.
 if (balance.get().compareTo(withdrawal) >= 0) {
     balance.set(balance.get().subtract(withdrawal));
 }
 ~~~
 
-Đối với `AtomicReference<BigDecimal>`, kiểm tra và thay đổi có thể đặt chung trong một phép cập nhật có điều kiện, ví dụ:
+With `AtomicReference<BigDecimal>`, checking and changing can be placed together inside one conditional update, for example:
 
 ~~~java
 BigDecimal withdrawal = new BigDecimal("7.00");
@@ -445,11 +445,11 @@ BigDecimal after = balance.updateAndGet(current -> {
 });
 ~~~
 
-Ở đây điều kiện được **đánh giá lại trên giá trị hiện tại** mỗi lần lambda bị chạy lại do CAS không thành công. Nếu trong lần thử mới tiền đã không đủ, thao tác sẽ ném lỗi thay vì ghi đè trạng thái của người khác.
+Here the condition is **re-evaluated against the current value** whenever the lambda is re-invoked after a failed CAS. If funds are no longer sufficient on a retry, the operation throws an error rather than overwriting someone else's state.
 
-Tuy nhiên, ví dụ trên chỉ cho thấy một chính sách đơn giản của **một biến số dư trong bộ nhớ**. Nghiệp vụ thật còn cần kiểm tra số âm, đơn vị tiền tệ, tính hợp lệ của `withdrawal`, giới hạn, audit, idempotency, persistence và xử lý chuyển tiền giữa các tài khoản. Khi một giao dịch yêu cầu cập nhật đồng thời nhiều tài khoản, CAS trên riêng từng số dư không đủ để bảo đảm tính nguyên tử của toàn giao dịch.
+However, the example above only illustrates a simple policy for **a single in-memory balance variable**. Real business logic also requires checking negative numbers, currency units, `withdrawal` validity, limits, auditing, idempotency, persistence, and handling transfers between accounts. When a transaction must update multiple accounts simultaneously, CAS on individual balances alone is not enough to guarantee atomicity of the entire transaction.
 
-Có thể đưa nhiều trường cần nhất quán vào một **snapshot bất biến**, rồi dùng một `AtomicReference` chứa toàn bộ snapshot để thay thế nguyên tử:
+You can combine multiple fields that must stay consistent into one **immutable snapshot**, then use one `AtomicReference` holding the whole snapshot for atomic replacement:
 
 ~~~java
 record LedgerSnapshot(BigDecimal balance, BigInteger operations) {}
@@ -465,11 +465,11 @@ state.updateAndGet(old -> new LedgerSnapshot(
 ));
 ~~~
 
-Các reader dùng một lần `state.get()` sẽ thấy một snapshot chứa **cả hai trường thuộc cùng một phiên bản**. Nếu lấy `get()` hai lần cách nhau bởi update thì có thể đọc hai phiên bản khác nhau; nên giữ snapshot vào một biến cục bộ khi cần một trạng thái nhất quán. `record` giúp truyền dữ liệu theo dạng bất biến nếu mọi thành phần bên trong cũng bất biến, như hai kiểu số trong ví dụ.
+Readers performing a single `state.get()` observe a snapshot containing **both fields from the same version**. Calling `get()` twice with an update in between can read two different versions; hold the snapshot in a local variable when a consistent state is needed. A `record` helps pass immutable data provided every component inside it is also immutable, like the two numeric types in the example.
 
-## 10. Phân biệt snapshot cũ với "đối tượng bị thay đổi"
+## 10. Distinguishing an Old Snapshot from a "Mutated Object"
 
-Một reader có thể giữ tham chiếu cũ:
+A reader may hold an old reference:
 
 ~~~java
 AtomicReference<BigDecimal> price =
@@ -482,28 +482,28 @@ System.out.println(snapshot);   // 12.00
 System.out.println(price.get()); // 15.00
 ~~~
 
-Cả hai giá trị hợp lệ. `snapshot` không được cập nhật vì `BigDecimal` bất biến; `price` chỉ được đổi để trỏ đến một số mới. Nếu ứng dụng muốn reader **luôn lấy giá trị mới nhất**, nó phải truy cập lại holder đúng thời điểm. Nếu muốn tính một chuỗi nghiệp vụ dựa trên **cùng một phiên bản**, hãy giữ snapshot cục bộ và chỉ đọc một lần tại đầu công đoạn, hoặc dùng giao thức cập nhật nhất quán.
+Both values are valid. `snapshot` was not updated because `BigDecimal` is immutable; `price` was simply changed to point to a new number. If an application wants a reader to **always obtain the latest value**, it must re-read the holder at the appropriate time. If it wants to run a business sequence against **the same version**, keep the snapshot locally and read only once at the start of the step, or use a consistent update protocol.
 
-Không nhầm lẫn hai đặc tính:
+Do not confuse two properties:
 
-- Bảo đảm không bị sửa nội dung của `snapshot`.
-- Bảo đảm `snapshot` là giá trị mới nhất hoặc phù hợp với các trường khác.
+- Guaranteeing that the contents of `snapshot` cannot be mutated.
+- Guaranteeing that `snapshot` is the latest value or consistent with other fields.
 
-Tính bất biến chỉ giải quyết đặc tính thứ nhất.
+Immutability solves only the first property.
 
-## 11. An toàn khi dùng BigDecimal trong nhiều luồng không đồng nghĩa tự động đúng nghiệp vụ
+## 11. Thread-Safe BigDecimal Use Does Not Automatically Mean Business Correctness
 
-Với `BigDecimal`, còn có yêu cầu về **precision, scale, rounding** độc lập với synchronization:
+With `BigDecimal`, there are also **precision, scale, and rounding** requirements independent of synchronization:
 
 ~~~java
 BigDecimal a = new BigDecimal("0.10");
 BigDecimal b = new BigDecimal("0.20");
-BigDecimal total = a.add(b); // chính xác, giá trị 0.30
+BigDecimal total = a.add(b); // exact, value 0.30
 ~~~
 
-Nếu dùng `divide` với phép chia thập phân vô hạn, Java cần một rounding mode/`MathContext` thích hợp. Cơ chế `AtomicReference` hoặc `synchronized` không sửa lỗi dùng sai precision hoặc rounding. Ngược lại, tạo số tiền từ `new BigDecimal(0.1)` có thể mang sai lệch do đầu vào `double`, dù tất cả cập nhật đều được khóa đúng.
+When using `divide` for non-terminating decimal division, Java requires an appropriate rounding mode/`MathContext`. Neither `AtomicReference` nor `synchronized` fixes wrong precision or rounding. Conversely, creating monetary amounts via `new BigDecimal(0.1)` introduces `double` error even if every update is properly locked.
 
-Ví dụ cập nhật được làm tròn sau mỗi lần cộng:
+Example of rounding after each addition:
 
 ~~~java
 BigDecimal delta = new BigDecimal("0.005");
@@ -514,69 +514,69 @@ total.updateAndGet(current ->
         current.add(delta).setScale(2, java.math.RoundingMode.HALF_UP));
 ~~~
 
-Đây là một quy tắc **làm tròn mỗi giao dịch** có chủ đích. Nếu nghiệp vụ muốn cộng mọi giá trị chính xác rồi làm tròn **một lần cuối**, kết quả có thể khác. Trước khi viết callback atomic, phải chọn điểm làm tròn đúng; concurrency chỉ bảo đảm việc áp dụng chính sách nhất quán, không tự chọn chính sách cho bạn.
+This is an intentional **round-per-transaction** rule. If business rules require summing all values exactly and rounding **once at the end**, the result may differ. Before writing an atomic callback, choose the right rounding point; concurrency only ensures consistent application of the policy, it does not choose the policy for you.
 
-Khi lambda update chạy lại do cạnh tranh, nó cũng không nên đọc dữ liệu thay đổi độc lập từ bên ngoài. Hãy chuẩn hóa đầu vào (`delta`, đơn vị, điều kiện) thành biến cục bộ bất biến trước khi vào lambda, hoặc thiết kế snapshot chứa các dữ liệu cần đọc nguyên tử cùng nhau.
+When an update lambda re-runs due to contention, it must also avoid reading independently changing external data. Normalize inputs (`delta`, units, conditions) into immutable local variables before entering the lambda, or design a snapshot holding all data that must be read atomically together.
 
-## 12. Kiểm thử lỗi đồng thời
+## 12. Testing Concurrency Bugs
 
-Với cập nhật tham chiếu dùng chung, một bài test chỉ chạy một luồng hầu như không thể phát hiện lost update. Cách kiểm tra hữu ích:
+For shared reference updates, a single-threaded test can almost never detect lost updates. Useful testing approaches:
 
-1. **Test có điều phối:** dùng `CountDownLatch` hoặc cơ chế phối hợp để buộc hai luồng đọc cùng snapshot, sau đó thử ghi; chương trình ở mục 7 thực hiện điều này.
-2. **Test kết quả cuối:** hai luồng mỗi luồng tăng 1.000 lần phải cho đúng 2.000; với `BigDecimal("0.10")` hai luồng mỗi luồng cộng 100 lần phải cho đúng `20.00` theo scale đã chọn.
-3. **Test thông điệp thất bại và ngoại lệ:** tác vụ trong `ExecutorService.submit` có thể ném exception; gọi `Future.get()` để nhận lỗi thay vì kết luận thành công chỉ vì thread pool đã nhận tác vụ.
-4. **Test xử lý shutdown và interruption:** chờ tác vụ hoàn tất và giải phóng pool. Với code sản xuất, đặt timeout phù hợp và xử lý gián đoạn theo thiết kế.
-5. **Kiểm tra mọi đường cập nhật:** nếu có cả `updateAndGet` và một đường `get + set` không được bảo vệ, hệ thống vẫn có thể mất dữ liệu.
+1. **Coordinated tests:** use `CountDownLatch` or a coordination mechanism to force two threads to read the same snapshot, then attempt writes; the program in Section 7 does this.
+2. **Final-result tests:** two threads incrementing 1,000 times each must yield exactly 2,000; with `BigDecimal("0.10")`, two threads adding 100 times each must yield exactly `20.00` at the chosen scale.
+3. **Testing failures and exceptions:** tasks in `ExecutorService.submit` can throw exceptions; call `Future.get()` to catch errors rather than assuming success simply because the thread pool accepted the task.
+4. **Testing shutdown and interruption handling:** wait for tasks to complete and release the pool. In production code, set appropriate timeouts and handle interruption by design.
+5. **Checking every update path:** if both `updateAndGet` and an unguarded `get + set` path exist, the system can still lose data.
 
-Test lặp lại nhiều lần với nhiều thread có thể tăng khả năng bộc lộ race, nhưng **không chứng minh tuyệt đối** hệ thống không có lỗi đồng thời. Cần dựa thêm vào lập luận về atomicity, happens-before và giao thức truy cập. Để kiểm tra hiệu năng, đo bằng benchmark phù hợp thay vì coi thời gian một lần chạy test đồng thời là kết luận.
+Running many iterations across many threads increases the chance of exposing races, yet **never proves absolutely** that a system has no concurrency bugs. Rely additionally on reasoning about atomicity, happens-before, and access protocols. For performance, measure with an appropriate benchmark rather than treating the timing of one concurrency test run as a conclusion.
 
-## 13. Các lỗi phổ biến cần tránh
+## 13. Common Mistakes to Avoid
 
-| Lỗi | Vì sao sai | Cách giải quyết |
+| Mistake | Why it is wrong | How to fix |
 |---|---|---|
-| "BigDecimal immutable nên balance += delta chắc chắn thread-safe" | Việc thay tham chiếu là đọc–tính–ghi, có thể mất cập nhật | Khóa hoặc atomic update |
-| Dùng `volatile` rồi kết luận phép cộng atomic | `volatile` cung cấp visibility/ordering chứ không gộp ba bước | `synchronized` hoặc `AtomicReference.updateAndGet` |
-| Gọi `ref.set(ref.get().add(x))` | Hai thao tác atomic rời rạc không tạo cập nhật nguyên tử | `updateAndGet(old -> old.add(x))` |
-| Gọi dịch vụ ngoài trong lambda CAS | Callback có thể chạy lại khi cạnh tranh | Lambda thuần; side effect sau theo giao thức đáng tin |
-| Dùng `compareAndSet` với đối tượng mới có giá trị bằng nhau | CAS kiểm tra cùng tham chiếu | Lấy expected từ `get()` |
-| Bảo vệ writer bằng lock nhưng reader bỏ qua lock | Reader có thể nhìn trạng thái không theo giao thức đã định | Đồng bộ cả đường đọc/ghi hoặc công bố snapshot bằng volatile/atomic đúng cách |
-| Sử dụng hai atomic field và kỳ vọng snapshot cả hai nhất quán | Hai biến độc lập không thay thế nguyên tử cùng lúc | Khóa hoặc một immutable snapshot trong một AtomicReference |
-| Tưởng trường `final AtomicReference` không thể thay số | Chỉ tham chiếu đến holder là final | Phân biệt tính bất biến của field và trạng thái holder |
-| Tin rằng `AtomicReference` làm phép toán rẻ hơn | Tranh chấp CAS có thể tính lại và tạo nhiều số mới | Đo, so với khóa |
-| Dùng `double`/làm tròn sai cho số tiền | Đúng concurrency vẫn có thể sai số học | Dùng BigDecimal từ chuỗi, chọn scale/rounding chuẩn |
-| Test concurrency không đợi Future kết thúc | Có thể bỏ qua lỗi của task | Gọi `Future.get()` và kiểm tra giá trị cuối |
-| Coi synchronized cục bộ thay thế database transaction | Chỉ phối hợp các luồng theo khóa trong một JVM | Dùng giao dịch/khóa phù hợp hệ thống lưu trữ |
+| "BigDecimal is immutable, so balance += delta must be thread-safe" | Swapping the reference is read–compute–write and can lose updates | Lock or atomic update |
+| Using `volatile` and concluding addition is atomic | `volatile` provides visibility/ordering, not merging three steps | `synchronized` or `AtomicReference.updateAndGet` |
+| Calling `ref.set(ref.get().add(x))` | Two separate atomic calls do not form an atomic update | `updateAndGet(old -> old.add(x))` |
+| Calling external services inside a CAS lambda | Callback may re-run under contention | Pure lambda; side effects afterward via reliable protocol |
+| Using `compareAndSet` with a new object of equal value | CAS checks reference identity | Obtain `expected` from `get()` |
+| Protecting writers with a lock while readers skip the lock | Readers can see state outside the defined protocol | Synchronize both read/write paths or publish snapshots properly via volatile/atomic |
+| Using two atomic fields and expecting a consistent joint snapshot | Two independent variables do not swap atomically together | Lock or one immutable snapshot inside one `AtomicReference` |
+| Assuming a `final AtomicReference` field cannot change numbers | Only the reference to the holder is final | Distinguish field immutability from holder state |
+| Believing `AtomicReference` makes math cheaper | CAS contention can recompute and allocate many new numbers | Measure and compare with locks |
+| Using `double`/wrong rounding for money | Even with right concurrency, arithmetic can be wrong | Use `BigDecimal` from strings with standard scale/rounding |
+| Testing concurrency without awaiting Futures | Can miss task exceptions | Call `Future.get()` and verify final values |
+| Treating local `synchronized` as a substitute for database transactions | Only coordinates threads via locks inside one JVM | Use storage-level transactions/locks |
 
-## 14. Tự kiểm tra
+## 14. Self-Check
 
-**Câu 1.** Hai luồng cùng gọi `shared = shared.add(BigInteger.ONE)` với `shared` là một trường `BigInteger`. Có chắc cộng được hai lần không?
+**Question 1.** Two threads concurrently execute `shared = shared.add(BigInteger.ONE)` where `shared` is a `BigInteger` field. Is it guaranteed to add twice?
 
-**Đáp án:** Không. Mỗi `add()` tạo kết quả bất biến riêng, nhưng hai luồng có thể đọc cùng tham chiếu cũ và một update bị ghi đè. Cần bảo vệ phép read–modify–write.
+**Answer:** No. Each `add()` creates its own immutable result, but both threads can read the same old reference and one update gets overwritten. The read–modify–write must be protected.
 
-**Câu 2.** Nếu đổi trường đó thành `volatile BigInteger shared`, đã đủ chưa?
+**Question 2.** If that field is changed to `volatile BigInteger shared`, is that enough?
 
-**Đáp án:** Chưa. `volatile` bảo đảm visibility theo Java Memory Model, không làm `shared = shared.add(ONE)` trở thành một phép atomic.
+**Answer:** Not yet. `volatile` ensures visibility under the Java Memory Model, not making `shared = shared.add(ONE)` a single atomic operation.
 
-**Câu 3.** Với `AtomicReference<BigDecimal> ref`, mã `ref.set(ref.get().add(amount))` có giải quyết mất cập nhật không?
+**Question 3.** With `AtomicReference<BigDecimal> ref`, does `ref.set(ref.get().add(amount))` fix lost updates?
 
-**Đáp án:** Không; dùng `ref.updateAndGet(old -> old.add(amount))` hoặc khóa phù hợp.
+**Answer:** No; use `ref.updateAndGet(old -> old.add(amount))` or an appropriate lock.
 
-**Câu 4.** Vì sao không gọi API thanh toán trong lambda của `updateAndGet`?
+**Question 4.** Why shouldn't you call a payment API inside the lambda of `updateAndGet`?
 
-**Đáp án:** Hàm cập nhật có thể được gọi lại khi CAS không thành công; side effect có thể xảy ra nhiều lần dù cập nhật state chỉ thành công một lần.
+**Answer:** The update function can be re-invoked when CAS fails; side effects may happen multiple times even though the state update commits once.
 
-**Câu 5.** Một snapshot gồm `balance` và `count` phải luôn tương ứng cùng phiên bản. Có nên dùng hai `AtomicReference` tách biệt không?
+**Question 5.** A snapshot containing `balance` and `count` must always belong to the same version. Should you use two separate `AtomicReference` instances?
 
-**Đáp án:** Hai atomic riêng không bảo đảm một lần đọc sẽ thu được cặp giá trị cùng phiên bản. Có thể dùng một đối tượng snapshot bất biến trong một `AtomicReference`, hoặc khóa bảo vệ toàn bộ invariant.
+**Answer:** Two separate atomics do not guarantee a read observes a pair of values from the same version. Use an immutable snapshot object inside one `AtomicReference`, or a lock protecting the entire invariant.
 
-**Câu 6.** Luồng A giữ một `BigDecimal snapshot`, luồng B đổi holder từ `12.00` sang `15.00`. Giá trị trong snapshot cũ có đổi thành `15.00` không?
+**Question 6.** Thread A holds a `BigDecimal snapshot`, and Thread B updates the holder from `12.00` to `15.00`. Does the value inside the old snapshot change to `15.00`?
 
-**Đáp án:** Không. Đối tượng `BigDecimal` cũ vẫn bất biến. Chỉ tham chiếu trong holder được thay bằng đối tượng mới.
+**Answer:** No. The old `BigDecimal` object remains immutable. Only the reference inside the holder is replaced with the new object.
 
-**Câu 7.** CAS `compareAndSet(expected, update)` dùng `BigDecimal.compareTo()` để xác định expected phải không?
+**Question 7.** Does `compareAndSet(expected, update)` use `BigDecimal.compareTo()` to check `expected`?
 
-**Đáp án:** Không. Nó so sánh **nhận dạng tham chiếu**; hai `BigDecimal` khác instance dù có cùng giá trị vẫn không phải cùng expected reference.
+**Answer:** No. It compares **reference identity**; two distinct `BigDecimal` instances with equal numeric values are still not the same expected reference.
 
 ---
 
-**Ghi nhớ:** `BigInteger` và `BigDecimal` an toàn để chia sẻ dưới dạng **giá trị bất biến**. Nhưng cập nhật **biến tham chiếu dùng chung** vẫn cần điều phối các bước đọc–tính–ghi. Dùng `synchronized`/khóa khi bảo vệ invariant hoặc nhiều trường; dùng `AtomicReference.updateAndGet` khi trạng thái cần cập nhật được biểu diễn trong một snapshot bất biến và hàm cập nhật thuần. Luôn tách bạch tính đúng đắn đồng thời với quy tắc precision, scale và rounding của phép tính.
+**Takeaway:** `BigInteger` and `BigDecimal` are safe to share as **immutable values**. Yet updating a **shared reference variable** still requires coordinating read–compute–write steps. Use `synchronized`/locks when guarding invariants or multiple fields; use `AtomicReference.updateAndGet` when the state to update is represented as one immutable snapshot and the update function is pure. Always keep concurrency correctness distinct from precision, scale, and rounding rules.

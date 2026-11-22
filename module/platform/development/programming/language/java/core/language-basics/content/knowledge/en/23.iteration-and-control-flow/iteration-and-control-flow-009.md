@@ -1,74 +1,74 @@
-# Nhận diện câu lệnh không thể tới và ảnh hưởng tới biên dịch — Java 17+
+# Identifying Unreachable Statements and Their Impact on Compilation — Java 17+
 
-## 1. `Unreachable statement` là gì?
+## 1. What Is an `Unreachable statement`?
 
-Java kiểm tra **tính có thể tới được** (*reachability*) của các câu lệnh khi biên dịch. Nếu quy tắc ngôn ngữ chứng minh rằng không có đường điều khiển hợp lệ nào dẫn đến một câu lệnh, `javac` báo lỗi **`unreachable statement`** và không tạo được chương trình hợp lệ.
+Java checks the **reachability** of statements at compile time. If the language rules prove that no valid control path can lead to a statement, `javac` reports an **`unreachable statement`** error and fails to produce a valid program.
 
-Ví dụ sai:
+Incorrect example:
 
 ~~~java
 static int answer() {
     return 42;
     // System.out.println("after return");
-    // Nếu bỏ chú thích ở dòng trên: lỗi unreachable statement.
+    // If the line above is uncommented: unreachable statement error.
 }
 ~~~
 
-Sau `return 42;`, phương thức đã kết thúc. Câu lệnh ngay sau nó trong cùng khối không có cơ hội được thực thi.
+After `return 42;`, the method has already finished. The statement immediately after it in the same block has no chance of being executed.
 
-**Phân biệt hai tình huống:**
+**Distinguish two situations:**
 
-- **Không thể tới được theo quy tắc biên dịch:** lỗi *compile-time*, ví dụ câu lệnh đứng trực tiếp sau `return` vô điều kiện.
-- **Có thể tới được về cú pháp nhưng thực tế không chạy với dữ liệu đang xét:** thường **không phải lỗi biên dịch**, ví dụ nhánh `if (false)` hoặc một điều kiện phụ thuộc dữ liệu luôn sai trong bài toán.
+- **Unreachable according to compiler rules:** a *compile-time* error, such as a statement placed directly after an unconditional `return`.
+- **Syntactically reachable, yet practically never executed for the given data:** usually **not a compile error**, such as an `if (false)` branch or a data-dependent condition that always evaluates to false in the problem domain.
 
-Đừng dựa chỉ vào quan sát “tôi chạy thử chưa thấy dòng này được in” để kết luận compiler sẽ báo unreachable.
+Do not rely merely on observing "I ran it and never saw this line printed" to conclude the compiler will report unreachable.
 
-## 2. Bảng nhận diện nhanh
+## 2. Quick Identification Table
 
-| Mẫu mã | Câu lệnh phía sau có thể tới? | Kết quả |
+| Code Pattern | Is the Following Statement Reachable? | Result |
 |---|---|---|
-| `return; statement;` cùng khối | Không | **Lỗi biên dịch** |
-| `throw ex; statement;` cùng khối | Không | **Lỗi biên dịch** |
-| `break; statement;` trong cùng nhánh vòng lặp | Không | **Lỗi biên dịch** |
-| `continue; statement;` trong cùng nhánh vòng lặp | Không | **Lỗi biên dịch** |
-| `while (true) { ... }` không có đường `break` thoát | Không, đối với câu lệnh tiếp sau vòng | **Lỗi biên dịch** |
-| `for (;;) { ... }` không có `break` thoát | Không, đối với câu lệnh tiếp sau vòng | **Lỗi biên dịch** |
-| `while (false) { statement; }` | Body không thể tới | **Lỗi biên dịch** |
-| `if (false) { statement; }` | Quy tắc `if` cho phép dạng này | **Hợp lệ**, nhánh không chạy |
-| `if (flag) return; statement;` | Có đường đi `flag == false` | **Hợp lệ** |
-| `while (true) { if (stop) break; }` rồi một câu lệnh | Có đường `break` thoát | **Có thể hợp lệ** |
-| `do { statement; } while (false);` | Body chạy một lượt | **Hợp lệ** |
+| `return; statement;` same block | No | **Compile error** |
+| `throw ex; statement;` same block | No | **Compile error** |
+| `break; statement;` in same loop branch | No | **Compile error** |
+| `continue; statement;` in same loop branch | No | **Compile error** |
+| `while (true) { ... }` with no `break` exit path | No, for statements following the loop | **Compile error** |
+| `for (;;) { ... }` with no `break` exit | No, for statements following the loop | **Compile error** |
+| `while (false) { statement; }` | Body is unreachable | **Compile error** |
+| `if (false) { statement; }` | `if` rules permit this form | **Valid**, branch does not run |
+| `if (flag) return; statement;` | Has path `flag == false` | **Valid** |
+| `while (true) { if (stop) break; }` then a statement | Has `break` exit path | **Can be valid** |
+| `do { statement; } while (false);` | Body runs one iteration | **Valid** |
 
-Các dòng dạng mẫu rút gọn không phải những chương trình tự chạy; phần cuối bài có chương trình Java 17+ độc lập với stdout cụ thể.
+The abbreviated pattern rows are not standalone runnable programs; the end of the lesson provides a standalone Java 17+ program with exact stdout.
 
-## 3. Sau `return`: không còn đường đi trong phương thức
+## 3. After `return`: No Remaining Path in the Method
 
 ~~~java
 static String getLabel() {
     return "READY";
-    // System.out.println("unreachable"); // Không được bật dòng này.
+    // System.out.println("unreachable"); // Must not enable this line.
 }
 ~~~
 
-`return` kết thúc phương thức ngay; mọi câu lệnh đứng trực tiếp phía sau trong cùng khối đều không thể tới.
+`return` terminates the method immediately; any statement placed directly afterward in the same block is unreachable.
 
-**Nhưng `return` có điều kiện thì khác:**
+**Conditional `return`, however, is different:**
 
 ~~~java
 static String status(boolean active) {
     if (active) {
         return "ACTIVE";
     }
-    return "INACTIVE"; // Hợp lệ khi active == false.
+    return "INACTIVE"; // Valid when active == false.
 }
 ~~~
 
-`status(true)` trả `"ACTIVE"`, `status(false)` trả `"INACTIVE"`; câu `return` cuối vẫn có đường đi tới.
+`status(true)` returns `"ACTIVE"`, `status(false)` returns `"INACTIVE"`; the final `return` statement still has a path to reach it.
 
-**Nếu cả hai nhánh đều kết thúc phương thức:**
+**If both branches terminate the method:**
 
 ~~~java
-// Ví dụ không biên dịch nếu bật dòng cuối:
+// Example that fails to compile if the last line is enabled:
 static int choose(boolean flag) {
     if (flag) {
         return 1;
@@ -79,9 +79,9 @@ static int choose(boolean flag) {
 }
 ~~~
 
-Khi phân tích, hãy xem **tất cả đường đi** của các nhánh, không chỉ nhánh được dùng ở một lần gọi cụ thể.
+When analyzing, examine **all paths** across branches, not just the branch taken in one specific call.
 
-## 4. Sau `throw`: luồng bình thường không tiếp tục
+## 4. After `throw`: Normal Flow Does Not Continue
 
 ~~~java
 static int requirePositive(int n) {
@@ -93,20 +93,20 @@ static int requirePositive(int n) {
 }
 ~~~
 
-Một `throw` kết thúc đường điều khiển thông thường tại vị trí đó. Exception có thể được **bắt ở caller hoặc một `catch` bao ngoài thích hợp**, nhưng Java không quay lại thực hiện câu lệnh đứng ngay sau `throw` trong cùng block.
+A `throw` ends the normal control path at that point. The exception can be **caught in the caller or an appropriate enclosing `catch`**, but Java does not return to execute the statement directly after `throw` in the same block.
 
-Một ví dụ bất hợp lệ nếu viết liền:
+An invalid example if written sequentially:
 
 ~~~java
 // throw new IllegalStateException("fail");
 // System.out.println("after throw"); // Unreachable.
 ~~~
 
-Không nhầm lỗi unreachable với thông báo về **checked exception**: đó là kiểm tra khác, liên quan đến khai báo và xử lý ngoại lệ.
+Do not confuse unreachable errors with messages about **checked exceptions**: that is a separate check involving exception declaration and handling.
 
-## 5. Sau `break` và `continue` trong cùng khối
+## 5. After `break` and `continue` in the Same Block
 
-`break` rời vòng lặp hoặc `switch` phù hợp; `continue` chuyển sang lượt tiếp theo của vòng lặp.
+`break` exits the corresponding loop or `switch`; `continue` moves to the next iteration of the loop.
 
 ~~~java
 for (int i = 0; i < 3; i++) {
@@ -125,7 +125,7 @@ i=0
 i=2
 ~~~
 
-Với `break`:
+With `break`:
 
 ~~~java
 for (int i = 0; i < 3; i++) {
@@ -145,22 +145,22 @@ visit=0
 loop finished
 ~~~
 
-Quan trọng: **câu lệnh trực tiếp sau `break`/`continue` trong cùng nhánh** mới là lỗi. Câu lệnh **sau toàn bộ vòng lặp** không nhất thiết unreachable: với `break`, luồng có thể đến được nó.
+Important: it is **the statement directly after `break`/`continue` in the same branch** that causes an error. A statement **after the entire loop** is not necessarily unreachable: with `break`, execution can reach it.
 
-## 6. Vòng lặp vô hạn và khả năng hoàn thành bình thường
+## 6. Infinite Loops and Normal Completion
 
-Một vòng `while (true)` hoặc `for (;;)` không có đường `break` rời vòng lặp **không thể hoàn thành bình thường** theo kiểm tra reachability của Java.
+A `while (true)` or `for (;;)` loop without a `break` path to leave the loop **cannot complete normally** under Java's reachability checks.
 
 ~~~java
 // static void bad() {
 //     while (true) {
 //         System.out.println("repeat");
 //     }
-//     System.out.println("after loop"); // Lỗi unreachable statement.
+//     System.out.println("after loop"); // Unreachable statement error.
 // }
 ~~~
 
-Dòng in sau vòng không thể được chạy theo đường thực thi bình thường. Nếu mục đích là lặp vô hạn có điều kiện thoát, hãy cung cấp một đường `break` hợp lệ:
+The print line after the loop cannot be reached via normal execution. If the intent is an infinite loop with an exit condition, provide a valid `break` path:
 
 ~~~java
 static int countTo(int limit) {
@@ -171,19 +171,19 @@ static int countTo(int limit) {
         }
         count++;
     }
-    return count; // Hợp lệ: có đường break ra khỏi while.
+    return count; // Valid: there is a break path out of while.
 }
 ~~~
 
-Nếu `limit=3`, `countTo` trả 3.
+If `limit=3`, `countTo` returns 3.
 
-**Lưu ý:** Sự tồn tại của một `break` **có thể tới được theo cú pháp**, nhắm đúng vòng lặp, mới có ý nghĩa cho luật hoàn thành bình thường. `break` đặt trong vòng lặp **khác** hoặc trong `switch` không đương nhiên chứng minh được vòng `while(true)` bao ngoài có thể kết thúc.
+**Note:** Only a **syntactically reachable** `break` targeting the right loop counts toward normal completion rules. A `break` placed inside a **different** loop or inside a `switch` does not automatically prove the outer `while(true)` loop can terminate.
 
-Vòng vô hạn là hợp lệ nếu không có câu lệnh theo sau cần tới; lỗi nằm ở phần mã bất khả đạt theo luật biên dịch, không phải ở bản thân `while(true)`.
+An infinite loop is valid if there is no subsequent statement that needs to be reached; the error lies in the unreachable code per compiler rules, not in `while(true)` itself.
 
-## 7. Ngoại lệ quan trọng: `if (false)` khác `while (false)`
+## 7. Important Exception: `if (false)` Differs from `while (false)`
 
-Java cố ý cho phép thân của `if` ngay cả khi điều kiện là **biểu thức hằng `false`**. Điều đó hỗ trợ các nhánh bật/tắt theo cấu hình khi biên dịch:
+Java intentionally allows the body of an `if` even when the condition is a **constant expression `false`**. This supports compile-time configuration toggles:
 
 ~~~java
 if (false) {
@@ -198,25 +198,25 @@ System.out.println("after disabled branch");
 after disabled branch
 ~~~
 
-Trái lại, thân của `while` với điều kiện là hằng `false` bị coi là không thể tới:
+By contrast, the body of a `while` with a constant `false` condition is considered unreachable:
 
 ~~~java
-// KHÔNG BIÊN DỊCH nếu bật đoạn này:
+// DOES NOT COMPILE if this snippet is enabled:
 // while (false) {
 //     System.out.println("unreachable body");
 // }
 ~~~
 
-`for` cơ bản có condition là hằng `false` cũng có vấn đề tương tự:
+A basic `for` with a constant `false` condition has a similar issue:
 
 ~~~java
-// KHÔNG BIÊN DỊCH:
+// DOES NOT COMPILE:
 // for (int i = 0; false; i++) {
 //     System.out.println(i);
 // }
 ~~~
 
-**Với `do-while`:**
+**With `do-while`:**
 
 ~~~java
 int count = 0;
@@ -232,13 +232,13 @@ System.out.println("count=" + count);
 count=1
 ~~~
 
-Vì `do-while` thực thi thân **trước lần kiểm tra điều kiện đầu tiên**, phần thân vẫn reachable dù điều kiện là `false`.
+Because `do-while` executes its body **before the first condition check**, the body remains reachable even when the condition is `false`.
 
-**Chú ý:** `final boolean OFF = false;` là constant variable; `while (OFF)` cũng bị phân tích như điều kiện hằng false. Một biến boolean được đọc ở runtime (không phải constant expression) thường không bị suy luận theo cách này chỉ vì nó hiện chứa `false`.
+**Attention:** `final boolean OFF = false;` is a constant variable; `while (OFF)` is also analyzed as a constant false condition. A boolean variable read at runtime (not a constant expression) is generally not inferred this way simply because it currently holds `false`.
 
-## 8. Compile-time reachability không phải bộ giải mọi điều kiện logic
+## 8. Compile-Time Reachability Is Not a Solver for Every Logic Condition
 
-Ví dụ:
+For example:
 
 ~~~java
 static void check(int value) {
@@ -249,17 +249,17 @@ static void check(int value) {
 }
 ~~~
 
-Điều kiện bên trong `if` không thể đúng với cùng một giá trị `int`, nhưng compiler Java 17 **không bắt buộc chứng minh mọi mâu thuẫn toán học** để cấm thân nhánh. Do vậy đây là code **biên dịch hợp lệ**, dù dòng `"impossible for int"` sẽ không xuất hiện.
+The condition inside `if` cannot be true for any single `int` value, yet the Java 17 compiler **is not required to prove every mathematical contradiction** to forbid the branch body. Therefore, this code **compiles validly**, even though `"impossible for int"` will never appear.
 
-Ngược lại, một lỗi unreachable sau `return` được quyết định từ cấu trúc điều khiển rõ ràng, không cần phân tích dữ liệu thực tế.
+Conversely, an unreachable error after `return` is determined from explicit control structure, without analyzing actual runtime data.
 
-Ví dụ `if (flag) return;` vẫn có đường đi `flag == false`. Java không cấm câu lệnh theo sau chỉ vì trong một lần chạy bạn luôn truyền `true`.
+For example, `if (flag) return;` still has a path where `flag == false`. Java does not forbid the following statement simply because in one run you always pass `true`.
 
-**Quy tắc thực hành:** khác biệt giữa “không thể đạt **theo đặc tả reachability**” và “không thể xảy ra **theo yêu cầu nghiệp vụ**” cần được kiểm chứng riêng.
+**Practical rule:** the difference between "unreachable **according to the reachability specification**" and "impossible **according to business requirements**" must be verified separately.
 
-## 9. `finally` có thể chạy khi đang chuyển luồng
+## 9. `finally` Can Run During Control Transfers
 
-Với `try/finally`, câu lệnh trong `finally` thường vẫn chạy khi `try` thực hiện `return`, `break` hoặc `continue`:
+With `try/finally`, statements in `finally` generally still execute when `try` runs `return`, `break`, or `continue`:
 
 ~~~java
 static int readValue() {
@@ -272,7 +272,7 @@ static int readValue() {
 }
 ~~~
 
-**Exact stdout nếu gọi `System.out.println("result=" + readValue());`:**
+**Exact stdout when calling `System.out.println("result=" + readValue());`:**
 
 ~~~text
 inside try
@@ -280,26 +280,26 @@ inside finally
 result=5
 ~~~
 
-Vì vậy không được suy luận rằng “mọi code chạy sau khi biểu thức `return` được đánh giá đều unreachable”: `finally` thuộc luồng kết thúc của `try` và có quy tắc đặc biệt.
+Therefore, you must not infer that "any code running after a `return` expression is evaluated is unreachable": `finally` belongs to the `try`'s completion flow and has special rules.
 
-Tránh đặt một `return` hoặc `throw` mới vào `finally` một cách tùy tiện vì nó có thể **thay đổi kết quả hoặc che ngoại lệ ban đầu**.
+Avoid placing a new `return` or `throw` arbitrarily inside `finally` because it can **alter the result or mask the original exception**.
 
-## 10. Phân biệt unreachable với các lỗi compile-time khác
+## 10. Distinguishing Unreachable from Other Compile-Time Errors
 
-| Vấn đề | Ví dụ | Chẩn đoán / bản chất |
+| Issue | Example | Diagnosis / Nature |
 |---|---|---|
-| Câu lệnh không thể tới | `return 1; println();` | `unreachable statement` |
-| Biến chưa được gán chắc chắn | `int x; if (flag) x=1; println(x);` | `variable x might not have been initialized` |
-| Thiếu đường trả giá trị | Phương thức trả `int` nhưng có nhánh đi hết không `return` | `missing return statement` |
-| Điều kiện không là boolean | `if (1) { ... }` | Lỗi kiểu dữ liệu, không phải unreachable |
-| Nhãn `break` sai đích | `break unknown;` | Lỗi giải quyết nhãn |
-| Nhánh luôn sai theo nghiệp vụ | `if (n>100 && n<0)` | Vẫn có thể biên dịch, nhưng cần sửa logic |
+| Unreachable statement | `return 1; println();` | `unreachable statement` |
+| Variable not definitely assigned | `int x; if (flag) x=1; println(x);` | `variable x might not have been initialized` |
+| Missing return path | Method returning `int` has a path completing without `return` | `missing return statement` |
+| Non-boolean condition | `if (1) { ... }` | Type error, not reachability |
+| Invalid `break` target label | `break unknown;` | Label resolution error |
+| Branch always false by business logic | `if (n>100 && n<0)` | Still compiles, yet logic needs fixing |
 
-Các lỗi này có thể cùng xuất hiện trong dự án, nhưng **không nên sửa bằng cùng một thủ thuật**. Lỗi reachability thường được xử lý bằng cách đặt lại trật tự câu lệnh hoặc sửa luồng thoát; lỗi definite assignment phải đảm bảo biến có giá trị trên mọi đường dùng biến.
+These errors can appear together in a project, yet **should not be fixed with the same trick**. Reachability errors are usually resolved by reordering statements or fixing exit paths; definite assignment errors require ensuring a variable has a value on every path where it is used.
 
-## 11. Mẫu refactor khi gặp unreachable statement
+## 11. Refactoring Patterns When Encountering Unreachable Statements
 
-**Sai — viết log sau `return`:**
+**Wrong — logging after `return`:**
 
 ~~~java
 // static int compute(int x) {
@@ -308,7 +308,7 @@ Các lỗi này có thể cùng xuất hiện trong dự án, nhưng **không n�
 // }
 ~~~
 
-**Đúng — log trước `return`:**
+**Right — logging before `return`:**
 
 ~~~java
 static int compute(int x) {
@@ -318,7 +318,7 @@ static int compute(int x) {
 }
 ~~~
 
-**Sai — câu lệnh sau `continue` trong cùng block:**
+**Wrong — statement after `continue` in the same block:**
 
 ~~~java
 // if (skip) {
@@ -327,7 +327,7 @@ static int compute(int x) {
 // }
 ~~~
 
-**Đúng — đặt xử lý ở nhánh không skip:**
+**Right — placing processing in the non-skip branch:**
 
 ~~~java
 for (int i = 0; i < 4; i++) {
@@ -345,11 +345,11 @@ process 1
 process 3
 ~~~
 
-Nếu thật sự cần chạy bước cập nhật ở cả hai nhánh, hãy xem bước đó thuộc thân vòng, phần update của `for` hay `finally` theo mục tiêu. **Đừng xóa một dòng chỉ để compiler hết lỗi** khi nó chứa side effect nghiệp vụ quan trọng; hãy chuyển nó tới đường đi đúng.
+If an update step truly needs to run on both branches, determine whether it belongs in the loop body, the `for` update clause, or `finally` according to your goal. **Do not delete a line just to silence the compiler** when it holds an important business side effect; move it to the right path.
 
-## 12. Chương trình Java 17+ chạy độc lập
+## 12. Standalone Java 17+ Program
 
-Lưu đúng tên **`ReachabilityDemo.java`**:
+Save with the exact name **`ReachabilityDemo.java`**:
 
 ~~~java
 public final class ReachabilityDemo {
@@ -463,7 +463,7 @@ public final class ReachabilityDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên, mở terminal trong thư mục chứa file. Chương trình chỉ dùng API chuẩn JDK; không có tính năng preview, Maven hay Gradle.
+**Requirements:** JDK 17 or higher, open a terminal in the directory containing the file. The program uses only standard JDK APIs; no preview features, Maven, or Gradle.
 
 **Bash (Linux/macOS):**
 
@@ -501,31 +501,31 @@ inside finally
 finally result=5
 ~~~
 
-**Đọc kết quả:**
+**Reading the output:**
 
-1. Hai nhánh của `branch` cho thấy `return` có điều kiện không làm mọi dòng sau `if` unreachable.
-2. `firstPositive` có `return` sớm khi tìm thấy và đường `return -1` khi duyệt hết.
-3. `countTo` có vòng `while(true)` nhưng vẫn hoàn thành bình thường nhờ `break`.
-4. `requirePositive` ném exception ở đường lỗi và trả kết quả ở đường hợp lệ.
-5. `continue` bỏ `i=1`, `break` dừng tại `i=1` rồi vẫn in được dòng sau vòng.
-6. `if(false)` không thực thi nhánh nhưng chương trình vẫn biên dịch; `do-while(false)` chạy một lượt.
-7. Điều kiện `value > 100 && value < 0` không thể đúng với `int`, nhưng compiler không nhất thiết cấm nhánh; chỉ dòng `checked=5` xuất hiện.
-8. `finally` được thực hiện trước khi caller in kết quả trả về.
+1. The two branches of `branch` show that a conditional `return` does not make lines after `if` unreachable.
+2. `firstPositive` has an early `return` when found and a `return -1` path after scanning to the end.
+3. `countTo` has a `while(true)` loop yet completes normally thanks to `break`.
+4. `requirePositive` throws an exception on the error path and returns a result on the valid path.
+5. `continue` skips `i=1`, `break` stops at `i=1` and still prints the line after the loop.
+6. `if(false)` does not execute the branch yet the program still compiles; `do-while(false)` runs one iteration.
+7. The condition `value > 100 && value < 0` cannot be true for `int`, yet the compiler does not necessarily forbid the branch; only `checked=5` appears.
+8. `finally` is executed before the caller prints the returned result.
 
-## 13. Bài tập và đáp án
+## 13. Exercises and Answers
 
-### Bài A — câu lệnh nào không thể tới?
+### Exercise A — which statement is unreachable?
 
 ~~~java
 static int f() {
     return 10;
-    // System.out.println("X"); // Nếu bỏ comment?
+    // System.out.println("X"); // If uncommented?
 }
 ~~~
 
-**Đáp án:** `System.out.println("X")` là **unreachable statement**, gây lỗi biên dịch. Muốn ghi log hãy đặt nó **trước** `return`.
+**Answer:** `System.out.println("X")` is an **unreachable statement**, causing a compile error. To log, place it **before** `return`.
 
-### Bài B — `if(false)` hay `while(false)`?
+### Exercise B — `if(false)` or `while(false)`?
 
 ~~~java
 if (false) {
@@ -537,9 +537,9 @@ if (false) {
 System.out.println("C");
 ~~~
 
-**Đáp án:** ví dụ đang được bật biên dịch và in `C`. Nếu bỏ comment cho `while(false)`, compiler Java 17 báo unreachable ở **body của while**.
+**Answer:** the enabled example compiles and prints `C`. If `while(false)` is uncommented, the Java 17 compiler reports unreachable on the **body of while**.
 
-### Bài C — có `break` thì câu sau vòng có reachable không?
+### Exercise C — with `break`, is the statement after the loop reachable?
 
 ~~~java
 int count = 0;
@@ -550,9 +550,9 @@ while (true) {
 System.out.println(count);
 ~~~
 
-**Đáp án:** reachable vì có đường `break`; stdout `2`.
+**Answer:** reachable because there is a `break` path; stdout `2`.
 
-### Bài D — `continue` trong nhánh
+### Exercise D — `continue` inside a branch
 
 ~~~java
 for (int i = 0; i < 3; i++) {
@@ -563,9 +563,9 @@ for (int i = 0; i < 3; i++) {
 }
 ~~~
 
-**Đáp án:** nếu bật dòng in `X`, nó unreachable; chuyển xử lý mong muốn lên **trước** `continue` hoặc sang nhánh phù hợp.
+**Answer:** if the line printing `X` is enabled, it is unreachable; move the desired processing **before** `continue` or to the appropriate branch.
 
-### Bài E — lỗi chưa khởi tạo có phải unreachable?
+### Exercise E — is an uninitialized variable error reachability?
 
 ~~~java
 // static void f(boolean flag) {
@@ -575,21 +575,21 @@ for (int i = 0; i < 3; i++) {
 // }
 ~~~
 
-**Đáp án:** không. Câu `println` vẫn có thể tới, nhưng `x` chưa chắc được gán trên đường `flag == false`. Đây là lỗi **definite assignment**, không phải lỗi reachability.
+**Answer:** no. The `println` statement is still reachable, yet `x` is not guaranteed to be assigned on the `flag == false` path. This is a **definite assignment** error, not a reachability error.
 
-## 14. Checklist và kết luận
+## 14. Checklist and Conclusion
 
-- [ ] Phân biệt **câu lệnh unreachable theo compiler** với code không chạy do dữ liệu thực tế.
-- [ ] Nhận diện câu lệnh trực tiếp sau `return` hoặc `throw` vô điều kiện.
-- [ ] Nhận diện câu lệnh trực tiếp sau `break`/`continue` trong cùng nhánh.
-- [ ] Biết `while(true)`/`for(;;)` không có đường break làm mã theo sau unreachable.
-- [ ] Hiểu đường `break` hợp lệ cho phép mã sau vòng có thể tới.
-- [ ] Nhớ Java cho `if(false)` hợp lệ nhưng `while(false)` có body không hợp lệ.
-- [ ] Hiểu `do ... while(false)` vẫn thực thi body một lượt.
-- [ ] Không nhầm mâu thuẫn logic trong `if` với lỗi unreachable được compiler phát hiện.
-- [ ] Biết `finally` có thể chạy trong quá trình `return` hoặc chuyển luồng khác.
-- [ ] Phân biệt unreachable với `missing return` và `variable might not have been initialized`.
-- [ ] Khi sửa mã, giữ nguyên ý nghĩa nghiệp vụ và đường đi của side effect.
-- [ ] Chạy `ReachabilityDemo.java` bằng `javac`/`java` Java 17+, đối chiếu exact stdout.
+- [ ] Distinguish **statements unreachable per the compiler** from code not run due to actual data.
+- [ ] Recognize statements placed directly after an unconditional `return` or `throw`.
+- [ ] Recognize statements placed directly after `break`/`continue` in the same branch.
+- [ ] Know that `while(true)`/`for(;;)` without a `break` path makes following code unreachable.
+- [ ] Understand that a valid `break` path allows code after the loop to be reachable.
+- [ ] Remember Java allows `if(false)` validly, whereas `while(false)` has an invalid body.
+- [ ] Understand `do ... while(false)` still executes its body for one iteration.
+- [ ] Do not confuse logical contradictions in `if` with unreachable errors detected by the compiler.
+- [ ] Know that `finally` can execute during `return` or other control transfers.
+- [ ] Distinguish unreachable from `missing return` and `variable might not have been initialized`.
+- [ ] When fixing code, preserve business meaning and side-effect paths.
+- [ ] Run `ReachabilityDemo.java` with Java 17+ `javac`/`java`, verifying exact stdout.
 
-**Kết luận:** Java 17 kiểm tra reachability bằng **các quy tắc tĩnh của luồng điều khiển**, không phải bằng thử chạy mọi dữ liệu có thể. Đặt mã trực tiếp sau một chuyển luồng vô điều kiện thường gây **lỗi biên dịch**, trong khi một nhánh không được thực thi ở runtime có thể vẫn hợp lệ (đặc biệt `if(false)`). Phân tích từng đường `return`, `throw`, `break`, `continue` và cơ chế dừng của vòng lặp giúp sửa lỗi **đúng luồng**, thay vì chỉ xóa thông báo từ compiler.
+**Conclusion:** Java 17 checks reachability using **static control-flow rules**, not by testing every possible input. Placing code directly after an unconditional control transfer generally causes a **compile error**, whereas a branch unexecuted at runtime can still be valid (especially `if(false)`). Analyzing each `return`, `throw`, `break`, `continue` path and loop termination mechanism helps fix errors **with the right control flow**, rather than just deleting compiler messages.

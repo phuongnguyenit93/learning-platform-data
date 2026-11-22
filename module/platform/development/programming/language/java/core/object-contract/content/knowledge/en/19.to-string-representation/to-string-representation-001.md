@@ -1,61 +1,61 @@
-# Vai trò của `toString()` trong quan sát và chẩn đoán đối tượng Java
+# The Role of `toString()` in Observing and Diagnosing Java Objects
 
-## 1. `toString()` giúp quan sát điều gì?
+## 1. What Does `toString()` Help Observe?
 
-Khi chương trình chạy, người phát triển cần biết **đối tượng đang đại diện cho cái gì, trạng thái đáng chú ý ra sao, và dữ liệu nào giúp liên hệ một hiện tượng với yêu cầu hoặc bản ghi cụ thể**. Phương thức `toString()` là một điểm mở rộng chuẩn của Java để cung cấp **biểu diễn văn bản dễ đọc** cho một đối tượng.
+When a program runs, developers need to know **what an object represents, what its notable state is, and which data helps correlate an observed event with a specific request or record**. The `toString()` method is a standard Java extension point for providing a **human-readable text representation** of an object.
 
-`toString()` đặc biệt hữu ích trong:
+`toString()` is particularly useful for:
 
-- **Gỡ lỗi:** quan sát đối tượng tại breakpoint, cửa sổ biến của IDE, hoặc các dòng in tạm trong quá trình điều tra.
-- **Ghi log:** đưa một số trường có ý nghĩa vào log để liên kết lỗi với mã đơn hàng, trạng thái xử lý, số lần thử lại hoặc thời điểm nghiệp vụ.
-- **Chẩn đoán sự cố:** đối chiếu trạng thái trước và sau thao tác, phát hiện giá trị bị sai, dữ liệu trống hoặc đối tượng đi nhầm luồng xử lý.
-- **Quan sát collection:** khi in một `List`, `Set` hoặc `Map`, biểu diễn của các phần tử thường dựa vào `toString()`, nên một triển khai có ích giúp đọc kết quả dễ hơn.
-- **Thông báo nội bộ và kiểm tra thủ công:** nhanh chóng hiểu đối tượng mà không phải tự in từng getter.
+- **Debugging:** inspecting objects at breakpoints, in the IDE variables window, or via temporary print statements during investigation.
+- **Logging:** including meaningful fields in logs to correlate errors with an order ID, processing status, retry count, or business timestamp.
+- **Incident diagnosis:** comparing state before and after an operation, and detecting incorrect values, missing data, or objects taking the wrong processing path.
+- **Inspecting collections:** when printing a `List`, `Set`, or `Map`, element representations usually rely on `toString()`, so a useful implementation makes the output easier to read.
+- **Internal notifications and manual checks:** quickly understanding an object without manually printing every getter.
 
-Ví dụ, với một yêu cầu xử lý thanh toán, biểu diễn:
+For example, for a payment processing request, the representation:
 
 ```text
 Payment{id='PAY-42', status='PENDING', attempts=2}
 ```
 
-có giá trị chẩn đoán hơn dạng mặc định như:
+has greater diagnostic value than a default form such as:
 
 ```text
 com.example.Payment@4e25154f
 ```
 
-Chuỗi hex ở ví dụ thứ hai chỉ mang tính minh họa, không phải địa chỉ RAM hay kết quả cố định của chương trình. Dữ liệu trạng thái hữu ích cần được chọn **theo mục đích quan sát**, tránh lộ mã xác thực, thông tin cá nhân hoặc các trường rất dài.
+The hex string in the second example is purely illustrative, not a RAM address or a fixed output of the program. Useful state data should be selected **based on observation goals**, avoiding exposing authentication tokens, personal information, or very long fields.
 
-**Phạm vi quan trọng:** `toString()` là một biểu diễn thuận tiện cho con người, **không phải** giao thức serialization, JSON contract, khóa định danh hay bằng chứng hai object bằng nhau. Những nhiệm vụ đó thuộc API, mô hình dữ liệu, `equals()`/`hashCode()` hoặc serializer chuyên dụng.
+**Important scope:** `toString()` is a convenient representation for humans, **not** a serialization protocol, JSON contract, identifier key, or proof that two objects are equal. Those responsibilities belong to APIs, data models, `equals()`/`hashCode()`, or dedicated serializers.
 
-## 2. `Object.toString()` mặc định hoạt động thế nào?
+## 2. How Does the Default `Object.toString()` Work?
 
-Mọi lớp Java thông thường đều kế thừa `toString()` từ `java.lang.Object` trừ khi tự ghi đè. Hình thức kết quả mặc định của `Object.toString()` tương đương:
+Every regular Java class inherits `toString()` from `java.lang.Object` unless it overrides it itself. The default output form of `Object.toString()` is equivalent to:
 
 ```java
 getClass().getName() + "@" + Integer.toHexString(hashCode())
 ```
 
-Trong biểu thức này:
+In this expression:
 
-1. `getClass().getName()` trả tên lớp runtime (kể cả package, và với lớp lồng nhau có thể xuất hiện ký hiệu `$`).
-2. `hashCode()` được gọi trên đối tượng hiện tại; **nếu lớp đã ghi đè `hashCode()`, giá trị đó cũng được dùng**.
-3. `Integer.toHexString(...)` biến số hash thành chuỗi hex.
+1. `getClass().getName()` returns the runtime class name (including the package, and for nested classes the `$` symbol may appear).
+2. `hashCode()` is called on the current object; **if the class has overridden `hashCode()`, that value is also used**.
+3. `Integer.toHexString(...)` converts the hash number into a hex string.
 
-Điều này lý giải vì sao nhìn thấy `TênLớp@...` thường chỉ cho biết loại đối tượng và một mã hash, không hiển thị trường nghiệp vụ.
+This explains why seeing `ClassName@...` usually only indicates the object type and a hash code, without displaying business fields.
 
-Các hiểu nhầm cần tránh:
+Misconceptions to avoid:
 
-- **Phần sau `@` không mặc nhiên là địa chỉ bộ nhớ.** Đặc tả `Object.toString()` nói tới hash dạng hex, không hứa vị trí RAM; JVM có thể di chuyển đối tượng trong quá trình quản lý bộ nhớ.
-- **Hash không bảo đảm duy nhất.** Hai object khác nhau có thể có cùng hash do va chạm, và mã hash không thay thế `==` khi cần kiểm tra cùng tham chiếu.
-- **Chuỗi mặc định không ổn định xuyên lần chạy.** Không lưu hoặc phân tích nó như ID cố định trong database, sự kiện hay API.
-- **Đừng suy diễn ý nghĩa từ hex.** Ngay cả khi chuỗi trông giống một giá trị định danh, nó không chứng minh trạng thái nghiệp vụ, phiên bản dữ liệu hay tính toàn vẹn của đối tượng.
+- **The part after `@` is not necessarily a memory address.** The `Object.toString()` specification refers to a hash in hex form, not a guaranteed RAM location; the JVM may move objects during memory management.
+- **The hash is not guaranteed to be unique.** Two different objects can have the same hash due to collisions, and a hash code does not replace `==` when checking for the same reference.
+- **The default string is not stable across runs.** Do not store or parse it as a fixed ID in databases, events, or APIs.
+- **Do not infer meaning from the hex value.** Even if the string looks like an identifier value, it does not prove business state, data version, or object integrity.
 
-Nếu cần gắn sự kiện log với một thực thể, hãy dùng **mã nghiệp vụ rõ ràng** như `orderId` hoặc `paymentId`, kèm trace/request ID theo cơ chế logging phù hợp.
+If you need to associate log events with an entity, use an **explicit business identifier** such as `orderId` or `paymentId`, along with a trace/request ID via an appropriate logging mechanism.
 
-## 3. Ghi đè `toString()`: chọn thông tin phù hợp cho chẩn đoán
+## 3. Overriding `toString()`: Choosing Suitable Information for Diagnosis
 
-Chữ ký phương thức chuẩn:
+Standard method signature:
 
 ```java
 @Override
@@ -64,9 +64,9 @@ public String toString() {
 }
 ```
 
-Đây là mảnh code minh họa bên trong một lớp. Khi override đúng, phương thức phải `public`, không nhận tham số và trả một `String`. Annotation `@Override` giúp trình biên dịch phát hiện lỗi chữ ký.
+This is an illustrative code snippet inside a class. When properly overridden, the method must be `public`, take no parameters, and return a `String`. The `@Override` annotation helps the compiler catch signature mistakes.
 
-Ví dụ với một thanh toán:
+Example with a payment:
 
 ```java
 public final class Payment {
@@ -91,76 +91,76 @@ public final class Payment {
 }
 ```
 
-Đây là lớp có thể biên dịch nếu lưu vào `Payment.java`, nhưng chưa có `main` để tự chạy. Nó minh họa việc chọn trường: `id` hỗ trợ liên hệ với bản ghi; `status` và `attempts` cho biết trạng thái; `accessToken` **không** xuất hiện trong kết quả vì chứa thông tin nhạy cảm.
+This is a compilable class if saved to `Payment.java`, though it does not have a `main` method to run on its own. It illustrates field selection: `id` helps correlate with a record; `status` and `attempts` indicate state; `accessToken` does **not** appear in the output because it contains sensitive information.
 
-Không có nghĩa cứ trường `private` là phải đưa vào `toString()`. Chọn một tập trường **ngắn, có ý nghĩa, đủ để giải thích sự kiện**. Ví dụ không nên in toàn bộ payload HTTP, binary data, token đăng nhập, thẻ thanh toán, email cá nhân hoặc danh sách hàng triệu phần tử chỉ vì chúng có trong đối tượng.
+Not every `private` field has to be included in `toString()`. Choose a set of fields that is **short, meaningful, and sufficient to explain the event**. For instance, you should not print an entire HTTP payload, binary data, login tokens, payment cards, personal emails, or lists of millions of elements just because they exist in the object.
 
-### 3.1. Dùng `StringBuilder` khi có nhiều trường tùy chọn
+### 3.1. Using `StringBuilder` When There Are Many Optional Fields
 
-Với biểu diễn phức tạp, `StringBuilder` giúp ghép các phần dễ đọc và có điều kiện. Với vài trường, nối chuỗi bằng `+` như ví dụ trên là hoàn toàn hợp lý, vì trình biên dịch và runtime Java đã có cơ chế tối ưu phù hợp cho các biểu thức nối chuỗi thông thường.
+For complex representations, `StringBuilder` helps assemble parts readably and conditionally. For a few fields, concatenating with `+` as in the example above is completely reasonable, because the Java compiler and runtime already have suitable optimizations for ordinary string concatenation expressions.
 
-`String.format(...)` cũng có thể tạo kết quả rõ ràng, nhưng nếu `toString()` được gọi với tần suất cao, định dạng phức tạp có thể làm tăng chi phí. Hãy đo lường khi tối ưu, không thay cách viết rõ ràng bằng kỹ thuật thủ công chỉ vì giả định hiệu năng.
+`String.format(...)` can also produce clear output, but if `toString()` is called at high frequency, complex formatting can increase overhead. Measure before optimizing, and do not replace clear code with manual techniques based purely on performance assumptions.
 
-### 3.2. Kết quả cần dễ đọc và đủ nhất quán
+### 3.2. Output Should Be Readable and Reasonably Consistent
 
-Một số thói quen hữu ích:
+Some helpful habits:
 
-- Mở đầu bằng tên loại đối tượng dễ nhận biết, ví dụ `Payment{...}` hoặc `JobState{...}`.
-- Ghi tên field trước giá trị: `attempts=2` dễ hiểu hơn một danh sách chỉ gồm số.
-- Giữ thứ tự trường nhất quán giữa các lần gọi.
-- Với field có thể `null`, cho ra giá trị rõ ràng nếu field đó hữu ích để chẩn đoán.
-- Chỉ hiển thị một phần hoặc số lượng phần tử nếu collection rất lớn.
-- Nếu có mã định danh ổn định, ưu tiên in nó hơn thông tin tham chiếu/identity hash.
-- Không biến văn bản `toString()` thành một định dạng máy móc mà bên khác phải parse để vận hành hệ thống.
+- Start with a recognizable object type name, such as `Payment{...}` or `JobState{...}`.
+- Put the field name before the value: `attempts=2` is easier to understand than a list consisting only of numbers.
+- Keep field order consistent across calls.
+- For nullable fields, output a clear value if that field is useful for diagnosis.
+- Show only a subset or the element count if a collection is very large.
+- If a stable identifier exists, prefer printing it over reference/identity hash information.
+- Do not turn `toString()` text into a machine format that another party must parse to operate the system.
 
-Nếu muốn log có cấu trúc thật sự, dùng API ghi log có trường riêng (ví dụ payment ID, event name, status, trace ID), thay vì trích xuất dữ liệu bằng regex từ `toString()`.
+If you want genuinely structured logs, use a logging API with dedicated fields (for example payment ID, event name, status, trace ID), rather than extracting data with regex from `toString()`.
 
-## 4. Khi nào Java tự gọi `toString()`?
+## 4. When Does Java Automatically Call `toString()`?
 
-Có nhiều con đường khiến biểu diễn của đối tượng xuất hiện mà bạn không gọi `obj.toString()` bằng tay.
+There are several paths that cause an object's representation to appear without you calling `obj.toString()` manually.
 
 ### 4.1. `System.out.println(obj)`
 
-Khi in một tham chiếu kiểu `Object`, `PrintStream.println(Object)` chuyển giá trị thành chuỗi theo cơ chế `String.valueOf(Object)`. Đối với đối tượng khác `null`, thao tác này gọi `toString()`; với tham chiếu `null`, văn bản nhận được là `"null"`.
+When printing an `Object` reference, `PrintStream.println(Object)` converts the value to a string via `String.valueOf(Object)`. For a non-`null` object, this operation calls `toString()`; for a `null` reference, the resulting text is `"null"`.
 
 ```java
 Object value = new Object();
-System.out.println(value); // Dạng tên lớp @ hex hash (giá trị cụ thể tùy lần chạy).
+System.out.println(value); // Form: class name @ hex hash (specific value depends on the run).
 System.out.println((Object) null); // null
 ```
 
-Đây là mảnh code minh họa; dòng đầu có kết quả hash không xác định trước. Không hardcode stdout của một object chưa ghi đè `toString()` vào bài kiểm thử.
+This is an illustrative code snippet; the first line has a non-deterministic hash result. Do not hardcode the stdout of an object that does not override `toString()` in tests.
 
-### 4.2. Ghép chuỗi
+### 4.2. String Concatenation
 
-`"item=" + obj` chuyển đối tượng thành biểu diễn chuỗi khi đánh giá biểu thức nối chuỗi. Vì thế:
+`"item=" + obj` converts the object to its string representation when evaluating the concatenation expression. Therefore:
 
 ```java
 String message = "payment=" + payment;
 ```
 
-cũng sử dụng `toString()` của `payment` khi biến không `null`. Cần nhớ thời điểm đánh giá: phép nối chuỗi được thực hiện khi dựng `message`, kể cả khi log về sau bị bỏ qua. Trong luồng logging hiệu năng cao, nên dùng cơ chế message/parameterized logging phù hợp thư viện để tránh dựng thông điệp không cần thiết; khả năng trì hoãn chuyển chuỗi phụ thuộc API/logging framework.
+also uses `payment`'s `toString()` when the variable is not `null`. Keep evaluation timing in mind: string concatenation runs when building `message`, even if the log is later discarded. In high-throughput logging paths, use the library's message/parameterized logging mechanism to avoid building unnecessary messages; whether string conversion is deferred depends on the logging API/framework.
 
-### 4.3. `String.valueOf(...)` và `Objects.toString(...)`
+### 4.3. `String.valueOf(...)` and `Objects.toString(...)`
 
-`String.valueOf((Object) obj)` an toàn với `null` và tạo `"null"`; `Objects.toString(obj, "n/a")` cho phép cung cấp giá trị mặc định khi `obj == null`. Không nên viết `obj.toString()` khi `obj` có thể `null` mà không có kiểm tra, vì sẽ ném `NullPointerException`.
+`String.valueOf((Object) obj)` is `null`-safe and produces `"null"`; `Objects.toString(obj, "n/a")` lets you supply a default value when `obj == null`. You should not write `obj.toString()` when `obj` might be `null` without a check, because it will throw `NullPointerException`.
 
-### 4.4. Collection và mảng
+### 4.4. Collections and Arrays
 
-Các implementation quen thuộc của `List`, `Set` và `Map` có `toString()` thể hiện các phần tử/entry; đối tượng phần tử sẽ được chuyển sang chuỗi khi biểu diễn collection. Nếu phần tử có `toString()` rối, vô ích hoặc làm lộ dữ liệu, in collection cũng có vấn đề tương tự.
+Common implementations of `List`, `Set`, and `Map` have a `toString()` that displays their elements/entries; element objects are converted to strings when representing the collection. If an element has a messy, unhelpful, or data-leaking `toString()`, printing the collection will have the same problem.
 
-**Mảng là một trường hợp đặc biệt:** gọi `toString()` trực tiếp trên `int[]` thường chỉ cho dạng `[I@...`, vì mảng không có biểu diễn nội dung riêng do `Object.toString()` cung cấp. Dùng:
+**Arrays are a special case:** calling `toString()` directly on `int[]` usually only gives a form like `[I@...`, because arrays do not have their own content representation beyond what `Object.toString()` provides. Use:
 
-- `Arrays.toString(array)` để in phần tử của mảng một chiều.
-- `Arrays.deepToString(array)` khi cần biểu diễn lồng nhau của mảng object, ví dụ `int[][]`.
+- `Arrays.toString(array)` to print the elements of a one-dimensional array.
+- `Arrays.deepToString(array)` when you need a nested representation of an object array, such as `int[][]`.
 
-Không được xem các phương thức in mảng là giải pháp serializing bền vững; chúng cung cấp biểu diễn tiện cho quan sát.
+These array-printing methods must not be treated as a durable serialization solution; they provide a convenient representation for observation.
 
-## 5. Ví dụ Java 17 có kết quả xác định
+## 5. Java 17 Example with Deterministic Output
 
-Ví dụ đầy đủ sau chỉ in các giá trị có thể dự đoán, đồng thời chỉ ra các giới hạn của `toString()`: hai đối tượng có cùng text vẫn không nhất thiết cùng tham chiếu hoặc bằng nhau theo `equals()`; biểu diễn cũng có thể bỏ qua trường bí mật.
+The following complete example only prints predictable values while demonstrating the limitations of `toString()`: two objects with the same text are not necessarily the same reference or equal according to `equals()`; a representation can also omit secret fields.
 
-Lưu tệp **`ToStringDiagnosticsDemo.java`**:
+Save the file **`ToStringDiagnosticsDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -224,14 +224,14 @@ public class ToStringDiagnosticsDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa tệp bằng **JDK 17 trở lên**:
+Compile and run from the directory containing the file using **JDK 17 or later**:
 
 ```bash
 javac ToStringDiagnosticsDemo.java
 java ToStringDiagnosticsDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 Object: Payment{id='PAY-42', status='PENDING', attempts=2}
@@ -247,95 +247,95 @@ Null: null
 Default form matches class@: true
 ```
 
-**Giải thích:**
+**Explanation:**
 
-1. `Payment.toString()` cho văn bản tập trung vào mã thanh toán, trạng thái và số lần thử, nên dòng `Object` phù hợp để đọc log.
-2. `first` và `second` có cùng chuỗi `toString()` vì các trường được chọn giống nhau; nhưng `first == second` là `false` (hai object), và `Payment` không override `equals()` nên `first.equals(second)` cũng là `false`. **Đừng suy ra equality từ biểu diễn chuỗi.**
-3. Mỗi `Payment` có token nội bộ, nhưng `toString()` không đưa token vào chuỗi; kiểm tra chuỗi không chứa `"secret-123"` trả `false` cho “Secret exposed”.
-4. `record PaymentSummary` được Java sinh sẵn `toString()` theo tên record và toàn bộ component của record. Điều này tiện cho dữ liệu tóm tắt không nhạy cảm; nếu record chứa token hoặc dữ liệu cá nhân, hành vi mặc định có thể làm lộ chúng khi log.
-5. `List` hiển thị mỗi phần tử thông qua biểu diễn tương ứng. Việc in toàn bộ collection có thể làm log dài bất ngờ khi danh sách lớn.
-6. `Arrays.toString` và `Arrays.deepToString` in nội dung của mảng một cấp hoặc mảng lồng nhau; dùng trực tiếp `array.toString()` không đáp ứng mục tiêu đó.
-7. Dòng cuối chỉ kiểm tra tiền tố định dạng mặc định của `Object.toString()`, không khẳng định một giá trị hex cụ thể.
+1. `Payment.toString()` produces text focused on payment ID, status, and attempt count, so the `Object` line is suitable for reading logs.
+2. `first` and `second` have the same `toString()` string because the selected fields are identical; however, `first == second` is `false` (two objects), and `Payment` does not override `equals()`, so `first.equals(second)` is also `false`. **Do not infer equality from the string representation.**
+3. Each `Payment` has an internal token, but `toString()` does not include the token in the string; checking that the string does not contain `"secret-123"` returns `false` for "Secret exposed".
+4. `record PaymentSummary` has `toString()` automatically generated by Java based on the record name and all record components. This is convenient for non-sensitive summary data; if a record contains tokens or personal data, the default behavior may expose them when logged.
+5. `List` displays each element through its corresponding representation. Printing an entire collection can make logs unexpectedly long when the list is large.
+6. `Arrays.toString` and `Arrays.deepToString` print the contents of one-dimensional or nested arrays; calling `array.toString()` directly does not achieve that goal.
+7. The last line only checks the default format prefix of `Object.toString()`, without asserting a specific hex value.
 
-## 6. `toString()` liên quan gì tới `equals()` và `hashCode()`?
+## 6. How Does `toString()` Relate to `equals()` and `hashCode()`?
 
-Ba phương thức có vai trò khác nhau:
+The three methods serve different roles:
 
-| Phương thức | Câu hỏi trả lời | Điều cần bảo đảm |
+| Method | Question Answered | What Must Be Guaranteed |
 | --- | --- | --- |
-| `equals(Object)` | Hai đối tượng có được coi là bằng nhau theo quan hệ equality của class không? | Phản xạ, đối xứng, bắc cầu, nhất quán, không bằng `null` |
-| `hashCode()` | Mã băm phục vụ các cấu trúc băm là bao nhiêu? | Đối tượng bằng nhau theo `equals()` phải có cùng hash |
-| `toString()` | Biểu diễn văn bản hữu ích cho người quan sát là gì? | Không có hợp đồng bắt buộc là duy nhất, có thể parse hoặc phản ánh tất cả field |
+| `equals(Object)` | Are two objects considered equal under the class's equality relation? | Reflexive, symmetric, transitive, consistent, not equal to `null` |
+| `hashCode()` | What is the hash code for hash-based structures? | Objects equal by `equals()` must have the same hash |
+| `toString()` | What is a useful text representation for an observer? | No required contract to be unique, parseable, or reflect all fields |
 
-Những hệ quả thường bị hiểu sai:
+Consequences that are often misunderstood:
 
-- **Hai object có `toString()` bằng nhau không nhất thiết `equals()` bằng nhau.** Bạn có thể chủ động bỏ các trường khỏi biểu diễn chẩn đoán.
-- **Hai object `equals()` bằng nhau cũng không được ngôn ngữ buộc phải có `toString()` giống nhau.** Chẳng hạn hai entity cùng ID nhưng status cập nhật ở thời điểm khác nhau vẫn có thể in hai status khác.
-- **`toString()` không nên được dùng làm `hashCode()` hay khóa bản ghi.** Tên field, thứ tự field và chính sách che giấu dữ liệu có thể thay đổi theo phiên bản ứng dụng.
-- **Không sửa `equals/hashCode` chỉ để khiến log trông giống nhau.** Quan hệ bằng nhau là một quyết định về miền nghiệp vụ hoặc giá trị, không phải một yêu cầu định dạng.
-- **Không dựa vào chuỗi `Class@hash` để suy luận về memory identity.** Hash có thể va chạm, lớp có thể override hash, và địa chỉ bộ nhớ không được cung cấp theo định dạng đó.
+- **Two objects with equal `toString()` values are not necessarily equal by `equals()`.** You can deliberately omit fields from the diagnostic representation.
+- **Two objects that are equal by `equals()` are also not required by the language to have the same `toString()`.** For example, two entities with the same ID but statuses updated at different times can still print two different statuses.
+- **`toString()` should not be used as `hashCode()` or a record key.** Field names, field order, and data-masking policies can change across application versions.
+- **Do not modify `equals/hashCode` just to make logs look the same.** Equality is a domain or value decision, not a formatting requirement.
+- **Do not rely on the `Class@hash` string to infer memory identity.** Hashes can collide, a class can override hash, and a memory address is not provided in that format.
 
-Nếu cần dữ liệu để so sánh tự động trong test, kiểm tra các field hoặc `equals()` theo định nghĩa của lớp. Chỉ kiểm tra `toString()` khi định dạng biểu diễn chính là hành vi bạn muốn cam kết; nếu không, kiểm thử chính xác từng dấu câu của `toString()` thường làm test dễ vỡ khi thay đổi cách hiển thị.
+If you need data for automated comparison in tests, check the fields or `equals()` as defined by the class. Only test `toString()` when the representation format itself is behavior you want to commit to; otherwise, testing every punctuation mark of `toString()` tends to make tests brittle when the display changes.
 
-## 7. Phân biệt `toString()` với logging có cấu trúc và serialization
+## 7. Distinguishing `toString()` from Structured Logging and Serialization
 
-### 7.1. Log nên chứa thông tin ngữ cảnh
+### 7.1. Logs Should Contain Contextual Information
 
-Log có ích cần trả lời được “sự kiện gì, khi nào, ở đâu, liên quan yêu cầu/bản ghi nào, trạng thái nào”. `toString()` của một object chỉ là một phần dữ liệu để bổ sung ngữ cảnh.
+Useful logs need to answer "what event, when, where, which request/record is involved, what status". An object's `toString()` is only one piece of data to supplement context.
 
-Ví dụ một dòng log hữu ích về mặt ý nghĩa:
+Example of a semantically useful log line:
 
 ```text
 event=payment_retry requestId=REQ-18 paymentId=PAY-42 status=PENDING attempt=2
 ```
 
-Đây là văn bản minh họa, không phải output do một API log cụ thể sinh ra. Ở hệ thống lớn, việc log các trường có tên riêng giúp tìm kiếm/lọc tốt hơn so với chuỗi `Payment{...}` tự do.
+This is illustrative text, not output generated by a specific logging API. In large systems, logging dedicated named fields enables better searching/filtering than a free-form `Payment{...}` string.
 
-Với thư viện logging hỗ trợ tham số, ưu tiên gọi theo mẫu của thư viện khi phù hợp, để tránh tạo thông điệp tốn chi phí khi mức log bị tắt. Tuy nhiên, chi tiết định dạng và thời điểm gọi `toString()` phụ thuộc thư viện; **không suy đoán rằng mọi API log đều trì hoãn việc tính chuỗi**.
+With logging libraries that support parameters, prefer calling the library's parameterized pattern when appropriate to avoid building costly messages when the log level is disabled. However, formatting details and when `toString()` is invoked depend on the library; **do not assume that every logging API defers string evaluation**.
 
-### 7.2. Serialization không phải `toString()`
+### 7.2. Serialization Is Not `toString()`
 
-`toString()` có thể thay đổi hình thức chỉ để giúp người đọc log. Không dùng nó làm JSON, CSV, payload mạng, khóa cache hay dữ liệu lưu database. Một serializer chuyên dụng phải có quy tắc rõ về tên trường, kiểu, escaping, phiên bản schema và kiểm soát các trường được công bố.
+`toString()` can change its form simply to help log readers. Do not use it as JSON, CSV, network payloads, cache keys, or database-stored data. A dedicated serializer must have clear rules for field names, types, escaping, schema versioning, and control over exposed fields.
 
-Một chuỗi `toString()` như `Order{id='O1', status='NEW'}` không phải JSON hợp lệ; cố parse ngược bằng regex rất dễ hỏng khi status chứa dấu nháy, xuống dòng hoặc khi thứ tự field thay đổi.
+A `toString()` string like `Order{id='O1', status='NEW'}` is not valid JSON; trying to parse it back with regex easily breaks when `status` contains quotes, newlines, or when field order changes.
 
-### 7.3. Exception và stack trace
+### 7.3. Exceptions and Stack Traces
 
-`Throwable.toString()` thông thường cho tên lớp exception và thông điệp lỗi; nó **không đồng nghĩa với toàn bộ stack trace**. Muốn quan sát stack trace, sử dụng cơ chế của logger để ghi exception/stack trace hoặc gọi `printStackTrace` trong bối cảnh thích hợp. Không cố nhồi toàn bộ stack trace hay object graph vào `toString()` của domain object.
+`Throwable.toString()` normally gives the exception class name and error message; it is **not synonymous with the full stack trace**. To observe the stack trace, use the logger's mechanism to log exceptions/stack traces or call `printStackTrace` in an appropriate context. Do not try to stuff an entire stack trace or object graph into a domain object's `toString()`.
 
-## 8. An toàn dữ liệu: thông tin nào không nên xuất hiện?
+## 8. Data Safety: What Information Should Not Appear?
 
-`toString()` rất dễ được gọi gián tiếp khi in object hoặc collection; vì vậy cần xem đây là một **bề mặt có thể làm lộ dữ liệu**.
+`toString()` is easily called indirectly when printing objects or collections; therefore it must be treated as a **potential data exposure surface**.
 
-Các ví dụ nên hạn chế/che giấu khi biểu diễn đối tượng gồm:
+Examples to restrict/hide when representing objects include:
 
-- Password, access token, API key, secret, cookie xác thực, mã OTP.
-- Số thẻ hoặc thông tin tài chính nhạy cảm.
-- Thông tin cá nhân không cần thiết cho việc chẩn đoán (địa chỉ, email, số điện thoại, hồ sơ y tế).
-- Payload/response body có thể chứa dữ liệu khách hàng hoặc bí mật.
-- Dữ liệu binary, khóa mật mã, session state, đối tượng chứa đường dẫn/tài nguyên riêng tư.
+- Passwords, access tokens, API keys, secrets, authentication cookies, OTP codes.
+- Card numbers or sensitive financial information.
+- Personal information unnecessary for diagnosis (addresses, emails, phone numbers, medical records).
+- Payloads/response bodies that may contain customer data or secrets.
+- Binary data, cryptographic keys, session state, objects containing private paths/resources.
 
-Chỉ che mật khẩu bằng `"****"` là chưa đủ nếu các trường khác vẫn có thể lộ dữ liệu. Thiết kế một **allowlist** các trường an toàn để in thường tốt hơn liệt kê hết mọi field rồi chỉ chặn vài cái tên nhạy cảm.
+Simply masking passwords with `"****"` is not enough if other fields can still leak data. Designing an **allowlist** of safe fields to print is usually better than listing every field and only blocking a few sensitive names.
 
-Với record, IDE code generator hoặc Lombok, phải xem lại code `toString()` được sinh tự động: nó có thể đưa tất cả field/component vào kết quả, kể cả field mới thêm trong tương lai. Phần dành cho log nội bộ cũng có thể bị chuyển sang hệ thống tập trung hoặc xuất qua kênh hỗ trợ, vì vậy không nên phụ thuộc vào giả định “chỉ developer thấy”.
+With records, IDE code generators, or Lombok, you must review the auto-generated `toString()` code: it can include all fields/components in the output, including new fields added in the future. Content intended for internal logs can also be forwarded to centralized systems or exported through support channels, so do not rely on the assumption that "only developers see it".
 
-Nếu dữ liệu có xuống dòng hoặc ký tự điều khiển do người dùng nhập, ghi log dạng văn bản tự do có thể bị nhiễu bởi log injection. Sử dụng logging có cấu trúc, escaping và giới hạn độ dài theo chính sách hệ thống; đừng kỳ vọng `toString()` tự xử lý an toàn các giá trị tùy ý.
+If data contains newlines or control characters from user input, free-form text logging can be disrupted by log injection. Use structured logging, escaping, and length limits according to system policy; do not expect `toString()` to safely handle arbitrary values on its own.
 
-## 9. Những rủi ro về hiệu năng và side effect
+## 9. Performance Risks and Side Effects
 
-`toString()` thường xuất hiện trên đường chẩn đoán, nhưng đôi khi được gọi rất nhiều trong quá trình chạy thực tế. Một phương thức hữu ích nên:
+`toString()` often appears on diagnostic paths, yet is sometimes called very frequently during actual execution. A useful method should be:
 
-1. **Nhanh và có chi phí dự đoán được.** Không tải toàn bộ dữ liệu từ database, đọc file, gọi HTTP, tính toán phức tạp hoặc tuần tự hóa cả đồ thị đối tượng chỉ để tạo một dòng.
-2. **Không gây side effect.** Tránh cập nhật trạng thái, tăng bộ đếm, xóa phần tử hoặc ghi log khác trong `toString()`; một hành động “chỉ quan sát” không nên làm thay đổi chương trình.
-3. **Không gây đệ quy vô hạn.** Hai object tham chiếu qua lại có thể làm `toString()` của mỗi bên gọi ngược lại bên kia mãi.
-4. **Không làm log bùng nổ.** Giới hạn độ dài text, số phần tử hoặc độ sâu của cấu trúc lồng nhau.
-5. **Không phụ thuộc vào các tác vụ có thể thất bại.** Getter có tải dữ liệu lười (*lazy loading*) hoặc proxy ORM có thể thực hiện truy vấn ngoài ý muốn, ném exception hoặc tiếp xúc với trạng thái transaction.
-6. **Dễ dùng khi xảy ra lỗi.** Tránh các chuỗi truy cập null không có kiểm tra, lỗi định dạng hoặc giả định object liên quan luôn được khởi tạo.
+1. **Fast with predictable cost.** Do not load entire datasets from a database, read files, make HTTP calls, perform complex computations, or serialize an entire object graph just to build one line.
+2. **Free of side effects.** Avoid updating state, incrementing counters, removing elements, or writing other logs inside `toString()`; an "observe-only" action should not mutate the program.
+3. **Free of infinite recursion.** Two objects referencing each other can cause each side's `toString()` to call back into the other forever.
+4. **Safe from log explosion.** Limit text length, element count, or depth of nested structures.
+5. **Independent of operations that can fail.** Lazy-loading getters or ORM proxies may trigger unintended queries, throw exceptions, or touch transaction state.
+6. **Safe to use when errors occur.** Avoid unchecked null-dereference chains, formatting errors, or assumptions that related objects are always initialized.
 
-Ví dụ đồ thị hai chiều:
+Example of a bidirectional graph:
 
 ```java
-// Minh họa nguy cơ, không phải lớp Java độc lập.
+// Illustrates the risk, not a standalone Java class.
 class Parent {
     Child child;
     @Override public String toString() { return "Parent{child=" + child + "}"; }
@@ -346,84 +346,84 @@ class Child {
 }
 ```
 
-Nếu `parent.child.parent == parent`, gọi `parent.toString()` có thể lặp `Parent.toString() → Child.toString() → Parent.toString() → ...` và cuối cùng gây `StackOverflowError`. Cách xử lý thường là in mã tham chiếu ổn định của đối tượng liên quan, ví dụ `childId` thay vì toàn bộ `child.toString()`, hoặc giới hạn độ sâu có chủ đích.
+If `parent.child.parent == parent`, calling `parent.toString()` can loop `Parent.toString() → Child.toString() → Parent.toString() → ...` and eventually cause `StackOverflowError`. The usual fix is to print a stable reference identifier of the related object, such as `childId` instead of the entire `child.toString()`, or intentionally limit depth.
 
-Với collection, `Arrays.deepToString` giúp biểu diễn mảng lồng nhau, nhưng **không vì thế mà tự động phù hợp để in dữ liệu cực lớn hoặc nhạy cảm**. Quan sát cần có mục đích và phạm vi.
+For collections, `Arrays.deepToString` helps represent nested arrays, but **that does not make it automatically suitable for printing huge or sensitive data**. Observation needs purpose and scope.
 
-## 10. Dạng `toString()` tốt cho các loại object khác nhau
+## 10. Good `toString()` Forms for Different Types of Objects
 
-| Loại đối tượng | Nên cân nhắc thể hiện | Nên tránh |
+| Object Type | What to Consider Showing | What to Avoid |
 | --- | --- | --- |
-| Entity nghiệp vụ | ID ổn định, trạng thái cơ bản, thông tin chẩn đoán được phép công bố | Toàn bộ quan hệ ORM, token, danh sách bản ghi con |
-| Value object nhỏ | Các thành phần làm nên giá trị, khi an toàn | Giá trị nhạy cảm không phục vụ chẩn đoán |
-| DTO/record | Các trường an toàn, đủ để hiểu sự kiện | In tự động mọi field khi DTO chứa dữ liệu cá nhân |
-| Cấu trúc dữ liệu | Kích thước, loại phần tử, vài phần tử mẫu | In hàng triệu phần tử hay binary payload |
-| Tác vụ bất đồng bộ | ID tác vụ, trạng thái, số lần thử, thời gian đã biết | Gọi mạng hoặc thay đổi trạng thái bên trong `toString()` |
-| Wrapper/proxy | Tên loại, ID và trạng thái proxy cần thiết | Tự động kích hoạt lazy loading sâu |
-| Exception | Loại, message đã được kiểm soát, mã lỗi | Thông tin bí mật; coi `toString()` thay stack trace |
+| Business entity | Stable ID, basic state, diagnostic info permitted for disclosure | Full ORM relationships, tokens, lists of child records |
+| Small value object | Components that make up the value, when safe | Sensitive values not serving diagnosis |
+| DTO/record | Safe fields sufficient to understand the event | Auto-printing every field when the DTO contains personal data |
+| Data structure | Size, element type, a few sample elements | Printing millions of elements or binary payloads |
+| Asynchronous task | Task ID, status, attempt count, known timestamps | Network calls or mutating state inside `toString()` |
+| Wrapper/proxy | Type name, ID, and necessary proxy state | Automatically triggering deep lazy loading |
+| Exception | Type, controlled message, error code | Secret information; treating `toString()` as a replacement for stack trace |
 
-Không phải đối tượng nào cũng cần override `toString()`. Với lớp nội bộ không cần chẩn đoán bằng text, mặc định có thể đủ. Với dữ liệu chẩn đoán xuất hiện thường xuyên, viết một biểu diễn ngắn và ổn định về ý nghĩa thường giúp tiết kiệm nhiều thời gian điều tra.
+Not every object needs to override `toString()`. For internal classes that do not need text diagnostics, the default may suffice. For diagnostic data that appears frequently, writing a short and semantically stable representation often saves considerable investigation time.
 
-## 11. Một số lỗi dễ gặp khi dùng `toString()`
+## 11. Common Pitfalls When Using `toString()`
 
-### Lỗi 1: coi chuỗi là định danh
+### Pitfall 1: Treating the String as an Identifier
 
-`object.toString()` không phải khóa đáng tin cậy cho database, HTTP endpoint, metrics label hoặc tracing. Nếu nhiều đối tượng có cùng text, việc phân biệt sai sẽ gây lỗi; nếu text đổi sau khi sửa status, khóa được sinh ra cũng đổi. Hãy dùng business ID, trace ID hoặc ID tác vụ chuyên dụng.
+`object.toString()` is not a reliable key for databases, HTTP endpoints, metrics labels, or tracing. If multiple objects share the same text, misidentification will cause bugs; if the text changes after a status update, the generated key changes too. Use a dedicated business ID, trace ID, or task ID.
 
-### Lỗi 2: dùng `toString()` để kiểm tra equality
+### Pitfall 2: Using `toString()` to Check Equality
 
-Hai object có text giống nhau vẫn có thể là hai instance khác nhau. Khi cần kiểm tra cùng tham chiếu, dùng `==`; khi cần equality theo ngữ nghĩa, dùng `equals()` đã được thiết kế đúng.
+Two objects with identical text can still be two different instances. When checking for the same reference, use `==`; when checking semantic equality, use a properly designed `equals()`.
 
-### Lỗi 3: in trực tiếp array và tưởng đã in phần tử
+### Pitfall 3: Printing an Array Directly and Assuming Elements Are Printed
 
-`array.toString()` trên một mảng không cung cấp nội dung như mong đợi. Sử dụng `Arrays.toString` cho mảng một chiều và `Arrays.deepToString` cho mảng lồng nhau phù hợp.
+`array.toString()` on an array does not provide the expected contents. Use `Arrays.toString` for one-dimensional arrays and `Arrays.deepToString` for nested arrays as appropriate.
 
-### Lỗi 4: nhồi toàn bộ object graph
+### Pitfall 4: Dumping the Entire Object Graph
 
-Ví dụ `Order.toString()` gọi `Customer.toString()`, rồi `Customer.toString()` lại gọi tất cả `Order`; chuỗi rất dài hoặc đệ quy vô hạn. Chỉ in mã định danh của quan hệ và vài trường trạng thái cần thiết.
+For example, `Order.toString()` calls `Customer.toString()`, and then `Customer.toString()` calls all `Order`s; the string becomes very long or infinitely recursive. Only print relationship identifiers and a few necessary status fields.
 
-### Lỗi 5: tin rằng mọi giá trị đều an toàn để log
+### Pitfall 5: Assuming Every Value Is Safe to Log
 
-Giá trị `record.toString()` sinh tự động có thể chứa field mới được thêm sau này. Với object dùng để ghi log, kiểm tra policy dữ liệu và chỉ cho xuất một tập trường đã được phép.
+Auto-generated `record.toString()` values may include new fields added later. For objects used in logging, check data policies and only output an allowed set of fields.
 
-### Lỗi 6: để `toString()` ném lỗi phụ
+### Pitfall 6: Letting `toString()` Throw Secondary Errors
 
-Nếu đang chẩn đoán một exception khác mà `toString()` lại gọi phương thức có thể ném exception hoặc truy cập object chưa khởi tạo, thông tin chẩn đoán bị mất hoặc gây nhiễu. Nên ưu tiên dữ liệu đã có, kiểm tra giá trị có thể `null` và không gọi tài nguyên ngoài.
+If you are diagnosing another exception and `toString()` calls a method that can throw an exception or accesses an uninitialized object, diagnostic information is lost or obscured. Prefer already-available data, check nullable values, and do not call external resources.
 
-### Lỗi 7: test cứng định dạng khi không cần
+### Pitfall 7: Hardcoding Format Tests Unnecessarily
 
-Kiểm thử `toString()` là hợp lý nếu lớp cam kết định dạng text cụ thể cho công cụ vận hành. Nếu text chỉ phục vụ debug, test bám sát khoảng trắng/dấu phẩy/cách đặt ngoặc có thể làm code khó đổi. Hãy test những trường quan trọng và nguyên tắc không lộ bí mật; tránh dựa vào identity hash biến động.
+Testing `toString()` makes sense if the class commits to a specific text format for operational tools. If the text is only for debugging, tests tied tightly to whitespace/commas/brace placement can make code hard to change. Test the important fields and the no-secrets rule; avoid relying on fluctuating identity hashes.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-**Câu 1.** Hai instance `Payment` khác nhau có cùng `toString()`. Có thể kết luận `a == b` hoặc `a.equals(b)` là `true` không?
+**Question 1.** Two different `Payment` instances have the same `toString()`. Can we conclude `a == b` or `a.equals(b)` is `true`?
 
-**Đáp án:** Không. `toString()` chỉ biểu diễn các trường được chọn; nó không quyết định quan hệ tham chiếu hay equality.
+**Answer:** No. `toString()` only represents selected fields; it does not determine reference identity or equality.
 
-**Câu 2.** Tên lớp theo sau dấu `@` trong `Object.toString()` có phải địa chỉ RAM không?
+**Question 2.** Is the part following the `@` sign after the class name in `Object.toString()` a RAM address?
 
-**Đáp án:** Không. `Object.toString()` dùng tên lớp và hash của đối tượng dưới dạng hex; hash không phải địa chỉ, cũng không bảo đảm duy nhất.
+**Answer:** No. `Object.toString()` uses the class name and the object's hash in hex form; a hash is not an address, nor is it guaranteed to be unique.
 
-**Câu 3.** Với `int[] a = {1, 2}`, cách in nội dung dễ đọc là gì?
+**Question 3.** Given `int[] a = {1, 2}`, what is a readable way to print its contents?
 
-**Đáp án:** `Arrays.toString(a)` cho `[1, 2]`. Với `int[][]`, dùng `Arrays.deepToString(...)` để in các hàng lồng nhau.
+**Answer:** `Arrays.toString(a)` gives `[1, 2]`. For `int[][]`, use `Arrays.deepToString(...)` to print nested rows.
 
-**Câu 4.** `record Credentials(String user, String token) {}` có phù hợp để log trực tiếp không?
+**Question 4.** Is `record Credentials(String user, String token) {}` suitable to log directly?
 
-**Đáp án:** Thông thường không, vì `toString()` được sinh tự động sẽ thể hiện cả component `token`. Nên thiết kế biểu diễn an toàn hoặc chỉ log các field đã được phép công bố.
+**Answer:** Usually no, because the auto-generated `toString()` will display the `token` component as well. You should design a safe representation or only log fields permitted for disclosure.
 
-**Câu 5.** Một phương thức `toString()` gọi database để lấy danh sách chi tiết trước khi in. Rủi ro là gì?
+**Question 5.** A `toString()` method calls the database to fetch a detail list before printing. What are the risks?
 
-**Đáp án:** Thêm độ trễ, truy vấn ngoài ý muốn, lỗi khi transaction không còn, tải lượng lớn và khả năng ném exception trong lúc đang chẩn đoán. Hãy giới hạn vào trạng thái sẵn có.
+**Answer:** Added latency, unintended queries, errors when the transaction is no longer active, heavy load, and the possibility of throwing an exception while diagnosing another issue. Limit it to already-available state.
 
-**Câu 6.** Khi phân tích lỗi, có thể dùng `exception.toString()` thay thế stack trace hoàn chỉnh không?
+**Question 6.** When analyzing an error, can `exception.toString()` replace the complete stack trace?
 
-**Đáp án:** Không. Nó thường cho loại exception và message, trong khi stack trace chứa ngữ cảnh lời gọi; cần sử dụng cơ chế ghi exception/stack trace riêng.
+**Answer:** No. It usually provides the exception type and message, whereas the stack trace contains call context; a dedicated exception/stack-trace logging mechanism must be used.
 
-**Câu 7.** Một lớp đã override `hashCode()` theo business ID nhưng giữ `Object.toString()`. Phần hex sau `@` phản ánh điều gì?
+**Question 7.** A class overrides `hashCode()` based on a business ID but keeps `Object.toString()`. What does the hex part after `@` reflect?
 
-**Đáp án:** Nó là biểu diễn hex của kết quả `hashCode()` hiện tại, nên có thể phản ánh hash theo business ID đã override. Không nên coi đó là identity hash hay ID gốc.
+**Answer:** It is the hex representation of the current `hashCode()` result, so it can reflect the overridden hash based on the business ID. It should not be treated as an identity hash or original ID.
 
 ---
 
-**Ghi nhớ:** `toString()` giúp đối tượng **dễ quan sát và chẩn đoán**, đặc biệt ở debugger, log và khi in collection. Hãy chọn những trường an toàn, ngắn gọn, có ý nghĩa; tránh side effect, dữ liệu nhạy cảm, đệ quy và I/O. Giữ riêng vai trò của `toString()` với `equals()`, `hashCode()`, định danh nghiệp vụ, serialization và logging có cấu trúc.
+**Key takeaway:** `toString()` makes objects **easy to observe and diagnose**, especially in debuggers, logs, and when printing collections. Choose safe, concise, and meaningful fields; avoid side effects, sensitive data, recursion, and I/O. Keep `toString()`'s role separate from `equals()`, `hashCode()`, business identifiers, serialization, and structured logging.

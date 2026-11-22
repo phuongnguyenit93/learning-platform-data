@@ -1,127 +1,127 @@
-# Bảng lỗi I/O thường gặp và thông tin cần kiểm tra trong Java
+# Common I/O Errors and Diagnostic Information Table in Java
 
-## Mục đích và cách sử dụng
+## Purpose and How to Use
 
-Tài liệu này là bảng **tra cứu nhanh nhưng có giải thích** cho lỗi Java Core I/O: đọc/ghi tệp bằng java.io và java.nio.file, xử lý byte/character stream, charset, channel, socket, nén ZIP và Java object serialization. Khi thấy lỗi, hãy xác định thao tác vừa thực hiện, tìm tên exception hoặc thông điệp gần nhất trong bảng, kiểm tra bằng chứng tối thiểu và chọn cách sửa theo nguyên nhân đã xác nhận.
+This document is a **quick-lookup table with explanations** for Java Core I/O errors: reading/writing files with java.io and java.nio.file, handling byte/character streams, charsets, channels, sockets, ZIP compression, and Java object serialization. When you encounter an error, identify the operation just performed, locate the closest exception name or message in the table, verify the minimum evidence, and choose the fix matching the confirmed root cause.
 
-**Nguyên tắc quan trọng:** tên exception cho biết nhóm vấn đề, chưa chứng minh nguyên nhân. Cùng một thao tác đọc tệp có thể phát sinh IOException, một lớp con cụ thể hơn hoặc RuntimeException tùy API, hệ điều hành, file-system provider, quyền truy cập và thời điểm lỗi xuất hiện. Thông điệp như "Permission denied", "The process cannot access the file" và "Too many open files" thường do môi trường cung cấp; không được giả định chúng luôn ứng với cùng một lớp exception trên mọi hệ thống.
+**Key principle:** the exception name indicates the problem category, not proof of the root cause. The same file-reading operation may raise IOException, a more specific subclass, or a RuntimeException depending on the API, operating system, file-system provider, permissions, and the stage at which the error occurs. Messages such as "Permission denied", "The process cannot access the file", and "Too many open files" are typically supplied by the environment; never assume they always map to the same exception class on every system.
 
-### Cần thu thập thông tin gì trước tiên?
+### What Information Should Be Collected First?
 
-Với một sự cố, ghi lại có kiểm soát:
+For an incident, record in a controlled manner:
 
-1. **Thao tác và API:** Files.readString, Files.newInputStream, Files.move, FileInputStream, BufferedReader, Socket.connect, ZipInputStream, ObjectInputStream.readObject…; đọc hay ghi; chạy đồng bộ hay bất đồng bộ.
-2. **Exception đầy đủ:** loại ngoại lệ cụ thể, message, nguyên nhân lồng nhau (cause), các suppressed exceptions nếu có, và stack trace tại điểm ném lỗi đầu tiên liên quan ứng dụng.
-3. **Đối tượng đích:** đường dẫn tuyệt đối đã chuẩn hóa về mặt cú pháp, loại path (file/thư mục/link), endpoint host:port hoặc định dạng dữ liệu. Che các thông tin nhạy cảm trong log; không ghi token, mật khẩu, nội dung tệp riêng tư.
-4. **Môi trường:** OS, JDK, working directory, container/mount, encoding/charset, trạng thái ổ đĩa, quota, file descriptor/handle, quyền của **tài khoản đang chạy**.
-5. **Thời điểm và phạm vi:** xảy ra ở bước mở, đọc, ghi, flush hay close; một lần hay lặp lại; một file hay mọi file; trước/sau khi deploy; có tiến trình đồng thời sửa/xóa/đổi tên dữ liệu không.
-6. **Kết quả cần làm rõ:** lỗi có khả năng khắc phục bằng thay đường dẫn/quyền/schema không, có cần retry không, retry có an toàn hoặc khiến ghi trùng không, và dữ liệu đã được ghi một phần hay chưa.
+1. **Operation and API:** Files.readString, Files.newInputStream, Files.move, FileInputStream, BufferedReader, Socket.connect, ZipInputStream, ObjectInputStream.readObject…; read or write; synchronous or asynchronous execution.
+2. **Full exception:** exact exception type, message, nested cause, suppressed exceptions if any, and stack trace at the first throw point relevant to the application.
+3. **Target object:** syntactically normalized absolute path, path kind (file/directory/link), host:port endpoint, or data format. Mask sensitive information in logs; do not log tokens, passwords, or private file contents.
+4. **Environment:** OS, JDK, working directory, container/mount, encoding/charset, disk status, quota, file descriptors/handles, and permissions of the **running account**.
+5. **Timing and scope:** occurred during open, read, write, flush, or close; once or repeatedly; one file or all files; before/after deploy; whether concurrent processes modify/delete/rename data.
+6. **Outcome to clarify:** whether the error is recoverable by fixing path/permissions/schema, whether retry is needed, whether retry is safe or risks duplicate writes, and whether data was partially written.
 
-Không ép toàn bộ lỗi vào một khối catch(IOException) chỉ để in "I/O failed": điều đó làm mất ngữ cảnh. Giữ nguyên exception gốc, thêm tên thao tác và đường dẫn/endpoint đã che thông tin nhạy cảm.
+Do not funnel all errors into a single catch(IOException) block just to print "I/O failed": that discards context. Preserve the original exception and add the operation name and masked path/endpoint.
 
-## 1. Bảng tra cứu lỗi hệ thống tệp: java.nio.file và java.io
+## 1. File System Error Lookup Table: java.nio.file and java.io
 
-Đây là nhóm gặp thường xuyên khi dùng Files, Path, InputStream, OutputStream, FileChannel và thao tác với thư mục. Những lớp lỗi cụ thể của NIO phần lớn kế thừa IOException (đặc biệt FileSystemException), nhưng không phải mọi lỗi đều là checked exception.
+This group is commonly encountered when using Files, Path, InputStream, OutputStream, FileChannel, and directory operations. Specific NIO error classes mostly extend IOException (especially FileSystemException), though not every error is a checked exception.
 
-| Lỗi/triệu chứng | Ý nghĩa và nguyên nhân thường gặp | Thông tin cần kiểm tra | Hướng xử lý |
+| Error/symptom | Meaning and common causes | Information to check | Resolution |
 | --- | --- | --- | --- |
-| NoSuchFileException | Tệp hoặc thành phần trong đường dẫn không tồn tại tại lúc thao tác; có thể đã bị xóa/di chuyển sau kiểm tra trước đó | Path hiệu lực, working directory, tên/ký tự hoa-thường, đường dẫn cha, mount, thao tác của tiến trình khác | Xác nhận đúng file và lifecycle; tạo file nếu hợp đồng cho phép; xử lý vắng mặt như trạng thái nghiệp vụ khi phù hợp |
-| FileNotFoundException | API java.io cũ không mở được tệp; có thể do tệp thiếu, quyền bị từ chối hoặc đường dẫn chỉ tới thư mục | API gọi, getMessage(), sự tồn tại và loại file, quyền mở, đường dẫn tương đối/tuyệt đối | Kiểm tra nguyên nhân hệ điều hành; đừng suy luận chắc chắn là file không tồn tại từ tên exception |
-| AccessDeniedException | Quyền truy cập tệp/thư mục bị từ chối; thường từ NIO provider | Tài khoản thực thi, ACL/quyền file và thư mục cha, mount read-only, trạng thái chính sách bảo mật | Cấp quyền cần thiết hoặc đổi vị trí lưu; không chạy ứng dụng bằng quyền quản trị chỉ để che lỗi |
-| SecurityException | Chính sách quyền của runtime hoặc môi trường từ chối hành động; là unchecked exception | Stack trace, security policy/runtime, sandbox, ứng dụng có quyền gọi API không | Điều chỉnh cấu hình/phạm vi cho phép theo chính sách; phân biệt với AccessDeniedException |
-| FileAlreadyExistsException | Cố tạo đối tượng đã tồn tại, thường với CREATE_NEW hoặc Files.createFile/createDirectory | Đường dẫn và loại mục hiện tại, tên có bị tiến trình khác chiếm không, cần tính duy nhất không | Đặt tên duy nhất hoặc xử lý conflict rõ ràng; CREATE_NEW cung cấp kiểm tra/tạo mang tính nguyên tử tại provider hỗ trợ |
-| DirectoryNotEmptyException | Thao tác xóa/di chuyển thư mục khi nội dung bên trong khiến operation không thể hoàn tất | Các mục bên trong (kể cả hidden), chương trình nào đang sử dụng, policy recursive-delete | Chỉ xóa đệ quy khi đó là yêu cầu nghiệp vụ đã xác nhận; tránh xóa nhầm dữ liệu |
-| NotDirectoryException | Một thành phần được kỳ vọng là thư mục nhưng thực tế không phải thư mục | Từng phần của path, thuộc tính đường dẫn cha, symbolic link | Sửa đường dẫn hoặc cấu trúc thư mục; không tiếp tục bằng cách nối path tùy tiện |
-| FileSystemLoopException | Duyệt link gây vòng khi follow symbolic links, ví dụ qua Files.walkFileTree | Cấu trúc liên kết tượng trưng, chế độ FOLLOW_LINKS, đường dẫn tạo vòng | Không follow link nếu không cần; phát hiện và bỏ qua vòng hoặc báo lỗi rõ ràng |
-| FileSystemException | Lỗi file-system không có lớp con chuyên biệt, ví dụ không thể rename/move, file đang bị giữ, thiết bị lỗi | getFile(), getOtherFile(), getReason(), OS/provider và quyền, trạng thái ổ đĩa/lock | Dùng reason/cause để chẩn đoán; không coi FileSystemException là một nguyên nhân cụ thể |
-| IOException: "No space left on device" / "Disk full" | Vùng lưu trữ không còn dung lượng hoặc vượt quota; lớp exception có thể thay đổi | Dung lượng, inode/quota (nếu có), vị trí file thực tế, temp directory, log/backup | Giải phóng/nâng quota, dự phòng dung lượng, kiểm tra ghi dở và giao dịch tương ứng |
-| IOException: "Too many open files" | Cạn file descriptors/handles hoặc giới hạn OS; hay do không đóng stream/channel/socket | Số file mở của tiến trình, giới hạn hệ thống, xu hướng tăng, nhánh không close | Dùng try-with-resources, sửa leak, cân nhắc giới hạn concurrent I/O; chỉ tăng OS limit khi có lý do |
-| IOException: "Read-only file system" | Môi trường không cho ghi trên mount hoặc file system hiện tại | Mount flags, volume container, vị trí output, môi trường deploy | Chuyển sang volume writable được cấu hình hoặc điều chỉnh mount hợp lệ |
-| IOException: "Broken pipe" / "Connection reset" | Kết nối truyền dữ liệu đã bị đóng/reset khi chương trình ghi/đọc; là thông điệp từ network/pipe | Đầu nhận đã đóng? timeout? proxy/load balancer? số byte đã truyền? | Không tự retry việc ghi không idempotent; điều tra lifecycle kết nối và cơ chế xác nhận |
-| InvalidPathException | Chuỗi path không hợp lệ theo hệ thống/provider hiện tại, ví dụ ký tự bị cấm; đây là unchecked exception | Dữ liệu đầu vào, OS, cú pháp path, Path.of(...) | Validate cấu trúc đầu vào, chuyển đổi format đúng theo hệ điều hành; không thay ký tự tùy ý làm sai định danh |
-| ClosedFileSystemException | Truy cập FileSystem đã đóng, ví dụ hệ tệp ZIP được mount qua FileSystems; unchecked | Thời gian close, code giữ Path, lifecycle FileSystem provider | Đảm bảo các thao tác cần thiết diễn ra trước khi đóng và không dùng lại Path sau khi provider đã close |
+| NoSuchFileException | File or a path component does not exist at operation time; may have been deleted/moved after a prior check | Effective path, working directory, case sensitivity, parent path, mount, actions by other processes | Confirm exact file and lifecycle; create file if contract allows; handle absence as a business state when appropriate |
+| FileNotFoundException | Legacy java.io API failed to open the file; could be missing file, permission denied, or path pointing to a directory | API called, getMessage(), file existence and type, open permissions, relative/absolute path | Inspect the OS-level cause; do not infer with certainty that the file does not exist from the exception name alone |
+| AccessDeniedException | Access to file/directory was denied; usually from an NIO provider | Execution account, ACL/permissions on file and parent directory, read-only mount, security policy state | Grant required permissions or change storage location; do not run the application as administrator just to hide the error |
+| SecurityException | Runtime or environment security policy denied the action; this is an unchecked exception | Stack trace, security policy/runtime, sandbox, whether the application has permission to call the API | Adjust allowed configuration/scope per policy; distinguish from AccessDeniedException |
+| FileAlreadyExistsException | Attempted to create an object that already exists, commonly with CREATE_NEW or Files.createFile/createDirectory | Current path and entry type, whether another process claimed the name, whether uniqueness is required | Use unique names or handle conflicts explicitly; CREATE_NEW provides atomic check/create on supporting providers |
+| DirectoryNotEmptyException | Directory delete/move failed because contents inside prevent completion | Entries inside (including hidden files), which program is using them, recursive-delete policy | Delete recursively only when that is a confirmed business requirement; avoid accidental data loss |
+| NotDirectoryException | A component expected to be a directory is actually not a directory | Each path segment, parent path attributes, symbolic links | Fix the path or directory structure; do not proceed by arbitrarily appending path segments |
+| FileSystemLoopException | Traversing links caused a cycle while following symbolic links, e.g. via Files.walkFileTree | Symbolic link structure, FOLLOW_LINKS mode, path forming the cycle | Do not follow links if unnecessary; detect and skip cycles or report a clear error |
+| FileSystemException | File-system error without a more specific subclass, e.g. cannot rename/move, file locked/in use, device error | getFile(), getOtherFile(), getReason(), OS/provider and permissions, disk/lock status | Use reason/cause to diagnose; do not treat FileSystemException as one single specific cause |
+| IOException: "No space left on device" / "Disk full" | Storage volume is out of space or over quota; exact exception class may vary | Disk space, inodes/quota (if applicable), actual file location, temp directory, logs/backups | Free space/increase quota, reserve capacity, check for partial writes and corresponding transactions |
+| IOException: "Too many open files" | Exhausted file descriptors/handles or OS limits; often caused by unclosed streams/channels/sockets | Open file count of process, system limits, growth trend, code paths missing close | Use try-with-resources, fix leaks, consider bounding concurrent I/O; increase OS limits only with justification |
+| IOException: "Read-only file system" | Environment disallows writes on the current mount or file system | Mount flags, container volumes, output location, deployment environment | Switch to a configured writable volume or adjust mount properly |
+| IOException: "Broken pipe" / "Connection reset" | Data transmission connection was closed/reset while writing/reading; message comes from network/pipe | Did peer close? timeout? proxy/load balancer? bytes already transferred? | Do not automatically retry non-idempotent writes; investigate connection lifecycle and acknowledgment mechanism |
+| InvalidPathException | Path string is invalid for the current system/provider, e.g. forbidden characters; this is an unchecked exception | Input data, OS, path syntax, Path.of(...) | Validate input structure, convert format properly per OS; do not arbitrarily strip characters and alter identifiers |
+| ClosedFileSystemException | Accessing a closed FileSystem, e.g. a ZIP filesystem mounted via FileSystems; unchecked | Close timing, code retaining Path, FileSystem provider lifecycle | Ensure required operations complete before closing and do not reuse Paths after the provider has closed |
 
-**Lưu ý về checked/unchecked:** NoSuchFileException, AccessDeniedException, FileAlreadyExistsException và FileSystemException kế thừa IOException; InvalidPathException, ClosedFileSystemException và SecurityException kế thừa RuntimeException. Vì vậy catch(IOException) không bắt được mọi loại thất bại được liệt kê.
+**Notes on checked/unchecked:** NoSuchFileException, AccessDeniedException, FileAlreadyExistsException, and FileSystemException extend IOException; InvalidPathException, ClosedFileSystemException, and SecurityException extend RuntimeException. Therefore catch(IOException) does not catch every failure listed.
 
-**Lưu ý về tồn tại và quyền:** Files.exists(path) trả false cả khi không thể xác định tình trạng tồn tại trong một số trường hợp; Files.notExists(path) cũng có thể trả false khi trạng thái không rõ. Đừng biến false thành bằng chứng chắc chắn file không tồn tại. Thao tác thực tế vẫn có thể thất bại do thay đổi đồng thời, dù ngay trước đó kiểm tra thành công.
+**Notes on existence and permissions:** Files.exists(path) returns false even when existence cannot be determined in some cases; Files.notExists(path) can also return false when status is unknown. Do not turn false into definitive proof that a file does not exist. The actual operation can still fail due to concurrent changes, even if a check succeeded immediately before.
 
-## 2. Bảng lỗi khi đọc/ghi stream, buffer và channel
+## 2. Error Lookup Table for Streams, Buffers, and Channels
 
-| Lỗi/triệu chứng | Thường xuất hiện khi nào | Thông tin cần kiểm tra | Hướng xử lý |
+| Error/symptom | When it typically occurs | Information to check | Resolution |
 | --- | --- | --- | --- |
-| EOFException | API yêu cầu đọc đủ một cấu trúc nhưng hết dữ liệu trước khi hoàn thành, ví dụ DataInputStream.readInt | Độ dài dữ liệu thực, format/thứ tự read-write, có header/version/checksum không, nguồn đã ghi xong chưa | Kiểm tra framing và dữ liệu cắt dở; phân biệt EOF hợp lệ ở vòng đọc byte và EOF bất thường khi đọc record |
-| IOException: "Stream closed" | Đọc/ghi sau khi stream đã đóng; đôi khi wrapper khác đóng stream gốc | try-with-resources nào sở hữu resource, ai đóng trước, luồng sử dụng | Xác định ownership, không chia sẻ stream đã đóng; tránh đóng resource ở tầng không sở hữu |
-| ClosedChannelException | Thao tác channel khi channel đã bị đóng | Thứ tự close, xử lý đa luồng, shutdown/cancel, channel lifecycle | Điều phối lifecycle, không tái sử dụng channel đã đóng |
-| AsynchronousCloseException | Luồng khác đóng channel đang bị block trong một thao tác I/O | Thread nào close, có stop/cancel/shutdown không, stack trace tác vụ | Coi là hủy thao tác khi shutdown có chủ ý; sửa cạnh tranh đóng sớm nếu bất thường |
-| ClosedByInterruptException | Thread bị interrupt khi đang block trên interruptible channel; channel cũng bị đóng | Thread interruption, executor shutdownNow, cancellation, trạng thái channel | Phân biệt hủy tác vụ với lỗi mạng/đĩa; tuân thủ chính sách interrupt và không retry mù |
-| NonReadableChannelException / NonWritableChannelException | Dùng channel ở mode không cho đọc hoặc ghi; unchecked | Mode mở channel, OpenOption.READ/WRITE/APPEND, buffer và nhánh logic | Mở channel đúng mode và chỉ thực hiện thao tác được hỗ trợ |
-| OverlappingFileLockException | Một lock trên cùng vùng file chồng lấn lock đã giữ trong cùng JVM, hoặc đang chờ lock chồng lấn; unchecked | Các lock đã được JVM giữ, vùng start/size, quản lý vòng đời FileLock | Điều phối lock trong cùng tiến trình, tránh khóa trùng; luôn release lock thích hợp |
-| FileLockInterruptionException | Thread bị interrupt khi đang chờ lock của FileChannel | Chính sách interrupt, lịch sử lock, trạng thái worker/task | Điều tra tranh chấp khóa hoặc yêu cầu hủy; xử lý cancel đúng cách |
-| InterruptedIOException | Một thao tác I/O bị ngắt và có thể đã chuyển một phần dữ liệu; có trường bytesTransferred | bytesTransferred, loại stream, thao tác hiện tại, trạng thái thread | Không tự suy luận toàn bộ thao tác chưa làm gì; quyết định resume/retry theo giao thức |
-| IOException khi flush/close | Dữ liệu đệm chưa đẩy hết hoặc lỗi đóng resource, có thể xảy ra sau các lần write thành công | flush/close thực sự có chạy không, exception gốc và suppressed, FS/đường truyền còn sống? | Không công bố giao dịch thành công chỉ vì write trả về; kiểm tra lỗi close và đồng bộ/commit khi cần |
-| BufferOverflowException / BufferUnderflowException | Ứng dụng ghi/đọc quá giới hạn còn lại của ByteBuffer; unchecked | position/limit/capacity, flip/clear/compact, kích thước record | Kiểm tra remaining() và giao thức byte; sửa vòng đời buffer, không tăng buffer tùy tiện |
-| ReadOnlyBufferException | Ghi vào ByteBuffer chỉ đọc; unchecked | Buffer được tạo bởi asReadOnlyBuffer, map READ_ONLY hay cơ chế chia sẻ | Dùng buffer writable khi cần ghi hoặc tách vùng nhớ đúng mục đích |
+| EOFException | API requires reading a complete structure but data ends before completion, e.g. DataInputStream.readInt | Actual data length, read-write format/order, whether header/version/checksum exists, whether source finished writing | Check framing and truncated data; distinguish valid EOF in a byte-read loop from unexpected EOF when reading a record |
+| IOException: "Stream closed" | Reading/writing after stream was closed; sometimes another wrapper closed the underlying stream | Which try-with-resources owns the resource, who closed first, usage flow | Identify ownership, do not share closed streams; avoid closing resources in a layer that does not own them |
+| ClosedChannelException | Operating on a channel after it has been closed | Close order, multithreaded handling, shutdown/cancel, channel lifecycle | Coordinate lifecycle, do not reuse a closed channel |
+| AsynchronousCloseException | Another thread closed a channel currently blocked in an I/O operation | Which thread closed it, whether stop/cancel/shutdown occurred, task stack trace | Treat as operation cancellation on intentional shutdown; fix premature close races if unexpected |
+| ClosedByInterruptException | Thread was interrupted while blocked on an interruptible channel; the channel is also closed | Thread interruption, executor shutdownNow, cancellation, channel state | Distinguish task cancellation from network/disk failure; honor interrupt policy and do not retry blindly |
+| NonReadableChannelException / NonWritableChannelException | Using channel in a mode that disallows reading or writing; unchecked | Channel open mode, OpenOption.READ/WRITE/APPEND, buffer and logic branches | Open channel in the right mode and perform only supported operations |
+| OverlappingFileLockException | A lock on the same file region overlaps a lock already held in the same JVM, or an overlapping lock is pending; unchecked | Locks already held by the JVM, start/size region, FileLock lifecycle management | Coordinate locks within the same process, avoid duplicate locks; always release locks properly |
+| FileLockInterruptionException | Thread was interrupted while waiting for a FileChannel lock | Interrupt policy, lock history, worker/task state | Investigate lock contention or cancellation request; handle cancellation properly |
+| InterruptedIOException | An I/O operation was interrupted and may have transferred partial data; has a bytesTransferred field | bytesTransferred, stream type, current operation, thread state | Do not assume the entire operation did nothing; decide resume/retry per protocol |
+| IOException during flush/close | Buffered data was not fully flushed or resource close failed, potentially occurring after write calls returned | Whether flush/close actually ran, primary and suppressed exceptions, whether FS/link is still alive | Do not declare a transaction successful just because write returned; check close errors and sync/commit when needed |
+| BufferOverflowException / BufferUnderflowException | Application writes/reads past the remaining limit of a ByteBuffer; unchecked | position/limit/capacity, flip/clear/compact, record size | Check remaining() and byte protocol; fix buffer lifecycle rather than arbitrarily increasing buffer size |
+| ReadOnlyBufferException | Writing to a read-only ByteBuffer; unchecked | Whether buffer was created via asReadOnlyBuffer, READ_ONLY map, or sharing mechanism | Use a writable buffer when writing is needed or separate memory regions appropriately |
 
-### Ba điểm gây nhầm lẫn
+### Three Common Points of Confusion
 
-- InputStream.read() trả **-1** khi đạt EOF thông thường. Đây là kết quả hợp lệ; không nhất thiết có EOFException. Ngược lại, DataInputStream.readFully/readInt có thể báo EOFException nếu không đủ byte cho cấu trúc được yêu cầu.
-- Đối với InputStream.read(byte[]), số byte trả về có thể ít hơn độ dài buffer ngay cả khi **chưa** tới EOF. Cần lặp cho tới khi đủ dữ liệu theo framing/record, hoặc dùng readNBytes/readFully thích hợp.
-- OutputStream.close() có thể flush phần đệm, nhưng không nên mặc định đó là cam kết dữ liệu đã được lưu bền vững trên đĩa. Nếu ứng dụng cần durability, phải xác định cơ chế sync/transaction cụ thể, ví dụ FileChannel.force(...) và giới hạn bảo đảm của môi trường.
+- InputStream.read() returns **-1** on normal EOF. This is a valid result; there is not necessarily an EOFException. Conversely, DataInputStream.readFully/readInt throws EOFException if there are not enough bytes for the requested structure.
+- For InputStream.read(byte[]), the returned byte count may be smaller than the buffer length even when EOF has **not** been reached. You must loop until enough data is read according to your framing/record, or use readNBytes/readFully appropriately.
+- OutputStream.close() may flush buffered data, but should not be assumed by default to guarantee data is durably persisted on disk. If the application requires durability, you must establish specific sync/transaction mechanisms, such as FileChannel.force(...) and the environment's guarantee limits.
 
-## 3. Bảng lỗi charset, văn bản và dữ liệu nhị phân
+## 3. Error Lookup Table for Charsets, Text, and Binary Data
 
-| Lỗi/triệu chứng | Nguyên nhân thường gặp | Kiểm tra gì? | Hướng xử lý |
+| Error/symptom | Common cause | What to check? | Resolution |
 | --- | --- | --- | --- |
-| MalformedInputException | Dãy byte không hợp lệ theo charset đã chọn, như UTF-8 có byte tiếp nối sai | Nguồn byte, BOM, charset ghi/đọc, vị trí lỗi, file có bị cắt? | Chọn đúng charset theo hợp đồng dữ liệu; chỉ thay thế ký tự lỗi nếu nghiệp vụ chấp nhận mất thông tin |
-| UnmappableCharacterException | Ký tự Unicode không thể biểu diễn trong charset đích hoặc chuỗi chuyển mã không ánh xạ được | Encoder/decoder, charset đích, dữ liệu gốc, coding-error action | Dùng UTF-8/Unicode phù hợp, hoặc xử lý lỗi chuyển mã minh bạch |
-| CharacterCodingException | Nhóm checked exception cho lỗi mã hóa/giải mã ký tự | IOException cause, decoder/encoder, byte mẫu đã ẩn dữ liệu nhạy cảm | Giữ dữ liệu gốc để chẩn đoán; xác định charset trước khi decode |
-| UTFDataFormatException | Đọc/ghi định dạng modified UTF-8 của DataInput/DataOutput (ví dụ readUTF/writeUTF) không hợp lệ hoặc giới hạn format bị vi phạm | Có đúng cặp writeUTF/readUTF không, format/số byte đã ghi, dữ liệu bị cắt không | Không dùng readUTF để đọc UTF-8 text bất kỳ; theo đúng giao thức DataInput/DataOutput |
-| Ký tự thành "�" (replacement character) nhưng không throw | Decoder dùng hành vi thay thế lỗi hoặc dữ liệu đã bị mã hóa sai trước đó | Từng bước encode/decode, CharsetDecoder.onMalformedInput, lưu dữ liệu nguồn | Chọn chính sách REPORT để phát hiện sớm khi cần giữ nguyên dữ liệu |
-| Ký tự "mojibake" (ví dụ "Ã©") | Byte dùng một charset nhưng giải mã bằng charset khác | Charset gốc/đích, BOM, default charset và thông tin truyền tải | Chỉ định charset tường minh ở cả hai đầu; không encode lại chuỗi đã decode sai để vá bằng mẹo |
-| File trông như rỗng hoặc thiếu dòng | Buffer chưa flush, Reader/Writer chưa close, logic đọc bỏ mất phần tử cuối | flush/close, vòng while, line separators, length trên đĩa và trong RAM | Đóng stream đúng, kiểm tra code đọc đến EOF và xử lý phần dữ liệu cuối |
+| MalformedInputException | Byte sequence is invalid for the chosen charset, such as UTF-8 with an invalid continuation byte | Byte source, BOM, write/read charset, error position, whether file is truncated | Choose the right charset per data contract; replace erroneous characters only if business logic accepts data loss |
+| UnmappableCharacterException | Unicode character cannot be represented in the target charset or transcoding sequence cannot be mapped | Encoder/decoder, target charset, source data, coding-error action | Use UTF-8/appropriate Unicode, or handle transcoding errors transparently |
+| CharacterCodingException | Checked exception group for character encoding/decoding errors | IOException cause, decoder/encoder, sample bytes with sensitive data masked | Preserve original data for diagnosis; determine charset before decoding |
+| UTFDataFormatException | Reading/writing DataInput/DataOutput modified UTF-8 format (e.g., readUTF/writeUTF) that is invalid or violates format limits | Matching writeUTF/readUTF pair, format/bytes written, whether data is truncated | Do not use readUTF to read arbitrary UTF-8 text; follow the DataInput/DataOutput protocol strictly |
+| Characters turn into "�" (replacement character) without throwing | Decoder uses replacement error action or data was already mis-encoded earlier | Each encode/decode step, CharsetDecoder.onMalformedInput, stored source data | Choose REPORT policy to detect early when data fidelity must be preserved |
+| "Mojibake" characters (e.g. "Ã©") | Bytes encoded with one charset but decoded with another | Source/target charset, BOM, default charset, and transport metadata | Specify charset explicitly on both ends; do not re-encode an already mis-decoded string as a hack |
+| File appears empty or missing lines | Buffer not flushed, Reader/Writer not closed, read logic drops last element | flush/close, while loop, line separators, size on disk vs in RAM | Close streams properly, check EOF reading loop, and handle trailing data |
 
-**Phân biệt:** UTF-8 thường dùng với Files.readString(path, StandardCharsets.UTF_8), InputStreamReader(..., UTF_8), OutputStreamWriter(..., UTF_8). DataInputStream.readUTF và DataOutputStream.writeUTF sử dụng **modified UTF-8 có tiền tố độ dài**, không tương đương việc đọc/ghi văn bản UTF-8 thông thường.
+**Distinction:** Standard UTF-8 is used with Files.readString(path, StandardCharsets.UTF_8), InputStreamReader(..., UTF_8), OutputStreamWriter(..., UTF_8). DataInputStream.readUTF and DataOutputStream.writeUTF use **length-prefixed modified UTF-8**, which is not equivalent to reading/writing ordinary UTF-8 text.
 
-## 4. Bảng lỗi mạng: Socket, timeout và TLS
+## 4. Network Error Lookup Table: Socket, Timeout, and TLS
 
-Nhóm này thuộc java.net và javax.net.ssl; một số lỗi là lớp con của IOException. Khi chẩn đoán, phải biết lỗi xảy ra ở **DNS, TCP connect, TLS handshake, đọc, ghi hay đóng**.
+This group belongs to java.net and javax.net.ssl; several errors are subclasses of IOException. When diagnosing, identify whether the failure occurred at **DNS, TCP connect, TLS handshake, read, write, or close**.
 
-| Lỗi | Dấu hiệu/ý nghĩa thường gặp | Kiểm tra thực tế | Cách tiếp cận |
+| Error | Common symptom/meaning | Practical checks | Approach |
 | --- | --- | --- | --- |
-| UnknownHostException | Không phân giải được hostname hoặc hostname không có địa chỉ phù hợp | Hostname, DNS từ môi trường chạy, search domain, cấu hình container/proxy, độ ổn định DNS | Sửa DNS/host; chỉ retry giới hạn khi lỗi thực sự tạm thời |
-| ConnectException | Kết nối TCP bị từ chối hoặc thất bại ở bước connect, như "Connection refused" | Host:port, service đang lắng nghe, firewall, routing, IPv4/IPv6, proxy | Xác nhận endpoint và trạng thái dịch vụ; không nhầm với read timeout |
-| SocketTimeoutException | Vượt timeout khi socket connect hoặc read (theo thao tác cấu hình) | Connect timeout hay SO_TIMEOUT? Mạng có kết nối chưa? server phản hồi chậm? | Đặt timeout có chủ đích, đo latency, retry theo idempotency/backoff |
-| SocketException | Lỗi socket chung, như reset, broken pipe, socket closed | Peer đã đóng chưa, local close, idle timeout, HTTP proxy, keepalive | Xác định lifecycle và phần dữ liệu có thể đã chuyển; không coi mọi reset là lỗi mạng có thể retry an toàn |
-| BindException | Không thể bind địa chỉ/cổng, thường cổng đã được dùng hoặc địa chỉ không phù hợp | Socket local address/port, tiến trình đang giữ, cấu hình bind, quyền OS | Chọn port/địa chỉ hợp lệ, dừng tiến trình xung đột nếu được phép |
-| SSLHandshakeException | Bắt tay TLS không hoàn thành (chứng chỉ, protocol, cipher, hostname, trust) | Cause chain, certificate chain/truststore, hostname, expiry, TLS version, đồng hồ hệ thống | Sửa trust/identity/protocol; không tắt xác thực chứng chỉ để bỏ qua lỗi |
-| SSLException | Lỗi TLS tổng quát khi handshake hoặc truyền dữ liệu | Stack/cause, vị trí handshake hay application data, đóng kết nối | Tìm nguyên nhân gốc, kiểm tra giao thức và cấu hình hai đầu |
+| UnknownHostException | Cannot resolve hostname or hostname has no suitable address | Hostname, DNS from runtime environment, search domain, container/proxy config, DNS stability | Fix DNS/host; perform bounded retries only when the error is genuinely transient |
+| ConnectException | TCP connection refused or failed at connect step, e.g. "Connection refused" | Host:port, service listening, firewall, routing, IPv4/IPv6, proxy | Verify endpoint and service status; do not confuse with read timeout |
+| SocketTimeoutException | Exceeded timeout during socket connect or read (per configured operation) | Connect timeout or SO_TIMEOUT? Network reachable? Server responding slowly? | Set deliberate timeouts, measure latency, retry with idempotency/backoff |
+| SocketException | General socket error, such as reset, broken pipe, socket closed | Did peer close? Local close? Idle timeout, HTTP proxy, keepalive | Identify lifecycle and potentially transferred data; do not treat every reset as a safely retryable network glitch |
+| BindException | Cannot bind address/port, usually port already in use or invalid address | Socket local address/port, process holding it, bind config, OS permissions | Choose valid port/address, stop conflicting process if permitted |
+| SSLHandshakeException | TLS handshake did not complete (certificate, protocol, cipher, hostname, trust) | Cause chain, certificate chain/truststore, hostname, expiry, TLS version, system clock | Fix trust/identity/protocol; do not disable certificate verification to bypass the error |
+| SSLException | General TLS error during handshake or data transfer | Stack/cause, handshake vs application data phase, connection close | Find root cause, check protocol and configuration on both ends |
 
-Các điều cần ghi nhớ:
+Key points to remember:
 
-- Timeout connect và timeout read là hai pha khác nhau. Connect thành công không chứng minh server sẽ trả dữ liệu đúng hạn.
-- Retry thao tác đọc trạng thái thường khác retry lệnh ghi/thanh toán: nếu request đã đến server mà phản hồi mất, client có thể không biết thao tác đã hoàn thành hay chưa. Dùng request-id, idempotency key hay quy trình xác nhận theo ứng dụng.
-- Không log payload, credential, private key, access token hoặc nội dung chứng chỉ nhạy cảm khi thu thập trace. Chỉ ghi thông tin kỹ thuật cần thiết cho việc chẩn đoán.
+- Connect timeout and read timeout are two distinct phases. A successful connect does not prove the server will return data on time.
+- Retrying a state-reading operation differs from retrying a write/payment command: if the request reached the server and the response was lost, the client may not know whether the operation completed. Use request-id, idempotency keys, or application-level verification flows.
+- Never log payloads, credentials, private keys, access tokens, or sensitive certificate contents when collecting traces. Log only the technical information needed for diagnosis.
 
-## 5. Bảng lỗi ZIP và object serialization
+## 5. Error Lookup Table for ZIP and Object Serialization
 
-| Lỗi/triệu chứng | Vị trí và ý nghĩa | Thông tin cần kiểm tra | Hướng xử lý |
+| Error/symptom | Location and meaning | Information to check | Resolution |
 | --- | --- | --- | --- |
-| ZipException | java.util.zip gặp dữ liệu ZIP/GZIP/DEFLATE không hợp lệ hoặc không thể xử lý | Định dạng thực tế, header/magic, file đã tải đủ chưa, CRC/entry, phương thức nén | Xác thực nguồn và tính toàn vẹn, đảm bảo giải nén đúng định dạng; hạn chế kích thước giải nén để chống zip bomb |
-| EOFException khi giải nén | Stream nén bị cắt hoặc cấu trúc chưa đủ | Số byte tải/nhận so với mong đợi, checksum, close của nguồn | Truyền/tải lại có kiểm soát, xác nhận độ đầy đủ trước xử lý |
-| StreamCorruptedException | ObjectInputStream thấy header, token hoặc cấu trúc Java serialized stream sai | Bên ghi có dùng ObjectOutputStream không, thứ tự đọc/ghi, byte bị chèn/cắt, protocol mismatch | Đồng nhất định dạng và thứ tự, tránh trộn dữ liệu văn bản/thô vào luồng object |
-| InvalidClassException | Lớp không tương thích với luồng (serialVersionUID, kiểu/class descriptor), hoặc ObjectInputFilter từ chối | Full message/cause, serialVersionUID, thay đổi class, filter policy, tên lớp nhị phân | Sửa tương thích/schema hoặc allowlist đúng; không vô hiệu hóa filter chỉ để chạy qua lỗi |
-| NotSerializableException | Ghi một lớp không Serializable trong đồ thị đối tượng | Kiểu được nêu trong message, trường có chứa resource/đối tượng khác không serializable | Dùng DTO serializable, tách state không được serialize bằng transient khi đúng ngữ nghĩa |
-| OptionalDataException | ObjectInputStream đọc theo kiểu không khớp dữ liệu primitive/đối tượng trong luồng, hoặc tới cuối dữ liệu custom | Thứ tự writeObject/writeInt/readObject/readInt, custom readObject/writeObject | Khớp format và thứ tự, quản lý version rõ ràng |
-| InvalidObjectException | Dữ liệu đối tượng không hợp lệ trong validation/readResolve hoặc logic khôi phục | Cause, invariants của class, dữ liệu gốc, mã kiểm tra trong custom deserialization | Kiểm tra và từ chối dữ liệu không hợp lệ, sửa nguồn hoặc migration được xác minh |
-| ClassNotFoundException | Bên đọc không tìm được class mô tả trong stream; là checked exception, không kế thừa IOException | Classpath/module path, tên package/class, version triển khai, custom class loader | Bảo đảm class tương ứng hiện diện hoặc thay định dạng trao đổi dữ liệu rõ schema |
+| ZipException | java.util.zip encountered invalid or unprocessable ZIP/GZIP/DEFLATE data | Actual format, header/magic, whether file downloaded completely, CRC/entry, compression method | Verify source and integrity, ensure decompression matches format; limit decompressed size to prevent zip bombs |
+| EOFException during decompression | Compressed stream was truncated or structure is incomplete | Bytes downloaded/received vs expected, checksum, source close | Re-transfer/re-download in a controlled way, verify completeness before processing |
+| StreamCorruptedException | ObjectInputStream detected an invalid header, token, or Java serialized stream structure | Did writer use ObjectOutputStream? Read/write order, inserted/truncated bytes, protocol mismatch | Align format and order, avoid mixing text/raw data into object streams |
+| InvalidClassException | Class incompatible with stream (serialVersionUID, type/class descriptor), or rejected by ObjectInputFilter | Full message/cause, serialVersionUID, class changes, filter policy, binary class name | Fix compatibility/schema or proper allowlist; do not disable the filter just to get past the error |
+| NotSerializableException | Writing a non-Serializable class in the object graph | Type named in message, fields holding resources/other non-serializable objects | Use serializable DTOs, mark non-serialized state transient when semantically appropriate |
+| OptionalDataException | ObjectInputStream read a type mismatching primitive/object data in stream, or reached end of custom data | Order of writeObject/writeInt/readObject/readInt, custom readObject/writeObject | Match format and order, manage versioning explicitly |
+| InvalidObjectException | Object data invalid in validation/readResolve or restoration logic | Cause, class invariants, raw data, validation code in custom deserialization | Validate and reject invalid data, fix source or apply verified migration |
+| ClassNotFoundException | Reader cannot find the class described in the stream; checked exception, does not extend IOException | Classpath/module path, package/class name, deployed version, custom class loader | Ensure the matching class is present or switch to an explicit schema-based data exchange format |
 
-**Giới hạn bảo mật của serialization:** ObjectInputFilter có thể giới hạn lớp, độ sâu, số tham chiếu, bytes và kích thước mảng khi deserialization. Phải cài filter **trước readObject()**, ưu tiên allowlist theo nguồn tin cậy và vẫn giới hạn kích thước đầu vào bên ngoài. Filter không xác thực người gửi, không thay mã hóa/chữ ký, không ngăn mọi rủi ro trong custom readObject. Với đầu vào không tin cậy, cân nhắc định dạng trao đổi có schema và validation rõ ràng.
+**Serialization security limits:** ObjectInputFilter can restrict classes, depth, reference count, bytes, and array sizes during deserialization. The filter must be installed **before readObject()**, preferring an allowlist for trusted sources while still bounding external input sizes. A filter does not authenticate the sender, replace encryption/signatures, or prevent every risk inside custom readObject. For untrusted input, consider an exchange format with an explicit schema and validation.
 
-## 6. Ví dụ Java 17+ chạy độc lập: tạo và phân biệt ba lỗi I/O
+## 6. Standalone Java 17+ Example: Triggering and Distinguishing Three I/O Errors
 
-Ví dụ này tạo một thư mục tạm, minh họa ba exception cụ thể theo trình tự rồi dọn tệp tạm. Mỗi lỗi được bắt bằng kiểu ngoại lệ phù hợp để người học nhìn thấy cách đọc nguyên nhân. Không dùng đường dẫn nhạy cảm hoặc tài nguyên bên ngoài.
+This example creates a temporary directory, demonstrates three specific exceptions in sequence, and then cleans up the temporary files. Each error is caught with the appropriate exception type to show how to read the cause. No sensitive paths or external resources are used.
 
-Tạo tệp **IoErrorLookupDemo.java**:
+Create file **IoErrorLookupDemo.java**:
 
 ~~~java
 import java.io.IOException;
@@ -141,14 +141,14 @@ public class IoErrorLookupDemo {
         Path invalidUtf8 = dir.resolve("invalid-utf8.txt");
 
         try {
-            // 1. Không thể đọc tệp chưa tồn tại.
+            // 1. Cannot read a file that does not exist yet.
             try {
                 Files.readString(missing, StandardCharsets.UTF_8);
             } catch (NoSuchFileException ex) {
                 System.out.println("NoSuchFileException: missing.txt");
             }
 
-            // 2. CREATE_NEW chỉ tạo file khi đường dẫn chưa tồn tại.
+            // 2. CREATE_NEW only creates the file when the path does not exist yet.
             Files.writeString(existing, "Hello", StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE_NEW);
             try {
@@ -158,7 +158,7 @@ public class IoErrorLookupDemo {
                 System.out.println("FileAlreadyExistsException: existing.txt");
             }
 
-            // 3. Hai byte dưới đây không tạo thành chuỗi UTF-8 hợp lệ.
+            // 3. The two bytes below do not form a valid UTF-8 sequence.
             Files.write(invalidUtf8, new byte[] {(byte) 0xC3, (byte) 0x28});
             try {
                 Files.readString(invalidUtf8, StandardCharsets.UTF_8);
@@ -175,14 +175,14 @@ public class IoErrorLookupDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or newer:
 
 ~~~bash
 javac IoErrorLookupDemo.java
 java IoErrorLookupDemo
 ~~~
 
-Kết quả mong đợi trong môi trường có thể tạo/đọc/ghi/xóa thư mục tạm:
+Expected output in an environment where temporary directories can be created/read/written/deleted:
 
 ~~~text
 NoSuchFileException: missing.txt
@@ -190,20 +190,20 @@ FileAlreadyExistsException: existing.txt
 MalformedInputException: invalid UTF-8
 ~~~
 
-**Vì sao ví dụ hoạt động?**
+**Why does this example work?**
 
-1. Files.readString(missing, UTF_8) gặp file chưa tồn tại nên trên default file-system provider phổ biến ném NoSuchFileException. Không có bước kiểm tra exists trước, vì thao tác đọc là nơi trạng thái thật được xác định.
-2. Files.writeString(existing, ..., CREATE_NEW) tạo file lần đầu. Lần thứ hai, chính tùy chọn CREATE_NEW yêu cầu không ghi đè đường dẫn đang tồn tại, nên ném FileAlreadyExistsException. Đây là lựa chọn thường phù hợp khi tránh ghi đè vô ý.
-3. Byte 0xC3 là ký tự mở đầu của một chuỗi hai byte UTF-8, nhưng byte tiếp theo 0x28 không phải continuation byte hợp lệ. Files.readString(..., UTF_8) báo MalformedInputException, cho thấy lỗi ở **giải mã byte thành ký tự**, không phải tệp thiếu hay quyền bị từ chối.
-4. finally dọn các đường dẫn được tạo trong bài. Nếu bản thân việc cleanup thất bại, IOException có thể được ném từ finally; trong ứng dụng lớn, nên giữ lại exception gốc và bổ sung lỗi cleanup như suppressed/log riêng thay vì vô tình che mất nguyên nhân đầu tiên.
+1. Files.readString(missing, UTF_8) encounters a non-existent file and therefore throws NoSuchFileException on common default file-system providers. There is no prior exists check, because the read operation itself is where the true state is determined.
+2. Files.writeString(existing, ..., CREATE_NEW) creates the file the first time. The second time, the CREATE_NEW option itself requires not overwriting an existing path, so it throws FileAlreadyExistsException. This is usually the right choice to avoid accidental overwrites.
+3. Byte 0xC3 is the leading byte of a two-byte UTF-8 sequence, but the next byte 0x28 is not a valid continuation byte. Files.readString(..., UTF_8) reports MalformedInputException, showing the error is in **decoding bytes to characters**, not a missing file or denied permission.
+4. finally cleans up the paths created in the exercise. If cleanup itself fails, IOException may be thrown from finally; in larger applications, preserve the original exception and attach cleanup errors as suppressed/separate logs rather than accidentally masking the primary cause.
 
-**Giới hạn của ví dụ:** Nếu thư mục tạm không ghi được, hết dung lượng hoặc một tiến trình khác can thiệp, chương trình có thể thất bại bằng ngoại lệ khác trước khi in đủ ba dòng. Điều đó là hành vi I/O thực tế cần chẩn đoán, không phải lý do bắt mọi exception rồi in kết quả giả.
+**Limitations of the example:** If the temporary directory is not writable, runs out of space, or another process interferes, the program may fail with a different exception before printing all three lines. That is real I/O behavior to diagnose, not a reason to catch all exceptions and print fake results.
 
-## 7. Mẫu chẩn đoán lỗi và ghi log có ngữ cảnh
+## 7. Error Diagnosis and Contextual Logging Patterns
 
-Không cần ghi toàn bộ dữ liệu khách hàng để debug I/O. Ghi thông tin đủ để tìm ra **thao tác nào**, **đích nào** và **lý do hệ điều hành/provider báo gì**.
+You do not need to log full customer data to debug I/O. Log enough information to identify **which operation**, **which target**, and **what reason the OS/provider reported**.
 
-Ví dụ minh họa một method trong ứng dụng đã có logger và path:
+Illustrative method snippet in an application that already has a logger and path:
 
 ~~~java
 import java.io.IOException;
@@ -218,72 +218,72 @@ static String loadConfig(Path path) throws IOException {
     try {
         return Files.readString(path, StandardCharsets.UTF_8);
     } catch (NoSuchFileException ex) {
-        // File được yêu cầu không tồn tại; chính sách có thể là trả 404.
+        // Requested file does not exist; policy might be to return 404.
         throw new IOException("Config is missing: " + path.getFileName(), ex);
     } catch (AccessDeniedException ex) {
-        // Kiểm tra service account, ACL và quyền trên thư mục cha.
+        // Check service account, ACLs, and parent directory permissions.
         throw new IOException("Cannot read config: access denied", ex);
     } catch (FileSystemException ex) {
-        // getReason() có thể null; nội dung có thể phụ thuộc OS/provider.
+        // getReason() may be null; content may depend on OS/provider.
         throw new IOException("Cannot read config: " + ex.getReason(), ex);
     }
 }
 ~~~
 
-Đây là **đoạn method minh họa**, không phải một chương trình độc lập vì chưa có class và main. Trong môi trường thực:
+This is an **illustrative method snippet**, not a standalone program since it lacks a class and main. In a real environment:
 
-- Ghi stack trace/cause vào kênh log nội bộ có quyền phù hợp; chỉ trả thông báo an toàn cho người dùng. Không tự động in absolute path chứa tên tài khoản, bí mật hoặc cấu trúc hạ tầng ra API công khai.
-- Giữ nguyên cause khi bọc lỗi. Không chuyển một lỗi quyền sang "file not found" trong log vận hành; tầng HTTP có thể trả mã thông báo khác nhưng cần giữ bằng chứng gốc.
-- Với FileSystemException, dùng getFile(), getOtherFile(), getReason() nếu hữu ích; một số giá trị có thể null và exception message có thể mang thông tin không nên lộ công khai.
-- Đừng bắt SecurityException bằng IOException. Nếu cần xử lý lỗi chính sách runtime, bắt theo hợp đồng riêng và đừng làm mờ dấu hiệu vi phạm chính sách.
-- Khi dùng try-with-resources, lỗi từ close của resource có thể nằm trong getSuppressed() của exception chính. Đọc cả suppressed khi chuỗi thao tác có nhiều resource.
+- Log stack traces/causes to an internal log channel with appropriate access controls; return only safe messages to users. Do not automatically print absolute paths containing account names, secrets, or infrastructure layout in public APIs.
+- Preserve the cause when wrapping errors. Do not turn a permission error into "file not found" in operational logs; the HTTP layer may return a different status message, but the original evidence must be kept.
+- For FileSystemException, use getFile(), getOtherFile(), getReason() if helpful; some values may be null and the exception message may carry information that should not be exposed publicly.
+- Do not catch SecurityException with IOException. If runtime policy errors need handling, catch them under a separate contract and avoid obscuring policy violation signals.
+- When using try-with-resources, errors from closing resources may reside in getSuppressed() of the primary exception. Read suppressed exceptions as well when an operation chain involves multiple resources.
 
-### Mẫu ghi nhận sự cố I/O
+### I/O Incident Recording Template
 
 ~~~text
 Operation      : READ_TEXT / WRITE_BYTES / MOVE / SOCKET_CONNECT / DESERIALIZE
 API            : Files.readString(Path, UTF_8)
-Resource       : <path alias hoặc endpoint đã ẩn thông tin nhạy cảm>
+Resource       : <path alias or endpoint with sensitive info masked>
 Environment    : JDK version, OS, container/mount, service account
 Exception      : <fully-qualified exception class>
-Message/Reason : <thông điệp rút gọn, đã loại thông tin nhạy cảm>
-Cause          : <cause chain, stack trace nội bộ>
-Suppressed     : <các lỗi cleanup/close nếu có>
+Message/Reason : <concise message, sensitive info removed>
+Cause          : <cause chain, internal stack trace>
+Suppressed     : <cleanup/close errors if any>
 Input format   : UTF-8 / binary protocol / serialized object / ZIP / ...
-Timing         : Thời điểm xảy ra, pha open/read/write/flush/close
+Timing         : Time of occurrence, open/read/write/flush/close phase
 Observed state : Exists? Directory? Permissions? Free space? Host:port reachable?
-Concurrency    : Có writer/deleter/closer đồng thời? Có retry trước đó?
+Concurrency    : Concurrent writer/deleter/closer? Any prior retry?
 Next action    : Fix path / permissions / schema / storage / connectivity / code
 ~~~
 
-Thông tin exists/isDirectory/isReadable chỉ là ảnh chụp tại một thời điểm, có thể thay đổi ngay sau đó. Không sử dụng chúng làm bảo đảm có thể mở/đọc/ghi thành công; vẫn cần xử lý lỗi từ thao tác thật.
+Information from exists/isDirectory/isReadable is only a point-in-time snapshot and may change immediately afterward. Do not use them as a guarantee that open/read/write will succeed; you still need to handle errors from the actual operation.
 
-## 8. Quy trình điều tra theo thứ tự ít rủi ro
+## 8. Low-Risk Investigation Workflow in Order
 
-1. **Xác định điểm thất bại:** đọc 1–3 stack frame thuộc mã của bạn cùng exception class, cause, suppressed. Đừng bắt đầu bằng việc thay charset hay cấp thêm quyền khi chưa biết pha lỗi.
-2. **Đối chiếu loại API:** FileInputStream có thể báo FileNotFoundException rộng; Files có thể cung cấp NoSuchFileException hoặc AccessDeniedException cụ thể hơn. Với mạng, xác định connect/read/write/TLS trước khi đặt timeout.
-3. **Kiểm tra dữ kiện không thay đổi hệ thống:** version JDK/OS, đường dẫn thực tế, working directory, isRegularFile/isDirectory, thông tin permission/mount nếu được phép; không chạy lệnh xóa, chmod đệ quy hoặc kill tiến trình để thử.
-4. **Kiểm tra tài nguyên:** còn dung lượng/quota không, có bị leak stream/channel/socket không, file handle/lock có bị giữ không, pool và số lượng tác vụ I/O song song có bất thường không.
-5. **Kiểm tra hợp đồng dữ liệu:** bên ghi và bên đọc có chung charset, cách phân khung record, thứ tự field, version/schema, checksum/length không; với ZIP và serialized stream, có đúng định dạng không.
-6. **Tái hiện có kiểm soát:** dùng tệp tạm và dữ liệu không nhạy cảm; kiểm tra thành công + đầu vào thiếu + quyền bị từ chối + dữ liệu cắt dở + file đang bị sửa đồng thời khi các tình huống đó thực sự liên quan.
-7. **Sửa nguyên nhân, kiểm thử case âm:** sửa đường dẫn/permissions/resource lifecycle/charset/framing; xác nhận exception cụ thể được xử lý đúng. Với thao tác ghi, kiểm tra trạng thái trước retry để tránh trùng hoặc hỏng dữ liệu.
-8. **Bổ sung quan sát:** nếu sự cố chưa tái hiện, log thêm thao tác, số byte kỳ vọng/đã đọc (không log nội dung), thời gian connect/read/write, path alias, exception cause và correlation id.
+1. **Pinpoint the failure point:** read the top 1–3 stack frames belonging to your code along with the exception class, cause, and suppressed exceptions. Do not start by changing charsets or granting broader permissions before knowing the failure phase.
+2. **Cross-reference the API type:** FileInputStream may report a broad FileNotFoundException; Files may provide a more specific NoSuchFileException or AccessDeniedException. For networking, identify connect/read/write/TLS before tuning timeouts.
+3. **Inspect non-mutating facts:** JDK/OS version, actual path, working directory, isRegularFile/isDirectory, permission/mount info if allowed; do not run delete commands, recursive chmod, or kill processes to test theories.
+4. **Check resources:** is there remaining space/quota, are streams/channels/sockets leaking, are file handles/locks held, is pool usage or concurrent I/O task count abnormal?
+5. **Check the data contract:** do writer and reader agree on charset, record framing, field order, version/schema, checksum/length? For ZIP and serialized streams, is the format valid?
+6. **Reproduce in a controlled way:** use temporary files and non-sensitive data; test success + missing input + permission denied + truncated data + concurrently modified file when those scenarios are genuinely relevant.
+7. **Fix root cause, test negative cases:** fix path/permissions/resource lifecycle/charset/framing; verify specific exceptions are handled properly. For write operations, check state before retrying to avoid duplicate or corrupted data.
+8. **Add observability:** if the issue has not reproduced, log additional operation metadata, expected/read byte counts (without logging content), connect/read/write durations, path alias, exception cause, and correlation id.
 
-### Câu hỏi quyết định nhanh
+### Quick Decision Questions
 
-| Câu hỏi | Nếu câu trả lời là "Có" | Kiểm tra kế tiếp |
+| Question | If the answer is "Yes" | What to check next |
 | --- | --- | --- |
-| Lỗi xảy ra ngay khi mở file? | Khả năng cao liên quan path, type, permission hoặc resource | Path resolve, working directory, quyền của service account |
-| Mở được nhưng fail sau nhiều lần đọc? | Dữ liệu bị cắt, framing sai, lỗi kết nối hoặc nguồn thay đổi | Độ dài/record boundary, EOF, bytes đã đọc, writer/peer |
-| Chỉ lỗi với tiếng Việt/ký tự đặc biệt? | Charset hoặc chuyển mã không đồng nhất | UTF-8, BOM, decoder policy, byte gốc |
-| Chỉ lỗi khi tải nhiều/đồng thời? | Leak, lock, contention hoặc race condition | try-with-resources, file handles, channel close, pool size |
-| Chỉ lỗi khi deploy/container? | Working directory, mount, account, DNS hoặc permission đổi | Environment diff, volume, path, service user, network route |
-| Chỉ lỗi với dữ liệu lưu từ bản cũ? | Format/schema/serialVersionUID thay đổi | Version, migration, classpath, backward compatibility |
-| Chỉ lỗi sau thời gian idle của socket? | Idle timeout, peer/proxy close hoặc connection reset | Timeout cấu hình, keepalive, lifecycle, request replay safety |
+| Does the error happen immediately when opening the file? | Likely related to path, type, permissions, or resources | Path resolution, working directory, service account permissions |
+| Opens fine but fails after multiple reads? | Truncated data, wrong framing, connection error, or changing source | Length/record boundary, EOF, bytes read, writer/peer |
+| Fails only with Vietnamese/special characters? | Mismatched charset or transcoding | UTF-8, BOM, decoder policy, raw bytes |
+| Fails only under high load/concurrency? | Leak, lock, contention, or race condition | try-with-resources, file handles, channel close, pool size |
+| Fails only upon deploy/in container? | Working directory, mount, account, DNS, or permissions changed | Environment diff, volume, path, service user, network route |
+| Fails only with data saved by an older version? | Format/schema/serialVersionUID changed | Version, migration, classpath, backward compatibility |
+| Fails only after socket idle time? | Idle timeout, peer/proxy close, or connection reset | Configured timeouts, keepalive, lifecycle, request replay safety |
 
-## 9. Ngăn lỗi ngay khi thiết kế chương trình
+## 9. Preventing Errors at Design Time
 
-### Quản lý vòng đời tài nguyên
+### Resource Lifecycle Management
 
 ~~~java
 import java.io.BufferedReader;
@@ -305,47 +305,47 @@ static void printNonEmptyLines(Path path) throws IOException {
 }
 ~~~
 
-Đây là method minh họa. try-with-resources đóng BufferedReader kể cả khi đọc thất bại và giúp tránh leak. Không mở stream ngoài try rồi quên close ở một nhánh return hoặc catch.
+This is an illustrative method. try-with-resources closes BufferedReader even when reading fails and helps prevent leaks. Do not open a stream outside try and forget to close it on a return or catch branch.
 
-### Chọn phương án mở/ghi theo hợp đồng
+### Choosing Open/Write Strategy by Contract
 
-- **Chỉ đọc:** Files.newInputStream(path, READ) hoặc Files.newBufferedReader(path, UTF_8); xử lý file thiếu, quyền và lỗi dữ liệu theo mục đích.
-- **Tạo file mới, tuyệt đối không ghi đè:** Files.write(..., CREATE_NEW) hoặc Files.createFile(path), bắt FileAlreadyExistsException để xử lý xung đột.
-- **Ghi thay thế có kiểm soát:** Ghi dữ liệu đầy đủ vào file tạm cùng file system, kiểm tra flush/close, rồi move thay thế nếu hợp đồng cho phép. ATOMIC_MOVE không được mọi provider hỗ trợ; phải xử lý AtomicMoveNotSupportedException và quyết định fallback theo yêu cầu về atomicity, không âm thầm giả vờ atomic.
-- **Đọc dữ liệu lớn:** Dùng stream/channel và bộ đệm với giới hạn; tránh Files.readAllBytes cho file không kiểm soát kích thước vì có thể gây áp lực bộ nhớ.
-- **Đọc text:** Chỉ định UTF-8 hoặc charset theo tài liệu dữ liệu, không dựa vào default charset khi trao đổi với hệ thống khác.
-- **I/O mạng:** Cấu hình timeout từng pha, giới hạn kích thước payload và sử dụng retry có điều kiện/idempotent; ghi nhận kết quả một phần khi giao thức có yêu cầu.
-- **Serialization:** Đặt ObjectInputFilter phù hợp trước khi gọi ObjectInputStream.readObject; validate dữ liệu sau khi khôi phục; hạn chế input bytes từ đầu.
+- **Read-only:** Files.newInputStream(path, READ) or Files.newBufferedReader(path, UTF_8); handle missing files, permissions, and data errors as intended.
+- **Create new file, strictly never overwrite:** Files.write(..., CREATE_NEW) or Files.createFile(path), catching FileAlreadyExistsException to handle conflicts.
+- **Controlled overwrite:** Write complete data to a temporary file on the same file system, check flush/close, then move to replace if the contract allows. ATOMIC_MOVE is not supported by all providers; handle AtomicMoveNotSupportedException and decide fallback based on atomicity requirements, without silently pretending to be atomic.
+- **Reading large data:** Use streams/channels and bounded buffers; avoid Files.readAllBytes for unbounded files because it can cause memory pressure.
+- **Reading text:** Specify UTF-8 or the documented charset; do not rely on the default charset when exchanging data with other systems.
+- **Network I/O:** Configure per-phase timeouts, bound payload sizes, and use conditional/idempotent retries; record partial results when required by the protocol.
+- **Serialization:** Set an appropriate ObjectInputFilter before calling ObjectInputStream.readObject; validate data after restoration; bound input bytes upfront.
 
-### Khi nào nên retry?
+### When Should You Retry?
 
-| Loại tình huống | Retry tự động? | Lý do |
+| Situation type | Automatic retry? | Reason |
 | --- | --- | --- |
-| File chưa tồn tại do path gõ sai | Thường không | Lặp lại không sửa path |
-| AccessDeniedException do ACL cố định | Thường không | Cần sửa quyền hoặc chính sách |
-| FileAlreadyExistsException với CREATE_NEW | Không với cùng tên và cùng yêu cầu | Việc lặp lại sẽ tiếp tục xung đột |
-| SocketTimeoutException trên truy vấn idempotent | Có thể, có giới hạn và backoff | Đôi lúc lỗi mạng tạm thời, nhưng vẫn cần giới hạn |
-| Lệnh ghi có tác dụng phụ đã gửi, phản hồi timeout | Chỉ nếu có giao thức đảm bảo/idempotency key | Có nguy cơ thực thi hai lần |
-| Hết dung lượng hoặc hết file handles | Không retry gấp vô hạn | Cần phục hồi tài nguyên và xử lý phần dữ liệu đã ghi |
-| MalformedInputException do file sai charset cố định | Không | Cần sửa format/charset, retry không thay đổi byte |
-| EOF bất thường của dữ liệu tải dở | Có thể tải lại nếu nguồn/hợp đồng cho phép | Phải kiểm tra checksum/length và tránh ghép sai phiên |
+| Missing file due to mistyped path | Usually no | Retrying does not fix the path |
+| AccessDeniedException due to static ACL | Usually no | Permissions or policy must be fixed |
+| FileAlreadyExistsException with CREATE_NEW | No with the same name and request | Retrying will keep colliding |
+| SocketTimeoutException on idempotent query | Possible, with limit and backoff | Sometimes a transient network glitch, but still needs bounds |
+| Write command with side effects already sent, response timed out | Only with guarantee protocol/idempotency key | Risk of executing twice |
+| Out of disk space or out of file handles | Do not retry aggressively in a loop | Resources must recover and partial writes must be handled |
+| MalformedInputException due to fixed wrong-charset file | No | Format/charset must be fixed; retrying does not alter bytes |
+| Unexpected EOF on partially downloaded data | Can re-download if source/contract allows | Must verify checksum/length and avoid splicing mismatched sessions |
 
-## 10. Kiểm tra kiến thức
+## 10. Knowledge Check
 
-1. Vì sao FileNotFoundException không đủ để kết luận file không tồn tại?
-2. Files.exists(path) vừa trả true, nhưng ngay sau đó Files.readString(path) vẫn ném NoSuchFileException. Điều này có thể xảy ra như thế nào?
-3. Khi DataInputStream.readInt ném EOFException, tại sao cách xử lý khác với vòng while(InputStream.read() != -1)?
-4. Làm thế nào để nhận biết lỗi charset khác với lỗi stream byte bị cắt?
-5. Khi thao tác Files.move thất bại, thông tin nào của FileSystemException giúp tìm nguyên nhân?
-6. Tại sao đặt CREATE_NEW thường an toàn hơn chuỗi "kiểm tra exists rồi mới tạo" khi có nhiều writer?
-7. SocketTimeoutException trong lúc connect khác gì trong lúc read? Vì sao không retry mọi lệnh gửi một cách vô điều kiện?
-8. Lỗi IOException từ close ảnh hưởng thế nào đến khẳng định "ghi thành công"?
-9. Những ngoại lệ nào trong bảng là unchecked, và vì sao catch(IOException) không bao phủ chúng?
-10. InvalidClassException có thể biểu thị hai tình huống rất khác nhau nào trong Java serialization?
+1. Why is FileNotFoundException insufficient to conclude a file does not exist?
+2. Files.exists(path) just returned true, yet immediately afterward Files.readString(path) still throws NoSuchFileException. How can this happen?
+3. When DataInputStream.readInt throws EOFException, why does handling differ from a while(InputStream.read() != -1) loop?
+4. How do you distinguish a charset error from a truncated byte stream error?
+5. When Files.move fails, which details of FileSystemException help locate the cause?
+6. Why is setting CREATE_NEW generally safer than a "check exists then create" sequence when multiple writers exist?
+7. How does SocketTimeoutException during connect differ from during read? Why should you not retry every send unconditionally?
+8. How does an IOException from close affect a "write succeeded" claim?
+9. Which exceptions in the tables are unchecked, and why does catch(IOException) not cover them?
+10. What two very different situations can InvalidClassException indicate in Java serialization?
 
-**Tiêu chí đạt:** Bạn chỉ ra được thao tác đang lỗi, exception và nguyên nhân có thể kiểm chứng; chọn được API/check cụ thể để phân biệt giả thuyết; xử lý tài nguyên và lỗi đúng, tránh retry nguy hiểm; không tiết lộ thông tin nhạy cảm khi ghi log.
+**Passing criteria:** You can identify the failing operation, exception, and verifiable cause; pick specific APIs/checks to distinguish hypotheses; handle resources and errors properly while avoiding dangerous retries; and avoid leaking sensitive information in logs.
 
-## Tài liệu tham khảo Java SE 17
+## Java SE 17 Reference Documentation
 
 - java.io.IOException: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/IOException.html
 - java.io.EOFException: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/EOFException.html

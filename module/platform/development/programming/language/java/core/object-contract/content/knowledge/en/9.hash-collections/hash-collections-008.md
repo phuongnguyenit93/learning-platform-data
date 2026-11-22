@@ -1,99 +1,99 @@
-# Phân biệt hợp đồng API với cách tổ chức nội bộ của bảng băm trong Java
+# Distinguishing the API Contract From Internal Hash Table Organization in Java
 
-## 1. Hai tầng cần phân biệt
+## 1. Two Layers to Distinguish
 
-Khi làm việc với `HashMap`, `HashSet` và các cấu trúc băm trong Java, có hai câu hỏi khác nhau:
+When working with `HashMap`, `HashSet`, and hash structures in Java, there are two different questions:
 
-- **Hợp đồng API (contract):** Người sử dụng có thể tin vào hành vi nào khi gọi `put`, `get`, `containsKey`, `add`, `contains`, `equals` hoặc `hashCode`? Phần nào được tài liệu của kiểu Java cam kết?
-- **Cách tổ chức nội bộ (implementation):** Thư viện tổ chức các phần tử thành bucket như thế nào, chọn chỉ số bucket bằng cách nào, xử lý va chạm, mở rộng bảng và tối ưu tìm kiếm ra sao?
+- **API contract:** What behavior can a caller rely on when calling `put`, `get`, `containsKey`, `add`, `contains`, `equals`, or `hashCode`? What is guaranteed by the Java type's documentation?
+- **Internal organization (implementation):** How does the library organize elements into buckets, how does it pick bucket indices, handle collisions, expand the table, and optimize lookups?
 
-**Lớp bên ngoài là cam kết; lớp bên trong là cơ chế để thực hiện cam kết.** Mã ứng dụng đúng nên dựa vào những hành vi đã được quy định trong hợp đồng của kiểu mà nó sử dụng. Những chi tiết cụ thể của một bản triển khai có thể thay đổi theo phiên bản JDK, hoặc giữa các thư viện, dù hành vi công khai vẫn giữ nguyên.
+**The outer layer is the guarantee; the inner layer is the mechanism for fulfilling that guarantee.** Correct application code should rely on behaviors specified in the contract of the type it uses. Concrete details of an implementation can change across JDK versions or across libraries, even while public behavior remains the same.
 
-Phân biệt thêm **ba cấp hợp đồng** thường xuyên xuất hiện cùng nhau:
+Distinguish further **three contract levels** that frequently appear together:
 
-1. `Object.equals(Object)` và `Object.hashCode()` định nghĩa cách các đối tượng thể hiện quan hệ bằng nhau và mã băm. Đây là trách nhiệm của *kiểu khóa/phần tử*.
-2. `Map<K,V>` và `Set<E>` quy định ngữ nghĩa collection, ví dụ khóa duy nhất theo quan hệ bằng nhau và phần tử của tập hợp không lặp.
-3. `HashMap`, `HashSet` là các lớp triển khai cụ thể, với một số hành vi công khai bổ sung (như chấp nhận `null` của `HashMap`) và nhiều chi tiết cài đặt không nên bị mã ứng dụng phụ thuộc.
+1. `Object.equals(Object)` and `Object.hashCode()` define how objects express their equality relation and hash code. This is the responsibility of the *key/element type*.
+2. `Map<K,V>` and `Set<E>` specify collection semantics, such as unique keys by equality and non-repeating set elements.
+3. `HashMap` and `HashSet` are concrete implementation classes, with some additional public behaviors (such as `HashMap` accepting `null`) and many implementation details that application code should not depend on.
 
-Một đặc tính không được `Map` nói chung bảo đảm vẫn có thể được một lớp triển khai cụ thể **cam kết trong API của lớp đó**. Ngược lại, quan sát tình cờ trên một JVM không tự biến hành vi ấy thành hợp đồng.
+A characteristic not guaranteed by `Map` in general can still be **promised in the API of a specific implementation class**. Conversely, an incidental observation on one JVM does not by itself turn that behavior into a contract.
 
-## 2. Những hành vi phải tin cậy theo hợp đồng
+## 2. Behaviors You Must Rely On Under the Contract
 
-### 2.1. Bình đẳng khóa và mã băm
+### 2.1. Key equality and hash codes
 
-Với khóa khác `null`, quy tắc nền tảng là:
+For non-`null` keys, the foundational rules are:
 
-- Nếu `a.equals(b)` là `true`, **bắt buộc** `a.hashCode() == b.hashCode()`.
-- Nếu `a.equals(b)` là `false`, mã băm **có thể bằng hoặc khác nhau**; việc hai đối tượng khác nhau có cùng mã băm (*collision*) là hợp lệ.
-- Trong một lần chạy, nếu thông tin được dùng trong phép so sánh `equals` không thay đổi, các lần gọi `hashCode()` trên một đối tượng phải nhất quán.
-- `equals` còn phải tuân thủ các điều khoản phản xạ, đối xứng, bắc cầu, nhất quán và không bằng `null`.
+- If `a.equals(b)` is `true`, **it is mandatory** that `a.hashCode() == b.hashCode()`.
+- If `a.equals(b)` is `false`, the hash codes **may be equal or different**; two different objects having the same hash code (*collision*) is valid.
+- Within a single run, if the information used in the `equals` comparison has not changed, calls to `hashCode()` on an object must be consistent.
+- `equals` must also obey the clauses of reflexivity, symmetry, transitivity, consistency, and non-equality to `null`.
 
-Không có điều khoản nào yêu cầu **mã băm duy nhất cho mỗi khóa** hoặc bắt buộc mã băm có giá trị dương. Mã băm chỉ là một gợi ý để tổ chức việc tìm kiếm; bình đẳng logic mới quyết định liệu hai khóa có đại diện cho cùng một entry hay không.
+No clause requires a **unique hash code per key** or mandates that hash codes be positive values. The hash code is only a hint to organize searching; logical equality is what decides whether two keys represent the same entry.
 
-### 2.2. Ngữ nghĩa của `Map` và `HashMap`
+### 2.2. Semantics of `Map` and `HashMap`
 
-Một `Map` biểu diễn ánh xạ từ **mỗi khóa tới tối đa một giá trị**. Với một `HashMap` được cài đặt đúng và các khóa tuân thủ hợp đồng:
+A `Map` represents a mapping from **each key to at most one value**. With a properly implemented `HashMap` and contract-compliant keys:
 
-- `put(k, v)` gắn giá trị `v` cho khóa logic `k`. Nếu đã có khóa tương đương, ánh xạ cũ được thay thế; hai khóa bằng nhau không tạo hai entry độc lập. `HashMap.put` trả về giá trị gắn trước đó, hoặc `null` nếu trước đó không có ánh xạ hoặc đã ánh xạ tới `null`.
-- `get(k)` trả về giá trị gắn với khóa tương đương, hoặc `null` khi không có ánh xạ. Với `HashMap`, `null` cũng có thể là **giá trị được lưu**, nên dùng `containsKey(k)` để phân biệt hai trường hợp.
-- `size()` trả số ánh xạ đang có; `remove(k)` loại bỏ ánh xạ cho khóa tương đương.
-- `HashMap` chấp nhận **một khóa `null`** và nhiều giá trị `null`. Đây là đặc tính được tài liệu `HashMap` công bố; không được suy rộng sang mọi `Map`. Ví dụ `ConcurrentHashMap` và `Map.of(...)` không chấp nhận khóa hoặc giá trị `null`.
+- `put(k, v)` associates value `v` with logical key `k`. If an equivalent key already exists, the old mapping is replaced; two equal keys do not create two independent entries. `HashMap.put` returns the previously associated value, or `null` if there was no prior mapping or it previously mapped to `null`.
+- `get(k)` returns the value associated with the equivalent key, or `null` when there is no mapping. With `HashMap`, `null` can also be **a stored value**, so use `containsKey(k)` to distinguish the two cases.
+- `size()` returns the number of current mappings; `remove(k)` removes the mapping for the equivalent key.
+- `HashMap` accepts **one `null` key** and multiple `null` values. This is a property published in `HashMap`'s documentation; it must not be generalized to every `Map`. For instance, `ConcurrentHashMap` and `Map.of(...)` do not accept `null` keys or values.
 
-Một số thao tác sửa đổi là *optional operations* ở cấp giao diện `Map`: không phải bất kỳ `Map` nào cũng cho phép `put` hay `remove`. `HashMap` là lớp có hỗ trợ các thao tác sửa đổi ấy.
+Some modification operations are *optional operations* at the `Map` interface level: not every `Map` permits `put` or `remove`. `HashMap` is a class that supports those modification operations.
 
-### 2.3. Ngữ nghĩa của `Set` và `HashSet`
+### 2.3. Semantics of `Set` and `HashSet`
 
-Một `Set` không chứa hai phần tử bằng nhau. Với `HashSet`:
+A `Set` does not contain two equal elements. With `HashSet`:
 
-- `add(e)` trả `true` nếu phần tử mới được thêm, và trả `false` nếu đã có phần tử tương đương.
-- `contains(e)` kiểm tra có phần tử tương đương hay không, không phụ thuộc vào việc phần tử ấy có **cùng địa chỉ/tham chiếu** với `e`.
-- Các phần tử có cùng mã băm nhưng `equals` trả `false` **vẫn có thể cùng tồn tại trong tập hợp**.
-- `HashSet` cho phép một phần tử `null`; một số triển khai `Set` khác có thể áp đặt quy tắc riêng.
+- `add(e)` returns `true` if the new element was added, and returns `false` if an equivalent element was already present.
+- `contains(e)` checks whether an equivalent element exists, regardless of whether that element has the **same address/reference** as `e`.
+- Elements with the same hash code yet `equals` returning `false` **can still coexist in the set**.
+- `HashSet` allows one `null` element; some other `Set` implementations may impose their own rules.
 
-Đây là những điều cần kiểm tra thông qua API, không cần biết tập hợp dùng một mảng bucket, danh sách, cây hay một tổ chức khác.
+These are the things to verify through the API, without needing to know whether the set uses a bucket array, list, tree, or another organization.
 
-## 3. Bucket, collision và resize thuộc tầng triển khai
+## 3. Buckets, Collisions, and Resizing Belong to the Implementation Layer
 
-Có thể hình dung hoạt động điển hình của một bảng băm như sau:
+You can picture the typical operation of a hash table as follows:
 
 ```text
 put(key, value)
     |
     v
-lấy hashCode của key
+get key's hashCode
     |
     v
-trộn/chuyển đổi bit (nếu triển khai cần)
+mix/transform bits (if the implementation needs to)
     |
     v
-xác định vùng chứa/bucket từ dung lượng hiện tại
+determine container/bucket from current capacity
     |
     v
-xử lý các khóa cùng vùng bằng so sánh bình đẳng
+process keys in the same region via equality comparison
     |
     v
-thêm entry mới hoặc cập nhật entry tương đương
+add new entry or update equivalent entry
 ```
 
-Đây là **sơ đồ khái niệm**, không phải lời hứa về thứ tự gọi phương thức, công thức chỉ số, cấu trúc nút hay số bước của một phiên bản `HashMap` cụ thể.
+This is a **conceptual diagram**, not a promise about method-call order, index formula, node structure, or exact step count of a specific `HashMap` version.
 
-Các thuật ngữ thường gặp:
+Commonly encountered terms:
 
-- **Bucket:** một vị trí hoặc nhóm chứa các entry được phân bố bởi hàm băm. Số bucket và cách ánh xạ mã băm tới bucket là chi tiết cài đặt.
-- **Collision:** hai khóa có thể được xét trong cùng một bucket, hoặc có cùng mã băm, tùy cách diễn đạt. Việc trùng `hashCode` là điều tự nhiên; các khóa khác nhau vẫn phải được phân biệt khi so sánh bằng nhau.
-- **Capacity:** kích thước/khả năng chứa nội bộ của bảng trong một cấu trúc cụ thể.
-- **Load factor:** tham số liên quan đến mức độ đầy của bảng và chính sách mở rộng trong các triển khai như `HashMap`.
-- **Resize/rehash:** quá trình nội bộ điều chỉnh cấu trúc và phân bố lại entry khi bảng cần thêm không gian.
+- **Bucket:** a slot or group holding entries distributed by the hash function. Bucket count and how hash codes map to buckets are implementation details.
+- **Collision:** two keys may be examined in the same bucket, or share the same hash code, depending on phrasing. Matching `hashCode` is natural; distinct keys must still be distinguished when comparing equality.
+- **Capacity:** the internal size/holding capacity of the table in a specific structure.
+- **Load factor:** a parameter related to how full the table gets and the expansion policy in implementations like `HashMap`.
+- **Resize/rehash:** the internal process of adjusting the structure and redistributing entries when the table needs more space.
 
-`HashMap` có các constructor công khai cho phép người dùng cung cấp **initial capacity** và **load factor**, nên *khái niệm* và các tham số này là một phần của API lớp. Tuy nhiên, chi tiết như số bucket thực tế sau khi làm tròn, ngưỡng phân bổ node, cách trộn bit hoặc thời điểm chính xác cây hóa bucket không phải là quy tắc ngữ nghĩa của `Map` mà ứng dụng có thể dựa vào.
+`HashMap` has public constructors allowing callers to supply **initial capacity** and **load factor**, so those *concepts* and parameters are part of the class API. However, details like the actual bucket count after rounding, node distribution thresholds, bit-mixing scheme, or exact point of bucket treeification are not `Map` semantic rules that an application can rely on.
 
-Trong một số bản OpenJDK, bucket có thể dùng node dạng danh sách và đôi khi chuyển sang cấu trúc cây để xử lý trường hợp collision cao. Điều đó hữu ích khi đọc mã nguồn JDK hoặc chẩn đoán hiệu năng, nhưng **không phải điều kiện cần** để hiểu và sử dụng đúng `put/get/equals/hashCode`; đừng viết logic nghiệp vụ đòi hỏi đúng một số node, ngưỡng treeification hay thứ tự duyệt của nội bộ OpenJDK.
+In some OpenJDK releases, buckets may use list nodes and occasionally switch to a tree structure to handle high-collision cases. That is useful when reading JDK source code or diagnosing performance, yet **it is not a prerequisite** for understanding and correctly using `put/get/equals/hashCode`; do not write business logic requiring a specific node count, treeification threshold, or OpenJDK internal traversal order.
 
-## 4. Ví dụ Java 17: cùng hợp đồng, cấu hình bảng khác nhau
+## 4. Java 17 Example: Same Contract, Different Table Configurations
 
-Một lỗi dễ mắc khi đọc mã nguồn JDK là lấy dung lượng bảng hoặc cách tổ chức bucket để dự đoán kết quả nghiệp vụ. Thử nghiệm sau tạo hai `HashMap` với dung lượng ban đầu khác nhau, đưa vào cùng các khóa **cố ý va chạm**, rồi chỉ kiểm tra các giá trị mà API cam kết.
+A common mistake when reading JDK source code is using table capacity or bucket organization to predict business outcomes. The experiment below creates two `HashMap`s with different initial capacities, inserts the same **intentionally colliding** keys, and checks only the values guaranteed by the API.
 
-Lưu vào `HashApiContractDemo.java`:
+Save to `HashApiContractDemo.java`:
 
 ~~~java
 import java.util.HashMap;
@@ -104,7 +104,7 @@ public class HashApiContractDemo {
     record Key(String id) {
         @Override
         public int hashCode() {
-            return 1; // Cố ý gây va chạm, vẫn tương thích với equals của record.
+            return 1; // Intentionally causes collisions, still compatible with record's equals.
         }
     }
 
@@ -132,14 +132,14 @@ public class HashApiContractDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or higher:
 
 ~~~bash
 javac --release 17 HashApiContractDemo.java
 java HashApiContractDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 small: size=2, old=a1, A=a2, B=b1
@@ -147,115 +147,115 @@ large: size=2, old=a1, A=a2, B=b1
 linked keys: B -> A
 ~~~
 
-Hai `HashMap` có tham số dung lượng ban đầu khác nhau nhưng cùng cho kết quả qua `put`, `get` và `size`: khóa A mới tạo vẫn bằng khóa A đã lưu, khóa B khác A dù có chung mã băm, và lần cập nhật A trả về giá trị cũ. Đó là **hợp đồng quan sát được**. Bài không đọc hoặc khẳng định số bucket thực sự đã được cấp phát, ngưỡng cây hóa hay trình tự gọi `equals()`; các yếu tố ấy tùy thuộc triển khai.
+The two `HashMap`s have different initial capacity parameters yet yield the exact same results through `put`, `get`, and `size`: a newly created key A still equals the stored key A, key B differs from A despite sharing a hash code, and updating A returns the old value. That is the **observable contract**. The lesson does not inspect or assert the actual number of allocated buckets, treeification threshold, or `equals()` call sequence; those factors depend on the implementation.
 
-`LinkedHashMap` được đưa vào để đối chiếu một cam kết khác: thứ tự chèn của nó được công bố. Thay giá trị B không chuyển B tới cuối trong chế độ mặc định, nên có thể kiểm tra dãy `B -> A`. Không kiểm tra thứ tự lặp của hai `HashMap`, vì chúng không hứa thứ tự chèn.
+`LinkedHashMap` is included to contrast another guarantee: its insertion order is documented. Replacing B's value does not move B to the end in default mode, so the sequence `B -> A` can be verified. We do not check the iteration order of the two `HashMap`s because they do not promise insertion order.
 
-Ví dụ dùng hàm băm cố định chỉ để cô lập hợp đồng equality. Hàm băm phân bố kém có thể làm giảm hiệu năng với dữ liệu lớn; sự đúng đắn của các thao tác vẫn phụ thuộc vào `equals`/`hashCode` tương thích và khóa ổn định.
+The example uses a constant hash function solely to isolate the equality contract. A poorly distributed hash function can degrade performance with large datasets; operation correctness still depends on compatible `equals`/`hashCode` and stable keys.
 
-## 5. Bảng so sánh: cam kết công khai và chi tiết bên trong
+## 5. Comparison Table: Public Guarantees vs. Internal Details
 
-| Chủ đề | Hợp đồng có thể dựa vào | Chi tiết không nên coi là cam kết |
+| Topic | Contract you can rely on | Details not to treat as guarantees |
 | --- | --- | --- |
-| Khóa bằng nhau | `HashMap` không giữ hai ánh xạ riêng cho hai khóa tương đương | Có bao nhiêu node cùng bucket, so sánh node theo đúng thứ tự nào |
-| Mã băm | `equals == true` ⇒ cùng `hashCode`; collision được phép | Hàm trộn bit, phép lấy index từ hash, số bucket |
-| `put/get` | Kết quả phù hợp với ánh xạ của khóa, nếu khóa tuân thủ hợp đồng | Chính xác bao nhiêu phép so sánh hoặc lần truy cập bộ nhớ |
-| `null` | `HashMap` hỗ trợ khóa và giá trị `null`; `HashSet` hỗ trợ phần tử `null` | `null` được đánh dấu hoặc cất giữ nội bộ bằng kỹ thuật nào |
-| Thứ tự | `LinkedHashMap` mặc định bảo toàn thứ tự chèn; `HashMap` không bảo đảm thứ tự | Thứ tự duyệt tình cờ xuất hiện ở một dung lượng/phiên bản JVM |
-| Collision | Các khóa khác nhau cùng hash vẫn có thể tồn tại | Bucket là danh sách, cây, hay tối ưu hóa nào khác |
-| Mở rộng | Sau khi mở rộng, ngữ nghĩa ánh xạ không thay đổi vì riêng thao tác mở rộng | Thời điểm, ngưỡng, công thức resize và cách phân phối lại bucket |
-| Hiệu năng | `HashMap` có hiệu năng trung bình tốt cho các thao tác cơ bản khi hash phân bố thích hợp | Cam kết rằng mọi `get/put` luôn mất chính xác O(1), bất kể dữ liệu |
-| Đồng thời | `HashMap` không phải collection tự đồng bộ cho chỉnh sửa đồng thời | Việc đọc/ghi không đồng bộ “tình cờ chạy được” trên máy hiện tại |
+| Equal keys | `HashMap` does not keep two separate mappings for two equivalent keys | How many nodes are in the same bucket, in what exact order nodes are compared |
+| Hash code | `equals == true` ⇒ same `hashCode`; collisions are permitted | Bit-mixing function, index extraction from hash, bucket count |
+| `put/get` | Results match the key's mapping, if the key obeys the contract | Exact number of comparisons or memory accesses |
+| `null` | `HashMap` supports `null` keys and values; `HashSet` supports a `null` element | How `null` is marked or stored internally |
+| Ordering | `LinkedHashMap` preserves insertion order by default; `HashMap` does not guarantee order | Incidental iteration order appearing at a given capacity/JVM version |
+| Collision | Distinct keys with the same hash can still coexist | Whether a bucket is a list, tree, or another optimization |
+| Expansion | After expansion, mapping semantics do not change solely due to expansion | Timing, threshold, resize formula, and bucket redistribution method |
+| Performance | `HashMap` has good average performance for basic operations when hashes distribute suitably | Guarantee that every `get/put` always takes strictly O(1), regardless of data |
+| Concurrency | `HashMap` is not a self-synchronizing collection for concurrent modifications | Unsynchronized reads/writes "happening to work" on the current machine |
 
-Dòng “hiệu năng” cần hiểu đúng: tài liệu `HashMap` nói về **hiệu năng kỳ vọng** cho `get` và `put` với giả định giá trị băm phân bố hợp lý. Đó không phải bảo đảm chặt chẽ rằng mọi thao tác đều có cùng thời gian bất kể collision, resize, kích thước hay các tác động JVM. Nếu tối ưu hiệu năng, hãy đo workload thật thay vì suy luận về một bucket giả định.
+The "performance" row needs to be understood properly: `HashMap` documentation speaks of **expected performance** for `get` and `put` assuming hash values distribute reasonably. That is not a strict guarantee that every operation takes identical time regardless of collisions, resizing, size, or JVM effects. When optimizing performance, measure real workloads rather than reasoning about a hypothetical bucket.
 
-## 6. Hợp đồng thứ tự: chọn đúng collection
+## 6. Ordering Contract: Choosing the Right Collection
 
-Một lỗi quen thuộc là chạy đoạn mã sau nhiều lần, thấy cùng một thứ tự rồi cho rằng `HashMap` luôn trả theo thứ tự đó. `HashMap` **không bảo đảm thứ tự duyệt**, và thứ tự cũng không được cam kết là cố định theo thời gian. Các thay đổi kích thước bảng, phân bố hash, lịch sử thêm/xóa hoặc thay phiên bản JDK có thể làm quan sát khác đi.
+A familiar mistake is running the following code several times, seeing the same order, and assuming `HashMap` always returns items in that order. `HashMap` **does not guarantee iteration order**, nor is order guaranteed to remain fixed over time. Changes in table size, hash distribution, insert/delete history, or JDK version can alter what you observe.
 
-Nếu ứng dụng **thực sự cần thứ tự**, chọn loại có hợp đồng tương ứng:
+If the application **truly needs ordering**, pick a type with the corresponding contract:
 
-- **`LinkedHashMap`:** mặc định duy trì thứ tự chèn; có cấu hình thứ tự truy cập cho các bài toán đặc thù. Khi dùng chế độ mặc định, cập nhật giá trị của khóa đã có không làm thay đổi thứ tự chèn.
-- **`TreeMap`:** thứ tự khóa dựa trên thứ tự tự nhiên hoặc một `Comparator` được cung cấp. Với sorted map, tiêu chí so sánh của comparator quyết định tính tương đương khóa theo map; nếu muốn tuân thủ đầy đủ hợp đồng `Map` theo `equals`, thứ tự đó nên nhất quán với `equals`.
-- **`HashMap`:** chọn khi cần ánh xạ với hiệu năng băm điển hình và **không cần** bảo đảm thứ tự.
+- **`LinkedHashMap`:** maintains insertion order by default; offers an access-order configuration for specialized problems. In default mode, updating an existing key's value does not change insertion order.
+- **`TreeMap`:** key ordering is based on natural ordering or a supplied `Comparator`. For sorted maps, the comparator's comparison criterion determines key equivalence according to the map; if you want full compliance with the `Map` contract by `equals`, that ordering should be consistent with `equals`.
+- **`HashMap`:** choose when you need mappings with typical hash performance and **do not need** ordering guarantees.
 
-Đừng dựa vào việc `HashMap` hôm nay có thể in các khóa số nguyên theo thứ tự tăng: với khóa/dung lượng cụ thể đó, thứ tự tăng chỉ là một hiện tượng cài đặt.
+Do not rely on `HashMap` printing integer keys in ascending order today: for that specific set of keys/capacity, ascending order is merely an implementation artifact.
 
-## 7. Hợp đồng khi khóa mutable: lỗi không nằm ở bucket
+## 7. Contract With Mutable Keys: The Bug Is Not in the Bucket
 
-Có thể viết một lớp có `equals()` và `hashCode()` đều dựa trên trường `id` có thể sửa. Tại thời điểm chưa sửa, hai phương thức vẫn có thể đáp ứng hợp đồng. Nhưng nếu đối tượng ấy đã là khóa trong `HashMap`, sau đó sửa `id` thì map **không có nghĩa vụ tự tái cấu trúc** entry theo giá trị mã băm mới.
+You can write a class whose `equals()` and `hashCode()` both rely on a mutable `id` field. Before any mutation, both methods may satisfy the contract. However, once that object is already a key in `HashMap`, mutating `id` later means the map **has no obligation to automatically reorganize** the entry under the new hash code value.
 
-Ví dụ sau là **đoạn mã minh họa**, giả định `key` là một đối tượng có setter sửa trường `id` tham gia `equals/hashCode`:
+The following is an **illustrative code snippet**, assuming `key` is an object with a setter modifying the `id` field participating in `equals/hashCode`:
 
 ```java
 map.put(key, "saved");
-key.setId("another-id"); // Tránh sửa thuộc tính danh tính của khóa đang lưu.
-String value = map.get(key); // Có thể không tìm thấy entry đã lưu.
+key.setId("another-id"); // Avoid mutating identity properties of a stored key.
+String value = map.get(key); // May fail to find the stored entry.
 ```
 
-Cách xử lý: dùng **khóa bất biến** (ví dụ ID `String`, số, record gồm các thành phần bất biến) hoặc xóa khóa cũ *trước khi* sửa và chèn một khóa mới với giá trị mới. Sửa trực tiếp một object đang lưu rồi hy vọng `get` vẫn chạy được là dựa vào may rủi cài đặt.
+How to handle it: use **immutable keys** (such as `String` IDs, numbers, or records made of immutable components) or remove the old key *before* mutating and insert a new key with the new value. Mutating a stored object in place and hoping `get` still works relies on implementation luck.
 
-Một record Java 17 như:
+A Java 17 record like:
 
 ```java
 record CustomerKey(String tenantId, long customerId) {}
 ```
 
-có `equals/hashCode` tự sinh theo các component. Nó là ví dụ thích hợp khi mọi component đều ổn định, như `String` và `long`. **Record không tự bảo đảm bất biến sâu** nếu có component là mảng hoặc đối tượng mutable.
+has `equals/hashCode` auto-generated from its components. It is a suitable example when all components are stable, like `String` and `long`. **A record does not automatically guarantee deep immutability** if it has a component that is an array or mutable object.
 
-Hãy phân biệt lỗi do **khóa tự phá hợp đồng bình đẳng/mã băm** và vấn đề do **thuật toán bucket**. Nhiều triệu chứng lookup không nhất quán bắt nguồn từ cài đặt `equals/hashCode` sai hoặc sửa khóa, không phải từ chi tiết cấu trúc bảng băm.
+Distinguish bugs caused by **the key itself breaking the equality/hash contract** from issues caused by **bucket algorithms**. Many inconsistent lookup symptoms stem from flawed `equals/hashCode` implementations or mutating keys, not from hash table structure details.
 
-## 8. Đọc source JDK thế nào mà không biến nó thành API?
+## 8. How to Read JDK Source Without Turning It Into API?
 
-Đọc source của `java.util.HashMap` trong một JDK cụ thể là rất hữu ích để hiểu:
+Reading the source of `java.util.HashMap` in a specific JDK is very helpful for understanding:
 
-- Cách triển khai xử lý giá trị hash và ánh xạ vào bảng hiện tại.
-- Tình huống phân bổ entry mới, cập nhật entry, xử lý collision và resize.
-- Cách phiên bản đó tối ưu các bucket đông phần tử hoặc hỗ trợ iterator.
-- Vì sao một loại dữ liệu hoặc tải công việc tạo ra áp lực CPU/bộ nhớ.
+- How the implementation processes hash values and maps into the current table.
+- Scenarios for allocating new entries, updating entries, handling collisions, and resizing.
+- How that version optimizes crowded buckets or supports iterators.
+- Why a particular data pattern or workload creates CPU/memory pressure.
 
-Nhưng một **quan sát source** nên được ghi rõ phạm vi, ví dụ “trong bản OpenJDK này ...”; không suy rộng nó thành quy định bắt buộc với mọi Java. Việc Java có nhiều JDK/phiên bản khiến sự phân biệt này rất thiết thực.
+However, a **source observation** should be explicitly scoped, such as "in this OpenJDK release ..."; do not generalize it into a mandatory rule for all of Java. Having multiple JDKs and versions in Java makes this distinction very practical.
 
-Để biết có thể **phụ thuộc vào** hành vi nào, tra tài liệu Javadoc của đúng kiểu và phiên bản API đang dùng (`Map`, `Set`, `HashMap`, `HashSet`, `LinkedHashMap`, `Object`). Để biết **vì sao** triển khai hiện tại nhanh/chậm ở một tình huống, mới đọc source, benchmark và công cụ profiler.
+To know which behaviors you can **depend on**, consult the Javadoc of the exact API type and version you are using (`Map`, `Set`, `HashMap`, `HashSet`, `LinkedHashMap`, `Object`). To know **why** the current implementation is fast or slow in a scenario, read the source, run benchmarks, and use profiling tools.
 
-Các khái niệm “capacity” và “load factor” vẫn quan trọng khi tối ưu cấu hình `HashMap`: chúng được mô tả trong Javadoc và một số constructor công khai. Tuy vậy, chi tiết chính xác về số bucket, cách phân phối hay ngưỡng cây hóa không được nâng thành hợp đồng chỉ vì source hiện tại dùng chúng.
+The concepts "capacity" and "load factor" remain important when tuning `HashMap` configuration: they are described in the Javadoc and several public constructors. Still, exact details of bucket counts, distribution schemes, or treeification thresholds are not elevated into a contract merely because the current source uses them.
 
-## 9. Thứ tự gọi phương thức, iterator và đồng thời
+## 9. Method Call Order, Iterators, and Concurrency
 
-### Không giả định số lần `equals()` được gọi
+### Do not assume how many times `equals()` is called
 
-Mã ứng dụng không nên đếm số lần `equals` được gọi trong một lần `get`, `containsKey` hay `put` rồi dùng nó làm hành vi nghiệp vụ. Triển khai có thể tra cứu theo identity, hash, so sánh các candidate hoặc dùng tối ưu nội bộ. Vì vậy `equals` nên là phép so sánh **không gây side effect** và không phụ thuộc số lần gọi hay thời gian thực.
+Application code should not count how many times `equals` is called during a single `get`, `containsKey`, or `put` and treat that as business behavior. Implementations may check by identity, hash, compare candidates, or apply internal optimizations. Therefore, `equals` should be a comparison **without side effects** and independent of call counts or wall-clock time.
 
-### Không dựa vào fail-fast như cơ chế đồng bộ
+### Do not rely on fail-fast as a synchronization mechanism
 
-Tài liệu `HashMap` mô tả iterator có cơ chế **fail-fast** đối với một số thay đổi cấu trúc không hợp lệ khi đang duyệt, thường ném `ConcurrentModificationException`. Tuy nhiên, hành vi phát hiện là **best effort**, không phải cơ chế chắc chắn để phát hiện mọi cuộc đua dữ liệu và cũng không làm `HashMap` trở nên an toàn đa luồng.
+The `HashMap` documentation describes iterators as having a **fail-fast** mechanism for certain invalid structural modifications during iteration, typically throwing `ConcurrentModificationException`. However, detection behavior is **best effort**, not a guaranteed mechanism to catch every data race, nor does it make `HashMap` thread-safe.
 
-Nếu có nhiều thread sửa đồng thời và không có đồng bộ ngoài, cần thiết kế phù hợp, chẳng hạn dùng `ConcurrentHashMap` khi đáp ứng yêu cầu. Lưu ý `ConcurrentHashMap` có **hợp đồng riêng** (ví dụ không cho phép `null`), vì thế không thể xem nó là cùng một triển khai nội bộ có thể hoán đổi mà không xét API.
+If multiple threads modify concurrently without external synchronization, design accordingly, such as using `ConcurrentHashMap` when requirements are met. Note that `ConcurrentHashMap` has **its own contract** (for example, disallowing `null`), so it cannot be treated as an interchangeable internal implementation without checking the API.
 
-### Phân biệt giao diện và lớp triển khai
+### Distinguish interfaces from implementation classes
 
-Nếu khai báo `Map<String, Integer> m = new HashMap<>();`, biến `m` có kiểu `Map`, nhưng đối tượng lúc chạy là `HashMap`. Hành vi của lời gọi cần tuân thủ hợp đồng `Map`, cộng với các đặc điểm được lớp `HashMap` công bố. Nếu về sau đổi sang `Map.of(...)` hoặc `TreeMap`, hãy kiểm tra lại những đặc tính khác biệt (khả năng sửa, chấp nhận `null`, thứ tự) thay vì mặc định mọi `Map` tương đương nhau.
+If you declare `Map<String, Integer> m = new HashMap<>();`, the variable `m` has type `Map`, yet the runtime object is a `HashMap`. Call behavior must adhere to the `Map` contract, plus the characteristics published by the `HashMap` class. If later switching to `Map.of(...)` or `TreeMap`, re-verify the differing characteristics (mutability, `null` acceptance, ordering) instead of assuming every `Map` is equivalent.
 
-## 10. Tình huống thực tế để tự kiểm tra
+## 10. Real-World Scenarios for Self-Checking
 
-**Tình huống A — hai khóa khác nhau cùng hash.** `k1.hashCode() == k2.hashCode()` nhưng `k1.equals(k2) == false`. `HashSet` được phép chứa cả hai, và `HashMap` phải lưu được hai ánh xạ nếu các thao tác hợp lệ. Đừng báo lỗi chỉ vì collision.
+**Scenario A — two different keys with the same hash.** `k1.hashCode() == k2.hashCode()` yet `k1.equals(k2) == false`. `HashSet` is allowed to hold both, and `HashMap` must be able to store both mappings if operations are valid. Do not report an error merely because of a collision.
 
-**Tình huống B — hai khóa bằng nhau.** `k1.equals(k2) == true` và `hashCode` cùng giá trị. `HashMap.put(k2, newValue)` phải cập nhật ánh xạ tương đương đã được thêm bởi `k1`. Không cần biết hai khóa đang nằm trong bucket nào.
+**Scenario B — two equal keys.** `k1.equals(k2) == true` and `hashCode` has the same value. `HashMap.put(k2, newValue)` must update the equivalent mapping already added by `k1`. There is no need to know which bucket the two keys sit in.
 
-**Tình huống C — thứ tự in có vẻ luôn giống nhau.** Nếu đang duyệt `HashMap`, không thể biến quan sát thành hợp đồng; nếu cần thứ tự chèn, dùng `LinkedHashMap`, nếu cần thứ tự sắp xếp theo khóa, xem `TreeMap`.
+**Scenario C — printed order always seems the same.** When iterating `HashMap`, you cannot turn observation into a contract; if insertion order is needed, use `LinkedHashMap`; if sorted order by key is needed, look at `TreeMap`.
 
-**Tình huống D — giá trị đọc ra là `null`.** Với `HashMap`, phải kiểm tra `containsKey` nếu cần phân biệt “khóa chưa có” và “khóa có giá trị `null`”. Cách `null` được biểu diễn trong bảng không liên quan đến quyết định này.
+**Scenario D — value read back is `null`.** With `HashMap`, you must check `containsKey` if you need to distinguish "key absent" from "key has value `null`". How `null` is represented inside the table is irrelevant to this decision.
 
-**Tình huống E — mất khóa sau khi đổi ID.** Đầu tiên xem khóa có trường mutable tham gia `equals/hashCode` hay không. Khắc phục ở thiết kế khóa và vòng đời của nó; không sửa ứng dụng bằng cách giả định công thức chọn bucket.
+**Scenario E — lost key after changing ID.** First check whether the key has a mutable field participating in `equals/hashCode`. Fix it in the key's design and lifecycle; do not patch the application by assuming a bucket-selection formula.
 
-**Tình huống F — tối ưu bảng băm.** Dữ liệu phân bố hash kém có thể tăng collision và làm giảm hiệu năng. Điều chỉnh lựa chọn khóa, hàm băm và dung lượng khi có đo đạc thực tế; không dùng chi tiết treeify/resize của riêng một bản JDK như điều kiện logic để nghiệp vụ đúng.
+**Scenario F — optimizing the hash table.** Poorly distributed hash data can increase collisions and degrade performance. Adjust key selection, hash function, and capacity based on real measurements; do not use treeify/resize details of a specific JDK release as a logical condition for business correctness.
 
-## 11. Ghi nhớ
+## 11. Key Takeaways
 
-- Hợp đồng cho biết **kết quả và ngữ nghĩa công khai**; triển khai giải thích **cách thực hiện**, có thể thay đổi.
-- `equals` xác định bình đẳng logic, `hashCode` hỗ trợ tổ chức tra cứu. **Bằng nhau ⇒ cùng mã băm**; **cùng mã băm ⇏ bằng nhau**.
-- `HashMap` không bảo đảm thứ tự duyệt; `LinkedHashMap` và `TreeMap` có các cam kết thứ tự khác nhau.
-- Collision không có nghĩa hai khóa bị coi là một; `HashMap` và `HashSet` vẫn phải thực hiện đúng hành vi cho các khóa khác nhau.
-- Initial capacity/load factor là khái niệm và tùy chọn cấu hình được `HashMap` công bố, còn ngưỡng node/cây, công thức bucket và trình tự kiểm tra nội bộ không phải hợp đồng của `Map`.
-- Đừng sửa các trường tham gia `equals/hashCode` khi đối tượng đang làm khóa trong bảng băm.
-- Đọc Javadoc để xác định điều ứng dụng **được phép tin cậy**, đọc source/benchmark để hiểu và tối ưu **triển khai cụ thể**.
+- The contract tells you **public results and semantics**; the implementation explains **how it is carried out**, which can change.
+- `equals` defines logical equality, `hashCode` assists lookup organization. **Equal ⇒ same hash code**; **same hash code ⇏ equal**.
+- `HashMap` does not guarantee iteration order; `LinkedHashMap` and `TreeMap` provide different ordering guarantees.
+- Collisions do not mean two keys are treated as one; `HashMap` and `HashSet` must still behave properly for distinct keys.
+- Initial capacity/load factor are concepts and configuration options published by `HashMap`, whereas node/tree thresholds, bucket formulas, and internal check order are not part of the `Map` contract.
+- Do not mutate fields participating in `equals/hashCode` while the object is serving as a key in a hash table.
+- Read the Javadoc to determine what an application **is allowed to rely on**, and read source/benchmarks to understand and optimize a **specific implementation**.

@@ -1,14 +1,14 @@
-# Tạo Map không sửa đổi được bằng `toUnmodifiableMap`
+# Creating an Unmodifiable Map with `toUnmodifiableMap`
 
-Trong **Java Stream API**, ta có thể dùng pipeline lazy gồm `filter`, `map` và các phép toán trung gian khác để chuẩn bị dữ liệu, rồi dùng `collect` để tạo kết quả. Khi kết quả là bảng tra cứu theo khóa, `Collectors.toMap` là lựa chọn quen thuộc. Nhưng nếu bảng tra cứu đã hoàn thành và **không được phép thêm, xóa hay thay thế ánh xạ**, `Collectors.toUnmodifiableMap` (Java 10+) diễn đạt yêu cầu đó trực tiếp.
+In the **Java Stream API**, we can use a lazy pipeline of `filter`, `map`, and other intermediate operations to prepare data, then use `collect` to produce a result. When the result is a key-based lookup table, `Collectors.toMap` is a familiar choice. However, if the lookup table is finalized and **adding, removing, or replacing mappings must be forbidden**, `Collectors.toUnmodifiableMap` (Java 10+) expresses that requirement directly.
 
-Bài này thuộc chương **Thu thập thành Map**: học cách xây `Map<K,V>` không sửa đổi được, xử lý khóa trùng, ngăn giá trị `null`, phân biệt tính không sửa đổi với tính bất biến sâu, và chọn giải pháp khi cần thứ tự hoặc muốn xử lý song song.
+This lesson belongs to the **Collecting to Maps** chapter: learn how to build an unmodifiable `Map<K,V>`, handle duplicate keys, forbid `null` values, distinguish unmodifiability from deep immutability, and choose solutions when ordering or parallel processing is needed.
 
-## 1. `toUnmodifiableMap` làm gì?
+## 1. What Does `toUnmodifiableMap` Do?
 
-`Collectors.toUnmodifiableMap` là **factory tạo collector**, không phải một phép toán trung gian. Nó được truyền cho terminal operation `Stream.collect(...)`; thao tác thu thập kích hoạt việc duyệt stream và tạo một `Map` không cho phép chỉnh sửa cấu trúc ánh xạ qua API của map trả về.
+`Collectors.toUnmodifiableMap` is a **collector factory**, not an intermediate operation. It is passed to the terminal operation `Stream.collect(...)`; collecting triggers stream traversal and produces a `Map` that forbids structural modifications through the returned map's API.
 
-Ví dụ đơn giản từ danh sách từ khóa:
+Simple example from a list of words:
 
 ```java
 import java.util.Map;
@@ -25,22 +25,22 @@ System.out.println(lengths.get("Java"));   // 4
 System.out.println(lengths.get("Stream")); // 6
 System.out.println(lengths.size());        // 3
 
-// Không hợp lệ với map này:
+// Invalid for this map:
 // lengths.put("New", 3);  // UnsupportedOperationException
 ```
 
-Ở đây, `word -> word` là hàm lấy **khóa**, `String::length` là hàm lấy **giá trị**. Các cặp khóa/giá trị được tạo khi stream được thu thập. Sau khi có kết quả, ta vẫn có thể gọi `get`, `containsKey`, `entrySet`, `size` và các thao tác đọc bình thường.
+Here, `word -> word` is the **key** mapper, and `String::length` is the **value** mapper. Key/value pairs are produced when the stream is collected. Once obtained, you can still call `get`, `containsKey`, `entrySet`, `size`, and normal read operations.
 
-### Hai overload quan trọng
+### Two important overloads
 
-| Cách gọi | Ý nghĩa | Khi có khóa trùng |
+| Call | Meaning | On duplicate keys |
 | --- | --- | --- |
-| `toUnmodifiableMap(keyMapper, valueMapper)` | Tạo map khi mỗi phần tử sinh khóa duy nhất | Ném `IllegalStateException` |
-| `toUnmodifiableMap(keyMapper, valueMapper, mergeFunction)` | Tạo map và quy định cách gộp các giá trị có cùng khóa | Gọi `mergeFunction` để xử lý xung đột |
+| `toUnmodifiableMap(keyMapper, valueMapper)` | Creates a map when each element produces a unique key | Throws `IllegalStateException` |
+| `toUnmodifiableMap(keyMapper, valueMapper, mergeFunction)` | Creates a map and defines how to merge values with the same key | Invokes `mergeFunction` to resolve collisions |
 
-Hai overload đều có trong `java.util.stream.Collectors` từ **Java 10**. Các mapper thuộc họ `java.util.function.Function`; hàm gộp là `BinaryOperator<U>`, nhận hai giá trị kiểu `U` và trả một giá trị cùng kiểu.
+Both overloads have been in `java.util.stream.Collectors` since **Java 10**. The mappers belong to `java.util.function.Function`; the merge function is a `BinaryOperator<U>`, accepting two values of type `U` and returning one value of the same type.
 
-Về mặt kiểu, có thể hình dung:
+At the type level, think of them as:
 
 ```java
 <T, K, U> Collector<T, ?, Map<K, U>> toUnmodifiableMap(
@@ -55,30 +55,30 @@ Về mặt kiểu, có thể hình dung:
 );
 ```
 
-Đừng dựa vào một lớp triển khai cụ thể (như `HashMap` hoặc `LinkedHashMap`): hợp đồng trả về **`Map` không sửa đổi được**, không hứa cấu trúc lưu trữ hoặc thứ tự duyệt.
+Do not rely on a specific implementation class (such as `HashMap` or `LinkedHashMap`): the contract returns an **unmodifiable `Map`**, without promising storage structure or iteration order.
 
-## 2. Khóa trùng: hiểu ngoại lệ trước khi triển khai
+## 2. Duplicate Keys: Understand the Exception Before Implementing
 
-Khóa trong `Map` phải duy nhất theo quy tắc `equals`/`hashCode`. Một nguồn có phần tử khác nhau vẫn có thể tạo **cùng khóa** sau `keyMapper`.
+Keys in a `Map` must be unique under `equals`/`hashCode`. A source with distinct elements can still produce **the same key** after `keyMapper`.
 
 ```java
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-// Hai từ Java và JUnit đều có khóa "J".
+// Both Java and JUnit produce the key "J".
 Map<String, Integer> broken = Stream.of("Java", "JUnit")
     .collect(Collectors.toUnmodifiableMap(
         word -> word.substring(0, 1),
         String::length
     ));
 
-// IllegalStateException vì khóa "J" xuất hiện hai lần.
+// IllegalStateException because key "J" appears twice.
 ```
 
-Đây là lỗi theo **hợp đồng collector**, không phải hiện tượng chỉ xảy ra khi chạy song song. Ngay cả khi hai phần tử tạo ra cùng một khóa **và cùng một giá trị**, overload hai tham số vẫn từ chối khóa trùng.
+This is a **collector contract** error, not a phenomenon that happens only in parallel execution. Even when two elements produce the same key **and the same value**, the two-argument overload still rejects duplicate keys.
 
-Nếu khóa trùng là điều hợp lệ của bài toán, phải mô tả chính sách gộp một cách rõ ràng:
+If duplicate keys are valid in the problem domain, you must specify the merge policy explicitly:
 
 ```java
 import java.util.Map;
@@ -97,9 +97,9 @@ System.out.println(totalLengthByInitial.get("J")); // 9 = 4 + 5
 System.out.println(totalLengthByInitial.get("S")); // 6
 ```
 
-`Integer::sum` là một `BinaryOperator<Integer>`: hai độ dài gặp cùng khóa được cộng thành một giá trị. Chính sách “cộng” không phù hợp với mọi dữ liệu; tùy mục đích, ta có thể chọn giá trị lớn nhất, giá trị nhỏ nhất hoặc gộp nội dung theo một quy tắc khác.
+`Integer::sum` is a `BinaryOperator<Integer>`: two lengths sharing a key are summed into one value. A "sum" policy does not fit every dataset; depending on the goal, you may pick the maximum, minimum, or combine contents by another rule.
 
-### Ví dụ chọn giá trị lớn nhất theo khóa
+### Example picking the maximum value per key
 
 ```java
 import java.util.Comparator;
@@ -122,11 +122,11 @@ System.out.println(longestByInitial.get('A')); // Anh
 System.out.println(longestByInitial.get('B')); // Binh
 ```
 
-Trong ví dụ này, `maxBy` chỉ so sánh độ dài; nếu hai tên có độ dài bằng nhau, comparator xem chúng là ngang nhau. Khi **cần kết quả duy nhất, ổn định** cho cả trường hợp hòa, hãy bổ sung tiêu chí phụ, ví dụ so sánh chuỗi theo thứ tự chữ cái.
+In this example, `maxBy` compares length only; if two names have equal length, the comparator treats them as tied. When you **need a unique, deterministic result** even on ties, add a secondary criterion such as alphabetical string comparison.
 
-### Khi muốn giữ *tất cả* giá trị theo khóa
+### When you want to keep *all* values per key
 
-Nếu yêu cầu là lưu danh sách sản phẩm cho từng nhóm, `toUnmodifiableMap` với một phép gộp chọn **một** giá trị không phản ánh đúng nghiệp vụ. Khi đó thường dùng `groupingBy`:
+If the requirement is to store a list of items for each group, `toUnmodifiableMap` with a merge picking **one** value does not reflect the business domain. In that case, `groupingBy` is typically used:
 
 ```java
 import java.util.List;
@@ -142,18 +142,18 @@ Map<Character, List<String>> byInitial = Stream.of(
 System.out.println(byInitial.get('A')); // [An, Anh]
 ```
 
-`groupingBy` ở đây chỉ minh họa sự khác biệt về ý nghĩa: **kết quả mặc định không được bảo đảm là map hay danh sách không sửa đổi được**. Nếu vẫn cần kết quả không sửa đổi được ở cả các cấp, phải thiết kế bước kết thúc phù hợp, tránh nhầm “không thay được map bên ngoài” với “không thay được list bên trong”.
+`groupingBy` here merely illustrates the semantic difference: **the default result is not guaranteed to be an unmodifiable map or list**. If you still need an unmodifiable result at every level, design an appropriate finishing step, avoiding confusing "cannot modify the outer map" with "cannot modify the inner list".
 
-## 3. Null bị từ chối
+## 3. Null Is Rejected
 
-`toUnmodifiableMap` **không cho phép khóa hoặc giá trị `null`**. Nếu `keyMapper` hoặc `valueMapper` trả về `null`, thao tác thu thập sẽ ném `NullPointerException`.
+`toUnmodifiableMap` **does not allow `null` keys or values**. If `keyMapper` or `valueMapper` returns `null`, collection throws `NullPointerException`.
 
 ```java
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-// Ví dụ SAI: valueMapper trả null.
+// WRONG example: valueMapper returns null.
 Map<String, String> invalid = Stream.of("A", "B")
     .collect(Collectors.toUnmodifiableMap(
         key -> key,
@@ -163,7 +163,7 @@ Map<String, String> invalid = Stream.of("A", "B")
 // NullPointerException
 ```
 
-Nếu dữ liệu nguồn có phần tử `null`, nó cũng có thể làm mapper ném `NullPointerException` trước khi collector xây map. Cách xử lý phải theo yêu cầu nghiệp vụ: **lọc**, **thay bằng giá trị có nghĩa**, hoặc **báo lỗi**.
+If the source data contains `null` elements, that can also cause a mapper to throw `NullPointerException` before the collector builds the map. Handling must follow business requirements: **filter**, **substitute a meaningful value**, or **report an error**.
 
 ```java
 import java.util.Arrays;
@@ -182,13 +182,13 @@ Map<String, Integer> lengths = Arrays.asList("Java", null, "API")
 System.out.println(lengths.size()); // 2
 ```
 
-Đừng tự động đổi mọi giá trị thiếu thành chuỗi rỗng hoặc số 0 nếu những giá trị đó có ý nghĩa thật trong hệ thống. Với dữ liệu tài chính, lỗi nhập liệu hoặc khóa định danh bị thiếu thường cần được ghi nhận và xử lý minh bạch.
+Do not automatically turn every missing value into an empty string or 0 if those values have real meaning in the system. For financial data, input errors or missing identifiers usually need to be recorded and handled transparently.
 
-## 4. Không sửa đổi được khác với bất biến sâu
+## 4. Unmodifiability Differs from Deep Immutability
 
-“Unmodifiable Map” có nghĩa là người dùng **không thể sửa các ánh xạ qua đối tượng `Map` nhận về**. Nó không có nghĩa toàn bộ đồ thị đối tượng được sao chép sâu hay những đối tượng dùng làm khóa/giá trị đều trở thành immutable.
+"Unmodifiable Map" means callers **cannot modify mappings through the returned `Map` object**. It does not mean the entire object graph is deep-copied or that objects used as keys/values become immutable.
 
-### Những thao tác nào bị chặn?
+### Which operations are blocked?
 
 ```java
 import java.util.Map;
@@ -200,16 +200,16 @@ Map<Integer, String> names = Stream.of("An", "Binh")
         String::length, word -> word
     ));
 
-// Không hợp lệ:
+// Invalid:
 // names.put(3, "New");
 // names.remove(2);
 // names.clear();
 // names.replace(2, "Other");
 ```
 
-Các thao tác sửa cấu trúc map bị chặn theo hợp đồng; phương thức sửa đổi có thể ném `UnsupportedOperationException`. Với các phương thức mặc định như `compute`, `merge` hoặc `replaceAll`, đừng dùng chúng để cập nhật map này. Không cần dựa vào việc một thao tác có hoặc không làm thay đổi dữ liệu mới ném lỗi: API cam kết kết quả **không sửa đổi được**.
+Structural map-modifying operations are blocked by contract; mutating methods can throw `UnsupportedOperationException`. For default methods like `compute`, `merge`, or `replaceAll`, do not use them to update this map. Do not rely on whether an operation changes data before throwing: the API promises the result is **unmodifiable**.
 
-### Giá trị mutable bên trong vẫn có thể thay đổi
+### Mutable values inside can still change
 
 ```java
 import java.util.ArrayList;
@@ -227,15 +227,15 @@ Map<String, List<String>> permissions = Stream.of("user")
         key -> roles
     ));
 
-// permissions.put("admin", roles); // Không được
-permissions.get("user").add("WRITE"); // Được: sửa chính List mutable
+// permissions.put("admin", roles); // Disallowed
+permissions.get("user").add("WRITE"); // Allowed: mutates the mutable List itself
 
 System.out.println(permissions.get("user")); // [READ, WRITE]
 ```
 
-Vì vậy, bản thân `Map` không thể thêm hoặc thay thế cặp khóa/giá trị, nhưng **trạng thái bên trong đối tượng `roles`** vẫn thay đổi được. Đây là một map không sửa đổi được ở cấp ánh xạ, **không** là một snapshot bất biến sâu.
+Thus, the `Map` itself cannot have key/value pairs added or replaced, yet **the internal state of the `roles` object** can still change. This is a map that is unmodifiable at the mapping level, **not** a deeply immutable snapshot.
 
-Nếu muốn danh sách giá trị cũng không thể sửa qua API của nó, có thể tạo bản sao:
+If you want the value lists to also be unmodifiable through their API, you can make a copy:
 
 ```java
 import java.util.ArrayList;
@@ -256,26 +256,26 @@ roles.add("WRITE");
 System.out.println(permissions.get("user")); // [READ]
 ```
 
-`List.copyOf` có từ Java 10, từ chối phần tử `null`, và tạo danh sách không sửa đổi được chứa các phần tử tại thời điểm sao chép. **Các phần tử trong danh sách vẫn là tham chiếu**; nếu bản thân chúng mutable, cần chiến lược sao chép sâu hoặc thiết kế kiểu giá trị bất biến.
+`List.copyOf` (since Java 10) rejects `null` elements and creates an unmodifiable list containing the elements at copy time. **Elements inside the list remain references**; if they themselves are mutable, a deep-copy strategy or immutable value types are needed.
 
-### Khóa mutable còn nguy hiểm hơn
+### Mutable keys are even more dangerous
 
-Các key của `Map` phải giữ `equals`/`hashCode` ổn định khi nằm trong map. Nếu dùng đối tượng có trường tham gia `hashCode` rồi thay đổi trường đó sau khi thu thập, việc tra cứu có thể không hoạt động như mong đợi. `toUnmodifiableMap` **không tự làm khóa trở thành immutable**. Hãy ưu tiên `String`, `Integer`, enum hoặc kiểu khóa bất biến với cách định nghĩa bằng nhau rõ ràng.
+`Map` keys must keep stable `equals`/`hashCode` while inside the map. If you use an object with a field participating in `hashCode` and mutate that field after collecting, lookups may fail to work as expected. `toUnmodifiableMap` **does not automatically make keys immutable**. Prefer `String`, `Integer`, enums, or immutable key types with clear equality semantics.
 
-## 5. Khác nhau giữa `toMap`, `toUnmodifiableMap`, `Map.copyOf` và unmodifiable view
+## 5. Differences Among `toMap`, `toUnmodifiableMap`, `Map.copyOf`, and Unmodifiable Views
 
-Một số API tạo map trông giống nhau nhưng có hợp đồng khác nhau:
+Several map-creating APIs look similar but have different contracts:
 
-| API | Mục đích | Đầu ra có cho phép sửa qua Map trả về? | Tình huống |
+| API | Purpose | Can output be modified via returned Map? | Scenario |
 | --- | --- | --- | --- |
-| `Collectors.toMap(k, v)` | Thu thập thành map; không hứa lớp triển khai cụ thể | Không có cam kết không sửa đổi | Cần map có thể tiếp tục xử lý; kết quả phụ thuộc hợp đồng `toMap`. |
-| `Collectors.toMap(k, v, merge)` | Xử lý khóa trùng khi thu thập | Không có cam kết không sửa đổi | Cần chính sách gộp và tiếp tục thao tác với kết quả. |
-| `Collectors.toUnmodifiableMap(k, v)` | Thu thập trực tiếp thành map không sửa đổi được | **Không** | Các khóa dự kiến duy nhất. |
-| `Collectors.toUnmodifiableMap(k, v, merge)` | Thu thập thành map không sửa đổi được có gộp khóa trùng | **Không** | Cần gộp giá trị trước khi chốt kết quả. |
-| `Map.copyOf(existing)` | Tạo map không sửa đổi được từ một map hiện hữu | **Không** | Đã có map, muốn bản chụp các ánh xạ ở thời điểm tạo. |
-| `Collections.unmodifiableMap(existing)` | Tạo **view** không sửa đổi được của map hiện hữu | **Không qua view** | Cần bảo vệ bề mặt API, nhưng map gốc có thể vẫn thay đổi. |
+| `Collectors.toMap(k, v)` | Collects into a map; no concrete implementation class promised | No unmodifiability guarantee | Need a map for further processing; behavior follows `toMap` contract. |
+| `Collectors.toMap(k, v, merge)` | Handles duplicate keys during collection | No unmodifiability guarantee | Need a merge policy and further map operations. |
+| `Collectors.toUnmodifiableMap(k, v)` | Collects directly into an unmodifiable map | **No** | Keys expected to be unique. |
+| `Collectors.toUnmodifiableMap(k, v, merge)` | Collects into an unmodifiable map with duplicate-key merging | **No** | Need to merge values before finalizing the result. |
+| `Map.copyOf(existing)` | Creates an unmodifiable map from an existing map | **No** | Already have a map and want a snapshot of mappings at creation time. |
+| `Collections.unmodifiableMap(existing)` | Creates an unmodifiable **view** of an existing map | **Not through the view** | Need to protect an API surface, though the backing map may still change. |
 
-Ví dụ phân biệt **view** với **snapshot của ánh xạ**:
+Example distinguishing a **view** from a **mapping snapshot**:
 
 ```java
 import java.util.Collections;
@@ -294,13 +294,13 @@ System.out.println(view.containsKey("B"));     // true
 System.out.println(snapshot.containsKey("B")); // false
 ```
 
-`Collections.unmodifiableMap(source)` phản ánh thay đổi trên **map nền** nếu có tham chiếu khác vẫn sửa nó. `Map.copyOf(source)` không phản ánh những sửa đổi ánh xạ sau thời điểm tạo, dù vẫn là **bản chụp nông** đối với các đối tượng khóa/giá trị. `toUnmodifiableMap` tạo kết quả từ chính pipeline mà không yêu cầu người gọi phải tạo map mutable rồi bọc nó trong một bước riêng.
+`Collections.unmodifiableMap(source)` reflects changes to the **backing map** if another reference still mutates it. `Map.copyOf(source)` does not reflect mapping edits made after creation, though it remains a **shallow snapshot** with respect to key/value objects. `toUnmodifiableMap` produces the result directly from the pipeline without requiring callers to build a mutable map and wrap it in a separate step.
 
-Lưu ý: `Collectors.toMap` không hứa kiểu triển khai hoặc tính mutable của map trả về; do đó không dùng nó như một cách bảo đảm `HashMap` hay bảo đảm cho phép sửa trong mọi triển khai. Nếu cần xác định kiểu bộ chứa, `toMap` có overload nhận `mapFactory`.
+Note: `Collectors.toMap` does not promise the implementation class or mutability of the returned map; therefore do not use it as a guarantee of `HashMap` or mutability across all implementations. If you need to specify the container type, `toMap` has an overload accepting `mapFactory`.
 
-## 6. Thứ tự duyệt: không suy ra từ thứ tự nguồn
+## 6. Iteration Order: Do Not Infer from Source Order
 
-`toUnmodifiableMap` **không bảo đảm thứ tự duyệt các entry**. Ngay cả khi nguồn là `List` có encounter order hoặc pipeline đã gọi `sorted()`, thứ tự in `keySet()`, `values()` hay `entrySet()` của map kết quả cũng không phải hợp đồng được phép dựa vào.
+`toUnmodifiableMap` **does not guarantee entry iteration order**. Even if the source is a `List` with encounter order or the pipeline called `sorted()`, the print order of `keySet()`, `values()`, or `entrySet()` on the resulting map is not a contract you may rely on.
 
 ```java
 import java.util.Map;
@@ -313,11 +313,11 @@ Map<String, Integer> result = Stream.of("A", "B", "C")
         String::length
     ));
 
-// Chỉ kiểm tra ánh xạ, không kiểm tra thứ tự in entrySet().
+// Only check the mapping, not entrySet() print order.
 System.out.println(result.get("B")); // 1
 ```
 
-Nếu yêu cầu là *Map có thứ tự chèn* và không muốn người dùng kết quả sửa nó, có thể dùng `LinkedHashMap` với overload bốn tham số của `toMap`, sau đó tạo một view không sửa đổi được **trên một map mới riêng tư**:
+If the requirement is an *insertion-ordered Map* and consumers must not modify it, you can use `LinkedHashMap` with the four-argument `toMap` overload, then create an unmodifiable view **over a private new map**:
 
 ```java
 import java.util.Collections;
@@ -341,13 +341,13 @@ Map<String, Integer> orderedView = Stream.of("A", "B", "C")
 System.out.println(orderedView.keySet()); // [A, B, C]
 ```
 
-Trong ví dụ này, `LinkedHashMap` duyệt theo thứ tự chèn và stream có encounter order. Vì map nền được tạo mới bên trong collector và không bị lộ ra ngoài, người dùng chỉ nhận view không sửa đổi được. Nếu sau này chương trình làm lộ tham chiếu map nền hoặc giá trị mutable bên trong, cần xem lại hợp đồng bất biến mong muốn.
+In this example, `LinkedHashMap` iterates in insertion order and the stream has an encounter order. Because the backing map is freshly created inside the collector and never exposed externally, callers only receive an unmodifiable view. If later code exposes the backing map reference or mutable values inside, revisit the desired immutability contract.
 
-Không dùng `Map.copyOf(orderedMap)` nếu cần **bảo toàn iteration order**: `Map.copyOf` không hứa giữ thứ tự chèn.
+Do not use `Map.copyOf(orderedMap)` if **preserving iteration order** is required: `Map.copyOf` makes no promise to preserve insertion order.
 
-## 7. Chạy song song và hàm gộp
+## 7. Parallel Execution and Merge Functions
 
-`toUnmodifiableMap` dùng được trên stream song song. Framework có thể thu thập kết quả từng phần rồi gộp chúng thành map cuối; không nên giả định thứ tự thực thi của mapper hoặc số lần gọi merge function là cố định.
+`toUnmodifiableMap` works on parallel streams. The framework can collect partial results and merge them into the final map; do not assume mapper execution order or the number of merge-function calls is fixed.
 
 ```java
 import java.util.Map;
@@ -369,21 +369,21 @@ System.out.println(
 ); // 500500
 ```
 
-Mỗi phần tử được đưa vào nhóm dựa trên phần dư; `Integer::sum` kết hợp các giá trị cùng khóa. Tổng trong ví dụ nằm trong phạm vi `int`, nên phép cộng không tràn.
+Each element is placed into a group based on its remainder; `Integer::sum` combines values sharing a key. The sum in this example fits within `int` range, so addition does not overflow.
 
-Các nguyên tắc nên giữ khi dùng overload có merge function:
+Principles to maintain when using the merge-function overload:
 
-1. **Chọn quy tắc gộp theo nghiệp vụ**, ví dụ cộng số lượng, chọn bản ghi có mốc thời gian lớn hơn, hay phát hiện xung đột. Không chọn `(a, b) -> a` chỉ để tránh ngoại lệ nếu nghiệp vụ không xác định bên nào cần giữ.
-2. **Ưu tiên phép gộp kết hợp được** (*associative*): các nhánh song song được phép gộp theo nhóm khác nhau. Phép cộng số nguyên khi không tràn có tính kết hợp; phép trừ không phù hợp.
-3. **Hạn chế trạng thái dùng chung và hiệu ứng phụ** trong mapper và merger. Không ghi vào một `HashMap` bên ngoài từ nhiều thread rồi mong collector giải quyết an toàn luồng cho map đó.
-4. **Không giả định thứ tự duyệt của map kết quả**. Nếu cần thứ tự, chọn thiết kế khác theo mục 6.
-5. **Đánh giá hiệu năng bằng đo đạc**. Việc gộp map ở nhiều nhánh và tạo map cuối có chi phí; `parallel()` không bảo đảm nhanh hơn tuần tự.
+1. **Choose a merge rule based on business logic**, such as summing quantities, picking the record with the greater timestamp, or detecting conflicts. Do not write `(a, b) -> a` merely to suppress an exception if the domain has not defined which side to keep.
+2. **Prefer associative merge operations**: parallel branches may combine in varying groupings. Non-overflowing integer addition is associative; subtraction is unsuitable.
+3. **Avoid shared state and side effects** in mappers and mergers. Do not write into an external `HashMap` from multiple threads and expect the collector to make that map thread-safe.
+4. **Do not assume iteration order of the result map**. If order is needed, choose another design per Section 6.
+5. **Evaluate performance via measurement**. Merging maps across branches and building the final map has overhead; `parallel()` is not guaranteed to be faster than sequential execution.
 
-Đặc biệt, nếu dùng một merger không có tính kết hợp hoặc quyết định dựa vào trạng thái bên ngoài, kết quả có thể phụ thuộc cách stream được phân chia và gộp. Hãy dùng hàm thuần và xác định rõ quy tắc xử lý khi hai bản ghi có cùng khóa.
+In particular, using a non-associative merger or making decisions based on external state can cause results to depend on how the stream is split and merged. Use pure functions and define clear rules when two records share a key.
 
-## 8. Ví dụ thực tế: lập bảng giá tra cứu chỉ đọc
+## 8. Real-World Example: Building a Read-Only Lookup Price Catalog
 
-Giả sử ứng dụng nhận danh sách sản phẩm, mỗi sản phẩm có mã `sku` và giá theo đơn vị nguyên nhỏ nhất của tiền. Sau khi xác thực dữ liệu, ứng dụng cần một map `sku -> price` để tra cứu, và không muốn các đoạn mã khác chỉnh sửa bảng giá.
+Suppose an application receives a list of products, each with a `sku` code and price in the smallest integer currency unit. After validating data, the application needs a `sku -> price` map for lookups, and must prevent other code from modifying the price table.
 
 ```java
 import java.util.Arrays;
@@ -421,26 +421,26 @@ public class PriceCatalog {
 }
 ```
 
-Trong thiết kế này, `String` và `Long` là các kiểu giá trị bất biến, nên cả **bề mặt map** lẫn các giá trị dùng để tra cứu đều tránh được bẫy object mutable ở mục 4. Nếu hai sản phẩm trùng `sku`, pipeline báo lỗi thay vì âm thầm chọn một giá: điều này có thể phù hợp khi SKU được kỳ vọng là duy nhất.
+In this design, `String` and `Long` are immutable value types, so both the **map surface** and the lookup values avoid the mutable-object trap from Section 4. If two products share a `sku`, the pipeline fails instead of silently picking a price: this is appropriate when SKUs are expected to be unique.
 
-Nếu ứng dụng cho phép nhiều bản cập nhật cùng SKU, phải xác định chính sách trước khi đổi sang overload có merger. Ví dụ: lấy bản cập nhật mới nhất **theo timestamp thực**, thay vì tùy tiện chọn bản ghi xuất hiện cuối trong một pipeline có thể chạy song song.
+If the application allows multiple updates for the same SKU, define the policy before switching to the merge overload. For example: pick the latest update **by real timestamp**, rather than arbitrarily picking the last element seen in a pipeline that may execute in parallel.
 
-## 9. Các lỗi thường gặp
+## 9. Common Errors
 
-| Lỗi | Hệ quả | Cách xử lý |
+| Error | Consequence | Resolution |
 | --- | --- | --- |
-| Có khóa trùng nhưng gọi overload hai tham số | Ném `IllegalStateException`. | Bảo đảm khóa duy nhất hoặc dùng overload ba tham số với merger đúng nghiệp vụ. |
-| `keyMapper` hoặc `valueMapper` trả `null` | Ném `NullPointerException`. | Xác thực, lọc hoặc chọn chính sách thay thế rõ ràng. |
-| Gọi `put`, `remove`, `clear` trên map kết quả | Bị từ chối sửa đổi. | Chọn `toMap`/map mutable khi thật sự cần cập nhật. |
-| Nghĩ `toUnmodifiableMap` sao chép sâu đối tượng | `List` hoặc bean mutable nằm trong value vẫn đổi trạng thái. | Dùng kiểu bất biến hoặc sao chép dữ liệu ở cấp phần tử. |
-| Viết test dựa trên thứ tự `entrySet()` | Thứ tự map kết quả không được bảo đảm. | So sánh ánh xạ; dùng `LinkedHashMap` nếu cần thứ tự chèn. |
-| Merger trả kết quả phụ thuộc thứ tự thread hoặc biến dùng chung | Kết quả song song khó dự đoán. | Dùng hàm thuần, kết hợp được và chính sách gộp xác định. |
-| Dùng khóa mutable có `hashCode` thay đổi | Tra cứu có thể sai hoặc không còn tìm được key. | Chọn kiểu khóa bất biến. |
-| Thu toàn bộ stream vô hạn vào map | Không hoàn thành; có thể cạn tài nguyên. | Giới hạn nguồn hoặc dùng phép tổng hợp hữu hạn. |
+| Duplicate keys exist yet two-argument overload is called | Throws `IllegalStateException`. | Ensure unique keys or use the three-argument overload with a business-accurate merger. |
+| `keyMapper` or `valueMapper` returns `null` | Throws `NullPointerException`. | Validate, filter, or choose an explicit replacement policy. |
+| Calling `put`, `remove`, `clear` on the result map | Modification rejected. | Choose `toMap`/a mutable map when updates are genuinely required. |
+| Thinking `toUnmodifiableMap` deep-copies objects | Mutable `List` or bean inside a value can still change state. | Use immutable types or copy data at the element level. |
+| Writing tests relying on `entrySet()` order | Result map order is not guaranteed. | Compare mappings; use `LinkedHashMap` if insertion order is needed. |
+| Merger produces results depending on thread order or shared variables | Parallel results become unpredictable. | Use pure, associative functions and a deterministic merge policy. |
+| Using mutable keys whose `hashCode` changes | Lookups can fail or keys become unfindable. | Choose immutable key types. |
+| Collecting an entire infinite stream into a map | Never finishes; may exhaust resources. | Limit the source or use a finite aggregation. |
 
-## 10. Dữ liệu rỗng, stream vô hạn và vòng đời pipeline
+## 10. Empty Data, Infinite Streams, and Pipeline Lifecycle
 
-Với stream rỗng, `toUnmodifiableMap` tạo **map rỗng không sửa đổi được**:
+For an empty stream, `toUnmodifiableMap` produces an **empty unmodifiable map**:
 
 ```java
 import java.util.Map;
@@ -456,7 +456,7 @@ Map<String, Integer> empty = Stream.<String>empty()
 System.out.println(empty.isEmpty()); // true
 ```
 
-Ngược lại, với nguồn không giới hạn như `Stream.generate`, terminal operation `collect` thường không thể hoàn tất nếu không giới hạn số phần tử:
+Conversely, with an unbounded source such as `Stream.generate`, the terminal operation `collect` generally cannot finish without bounding the element count:
 
 ```java
 import java.util.Map;
@@ -473,32 +473,32 @@ Map<Integer, Integer> firstHundred = IntStream.range(0, 100)
 System.out.println(firstHundred.size()); // 100
 ```
 
-Khi phải sinh dãy vô hạn, có thể giới hạn bằng `limit(n)` trước `collect`, hoặc dùng ngay nguồn hữu hạn như `IntStream.range` trong ví dụ. Không nên dựa vào số lượng key nhỏ để kết luận một pipeline từ nguồn vô hạn sẽ dừng: dù các phần tử tiếp theo chỉ cập nhật những key cũ, collector vẫn phải đọc hết nguồn để biết kết quả cuối.
+When an infinite sequence must be generated, bound it with `limit(n)` before `collect`, or use a finite source directly such as `IntStream.range` in the example. Do not rely on a small number of distinct keys to conclude a pipeline from an infinite source will stop: even if subsequent elements only update old keys, the collector still has to read the whole source to know the final result.
 
-Sau `collect`, **đối tượng stream đã bị tiêu thụ**, không thể tiếp tục gọi terminal operation trên cùng stream. Nếu nguồn gắn với tài nguyên như `Files.lines`, dùng `try-with-resources` để đóng stream; việc `collect` trả map không tự đóng mọi tài nguyên bên ngoài.
+After `collect`, **the stream object is consumed** and cannot be used for another terminal operation on the same stream. If the source is backed by a resource like `Files.lines`, use `try-with-resources` to close the stream; returning a map from `collect` does not automatically close external resources.
 
-## 11. Quy trình lựa chọn collector
+## 11. Collector Selection Checklist
 
-Khi chuyển dữ liệu thành map, nên tự kiểm tra:
+When converting data into a map, check:
 
-1. **Map có cần sửa sau khi tạo không?** Nếu không, ưu tiên `toUnmodifiableMap` để diễn đạt hợp đồng dữ liệu đầu ra. Nếu phải thêm, xóa hoặc cập nhật, chọn map mutable với collector phù hợp.
-2. **Khóa có duy nhất không?** Nếu chắc chắn duy nhất, dùng overload hai tham số. Nếu có thể trùng, xác định merger hoặc chuyển sang `groupingBy` khi cần giữ mọi phần tử trong nhóm.
-3. **Có trường nào `null` không?** `toUnmodifiableMap` từ chối null key/value; cần chính sách làm sạch hoặc báo lỗi.
-4. **Giá trị và khóa có mutable không?** Map không sửa đổi được ở cấp ánh xạ; muốn bất biến sâu phải kiểm soát đối tượng lồng bên trong.
-5. **Có cần thứ tự duyệt không?** `toUnmodifiableMap` không hứa thứ tự; chọn `LinkedHashMap` và tạo view phù hợp nếu thứ tự là yêu cầu.
-6. **Có chạy song song không?** Merger nên kết hợp được, không phụ thuộc trạng thái chia sẻ, và không dựa vào thứ tự thread.
-7. **Nguồn có hữu hạn và có tài nguyên không?** Giới hạn dữ liệu trước khi thu thập và đóng nguồn I/O đúng vòng đời.
+1. **Does the map need modifications after creation?** If not, prefer `toUnmodifiableMap` to express the output data contract. If additions, deletions, or updates are required, choose a mutable map with an appropriate collector.
+2. **Are keys unique?** If guaranteed unique, use the two-argument overload. If duplicates may occur, define a merger or switch to `groupingBy` when all elements in a group must be retained.
+3. **Can any field be `null`?** `toUnmodifiableMap` rejects null keys and values; define a cleaning or error-reporting policy.
+4. **Are values and keys mutable?** A map is unmodifiable at the mapping level; deep immutability requires controlling nested objects.
+5. **Is iteration order required?** `toUnmodifiableMap` promises no order; pick `LinkedHashMap` and create an appropriate view if ordering is required.
+6. **Will it run in parallel?** The merger should be associative, independent of shared state, and independent of thread scheduling.
+7. **Is the source finite and resource-backed?** Limit data before collecting and properly close I/O sources according to their lifecycle.
 
-### Bài tập thực hành
+### Practice Exercises
 
-**Bài 1 — Khóa duy nhất.** Từ `Stream.of("Java", "Stream", "API")`, xây `Map<String, Integer>` bằng `toUnmodifiableMap`. Thử gọi `put` và giải thích ngoại lệ. Xác nhận `get("Stream") == 6`.
+**Exercise 1 — Unique keys.** From `Stream.of("Java", "Stream", "API")`, build a `Map<String, Integer>` using `toUnmodifiableMap`. Try calling `put` and explain the exception. Confirm `get("Stream") == 6`.
 
-**Bài 2 — Khóa trùng.** Từ `Stream.of("Java", "JUnit", "Stream")`, ánh xạ khóa là chữ cái đầu. Dự đoán lỗi ở overload hai tham số. Viết lại bằng overload ba tham số và `Integer::sum`, rồi giải thích vì sao `get("J") == 9`.
+**Exercise 2 — Duplicate keys.** From `Stream.of("Java", "JUnit", "Stream")`, map the key to the first character. Predict the failure with the two-argument overload. Rewrite using the three-argument overload and `Integer::sum`, then explain why `get("J") == 9`.
 
-**Bài 3 — Bất biến sâu.** Dùng `List<String>` mutable làm value của map không sửa đổi được, thử `map.get(key).add(...)`. Thay value bằng `List.copyOf` và giải thích mức độ bảo vệ mới đạt được.
+**Exercise 3 — Deep immutability.** Use a mutable `List<String>` as a value in an unmodifiable map and try `map.get(key).add(...)`. Replace the value with `List.copyOf` and explain the new level of protection achieved.
 
-**Bài 4 — So sánh view và snapshot.** Tạo `HashMap` gốc, sinh `Collections.unmodifiableMap` và `Map.copyOf`, rồi thêm phần tử vào map gốc. Map nào nhìn thấy ánh xạ mới? Vì sao?
+**Exercise 4 — Comparing view and snapshot.** Create a backing `HashMap`, derive `Collections.unmodifiableMap` and `Map.copyOf`, then add an entry to the backing map. Which map sees the new mapping? Why?
 
-**Bài 5 — Kết quả có thứ tự.** Từ nguồn có encounter order, tạo `LinkedHashMap` bằng overload bốn tham số của `toMap` và bọc bằng `Collections.unmodifiableMap`. So sánh iteration order với `toUnmodifiableMap` và giải thích hợp đồng thứ tự của từng loại.
+**Exercise 5 — Ordered result.** From a source with encounter order, create a `LinkedHashMap` via the four-argument `toMap` overload and wrap it with `Collections.unmodifiableMap`. Compare iteration order with `toUnmodifiableMap` and explain each type's ordering contract.
 
-**Ghi nhớ:** `Collectors.toUnmodifiableMap` giúp chốt một bảng tra cứu không thể chỉnh sửa **qua API Map**, hỗ trợ chính sách gộp khóa trùng bằng overload ba tham số và từ chối key/value `null`. Tính không sửa đổi không đồng nghĩa sao chép sâu hay bảo toàn thứ tự chèn. Chọn collector theo yêu cầu về khóa, giá trị, tính mutable, thứ tự và cách xử lý song song, rồi kiểm tra đầu vào trước khi thu thập.
+**Takeaway:** `Collectors.toUnmodifiableMap` locks down a lookup table so it cannot be modified **through the Map API**, supports duplicate-key merge policies via its three-argument overload, and rejects `null` keys/values. Unmodifiability does not mean deep copying or preserving insertion order. Choose the collector based on key, value, mutability, ordering, and parallel-processing requirements, and validate inputs before collecting.

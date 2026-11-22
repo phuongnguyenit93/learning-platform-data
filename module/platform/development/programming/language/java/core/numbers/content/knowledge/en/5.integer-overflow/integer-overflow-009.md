@@ -1,6 +1,6 @@
-# Kiểm tra giới hạn trước khi cấp phát hoặc tính kích thước trong Java
+# Checking Bounds Before Allocating or Computing Sizes in Java
 
-Một kích thước trông có vẻ hợp lệ khi được lưu trong `int` vẫn có thể trở thành **số âm, số quá nhỏ, hoặc vượt xa ngân sách bộ nhớ** sau phép nhân/cộng. Vì Java quyết định kiểu tính toán từ kiểu toán hạng, sự cố thường xảy ra **trước** lệnh cấp phát:
+A size that looks valid when stored in an `int` can still become **a negative number, a number that is too small, or far beyond the memory budget** after multiplication or addition. Because Java decides the computation type from operand types, the failure often happens **before** the allocation statement:
 
 ```java
 int elements = 1_000_000_000;
@@ -10,48 +10,48 @@ int wrongBytes = elements * bytesPerElement;  // -589934592 (int overflow)
 long exactBytes = (long) elements * bytesPerElement; // 8000000000
 ```
 
-Tích toán học là 8.000.000.000 byte, vượt `Integer.MAX_VALUE`. Phép `int * int` chỉ giữ kết quả trong miền 32 bit nên `wrongBytes` thành `-589934592`. Nếu kiểm tra ngân sách bằng giá trị đã tràn, ứng dụng có thể **chấp nhận sai, cấp phát sai kích thước hoặc ném ngoại lệ muộn**.
+The mathematical product is 8,000,000,000 bytes, exceeding `Integer.MAX_VALUE`. `int * int` keeps the result only in a 32-bit range, so `wrongBytes` becomes `-589934592`. If a budget check uses the already-overflowed value, the application may **falsely accept it, allocate the wrong size, or throw a late exception**.
 
-Bài này tập trung vào cách xác định kích thước cần thiết một cách chính xác, kiểm tra giới hạn và chỉ sau đó mới chuyển kiểu/cấp phát, nhất là với **mảng, buffer, dữ liệu nhị phân, chuỗi và thông tin độ dài lấy từ bên ngoài**.
+This lesson focuses on how to compute required sizes accurately, check bounds, and only then convert types or allocate—especially for **arrays, buffers, binary data, strings, and length metadata received externally**.
 
-## 1. Vì sao phép tính kích thước dễ tràn?
+## 1. Why Do Size Calculations Easily Overflow?
 
-Các biểu thức sau trông đơn giản nhưng đều có rủi ro:
+The following expressions look simple, yet all carry risk:
 
-- `count * bytesPerItem`: tính dung lượng payload từ số phần tử và kích thước mỗi phần tử.
-- `headerBytes + payloadBytes`: tính tổng kích thước gói dữ liệu.
-- `offset + length`: xác định vị trí kết thúc của một lát mảng hoặc buffer.
-- `capacity * growthFactor`: tăng dung lượng cấu trúc dữ liệu.
-- `rows * columns` hoặc `width * height * channels`: tính số phần tử của ma trận/ảnh.
-- `(count + pageSize - 1) / pageSize`: làm tròn số trang lên; biểu thức cộng có thể tràn trước phép chia.
+- `count * bytesPerItem`: computing payload capacity from item count and per-item size.
+- `headerBytes + payloadBytes`: computing total packet size.
+- `offset + length`: determining the end position of an array or buffer slice.
+- `capacity * growthFactor`: growing a data structure's capacity.
+- `rows * columns` or `width * height * channels`: computing element count of a matrix/image.
+- `(count + pageSize - 1) / pageSize`: rounding page count up; the addition can overflow before division.
 
-Các toán hạng `int` có thể đều hợp lệ và không âm nhưng **kết quả trung gian không còn nằm trong miền `int`**. Tương tự, hai giá trị `long` hợp lệ vẫn có thể cho tích vượt `Long.MAX_VALUE`.
+`int` operands may all be valid and non-negative while **the intermediate result no longer fits in `int`**. Likewise, two valid `long` values can still yield a product exceeding `Long.MAX_VALUE`.
 
-| Biểu thức | Vấn đề | Cách tiếp cận |
+| Expression | Problem | Approach |
 | --- | --- | --- |
-| `int bytes = count * 8` | `int` overflow trước khi kiểm tra | `long bytes = (long) count * 8` hoặc `Math.multiplyExact` |
-| `long bytes = count * 8`, `count` là `int` | Phép nhân vẫn là `int` | Nâng toán hạng **trước** dấu nhân |
-| `int total = header + payload` | Tổng có thể tràn | Tính bằng `long` hoặc dùng `Math.addExact` |
-| `int end = offset + length` | Vị trí kết thúc có thể tràn | Kiểm tra bằng phép trừ an toàn sau xác minh số không âm |
-| `int newCapacity = capacity * 2` | Gấp đôi có thể quấn vòng thành số âm | Kiểm tra trước khi nhân, đặt giới hạn tăng trưởng |
-| `(int) largeCount` | Thu hẹp `long` có thể mất bit cao | Kiểm tra miền hoặc dùng `Math.toIntExact` |
+| `int bytes = count * 8` | `int` overflow before checking | `long bytes = (long) count * 8` or `Math.multiplyExact` |
+| `long bytes = count * 8`, where `count` is `int` | Multiplication is still `int` | Promote an operand **before** `*` |
+| `int total = header + payload` | Sum can overflow | Compute in `long` or use `Math.addExact` |
+| `int end = offset + length` | End position can overflow | Check via safe subtraction after verifying non-negativity |
+| `int newCapacity = capacity * 2` | Doubling can wrap around to negative | Check before multiplying, cap growth limit |
+| `(int) largeCount` | Narrowing `long` can drop high bits | Check range or use `Math.toIntExact` |
 
-**Đừng chỉ kiểm tra kết quả cuối** nếu trước đó đã có toán tử nguyên tràn. Khi bit đã mất, một điều kiện như `if (size <= maxBytes)` không thể khôi phục kích thước đúng.
+**Do not check only the final result** if an integer operator overflowed beforehand. Once bits are lost, a condition like `if (size <= maxBytes)` cannot restore the true size.
 
-## 2. Kiểm tra đầu vào và quy tắc “tính rộng, kiểm tra, mới thu hẹp”
+## 2. Validating Inputs and the "Compute Wide, Check, Then Narrow" Rule
 
-Một quy trình an toàn gồm các bước:
+A safe workflow consists of these steps:
 
-1. **Xác định đơn vị và ngữ nghĩa**: `count` là số phần tử, `bytesPerElement` là số byte một phần tử, `maxBytes` là ngân sách payload; không so sánh byte với số phần tử.
-2. **Kiểm tra điều kiện đầu vào**: số phần tử và offset không âm; kích thước một đơn vị dương; giới hạn nghiệp vụ hợp lệ. Dữ liệu từ file/network/user cần được xem là chưa tin cậy.
-3. **Tính bằng kiểu phù hợp và phát hiện tràn**: mở rộng lên `long` **trước phép toán `int` có nguy cơ tràn**, hoặc dùng `Math.multiplyExact` / `Math.addExact`. Nếu `long` vẫn chưa đủ, cần giới hạn miền từ trước hoặc tính bằng `BigInteger`.
-4. **Đối chiếu các ngưỡng độc lập**: giới hạn số phần tử, dung lượng payload, kích thước một allocation, dung lượng tổng đang sử dụng và giới hạn cấu hình ứng dụng.
-5. **Chuyển sang kiểu API đích sau khi kiểm tra**: phần lớn độ dài mảng/`ByteBuffer` nhận `int`; dùng `Math.toIntExact` khi nhận kích thước `long` cần chắc chắn không vượt miền `int`.
-6. **Cấp phát và xử lý lỗi tài nguyên**: kích thước hợp lệ không bảo đảm JVM còn đủ heap hoặc có thể cấp phát một khối liên tục lớn.
+1. **Clarify units and semantics**: `count` is number of elements, `bytesPerElement` is bytes per element, `maxBytes` is payload budget; never compare bytes against element counts.
+2. **Validate input preconditions**: element count and offset are non-negative; unit size is positive; business limits are valid. Data from files, networks, or users must be treated as untrusted.
+3. **Compute in an appropriate type and detect overflow**: widen to `long` **before an `int` operation that risks overflowing**, or use `Math.multiplyExact` / `Math.addExact`. If `long` is still insufficient, bound the domain upfront or compute with `BigInteger`.
+4. **Check independent thresholds**: element count limit, payload capacity, single-allocation limit, total memory in use, and application configuration limits.
+5. **Convert to the target API type after checking**: most array/`ByteBuffer` lengths take `int`; use `Math.toIntExact` when taking a `long` size that must fit within `int`.
+6. **Allocate and handle resource failures**: a valid size does not guarantee the JVM has enough heap or can allocate a single large contiguous block.
 
-Chẳng hạn, nguyên tắc đúng để tính payload của `long[]` có `n` phần tử là kiểm tra tích `n * Long.BYTES` ở miền `long` và ngân sách **trước** khi gọi `new long[length]`. `Long.BYTES` bằng 8; ngân sách payload ở đây chưa tính overhead mảng, căn chỉnh hay chi phí các object khác.
+For example, the right rule to compute the payload of a `long[]` with `n` elements is checking the product `n * Long.BYTES` in `long` against the budget **before** calling `new long[length]`. `Long.BYTES` equals 8; payload budget here excludes array overhead, alignment, or the cost of other objects.
 
-### Nâng kiểu trước phép nhân, không cast kết quả đã tràn
+### Promote before multiplying, do not cast an already-overflowed result
 
 ```java
 int elements = 1_000_000_000;
@@ -60,54 +60,54 @@ long wrong = (long) (elements * 8);  // -589934592
 long right = (long) elements * 8;    // 8000000000
 ```
 
-Trong `wrong`, phép `int * int` đã tràn trước khi cast. Trong `right`, toán hạng `elements` được mở rộng trước nên phép `long * int` tính theo `long`. Nhưng `long` vẫn có thể tràn với đầu vào rất lớn; vì vậy **nâng kiểu và kiểm tra giới hạn là hai yêu cầu bổ sung cho nhau**.
+In `wrong`, `int * int` already overflowed before the cast. In `right`, the `elements` operand is widened first, so `long * int` computes in `long`. Still, `long` can overflow with very large inputs; therefore **type promotion and bounds checking are two complementary requirements**.
 
-## 3. Kiểm tra overflow bằng API `Math`
+## 3. Checking Overflow with `Math` APIs
 
-### `Math.multiplyExact` và `Math.addExact`
+### `Math.multiplyExact` and `Math.addExact`
 
-`Math.multiplyExact` có các overload `int` và `long`; chúng ném `ArithmeticException` nếu kết quả vượt miền của kiểu tương ứng:
+`Math.multiplyExact` has `int` and `long` overloads; they throw `ArithmeticException` if the result exceeds the corresponding type's range:
 
 ```java
 int count = 1_000_000_000;
 
-// Math.multiplyExact(count, 8); // ném ArithmeticException: vượt int
+// Math.multiplyExact(count, 8); // throws ArithmeticException: exceeds int
 long payload = Math.multiplyExact((long) count, 8L); // 8000000000
 
 long header = 128L;
 long packetSize = Math.addExact(header, payload);    // 8000000128
 ```
 
-Nếu cả hai đối số `Math.multiplyExact` là `int`, phép kiểm tra diễn ra **trong miền `int`**. Muốn tích `long`, hãy chuyển một toán hạng sang `long` trước lời gọi.
+If both arguments to `Math.multiplyExact` are `int`, the check runs **in the `int` range**. To get a `long` product, convert one operand to `long` before the call.
 
-Đặc biệt, **không viết**:
+In particular, **do not write**:
 
 ```java
 long wrong = Math.addExact((long) (count * 8), 128L);
 ```
 
-Vì `count * 8` đã tràn trong ngoặc. `Math.addExact` chỉ kiểm tra phép **cộng** nhận đầu vào của nó; nó không biết phép nhân trước đó đã sai.
+Because `count * 8` already overflowed inside the parentheses. `Math.addExact` only checks the **addition** of its received inputs; it does not know the prior multiplication already failed.
 
 ### `Math.toIntExact`
 
-Các API như `new byte[length]`, `ByteBuffer.allocate(capacity)` và các chỉ số mảng yêu cầu `int`. Khi đang có `long length`, `Math.toIntExact(length)` sẽ ném `ArithmeticException` nếu giá trị không biểu diễn được trong `int`:
+APIs like `new byte[length]`, `ByteBuffer.allocate(capacity)`, and array indices require `int`. When you hold a `long length`, `Math.toIntExact(length)` throws `ArithmeticException` if the value is not representable in `int`:
 
 ```java
 long elementCount = (long) Integer.MAX_VALUE + 1L;
-// int unsafe = (int) elementCount;   // Có thể quấn vòng
-// int safe = Math.toIntExact(elementCount); // Ném ArithmeticException
+// int unsafe = (int) elementCount;   // Can wrap around
+// int safe = Math.toIntExact(elementCount); // Throws ArithmeticException
 ```
 
-**Giới hạn `int` chỉ là một điều kiện cần.** Một mảng có độ dài gần `Integer.MAX_VALUE` có thể vượt giới hạn kích thước mảng thực tế của JVM hoặc không đủ bộ nhớ. Không coi `Math.toIntExact` là bằng chứng rằng allocation sẽ thành công.
+**The `int` limit is only a necessary condition.** An array with length near `Integer.MAX_VALUE` can exceed the JVM's practical array-size limit or run out of memory. Do not treat `Math.toIntExact` as proof that allocation will succeed.
 
-### `BigInteger` khi phép tính lớn hơn `long`
+### `BigInteger` when calculations exceed `long`
 
-Nếu phép nhân `long * long` có thể vượt 64 bit nhưng vẫn phải tính chính xác để **so sánh với quota**, `BigInteger` tránh overflow:
+If `long * long` multiplication can exceed 64 bits yet must be computed accurately to **compare against a quota**, `BigInteger` avoids overflow:
 
 ```java
 import java.math.BigInteger;
 
-// Mảnh mã minh họa bên trong một phương thức:
+// Illustrative code snippet inside a method:
 long rows = 5_000_000_000L;
 long cols = 5_000_000_000L;
 BigInteger cells = BigInteger.valueOf(rows)
@@ -116,40 +116,40 @@ boolean tooLarge = cells.compareTo(BigInteger.valueOf(1_000_000L)) > 0;
 // tooLarge = true
 ```
 
-Nên kiểm tra trực tiếp điều kiện số lượng theo giới hạn cấu hình nếu có thể, nhằm tránh thực hiện phép toán không cần thiết với dữ liệu không đáng tin cậy.
+Check quantity conditions directly against configured limits whenever possible to avoid unnecessary calculations on untrusted data.
 
-## 4. Giới hạn của mảng và buffer trong Java
+## 4. Array and Buffer Limits in Java
 
-Java yêu cầu **độ dài một chiều của mảng là `int` không âm**:
+Java requires **a single array dimension's length to be a non-negative `int`**:
 
 ```java
 int n = 8;
-long[] values = new long[n];  // Mảng primitive có 8 phần tử
+long[] values = new long[n];  // Primitive array with 8 elements
 ```
 
-Lưu ý:
+Notes:
 
-- `new int[-1]` với độ dài âm lúc chạy gây `NegativeArraySizeException`.
-- Một kích thước không âm nhưng quá lớn có thể gây `OutOfMemoryError`; JVM còn có giới hạn chiều dài mảng thực tế, không nên giả định có thể cấp phát đúng `Integer.MAX_VALUE` phần tử.
-- Ngay cả khi payload lý thuyết nằm trong ngân sách, **object header, căn chỉnh, bộ nhớ đang dùng, tham chiếu object, bộ sưu tập và heap hiện tại** đều ảnh hưởng khả năng cấp phát.
-- `ByteBuffer.allocate(int capacity)` tạo buffer trong heap, còn `ByteBuffer.allocateDirect(int capacity)` yêu cầu vùng bộ nhớ trực tiếp; chúng có điều kiện tài nguyên khác nhau. Capacity âm là không hợp lệ và phải được kiểm tra trước. Cả hai vẫn dùng `int` làm capacity.
-- Một `byte[]` có `n` phần tử nghĩa là `n` byte dữ liệu; đối với `long[]`, payload sơ bộ `n * 8` byte. Với `Object[]` hoặc object graph, không thể giả định chi phí cố định chỉ từ số phần tử vì bộ nhớ cho tham chiếu và các object được tham chiếu phụ thuộc JVM và cấu trúc dữ liệu.
-- Với chuỗi, **số ký tự không đồng nghĩa số byte sau mã hóa**: `String.length()` đếm đơn vị mã UTF-16; UTF-8 có độ dài biến thiên. Nếu giới hạn được tính bằng byte để gửi/ghi dữ liệu, phải tính theo kết quả mã hóa hoặc API cung cấp kích thước thực tế.
-- `int[][]` là **mảng các tham chiếu đến từng mảng hàng**; hãy kiểm tra cả số hàng, số cột, tổng phần tử và chi phí nhiều mảng, không chỉ tích `rows * columns`.
+- `new int[-1]` with a negative length throws `NegativeArraySizeException` at runtime.
+- A non-negative size that is too large can cause `OutOfMemoryError`; the JVM also has a practical maximum array length, so do not assume you can allocate exactly `Integer.MAX_VALUE` elements.
+- Even when theoretical payload fits the budget, **object headers, alignment, memory currently in use, object references, collections, and current heap state** all affect allocation feasibility.
+- `ByteBuffer.allocate(int capacity)` creates a heap buffer, while `ByteBuffer.allocateDirect(int capacity)` requests direct memory; they have different resource constraints. Negative capacity is invalid and must be rejected beforehand. Both still use `int` for capacity.
+- A `byte[]` with `n` elements means `n` bytes of data; for `long[]`, raw payload is `n * 8` bytes. For `Object[]` or object graphs, you cannot assume a fixed cost from element count alone because memory for references and referenced objects depends on the JVM and data structure.
+- For strings, **character count is not synonymous with encoded byte count**: `String.length()` counts UTF-16 code units; UTF-8 has variable length. If a limit is measured in bytes for sending/writing data, compute it from the encoding output or an API providing actual byte size.
+- `int[][]` is an **array of references to individual row arrays**; check row count, column count, total elements, and multi-array overhead, not just `rows * columns`.
 
-`OutOfMemoryError` phản ánh thất bại tài nguyên, **không nên dùng nó như cơ chế kiểm tra kích thước bình thường**. Ứng dụng cần đặt ngưỡng chủ động trước allocation, đồng thời vẫn thừa nhận allocation có thể thất bại vì áp lực bộ nhớ.
+`OutOfMemoryError` reflects a resource failure and **must not be used as a normal size-validation mechanism**. Applications must set proactive thresholds prior to allocation, while still acknowledging allocation can fail under memory pressure.
 
-## 5. Kiểm tra `offset + length` không gây tràn
+## 5. Checking `offset + length` Without Overflowing
 
-Xử lý một lát mảng hoặc buffer thường có ba giá trị `offset`, `length`, `capacity`. Điều kiện hợp lệ:
+Working with an array or buffer slice typically involves three values: `offset`, `length`, and `capacity`. The validity condition is:
 
 \[
 0 \leq offset,\quad 0 \leq length,\quad offset + length \leq capacity.
 \]
 
-Viết trực tiếp `offset + length <= capacity` có thể nguy hiểm nếu phép cộng `int` tràn. Chẳng hạn `offset` gần `Integer.MAX_VALUE` và `length` dương làm tổng thành số âm, khiến một điều kiện sai được chấp nhận.
+Writing `offset + length <= capacity` directly can be dangerous if `int` addition overflows. For example, an `offset` near `Integer.MAX_VALUE` and a positive `length` turn the sum negative, causing an invalid condition to pass.
 
-Sau khi xác minh tất cả không âm, dùng phép trừ:
+After verifying all are non-negative, use subtraction:
 
 ```java
 static boolean validSlice(int offset, int length, int capacity) {
@@ -161,15 +161,15 @@ static boolean validSlice(int offset, int length, int capacity) {
 }
 ```
 
-Đây là đoạn phương thức minh họa, không phải class độc lập. Vì Java đánh giá `&&` theo thứ tự và ngừng khi điều kiện trước sai, `capacity - offset` chỉ thực hiện sau khi đã biết `0 <= offset <= capacity`, nên không gây overflow. Nếu đang làm việc với API Java có sẵn, cũng có thể dùng `Objects.checkFromIndexSize(fromIndex, size, length)` để kiểm tra lát chỉ số; API sẽ ném `IndexOutOfBoundsException` khi không hợp lệ.
+This is an illustrative method snippet, not a standalone class. Because Java evaluates `&&` sequentially and short-circuits when an earlier condition is false, `capacity - offset` runs only after `0 <= offset <= capacity` is known, so it cannot overflow. When working with built-in Java APIs, you can also use `Objects.checkFromIndexSize(fromIndex, size, length)` to validate index slices; it throws `IndexOutOfBoundsException` when invalid.
 
-Với các phép cộng kích thước bắt buộc như `header + payload`, hãy dùng `Math.addExact` thay vì tin rằng kết quả nguyên có dấu không tràn.
+For required size additions such as `header + payload`, use `Math.addExact` instead of assuming signed integer results will not overflow.
 
-## 6. Chương trình Java 17+ kiểm tra trước khi cấp phát
+## 6. Java 17+ Program Checking Bounds Before Allocating
 
-Ví dụ dưới đây dùng **giới hạn số phần tử của ứng dụng** và **ngân sách payload**. Hai giới hạn này phải được chọn theo thực tế, không lấy từ giá trị không tin cậy. Chương trình chỉ cấp phát một mảng nhỏ để minh họa; các trường hợp kích thước quá lớn được kiểm tra bằng phép toán, **không thử tạo mảng khổng lồ**.
+The example below uses an **application element limit** and a **payload budget**. Both limits must be chosen realistically, not taken from untrusted values. The program allocates only a small array for illustration; oversized cases are checked arithmetically **without attempting to create huge arrays**.
 
-Lưu vào tệp `AllocationBoundsDemo.java`:
+Save to `AllocationBoundsDemo.java`:
 
 ```java
 public class AllocationBoundsDemo {
@@ -254,14 +254,14 @@ public class AllocationBoundsDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac AllocationBoundsDemo.java
 java AllocationBoundsDemo
 ```
 
-Kết quả stdout:
+Stdout output:
 
 ```text
 unchecked int bytes: -589934592
@@ -277,59 +277,59 @@ invalid slice: false
 negative array size exception
 ```
 
-**Giải thích các kiểm tra:**
+**Explanation of the checks:**
 
-- Tích `int` bị tràn âm dù dữ liệu đầu vào hợp lệ; `long` tính được giá trị 8 tỷ.
-- `Math.multiplyExact(int, int)` báo overflow. `Math.multiplyExact(long, long)` cũng báo lỗi khi tích vượt `long`.
-- Hàm `checkedLength` từ chối số lượng âm, số phần tử vượt quota và payload vượt ngân sách; `Math.toIntExact` bảo đảm kết quả có thể biểu diễn dưới dạng `int`.
-- Với giới hạn minh họa 1.000 phần tử và 1.024 byte payload, 8 phần tử kiểu `long` dùng 64 byte payload nên cho phép cấp phát mảng nhỏ. 200 phần tử cần 1.600 byte payload nên bị từ chối.
-- `validSlice` nhận lát `[8, 12)` trong capacity 16, đồng thời từ chối lát gần `Integer.MAX_VALUE` dù phép cộng trực tiếp có thể overflow.
-- Giá trị độ dài âm khiến `new int[negative]` ném `NegativeArraySizeException`; ứng dụng thực tế nên chặn điều kiện này **trước** khi gọi `new`.
+- The `int` product overflows to negative despite valid inputs; `long` computes the 8-billion value.
+- `Math.multiplyExact(int, int)` reports overflow. `Math.multiplyExact(long, long)` also reports an error when the product exceeds `long`.
+- `checkedLength` rejects negative counts, element counts exceeding quota, and payloads exceeding budget; `Math.toIntExact` ensures the result is representable as an `int`.
+- With the illustrative limits of 1,000 elements and 1,024 payload bytes, 8 `long` elements use 64 payload bytes so allocating the small array is permitted. 200 elements require 1,600 payload bytes and are rejected.
+- `validSlice` accepts slice `[8, 12)` within capacity 16, while rejecting a slice near `Integer.MAX_VALUE` even though direct addition would overflow.
+- A negative length makes `new int[negative]` throw `NegativeArraySizeException`; real applications should block this condition **before** calling `new`.
 
-Hàm này là mô hình đơn giản cho **một mảng `long[]`**. Khi triển khai, thêm ngưỡng chính sách phù hợp với ứng dụng, có thể kiểm tra ngân sách tổng thể nhiều allocation, và cân nhắc byte overhead thực tế. Không coi `maxPayloadBytes` là số byte heap chắc chắn còn trống.
+This helper is a simple model for **a single `long[]` array**. In deployment, add policy thresholds suited to your application, check total budget across multiple allocations, and account for actual overhead bytes. Do not treat `maxPayloadBytes` as guaranteed free heap bytes.
 
-## 7. Mô hình kiểm tra giới hạn cho một số tình huống
+## 7. Bounds-Checking Patterns for Common Scenarios
 
-### Trường hợp A: đọc chiều dài một thông điệp nhị phân
+### Case A: Reading the length of a binary message
 
-Giả sử một gói tin có `headerBytes` và `itemCount` mục dữ liệu, mỗi mục có độ dài cố định `itemBytes`. Quy trình nên là:
+Suppose a packet has `headerBytes` and `itemCount` data items, each of fixed length `itemBytes`. The workflow should be:
 
-1. Giới hạn `itemCount` từ đầu vào về miền được phép, kiểm tra không âm.
-2. Tính `payload = Math.multiplyExact((long) itemCount, itemBytes)` sau khi xác nhận kích thước mỗi mục hợp lệ.
-3. Tính `packetBytes = Math.addExact(headerBytes, payload)`.
-4. So sánh `packetBytes` với giới hạn gói tin cấu hình và lượng dữ liệu thực tế được cung cấp.
-5. Chỉ sau khi hợp lệ mới chuyển kiểu cho API cần `int` và cấp phát buffer.
+1. Bound `itemCount` from input to the allowed range, verifying it is non-negative.
+2. Compute `payload = Math.multiplyExact((long) itemCount, itemBytes)` after confirming each item size is valid.
+3. Compute `packetBytes = Math.addExact(headerBytes, payload)`.
+4. Compare `packetBytes` against the configured packet limit and the amount of data actually supplied.
+5. Only after validation, convert types for an API requiring `int` and allocate the buffer.
 
-Không tin vào trường độ dài chỉ vì nó được lưu vừa trong `int`. Một trường length có thể **tự nó hợp lệ**, nhưng gây overflow khi nhân với đơn vị hoặc cộng header.
+Do not trust a length field just because it fits inside an `int`. A length field can be **valid on its own**, yet cause overflow when multiplied by unit size or added to a header.
 
-### Trường hợp B: bảng dữ liệu/ảnh nhiều chiều
+### Case B: Multi-dimensional data tables / images
 
-Một ảnh có `height` hàng, `width` cột và `channels` kênh. Nếu lưu mỗi mẫu bằng một byte, số mẫu là `height * width * channels`. Nên kiểm tra:
+An image has `height` rows, `width` columns, and `channels` channels. If each sample takes one byte, sample count is `height * width * channels`. You should check:
 
-- `height`, `width`, `channels` dương và nằm trong giới hạn định dạng.
-- Tích trung gian không overflow; dùng `Math.multiplyExact` từ đầu với kiểu `long`.
-- Tổng số byte nằm trong quota.
-- Loại array/buffer định cấp phát đáp ứng số phần tử và giới hạn JVM; một mảng đơn lớn có thể không phù hợp, cần chia thành các khối nhỏ nếu ứng dụng cho phép.
+- `height`, `width`, and `channels` are positive and within format limits.
+- Intermediate products do not overflow; use `Math.multiplyExact` in `long` from the start.
+- Total bytes stay within quota.
+- The target array/buffer type supports the element count and JVM limits; one giant array may be unsuitable, requiring splitting into smaller chunks if the application permits.
 
-Nếu dữ liệu là ảnh có stride, padding hoặc cấu trúc lồng nhau, `height * width * channels` mới là ước lượng payload thô; phép tính cấp phát phải phù hợp layout thật.
+If image data has strides, padding, or nested structures, `height * width * channels` is only a raw payload estimate; allocation math must match the actual layout.
 
-### Trường hợp C: tăng capacity
+### Case C: Growing capacity
 
-Một cấu trúc lưu trữ có thể thử `newCapacity = oldCapacity * 2`. Khi `oldCapacity` lớn, phép nhân `int` dễ tràn. Hãy giới hạn mục tiêu tối đa và kiểm tra trước phép nhân:
+A storage structure might try `newCapacity = oldCapacity * 2`. When `oldCapacity` is large, `int` multiplication easily overflows. Cap the maximum target and check before multiplying:
 
 ```java
 int oldCapacity = 800;
 int maximum = 1_000;
 int newCapacity = oldCapacity > maximum / 2
         ? maximum
-        : oldCapacity * 2; // 1000, không vượt maximum
+        : oldCapacity * 2; // 1000, does not exceed maximum
 ```
 
-Đây là ví dụ **khi `oldCapacity >= 0` và `maximum > 0` đã được xác minh**. Một chiến lược tăng trưởng thực tế phải bảo đảm `newCapacity >= minRequiredCapacity`; nếu không đáp ứng được, từ chối yêu cầu. Không tự động xem việc “kẹp” về maximum là thành công nếu dữ liệu vẫn cần nhiều hơn maximum.
+This example applies **when `oldCapacity >= 0` and `maximum > 0` have already been verified**. A real growth strategy must ensure `newCapacity >= minRequiredCapacity`; if that cannot be satisfied, reject the request. Do not automatically treat clamping to `maximum` as success if the data still needs more than `maximum`.
 
-### Trường hợp D: phân trang và chia nhóm
+### Case D: Pagination and chunking
 
-Với `count >= 0`, `pageSize > 0`, công thức thường gặp `(count + pageSize - 1) / pageSize` có thể overflow khi `count` gần `Integer.MAX_VALUE`. Thay bằng:
+With `count >= 0` and `pageSize > 0`, the common formula `(count + pageSize - 1) / pageSize` can overflow when `count` is near `Integer.MAX_VALUE`. Replace it with:
 
 ```java
 int count = Integer.MAX_VALUE;
@@ -337,44 +337,44 @@ int pageSize = 1000;
 int pages = count / pageSize + (count % pageSize == 0 ? 0 : 1);
 ```
 
-Cách này không cộng trước phép chia và giữ số trang trong miền `int` khi `count` không âm, `pageSize` dương. Với số lượng tính bằng `long` hoặc yêu cầu phân trang rất lớn, vẫn phải xét riêng giới hạn của miền đó.
+This avoids adding before dividing and keeps the page count within `int` when `count` is non-negative and `pageSize` is positive. For `long` counts or very large pagination requirements, evaluate the bounds of that range separately.
 
-## 8. Các lớp lỗi cần phân biệt
+## 8. Failure Classes to Distinguish
 
-| Vấn đề | Ví dụ | Hướng xử lý |
+| Issue | Example | How to Handle |
 | --- | --- | --- |
-| **Overflow số học** | `int count * 8` trả số âm | Nâng kiểu trước phép toán, `Math.multiplyExact` |
-| **Narrowing mất dữ liệu** | `(int) longLength` với độ dài quá lớn | Kiểm tra miền, `Math.toIntExact` |
-| **Length âm** | `new byte[-1]` | Kiểm tra đầu vào, `NegativeArraySizeException` là triệu chứng |
-| **Vượt giới hạn JVM / thiếu bộ nhớ** | `new long[veryLarge]` | Quota thực tế, thiết kế streaming/chunking, không dựa vào `OutOfMemoryError` để validate |
-| **Sai đơn vị** | So `elementCount` với quota tính bằng byte | Nêu rõ byte/element/character và đổi đơn vị đúng |
-| **Sai phép kiểm tra slice** | `offset + length <= capacity` sau khi tổng tràn | Kiểm tra số không âm rồi dùng `length <= capacity - offset` |
-| **Vượt quota tích lũy** | Nhiều mảng nhỏ cùng tồn tại | Theo dõi tổng sử dụng, giới hạn đồng thời và áp lực bộ nhớ |
-| **Tin trường length do client đưa** | File/network báo độ dài quá lớn | Kiểm tra quota trước đọc toàn bộ và trước allocation |
+| **Arithmetic overflow** | `int count * 8` returns a negative number | Promote before the operation, `Math.multiplyExact` |
+| **Lossy narrowing** | `(int) longLength` with a very large length | Range check, `Math.toIntExact` |
+| **Negative length** | `new byte[-1]` | Validate input; `NegativeArraySizeException` is a symptom |
+| **Exceeding JVM limit / out of memory** | `new long[veryLarge]` | Practical quotas, streaming/chunking design; never rely on `OutOfMemoryError` for validation |
+| **Unit mismatch** | Comparing `elementCount` against a byte-based quota | State byte/element/character explicitly and convert units properly |
+| **Broken slice check** | `offset + length <= capacity` after sum overflows | Check non-negativity then use `length <= capacity - offset` |
+| **Cumulative quota exceeded** | Many small arrays coexisting | Track total usage, concurrency limits, and memory pressure |
+| **Trusting client-supplied length fields** | File/network reports an oversized length | Check quota before reading everything and before allocating |
 
-## 9. Những nhầm lẫn thường gặp
+## 9. Common Misconceptions
 
-1. **“Tất cả toán hạng đều không âm thì kích thước cũng không âm.”** Sai: phép nhân/cộng `int` có thể overflow sang giá trị âm.
-2. **“Đích là `long` nên `int * int` tự động dùng 64 bit.”** Sai: phải chuyển toán hạng sang `long` **trước khi nhân**.
-3. **“`(long) (count * unitSize)` sửa overflow.”** Sai: phép nhân `int` đã diễn ra.
-4. **“`Math.multiplyExact(count, 8)` tự trả `long` nếu kết quả lớn.”** Sai: overload `int, int` ném lỗi khi vượt `int`; muốn kết quả `long` thì nâng toán hạng.
-5. **“Có `long` thì không thể tràn.”** Sai: `long * long` vẫn có thể vượt 64 bit.
-6. **“`Math.toIntExact` thành công thì cấp phát sẽ thành công.”** Sai: giới hạn JVM, heap, pressure, layout và quota vẫn áp dụng.
-7. **“`new byte[negativeSize]` sẽ tự sửa thành mảng rỗng.”** Sai: ném `NegativeArraySizeException`.
-8. **“`offset + length <= capacity` an toàn với mọi số nguyên.”** Sai: phép cộng có thể overflow; kiểm tra bằng phép trừ sau xác minh số không âm.
-9. **“Giới hạn payload bằng số byte là đủ để giới hạn heap.”** Sai: còn overhead, alignment, object graph, tham chiếu và allocation đồng thời.
-10. **“`String.length()` là số byte UTF-8.”** Sai: `String.length()` đếm đơn vị mã UTF-16, byte mã hóa thay đổi theo nội dung.
-11. **“Thấy `OutOfMemoryError` rồi bắt lỗi là đủ để validate.”** Sai: lúc đó JVM có thể đã thiếu tài nguyên nghiêm trọng; cần **kiểm tra, giới hạn và thiết kế theo luồng** từ đầu.
-12. **“Chỉ cần kiểm tra một lần ở lúc cấp phát.”** Chưa đủ: còn công thức cộng/nhân khi tăng capacity và việc giữ nhiều allocation đồng thời.
+1. **"If all operands are non-negative, the size is non-negative too."** False: `int` multiplication/addition can overflow into a negative value.
+2. **"The target is `long`, so `int * int` automatically uses 64 bits."** False: convert an operand to `long` **before multiplying**.
+3. **"`(long) (count * unitSize)` fixes overflow."** False: the `int` multiplication has already occurred.
+4. **"`Math.multiplyExact(count, 8)` automatically returns `long` if the result is large."** False: the `(int, int)` overload throws when exceeding `int`; to get `long`, promote an operand.
+5. **"With `long`, overflow is impossible."** False: `long * long` can still exceed 64 bits.
+6. **"If `Math.toIntExact` succeeds, allocation will succeed."** False: JVM limits, heap, pressure, layout, and quotas still apply.
+7. **"`new byte[negativeSize]` automatically produces an empty array."** False: it throws `NegativeArraySizeException`.
+8. **"`offset + length <= capacity` is safe for all integers."** False: addition can overflow; check via subtraction after verifying non-negativity.
+9. **"Limiting payload bytes is enough to bound heap usage."** False: headers, alignment, object graphs, references, and concurrent allocations also consume memory.
+10. **"`String.length()` is the UTF-8 byte count."** False: `String.length()` counts UTF-16 code units; encoded byte length varies by content.
+11. **"Catching `OutOfMemoryError` is enough for validation."** False: by then the JVM may already be critically starved of resources; **check, cap, and stream** from the start.
+12. **"You only need to check once at allocation time."** Insufficient: growth addition/multiplication formulas and holding multiple concurrent allocations also need bounds.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-- **`int count = 1_000_000_000; long bytes = count * 8;` đúng 8 tỷ không?** Không. Phép nhân `int` tràn trước khi gán. Viết `(long) count * 8` hoặc `Math.multiplyExact((long) count, 8L)`.
-- **Có phải mọi `long` hợp lệ đều chuyển thành `int` hợp lệ?** Không; `Math.toIntExact` báo lỗi khi giá trị ngoài miền 32 bit.
-- **`Math.multiplyExact(Long.MAX_VALUE, 2L)` làm gì?** Ném `ArithmeticException` vì tích vượt phạm vi `long`.
-- **Vì sao kiểm tra `offset <= capacity` và `length <= capacity - offset` tốt hơn cộng trực tiếp?** Với điều kiện không âm phù hợp, không tính một tổng có thể overflow.
-- **Payload lý thuyết của 200 phần tử `long` là bao nhiêu?** `200 * 8 = 1600` byte, chưa tính overhead mảng.
-- **Nếu byte quota là 1024 mà cần 1600 byte payload?** Từ chối **trước khi cấp phát**; không chờ `OutOfMemoryError`.
-- **Vì sao `Integer.MAX_VALUE` không phải giới hạn mảng chắc chắn cấp phát được?** Khả năng cấp phát còn tùy JVM, bộ nhớ và overhead; giới hạn của ứng dụng thường phải nhỏ hơn.
+- **Does `int count = 1_000_000_000; long bytes = count * 8;` equal 8 billion?** No. `int` multiplication overflows before assignment. Write `(long) count * 8` or `Math.multiplyExact((long) count, 8L)`.
+- **Can every valid `long` convert to a valid `int`?** No; `Math.toIntExact` throws an error when the value lies outside the 32-bit range.
+- **What does `Math.multiplyExact(Long.MAX_VALUE, 2L)` do?** Throws `ArithmeticException` because the product exceeds the `long` range.
+- **Why is checking `offset <= capacity` and `length <= capacity - offset` better than adding directly?** Under proper non-negativity preconditions, it never computes a sum that could overflow.
+- **What is the theoretical payload of 200 `long` elements?** `200 * 8 = 1600` bytes, excluding array overhead.
+- **What if the byte quota is 1024 and 1600 payload bytes are needed?** Reject **before allocating**; do not wait for `OutOfMemoryError`.
+- **Why isn't `Integer.MAX_VALUE` a guaranteed allocatable array limit?** Allocatable size also depends on the JVM, available memory, and overhead; application limits usually need to be smaller.
 
-**Ghi nhớ:** Khi tính kích thước, **xác nhận đầu vào → tính bằng kiểu đủ rộng và kiểm tra overflow → so với quota → chuyển về kiểu API → mới cấp phát**. Đừng dùng kích thước đã bị tràn để đánh giá an toàn. Kiểu `long` giúp tránh nhiều overflow `int`, còn `Math.*Exact`, giới hạn ứng dụng và kiểm tra tài nguyên giúp quản lý các trường hợp `long` vẫn chưa đủ.
+**Remember:** When computing sizes, **validate inputs → compute in a wide-enough type and check overflow → compare against quota → convert to the API type → only then allocate**. Never use an already-overflowed size to judge safety. `long` avoids many `int` overflows, while `Math.*Exact`, application limits, and resource checks manage the cases where even `long` is not enough.

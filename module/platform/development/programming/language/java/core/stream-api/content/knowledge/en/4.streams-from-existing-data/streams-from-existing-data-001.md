@@ -1,21 +1,21 @@
-# Tạo Stream từ Collection bằng stream() và parallelStream()
+# Creating a Stream from a Collection with stream() and parallelStream()
 
-Khi dữ liệu đã nằm trong một `Collection`, Java Stream API cung cấp hai cách trực tiếp để xây dựng pipeline: `collection.stream()` và `collection.parallelStream()`. Cả hai giúp xử lý dữ liệu theo phong cách khai báo với `filter`, `map`, `reduce`, `collect` và nhiều phép toán khác. Khác biệt chính là **chế độ thực thi tuần tự hay có khả năng song song** khi pipeline được tiêu thụ.
+When data is already in a `Collection`, the Java Stream API provides two direct ways to build a pipeline: `collection.stream()` and `collection.parallelStream()`. Both allow processing data in a declarative style with `filter`, `map`, `reduce`, `collect`, and many other operations. The main difference is **sequential or potentially parallel execution mode** when the pipeline is consumed.
 
-Bài học thuộc chương **Tạo Stream từ dữ liệu có sẵn** của module **JAVA_STREAM_API**. Việc hiểu cách tạo Stream từ Collection là nền tảng trước khi tiếp cận grouping, collector tùy chỉnh, `Spliterator`, xử lý song song và các phép toán nâng cao như Stream Gatherers. Đặc biệt, cần phân biệt **nguồn dữ liệu**, **thời điểm chạy**, **thứ tự kết quả**, **an toàn khi xử lý song song** và **chi phí hiệu năng**.
+This lesson belongs to the **Streams from Existing Data** chapter of the **JAVA_STREAM_API** module. Understanding how to create a Stream from a Collection is foundational before approaching grouping, custom collectors, `Spliterator`, parallel processing, and advanced operations such as Stream Gatherers. In particular, it is necessary to distinguish **data source**, **execution time**, **result ordering**, **safety in parallel processing**, and **performance overhead**.
 
-## 1. Hai phương thức có sẵn trên Collection
+## 1. Two Built-in Methods on Collection
 
-Từ Java 8, giao diện `java.util.Collection<E>` cung cấp các phương thức:
+Since Java 8, the `java.util.Collection<E>` interface provides the methods:
 
 ```java
 Stream<E> stream();
 Stream<E> parallelStream();
 ```
 
-Theo hợp đồng API, `stream()` trả về **Stream tuần tự**, còn `parallelStream()` trả về **Stream có thể xử lý song song**. Cách thức và mức độ song song thực tế phụ thuộc vào nguồn, phép toán, môi trường thực thi và khả năng chia tách dữ liệu.
+By API contract, `stream()` returns a **sequential Stream**, while `parallelStream()` returns a **potentially parallel Stream**. The actual manner and degree of parallelism depend on the source, operations, execution environment, and data splitting capability.
 
-Các lớp triển khai `Collection` như `ArrayList`, `LinkedList`, `HashSet`, `LinkedHashSet`, `TreeSet` thường dùng được cả hai phương thức thông qua giao diện `Collection`:
+`Collection` implementation classes such as `ArrayList`, `LinkedList`, `HashSet`, `LinkedHashSet`, and `TreeSet` normally have access to both methods via the `Collection` interface:
 
 ```java
 List<String> names = Arrays.asList("An", "Binh", "Chi");
@@ -23,22 +23,22 @@ Stream<String> sequential = names.stream();
 Stream<String> parallel = names.parallelStream();
 ```
 
-Trong đó, `Stream<String>` là **luồng mô tả việc xử lý các phần tử**, không phải danh sách mới. Hai lời gọi tạo ra **hai Stream riêng biệt** từ cùng Collection; chúng không chuyển đổi hay xóa dữ liệu của `names`.
+Here, `Stream<String>` is a **stream describing the processing of elements**, not a new list. The two calls create **two separate Streams** from the same Collection; they do not convert or delete data from `names`.
 
-| Nguồn đã có | Cách tạo Stream | Ghi chú |
+| Existing source | How to create Stream | Notes |
 | --- | --- | --- |
-| `List<String>`, `ArrayList<String>` | `list.stream()` hoặc `list.parallelStream()` | List thông thường có thứ tự phần tử xác định. |
-| `Set<String>`, `HashSet<String>` | `set.stream()` hoặc `set.parallelStream()` | HashSet không bảo đảm thứ tự duyệt. |
-| `LinkedHashSet<String>` | `set.stream()` | Giữ thứ tự chèn khi duyệt phần tử. |
-| `TreeSet<String>` | `set.stream()` | Duyệt theo thứ tự sắp xếp của Set. |
-| `Map<K, V>` | `map.entrySet().stream()`, `map.keySet().stream()`, `map.values().stream()` | `Map` **không phải** `Collection`; tạo Stream từ collection view phù hợp. |
-| Mảng `String[]` | `Arrays.stream(array)` | Mảng không phải Collection nên không gọi trực tiếp `array.stream()`. |
+| `List<String>`, `ArrayList<String>` | `list.stream()` or `list.parallelStream()` | Regular Lists have a defined element order. |
+| `Set<String>`, `HashSet<String>` | `set.stream()` or `set.parallelStream()` | HashSet does not guarantee traversal order. |
+| `LinkedHashSet<String>` | `set.stream()` | Preserves insertion order when traversing elements. |
+| `TreeSet<String>` | `set.stream()` | Traverses in the Set's sorted order. |
+| `Map<K, V>` | `map.entrySet().stream()`, `map.keySet().stream()`, `map.values().stream()` | `Map` is **not** a `Collection`; create a Stream from the appropriate collection view. |
+| Array `String[]` | `Arrays.stream(array)` | An array is not a Collection, so you cannot call `array.stream()` directly. |
 
-Mỗi Stream có **kiểu phần tử** của nguồn tương ứng. Từ `Map.entrySet()`, phần tử là `Map.Entry<K, V>`; từ `Map.values()`, phần tử là `V`. Kiểu này quyết định những phép biến đổi có thể viết ở bước tiếp theo.
+Each Stream has the **element type** of its corresponding source. From `Map.entrySet()`, the element is `Map.Entry<K, V>`; from `Map.values()`, the element is `V`. This type determines what transformations can be written in subsequent steps.
 
-## 2. Ví dụ chạy được: từ List đến kết quả
+## 2. Runnable Example: From List to Result
 
-Ví dụ hoàn chỉnh sau tương thích Java 8 trở lên:
+The following complete example is compatible with Java 8 and later:
 
 ```java
 import java.util.Arrays;
@@ -72,39 +72,39 @@ public class CollectionStreamDemo {
 }
 ```
 
-Pipeline được đọc từ trái sang phải:
+The pipeline is read from left to right:
 
-1. `names.stream()` lấy `List<String>` làm nguồn và tạo Stream tuần tự.
-2. `map(String::trim)` mô tả việc bỏ khoảng trắng ở đầu và cuối mỗi tên.
-3. `filter(...)` giữ các tên có ít nhất ba ký tự sau khi chuẩn hóa.
-4. `map(...toUpperCase...)` mô tả phép đổi thành chữ hoa.
-5. `collect(Collectors.toList())` tiêu thụ các phần tử còn lại và tạo kết quả dưới dạng `List`.
+1. `names.stream()` takes `List<String>` as the source and creates a sequential Stream.
+2. `map(String::trim)` describes removing leading and trailing whitespace from each name.
+3. `filter(...)` keeps names that have at least three characters after normalization.
+4. `map(...toUpperCase...)` describes the transformation to uppercase.
+5. `collect(Collectors.toList())` consumes the remaining elements and creates the result as a `List`.
 
-Pipeline thứ hai tạo nguồn bằng `parallelStream()`; giá trị `count` vẫn là `4` vì cả hai pipeline cùng áp dụng quy tắc lọc. Với dữ liệu nhỏ như ví dụ, xử lý song song thường không có lợi thế và có thể tốn thêm chi phí điều phối.
+The second pipeline creates its source using `parallelStream()`; the `count` value is still `4` because both pipelines apply the same filtering rule. With small data like this example, parallel processing usually has no advantage and may incur coordination overhead.
 
-> Hai lời gọi `stream()` và `parallelStream()` không yêu cầu copy Collection. `collect(...)` mới là bước tạo cấu trúc dữ liệu kết quả. Bản chất “view của quá trình tính toán” này giúp hạn chế các danh sách tạm sau mỗi bước trung gian.
+> The two calls `stream()` and `parallelStream()` do not require copying the Collection. `collect(...)` is the step that creates the resulting data structure. This "view of a computation" nature helps avoid temporary lists after each intermediate step.
 
-## 3. Stream mang tính lười: tạo pipeline chưa duyệt dữ liệu
+## 3. Streams Are Lazy: Creating a Pipeline Does Not Traverse Data Yet
 
-`filter` và `map` là các phép toán trung gian (*intermediate operations*). Chúng thường chỉ nối thêm quy tắc vào pipeline; phép toán kết thúc (*terminal operation*) như `count`, `collect` hoặc `findFirst` mới yêu cầu dữ liệu được xử lý.
+`filter` and `map` are *intermediate operations*. They usually only append rules to the pipeline; a *terminal operation* such as `count`, `collect`, or `findFirst` is what triggers data processing.
 
 ```java
 List<Integer> numbers = Arrays.asList(1, 2, 3, 4);
 
 Stream<Integer> pipeline = numbers.stream()
     .filter(n -> {
-        System.out.println("Đang lọc: " + n);
+        System.out.println("Filtering: " + n);
         return n % 2 == 0;
     });
 
-System.out.println("Đã tạo pipeline");
+System.out.println("Pipeline created");
 long result = pipeline.count();
-System.out.println("Số phần tử chẵn: " + result);
+System.out.println("Even elements count: " + result);
 ```
 
-Trong pipeline tuần tự này, `Đã tạo pipeline` xuất hiện trước khi các lần lọc diễn ra. `count()` cần xác định số phần tử sau `filter` nên pipeline đánh giá bộ lọc cho các số trong danh sách.
+In this sequential pipeline, `Pipeline created` appears before the filtering executions occur. `count()` needs to determine the number of elements after `filter`, so the pipeline evaluates the filter for the numbers in the list.
 
-**Một Stream chỉ có một lượt tiêu thụ.** Sau `pipeline.count()`, không được gọi tiếp `pipeline.collect(...)` trên chính đối tượng `pipeline`. Muốn xử lý lại Collection thì tạo Stream mới:
+**A Stream can only be consumed once.** After `pipeline.count()`, you must not call `pipeline.collect(...)` on the same `pipeline` object. To process the Collection again, create a new Stream:
 
 ```java
 long evenCount = numbers.stream().filter(n -> n % 2 == 0).count();
@@ -115,29 +115,29 @@ int evenSum = numbers.stream()
 // evenCount = 2; evenSum = 6
 ```
 
-Đừng coi tác dụng phụ trong `peek`, `map` hoặc các bước trung gian là thao tác được bảo đảm sẽ chạy đúng một lần cho mỗi phần tử. Một số terminal có thể dừng sớm hoặc bỏ qua các phép toán không cần thiết khi tối ưu hóa, ví dụ `count()` trên nguồn có kích thước biết trước.
+Do not treat side effects in `peek`, `map`, or intermediate steps as operations guaranteed to run exactly once per element. Some terminal operations can short-circuit or skip unnecessary operations during optimization, such as `count()` on a source with a known size.
 
-## 4. Điều gì khác nhau giữa stream() và parallelStream()?
+## 4. What Differs Between stream() and parallelStream()?
 
-| Khía cạnh | `collection.stream()` | `collection.parallelStream()` |
+| Aspect | `collection.stream()` | `collection.parallelStream()` |
 | --- | --- | --- |
-| Chế độ khởi tạo | Tuần tự | Có thể song song |
-| Cách thực thi điển hình | Phần tử được xử lý trên đường đi tuần tự | Công việc có thể được chia thành nhiều phần và thực thi đồng thời |
-| Thứ tự **thực thi lambda** | Dễ quan sát hơn với nguồn có thứ tự và bước không trạng thái | Không bảo đảm theo thứ tự nguồn |
-| Thứ tự **kết quả** | Tuân theo hợp đồng nguồn và terminal | Vẫn có thể bảo toàn encounter order qua terminal thích hợp |
-| Chi phí | Ít điều phối, thường hợp với tập nhỏ | Có chi phí chia việc, ghép kết quả và đồng bộ nếu cần |
-| Rủi ro khi lambda thay đổi trạng thái chia sẻ | Có thể gây lỗi logic | Có thêm rủi ro race condition, kết quả thiếu hoặc không ổn định |
+| Initial mode | Sequential | Potentially parallel |
+| Typical execution | Elements are processed along a sequential path | Work can be split into multiple parts and executed concurrently |
+| **Lambda execution** order | Easier to observe with ordered sources and stateless steps | Not guaranteed to follow source order |
+| **Result** order | Follows source and terminal contracts | Can still preserve encounter order via appropriate terminal operations |
+| Overhead | Low coordination, usually suitable for small sets | Has overhead for splitting work, merging results, and synchronization if needed |
+| Risk when lambda mutates shared state | Can cause logic bugs | Adds risk of race conditions, missing or unstable results |
 
-Java sử dụng thông tin của nguồn thông qua `Spliterator` để duyệt và, khi phù hợp, chia phần tử thành các phần có thể xử lý độc lập. `parallelStream()` **không có nghĩa** mọi phần tử sẽ được xử lý trên một luồng riêng, cũng không hứa số lượng luồng cố định.
+Java uses source information via `Spliterator` to traverse and, when appropriate, split elements into parts that can be processed independently. `parallelStream()` **does not mean** every element will be processed on a separate thread, nor does it promise a fixed number of threads.
 
-Có thể kiểm tra và chuyển chế độ của một pipeline **chưa bị tiêu thụ**:
+You can check and switch the mode of an **unconsumed** pipeline:
 
 ```java
 Stream<Integer> a = numbers.stream();
 System.out.println(a.isParallel()); // false
 
 Stream<Integer> b = numbers.parallelStream();
-System.out.println(b.isParallel()); // true với các Collection thông dụng
+System.out.println(b.isParallel()); // true for common Collections
 
 long total = numbers.stream()
     .parallel()
@@ -150,13 +150,13 @@ long sequentialTotal = numbers.parallelStream()
     .sum();
 ```
 
-`parallel()` và `sequential()` là các phép cấu hình chế độ cho pipeline, **không tự khởi chạy xử lý**. Ở các Collection thông dụng như `ArrayList`, `parallelStream()` trả về Stream đánh dấu song song; API `Collection` chỉ cam kết một Stream *có thể* song song, nên tránh coi đây là bảo đảm về mức độ sử dụng CPU.
+`parallel()` and `sequential()` are mode configuration operations for the pipeline; they **do not start processing on their own**. On common Collections such as `ArrayList`, `parallelStream()` returns a Stream marked as parallel; the `Collection` API only commits to a Stream that *can* be parallel, so avoid treating this as a guarantee of CPU utilization.
 
-## 5. Thứ tự dữ liệu và thứ tự thực thi là hai khái niệm
+## 5. Data Order and Execution Order Are Two Separate Concepts
 
-**Encounter order** là thứ tự phần tử do nguồn cung cấp cho Stream, nếu nguồn có thứ tự. Ví dụ, `List` thường cung cấp thứ tự theo chỉ số, `LinkedHashSet` theo thứ tự chèn, `TreeSet` theo quy tắc sắp xếp; `HashSet` không cam kết thứ tự.
+**Encounter order** is the order in which elements are supplied to the Stream by the source, if the source has an order. For example, `List` usually provides index order, `LinkedHashSet` insertion order, `TreeSet` sort order; `HashSet` does not guarantee order.
 
-Từ một `List` có thứ tự, một phép biến đổi song song vẫn có thể cho **kết quả có thứ tự**:
+From an ordered `List`, a parallel transformation can still produce an **ordered result**:
 
 ```java
 List<Integer> source = Arrays.asList(1, 2, 3, 4, 5, 6);
@@ -168,34 +168,34 @@ List<Integer> squared = source.parallelStream()
 System.out.println(squared); // [1, 4, 9, 16, 25, 36]
 ```
 
-Điều đó **không chứng minh** lambda `n -> n * n` đã chạy theo thứ tự `1, 2, 3, 4, 5, 6`. Bộ thu thập thích hợp ghép kết quả theo encounter order của nguồn.
+This **does not prove** that the lambda `n -> n * n` ran in the order `1, 2, 3, 4, 5, 6`. An appropriate collector combines results according to the source's encounter order.
 
-So sánh hai terminal sau:
+Compare these two terminal operations:
 
 ```java
 source.parallelStream().forEach(System.out::println);
-// Thứ tự in có thể khác nhau giữa các lần chạy.
+// Print order may vary between runs.
 
 source.parallelStream().forEachOrdered(System.out::println);
-// Với List có thứ tự: in 1, 2, 3, 4, 5, 6.
+// For an ordered List: prints 1, 2, 3, 4, 5, 6.
 ```
 
-`forEachOrdered` giữ thứ tự quan sát được nhưng có thể khiến việc xử lý tốn thêm chi phí. `findFirst()` ưu tiên phần tử đầu theo encounter order; `findAny()` có thể chọn phần tử bất kỳ, nhất là khi chạy song song. Không áp đặt khái niệm “đầu tiên” theo thứ tự chèn lên `HashSet`.
+`forEachOrdered` preserves the observable order but may make processing more expensive. `findFirst()` prioritizes the first element in encounter order; `findAny()` can pick any element, especially when running in parallel. Do not impose the notion of "first" by insertion order onto a `HashSet`.
 
-Với các nguồn không có encounter order, terminal không thể tạo ra một cam kết thứ tự nguồn vốn không tồn tại. Nếu yêu cầu kết quả được sắp xếp theo tiêu chí riêng, hãy dùng `sorted(...)` và nhận thức chi phí sắp xếp.
+For sources without an encounter order, a terminal operation cannot create a source ordering guarantee that does not exist. If you require results sorted by custom criteria, use `sorted(...)` and be aware of the sorting cost.
 
-## 6. Không dùng trạng thái chia sẻ để tích lũy kết quả song song
+## 6. Do Not Use Shared State to Accumulate Parallel Results
 
-Một lỗi điển hình là sử dụng `forEach` để thêm phần tử trực tiếp vào `ArrayList` bên ngoài:
+A typical mistake is using `forEach` to add elements directly into an external `ArrayList`:
 
 ```java
 List<Integer> source = Arrays.asList(1, 2, 3, 4, 5, 6);
 
 List<Integer> unsafe = new ArrayList<>();
-source.parallelStream().forEach(n -> unsafe.add(n * n)); // Sai!
+source.parallelStream().forEach(n -> unsafe.add(n * n)); // Wrong!
 ```
 
-`ArrayList` không an toàn cho nhiều luồng thêm phần tử đồng thời. Kết quả có thể thiếu, sai hoặc phát sinh lỗi; đôi khi chạy đúng chỉ là tình cờ. Thay bằng phép thu thập có hợp đồng rõ ràng:
+`ArrayList` is not safe for multiple threads adding elements concurrently. Results may be missing, incorrect, or throw errors; sometimes running correctly is just coincidence. Replace it with a collection operation that has a clear contract:
 
 ```java
 List<Integer> safe = source.parallelStream()
@@ -203,9 +203,9 @@ List<Integer> safe = source.parallelStream()
     .collect(Collectors.toList());
 ```
 
-Collector được thư viện phối hợp với cơ chế chia việc và kết hợp kết quả khi chạy song song. **Không cần** biến đích dùng chung trong lambda. Cách này cũng hoạt động với Stream tuần tự.
+The collector is coordinated by the library with work splitting and result combining mechanisms when running in parallel. **No** shared target variable is needed inside the lambda. This approach also works with sequential Streams.
 
-Tương tự, để tính tổng số lượng, sử dụng phép giảm phù hợp:
+Similarly, to compute a total count or sum, use an appropriate reduction operation:
 
 ```java
 long sum = source.parallelStream()
@@ -213,55 +213,55 @@ long sum = source.parallelStream()
     .sum(); // 21
 ```
 
-Nếu tự dùng `reduce(identity, accumulator, combiner)` trên Stream song song, các phép kết hợp phải thỏa tính **kết hợp (associativity)**, identity trung lập và các yêu cầu tương thích của hợp đồng `reduce`. Với thao tác phụ thuộc thứ tự như phép trừ, không thể tùy tiện gom các tổng phụ rồi trừ để mong nhận cùng kết quả như một vòng lặp tuần tự.
+If you manually use `reduce(identity, accumulator, combiner)` on a parallel Stream, the combining operations must satisfy **associativity**, a neutral identity, and the compatibility requirements of the `reduce` contract. For order-dependent operations such as subtraction, you cannot arbitrarily group partial totals and subtract them expecting the same result as a sequential loop.
 
-Ví dụ grouping, một tác vụ thường gặp trong module:
+A grouping example, a common task in this module:
 
 ```java
 Map<Integer, Long> countByLength = Arrays.asList("An", "Binh", "Chi", "Dung")
     .parallelStream()
     .collect(Collectors.groupingBy(String::length, Collectors.counting()));
 
-// Có 1 tên dài 2, 1 tên dài 3 và 2 tên dài 4.
-// Không nên dựa vào thứ tự duyệt các key trong Map kết quả.
+// There is 1 name of length 2, 1 name of length 3, and 2 names of length 4.
+// Do not rely on the iteration order of keys in the resulting Map.
 ```
 
-`groupingBy` vẫn có thể dùng trong pipeline song song nhờ cơ chế tích lũy và kết hợp của Collector; việc không sử dụng `ConcurrentHashMap` ở ví dụ này không đồng nghĩa là phép thu thập bị race condition. Với nhu cầu nhóm đồng thời và không yêu cầu thứ tự, `groupingByConcurrent` có hợp đồng riêng cần xem xét.
+`groupingBy` can still be used in a parallel pipeline thanks to the Collector's accumulation and combining mechanism; not using `ConcurrentHashMap` in this example does not mean the collection suffers from a race condition. For concurrent grouping without ordering requirements, `groupingByConcurrent` has its own contract to consider.
 
-## 7. Collection, Spliterator và chi phí chia việc
+## 7. Collection, Spliterator, and Splitting Overhead
 
-`Collection.stream()` và `Collection.parallelStream()` sử dụng `Spliterator` của Collection để hỗ trợ duyệt dữ liệu. `Spliterator` có khả năng báo đặc tính nguồn, chẳng hạn:
+`Collection.stream()` and `Collection.parallelStream()` use the Collection's `Spliterator` to support data traversal. `Spliterator` can report source characteristics, such as:
 
-- `ORDERED`: nguồn có encounter order.
-- `SIZED`: biết kích thước phần dữ liệu đang được biểu diễn.
-- `DISTINCT`: các phần tử không trùng nhau theo hợp đồng nguồn.
-- `SORTED`: các phần tử tuân theo thứ tự sắp xếp xác định.
+- `ORDERED`: the source has an encounter order.
+- `SIZED`: the size of the data portion being represented is known.
+- `DISTINCT`: elements are distinct according to the source's contract.
+- `SORTED`: elements follow a defined sort order.
 
-Các đặc tính được cung cấp khác nhau tùy Collection và cách xây dựng nguồn. Chúng giúp Stream lựa chọn hoặc tối ưu phép xử lý; chẳng hạn, `count()` có thể lấy kích thước trực tiếp khi biết chắc không có bước nào thay đổi số phần tử.
+The characteristics provided vary depending on the Collection and how the source is constructed. They help the Stream choose or optimize processing operations; for example, `count()` can obtain the size directly when it is certain no step changes the element count.
 
-Hiệu quả của `parallelStream()` phụ thuộc đáng kể vào khả năng chia dữ liệu: `ArrayList` thường dễ phân đoạn theo chỉ số, trong khi cấu trúc liên kết như `LinkedList` có đặc điểm tách và truy cập khác. Đây là lý do cùng một pipeline có thể có hiệu năng rất khác trên những Collection khác nhau.
+The effectiveness of `parallelStream()` depends significantly on data splitting capability: `ArrayList` is usually easy to partition by index, whereas linked structures such as `LinkedList` have different splitting and access characteristics. This is why the same pipeline can have very different performance on different Collections.
 
-Tuy nhiên, **phần tử lớn chưa chắc đồng nghĩa xử lý song song nhanh hơn**. Nên cân nhắc:
+However, **a large element count does not necessarily mean parallel processing is faster**. You should consider:
 
-| Yếu tố | Khi nào xử lý song song đáng xem xét? |
+| Factor | When is parallel processing worth considering? |
 | --- | --- |
-| Số lượng phần tử | Đủ lớn để bù chi phí chia và ghép việc. |
-| Công việc trên mỗi phần tử | Tốn CPU, các phép tính độc lập, ít đồng bộ. |
-| Nguồn | Dễ chia thành các phần tương đối cân bằng. |
-| Phép toán | Chủ yếu không trạng thái; không phải giữ nhiều ràng buộc thứ tự. |
-| Tài nguyên chung | Không gây nghẽn I/O, khóa hay cạnh tranh CPU với tác vụ khác. |
+| Number of elements | Large enough to offset the cost of splitting and merging work. |
+| Work per element | CPU-intensive, independent computations, minimal synchronization. |
+| Source | Easy to split into relatively balanced parts. |
+| Operations | Mostly stateless; does not have to maintain many ordering constraints. |
+| Shared resources | Does not cause I/O bottlenecks, lock contention, or CPU competition with other tasks. |
 
-Không nên mặc định chuyển mọi `stream()` thành `parallelStream()`. Với tập nhỏ, tính toán rất nhẹ hoặc môi trường đã có nhiều tác vụ đồng thời, tuần tự thường rõ ràng và có thể nhanh hơn. Nếu hiệu năng là lý do chuyển chế độ, hãy benchmark trong điều kiện gần thực tế, có warm-up và đo riêng phần tạo dữ liệu, phần xử lý, phần thu kết quả.
+You should not convert every `stream()` to `parallelStream()` by default. For small sets, very lightweight computations, or environments already running many concurrent tasks, sequential is usually clearer and can be faster. If performance is the reason for switching modes, benchmark under realistic conditions, with warm-up, and measure data creation, processing, and result collection separately.
 
-## 8. An toàn với dữ liệu nguồn và vòng đời
+## 8. Source Data Safety and Lifecycle
 
-Tạo Stream từ Collection **không tạo bản sao bất biến** của dữ liệu. Với những Collection thông dụng không hỗ trợ cập nhật đồng thời, sửa cấu trúc Collection khi pipeline đang duyệt có thể dẫn đến `ConcurrentModificationException` hoặc hành vi không được bảo đảm. Không nên dựa vào ngoại lệ đó như cơ chế phát hiện mọi xung đột.
+Creating a Stream from a Collection **does not create an immutable copy** of the data. With common Collections that do not support concurrent updates, modifying the Collection's structure while the pipeline is traversing it can lead to `ConcurrentModificationException` or unspecified behavior. Do not rely on that exception as a mechanism to detect all conflicts.
 
 ```java
 List<String> names = new ArrayList<>(Arrays.asList("An", "Binh", "Chi"));
 
-// Không cập nhật danh sách trong quá trình stream đang đọc nó:
-// names.stream().forEach(name -> names.remove(name)); // Sai
+// Do not update the list while a stream is reading it:
+// names.stream().forEach(name -> names.remove(name)); // Wrong
 
 List<String> snapshot = new ArrayList<>(names);
 List<String> upper = snapshot.stream()
@@ -269,21 +269,21 @@ List<String> upper = snapshot.stream()
     .collect(Collectors.toList());
 ```
 
-`snapshot` là bản sao nội dung của List tại thời điểm sao chép (đối với đối tượng phần tử có thể thay đổi, đây chỉ là bản sao **nông**). Nếu nhiều luồng cùng sửa `names`, thao tác tạo snapshot cũng cần phối hợp đồng bộ phù hợp. Có các Collection đồng thời với hợp đồng khác, nhưng không nên suy rộng rằng việc đổi sang `parallelStream()` tự biến nguồn thành an toàn đa luồng.
+`snapshot` is a copy of the List's contents at the time of copying (for mutable element objects, this is only a **shallow** copy). If multiple threads modify `names` concurrently, creating the snapshot also requires proper synchronization. There are concurrent Collections with different contracts, but you should not generalize that switching to `parallelStream()` automatically makes a source thread-safe.
 
-Một số nguyên tắc thực hành:
+Some practical guidelines:
 
-1. Giữ các hàm truyền cho `map`, `filter` và `reduce` **không sửa nguồn**, không phụ thuộc vào trạng thái có thể bị các luồng khác thay đổi.
-2. Tạo Stream mới mỗi lần cần một terminal operation khác; không tái sử dụng Stream sau khi đã tiêu thụ.
-3. Các Collection nằm trong bộ nhớ thường không cần `close()` sau `stream()`; nguồn từ tệp hoặc tài nguyên ngoài có quy tắc đóng riêng, ví dụ `Files.lines(...)` cần `try-with-resources`.
-4. Đừng dựa vào kết quả thu thập là một `ArrayList` có thể chỉnh sửa: `Collectors.toList()` không hứa loại List cụ thể hoặc khả năng thay đổi. Khi cần đích là `ArrayList`, dùng `collect(Collectors.toCollection(ArrayList::new))`.
-5. Chuyển dữ liệu số từ `Collection<Integer>` sang primitive Stream bằng `mapToInt(Integer::intValue)` hoặc `mapToLong(Integer::longValue)` khi thích hợp, giảm thao tác đóng/mở hộp trong các bước tính toán tiếp theo.
+1. Keep functions passed to `map`, `filter`, and `reduce` **non-modifying to the source**, and independent of state that could be changed by other threads.
+2. Create a new Stream each time another terminal operation is needed; do not reuse a Stream after it has been consumed.
+3. In-memory Collections normally do not need `close()` after `stream()`; sources from files or external resources have their own closing rules, for example `Files.lines(...)` requires `try-with-resources`.
+4. Do not rely on the collected result being a mutable `ArrayList`: `Collectors.toList()` makes no guarantees on the specific List type or mutability. When you specifically need an `ArrayList`, use `collect(Collectors.toCollection(ArrayList::new))`.
+5. Convert numeric data from `Collection<Integer>` to a primitive Stream using `mapToInt(Integer::intValue)` or `mapToLong(Integer::longValue)` when appropriate, reducing boxing/unboxing in subsequent computation steps.
 
-## 9. Bài tập vận dụng có đáp án
+## 9. Practice Exercises with Answers
 
-### Bài 1: Danh sách đơn hàng
+### Exercise 1: Order List
 
-Cho các giá trị đơn hàng `List<Integer> amounts = Arrays.asList(120, 50, 300, 80, 150);`. Tính tổng các đơn từ `100` trở lên bằng Stream tuần tự và song song.
+Given order amounts `List<Integer> amounts = Arrays.asList(120, 50, 300, 80, 150);`. Compute the sum of orders of `100` or more using sequential and parallel Streams.
 
 ```java
 List<Integer> amounts = Arrays.asList(120, 50, 300, 80, 150);
@@ -301,9 +301,9 @@ long parallel = amounts.parallelStream()
 // sequential = parallel = 570
 ```
 
-**Giải thích:** Cả hai cách lọc ba giá trị `120`, `300`, `150` và cộng bằng phép toán tổng hợp thích hợp. Bài này chưa cần chạy song song để đạt hiệu năng tốt.
+**Explanation:** Both approaches filter the three values `120`, `300`, `150` and sum them with an appropriate aggregation operation. This problem does not need parallel execution for good performance.
 
-### Bài 2: Có bảo đảm thứ tự đầu ra không?
+### Exercise 2: Is Output Order Guaranteed?
 
 ```java
 List<String> words = Arrays.asList("cat", "apple", "dog", "banana");
@@ -313,9 +313,9 @@ List<String> out = words.parallelStream()
     .collect(Collectors.toList());
 ```
 
-**Đáp án:** `out` là `[APPLE, BANANA]` theo encounter order của List. Thứ tự *thực thi* của các lời gọi `filter` và `map` có thể khác nhau, nhưng `collect(Collectors.toList())` giữ thứ tự phần tử của nguồn có thứ tự.
+**Answer:** `out` is `[APPLE, BANANA]` following the List's encounter order. The *execution* order of the `filter` and `map` calls may differ, but `collect(Collectors.toList())` preserves the element order of an ordered source.
 
-### Bài 3: Nhận diện lỗi
+### Exercise 3: Identify the Bug
 
 ```java
 List<Integer> values = Arrays.asList(1, 2, 3, 4);
@@ -324,7 +324,7 @@ values.parallelStream().filter(n -> n % 2 == 0)
     .forEach(shared::add);
 ```
 
-**Đáp án:** `shared` là `ArrayList` bị nhiều luồng ghi đồng thời, không an toàn. Viết lại:
+**Answer:** `shared` is an `ArrayList` being written to concurrently by multiple threads, which is unsafe. Rewrite as:
 
 ```java
 List<Integer> evens = values.parallelStream()
@@ -332,9 +332,9 @@ List<Integer> evens = values.parallelStream()
     .collect(Collectors.toList()); // [2, 4]
 ```
 
-### Bài 4: Stream từ Map
+### Exercise 4: Stream from a Map
 
-Cho `Map<String, Integer> inventory` lưu tên sản phẩm và số lượng tồn. Vì sao `inventory.stream()` không hợp lệ, và làm sao lấy tên các sản phẩm còn hàng?
+Given `Map<String, Integer> inventory` storing product names and stock quantities. Why is `inventory.stream()` invalid, and how do you get the names of products in stock?
 
 ```java
 Map<String, Integer> inventory = new HashMap<>();
@@ -346,11 +346,11 @@ List<String> available = inventory.entrySet().stream()
     .filter(entry -> entry.getValue() > 0)
     .map(Map.Entry::getKey)
     .collect(Collectors.toList());
-// Bao gồm "book" và "notebook"; thứ tự không được HashMap bảo đảm.
+// Includes "book" and "notebook"; order is not guaranteed by HashMap.
 ```
 
-**Giải thích:** `Map` không triển khai `Collection`. `entrySet()` trả về một `Set<Map.Entry<String, Integer>>`, nên có thể tạo Stream từ Set này rồi lọc và lấy key.
+**Explanation:** `Map` does not implement `Collection`. `entrySet()` returns a `Set<Map.Entry<String, Integer>>`, so you can create a Stream from this Set, then filter and extract the key.
 
-## Ghi nhớ
+## Key Takeaways
 
-`Collection.stream()` là lựa chọn mặc định để xây pipeline tuần tự, dễ dự đoán và thường đủ nhanh. `Collection.parallelStream()` phù hợp khi dữ liệu có thể chia hiệu quả, mỗi phần tử được xử lý độc lập và chi phí tính toán đủ lớn. Cả hai **đều mô tả một pipeline lười, tiêu thụ một lần**, chia sẻ các quy tắc về encounter order, trạng thái của lambda và tính đúng đắn của phép thu thập. Hãy chọn chế độ dựa trên hợp đồng của bài toán và đo đạc thực tế, thay vì cho rằng “song song” tự động nhanh hoặc an toàn hơn.
+`Collection.stream()` is the default choice for building a sequential pipeline that is predictable and usually fast enough. `Collection.parallelStream()` is suitable when data can be split efficiently, each element is processed independently, and computation cost is sufficiently high. Both **describe a lazy, single-use pipeline** and share rules regarding encounter order, lambda statelessness, and collection correctness. Choose the mode based on the problem's contract and actual measurements, rather than assuming "parallel" is automatically faster or safer.

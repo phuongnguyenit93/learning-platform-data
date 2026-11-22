@@ -1,25 +1,25 @@
-# Dấu kết hợp, tiếng Việt và các cách biểu diễn Unicode tương đương trong Java
+# Combining Marks, Vietnamese, and Equivalent Unicode Representations in Java
 
-## Mục tiêu
+## Objectives
 
-Văn bản tiếng Việt có nhiều ký tự mang dấu: `á`, `à`, `ả`, `ã`, `ạ`, `ắ`, `ằ`, `ẫ`, `ậ`, `ế`, `ệ`, v.v. Người dùng nhìn thấy một chữ có dấu, nhưng Unicode có thể lưu chữ đó bằng **một code point đã được ghép sẵn (precomposed)** hoặc **một chữ cơ sở cộng các dấu kết hợp (combining marks)**.
+Vietnamese text contains many accented characters: `á`, `à`, `ả`, `ã`, `ạ`, `ắ`, `ằ`, `ẫ`, `ậ`, `ế`, `ệ`, etc. Users see a single accented letter, yet Unicode can store that letter using **one precomposed code point** or **a base letter plus combining marks**.
 
-Hai chuỗi nhìn giống nhau không nhất thiết có cùng dãy code point, cùng số phần tử trong `String`, hoặc bằng nhau theo `String.equals(...)`. Điều đó ảnh hưởng trực tiếp đến việc so sánh, tìm kiếm, lưu dữ liệu, xử lý tên file, xác thực đầu vào và bản địa hóa.
+Two strings that look identical do not necessarily have the same code point sequence, the same number of elements in `String`, or compare equal under `String.equals(...)`. That directly affects comparison, search, data storage, filename handling, input validation, and localization.
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt **code unit UTF-16**, **Unicode code point**, **combining mark** và **grapheme cluster** (cụm ký tự người dùng thường cảm nhận là một chữ).
-- Mô tả vì sao `ắ` có thể là `U+1EAF` hoặc dãy `U+0061 U+0306 U+0301`, và vì sao hai cách này được coi là **tương đương chuẩn tắc (canonical equivalent)**.
-- Sử dụng `java.text.Normalizer` với `NFC` và `NFD` để chuẩn hóa trước khi so sánh hoặc xử lý theo hợp đồng dữ liệu.
-- Phân biệt `NFC/NFD` với `NFKC/NFKD` và hiểu tại sao chuẩn hóa tương thích có thể làm thay đổi những khác biệt mang ý nghĩa.
-- Nhận diện những lỗi đặc thù tiếng Việt: đảo thứ tự dấu, xóa dấu để so sánh, coi `đ` và `d` là tương đương Unicode, cắt chuỗi theo `char`, hoặc dùng cách chuẩn hóa không nhất quán giữa các hệ thống.
-- Viết ví dụ Java 17+ có thể chạy và lập bộ kiểm thử nhằm giữ đúng ý nghĩa chữ tiếng Việt.
+- Distinguish **UTF-16 code unit**, **Unicode code point**, **combining mark**, and **grapheme cluster** (a cluster of characters users typically perceive as one letter).
+- Describe why `ắ` can be `U+1EAF` or the sequence `U+0061 U+0306 U+0301`, and why these two forms are considered **canonically equivalent**.
+- Use `java.text.Normalizer` with `NFC` and `NFD` to normalize before comparing or processing according to a data contract.
+- Distinguish `NFC/NFD` from `NFKC/NFKD` and understand why compatibility normalization can alter meaningful distinctions.
+- Recognize Vietnamese-specific pitfalls: reversed mark order, stripping accents for comparison, treating `đ` and `d` as Unicode-equivalent, slicing strings by `char`, or inconsistent normalization across systems.
+- Write runnable Java 17+ examples and design test suites that preserve the meaning of Vietnamese letters.
 
-**Trọng tâm:** biểu diễn Unicode và dấu kết hợp. Bài không nhằm dạy tất cả quy tắc chính tả tiếng Việt hay toàn bộ thuật toán xử lý ngôn ngữ tự nhiên.
+**Focus:** Unicode representation and combining marks. This lesson does not aim to teach all Vietnamese orthography rules or full natural language processing algorithms.
 
-## 1. Một chữ nhìn thấy không phải lúc nào cũng là một code point
+## 1. One Visible Letter Is Not Always One Code Point
 
-Unicode gán số định danh gọi là **code point** cho nhiều ký tự và dấu. Mã được viết dưới dạng `U+XXXX`; ví dụ:
+Unicode assigns numeric identifiers called **code points** to many characters and marks. Codes are written as `U+XXXX`; for example:
 
 - `a`: `U+0061` (LATIN SMALL LETTER A).
 - `á`: `U+00E1` (LATIN SMALL LETTER A WITH ACUTE).
@@ -27,98 +27,98 @@ Unicode gán số định danh gọi là **code point** cho nhiều ký tự và
 - `◌̆`: `U+0306` (COMBINING BREVE).
 - `◌́`: `U+0301` (COMBINING ACUTE ACCENT).
 
-Dấu tròn chấm `◌` trong cách minh họa dấu kết hợp chỉ giúp nhìn thấy vị trí đặt dấu; nó **không phải** một thành phần bắt buộc của chuỗi văn bản đã lưu.
+The dotted circle `◌` in combining mark illustrations only helps show where the mark attaches; it is **not** a required part of the stored text string.
 
-Chữ `ắ` có ít nhất hai cách biểu diễn quan trọng:
+The letter `ắ` has at least two important representations:
 
 ```text
-Cách A — dạng ghép sẵn:
+Approach A — precomposed form:
 U+1EAF
   ắ
 
-Cách B — dạng phân rã:
+Approach B — decomposed form:
 U+0061 U+0306 U+0301
   a       ◌̆       ◌́
-       (khi render cùng nhau: ắ)
+       (when rendered together: ắ)
 ```
 
-Cách A có **một code point**; cách B có **ba code point**, nhưng hai chuỗi có thể render thành hình ảnh chữ giống nhau. Theo quy tắc Unicode, dạng ghép sẵn trên và dạng phân rã đúng thứ tự là **canonically equivalent**: chúng biểu diễn cùng một chuỗi ký tự theo quan hệ tương đương chuẩn tắc.
+Approach A has **one code point**; Approach B has **three code points**, yet both strings can render to an identical character image. By Unicode rules, the precomposed form above and the properly ordered decomposed form are **canonically equivalent**: they represent the same character sequence under canonical equivalence.
 
-Điểm cần nắm:
+Key takeaway:
 
-> **Nhìn giống nhau không đủ để suy ra byte giống nhau, code point giống nhau hoặc `String.equals(...)` trả `true`.**
+> **Looking identical is not enough to infer identical bytes, identical code points, or that `String.equals(...)` returns `true`.**
 
-Đây không phải lỗi font hay lỗi riêng tiếng Việt; là đặc tính có chủ đích của Unicode để hỗ trợ nhiều cách biểu diễn văn bản, tương thích với dữ liệu được tạo từ các hệ thống và quy trình nhập liệu khác nhau.
+This is not a font bug or a quirk unique to Vietnamese; it is an intentional feature of Unicode to support multiple text representations, maintaining compatibility with data produced across diverse systems and input methods.
 
-## 2. Thuật ngữ: code unit, code point, combining mark, grapheme cluster
+## 2. Terminology: Code Unit, Code Point, Combining Mark, Grapheme Cluster
 
-Trong Java, `String` lưu văn bản bằng các **UTF-16 code unit**. Nhiều code point trong vùng BMP, trong đó có các chữ tiếng Việt nêu trên và dấu kết hợp `U+0301`, được biểu diễn bằng một code unit. Các code point ngoài BMP thường cần **hai code unit (surrogate pair)**.
+In Java, `String` stores text as **UTF-16 code units**. Many code points in the BMP, including the Vietnamese letters mentioned above and the combining mark `U+0301`, are represented by one code unit. Code points outside the BMP typically require **two code units (a surrogate pair)**.
 
-| Khái niệm | Đơn vị được đếm | API Java minh họa |
+| Concept | Unit counted | Illustrative Java API |
 | --- | --- | --- |
-| **UTF-16 code unit** | Đơn vị `char` 16-bit | `String.length()`, `charAt(i)` |
-| **Unicode code point** | Giá trị vô hướng Unicode (trừ surrogate riêng lẻ) | `codePointCount(...)`, `codePoints()` |
-| **Combining mark** | Code point có vai trò dấu/ký hiệu kết hợp | Có thể xem phân loại Unicode bằng `Character.getType(cp)` |
-| **Grapheme cluster** | Nhóm code point thường được người dùng cảm nhận như một ký tự | Regex `\X` trong Java 17+ có hỗ trợ extended grapheme cluster |
+| **UTF-16 code unit** | 16-bit `char` unit | `String.length()`, `charAt(i)` |
+| **Unicode code point** | Unicode scalar value (excluding lone surrogates) | `codePointCount(...)`, `codePoints()` |
+| **Combining mark** | Code point acting as a combining accent/symbol | Unicode category inspectable via `Character.getType(cp)` |
+| **Grapheme cluster** | Group of code points typically perceived by users as one character | Regex `\X` in Java 17+ supports extended grapheme clusters |
 
-Chẳng hạn dạng phân rã `a + ◌̆ + ◌́` có:
+For instance, the decomposed form `a + ◌̆ + ◌́` has:
 
-- `String.length() == 3` (ba UTF-16 code unit).
-- `codePointCount(...) == 3` (ba code point).
-- Một grapheme cluster trong cách phân đoạn Unicode tương ứng.
+- `String.length() == 3` (three UTF-16 code units).
+- `codePointCount(...) == 3` (three code points).
+- One grapheme cluster under the corresponding Unicode segmentation rules.
 
-Còn dạng ghép sẵn `ắ` có `length() == 1` và một code point, vẫn thường là **một grapheme cluster**.
+Meanwhile, the precomposed form `ắ` has `length() == 1` and one code point, and is still typically **one grapheme cluster**.
 
-Không nên diễn đạt `String.length()` là “số chữ người dùng nhìn thấy”. Với một số ngôn ngữ hoặc emoji, sự khác biệt còn rõ hơn vì một cụm có thể chứa nhiều code point, đôi khi cả surrogate pair.
+Do not describe `String.length()` as "the number of visible letters". For some languages or emojis, the difference is even more pronounced because a cluster can contain many code points, sometimes including surrogate pairs.
 
-### Vì sao vấn đề này quan trọng khi cắt và giới hạn đầu vào?
+### Why Does This Matter When Slicing and Limiting Input?
 
-Một biểu mẫu giới hạn 20 “ký tự hiển thị” khác với việc giới hạn 20 UTF-16 code unit. Nếu người dùng nhập tiếng Việt dạng NFD, cách đếm theo `length()` có thể ghi nhận nhiều đơn vị hơn dù số chữ họ nhìn thấy không thay đổi.
+A form limiting to 20 "visible characters" is different from limiting to 20 UTF-16 code units. If a user enters Vietnamese in NFD form, counting with `length()` can register more units even though the number of letters they see has not changed.
 
-Ngược lại, nếu hệ thống có giới hạn **byte** khi ghi vào giao thức hoặc database, số byte UTF-8 lại là một phép đếm khác. Nên tách rõ ba nhu cầu:
+Conversely, if a system has a **byte** limit when writing to a protocol or database, the UTF-8 byte count is yet another measurement. You should separate three needs:
 
-1. **Giới hạn bộ nhớ/giao thức:** có thể dựa vào số byte hoặc UTF-16 code unit theo schema.
-2. **Giới hạn code point:** có thể dựa vào `String.codePointCount(...)`.
-3. **Giới hạn chữ người dùng nhìn thấy:** có thể dựa vào grapheme cluster với công cụ phân đoạn phù hợp.
+1. **Memory/protocol limit:** can be based on byte count or UTF-16 code units per schema.
+2. **Code point limit:** can be based on `String.codePointCount(...)`.
+3. **User-perceived letter limit:** can be based on grapheme clusters using an appropriate segmentation tool.
 
-Không thể dùng một con số `length()` rồi tuyên bố nó đồng thời đáp ứng cả ba yêu cầu.
+You cannot take a single `length()` number and claim it simultaneously satisfies all three requirements.
 
-## 3. Ký tự ghép sẵn và chuỗi dấu kết hợp trong tiếng Việt
+## 3. Precomposed Characters and Combining Mark Sequences in Vietnamese
 
-Nhiều chữ tiếng Việt đã có code point ghép sẵn:
+Many Vietnamese letters already have precomposed code points:
 
-| Chữ hiển thị | Dạng ghép sẵn | Một dạng phân rã chuẩn tắc |
+| Visible letter | Precomposed form | A canonically decomposed form |
 | --- | --- | --- |
 | `á` | `U+00E1` | `U+0061 U+0301` |
 | `ắ` | `U+1EAF` | `U+0061 U+0306 U+0301` |
 | `ế` | `U+1EBF` | `U+0065 U+0302 U+0301` |
 | `Á` | `U+00C1` | `U+0041 U+0301` |
 
-Các thành phần của chữ `ắ`:
+Components of the letter `ắ`:
 
-- `U+0061`: chữ cơ sở `a`.
-- `U+0306`: dấu mũ ngắn/breve, góp phần tạo chữ `ă`.
-- `U+0301`: dấu sắc/acute, biểu diễn thanh sắc.
+- `U+0061`: base letter `a`.
+- `U+0306`: breve mark, contributing to forming the letter `ă`.
+- `U+0301`: acute accent, representing the *sắc* tone.
 
-Với `ế`, chữ cơ sở `e` được kết hợp với dấu mũ (`U+0302`) và dấu sắc (`U+0301`).
+For `ế`, the base letter `e` is combined with a circumflex (`U+0302`) and an acute accent (`U+0301`).
 
-Một số hệ thống lưu chuỗi đã ghép sẵn; một số luồng xử lý có thể tạo chuỗi gồm các dấu kết hợp. Dù người dùng nhập cùng từ, dữ liệu đến từ bàn phím, trình chỉnh sửa, tệp, trình duyệt hay dịch vụ bên ngoài có thể mang dãy code point khác nhau.
+Some systems store precomposed strings; some pipelines can produce strings containing combining marks. Even when a user types the exact same word, data arriving from keyboards, editors, files, browsers, or external services may carry different code point sequences.
 
-**Không nên dự đoán dạng chuẩn hóa chỉ từ hệ điều hành hay bộ gõ.** Hãy kiểm tra và chuẩn hóa một cách có chủ đích khi nghiệp vụ yêu cầu.
+**Do not predict the normalization form solely from the operating system or input method.** Check and normalize intentionally when business logic requires it.
 
-### Tiếng Việt không chỉ có “dấu thanh”
+### Vietnamese Has More Than Just "Tone Marks"
 
-Tiếng Việt kết hợp các đặc điểm khác nhau:
+Vietnamese combines different kinds of features:
 
-- **Dấu thanh:** sắc, huyền, hỏi, ngã, nặng.
-- **Dấu tạo chữ cái:** mũ trong `â`/`ê`/`ô`; breve trong `ă`; horn trong `ơ`/`ư`.
-- **Chữ cái riêng:** `đ`/`Đ`.
+- **Tone marks:** *sắc* (acute), *huyền* (grave), *hỏi* (hook above), *ngã* (tilde), *nặng* (dot below).
+- **Letter-forming diacritics:** circumflex in `â`/`ê`/`ô`; breve in `ă`; horn in `ơ`/`ư`.
+- **Distinct letter:** `đ`/`Đ`.
 
-Nếu xử lý tất cả những dấu này đơn giản bằng cách “xóa mọi code point thuộc nhóm mark” thì hệ thống có thể làm mất cả khác biệt về chữ cái lẫn dấu thanh, ảnh hưởng trực tiếp đến ý nghĩa tiếng Việt.
+If you process all these marks simply by "removing every code point in the mark category", the system can wipe out both letter distinctions and tone marks, directly altering Vietnamese meaning.
 
-## 4. Tương đương chuẩn tắc không đồng nghĩa chuỗi Java bằng nhau
+## 4. Canonical Equivalence Does Not Mean Java Strings Are Equal
 
-`String.equals` so sánh nội dung theo các code unit. Nó không tự chuẩn hóa Unicode trước khi so sánh:
+`String.equals` compares content by code units. It does not automatically normalize Unicode before comparing:
 
 ```java
 String precomposed = "\u1EAF";
@@ -127,20 +127,20 @@ String decomposed = "a\u0306\u0301";
 System.out.println(precomposed.equals(decomposed));
 ```
 
-Đây là đoạn mã minh họa trong một phương thức. Stdout:
+This is an illustrative snippet inside a method. Stdout:
 
 ```text
 false
 ```
 
-Hai literal trên khi chạy biểu diễn cùng chữ `ắ` về mặt chuẩn tắc nhưng có dãy mã khác:
+The two literals above at runtime represent the same letter `ắ` canonically, yet have different code sequences:
 
 ```text
 precomposed: U+1EAF
 decomposed:  U+0061 U+0306 U+0301
 ```
 
-Nếu dùng trực tiếp làm key:
+If used directly as map keys:
 
 ```java
 Map<String, Integer> counts = new HashMap<>();
@@ -148,31 +148,31 @@ counts.put(precomposed, 1);
 System.out.println(counts.containsKey(decomposed));
 ```
 
-Trong phương thức có `import java.util.Map;` và `import java.util.HashMap;`, kết quả là `false`. Lý do: `HashMap` dùng `String.equals/hashCode` theo dãy code unit; không tự coi hai biểu diễn Unicode chuẩn tắc là cùng khóa.
+Inside a method with `import java.util.Map;` and `import java.util.HashMap;`, the result is `false`. The reason: `HashMap` uses `String.equals/hashCode` on the code unit sequence; it does not automatically treat two canonically equivalent Unicode representations as the same key.
 
-Điều này có thể gây:
+This can cause:
 
-- Hai tài khoản/nhãn/định danh “nhìn giống nhau” nhưng tạo hai key khác nhau.
-- Tra cứu theo tên thất bại dù chữ hiển thị trùng.
-- Tập kết quả có bản ghi trùng về mặt hiển thị.
-- So sánh nội dung giữa hệ thống trả khác nhau khi một phía chuẩn hóa, phía còn lại giữ nguyên chuỗi.
+- Two "visually identical" accounts/labels/identifiers creating two distinct keys.
+- Name lookups failing even though the displayed text matches.
+- Result sets containing visually duplicate records.
+- Content comparisons across systems returning different results when one side normalizes and the other leaves the string untouched.
 
-Giải pháp không phải mặc định dùng `equalsIgnoreCase`: đổi hoa/thường là một vấn đề khác với chuẩn hóa dấu kết hợp.
+The solution is not defaulting to `equalsIgnoreCase`: case folding is a separate issue from normalizing combining marks.
 
-## 5. NFC và NFD: hai dạng chuẩn hóa chuẩn tắc
+## 5. NFC and NFD: Two Canonical Normalization Forms
 
-`java.text.Normalizer` cung cấp các dạng chuẩn hóa Unicode:
+`java.text.Normalizer` provides Unicode normalization forms:
 
-| Dạng | Ý nghĩa tổng quát | Hệ quả chính |
+| Form | General meaning | Main effect |
 | --- | --- | --- |
-| `Normalizer.Form.NFD` | Canonical Decomposition | Tách những tổ hợp ghép sẵn thành dãy code point phân rã chuẩn tắc, đồng thời sắp dấu theo quy tắc chuẩn tắc khi áp dụng |
-| `Normalizer.Form.NFC` | Canonical Decomposition + Composition | Phân rã chuẩn tắc rồi kết hợp lại nơi được Unicode cho phép, tạo biểu diễn ghép sẵn phù hợp |
-| `Normalizer.Form.NFKD` | Compatibility Decomposition | Phân rã cả các dạng tương thích, có thể làm mất khác biệt về kiểu trình bày/ký hiệu |
-| `Normalizer.Form.NFKC` | Compatibility Decomposition + Composition | Chuẩn hóa tương thích rồi ghép, mạnh hơn NFC và không giữ mọi phân biệt ban đầu |
+| `Normalizer.Form.NFD` | Canonical Decomposition | Splits precomposed combinations into canonically decomposed code point sequences, and orders marks canonically where applicable |
+| `Normalizer.Form.NFC` | Canonical Decomposition + Composition | Performs canonical decomposition then recomposes where Unicode allows, yielding appropriate precomposed representations |
+| `Normalizer.Form.NFKD` | Compatibility Decomposition | Also decomposes compatibility forms, which can lose formatting/symbol distinctions |
+| `Normalizer.Form.NFKC` | Compatibility Decomposition + Composition | Performs compatibility decomposition then recomposes, stronger than NFC and does not preserve all original distinctions |
 
-Với bài toán **coi các biểu diễn Unicode tương đương chuẩn tắc là cùng chuỗi**, `NFC` hoặc `NFD` là hai lựa chọn nền tảng. Trong nhiều trường hợp lưu trữ và trao đổi văn bản thông thường, `NFC` được chọn vì có thể sử dụng code point ghép sẵn khi thích hợp. Nhưng hợp đồng của hệ thống phải thống nhất lựa chọn này.
+For problems that **treat canonically equivalent Unicode representations as the same string**, `NFC` or `NFD` are the two foundational choices. In many general text storage and exchange scenarios, `NFC` is chosen because it uses precomposed code points when appropriate. However, the system's contract must be consistent with this choice.
 
-Ví dụ:
+Example:
 
 ```java
 import java.text.Normalizer;
@@ -194,19 +194,19 @@ Stdout:
 true
 ```
 
-Một hệ thống có thể chọn NFD thay vì NFC nếu pipeline xử lý ký tự yêu cầu phân tách dấu, nhưng phải nhất quán ở mọi điểm tạo và so sánh dữ liệu. **Đừng chỉ chuẩn hóa một phía** rồi so với phía còn nguyên, cũng đừng trộn NFC và NFD tùy từng module.
+A system can choose NFD instead of NFC if its character-processing pipeline requires separated marks, yet it must be consistent at every data creation and comparison point. **Do not normalize only one side** and compare against an unnormalized side, and do not mix NFC and NFD arbitrarily across modules.
 
-### Normalizer.isNormalized
+### `Normalizer.isNormalized`
 
-`Normalizer.isNormalized(text, Normalizer.Form.NFC)` giúp kiểm tra một chuỗi **đã ở NFC** hay chưa mà không phải tự diễn giải các mã Unicode. Nhưng kết quả “đã NFC” chỉ cho biết dạng biểu diễn phù hợp, **không chứng minh văn bản đúng chính tả, an toàn, hoặc đáp ứng quy tắc nghiệp vụ**.
+`Normalizer.isNormalized(text, Normalizer.Form.NFC)` checks whether a string **is already in NFC** without having to interpret Unicode codes manually. However, an "is NFC" result only confirms the representation form; **it does not prove the text is spelled properly, safe, or compliant with business rules**.
 
-Ví dụ, `"ma"` và `"má"` đều có thể ở NFC nhưng vẫn là hai chuỗi khác nghĩa.
+For example, `"ma"` and `"má"` can both be in NFC while still being two strings with different meanings.
 
-## 6. Ví dụ Java 17+ hoàn chỉnh: so sánh, mã Unicode và grapheme cluster
+## 6. Complete Java 17+ Example: Comparison, Unicode Codes, and Grapheme Clusters
 
-Ví dụ sau tạo các chuỗi bằng Unicode escape trong Java source. Điều này giúp việc biên dịch không phụ thuộc terminal có hiển thị dấu tiếng Việt đúng hay không.
+The following example constructs strings using Unicode escapes in Java source. This prevents compilation from depending on whether the terminal displays Vietnamese accents properly.
 
-Tạo tệp `VietnameseNormalizationDemo.java`:
+Create the file `VietnameseNormalizationDemo.java`:
 
 ```java
 import java.text.Normalizer;
@@ -274,14 +274,14 @@ public class VietnameseNormalizationDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 VietnameseNormalizationDemo.java
 java VietnameseNormalizationDemo
 ```
 
-Stdout xác định với chương trình:
+Deterministic stdout for the program:
 
 ```text
 raw equals: false
@@ -297,39 +297,39 @@ d-stroke equals d after NFD: false
 NFKC circled one: 1
 ```
 
-**Giải thích các dòng quan trọng:**
+**Explanation of key lines:**
 
-1. `equals` trực tiếp trả `false` vì dãy UTF-16 code unit khác nhau.
-2. `length` và `codePointCount` trả 1/3 trong ví dụ này: tất cả code point liên quan đều nằm trong BMP nên mỗi code point dùng một UTF-16 code unit.
-3. Hai dòng `points` cho thấy rõ `U+1EAF` so với `U+0061 U+0306 U+0301`.
-4. Sau NFC hoặc NFD đúng chuẩn, các chuỗi tương đương chuẩn tắc được đưa về cùng biểu diễn, nên kết quả `true`.
-5. Regex `\X` nhận chuỗi phân rã trên như **một extended grapheme cluster**, dù nó chứa ba code point.
-6. Đảo dấu thành `a + acute + breve` **không** được Unicode tự đồng nhất với chuỗi chuẩn tắc `a + breve + acute` trong phép thử này.
-7. `đ` không tự biến thành `d` qua NFD: hai chữ có khác biệt thực và không thuộc cặp tương đương chuẩn tắc đó.
-8. `NFKC` biến ký tự `①` thành chữ số `1` vì chúng có quan hệ tương thích, cho thấy NFKC có thể gộp một số biểu diễn vốn không tương đương chuẩn tắc.
+1. Direct `equals` returns `false` because the UTF-16 code unit sequences differ.
+2. `length` and `codePointCount` return 1/3 in this example: all code points involved are inside the BMP, so each code point uses one UTF-16 code unit.
+3. The two `points` lines clearly show `U+1EAF` versus `U+0061 U+0306 U+0301`.
+4. After proper NFC or NFD, canonically equivalent strings are brought to the same representation, so the result is `true`.
+5. Regex `\X` recognizes the decomposed string above as **one extended grapheme cluster**, even though it contains three code points.
+6. Reversing the marks to `a + acute + breve` is **not** automatically equated by Unicode with the canonical sequence `a + breve + acute` in this test.
+7. `đ` does not turn into `d` via NFD: the two letters have a real distinction and do not form such a canonical equivalence pair.
+8. `NFKC` turns `①` into the digit `1` because they have a compatibility relationship, showing that NFKC can merge representations that are not canonically equivalent.
 
-Khi áp dụng cho dữ liệu thật, đừng chỉ quan sát glyph đầu ra trên console; một số terminal hoặc font render dấu kết hợp khác nhau dù dãy code point là như nhau. Việc in code point giúp chẩn đoán một cách đáng tin hơn.
+When applying this to real data, do not rely solely on viewing output glyphs on a console; some terminals or fonts render combining marks differently even when the code point sequence is identical. Printing code points provides far more reliable diagnostics.
 
-## 7. Thứ tự dấu kết hợp và canonical ordering
+## 7. Combining Mark Order and Canonical Ordering
 
-Unicode không xem **mọi hoán vị dấu kết hợp** là tương đương. Trong những trường hợp thích hợp, normalization có thể sắp lại các mark dựa trên *Canonical Combining Class* (CCC); nhưng thứ tự của các mark có cùng lớp kết hợp có thể vẫn mang ý nghĩa và không bị đảo tùy ý.
+Unicode does not treat **every permutation of combining marks** as equivalent. Where appropriate, normalization can reorder marks based on *Canonical Combining Class* (CCC); however, the order of marks sharing the same combining class can still be significant and is not arbitrarily reordered.
 
-Với ví dụ đã kiểm thử:
+In the tested example:
 
 ```text
 a + U+0306 + U+0301  -> NFC: U+1EAF (ắ)
-a + U+0301 + U+0306  -> không có cùng NFC với U+1EAF
+a + U+0301 + U+0306  -> does not produce the same NFC as U+1EAF
 ```
 
-Không viết thuật toán “chuẩn hóa tiếng Việt” bằng cách tự ý sort tất cả dấu theo tên, theo code point hoặc theo nhóm “dấu thanh trước, dấu chữ sau”. Quy tắc canonical ordering của Unicode phức tạp hơn một phép sort bất kỳ, và thứ tự mark có thể ảnh hưởng việc ghép ký tự.
+Do not write a "Vietnamese normalization" algorithm by arbitrarily sorting all marks by name, by code point, or by "tone mark first, letter diacritic second". Unicode's canonical ordering rules are more complex than an arbitrary sort, and mark order can affect character composition.
 
-Cũng không nên xem một chuỗi sau NFC là **chính tả tiếng Việt hợp lệ**. Unicode normalization xử lý tính tương đương của biểu diễn; nó không kiểm tra đặt dấu thanh đúng âm tiết hoặc chữ có hợp lệ theo quy tắc ngôn ngữ hay không.
+Likewise, do not treat a string after NFC as **valid Vietnamese spelling**. Unicode normalization handles representation equivalence; it does not check whether tone marks are placed on the right syllable or whether a word is linguistically valid.
 
-Nếu cần sửa lỗi bộ gõ hoặc sắp dấu theo chính tả tiếng Việt, đó là một tính năng ngôn ngữ riêng, phải có quy tắc và test chuyên biệt, không thể thay bằng mỗi `Normalizer.normalize(..., NFC)`.
+If you need to fix IME errors or position tone marks per Vietnamese orthography, that is a separate linguistic feature requiring dedicated rules and tests, not something replaceable by `Normalizer.normalize(..., NFC)` alone.
 
-## 8. Phân biệt chuẩn hóa Unicode với bỏ dấu tiếng Việt
+## 8. Distinguishing Unicode Normalization from Vietnamese Accent Stripping
 
-Ví dụ:
+Examples:
 
 ```text
 ma
@@ -340,9 +340,9 @@ mã
 mạ
 ```
 
-Các từ/cách viết trên **không phải chỉ là những biểu diễn Unicode khác nhau của cùng một chuỗi**. Dấu thanh tạo khác biệt ngôn ngữ. NFC không và không nên biến chúng thành cùng một giá trị.
+These words/spellings **are not merely different Unicode representations of the same string**. Tone marks create linguistic distinctions. NFC does not—and must not—turn them into the same value.
 
-Một cách “bỏ dấu” thường được thấy:
+A commonly seen "accent-stripping" snippet:
 
 ```java
 String noMarks = Normalizer.normalize(
@@ -350,26 +350,26 @@ String noMarks = Normalizer.normalize(
         .replaceAll("\\p{M}+", "");
 ```
 
-Đây là đoạn mã minh họa trong một phương thức có biến `text`. `\p{M}` trong biểu thức chính quy Java đại diện nhóm ký tự Unicode loại Mark. Cách này **cố ý xóa thông tin**, không phải canonical normalization giữ nguyên ý nghĩa. Nó có thể gộp `"ma"`, `"má"`, `"mà"`, `"mã"`… thành cùng chuỗi `"ma"`.
+This is an illustrative snippet inside a method with variable `text`. `\p{M}` in Java regular expressions represents the Unicode Mark character category. This approach **intentionally deletes information**; it is not canonical normalization that preserves meaning. It can collapse `"ma"`, `"má"`, `"mà"`, `"mã"`… into the same string `"ma"`.
 
-Đặc biệt, `đ` không có phân rã chuẩn tắc thành `d` + dấu, nên phép xóa `\p{M}` sau NFD **không tự chuyển `đ` thành `d`**. Một số pipeline “bỏ dấu tiếng Việt” riêng còn tự map `đ → d`, nhưng đó là chính sách tìm kiếm/xử lý văn bản bổ sung, không phải Unicode normalization chuẩn tắc.
+In particular, `đ` has no canonical decomposition into `d` + mark, so stripping `\p{M}` after NFD **does not automatically convert `đ` to `d`**. Some custom "Vietnamese accent-stripping" pipelines also map `đ → d`, yet that is an additional search/text-processing policy, not canonical Unicode normalization.
 
-### Khi nào bỏ dấu là hợp lý?
+### When Is Accent Stripping Reasonable?
 
-Một chức năng gợi ý tìm kiếm có thể muốn người dùng nhập `"ca phe"` vẫn tìm được `"cà phê"`. Khi đó có thể tạo **search key phụ** mang tính xấp xỉ, sử dụng quy tắc bỏ dấu do sản phẩm xác định.
+A search-suggestion feature might want a user typing `"ca phe"` to still find `"cà phê"`. In that case, you can build an approximate **secondary search key** using product-defined accent-stripping rules.
 
-Tuy nhiên, không nên dùng search key đã bỏ dấu để:
+However, you should not use the accent-stripped search key to:
 
-- Ghi đè tên gốc của người dùng.
-- Kiểm tra danh tính hay tính duy nhất tuyệt đối mà không có chính sách rõ.
-- Thay thế giá trị pháp lý/cá nhân cần giữ chính xác.
-- Quyết định hai chuỗi chắc chắn có cùng nghĩa.
+- Overwrite the user's original name.
+- Check identity or absolute uniqueness without a clear policy.
+- Replace legal/personal values that must be preserved accurately.
+- Decide that two strings definitely have the same meaning.
 
-Một kiến trúc phù hợp là **giữ văn bản gốc** và tạo thêm trường chuẩn hóa phục vụ tìm kiếm khi cần, kèm kiểm tra trùng/nhầm. Khi hiển thị cho người dùng, luôn sử dụng giá trị gốc hoặc giá trị Unicode đã được chuẩn hóa theo hợp đồng lưu trữ, không dùng văn bản đã bị xóa dấu.
+A solid architecture **keeps the original text** and adds a normalized field for search when needed, along with duplicate/confusion checks. When displaying to users, always use the original value or the Unicode-normalized value per the storage contract, never text with marks stripped.
 
-## 9. NFC khác NFKC: không chuẩn hóa tương thích một cách vô thức
+## 9. NFC Differs from NFKC: Do Not Apply Compatibility Normalization Unthinkingly
 
-Hai chuỗi có thể *compatibility equivalent* mà không *canonically equivalent*. Ví dụ ký tự `①` (CIRCLED DIGIT ONE) và chữ số `1`:
+Two strings can be *compatibility equivalent* without being *canonically equivalent*. For example, the character `①` (CIRCLED DIGIT ONE) and the digit `1`:
 
 ```java
 String circledOne = "\u2460";
@@ -379,42 +379,42 @@ String nfkc = Normalizer.normalize(
         circledOne, Normalizer.Form.NFKC);
 ```
 
-Trong phương thức có import `Normalizer`:
+Inside a method importing `Normalizer`:
 
-- `nfc` vẫn biểu diễn ký hiệu số có vòng tròn `①`.
-- `nfkc` trở thành ký tự chữ số `1`.
+- `nfc` still represents the circled digit symbol `①`.
+- `nfkc` becomes the digit character `1`.
 
-NFKC/NFKD có thể làm thay đổi những khác biệt trình bày hoặc cấu trúc vốn có ý nghĩa đối với một miền dữ liệu. Do đó:
+NFKC/NFKD can alter presentation or structural distinctions that carry meaning in a given domain. Therefore:
 
-- **Tên hiển thị và văn bản tiếng Việt nguyên bản:** thường cân nhắc NFC để thống nhất các biểu diễn chuẩn tắc, không tự động dùng NFKC.
-- **Mã định danh có quy tắc chuẩn hóa riêng:** chỉ dùng compatibility normalization nếu schema, yêu cầu bảo mật và tính tương thích đã quy định.
-- **Tìm kiếm có khả năng tương thích rộng:** có thể cần bước chuyển đổi riêng cho index tìm kiếm, nhưng phải chấp nhận nguy cơ gộp những chuỗi khác nhau.
+- **Display names and original Vietnamese text:** typically consider NFC to unify canonical representations, rather than automatically using NFKC.
+- **Identifiers with custom normalization rules:** use compatibility normalization only if the schema, security requirements, and compatibility rules specify it.
+- **Broad compatibility search:** may require a separate transformation step for search indices, accepting the risk of merging distinct strings.
 
-NFKC không phải “phiên bản NFC tốt hơn”. Nó giải quyết bài toán khác; trong một số bối cảnh bảo mật, NFKC còn có vai trò trong những profile đặc biệt, nhưng không tự loại bỏ mọi ký tự gây nhầm hình dạng.
+NFKC is not a "better version of NFC". It solves a different problem; in certain security contexts, NFKC plays a role in specialized profiles, yet it does not automatically eliminate all visually confusable characters.
 
-## 10. Dữ liệu đầu vào, lưu trữ và so sánh ở ranh giới hệ thống
+## 10. Input, Storage, and Comparison at System Boundaries
 
-Một lỗi thực tế dễ gặp:
+A common real-world bug:
 
 ```text
-Service A lưu:  "ắ"                -> U+1EAF
-Service B gửi: "a\u0306\u0301"      -> U+0061 U+0306 U+0301
+Service A stores: "ắ"                -> U+1EAF
+Service B sends:  "a\u0306\u0301"      -> U+0061 U+0306 U+0301
 
-Màn hình: trông giống nhau
+Screen: looks identical
 String.equals: false
-Lookup HashMap/cache: có thể không tìm thấy
+HashMap/cache lookup: may miss
 ```
 
-Nếu nghiệp vụ xem hai cách biểu diễn chuẩn tắc là tương đương, cần một **chính sách normalization nhất quán**. Một cách đơn giản:
+If business logic treats two canonical representations as equivalent, you need a **consistent normalization policy**. A simple approach:
 
-1. Nhận Unicode hợp lệ từ nguồn đầu vào (form, tệp, API).
-2. Kiểm tra yêu cầu về độ dài/nhóm ký tự và các chính sách nghiệp vụ khác.
-3. Chuẩn hóa `NFC` tại ranh giới được xác định, **trước khi lập key so sánh/lưu trữ nếu đó là hợp đồng đã chọn**.
-4. Dùng cùng dạng chuẩn hóa để tạo query, cache key, index và unique constraint thuộc logic ứng dụng.
-5. Giữ lại bản gốc riêng nếu cần kiểm toán hoặc tái tạo đúng văn bản người dùng đã nhập.
-6. Khi thay đổi chính sách normalization cho hệ thống đang vận hành, lên kế hoạch migration, giải quyết các giá trị trùng sau chuẩn hóa và đồng bộ nhiều dịch vụ.
+1. Accept valid Unicode from input sources (forms, files, APIs).
+2. Validate length/character-group requirements and other business rules.
+3. Normalize to `NFC` at a defined boundary, **before building comparison/storage keys if that is the chosen contract**.
+4. Use the same normalized form to construct queries, cache keys, indices, and application-level unique constraints.
+5. Retain the original version separately if needed for auditing or reproducing the exact user-entered text.
+6. When changing normalization policy on a running system, plan migrations, resolve post-normalization collisions, and synchronize across services.
 
-Hàm chuẩn hóa minh họa:
+Illustrative normalization helper:
 
 ```java
 import java.text.Normalizer;
@@ -430,25 +430,25 @@ public final class UnicodeKeys {
 }
 ```
 
-Lớp này có thể biên dịch thành `UnicodeKeys.java`, nhưng không có `main` để chạy độc lập. Nó chỉ xử lý tương đương chuẩn tắc. Nếu yêu cầu còn so sánh không phân biệt hoa/thường, xử lý khoảng trắng, loại ký tự cấm hay unicode confusables thì phải xây dựng **chính sách riêng** thay vì lặng lẽ nhét vào normalization.
+This class compiles as `UnicodeKeys.java`, though it has no `main` to run standalone. It handles only canonical equivalence. If requirements also include case-insensitive comparison, whitespace handling, forbidden characters, or Unicode confusables, build **separate policies** rather than quietly stuffing them into normalization.
 
-### Cơ sở dữ liệu và unique constraint
+### Databases and Unique Constraints
 
-Một database có thể dùng collation khác nhau: có nơi coi các dạng tương đương là cùng chuỗi, nơi khác có thể phân biệt hoặc có quy tắc chuẩn hóa riêng. **Không giả định** database, Java `HashMap` và dịch vụ tìm kiếm dùng cùng so sánh văn bản.
+A database may use different collations: some treat equivalent forms as the same string, while others may distinguish them or apply their own normalization rules. **Do not assume** the database, Java `HashMap`, and search service use identical text comparison.
 
-Nếu hệ thống cần tính duy nhất theo “cùng chuỗi sau NFC”, nên xác định cách tạo khóa chuẩn hóa, thiết lập index/constraint thích hợp và kiểm tra sự nhất quán ở mọi đường ghi. Khi bổ sung normalization vào dữ liệu cũ, hai bản ghi đã tồn tại có thể cùng khóa sau khi chuẩn hóa; cần chính sách xử lý collision, không xóa dữ liệu tự động.
+If a system requires uniqueness based on "same string after NFC", define how normalized keys are generated, set up appropriate indices/constraints, and verify consistency across all write paths. When adding normalization to legacy data, two existing records may collide onto the same key after normalization; have a collision-handling policy rather than silently deleting data.
 
-### API và byte serialization
+### APIs and Byte Serialization
 
-JSON, UTF-8 và các giao thức Unicode có thể truyền được cả dạng NFC lẫn NFD. Việc hai chuỗi có cùng biểu hiện trực quan **không buộc byte UTF-8 của chúng giống nhau**. Nếu hệ thống tính chữ ký số, hash, ETag hoặc dùng chuỗi làm khóa cache, khác biệt byte có thể khiến kết quả khác.
+JSON, UTF-8, and Unicode protocols can carry both NFC and NFD forms. Two strings having identical visual appearance **does not force their UTF-8 bytes to match**. If a system computes digital signatures, hashes, ETags, or uses strings as cache keys, byte differences can yield different results.
 
-Chỉ chuẩn hóa **trước khi ký/hash** nếu cả phía gửi và nhận có cùng hợp đồng chuẩn hóa; không tự sửa thông điệp đã ký hoặc JSON tùy ý rồi kỳ vọng chữ ký vẫn hợp lệ. Việc canonical hóa JSON để ký còn có quy tắc riêng (trật tự trường, escapes, kiểu số…) không được giải quyết chỉ bằng `Normalizer`.
+Normalize **before signing/hashing** only if both sender and receiver share the same normalization contract; do not arbitrarily modify signed messages or JSON and expect signatures to remain valid. Canonicalizing JSON for signing also has its own rules (field ordering, escapes, number formatting…) that cannot be solved by `Normalizer` alone.
 
-## 11. So sánh theo ngôn ngữ với Collator là một vấn đề khác
+## 11. Linguistic Comparison with `Collator` Is a Separate Problem
 
-`String.equals` dựa trên nội dung code unit; `Normalizer` giải quyết biểu diễn Unicode; `java.text.Collator` giải quyết việc **so sánh/sắp xếp theo quy ước ngôn ngữ**.
+`String.equals` is based on code unit content; `Normalizer` handles Unicode representation; `java.text.Collator` handles **comparison/sorting according to linguistic conventions**.
 
-Ví dụ:
+Example:
 
 ```java
 import java.text.Collator;
@@ -459,31 +459,31 @@ Collator collator = Collator.getInstance(
 collator.setDecomposition(Collator.CANONICAL_DECOMPOSITION);
 ```
 
-Đây là đoạn minh họa bên trong phương thức. `Collator` có các mức strength giúp quyết định những khác biệt chữ và dấu có được xét đến khi so sánh/sắp xếp hay không. Tùy strength và dữ liệu collation, hai chuỗi **khác nhau về dấu thanh** có thể được so sánh là gần nhau hơn, hoặc có thứ tự riêng.
+This is an illustrative snippet inside a method. `Collator` has strength levels that determine whether letter and accent differences are considered during comparison/sorting. Depending on strength and collation data, two strings **differing in tone marks** may compare closer together, or follow a specific order.
 
-Cần phân biệt:
+Distinguish clearly:
 
-- **NFC/NFD:** cùng một chuỗi xét theo tương đương chuẩn tắc, không thay ý nghĩa dấu thanh.
-- **Collation:** so sánh/định thứ tự theo ngôn ngữ với strength được chọn.
-- **Accent-insensitive search:** một yêu cầu tìm kiếm xấp xỉ, có thể sử dụng collation/search key hoặc bộ tìm kiếm chuyên dụng.
-- **Exact equality cho định danh:** cần hợp đồng rõ ràng; thường không dùng comparator bỏ qua dấu một cách vô thức.
+- **NFC/NFD:** the same string under canonical equivalence, without altering tone-mark meaning.
+- **Collation:** linguistic comparison/ordering with a chosen strength.
+- **Accent-insensitive search:** an approximate search requirement, which can use collation/search keys or a dedicated search engine.
+- **Exact equality for identifiers:** requires a clear contract; usually does not unthinkingly use a comparator that ignores accents.
 
-Nếu chỉ muốn đảm bảo `"ắ"` và `"a\u0306\u0301"` được xem là cùng dữ liệu theo canonical equivalence, normalize NFC trước rồi dùng `equals` là cách minh bạch. Nếu muốn sắp xếp danh sách từ tiếng Việt theo đúng thứ tự từ vựng, sử dụng công cụ collation theo locale và kiểm thử với dữ liệu người dùng.
+If you merely want `"ắ"` and `"a\u0306\u0301"` to be treated as the same data under canonical equivalence, normalizing to NFC first and then using `equals` is transparent. If you want to sort Vietnamese words in proper lexical order, use a locale-aware collation tool and test with user data.
 
-## 12. Kiểm tra ký tự người dùng nhìn thấy
+## 12. Checking User-Perceived Characters
 
-Nhiều lỗi UI xuất hiện khi code duyệt từng `char`:
+Many UI bugs occur when code iterates by `char`:
 
 ```java
 for (int i = 0; i < text.length(); i++) {
     char part = text.charAt(i);
-    // Không giả định part là một chữ hoàn chỉnh người dùng thấy.
+    // Do not assume part is a complete user-perceived letter.
 }
 ```
 
-Đây là đoạn minh họa trong một phương thức. Với `"a\u0306\u0301"`, vòng lặp nhận ba `char` riêng: chữ a và hai dấu kết hợp. Nếu dùng `substring(0, 1)`, bạn chỉ giữ `a` và làm mất dấu; nếu cắt giữa cụm, phần sau có thể bắt đầu bằng dấu kết hợp không có chữ cơ sở.
+This is an illustrative snippet inside a method. For `"a\u0306\u0301"`, the loop receives three separate `char`s: the letter `a` and two combining marks. If you use `substring(0, 1)`, you keep only `a` and lose the accents; if you slice in the middle of a cluster, the trailing part can start with an orphaned combining mark without a base letter.
 
-`String.codePoints()` giải quyết việc duyệt **code point** (tránh cắt đôi surrogate pair), nhưng vẫn **không** tự gom các dấu kết hợp với chữ cơ sở. Nếu yêu cầu cắt theo cụm chữ người dùng nhìn thấy, có thể dùng regex Java hỗ trợ extended grapheme cluster:
+`String.codePoints()` solves iterating by **code point** (avoiding splitting surrogate pairs), yet still **does not** group combining marks with their base letter. If you need to slice by user-perceived letter clusters, you can use Java regex supporting extended grapheme clusters:
 
 ```java
 import java.util.regex.Pattern;
@@ -495,93 +495,93 @@ long clusterCount = Pattern.compile("\\X")
         .count();
 ```
 
-Đây là đoạn minh họa bên trong phương thức; `clusterCount` bằng 1 trong ví dụ. Với giao diện phức tạp (emoji, tổ hợp ký tự nhiều script), cần cân nhắc phiên bản Unicode/JDK và thư viện phân đoạn phù hợp; một grapheme cluster vẫn không luôn tương đương “một ký tự về ngữ nghĩa” trong mọi bối cảnh.
+This is an illustrative snippet inside a method; `clusterCount` equals 1 in the example. For complex UIs (emojis, multi-script combinations), consider Unicode/JDK versions and an appropriate segmentation library; a grapheme cluster still does not always equal "one semantic character" in every context.
 
-### Không nên giới hạn mọi field bằng regex ASCII
+### Do Not Restrict Every Field with an ASCII Regex
 
-Kiểm tra như `^[A-Za-z]+$` sẽ loại tiếng Việt có dấu và chữ `đ`. Thậm chí regex chỉ chấp nhận một số khoảng chữ cái ghép sẵn có thể loại chuỗi NFD chứa combining mark. Nếu mục tiêu là “cho phép tên tiếng Việt”, hãy xây quy tắc hỗ trợ chữ và dấu kết hợp thích hợp, cân nhắc normalization và giải thích rõ chính sách ký tự được phép.
+Checks like `^[A-Za-z]+$` reject accented Vietnamese and the letter `đ`. Even a regex allowing only certain precomposed letter ranges can reject NFD strings containing combining marks. If the goal is "allow Vietnamese names", build rules that properly support letters and combining marks, consider normalization, and clearly document the allowed character policy.
 
-Không dùng `\\w` hoặc `Character.isLetter` một cách máy móc để tuyên bố mọi chuỗi tên đều hợp lệ: còn dấu kết hợp, khoảng trắng, dấu nối, dấu nháy, nhiều hệ chữ, tính bảo mật và ngữ cảnh nghiệp vụ.
+Do not mechanically use `\\w` or `Character.isLetter` to claim every name string is valid: there are also combining marks, spaces, hyphens, apostrophes, multiple scripts, security considerations, and business context.
 
-## 13. Kiểm thử Unicode tiếng Việt đúng phạm vi
+## 13. Testing Vietnamese Unicode with the Right Scope
 
-Một bộ test phù hợp nên gồm:
+An appropriate test suite should include:
 
-| Nhóm | Test minh họa | Kỳ vọng |
+| Group | Illustrative test | Expectation |
 | --- | --- | --- |
-| Tương đương chuẩn tắc | `"\u1EAF"` và `"a\u0306\u0301"` | `equals` raw khác; sau NFC bằng |
-| Phân rã NFD | `"\u1EAF"` | Dãy `U+0061 U+0306 U+0301` |
-| Thứ tự dấu | `"a\u0306\u0301"` so với `"a\u0301\u0306"` | Không tự coi mọi hoán vị là tương đương |
-| Chữ cái riêng | `"đ"` và `"d"` | NFD không làm chúng bằng nhau |
-| Dấu thanh khác nhau | `"ma"` và `"má"` | NFC không gộp chúng |
-| Đếm ký tự | `"\u1EAF"` so với `"a\u0306\u0301"` | `length` khác; grapheme count vẫn là 1 trong ví dụ |
-| Chữ tương thích | `"\u2460"` và `"1"` | NFKC có thể gộp, NFC không |
-| Hash/map | Key từ NFC vs NFD | Lookup theo key chưa normalize có thể trượt |
-| Tên file/DB | Tên hiển thị giống nhưng byte khác | Cần chính sách ranh giới rõ ràng |
-| Tìm kiếm bỏ dấu | `ma/má/mà` | Có thể gộp theo search policy, không thay dữ liệu gốc |
+| Canonical equivalence | `"\u1EAF"` and `"a\u0306\u0301"` | Raw `equals` differs; equal after NFC |
+| NFD decomposition | `"\u1EAF"` | Sequence `U+0061 U+0306 U+0301` |
+| Mark order | `"a\u0306\u0301"` vs `"a\u0301\u0306"` | Do not assume arbitrary permutations are equivalent |
+| Distinct letter | `"đ"` and `"d"` | NFD does not make them equal |
+| Different tone marks | `"ma"` and `"má"` | NFC does not merge them |
+| Character counting | `"\u1EAF"` vs `"a\u0306\u0301"` | `length` differs; grapheme count remains 1 in the example |
+| Compatibility characters | `"\u2460"` and `"1"` | NFKC can merge, NFC does not |
+| Hash/map | Keys from NFC vs NFD | Lookup with unnormalized key can miss |
+| Filenames/DB | Visually identical names with different bytes | Requires explicit boundary policy |
+| Accent-stripped search | `ma/má/mà` | Can match under search policy without altering original data |
 
-Khi test, nên so sánh dãy code point hoặc bytes một cách có chủ đích; screenshot hoặc mắt người nhìn không đủ phát hiện các khác biệt normalization.
+When testing, intentionally compare code point sequences or bytes; screenshots or visual inspection are insufficient to detect normalization differences.
 
-### Kiểm tra tính nhất quán qua nhiều lớp
+### Checking Consistency Across Layers
 
-Với API lưu tên người dùng, có thể tạo hai request cùng nội dung tiếng Việt nhưng một dùng NFC, một dùng NFD. Xác định rõ:
+For an API storing usernames, create two requests with the same Vietnamese content, one using NFC and one using NFD. Clarify:
 
-1. Hệ thống có chấp nhận cả hai không?
-2. Có chuẩn hóa lúc ghi, lúc tra cứu hay cả hai không?
-3. Có yêu cầu lưu đúng dãy code point gốc cho mục đích nào không?
-4. Có sinh hai bản ghi hoặc hai khóa cache khác nhau không?
-5. Unique constraint hoạt động theo canonical equivalence hay theo một collation khác?
-6. Kết quả hiển thị có giữ đúng dấu tiếng Việt và thứ tự từ không?
+1. Does the system accept both?
+2. Does it normalize on write, on lookup, or both?
+3. Is there any requirement to store the exact original code point sequence?
+4. Does it create two records or two distinct cache keys?
+5. Do unique constraints operate by canonical equivalence or by another collation?
+6. Do displayed results preserve Vietnamese accents and word order?
 
-Các câu hỏi này nên được giải quyết **trước khi** thêm normalization vào một hệ thống dữ liệu đang tồn tại, vì thay đổi khóa chuẩn hóa có thể tạo collision giữa những bản ghi vốn khác nhau.
+These questions should be resolved **before** adding normalization to an existing data system, because changing normalized keys can cause collisions between previously distinct records.
 
-## 14. Những nhầm lẫn thường gặp
+## 14. Common Misconceptions
 
-| Nhầm lẫn | Vấn đề | Cách hiểu đúng |
+| Misconception | Problem | Correct understanding |
 | --- | --- | --- |
-| “Người dùng thấy một chữ thì `length()` phải bằng 1” | UTF-16 code unit không phải grapheme cluster | Phân biệt `length`, `codePointCount` và grapheme |
-| “Hai chữ nhìn giống nhau thì `String.equals` bằng nhau” | Chuỗi có thể khác dạng NFC/NFD | Chuẩn hóa cùng dạng trước khi so sánh nếu hợp đồng yêu cầu |
-| “Mọi dấu tiếng Việt đều là một code point ghép sẵn” | Unicode còn biểu diễn dấu bằng combining marks | Nhận diện các dãy dấu và normalization |
-| “Đảo dấu kết hợp theo bất kỳ thứ tự nào cũng như nhau” | Canonical ordering không phải mọi hoán vị | Dùng `Normalizer`, không tự sort mark |
-| “NFD sẽ biến `đ` thành `d`” | `đ` không có phân rã chuẩn tắc như vậy | Muốn map `đ/d` phải có chính sách riêng |
-| “NFC xóa dấu tiếng Việt” | NFC giữ khác biệt chữ và dấu | Không lẫn normalization với accent stripping |
-| “NFKC luôn là lựa chọn tốt hơn” | Có thể gộp ký tự tương thích vốn cần phân biệt | Chọn NFC/NFKC theo hợp đồng dữ liệu |
-| “Chỉ cần dùng `equalsIgnoreCase`” | Case-insensitive không giải quyết canonical equivalence | Normalize độc lập với việc xử lý case |
-| “`codePoints()` duyệt một chữ người dùng thấy mỗi lần” | Một grapheme có thể chứa nhiều code point | Dùng công cụ phân đoạn grapheme nếu cần |
-| “Dùng dấu đã bỏ để làm tên chính” | Mất ý nghĩa và có thể tạo nhiều xung đột | Giữ tên gốc, tạo search key phụ nếu cần |
-| “NFC là kiểm tra chính tả tiếng Việt” | Normalizer không biết ngữ pháp/chính tả | Validation ngôn ngữ là bước riêng |
-| “UTF-8 luôn tự chuyển về NFC” | Encoding không đồng nghĩa Unicode normalization | Chuẩn hóa theo chính sách, sau đó encode |
-| “Database và Java luôn so sánh chữ giống nhau” | Collation, normalization và so sánh byte khác nhau | Kiểm thử từ API tới DB/cache/index |
+| "If the user sees one letter, `length()` must be 1" | A UTF-16 code unit is not a grapheme cluster | Distinguish `length`, `codePointCount`, and graphemes |
+| "Two visually identical letters are equal under `String.equals`" | Strings may differ in NFC/NFD form | Normalize to the same form before comparing if required by contract |
+| "Every Vietnamese accented letter is one precomposed code point" | Unicode also represents accents via combining marks | Recognize mark sequences and normalization |
+| "Reordering combining marks in any way is equivalent" | Canonical ordering does not equate arbitrary permutations | Use `Normalizer`, do not sort marks manually |
+| "NFD turns `đ` into `d`" | `đ` has no such canonical decomposition | Mapping `đ/d` requires a separate policy |
+| "NFC strips Vietnamese accents" | NFC preserves letter and accent distinctions | Do not confuse normalization with accent stripping |
+| "NFKC is always a better choice" | Can merge compatibility characters that must remain distinct | Choose NFC/NFKC per data contract |
+| "Just use `equalsIgnoreCase`" | Case-insensitivity does not solve canonical equivalence | Normalize independently of case handling |
+| "`codePoints()` iterates one user-perceived letter at a time" | One grapheme can contain multiple code points | Use a grapheme segmenter if needed |
+| "Use accent-stripped text as the primary name" | Loses meaning and can create many collisions | Keep original name, create a secondary search key if needed |
+| "NFC validates Vietnamese spelling" | `Normalizer` knows nothing of grammar/orthography | Language validation is a separate step |
+| "UTF-8 automatically converts to NFC" | Encoding is not Unicode normalization | Normalize per policy, then encode |
+| "Databases and Java always compare letters the same way" | Collation, normalization, and byte comparison differ | Test end-to-end from API to DB/cache/index |
 
-## 15. Bài tập thực hành
+## 15. Practice Exercises
 
-**Bài 1 — biểu diễn cùng một chữ.** Viết một chuỗi `"\u1EAF"` và một chuỗi `"a\u0306\u0301"`. So sánh bằng `equals`, in `length` và `codePointCount`. Giải thích vì sao những kết quả khác nhau dù cả hai hiển thị thành `ắ`.
+**Exercise 1 — Representing the same letter.** Write a string `"\u1EAF"` and a string `"a\u0306\u0301"`. Compare with `equals`, print `length` and `codePointCount`. Explain why those results differ even though both render as `ắ`.
 
-**Bài 2 — chuẩn hóa NFC/NFD.** Dùng `Normalizer.normalize(..., NFC)` và `NFD` cho hai chuỗi trên. In mọi code point ở dạng `U+XXXX` và kiểm tra kết quả sau chuẩn hóa.
+**Exercise 2 — NFC/NFD normalization.** Run `Normalizer.normalize(..., NFC)` and `NFD` on the two strings above. Print all code points in `U+XXXX` format and verify the results after normalization.
 
-**Bài 3 — thứ tự dấu.** So sánh `a + U+0306 + U+0301` với `a + U+0301 + U+0306`. Sau NFC, chúng có bằng nhau không? Giải thích vì sao không nên tự sắp xếp các dấu theo ý muốn.
+**Exercise 3 — Mark ordering.** Compare `a + U+0306 + U+0301` with `a + U+0301 + U+0306`. Are they equal after NFC? Explain why you should not sort marks manually as desired.
 
-**Bài 4 — phân biệt chữ khác nhau.** Thử normalize `"đ"` và `"d"`, `"má"` và `"ma"`. Vì sao chuẩn hóa giữ nguyên những khác biệt này? Khi nào một chức năng tìm kiếm xấp xỉ có thể muốn gộp chúng?
+**Exercise 4 — Distinguishing different letters.** Try normalizing `"đ"` and `"d"`, `"má"` and `"ma"`. Why does normalization preserve these differences? When might an approximate search feature want to merge them?
 
-**Bài 5 — giới hạn trường nhập.** Một form giới hạn 10 “ký tự nhìn thấy” nhưng code dùng `String.length() <= 10`. Hãy chỉ ra tình huống người dùng nhập tiếng Việt dạng phân rã có thể bị tính nhiều ký tự hơn. Thiết kế kiểm thử theo grapheme cluster.
+**Exercise 5 — Input field limit.** A form limits to 10 "visible characters", yet the code checks `String.length() <= 10`. Show a scenario where a user entering decomposed Vietnamese gets counted as more characters. Design tests based on grapheme clusters.
 
-**Bài 6 — định danh.** Hai request tạo tên hiển thị giống nhau nhưng một dạng NFC, một dạng NFD. Nếu dùng key `HashMap` và unique constraint database, kết quả có thể khác nhau thế nào? Hãy đề xuất chính sách chuẩn hóa ở ranh giới hệ thống, xử lý dữ liệu cũ và kiểm tra collision.
+**Exercise 6 — Identifiers.** Two requests create visually identical display names, one in NFC and one in NFD. When used as `HashMap` keys and in a database unique constraint, how can results differ? Propose a normalization policy at system boundaries, legacy data handling, and collision checking.
 
-**Bài 7 — NFKC.** Chạy `Normalizer.normalize("\u2460", NFKC)`. Vì sao nhận `1` không đồng nghĩa đây là một trường hợp tương đương chuẩn tắc như `ắ` và chuỗi phân rã của nó?
+**Exercise 7 — NFKC.** Run `Normalizer.normalize("\u2460", NFKC)`. Why does getting `1` not make this a canonical equivalence case like `ắ` and its decomposed sequence?
 
-**Bài 8 — tìm kiếm.** Thiết kế một chức năng tìm kiếm tên tiếng Việt không bắt buộc nhập dấu. Hãy nêu những gì phải lưu ở trường gốc, những gì có thể đưa vào chỉ mục tìm kiếm phụ và cách tránh dùng kết quả đã bỏ dấu làm định danh tuyệt đối.
+**Exercise 8 — Search.** Design a Vietnamese name search feature that does not require entering accents. State what must be stored in the original field, what can go into a secondary search index, and how to avoid using accent-stripped results as absolute identifiers.
 
-## 16. Ghi nhớ
+## 16. Takeaways
 
-**Dấu kết hợp là code point Unicode thực sự.** Một chữ tiếng Việt như `ắ` có thể được lưu bằng một code point ghép sẵn hoặc bằng dãy chữ cơ sở + các dấu kết hợp. Hai chuỗi có thể trông giống nhau nhưng khác số code unit, code point và byte, khiến `String.equals`, `HashMap` hoặc hệ thống lưu trữ không tự coi là trùng.
+**Combining marks are real Unicode code points.** A Vietnamese letter like `ắ` can be stored as one precomposed code point or as a sequence of base letter + combining marks. Two strings can look identical yet differ in code unit count, code point count, and byte count, causing `String.equals`, `HashMap`, or storage systems not to treat them as duplicates automatically.
 
-**`Normalizer.Form.NFC` và `NFD` giải quyết tương đương chuẩn tắc, không xóa dấu và không sửa chính tả.** Cần phân biệt với `NFKC`/`NFKD` (tương đương tương thích), collation theo ngôn ngữ và quy tắc tìm kiếm bỏ dấu. `đ` không biến thành `d` qua NFD, và đổi thứ tự dấu kết hợp không luôn giữ nguyên chuỗi theo Unicode.
+**`Normalizer.Form.NFC` and `NFD` handle canonical equivalence; they do not strip accents and do not fix spelling.** Distinguish them from `NFKC`/`NFKD` (compatibility equivalence), linguistic collation, and accent-stripped search rules. `đ` does not become `d` via NFD, and changing the order of combining marks does not always preserve the string under Unicode.
 
-Trong Java, hãy sử dụng `Normalizer` để chuẩn hóa theo chính sách đã công bố, dùng `codePoints()` khi cần duyệt code point, và dùng công cụ phân đoạn grapheme khi cần tính/cắt số chữ người dùng nhìn thấy. Lưu văn bản gốc khi nghiệp vụ cần bảo toàn, kiểm soát dữ liệu chuẩn hóa xuyên suốt API/database/cache, và kiểm thử kỹ Unicode tiếng Việt ở cả dạng NFC lẫn NFD.
+In Java, use `Normalizer` to normalize according to a published policy, use `codePoints()` when you need to iterate code points, and use a grapheme segmenter when you need to count or slice user-perceived letters. Store the original text when business rules require preservation, control normalized data consistently across API/database/cache, and thoroughly test Vietnamese Unicode in both NFC and NFD forms.
 
-**Nguyên tắc cốt lõi:** *Chuẩn hóa biểu diễn để so sánh nhất quán — không đánh đồng chuẩn hóa Unicode với loại bỏ khác biệt ngôn ngữ.*
+**Core principle:** *Normalize representation for consistent comparison — do not equate Unicode normalization with removing linguistic distinctions.*
 
-### Tài liệu tham khảo
+### References
 
 - [`java.text.Normalizer` – Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html)
 - [`java.lang.String` – Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)

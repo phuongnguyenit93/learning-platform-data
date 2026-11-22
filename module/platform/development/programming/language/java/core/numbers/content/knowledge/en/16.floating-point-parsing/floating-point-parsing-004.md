@@ -1,75 +1,75 @@
-# Đầu vào số thực hợp lệ vẫn có thể bị làm tròn, overflow hoặc underflow trong Java
+# Valid Floating-Point Inputs Can Still Be Rounded, Overflow, or Underflow in Java
 
-## 1. Cú pháp hợp lệ không có nghĩa giá trị được giữ chính xác
+## 1. Valid syntax does not mean the value is preserved exactly
 
-`Float.parseFloat(String)` và `Double.parseDouble(String)` chuyển một chuỗi ký tự hợp lệ thành giá trị dấu phẩy động `float` hoặc `double`. Hai API này kiểm tra **cú pháp chuỗi**, rồi chuyển giá trị toán học được mô tả bởi chuỗi sang tập hữu hạn các số dấu phẩy động mà Java biểu diễn được.
+`Float.parseFloat(String)` and `Double.parseDouble(String)` convert a valid character string into a `float` or `double` floating-point value. Both APIs validate the **string syntax**, then map the mathematical value described by the string onto the finite set of floating-point numbers that Java can represent.
 
-Có ba tình huống rất khác nhau:
+There are three very different outcomes:
 
-1. **Làm tròn (rounding):** chuỗi mô tả một số hợp lệ nhưng không nằm chính xác trên lưới giá trị `float`/`double`; parser trả về một giá trị đại diện gần nó.
-2. **Overflow:** độ lớn của số hữu hạn mà chuỗi mô tả quá lớn; kết quả có thể là `+Infinity` hoặc `-Infinity`.
-3. **Underflow:** độ lớn quá nhỏ so với độ phân giải gần 0; kết quả có thể là **số dưới chuẩn** (*subnormal*) với độ chính xác giảm hoặc bị làm tròn hẳn thành `+0.0`/`-0.0`.
+1. **Rounding:** the string describes a valid number that does not lie exactly on the `float`/`double` value grid; the parser returns a nearby representative value.
+2. **Overflow:** the magnitude of the finite number described by the string is too large; the result can be `+Infinity` or `-Infinity`.
+3. **Underflow:** the magnitude is too small for the resolution near 0; the result can be a **subnormal number** with reduced precision or be rounded all the way to `+0.0`/`-0.0`.
 
-Cả ba đều có thể xảy ra **dù chuỗi hoàn toàn hợp lệ** và không có `NumberFormatException`.
+All three can happen **even when the string is completely valid** and no `NumberFormatException` is thrown.
 
 ```java
-double a = Double.parseDouble("0.1");       // Hữu hạn, nhưng không chính xác tuyệt đối 0.1
+double a = Double.parseDouble("0.1");       // Finite, but not strictly exact 0.1
 double b = Double.parseDouble("1e400");     // Infinity
 double c = Double.parseDouble("1e-4000");   // 0.0
 float d = Float.parseFloat("3.5e38");       // Infinity
 float e = Float.parseFloat("1e-50");        // 0.0
 ```
 
-Đây là đặc tính của phép chuyển sang số dấu phẩy động có độ rộng cố định, không mặc nhiên là lỗi parser. Ứng dụng cần tự quyết định có chấp nhận kết quả làm tròn, số dưới chuẩn, số 0 do underflow hoặc vô cực hay không.
+This is a property of converting to fixed-width floating-point numbers, not inherently a parser bug. The application must decide for itself whether to accept rounded results, subnormals, zeros from underflow, or infinities.
 
-### Ba câu hỏi phải tách biệt
+### Three questions that must be kept separate
 
-| Câu hỏi | Ví dụ | Cách xác minh |
+| Question | Example | How to verify |
 | --- | --- | --- |
-| Chuỗi có cú pháp được parser hỗ trợ không? | `"1e400"` | `parseDouble` có trả giá trị hay ném `NumberFormatException`? |
-| Giá trị parse được có hữu hạn không? | `"1e400"` → `Infinity` | `Double.isFinite(result)` |
-| Giá trị gốc được biểu diễn chính xác không? | `"0.1"` → một `double` gần 0.1 | So giá trị toán học nguồn với giá trị nhị phân chính xác theo cách không làm tròn nguồn thêm lần nữa |
+| Does the string have syntax supported by the parser? | `"1e400"` | Does `parseDouble` return a value or throw `NumberFormatException`? |
+| Is the parsed value finite? | `"1e400"` → `Infinity` | `Double.isFinite(result)` |
+| Is the original value represented exactly? | `"0.1"` → a `double` close to 0.1 | Compare the source mathematical value with the exact binary value without rounding the source again |
 
-Không kết luận “parse thành công” đồng nghĩa “nằm trong miền hữu hạn” hoặc “không mất chữ số”.
+Do not conclude that "parsing succeeded" means "within the finite range" or "no digits were lost."
 
-## 2. Nền tảng IEEE 754: một chuỗi có thể mô tả nhiều số hơn kiểu đích
+## 2. IEEE 754 background: a string can describe more numbers than the target type
 
-Java `float` là binary32, có 32 bit tổng cộng với **24 bit độ chính xác phần trị hữu hiệu**. Java `double` là binary64, có 64 bit tổng cộng với **53 bit độ chính xác phần trị hữu hiệu**.
+Java `float` is binary32, having 32 total bits with **24 bits of effective significand precision**. Java `double` is binary64, having 64 total bits with **53 bits of effective significand precision**.
 
-Mỗi kiểu có các giá trị hữu hạn, số chuẩn hóa (*normal*), số dưới chuẩn (*subnormal*), số 0 có dấu, vô cực và `NaN`. Khoảng cách giữa hai số biểu diễn liền kề thay đổi theo độ lớn.
+Each type has finite values, *normal* numbers, *subnormal* numbers, signed zeros, infinities, and `NaN`. The spacing between two adjacent representable numbers varies with magnitude.
 
-| Thuộc tính | `float` | `double` |
+| Property | `float` | `double` |
 | --- | --- | --- |
-| Độ chính xác phần trị | 24 bit | 53 bit |
-| `MAX_VALUE` (hữu hạn dương lớn nhất) | Khoảng `3.4028235E38` | Khoảng `1.7976931348623157E308` |
-| `MIN_NORMAL` (dương chuẩn hóa nhỏ nhất) | Khoảng `1.17549435E-38` | Khoảng `2.2250738585072014E-308` |
-| `MIN_VALUE` (dương khác 0 nhỏ nhất, dưới chuẩn) | Khoảng `1.4E-45` | Khoảng `4.9E-324` |
-| Ký hiệu vô cực dương | `Float.POSITIVE_INFINITY` | `Double.POSITIVE_INFINITY` |
-| Kiểm tra hữu hạn | `Float.isFinite(x)` | `Double.isFinite(x)` |
+| Significand precision | 24 bits | 53 bits |
+| `MAX_VALUE` (largest finite positive) | Approx. `3.4028235E38` | Approx. `1.7976931348623157E308` |
+| `MIN_NORMAL` (smallest positive normal) | Approx. `1.17549435E-38` | Approx. `2.2250738585072014E-308` |
+| `MIN_VALUE` (smallest nonzero positive, subnormal) | Approx. `1.4E-45` | Approx. `4.9E-324` |
+| Positive infinity symbol | `Float.POSITIVE_INFINITY` | `Double.POSITIVE_INFINITY` |
+| Finiteness check | `Float.isFinite(x)` | `Double.isFinite(x)` |
 
-**Đặc biệt:** `Float.MIN_VALUE` và `Double.MIN_VALUE` **không phải số âm nhỏ nhất**. Chúng là các số **dương khác 0 nhỏ nhất** mà kiểu tương ứng biểu diễn được. Cận âm hữu hạn về thứ tự số học là `-Float.MAX_VALUE` hoặc `-Double.MAX_VALUE`.
+**Important:** `Float.MIN_VALUE` and `Double.MIN_VALUE` are **not the smallest negative numbers**. They are the **smallest nonzero positive** numbers representable by the corresponding type. The finite negative bound in numeric order is `-Float.MAX_VALUE` or `-Double.MAX_VALUE`.
 
-Đừng hiểu `MIN_NORMAL` là ngưỡng mà mọi giá trị nhỏ hơn đều thành 0. **Số dưới chuẩn** cho phép biểu diễn thêm các giá trị dương rất nhỏ nằm giữa 0 và `MIN_NORMAL`, nhưng độ chính xác tương đối thường kém hơn các số chuẩn hóa.
+Do not think of `MIN_NORMAL` as a threshold below which every value becomes 0. **Subnormal numbers** allow representing additional tiny positive values between 0 and `MIN_NORMAL`, though relative precision generally degrades compared to normal numbers.
 
-### Miền biểu diễn và độ chính xác là hai giới hạn khác nhau
+### Representation range and precision are two different limits
 
-Một chuỗi `"9007199254740993"` nằm rất xa cận overflow của `double`. Nhưng số nguyên đó (`2^53 + 1`) **không thể** được biểu diễn chính xác bằng `double`: nó sẽ làm tròn thành `9007199254740992`.
+A string `"9007199254740993"` is very far from `double`'s overflow bound. Yet that integer (`2^53 + 1`) **cannot** be represented exactly by `double`: it rounds to `9007199254740992`.
 
-Trong khi đó chuỗi `"1e400"` biểu diễn số hữu hạn theo toán học nhưng lớn hơn `Double.MAX_VALUE` nhiều lần. Parser trả về `Infinity`.
+Meanwhile, the string `"1e400"` represents a mathematically finite number that is many times larger than `Double.MAX_VALUE`. The parser returns `Infinity`.
 
-Do đó, một giá trị có thể:
+Therefore, a value can be:
 
-- Hữu hạn và chính xác, như `0.5`.
-- Hữu hạn nhưng bị làm tròn, như `0.1` hoặc `2^53 + 1`.
-- Hữu hạn, rất nhỏ, dưới chuẩn và có thể bị làm tròn.
-- Nhỏ đến mức thành `0.0`.
-- Lớn đến mức thành vô cực.
+- Finite and exact, such as `0.5`.
+- Finite but rounded, such as `0.1` or `2^53 + 1`.
+- Finite, very small, subnormal, and possibly rounded.
+- So small that it becomes `0.0`.
+- So large that it becomes infinity.
 
-## 3. Chuỗi hợp lệ nhưng bị làm tròn
+## 3. Valid strings that get rounded
 
-### 3.1. Giá trị thập phân `0.1`
+### 3.1. The decimal value `0.1`
 
-Số thập phân `0.1` không có biểu diễn nhị phân hữu hạn. Parser chọn một số `double` gần nó:
+The decimal number `0.1` has no finite binary representation. The parser selects a `double` close to it:
 
 ```java
 double x = Double.parseDouble("0.1");
@@ -79,20 +79,20 @@ System.out.println(new java.math.BigDecimal(x));
 // 0.1000000000000000055511151231257827021181583404541015625
 ```
 
-`Double.toString` chọn dạng thập phân ngắn có thể parse ngược về cùng giá trị `double`, nên việc in `0.1` **không chứng minh** lưu chính xác `1/10`.
+`Double.toString` chooses a short decimal form that parses back to the same `double` value, so printing `0.1` **does not prove** `1/10` is stored exactly.
 
-Ở đây `new BigDecimal(x)` là **thủ thuật quan sát chính xác giá trị nhị phân của `double` đã có**, không phải cách khuyên dùng để khởi tạo số tiền decimal. Nếu muốn giữ đúng số thập phân gốc, dùng `new BigDecimal("0.1")`.
+Here `new BigDecimal(x)` is **a technique to inspect the exact binary value of an existing `double`**, not the recommended way to initialize decimal monetary amounts. To keep the exact original decimal, use `new BigDecimal("0.1")`.
 
-Với `float`:
+For `float`:
 
 ```java
 float x = Float.parseFloat("0.1");
 System.out.println((double) x); // 0.10000000149011612
 ```
 
-Ép `float` đã parse sang `double` giúp thấy rõ giá trị `float` gần đúng (vì mọi `float` hữu hạn đều có thể được biểu diễn chính xác bằng `double`); việc ép kiểu không phục hồi số `0.1` toán học.
+Casting the parsed `float` to `double` helps reveal the approximated `float` value (since every finite `float` can be represented exactly in `double`); the cast does not recover the mathematical `0.1`.
 
-### 3.2. Số nguyên lớn vẫn có thể làm tròn
+### 3.2. Large integers can still be rounded
 
 ```java
 double x = Double.parseDouble("9007199254740993");
@@ -102,30 +102,30 @@ System.out.println(x);      // 9.007199254740992E15
 System.out.println(x == y); // true
 ```
 
-Chuỗi đầu hợp lệ nhưng giá trị nguyên `2^53 + 1` không có biểu diễn `double` đúng. Hai chuỗi mô tả **hai số nguyên khác nhau**, nhưng sau khi parse thì cùng một giá trị.
+The first string is valid, but the integer value `2^53 + 1` has no exact `double` representation. The two strings describe **two different integers**, yet after parsing they become the exact same value.
 
-Nếu đây là ID, timestamp nguyên với độ phân giải nhỏ, số lượng hoặc khóa cần phân biệt từng đơn vị, không nên lưu chúng trong `double`. Dùng `Long.parseLong` khi vừa miền `long`, hoặc `BigInteger` khi cần miền rộng hơn.
+If these are IDs, fine-grained integer timestamps, quantities, or keys that must distinguish individual units, do not store them in `double`. Use `Long.parseLong` when within `long` range, or `BigInteger` when a wider range is required.
 
-### 3.3. Parser làm tròn theo quy tắc nào?
+### 3.3. What rule does the parser use for rounding?
 
-Java chuyển số thập phân và số dấu phẩy động hexa hợp lệ sang giá trị có thể đại diện theo kiểu đích, làm tròn tới giá trị gần nhất. Nếu giá trị đúng nằm chính giữa hai giá trị đại diện được, chọn giá trị có phần trị chẵn ở bit cuối (*round to nearest, ties to even*).
+Java converts valid decimal and hexadecimal floating-point numbers to a representable value of the target type, rounding to the nearest value. If the exact value lies halfway between two representable values, the one with an even least-significant significand bit is chosen (*round to nearest, ties to even*).
 
-Ví dụ hexa nhị phân biểu diễn chính xác giá trị nằm đúng **nửa ULP** trên `1.0`:
+A binary hex example that represents the exact value at **half a ULP** above `1.0`:
 
 ```java
 double halfway = Double.parseDouble("0x1.00000000000008p0");
 System.out.println(halfway); // 1.0
 ```
 
-Ở đây chuỗi hexa mô tả `1 + 2^-53`, chính giữa `1.0` và `Math.nextUp(1.0)`; phía `1.0` có bit cuối phần trị chẵn nên được chọn.
+Here the hex string describes `1 + 2^-53`, halfway between `1.0` and `Math.nextUp(1.0)`; the `1.0` side has an even least-significant significand bit, so it is chosen.
 
-Điều này khác `Math.round`, vốn có quy tắc riêng và trả kiểu nguyên. Cũng khác `BigDecimal.setScale`, nơi người dùng chủ động chọn một `RoundingMode`.
+This differs from `Math.round`, which has its own rules and returns an integer type. It also differs from `BigDecimal.setScale`, where the caller explicitly chooses a `RoundingMode`.
 
-**Chú ý:** `Float.parseFloat` trực tiếp nhắm đến độ chính xác `float`. Không nên mặc định quy trình `Double.parseDouble(text)` rồi ép sang `float` tương đương về mọi trường hợp sát biên làm tròn, vì **làm tròn hai lần** có thể khác làm tròn trực tiếp một lần.
+**Note:** `Float.parseFloat` targets `float` precision directly. Do not assume that `Double.parseDouble(text)` followed by a cast to `float` is equivalent in every case near a rounding boundary, because **double rounding** can differ from rounding directly once.
 
-## 4. Chuỗi hợp lệ nhưng overflow thành vô cực
+## 4. Valid strings that overflow to infinity
 
-Overflow xảy ra khi giá trị có độ lớn vượt khả năng đại diện hữu hạn của kiểu đích. Parser vẫn có thể trả về một giá trị IEEE 754 hợp lệ: `+Infinity` hoặc `-Infinity`.
+Overflow occurs when a value's magnitude exceeds the finite representable capacity of the target type. The parser can still return a valid IEEE 754 value: `+Infinity` or `-Infinity`.
 
 ```java
 double positive = Double.parseDouble("1e400");
@@ -137,7 +137,7 @@ System.out.println(negative);       // -Infinity
 System.out.println(tooBigForFloat); // Infinity
 ```
 
-Không có `NumberFormatException` ở ba chuỗi trên. Chúng **có cú pháp hợp lệ** và biểu diễn các số hữu hạn thập phân rất lớn, nhưng không biểu diễn được dưới dạng số hữu hạn của kiểu được chọn.
+There is no `NumberFormatException` in the three strings above. They **have valid syntax** and represent very large finite decimal numbers, but they cannot be represented as finite values of the chosen type.
 
 ```java
 System.out.println(Double.isInfinite(positive)); // true
@@ -145,33 +145,33 @@ System.out.println(Double.isFinite(positive));   // false
 System.out.println(Double.isNaN(positive));      // false
 ```
 
-### `Infinity` viết trong chuỗi cũng là đầu vào hợp lệ
+### Explicit `Infinity` in a string is also valid input
 
-Parser hỗ trợ token `"Infinity"`, `"-Infinity"`, `"NaN"`:
+The parser supports the tokens `"Infinity"`, `"-Infinity"`, and `"NaN"`:
 
 ```java
 System.out.println(Double.parseDouble("Infinity")); // Infinity
 System.out.println(Double.isNaN(Double.parseDouble("NaN"))); // true
 ```
 
-Vì vậy khi kết quả là vô cực, chỉ dựa vào `Double.isInfinite(result)` **không thể biết**:
+Therefore, when the result is infinite, checking `Double.isInfinite(result)` alone **cannot tell**:
 
-1. Người dùng đã gửi token `"Infinity"`, hay
-2. Người dùng đã gửi một số hữu hạn như `"1e400"` nhưng số đó overflow.
+1. Whether the user sent the token `"Infinity"`, or
+2. Whether the user sent a finite number such as `"1e400"` that overflowed.
 
-Nếu hợp đồng cần phân biệt nguyên nhân, phải xét **chuỗi nguồn và cú pháp/giá trị nguồn trước khi mất thông tin**, không chỉ xét giá trị `double` trả về.
+If the contract needs to distinguish the cause, examine the **source string and source syntax/value before information is lost**, not only the returned `double` value.
 
-Ứng dụng có thể từ chối mọi giá trị không hữu hạn; nhưng đây là **kiểm tra miền nghiệp vụ sau parse**, không phải lỗi cú pháp mà Java tự phát hiện giúp.
+The application may reject all non-finite values; however, that is a **post-parse business range check**, not a syntax error that Java catches for you automatically.
 
-### Overflow không chỉ xuất hiện khi parse
+### Overflow does not happen only during parsing
 
-Ngay cả hai số `double` hữu hạn khi thực hiện phép nhân/cộng vẫn có thể tạo `Infinity`; vì vậy kiểm tra `isFinite` tại đầu vào chỉ xác nhận đầu vào, **không chứng minh mọi phép toán sau đó hữu hạn**. Nếu thuật toán yêu cầu miền hữu hạn, hãy xác minh tại các ranh giới phù hợp.
+Even two finite `double` values can produce `Infinity` when multiplied or added; thus checking `isFinite` at input only validates the input, **not that all subsequent operations remain finite**. If an algorithm requires a finite domain, verify at the appropriate boundaries.
 
-## 5. Chuỗi hợp lệ nhưng underflow thành dưới chuẩn hoặc số 0
+## 5. Valid strings that underflow to subnormal or zero
 
-Gần số 0, độ phân giải của `double` có giới hạn. Số **dương khác 0 nhỏ nhất** là `Double.MIN_VALUE`, khoảng `4.9406564584124654 × 10^-324`. Với `float`, tương ứng khoảng `1.401298464324817 × 10^-45`.
+Near zero, `double` resolution has a limit. The **smallest nonzero positive** number is `Double.MIN_VALUE`, approximately `4.9406564584124654 × 10^-324`. For `float`, the corresponding value is approximately `1.401298464324817 × 10^-45`.
 
-Khi một số dương rất nhỏ hơn mức biểu diễn tối thiểu, việc làm tròn có thể tạo ra `0.0`. Nếu số âm cực nhỏ, kết quả có thể là `-0.0` — số 0 âm vẫn có **bit dấu**.
+When a positive number is much smaller than the minimum representable level, rounding can produce `0.0`. If an extremely small negative number is parsed, the result can be `-0.0` — negative zero still carries a **sign bit**.
 
 ```java
 double tiny = Double.parseDouble("1e-4000");
@@ -182,83 +182,83 @@ System.out.println(tinyNegative);   // -0.0
 System.out.println(tinyNegative == 0.0); // true
 ```
 
-Cả `"1e-4000"` và `"-1e-4000"` đều là chuỗi hợp lệ, đều mô tả số toán học **khác 0**, nhưng sau khi parse mất độ lớn. Không có exception.
+Both `"1e-4000"` and `"-1e-4000"` are valid strings, and both describe mathematically **nonzero** numbers, yet after parsing their magnitude is lost. No exception is thrown.
 
-Kiểm tra dấu của số 0:
+Checking the sign of zero:
 
 ```java
 long bits = Double.doubleToRawLongBits(tinyNegative);
 System.out.println(Long.toHexString(bits)); // 8000000000000000
 ```
 
-Dù `-0.0 == +0.0` là `true`, dấu có thể ảnh hưởng phép toán như `1.0 / -0.0` (cho `-Infinity`) và hành vi `Double.compare`, `Double.equals`.
+Although `-0.0 == +0.0` is `true`, the sign can affect operations such as `1.0 / -0.0` (yielding `-Infinity`) and the behavior of `Double.compare` and `Double.equals`.
 
-### Vùng dưới chuẩn (subnormal)
+### Subnormal region
 
-Không phải số nào nhỏ hơn `Double.MIN_NORMAL` đều bị làm tròn về 0:
+Not every number smaller than `Double.MIN_NORMAL` is rounded to 0:
 
 ```java
 double subnormal = Double.parseDouble("1e-320");
 System.out.println(subnormal); // 1.0E-320
 ```
 
-Đây là giá trị `double` dương, khác 0, nhưng **nhỏ hơn `Double.MIN_NORMAL`**. Nó nằm trong vùng dưới chuẩn. Tại vùng này, bước nhảy tuyệt đối giữa hai giá trị lân cận vẫn rất nhỏ, nhưng độ chính xác tương đối giảm khi độ lớn tiến về 0.
+This is a positive, nonzero `double` value, yet **smaller than `Double.MIN_NORMAL`**. It lies in the subnormal region. In this region, the absolute step between two adjacent values remains very small, but relative precision decreases as magnitude approaches 0.
 
-Với `float`:
+For `float`:
 
 ```java
 System.out.println(Float.parseFloat("1e-44")); // 9.8E-45
 System.out.println(Float.parseFloat("1e-50")); // 0.0
 ```
 
-Chuỗi `"1e-44"` tạo số dưới chuẩn khác 0 sau làm tròn, còn `"1e-50"` quá nhỏ và thành 0. Theo cách dùng IEEE 754 chặt chẽ, tín hiệu *underflow* gắn với độ nhỏ và việc mất độ chính xác; trong lập trình ứng dụng, “underflow” thường được dùng rộng hơn để nói kết quả đi vào vùng dưới chuẩn hoặc làm tròn về 0. Khi viết tài liệu kiểm thử, nên tách rõ **SUBNORMAL** và **ROUNDED_TO_ZERO** thay vì coi chúng hoàn toàn giống nhau.
+The string `"1e-44"` produces a nonzero subnormal number after rounding, whereas `"1e-50"` is too small and becomes 0. Under strict IEEE 754 terminology, the *underflow* signal relates to tiny magnitude and loss of accuracy; in application programming, "underflow" is often used more broadly to mean the result enters the subnormal region or rounds to 0. When writing test documentation, separate **SUBNORMAL** and **ROUNDED_TO_ZERO** clearly rather than treating them as identical.
 
-### Tại sao `result == 0.0` chưa đủ để phát hiện underflow?
+### Why `result == 0.0` is not enough to detect underflow
 
-Hai chuỗi:
+Both strings:
 
 ```java
 Double.parseDouble("0.0");
 Double.parseDouble("1e-4000");
 ```
 
-đều trả `0.0`, nhưng **nguồn gốc khác nhau**. Từ giá trị `double` cuối cùng, không thể suy ra chắc chắn đầu vào gốc là 0 hay một số khác 0 đã underflow. Muốn phát hiện phải giữ nguyên chuỗi ban đầu và phân tích giá trị gốc theo cách đủ miền/độ chính xác.
+return `0.0`, yet **their origins differ**. From the final `double` value alone, you cannot tell with certainty whether the original input was 0 or a nonzero number that underflowed. To detect this, keep the original string and inspect the source value with sufficient range/precision.
 
-## 6. `NumberFormatException` khác overflow/underflow như thế nào?
+## 6. How does `NumberFormatException` differ from overflow/underflow?
 
-Các parser nhận chuỗi theo cú pháp mà Java hỗ trợ. Nếu chuỗi **không có dạng hợp lệ**, parser thường ném `NumberFormatException`. Ví dụ:
+The parsers accept strings conforming to the syntax supported by Java. If a string **does not have a valid form**, the parser typically throws `NumberFormatException`. For example:
 
 ```java
 Double.parseDouble("not-a-number"); // NumberFormatException
 Double.parseDouble("1_000.0");      // NumberFormatException
 ```
 
-Dấu gạch dưới trong literal Java như `1_000.0` là cú pháp **trong mã nguồn**, không tự trở thành cú pháp chuỗi được `Double.parseDouble` chấp nhận.
+Underscores in Java literals like `1_000.0` are **source-code** syntax, and do not automatically become string syntax accepted by `Double.parseDouble`.
 
-Một số chuỗi hợp lệ có thể bất ngờ đối với người mới:
+Some valid strings can surprise beginners:
 
-| Chuỗi | `Double.parseDouble` | Vì sao |
+| String | `Double.parseDouble` | Why |
 | --- | --- | --- |
-| `"0.5"` | `0.5` | Phân số nhị phân chính xác |
-| `"0.1"` | In ra `0.1`, nhưng làm tròn nhị phân | Hữu hạn, không biểu diễn chính xác số decimal nguồn |
-| `"9007199254740993"` | `9.007199254740992E15` | Giá trị vượt miền số nguyên liên tiếp chính xác của `double` |
+| `"0.5"` | `0.5` | Exact binary fraction |
+| `"0.1"` | Prints `0.1`, but binary-rounded | Finite, does not represent the source decimal exactly |
+| `"9007199254740993"` | `9.007199254740992E15` | Value exceeds `double`'s exact consecutive integer range |
 | `"1e400"` | `Infinity` | Overflow |
 | `"-1e400"` | `-Infinity` | Overflow |
-| `"1e-4000"` | `0.0` | Làm tròn xuống 0 do quá nhỏ |
-| `"1e-320"` | `1.0E-320` | Giá trị subnormal hữu hạn, khác 0 |
-| `"Infinity"` | `Infinity` | Token được parser hỗ trợ |
-| `"NaN"` | `NaN` | Token được parser hỗ trợ |
-| `"0x1.8p1"` | `3.0` | Cú pháp dấu phẩy động hexa |
-| `"1_000.0"` | `NumberFormatException` | Dấu `_` không hợp lệ trong chuỗi parser |
-| `"1,5"` | `NumberFormatException` | Không phải cú pháp decimal của `parseDouble` |
+| `"1e-4000"` | `0.0` | Rounded down to 0 because it is too small |
+| `"1e-320"` | `1.0E-320` | Finite, nonzero subnormal value |
+| `"Infinity"` | `Infinity` | Token supported by the parser |
+| `"NaN"` | `NaN` | Token supported by the parser |
+| `"0x1.8p1"` | `3.0` | Hex floating-point syntax |
+| `"1_000.0"` | `NumberFormatException` | `_` is invalid in parser strings |
+| `"1,5"` | `NumberFormatException` | Not `parseDouble` decimal syntax |
 
-`Double.parseDouble(" 1.25 ")` được chấp nhận sau khi loại các ký tự whitespace theo quy tắc của parser, nhưng **không nên suy ra mọi định dạng locale đều được chấp nhận**. Đầu vào dùng dấu phẩy làm dấu thập phân hoặc dấu nhóm hàng nghìn cần một parser theo locale được cấu hình cụ thể. Với đầu vào `null`, API có thể ném `NullPointerException`, không phải cách báo overflow.
+`Double.parseDouble(" 1.25 ")` is accepted after trimming whitespace characters per the parser's rules, but **do not infer that all locale formats are accepted**. Inputs using a comma as a decimal separator or thousands grouping require a specifically configured locale-aware parser. For `null` input, the API may throw `NullPointerException`, which is not how overflow is reported.
 
-Cũng cần phân biệt `Integer.parseInt("99999999999999999999")` với `Double.parseDouble` các số rất lớn: parser nguyên có thể ném `NumberFormatException` do vượt miền `int`, trong khi parser dấu phẩy động có thể trả `Infinity` khi giá trị hữu hạn thập phân quá lớn. Không áp dụng quy tắc báo lỗi của parser nguyên cho parser số thực.
+Also distinguish `Integer.parseInt("99999999999999999999")` from `Double.parseDouble` on very large numbers: integer parsers can throw `NumberFormatException` for exceeding `int` range, whereas floating-point parsers can return `Infinity` when a finite decimal value is too large. Do not apply integer-parser error-reporting rules to floating-point parsers.
 
-## 7. Demo Java 17 đầy đủ: bốn kết quả từ chuỗi hợp lệ
+## 7. Complete Java 17 demo: four outcomes from valid strings
 
-Tạo tệp `FloatingParseDemo.java`:
+Create the file `FloatingParseDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -316,14 +316,14 @@ public class FloatingParseDemo {
 }
 ```
 
-Chạy với JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ```bash
 javac FloatingParseDemo.java
 java FloatingParseDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 half = 0.5
@@ -345,11 +345,11 @@ explicit NaN = true
 invalid syntax: NumberFormatException
 ```
 
-Kết quả trên làm rõ bốn trạng thái: giá trị có thể biểu diễn đúng (`0.5`), bị làm tròn (`0.1` hoặc số nguyên lớn), overflow thành vô cực (`1e400`), underflow thành 0 hoặc số dưới chuẩn. Chỉ trường hợp cuối của ví dụ — chuỗi chứa dấu `_` — làm parser báo lỗi cú pháp.
+The output above clarifies four states: an exactly representable value (`0.5`), a rounded value (`0.1` or a large integer), overflow to infinity (`1e400`), and underflow to 0 or a subnormal number. Only the last case in the example — a string containing `_` — causes the parser to report a syntax error.
 
-## 8. Kiểm tra sau parse: `isFinite`, `isInfinite`, `isNaN` và phân loại subnormal
+## 8. Post-parse checks: `isFinite`, `isInfinite`, `isNaN`, and subnormal classification
 
-Nếu hợp đồng dữ liệu chỉ chấp nhận **số hữu hạn**, hãy kiểm tra *sau khi* parse:
+If the data contract accepts only **finite numbers**, check *after* parsing:
 
 ```java
 static double parseFiniteDouble(String text) {
@@ -364,9 +364,9 @@ static double parseFiniteDouble(String text) {
 }
 ```
 
-Đây là đoạn phương thức độc lập có thể đặt vào một class Java. Nó loại cả `NaN` lẫn vô cực, bất kể chúng đến từ token tường minh hay overflow. Nhưng nó **không** phát hiện mất chính xác do làm tròn hoặc số khác 0 bị làm tròn thành `0.0`, vì 0 và subnormal vẫn là giá trị hữu hạn.
+This is a standalone method snippet that can be placed inside a Java class. It excludes both `NaN` and infinities, whether they came from explicit tokens or overflow. However, it does **not** detect precision loss from rounding or nonzero numbers rounded to `0.0`, because 0 and subnormals are still finite values.
 
-Đối với các giá trị hữu hạn dương/âm khác 0:
+For positive/negative nonzero finite values:
 
 ```java
 static boolean isSubnormal(double x) {
@@ -376,13 +376,13 @@ static boolean isSubnormal(double x) {
 }
 ```
 
-Phương thức trên kiểm tra một giá trị kết quả **có nằm trong vùng subnormal không**, không chứng minh chuỗi nguồn bị làm tròn hay không. Một số subnormal được mô tả đúng bằng dạng nhị phân hoặc decimal phù hợp vẫn có thể được biểu diễn chính xác.
+The method above checks **whether a resulting value lies in the subnormal region**, not whether the source string was rounded. Some subnormals accurately described by an appropriate binary or decimal form can still be represented exactly.
 
-Nếu miền ứng dụng không cho phép kết quả subnormal do hạn chế độ chính xác, từ chối một cách tường minh; đừng tự hiểu `Double.isFinite` là đã bao hàm yêu cầu này.
+If the application domain forbids subnormal results due to precision limitations, reject them explicitly; do not assume `Double.isFinite` already covers this requirement.
 
-### Cẩn thận với số 0 âm
+### Be careful with negative zero
 
-`-0.0` là hữu hạn và `-0.0 == 0.0` là `true`. Khi dấu cần được phân biệt:
+`-0.0` is finite and `-0.0 == 0.0` is `true`. When the sign needs to be distinguished:
 
 ```java
 double x = Double.parseDouble("-1e-4000");
@@ -391,13 +391,13 @@ boolean negativeZero =
         == Double.doubleToRawLongBits(-0.0);
 ```
 
-Có hai trường hợp cho cùng `-0.0`: chuỗi thực sự mô tả âm không (`"-0.0"`) hoặc một số âm khác 0 đã underflow. Đọc bit dấu chỉ cho thấy **trạng thái cuối**, không khôi phục được nguyên nhân.
+There are two cases that yield the same `-0.0`: the string genuinely described negative zero (`"-0.0"`) or a nonzero negative number underflowed. Reading the sign bit only shows the **final state**; it cannot recover the cause.
 
-## 9. Muốn biết có làm tròn hay không phải giữ giá trị nguồn
+## 9. Detecting whether rounding occurred requires keeping the source value
 
-Sau khi `Double.parseDouble("0.1")` đã trả về `double`, kết quả không còn mang đầy đủ thông tin về chuỗi gốc. `Double.toString(result)` in biểu diễn ngắn để round-trip thành cùng giá trị, **không** cho biết decimal nguồn được giữ tuyệt đối.
+After `Double.parseDouble("0.1")` returns a `double`, the result no longer carries full information about the original string. `Double.toString(result)` prints a short representation that round-trips to the same value, **not** an indication that the source decimal was preserved with absolute exactness.
 
-Với một đầu vào **thuần thập phân** nằm trong miền mà `BigDecimal(String)` có thể phân tích, có thể so sánh chính xác giá trị thập phân gốc với **giá trị nhị phân chính xác** đã parse:
+For a **purely decimal** input within the range that `BigDecimal(String)` can parse, you can compare the exact original decimal value against the **exact binary value** that was parsed:
 
 ```java
 import java.math.BigDecimal;
@@ -405,127 +405,127 @@ import java.math.BigDecimal;
 BigDecimal source = new BigDecimal("0.1");
 double parsed = Double.parseDouble("0.1");
 
-// Constructor BigDecimal(double) giữ đúng giá trị nhị phân đã có.
-// Nó được dùng ở đây để chẩn đoán, không phải để khởi tạo tiền tệ.
+// The BigDecimal(double) constructor preserves the exact existing binary value.
+// It is used here for diagnostics, not for initializing currency amounts.
 BigDecimal storedExactly = new BigDecimal(parsed);
 
 boolean unchanged = source.compareTo(storedExactly) == 0;
-// unchanged là false: decimal 0.1 khác giá trị nhị phân của parsed.
+// unchanged is false: decimal 0.1 differs from the binary value of parsed.
 ```
 
-Với `"0.5"`, hai giá trị bằng nhau vì `1/2` có biểu diễn nhị phân hữu hạn. Với `"9007199254740993"`, kết quả khác nhau vì đã làm tròn số nguyên. Phải đảm bảo `parsed` hữu hạn trước khi gọi `new BigDecimal(parsed)` vì constructor đó không chấp nhận vô cực hoặc `NaN`.
+For `"0.5"`, the two values are equal because `1/2` has a finite binary representation. For `"9007199254740993"`, the results differ because integer rounding occurred. You must ensure `parsed` is finite before calling `new BigDecimal(parsed)` because that constructor does not accept infinity or `NaN`.
 
-**Lưu ý đặc biệt:** `BigDecimal.valueOf(parsed)` không tương đương `new BigDecimal(parsed)` trong bài toán chẩn đoán trên. `valueOf(double)` dùng biểu diễn decimal từ `Double.toString`, phù hợp nhiều nhu cầu thông thường nhưng có thể in lại `0.1` và **che đi khác biệt** giữa số nhị phân và decimal chính xác. Dùng `new BigDecimal(double)` **chỉ khi cần thấy đúng toàn bộ giá trị nhị phân**; với số tiền hoặc đầu vào decimal chính xác, ưu tiên `new BigDecimal(String)`.
+**Special note:** `BigDecimal.valueOf(parsed)` is not equivalent to `new BigDecimal(parsed)` in the diagnostic task above. `valueOf(double)` uses the decimal representation from `Double.toString`, which suits many ordinary needs but can print `0.1` again and **mask the difference** between the binary number and the exact decimal. Use `new BigDecimal(double)` **only when you need to see the entire exact binary value**; for money or exact decimal inputs, prefer `new BigDecimal(String)`.
 
-### Phân loại đơn giản với decimal input
+### Simple classification for decimal input
 
-Nếu hợp đồng đầu vào chỉ chấp nhận số decimal hữu hạn viết thành chuỗi, thuật toán chẩn đoán có thể làm như sau:
+If the input contract accepts only finite decimal numbers written as strings, a diagnostic algorithm can work as follows:
 
-1. Phân tích giá trị nguồn `new BigDecimal(text)` để giữ giá trị decimal chính xác.
-2. Phân tích sang `double` bằng `Double.parseDouble(text)`.
-3. Nếu kết quả vô cực → **overflow** (vì đã loại token `"Infinity"`/`"NaN"` trong bước 1).
-4. Nếu nguồn khác 0 mà kết quả là `0.0` hoặc `-0.0` → **underflow to zero**.
-5. Nếu kết quả khác 0 và có độ lớn nhỏ hơn `Double.MIN_NORMAL` → giá trị đầu ra là **subnormal**; có thể so sánh tiếp để biết nó chính xác hay bị làm tròn.
-6. Nếu kết quả hữu hạn, dùng `source.compareTo(new BigDecimal(parsed))` để kiểm tra **có làm tròn** so với giá trị decimal nguồn hay không.
+1. Parse the source value with `new BigDecimal(text)` to retain the exact decimal value.
+2. Parse to `double` using `Double.parseDouble(text)`.
+3. If the result is infinite → **overflow** (since `"Infinity"`/`"NaN"` tokens were already excluded in step 1).
+4. If the source is nonzero while the result is `0.0` or `-0.0` → **underflow to zero**.
+5. If the result is nonzero and has magnitude less than `Double.MIN_NORMAL` → the output value is **subnormal**; you can compare further to tell whether it is exact or rounded.
+6. If the result is finite, use `source.compareTo(new BigDecimal(parsed))` to check **whether rounding occurred** compared to the source decimal value.
 
-Ví dụ áp dụng:
+Applied examples:
 
-| Chuỗi decimal | Giá trị đích | Kết luận |
+| Decimal string | Target value | Conclusion |
 | --- | --- | --- |
-| `"0.5"` | `0.5` | Chính xác |
-| `"0.1"` | Giá trị gần `0.1` | Hữu hạn nhưng làm tròn |
-| `"9007199254740993"` | `9007199254740992` | Làm tròn giá trị nguyên |
+| `"0.5"` | `0.5` | Exact |
+| `"0.1"` | Value near `0.1` | Finite but rounded |
+| `"9007199254740993"` | `9007199254740992` | Integer value rounded |
 | `"1e400"` | `Infinity` | Overflow |
-| `"1e-4000"` | `0.0` | Underflow thành 0 |
-| `"1e-320"` | Subnormal gần `1e-320` | Dưới chuẩn; cần xét thêm sai số nếu muốn biết có chính xác không |
+| `"1e-4000"` | `0.0` | Underflow to 0 |
+| `"1e-320"` | Subnormal near `1e-320` | Subnormal; further error inspection needed to know if exact |
 
-Cách này là **chẩn đoán cho nguồn decimal**, không phải parser tổng quát cho chuỗi hexa, token `"Infinity"`/`"NaN"` hoặc mọi đầu vào cực dài: `BigDecimal(String)` có miền cú pháp và giới hạn exponent/scale riêng, và có thể tiêu tốn nhiều tài nguyên khi chuỗi quá lớn. Hãy đặt giới hạn kích thước đầu vào thích hợp.
+This approach is a **diagnostic for decimal sources**, not a general parser for hex strings, `"Infinity"`/`"NaN"` tokens, or arbitrarily huge inputs: `BigDecimal(String)` has its own syntax domain and exponent/scale limits, and can consume significant resources on excessively large strings. Set appropriate input size limits.
 
-## 10. Chọn kiểu số và chính sách xử lý theo bài toán
+## 10. Choosing numeric types and handling policies by problem
 
-| Nhu cầu | Khuyến nghị |
+| Requirement | Recommendation |
 | --- | --- |
-| Chỉ chấp nhận chuỗi có cú pháp số thực Java | `Float.parseFloat` / `Double.parseDouble`, bắt `NumberFormatException` |
-| Cần mọi kết quả **hữu hạn** | Sau parse, dùng `Float.isFinite` / `Double.isFinite` |
-| Cần cấm `NaN` và vô cực rõ ràng | Dùng `isNaN`/`isInfinite` hoặc `isFinite`; thông báo lỗi nghiệp vụ cụ thể |
-| Cần phát hiện số khác 0 bị parse thành 0 | Giữ và phân tích **nguồn trước làm tròn**, ví dụ `BigDecimal(String)` cho decimal |
-| Cần phát hiện/chặn vùng dưới chuẩn | Kiểm tra giá trị hữu hạn, khác 0, và `abs(x) < MIN_NORMAL` |
-| Cần decimal chính xác như số tiền | `BigDecimal(String)` với quy tắc làm tròn/tính toán thích hợp |
-| Cần lưu nguyên lớn và phân biệt từng đơn vị | `long` / `BigInteger`, không chuyển thành `double` làm khóa |
-| Cần giao tiếp JSON/API chặt | Xác định rõ cú pháp số được phép, có cho phép NaN/Infinity không, ngưỡng giá trị, cách báo overflow/underflow |
-| Cần tính toán khoa học nhị phân | Dùng `double`/`float` nếu đáp ứng độ chính xác, kiểm tra lỗi số học và miền kết quả |
+| Accept only strings with Java floating-point syntax | `Float.parseFloat` / `Double.parseDouble`, catch `NumberFormatException` |
+| Require all results to be **finite** | After parsing, use `Float.isFinite` / `Double.isFinite` |
+| Explicitly forbid `NaN` and infinity | Use `isNaN`/`isInfinite` or `isFinite`; report a specific business error message |
+| Detect nonzero numbers that parsed to 0 | Keep and inspect the **pre-rounding source**, e.g., `BigDecimal(String)` for decimals |
+| Detect/block the subnormal region | Check finite, nonzero, and `abs(x) < MIN_NORMAL` |
+| Exact decimals such as monetary amounts | `BigDecimal(String)` with appropriate rounding/arithmetic rules |
+| Store large integers distinguishing every unit | `long` / `BigInteger`, do not convert to `double` as keys |
+| Strict JSON/API integration | Clearly specify allowed numeric syntax, whether NaN/Infinity is allowed, value thresholds, and how overflow/underflow is reported |
+| Binary scientific computing | Use `double`/`float` if precision is adequate; check arithmetic errors and result range |
 
-Một quy trình nhập dữ liệu đáng tin cậy nên có **ba lớp kiểm tra**:
+A reliable input pipeline should have **three validation layers**:
 
-**(1) Syntax:** chuỗi có đúng grammar mà ứng dụng hỗ trợ không? Điều này có thể khác grammar rộng của Java, vì nhiều giao thức không cho phép `"NaN"`, `"Infinity"` hoặc dạng số hexa.
+**(1) Syntax:** does the string conform to the grammar supported by the application? This may differ from Java's broad grammar, since many protocols forbid `"NaN"`, `"Infinity"`, or hex number forms.
 
-**(2) Range and finiteness:** kết quả có nằm trong miền nghiệp vụ và hữu hạn không? Kiểm tra sau parse và xét cách nhận biết overflow.
+**(2) Range and finiteness:** is the result within the business domain and finite? Check after parsing and consider how to detect overflow.
 
-**(3) Precision:** sai lệch do làm tròn có chấp nhận được không? Nếu không, giữ dữ liệu gốc và dùng kiểu số thích hợp; không kỳ vọng parser tự báo mọi trường hợp mất độ chính xác.
+**(3) Precision:** is rounding deviation acceptable? If not, keep the original data and use an appropriate numeric type; do not expect the parser to report every precision loss automatically.
 
-### Vì sao `try/catch NumberFormatException` chưa đủ?
+### Why `try/catch NumberFormatException` is not enough
 
 ```java
 try {
     double value = Double.parseDouble(text);
-    // Phải tiếp tục kiểm tra value theo hợp đồng ứng dụng.
+    // Must continue validating value per the application contract.
 } catch (NumberFormatException ex) {
-    // Chỉ xử lý cú pháp không hợp lệ; không đại diện mọi mất độ chính xác.
+    // Handles only invalid syntax; does not represent all precision loss.
 }
 ```
 
-Nếu `text = "1e400"`, khối `catch` không chạy dù `value == Infinity`; nếu `text = "1e-4000"`, khối `catch` cũng không chạy dù giá trị nguồn khác 0 bị làm tròn thành 0. Một hệ thống chấp nhận các kết quả đó mà không kiểm tra có thể tạo lỗi khó phát hiện.
+If `text = "1e400"`, the `catch` block does not run even though `value == Infinity`; if `text = "1e-4000"`, the `catch` block also does not run even though the nonzero source value is rounded to 0. A system that accepts those results without checking can introduce hard-to-detect bugs.
 
-## 11. Lỗi phổ biến
+## 11. Common mistakes
 
-1. **Nhầm parse thành công với giữ nguyên giá trị.** Parser có thể làm tròn một số hữu hạn đúng cú pháp.
-2. **Nghĩ overflow số thực sẽ ném `NumberFormatException`.** Chuỗi hợp lệ vượt cận có thể trả `Infinity`.
-3. **Nghĩ underflow luôn là số 0.** Vùng subnormal vẫn chứa nhiều giá trị khác 0.
-4. **Nghĩ `MIN_VALUE` là số âm nhất.** Với `Float`/`Double`, đó là số dương khác 0 nhỏ nhất.
-5. **Nhìn `Double.toString(0.1)` rồi kết luận nhị phân lưu đúng 0.1.** Đây là chuỗi ngắn có khả năng round-trip về cùng `double`.
-6. **Dùng `BigDecimal.valueOf(double)` để kiểm tra có giữ chính xác decimal nguồn hay không.** Nó không phản ánh toàn bộ số nhị phân chính xác, nên có thể che đi sự khác biệt; mục đích chẩn đoán này cần `new BigDecimal(double)` với đầu vào hữu hạn.
-7. **Chuyển nguồn sang `double` rồi mới giữ bằng `BigDecimal`.** Thông tin đã mất không tự hồi phục.
-8. **Dùng `result == 0` để kết luận chuỗi gốc biểu diễn số 0.** Có thể là số khác 0 đã underflow.
-9. **Dùng `isFinite(result)` để kết luận không làm tròn.** Hữu hạn và chính xác là hai thuộc tính khác nhau.
-10. **Dùng số thực làm ID nguyên lớn.** Các giá trị nguyên khác nhau có thể parse thành cùng một `double`.
-11. **Cho rằng chuỗi parser chấp nhận mọi literal Java.** Literal mã nguồn có `_` không được `parseDouble` nhận như vậy; cú pháp giao thức/locale còn có thể khác.
-12. **Không xét `-0.0`.** Mất độ lớn vẫn có thể giữ dấu, ảnh hưởng một số phép toán và biểu diễn bit.
-13. **So sánh chuỗi đầu vào với kết quả `Double.toString` bằng ký tự.** Một giá trị decimal chính xác có thể in ra dưới dạng khác mà không thay đổi số; ngược lại cùng chuỗi ngắn cũng chưa chứng minh số nhị phân bằng giá trị decimal toán học.
-14. **Chỉ kiểm tra đầu vào hữu hạn mà bỏ qua phép tính sau đó.** Overflow/underflow cũng có thể phát sinh trong toán học nội bộ.
-15. **Áp dụng `BigDecimal` vô điều kiện với chuỗi cực dài.** Cần giới hạn độ dài và kích thước exponent để phòng trường hợp tiêu tốn tài nguyên quá mức.
+1. **Confusing successful parsing with preserving the value.** The parser can round a syntactically valid finite number.
+2. **Thinking floating-point overflow throws `NumberFormatException`.** Valid strings exceeding the upper bound can return `Infinity`.
+3. **Thinking underflow is always 0.** The subnormal region still contains many nonzero values.
+4. **Thinking `MIN_VALUE` is the most negative number.** For `Float`/`Double`, it is the smallest nonzero positive number.
+5. **Looking at `Double.toString(0.1)` and concluding binary stores 0.1 exactly.** That is a short string capable of round-tripping to the same `double`.
+6. **Using `BigDecimal.valueOf(double)` to check whether the source decimal was preserved exactly.** It does not reflect the full exact binary value and can mask differences; this diagnostic purpose requires `new BigDecimal(double)` on finite inputs.
+7. **Converting the source to `double` and only then wrapping in `BigDecimal`.** Already lost information does not recover on its own.
+8. **Using `result == 0` to conclude the original string represented 0.** It could be a nonzero number that underflowed.
+9. **Using `isFinite(result)` to conclude no rounding occurred.** Finiteness and exactness are two different properties.
+10. **Using floating-point numbers as large integer IDs.** Distinct integer values can parse to the exact same `double`.
+11. **Assuming the string parser accepts every Java literal.** Source literals with `_` are not accepted that way by `parseDouble`; protocol/locale syntax can also differ.
+12. **Ignoring `-0.0`.** Losing magnitude can still preserve the sign, affecting some operations and bit representations.
+13. **Comparing the input string character-by-character against `Double.toString`.** An exact decimal value may print in a different form without changing the number; conversely, matching short strings does not prove the binary number equals the mathematical decimal value.
+14. **Validating only finite inputs while ignoring subsequent calculations.** Overflow/underflow can also arise during internal arithmetic.
+15. **Applying `BigDecimal` unconditionally to extremely long strings.** Length and exponent-size limits are needed to guard against excessive resource consumption.
 
-## 12. Bài tập có đáp án
+## 12. Exercises with answers
 
-**Câu 1.** `Double.parseDouble("1e400")` có ném `NumberFormatException` không? Kết quả là gì?
+**Question 1.** Does `Double.parseDouble("1e400")` throw `NumberFormatException`? What is the result?
 
-**Đáp án:** Không. Chuỗi có cú pháp hợp lệ, biểu diễn giá trị hữu hạn toán học nhưng quá lớn so với miền `double` hữu hạn, nên parser trả `Infinity`.
+**Answer:** No. The string has valid syntax and represents a mathematically finite value that is too large for the finite `double` range, so the parser returns `Infinity`.
 
-**Câu 2.** Có thể phân biệt kết quả của `Double.parseDouble("0")` và `Double.parseDouble("1e-4000")` nếu chỉ giữ hai giá trị `double` trả về không?
+**Question 2.** Can you distinguish the results of `Double.parseDouble("0")` and `Double.parseDouble("1e-4000")` if you keep only the two returned `double` values?
 
-**Đáp án:** Không. Cả hai đều có thể bằng `+0.0`. Muốn biết số thứ hai vốn khác 0, phải giữ và phân tích chuỗi nguồn trước khi thông tin mất.
+**Answer:** No. Both can equal `+0.0`. To know the second number was originally nonzero, you must retain and inspect the source string before information is lost.
 
-**Câu 3.** Vì sao `Float.parseFloat("0.1")` và `Double.parseDouble("0.1")` không lưu đúng số thực `1/10`?
+**Question 3.** Why do `Float.parseFloat("0.1")` and `Double.parseDouble("0.1")` not store the exact real number `1/10`?
 
-**Đáp án:** `0.1` không có biểu diễn nhị phân hữu hạn. Cả `float` lẫn `double` phải chọn giá trị gần nó trên lưới biểu diễn. `double` có độ chính xác phần trị cao hơn nên thường gần hơn.
+**Answer:** `0.1` has no finite binary representation. Both `float` and `double` must choose a nearby value on their representation grid. `double` has higher significand precision so it is usually closer.
 
-**Câu 4.** Chuỗi `"1e-320"` có parse thành `0.0` trong `double` không?
+**Question 4.** Does the string `"1e-320"` parse to `0.0` in `double`?
 
-**Đáp án:** Không với giá trị đã nêu: parser trả một số subnormal khác 0 (in ra `1.0E-320`). Nó nhỏ hơn `Double.MIN_NORMAL` nhưng lớn hơn độ phân giải tối thiểu gần 0.
+**Answer:** Not for the given value: the parser returns a nonzero subnormal number (printing `1.0E-320`). It is smaller than `Double.MIN_NORMAL` yet larger than the minimum resolution near 0.
 
-**Câu 5.** Nếu yêu cầu mọi kết quả parse phải hữu hạn, dùng điều kiện nào?
+**Question 5.** If all parsed results must be finite, what condition should you use?
 
-**Đáp án:** Sau `double x = Double.parseDouble(text)`, dùng `Double.isFinite(x)`. Nếu trả `false`, dữ liệu có `NaN` hoặc vô cực. Nhưng kiểm tra này **không** khẳng định không làm tròn/underflow thành 0.
+**Answer:** After `double x = Double.parseDouble(text)`, use `Double.isFinite(x)`. If it returns `false`, the data is `NaN` or infinity. However, this check does **not** guarantee no rounding or underflow to 0 occurred.
 
-**Câu 6.** Khi kiểm tra sai lệch decimal giữa chuỗi `"0.1"` và kết quả `double` đã parse, vì sao `new BigDecimal(parsed)` giúp chẩn đoán tốt hơn `BigDecimal.valueOf(parsed)`?
+**Question 6.** When checking decimal discrepancy between `"0.1"` and the parsed `double` result, why does `new BigDecimal(parsed)` diagnose better than `BigDecimal.valueOf(parsed)`?
 
-**Đáp án:** `new BigDecimal(parsed)` chuyển **giá trị nhị phân chính xác** của `double` hữu hạn thành decimal, thể hiện phần lệch thực sự. `BigDecimal.valueOf(parsed)` dựa trên dạng thập phân ngắn `Double.toString`, có thể cho ra `"0.1"` và che phần lệch so với giá trị toán học nguồn.
+**Answer:** `new BigDecimal(parsed)` converts the **exact binary value** of a finite `double` into decimal, exposing the true deviation. `BigDecimal.valueOf(parsed)` relies on the short decimal form `Double.toString`, which can yield `"0.1"` and hide the discrepancy from the source mathematical value.
 
-**Câu 7.** Vì sao một chuỗi nguyên có cú pháp hợp lệ lại mất thông tin khi parse bằng `Double.parseDouble`?
+**Question 7.** Why can a syntactically valid integer string lose information when parsed with `Double.parseDouble`?
 
-**Đáp án:** `double` có 53 bit độ chính xác phần trị; nó không biểu diễn liên tiếp mọi số nguyên vượt `2^53`. Chẳng hạn `"9007199254740993"` làm tròn thành `9007199254740992` dù số đó còn xa ngưỡng overflow.
+**Answer:** `double` has 53 bits of significand precision; it cannot consecutively represent every integer beyond `2^53`. For example, `"9007199254740993"` rounds to `9007199254740992` even though that number is far from the overflow threshold.
 
-**Câu 8.** `Double.parseDouble("-1e-4000")` có thể cho `-0.0`. `-0.0 == 0.0` trả gì và có chứng minh không còn dấu âm không?
+**Question 8.** `Double.parseDouble("-1e-4000")` can yield `-0.0`. What does `-0.0 == 0.0` return, and does it prove the negative sign is gone?
 
-**Đáp án:** So sánh primitive `==` trả `true`, nhưng bit dấu âm còn tồn tại; `Double.doubleToRawLongBits` cho phép thấy bit dấu. `1.0/-0.0` tạo `-Infinity`.
+**Answer:** Primitive `==` comparison returns `true`, yet the negative sign bit still exists; `Double.doubleToRawLongBits` lets you observe the sign bit. `1.0/-0.0` produces `-Infinity`.
 
-**Kết luận:** Parser dấu phẩy động trả **một giá trị được biểu diễn bằng `float`/`double`**, chứ không hứa bảo toàn mọi số toán học trong chuỗi. Hãy tách lỗi cú pháp khỏi overflow, underflow và rounding; kiểm tra `isFinite` khi cần, phân biệt số dưới chuẩn với 0, và giữ giá trị nguồn ở biểu diễn phù hợp khi tính chính xác là yêu cầu bắt buộc.
+**Conclusion:** Floating-point parsers return **a value representable by `float`/`double`**, rather than promising to preserve every mathematical number in a string. Separate syntax errors from overflow, underflow, and rounding; check `isFinite` when required, distinguish subnormal numbers from 0, and keep the source value in an appropriate representation when exactness is mandatory.

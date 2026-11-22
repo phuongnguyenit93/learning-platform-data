@@ -1,21 +1,21 @@
-# NoSuchMethodError sau khi module version không khớp
+# NoSuchMethodError After Module Version Mismatch
 
-Trong ứng dụng Java modular, một module có thể resolve thành công nhưng ứng dụng vẫn gặp lỗi khi gọi method lúc runtime. Một nguyên nhân thường gặp là consumer được biên dịch với một phiên bản API, trong khi runtime lại nạp một phiên bản module khác không còn method mà bytecode đang yêu cầu.
+In a modular Java application, a module can resolve successfully yet the application still fails when invoking a method at runtime. A common cause is that the consumer was compiled against one API version, while runtime loads another module version that no longer has the method requested by the bytecode.
 
-Lỗi thường thấy là:
+The error typically looks like:
 
 ~~~text
 java.lang.NoSuchMethodError:
   'java.lang.String com.example.library.api.GreetingApi.greet(java.lang.String)'
 ~~~
 
-Đây là lỗi liên kết nhị phân (binary linkage). JVM đã tìm thấy class nhưng không tìm được method có tên và descriptor mà bytecode gọi tới. JPMS quản lý module resolution, readability và quyền truy cập package; nó không tự kiểm tra semantic version compatibility giữa phiên bản thư viện lúc biên dịch và lúc chạy.
+This is a binary linkage error. The JVM found the class yet could not find a method with the name and descriptor invoked by bytecode. JPMS manages module resolution, readability, and package access permissions; it does not automatically verify semantic version compatibility between compile-time and runtime library versions.
 
-## 1. NoSuchMethodError xảy ra khi nào?
+## 1. When does NoSuchMethodError occur?
 
-NoSuchMethodError là một lớp con của IncompatibleClassChangeError và LinkageError. Nó xuất hiện khi bytecode yêu cầu một method nhưng JVM không thể tìm thấy method tương ứng trong class hoặc interface được nạp.
+NoSuchMethodError is a subclass of IncompatibleClassChangeError and LinkageError. It occurs when bytecode invokes a method yet the JVM cannot find the matching method in the loaded class or interface.
 
-Ví dụ, consumer được biên dịch với API:
+For example, the consumer was compiled against the API:
 
 ~~~java
 package com.example.library.api;
@@ -28,9 +28,9 @@ public class GreetingApi {
 }
 ~~~
 
-Bytecode của consumer chứa lời gọi tới method có tên greet và descriptor tương ứng với tham số String, kiểu trả về String.
+The consumer's bytecode contains a call to the method named greet with a descriptor matching a String parameter and a String return type.
 
-Nhưng runtime lại nạp một phiên bản cũ:
+Yet runtime loads an older version:
 
 ~~~java
 package com.example.library.api;
@@ -43,23 +43,23 @@ public class GreetingApi {
 }
 ~~~
 
-Phiên bản runtime không có greet(String). Khi consumer thực hiện lời gọi đã được biên dịch, JVM không thể liên kết method và ném NoSuchMethodError.
+The runtime version lacks greet(String). When the consumer executes the compiled call, the JVM cannot link the method and throws NoSuchMethodError.
 
-Điểm quan trọng:
+Key points:
 
-- Class có thể tồn tại và được nạp thành công.
-- Module có thể resolve thành công.
-- Module consumer có thể đọc module library.
-- Package API có thể được export đúng.
-- Nhưng method descriptor được bytecode yêu cầu vẫn có thể không tồn tại trong class runtime.
+- The class may exist and load successfully.
+- The module may resolve successfully.
+- The consumer module may read the library module.
+- The API package may be exported properly.
+- Yet the method descriptor required by bytecode can still be absent in the runtime class.
 
-Vì vậy, lỗi này thường chỉ xuất hiện khi code đi tới call site bị ảnh hưởng, thay vì ngay tại bước khởi động JVM.
+Therefore, this error usually surfaces only when execution reaches the affected call site, rather than immediately at JVM startup.
 
-## 2. Vì sao module version không tự ngăn lỗi?
+## 2. Why do module versions not automatically prevent the error?
 
-Module descriptor có thể chứa version metadata. Khi đóng gói module, công cụ JAR cho phép ghi version bằng tùy chọn --module-version. Runtime có thể đọc metadata này qua ModuleDescriptor.version().
+A module descriptor can carry version metadata. When packaging a module, the JAR tool allows recording a version via the --module-version option. Runtime can read this metadata via ModuleDescriptor.version().
 
-Tuy nhiên, khai báo dependency trong module-info.java chỉ nêu tên module:
+However, dependency declarations in module-info.java specify only the module name:
 
 ~~~java
 module com.example.app {
@@ -67,24 +67,24 @@ module com.example.app {
 }
 ~~~
 
-Khai báo trên yêu cầu module có tên com.example.library. Nó không biểu diễn một version range như >= 2.0 và < 3.0, cũng không cam kết rằng method nào đó sẽ tồn tại.
+The declaration above requests a module named com.example.library. It does not express a version range like >= 2.0 and < 3.0, nor does it guarantee that a given method exists.
 
-JPMS thực hiện các nhiệm vụ chính:
+JPMS performs these primary tasks:
 
-- Tìm module observable trên các nguồn module đã cấu hình.
-- Resolve module graph dựa trên tên module và các quan hệ requires.
-- Xác định readability giữa các module.
-- Áp dụng exports, opens và các quy tắc truy cập.
+- Finding observable modules on configured module sources.
+- Resolving the module graph based on module names and requires relationships.
+- Establishing readability between modules.
+- Enforcing exports, opens, and access rules.
 
-JPMS không phải dependency version manager. Module version là metadata mô tả phiên bản; bản thân metadata đó không tạo ra chính sách tương thích API.
+JPMS is not a dependency version manager. A module version is descriptive metadata; the metadata itself does not enforce an API compatibility policy.
 
-Do đó, ứng dụng có thể được biên dịch với com.example.library phiên bản 2.0 nhưng khi chạy lại nạp module cùng tên phiên bản 1.0. Nếu phiên bản 1.0 thiếu method mà consumer cần, lỗi linkage có thể xảy ra.
+Consequently, an application can be compiled against com.example.library version 2.0 yet load version 1.0 of the same-named module at runtime. If version 1.0 lacks a method the consumer needs, a linkage error can occur.
 
-## 3. Ví dụ tái hiện lỗi giữa hai phiên bản module
+## 3. Reproduction example between two module versions
 
-Ta tạo một thư viện có hai phiên bản. Cả hai dùng cùng tên module là com.example.library.
+Let us create a library with two versions. Both use the same module name, com.example.library.
 
-### Phiên bản 1.0
+### Version 1.0
 
 File module-info.java:
 
@@ -107,11 +107,11 @@ public class GreetingApi {
 }
 ~~~
 
-Phiên bản 1.0 chỉ có method greet() không nhận tham số.
+Version 1.0 only has a zero-argument greet() method.
 
-### Phiên bản 2.0
+### Version 2.0
 
-Module descriptor giữ cùng tên và package được export:
+The module descriptor keeps the same name and exported package:
 
 ~~~java
 module com.example.library {
@@ -119,7 +119,7 @@ module com.example.library {
 }
 ~~~
 
-GreetingApi.java của phiên bản 2.0:
+GreetingApi.java in version 2.0:
 
 ~~~java
 package com.example.library.api;
@@ -132,9 +132,9 @@ public class GreetingApi {
 }
 ~~~
 
-Phiên bản 2.0 cung cấp greet(String), là method mà consumer mới sẽ sử dụng.
+Version 2.0 provides greet(String), which the new consumer will use.
 
-### Module consumer
+### Consumer module
 
 File module-info.java:
 
@@ -160,29 +160,29 @@ public class Main {
 }
 ~~~
 
-Consumer được biên dịch với module library phiên bản 2.0:
+The consumer is compiled against version 2.0 of the library module:
 
 ~~~shell
 javac --module-path artifacts/com.example.library-2.0.jar -d build/app src/app/module-info.java src/app/com/example/app/Main.java
 ~~~
 
-Sau khi biên dịch, bytecode của Main chứa lời gọi tới greet(String).
+After compilation, Main's bytecode contains a call to greet(String).
 
-### Chạy nhầm phiên bản 1.0
+### Accidentally running version 1.0
 
-Giả sử runtime được cấu hình với library phiên bản 1.0:
+Suppose runtime is configured with library version 1.0:
 
 ~~~shell
 java --module-path "build/app;artifacts/com.example.library-1.0.jar" --module com.example.app/com.example.app.Main
 ~~~
 
-Trên Windows, dấu chấm phẩy phân cách các phần tử module path. Trên Linux hoặc macOS, thay dấu chấm phẩy bằng dấu hai chấm:
+On Windows, semicolons separate module path entries. On Linux or macOS, replace the semicolon with a colon:
 
 ~~~shell
 java --module-path "build/app:artifacts/com.example.library-1.0.jar" --module com.example.app/com.example.app.Main
 ~~~
 
-Kết quả sẽ có dạng:
+The output will look like:
 
 ~~~text
 Exception in thread "main" java.lang.NoSuchMethodError:
@@ -190,41 +190,41 @@ Exception in thread "main" java.lang.NoSuchMethodError:
     at com.example.app/com.example.app.Main.main(Main.java:...)
 ~~~
 
-Module com.example.library phiên bản 1.0 vẫn có đúng tên mà app yêu cầu. Vì thế module resolution có thể thành công. Nhưng class GreetingApi của phiên bản 1.0 không chứa greet(String), nên lời gọi trong bytecode thất bại.
+Module com.example.library version 1.0 still has the exact name app requires. Therefore module resolution can succeed. Yet the GreetingApi class in version 1.0 lacks greet(String), so the call in bytecode fails.
 
-Đây là ví dụ điển hình của việc module name khớp nhưng binary API không tương thích.
+This is a classic example of module names matching while the binary API is incompatible.
 
-## 4. Phân biệt lỗi module resolution và lỗi linkage
+## 4. Distinguishing module resolution errors from linkage errors
 
-Hai lỗi có thể xuất hiện trong cùng một ứng dụng nhưng xảy ra ở các giai đoạn khác nhau.
+Both errors can appear in the same application yet occur at different stages.
 
-| Tình huống | Giai đoạn | Dấu hiệu thường gặp |
+| Scenario | Stage | Common symptom |
 | --- | --- | --- |
-| Không tìm thấy module được yêu cầu | Module resolution | FindException hoặc lỗi module not found |
-| Module không đọc được module khác | Kiểm tra readability / truy cập | Compilation error hoặc lỗi truy cập tương ứng |
-| Package không được export | Truy cập API giữa module | Compilation error hoặc lỗi truy cập lúc runtime |
-| Package không mở cho deep reflection | Reflection | InaccessibleObjectException hoặc trySetAccessible() trả về false |
-| Method không tồn tại trong class runtime | Binary linkage | NoSuchMethodError |
+| Required module not found | Module resolution | FindException or module not found error |
+| Module cannot read another module | Readability / access check | Compilation error or corresponding access error |
+| Package not exported | Cross-module API access | Compilation error or runtime access error |
+| Package not open for deep reflection | Reflection | InaccessibleObjectException or trySetAccessible() returning false |
+| Method absent from runtime class | Binary linkage | NoSuchMethodError |
 
-NoSuchMethodError không có nghĩa là module path sai trong mọi trường hợp. Module path có thể tìm đúng một module cùng tên, nhưng artifact được nạp lại không tương thích với consumer.
+NoSuchMethodError does not mean the module path is wrong in every case. The module path may find a module with the right name, yet the loaded artifact is incompatible with the consumer.
 
-Cũng cần phân biệt NoSuchMethodError với một số lỗi linkage khác:
+Also distinguish NoSuchMethodError from several other linkage errors:
 
-- NoClassDefFoundError: class cần thiết không thể được tìm thấy hoặc khởi tạo theo tình huống tương ứng.
-- NoSuchFieldError: field mà bytecode yêu cầu không tồn tại.
-- IllegalAccessError: member tồn tại nhưng truy cập vi phạm quy tắc access.
-- AbstractMethodError: lời gọi cần implementation cụ thể nhưng class runtime không cung cấp implementation phù hợp.
-- IncompatibleClassChangeError: cấu trúc hoặc cách sử dụng class đã thay đổi theo hướng không tương thích, ví dụ một số trường hợp thay đổi static/instance.
+- NoClassDefFoundError: a required class could not be found or initialized under the circumstances.
+- NoSuchFieldError: a field requested by bytecode does not exist.
+- IllegalAccessError: the member exists yet access violates access rules.
+- AbstractMethodError: the call needs a concrete implementation yet the runtime class provides no suitable implementation.
+- IncompatibleClassChangeError: the class structure or usage changed incompatibly, such as certain static/instance changes.
 
-Đừng sửa exports hoặc opens chỉ vì thấy một lỗi liên quan đến module. Những tùy chọn đó không thể tạo lại method đã bị xóa hoặc thay đổi descriptor.
+Do not alter exports or opens just because you see an error involving modules. Those options cannot recreate a removed method or change a descriptor.
 
-## 5. Kiểm tra module và artifact thực tế đang được nạp
+## 5. Inspecting the actual loaded module and artifact
 
-Khi gặp lỗi, hãy xác định class runtime đến từ đâu. Đừng chỉ dựa vào version trong file build hoặc tên file JAR.
+When encountering the error, determine where the runtime class came from. Do not rely solely on the version in build files or the JAR filename.
 
-### Kiểm tra module của class
+### Inspecting a class's module
 
-Với một class thuộc named module:
+For a class in a named module:
 
 ~~~java
 import java.lang.module.ModuleDescriptor;
@@ -273,50 +273,50 @@ public class ModuleDiagnostics {
 }
 ~~~
 
-Gọi phương thức chẩn đoán với class thực sự gây lỗi:
+Call the diagnostic method on the class actually causing the error:
 
 ~~~java
 ModuleDiagnostics.print(GreetingApi.class);
 ~~~
 
-Thông tin này giúp xác định:
+This information helps identify:
 
-- Tên module mà class thuộc về.
-- Version metadata nếu module có ghi nhận.
-- Module layer đang chứa module.
-- Vị trí module reference trong configuration.
-- Code source của class nếu class loader cung cấp thông tin này.
+- The module name the class belongs to.
+- Version metadata if the module recorded any.
+- The module layer holding the module.
+- The module reference's location in the configuration.
+- The class's code source if the class loader provides this information.
 
-Với unnamed module, Module.getDescriptor() trả về null và module không có tên. Trong ứng dụng có custom class loader hoặc custom ModuleLayer, hãy kiểm tra đúng class được sử dụng tại call site.
+For an unnamed module, Module.getDescriptor() returns null and the module has no name. In applications with custom class loaders or custom ModuleLayers, inspect the exact class used at the call site.
 
-### Kiểm tra module resolution lúc khởi động
+### Inspecting module resolution at startup
 
-Có thể thêm tùy chọn:
+You can add the option:
 
 ~~~shell
 java --show-module-resolution --module-path mods --module com.example.app/com.example.app.Main
 ~~~
 
-Tùy chọn này hiển thị thông tin về quá trình resolve module. Nó hữu ích để xem module nào được đưa vào graph và dependency nào được tìm thấy.
+This option displays details about module resolution. It is useful for seeing which modules enter the graph and which dependencies are found.
 
-Tuy nhiên, output resolution không chứng minh mọi method của phiên bản API mà consumer cần đều tồn tại. Vẫn phải kiểm tra artifact và binary signature.
+However, resolution output does not prove every method from the API version the consumer needs exists. You still must check artifacts and binary signatures.
 
-### Kiểm tra descriptor của JAR
+### Inspecting JAR descriptors
 
-Dùng công cụ jar:
+Use the jar tool:
 
 ~~~shell
 jar --describe-module --file artifacts/com.example.library-1.0.jar
 jar --describe-module --file artifacts/com.example.library-2.0.jar
 ~~~
 
-So sánh tên module, package được export và version metadata. Nếu hai JAR có cùng module name nhưng khác version, hãy kiểm tra xem runtime thực sự đang chọn artifact nào.
+Compare module names, exported packages, and version metadata. If two JARs share the same module name yet differ in version, check which artifact runtime is actually selecting.
 
-## 6. So sánh method descriptor ở compile time và runtime
+## 6. Comparing compile-time and runtime method descriptors
 
-JVM liên kết method dựa trên thông tin nhị phân, bao gồm tên method và descriptor. Descriptor thể hiện kiểu tham số và kiểu trả về.
+The JVM links methods using binary information, including method name and descriptor. The descriptor encodes parameter types and return type.
 
-Dùng javap để xem class trong từng JAR:
+Use javap to inspect the class inside each JAR:
 
 ~~~shell
 javap -classpath artifacts/com.example.library-1.0.jar -p -s com.example.library.api.GreetingApi
@@ -324,130 +324,130 @@ javap -classpath artifacts/com.example.library-1.0.jar -p -s com.example.library
 javap -classpath artifacts/com.example.library-2.0.jar -p -s com.example.library.api.GreetingApi
 ~~~
 
-Kết quả của phiên bản 1.0 có thể cho thấy:
+The output for version 1.0 might show:
 
 ~~~text
 public java.lang.String greet();
   descriptor: ()Ljava/lang/String;
 ~~~
 
-Phiên bản 2.0:
+Version 2.0:
 
 ~~~text
 public java.lang.String greet(java.lang.String);
   descriptor: (Ljava/lang/String;)Ljava/lang/String;
 ~~~
 
-Hai descriptor khác nhau. Một lời gọi tới greet(String) không thể được liên kết với greet().
+The two descriptors differ. A call to greet(String) cannot link against greet().
 
-Có thể kiểm tra cả bytecode của consumer:
+You can also inspect the consumer's bytecode:
 
 ~~~shell
 javap -classpath build/app -c -s com.example.app.Main
 ~~~
 
-Tìm lệnh invokevirtual hoặc invokeinterface liên quan tới GreetingApi.greet. Phần constant pool và descriptor cho biết bytecode đang yêu cầu method nào.
+Look for invokevirtual or invokeinterface instructions referencing GreetingApi.greet. The constant pool and descriptor show which method the bytecode requests.
 
-Nếu consumer được biên dịch với API phiên bản 2.0, nhưng class runtime chỉ có method của phiên bản 1.0, nguyên nhân đã được xác định.
+If the consumer was compiled against API version 2.0, while the runtime class has only version 1.0's method, the root cause is identified.
 
-## 7. Những nguyên nhân thường gặp trong dự án thực tế
+## 7. Common causes in real-world projects
 
-**Compile-time và runtime dependency khác nhau.** Gradle hoặc Maven chọn một artifact khi biên dịch nhưng runtime packaging lại chứa phiên bản khác. Kiểm tra cả compile classpath và runtime classpath.
+**Different compile-time and runtime dependencies.** Gradle or Maven selects one artifact during compilation, while runtime packaging contains a different version. Check both compile classpath and runtime classpath.
 
-**JAR cũ còn sót trong thư mục triển khai.** Ứng dụng được build lại nhưng container, thư mục libs, application server hoặc thư mục deploy vẫn giữ artifact cũ.
+**Stale JARs left behind in deployment directories.** The application was rebuilt, yet the container, libs directory, application server, or deploy directory still holds old artifacts.
 
-**Dependency bắc cầu chọn phiên bản ngoài dự kiến.** Một thư viện khác kéo theo phiên bản library cũ hơn. Build tool có thể giải quyết xung đột theo quy tắc riêng; cần xem dependency graph thực tế.
+**Transitive dependencies selecting an unexpected version.** Another library pulls in an older library version. Build tools resolve conflicts by their own rules; inspect the actual dependency graph.
 
-**Nhiều module hoặc class loader.** Một ứng dụng có thể dùng boot layer, custom ModuleLayer, plugin class loader hoặc classpath bổ sung. Class được nạp tại call site có thể đến từ artifact khác với artifact mà người vận hành đang kiểm tra.
+**Multiple modules or class loaders.** An application may use the boot layer, custom ModuleLayers, plugin class loaders, or an additional classpath. The class loaded at the call site may come from a different artifact than the one the operator is inspecting.
 
-**Module patch hoặc upgrade path.** Các tùy chọn như --patch-module và --upgrade-module-path có thể thay đổi nội dung hoặc nguồn module runtime. Cần đưa chúng vào quá trình kiểm tra nếu ứng dụng có sử dụng.
+**Module patches or upgrade paths.** Options like --patch-module and --upgrade-module-path can alter runtime module contents or sources. Include them in your inspection if the application uses them.
 
-**API thay đổi không tương thích.** Method bị xóa, đổi tên, đổi kiểu tham số hoặc đổi kiểu trả về. Consumer vẫn giữ bytecode cũ và gọi method không còn tồn tại.
+**Incompatible API changes.** A method was removed, renamed, or had parameter or return types changed. The consumer still retains older bytecode calling a method that no longer exists.
 
-**Đóng gói sai dependency.** Build tạo một JAR đúng nhưng thư mục phân phối, image container hoặc script khởi chạy lại tham chiếu đến một file JAR khác.
+**Packaging the wrong dependency.** The build creates the right JAR, yet the distribution directory, container image, or startup script points to a different JAR file.
 
-## 8. Quy trình xử lý theo thứ tự
+## 8. Ordered resolution workflow
 
-Khi gặp NoSuchMethodError sau khi nâng version module, hãy thực hiện theo trình tự sau:
+When encountering NoSuchMethodError after upgrading a module version, follow this order:
 
-1. Đọc đầy đủ stack trace để xác định class và call site phát sinh lỗi.
-2. Xác định method name và descriptor trong thông báo lỗi.
-3. Kiểm tra compile-time dependency mà consumer đã sử dụng.
-4. Kiểm tra runtime classpath và module path thực tế trong lệnh khởi chạy hoặc môi trường triển khai.
-5. In module name, module version và code source của class runtime.
-6. Dùng jar --describe-module để so sánh module descriptor.
-7. Dùng javap -p -s để so sánh method signature giữa artifact compile-time và runtime.
-8. Kiểm tra dependency tree để tìm phiên bản bị kéo theo hoặc bị override.
-9. Kiểm tra custom layer, class loader, --patch-module và --upgrade-module-path nếu ứng dụng có dùng.
-10. Sau khi xác định đúng artifact, đồng bộ dependency và build lại consumer nếu API chủ đích đã thay đổi.
+1. Read the full stack trace to identify the failing class and call site.
+2. Identify the method name and descriptor in the error message.
+3. Check the compile-time dependency the consumer used.
+4. Check the actual runtime classpath and module path in the launch command or deployment environment.
+5. Print the module name, module version, and code source of the runtime class.
+6. Use jar --describe-module to compare module descriptors.
+7. Use javap -p -s to compare method signatures between compile-time and runtime artifacts.
+8. Inspect the dependency tree to find versions pulled in transitively or overridden.
+9. Check custom layers, class loaders, --patch-module, and --upgrade-module-path if the application uses them.
+10. Once the right artifact is identified, synchronize dependencies and rebuild the consumer if the API changed intentionally.
 
 ### Gradle
 
-Xem dependency tree của runtime classpath:
+Inspect the runtime classpath dependency tree:
 
 ~~~shell
 ./gradlew dependencies --configuration runtimeClasspath
 ~~~
 
-Tìm lý do một dependency cụ thể được chọn:
+Find why a specific dependency version was chosen:
 
 ~~~shell
 ./gradlew dependencyInsight --dependency com.example.library --configuration runtimeClasspath
 ~~~
 
-Kiểm tra compile classpath tương ứng:
+Inspect the corresponding compile classpath:
 
 ~~~shell
 ./gradlew dependencies --configuration compileClasspath
 ~~~
 
-So sánh kết quả để xác định phiên bản build đang biên dịch và phiên bản được đưa vào runtime.
+Compare the outputs to determine which version the build compiles against and which version enters runtime.
 
 ### Maven
 
-Xem dependency tree:
+Inspect the dependency tree:
 
 ~~~shell
 mvn dependency:tree -Dincludes=com.example:library
 ~~~
 
-Kiểm tra dependency mediation, dependency được khai báo trực tiếp và dependency bắc cầu.
+Check dependency mediation, direct dependencies, and transitive dependencies.
 
-### Đồng bộ artifact
+### Synchronizing artifacts
 
-Sau khi xác định nguyên nhân:
+Once the cause is identified:
 
-- Khóa hoặc quản lý version dependency tập trung để compile và runtime dùng cùng phiên bản mong muốn.
-- Loại bỏ JAR cũ khỏi thư mục deploy hoặc image container.
-- Kiểm tra script khởi chạy và biến môi trường có bổ sung module path khác hay không.
-- Clean và build lại consumer khi API đã thay đổi có chủ đích.
-- Triển khai đồng bộ các module liên quan, tránh trộn artifact của nhiều lần build.
-- Nếu cần giữ tương thích, phát hành lại library với method cũ hoặc cung cấp migration path phù hợp.
+- Pin or centrally manage dependency versions so compile and runtime use the intended version.
+- Remove stale JARs from deployment directories or container images.
+- Check whether launch scripts and environment variables append a different module path.
+- Clean and rebuild the consumer when the API has changed intentionally.
+- Deploy related modules together, avoiding mixing artifacts from different builds.
+- If compatibility must be preserved, re-release the library with the old method or provide an appropriate migration path.
 
-## 9. Cách phòng tránh trong quá trình phát triển module
+## 9. Preventing this during module development
 
-**Giữ binary compatibility cho public API.** Tránh xóa hoặc đổi descriptor của method đã công khai trong một minor release nếu dự án cam kết tương thích nhị phân.
+**Maintain binary compatibility for public APIs.** Avoid removing or changing the descriptor of a published method in a minor release if the project commits to binary compatibility.
 
-**Quản lý version nhất quán.** Dùng dependency constraints, version catalog, platform/BOM hoặc dependency locking phù hợp với build tool. Module name trong JPMS không thay thế việc quản lý version của artifact.
+**Manage versions consistently.** Use dependency constraints, version catalogs, platforms/BOMs, or dependency locking appropriate for your build tool. A module name in JPMS does not replace artifact version management.
 
-**Kiểm thử trên artifact đã đóng gói.** Kiểm tra JAR, runtime image hoặc container thực tế thay vì chỉ chạy bằng classpath của IDE.
+**Test against packaged artifacts.** Test the actual JARs, runtime images, or containers rather than running solely on the IDE's classpath.
 
-**Có kiểm thử tương thích.** Chạy consumer đã biên dịch với phiên bản API trước trên library mới nếu dự án yêu cầu binary compatibility. Có thể bổ sung API compatibility checker trong CI.
+**Include compatibility tests.** Run consumers compiled against a previous API version on top of the new library if the project requires binary compatibility. An API compatibility checker can be added to CI.
 
-**Tránh nhiều nguồn class không rõ ràng.** Kiểm soát module path, classpath, custom class loader và module layer. Ghi lại nguồn artifact khi cần chẩn đoán.
+**Avoid ambiguous class sources.** Control the module path, classpath, custom class loaders, and module layers. Log artifact sources when diagnosing.
 
-**Công bố thay đổi API có lộ trình.** Nếu method cần bị loại bỏ hoặc đổi chữ ký, đánh dấu deprecated trước, cung cấp method thay thế và hướng dẫn migration. Thay đổi phá vỡ tương thích nên được quản lý theo versioning policy của thư viện.
+**Announce API changes with a roadmap.** If a method must be removed or have its signature changed, mark it deprecated first, provide a replacement method, and publish migration instructions. Breaking changes should be managed under the library's versioning policy.
 
-## 10. Những nhầm lẫn cần tránh
+## 10. Misconceptions to avoid
 
-1. **Tên module giống nhau nghĩa là API tương thích:** tên module chỉ xác định module dependency; nó không bảo đảm method signature giống nhau.
-2. **Module version tự động được JPMS kiểm tra:** version metadata không phải version range và không tự ngăn runtime resolve phiên bản không tương thích.
-3. **Module đã resolve thì không thể có linkage error:** resolution không xác minh mọi method mà consumer đã biên dịch sẽ tồn tại.
-4. **NoSuchMethodError luôn do exports:** exports quyết định quyền truy cập package, không tạo method bị thiếu.
-5. **Thêm --add-reads sẽ sửa method bị thiếu:** readability không sửa bytecode hoặc class definition.
-6. **Clean build luôn đủ:** nếu runtime vẫn nạp JAR cũ từ thư mục deploy hoặc container, lỗi vẫn tiếp tục.
-7. **Chỉ nhìn tên file JAR để biết version đang chạy:** hãy kiểm tra class code source, module descriptor và module configuration thực tế.
+1. **Same module name means compatible API:** the module name only identifies the module dependency; it does not guarantee identical method signatures.
+2. **Module version is checked automatically by JPMS:** version metadata is not a version range and does not prevent runtime from resolving an incompatible version.
+3. **If the module resolved, linkage errors are impossible:** resolution does not verify that every method the consumer compiled against will exist.
+4. **NoSuchMethodError is always caused by exports:** exports govern package access permissions, not missing methods.
+5. **Adding --add-reads will fix a missing method:** readability does not alter bytecode or class definitions.
+6. **A clean build is always enough:** if runtime still loads an old JAR from a deploy directory or container, the error will persist.
+7. **Looking only at the JAR filename tells you the running version:** inspect the class code source, module descriptor, and actual module configuration.
 
-## Kết luận
+## Conclusion
 
-NoSuchMethodError trong ứng dụng JPMS thường cho thấy consumer và class runtime không thống nhất về binary API. Module resolution có thể thành công vì module name vẫn khớp, trong khi method mà bytecode yêu cầu đã bị xóa hoặc thay đổi descriptor. Hãy xác định class runtime thực sự được nạp, so sánh method descriptor bằng javap, kiểm tra dependency graph và đồng bộ artifact compile-time với runtime. JPMS bảo vệ module boundary; quản lý version và tương thích API vẫn là trách nhiệm của quy trình build và phát hành.
+NoSuchMethodError in a JPMS application usually indicates that the consumer and the runtime class disagree on the binary API. Module resolution can succeed because the module name still matches, while the method requested by bytecode was removed or had its descriptor changed. Identify the exact runtime class loaded, compare method descriptors with javap, inspect the dependency graph, and synchronize compile-time and runtime artifacts. JPMS enforces module boundaries; version management and API compatibility remain the responsibility of your build and release process.

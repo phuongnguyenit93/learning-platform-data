@@ -1,18 +1,18 @@
-# Giá trị mặc định của trường và phần tử mảng trong Java
+# Default Values of Fields and Array Elements in Java
 
-> **Java core — language-basics / Biến và hằng**  
-> **Yêu cầu:** JDK 17 trở lên.  
-> **Mục tiêu:** Biết Java tự cấp giá trị nào cho field và phần tử mảng; phân biệt `static`/instance field, primitive/reference, mảng nhiều chiều và biến cục bộ; tránh nhầm `null` với đối tượng đã được cấp phát.
+> **Java core — language-basics / Variables and Constants**  
+> **Requirement:** JDK 17 or later.  
+> **Objective:** Know what values Java automatically provides for fields and array elements; distinguish `static`/instance fields, primitive/reference types, multidimensional arrays, and local variables; avoid confusing `null` with an allocated object.
 
-## 1. Những vị trí nào có giá trị mặc định?
+## 1. Which Storage Locations Have Default Values?
 
-Java tự khởi tạo các vị trí lưu trữ sau theo **kiểu khai báo** của chúng:
+Java automatically initializes the following storage locations according to their **declared type**:
 
-- **Instance field:** mỗi object mới có bộ field riêng, ban đầu nhận giá trị mặc định; sau đó field initializer và constructor có thể thay đổi.
-- **Static field:** thuộc lớp, nhận giá trị mặc định trước khi chạy các khai báo khởi tạo và static initializer tương ứng của lớp.
-- **Phần tử mảng:** ngay khi mảng mới được cấp phát bằng `new`, mọi phần tử **thực sự tồn tại** đều có giá trị mặc định. Quy tắc này đúng dù biến giữ tham chiếu mảng nằm trong method.
+- **Instance field:** each new object gets its own set of fields, initially receiving default values; field initializers and constructors may later change them.
+- **Static field:** belongs to the class, receiving default values before running the corresponding class initializers and static initializers.
+- **Array element:** as soon as a new array is allocated with `new`, every element that **actually exists** receives a default value. This rule holds even if the variable holding the array reference lives inside a method.
 
-Ví dụ:
+Example:
 
 ~~~java
 class Account {
@@ -23,27 +23,27 @@ class Account {
 }
 ~~~
 
-Không cần tự viết `= 0` hoặc `= null` cho các field trên. Tuy nhiên, giá trị mặc định chỉ là **trạng thái ban đầu**; nếu có initializer hoặc constructor gán lại, giá trị được nhìn thấy sau khi tạo object sẽ khác.
+There is no need to write `= 0` or `= null` for the fields above. However, default values are only the **initial state**; if an initializer or constructor reassigns them, the values seen after creating the object will differ.
 
-## 2. Bảng giá trị mặc định theo kiểu
+## 2. Table of Default Values by Type
 
-| Kiểu field / phần tử | Giá trị mặc định | Diễn giải |
+| Field / element type | Default value | Explanation |
 | --- | --- | --- |
-| `byte`, `short`, `int` | `0` | Số nguyên không |
-| `long` | `0L` | Số nguyên không kiểu `long` |
-| `float` | `0.0f` | Số thực dương 0.0 |
-| `double` | `0.0d` | Số thực dương 0.0 |
-| `char` | `'\u0000'` | Mã UTF-16 bằng 0 (NUL), **không phải** ký tự `'0'` hoặc dấu cách |
-| `boolean` | `false` | Giá trị logic sai |
-| Mọi **kiểu tham chiếu** | `null` | Chưa có object được tham chiếu |
+| `byte`, `short`, `int` | `0` | Integer zero |
+| `long` | `0L` | Integer zero of type `long` |
+| `float` | `0.0f` | Positive floating-point 0.0 |
+| `double` | `0.0d` | Positive floating-point 0.0 |
+| `char` | `'\u0000'` | UTF-16 code 0 (NUL), **not** the character `'0'` or a space |
+| `boolean` | `false` | Boolean false |
+| Any **reference type** | `null` | No object referenced yet |
 
-Kiểu tham chiếu gồm `String`, các class khác, interface và **chính kiểu mảng** như `int[]`. Vì vậy `String[]` chứa phần tử mặc định `null`, chứ không tự tạo `""`. `Integer[]` chứa `null`, **không** tự tạo các wrapper `Integer.valueOf(0)`.
+Reference types include `String`, other classes, interfaces, and **array types themselves** such as `int[]`. Thus `String[]` contains default elements of `null`, not automatically created `""`. `Integer[]` contains `null`, and does **not** automatically create `Integer.valueOf(0)` wrappers.
 
-Khi in trực tiếp ký tự mặc định của `char`, bạn khó quan sát được vì nó là NUL. Hãy ép sang `int` để thấy mã **0**: `System.out.println((int) character);`.
+When printing the default `char` directly, it is hard to observe because it is NUL. Cast it to `int` to see code **0**: `System.out.println((int) character);`.
 
-## 3. Chương trình Java 17+ độc lập
+## 3. Standalone Java 17+ Program
 
-Tạo file **DefaultValuesDemo.java**:
+Create the file **DefaultValuesDemo.java**:
 
 ~~~java
 import java.util.Arrays;
@@ -92,7 +92,7 @@ public class DefaultValuesDemo {
 }
 ~~~
 
-Mở terminal tại thư mục chứa file rồi chạy (Bash, PowerShell hoặc Command Prompt):
+Open a terminal in the directory containing the file and run (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 DefaultValuesDemo.java
@@ -115,52 +115,52 @@ objects=7,0
 scoresAfter=[9, 0, 0]
 ~~~
 
-Giải thích: field `static` có giá trị 0/false; mỗi object `DefaultValuesDemo` mới có field `quantity` bằng 0, `price` bằng 0.0, `initial` bằng NUL và `label` bằng `null`. Các mảng primitive mới có phần tử 0/false/NUL, trong khi mảng `String` và `Integer` có phần tử `null`.
+Explanation: `static` fields have values `0`/`false`; each new `DefaultValuesDemo` object has field `quantity` equal to `0`, `price` equal to `0.0`, `initial` equal to NUL, and `label` equal to `null`. New primitive arrays have elements `0`/`false`/NUL, while `String` and `Integer` arrays have `null` elements.
 
-Sau phép gán `first.quantity = 7`, object `second` vẫn giữ `quantity = 0`: mỗi object có field instance riêng. Sau `scores[0] = 9`, hai vị trí còn lại của mảng vẫn là 0.
+After `first.quantity = 7`, the `second` object still keeps `quantity = 0`: each object has its own instance fields. After `scores[0] = 9`, the remaining two positions of the array are still `0`.
 
-## 4. Mảng nhiều chiều: chỉ khởi tạo các mảng thật sự được cấp phát
+## 4. Multidimensional Arrays: Only Allocated Arrays Are Initialized
 
-Hãy phân biệt:
+Distinguish:
 
 ~~~java
 int[][] partial = new int[2][];
 int[][] complete = new int[2][3];
 ~~~
 
-- `partial` là **mảng ngoài gồm hai tham chiếu kiểu `int[]`**; hai tham chiếu ấy mặc định `null` vì chưa cấp phát hàng con. Do đó `partial[0]` là `null`.
-- `complete` đã cấp phát mảng ngoài và hai hàng con `int[3]`. Sáu phần tử số nguyên đều mặc định bằng **0**.
-- Nếu chạy `partial[0][0]` trước khi gán `partial[0] = new int[3];`, chương trình sẽ gặp `NullPointerException`.
+- `partial` is an **outer array of two `int[]` references**; those two references default to `null` because the inner row arrays have not been allocated yet. Hence `partial[0]` is `null`.
+- `complete` has allocated the outer array and two `int[3]` inner rows. All six integer elements default to **0**.
+- Running `partial[0][0]` before assigning `partial[0] = new int[3];` will throw a `NullPointerException`.
 
-Không nhầm `new int[0]` với mảng `null`: `new int[0]` là một object mảng **có độ dài 0**, nhưng không có phần tử nào để đọc giá trị mặc định.
+Do not confuse `new int[0]` with a `null` array: `new int[0]` is a valid array object **of length 0**, just with no elements whose default values could be read.
 
-## 5. Biến cục bộ KHÔNG có giá trị mặc định để đọc
+## 5. Local Variables Do NOT Have Readable Default Values
 
-Đây là ngoại lệ quan trọng với người mới học. Biến cục bộ bên trong phương thức phải được **gán chắc chắn trước khi đọc** (*definite assignment*):
+This is an important exception for beginners. Local variables inside a method must be **definitely assigned before being read** (*definite assignment*):
 
 ~~~java
 void example() {
     int count;
-    // System.out.println(count); // Lỗi biên dịch nếu bỏ comment.
+    // System.out.println(count); // Compile error if uncommented.
     count = 3;
     System.out.println(count); // 3
 }
 ~~~
 
-Không có quy tắc “biến cục bộ `int` chưa gán sẽ đọc ra 0”. Compiler có thể báo `variable count might not have been initialized`.
+There is no rule that "an unassigned local `int` variable reads as `0`". The compiler will report something like `variable count might not have been initialized`.
 
-Tuy nhiên, **mảng được tạo từ một biến cục bộ** vẫn được gán giá trị mặc định cho từng phần tử:
+However, **an array created from a local variable** still gets default values assigned to each element:
 
 ~~~java
 int[] values = new int[2];
 System.out.println(values[0]); // 0
 ~~~
 
-Ở đây biến cục bộ `values` đã được gán tham chiếu tới mảng mới; còn `values[0]` nhận giá trị mặc định 0 từ cơ chế cấp phát mảng. Hai quy tắc không mâu thuẫn.
+Here the local variable `values` has been assigned a reference to the new array; while `values[0]` receives the default value `0` from array allocation. The two rules do not contradict each other.
 
-## 6. Khởi tạo tường minh và `final`
+## 6. Explicit Initialization and `final`
 
-Với field initializer/constructor, giá trị cuối sau khi tạo object có thể khác mặc định:
+With field initializers/constructors, the final value after creating an object can differ from the default:
 
 ~~~java
 class Ticket {
@@ -172,9 +172,9 @@ class Ticket {
 }
 ~~~
 
-Khi đọc `new Ticket().count` sau constructor, giá trị là **8**. Trước các gán tường minh, cơ chế khởi tạo mặc định đã thiết lập 0.
+When reading `new Ticket().count` after the constructor, the value is **8**. Prior to explicit assignments, default initialization had set `0`.
 
-Field `final` chưa có initializer (blank final) vẫn phải được gán theo quy tắc *definite assignment* thích hợp, ví dụ trong constructor:
+An uninitialized `final` field (blank final) must still be assigned according to appropriate *definite assignment* rules, such as inside the constructor:
 
 ~~~java
 class Product {
@@ -186,28 +186,28 @@ class Product {
 }
 ~~~
 
-`final` ngăn gán lại field sau khi khởi tạo hợp lệ, nhưng không biến object được giữ qua một tham chiếu `final` thành bất biến. Nó cũng không khiến phần tử mảng tự có giá trị khác mặc định.
+`final` prevents reassigning the field after valid initialization, but it does not make an object held through a `final` reference immutable. Nor does it cause array elements to take on values other than their defaults.
 
-## 7. Bẫy thường gặp và luyện tập
+## 7. Common Pitfalls and Practice
 
-| Tình huống | Hiểu đúng |
+| Situation | Correct understanding |
 | --- | --- |
-| `String[] a = new String[2];` | Các phần tử là **`null`**, không phải `""` |
-| `Integer[] a = new Integer[2];` | Các phần tử là `null`; unbox `a[0]` sang `int` gây `NullPointerException` |
-| `int[] a = new int[2];` | Hai số 0 |
-| `int[][] a = new int[2][];` | Hai hàng chưa cấp phát, đều `null` |
-| `int[][] a = new int[2][3];` | Hai hàng đã cấp phát, sáu số 0 |
-| `char` mặc định | NUL với mã 0, không phải ký tự in được `'0'` |
-| `String label;` là field | `null`; gọi `label.length()` trước khi gán object có thể gây `NullPointerException` |
+| `String[] a = new String[2];` | Elements are **`null`**, not `""` |
+| `Integer[] a = new Integer[2];` | Elements are `null`; unboxing `a[0]` to `int` throws `NullPointerException` |
+| `int[] a = new int[2];` | Two zeros (`0`) |
+| `int[][] a = new int[2][];` | Two unallocated rows, both `null` |
+| `int[][] a = new int[2][3];` | Two allocated rows, six zeros (`0`) |
+| Default `char` | NUL with code `0`, not the printable character `'0'` |
+| `String label;` as a field | `null`; calling `label.length()` before assigning an object can throw `NullPointerException` |
 
-**Bài tập 1:** Tạo class có field `byte`, `float`, `char`, `boolean`, `String` chưa gán. In giá trị; với `char`, ép sang `int` để xác nhận mã 0.
+**Exercise 1:** Create a class with unassigned `byte`, `float`, `char`, `boolean`, and `String` fields. Print their values; for `char`, cast to `int` to confirm code `0`.
 
-**Bài tập 2:** In `Arrays.toString(new String[3])`. Sau đó gán phần tử thứ hai thành `"Java"` và in lại: phần tử nào vẫn `null`?
+**Exercise 2:** Print `Arrays.toString(new String[3])`. Then assign the second element to `"Java"` and print again: which elements are still `null`?
 
-**Bài tập 3:** Tạo `int[][] rows = new int[2][];`. Dự đoán `rows[0]`; sau đó gán `rows[0] = new int[2];` rồi in `rows[0][0]`.
+**Exercise 3:** Create `int[][] rows = new int[2][];`. Predict `rows[0]`; then assign `rows[0] = new int[2];` and print `rows[0][0]`.
 
-**Bài tập 4:** Giải thích vì sao `int local; System.out.println(local);` không biên dịch, nhưng `int[] array = new int[1]; System.out.println(array[0]);` in 0.
+**Exercise 4:** Explain why `int local; System.out.println(local);` does not compile, whereas `int[] array = new int[1]; System.out.println(array[0]);` prints `0`.
 
-### Ghi nhớ
+### Takeaway
 
-**Field và phần tử mảng** có giá trị mặc định theo kiểu: primitive nhận giá trị 0/0.0/`false`/NUL tương ứng; tham chiếu nhận `null`. **Biến cục bộ phải được gán chắc chắn trước khi đọc.** Các gán ở initializer, constructor và sau khi cấp phát có thể thay đổi giá trị mặc định.
+**Fields and array elements** have default values based on type: primitives receive `0`/`0.0`/`false`/NUL accordingly; references receive `null`. **Local variables must be definitely assigned before being read.** Assignments in initializers, constructors, and after allocation can change the default values.

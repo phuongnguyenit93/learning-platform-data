@@ -1,50 +1,50 @@
-# Chẩn đoán lỗi mảng động: chỉ số, kích thước âm và đầu vào không phải mảng
+# Diagnosing Dynamic Array Errors: Indices, Negative Sizes, and Non-Array Inputs
 
-## 1. Mỗi lỗi chỉ đúng một loại vi phạm
+## 1. Each Error Pinpoints a Single Kind of Violation
 
-`java.lang.reflect.Array` thao tác trên mảng thật ở runtime, kể cả khi caller chỉ có biến `Object`. Cùng một hệ thống có thể nhận kiểu mảng từ cấu hình, tạo mảng, rồi đọc/ghi phần tử. Lỗi sẽ có ý nghĩa khác nhau tùy **bước thất bại**:
+`java.lang.reflect.Array` operates on real arrays at runtime, even when the caller only has an `Object` variable. The same system might receive an array type from configuration, create the array, and then read/write elements. Errors carry different meanings depending on **the failing step**:
 
-| Bước | Đầu vào sai | Exception gốc của API |
+| Step | Invalid Input | Native API Exception |
 | --- | --- | --- |
-| Cấp phát `Array.newInstance` | Kích thước âm ở một chiều | `NegativeArraySizeException` |
-| Tạo mảng | `componentType == null` | `NullPointerException` |
-| Tạo mảng | `void.class`, không có chiều, hoặc tổng rank vượt 255 | `IllegalArgumentException` |
-| `Array.getLength`/`get`/`set` | Tham chiếu array là `null` | `NullPointerException` |
-| `Array.getLength`/`get`/`set` | Object khác `null` nhưng không phải mảng | `IllegalArgumentException` |
-| `Array.get`/`set` | Index âm hoặc `index >= length` | `ArrayIndexOutOfBoundsException` |
-| `Array.set` | Giá trị không tương thích với component type | `IllegalArgumentException` |
+| `Array.newInstance` allocation | Negative size in a dimension | `NegativeArraySizeException` |
+| Array creation | `componentType == null` | `NullPointerException` |
+| Array creation | `void.class`, no dimensions, or total rank exceeds 255 | `IllegalArgumentException` |
+| `Array.getLength`/`get`/`set` | Array reference is `null` | `NullPointerException` |
+| `Array.getLength`/`get`/`set` | Non-`null` object that is not an array | `IllegalArgumentException` |
+| `Array.get`/`set` | Negative index or `index >= length` | `ArrayIndexOutOfBoundsException` |
+| `Array.set` | Value incompatible with component type | `IllegalArgumentException` |
 
-Từ bảng này, có thể nhớ ba trường hợp trọng tâm:
+From this table, three core cases stand out:
 
-- **`ArrayIndexOutOfBoundsException`:** đối tượng mảng đã tồn tại, nhưng chỉ số vượt biên.
-- **`NegativeArraySizeException`:** thông số cấp phát một chiều hoặc nhiều chiều là số âm.
-- **`IllegalArgumentException` do non-array:** API nhận object nhưng object ấy không phải một đối tượng mảng.
+- **`ArrayIndexOutOfBoundsException`:** the array object already exists, but the index is out of bounds.
+- **`NegativeArraySizeException`:** an allocation parameter for one or more dimensions is a negative number.
+- **`IllegalArgumentException` due to non-array:** the API received an object, yet that object is not an array instance.
 
-`null` là trường hợp khác: `Array.getLength(null)` gây `NullPointerException`; `new int[0]` vẫn là mảng hoàn toàn hợp lệ. Hãy dựa vào **API đã gọi và dữ liệu tại bước đó**, vì một tên exception có thể biểu thị nhiều nguyên nhân khác nhau.
+`null` is a different case: `Array.getLength(null)` causes `NullPointerException`; `new int[0]` is still a completely valid array. Rely on **the API called and the data at that step**, because a single exception name can represent multiple distinct causes.
 
-## 2. Kiểm tra độ dài trước khi tạo
+## 2. Checking Length Before Creating
 
-`Array.newInstance(Class<?> componentType, int length)` tạo một mảng dài `length`; overload `int... dimensions` tạo nhiều chiều theo thứ tự ngoài vào trong.
+`Array.newInstance(Class<?> componentType, int length)` creates an array of length `length`; the `int... dimensions` overload creates multiple dimensions in outer-to-inner order.
 
 ~~~java
-Array.newInstance(int.class, 0);         // int[0], hợp lệ.
+Array.newInstance(int.class, 0);         // int[0], valid.
 Array.newInstance(int.class, -1);        // NegativeArraySizeException.
 Array.newInstance(String.class, 2, -1);  // NegativeArraySizeException.
 Array.newInstance(void.class, 1);        // IllegalArgumentException.
 Array.newInstance(int.class, new int[0]); // IllegalArgumentException.
 ~~~
 
-Đây là các lời gọi minh họa có import `java.lang.reflect.Array`; những lời gọi gây lỗi không nên chạy liên tiếp ngoài `try/catch`.
+These are illustrative calls with `java.lang.reflect.Array` imported; calls that throw errors should not be run consecutively outside `try/catch`.
 
-Một **chiều bằng 0** vẫn hợp lệ, khác với **không truyền chiều nào**. `Array.newInstance(String.class, 2, 0)` cấp phát hai mảng con rỗng, còn `Array.newInstance(String[].class, 2)` chỉ cấp phát mảng ngoài và để hai mảng con `null`.
+A **dimension equal to 0** is still valid, unlike **passing no dimensions**. `Array.newInstance(String.class, 2, 0)` allocates two empty subarrays, whereas `Array.newInstance(String[].class, 2)` only allocates the outer array and leaves the two subarrays `null`.
 
-Nếu component type vốn là array class, tổng số chiều kết quả bằng rank đã có cộng số chiều truyền thêm. Java giới hạn rank kiểu mảng ở 255, nên `Array.newInstance(int[][].class, new int[254])` đòi 256 chiều và bị từ chối. Để học chi tiết hình dạng mảng, xem bài tạo mảng nhiều chiều trong cùng chương; khi chẩn đoán lỗi, trước hết xác định **rank đích** và **từng kích thước**.
+If the component type is already an array class, the resulting total number of dimensions equals the existing rank plus the added dimensions. Java limits array type rank to 255, so `Array.newInstance(int[][].class, new int[254])` requests 256 dimensions and is rejected. To study array shapes in detail, see the multidimensional array creation lesson in the same chapter; when diagnosing errors, first identify **the target rank** and **each size**.
 
-### Dữ liệu kích thước từ bên ngoài
+### Size Data from External Sources
 
-Kiểm tra `length >= 0` là cần nhưng chưa đủ. Một giá trị dương rất lớn có thể gây `OutOfMemoryError` hoặc gặp giới hạn cấp phát của JVM. Nếu độ dài tính qua phép cộng/nhân, tràn `int` có thể biến đầu vào dương thành số âm hoặc số không đúng. Hãy đặt giới hạn nghiệp vụ và dùng `Math.addExact`/`multiplyExact` khi cần phát hiện overflow.
+Checking `length >= 0` is necessary but not sufficient. A very large positive value can cause `OutOfMemoryError` or hit JVM allocation limits. If a length is computed via addition/multiplication, `int` overflow can turn positive inputs into negative or incorrect numbers. Set business limits and use `Math.addExact`/`multiplyExact` when overflow detection is needed.
 
-Ví dụ helper với chính sách tối đa 10.000 phần tử tầng ngoài:
+Helper example with a policy maximum of 10,000 outer-layer elements:
 
 ~~~java
 static Object newBoundedArray(Class<?> type, int length) {
@@ -58,11 +58,11 @@ static Object newBoundedArray(Class<?> type, int length) {
 }
 ~~~
 
-`IllegalArgumentException` trên là **do helper tự chọn** để trả lỗi cấu hình sớm, không phải `NegativeArraySizeException` của `Array.newInstance`. Giới hạn 10.000 cũng là ví dụ chính sách ứng dụng, **không phải giới hạn của Java**.
+The `IllegalArgumentException` above is **chosen by the helper** to report configuration errors early, rather than `NegativeArraySizeException` from `Array.newInstance`. The 10,000 limit is also an application policy example, **not a Java limit**.
 
-## 3. Kiểm tra mảng thật trước khi đo độ dài
+## 3. Checking for a Real Array Before Measuring Length
 
-`Array.getLength(Object)` nhận **một đối tượng mảng**, chẳng hạn `new int[]{1}`, `new String[0]` hoặc `new int[2][3]`. Nó không nhận `String`, `List` hay chính đối tượng `Class` mô tả kiểu mảng.
+`Array.getLength(Object)` accepts **an array object**, such as `new int[]{1}`, `new String[0]`, or `new int[2][3]`. It does not accept `String`, `List`, or the `Class` object itself describing an array type.
 
 ~~~java
 Object actual = new int[] {1, 2};
@@ -74,9 +74,9 @@ System.out.println(Array.getLength(actual));       // 2
 // Array.getLength(metadata); // IllegalArgumentException.
 ~~~
 
-Đoạn trên dùng `Array` đã import. `int[].class.isArray()` đúng vì token ấy **mô tả kiểu mảng**, nhưng `int[].class` vẫn là đối tượng `Class` chứ không phải một instance `int[]`.
+The snippet above uses imported `Array`. `int[].class.isArray()` is true because that token **describes an array type**, yet `int[].class` is still a `Class` object rather than an `int[]` instance.
 
-Mẫu bảo vệ đầu vào:
+Input-guarding pattern:
 
 ~~~java
 static int requireLength(Object candidate) {
@@ -91,19 +91,19 @@ static int requireLength(Object candidate) {
 }
 ~~~
 
-Helper chủ động trả `IllegalArgumentException` cho cả `null` lẫn non-array. Đây là **hợp đồng của ứng dụng**; API nguyên thủy vẫn phân biệt `NullPointerException` cho `null` và `IllegalArgumentException` cho object không phải mảng.
+The helper intentionally returns `IllegalArgumentException` for both `null` and non-array. This is **the application's contract**; the raw API still distinguishes `NullPointerException` for `null` and `IllegalArgumentException` for a non-array object.
 
-Không quy ước `0` nghĩa là “không phải mảng”. `new int[0]` là mảng thật, có length 0 và không chứa index hợp lệ.
+Do not adopt `0` as a convention meaning "not an array". `new int[0]` is a real array, has length 0, and contains no valid indices.
 
-## 4. Kiểm tra chỉ số trên đúng mảng đang truy cập
+## 4. Checking the Index on the Exact Array Being Accessed
 
-Với mảng cụ thể dài `n`, điều kiện để đọc/ghi là:
+For a concrete array of length `n`, the condition to read/write is:
 
 \[0 \leq index < n\]
 
-Nếu `n == 0` thì **không có index hợp lệ**. `Array.get(new int[0], 0)` ném `ArrayIndexOutOfBoundsException` dù việc tạo mảng rỗng đã thành công.
+If `n == 0`, then **there is no valid index**. `Array.get(new int[0], 0)` throws `ArrayIndexOutOfBoundsException` even though creating the empty array succeeded.
 
-Có thể kiểm tra:
+You can validate:
 
 ~~~java
 static Object checkedGet(Object array, int index) {
@@ -119,26 +119,26 @@ static Object checkedGet(Object array, int index) {
 }
 ~~~
 
-Helper dùng `IndexOutOfBoundsException` của ứng dụng để giải thích lỗi, còn `Array.get` trực tiếp dùng subtype `ArrayIndexOutOfBoundsException`. `Objects.checkIndex(index, length)` cũng giúp kiểm tra biên nhưng không cam kết đúng subclass do Reflection ném. Khi chẩn đoán, cần biết **exception phát ra từ API nào**.
+The helper uses the application's `IndexOutOfBoundsException` to explain the error, whereas `Array.get` directly uses the `ArrayIndexOutOfBoundsException` subclass. `Objects.checkIndex(index, length)` also helps check bounds, though it does not guarantee the exact subclass thrown by Reflection. When diagnosing, you must know **which API emitted the exception**.
 
-### Mảng nhiều chiều có biên riêng ở từng tầng
+### Multidimensional Arrays Have Separate Bounds at Each Layer
 
 ~~~java
 int[][] rows = {{1, 2, 3}, {}, null, {4}};
 ~~~
 
-`Array.getLength(rows)` bằng 4; bốn hàng có độ dài 3, 0, chưa có mảng con, và 1. Muốn lấy `rows[3][0]` bằng Reflection:
+`Array.getLength(rows)` equals 4; the four rows have length 3, 0, no subarray yet, and 1. To get `rows[3][0]` using Reflection:
 
-1. Xác minh chỉ số hàng 3 trong độ dài mảng ngoài.
-2. `Object row = Array.get(rows, 3)` rồi kiểm tra `row != null`.
-3. Đo `Array.getLength(row)` bằng 1, xác minh index cột 0.
-4. `Array.get(row, 0)` trả một `Integer` chứa 4 vì mảng con có component primitive `int`.
+1. Verify row index 3 against the outer array length.
+2. `Object row = Array.get(rows, 3)` and then check `row != null`.
+3. Measure `Array.getLength(row)` equals 1, verify column index 0.
+4. `Array.get(row, 0)` returns an `Integer` containing 4 because the subarray has primitive `int` component.
 
-Với hàng 1, index cột 0 vượt biên; với hàng 2, gọi `Array.getLength` trên `null` sẽ gây `NullPointerException`. Hai lỗi khác nhau dù đều xuất hiện khi xử lý một ma trận.
+For row 1, column index 0 is out of bounds; for row 2, calling `Array.getLength` on `null` causes `NullPointerException`. Two distinct errors even though both appear when processing one matrix.
 
-## 5. Chương trình Java 17+ kiểm tra danh tính exception
+## 5. Java 17+ Program Verifying Exception Identities
 
-Tạo file `ReflectArrayFailureAtlas.java`:
+Create the file `ReflectArrayFailureAtlas.java`:
 
 ~~~java
 import java.lang.reflect.Array;
@@ -187,7 +187,7 @@ javac --release 17 ReflectArrayFailureAtlas.java
 java ReflectArrayFailureAtlas
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 length=2
@@ -205,21 +205,21 @@ missing subarray: NullPointerException
 empty array index: ArrayIndexOutOfBoundsException
 ~~~
 
-`show` bắt `RuntimeException` chỉ để **in loại lỗi khi thực hành**. Trong ứng dụng thực, một khối catch rộng như vậy dễ che giấu lỗi lập trình; nên kiểm tra trước, báo đúng dữ liệu sai và bắt lỗi cụ thể ở ranh giới có thể xử lý.
+`show` catches `RuntimeException` solely to **print the error type during practice**. In a real application, such a broad catch block easily hides programming bugs; validate upfront, report the invalid data accurately, and catch specific errors at boundaries that can handle them.
 
-## 6. Không nhầm lỗi phần tử với lỗi đầu vào không phải mảng
+## 6. Do Not Confuse Element Errors with Non-Array Input Errors
 
-`IllegalArgumentException` không chỉ có nghĩa “không phải mảng”. Chẳng hạn:
+`IllegalArgumentException` does not only mean "not an array". For instance:
 
 ~~~java
-Array.set(new String[1], 0, 42);     // Sai component type.
-Array.set(new int[1], 0, 3L);        // long -> int là narrowing.
-Array.set(new int[1], 0, null);      // Primitive không nhận null.
+Array.set(new String[1], 0, 42);     // Wrong component type.
+Array.set(new int[1], 0, 3L);        // long -> int is narrowing.
+Array.set(new int[1], 0, null);      // Primitives do not accept null.
 ~~~
 
-Các thao tác trên đều có **mảng hợp lệ và index hợp lệ**, nhưng giá trị không thể chuyển đổi theo hợp đồng `Array.set`. Với mảng primitive, Reflection có thể unbox wrapper rồi widening hợp lệ; không tự narrowing. Với mảng reference, giá trị phải là `null` hoặc tương thích với component type **runtime** của mảng.
+The operations above all have a **valid array and valid index**, yet the value cannot be converted under `Array.set`'s contract. For primitive arrays, Reflection can unbox wrappers and perform valid widening; it does not automatically narrow. For reference arrays, the value must be `null` or compatible with the array's **runtime** component type.
 
-Một khác biệt đáng nhớ:
+One difference worth remembering:
 
 ~~~java
 Object[] refs = new String[1];
@@ -229,41 +229,41 @@ Object array = new String[1];
 Array.set(array, 0, Integer.valueOf(5)); // IllegalArgumentException.
 ~~~
 
-Hai API ghi khác nhau và có hợp đồng báo lỗi khác nhau. Muốn tìm nguyên nhân, ghi rõ hoạt động nào đã xảy ra, kiểu runtime của mảng, component type, index và kiểu của value (nếu khác `null`).
+The two write APIs differ and have different error-reporting contracts. To find the cause, record which operation occurred, the runtime type of the array, the component type, the index, and the type of value (if non-`null`).
 
-## 7. Quy trình chẩn đoán dành cho mapper hoặc plugin
+## 7. Diagnostic Workflow for Mappers or Plugins
 
-Khi xử lý dữ liệu không biết trước kiểu, hãy đi theo thứ tự:
+When handling data whose type is unknown in advance, proceed in order:
 
-1. **Tạo mảng:** component type có khác `null`, khác `void.class`, rank hợp lệ, mọi kích thước không âm và trong ngân sách bộ nhớ không?
-2. **Xử lý mảng đã có:** giá trị có khác `null`, runtime class có `isArray() == true` không?
-3. **Đọc/ghi:** index có thỏa `0 <= index < Array.getLength(array)` tại đúng tầng không?
-4. **Ghi phần tử:** `array.getClass().getComponentType()` là gì, value có `null` không, và có cần conversion riêng (parse chuỗi, thu hẹp số có kiểm soát) trước khi gọi `Array.set` không?
-5. **Mảng nhiều chiều:** mảng con hiện tại đã được cấp phát chưa? Nó có thể là `null` dù runtime class mảng ngoài đã có nhiều chiều.
-6. **Thông báo lỗi:** nêu tên trường đầu vào, loại thao tác, index, length và component type; giữ thông tin cần thiết để sửa cấu hình nhưng tránh log cả dữ liệu phần tử nhạy cảm.
+1. **Array creation:** is component type non-`null`, not `void.class`, is the rank valid, and are all sizes non-negative and within the memory budget?
+2. **Handling an existing array:** is the value non-`null`, and does its runtime class have `isArray() == true`?
+3. **Reading/writing:** does index satisfy `0 <= index < Array.getLength(array)` at the right layer?
+4. **Writing elements:** what is `array.getClass().getComponentType()`, is value `null`, and is a custom conversion (string parsing, controlled numeric narrowing) needed before calling `Array.set`?
+5. **Multidimensional arrays:** has the current subarray been allocated yet? It can be `null` even when the outer array's runtime class already has multiple dimensions.
+6. **Error messages:** state the input field name, operation kind, index, length, and component type; keep the information needed to fix configuration while avoiding logging entire sensitive element payloads.
 
-Đừng coi mọi `RuntimeException` phát sinh trong pipeline là “sai kiểu mảng”. `NegativeArraySizeException` là lỗi tạo, `ArrayIndexOutOfBoundsException` là lỗi vị trí, và `IllegalArgumentException` có thể là input không phải mảng **hoặc** lỗi chuyển đổi phần tử.
+Do not treat every `RuntimeException` arising in the pipeline as "wrong array type". `NegativeArraySizeException` is a creation error, `ArrayIndexOutOfBoundsException` is a position error, and `IllegalArgumentException` can be a non-array input **or** an element conversion error.
 
-### Bảng quyết định nhanh
+### Quick Decision Table
 
-| Dấu hiệu | Kiểm tra tiếp |
+| Symptom | Check Next |
 | --- | --- |
-| Không tạo được mảng | Dimension âm, số chiều, `void.class`, component `null`, bộ nhớ |
-| `getLength` thất bại | Null hay object không phải array? |
-| `get`/`set` thất bại | Index thực tế, length của đúng tầng, loại array |
-| `set` sai kiểu | Primitive/reference component, kiểu value, widening/narrowing |
-| Chỉ thất bại khi đi xuống tầng trong | Mảng con `null`, jagged length, nhầm số chiều |
-| Nhầm `ArrayStoreException` với `IllegalArgumentException` | Cú pháp gán trực tiếp hay `Array.set`? |
+| Cannot create array | Negative dimension, dimension count, `void.class`, `null` component, memory |
+| `getLength` fails | Null or non-array object? |
+| `get`/`set` fails | Actual index, length of the right layer, array kind |
+| `set` type mismatch | Primitive/reference component, value type, widening/narrowing |
+| Fails only when descending into inner layer | `null` subarray, jagged length, confused dimension count |
+| Confusing `ArrayStoreException` with `IllegalArgumentException` | Direct assignment syntax or `Array.set`? |
 
-## 8. Tự kiểm tra
+## 8. Self-Check
 
-1. `Array.newInstance(int.class, 0)` có lỗi không? `Array.get(new int[0], 0)` thì sao?
-2. `Array.newInstance(String.class, 2, -3)` ném gì? Một helper tự ném `IllegalArgumentException` trước khi gọi thì khác thế nào?
-3. Vì sao `Array.getLength(int[].class)` sai mặc dù `int[].class.isArray()` là true?
-4. Với `int[][] rows = {{1}, null}`, lỗi khi đọc `rows[0][1]` khác gì lỗi đo độ dài `rows[1]`?
-5. Vì sao `Array.set(new String[1], 0, Integer.valueOf(1))` không ném cùng exception với gán qua `Object[] alias = new String[1]`?
-6. Nếu nguồn gửi một kích thước rất lớn nhưng không âm, việc cấp phát có chắc chắn thành công không?
+1. Does `Array.newInstance(int.class, 0)` fail? What about `Array.get(new int[0], 0)`?
+2. What does `Array.newInstance(String.class, 2, -3)` throw? How does a helper that explicitly throws `IllegalArgumentException` beforehand differ?
+3. Why is `Array.getLength(int[].class)` invalid even though `int[].class.isArray()` is true?
+4. Given `int[][] rows = {{1}, null}`, how does the error when reading `rows[0][1]` differ from the error when measuring the length of `rows[1]`?
+5. Why does `Array.set(new String[1], 0, Integer.valueOf(1))` not throw the same exception as assigning via `Object[] alias = new String[1]`?
+6. If a source sends a very large but non-negative size, is allocation guaranteed to succeed?
 
-**Điều cần nhớ:** phân biệt lỗi **cấp phát**, lỗi **nhận dạng mảng**, lỗi **chỉ số** và lỗi **kiểu giá trị** theo bước API đã gọi. Khi có đối tượng mảng hợp lệ, kiểm tra biên ở đúng tầng; khi chỉ có input cấu hình, xác minh component type/kích thước trước khi cấp phát. Không đánh đồng mảng rỗng với `null` và không coi `0` là mã báo “không phải mảng”.
+**Key takeaway:** distinguish **allocation** errors, **array identification** errors, **index** errors, and **value type** errors according to the API step called. When you have a valid array object, check bounds at the right layer; when you only have configuration input, validate component type/sizes before allocating. Do not equate an empty array with `null` and do not treat `0` as a code meaning "not an array".
 
-Tài liệu chính thức: [Java SE 17 — `java.lang.reflect.Array`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Array.html), [Java SE 17 — `Class.isArray`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html), [Java SE 17 — `Objects.checkIndex`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Objects.html).
+Official documentation: [Java SE 17 — `java.lang.reflect.Array`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Array.html), [Java SE 17 — `Class.isArray`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html), [Java SE 17 — `Objects.checkIndex`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Objects.html).

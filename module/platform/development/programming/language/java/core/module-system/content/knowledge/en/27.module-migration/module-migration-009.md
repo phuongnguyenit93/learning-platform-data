@@ -1,25 +1,25 @@
-# Đo tác động tới đóng gói và triển khai
+# Measuring Packaging and Deployment Impact
 
-Khi chuyển ứng dụng Java từ classpath sang Java Platform Module System (JPMS), thay đổi không chỉ nằm trong file `module-info.java`. Cách biên dịch, module path, module graph, service provider, reflection, cấu trúc phân phối, runtime image và lệnh khởi động đều có thể thay đổi. Do đó, migration thành công phải được kiểm chứng bằng **phép đo đóng gói và triển khai trước/sau**, thay vì chỉ dựa vào việc ứng dụng biên dịch thành công.
+When migrating a Java application from the classpath to the Java Platform Module System (JPMS), changes extend beyond `module-info.java`. Compilation, the module path, the module graph, service providers, reflection, distribution layout, runtime images, and launch commands can all change. Therefore, a successful migration must be verified through **before/after packaging and deployment measurements**, rather than relying solely on successful compilation.
 
-Mục tiêu là trả lời những câu hỏi thực tế: tổng kích thước artifact thay đổi bao nhiêu; có thể tạo custom runtime image bằng `jlink` không; thời gian build và khởi động có thay đổi; module hoặc service nào bị thiếu khi deploy; và cơ chế rollback có còn hoạt động?
+The goal is to answer practical questions: how much does total artifact size change; can a custom runtime image be built with `jlink`; do build and startup times change; are any modules or services missing at deploy time; and does rollback still work?
 
-## 1. Định nghĩa phạm vi cần đo
+## 1. Defining the Scope to Measure
 
-Trước tiên, phân biệt những đối tượng sau:
+First, distinguish the following artifacts:
 
-- **JAR sản phẩm:** bytecode và resource của ứng dụng, có thể chứa `module-info.class`.
-- **Dependency artifacts:** các JAR thư viện đi cùng ứng dụng, có thể là explicit, automatic hoặc classpath JAR.
-- **Java runtime:** JDK/JRE đầy đủ hay custom runtime image do `jlink` tạo.
-- **Distribution:** toàn bộ ZIP, TAR, thư mục cài đặt, installer hoặc container image phát hành cho người dùng.
-- **Deployment:** quá trình tải/cài gói, cấu hình, khởi động và đưa ứng dụng vào trạng thái sẵn sàng.
-- **Runtime behavior:** startup, bộ nhớ, service discovery, reflection, resource loading và các đường chạy nghiệp vụ.
+- **Product JAR:** the application's bytecode and resources, potentially containing `module-info.class`.
+- **Dependency artifacts:** library JARs shipped with the application, which may be explicit, automatic, or classpath JARs.
+- **Java runtime:** a full JDK/JRE or a custom runtime image created by `jlink`.
+- **Distribution:** the complete ZIP, TAR, installation directory, installer, or container image released to users.
+- **Deployment:** downloading/installing packages, configuring, starting, and bringing the application to readiness.
+- **Runtime behavior:** startup, memory, service discovery, reflection, resource loading, and business execution paths.
 
-Không được đánh đồng kích thước một file JAR với kích thước distribution. Nếu trước migration đóng gói một JAR nhỏ nhưng máy đích phải có JDK đầy đủ, còn sau migration đóng gói ứng dụng cùng runtime tùy biến, ranh giới đo đã thay đổi. Hãy chọn cùng một phạm vi trước và sau hoặc báo riêng từng phương án triển khai.
+Never equate the size of a single JAR with the size of a distribution. If before migration you packaged a small JAR while target machines needed a full JDK, and after migration you package the application alongside a custom runtime, the measurement boundary changed. Measure the same scope before and after, or report each deployment mode separately.
 
-## 2. Chốt baseline trước khi modular hóa
+## 2. Locking a Pre-Modularization Baseline
 
-Trước khi chỉnh code, lưu lại:
+Before editing code, record:
 
 ~~~text
 Baseline:
@@ -37,72 +37,72 @@ Baseline:
 - Deployment environment:
 ~~~
 
-Baseline phải có thể tái tạo. Nếu hệ thống dùng container, lưu cả digest base image, architecture và biến cấu hình. Nếu sử dụng Maven hoặc Gradle, chốt dependency để tránh kết quả thay đổi chỉ do nâng phiên bản thư viện.
+The baseline must be reproducible. If the system uses containers, record the base image digest, architecture, and configuration variables. If using Maven or Gradle, lock dependencies so results do not shift merely from library version upgrades.
 
-Bản sau migration nên dùng cùng phiên bản JDK, cấu hình GC, memory limits và workload nếu mục tiêu là tách riêng tác động của JPMS. Nếu đồng thời nâng JDK hoặc framework, phải ghi rõ vì những yếu tố đó cũng có thể ảnh hưởng tốc độ và dung lượng.
+The post-migration build should use the same JDK version, GC configuration, memory limits, and workload if the goal is isolating JPMS impact. If the JDK or frameworks are upgraded simultaneously, note this explicitly because those factors also affect speed and size.
 
-## 3. Bộ chỉ số tối thiểu
+## 3. Minimal Metrics Set
 
-| Nhóm | Chỉ số | Đơn vị |
+| Group | Metric | Unit |
 |---|---|---|
-| Artifact | Kích thước JAR chính | byte, MiB |
-| Dependency | Tổng dung lượng JAR phụ thuộc | byte, MiB |
-| Runtime | Tổng dung lượng Java runtime đi kèm | MiB |
-| Distribution | Tổng dung lượng ZIP/installer/thư mục | MiB |
-| Container | Compressed size và uncompressed size | MB hoặc MiB, ghi rõ |
-| Build | Thời gian clean build | giây |
-| Packaging | Thời gian tạo image/installer | giây |
-| Startup | Từ khởi chạy đến readiness | mili giây |
-| Runtime | Peak RSS và heap usage khi chạy workload | MiB |
-| Resolution | Số module có trong boot layer | module |
-| Operations | Thời gian deploy, ready và rollback | giây/phút |
-| Compatibility | Số lỗi module, reflection hoặc service discovery | số lỗi |
+| Artifact | Main JAR size | bytes, MiB |
+| Dependency | Total size of dependency JARs | bytes, MiB |
+| Runtime | Total size of bundled Java runtime | MiB |
+| Distribution | Total size of ZIP/installer/directory | MiB |
+| Container | Compressed size and uncompressed size | MB or MiB, specified |
+| Build | Clean build duration | seconds |
+| Packaging | Image/installer creation duration | seconds |
+| Startup | Launch to readiness | milliseconds |
+| Runtime | Peak RSS and heap usage under workload | MiB |
+| Resolution | Number of modules in the boot layer | modules |
+| Operations | Deploy, ready, and rollback duration | seconds/minutes |
+| Compatibility | Number of module, reflection, or service discovery errors | error count |
 
-Với từng chỉ số, ghi cột `Before`, `After`, `Delta`, phương pháp đo và điều kiện thử. Một số chỉ số như lỗi dependency cần đạt 0; số module hoặc kích thước không nhất thiết càng nhỏ càng tốt.
+For each metric, record `Before`, `After`, `Delta`, measurement method, and test conditions. Some metrics such as dependency errors must reach 0; module count or size is not automatically better just for being smaller.
 
-Công thức phần trăm khi giá trị baseline khác 0:
+Percentage formula when the baseline value is non-zero:
 
 ~~~text
-Delta tuyệt đối = After - Before
+Absolute delta = After - Before
 Delta (%)      = (After - Before) / Before * 100
 ~~~
 
-Ví dụ giả định:
+Hypothetical example:
 
-| Chỉ số | Before | After | Delta |
+| Metric | Before | After | Delta |
 |---|---:|---:|---:|
-| Tổng distribution | 320 MiB | 240 MiB | -80 MiB (-25%) |
+| Total distribution | 320 MiB | 240 MiB | -80 MiB (-25%) |
 | Clean build | 40 s | 46 s | +6 s (+15%) |
 | Cold startup | 1.50 s | 1.42 s | -0.08 s (-5.3%) |
 
-Đây là số minh họa công thức, không phải kết quả đo của một ứng dụng thực. Một lợi ích về kích thước có thể đi kèm chi phí build tăng. Cần đánh giá trade-off theo yêu cầu sản phẩm.
+These numbers illustrate the formula, not measurements from a real application. Size savings can come with increased build cost. Evaluate trade-offs against product requirements.
 
-## 4. Phương pháp đo đáng tin cậy
+## 4. Reliable Measurement Methodology
 
-Một phép thử nên có quy trình lặp lại:
+A benchmark should follow a repeatable procedure:
 
-1. Chạy trên cùng OS, JDK, CPU architecture và cấu hình JVM.
-2. Định nghĩa workload và dữ liệu đầu vào cố định.
-3. Thực hiện clean build khi so thời gian build toàn phần.
-4. Đo nhiều lần thay vì chọn một lần chạy tốt nhất.
-5. Ghi median, p90 hoặc độ phân tán cho startup và deploy.
-6. Phân biệt cold startup với lần khởi động khi filesystem cache đã nóng.
-7. Ghi rõ phụ thuộc mạng, database, DNS hoặc external service có nằm trong phép đo.
-8. Sử dụng artifact **đúng như sẽ triển khai**, không chỉ class output trong IDE.
+1. Run on the same OS, JDK, CPU architecture, and JVM configuration.
+2. Define a fixed workload and input dataset.
+3. Perform clean builds when comparing full build times.
+4. Measure multiple runs rather than picking a single best run.
+5. Record median, p90, or spread for startup and deployment.
+6. Distinguish cold startup from warm runs where the filesystem cache is hot.
+7. Document whether network, database, DNS, or external service dependencies are included in the measurement.
+8. Use the **exact artifact to be deployed**, not just IDE class outputs.
 
-Nếu pipeline có build cache hoặc tải dependency qua network, nên tách thời gian download/cache khỏi công đoạn biên dịch khi cần phân tích nguyên nhân. Kết quả chỉ có ý nghĩa nếu mô tả đủ điều kiện để nhóm khác tái lập.
+If the pipeline uses build caches or downloads dependencies over the network, separate download/cache time from compilation when analyzing causes. Results are only meaningful if conditions are documented well enough for another team to reproduce.
 
-## 5. Phân tích dependency với jdeps
+## 5. Dependency Analysis with jdeps
 
-`jdeps` giúp phân tích quan hệ dependency tĩnh của bytecode để tìm module JDK và dependency khác.
+`jdeps` analyzes static bytecode dependencies to identify JDK modules and other dependencies.
 
-Ví dụ JAR thông thường:
+Regular JAR example:
 
 ~~~bash
 jdeps --print-module-deps app.jar
 ~~~
 
-Với modular JAR nằm trên module path:
+For a modular JAR on the module path:
 
 ~~~bash
 jdeps --module-path mods \
@@ -110,7 +110,7 @@ jdeps --module-path mods \
       mods/com.acme.app.jar
 ~~~
 
-Để xem dependency chi tiết hơn:
+For more detailed dependencies:
 
 ~~~bash
 jdeps --module-path mods \
@@ -118,20 +118,20 @@ jdeps --module-path mods \
       mods/com.acme.app.jar
 ~~~
 
-Nên lưu lại những module cần thiết, dependency không tìm thấy và package nội bộ JDK mà code còn tham chiếu. Không nên tự động coi danh sách của `jdeps` là danh sách đầy đủ mọi module runtime.
+Record required modules, missing dependencies, and JDK internal packages still referenced by code. Do not automatically treat the `jdeps` list as the complete set of all runtime modules.
 
-**Giới hạn quan trọng:** `jdeps` chủ yếu nhìn dependency từ bytecode. Các class nạp bằng `Class.forName`, tên provider lấy từ cấu hình, reflection, service loading, JNI hoặc resource động có thể không được phát hiện đầy đủ. Phải xác nhận thêm bằng integration test và kiểm tra runtime thực tế.
+**Important limitation:** `jdeps` primarily inspects bytecode dependencies. Classes loaded via `Class.forName`, provider names read from configuration, reflection, service loading, JNI, or dynamic resources may not be fully detected. Always confirm with integration tests and real runtime checks.
 
-## 6. Kiểm tra modular JAR và module descriptor
+## 6. Inspecting Modular JARs and Module Descriptors
 
-Một explicit modular JAR có descriptor `module-info.class`. Kiểm tra artifact sau build:
+An explicit modular JAR contains a `module-info.class` descriptor. Inspect the artifact after building:
 
 ~~~bash
 jar --describe-module --file mods/com.acme.app.jar
 jar --list --file mods/com.acme.app.jar
 ~~~
 
-Descriptor mẫu:
+Sample descriptor:
 
 ~~~java
 module com.acme.app {
@@ -141,20 +141,20 @@ module com.acme.app {
 }
 ~~~
 
-Khi migration, ghi nhận các thay đổi:
+During migration, record the changes:
 
-- JAR chính có `module-info.class` hay chưa.
-- Tên module thực tế có ổn định không.
-- Những package nào `exports` hoặc `opens`.
-- Các dependency `requires`, `requires transitive` hoặc `requires static`.
-- Service directives `uses` và `provides` có đúng không.
-- Có JAR phụ thuộc nào chưa thể đưa lên module path không.
+- Whether the main JAR already has `module-info.class`.
+- Whether the actual module name is stable.
+- Which packages are `exports` or `opens`.
+- Dependencies via `requires`, `requires transitive`, or `requires static`.
+- Whether `uses` and `provides` service directives are accurate.
+- Whether any dependency JARs cannot yet move onto the module path.
 
-Modular JAR có thể lớn hơn JAR cũ một ít vì descriptor, nhưng điều đó không kết luận toàn bộ distribution lớn hơn. JPMS tập trung vào graph, encapsulation và khả năng tạo custom runtime.
+A modular JAR may be slightly larger than an older JAR due to the descriptor, but that does not mean the overall distribution is larger. JPMS focuses on the module graph, encapsulation, and enabling custom runtimes.
 
-## 7. Quan sát module graph lúc chạy
+## 7. Observing the Runtime Module Graph
 
-`--show-module-resolution` giúp quan sát những module được giải quyết:
+`--show-module-resolution` lets you observe resolved modules:
 
 ~~~bash
 java --show-module-resolution \
@@ -162,7 +162,7 @@ java --show-module-resolution \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Trong mã Java có thể liệt kê module của boot layer:
+In Java code, you can list modules in the boot layer:
 
 ~~~java
 ModuleLayer.boot().modules().stream()
@@ -171,9 +171,9 @@ ModuleLayer.boot().modules().stream()
     .forEach(System.out::println);
 ~~~
 
-Danh sách này là các module được định nghĩa trực tiếp trong boot layer, không phải toàn bộ JAR có trên disk. Lưu danh sách trước/sau để tìm module được thêm, module thiếu hoặc automatic module xuất hiện bất ngờ.
+This list shows modules directly defined in the boot layer, not every JAR sitting on disk. Save before/after lists to spot added modules, missing modules, or unexpected automatic modules.
 
-Nếu ứng dụng cần provider được đưa vào graph bởi service binding, kiểm tra riêng cấu hình có binding:
+If the application needs providers brought into the graph via service binding, test the bound configuration explicitly:
 
 ~~~bash
 java --bind-services \
@@ -182,13 +182,13 @@ java --bind-services \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Graph lớn hơn không nhất thiết là xấu: một JDBC driver, logging provider hay crypto module cần thiết vẫn phải có mặt. Mục tiêu là **đầy đủ dependency, không kéo theo module không có chủ đích**.
+A larger graph is not necessarily bad: a required JDBC driver, logging provider, or crypto module must still be present. The goal is **complete dependencies without pulling in unintended modules**.
 
-## 8. Tạo custom runtime image bằng jlink
+## 8. Building Custom Runtime Images with jlink
 
-Một hướng giảm kích thước phân phối là dùng `jlink` liên kết các module ứng dụng/JDK cần thiết thành runtime image.
+One way to reduce distribution size is using `jlink` to link the required application/JDK modules into a runtime image.
 
-Ví dụ với explicit modular JAR đã đóng gói trong thư mục `mods`:
+Example with explicit modular JARs packaged in `mods`:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" \
@@ -196,43 +196,43 @@ jlink --module-path "$JAVA_HOME/jmods:mods" \
       --output runtime-image
 ~~~
 
-Trên Windows PowerShell, dấu phân cách module path là dấu chấm phẩy:
+On Windows PowerShell, the module path separator is a semicolon:
 
 ~~~powershell
 jlink --module-path "$env:JAVA_HOME\jmods;mods" --add-modules com.acme.app --output runtime-image
 ~~~
 
-Kiểm tra image:
+Verify the image:
 
 ~~~bash
 ./runtime-image/bin/java --list-modules
 ./runtime-image/bin/java -m com.acme.app/com.acme.app.Main
 ~~~
 
-`--add-modules com.acme.app` chọn root; resolver đưa vào dependency closure từ descriptor. Khi đo, lấy dung lượng **toàn thư mục `runtime-image`**, không chỉ một binary trong `bin` hay `lib`.
+`--add-modules com.acme.app` selects the root; the resolver pulls in the dependency closure from descriptors. When measuring, take the size of the **entire `runtime-image` directory**, not just a single binary in `bin` or `lib`.
 
-Một custom runtime image nhỏ hơn không tự chứng minh JVM dùng ít RAM hoặc khởi động nhanh hơn. Kích thước filesystem, RSS, heap và thời gian khởi động là những chỉ số khác nhau và phải đo độc lập.
+A smaller custom runtime image does not automatically prove the JVM uses less RAM or starts faster. Filesystem size, RSS, heap, and startup duration are distinct metrics and must be measured independently.
 
-## 9. Automatic module có thể cản trở linking
+## 9. Automatic Modules Can Block Linking
 
-Trong quá trình chuyển đổi, một thư viện cũ không có `module-info.class` nhưng nằm trên module path có thể trở thành automatic module. Nó dùng tên từ `Automatic-Module-Name` hoặc tên JAR suy ra.
+During transition, a legacy library without `module-info.class` placed on the module path can become an automatic module. It gets its name from `Automatic-Module-Name` or derived from the JAR name.
 
-Automatic module hữu ích để ứng dụng named module tham chiếu thư viện cũ, nhưng **`jlink` không chấp nhận automatic module như đầu vào liên kết thông thường**. Vì vậy, một ứng dụng vẫn còn dependency automatic module có thể chạy với Java launcher nhưng chưa thể liên kết trực tiếp thành runtime image như kỳ vọng.
+Automatic modules help named-module applications reference legacy libraries, yet **`jlink` does not accept automatic modules as standard linking inputs**. Therefore, an application that still has automatic module dependencies can run with the Java launcher, but cannot yet be linked directly into a runtime image as expected.
 
-Cần ghi trong báo cáo:
+Document in the report:
 
-| Loại thư viện | Trạng thái | Tác động đóng gói |
+| Library kind | Status | Packaging impact |
 |---|---|---|
-| JDK/Java SE module | Named module có descriptor | Có thể chọn làm root/dependency khi linking |
-| Explicit modular JAR | Có `module-info.class` | Tham gia resolution và có thể dùng khi linking nếu hợp lệ |
-| Automatic module | Chưa có descriptor tường minh | Hỗ trợ migration; có hạn chế với `jlink` |
-| Classpath library | Thuộc unnamed module | Cần chiến lược compatibility/packaging riêng |
+| JDK/Java SE module | Named module with descriptor | Can be selected as root/dependency during linking |
+| Explicit modular JAR | Has `module-info.class` | Participates in resolution and usable for linking if valid |
+| Automatic module | Lacks explicit descriptor | Aids migration; has restrictions with `jlink` |
+| Classpath library | Belongs to unnamed module | Needs separate compatibility/packaging strategy |
 
-Nếu linking bị chặn, đừng giả định chỉ thêm manifest name là đủ. Có thể cần nâng cấp thư viện lên bản modular, đổi dependency hoặc chọn kiểu distribution khác trong giai đoạn chuyển tiếp.
+If linking is blocked, do not assume adding a manifest name alone is enough. You may need to upgrade the library to a modular release, swap dependencies, or pick another distribution model during the transition.
 
-## 10. Service provider và tác động tới runtime image
+## 10. Service Providers and Runtime Image Impact
 
-Ứng dụng sử dụng `ServiceLoader` có dependency động không thể suy ra chỉ từ các câu `requires`.
+Applications using `ServiceLoader` have dynamic dependencies that cannot be inferred solely from `requires` clauses.
 
 Consumer:
 
@@ -253,7 +253,7 @@ module com.acme.formatter.json {
 }
 ~~~
 
-`jlink` có tùy chọn liên kết các service provider khả dụng:
+`jlink` has an option to bind available service providers:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" \
@@ -262,19 +262,19 @@ jlink --module-path "$JAVA_HOME/jmods:mods" \
       --output runtime-with-providers
 ~~~
 
-Service binding có thể thêm nhiều module/provider và dependency vào image; dung lượng có thể **tăng** so với cấu hình không binding. Nếu chỉ cần một provider cụ thể, cần xem xét chọn root/chế độ triển khai có kiểm soát.
+Service binding can pull many provider modules and their dependencies into the image; size may **increase** compared to an unbound configuration. If only one specific provider is needed, consider controlled root selection or deployment modes.
 
-Sau khi tạo image, chạy đúng đường chức năng để xác nhận `ServiceLoader` tìm và khởi tạo được provider. Lưu ý provider được resolve chưa có nghĩa đã được khởi tạo; service loading thường diễn ra khi ứng dụng duyệt loader.
+After creating the image, exercise the actual functional path to verify `ServiceLoader` locates and instantiates the provider. Note that a resolved provider is not yet instantiated; service loading typically happens when the application iterates the loader.
 
-## 11. Reflection, opens và tài nguyên runtime
+## 11. Reflection, opens, and Runtime Resources
 
-JPMS áp dụng strong encapsulation với package của named module. Một chương trình có thể biên dịch nhưng lỗi khi framework cần deep reflection:
+JPMS enforces strong encapsulation on packages of named modules. A program may compile yet fail when frameworks require deep reflection:
 
 ~~~text
 java.lang.reflect.InaccessibleObjectException
 ~~~
 
-Module có thể mở đúng package cho framework:
+A module can open the exact package to the framework:
 
 ~~~java
 module com.acme.domain {
@@ -283,24 +283,26 @@ module com.acme.domain {
 }
 ~~~
 
-Khi cần workaround tạm thời, có thể dùng `--add-opens` với đúng module/package/đích. Nhưng phải ghi những JVM flags này trong launch configuration thực tế của image, container hoặc installer.
+Wait—let's keep `com.acme.domain.api` exact as in the original! Let's double check line 281 of `module-migration-009.md`: `exports com.acme.domain.api;`! Good catch!
 
-Các trường hợp dễ bị bỏ sót:
+When a temporary workaround is needed, you can use `--add-opens` with the exact module/package/target. Be sure to include those JVM flags in the actual launch configuration of the image, container, or installer.
 
-- ORM và entity construction.
-- JSON/XML serializer truy cập field/constructor.
-- Dependency injection và component scanning.
-- Resource được tìm theo đường dẫn module.
-- JDBC driver và service provider.
-- TLS, certificate, security provider, locale và charset.
+Commonly overlooked areas:
 
-Hãy kiểm thử chúng trên **artifact phát hành**. Một smoke test chỉ gọi main hoặc health endpoint có thể không đi qua các đường code nạp động.
+- ORM and entity construction.
+- JSON/XML serializers accessing fields/constructors.
+- Dependency injection and component scanning.
+- Resources resolved by module path.
+- JDBC drivers and service providers.
+- TLS, certificates, security providers, locales, and charsets.
 
-## 12. jpackage: đo app image và installer
+Test these on the **release artifact**. A smoke test calling only main or a health endpoint may miss dynamic loading code paths.
 
-`jpackage` có thể tạo app image hoặc installer để phân phối ứng dụng theo từng hệ điều hành.
+## 12. jpackage: Measuring App Images and Installers
 
-Ví dụ minh họa với modular application:
+`jpackage` can generate OS-specific app images or installers for application distribution.
+
+Illustrative example with a modular application:
 
 ~~~bash
 jpackage --type app-image \
@@ -310,7 +312,7 @@ jpackage --type app-image \
          --dest dist
 ~~~
 
-Nếu cung cấp custom runtime phù hợp:
+When supplying a matching custom runtime:
 
 ~~~bash
 jpackage --type app-image \
@@ -321,31 +323,31 @@ jpackage --type app-image \
          --dest dist
 ~~~
 
-Tùy phiên bản JDK, OS và công cụ đóng gói được cài đặt, cú pháp/khả năng tạo installer có thể khác nhau. Hãy chạy thử trên đúng môi trường build thực tế.
+Depending on the JDK version, OS, and installed packaging tools, installer syntax/capabilities may vary. Test on your real build environment.
 
-Ngoài dung lượng installer, đo thời gian tạo gói, cài đặt, cập nhật và gỡ cài đặt; kiểm tra khả năng chạy trên máy sạch không có JDK hệ thống. Gói có thể nhỏ nhưng quá trình cập nhật hoặc rollback phức tạp hơn, nên cần đánh giá cả vòng đời phân phối.
+Beyond installer size, measure package creation, install, upgrade, and uninstall times; verify execution on a clean machine without a system JDK. A package may be smaller yet make updates or rollbacks more complex, so evaluate the entire distribution lifecycle.
 
-## 13. Đo startup và memory
+## 13. Measuring Startup and Memory
 
-Để đo startup, xác định mốc rõ ràng:
+To measure startup, define clear milestones:
 
 ~~~text
-Start: thời điểm tạo Java process
-Ready: thời điểm ứng dụng trả readiness/health thành công
+Start: timestamp when the Java process is created
+Ready: timestamp when the application returns a successful readiness/health response
 Startup duration = Ready - Start
 ~~~
 
-Chạy nhiều lần và phân biệt cold/warm startup. Nếu readiness còn chờ database/network, thời gian đó là một phần của phép đo end-to-end; cần ghi rõ.
+Run multiple iterations and separate cold vs. warm startup. If readiness waits on a database or network, that duration is part of the end-to-end measurement; document it clearly.
 
-Các chỉ số runtime khác:
+Other runtime metrics:
 
-- RSS và peak RSS.
+- RSS and peak RSS.
 - Heap used/committed.
 - Metaspace.
-- Số class và class loader.
-- CPU khi startup và steady state.
+- Class count and class loader count.
+- CPU during startup and steady state.
 
-Ví dụ công cụ chẩn đoán JDK:
+Example JDK diagnostic commands:
 
 ~~~bash
 jcmd <pid> VM.command_line
@@ -353,13 +355,13 @@ jcmd <pid> VM.flags
 jcmd <pid> GC.heap_info
 ~~~
 
-Các dấu `<pid>` là placeholder cần thay bằng process id. RSS phải được đo từ OS/container monitoring phù hợp; heap used không bằng toàn bộ RSS.
+The `<pid>` placeholders must be replaced with the process ID. RSS must be measured using appropriate OS/container monitoring; heap used does not equal total RSS.
 
-Giữ nguyên `-Xms`, `-Xmx`, GC, workload và giới hạn container khi so sánh. Không suy luận một runtime image nhỏ hơn sẽ tự làm startup hoặc memory tốt hơn.
+Keep `-Xms`, `-Xmx`, GC, workload, and container limits constant when comparing. Never assume a smaller runtime image automatically improves startup or memory.
 
-## 14. Đo build, pipeline và triển khai
+## 14. Measuring Build, Pipeline, and Deployment
 
-Migration có thể thêm công đoạn:
+Migration may add pipeline stages:
 
 ~~~text
 Before:
@@ -378,87 +380,87 @@ compile (module-path)
   -> deploy
 ~~~
 
-Nên đo riêng:
+Measure separately:
 
-1. Clean compile và incremental compile.
-2. Unit/integration test.
-3. Đóng gói JAR.
-4. Tạo runtime image/installer.
-5. Upload/push artifact.
-6. Download/pull artifact ở môi trường đích.
-7. Khởi động đến readiness.
-8. Tổng thời gian pipeline commit-to-ready.
-9. Thời gian rollback về bản trước.
+1. Clean compile and incremental compile.
+2. Unit/integration tests.
+3. JAR packaging.
+4. Runtime image/installer creation.
+5. Artifact upload/push.
+6. Artifact download/pull on target environment.
+7. Startup to readiness.
+8. Total commit-to-ready pipeline duration.
+9. Rollback duration to the previous release.
 
-Nếu custom runtime cần build riêng cho Linux x86_64, Linux arm64, Windows và macOS, chi phí CI và vận hành có thể tăng. Một báo cáo chỉ ghi gói nhỏ hơn mà bỏ qua ma trận build sẽ không phản ánh đầy đủ tác động.
+If custom runtimes must be built separately for Linux x86_64, Linux arm64, Windows, and macOS, CI and operational overhead can increase. A report that cites a smaller package while ignoring the build matrix fails to reflect the full impact.
 
-## 15. Container image và hệ điều hành đích
+## 15. Container Images and Target Operating Systems
 
-Với container, cần đo **compressed registry size** và **uncompressed filesystem size**, vì hai giá trị không giống nhau. So sánh cùng architecture và base image khi có thể.
+For containers, measure both **compressed registry size** and **uncompressed filesystem size**, as the two values are not identical. Compare across the same architecture and base image whenever possible.
 
-Một bản triển khai có custom runtime cần đủ thành phần nền:
+A deployment with a custom runtime still needs all underlying components:
 
-- Thư viện native mà Java và dependency dùng.
-- Certificate/trust store cho kết nối TLS.
-- Time zone, locale, charset cần thiết.
-- User quyền thấp, filesystem permissions và thư mục tạm.
-- Health check, signal handling và logging.
+- Native libraries used by Java and dependencies.
+- Certificates/trust stores for TLS connections.
+- Required time zones, locales, and charsets.
+- Low-privilege user, filesystem permissions, and temp directories.
+- Health checks, signal handling, and logging.
 
-Custom image không nhất thiết tự chứa mọi dependency OS. Một image ít byte hơn nhưng không có CA certificates hay thư viện hệ thống vẫn là gói không đạt yêu cầu.
+A custom image does not automatically include every OS dependency. A smaller image missing CA certificates or system libraries is still a broken package.
 
-Nên ghi image digest để khôi phục chính xác bản phát hành thay vì chỉ dùng tag có thể bị ghi đè.
+Record image digests to restore exact releases rather than relying solely on mutable tags.
 
-## 16. Ma trận kiểm thử tương thích khi deploy
+## 16. Deployment Compatibility Test Matrix
 
-| Kiểm thử | Mục tiêu |
+| Test | Goal |
 |---|---|
-| Startup smoke test | Launcher chạy được với module graph mới |
-| Module resolution | Không thiếu root/dependency, không có graph conflict |
-| ServiceLoader | Các provider cần thiết xuất hiện và khởi tạo đúng |
-| Database/JDBC | Driver và connection pool hoạt động |
-| Reflection/serialization | Package cần mở được mở đúng phạm vi |
-| HTTP/TLS | Kết nối mạng, certificate và provider phù hợp |
-| Resource loading | Template, config, classpath/module resources tồn tại |
-| Background tasks | Scheduler, batch, plugin được khởi tạo |
-| Health/readiness | Deploy chỉ đánh dấu ready khi ứng dụng hoạt động |
-| Rollback | Bản trước có thể phục hồi với dữ liệu và cấu hình phù hợp |
+| Startup smoke test | Launcher runs with the new module graph |
+| Module resolution | No missing roots/dependencies, no graph conflicts |
+| ServiceLoader | Required providers appear and initialize properly |
+| Database/JDBC | Drivers and connection pools work |
+| Reflection/serialization | Needed packages are opened with exact scope |
+| HTTP/TLS | Network connections, certificates, and providers work |
+| Resource loading | Templates, configs, classpath/module resources exist |
+| Background tasks | Schedulers, batch jobs, plugins initialize |
+| Health/readiness | Deploy marks ready only when the app is functional |
+| Rollback | Previous release can be restored with matching data and config |
 
-Các kiểm thử cần dùng đúng JAR, runtime image, biến môi trường và JVM options của production. IDE có thể chạy với classpath hoặc flags khác nên không đủ để chứng minh gói triển khai thành công.
+Tests must use the exact JARs, runtime image, environment variables, and JVM options of production. An IDE running with a different classpath or flags is not sufficient proof that a deployment package succeeds.
 
-## 17. Các lỗi phổ biến và nguyên nhân
+## 17. Common Errors and Causes
 
-| Triệu chứng | Nguyên nhân có thể | Hướng kiểm tra |
+| Symptom | Possible cause | What to check |
 |---|---|---|
-| `FindException: Module ... not found` | Root/dependency không có trong image/module path | `--show-module-resolution`, `--list-modules` |
-| `LayerInstantiationException` | Module graph/package conflict khi định nghĩa layer | Descriptor, split package, loader strategy |
-| `IllegalAccessError` | Readability hoặc exports không đáp ứng | `requires`, `exports`, runtime flags |
-| `InaccessibleObjectException` | Framework cần deep reflection | `opens`, `--add-opens` |
-| `ServiceConfigurationError` | Provider thiếu/sai hoặc không khởi tạo được | `uses`, `provides`, service binding |
-| `No suitable driver` | JDBC driver không được đưa vào runtime | Driver JAR/provider, module graph |
-| Runtime nhỏ nhưng TLS lỗi | Thiếu crypto/certificate/provider/OS capability | Image contents, security, network |
-| Local pass, container fail | Environment và JVM arguments khác nhau | Reproduce exact container startup |
-| jlink không nhận dependency | Có automatic/nonmodular module không thể link | Kiểm tra dependency, nâng cấp bản modular |
+| `FindException: Module ... not found` | Root/dependency missing from image/module path | `--show-module-resolution`, `--list-modules` |
+| `LayerInstantiationException` | Module graph/package conflict when defining layer | Descriptors, split packages, loader strategy |
+| `IllegalAccessError` | Unsatisfied readability or exports | `requires`, `exports`, runtime flags |
+| `InaccessibleObjectException` | Framework needs deep reflection | `opens`, `--add-opens` |
+| `ServiceConfigurationError` | Missing/invalid provider or instantiation failure | `uses`, `provides`, service binding |
+| `No suitable driver` | JDBC driver omitted from runtime | Driver JAR/provider, module graph |
+| Small runtime but TLS fails | Missing crypto/certificates/providers/OS capability | Image contents, security, network |
+| Passes locally, fails in container | Differing environment and JVM arguments | Reproduce exact container startup |
+| jlink rejects dependency | Contains automatic/non-modular module that cannot be linked | Check dependencies, upgrade to modular versions |
 
-Chẩn đoán theo tầng: artifact có đủ file không, module có được resolve không, caller có quyền đọc/truy cập không, provider có được tìm không và chức năng runtime có hoạt động không.
+Diagnose in layers: does the artifact contain all files, are modules resolved, do callers have read/access permissions, are providers discovered, and do runtime features operate?
 
-## 18. Quy trình A/B đo tác động
+## 18. A/B Impact Measurement Process
 
-Một quy trình khả thi:
+A workable process:
 
-1. **Chốt baseline** gồm commit, JDK, OS, dependency, command, artifact và workload.
-2. **Modular hóa có kiểm soát** bằng `module-info.java` và giải quyết dependency thật.
-3. **Kiểm tra descriptor** bằng `jar --describe-module`.
-4. **Phân tích dependency tĩnh** với `jdeps`.
-5. **Tạo các distribution tương đương** và đo tổng byte artifact/runtime/package.
-6. **Chạy integration test trên gói thực**; đặc biệt service provider, reflection, JDBC và TLS.
-7. **Đo performance lặp lại**: cold startup, median/p90, peak RSS, readiness.
-8. **Đo pipeline**: clean build, packaging, upload, deploy, rollback.
-9. **Báo trade-off** bằng bảng before/after/delta, kèm môi trường thử.
-10. **Đưa ra quyết định** có điều kiện chấp nhận hoặc blocker cụ thể.
+1. **Lock the baseline** including commit, JDK, OS, dependencies, commands, artifacts, and workload.
+2. **Modularize cleanly** with `module-info.java` and real dependency resolution.
+3. **Inspect descriptors** using `jar --describe-module`.
+4. **Analyze static dependencies** with `jdeps`.
+5. **Build equivalent distributions** and measure total artifact/runtime/package bytes.
+6. **Run integration tests on the real package**; especially service providers, reflection, JDBC, and TLS.
+7. **Measure performance repeatedly**: cold startup, median/p90, peak RSS, readiness.
+8. **Measure the pipeline**: clean build, packaging, upload, deploy, rollback.
+9. **Report trade-offs** using before/after/delta tables, along with test environments.
+10. **Make a decision** with acceptance criteria or specific blockers.
 
-Không nên thay đổi đồng thời framework, database driver và JDK khi muốn kết luận chính xác tác động của JPMS. Nếu không thể cô lập thay đổi, ghi rõ giới hạn của dữ liệu.
+Do not change frameworks, database drivers, and the JDK simultaneously if you want to isolate JPMS impact accurately. If changes cannot be isolated, document the limitations of the data.
 
-## 19. Mẫu báo cáo tác động migration
+## 19. Migration Impact Report Template
 
 ~~~text
 JPMS Migration Impact
@@ -504,10 +506,10 @@ Decision:
 - Evidence:
 ~~~
 
-Nếu một hạng mục chưa được đo, ghi “chưa đo”; không thay bằng con số đoán hoặc số minh họa. Gắn kết quả với build artifact/digest để có thể tra cứu đúng bản đã kiểm thử.
+If an item has not been measured, record "not measured"; do not substitute guessed or illustrative numbers. Tie results to the build artifact/digest so the exact tested build can be traced.
 
-## 20. Ghi nhớ
+## 20. Takeaways
 
-**Đo tác động JPMS migration theo toàn bộ vòng đời phân phối.** Modular JAR có thể không nhỏ hơn JAR cũ, nhưng `jlink` có thể giúp tạo runtime image chỉ chứa module cần thiết khi đầu vào đáp ứng yêu cầu. `jdeps` giúp phân tích dependency tĩnh; `jar --describe-module` xác nhận descriptor; `--show-module-resolution` giúp quan sát graph; `jpackage` có thể tạo app image hoặc installer.
+**Measure JPMS migration impact across the entire distribution lifecycle.** A modular JAR may not be smaller than an old JAR, yet `jlink` can help create a runtime image containing only needed modules when inputs meet requirements. `jdeps` aids static dependency analysis; `jar --describe-module` confirms descriptors; `--show-module-resolution` observes the graph; `jpackage` can generate app images or installers.
 
-Chỉ so sánh kích thước, build time, startup và memory khi điều kiện đo tương đương. Phải kiểm chứng những dependency động như `ServiceLoader`, JDBC, reflection, TLS và resource loading trên chính artifact sẽ triển khai. Một báo cáo tốt có baseline rõ ràng, phép đo lặp lại, delta, giới hạn, khả năng rollback và quyết định triển khai có bằng chứng — không chỉ một con số “giảm dung lượng” thiếu ngữ cảnh.
+Compare size, build time, startup, and memory only under equivalent measurement conditions. Verify dynamic dependencies like `ServiceLoader`, JDBC, reflection, TLS, and resource loading on the exact artifact to be deployed. A solid report includes a clear baseline, repeatable measurements, deltas, limitations, rollback readiness, and an evidence-backed deployment decision—not just a context-free "size reduction" headline number.

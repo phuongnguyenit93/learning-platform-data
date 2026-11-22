@@ -1,13 +1,13 @@
-# Ảnh hưởng của thay đổi trường tham gia `equals()` hoặc `hashCode()`
+# Impact of Changing Fields Used in `equals()` or `hashCode()`
 
-## 1. Vấn đề: một đối tượng vẫn là chính nó nhưng quan hệ bằng nhau có thể thay đổi
+## 1. The problem: an object remains itself, but its equality relation can change
 
-Một đối tượng Java có thể giữ nguyên **danh tính tham chiếu** trong khi các trường bên trong bị sửa. Nếu các trường đó tham gia vào `equals(Object)` hoặc `hashCode()`, việc sửa có thể thay đổi cách đối tượng được so sánh và cách một cấu trúc dữ liệu dựa trên hash tìm lại nó.
+A Java object can keep the same **reference identity** while its internal fields are modified. If those fields participate in `equals(Object)` or `hashCode()`, modifying them can change how the object compares to others and how a hash-based data structure locates it again.
 
-Ví dụ, một `Member` được định nghĩa bằng `email`:
+For example, a `Member` defined by `email`:
 
 ```java
-// Minh họa ý tưởng, không phải lớp hoàn chỉnh.
+// Illustrates the idea, not a complete class.
 @Override
 public boolean equals(Object obj) {
     if (this == obj) return true;
@@ -21,73 +21,73 @@ public int hashCode() {
 }
 ```
 
-Khi `email` đổi từ `"a@example.com"` thành `"b@example.com"`, đối tượng trong bộ nhớ vẫn là đối tượng cũ: một biến alias vẫn có `alias == member` bằng `true`. Tuy nhiên, đối tượng này không còn bằng một `Member` khác mang email cũ, và mã băm được tính từ email cũng có thể thay đổi.
+When `email` changes from `"a@example.com"` to `"b@example.com"`, the object in memory is still the same object: an alias variable still has `alias == member` evaluate to `true`. However, this object is no longer equal to another `Member` carrying the old email, and the hash code computed from the email may also change.
 
-Đây không nhất thiết là lỗi của bản thân phương thức `equals`: việc một đối tượng mutable thay đổi quan hệ bằng nhau **sau khi dữ liệu liên quan bị sửa** không tự động vi phạm hợp đồng `Object.equals`. Rủi ro chính xuất hiện khi mã khác đang dựa vào quan hệ bằng nhau và mã băm **ổn định**, chẳng hạn `HashSet` hoặc một khóa đã đưa vào `HashMap`.
+This is not necessarily a bug in the `equals` method itself: a mutable object changing its equality relation **after the relevant data is modified** does not automatically violate the `Object.equals` contract. The main risk arises when other code relies on a **stable** equality relation and hash code, such as a `HashSet` or a key already inserted into a `HashMap`.
 
-### Phân biệt ba thứ
+### Distinguishing three things
 
-| Thành phần | Khi trường thay đổi | Điều cần hiểu |
+| Aspect | When a field changes | What to understand |
 | --- | --- | --- |
-| Danh tính đối tượng (`a == b`) | Không đổi chỉ vì gán trường mới. | Hai alias vẫn trỏ cùng instance. |
-| Kết quả `a.equals(b)` | Có thể đổi nếu trường tham gia định nghĩa bằng nhau đổi. | Hai instance đang bằng nhau có thể trở thành khác nhau, hoặc ngược lại. |
-| Giá trị `a.hashCode()` | Có thể đổi nếu dữ liệu dùng tính hash đổi. | Mã băm được tính lại không tự di chuyển entry đã nằm trong một bảng hash. |
+| Object identity (`a == b`) | Does not change just because a field is assigned a new value. | Two aliases still point to the same instance. |
+| Result of `a.equals(b)` | May change if a field participating in the equality definition changes. | Two previously equal instances may become unequal, or vice versa. |
+| Value of `a.hashCode()` | May change if the data used to compute the hash changes. | A recomputed hash code does not automatically move an entry already inside a hash table. |
 
-Mục tiêu bài này là nhìn rõ **ảnh hưởng của thay đổi trạng thái lên cả hợp đồng so sánh và hành vi collection**, sau đó lựa chọn thiết kế an toàn.
+The goal of this lesson is to clearly see **the impact of state changes on both the comparison contract and collection behavior**, and then choose a safe design.
 
-## 2. Hợp đồng `equals` và `hashCode` nói gì về tính ổn định?
+## 2. What do the `equals` and `hashCode` contracts say about stability?
 
-Hợp đồng của `equals(Object)` bao gồm phản xạ, đối xứng, bắc cầu, nhất quán và so với `null` phải trả `false`. Quy tắc **nhất quán** được hiểu với điều kiện: nếu không thay đổi thông tin dùng trong phép so sánh, việc gọi `equals` lặp lại phải tiếp tục cho cùng kết quả.
+The contract of `equals(Object)` includes reflexivity, symmetry, transitivity, consistency, and returning `false` when compared with `null`. The **consistency** rule is qualified by a condition: provided no information used in the comparison is modified, repeated calls to `equals` must continue to return the same result.
 
-Tương tự, trong một lần chạy ứng dụng, nhiều lần gọi `hashCode` trên cùng đối tượng phải trả cùng giá trị khi **không có thông tin tham gia `equals` bị thay đổi**. Mã băm không bắt buộc cố định giữa những lần chạy chương trình khác nhau.
+Similarly, during a single execution of an application, multiple calls to `hashCode` on the same object must return the same value provided **no information used in `equals` has been modified**. The hash code is not required to remain constant across different runs of the program.
 
-Quy tắc quan trọng nhất khi kết hợp cả hai:
+The most important rule when combining both:
 
 ```text
 a.equals(b) == true  =>  a.hashCode() == b.hashCode()
 ```
 
-Chiều ngược lại không đúng: hai đối tượng khác nhau được phép trùng mã băm (*hash collision*).
+The converse is not true: two unequal objects are allowed to share the same hash code (*hash collision*).
 
-Các trường hợp thay đổi đáng chú ý:
+Notable mutation cases:
 
-1. **Trường dùng ở cả `equals` và `hashCode` đổi:** quan hệ bằng nhau với những đối tượng khác và hash của đối tượng có thể cùng đổi. Nếu nó đang là khóa/element trong collection dựa trên hash, thao tác tra cứu có thể thất bại.
-2. **Trường chỉ dùng trong `equals` đổi:** hash có thể giữ nguyên, nhưng những phần tử vốn khác nhau có thể trở thành bằng nhau. `HashSet` không tự loại phần tử trùng hay tái xác lập tính duy nhất sau khi dữ liệu trong phần tử thay đổi.
-3. **Trường chỉ dùng trong `hashCode` đổi:** dù phép `equals` không đổi, mã băm vẫn đổi và có thể làm mất khả năng tra cứu. Nguy hiểm hơn, nếu hai đối tượng bằng nhau theo `equals` nhưng có giá trị khác ở trường chỉ dùng tính hash thì hợp đồng **đã sai ngay từ đầu**, không cần đợi thao tác sửa.
-4. **Trường không dùng ở cả hai đổi:** về mặt thiết kế, nếu đúng là không ảnh hưởng gián tiếp tới phép so sánh và hash, `equals/hashCode` nên giữ nguyên. Đây thường là cách cho phép đổi trạng thái hiển thị mà khóa danh tính vẫn ổn định.
+1. **A field used in both `equals` and `hashCode` changes:** both its equality relation with other objects and its hash may change. If it is currently a key/element in a hash-based collection, lookup operations may fail.
+2. **A field used only in `equals` changes:** the hash may remain unchanged, but previously distinct elements may become equal. `HashSet` does not automatically remove duplicate elements or re-establish uniqueness after data inside an element changes.
+3. **A field used only in `hashCode` changes:** even though `equals` does not change, the hash code still changes and can break lookup capability. Worse yet, if two objects are equal according to `equals` but have different values in a field used only for hashing, the contract is **already broken from the start**, without waiting for any mutation.
+4. **A field used in neither changes:** by design, if it truly does not indirectly affect comparison or hashing, `equals/hashCode` should remain unchanged. This is usually how display state is allowed to change while the identity key stays stable.
 
-**Không suy luận rằng hễ đổi trường nào thì bắt buộc có một giá trị hash mới.** Hai trạng thái khác nhau có thể tình cờ cho cùng hash. Kết quả tra cứu trong bảng hash vì thế có thể trông như vẫn đúng ở một ví dụ nhỏ; điều đó không chứng minh việc sử dụng khóa mutable là an toàn.
+**Do not infer that changing a field must always produce a new hash value.** Two different states may happen to produce the same hash. Lookup results in a hash table may therefore appear to still work in a small example; that does not prove using mutable keys is safe.
 
-## 3. Vì sao `HashMap` và `HashSet` đặc biệt nhạy cảm?
+## 3. Why are `HashMap` and `HashSet` especially sensitive?
 
-Khi đưa một khóa vào `HashMap`, cấu trúc này dùng hash **ở thời điểm chèn** để định vị entry trong cấu trúc lưu trữ nội bộ. Khi tra cứu, nó lại tính hash từ **khóa truy vấn tại thời điểm tìm** và so sánh các khóa ứng viên bằng quy tắc phù hợp.
+When inserting a key into a `HashMap`, the structure uses the hash **at insertion time** to position the entry in its internal storage structure. When looking up, it recomputes the hash from the **query key at lookup time** and compares candidate keys using the appropriate rule.
 
-Luồng tư duy rút gọn:
+Simplified mental flow:
 
 ```text
-Tại thời điểm put:
-key.code = "A" -> hash("A") -> chọn vị trí lưu entry
+At put time:
+key.code = "A" -> hash("A") -> select entry storage location
 
-Sau khi sửa key.code = "B":
-map.get(key) hoặc map.get(new Key("B"))
-    -> hash("B") -> tìm theo hash mới
-    -> không bảo đảm đến được entry đã lưu theo hash("A")
+After modifying key.code = "B":
+map.get(key) or map.get(new Key("B"))
+    -> hash("B") -> search by new hash
+    -> not guaranteed to reach the entry stored under hash("A")
 ```
 
-Đây là mô hình giải thích, không phải cam kết về cấu trúc bucket cụ thể của mọi bản JDK. Quan trọng là **collection không nhận thông báo và không tự lập chỉ mục lại** khi bạn sửa một trường nằm trong đối tượng đã đưa vào collection.
+This is an explanatory model, not a guarantee about the exact bucket structure of every JDK version. What matters is that **the collection receives no notification and does not automatically re-index** when you modify a field inside an object already placed in the collection.
 
-Hệ quả thường gặp:
+Common consequences:
 
-- `map.get(key)`, `map.containsKey(key)` hoặc `map.remove(key)` có thể thất bại ngay cả khi `key` chính là **tham chiếu cũ** từng dùng để `put`.
-- `HashSet.contains(element)` hoặc `HashSet.remove(element)` có thể thất bại, dù duyệt `set` vẫn nhìn thấy phần tử đó.
-- Nếu thêm đối tượng mới được xem là bằng phần tử đã bị sửa, một `HashSet` có thể tạm thời chứa nhiều phần tử hiện được `equals` xem là bằng nhau. Tập không chủ động rà soát lại mọi phần tử sau mỗi thao tác sửa.
-- Kết quả có thể phụ thuộc giá trị hash, số lượng entry và lịch sử thay đổi nội bộ; vì vậy không thể dựa vào việc một thử nghiệm cụ thể vẫn `contains == true`.
+- `map.get(key)`, `map.containsKey(key)`, or `map.remove(key)` may fail even when `key` is the **exact same reference** previously used to `put`.
+- `HashSet.contains(element)` or `HashSet.remove(element)` may fail, even though iterating over the `set` still shows that element.
+- If a new object considered equal to the mutated element is added, a `HashSet` may temporarily contain multiple elements currently considered equal by `equals`. The set does not proactively re-scan all elements after every mutation.
+- Results may depend on hash values, entry counts, and internal mutation history; therefore you cannot rely on a specific experiment still returning `contains == true`.
 
-**Đừng nhầm mutable *value* của `Map<K,V>` với mutable *key*.** Sửa đối tượng `V` được lưu dưới một khóa ổn định thông thường không ảnh hưởng cách `HashMap` tìm khóa. Nguy cơ đang xét là sửa dữ liệu dùng để xác định `equals/hashCode` của chính `K`.
+**Do not confuse a mutable *value* in `Map<K,V>` with a mutable *key*.** Modifying an object `V` stored under an ordinary stable key does not affect how `HashMap` finds the key. The risk being examined here is modifying the data used to determine `equals/hashCode` of `K` itself.
 
-## 4. Ví dụ Java 17: đổi hash làm khóa khó tìm, đổi `equals` tạo phần tử trùng logic
+## 4. Java 17 example: changing hash makes a key hard to find, changing `equals` creates logical duplicates
 
-Tạo tệp độc lập `MutableEqualityDemo.java`:
+Create a standalone file `MutableEqualityDemo.java`:
 
 ```java
 import java.util.HashMap;
@@ -141,7 +141,7 @@ public class MutableEqualityDemo {
 
         @Override
         public int hashCode() {
-            return 1; // Cố ý giữ hash cố định để tách riêng tác động của equals.
+            return 1; // Intentionally keep hash constant to isolate the effect of equals.
         }
     }
 
@@ -177,14 +177,14 @@ public class MutableEqualityDemo {
 }
 ```
 
-Biên dịch/chạy với JDK 17 trở lên:
+Compile/run with JDK 17 or later:
 
 ```bash
 javac MutableEqualityDemo.java
 java MutableEqualityDemo
 ```
 
-Kết quả khi chạy trên JDK 17 với `HashMap`/`HashSet` tiêu chuẩn:
+Output when run on JDK 17 with standard `HashMap`/`HashSet`:
 
 ```text
 before A: payload
@@ -200,57 +200,57 @@ same hash now: true
 set size after: 2
 ```
 
-**Giải thích phần `CodeKey`:**
+**Explanation of the `CodeKey` part:**
 
-- Khi `put`, khóa có `code = "A"`. Với cặp giá trị này, `"A".hashCode()` là `65` còn `"B".hashCode()` là `66`. Sau khi sửa `code`, hash tính lại đổi sang `66`, trong khi entry được chèn theo hash cũ.
-- `storedKey.equals(new CodeKey("B"))` đúng, bởi **giá trị mới** giống nhau. Nhưng `map.get(storedKey)` vẫn có thể trả `null`: `HashMap` không tự cập nhật vị trí của entry chỉ vì đối tượng khóa bị sửa.
-- `map.size()` vẫn bằng `1`: entry không bị xóa. Việc khôi phục `code` thành `"A"` chỉ giúp ví dụ nhỏ này tìm lại được entry; **không nên coi đổi ngược trường là chiến lược sửa lỗi thực tế**.
+- During `put`, the key had `code = "A"`. For this pair of values, `"A".hashCode()` is `65` while `"B".hashCode()` is `66`. After modifying `code`, the recomputed hash changes to `66`, whereas the entry was inserted under the old hash.
+- `storedKey.equals(new CodeKey("B"))` is true because the **new values** match. Yet `map.get(storedKey)` can still return `null`: `HashMap` does not automatically update the entry's position just because the key object was modified.
+- `map.size()` remains `1`: the entry was not removed. Restoring `code` back to `"A"` only allows this small example to find the entry again; **reverting field changes should not be treated as a practical bug-fix strategy**.
 
-**Giải thích phần `StageKey`:**
+**Explanation of the `StageKey` part:**
 
-- `hashCode()` luôn trả `1`. Cách viết này hợp lệ về mặt quan hệ bắt buộc giữa `equals` và hash, nhưng phân bố hash rất kém, **chỉ dùng để minh họa**.
-- Ban đầu `"todo"` khác `"done"`, nên hai phần tử đều được chèn vào `HashSet`.
-- Sau khi đổi `second.stage` thành `"todo"`, `first.equals(second)` trở thành `true` mà kích thước tập vẫn là `2`. Việc hash không đổi **không** giải quyết nguy cơ thay đổi quan hệ bằng nhau.
+- `hashCode()` always returns `1`. This implementation is valid with respect to the required relation between `equals` and hashing, but its hash distribution is very poor and **is only for illustration**.
+- Initially `"todo"` differs from `"done"`, so both elements are inserted into `HashSet`.
+- After changing `second.stage` to `"todo"`, `first.equals(second)` becomes `true` while the set size remains `2`. Keeping the hash unchanged does **not** eliminate the risk of changing the equality relation.
 
-Ví dụ này làm rõ hai lỗi thiết kế riêng biệt: **hash thay đổi làm tra cứu không đáng tin**, còn **quan hệ bằng nhau thay đổi có thể làm mất bất biến logic của tập**, ngay cả khi hash cố định.
+This example clarifies two distinct design flaws: **a changing hash makes lookups unreliable**, while **a changing equality relation can break the logical invariant of a set**, even when the hash is constant.
 
-## 5. Phân tích từng loại thay đổi một cách hệ thống
+## 5. Systematically analyzing each kind of change
 
-### 5.1. Thay đổi một trường tham gia cả `equals` lẫn `hashCode`
+### 5.1. Changing a field that participates in both `equals` and `hashCode`
 
-Giả sử `InvoiceKey.equals` và `InvoiceKey.hashCode` đều dùng `invoiceNumber`. Sau khi thêm đối tượng vào `HashMap`, sửa `invoiceNumber` có thể làm khóa không tìm được. Nếu một đối tượng khác trùng số hóa đơn mới được thêm, collection có thể chứa cấu trúc trái với kỳ vọng nghiệp vụ.
+Suppose both `InvoiceKey.equals` and `InvoiceKey.hashCode` use `invoiceNumber`. After adding the object to a `HashMap`, modifying `invoiceNumber` can make the key unfindable. If another object with the same new invoice number is added, the collection can end up with a structure that contradicts business expectations.
 
-Cách tránh: dùng khóa số hóa đơn bất biến, hoặc tạo khóa mới và cập nhật mapping theo cách quản lý rõ ràng (xem phần 7).
+How to avoid: use an immutable invoice number key, or create a new key and update the mapping in an explicitly managed way (see section 7).
 
-### 5.2. Chỉ trường tham gia `equals` thay đổi
+### 5.2. Only a field participating in `equals` changes
 
-Ví dụ `equals` dựa trên `firstName` và `lastName`, nhưng `hashCode` luôn trả giá trị hằng. Hợp đồng `equals => cùng hash` được thỏa mãn, nhưng nếu một trường tên đổi, các đối tượng có thể chuyển từ bằng sang không bằng hoặc ngược lại. `HashSet` không tự duyệt để loại bản sao logic vừa xuất hiện.
+For example, `equals` is based on `firstName` and `lastName`, while `hashCode` always returns a constant value. The `equals => same hash` contract is satisfied, but if one of the name fields changes, objects can switch from equal to unequal or vice versa. `HashSet` does not automatically scan to remove newly created logical duplicates.
 
-Việc bỏ trường khỏi hash **không khiến trường đó có thể sửa tùy ý** khi instance đang nằm trong một tập phụ thuộc `equals`.
+Omitting a field from the hash **does not make that field safe to modify arbitrarily** while the instance is in a set that relies on `equals`.
 
-### 5.3. Chỉ trường tham gia `hashCode` thay đổi
+### 5.3. Only a field participating in `hashCode` changes
 
-Đây thường còn là lỗi thiết kế độc lập. Giả sử:
+This is often also an independent design bug. Suppose:
 
 ```java
-// Minh họa logic sai, không phải chương trình chạy độc lập.
-// equals chỉ so sánh id, nhưng hashCode lại lấy displayName.
+// Illustrates broken logic, not a standalone runnable program.
+// equals only compares id, but hashCode uses displayName.
 return displayName.hashCode();
 ```
 
-Hai đối tượng có cùng `id` có thể được `equals` coi là bằng nhau nhưng `displayName` khác nhau làm hai hash khác nhau: **vi phạm hợp đồng từ trước khi có mutation**.
+Two objects with the same `id` may be considered equal by `equals`, yet different `displayName` values produce two different hashes: **violating the contract even before any mutation occurs**.
 
-Không phải mọi công thức hash đều cần nêu đúng các trường có tên giống ở `equals`, nhưng bắt buộc bảo đảm với mọi cặp bằng nhau thì kết quả hash giống nhau. Thực hành dễ duy trì nhất là lấy hash từ bộ trường ổn định xác định bình đẳng, hoặc một dạng biến đổi nhất quán của bộ trường đó.
+Not every hash formula has to list the exact same field names as `equals`, but it must guarantee that for every equal pair, the hash results are identical. The easiest practice to maintain is deriving the hash from the stable set of fields that define equality, or a consistent transformation of those fields.
 
-### 5.4. Thay đổi một trường không tham gia `equals/hashCode`
+### 5.4. Changing a field that participates in neither `equals` nor `hashCode`
 
-Nếu `User` có `final long userId` là danh tính, còn `displayName` là thông tin hiển thị, có thể chủ động thiết kế `equals` và hash chỉ dựa vào `userId`. Khi tên đổi, quan hệ bằng nhau không đổi. Điều này an toàn **nếu** định nghĩa nghiệp vụ thực sự coi hai user có cùng `userId` là một thực thể và ID không bị tái sử dụng sai phạm vi.
+If `User` has `final long userId` as its identity and `displayName` as display information, you can intentionally design `equals` and hashing based solely on `userId`. When the name changes, the equality relation does not change. This is safe **if** the business definition truly treats two users with the same `userId` as one entity and IDs are not misused across scopes.
 
-Đây là khác biệt giữa **đối tượng có thể sửa trường hiển thị** và **khóa có thể sửa danh tính logic**.
+This is the difference between **an object whose display fields can change** and **a key whose logical identity can change**.
 
-## 6. Ví dụ an toàn: khóa bất biến, dữ liệu hiển thị có thể đổi
+## 6. Safe example: immutable key, mutable display data
 
-Tạo tệp `StableKeyDemo.java`:
+Create the file `StableKeyDemo.java`:
 
 ```java
 import java.util.HashMap;
@@ -316,56 +316,56 @@ lookup: reader
 map size: 1
 ```
 
-Đổi `displayName` không làm thay đổi giá trị `id` đã dùng trong cả `equals` và `hashCode`. Do đó tra cứu qua một instance `User` khác nhưng cùng ID vẫn hoạt động. Mẫu này chỉ đúng nếu **ID là khóa nghiệp vụ ổn định và duy nhất trong đúng miền dữ liệu**.
+Changing `displayName` does not alter the `id` value used in both `equals` and `hashCode`. Therefore, lookup via another `User` instance with the same ID still works. This pattern is only valid if **the ID is a stable business key and unique within the right data domain**.
 
-Nếu tính duy nhất là theo cặp `(tenantId, userId)`, thì cả hai giá trị đó phải bất biến và cùng tham gia quan hệ bằng nhau; dùng một `userId` đơn lẻ giữa hai tenant có thể gộp nhầm thực thể.
+If uniqueness is by the pair `(tenantId, userId)`, then both values must be immutable and participate together in the equality relation; using a single `userId` across two tenants could mistakenly merge entities.
 
-## 7. Làm thế nào để cập nhật dữ liệu khi khóa logic cần đổi?
+## 7. How to update data when a logical key must change?
 
-Ưu tiên các cách xử lý sau, tùy mô hình:
+Prefer the following approaches, depending on the model:
 
-**Cách A — thiết kế khóa bất biến ngay từ đầu.** Dùng kiểu `final` với trường `final`, `record` chứa các thành phần bất biến thực sự, hoặc lớp định danh như `UserId`, `OrderId`. Khi một giá trị của khóa thay đổi, tạo **đối tượng khóa mới**, không sửa khóa cũ đang được dùng trong collection.
+**Approach A — design an immutable key from the start.** Use a `final` type with `final` fields, a `record` containing genuinely immutable components, or an identifier class such as `UserId`, `OrderId`. When a key value changes, create a **new key object**, rather than mutating the old key currently used in a collection.
 
 ```java
 record AccountKey(String tenantId, long accountId) {}
 ```
 
-Với hai component `String` và `long`, ví dụ này có ngữ nghĩa bất biến phù hợp. `record` mặc định cung cấp `equals/hashCode` dựa trên các component.
+With the two components `String` and `long`, this example has appropriate immutable semantics. A `record` automatically provides `equals/hashCode` based on its components.
 
-**Cách B — thay entry bằng thao tác rõ ràng khi cần đổi khóa.** Khi logic yêu cầu đổi khóa, hãy tháo mapping ở **khóa cũ còn nguyên giá trị**, rồi thêm dưới khóa mới:
+**Approach B — replace the entry with an explicit operation when changing keys is required.** When logic requires changing a key, remove the mapping under the **old key while its value is still intact**, then insert under the new key:
 
 ```java
-// Minh họa: map là Map<AccountKey, String> có sẵn;
-// oldKey là AccountKey cũ chưa từng bị sửa;
-// newKey là khóa mới, được tạo độc lập.
+// Illustration: map is an existing Map<AccountKey, String>;
+// oldKey is the old AccountKey that has never been modified;
+// newKey is the new key, created independently.
 String value = map.remove(oldKey);
 if (value != null) {
     map.put(newKey, value);
 }
 ```
 
-Đoạn này chỉ minh họa trình tự và giả sử `null` không phải giá trị hợp lệ của mapping. Nếu `null` được phép, `remove` trả `null` không phân biệt được entry không tồn tại với entry có giá trị `null`; cần thiết kế kiểm tra tồn tại riêng. Khi thay khóa, cũng phải xác định xử lý xung đột nếu `newKey` đã có entry. Trên dữ liệu đồng thời, việc thay cần thực hiện trong cơ chế đồng bộ hoặc giao dịch thích hợp.
+This snippet only illustrates the sequence and assumes `null` is not a valid mapping value. If `null` is allowed, `remove` returning `null` cannot distinguish a nonexistent entry from an entry whose value is `null`; a separate existence check must be designed. When replacing a key, you must also decide how to handle collisions if `newKey` already has an entry. On concurrent data, the replacement must be performed within an appropriate synchronization or transaction mechanism.
 
-**Cách C — tách khóa bất biến khỏi trạng thái thay đổi.** Ví dụ dùng `Map<Long, User>`, trong đó `long id` làm khóa, còn `User` là value có thể đổi tên, email, trạng thái. Những thay đổi trên `User` không ảnh hưởng cách tìm entry bằng `Long`. Nếu `User` được đưa đồng thời vào một `HashSet<User>` khác thì phải đánh giá riêng hợp đồng của set đó.
+**Approach C — separate the immutable key from mutable state.** For example, use `Map<Long, User>`, where `long id` serves as the key, and `User` is the value whose name, email, and status can change. Changes to `User` do not affect how entries are looked up by `Long`. If `User` is simultaneously placed into another `HashSet<User>`, that set's contract must be evaluated separately.
 
-### Không “chữa” bằng các mẹo thiếu cơ sở
+### Do not "fix" it with unfounded tricks
 
-- Không đơn giản gọi lại `map.put(existingMutableKey, value)` sau khi sửa rồi tin rằng entry cũ đã biến mất. Tùy hash, thao tác này có thể làm thêm mapping khó quản lý.
-- Không dựa vào `HashMap` tự rehash khi resize để tái định vị mọi khóa đã đổi; collection không có hợp đồng theo dõi mutation của khóa.
-- Không chỉ cache hash để ép `hashCode` cố định nếu `equals` vẫn thay đổi theo trường khác; nguy cơ trùng logic trong tập vẫn tồn tại. Nếu cache không cập nhật nhất quán với giá trị bình đẳng, còn có thể vi phạm hợp đồng hash.
-- Không sử dụng `System.identityHashCode` để thay thế tùy tiện: đó là hàm theo danh tính, không bảo đảm thỏa `equals` dựa trên giá trị.
+- Do not simply call `map.put(existingMutableKey, value)` again after mutation and assume the old entry has vanished. Depending on the hash, this operation can add a hard-to-manage extra mapping.
+- Do not rely on `HashMap` rehashing during a resize to relocate all mutated keys; the collection has no contract to track key mutations.
+- Do not just cache the hash to force `hashCode` to remain constant while `equals` still changes with another field; the risk of logical duplicates in a set remains. If the cache is not updated consistently with equality values, it can also violate the hash contract.
+- Do not arbitrarily substitute `System.identityHashCode`: that is an identity-based hash function and does not guarantee satisfying value-based `equals`.
 
-## 8. Thay đổi gián tiếp qua đối tượng con, mảng và record
+## 8. Indirect mutation through child objects, arrays, and records
 
-Một trường tham chiếu có thể được khai báo `final` nhưng **đối tượng được trỏ đến vẫn mutable**. Vì vậy, đánh giá tính ổn định phải nhìn vào **toàn bộ đồ thị dữ liệu mà `equals/hashCode` sử dụng**, không chỉ modifier của trường.
+A reference field can be declared `final` while **the referenced object remains mutable**. Therefore, evaluating stability must look at the **entire data graph that `equals/hashCode` uses**, not just the field modifier.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.ArrayList;
 import java.util.List;
 
-// Minh họa: khai báo kiểu dùng Java 17+, không phải main chạy độc lập.
+// Illustration: type declaration using Java 17+, not a standalone runnable main.
 record GroupKey(List<String> tags) {}
 
 List<String> names = new ArrayList<>(List.of("java"));
@@ -375,9 +375,9 @@ names.add("spring");
 int after = key.hashCode();
 ```
 
-`record` tự sinh `equals/hashCode` dựa trên component `tags`. `List.equals` và `List.hashCode` phụ thuộc nội dung danh sách. Dù tham chiếu `tags` trong record không thể gán lại, câu `names.add(...)` thay đổi nội dung danh sách mà record đang giữ; hash của `GroupKey` theo đó thay đổi trong ví dụ.
+`record` auto-generates `equals/hashCode` based on the `tags` component. `List.equals` and `List.hashCode` depend on the list contents. Even though the `tags` reference in the record cannot be reassigned, `names.add(...)` alters the contents of the list held by the record; the hash of `GroupKey` changes accordingly in this example.
 
-Nếu cần sao chép phòng vệ, compact constructor của record có thể dùng:
+If defensive copying is needed, the record's compact constructor can use:
 
 ```java
 record GroupKey(List<String> tags) {
@@ -387,44 +387,44 @@ record GroupKey(List<String> tags) {
 }
 ```
 
-`List.copyOf` tạo/sử dụng danh sách không cho phép thao tác sửa qua API của nó và tách khỏi danh sách nguồn mutable thông thường. Tuy nhiên, nó là **sao chép nông**: nếu phần tử trong danh sách là đối tượng mutable và quy tắc `equals/hashCode` của phần tử phụ thuộc trạng thái, khóa vẫn có thể thay đổi nghĩa. Phải tiếp tục sao chép hoặc bất biến hóa các phần tử đó khi cần.
+`List.copyOf` creates/uses a list that disallows modification through its API and is decoupled from an ordinary mutable source list. However, it is a **shallow copy**: if elements inside the list are mutable objects and their `equals/hashCode` rules depend on state, the key can still change meaning. Those elements must also be copied or made immutable when needed.
 
-Tương tự, mảng là mutable. Nếu một lớp dùng `Arrays.equals(array1, array2)` và `Arrays.hashCode(array)` để biểu diễn giá trị của mảng, sửa phần tử mảng sẽ thay đổi so sánh/hash. Ngược lại, record có component là mảng dùng `equals/hashCode` mặc định của mảng theo tham chiếu, **không tự thực hiện so sánh sâu nội dung**; phải thiết kế tường minh nếu muốn bình đẳng theo phần tử.
+Similarly, arrays are mutable. If a class uses `Arrays.equals(array1, array2)` and `Arrays.hashCode(array)` to represent an array's value, modifying array elements changes comparison/hashing. Conversely, a record with an array component uses the array's default reference-based `equals/hashCode`, and **does not automatically perform deep content comparison**; element-wise equality must be designed explicitly if desired.
 
-## 9. Một số khác biệt về collection và concurrency
+## 9. Some differences across collections and concurrency
 
-| Nơi sử dụng đối tượng | Tác động khi trường so sánh bị sửa |
+| Where the object is used | Impact when a comparison field is modified |
 | --- | --- |
-| `HashMap<K,V>` với đối tượng làm **key** | Có nguy cơ không tìm được hoặc không gỡ được mapping do hash/equality thay đổi. |
-| `HashSet<E>` | Có nguy cơ `contains/remove` thất bại hoặc chứa nhiều phần tử hiện bằng nhau. |
-| `ArrayList<E>` | Không dùng hash để tìm phần tử; `contains`/ `indexOf` dùng so sánh theo thời điểm gọi. Kết quả có thể đổi sau mutation, nhưng không có bucket cũ cần truy cập. |
-| `TreeMap`/`TreeSet` | Thứ tự và tính tương đương phụ thuộc `Comparator` hoặc `Comparable`. Sửa trường dùng bởi comparator trong lúc phần tử đang lưu cũng nguy hiểm, ngay cả khi `hashCode` không liên quan. |
-| `IdentityHashMap` | Dùng danh tính tham chiếu (`==`) thay vì `equals` cho khóa; không phù hợp để thay `HashMap` một cách máy móc khi nghiệp vụ cần khóa giá trị. |
+| `HashMap<K,V>` with the object as **key** | Risk of failing to find or remove the mapping due to changed hash/equality. |
+| `HashSet<E>` | Risk of `contains/remove` failing or the set containing multiple currently equal elements. |
+| `ArrayList<E>` | Does not use hashes to locate elements; `contains`/`indexOf` compare at the time of the call. Results may change after mutation, but there is no old bucket to reach. |
+| `TreeMap`/`TreeSet` | Ordering and equivalence depend on `Comparator` or `Comparable`. Modifying a field used by the comparator while the element is stored is also dangerous, even when `hashCode` is unrelated. |
+| `IdentityHashMap` | Uses reference identity (`==`) instead of `equals` for keys; unsuitable as a mechanical replacement for `HashMap` when business logic requires value-based keys. |
 
-**Concurrency:** Nếu nhiều luồng cùng đọc và sửa những trường dùng bởi `equals/hashCode`, có thể phát sinh thêm data race hoặc quan sát trạng thái thiếu nhất quán, ngay cả trước khi xét đến collection. `HashMap`/`HashSet` thông thường không phải cấu trúc an toàn cho truy cập ghi đồng thời. Dùng đồng bộ, immutable snapshot hoặc cấu trúc đồng thời phù hợp **không làm cho việc sửa các trường hash/equality của khóa đang lưu trở thành hợp lệ**. Một `ConcurrentHashMap` cũng không chủ động cập nhật vị trí khóa khi chính đối tượng khóa bị sửa.
+**Concurrency:** If multiple threads concurrently read and modify fields used by `equals/hashCode`, data races or inconsistent state observations can also occur, even before considering the collection. Plain `HashMap`/`HashSet` are not safe structures for concurrent write access. Using synchronization, immutable snapshots, or appropriate concurrent structures **does not make mutating hash/equality fields of stored keys valid**. A `ConcurrentHashMap` also does not proactively reposition a key when the key object itself is mutated.
 
-**Thay thế dữ liệu và nhất quán nghiệp vụ:** Nếu đối tượng được dùng làm khóa trong nhiều collection/caches, việc đổi trường định danh có thể làm các chỉ mục lệch nhau. Nên quản lý thay đổi danh tính ở tầng dữ liệu với khóa bất biến, tạo khóa mới, cập nhật các index/caches cần thiết, và có cơ chế giao dịch phù hợp khi thay đổi liên quan nhiều nơi.
+**Data replacement and business consistency:** If an object is used as a key across multiple collections/caches, changing an identity field can cause those indices to drift out of sync. Identity changes should be managed at the data layer with immutable keys, creating a new key, updating the necessary indices/caches, and using appropriate transactional mechanisms when changes span multiple places.
 
-## 10. Checklist thiết kế và kiểm thử
+## 10. Design and testing checklist
 
-Trước khi dùng một kiểu đối tượng làm khóa trong `Map` hoặc phần tử của `Set` dựa trên hash, trả lời:
+Before using an object type as a `Map` key or an element in a hash-based `Set`, answer:
 
-1. **Khóa bình đẳng là gì?** Chính xác những trường nào quyết định `equals`?
-2. **Những trường đó có thể bị sửa không?** Kể cả sửa gián tiếp qua `List`, `Map`, mảng hoặc object con?
-3. **Hash có dựa trên quy tắc bằng nhau không?** Với mọi cặp bằng nhau, mã băm có bằng nhau không?
-4. **Đối tượng đã được đưa vào collection chưa?** Nếu rồi, có luồng xử lý nào thay đổi giá trị liên quan trước khi remove?
-5. **Có thể dùng ID bất biến hoặc khóa tách riêng không?** Nếu display/status đổi, có cần đổi khóa logic thật không?
-6. **Có kiểm thử trước và sau mutation không?** Thử cả tham chiếu cũ, một instance khác bằng theo giá trị, trường hợp trùng logic và thao tác thêm/xóa.
-7. **Có phụ thuộc trạng thái ngoại vi không?** Một `equals` dựa trên đồng hồ, cơ sở dữ liệu, biến global hoặc cấu hình có thể làm kết quả thay đổi khi object không được sửa trực tiếp; cần tránh quy tắc như vậy cho khóa hash.
-8. **Có rủi ro đồng thời không?** Cần bảo đảm dữ liệu tham gia `equals/hashCode` ổn định suốt thời gian nó được dùng trong index.
+1. **What is the equality key?** Which exact fields determine `equals`?
+2. **Can those fields be modified?** Including indirectly via a `List`, `Map`, array, or child object?
+3. **Does the hash follow the equality rule?** For every equal pair, are their hash codes equal?
+4. **Has the object already been placed in a collection?** If so, does any code path modify the relevant values before removal?
+5. **Can an immutable ID or separate key be used?** If display/status changes, does the logical key itself really need to change?
+6. **Is it tested before and after mutation?** Test the old reference, another value-equal instance, logical duplicate cases, and add/remove operations.
+7. **Does it depend on external state?** An `equals` based on a clock, database, global variable, or configuration can change results even when the object is not directly modified; avoid such rules for hash keys.
+8. **Are there concurrency risks?** Ensure data participating in `equals/hashCode` remains stable throughout the time it is used in an index.
 
-### Bài tập tự kiểm tra
+### Self-check exercises
 
-- Một khóa có `equals` theo `id` nhưng `hashCode` theo `name`: nó sai thế nào ngay cả khi cả hai trường đều bất biến?
-- Vì sao thay trường chỉ tham gia `equals` vẫn có thể gây sai kỳ vọng trong `HashSet` dù hash giữ nguyên?
-- Vì sao `map.get(oldKey)` có thể trả `null` sau khi sửa một trường của **chính oldKey**?
-- Việc thay tên hiển thị có an toàn nếu `equals/hashCode` chỉ dựa trên `final id` không? Cần giả định nghiệp vụ nào?
-- Tại sao `final List<String>` chưa đủ để đảm bảo một khóa dựa trên nội dung danh sách là bất biến?
-- Nếu một khóa buộc phải thay đổi, nên thao tác collection và dữ liệu theo thứ tự nào để tránh giữ entry lập chỉ mục theo giá trị cũ?
+- A key has `equals` by `id` but `hashCode` by `name`: how is it wrong even if both fields are immutable?
+- Why can changing a field used only in `equals` still break expectations in a `HashSet` even though the hash stays the same?
+- Why can `map.get(oldKey)` return `null` after modifying a field of **`oldKey` itself**?
+- Is changing a display name safe if `equals/hashCode` relies solely on `final id`? What business assumption is required?
+- Why is `final List<String>` not enough to guarantee that a key based on list contents is immutable?
+- If a key must change, in what order should collection and data operations be performed to avoid leaving an entry indexed under the old value?
 
-**Ghi nhớ:** Thay đổi trường tham gia `equals` có thể thay đổi **quan hệ bằng nhau**; thay đổi dữ liệu tham gia `hashCode` có thể thay đổi **cách tra cứu theo hash**. Các collection không tự cập nhật cấu trúc khi đối tượng bên trong bị sửa. Thiết kế đáng tin cậy nhất là **khóa logic bất biến**, hash nhất quán với `equals`, và tách những thuộc tính có thể đổi khỏi định danh dùng để tra cứu.
+**Takeaway:** Modifying a field used in `equals` can alter the **equality relation**; modifying data used in `hashCode` can alter **hash-based lookup**. Collections do not automatically update their structure when internal objects are modified. The most reliable design is an **immutable logical key**, a hash consistent with `equals`, and separating mutable attributes from the identity used for lookup.

@@ -1,52 +1,52 @@
-# Locale.forLanguageTag() và toLanguageTag(): chuyển đổi ngôn ngữ BCP 47 trong Java
+# Locale.forLanguageTag() and toLanguageTag(): BCP 47 Language Conversion in Java
 
-Trong Java, `Locale` mô tả ngữ cảnh ngôn ngữ/vùng của dữ liệu và giao diện. Khi nhận locale từ cấu hình, URL, hồ sơ người dùng hoặc giao thức khác, ứng dụng thường biểu diễn nó bằng **thẻ ngôn ngữ BCP 47**, ví dụ `vi-VN`, `en-US`, `zh-Hans-CN`. Hai phương thức liên quan trực tiếp là:
+In Java, `Locale` describes the language/region context of data and UI. When receiving a locale from configuration, a URL, a user profile, or another protocol, applications typically represent it using a **BCP 47 language tag**, such as `vi-VN`, `en-US`, or `zh-Hans-CN`. Two directly related methods are:
 
-- `Locale.forLanguageTag(String languageTag)`: phân tích một thẻ ngôn ngữ BCP 47 thành đối tượng `Locale`.
-- `locale.toLanguageTag()`: xuất một `Locale` dưới dạng chuỗi thẻ ngôn ngữ BCP 47 chuẩn hóa theo quy tắc Java.
+- `Locale.forLanguageTag(String languageTag)`: parses a BCP 47 language tag into a `Locale` object.
+- `locale.toLanguageTag()`: outputs a `Locale` as a BCP 47 language tag string normalized according to Java rules.
 
-Cần hiểu cả chiều chuyển đổi, vì **chuỗi thẻ sau khi xuất không nhất thiết giống từng ký tự với chuỗi đã nhập**. Ngoài ra, `forLanguageTag` phân tích theo kiểu khoan dung trước những thành phần sai cú pháp; ứng dụng yêu cầu kiểm tra đầu vào nghiêm ngặt phải chọn cách khác.
+It is necessary to understand both conversion directions, because **the output tag string does not necessarily match the input string character-for-character**. In addition, `forLanguageTag` parses leniently when encountering malformed components; applications requiring strict input validation must choose another approach.
 
-## 1. Thẻ BCP 47 biểu diễn những thành phần nào?
+## 1. What Components Does a BCP 47 Tag Represent?
 
-BCP 47 là quy ước nhận diện ngôn ngữ và các biến thể liên quan, dùng dấu gạch nối `-` giữa những thành phần (subtag). Trong Java, các phần thường gặp là:
+BCP 47 is a convention for identifying languages and related variants, using a hyphen `-` between components (subtags). In Java, the commonly encountered parts are:
 
-| Thành phần | Ví dụ | Ý nghĩa |
+| Component | Example | Meaning |
 | --- | --- | --- |
-| Language | `vi`, `en`, `zh`, `sr` | Ngôn ngữ |
-| Script | `Latn`, `Cyrl`, `Hans`, `Hant` | Hệ chữ |
-| Region | `VN`, `US`, `CN`, `419` | Vùng lãnh thổ/khu vực |
-| Variant | `rozaj` | Biến thể ngôn ngữ |
-| Extension | `u-ca-buddhist`, `u-nu-thai` | Tùy chọn bổ sung, ví dụ hệ lịch, hệ chữ số |
-| Private use | `x-acme` | Phần mở rộng riêng theo quy ước của hệ thống |
+| Language | `vi`, `en`, `zh`, `sr` | Language |
+| Script | `Latn`, `Cyrl`, `Hans`, `Hant` | Writing system |
+| Region | `VN`, `US`, `CN`, `419` | Territory/region |
+| Variant | `rozaj` | Language variant |
+| Extension | `u-ca-buddhist`, `u-nu-thai` | Additional options, e.g., calendar system, numbering system |
+| Private use | `x-acme` | Custom extension defined by system convention |
 
-Một thẻ phổ biến có cấu trúc gần đúng:
+A common tag has the approximate structure:
 
 ~~~text
 language[-Script][-REGION][-variant...][-extension...][-x-private...]
 ~~~
 
-Đây là **mô hình đọc nhanh**, không phải ngữ pháp BCP 47 đầy đủ; một số thành phần có quy tắc độ dài, thứ tự, tổ hợp và khả năng lặp riêng. Java nhận thẻ có cú pháp hợp lệ theo các quy tắc được API hỗ trợ.
+This is a **quick-reading model**, not the complete BCP 47 grammar; some components have specific rules for length, order, combinations, and repeatability. Java accepts tags with valid syntax according to the rules supported by the API.
 
-Ví dụ:
+Examples:
 
-- `vi-VN`: tiếng Việt tại Việt Nam.
-- `en-US`: tiếng Anh tại Hoa Kỳ.
-- `zh-Hans-CN`: tiếng Trung, chữ giản thể, vùng Trung Quốc.
-- `sr-Latn-RS`: tiếng Serbia, chữ Latin, vùng Serbia.
-- `th-TH-u-ca-buddhist-nu-thai`: tiếng Thái tại Thái Lan, kèm các tùy chọn Unicode locale về calendar (`ca`) và numbering system (`nu`).
+- `vi-VN`: Vietnamese in Vietnam.
+- `en-US`: English in the United States.
+- `zh-Hans-CN`: Chinese, Simplified script, China region.
+- `sr-Latn-RS`: Serbian, Latin script, Serbia region.
+- `th-TH-u-ca-buddhist-nu-thai`: Thai in Thailand, with Unicode locale options for calendar (`ca`) and numbering system (`nu`).
 
-**Không nhầm lẫn:** region `VN` không phải múi giờ `Asia/Ho_Chi_Minh`; script `Latn` không phải charset UTF-8; thông tin `u-ca-...` cũng không tự buộc mọi API định dạng phải thực thi một hệ lịch nào đó. Mỗi thư viện sử dụng các phần thẻ phù hợp với khả năng của nó.
+**Do not confuse:** region `VN` is not time zone `Asia/Ho_Chi_Minh`; script `Latn` is not charset UTF-8; `u-ca-...` information also does not automatically force every formatting API to enforce a particular calendar system. Each library uses the tag parts appropriate to its capabilities.
 
-## 2. Từ chuỗi sang Locale với forLanguageTag()
+## 2. From String to Locale with forLanguageTag()
 
-Chữ ký:
+Signature:
 
 ~~~java
 public static Locale forLanguageTag(String languageTag)
 ~~~
 
-Cách dùng thông thường:
+Typical usage:
 
 ~~~java
 Locale vietnamese = Locale.forLanguageTag("vi-VN");
@@ -57,25 +57,25 @@ String country = vietnamese.getCountry();   // "VN"
 String script = serbianLatin.getScript();    // "Latn"
 ~~~
 
-Các ví dụ trên là đoạn mã đặt trong chương trình đã import `java.util.Locale`. `forLanguageTag` xử lý **một** thẻ BCP 47, không phải một danh sách thẻ hay toàn bộ giá trị header HTTP `Accept-Language`.
+The examples above are code snippets placed inside a program that has imported `java.util.Locale`. `forLanguageTag` processes **a single** BCP 47 tag, not a list of tags or an entire HTTP `Accept-Language` header value.
 
-### Trích xuất các phần của Locale
+### Extracting Parts of a Locale
 
-Sau khi phân tích, có thể đọc:
+After parsing, you can read:
 
-- `getLanguage()`: mã ngôn ngữ; ví dụ `"vi"`.
-- `getScript()`: mã hệ chữ; ví dụ `"Hans"`.
-- `getCountry()`: mã vùng, tên phương thức lịch sử là `Country`; ví dụ `"CN"`.
-- `getVariant()`: phần biến thể, nếu có.
-- `getExtension(char key)`: nội dung một extension; ví dụ `'u'`.
-- `getUnicodeLocaleType(String key)`: giá trị khóa Unicode locale, ví dụ `"buddhist"` ứng với `"ca"`.
-- `getUnicodeLocaleKeys()`: tập khóa Unicode đã cấu hình.
+- `getLanguage()`: language code; e.g., `"vi"`.
+- `getScript()`: script code; e.g., `"Hans"`.
+- `getCountry()`: region code, whose historical method name is `Country`; e.g., `"CN"`.
+- `getVariant()`: variant part, if any.
+- `getExtension(char key)`: contents of an extension; e.g., `'u'`.
+- `getUnicodeLocaleType(String key)`: value of a Unicode locale key, e.g., `"buddhist"` for `"ca"`.
+- `getUnicodeLocaleKeys()`: set of configured Unicode keys.
 
-Các phương thức trên đọc thông tin nhận diện; chúng không tự chuyển đổi ngôn ngữ của một câu văn. Muốn hiển thị tên ngôn ngữ hoặc vùng theo ngôn ngữ khác, có thể dùng `getDisplayLanguage(displayLocale)` và `getDisplayCountry(displayLocale)`; muốn dịch nội dung, cần tài nguyên hoặc dịch vụ bản địa hóa riêng.
+These methods read identification metadata; they do not automatically translate the language of a sentence. To display a language or region name in another language, you can use `getDisplayLanguage(displayLocale)` and `getDisplayCountry(displayLocale)`; to translate content, you need separate localization resources or services.
 
-### Phân tích không phụ thuộc chữ hoa/thường
+### Case-Insensitive Parsing
 
-Theo quy tắc của `Locale`, thành phần ngôn ngữ thường được chuẩn hóa thành chữ thường, script thành chữ đầu hoa, region thành chữ hoa, extension thành chữ thường.
+According to `Locale` rules, the language component is normally normalized to lowercase, script to title case, region to uppercase, and extensions to lowercase.
 
 ~~~java
 Locale locale = Locale.forLanguageTag("ZH-hans-cn");
@@ -84,37 +84,37 @@ System.out.println(locale.getScript());   // Hans
 System.out.println(locale.getCountry());  // CN
 ~~~
 
-Trường hợp thông thường trên cho cùng đối tượng locale về mặt ý nghĩa với thẻ `zh-Hans-CN`.
+This typical case produces the same locale object semantically as the tag `zh-Hans-CN`.
 
-## 3. Từ Locale về chuỗi với toLanguageTag()
+## 3. From Locale Back to String with toLanguageTag()
 
-Chữ ký:
+Signature:
 
 ~~~java
 public String toLanguageTag()
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~java
 Locale locale = Locale.forLanguageTag("vi-vn");
 String tag = locale.toLanguageTag();  // "vi-VN"
 ~~~
 
-Nên dùng `toLanguageTag()` khi cần lưu/trao đổi một thẻ BCP 47. **Không thay bằng `toString()`**: `Locale.toString()` giữ quy ước biểu diễn cũ để tương thích Java, thường có dấu gạch dưới, chẳng hạn `vi_VN`. Trong khi đó, thẻ BCP 47 là `vi-VN`.
+Use `toLanguageTag()` when you need to store or exchange a BCP 47 tag. **Do not substitute `toString()`**: `Locale.toString()` preserves the legacy representation for Java compatibility, typically with underscores, such as `vi_VN`. Meanwhile, the BCP 47 tag is `vi-VN`.
 
-| Biểu thức | Giá trị | Dùng khi nào? |
+| Expression | Value | When to use? |
 | --- | --- | --- |
-| `Locale.forLanguageTag("vi-VN")` | Đối tượng `Locale` | Đọc cấu hình hoặc input BCP 47 |
-| `locale.toLanguageTag()` | `"vi-VN"` | Lưu/gửi thẻ chuẩn BCP 47 |
-| `locale.toString()` với `vi-VN` | `"vi_VN"` | Hiển thị/debug theo quy ước cũ, không coi là BCP 47 |
-| `Locale.ROOT.toLanguageTag()` | `"und"` | Thẻ “undetermined” khi không có ngôn ngữ |
+| `Locale.forLanguageTag("vi-VN")` | `Locale` object | Reading BCP 47 config or input |
+| `locale.toLanguageTag()` | `"vi-VN"` | Storing/sending standard BCP 47 tags |
+| `locale.toString()` with `vi-VN` | `"vi_VN"` | Legacy display/debugging, not to be treated as BCP 47 |
+| `Locale.ROOT.toLanguageTag()` | `"und"` | “Undetermined” tag when there is no language |
 
-`und` là mã BCP 47 chỉ ngôn ngữ không xác định. `Locale.ROOT` có các trường ngôn ngữ, script, vùng trống nhưng `toLanguageTag()` trả `"und"`; đây không phải exception.
+`und` is the BCP 47 code indicating an undetermined language. `Locale.ROOT` has empty language, script, and region fields, yet `toLanguageTag()` returns `"und"`; this is not an exception.
 
-### Chuẩn hóa cú pháp và thứ tự extension
+### Syntax Normalization and Extension Ordering
 
-Ví dụ đầu vào có chữ hoa/thường chưa thống nhất và khóa Unicode extension theo thứ tự khác:
+Consider input with inconsistent letter casing and Unicode extension keys in a different order:
 
 ~~~java
 Locale locale = Locale.forLanguageTag("th-TH-u-nu-thai-ca-buddhist");
@@ -122,11 +122,11 @@ String tag = locale.toLanguageTag();
 // "th-TH-u-ca-buddhist-nu-thai"
 ~~~
 
-Hai khóa `ca` và `nu` được đưa về thứ tự chuẩn trong đầu ra của Java. Nếu so sánh chuỗi gốc bằng `equals()`, chúng khác nhau, dù ý nghĩa locale được giữ trong phép chuyển đổi này.
+The two keys `ca` and `nu` are placed in canonical order in Java's output. If compared against the original string using `equals()`, they differ, even though the locale's meaning is preserved in this conversion.
 
-## 4. Thế nào là round trip?
+## 4. What Is a Round Trip?
 
-Một **round trip** thường bắt đầu từ chuỗi thẻ, tạo `Locale`, xuất chuỗi, rồi phân tích lại:
+A **round trip** typically starts from a tag string, creates a `Locale`, outputs a string, and parses it again:
 
 ~~~java
 String input = "ZH-hans-cn";
@@ -134,49 +134,49 @@ Locale first = Locale.forLanguageTag(input);
 String normalizedTag = first.toLanguageTag();
 Locale second = Locale.forLanguageTag(normalizedTag);
 
-boolean sameLocale = first.equals(second); // true với ví dụ này
+boolean sameLocale = first.equals(second); // true for this example
 ~~~
 
-Phân biệt hai kiểu “giữ nguyên”:
+Distinguish two kinds of “preservation”:
 
-1. **Giữ nguyên biểu diễn chữ:** `input.equals(normalizedTag)` có thể là `false`, bởi chữ hoa/thường, thứ tự extension hoặc alias đã chuẩn hóa.
-2. **Giữ nguyên trạng thái locale có thể biểu diễn hợp lệ:** với thẻ hợp lệ thông thường, `first.equals(second)` là cách kiểm tra hợp lý sau round trip.
+1. **Preserving exact text representation:** `input.equals(normalizedTag)` may be `false`, because letter casing, extension order, or aliases have been normalized.
+2. **Preserving validly representable locale state:** for ordinary valid tags, `first.equals(second)` is a reasonable check after a round trip.
 
-Không nên tuyên bố round trip luôn giữ nguyên mọi dữ liệu trong mọi trường hợp. Đặc biệt, một `Locale` tạo bằng constructor cũ với ngôn ngữ, vùng hoặc variant **không hợp cú pháp BCP 47** có thể chứa giá trị không thể xuất lại nguyên vẹn. `toLanguageTag()` sẽ cố tạo thẻ hợp lệ và có thể loại bỏ hoặc chuyển cách biểu diễn của những phần không phù hợp. Trong trường hợp cần lưu **đúng nguyên văn input** của người dùng phục vụ audit, lưu input riêng cùng thẻ đã chuẩn hóa.
+You should not claim that a round trip always preserves all data in every case. In particular, a `Locale` created with old constructors using a language, region, or variant that is **not valid BCP 47 syntax** may contain values that cannot be exported intact. `toLanguageTag()` will attempt to produce a valid tag and may drop or transform the representation of incompatible parts. In cases where you need to store the **verbatim user input** for auditing, store the raw input separately alongside the normalized tag.
 
-### Alias và tương thích
+### Aliases and Compatibility
 
-Java có các quy tắc tương thích cho một số mã ngôn ngữ cũ và các thẻ đặc biệt. Chẳng hạn mã `iw`, `ji`, `in` được chuyển sang những mã mới tương ứng `he`, `yi`, `id` khi phân tích. Vì vậy `toLanguageTag()` là **biểu diễn có chuẩn hóa theo API**, không phải thao tác nối chuỗi gốc.
+Java has compatibility rules for certain legacy language codes and special tags. For example, the codes `iw`, `ji`, and `in` are converted to their newer counterparts `he`, `yi`, and `id` when parsed. Thus `toLanguageTag()` is an **API-normalized representation**, not a raw string concatenation operation.
 
-Khi ứng dụng dùng locale làm khóa cache, nên chuẩn hóa đầu vào bằng `Locale` và thống nhất chính sách khóa. Nếu yêu cầu hai cách ghi khác nhau tương đương, tránh dùng nguyên chuỗi người dùng chưa chuẩn hóa làm hai khóa độc lập.
+When an application uses locales as cache keys, normalize input into a `Locale` and standardize the key policy. If two different spellings are supposed to be equivalent, avoid using unnormalized user strings as two separate keys.
 
-## 5. Điều dễ bỏ sót: forLanguageTag() khoan dung với thẻ sai
+## 5. Easy to Miss: forLanguageTag() Is Lenient with Malformed Tags
 
-`Locale.forLanguageTag()` không phải bộ kiểm tra tính hợp lệ nghiêm ngặt. Theo hợp đồng Java 17, khi gặp subtag **sai cú pháp**, phần sai đầu tiên và các subtag phía sau bị bỏ qua; API không ném `IllformedLocaleException` chỉ vì tình huống này.
+`Locale.forLanguageTag()` is not a strict validator. Under the Java 17 contract, when encountering a **syntactically ill-formed** subtag, the first invalid subtag and all subsequent subtags are ignored; the API does not throw `IllformedLocaleException` for this situation alone.
 
-Ví dụ có thể kiểm chứng:
+Verifiable example:
 
 ~~~java
 Locale parsed = Locale.forLanguageTag("en-US-@bad");
 System.out.println(parsed.toLanguageTag()); // en-US
 ~~~
 
-Phần `@bad` không hợp lệ nên bị bỏ. Hệ quả: ứng dụng có thể **vô tình chấp nhận một phần input không đúng** nếu chỉ kiểm tra xem phương thức có trả `Locale` hay không.
+The `@bad` part is invalid and therefore dropped. Consequence: an application can **accidentally accept part of an invalid input** if it only checks whether the method returns a `Locale`.
 
-Một lỗi khác là dùng dấu gạch dưới:
+Another error is using underscores:
 
 ~~~java
 Locale parsed = Locale.forLanguageTag("en_US");
-System.out.println(parsed.toLanguageTag()); // und trên Java 17
+System.out.println(parsed.toLanguageTag()); // und on Java 17
 ~~~
 
-`"en_US"` là biểu diễn hay gặp từ `toString()` hoặc cấu hình cũ, **không phải thẻ BCP 47 hợp lệ**. Vì vậy đừng dựa vào `forLanguageTag()` để tự chuyển dấu gạch dưới thành dấu gạch nối. Nếu phải hỗ trợ cấu hình cũ, hãy định nghĩa bước chuyển đổi rõ ràng và kiểm thử, thay vì âm thầm thay mọi ký tự `_` mà không phân tích cấu trúc.
+`"en_US"` is a common representation from `toString()` or legacy config, **not a valid BCP 47 tag**. Therefore, do not rely on `forLanguageTag()` to automatically convert underscores into hyphens. If legacy configs must be supported, define an explicit conversion step and test it, instead of silently replacing every `_` character without analyzing structure.
 
-Ngoài ra, `forLanguageTag(null)` gây `NullPointerException`. Input chuỗi rỗng hoặc `und` không nên được ngầm coi là locale thật của người dùng; hãy có chính sách mặc định/phản hồi lỗi riêng khi bài toán bắt buộc phải biết ngôn ngữ.
+Furthermore, `forLanguageTag(null)` throws `NullPointerException`. An empty string or `und` input should not be implicitly treated as a real user locale; have a separate default/error response policy when the problem requires knowing the language.
 
-## 6. Khi cần kiểm tra chặt: Locale.Builder.setLanguageTag()
+## 6. When Strict Validation Is Needed: Locale.Builder.setLanguageTag()
 
-`Locale.Builder` hỗ trợ kiểm tra **cú pháp** mạnh hơn. Trái với `forLanguageTag`, phương thức `setLanguageTag` ném `IllformedLocaleException` đối với thẻ sai cú pháp (ví dụ subtag chứa `@`).
+`Locale.Builder` provides stronger **syntax** checking. Unlike `forLanguageTag`, `setLanguageTag` throws `IllformedLocaleException` for syntactically invalid tags (for instance, a subtag containing `@`).
 
 ~~~java
 try {
@@ -184,27 +184,27 @@ try {
             .setLanguageTag("en-US-@bad")
             .build();
 } catch (IllformedLocaleException ex) {
-    // Từ chối thẻ không đúng cú pháp.
+    // Reject syntactically invalid tag.
 }
 ~~~
 
-Đoạn trên cần `import java.util.Locale;` và `import java.util.IllformedLocaleException;`. Trong ứng dụng thực, cần xử lý input trống trước; `Locale.Builder.setLanguageTag(null)` hoặc chuỗi rỗng dùng để xóa trạng thái Builder chứ không có nghĩa tự động báo input bị thiếu.
+The snippet above requires `import java.util.Locale;` and `import java.util.IllformedLocaleException;`. In a real application, handle empty input first; `Locale.Builder.setLanguageTag(null)` or an empty string clears the Builder's state rather than automatically signaling missing input.
 
-**Giới hạn quan trọng:** `Builder` chủ yếu kiểm tra **well-formed syntax**, không xác nhận chắc chắn mọi mã ngôn ngữ/vùng có được đăng ký, được hệ thống của bạn hỗ trợ hay không. Một thẻ có cú pháp đúng vẫn có thể không có bản dịch, dữ liệu định dạng hoặc ý nghĩa phù hợp nghiệp vụ. Muốn chọn ngôn ngữ phục vụ thật sự, phải kiểm tra thêm danh sách locale được ứng dụng hỗ trợ và có quy tắc fallback.
+**Important limitation:** `Builder` mainly checks **well-formed syntax**; it does not definitively confirm whether every language/region code is registered or supported by your system. A syntactically valid tag may still lack translations, formatting data, or business meaning. To select an actually served language, you must also check the application's supported locale list and apply fallback rules.
 
-Một quy trình đầu vào đáng tin cậy:
+A reliable input pipeline:
 
-1. Kiểm tra chuỗi có tồn tại, không rỗng và đáp ứng giới hạn độ dài phù hợp.
-2. Dùng `Locale.Builder().setLanguageTag(input).build()` nếu cần từ chối lỗi cú pháp.
-3. Lấy `locale.toLanguageTag()` làm thẻ chuẩn hóa dùng nội bộ hoặc lưu trữ.
-4. So với danh sách ngôn ngữ/vùng thực sự hỗ trợ; nếu không có, áp dụng fallback được công bố.
-5. Khi cần giữ bằng chứng input gốc, lưu bản gốc ở trường khác.
+1. Check that the string exists, is not empty, and meets an appropriate length limit.
+2. Use `Locale.Builder().setLanguageTag(input).build()` if syntax errors must be rejected.
+3. Obtain `locale.toLanguageTag()` as the normalized tag for internal use or storage.
+4. Check against the list of actually supported languages/regions; if absent, apply the documented fallback.
+5. When original input evidence must be kept, store the raw input in another field.
 
-Nếu nguồn đầu vào do hệ thống tin cậy sinh ra và đã được kiểm tra trước, `Locale.forLanguageTag()` thường gọn và phù hợp. Với cấu hình quản trị hoặc dữ liệu người dùng có yêu cầu sai là phải báo lỗi, ưu tiên Builder và kiểm tra nghiệp vụ.
+If the input source is generated by a trusted system and already validated, `Locale.forLanguageTag()` is often concise and suitable. For admin configuration or user data where invalid input must produce an error, prefer Builder plus business validation.
 
-## 7. Ví dụ Java 17+ độc lập: hai chiều, chuẩn hóa và lỗi đầu vào
+## 7. Standalone Java 17+ Example: Bidirectional Conversion, Normalization, and Input Errors
 
-Tạo tệp **`LanguageTagDemo.java`** với nội dung:
+Create the file **`LanguageTagDemo.java`** with the following content:
 
 ~~~java
 import java.util.IllformedLocaleException;
@@ -249,14 +249,14 @@ public class LanguageTagDemo {
 }
 ~~~
 
-Biên dịch/chạy bằng JDK 17+:
+Compile/run with JDK 17+:
 
 ~~~bash
 javac -encoding UTF-8 LanguageTagDemo.java
 java LanguageTagDemo
 ~~~
 
-Kết quả (đã kiểm tra với mã nguồn biên dịch ở mức tương thích Java 17):
+Output (verified with source compiled at Java 17 compatibility level):
 
 ~~~text
 Vietnamese: vi-VN
@@ -273,23 +273,23 @@ Root: und
 Builder: rejected
 ~~~
 
-Phân tích theo từng nhóm:
+Analysis by group:
 
-- `vi-vn` và `ZH-hans-cn` được chuẩn hóa thành `vi-VN` và `zh-Hans-CN`.
-- `getScript()` đọc `Hans`; `getUnicodeLocaleType("ca")` và `("nu")` đọc tùy chọn calendar/numbering dưới Unicode extension.
-- `toLanguageTag()` sắp xếp các khóa `u` trong thẻ được xuất.
-- Hai `Locale` có cùng giá trị sau chuẩn hóa có thể `equals()` bằng `true` ngay cả khi chữ trong thẻ input khác nhau.
-- `toString()` biểu diễn `vi_VN` theo dạng cũ, khác `toLanguageTag()`.
-- Parser khoan dung giữ `en-US` khi gặp `@bad`; Builder từ chối lỗi ấy.
-- `en_US` không được hiểu như `en-US` trong parser BCP 47; `Locale.ROOT` xuất `und`.
+- `vi-vn` and `ZH-hans-cn` are normalized to `vi-VN` and `zh-Hans-CN`.
+- `getScript()` reads `Hans`; `getUnicodeLocaleType("ca")` and `("nu")` read calendar/numbering preferences under the Unicode extension.
+- `toLanguageTag()` sorts the `u` keys in the output tag.
+- Two `Locale` instances with the same value after normalization can have `equals()` return `true` even when casing in the input tags differed.
+- `toString()` represents `vi_VN` in the legacy form, different from `toLanguageTag()`.
+- The lenient parser keeps `en-US` when encountering `@bad`; Builder rejects that error.
+- `en_US` is not understood as `en-US` in the BCP 47 parser; `Locale.ROOT` outputs `und`.
 
-Chương trình không phụ thuộc locale mặc định, múi giờ hay encoding của đầu ra để quyết định các chuỗi in trên, ngoài việc console cần hiển thị ký tự ASCII thông thường.
+The program does not depend on the default locale, time zone, or output encoding to determine the printed strings above, aside from the console needing to display standard ASCII characters.
 
-## 8. Ứng dụng trong cấu hình và giao tiếp hệ thống
+## 8. Applications in Configuration and System Communication
 
-### Lưu lựa chọn ngôn ngữ trong hồ sơ người dùng
+### Storing Language Choices in a User Profile
 
-Ví dụ người dùng chọn tiếng Việt:
+For example, a user selects Vietnamese:
 
 ~~~java
 String requestedTag = "vi-vn";
@@ -300,19 +300,19 @@ Locale locale = new Locale.Builder()
 String canonicalTag = locale.toLanguageTag(); // "vi-VN"
 ~~~
 
-Đây là **đoạn mã minh họa** trong một lớp/phương thức đã import `java.util.Locale`. Khi lưu cấu hình, dùng `canonicalTag` để giữ một cách ghi nhất quán, nhưng cần thêm bước kiểm tra xem ứng dụng có hỗ trợ `vi-VN` không. `toLanguageTag()` không tự cấp cho ứng dụng một bộ bản dịch.
+This is an **illustrative code snippet** inside a class/method that has imported `java.util.Locale`. When storing configuration, use `canonicalTag` to keep a consistent spelling, but add a check to verify whether the application supports `vi-VN`. `toLanguageTag()` does not automatically provide the application with a translation bundle.
 
-### Đầu vào HTTP Accept-Language không phải một language tag
+### HTTP Accept-Language Input Is Not a Single Language Tag
 
-Ví dụ header:
+Example header:
 
 ~~~http
 Accept-Language: vi-VN,vi;q=0.9,en-US;q=0.7
 ~~~
 
-Đây là **danh sách các lựa chọn có trọng số ưu tiên**, không phải một thẻ duy nhất. Không truyền nguyên chuỗi này vào `Locale.forLanguageTag()` và kỳ vọng Java tự thương lượng ngôn ngữ. Có thể dùng `Locale.LanguageRange.parse(header)` rồi `Locale.lookup(...)` / `Locale.filter(...)` với danh sách locale được ứng dụng hỗ trợ, hoặc dùng cơ chế locale resolution của framework.
+This is a **priority-weighted list of choices**, not a single tag. Do not pass this entire string into `Locale.forLanguageTag()` and expect Java to negotiate the language automatically. You can use `Locale.LanguageRange.parse(header)` followed by `Locale.lookup(...)` / `Locale.filter(...)` with the application's supported locale list, or use the framework's locale resolution mechanism.
 
-Ví dụ minh họa ý tưởng trong một phương thức có import `java.util.List` và `java.util.Locale`:
+Illustrative snippet showing the idea inside a method that imports `java.util.List` and `java.util.Locale`:
 
 ~~~java
 List<Locale> supported = List.of(
@@ -321,59 +321,59 @@ List<Locale> supported = List.of(
 List<Locale.LanguageRange> priorities =
         Locale.LanguageRange.parse("vi-VN,vi;q=0.9,en-US;q=0.7");
 Locale selected = Locale.lookup(priorities, supported);
-// Có thể null nếu không có thẻ phù hợp: tự chọn fallback.
+// May be null if no matching tag is found: choose a fallback explicitly.
 ~~~
 
-Thứ tự và trọng số ảnh hưởng kết quả thương lượng; khi hệ thống thực sự chỉ hỗ trợ hai ngôn ngữ, nên kiểm thử cả tình huống không tìm thấy kết quả, fallback và trường hợp tag chung (`vi`) so với tag vùng (`vi-VN`).
+Order and weights affect negotiation results; when a system truly supports only two languages, you should test the no-match scenario, fallback, and generic tag (`vi`) versus regional tag (`vi-VN`).
 
-### Không đồng nhất locale với định dạng thực tế
+### Do Not Equate Locale with Actual Formatting
 
-Thẻ `th-TH-u-ca-buddhist` bộc lộ sở thích về kiểu lịch, nhưng việc API cụ thể có dùng extension này hay không phụ thuộc vào API và nhà cung cấp dữ liệu địa phương hóa. `LocalDate` thông thường vẫn là ngày theo lịch ISO. Cũng tương tự, `vi-VN` không tự chọn `ZoneId` Việt Nam, charset UTF-8 hoặc phông chữ hiển thị. Mỗi yêu cầu kỹ thuật cần cấu hình riêng.
+The tag `th-TH-u-ca-buddhist` expresses a preference for calendar type, but whether a specific API uses this extension depends on the API and localization data provider. A standard `LocalDate` is still a date in the ISO calendar. Similarly, `vi-VN` does not automatically pick the Vietnam `ZoneId`, UTF-8 charset, or display font. Each technical requirement needs its own configuration.
 
-### Đồng nhất đầu vào giữa API, cơ sở dữ liệu và cache
+### Standardizing Input Across APIs, Databases, and Caches
 
-Một chiến lược ổn định là chấp nhận tag hợp lệ, chuẩn hóa bằng `toLanguageTag()`, kiểm tra danh sách hỗ trợ, rồi dùng giá trị đã chuẩn hóa nhất quán trong hồ sơ, cache và URL. Tuy nhiên, **chuẩn hóa BCP 47 không phải cùng khái niệm với thương lượng ngôn ngữ**: yêu cầu `en-GB` không đương nhiên đồng nghĩa nội dung `en-US`; hai locale có thể chia sẻ ngôn ngữ nhưng khác tập quán định dạng. Quyết định fallback thuộc nghiệp vụ.
+A stable strategy is to accept valid tags, normalize with `toLanguageTag()`, check the supported list, and then use the normalized value consistently across profiles, caches, and URLs. However, **BCP 47 normalization is not the same concept as language negotiation**: requesting `en-GB` does not automatically mean `en-US` content; two locales can share a language yet have different formatting conventions. Fallback decisions belong to business logic.
 
-## 9. Những lỗi phổ biến
+## 9. Common Mistakes
 
-| Lỗi | Vì sao sai | Cách phòng tránh |
+| Mistake | Why It Is Wrong | How to Prevent |
 | --- | --- | --- |
-| Dùng `Locale.toString()` để lưu language tag | Trả dạng cũ như `en_US` | Dùng `toLanguageTag()` |
-| Dùng `forLanguageTag("en_US")` | Dấu `_` không thuộc cú pháp BCP 47 | Dùng `"en-US"`; có kế hoạch migrate config cũ |
-| So sánh nguyên chuỗi `"vi-vn"` và `"vi-VN"` | Khác chữ hoa/thường nhưng tương đương sau parse | Chuẩn hóa trước khi dùng làm khóa |
-| Giả định parser ném lỗi với mọi thẻ sai | `forLanguageTag` bỏ phần sai và phần sau | Builder + xác thực nghiệp vụ |
-| Cho rằng Builder kiểm tra ngôn ngữ có thật | Chủ yếu kiểm tra đúng cú pháp | Kiểm tra danh mục hỗ trợ/registry khi cần |
-| Gửi toàn bộ `Accept-Language` vào `forLanguageTag` | Header là danh sách có trọng số | Dùng `LanguageRange` hoặc framework |
-| Tin rằng `Locale` tự dịch văn bản | Locale chỉ mô tả ngữ cảnh | Dùng message bundles hoặc bản dịch |
-| Tin rằng `toLanguageTag` luôn giữ nguyên input byte-for-byte | Có chuẩn hóa và quy tắc tương thích | Lưu input gốc riêng nếu cần audit |
-| Đặt `Locale.setDefault` trong từng request | Trạng thái mặc định là toàn tiến trình | Truyền `Locale` trực tiếp tới formatter |
+| Using `Locale.toString()` to store language tags | Returns legacy form like `en_US` | Use `toLanguageTag()` |
+| Using `forLanguageTag("en_US")` | `_` is not part of BCP 47 syntax | Use `"en-US"`; have a plan to migrate legacy config |
+| Comparing raw strings `"vi-vn"` and `"vi-VN"` | Differ in case but equivalent after parsing | Normalize before using as a key |
+| Assuming the parser throws errors on all bad tags | `forLanguageTag` drops the invalid part and everything after it | Builder + business validation |
+| Thinking Builder verifies real languages | Mainly checks well-formed syntax | Check supported catalog/registry when needed |
+| Sending the whole `Accept-Language` into `forLanguageTag` | Header is a weighted list | Use `LanguageRange` or framework support |
+| Believing `Locale` translates text by itself | Locale only describes context | Use message bundles or translations |
+| Believing `toLanguageTag` always keeps input byte-for-byte | Normalization and compatibility rules apply | Store original input separately if needed for audit |
+| Calling `Locale.setDefault` per request | Default state is process-wide | Pass `Locale` directly to formatters |
 
-## 10. Bài tập và câu hỏi tự kiểm tra
+## 10. Exercises and Self-Check Questions
 
-**Bài 1.** Giải thích ý nghĩa từng phần của `sr-Latn-RS`. Khi chạy `Locale.forLanguageTag(...).getScript()`, dự kiến nhận gì?
+**Exercise 1.** Explain the meaning of each part of `sr-Latn-RS`. When running `Locale.forLanguageTag(...).getScript()`, what do you expect to receive?
 
-**Đáp án:** `sr` là tiếng Serbia, `Latn` là hệ chữ Latin, `RS` là vùng Serbia; `getScript()` trả `"Latn"`.
+**Answer:** `sr` is Serbian, `Latn` is Latin script, `RS` is the Serbia region; `getScript()` returns `"Latn"`.
 
-**Bài 2.** Vì sao `Locale.forLanguageTag("en-US-@bad")` vẫn có thể trả một `Locale` có language `en` và region `US`?
+**Exercise 2.** Why can `Locale.forLanguageTag("en-US-@bad")` still return a `Locale` with language `en` and region `US`?
 
-**Đáp án:** Parser khoan dung bỏ subtag đầu tiên sai cú pháp và phần còn lại. Nó không bảo đảm kiểm tra nghiêm ngặt toàn bộ chuỗi.
+**Answer:** The lenient parser drops the first syntactically invalid subtag and the remaining part. It does not guarantee strict validation of the entire string.
 
-**Bài 3.** Một API nhận `"ZH-hans-cn"`, rồi trả `"zh-Hans-CN"`. Có nhất thiết là API làm mất locale không?
+**Exercise 3.** An API receives `"ZH-hans-cn"`, then returns `"zh-Hans-CN"`. Does that necessarily mean the API lost the locale?
 
-**Đáp án:** Không. Đây là chuẩn hóa chữ hoa/thường theo thành phần. Cần so sánh trạng thái locale đã phân tích, không đòi hỏi chuỗi input giữ nguyên từng ký tự.
+**Answer:** No. This is per-component case normalization. You should compare the parsed locale state, not require the input string to remain identical character-for-character.
 
-**Bài 4.** Khi nào dùng `new Locale.Builder().setLanguageTag(value).build()` thay vì `Locale.forLanguageTag(value)`?
+**Exercise 4.** When should you use `new Locale.Builder().setLanguageTag(value).build()` instead of `Locale.forLanguageTag(value)`?
 
-**Đáp án:** Khi đầu vào phải được từ chối nếu sai cú pháp. Vẫn cần kiểm tra danh sách locale được ứng dụng hỗ trợ và lựa chọn fallback.
+**Answer:** When input must be rejected if syntactically invalid. You still need to check the application's supported locale list and fallback choice.
 
-**Bài 5.** Có nên dùng `locale.toString()` gửi cho một hệ thống đòi thẻ IETF BCP 47?
+**Exercise 5.** Should `locale.toString()` be sent to a system that expects an IETF BCP 47 tag?
 
-**Đáp án:** Không. Phải dùng `locale.toLanguageTag()`, ví dụ `vi-VN` thay cho `vi_VN`.
+**Answer:** No. You must use `locale.toLanguageTag()`, e.g., `vi-VN` instead of `vi_VN`.
 
-## Tham khảo chính thức
+## Official References
 
-- [Java SE 17 — java.util.Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html): hợp đồng `forLanguageTag`, `toLanguageTag`, cấu trúc thẻ và quy tắc tương thích.
-- [Java SE 17 — Locale.Builder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.Builder.html): `setLanguageTag` và `IllformedLocaleException`.
-- [RFC 5646 — Tags for Identifying Languages](https://www.rfc-editor.org/rfc/rfc5646): nền tảng cú pháp BCP 47.
+- [Java SE 17 — java.util.Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html): contracts for `forLanguageTag`, `toLanguageTag`, tag structure, and compatibility rules.
+- [Java SE 17 — Locale.Builder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.Builder.html): `setLanguageTag` and `IllformedLocaleException`.
+- [RFC 5646 — Tags for Identifying Languages](https://www.rfc-editor.org/rfc/rfc5646): foundation of BCP 47 syntax.
 
-**Ghi nhớ:** `forLanguageTag` chuyển **thẻ BCP 47 → Locale** và có thể bỏ phần sai cú pháp; `toLanguageTag` chuyển **Locale → thẻ BCP 47 đã chuẩn hóa**. Muốn ràng buộc nghiêm ngặt, dùng `Locale.Builder` kèm chính sách hỗ trợ locale và fallback của ứng dụng.
+**Key takeaway:** `forLanguageTag` converts **BCP 47 tag → Locale** and may drop syntactically invalid parts; `toLanguageTag` converts **Locale → normalized BCP 47 tag**. When strict constraints are needed, use `Locale.Builder` along with the application's locale support policy and fallback.

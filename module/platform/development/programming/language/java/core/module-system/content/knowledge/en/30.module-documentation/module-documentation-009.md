@@ -1,55 +1,55 @@
-# Ví dụ modular tối thiểu có thể build và chạy
+# Minimal Buildable and Runnable Modular Example
 
-Bài thực hành này xây dựng một ứng dụng **Java Platform Module System (JPMS)** nhỏ nhưng hoàn chỉnh, gồm **hai named modules**: một module cung cấp API chào hỏi và một module ứng dụng sử dụng API đó. Bạn sẽ tạo các tệp `module-info.java`, biên dịch bằng `javac`, chạy bằng `java --module-path -m`, sau đó đóng gói thành các modular JAR có thể chạy độc lập từ thư mục phân phối.
+This hands-on walkthrough builds a small yet complete **Java Platform Module System (JPMS)** application consisting of **two named modules**: one module providing a greeting API and an application module using that API. You will create `module-info.java` files, compile with `javac`, run with `java --module-path -m`, and then package into modular JARs that can run standalone from a distribution directory.
 
-Toàn bộ ví dụ sử dụng JDK tiêu chuẩn, **không cần Maven, Gradle hay thư viện bên thứ ba**. Nếu sao chép đúng cấu trúc và mã nguồn, các lệnh có thể chạy trên JDK 17 trở lên; JPMS được giới thiệu từ Java 9.
+The entire example uses the standard JDK, **requiring no Maven, Gradle, or third-party libraries**. If you replicate the layout and source code exactly, the commands run on JDK 17 and later; JPMS was introduced in Java 9.
 
-## 1. Kết quả mong đợi
+## 1. Expected outcome
 
-Khi hoàn thành, bạn có:
+When finished, you will have:
 
-- Module `com.example.greeting` cung cấp lớp public `Greeter` trong package được export.
-- Module `com.example.app` khai báo `requires com.example.greeting;` và gọi `Greeter`.
-- Hai thư mục module đã biên dịch trong `out/`.
-- Hai modular JAR trong `dist/`.
-- Lệnh chạy với module path và một root module.
+- Module `com.example.greeting` supplying a public `Greeter` class in an exported package.
+- Module `com.example.app` declaring `requires com.example.greeting;` and calling `Greeter`.
+- Two compiled module directories under `out/`.
+- Two modular JARs under `dist/`.
+- Launch commands using the module path and a root module.
 
-Ví dụ chạy:
+Example run:
 
 ```shell
 java --module-path out --module com.example.app/com.example.app.Main
 ```
 
-Đầu ra:
+Output:
 
 ```text
-Xin chào, Java!
+Hello, Java!
 ```
 
-Truyền tên qua command-line argument:
+Passing a name via command-line argument:
 
 ```shell
 java --module-path out -m com.example.app/com.example.app.Main Lan
 ```
 
-Đầu ra:
+Output:
 
 ```text
-Xin chào, Lan!
+Hello, Lan!
 ```
 
-Ví dụ này minh họa đầy đủ hai khái niệm quan trọng: **`requires` tạo quan hệ đọc giữa các module** và **`exports` công khai package API**. Nếu thiếu một trong hai, việc module ứng dụng sử dụng lớp `Greeter` sẽ không hợp lệ theo mô hình truy cập JPMS.
+This example clearly demonstrates two core concepts: **`requires` establishes readability between modules** and **`exports` exposes an API package**. If either is missing, the application module using the `Greeter` class is invalid under the JPMS access model.
 
-## 2. Chuẩn bị môi trường
+## 2. Preparing the environment
 
-Cần cài **JDK**, không chỉ một runtime rút gọn không có compiler. Các công cụ được sử dụng:
+A **JDK** must be installed, not merely a slimmed-down runtime lacking a compiler. Tools used:
 
-- `java`: khởi chạy ứng dụng.
-- `javac`: biên dịch Java source và module descriptor.
-- `jar`: đóng gói modular JAR và xem descriptor.
-- `jdeps`: tùy chọn, dùng để phân tích dependency sau khi build.
+- `java`: launches the application.
+- `javac`: compiles Java sources and module descriptors.
+- `jar`: packages modular JARs and inspects descriptors.
+- `jdeps`: optional, used to analyze dependencies after building.
 
-Kiểm tra JDK trong terminal:
+Verify the JDK in your terminal:
 
 ```shell
 java -version
@@ -57,15 +57,15 @@ javac -version
 jar --version
 ```
 
-Ví dụ output có thể hiển thị `17`, `21` hoặc một phiên bản JDK mới hơn. Quan trọng là `java` và `javac` sử dụng cùng toolchain thích hợp, đặc biệt nếu máy có nhiều phiên bản Java.
+Example output might show `17`, `21`, or a newer JDK version. Importantly, `java` and `javac` should belong to the same appropriate toolchain, especially if multiple Java versions are installed.
 
-Nếu `javac` không được nhận diện, kiểm tra JDK đã được cài và thư mục `bin` nằm trên `PATH`. Trong hệ thống quản lý nhiều JDK, có thể dùng đường dẫn đầy đủ tới `java`, `javac` và `jar` thay vì trông chờ `PATH`.
+If `javac` is not recognized, check that a JDK is installed and its `bin` directory is on `PATH`. On systems managing multiple JDKs, you can use full paths to `java`, `javac`, and `jar` instead of relying on `PATH`.
 
-Các lệnh trong bài được thực hiện từ **thư mục gốc của dự án**. Cần tạo tệp bằng đúng tên và package khai báo. Trên Windows có thể dùng PowerShell; trên Linux/macOS dùng shell thông thường.
+Commands in this walkthrough are run from the **project root directory**. Files must be created with the exact declared names and packages. On Windows you can use PowerShell; on Linux/macOS use a standard shell.
 
-## 3. Cấu trúc dự án
+## 3. Project layout
 
-Tạo một thư mục, ví dụ `jpms-hello`, với cấu trúc:
+Create a directory, e.g. `jpms-hello`, with this layout:
 
 ```text
 jpms-hello/
@@ -85,96 +85,96 @@ jpms-hello/
                     └── Main.java
 ```
 
-Lưu ý:
+Notes:
 
-1. `src/com.example.greeting` và `src/com.example.app` là **hai module source roots**.
-2. Mỗi module có `module-info.java` tại gốc module.
-3. Các đường dẫn con dưới module root tương ứng với tên package Java.
-4. `out/` và `dist/` được tạo ở các bước tiếp theo, không cần đặt trong source tree.
+1. `src/com.example.greeting` and `src/com.example.app` are **two module source roots**.
+2. Each module has a `module-info.java` at the module root.
+3. Subdirectories beneath each module root correspond to Java package names.
+4. `out/` and `dist/` are created in later steps and do not belong in the source tree.
 
-Đây là cách tổ chức phù hợp cho lệnh:
+This layout matches the command:
 
 ```shell
 javac --module-source-path src -d out -m com.example.greeting,com.example.app
 ```
 
-Nếu dùng cách tổ chức source khác, cần điều chỉnh `--module-source-path` tương ứng. Trình biên dịch không tự suy ra cấu trúc module từ mọi kiểu thư mục tùy ý.
+If using a different source layout, adjust `--module-source-path` accordingly. The compiler does not automatically infer module structure from arbitrary directory layouts.
 
-## 4. Tạo module cung cấp API: com.example.greeting
+## 4. Creating the API provider module: com.example.greeting
 
-### 4.1. Viết module-info.java
+### 4.1. Writing module-info.java
 
-Tạo tệp `src/com.example.greeting/module-info.java`:
+Create `src/com.example.greeting/module-info.java`:
 
 ```java
 /**
- * Cung cấp API tạo lời chào đơn giản.
+ * Provides a simple greeting API.
  *
- * <p>Các module khác sử dụng lớp Greeter qua
- * package com.example.greeting.api.
+ * <p>Other modules use the Greeter class via the
+ * com.example.greeting.api package.
  */
 module com.example.greeting {
     exports com.example.greeting.api;
 }
 ```
 
-Module descriptor có hai ý nghĩa:
+The module descriptor has two meanings:
 
-- `module com.example.greeting`: đặt tên cho named module.
-- `exports com.example.greeting.api;`: cho phép module khác đọc `com.example.greeting` sử dụng những kiểu `public` trong package API đó.
+- `module com.example.greeting`: names the named module.
+- `exports com.example.greeting.api;`: allows other modules reading `com.example.greeting` to use `public` types in that API package.
 
-Module này không cần khai báo `requires java.base;`, vì mọi named module đều đọc `java.base` một cách ngầm định. Những kiểu cơ bản như `String` nằm trong nền tảng này.
+This module does not need to declare `requires java.base;`, because every named module reads `java.base` implicitly. Fundamental types like `String` reside there.
 
-### 4.2. Viết lớp Greeter
+### 4.2. Writing the Greeter class
 
-Tạo `src/com.example.greeting/com/example/greeting/api/Greeter.java`:
+Create `src/com.example.greeting/com/example/greeting/api/Greeter.java`:
 
 ```java
 package com.example.greeting.api;
 
 /**
- * API tạo một lời chào có tên người nhận.
+ * API for creating a greeting with a recipient name.
  */
 public final class Greeter {
 
     /**
-     * Trả về lời chào dành cho tên được truyền vào.
+     * Returns a greeting for the given name.
      *
-     * @param name tên người nhận
-     * @return lời chào
+     * @param name recipient name
+     * @return greeting string
      */
     public String greet(String name) {
-        return "Xin chào, " + name + "!";
+        return "Hello, " + name + "!";
     }
 }
 ```
 
-Lớp `Greeter` là `public` và nằm trong package `com.example.greeting.api` đã được export. Vì vậy, một module khác có quan hệ readability phù hợp có thể khởi tạo và gọi phương thức `greet`.
+The `Greeter` class is `public` and resides in the exported `com.example.greeting.api` package. Therefore, another module with appropriate readability can instantiate it and call `greet`.
 
-Nếu bỏ `public` ở khai báo class, module khác sẽ không được sử dụng lớp đó như một public API, dù package đã export. `exports` không làm các kiểu hoặc thành viên package-private trở thành public.
+If you omit `public` from the class declaration, other modules cannot use that class as a public API even though the package is exported. `exports` does not make package-private types or members public.
 
-## 5. Tạo module ứng dụng: com.example.app
+## 5. Creating the application module: com.example.app
 
-### 5.1. Viết module-info.java
+### 5.1. Writing module-info.java
 
-Tạo `src/com.example.app/module-info.java`:
+Create `src/com.example.app/module-info.java`:
 
 ```java
 /**
- * Ứng dụng minh họa cách sử dụng một module API khác.
+ * Application demonstrating how to use another API module.
  */
 module com.example.app {
     requires com.example.greeting;
 }
 ```
 
-Directive `requires com.example.greeting;` cho biết app cần đọc module `com.example.greeting`. Khi Java phân giải app làm root module, dependency này phải được tìm thấy từ module path hoặc nguồn module phù hợp.
+The `requires com.example.greeting;` directive states that the app needs to read module `com.example.greeting`. When Java resolves the app as a root module, this dependency must be discoverable from the module path or an appropriate module source.
 
-App không cần `exports com.example.app;`, vì lớp `Main` chỉ phục vụ điểm vào chương trình; không có module consumer nào cần import package đó. Main class của ứng dụng không bắt buộc phải thuộc package được export.
+The app does not need `exports com.example.app;`, because `Main` serves only as the program entry point; no consumer module needs to import that package. An application's main class does not have to live in an exported package.
 
-### 5.2. Viết Main.java
+### 5.2. Writing Main.java
 
-Tạo `src/com.example.app/com/example/app/Main.java`:
+Create `src/com.example.app/com/example/app/Main.java`:
 
 ```java
 package com.example.app;
@@ -192,30 +192,30 @@ public final class Main {
 }
 ```
 
-Phân biệt hai yếu tố:
+Distinguish two elements:
 
-- `import com.example.greeting.api.Greeter;` giúp mã nguồn gọi lớp bằng tên ngắn `Greeter`.
-- `requires com.example.greeting;` trong descriptor khai báo dependency giữa các module.
+- `import com.example.greeting.api.Greeter;` lets source code refer to the class by its short name `Greeter`.
+- `requires com.example.greeting;` in the descriptor declares the dependency between modules.
 
-`import` không thay thế `requires`; `requires` cũng không tự làm package chưa export trở nên truy cập được. Hai module trong ví dụ phối hợp qua **readability** ở phía app và **exports** ở phía greeting.
+`import` does not replace `requires`; nor does `requires` automatically make unexported packages accessible. The two modules in the example cooperate via **readability** on the app side and **exports** on the greeting side.
 
-## 6. Biên dịch bằng javac --module-source-path
+## 6. Compiling with javac --module-source-path
 
-Mở terminal tại thư mục `jpms-hello` và chạy:
+Open a terminal in the `jpms-hello` directory and run:
 
 ```shell
 javac --module-source-path src -d out -m com.example.greeting,com.example.app
 ```
 
-Giải thích các tham số:
+Explanation of arguments:
 
-| Tham số | Ý nghĩa |
+| Argument | Meaning |
 |---|---|
-| `--module-source-path src` | Thư mục chứa mã nguồn của các module |
-| `-d out` | Thư mục kết quả biên dịch |
-| `-m com.example.greeting,com.example.app` | Các module nguồn được yêu cầu biên dịch |
+| `--module-source-path src` | Directory containing module sources |
+| `-d out` | Output directory for compilation |
+| `-m com.example.greeting,com.example.app` | Source modules requested to compile |
 
-Khi biên dịch thành công, output thường có dạng:
+Upon successful compilation, the output typically looks like:
 
 ```text
 out/
@@ -227,81 +227,81 @@ out/
     └── com/example/app/Main.class
 ```
 
-Tệp `module-info.java` được biên dịch thành `module-info.class`, chứa module descriptor dưới dạng metadata phù hợp với JVM. Những module đã biên dịch trong `out/` được gọi là **exploded modules**.
+`module-info.java` is compiled into `module-info.class`, containing the module descriptor as JVM-compatible metadata. Compiled modules inside `out/` are called **exploded modules**.
 
-Khi dùng `--module-source-path`, compiler có thể tìm mã nguồn của cả module app và dependency greeting. Nếu một module yêu cầu module khác nhưng module đó không có trong source path, module path hoặc system modules, compiler sẽ báo lỗi.
+When using `--module-source-path`, the compiler can find source code for both the app module and the greeting dependency. If a module requires another module that is missing from the source path, module path, or system modules, the compiler reports an error.
 
-### 6.1. Không dùng javac -cp theo cách cũ
+### 6.1. Do not use javac -cp in the legacy way
 
-Cách truyền thống:
+The traditional way:
 
 ```shell
 javac -cp libs/* ...
 ```
 
-cung cấp thư viện qua classpath. Nó không tự thiết lập một cấu hình named modules giống `--module-source-path` hoặc `--module-path`. Trong bài này, cần biên dịch cả `module-info.java` và code thành các named modules để có JPMS thực sự.
+supplies libraries via the classpath. It does not establish a named-module configuration like `--module-source-path` or `--module-path`. In this walkthrough, both `module-info.java` and source code must be compiled into named modules to get true JPMS.
 
-### 6.2. Biên dịch theo hai lượt (tham khảo)
+### 6.2. Two-pass compilation (for reference)
 
-Nếu muốn biên dịch dependency trước rồi app sau, có thể làm:
+If you want to compile the dependency first and the app second, you can do:
 
 ```shell
 javac -d out/com.example.greeting src/com.example.greeting/module-info.java src/com.example.greeting/com/example/greeting/api/Greeter.java
 ```
 
-Sau đó:
+Then:
 
 ```shell
 javac --module-path out -d out/com.example.app src/com.example.app/module-info.java src/com.example.app/com/example/app/Main.java
 ```
 
-Lượt thứ hai sử dụng `--module-path out` để tìm exploded module `com.example.greeting` vừa biên dịch. Đây là cách minh họa sự khác biệt giữa **module-source-path** (tìm nguồn) và **module-path** (tìm module đã biên dịch).
+The second pass uses `--module-path out` to locate the just-compiled exploded module `com.example.greeting`. This illustrates the difference between **module-source-path** (finding sources) and **module-path** (finding compiled modules).
 
-Cách một lệnh ở đầu mục đơn giản hơn cho bài thực hành này.
+The single-command approach at the start of this section is simpler for this walkthrough.
 
-## 7. Chạy exploded modules trực tiếp
+## 7. Running exploded modules directly
 
-Sau khi biên dịch, chạy:
+After compiling, run:
 
 ```shell
 java --module-path out --module com.example.app/com.example.app.Main
 ```
 
-Dạng viết ngắn tương đương:
+Equivalent short form:
 
 ```shell
 java -p out -m com.example.app/com.example.app.Main
 ```
 
-Kết quả:
+Output:
 
 ```text
-Xin chào, Java!
+Hello, Java!
 ```
 
-Chạy với đối số:
+Running with an argument:
 
 ```shell
 java -p out -m com.example.app/com.example.app.Main Minh
 ```
 
-Kết quả:
+Output:
 
 ```text
-Xin chào, Minh!
+Hello, Minh!
 ```
 
-Trong đó:
+Here:
 
-- `-p out` chỉ định vị trí các module đã biên dịch.
-- `-m com.example.app/com.example.app.Main` chọn module khởi động và tên class chứa `main`.
-- `Minh` là phần tử đầu tiên của mảng `String[] args`, không phải một phần tên module.
+- `-p out` specifies the location of compiled modules.
+- `-m com.example.app/com.example.app.Main` selects the startup module and the class containing `main`.
+- `Minh` is the first element of the `String[] args` array, not part of the module name.
 
-Ở thời điểm khởi chạy, Java launcher tìm module `com.example.app`, đọc descriptor, phát hiện dependency `com.example.greeting` và phân giải cả hai module. Sau đó app có thể dùng lớp `Greeter` qua package đã export.
+At startup, the Java launcher locates module `com.example.app`, reads its descriptor, discovers the `com.example.greeting` dependency, and resolves both modules. The app can then use `Greeter` through the exported package.
 
-## 8. Điều gì xảy ra trong module resolution?
+## 8. What happens during module resolution?
 
-Cấu trúc module graph của bài thực hành:
+The module graph of this walkthrough:
 
 ```text
        com.example.app
@@ -315,51 +315,51 @@ Cấu trúc module graph của bài thực hành:
            java.base
 ```
 
-Module `java.base` đã có trong runtime image. Không cần đóng gói hoặc sao chép nó vào `out/`.
+Module `java.base` already resides in the runtime image. There is no need to package or copy it into `out/`.
 
-Khi khởi động:
+At launch:
 
-1. Java tìm `com.example.app` từ module path và chọn làm root module.
-2. Resolver đọc `requires com.example.greeting;`.
-3. Resolver tìm `com.example.greeting` trong module path.
-4. Các system module cần thiết, như `java.base`, được xử lý theo quy tắc nền tảng.
-5. Module graph được hình thành; runtime định nghĩa các module và class loader phù hợp.
-6. Launcher tìm `com.example.app.Main` và gọi phương thức `main`.
-7. App sử dụng API `Greeter` từ module greeting.
+1. Java finds `com.example.app` on the module path and selects it as a root module.
+2. The resolver reads `requires com.example.greeting;`.
+3. The resolver finds `com.example.greeting` on the module path.
+4. Needed system modules, such as `java.base`, are handled under platform rules.
+5. The module graph is formed; the runtime defines the modules and appropriate class loaders.
+6. The launcher locates `com.example.app.Main` and invokes its `main` method.
+7. The app uses the `Greeter` API from the greeting module.
 
-Không phải mọi JAR có trên module path đều tự động được phân giải. Resolver bắt đầu từ các root module và các quan hệ dependency; tùy chọn như `--add-modules` có thể đưa thêm root module vào graph khi cần.
+Not every JAR present on the module path is automatically resolved. The resolver starts from root modules and dependency edges; options such as `--add-modules` can add extra root modules to the graph when needed.
 
-## 9. Đóng gói thành modular JAR
+## 9. Packaging into modular JARs
 
-Khi muốn phát hành ứng dụng, thường đóng gói mỗi module thành JAR.
+When distributing an application, each module is typically packaged into a JAR.
 
-Tạo thư mục `dist`.
+Create the `dist` directory.
 
-Trên Linux/macOS:
+On Linux/macOS:
 
 ```shell
 mkdir -p dist
 ```
 
-Trên Windows PowerShell:
+On Windows PowerShell:
 
 ```powershell
 New-Item -ItemType Directory -Force -Path dist | Out-Null
 ```
 
-Đóng gói module greeting:
+Package the greeting module:
 
 ```shell
 jar --create --file dist/com.example.greeting.jar -C out/com.example.greeting .
 ```
 
-Đóng gói module app:
+Package the app module:
 
 ```shell
 jar --create --file dist/com.example.app.jar -C out/com.example.app .
 ```
 
-Thư mục phân phối trở thành:
+The distribution directory becomes:
 
 ```text
 dist/
@@ -367,146 +367,146 @@ dist/
 └── com.example.app.jar
 ```
 
-Mỗi JAR có `module-info.class` ở gốc nên đây là **explicit modular JAR**. Tên module lấy từ descriptor, không phải tự động từ tên file `.jar`. Trong ví dụ, tên file được đặt giống module name để dễ nhận biết, nhưng đó chỉ là quy ước.
+Each JAR has `module-info.class` at its root, making it an **explicit modular JAR**. The module name comes from the descriptor, not automatically from the `.jar` filename. In this example, filenames match module names for clarity, though that is merely a convention.
 
-Kiểm tra nội dung:
+Inspect contents:
 
 ```shell
 jar --list --file dist/com.example.greeting.jar
 jar --list --file dist/com.example.app.jar
 ```
 
-Bạn sẽ thấy `module-info.class`, class file và metadata của JAR.
+You will see `module-info.class`, class files, and JAR metadata.
 
-## 10. Chạy ứng dụng từ modular JAR
+## 10. Running the application from modular JARs
 
-Thay `out` bằng `dist` trong module path:
+Replace `out` with `dist` on the module path:
 
 ```shell
 java --module-path dist --module com.example.app/com.example.app.Main
 ```
 
-Đầu ra mong đợi:
+Expected output:
 
 ```text
-Xin chào, Java!
+Hello, Java!
 ```
 
-Để truyền argument:
+To pass an argument:
 
 ```shell
-java -p dist -m com.example.app/com.example.app.Main "Học JPMS"
+java -p dist -m com.example.app/com.example.app.Main "Learn JPMS"
 ```
 
-Đầu ra:
+Output:
 
 ```text
-Xin chào, Học JPMS!
+Hello, Learn JPMS!
 ```
 
-Dấu ngoặc kép quanh `"Học JPMS"` giữ cả cụm thành một command-line argument.
+The quotes around `"Learn JPMS"` keep the phrase as a single command-line argument.
 
-Tùy chọn khác là ghi **main class** khi đóng gói module app:
+Another option is recording the **main class** when packaging the app module:
 
 ```shell
 jar --create --file dist/com.example.app.jar --main-class com.example.app.Main -C out/com.example.app .
 ```
 
-Lệnh trên tạo lại app JAR với metadata main class. Khi đó có thể chạy mà không phải ghi tên lớp sau dấu `/`:
+The command above recreates the app JAR with main class metadata. You can then run it without specifying the class name after `/`:
 
 ```shell
 java --module-path dist --module com.example.app
 ```
 
-Nếu chưa ghi main class trong module artifact, vẫn dùng dạng `-m com.example.app/com.example.app.Main` để chỉ định điểm vào chương trình.
+If no main class was recorded in the module artifact, continue using `-m com.example.app/com.example.app.Main` to specify the program entry point.
 
-## 11. Kiểm tra module descriptor sau khi đóng gói
+## 11. Inspecting the module descriptor after packaging
 
-Dùng `jar --describe-module` để xem metadata:
+Use `jar --describe-module` to inspect metadata:
 
 ```shell
 jar --describe-module --file dist/com.example.greeting.jar
 ```
 
-Thông tin đáng quan tâm:
+Details to note:
 
 - Module name: `com.example.greeting`.
-- Package được export: `com.example.greeting.api`.
-- Quan hệ tới `java.base`.
+- Exported package: `com.example.greeting.api`.
+- Relationship to `java.base`.
 
-Với app:
+For the app:
 
 ```shell
 jar --describe-module --file dist/com.example.app.jar
 ```
 
-Thông tin cần thấy là dependency tới `com.example.greeting`; nếu đã đóng gói với `--main-class`, descriptor hiển thị thông tin main class tương ứng.
+What you should see is the dependency on `com.example.greeting`; if packaged with `--main-class`, the descriptor displays the corresponding main class info.
 
-Khi sửa `module-info.java`, cần **biên dịch và đóng gói lại** để JAR chứa descriptor mới. Chỉ sửa file `.java` sau khi đã tạo JAR không làm metadata bên trong artifact phát hành tự thay đổi.
+Whenever `module-info.java` changes, you must **recompile and repackage** so the JAR contains the new descriptor. Editing the `.java` file after creating a JAR does not automatically update metadata inside the released artifact.
 
-## 12. Quan sát module resolution khi chạy
+## 12. Observing module resolution at runtime
 
-Java launcher có các tùy chọn hữu ích để xem cấu hình:
+The Java launcher offers helpful options for inspecting configuration:
 
-**Liệt kê module có thể quan sát:**
+**List observable modules:**
 
 ```shell
 java --module-path dist --list-modules
 ```
 
-Danh sách bao gồm system modules và các module có thể tìm từ module path. Nó chưa chứng minh mọi module đều được phân giải khi chạy app.
+The list includes system modules and modules discoverable on the module path. It does not prove every module is resolved when running the app.
 
-**Mô tả một module:**
+**Describe a module:**
 
 ```shell
 java --module-path dist --describe-module com.example.app
 ```
 
-**In quá trình resolution:**
+**Print resolution steps:**
 
 ```shell
 java --show-module-resolution --module-path dist -m com.example.app/com.example.app.Main
 ```
 
-Bạn có thể tìm những thông tin tương tự quan hệ app đọc greeting. Đầu ra chi tiết thay đổi tùy phiên bản JDK.
+You can look for lines indicating the app module reading greeting. Detailed output varies by JDK version.
 
-**Chỉ thử khởi tạo module graph mà không chạy main:**
+**Attempt module graph initialization without running main:**
 
 ```shell
 java --show-module-resolution --dry-run --module-path dist -m com.example.app/com.example.app.Main
 ```
 
-`--dry-run` phù hợp khi muốn kiểm tra resolution và module setup mà không thực thi logic trong `main`. Nó không thay thế việc chạy ứng dụng để quan sát kết quả nghiệp vụ.
+`--dry-run` is useful when checking resolution and module setup without executing logic inside `main`. It does not replace running the application to observe business results.
 
-**Kiểm tra cấu trúc module path:**
+**Validate module path structure:**
 
 ```shell
 java --module-path dist --validate-modules
 ```
 
-Lệnh hỗ trợ phát hiện một số vấn đề về module trùng tên hoặc xung đột package. Với ví dụ nhỏ đúng cấu trúc, không kỳ vọng gặp lỗi validation.
+This command helps detect issues such as duplicate module names or package conflicts. For a properly structured minimal example, no validation errors are expected.
 
-## 13. Kiểm tra dependency tĩnh bằng jdeps
+## 13. Checking static dependencies with jdeps
 
-`jdeps` đọc class file/JAR và phân tích dependency:
+`jdeps` reads class files/JARs and analyzes dependencies:
 
 ```shell
 jdeps --module-path dist --list-deps dist/com.example.app.jar
 ```
 
-Khi phân tích module app, bạn kỳ vọng nhận diện dependency tới `com.example.greeting` và những system modules cần thiết. Lệnh này hữu ích khi codebase lớn hơn và muốn xem dependency được suy ra từ bytecode và metadata.
+When analyzing the app module, you expect to see the dependency on `com.example.greeting` and required system modules. This command is useful as a codebase grows and you want to see dependencies inferred from bytecode and metadata.
 
-Muốn xem dependency ở mức package:
+To see package-level dependencies:
 
 ```shell
 jdeps --module-path dist -verbose:package dist/com.example.app.jar
 ```
 
-`jdeps` không phát hiện đầy đủ mọi dependency được nạp động bằng reflection, `ServiceLoader` hoặc tên class dạng chuỗi. Ở ví dụ tối thiểu này, dependency được khai báo tường minh nên công cụ dễ quan sát hơn.
+`jdeps` does not fully detect dependencies loaded dynamically via reflection, `ServiceLoader`, or string class names. In this minimal example, dependencies are explicit, making them easy for the tool to observe.
 
-## 14. Phân biệt module path và classpath
+## 14. Distinguishing module path and classpath
 
-Hai cách chạy có thể trông giống nhau nhưng không tương đương.
+Two launch commands can look similar yet are not equivalent.
 
 **Module path (JPMS):**
 
@@ -514,38 +514,38 @@ Hai cách chạy có thể trông giống nhau nhưng không tương đương.
 java --module-path dist -m com.example.app/com.example.app.Main
 ```
 
-Java sử dụng `module-info.class`, phân giải `requires`, thực thi ranh giới `exports` và các quy tắc module.
+Java uses `module-info.class`, resolves `requires`, and enforces `exports` boundaries and module rules.
 
-**Classpath truyền thống:**
+**Traditional classpath:**
 
 ```shell
 java --class-path "dist/*" com.example.app.Main
 ```
 
-Khi đưa modular JAR lên classpath như một thư viện classpath, các lớp được sử dụng theo mô hình unnamed module của class loader tương ứng thay vì module graph explicit đã được phân giải từ `--module-path`.
+When modular JARs are placed on the classpath as classpath libraries, classes are loaded under the unnamed module model of the corresponding class loader rather than an explicit module graph resolved from `--module-path`.
 
-Trong trường hợp classpath có đủ hai JAR, code vẫn có thể chạy, nhưng bạn không còn kiểm tra đúng các ranh giới JPMS đã thiết kế. Vì mục tiêu của bài là một ứng dụng **modular**, hãy dùng `--module-path` và `-m`.
+When both JARs are on the classpath, the code may still run, yet you are no longer testing the JPMS boundaries you designed. Because the goal of this walkthrough is a **modular** application, use `--module-path` and `-m`.
 
-Tương tự, `java -jar dist/com.example.app.jar` không tương đương `java -m com.example.app`: `-jar` dùng manifest `Main-Class` và ngữ nghĩa khởi chạy JAR/classpath, không biến JAR thành root named module chỉ vì nó chứa `module-info.class`.
+Similarly, `java -jar dist/com.example.app.jar` is not equivalent to `java -m com.example.app`: `-jar` uses the manifest `Main-Class` and JAR/classpath launch semantics, and does not make the JAR a root named module merely because it contains `module-info.class`.
 
-## 15. Thử thay đổi descriptor để hiểu requires và exports
+## 15. Experimenting with descriptor edits to understand requires and exports
 
-Có thể thực hiện các thử nghiệm riêng sau khi đã build và chạy thành công.
+You can run small experiments after building and running successfully.
 
-### 15.1. Bỏ requires ở app
+### 15.1. Removing requires from app
 
-Thay descriptor app thành:
+Change the app descriptor to:
 
 ```java
 module com.example.app {
 }
 ```
 
-Giữ nguyên lệnh `import com.example.greeting.api.Greeter;` trong `Main.java` và biên dịch lại. Compiler sẽ không cho module app sử dụng API của greeting theo cách thông thường vì app không đọc module greeting.
+Keep `import com.example.greeting.api.Greeter;` in `Main.java` and recompile. The compiler will prevent the app module from using the greeting API in the normal way because `app` does not read `greeting`.
 
-Đây là lỗi **readability**. Việc JAR greeting tồn tại trong module path không thay thế quan hệ `requires`.
+This is a **readability** error. Having the greeting JAR on the module path does not replace the `requires` relationship.
 
-Khôi phục:
+Restore:
 
 ```java
 module com.example.app {
@@ -553,20 +553,20 @@ module com.example.app {
 }
 ```
 
-### 15.2. Bỏ exports ở greeting
+### 15.2. Removing exports from greeting
 
-Giữ `requires com.example.greeting;` trong app, nhưng đổi descriptor greeting thành:
+Keep `requires com.example.greeting;` in `app`, but change greeting's descriptor to:
 
 ```java
 module com.example.greeting {
 }
 ```
 
-Biên dịch lại. App có thể đọc greeting, nhưng package `com.example.greeting.api` không được export ra ngoài. Compiler sẽ báo package không khả dụng cho module app.
+Recompile. `app` can read `greeting`, yet package `com.example.greeting.api` is not exported outward. The compiler will report that the package is not accessible to `app`.
 
-Đây là lỗi **package encapsulation**, không phải thiếu module.
+This is a **package encapsulation** error, not a missing module.
 
-Khôi phục:
+Restore:
 
 ```java
 module com.example.greeting {
@@ -574,86 +574,86 @@ module com.example.greeting {
 }
 ```
 
-### 15.3. Đổi sai tên module
+### 15.3. Misspelling the module name
 
-Nếu app khai báo:
+If `app` declares:
 
 ```java
 requires com.example.greeter;
 ```
 
-trong khi module thực tế là `com.example.greeting`, compiler/resolver có thể báo không tìm thấy module. JPMS dùng **module name** chính xác, không tự thay thế theo tên class hoặc package gần giống.
+while the actual module is `com.example.greeting`, the compiler/resolver will report the module cannot be found. JPMS uses exact **module names**, and does not substitute similar class or package names.
 
-Ba thử nghiệm này giúp phân biệt ba lỗi: thiếu module, thiếu readability và package chưa export.
+These three experiments help distinguish three failure modes: missing module, missing readability, and unexported package.
 
-## 16. Các lỗi thường gặp khi build/run
+## 16. Common build/run errors
 
-### Lỗi 1: `javac: command not found`
+### Error 1: `javac: command not found`
 
-Nguyên nhân: không có JDK compiler trong `PATH`, hoặc đang dùng môi trường chỉ có runtime.
+Cause: no JDK compiler on `PATH`, or running in a runtime-only environment.
 
-Khắc phục: cài JDK phù hợp, kiểm tra `javac -version` và `java -version`. Không cần thay đổi source code.
+Fix: install an appropriate JDK, check `javac -version` and `java -version`. No source code changes are needed.
 
-### Lỗi 2: Không tìm thấy module app
+### Error 2: Module app not found
 
-Thông báo có thể dạng:
+The message may look like:
 
 ```text
 Error occurred during initialization of boot layer
 java.lang.module.FindException: Module com.example.app not found
 ```
 
-Kiểm tra:
+Check:
 
-- Đã chạy `javac` thành công chưa?
-- Có `out/com.example.app/module-info.class` không?
-- `--module-path` đang trỏ tới `out`, không phải một thư mục sai cấp?
-- Tên module ở `-m` có trùng descriptor không?
-- Nếu chạy modular JAR, file app có nằm trong `dist` không?
+- Did `javac` succeed?
+- Does `out/com.example.app/module-info.class` exist?
+- Does `--module-path` point to `out` rather than a wrong directory level?
+- Does the module name in `-m` match the descriptor?
+- If running modular JARs, is the app JAR inside `dist`?
 
-### Lỗi 3: Không tìm thấy dependency greeting
+### Error 3: Greeting dependency not found
 
-App có `requires com.example.greeting;`, nhưng module greeting không nằm trong module path hoặc chưa được biên dịch/đóng gói.
+`app` has `requires com.example.greeting;`, yet the greeting module is absent from the module path or was not compiled/packaged.
 
-Kiểm tra thư mục `out/com.example.greeting` hoặc file `dist/com.example.greeting.jar`, rồi xem descriptor:
+Check the `out/com.example.greeting` folder or `dist/com.example.greeting.jar`, then inspect its descriptor:
 
 ```shell
 jar --describe-module --file dist/com.example.greeting.jar
 ```
 
-### Lỗi 4: Package chưa được export
+### Error 4: Package not exported
 
-Nếu thấy thông báo tương tự package thuộc một module khác nhưng không được export, kiểm tra descriptor greeting có:
+If you see a message indicating a package belongs to another module but is not exported, check that greeting's descriptor has:
 
 ```java
 exports com.example.greeting.api;
 ```
 
-Đừng cố sửa lỗi bằng cách đưa tất cả lớp vào classpath; việc đó bỏ qua mục tiêu học cách sử dụng JPMS.
+Do not try to work around the error by putting all classes on the classpath; that defeats the goal of learning JPMS.
 
-### Lỗi 5: Main class không phù hợp
+### Error 5: Invalid main class
 
-Lệnh sau dùng tên nhị phân đầy đủ của class:
+The following command uses the class's binary name:
 
 ```shell
 java -p out -m com.example.app/com.example.app.Main
 ```
 
-Nếu viết sai package, thiếu `Main.class` hoặc đổi tên class mà không cập nhật lệnh, launcher sẽ không tìm đúng entry point. Hãy kiểm tra package declaration và cấu trúc output.
+If the package is misspelled, `Main.class` is missing, or the class was renamed without updating the command, the launcher cannot find the entry point. Check the package declaration and output layout.
 
-### Lỗi 6: Đặt sai cấp module source root
+### Error 6: Wrong module source root level
 
-Với lệnh:
+With the command:
 
 ```shell
 javac --module-source-path src -d out -m com.example.app,com.example.greeting
 ```
 
-compiler kỳ vọng `src` chứa thư mục tương ứng từng module, và trong mỗi module root có `module-info.java`. Nếu bạn đặt `src/module-info.java` chung cho cả hai module hoặc đặt code sai thư mục, compiler có thể báo không tìm thấy source module hoặc source file không nằm trong module mong đợi.
+the compiler expects `src` to contain subdirectories matching each module, each with its own `module-info.java`. If you put a single `src/module-info.java` for both modules or misplace source files, the compiler may report source modules not found or source files outside expected modules.
 
-### Lỗi 7: Chạy trên Windows nhưng dùng dấu `:` cho nhiều path
+### Error 7: Running on Windows using `:` for multiple paths
 
-Với một module path chỉ là `out` hoặc `dist`, cú pháp giống nhau ở mọi hệ điều hành. Nhưng khi có nhiều đường dẫn:
+With a single module path such as `out` or `dist`, syntax is identical across OSes. When multiple paths are present:
 
 Windows:
 
@@ -667,11 +667,11 @@ Linux/macOS:
 java --module-path "dist:third-party" -m com.example.app/com.example.app.Main
 ```
 
-Không nhầm ký tự phân cách module path với dấu `/` trong cú pháp `module/main-class`.
+Do not confuse the module path separator with the `/` in `module/main-class` syntax.
 
-## 17. Một phiên bản tối giản chỉ có một module
+## 17. An even smaller single-module version
 
-Hai module giúp minh họa rõ `requires` và `exports`. Nếu chỉ muốn xem cách một named module tự chạy, phiên bản một module còn nhỏ hơn:
+Two modules clearly demonstrate `requires` and `exports`. If you just want to see how one named module runs on its own, a single-module version is even smaller:
 
 ```text
 single/
@@ -700,66 +700,66 @@ public final class Main {
 }
 ```
 
-Biên dịch từ thư mục `single`:
+Compile from the `single` directory:
 
 ```shell
 javac --module-source-path src -d out -m com.example.simple
 ```
 
-Chạy:
+Run:
 
 ```shell
 java --module-path out -m com.example.simple/com.example.simple.Main
 ```
 
-Kết quả:
+Output:
 
 ```text
 Hello modular Java!
 ```
 
-Tại sao không có `requires` và `exports`? Module chỉ sử dụng API từ `java.base` và không có package nào cần công khai cho module bên ngoài. Đây vẫn là explicit named module vì có `module-info.java`.
+Why are there no `requires` and `exports`? The module only uses APIs from `java.base` and has no packages to expose to external modules. It is still an explicit named module because it has `module-info.java`.
 
-Tuy nhiên, phiên bản hai module ở các mục trước nên được dùng làm bài thực hành chính khi học **module graph** và dependency access.
+However, the two-module version in earlier sections should serve as the main exercise when learning **module graphs** and dependency access.
 
-## 18. Có thể đưa ví dụ vào README dự án như thế nào?
+## 18. How can this example be placed in a project README?
 
-Một README thực dụng cho ứng dụng modular nên chứa các phần:
+A practical README for a modular application should include these sections:
 
-1. **Yêu cầu:** phiên bản JDK tối thiểu và build tool nếu có.
-2. **Source layout:** module roots và tên module thực tế.
-3. **Module responsibilities:** module nào cung cấp API, module nào là entry point.
-4. **Build command:** một hoặc vài lệnh có thể chạy từ thư mục gốc.
-5. **Run command:** chính xác `--module-path` và `-m module/main-class`.
-6. **Expected output:** kết quả cụ thể để người đọc đối chiếu.
-7. **Packaging:** cách tạo modular JAR nếu cần phát hành.
-8. **Troubleshooting:** lỗi module not found, exports, main class và toolchain.
-9. **Module inspection:** `jar --describe-module` và `--show-module-resolution`.
-10. **Versioning:** phiên bản JDK/toolchain mà lệnh đã được thiết kế để hỗ trợ.
+1. **Requirements:** minimum JDK version and build tool if any.
+2. **Source layout:** module roots and actual module names.
+3. **Module responsibilities:** which module provides APIs, which is the entry point.
+4. **Build command:** one or a few commands runnable from the root directory.
+5. **Run command:** exact `--module-path` and `-m module/main-class`.
+6. **Expected output:** concrete output for readers to verify against.
+7. **Packaging:** how to create modular JARs if distribution is needed.
+8. **Troubleshooting:** module not found, exports, main class, and toolchain errors.
+9. **Module inspection:** `jar --describe-module` and `--show-module-resolution`.
+10. **Versioning:** JDK/toolchain versions the commands were designed to support.
 
-Khi dự án dùng Maven hoặc Gradle, có thể thay thế các lệnh `javac`/`jar` thủ công bằng build commands tương ứng, nhưng nên giữ **lệnh `java -p ... -m ...` hoặc mô tả rõ lệnh tương đương**. Điều này chứng minh ứng dụng thật sự chạy theo mô hình modular, không phải vô tình chạy bằng classpath.
+When a project uses Maven or Gradle, manual `javac`/`jar` commands can be replaced with the corresponding build commands, while keeping the **`java -p ... -m ...` command or describing its equivalent clearly**. This proves the application truly runs in modular mode rather than accidentally running on the classpath.
 
-## 19. Checklist kiểm tra bài thực hành
+## 19. Walkthrough verification checklist
 
-- [ ] Có JDK và chạy được `java`, `javac`, `jar`.
-- [ ] Hai module source roots có tên khớp `com.example.greeting`, `com.example.app`.
-- [ ] Mỗi module có `module-info.java` tại gốc.
-- [ ] Greeting export `com.example.greeting.api`.
-- [ ] App khai báo `requires com.example.greeting;`.
-- [ ] `Greeter.java` và `Main.java` khai báo đúng package.
-- [ ] `javac --module-source-path src -d out -m com.example.greeting,com.example.app` hoàn tất.
-- [ ] `out` chứa hai exploded modules và `module-info.class` tương ứng.
-- [ ] `java -p out -m com.example.app/com.example.app.Main` in ra lời chào.
-- [ ] Đã tạo cả hai JAR trong `dist`.
-- [ ] `jar --describe-module` hiển thị module name và các directive đúng.
-- [ ] `java -p dist -m com.example.app/com.example.app.Main` chạy được.
-- [ ] Nếu dùng dạng `-m com.example.app`, app JAR có metadata main class.
-- [ ] Không phải thêm các tùy chọn `--add-exports` hoặc `--add-opens` cho ví dụ cơ bản.
+- [ ] JDK installed and `java`, `javac`, `jar` run properly.
+- [ ] Two module source roots match `com.example.greeting` and `com.example.app`.
+- [ ] Each module has `module-info.java` at its root.
+- [ ] Greeting exports `com.example.greeting.api`.
+- [ ] App declares `requires com.example.greeting;`.
+- [ ] `Greeter.java` and `Main.java` declare matching packages.
+- [ ] `javac --module-source-path src -d out -m com.example.greeting,com.example.app` completes.
+- [ ] `out` contains two exploded modules and corresponding `module-info.class` files.
+- [ ] `java -p out -m com.example.app/com.example.app.Main` prints the greeting.
+- [ ] Both JARs created in `dist`.
+- [ ] `jar --describe-module` shows the right module names and directives.
+- [ ] `java -p dist -m com.example.app/com.example.app.Main` runs cleanly.
+- [ ] If using `-m com.example.app`, the app JAR has main class metadata.
+- [ ] No `--add-exports` or `--add-opens` options needed for the basic example.
 
-## Kết luận
+## Conclusion
 
-Một ví dụ JPMS tối thiểu nhưng thể hiện được dependency thực tế cần ít nhất hai named modules: một module cung cấp API và một module tiêu thụ API đó. Module `com.example.greeting` khai báo `exports com.example.greeting.api;`, còn `com.example.app` khai báo `requires com.example.greeting;` và có class `Main`.
+A minimal JPMS example that still demonstrates real dependencies requires at least two named modules: one providing an API and one consuming that API. Module `com.example.greeting` declares `exports com.example.greeting.api;`, while `com.example.app` declares `requires com.example.greeting;` and has class `Main`.
 
-Với cấu trúc source theo module, chỉ cần lệnh `javac --module-source-path src -d out -m com.example.greeting,com.example.app` để biên dịch. Sau đó, `java --module-path out -m com.example.app/com.example.app.Main` khởi chạy trực tiếp exploded modules. Khi đóng gói thành JAR, thay module path từ `out` sang `dist`, giữ nguyên root module và main class.
+With a modular source layout, a single command `javac --module-source-path src -d out -m com.example.greeting,com.example.app` compiles both. Then `java --module-path out -m com.example.app/com.example.app.Main` runs the exploded modules directly. When packaged into JARs, replace `out` with `dist` on the module path, keeping the root module and main class the same.
 
-Ví dụ này tạo nền tảng để học các chủ đề JPMS tiếp theo như `requires transitive`, qualified exports, `opens`, service binding, module layers và migration từ classpath. Nắm rõ cách build và chạy ví dụ đơn giản giúp phân biệt được lỗi source code với lỗi module resolution hoặc package access trong những dự án lớn hơn.
+This example builds the foundation for learning subsequent JPMS topics such as `requires transitive`, qualified exports, `opens`, service binding, module layers, and migrating from the classpath. Mastering how to build and run a simple example makes it easier to distinguish source code errors from module resolution or package access errors in larger projects.

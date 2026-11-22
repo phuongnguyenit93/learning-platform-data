@@ -1,29 +1,29 @@
-# `return` với giá trị và `return` trong phương thức `void` — Java 17+
+# `return` with a Value and `return` in `void` Methods — Java 17+
 
-## 1. Quy tắc cốt lõi
+## 1. Core Rule
 
-Trong Java, `return` **kết thúc lời gọi phương thức hiện tại** và chuyển điều khiển về nơi đã gọi. Việc có thể trả một giá trị hay không phụ thuộc **kiểu trả về trong khai báo phương thức**.
+In Java, `return` **ends the current method call** and transfers control back to the caller. Whether a value can be returned depends on the **return type in the method declaration**.
 
-| Kiểu phương thức | Lệnh hợp lệ | Ý nghĩa |
+| Method type | Valid statement | Meaning |
 |---|---|---|
-| `int`, `boolean`, `String`… | `return expression;` | Tính biểu thức, trả giá trị phù hợp với kiểu khai báo và thoát phương thức |
-| `void` | `return;` | Thoát sớm, **không trả giá trị** |
-| `void` | Chạy hết thân mà không gặp `return` | Cũng kết thúc bình thường, không trả giá trị |
+| `int`, `boolean`, `String`… | `return expression;` | Evaluates the expression, returns a value compatible with the declared type, and exits the method |
+| `void` | `return;` | Exits early, **returning no value** |
+| `void` | Reaching the end of the body without `return` | Also finishes normally, returning no value |
 
 ~~~java
 static int square(int n) {
-    return n * n;        // Giá trị int.
+    return n * n;        // int value.
 }
 
 static void printIfPositive(int n) {
-    if (n <= 0) return;  // Thoát sớm, không có biểu thức.
+    if (n <= 0) return;  // Early exit, no expression.
     System.out.println(n);
 }
 ~~~
 
-`square(4)` có giá trị `16`; `printIfPositive(4)` in `4` nhưng **không có giá trị để gán vào biến**. Trong cả hai trường hợp, `return` đều kết thúc lời gọi hiện tại.
+`square(4)` has the value `16`; `printIfPositive(4)` prints `4` but **has no value to assign to a variable**. In both cases, `return` ends the current call.
 
-## 2. `return expression;` trong phương thức không phải `void`
+## 2. `return expression;` in Non-`void` Methods
 
 ~~~java
 static int larger(int a, int b) {
@@ -34,9 +34,9 @@ static int larger(int a, int b) {
 }
 ~~~
 
-Gọi `larger(3, 8)` trả `8`. Biểu thức sau `return` phải tạo giá trị **tương thích với kiểu trả về** của phương thức theo luật chuyển đổi của Java.
+Calling `larger(3, 8)` returns `8`. The expression after `return` must produce a value **compatible with the method's return type** under Java's conversion rules.
 
-Các ví dụ khác:
+Other examples:
 
 ~~~java
 static boolean isAdult(int age) {
@@ -48,22 +48,22 @@ static String status(boolean active) {
 }
 ~~~
 
-**Đúng:** `return age >= 18;` vì biểu thức có kiểu `boolean`. **Sai:** trong phương thức khai báo `int`, viết `return "hello";` hoặc `return;` sẽ không biên dịch.
+**Right:** `return age >= 18;` because the expression has type `boolean`. **Wrong:** in a method declared as `int`, writing `return "hello";` or `return;` will not compile.
 
-Với kiểu tham chiếu như `String`, `return null;` có thể hợp lệ về kiểu, nhưng caller cần xử lý null theo hợp đồng API. Với kiểu nguyên thủy như `int`, không thể `return null;`.
+With reference types like `String`, `return null;` may be type-valid, though callers must handle null according to the API contract. With primitive types like `int`, you cannot `return null;`.
 
-## 3. Phương thức trả giá trị phải xử lý đủ đường đi
+## 3. Value-Returning Methods Must Handle All Paths
 
 ~~~java
-// SAI nếu bỏ chú thích: có đường flag == false không trả int.
+// WRONG if uncommented: path flag == false does not return an int.
 // static int broken(boolean flag) {
 //     if (flag) return 1;
 // }
 ~~~
 
-Compiler sẽ báo lỗi thiếu `return` khi một phương thức không phải `void` có thể **hoàn tất bình thường** mà chưa trả giá trị.
+The compiler reports a missing `return` error when a non-`void` method can **complete normally** without returning a value.
 
-Sửa:
+Fix:
 
 ~~~java
 static int choose(boolean flag) {
@@ -74,7 +74,7 @@ static int choose(boolean flag) {
 }
 ~~~
 
-Một đường đi có thể kết thúc bằng `throw` thay vì trả về:
+A path can also terminate with `throw` instead of returning:
 
 ~~~java
 static int positiveOnly(int value) {
@@ -85,11 +85,11 @@ static int positiveOnly(int value) {
 }
 ~~~
 
-**Không phải mọi dòng trong thân đều phải chứa `return`**; yêu cầu là các đường thực thi có thể kết thúc bình thường phải trả giá trị. Một nhánh `throw` kết thúc đột ngột và không cần giá trị trả về.
+**Not every line in the body needs `return`**; the requirement is that execution paths capable of completing normally must return a value. A `throw` branch terminates abruptly and needs no return value.
 
-## 4. `return;` trong phương thức `void`: guard clause
+## 4. `return;` in `void` Methods: Guard Clauses
 
-`void` có nghĩa là phương thức không trả giá trị; `return;` hữu ích để **ngăn chạy phần còn lại** nếu đầu vào không phù hợp.
+`void` means the method returns no value; `return;` is useful to **prevent running the rest** if the input is unsuitable.
 
 ~~~java
 static void announce(String message) {
@@ -101,44 +101,44 @@ static void announce(String message) {
 }
 ~~~
 
-Với `announce(null)`, chương trình in `skip empty` rồi thoát phương thức. Với `announce("Hi")`, điều kiện false nên chạy `announce:Hi`.
+With `announce(null)`, the program prints `skip empty` and exits the method. With `announce("Hi")`, the condition is false so it executes `announce:Hi`.
 
-Lưu ý:
+Notes:
 
-- `return;` hợp lệ trong phương thức `void`.
-- `return 1;` **không hợp lệ** trong phương thức `void`.
-- Không bắt buộc viết `return;` ở cuối phương thức `void`; Java tự kết thúc khi thân chạy hết.
-- `void` không phải là một giá trị `null` hay số `0`; không viết `int x = announce("Hi");`.
+- `return;` is valid in a `void` method.
+- `return 1;` is **invalid** in a `void` method.
+- You are not required to write `return;` at the end of a `void` method; Java finishes automatically when the body completes.
+- `void` is not a `null` value or the number `0`; do not write `int x = announce("Hi");`.
 
-Một lệnh `return` trong `main(String[] args)` (có kiểu `void`) cũng kết thúc `main` mà không trả giá trị.
+A `return` statement in `main(String[] args)` (which has type `void`) also ends `main` without returning a value.
 
-## 5. `return` khác `break` và `continue`
+## 5. `return` vs. `break` and `continue`
 
-Đặt lệnh trong một vòng lặp:
+Placed inside a loop:
 
-| Lệnh | Phạm vi tác động |
+| Statement | Scope of effect |
 |---|---|
-| `return value;` | Kết thúc **phương thức** hiện tại và trả giá trị |
-| `return;` | Kết thúc phương thức `void` |
-| `break;` | Thoát vòng lặp hoặc `switch` gần nhất phù hợp |
-| `continue;` | Bỏ phần còn lại của lượt lặp gần nhất, chuyển sang lượt kế tiếp |
+| `return value;` | Ends the current **method** and returns a value |
+| `return;` | Ends a `void` method |
+| `break;` | Exits the nearest enclosing loop or `switch` |
+| `continue;` | Skips the rest of the current iteration and moves to the next iteration |
 
 ~~~java
 static int firstEven(int[] numbers) {
     for (int number : numbers) {
         if (number % 2 == 0) {
-            return number; // Thoát cả phương thức, không chỉ thoát vòng.
+            return number; // Exits the entire method, not just the loop.
         }
     }
-    return -1; // Không tìm thấy.
+    return -1; // Not found.
 }
 ~~~
 
-`firstEven(new int[]{3, 7, 10, 12})` trả `10` ngay khi gặp phần tử chẵn đầu tiên. Còn `firstEven(new int[]{3, 7})` trả `-1`.
+`firstEven(new int[]{3, 7, 10, 12})` returns `10` as soon as the first even element is encountered. Meanwhile `firstEven(new int[]{3, 7})` returns `-1`.
 
-Đừng thay `return number;` bằng `break;` nếu yêu cầu là **trả số tìm thấy**: `break` chỉ ra khỏi vòng và phương thức vẫn cần đường trả giá trị.
+Do not replace `return number;` with `break;` if the requirement is to **return the number found**: `break` only exits the loop and the method still needs a return path.
 
-## 6. Thứ tự thực thi và câu lệnh không thể tới
+## 6. Execution Order and Unreachable Statements
 
 ~~~java
 static int twice(int n) {
@@ -151,7 +151,7 @@ System.out.println("result=" + twice(4));
 System.out.println("after");
 ~~~
 
-**Exact stdout** khi ba câu gọi cuối nằm trong `main`:
+**Exact stdout** when the last three calls are inside `main`:
 
 ~~~text
 before
@@ -160,7 +160,7 @@ result=8
 after
 ~~~
 
-Java đánh giá biểu thức sau `return`, kết thúc lời gọi, rồi caller tiếp tục. Lệnh nằm **trực tiếp sau một `return` vô điều kiện trong cùng block** là *unreachable statement* và gây lỗi biên dịch:
+Java evaluates the expression after `return`, ends the call, and then the caller continues. A statement placed **directly after an unconditional `return` in the same block** is an *unreachable statement* and causes a compile error:
 
 ~~~java
 // static int invalid() {
@@ -169,11 +169,11 @@ Java đánh giá biểu thức sau `return`, kết thúc lời gọi, rồi call
 // }
 ~~~
 
-`return` trong một nhánh `if` không tự làm mọi câu lệnh sau `if` trở nên unreachable: nhánh đó có thể không được chọn.
+A `return` inside an `if` branch does not automatically make statements after the `if` unreachable: that branch might not be taken.
 
-**`try/finally`:** Nếu `return` xảy ra trong `try`, `finally` vẫn được thực hiện trước khi việc trả về hoàn tất, theo quy tắc của Java. Tránh đặt `return` mới trong `finally` vì có thể làm thay đổi kết quả hoặc che ngoại lệ.
+**`try/finally`:** If `return` occurs in `try`, `finally` still executes before the return completes, according to Java rules. Avoid placing a new `return` in `finally` because it can override the result or suppress exceptions.
 
-## 7. Java truyền và trả giá trị thế nào?
+## 7. How Does Java Pass and Return Values?
 
 ~~~java
 static int changeLocal(int n) {
@@ -192,13 +192,13 @@ System.out.println("x=" + x + ",y=" + y);
 x=4,y=99
 ~~~
 
-Java truyền đối số **theo giá trị**; tham số `n` là bản sao của giá trị `x`, nên gán `n=99` không đổi `x`. `return n;` trả `99` để caller có thể lưu vào `y`.
+Java passes arguments **by value**; parameter `n` is a copy of the value of `x`, so assigning `n=99` does not change `x`. `return n;` returns `99` so the caller can store it in `y`.
 
-Với object, giá trị truyền/nhận là **tham chiếu tới object**. Trả một tham chiếu không tự tạo bản sao object; nếu caller và callee cùng tham chiếu object mutable, thay đổi trạng thái object có thể quan sát được ở cả hai nơi. Điều này khác với gán lại biến tham số.
+With objects, the passed/returned value is a **reference to an object**. Returning a reference does not automatically create a copy of the object; if caller and callee both reference a mutable object, state changes on the object can be observed in both places. This differs from reassigning the parameter variable.
 
-## 8. Chương trình Java 17 hoàn chỉnh
+## 8. Complete Java 17 Program
 
-Tạo file **`ReturnValueVoidDemo.java`**:
+Create the file **`ReturnValueVoidDemo.java`**:
 
 ~~~java
 public final class ReturnValueVoidDemo {
@@ -317,39 +317,39 @@ inside finally
 after finally
 ~~~
 
-**Đối chiếu:** `larger` trả `int`; `grade` trả sớm theo các ngưỡng điểm; `announce` dùng `return;` để bỏ qua đầu vào rỗng; `firstEven` thoát cả phương thức từ trong vòng; `twice` tính xong trước khi caller in kết quả; `finallyDemo` vẫn chạy `finally` trước khi quay về `main`.
+**Comparison:** `larger` returns an `int`; `grade` returns early by score thresholds; `announce` uses `return;` to skip empty inputs; `firstEven` exits the whole method from inside a loop; `twice` finishes evaluating before the caller prints the result; `finallyDemo` still runs `finally` before returning to `main`.
 
-## 9. Lỗi thường gặp và bài tập
+## 9. Common Mistakes and Exercises
 
-| Sai lầm | Vì sao sai? | Cách sửa |
+| Mistake | Why is it wrong? | How to fix |
 |---|---|---|
-| `return 1;` trong phương thức `void` | Không được trả giá trị | Dùng `return;` |
-| `return;` trong phương thức `int` | Thiếu giá trị trả về | Dùng `return intExpression;` |
-| `return "A";` trong phương thức `boolean` | Sai kiểu | Trả biểu thức boolean |
-| Thiếu `return` ở một đường có thể kết thúc bình thường | `missing return statement` | Xử lý đủ đường đi |
-| Nghĩ `return` chỉ thoát vòng | `return` thoát **phương thức** | Dùng `break` nếu chỉ muốn ra vòng |
-| Đặt lệnh sau `return` vô điều kiện | `unreachable statement` | Đặt trước `return` hoặc sửa luồng |
-| Gán kết quả của phương thức `void` | Không có giá trị | Gọi như một statement |
-| Bỏ qua `finally` khi phân tích `return` | Thứ tự thực thi bị hiểu sai | Xét khối `finally` |
+| `return 1;` in a `void` method | Cannot return a value | Use `return;` |
+| `return;` in an `int` method | Missing return value | Use `return intExpression;` |
+| `return "A";` in a `boolean` method | Wrong type | Return a boolean expression |
+| Missing `return` on a path that can complete normally | `missing return statement` | Handle all paths |
+| Thinking `return` only exits the loop | `return` exits the **method** | Use `break` if you only want to exit the loop |
+| Placing a statement after an unconditional `return` | `unreachable statement` | Place it before `return` or fix control flow |
+| Assigning the result of a `void` method | Has no value | Call as a statement |
+| Ignoring `finally` when tracing `return` | Execution order misunderstood | Account for the `finally` block |
 
-**Bài A.** Phương thức `static void stop() { return; }` hợp lệ không? **Có.** Nó thoát khỏi `void`, không trả giá trị.
+**Exercise A.** Is `static void stop() { return; }` valid? **Yes.** It exits from `void` without returning a value.
 
-**Bài B.** `static int sign(int n) { if (n > 0) return 1; }` có biên dịch không? **Không**, vì khi `n <= 0`, thân có thể kết thúc mà không trả `int`. Có thể thêm `return 0;` nếu hợp đồng quy định như vậy.
+**Exercise B.** Does `static int sign(int n) { if (n > 0) return 1; }` compile? **No**, because when `n <= 0`, the body can finish without returning an `int`. You can add `return 0;` if the contract specifies so.
 
-**Bài C.** Gọi `firstEven(new int[]{1, 3, 6, 8})` trả gì? **`6`**, vì `return` ngay tại số chẵn đầu tiên.
+**Exercise C.** What does calling `firstEven(new int[]{1, 3, 6, 8})` return? **`6`**, because it returns immediately at the first even number.
 
-**Bài D.** Phương thức `void` không có `return;` có được không? **Có**, nếu chạy hết thân thì nó kết thúc bình thường.
+**Exercise D.** Is a `void` method without `return;` allowed? **Yes**, if it reaches the end of its body it finishes normally.
 
-## 10. Checklist và kết luận
+## 10. Checklist and Conclusion
 
-- [ ] Phân biệt `return expression;` và `return;`.
-- [ ] Biết `void` không trả giá trị và có thể kết thúc tự nhiên.
-- [ ] Biết kiểu biểu thức trả về phải phù hợp với kiểu khai báo.
-- [ ] Biết phương thức không `void` phải xử lý đủ đường hoàn thành bình thường.
-- [ ] Hiểu `return` thoát **phương thức**, khác `break`/`continue`.
-- [ ] Nhận diện `unreachable statement` sau `return` vô điều kiện.
-- [ ] Hiểu giá trị trả về được caller sử dụng sau khi lời gọi kết thúc.
-- [ ] Xét `finally` khi theo dõi đường `return`.
-- [ ] Biên dịch và chạy `ReturnValueVoidDemo.java` với Java 17+, đối chiếu stdout.
+- [ ] Distinguish `return expression;` and `return;`.
+- [ ] Know `void` returns no value and can finish naturally.
+- [ ] Know the return expression type must match the declared type.
+- [ ] Know non-`void` methods must handle all normally completing paths.
+- [ ] Understand `return` exits the **method**, unlike `break`/`continue`.
+- [ ] Recognize `unreachable statement` after an unconditional `return`.
+- [ ] Understand the returned value is used by the caller after the call completes.
+- [ ] Account for `finally` when tracing `return` paths.
+- [ ] Compile and run `ReturnValueVoidDemo.java` with Java 17+, and verify stdout.
 
-**Kết luận:** `return expression;` cung cấp **một giá trị phù hợp kiểu trả về** và kết thúc phương thức; `return;` trong `void` **chỉ kết thúc sớm**, không sinh ra giá trị. Cả hai đều trả quyền điều khiển về nơi gọi, không chỉ thoát vòng lặp chứa chúng.
+**Conclusion:** `return expression;` supplies **a value matching the return type** and ends the method; `return;` in `void` **only exits early**, producing no value. Both return control to the call site, not merely out of the enclosing loop.

@@ -1,6 +1,6 @@
-# `var` suy luận kiểu biến cục bộ từ biểu thức khởi tạo — Java 17+
+# `var` Infers Local Variable Type from the Initializer Expression — Java 17+
 
-Từ Java 10, `var` cho phép **trình biên dịch suy ra kiểu tĩnh của biến cục bộ** từ biểu thức khởi tạo. Đây là thay đổi về cú pháp khai báo: `var` không tạo kiểu dữ liệu mới, không làm Java trở thành ngôn ngữ kiểu động và không đổi kiểu biến theo các lần gán tiếp theo.
+Since Java 10, `var` lets **the compiler infer the static type of a local variable** from its initializer expression. This is a declaration syntax feature: `var` does not create a new data type, does not make Java a dynamically typed language, and does not change a variable's type across subsequent assignments.
 
 ~~~java
 var count = 10;        // int count = 10;
@@ -8,26 +8,26 @@ var title = "Java";    // String title = "Java";
 var active = true;     // boolean active = true;
 ~~~
 
-## 1. Compiler đọc kiểu của biểu thức bên phải
+## 1. The Compiler Reads the Type of the Right-Hand Expression
 
-Khi gặp `var name = expression;` ở vị trí được phép, compiler kiểm tra `expression`, xác định kiểu của nó, rồi dùng kiểu ấy để kiểm tra mọi câu lệnh tiếp theo. Compiler không chạy chương trình để quan sát giá trị và không suy luận ngược từ các phép gán sau khai báo.
+When encountering `var name = expression;` in an allowed position, the compiler inspects `expression`, determines its type, and then uses that type to check every subsequent statement. The compiler does not run the program to observe values and does not infer backward from assignments after the declaration.
 
-| Biểu thức khởi tạo | Kiểu tĩnh suy ra | Điều cần chú ý |
+| Initializer Expression | Inferred Static Type | Things to Note |
 | --- | --- | --- |
-| `10` | `int` | Literal nguyên không hậu tố thường là `int` |
-| `10L` | `long` | `L` chọn literal `long` |
-| `2.5` | `double` | Literal thực mặc định là `double` |
-| `"Java"` | `String` | Kiểu chuỗi đã rõ |
-| `Integer.valueOf(7)` | `Integer` | Kiểu trả về đã khai báo của method |
-| `new int[]{1, 2}` | `int[]` | Biểu thức tạo mảng mang kiểu cụ thể |
-| `java.util.List.of("A", "B")` | `List<String>` | Tham số generic suy ra từ đối số |
-| `new java.util.ArrayList<String>()` | `ArrayList<String>` | Kiểu lớp triển khai và phần tử đã rõ |
+| `10` | `int` | An integer literal without a suffix is usually `int` |
+| `10L` | `long` | `L` selects a `long` literal |
+| `2.5` | `double` | A floating-point literal defaults to `double` |
+| `"Java"` | `String` | The string type is clear |
+| `Integer.valueOf(7)` | `Integer` | The declared return type of the method |
+| `new int[]{1, 2}` | `int[]` | The array creation expression carries a concrete type |
+| `java.util.List.of("A", "B")` | `List<String>` | The generic type parameter is inferred from the arguments |
+| `new java.util.ArrayList<String>()` | `ArrayList<String>` | Both the implementation class and element type are explicit |
 
-Với `var count = 10;`, compiler chấp nhận `count = 20;` nhưng từ chối `count = "20";`. Thay `var` bằng `int` trong cùng khai báo không thay đổi phép kiểm tra kiểu.
+With `var count = 10;`, the compiler accepts `count = 20;` but rejects `count = "20";`. Replacing `var` with `int` in the same declaration does not change type checking.
 
-## 2. Ví dụ chạy độc lập trên JDK 17+
+## 2. Standalone Runnable Example on JDK 17+
 
-Lưu chương trình dưới tên **`VarInferenceDemo.java`**:
+Save the program as **`VarInferenceDemo.java`**:
 
 ~~~java
 import java.util.ArrayList;
@@ -44,15 +44,15 @@ public final class VarInferenceDemo {
         var labels = List.of("red", "blue");     // List<String>
         var editable = new ArrayList<String>(); // ArrayList<String>
         editable.add(labels.get(0));
-        // editable.add(7); // Lỗi biên dịch: cần String.
+        // editable.add(7); // Compile error: String required.
 
         var total = 0;                          // int
-        for (var value : new int[]{2, 4, 6}) { // value là int
+        for (var value : new int[]{2, 4, 6}) { // value is int
             total += value;
         }
 
-        var title = findTitle(false);           // String, giá trị null
-        // copies = "many"; // Lỗi biên dịch: copies là int.
+        var title = findTitle(false);           // String, value is null
+        // copies = "many"; // Compile error: copies is int.
 
         System.out.println("copies=" + copies);
         System.out.println("language=" + language);
@@ -64,14 +64,14 @@ public final class VarInferenceDemo {
 }
 ~~~
 
-Tại thư mục chứa tệp, chạy:
+In the directory containing the file, run:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 VarInferenceDemo.java
 java VarInferenceDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 copies=3
@@ -82,46 +82,46 @@ total=12
 titleIsNull=true
 ~~~
 
-Trong chương trình trên, `findTitle` khai báo trả `String`, nên `title` có kiểu tĩnh `String` **ngay cả khi giá trị thực tế là `null`**. Vòng `for` suy ra kiểu phần tử từ mảng `int[]`; còn lời gọi `List.of` và constructor `ArrayList<String>` mang thông tin generic ở thời điểm biên dịch.
+In the program above, `findTitle` is declared to return `String`, so `title` has static type `String` **even when its actual value is `null`**. The `for` loop infers the element type from the `int[]` array; meanwhile, the `List.of` call and the `ArrayList<String>` constructor carry generic type information at compile time.
 
-## 3. Biểu thức phải thể hiện kiểu mà bạn thực sự muốn
+## 3. The Expression Must Express the Type You Actually Want
 
-`var` suy luận từ **initializer hiện tại**; compiler không dùng các lệnh sau để đoán kiểu phần tử của một collection:
+`var` infers from **the current initializer**; the compiler does not use subsequent statements to guess a collection's element type:
 
 ~~~java
 var mixed = new ArrayList<>();    // ArrayList<Object>
 mixed.add("red");
-mixed.add(7);                     // Hợp lệ với ArrayList<Object>.
+mixed.add(7);                     // Valid for ArrayList<Object>.
 
 var names = new ArrayList<String>();
 names.add("red");
-// names.add(7);                  // Không hợp lệ: cần String.
+// names.add(7);                  // Invalid: String required.
 ~~~
 
-Nếu cần kiểu tĩnh là interface, viết kiểu ấy ở phía trái:
+If you need the static type to be an interface, write that type on the left-hand side:
 
 ~~~java
 List<String> otherNames = new ArrayList<>();
 ~~~
 
-Ở khai báo này, `List<String>` thể hiện mức trừu tượng mong muốn và cung cấp kiểu đích cho diamond `<>`. Với `var`, kiểu biến ở ví dụ trước là `ArrayList<String>`, không tự chuyển thành `List<String>` dù class triển khai interface đó.
+In this declaration, `List<String>` expresses the desired abstraction level and provides the target type for the diamond `<>`. With `var`, the variable's type in the previous example is `ArrayList<String>`; it does not automatically become `List<String>` even though the class implements that interface.
 
-## 4. Những ranh giới để đọc các bài tiếp theo
+## 4. Boundaries for Reading the Next Lessons
 
-- **Kiểm tra kiểu tĩnh:** `var` vẫn tuân thủ phép gán, overload, generic và truy cập method/field; ví dụ chuyên sâu nằm ở bài “var giữ nguyên kiểm tra kiểu tĩnh”.
-- **Vị trí khai báo:** `var` áp dụng cho các vị trí local hợp lệ, vòng lặp, resource và tham số lambda theo quy tắc riêng; không dùng làm kiểu field hoặc return type.
-- **Nguồn suy kiểu:** local `var` thông thường cần initializer; `var x;` không hợp lệ. `var x = null;` và `var a = {1, 2};` cũng không hợp lệ, trong khi `var a = new int[]{1, 2};` hợp lệ.
-- **Biểu thức số:** `var ratio = 5 / 2;` nhận `int` với giá trị `2`. Phép chia nguyên diễn ra trước suy luận; bài về literal và phép tính số giải thích promotion, cast và overflow.
-- **Dễ đọc:** initializer đủ kiểu cho compiler chưa chắc đủ rõ với người đọc. Có lúc `List<String> names = ...` diễn đạt ý đồ tốt hơn.
+- **Static type checking:** `var` still obeys assignments, overloads, generics, and method/field access; in-depth examples are in the lesson “var preserves static type checking”.
+- **Declaration positions:** `var` applies to valid local positions, loops, resources, and lambda parameters according to their own rules; it cannot be used as a field type or return type.
+- **Inference sources:** a regular local `var` requires an initializer; `var x;` is invalid. `var x = null;` and `var a = {1, 2};` are also invalid, whereas `var a = new int[]{1, 2};` is valid.
+- **Numeric expressions:** `var ratio = 5 / 2;` receives `int` with value `2`. Integer division happens before inference; the lesson on literals and numeric operations explains promotion, casting, and overflow.
+- **Readability:** an initializer with enough type information for the compiler is not necessarily clear enough for human readers. Sometimes `List<String> names = ...` communicates intent better.
 
-Những quy tắc trên cùng xuất phát từ một điểm: **`var` nhận kiểu của biểu thức ở vị trí khai báo, rồi Java áp dụng hệ thống kiểu bình thường**.
+The rules above all stem from one point: **`var` takes the type of the expression at the declaration site, and then Java applies its normal type system**.
 
-## 5. Tự kiểm tra
+## 5. Self-Check
 
-1. `var n = 1; var m = 1L;` suy ra kiểu nào? **Đáp án:** `int`, `long`.
-2. Vì sao `var x = Integer.valueOf(7);` không suy ra `int`? **Đáp án:** `valueOf` trả `Integer`.
-3. `var list = new ArrayList<>();` có tự suy ra `ArrayList<String>` từ `list.add("A")` không? **Đáp án:** Không; ở đây là `ArrayList<Object>`.
-4. `var value = findTitle(false);` có hợp lệ nếu method trả `String` nhưng giá trị `null` không? **Đáp án:** Có, kiểu tĩnh từ chữ ký method là `String`.
-5. Nếu muốn biến mang kiểu interface `List<String>` thay vì class `ArrayList<String>`, viết thế nào? **Đáp án:** `List<String> names = new ArrayList<>();`.
+1. What types do `var n = 1; var m = 1L;` infer? **Answer:** `int`, `long`.
+2. Why does `var x = Integer.valueOf(7);` not infer `int`? **Answer:** `valueOf` returns `Integer`.
+3. Does `var list = new ArrayList<>();` automatically infer `ArrayList<String>` from `list.add("A")`? **Answer:** No; here it is `ArrayList<Object>`.
+4. Is `var value = findTitle(false);` valid if the method returns `String` but the value is `null`? **Answer:** Yes, the static type from the method signature is `String`.
+5. If you want the variable to have the interface type `List<String>` instead of the class `ArrayList<String>`, how should you write it? **Answer:** `List<String> names = new ArrayList<>();`.
 
-**Ghi nhớ:** Hãy xác định kiểu của biểu thức khởi tạo, kiểm tra kiểu suy ra có đúng ý đồ không và dùng khai báo tường minh khi điều đó giúp người đọc hiểu nhanh hơn.
+**Takeaway:** Determine the type of the initializer expression, verify whether the inferred type matches your intent, and use an explicit declaration when doing so helps readers understand faster.

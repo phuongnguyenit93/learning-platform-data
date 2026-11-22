@@ -1,6 +1,6 @@
-# Toán tử `%` và dấu của số dư trong Java
+# The `%` Operator and Remainder Sign in Java
 
-Trong Java, `%` là **toán tử lấy phần dư** (*remainder operator*). Với phép toán số nguyên, nó đi cùng phép chia `/` **làm tròn thương về 0** (*truncation toward zero*). Vì vậy, phần dư có thể **âm** khi số bị chia âm. Chẳng hạn:
+In Java, `%` is the **remainder operator**. For integer operations, it is paired with `/` division that **truncates the quotient toward zero** (*truncation toward zero*). Consequently, the remainder can be **negative** when the dividend is negative. For instance:
 
 ```java
 System.out.println(7 % 3);     //  1
@@ -9,19 +9,19 @@ System.out.println(7 % -3);    //  1
 System.out.println(-7 % -3);   // -1
 ```
 
-Các dòng này là mảnh mã minh họa đặt trong `main`. Điểm cần nhớ: với số nguyên Java, **phần dư khác 0 có cùng dấu với số bị chia (toán hạng bên trái)**, không nhất thiết cùng dấu với số chia bên phải. Nếu muốn kết quả **không âm** theo một chu kỳ có kích thước dương, thường nên dùng `Math.floorMod(x, modulus)`.
+These lines are illustrative code snippets placed inside `main`. The key point to remember: for Java integers, **a non-zero remainder has the same sign as the dividend (the left-hand operand)**, not necessarily the same sign as the divisor on the right. If you want a **non-negative** result for a cycle of positive size, you should generally use `Math.floorMod(x, modulus)`.
 
-Bài học thuộc phần **Số học nguyên** của module **Java core – numbers**. Nội dung đi từ cơ chế `/` và `%` đến lỗi với số âm, cách dùng `Math.floorMod`, tình huống thực tế và kiểm thử biên.
+This lesson belongs to the **Integer Arithmetic** section of the **Java core – numbers** module. The content progresses from the mechanics of `/` and `%` to bugs with negative numbers, how to use `Math.floorMod`, real-world scenarios, and boundary testing.
 
-## 1. Phần dư được xác định như thế nào?
+## 1. How Is the Remainder Determined?
 
-Cho hai số nguyên `a` và `b` với `b != 0`. Trong phép toán số nguyên Java:
+Given two integers `a` and `b` with `b != 0`. In Java integer arithmetic:
 
-- `q = a / b`: thương nguyên được tính bằng phép chia **bỏ phần lẻ theo hướng 0**.
-- `r = a % b`: phần dư đi kèm phép chia đó.
-- Hệ thức toán học tương ứng là `a = q × b + r`. Trong code Java có độ rộng nguyên cố định, việc tự tính `q * b + r` còn phải xét tràn số ở biểu thức trung gian.
+- `q = a / b`: the integer quotient computed by division that **truncates the fractional part toward zero**.
+- `r = a % b`: the remainder accompanying that division.
+- The corresponding mathematical identity is `a = q × b + r`. In Java code with fixed-width integers, manually computing `q * b + r` must also account for overflow in the intermediate expression.
 
-Ví dụ với hai số dương:
+Example with two positive numbers:
 
 ```text
 7 / 3 = 2
@@ -30,46 +30,46 @@ Ví dụ với hai số dương:
 7 = 2 × 3 + 1
 ```
 
-Với số bị chia âm:
+With a negative dividend:
 
 ```text
--7 / 3 = -2      (cắt phần lẻ của -2,333... về 0)
+-7 / 3 = -2      (truncates the fractional part of -2.333... toward 0)
 -7 % 3 = -1
 
 -7 = (-2) × 3 + (-1)
 ```
 
-Nếu lấy thương bằng phép **làm tròn xuống** (*floor*), kết quả sẽ khác với phép chia nguyên Java khi thương toán học âm và không nguyên:
+If the quotient is taken using **floor** division, the result differs from Java integer division when the mathematical quotient is negative and non-integer:
 
 ```text
 floor(-7 / 3) = -3
 -7 = (-3) × 3 + 2
 ```
 
-Đó là lý do toán tử `%` và `Math.floorMod` có thể cho **hai kết quả khác nhau**.
+That is why the `%` operator and `Math.floorMod` can produce **two different results**.
 
-### Quy tắc dấu chính xác
+### Exact Sign Rules
 
-Với số nguyên và số chia khác 0:
+For integers and a non-zero divisor:
 
-1. Phần dư bằng 0 hoặc cùng dấu với **số bị chia**.
-2. Giá trị tuyệt đối của phần dư **nhỏ hơn giá trị tuyệt đối của số chia** khi xét về mặt toán học.
-3. Việc đổi dấu số chia **không làm đổi phần dư** nếu số bị chia giữ nguyên và cùng miền có thể biểu diễn.
+1. The remainder is `0` or has the same sign as the **dividend**.
+2. The absolute value of the remainder is **strictly less than the absolute value of the divisor** mathematically.
+3. Flipping the sign of the divisor **does not change the remainder** if the dividend stays the same and within the same representable range.
 
-Quy tắc thứ hai không yêu cầu gọi `Math.abs` trong code: `Math.abs(Integer.MIN_VALUE)` vẫn âm vì giá trị dương tương ứng không biểu diễn được trong `int`. Đây là lý do nên diễn đạt điều kiện về **độ lớn toán học**, không dùng công thức kiểm thử tùy tiện `Math.abs(r) < Math.abs(b)` cho mọi đầu vào.
+The second rule does not require calling `Math.abs` in code: `Math.abs(Integer.MIN_VALUE)` remains negative because the corresponding positive value is not representable in `int`. This is why the condition should be stated in terms of **mathematical magnitude**, rather than using an arbitrary test expression `Math.abs(r) < Math.abs(b)` for all inputs.
 
-## 2. Bảng bốn tổ hợp dấu bắt buộc phải hiểu
+## 2. The Four Sign Combinations You Must Understand
 
-| Số bị chia `a` | Số chia `b` | `a / b` | `a % b` | Kiểm tra `a = q × b + r` |
+| Dividend `a` | Divisor `b` | `a / b` | `a % b` | Check `a = q × b + r` |
 | ---: | ---: | ---: | ---: | --- |
 | `7` | `3` | `2` | `1` | `7 = 2 × 3 + 1` |
 | `-7` | `3` | `-2` | `-1` | `-7 = -2 × 3 - 1` |
 | `7` | `-3` | `-2` | `1` | `7 = (-2) × (-3) + 1` |
 | `-7` | `-3` | `2` | `-1` | `-7 = 2 × (-3) - 1` |
 
-Số chia âm **không kéo dấu phần dư về âm**. Hãy nhìn toán hạng bên trái: `7 % -3 == 1`; `-7 % -3 == -1`.
+A negative divisor **does not pull the remainder's sign negative**. Look at the left-hand operand: `7 % -3 == 1`; `-7 % -3 == -1`.
 
-Với phép chia hết, phần dư bằng 0 bất kể dấu:
+For exact divisibility, the remainder is `0` regardless of sign:
 
 ```java
 12 % 3     // 0
@@ -78,32 +78,32 @@ Với phép chia hết, phần dư bằng 0 bất kể dấu:
 -12 % -3   // 0
 ```
 
-Vì vậy, `n % d == 0` vẫn là phép kiểm tra chia hết hợp lệ cho số nguyên âm và số chia âm, miễn là `d != 0`.
+Therefore, `n % d == 0` remains a valid divisibility check for negative integers and negative divisors, provided `d != 0`.
 
-## 3. Tại sao toán tử % không luôn trả kết quả dương?
+## 3. Why Doesn't `%` Always Return a Positive Result?
 
-Nhiều tài liệu toán học định nghĩa phép **modulo theo môđun dương** sao cho kết quả nằm trong `0, 1, ..., m-1` với `m > 0`. Quy ước ấy rất tiện cho toán học rời rạc và chỉ số vòng. Nhưng Java định nghĩa `%` cho số nguyên theo **phép chia cắt về 0**, do vậy:
+Many mathematical texts define **modulo by a positive modulus** so that the result lies in `0, 1, ..., m-1` for `m > 0`. That convention is very convenient for discrete mathematics and circular indexing. However, Java defines `%` for integers based on **division truncated toward zero**, so:
 
 ```java
-int remainder = -1 % 5;  // -1; KHÔNG phải 4
+int remainder = -1 % 5;  // -1; NOT 4
 ```
 
-Trong toán học theo môđun 5, `-1` và `4` thuộc cùng lớp đồng dư. Tuy nhiên “đồng dư” là quan hệ toán học, còn `%` trong Java trả **một đại diện cụ thể** theo quy tắc phần dư. Muốn đại diện không âm khi môđun dương, hãy chọn `Math.floorMod`.
+In arithmetic modulo 5, `-1` and `4` belong to the same congruence class. However, "congruence" is a mathematical relation, whereas `%` in Java returns **one specific representative** according to the remainder rule. To obtain the non-negative representative when the modulus is positive, choose `Math.floorMod`.
 
-Hai khái niệm không nên trộn lẫn:
+Do not mix up the two concepts:
 
-| Nhu cầu | Biểu thức Java | Kết quả với `-7` và `3` |
+| Need | Java expression | Result for `-7` and `3` |
 | --- | --- | --- |
-| Phần dư của chia nguyên cắt về 0 | `-7 % 3` | `-1` |
-| Phần dư theo phép chia làm tròn xuống | `Math.floorMod(-7, 3)` | `2` |
-| Thương của chia nguyên cắt về 0 | `-7 / 3` | `-2` |
-| Thương của chia nguyên làm tròn xuống | `Math.floorDiv(-7, 3)` | `-3` |
+| Remainder of integer division truncated toward 0 | `-7 % 3` | `-1` |
+| Remainder of floor integer division | `Math.floorMod(-7, 3)` | `2` |
+| Quotient of integer division truncated toward 0 | `-7 / 3` | `-2` |
+| Quotient of floor integer division | `Math.floorDiv(-7, 3)` | `-3` |
 
-Không có phép nào “sai”; chúng trả lời **hai quy ước khác nhau**. Sai sót xảy ra khi thuật toán cần kết quả trong miền không âm nhưng người viết dùng `%` trên một số có thể âm.
+Neither operation is "wrong"; they follow **two different conventions**. Bugs occur when an algorithm requires a result in a non-negative range, yet the author uses `%` on a number that can be negative.
 
-## 4. Math.floorMod: lựa chọn cho chỉ số vòng và môđun dương
+## 4. Math.floorMod: The Choice for Circular Indices and Positive Moduli
 
-Java cung cấp `Math.floorMod(int x, int y)` và `Math.floorMod(long x, long y)`, cùng một số overload khác. Phương thức này kết hợp với `Math.floorDiv` theo phép chia **làm tròn xuống**, không cắt về 0:
+Java provides `Math.floorMod(int x, int y)` and `Math.floorMod(long x, long y)`, along with several other overloads. This method pairs with `Math.floorDiv` using **floor** division rather than truncation toward zero:
 
 ```java
 Math.floorDiv(-7, 3); // -3
@@ -113,7 +113,7 @@ Math.floorDiv(7, 3);  //  2
 Math.floorMod(7, 3);  //  1
 ```
 
-Với **môđun dương** `m > 0`, `Math.floorMod(x, m)` luôn trả một số nguyên trong phạm vi **từ 0 đến `m - 1`**, kể cả khi `x` âm.
+With a **positive modulus** `m > 0`, `Math.floorMod(x, m)` always returns an integer in the range **from `0` to `m - 1`**, even when `x` is negative.
 
 | `x` | `m` | `x % m` | `Math.floorMod(x, m)` |
 | ---: | ---: | ---: | ---: |
@@ -123,7 +123,7 @@ Với **môđun dương** `m > 0`, `Math.floorMod(x, m)` luôn trả một số 
 | `-10` | `5` | `0` | `0` |
 | `-11` | `5` | `-1` | `4` |
 
-**Lưu ý với số chia âm:** `Math.floorMod` **không cam kết trả số không âm** nếu `m` âm. Phần dư khác 0 theo floor division có cùng dấu với **số chia**. Ví dụ:
+**Note on negative divisors:** `Math.floorMod` **does not guarantee a non-negative return value** if `m` is negative. A non-zero remainder under floor division has the same sign as the **divisor**. For example:
 
 ```java
 7 % -3;                //  1
@@ -131,40 +131,40 @@ Math.floorMod(7, -3);  // -2
 Math.floorDiv(7, -3);  // -3
 ```
 
-Vì vậy, khi sử dụng `floorMod` để tạo chỉ số `0..n-1`, hãy **bảo đảm `n > 0`**. Với danh sách hoặc mảng rỗng, `n = 0` là lỗi thiết kế chỉ số, không phải trường hợp `floorMod` có thể xử lý.
+Therefore, when using `floorMod` to generate an index `0..n-1`, **ensure `n > 0`**. For an empty list or array, `n = 0` is an indexing design error, not a case `floorMod` can handle.
 
-### Tránh tự viết công thức chuẩn hóa thiếu an toàn
+### Avoid Writing Unsafe Normalization Formulas Yourself
 
-Một mẹo thường gặp là:
+A common trick is:
 
 ```java
 int normalized = (x % m + m) % m;
 ```
 
-Nếu `m > 0` và các phép toán diễn ra trong kiểu nguyên có độ rộng cố định, **biểu thức `x % m + m` có thể tràn** khi `x % m` đã dương. Ví dụ, với `x = 2_147_483_646` và `m = 2_147_483_647`, phép cộng trung gian `2_147_483_646 + 2_147_483_647` tràn `int`, làm kết quả có thể sai.
+If `m > 0` and operations occur in fixed-width integer types, **the expression `x % m + m` can overflow** when `x % m` is already positive. For example, with `x = 2_147_483_646` and `m = 2_147_483_647`, the intermediate addition `2_147_483_646 + 2_147_483_647` overflows `int`, potentially producing an incorrect result.
 
-Dùng:
+Use:
 
 ```java
 int normalized = Math.floorMod(x, m);
 ```
 
-Khi `m > 0`, cách này trực tiếp thể hiện quy tắc cần dùng và tránh phép cộng dễ tràn ở công thức tự chế.
+When `m > 0`, this directly expresses the desired rule and avoids the overflow-prone addition in the homemade formula.
 
-## 5. Tình huống thực tế: chỉ số của bộ đệm vòng
+## 5. Real-World Scenario: Circular Buffer Indexing
 
-Giả sử một bộ đệm vòng có `capacity = 5`, và thuật toán có bước lùi một vị trí từ index 0. Kết quả mong muốn là index 4.
+Suppose a circular buffer has `capacity = 5`, and the algorithm steps backward one position from index `0`. The desired result is index `4`.
 
-Đoạn sau **sai** khi `currentIndex == 0`:
+The following code is **wrong** when `currentIndex == 0`:
 
 ```java
 int capacity = 5;
 int currentIndex = 0;
 int previousIndex = (currentIndex - 1) % capacity; // -1
-// buffer[previousIndex] sẽ gây ArrayIndexOutOfBoundsException.
+// buffer[previousIndex] will cause ArrayIndexOutOfBoundsException.
 ```
 
-Sử dụng `Math.floorMod`:
+Using `Math.floorMod`:
 
 ```java
 int capacity = 5;
@@ -172,12 +172,12 @@ int currentIndex = 0;
 int previousIndex = Math.floorMod(currentIndex - 1, capacity); // 4
 ```
 
-Quy tắc này hữu ích cho lịch tuần hoàn, vị trí quay vòng và số bước âm. Tuy nhiên có hai điều phải xét:
+This rule is useful for cyclic schedules, wrap-around positions, and negative step counts. However, two things must be considered:
 
-- **Kích thước phải dương:** `capacity > 0`. Không thể lấy phần dư với 0.
-- **Biểu thức đầu vào cũng có thể tràn:** nếu `currentIndex` hoặc `offset` có thể rất lớn, phép `currentIndex + offset` có thể tràn **trước khi** gọi `floorMod`. Có thể chuyển phép cộng sang `long` trong phạm vi đảm bảo, hoặc thiết kế cách cộng môđun không làm tràn.
+- **The size must be positive:** `capacity > 0`. You cannot take a remainder with `0`.
+- **The input expression can also overflow:** if `currentIndex` or `offset` can be very large, `currentIndex + offset` can overflow **before** calling `floorMod`. You can promote the addition to `long` when guaranteed safe within range, or design an overflow-safe modular addition.
 
-Ví dụ với `int` index, offset `int` và kích thước dương đã kiểm tra:
+Example with an `int` index, `int` offset, and a validated positive capacity:
 
 ```java
 static int wrappedIndex(int current, int offset, int capacity) {
@@ -189,20 +189,20 @@ static int wrappedIndex(int current, int offset, int capacity) {
 }
 ```
 
-Đây là phương thức minh họa cần đặt trong một class. Vì tổng của hai `int` luôn nằm trong miền `long`, phép cộng ở đây không tràn. Phần dư nằm trong `0..capacity-1` nên việc cast kết quả về `int` an toàn. Nếu API định nghĩa `current` phải nằm trong `0..capacity-1`, vẫn nên xác thực riêng điều kiện đó.
+This is an illustrative method to be placed inside a class. Since the sum of two `int`s always fits in `long`, the addition here does not overflow. The remainder lies in `0..capacity-1`, so casting the result back to `int` is safe. If the API specifies that `current` must lie in `0..capacity-1`, you should still validate that condition separately.
 
-## 6. Tình huống thực tế: tính chẵn lẻ và kiểm tra chia hết
+## 6. Real-World Scenario: Parity and Divisibility Checks
 
-Một phép kiểm tra phổ biến là:
+A common check is:
 
 ```java
 boolean isEven = value % 2 == 0;
 boolean isOdd = value % 2 != 0;
 ```
 
-Cả hai đúng đối với `int` âm và dương. **Đừng viết `value % 2 == 1` như cách kiểm tra số lẻ tổng quát:** `-3 % 2` bằng `-1`, nên `-3 % 2 == 1` là `false` dù `-3` là số lẻ.
+Both are correct for negative and positive `int`s. **Do not write `value % 2 == 1` as a general odd-number check:** `-3 % 2` equals `-1`, so `-3 % 2 == 1` is `false` even though `-3` is odd.
 
-Ví dụ:
+For example:
 
 | `value` | `value % 2` | `value % 2 != 0` |
 | ---: | ---: | --- |
@@ -211,13 +211,13 @@ Ví dụ:
 | `-4` | `0` | `false` |
 | `-5` | `-1` | `true` |
 
-Nếu hệ thống chỉ nhận số nguyên không âm, kiểm tra đầu vào trước là một lựa chọn hợp lý. Nhưng **phép kiểm tra số lẻ đúng cho mọi số nguyên** là `value % 2 != 0`, không cần loại trừ số âm chỉ để bảo vệ phép kiểm tra.
+If a system only accepts non-negative integers, validating the input beforehand is a reasonable option. However, **the correct odd-number check for all integers** is `value % 2 != 0`, without needing to exclude negative numbers just to protect the check.
 
-### Tách chữ số cuối của số nguyên âm
+### Extracting the Last Digit of a Negative Integer
 
-`-123 % 10` bằng `-3`, nên phép `value % 10` không tự cho một chữ số trong `0..9` nếu `value` có thể âm. Khi cần phần dư dương theo cơ số 10 để lập thuật toán số học môđun, `Math.floorMod(value, 10)` cho `7` đối với `-123`; **đó không phải chữ số 3 của trị tuyệt đối**.
+`-123 % 10` equals `-3`, so `value % 10` does not automatically yield a digit in `0..9` if `value` can be negative. When a positive base-10 remainder is needed for modular arithmetic algorithms, `Math.floorMod(value, 10)` yields `7` for `-123`; **that is not the digit `3` of the absolute value**.
 
-Nếu mục tiêu là chữ số đơn vị của **độ lớn tuyệt đối**, phải nêu ý nghĩa đó và xử lý `Integer.MIN_VALUE` cẩn thận; đừng áp dụng `Math.abs(value)` vô điều kiện. Có thể nâng lên `long` trước rồi lấy độ lớn:
+If the goal is the units digit of the **absolute magnitude**, state that intent clearly and handle `Integer.MIN_VALUE` carefully; do not apply `Math.abs(value)` unconditionally. You can widen to `long` first and then take the magnitude:
 
 ```java
 int value = Integer.MIN_VALUE;
@@ -225,11 +225,11 @@ long magnitude = Math.abs((long) value);
 long lastDigit = magnitude % 10; // 8
 ```
 
-Cách tính đúng phải dựa trên câu hỏi “chữ số của trị tuyệt đối” hay “đại diện môđun không âm”.
+The right computation depends on whether the question asks for "the digit of the absolute value" or "the non-negative modular representative".
 
-## 7. Chia cho 0 và các giá trị biên
+## 7. Division by Zero and Boundary Values
 
-Với số nguyên, `a / 0` và `a % 0` đều gây `ArithmeticException` khi được đánh giá. Đừng dùng `%` như một phép kiểm tra an toàn nếu số chia lấy từ input chưa được xác thực.
+For integers, both `a / 0` and `a % 0` cause `ArithmeticException` when evaluated. Do not use `%` as a safe check if the divisor comes from unvalidated input.
 
 ```java
 static boolean divisibleBy(int value, int divisor) {
@@ -240,52 +240,52 @@ static boolean divisibleBy(int value, int divisor) {
 }
 ```
 
-Phương thức trên xử lý số chia âm, số bị chia âm và cả trường hợp `Integer.MIN_VALUE % -1 == 0`.
+This method handles negative divisors, negative dividends, and even the case `Integer.MIN_VALUE % -1 == 0`.
 
-### Trường hợp đặc biệt: Integer.MIN_VALUE / -1
+### Special Case: Integer.MIN_VALUE / -1
 
-Đây là ca biên quan trọng vì `Integer.MIN_VALUE = -2_147_483_648` và giá trị dương `2_147_483_648` không biểu diễn được bằng `int`.
+This is an important boundary case because `Integer.MIN_VALUE = -2_147_483_648` and the positive value `2_147_483_648` cannot be represented as an `int`.
 
 ```java
 int x = Integer.MIN_VALUE;
-int quotient = x / -1;  // Integer.MIN_VALUE, thương toán học bị tràn int
+int quotient = x / -1;  // Integer.MIN_VALUE, mathematical quotient overflows int
 int remainder = x % -1; // 0
 ```
 
-Quy tắc Java cho phép thương trong phép chia nguyên thường tràn ở trường hợp đặc biệt này, nhưng **phần dư vẫn bằng 0**. Đừng suy ra rằng mọi phép chia số nguyên sẽ ném ngoại lệ khi tràn. Nếu cần thương toán học chính xác, hãy mở rộng toán hạng trước khi chia:
+Java's rules allow the quotient in ordinary integer division to overflow in this special case, yet **the remainder is still `0`**. Do not infer that every integer division throws an exception on overflow. If you need the exact mathematical quotient, widen an operand before dividing:
 
 ```java
 long quotient = (long) Integer.MIN_VALUE / -1; // 2147483648L
 ```
 
-Khi tự kiểm tra hệ thức `a == (a / b) * b + a % b` trong code kiểu `int`, cần lưu ý tràn của phép nhân/thương. Hệ thức là công cụ lý giải về số học, nhưng biểu thức kiểm thử cũng phải được thiết kế phù hợp với phạm vi biểu diễn.
+When verifying the identity `a == (a / b) * b + a % b` in `int` code, watch out for overflow in the multiplication/quotient. The identity is a tool for reasoning about arithmetic, but test expressions must also be designed to fit the representable range.
 
-## 8. Kiểu của biểu thức % và quy tắc chuyển kiểu
+## 8. Type of a `%` Expression and Type Conversion Rules
 
-Với các toán hạng nguyên thủy, toán tử `%` áp dụng **binary numeric promotion**:
+With primitive operands, the `%` operator applies **binary numeric promotion**:
 
-- `byte`, `short` và `char` thường được nâng lên `int` trước khi tính.
-- Nếu một toán hạng có kiểu `long`, biểu thức số nguyên thường được nâng lên `long`.
-- Kết quả có kiểu sau promotion, không tự co về kiểu ban đầu của biến.
+- `byte`, `short`, and `char` are generally promoted to `int` before computing.
+- If one operand has type `long`, the integer expression is generally promoted to `long`.
+- The result has the post-promotion type; it does not automatically shrink back to a variable's original type.
 
-Ví dụ:
+For example:
 
 ```java
 byte small = -7;
-int remainder = small % 3; // -1, kiểu biểu thức là int
-// byte invalid = small % 3; // Không biên dịch: biểu thức int sang byte.
+int remainder = small % 3; // -1, expression type is int
+// byte invalid = small % 3; // Does not compile: int expression to byte.
 long large = -7L;
 long longRemainder = large % 3; // -1L
 ```
 
-Toán tử `%` cũng được Java định nghĩa với `float`/`double`, nhưng phần dư dấu phẩy động còn có các trường hợp `NaN`, vô cực và số 0 có dấu. **Bài học này tập trung vào phần dư số nguyên**; không lấy kết luận về lỗi chia cho 0 của integer áp lên `double` hoặc xem `%` floating point là cùng quy tắc xử lý ngoại lệ.
+The `%` operator is also defined in Java for `float`/`double`, but floating-point remainder also involves `NaN`, infinity, and signed zero cases. **This lesson focuses on integer remainder**; do not apply conclusions about integer division-by-zero errors to `double` or assume floating-point `%` follows the same exception-handling rules.
 
-## 9. BigInteger: remainder và mod mang hai quy ước khác nhau
+## 9. BigInteger: `remainder` and `mod` Follow Two Different Conventions
 
-Khi số nguyên vượt phạm vi `long`, `java.math.BigInteger` cung cấp hai phương thức cần phân biệt:
+When integers exceed the `long` range, `java.math.BigInteger` provides two methods that must be distinguished:
 
-- `remainder(divisor)`: phần dư theo cách chia cắt về 0, giống dấu của toán tử `%` với số nguyên âm.
-- `mod(modulus)`: chọn đại diện môđun **không âm**, nhưng **yêu cầu modulus dương**; giá trị môđun 0 hoặc âm gây `ArithmeticException`.
+- `remainder(divisor)`: remainder under division truncated toward zero, matching the sign behavior of `%` with negative integers.
+- `mod(modulus)`: chooses the **non-negative** modular representative, but **requires a positive modulus**; a zero or negative modulus throws `ArithmeticException`.
 
 ```java
 BigInteger negative = new BigInteger("-7");
@@ -295,13 +295,13 @@ BigInteger remainder = negative.remainder(three); // -1
 BigInteger modulo = negative.mod(three);          //  2
 ```
 
-Đây là mảnh mã cần `import java.math.BigInteger;`. `BigInteger` bất biến và không dùng toán tử `%` trực tiếp giữa hai đối tượng `BigInteger`; hãy dùng phương thức. Với `BigInteger`, cũng kiểm tra rõ 0 ở tham số chia và giới hạn tài nguyên cho dữ liệu đầu vào lớn.
+This snippet requires `import java.math.BigInteger;`. `BigInteger` is immutable and does not support the `%` operator directly between two `BigInteger` objects; use the methods instead. With `BigInteger`, also explicitly check for a zero divisor and enforce resource limits on large inputs.
 
-Sự phân biệt `BigInteger.remainder` so với `BigInteger.mod` cho thấy vì sao việc ghi rõ “phần dư” hay “modulo không âm” trong tài liệu API là quan trọng, đặc biệt khi chuyển thuật toán từ `int` sang kiểu số nguyên lớn.
+The distinction between `BigInteger.remainder` and `BigInteger.mod` shows why documenting "remainder" versus "non-negative modulo" in API docs is important, especially when porting algorithms from `int` to arbitrary-precision integer types.
 
-## 10. Chương trình Java 17+ chạy độc lập
+## 10. Standalone Runnable Java 17+ Program
 
-Lưu đoạn sau thành **`RemainderSignDemo.java`**. Chương trình in kết quả của bốn tổ hợp dấu, so sánh `%` với `Math.floorMod`, kiểm tra chẵn lẻ âm, minh họa chỉ số vòng, ca biên `Integer.MIN_VALUE` và `BigInteger`.
+Save the following code as **`RemainderSignDemo.java`**. The program prints results for all four sign combinations, compares `%` with `Math.floorMod`, checks negative parity, demonstrates circular indexing, the `Integer.MIN_VALUE` edge case, and `BigInteger`.
 
 ```java
 import java.math.BigInteger;
@@ -340,14 +340,14 @@ public class RemainderSignDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac RemainderSignDemo.java
 java RemainderSignDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 7 / 3 = 2, % = 1, floorDiv = 2, floorMod = 1
@@ -363,47 +363,47 @@ big-remainder=-1
 big-mod=2
 ```
 
-Ở dòng thứ hai, `-7 / 3` cắt thương về 0 nên `-2` và phần dư `-1`; `floorDiv(-7,3)` là `-3` nên `floorMod` là `2`. Ở dòng thứ ba, số chia âm khiến `floorMod(7,-3)` là `-2`, chứng minh không thể giả định nó luôn không âm. Hai dòng cuối cho thấy `BigInteger.remainder` và `BigInteger.mod` đi theo hai quy ước khác nhau.
+On the second line, `-7 / 3` truncates the quotient toward `0`, giving `-2` and remainder `-1`; `floorDiv(-7,3)` is `-3`, so `floorMod` is `2`. On the third line, a negative divisor causes `floorMod(7,-3)` to be `-2`, proving you cannot assume it is always non-negative. The last two lines show that `BigInteger.remainder` and `BigInteger.mod` follow two different conventions.
 
-## 11. Sai lầm thường gặp và cách sửa
+## 11. Common Mistakes and How to Fix Them
 
-| Sai lầm | Vì sao sai | Cách sửa |
+| Mistake | Why it is wrong | How to fix |
 | --- | --- | --- |
-| Nghĩ `a % b` luôn không âm | Dấu của phần dư số nguyên khác 0 theo dấu `a` | Dùng `Math.floorMod(a, b)` khi yêu cầu `b > 0` và miền `0..b-1` |
-| Kiểm tra lẻ bằng `n % 2 == 1` | Số lẻ âm cho phần dư `-1` | Dùng `n % 2 != 0` |
-| Dùng `(index - 1) % length` rồi truy cập mảng | Với index 0 tạo chỉ số `-1` | Kiểm tra `length > 0` rồi dùng `Math.floorMod` |
-| Cộng `(x % m + m) % m` mặc định an toàn | Có thể tràn tại phép cộng | Dùng `Math.floorMod(x, m)` |
-| Tưởng đổi dấu số chia sẽ đổi dấu phần dư | Với `%`, dấu phụ thuộc số bị chia | Lập bảng bốn tổ hợp dấu để kiểm tra |
-| Gọi `Math.floorMod(x, negativeM)` rồi giả định không âm | Khi số chia âm, kết quả khác 0 cũng âm | Xác thực modulus dương trước khi dùng làm chỉ số |
-| Bỏ qua số chia 0 | `%` nguyên với số chia 0 ném `ArithmeticException` | Validate divisor hoặc size trước phép toán |
-| Dùng `Math.abs(x)` không kiểm tra biên | `Math.abs(Integer.MIN_VALUE)` vẫn âm | Nâng lên `long` trước khi lấy trị tuyệt đối khi cần |
-| Mong `BigInteger.remainder` luôn dương | Phương thức trả phần dư theo phép chia cắt về 0 | Dùng `BigInteger.mod` với modulus dương |
-| Thử nghiệm chỉ với số dương | Không phát hiện lỗi dấu của phần dư | Thêm số bị chia âm, số chia âm, số 0 và giá trị biên |
+| Thinking `a % b` is always non-negative | The sign of a non-zero integer remainder follows `a` | Use `Math.floorMod(a, b)` when `b > 0` and range `0..b-1` is required |
+| Checking oddness with `n % 2 == 1` | Negative odd numbers give remainder `-1` | Use `n % 2 != 0` |
+| Using `(index - 1) % length` to index an array | At index 0, this produces `-1` | Check `length > 0` and use `Math.floorMod` |
+| Assuming `(x % m + m) % m` is always safe | Can overflow at the addition step | Use `Math.floorMod(x, m)` |
+| Thinking flipping the divisor's sign flips the remainder's sign | For `%`, the sign depends on the dividend | Write out the four sign combinations table to verify |
+| Calling `Math.floorMod(x, negativeM)` and assuming non-negative | When the divisor is negative, a non-zero result is also negative | Validate a positive modulus before using it as an index |
+| Ignoring zero divisors | Integer `%` with a zero divisor throws `ArithmeticException` | Validate divisor or size before the operation |
+| Using `Math.abs(x)` without boundary checks | `Math.abs(Integer.MIN_VALUE)` stays negative | Widen to `long` before taking absolute value when needed |
+| Expecting `BigInteger.remainder` to always be positive | The method returns remainder under truncation toward zero | Use `BigInteger.mod` with a positive modulus |
+| Testing only with positive numbers | Fails to catch remainder sign bugs | Add negative dividends, negative divisors, zero, and boundary values |
 
-### Lưu ý về biến đổi công thức
+### Note on Formula Transformations
 
-Đối với `m > 0`, có thể chứng minh về mặt toán học rằng `x` và `Math.floorMod(x,m)` đồng dư môđun `m`. Tuy nhiên, khi tối ưu các biểu thức chứa `+`, `-` hoặc `*` trên `int`/`long`, vẫn phải xét tràn số **trước** bước lấy modulo. Không phải mọi đẳng thức số học nguyên vô hạn đều giữ nguyên ý nghĩa khi đánh giá với kiểu nguyên có độ rộng cố định.
+For `m > 0`, it can be proved mathematically that `x` and `Math.floorMod(x,m)` are congruent modulo `m`. However, when optimizing expressions containing `+`, `-`, or `*` on `int`/`long`, you must still consider overflow **before** the modulo step. Not every identity of infinite-precision integer arithmetic preserves its meaning when evaluated in fixed-width integer types.
 
-Ví dụ, một thuật toán tính `(a + b) % m` trong `int` có thể sai nếu `a + b` đã tràn. `Math.floorMod(a + b, m)` cũng **không sửa được** giá trị trung gian bị tràn; cần nâng kiểu hoặc dùng thuật toán cộng môđun an toàn theo phạm vi đầu vào.
+For example, an algorithm computing `(a + b) % m` in `int` can be wrong if `a + b` already overflowed. `Math.floorMod(a + b, m)` **cannot fix** an overflowed intermediate value either; you must widen the type or use a modular addition algorithm safe for the input range.
 
-## 12. Câu hỏi và bài tập tự luyện
+## 12. Self-Check Questions and Exercises
 
-1. Không chạy Java, tính `11 % 4`, `-11 % 4`, `11 % -4`, `-11 % -4`. Với mỗi trường hợp hãy tính `/` và kiểm tra hệ thức chia lấy thương và dư.
-2. Vì sao `-17 % 5` bằng `-2` nhưng `Math.floorMod(-17, 5)` bằng `3`? Hãy giải thích bằng sự khác nhau giữa “cắt về 0” và “làm tròn xuống”.
-3. Một mảng độ dài 7 dùng chỉ số từ 0 đến 6. Viết hàm lấy phần tử trước và sau khi đang ở index 0 hoặc 6. Kiểm tra hành vi với offset âm và dương, đồng thời xử lý mảng rỗng.
-4. Viết hàm `isOdd(int value)` đúng cho cả `Integer.MIN_VALUE`, số 0 và số âm. Tại sao `value % 2 == 1` chưa đạt?
-5. So sánh kết quả `Math.floorMod(7, -3)` và `7 % -3`. Vì sao một thuật toán cần phần dư không âm nên quy định số chia dương?
-6. Thiết kế kiểm thử cho parser nhận `divisor` từ JSON hoặc CLI, bảo đảm không bao giờ thực hiện `%` với 0. Bạn sẽ xử lý lỗi đầu vào dưới dạng ngoại lệ hay thông báo xác thực?
-7. Với `BigInteger(-7)`, so sánh `remainder(3)`, `mod(3)` và thao tác `mod(-3)`. Phương thức nào yêu cầu modulus dương và vì sao?
-8. Kiểm thử công thức `(x % m + m) % m` khi `x = 2_147_483_646`, `m = 2_147_483_647`. Tìm chỗ tràn và thay bằng một phép gọi `Math.floorMod`.
+1. Without running Java, compute `11 % 4`, `-11 % 4`, `11 % -4`, `-11 % -4`. For each case, compute `/` and verify the quotient-remainder identity.
+2. Why does `-17 % 5` equal `-2` while `Math.floorMod(-17, 5)` equals `3`? Explain using the difference between "truncate toward zero" and "floor".
+3. An array of length 7 uses indices `0` to `6`. Write a function to get the element before and after when at index `0` or `6`. Test behavior with negative and positive offsets, and handle an empty array.
+4. Write an `isOdd(int value)` function that works for `Integer.MIN_VALUE`, `0`, and negative numbers. Why is `value % 2 == 1` insufficient?
+5. Compare the results of `Math.floorMod(7, -3)` and `7 % -3`. Why should an algorithm requiring a non-negative remainder enforce a positive divisor?
+6. Design tests for a parser receiving `divisor` from JSON or CLI, ensuring `%` is never executed with `0`. Would you handle the invalid input as an exception or a validation message?
+7. For `BigInteger(-7)`, compare `remainder(3)`, `mod(3)`, and `mod(-3)`. Which method requires a positive modulus and why?
+8. Test the formula `(x % m + m) % m` when `x = 2_147_483_646`, `m = 2_147_483_647`. Identify where overflow occurs and replace it with a `Math.floorMod` call.
 
-## 13. Ghi nhớ
+## 13. Key Takeaways
 
-- **`%` số nguyên Java là phần dư của chia cắt về 0**, vì thế nếu khác 0 nó có cùng dấu với **số bị chia**.
-- **`-7 % 3 == -1`**, còn **`Math.floorMod(-7, 3) == 2`**. Chọn theo quy ước mà thuật toán cần.
-- Dùng **`Math.floorMod(x, m)` với `m > 0`** khi muốn chỉ số vòng hoặc đại diện môđun trong `0..m-1`; kiểm tra `m` không phải 0.
-- Để kiểm tra số lẻ cho mọi số nguyên, dùng **`n % 2 != 0`**; để kiểm tra chia hết, dùng **`n % d == 0`** sau khi bảo đảm `d != 0`.
-- Phép modulo **không tự ngăn tràn** ở biểu thức đầu vào, và `Math.floorMod` với số chia âm không bảo đảm trả giá trị không âm.
-- Với số nguyên tùy ý, `BigInteger.remainder` và `BigInteger.mod` thể hiện hai quy tắc khác nhau.
+- **Java integer `%` is the remainder of division truncated toward zero**, so when non-zero it has the same sign as the **dividend**.
+- **`-7 % 3 == -1`**, whereas **`Math.floorMod(-7, 3) == 2`**. Choose according to the convention your algorithm requires.
+- Use **`Math.floorMod(x, m)` with `m > 0`** when you want a circular index or modular representative in `0..m-1`; check that `m` is not zero.
+- To check oddness for all integers, use **`n % 2 != 0`**; to check divisibility, use **`n % d == 0`** after ensuring `d != 0`.
+- Modulo **does not prevent overflow** in input expressions, and `Math.floorMod` with a negative divisor does not guarantee a non-negative return value.
+- For arbitrary-precision integers, `BigInteger.remainder` and `BigInteger.mod` represent two different conventions.
 
-Hiểu đúng **dấu của phần dư** giúp tránh lỗi âm thầm trong tính chỉ số, xử lý chu kỳ và các thuật toán số nguyên. Hãy chọn phép toán theo yêu cầu của bài toán trước khi viết biểu thức.
+Understanding the **sign of the remainder** prevents subtle bugs in index calculations, cyclic handling, and integer algorithms. Choose the operation that matches your problem requirements before writing the expression.

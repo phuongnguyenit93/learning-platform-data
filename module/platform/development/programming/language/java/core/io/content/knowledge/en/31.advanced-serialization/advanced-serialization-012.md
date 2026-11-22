@@ -1,13 +1,13 @@
-# Không khôi phục trực tiếp dữ liệu đối tượng không tin cậy trong Java
+# Never Directly Deserialize Untrusted Object Data in Java
 
-## 1. Bản chất vấn đề: byte lạ không phải đối tượng an toàn
+## 1. Nature of the Problem: Unknown Bytes Are Not Safe Objects
 
-Java Object Serialization cho phép ghi một đồ thị đối tượng bằng `ObjectOutputStream.writeObject(...)` và đọc lại bằng `ObjectInputStream.readObject()`. Nhưng **đọc lại object stream không đơn thuần là giải mã dữ liệu**: JVM phải xác định class từ mô tả trong stream, dựng object graph, khôi phục trường, duy trì reference handles và có thể gọi các cơ chế đặc biệt của class.
+Java Object Serialization allows writing an object graph using `ObjectOutputStream.writeObject(...)` and reading it back using `ObjectInputStream.readObject()`. Yet **reading an object stream is not merely decoding data**: the JVM must resolve classes from stream descriptors, construct an object graph, restore fields, maintain reference handles, and potentially invoke special class mechanisms.
 
-Một antipattern rất nguy hiểm là:
+A very dangerous anti-pattern is:
 
 ```java
-// KHÔNG LÀM với bytes đến từ nguồn không tin cậy.
+// DO NOT DO THIS with bytes from an untrusted source.
 try (ObjectInputStream in = new ObjectInputStream(networkInput)) {
     Object value = in.readObject();
     if (value instanceof ExpectedMessage) {
@@ -16,78 +16,78 @@ try (ObjectInputStream in = new ObjectInputStream(networkInput)) {
 }
 ```
 
-Đây là **mã minh họa không an toàn**, không phải chương trình độc lập; `networkInput`, `ExpectedMessage` và `process` giả định có sẵn. Kiểm tra `instanceof` diễn ra **sau khi `readObject()` đã làm công việc giải tuần tự hóa**, nên không phải biện pháp chặn các class không mong muốn được xử lý trong quá trình đọc.
+This is **unsafe illustrative code**, not a standalone program; `networkInput`, `ExpectedMessage`, and `process` are assumed to exist. The `instanceof` check executes **after `readObject()` has already performed deserialization**, so it does not prevent unwanted classes from being processed during reading.
 
-**Nguyên tắc chính của bài:** *Không khôi phục trực tiếp Java objects từ dữ liệu không tin cậy.* Ưu tiên một định dạng dữ liệu có cấu trúc/schema rõ ràng và bộ đọc giới hạn kích thước, kiểu và tài nguyên; chuyển thành DTO hoặc domain object **sau khi** kiểm tra input. Nếu bắt buộc tương thích với serialized data tin cậy của hệ thống cũ, áp dụng bộ lọc class/độ sâu/size, xác thực nguồn, giới hạn tài nguyên và validation theo ngữ cảnh — nhưng đừng gọi đó là “an toàn tuyệt đối”.
+**Core principle of this lesson:** *Never directly deserialize Java objects from untrusted data.* Prefer a clearly structured/schema-defined data format with a reader bounding size, types, and resources; convert to DTOs or domain objects **after** validating input. If forced to maintain compatibility with trusted legacy serialized data, apply class/depth/size filters, source authentication, resource caps, and contextual validation — and never call that "absolute safety."
 
-### 1.1. “Không tin cậy” bao gồm những nguồn nào?
+### 1.1. What Sources Count as "Untrusted"?
 
-Không chỉ là request HTTP đến từ Internet:
+Not only HTTP requests arriving from the Internet:
 
-- Byte lấy từ socket, message queue hoặc dịch vụ mà bên gửi có thể bị chiếm quyền.
-- File upload, file tải từ URL, email attachment, nội dung do người dùng chọn.
-- Cache/object blob lưu trong bucket, database, queue hoặc filesystem mà bên ghi không hoàn toàn nằm trong trust boundary của tiến trình đọc.
-- Dữ liệu cũ do phiên bản chương trình khác ghi ra nhưng chưa có tính toàn vẹn, chữ ký, kiểm soát nguồn hoặc kế hoạch compatibility rõ ràng.
-- Nội dung ở môi trường multi-tenant, nơi một tenant có thể tác động file/cache của tenant khác.
-- Bất cứ byte stream nào mà đối phương có thể thay thế, cắt ngắn, sửa một phần hoặc phát lại.
+- Bytes read from sockets, message queues, or services whose sender could be compromised.
+- Uploaded files, URL downloads, email attachments, or user-selected content.
+- Caches/object blobs stored in buckets, databases, queues, or filesystems where writers are not strictly inside the reading process's trust boundary.
+- Legacy data written by another program version without integrity protection, signatures, source control, or a clear compatibility plan.
+- Content in multi-tenant environments where one tenant can influence another tenant's files/caches.
+- Any byte stream that an adversary could substitute, truncate, partially modify, or replay.
 
-Một file mang đuôi `.ser` hay bắt đầu bằng `AC ED 00 05` mới chỉ cho biết nó **trông giống Java serialization stream**. Nó không chứng minh bên ghi đáng tin, object graph hợp lệ hay class sẽ được nạp an toàn.
+A file with a `.ser` extension or starting with `AC ED 00 05` only tells you it **looks like a Java serialization stream**. It does not prove the writer is trusted, the object graph is valid, or the classes loaded will be safe.
 
-## 2. Vì sao `readObject()` có bề mặt tấn công lớn?
+## 2. Why Does `readObject()` Have Such a Large Attack Surface?
 
-Khi `readObject()` xử lý một stream, nó có thể:
+When `readObject()` processes a stream, it can:
 
-1. Đọc tên class và các **class descriptors** có trong stream.
-2. Yêu cầu JVM tìm/khôi phục các class tương ứng trên classpath/module path.
-3. Tạo các đối tượng và cấu trúc tham chiếu theo cơ chế Java serialization.
-4. Khôi phục non-transient fields, kể cả các object lồng nhau trong đồ thị.
-5. Chạy logic đặc biệt liên quan serialization, chẳng hạn private `readObject`, `readResolve` hoặc các callback validation theo cơ chế tương ứng.
-6. Cấp phát mảng, object graph và những cấu trúc có thể lớn hơn nhiều so với kỳ vọng của người gọi.
-7. Gặp lỗi loại dữ liệu, thiếu class, vượt giới hạn hoặc stream không hợp lệ **trong khi** quá trình khôi phục đang diễn ra.
+1. Read class names and **class descriptors** embedded in the stream.
+2. Ask the JVM to locate/load matching classes on the classpath/module path.
+3. Instantiate objects and reference structures according to Java serialization mechanics.
+4. Restore non-transient fields, including nested objects across the graph.
+5. Execute special serialization logic, such as private `readObject`, `readResolve`, or corresponding validation callbacks.
+6. Allocate arrays, object graphs, and structures far larger than the caller expects.
+7. Encounter type mismatches, missing classes, exceeded limits, or invalid stream states **while** restoration is already underway.
 
-Một **gadget chain** là chuỗi hành vi của những class đã có sẵn trong ứng dụng/thư viện có thể bị dữ liệu được deserialize kích hoạt theo cách ngoài dự định của developer. Rủi ro không đòi hỏi class tấn công phải được compile mới tại runtime; những class nằm sẵn trong classpath cũng có thể mang các side effects nguy hiểm khi được xử lý qua serialization.
+A **gadget chain** is a sequence of behaviors across classes already present in the application/libraries that deserialized data can trigger in ways the developer never intended. The risk does not require compiling new attacker classes at runtime; classes sitting on the classpath can carry dangerous side effects when driven through serialization.
 
-Bài này **không trình bày payload hoặc hướng khai thác gadget chain**. Điều cần nắm là: kiểm tra kiểu đối tượng sau `readObject` không chặn được mọi hành vi có thể xảy ra *trước khi method trả về*.
+This lesson **does not present exploit payloads or how to weaponize gadget chains**. What you must grasp is: checking an object's type after `readObject` cannot block behavior that happens *before the method returns*.
 
-### 2.1. Ba nhóm hậu quả phải phòng vệ
+### 2.1. Three Impact Categories to Defend Against
 
-| Nhóm | Rủi ro ví dụ | Hướng phòng vệ |
+| Category | Example Risk | Defense Direction |
 |---|---|---|
-| Thực thi logic không mong muốn | Hook/class graph có side effects hoặc hành vi không được dự tính | Tránh native deserialization; giới hạn class đã cho phép; thu hẹp classpath |
-| Cạn kiệt tài nguyên | Đồ thị sâu, quá nhiều references, mảng lớn, payload kéo dài | Giới hạn bytes ở tầng transport; depth/references/array; quota CPU/thời gian/bộ nhớ |
-| Phá invariant nghiệp vụ | Trường null/sai phạm vi, đối tượng ở trạng thái không thể tạo qua constructor, references không mong đợi | Parse theo schema; validate từng trường; constructor/factory kiểm tra invariant; không tin các field sau deserialize |
+| Unintended logic execution | Hooks/class graphs with side effects or unforeseen behavior | Avoid native deserialization; restrict allowed classes; minimize classpath |
+| Resource exhaustion | Deep graphs, excessive references, huge arrays, drawn-out payloads | Cap bytes at transport layer; bound depth/references/arrays; CPU/time/memory quotas |
+| Business invariant corruption | Null/out-of-range fields, objects in states uncreatable via constructors, unexpected references | Parse by schema; validate every field; enforce invariants in constructors/factories; distrust post-deserialization fields |
 
-Định dạng có schema như JSON/CBOR/Protocol Buffers giúp **không tự động tạo graph Java tùy ý theo class name của stream** nếu triển khai đúng, nhưng **không tự miễn nhiễm** với payload sâu, input quá lớn, lỗi cấu hình kiểu đa hình hoặc thư viện parser có lỗ hổng. Chuyển định dạng là một phần của giải pháp, không phải lý do bỏ validation.
+Schema-based formats like JSON/CBOR/Protocol Buffers **avoid automatically instantiating arbitrary Java graphs from stream class names** when configured properly, yet **are not immune** to deeply nested payloads, oversized inputs, misconfigured polymorphic typing, or parser library bugs. Switching formats is part of the solution, not an excuse to skip validation.
 
-## 3. Phân biệt deserialize, parse và validate
+## 3. Distinguishing Deserialize, Parse, and Validate
 
-Một tuyến dữ liệu bảo vệ tốt nên tách các bước:
+A well-defended data pipeline separates these stages:
 
 ```text
-[Input không tin cậy]
+[Untrusted Input]
         │
         ▼
-Giới hạn kích thước/timeout/định dạng ở tầng nhận
+Limit size/timeout/format at receiving layer
         │
         ▼
-Parse với schema/format cố định; không tạo class tùy ý
+Parse with fixed schema/format; do not instantiate arbitrary classes
         │
         ▼
-Kiểm tra phiên bản, kiểu trường, length, range, UTF-8, invariant
+Validate version, field types, length, range, UTF-8, invariants
         │
         ▼
-DTO dữ liệu thuần đã kiểm tra
+Validated pure data DTO
         │
         ▼
-Constructor/factory của domain object (quyền tối thiểu)
+Domain object constructor/factory (least privilege)
         │
         ▼
-Tác vụ nghiệp vụ
+Business operation
 ```
 
-**Parse** chỉ biến bytes thành representation có kiểu được xác định trước. **Validation** đảm bảo representation đó hợp lệ theo mục tiêu nghiệp vụ. **Deserialization Java object stream** có thêm khả năng dựng object graph và kích hoạt custom object logic; đó là lý do nó không phải parser nhập liệu tổng quát dành cho những nguồn đối kháng.
+**Parsing** only converts bytes into a representation of predetermined types. **Validation** ensures that representation satisfies business rules. **Java object stream deserialization** additionally builds arbitrary object graphs and triggers custom object logic; that is why it is not a general-purpose input parser for adversarial sources.
 
-Một contract an toàn hơn có thể là:
+A safer contract looks like:
 
 ```java
 record IncomingMessage(String text, int sequence) {}
@@ -103,36 +103,36 @@ static IncomingMessage validate(String text, int sequence) {
 }
 ```
 
-Đây là **snippet minh họa** đặt trong class Java 17+; không tự đọc bytes và không có `main`. Ngay cả khi parser đã xác định `String` và `int`, vẫn phải kiểm tra phạm vi, trường bắt buộc và invariant.
+This is an **illustrative snippet** placed inside a Java 17+ class; it does not read bytes itself and has no `main`. Even after a parser extracts `String` and `int`, you must still check ranges, required fields, and invariants.
 
-## 4. Giải pháp ưu tiên: định dạng dữ liệu nhỏ, giới hạn rõ, không `readObject`
+## 4. Preferred Solution: Compact Data Format, Explicit Bounds, No `readObject`
 
-Nếu giao thức do ứng dụng kiểm soát, thường nên chuyển một record dữ liệu cố định thay vì Java object graph. Ví dụ frame:
+When your application controls the protocol, it is usually better to transmit a fixed data record rather than a Java object graph. Example frame:
 
 ```text
-Offset   Kích thước   Nội dung
-0        4 byte       magic = 0x4D534731 ("MSG1")
+Offset   Size         Content
+0        4 bytes      magic = 0x4D534731 ("MSG1")
 4        1 byte       protocolVersion = 1
-5        4 byte       sequence (signed int, big-endian)
-9        2 byte       textByteLength (unsigned short, big-endian)
-11       N byte       text UTF-8, N <= 256
+5        4 bytes      sequence (signed int, big-endian)
+9        2 bytes      textByteLength (unsigned short, big-endian)
+11       N bytes      UTF-8 text, N <= 256
 ```
 
-Lợi ích:
+Benefits:
 
-- Type cố định: chỉ có `sequence` và `text`, không có class name do input tự chọn.
-- Bytes tối đa của chuỗi và frame đều có giới hạn.
-- Decoder UTF-8 có thể cấu hình từ chối bytes sai cấu trúc.
-- Protocol version do ứng dụng quản lý, độc lập với `serialVersionUID`/Object Serialization Stream Protocol.
-- Có thể viết validator kiểm tra dữ liệu trước khi tạo domain object.
+- Fixed types: only `sequence` and `text`, with no input-chosen class names.
+- Maximum byte sizes for strings and frames are explicitly bounded.
+- UTF-8 decoders can be configured to reject malformed byte sequences.
+- Protocol versioning is managed by the application, independent of `serialVersionUID`/Object Serialization Stream Protocol.
+- Validators can check data before constructing domain objects.
 
-**Giới hạn quan trọng:** nếu đầu vào đến từ network stream, cần **cắt/giới hạn bytes ngay từ lúc nhận**, trước khi tạo mảng lớn. Việc chỉ kiểm tra `byte[].length` sau khi đã vô tình đọc toàn bộ một file 20 GB vào RAM là quá muộn đối với rủi ro cạn kiệt bộ nhớ.
+**Important limitation:** when input arrives from a network stream, **cap/bound bytes as they are received**, before creating large arrays. Checking `byte[].length` only after accidentally reading an entire 20 GB file into RAM is far too late against memory exhaustion.
 
-## 5. Ví dụ Java 17+ chạy được: parse một frame rõ cấu trúc
+## 5. Runnable Java 17+ Example: Parsing an Explicitly Structured Frame
 
-Ví dụ không dùng `ObjectInputStream`. Nó ghi và đọc một frame có length bound, magic, version và UTF-8 strict. Input sai length bị từ chối **trước khi cấp phát mảng payload**.
+This example does not use `ObjectInputStream`. It encodes and decodes a frame with length bounds, magic header, version, and strict UTF-8. Inputs with invalid lengths are rejected **before allocating the payload array**.
 
-**Tệp:** `SafeFrameDemo.java`
+**File:** `SafeFrameDemo.java`
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -168,7 +168,7 @@ public class SafeFrameDemo {
     }
 
     public static Message decode(byte[] frame) throws Exception {
-        // Giới hạn tổng bytes trước khi parse.
+        // Limit total bytes before parsing.
         if (frame.length < 11 || frame.length > 512) {
             throw new IOException("invalid frame size");
         }
@@ -191,10 +191,10 @@ public class SafeFrameDemo {
             }
 
             byte[] body = new byte[length];
-            in.readFully(body); // Thất bại nếu frame thiếu byte.
+            in.readFully(body); // Fails if frame is missing bytes.
 
-            // available() chỉ được dùng để tìm trailing bytes ở đây
-            // vì nguồn là ByteArrayInputStream đã có đủ frame.
+            // available() is only used to detect trailing bytes here
+            // because the source is a ByteArrayInputStream holding the full frame.
             if (in.available() != 0) {
                 throw new IOException("trailing bytes");
             }
@@ -223,7 +223,7 @@ public class SafeFrameDemo {
 
         byte[] invalid = encode(new Message("A", 7));
 
-        // Hai byte độ dài ở offset 9..10 trở thành 0x03E7 = 999.
+        // The two length bytes at offsets 9..10 become 0x03E7 = 999.
         invalid[9] = 3;
         invalid[10] = (byte) 0xE7;
 
@@ -236,83 +236,83 @@ public class SafeFrameDemo {
 }
 ```
 
-Biên dịch/chạy trên JDK 17+:
+Compile/run on JDK 17+:
 
 ```bash
 javac SafeFrameDemo.java
 java SafeFrameDemo
 ```
 
-**Stdout mong đợi:**
+**Expected stdout:**
 
 ```text
 message: HELLO, seq=7
 invalid length: rejected
 ```
 
-### 5.1. Vì sao thiết kế này hạn chế rủi ro?
+### 5.1. Why Does This Design Reduce Risk?
 
-1. Parser biết trước frame chỉ gồm magic, version, sequence, độ dài và UTF-8 bytes; không có chỗ cho input yêu cầu JVM tạo class Java bất kỳ.
-2. `readUnsignedShort` làm rõ length là unsigned 16-bit, nhưng **vẫn kiểm tra ≤256** trước khi tạo `byte[]`, không tin vào length trong dữ liệu.
-3. `readFully` từ chối frame thiếu dữ liệu thay vì dùng partial text âm thầm.
-4. `ByteArrayInputStream` có frame đã nhận đủ, nên kiểm tra `available()!=0` ở **trường hợp cụ thể này** để phát hiện trailing bytes. Không áp dụng `available()` như thước đo chính xác tổng độ dài network stream.
-5. `CharsetDecoder` với `CodingErrorAction.REPORT` từ chối UTF-8 không hợp lệ, thay vì đổi nó thành ký tự `�` mà không báo.
-6. Sau khi decode, các quy tắc nghiệp vụ tối thiểu (`text` không rỗng, giới hạn số ký tự, `sequence` không âm) được kiểm tra **trước khi** tạo record.
-7. Dữ liệu lỗi chỉ gây `IOException`/lỗi decode hợp lệ, không điều khiển class loading tùy ý qua Object Serialization.
+1. The parser knows upfront a frame contains only magic, version, sequence, length, and UTF-8 bytes; there is no way for input to ask the JVM to instantiate arbitrary Java classes.
+2. `readUnsignedShort` makes clear that length is an unsigned 16-bit integer, yet **still checks ≤256** before allocating `byte[]`, never trusting data-supplied lengths.
+3. `readFully` rejects truncated frames rather than silently consuming partial text.
+4. `ByteArrayInputStream` already holds the complete frame, so checking `available()!=0` works in **this specific case** to catch trailing bytes. Never use `available()` as an exact measure of total network stream length.
+5. `CharsetDecoder` with `CodingErrorAction.REPORT` rejects invalid UTF-8 instead of silently replacing it with `�`.
+6. After decoding, minimal business rules (non-blank `text`, character count cap, non-negative `sequence`) are validated **before** constructing the record.
+7. Malformed data produces only a clean `IOException`/decode failure, rather than driving arbitrary class loading via Object Serialization.
 
-**Phạm vi ví dụ:** input của method là một `byte[]` đã có; với socket thực cần tầng framing và **giới hạn tổng byte nhận vào**, timeout và xử lý kết nối trước khi gọi `decode`. Ví dụ không có authentication, replay protection hay integrity checksum; các yêu cầu đó phải được xây riêng theo threat model.
+**Scope of the example:** the method's input is an existing `byte[]`; with real sockets you need a framing layer and **caps on total received bytes**, timeouts, and connection handling before calling `decode`. The example includes no authentication, replay protection, or integrity checksums; those requirements must be built separately per threat model.
 
-### 5.2. Giới hạn UTF-8 bytes khác giới hạn độ dài String
+### 5.2. UTF-8 Byte Limits Differ from String Length Limits
 
-`body.length` là số **byte** sau encode UTF-8. `text.length()` là số UTF-16 code units; hai số có thể khác nhau, nhất là với tiếng Việt và emoji. Một chuẩn protocol nên nêu rõ giới hạn theo byte hay code point và kiểm tra đúng đơn vị.
+`body.length` is the number of **bytes** after UTF-8 encoding. `text.length()` is the number of UTF-16 code units; the two counts can differ, especially with Vietnamese and emoji. A protocol specification should state clearly whether limits apply to bytes or code points and enforce the matching unit.
 
-Nếu text phải mang giá trị nhạy cảm hoặc phải được ký số, cần xác định canonicalization/normalization và cách encode, thay vì trông chờ parser tự chuẩn hóa Unicode.
+If text carries sensitive values or must be digitally signed, specify canonicalization/normalization and encoding explicitly instead of expecting parsers to normalize Unicode automatically.
 
-### 5.3. Nếu chọn JSON thì vẫn phải ràng buộc schema
+### 5.3. If Choosing JSON, Still Bind the Schema Strictly
 
-Một hướng khác là gửi JSON như:
+Another route is sending JSON such as:
 
 ```json
 {"version":1,"sequence":7,"text":"HELLO"}
 ```
 
-Parser JSON nên chỉ đọc vào cấu trúc dữ liệu đã biết, giới hạn depth/bytes/string length/number ranges, **không bật tính năng polymorphic class resolution mặc định** cho dữ liệu người dùng. Sau parse, dùng constructor/factory validate DTO. Nếu library cung cấp cơ chế gắn class name trong payload để tự tạo subclass, việc bật bừa các tính năng ấy có thể tái tạo rủi ro “type do input tự quyết định” dưới định dạng khác.
+A JSON parser should read only into known data structures, cap depth/bytes/string lengths/number ranges, and **never enable default polymorphic class resolution** for user-supplied data. After parsing, use constructors/factories to validate DTOs. If a library lets payloads embed class names to auto-instantiate subclasses, carelessly enabling such features recreates the "input-chosen type" vulnerability in a different format.
 
-## 6. Khi nào việc dùng ObjectInputStream vẫn được cân nhắc?
+## 6. When Is Using ObjectInputStream Still Considered?
 
-Ví dụ ứng dụng phải đọc các file legacy do **chính hệ thống đã kiểm soát** ghi bằng `ObjectOutputStream` và cần tương thích trong giai đoạn chuyển đổi. Trước khi quyết định tiếp tục, trả lời:
+For example, an application must read legacy files written via `ObjectOutputStream` by **the same controlled system** and needs compatibility during a transition period. Before deciding to proceed, answer:
 
-- Đường đi từ nơi ghi tới nơi đọc có bảo vệ **tính toàn vẹn và xác thực nguồn** không?
-- Có bất kỳ actor ít tin cậy nào có thể thay file/blob trên filesystem, database, queue hoặc backup không?
-- Những class nào thực sự cần được dựng khi đọc một record?
-- Từng class có hooks `readObject`/`readResolve`/`readExternal` hoặc side effects nào không?
-- Có đặt upper bound về bytes, graph depth, số references, kích thước arrays và thời gian xử lý không?
-- Có cần đọc cả graph tùy ý, hay chỉ cần 2–5 field có thể chuyển sang DTO?
-- Nếu filter từ chối một file hợp lệ cũ, có quy trình báo lỗi/migration rõ không?
+- Does the path from writer to reader protect **integrity and source authentication**?
+- Could any less-trusted actor replace files/blobs on the filesystem, database, queue, or backups?
+- Which exact classes genuinely need to be instantiated when reading a record?
+- Do any of those classes have `readObject`/`readResolve`/`readExternal` hooks or side effects?
+- Are upper bounds enforced on bytes, graph depth, reference counts, array sizes, and processing time?
+- Do you really need an arbitrary graph, or only 2–5 fields convertible to a DTO?
+- If the filter rejects a valid legacy file, is there a clear error reporting/migration path?
 
-Ngay cả với dữ liệu nội bộ, việc lộ file hoặc thay đổi quyền ghi có thể biến “trusted local file” thành một attack surface. Trust là thuộc tính của **toàn bộ tuyến dữ liệu**, không phải của tên file.
+Even for internal data, exposed files or altered write permissions can turn a "trusted local file" into an attack surface. Trust is a property of **the entire data pipeline**, not a filename.
 
-## 7. `ObjectInputFilter`: giới hạn class và tài nguyên, không biến dữ liệu lạ thành an toàn
+## 7. `ObjectInputFilter`: Bounding Classes and Resources, Not Making Unknown Data Safe
 
-Trong JDK 17/21, `ObjectInputFilter` hỗ trợ kiểm soát quá trình khôi phục Java objects. Nó có thể đánh giá:
+In JDK 17/21, `ObjectInputFilter` helps control Java object restoration. It can evaluate:
 
-- Class được yêu cầu dựng khi filter được gọi.
-- Độ sâu đồ thị (depth).
-- Số references đã xử lý.
-- Độ dài mảng.
-- Số bytes đã tiêu thụ theo thông tin của filter.
+- The class requested for instantiation when the filter is invoked.
+- Graph depth.
+- Number of references processed.
+- Array length.
+- Bytes consumed per filter info.
 
-Ba trạng thái trả về:
+Three return statuses:
 
-| `ObjectInputFilter.Status` | Ý nghĩa |
+| `ObjectInputFilter.Status` | Meaning |
 |---|---|
-| `ALLOWED` | Điều kiện được filter này cho phép; không thay thế validation |
-| `REJECTED` | Từ chối; active `readObject`/`readUnshared` thường kết thúc bằng `InvalidClassException` |
-| `UNDECIDED` | Filter này không quyết định; **không đồng nghĩa REJECTED** |
+| `ALLOWED` | Condition is permitted by this filter; does not replace validation |
+| `REJECTED` | Denied; active `readObject`/`readUnshared` typically ends with `InvalidClassException` |
+| `UNDECIDED` | This filter does not decide; **not equivalent to REJECTED** |
 
-Một rủi ro lớn là viết filter cho class nguy hiểm trả `UNDECIDED` rồi tưởng đã deny. Nếu có yêu cầu allowlist, phải có **chính sách reject rõ ràng** cho class ngoài danh sách. Cùng lúc cần tính tới lớp/tham chiếu/array/strings mà stream thực sự chứa.
+A major risk is writing a filter that returns `UNDECIDED` for dangerous classes and assuming they are denied. If an allowlist is required, there must be an **explicit reject policy** for unlisted classes. Simultaneously account for all classes/references/arrays/strings the stream legitimately contains.
 
-### 7.1. `setObjectInputFilter` phải đặt trước khi đọc object
+### 7.1. `setObjectInputFilter` Must Be Set Before Reading Objects
 
 ```java
 try (ObjectInputStream in = new ObjectInputStream(source)) {
@@ -321,13 +321,13 @@ try (ObjectInputStream in = new ObjectInputStream(source)) {
 }
 ```
 
-Đây là snippet minh họa; `source` là `InputStream`, `filter` đã tạo, có import và xử lý `IOException`/`ClassNotFoundException`. Bộ lọc phải được thiết lập **trước lần đọc object**, không phải sau `readObject`. Trong Java 17/21, `setObjectInputFilter` chỉ có thể gọi theo quy tắc một lần trước khi đọc object, và tác dụng filter cuối cùng còn chịu cơ chế **filter factory** của JVM.
+This is an illustrative snippet; `source` is an `InputStream`, `filter` is already created, with imports and `IOException`/`ClassNotFoundException` handling. The filter must be installed **before reading objects**, not after `readObject`. In Java 17/21, `setObjectInputFilter` follows a once-before-reading rule, and the final effective filter is also governed by the JVM's **filter factory** mechanism.
 
-**Lưu ý rất quan trọng:** bộ lọc không được gọi cho mọi giá trị primitive và không phải biện pháp kiểm tra **nội dung** của String/field. Tài liệu `ObjectInputStream` nêu rõ các String được xử lý như primitive và không kích hoạt bộ lọc class tương ứng theo cách regular object. Vì vậy dù chỉ allow class DTO, vẫn phải kiểm tra chiều dài và nội dung các trường văn bản **sau khi khôi phục** và **trước khi dùng**.
+**Very important note:** filters are not called for every primitive value and are not a mechanism to validate **String/field contents**. `ObjectInputStream` documentation notes that Strings are handled specially like primitives and do not trigger class filtering in the same way regular objects do. Thus even when allowlisting only DTO classes, you must validate text field lengths and contents **after restoration** and **before use**.
 
-### 7.2. Filter theo pattern
+### 7.2. Pattern-Based Filters
 
-`ObjectInputFilter.Config.createFilter(...)` hỗ trợ chính sách dạng chuỗi:
+`ObjectInputFilter.Config.createFilter(...)` supports string-based policies:
 
 ```java
 ObjectInputFilter filter =
@@ -336,13 +336,13 @@ ObjectInputFilter filter =
           + "com.example.legacy.dto.*;!*");
 ```
 
-Đây là ví dụ cấu hình policy, **không phải một chương trình độc lập**. `com.example.legacy.dto.*` chỉ là namespace minh họa; triển khai thật phải kiểm kê chính xác các class cần cho serialized graph, các arrays và các type thuộc thư viện/framework. Mẫu `!*` là deny class chưa khớp allowlist. Đừng chọn rộng `java.base/*` hoặc `java.*` chỉ vì “đó là Java standard library” nếu không cần thiết; một allowlist có nghĩa chỉ cho phép kiểu thật sự cần thiết.
+This is a policy configuration example, **not a standalone program**. `com.example.legacy.dto.*` is merely an illustrative namespace; real deployments must inventory the exact classes needed for the serialized graph, arrays, and library/framework types. The `!*` pattern denies classes not matched by the allowlist. Never broadly pick `java.base/*` or `java.*` just because "it is the Java standard library" unless truly required; an allowlist means permitting only types genuinely needed.
 
-Một policy quá chặt có thể từ chối cả dữ liệu hợp lệ; một policy quá rộng có thể để lại gadget surface. Cần kiểm thử với các serialized fixtures thực, không chỉ tin rằng filter string nhìn “có vẻ an toàn”.
+An overly strict policy can reject valid data; an overly broad policy can leave a gadget surface open. Test against real serialized fixtures rather than trusting that a filter string "looks safe."
 
-### 7.3. Filter dựa trên class cụ thể
+### 7.3. Class-Specific Programmatic Filters
 
-Có thể viết `ObjectInputFilter` theo class và các giới hạn thay vì pattern tổng quát:
+You can write an `ObjectInputFilter` targeting exact classes and bounds instead of broad patterns:
 
 ```java
 ObjectInputFilter filter = info -> {
@@ -355,7 +355,7 @@ ObjectInputFilter filter = info -> {
 
     Class<?> type = info.serialClass();
 
-    // Những callback liên quan reference/metrics có type null.
+    // Callbacks related to references/metrics have a null type.
     if (type == null) {
         return ObjectInputFilter.Status.UNDECIDED;
     }
@@ -368,13 +368,13 @@ ObjectInputFilter filter = info -> {
 };
 ```
 
-Đây là snippet với một `TrustedRecord` serializable do hệ thống tin cậy quản lý. Nếu toàn bộ graph gồm những class khác, phải thiết kế allowlist phù hợp; đừng copy nguyên mẫu mà kỳ vọng đọc được mọi `List`, `Map`, array và nested DTO. Các metrics do filter cung cấp cũng không thay thế giới hạn kích thước input ở tầng receive.
+This is a snippet with a serializable `TrustedRecord` managed by a trusted system. If the full graph includes other classes, design a matching allowlist; do not copy this verbatim expecting it to read arbitrary `List`, `Map`, arrays, and nested DTOs. Filter-supplied metrics also do not replace input size caps at the receiving layer.
 
-## 8. Ví dụ Java 17+ chạy được: đọc dữ liệu legacy tin cậy với filter
+## 8. Runnable Java 17+ Example: Reading Trusted Legacy Data with a Filter
 
-Ví dụ này **không nhận dữ liệu do đối phương kiểm soát**. Nó tự ghi hai payload trong bộ nhớ: một `Allowed` hợp lệ và một `Unexpected` không thuộc danh sách. Reader giới hạn bytes trước khi khởi tạo `ObjectInputStream`, cài filter **trước `readObject()`**, cho phép chính xác class `Allowed`, kiểm tra graph metrics và validate field sau khi đọc.
+This example **does not accept adversary-controlled data**. It generates two payloads in memory: a valid `Allowed` and an unlisted `Unexpected`. The reader bounds byte length before constructing `ObjectInputStream`, installs the filter **before `readObject()`**, permits strictly the `Allowed` class, enforces graph metrics, and validates fields after reading.
 
-**Tệp:** `FilteredLegacyDemo.java`
+**File:** `FilteredLegacyDemo.java`
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -415,7 +415,7 @@ public class FilteredLegacyDemo {
     static Allowed readTrusted(byte[] wire)
             throws IOException, ClassNotFoundException {
 
-        // Đây là guard của demo; production phải limit cả tầng đọc.
+        // This is a demo guard; production must also limit at the reading layer.
         if (wire.length > 4096) {
             throw new IOException("frame too large");
         }
@@ -474,7 +474,7 @@ public class FilteredLegacyDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac FilteredLegacyDemo.java
@@ -488,68 +488,68 @@ name: trusted
 unexpected class: rejected
 ```
 
-### 8.1. Những điều ví dụ thật sự kiểm tra
+### 8.1. What the Example Actually Tests
 
-- `Allowed` và `Unexpected` là **hai class test do chính ví dụ định nghĩa**; không có payload khai thác hay input ngoài.
-- `readTrusted` kiểm tra tổng chiều dài của byte array **trước khi** dựng ObjectInputStream.
-- Filter có giới hạn tài nguyên và **từ chối class bất kỳ khác Allowed**.
-- `in.setObjectInputFilter(filter)` xảy ra **trước** `in.readObject()`.
-- Sau đọc, code kiểm tra class **chính xác** và trường `name` có giới hạn.
-- Trường `String name` vẫn cần validation vì filter không tự kiểm tra từng giá trị chuỗi.
-- Đối tượng `Unexpected` bị filter từ chối, dẫn tới `InvalidClassException` được bắt có chủ đích.
+- `Allowed` and `Unexpected` are **two test classes defined by the example itself**; there are no exploit payloads or external inputs.
+- `readTrusted` checks total byte array length **before** constructing ObjectInputStream.
+- The filter enforces resource limits and **rejects any class other than Allowed**.
+- `in.setObjectInputFilter(filter)` happens **before** `in.readObject()`.
+- After reading, the code verifies the **exact** class and bounds on `name`.
+- The `String name` field still requires validation because filters do not validate individual string values.
+- `Unexpected` is rejected by the filter, producing `InvalidClassException` which is caught intentionally.
 
-### 8.2. Điều ví dụ không chứng minh
+### 8.2. What the Example Does Not Prove
 
-**Không** được dùng ví dụ này làm bằng chứng rằng mọi Java object stream từ Internet an toàn nếu gắn cùng filter. Filter có phạm vi giới hạn; class được cho phép vẫn phải được audit hooks/side effects, các graph phức tạp có thể cần chính sách khác, và input source/authentication/timeouts đều nằm ngoài ví dụ.
+**Do not** use this example as proof that any Java object stream from the Internet is safe if fitted with the same filter. Filters have narrow scope; allowed classes must still be audited for hooks/side effects, complex graphs may need different policies, and input sources/authentication/timeouts are outside this example.
 
-Một thay đổi class `Allowed` trong tương lai có thể thêm field mới hoặc custom `readObject`. Việc nó vẫn trùng allowlist class name **không phải** bằng chứng code đó an toàn trước dữ liệu được đối phương thiết kế. Cần code review và kiểm thử đầy đủ cho các class nằm trong allowlist.
+Future edits to `Allowed` could add new fields or a custom `readObject`. Keeping the same allowlisted class name **is not** proof that the code is safe against adversary-crafted data. Thorough code review and testing are required for all allowlisted classes.
 
-### 8.3. Vì sao kết quả của self-test có tính xác định?
+### 8.3. Why Is the Self-Test Output Deterministic?
 
-Cả hai payload được sinh bởi `ObjectOutputStream` trong cùng process nên class descriptors tương ứng với class local; không phụ thuộc file hay mạng. Kết quả chỉ thể hiện policy class cho hai object nhỏ. Nếu JVM đã cấu hình một filter factory toàn hệ thống mang policy chặt hơn, có thể có thêm hành vi từ chối theo policy đó; đây là điều cần test ở môi trường triển khai.
+Both payloads are generated by `ObjectOutputStream` in the same process, so class descriptors match local classes; there is no file or network dependency. The output reflects only the class policy for two tiny objects. If the JVM already configures a stricter system-wide filter factory, additional rejections under that policy may occur; test that in the target deployment environment.
 
-## 9. Filter không phải là “khử độc” mọi stream
+## 9. Filters Do Not "Sanitize" Arbitrary Streams
 
-Có vài giới hạn phải hiểu chính xác:
+Several boundaries must be understood accurately:
 
-| Khẳng định sai | Sự thật |
+| False Claim | Reality |
 |---|---|
-| “Filter kiểm tra tất cả field values.” | Filter biết class/graph metrics tại các điểm callback; không phải validator schema/nội dung |
-| “Chỉ cần `instanceof` sau `readObject`.” | Quá trình khôi phục đã xảy ra trước đó |
-| “Class có trong allowlist thì luôn an toàn.” | Chính class đó hoặc những hoạt động liên quan vẫn có thể có side effects và bug |
-| “Cứ trả `UNDECIDED` là từ chối.” | UNDECIDED có nghĩa chưa quyết định; phải cấu hình reject policy |
-| “Giới hạn `maxbytes` bảo đảm request không tiêu thụ RAM ngoài filter.” | Filter hoạt động trong lúc deserialize; cần giới hạn bytes sớm và quota hệ thống |
-| “Một filter global đủ cho mọi use case.” | Mỗi endpoint/context có set class/graph khác nhau, cần policy chuyên biệt |
-| “String luôn đi qua filter để kiểm tra length.” | String/primitive có cách xử lý khác; cần validation payload riêng |
-| “JSON/CBOR không bao giờ gây DoS.” | Parser khác cũng cần giới hạn tài nguyên và kiểm tra schema |
+| "Filters inspect all field values." | Filters see class/graph metrics at callbacks; they are not schema/content validators |
+| "Just check `instanceof` after `readObject`." | Restoration has already executed beforehand |
+| "Classes in the allowlist are always safe." | Those classes or related actions can still have side effects and bugs |
+| "Returning `UNDECIDED` rejects the class." | UNDECIDED means undecided; you must configure a reject policy |
+| "Setting `maxbytes` guarantees requests cannot consume RAM outside the filter." | Filters run during deserialization; early byte caps and system quotas are still required |
+| "One global filter suffices for every use case." | Each endpoint/context has distinct classes/graphs and needs tailored policies |
+| "Strings always pass through the filter for length checking." | Strings/primitives are handled differently; explicit payload validation is needed |
+| "JSON/CBOR can never cause DoS." | Other parsers also need resource bounds and schema checks |
 
-### 9.1. Global filter và context-specific filter factory
+### 9.1. Global Filters and Context-Specific Filter Factories
 
-Java hỗ trợ JVM-wide serialization filter bằng system/security property như `jdk.serialFilter`, hoặc API cấu hình. Với Java 17+, cơ chế filter factory cho phép xây dựng chính sách theo context sử dụng từng `ObjectInputStream`.
+Java supports JVM-wide serialization filters via system/security properties like `jdk.serialFilter`, or configuration APIs. On Java 17+, filter factories allow building policies tailored to each `ObjectInputStream`'s context.
 
-Ví dụ cấu hình process **minh họa**:
+**Illustrative** process configuration example:
 
 ```bash
 java -Djdk.serialFilter="maxdepth=10;maxrefs=100;maxarray=1000;maxbytes=65536;com.example.dto.*;!*" MyApp
 ```
 
-`MyApp` và `com.example.dto.*` chỉ là placeholder ngữ cảnh triển khai, **không phải lệnh để chạy ngay**. Một filter toàn JVM có thể ảnh hưởng tới các library sử dụng serialization nội bộ; trước khi đặt policy phải kiểm kê các use case và test thực tế. Không bật `java.base/*` toàn cục chỉ để tránh lỗi class allowlist nếu điều đó mở phạm vi không cần.
+`MyApp` and `com.example.dto.*` are deployment placeholders, **not a command to run verbatim**. A JVM-wide filter can affect libraries using serialization internally; inventory use cases and test thoroughly before setting a policy. Never enable `java.base/*` globally just to avoid allowlist failures if doing so widens scope unnecessarily.
 
-### 9.2. Thứ tự chọn filter có ý nghĩa
+### 9.2. Filter Selection Order Matters
 
-`ObjectInputStream` có thể nhận filter ban đầu từ **filter factory** lúc constructor chạy; gọi `setObjectInputFilter` có thể kích hoạt factory một lần nữa để chọn/kết hợp filter. Nếu ứng dụng thay filter factory tùy ý hoặc tạo policy yếu hơn, có nguy cơ làm mất bảo vệ mà một thư viện khác kỳ vọng.
+`ObjectInputStream` can receive an initial filter from the **filter factory** when its constructor runs; calling `setObjectInputFilter` can invoke the factory again to choose/combine filters. If an application replaces the filter factory carelessly or produces a weaker policy, it risks stripping protections another library relies on.
 
-Vì vậy:
+Therefore:
 
-- Xác định vị trí quản lý filter factory ở cấp ứng dụng.
-- Không để các module tự ý thay global filter factory trong quá trình runtime.
-- Với mỗi luồng dữ liệu, dùng filter thích hợp với **context** và audit chính sách effective.
-- Test cả trường hợp có filter global và filter per-stream.
-- Ghi log việc một stream bị từ chối mà không ghi toàn bộ dữ liệu nhạy cảm.
+- Designate clear ownership for managing the filter factory at the application level.
+- Never let modules arbitrarily mutate the global filter factory at runtime.
+- For each data stream, apply a **context**-appropriate filter and audit the effective policy.
+- Test both global filters and per-stream filters together.
+- Log rejected streams without logging sensitive data.
 
-### 9.3. Filter có thể có lỗ hổng thiết kế trong chính policy
+### 9.3. Filters Can Have Policy Design Flaws
 
-Ví dụ chỉ kiểm tra class root:
+For example, checking only the root class:
 
 ```java
 Object root = in.readObject();
@@ -558,23 +558,23 @@ if (root.getClass() != Allowed.class) {
 }
 ```
 
-Đây là snippet **không an toàn nếu đứng riêng**, vì nested graph có thể đã được xử lý trước khi kiểm tra root. Một filter thích hợp cần giới hạn **các class có thể xuất hiện trong toàn graph** và giới hạn tài nguyên, không chỉ type top-level. Và ngay sau đó, vẫn phải validate invariant của root lẫn nested data.
+This snippet is **unsafe on its own**, because nested graphs may have already been processed before checking the root. A proper filter must restrict **all classes allowed anywhere in the graph** and bound resources, not merely the top-level type. And right afterward, validate invariants of both the root and nested data.
 
-## 10. Xác thực nguồn và tính toàn vẹn: cần nhưng không đủ
+## 10. Source Authentication and Integrity: Necessary but Insufficient
 
-Một hệ thống có thể bảo vệ data bằng mTLS, HMAC, chữ ký số hoặc storage ACL. Những cơ chế này giúp xác nhận bytes đến từ nguồn hợp lệ hoặc không bị sửa mà không được phát hiện. Nhưng:
+A system may protect data with mTLS, HMAC, digital signatures, or storage ACLs. These mechanisms verify bytes came from a legitimate source or were not tampered with undetected. Yet:
 
-- Nguồn được xác thực cũng có thể bị chiếm quyền hoặc có bug ghi ra dữ liệu không hợp lệ.
-- Một blob hợp lệ có thể chứa quá nhiều object/bytes vượt quota của người đọc.
-- Một file cũ có chữ ký vẫn có thể không tương thích class hiện tại.
-- Integrity không tự làm custom `readObject` của class an toàn.
-- Chính sách xác thực phải xét replay, key rotation, thời hạn và định danh phiên bản nếu nghiệp vụ yêu cầu.
+- Even an authenticated source can be compromised or have bugs writing invalid data.
+- A valid blob can contain too many objects/bytes exceeding the reader's quota.
+- An older signed file can still be incompatible with current classes.
+- Integrity does not make a class's custom `readObject` safe.
+- Authentication policies must also account for replay, key rotation, expiration, and version identification if business rules require.
 
-Vì vậy authentication/integrity chỉ là **một lớp**. Không thay thế input validation, allowlist, resource bounds và thiết kế dữ liệu nhỏ.
+Hence authentication/integrity is only **one layer**. It does not replace input validation, allowlists, resource bounds, and minimal data design.
 
-## 11. Serialization hooks và constructor bypass
+## 11. Serialization Hooks and Constructor Bypass
 
-Một Serializable class khi được khôi phục không chạy constructor của **chính serializable class** như khi gọi `new` thông thường. Việc khôi phục field có thể diễn ra trước validation nghiệp vụ. Những cơ chế như:
+When a Serializable class is restored, it does not run the constructor of **the serializable class itself** as in a normal `new` call. Field restoration can happen before business validation. Mechanisms such as:
 
 - private `readObject(ObjectInputStream)`;
 - `readResolve()`;
@@ -582,11 +582,11 @@ Một Serializable class khi được khôi phục không chạy constructor c�
 - `ObjectInputValidation` callbacks;
 - `Externalizable.readExternal(...)`;
 
-có thể tham gia logic dựng object theo contract tương ứng.
+can participate in object construction logic per their respective contracts.
 
-### 11.1. Invariant cần được kiểm tra khi khôi phục
+### 11.1. Invariants Must Be Checked on Restoration
 
-Ví dụ class chỉ cho phép số lượng không âm:
+Example of a class allowing only non-negative quantities:
 
 ```java
 import java.io.IOException;
@@ -616,209 +616,209 @@ public final class Quantity implements Serializable {
 }
 ```
 
-Đây là **class biên dịch độc lập** `Quantity.java`, không có `main`. Hook validation này có ý nghĩa đối với các dữ liệu **đã cho phép** deserialize, nhưng **không** khiến việc giải tuần tự hóa stream không tin cậy trở nên an toàn. Nó cũng không thay thế kiểm soát side effects của cả object graph.
+This is a **standalone compilable class** `Quantity.java`, without `main`. This validation hook is valuable for data **already permitted** to deserialize, yet **does not** make deserializing untrusted streams safe. Nor does it replace controlling side effects across the whole object graph.
 
-### 11.2. Immutability không tự được bảo vệ qua serialization
+### 11.2. Immutability Is Not Automatically Protected by Serialization
 
-`final` fields, private constructors và factory methods là công cụ thiết kế đối tượng, nhưng Java serialization có các quy tắc phục hồi đặc thù; không nên suy luận rằng chỉ vì không có public setter thì mọi object được deserialize đều thỏa invariant. Với class nhạy cảm, hãy giảm hoặc loại bỏ khả năng deserialize trực tiếp và chỉ tạo object qua factory nhận DTO đã kiểm tra.
+`final` fields, private constructors, and factory methods are object design tools, yet Java serialization has special restoration rules; never infer that merely lacking public setters guarantees every deserialized object satisfies invariants. For sensitive classes, reduce or eliminate direct deserializability and build objects only via factories taking validated DTOs.
 
-## 12. Cách xử lý input từ network
+## 12. Handling Network Inputs
 
-**Không** tạo `ObjectInputStream` trực tiếp trên một socket chỉ vì bên gửi nói “đây là object hợp lệ”:
+**Never** wrap a socket directly in `ObjectInputStream` simply because the sender claims "this is a valid object":
 
 ```java
-// PHẢN VÍ DỤ: không dùng với socket nhận dữ liệu không tin cậy.
+// ANTI-PATTERN: do not use with a socket receiving untrusted data.
 ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
 Object request = in.readObject();
 ```
 
-Ngoài bề mặt attack, constructor của ObjectInputStream có thể **chờ stream header**, và `readObject` có thể tiếp tục chờ dữ liệu chưa đủ. Một remote peer có thể gửi quá chậm, không bao giờ kết thúc frame hoặc vượt quota.
+Beyond the attack surface, `ObjectInputStream`'s constructor can **block waiting for a stream header**, and `readObject` can block waiting for incomplete data. A remote peer can trickle data slowly, never terminate a frame, or blow through quotas.
 
-Thay bằng giao thức có:
+Replace with a protocol that enforces:
 
-1. Timeout đọc, giới hạn kết nối và tổng bytes tối đa.
-2. Frame header (magic/version/length) được parse an toàn trước.
-3. Kiểm tra length hợp lệ **trước cấp phát**.
-4. Cố định type/schema; không resolve class theo tên từ input.
-5. Giải mã charset có chính sách lỗi rõ, xác minh required fields và ranges.
-6. Authentication/authorization khi cần, và giới hạn số message mỗi người gửi.
-7. Cơ chế backpressure, telemetry lỗi, đóng connection khi protocol vi phạm.
+1. Read timeouts, connection caps, and maximum total bytes.
+2. Frame headers (magic/version/length) parsed safely upfront.
+3. Valid length checks **before allocation**.
+4. Fixed types/schemas; never resolve classes by input-supplied names.
+5. Charset decoding with explicit error handling, verifying required fields and ranges.
+6. Authentication/authorization where needed, plus per-sender message rate limits.
+7. Backpressure, error telemetry, and closing connections on protocol violations.
 
-### 12.1. Giới hạn InputStream trước khi readAllBytes
+### 12.1. Bound InputStreams Before calling readAllBytes
 
-`InputStream.readAllBytes()` tiện dùng, nhưng nếu nguồn chưa tin cậy và chưa có giới hạn, nó có thể cấp phát tăng dần cho tới khi hết bộ nhớ. `ByteArrayOutputStream` cũng vậy nếu cứ copy cho đến EOF.
+`InputStream.readAllBytes()` is convenient, but if the source is untrusted and unbounded, it can keep allocating until out of memory. The same applies to `ByteArrayOutputStream` when copying blindly until EOF.
 
-Trong giao thức có length-prefix, chỉ cấp phát tối đa kích thước hợp lệ. Nếu chưa tin byte length prefix, kiểm tra nó trước. Khi đọc stream chưa framing, dùng một wrapper counted/limited với hard cap và fail-closed; tránh đợi cho tới khi RAM đã cạn rồi mới kiểm tra.
+In length-prefixed protocols, allocate at most the valid maximum size. When the length prefix itself is untrusted, validate it first. When reading unframed streams, use a counted/limited wrapper with a hard cap and fail closed; do not wait until RAM is exhausted to check size.
 
-### 12.2. Compression và nested content
+### 12.2. Compression and Nested Content
 
-Ngay cả khi file nén truyền tới chỉ 10 KB, khi giải nén nó có thể mở rộng thành hàng trăm MB/GB. Cần giới hạn **kích thước sau giải nén**, recursion/nesting, số entry và thời gian xử lý. Đừng đặt giới hạn chỉ lên byte compressed rồi kết luận deserializer/parser không thể gặp input khổng lồ.
+Even if an uploaded compressed file is only 10 KB, decompressing it can expand into hundreds of MB or GB. You must cap **post-decompression size**, recursion/nesting, entry counts, and processing time. Never limit only compressed byte size and conclude the deserializer/parser cannot face gigantic inputs.
 
-## 13. Xử lý lỗi: fail closed thay vì “thử cách khác”
+## 13. Error Handling: Fail Closed Instead of "Trying Another Way"
 
-Các exception liên quan Java deserialization:
+Exceptions associated with Java deserialization:
 
-| Ngoại lệ | Có thể biểu thị |
+| Exception | Possible Meaning |
 |---|---|
-| `StreamCorruptedException` | Header hoặc control data không hợp lệ |
-| `InvalidClassException` | Class không tương thích, hoặc bị filter từ chối |
-| `NotSerializableException` | Graph ghi có object không serializable |
-| `ClassNotFoundException` | Class trong stream không có ở môi trường đọc |
-| `OptionalDataException` | Đọc sai loại object/primitive hoặc dữ liệu đặc biệt |
-| `EOFException` | Stream chưa đủ bytes/đến cuối trong lúc đọc |
-| `InvalidObjectException` | Invariant/hook validation chủ động từ chối |
-| `IOException` | Lỗi I/O hoặc lỗi đọc dữ liệu |
-| `ClassCastException` | Root object đọc được khác kiểu ứng dụng mong đợi |
+| `StreamCorruptedException` | Invalid header or control data |
+| `InvalidClassException` | Incompatible class, or rejected by filter |
+| `NotSerializableException` | Graph being written contains a non-serializable object |
+| `ClassNotFoundException` | Class named in stream is absent in reading environment |
+| `OptionalDataException` | Mismatched object/primitive read or special data |
+| `EOFException` | Stream ran out of bytes/hit end during read |
+| `InvalidObjectException` | Invariant/validation hook explicitly rejected |
+| `IOException` | I/O error or data reading error |
+| `ClassCastException` | Root object read differs from expected application type |
 
-Các lỗi này không nên bị biến thành “payload trống hợp lệ”. Với `ObjectInputStream.readObject()`, tài liệu nói các exception để stream ở trạng thái **không xác định**; thường phải đóng stream và từ chối message thay vì cố skip vài byte rồi tiếp tục như chưa có gì xảy ra.
+These errors must not be swallowed into an "empty valid payload." For `ObjectInputStream.readObject()`, documentation states exceptions leave the stream in an **indeterminate** state; close the stream and reject the message instead of skipping bytes and continuing as if nothing happened.
 
-**Không fallback tự động** theo mẫu “deserialize không được thì tắt filter và thử lại”. Nếu filter từ chối payload, đó là một tín hiệu an ninh/chính sách. Cần log đủ thông tin phi nhạy cảm và điều tra theo quy trình, không hạ cấp validation chỉ để “cho chương trình chạy”.
+**Never implement automatic fallbacks** such as "if deserialization fails, disable the filter and retry." When a filter rejects a payload, that is a security/policy signal. Log non-sensitive diagnostics and investigate per process—never weaken validation just to "keep the program running."
 
-## 14. Migrations: chuyển khỏi Java Serialization an toàn
+## 14. Migrations: Moving Safely Away from Java Serialization
 
-Một hệ thống cũ có thể đã lưu nhiều file `.ser`. Chuyển định dạng không chỉ là tìm `readObject` rồi thay `parseJson`; cần có lộ trình:
+A legacy system may hold many `.ser` files. Migrating formats is more than finding `readObject` and replacing it with `parseJson`; you need a roadmap:
 
-### 14.1. Kiểm kê điểm đọc và phân loại nguồn
+### 14.1. Inventory Read Points and Classify Sources
 
-Tìm các điểm nhận serialized objects:
+Locate every place accepting serialized objects:
 
-- `ObjectInputStream.readObject` và `readUnshared`.
-- Thư viện/framework có deserialization ngầm bên trong, cache, RPC hoặc messaging.
-- File lưu state, session, job data, serialized blobs trong database.
-- Backups và dữ liệu chưa có chính sách xóa.
-- Các consumer chạy phiên bản khác nhau trong cùng hệ thống.
+- `ObjectInputStream.readObject` and `readUnshared`.
+- Libraries/frameworks doing hidden deserialization internally, caches, RPC, or messaging.
+- State files, sessions, job data, serialized blobs in databases.
+- Backups and data lacking retention/deletion policies.
+- Consumers running different versions within the same system.
 
-Đối với từng điểm, ghi lại source, quyền ghi, class graph mong đợi, dung lượng, thời gian sống và mức tin cậy. Đừng dựa vào extension hay tên bảng database.
+For each point, record source, write permissions, expected class graph, volume, lifetime, and trust level. Never rely on file extensions or database table names.
 
-### 14.2. Thiết kế format thay thế
+### 14.2. Design the Replacement Format
 
-Chọn JSON/CBOR/Protocol Buffers/format byte định nghĩa rõ khi phù hợp; thống nhất:
+Choose JSON/CBOR/Protocol Buffers/explicit binary framing as appropriate; agree on:
 
-- Version trong message/schema.
-- Danh sách trường và type cố định.
-- Kích thước tối đa của message và từng trường.
-- Quy tắc optional/default/unknown fields.
-- Charset, timezone, date/time, numeric range và chuẩn Unicode.
-- Integrity/authentication theo threat model.
-- Quy tắc tương thích backward/forward và kế hoạch loại version cũ.
+- Message/schema versioning.
+- Fixed field lists and types.
+- Maximum size of messages and individual fields.
+- Rules for optional/default/unknown fields.
+- Charset, timezone, date/time, numeric ranges, and Unicode normalization.
+- Integrity/authentication per threat model.
+- Backward/forward compatibility rules and sunset plans for old versions.
 
-### 14.3. Conversion tool ở môi trường kiểm soát
+### 14.3. Conversion Tool in a Controlled Environment
 
-Nếu vẫn phải mở các file legacy:
+If legacy files must still be opened:
 
-1. Chỉ chạy trên bản copy từ nguồn có xác thực và kiểm tra tính toàn vẹn, không trực tiếp trên upload chưa tin cậy.
-2. Dùng JDK và classpath đã kiểm kê, áp class/graph/resource filters chặt.
-3. Chạy công cụ với quyền OS tối thiểu, hạn chế network, filesystem, CPU/memory/time và logging phù hợp; isolation giảm tác hại nhưng không đảm bảo an toàn tuyệt đối.
-4. Validate dữ liệu sau deserialize rồi viết sang định dạng mới.
-5. Test sample hợp lệ/corrupt và hỗ trợ rollback khi conversion sai.
-6. Sau cutover, loại các đường vào `ObjectInputStream` không còn cần thiết, thay vì để endpoint legacy mở mãi.
+1. Run only on copies from authenticated, integrity-checked sources, never directly on untrusted uploads.
+2. Use an audited JDK and classpath, applying strict class/graph/resource filters.
+3. Run the tool with least OS privileges, restricted network, filesystem, CPU/memory/time limits, and proper logging; isolation reduces blast radius without guaranteeing absolute safety.
+4. Validate data after deserialization, then write to the new format.
+5. Test valid/corrupted samples and support rollback if conversion goes wrong.
+6. After cutover, remove obsolete `ObjectInputStream` entry points rather than leaving legacy endpoints open forever.
 
-Nếu không thể chứng minh input legacy đáng tin và không thể áp controls thích hợp, **từ chối chuyển tự động** tốt hơn là đưa nó vào tiến trình production quan trọng.
+If legacy input cannot be proven trusted and adequate controls cannot be applied, **refusing automated conversion** is safer than bringing it into critical production processes.
 
-## 15. Các lỗi thiết kế phổ biến
+## 15. Common Design Mistakes
 
-1. **Đọc object stream không tin cậy chỉ vì class implements `Serializable`.** Đây không phải chứng nhận an toàn.
-2. **Kiểm tra `instanceof` sau `readObject` rồi xem như đã chặn khai thác.** Quá trình deserialize đã thực thi trước đó.
-3. **Dựa vào đuôi file `.ser` hay magic header `AC ED 00 05`.** Chúng là dấu hiệu format, không phải authenticity.
-4. **Chỉ lọc root class.** Nested graph có thể chứa các class khác đã được xử lý.
-5. **Filter trả `UNDECIDED` cho class ngoài danh sách mà nghĩ là deny.** Phải có reject policy.
-6. **Cho phép cả package/Java modules không cần thiết.** Làm bề mặt class lớn hơn yêu cầu thật.
-7. **Không giới hạn mảng, depth, references hoặc bytes.** Dễ gặp resource exhaustion.
-8. **Chỉ giới hạn bytes sau khi `readAllBytes`.** Cấp phát không giới hạn đã xảy ra trước kiểm tra.
-9. **Cho rằng filter xác thực nội dung String.** Vẫn phải validate độ dài/giá trị field.
-10. **Cho rằng class allowlisted luôn không có side effects.** Audit hook và sự thay đổi class.
-11. **Chỉ xác thực nguồn mà không hạn chế format/tài nguyên.** Nguồn bị compromise vẫn có thể gửi input lỗi.
-12. **Đổi sang JSON nhưng bật generic polymorphic deserialization cho class do input chọn.** Vẫn cần schema/type whitelist.
-13. **Không kiểm tra UTF-8 malformed.** Dữ liệu có thể bị thay thế ký tự âm thầm.
-14. **Tin input length-prefix là đúng rồi cấp phát array ngay.** Length do attacker điều khiển phải bị ràng buộc.
-15. **Không kiểm tra trailing bytes hoặc dữ liệu thiếu.** Frame không hợp lệ có thể bị chấp nhận một phần.
-16. **Để parser/chuyển đổi đọc vô hạn trên socket chậm.** Cần timeout và quotas.
-17. **Ngầm chuyển đổi phiên bản class mà không kiểm tra invariant.** Dữ liệu cũ không tự phù hợp model mới.
-18. **Bắt lỗi filter rồi tự động tắt filter/retry.** Hạ cấp chính sách bảo vệ.
-19. **Dùng `readObject` như công cụ probe file unknown.** Không deserialize để “xem thử file chứa gì”.
-20. **Ghi log toàn bộ serialized bytes hoặc secret khi lỗi.** Có thể lộ dữ liệu; ghi thông tin lỗi đã giảm nhạy cảm.
-21. **Cho rằng một sandbox/process luôn đủ bảo vệ.** Cần quyền tối thiểu, patch, quan sát runtime và defense-in-depth.
-22. **Không kiểm tra policy filter của thư viện sử dụng `ObjectInputStream` ngầm.** Điểm vào có thể nằm ngoài source code endpoint.
-23. **Dùng cùng một filter quá rộng cho mọi use case.** Context khác nhau cần class/limits khác nhau.
-24. **Không test với file thiếu/truncated, graph sâu và field không hợp lệ.** Chỉ happy path không đánh giá được robustness.
-25. **Tưởng parse thành Java record là đủ.** Record có field types nhưng validation nghiệp vụ vẫn cần kiểm tra.
-26. **Xem mọi `IOException` khi đọc là recoverable và tiếp tục trên stream hỏng.** ObjectInputStream có thể ở trạng thái không xác định.
-27. **Nhầm integrity check với confidentiality.** Dữ liệu xác thực vẫn có thể bị đọc nếu không mã hóa/kiểm soát quyền truy cập.
-28. **Tin dữ liệu được lưu “nội bộ” là bất biến.** Kiểm tra ai có quyền ghi từ ứng dụng, backup, file share và queue.
-29. **Không giới hạn output khi decode/decompress.** Input nhỏ có thể nở lớn.
-30. **Không có kế hoạch xóa endpoint legacy.** Hệ thống vẫn giữ điểm deserialize nguy hiểm sau khi đã chuyển định dạng phần lớn.
+1. **Reading untrusted object streams just because the class implements `Serializable`.** This is not a safety guarantee.
+2. **Checking `instanceof` after `readObject` thinking it blocks exploits.** Deserialization has already run beforehand.
+3. **Trusting `.ser` file extensions or the `AC ED 00 05` magic header.** Those indicate format, not authenticity.
+4. **Filtering only the root class.** Nested graphs can contain other classes already processed.
+5. **Returning `UNDECIDED` for unlisted classes assuming it denies.** An explicit reject policy is needed.
+6. **Allowing entire packages/Java modules needlessly.** Enlarges the class surface beyond actual needs.
+7. **Omitting bounds on arrays, depth, references, or bytes.** Exposes resource exhaustion.
+8. **Checking byte limits only after `readAllBytes`.** Unbounded allocation already happened before the check.
+9. **Assuming filters validate String contents.** Field lengths and values still need validation.
+10. **Assuming allowlisted classes never have side effects.** Audit hooks and class changes.
+11. **Authenticating the source without bounding format/resources.** A compromised source can still send malformed inputs.
+12. **Switching to JSON while enabling generic polymorphic deserialization for input-chosen classes.** Schema/type allowlisting is still needed.
+13. **Not checking for malformed UTF-8.** Data can silently get replacement characters.
+14. **Trusting input length prefixes and allocating arrays immediately.** Attacker-controlled lengths must be bounded.
+15. **Not checking for trailing bytes or missing data.** Invalid frames could be partially accepted.
+16. **Letting parsers/converters read indefinitely on slow sockets.** Timeouts and quotas are essential.
+17. **Silently converting class versions without invariant checks.** Legacy data does not automatically fit new models.
+18. **Catching filter errors and automatically disabling filters/retrying.** Downgrades security policy.
+19. **Using `readObject` as a tool to probe unknown files.** Never deserialize just to "peek at what a file contains."
+20. **Logging entire serialized bytes or secrets on failure.** Leaks data; log sanitized error details.
+21. **Assuming a sandbox/process alone is enough protection.** Least privilege, patching, runtime observability, and defense-in-depth are required.
+22. **Failing to check filter policies of libraries using `ObjectInputStream` under the hood.** Entry points may sit outside endpoint source code.
+23. **Sharing one overly broad filter across all use cases.** Different contexts need distinct classes/limits.
+24. **Not testing truncated files, deep graphs, and invalid fields.** Happy-path testing alone misses robustness bugs.
+25. **Assuming parsing into a Java record is enough.** Records enforce field types, yet business validation is still required.
+26. **Treating any read `IOException` as recoverable and continuing on a broken stream.** ObjectInputStream can be in an indeterminate state.
+27. **Confusing integrity checks with confidentiality.** Authenticated data can still be read without encryption/access controls.
+28. **Assuming data stored "internally" is immutable.** Audit who has write access across apps, backups, file shares, and queues.
+29. **Failing to cap output size during decoding/decompression.** Small inputs can expand enormously.
+30. **Having no plan to retire legacy endpoints.** Systems keep dangerous deserialization endpoints long after migrating most traffic.
 
-## 16. Tự kiểm tra kiến thức
+## 16. Self-Check Knowledge Questions
 
-**Câu 1.** Vì sao `(Expected) in.readObject()` nguy hiểm khi bytes không tin cậy?  
-**Trả lời:** Trước khi cast, JVM đã có thể dựng graph, chạy logic deserialize và cấp phát tài nguyên theo stream.
+**Question 1.** Why is `(Expected) in.readObject()` dangerous when bytes are untrusted?  
+**Answer:** Before the cast, the JVM can already build graphs, run deserialization logic, and allocate resources per the stream.
 
-**Câu 2.** Kiểm tra file header `AC ED 00 05` có chứng minh stream an toàn không?  
-**Không.** Đây là magic/version của protocol, không xác minh nguồn hoặc class graph.
+**Question 2.** Does checking the file header `AC ED 00 05` prove the stream is safe?  
+**No.** It is the protocol magic/version, not proof of source authenticity or safe class graphs.
 
-**Câu 3.** Nên ưu tiên cách gì cho request API do người dùng tạo?  
-**Trả lời:** Giao thức dữ liệu có schema/type cố định, parser giới hạn bytes/độ sâu và validation từng trường.
+**Question 3.** What approach should be prioritized for user-generated API requests?  
+**Answer:** A data protocol with fixed schema/types, a parser bounding bytes/depth, and per-field validation.
 
-**Câu 4.** `ObjectInputFilter` có thể giới hạn những gì?  
-**Trả lời:** Class, array length, graph depth, reference count và số bytes đã tiêu thụ theo contract.
+**Question 4.** What can `ObjectInputFilter` limit?  
+**Answer:** Classes, array lengths, graph depth, reference counts, and consumed bytes per contract.
 
-**Câu 5.** Filter trả `UNDECIDED` có nghĩa là class đã bị chặn chưa?  
-**Chưa.** Đây là trạng thái chưa quyết định; muốn deny rõ phải trả `REJECTED` theo policy.
+**Question 5.** Does a filter returning `UNDECIDED` mean the class was blocked?  
+**Not yet.** It is an undecided status; explicit denial requires returning `REJECTED` per policy.
 
-**Câu 6.** `setObjectInputFilter` đặt sau `readObject` có đúng không?  
-**Không.** Bộ lọc phải được thiết lập trước khi đọc object, theo quy tắc gọi của API.
+**Question 6.** Is placing `setObjectInputFilter` after `readObject` valid?  
+**No.** The filter must be set before reading objects, per API usage rules.
 
-**Câu 7.** Chỉ allowlist một DTO class thì có cần validate `String name` không?  
-**Có.** Filter không kiểm tra mọi giá trị primitive/String; vẫn phải kiểm tra nội dung, giới hạn và invariant.
+**Question 7.** If only one DTO class is allowlisted, do you still need to validate `String name`?  
+**Yes.** Filters do not inspect all primitive/String values; content, bounds, and invariants must still be validated.
 
-**Câu 8.** `Future`/async transport có tự hạn chế độ dài object stream không?  
-**Không.** Transport API và input framing phải có quota riêng trước khi deserialize.
+**Question 8.** Do `Future`/async transports automatically limit object stream length?  
+**No.** Transport APIs and input framing need explicit quotas before deserialization.
 
-**Câu 9.** Nếu `InvalidClassException` báo filter từ chối, có nên đọc tiếp cùng stream không?  
-**Không nên.** Hãy coi stream hỏng/không tin cậy, đóng và báo lỗi; không hạ cấp filter tự động.
+**Question 9.** If `InvalidClassException` reports a filter rejection, should you keep reading the same stream?  
+**No.** Treat the stream as corrupted/untrusted, close it, and report an error; never auto-downgrade filters.
 
-**Câu 10.** Mã ví dụ `SafeFrameDemo` dùng `available()` có áp dụng để đo tổng byte network stream không?  
-**Không.** Ở đây nguồn là `ByteArrayInputStream` đã nắm toàn bộ frame; network stream cần length-prefix và bounded read.
+**Question 10.** Does `SafeFrameDemo`'s use of `available()` work to measure total bytes of a network stream?  
+**No.** There the source is a `ByteArrayInputStream` holding the entire frame; network streams require length prefixes and bounded reads.
 
-**Câu 11.** Dùng chữ ký số có đủ thay filter/schema không?  
-**Không.** Chữ ký giúp xác minh tính toàn vẹn và nguồn theo threat model; vẫn cần giới hạn graph/bytes và validation.
+**Question 11.** Are digital signatures enough to replace filters/schemas?  
+**No.** Signatures verify integrity and origin per threat model; graph/byte limits and validation are still required.
 
-**Câu 12.** Khi buộc convert serialized files legacy, nên chạy ở đâu?  
-**Trả lời:** Môi trường kiểm soát, dữ liệu đã xác thực, classpath hạn chế, filter chặt và quyền/tài nguyên giới hạn; viết sang định dạng mới rồi bỏ điểm đọc cũ.
+**Question 12.** When forced to convert legacy serialized files, where should conversion run?  
+**Answer:** A controlled environment with authenticated data, restricted classpath, tight filters, and bounded permissions/resources; write to the new format and retire the old reader.
 
-**Câu 13.** `InputStream.readAllBytes()` có an toàn cho file upload không giới hạn không?  
-**Không.** Nó có thể cấp phát theo toàn bộ input; cần hard cap từ tầng nhận.
+**Question 13.** Is `InputStream.readAllBytes()` safe for unbounded file uploads?  
+**No.** It can allocate up to the entire input size; a hard cap is needed at the receiving layer.
 
-**Câu 14.** Filter class chặt có bảo đảm tránh mọi side effects của class allowed không?  
-**Không.** Code của chính allowed class/hook vẫn cần audit; filter không phải validator hành vi.
+**Question 14.** Does a strict class filter guarantee avoiding all side effects of allowed classes?  
+**No.** Code inside allowed classes/hooks still needs auditing; filters do not validate behavior.
 
-**Câu 15.** Mục đích đúng của Java Object Serialization khi vẫn phải dùng là gì?  
-**Trả lời:** Compatibility với dữ liệu/object graph Java do hệ thống kiểm soát, kèm boundaries và controls, **không** phải format nhập liệu mặc định từ đối tượng không tin cậy.
+**Question 15.** What is the right purpose of Java Object Serialization when it must still be used?  
+**Answer:** Compatibility with system-controlled Java data/object graphs alongside proper boundaries and controls—**not** a default input format from untrusted parties.
 
-## 17. Kết luận và tài liệu chính thức
+## 17. Conclusion and Official References
 
-**Ghi nhớ:** “Không deserialize để kiểm tra xem object có đúng kiểu hay không; chỉ deserialize khi đã có cơ sở tin cậy, chính sách class/graph và ranh giới tài nguyên phù hợp — và khi có lựa chọn, dùng định dạng dữ liệu với parser có schema.”
+**Key takeaway:** "Do not deserialize in order to check whether an object is the right type; deserialize only when trust foundations, class/graph policies, and resource boundaries are in place — and whenever you have a choice, use a data format with a schema-driven parser."
 
-Trình tự ra quyết định:
+Decision flow:
 
 ```text
-Nguồn có thể bị đối phương kiểm soát?
-    ├── Có hoặc chưa chứng minh được nguồn tin cậy
-    │       └── KHÔNG dùng ObjectInputStream.readObject trực tiếp
+Could the source be controlled by an adversary?
+    ├── Yes, or source trust is unproven
+    │       └── DO NOT use ObjectInputStream.readObject directly
     │               └── Bounded framing → schema parser → validation → DTO
-    └── Dữ liệu legacy tin cậy, cần compatibility
-            └── Kiểm kê classes + xác minh nguồn
+    └── Trusted legacy data, compatibility required
+            └── Inventory classes + verify source
                     └── Quota/input bounds + ObjectInputFilter
-                            └── Validate output và audit allowed hooks
-                                    └── Migration sang format dữ liệu ổn định
+                            └── Validate output and audit allowed hooks
+                                    └── Migrate to a stable data format
 ```
 
-Nguồn chính thức (Java SE 21, áp dụng các APIs được trình bày cho Java 17+):
+Official sources (Java SE 21; presented APIs apply to Java 17+):
 
-- `ObjectInputStream` — cảnh báo nguy hiểm của untrusted deserialization, hợp đồng `readObject` và `setObjectInputFilter`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectInputStream.html
-- `ObjectInputFilter` — class/resource filtering, policy composition và filter factory: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectInputFilter.html
-- `ObjectInputFilter.Config` — pattern filters và JVM-wide filter: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectInputFilter.Config.html
-- `Serializable` — default serialization và class hooks: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/Serializable.html
-- `DataInputStream` — bounded primitive/data reading theo định dạng do ứng dụng thiết kế: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/DataInputStream.html
-- `CharsetDecoder` — chính sách lỗi UTF-8: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/charset/CharsetDecoder.html
-- Oracle Secure Coding Guidelines for Java SE, phần Serialization/Deserialization: https://www.oracle.com/java/technologies/javase/seccodeguide.html
+- `ObjectInputStream` — untrusted deserialization warnings, `readObject` contract, and `setObjectInputFilter`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectInputStream.html
+- `ObjectInputFilter` — class/resource filtering, policy composition, and filter factories: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectInputFilter.html
+- `ObjectInputFilter.Config` — pattern filters and JVM-wide filters: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/ObjectInputFilter.Config.html
+- `Serializable` — default serialization and class hooks: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/Serializable.html
+- `DataInputStream` — bounded primitive/data reading per application-designed formats: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/DataInputStream.html
+- `CharsetDecoder` — UTF-8 error policies: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/nio/charset/CharsetDecoder.html
+- Oracle Secure Coding Guidelines for Java SE, Serialization/Deserialization section: https://www.oracle.com/java/technologies/javase/seccodeguide.html

@@ -1,73 +1,73 @@
-# `equals`, `hashCode`, `toString` trong Java dynamic proxy: hợp đồng cần định nghĩa
+# `equals`, `hashCode`, and `toString` in Java Dynamic Proxies: Contracts to Define
 
-## 1. Vì sao ba phương thức này cần được xử lý riêng?
+## 1. Why must these three methods be handled explicitly?
 
-Dynamic proxy của JDK là một đối tượng được tạo lúc chạy bằng `java.lang.reflect.Proxy` và triển khai một hay nhiều **interface**. Khi mã gọi phương thức của interface, proxy chuyển lời gọi đến `InvocationHandler.invoke(proxy, method, args)` để handler quyết định hành vi.
+A JDK dynamic proxy is an object created at runtime using `java.lang.reflect.Proxy` implementing one or more **interfaces**. When code calls an interface method, the proxy routes the call to `InvocationHandler.invoke(proxy, method, args)` so the handler decides the behavior.
 
-Có một chi tiết dễ bỏ sót: **`equals(Object)`, `hashCode()` và `toString()` cũng được proxy chuyển đến `InvocationHandler`**, dù chúng được khai báo trong `java.lang.Object` và không được liệt kê trong interface nghiệp vụ. Vì thế, handler phải chủ động xác định đối tượng proxy được xem là bằng đối tượng nào, mã băm của nó ra sao và cách biểu diễn chuỗi của nó. Nếu chỉ xử lý phương thức nghiệp vụ rồi mặc định các phương thức còn lại thuộc về đối tượng đích, chương trình có thể lỗi lúc chạy hoặc tạo ra hành vi không nhất quán trong `HashMap`, `HashSet`, log và kiểm thử.
+There is an easily overlooked detail: **`equals(Object)`, `hashCode()`, and `toString()` are also routed by the proxy to `InvocationHandler`**, even though they are declared in `java.lang.Object` and are not listed in the business interface. Therefore, the handler must deliberately determine what a proxy object is considered equal to, what its hash code is, and what its string representation looks like. If you only handle business methods and assume the remaining methods belong to a target object, the program can fail at runtime or produce inconsistent behavior in `HashMap`, `HashSet`, logs, and tests.
 
-Phân biệt ba đối tượng có thể xuất hiện:
+Distinguish the three objects that may be involved:
 
-- **Proxy**: đối tượng mà bên gọi nắm giữ và gọi `proxy.equals(...)`, `proxy.hashCode()`, `proxy.toString()`.
-- **Handler**: đối tượng triển khai `InvocationHandler`; nhận lời gọi từ proxy. Bản thân handler có `equals`/`hashCode`/`toString` riêng, nhưng đó **không tự động** là hợp đồng của proxy.
-- **Target/delegate** (nếu có): đối tượng thật mà handler chuyển tiếp nghiệp vụ tới. Hợp đồng của target không tự động biến thành hợp đồng của proxy.
+- **Proxy**: the object held by the caller, on which `proxy.equals(...)`, `proxy.hashCode()`, and `proxy.toString()` are called.
+- **Handler**: the object implementing `InvocationHandler`; receives calls from the proxy. The handler itself has its own `equals`/`hashCode`/`toString`, but those do **not automatically** become the proxy's contract.
+- **Target/delegate** (if any): the real object to which the handler forwards business logic. The target's contract does not automatically become the proxy's contract.
 
-Không phải mọi dynamic proxy đều có target: một handler có thể tự tạo kết quả, gửi lời gọi RPC, thực hiện logging hoặc truy cập tài nguyên bên ngoài.
+Not every dynamic proxy has a target: a handler can compute results itself, send RPC calls, perform logging, or access external resources.
 
-## 2. JVM chuyển ba lời gọi Object vào handler như thế nào?
+## 2. How does the JVM route the three Object calls to the handler?
 
-Với một proxy từ `Proxy.newProxyInstance(...)`:
+For a proxy from `Proxy.newProxyInstance(...)`:
 
-| Lời gọi của bên dùng | `method.getDeclaringClass()` trong handler | `args` | Kiểu trả về cần cung cấp |
+| Caller invocation | `method.getDeclaringClass()` in handler | `args` | Return type to provide |
 | --- | --- | --- | --- |
-| `proxy.equals(other)` | `Object.class` | Một phần tử: `other`, có thể `null` | `Boolean` để proxy trả `boolean` |
-| `proxy.hashCode()` | `Object.class` | `null` vì không có tham số | `Integer` để proxy trả `int` |
-| `proxy.toString()` | `Object.class` | `null` vì không có tham số | `String` |
+| `proxy.equals(other)` | `Object.class` | One element: `other`, may be `null` | `Boolean` so proxy returns `boolean` |
+| `proxy.hashCode()` | `Object.class` | `null` because there are no parameters | `Integer` so proxy returns `int` |
+| `proxy.toString()` | `Object.class` | `null` because there are no parameters | `String` |
 
-Điều này đúng cả khi một interface khai báo lại chữ ký phù hợp của ba phương thức nói trên: `Method` được chuyển vào handler vẫn có declaring class là `Object.class`. Vì vậy, kiểm tra `method.getDeclaringClass() == Object.class` rồi phân nhánh theo tên là cách dễ hiểu để phân biệt ba lời gọi này với phương thức nghiệp vụ. Một phương thức overload như `equals(String)` **không** thay thế `equals(Object)` và phải được nhận diện theo chữ ký riêng nếu interface thực sự có khai báo.
+This remains true even if an interface redeclares a matching signature for any of those three methods: the `Method` passed into the handler still has `Object.class` as its declaring class. Thus, checking `method.getDeclaringClass() == Object.class` and branching by name is a clear way to separate these three calls from business methods. An overload such as `equals(String)` **does not** replace `equals(Object)` and must be identified by its own signature if the interface actually declares it.
 
-Proxy cũng kế thừa một số phương thức `Object` khác. Các phương thức `final` như `getClass()`, `wait()`, `notify()` không được handler chặn theo cách này; không nên khẳng định *mọi* lời gọi phương thức `Object` đều qua `invoke`.
+A proxy also inherits several other `Object` methods. `final` methods such as `getClass()`, `wait()`, and `notify()` are not intercepted by the handler in this way; you should not assume *every* `Object` method call goes through `invoke`.
 
-**Kiểu trả về phải đúng.** `InvocationHandler.invoke` có kiểu kết quả `Object`, nhưng proxy sẽ kiểm tra/ép kết quả theo kiểu trả về của phương thức được gọi. Trả `null` cho `equals` hoặc `hashCode` (kiểu nguyên thủy) gây `NullPointerException` khi unbox; trả sai kiểu có thể gây `ClassCastException`. `toString` có thể trả `null` về mặt kiểu, nhưng giá trị chuỗi có ý nghĩa thường hữu ích hơn. Nếu handler ném checked exception không được khai báo trong chữ ký, proxy có thể bọc nó trong `UndeclaredThrowableException`.
+**The return type must match.** `InvocationHandler.invoke` has return type `Object`, but the proxy checks/casts the result to the return type of the invoked method. Returning `null` for `equals` or `hashCode` (primitive types) causes `NullPointerException` upon unboxing; returning the wrong type can cause `ClassCastException`. `toString` can technically return `null`, though a meaningful string value is usually much more helpful. If the handler throws a checked exception not declared in the signature, the proxy may wrap it in `UndeclaredThrowableException`.
 
-## 3. Hợp đồng của từng phương thức
+## 3. Contract of each method
 
-### `equals(Object)` — định nghĩa thế nào là hai proxy bằng nhau
+### `equals(Object)` — defining when two proxies are equal
 
-Hợp đồng cơ bản của `Object.equals` là:
+The basic contract of `Object.equals` is:
 
-1. **Phản xạ:** `x.equals(x)` là `true`.
-2. **Đối xứng:** `x.equals(y)` và `y.equals(x)` có cùng kết quả.
-3. **Bắc cầu:** nếu `x.equals(y)` và `y.equals(z)` đều đúng thì `x.equals(z)` phải đúng.
-4. **Nhất quán:** nếu thông tin dùng để so sánh không đổi, gọi lại cho cùng kết quả.
-5. **Với `null`:** `x.equals(null)` là `false`.
+1. **Reflexive:** `x.equals(x)` is `true`.
+2. **Symmetric:** `x.equals(y)` and `y.equals(x)` yield the same result.
+3. **Transitive:** if both `x.equals(y)` and `y.equals(z)` are true, `x.equals(z)` must be true.
+4. **Consistent:** if the information used for comparison does not change, repeated calls return the same result.
+5. **For `null`:** `x.equals(null)` is `false`.
 
-Hai chiến lược thường dùng:
+Two common strategies:
 
-- **Bằng nhau theo định danh proxy (identity semantics):** chỉ `proxy == other` mới bằng nhau. Hai proxy khác nhau được xem là khác nhau, kể cả nếu chúng cùng chuyển lời gọi tới một target. Đây là chính sách đơn giản và an toàn khi mỗi proxy là một đối tượng wrapper độc lập.
-- **Bằng nhau theo định danh logic (logical/value semantics):** hai proxy biểu diễn cùng một thực thể nghiệp vụ/tài nguyên có thể bằng nhau nếu chúng mang cùng khóa logic ổn định. Phải định nghĩa rõ tập đối tượng được so sánh (chẳng hạn cùng kiểu handler và cùng loại dịch vụ), tránh chỉ dựa vào một chuỗi ID mà các kiểu không liên quan cũng dùng.
+- **Proxy identity equality (identity semantics):** only `proxy == other` is equal. Two distinct proxies are considered unequal, even if both forward calls to the same target. This is a simple and safe policy when each proxy is an independent wrapper object.
+- **Logical identity equality (logical/value semantics):** two proxies representing the same business entity/resource may be equal if they carry the same stable logical key. You must clearly define the set of comparable objects (for example, same handler type and same service kind), avoiding reliance on just an ID string that unrelated types might also use.
 
-Không có một chính sách `equals` đúng cho mọi proxy. Phải lựa chọn theo vai trò của proxy và tài liệu hóa rõ, đặc biệt nếu API trả về nhiều proxy bọc cùng đối tượng.
+There is no single `equals` policy suitable for all proxies. You must choose based on the proxy's role and document it clearly, especially if an API returns multiple proxies wrapping the same object.
 
-### `hashCode()` — nhất quán với `equals`
+### `hashCode()` — consistent with `equals`
 
-Điều kiện bắt buộc: nếu `a.equals(b)` là `true` thì `a.hashCode() == b.hashCode()`. Chiều ngược lại không bắt buộc: hai đối tượng khác nhau được phép trùng mã băm.
+Mandatory condition: if `a.equals(b)` is `true`, then `a.hashCode() == b.hashCode()`. The converse is not required: two unequal objects are allowed to share a hash code.
 
-- Khi dùng **identity semantics**, `System.identityHashCode(proxy)` là lựa chọn phù hợp để tính mã băm trực tiếp từ định danh đối tượng mà không gọi lại `proxy.hashCode()`.
-- Khi dùng **logical/value semantics**, mã băm nên tính từ **đúng các khóa ổn định dùng trong `equals`**, ví dụ `Objects.hash(serviceType, resourceId)` hoặc `key.hashCode()` nếu `key` đã bao gồm mọi thành phần nhận dạng.
-- Các thuộc tính dùng trong `equals`/`hashCode` không nên thay đổi khi proxy đang là khóa của `HashMap` hay phần tử của `HashSet`; nếu thay đổi, tra cứu có thể thất bại dù phần tử vẫn nằm trong cấu trúc dữ liệu.
+- When using **identity semantics**, `System.identityHashCode(proxy)` is the right choice to compute a hash code directly from object identity without re-invoking `proxy.hashCode()`.
+- When using **logical/value semantics**, the hash code should be computed from **the exact same stable keys used in `equals`**, such as `Objects.hash(serviceType, resourceId)` or `key.hashCode()` if `key` already includes all identifying components.
+- Properties used in `equals`/`hashCode` should not mutate while the proxy is a key in a `HashMap` or an element in a `HashSet`; if they mutate, lookups can fail even though the element remains in the data structure.
 
-`System.identityHashCode(proxy)` **không** phù hợp nếu hai proxy khác nhau được coi là bằng nhau theo khóa logic: chúng có thể nhận các mã băm khác nhau và vi phạm hợp đồng. Không dùng `proxy.hashCode()` ngay trong nhánh xử lý `hashCode` vì sẽ gọi ngược vào cùng handler.
+`System.identityHashCode(proxy)` is **not** suitable when two distinct proxies are considered equal by a logical key: they could receive different hash codes and violate the contract. Do not call `proxy.hashCode()` inside the `hashCode` branch because that re-enters the same handler.
 
-### `toString()` — biểu diễn hữu ích, an toàn
+### `toString()` — useful and safe representation
 
-`toString` nên trả về một mô tả ngắn, dễ nhận diện trong log/debug, chẳng hạn `GreeterProxy[label=A]` hoặc tên interface và ID tài nguyên phù hợp. Không có quy tắc bắt buộc rằng hai đối tượng bằng nhau phải có chuỗi giống nhau, nhưng mô tả nhất quán giúp kiểm thử và vận hành.
+`toString` should return a short, recognizable description for logs/debugging, such as `GreeterProxy[label=A]` or the interface name and an appropriate resource ID. There is no mandatory rule that two equal objects must have the same string, though a consistent description helps testing and operations.
 
-Không cần liệt kê toàn bộ trạng thái nội bộ, đặc biệt không in token, mật khẩu hoặc dữ liệu nhạy cảm. Tránh viết `return proxy.toString()` hoặc `String.valueOf(proxy)` ngay bên trong nhánh `toString`: chúng sẽ kích hoạt `InvocationHandler.invoke` lần nữa và dẫn tới đệ quy.
+There is no need to dump all internal state, and especially do not print tokens, passwords, or sensitive data. Avoid writing `return proxy.toString()` or `String.valueOf(proxy)` inside the `toString` branch: they trigger `InvocationHandler.invoke` again and lead to recursion.
 
-## 4. Ví dụ Java 17+: ba hợp đồng theo định danh proxy
+## 4. Java 17+ example: three contracts using proxy identity
 
-Tạo tệp `ProxyObjectMethodsDemo.java`:
+Create the file `ProxyObjectMethodsDemo.java`:
 
 ```java
 import java.lang.reflect.InvocationHandler;
@@ -95,7 +95,7 @@ public class ProxyObjectMethodsDemo {
 
             if (method.getDeclaringClass() == Greeter.class
                     && method.getName().equals("greet")) {
-                return "Xin chào, " + args[0];
+                return "Hello, " + args[0];
             }
 
             throw new UnsupportedOperationException(method.toString());
@@ -128,17 +128,17 @@ public class ProxyObjectMethodsDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 ProxyObjectMethodsDemo.java
 java ProxyObjectMethodsDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
-Xin chào, An
+Hello, An
 true
 false
 false
@@ -147,84 +147,84 @@ GreeterProxy[label=A]
 2
 ```
 
-Phân tích:
+Analysis:
 
-1. `a.greet("An")` là phương thức nghiệp vụ, được handler trả về chuỗi chào.
-2. `a.equals(a)` là `true`, còn `a.equals(b)` là `false` mặc dù `a` và `b` đều triển khai `Greeter`. Hai đối tượng proxy được tạo bằng hai lần gọi factory nên có định danh khác nhau.
-3. `a.equals(null)` là `false` vì một proxy không đồng nhất với `null`.
-4. `a.hashCode() == System.identityHashCode(a)` là `true` theo chính sách đã cài đặt; giá trị mã băm cụ thể có thể khác nhau ở mỗi lần chạy nên ví dụ chỉ kiểm tra tính nhất quán, không in số tùy ý.
-5. `a.toString()` tạo chuỗi có thể đọc trực tiếp từ thông tin `label` mà handler đã giữ, không tự gọi lại phương thức của proxy.
-6. `HashSet` chỉ chứa hai proxy phân biệt dù chèn `a` hai lần. `HashSet` phụ thuộc cả `hashCode` lẫn `equals` nên đây là kiểm tra thực tế của hợp đồng.
+1. `a.greet("An")` is a business method, for which the handler returns the greeting string.
+2. `a.equals(a)` is `true`, whereas `a.equals(b)` is `false` even though both `a` and `b` implement `Greeter`. The two proxy objects were created by two separate factory calls and thus have distinct identities.
+3. `a.equals(null)` is `false` because a proxy is not equal to `null`.
+4. `a.hashCode() == System.identityHashCode(a)` is `true` according to the implemented policy; the exact hash code value can vary across runs, so the example only verifies consistency rather than printing an arbitrary number.
+5. `a.toString()` builds a readable string directly from the `label` held by the handler, without calling back into proxy methods.
+6. The `HashSet` holds only two distinct proxies even though `a` is inserted twice. `HashSet` relies on both `hashCode` and `equals`, making this a practical check of the contract.
 
-Trong code trên, `args[0]` chỉ được đọc ở nhánh `equals` hoặc `greet`, là hai method có một tham số. Khi nhận `hashCode` hoặc `toString`, `args` là `null` và code không truy cập vào nó.
+In the code above, `args[0]` is only read in the `equals` or `greet` branches, which are the two methods with one parameter. When receiving `hashCode` or `toString`, `args` is `null` and the code does not access it.
 
-## 5. Khi proxy bọc target: không chuyển tiếp mù quáng ba phương thức
+## 5. When a proxy wraps a target: do not blindly forward the three methods
 
-Giả sử handler chuyển nghiệp vụ đến một đối tượng `target` bằng reflection:
+Suppose the handler forwards business calls to a `target` object via reflection:
 
 ```java
-// Minh họa bên trong InvocationHandler, chưa phải chương trình độc lập:
+// Illustrative inside InvocationHandler, not a standalone program:
 Object result = method.invoke(target, args);
 ```
 
-Điều này chỉ thích hợp khi `method` thực sự là phương thức muốn gọi trên `target` và điều kiện truy cập/kiểu đối tượng được đáp ứng. Riêng `equals`, `hashCode`, `toString` phải có quyết định rõ ràng.
+This is only appropriate when `method` is genuinely a method meant to be called on `target` and accessibility/object type requirements are met. Specifically, `equals`, `hashCode`, and `toString` must have explicit decisions.
 
-Ví dụ handler viết `return target.equals(args[0]);` cho `proxy.equals(other)` có thể khiến `proxy.equals(target)` trả `true` nhưng `target.equals(proxy)` lại trả `false`. Như vậy **vi phạm tính đối xứng**. Ngược lại, gọi `method.invoke(proxy, args)` để “trả về mặc định” sẽ kích hoạt lại cùng proxy và tạo chuỗi lời gọi đệ quy.
+For example, a handler writing `return target.equals(args[0]);` for `proxy.equals(other)` can cause `proxy.equals(target)` to return `true` while `target.equals(proxy)` returns `false`. That **violates symmetry**. Conversely, calling `method.invoke(proxy, args)` to "return default" re-triggers the same proxy and creates a recursive call chain.
 
-Nếu muốn **proxy bằng target** hoặc **hai proxy cùng bọc một target thì bằng nhau**, cần kiểm tra cả hai chiều so sánh, kiểu được chấp nhận và mã băm tương ứng. Trong nhiều hệ thống, chọn identity semantics cho proxy và công khai ID nghiệp vụ qua interface là dễ dự đoán hơn.
+If you want **a proxy to equal its target** or **two proxies wrapping the same target to be equal**, you must verify comparison in both directions, accepted types, and corresponding hash codes. In many systems, choosing identity semantics for proxies and exposing business IDs via the interface is far more predictable.
 
-Một lựa chọn khác là sử dụng **khóa logic bất biến** khi tạo handler. Chẳng hạn handler chứa `record ServiceKey(String tenant, String serviceId) {}` và so sánh hai proxy hợp lệ theo hai khóa `ServiceKey`. Khi đó:
+Another option is using an **immutable logical key** when creating the handler. For example, the handler holds `record ServiceKey(String tenant, String serviceId) {}` and compares two valid proxies by their `ServiceKey` values. Then:
 
-- `equals` cần kiểm tra đối tượng còn lại thuộc nhóm proxy tương thích và handler của nó có khóa tương ứng; có thể dùng `Proxy.isProxyClass(other.getClass())` rồi `Proxy.getInvocationHandler(other)` sau khi đã kiểm tra `other != null`.
-- `hashCode` phải được tính từ cùng khóa; **không** tính theo định danh proxy.
-- `toString` có thể hiển thị loại dịch vụ và phần ID an toàn để hỗ trợ chẩn đoán.
+- `equals` must verify that the other object belongs to a compatible proxy group and its handler carries a matching key; you can use `Proxy.isProxyClass(other.getClass())` and then `Proxy.getInvocationHandler(other)` after checking `other != null`.
+- `hashCode` must be computed from the same key; **not** from proxy identity.
+- `toString` can display the service type and a safe portion of the ID to aid diagnostics.
 
-Việc `Proxy.getInvocationHandler(other)` lấy được handler chỉ xác nhận đối tượng là JDK dynamic proxy (hoặc có thể phát sinh lỗi theo điều kiện API), không tự chứng minh nó là cùng kiểu nghiệp vụ. Hãy kiểm tra kiểu handler/contract trước khi dùng khóa. Hai proxy được coi là bằng nhau phải chia sẻ quy tắc so sánh và mã băm cho cả hai chiều; nếu target của framework khác cũng có `equals` tùy biến, việc so sánh xuyên giữa proxy và target thường phức tạp hơn nhiều.
+Getting a handler from `Proxy.getInvocationHandler(other)` only confirms the object is a JDK dynamic proxy (or may throw under API conditions); it does not by itself prove it belongs to the same business type. Check the handler/contract type before accessing the key. Two proxies considered equal must share comparison and hashing rules in both directions; if a target from another framework also has a custom `equals`, cross-comparison between proxy and target is usually much more complex.
 
-## 6. Những lỗi phổ biến và cách tránh
+## 6. Common mistakes and how to avoid them
 
-| Lỗi triển khai | Hậu quả | Cách xử lý |
+| Implementation mistake | Consequence | Fix |
 | --- | --- | --- |
-| Chỉ xử lý tên method nghiệp vụ, quên `equals`/`hashCode`/`toString` | Log hoặc thêm proxy vào `HashSet` có thể ném lỗi | Tạo nhánh chuyên xử lý `Object.class` |
-| Dùng `proxy.equals(other)` trong nhánh xử lý `equals` | Đệ quy qua `invoke` | Dùng `proxy == other` cho identity semantics; hoặc so khóa bất biến |
-| Dùng `proxy.hashCode()` trong nhánh xử lý `hashCode` | Đệ quy qua `invoke` | Dùng `System.identityHashCode(proxy)` khi chọn identity semantics |
-| Dùng `proxy.toString()` trong nhánh `toString` | Đệ quy qua `invoke` | Dựng chuỗi từ dữ liệu handler an toàn |
-| `equals` so khóa logic nhưng `hashCode` dùng identity | Có thể vi phạm hợp đồng, làm sai tra cứu trên `HashMap`/`HashSet` | Dùng cùng bộ khóa cho cả hai |
-| Ủy quyền thẳng `target.equals(other)` | Có thể bất đối xứng giữa target và proxy | Chọn chính sách rõ ràng và kiểm tra cả hai chiều |
-| Trả `null` cho `equals`/`hashCode` | `NullPointerException` khi unbox | Trả `Boolean`/`Integer` đúng kiểu |
-| Thay đổi khóa sau khi thêm proxy vào hash collection | Không còn tìm ra phần tử theo khóa cũ | Dùng khóa bất biến trong suốt vòng đời proxy |
-| In target/credentials trong `toString` | Dữ liệu nhạy cảm có thể vào log | Chỉ hiển thị metadata an toàn, cần thiết |
+| Handling only business method names, forgetting `equals`/`hashCode`/`toString` | Logging or adding the proxy to a `HashSet` may throw errors | Create a dedicated branch for `Object.class` |
+| Using `proxy.equals(other)` in the `equals` branch | Recursion through `invoke` | Use `proxy == other` for identity semantics; or compare immutable keys |
+| Using `proxy.hashCode()` in the `hashCode` branch | Recursion through `invoke` | Use `System.identityHashCode(proxy)` when choosing identity semantics |
+| Using `proxy.toString()` in the `toString` branch | Recursion through `invoke` | Build the string from safe handler data |
+| `equals` compares logical key while `hashCode` uses identity | May violate contract, breaking lookups in `HashMap`/`HashSet` | Use the same key fields for both |
+| Blindly delegating `target.equals(other)` | Can be asymmetric between target and proxy | Choose an explicit policy and test both directions |
+| Returning `null` for `equals`/`hashCode` | `NullPointerException` upon unboxing | Return properly typed `Boolean`/`Integer` |
+| Mutating the key after inserting the proxy into a hash collection | Element can no longer be found by old key | Use immutable keys throughout the proxy lifecycle |
+| Printing target/credentials in `toString` | Sensitive data can leak into logs | Display only safe, necessary metadata |
 
-**Đừng chỉ kiểm tra tên phương thức.** Nếu interface có overload `equals(String)` thì đây không phải `Object.equals(Object)`. Hãy kết hợp declaring class/chữ ký; điều kiện `method.getDeclaringClass() == Object.class` giải quyết đúng ba method Object đặc biệt được JDK proxy chuyển vào handler.
+**Do not check only the method name.** If an interface has an overload `equals(String)`, that is not `Object.equals(Object)`. Combine declaring class and signature; checking `method.getDeclaringClass() == Object.class` handles the exact three special `Object` methods routed by JDK proxies to the handler.
 
-## 7. Nên kiểm thử hợp đồng ra sao?
+## 7. How should the contract be tested?
 
-Với mỗi loại proxy, tối thiểu nên kiểm tra:
+For each proxy type, at a minimum test:
 
-- **`equals`:** `x.equals(x)`, `x.equals(null)`, hai proxy cùng/khác khóa, đối xứng khi so với proxy khác và với target nếu API cho phép.
-- **`hashCode`:** các cặp bằng nhau có hash bằng nhau; giá trị ổn định khi trạng thái nhận dạng không đổi; thêm rồi tìm lại trong `HashSet`/`HashMap`.
-- **`toString`:** gọi không lỗi, không đệ quy, không chứa dữ liệu nhạy cảm, chuỗi có ích khi đọc log.
-- **Phân luồng handler:** ba method Object được phân biệt với method interface; test thêm interface khai báo lại `toString()` hoặc overload `equals(String)` nếu API có tình huống đó.
-- **Đường lỗi:** handler không trả `null` cho method trả primitive, không nuốt ngoại lệ nghiệp vụ thành chuỗi thành công giả.
+- **`equals`:** `x.equals(x)`, `x.equals(null)`, two proxies with same/different keys, and symmetry against another proxy and against the target if the API permits it.
+- **`hashCode`:** equal pairs have equal hash codes; value remains stable while identifying state does not change; insert and look up again in `HashSet`/`HashMap`.
+- **`toString`:** invokes without error, does not recurse, contains no sensitive data, and yields a string useful in logs.
+- **Handler routing:** the three `Object` methods are distinguished from interface methods; also test an interface redeclaring `toString()` or overloading `equals(String)` if the API has such cases.
+- **Error paths:** the handler does not return `null` for primitive-returning methods and does not swallow business exceptions into fake success strings.
 
-Nếu framework tạo proxy lồng nhau (proxy bọc proxy), cần xác định `equals` đang so lớp wrapper ngoài, wrapper trong hay ID nghiệp vụ; việc dựa đơn thuần vào class proxy sinh tự động hoặc tên của nó thường làm hợp đồng mong manh khi thay đổi interface hay class loader.
+If a framework creates nested proxies (a proxy wrapping a proxy), clarify whether `equals` compares the outer wrapper, inner wrapper, or business ID; relying purely on the auto-generated proxy class or its name often makes the contract fragile when interfaces or class loaders change.
 
-## 8. Tự kiểm tra
+## 8. Self-check
 
-**Câu 1.** Hai đối tượng được tạo riêng bằng `Proxy.newProxyInstance` cùng trỏ đến một target có bắt buộc phải `equals` nhau không?
+**Q1.** Must two objects created separately with `Proxy.newProxyInstance` pointing to the same target be `equals` to each other?
 
-**Trả lời:** Không. Điều đó phụ thuộc chính sách `equals` trong handler. Với identity semantics, chúng khác nhau; với logical semantics có thể bằng nhau nếu hợp đồng được thiết kế nhất quán.
+**Answer:** No. That depends on the `equals` policy in the handler. With identity semantics they are unequal; with logical semantics they can be equal if the contract is designed consistently.
 
-**Câu 2.** Tại sao `return proxy.hashCode()` bên trong nhánh xử lý `hashCode` là sai?
+**Q2.** Why is `return proxy.hashCode()` inside the `hashCode` branch wrong?
 
-**Trả lời:** Lời gọi quay lại đúng proxy và handler, gây đệ quy. Với identity semantics, dùng `System.identityHashCode(proxy)` để tránh dispatch phản chiếu.
+**Answer:** The call loops back to the same proxy and handler, causing recursion. With identity semantics, use `System.identityHashCode(proxy)` to avoid reflective dispatch.
 
-**Câu 3.** Có thể dùng `System.identityHashCode(proxy)` khi hai proxy khác nhau được coi là bằng nhau theo `resourceId` không?
+**Q3.** Can `System.identityHashCode(proxy)` be used when two different proxies are considered equal by `resourceId`?
 
-**Trả lời:** Không nên: giá trị identity hash có thể khác nhau giữa hai proxy bằng nhau. Hash phải được tính bằng cùng dữ liệu nhận dạng ổn định đã dùng trong `equals`.
+**Answer:** You should not: identity hash values can differ between two equal proxies. The hash must be computed from the same stable identifying data used in `equals`.
 
-**Câu 4.** `getClass()` của proxy có đi vào `InvocationHandler.invoke` như `toString()` không?
+**Q4.** Does a proxy's `getClass()` enter `InvocationHandler.invoke` like `toString()`?
 
-**Trả lời:** Không. `getClass()` là phương thức `final` của `Object`; ba phương thức `equals`, `hashCode`, `toString` được JDK dynamic proxy xử lý đặc biệt.
+**Answer:** No. `getClass()` is a `final` method on `Object`; the three methods `equals`, `hashCode`, and `toString` are handled specially by JDK dynamic proxies.
 
-**Ghi nhớ:** Dynamic proxy của JDK không tự cung cấp chính sách equality có nghĩa cho ứng dụng. Handler cần định nghĩa `equals`, `hashCode` và `toString` đồng bộ với cách proxy đại diện cho đối tượng/tài nguyên, rồi kiểm thử chúng qua các thao tác thường ngày như so sánh, lưu tập hợp và ghi log.
+**Takeaway:** JDK dynamic proxies do not automatically provide a meaningful equality policy for an application. The handler must define `equals`, `hashCode`, and `toString` consistently with how the proxy represents an object/resource, and test them through everyday operations such as comparisons, collection storage, and logging.

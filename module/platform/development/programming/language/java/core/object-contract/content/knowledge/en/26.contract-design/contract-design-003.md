@@ -1,59 +1,59 @@
-# Chọn thành phần bất biến cho đối tượng giá trị và khóa trong Java
+# Choosing Immutable Components for Value Objects and Keys in Java
 
-## 1. Vấn đề cần giải quyết
+## 1. The Problem to Solve
 
-Trong thiết kế Java, **đối tượng giá trị** (*value object*) biểu diễn một giá trị theo **nội dung**, thay vì theo danh tính của một thực thể đang thay đổi. Ví dụ, mã tiền tệ, khoảng ngày, tọa độ, mã hàng đã chuẩn hóa, hoặc khóa tổng hợp `(tenantId, productCode)` có thể được mô hình hóa thành value object.
+In Java design, a **value object** represents a value by its **content**, rather than by the identity of a changing entity. For example, a currency code, date range, coordinates, normalized product code, or a composite key `(tenantId, productCode)` can be modeled as a value object.
 
-Một đối tượng được dùng làm **khóa** trong `HashMap`/`HashSet` còn phải giữ ổn định các thuộc tính tham gia `equals()` và `hashCode()` trong suốt thời gian nó nằm trong cấu trúc băm. Nếu thuộc tính đó thay đổi, đối tượng có thể nằm trong “bucket” được tính bằng hash cũ, trong khi lần tra cứu mới dùng hash mới.
+An object used as a **key** in a `HashMap`/`HashSet` must also keep the attributes participating in `equals()` and `hashCode()` stable for as long as it resides in the hash structure. If those attributes change, the object may sit in a "bucket" computed from the old hash, while a new lookup uses the new hash.
 
-Vì vậy, khi chọn thành phần (*component/field*) của value object hoặc key, không chỉ hỏi “trường này có ý nghĩa nghiệp vụ không?” mà còn phải hỏi:
+Therefore, when choosing the components (*component/field*) of a value object or key, do not merely ask "does this field have business meaning?"—also ask:
 
-- Giá trị có ổn định trong toàn bộ vòng đời đối tượng không?
-- Nếu là tham chiếu, **bản thân đối tượng được tham chiếu** và toàn bộ trạng thái dùng để so sánh có bất biến không?
-- Phép so sánh của kiểu dữ liệu có đúng ngữ nghĩa nghiệp vụ không?
-- Cần chuẩn hóa dữ liệu đầu vào trước khi tính bằng nhau không?
-- Đối tượng có tự bảo vệ khỏi thay đổi qua tham số constructor hoặc accessor không?
-- Trường nào thật sự định nghĩa bình đẳng giá trị? Trường nào chỉ là dữ liệu mô tả, không nên tham gia identity của khóa?
+- Is the value stable throughout the object's entire lifecycle?
+- If it is a reference, are **the referenced object itself** and all state used for comparison immutable?
+- Does the data type's comparison match the business semantics?
+- Does input data need normalization before computing equality?
+- Does the object protect itself against mutation through constructor arguments or accessors?
+- Which fields truly define value equality? Which fields are only descriptive data that should not participate in the key's identity?
 
-**Bất biến (*immutability*)** nghĩa là trạng thái quan sát được qua API của đối tượng không thể đổi sau khi được xây dựng. `final` trên một biến/trường chỉ ngăn gán lại tham chiếu đó, **không** tự biến đối tượng mà nó trỏ đến thành bất biến.
+**Immutability** means that the state observable through the object's API cannot change after construction. `final` on a variable/field only prevents reassigning that reference; it does **not** automatically make the object it points to immutable.
 
-## 2. Mối liên hệ giữa bất biến, `equals()` và `hashCode()`
+## 2. The Relationship Between Immutability, `equals()`, and `hashCode()`
 
-Hợp đồng quan trọng của Java:
+Key Java contracts:
 
-- `equals()` phải có tính phản xạ, đối xứng, bắc cầu và nhất quán khi thông tin dùng cho so sánh không thay đổi; so với `null` phải trả về `false`.
-- Nếu `a.equals(b)` là `true`, bắt buộc `a.hashCode() == b.hashCode()`. Điều ngược lại **không** bắt buộc: hash bằng nhau vẫn có thể là hai giá trị khác nhau.
-- Khi đối tượng đang là khóa băm, không được thay đổi trạng thái góp phần vào `equals()`/`hashCode()`. Ngay cả khi chương trình chỉ giữ **cùng một tham chiếu**, việc đổi hash có thể làm `get()` hoặc `containsKey()` không tìm thấy khóa.
+- `equals()` must be reflexive, symmetric, transitive, and consistent when the information used for comparison does not change; comparing against `null` must return `false`.
+- If `a.equals(b)` is `true`, then `a.hashCode() == b.hashCode()` is mandatory. The converse is **not** required: equal hashes can still correspond to two different values.
+- While an object is acting as a hash key, state contributing to `equals()`/`hashCode()` must not be modified. Even when the program holds **the exact same reference**, changing the hash can cause `get()` or `containsKey()` to fail to find the key.
 
-Bất biến là cách đơn giản và mạnh để duy trì hợp đồng này. Tuy nhiên, **một khóa vẫn có thể hợp lệ nếu lớp mutable nhưng tuyệt đối không bị thay đổi khi đang nằm trong map**; vấn đề là điều kiện đó khó duy trì và kiểm chứng khi hệ thống lớn lên. Ưu tiên key bất biến sẽ giảm hẳn lớp lỗi này.
+Immutability is the simplest and strongest way to uphold this contract. However, **a key can still be valid if its class is mutable yet strictly never mutated while inside the map**; the problem is that this condition becomes hard to maintain and verify as the system grows. Preferring immutable keys eliminates this entire class of bugs.
 
-Đối với các cấu trúc **có thứ tự** như `TreeMap`/`TreeSet`, còn cần `compareTo()` hoặc `Comparator` ổn định và phù hợp với khái niệm khóa bằng nhau của miền bài toán. Nếu thứ tự so sánh coi hai giá trị là tương đương nhưng `equals()` không coi chúng bằng nhau, hành vi của tree collection có thể khác hash collection.
+For **ordered** structures such as `TreeMap`/`TreeSet`, you also need a stable `compareTo()` or `Comparator` that aligns with the domain's concept of key equality. If the ordering comparison treats two values as equivalent while `equals()` does not treat them as equal, tree collection behavior can diverge from hash collections.
 
-## 3. Chọn kiểu thành phần nào?
+## 3. Which Component Types Should You Choose?
 
-Một hướng chọn thực dụng là dùng các giá trị có trạng thái bất biến, có ngữ nghĩa bình đẳng rõ ràng và không chứa đường đi tới trạng thái mutable có thể quan sát được.
+A practical rule of thumb is to use values with immutable state, clear equality semantics, and no reachable path to observable mutable state.
 
-| Nhóm thành phần | Thường phù hợp làm thành phần bất biến? | Điều phải xem xét |
+| Component Group | Usually Suitable as an Immutable Component? | What Must Be Considered |
 | --- | --- | --- |
-| Kiểu nguyên thủy `int`, `long`, `boolean`, ... | Có | Chọn kiểu/đơn vị diễn tả đúng miền dữ liệu; cẩn trọng `float`/`double` |
-| `String`, `UUID`, wrapper `Integer`/`Long`, `BigInteger` | Có | Quy tắc chuẩn hóa, so sánh và miền giá trị |
-| `LocalDate`, `LocalDateTime`, `Instant`, `Duration`, `ZoneId` | Có | Phân biệt ngày địa phương, thời điểm toàn cầu, múi giờ và đơn vị thời gian |
-| `BigDecimal` | Bản thân bất biến | `equals()` xét cả `scale`; `compareTo()` có thể cho kết quả khác |
-| `enum` | Có | Chọn hằng nghiệp vụ ổn định; không dựa vào `ordinal()` làm mã lưu trữ lâu dài |
-| Value object tự định nghĩa, mọi thành phần bất biến | Có | Phải bảo đảm bất biến xuyên suốt và `equals()/hashCode()` đúng |
-| `List`, `Set`, `Map` | Chỉ khi cấu trúc **và** các phần tử/khóa/giá trị liên quan đều an toàn | `List.copyOf`, `Set.copyOf`, `Map.copyOf` chỉ sao chép nông các tham chiếu phần tử |
-| Mảng `byte[]`, `int[]`, mảng đối tượng | Không, nếu lộ trực tiếp | Mảng luôn mutable; cần defensive copy và bình đẳng theo nội dung nếu dùng làm value |
-| `Date`, `Calendar`, `StringBuilder`, `ArrayList`, `HashMap` | Không trực tiếp | Mutable; cần chuyển thành biểu diễn bất biến hoặc sao chép sâu trong phạm vi thích hợp |
-| `AtomicInteger`, `AtomicReference` | Không trực tiếp | Thread-safe cho thao tác riêng lẻ **không có nghĩa là bất biến** |
-| `ByteBuffer`, entity JPA, DTO có setter | Thường không | Trạng thái, vị trí con trỏ, quan hệ và dữ liệu có thể đổi |
+| Primitives `int`, `long`, `boolean`, ... | Yes | Choose types/units that accurately express the data domain; be cautious with `float`/`double` |
+| `String`, `UUID`, wrappers `Integer`/`Long`, `BigInteger` | Yes | Normalization rules, comparison, and value domain |
+| `LocalDate`, `LocalDateTime`, `Instant`, `Duration`, `ZoneId` | Yes | Distinguish local date, global instant, time zone, and time unit |
+| `BigDecimal` | Immutable itself | `equals()` considers `scale`; `compareTo()` may produce a different result |
+| `enum` | Yes | Choose stable business constants; do not rely on `ordinal()` as a long-term persisted code |
+| Custom value objects with all-immutable components | Yes | Must ensure end-to-end immutability and correct `equals()/hashCode()` |
+| `List`, `Set`, `Map` | Only when the structure **and** all related elements/keys/values are safe | `List.copyOf`, `Set.copyOf`, `Map.copyOf` only shallow-copy element references |
+| Arrays `byte[]`, `int[]`, object arrays | No, if exposed directly | Arrays are always mutable; need defensive copies and content-based equality if used as a value |
+| `Date`, `Calendar`, `StringBuilder`, `ArrayList`, `HashMap` | Not directly | Mutable; must be converted to an immutable representation or deep-copied where appropriate |
+| `AtomicInteger`, `AtomicReference` | Not directly | Being thread-safe for individual operations **does not mean immutable** |
+| `ByteBuffer`, JPA entities, DTOs with setters | Usually no | State, cursor position, relationships, and data can change |
 
-**Lưu ý về bộ sưu tập:** một collection không cho `add()`/`remove()` vẫn có thể chứa đối tượng mutable. Khi đối tượng con bị sửa, trạng thái logic của key vẫn thay đổi dù container không thêm/xóa phần tử được.
+**Note on collections:** a collection that forbids `add()`/`remove()` can still contain mutable objects. When a child object is modified, the logical state of the key still changes even though the container does not allow adding/removing elements.
 
-**Lưu ý về kiểu thời gian:** `java.util.Date` mutable, trong khi `java.time.Instant` bất biến. Một key biểu diễn “ngày đặt hàng” nên cân nhắc `LocalDate`; key biểu diễn “thời điểm chính xác” nên cân nhắc `Instant`. Hai khái niệm không thể hoán đổi nếu bỏ qua múi giờ.
+**Note on time types:** `java.util.Date` is mutable, whereas `java.time.Instant` is immutable. A key representing "order date" should consider `LocalDate`; a key representing "exact point in time" should consider `Instant`. The two concepts cannot be swapped while ignoring time zones.
 
-## 4. Ví dụ Java 17: key bất biến được chuẩn hóa
+## 4. Java 17 Example: Normalized Immutable Key
 
-Đặt trong tệp `ImmutableKeyDemo.java`:
+Placed in file `ImmutableKeyDemo.java`:
 
 ```java
 import java.util.HashMap;
@@ -96,14 +96,14 @@ public class ImmutableKeyDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac -encoding UTF-8 ImmutableKeyDemo.java
 java ImmutableKeyDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 true
@@ -113,19 +113,19 @@ null
 ProductKey[tenant=store-a, sku=AB-10, revision=2]
 ```
 
-Giải thích:
+Explanation:
 
-1. `ProductKey` là `record` với ba thành phần bất biến: `String`, `String`, `int`. Java sinh `equals()`, `hashCode()`, accessor và `toString()` theo thành phần của record.
-2. *Compact constructor* là nơi chuẩn hóa dữ liệu **trước khi** bản ghi hoàn tất khởi tạo; các tham số `tenant`/`sku` đã chuẩn hóa được gán vào trường tương ứng.
-3. `Locale.ROOT` giúp chuẩn hóa chữ hoa/chữ thường theo quy tắc độc lập với locale máy đang chạy. Đây chỉ là **chính sách ví dụ**: một hệ thống phân biệt hoa/thường ở SKU không được áp dụng chính sách này.
-4. Hai key biểu diễn cùng bộ ba giá trị chuẩn hóa có `equals() == true` và hash bằng nhau; việc tra cứu map bằng key mới hoạt động.
-5. `revision` là một phần giá trị khóa, vì ví dụ này định nghĩa mỗi phiên bản là một key khác nhau. Nếu miền bài toán chỉ dùng SKU để xác định danh tính, không được tự động thêm `revision` vào equality.
+1. `ProductKey` is a `record` with three immutable components: `String`, `String`, `int`. Java generates `equals()`, `hashCode()`, accessors, and `toString()` from the record components.
+2. The *compact constructor* is where data is normalized **before** the record finishes initialization; the normalized `tenant`/`sku` parameters are assigned to their corresponding fields.
+3. `Locale.ROOT` normalizes letter case using rules independent of the host machine's locale. This is only an **example policy**: a system with case-sensitive SKUs must not apply this policy.
+4. Two keys representing the same normalized triple have `equals() == true` and equal hashes; looking up the map with a new key works.
+5. `revision` is part of the key value because this example defines each revision as a distinct key. If the problem domain uses only SKU to determine identity, you must not automatically include `revision` in equality.
 
-**Quy tắc thiết kế:** chọn tập thành phần từ **ngữ nghĩa nghiệp vụ của khóa** trước, sau đó bảo đảm mọi thành phần được chọn có trạng thái an toàn. Thêm quá nhiều trường mutable hoặc dữ liệu trình bày vào `equals()`/`hashCode()` có thể khiến key trở nên mong manh.
+**Design rule:** choose the set of components from the **business semantics of the key** first, then ensure every chosen component has safe state. Adding too many mutable fields or presentation data into `equals()`/`hashCode()` can make the key fragile.
 
-## 5. Lỗi điển hình: thay đổi thành phần của một key trong `HashMap`
+## 5. Typical Bug: Mutating a Component of a Key Inside a `HashMap`
 
-Tệp `MutableKeyDemo.java` cho thấy một lỗi dù không hề thay thế tham chiếu đến key:
+The file `MutableKeyDemo.java` demonstrates a bug even without replacing the reference to the key:
 
 ```java
 import java.util.ArrayList;
@@ -149,14 +149,14 @@ public class MutableKeyDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 MutableKeyDemo.java
 java MutableKeyDemo
 ```
 
-Kết quả trên Java 17:
+Output on Java 17:
 
 ```text
 found
@@ -165,30 +165,30 @@ false
 1
 ```
 
-Giải thích chính xác:
+Exact explanation:
 
-- `ArrayList.equals()` và `ArrayList.hashCode()` dựa trên nội dung phần tử.
-- Khi đưa `["A"]` vào map, map dùng hash của danh sách tại thời điểm đó.
-- Sau `key.set(0, "B")`, hash của cùng danh sách thay đổi; tra cứu bằng `key` mới không thấy mục đã lưu. `List.of("A")` cũng không bằng key đã biến thành `["B"]`.
-- `map.size()` vẫn là `1`: entry không tự biến mất; vấn đề nằm ở tính nhất quán giữa vị trí lưu và khóa dùng để tìm. Các bucket được trình bày chỉ để giải thích hành vi; kết quả tra cứu trong ví dụ dùng khóa cụ thể `"A"` và `"B"`.
+- `ArrayList.equals()` and `ArrayList.hashCode()` are based on element contents.
+- When `["A"]` is inserted into the map, the map uses the list's hash at that moment.
+- After `key.set(0, "B")`, the hash of that same list changes; looking up with the new `key` does not find the stored entry. `List.of("A")` is also not equal to the key that has turned into `["B"]`.
+- `map.size()` is still `1`: the entry does not vanish on its own; the problem lies in the consistency between the storage slot and the key used for lookup. The buckets described are only to explain the behavior; the lookup results in the example use the concrete keys `"A"` and `"B"`.
 
-**Không được** sửa một key mutable đang nằm trong map rồi dựa vào `remove(key)` để chắc chắn lấy được phần tử ra: chính thao tác `remove` cũng dùng hash hiện tại. Khi cần đổi giá trị khóa, hãy xóa entry bằng **khóa ban đầu vẫn còn hợp lệ**, rồi chèn entry mới với một key bất biến khác; nếu đã làm hỏng map do biến đổi key, cần có chiến lược khôi phục tương thích với toàn bộ cấu trúc.
+**Do not** mutate a mutable key while it is in a map and then rely on `remove(key)` to reliably take the element out: `remove` itself uses the current hash. When a key's value needs to change, delete the entry using **the original still-valid key**, then insert a new entry with a different immutable key; if the map has already been corrupted by key mutation, you need a recovery strategy compatible with the entire structure.
 
-## 6. `record` và `final` chưa bảo đảm bất biến sâu
+## 6. `record` and `final` Do Not Guarantee Deep Immutability
 
-`record` giúp biểu diễn value object ngắn gọn và tự sinh các phương thức dựa trên thành phần. Tuy nhiên, record chỉ cố định **tham chiếu thành phần**; nó không tự đóng băng đối tượng con.
+`record` expresses value objects concisely and auto-generates methods based on components. However, a record only fixes **component references**; it does not automatically freeze child objects.
 
-Ví dụ có vấn đề:
+Problematic example:
 
 ```java
 record UnsafeGroupKey(String tenant, java.util.List<String> members) {}
 ```
 
-Code trên chỉ là định nghĩa kiểu. Nếu truyền một `ArrayList` vào `UnsafeGroupKey`, bên ngoài vẫn có thể sửa danh sách gốc; accessor `members()` cũng trả về cùng danh sách. Vì `List.equals()`/`hashCode()` phụ thuộc phần tử, hash của record thay đổi cùng danh sách.
+The code above is just a type definition. If you pass an `ArrayList` into `UnsafeGroupKey`, external callers can still mutate the original list; the `members()` accessor also returns that same list. Since `List.equals()`/`hashCode()` depend on elements, the record's hash changes along with the list.
 
-### Cách làm đúng khi phần tử tự nó bất biến
+### The Right Way When Elements Themselves Are Immutable
 
-Tệp `DefensiveRecordDemo.java`:
+File `DefensiveRecordDemo.java`:
 
 ```java
 import java.util.ArrayList;
@@ -224,14 +224,14 @@ public class DefensiveRecordDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 DefensiveRecordDemo.java
 java DefensiveRecordDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 [An, Bình]
@@ -239,28 +239,28 @@ team
 Unmodifiable
 ```
 
-`List.copyOf` ngăn caller sửa cấu trúc qua biến `source` rồi ảnh hưởng tới cấu trúc danh sách bên trong key, và danh sách trả từ `members()` không cho thao tác thêm/xóa. Các phần tử ở đây là `String` bất biến nên có thể được chia sẻ an toàn. Nếu `members` là `List<Member>` mà `Member` mutable, **mã này chưa đủ**: phải chuyển `Member` sang value object bất biến hoặc sao chép từng `Member` theo đúng hợp đồng.
+`List.copyOf` prevents callers from mutating the structure via `source` and affecting the list structure inside the key, and the list returned by `members()` disallows add/remove operations. The elements here are immutable `String` instances so they can be shared safely. If `members` were `List<Member>` where `Member` is mutable, **this code would not be enough**: you would need to convert `Member` to an immutable value object or copy each `Member` according to the contract.
 
-`List.copyOf`, `Set.copyOf` và `Map.copyOf` tạo collection không thể chỉnh sửa qua API của chúng nhưng **không sao chép sâu** phần tử/khóa/giá trị; các factory này cũng không chấp nhận phần tử `null` (với `Map.copyOf`, cả khóa và giá trị đều không được `null`).
+`List.copyOf`, `Set.copyOf`, and `Map.copyOf` create collections that cannot be modified through their APIs, yet they **do not deep-copy** elements/keys/values; these factories also reject `null` elements (with `Map.copyOf`, neither keys nor values may be `null`).
 
-**Cẩn thận với constructor/accessor:**
+**Be careful with constructors/accessors:**
 
-- Constructor chỉ copy nhưng accessor trả ra tham chiếu mutable bên trong → vẫn rò rỉ trạng thái.
-- Accessor trả bản sao nhưng constructor lưu tham chiếu đầu vào trực tiếp → caller vẫn sửa được từ bên ngoài.
-- Cả hai phía cần được bảo vệ khi dữ liệu con mutable, hoặc dùng **kiểu dữ liệu con bất biến thật sự**.
+- Constructor copies, but accessor returns an internal mutable reference → state still leaks.
+- Accessor returns a copy, but constructor stores the input reference directly → caller can still mutate from outside.
+- Both sides must be protected when child data is mutable, or use **truly immutable child data types**.
 
-## 7. Mảng là trường hợp cần xử lý riêng
+## 7. Arrays Are a Special Case Requiring Separate Handling
 
-Mảng Java luôn mutable. Thêm nữa, `equals()`/`hashCode()` mặc định của mảng dùng **danh tính mảng**, không so sánh nội dung. Ví dụ hai `new byte[] {1, 2}` là hai đối tượng khác nhau; `array1.equals(array2)` là `false`.
+Java arrays are always mutable. Furthermore, the default `equals()`/`hashCode()` on arrays uses **array identity**, not content comparison. For example, two `new byte[] {1, 2}` instances are two distinct objects; `array1.equals(array2)` is `false`.
 
-Nếu dùng một `record BlobKey(byte[] data)`, phương thức `equals()`/`hashCode()` được sinh ra **không tự so mảng theo nội dung**; đồng thời `data()` có thể cho phép sửa trực tiếp mảng. Cần quyết định một trong hai hướng:
+If you use a `record BlobKey(byte[] data)`, the generated `equals()`/`hashCode()` methods **do not automatically compare arrays by content**; at the same time, `data()` can allow direct mutation of the array. You must choose one of two approaches:
 
-1. Chuyển dữ liệu mảng sang một kiểu giá trị bất biến có bình đẳng theo nội dung phù hợp.
-2. Tự viết lớp hoặc record với defensive copy ở đầu vào/đầu ra và `Arrays.equals()`/`Arrays.hashCode()` tương ứng; nếu phần tử mảng là tham chiếu, còn phải quyết định mức copy sâu.
+1. Convert the array data into an immutable value type with appropriate content-based equality.
+2. Write a custom class or record with defensive copies on input/output and matching `Arrays.equals()`/`Arrays.hashCode()`; if array elements are references, you must also decide the depth of copying.
 
-### Ví dụ lớp bất biến giữ nội dung `byte[]`
+### Example of an Immutable Class Holding `byte[]` Content
 
-Tệp `ByteArrayKeyDemo.java`:
+File `ByteArrayKeyDemo.java`:
 
 ```java
 import java.util.Arrays;
@@ -309,14 +309,14 @@ public class ByteArrayKeyDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 ByteArrayKeyDemo.java
 java ByteArrayKeyDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 [1, 2]
@@ -324,15 +324,15 @@ true
 OK
 ```
 
-Hai lần `clone()` ở **constructor** và **accessor** bảo vệ khỏi sửa qua cả hai hướng; `Arrays.equals`/`Arrays.hashCode` thống nhất theo nội dung. Với mảng `byte[]`, `clone()` đủ để tạo bản sao dữ liệu các phần tử nguyên thủy. Với `MutableItem[]`, clone chỉ tạo **mảng mới**, không nhân bản từng `MutableItem`.
+Two `clone()` calls—in the **constructor** and the **accessor**—protect against mutation from both directions; `Arrays.equals`/`Arrays.hashCode` align on content. For a `byte[]` array, `clone()` suffices to copy the primitive element data. For `MutableItem[]`, `clone()` creates only a **new array**, without cloning each `MutableItem`.
 
-Cũng cần kiểm tra `null` một cách tường minh nếu API cho phép hoặc cấm `null`. Ở ví dụ này, truyền `null` vào constructor sẽ gây `NullPointerException` tại lời gọi `clone()`; trong API thực tế nên dùng `Objects.requireNonNull(data, "data")` để làm rõ hợp đồng.
+You should also check `null` explicitly if the API allows or forbids `null`. In this example, passing `null` to the constructor triggers a `NullPointerException` at the `clone()` call; in production APIs, use `Objects.requireNonNull(data, "data")` to make the contract explicit.
 
-## 8. Trạng thái bất biến có thể bị rò rỉ qua nhiều tầng
+## 8. Immutable State Can Leak Through Multiple Layers
 
-Ví dụ `List<List<String>>`: chỉ gọi `List.copyOf(outer)` khiến danh sách ngoài không thể sửa nhưng các danh sách trong vẫn mutable nếu nguồn ban đầu mutable. Nếu đối tượng key chứa danh sách lồng nhau, cần copy **cả container ngoài và từng container con** cần bảo vệ.
+Consider `List<List<String>>`: calling only `List.copyOf(outer)` makes the outer list unmodifiable, yet the inner lists remain mutable if the original source was mutable. If a key object contains nested lists, you must copy **both the outer container and each inner container** that needs protection.
 
-Đoạn mã minh họa, áp dụng khi phần tử cuối cùng đều là `String` bất biến:
+Illustrative snippet, applicable when the leaf elements are all immutable `String` values:
 
 ```java
 List<List<String>> snapshot = source.stream()
@@ -340,23 +340,23 @@ List<List<String>> snapshot = source.stream()
         .toList();
 ```
 
-Đoạn trên dùng `source` là `List<List<String>>` đã tồn tại và Java 17+; `Stream.toList()` trả về danh sách không thể sửa. Nếu cấu trúc sâu thêm một tầng `List<List<Member>>` với `Member` mutable thì vẫn chưa giải quyết phần `Member`. Đối với `Map<Key, Value>`, phải đánh giá **cả key lẫn value** nếu trạng thái value là một phần của value object; `Map.copyOf` không làm các value mutable trở thành bất biến.
+The snippet above uses an existing `source` of type `List<List<String>>` and Java 17+; `Stream.toList()` returns an unmodifiable list. If the structure goes one level deeper to `List<List<Member>>` with a mutable `Member`, the `Member` part is still unresolved. For `Map<Key, Value>`, you must evaluate **both keys and values** if value state is part of the value object; `Map.copyOf` does not make mutable values immutable.
 
-So sánh ba cách thường bị nhầm:
+Comparing three commonly confused approaches:
 
-| Cách | Cấu trúc collection qua tham chiếu kết quả | Dữ liệu con mutable |
+| Approach | Collection structure via resulting reference | Mutable child data |
 | --- | --- | --- |
-| `new ArrayList<>(original)` | Có thể sửa; container mới | Phần tử vẫn chia sẻ |
-| `Collections.unmodifiableList(original)` | Không sửa qua view; view phản ánh thay đổi cấu trúc từ `original` | Phần tử vẫn chia sẻ |
-| `List.copyOf(original)` | Không sửa qua danh sách kết quả, cấu trúc chụp tại thời điểm copy | Phần tử vẫn chia sẻ |
+| `new ArrayList<>(original)` | Modifiable; new container | Elements still shared |
+| `Collections.unmodifiableList(original)` | Unmodifiable via view; view reflects structural changes from `original` | Elements still shared |
+| `List.copyOf(original)` | Unmodifiable via resulting list; structure captured at copy time | Elements still shared |
 
-Khi đầu vào đã bất biến, `List.copyOf` có thể trả lại cùng instance; đây không phải lỗi vì mục tiêu là ổn định cấu trúc. Khi đầu vào có thay đổi đồng thời từ luồng khác, quá trình copy cần một cơ chế tạo snapshot nhất quán riêng nếu miền bài toán yêu cầu.
+When the input is already immutable, `List.copyOf` may return the same instance; this is not a bug because the goal is structural stability. When the input experiences concurrent modifications from another thread, the copying process needs a dedicated consistent-snapshot mechanism if the domain requires it.
 
-## 9. Bình đẳng số học không luôn trùng với `equals()`: `BigDecimal`
+## 9. Numeric Equality Does Not Always Match `equals()`: `BigDecimal`
 
-`BigDecimal` **bất biến**, nhưng không phải cứ hai số có cùng trị số là `equals()` bằng nhau. `BigDecimal.equals()` xét cả **giá trị và scale**, trong khi `compareTo()` so theo trị số.
+`BigDecimal` is **immutable**, yet two numbers with the same numeric value are not necessarily `equals()`. `BigDecimal.equals()` considers both **value and scale**, whereas `compareTo()` compares by numeric value.
 
-Tệp `BigDecimalKeyDemo.java`:
+File `BigDecimalKeyDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -377,14 +377,14 @@ public class BigDecimalKeyDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 BigDecimalKeyDemo.java
 java BigDecimalKeyDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 false
@@ -393,155 +393,155 @@ true
 1
 ```
 
-`HashSet` dùng `equals()`/`hashCode()`; `TreeSet` dùng thứ tự sắp xếp (ở đây là `BigDecimal.compareTo()`). Hai collection vì thế có cách xác định phần tử trùng khác nhau.
+`HashSet` uses `equals()`/`hashCode()`; `TreeSet` uses sort ordering (here `BigDecimal.compareTo()`). The two collections therefore have different ways of determining duplicate elements.
 
-Nếu miền bài toán cho rằng `1.0` và `1.00` biểu diễn cùng giá trị, cần quy ước **canonical form** ngay lúc tạo key; ví dụ xử lý `stripTrailingZeros()` và thống nhất zero theo nhu cầu nghiệp vụ. Nếu scale mang ý nghĩa nghiệp vụ (độ chính xác khai báo, đơn vị, định dạng hóa đơn), có thể **cố ý giữ scale** để phân biệt. Không tự thay đổi `equals()` theo `compareTo()` mà quên `hashCode()`; hai phương thức phải tương thích.
+If the domain considers `1.0` and `1.00` to represent the same value, establish a **canonical form** right when creating the key; for example, calling `stripTrailingZeros()` and normalizing zero according to business needs. If scale carries business meaning (declared precision, units, invoice formatting), you can **intentionally preserve scale** to distinguish them. Do not change `equals()` to follow `compareTo()` while forgetting `hashCode()`; both methods must be compatible.
 
-Với tiền tệ, lựa chọn kiểu số còn gắn với **đơn vị, mã tiền tệ và quy tắc làm tròn**. Một khóa gồm `(amount, currency)` phải giải thích rõ giá trị `amount` được chuẩn hóa ra sao; một `long` số đơn vị nhỏ nhất chỉ phù hợp khi miền bài toán định nghĩa rõ số chữ số thập phân và phạm vi.
+For money, choosing a numeric type is also tied to **units, currency codes, and rounding rules**. A key consisting of `(amount, currency)` must clearly specify how `amount` is normalized; a `long` counting minor units is only suitable when the domain clearly defines the number of decimal places and range.
 
-### `double`/`float` cần chính sách so sánh riêng
+### `double`/`float` Require Explicit Comparison Policies
 
-Các kiểu dấu chấm động có `NaN`, vô cực và hai giá trị `+0.0`/`-0.0`. Không nên cho rằng quy tắc so sánh toán học thông thường là đủ để định nghĩa key. `Double.equals()` và các phương thức wrapper có quy tắc riêng đối với `NaN` và dấu của zero; bản thân phép `==` ở kiểu nguyên thủy còn có hành vi khác. Nếu cần khóa theo số đo liên tục, hãy xác định cách làm tròn, độ chính xác và cách biểu diễn chuẩn **trước khi** chọn thành phần; tránh tự cài `equals()` bằng dung sai `epsilon` vì có thể phá tính bắc cầu.
+Floating-point types have `NaN`, infinities, and two zero values `+0.0`/`-0.0`. You should not assume ordinary mathematical comparison rules suffice to define a key. `Double.equals()` and wrapper methods have special rules for `NaN` and the sign of zero; primitive `==` itself behaves differently. If you need keys based on continuous measurements, define rounding, precision, and canonical representation **before** choosing components; avoid implementing `equals()` using an `epsilon` tolerance since it can break transitivity.
 
-## 10. Chọn đúng trường theo ngữ nghĩa nghiệp vụ
+## 10. Choosing the Right Fields Based on Business Semantics
 
-Tính bất biến chỉ là điều kiện kỹ thuật. Một key còn phải chứa **đúng các trường định nghĩa danh tính giá trị** trong phạm vi sử dụng.
+Immutability is only a technical prerequisite. A key must also contain **the exact fields that define value identity** within its scope of use.
 
-Xét một sản phẩm có `productId` không đổi, `displayName` có thể được đổi, `price` cập nhật theo thời điểm:
+Consider a product with an unchanging `productId`, a `displayName` that can be renamed, and a `price` updated over time:
 
-- Nếu map muốn tra **thực thể sản phẩm** qua một khóa lâu dài, `productId` thường là ứng viên tốt; đưa `displayName` hoặc `price` vào key sẽ làm khóa gắn với thuộc tính dễ đổi.
-- Nếu map muốn tra **báo giá tại phiên bản cụ thể**, cặp `(productId, priceVersion)` có thể có nghĩa. `priceVersion` nên là giá trị được cố định trong key được tạo mới, không phải trường mutable bị sửa tại chỗ.
-- Nếu business key là `(tenantId, externalCode)`, cả hai thành phần phải có quy tắc rõ về hoa/thường, khoảng trắng, Unicode và `null`.
+- If a map wants to look up **the product entity** by a long-lived key, `productId` is usually a good candidate; putting `displayName` or `price` into the key ties the key to volatile attributes.
+- If a map wants to look up **a quote at a specific version**, the pair `(productId, priceVersion)` can make sense. `priceVersion` should be a value fixed inside a newly created key, not a mutable field modified in place.
+- If the business key is `(tenantId, externalCode)`, both components must have clear rules for case, whitespace, Unicode, and `null`.
 
-Ví dụ mô hình hợp đồng:
+Example contract model:
 
 ```text
 Entity Product:
-    id = P-42             // danh tính ổn định
-    displayName = "..."   // thuộc tính có thể đổi
-    price = ...            // thuộc tính có thể đổi
+    id = P-42             // stable identity
+    displayName = "..."   // mutable attribute
+    price = ...            // mutable attribute
 
 Value Key:
-    ProductId("P-42")     // giá trị bất biến
-    ProductVersion("P-42", 7) // phiên bản được phân biệt có chủ đích
+    ProductId("P-42")     // immutable value
+    ProductVersion("P-42", 7) // intentionally distinguished version
 ```
 
-Đây là sơ đồ minh họa, không phải mã Java để biên dịch. Một **value object** có thể là thành phần của entity, nhưng value object không có nghĩa là entity. Cũng không có quy tắc bắt buộc “mọi trường của một object phải tham gia `equals()`”: với class thường, trường metadata/trạng thái dẫn xuất có thể bị loại khỏi equality theo hợp đồng; với record mặc định, equality tính trên **tất cả** thành phần record.
+This is an illustrative diagram, not Java code to compile. A **value object** can be a component of an entity, but a value object does not mean an entity. Nor is there a mandatory rule that "every field of an object must participate in `equals()`": for ordinary classes, metadata/derived state fields can be excluded from equality by contract; for records by default, equality is computed over **all** record components.
 
-### Chuẩn hóa trước khi tạo key
+### Normalize Before Creating the Key
 
-Hãy quyết định rõ ràng:
+Decide explicitly:
 
-- Chữ hoa/thường có ý nghĩa không? `toLowerCase(Locale.ROOT)` là lựa chọn độc lập locale nếu nghiệp vụ muốn không phân biệt chữ, nhưng không phù hợp cho mọi mã định danh hoặc văn bản tự nhiên.
-- Có bỏ khoảng trắng đầu/cuối, chuẩn hóa Unicode, gộp nhiều dấu cách, hay chuyển định dạng dấu phân cách không? Nếu có, quy tắc phải nhất quán giữa ghi và tra cứu.
-- Các cách biểu diễn `null`, chuỗi rỗng, “unknown” có tương đương không? Cân nhắc cấm trạng thái không hợp lệ ngay trong constructor.
-- Nếu key là tổ hợp nhiều thành phần, thứ tự trong `List` có ý nghĩa không? Nếu thứ tự không có nghĩa, cân nhắc kiểu tập hợp và quy tắc xử lý phần tử trùng.
-- Nếu key dùng để lưu trữ/caching qua nhiều phiên bản ứng dụng, schema và cách chuẩn hóa có ổn định không? Khi thay đổi chính sách key, cần xem xét migration, cache invalidation và tương thích dữ liệu.
+- Does letter case matter? `toLowerCase(Locale.ROOT)` is a locale-independent choice if the business wants case-insensitivity, though not appropriate for every identifier or natural text.
+- Should you strip leading/trailing whitespace, normalize Unicode, collapse multiple spaces, or standardize separators? If so, the rule must be consistent between writes and lookups.
+- Are `null`, empty strings, and `"unknown"` equivalent representations? Consider rejecting invalid states right in the constructor.
+- If a key is a composite of multiple components, does order in a `List` matter? If order does not matter, consider a set type and rules for handling duplicates.
+- If the key is used for storage/caching across multiple application versions, are the schema and normalization stable? When changing the key policy, consider migration, cache invalidation, and data compatibility.
 
-**Không sửa key tại chỗ để “chuẩn hóa sau”**; hãy chuẩn hóa khi tạo rồi xuất bản một đối tượng bất biến.
+**Do not mutate a key in place to "normalize later"**; normalize at creation time and then publish an immutable object.
 
-## 11. Thiết kế class bất biến khi record không phù hợp
+## 11. Designing an Immutable Class When `record` Does Not Fit
 
-`record` có các ưu điểm: ngắn, component `private final`, accessor không có setter và sinh equality theo mọi component. Dù vậy, record không luôn phù hợp:
+`record` has advantages: concise syntax, `private final` components, accessors without setters, and generated equality over all components. Even so, a record is not always suitable:
 
-- Cần so sánh dựa trên **một phần** các trường, hoặc có trạng thái dẫn xuất/cached value không thuộc equality.
-- Muốn che giấu biểu diễn lưu trữ, ví dụ mảng byte, nhưng vẫn dùng equality theo nội dung.
-- Cần kế thừa lớp khác: record không thể `extends` một class tùy ý (record kế thừa `java.lang.Record`).
-- Cần kiểm soát chặt accessor để không rò rỉ tham chiếu mutable.
+- You need comparison based on a **subset** of fields, or there is derived/cached state outside equality.
+- You want to hide storage representation, such as a byte array, while still using content-based equality.
+- You need to extend another class: a record cannot `extends` an arbitrary class (records extend `java.lang.Record`).
+- You need tight control over accessors so mutable references never leak.
 
-Một `final class` bất biến thường dùng các nguyên tắc:
+An immutable `final class` typically follows these principles:
 
-1. Đặt lớp `final` (hoặc kiểm soát nghiêm ngặt khả năng kế thừa), đóng các trường bằng `private final`.
-2. Validate và chuẩn hóa toàn bộ dữ liệu đầu vào trong constructor/factory trước khi lưu.
-3. Defensive copy mọi thành phần mutable cần được sở hữu riêng ở **đầu vào**.
-4. Không cung cấp phương thức thay đổi trạng thái; bảo vệ **đầu ra** qua giá trị bất biến, bản sao hoặc read-only interface có hợp đồng rõ.
-5. Viết `equals()`/`hashCode()` đồng nhất theo **các trường thực sự định nghĩa giá trị**, không dựa vào tham chiếu của mảng/collection mutable.
-6. Nếu có trường được dẫn xuất hoặc hash được cache, bảo đảm cache không làm thay đổi quan sát công khai và không phá hợp đồng equality.
-7. Kiểm tra khởi tạo an toàn, nhất là khi đối tượng sẽ được sử dụng giữa nhiều luồng; `final` hỗ trợ mô hình bộ nhớ Java nhưng không chữa việc làm rò rỉ `this` trong constructor hay lưu mutable reference không được bảo vệ.
+1. Declare the class `final` (or strictly control subclassing), and close fields with `private final`.
+2. Validate and normalize all input data in the constructor/factory before storing.
+3. Defensively copy every mutable component that needs private ownership on **input**.
+4. Provide no mutator methods; protect **output** via immutable values, copies, or read-only interfaces with clear contracts.
+5. Implement `equals()`/`hashCode()` consistently over **the fields that truly define the value**, not relying on references of mutable arrays/collections.
+6. If there are derived fields or a cached hash, ensure caching does not alter publicly observable behavior and does not break the equality contract.
+7. Check safe publication/initialization, especially when the object will be used across multiple threads; `final` supports the Java memory model, but does not fix leaking `this` during construction or storing unprotected mutable references.
 
-Nếu muốn sử dụng `Lombok @Value`, `@EqualsAndHashCode` hoặc mã sinh tự động, vẫn phải kiểm tra đúng thành phần equality và deep immutability; annotation không tự deep-copy các đối tượng mutable bên trong.
+If you want to use `Lombok @Value`, `@EqualsAndHashCode`, or auto-generated code, you must still verify the exact equality components and deep immutability; annotations do not automatically deep-copy mutable internal objects.
 
-## 12. Không nhầm immutable, unmodifiable và thread-safe
+## 12. Do Not Confuse Immutable, Unmodifiable, and Thread-Safe
 
-- **Immutable object:** trạng thái quan sát của chính đối tượng không thay đổi sau khởi tạo. Một chuỗi `String` là ví dụ phổ biến.
-- **Unmodifiable view:** API view không cho chỉnh sửa, nhưng dữ liệu nguồn có thể đổi. `Collections.unmodifiableList(mutableList)` là ví dụ.
-- **Unmodifiable snapshot container:** cấu trúc kết quả không cho sửa và không thay đổi theo các thao tác sửa cấu trúc nguồn sau lúc copy, như `List.copyOf(source)`; nội dung con mutable vẫn có thể đổi.
-- **Thread-safe mutable object:** có thể thay đổi trạng thái trong môi trường đồng thời theo hợp đồng, như `AtomicInteger`. Nó không trở thành immutable.
+- **Immutable object:** the observable state of the object itself cannot change after initialization. A `String` is a common example.
+- **Unmodifiable view:** an API view that disallows modification, while the underlying source data can still change. `Collections.unmodifiableList(mutableList)` is an example.
+- **Unmodifiable snapshot container:** the resulting structure cannot be modified and does not reflect structural mutations to the source after copying, such as `List.copyOf(source)`; mutable child contents can still change.
+- **Thread-safe mutable object:** can change state under concurrency according to its contract, such as `AtomicInteger`. It does not become immutable.
 
-Vì vậy, cấu trúc kiểu sau không phải một key bất biến đúng nghĩa:
+Therefore, a structure like the following is not a truly immutable key:
 
 ```java
 record CounterKey(String label, java.util.concurrent.atomic.AtomicInteger value) {}
 ```
 
-`AtomicInteger` mutable. Record giữ tham chiếu `value` cố định nhưng giá trị số bên trong vẫn thay đổi, và equality mặc định của record dành cho `AtomicInteger` sử dụng equality của chính đối tượng đó, không tự biểu diễn bình đẳng theo giá trị số đang giữ. Nếu khóa phải gắn với số tại thời điểm xây dựng, hãy lấy `int snapshot = value.get()` rồi lưu `int` hoặc wrapper bất biến trong key.
+`AtomicInteger` is mutable. The record holds a fixed `value` reference, yet the integer inside can still change, and the record's default equality for `AtomicInteger` uses that object's own equality rather than automatically expressing equality by the held numeric value. If the key must capture the number at construction time, read `int snapshot = value.get()` and store an `int` or an immutable wrapper in the key.
 
-**Snapshot consistency:** đọc từng trường của một object đang bị cập nhật bởi nhiều luồng có thể tạo key với các trường đến từ hai thời điểm khác nhau. Defensive copy và `final` không tự đảm bảo snapshot đa trường nhất quán; cần giao thức khóa, immutable snapshot được công bố an toàn hoặc cơ chế versioning khi cần.
+**Snapshot consistency:** reading individual fields of an object being updated by multiple threads can produce a key with fields coming from two different points in time. Defensive copying and `final` do not automatically guarantee a consistent multi-field snapshot; you need a locking protocol, a safely published immutable snapshot, or a versioning mechanism when needed.
 
-## 13. Kiểm thử hợp đồng value object và map key
+## 13. Testing Value Object and Map Key Contracts
 
-Viết test dựa trên **hành vi quan sát được**, không chỉ kiểm tra có `final` hay có `record`.
+Write tests based on **observable behavior**, not merely checking for `final` or `record`.
 
-| Tình huống kiểm thử | Điều cần đúng |
+| Test Scenario | Expected Correct Behavior |
 | --- | --- |
-| Hai input khác cách viết nhưng chuẩn hóa thành cùng khóa | `equals() == true` và hash bằng nhau |
-| Hai key khác dữ liệu identity | `equals() == false` theo quy tắc đã định |
-| Tra cứu bằng instance khác nhưng bằng giá trị | `map.get(equivalentKey)` tìm đúng entry |
-| Sửa mảng/list đầu vào sau khi tạo key | Giá trị key, hash và kết quả tra cứu không đổi |
-| Lấy accessor rồi thử sửa dữ liệu trả ra | Không sửa được trạng thái nội bộ của key |
-| Thành phần lồng nhiều tầng, phần tử mutable | Không có đường sửa vô ý vào trạng thái key |
-| `null`, rỗng, dữ liệu không hợp lệ | Bị từ chối hoặc được xử lý theo chính sách đã ghi |
-| `BigDecimal` khác scale, số dấu chấm động đặc biệt | Bình đẳng/khóa theo đúng quy ước nghiệp vụ |
-| Ghi cache/map dài hạn | Khóa giữ ổn định qua thao tác thường xuyên và không phụ thuộc trường trình bày |
+| Two differently written inputs that normalize to the same key | `equals() == true` and equal hashes |
+| Two keys with different identity data | `equals() == false` per defined rules |
+| Lookup using a different instance with equal value | `map.get(equivalentKey)` finds the right entry |
+| Mutating input array/list after key creation | Key value, hash, and lookup result remain unchanged |
+| Calling accessor and attempting to mutate returned data | Cannot mutate internal state of the key |
+| Deeply nested components, mutable elements | No unintended path to mutate key state |
+| `null`, empty, invalid data | Rejected or handled according to documented policy |
+| `BigDecimal` with different scale, special floating-point numbers | Equality/key behavior matches business convention |
+| Long-lived cache/map writes | Keys remain stable across frequent operations and do not depend on presentation fields |
 
-Một kiểm thử đặc biệt có giá trị là:
+One particularly valuable test is:
 
-1. Tạo key từ một **nguồn mutable**.
-2. Chèn key vào `HashMap`.
-3. Thay đổi nguồn mutable và cố gắng thay đổi dữ liệu qua accessor.
-4. Tạo key mới tương đương với **giá trị ban đầu**.
-5. Xác nhận `get(newEquivalentKey)` vẫn tìm được entry, `equals()/hashCode()` của key cũ vẫn giữ nguyên.
+1. Create a key from a **mutable source**.
+2. Insert the key into a `HashMap`.
+3. Mutate the mutable source and try mutating data via the accessor.
+4. Create a new key equivalent to **the original value**.
+5. Verify that `get(newEquivalentKey)` still finds the entry, and the old key's `equals()/hashCode()` remain unchanged.
 
-Test này thường bắt được lỗi defensive copy bị quên ở constructor hoặc accessor. Với record chứa mảng, còn phải kiểm tra equality theo nội dung thay vì dùng identity mảng.
+This test routinely catches forgotten defensive copies in constructors or accessors. For records containing arrays, you must also test content-based equality instead of array identity.
 
-## 14. Sai lầm thường gặp
+## 14. Common Mistakes
 
-| Sai lầm | Vì sao sai | Cách giải quyết |
+| Mistake | Why It Is Wrong | How to Fix It |
 | --- | --- | --- |
-| “Trường `final List<T>` nên value object bất biến” | Chỉ tham chiếu final, list/phần tử còn mutable | Bảo vệ cả container và phần tử |
-| “Record tự deep-copy mọi component” | Record không tự copy mutable reference | Dùng compact constructor và sao chép phù hợp |
-| “`List.copyOf` luôn deep copy” | Phần tử tham chiếu vẫn dùng chung | Dùng value element bất biến hoặc copy từng phần tử |
-| “Mảng ở record tự được so theo phần tử” | Mảng mặc định so theo identity | `Arrays.equals/hashCode` cùng defensive copy |
-| “`BigDecimal("1.0")` và `BigDecimal("1.00")` là cùng key” | `equals()` xét scale | Canonicalize nếu nghiệp vụ muốn bằng nhau |
-| “Hash giống nhau tức là `equals()` true” | Collision là hợp lệ | Dùng `equals()` xác nhận |
-| “Key chỉ cần hash ổn định, equality đổi cũng không sao” | `equals()` là một phần hợp đồng tra cứu | Ổn định toàn bộ trạng thái tham gia equality |
-| “Dùng giá bán/tên hiển thị để định danh sản phẩm” | Thuộc tính dễ đổi, không nhất thiết là identity | Dùng identifier bất biến đúng miền dữ liệu |
-| “Immutable tức là thread-safe trong mọi trường hợp” | Quá trình lấy snapshot từ nguồn mutable có thể không nhất quán | Bảo đảm snapshot và publication phù hợp |
-| “Cứ copy object là có key độc lập” | Có thể chỉ copy nông | Kiểm tra từng tham chiếu và ranh giới sở hữu |
+| "Field is `final List<T>`, so the value object is immutable" | Only the reference is final; the list/elements remain mutable | Protect both container and elements |
+| "Records automatically deep-copy every component" | Records do not copy mutable references | Use compact constructors and copy appropriately |
+| "`List.copyOf` always deep-copies" | Referenced elements are still shared | Use immutable value elements or copy each element |
+| "Arrays in a record are automatically compared element-wise" | Arrays compare by identity by default | `Arrays.equals/hashCode` plus defensive copies |
+| "`BigDecimal("1.0")` and `BigDecimal("1.00")` are the same key" | `equals()` considers scale | Canonicalize if the business wants them equal |
+| "Equal hashes mean `equals()` is true" | Collisions are valid | Confirm with `equals()` |
+| "Keys only need stable hashes; changing equality is fine" | `equals()` is part of the lookup contract | Stabilize all state participating in equality |
+| "Using selling price/display name to identify products" | Attributes change easily, not necessarily identity | Use an immutable identifier suited to the data domain |
+| "Immutable means thread-safe in every situation" | Taking a snapshot from a mutable source can be inconsistent | Ensure proper snapshot and publication |
+| "Just copying an object yields an independent key" | Might only be a shallow copy | Inspect every reference and ownership boundary |
 
-## 15. Quy trình chọn thành phần cho một key mới
+## 15. Process for Selecting Components for a New Key
 
-**Bước 1 — Định nghĩa quan hệ bình đẳng nghiệp vụ.** Viết câu: “Hai key bằng nhau khi và chỉ khi ...”. Ví dụ: “Cùng tenant, cùng mã SKU theo quy tắc không phân biệt hoa/thường, cùng số phiên bản”.
+**Step 1 — Define the business equality relation.** Write the sentence: "Two keys are equal if and only if ...". Example: "Same tenant, same SKU under case-insensitive rules, same revision number."
 
-**Bước 2 — Chọn biểu diễn bất biến.** Ưu tiên primitive, `String`, `UUID`, `java.time` và các nested value object thật sự bất biến. Với mảng/collection, xác định chính xác mức sở hữu và sao chép.
+**Step 2 — Choose immutable representations.** Prefer primitives, `String`, `UUID`, `java.time`, and genuinely immutable nested value objects. For arrays/collections, determine exact ownership and copying depth.
 
-**Bước 3 — Chuẩn hóa và validate tại biên.** Chốt locale, nullability, Unicode, scale, đơn vị đo và phiên bản. Từ chối trạng thái bất hợp lệ khi tạo object.
+**Step 3 — Normalize and validate at the boundary.** Lock down locale, nullability, Unicode, scale, units of measure, and versioning. Reject invalid states at object creation.
 
-**Bước 4 — Tạo immutable API.** Có thể dùng record cho tập component thuần bất biến, hoặc `final class` nếu cần kiểm soát sâu, so sánh đặc biệt, getter bảo vệ hay encapsulation.
+**Step 4 — Create an immutable API.** You can use a record for purely immutable component sets, or a `final class` when you need deep control, special comparison, protective getters, or encapsulation.
 
-**Bước 5 — Đảm bảo `equals/hashCode` cùng ngữ nghĩa.** Với tree collection còn cần comparator nhất quán với định nghĩa trùng khóa mong muốn.
+**Step 5 — Ensure `equals/hashCode` share the same semantics.** For tree collections, you also need a comparator consistent with the intended key-duplication definition.
 
-**Bước 6 — Kiểm thử chống mutation và tra cứu tương đương.** Sửa dữ liệu đầu vào hoặc mọi tham chiếu có thể lấy ra; xác nhận key và map không bị ảnh hưởng.
+**Step 6 — Test against mutation and for equivalent lookup.** Mutate input data or any extractable references; verify the key and map are unaffected.
 
-**Bước 7 — Tài liệu hóa hợp đồng.** Ghi rõ trường nào tham gia identity, cách chuẩn hóa, alias nào được phép, và tác động khi schema key thay đổi.
+**Step 7 — Document the contract.** Record which fields participate in identity, how normalization works, which aliases are allowed, and the impact when the key schema changes.
 
-## 16. Câu hỏi tự kiểm tra
+## 16. Self-Check Questions
 
-1. Một `record OrderKey(String id, List<OrderLine> lines)` dùng `List.copyOf(lines)` nhưng `OrderLine` có setter. Có thật sự là key bất biến không? Vì sao?
-2. Nếu dùng `byte[]` lưu SHA-256 digest, vì sao không nên chỉ tạo `record Digest(byte[] bytes)` rồi để Java sinh `equals/hashCode`?
-3. Tại sao `Collections.unmodifiableList(original)` khác `List.copyOf(original)` khi `original` tiếp tục được chỉnh sửa?
-4. Một hệ thống coi giá tiền `1.0` và `1.00` là tương đương. Phải quyết định chính sách nào trước khi đưa `BigDecimal` vào key?
-5. Khi nào nên dùng `ProductId(id)`, khi nào cần `ProductVersion(id, version)`, và vì sao không nên đưa tên sản phẩm thay đổi liên tục vào key lâu dài?
-6. Vì sao `final AtomicInteger counter` không chứng minh được trạng thái của đối tượng bất biến?
+1. A `record OrderKey(String id, List<OrderLine> lines)` uses `List.copyOf(lines)`, but `OrderLine` has setters. Is it truly an immutable key? Why?
+2. If you use a `byte[]` to store a SHA-256 digest, why shouldn't you just create `record Digest(byte[] bytes)` and let Java generate `equals/hashCode`?
+3. Why does `Collections.unmodifiableList(original)` behave differently from `List.copyOf(original)` when `original` continues to be modified?
+4. A system treats prices `1.0` and `1.00` as equivalent. What policy must be decided before putting `BigDecimal` into a key?
+5. When should you use `ProductId(id)`, when do you need `ProductVersion(id, version)`, and why shouldn't a constantly changing product name be placed into a long-lived key?
+6. Why does `final AtomicInteger counter` fail to prove that an object's state is immutable?
 
-**Ghi nhớ:** thành phần tốt cho value object và key phải có **ngữ nghĩa bình đẳng đúng**, **trạng thái ổn định**, và **không rò rỉ mutation qua tham chiếu bên trong**. Record, `final` và unmodifiable collection là công cụ hỗ trợ; hợp đồng bất biến sâu và `equals()/hashCode()` vẫn cần được thiết kế, kiểm thử rõ ràng.
+**Remember:** good components for value objects and keys must have **correct equality semantics**, **stable state**, and **no mutation leaks via internal references**. `record`, `final`, and unmodifiable collections are supporting tools; the deep immutability contract and `equals()/hashCode()` still must be explicitly designed and tested.

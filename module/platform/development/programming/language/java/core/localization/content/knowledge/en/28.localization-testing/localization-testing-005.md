@@ -1,82 +1,82 @@
-# Kiểm thử số thập phân, phần trăm, tiền tệ và phân tích toàn chuỗi trong Java
+# Testing Decimals, Percentages, Currencies, and Full-Input Parsing in Java
 
-## 1. Vì sao ba loại định dạng số cần bộ kiểm thử riêng?
+## 1. Why Do Three Number Formatting Types Need Separate Tests?
 
-Trong Java Core Localization, cùng một đại lượng số có thể đi qua ba cách trình bày khác nhau:
+In Java Core Localization, the same numeric quantity can pass through three different representations:
 
-- **Số thập phân thường:** `1234.50` có thể được hiển thị `1,234.50` ở `en-US`, `1.234,50` ở `de-DE`.
-- **Phần trăm:** tỷ lệ domain `0.125` có thể được hiển thị `12.5%`; dấu `%` và cách đặt khoảng trắng tùy locale.
-- **Tiền tệ:** amount `1234.50` cộng currency code `USD` có thể hiển thị `$1,234.50`, `1.234,50 $` hoặc một cách biểu đạt khác theo locale.
+- **Standard decimals:** `1234.50` may display as `1,234.50` in `en-US`, `1.234,50` in `de-DE`.
+- **Percentages:** a domain ratio of `0.125` may display as `12.5%`; the `%` sign and whitespace placement depend on locale.
+- **Currencies:** amount `1234.50` plus currency code `USD` may display as `$1,234.50`, `1.234,50 $`, or another locale-specific expression.
 
-Một bộ test chỉ kiểm tra `format(value)` tạo chuỗi "trông đúng" sẽ bỏ sót nhiều lỗi: parser nhận **một phần đầu chuỗi** rồi lờ phần sau, hai locale hiểu cùng dấu khác nhau, phần trăm bị nhân/chia 100 sai, amount bị làm tròn, currency bị suy từ ký hiệu mơ hồ, hoặc parser chấp nhận `NaN` trong field chỉ cho phép số hữu hạn.
+A test suite that checks only whether `format(value)` outputs a "good-looking" string misses many bugs: a parser accepts a **leading prefix** and ignores the remainder, two locales interpret the same separator differently, percentages are multiplied/divided by 100 incorrectly, amounts are rounded silently, currencies are inferred from ambiguous symbols, or the parser accepts `NaN` in fields allowing only finite numbers.
 
-Bài này thuộc nhóm **Kiểm thử và lỗi**. Trọng tâm là thiết kế kiểm thử có chủ đích cho **decimal / percentage / currency**, đặc biệt yêu cầu **phân tích toàn chuỗi (full-input consumption)**: chỉ chấp nhận input khi parser đọc hết chuỗi, không còn ký tự dư, giá trị có đúng kiểu và thỏa mãn quy tắc domain.
+This lesson belongs to **Testing and Pitfalls**. Its focus is designing intentional tests for **decimal / percentage / currency**, especially enforcing **full-input consumption**: accept input only when the parser consumes the entire string, leaves no trailing characters, produces the right value type, and satisfies domain rules.
 
-### Mục tiêu học tập
+### Learning Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-1. Tạo formatter/parser `NumberFormat` theo một `Locale` tường minh, chọn đúng loại decimal, percent hay currency.
-2. Dùng `ParsePosition` để phân biệt **parse thành công một tiền tố** với **parse thành công toàn bộ chuỗi**.
-3. Dùng `DecimalFormat.setParseBigDecimal(true)` để xử lý số decimal chính xác, đồng thời từ chối `NaN` và infinity cho trường nghiệp vụ không chấp nhận.
-4. Hiểu phần trăm biểu diễn một **tỷ lệ**: `12.5%` là `0.125` trong mô hình thường gặp, không phải `12.5`.
-5. Tách amount và ISO currency code khỏi ký hiệu tiền và tên tiền theo locale.
-6. Viết ma trận test đủ positive, negative, boundary, Unicode whitespace, rounding, locale mismatch và input rác.
-7. Phân biệt **đọc hết input** với **xác thực cú pháp/đúng nhóm dấu**: một chuỗi có thể được parser tiêu thụ hết nhưng vẫn không hợp chính sách nhập liệu.
-8. Thiết kế test không nhầm sự khác biệt hợp lệ của dữ liệu CLDR/JDK với lỗi nghiệp vụ.
+1. Construct `NumberFormat` formatters/parsers for an explicit `Locale`, choosing the right type among decimal, percent, and currency.
+2. Use `ParsePosition` to distinguish **parsing a prefix** from **parsing the entire string**.
+3. Use `DecimalFormat.setParseBigDecimal(true)` for exact decimal handling while rejecting `NaN` and infinity for business fields that disallow them.
+4. Understand that a percentage represents a **ratio**: `12.5%` is `0.125` in the standard model, not `12.5`.
+5. Separate amount and ISO currency code from locale-specific currency symbols and names.
+6. Write a test matrix covering positive, negative, boundary, Unicode whitespace, rounding, locale mismatch, and garbage inputs.
+7. Distinguish **consuming the whole input** from **validating syntax/grouping rules**: a string can be fully consumed by the parser yet still violate input policy.
+8. Design tests that do not mistake valid CLDR/JDK data differences for business bugs.
 
-## 2. Tách bốn điều kiện chất lượng: format, parse, consumed và domain
+## 2. Separating Four Quality Conditions: Format, Parse, Consumed, and Domain
 
-Một input số không nên được coi là hợp lệ chỉ vì `NumberFormat.parse(...)` trả về `Number`.
+A numeric input should not be deemed valid merely because `NumberFormat.parse(...)` returns a `Number`.
 
-Có **bốn lớp kiểm tra riêng**:
+There are **four distinct verification layers**:
 
-| Lớp | Câu hỏi | Ví dụ lỗi |
+| Layer | Question | Example bug |
 | --- | --- | --- |
-| **Formatting** | Giá trị domain hiển thị đúng theo locale, currency, precision và rounding không? | `0.125` bị in `0.125%` thay vì `12.5%` |
-| **Parsing** | Formatter đọc được chuỗi đầu vào thành một giá trị không? | Parser `en-US` không hiểu comma decimal của `de-DE` |
-| **Full consumption** | Parser có tiêu thụ **tất cả** input không? | `"1,234.50oops"` chỉ đọc `"1,234.50"` |
-| **Validation** | Input hợp chính sách cú pháp và domain không? | `"12,34.50"` có grouping sai nhưng có thể vẫn được parser chấp nhận |
+| **Formatting** | Does the domain value render properly for the locale, currency, precision, and rounding? | `0.125` is printed as `0.125%` instead of `12.5%` |
+| **Parsing** | Does the formatter read the input string into a value? | An `en-US` parser misreads `de-DE` comma decimals |
+| **Full consumption** | Did the parser consume **all** of the input? | `"1,234.50oops"` reads only `"1,234.50"` |
+| **Validation** | Does the input obey syntax and domain policy? | `"12,34.50"` has wrong grouping yet may still be accepted by the parser |
 
-Sau cùng mới đến **bảo toàn dữ liệu**: `format → parse` có giữ được giá trị số học, scale và kiểu ban đầu không? Nếu format làm tròn, câu trả lời có thể là **không**, dù cả bốn điều kiện trên đều thỏa.
+Finally comes **data preservation**: does `format → parse` preserve the original numeric value, scale, and type? When formatting rounds, the answer can be **no**, even if all four conditions above pass.
 
-### Một quy trình nhập liệu an toàn
+### A Safe Input Pipeline
 
 ```text
-Raw input + locale nguồn + loại field
+Raw input + source locale + field kind
                 |
-        Giới hạn size/ký tự
+        Size/character limits
                 |
-        Parser đúng loại field
+        Parser for exact field kind
                 |
-        ParsePosition: consumed hết?
+        ParsePosition: fully consumed?
                 |
-        Kiểu giá trị có hợp lệ?
+        Is value type valid?
                 |
-        Validation dấu nhóm, scale,
-        range, đơn vị/currency?
+        Validate grouping, scale,
+        range, unit/currency?
                 |
-        Domain value có kiểu
+        Typed domain value
                 |
-        Lưu theo schema canonical
+        Persist in canonical schema
 ```
 
-Locale lấy từ **ngữ cảnh nguồn input**, không đoán từ `Locale.getDefault()` của JVM và không dựa vào ký tự trông giống dấu phẩy/dấu chấm. Nếu dữ liệu đến từ API machine-to-machine, nên dùng schema decimal canonical thay vì đi qua localized parser của UI.
+Obtain the locale from the **input source context**, never guessing from `Locale.getDefault()` of the JVM and never relying on characters that look like commas or dots. If data arrives from a machine-to-machine API, use a canonical decimal schema instead of routing through a localized UI parser.
 
-## 3. Những factory Java cần chọn đúng
+## 3. Java Factories You Must Choose Properly
 
-Java SE 17 cung cấp các phương thức:
+Java SE 17 provides these methods:
 
-| Loại field | Factory | Ví dụ domain | Ví dụ hiển thị en-US |
+| Field kind | Factory | Domain example | `en-US` display example |
 | --- | --- | --- | --- |
 | Decimal | `NumberFormat.getNumberInstance(locale)` | `BigDecimal("1234.50")` | `1,234.50` |
-| Percent | `NumberFormat.getPercentInstance(locale)` | Tỷ lệ `BigDecimal("0.125")` | `12.5%` nếu cho 1 chữ số phần lẻ |
+| Percent | `NumberFormat.getPercentInstance(locale)` | Ratio `BigDecimal("0.125")` | `12.5%` if 1 fraction digit allowed |
 | Currency | `NumberFormat.getCurrencyInstance(locale)` | `1234.50` + `USD` | `$1,234.50` |
 | Integer | `NumberFormat.getIntegerInstance(locale)` | `1234` | `1,234` |
 
-**Khác biệt quan trọng:** `getIntegerInstance` được cấu hình để parse phần nguyên, có thể dừng tại dấu thập phân. Không dùng nó để parse một trường decimal rồi mong đọc hết `"12.5"`.
+**Crucial distinction:** `getIntegerInstance` is configured to parse integer parts and can stop at the decimal separator. Do not use it to parse a decimal field and expect it to consume `"12.5"` completely.
 
-Đối tượng trả về thường là `DecimalFormat` trên các locale/provider phổ biến nhưng `NumberFormat` là lớp trừu tượng và API factory không hứa mọi implementation luôn là `DecimalFormat`. Khi bài cần `setParseBigDecimal(true)`, kiểm tra kiểu trước khi ép:
+The returned object is usually `DecimalFormat` across common locales/providers, yet `NumberFormat` is an abstract class and the factory API does not promise every implementation is always `DecimalFormat`. When calling `setParseBigDecimal(true)`, check the type before casting:
 
 ```java
 NumberFormat base = NumberFormat.getNumberInstance(locale);
@@ -86,46 +86,46 @@ if (!(base instanceof DecimalFormat decimal)) {
 decimal.setParseBigDecimal(true);
 ```
 
-Đây là đoạn code **minh họa trong phương thức**, cần import `java.text.*`. Không ép kiểu vô điều kiện trong một thư viện phải hỗ trợ mọi locale provider tùy chỉnh.
+This snippet illustrates code **inside a method**, requiring `import java.text.*`. Do not cast unconditionally in a library that must support arbitrary custom locale providers.
 
-**Không dùng chung một `DecimalFormat` mutable** đang đổi currency, fraction digits hoặc pattern qua nhiều luồng. Test nên tạo instance mới; code sản xuất cũng cần lifecycle/đồng bộ phù hợp.
+**Do not share a mutable `DecimalFormat`** whose currency, fraction digits, or pattern are altered across multiple threads. Tests should create fresh instances; production code also needs proper lifecycle management or synchronization.
 
-## 4. Ma trận kiểm thử tối thiểu
+## 4. Minimal Test Matrix
 
-Không dồn tất cả loại số vào một test "format tốt". Mỗi cột là một giả định riêng cần được kiểm tra.
+Do not lump all numeric types into one "formats nicely" test. Each row checks a distinct assumption.
 
-| Nhóm | Input/giá trị | Kết quả mong đợi |
+| Category | Input / value | Expected outcome |
 | --- | --- | --- |
-| Decimal `en-US` | `"1,234.50"` | Giá trị `1234.50`, consumed 100% |
-| Decimal `de-DE` | `"1.234,50"` | Giá trị `1234.50`, consumed 100% |
-| Locale mismatch | `"1.234,50"` parse `en-US` | Không được xác nhận là input hoàn chỉnh hợp lệ |
-| Suffix rác | `"1,234.50oops"` | Không chấp nhận vì chỉ parse tiền tố |
-| Grouping sai | `"12,34.50"` `en-US` | Từ chối nếu chính sách bắt buộc grouping chuẩn |
-| Empty / khoảng trắng | `""`, `" "` | Xử lý theo chính sách input; không âm thầm coi là 0 |
-| Percent | `"12.5%"` `en-US` | Ratio `0.125`, consumed 100% |
-| Percent thiếu ký hiệu | `"12.5"` với percent parser | Không thành công theo pattern áp dụng |
-| Percent suffix | `"12.5%extra"` | Không chấp nhận |
-| Currency | `"$1,234.50"` `en-US` | Amount `1234.50` và currency `USD` theo **context** |
-| Currency suffix | `"$1,234.50oops"` | Không chấp nhận |
-| Currency khác ký hiệu | `"€1,234.50"` với USD formatter | Không coi là USD hợp lệ |
-| Fraction precision | `1.239` hiển thị hai chữ số | Format làm tròn; không đòi parse trả `1.239` |
-| Special numbers | `NaN`, infinity | Từ chối nếu domain chỉ chấp nhận decimal hữu hạn |
-| Signed zero | `-0` | Định nghĩa rõ có cần bảo tồn dấu âm của zero không |
-| Unicode whitespace | U+0020, U+00A0, U+202F | Test từng ký tự, không coi chúng giống nhau |
-| CLDR upgrade | Cùng locale, JDK trước/sau | Tách thay đổi presentation với lỗi domain |
+| Decimal `en-US` | `"1,234.50"` | Value `1234.50`, 100% consumed |
+| Decimal `de-DE` | `"1.234,50"` | Value `1234.50`, 100% consumed |
+| Locale mismatch | `"1.234,50"` parsed with `en-US` | Must not be accepted as complete valid input |
+| Garbage suffix | `"1,234.50oops"` | Rejected because only a prefix was parsed |
+| Invalid grouping | `"12,34.50"` `en-US` | Rejected if policy mandates standard grouping |
+| Empty / whitespace | `""`, `" "` | Handled per input policy; never silently treated as 0 |
+| Percent | `"12.5%"` `en-US` | Ratio `0.125`, 100% consumed |
+| Percent missing sign | `"12.5"` with percent parser | Fails under the applicable pattern |
+| Percent suffix | `"12.5%extra"` | Rejected |
+| Currency | `"$1,234.50"` `en-US` | Amount `1234.50` and currency `USD` from **context** |
+| Currency suffix | `"$1,234.50oops"` | Rejected |
+| Currency wrong symbol | `"€1,234.50"` with USD formatter | Not treated as valid USD |
+| Fraction precision | `1.239` formatted to 2 digits | Formatting rounds; do not expect parse to recover `1.239` |
+| Special numbers | `NaN`, infinity | Rejected if domain accepts only finite decimals |
+| Signed zero | `-0` | Define explicitly whether negative zero sign matters |
+| Unicode whitespace | U+0020, U+00A0, U+202F | Test each character explicitly; do not treat them identically |
+| CLDR upgrade | Same locale, before/after JDK | Separate presentation changes from domain bugs |
 
-Dùng các locale thực của sản phẩm. `en-US` và `de-DE` là điểm khởi đầu tốt vì dấu nhóm/thập phân đổi vai trò; thêm `fr-FR` để phát hiện khoảng trắng Unicode và locale khác với hệ số chữ số không Latin khi có yêu cầu.
+Use the product's actual locales. `en-US` and `de-DE` are a strong starting point because grouping/decimal separators swap roles; add `fr-FR` to catch Unicode spaces and other locales with non-Latin numbering systems when required.
 
-## 5. `ParsePosition`: yếu tố bắt buộc để xác nhận toàn chuỗi
+## 5. `ParsePosition`: Mandatory for Verifying Full Strings
 
-`NumberFormat.parse(String, ParsePosition)` cố parse bắt đầu tại vị trí `ParsePosition.getIndex()`, sau đó cập nhật index đến nơi đã đọc. Phương thức có thể:
+`NumberFormat.parse(String, ParsePosition)` attempts to parse starting at `ParsePosition.getIndex()`, then advances the index to where parsing stopped. The method can:
 
-- Trả một `Number` và index **bằng chiều dài** input: parser đã đọc hết.
-- Trả `Number` nhưng index **nhỏ hơn chiều dài**: chỉ đọc tiền tố.
-- Trả `null` hoặc không tiến khi input không parse được; `errorIndex` giúp xác định vị trí lỗi.
-- Trả một kiểu `Number` không phù hợp domain, ví dụ `Double.NaN` khi bật `setParseBigDecimal(true)`.
+- Return a `Number` with index **equal to input length**: the parser read everything.
+- Return a `Number` with index **less than input length**: only a prefix was read.
+- Return `null` or fail to advance when input cannot be parsed; `errorIndex` helps locate the failure.
+- Return a `Number` subtype unsuitable for the domain, such as `Double.NaN` even when `setParseBigDecimal(true)` is enabled.
 
-Ví dụ:
+Example:
 
 ```text
 input:          1,234.50oops
@@ -133,10 +133,10 @@ parsed number:  1234.50
 end index:      8
 input length:   12
 
-Result: REJECT — còn ký tự chưa được tiêu thụ
+Result: REJECT — unconsumed characters remain
 ```
 
-**Hàm kiểm tra đơn giản:**
+**Simple check function:**
 
 ```java
 ParsePosition position = new ParsePosition(0);
@@ -146,17 +146,17 @@ boolean consumedAll = number != null
         && position.getIndex() == input.length();
 ```
 
-Nhưng ngay cả `consumedAll == true` cũng chỉ xác nhận về **độ dài**, chưa kiểm chứng grouping/currency đúng theo domain. Vì thế nên đặt tên `parseFully` hoặc `consumedAll`, đừng đặt tên `validateEntireFinancialInput` nếu hàm chưa có validation riêng.
+Yet even `consumedAll == true` confirms only **length**, not valid grouping or currency according to the domain. Name the helper `parseFully` or `consumedAll`, rather than `validateEntireFinancialInput`, if it does not yet perform domain validation.
 
-### Tránh lẫn `ParseException` với `ParsePosition`
+### Avoid Confusing `ParseException` with `ParsePosition`
 
-Overload `parse(String)` có thể ném `ParseException` khi không thể bắt đầu parse, nhưng cũng có thể chấp nhận **tiền tố** rồi bỏ phần sau. Overload `parse(String, ParsePosition)` cho phép kiểm tra offset, thường trả `null` khi không parse được và không dùng ngoại lệ làm đường thành công/thất bại thông thường.
+The `parse(String)` overload throws `ParseException` when it cannot start parsing, yet it can still accept a **prefix** and ignore the rest. The `parse(String, ParsePosition)` overload lets you inspect the offset, normally returns `null` on failure, and avoids using exceptions for routine pass/fail control flow.
 
-Với form giao diện, nên phân biệt lỗi "không bắt đầu được", "có đuôi chưa parse", "sai nhóm dấu", "số ngoài miền" và "currency không đúng" để thông báo có ích cho người dùng.
+For UI forms, distinguish "could not start parsing", "unparsed trailing text", "wrong grouping separators", "value out of range", and "wrong currency" to give helpful user feedback.
 
-## 6. Java 17+: parser kiểm tra toàn chuỗi cho cả ba loại
+## 6. Java 17+: Full-String Parser for All Three Types
 
-Tạo file `FullInputNumberDemo.java`:
+Create `FullInputNumberDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -245,14 +245,14 @@ public class FullInputNumberDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 FullInputNumberDemo.java
 java FullInputNumberDemo
 ```
 
-Stdout với JDK sử dụng định dạng `en-US`/`de-DE` phổ biến, đã đối chiếu logic trên runtime Java:
+Stdout on a JDK with standard `en-US`/`de-DE` formats, verified against the Java runtime:
 
 ```text
 decimal US: 1234.50
@@ -268,28 +268,28 @@ currency wrong symbol: REJECT
 NaN: REJECT
 ```
 
-**Giải thích quan trọng:**
+**Important explanations:**
 
-1. `12.5%` thành `0.125` vì `DecimalFormat` dạng phần trăm dùng multiplier 100. Giá trị domain đang biểu diễn **ratio**, không phải số điểm phần trăm.
-2. `"1.234,50"` ở parser `Locale.US` có thể chỉ đọc tới `"1.234"`, nên phải từ chối vì chưa tiêu thụ hết.
-3. `"1,234.50oops"` có thể tạo `BigDecimal("1234.50")` **nhưng còn đuôi**; không được chấp nhận.
-4. `NaN` có thể được trả dưới dạng `Double` kể cả khi `setParseBigDecimal(true)`; điều kiện `instanceof BigDecimal` ngăn nó vào domain decimal hữu hạn.
-5. `CURRENCY` ở đây nhận **currency expected từ context**. Khi `NumberFormat.parse` trả số thành công, nó **không tự cấp một Currency có thể tin cậy** từ ký hiệu. Kết quả parse là amount; đồng tiền là thuộc tính domain riêng phải được kiểm tra ở tầng thích hợp.
-6. Hàm tên `parseFully` chỉ áp dụng điều kiện **toàn chuỗi và BigDecimal**, chưa xác thực grammar grouping nghiêm ngặt hay scale/range; bài sau sẽ bổ sung.
+1. `12.5%` becomes `0.125` because percent `DecimalFormat` uses a multiplier of 100. The domain value represents a **ratio**, not percentage points.
+2. `"1.234,50"` under `Locale.US` may read only up to `"1.234"`, so it must be rejected because it was not fully consumed.
+3. `"1,234.50oops"` can yield `BigDecimal("1234.50")` **yet has a trailing tail**; it must not be accepted.
+4. `NaN` can be returned as a `Double` even with `setParseBigDecimal(true)`; checking `instanceof BigDecimal` keeps it out of finite decimal domains.
+5. `CURRENCY` here takes the **expected currency from context**. When `NumberFormat.parse` parses a number successfully, it **does not provide a trustworthy `Currency` inferred from the symbol**. The parse result is the amount; the currency is a separate domain attribute that must be validated at the appropriate layer.
+6. The function named `parseFully` enforces only **full-string consumption and `BigDecimal`**, not strict grouping grammar, scale, or range; a later section adds that.
 
-Với locale provider khác (SPI/HOST), mẫu ký hiệu tiền có thể thay đổi; nếu test phụ thuộc output nguyên văn, cố định provider/build hoặc tạo fixture theo hợp đồng đã kiểm chứng.
+With different locale providers (SPI/HOST), currency symbol patterns may vary; if tests depend on exact literal output, pin the provider/build or construct fixtures against a verified contract.
 
-## 7. Percent: tách tỷ lệ, số phần trăm và số điểm phần trăm
+## 7. Percent: Separating Ratio, Percentage String, and Percentage Points
 
-Đây là một trong những lỗi kiểm thử nghiêm trọng nhất. Có ba khái niệm:
+This is one of the most severe testing pitfalls. Three concepts exist:
 
-| Giá trị | Ý nghĩa | Ví dụ |
+| Value | Meaning | Example |
 | --- | --- | --- |
-| `0.125` | Ratio (12,5 phần trăm trên thang 0–1) | Tỷ lệ sử dụng trong phép nhân |
-| `12.5%` | Cách **hiển thị** ratio `0.125` | `NumberFormat.getPercentInstance` |
-| `12.5` | Số phần trăm tính theo đơn vị phần trăm, không phải ratio | Nếu lưu kiểu percent points, phải định nghĩa conversion |
+| `0.125` | Ratio (12.5 percent on a 0–1 scale) | Multiplier used in calculations |
+| `12.5%` | **Display** of ratio `0.125` | `NumberFormat.getPercentInstance` |
+| `12.5` | Value measured in percentage units, not a ratio | If stored as percent points, conversion must be explicit |
 
-Với `getPercentInstance(Locale.US)`:
+With `getPercentInstance(Locale.US)`:
 
 ```java
 NumberFormat percent =
@@ -300,24 +300,24 @@ String text = percent.format(new BigDecimal("0.125"));
 // "12.5%"
 ```
 
-Đây là **đoạn minh họa trong một phương thức**. Khi parse `"12.5%"` bằng percent formatter có `setParseBigDecimal(true)`, kết quả thường là `BigDecimal("0.125")`, không phải `12.5`. **Không nhân 100 thêm lần nữa khi dựng domain value**, và không chia 100 lần nữa nếu parser đã làm.
+This is an **illustrative snippet inside a method**. When parsing `"12.5%"` with a percent formatter configured with `setParseBigDecimal(true)`, the result is normally `BigDecimal("0.125")`, not `12.5`. **Do not multiply by 100 again when constructing the domain value**, and do not divide by 100 again if the parser already did.
 
-### Test percent nên có
+### Percent Tests to Include
 
-- 0 → `0%` ở mẫu mặc định en-US.
-- `0.125` → `12.5%` khi cấu hình 1 chữ số thập phân.
-- `1` → `100%`; nếu domain chỉ cho ratio 0–1 thì phải kiểm tra miền.
-- Giá trị âm nếu domain cho phép, ví dụ mức thay đổi `-0.025` → `-2.5%`.
-- Giá trị lớn hơn 1 nếu nghiệp vụ cho phép tăng trưởng >100%.
-- Dấu phần trăm ở trước/sau tùy locale và các khoảng trắng Unicode.
-- Input thiếu `%`, input có phần đuôi, input chỉ gồm ký hiệu.
-- Rounding khi từ `12.34%` hiển thị một chữ số thành `12.3%`; parse lại chỉ giữ giá trị đã hiển thị.
+- `0` → `0%` in the default `en-US` pattern.
+- `0.125` → `12.5%` when configured for 1 decimal digit.
+- `1` → `100%`; if the domain restricts ratios to 0–1, validate the range.
+- Negative values if allowed by the domain, e.g. `-0.025` → `-2.5%`.
+- Values greater than 1 if business logic allows >100% growth.
+- Leading/trailing `%` sign and Unicode spaces depending on locale.
+- Inputs missing `%`, inputs with trailing characters, inputs containing only the symbol.
+- Rounding when `12.34%` displays to one decimal place as `12.3%`; parsing back recovers only the displayed value.
 
-**Chọn semantic rõ:** đối với "tỷ lệ chiết khấu" có thể lưu ratio `0.125`; đối với "thay đổi 12,5 điểm phần trăm" là một đại lượng khác. Domain type hoặc tên field nên nêu rõ, ví dụ `discountRate` chứ không dùng `percent` mơ hồ.
+**Choose clear semantics:** for a "discount rate" you may store ratio `0.125`; for a "change of 12.5 percentage points" that is a different quantity. Domain types or field names should state this clearly, e.g., `discountRate` rather than an ambiguous `percent`.
 
-## 8. Java 17+: formatting test cho decimal, percent và currency
+## 8. Java 17+: Formatting Tests for Decimal, Percent, and Currency
 
-Tạo file `NumberFormattingMatrixDemo.java`:
+Create `NumberFormattingMatrixDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -362,14 +362,14 @@ public class NumberFormattingMatrixDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac -encoding UTF-8 NumberFormattingMatrixDemo.java
 java NumberFormattingMatrixDemo
 ```
 
-Ví dụ stdout trên JDK dùng locale data CLDR đã kiểm thử:
+Example stdout on a tested JDK using CLDR locale data:
 
 ```text
 en-US | decimal=1,234.50 | percent=12.5% | money=$1,234.50
@@ -378,15 +378,15 @@ amount unchanged=true
 ratio unchanged=true
 ```
 
-Dòng `de-DE` chứa **U+00A0 NO-BREAK SPACE** giữa giá trị và `%`/`$` trên runtime tham chiếu. Đừng thay nó bằng ASCII space rồi lưu thành golden string nếu đang kiểm thử chính xác Unicode. Nếu chạy JDK/provider khác, output presentation có thể đổi; hai dòng `amount unchanged` và `ratio unchanged` mới là kiểm tra domain invariants.
+The `de-DE` line contains **U+00A0 NO-BREAK SPACE** between the number and `%`/`$` on the reference runtime. Do not replace it with an ASCII space in golden strings if testing exact Unicode. On a different JDK/provider, presentation output may change; the `amount unchanged` and `ratio unchanged` lines check domain invariants.
 
-**Tại sao phải test cả output?** Vì dù domain đúng, hiển thị vẫn có thể sai do thiếu `setCurrency`, nhầm factory percent với number, nhầm minimum/maximum fraction digits, hoặc format theo locale mặc định của máy. Test domain và test presentation bổ sung cho nhau, không thay thế nhau.
+**Why test output as well?** Even when domain values are right, display can still break due to missing `setCurrency`, confusing percent and number factories, wrong min/max fraction digits, or formatting with the host's default locale. Domain tests and presentation tests complement—never replace—each other.
 
-## 9. Currency: amount, ISO code và ký hiệu phải được kiểm thử tách biệt
+## 9. Currency: Amount, ISO Code, and Symbol Must Be Tested Separately
 
-Đối tượng `Currency` biểu diễn một đồng tiền được nhận diện bằng **mã**, ví dụ `USD`, `EUR` hoặc `VND`. Ký hiệu `$`, `€` hoặc chữ viết tắt theo locale chỉ phục vụ trình bày và **không phải khóa duy nhất** cho currency.
+A `Currency` object represents a currency identified by **code**, such as `USD`, `EUR`, or `VND`. Symbols like `$`, `€`, or locale abbreviations serve presentation only and are **not unique currency keys**.
 
-Ví dụ:
+Example:
 
 ```java
 Currency currency = Currency.getInstance("USD");
@@ -396,20 +396,20 @@ format.setCurrency(currency);
 String output = format.format(new BigDecimal("1234.50"));
 ```
 
-Đây là **đoạn code trong phương thức**. Locale Đức mô tả quy ước ký hiệu/dấu ngăn cách, nhưng đồng tiền domain vẫn là USD. Người dùng sống tại Đức có thể thanh toán USD; không được suy mọi giao dịch của họ là EUR từ `Locale.GERMANY`.
+This is a **code snippet inside a method**. The German locale dictates separator/symbol conventions, while the domain currency remains USD. A user living in Germany can pay in USD; never infer that all their transactions are EUR from `Locale.GERMANY`.
 
-### Currency test cần phân biệt
+### Currency Tests Must Distinguish
 
-1. **Amount parse:** `"$1,234.50"` có tạo đúng decimal amount không?
-2. **Currency identity:** mã currency do nghiệp vụ cung cấp có đúng `USD` không?
-3. **Display symbol:** ký hiệu, vị trí, khoảng trắng theo locale có hợp chính sách presentation không?
-4. **Mismatch:** nếu yêu cầu USD, input biểu diễn EUR được xử lý thế nào? Không lấy một giá trị `BigDecimal` rồi âm thầm gán USD.
-5. **Fraction digits:** JPY, USD, KWD có quy ước chữ số phần lẻ khác nhau; chính sách scale/rounding nghiệp vụ phải rõ.
-6. **Ambiguity:** ký hiệu `$` có thể là nhiều đồng tiền; đừng đoán mã từ ký hiệu text đơn lẻ.
-7. **Negative amounts:** refund/chargeback có thể mang dấu âm; cách hiển thị/accounting format và policy nghiệp vụ có thể khác.
-8. **Locale upgrade:** vị trí symbol và no-break space có thể đổi theo CLDR/JDK, nên test snapshot có thông tin runtime.
+1. **Amount parse:** does `"$1,234.50"` yield the right decimal amount?
+2. **Currency identity:** is the business-supplied currency code `USD`?
+3. **Display symbol:** do the symbol, placement, and spacing match presentation policy for the locale?
+4. **Mismatch:** when `USD` is required, how is an input displaying `EUR` handled? Never extract a `BigDecimal` and silently label it `USD`.
+5. **Fraction digits:** JPY, USD, and KWD have different minor-unit conventions; business scale/rounding policies must be explicit.
+6. **Ambiguity:** `$` represents multiple currencies; never guess a currency code from a lone text symbol.
+7. **Negative amounts:** refunds/chargebacks can carry a minus sign; accounting formats and business policies may differ.
+8. **Locale upgrades:** symbol placement and no-break spaces can change across CLDR/JDK releases, so snapshot tests should record runtime info.
 
-### Chọn schema cho tiền
+### Choosing a Schema for Money
 
 ```json
 {
@@ -418,29 +418,29 @@ String output = format.format(new BigDecimal("1234.50"));
 }
 ```
 
-Đây là ví dụ JSON máy-máy với decimal string có schema, **không** phải giá tiền đã địa phương hóa. Nếu dùng cột DB, chọn DECIMAL/NUMERIC với precision/scale rõ và trường currency code riêng. Dùng `BigDecimal` trong Java; đừng tính tiền bằng `double` hoặc dùng `NumberFormat.format(amount)` làm nguồn dữ liệu.
+This is a machine-to-machine JSON example with a schema-defined decimal string, **not** a localized price. In a database, choose `DECIMAL`/`NUMERIC` with explicit precision/scale and a separate currency code column. Use `BigDecimal` in Java; never calculate money with `double` or use `NumberFormat.format(amount)` as a data source.
 
-**Giới hạn của parser:** `NumberFormat.parse` đọc giá trị số theo pattern currency, nhưng không phải bộ xác minh currency code từ một chuỗi text tự do. Nếu UI có field currency riêng, xem đó là một input có kiểm soát; nếu cần đọc đa currency từ văn bản, phải dùng parser có khả năng nhận diện đơn vị và quy tắc domain, rồi validate mã thu được.
+**Parser limitation:** `NumberFormat.parse` reads numeric values matching a currency pattern, not a general currency-code verifier over arbitrary text. If the UI has a dedicated currency selector, treat it as a controlled input; if parsing multi-currency free text, use a unit-aware parser and validate the resulting ISO code against domain rules.
 
-## 10. Full-input consumption không đồng nghĩa strict grouping
+## 10. Full-Input Consumption Does Not Imply Strict Grouping
 
-Đây là điểm phải có test riêng. Trên các JDK có `DecimalFormat` phổ biến, input:
+This requires a dedicated test. On common JDKs with `DecimalFormat`, the input:
 
 ```text
 12,34.50
 ```
 
-có thể được parser số `en-US` đọc **hết** và trả `1234.50`, dù dấu nhóm không được đặt theo quy ước `1,234.50`.
+can be **fully consumed** by an `en-US` number parser and return `1234.50`, even though the grouping separator is not placed in standard `1,234.50` groups.
 
-Điều kiện:
+The condition:
 
 ```java
 position.getIndex() == input.length()
 ```
 
-là **cần** để từ chối suffix còn dư, nhưng **không đủ** để xác nhận input tuân đúng grammar grouping. Parser i18n thường linh hoạt để đọc nhiều dạng đầu vào; nghiệp vụ tiền tệ có thể cần quy tắc nghiêm hơn.
+is **necessary** to reject trailing suffixes, yet **insufficient** to guarantee the input obeys strict grouping grammar. i18n parsers are often lenient so they can read varied user inputs; financial workflows may demand stricter rules.
 
-### Kiến trúc kiểm tra nhiều lớp
+### Multi-Layer Validation Architecture
 
 ```text
 Input "12,34.50"
@@ -452,18 +452,18 @@ Input "12,34.50"
           |
       lexical policy
           |
-  Grouping không hợp lệ
+   Invalid grouping
           |
         REJECT
 ```
 
-Cách thực hiện lexical validation phải theo loại input và locale. **Không áp dụng một regex dùng dấu phẩy/chấm ASCII cho mọi locale**: `fr-FR` có thể dùng U+202F, `ar-EG` có chữ số và dấu phân cách khác, còn định dạng Ấn Độ có nhóm số khác kiểu 3-3-3. Nếu nghiệp vụ chỉ nhận một cấu trúc máy cố định, tốt hơn dùng canonical grammar không có grouping thay vì localized grammar quá phức tạp.
+Lexical validation must match the input kind and locale. **Do not apply a single ASCII comma/dot regex across all locales**: `fr-FR` can use U+202F, `ar-EG` has different digits and separators, and Indian numbering uses non-3-3-3 grouping. If business logic accepts only one fixed machine structure, prefer a canonical grammar without grouping rather than overly complex localized grammars.
 
-## 11. Java 17+: strict policy đơn giản cho decimal en-US
+## 11. Java 17+: Simple Strict Policy for en-US Decimals
 
-Ví dụ sau chỉ được thiết kế cho một **form số dương en-US, không có exponent**, cho phép nhóm bằng dấu phẩy theo đúng cụm ba chữ số hoặc viết không nhóm, phần thập phân 1–2 chữ số, không dấu `+/-`.
+The following example is intentionally scoped to a **positive `en-US` number format with no exponent**, permitting either comma-separated three-digit groups or ungrouped digits, 1–2 fractional digits, and no `+/-` sign.
 
-Tạo file `StrictGroupingDemo.java`:
+Create `StrictGroupingDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -534,33 +534,33 @@ java StrictGroupingDemo
 0.50 => 0.50
 ```
 
-**Phạm vi có chủ đích:**
+**Intentional scope:**
 
-- Regex này **không** dành cho `de-DE`, `fr-FR`, Arabic numbers hay âm số.
-- Số `1234.50` không dùng grouping vẫn hợp lệ theo policy minh họa; `1,234.50` dùng grouping đúng cũng hợp lệ.
-- `0012.50` bị từ chối vì policy không cho leading zero; một domain khác có thể cho phép.
-- Phần lẻ nhiều nhất 2 chữ số, không phải mặc định mà Java ép buộc.
-- `regex.matches()` kiểm tra **toàn bộ chuỗi**; sau đó parser vẫn được kiểm tra full consumption và kiểu giá trị.
-- Với số tiền thực, còn phải kiểm tra domain scale/precision, currency, rounding, min/max và giới hạn input size.
+- This regex is **not** meant for `de-DE`, `fr-FR`, Arabic numerals, or negative numbers.
+- `1234.50` without grouping is valid under this sample policy; `1,234.50` with valid grouping is also valid.
+- `0012.50` is rejected because the policy disallows leading zeros; another domain might allow them.
+- A maximum of 2 fractional digits is enforced by policy, not by Java itself.
+- `regex.matches()` checks the **entire string**; afterward the parser still checks full consumption and value type.
+- For real monetary amounts, also enforce domain scale/precision, currency, rounding, min/max, and input length limits.
 
-Nếu cần grammmar localized nghiêm ngặt cho nhiều ngôn ngữ, phải dựa trên dữ liệu locale và quy tắc của parser/ICU thích hợp, không tự nhân bản regex US sang toàn bộ ứng dụng.
+If strict localized grammar is needed across multiple languages, base it on locale data and appropriate parser/ICU rules rather than copying a US regex across the entire application.
 
-## 12. Rounding: `format → parse` có thể không giữ nguyên số
+## 12. Rounding: `format → parse` May Not Preserve the Original Number
 
-Một test sai phổ biến là:
+A common broken test is:
 
 ```java
 BigDecimal original = new BigDecimal("1.239");
 String text = currencyFormatter.format(original);
 BigDecimal restored = parse(text);
-assertEquals(original, restored); // Không phải bất biến mặc định
+assertEquals(original, restored); // Not a universal invariant
 ```
 
-Nếu formatter chỉ hiển thị hai chữ số thập phân, `1.239` có thể thành `1.24`. Parser không có cách khôi phục chữ số thứ ba đã bị bỏ. Test sai sẽ cho rằng localization hỏng, trong khi **bộ formatter đang thực hiện đúng chính sách presentation**.
+If the formatter displays only two decimal digits, `1.239` can become `1.24`. The parser has no way to recover the discarded third digit. A bad test blames localization, while **the formatter is faithfully executing its presentation policy**.
 
-### Java 17+: minh họa round-trip mất precision
+### Java 17+: Demonstrating Precision Loss in Round-Trip
 
-Tạo file `RoundingRoundTripDemo.java`:
+Create `RoundingRoundTripDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -600,56 +600,56 @@ parsed=1.24
 same numeric value=false
 ```
 
-**Test đúng theo hợp đồng:** nếu domain phải bảo toàn `1.239`, giữ `BigDecimal` nguyên trong domain/persistence, chỉ format `1.24` cho UI. Nếu nghiệp vụ bắt buộc làm tròn đến 2 chữ số **trước khi ghi sổ**, đó phải là phép tính với `setScale(2, roundingMode)` hoặc logic tiền tệ được định nghĩa rõ **trong domain**, không phải hậu quả tùy tiện của formatter.
+**Test according to contract:** if the domain must preserve `1.239`, keep the untouched `BigDecimal` in domain/persistence and format `1.24` only for the UI. If business rules require rounding to 2 decimal places **before posting**, perform that with explicit `setScale(2, roundingMode)` or defined monetary logic **in the domain**, not as an accidental side effect of a display formatter.
 
-### `BigDecimal.equals` khác `compareTo`
+### `BigDecimal.equals` Differs from `compareTo`
 
-`new BigDecimal("1.20").equals(new BigDecimal("1.2"))` là `false` do scale khác, còn `compareTo(...) == 0`. Khi test parse/round-trip, quyết định **giữ scale** có phải requirement không. Không mặc định dùng `equals` cho mọi phép kiểm tra giá trị số, và cũng không bỏ qua scale nếu domain thật sự đòi đúng số chữ số.
+`new BigDecimal("1.20").equals(new BigDecimal("1.2"))` is `false` due to differing scale, whereas `compareTo(...) == 0`. When testing parse/round-trip, decide whether **preserving scale** is a requirement. Never default to `equals` for all numeric assertions, and never ignore scale when the domain genuinely requires exact decimal places.
 
-## 13. NaN, Infinity và âm zero: test trường hợp đặc biệt
+## 13. NaN, Infinity, and Negative Zero: Testing Edge Values
 
-Khi `DecimalFormat.setParseBigDecimal(true)` được bật, parser thông thường trả `BigDecimal` cho các số decimal hữu hạn; tuy nhiên các ký hiệu đặc biệt như **NaN** hoặc **infinity** có thể trả **`Double`**. `BigDecimal` không có biểu diễn NaN/infinity.
+When `DecimalFormat.setParseBigDecimal(true)` is enabled, the parser normally returns `BigDecimal` for finite decimal numbers; however, special tokens such as **NaN** or **infinity** can return **`Double`**. `BigDecimal` has no representation for NaN/infinity.
 
-Vì thế:
+Therefore:
 
 ```java
 Number result = decimal.parse(input, position);
 if (!(result instanceof BigDecimal)) {
-    // Từ chối NaN, Infinity và kiểu không phù hợp domain.
+    // Reject NaN, Infinity, and types unsuitable for the domain.
 }
 ```
 
-Đây là đoạn minh họa. Nếu hệ thống cho phép NaN trong một miền như thống kê, cần một kiểu/domain policy riêng, không cố ép thành số tiền.
+This is an illustrative snippet. If a system permits NaN in a domain like statistics, use a dedicated type/domain policy rather than forcing it into monetary amounts.
 
-### Âm zero
+### Negative Zero
 
-`double` phân biệt `+0.0` và `-0.0` ở mức biểu diễn/bit; `BigDecimal` thì không bảo toàn dấu âm của zero như một giá trị riêng. Khi parse `"-0"` với `setParseBigDecimal(true)`, kết quả có thể là `BigDecimal.ZERO`; nếu domain cần phân biệt âm zero, phải lưu thêm metadata hoặc chọn kiểu số phù hợp.
+`double` distinguishes `+0.0` and `-0.0` at the bit representation level; `BigDecimal` does not preserve negative zero as a distinct sign value. Parsing `"-0"` with `setParseBigDecimal(true)` can produce `BigDecimal.ZERO`; if the domain must distinguish negative zero, store extra metadata or pick an appropriate numeric model.
 
-Đừng xem `-0` là "số âm tiền hợp lệ" chỉ vì có dấu trừ trong raw string. Domain tài chính thường chỉ cần giá trị zero, nhưng việc cho phép cú pháp `-0` là quyết định của validator.
+Do not treat `-0` as a "valid negative monetary amount" just because the raw string starts with a minus sign. Financial domains typically require only value zero, while whether to accept the syntax `"-0"` is a validator decision.
 
-### Số quá lớn/nhỏ
+### Very Large / Very Small Numbers
 
-Test `Long.MAX_VALUE`, `BigDecimal` lớn, số có nhiều chữ số phần lẻ, số gần zero, và input bất thường dài. Kiểm tra giới hạn tài nguyên để tránh parser xử lý chuỗi khổng lồ từ người dùng hoặc làm giảm hiệu năng. `setParseBigDecimal(true)` không thay thế giới hạn magnitude/precision.
+Test `Long.MAX_VALUE`, large `BigDecimal` values, numbers with many fractional digits, values near zero, and abnormally long inputs. Enforce resource bounds to prevent parsers from processing huge user strings or degrading performance. `setParseBigDecimal(true)` does not replace magnitude/precision limits.
 
-## 14. Unicode whitespace: test code point, không đoán bằng mắt
+## 14. Unicode Whitespace: Test Code Points, Never Guess by Eye
 
-Một số locale dùng khoảng trắng Unicode làm group separator hoặc đặt giữa số và ký hiệu tiền/percent:
+Some locales use Unicode whitespace as a grouping separator or between a number and a currency/percent symbol:
 
-| Ký tự | Mã | Vai trò thường gặp |
+| Character | Code point | Common role |
 | --- | --- | --- |
-| ASCII SPACE | U+0020 | Khoảng trắng thông thường |
-| NO-BREAK SPACE | U+00A0 | Khoảng trắng không ngắt |
-| NARROW NO-BREAK SPACE | U+202F | Khoảng trắng hẹp không ngắt |
+| ASCII SPACE | U+0020 | Standard space |
+| NO-BREAK SPACE | U+00A0 | Non-breaking space |
+| NARROW NO-BREAK SPACE | U+202F | Narrow non-breaking space |
 
-Ví dụ `fr-FR` có thể hiển thị số `1 234,5` với **U+202F**, trong khi tiếng Nga và một số pattern currency dùng U+00A0. JDK/CLDR có thể cập nhật các dấu này.
+For instance, `fr-FR` may display `1 234,5` with **U+202F**, while Russian and some currency patterns use U+00A0. JDK/CLDR updates can alter these characters.
 
-Nếu test:
+If a test runs:
 
 ```java
 assertEquals("1 234,5", actual);
 ```
 
-nó có thể thất bại dù hai chuỗi nhìn giống nhau; ngược lại, tự chuyển tất cả space thành ASCII để test pass có thể bỏ qua lỗi phân tích dữ liệu và line breaking. Khi điều tra, in code point của chuỗi:
+it can fail even though both strings look identical; conversely, normalizing all spaces to ASCII just to pass tests can hide data parsing and line-breaking defects. When investigating, print the string's code points:
 
 ```java
 static String codePoints(String s) {
@@ -660,11 +660,11 @@ static String codePoints(String s) {
 }
 ```
 
-Đây là **phương thức minh họa** cần import `java.util.Locale`. Hãy ghi cả locale, JDK version, provider, currency và output Unicode code points vào báo cáo regression.
+This is an **illustrative method** requiring `import java.util.Locale;`. Include locale, JDK version, provider, currency, and output Unicode code points in regression reports.
 
-### Java 17+: probe dấu phân nhóm `fr-FR`
+### Java 17+: Probing the `fr-FR` Grouping Separator
 
-Tạo file `UnicodeGroupingProbe.java`:
+Create `UnicodeGroupingProbe.java`:
 
 ```java
 import java.text.DecimalFormatSymbols;
@@ -699,57 +699,57 @@ javac UnicodeGroupingProbe.java
 java UnicodeGroupingProbe
 ```
 
-Ví dụ kết quả trên JDK đã kiểm thử:
+Example result on a tested JDK:
 
 ```text
 group=U+202F
 number=[U+0031, U+202F, U+0032, U+0033, U+0034, U+002C, U+0035]
 ```
 
-**Không hardcode** rằng mọi phiên bản JDK đều dùng U+202F cho `fr-FR`. Bản test này dùng `DecimalFormatSymbols` để quan sát thực tế; nếu sản phẩm yêu cầu cố định một dạng vào/ra, hãy định nghĩa contract riêng và test chính contract đó.
+**Do not hard-code** that every JDK version uses U+202F for `fr-FR`. This test uses `DecimalFormatSymbols` to observe actual runtime behavior; if the product mandates a fixed input/output format, define an explicit contract and test that contract.
 
-## 15. Bài test tự động phải tách domain test và presentation snapshot
+## 15. Automated Tests Must Separate Domain Tests from Presentation Snapshots
 
-### 15.1. Test domain invariant
+### 15.1. Domain Invariant Tests
 
-Giá trị nghiệp vụ phải giữ nguyên:
+Business values must remain unchanged:
 
-- `BigDecimal("1234.50")` vẫn là số thập phân `1234.50` khi đổi locale.
-- Tỷ lệ `BigDecimal("0.125")` vẫn là ratio `0.125`.
-- Mã currency vẫn `"USD"` dù ký hiệu/vị trí đổi.
-- Giá trị sau parse thỏa min/max/scale/precision.
-- Đổi JVM default locale không được làm kết quả thay đổi **nếu** API luôn truyền locale tường minh.
+- `BigDecimal("1234.50")` stays the decimal `1234.50` across locale changes.
+- Ratio `BigDecimal("0.125")` stays ratio `0.125`.
+- Currency code remains `"USD"` even when symbol/placement changes.
+- Parsed values satisfy min/max/scale/precision.
+- Changing the JVM default locale must not alter results **when** APIs pass locales explicitly.
 
-Đối với `BigDecimal`, so theo `compareTo` nếu policy chỉ đòi giá trị số học; so `equals` nếu phải giữ scale chính xác. Mọi test phải nói rõ chọn tiêu chí nào.
+For `BigDecimal`, compare with `compareTo` if policy checks numeric value only; compare with `equals` if exact scale must be preserved. Every test should state which criterion it uses.
 
-### 15.2. Test presentation
+### 15.2. Presentation Tests
 
-Chuỗi theo `Locale.US`, `Locale.GERMANY`, `Locale.FRANCE` có thể khác ở dấu nhóm, thập phân, percent/currency sign và spacing. Khi test literal output, cần xác định:
+Strings formatted for `Locale.US`, `Locale.GERMANY`, and `Locale.FRANCE` can differ in grouping marks, decimal separators, percent/currency symbols, and spacing. When testing literal output, record:
 
-- JDK major/minor và locale data;
-- `java.locale.providers` (nếu cấu hình);
-- locale tag và Unicode extension numbering system nếu có;
+- JDK major/minor version and locale data;
+- `java.locale.providers` (if configured);
+- locale tag and Unicode numbering-system extension if present;
 - currency code, rounding mode, min/max fraction digits;
-- ký tự Unicode chính xác.
+- exact Unicode characters.
 
-Nếu nâng JDK dẫn đến CLDR đổi kiểu space hay tên ký hiệu, hãy đánh giá **đây là thay đổi hợp lệ trong presentation hay là vi phạm hợp đồng API**. Đừng mặc nhiên cập nhật snapshot hoặc tự sửa raw data để "khớp kết quả cũ".
+If a JDK upgrade causes CLDR to change a space character or symbol name, evaluate **whether it is a valid presentation update or an API contract violation**. Do not blindly update snapshots or mutate raw data to "match old results."
 
-### 15.3. Property-based / data-driven testing
+### 15.3. Property-Based / Data-Driven Testing
 
-Có thể sinh các giá trị hợp lệ trong domain và kiểm tra:
+You can generate valid domain values and verify:
 
-1. Formatter không ném lỗi cho dải amount hợp lệ.
-2. Sau format, parser cùng locale nhận được **giá trị đã hiển thị**, không đòi tự động phục hồi precision trước rounding.
-3. Khi không có rounding/precision loss theo policy, test numeric round-trip bằng `BigDecimal.compareTo==0`.
-4. Input được nối thêm một suffix không hợp lệ phải bị từ chối nếu API hứa parse toàn chuỗi.
-5. Input khác locale không được âm thầm chấp nhận thành giá trị sai mà chưa có validation.
-6. Sau parser, miền giá trị, currency và scale phải đúng schema.
+1. The formatter throws no errors over the valid amount range.
+2. After formatting, a parser with the same locale recovers the **displayed value**, without expecting automatic recovery of pre-rounding precision.
+3. When policy entails no rounding/precision loss, verify numeric round-trip with `BigDecimal.compareTo==0`.
+4. Inputs with an appended invalid suffix are rejected when the API promises full-string parsing.
+5. Inputs from a different locale are never silently accepted as wrong values without validation.
+6. After parsing, value range, currency, and scale conform to the schema.
 
-**Đừng biến các properties thành khẳng định sai:** `parse(format(x)) == x` không đúng phổ quát do rounding, grouping/provider/signed zero và scale. Phải ràng buộc giả thiết đầu vào và cấu hình formatter.
+**Do not turn properties into false invariants:** `parse(format(x)) == x` does not hold universally due to rounding, grouping/provider/signed-zero differences, and scale. Constrain input assumptions and formatter configuration explicitly.
 
-## 16. Java 17+: một chương trình tự kiểm thử không cần JUnit
+## 16. Java 17+: A Self-Checking Test Program Without JUnit
 
-Dùng `AssertionError` để tạo bộ smoke tests có thể chạy bằng JDK 17+, không cần `-ea`. Tạo file `NumericParsingSmokeTest.java`:
+Use `AssertionError` to build a smoke suite runnable on JDK 17+ without `-ea`. Create `NumericParsingSmokeTest.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -832,7 +832,7 @@ javac -encoding UTF-8 NumericParsingSmokeTest.java
 java NumericParsingSmokeTest
 ```
 
-Stdout khi mọi điều kiện pass:
+Stdout when all checks pass:
 
 ```text
 decimal: PASS
@@ -842,13 +842,13 @@ full-input: PASS
 special-values: PASS
 ```
 
-Hàm `reject` chỉ công nhận ngoại lệ `IllegalArgumentException` do parser validation tạo ra, không dùng giá trị trả về để nhận diện lỗi. Test này **cố ý không bao gồm** strict grouping; xem `StrictGroupingDemo` ở trên để kiểm tra grammar đầu vào theo chính sách.
+The `reject` helper accepts only `IllegalArgumentException` raised by parser validation rather than using return values to signal errors. This test **intentionally omits** strict grouping; refer to `StrictGroupingDemo` above for policy-based input grammar checks.
 
-**Cảnh báo:** trong dự án lớn, test helper nên tách immutable test fixtures, không dùng chung formatter giữa case song song. Với JUnit 5, viết các test có tên rõ, parametrized tests theo locale/kind/input và báo cáo input/code points khi thất bại.
+**Warning:** in large projects, test helpers should isolate immutable test fixtures and never share formatters across parallel cases. With JUnit 5, write clearly named tests, parameterized tests over locale/kind/input, and report input/code points on failure.
 
-## 17. Thiết kế test suite đầy đủ hơn cho sản phẩm thực
+## 17. Designing a More Complete Test Suite for Real Products
 
-Một bộ kiểm thử có cấu trúc:
+A structured test suite:
 
 ```text
 tests/
@@ -864,9 +864,9 @@ tests/
   JdkLocaleUpgradeRegressionTest
 ```
 
-Đây là **cấu trúc khái niệm** cho test suite, không phải các file phải tạo trong bài học.
+This is a **conceptual layout** for a test suite, not files required to be created in this lesson.
 
-Mỗi test case nên lưu:
+Each test case should capture:
 
 ```text
 field-kind: DECIMAL / PERCENT / CURRENCY
@@ -879,23 +879,23 @@ expected-valid: true/false
 expected-error: parse/type/syntax/domain/currency
 rounding-mode: HALF_EVEN / ...
 fraction-digits: min/max
-runtime/provider metadata: nếu snapshot thật sự phụ thuộc
+runtime/provider metadata: if the snapshot actually depends on it
 ```
 
-**Cần đo và log những điều sau khi test fail:** input escaped, code points, locale tag, loại format, index đã tiêu thụ, error index, kiểu `Number`, BigDecimal scale, min/max fraction digits, currency code và provider/JDK version. Không ghi dữ liệu cá nhân nhạy cảm nguyên văn vào log; test fixtures nên dùng giá trị giả lập.
+**Measure and log the following on failure:** escaped input, code points, locale tag, format kind, consumed index, error index, `Number` subtype, `BigDecimal` scale, min/max fraction digits, currency code, and provider/JDK version. Never log raw sensitive personal data; test fixtures should use synthetic values.
 
-### Tình huống cần ưu tiên theo rủi ro
+### Risk-Prioritized Scenarios
 
-- **Đơn hàng/thuế/thanh toán:** precision, scale, currency code và decimal parse phải được ưu tiên hơn snapshot dấu chấm/phẩy.
-- **Dashboard phần trăm:** ratio vs percent points, rounding và không mất dấu âm.
-- **Input theo locale nhiều ngôn ngữ:** full-input và grouping validation, Unicode spaces.
-- **CSV/import legacy:** biết locale/format gốc của từng file; tránh parse cùng một chuỗi bằng locale đang dùng để xem UI.
-- **API machine-to-machine:** canonical schema, không dựa vào `Locale.getDefault()`.
-- **Nâng cấp JDK/CLDR:** kiểm tra riêng các thay đổi ký hiệu/space/numbering systems so với domain invariants.
+- **Orders/taxes/payments:** precision, scale, currency code, and decimal parsing take priority over dot/comma snapshots.
+- **Percentage dashboards:** ratio vs. percentage points, rounding, and preserving negative signs.
+- **Multilingual locale inputs:** full-input and grouping validation, Unicode spaces.
+- **Legacy CSV/imports:** know each file's source locale/format; avoid parsing strings using the viewer's current UI locale.
+- **Machine-to-machine APIs:** canonical schemas, independent of `Locale.getDefault()`.
+- **JDK/CLDR upgrades:** verify symbol/space/numbering-system changes separately from domain invariants.
 
-## 18. Tách chuỗi hiển thị khỏi giá trị lưu trữ
+## 18. Separating Display Strings from Stored Values
 
-Dữ liệu domain nên có dạng:
+Domain data should look like:
 
 ```json
 {
@@ -905,94 +905,94 @@ Dữ liệu domain nên có dạng:
 }
 ```
 
-Trong đó:
+Where:
 
-- `amount` là decimal canonical string theo hợp đồng (hoặc kiểu DECIMAL trong DB).
-- `currency` là mã ISO currency, không phải symbol.
-- `ratio` là tỷ lệ decimal 0–1 theo nghĩa được mô tả trong schema.
+- `amount` is a canonical decimal string per contract (or `DECIMAL` column in the DB).
+- `currency` is an ISO currency code, not a symbol.
+- `ratio` is a 0–1 decimal ratio as defined in the schema.
 
-Với dữ liệu này, UI có thể format theo `en-US`/`de-DE` và không ảnh hưởng giá trị gốc. Khi cần hiển thị phần trăm, chuyển ratio bằng `getPercentInstance`. Khi tính số tiền, dùng `BigDecimal` với rounding/domain policy; không parse lại kết quả hiển thị để thực hiện phép toán.
+With this model, the UI can format for `en-US` or `de-DE` without altering the underlying value. When displaying percentages, format the ratio with `getPercentInstance`. When computing money, use `BigDecimal` with explicit rounding/domain policy; never parse display strings back to perform arithmetic.
 
-### Vấn đề khi lưu `format(amount)`
+### The Problem with Storing `format(amount)`
 
-Nếu bạn lưu `"1.234,50"` vào DB mà không có locale, một ngày sau code có thể đọc bằng parser `en-US` và hiểu thành `1.234` rồi bỏ phần đuôi. Nếu lưu `"12.5%"` mà không thống nhất ratio, phía nhận có thể coi `12.5` là tỷ lệ thay vì 12,5 phần trăm. Nếu lưu `"$1,234.50"` mà không lưu currency code, dấu `$` vẫn không xác định duy nhất đồng tiền.
+If you store `"1.234,50"` in a DB without a locale, later code might read it with an `en-US` parser, interpret it as `1.234`, and drop the remainder. If you store `"12.5%"` without agreeing on ratio semantics, a consumer might treat `12.5` as a ratio instead of 12.5 percent. If you store `"$1,234.50"` without a currency code, `$` still fails to uniquely identify the currency.
 
-**Giải pháp:** ở boundary đầu vào, parse thành đối tượng có kiểu + validation, ở boundary đầu ra format theo locale. Domain và persistence không phụ thuộc cách đặt dấu nhóm, ký hiệu hoặc khoảng trắng của runtime.
+**Solution:** at the input boundary, parse into typed + validated domain objects; at the output boundary, format per locale. Domain and persistence layers never depend on runtime grouping separators, symbols, or whitespace.
 
-## 19. Lỗi thường gặp
+## 19. Common Mistakes
 
-| Sai lầm | Hậu quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Chỉ dùng `parse(String)` và kiểm tra không exception | Parser có thể chấp nhận tiền tố | `ParsePosition` + so index với length |
-| Coi `getIndex()==length` là strict grammar | `12,34.50` có thể parse hết | Lexical validation theo policy locale |
-| Dùng number formatter cho percent | `12.5%` không theo semantic ratio | `getPercentInstance` với multiplier đúng |
-| Chia/nhân 100 hai lần | Sai tỷ lệ gấp 100 lần | Domain lưu ratio hoặc percent points rõ |
-| Coi `"$"` là currency code | Dollar nhiều đồng tiền | Lưu `Currency`/ISO code |
-| Quên `setCurrency` khi giao dịch khác currency default | In ký hiệu/đơn vị sai | Lấy currency từ domain |
-| Chuyển `BigDecimal` qua `double` không cần thiết | Mất precision nhị phân | Dùng decimal exactness |
-| So `BigDecimal.equals` cho numeric-only test | Scale khác tạo false negative | `compareTo==0` nếu chỉ so giá trị |
-| Giả định `parse(format(x))==x` luôn đúng | Formatting rounding mất số | Tách domain invariant vs display precision |
-| Chấp nhận `NaN` cho amount | Special Number không hợp tiền | Check type hữu hạn/`BigDecimal` |
-| Không test `-0` | Signed-zero semantic bị mất | Định nghĩa policy |
-| Normalize mọi Unicode space thành ASCII | Phá format/no-break semantics | Kiểm tra theo locale và field |
-| Parse input de-DE bằng en-US | Sai giá trị hoặc bỏ suffix | Locale nguồn rõ ràng |
-| Sử dụng default locale JVM cho mọi user | Kết quả lệch theo server | Truyền locale tường minh |
-| Một formatter mutable dùng chung đa luồng | Race giữa currency/fraction settings | Instance riêng, hoặc đồng bộ rõ |
-| Snapshot cố định cho mọi JDK | Test hỏng khi CLDR cập nhật | Runtime metadata + review đúng phạm vi |
-| Chỉ test happy path một con số | Bỏ suffix, lỗi grouping, âm, overflow | Ma trận positive/negative/boundary |
-| Dùng parse locale cho API canonical | Dữ liệu machine-to-machine mơ hồ | Schema decimal nhất quán |
+| Using only `parse(String)` and checking for no exception | Parser may accept a prefix | `ParsePosition` + compare index with length |
+| Treating `getIndex()==length` as strict grammar | `12,34.50` can be fully consumed | Lexical validation per locale policy |
+| Using a number formatter for percentages | `12.5%` lacks ratio semantics | `getPercentInstance` with right multiplier |
+| Dividing/multiplying by 100 twice | Ratio off by 100× | Store ratio or percentage points explicitly |
+| Treating `"$"` as a currency code | `$` spans multiple currencies | Store `Currency`/ISO code |
+| Forgetting `setCurrency` when currency differs from locale default | Wrong symbol/unit displayed | Supply currency from domain |
+| Converting `BigDecimal` through `double` needlessly | Binary precision loss | Keep decimal exactness |
+| Using `BigDecimal.equals` for numeric-only tests | Different scales cause false negatives | `compareTo==0` when comparing value only |
+| Assuming `parse(format(x))==x` always holds | Formatting rounding loses digits | Separate domain invariants from display precision |
+| Accepting `NaN` for amounts | Special `Number` invalid for money | Check finite/`BigDecimal` type |
+| Not testing `-0` | Negative-zero semantics lost | Define explicit policy |
+| Normalizing every Unicode space to ASCII | Breaks formatting/no-break semantics | Test per locale and field |
+| Parsing `de-DE` input with `en-US` | Wrong value or dropped suffix | Track source locale explicitly |
+| Relying on JVM default locale for all users | Output varies by server | Pass locale explicitly |
+| Sharing one mutable formatter across threads | Races over currency/fraction settings | Use separate instances or synchronize |
+| Fixed snapshots across all JDKs | Tests break on CLDR updates | Track runtime metadata + scoped review |
+| Testing only one happy-path number | Misses suffixes, bad grouping, negatives, overflow | Positive/negative/boundary matrix |
+| Using locale parsers for canonical APIs | Ambiguous machine-to-machine data | Consistent decimal schema |
 
-## 20. Câu hỏi tự kiểm tra
+## 20. Self-Check Questions
 
-1. **`NumberFormat.getNumberInstance` có phải cũng là percent formatter không?** Không; dùng `getPercentInstance` cho tỷ lệ.
-2. **`"12.5%"` parse theo percent formatter US thành bao nhiêu nếu domain lưu ratio?** `0.125`.
-3. **Tại sao `"1,234.50extra"` có thể trả số?** Parser có thể đọc một tiền tố; chỉ kiểm tra exception là không đủ.
-4. **Điều kiện full input là gì?** Giá trị parse hợp lệ, đúng kiểu và `ParsePosition.getIndex()==input.length()`.
-5. **Điều kiện full input có bảo đảm dấu nhóm đúng chuẩn không?** Không; `DecimalFormat` có thể khoan dung với grouping.
-6. **`"12,34.50"` ở `en-US` có thể bị parser nhận thành `1234.50` không?** Có thể, nên phải thêm grammar validation nếu bắt buộc strict.
-7. **Vì sao `BigDecimal("1.20").equals(BigDecimal("1.2"))` là false?** Scale khác dù số học bằng nhau.
-8. **`setParseBigDecimal(true)` có làm NaN trở thành BigDecimal không?** Không; NaN có thể là `Double` và phải được xử lý theo domain.
-9. **Vì sao `-0` cần test?** Kiểu số khác nhau có thể giữ/mất dấu âm zero; domain phải định nghĩa nghĩa của nó.
-10. **`$` có đủ để xác định currency code không?** Không, vì nhiều đồng tiền cùng ký hiệu.
-11. **`NumberFormat.getCurrencyInstance(Locale.GERMANY)` có tự biết đơn hàng USD không?** Không; set currency từ domain.
-12. **`fr-FR` có thể dùng U+202F ở đâu?** Là group separator trong nhiều phiên bản CLDR/JDK.
-13. **Có nên đổi U+202F sang U+0020 trong mọi số trước parse không?** Không; cần input contract riêng, không thay đổi văn bản tùy tiện.
-14. **Nếu formatter chỉ hiển thị hai chữ số, parse có khôi phục `1.239` từ `1.24` không?** Không.
-15. **Phần trăm 0% và 100% có cần test boundary không?** Có, cùng miền của ratio và chính sách giá trị âm hoặc >100%.
-16. **Vì sao currency tests phải kiểm tra currency code riêng?** Parser text chỉ đọc amount theo pattern; symbol có thể mơ hồ.
-17. **Có nên dựa vào `Locale.getDefault()` khi test nhiều locale?** Không; truyền locale tường minh.
-18. **Khi nào so sánh literal formatted output?** Khi test thuộc tính presentation có contract và runtime/provider đã được xác định.
-19. **Một API JSON gửi `"1.234,50"` mà không truyền locale có an toàn không?** Không; nên dùng decimal canonical.
-20. **Tại sao cần test parse suffix lạ?** Để bảo đảm không chấp nhận đầu vào chỉ được tiêu thụ một phần.
-21. **Khác biệt giữa full parse và validation domain?** Full parse kiểm tra ký tự đã đọc, domain validation kiểm tra quy tắc business/miền giá trị.
-22. **Nếu test với `"NaN"` nhận về `Double.NaN`, nên làm gì khi domain là Money?** Từ chối.
+1. **Is `NumberFormat.getNumberInstance` also a percent formatter?** No; use `getPercentInstance` for ratios.
+2. **What does `"12.5%"` parse to under a US percent formatter when the domain stores ratios?** `0.125`.
+3. **Why can `"1,234.50extra"` return a number?** The parser can consume a prefix; checking only for exceptions is insufficient.
+4. **What is the full-input condition?** A valid parsed value of the right type and `ParsePosition.getIndex()==input.length()`.
+5. **Does full-input consumption guarantee standard grouping separators?** No; `DecimalFormat` can be lenient with grouping.
+6. **Can `"12,34.50"` in `en-US` be parsed into `1234.50`?** Yes, so add grammar validation if strict grouping is required.
+7. **Why is `BigDecimal("1.20").equals(BigDecimal("1.2"))` false?** Different scales even though numerically equal.
+8. **Does `setParseBigDecimal(true)` convert `NaN` into a `BigDecimal`?** No; `NaN` can return as `Double` and must be handled by domain checks.
+9. **Why must `-0` be tested?** Numeric types differ in preserving/dropping negative zero; the domain must define its semantics.
+10. **Is `$` enough to identify a currency code?** No, because multiple currencies share that symbol.
+11. **Does `NumberFormat.getCurrencyInstance(Locale.GERMANY)` know an order is in USD?** No; set currency from the domain.
+12. **Where might `fr-FR` use U+202F?** As the grouping separator in many CLDR/JDK versions.
+13. **Should U+202F be converted to U+0020 in all numbers before parsing?** No; define an explicit input contract rather than mutating text arbitrarily.
+14. **If a formatter displays only two decimal digits, can parsing recover `1.239` from `1.24`?** No.
+15. **Do 0% and 100% need boundary tests?** Yes, along with ratio bounds and policies for negative or >100% values.
+16. **Why must currency tests check the currency code separately?** The text parser reads an amount per pattern; symbols can be ambiguous.
+17. **Should multi-locale tests rely on `Locale.getDefault()`?** No; pass locales explicitly.
+18. **When should you compare literal formatted output?** When testing contracted presentation behavior with runtime/provider pinned.
+19. **Is a JSON API sending `"1.234,50"` without a locale safe?** No; use canonical decimals.
+20. **Why test parsing unexpected suffixes?** To ensure partially consumed inputs are never accepted.
+21. **What is the difference between full parse and domain validation?** Full parse checks characters consumed; domain validation checks business/range rules.
+22. **If a test for `"NaN"` returns `Double.NaN`, what should a Money domain do?** Reject it.
 
-## 21. Checklist triển khai
+## 21. Implementation Checklist
 
-- [ ] Formatter/parser nhận `Locale` rõ ràng, không lấy implicit JVM default từ request người dùng.
-- [ ] Test decimal, percent và currency thành **ba loại riêng**.
-- [ ] Domain tiền dùng `BigDecimal` cùng currency code; domain ratio có nghĩa rõ.
-- [ ] Test cả format, parse, full-input và business/lexical validation.
-- [ ] `ParsePosition` bắt đầu từ 0; so index kết thúc với toàn bộ chiều dài input.
-- [ ] Kiểm tra kiểu số; không cho `NaN`/infinity vào domain khi không được phép.
-- [ ] Có test negative zero, sign, min/max, precision, scale và rounding.
-- [ ] Có test sai locale và dấu `,`/`.` đổi vai trò.
-- [ ] Có test suffix rác, empty string, grouping sai, ký hiệu tiền sai và phần trăm thiếu `%`.
-- [ ] Có test Unicode whitespace U+0020/U+00A0/U+202F và hệ chữ số được hỗ trợ.
-- [ ] Không giả định full-consumption đồng nghĩa grouping đúng.
-- [ ] Không đòi `parse(format(x)) == x` khi formatter có rounding/lossy precision.
-- [ ] Không lưu localized display strings làm source of truth.
-- [ ] Test output presentation gắn JDK/CLDR/provider nếu so nguyên văn.
-- [ ] Formatter mutable không được dùng chung không bảo vệ giữa threads.
-- [ ] QA chạy trên runtime/locale provider của production, với ít nhất một tập legacy input thực tế.
+- [ ] Formatters/parsers receive an explicit `Locale`, never an implicit JVM default for user requests.
+- [ ] Decimals, percentages, and currencies are tested as **three distinct categories**.
+- [ ] Money domain uses `BigDecimal` plus currency code; ratio domain has explicit semantics.
+- [ ] Format, parse, full-input consumption, and business/lexical validation are all tested.
+- [ ] `ParsePosition` starts at 0; ending index is compared against the entire input length.
+- [ ] Value types are checked; `NaN`/infinity are blocked from domains that forbid them.
+- [ ] Negative zero, sign, min/max, precision, scale, and rounding are tested.
+- [ ] Locale mismatches and swapped `,`/`.` roles are tested.
+- [ ] Garbage suffixes, empty strings, invalid grouping, wrong currency symbols, and percents missing `%` are tested.
+- [ ] Unicode whitespace U+0020/U+00A0/U+202F and supported numbering systems are tested.
+- [ ] Full consumption is never assumed to guarantee valid grouping.
+- [ ] `parse(format(x)) == x` is not asserted when the formatter rounds or drops precision.
+- [ ] Localized display strings are never persisted as the source of truth.
+- [ ] Presentation output tests pin JDK/CLDR/provider when asserting exact literals.
+- [ ] Mutable formatters are never shared unprotected across threads.
+- [ ] QA runs on production's runtime/locale provider with at least one realistic legacy input dataset.
 
-## Tài liệu tham khảo
+## References
 
-- [Oracle Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html): decimal, integer, currency, percent factories; parse theo locale và `ParsePosition`.
-- [Oracle Java SE 17 — DecimalFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormat.html): pattern, rounding, `setParseBigDecimal`, parse prefix, special numbers.
-- [Oracle Java SE 17 — DecimalFormatSymbols](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormatSymbols.html): các dấu thập phân/phân nhóm, currency và numbering symbols.
-- [Oracle Java SE 17 — ParsePosition](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/ParsePosition.html): vị trí parse thành công/không thành công.
-- [Oracle Java SE 17 — BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): decimal scale/precision và `equals` vs `compareTo`.
-- [Oracle Java SE 17 — Currency](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Currency.html): currency code và symbol theo locale.
-- [Oracle Java SE 17 — Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html): locale tags và `Category.FORMAT`.
-- [Unicode CLDR](https://cldr.unicode.org/): dữ liệu về dấu, number patterns, currency symbols và các thay đổi theo phiên bản.
+- [Oracle Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html): decimal, integer, currency, and percent factories; locale parsing and `ParsePosition`.
+- [Oracle Java SE 17 — DecimalFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormat.html): patterns, rounding, `setParseBigDecimal`, prefix parsing, special numbers.
+- [Oracle Java SE 17 — DecimalFormatSymbols](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormatSymbols.html): decimal/grouping marks, currency, and numbering symbols.
+- [Oracle Java SE 17 — ParsePosition](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/ParsePosition.html): parse success/failure position tracking.
+- [Oracle Java SE 17 — BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): decimal scale/precision and `equals` vs. `compareTo`.
+- [Oracle Java SE 17 — Currency](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Currency.html): currency codes and locale symbols.
+- [Oracle Java SE 17 — Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html): locale tags and `Category.FORMAT`.
+- [Unicode CLDR](https://cldr.unicode.org/): data on separators, number patterns, currency symbols, and per-version changes.

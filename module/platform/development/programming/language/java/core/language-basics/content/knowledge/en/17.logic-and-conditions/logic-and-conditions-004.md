@@ -1,12 +1,12 @@
-# `&`, `|` và `^` khi áp dụng lên `boolean` — Java 17+
+# `&`, `|`, and `^` When Applied to `boolean` — Java 17+
 
-Trong Java, các toán tử `&`, `|` và `^` có thể kết hợp **hai giá trị `boolean`**. Kết quả của chúng cũng có kiểu `boolean`:
+In Java, the operators `&`, `|`, and `^` can combine **two `boolean` values**. Their results also have type `boolean`:
 
-- `a & b`: **AND** — true chỉ khi **cả hai** cùng true.
-- `a | b`: **OR** — true khi **ít nhất một** toán hạng true.
-- `a ^ b`: **XOR** (*exclusive OR*) — true khi **chính xác một** trong hai toán hạng true.
+- `a & b`: **AND** — true only when **both** are true.
+- `a | b`: **OR** — true when **at least one** operand is true.
+- `a ^ b`: **XOR** (*exclusive OR*) — true when **exactly one** of the two operands is true.
 
-**Điểm cần nhớ nhất:** với các toán hạng boolean, **cả hai vế** của `&`, `|` và `^` đều được đánh giá nếu việc đánh giá vế trái hoàn tất bình thường, **không ngắn mạch** như `&&` và `||`.
+**Key takeaway:** with boolean operands, **both sides** of `&`, `|`, and `^` are evaluated if evaluating the left side completes normally—they are **not short-circuiting** like `&&` and `||`.
 
 ~~~java
 boolean a = true;
@@ -17,9 +17,9 @@ System.out.println(a | b); // true.
 System.out.println(a ^ b); // true.
 ~~~
 
-Không nhầm dạng một ký tự `&`/`|` với dạng hai ký tự `&&`/`||`. Chúng có thể cho **cùng kết quả logic** nhưng **khác việc thực thi các biểu thức con**, điều rất quan trọng khi có lời gọi phương thức, `null` hoặc ngoại lệ.
+Do not confuse the single-character forms `&`/`|` with the double-character forms `&&`/`||`. They can produce the **same logical result** while **differing in subexpression execution**, which matters greatly when method calls, `null`, or exceptions are involved.
 
-## 1. Bảng chân trị đầy đủ
+## 1. Full Truth Table
 
 | `a` | `b` | `a & b` (AND) | `a \| b` (OR) | `a ^ b` (XOR) |
 | --- | --- | --- | --- | --- |
@@ -28,7 +28,7 @@ Không nhầm dạng một ký tự `&`/`|` với dạng hai ký tự `&&`/`||`.
 | true | false | false | true | true |
 | true | true | true | true | false |
 
-**Ý nghĩa của XOR:** chỉ **một** điều kiện được phép đúng, không phải “một hoặc cả hai”.
+**Meaning of XOR:** only **one** condition is allowed to be true, not "one or both".
 
 ~~~java
 boolean hasPassword = true;
@@ -38,11 +38,11 @@ boolean exactlyOneMethod = hasPassword ^ hasOneTimeCode; // true.
 boolean bothMethods = true ^ true; // false.
 ~~~
 
-Với hai toán hạng kiểu boolean, `a ^ b` cho cùng **giá trị** như `a != b`, nhưng `^` giúp thể hiện ý định XOR rõ hơn trong một số tình huống. Nó **không** có nghĩa phép lũy thừa. Java không dùng `^` để tính `2^3 = 8`; phép lũy thừa số thực có thể dùng `Math.pow(2, 3)`.
+With two boolean operands, `a ^ b` yields the same **value** as `a != b`, though `^` can express the XOR intent more clearly in certain situations. It does **not** mean exponentiation. Java does not use `^` to compute `2^3 = 8`; floating-point exponentiation can use `Math.pow(2, 3)`.
 
-## 2. Chương trình Java 17+ chạy trực tiếp bằng CLI
+## 2. Java 17+ Program Run Directly via CLI
 
-Tạo file UTF-8 tên **`EagerBooleanOperatorsDemo.java`**:
+Create a UTF-8 file named **`EagerBooleanOperatorsDemo.java`**:
 
 ~~~java
 public class EagerBooleanOperatorsDemo {
@@ -136,7 +136,7 @@ public class EagerBooleanOperatorsDemo {
 }
 ~~~
 
-Chạy trên **JDK 17 trở lên** trong PowerShell (Windows) hoặc Bash (Linux/macOS), tại thư mục chứa file:
+Run on **JDK 17 or later** in PowerShell (Windows) or Bash (Linux/macOS), in the directory containing the file:
 
 ~~~bash
 java -version
@@ -145,7 +145,7 @@ javac -encoding UTF-8 EagerBooleanOperatorsDemo.java
 java EagerBooleanOperatorsDemo
 ~~~
 
-**Exact expected stdout** của riêng lệnh `java EagerBooleanOperatorsDemo`:
+**Exact expected stdout** of the `java EagerBooleanOperatorsDemo` command alone:
 
 ~~~text
 == truth table ==
@@ -185,11 +185,11 @@ xorVsNotEqual=true
 integerBitwiseXor=6
 ~~~
 
-Các lệnh `java -version` và `javac -version` hiển thị phiên bản của máy, không thuộc khối expected stdout cố định. Phương thức `mark` chỉ giúp quan sát thứ tự đánh giá; trong mã thực tế, hãy tránh giấu tác dụng phụ vào điều kiện.
+The `java -version` and `javac -version` commands show the machine's version info and are not part of the fixed expected stdout block. The `mark` method only helps observe evaluation order; in real code, avoid hiding side effects inside conditions.
 
-## 3. `&` và `&&`: cùng AND, khác cách đánh giá
+## 3. `&` and `&&`: Same AND, Different Evaluation
 
-Hai biểu thức đều cho kết quả AND trên boolean:
+Both expressions produce the AND result on booleans:
 
 ~~~java
 boolean a = false;
@@ -199,42 +199,42 @@ System.out.println(a & b);  // false.
 System.out.println(a && b); // false.
 ~~~
 
-Sự khác biệt là **có đánh giá toán hạng phải hay không**.
+The difference is **whether the right-hand operand is evaluated**.
 
 ~~~java
 boolean eager = mark("L", false) & mark("R", true);
-// In eval=L, sau do eval=R; eager=false.
+// Prints eval=L, then eval=R; eager=false.
 
 boolean shortCircuit = mark("L", false) && mark("R", true);
-// Chi in eval=L; shortCircuit=false.
+// Prints only eval=L; shortCircuit=false.
 ~~~
 
-Với `&`, nếu biểu thức trái hoàn tất bình thường, Java vẫn đánh giá biểu thức phải ngay cả khi giá trị trái là false. Với `&&`, khi vế trái false thì vế phải không chạy.
+With `&`, if the left expression completes normally, Java still evaluates the right expression even when the left value is false. With `&&`, when the left side is false, the right side does not run.
 
-Điều này có thể làm khác **nhật ký**, **trạng thái**, **lời gọi API** hoặc **ngoại lệ**, dù kết quả boolean cuối cùng giống nhau.
+This can change **logs**, **state**, **API calls**, or **exceptions**, even though the final boolean value is identical.
 
-## 4. `|` và `||`: cùng OR, khác ngắn mạch
+## 4. `|` and `||`: Same OR, Different Short-Circuiting
 
 ~~~java
 boolean eager = mark("L", true) | mark("R", false);
-// In ca eval=L va eval=R, eager=true.
+// Prints both eval=L and eval=R, eager=true.
 
 boolean shortCircuit = mark("L", true) || mark("R", false);
-// Chi in eval=L, shortCircuit=true.
+// Prints only eval=L, shortCircuit=true.
 ~~~
 
-Với `|`, toán hạng phải vẫn được đánh giá khi vế trái true. Với `||`, vế trái true đủ quyết định kết quả nên vế phải được bỏ qua.
+With `|`, the right-hand operand is still evaluated when the left side is true. With `||`, a true left side already decides the result, so the right side is skipped.
 
-| Điều kiện vế trái | `a & b` | `a && b` | `a \| b` | `a || b` |
+| Left-side condition | `a & b` | `a && b` | `a \| b` | `a || b` |
 | --- | --- | --- | --- | --- |
-| `a == false` | Đánh giá `b` | Bỏ qua `b` | Đánh giá `b` | Đánh giá `b` |
-| `a == true` | Đánh giá `b` | Đánh giá `b` | Đánh giá `b` | Bỏ qua `b` |
+| `a == false` | Evaluates `b` | Skips `b` | Evaluates `b` | Evaluates `b` |
+| `a == true` | Evaluates `b` | Evaluates `b` | Evaluates `b` | Skips `b` |
 
-**Mặc định**, nên dùng `&&`/`||` cho điều kiện thường gặp, nhất là điều kiện gác cổng. Chỉ chọn `&`/`|` trên boolean khi việc đánh giá **cả hai** thật sự cần thiết và đã được cân nhắc rõ ràng.
+**By default**, use `&&`/`||` for ordinary conditions, especially guard conditions. Only choose `&`/`|` on booleans when evaluating **both** is genuinely required and has been carefully considered.
 
-## 5. `^`: XOR và hai vế luôn được đánh giá
+## 5. `^`: XOR and Both Sides Are Always Evaluated
 
-Với boolean, `a ^ b` đúng khi đúng **chính xác một** trong hai điều kiện. Không có dạng toán tử Java `^^`.
+For booleans, `a ^ b` is true when **exactly one** of the two conditions is true. There is no `^^` operator form in Java.
 
 ~~~java
 System.out.println(false ^ false); // false.
@@ -243,14 +243,14 @@ System.out.println(true ^ false);  // true.
 System.out.println(true ^ true);   // false.
 ~~~
 
-`^` luôn đánh giá cả hai toán hạng nếu vế trái hoàn thành bình thường:
+`^` always evaluates both operands if the left side completes normally:
 
 ~~~java
 boolean different = mark("first", true) ^ mark("second", false);
-// In eval=first, eval=second; different=true.
+// Prints eval=first, eval=second; different=true.
 ~~~
 
-Ứng dụng điển hình là kiểm tra **đúng một lựa chọn**:
+A typical use case is checking **exactly one choice**:
 
 ~~~java
 boolean choseEmail = true;
@@ -258,81 +258,81 @@ boolean chosePhone = false;
 boolean exactlyOne = choseEmail ^ chosePhone; // true.
 ~~~
 
-Nếu muốn cho phép **ít nhất một** lựa chọn, dùng `||` thay vì `^`. Nếu muốn **cả hai** cùng có, dùng `&&`.
+If you want to allow **at least one** choice, use `||` instead of `^`. If you want **both** present, use `&&`.
 
-Với hai giá trị boolean, `a ^ b` và `a != b` có cùng kết quả. Khi các toán hạng có tác dụng phụ, cả `^` lẫn `!=` đều đánh giá hai toán hạng theo các quy tắc của Java. Tuy nhiên, cách biểu đạt `^` có thể giúp người đọc nhận ra rõ hơn khái niệm “đúng một”.
+For two boolean values, `a ^ b` and `a != b` produce the same result. When operands have side effects, both `^` and `!=` evaluate both operands according to Java's rules. However, writing `^` can help readers recognize the "exactly one" concept more clearly.
 
-## 6. Không dùng `&` hoặc `|` làm null guard
+## 6. Do Not Use `&` or `|` as a Null Guard
 
-Vì đánh giá vế phải luôn được thực hiện, dùng `&` có thể tạo `NullPointerException`:
+Because the right-hand side is always evaluated, using `&` can cause a `NullPointerException`:
 
 ~~~java
 String name = null;
 
-// An toan: vế phải bị bỏ qua nếu name null.
+// Safe: the right side is skipped if name is null.
 boolean safe = name != null && !name.isBlank();
 
-// Nguy hiem:
+// Dangerous:
 // boolean wrong = name != null & !name.isBlank();
-// Ném NullPointerException.
+// Throws NullPointerException.
 ~~~
 
-Tương tự với chia số nguyên cho 0:
+Similarly for integer division by 0:
 
 ~~~java
 int divisor = 0;
 
-// An toan: vế trái true làm || bỏ qua phép chia.
+// Safe: a true left side causes || to skip the division.
 boolean safe = divisor == 0 || 12 / divisor > 3;
 
-// Nguy hiem:
+// Dangerous:
 // boolean wrong = divisor == 0 | 12 / divisor > 3;
-// Ném ArithmeticException.
+// Throws ArithmeticException.
 ~~~
 
-Đây là khác biệt về **luồng đánh giá**, không phải về “độ chính xác của bảng chân trị”. Với toán hạng thứ hai có thể ném ngoại lệ, `&`/`|` có thể không trả kết quả boolean bình thường.
+This is a difference in **evaluation flow**, not in "truth-table correctness". When the second operand can throw an exception, `&`/`|` may fail to return a normal boolean result.
 
-**Chú ý concurrency:** một guard đọc giá trị và một biểu thức truy cập cùng dữ liệu dùng chung có thể chịu ảnh hưởng từ luồng khác. Bản thân `&&` không thay thế cơ chế đồng bộ hoặc snapshot nếu chương trình có dữ liệu thay đổi đồng thời.
+**Concurrency note:** a guard reading a value and an expression accessing the same shared data can be affected by another thread. `&&` itself does not replace synchronization or snapshotting if the program has concurrently mutating data.
 
-## 7. `Boolean` wrapper và unboxing
+## 7. `Boolean` Wrapper and Unboxing
 
-Ba toán tử nhận biểu thức `boolean` nguyên thủy hoặc `Boolean` có thể **unbox** về `boolean`.
+All three operators accept primitive `boolean` expressions or `Boolean` values that can **unbox** to `boolean`.
 
 ~~~java
 Boolean enabled = Boolean.TRUE;
 boolean result = enabled ^ false; // true.
 ~~~
 
-Nhưng nếu wrapper chứa `null`, unboxing gây `NullPointerException`:
+However, if the wrapper holds `null`, unboxing causes a `NullPointerException`:
 
 ~~~java
 Boolean missing = null;
-// boolean result = true ^ missing; // Ném NullPointerException.
+// boolean result = true ^ missing; // Throws NullPointerException.
 ~~~
 
-Đừng ngầm coi `Boolean null` là false. Cần xác định chính sách nghiệp vụ; khi muốn coi chỉ `Boolean.TRUE` là đúng:
+Do not implicitly assume `Boolean null` is false. Define the business policy explicitly; when you want only `Boolean.TRUE` to count as true:
 
 ~~~java
 Boolean flag = null;
 boolean isEnabled = Boolean.TRUE.equals(flag); // false.
 ~~~
 
-Với `&&`/`||`, vế phải chứa wrapper null **có thể được bỏ qua nhờ ngắn mạch**, nhưng nếu đến lượt đánh giá và unbox null thì vẫn ném ngoại lệ.
+With `&&`/`||`, a right side containing a null wrapper **can be skipped via short-circuiting**, though if evaluation reaches it and unboxes null, it still throws an exception.
 
-## 8. Độ ưu tiên và dấu ngoặc
+## 8. Precedence and Parentheses
 
-Với các toán tử logic liên quan, thứ tự ưu tiên từ cao xuống thấp gồm:
+Among the related logical operators, the precedence order from highest to lowest is:
 
-| Độ ưu tiên tương đối | Toán tử |
+| Relative precedence | Operator |
 | --- | --- |
-| Cao | `!` |
-| Sau đó | `&` |
-| Sau đó | `^` |
-| Sau đó | `\|` |
-| Sau đó | `&&` |
-| Thấp hơn | `||` |
+| High | `!` |
+| Next | `&` |
+| Next | `^` |
+| Next | `\|` |
+| Next | `&&` |
+| Lower | `||` |
 
-Do `&` ưu tiên hơn `|`:
+Because `&` has higher precedence than `|`:
 
 ~~~java
 boolean p = true;
@@ -343,82 +343,82 @@ boolean ungrouped = p | q & r;   // true: p | (q & r).
 boolean grouped = (p | q) & r;   // false.
 ~~~
 
-**Độ ưu tiên quyết định cách nhóm**, không đảo thứ tự đánh giá toán hạng. Những biểu thức có nhiều toán tử nên dùng ngoặc để thể hiện rõ ý thay vì buộc người đọc ghi nhớ mọi mức ưu tiên.
+**Precedence determines grouping**, not reversing operand evaluation order. Expressions with multiple operators should use parentheses to state intent clearly rather than forcing readers to memorize every precedence level.
 
-Ví dụ `!a & b` được nhóm `(!a) & b`, còn `!(a & b)` phủ định toàn bộ kết quả AND — đây là hai điều kiện khác nhau.
+For example, `!a & b` groups as `(!a) & b`, whereas `!(a & b)` negates the entire AND result — these are two different conditions.
 
-## 9. Phân biệt phép logic boolean với bitwise trên số nguyên
+## 9. Distinguishing Boolean Logic from Bitwise Operations on Integers
 
-`&`, `|`, `^` còn được Java hỗ trợ trên **các kiểu số nguyên** để thao tác từng bit. Compiler quyết định phép toán nào dựa vào **kiểu toán hạng**.
+`&`, `|`, and `^` are also supported in Java on **integer types** to manipulate individual bits. The compiler decides which operation to use based on **operand types**.
 
 ~~~java
-boolean logical = true ^ false; // true, XOR boolean.
+boolean logical = true ^ false; // true, boolean XOR.
 int bitwise = 0b1010 ^ 0b1100;  // 0b0110 = 6.
 ~~~
 
-Nếu toán hạng là hai số nguyên, `^` thực hiện XOR bit; nếu là hai boolean, `^` thực hiện XOR logic. Với toán hạng boolean, `&` và `|` không đổi thành phép số nguyên và trả `boolean`.
+If both operands are integers, `^` performs bitwise XOR; if both are booleans, `^` performs logical XOR. With boolean operands, `&` and `|` do not turn into integer operations and return `boolean`.
 
-- `&&` và `||` **chỉ áp dụng cho boolean**.
-- `&`, `|`, `^` áp dụng cho **boolean hoặc kiểu số nguyên phù hợp**.
-- Java không tự đổi số 0 thành false, số khác 0 thành true; vì vậy `1 && 2` và `!0` đều không hợp lệ.
-- `^` không phải phép lũy thừa; `Math.pow(...)` là API khác với số thực.
+- `&&` and `||` **apply only to booleans**.
+- `&`, `|`, and `^` apply to **booleans or suitable integer types**.
+- Java does not convert 0 to false or non-zero numbers to true; thus `1 && 2` and `!0` are both invalid.
+- `^` is not exponentiation; `Math.pow(...)` is a separate API for floating-point numbers.
 
-### Gán kết hợp trên boolean
+### Compound assignment on booleans
 
-Java còn có các dạng `&=`, `|=`, `^=`. Ví dụ:
+Java also has `&=`, `|=`, and `^=`. Example:
 
 ~~~java
 boolean enabled = false;
 enabled ^= true;  // true: toggle.
-enabled ^= true;  // false: toggle them lan nua.
+enabled ^= true;  // false: toggle once again.
 ~~~
 
-`x ^= true` là một cách đảo `boolean`, nhưng `x = !x` thường rõ ràng hơn khi mục đích chỉ là phủ định trạng thái. Với biểu thức vế trái phức tạp, gán kết hợp có quy tắc đánh giá vế trái một lần; không tự thay mã bằng phép gán hai lần đọc vế trái có tác dụng phụ.
+`x ^= true` is one way to flip a `boolean`, though `x = !x` is usually clearer when the sole intent is negating a state. For a complex left-hand expression, compound assignment evaluates the left-hand side once; do not blindly rewrite it into a normal assignment that reads a side-effecting left-hand side twice.
 
-## 10. Bẫy thường gặp
+## 10. Common Pitfalls
 
-| Nhầm lẫn | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| “`&` và `&&` giống hệt nhau trên boolean.” | Bảng chân trị giống, nhưng `&` **không ngắn mạch** |
-| “`|` và `||` đều bỏ qua vế phải khi vế trái true.” | Chỉ `||` bỏ qua |
-| “`^` đúng nếu ít nhất một điều kiện true.” | `^` đúng khi **chính xác một** điều kiện true |
-| “`^` là lũy thừa số nguyên.” | `^` là XOR boolean/bit |
-| “`false & risky()` an toàn vì kết quả đã false.” | `risky()` vẫn được đánh giá |
-| “`true | risky()` không cần chạy risky.” | Vế phải vẫn chạy |
-| “`Boolean null` tự coi là false.” | Unboxing null gây `NullPointerException` |
-| “`a | b & c` luôn nhóm như `(a | b) & c`.” | Thực ra `a | (b & c)` |
-| “Dùng `&` thay `&&` giúp null guard.” | Có thể gây lỗi do đánh giá vế phải |
+| "`&` and `&&` are identical on booleans." | Same truth table, but `&` **does not short-circuit** |
+| "`|` and `||` both skip the right side when the left side is true." | Only `||` skips it |
+| "`^` is true if at least one condition is true." | `^` is true when **exactly one** condition is true |
+| "`^` is integer exponentiation." | `^` is boolean/bitwise XOR |
+| "`false & risky()` is safe because the result is already false." | `risky()` is still evaluated |
+| "`true | risky()` does not need to run risky." | The right side still runs |
+| "`Boolean null` is automatically treated as false." | Unboxing null causes `NullPointerException` |
+| "`a | b & c` always groups as `(a | b) & c`." | Actually `a | (b & c)` |
+| "Using `&` instead of `&&` works as a null guard." | Can crash due to evaluating the right side |
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-Check Exercises
 
-1. `true & false`, `true | false`, `true ^ false` cho gì?  
-   *Đáp án:* false, true, true.
-2. `true ^ true` và `false ^ false` cho gì?  
-   *Đáp án:* Cả hai false.
-3. `false & check()` có đánh giá `check()` không?  
-   *Đáp án:* Có nếu vế trái hoàn thành bình thường; kết quả AND vẫn false nếu `check()` trả bình thường.
-4. `false && check()` có đánh giá `check()` không?  
-   *Đáp án:* Không.
-5. `true | check()` khác `true || check()` thế nào?  
-   *Đáp án:* `|` đánh giá `check()`, `||` bỏ qua.
-6. Với `String s = null`, tại sao `s != null & !s.isBlank()` không an toàn?  
-   *Đáp án:* `&` vẫn đánh giá lời gọi `isBlank()` trên null.
-7. `true | false & false` cho giá trị nào?  
-   *Đáp án:* true, vì `&` ưu tiên hơn `|`.
-8. `Boolean b = null; boolean x = true ^ b;` có kết quả gì?  
-   *Đáp án:* Ném `NullPointerException` khi unbox.
-9. `boolean x = false; x ^= true; x ^= true;` cuối cùng `x` bằng gì?  
-   *Đáp án:* false.
+1. What do `true & false`, `true | false`, and `true ^ false` yield?  
+   *Answer:* false, true, true.
+2. What do `true ^ true` and `false ^ false` yield?  
+   *Answer:* Both false.
+3. Does `false & check()` evaluate `check()`?  
+   *Answer:* Yes if the left side completes normally; the AND result is still false if `check()` returns normally.
+4. Does `false && check()` evaluate `check()`?  
+   *Answer:* No.
+5. How does `true | check()` differ from `true || check()`?  
+   *Answer:* `|` evaluates `check()`, while `||` skips it.
+6. Given `String s = null`, why is `s != null & !s.isBlank()` unsafe?  
+   *Answer:* `&` still evaluates the `isBlank()` call on null.
+7. What value does `true | false & false` evaluate to?  
+   *Answer:* true, because `&` has higher precedence than `|`.
+8. What happens in `Boolean b = null; boolean x = true ^ b;`?  
+   *Answer:* Throws `NullPointerException` during unboxing.
+9. In `boolean x = false; x ^= true; x ^= true;`, what is the final value of `x`?  
+   *Answer:* false.
 
 ## Checklist
 
-- [ ] Biết `&` là AND, `|` là OR, `^` là XOR với boolean.
-- [ ] Nhớ `^` chỉ true khi **chính xác một** toán hạng true.
-- [ ] Hiểu `&`, `|` và `^` **đánh giá cả hai vế**, không ngắn mạch.
-- [ ] Phân biệt với `&&` và `||`, đặc biệt trong null guard và exception.
-- [ ] Chú ý `Boolean` null có thể ném `NullPointerException` do unboxing.
-- [ ] Biết độ ưu tiên `!` rồi `&`, `^`, `|`, `&&`, `||`.
-- [ ] Phân biệt toán tử boolean với bitwise trên số nguyên.
-- [ ] Không dùng XOR như phép lũy thừa hoặc OR thông thường.
+- [ ] Know that `&` is AND, `|` is OR, and `^` is XOR for booleans.
+- [ ] Remember `^` is true only when **exactly one** operand is true.
+- [ ] Understand that `&`, `|`, and `^` **evaluate both sides**, without short-circuiting.
+- [ ] Distinguish them from `&&` and `||`, especially regarding null guards and exceptions.
+- [ ] Watch out for null `Boolean` values throwing `NullPointerException` on unboxing.
+- [ ] Know precedence order: `!`, then `&`, `^`, `|`, `&&`, `||`.
+- [ ] Distinguish boolean operators from integer bitwise operators.
+- [ ] Do not use XOR as exponentiation or ordinary OR.
 
-**Kết luận:** Trong biểu thức `boolean` Java, `&`, `|` và `^` lần lượt thực hiện AND, OR, XOR. Điểm cốt lõi là **không ngắn mạch**, khác `&&`/`||`. Chọn đúng toán tử theo **ý nghĩa điều kiện** và **nhu cầu đánh giá vế phải** để tránh những lỗi khó nhận ra với tác dụng phụ, null và ngoại lệ.
+**Conclusion:** In Java `boolean` expressions, `&`, `|`, and `^` perform AND, OR, and XOR respectively. The core point is that they are **non-short-circuiting**, unlike `&&`/`||`. Choose the right operator based on **condition semantics** and **whether the right side must be evaluated** to avoid subtle bugs with side effects, nulls, and exceptions.

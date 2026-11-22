@@ -1,40 +1,40 @@
-# `String.compareTo()` và thứ tự từ điển theo giá trị `char` trong Java
+# `String.compareTo()` and Lexicographical Order by `char` Value in Java
 
-## 1. `compareTo()` giải quyết vấn đề gì?
+## 1. What Problem Does `compareTo()` Solve?
 
-Khi cần biết hai chuỗi có **bằng nhau về nội dung** hay không, Java có `String.equals(...)`. Nhưng nhiều bài toán còn cần biết chuỗi nào **đứng trước hoặc đứng sau** chuỗi khác để sắp xếp tên, từ khóa, mã định danh hay danh sách.
+When you need to know whether two strings have **equal content**, Java provides `String.equals(...)`. Many problems, however, also require knowing which string **comes before or after** another to sort names, keywords, identifiers, or lists.
 
-Lớp `java.lang.String` cung cấp:
+The `java.lang.String` class provides:
 
 ```java
 public int compareTo(String anotherString)
 ```
 
-Đây là phép **so sánh thứ tự từ điển** (*lexicographical comparison*) của hai chuỗi theo các giá trị `char` (đơn vị mã UTF-16) của Java. Phương thức xét từ trái sang phải, tìm vị trí đầu tiên mà hai chuỗi khác nhau. Nếu mọi vị trí chung đều giống nhau, chuỗi ngắn hơn đứng trước.
+This is a **lexicographical comparison** of two strings by Java's `char` values (UTF-16 code units). The method scans from left to right, finding the first position where the two strings differ. If all shared positions match, the shorter string comes first.
 
-Ví dụ:
+Examples:
 
 ```java
-System.out.println("apple".compareTo("banana")); // Số âm
+System.out.println("apple".compareTo("banana")); // Negative number
 System.out.println("java".compareTo("java"));     // 0
-System.out.println("zebra".compareTo("apple"));   // Số dương
+System.out.println("zebra".compareTo("apple"));   // Positive number
 ```
 
-Các đoạn mã ngắn trong bài chỉ là **mã minh họa bên trong một phương thức**, trừ ví dụ có lớp `public class` và phương thức `main` được trình bày đầy đủ ở phần sau.
+Short snippets in this article are **illustrative code inside a method**, except for the complete example with a `public class` and `main` method presented later.
 
-Điều quan trọng nhất khi đọc giá trị trả về là **dấu** của số nguyên:
+The most important thing when reading the return value is the **sign** of the integer:
 
-| Giá trị `left.compareTo(right)` | Kết luận |
+| Value of `left.compareTo(right)` | Conclusion |
 |---|---|
-| Nhỏ hơn `0` | `left` đứng **trước** `right` theo thứ tự của `String` |
-| Bằng `0` | Hai chuỗi có cùng dãy giá trị `char` |
-| Lớn hơn `0` | `left` đứng **sau** `right` theo thứ tự của `String` |
+| Less than `0` | `left` comes **before** `right` in `String` order |
+| Equal to `0` | Both strings have the same sequence of `char` values |
+| Greater than `0` | `left` comes **after** `right` in `String` order |
 
-**Không nên chỉ kiểm tra `compareTo(...) == -1` hoặc `== 1`.** Phương thức có thể trả `-32`, `2`, `5` hoặc một giá trị âm/dương khác. Khi chỉ cần xác định thứ tự, hãy so sánh với **`0`**.
+**Do not check only `compareTo(...) == -1` or `== 1`.** The method can return `-32`, `2`, `5`, or any other negative/positive integer. When you only need ordering, compare against **`0`**.
 
-## 2. Cú pháp và hợp đồng API
+## 2. Syntax and API Contract
 
-Cú pháp cơ bản:
+Basic syntax:
 
 ```java
 String left = "cat";
@@ -44,83 +44,83 @@ int result = left.compareTo(right);
 System.out.println(result); // 2
 ```
 
-- `left` là đối tượng `String` **nhận lời gọi**.
-- `right` là đối số `String` **được so sánh với** `left`.
-- Kết quả là một `int`; giá trị mang ý nghĩa **thứ tự**, không phải vị trí ký tự trong chuỗi.
-- `compareTo` **không sửa** hai chuỗi vì `String` bất biến.
-- Đối số phải là một `String` khác `null`. Nếu truyền `null`, lời gọi ném `NullPointerException`. Nếu biến nhận lời gọi là `null`, việc gọi phương thức cũng ném `NullPointerException`.
+- `left` is the `String` object **receiving the call**.
+- `right` is the `String` argument **compared against** `left`.
+- The result is an `int`; its value carries **ordering** meaning, not a character index in the string.
+- `compareTo` **does not modify** either string because `String` is immutable.
+- The argument must be a non-`null` `String`. Passing `null` throws `NullPointerException`. Calling the method when the receiver variable is `null` also throws `NullPointerException`.
 
-`String` triển khai giao diện `Comparable<String>`. Vì thế Java có thể dùng `compareTo` làm **thứ tự tự nhiên** (*natural ordering*) của `String`, chẳng hạn khi gọi `Arrays.sort` hoặc `Collections.sort` mà không cung cấp `Comparator` riêng.
+`String` implements the `Comparable<String>` interface. Thus, Java can use `compareTo` as the **natural ordering** of `String`, such as when calling `Arrays.sort` or `Collections.sort` without supplying a custom `Comparator`.
 
-### So với `equals(...)` và `==`
+### Compared to `equals(...)` and `==`
 
 ```java
 String first = new String("Java");
 String second = "Java";
 
-System.out.println(first.equals(second));    // true: cùng nội dung
-System.out.println(first.compareTo(second)); // 0: cùng nội dung, bằng thứ tự
-System.out.println(first == second);         // false: khác tham chiếu
+System.out.println(first.equals(second));    // true: same content
+System.out.println(first.compareTo(second)); // 0: same content, equal order
+System.out.println(first == second);         // false: different references
 ```
 
-Với hai đối tượng `String` khác `null`, điều kiện `a.compareTo(b) == 0` tương đương với `a.equals(b)` về **nội dung chuỗi**. Tuy nhiên:
+For two non-`null` `String` objects, the condition `a.compareTo(b) == 0` is equivalent to `a.equals(b)` for **string content**. However:
 
-- Dùng **`equals`** để trả lời “Nội dung có bằng nhau không?”.
-- Dùng **`compareTo`** để trả lời “Chuỗi nào đứng trước/sau?”.
-- **`==`** trên hai biến `String` kiểm tra cùng tham chiếu đối tượng, không phải thứ tự và cũng không phù hợp để so nội dung.
+- Use **`equals`** to answer "Is the content equal?".
+- Use **`compareTo`** to answer "Which string comes before/after?".
+- **`==`** on two `String` variables checks same object reference, not ordering, and is unsuitable for comparing content.
 
-## 3. Thuật toán so sánh từng `char` từ trái sang phải
+## 3. Left-to-Right `char`-by-`char` Comparison Algorithm
 
-Giả sử hai chuỗi lần lượt là `left` và `right`.
+Let the two strings be `left` and `right`.
 
-**Quy tắc 1 – Tìm vị trí đầu tiên khác nhau.** Java xét từng giá trị `char` theo chỉ số `0`, `1`, `2`, ... đến hết phần chung. Nếu gặp vị trí `k` mà:
+**Rule 1 – Find the first differing position.** Java inspects each `char` value at indices `0`, `1`, `2`, ... up to the end of their common prefix. If it encounters an index `k` where:
 
 ```java
 left.charAt(k) != right.charAt(k)
 ```
 
-thì kết quả mang giá trị:
+then the result has the value:
 
 ```java
 left.charAt(k) - right.charAt(k)
 ```
 
-Việc trừ ở đây sử dụng giá trị số của hai `char`. Phần **dấu** quyết định thứ tự. Những ký tự nằm sau vị trí khác nhau đầu tiên **không còn ảnh hưởng** đến phép so sánh.
+Subtraction here uses the numeric values of the two `char`s. The **sign** determines the order. Characters after the first differing position **no longer affect** the comparison.
 
-**Quy tắc 2 – Nếu toàn bộ phần chung giống nhau.** Nếu một chuỗi là tiền tố của chuỗi kia (hoặc cả hai giống hệt), kết quả là:
+**Rule 2 – If the entire common prefix matches.** If one string is a prefix of the other (or both are identical), the result is:
 
 ```java
 left.length() - right.length()
 ```
 
-Vì vậy chuỗi ngắn hơn đứng trước, còn chuỗi có cùng độ dài và cùng dãy `char` thì trả `0`.
+Therefore, the shorter string comes first, and strings with the same length and identical `char` sequence return `0`.
 
-### Ví dụ: ký tự khác nhau đầu tiên
+### Example: First Differing Character
 
 ```java
 "cat".compareTo("car")
 ```
 
 ```text
-Chỉ số:  0   1   2
-Chuỗi 1: c   a   t
-Chuỗi 2: c   a   r
-                 ^
-              Khác đầu tiên
+Index:    0   1   2
+String 1: c   a   t
+String 2: c   a   r
+                  ^
+            First difference
 
 't' = 116, 'r' = 114
-Kết quả: 116 - 114 = 2
+Result: 116 - 114 = 2
 ```
 
-Do đó `"cat".compareTo("car")` trả `2`. Đảo chiều lời gọi:
+Hence `"cat".compareTo("car")` returns `2`. Reversing the call:
 
 ```java
 "car".compareTo("cat") // -2
 ```
 
-Kết quả âm vì tại vị trí khác nhau đầu tiên, `'r'` nhỏ hơn `'t'`.
+The result is negative because at the first differing position, `'r'` is less than `'t'`.
 
-### Ví dụ: một chuỗi là tiền tố của chuỗi còn lại
+### Example: One String Is a Prefix of the Other
 
 ```java
 "app".compareTo("apple") // -2
@@ -128,9 +128,9 @@ Kết quả âm vì tại vị trí khác nhau đầu tiên, `'r'` nhỏ hơn `'
 "same".compareTo("same") // 0
 ```
 
-`"app"` là tiền tố của `"apple"`. Toàn bộ 3 vị trí chung đều giống nhau, nên kết quả là `3 - 5 = -2`, **không phải vị trí chữ cái `l`**.
+`"app"` is a prefix of `"apple"`. All 3 shared positions match, so the result is `3 - 5 = -2`, **not the position of the letter `l`**.
 
-Với chuỗi rỗng:
+With empty strings:
 
 ```java
 "".compareTo("")      // 0
@@ -138,24 +138,24 @@ Với chuỗi rỗng:
 "Java".compareTo("")  // 4
 ```
 
-Chuỗi rỗng đứng trước mọi chuỗi không rỗng vì độ dài `0` nhỏ hơn độ dài của chúng.
+The empty string comes before every non-empty string because length `0` is less than their lengths.
 
-## 4. Thứ tự này dựa trên giá trị `char`, không phải từ điển tiếng Việt
+## 4. This Order Is Based on `char` Values, Not a Vietnamese Dictionary
 
-Trong Java, kiểu `char` biểu diễn **một UTF-16 code unit** có giá trị nguyên không dấu từ `0` đến `65535` (`U+0000` đến `U+FFFF` ở mức giá trị đơn vị mã). Thứ tự tự nhiên của `String` được xác định từ dãy giá trị `char` này.
+In Java, the `char` type represents **one UTF-16 code unit** with an unsigned integer value from `0` to `65535` (`U+0000` to `U+FFFF` at the code-unit level). The natural ordering of `String` is determined from this sequence of `char` values.
 
-Một số giá trị dễ nhớ:
+Some easy-to-remember values:
 
-| Ký tự | Giá trị thập phân của `char` | Ghi chú |
+| Character | Decimal `char` Value | Note |
 |---|---:|---|
-| `'0'` | 48 | Chữ số dạng ký tự |
-| `'9'` | 57 | Vẫn là ký tự, không phải số nguyên 9 |
-| `'A'` | 65 | Chữ Latin hoa |
-| `'Z'` | 90 | Chữ Latin hoa |
-| `'a'` | 97 | Chữ Latin thường |
-| `'z'` | 122 | Chữ Latin thường |
+| `'0'` | 48 | Digit as a character |
+| `'9'` | 57 | Still a character, not the integer 9 |
+| `'A'` | 65 | Uppercase Latin letter |
+| `'Z'` | 90 | Uppercase Latin letter |
+| `'a'` | 97 | Lowercase Latin letter |
+| `'z'` | 122 | Lowercase Latin letter |
 
-Vì vậy:
+Therefore:
 
 ```java
 "A".compareTo("a")     // -32: 65 - 97
@@ -164,22 +164,22 @@ Vì vậy:
 "Z".compareTo("a")     // -7: 90 - 97
 ```
 
-Không thể kết luận `"apple"` luôn đứng trước `"Banana"` theo cảm nhận của một ngôn ngữ tự nhiên. Theo `String.compareTo`, `"Banana"` đứng trước `"apple"` vì ký tự đầu tiên `'B'` (66) nhỏ hơn `'a'` (97).
+You cannot conclude that `"apple"` always comes before `"Banana"` according to natural-language intuition. Under `String.compareTo`, `"Banana"` comes before `"apple"` because the first character `'B'` (66) is less than `'a'` (97).
 
-### Phân biệt so sánh số và so sánh chuỗi chứa chữ số
+### Distinguishing Number Comparison from Numeric-String Comparison
 
 ```java
 System.out.println("10".compareTo("2")); // -1
 System.out.println(Integer.compare(10, 2)); // 1
 ```
 
-Chuỗi `"10"` đứng **trước** `"2"` vì ký tự đầu tiên `'1'` (49) nhỏ hơn `'2'` (50). Ngược lại, số nguyên `10` lớn hơn `2`.
+The string `"10"` comes **before** `"2"` because the first character `'1'` (49) is less than `'2'` (50). By contrast, the integer `10` is greater than `2`.
 
-Khi cần sắp xếp các **số**, hãy chuyển đổi sang kiểu số thích hợp và so sánh số; khi cần sắp xếp “tự nhiên” các mã như `file2`, `file10`, cần một `Comparator` có quy tắc tách phần số. `String.compareTo` không tự nhận biết các đoạn số nằm trong văn bản.
+When you need to sort **numbers**, convert to an appropriate numeric type and compare numerically; when you need "natural" sorting of codes like `file2` and `file10`, you need a `Comparator` that splits out numeric parts. `String.compareTo` does not recognize numeric segments inside text.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh và stdout
+## 5. Complete Java 17+ Example and Stdout
 
-Tạo tệp **`StringCompareToDemo.java`** với nội dung:
+Create **`StringCompareToDemo.java`** with the following content:
 
 ```java
 import java.util.Arrays;
@@ -210,7 +210,7 @@ public class StringCompareToDemo {
 }
 ```
 
-Chạy trên JDK 17 trở lên trong thư mục chứa tệp:
+Run on JDK 17 or later in the directory containing the file:
 
 ```bash
 javac -encoding UTF-8 StringCompareToDemo.java
@@ -232,18 +232,18 @@ UTF16 order sign = -1
 Code point order sign = 1
 ```
 
-**Giải thích kết quả:**
+**Explanation of the output:**
 
-1. `"cat"` và `"car"` khác nhau đầu tiên ở `'t'` và `'r'`, nên trả `2` và `-2` nếu đảo chiều.
-2. `"app"` là tiền tố của `"apple"`, kết quả là chênh lệch độ dài `3 - 5 = -2`.
-3. Hai literal `"java"` giống hệt nên trả `0`.
-4. `'A'` (65) so với `'a'` (97) cho `-32`; `"10"` so với `"2"` so chữ số đầu `'1'` và `'2'` nên `-1`.
-5. `Arrays.sort(words)` sử dụng thứ tự tự nhiên của `String`: các mục bắt đầu bằng chữ hoa được đặt trước các mục bắt đầu bằng chữ thường trong tập dữ liệu này.
-6. Hai dòng cuối cho thấy một đặc điểm của UTF-16: so sánh theo đơn vị `char` đôi khi có **thứ tự khác** so với so sánh giá trị Unicode code point. Phần 7 giải thích chi tiết.
+1. `"cat"` and `"car"` differ first at `'t'` and `'r'`, returning `2` and `-2` when reversed.
+2. `"app"` is a prefix of `"apple"`, so the result is the length difference `3 - 5 = -2`.
+3. The two `"java"` literals are identical, returning `0`.
+4. `'A'` (65) compared to `'a'` (97) gives `-32`; `"10"` compared to `"2"` compares the leading digits `'1'` and `'2'`, giving `-1`.
+5. `Arrays.sort(words)` uses the natural ordering of `String`: items starting with uppercase letters are placed before items starting with lowercase letters in this dataset.
+6. The last two lines reveal a UTF-16 quirk: comparing by `char` units can sometimes give a **different order** than comparing Unicode code point values. Section 7 explains this in detail.
 
-## 6. Dùng `compareTo` để sắp xếp và rẽ nhánh
+## 6. Using `compareTo` for Sorting and Branching
 
-### Kiểm tra thứ tự với `if`
+### Checking Order with `if`
 
 ```java
 String left = "alpha";
@@ -252,17 +252,17 @@ String right = "beta";
 int order = left.compareTo(right);
 
 if (order < 0) {
-    System.out.println("left đứng trước right");
+    System.out.println("left comes before right");
 } else if (order > 0) {
-    System.out.println("left đứng sau right");
+    System.out.println("left comes after right");
 } else {
-    System.out.println("hai chuỗi bằng nhau");
+    System.out.println("both strings are equal");
 }
 ```
 
-Phép so sánh với `0` là cách đúng. Nếu chỉ cần biết dấu, có thể dùng `Integer.signum(order)` để quy về `-1`, `0` hoặc `1`.
+Comparing against `0` is the proper approach. If you only need the sign, you can use `Integer.signum(order)` to normalize to `-1`, `0`, or `1`.
 
-### Sắp xếp tự nhiên bằng `Arrays.sort`
+### Natural Sorting with `Arrays.sort`
 
 ```java
 String[] labels = {"zebra", "Apple", "banana"};
@@ -271,9 +271,9 @@ System.out.println(java.util.Arrays.toString(labels));
 // [Apple, banana, zebra]
 ```
 
-`Arrays.sort` sử dụng `compareTo` của các phần tử nếu mảng có kiểu `String[]` và không chỉ định `Comparator`. Tương tự, `java.util.Collections.sort(list)` sắp xếp một `List<String>` có thể thay đổi được theo thứ tự tự nhiên; `list.sort(null)` cũng dùng thứ tự tự nhiên.
+`Arrays.sort` uses the elements' `compareTo` when the array has type `String[]` and no `Comparator` is specified. Similarly, `java.util.Collections.sort(list)` sorts a mutable `List<String>` in natural order; `list.sort(null)` also uses natural order.
 
-Nếu muốn **đảo ngược** thứ tự:
+If you want to **reverse** the order:
 
 ```java
 java.util.Arrays.sort(
@@ -282,11 +282,11 @@ java.util.Arrays.sort(
 );
 ```
 
-Lưu ý `Comparator.reverseOrder()` trên chuỗi cũng đảo thứ tự tự nhiên theo UTF-16; nó không biến phép sắp xếp thành từ điển theo ngôn ngữ người dùng.
+Note that `Comparator.reverseOrder()` on strings also reverses the UTF-16 natural ordering; it does not turn sorting into a user-language dictionary sort.
 
-### Dùng với collection có thứ tự
+### Using with Ordered Collections
 
-`TreeSet<String>` hoặc `TreeMap<String, ...>` có thể sử dụng thứ tự tự nhiên của `String` khi không cung cấp comparator. Quy tắc thứ tự ảnh hưởng cả **cách tìm kiếm và xác định khóa tương đương** trong các cấu trúc ấy.
+`TreeSet<String>` or `TreeMap<String, ...>` can use the natural ordering of `String` when no comparator is provided. The ordering rule affects both **lookup and key equivalence** in those structures.
 
 ```java
 java.util.Set<String> set = new java.util.TreeSet<>();
@@ -296,15 +296,15 @@ set.add("Apple");
 System.out.println(set); // [Apple, apple]
 ```
 
-Hai chuỗi này khác nhau theo `compareTo`, nên được giữ thành hai phần tử riêng trong `TreeSet` mặc định.
+These two strings differ according to `compareTo`, so they are kept as two separate elements in a default `TreeSet`.
 
-## 7. Chi tiết Unicode: `char` không luôn tương đương một ký tự nhìn thấy
+## 7. Unicode Details: `char` Does Not Always Equal a Visible Character
 
-Đây là điểm quan trọng nhất trong cụm từ **“thứ tự từ điển theo giá trị `char`”**.
+This is the most important point in the phrase **"lexicographical order by `char` value"**.
 
-`String` của Java dùng các đơn vị mã UTF-16. Một Unicode code point trong vùng BMP thường biểu diễn bằng một `char`; nhưng những code point lớn hơn `U+FFFF` (ví dụ nhiều emoji) dùng **một cặp surrogate** gồm hai `char`.
+Java's `String` uses UTF-16 code units. A Unicode code point in the BMP is typically represented by one `char`; however, code points greater than `U+FFFF` (such as many emojis) use a **surrogate pair** of two `char`s.
 
-Ví dụ:
+Example:
 
 ```java
 String smile = "😀";
@@ -313,57 +313,57 @@ System.out.println(smile.length()); // 2
 System.out.println(smile.codePointCount(0, smile.length())); // 1
 ```
 
-Vì thế `compareTo` so sánh **các code unit UTF-16**, không phải luôn so trực tiếp giá trị nguyên của Unicode code point.
+Therefore, `compareTo` compares **UTF-16 code units**, not always the integer values of Unicode code points directly.
 
-### Ví dụ có thể gây bất ngờ
+### A Potentially Surprising Example
 
-- Emoji `"😀"` có Unicode code point `U+1F600`, được biểu diễn trong UTF-16 bởi cặp `U+D83D U+DE00`.
-- Ký tự ở vị trí `U+E000` là một code point vùng BMP, biểu diễn bởi `char` có giá trị `U+E000`.
-- Nếu so code point dưới dạng số nguyên, `U+1F600` **lớn hơn** `U+E000`.
-- Nhưng `String.compareTo` xét `char` **đầu tiên**: `U+D83D` **nhỏ hơn** `U+E000`, nên `"😀".compareTo("\uE000")` trả một số **âm**.
+- The emoji `"😀"` has Unicode code point `U+1F600`, represented in UTF-16 by the pair `U+D83D U+DE00`.
+- The character at `U+E000` is a BMP code point, represented by a `char` with value `U+E000`.
+- Comparing code points as integers, `U+1F600` is **greater than** `U+E000`.
+- Yet `String.compareTo` inspects the **first** `char`: `U+D83D` is **less than** `U+E000`, so `"😀".compareTo("\uE000")` returns a **negative** number.
 
-Đó là lý do hai dòng cuối ví dụ chạy ở phần 5 cho dấu lần lượt là `-1` và `1`.
+That is why the last two lines of the demo in Section 5 output signs `-1` and `1` respectively.
 
-**Kết luận về Unicode:** thứ tự của `String.compareTo` là thứ tự xác định, ổn định theo chuỗi đơn vị mã UTF-16, nhưng không nên diễn giải nó là “thứ tự tất cả ký tự Unicode theo code point”, càng không phải thứ tự từ điển theo tiếng Việt hoặc một ngôn ngữ khác.
+**Unicode takeaway:** `String.compareTo` ordering is deterministic and consistent over UTF-16 code-unit sequences, but it must not be interpreted as "code point ordering for all Unicode characters", much less dictionary order in Vietnamese or another language.
 
-### Ký tự ghép dấu và chuẩn hóa
+### Composed Characters and Normalization
 
-Hai chuỗi có thể trông giống nhau nhưng chứa các dãy code point khác nhau. Ví dụ chữ `é` có thể được biểu diễn bằng một code point `U+00E9` hoặc bằng chữ `e` (`U+0065`) cộng dấu sắc kết hợp (`U+0301`).
+Two strings can look identical while containing different code point sequences. For example, `é` can be represented by a single code point `U+00E9` or by `e` (`U+0065`) plus a combining acute accent (`U+0301`).
 
 ```java
 String composed = "\u00E9";
 String decomposed = "e\u0301";
 
 System.out.println(composed.equals(decomposed));    // false
-System.out.println(composed.compareTo(decomposed)); // Số dương
+System.out.println(composed.compareTo(decomposed)); // Positive number
 ```
 
-Ngay ở đơn vị mã đầu tiên, `U+00E9` (233) lớn hơn `U+0065` (101), nên `compareTo` trả số dương. Nếu nghiệp vụ xem hai cách biểu diễn là cùng văn bản, có thể **chuẩn hóa Unicode** bằng `java.text.Normalizer` trước khi so sánh. Chọn hình thức NFC/NFD tùy yêu cầu và thực hiện nhất quán cho các bên.
+At the very first code unit, `U+00E9` (233) is greater than `U+0065` (101), so `compareTo` returns a positive number. If business logic treats both representations as the same text, you can **normalize Unicode** with `java.text.Normalizer` before comparing. Choose NFC or NFD according to requirements and apply it consistently to all sides.
 
-## 8. So sánh không phân biệt hoa/thường và so sánh theo ngôn ngữ
+## 8. Case-Insensitive Comparison and Language-Aware Comparison
 
-### `compareToIgnoreCase` giải quyết bài toán khác
+### `compareToIgnoreCase` Solves a Different Problem
 
-Khi muốn so sánh chuỗi mà **bỏ qua khác biệt chữ hoa/chữ thường** theo quy tắc không phân biệt chữ của Java, có thể dùng:
+When you want to compare strings while **ignoring case differences** using Java's case-insensitive rules, you can use:
 
 ```java
 System.out.println("JAVA".compareToIgnoreCase("java")); // 0
 ```
 
-Tuy nhiên, `compareToIgnoreCase` **không phải** bộ sắp xếp theo ngôn ngữ tự nhiên. Các phép chuyển đổi hoa/thường phức tạp của Unicode, quy tắc theo ngôn ngữ và dấu có thể cần xử lý riêng. Đừng giả định rằng bỏ qua hoa/thường cũng tự động bỏ dấu tiếng Việt, đồng nhất mọi kiểu chữ hoặc tạo thứ tự chữ cái theo ngôn ngữ.
+However, `compareToIgnoreCase` is **not** a natural-language sorter. Complex Unicode case conversions, language-specific rules, and diacritics may require separate handling. Do not assume that ignoring case also strips Vietnamese diacritics, unifies all character styles, or produces alphabetical order for a specific language.
 
-Để không phân biệt hoa/thường khi sắp xếp:
+For case-insensitive sorting:
 
 ```java
 String[] words = {"b", "A", "a"};
 java.util.Arrays.sort(words, String.CASE_INSENSITIVE_ORDER);
 ```
 
-Comparator này sử dụng quy tắc so sánh không phân biệt hoa/thường của Java. Với những chuỗi khác nhau nhưng được comparator coi là bằng nhau, cần hiểu quy tắc bảo toàn thứ tự hoặc thêm tiêu chí phụ nếu nghiệp vụ yêu cầu kết quả quyết định duy nhất.
+This comparator uses Java's case-insensitive comparison rules. For distinct strings treated as equal by the comparator, understand stability guarantees or add a secondary tie-breaker if business requirements demand a unique deterministic order.
 
-### `Collator` dành cho thứ tự theo ngôn ngữ
+### `Collator` for Language-Specific Ordering
 
-Đối với tên người, từ tiếng Việt, nhãn giao diện hoặc nội dung cần so đúng quy tắc của một ngôn ngữ, hãy cân nhắc `java.text.Collator`:
+For personal names, Vietnamese words, UI labels, or content that must follow a specific language's rules, consider `java.text.Collator`:
 
 ```java
 import java.text.Collator;
@@ -381,13 +381,13 @@ class VietnameseSortingExample {
 }
 ```
 
-Đây là chương trình minh họa **độc lập** (lớp không `public` vẫn có thể chạy khi biên dịch vào `VietnameseSortingExample.java`), nhưng bài không khẳng định một dòng stdout cố định: thứ tự chi tiết có thể phụ thuộc dữ liệu đối chiếu ngôn ngữ và cấu hình phiên bản Java. `Collator` có các thiết lập như độ nhạy với dấu, hoa/thường và các cấp so sánh (*strength*) cần chọn theo yêu cầu.
+This is a **standalone** illustrative program (a non-`public` class can still run when compiled in `VietnameseSortingExample.java`), though this article does not assert a single fixed stdout line: exact ordering can depend on locale collation data and Java version configuration. `Collator` has settings such as sensitivity to diacritics, case, and comparison *strength* levels that must be chosen per requirements.
 
-`compareTo` phù hợp khi bạn muốn **thứ tự tự nhiên theo `char` của Java**; `Collator` phù hợp khi yêu cầu là thứ tự **theo ngôn ngữ**. Đây là hai hợp đồng khác nhau.
+`compareTo` fits when you want **Java's natural `char` ordering**; `Collator` fits when **language-specific** ordering is required. These are two different contracts.
 
-## 9. `null`, `Comparator` và tính nhất quán
+## 9. `null`, `Comparator`, and Consistency
 
-Với biến tham chiếu có thể `null`, gọi `compareTo` trực tiếp không an toàn:
+With a nullable reference variable, calling `compareTo` directly is unsafe:
 
 ```java
 String value = null;
@@ -395,7 +395,7 @@ String value = null;
 // "Java".compareTo(null);   // NullPointerException
 ```
 
-Nếu bài toán muốn cho phép `null` xuất hiện trong danh sách, hãy định nghĩa quy tắc thứ tự rõ ràng bằng `Comparator`:
+If your problem allows `null` in a list, define an explicit ordering rule using `Comparator`:
 
 ```java
 java.util.Comparator<String> order =
@@ -403,64 +403,64 @@ java.util.Comparator<String> order =
                 java.util.Comparator.naturalOrder()
         );
 
-System.out.println(order.compare(null, "Java")); // Số âm
-System.out.println(order.compare("Java", null)); // Số dương
+System.out.println(order.compare(null, "Java")); // Negative number
+System.out.println(order.compare("Java", null)); // Positive number
 System.out.println(order.compare(null, null));   // 0
 ```
 
-`naturalOrder()` dùng `String.compareTo`; `nullsFirst(...)` bổ sung quy tắc đặt `null` trước các chuỗi hợp lệ.
+`naturalOrder()` uses `String.compareTo`; `nullsFirst(...)` adds the rule placing `null` before valid strings.
 
-Khi viết comparator riêng cho cấu trúc có thứ tự như `TreeSet` hoặc `TreeMap`, hãy chú ý khái niệm **tương đương theo comparator**: hai giá trị mà comparator trả `0` có thể bị xem là một phần tử/khóa tương đương dù `equals` của chúng là `false`. Ví dụ `String.CASE_INSENSITIVE_ORDER.compare("A","a") == 0`, trong khi `"A".equals("a")` là `false`. Với `TreeSet` sử dụng comparator đó, chỉ một trong hai giá trị có thể được lưu làm phần tử đại diện cho nhóm tương đương.
+When writing a custom comparator for ordered structures like `TreeSet` or `TreeMap`, pay attention to **equivalence under the comparator**: two values for which the comparator returns `0` can be treated as the same element/key even if their `equals` returns `false`. For example, `String.CASE_INSENSITIVE_ORDER.compare("A","a") == 0`, while `"A".equals("a")` is `false`. In a `TreeSet` using that comparator, only one of the two values can be stored as the representative of the equivalence group.
 
-`String.compareTo` tự nhiên **nhất quán với `equals`**, nên không có bất đồng này khi so các `String` bằng comparator tự nhiên mặc định.
+Natural `String.compareTo` is **consistent with `equals`**, so this mismatch does not occur when comparing `String`s with the default natural comparator.
 
-## 10. Những sai lầm thường gặp
+## 10. Common Mistakes
 
-| Sai lầm | Vì sao sai | Cách đúng |
+| Mistake | Why It Is Wrong | Correct Approach |
 |---|---|---|
-| `if (a.compareTo(b) == 1)` | Số dương không bắt buộc là `1` | `if (a.compareTo(b) > 0)` |
-| Xem `compareTo` là `equals` | `compareTo` trả `int` để xác định thứ tự | Dùng `equals` khi chỉ kiểm tra bằng nhau |
-| Nghĩ `"10"` đứng sau `"2"` | Chuỗi được so theo `char` từ trái sang phải | Chuyển sang số hoặc comparator có hiểu số |
-| Nghĩ chữ thường luôn đứng trước chữ hoa | `'A'` có giá trị nhỏ hơn `'a'` | Hiểu thứ tự theo UTF-16; hoặc chọn comparator khác |
-| Nghĩ so theo `char` luôn là so theo code point | Emoji có thể gồm hai UTF-16 code unit | Hiểu rõ đơn vị mã và quy tắc cần dùng |
-| Nghĩ thứ tự theo `compareTo` là thứ tự tiếng Việt | API không dùng quy tắc ngôn ngữ | Dùng `Collator` phù hợp khi cần sắp tên/từ |
-| Gọi `text.compareTo(null)` | Đối số `null` gây ngoại lệ | Kiểm tra đầu vào hoặc dùng comparator có xử lý `null` |
-| Dùng `==` để kiểm tra từ bằng nhau | `==` so tham chiếu, không so văn bản | Dùng `equals` hoặc `compareTo(...) == 0` |
+| `if (a.compareTo(b) == 1)` | A positive return value does not have to be `1` | `if (a.compareTo(b) > 0)` |
+| Treating `compareTo` as `equals` | `compareTo` returns an `int` for ordering | Use `equals` when only testing equality |
+| Thinking `"10"` comes after `"2"` | Strings are compared `char`-by-`char` from left to right | Convert to numbers or use a number-aware comparator |
+| Thinking lowercase always precedes uppercase | `'A'` has a smaller value than `'a'` | Understand UTF-16 ordering, or choose another comparator |
+| Thinking comparing by `char` is always comparing by code point | Emojis can consist of two UTF-16 code units | Understand code units and the rules you need |
+| Thinking `compareTo` order is Vietnamese dictionary order | The API does not use language rules | Use an appropriate `Collator` when sorting names/words |
+| Calling `text.compareTo(null)` | A `null` argument throws an exception | Validate input or use a null-handling comparator |
+| Using `==` to test word equality | `==` compares references, not text | Use `equals` or `compareTo(...) == 0` |
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-Check Exercises
 
-**Câu 1.** `"dog".compareTo("dot")` trả giá trị gì?
+**Question 1.** What value does `"dog".compareTo("dot")` return?
 
-**Đáp án:** `'g'` (103) trừ `'t'` (116) bằng `-13`. Hai ký tự đầu giống nhau, nên xét ký tự thứ ba.
+**Answer:** `'g'` (103) minus `'t'` (116) equals `-13`. The first two characters match, so the third character is compared.
 
-**Câu 2.** `"car".compareTo("carpet")` là âm, bằng không hay dương?
+**Question 2.** Is `"car".compareTo("carpet")` negative, zero, or positive?
 
-**Đáp án:** **Âm**, cụ thể là `3 - 6 = -3`, vì `"car"` là tiền tố của `"carpet"` và ngắn hơn.
+**Answer:** **Negative**, specifically `3 - 6 = -3`, because `"car"` is a prefix of `"carpet"` and is shorter.
 
-**Câu 3.** Tại sao `"20".compareTo("100")` trả số dương dù số `20` nhỏ hơn số `100`?
+**Question 3.** Why does `"20".compareTo("100")` return a positive number even though the number `20` is smaller than `100`?
 
-**Đáp án:** So sánh ký tự đầu `'2'` (50) với `'1'` (49) cho `+1`; đây là thứ tự chuỗi, không phải so sánh số.
+**Answer:** Comparing the first characters `'2'` (50) and `'1'` (49) gives `+1`; this is string ordering, not numeric comparison.
 
-**Câu 4.** Sửa điều kiện sau để kiểm tra `a` đứng trước `b`:
+**Question 4.** Fix the following condition to check whether `a` comes before `b`:
 
 ```java
 if (a.compareTo(b) == -1) {
-    System.out.println("a đứng trước b");
+    System.out.println("a comes before b");
 }
 ```
 
-**Đáp án:** Thay `== -1` bằng `< 0`. Mọi giá trị âm đều có cùng ý nghĩa thứ tự.
+**Answer:** Replace `== -1` with `< 0`. Any negative value carries the same ordering meaning.
 
-**Câu 5.** Hai chuỗi có cùng nội dung nhưng tạo thành hai đối tượng `String` khác nhau thì `compareTo` trả gì?
+**Question 5.** If two strings have the same content but are two distinct `String` objects, what does `compareTo` return?
 
-**Đáp án:** `0`, vì `compareTo` xét dãy `char` của **nội dung**, không xét danh tính đối tượng.
+**Answer:** `0`, because `compareTo` inspects the `char` sequence of the **content**, not object identity.
 
-**Câu 6.** Khi sắp xếp tên tiếng Việt hiển thị cho người dùng, có nên mặc định dùng `compareTo` không?
+**Question 6.** When sorting Vietnamese names for user display, should you use `compareTo` by default?
 
-**Đáp án:** Không nên nếu nghiệp vụ đòi thứ tự theo tiếng Việt. `compareTo` chỉ cung cấp thứ tự theo giá trị `char` UTF-16; cần cân nhắc `Collator` và thiết lập ngôn ngữ phù hợp.
+**Answer:** No, if business requirements expect Vietnamese alphabetical order. `compareTo` only provides UTF-16 `char` ordering; consider `Collator` and appropriate locale settings.
 
-## 12. Tổng kết kiến thức
+## 12. Knowledge Summary
 
-`String.compareTo(other)` duyệt hai chuỗi từ trái sang phải theo **đơn vị mã UTF-16 `char`**. Nếu có vị trí khác nhau đầu tiên, kết quả mang dấu của hiệu hai giá trị `char` tại vị trí ấy; nếu toàn bộ phần chung bằng nhau, kết quả là hiệu độ dài. **Âm / 0 / dương** lần lượt có nghĩa là trước / bằng / sau theo thứ tự tự nhiên của `String`.
+`String.compareTo(other)` traverses two strings from left to right by **UTF-16 `char` code units**. If there is a first differing position, the result has the sign of the difference between the two `char` values there; if the entire shared prefix matches, the result is the difference in lengths. **Negative / 0 / positive** mean before / equal / after in `String`'s natural ordering, respectively.
 
-Quy tắc này giúp Java sắp xếp chuỗi một cách xác định, nhưng **không tự hiểu số, không tự bỏ qua hoa/thường, không tuân theo thứ tự tiếng Việt**, và có khác biệt đáng chú ý với thứ tự Unicode code point khi gặp ký tự bổ trợ. Hãy chọn `equals` để kiểm tra nội dung, `compareTo` hoặc comparator tự nhiên để sắp theo UTF-16, và `Collator` khi cần thứ tự từ điển của ngôn ngữ con người.
+This rule lets Java sort strings deterministically, yet it **does not understand numbers, does not ignore case, does not follow Vietnamese dictionary order**, and differs notably from Unicode code-point order on supplementary characters. Choose `equals` to check content, `compareTo` or the natural comparator to sort by UTF-16, and `Collator` when human-language dictionary order is needed.

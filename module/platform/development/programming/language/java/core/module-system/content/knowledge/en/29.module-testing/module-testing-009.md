@@ -1,81 +1,81 @@
-# Không mở toàn bộ production module chỉ để test tiện hơn
+# Do Not Open the Entire Production Module Just to Make Testing Easier
 
-Khi viết test cho ứng dụng sử dụng Java Platform Module System (JPMS), một cám dỗ phổ biến là đổi `module com.example.orders` thành `open module com.example.orders` để JUnit, Mockito hoặc framework kiểm thử có thể phản chiếu vào bất kỳ class, constructor hay field nào. Cách này có thể làm một số bài test chạy nhanh hơn, nhưng đồng thời **làm yếu ranh giới đóng gói của toàn bộ module production**.
+When writing tests for an application using the Java Platform Module System (JPMS), a common temptation is changing `module com.example.orders` to `open module com.example.orders` so JUnit, Mockito, or test frameworks can reflect into any class, constructor, or field. That can get some tests running faster, yet it **weakens the encapsulation boundary of the entire production module**.
 
-Nguyên tắc cốt lõi: **quyền chỉ cần cho kiểm thử nên được cấp trong cấu hình kiểm thử**, không tự động trở thành hợp đồng truy cập của chương trình sản xuất. Hãy kiểm tra mục tiêu test trước, rồi chọn cách phù hợp: kiểm thử qua public API, patch test vào module, mở một package có giới hạn cho framework, hoặc tách một test-support API có chủ đích.
+Core principle: **permissions needed only for testing should be granted in test configuration**, not automatically turned into the production program's access contract. Check the test's goal first, then choose the right approach: test via the public API, patch tests into the module, open a scoped package to the framework, or extract an intentional test-support API.
 
-## 1. Vì sao JPMS làm test thay đổi?
+## 1. Why Does JPMS Change Testing?
 
-Trong Java truyền thống, phần lớn class nằm trên classpath và thuộc unnamed module của class loader. Framework test thường dùng reflection để:
+In traditional Java, most classes sit on the classpath and belong to their class loader's unnamed module. Test frameworks frequently use reflection to:
 
-- Tìm class có `@Test` và tạo instance.
-- Gọi test method không public.
-- Đọc/ghi field trong test fixture.
-- Gọi constructor hoặc method private qua `setAccessible(true)`.
-- Tạo mock, proxy hoặc inject dependency.
+- Locate `@Test` classes and instantiate them.
+- Invoke non-public test methods.
+- Read/write fields in test fixtures.
+- Call private constructors or methods via `setAccessible(true)`.
+- Create mocks, proxies, or inject dependencies.
 
-Khi code production trở thành **named module**, các package có quyền truy cập theo module descriptor. Bên cạnh modifier `public`, `protected`, package-private và `private`, JPMS còn có:
+When production code becomes a **named module**, packages have access rules governed by the module descriptor. Alongside `public`, `protected`, package-private, and `private` modifiers, JPMS adds:
 
-- **Readability:** module nào được phép đọc module khác, thường khai báo bằng `requires`.
-- **Exports:** package nào cho phép module khác sử dụng kiểu public theo cách Java thông thường.
-- **Opens:** package nào cho phép module khác thực hiện deep reflection.
+- **Readability:** which modules may read another module, usually declared with `requires`.
+- **Exports:** which packages allow other modules to use public types in standard Java code.
+- **Opens:** which packages allow other modules to perform deep reflection.
 
-Vì vậy, test có thể thấy class trên module path nhưng vẫn không thể truy cập package hoặc thành viên cần dùng. Đây là hành vi đóng gói có chủ đích của JPMS, không phải lý do để mở toàn bộ production module.
+Therefore, tests may see a class on the module path yet still be unable to access the package or member needed. This is intentional JPMS encapsulation behavior, not a reason to open the entire production module.
 
-## 2. Khác nhau giữa exports, opens và open module
+## 2. Differences Between exports, opens, and open module
 
-Giả sử module production ban đầu:
+Suppose the initial production module is:
 
     module com.example.orders {
         exports com.example.orders.api;
     }
 
-Các package:
+Packages:
 
     com.example.orders.api
     com.example.orders.internal
     com.example.orders.persistence
 
-Module bên ngoài có thể import các kiểu public trong `com.example.orders.api`, nhưng không tự được phép import kiểu trong `internal` hoặc `persistence`.
+External modules can import public types in `com.example.orders.api`, yet are not automatically permitted to import types in `internal` or `persistence`.
 
-Có ba cơ chế thường bị nhầm:
+Three mechanisms are frequently confused:
 
-| Cơ chế | Ý nghĩa | Tác động |
+| Mechanism | Meaning | Effect |
 |---|---|---|
-| `exports p;` | Cho các module khác truy cập kiểu public trong package p | Truy cập Java thông thường |
-| `opens p;` | Mở package p cho deep reflection từ các module khác | Truy cập reflection ở runtime |
-| `opens p to m;` | Mở riêng package p cho module m | Reflection có giới hạn đích |
-| `open module X { ... }` | Mở tất cả package của module X cho deep reflection | Quyền reflection rất rộng |
+| `exports p;` | Allows other modules to access public types in package p | Standard Java access |
+| `opens p;` | Opens package p for deep reflection from other modules | Runtime reflection access |
+| `opens p to m;` | Opens package p exclusively to module m | Target-scoped reflection |
+| `open module X { ... }` | Opens all packages of module X for deep reflection | Very broad reflection permission |
 
-`open module` **không làm tất cả package tự động được export để import trực tiếp**. Tuy vậy, nó cho phép các module khác thực hiện deep reflection vào mọi package thuộc module, kể cả package vốn dùng làm chi tiết triển khai.
+`open module` **does not automatically export all packages for direct imports**. However, it allows other modules to perform deep reflection into every package in the module, including packages intended as implementation details.
 
-Ví dụ không nên áp dụng chỉ để test thuận tiện:
+An example not to apply just for test convenience:
 
     open module com.example.orders {
         exports com.example.orders.api;
     }
 
-Cấu hình này khiến cả `api`, `internal` và `persistence` được mở cho deep reflection, trong khi test có thể chỉ cần truy cập một field của một class.
+This configuration exposes `api`, `internal`, and `persistence` to deep reflection, even when tests may only need access to one field on one class.
 
-## 3. Rủi ro của việc mở toàn bộ production module
+## 3. Risks of Opening the Entire Production Module
 
-Việc chuyển sang `open module` ảnh hưởng mọi lần chạy module được đóng gói, không chỉ lúc test.
+Switching to `open module` affects every run of the packaged module, not just tests.
 
-Các hệ quả:
+Consequences:
 
-1. **Mở rộng bề mặt phản chiếu:** code ở module khác có thể yêu cầu truy cập sâu vào nhiều package nội bộ hơn dự định.
-2. **Làm mờ hợp đồng kiến trúc:** package nào là chi tiết triển khai và package nào là hợp đồng reflection không còn phân biệt rõ.
-3. **Tạo phụ thuộc mong manh:** framework hoặc test có thể bắt đầu phụ thuộc vào field/constructor private dễ thay đổi.
-4. **Che khuất vấn đề cấu hình:** một bài test đáng lẽ cần test-scoped `--add-opens` sẽ không còn bộc lộ ranh giới truy cập thực tế.
-5. **Khác với mục tiêu migration JPMS:** module descriptor được tạo để diễn tả ranh giới phụ thuộc, không chỉ để qua bước biên dịch.
+1. **Expanded reflection surface:** code in other modules can request deep access to more internal packages than intended.
+2. **Blurred architectural contracts:** which packages are implementation details vs. reflection contracts is no longer clear.
+3. **Fragile dependencies:** frameworks or tests may start relying on private fields/constructors that change easily.
+4. **Masked configuration issues:** a test that should require test-scoped `--add-opens` no longer exposes the real access boundary.
+5. **Undermines JPMS migration goals:** module descriptors exist to express dependency boundaries, not merely to pass compilation.
 
-Đây không phải là tuyên bố mọi `open module` đều sai. Một module được thiết kế chủ ý cho reflection rộng, chẳng hạn một số kiểu mô hình dữ liệu phục vụ framework, có thể cần nó. Nhưng **sự tiện lợi của test đơn lẻ không phải là bằng chứng production cần mở tất cả package**.
+This does not mean every `open module` is wrong. A module deliberately designed for broad reflection, such as certain data-model modules backing frameworks, may need it. However, **convenience for an isolated test is not proof that production needs every package opened**.
 
-## 4. Ưu tiên test hành vi qua public API
+## 4. Prefer Testing Behavior Through the Public API
 
-Nếu mục tiêu là xác minh hành vi của một module, nên bắt đầu từ API được export.
+If the goal is to verify a module's behavior, start with the exported API.
 
-Ví dụ module production:
+Example production module:
 
     module com.example.orders {
         exports com.example.orders.api;
@@ -94,7 +94,7 @@ API:
         }
     }
 
-JUnit test có thể chỉ cần:
+A JUnit test may simply be:
 
     package com.example.orders.tests;
 
@@ -117,13 +117,13 @@ JUnit test có thể chỉ cần:
         }
     }
 
-Mục tiêu của test là hợp đồng observable từ ngoài module. Test không cần biết class nội bộ nào đang thực hiện phép nhân hoặc field private nào lưu cache.
+The test targets the externally observable contract. It does not need to know which internal class performs multiplication or which private field holds a cache.
 
-Nếu test nằm trong named module riêng, module test cần readability tới module production, và test framework có thể cần quyền reflection tới package chứa test class. Các yêu cầu này có thể được đáp ứng bằng **cấu hình test**, không phải mở mọi package production.
+If tests live in a separate named module, the test module needs readability to the production module, and the test framework may need reflection access to the package containing the test class. These requirements can be met via **test configuration**, not by opening every production package.
 
-## 5. Test module riêng để kiểm tra ranh giới API
+## 5. Separate Test Module to Verify API Boundaries
 
-Một cách kiểm thử đúng kiến trúc JPMS là đặt các test API trong một named module riêng.
+A clean JPMS-aligned testing approach places API tests in a separate named module.
 
 Production descriptor:
 
@@ -131,7 +131,7 @@ Production descriptor:
         exports com.example.orders.api;
     }
 
-Descriptor minh họa của một module kiểm thử:
+Illustrative descriptor for a test module:
 
     module com.example.orders.contract.tests {
         requires com.example.orders;
@@ -140,17 +140,17 @@ Descriptor minh họa của một module kiểm thử:
             to org.junit.platform.commons;
     }
 
-Test chỉ import package API đã export. Điều này cho phép bộ test hoạt động như một **client độc lập** và xác minh ranh giới module.
+Tests import only exported API packages. This lets the test suite act like an **independent client** and verify module boundaries.
 
-Tên module và nhu cầu mở package cho JUnit tùy phiên bản JUnit/test launcher đang dùng; `org.junit.platform.commons` là ví dụ cho một thành phần có thể tham gia reflection. Hãy căn cứ vào thông báo `InaccessibleObjectException` hoặc cấu hình launcher thực tế để xác định target.
+Module names and package opening needs for JUnit depend on the JUnit/test launcher version in use; `org.junit.platform.commons` is an example of a component that may perform reflection. Use the `InaccessibleObjectException` message or actual launcher configuration to identify the target.
 
-Test module riêng thường phù hợp với contract tests hoặc integration tests. Nó không cần trở thành một phần của artifact production.
+A separate test module generally suits contract tests or integration tests. It does not need to become part of the production artifact.
 
-## 6. Khi test cần truy cập package-private: dùng test patch phù hợp
+## 6. When Tests Need Package-Private Access: Use Proper Test Patching
 
-Có những unit test được thiết kế để thử một thuật toán package-private bên trong module thay vì chỉ qua API công khai.
+Some unit tests are designed to exercise a package-private algorithm inside a module rather than going solely through the public API.
 
-Ví dụ production có class:
+For example, production has a class:
 
     package com.example.orders.internal;
 
@@ -160,7 +160,7 @@ Ví dụ production có class:
         }
     }
 
-Test nằm trong cùng package:
+Test in the same package:
 
     package com.example.orders.internal;
 
@@ -177,47 +177,47 @@ Test nằm trong cùng package:
         }
     }
 
-Chỉ đặt test class ở cùng tên package trong một JAR khác **chưa chắc** giúp truy cập package-private. Với JPMS, hai class cùng package name nhưng khác runtime module hoặc class loader không nhất thiết thuộc cùng runtime package.
+Merely placing the test class in the same package name in a different JAR **does not guarantee** package-private access. In JPMS, two classes with the same package name in different runtime modules or class loaders do not necessarily belong to the same runtime package.
 
-Cơ chế `--patch-module` cho phép bổ sung compiled test classes vào named module trong môi trường kiểm thử:
+The `--patch-module` mechanism injects compiled test classes into a named module in the test environment:
 
     --patch-module com.example.orders=build/test-classes
 
-Khi được patch đúng cách, test class có thể được xem là một phần của module `com.example.orders`. Tuy nhiên, nếu test code dùng JUnit API nằm trong module khác hoặc trên classpath, module production được patch có thể còn cần quan hệ readability phù hợp.
+When patched properly, the test class is treated as part of module `com.example.orders`. However, if test code uses a JUnit API in another module or on the classpath, the patched production module may still need corresponding readability edges.
 
-Điểm quan trọng: `--patch-module` là lựa chọn cho **test JVM/compile task**, không phải lý do đóng gói test class vào production JAR.
+Key point: `--patch-module` is an option for **test JVM/compile tasks**, not a reason to package test classes into the production JAR.
 
-## 7. --patch-module không tự giải quyết mọi quyền truy cập
+## 7. --patch-module Does Not Automatically Solve Every Access Permission
 
-Phải phân biệt vấn đề mà từng tùy chọn giải quyết:
+Distinguish the problem each option solves:
 
     --patch-module
     --add-reads
     --add-exports
     --add-opens
 
-| Tùy chọn | Vai trò |
+| Option | Role |
 |---|---|
-| `--patch-module X=path` | Bổ sung hoặc thay nội dung class/resource vào module X trong môi trường được cấu hình |
-| `--add-reads X=Y` | Bổ sung quan hệ module X đọc Y |
-| `--add-exports X/p=Y` | Cho Y truy cập kiểu public trong package p của X |
-| `--add-opens X/p=Y` | Mở package p của X cho Y thực hiện deep reflection |
+| `--patch-module X=path` | Adds or replaces class/resource content in module X in the configured environment |
+| `--add-reads X=Y` | Adds an edge where module X reads Y |
+| `--add-exports X/p=Y` | Grants Y access to public types in package p of X |
+| `--add-opens X/p=Y` | Opens package p of X to Y for deep reflection |
 
-Ví dụ, test classes được patch vào `com.example.orders` nhưng JUnit API nằm trên classpath. Để test code đọc các kiểu JUnit trong unnamed module, cấu hình compile/test có thể cần:
+For example, test classes are patched into `com.example.orders` while the JUnit API resides on the classpath. For test code to read JUnit types in the unnamed module, compile/test configuration may need:
 
     --add-reads=com.example.orders=ALL-UNNAMED
 
-Nếu framework test trên classpath còn cần dùng reflection với các test method không public trong package `com.example.orders.internal`, JVM test có thể cần:
+If the test framework on the classpath also needs reflection on non-public test methods in `com.example.orders.internal`, the test JVM may need:
 
     --add-opens=com.example.orders/com.example.orders.internal=ALL-UNNAMED
 
-Những flag này chỉ có ý nghĩa nếu JUnit thực sự nằm trong unnamed module. Nếu framework ở named module, target phải là module name thực tế của framework.
+These flags make sense only if JUnit is actually in the unnamed module. If the framework is in a named module, the target must be the framework's actual module name.
 
-Không sao chép toàn bộ flags vào production launcher. Cấu hình compile tests và chạy tests cũng có thể khác nhau nên cần đặt flag ở đúng giai đoạn.
+Do not copy all flags into the production launcher. Compiling tests and running tests may also need different configurations, so place flags in the right phase.
 
-## 8. Khi cần deep reflection, mở đúng một package trong JVM test
+## 8. When Deep Reflection Is Needed, Open Just One Package in the Test JVM
 
-Giả sử framework sử dụng reflection để đọc field private của class nội bộ:
+Suppose a framework uses reflection to read a private field on an internal class:
 
     package com.example.orders.internal;
 
@@ -225,50 +225,50 @@ Giả sử framework sử dụng reflection để đọc field private của cla
         private String status = "NEW";
     }
 
-Một test/framework thực hiện:
+A test/framework runs:
 
     Field field = OrderState.class.getDeclaredField("status");
     field.setAccessible(true);
 
-Với named module, nếu package chưa được mở cho caller, `setAccessible(true)` có thể ném:
+With a named module, if the package is not opened to the caller, `setAccessible(true)` can throw:
 
     java.lang.reflect.InaccessibleObjectException
 
-Nếu framework chạy trên classpath trong JVM test, có thể cấu hình:
+If the framework runs on the classpath in the test JVM, you can configure:
 
     --add-opens=com.example.orders/com.example.orders.internal=ALL-UNNAMED
 
-Nếu framework chạy trong named module `com.example.test.framework`, dùng:
+If the framework runs in named module `com.example.test.framework`, use:
 
     --add-opens=com.example.orders/com.example.orders.internal=com.example.test.framework
 
-Điều này chỉ mở **một package** của **một source module** cho **đúng target**. Không ảnh hưởng đến các package khác trong module production.
+This opens only **one package** of **one source module** to **the exact target**. It does not affect other packages in the production module.
 
-Có thể dùng `trySetAccessible()` để kiểm tra khả năng bật quyền mà không dựa vào exception cho trường hợp bị chặn bởi module access:
+You can use `trySetAccessible()` to test whether access can be enabled without relying on exceptions when blocked by module access:
 
     if (field.trySetAccessible()) {
         Object value = field.get(state);
         System.out.println(value);
     } else {
-        System.out.println("Reflection không được phép");
+        System.out.println("Reflection not permitted");
     }
 
-Nếu chỉ cần gọi method public, hãy kiểm tra `requires` và `exports`, không sử dụng `--add-opens` như một cách sửa chung cho mọi lỗi truy cập.
+If you only need to call a public method, check `requires` and `exports` rather than using `--add-opens` as a blanket fix for every access error.
 
-## 9. Đặt flags đúng nơi: JVM test không phải JVM production
+## 9. Place Flags in the Right Place: Test JVM, Not Production JVM
 
-Một dự án có thể dùng nhiều JVM:
+A project can involve multiple JVMs:
 
-- JVM của ứng dụng production.
-- JVM chạy unit tests.
-- JVM chạy integration tests.
-- JVM của IDE test runner.
-- JVM do Maven Surefire/Failsafe hoặc Gradle Test tạo.
-- JVM thực thi một công cụ build khác.
+- Production application JVM.
+- JVM running unit tests.
+- JVM running integration tests.
+- IDE test runner JVM.
+- JVMs spawned by Maven Surefire/Failsafe or Gradle Test.
+- JVMs executing other build tools.
 
-Khi một test cần `--add-opens`, flag phải được truyền cho **JVM thực sự chạy test framework**. Đặt vào command khởi chạy production không tự làm JVM kiểm thử nhận được flag.
+When a test needs `--add-opens`, the flag must go to **the JVM actually running the test framework**. Putting it in the production launch command does not pass it to the test JVM.
 
-Với Maven Surefire, một cấu hình minh họa:
+With Maven Surefire, an illustrative configuration:
 
     <plugin>
       <groupId>org.apache.maven.plugins</groupId>
@@ -280,9 +280,9 @@ Với Maven Surefire, một cấu hình minh họa:
       </configuration>
     </plugin>
 
-Nếu dùng JaCoCo hoặc hệ thống khác đã đặt `argLine`, phải hợp nhất các argument thay vì ghi đè cấu hình cũ. `ALL-UNNAMED` chỉ đúng khi code reflection của test framework chạy trong unnamed module.
+If using JaCoCo or another tool that already sets `argLine`, merge arguments instead of overwriting prior settings. `ALL-UNNAMED` is valid only when the test framework's reflecting code runs in the unnamed module.
 
-Với Gradle Java plugin:
+With the Gradle Java plugin:
 
     tasks.withType(Test).configureEach {
         jvmArgs(
@@ -290,13 +290,13 @@ Với Gradle Java plugin:
         )
     }
 
-Tùy source set và Gradle/JUnit configuration, có thể cần lựa chọn module target khác. Cấu hình nên phản ánh JUnit thực tế đang được nạp từ classpath hay module path.
+Depending on source sets and Gradle/JUnit configuration, a different target module may be required. Configuration should reflect whether JUnit is actually loaded from the classpath or module path.
 
-## 10. Dùng module-info production để mô tả nhu cầu production
+## 10. Use Production module-info to Describe Production Needs
 
-Nếu một framework thực sự cần reflection **khi ứng dụng chạy trong production**, việc mở package trong descriptor có thể là thiết kế đúng.
+If a framework genuinely needs reflection **when the application runs in production**, opening the package in the descriptor can be the right design.
 
-Ví dụ:
+Example:
 
     module com.example.orders {
         exports com.example.orders.api;
@@ -305,60 +305,60 @@ Ví dụ:
             to com.example.orm;
     }
 
-Module đang chứa các entity cần ORM mapping có thể chủ động mở package persistence cho module ORM. Đây là hợp đồng production có chủ đích.
+A module holding entities requiring ORM mapping can deliberately open the persistence package to the ORM module. That is an intentional production contract.
 
-Ngược lại, một package `com.example.orders.internal` chỉ cần mở cho JUnit trong test không nên được thêm vào descriptor production:
+Conversely, a `com.example.orders.internal` package that only needs opening for JUnit during tests should not be added to the production descriptor:
 
     opens com.example.orders.internal;
 
-chỉ vì test sẽ ngắn hơn.
+just to make tests shorter.
 
-Một cách phân biệt: **Nếu xóa toàn bộ test khỏi dự án, production có còn cần quyền reflection đó không?** Nếu không, hãy cân nhắc đặt quyền trong cấu hình test thay vì module descriptor production.
+A clear rule of thumb: **If all tests were deleted from the project, would production still need that reflection permission?** If not, consider placing the permission in test configuration instead of the production module descriptor.
 
-Qualified opens trong descriptor vẫn là quyền tồn tại ở production artifact; nó không tự trở thành test-only vì module nhận quyền có tên chứa `test`.
+Qualified opens in the descriptor remains an active permission in the production artifact; it does not become test-only merely because the receiving module's name contains `test`.
 
-## 11. Đừng export internals chỉ để test import dễ dàng
+## 11. Do Not Export Internals Just to Make Test Imports Easy
 
-Một cách né ranh giới test khác là thêm:
+Another way to bypass test boundaries is adding:
 
     exports com.example.orders.internal;
 
-Điều này làm package internal được công bố như API có thể truy cập từ các module khác, miễn là đáp ứng readability và Java access modifiers.
+This publishes the internal package as an API accessible from other modules, provided readability and Java access modifiers are met.
 
-Việc export quá rộng có thể tạo phụ thuộc lâu dài: module khác có thể bắt đầu sử dụng class internal. Khi refactor cấu trúc dữ liệu, thay đổi package hoặc xóa class sẽ phá vỡ code phụ thuộc vào phần vốn không được thiết kế là public API.
+Over-exporting creates long-term coupling: other modules may start using internal classes. Refactoring data structures, renaming packages, or removing classes will then break code depending on what was never designed as a public API.
 
-Các lựa chọn tốt hơn gồm:
+Better options include:
 
-- Test behavior qua package API đã export.
-- Test package-private implementation bằng `--patch-module` trong môi trường test.
-- Mở có giới hạn cho reflection của test framework bằng VM options test.
-- Tách thuật toán thực sự cần tái sử dụng thành API/package được thiết kế công khai.
-- Trích một package test-support riêng nếu dự án có lý do kiến trúc rõ ràng.
+- Testing behavior through exported API packages.
+- Testing package-private implementation via `--patch-module` in the test environment.
+- Opening selectively for test framework reflection via test VM options.
+- Extracting genuinely reusable algorithms into a deliberately designed public API/package.
+- Extracting a separate test-support package if the project has a clear architectural reason.
 
-Không nên tạo một `export` production chỉ vì test runner chưa được cấu hình đúng.
+Do not create a production `export` just because the test runner has not been configured properly.
 
-## 12. JUnit và test discovery: tìm test khác với được phép gọi test
+## 12. JUnit and Test Discovery: Finding Tests Differs from Permission to Invoke Tests
 
-JUnit Platform có nhiệm vụ phát hiện và chạy test. Quá trình discovery có thể nhìn thấy một test class, nhưng reflection gọi constructor hoặc test method không public vẫn phải tuân theo JPMS.
+JUnit Platform is responsible for discovering and running tests. Discovery may see a test class, yet reflecting to call a non-public constructor or test method must still obey JPMS.
 
-Ví dụ lỗi có thể cho biết:
+For example, an error may state:
 
     module com.example.orders does not "opens
     com.example.orders.internal" to module org.junit.platform.commons
 
-Trong tình huống này, target cần quyền là module phản chiếu thực sự, ví dụ `org.junit.platform.commons`, không nhất thiết là module chính chứa ứng dụng.
+In this situation, the target needing permission is the module actually performing reflection, such as `org.junit.platform.commons`, not necessarily the main application module.
 
-Cấu hình hướng mục tiêu:
+Targeted configuration:
 
     --add-opens=com.example.orders/com.example.orders.internal=org.junit.platform.commons
 
-Chỉ xem đây là ví dụ: tên module target trong dự án phải lấy từ stack trace, thông báo lỗi và cách JUnit được nạp. Một setup khác có thể sử dụng unnamed module hoặc thành phần JUnit khác.
+Treat this strictly as an example: the project's target module name must come from stack traces, error messages, and how JUnit is loaded. Another setup might use the unnamed module or a different JUnit component.
 
-Khi test runner không phát hiện bài test, nguyên nhân cũng có thể là source set, test engine hoặc module path, chứ không phải thiếu `opens`. Không thêm flag reflection trước khi xác định đúng giai đoạn lỗi.
+When a test runner discovers no tests, the cause may also be source sets, the test engine, or the module path rather than missing `opens`. Do not add reflection flags before identifying the exact failing stage.
 
-## 13. Kiểm tra trạng thái mở package bằng Module API
+## 13. Checking Package Openness with the Module API
 
-Có thể truy vấn package có đang mở cho một module khác tại runtime hay không:
+You can query whether a package is currently open to another module at runtime:
 
     Module source = OrderService.class.getModule();
     Module target = MyTestFramework.class.getModule();
@@ -370,51 +370,51 @@ Có thể truy vấn package có đang mở cho một module khác tại runtime
 
     System.out.println(openForTarget);
 
-Khi chạy với đúng VM options, kết quả có thể là `true`. Nếu package chưa mở cho target thực sự, kết quả có thể là `false`.
+When running with the right VM options, the result can be `true`. If the package is not yet open to the actual target, the result can be `false`.
 
-Lưu ý khác biệt:
+Note the distinction:
 
     source.isExported("com.example.orders.api", target);
     source.isOpen("com.example.orders.internal", target);
 
-Phép kiểm tra đầu tiên liên quan truy cập API public; phép kiểm tra thứ hai liên quan deep reflection.
+The first check concerns public API access; the second concerns deep reflection.
 
-API này hữu ích khi chẩn đoán môi trường test/module layer, nhưng không nên dùng kết quả `isOpen` như lý do tự động mở thêm package production. Cấu hình quyền vẫn cần có phạm vi và mục đích rõ ràng.
+This API is useful for diagnosing test/module layer environments, though `isOpen` results should not be used as an excuse to automatically open more production packages. Permission configuration still needs clear scope and intent.
 
-## 14. Maven và Gradle: tách test-scoped workaround
+## 14. Maven and Gradle: Separating Test-Scoped Workarounds
 
-Trong Maven, cấu hình compiler plugin, Surefire/Failsafe và runtime launcher có thể khác nhau. Các đường cấu hình cần kiểm tra riêng:
+In Maven, compiler plugin, Surefire/Failsafe, and runtime launcher configurations can differ. Paths to inspect separately:
 
-- Compile module production: compiler module path và descriptor.
-- Compile test: classpath/module path test, cơ chế patch nếu dùng.
-- Chạy unit test: Surefire/JUnit VM options.
-- Chạy integration test: Failsafe hoặc runner chuyên biệt.
-- Chạy production: launcher không chứa test-only overrides.
+- Compiling production module: compiler module path and descriptor.
+- Compiling tests: test classpath/module path, patching mechanism if used.
+- Running unit tests: Surefire/JUnit VM options.
+- Running integration tests: Failsafe or dedicated runner.
+- Running production: launcher free of test-only overrides.
 
-Với Gradle, `JavaCompile` và `Test` là các task khác nhau. Cấu hình `test` và `integrationTest` (nếu tự định nghĩa) có thể không giống nhau. Một flag thêm vào `test.jvmArgs` không tự áp dụng cho mọi JVM hoặc task tùy biến.
+In Gradle, `JavaCompile` and `Test` are separate tasks. Configurations for `test` and `integrationTest` (if custom-defined) may differ. A flag added to `test.jvmArgs` does not automatically apply to every JVM or custom task.
 
-Một quy tắc cấu hình dễ bảo trì là dùng một hàm hoặc convention chung cho các **test tasks thực sự cần reflection**, thay vì thêm mọi flag vào `JAVA_TOOL_OPTIONS` toàn hệ thống.
+A maintainable configuration practice is using a shared helper or convention plugin for **test tasks that genuinely require reflection**, rather than putting every flag into system-wide `JAVA_TOOL_OPTIONS`.
 
-Nếu dự án cung cấp hai đường build classpath và module path trong giai đoạn migration, cần đảm bảo test phản ánh đúng cấu hình production mục tiêu. Test chạy được ở classpath chưa chứng minh ranh giới JPMS production đúng.
+If a project maintains both classpath and module path builds during migration, ensure tests reflect the target production configuration. Tests passing on the classpath do not prove production JPMS boundaries are right.
 
-## 15. Kiểm thử module boundary như một hợp đồng
+## 15. Testing Module Boundaries as a Contract
 
-Ngoài unit tests, nên có một tập test bảo đảm ranh giới module được giữ.
+Beyond unit tests, maintain a test suite that verifies module boundaries hold.
 
-Ví dụ các điều kiện cần xác nhận:
+Examples of conditions to verify:
 
-1. Module `com.example.orders` export đúng package `com.example.orders.api`.
-2. Các package `internal` và `persistence` không bị export rộng khi không cần.
-3. Các package không cần production reflection không bị mở trong descriptor.
-4. Module client chỉ dùng API công khai vẫn chạy tốt trên module path.
-5. Test-specific flags không xuất hiện trong lệnh khởi chạy production.
-6. Provider modules và service discovery (nếu có) được resolve đúng mà không đòi mở cả module.
+1. Module `com.example.orders` exports the exact `com.example.orders.api` package.
+2. Packages `internal` and `persistence` are not broadly exported unnecessarily.
+3. Packages not needing production reflection are not opened in the descriptor.
+4. Client modules using only the public API run cleanly on the module path.
+5. Test-specific flags do not appear in production launch commands.
+6. Provider modules and service discovery (if any) resolve properly without opening the entire module.
 
-Có thể quan sát descriptor của modular JAR:
+You can inspect a modular JAR's descriptor:
 
     jar --describe-module --file orders.jar
 
-Với chương trình Java, đọc descriptor:
+In Java code, read the descriptor:
 
     ModuleDescriptor descriptor =
         OrderService.class.getModule().getDescriptor();
@@ -422,71 +422,71 @@ Với chương trình Java, đọc descriptor:
     System.out.println(descriptor.exports());
     System.out.println(descriptor.opens());
 
-Đây là ví dụ về kiểm thử kiến trúc ở giai đoạn sau. Bản thân việc soạn một module có descriptor nhỏ, rõ ràng giúp các phép kiểm tra boundary có ý nghĩa.
+This is an example of late-stage architectural testing. Authoring a module with a small, clear descriptor makes boundary checks meaningful in themselves.
 
-## 16. Quy trình quyết định khi một test bị lỗi access
+## 16. Decision Workflow When a Test Hits an Access Error
 
-Khi gặp `IllegalAccessException`, `InaccessibleObjectException` hoặc lỗi package visibility, có thể làm theo thứ tự:
+When encountering `IllegalAccessException`, `InaccessibleObjectException`, or package visibility errors, proceed in order:
 
-**Bước 1 — Xác định lỗi.**
+**Step 1 — Identify the error.**
 
-- Nếu `package ... is not visible` lúc compile: xem `requires`, readability, `exports`.
-- Nếu `InaccessibleObjectException` lúc `setAccessible(true)`: xem `opens` cho module caller.
-- Nếu `IllegalAccessException` khi invoke/field access bằng reflection: xem access modifier, loại reflection và module access.
-- Nếu `module not found`: sửa module path trước, không mở package tùy ý.
+- If `package ... is not visible` at compile time: check `requires`, readability, `exports`.
+- If `InaccessibleObjectException` on `setAccessible(true)`: check `opens` for the caller module.
+- If `IllegalAccessException` when invoking/accessing fields via reflection: check access modifiers, reflection type, and module access.
+- If `module not found`: fix the module path first instead of arbitrarily opening packages.
 
-**Bước 2 — Xác định phạm vi bài test.**
+**Step 2 — Determine the test scope.**
 
-Test đang kiểm tra public API, package-private implementation, hay hành vi framework reflection?
+Is the test checking public API, package-private implementation, or framework reflection behavior?
 
-**Bước 3 — Chọn giải pháp hẹp nhất.**
+**Step 3 — Choose the narrowest solution.**
 
-- Public API test: dùng exports đã được thiết kế.
-- Test cùng module/package: xem `--patch-module`.
-- Framework cần private reflection trong test: `--add-opens` đúng package và target.
-- Production framework thật sự cần reflection: thiết kế `opens` có giới hạn theo nhu cầu production.
+- Public API test: use designed exports.
+- Same module/package test: consider `--patch-module`.
+- Framework needing private reflection in tests: `--add-opens` for the exact package and target.
+- Production framework genuinely needing reflection: design scoped `opens` for production needs.
 
-**Bước 4 — Đặt quyền ở đúng nơi.**
+**Step 4 — Put permissions in the right place.**
 
-Dùng test compile/runtime flags khi chỉ test cần; không ghi thay đổi rộng vào production descriptor.
+Use test compile/runtime flags when only tests need them; avoid writing broad changes into production descriptors.
 
-**Bước 5 — Chạy lại trong môi trường mục tiêu.**
+**Step 5 — Re-run in the target environment.**
 
-Đảm bảo test runtime thực sự nhận flags; đọc thông báo tiếp theo nếu còn lỗi khác. Không suy ra mọi lỗi đều cùng một nguyên nhân.
+Confirm the test runtime actually receives the flags; read any subsequent message if another error appears. Do not assume all errors share the same root cause.
 
-## 17. So sánh các cách tiếp cận
+## 17. Comparing Approaches
 
-| Lựa chọn | Đóng gói production | Hỗ trợ test | Khi nào phù hợp |
+| Option | Production Encapsulation | Test Support | When Appropriate |
 |---|---|---|---|
-| Test qua public API | Giữ nguyên | Tốt cho hành vi công khai | Mặc định ưu tiên |
-| Test module riêng | Giữ ranh giới API | Tốt cho contract/integration | Muốn kiểm tra client bên ngoài |
-| `--patch-module` trong test | Không sửa descriptor production | Có thể test package-private | Unit tests cần ở cùng module/package |
-| Test-scoped `--add-opens` | Không sửa artifact production | Cho phép deep reflection theo package/target | JUnit, mock/serialization framework cần reflection |
-| `opens p to m` trong descriptor | Mở một package khi production chạy | Có thể hỗ trợ test | Có nhu cầu reflection production thực sự |
-| `open module` | Mở tất cả package | Có thể làm test dễ chạy | Chỉ khi toàn module được chủ ý thiết kế cho reflection rộng |
+| Test via public API | Preserved | Good for public behavior | Default preference |
+| Separate test module | Preserves API boundaries | Good for contract/integration | Want to test as external client |
+| `--patch-module` in tests | Production descriptor unchanged | Can test package-private | Unit tests needing same module/package |
+| Test-scoped `--add-opens` | Production artifact unchanged | Permits package/target deep reflection | JUnit, mock/serialization frameworks needing reflection |
+| `opens p to m` in descriptor | Opens one package at production runtime | Can assist tests | Genuine production reflection need exists |
+| `open module` | Opens all packages | Can make tests easy to run | Only when whole module is intentionally designed for broad reflection |
 
-Chọn giải pháp dựa trên hợp đồng public của module và rủi ro reflection thực tế, không dựa duy nhất vào việc cách nào giúp bỏ qua lỗi nhanh nhất.
+Choose a solution based on the module's public contract and actual reflection risk, not solely on whichever option silences the error fastest.
 
-## 18. Những nhầm lẫn thường gặp
+## 18. Common Misconceptions
 
-- **Tưởng `open module` chỉ mở package cho JUnit.** Nó mở mọi package của module cho deep reflection ở runtime.
-- **Tưởng package được `exports` đã cho phép đọc field private.** Deep reflection cần quyền mở package thích hợp.
-- **Tưởng test nằm trong cùng tên package là đủ để gọi package-private code.** Cần xét runtime module và class loader; `--patch-module` có thể phù hợp.
-- **Tưởng `--patch-module` tự thêm readability tới test framework.** Có thể cần `--add-reads` khi test module được patch và framework nằm ngoài module đó.
-- **Tưởng `ALL-UNNAMED` có nghĩa tất cả named modules.** Nó chỉ áp dụng cho unnamed modules.
-- **Tưởng dùng `--add-opens` là sửa lỗi thiếu dependency.** Nó không tạo class, JAR hoặc module còn thiếu.
-- **Tưởng thay module descriptor production là cách duy nhất để test chạy.** Test runner và VM options có thể cấp quyền trong phạm vi test.
-- **Tưởng test pass trên classpath chứng minh module path production cũng đúng.** Đây là hai cơ chế tổ chức và kiểm soát truy cập khác nhau.
-- **Tưởng mọi quyền test nên chuyển thành quyền production.** Test có đặc quyền dành riêng cho việc quan sát nội bộ; production không nhất thiết cần chúng.
+- **Assuming `open module` only opens packages to JUnit.** It opens every package in the module for deep reflection at runtime.
+- **Assuming an `exports`ed package allows reading private fields.** Deep reflection requires appropriate package openness.
+- **Assuming placing a test in the same package name suffices to call package-private code.** Runtime module and class loader matter; `--patch-module` may be needed.
+- **Assuming `--patch-module` automatically adds readability to the test framework.** `--add-reads` may still be needed when a module is patched and the framework sits outside that module.
+- **Assuming `ALL-UNNAMED` means all named modules.** It applies only to unnamed modules.
+- **Assuming `--add-opens` fixes missing dependencies.** It does not supply missing classes, JARs, or modules.
+- **Assuming modifying the production module descriptor is the only way to make tests run.** Test runners and VM options can grant test-scoped permissions.
+- **Assuming tests passing on the classpath prove the production module path is right.** These are two different organization and access-control mechanisms.
+- **Assuming all test permissions should become production permissions.** Tests have special privileges for internal observation; production does not necessarily need them.
 
-## Ghi nhớ
+## Key Takeaways
 
-- Đừng đổi production module thành `open module` chỉ để tiện viết test.
-- Mặc định kiểm thử hành vi qua **API được export**.
-- Nếu cần kiểm thử package-private implementation, cân nhắc **test-only `--patch-module`**.
-- Nếu framework test cần deep reflection, dùng **`--add-opens` giới hạn đúng package và target** trên JVM test.
-- Nếu một framework production thật sự cần reflection, mô tả quyền đó bằng `opens` phù hợp với thiết kế module.
-- Phân biệt `exports` (public API), `opens` (reflection), `--add-reads` (readability) và `--patch-module` (test classes trong module).
-- Giữ production artifact và lệnh production launcher không bị nhiễm các quyền chỉ phục vụ kiểm thử.
+- Never turn a production module into an `open module` just for testing convenience.
+- Default to testing behavior through **exported APIs**.
+- If package-private implementation must be tested, consider **test-only `--patch-module`**.
+- If a test framework needs deep reflection, use **`--add-opens` scoped to the exact package and target** on the test JVM.
+- If a production framework genuinely needs reflection, express that permission with `opens` aligned to the module design.
+- Distinguish `exports` (public API), `opens` (reflection), `--add-reads` (readability), and `--patch-module` (test classes in module).
+- Keep production artifacts and production launch commands free of test-only permissions.
 
-Một bộ test hữu ích phải giúp module trở nên đáng tin cậy **mà không làm ranh giới production yếu đi**. Kiểm soát quyền theo phạm vi test và theo đúng package/module sẽ giữ được cả khả năng kiểm thử lẫn lợi ích đóng gói của JPMS.
+A good test suite makes a module reliable **without weakening production boundaries**. Controlling permissions by test scope and exact package/module preserves both testability and JPMS encapsulation benefits.

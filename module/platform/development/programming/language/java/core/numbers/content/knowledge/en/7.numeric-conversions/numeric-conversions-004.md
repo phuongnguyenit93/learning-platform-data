@@ -1,38 +1,38 @@
-# Chuyển `char` với `byte` hoặc `short` trong Java
+# Converting `char` with `byte` or `short` in Java
 
-## 1. Vì sao chuyển đổi giữa các kiểu 8 và 16 bit lại dễ nhầm?
+## 1. Why are conversions between 8- and 16-bit types error-prone?
 
-Trong Java, `char`, `byte` và `short` đều là **kiểu số nguyên nguyên thủy** (*integral primitive types*), nhưng chúng không biểu diễn cùng miền giá trị.
+In Java, `char`, `byte`, and `short` are all **integral primitive types**, yet they do not represent the same value range.
 
-| Kiểu | Kích thước | Có dấu? | Miền số nguyên | Vai trò chính |
+| Type | Size | Signed? | Integer range | Primary role |
 |---|---:|---|---|---|
-| `byte` | 8 bit | Có | `-128` đến `127` | Dữ liệu byte, số nguyên 8 bit |
-| `short` | 16 bit | Có | `-32768` đến `32767` | Số nguyên có dấu 16 bit |
-| `char` | 16 bit | **Không** | `0` đến `65535` | **Một đơn vị mã UTF-16** |
+| `byte` | 8 bits | Yes | `-128` to `127` | Byte data, 8-bit integer |
+| `short` | 16 bits | Yes | `-32768` to `32767` | 16-bit signed integer |
+| `char` | 16 bits | **No** | `0` to `65535` | **One UTF-16 code unit** |
 
-Điểm quan trọng nhất là **`char` và `short` đều rộng 16 bit nhưng khác cách diễn giải bit cao nhất**. Với `short`, bit cao nhất tham gia biểu diễn dấu; với `char`, toàn bộ 16 bit tạo thành một giá trị từ 0 đến 65535. Còn `byte` chỉ có 8 bit và cũng là kiểu có dấu.
+The most important point is that **`char` and `short` are both 16 bits wide yet differ in how they interpret the highest bit**. For `short`, the highest bit participates in representing the sign; for `char`, all 16 bits form a value from 0 to 65535. Meanwhile, `byte` is only 8 bits and is also a signed type.
 
-Do đó, các chuyển đổi giữa `char` với `byte` hoặc `short` là **narrowing primitive conversion** (chuyển đổi thu hẹp) về mặt phân loại quy tắc Java, kể cả `short` và `char` cùng 16 bit. Không có chuyển đổi mở rộng (*widening primitive conversion*) trực tiếp giữa các cặp kiểu này.
+Therefore, conversions between `char` and `byte` or `short` are classified as **narrowing primitive conversions** under Java's rules, even though `short` and `char` are both 16 bits. There is no direct *widening primitive conversion* between these pairs of types.
 
-Lưu ý: “thu hẹp” trong đặc tả không chỉ nói số bit giảm. Nó còn có thể nói **miền giá trị đích không chứa tất cả giá trị của miền nguồn**. Ví dụ, `char` nhận `40000` nhưng `short` không nhận được số nguyên dương `40000`, dù cả hai cùng 16 bit.
+Note: "narrowing" in the specification does not only mean fewer bits. It can also mean **the target value range does not contain every value of the source range**. For example, `char` accepts `40000` while `short` cannot hold the positive integer `40000`, even though both are 16 bits.
 
-## 2. Chuyển đổi ngầm định và chuyển đổi tường minh
+## 2. Implicit conversion and explicit conversion
 
-Với **biến thông thường**, Java không cho gán trực tiếp từ `byte` hoặc `short` sang `char`, hay từ `char` sang `byte`/`short`:
+For **ordinary variables**, Java does not permit direct assignment from `byte` or `short` to `char`, nor from `char` to `byte`/`short`:
 
 ~~~java
 byte b = 65;
 short s = 65;
 char c = 'A';
 
-// Không biên dịch:
+// Does not compile:
 // char fromByte = b;
 // char fromShort = s;
 // byte fromChar = c;
 // short otherFromChar = c;
 ~~~
 
-Đây là **đoạn minh họa** cố ý chứa các dòng lỗi được comment. Phép gán giữa các kiểu trên cần **ép kiểu tường minh** (*explicit cast*):
+This is an **illustrative snippet** intentionally containing commented-out error lines. Assignments between these types require an **explicit cast**:
 
 ~~~java
 char fromByte = (char) b;
@@ -41,44 +41,44 @@ byte fromChar = (byte) c;
 short otherFromChar = (short) c;
 ~~~
 
-Hai đoạn cùng ngữ cảnh biến; chúng không phải chương trình độc lập.
+The two snippets share the same variable context; they are not standalone programs.
 
-Ép kiểu chỉ nói “hãy thực hiện phép chuyển đổi theo quy tắc của Java”. Nó **không bảo đảm giá trị số học được giữ nguyên**, không kiểm tra dữ liệu có ý nghĩa là ký tự hợp lệ, và không phải thao tác giải mã văn bản.
+A cast merely says "perform the conversion according to Java's rules." It **does not guarantee the arithmetic value is preserved**, does not check whether the data makes sense as a valid character, and is not a text-decoding operation.
 
-### Ngoại lệ quan trọng: biểu thức hằng
+### Important exception: constant expressions
 
-Java cho phép **thu hẹp biểu thức hằng tại phép gán** trong một số trường hợp: biểu thức hằng có kiểu `byte`, `short`, `char` hoặc `int` và giá trị nằm trong miền kiểu đích có thể được gán không cần cast:
+Java allows **narrowing of constant expressions upon assignment** in certain cases: a constant expression of type `byte`, `short`, `char`, or `int` whose value lies within the target type's range can be assigned without a cast:
 
 ~~~java
-char letter = 65;   // hằng int 65 vừa char
-byte small = 65;    // hằng int 65 vừa byte
-short number = 'A'; // hằng char 65 vừa short
+char letter = 65;   // int constant 65 fits in char
+byte small = 65;    // int constant 65 fits in byte
+short number = 'A'; // char constant 65 fits in short
 ~~~
 
-Ngược lại:
+By contrast:
 
 ~~~java
 int variable = 65;
-// char invalid = variable; // không biên dịch: biến int không được thu hẹp ngầm
+// char invalid = variable; // does not compile: int variable cannot be implicitly narrowed
 ~~~
 
-Điều này giải thích vì sao `char c = 65;` hợp lệ nhưng `int n = 65; char c = n;` không hợp lệ. Không nên kết luận từ cú pháp hằng số rằng Java hỗ trợ chuyển đổi ngầm giữa các biến `byte`, `short` và `char`.
+This explains why `char c = 65;` is valid while `int n = 65; char c = n;` is invalid. Do not conclude from constant syntax that Java supports implicit conversion between `byte`, `short`, and `char` variables.
 
-## 3. Từ `byte` sang `char`: số âm biến thành giá trị lớn
+## 3. From `byte` to `char`: negative numbers become large values
 
-Một `byte` có dấu nhận giá trị âm từ `-128` đến `-1`. Khi ép sang `char`, Java thực hiện chuyển đổi theo quy tắc **mở rộng từ `byte` lên `int` rồi thu hẹp xuống `char`**, tương đương về kết quả với việc giữ 16 bit thấp sau khi mở rộng có dấu.
+A signed `byte` takes negative values from `-128` to `-1`. When cast to `char`, Java converts according to the rule **widen from `byte` to `int`, then narrow to `char`**, which is equivalent in result to keeping the low 16 bits after sign extension.
 
-Ví dụ:
+For example:
 
 ~~~java
 byte b = -1;
 char c = (char) b;
-// (int) c == 65535; mã hex của c là FFFF
+// (int) c == 65535; hex code of c is FFFF
 ~~~
 
-Vì `b` bằng `-1`, khi được mở rộng có dấu sang `int`, mẫu bit hai mươi bốn bit cao cũng là 1. Thu hẹp xuống 16 bit tạo `0xFFFF`. `char` diễn giải `0xFFFF` thành **65535**, không phải `-1`.
+Because `b` equals `-1`, when sign-extended to `int`, the high twenty-four bits are also 1. Narrowing down to 16 bits produces `0xFFFF`. `char` interprets `0xFFFF` as **65535**, not `-1`.
 
-| `byte` nguồn | Dạng hex của 8 bit | Giá trị `(int) (char) b` | Hex `char` |
+| Source `byte` | 8-bit hex | `(int) (char) b` value | `char` hex |
 |---:|---|---:|---|
 | `0` | `00` | `0` | `0000` |
 | `65` | `41` | `65` | `0041` |
@@ -86,22 +86,22 @@ Vì `b` bằng `-1`, khi được mở rộng có dấu sang `int`, mẫu bit ha
 | `-1` | `FF` | `65535` | `FFFF` |
 | `-128` | `80` | `65408` | `FF80` |
 
-**Cảnh báo:** Chuyển `byte` âm trực tiếp thành `char` sẽ **không** cho bạn cách hiểu byte ấy là số không dấu từ 0 đến 255. Nếu đang xử lý dữ liệu nhị phân mà muốn lấy giá trị **unsigned byte**, hãy dùng:
+**Warning:** Casting a negative `byte` directly to `char` will **not** give you an unsigned 0-to-255 interpretation of that byte. If you are processing binary data and want the **unsigned byte** value, use:
 
 ~~~java
 byte b = (byte) 0xFF;
 int unsigned = Byte.toUnsignedInt(b); // 255
 int masked = b & 0xFF;               // 255
-char unit = (char) unsigned;         // U+00FF nếu thực sự muốn code unit đó
+char unit = (char) unsigned;         // U+00FF if you genuinely want that code unit
 ~~~
 
-Đây là đoạn minh họa. `Byte.toUnsignedInt(b)` và `b & 0xFF` cho giá trị `int` từ 0 đến 255. Việc tiếp tục cast sang `char` chỉ hợp lý khi bạn **thực sự đang ánh xạ giá trị số ấy vào một đơn vị mã UTF-16**, không phải đang giải mã UTF-8 hay xác định ký tự của một charset bất kỳ.
+This is an illustrative snippet. `Byte.toUnsignedInt(b)` and `b & 0xFF` yield an `int` value from 0 to 255. Casting onward to `char` only makes sense when you are **genuinely mapping that numeric value to a UTF-16 code unit**, not decoding UTF-8 or determining a character in an arbitrary charset.
 
-## 4. Từ `short` sang `char`: cùng bit, khác ý nghĩa dấu
+## 4. From `short` to `char`: same bits, different sign meaning
 
-`short` và `char` cùng 16 bit. Khi chuyển `short` sang `char`, Java giữ 16 bit thấp, nhưng `char` luôn diễn giải chúng là giá trị **không dấu**.
+`short` and `char` are both 16 bits. When converting `short` to `char`, Java keeps the low 16 bits, but `char` always interprets them as an **unsigned** value.
 
-Ví dụ:
+For example:
 
 ~~~java
 short s = -1;
@@ -109,9 +109,9 @@ char c = (char) s;
 // (int) c == 65535 (0xFFFF)
 ~~~
 
-Một số giá trị minh họa:
+Some illustrative values:
 
-| `short` nguồn | Hex 16 bit | Giá trị `char` sau cast |
+| Source `short` | 16-bit hex | `char` value after cast |
 |---:|---|---:|
 | `0` | `0000` | `0` |
 | `65` | `0041` | `65` |
@@ -119,13 +119,13 @@ Một số giá trị minh họa:
 | `-32768` | `8000` | `32768` |
 | `-1` | `FFFF` | `65535` |
 
-Một `short` âm không trở thành ký tự “số âm”. Nó trở thành code unit có cùng mẫu 16 bit nhưng giá trị số không dấu. Java cung cấp `Short.toUnsignedInt(shortValue)` để diễn giải mẫu 16 bit của một `short` thành giá trị `int` từ 0 đến 65535.
+A negative `short` does not become a "negative-number character." It becomes a code unit with the same 16-bit pattern and an unsigned numeric value. Java provides `Short.toUnsignedInt(shortValue)` to interpret a `short`'s 16-bit pattern as an `int` from 0 to 65535.
 
-Ví dụ `Short.toUnsignedInt((short) -1)` bằng 65535, trùng với `(int) (char) ((short) -1)` về **giá trị số**. Tuy nhiên, khi mục tiêu là xử lý số nhị phân unsigned 16 bit, `int` thường diễn đạt ý nghĩa rõ hơn `char`; nên giữ `char` cho các API xử lý code unit UTF-16.
+For instance, `Short.toUnsignedInt((short) -1)` equals 65535, matching `(int) (char) ((short) -1)` in **numeric value**. However, when the goal is processing unsigned 16-bit binary numbers, `int` usually expresses the intent much more clearly than `char`; reserve `char` for APIs dealing with UTF-16 code units.
 
-## 5. Từ `char` sang `byte`: mất 8 bit cao và có thể đổi dấu
+## 5. From `char` to `byte`: loses high 8 bits and can flip sign
 
-Khi cast `char` xuống `byte`, Java giữ **8 bit thấp nhất**. Kết quả được diễn giải theo số nguyên **có dấu 8 bit**:
+When casting `char` down to `byte`, Java keeps the **lowest 8 bits**. The result is interpreted as an **8-bit signed** integer:
 
 ~~~java
 char c1 = '\u0041'; // 'A' = 65
@@ -137,22 +137,22 @@ byte b2 = (byte) c2; // -1 (0xFF)
 byte b3 = (byte) c3; // 0  (0x0100 -> 0x00)
 ~~~
 
-Bảng ví dụ:
+Example table:
 
-| `char` nguồn | Hex 16 bit | `(byte) c` | Giải thích |
+| Source `char` | 16-bit hex | `(byte) c` | Explanation |
 |---:|---|---:|---|
-| `65` | `0041` | `65` | Trong miền `byte` có dấu |
-| `127` | `007F` | `127` | Giá trị dương lớn nhất của `byte` |
-| `128` | `0080` | `-128` | Bit dấu của byte đích bằng 1 |
-| `255` | `00FF` | `-1` | Giữ `FF`, diễn giải có dấu |
-| `256` | `0100` | `0` | 8 bit cao bị loại |
-| `65535` | `FFFF` | `-1` | 8 bit thấp đều là 1 |
+| `65` | `0041` | `65` | Within signed `byte` range |
+| `127` | `007F` | `127` | Largest positive value of `byte` |
+| `128` | `0080` | `-128` | Target byte's sign bit is 1 |
+| `255` | `00FF` | `-1` | Keeps `FF`, signed interpretation |
+| `256` | `0100` | `0` | High 8 bits discarded |
+| `65535` | `FFFF` | `-1` | All low 8 bits are 1 |
 
-Đây là **chuyển đổi dữ liệu số**. Nếu `char` biểu diễn ký tự Unicode, cast sang `byte` **không có nghĩa là chuyển ký tự thành UTF-8**. UTF-8 sử dụng thuật toán mã hóa và có thể cần nhiều byte cho một code point. Bài học về mã hóa ở phần sau cho ví dụ cụ thể.
+This is a **numeric data conversion**. If `char` represents a Unicode character, casting to `byte` **does not mean converting the character to UTF-8**. UTF-8 uses an encoding algorithm and may require multiple bytes for a single code point. The encoding section later gives a concrete example.
 
-## 6. Từ `char` sang `short`: giá trị trên 32767 trở thành âm
+## 6. From `char` to `short`: values above 32767 become negative
 
-Từ `char` (0..65535) sang `short` (-32768..32767), Java giữ 16 bit và diễn giải theo kiểu số nguyên có dấu:
+From `char` (0..65535) to `short` (-32768..32767), Java preserves the 16 bits and interprets them as a signed integer:
 
 ~~~java
 char a = (char) 32767;
@@ -164,16 +164,16 @@ short s2 = (short) b; // -32768
 short s3 = (short) c; // -1
 ~~~
 
-Không có bit nào bị bỏ khi chuyển `char` sang `short`, vì độ rộng đều là 16 bit. Tuy nhiên, **giá trị toán học có thể đổi dấu** do cách diễn giải bit đầu cao nhất. Có thể hiểu công thức tương đương:
+No bits are dropped when converting `char` to `short`, since both are 16 bits wide. However, the **mathematical value can change sign** due to how the highest bit is interpreted. You can think of the equivalent formula:
 
-- Với `c <= 32767`: `(short) c` giữ giá trị số.
-- Với `c >= 32768`: `(short) c` bằng `(int) c - 65536`.
+- For `c <= 32767`: `(short) c` keeps the numeric value.
+- For `c >= 32768`: `(short) c` equals `(int) c - 65536`.
 
-Tại sao lại cần cast dù không giảm số bit? Vì giá trị như `65535` nằm trong miền `char` nhưng ngoài miền `short`. Java yêu cầu thể hiện rõ thao tác đổi cách hiểu dấu.
+Why is a cast needed even though the bit count does not decrease? Because values like `65535` are inside `char`'s range yet outside `short`'s range. Java requires making the change in sign interpretation explicit.
 
-## 7. Bốn phép chuyển trong một chương trình Java 17+ hoàn chỉnh
+## 7. All four conversions in a complete Java 17+ program
 
-Tạo tệp `CharByteShortDemo.java`:
+Create the file `CharByteShortDemo.java`:
 
 ~~~java
 public class CharByteShortDemo {
@@ -203,14 +203,14 @@ public class CharByteShortDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa tệp bằng JDK 17 trở lên:
+Compile and run in the directory containing the file using JDK 17 or later:
 
 ~~~bash
 javac CharByteShortDemo.java
 java CharByteShortDemo
 ~~~
 
-Đầu ra chính xác:
+Exact output:
 
 ~~~text
 byteToChar=65
@@ -224,18 +224,18 @@ FFToShort=255
 8000ToShort=-32768
 ~~~
 
-Từ `65`, bốn hướng chuyển đổi đều giữ giá trị vì nó nằm trong miền chung của ba kiểu. Nhưng `-1` chuyển sang `char` thành 65535; `char` 255 khi thu về `byte` thành -1; `char` 32768 chuyển sang `short` thành -32768. Những kết quả này không phụ thuộc vào cách màn hình hiển thị ký tự, mà đến từ quy tắc số nguyên.
+Starting from `65`, all four conversion directions preserve the value because it lies in the common range of all three types. However, `-1` converts to `char` 65535; `char` 255 narrowed to `byte` becomes -1; `char` 32768 converted to `short` becomes -32768. These results do not depend on how the screen displays characters; they come from integer rules.
 
-## 8. Khi byte từ mạng hoặc file được dùng như số không dấu
+## 8. When bytes from network or files are used as unsigned numbers
 
-Nhiều định dạng nhị phân định nghĩa một trường 8 bit hoặc 16 bit **không dấu**. Vì Java không có primitive `unsigned byte` hay `unsigned short` riêng, người lập trình thường lưu raw bit bằng `byte`/`short` và diễn giải bằng kiểu `int`:
+Many binary formats define an **unsigned** 8-bit or 16-bit field. Since Java has no dedicated `unsigned byte` or `unsigned short` primitive, programmers commonly store raw bits in `byte`/`short` and interpret them using `int`:
 
-- `Byte.toUnsignedInt(byteValue)` trả giá trị 0..255.
-- `Short.toUnsignedInt(shortValue)` trả giá trị 0..65535.
-- `byteValue & 0xFF` tương đương về giá trị với cách đọc unsigned byte.
-- `shortValue & 0xFFFF` tương đương về giá trị với cách đọc unsigned short.
+- `Byte.toUnsignedInt(byteValue)` returns values 0..255.
+- `Short.toUnsignedInt(shortValue)` returns values 0..65535.
+- `byteValue & 0xFF` is equivalent in value to reading an unsigned byte.
+- `shortValue & 0xFFFF` is equivalent in value to reading an unsigned short.
 
-Tạo tệp `UnsignedNumbersDemo.java`:
+Create the file `UnsignedNumbersDemo.java`:
 
 ~~~java
 public class UnsignedNumbersDemo {
@@ -271,7 +271,7 @@ javac UnsignedNumbersDemo.java
 java UnsignedNumbersDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 signedByte=-1
@@ -285,19 +285,19 @@ maskedShort=65535
 directShortCast=U+FFFF
 ~~~
 
-**Khác biệt quan trọng:** cast trực tiếp `(char) rawByte` khi raw byte là `-1` tạo `U+FFFF`; chuyển qua `Byte.toUnsignedInt` trước rồi cast cho `U+00FF`. Hai kết quả khác nhau dù cùng bắt đầu từ mẫu bit `FF` của byte.
+**Important difference:** a direct cast `(char) rawByte` when the raw byte is `-1` produces `U+FFFF`; converting through `Byte.toUnsignedInt` first and then casting produces `U+00FF`. The two results differ even though both start from the byte bit pattern `FF`.
 
-Đối với raw `short`, cast sang `char` và diễn giải unsigned 16 bit có cùng con số 0..65535, nhưng **ý nghĩa dữ liệu** vẫn khác: một số đo/giao thức unsigned 16 bit không tự biến thành một ký tự Unicode.
+For a raw `short`, casting to `char` and interpreting as unsigned 16-bit yield the same number 0..65535, yet the **data semantics** remain different: an unsigned 16-bit measurement or protocol field does not automatically become a Unicode character.
 
-## 9. Chuyển đổi số không phải là mã hóa hay giải mã văn bản
+## 9. Numeric conversion is not text encoding or decoding
 
-`char` là **một đơn vị mã UTF-16**, còn `byte` là **một đơn vị dữ liệu 8 bit**. Cast giữa chúng chỉ thực hiện các quy tắc chuyển đổi primitive ở những phần trước. Cast **không biết charset** và không thực hiện thuật toán UTF-8/UTF-16.
+`char` is **one UTF-16 code unit**, while `byte` is **one 8-bit data unit**. Casting between them only executes the primitive conversion rules from the earlier sections. A cast **knows nothing about charsets** and does not perform UTF-8/UTF-16 algorithms.
 
-Ví dụ chữ `é` là code point `U+00E9`. Khi mã hóa bằng UTF-8, nó dùng **hai byte `C3 A9`**, không phải chỉ một byte `E9`. Mỗi byte UTF-8 đó khi đọc vào primitive `byte` có giá trị có dấu (theo thứ tự) `-61` và `-87`.
+For example, the letter `é` is code point `U+00E9`. When encoded in UTF-8, it uses **two bytes `C3 A9`**, not just a single byte `E9`. Each of those UTF-8 bytes, when read into a primitive `byte`, has signed values `-61` and `-87` (respectively).
 
-Nếu cast từng byte sang `char`, Java chỉ mở rộng/thu hẹp bit: `(char) (byte) 0xC3` cho `U+FFC3`, và `(char) (byte) 0xA9` cho `U+FFA9`. Kết quả **không phải** văn bản `é`.
+If you cast each byte to `char`, Java merely sign-extends/narrows bits: `(char) (byte) 0xC3` gives `U+FFC3`, and `(char) (byte) 0xA9` gives `U+FFA9`. The result is **not** the text `é`.
 
-Muốn giải mã đúng, dùng API charset:
+To decode properly, use a charset API:
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -323,7 +323,7 @@ javac Utf8DecodeDemo.java
 java Utf8DecodeDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 decoded=é
@@ -333,13 +333,13 @@ wrongFirst=U+FFC3
 wrongSecond=U+FFA9
 ~~~
 
-Dữ liệu `byte[]` đã được giải mã theo `StandardCharsets.UTF_8` mới trở thành `String` đúng. Khi cần biến chuỗi thành byte theo charset, dùng `text.getBytes(StandardCharsets.UTF_8)`. Đây là quy tắc quan trọng cho file, JSON, HTTP và dữ liệu từ mạng.
+Only after decoding the `byte[]` with `StandardCharsets.UTF_8` does it become the proper `String`. When you need to turn a string into bytes according to a charset, use `text.getBytes(StandardCharsets.UTF_8)`. This is an essential rule for files, JSON, HTTP, and network data.
 
-Lưu ý rằng `char` chỉ biểu diễn **một code unit UTF-16**, nên ngay cả khi đã giải mã đúng, một Unicode code point ngoài BMP (chẳng hạn emoji) có thể chiếm **hai** giá trị `char` trong `String`. Không coi một byte hay một char bất kỳ là “một ký tự người dùng nhìn thấy”.
+Note that `char` represents only **one UTF-16 code unit**, so even when decoded properly, a Unicode code point outside the BMP (such as an emoji) can occupy **two** `char` values in a `String`. Do not treat an arbitrary byte or char as "one user-visible character."
 
-## 10. Phép toán với `char`, `byte` và `short` được nâng kiểu
+## 10. Arithmetic with `char`, `byte`, and `short` is promoted
 
-Trong đa số biểu thức số học, `byte`, `short` và `char` được **nâng lên `int`**. Vì thế:
+In most arithmetic expressions, `byte`, `short`, and `char` are **promoted to `int`**. Therefore:
 
 ~~~java
 byte b = 1;
@@ -349,23 +349,23 @@ char c = 'A';
 int sum = b + s + c;     // int: 1 + 2 + 65 = 68
 int nextCode = c + 1;    // int: 66
 
-// Không biên dịch:
+// Does not compile:
 // char next = c + 1;
 // byte smallSum = b + 1;
 ~~~
 
-Đây là đoạn minh họa (các câu không hợp lệ đã comment). Mặc dù `char` là kiểu số nguyên không dấu, kết quả `c + 1` có kiểu `int`. Nếu ép về `char`, có thể gây cuốn vòng về 16 bit thấp:
+This is an illustrative snippet (invalid statements are commented out). Even though `char` is an unsigned integer type, the result of `c + 1` has type `int`. Casting back to `char` can wrap around to the low 16 bits:
 
 ~~~java
 char max = Character.MAX_VALUE;     // 65535
 char wrapped = (char) (max + 1);    // 0
 ~~~
 
-Cast rõ ràng không kiểm tra tràn. Với số học thông thường, giữ kết quả ở `int`, kiểm tra miền trước khi cast về kiểu hẹp; các phép toán `Math.toIntExact` chỉ kiểm tra chuyển `long` sang `int`, **không** tự kiểm tra chuyển `int` sang `char`/`byte`/`short`.
+An explicit cast does not check for overflow. For ordinary arithmetic, keep the result in `int` and check the range before casting to a narrower type; `Math.toIntExact` only checks `long`-to-`int` conversions, **not** `int`-to-`char`/`byte`/`short` conversions.
 
-### Làm sao kiểm tra miền thay vì cắt bit?
+### How to check the range instead of truncating bits?
 
-Giả sử API nhận `int codeUnit` và yêu cầu trả về `char` giữ nguyên giá trị:
+Suppose an API receives `int codeUnit` and must return a `char` preserving its value:
 
 ~~~java
 if (codeUnit < Character.MIN_VALUE || codeUnit > Character.MAX_VALUE) {
@@ -374,15 +374,15 @@ if (codeUnit < Character.MIN_VALUE || codeUnit > Character.MAX_VALUE) {
 char unit = (char) codeUnit;
 ~~~
 
-Đoạn minh họa này bảo đảm giá trị số nằm trong 0..65535 trước khi cast. Nhưng “nằm trong miền `char`” **chưa chắc có nghĩa là Unicode scalar value hoàn chỉnh**: vùng `U+D800`–`U+DFFF` là các code unit surrogate, vốn cần phối hợp trong cặp nếu biểu diễn code point ngoài BMP.
+This illustrative snippet ensures the numeric value lies in 0..65535 before casting. However, "within the `char` range" **does not necessarily mean a complete Unicode scalar value**: the range `U+D800`–`U+DFFF` consists of surrogate code units, which must appear in pairs when representing code points outside the BMP.
 
-Đối với `byte` và `short` có dấu, kiểm tra `Byte.MIN_VALUE`/`Byte.MAX_VALUE` hoặc `Short.MIN_VALUE`/`Short.MAX_VALUE` tương tự. Nếu muốn diễn giải một unsigned byte, hãy kiểm tra 0..255 hoặc dùng `Byte.toUnsignedInt` với raw byte.
+For signed `byte` and `short`, check `Byte.MIN_VALUE`/`Byte.MAX_VALUE` or `Short.MIN_VALUE`/`Short.MAX_VALUE` in the same way. If you want to interpret an unsigned byte, check 0..255 or use `Byte.toUnsignedInt` on the raw byte.
 
-## 11. Ví dụ mất dữ liệu và tính chất round-trip
+## 11. Data-loss examples and round-trip properties
 
-Một *round-trip* là chuyển từ kiểu A sang kiểu B rồi quay trở lại A. Không phải round-trip nào cũng giữ nguyên giá trị.
+A *round-trip* is converting from type A to type B and then back to A. Not every round-trip preserves the value.
 
-Tạo tệp `NarrowingRoundTripDemo.java`:
+Create the file `NarrowingRoundTripDemo.java`:
 
 ~~~java
 public class NarrowingRoundTripDemo {
@@ -414,7 +414,7 @@ javac NarrowingRoundTripDemo.java
 java NarrowingRoundTripDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 original=256
@@ -425,50 +425,50 @@ shortBitsRoundTrip=true
 charUnsignedValue=65535
 ~~~
 
-Ở ví dụ thứ nhất, `char` có giá trị 256 mất bit cao khi chuyển qua `byte` rồi không thể khôi phục thông tin gốc. Ở ví dụ thứ hai, `'A'` bằng 65 nằm trong khoảng an toàn của `byte` nên giữ nguyên. Ở ví dụ thứ ba, đi từ `short -1` sang `char 65535` rồi quay về `short -1` giữ nguyên **mẫu bit**, nhưng giá trị số trung gian khác nhau.
+In the first example, `char` with value 256 loses its high bit when converted through `byte` and cannot recover the original information. In the second example, `'A'` equals 65, which lies in `byte`'s safe range, so it is preserved. In the third example, going from `short -1` to `char 65535` and back to `short -1` preserves the **bit pattern**, though the intermediate numeric value differs.
 
-Cần phân biệt rõ:
+Make sure to distinguish clearly:
 
-- **Bảo toàn mẫu bit:** giữ các bit trong một độ rộng nhất định.
-- **Bảo toàn giá trị số:** kết quả số học giống ban đầu.
-- **Bảo toàn văn bản:** các code point/ký tự vẫn mang cùng ý nghĩa sau khi mã hóa/giải mã.
+- **Preserving bit pattern:** keeping bits within a given width.
+- **Preserving numeric value:** the arithmetic result matches the original.
+- **Preserving text:** code points/characters retain the same meaning after encoding/decoding.
 
-Một chuyển đổi có thể giữ mẫu bit nhưng đổi giá trị số, hoặc làm mất dữ liệu mà không có exception.
+A conversion can preserve a bit pattern while changing the numeric value, or lose data without any exception.
 
-## 12. Những lỗi phổ biến và cách tránh
+## 12. Common mistakes and how to avoid them
 
-| Nhầm lẫn | Thực tế |
+| Misconception | Reality |
 |---|---|
-| “`char` và `short` đều 16 bit nên gán trực tiếp được.” | Không: miền số khác nhau; cần cast khi làm việc với biến. |
-| “`byte` sang `char` là widening vì `char` có 16 bit.” | Không có widening trực tiếp `byte → char`; cast là bắt buộc. |
-| “`(char) (byte) -1` bằng 255.” | Sai: nó bằng 65535 (`U+FFFF`); muốn unsigned byte 255, dùng `Byte.toUnsignedInt` trước. |
-| “`(short) (char) 65535` bằng 65535.” | Sai: kết quả `short` là -1. |
-| “`(byte) '\u0100'` báo lỗi overflow.” | Sai: cast primitive cho 0 sau khi bỏ 8 bit cao. |
-| “Ép byte sang char sẽ đọc đúng UTF-8.” | Sai: cần decoder, ví dụ `new String(bytes, StandardCharsets.UTF_8)`. |
-| “Kết quả `char + 1` vẫn là `char`.” | Sai: biểu thức được nâng lên `int`. |
-| “`Math.toIntExact` kiểm tra được việc cast `int` sang `byte`.” | Sai: API này chỉ chuyển `long → int`. |
-| “Một `char` bằng một ký tự Unicode hiển thị.” | Sai: `char` là một code unit UTF-16; một code point có thể cần hai code unit. |
+| "`char` and `short` are both 16 bits so they can be assigned directly." | No: their numeric ranges differ; a cast is required when working with variables. |
+| "`byte` to `char` is widening because `char` has 16 bits." | There is no direct `byte → char` widening; a cast is mandatory. |
+| "`(char) (byte) -1` equals 255." | Wrong: it equals 65535 (`U+FFFF`); for unsigned byte 255, use `Byte.toUnsignedInt` first. |
+| "`(short) (char) 65535` equals 65535." | Wrong: the `short` result is -1. |
+| "`(byte) '\u0100'` throws an overflow error." | Wrong: the primitive cast yields 0 after discarding the high 8 bits. |
+| "Casting bytes to char will read UTF-8 properly." | Wrong: a decoder is needed, such as `new String(bytes, StandardCharsets.UTF_8)`. |
+| "The result of `char + 1` is still `char`." | Wrong: the expression is promoted to `int`. |
+| "`Math.toIntExact` checks casting `int` to `byte`." | Wrong: this API only converts `long → int`. |
+| "One `char` equals one visible Unicode character." | Wrong: `char` is one UTF-16 code unit; one code point may need two code units. |
 
-## 13. Checklist khi cần chuyển `char` với `byte`/`short`
+## 13. Checklist when converting `char` with `byte`/`short`
 
-1. **Xác định dữ liệu:** đang tính số, đọc trường nhị phân, xử lý đơn vị mã UTF-16 hay giải mã văn bản?
-2. **Xác định cách hiểu dấu:** `byte`/`short` có dấu, `char` không dấu. Dữ liệu đầu vào có thể âm không?
-3. **Kiểm tra miền hợp lệ:** đầu vào có chắc nằm trong khoảng biểu diễn của kiểu đích khi cần giữ giá trị không?
-4. **Kiểm tra mục tiêu:** muốn giữ **giá trị số**, giữ **mẫu bit**, hay khôi phục **văn bản**? Ba mục tiêu đòi cách làm khác nhau.
-5. **Chọn API đúng:** `Byte.toUnsignedInt`/`Short.toUnsignedInt` để đọc unsigned; charset decoder để đọc byte thành chuỗi; cast chỉ khi thực sự muốn phép chuyển đổi số Java.
-6. **Test các biên:** `-128`, `-1`, `0`, `127`, `128`, `255`, `256`, `32767`, `32768`, `65535` và dữ liệu Unicode nhiều byte/cặp surrogate khi có xử lý văn bản.
+1. **Identify the data:** are you doing arithmetic, reading a binary field, handling a UTF-16 code unit, or decoding text?
+2. **Identify sign interpretation:** `byte`/`short` are signed, `char` is unsigned. Can the input be negative?
+3. **Check valid range:** is the input guaranteed to lie within the target type's representable range when values must be preserved?
+4. **Check the goal:** do you want to preserve the **numeric value**, preserve the **bit pattern**, or recover **text**? Those three goals demand different approaches.
+5. **Choose the right API:** `Byte.toUnsignedInt`/`Short.toUnsignedInt` to read unsigned values; charset decoders to read bytes into strings; casts only when you truly want Java numeric conversion.
+6. **Test boundaries:** `-128`, `-1`, `0`, `127`, `128`, `255`, `256`, `32767`, `32768`, `65535`, plus multi-byte Unicode / surrogate pairs when handling text.
 
-## 14. Tự kiểm tra
+## 14. Self-check
 
-1. Vì sao không thể gán trực tiếp biến `short` vào `char` dù chúng đều 16 bit?
-2. Kết quả `(int) (char) ((byte) -1)` là 255 hay 65535? Giải thích.
-3. `(byte) ((char) 256)` bằng bao nhiêu? Thông tin nào bị mất?
-4. `(short) ((char) 0x8000)` bằng bao nhiêu, và tại sao?
-5. Nếu giao thức truyền byte `0xFF` đại diện cho số unsigned 255, nên dùng `(char) rawByte` hay `Byte.toUnsignedInt(rawByte)` để tính toán?
-6. Vì sao một chuỗi UTF-8 gồm hai byte `C3 A9` không thể khôi phục chữ `é` bằng hai phép cast `(char)`?
-7. `char c = 65;` có biên dịch không? Còn `int x = 65; char c = x;` thì sao?
-8. `char max = Character.MAX_VALUE; char next = (char) (max + 1);` cho giá trị số bao nhiêu?
+1. Why can a `short` variable not be assigned directly to a `char` even though both are 16 bits?
+2. Is `(int) (char) ((byte) -1)` equal to 255 or 65535? Explain.
+3. What does `(byte) ((char) 256)` equal? What information is lost?
+4. What does `(short) ((char) 0x8000)` equal, and why?
+5. If a protocol transmits byte `0xFF` representing unsigned number 255, should you use `(char) rawByte` or `Byte.toUnsignedInt(rawByte)` for calculations?
+6. Why can a UTF-8 sequence of two bytes `C3 A9` not recover the letter `é` via two `(char)` casts?
+7. Does `char c = 65;` compile? What about `int x = 65; char c = x;`?
+8. What numeric value does `char max = Character.MAX_VALUE; char next = (char) (max + 1);` produce?
 
-**Gợi ý đáp án:** (1) Khác miền và cách diễn giải dấu nên không có widening giữa `short` với `char`. (2) 65535 do sign extension của `byte -1` trước khi thu hẹp xuống 16 bit. (3) 0, mất tám bit cao. (4) -32768, giữ mẫu bit `8000` nhưng `short` có dấu. (5) `Byte.toUnsignedInt`. (6) UTF-8 là mã hóa nhiều byte, phải giải mã bằng charset. (7) Câu đầu hợp lệ do hằng số 65 nằm trong miền `char`; câu sau không biên dịch nếu không cast. (8) 0 vì cast giữ 16 bit thấp.
+**Answer hints:** (1) Different ranges and sign interpretation mean there is no widening between `short` and `char`. (2) 65535 due to sign extension of `byte -1` before narrowing to 16 bits. (3) 0, losing the high eight bits. (4) -32768, preserving the bit pattern `8000` while `short` is signed. (5) `Byte.toUnsignedInt`. (6) UTF-8 is a multi-byte encoding and must be decoded with a charset. (7) The first compiles because constant 65 fits in `char`; the second does not compile without a cast. (8) 0 because the cast keeps the low 16 bits.
 
-**Ghi nhớ:** Giữa `char` với `byte` hoặc `short`, Java yêu cầu **ép kiểu tường minh** đối với biến vì miền giá trị và cách diễn giải dấu khác nhau. Cast có thể giữ bit, đổi dấu hoặc bỏ bit; khi xử lý binary unsigned hãy dùng các API đọc số không dấu, còn khi xử lý văn bản hãy dùng charset decoder phù hợp.
+**Remember:** Between `char` and `byte` or `short`, Java requires an **explicit cast** for variables because their value ranges and sign interpretations differ. Casting can preserve bits, flip signs, or drop bits; when handling unsigned binary values use the unsigned reading APIs, and when handling text use an appropriate charset decoder.

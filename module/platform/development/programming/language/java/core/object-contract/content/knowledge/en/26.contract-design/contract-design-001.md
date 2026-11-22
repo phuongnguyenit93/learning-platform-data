@@ -1,18 +1,18 @@
-# Xác định ý nghĩa bằng nhau trước khi sinh mã (Java)
+# Defining the Meaning of Equality Before Generating Code (Java)
 
-**Chủ đề: Thiết kế hợp đồng đối tượng.** Trước khi IDE sinh phương thức `equals()` và `hashCode()`, trước khi chọn Lombok hoặc Java `record`, câu hỏi quan trọng là **hai đối tượng khi nào được coi là bằng nhau trong miền nghiệp vụ?** Code được sinh có thể biên dịch chính xác nhưng vẫn phản ánh sai ý nghĩa nếu chọn nhầm field.
+**Topic: Object Contract Design.** Before letting the IDE generate `equals()` and `hashCode()` methods, and before choosing Lombok or a Java `record`, the critical question is: **when are two objects considered equal in the business domain?** Generated code can compile cleanly yet still reflect the wrong meaning if the wrong fields are chosen.
 
-## 1. Ba loại equality cần phân biệt
+## 1. Three Types of Equality to Distinguish
 
-| Khái niệm | Câu hỏi | Java thường thể hiện | Ví dụ |
+| Concept | Question | Common Java Representation | Example |
 | --- | --- | --- | --- |
-| **Reference identity** | Hai tham chiếu cùng trỏ đến một instance? | `a == b` | Hai biến tham chiếu cùng một đối tượng |
-| **Value equality** | Hai instance biểu diễn cùng một giá trị? | `equals()` theo các thành phần của giá trị | Hai tọa độ có cùng x/y |
-| **Entity identity** | Hai instance cùng đại diện một thực thể qua thời gian? | `equals()` theo ID ổn định hoặc dùng reference identity theo mô hình | Cùng khách hàng trước/sau khi đổi tên |
+| **Reference identity** | Do two references point to the same instance? | `a == b` | Two variables referencing the same object |
+| **Value equality** | Do two instances represent the same value? | `equals()` based on value components | Two coordinates with the same x/y |
+| **Entity identity** | Do two instances represent the same entity over time? | `equals()` based on a stable ID or using reference identity depending on the model | The same customer before/after a name change |
 
-Còn **so sánh theo thứ tự hoặc theo một tiêu chí** như giá, ngày tạo, độ gần tương đối thường có API riêng: `Comparator`, `compareTo()` hoặc phương thức chuyên dụng. Không nên tự biến những tiêu chí phụ thành equality mặc định.
+And **comparison by order or by a specific criterion** such as price, creation date, or approximate proximity usually has a separate API: `Comparator`, `compareTo()`, or a dedicated method. Do not arbitrarily turn secondary criteria into default equality.
 
-Với kiểu tham chiếu, `==` hỏi hai biến có giữ *cùng instance* hay không; `equals()` dùng quy tắc của lớp. Với primitive, `==` so sánh giá trị primitive. Nếu class không override `Object.equals()`, mặc định equality cũng là reference identity.
+For reference types, `==` asks whether two variables hold *the same instance*; `equals()` uses the class's rule. For primitives, `==` compares primitive values. If a class does not override `Object.equals()`, default equality is also reference identity.
 
 ~~~java
 String a = new String("Java");
@@ -21,65 +21,65 @@ System.out.println(a == b);      // false
 System.out.println(a.equals(b)); // true
 ~~~
 
-Không phải class nào cũng cần override `equals()`. Một request context, controller hoặc resource holder có thể giữ reference identity là hợp lý. Với value object, thường cần so sánh nội dung; với entity, thường cần định danh ổn định theo vòng đời.
+Not every class needs to override `equals()`. A request context, controller, or resource holder can reasonably keep reference identity. For a value object, content comparison is usually needed; for an entity, stable identity across its lifecycle is usually needed.
 
-## 2. Viết hợp đồng bằng lời trước khi chọn field
+## 2. Write the Contract in Words Before Choosing Fields
 
-Hãy viết một câu có thể đưa vào test:
+Write a sentence that can be put into a test:
 
-> Hai `ProductKey` bằng nhau khi cùng `sku` và cùng `market`, với so sánh phân biệt chữ hoa/thường.
+> Two `ProductKey` instances are equal when they have the same `sku` and the same `market`, with case-sensitive comparison.
 
-> Hai `Customer` bằng nhau khi có cùng `customerId` bất biến, dù tên hiển thị thay đổi.
+> Two `Customer` instances are equal when they have the same immutable `customerId`, even if the display name changes.
 
-Sau đó trả lời tuần tự:
+Then answer in order:
 
-1. **Đây là value object, entity hay object so sánh bằng reference?**
-2. **Field nào thật sự tham gia equality?** Đừng lẫn định danh với mô tả, timestamp, cache, trạng thái hiển thị hoặc kết quả tính toán.
-3. **Field đó có thể đổi không?** Nếu được dùng làm khóa `HashMap` hay phần tử `HashSet`, dữ liệu quyết định equality/hash phải giữ ổn định trong thời gian nằm trong collection.
-4. **Có cần chuẩn hóa dữ liệu không?** Hai mã khác chữ hoa/thường, hai số `BigDecimal` khác scale, chuỗi có dấu/whitespace hoặc mã tiền tệ cần quy tắc miền cụ thể.
-5. **ID chưa được cấp thì sao?** Hai entity mới cùng `id == null` không đương nhiên là cùng entity.
-6. **Có subclass, ORM proxy, collection, mảng hoặc liên kết vòng không?** Chúng ảnh hưởng đến tính đối xứng, tính ổn định, chi phí và đệ quy.
-7. **Nhu cầu so sánh có nhiều mục đích không?** Nếu chỉ cần sắp xếp hoặc tìm kiếm theo tiêu chí, dùng comparator/phương thức riêng, tránh ép mọi quy tắc vào `equals()`.
+1. **Is this a value object, an entity, or an object compared by reference?**
+2. **Which fields actually participate in equality?** Do not confuse identifiers with descriptions, timestamps, caches, display states, or computed results.
+3. **Can those fields change?** If used as a `HashMap` key or `HashSet` element, the data determining equality/hash must remain stable while inside the collection.
+4. **Is data normalization needed?** Two codes differing in letter case, two `BigDecimal` numbers differing in scale, strings with accents/whitespace, or currency codes need specific domain rules.
+5. **What if the ID has not been assigned yet?** Two new entities both with `id == null` are not automatically the same entity.
+6. **Are there subclasses, ORM proxies, collections, arrays, or circular references?** They affect symmetry, stability, cost, and recursion.
+7. **Are there multiple comparison purposes?** If you only need sorting or searching by a criterion, use a separate comparator/method and avoid forcing every rule into `equals()`.
 
-Một bảng quyết định trước khi sinh mã:
+A decision table before generating code:
 
-| Kiểu | Tham gia equality | Không tham gia | Điều kiện |
+| Type | Participates in Equality | Excluded | Condition |
 | --- | --- | --- | --- |
-| `ProductKey` | `sku`, `market` | Không có | Component bất biến |
-| `Customer` | `customerId` | `displayName`, `lastViewedAt` | UUID có từ khi tạo và không đổi |
-| `Money` | `amount`, `currency` sau chuẩn hóa đã công bố | Biểu diễn văn bản lúc nhập | Giá trị bất biến |
-| `RequestContext` | Reference identity | Field trạng thái | Không override `equals()` |
+| `ProductKey` | `sku`, `market` | None | Immutable components |
+| `Customer` | `customerId` | `displayName`, `lastViewedAt` | UUID present from creation and immutable |
+| `Money` | `amount`, `currency` after published normalization | Input text representation | Immutable value |
+| `RequestContext` | Reference identity | State fields | Do not override `equals()` |
 
-Bảng này là **quyết định cho các lớp minh họa**, không phải quy tắc cho tất cả class trùng tên. Ví dụ email có thể đổi hoặc được tái sử dụng, không tự động là business ID bất biến.
+This table represents **decisions for the illustrative classes**, not rules for all classes sharing those names. For example, an email can change or be reused, so it is not automatically an immutable business ID.
 
-## 3. Luật của `Object.equals()` và `hashCode()`
+## 3. Rules of `Object.equals()` and `hashCode()`
 
-Hợp đồng `equals()` yêu cầu:
+The `equals()` contract requires:
 
-- **Phản xạ:** `x.equals(x) == true`.
-- **Đối xứng:** `x.equals(y)` và `y.equals(x)` cùng kết quả.
-- **Bắc cầu:** nếu `x.equals(y)` và `y.equals(z)`, thì `x.equals(z)`.
-- **Nhất quán:** nếu thành phần so sánh không đổi, các lần gọi có cùng kết quả.
-- **Với null:** `x.equals(null) == false`.
+- **Reflexive:** `x.equals(x) == true`.
+- **Symmetric:** `x.equals(y)` and `y.equals(x)` produce the same result.
+- **Transitive:** if `x.equals(y)` and `y.equals(z)`, then `x.equals(z)`.
+- **Consistent:** if the compared components do not change, repeated calls return the same result.
+- **For null:** `x.equals(null) == false`.
 
-Hợp đồng băm yêu cầu:
+The hashing contract requires:
 
-- Nếu `x.equals(y) == true` thì **`x.hashCode() == y.hashCode()`**.
-- Nếu các thành phần equality không đổi, hash code phải nhất quán theo hợp đồng.
-- Hai hash giống nhau **không** đồng nghĩa hai object bằng nhau; collision là hợp lệ.
+- If `x.equals(y) == true`, then **`x.hashCode() == y.hashCode()`**.
+- If equality components do not change, the hash code must remain consistent according to the contract.
+- Two identical hashes do **not** mean two objects are equal; collisions are valid.
 
-Khi override `equals()` thì phải triển khai `hashCode()` phù hợp. Ví dụ hai instance bằng nhau theo email nhưng giữ `Object.hashCode()` mặc định có thể nhận hash khác nhau, khiến `HashSet` phát hiện trùng sai hoặc `HashMap` không tìm được khóa. Không dùng sự trùng hash để kết luận equality.
+When overriding `equals()`, you must implement a matching `hashCode()`. For example, two instances equal by email that keep the default `Object.hashCode()` may receive different hashes, causing `HashSet` to fail deduplication or `HashMap` to fail key lookup. Never use matching hashes to conclude equality.
 
-`Objects.equals(a, b)` xử lý null an toàn; `Objects.hash(field1, field2)` tiện tạo hash. Nhưng tiện ích không thay thế yêu cầu chọn đúng **cùng bộ thành phần** cho equality và hash.
+`Objects.equals(a, b)` handles null safely; `Objects.hash(field1, field2)` conveniently builds a hash. However, utilities do not replace the requirement to choose the exact **same set of components** for both equality and hashing.
 
-## 4. Ví dụ Java 17 chạy độc lập
+## 4. Standalone Runnable Java 17 Example
 
-Ví dụ có ba hợp đồng riêng:
-- `ProductKey` là value object, record so sánh toàn bộ component `sku` và `market`.
-- `Customer` là entity có UUID bất biến, thay tên không làm thay đổi định danh.
-- `Money` là value object có chính sách chuẩn hóa số tiền và mã tiền tệ được quy định trước.
+The example has three separate contracts:
+- `ProductKey` is a value object; the record compares both `sku` and `market` components.
+- `Customer` is an entity with an immutable UUID; renaming does not change identity.
+- `Money` is a value object with a predefined normalization policy for amount and currency code.
 
-Lưu vào tệp **`EqualityDesignDemo.java`**:
+Save to file **`EqualityDesignDemo.java`**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -176,14 +176,14 @@ public class EqualityDesignDemo {
 }
 ~~~
 
-Biên dịch/chạy bằng JDK 17 trở lên:
+Compile/run with JDK 17 or higher:
 
 ~~~bash
 javac EqualityDesignDemo.java
 java EqualityDesignDemo
 ~~~
 
-Stdout chính xác:
+Exact stdout:
 
 ~~~text
 ProductKey p1 equals p2: true
@@ -196,102 +196,102 @@ Lookup after rename: active
 Normalized money equal: true
 ~~~
 
-**Giải thích:**
+**Explanation:**
 
-- Record `ProductKey` tạo equality và hash dựa trên cả hai component. `p1` và `p2` là hai instance nhưng cùng giá trị; `HashSet` chỉ lưu một đại diện cho chúng, cộng thêm `p3`.
-- `Customer` chỉ so sánh `customerId`. Cùng ID nhưng khác tên vẫn bằng nhau; cùng tên nhưng khác ID thì không. Đổi tên không ảnh hưởng hash của khóa đã nằm trong `HashMap`.
-- `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` thường là `false` vì xét cả scale, dù `compareTo() == 0`. Constructor `Money` chủ động chuẩn hóa amount với `stripTrailingZeros()` và currency bằng chữ hoa, nên hai giá trị minh họa bằng nhau. Nếu scale có ý nghĩa với nghiệp vụ, không được áp dụng chuẩn hóa này.
+- Record `ProductKey` generates equality and hash based on both components. `p1` and `p2` are two distinct instances with the same value; `HashSet` stores only one representative for them, plus `p3`.
+- `Customer` compares only `customerId`. Same ID with different names are still equal; different IDs with the same name are not. Renaming does not affect the hash of the key already in `HashMap`.
+- `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` is normally `false` because it checks scale as well, even though `compareTo() == 0`. The `Money` constructor proactively normalizes amount with `stripTrailingZeros()` and currency to uppercase, so the two illustrative values are equal. If scale is meaningful in the business domain, this normalization must not be applied.
 
-Quy tắc phân biệt hoa/thường của `ProductKey` và việc cấp UUID khi tạo `Customer` là những quyết định **được nêu rõ trước khi code**, không phải giá trị mặc định bắt buộc của Java.
+The case-sensitive rule of `ProductKey` and assigning a UUID upon `Customer` creation are decisions **explicitly stated before coding**, not mandatory Java defaults.
 
-## 5. Sai lầm khi lựa chọn field
+## 5. Pitfalls When Choosing Fields
 
-### Đưa mọi field của entity vào equality
+### Putting Every Field of an Entity into Equality
 
-Nếu `Customer` so sánh cả tên, timestamp cập nhật và trạng thái hiển thị, hai bản thể hiện cùng khách hàng sau một lần đổi tên có thể bị coi khác entity. Đây là lỗi nếu domain đã xác định identity bằng ID.
+If `Customer` compares name, update timestamp, and display status as well, two instances representing the same customer after a rename could be treated as different entities. This is a bug if the domain has defined identity by ID.
 
-Ngược lại, với value object tọa độ, bỏ qua trục y sẽ khiến hai giá trị khác nhau bị coi là một. Không có quy tắc “lúc nào cũng chỉ so sánh ID” hoặc “lúc nào cũng chọn tất cả field”.
+Conversely, for a coordinate value object, omitting the y-axis would cause two different values to be treated as one. There is no rule to "always compare only ID" or "always select all fields".
 
-### Field quyết định hash có thể đổi
+### Hash-Determining Fields That Can Change
 
-Khi thêm một khóa vào `HashSet`, collection chọn vị trí dựa trên hash hiện tại. Sau đó sửa field tham gia `hashCode()`, collection không tự di chuyển phần tử; `contains()` hoặc `remove()` có thể thất bại dù object vẫn đang nằm trong set.
+When a key is added to a `HashSet`, the collection picks a bucket based on the current hash. If you later modify a field participating in `hashCode()`, the collection does not automatically relocate the element; `contains()` or `remove()` may fail even though the object is still in the set.
 
 ~~~java
-// MÃ MINH HỌA; MutableKey cần được định nghĩa riêng.
-// Giả sử equals/hashCode dùng trường name có thể sửa.
+// ILLUSTRATIVE CODE; MutableKey needs to be defined separately.
+// Suppose equals/hashCode uses a mutable name field.
 Set<MutableKey> set = new HashSet<>();
 MutableKey key = new MutableKey("before");
 set.add(key);
-key.setName("after"); // Hash có thể đổi; collection không tự rehash.
+key.setName("after"); // Hash may change; the collection does not automatically rehash.
 ~~~
 
-Đoạn này **không phải chương trình độc lập**. Hướng xử lý là dùng khóa bất biến hoặc tách định danh ổn định; khi thực sự phải đổi khóa, quản lý remove/reinsert theo hợp đồng. Không tùy tiện bỏ field khỏi equality để che triệu chứng.
+This snippet is **not a standalone program**. The solution is to use immutable keys or separate a stable identifier; when a key truly must change, manage remove/reinsert according to the contract. Do not arbitrarily drop fields from equality to mask the symptom.
 
-### Entity chưa có ID và ID do database cấp
+### Entities Without an ID Yet and Database-Generated IDs
 
-Đoạn sau **sai với hai entity mới độc lập đều có ID null**:
+The following snippet is **wrong for two independent new entities that both have a null ID**:
 
 ~~~java
-// ĐOẠN CẢNH BÁO — không phải implementation dùng trực tiếp.
+// WARNING SNIPPET — not an implementation to use directly.
 return Objects.equals(this.id, other.id);
 ~~~
 
-Vì `Objects.equals(null, null)` là `true`, hai đối tượng mới có thể bị coi là một. Hơn nữa, khi database gán ID sau khi persist, hash code phụ thuộc ID có thể thay đổi, gây vấn đề cho hash collection.
+Because `Objects.equals(null, null)` is `true`, two new objects may be treated as one. Moreover, when the database assigns an ID after persisting, a hash code depending on the ID can change, causing issues for hash collections.
 
-Cần chốt chính sách cho entity transient, persisted, detached, proxy. Có thể cấp UUID bất biến ngay lúc tạo, dùng reference identity trong giai đoạn transient với hợp đồng nhất quán, hoặc tách value object làm business key. Với JPA/Hibernate, phải thử đúng behavior của proxy/lifecycle, không áp dụng một công thức equality theo ID cho mọi entity.
+You need to establish a policy for transient, persisted, detached, and proxy entities. You can assign an immutable UUID at creation time, use reference identity during the transient phase with a consistent contract, or separate a value object as a business key. With JPA/Hibernate, you must test the actual proxy/lifecycle behavior and not blindly apply one ID-based equality formula to every entity.
 
-### Kế thừa làm mất đối xứng
+### Inheritance Breaking Symmetry
 
-Giả sử `Point` so sánh x/y và chấp nhận `instanceof Point`; `ColorPoint extends Point` thêm màu. Khi đó có thể xảy ra:
+Suppose `Point` compares x/y and accepts `instanceof Point`; `ColorPoint extends Point` adds color. Then the following can happen:
 
 ~~~text
 point.equals(colorPoint) == true
 colorPoint.equals(point) == false
 ~~~
 
-Đây là vi phạm **đối xứng**. Các hướng thiết kế gồm value class `final`/`record`, composition, hoặc hợp đồng equality xuyên subclass được chứng minh nhất quán. `getClass()` chỉ chấp nhận cùng concrete class; `instanceof` chấp nhận subtype nhưng có thể gặp lỗi khi subclass bổ sung field. ORM proxy khiến lựa chọn này cần được thử với framework thật.
+This is a **symmetry** violation. Design approaches include `final`/value classes or `record`, composition, or an equality contract across subclasses proven to be consistent. `getClass()` accepts only the exact concrete class; `instanceof` accepts subtypes but can fail when a subclass adds fields. ORM proxies make testing this choice against the real framework necessary.
 
-### So sánh quan hệ hai chiều một cách máy móc
+### Mechanically Comparing Bidirectional Relationships
 
-Nếu một entity tham chiếu entity khác rồi có cạnh quay lại, code tự sinh so sánh đệ quy toàn bộ quan hệ có thể tràn stack, lazy-load nhiều dữ liệu hoặc chạy rất chậm. Hợp đồng entity có thể chỉ xét ID; nếu nghiệp vụ đòi structural equality của đồ thị, cần thuật toán riêng xử lý chu trình và quan hệ tham chiếu dùng chung.
+If one entity references another entity which has a back-reference, auto-generated code recursively comparing all relationships can overflow the stack, trigger excessive lazy-loading, or run very slowly. An entity contract can inspect only the ID; if the domain requires structural equality of a graph, a dedicated algorithm handling cycles and shared references is needed.
 
-## 6. Khi phép so sánh riêng phù hợp hơn `equals()`
+## 6. When Separate Comparisons Are Better Than `equals()`
 
-**Comparator:** Hai sản phẩm khác ID có thể cùng giá; comparator theo giá trả `0` dù `equals()` trả `false`. `TreeSet` và `TreeMap` xác định phần tử/khóa trùng nhau bằng kết quả comparator, nên có thể có logic uniqueness khác `HashSet`. Nếu cần nhóm sản phẩm theo giá, nên dùng comparator hay phép nhóm riêng và ghi rõ ý nghĩa.
+**Comparator:** Two products with different IDs may have the same price; a price comparator returns `0` even though `equals()` returns `false`. `TreeSet` and `TreeMap` determine duplicate elements/keys by comparator result, so they can have different uniqueness logic from `HashSet`. If you need to group products by price, use a comparator or separate grouping operation and document its meaning clearly.
 
-**So sánh gần đúng:** Với số thực, `Math.abs(a - b) < epsilon` thường không bắc cầu: a gần b, b gần c nhưng a không gần c. Vì thế không dùng tolerance ngẫu nhiên để cài `Object.equals()`. Cung cấp `approximatelyEquals(other, tolerance)` hoặc chính sách lượng tử hóa/canonicalization ổn định khi cần làm khóa.
+**Approximate comparison:** For floating-point numbers, `Math.abs(a - b) < epsilon` is generally not transitive: a is close to b, b is close to c, yet a is not close to c. Therefore, do not use an arbitrary tolerance to implement `Object.equals()`. Provide `approximatelyEquals(other, tolerance)` or a stable quantization/canonicalization policy when needed as a key.
 
-**Mảng và collection:** `Objects.equals(arrayA, arrayB)` thường so sánh tham chiếu mảng. Record chứa component mảng cũng không tự so sánh nội dung phần tử. Nếu domain yêu cầu theo phần tử, dùng `Arrays.equals()/Arrays.deepEquals()` và `Arrays.hashCode()/Arrays.deepHashCode()` tương ứng, đồng thời kiểm soát khả năng sửa mảng. Record có field final không tự làm các đối tượng bên trong deep-immutable.
+**Arrays and collections:** `Objects.equals(arrayA, arrayB)` normally compares array references. A record containing an array component also does not automatically compare element contents. If the domain requires element-by-element comparison, use `Arrays.equals()/Arrays.deepEquals()` and `Arrays.hashCode()/Arrays.deepHashCode()` accordingly, while also controlling array mutability. A record having `final` fields does not automatically make objects inside them deep-immutable.
 
-**Chuỗi và chuẩn hóa:** `"ABC"` có bằng `"abc"` không là quyết định của domain. Mã, username, email, khoảng trắng, Unicode, locale cần chính sách phù hợp từng trường hợp. Nếu muốn chuẩn hóa chữ hoa/thường cho mã kỹ thuật, nên dùng locale phù hợp như `Locale.ROOT`, không dựa vào locale máy chạy mặc định.
+**Strings and normalization:** Whether `"ABC"` equals `"abc"` is a domain decision. Codes, usernames, emails, whitespace, Unicode, and locales require case-by-case policies. If you want case normalization for technical codes, use an appropriate locale such as `Locale.ROOT`, rather than relying on the host machine's default locale.
 
-## 7. Chọn công cụ sau khi định nghĩa equality
+## 7. Choosing Tools After Defining Equality
 
-| Cơ chế | Phù hợp | Kiểm tra bắt buộc |
+| Mechanism | Best Fit | Mandatory Checks |
 | --- | --- | --- |
-| IDE Generate `equals()`/`hashCode()` | Class thường, đã chốt field | Field, null, kế thừa, array, dữ liệu mutable |
-| Lombok `@EqualsAndHashCode` | Giảm mã lặp | Include/exclude, `callSuper`, proxy và kế thừa |
-| Java `record` | Value object với component phù hợp | Mặc định **tất cả** component tham gia equality; component có thể trỏ tới mutable object |
-| Tự viết | Entity ID, chuẩn hóa hoặc quy tắc riêng | Đồng bộ equals/hash, đối xứng, bắc cầu, vòng đời |
-| Không override | Cần reference identity | Đảm bảo người gọi API không kỳ vọng value equality |
+| IDE Generate `equals()`/`hashCode()` | Regular classes, fields finalized | Fields, null, inheritance, arrays, mutable data |
+| Lombok `@EqualsAndHashCode` | Reducing boilerplate | Include/exclude, `callSuper`, proxies, and inheritance |
+| Java `record` | Value objects with suitable components | By default **all** components participate in equality; components can point to mutable objects |
+| Hand-written | Entity IDs, normalization, or custom rules | Synced equals/hash, symmetry, transitivity, lifecycle |
+| Do not override | Reference identity needed | Ensure API callers do not expect value equality |
 
-Ví dụ `record EmployeeRecord(String id, String name)` mặc định coi cả ID và name là một phần giá trị. Nếu domain định nghĩa “cùng nhân viên ngay cả khi đổi tên”, record này không nhất thiết phù hợp làm entity, dù code tự sinh đúng. Có thể dùng `EmployeeId` làm record value object và class riêng cho entity.
+For example, `record EmployeeRecord(String id, String name)` by default treats both ID and name as part of the value. If the domain defines "the same employee even when renamed", this record is not necessarily suitable as an entity, even if the generated code is valid. You can use `EmployeeId` as a record value object and a separate class for the entity.
 
-## 8. Kiểm thử từ hợp đồng đã chọn
+## 8. Testing Based on the Chosen Contract
 
-Sau khi sinh hoặc viết mã, cần kiểm tra:
+After generating or writing code, verify:
 
-1. `x.equals(x)`, `x.equals(null)` và các trường hợp giá trị null hợp lệ.
-2. Tính đối xứng và bắc cầu trên các bộ đối tượng mẫu.
-3. Hai đối tượng bằng nhau có hash code bằng nhau.
-4. Value object khác một component có nghĩa phải không bằng nhau.
-5. Entity cùng ID khác tên vẫn bằng nhau nếu ID là hợp đồng; khác ID cùng tên thì không.
-6. `HashSet` khử trùng đúng và `HashMap` tra cứu được bằng một instance tương đương.
-7. Đổi trường được phép đổi không phá tra cứu.
-8. Kiểm tra transient/persisted/proxy, BigDecimal scale, Unicode, array hoặc cycle nếu có trong mô hình.
-9. Kiểm tra comparator nếu kết quả `0` không nhất thiết đồng nghĩa với equals.
+1. `x.equals(x)`, `x.equals(null)`, and valid null-value cases.
+2. Symmetry and transitivity on sample object sets.
+3. Two equal objects have equal hash codes.
+4. Value objects differing in a meaningful component must not be equal.
+5. Entities with the same ID and different names are still equal if ID is the contract; different IDs with the same name are not.
+6. `HashSet` deduplicates properly and `HashMap` looks up keys using an equivalent instance.
+7. Changing allowed mutable fields does not break lookup.
+8. Test transient/persisted/proxy states, BigDecimal scale, Unicode, arrays, or cycles if present in the model.
+9. Test comparators if a result of `0` does not necessarily mean equals.
 
-Assertion minh họa (đặt trong mã kiểm thử có hai biến `a`, `b` được chuẩn bị):
+Illustrative assertion (placed in test code where two variables `a`, `b` are prepared):
 
 ~~~java
 if (a.equals(b) && a.hashCode() != b.hashCode()) {
@@ -299,16 +299,16 @@ if (a.equals(b) && a.hashCode() != b.hashCode()) {
 }
 ~~~
 
-Kiểm tra này chỉ bắt một loại vi phạm; vẫn cần test các cặp **không** bằng nhau, đối xứng, bắc cầu và tính ổn định.
+This check only catches one kind of violation; you still need to test **unequal** pairs, symmetry, transitivity, and stability.
 
-## 9. Checklist trước khi nhấn Generate
+## 9. Pre-Generate Checklist
 
-- [ ] Viết một câu “Hai đối tượng kiểu X bằng nhau khi…” theo nghĩa nghiệp vụ.
-- [ ] Xác định value equality, entity identity hay reference identity.
-- [ ] Chọn đúng field tham gia; giải thích field loại trừ.
-- [ ] Xác định null, ID chưa cấp, chuẩn hóa, mutable field, inheritance/proxy và collection.
-- [ ] Giữ các thành phần quyết định equality/hash ổn định khi dùng object làm khóa.
-- [ ] Chọn IDE, Lombok, record, viết tay hoặc giữ mặc định đúng nhu cầu.
-- [ ] Kiểm thử hợp đồng Object và ứng dụng thực tế trong map/set.
+- [ ] Write one sentence "Two objects of type X are equal when..." in business terms.
+- [ ] Identify whether it is value equality, entity identity, or reference identity.
+- [ ] Choose the right participating fields; justify excluded fields.
+- [ ] Specify handling for null, unassigned IDs, normalization, mutable fields, inheritance/proxies, and collections.
+- [ ] Keep components determining equality/hash stable when using objects as keys.
+- [ ] Choose IDE, Lombok, record, hand-written, or default behavior appropriately.
+- [ ] Test the Object contract and real-world usage in maps/sets.
 
-**Nguyên tắc:** `equals()` mô tả **ý nghĩa của sự bằng nhau**; `hashCode()` phải nhất quán với ý nghĩa đó. Chỉ sinh mã sau khi hợp đồng đã được xác định.
+**Principle:** `equals()` describes the **meaning of equality**; `hashCode()` must be consistent with that meaning. Only generate code after the contract has been defined.

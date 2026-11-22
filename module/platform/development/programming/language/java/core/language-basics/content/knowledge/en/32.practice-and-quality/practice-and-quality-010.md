@@ -1,30 +1,30 @@
-# Tổng hợp lỗi thường gặp và tiêu chí tự đánh giá nền tảng Java Core
+# Common Mistakes Summary and Core Java Foundations Self-Assessment Rubric
 
-Biết cú pháp Java chỉ là bước đầu. Năng lực nền tảng còn thể hiện ở việc dự đoán được chương trình chạy như thế nào, phát hiện lỗi biên dịch, lỗi khi chạy và lỗi logic, giải thích nguyên nhân rồi kiểm chứng cách sửa. Bài này hệ thống hóa những sai sót phổ biến khi học **Java 17+ (language-basics)** và đưa ra tiêu chí tự đánh giá cụ thể, có thể thực hành độc lập.
+Knowing Java syntax is only the first step. Foundational mastery shows in your ability to predict how a program runs, spot compile-time, runtime, and logic errors, explain root causes, and verify fixes. This lesson systematizes common mistakes when learning **Java 17+ (language-basics)** and provides a concrete self-assessment rubric you can practice independently.
 
-## 1. Phân biệt ba loại lỗi trước khi sửa
+## 1. Distinguishing three error types before fixing
 
-| Loại | Dấu hiệu | Ví dụ | Cách tiếp cận |
+| Type | Symptoms | Examples | Approach |
 | --- | --- | --- | --- |
-| **Lỗi biên dịch (compile-time)** | `javac` báo lỗi, chưa có chương trình hợp lệ để chạy | Thiếu `;`, sai kiểu, gọi phương thức không tồn tại, dùng biến chưa khai báo | Đọc dòng/cột và thông báo đầu tiên; sửa nguyên nhân, biên dịch lại |
-| **Lỗi khi chạy (runtime)** | Đã biên dịch nhưng một luồng thực thi ném ngoại lệ hoặc kết thúc bất thường | `NullPointerException`, `ArrayIndexOutOfBoundsException`, `NumberFormatException` | Đọc loại ngoại lệ và stack trace; kiểm tra dữ liệu thực tế, xác định đường chạy |
-| **Lỗi logic** | Chương trình chạy xong nhưng kết quả sai | Chia nguyên khi cần thập phân, dùng `<` thay `<=`, tính tổng bị tràn `int` | Viết đầu ra mong đợi, thử giá trị biên, so sánh kết quả và lần theo biến |
+| **Compile-time error** | `javac` reports an error; no valid executable program exists yet | Missing `;`, type mismatch, calling a nonexistent method, undeclared variable | Read the line/column and the first error message; fix the cause and recompile |
+| **Runtime error** | Compiles cleanly, but an execution path throws an exception or terminates abnormally | `NullPointerException`, `ArrayIndexOutOfBoundsException`, `NumberFormatException` | Read the exception type and stack trace; inspect actual data and trace the execution path |
+| **Logic error** | Program finishes running, yet produces the wrong result | Integer division when decimals are needed, `<` instead of `<=`, sum overflowing `int` | Write expected output, test boundary values, compare results and trace variables |
 
-Ngoài ra còn có **lỗi thiết kế/khả năng bảo trì**: tên mơ hồ, phương thức quá dài, lặp quy tắc, trộn trách nhiệm, hoặc xử lý lỗi không nhất quán. Chúng có thể chưa gây ra kết quả sai ngay nhưng làm tăng rủi ro khi sửa đổi.
+There are also **design/maintainability flaws**: vague names, overly long methods, duplicated rules, mixed responsibilities, or inconsistent error handling. They may not cause wrong output immediately, yet they increase the risk of bugs during changes.
 
-Khi gặp lỗi, hãy xác định **đầu vào → điều kiện/biểu thức → kết quả thực tế → kết quả mong đợi**. Tránh sửa nhiều chỗ cùng lúc rồi không biết thay đổi nào có tác dụng.
+When debugging a failure, trace **input → condition/expression → actual result → expected result**. Avoid changing multiple places at once without knowing which change fixed the problem.
 
-## 2. Các lỗi phổ biến theo nhóm kiến thức
+## 2. Common mistakes by topic area
 
-### 2.1. JDK, tệp mã nguồn và cách chạy
+### 2.1. JDK, source files, and running programs
 
-- Nhầm **JDK** với **JRE**: muốn biên dịch cần `javac` từ JDK; `java` dùng chạy chương trình. Kiểm tra phiên bản của cả hai.
-- Không khớp tên tệp với lớp `public` cấp cao: `public class Hello` phải nằm trong `Hello.java`; Java phân biệt hoa/thường trong định danh.
-- Sai điểm khởi động: với chương trình cơ bản, phương thức chạy là `public static void main(String[] args)`; thiếu `static` hoặc sai chữ ký khiến JVM không nhận đúng entry point.
-- Gọi `java Hello.java` và `java Hello` là **hai cơ chế khác nhau**. Lệnh `java Hello` chạy lớp đã biên dịch; lệnh `java Hello.java` có thể chạy trực tiếp tệp nguồn ở JDK hỗ trợ source-file mode.
-- Sai `package` hoặc classpath: nếu tệp khai báo `package demo;`, biên dịch tại thư mục gốc nguồn bằng `javac -d out demo/Hello.java` rồi chạy `java -cp out demo.Hello`, không chạy `java Hello`.
+- Confusing **JDK** with **JRE**: compiling needs `javac` from the JDK; `java` runs the program. Check versions of both.
+- Filename not matching the top-level `public` class: `public class Hello` must live in `Hello.java`; Java identifiers are case-sensitive.
+- Wrong entry point: for standard programs, the entry method is `public static void main(String[] args)`; missing `static` or wrong signature prevents the JVM from recognizing it.
+- Calling `java Hello.java` and `java Hello` are **two different mechanisms**. `java Hello` runs the compiled class; `java Hello.java` runs a single-file source directly on JDKs supporting source-file mode.
+- Wrong `package` or classpath: if the file declares `package demo;`, compile from the source root with `javac -d out demo/Hello.java` and run `java -cp out demo.Hello`, not `java Hello`.
 
-Ví dụ độc lập (không khai báo `package`) lưu ở `Hello.java`:
+Standalone example (no `package` declaration) saved in `Hello.java`:
 
 ```java
 public class Hello {
@@ -34,7 +34,7 @@ public class Hello {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac -encoding UTF-8 Hello.java
@@ -47,33 +47,33 @@ Stdout:
 Hello Java
 ```
 
-Nếu báo lỗi “cannot find symbol”, không nên chỉ thay đường dẫn chạy: lỗi này thường là **biên dịch** vì một tên/kiểu không được nhận ra. Nếu “Could not find or load main class”, kiểm tra tên lớp, thư mục hiện tại, package và classpath.
+If you get "cannot find symbol," changing the run path won't help: that is usually a **compile-time** error because a name or type was not recognized. If you get "Could not find or load main class," check the class name, current directory, package, and classpath.
 
-### 2.2. Kiểu dữ liệu, biểu thức và chuyển đổi
+### 2.2. Data types, expressions, and conversions
 
-| Sai sót | Điều gì thực sự xảy ra | Cách sửa hoặc kiểm tra |
+| Mistake | What actually happens | How to fix or check |
 | --- | --- | --- |
-| `5 / 2` được kỳ vọng là `2.5` | Hai `int` chia nguyên, kết quả `2` | `5 / 2.0` hoặc `(double) 5 / 2` |
-| `double ratio = a / b;` với `a,b` là `int` | Chia nguyên **trước khi** gán sang `double` | Ép kiểu trước phép chia: `(double) a / b` |
-| Ép `long` sau phép nhân hai `int` | Tích có thể đã bị tràn `int` | `(long) a * b` hoặc `Math.multiplyExact` để phát hiện tràn |
-| Nhầm `=` và `==` | `=` gán, `==` so sánh giá trị với primitive | Viết điều kiện rõ ràng; tránh gán trong điều kiện |
-| Đánh giá sai thứ tự `&&`/`||` | `&&` có độ ưu tiên cao hơn `||` | Thêm ngoặc thể hiện ý định và kiểm thử nhánh |
-| Dùng `&` thay `&&` với boolean | `&` đánh giá cả hai vế; `&&` có short-circuit | Với kiểm tra null, dùng `s != null && ...` |
-| Tin `final` làm toàn bộ đối tượng bất biến | `final` ngăn gán lại biến/tham chiếu, không khóa trạng thái đối tượng | Phân biệt final với immutable object |
-| Hiểu `var` là kiểu động | `var` suy luận kiểu tĩnh cho biến cục bộ có initializer | Giá trị gán tiếp vẫn phải hợp kiểu đã suy luận |
+| Expecting `5 / 2` to equal `2.5` | Integer division between two `int`s produces `2` | `5 / 2.0` or `(double) 5 / 2` |
+| `double ratio = a / b;` with `int a, b` | Integer division happens **before** assigning to `double` | Cast before dividing: `(double) a / b` |
+| Casting to `long` after multiplying two `int`s | The product may already have overflowed `int` | `(long) a * b` or `Math.multiplyExact` to detect overflow |
+| Confusing `=` and `==` | `=` assigns, `==` compares values for primitives | Write clear conditions; avoid assignments inside conditions |
+| Misreading `&&`/`||` precedence | `&&` has higher precedence than `||` | Add parentheses to express intent and test branches |
+| Using `&` instead of `&&` on booleans | `&` evaluates both sides; `&&` short-circuits | For null guards, use `s != null && ...` |
+| Thinking `final` makes an entire object immutable | `final` prevents reassigning the variable/reference, not mutating object state | Distinguish `final` from immutable objects |
+| Thinking `var` is dynamic typing | `var` infers a static type for a local variable with an initializer | Later assignments must still match the inferred type |
 
-Chẳng hạn, `(long) (a * b)` vẫn có thể sai vì tích `int` được tính trong ngoặc trước khi ép kiểu. Với tính toán tiền tệ có số lẻ, cần quy tắc về đơn vị và làm tròn; `double` không mặc nhiên phù hợp với kết quả thập phân chính xác.
+For instance, `(long) (a * b)` can still fail because the `int` product is computed inside parentheses before casting. For currency calculations with fractional units, define rules for units and rounding; `double` is not inherently suitable for exact decimal results.
 
-### 2.3. Rẽ nhánh, vòng lặp và phạm vi
+### 2.3. Branching, loops, and scope
 
-- **Sai một đơn vị (off-by-one):** mảng dài `n` có các chỉ số `0` đến `n - 1`. Dùng `i < array.length` khi đi hết mảng, tránh `i <= array.length`.
-- **Dấu ngoặc nhọn thiếu:** thụt lề không quyết định khối lệnh; sau `if` không có `{}`, chỉ một statement thuộc nhánh đó.
-- **Điều kiện vòng lặp không tiến tới dừng:** quên tăng/giảm biến đếm, hoặc thay đổi nhầm biến điều khiển.
-- **Đổi `if` riêng lẻ thành `if/else if` mà không xét ý nghĩa:** các `if` độc lập có thể cùng đúng, chuỗi `else if` chỉ chọn một nhánh.
-- **Quên `break` trong `switch` kiểu cũ:** thực thi có thể rơi xuống các `case` tiếp theo; dạng `case X ->` trong Java 17 tránh kiểu fall-through này.
-- **Đóng/mở biên sai:** `score >= 50` khác `score > 50`; bắt buộc thử điểm `49`, `50`, `51`.
+- **Off-by-one errors:** an array of length `n` has indices `0` through `n - 1`. Use `i < array.length` when traversing an array, never `i <= array.length`.
+- **Missing curly braces:** indentation does not define block scope; after an `if` without `{}`, only one statement belongs to the branch.
+- **Loop condition never makes progress toward termination:** forgetting to update a counter, or updating the wrong control variable.
+- **Turning independent `if`s into `if/else if` without checking semantics:** separate `if`s can both execute, whereas an `else if` chain runs at most one branch.
+- **Forgetting `break` in legacy `switch`:** execution falls through into subsequent `case` blocks; Java 17's `case X ->` syntax avoids this fall-through.
+- **Wrong inclusive/exclusive boundary:** `score >= 50` differs from `score > 50`; always test `49`, `50`, and `51`.
 
-Đoạn dưới **là mã minh họa trong một phương thức**, không phải chương trình độc lập:
+The snippet below **illustrates code inside a method**, not a standalone program:
 
 ```java
 for (int i = 0; i < numbers.length; i++) {
@@ -87,39 +87,39 @@ if (score >= 50) {
 }
 ```
 
-Khi đọc điều kiện, xác định rõ giá trị ở ranh giới và xem có nhánh nào không thể chạy vì thứ tự điều kiện đã bao phủ toàn bộ miền giá trị hay không.
+When reading conditions, identify exact boundary values and check whether any branch is unreachable because earlier conditions already cover the domain.
 
-### 2.4. Chuỗi, mảng, null và tham chiếu
+### 2.4. Strings, arrays, null, and references
 
-- `==` so sánh **giá trị primitive** hoặc **cùng đối tượng tham chiếu**; để so nội dung `String`, dùng `equals`. `"Java" == new String("Java")` thường không cho kết quả muốn tìm dù hai chuỗi có cùng ký tự.
-- `String` bất biến: `text.trim()`, `text.strip()`, `text.replace(...)` trả **chuỗi mới**; muốn giữ thay đổi phải gán lại hoặc chuyển giá trị trả về.
-- `null`, chuỗi rỗng `""`, và chuỗi trắng `"   "` không đồng nghĩa. `isEmpty()` kiểm tra độ dài bằng 0; `isBlank()` kiểm tra rỗng hoặc chỉ chứa ký tự khoảng trắng theo quy tắc Java.
-- Kiểm tra null trước khi gọi phương thức: `name != null && !name.isBlank()` an toàn nhờ short-circuit; đảo thứ tự có thể gây `NullPointerException`.
-- Mảng dùng thuộc tính `length`; `String` dùng phương thức `length()`. Độ dài `String` đếm đơn vị mã UTF-16; không đồng nhất với số ký tự người dùng nhìn thấy.
-- Gán `int[] copy = original;` tạo **bí danh tham chiếu**, không sao chép phần tử. Dùng `original.clone()` hoặc `Arrays.copyOf` nếu muốn bản sao mảng một chiều độc lập.
-- Java luôn truyền tham số **theo giá trị**; đối với đối tượng, giá trị được truyền là bản sao của tham chiếu. Do đó phương thức có thể làm đổi trạng thái đối tượng được trỏ tới, nhưng gán lại biến tham số không đổi biến tham chiếu của người gọi.
+- `==` compares **primitive values** or **whether two references point to the same object**; to compare `String` content, use `equals`. `"Java" == new String("Java")` normally evaluates to `false` even though both strings have the same characters.
+- `String` is immutable: `text.trim()`, `text.strip()`, and `text.replace(...)` return **new strings**; reassign or pass the returned value to keep the result.
+- `null`, empty string `""`, and blank string `"   "` are not synonymous. `isEmpty()` checks for length 0; `isBlank()` checks for empty or whitespace-only per Java's rules.
+- Guard against `null` before calling methods: `name != null && !name.isBlank()` is safe due to short-circuiting; reversing the order causes `NullPointerException`.
+- Arrays use the `.length` field; `String` uses the `.length()` method. `String.length()` counts UTF-16 code units, which does not always equal user-perceived character count.
+- Assigning `int[] copy = original;` creates a **reference alias**, not a copy of the elements. Use `original.clone()` or `Arrays.copyOf` for an independent 1D array copy.
+- Java always passes arguments **by value**; for objects, the passed value is a copy of the reference. Hence a method can mutate the target object's state, yet reassigning the parameter variable does not change the caller's reference.
 
-Một bẫy khi nối chuỗi là tính từ trái sang phải; trong ngữ cảnh phương thức:
+A subtle trap in string concatenation is left-to-right evaluation; inside a method context:
 
 ```java
 System.out.println(1 + 2 + "3");  // 33
 System.out.println("3" + 1 + 2);  // 312
 ```
 
-Trước khi dự đoán stdout, hãy xét kiểu và thứ tự của **từng toán hạng**, không xem toàn biểu thức như một phép cộng số.
+Before predicting stdout, inspect the type and evaluation order of **each operand**, rather than reading the whole expression as numeric addition.
 
-### 2.5. Phương thức, ngoại lệ và chất lượng mã
+### 2.5. Methods, exceptions, and code quality
 
-- Không phân biệt tham số (parameter) với đối số (argument), hoặc bỏ quên giá trị trả về của phương thức không làm thay đổi đối tượng gốc.
-- Nhầm `static` với thành viên của từng đối tượng. Phương thức `static` không có tham chiếu `this` và không truy cập trực tiếp trường instance nếu thiếu đối tượng.
-- Không kiểm tra dữ liệu trước `Integer.parseInt`, đọc chỉ số mảng, hoặc chia nguyên cho `0`. Ngoại lệ không phải kết quả nghiệp vụ hợp lệ.
-- Bắt `Exception` rồi bỏ qua lỗi hoặc trả `0` khiến sai dữ liệu giống như thành công; phân biệt lỗi nhập liệu với lỗi lập trình, thông báo rõ và để nơi gọi xử lý phù hợp.
-- Đặt tên `a`, `tmp`, `x` cho biến nghiệp vụ, lặp số “ma thuật” như `86400000`, hoặc viết phương thức quá dài làm người khác khó xác định quy tắc. Ưu tiên `timeoutMillis`, `MILLIS_PER_DAY`, các phương thức nhỏ có một nhiệm vụ.
-- Viết test chỉ cho dữ liệu thuận lợi. Cần có `null`, chuỗi rỗng, số âm, hai phía giới hạn, dữ liệu sai định dạng, giá trị lớn và các nhánh lỗi liên quan.
+- Confusing parameters with arguments, or ignoring return values from methods that do not mutate the original object.
+- Confusing `static` members with instance members. A `static` method has no `this` reference and cannot access instance fields directly without an object.
+- Failing to validate data before `Integer.parseInt`, array indexing, or integer division by `0`. Exceptions are not valid business results.
+- Catching `Exception` and silently ignoring it or returning `0` makes invalid data look like success; distinguish input errors from programming bugs, report clearly, and let callers handle appropriately.
+- Using `a`, `tmp`, `x` for business variables, repeating magic numbers like `86400000`, or writing overly long methods hides rules. Prefer `timeoutMillis`, `MILLIS_PER_DAY`, and small single-purpose methods.
+- Writing tests only for happy-path inputs. Include `null`, empty strings, negative numbers, both sides of bounds, invalid formats, large values, and error branches.
 
-## 3. Chương trình Java 17+ tự kiểm tra các lỗi nền tảng
+## 3. Java 17+ program for self-checking foundational traps
 
-Chương trình sau tạo 9 phép kiểm tra độc lập có tên rõ ràng. Nếu bất cứ kiểm tra nào sai, `AssertionError` làm chương trình thất bại; vì vậy **không cần bật `-ea`**. Lưu tệp `FoundationSelfCheck.java`, không khai báo `package`:
+The program below runs 9 independent, clearly named checks. If any check fails, `AssertionError` fails the run immediately; therefore **you do not need `-ea`**. Save as `FoundationSelfCheck.java` with no `package` declaration:
 
 ```java
 public final class FoundationSelfCheck {
@@ -207,14 +207,14 @@ public final class FoundationSelfCheck {
 }
 ```
 
-Từ thư mục có tệp `FoundationSelfCheck.java`, chạy trên Windows PowerShell/CMD, macOS hoặc Linux với JDK 17+:
+From the folder containing `FoundationSelfCheck.java`, run on Windows PowerShell/CMD, macOS, or Linux with JDK 17+:
 
 ```bash
 javac -encoding UTF-8 FoundationSelfCheck.java
 java FoundationSelfCheck
 ```
 
-Stdout **chính xác**:
+**Exact** stdout:
 
 ```text
 integer division: PASS
@@ -229,54 +229,54 @@ invalid score: PASS
 Summary: 9/9 PASS
 ```
 
-Chương trình chứng minh một số điểm rất dễ nhầm: `"Java".equals(...)` so nội dung, `strip()` trả chuỗi mới, điều kiện vòng lặp không truy cập quá chỉ số, `null` được kiểm tra an toàn, hai biến mảng có thể cùng trỏ một đối tượng, và `Math.multiplyExact` ném `ArithmeticException` khi phép nhân `int` bị tràn.
+The program demonstrates several common pitfalls: `"Java".equals(...)` compares contents, `strip()` returns a new string, loop bounds stay within valid indices, `null` is checked safely, two array variables can alias the same object, and `Math.multiplyExact` throws `ArithmeticException` when `int` multiplication overflows.
 
-Để tự kiểm tra kỹ hơn, hãy **thử thay đổi có chủ đích** trong một bản sao: đổi `i < numbers.length` thành `i <= numbers.length`, đổi `grade(50)` sang điều kiện `score > PASS_SCORE`, hoặc bỏ `name != null &&`. Quan sát ngoại lệ hay thông báo thất bại và giải thích vì sao. Sau đó khôi phục mã đúng. Không nên dùng những phiên bản cố ý sai này trong ứng dụng thực tế.
+To test your understanding further, **make intentional mutations** in a copy: change `i < numbers.length` to `i <= numbers.length`, change `grade(50)` to `score > PASS_SCORE`, or remove `name != null &&`. Observe the resulting exception or failure message and explain why. Then restore the correct code. Never ship intentionally broken versions in real applications.
 
-## 4. Bộ tiêu chí tự đánh giá nền tảng
+## 4. Foundational self-assessment rubric
 
-Chấm mỗi tiêu chí theo cùng một thang: **0 điểm** = chưa làm được hoặc chỉ đoán; **1 điểm** = làm được với tài liệu/gợi ý nhưng chưa giải thích được đầy đủ; **2 điểm** = tự giải thích, viết và kiểm tra ví dụ đúng không cần gợi ý. Tổng tối đa **24 điểm**.
+Score each criterion on the same scale: **0 points** = cannot do it yet or only guessing; **1 point** = can do it with docs/hints but cannot fully explain why; **2 points** = can explain, write, and test examples correctly without hints. Maximum score is **24 points**.
 
-| STT | Tiêu chí | Bằng chứng thực hành để tự chấm |
+| No. | Criterion | Practical evidence for self-grading |
 | --- | --- | --- |
-| 1 | JDK và vòng đời chạy chương trình | Biên dịch/chạy bằng `javac` và `java`; giải thích tệp `.java`/`.class`, tên lớp, main, package |
-| 2 | Cú pháp, quy ước tên và phạm vi biến | Tạo lớp và phương thức Java hợp lệ; phân biệt biến cục bộ, field và `static`; đặt tên có nghĩa |
-| 3 | Kiểu primitive, reference và chuyển kiểu | Giải thích `int`/`long`/`double`/`boolean`/`String`; nhận ra widening/narrowing và nguy cơ mất dữ liệu |
-| 4 | Toán tử và thứ tự tính | Tự dự đoán kết quả chia nguyên, nối chuỗi, `&&`, `||`, tăng giảm; dùng ngoặc cho ý định rõ |
-| 5 | Điều kiện và xử lý biên | Viết `if/else`, `switch`, kiểm tra mốc ngay dưới/đúng/trên ngưỡng |
-| 6 | Vòng lặp và mảng | Duyệt mảng không vượt cận, tính tổng chính xác, giải thích `break`/`continue` |
-| 7 | Phương thức và truyền tham số | Tách hàm nhỏ, dùng tham số/return đúng; giải thích Java pass-by-value |
-| 8 | String, null và tham chiếu | Dùng `equals`, `isBlank`, tránh NPE, phân biệt alias với bản sao và String immutable |
-| 9 | Xử lý đầu vào không hợp lệ | Phân biệt định dạng sai và miền giá trị sai; kiểm tra ngoại lệ có chủ đích |
-| 10 | Số lớn và giới hạn kiểu | Giải thích tràn `int`, dùng `long` trước phép toán, `Math.multiplyExact` khi cần |
-| 11 | Đọc lỗi và sửa lỗi có căn cứ | Phân loại compile/runtime/logic, dựa vào lỗi và ca tái hiện thay vì đoán |
-| 12 | Chất lượng mã và kiểm thử cơ bản | Format nhất quán, tránh magic numbers, dự đoán stdout và kiểm tra ít nhất một ca biên |
+| 1 | JDK and program execution lifecycle | Compile/run with `javac` and `java`; explain `.java`/`.class` files, class names, `main`, packages |
+| 2 | Syntax, naming conventions, and variable scope | Write valid Java classes and methods; distinguish locals, fields, and `static`; use meaningful names |
+| 3 | Primitive types, reference types, and casting | Explain `int`/`long`/`double`/`boolean`/`String`; recognize widening/narrowing and data loss risks |
+| 4 | Operators and precedence | Predict integer division, string concatenation, `&&`, `||`, increment/decrement; parenthesize intent clearly |
+| 5 | Conditionals and boundary handling | Write `if/else`, `switch`, test values right below, on, and above thresholds |
+| 6 | Loops and arrays | Traverse arrays without out-of-bounds errors, accumulate sums accurately, explain `break`/`continue` |
+| 7 | Methods and parameter passing | Extract small methods, use parameters/returns properly; explain Java pass-by-value |
+| 8 | Strings, null, and references | Use `equals`, `isBlank`, prevent NPEs, distinguish aliases from copies and `String` immutability |
+| 9 | Handling invalid input | Distinguish invalid format from invalid range; verify intentional exceptions |
+| 10 | Large numbers and type limits | Explain `int` overflow, promote to `long` before arithmetic, use `Math.multiplyExact` when needed |
+| 11 | Reading errors and evidence-based debugging | Classify compile/runtime/logic bugs; rely on error output and reproducers instead of guessing |
+| 12 | Code quality and basic testing | Format consistently, avoid magic numbers, predict stdout, and test at least one edge case |
 
-**Cách đọc điểm tham khảo:**
+**How to interpret the reference score:**
 
-- **0–11/24:** cần củng cố cú pháp và khả năng tự biên dịch/chạy các bài nhỏ. Chọn những tiêu chí 0 điểm làm lại từ đầu.
-- **12–19/24:** đã có nền tảng nhưng còn lỗ hổng. Tập trung vào tiêu chí 0–1 điểm; sau mỗi lần sửa phải thêm một test thể hiện lỗi cũ.
-- **20–24/24:** có cơ sở để tiếp tục bài thực hành phức tạp hơn. Vẫn cần xác nhận năng lực bằng mã tự viết và xử lý dữ liệu bất thường, không chỉ điểm tự chấm.
+- **0–11/24:** strengthen core syntax and practice compiling/running small exercises independently. Pick the 0-point criteria and rebuild from scratch.
+- **12–19/24:** you have a foundation with gaps. Focus on 0–1 point criteria; after every bug fix, add a test reproducing the old failure.
+- **20–24/24:** ready for more complex practice exercises. Still validate your skills through self-written code and abnormal-input handling, not self-scores alone.
 
-Thang trên là **rubric học tập**, không phải chứng chỉ hay bảo đảm về năng lực nghề nghiệp. Điểm chỉ có ý nghĩa khi dựa trên bài chạy được và lời giải thích độc lập.
+This scale is a **learning rubric**, not a certification or guarantee of professional competence. Scores mean something only when backed by runnable code and independent explanations.
 
-## 5. Bài thực hành tổng hợp để chứng minh mức độ nắm vững
+## 5. Capstone practice exercise to verify mastery
 
-**Đề tự làm:** Viết một chương trình Java đọc (hoặc mô phỏng) danh sách điểm số nguyên từ `0` đến `100`, phân loại đạt khi điểm từ `50` trở lên, tính số lượng đạt và tỷ lệ đạt. Chương trình cần xử lý danh sách rỗng và dữ liệu sai.
+**Self-practice prompt:** Write a Java program that reads (or simulates) a list of integer scores from `0` to `100`, classifies a score of `50` or higher as passing, and computes the passing count and pass rate. The program must handle empty lists and invalid data.
 
-**Điều kiện hoàn thành có thể kiểm chứng:**
+**Verifiable completion criteria:**
 
-1. Khi có `[49, 50, 100]`, số lượng đạt phải là `2`, tỷ lệ đạt là `2 / 3.0` (khoảng `66.67%` nếu format hai chữ số thập phân). Không để phép chia nguyên tạo `0` trước khi chuyển thành `double`.
-2. Khi danh sách rỗng, không chia cho `0`; trả về `0` theo hợp đồng đã nêu hoặc trạng thái “không có dữ liệu”.
-3. Khi gặp `-1` hoặc `101`, chỉ rõ cách từ chối/ghi nhận lỗi; không tự ý sửa thành `0` hoặc `100`.
-4. Nếu nhập từ chuỗi, kiểm tra `null`, `""`, `"abc"` và số vượt giới hạn `int`.
-5. Vòng lặp đúng cận, tên biến có nghĩa, chương trình compile/run sạch; ít nhất 6 ca test gồm đầu vào thường, rỗng, sát cận, đúng cận, ngoài cận và sai định dạng.
+1. For `[49, 50, 100]`, the passing count must be `2` and the pass rate `2 / 3.0` (about `66.67%` when formatted to two decimal places). Do not let integer division yield `0` before converting to `double`.
+2. For an empty list, never divide by `0`; return `0` per a stated contract or a "no data" state.
+3. On `-1` or `101`, clearly reject/report the error; never silently clamp to `0` or `100`.
+4. If parsing from strings, handle `null`, `""`, `"abc"`, and numbers outside `int` range.
+5. Proper loop bounds, meaningful variable names, clean compile/run; at least 6 test cases covering normal, empty, just-below-boundary, exact-boundary, out-of-bounds, and invalid-format inputs.
 
-Đối chiếu sau khi làm:
+Review afterward:
 
-- Có giải thích được **vì sao** từng nhánh và phép toán cho kết quả đó không?
-- Có phân biệt được lỗi phát sinh khi biên dịch, khi chạy và sai kết quả không?
-- Có thử đầu vào bất thường và tự sửa được bằng thông báo lỗi/stack trace không?
-- Có thể chạy lại tất cả test sau khi đổi một dòng mà không phải kiểm tra hoàn toàn bằng mắt không?
+- Can I explain **why** each branch and operation produces its result?
+- Can I distinguish compile-time errors, runtime errors, and wrong-output logic bugs?
+- Did I test abnormal inputs and fix bugs using error messages/stack traces?
+- Can I rerun all tests after changing a single line without checking everything purely by eye?
 
-Nếu chưa làm được một mục, hãy biến mục đó thành ca kiểm tra nhỏ, có **đầu vào và kết quả mong đợi rõ ràng**. Nắm vững Java Core bắt đầu từ khả năng giải thích chính xác và kiểm chứng được hành vi của những chương trình nhỏ trước khi tăng độ phức tạp.
+If any item is still shaky, turn that item into a small test case with **clear inputs and expected outputs**. Mastering Core Java starts with accurately explaining and verifying the behavior of small programs before scaling up complexity.

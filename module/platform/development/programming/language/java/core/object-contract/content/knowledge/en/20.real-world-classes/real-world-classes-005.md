@@ -1,13 +1,13 @@
-# So sánh chính xác lớp và kiểm tra khả năng là kiểu con trong Java
+# Exact Class Comparison vs. Checking Subtype Compatibility in Java
 
-## 1. Hai câu hỏi khác nhau về kiểu đối tượng
+## 1. Two Different Questions About an Object's Type
 
-Trong Java, **lớp thực tế** (*runtime class*) của một đối tượng là lớp của đối tượng được tạo tại thời điểm chạy, không nhất thiết là kiểu khai báo của biến đang tham chiếu đến nó. Phân biệt hai yêu cầu thường gặp:
+In Java, the **actual class** (*runtime class*) of an object is the class of the object instantiated at runtime, not necessarily the declared type of the variable referencing it. Distinguish two common requirements:
 
-1. **Chính xác lớp này?** Đối tượng có đúng lớp runtime `SomeClass`, không chấp nhận lớp con? Dùng `obj.getClass() == SomeClass.class` sau khi bảo đảm `obj != null`.
-2. **Là một đối tượng thuộc kiểu này hoặc kiểu con?** Đối tượng có thể được coi là một `SomeClass` theo quan hệ kế thừa/triển khai interface? Dùng `obj instanceof SomeClass`.
+1. **Is it this exact class?** Does the object have the exact runtime class `SomeClass`, without accepting subclasses? Use `obj.getClass() == SomeClass.class` after ensuring `obj != null`.
+2. **Is it an object of this type or a subtype?** Can the object be treated as a `SomeClass` according to inheritance or interface implementation? Use `obj instanceof SomeClass`.
 
-Ví dụ:
+Example:
 
 ```java
 class Animal {}
@@ -22,53 +22,53 @@ System.out.println(pet.getClass() == Animal.class); // false
 System.out.println(pet.getClass() == Poodle.class); // true
 ```
 
-Đây là **đoạn minh họa các khai báo/lệnh**; chương trình có thể biên dịch/chạy độc lập được cung cấp ở mục 5. Biến `pet` được khai báo là `Animal` nhưng đối tượng thực tế là `Poodle`. Vì vậy cùng một tham chiếu có thể thỏa kiểm tra “là một `Animal`” trong khi không có lớp runtime đúng bằng `Animal.class`.
+This is **a snippet illustrating declarations/statements**; a standalone compilable/runnable program is provided in Section 5. The variable `pet` is declared as `Animal`, yet the actual object is `Poodle`. Thus the same reference can pass the "is an `Animal`" check while not having a runtime class equal to `Animal.class`.
 
-| Biểu thức | Câu hỏi | `new Poodle()` trong hệ `Animal → Dog → Poodle` |
+| Expression | Question | `new Poodle()` in hierarchy `Animal → Dog → Poodle` |
 | --- | --- | --- |
-| `obj instanceof Animal` | Đối tượng có tương thích với `Animal`? | `true` |
-| `obj instanceof Dog` | Đối tượng có tương thích với `Dog`? | `true` |
-| `obj instanceof Poodle` | Đối tượng có tương thích với `Poodle`? | `true` |
-| `obj.getClass() == Animal.class` | Lớp runtime có đúng `Animal`? | `false` |
-| `obj.getClass() == Poodle.class` | Lớp runtime có đúng `Poodle`? | `true` |
-| `Animal.class.isInstance(obj)` | Kiểm tra runtime tương tự `instanceof Animal`? | `true` |
-| `Animal.class.isAssignableFrom(Poodle.class)` | Có thể gán đối tượng kiểu `Poodle` vào tham chiếu `Animal`? | `true` |
+| `obj instanceof Animal` | Is the object compatible with `Animal`? | `true` |
+| `obj instanceof Dog` | Is the object compatible with `Dog`? | `true` |
+| `obj instanceof Poodle` | Is the object compatible with `Poodle`? | `true` |
+| `obj.getClass() == Animal.class` | Is the runtime class literally `Animal`? | `false` |
+| `obj.getClass() == Poodle.class` | Is the runtime class literally `Poodle`? | `true` |
+| `Animal.class.isInstance(obj)` | Runtime check equivalent to `instanceof Animal`? | `true` |
+| `Animal.class.isAssignableFrom(Poodle.class)` | Can a `Poodle` object be assigned to an `Animal` reference? | `true` |
 
-Đây là hai **chính sách về kiểu** khác nhau, không phải hai cú pháp tương đương có thể tùy ý thay thế.
+These are two different **type policies**, not two equivalent syntaxes that can be swapped arbitrarily.
 
-## 2. `getClass() == SomeClass.class`: so sánh lớp chính xác
+## 2. `getClass() == SomeClass.class`: Exact Class Comparison
 
-Mỗi đối tượng Java thừa hưởng phương thức `public final Class<?> getClass()` từ `Object`. Nó trả về một đối tượng `Class` biểu diễn **kiểu runtime**. Để kiểm tra chính xác lớp:
+Every Java object inherits `public final Class<?> getClass()` from `Object`. It returns a `Class` object representing the **runtime type**. To check the exact class:
 
 ```java
 if (obj != null && obj.getClass() == Animal.class) {
-    // Chỉ đối tượng có lớp thực tế đúng Animal.
+    // Only objects whose actual class is strictly Animal.
 }
 ```
 
-Đây là **đoạn lệnh nằm trong phương thức đã có biến `obj`**. Kiểm tra `obj != null` rất quan trọng: `obj.getClass()` ném `NullPointerException` khi `obj == null`. So với đó, `null instanceof Animal` luôn là `false` (với vế trái là tham chiếu null).
+This is **a snippet placed inside a method that already has variable `obj`**. Checking `obj != null` is critical: `obj.getClass()` throws `NullPointerException` when `obj == null`. By contrast, `null instanceof Animal` is always `false` (when the left-hand side is a null reference).
 
-### Vì sao dùng `==` giữa các đối tượng `Class`?
+### Why Use `==` Between `Class` Objects?
 
-Trong cùng một lớp được nạp, đối tượng `Class` đại diện cho kiểu runtime là duy nhất, nên so bằng `==` là thích hợp để kiểm tra **cùng một lớp runtime**. Không cần so tên lớp bằng chuỗi:
+Within a single loaded class, the `Class` object representing the runtime type is unique, so comparing with `==` is appropriate for checking the **same runtime class**. There is no need to compare class names as strings:
 
 ```java
 obj.getClass().getName().equals("com.example.Animal")
 ```
 
-Đoạn trên là **cách so tên mang tính minh họa**, không phải cách kiểm tra lớp chính xác được khuyến nghị. Hai lớp do hai class loader khác nhau nạp có thể có cùng tên nhị phân nhưng vẫn là hai kiểu runtime khác nhau. `getClass() == Animal.class` phản ánh đúng sự phân biệt này.
+The snippet above is **an illustrative name comparison**, not the recommended way to perform exact class checks. Two classes loaded by two different class loaders can share the same binary name while still being two different runtime types. `getClass() == Animal.class` accurately reflects this distinction.
 
-### Khi nào kiểm tra chính xác hữu ích?
+### When Is Exact Checking Useful?
 
-- Trong định nghĩa bình đẳng theo **kiểu giá trị**, nếu một đối tượng của lớp con không được phép bằng đối tượng lớp cha dù các trường chung trùng nhau.
-- Khi phân nhánh xử lý yêu cầu **đúng lớp hiện tại**, không chấp nhận bất kỳ subtype nào.
-- Khi kiểm tra bất biến của một mô hình mà loại giá trị phải chính xác, ví dụ một số cách so sánh dữ liệu không có chính sách tương đương xuyên kiểu.
+- In defining equality by **value type**, if a subclass object is not allowed to equal a superclass object even when shared fields match.
+- When processing branches require **the exact current class**, rejecting any subtype.
+- When checking invariants of a model where the value kind must be exact—for example, certain data comparisons that have no cross-type equivalence policy.
 
-**Giới hạn:** kiểm tra bằng `getClass` loại trừ toàn bộ subclass, kể cả subclass không bổ sung trạng thái. Nếu hệ thống dùng proxy sinh lớp con ở runtime hoặc framework dựa trên subclass, kiểm tra kiểu chính xác có thể không phù hợp với yêu cầu nghiệp vụ. Không nên áp dụng cơ học chỉ vì thấy `instanceof` “quá rộng”.
+**Limitation:** Checking with `getClass` excludes all subclasses, even subclasses that add no state. If the system uses runtime-generated subclass proxies or a subclass-based framework, exact type checking may conflict with business requirements. Do not apply it mechanically just because `instanceof` seems "too broad".
 
-## 3. `instanceof`: kiểm tra tương thích với kiểu đích
+## 3. `instanceof`: Checking Compatibility with a Target Type
 
-Toán tử `instanceof` trả về `true` nếu một tham chiếu không null trỏ tới đối tượng có thể chuyển đổi kiểm tra kiểu (*casting conversion*) thích hợp sang kiểu đích theo luật Java. Với lớp và interface thường gặp, điều đó bao gồm **đúng lớp** và **kiểu con**; với interface, nó bao gồm đối tượng thuộc lớp triển khai interface.
+The `instanceof` operator returns `true` if a non-null reference points to an object that can undergo a valid type-check conversion (*casting conversion*) to the target type under Java's rules. For ordinary classes and interfaces, that includes the **exact class** and **subtypes**; for interfaces, it includes objects of classes implementing the interface.
 
 ```java
 Object value = "hello";
@@ -77,9 +77,9 @@ System.out.println(value instanceof CharSequence); // true
 System.out.println(value instanceof Object);       // true
 ```
 
-Đây là **đoạn minh họa chạy trong phương thức**; `String` thực hiện `CharSequence` và cũng là `Object`. Cách kiểm tra này phù hợp khi mã cần sử dụng một **khả năng được biểu diễn bởi kiểu cha hoặc interface**, mà không cần biết lớp triển khai cụ thể.
+This is **an illustrative snippet running inside a method**; `String` implements `CharSequence` and is also an `Object`. This check is appropriate when code needs to use a **capability represented by a superclass or interface** without needing to know the concrete implementing class.
 
-Từ Java 16 trở đi, `instanceof` hỗ trợ **pattern matching**:
+From Java 16 onward, `instanceof` supports **pattern matching**:
 
 ```java
 if (value instanceof String text) {
@@ -87,55 +87,55 @@ if (value instanceof String text) {
 }
 ```
 
-Đây là **đoạn lệnh nằm trong phương thức đã có biến `value`**. Biến mẫu `text` chỉ khả dụng khi việc kiểm tra phù hợp với phạm vi đã được trình biên dịch xác định; Java thực hiện kiểm tra rồi cung cấp biến kiểu `String` không cần ép kiểu tường minh.
+This is **a snippet inside a method that already has variable `value`**. The pattern variable `text` is only available where the check guarantees it within the scope determined by the compiler; Java performs the check and provides a variable of type `String` without an explicit cast.
 
-Tuy nhiên, **một kiểm tra `instanceof` không chứng minh tất cả đối tượng thuộc lớp cha có thể ép thành lớp con**. `obj instanceof Dog` đúng thì mới được dùng như `Dog`, còn việc `obj instanceof Animal` đúng không chứng minh nó là `Dog`.
+However, **an `instanceof` check does not prove that every object of a superclass can be cast to a subclass**. Only when `obj instanceof Dog` is true may you use it as a `Dog`; `obj instanceof Animal` being true does not prove it is a `Dog`.
 
-### Liên hệ với `Class.isInstance` và `Class.isAssignableFrom`
+### Relationship to `Class.isInstance` and `Class.isAssignableFrom`
 
-Khi kiểu đích được biết trước ở thời điểm viết mã, `instanceof Animal` là cách trực tiếp nhất. Khi kiểu đích nằm trong một biến `Class<?>` (ví dụ được truyền từ cấu hình hoặc một API reflection), có thể dùng:
+When the target type is known when writing the code, `instanceof Animal` is the most direct form. When the target type sits in a `Class<?>` variable (for example passed from configuration or a reflection API), you can use:
 
 ```java
 Class<?> target = Animal.class;
 boolean supported = target.isInstance(obj);
 ```
 
-Đây là **đoạn lệnh trong phương thức**; `Class.isInstance(obj)` nhận một **đối tượng hoặc null** và trả về boolean. Nó không yêu cầu gọi phương thức trên `obj`, vì vậy `target.isInstance(null)` là `false` thay vì ném `NullPointerException`.
+This is **a snippet inside a method**; `Class.isInstance(obj)` takes an **object or null** and returns a boolean. It does not require invoking a method on `obj`, so `target.isInstance(null)` is `false` instead of throwing `NullPointerException`.
 
-Với `Class.isAssignableFrom(otherClass)`, hai bên đều là **đối tượng `Class`**:
+With `Class.isAssignableFrom(otherClass)`, both sides are **`Class` objects**:
 
 ```java
 boolean animalFromDog = Animal.class.isAssignableFrom(Dog.class); // true
 boolean dogFromAnimal = Dog.class.isAssignableFrom(Animal.class); // false
 ```
 
-Đây là **đoạn lệnh minh họa** dùng khai báo `Animal` và `Dog` ở trên. Chiều của phép kiểm tra rất quan trọng: `A.class.isAssignableFrom(B.class)` hỏi liệu một giá trị kiểu `B` có thể được gán vào nơi cần `A` hay không, không phải chiều ngược lại. Nó hữu ích trong reflection, generic container và framework, khi ta cần kiểm tra tương thích kiểu **trước khi có instance**.
+This is **an illustrative snippet** using the `Animal` and `Dog` declarations above. The direction of the check is crucial: `A.class.isAssignableFrom(B.class)` asks whether a value of type `B` can be assigned where an `A` is expected, not the reverse. It is useful in reflection, generic containers, and frameworks when we need to check type compatibility **before having an instance**.
 
-## 4. Hệ quả đặc biệt với hợp đồng `equals()`
+## 4. Special Consequences for the `equals()` Contract
 
-Trong module **object-contract**, khác biệt giữa `getClass` và `instanceof` đặc biệt quan trọng ở **`Object.equals(Object)`**. Một phương thức `equals` hợp lệ phải có tính phản xạ, đối xứng, bắc cầu, nhất quán và trả về `false` khi so với `null`.
+In the **object-contract** module, the difference between `getClass` and `instanceof` is especially important in **`Object.equals(Object)`**. A valid `equals` method must be reflexive, symmetric, transitive, consistent, and return `false` when compared to `null`.
 
-### 4.1. Dùng `instanceof` có thể khiến lớp cha chấp nhận lớp con
+### 4.1. Using `instanceof` Can Cause a Superclass to Accept Subclasses
 
-Giả sử lớp `Point` có `x` và `y`, còn `ColoredPoint extends Point` thêm trường `color`. Nếu `Point.equals` dùng:
+Suppose class `Point` has `x` and `y`, while `ColoredPoint extends Point` adds a `color` field. If `Point.equals` uses:
 
 ```java
 if (!(other instanceof Point p)) return false;
 return x == p.x && y == p.y;
 ```
 
-Đây là **phần thân minh họa** của `equals` trong lớp `Point`. Phương thức của lớp cha chấp nhận cả `ColoredPoint` vì lớp con cũng là một `Point`. Nhưng nếu `ColoredPoint.equals` kiểm tra thêm màu và không chấp nhận `Point` thuần, có thể xảy ra:
+This is **an illustrative body** of `equals` in class `Point`. The superclass method accepts `ColoredPoint` as well because the subclass is also a `Point`. However, if `ColoredPoint.equals` also checks color and rejects a plain `Point`, the following can happen:
 
 ```text
 point.equals(coloredPoint)  -> true
 coloredPoint.equals(point)  -> false
 ```
 
-Khi hai phía trả khác nhau, **tính đối xứng bị phá vỡ**. Lỗi không do bản thân `instanceof` sai, mà do **hai lớp định nghĩa quan hệ bằng nhau không tương thích**. Chỉ đổi `instanceof` trong một phương thức mà không kiểm tra toàn hệ phân cấp chưa đủ bảo đảm hợp đồng.
+When the two directions return different results, **symmetry is broken**. The bug is not that `instanceof` itself is wrong, but that **the two classes define incompatible equality relations**. Simply swapping `instanceof` in one method without reviewing the whole hierarchy is not enough to preserve the contract.
 
-### 4.2. Dùng `getClass` để thống nhất chính sách “chỉ cùng lớp”
+### 4.2. Using `getClass` to Enforce a "Same Class Only" Policy
 
-Nếu đối tượng của hai lớp runtime khác nhau **không bao giờ nên bằng nhau**, `Point.equals` có thể kiểm tra:
+If objects of two different runtime classes **should never be equal**, `Point.equals` can check:
 
 ```java
 @Override
@@ -147,21 +147,21 @@ public boolean equals(Object other) {
 }
 ```
 
-Đây là **phương thức thuộc lớp `Point`**, giả sử các trường `x`, `y` đã khai báo; không phải chương trình độc lập. Khi một `Point` thuần so với một `ColoredPoint`, kiểm tra lớp runtime không khớp ở cả hai hướng và hai phương thức có thể cùng trả `false`.
+This is **a method belonging to class `Point`**, assuming fields `x` and `y` are declared; not a standalone program. When a plain `Point` is compared with a `ColoredPoint`, the runtime class check fails in both directions and both methods can consistently return `false`.
 
-Ở phía lớp con, cần xây dựng `equals` và `hashCode` tương thích với phần dữ liệu kế thừa lẫn phần dữ liệu mới. Ví dụ tại mục 5 thể hiện đầy đủ, có thể chạy được.
+On the subclass side, you must build `equals` and `hashCode` compatibly with both inherited data and new data. The example in Section 5 shows a complete, runnable version.
 
-**Lưu ý quan trọng:** `getClass` trong lớp cha không tự khiến mọi override `equals` ở lớp con tuân thủ hợp đồng. Một lớp con có thể viết mã sai, hoặc dùng quan hệ bằng nhau không đối xứng trong phần triển khai của nó. `getClass` chỉ giúp thiết lập chính sách chính xác về kiểu khi các lớp đều tuân thủ.
+**Important note:** `getClass` in the superclass does not automatically make every `equals` override in subclasses obey the contract. A subclass can be coded incorrectly or use an asymmetric equality relation in its implementation. `getClass` only helps establish an exact-type policy when all classes follow it.
 
-### 4.3. Dùng `instanceof` vẫn có thể đúng khi mô hình phù hợp
+### 4.3. Using `instanceof` Can Still Be Right When the Model Fits
 
-Với một **lớp `final`** không có lớp con, kiểm tra `other instanceof FinalValue` và kiểm tra lớp chính xác thường dẫn đến cùng miền đối tượng hợp lệ. Một hệ phân cấp cũng có thể dùng `instanceof` nếu **mọi lớp liên quan chia sẻ một định nghĩa bình đẳng ổn định**, không có lớp con âm thầm bổ sung tiêu chí khiến quan hệ bị lệch.
+For a **`final` class** with no subclasses, checking `other instanceof FinalValue` and checking the exact class generally lead to the same valid object domain. A hierarchy can also use `instanceof` if **all involved classes share a single stable equality definition**, with no subclass silently adding criteria that skew the relation.
 
-Nếu thật sự cần một số lớp con được phép bằng lớp cha, có thể dùng thiết kế hợp tác như `canEqual` hoặc một mô hình danh tính chung; vẫn phải kiểm tra cả đối xứng, bắc cầu, `hashCode` và các giá trị biên. `getClass` không phải “nâng cấp” mặc định của `instanceof` trong mọi bài toán.
+If certain subclasses genuinely need to equal the superclass, you can use a cooperative design such as `canEqual` or a shared identity model; you must still verify symmetry, transitivity, `hashCode`, and edge cases. `getClass` is not the default "upgrade" over `instanceof` in every problem.
 
-## 5. Chương trình Java 17+ đầy đủ: so kiểu và kiểm chứng `equals`
+## 5. Complete Java 17+ Program: Type Checks and Verifying `equals`
 
-Lưu chương trình sau thành **`RuntimeClassDemo.java`**. Phần đầu minh họa kiểu runtime với ba lớp kế thừa. Phần sau dùng `getClass` trong `Point.equals` và triển khai `ColoredPoint` để kiểm tra bình đẳng giữa cha/con theo cả hai chiều.
+Save the following program as **`RuntimeClassDemo.java`**. The first part illustrates runtime types across three inherited classes. The second part uses `getClass` in `Point.equals` and implements `ColoredPoint` to test equality between parent and child in both directions.
 
 ```java
 import java.util.Objects;
@@ -249,14 +249,14 @@ public class RuntimeClassDemo {
 }
 ```
 
-Chạy trong thư mục chứa tệp bằng JDK 17 trở lên:
+Run in the directory containing the file with JDK 17 or higher:
 
 ```bash
 javac RuntimeClassDemo.java
 java RuntimeClassDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 instanceof Animal = true
@@ -273,99 +273,99 @@ red.equals(copy) = true
 equal colored hash = true
 ```
 
-**Giải thích đầu ra:**
+**Explanation of output:**
 
-1. Đối tượng `Poodle` cũng là `Dog` và `Animal`, nên hai kiểm tra `instanceof` đầu tiên đều đúng. Nhưng lớp runtime của đối tượng là **`Poodle`**, không phải `Animal`.
-2. `Animal.class.isInstance(poodle)` cũng `true`: đây là cách kiểm tra ở runtime khi thông tin kiểu nằm trong một đối tượng `Class`. `isAssignableFrom` cho biết hướng kế thừa `Poodle → Animal` là hướng gán hợp lệ; hướng `Animal → Poodle` thì không.
-3. Một tham chiếu `null` cho kết quả `false` khi dùng `instanceof`. Nếu dùng `missing.getClass()` mà không kiểm tra null sẽ ném `NullPointerException`.
-4. `base.equals(red)` là `false` vì lớp runtime `Point` khác `ColoredPoint`. Chiều ngược lại cũng `false`, vì `super.equals(other)` phát hiện lớp khác.
-5. Hai `ColoredPoint` độc lập nhưng có cùng tọa độ và màu trả `true`. Cả hai tạo hash theo phần điểm kế thừa và màu nên các đối tượng bằng nhau cũng có cùng hash.
+1. The `Poodle` object is also a `Dog` and an `Animal`, so the first two `instanceof` checks are both true. However, the object's runtime class is **`Poodle`**, not `Animal`.
+2. `Animal.class.isInstance(poodle)` is also `true`: this is the runtime check when type information is held in a `Class` object. `isAssignableFrom` shows that the inheritance direction `Poodle → Animal` is valid for assignment; the `Animal → Poodle` direction is not.
+3. A `null` reference yields `false` when used with `instanceof`. Calling `missing.getClass()` without a null check would throw `NullPointerException`.
+4. `base.equals(red)` is `false` because runtime class `Point` differs from `ColoredPoint`. The reverse direction is also `false`, because `super.equals(other)` detects the different class.
+5. Two independent `ColoredPoint` instances with the same coordinates and color return `true`. Both compute their hash from the inherited point part and color, so equal objects also share the same hash.
 
-Không nên suy rộng rằng bất kỳ hai đối tượng cùng lớp nào cũng bằng nhau. `getClass` chỉ giải quyết câu hỏi **kiểu có tương thích theo chính sách đang chọn không**, còn nội dung thuộc tính vẫn phải so đúng trong `equals`.
+Do not generalize that any two objects of the same class are equal. `getClass` only answers whether **types are compatible under the chosen policy**, while field contents must still be compared properly in `equals`.
 
-## 6. Khi nào nên dùng loại kiểm tra nào?
+## 6. When Should You Use Which Check?
 
-| Tình huống | Lựa chọn phù hợp | Lý do |
+| Scenario | Suitable Choice | Reason |
 | --- | --- | --- |
-| Xử lý mọi đối tượng triển khai một interface | `instanceof InterfaceType` | Chấp nhận các implementation khác nhau |
-| Nhận một đối tượng thuộc lớp cơ sở hoặc bất kỳ lớp con | `instanceof BaseType` | Hỗ trợ đa hình |
-| Chỉ xử lý đúng lớp runtime `FinalMessage` hoặc `ExactEvent` | `getClass() == ExactEvent.class` | Không nhận lớp con |
-| Lớp giá trị muốn `equals` chỉ có thể `true` giữa cùng lớp runtime | `getClass()` trong `equals` cùng kiểm tra thuộc tính | Xác lập chính sách bình đẳng chính xác về kiểu |
-| Kiểu được chọn động bằng `Class<?> target` | `target.isInstance(obj)` | Kiểm tra tương thích với instance khi kiểu là dữ liệu runtime |
-| Cần xác định liệu hai kiểu có thể gán theo một hướng | `Target.class.isAssignableFrom(Source.class)` | Là câu hỏi về **kiểu**, không cần instance |
-| Cần ép kiểu an toàn và khai báo biến mới | `obj instanceof Target t` | Vừa kiểm tra vừa ràng buộc biến pattern trong phạm vi phù hợp |
-| Đối tượng do framework tạo proxy kế thừa runtime | Cần thiết kế chính sách domain trước | `getClass` sẽ thấy lớp proxy thay vì luôn thấy lớp mô hình gốc |
+| Handling any object implementing an interface | `instanceof InterfaceType` | Accepts different implementations |
+| Accepting an object of a base class or any subclass | `instanceof BaseType` | Supports polymorphism |
+| Handling only the exact runtime class `FinalMessage` or `ExactEvent` | `getClass() == ExactEvent.class` | Does not accept subclasses |
+| Value class where `equals` can only be `true` within the same runtime class | `getClass()` in `equals` along with field checks | Establishes an exact-type equality policy |
+| Type chosen dynamically via `Class<?> target` | `target.isInstance(obj)` | Checks compatibility with an instance when the type is runtime data |
+| Determining whether two types are assignable in one direction | `Target.class.isAssignableFrom(Source.class)` | A question about **types**, requiring no instance |
+| Safe casting and declaring a new variable | `obj instanceof Target t` | Both checks and binds the pattern variable in the appropriate scope |
+| Objects created by a framework using runtime subclass proxies | Design the domain policy first | `getClass` sees the proxy class instead of always seeing the original model class |
 
-### Hai điểm dễ sai với reflection
+### Two Common Reflection Pitfalls
 
-- `A.class.isAssignableFrom(B.class)` hướng từ **kiểu đích** `A` tới **kiểu nguồn** `B`. Viết đảo sẽ trả kết quả khác; trong quan hệ cha/con, chỉ một hướng có thể gán an toàn.
-- `Class.isInstance` không phải `getClass()==...`. `Animal.class.isInstance(new Poodle())` là `true` dù hai đối tượng `Class` `Animal.class` và `Poodle.class` không đồng nhất.
+- `A.class.isAssignableFrom(B.class)` goes from **target type** `A` to **source type** `B`. Reversing it produces a different result; in a parent/child relationship, only one direction can be assigned safely.
+- `Class.isInstance` is not `getClass()==...`. `Animal.class.isInstance(new Poodle())` is `true` even though the two `Class` objects `Animal.class` and `Poodle.class` are not identical.
 
-Một biến kiểu `Object` có thể trỏ tới đối tượng mang kiểu runtime bất kỳ. Vì vậy muốn biết đối tượng **hỗ trợ hành vi** nào, thường dùng interface và `instanceof`/đa hình; muốn ràng buộc chính xác **danh tính lớp runtime**, dùng `getClass` hoặc so đối tượng `Class`.
+An `Object` variable can point to an object carrying any runtime type. Therefore, when you want to know what **behavior** an object supports, usually use interfaces and `instanceof`/polymorphism; when you want to enforce exact **runtime class identity**, use `getClass` or compare `Class` objects.
 
-## 7. Trường hợp biên và giới hạn của hai phương pháp
+## 7. Edge Cases and Limitations of Both Approaches
 
 ### 7.1. `null`
 
-`obj instanceof SomeType` là `false` nếu `obj == null`. `SomeType.class.isInstance(null)` cũng trả `false`. Trong khi đó `obj.getClass()` ném `NullPointerException`; phép kiểm tra lớp chính xác cần đi sau điều kiện null. Khi viết `equals`, thường bắt đầu bằng:
+`obj instanceof SomeType` is `false` if `obj == null`. `SomeType.class.isInstance(null)` also returns `false`. Meanwhile, `obj.getClass()` throws `NullPointerException`; an exact-class check must follow a null check. When writing `equals`, typically start with:
 
 ```java
 if (this == other) return true;
 if (other == null || getClass() != other.getClass()) return false;
 ```
 
-Đây là **đoạn logic trong phương thức `equals`**, không phải chương trình độc lập. Nó vừa xử lý so cùng tham chiếu, vừa tránh gọi `getClass` trên đối tượng null.
+This is **a logic snippet inside `equals`**, not a standalone program. It handles both same-reference comparison and avoiding a `getClass` call on a null object.
 
-### 7.2. Interface, abstract class và kiểu đa hình
+### 7.2. Interfaces, Abstract Classes, and Polymorphic Types
 
-Một đối tượng triển khai interface `Runnable` có thể thỏa `obj instanceof Runnable`. Nhưng `obj.getClass() == Runnable.class` luôn sai đối với một instance thông thường, vì interface không phải một lớp có thể tạo đối tượng trực tiếp. Tương tự, một instance lớp con có thể thỏa `obj instanceof AbstractBase`, trong khi lớp runtime không thể bằng đúng lớp abstract không thể khởi tạo.
+An object implementing `Runnable` can satisfy `obj instanceof Runnable`. However, `obj.getClass() == Runnable.class` is always false for an ordinary instance, because an interface is not a class that can be instantiated directly. Similarly, a subclass instance can satisfy `obj instanceof AbstractBase`, while its runtime class cannot equal an abstract class that cannot be instantiated.
 
-Điều này làm rõ khác biệt: **“thuộc một kiểu” không có nghĩa “lớp runtime trùng chính xác kiểu ấy”**.
+This clarifies the distinction: **"belonging to a type" does not mean "having a runtime class identical to that type"**.
 
-### 7.3. Mảng
+### 7.3. Arrays
 
-Mảng `String[]` thỏa `instanceof Object[]` vì các phần tử đều là tham chiếu, nhưng lớp runtime của nó không bằng `Object[].class`; nó bằng `String[].class`. Mảng `int[]` lại **không** là `Object[]` vì phần tử là kiểu nguyên thủy; tuy vậy chính mảng `int[]` vẫn là một `Object`. Các loại mảng khác nhau có lớp runtime khác nhau, và có thể phân biệt bằng `getClass` khi thực sự cần chính xác kiểu mảng.
+A `String[]` array satisfies `instanceof Object[]` because its elements are references, yet its runtime class does not equal `Object[].class`; it equals `String[].class`. An `int[]` array, on the other hand, is **not** an `Object[]` because its elements are primitive; nevertheless the `int[]` array itself is still an `Object`. Different array kinds have different runtime classes and can be distinguished via `getClass` when the exact array type is truly needed.
 
-### 7.4. Proxy và lớp sinh động
+### 7.4. Proxies and Dynamically Generated Classes
 
-Một số framework tạo proxy bằng cách tạo subclass của lớp miền. Khi đó `getClass() == DomainType.class` có thể là `false` dù proxy được thiết kế để đóng vai một `DomainType` trong ứng dụng. Ngược lại, `proxy instanceof DomainType` có thể là `true` trong trường hợp proxy kế thừa `DomainType`.
+Some frameworks create proxies by generating subclasses of a domain class. In that case, `getClass() == DomainType.class` can be `false` even though the proxy is designed to act as a `DomainType` in the application. Conversely, `proxy instanceof DomainType` can be `true` when the proxy extends `DomainType`.
 
-**Không phải proxy nào cũng là subclass của lớp miền**: proxy dựa trên interface có quan hệ kiểu theo interface thay vì chắc chắn kế thừa lớp cụ thể. Các ORM và framework còn có chính sách riêng về identity, lazy loading và `equals`. Hãy xác định quy tắc identity ở mức miền hoặc theo hướng dẫn framework thay vì tự động chọn `getClass` hay `instanceof` từ một ví dụ đơn giản.
+**Not every proxy is a subclass of the domain class**: interface-based proxies have type relationships through interfaces rather than necessarily inheriting a concrete class. ORMs and frameworks also have their own policies regarding identity, lazy loading, and `equals`. Define identity rules at the domain level or follow your framework's guidance rather than automatically picking `getClass` or `instanceof` from a simplistic example.
 
-### 7.5. Lớp con mới có thể phá hợp đồng `equals`
+### 7.5. New Subclasses Can Break the `equals` Contract
 
-Ngay cả khi lớp cha dùng `getClass` đúng, một lớp con triển khai `equals` không đối xứng hoặc quên `hashCode` vẫn có thể làm hỏng hợp đồng. Trong mô hình giá trị, dùng `final class` hoặc `record` (mặc định final) thường giảm rủi ro do subclass thay đổi tiêu chí bình đẳng. Nếu cần kế thừa, phải kiểm tra toàn bộ quan hệ giữa các lớp thực tế có thể xuất hiện.
+Even when the superclass uses `getClass` properly, a subclass implementing an asymmetric `equals` or forgetting `hashCode` can still break the contract. In value models, using `final class` or `record` (implicitly final) usually reduces the risk of subclasses altering equality criteria. When inheritance is needed, you must verify the entire relationship across all actual classes that may appear.
 
-## 8. Lỗi phổ biến và cách tự kiểm tra
+## 8. Common Mistakes and Self-Check
 
-| Lỗi | Nguyên nhân | Cách sửa |
+| Mistake | Cause | Fix |
 | --- | --- | --- |
-| Tưởng `obj instanceof Base` chỉ nhận đúng `Base` | Không tính đến subtype | Dùng `getClass() == Base.class` khi muốn lớp runtime chính xác |
-| Tưởng `obj.getClass() == Base.class` chấp nhận lớp con | `Class` bình đẳng chính xác, không theo kế thừa | Dùng `instanceof Base` hoặc `Base.class.isInstance(obj)` |
-| Gọi `getClass()` trên null | Dereference null | Kiểm tra `obj != null` trước |
-| Đảo chiều `isAssignableFrom` | Nhầm lớp nguồn và lớp đích | Nhớ `Target.class.isAssignableFrom(Source.class)` |
-| Lớp cha dùng `instanceof` nhưng lớp con thêm tiêu chí bình đẳng riêng | `equals` có thể không đối xứng hoặc không bắc cầu | Thiết kế thống nhất quan hệ equality xuyên phân cấp |
-| Thay `instanceof` bằng `getClass` khắp nơi không xét domain | Loại trừ mọi subclass/proxy | Xác định cần tương thích kiểu hay cần lớp chính xác |
-| So tên lớp bằng chuỗi thay vì đối tượng `Class` | Class loader có thể tạo kiểu khác cùng tên | So `Class` trực tiếp nếu cần kiểm tra type identity |
-| Kiểm tra `instanceof` rồi vẫn ép kiểu sai | Kiểm tra một kiểu nhưng ép sang một kiểu con khác | Dùng pattern variable đúng kiểu đã kiểm tra |
-| Chỉ kiểm tra kiểu trong `equals`, quên giá trị và `hashCode` | Hợp đồng bình đẳng không hoàn chỉnh | So các thuộc tính quyết định equality, sinh hash tương thích |
+| Thinking `obj instanceof Base` only matches `Base` itself | Overlooks subtypes | Use `getClass() == Base.class` when you want the exact runtime class |
+| Thinking `obj.getClass() == Base.class` accepts subclasses | Exact `Class` equality, not inheritance-based | Use `instanceof Base` or `Base.class.isInstance(obj)` |
+| Calling `getClass()` on null | Null dereference | Check `obj != null` first |
+| Reversing `isAssignableFrom` | Confusing source class and target class | Remember `Target.class.isAssignableFrom(Source.class)` |
+| Superclass uses `instanceof` while subclass adds its own equality criteria | `equals` can become asymmetric or non-transitive | Design a consistent equality relation across the hierarchy |
+| Replacing `instanceof` with `getClass` everywhere without considering the domain | Rejects all subclasses/proxies | Determine whether you need type compatibility or the exact class |
+| Comparing class names as strings instead of `Class` objects | Class loaders can create different types with the same name | Compare `Class` directly when checking type identity |
+| Checking `instanceof` and still casting wrongly | Checking one type while casting to another subtype | Use a pattern variable of the exact checked type |
+| Checking only type in `equals`, forgetting values and `hashCode` | Incomplete equality contract | Compare equality-defining fields and produce a compatible hash |
 
-### Câu hỏi tự kiểm tra
+### Self-Check Questions
 
-**1.** `Animal pet = new Poodle();`. `pet.getClass() == Animal.class` có đúng không? Còn `pet instanceof Animal`?
+**1.** `Animal pet = new Poodle();`. Is `pet.getClass() == Animal.class` true? What about `pet instanceof Animal`?
 
-Kết quả lần lượt là `false` và `true`. Kiểu khai báo của biến không thay đổi lớp runtime của đối tượng.
+The results are `false` and `true`, respectively. The variable's declared type does not change the object's runtime class.
 
-**2.** `Class<?> target = Animal.class`. Dùng `target.isInstance(new Poodle())` có khác ý nghĩa với `new Poodle().getClass() == Animal.class` không?
+**2.** `Class<?> target = Animal.class`. Does `target.isInstance(new Poodle())` mean something different from `new Poodle().getClass() == Animal.class`?
 
-Có. Biểu thức đầu kiểm tra quan hệ tương thích kiểu và cho `true`; biểu thức sau kiểm tra chính xác lớp runtime và cho `false`.
+Yes. The first expression checks type compatibility and gives `true`; the second checks the exact runtime class and gives `false`.
 
-**3.** Trong hệ `Point`, `ColoredPoint` có thêm màu quyết định identity. Nếu lớp cha dùng `instanceof Point` để coi lớp con bằng mình theo tọa độ, còn lớp con từ chối lớp cha, tính chất nào bị vi phạm?
+**3.** In the `Point` hierarchy, `ColoredPoint` adds color to determine identity. If the superclass uses `instanceof Point` to treat the subclass as equal by coordinates, while the subclass rejects the superclass, which property is violated?
 
-Tính **đối xứng** của `equals`. Hai chiều cho hai kết quả khác nhau. Một giải pháp là chính sách lớp runtime chính xác ở cả hai phía, miễn là nó phù hợp miền nghiệp vụ.
+**Symmetry** of `equals`. The two directions give different results. One solution is an exact runtime-class policy on both sides, provided it fits the business domain.
 
-**4.** `Runnable.class.isAssignableFrom(MyTask.class)` đúng có nghĩa là gì?
+**4.** What does `Runnable.class.isAssignableFrom(MyTask.class)` being true mean?
 
-Nếu `MyTask` triển khai `Runnable`, thì một đối tượng `MyTask` có thể được dùng ở nơi cần `Runnable`. Nó không khẳng định lớp runtime của đối tượng bằng chính xác `Runnable.class`.
+If `MyTask` implements `Runnable`, then a `MyTask` object can be used wherever a `Runnable` is needed. It does not claim the object's runtime class is literally `Runnable.class`.
 
-**Ghi nhớ:** `instanceof` trả lời “đối tượng **có thể được coi là** kiểu này không?”, còn `getClass() == SomeType.class` trả lời “đối tượng có **chính xác lớp runtime** này không?”. Với `equals` và các hợp đồng đối tượng, lựa chọn phụ thuộc cách ứng dụng định nghĩa bình đẳng xuyên hệ phân cấp; sau kiểm tra kiểu vẫn phải so giá trị và bảo đảm `hashCode` tương thích.
+**Key Takeaway:** `instanceof` answers "can the object **be treated as** this type?", whereas `getClass() == SomeType.class` answers "does the object have **this exact runtime class**?". For `equals` and object contracts, the choice depends on how the application defines equality across the hierarchy; after the type check, you must still compare values and ensure a compatible `hashCode`.

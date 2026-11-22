@@ -1,62 +1,62 @@
-# Thức dậy không bảo đảm điều kiện đã đúng
+# Waking Up Does Not Guarantee the Condition Is Already True
 
-Trong cơ chế monitor của `Object`, một luồng gọi `wait()` vì **trạng thái dùng chung chưa thỏa mãn một điều kiện**. Khi `wait()` kết thúc bình thường, luồng chỉ biết mình đã có cơ hội kiểm tra lại trạng thái. Nó **không được phép suy ra điều kiện đã đúng** chỉ vì vừa được đánh thức.
+In `Object`'s monitor mechanism, a thread calls `wait()` because **shared state does not yet satisfy a condition**. When `wait()` completes normally, the thread only knows it has received an opportunity to recheck the state. It **must not infer that the condition is already true** merely because it just woke up.
 
-Quy tắc cốt lõi: **luôn kiểm tra điều kiện trong vòng `while`, dưới cùng monitor bảo vệ dữ liệu đó**.
+Core rule: **always check the condition in a `while` loop, under the same monitor that protects that data**.
 
-## 1. `wait()` và `notifyAll()` thực sự làm gì?
+## 1. What do `wait()` and `notifyAll()` actually do?
 
-Giả sử hai luồng phối hợp qua một đối tượng `monitor` và cờ `ready`:
+Suppose two threads coordinate through a `monitor` object and a `ready` flag:
 
-1. Luồng chờ giữ khóa monitor qua `synchronized (monitor)`, kiểm tra `ready`. Nếu `false`, nó gọi `monitor.wait()` và **nhả khóa monitor** trong lúc chờ.
-2. Luồng khác lấy khóa đó, có thể cập nhật trạng thái, rồi gọi `monitor.notify()` hoặc `monitor.notifyAll()` khi đang giữ khóa.
-3. Luồng được thông báo chỉ có thể tiếp tục từ `wait()` **sau khi lấy lại khóa monitor**. Trong khoảng từ lúc được thông báo tới lúc lấy lại khóa, trạng thái dùng chung có thể đã thay đổi.
-4. Luồng chờ phải đọc lại `ready` khi đã giữ khóa; nếu vẫn `false`, nó chờ tiếp.
+1. The waiting thread holds the monitor lock via `synchronized (monitor)` and checks `ready`. If `false`, it calls `monitor.wait()` and **releases the monitor lock** while waiting.
+2. Another thread acquires that lock, may update the state, and then calls `monitor.notify()` or `monitor.notifyAll()` while holding the lock.
+3. The notified thread can resume from `wait()` only **after reacquiring the monitor lock**. In the interval between being notified and reacquiring the lock, the shared state may have changed.
+4. The waiting thread must read `ready` again once it holds the lock; if it is still `false`, it continues waiting.
 
-`notify()` chọn một luồng đang chờ trên monitor, còn `notifyAll()` thông báo cho tất cả luồng đang chờ trên monitor; **cả hai không gán giá trị cho `ready`, không xác nhận điều kiện và không trao khóa ngay lập tức**. Các luồng được đánh thức tiếp tục cạnh tranh để lấy monitor.
+`notify()` selects one thread waiting on the monitor, while `notifyAll()` notifies all threads waiting on the monitor; **neither sets the value of `ready`, confirms the condition, or hands over the lock immediately**. The woken threads continue contending to acquire the monitor.
 
-### Những nguyên nhân điều kiện vẫn sai sau khi thức dậy
+### Reasons why the condition may still be false after waking up
 
-- **Tín hiệu không đồng nghĩa điều kiện đúng:** luồng phát tín hiệu có thể gọi `notifyAll()` để báo rằng *có thay đổi*, nhưng thay đổi đó chưa đủ cho điều kiện của luồng chờ.
-- **Luồng khác đến trước:** sau khi được thông báo, một luồng khác có thể lấy monitor, tiêu thụ phần tử cuối trong hàng đợi hoặc thay đổi trạng thái, rồi nhả khóa trước khi luồng đang thức dậy lấy được khóa.
-- **Spurious wakeup (thức dậy tự phát):** Java cho phép `wait()` trở về bình thường dù không có thông báo tương ứng. Chương trình đúng phải xử lý trường hợp này.
-- **Hết thời gian chờ:** với `wait(timeout)`, hàm có thể trở về do hết hạn; điều kiện vẫn cần kiểm tra.
+- **A signal does not mean the condition is true:** the signaling thread may call `notifyAll()` to indicate that *a change occurred*, yet that change is not enough for the waiting thread's condition.
+- **Another thread got there first:** after notification, a different thread may acquire the monitor, consume the last item in the queue or modify the state, and release the lock before the waking thread acquires the lock.
+- **Spurious wakeup:** Java allows `wait()` to return normally even without a corresponding notification. A correct program must handle this case.
+- **Wait timeout:** with `wait(timeout)`, the call can return due to expiration; the condition still needs to be checked.
 
-Nếu bị ngắt khi chờ, `wait()` ném `InterruptedException` sau khi lấy lại monitor. Đây là nhánh xử lý ngắt riêng, không phải bằng chứng điều kiện đã thỏa mãn.
+If interrupted while waiting, `wait()` throws `InterruptedException` after reacquiring the monitor. This is a separate interruption-handling branch, not proof that the condition has been satisfied.
 
-## 2. Sai với `if`, đúng với `while`
+## 2. Wrong with `if`, right with `while`
 
-Ví dụ dưới đây là **đoạn mã minh họa** đặt bên trong một phương thức của lớp có `monitor` và `ready`:
+The examples below are **illustrative code snippets** placed inside a method of a class that has `monitor` and `ready`:
 
 ```java
-// SAI: chỉ kiểm tra điều kiện một lần.
+// WRONG: checks the condition only once.
 synchronized (monitor) {
     if (!ready) {
         monitor.wait();
     }
-    useResource(); // Có thể chạy khi ready vẫn false.
+    useResource(); // May run while ready is still false.
 }
 ```
 
-Ngay cả khi `ready` là `false` lúc bắt đầu chờ, `wait()` có thể trở về mà `ready` vẫn `false`. Lệnh sử dụng tài nguyên vì vậy có thể chạy sai.
+Even if `ready` is `false` when waiting begins, `wait()` can return with `ready` still `false`. The resource-using call can therefore run incorrectly.
 
 ```java
-// ĐÚNG: điều kiện được kiểm tra lại mỗi lần quay về từ wait().
+// RIGHT: the condition is rechecked every time wait() returns.
 synchronized (monitor) {
     while (!ready) {
         monitor.wait();
     }
-    useResource(); // Tại thời điểm giữ monitor này, ready == true.
+    useResource(); // At this point holding this monitor, ready == true.
 }
 ```
 
-Điểm quan trọng nằm ở **vòng lặp kiểm tra điều kiện**, không nằm ở số lần nhận `notify`. Mỗi lần quay về từ `wait()`, `while` đọc trạng thái mới dưới khóa; nếu điều kiện vẫn sai, luồng lại chờ. Luồng cập nhật `ready` cũng phải dùng **chính monitor này**, giữ tính nhất quán và quan hệ hiển thị bộ nhớ của `synchronized`.
+What matters lies in the **condition-checking loop**, not in how many `notify` calls were received. Every time `wait()` returns, `while` reads the fresh state under the lock; if the condition is still false, the thread waits again. The thread updating `ready` must also use **this exact monitor**, preserving consistency and the memory-visibility relationship of `synchronized`.
 
-## 3. Ví dụ Java 17+ có thể chạy
+## 3. Runnable Java 17+ example
 
-Chương trình sau chủ động gọi `notifyAll()` một lần **khi `ready` vẫn `false`**, rồi mới cập nhật `ready = true` và thông báo lần nữa. Hai `CountDownLatch` chỉ giúp điều phối thời điểm trong bản trình diễn; dữ liệu `ready` vẫn được bảo vệ bằng monitor của `Object`.
+The following program intentionally calls `notifyAll()` once **while `ready` is still `false`**, and only afterward updates `ready = true` and notifies again. The two `CountDownLatch` instances only help coordinate timing in the demonstration; the `ready` data is still protected by the `Object`'s monitor.
 
-Lưu vào **`WaitPredicateDemo.java`**:
+Save into **`WaitPredicateDemo.java`**:
 
 ```java
 import java.util.concurrent.CountDownLatch;
@@ -86,12 +86,12 @@ public class WaitPredicateDemo {
                         monitor.wait();
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
-                        System.out.println("worker: bị ngắt, kết thúc");
+                        System.out.println("worker: interrupted, exiting");
                         return;
                     }
                 }
 
-                System.out.println("worker: ready=true, tiếp tục");
+                System.out.println("worker: ready=true, continuing");
             }
         });
 
@@ -99,14 +99,14 @@ public class WaitPredicateDemo {
         firstWait.await();
 
         synchronized (monitor) {
-            System.out.println("main: notifyAll khi ready vẫn false");
+            System.out.println("main: notifyAll while ready is still false");
             monitor.notifyAll();
         }
 
         secondWait.await();
         synchronized (monitor) {
             ready = true;
-            System.out.println("main: ready=true rồi notifyAll");
+            System.out.println("main: ready=true then notifyAll");
             monitor.notifyAll();
         }
 
@@ -115,47 +115,47 @@ public class WaitPredicateDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac WaitPredicateDemo.java
 java WaitPredicateDemo
 ```
 
-Đầu ra minh họa trong một lần chạy thông thường (không có lần thức dậy tự phát phụ):
+Illustrative output in a normal run (without extra spurious wakeups):
 
 ```text
 worker: ready=false, wait #1
-main: notifyAll khi ready vẫn false
+main: notifyAll while ready is still false
 worker: ready=false, wait #2
-main: ready=true rồi notifyAll
-worker: ready=true, tiếp tục
+main: ready=true then notifyAll
+worker: ready=true, continuing
 ```
 
-**Diễn giải:** sau `notifyAll()` đầu tiên, luồng `worker` lấy lại monitor, thấy `ready` vẫn `false` và vào `wait()` thêm lần nữa. Chỉ khi luồng `main` đổi `ready` thành `true` dưới monitor thì `worker` mới qua được điều kiện của `while`. Spurious wakeup có thể làm xuất hiện thêm một số lần chờ, nhưng không khiến `worker` đi qua vòng lặp khi `ready` còn sai.
+**Interpretation:** after the first `notifyAll()`, the `worker` thread reacquires the monitor, sees `ready` is still `false`, and enters `wait()` a second time. Only when the `main` thread changes `ready` to `true` under the monitor does `worker` get past the `while` condition. Spurious wakeups may produce additional wait iterations, but will not let `worker` pass the loop while `ready` remains false.
 
-## 4. Phân biệt nguyên nhân thức dậy với trạng thái cho phép chạy
+## 4. Distinguishing the wakeup cause from the state allowing execution
 
-Giả sử có nhiều waiter cùng chờ `ready == true`. Mỗi nguyên nhân thức dậy chỉ đưa luồng trở lại **điểm kiểm tra predicate**; không nguyên nhân nào thay thế được bước kiểm tra đó.
+Suppose multiple waiters are waiting for `ready == true`. Every wakeup cause only brings the thread back to the **predicate check point**; no cause replaces that check step.
 
-| Nguyên nhân `wait()` kết thúc bình thường | `ready` có chắc `true`? | Cách `while` xử lý |
+| Reason `wait()` returns normally | Is `ready` guaranteed `true`? | How `while` handles it |
 | --- | --- | --- |
-| `notifyAll()` khi `ready` vẫn `false` | Không | Giành lại monitor rồi chờ tiếp. |
-| `notifyAll()` sau khi `ready` đã `true` | Không chắc ở thời điểm waiter lấy lại khóa; thread khác có thể đổi trạng thái | Đọc lại `ready`, chỉ đi tiếp nếu đúng. |
-| Spurious wakeup | Không | Kiểm tra lại và chờ tiếp nếu điều kiện vẫn sai. |
-| `wait(timeout)` hết hạn | Không | Kiểm tra trạng thái và ngân sách chờ theo hợp đồng timeout của caller. |
+| `notifyAll()` while `ready` is still `false` | No | Reacquires monitor and waits again. |
+| `notifyAll()` after `ready` became `true` | Not guaranteed by the time the waiter reacquires the lock; another thread may change state | Re-reads `ready`, proceeds only if true. |
+| Spurious wakeup | No | Rechecks and waits again if condition is still false. |
+| `wait(timeout)` expires | No | Checks state and remaining wait budget per the caller's timeout contract. |
 
-Một trường hợp đáng chú ý là **nhiều nhóm waiter chờ các điều kiện khác nhau trên cùng monitor**: producer chờ bộ đệm chưa đầy, consumer chờ bộ đệm không rỗng. `notifyAll()` đánh thức cả hai nhóm, nhưng mỗi luồng chỉ được làm việc khi predicate của nhóm mình đang đúng. Ví dụ Java hoàn chỉnh cho producer–consumer và giải thích chi tiết vòng `while` nằm ở bài **“Dùng vòng `while` kiểm tra điều kiện trước và sau khi chờ”**.
+A notable case is **multiple waiter groups waiting on different conditions under the same monitor**: producers wait for the buffer not to be full, consumers wait for the buffer not to be empty. `notifyAll()` wakes both groups, yet each thread may only proceed when its own group's predicate is true. A complete Java example for producer–consumer and a detailed explanation of the `while` loop are in the lesson **"Use a `while` loop to check the condition before and after waiting"**.
 
-Nếu `wait()` ném `InterruptedException`, luồng đi vào **nhánh xử lý ngắt** sau khi giành lại monitor; đó không phải một lần trở về bình thường để coi điều kiện đã thỏa.
+If `wait()` throws `InterruptedException`, the thread enters the **interruption-handling branch** after reacquiring the monitor; that is not a normal return where the condition can be assumed satisfied.
 
-## 5. Checklist khi viết code với monitor
+## 5. Checklist when writing code with monitors
 
-- **Gắn chờ với điều kiện cụ thể:** định nghĩa predicate, chẳng hạn `queue.isEmpty()` hoặc `!ready`, và kiểm tra lại predicate bằng `while`.
-- **Một khóa cho việc kiểm tra, chờ và sửa trạng thái:** gọi `wait()`, `notify()` hay `notifyAll()` chỉ khi đang sở hữu monitor tương ứng; nếu không Java ném `IllegalMonitorStateException`.
-- **Thay đổi trạng thái trước khi thông báo:** dưới cùng monitor, cập nhật dữ liệu chia sẻ rồi `notifyAll()` khi thay đổi có thể cho phép luồng khác tiến tiếp. Chỉ thông báo mà không cập nhật predicate có thể khiến tất cả lại chờ.
-- **Không đặt công việc phụ thuộc điều kiện ngay sau `wait()` mà không kiểm tra lại.** Nếu `wait()` có timeout, vẫn phải xét predicate và chính sách hết hạn; timeout không đồng nghĩa thành công.
-- **Xử lý ngắt có chủ đích:** nếu không thể tiếp tục khi `InterruptedException` xuất hiện, có thể khôi phục cờ ngắt với `Thread.currentThread().interrupt()` rồi kết thúc; không âm thầm nuốt ngắt.
-- **Ưu tiên cấu trúc đồng bộ cấp cao khi phù hợp:** `BlockingQueue`, `CountDownLatch`, `Semaphore` hoặc `Condition` có thể giúp diễn đạt mục tiêu rõ hơn; nếu dùng `Condition.await()`, việc chờ điều kiện thông thường cũng cần vòng lặp kiểm tra predicate.
+- **Tie waiting to a concrete condition:** define a predicate, such as `queue.isEmpty()` or `!ready`, and recheck the predicate with `while`.
+- **One lock for checking, waiting, and modifying state:** call `wait()`, `notify()`, or `notifyAll()` only while owning the corresponding monitor; otherwise Java throws `IllegalMonitorStateException`.
+- **Modify state before notifying:** under the same monitor, update shared data and then call `notifyAll()` when the change may allow other threads to proceed. Notifying without updating the predicate can make everyone go back to waiting.
+- **Do not place condition-dependent work right after `wait()` without rechecking.** If `wait()` has a timeout, you still must evaluate the predicate and expiration policy; a timeout does not mean success.
+- **Handle interruption deliberately:** if execution cannot continue when `InterruptedException` occurs, restore the interrupt flag with `Thread.currentThread().interrupt()` and exit; do not silently swallow the interruption.
+- **Prefer higher-level synchronization constructs when appropriate:** `BlockingQueue`, `CountDownLatch`, `Semaphore`, or `Condition` can express intent more clearly; when using `Condition.await()`, normal condition waiting also needs a predicate-checking loop.
 
-**Ghi nhớ:** tín hiệu đánh thức chỉ tạo *cơ hội kiểm tra lại*. **Điều kiện trên trạng thái dùng chung, được đọc trong `while` khi giữ đúng khóa, mới cho phép luồng tiếp tục.**
+**Key takeaway:** a wakeup signal only creates *an opportunity to recheck*. **Only the condition on shared state, read inside `while` while holding the right lock, allows the thread to proceed.**

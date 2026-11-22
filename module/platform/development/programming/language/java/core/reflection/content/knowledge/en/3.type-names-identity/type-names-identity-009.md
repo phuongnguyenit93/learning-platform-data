@@ -1,15 +1,15 @@
-# `Class.isInstance()` khác `instanceof` với kiểu biết trước
+# How `Class.isInstance()` Differs from `instanceof` with a Known Type
 
-Trong Java, cả `instanceof` và `Class.isInstance(Object)` đều có thể trả lời câu hỏi: **đối tượng tại thời điểm chạy có tương thích với một kiểu tham chiếu hay không?** Điểm khác biệt quyết định là **kiểu cần kiểm tra được biểu diễn ở đâu**:
+In Java, both `instanceof` and `Class.isInstance(Object)` can answer the question: **is an object at runtime compatible with a reference type?** The decisive difference is **where the type to check is represented**:
 
-- `value instanceof SomeType`: `SomeType` được viết trực tiếp trong mã nguồn và được trình biên dịch biết khi biên dịch.
-- `someClass.isInstance(value)`: `someClass` là một đối tượng `Class<?>` (hoặc `Class<T>`), vì vậy kiểu đích có thể được chọn, truyền vào hoặc nạp **trong lúc chương trình chạy**.
+- `value instanceof SomeType`: `SomeType` is written directly in source code and known to the compiler at compile time.
+- `someClass.isInstance(value)`: `someClass` is a `Class<?>` (or `Class<T>`) object, so the target type can be chosen, passed in, or loaded **while the program is running**.
 
-Đây là một khác biệt về cách biểu diễn kiểu và cách viết chương trình; khi cùng kiểm tra một kiểu tham chiếu cụ thể, hai cách tuân theo cùng quan hệ tương thích kiểu lúc chạy.
+This is a difference in how the type is represented and how the program is written; when checking the same concrete reference type, both approaches follow the same runtime type-compatibility relationship.
 
-## 1. Kiểm tra kiểu biết trước bằng `instanceof`
+## 1. Checking a Known Type with `instanceof`
 
-Khi kiểu đích đã rõ trong mã, `instanceof` thường dễ đọc nhất:
+When the target type is already clear in code, `instanceof` is usually the easiest to read:
 
 ```java
 Object value = "Java";
@@ -18,9 +18,9 @@ boolean textLike = value instanceof CharSequence; // true
 boolean numeric = value instanceof Number;        // false
 ```
 
-`instanceof` kiểm tra kiểu thực tế của đối tượng, bao gồm quan hệ kế thừa và triển khai interface. Vì `String` triển khai `CharSequence`, phép kiểm tra đầu trả về `true`.
+`instanceof` checks the actual runtime type of the object, including inheritance and interface implementation. Because `String` implements `CharSequence`, the first check returns `true`.
 
-Trong Java 17, có thể dùng **pattern matching for `instanceof`** để vừa kiểm tra vừa có một biến đã được thu hẹp kiểu:
+In Java 17, you can use **pattern matching for `instanceof`** to both check and obtain a type-narrowed variable:
 
 ```java
 Object input = "reflection";
@@ -30,26 +30,26 @@ if (input instanceof String text) {
 }
 ```
 
-Biến `text` chỉ được sử dụng tại những vị trí mà trình biên dịch biết phép kiểm tra đã thành công (phạm vi phụ thuộc luồng điều khiển). Cách này tránh ép kiểu thủ công khi kiểu đích đã có sẵn trong mã nguồn.
+The variable `text` is only in scope at locations where the compiler knows the check succeeded (flow-sensitive scoping). This avoids manual casting when the target type is already available in source code.
 
-Không thể thay tên kiểu ở vế phải `instanceof` bằng một biến chứa `Class<?>`:
+You cannot replace the type name on the right-hand side of `instanceof` with a variable holding `Class<?>`:
 
 ```java
 Class<?> expectedType = String.class;
 
-// KHÔNG biên dịch: expectedType là một biến, không phải tên kiểu.
+// DOES NOT compile: expectedType is a variable, not a type name.
 // boolean matched = input instanceof expectedType;
 ```
 
-## 2. Kiểm tra kiểu được chọn lúc chạy bằng `Class.isInstance()`
+## 2. Checking a Runtime-Selected Type with `Class.isInstance()`
 
-Chữ ký API là:
+The API signature is:
 
 ```java
 public native boolean isInstance(Object obj);
 ```
 
-Phương thức được gọi trên **đối tượng `Class` đại diện cho kiểu đích**, còn đối số là đối tượng cần kiểm tra:
+The method is called on **the `Class` object representing the target type**, while the argument is the object to check:
 
 ```java
 Object value = "Java";
@@ -58,9 +58,9 @@ Class<?> expectedType = CharSequence.class;
 boolean matched = expectedType.isInstance(value); // true
 ```
 
-`expectedType` có thể đến từ tham số phương thức, một registry hoặc `Class.forName(...)`. Nhờ đó, không phải viết một chuỗi `if`/`else` chỉ để lựa chọn giữa các kiểu đã có tên trong cấu hình.
+`expectedType` can come from a method parameter, a registry, or `Class.forName(...)`. As a result, you do not have to write an `if`/`else` chain just to select among types named in configuration.
 
-Ví dụ kiểu đích chỉ được xác định lúc chạy:
+Example where the target type is only determined at runtime:
 
 ```java
 String configuredTypeName = "java.lang.CharSequence";
@@ -70,35 +70,35 @@ Object candidate = "Java";
 System.out.println(expectedType.isInstance(candidate)); // true
 ```
 
-`Class.forName(String)` có thể ném `ClassNotFoundException` và mặc định có thể kích hoạt khởi tạo lớp. Đoạn trên là **mã minh họa đặt trong ngữ cảnh có xử lý hoặc khai báo ngoại lệ**; chương trình chạy đầy đủ ở phần tiếp theo khai báo `throws ClassNotFoundException`.
+`Class.forName(String)` can throw `ClassNotFoundException` and by default can trigger class initialization. The snippet above is **illustrative code placed in a context that handles or declares the exception**; the full runnable program in the next section declares `throws ClassNotFoundException`.
 
-Không nên xem tên kiểu lấy từ đầu vào không tin cậy là một cơ chế cấp quyền. Khi cần cho phép người dùng chọn kiểu, hãy giới hạn danh sách kiểu hợp lệ và kiểm tra quyền/trường hợp sử dụng ở tầng ứng dụng.
+Do not treat a type name taken from untrusted input as an authorization mechanism. When you need to allow users to choose types, restrict the list of valid types and check permissions/use cases at the application layer.
 
-## 3. Đối chiếu trực tiếp
+## 3. Direct Comparison
 
-| Tiêu chí | `instanceof` | `Class.isInstance()` |
+| Criterion | `instanceof` | `Class.isInstance()` |
 | --- | --- | --- |
-| Ví dụ | `obj instanceof Number` | `Number.class.isInstance(obj)` |
-| Cách chỉ ra kiểu đích | Tên kiểu hoặc mẫu kiểu được viết trong mã | Giá trị `Class<?>`/`Class<T>` |
-| Chọn kiểu đích khi chạy | Không thể dùng biến `Class<?>` thay tên kiểu | Có thể, qua tham số, registry, `Class.forName`… |
-| Kiểm tra quan hệ kế thừa/interface | Có | Có |
-| Đối tượng `null` | `false` | `false` |
-| Thu hẹp kiểu trong Java 17 | Có thể khai báo biến pattern (`instanceof T t`) | Không tự sinh biến pattern hoặc tự thu hẹp kiểu |
-| Tình huống nên dùng | Kiểu đã biết, nhánh xử lý nghiệp vụ thông thường | Framework, reflection, bộ kiểm tra nhận `Class` từ cấu hình hoặc API |
+| Example | `obj instanceof Number` | `Number.class.isInstance(obj)` |
+| How the target type is specified | Type name or type pattern written in code | `Class<?>`/`Class<T>` value |
+| Choosing the target type at runtime | Cannot use a `Class<?>` variable instead of a type name | Possible, via parameters, registries, `Class.forName`… |
+| Checking inheritance/interface relationships | Yes | Yes |
+| `null` object | `false` | `false` |
+| Type narrowing in Java 17 | Can declare a pattern variable (`instanceof T t`) | Does not automatically introduce a pattern variable or narrow types |
+| When to use | Known type, ordinary business branching | Frameworks, reflection, validators receiving `Class` from configuration or API |
 
-Với một kiểu tham chiếu cụ thể `T` có thể dùng trực tiếp, ta có tính tương đương thực tế:
+For a concrete reference type `T` that can be used directly, we have practical equivalence:
 
 ```java
 boolean a = value instanceof Number;
 boolean b = Number.class.isInstance(value);
-// a và b cho cùng kết quả đối với cùng value.
+// a and b produce the same result for the same value.
 ```
 
-Điều này **không** có nghĩa mọi biểu thức liên quan đến generic, kiểu nguyên thủy hoặc kiểu được chọn động đều có thể đổi cú pháp một cách máy móc.
+This does **not** mean every expression involving generics, primitive types, or dynamically chosen types can be syntax-swapped mechanically.
 
-## 4. Chương trình Java 17+ chạy được
+## 4. Runnable Java 17+ Program
 
-Lưu toàn bộ mã sau trong tệp `TypeChecksDemo.java`:
+Save all of the following code in the file `TypeChecksDemo.java`:
 
 ```java
 import java.util.List;
@@ -149,14 +149,14 @@ public class TypeChecksDemo {
 }
 ```
 
-Biên dịch/chạy bằng JDK 17 trở lên:
+Compile and run using JDK 17 or later:
 
 ```bash
 javac --release 17 TypeChecksDemo.java
 java TypeChecksDemo
 ```
 
-Kết quả chuẩn (`stdout`):
+Expected output (`stdout`):
 
 ```text
 true
@@ -174,32 +174,32 @@ false
 4
 ```
 
-Giải thích các nhóm kết quả:
+Explanation of output groups:
 
-1. Chuỗi `"Java"` vừa là `CharSequence` qua `instanceof`, vừa thỏa `CharSequence.class.isInstance(...)` và kiểu được nạp bằng `Class.forName`. Nó không phải `Integer`.
-2. Hai nhánh xử lý đối tượng `Integer(42)` đều lấy được giá trị `42`: nhánh thứ nhất dùng biến pattern `Number n`, nhánh thứ hai dùng token `Class<? extends Number>` và `cast`.
-3. `null` không là instance của `String`. `int.class` đại diện cho kiểu nguyên thủy `int`, còn `number` là đối tượng `Integer`, nên kiểm tra với `int.class` là `false` và với `Integer.class` là `true`.
-4. `List.class` nhận diện đối tượng danh sách; mảng `String[]` là `Object[]`, còn mảng nguyên thủy `int[]` không phải `Object[]`.
-5. `requireType(String.class, text)` xác nhận kiểu, ép kiểu có kiểm tra và trả về `String`. `"Java".length()` bằng `4`.
+1. The string `"Java"` is a `CharSequence` via `instanceof`, satisfies `CharSequence.class.isInstance(...)`, and satisfies the type loaded via `Class.forName`. It is not an `Integer`.
+2. Both branches handling the `Integer(42)` object obtain the value `42`: the first branch uses the pattern variable `Number n`, while the second uses the `Class<? extends Number>` token and `cast`.
+3. `null` is not an instance of `String`. `int.class` represents the primitive type `int`, whereas `number` is an `Integer` object, so checking with `int.class` is `false` and with `Integer.class` is `true`.
+4. `List.class` recognizes the list object; the array `String[]` is an `Object[]`, whereas the primitive array `int[]` is not an `Object[]`.
+5. `requireType(String.class, text)` validates the type, casts safely, and returns `String`. `"Java".length()` equals `4`.
 
-## 5. `Class.cast()` và giới hạn của thu hẹp kiểu
+## 5. `Class.cast()` and the Limits of Type Narrowing
 
-`isInstance()` trả về `boolean` và **không làm trình biên dịch suy ra kiểu cụ thể của biến**:
+`isInstance()` returns `boolean` and **does not cause the compiler to infer a more specific type for the variable**:
 
 ```java
 Object candidate = "hello";
 Class<String> expected = String.class;
 
 if (expected.isInstance(candidate)) {
-    // candidate vẫn có kiểu khai báo là Object.
+    // candidate still has declared type Object.
     String result = expected.cast(candidate);
     System.out.println(result.toUpperCase()); // HELLO
 }
 ```
 
-`Class<T>.cast(Object)` dùng kiểu được đại diện bởi `Class<T>` để ép kiểu lúc chạy; nếu đối tượng không tương thích, nó ném `ClassCastException` (riêng `cast(null)` trả về `null`). Kết hợp `isInstance()` trước `cast()` giúp quyết định rõ cách xử lý trường hợp không khớp, chẳng hạn trả về kết quả lỗi riêng thay vì để ngoại lệ xuất hiện.
+`Class<T>.cast(Object)` uses the type represented by `Class<T>` to cast at runtime; if the object is incompatible, it throws `ClassCastException` (specifically, `cast(null)` returns `null`). Combining `isInstance()` before `cast()` lets you decide explicitly how to handle a mismatch, such as returning a separate error result instead of letting an exception occur.
 
-Với `Class<?>`, kiểu `T` cụ thể chưa được biết:
+With `Class<?>`, the concrete type `T` is not yet known:
 
 ```java
 Class<?> expected = String.class;
@@ -211,17 +211,17 @@ if (expected.isInstance(candidate)) {
 }
 ```
 
-Biến `accepted` vẫn được dùng như `Object` trong ví dụ; không thể coi `Class<?>` tự động biến thành `Class<String>` chỉ vì đối tượng thực tế là chuỗi. Nếu API biết kiểu cần trả về, hãy nhận tham số `Class<T>` và dùng `T` như hàm `requireType` trong chương trình đầy đủ.
+The variable `accepted` is still used as `Object` in the example; you cannot treat `Class<?>` as automatically becoming `Class<String>` merely because the actual object is a string. If an API knows the return type it needs, accept a `Class<T>` parameter and use `T` like the `requireType` method in the full program.
 
-## 6. Các trường hợp biên dễ nhầm
+## 6. Confusing Edge Cases
 
 ### `null`
 
-Cả `obj instanceof T` lẫn `T.class.isInstance(obj)` đều trả về `false` khi `obj == null`. Vì vậy `isInstance()` không phải phép kiểm tra một giá trị có thể gán vào biến kiểu tham chiếu hay không theo mọi nghĩa: Java cho phép gán `null` cho nhiều biến tham chiếu, nhưng phép thử instance vẫn trả về `false`.
+Both `obj instanceof T` and `T.class.isInstance(obj)` return `false` when `obj == null`. Therefore `isInstance()` is not a test of whether a value can be assigned to a reference-type variable in every sense: Java allows assigning `null` to many reference variables, yet the instance check still returns `false`.
 
-### Primitive, boxing và mảng
+### Primitives, boxing, and arrays
 
-`int.class` là một đối tượng `Class` hợp lệ, nhưng **một giá trị primitive không phải đối tượng instance** để `isInstance()` chấp nhận:
+`int.class` is a valid `Class` object, but **a primitive value is not an object instance** for `isInstance()` to accept:
 
 ```java
 Integer boxed = 7;
@@ -230,9 +230,9 @@ System.out.println(int.class.isInstance(boxed));     // false
 System.out.println(Integer.class.isInstance(boxed)); // true
 ```
 
-Lệnh `Integer.class.isInstance(7)` cũng trả về `true` vì đối số primitive `7` được **autobox** thành `Integer` khi truyền vào tham số `Object`. Điều này không có nghĩa `int.class` và `Integer.class` là cùng một lớp.
+The call `Integer.class.isInstance(7)` also returns `true` because the primitive argument `7` is **autoboxed** into `Integer` when passed to the `Object` parameter. This does not mean `int.class` and `Integer.class` are the same class.
 
-Với mảng, Java kiểm tra loại thành phần và quy tắc tương thích mảng. `String[]` là một loại `Object[]`; `int[]` là một đối tượng và là `Object`, nhưng **không** là `Object[]`:
+For arrays, Java checks element kind and array compatibility rules. `String[]` is a kind of `Object[]`; `int[]` is an object and is an `Object`, but it is **not** an `Object[]`:
 
 ```java
 System.out.println(Object.class.isInstance(new int[] {1}));    // true
@@ -240,9 +240,9 @@ System.out.println(Object[].class.isInstance(new int[] {1}));  // false
 System.out.println(Object[].class.isInstance(new String[] {"a"})); // true
 ```
 
-### Generic và type erasure
+### Generics and type erasure
 
-Thông tin tham số kiểu như `String` trong `List<String>` nhìn chung **không được lưu để kiểm tra phần tử bằng `instanceof` hoặc `Class.isInstance()`** ở thời điểm chạy:
+Type parameter information such as `String` in `List<String>` is generally **not retained for element-level checking with `instanceof` or `Class.isInstance()`** at runtime:
 
 ```java
 Object data = List.of("a", "b");
@@ -250,40 +250,40 @@ Object data = List.of("a", "b");
 System.out.println(data instanceof List<?>);    // true
 System.out.println(List.class.isInstance(data)); // true
 
-// KHÔNG biên dịch với data là Object: kiểu tham số hóa không reifiable.
+// DOES NOT compile with data as Object: parameterized type is non-reifiable.
 // boolean x = data instanceof List<String>;
 
-// KHÔNG có class literal cho List<String>.
+// NO class literal exists for List<String>.
 // Class<?> c = List<String>.class;
 ```
 
-Hai phép kiểm tra hợp lệ chỉ xác nhận đối tượng là một `List`, không xác nhận mỗi phần tử có kiểu `String`. Khi cần xác minh phần tử, cần duyệt và kiểm tra dữ liệu theo yêu cầu thực tế, hoặc dùng cơ chế mô tả kiểu tổng quát riêng phù hợp với framework.
+Both valid checks only confirm that the object is a `List`, not that every element has type `String`. When element verification is needed, iterate and inspect the data according to real requirements, or use a dedicated generic type-description mechanism suited to your framework.
 
-### Class loader và định danh kiểu
+### Class loaders and type identity
 
-Hai lớp có **cùng tên đầy đủ** nhưng được định nghĩa bởi hai class loader khác nhau có thể là hai kiểu runtime khác nhau. `Class.isInstance()` kiểm tra tính tương thích với đúng đối tượng `Class` đang giữ, không chỉ so sánh chuỗi tên lớp. Điều này đặc biệt quan trọng trong hệ thống plugin hoặc môi trường nạp lớp động.
+Two classes with the **same full name** defined by two different class loaders can be two distinct runtime types. `Class.isInstance()` checks compatibility with the exact `Class` object it holds, not merely comparing class name strings. This is especially important in plugin systems or dynamic class-loading environments.
 
-## 7. Phân biệt với `Class.isAssignableFrom()`
+## 7. Distinguishing from `Class.isAssignableFrom()`
 
-Reflection còn có phép kiểm tra rất gần nhưng nhận **kiểu**, không nhận đối tượng:
+Reflection also has a closely related check that takes a **type**, not an object:
 
 ```java
 System.out.println(Number.class.isInstance(Integer.valueOf(5))); // true
 System.out.println(Number.class.isAssignableFrom(Integer.class)); // true
 ```
 
-- `expectedType.isInstance(value)` hỏi **đối tượng `value`** có là instance của `expectedType` không.
-- `expectedType.isAssignableFrom(actualType)` hỏi **kiểu `actualType`** có thể gán cho biến kiểu `expectedType` theo quan hệ kiểu tham chiếu hay không.
+- `expectedType.isInstance(value)` asks whether **the object `value`** is an instance of `expectedType`.
+- `expectedType.isAssignableFrom(actualType)` asks whether **the type `actualType`** can be assigned to a variable of type `expectedType` under reference type rules.
 
-Nếu đã có đối tượng không `null`, `expectedType.isInstance(value)` thường là cách diễn đạt trực tiếp hơn việc tự lấy `value.getClass()`. Gọi `value.getClass()` trên `null` sẽ ném `NullPointerException`; còn `isInstance(null)` trả về `false`. `isAssignableFrom` cũng có thể kiểm tra quan hệ giữa các `Class` của kiểu primitive, nhưng không thay thế tự động các quy tắc boxing/unboxing của biểu thức Java.
+If you already have a non-`null` object, `expectedType.isInstance(value)` is usually a more direct expression than calling `value.getClass()` yourself. Calling `value.getClass()` on `null` throws `NullPointerException`, whereas `isInstance(null)` returns `false`. `isAssignableFrom` can also check relationships between primitive `Class` objects, though it does not automatically replicate Java expression boxing/unboxing rules.
 
-## 8. Chọn API trong thực tế
+## 8. Choosing an API in Practice
 
-Dùng **`instanceof`** khi logic xử lý biết trước kiểu cần kiểm tra, nhất là khi pattern variable giúp đọc và xử lý giá trị ngay. Ví dụ: một nhánh nghiệp vụ nhận `Object` và xử lý riêng `String` hoặc `Number`.
+Use **`instanceof`** when the processing logic knows the type to check in advance, especially when a pattern variable makes reading and using the value immediate. For example: a business branch accepting `Object` and handling `String` or `Number` specifically.
 
-Dùng **`Class.isInstance()`** khi kiểu đích là một giá trị đi qua API, cấu hình hoặc registry; chẳng hạn bộ lọc nhận `Class<T> expectedType`, bộ điều phối plugin được đăng ký bằng đối tượng `Class`, hoặc tiện ích reflection muốn kiểm tra đối tượng trước khi gọi `expectedType.cast(...)`.
+Use **`Class.isInstance()`** when the target type is a value flowing through an API, configuration, or registry; for instance, a filter receiving `Class<T> expectedType`, a plugin dispatcher registered by `Class` objects, or a reflection utility checking an object before calling `expectedType.cast(...)`.
 
-Một mẫu API hữu ích là:
+A useful API pattern is:
 
 ```java
 static <T> boolean accepts(Class<T> expectedType, Object candidate) {
@@ -291,23 +291,23 @@ static <T> boolean accepts(Class<T> expectedType, Object candidate) {
 }
 ```
 
-Ví dụ `accepts(CharSequence.class, "Java")` trả về `true`. Tham số `Class<T>` làm ý nghĩa của kiểu đích rõ ràng, còn `isInstance` thực hiện kiểm tra khi chạy.
+For example, `accepts(CharSequence.class, "Java")` returns `true`. The `Class<T>` parameter makes the meaning of the target type clear, while `isInstance` performs the check at runtime.
 
-Không cần thay mọi `instanceof` bằng reflection: nếu kiểu cố định trong mã, `instanceof` ngắn gọn và hỗ trợ pattern matching. Nếu kiểu có thể thay đổi trong lúc chạy, `Class.isInstance()` cho phép truyền kiểu như dữ liệu mà vẫn dùng quan hệ kế thừa/interface của Java.
+There is no need to replace every `instanceof` with reflection: if the type is fixed in code, `instanceof` is concise and supports pattern matching. If the type can vary at runtime, `Class.isInstance()` lets you pass types as data while still using Java's inheritance/interface relationships.
 
-## 9. Lỗi thường gặp và tự kiểm tra
+## 9. Common Mistakes and Self-Check
 
-- Viết `value instanceof expectedClass` khi `expectedClass` là biến `Class<?>`: sai cú pháp/kiểu; hãy gọi `expectedClass.isInstance(value)`.
-- Tưởng `isInstance` tự ép kiểu biến: nó chỉ trả về `boolean`; cân nhắc `Class<T>.cast()` sau khi kiểm tra.
-- Dùng `int.class` để kiểm tra một `Integer`: hai kiểu khác nhau, kết quả `false`.
-- Dùng `List.class.isInstance(value)` để kết luận đó là `List<String>`: tham số kiểu đã bị erasure, kết luận này không được bảo đảm.
-- Dùng `obj.getClass()` mà chưa xử lý `null`, hoặc so sánh tên lớp thay cho quan hệ tương thích kiểu và class loader.
+- Writing `value instanceof expectedClass` when `expectedClass` is a `Class<?>` variable: invalid syntax/type; call `expectedClass.isInstance(value)` instead.
+- Assuming `isInstance` automatically casts the variable: it only returns `boolean`; consider `Class<T>.cast()` after checking.
+- Using `int.class` to check an `Integer`: the two types differ, so the result is `false`.
+- Using `List.class.isInstance(value)` to conclude it is a `List<String>`: type arguments have been erased, so that conclusion is not guaranteed.
+- Calling `obj.getClass()` without handling `null`, or comparing class names instead of type compatibility and class loaders.
 
-**Câu hỏi tự kiểm tra:**
+**Self-check questions:**
 
-1. Nếu kiểu kiểm tra được lưu trong `Class<?> selected`, vì sao `instanceof selected` không hợp lệ, và lời gọi nào thay thế được?
-2. Vì sao `Number.class.isInstance(Integer.valueOf(10))` là `true` nhưng `int.class.isInstance(Integer.valueOf(10))` là `false`?
-3. Khi cần trả về `T` từ một hàm nhận `Class<T>`, vì sao kết hợp `isInstance` và `cast` rõ ràng hơn ép kiểu `T` không kiểm tra?
-4. Một thư viện nhận tên lớp cấu hình ở thời điểm chạy nên dùng cơ chế nào để kiểm tra đối tượng? Nó cần kiểm soát thêm điều gì đối với tên lớp được phép tải?
+1. If the type to check is stored in `Class<?> selected`, why is `instanceof selected` invalid, and which call replaces it?
+2. Why is `Number.class.isInstance(Integer.valueOf(10))` `true`, whereas `int.class.isInstance(Integer.valueOf(10))` is `false`?
+3. When needing to return `T` from a function accepting `Class<T>`, why is combining `isInstance` and `cast` clearer than an unchecked cast to `T`?
+4. Which mechanism should a library receiving a configured class name at runtime use to check objects? What else must it control regarding which class names are allowed to be loaded?
 
-**Ghi nhớ:** `instanceof` biểu diễn **kiểu đích ngay trong mã Java**; `Class.isInstance()` biểu diễn **kiểu đích bằng một đối tượng `Class` có thể chọn khi chạy**. Cả hai kiểm tra tương thích kiểu runtime, nhưng khác nhau ở khả năng truyền kiểu như dữ liệu và hỗ trợ thu hẹp kiểu của trình biên dịch.
+**Takeaway:** `instanceof` expresses the **target type directly in Java code**; `Class.isInstance()` expresses the **target type via a `Class` object selectable at runtime**. Both check runtime type compatibility, but differ in the ability to pass types as data and compiler support for type narrowing.

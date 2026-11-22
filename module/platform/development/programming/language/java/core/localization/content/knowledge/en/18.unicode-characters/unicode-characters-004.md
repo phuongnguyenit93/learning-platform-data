@@ -1,170 +1,170 @@
-# length, codePointCount, codePoints và chỉ số UTF-16 trong Java
+# `length`, `codePointCount`, `codePoints`, and UTF-16 Indices in Java
 
-## 1. Ba cách “đếm ký tự” không phải lúc nào cũng giống nhau
+## 1. Three Ways to "Count Characters" Are Not Always the Same
 
-Trong Java, một `String` biểu diễn một chuỗi các **đơn vị mã UTF-16 (code units)** ở cấp API. Khi xử lý localization, emoji, chữ viết ngoài Basic Multilingual Plane (BMP), dấu tổ hợp và nhiều ký tự Unicode, cần tách biệt:
+In Java, a `String` represents a sequence of **UTF-16 code units** at the API level. When handling localization, emojis, scripts outside the Basic Multilingual Plane (BMP), combining marks, and various Unicode characters, you must distinguish:
 
-1. **Đơn vị mã UTF-16:** mỗi `char` của Java là một code unit 16 bit. `String.length()` đếm các đơn vị này.
-2. **Unicode code point:** giá trị số chỉ định một vị trí trong không gian mã Unicode, ví dụ `U+0041` (A), `U+1F600` (emoji khuôn mặt cười). `String.codePointCount(begin, end)` đếm các code point được biểu diễn trong đoạn UTF-16; `String.codePoints()` cho một luồng `int` tương ứng.
-3. **Grapheme cluster / ký tự người dùng cảm nhận:** một cụm có thể gồm nhiều code point nhưng được nhìn và thao tác như một ký tự, ví dụ `e` + dấu sắc tổ hợp hoặc một emoji lá cờ được tạo từ hai regional indicator. Không có phương thức `String.length()` hay `codePointCount()` nào mặc định đếm số grapheme cluster theo đầy đủ quy tắc Unicode.
+1. **UTF-16 code unit:** each Java `char` is a 16-bit code unit. `String.length()` counts these units.
+2. **Unicode code point:** a numeric value identifying a position in the Unicode code space, such as `U+0041` (A) or `U+1F600` (grinning face emoji). `String.codePointCount(begin, end)` counts the code points represented in a UTF-16 segment; `String.codePoints()` provides a corresponding stream of `int`s.
+3. **Grapheme cluster / user-perceived character:** a cluster that can consist of multiple code points yet is viewed and manipulated as one character, such as `e` + combining acute accent or a flag emoji made from two regional indicators. No `String.length()` or `codePointCount()` method counts grapheme clusters according to full Unicode rules by default.
 
-**Ví dụ:** chuỗi chứa chữ `A`, emoji `U+1F600`, chữ `e` theo sau bởi dấu kết hợp `U+0301`, rồi hai regional indicator `U+1F1FB` và `U+1F1F3` tạo thành cờ Việt Nam:
+**Example:** a string containing the letter `A`, emoji `U+1F600`, letter `e` followed by combining mark `U+0301`, then two regional indicators `U+1F1FB` and `U+1F1F3` forming the Vietnam flag:
 
 ~~~text
-Các code point:
+Code points:
 U+0041 | U+1F600 | U+0065 | U+0301 | U+1F1FB | U+1F1F3
 
-Số code point: 6
-Số UTF-16 code units: 9
-Số grapheme cluster thường được hiển thị: 4
+Code point count: 6
+UTF-16 code units count: 9
+Typically displayed grapheme clusters: 4
 ~~~
 
-Bốn grapheme cluster trong ví dụ tương ứng với **A**, **emoji cười**, **e với dấu sắc**, **emoji cờ**. Con số grapheme phụ thuộc quy tắc phân đoạn và rendering Unicode; không dựa vào nó để suy ra một giới hạn lưu trữ tính bằng UTF-16 code units.
+The four grapheme clusters in the example correspond to **A**, **grinning emoji**, **e with acute accent**, and **flag emoji**. The grapheme count depends on Unicode segmentation rules and rendering; do not rely on it to deduce a storage limit measured in UTF-16 code units.
 
-Trong học tập về Java core, phải nhớ: **chỉ số truyền vào nhiều API của `String` là chỉ số UTF-16**, kể cả những API có chữ *codePoint* trong tên.
+When learning Java core, remember: **indices passed to many `String` APIs are UTF-16 indices**, even for APIs with *codePoint* in their names.
 
-## 2. Vì sao một code point có thể chiếm hai char?
+## 2. Why Can One Code Point Take Two `char`s?
 
-Unicode có các mã trong mặt phẳng cơ sở BMP (từ `U+0000` đến `U+FFFF`) và các mã bổ sung (supplementary code points, lớn hơn `U+FFFF`). Trong UTF-16:
+Unicode has codes in the Basic Multilingual Plane BMP (from `U+0000` to `U+FFFF`) and supplementary codes (supplementary code points, greater than `U+FFFF`). In UTF-16:
 
-- Code point ở BMP (không thuộc vùng surrogate khi là Unicode scalar value hợp lệ) có thể được biểu diễn bằng **một** `char`.
-- Một supplementary code point cần **hai** `char`: **high surrogate** rồi **low surrogate**.
-- High surrogate nằm trong vùng `U+D800`–`U+DBFF`; low surrogate nằm trong `U+DC00`–`U+DFFF`.
-- `char` riêng lẻ **không đủ** để biểu diễn mọi code point Unicode. `int` là kiểu thích hợp khi đọc một code point.
+- A code point in the BMP (outside the surrogate region when it is a valid Unicode scalar value) can be represented by **one** `char`.
+- A supplementary code point requires **two** `char`s: a **high surrogate** followed by a **low surrogate**.
+- High surrogates lie in `U+D800`–`U+DBFF`; low surrogates lie in `U+DC00`–`U+DFFF`.
+- A single `char` is **insufficient** to represent every Unicode code point. `int` is the appropriate type when reading a code point.
 
-Ví dụ emoji `U+1F600` có cặp UTF-16:
+For example, the emoji `U+1F600` has the UTF-16 pair:
 
 ~~~text
-Code point          : U+1F600
-High surrogate      : U+D83D
-Low surrogate       : U+DE00
-Số UTF-16 code units: 2
-Số Unicode code point: 1
+Code point           : U+1F600
+High surrogate       : U+D83D
+Low surrogate        : U+DE00
+UTF-16 code units    : 2
+Unicode code points  : 1
 ~~~
 
-Một chuỗi có thể chứa **surrogate đơn lẻ** (unpaired surrogate) do cắt sai, đọc dữ liệu không hợp lệ hoặc tạo trực tiếp `char`. Lưu ý: các phương thức `String.codePointCount` và `String.codePoints()` của Java **vẫn đếm/trả surrogate lẻ như một mục**. Vì vậy *đếm code point không đồng nghĩa với xác minh văn bản chứa toàn Unicode scalar values hợp lệ*.
+A string can contain an **unpaired surrogate** due to bad slicing, reading invalid data, or constructing `char`s directly. Note: Java's `String.codePointCount` and `String.codePoints()` **still count/return a lone surrogate as one item**. Therefore, *counting code points does not equate to verifying that text contains only valid Unicode scalar values*.
 
-### 2.1. Chỉ số UTF-16 của ví dụ
+### 2.1. UTF-16 Indices of the Example
 
-Các đơn vị mã trong chuỗi sáu code point được sắp như sau:
+The code units in the six-code-point string are arranged as follows:
 
-| Chỉ số UTF-16 | Code unit (hex) | Thuộc code point nào? |
+| UTF-16 index | Code unit (hex) | Belongs to which code point? |
 | ---: | --- | --- |
 | 0 | `U+0041` | A |
-| 1 | `U+D83D` | High surrogate của `U+1F600` |
-| 2 | `U+DE00` | Low surrogate của `U+1F600` |
+| 1 | `U+D83D` | High surrogate of `U+1F600` |
+| 2 | `U+DE00` | Low surrogate of `U+1F600` |
 | 3 | `U+0065` | e |
-| 4 | `U+0301` | Dấu sắc tổ hợp |
-| 5 | High surrogate của `U+1F1FB` | Regional indicator thứ nhất |
-| 6 | Low surrogate của `U+1F1FB` | Regional indicator thứ nhất |
-| 7 | High surrogate của `U+1F1F3` | Regional indicator thứ hai |
-| 8 | Low surrogate của `U+1F1F3` | Regional indicator thứ hai |
+| 4 | `U+0301` | Combining acute accent |
+| 5 | High surrogate of `U+1F1FB` | First regional indicator |
+| 6 | Low surrogate of `U+1F1FB` | First regional indicator |
+| 7 | High surrogate of `U+1F1F3` | Second regional indicator |
+| 8 | Low surrogate of `U+1F1F3` | Second regional indicator |
 
-Vị trí bắt đầu code point (tính theo `char`) là **0, 1, 3, 4, 5, 7**; vị trí ngay sau code point cuối là **9**. Vì có code point chiếm hai `char`, index theo code point và index theo UTF-16 **không thể hoán đổi**.
+The code point start positions (measured in `char`s) are **0, 1, 3, 4, 5, 7**; the position immediately after the last code point is **9**. Because some code points occupy two `char`s, code point indices and UTF-16 indices **cannot be interchanged**.
 
-Trong nội bộ JVM, biểu diễn vật lý của một số `String` có thể được tối ưu hóa (ví dụ Compact Strings). Điều đó **không đổi hợp đồng API**: `length()`, `charAt`, `substring` và các chỉ số được mô tả ở đây vẫn theo đơn vị mã UTF-16.
+Internally in the JVM, the physical representation of some `String`s may be optimized (for example, Compact Strings). That **does not change the API contract**: `length()`, `charAt`, `substring`, and the indices described here remain in UTF-16 code units.
 
-## 3. String.length(): đếm đơn vị mã, không phải số code point
+## 3. `String.length()`: Counts Code Units, Not Code Points
 
-Phương thức:
+Method:
 
 ~~~java
 int count = text.length();
 ~~~
 
-Đây là **đoạn minh họa**; `text` là `String` đã khai báo.
+This is an **illustrative snippet**; `text` is a declared `String`.
 
-Với chuỗi ASCII `"Java"`, `length() == 4`, `codePointCount(0, 4) == 4`. Nhưng với một supplementary character, kết quả khác:
+For the ASCII string `"Java"`, `length() == 4` and `codePointCount(0, 4) == 4`. Yet with a supplementary character, the result differs:
 
 ~~~java
 String emoji = new String(Character.toChars(0x1F600));
 System.out.println(emoji.length()); // 2
 ~~~
 
-Ví dụ trên chạy khi nằm trong một phương thức Java. `Character.toChars(0x1F600)` trả hai `char`, nên độ dài của `String` là 2 dù người dùng nhìn thấy một emoji.
+The example above runs inside a Java method. `Character.toChars(0x1F600)` returns two `char`s, so the `String`'s length is 2 even though the user sees one emoji.
 
-Hệ quả thực tế:
+Practical consequences:
 
-- `String.length()` phù hợp để tính **số UTF-16 code units** khi API hoặc dung lượng ô dữ liệu yêu cầu loại kích thước đó.
-- `length()` **không** đếm code point, grapheme cluster, số chữ cái, số từ hay byte UTF-8.
-- Không dùng `length() <= max` rồi tuyên bố “người dùng chỉ nhập tối đa max ký tự nhìn thấy” nếu giới hạn cần dựa trên grapheme.
-- Nếu quy tắc là số byte khi gửi qua API hay database, phải đo theo **charset thực tế** như UTF-8, không suy từ `length()`.
+- `String.length()` is suitable for calculating the **number of UTF-16 code units** when an API or data field capacity requires that type of size.
+- `length()` does **not** count code points, grapheme clusters, letters, words, or UTF-8 bytes.
+- Do not write `length() <= max` and claim "users can enter at most max visible characters" if the limit needs to be based on graphemes.
+- If the rule concerns byte count when sending via an API or database, measure in the **actual charset** such as UTF-8 rather than inferring from `length()`.
 
-### 3.1. charAt cũng đọc một code unit
+### 3.1. `charAt` Also Reads One Code Unit
 
 ~~~java
 char firstPart = text.charAt(1);
 ~~~
 
-`charAt(1)` chỉ trả về **high surrogate** `U+D83D` trong ví dụ, không trả nguyên `U+1F600`. Nếu in riêng nó ra giao diện hoặc chuyển qua encoding, ký tự có thể trở thành ký hiệu thay thế do cặp surrogate bị tách.
+`charAt(1)` returns only the **high surrogate** `U+D83D` in the example, not the full `U+1F600`. If printed alone to a UI or passed through an encoding, the character can become a replacement symbol because the surrogate pair was split.
 
-Dùng `Character.isHighSurrogate` và `Character.isLowSurrogate` để nhận diện các phần của cặp khi cần thao tác ở mức UTF-16; còn khi xử lý một code point, nên dùng các API code point phù hợp.
+Use `Character.isHighSurrogate` and `Character.isLowSurrogate` to identify parts of a pair when operating at the UTF-16 level; when processing a code point, use appropriate code point APIs.
 
-## 4. codePointCount(beginIndex, endIndex): đếm code point trong khoảng UTF-16
+## 4. `codePointCount(beginIndex, endIndex)`: Counting Code Points in a UTF-16 Range
 
-Cú pháp:
+Syntax:
 
 ~~~java
 int n = text.codePointCount(0, text.length());
 ~~~
 
-**Cả hai tham số đều là chỉ số UTF-16**, không phải chỉ số code point:
+**Both parameters are UTF-16 indices**, not code point indices:
 
-- `beginIndex`: vị trí bắt đầu, bao gồm.
-- `endIndex`: vị trí kết thúc, không bao gồm.
-- Phần văn bản được xét là `[beginIndex, endIndex)`.
-- Nếu gặp cặp surrogate đầy đủ trong khoảng, nó được tính là **một code point**.
-- Surrogate lẻ trong khoảng được tính là **một mục**.
-- Tham số vượt biên hoặc `beginIndex > endIndex` gây `IndexOutOfBoundsException`.
+- `beginIndex`: starting position, inclusive.
+- `endIndex`: ending position, exclusive.
+- The text slice examined is `[beginIndex, endIndex)`.
+- If a complete surrogate pair falls inside the range, it counts as **one code point**.
+- An unpaired surrogate inside the range counts as **one item**.
+- Out-of-bounds parameters or `beginIndex > endIndex` throw `IndexOutOfBoundsException`.
 
-Với chuỗi ở mục 1:
+With the string from Section 1:
 
 ~~~java
 System.out.println(text.length());                        // 9
 System.out.println(text.codePointCount(0, text.length())); // 6
 ~~~
 
-Đây là minh họa trong một phương thức; chương trình đầy đủ ở mục 8.
+This is an illustration inside a method; the complete program is in Section 8.
 
-**Trường hợp cắt đúng giữa surrogate pair:** đoạn `[1, 2)` chỉ chứa high surrogate của emoji nên `codePointCount(1, 2)` trả **1**, nhưng phần đó không phải code point scalar hợp lệ độc lập. Không dùng kết quả đếm để chứng minh đoạn Unicode còn nguyên vẹn.
+**Slicing right in the middle of a surrogate pair:** the range `[1, 2)` contains only the emoji's high surrogate, so `codePointCount(1, 2)` returns **1**, yet that slice is not a valid standalone scalar code point. Do not use the count result to prove that a Unicode slice is intact.
 
-### 4.1. codePointCount không xác định vị trí code point thứ n
+### 4.1. `codePointCount` Does Not Locate the nth Code Point
 
-Đếm code point của `text` chỉ cho biết **bao nhiêu**, không cho biết vị trí UTF-16 của code point thứ 3. Nếu bạn dùng:
+Counting code points of `text` only tells you **how many**, not the UTF-16 position of the 3rd code point. If you use:
 
 ~~~java
 text.charAt(2)
 ~~~
 
-thì index 2 vẫn là **low surrogate** của emoji, không phải code point thứ hai/từ thứ hai theo Unicode. Muốn di chuyển n code point, dùng `offsetByCodePoints` (mục 6).
+then index 2 is still the emoji's **low surrogate**, not the second code point or second Unicode letter. To advance by n code points, use `offsetByCodePoints` (Section 6).
 
-Đừng tự viết `for (int i = 0; i < text.codePointCount(0, text.length()); i++) text.charAt(i)` vì vòng lặp này trộn hai hệ đơn vị chỉ số.
+Do not write `for (int i = 0; i < text.codePointCount(0, text.length()); i++) text.charAt(i)` because this loop mixes two index unit systems.
 
-## 5. codePoints(): luồng int theo code point
+## 5. `codePoints()`: An `int` Stream by Code Point
 
-`String.codePoints()` trả `IntStream`. Khi gặp cặp surrogate hợp lệ, stream kết hợp cả hai code unit thành **một** `int` có giá trị supplementary code point.
+`String.codePoints()` returns an `IntStream`. When encountering a valid surrogate pair, the stream combines both code units into **one** `int` holding the supplementary code point value.
 
 ~~~java
 int[] points = text.codePoints().toArray();
 ~~~
 
-Trong ví dụ có `A`, emoji, `e`, dấu sắc tổ hợp và hai regional indicator, mảng này gồm:
+In the example with `A`, emoji, `e`, combining acute accent, and two regional indicators, this array contains:
 
 ~~~text
 U+0041, U+1F600, U+0065, U+0301, U+1F1FB, U+1F1F3
 ~~~
 
-**So với `chars()`:**
+**Comparison with `chars()`:**
 
-- `text.chars()` trả `IntStream` của **từng UTF-16 code unit** (mỗi `char` được mở rộng lên `int`). Nó cho **9 phần tử** trong chuỗi mẫu.
-- `text.codePoints()` ghép surrogate pair và cho **6 phần tử** trong chuỗi mẫu.
-- Cả hai không tự xử lý grapheme cluster; dấu tổ hợp `U+0301` vẫn là mục riêng trong code point stream.
+- `text.chars()` returns an `IntStream` of **each UTF-16 code unit** (each `char` widened to `int`). It yields **9 elements** on the sample string.
+- `text.codePoints()` merges surrogate pairs and yields **6 elements** on the sample string.
+- Neither handles grapheme clusters automatically; combining mark `U+0301` remains a separate item in the code point stream.
 
-Nếu đầu vào có surrogate lẻ, `codePoints()` đưa giá trị surrogate đó lên stream dưới dạng `int`. Nó **không tự xác thực**, cũng không tự sửa Unicode sai.
+If the input has an unpaired surrogate, `codePoints()` emits that surrogate value onto the stream as an `int`. It **does not validate**, nor does it fix invalid Unicode.
 
-### 5.1. Vì sao nên dùng IntStream thay vì char loop?
+### 5.1. Why Use `IntStream` Instead of a `char` Loop?
 
-Khi viết một bộ kiểm tra phạm vi code point hoặc thống kê Unicode, luồng code point tránh việc vô tình xử lý mỗi nửa emoji như một ký tự độc lập:
+When writing a code point range check or Unicode statistics, a code point stream avoids accidentally treating each half of an emoji as an independent character:
 
 ~~~java
 long supplementaryCount = text.codePoints()
@@ -172,18 +172,18 @@ long supplementaryCount = text.codePoints()
         .count();
 ~~~
 
-Đây là đoạn minh họa trong phương thức có biến `text`. Nó đếm số **supplementary code points**, không đếm số emoji hay grapheme clusters. Các ký tự không phải emoji cũng có thể nằm ngoài BMP; một emoji phức hợp cũng có thể chứa nhiều code point, nên không thể suy ra số emoji từ con số này.
+This is an illustrative snippet inside a method with variable `text`. It counts the number of **supplementary code points**, not the number of emojis or grapheme clusters. Non-emoji characters can also lie outside the BMP; a composite emoji can also contain multiple code points, so you cannot deduce the emoji count from this number.
 
-### 5.2. Đừng ép code point về char
+### 5.2. Do Not Cast a Code Point to `char`
 
 ~~~java
 int cp = 0x1F600;
-char broken = (char) cp; // Mất thông tin code point supplementary.
+char broken = (char) cp; // Loses supplementary code point information.
 ~~~
 
-Đây là đoạn minh họa, không nên áp dụng. Ép `int` sang `char` chỉ giữ 16 bit thấp, không còn biểu diễn đúng `U+1F600`.
+This is an illustrative snippet of what not to do. Casting `int` to `char` retains only the lower 16 bits, no longer representing `U+1F600` properly.
 
-Nếu muốn dựng một chuỗi từ code point:
+To build a string from code points:
 
 ~~~java
 String emoji = new String(Character.toChars(0x1F600));
@@ -191,31 +191,31 @@ String reconstructed = new String(
         new int[]{0x0041, 0x1F600, 0x0065}, 0, 3);
 ~~~
 
-`Character.toChars` và constructor `String(int[], offset, count)` cho phép tạo UTF-16 tương ứng với các code point hợp lệ; tham số `count` trong constructor trên là **số phần tử mảng code point**, không phải số code unit của chuỗi kết quả.
+`Character.toChars` and the constructor `String(int[], offset, count)` let you create UTF-16 corresponding to valid code points; the `count` parameter in the constructor above is the **number of code point array elements**, not the code unit count of the resulting string.
 
-## 6. offsetByCodePoints: chuyển vị trí code point sang index UTF-16
+## 6. `offsetByCodePoints`: Converting a Code Point Position to a UTF-16 Index
 
-API thiết yếu để di chuyển trong `String` theo code point:
+An essential API for moving through a `String` by code points:
 
 ~~~java
 int utf16Index = text.offsetByCodePoints(0, 2);
 ~~~
 
-Trong chuỗi ví dụ, kết quả là **3**:
+In the example string, the result is **3**:
 
-- Code point thứ nhất `A` chiếm chỉ số UTF-16 0.
-- Code point thứ hai `U+1F600` chiếm chỉ số UTF-16 1 và 2.
-- Vị trí **sau hai code point đầu tiên** là chỉ số UTF-16 **3**.
+- The first code point `A` occupies UTF-16 index 0.
+- The second code point `U+1F600` occupies UTF-16 indices 1 and 2.
+- The position **after the first two code points** is UTF-16 index **3**.
 
-`offsetByCodePoints(index, codePointOffset)` nhận:
+`offsetByCodePoints(index, codePointOffset)` accepts:
 
-- `index`: vị trí bắt đầu **theo UTF-16**.
-- `codePointOffset`: dịch tiến/lùi bao nhiêu **code point**; có thể âm.
-- Giá trị trả về: vị trí mới **theo UTF-16**, không phải ordinal của code point.
+- `index`: starting position **in UTF-16**.
+- `codePointOffset`: how many **code points** to shift forward/backward; can be negative.
+- Return value: the new position **in UTF-16**, not the code point ordinal.
 
-Nếu vượt biên, phương thức ném `IndexOutOfBoundsException`. Tại vùng có surrogate lẻ, chúng vẫn được tính là một code point trong phép dịch.
+If out of bounds, the method throws `IndexOutOfBoundsException`. In regions with unpaired surrogates, each is still counted as one code point in the shift.
 
-### 6.1. Lấy code point thứ n (đếm từ 0)
+### 6.1. Getting the nth Code Point (0-Based)
 
 ~~~java
 int n = 2;
@@ -223,9 +223,9 @@ int utf16Index = text.offsetByCodePoints(0, n);
 int point = text.codePointAt(utf16Index);
 ~~~
 
-Đây là snippet minh họa: n = 2 nghĩa là code point thứ ba, trong ví dụ là `U+0065` (`e`); chỉ số UTF-16 ở đó là 3. Điều kiện: `0 <= n < text.codePointCount(0, text.length())`, nếu không phải xử lý index ngoài phạm vi.
+This is an illustrative snippet: n = 2 means the third code point, which in the example is `U+0065` (`e`); its UTF-16 index is 3. Condition: `0 <= n < text.codePointCount(0, text.length())`, otherwise out-of-range indices must be handled.
 
-### 6.2. Cắt đoạn theo số code point, không làm vỡ surrogate pair
+### 6.2. Slicing a Segment by Code Point Count Without Breaking Surrogate Pairs
 
 ~~~java
 static String sliceByCodePoints(String s, int startCp, int endCp) {
@@ -235,64 +235,64 @@ static String sliceByCodePoints(String s, int startCp, int endCp) {
 }
 ~~~
 
-Đây là **phương thức minh họa**, cần dùng trong một class. `startCp` và `endCp` là các chỉ số **theo code point**, với end exclusive và miền `0 <= startCp <= endCp <= totalCodePoints`. Cần validate miền tham số nếu nhận input không tin cậy.
+This is an **illustrative method**, which must be placed inside a class. `startCp` and `endCp` are indices **by code point**, with exclusive end and range `0 <= startCp <= endCp <= totalCodePoints`. Validate parameter bounds if accepting untrusted input.
 
-Hàm này không cắt giữa **một cặp surrogate hợp lệ** khi bắt đầu từ 0 và đi theo ranh giới code point. Tuy nhiên nó **vẫn có thể cắt giữa grapheme cluster** như chữ `e` và dấu sắc tổ hợp, hay hai regional indicator tạo thành một emoji cờ.
+This function does not slice between **a valid surrogate pair** when starting from 0 and stepping along code point boundaries. However, it **can still slice inside a grapheme cluster** such as letter `e` and its combining acute accent, or two regional indicators forming a flag emoji.
 
-**Không** gọi `text.substring(0, 2)` để lấy “hai ký tự Unicode đầu tiên” trong chuỗi mẫu. Nó sẽ lấy `A` và **chỉ nửa đầu emoji**, tạo chuỗi có surrogate lẻ.
+Do **not** call `text.substring(0, 2)` to extract "the first two Unicode characters" in the sample string. It will grab `A` and **only the first half of the emoji**, producing a string with a lone surrogate.
 
-### 6.3. Chỉ số truyền vào vẫn phải nằm ở ranh giới thích hợp
+### 6.3. The Input Index Must Still Sit on an Appropriate Boundary
 
-`offsetByCodePoints` nhận index UTF-16 bất kỳ hợp lệ, không hứa tự đưa một vị trí **đang ở giữa surrogate pair** về đầu cặp. Nếu start index đã trỏ vào low surrogate (như index 2), việc dịch chuyển có thể coi low surrogate đó là một đơn vị độc lập theo đoạn đang xét.
+`offsetByCodePoints` accepts any valid UTF-16 index and does not promise to snap a position **already in the middle of a surrogate pair** back to the start of the pair. If the start index already points to a low surrogate (such as index 2), shifting may treat that low surrogate as an independent unit within the traversed range.
 
-Khi nhận index từ editor/UI, cần biết nó là UTF-16 index, code point index hay grapheme index. Không kết hợp trực tiếp các loại index mà không chuyển đổi/căn chỉnh ranh giới.
+When receiving an index from an editor/UI, verify whether it is a UTF-16 index, a code point index, or a grapheme index. Do not mix different index types directly without converting or aligning boundaries.
 
-## 7. codePointAt, codePointBefore, indexOf và substring: giới hạn chỉ số
+## 7. `codePointAt`, `codePointBefore`, `indexOf`, and `substring`: Index Constraints
 
-### 7.1. Đọc một code point tại chỉ số UTF-16
+### 7.1. Reading a Code Point at a UTF-16 Index
 
 ~~~java
 int at = text.codePointAt(1);
 int before = text.codePointBefore(3);
 ~~~
 
-Cả hai trả về `U+1F600` trong ví dụ:
+Both return `U+1F600` in the example:
 
-- `codePointAt(1)` bắt đầu ở **high surrogate** và nhìn thấy low surrogate theo sau, nên ghép thành code point đầy đủ.
-- `codePointBefore(3)` nhìn từ vị trí 3 trở về, thấy low surrogate ở 2 và high ở 1, nên ghép thành code point đầy đủ.
-- **Không** gọi `codePointAt(2)` rồi chờ giá trị `U+1F600`: vị trí 2 là low surrogate, nên nó được trả như một giá trị surrogate đơn lẻ.
+- `codePointAt(1)` starts at the **high surrogate** and sees the following low surrogate, so it combines them into the full code point.
+- `codePointBefore(3)` looks backward from position 3, sees the low surrogate at 2 and high at 1, so it combines them into the full code point.
+- Do **not** call `codePointAt(2)` expecting `U+1F600`: position 2 is a low surrogate, so it is returned as a lone surrogate value.
 
-Chỉ số của hai phương thức đều là **UTF-16**, và chúng có quy tắc biên khác nhau: `codePointAt(i)` yêu cầu `0 <= i < length()`, trong khi `codePointBefore(i)` yêu cầu `1 <= i <= length()`.
+Indices for both methods are **UTF-16**, and they have different boundary rules: `codePointAt(i)` requires `0 <= i < length()`, whereas `codePointBefore(i)` requires `1 <= i <= length()`.
 
-### 7.2. indexOf trả chỉ số UTF-16
+### 7.2. `indexOf` Returns a UTF-16 Index
 
 ~~~java
 String emoji = new String(Character.toChars(0x1F600));
 int position = text.indexOf(emoji); // 1
 ~~~
 
-Kết quả **1** là vị trí UTF-16 nơi emoji bắt đầu, không phải “code point số 1” theo hợp đồng API dù tình cờ bằng 1 trong chuỗi này.
+The result **1** is the UTF-16 position where the emoji starts, not "code point #1" by API contract even though it happens to equal 1 in this string.
 
-Khi tìm một ký tự nằm **sau** emoji, hai hệ tọa độ tách ra: `text.indexOf("e")` trả index UTF-16 **3**, trong khi `e` là code point thứ **3** nếu đếm từ 1 (code point index 2 nếu đếm từ 0).
+When searching for a character **after** the emoji, the two coordinate systems diverge: `text.indexOf("e")` returns UTF-16 index **3**, whereas `e` is the **3rd** code point if 1-based (code point index 2 if 0-based).
 
-`String.indexOf(int ch)` cũng nhận được **một Unicode code point** (nếu giá trị lớn hơn BMP) nhưng **kết quả trả về vẫn là chỉ số UTF-16**.
+`String.indexOf(int ch)` can also accept **a Unicode code point** (even if its value is above the BMP), yet the **return value is still a UTF-16 index**.
 
-### 7.3. substring luôn nhận chỉ số UTF-16
+### 7.3. `substring` Always Takes UTF-16 Indices
 
-`substring(beginIndex, endIndex)` cũng dùng khoảng `[beginIndex, endIndex)` theo UTF-16:
+`substring(beginIndex, endIndex)` likewise uses the range `[beginIndex, endIndex)` in UTF-16:
 
 ~~~java
-String fullEmoji = text.substring(1, 3);   // Hai char, một code point.
-String brokenHalf = text.substring(1, 2);  // Chỉ high surrogate.
+String fullEmoji = text.substring(1, 3);   // Two chars, one code point.
+String brokenHalf = text.substring(1, 2);  // High surrogate only.
 ~~~
 
-`fullEmoji.length() == 2`, nhưng `fullEmoji.codePointCount(0, 2) == 1`. Còn `brokenHalf.length() == 1`; `Character.isHighSurrogate(brokenHalf.charAt(0))` trả `true`.
+`fullEmoji.length() == 2`, yet `fullEmoji.codePointCount(0, 2) == 1`. Meanwhile `brokenHalf.length() == 1`; `Character.isHighSurrogate(brokenHalf.charAt(0))` returns `true`.
 
-**Dữ liệu bị cắt không hợp lệ có thể đi qua nhiều API** mà không ném exception ngay. Lỗi thường chỉ xuất hiện khi chuyển sang UTF-8, render UI, kiểm tra chữ ký hoặc lưu một hệ thống đòi hỏi Unicode scalar values hợp lệ. Hãy cắt tại ranh giới code point và kiểm soát encoding đầu/cuối pipeline.
+**Improperly sliced data can pass through many APIs** without throwing an exception immediately. Failures often only appear when converting to UTF-8, rendering UI, verifying signatures, or saving to a system requiring valid Unicode scalar values. Slice at code point boundaries and control encoding at the start and end of the pipeline.
 
-## 8. Chương trình Java 17 hoàn chỉnh: quan sát 9 code units và 6 code points
+## 8. Complete Java 17 Program: Observing 9 Code Units and 6 Code Points
 
-Đặt đoạn sau trong file **`Utf16IndexDemo.java`**. Chương trình tạo chuỗi từ **mảng code point**, tránh phụ thuộc khả năng nhập emoji của terminal/source editor. Toàn bộ stdout dùng mã `U+...` để so sánh ổn định.
+Place the following in the file **`Utf16IndexDemo.java`**. The program builds the string from a **code point array**, avoiding reliance on terminal/source editor emoji input capability. All stdout uses `U+...` codes for stable comparison.
 
 ~~~java
 import java.util.Locale;
@@ -343,14 +343,14 @@ public class Utf16IndexDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng **JDK 17 trở lên**:
+Compile and run with **JDK 17 or higher**:
 
 ~~~bash
 javac -encoding UTF-8 Utf16IndexDemo.java
 java Utf16IndexDemo
 ~~~
 
-**Stdout đã kiểm tra trên Java:**
+**Stdout verified on Java:**
 
 ~~~text
 length=9
@@ -367,60 +367,60 @@ broken substring length=1, highSurrogate=true
 index at code point #4=5
 ~~~
 
-**Vì sao kết quả như vậy?**
+**Why are the results like this?**
 
-1. `length=9`: ba code point trong BMP chiếm mỗi điểm một code unit (`A`, `e`, `U+0301`), cộng ba supplementary code points chiếm hai code unit mỗi điểm (emoji cười và hai regional indicator): `3 × 1 + 3 × 2 = 9`.
-2. `codePointCount=6`: stream code point gồm đúng sáu giá trị trong mảng.
-3. `charAt(1)` và `charAt(2)` là hai surrogate `D83D` và `DE00`; `codePointAt(1)` ghép thành `U+1F600`.
-4. `codePointBefore(3)` đọc nguyên emoji phía trước vị trí UTF-16 3.
-5. Dịch hai code point từ UTF-16 index 0 đến index 3 vì emoji chiếm hai `char`.
-6. `substring(1, 3)` giữ nguyên emoji; `substring(1, 2)` làm vỡ cặp surrogate.
-7. Vị trí bắt đầu **code point index 4** (đếm từ 0) là **UTF-16 index 5**.
+1. `length=9`: three code points in the BMP occupy one code unit each (`A`, `e`, `U+0301`), plus three supplementary code points occupying two code units each (grinning emoji and two regional indicators): `3 × 1 + 3 × 2 = 9`.
+2. `codePointCount=6`: the code point stream contains exactly the six values in the array.
+3. `charAt(1)` and `charAt(2)` are the two surrogates `D83D` and `DE00`; `codePointAt(1)` combines them into `U+1F600`.
+4. `codePointBefore(3)` reads the whole emoji preceding UTF-16 position 3.
+5. Moving two code points from UTF-16 index 0 reaches index 3 because the emoji occupies two `char`s.
+6. `substring(1, 3)` preserves the emoji; `substring(1, 2)` breaks the surrogate pair.
+7. The starting position of **code point index 4** (0-based) is **UTF-16 index 5**.
 
-Không nên nhìn vào glyph hiển thị để đo số code point. Emoji lá cờ trong ví dụ được tạo từ **hai regional indicator**, mỗi cái là một supplementary code point. Một terminal có thể render thành lá cờ, hai biểu tượng riêng hoặc ký tự thay thế; nội dung Unicode của mảng code point không thay đổi.
+Do not look at rendered glyphs to measure code point count. The flag emoji in the example is built from **two regional indicators**, each being a supplementary code point. A terminal may render a flag, two separate symbols, or replacement characters; the Unicode content of the code point array does not change.
 
-## 9. Unicode code point vẫn khác grapheme cluster
+## 9. Unicode Code Points Still Differ from Grapheme Clusters
 
-Một “chữ” mà người dùng cảm nhận có thể gồm **nhiều code point**:
+A "letter" perceived by a user can consist of **multiple code points**:
 
-- `e` cộng `U+0301` biểu diễn chữ e có dấu sắc bằng hai code point; có thể trông tương đương ký tự dựng sẵn `é` (`U+00E9`), nhưng độ dài và code point count khác.
-- Lá cờ Việt Nam trong ví dụ là cặp regional indicator `U+1F1FB` và `U+1F1F3`, không phải một code point duy nhất.
-- Một số emoji người dùng nhìn là một biểu tượng nhưng được kết hợp từ nhiều code point bằng **zero-width joiner (ZWJ)**, biến thể `VS16`, dấu chỉ màu da hoặc các quy tắc Unicode khác.
+- `e` plus `U+0301` represents an e with acute accent using two code points; it may look equivalent to precomposed `é` (`U+00E9`), yet length and code point count differ.
+- The Vietnam flag in the example is the regional indicator pair `U+1F1FB` and `U+1F1F3`, not a single code point.
+- Some emojis that users view as a single icon are combined from multiple code points using a **zero-width joiner (ZWJ)**, `VS16` variation selector, skin-tone modifiers, or other Unicode rules.
 
-Do đó, ba phép đếm có thể hoàn toàn khác:
+Therefore, the three counts can differ completely:
 
-| Quy tắc cần đo | API/cách tiếp cận | Lưu ý |
+| Rule to measure | API/approach | Notes |
 | --- | --- | --- |
-| Số đơn vị UTF-16 | `String.length()` | Phù hợp giới hạn tính theo UTF-16 |
-| Số code point được duyệt | `codePointCount(0, length())`, `codePoints()` | Có thể tính cả surrogate lẻ như một mục |
-| Số ký tự người dùng cảm nhận | Bộ phân đoạn grapheme theo Unicode UAX #29 | Phải xác định phiên bản/implementation hỗ trợ |
-| Số byte UTF-8 | `getBytes(StandardCharsets.UTF_8).length` | Chỉ đúng nếu văn bản được mã hóa theo chính sách xử lý ký tự không hợp lệ đã xác định |
-| Số “chữ cái” | Tiêu chí ngôn ngữ/Unicode property cụ thể | Khác cả code point lẫn grapheme |
+| Number of UTF-16 units | `String.length()` | Suitable for limits measured in UTF-16 |
+| Number of traversed code points | `codePointCount(0, length())`, `codePoints()` | May count lone surrogates as one item each |
+| Number of user-perceived characters | Grapheme segmenter per Unicode UAX #29 | Must verify supporting version/implementation |
+| Number of UTF-8 bytes | `getBytes(StandardCharsets.UTF_8).length` | Accurate only if text is encoded under a defined invalid-character handling policy |
+| Number of "letters" | Specific linguistic/Unicode property criteria | Differs from both code points and graphemes |
 
-Java có `java.text.BreakIterator` cho các loại ranh giới văn bản, nhưng đừng mặc định bộ phân đoạn trong **mọi** JDK/locale đều bao phủ chính xác mọi quy tắc *extended grapheme cluster*, nhất là emoji hiện đại. Nếu sản phẩm cần cursor/delete/đếm “ký tự hiển thị” theo UAX #29, hãy chọn thư viện hoặc môi trường được kiểm chứng trên phiên bản Unicode sản phẩm yêu cầu.
+Java has `java.text.BreakIterator` for various text boundaries, yet do not assume the segmenter in **every** JDK/locale accurately covers all *extended grapheme cluster* rules, especially modern emojis. If a product needs cursor/delete/"visible character" counting per UAX #29, pick a library or environment verified against the Unicode version the product requires.
 
-### 9.1. Chuẩn hóa Unicode không giải quyết mọi vấn đề
+### 9.1. Unicode Normalization Does Not Solve Everything
 
-`java.text.Normalizer` có thể chuyển một số biểu diễn tương đương về NFC/NFD. Ví dụ `e + U+0301` có thể được chuẩn hóa về `é` (`U+00E9`) theo NFC, làm thay đổi `length()` và `codePointCount()` mà người dùng vẫn thấy chữ giống nhau.
+`java.text.Normalizer` can convert certain equivalent representations to NFC/NFD. For example, `e + U+0301` can be normalized to `é` (`U+00E9`) under NFC, changing `length()` and `codePointCount()` while the user still sees the same letter.
 
-Tuy nhiên, chuẩn hóa **không phải** là cách biến mọi emoji sequence hoặc grapheme cluster thành một code point. Cũng không nên tự normalize mọi ID, secret, chữ ký, path hay trường dữ liệu nhạy cảm nếu contract chưa quy định: thay đổi dạng Unicode có thể ảnh hưởng tính bằng nhau và giá trị lưu trữ.
+However, normalization **is not** a way to turn every emoji sequence or grapheme cluster into one code point. Nor should you automatically normalize every ID, secret, signature, path, or sensitive field if the contract has not specified it: changing Unicode form can affect equality and stored values.
 
-## 10. Giới hạn dữ liệu và thao tác an toàn
+## 10. Data Limits and Safe Operations
 
-### 10.1. Khi một hệ thống giới hạn số ký tự
+### 10.1. When a System Limits Character Count
 
-Trước khi kiểm tra `length()`, hãy làm rõ yêu cầu:
+Before checking `length()`, clarify the requirement:
 
-- **Giới hạn UTF-16 code units:** dùng `length()`, ví dụ các API trả độ dài Java `String`.
-- **Giới hạn Unicode code points:** dùng `codePointCount(0, length())`, đồng thời validate surrogate nếu nguồn cần Unicode scalar values hợp lệ.
-- **Giới hạn grapheme clusters:** dùng thuật toán phân đoạn grapheme thích hợp.
-- **Giới hạn byte khi gửi/lưu:** mã hóa theo charset và đo byte; với UTF-8, non-BMP thường chiếm bốn byte, nhưng quan hệ byte/char/code point không cố định.
+- **UTF-16 code unit limit:** use `length()`, such as APIs reporting Java `String` length.
+- **Unicode code point limit:** use `codePointCount(0, length())`, while also validating surrogates if the source requires valid Unicode scalar values.
+- **Grapheme cluster limit:** use an appropriate grapheme segmentation algorithm.
+- **Byte limit when sending/storing:** encode with the charset and measure bytes; with UTF-8, non-BMP characters usually take four bytes, though the byte/char/code-point relationship is not fixed.
 
-Không dùng một giới hạn có tên “100 characters” rồi ngầm đồng nhất với tất cả phương pháp. Khi ứng dụng hỗ trợ tiếng Việt, emoji, Indic scripts và người dùng quốc tế, sự nhầm lẫn có thể dẫn đến cắt sai văn bản hoặc báo lỗi độ dài không công bằng.
+Do not use a limit named "100 characters" and implicitly equate it with every method. When an application supports Vietnamese, emojis, Indic scripts, and international users, confusion can lead to corrupting text when slicing or unfairly rejecting lengths.
 
-### 10.2. Lấy một đoạn ký tự mà không phá surrogate pair
+### 10.2. Extracting a Character Slice Without Breaking Surrogate Pairs
 
-Khi giới hạn theo code point, quy tắc cơ bản là tính ranh giới bằng `offsetByCodePoints` trước khi gọi `substring`. Ví dụ lấy tối đa `n` code point từ đầu:
+When limiting by code points, the basic rule is to compute the boundary with `offsetByCodePoints` before calling `substring`. For example, taking at most `n` code points from the start:
 
 ~~~java
 static String firstCodePoints(String s, int n) {
@@ -433,90 +433,90 @@ static String firstCodePoints(String s, int n) {
 }
 ~~~
 
-Đây là **một phương thức minh họa**, cần đặt trong class. Nó tránh cắt đôi cặp surrogate hợp lệ khi xuất phát từ index 0; **không** bảo đảm không cắt đôi grapheme cluster. Nếu input có surrogate lẻ sẵn thì phương thức cũng không tự loại bỏ phần sai.
+This is **an illustrative method** that needs to be placed inside a class. It avoids splitting a valid surrogate pair in half when starting from index 0; it **does not** guarantee avoiding splitting a grapheme cluster. If the input already has a lone surrogate, the method also does not remove the invalid part.
 
-### 10.3. Vòng lặp duyệt code point không cần tạo mảng
+### 10.3. Loop Iterating Code Points Without Creating an Array
 
 ~~~java
 for (int i = 0; i < s.length(); ) {
     int cp = s.codePointAt(i);
-    // Xử lý cp.
+    // Process cp.
     i += Character.charCount(cp);
 }
 ~~~
 
-Đây là **đoạn minh họa**, với `s` là `String`. `Character.charCount(cp)` trả 2 cho supplementary code point, 1 cho BMP/surrogate lẻ. Vòng lặp tiến theo ranh giới code point; với dữ liệu hợp lệ, nó không tách surrogate pair.
+This is an **illustrative snippet**, with `s` being a `String`. `Character.charCount(cp)` returns 2 for a supplementary code point and 1 for BMP/lone surrogate. The loop advances along code point boundaries; with valid data, it does not split surrogate pairs.
 
-Nếu chỉ cần xử lý giá trị code point và không cần UTF-16 index, `s.codePoints().forEach(cp -> ...)` có thể dễ đọc hơn. Nếu cần index, sử dụng vòng lặp hoặc kết hợp `offsetByCodePoints` có chủ đích.
+If you only need to process code point values and do not need the UTF-16 index, `s.codePoints().forEach(cp -> ...)` can be easier to read. If you need the index, use this loop or deliberately combine with `offsetByCodePoints`.
 
-### 10.4. Tìm vị trí trong UI và dữ liệu
+### 10.4. Locating Positions in UI and Data
 
-Khi một thư viện/editor gửi về caret position hoặc selection, phải xác nhận đơn vị chỉ số:
+When a library/editor sends back a caret position or selection, confirm the index unit:
 
-- Một số API trả **UTF-16 offset**, phù hợp trực tiếp với `String.substring`.
-- Một số API trả **code point ordinal** hoặc **grapheme offset**.
-- Một số hệ thống lưu **byte offset** theo UTF-8.
+- Some APIs return a **UTF-16 offset**, suitable directly for `String.substring`.
+- Some APIs return a **code point ordinal** or **grapheme offset**.
+- Some systems store a **byte offset** in UTF-8.
 
-Không quy đổi “code point index 4” thành `substring(4)` nếu đoạn trước chứa supplementary code point. Trong ví dụ, code point index 4 tương ứng UTF-16 index 5. Cũng không suy từ byte offset thành `char` offset.
+Do not convert "code point index 4" directly into `substring(4)` if the preceding text contains supplementary code points. In the example, code point index 4 corresponds to UTF-16 index 5. Likewise, do not infer a `char` offset from a byte offset.
 
-Các lỗi hay xảy ra ở vùng bôi đen văn bản, highlight kết quả tìm kiếm, vị trí lỗi validation, độ dài mật khẩu/username và phân trang nội dung Unicode.
+Bugs commonly happen in text selection ranges, search result highlighting, validation error positions, password/username lengths, and Unicode content pagination.
 
-## 11. Những nhầm lẫn và lỗi thường gặp
+## 11. Common Mistakes and Misconceptions
 
-| Nhầm lẫn/lỗi | Hậu quả | Cách làm đúng |
+| Mistake/error | Consequence | Correct approach |
 | --- | --- | --- |
-| `length()` đếm emoji là 1 | Supplementary emoji chiếm hai `char` | Dùng `codePointCount` khi cần code point |
-| `charAt(i)` luôn trả một ký tự Unicode hoàn chỉnh | Có thể trả high/low surrogate | Dùng `codePointAt` ở ranh giới phù hợp |
-| Dùng `codePointCount` rồi truyền kết quả vào `substring` như UTF-16 index | Cắt sai vị trí hoặc làm vỡ surrogate | Dùng `offsetByCodePoints` để chuyển index |
-| `codePoints()` đếm grapheme | Dấu tổ hợp và flag emoji vẫn có nhiều code point | Dùng grapheme segmentation nếu UI cần |
-| Surrogate lẻ được `codePoints()` tự sửa | Dữ liệu Unicode không hợp lệ vẫn đi qua stream | Validate và áp dụng chính sách reject/replace |
-| `indexOf` trả chỉ số code point | `indexOf` trả **UTF-16 offset** | Chuyển rõ đơn vị trước khi dùng |
-| `codePointAt(i)` nhận ordinal code point | Tham số i là UTF-16 index | Dùng `offsetByCodePoints` trước |
-| Ép supplementary `int` xuống `char` | Mất dữ liệu | Dùng `Character.toChars` hoặc String constructor từ code points |
-| Đếm byte bằng `length()` | Sai với UTF-8 và nhiều encoding | Mã hóa rồi đếm byte |
-| Cắt chuỗi theo code point và nghĩ bảo toàn emoji ZWJ | Có thể làm vỡ grapheme cluster | Dùng thuật toán grapheme cho caret/UI |
-| Tin mọi `BreakIterator` đều chính xác với emoji mới | Phân đoạn có thể lệch Unicode version | Kiểm thử bộ phân đoạn được chọn |
-| Lấy UTF-16 index bắt đầu trong low surrogate rồi tự tăng/giảm code point | Ranh giới ban đầu đã không hợp lệ về cặp surrogate | Chuẩn hóa/vận hành theo ranh giới chính xác |
+| `length()` counts an emoji as 1 | Supplementary emoji takes two `char`s | Use `codePointCount` when code points are needed |
+| `charAt(i)` always returns a complete Unicode character | Can return a high/low surrogate | Use `codePointAt` on a proper boundary |
+| Using `codePointCount` then passing the result to `substring` as a UTF-16 index | Slices at the wrong position or breaks a surrogate | Use `offsetByCodePoints` to convert indices |
+| `codePoints()` counts graphemes | Combining marks and flag emojis still have multiple code points | Use grapheme segmentation if the UI requires it |
+| Lone surrogates are automatically fixed by `codePoints()` | Invalid Unicode data still passes through the stream | Validate and apply a reject/replace policy |
+| `indexOf` returns a code point index | `indexOf` returns a **UTF-16 offset** | Convert units explicitly before using |
+| `codePointAt(i)` accepts a code point ordinal | Parameter i is a UTF-16 index | Use `offsetByCodePoints` first |
+| Casting a supplementary `int` down to `char` | Data loss | Use `Character.toChars` or a String constructor from code points |
+| Counting bytes with `length()` | Wrong for UTF-8 and many encodings | Encode first, then count bytes |
+| Slicing by code point and assuming ZWJ emojis stay intact | Can break grapheme clusters | Use a grapheme algorithm for caret/UI |
+| Trusting every `BreakIterator` to be accurate with new emojis | Segmentation can lag behind Unicode versions | Test the chosen segmenter |
+| Taking a UTF-16 index starting at a low surrogate and stepping code points | Initial boundary is already invalid for the surrogate pair | Normalize/operate along proper boundaries |
 
-### 11.1. Trường hợp surrogate lẻ
+### 11.1. The Case of Lone Surrogates
 
-`String` Java có thể chứa `char` thuộc surrogate range mà không có bạn ghép hợp lệ. Trong trường hợp đó:
+A Java `String` can contain a `char` in the surrogate range without a valid partner. In that case:
 
-- `length()` vẫn đếm đơn vị mã.
-- `codePointCount()` coi surrogate lẻ là một phần tử.
-- `codePoints()` phát ra giá trị surrogate như một `int`, chứ **không** biến nó thành Unicode scalar value hợp lệ.
-- Khi mã hóa sang UTF-8 bằng encoder, kết quả của surrogate lẻ phụ thuộc **chính sách xử lý malformed input** (report, replace hoặc khác); cần kiểm soát rõ nếu dữ liệu phải được bảo toàn/làm sạch.
+- `length()` still counts code units.
+- `codePointCount()` treats the lone surrogate as one item.
+- `codePoints()` emits the surrogate value as an `int`, and **does not** turn it into a valid Unicode scalar value.
+- When encoding to UTF-8 via an encoder, the outcome for a lone surrogate depends on the **malformed input handling policy** (report, replace, or other); control it explicitly if data must be preserved or sanitized.
 
-Với input có yêu cầu Unicode hợp lệ, hãy validate các cặp surrogate hoặc dùng decoder/encoder cấu hình báo lỗi. `codePointCount` không thực hiện nhiệm vụ đó.
+For input requiring valid Unicode, validate surrogate pairs or use a decoder/encoder configured to report errors. `codePointCount` does not perform that job.
 
-### 11.2. Các phép đo có thể đổi khi normalization
+### 11.2. Measurements Can Change Under Normalization
 
-Chuỗi `e + U+0301` có `length() == 2`, `codePointCount(...) == 2`, dù trên giao diện thường nhìn thành một chữ có dấu. Nếu normalize NFC thành `U+00E9`, `length() == 1`, `codePointCount(...) == 1`. Vì vậy phải xác định có chuẩn hóa Unicode hay không **trước khi** áp dụng quy tắc giới hạn được cam kết.
+The string `e + U+0301` has `length() == 2` and `codePointCount(...) == 2`, even though in the UI it typically looks like one accented letter. If NFC-normalized to `U+00E9`, `length() == 1` and `codePointCount(...) == 1`. Therefore, you must decide whether to normalize Unicode **before** enforcing any promised limit rules.
 
-## 12. Bài tập thực hành
+## 12. Practice Exercises
 
-1. Tạo `String smile = new String(Character.toChars(0x1F600));`; so `smile.length()`, `smile.codePointCount(0, smile.length())`, `smile.chars().count()` và `smile.codePoints().count()`.
-2. Từ chương trình ở mục 8, thử `text.codePointAt(2)`. Giải thích vì sao kết quả là **low surrogate** chứ không phải emoji đầy đủ.
-3. Tính `text.offsetByCodePoints(0, 5)`. Tìm index UTF-16 tương ứng và xác nhận bằng bảng chỉ số ở mục 2.
-4. Cắt `text.substring(3, 5)`: nó gồm những code point nào? Đó là một hay nhiều grapheme cluster?
-5. Viết `sliceByCodePoints` với `startCp`, `endCp` và kiểm tra các trường hợp `0`, tổng số điểm, chỉ số âm và `startCp > endCp`.
-6. Dùng `Character.isSurrogatePair(high, low)` để phát hiện surrogate pair của `U+1F600`; thử tách nửa cặp xem output encoding phản ứng thế nào.
-7. Dùng `java.text.Normalizer` chuyển `"e\u0301"` sang NFC; so `length()`, `codePointCount` trước và sau.
-8. Tạo một emoji ZWJ sequence rồi so `codePoints().count()` với số biểu tượng nhìn thấy trên UI. Không suy ra kết luận từ hình dạng trong console duy nhất.
-9. Đo `text.getBytes(StandardCharsets.UTF_8).length` cho chuỗi mẫu (đã hợp lệ), đối chiếu với `length()` và `codePointCount()`.
-10. Viết kiểm thử cho một quy tắc giới hạn “10 ký tự”: diễn đạt riêng ba phiên bản kiểm tra UTF-16 units, code points và grapheme clusters.
-11. Chứng minh `text.indexOf("e") == 3` dù `e` là code point có ordinal 2 trong chuỗi mẫu.
-12. Nhận một caret offset từ một UI: xác định nó thuộc hệ tọa độ nào trước khi cắt hoặc highlight văn bản.
+1. Create `String smile = new String(Character.toChars(0x1F600));`; compare `smile.length()`, `smile.codePointCount(0, smile.length())`, `smile.chars().count()`, and `smile.codePoints().count()`.
+2. From the program in Section 8, try `text.codePointAt(2)`. Explain why the result is a **low surrogate** rather than the complete emoji.
+3. Compute `text.offsetByCodePoints(0, 5)`. Find the corresponding UTF-16 index and verify against the index table in Section 2.
+4. Slice `text.substring(3, 5)`: which code points does it contain? Is that one or multiple grapheme clusters?
+5. Write `sliceByCodePoints` with `startCp`, `endCp` and test cases `0`, total code points, negative indices, and `startCp > endCp`.
+6. Use `Character.isSurrogatePair(high, low)` to detect the surrogate pair of `U+1F600`; try splitting half the pair to see how output encoding reacts.
+7. Use `java.text.Normalizer` to convert `"e\u0301"` to NFC; compare `length()` and `codePointCount` before and after.
+8. Create a ZWJ emoji sequence and compare `codePoints().count()` with the number of icons seen in the UI. Do not draw conclusions solely from its appearance in a single console.
+9. Measure `text.getBytes(StandardCharsets.UTF_8).length` for the sample string (when valid), comparing with `length()` and `codePointCount()`.
+10. Write tests for a "10 characters" limit rule: express three separate test versions for UTF-16 units, code points, and grapheme clusters.
+11. Prove `text.indexOf("e") == 3` even though `e` is the code point at ordinal 2 in the sample string.
+12. Given a caret offset from a UI: determine which coordinate system it belongs to before slicing or highlighting text.
 
-## 13. Tổng kết
+## 13. Summary
 
-**`String.length()` đếm UTF-16 code units; `codePointCount(begin, end)` đếm các code point trong khoảng được chỉ định bằng UTF-16 indices; `codePoints()` phát luồng `int` theo code point; và nhiều phương thức như `charAt`, `codePointAt`, `substring`, `indexOf` vẫn dùng/trả UTF-16 offsets.**
+**`String.length()` counts UTF-16 code units; `codePointCount(begin, end)` counts code points in a range specified by UTF-16 indices; `codePoints()` emits an `int` stream by code point; and many methods such as `charAt`, `codePointAt`, `substring`, and `indexOf` still accept/return UTF-16 offsets.**
 
-Để chuyển từ ordinal code point sang chỉ số `String`, dùng `offsetByCodePoints`; để lặp qua code points mà không chia surrogate pair, dùng `codePoints()` hoặc vòng lặp với `codePointAt` và `Character.charCount`. Nếu yêu cầu “ký tự người dùng cảm nhận”, phải xét **grapheme clusters** và quy tắc phân đoạn Unicode, vì nhiều emoji và dấu tổ hợp gồm nhiều code point.
+To convert from a code point ordinal to a `String` index, use `offsetByCodePoints`; to iterate over code points without splitting surrogate pairs, use `codePoints()` or a loop with `codePointAt` and `Character.charCount`. When "user-perceived characters" are required, you must account for **grapheme clusters** and Unicode segmentation rules, because many emojis and combining marks consist of multiple code points.
 
-Tách rõ **code units, code points, grapheme clusters và bytes** giúp ứng dụng đa ngôn ngữ không cắt hỏng văn bản, không trộn chỉ số và không áp dụng sai giới hạn nhập liệu.
+Clearly separating **code units, code points, grapheme clusters, and bytes** keeps multilingual applications from corrupting text, mixing up indices, and enforcing wrong input limits.
 
-**Tài liệu tham khảo:**
+**References:**
 
 - Java SE 17, `String`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html
 - Java SE 17, `Character`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html

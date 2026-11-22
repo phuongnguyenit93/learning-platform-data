@@ -1,40 +1,40 @@
-# Giữ equals() dễ hiểu, không gây tác dụng phụ và không ném lỗi cho dữ liệu thông thường
+# Keeping equals() Easy to Understand, Free of Side Effects, and Exception-Free for Normal Data
 
-## 1. Mục tiêu khi cài đặt equals(Object)
+## 1. Goals When Implementing equals(Object)
 
-`equals(Object)` trả lời một câu hỏi: **đối tượng nhận lời gọi có được xem là bằng đối tượng được truyền vào không?** Khi cài đặt phương thức này, một thiết kế tốt cần đồng thời đạt ba yêu cầu thực tế:
+`equals(Object)` answers one question: **is the object receiving the call considered equal to the object passed in?** When implementing this method, a good design needs to simultaneously meet three practical requirements:
 
-1. **Dễ hiểu:** người đọc nhìn vào có thể biết ngay lớp sử dụng những thuộc tính nào để xác định bình đẳng, điều kiện nào trả về `true` và điều kiện nào trả về `false`.
-2. **Không gây tác dụng phụ:** việc gọi `equals` chỉ quan sát những dữ liệu phục vụ so sánh; không đổi trạng thái đối tượng, không sửa đối số, không ghi dữ liệu ra nơi khác và không kích hoạt công việc nghiệp vụ.
-3. **Không ném lỗi cho dữ liệu thông thường:** `null`, đối tượng khác kiểu và các trường dữ liệu được phép mang `null` phải được xử lý đúng, thay vì vô tình phát sinh `NullPointerException` hoặc `ClassCastException`.
+1. **Easy to understand:** a reader looking at it can immediately tell which attributes the class uses to determine equality, which conditions return `true`, and which conditions return `false`.
+2. **Free of side effects:** calling `equals` only observes the data used for comparison; it does not alter object state, does not modify the argument, does not write data elsewhere, and does not trigger business actions.
+3. **Does not throw exceptions on normal data:** `null`, objects of different types, and data fields allowed to be `null` must be handled properly, instead of accidentally raising `NullPointerException` or `ClassCastException`.
 
-Đây là các nguyên tắc thiết kế khi **cài đặt** hợp đồng `Object.equals(Object)`. Đặc biệt, với mọi đối tượng `x` khác `null`, `x.equals(null)` phải trả về `false`. Việc gọi `x.equals(y)` khi chính `x == null` vẫn gây `NullPointerException`: không có phương thức thể hiện nào được thực thi trên tham chiếu `null`.
+These are design principles when **implementing** the `Object.equals(Object)` contract. In particular, for any non-`null` object `x`, `x.equals(null)` must return `false`. Calling `x.equals(y)` when `x == null` itself still causes `NullPointerException`: no instance method can execute on a `null` reference.
 
-Không nên diễn giải yêu cầu “không ném lỗi” thành cam kết rằng mọi lỗi JVM, đối tượng có trạng thái hỏng hoặc mọi tình huống bất thường đều bị nuốt đi. Mục tiêu ở đây là **không biến các đầu vào so sánh hợp lệ, thường gặp thành ngoại lệ**; dữ liệu bất hợp lệ nên được xác minh ở ranh giới tạo hoặc cập nhật đối tượng.
+The requirement “does not throw exceptions” should not be interpreted as a promise that every JVM error, corrupted-state object, or extraordinary situation is swallowed. The goal here is **not turning valid, common comparison inputs into exceptions**; invalid data should be validated at object creation or update boundaries.
 
-## 2. Vì sao equals cần thuần và ổn định?
+## 2. Why Does equals Need to Be Pure and Stable?
 
-Những thành phần thư viện như `HashSet`, `HashMap` và các thuật toán tìm kiếm có thể gọi `equals` nhiều lần, với thứ tự hay tần suất phụ thuộc cách chúng vận hành. Chúng dựa vào hợp đồng bình đẳng gồm tính phản xạ, đối xứng, bắc cầu, nhất quán và quy tắc với `null`.
+Library components such as `HashSet`, `HashMap`, and search algorithms may call `equals` multiple times, with order or frequency depending on how they operate. They rely on the equality contract consisting of reflexivity, symmetry, transitivity, consistency, and the `null` rule.
 
-Nếu `equals` tăng bộ đếm, cập nhật thuộc tính, tiêu thụ một phần tử từ iterator, gọi mạng, ghi cơ sở dữ liệu hoặc gửi sự kiện, việc **chỉ kiểm tra bình đẳng** đã tạo ra biến đổi không mong đợi. Nếu kết quả phụ thuộc thời gian, trạng thái dịch vụ bên ngoài hay số lần so sánh, hai đối tượng có thể lúc bằng, lúc không dù dữ liệu dùng làm khóa bình đẳng không đổi. Hành vi đó khó kiểm thử và có thể làm việc tra cứu trong collection không đáng tin cậy.
+If `equals` increments a counter, updates an attribute, consumes an element from an iterator, makes a network call, writes to a database, or emits an event, **merely checking equality** has created an unexpected mutation. If the result depends on time, external service state, or comparison count, two objects can sometimes be equal and sometimes not even though the data serving as the equality key has not changed. That behavior is hard to test and can make collection lookups unreliable.
 
-Phân biệt:
+Distinction:
 
-| Tính chất | Cách làm nên chọn | Dấu hiệu cần tránh |
+| Property | Preferred approach | Signs to avoid |
 | --- | --- | --- |
-| Phép so sánh | Kiểm tra danh tính, kiểu và các trường quyết định bình đẳng | Lồng nhiều nhánh nghiệp vụ hoặc tìm dữ liệu từ dịch vụ ngoài |
-| Trạng thái | Chỉ đọc thuộc tính ổn định | Tự tăng `comparisonCount`, đánh dấu “đã kiểm tra”, cập nhật đối tượng |
-| Giá trị thiếu hợp lệ | So sánh an toàn bằng `Objects.equals` | Gọi phương thức trên trường nullable mà không kiểm tra |
-| Kiểu khác | Trả về `false` | Ép kiểu vô điều kiện rồi nhận `ClassCastException` |
-| Độ ổn định | Cùng dữ liệu, cùng kết quả khi không có thay đổi liên quan | Phụ thuộc ngẫu nhiên, đồng hồ hoặc dữ liệu mạng |
+| Comparison | Check identity, type, and equality-defining fields | Nesting complex business branches or fetching data from external services |
+| State | Read only stable attributes | Incrementing `comparisonCount`, marking “checked”, updating the object |
+| Valid missing values | Compare safely using `Objects.equals` | Calling methods on nullable fields without checking |
+| Different type | Return `false` | Unconditional cast followed by `ClassCastException` |
+| Stability | Same data, same result when no relevant changes occur | Depending on randomness, clocks, or network data |
 
-Một phương thức `equals` tốt thường ngắn: kiểm tra có phải cùng tham chiếu, kiểm tra kiểu, rồi so sánh từng trường quyết định bình đẳng. Việc sử dụng `instanceof` hay `getClass()` phải phù hợp với chính sách bình đẳng của hệ phân cấp lớp; ví dụ dưới đây dùng lớp `final`, nên không phát sinh khác biệt giữa các lớp con.
+A good `equals` method is usually short: check whether it is the same reference, check the type, then compare each equality-defining field. Whether to use `instanceof` or `getClass()` must match the equality policy of the class hierarchy; the example below uses a `final` class, so no differences arise across subclasses.
 
-## 3. Ví dụ Java 17 chạy được: đối tượng giá trị bất biến
+## 3. Runnable Java 17 Example: Immutable Value Object
 
-Giả sử khóa tài liệu được xác định bởi `code` bắt buộc và `edition` được phép `null`. Hai khóa bằng nhau khi **cả hai** trường tương ứng bằng nhau. Vì mã tài liệu không được để trống tham chiếu, constructor xác thực `code` lúc tạo; phép so sánh không cần xử lý một trạng thái nội bộ vốn đã bị cấm.
+Suppose a document key is identified by a mandatory `code` and an `edition` that is allowed to be `null`. Two keys are equal when **both** corresponding fields are equal. Because the document code must not have an absent reference, the constructor validates `code` at creation time; the comparison does not need to handle an internal state that is already forbidden.
 
-Lưu chương trình sau vào **EqualsDesignDemo.java**:
+Save the following program to **EqualsDesignDemo.java**:
 
 ~~~java
 import java.util.HashSet;
@@ -44,7 +44,7 @@ import java.util.Set;
 public class EqualsDesignDemo {
     static final class DocumentKey {
         private final String code;
-        private final String edition; // Được phép null
+        private final String edition; // Allowed to be null
 
         DocumentKey(String code, String edition) {
             this.code = Objects.requireNonNull(code, "code");
@@ -57,7 +57,7 @@ public class EqualsDesignDemo {
                 return true;
             }
             if (!(other instanceof DocumentKey that)) {
-                return false; // Gồm cả null và đối tượng khác kiểu
+                return false; // Includes both null and objects of other types
             }
             return code.equals(that.code)
                     && Objects.equals(edition, that.edition);
@@ -93,14 +93,14 @@ public class EqualsDesignDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or higher:
 
 ~~~bash
 javac EqualsDesignDemo.java
 java EqualsDesignDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 self: true
@@ -114,20 +114,20 @@ HashSet contains equal key: true
 repeated result: true
 ~~~
 
-**Tại sao mã này đáp ứng mục tiêu?**
+**Why does this code meet the goals?**
 
-- `this == other` cho kết quả `true` khi so sánh đối tượng với chính nó, không cần kiểm tra từng trường.
-- `other instanceof DocumentKey that` chỉ thành công khi `other` khác `null` và đúng kiểu cần so sánh. `null instanceof DocumentKey` là `false`; đối số khác kiểu cũng được trả về `false` mà không ép kiểu sai.
-- `code` được xác thực không `null` khi tạo và là `final`, nên `code.equals(that.code)` an toàn đối với mọi đối tượng `DocumentKey` được xây dựng hợp lệ.
-- `edition` có thể là `null`. `Objects.equals(edition, that.edition)` cho `true` khi cả hai cùng `null`, `false` khi chỉ một bên `null` và dùng `String.equals` khi cần; **đây là phép so sánh hai trường dữ liệu**, không phải việc so sánh cả `DocumentKey` với `null`.
-- Không có phép gán cho trường, đọc/ghi tệp, logging, truy cập mạng hay cập nhật tham số trong `equals`. Cả hai thuộc tính là chuỗi bất biến và được giữ bằng trường `final`, nên những lần so sánh lặp lại với cùng đối tượng không đổi cho cùng kết quả.
-- `hashCode()` dùng đúng các trường tham gia `equals`. Những đối tượng bằng nhau có cùng mã băm, đáp ứng điều kiện cần của hợp đồng khi đưa vào `HashSet` hoặc làm khóa `HashMap`. Chiều ngược lại **không bắt buộc**: mã băm bằng nhau chưa chứng minh hai đối tượng bằng nhau.
+- `this == other` returns `true` when comparing an object to itself, without needing to check individual fields.
+- `other instanceof DocumentKey that` only succeeds when `other` is non-`null` and of the right type to compare. `null instanceof DocumentKey` is `false`; an argument of another type also gets `false` without a bad cast.
+- `code` is validated non-`null` at creation and is `final`, so `code.equals(that.code)` is safe for every validly constructed `DocumentKey` object.
+- `edition` can be `null`. `Objects.equals(edition, that.edition)` yields `true` when both are `null`, `false` when only one side is `null`, and uses `String.equals` when needed; **this is a comparison of two data fields**, not a comparison of the whole `DocumentKey` against `null`.
+- There are no field assignments, file reads/writes, logging, network access, or parameter mutations in `equals`. Both attributes are immutable strings held in `final` fields, so repeated comparisons on the same unchanged objects give the same result.
+- `hashCode()` uses the exact fields participating in `equals`. Equal objects have the same hash code, satisfying the necessary condition of the contract when placed into a `HashSet` or used as a `HashMap` key. The converse **is not required**: equal hash codes do not prove two objects are equal.
 
-Dòng `repeated result: true` cho thấy hai kết quả trong ví dụ trùng nhau. Một kiểm thử như vậy **chưa đủ tự nó chứng minh** phương thức không có tác dụng phụ: để bảo đảm điều đó phải xem xét code và có thể kiểm tra trạng thái đối tượng trước/sau các lần gọi.
+The line `repeated result: true` shows that two results in the example match. Such a check **is not enough by itself to prove** the method has no side effects: to ensure that, you must inspect the code and potentially verify object state before/after calls.
 
-## 4. Các lỗi triển khai thường gặp
+## 4. Common Implementation Mistakes
 
-### 4.1. Ép kiểu trước khi kiểm tra
+### 4.1. Casting before checking
 
 ~~~java
 @Override
@@ -137,44 +137,44 @@ public boolean equals(Object other) {
 }
 ~~~
 
-Đây là **đoạn mã minh họa lỗi trong lớp DocumentKey**, không phải chương trình độc lập. Nếu `other == null`, phép ép kiểu trả về `null`, nhưng `that.code` gây `NullPointerException`. Nếu `other` thuộc kiểu không tương thích, phép ép kiểu có thể gây `ClassCastException`.
+This is an **illustrative erroneous snippet inside class DocumentKey**, not a standalone program. If `other == null`, the cast yields `null`, yet `that.code` causes `NullPointerException`. If `other` belongs to an incompatible type, the cast can cause `ClassCastException`.
 
-Sửa bằng `instanceof` hoặc kiểm tra `null` và kiểu trước khi truy cập các trường. Cách này đồng thời giúp người đọc thấy rõ trường hợp từ chối bình đẳng.
+Fix with `instanceof` or checking `null` and type before accessing fields. This also helps readers clearly see the equality rejection cases.
 
-### 4.2. Gọi equals trên trường có thể null
+### 4.2. Calling equals on a nullable field
 
 ~~~java
 return code.equals(that.code)
-        && edition.equals(that.edition); // Có thể ném NullPointerException
+        && edition.equals(that.edition); // May throw NullPointerException
 ~~~
 
-Đây là **biểu thức minh họa lỗi bên trong equals**. `edition` được phép `null`, nên `edition.equals(...)` không an toàn. Viết `Objects.equals(edition, that.edition)` để biểu đạt rõ cả hai bên đều có thể vắng mặt.
+This is an **illustrative erroneous expression inside equals**. `edition` is allowed to be `null`, so `edition.equals(...)` is unsafe. Write `Objects.equals(edition, that.edition)` to clearly express that either side can be absent.
 
-Không cần dùng `Objects.equals` cho mọi trường theo thói quen: nếu bất biến của lớp bảo đảm trường không `null`, gọi `code.equals(...)` vẫn dễ hiểu và an toàn.
+There is no need to use `Objects.equals` for every field out of habit: if the class invariant guarantees a field is non-`null`, calling `code.equals(...)` remains easy to read and safe.
 
-### 4.3. Biến việc so sánh thành một thao tác cập nhật
+### 4.3. Turning comparison into an update operation
 
 ~~~java
 private int comparisonCount;
 
 @Override
 public boolean equals(Object other) {
-    comparisonCount++; // Tác dụng phụ: chỉ đọc bình đẳng cũng đổi trạng thái
-    // ... thực hiện so sánh
+    comparisonCount++; // Side effect: merely reading equality mutates state
+    // ... perform comparison
 }
 ~~~
 
-Đây là **mã minh họa chống mẫu (antipattern)**, không phải chương trình chạy độc lập. Ngay cả khi bộ đếm không làm thay đổi kết quả, phương thức vẫn tạo tác dụng phụ và có thể có vấn đề khi nhiều luồng cùng so sánh. Việc ghi log, chỉnh sửa đối tượng đầu vào, làm sạch trường dữ liệu ngay trong `equals`, lưu dữ liệu hay phát sự kiện cũng không nên nằm trong đường đi so sánh.
+This is an **illustrative antipattern snippet**, not a standalone runnable program. Even if the counter does not alter the result, the method still creates a side effect and can cause problems when multiple threads compare concurrently. Logging, mutating the input object, sanitizing data fields right inside `equals`, persisting data, or emitting events also should not be in the comparison path.
 
-Nếu cần chuẩn hóa `code` để so sánh không phân biệt hoa/thường hoặc loại khoảng trắng, hãy định nghĩa quy tắc rõ ràng và **chuẩn hóa khi xây dựng giá trị**, hoặc sử dụng phép so sánh thuần túy phù hợp; đừng âm thầm sửa trường trong `equals`. Quy tắc chuẩn hóa phải nhất quán với `hashCode`.
+If `code` needs normalization for case-insensitive comparison or whitespace trimming, define a clear rule and **normalize when constructing the value**, or use an appropriate pure comparison; do not silently mutate fields inside `equals`. The normalization rule must be consistent with `hashCode`.
 
-### 4.4. Dùng dịch vụ bên ngoài làm tiêu chí so sánh
+### 4.4. Using external services as comparison criteria
 
-Ví dụ, `equals` gọi API để lấy tên hiện tại, hoặc truy vấn cơ sở dữ liệu để xem hai mã có còn ánh xạ tới cùng hồ sơ hay không. Lúc này câu trả lời phụ thuộc trạng thái dịch vụ, lỗi mạng và thời điểm gọi; kết quả có thể đổi khi các trường của hai đối tượng không đổi.
+For example, `equals` calls an API to fetch a current name, or queries a database to see whether two codes still map to the same record. At that point the answer depends on service state, network errors, and call timing; the result can change when neither object's fields have changed.
 
-Hãy tách thao tác tra cứu hay cập nhật trạng thái khỏi `equals`. Nếu bình đẳng thực sự cần một giá trị từ hệ thống khác, quyết định trước giá trị sẽ được chụp và lưu trong đối tượng như thế nào. Với đối tượng bất biến, chỉ dùng những trường dữ liệu đã được xác định lúc tạo.
+Separate lookup or state-update operations from `equals`. If equality genuinely needs a value from another system, decide beforehand how that value will be captured and stored in the object. For immutable objects, use only data fields already determined at creation time.
 
-### 4.5. Nuốt tất cả lỗi bằng catch
+### 4.5. Swallowing all errors with catch
 
 ~~~java
 @Override
@@ -188,11 +188,11 @@ public boolean equals(Object other) {
 }
 ~~~
 
-Đây là **đoạn minh họa lỗi**, không phải chương trình độc lập. `catch (Exception)` che dấu lỗi triển khai và đánh đồng lỗi lập trình với “không bằng nhau”. Nó cũng khiến việc phát hiện trạng thái hỏng khó hơn.
+This is an **illustrative erroneous snippet**, not a standalone program. `catch (Exception)` hides implementation bugs and conflates programming errors with “not equal”. It also makes detecting corrupted state harder.
 
-Sửa trực tiếp nguyên nhân: kiểm tra kiểu, xử lý trường nullable an toàn, xác thực bất biến khi tạo đối tượng. Trả về `false` cho trường hợp bình thường là khác kiểu hoặc `null`; không cần ngoại lệ làm điều khiển luồng cho chúng.
+Fix the root cause directly: check the type, handle nullable fields safely, and validate invariants at object creation. Return `false` for the normal cases of different type or `null`; do not use exceptions as control flow for them.
 
-### 4.6. Gọi Objects.equals(this, other) ngay trong equals
+### 4.6. Calling Objects.equals(this, other) directly inside equals
 
 ~~~java
 @Override
@@ -201,32 +201,32 @@ public boolean equals(Object other) {
 }
 ~~~
 
-Đoạn này cũng **không hợp lệ làm triển khai equals**. Với `this` và `other` không cùng tham chiếu nhưng đều khác `null`, `Objects.equals(this, other)` sẽ gọi lại `this.equals(other)`, gây đệ quy không dừng và cuối cùng có thể dẫn đến `StackOverflowError`. `Objects.equals` phù hợp để so sánh **các trường dữ liệu** trong `equals` hoặc hai đối tượng nullable ở bên ngoài phương thức.
+This snippet is also **invalid as an equals implementation**. When `this` and `other` do not share the same reference and are both non-`null`, `Objects.equals(this, other)` will call `this.equals(other)` again, causing unbounded recursion and eventually potentially leading to `StackOverflowError`. `Objects.equals` is appropriate for comparing **data fields** inside `equals` or two nullable objects outside the method.
 
-## 5. Giữ logic dễ đọc nhưng vẫn đúng hợp đồng
+## 5. Keeping Logic Readable While Staying Contract-Compliant
 
-Một thứ tự triển khai thường hợp lý là:
+A generally sensible implementation order is:
 
-1. Xác nhận `this == other`.
-2. Loại trường hợp `null` và sai kiểu bằng một phép kiểm tra kiểu rõ ràng.
-3. So sánh các trường thật sự quyết định bình đẳng, với xử lý `null` đúng theo bất biến của từng trường.
-4. Ghi đè `hashCode` từ cùng tập trường và duy trì tính ổn định trong thời gian dùng đối tượng làm khóa.
+1. Confirm `this == other`.
+2. Reject `null` and wrong-type cases with a clear type check.
+3. Compare the fields that genuinely determine equality, with `null` handling matching each field's invariant.
+4. Override `hashCode` from the same field set and maintain stability while the object is used as a key.
 
-Tránh mở rộng phép so sánh sang các trường chỉ mang tính trình bày, dữ liệu tạm, bộ đếm truy cập hoặc thông tin có thể thay đổi độc lập với danh tính nghiệp vụ, trừ khi mô hình bình đẳng **thực sự** yêu cầu chúng. Nếu lớp cần thay đổi các trường tham gia `equals`/`hashCode`, hãy đánh giá tác động tới `HashSet`/`HashMap`: thay đổi mã băm khi đối tượng đang là phần tử/khóa có thể khiến tra cứu thất bại. Khi có thể, hãy ưu tiên đối tượng giá trị bất biến.
+Avoid expanding the comparison to presentation-only fields, temporary data, access counters, or information that can change independently of business identity, unless the equality model **truly** requires them. If a class needs to mutate fields participating in `equals`/`hashCode`, evaluate the impact on `HashSet`/`HashMap`: changing the hash code while the object is an element/key can cause lookups to fail. Whenever possible, prefer immutable value objects.
 
-Cũng cần tránh việc cố “tối ưu” bằng cách ghi bộ nhớ đệm có thể biến đổi trong `equals`. Ngay cả bộ nhớ đệm không làm đổi kết quả logic vẫn có thể kéo theo tác dụng phụ, vấn đề đồng bộ hoặc độ phức tạp không cần thiết. Nếu cần tối ưu vì số liệu đo lường thực tế, hãy thiết kế giải pháp riêng và kiểm chứng toàn bộ hợp đồng.
+Also avoid trying to “optimize” by writing to a mutable cache inside `equals`. Even a cache that does not alter the logical result can bring along side effects, synchronization issues, or unnecessary complexity. If optimization is needed due to real measured metrics, design a dedicated solution and verify the entire contract.
 
-## 6. Kiểm tra khi hoàn thành
+## 6. Checks Upon Completion
 
-Với một phương thức `equals` tự cài đặt, hãy tự trả lời:
+For a custom `equals` method, ask yourself:
 
-- `x.equals(x)` có `true` với mọi đối tượng `x` hợp lệ không?
-- `x.equals(null)` có trả `false`, và `x.equals(objKhacKieu)` có trả `false` mà không ném `ClassCastException` không?
-- Các trường nullable hợp lệ có được so sánh mà không ném `NullPointerException` không?
-- Hai đối tượng bằng nhau có cho cùng `hashCode` không? Kết quả có đối xứng, bắc cầu và nhất quán khi các trường liên quan không đổi không?
-- Có phép gán, đọc/ghi tài nguyên, truy vấn mạng, logging hay thay đổi đối tượng đầu vào bên trong `equals` không?
-- Các thuộc tính quyết định bình đẳng có ổn định trong thời gian đối tượng được dùng làm khóa hoặc phần tử trong cấu trúc băm không?
+- Is `x.equals(x)` `true` for every valid object `x`?
+- Does `x.equals(null)` return `false`, and does `x.equals(objKhacKieu)` return `false` without throwing `ClassCastException`?
+- Are valid nullable fields compared without throwing `NullPointerException`?
+- Do two equal objects yield the same `hashCode`? Is the result symmetric, transitive, and consistent when relevant fields do not change?
+- Are there any assignments, resource reads/writes, network queries, logging, or input object mutations inside `equals`?
+- Are the equality-defining attributes stable while the object is used as a key or element in hash-based structures?
 
-Có thể chuyển các câu hỏi này thành kiểm thử JUnit: gọi `equals` nhiều lần, so sánh hai chiều, đưa phần tử vào `HashSet` rồi tra cứu bằng một đối tượng bằng nó, kiểm tra `null`/sai kiểu/trường nullable và bảo đảm trạng thái quan sát được không đổi. Kiểm thử bổ sung bảo vệ hợp đồng; việc kiểm tra mã nguồn vẫn cần thiết để xác định không có tác dụng phụ ẩn.
+These questions can be turned into JUnit tests: call `equals` multiple times, compare in both directions, put an element into a `HashSet` and look it up with an equal object, test `null`/wrong type/nullable fields, and ensure observable state does not change. Tests add protection for the contract; source code inspection remains necessary to confirm there are no hidden side effects.
 
-**Ghi nhớ:** `equals(Object)` nên là phép kiểm tra bình đẳng rõ ràng, ổn định, không cập nhật trạng thái và trả kết quả bình thường cho `null`, khác kiểu cùng các giá trị nullable hợp lệ. Thiết kế bất biến và dùng đúng các trường trong `hashCode` giúp hành vi đó bền vững khi đối tượng tham gia collection.
+**Key takeaway:** `equals(Object)` should be a clear, stable equality check that does not update state and returns normal results for `null`, different types, and valid nullable values. Immutable design and using the exact same fields in `hashCode` keep that behavior solid when objects participate in collections.

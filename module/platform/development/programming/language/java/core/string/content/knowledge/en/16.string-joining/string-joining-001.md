@@ -1,17 +1,17 @@
-# String.join với mảng hoặc Iterable
+# String.join with Arrays or Iterables
 
-## 1. Mục tiêu bài học
+## 1. Lesson Objectives
 
-Khi có nhiều đoạn văn bản như tên cột, thẻ, đường dẫn logic hoặc các thành phần thông báo, ta thường muốn ghép chúng thành **một chuỗi** và chèn cùng một dấu phân cách giữa các phần tử. `String.join(...)` giải quyết đúng tình huống đó: nhận một `delimiter` và nhiều phần tử kiểu `CharSequence`, rồi trả về một `String` mới.
+When you have multiple pieces of text such as column names, tags, logical paths, or message components, you often want to join them into **a single string** with the same separator inserted between elements. `String.join(...)` solves that exact case: it takes a `delimiter` and multiple `CharSequence` elements, then returns a new `String`.
 
-Sau bài này, bạn có thể:
-- Chọn đúng overload `String.join` cho **mảng**, **danh sách/Iterable** hoặc các tham số rời.
-- Dự đoán kết quả khi danh sách rỗng, có một phần tử, có `null` hoặc dấu phân cách rỗng.
-- Biết khi nào cần xử lý dữ liệu trước khi ghép và khi nào chuyển sang `StringJoiner` hoặc `Collectors.joining`.
+After this lesson, you will be able to:
+- Choose the right `String.join` overload for **arrays**, **lists/Iterables**, or individual arguments.
+- Predict the result when the list is empty, has one element, contains `null`, or uses an empty delimiter.
+- Know when to preprocess data before joining and when to switch to `StringJoiner` or `Collectors.joining`.
 
-## 2. Hai overload cần biết
+## 2. The Two Overloads to Know
 
-Từ Java 8, lớp `java.lang.String` cung cấp hai phương thức tĩnh:
+Since Java 8, the `java.lang.String` class provides two static methods:
 
 ```java
 public static String join(CharSequence delimiter, CharSequence... elements);
@@ -21,25 +21,25 @@ public static String join(
         Iterable<? extends CharSequence> elements);
 ```
 
-Trong đó:
-- `delimiter` là chuỗi/dãy ký tự chèn **giữa hai phần tử liên tiếp**, không tự thêm vào đầu hoặc cuối.
-- `elements` là các phần tử cần ghép, theo đúng thứ tự được truyền vào hoặc thứ tự mà `Iterable` duyệt qua.
-- Giá trị trả về là `String` mới; thao tác không thay đổi mảng, collection hay bản thân các phần tử.
-- `CharSequence` là giao diện mà `String`, `StringBuilder` và `StringBuffer` triển khai. Vì thế tham số không bắt buộc phải có kiểu chính xác là `String`.
+Where:
+- `delimiter` is the string/character sequence inserted **between two consecutive elements**; it is not automatically added at the start or end.
+- `elements` are the elements to join, in the exact order they are passed or the order in which the `Iterable` iterates over them.
+- The return value is a new `String`; the operation does not modify the array, the collection, or the elements themselves.
+- `CharSequence` is the interface implemented by `String`, `StringBuilder`, and `StringBuffer`. Therefore, arguments do not strictly have to be of type `String`.
 
-| Dữ liệu đầu vào | Cách gọi | Overload được chọn |
+| Input data | Call | Selected overload |
 | --- | --- | --- |
-| Các phần tử rời | `String.join("-", "A", "B", "C")` | `CharSequence...` |
-| `String[]` | `String.join("-", array)` | `CharSequence...`, truyền cả mảng |
+| Individual elements | `String.join("-", "A", "B", "C")` | `CharSequence...` |
+| `String[]` | `String.join("-", array)` | `CharSequence...`, passing the entire array |
 | `List<String>` | `String.join("-", list)` | `Iterable<? extends CharSequence>` |
 | `Set<String>` | `String.join("-", set)` | `Iterable<? extends CharSequence>` |
 | `Iterable<StringBuilder>` | `String.join("-", items)` | `Iterable<? extends CharSequence>` |
 
-**Phân biệt cú pháp:** dấu `...` trong khai báo Java là *varargs*; trong lời gọi, bạn có thể truyền các phần tử rời hoặc một mảng đối tượng tương thích. Với `List`, `Set` hay một `Iterable` tự tạo, Java dùng overload thứ hai.
+**Syntax distinction:** the `...` in a Java declaration is *varargs*; at the call site, you can pass individual elements or a compatible object array. For `List`, `Set`, or a custom `Iterable`, Java uses the second overload.
 
-## 3. Ví dụ hoàn chỉnh: mảng, Iterable và varargs
+## 3. Complete Example: Array, Iterable, and Varargs
 
-Tạo tệp `JoinDemo.java` với mã sau (Java 17+):
+Create the file `JoinDemo.java` with the following code (Java 17+):
 
 ```java
 import java.util.Arrays;
@@ -68,14 +68,14 @@ public class JoinDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ```bash
 javac -encoding UTF-8 JoinDemo.java
 java JoinDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 array: Java / Core / String
@@ -87,43 +87,43 @@ one: solo
 null item: A, null, C
 ```
 
-Các điểm cần quan sát:
-1. Mảng `words` có ba phần tử nên dấu ` / ` xuất hiện **hai lần**.
-2. `colors` là `List<String>`, được xử lý thông qua `Iterable` mà không cần chuyển thành mảng.
-3. `LinkedHashSet` giữ thứ tự chèn `A, B, C` nên kết quả trên có thứ tự xác định; `HashSet` nói chung không hứa hẹn cùng thứ tự đó.
-4. Lời gọi `String.join(".", "java", "lang", "String")` sử dụng varargs trực tiếp.
-5. Mảng rỗng trả chuỗi rỗng; ký hiệu `[]` xuất hiện chỉ vì ta tự ghép vào lệnh `println` để dễ quan sát.
-6. Phần tử `null` trong danh sách được chuyển thành văn bản `"null"`; đây không phải thao tác bỏ qua phần tử.
+Points to observe:
+1. The `words` array has three elements, so ` / ` appears **twice**.
+2. `colors` is a `List<String>`, processed via `Iterable` without converting to an array.
+3. `LinkedHashSet` preserves insertion order `A, B, C`, so the result above has a deterministic order; `HashSet` in general does not guarantee that same order.
+4. Calling `String.join(".", "java", "lang", "String")` uses varargs directly.
+5. An empty array returns an empty string; the `[]` brackets appear only because we concatenated them in `println` for visibility.
+6. A `null` element in the list is converted into the text `"null"`; this operation does not skip elements.
 
-## 4. Cơ chế ghép và quy tắc kết quả
+## 4. Joining Mechanism and Result Rules
 
-Xét lời gọi:
+Consider the call:
 
 ```java
 String result = String.join(" | ", "A", "B", "C");
 ```
 
-Ta có thể hình dung quá trình là `A` + `" | "` + `B` + `" | "` + `C`, tạo `"A | B | C"`. Dấu phân cách được chèn **n − 1 lần** khi có `n >= 1` phần tử. `String.join` sử dụng cơ chế ghép nội bộ của thư viện Java, nên ta không cần tự nối lặp `result += ...`.
+You can picture the process as `A` + `" | "` + `B` + `" | "` + `C`, producing `"A | B | C"`. The delimiter is inserted **n − 1 times** when there are `n >= 1` elements. `String.join` uses the Java library's internal joining mechanism, so you do not need to manually concatenate in a loop with `result += ...`.
 
-| Trường hợp | Ví dụ | Giá trị trả về |
+| Case | Example | Return value |
 | --- | --- | --- |
-| Không phần tử | `String.join(",", new String[0])` | `""` |
-| Một phần tử | `String.join(",", "A")` | `"A"` |
-| Nhiều phần tử | `String.join(",", "A", "B")` | `"A,B"` |
-| Dấu phân cách rỗng | `String.join("", "A", "B")` | `"AB"` |
-| Dấu phân cách nhiều ký tự | `String.join(" -> ", "A", "B")` | `"A -> B"` |
-| Phần tử rỗng | `String.join(",", "A", "", "B")` | `"A,,B"` |
-| Phần tử `null` | `String.join(",", "A", (CharSequence) null)` | `"A,null"` |
+| Zero elements | `String.join(",", new String[0])` | `""` |
+| One element | `String.join(",", "A")` | `"A"` |
+| Multiple elements | `String.join(",", "A", "B")` | `"A,B"` |
+| Empty delimiter | `String.join("", "A", "B")` | `"AB"` |
+| Multi-character delimiter | `String.join(" -> ", "A", "B")` | `"A -> B"` |
+| Empty element | `String.join(",", "A", "", "B")` | `"A,,B"` |
+| `null` element | `String.join(",", "A", (CharSequence) null)` | `"A,null"` |
 
-**Lưu ý:** `String.join` **không** tự cắt khoảng trắng, lọc phần tử rỗng, loại trùng, sắp xếp hoặc escape ký tự phân cách bên trong từng phần tử. Ví dụ, `String.join(",", "a,b", "c")` trả `"a,b,c"`, không giữ lại thông tin nhóm ban đầu khi tách bằng dấu phẩy đơn thuần.
+**Note:** `String.join` does **not** automatically trim whitespace, filter out empty elements, deduplicate, sort, or escape delimiter characters inside each element. For example, `String.join(",", "a,b", "c")` returns `"a,b,c"`, which does not preserve the original grouping when split by a plain comma.
 
-### Phân biệt `null` ở từng vị trí
+### Distinguishing `null` by Position
 
-- `delimiter == null`: ném `NullPointerException`.
-- Cả mảng `elements` hoặc cả `Iterable` là `null`: ném `NullPointerException`.
-- **Một phần tử bên trong** mảng/`Iterable` là `null`: giá trị đó được thể hiện bằng chuỗi ký tự `"null"` trong kết quả.
+- `delimiter == null`: throws `NullPointerException`.
+- The entire `elements` array or the entire `Iterable` is `null`: throws `NullPointerException`.
+- **An element inside** the array/`Iterable` is `null`: that value is represented as the character string `"null"` in the result.
 
-Ví dụ phân biệt hai tình huống khác nhau:
+Example distinguishing the two different situations:
 
 ```java
 String[] values = {"A", null, "C"};
@@ -133,20 +133,20 @@ String[] missingArray = null;
 // String.join("-", missingArray); // NullPointerException
 ```
 
-Đừng nhầm ngoại lệ xảy ra **trước lúc join** với hành vi của `join`: `List.of("A", null)` tự ném `NullPointerException` vì `List.of` không cho phép phần tử `null`. Nếu muốn kiểm thử một danh sách chứa `null`, có thể dùng `Arrays.asList("A", null)`.
+Do not confuse an exception thrown **before joining** with the behavior of `join`: `List.of("A", null)` itself throws `NullPointerException` because `List.of` does not allow `null` elements. If you want to test a list containing `null`, you can use `Arrays.asList("A", null)`.
 
-## 5. Khi làm việc với mảng
+## 5. Working with Arrays
 
-`String[]` là lựa chọn trực tiếp nhất:
+`String[]` is the most direct choice:
 
 ```java
 String[] paths = {"api", "v1", "users"};
 String route = String.join("/", paths); // "api/v1/users"
 ```
 
-`String.join` không tự chuẩn hóa đường dẫn hay thêm dấu `/` ở đầu. Nếu cần một đường dẫn hệ thống thực sự, hãy cân nhắc API đường dẫn như `Path` thay vì xây đường dẫn hệ điều hành bằng phép ghép chuỗi.
+`String.join` does not normalize paths or add a leading `/`. If you need an actual filesystem path, consider a path API such as `Path` rather than building OS paths via string joining.
 
-Mảng kiểu nguyên thủy, chẳng hạn `int[]`, **không** tương thích với `CharSequence...`. Ví dụ `String.join(",", new int[]{1, 2})` không biên dịch. Muốn ghép số, cần chuyển số thành chuỗi:
+Primitive arrays, such as `int[]`, are **not** compatible with `CharSequence...`. For example, `String.join(",", new int[]{1, 2})` does not compile. To join numbers, you need to convert them to strings:
 
 ```java
 import java.util.stream.Collectors;
@@ -159,11 +159,11 @@ String ids = IntStream.of(7, 12, 30)
 System.out.println(ids); // 7-12-30
 ```
 
-Ví dụ này là **đoạn mã đặt trong một phương thức hoặc chương trình có sẵn**; muốn chạy độc lập, hãy đặt các câu lệnh vào `main` và thêm những import được hiển thị.
+This example is a **snippet meant to be placed inside an existing method or program**; to run it standalone, place the statements in `main` and add the shown imports.
 
-## 6. Khi làm việc với Iterable
+## 6. Working with Iterable
 
-`Iterable<? extends CharSequence>` cho phép dùng `List<String>`, `Set<String>` và các collection/đối tượng có khả năng duyệt khác. Không cần gọi `toArray()` chỉ để ghép phần tử.
+`Iterable<? extends CharSequence>` allows using `List<String>`, `Set<String>`, and other iterable collections/objects. There is no need to call `toArray()` just to join elements.
 
 ```java
 import java.util.List;
@@ -173,14 +173,14 @@ String description = String.join(" | ", roles);
 // "reader | editor | admin"
 ```
 
-Với `List`, thứ tự danh sách là thứ tự ghép. Với `Set`, thứ tự phụ thuộc vào loại set:
-- `LinkedHashSet` giữ thứ tự chèn.
-- `TreeSet` duyệt theo thứ tự sắp xếp của nó.
-- `HashSet` không bảo đảm thứ tự duyệt; không dùng khi đầu ra bắt buộc ổn định.
+With a `List`, the list order is the joining order. With a `Set`, the order depends on the set implementation:
+- `LinkedHashSet` preserves insertion order.
+- `TreeSet` iterates in its sorted order.
+- `HashSet` does not guarantee iteration order; do not use it when stable output is required.
 
-Một đối tượng chỉ khai báo kiểu `Iterable<String>` vẫn truyền thẳng được cho `String.join`, vì overload thứ hai yêu cầu `Iterable<? extends CharSequence>`. Các phần tử được duyệt để tạo kết quả; `String.join` không đòi danh sách phải hỗ trợ truy cập theo chỉ số.
+An object declared only with type `Iterable<String>` can still be passed directly to `String.join`, because the second overload expects `Iterable<? extends CharSequence>`. Elements are iterated over to build the result; `String.join` does not require the collection to support indexed access.
 
-### Iterable chứa CharSequence khác String
+### Iterable Containing a CharSequence Other Than String
 
 ```java
 import java.util.List;
@@ -194,11 +194,11 @@ String joined = String.join(" + ", builders);
 // "first + second"
 ```
 
-Ở thời điểm ghép, nội dung mỗi `StringBuilder` được biểu diễn thành chuỗi. Chuỗi `joined` đã tạo ra sẽ không tự thay đổi nếu sau đó bạn sửa những `StringBuilder` nguồn.
+At the time of joining, the contents of each `StringBuilder` are represented as a string. The resulting `joined` string will not change automatically if you later modify those source `StringBuilder` instances.
 
-## 7. Làm sạch dữ liệu trước khi join
+## 7. Cleaning Data Before Joining
 
-Trong dữ liệu thực tế, bạn có thể cần bỏ `null`, trim khoảng trắng và loại mục rỗng. `String.join` không có tham số bật các hành vi này; hãy xử lý nguồn trước:
+In real-world data, you may need to remove `null`, trim whitespace, and drop empty items. `String.join` has no parameters to enable these behaviors; preprocess the source beforehand:
 
 ```java
 import java.util.Arrays;
@@ -215,19 +215,19 @@ List<String> cleaned = raw.stream()
 System.out.println(String.join(", ", cleaned)); // Java, Core
 ```
 
-Đây là đoạn mã minh họa dành cho `main` hoặc một phương thức thích hợp; `Stream.toList()` có từ Java 16, nên chạy được với Java 17+. Không nên mặc định loại phần tử rỗng hoặc `null` trong mọi bài toán: đôi khi vị trí trống trong dữ liệu có ý nghĩa và cần được giữ lại.
+This is an illustrative snippet meant for `main` or an appropriate method; `Stream.toList()` has existed since Java 16, so it works on Java 17+. Do not remove empty or `null` elements by default in every problem: sometimes an empty slot in the data carries meaning and must be preserved.
 
-Nếu cần kiểm soát phân cách theo từng điều kiện, escape định dạng hoặc chuẩn hóa văn bản theo quy tắc nghiệp vụ, hãy xử lý rõ ràng trước khi gọi `join`.
+If you need conditional separator control, format escaping, or text normalization according to business rules, process them explicitly before calling `join`.
 
-## 8. Chọn String.join, StringJoiner hay Collectors.joining
+## 8. Choosing String.join, StringJoiner, or Collectors.joining
 
-| Công cụ | Tình huống phù hợp | Đặc điểm |
+| Tool | Best suited for | Characteristics |
 | --- | --- | --- |
-| `String.join` | Đã có mảng, `Iterable` hoặc vài chuỗi rời | Ngắn gọn; chỉ chọn delimiter và các phần tử |
-| `StringJoiner` | Thêm dần các phần tử; muốn prefix/suffix | Có `add`, delimiter, prefix, suffix |
-| `Collectors.joining` | Đang xử lý `Stream<String>` | Kết hợp tự nhiên với `filter`, `map`; có overload prefix/suffix |
+| `String.join` | Already have an array, `Iterable`, or a few separate strings | Concise; only specifies delimiter and elements |
+| `StringJoiner` | Adding elements incrementally; need prefix/suffix | Has `add`, delimiter, prefix, suffix |
+| `Collectors.joining` | Processing a `Stream<String>` | Combines naturally with `filter`, `map`; has prefix/suffix overload |
 
-Ví dụ khi cần dấu ngoặc bao quanh:
+Example when surrounding brackets are needed:
 
 ```java
 import java.util.List;
@@ -243,46 +243,46 @@ String collected = List.of("A", "B").stream()
 System.out.println(collected); // [A, B]
 ```
 
-`String.join` chỉ chèn dấu phân cách; `String.join(", ", items)` tự nó không sinh tiền tố `[` hoặc hậu tố `]`. Cũng không cần chuyển `List` thành `Stream` chỉ để gọi `Collectors.joining` khi `String.join` đã giải quyết đủ yêu cầu.
+`String.join` only inserts the delimiter; `String.join(", ", items)` by itself does not produce a `[` prefix or `]` suffix. Nor do you need to turn a `List` into a `Stream` just to call `Collectors.joining` when `String.join` already satisfies the requirement.
 
-## 9. Sai lầm thường gặp và cách tránh
+## 9. Common Mistakes and How to Avoid Them
 
-1. **Dùng nhầm kiểu phần tử.** `String.join(",", List.of(1, 2))` không tương thích vì `Integer` không triển khai `CharSequence`. Chuyển phần tử sang `String` trước.
-2. **Cho rằng `null` bị bỏ qua.** Phần tử `null` trở thành chữ `"null"`; nếu không muốn vậy, lọc trước.
-3. **Cho rằng `String.join` tự bỏ khoảng trắng.** `" A "` vẫn chứa hai khoảng trắng; trim riêng khi cần.
-4. **Cho rằng mọi `Set` đều có thứ tự ổn định.** Chọn cấu trúc bảo toàn thứ tự hoặc sắp xếp chủ động nếu kết quả cần tái lập.
-5. **Nhầm dấu phân cách thành biểu thức chính quy.** `String.join` chèn delimiter nguyên văn, không diễn giải `.`, `|` hoặc `*` như regex.
-6. **Dùng join để xuất CSV hoàn chỉnh.** Giá trị có dấu phẩy, dấu nháy kép hoặc xuống dòng cần quy tắc CSV; `String.join(",", fields)` không tự quote/escape.
-7. **Nối chuỗi lặp bằng `+=` để thay join.** Với một collection có sẵn, `String.join` thể hiện mục đích rõ ràng và tránh tự quản lý dấu phân cách đầu/cuối.
-8. **Truyền `null` không rõ kiểu cho overload.** Các overload đều nhận kiểu tham chiếu; hãy khai báo dữ liệu có kiểu rõ ràng, kiểm tra `null` trước khi gọi.
+1. **Using the wrong element type.** `String.join(",", List.of(1, 2))` is incompatible because `Integer` does not implement `CharSequence`. Convert elements to `String` first.
+2. **Assuming `null` is skipped.** A `null` element becomes the text `"null"`; if that is not desired, filter it out first.
+3. **Assuming `String.join` strips whitespace automatically.** `" A "` still keeps both spaces; trim explicitly when needed.
+4. **Assuming every `Set` has a stable order.** Choose an order-preserving structure or sort explicitly if the output must be reproducible.
+5. **Confusing the delimiter with a regular expression.** `String.join` inserts the delimiter literally; it does not interpret `.`, `|`, or `*` as regex.
+6. **Using `join` to produce full CSV output.** Values with commas, double quotes, or newlines require CSV rules; `String.join(",", fields)` does not quote or escape automatically.
+7. **Repeatedly concatenating strings with `+=` instead of joining.** With an existing collection, `String.join` expresses intent clearly and avoids manually managing leading/trailing delimiters.
+8. **Passing an untyped `null` to an overload.** Both overloads accept reference types; declare data with explicit types and check for `null` before calling.
 
-## 10. Bài tự luyện
+## 10. Practice Exercises
 
-**Bài 1.** Có `String[] tags = {"java", "core", "api"};`. Tạo chuỗi `"java | core | api"` mà không dùng vòng lặp.
+**Exercise 1.** Given `String[] tags = {"java", "core", "api"};`, produce `"java | core | api"` without using a loop.
 
 ```java
 String[] tags = {"java", "core", "api"};
 String result = String.join(" | ", tags);
 ```
 
-**Bài 2.** Có `List<String> letters = List.of("x", "y", "z");`. Dự đoán kết quả của `String.join("", letters)` và `String.join("/", List.<String>of())`.
+**Exercise 2.** Given `List<String> letters = List.of("x", "y", "z");`, predict the results of `String.join("", letters)` and `String.join("/", List.<String>of())`.
 
-Đáp án: `"xyz"` và `""`. Dấu phân cách rỗng không tạo ký tự giữa các phần tử; iterable rỗng cho chuỗi rỗng.
+Answer: `"xyz"` and `""`. An empty delimiter inserts no characters between elements; an empty iterable yields an empty string.
 
-**Bài 3.** Với `Arrays.asList("A", "", null, "B")` và delimiter `"-"`, dự đoán kết quả nếu không lọc dữ liệu.
+**Exercise 3.** With `Arrays.asList("A", "", null, "B")` and delimiter `"-"`, predict the result without filtering the data.
 
-Đáp án: `"A--null-B"`. Phần tử rỗng vẫn chiếm một vị trí, còn `null` được chuyển thành chữ `"null"`.
+Answer: `"A--null-B"`. The empty element still occupies a position, and `null` is converted to the text `"null"`.
 
-**Bài 4.** Muốn xuất nhiều trường có thể chứa dấu phẩy và xuống dòng theo định dạng CSV chuẩn, có nên chỉ dùng `String.join(",", fields)`?
+**Exercise 4.** If you want to export multiple fields that may contain commas and newlines in standard CSV format, is `String.join(",", fields)` alone enough?
 
-Đáp án: Không đủ. Cần cơ chế quote/escape CSV phù hợp (hoặc thư viện CSV) trước khi phát hành dữ liệu; `String.join` chỉ thực hiện ghép ký tự.
+Answer: Not enough. You need proper CSV quoting/escaping (or a CSV library) before emitting the data; `String.join` only performs character joining.
 
-## 11. Ghi nhớ
+## 11. Key Takeaways
 
-- **Mảng `String[]` hoặc `CharSequence[]`:** dùng overload varargs, ví dụ `String.join(", ", array)`.
-- **`List<String>`, `Set<String>` hay `Iterable<? extends CharSequence>`:** truyền trực tiếp, ví dụ `String.join(", ", list)`.
-- **Không phần tử:** nhận `""`. **Phần tử `null`:** nhận chữ `"null"`. **Delimiter hoặc nguồn `null`:** `NullPointerException`.
-- **Thứ tự:** theo mảng hoặc thứ tự duyệt của `Iterable`; không tự sắp xếp.
-- **Chuẩn hóa, lọc, thêm prefix/suffix hay xuất định dạng có escape:** cần bước xử lý khác hoặc công cụ phù hợp.
+- **`String[]` or `CharSequence[]` arrays:** use the varargs overload, e.g., `String.join(", ", array)`.
+- **`List<String>`, `Set<String>`, or `Iterable<? extends CharSequence>`:** pass directly, e.g., `String.join(", ", list)`.
+- **Zero elements:** returns `""`. **`null` element:** produces `"null"`. **`null` delimiter or `null` source:** throws `NullPointerException`.
+- **Order:** follows the array or the `Iterable` iteration order; does not sort automatically.
+- **Normalization, filtering, adding prefix/suffix, or exporting escaped formats:** requires separate preprocessing or a more suitable tool.
 
-Tài liệu API tham khảo: [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html), [Java SE 17 — StringJoiner](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/StringJoiner.html), [Java SE 17 — Collectors](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/Collectors.html).
+API reference documentation: [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html), [Java SE 17 — StringJoiner](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/StringJoiner.html), [Java SE 17 — Collectors](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/Collectors.html).

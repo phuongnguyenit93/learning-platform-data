@@ -1,14 +1,14 @@
-# Dấu của phần dư với toán hạng âm — Java 17+
+# Sign of the Remainder with Negative Operands — Java 17+
 
-Trong Java, toán tử **`%`** tính **phần dư của phép chia**, không phải phép toán modulo luôn cho kết quả không âm. Với hai số nguyên `a` và `b` (trong đó `b != 0`), Java chia số nguyên theo quy tắc **cắt phần thương về 0** (*truncation toward zero*), rồi tính phần dư:
+In Java, the **`%`** operator computes the **remainder of division**, not a modulo operation that always yields a non-negative result. For two integers `a` and `b` (where `b != 0`), Java divides integers according to **truncation toward zero**, and then computes the remainder:
 
 ~~~text
-q = a / b      (thuong nguyen cat ve 0)
+q = a / b      (integer quotient truncated toward 0)
 r = a % b
-a = q * b + r  (dang thuc toan hoc)
+a = q * b + r  (mathematical identity)
 ~~~
 
-**Quy tắc chính:** Phần dư nguyên khác 0 mang **cùng dấu với số bị chia `a`** (toán hạng trái), **không theo dấu số chia `b`** (toán hạng phải). Nếu chia hết, phần dư nguyên bằng `0`.
+**Main rule:** A non-zero integer remainder carries the **same sign as the dividend `a`** (the left operand), **not the sign of the divisor `b`** (the right operand). If it divides evenly, the integer remainder is `0`.
 
 ~~~java
 System.out.println( 7 %  3); //  1
@@ -17,36 +17,36 @@ System.out.println( 7 % -3); //  1
 System.out.println(-7 % -3); // -1
 ~~~
 
-Đừng nhầm `-7 % 3` với `Math.floorMod(-7, 3)`: chúng lần lượt là **`-1`** và **`2`**. Hai biểu thức dùng **quy tắc thương khác nhau**.
+Do not confuse `-7 % 3` with `Math.floorMod(-7, 3)`: they are **`-1`** and **`2`**, respectively. The two expressions use **different quotient rules**.
 
-## 1. Bảng dấu của phần dư nguyên
+## 1. Sign Table for Integer Remainder
 
-| Số bị chia `a` | Số chia `b` | Thương nguyên `a / b` | Phần dư `a % b` | Kiểm tra |
+| Dividend `a` | Divisor `b` | Integer Quotient `a / b` | Remainder `a % b` | Check |
 | ---: | ---: | ---: | ---: | --- |
 | 7 | 3 | 2 | 1 | `7 = 2 * 3 + 1` |
 | −7 | 3 | −2 | −1 | `-7 = (-2) * 3 + (-1)` |
 | 7 | −3 | −2 | 1 | `7 = (-2) * (-3) + 1` |
 | −7 | −3 | 2 | −1 | `-7 = 2 * (-3) + (-1)` |
-| −9 | 3 | −3 | 0 | Chia hết |
-| 0 | −3 | 0 | 0 | Số bị chia bằng 0 |
+| −9 | 3 | −3 | 0 | Divides evenly |
+| 0 | −3 | 0 | 0 | Dividend is 0 |
 
-Với số chia nguyên khác 0, độ lớn toán học của phần dư thỏa **`|r| < |b|`**; khi `r != 0` thì dấu của `r` là dấu của `a`. Lưu ý `Math.abs(Integer.MIN_VALUE)` vẫn có giá trị âm vì giới hạn biểu diễn `int`, nên không dùng `Math.abs` một cách mù quáng để kiểm chứng bất đẳng thức ở mọi biên.
+For a non-zero integer divisor, the mathematical magnitude of the remainder satisfies **`|r| < |b|`**; when `r != 0`, the sign of `r` is the sign of `a`. Note that `Math.abs(Integer.MIN_VALUE)` is still negative due to `int` representation limits, so do not blindly use `Math.abs` to verify this inequality at every boundary.
 
-### Vì sao `-7 % 3 == -1`?
+### Why Does `-7 % 3 == -1`?
 
-Java lấy thương nguyên của `-7 / 3` là **`-2`**, không phải `-3`:
+Java takes the integer quotient of `-7 / 3` as **`-2`**, not `-3`:
 
 ~~~text
--7 / 3 = -2       (cat ve 0)
+-7 / 3 = -2       (truncated toward 0)
 -7 = (-2) * 3 + r
  r = -7 - (-6) = -1
 ~~~
 
-Nếu thay thương bằng `floor(-7/3) = -3` thì phần dư tương ứng là 2. Đó là cách tiếp cận của **floor division / floor modulus**, không phải cách Java tính `%` nguyên.
+If you replace the quotient with `floor(-7/3) = -3`, the corresponding remainder is 2. That is the **floor division / floor modulus** approach, not how Java computes integer `%`.
 
-## 2. Chương trình Java 17+ chạy được
+## 2. Runnable Java 17+ Program
 
-Lưu file UTF-8 tên **`RemainderSignsDemo.java`**:
+Save a UTF-8 file named **`RemainderSignsDemo.java`**:
 
 ~~~java
 public class RemainderSignsDemo {
@@ -109,7 +109,7 @@ public class RemainderSignsDemo {
 }
 ~~~
 
-Với **JDK 17 trở lên**, mở PowerShell hoặc Bash trong thư mục chứa tệp và chạy:
+With **JDK 17 or later**, open PowerShell or Bash in the directory containing the file and run:
 
 ~~~bash
 java -version
@@ -118,7 +118,7 @@ javac -encoding UTF-8 RemainderSignsDemo.java
 java RemainderSignsDemo
 ~~~
 
-**Expected output chính xác** từ lệnh `java RemainderSignsDemo` (không tính đầu ra phiên bản JDK):
+**Exact expected output** from `java RemainderSignsDemo` (excluding the JDK version output):
 
 ~~~text
 == integer signs ==
@@ -149,15 +149,15 @@ infiniteDividendIsNaN=true
 infiniteDivisor=-7.5
 ~~~
 
-## 3. Toán hạng âm nằm ở đâu?
+## 3. Where Is the Negative Operand?
 
-Với biểu thức `a % b`:
+In the expression `a % b`:
 
-- `a`: **số bị chia** (*dividend*), nằm **bên trái** dấu `%`.
-- `b`: **số chia** (*divisor*), nằm **bên phải** dấu `%`.
-- Dấu của phần dư nguyên khác 0 tuân theo **`a`**, dù `b` dương hay âm.
+- `a`: the **dividend**, located to the **left** of `%`.
+- `b`: the **divisor**, located to the **right** of `%`.
+- The sign of a non-zero integer remainder follows **`a`**, whether `b` is positive or negative.
 
-Ví dụ cùng số bị chia `7`:
+Example with the same dividend `7`:
 
 ~~~java
 int a = 7;
@@ -165,61 +165,61 @@ System.out.println(a % 3);  // 1.
 System.out.println(a % -3); // 1.
 ~~~
 
-Đổi dấu **số chia** làm thay đổi thương nhưng **không đảo dấu phần dư**. Ngược lại, đổi dấu số bị chia từ 7 sang −7 làm phần dư đổi dấu khi khác 0:
+Negating the **divisor** changes the quotient's sign, but **does not flip the remainder's sign**. Conversely, changing the dividend from 7 to −7 flips the remainder's sign when non-zero:
 
 ~~~java
 System.out.println(-7 % 3);  // -1.
 System.out.println(-7 % -3); // -1.
 ~~~
 
-Không được kết luận rằng `%` “luôn trả số dương trong miền 0 đến `b-1`”. Điều đó chỉ đúng trong một số điều kiện (ví dụ `a >= 0` và `b > 0`), chứ **không đúng khi `a` âm**.
+Do not conclude that `%` "always returns a positive number in the range 0 to `b-1`". That holds only under certain conditions (such as `a >= 0` and `b > 0`), and is **false when `a` is negative**.
 
-## 4. Khác nhau giữa `%` và `Math.floorMod()`
+## 4. Differences Between `%` and `Math.floorMod()`
 
-Java cung cấp `Math.floorMod` để tính phần dư tương ứng với **thương làm tròn xuống âm vô cực** (*floor division*). Với số nguyên:
+Java provides `Math.floorMod` to compute the remainder corresponding to **floor division** (rounding the quotient down toward negative infinity). For integers:
 
 ~~~text
-%:            a = (a / b) * b + (a % b)         (thuong cat ve 0)
+%:            a = (a / b) * b + (a % b)         (quotient truncated toward 0)
 floorMod:     a = floorDiv(a,b) * b + floorMod(a,b)
 ~~~
 
-| Biểu thức | Kết quả `%` | Kết quả `Math.floorMod` |
+| Expression | `%` Result | `Math.floorMod` Result |
 | --- | ---: | ---: |
-| `-7` và `3` | −1 | 2 |
-| `7` và `-3` | 1 | −2 |
-| `-7` và `-3` | −1 | −1 |
-| `7` và `3` | 1 | 1 |
+| `-7` and `3` | −1 | 2 |
+| `7` and `-3` | 1 | −2 |
+| `-7` and `-3` | −1 | −1 |
+| `7` and `3` | 1 | 1 |
 
-Với **số chia dương**, `Math.floorMod(a, b)` có kết quả trong khoảng từ **0 đến `b - 1`**, nên hữu ích khi cần chuẩn hóa chỉ số vòng, số thứ tự tuần hoàn hoặc nhóm theo một số lượng ô cố định.
+With a **positive divisor**, `Math.floorMod(a, b)` produces a result from **0 to `b - 1`**, which is useful when normalizing circular indices, cyclic sequence numbers, or grouping into a fixed number of slots.
 
 ~~~java
 int slotCount = 3;
-int raw = -7 % slotCount;              // -1: chi so am.
-int index = Math.floorMod(-7, slotCount); // 2: trong 0..2.
+int raw = -7 % slotCount;              // -1: negative index.
+int index = Math.floorMod(-7, slotCount); // 2: within 0..2.
 ~~~
 
-Nếu `b` âm, `Math.floorMod(a, b)` cho kết quả **bằng 0 hoặc mang dấu của số chia** (có thể âm). Vì vậy khi dùng `floorMod` để tạo chỉ số mảng, cần bảo đảm **modulus dương**.
+If `b` is negative, `Math.floorMod(a, b)` gives a result **equal to 0 or having the sign of the divisor** (which can be negative). Therefore, when using `floorMod` to compute an array index, ensure a **positive modulus**.
 
-**Không nên tự viết `(a % n + n) % n` như công thức vạn năng**, bởi phép cộng trung gian có thể tràn `int` khi `n` lớn. `Math.floorMod(a, n)` thể hiện đúng ý đồ hơn cho `n > 0`. Nếu `n == 0`, `floorMod` nguyên cũng ném `ArithmeticException`.
+**Do not hand-roll `(a % n + n) % n` as a universal formula**, because the intermediate addition can overflow `int` when `n` is large. `Math.floorMod(a, n)` expresses the intent better for `n > 0`. If `n == 0`, integer `floorMod` also throws `ArithmeticException`.
 
-## 5. Lưu ý biên của `int` và `long`
+## 5. Boundary Notes for `int` and `long`
 
-Các phép `%` giữa `int` và `long` được thực hiện với các toán hạng số nguyên sau khi Java áp dụng quy tắc nâng kiểu số thích hợp. Kết quả có kiểu số nguyên tương ứng:
+`%` operations between `int` and `long` are carried out on integer operands after Java applies the appropriate numeric promotion rules. The result has the corresponding integer type:
 
 ~~~java
 int i = -7 % 3;     // int -1.
 long j = -7L % 3L;  // long -1.
 ~~~
 
-Một tình huống biên dễ gây ngạc nhiên:
+A surprising boundary case:
 
 ~~~java
 int rem = Integer.MIN_VALUE % -1; // 0.
 ~~~
 
-Về toán học, `Integer.MIN_VALUE` chia hết cho −1, nên phần dư bằng 0. Phép chia `Integer.MIN_VALUE / -1` riêng rẽ tạo thương không biểu diễn được trong `int` (Java xử lý tràn theo ngữ nghĩa số nguyên), nhưng **toán tử `%` vẫn trả 0 và không ném ngoại lệ**.
+Mathematically, `Integer.MIN_VALUE` is evenly divisible by −1, so the remainder is 0. The separate division `Integer.MIN_VALUE / -1` produces a quotient not representable in `int` (Java handles overflow per integer semantics), yet **the `%` operator still returns 0 and does not throw an exception**.
 
-**Cảnh báo chia cho 0:**
+**Divide-by-zero warning:**
 
 ~~~java
 // int bad = 7 % 0; // Runtime ArithmeticException.
@@ -229,74 +229,74 @@ if (divisor != 0) {
 }
 ~~~
 
-Với `%` nguyên, số chia **bằng 0** ném `ArithmeticException`. Số chia âm **không** ném ngoại lệ chỉ vì dấu âm.
+With integer `%`, a divisor **equal to 0** throws `ArithmeticException`. A negative divisor **does not** throw an exception just for being negative.
 
-## 6. `%` cho `float` và `double` có khác không?
+## 6. Is `%` Different for `float` and `double`?
 
-Có. Toán tử `%` cũng dùng được với kiểu số thực. Nó vẫn tuân theo logic phần dư dựa trên **thương cắt về 0**, **không phải** phép `Math.IEEEremainder` (dùng quy tắc khác cho thương). Khi các toán hạng hữu hạn và số chia khác 0, phần dư khác 0 thường mang dấu số bị chia.
+Yes. The `%` operator also works on floating-point types. It still follows remainder logic based on **truncating the quotient toward 0**, **not** `Math.IEEEremainder` (which uses a different quotient rule). When operands are finite and the divisor is non-zero, a non-zero remainder normally takes the sign of the dividend.
 
 ~~~java
 System.out.println(-7.5 % 3.0);  // -1.5.
 System.out.println(7.5 % -3.0);  //  1.5.
 ~~~
 
-Nhưng số thực IEEE 754 có những trường hợp đặc biệt:
+However, IEEE 754 floating-point numbers have special cases:
 
-| Biểu thức | Kết quả | Giải thích |
+| Expression | Result | Explanation |
 | --- | --- | --- |
-| `-7.5 % 3.0` | `-1.5` | Phần dư mang dấu số bị chia |
-| `7.5 % -3.0` | `1.5` | Dấu số chia không quyết định dấu phần dư |
-| `-0.0 % 3.0` | `-0.0` | Số thực phân biệt âm không và dương không |
-| `7.0 % 0.0` | `NaN` | **Không** ném `ArithmeticException` như số nguyên |
-| `Double.POSITIVE_INFINITY % 3.0` | `NaN` | Số bị chia vô cực |
-| `-7.5 % Double.POSITIVE_INFINITY` | `-7.5` | Số chia vô cực, số bị chia hữu hạn |
+| `-7.5 % 3.0` | `-1.5` | Remainder carries the dividend's sign |
+| `7.5 % -3.0` | `1.5` | Divisor's sign does not determine remainder's sign |
+| `-0.0 % 3.0` | `-0.0` | Floating-point distinguishes negative zero and positive zero |
+| `7.0 % 0.0` | `NaN` | **Does not** throw `ArithmeticException` like integers |
+| `Double.POSITIVE_INFINITY % 3.0` | `NaN` | Infinite dividend |
+| `-7.5 % Double.POSITIVE_INFINITY` | `-7.5` | Infinite divisor, finite dividend |
 
-Đừng nhầm `-0.0` (giá trị số thực có bit dấu) với `0` của kiểu `int`: phần dư nguyên không có trạng thái “âm không”.
+Do not confuse `-0.0` (a floating-point value with a sign bit) with `int` `0`: integer remainders have no "negative zero" state.
 
-Khi logic chương trình cần kiểm soát số thực không hợp lệ, cân nhắc `Double.isFinite(...)`, `Double.isNaN(...)` và yêu cầu làm tròn/độ chính xác của bài toán. Không dùng quy tắc “chắc chắn ném exception khi modulo 0” chung cho cả số nguyên và số thực.
+When program logic needs to guard against invalid floating-point numbers, consider `Double.isFinite(...)`, `Double.isNaN(...)`, and the problem's rounding/precision requirements. Do not apply a blanket "modulo by 0 always throws an exception" rule across both integers and floating-point numbers.
 
-## 7. Những ngộ nhận thường gặp
+## 7. Common Misconceptions
 
-| Ngộ nhận | Cách hiểu đúng |
+| Misconception | Correct Understanding |
 | --- | --- |
-| “`-7 % 3` bằng 2.” | Trong Java, kết quả là **−1** |
-| “Phần dư theo dấu của số chia.” | Phần dư **nguyên khác 0 theo dấu số bị chia** |
-| “`7 % -3` phải âm.” | Kết quả là **1** |
-| “`%` luôn trả chỉ số không âm.” | Không, nếu số bị chia âm |
-| “`%` và `Math.floorMod` luôn giống nhau.” | Khác nhau khi dấu và cách lấy thương làm phần dư khác |
-| “Số chia âm gây `ArithmeticException`.” | Chỉ chia cho **0** mới gây lỗi số học này với số nguyên |
-| “`double % 0.0` cũng ném `ArithmeticException`.” | Kết quả là `NaN` |
-| “Dấu âm của số 0 không đáng phân biệt với `double`.” | Có thể nhận được `-0.0` như phần dư số thực |
-| “`Math.abs` luôn trả số không âm cho mọi `int`.” | `Math.abs(Integer.MIN_VALUE)` vẫn âm do tràn |
+| "`-7 % 3` equals 2." | In Java, the result is **−1** |
+| "The remainder follows the divisor's sign." | A **non-zero integer remainder follows the dividend's sign** |
+| "`7 % -3` must be negative." | The result is **1** |
+| "`%` always returns a non-negative index." | No, if the dividend is negative |
+| "`%` and `Math.floorMod` are always the same." | They differ when signs cause the quotient and remainder rules to diverge |
+| "A negative divisor causes `ArithmeticException`." | Only dividing by **0** causes this arithmetic error for integers |
+| "`double % 0.0` also throws `ArithmeticException`." | The result is `NaN` |
+| "The negative sign of 0 is not worth distinguishing in `double`." | You can get `-0.0` as a floating-point remainder |
+| "`Math.abs` always returns a non-negative number for any `int`." | `Math.abs(Integer.MIN_VALUE)` is still negative due to overflow |
 
-## 8. Bài tập tự kiểm tra
+## 8. Self-Check Exercises
 
-1. `-10 % 3` bằng bao nhiêu?  
-   *Đáp án:* **−1** vì `-10 / 3` cho thương nguyên −3 và `-10 - (-3)*3 = -1`.
-2. `10 % -3` bằng bao nhiêu?  
-   *Đáp án:* **1**: số bị chia dương.
-3. `-10 % -3` bằng bao nhiêu?  
-   *Đáp án:* **−1**: số bị chia âm.
-4. `-12 % 4` bằng bao nhiêu?  
-   *Đáp án:* **0** vì chia hết.
-5. `Math.floorMod(-10, 3)` và `-10 % 3` khác nhau thế nào?  
-   *Đáp án:* **2** so với **−1**; `floorMod` với số chia dương giúp chuẩn hóa phần dư không âm.
-6. `int index = -1 % 5;` có phù hợp để truy cập mảng năm phần tử không?  
-   *Đáp án:* Không; `index == -1` là chỉ số âm. Dùng `Math.floorMod(-1, 5) == 4` nếu cần vòng chỉ số.
-7. `7.0 % 0.0` có ném `ArithmeticException` không?  
-   *Đáp án:* Không; kết quả số thực là `NaN`, khác `7 % 0` nguyên.
-8. `Integer.MIN_VALUE % -1` trả gì?  
-   *Đáp án:* **0**, vì số bị chia chia hết cho −1.
+1. What is `-10 % 3`?  
+   *Answer:* **−1** because `-10 / 3` gives integer quotient −3 and `-10 - (-3)*3 = -1`.
+2. What is `10 % -3`?  
+   *Answer:* **1**: the dividend is positive.
+3. What is `-10 % -3`?  
+   *Answer:* **−1**: the dividend is negative.
+4. What is `-12 % 4`?  
+   *Answer:* **0** because it divides evenly.
+5. How do `Math.floorMod(-10, 3)` and `-10 % 3` differ?  
+   *Answer:* **2** versus **−1**; `floorMod` with a positive divisor normalizes the remainder to be non-negative.
+6. Is `int index = -1 % 5;` suitable for accessing a five-element array?  
+   *Answer:* No; `index == -1` is a negative index. Use `Math.floorMod(-1, 5) == 4` if wrap-around indexing is needed.
+7. Does `7.0 % 0.0` throw `ArithmeticException`?  
+   *Answer:* No; the floating-point result is `NaN`, unlike integer `7 % 0`.
+8. What does `Integer.MIN_VALUE % -1` return?  
+   *Answer:* **0**, because the dividend is evenly divisible by −1.
 
 ## Checklist
 
-- [ ] Phân biệt **số bị chia bên trái** và **số chia bên phải** dấu `%`.
-- [ ] Nhớ `/` nguyên cắt thương về 0, nên phần dư nguyên khác 0 theo **dấu số bị chia**.
-- [ ] Dùng bảng dấu để kiểm tra bốn trường hợp dương/âm của hai toán hạng.
-- [ ] Không lấy `%` trực tiếp làm chỉ số không âm nếu dữ liệu có thể âm.
-- [ ] Với `n > 0`, cân nhắc `Math.floorMod(a, n)` để có phần dư từ 0 đến `n - 1`.
-- [ ] Kiểm tra số chia bằng 0 trước `%` nguyên.
-- [ ] Phân biệt `%` số thực với số nguyên, nhất là `NaN`, vô cực và `-0.0`.
-- [ ] Không suy ra rằng việc đổi dấu số chia sẽ tự đổi dấu phần dư.
+- [ ] Distinguish the **dividend on the left** from the **divisor on the right** of `%`.
+- [ ] Remember integer `/` truncates the quotient toward 0, so a non-zero integer remainder follows the **dividend's sign**.
+- [ ] Use the sign table to check all four positive/negative combinations of the two operands.
+- [ ] Do not use `%` directly as a non-negative index if data can be negative.
+- [ ] For `n > 0`, consider `Math.floorMod(a, n)` to get a remainder from 0 to `n - 1`.
+- [ ] Check for a zero divisor before integer `%`.
+- [ ] Distinguish floating-point `%` from integer `%`, especially `NaN`, infinity, and `-0.0`.
+- [ ] Do not assume that negating the divisor automatically negates the remainder.
 
-**Kết luận:** Trong Java, `%` là **remainder theo thương cắt về 0**. Với số nguyên, **dấu phần dư khác 0 đi theo toán hạng trái**. Khi cần modulo không âm để tính chỉ số vòng, dùng `Math.floorMod(a, n)` với **`n > 0`** thay vì giả định `a % n` luôn không âm.
+**Conclusion:** In Java, `%` is the **remainder based on a quotient truncated toward 0**. For integers, **the sign of a non-zero remainder follows the left operand**. When you need a non-negative modulo for wrap-around indexing, use `Math.floorMod(a, n)` with **`n > 0`** instead of assuming `a % n` is always non-negative.

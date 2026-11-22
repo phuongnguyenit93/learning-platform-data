@@ -1,67 +1,67 @@
-# Cắt văn bản theo cụm ký tự bằng BreakIterator trong Java
+# Truncating Text by Grapheme Cluster with BreakIterator in Java
 
-## Mục tiêu
+## Objectives
 
-Một người dùng nhập chữ **ắ**, nhưng trong bộ nhớ chuỗi đó có thể được biểu diễn bằng **một code point** `U+1EAF` hoặc bằng **ba code point** `U+0061 U+0306 U+0301` (chữ `a`, dấu breve, dấu sắc). Tương tự, một emoji có thể dùng hai UTF-16 code unit, còn emoji phức hợp có thể gồm nhiều code point ghép lại.
+A user types the letter **ắ**, yet in memory that string may be represented by **one code point** `U+1EAF` or by **three code points** `U+0061 U+0306 U+0301` (letter `a`, combining breve, combining acute). Likewise, an emoji can take two UTF-16 code units, and a composite emoji can span multiple joined code points.
 
-Nếu cắt văn bản bằng `substring(0, n)`, `charAt` hoặc chỉ đếm `codePoints()`, bạn có thể cắt giữa một dấu kết hợp và chữ cơ sở, giữa hai nửa surrogate pair, hoặc giữa các thành phần của một emoji. Kết quả thường là dấu đứng lẻ, biểu tượng bị tách hay chữ không còn như người dùng mong đợi.
+If you slice text with `substring(0, n)`, `charAt`, or merely count `codePoints()`, you can split between a combining mark and its base letter, between two halves of a surrogate pair, or inside a multi-part emoji. The result is often orphaned accents, broken symbols, or text that no longer matches what the user expects.
 
-Để tìm ranh giới **cụm ký tự** theo thuật toán phân đoạn text của Java, ta dùng **`java.text.BreakIterator.getCharacterInstance(Locale)`**. Đây là bài thực hành tổng hợp về xử lý Unicode, localization và cắt chuỗi an toàn hơn trong Java Core.
+To locate **character-cluster** boundaries using Java's text segmentation algorithm, we use **`java.text.BreakIterator.getCharacterInstance(Locale)`**. This is a comprehensive hands-on lesson on Unicode handling, localization, and safer string truncation in Core Java.
 
-Sau bài, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt **UTF-16 code unit**, **Unicode code point** và **grapheme cluster** (cụm ký tự thường được cảm nhận như một đơn vị hiển thị).
-- Giải thích vì sao `String.length()`, `String.codePointCount(...)` và số cụm ký tự có thể khác nhau.
-- Dùng `BreakIterator.getCharacterInstance(locale)`, `setText`, `first`, `next` và `DONE` để duyệt ranh giới trong `String`.
-- Cắt prefix/giới hạn độ dài theo số cụm thay vì theo `char`, giữ nguyên thứ tự và nội dung gốc.
-- Hiểu chính xác tính chất **start-inclusive/end-exclusive** của offsets trả về bởi BreakIterator.
-- Dùng `isBoundary`, `preceding` và `following` khi cần điều chỉnh điểm cắt hoặc vị trí con trỏ.
-- Nhận diện khác biệt giữa character breaks, word/sentence/line breaks, cũng như `Pattern.compile("\\X")` và BreakIterator.
-- Thiết kế kiểm thử cho chữ tiếng Việt NFC/NFD, surrogate pair, emoji modifiers, ZWJ sequence và regional indicator.
-- Hiểu giới hạn theo **phiên bản JDK, Unicode data và implementation provider** trước khi tuyên bố cắt đúng mọi grapheme hiện đại.
+- Distinguish **UTF-16 code unit**, **Unicode code point**, and **grapheme cluster** (a character cluster typically perceived as one visual unit).
+- Explain why `String.length()`, `String.codePointCount(...)`, and the grapheme cluster count can differ.
+- Use `BreakIterator.getCharacterInstance(locale)`, `setText`, `first`, `next`, and `DONE` to iterate boundaries in a `String`.
+- Take prefixes or enforce length limits by cluster count rather than `char` count, preserving original order and bytes.
+- Understand the **start-inclusive / end-exclusive** semantics of offsets returned by `BreakIterator`.
+- Use `isBoundary`, `preceding`, and `following` when snapping cut points or caret positions.
+- Recognize differences between character breaks, word/sentence/line breaks, as well as `Pattern.compile("\\X")` vs. `BreakIterator`.
+- Design tests for NFC/NFD Vietnamese letters, surrogate pairs, emoji modifiers, ZWJ sequences, and regional indicators.
+- Understand limitations across **JDK versions, Unicode data, and provider implementations** before claiming exact handling of all modern graphemes.
 
-Bài tập trung vào **cắt văn bản theo cụm ký tự**; không biến thuật toán phân đoạn thành kiểm tra chính tả, đo độ rộng glyph hoặc một trình vẽ chữ hoàn chỉnh.
+This lesson focuses on **splitting text by character cluster**; do not turn text segmentation into spell checking, glyph width measurement, or a complete text renderer.
 
-## 1. Một ký tự người dùng thấy khác với một char Java
+## 1. A User-Perceived Character Differs from a Java char
 
-Trong Java, `String` sử dụng mã hóa UTF-16 ở mức API:
+In Java, `String` uses UTF-16 encoding at the API level:
 
-- `String.length()` trả **số UTF-16 code unit**. Kiểu `char` mang một code unit 16-bit; một code point ngoài BMP thường cần hai `char` tạo surrogate pair.
-- `codePointCount(0, length())` trả **số code point Unicode**.
-- **Grapheme cluster**, đặc biệt *extended grapheme cluster* theo Unicode Text Segmentation, là một nhóm code point mà người dùng thường cảm nhận như một ký tự hiển thị.
+- `String.length()` returns the **number of UTF-16 code units**. A `char` holds one 16-bit code unit; a code point outside the BMP typically needs two `char`s forming a surrogate pair.
+- `codePointCount(0, length())` returns the **number of Unicode code points**.
+- A **grapheme cluster**, specifically an *extended grapheme cluster* per Unicode Text Segmentation, is a sequence of code points typically perceived by users as a single displayed character.
 
-Ba phép đếm **không tương đương**.
+These three counts are **not equivalent**.
 
-### Chữ tiếng Việt dạng phân rã
+### Decomposed Vietnamese Characters
 
-Chữ `ắ` có thể được tạo:
+The letter `ắ` can be constructed as:
 
 ```java
 String composed = "\u1EAF";
 String decomposed = "a\u0306\u0301";
 ```
 
-Đây là đoạn minh họa trong một phương thức. Dạng ghép sẵn `composed` có `length() == 1` và một code point. Dạng phân rã `decomposed` có `length() == 3` và ba code point. Nhưng một thuật toán phân đoạn theo grapheme thích hợp thường xem mỗi chuỗi là **một cụm ký tự**.
+This is an illustrative snippet inside a method. The precomposed form `composed` has `length() == 1` and one code point. The decomposed form `decomposed` has `length() == 3` and three code points. Yet a proper grapheme segmentation algorithm treats each string as **one character cluster**.
 
-Nếu gọi:
+If you call:
 
 ```java
 String broken = decomposed.substring(0, 1);
 ```
 
-`broken` chỉ còn `a`, hai dấu bị bỏ. Phép cắt này không làm hỏng UTF-16, nhưng **làm mất thông tin dấu** và tạo một đoạn text khác với thứ người dùng đã nhập.
+`broken` contains only `a`, dropping both diacritics. This slice leaves UTF-16 intact, yet **strips diacritic information** and produces text different from what the user entered.
 
-Nếu gọi:
+If you call:
 
 ```java
 String suffix = decomposed.substring(1);
 ```
 
-`suffix` bắt đầu bằng hai dấu kết hợp không còn chữ cơ sở. Font hoặc renderer có thể vẽ chúng ở vị trí bất thường. Đây là lý do không cắt theo chỉ số `char` tùy ý nếu đơn vị nghiệp vụ là “chữ người dùng nhìn thấy”.
+`suffix` begins with two orphaned combining marks lacking a base character. Fonts or renderers may draw them awkwardly. That is why you should never slice by arbitrary `char` indices when the business unit is "user-visible characters."
 
-### Emoji và surrogate pair
+### Emoji and Surrogate Pairs
 
-Emoji `😀` là code point `U+1F600`, có hai UTF-16 code unit:
+The emoji `😀` is code point `U+1F600`, occupying two UTF-16 code units:
 
 ```java
 String emoji = "\uD83D\uDE00";
@@ -76,28 +76,28 @@ Stdout:
 1
 ```
 
-Cắt `emoji.substring(0, 1)` giữ lại một **high surrogate** không ghép đủ cặp. Đây là vấn đề khác với dấu tiếng Việt, nhưng cùng cho thấy `length()` không diễn đạt đúng đơn vị ký tự nhìn thấy.
+Calling `emoji.substring(0, 1)` leaves an unpaired **high surrogate**. Although a different mechanism from Vietnamese combining marks, both demonstrate that `length()` does not express user-perceived character units.
 
-Duyệt `codePoints()` giúp không tách nửa surrogate pair; tuy vậy nó vẫn có thể chia chữ `a + ◌̆ + ◌́` thành ba code point riêng. Đếm code point là một bước tiến so với đếm `char`, nhưng **không tự thành thuật toán phân đoạn grapheme**.
+Iterating `codePoints()` prevents splitting a surrogate pair in half; however, it still splits `a + ◌̆ + ◌́` into three separate code points. Counting code points improves upon counting `char`s, yet **does not constitute grapheme segmentation**.
 
-## 2. BreakIterator cung cấp những loại ranh giới nào?
+## 2. Which Boundary Types Does BreakIterator Provide?
 
-`java.text.BreakIterator` là lớp trừu tượng đại diện cho một bộ xác định ranh giới text. Java có những factory tiêu biểu:
+`java.text.BreakIterator` is the abstract class representing a text boundary locator. Java provides these standard factories:
 
-| Factory | Đơn vị phân đoạn | Bài toán điển hình |
+| Factory | Segmentation Unit | Typical Use Case |
 | --- | --- | --- |
-| `getCharacterInstance(locale)` | Ranh giới cụm ký tự | Cắt/truncation theo cụm, điều chỉnh caret |
-| `getWordInstance(locale)` | Ranh giới liên quan từ | Điều hướng từng từ, tokenization mức cơ bản |
-| `getSentenceInstance(locale)` | Ranh giới câu | Chia câu theo quy tắc locale |
-| `getLineInstance(locale)` | Ranh giới ngắt dòng | Xác định các điểm có thể ngắt dòng |
+| `getCharacterInstance(locale)` | Character cluster boundaries | Cluster truncation, caret snapping |
+| `getWordInstance(locale)` | Word-related boundaries | Word navigation, basic tokenization |
+| `getSentenceInstance(locale)` | Sentence boundaries | Sentence splitting per locale rules |
+| `getLineInstance(locale)` | Line-break boundaries | Determining valid line-wrap points |
 
-**Phải chọn đúng factory.** Nếu mục tiêu là “lấy 5 ký tự người dùng nhìn thấy”, `getCharacterInstance` là lựa chọn cần khảo sát; `getWordInstance` không trả một break cho mỗi chữ, còn `getLineInstance` là về khả năng wrap dòng chứ không phải cắt độ dài theo chữ.
+**Choose the right factory.** If the goal is "take the first 5 user-visible characters," `getCharacterInstance` is the right API to examine; `getWordInstance` does not yield one break per character, and `getLineInstance` finds line-wrapping opportunities rather than character-length truncation.
 
-Cũng đừng coi một *grapheme cluster* luôn là một từ, âm tiết hoặc glyph. Trong typography, nhiều cụm có thể tạo một ligature, hoặc một cụm cần nhiều glyph. BreakIterator giúp phân tích biên text, **không đo chiều rộng hiển thị**.
+Never assume a *grapheme cluster* always equals one word, syllable, or glyph. In typography, multiple clusters can form a ligature, or one cluster can render as multiple glyphs. `BreakIterator` analyzes text boundaries—it **does not measure display width**.
 
-### Chọn Locale
+### Choosing a Locale
 
-Ví dụ:
+Example:
 
 ```java
 import java.text.BreakIterator;
@@ -108,13 +108,13 @@ BreakIterator iterator =
         BreakIterator.getCharacterInstance(vietnamese);
 ```
 
-Việc truyền locale tường minh giúp biểu đạt ngữ cảnh sử dụng và tránh phụ thuộc default locale. Tuy nhiên, không nên giả định mọi kết quả character break đều khác nhau giữa tiếng Việt và tiếng Anh; nhiều quy tắc cụm ký tự dựa vào thuộc tính Unicode chung. Tác động của locale/provider rõ hơn với phân đoạn từ, câu hoặc line.
+Passing an explicit locale expresses usage context and avoids depending on the JVM default locale. However, do not assume every character-break result differs between Vietnamese and English; many character-cluster rules depend on general Unicode properties. Locale and provider effects are much more pronounced for word, sentence, and line breaks.
 
-**Không suy từ locale để bỏ/đổi dấu.** Chữ tiếng Việt dạng NFD vẫn là dữ liệu chứa dấu kết hợp; BreakIterator chỉ tìm biên, không chuyển NFD thành NFC.
+**Do not infer from locale that diacritics are stripped or rewritten.** NFD Vietnamese text remains combining-mark data; `BreakIterator` only locates boundaries and does not convert NFD to NFC.
 
-## 3. Cơ chế di chuyển qua các boundary
+## 3. Mechanism for Advancing Through Boundaries
 
-Khi tạo iterator, chưa có chuỗi nào được phân tích. Cần gọi `setText`:
+When an iterator is created, no string has been assigned yet. Call `setText`:
 
 ```java
 BreakIterator it =
@@ -122,98 +122,98 @@ BreakIterator it =
 it.setText(text);
 ```
 
-Với `text` là `String` không null. Các phương thức quan trọng:
+where `text` is a non-null `String`. Key methods:
 
-| API | Ý nghĩa |
+| API | Meaning |
 | --- | --- |
-| `setText(String)` | Chọn chuỗi đầu vào để phân đoạn |
-| `first()` | Đưa con trỏ về boundary đầu, thường index 0 |
-| `last()` | Đưa con trỏ về boundary cuối, thường là `text.length()` |
-| `next()` | Đi tới boundary kế tiếp; hết thì trả `BreakIterator.DONE` |
-| `previous()` | Đi tới boundary trước đó |
-| `current()` | Đọc boundary hiện tại, không tự di chuyển |
-| `following(offset)` | Boundary **sau** offset đã cho |
-| `preceding(offset)` | Boundary **trước** offset đã cho |
-| `isBoundary(offset)` | Kiểm tra một offset có đúng boundary không |
-| `next(int n)` | Di chuyển `n` boundaries, có thể theo chiều ngược nếu n âm |
-| `DONE` | Giá trị sentinel cho trạng thái không còn boundary |
+| `setText(String)` | Assigns the input string to segment |
+| `first()` | Moves cursor to the first boundary, normally index `0` |
+| `last()` | Moves cursor to the final boundary, normally `text.length()` |
+| `next()` | Advances to the next boundary; returns `BreakIterator.DONE` at the end |
+| `previous()` | Moves to the previous boundary |
+| `current()` | Reads the current boundary without moving |
+| `following(offset)` | Boundary **after** the given offset |
+| `preceding(offset)` | Boundary **before** the given offset |
+| `isBoundary(offset)` | Checks whether an offset is an exact boundary |
+| `next(int n)` | Advances `n` boundaries, moving backward if `n` is negative |
+| `DONE` | Sentinel value indicating no further boundary |
 
-Một cách duyệt phổ biến:
+A common traversal loop:
 
 ```java
 for (int start = it.first(), end = it.next();
      end != BreakIterator.DONE;
      start = end, end = it.next()) {
     String cluster = text.substring(start, end);
-    // Xử lý một cụm vừa tách được.
+    // Process one extracted cluster.
 }
 ```
 
-Đây là snippet bên trong phương thức có `it` đã được `setText(text)`. Mỗi lần lặp sử dụng một khoảng **nửa mở** `[start, end)`:
+This snippet lives inside a method where `it` has had `setText(text)` called. Each iteration handles a **half-open interval** `[start, end)`:
 
-- `start` là offset thuộc cụm.
-- `end` là offset **ngay sau** phần tử cuối của cụm.
-- `substring(start, end)` lấy đúng đoạn ký tự của cụm.
+- `start` is the starting offset of the cluster.
+- `end` is the offset **immediately after** the cluster's last code unit.
+- `substring(start, end)` extracts the exact slice for that cluster.
 
-Đừng thêm `+1` vào `end`: `String.substring` cũng dùng end-exclusive.
+Do not add `+1` to `end`: `String.substring` is also end-exclusive.
 
-### Offsets là UTF-16, không phải số code point
+### Offsets Are UTF-16 Indices, Not Code Point Counts
 
-Một boundary là vị trí trong `String`, tức chỉ số UTF-16. Với emoji `😀`, một cụm có thể có `start=4, end=6` dù chỉ một code point. Không dùng `end` làm thứ tự trong một mảng code point mà không chuyển đổi.
+A boundary is a position within a `String`, meaning a UTF-16 index. For emoji `😀`, a cluster might span `start=4, end=6` despite being one code point. Never use `end` as an index into a code-point array without conversion.
 
-Điểm mạnh là `substring(start,end)` hoạt động đúng trực tiếp với offsets của BreakIterator, bảo toàn nguyên văn cả chữ cơ sở lẫn dấu kết hợp.
+The advantage is that `substring(start, end)` works directly with `BreakIterator` offsets, preserving both base letters and combining marks verbatim.
 
-## 4. Ví dụ ranh giới có thể nhìn và kiểm tra được
+## 4. A Visual, Verifiable Boundary Example
 
-Lấy chuỗi:
+Take the string:
 
 ```java
 String text = "A" + "a\u0306\u0301" + "\uD83D\uDE00" + "B";
 ```
 
-Dãy Unicode logic:
+Logical Unicode sequence:
 
 ```text
 A         U+0041
 a         U+0061
 breve     U+0306
 acute     U+0301
-😀        U+1F600 (surrogate pair trong UTF-16)
+😀        U+1F600 (surrogate pair in UTF-16)
 B         U+0042
 ```
 
-Tổng cộng:
+Totals:
 
-- **7 UTF-16 code unit**: A (1) + a (1) + hai dấu (2) + emoji (2) + B (1).
-- **6 Unicode code point**: A, a, breve, acute, emoji, B.
-- **4 grapheme cluster** theo dữ liệu JDK kiểm thử: A, `a + breve + acute`, emoji, B.
+- **7 UTF-16 code units**: `A` (1) + `a` (1) + two combining marks (2) + emoji (2) + `B` (1).
+- **6 Unicode code points**: `A`, `a`, breve, acute, emoji, `B`.
+- **4 grapheme clusters** on the tested JDK data: `A`, `a + breve + acute`, emoji, `B`.
 
-BreakIterator character theo locale vi-VN trong môi trường kiểm thử trả:
+Character `BreakIterator` under `vi-VN` in the test environment returns:
 
-| Cụm | UTF-16 start | UTF-16 end | Code point nằm trong cụm |
+| Cluster | UTF-16 Start | UTF-16 End | Code Points in Cluster |
 | --- | ---: | ---: | --- |
 | `A` | 0 | 1 | `U+0041` |
 | `a + ◌̆ + ◌́` | 1 | 4 | `U+0061 U+0306 U+0301` |
 | `😀` | 4 | 6 | `U+1F600` |
 | `B` | 6 | 7 | `U+0042` |
 
-Nếu người dùng yêu cầu lấy **hai cụm đầu**, prefix đúng là chuỗi:
+If a user asks for the **first two clusters**, the correct prefix is:
 
 ```text
 A + a + U+0306 + U+0301
 ```
 
-có **4 UTF-16 code unit**. `substring(0, 2)` không cho cùng kết quả: nó mới lấy A và chữ a, bỏ hai dấu; `substring(0, 4)` mới trùng ranh giới ở ví dụ cụ thể, nhưng số `4` không được hard-code cho mọi đầu vào.
+which spans **4 UTF-16 code units**. `substring(0, 2)` does not produce the right result: it keeps only `A` and `a`, dropping both accents; `substring(0, 4)` happens to align in this concrete example, yet the number `4` must never be hardcoded across arbitrary inputs.
 
-### Vì sao không normalize NFC trước rồi cắt theo char?
+### Why Not Normalize to NFC First and Slice by char?
 
-`Normalizer.normalize(text, NFC)` có thể ghép chữ `a + breve + acute` thành `ắ`, giúp một số ví dụ bớt số code unit. Nhưng nó **không biến mọi grapheme thành một `char`**, nhất là emoji ngoài BMP, emoji ZWJ, cờ, chữ kết hợp của nhiều hệ chữ.
+`Normalizer.normalize(text, NFC)` can fold `a + breve + acute` into `ắ`, reducing code-unit counts in some cases. However, it **does not turn every grapheme into a single `char`**, especially non-BMP emojis, ZWJ emojis, flags, and multi-mark combinations across scripts.
 
-Hơn nữa, chuẩn hóa Unicode làm thay đổi cách biểu diễn code point, dù giữ canonical equivalence. Nếu ứng dụng cần giữ nguyên text đã nhập, nên **cắt theo boundary mà không tự rewrite sang NFC**. Có thể có chính sách chuẩn hóa riêng ở ranh giới lưu trữ, nhưng đó là một quyết định khác với segmentation.
+Furthermore, Unicode normalization alters the code-point representation even while preserving canonical equivalence. If an application needs to retain exact user input, **truncate along boundaries without silently rewriting to NFC**. You can enforce a separate normalization policy at storage boundaries, which is an independent decision from segmentation.
 
-## 5. Chương trình Java 17+ đầy đủ: tách và lấy prefix
+## 5. Complete Java 17+ Program: Splitting and Taking Prefixes
 
-Tạo file `GraphemeBreakDemo.java`:
+Create `GraphemeBreakDemo.java`:
 
 ```java
 import java.text.BreakIterator;
@@ -309,14 +309,14 @@ public final class GraphemeBreakDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 GraphemeBreakDemo.java
 java GraphemeBreakDemo
 ```
 
-Stdout xác định trong JDK được dùng để kiểm tra, với locale vi-VN:
+Deterministic stdout on the tested JDK with locale `vi-VN`:
 
 ```text
 utf16=7
@@ -331,47 +331,47 @@ at5=false,following5=6,preceding5=4
 split count=4
 ```
 
-### Giải thích
+### Explanation
 
-1. `utf16=7` và `codepoints=6` khác nhau vì emoji `U+1F600` có hai code unit UTF-16.
-2. `[1,4)` giữ nguyên cả chữ `a` và hai combining marks, không bỏ dấu.
-3. `[4,6)` giữ nguyên surrogate pair của emoji.
-4. `takeClusters(text, 2, VI)` trả prefix gồm hai cụm: A và chữ a có hai dấu, tổng cộng bốn code unit.
-5. Offset 5 nằm **giữa hai code unit của emoji**, nên `edge.isBoundary(5)` là false; boundary kế sau là 6, ngay trước là 4.
-6. `splitClusters` tạo danh sách các cụm theo thứ tự logic, không cần chuẩn hóa NFC và không đảo code point.
-7. Phần print code point dùng ký tự ASCII nên test vẫn đọc được ngay cả khi terminal không hỗ trợ glyph emoji hoặc chữ có dấu.
+1. `utf16=7` and `codepoints=6` differ because emoji `U+1F600` takes two UTF-16 code units.
+2. `[1,4)` keeps `a` together with both combining marks without dropping accents.
+3. `[4,6)` keeps the emoji surrogate pair intact.
+4. `takeClusters(text, 2, VI)` returns the prefix of two clusters: `A` and `a` with its two combining marks, totaling four code units.
+5. Offset `5` lies **between the two code units of the emoji**, so `edge.isBoundary(5)` is `false`; the next boundary is `6` and the preceding boundary is `4`.
+6. `splitClusters` produces the list of clusters in logical order without NFC normalization or reordering code points.
+7. Printing code points uses ASCII output so tests remain readable even if a terminal lacks emoji or diacritic glyphs.
 
-Ví dụ kiểm chứng mô hình phân đoạn đơn giản trên JDK hiện có; với những chuỗi Unicode phức tạp hơn, cần test trên **đúng phiên bản JDK/provider chạy production**.
+This example verifies the simple segmentation model on the active JDK; for more complex Unicode sequences, test on the **exact JDK/provider version running in production**.
 
-## 6. Thiết kế hàm cắt có hợp đồng rõ ràng
+## 6. Designing a Truncation Function with a Clear Contract
 
-Hàm `takeClusters` minh họa một policy: nhận tối đa `maxClusters` cụm từ đầu text, **không tách ranh giới** và **giữ nguyên từng code unit của phần trả về**.
+`takeClusters` illustrates one policy: take at most `maxClusters` clusters from the start of `text`, **never split a cluster boundary**, and **preserve every code unit of the returned slice**.
 
-Những trường hợp nên quy định:
+Edge cases to specify:
 
-| Đầu vào | Kết quả/phản ứng |
+| Input | Expected Outcome / Behavior |
 | --- | --- |
-| `text = ""` | Trả chuỗi rỗng |
-| `maxClusters = 0` | Trả chuỗi rỗng |
-| `maxClusters` lớn hơn số cụm | Trả toàn bộ text |
-| `maxClusters` âm | Ném `IllegalArgumentException` |
-| `text == null` | Nên quy định lỗi rõ; demo để `NullPointerException` từ lời gọi API nếu chưa kiểm tra |
-| `locale == null` | Nên từ chối/kiểm tra rõ thay vì mặc định ngầm |
+| `text = ""` | Return empty string |
+| `maxClusters = 0` | Return empty string |
+| `maxClusters` greater than cluster count | Return full `text` |
+| Negative `maxClusters` | Throw `IllegalArgumentException` |
+| `text == null` | Define error explicitly; demo lets API call throw `NullPointerException` if unchecked |
+| `locale == null` | Reject/validate explicitly instead of defaulting silently |
 
-Nếu dùng trong API public, nên thêm `Objects.requireNonNull(text, "text")` và `Objects.requireNonNull(locale, "locale")` để thông báo lỗi rõ. Đừng tự biến `null` thành `""` trừ khi đó là contract của ứng dụng.
+In public APIs, add `Objects.requireNonNull(text, "text")` and `Objects.requireNonNull(locale, "locale")` for clear diagnostics. Do not silently coerce `null` to `""` unless that is the application's documented contract.
 
-### Cắt và thêm dấu ba chấm
+### Truncating and Appending an Ellipsis
 
-Một số UI muốn giới hạn số cụm và thêm `…` nếu có phần dư. Cần quyết định **dấu ba chấm có tính trong budget không**.
+Some UIs cap cluster count and append `…` when text is truncated. Decide **whether the ellipsis counts toward the budget**.
 
-Ví dụ budget 5 cụm:
+For a 5-cluster budget:
 
-- Nếu chỉ giới hạn **nội dung gốc** 5 cụm rồi append `…`, kết quả có thể là **6 cụm**.
-- Nếu giới hạn **toàn output** 5 cụm, hãy lấy tối đa 4 cụm nội dung cộng `…` khi phải truncate.
-- Nếu `maxClusters = 0`, trả `""`, không thêm ellipsis.
-- Nếu không có phần dư, trả text gốc, không thêm dấu ba chấm.
+- If only the **original content** is capped at 5 clusters before appending `…`, the result can have **6 clusters**.
+- If the **entire output** is capped at 5 clusters, keep at most 4 content clusters plus `…` when truncation occurs.
+- If `maxClusters = 0`, return `""` without appending an ellipsis.
+- If nothing was truncated, return the original text without an ellipsis.
 
-Một helper minh họa policy **dấu ba chấm nằm trong tổng budget**:
+A helper illustrating the **ellipsis included in total budget** policy:
 
 ```java
 static String ellipsize(
@@ -396,19 +396,19 @@ static String ellipsize(
 }
 ```
 
-Đây là **phương thức minh họa trong cùng package hoặc lớp có thể truy cập `GraphemeBreakDemo`** và đã import `List`/`Locale`. Nó giả định dấu `…` là một cụm, phù hợp trường hợp minh họa. Nếu UI đặt giới hạn theo pixel, đây vẫn **không phải thuật toán đo độ rộng chữ**.
+This is an **illustrative method in the same package or a class with access to `GraphemeBreakDemo`**, assuming `List` and `Locale` are imported. It treats `…` as one cluster, which holds for the example. If UI constraints are measured in pixels, this is still **not a text-width measurement algorithm**.
 
-### Cắt mà không phải tạo list toàn bộ
+### Truncating Without Materializing a Full List
 
-`splitClusters` dễ hiểu nhưng tạo một `String` mới cho từng cụm và một `List` để lưu chúng. Nếu chỉ cần lấy **n cụm đầu**, hàm `takeClusters` có thể dừng sau `n` boundaries, tránh cấp phát một danh sách cho toàn bộ text.
+`splitClusters` is clear to read, yet allocates a `String` per cluster and a `List` to hold them all. When only the **first `n` clusters** are needed, `takeClusters` stops after `n` boundaries without allocating a list for the entire text.
 
-Ngược lại, khi cần xử lý từng cụm (ví dụ đếm, kiểm tra, tô màu), một vòng lặp `for` qua iterator có thể xử lý trực tiếp từng đoạn `substring(start,end)` mà không cần tạo danh sách.
+Conversely, when inspecting each cluster (e.g., counting, validating, highlighting), a `for` loop over the iterator can process each `substring(start, end)` directly without building a list.
 
-## 7. Điều chỉnh điểm cắt tùy ý theo boundary
+## 7. Snapping Arbitrary Cut Offsets to Boundaries
 
-Một UI có thể nhận offset từ con trỏ, tìm kiếm hoặc thao tác chọn rồi muốn đưa offset đó về ranh giới cụm gần nhất.
+A UI may receive an offset from a cursor, search hit, or selection range and need to snap it to the nearest cluster boundary.
 
-Ví dụ:
+Example:
 
 ```java
 BreakIterator edge = BreakIterator.getCharacterInstance(
@@ -417,25 +417,25 @@ edge.setText(text);
 boolean safe = edge.isBoundary(offset);
 ```
 
-Đây là đoạn minh họa trong phương thức có `text` và `offset` hợp lệ. Nếu `safe` là false, `offset` đang nằm **giữa một cụm** theo quy tắc iterator.
+This snippet belongs inside a method with valid `text` and `offset`. If `safe` is `false`, `offset` sits **inside a cluster** according to the iterator's rules.
 
-Có thể dùng:
+Available operations:
 
-- `preceding(offset)`: tìm boundary **nhỏ hơn** offset.
-- `following(offset)`: tìm boundary **lớn hơn** offset.
-- `isBoundary(offset)`: kiểm tra offset có phải một boundary hay không.
+- `preceding(offset)`: finds the boundary **strictly less than** `offset`.
+- `following(offset)`: finds the boundary **strictly greater than** `offset`.
+- `isBoundary(offset)`: checks whether `offset` is itself a boundary.
 
-Chú ý `preceding` và `following` tìm boundary **nghiêm ngặt trước/sau**, không đơn giản là floor/ceiling bao gồm chính offset. Nếu muốn snap offset về **boundary gần nhất không vượt quá offset**, trước tiên kiểm tra `isBoundary(offset)`; nếu true thì giữ nguyên, nếu false mới gọi `preceding(offset)`.
+Note that `preceding` and `following` locate **strictly earlier/later** boundaries, rather than acting as inclusive floor/ceiling operations. To snap an offset to the **nearest boundary not exceeding `offset`**, check `isBoundary(offset)` first; keep it if `true`, and call `preceding(offset)` only if `false`.
 
-Ví dụ với chuỗi demo có emoji ở `[4,6)`:
+Example with the demo string having an emoji at `[4,6)`:
 
 ```text
-offset 4: đầu emoji, là boundary
-offset 5: giữa surrogate pair, không phải boundary
-offset 6: sau emoji, là boundary
+offset 4: start of emoji, is a boundary
+offset 5: middle of surrogate pair, not a boundary
+offset 6: after emoji, is a boundary
 ```
 
-Kết quả cho offset 5:
+Results for offset `5`:
 
 ```text
 isBoundary(5) = false
@@ -443,55 +443,55 @@ preceding(5)  = 4
 following(5)  = 6
 ```
 
-Không dùng trực tiếp một offset ngoài phạm vi chuỗi. Các API boundary có hợp đồng riêng cho offset không hợp lệ; code UI nên validate khoảng `0..text.length()` trước.
+Never pass an out-of-range offset directly. Boundary APIs define specific exceptions/contracts for invalid offsets; UI code should validate `0..text.length()` beforehand.
 
-### Nếu cần cắt theo vị trí end
+### Truncating at an Arbitrary End Offset
 
-Khi có một điểm cắt ngẫu nhiên `cut`, hai policy khác nhau:
+Given an arbitrary cut index `cut`, two policies exist:
 
-- **Cắt xuống** để không vượt quá giới hạn đơn vị UTF-16 ban đầu: dùng boundary nhỏ hơn hoặc bằng `cut`.
-- **Cắt lên** để lấy trọn cụm có chứa `cut`: dùng boundary lớn hơn hoặc bằng `cut`.
+- **Round down** so the slice never exceeds the original UTF-16 limit: take the largest boundary `<= cut`.
+- **Round up** to include the entire cluster containing `cut`: take the smallest boundary `>= cut`.
 
-Hai policy ảnh hưởng nội dung output khác nhau. Hãy xác định rõ yêu cầu thay vì tự chọn `following` vì trông “an toàn”.
+These two policies change the resulting text differently. Define the exact requirement instead of blindly picking `following` because it sounds "safe."
 
-## 8. BreakIterator và Unicode grapheme cluster: giới hạn cần biết
+## 8. BreakIterator and Unicode Grapheme Clusters: Known Limits
 
-Tài liệu Java mô tả `BreakIterator.getCharacterInstance` dành cho character boundaries. Trong nhiều trường hợp, ví dụ chữ cái cộng combining marks hay emoji đơn, nó cho kết quả tương ứng điều người dùng mong đợi. Tuy nhiên, **không nên khẳng định mọi JDK từ Java 17 trở lên, mọi locale/provider, đều triển khai trùng khớp phiên bản mới nhất của Unicode Extended Grapheme Cluster**.
+Java documentation specifies `BreakIterator.getCharacterInstance` for character boundaries. For many inputs—such as letters with combining marks or standalone emojis—it matches user expectations. However, **never claim that every JDK from Java 17 onward, across all locales and providers, implements the latest Unicode Extended Grapheme Cluster specification identically**.
 
-Những ví dụ cần kiểm thử riêng:
+Cases requiring explicit testing:
 
-| Loại | Ví dụ Unicode | Khó khăn |
+| Category | Unicode Example | Challenge |
 | --- | --- | --- |
-| Chữ + combining marks | `a + U+0306 + U+0301` | Không tách dấu khỏi chữ |
-| Surrogate pair | `U+1F600` | Không cắt giữa high/low surrogate |
-| Emoji modifier | Thumbs-up + skin tone | Giữ cụm modifier theo chuẩn cần dùng |
-| Zero Width Joiner sequence | Woman + ZWJ + laptop | Không tách emoji nghề nghiệp nếu renderer dùng một cụm |
-| Regional indicators | Hai ký tự tạo cờ | Quy tắc ghép cặp regional indicators |
-| Variation selector | Symbol + VS16 | Không tách selector khỏi ký hiệu |
-| CRLF | `\r\n` | Quy tắc ngắt cụm riêng |
-| Chữ hệ Indic, Thai, Khmer | Dãy combining/virama | Phụ thuộc Unicode segmentation và shaping |
+| Letter + combining marks | `a + U+0306 + U+0301` | Keep accents attached to the base letter |
+| Surrogate pair | `U+1F600` | Never split between high/low surrogates |
+| Emoji modifier | Thumbs-up + skin tone | Group modifier sequences per target standard |
+| Zero Width Joiner sequence | Woman + ZWJ + laptop | Keep composite profession emoji together if renderer treats it as one cluster |
+| Regional indicators | Two characters forming a flag | Pair regional indicators properly |
+| Variation selector | Symbol + VS16 | Do not detach selector from symbol |
+| CRLF | `\r\n` | Dedicated cluster-break rule |
+| Indic, Thai, Khmer scripts | Combining/virama sequences | Depends on Unicode segmentation and shaping |
 
-Ở một số JDK được kiểm tra, `BreakIterator` có thể gộp emoji ZWJ, modifiers, cờ RI và CRLF thành các cụm; nhưng **không thể lấy kết quả đó thay bảo đảm phổ quát** cho tất cả bản Java 17 hoặc Unicode phiên bản khác.
+On several tested JDKs, `BreakIterator` groups ZWJ emojis, modifiers, RI flags, and CRLF into single clusters; however, **never generalize those test runs into a universal guarantee** across every Java 17 build or Unicode version.
 
-Đối với sản phẩm có yêu cầu phân đoạn emoji hiện đại nghiêm ngặt, hãy xác định **phiên bản Unicode** và hành vi Java runtime thực tế. Có thể cần một thư viện segmentation chuyên dụng được cập nhật đồng bộ với Unicode specification hoặc một test suite chuẩn của Unicode.
+For products with strict modern emoji segmentation requirements, verify the **Unicode version** and actual Java runtime behavior. You may need a dedicated segmentation library synchronized with the Unicode specification or an official Unicode conformance test suite.
 
-### Unicode Text Segmentation không đồng nghĩa “một glyph”
+### Unicode Text Segmentation Is Not "One Glyph"
 
-Một *extended grapheme cluster* thường tương ứng với thao tác chỉnh sửa mà người dùng cảm nhận là một ký tự, nhưng:
+An *extended grapheme cluster* generally aligns with what users treat as one character during editing, yet:
 
-- Một cluster có thể được vẽ bằng nhiều glyph.
-- Nhiều cluster có thể tạo ligature trong shaping.
-- Dấu kết hợp có thể được font vẽ chồng lên chữ cơ sở.
-- Emoji có thể được renderer hỗ trợ hoặc không hỗ trợ tổ hợp mới.
-- Độ rộng của cluster phụ thuộc font, cỡ chữ, script và layout engine.
+- One cluster may be drawn using multiple glyphs.
+- Multiple clusters may combine into a ligature during shaping.
+- Combining marks may be positioned over a base glyph by the font.
+- Emojis may or may not be supported as combined glyphs by the renderer.
+- Cluster width depends on font, font size, script, and layout engine.
 
-Vì vậy **đếm cụm không phải giới hạn số pixel**. Nếu UI muốn nhãn nằm trong chiều rộng 120 px, cần đo glyph/text layout và có thể cắt từng boundary theo độ rộng đã đo; BreakIterator chỉ cung cấp **những vị trí có thể cắt**, không tính pixel.
+Therefore, **counting clusters is not pixel-width limiting**. If a UI requires a label to fit within 120 px, measure glyph/text layout and optionally step back along boundaries based on measured width; `BreakIterator` provides **valid break positions**, not pixel calculations.
 
-## 9. So sánh với Pattern "\\X" và codePoints
+## 9. Comparing with Pattern "\\X" and codePoints
 
-Java `java.util.regex.Pattern` hỗ trợ `\\X` trong regex Java source để match **extended grapheme cluster** theo mô tả Unicode (không phải một chữ cái riêng).
+Java's `java.util.regex.Pattern` supports `\\X` in Java regex strings to match an **extended grapheme cluster** as defined by Unicode (rather than an arbitrary single character).
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.regex.Pattern;
@@ -506,189 +506,189 @@ long matchedClusters = Pattern.compile("\\X")
 System.out.println(matchedClusters);
 ```
 
-Stdout trong ví dụ:
+Example stdout:
 
 ```text
 1
 ```
 
-Phân biệt các công cụ:
+Comparing tools:
 
-| Cách | Đơn vị xử lý | Khi nên dùng |
+| Approach | Unit Processed | When to Use |
 | --- | --- | --- |
-| `String.length()` | UTF-16 code unit | Giới hạn API/offset dựa trên UTF-16 |
-| `String.codePoints()` | Unicode code point | Xử lý mã ký tự, Unicode category |
-| `BreakIterator.getCharacterInstance` | Character boundary theo implementation/provider/locale | Duyệt vị trí cắt, tích hợp API localization |
-| Regex `\\X` | Extended grapheme cluster theo regex engine/JDK | Tìm đoạn khớp grapheme, đếm theo pattern |
-| `Normalizer.normalize` | Chuẩn hóa NFC/NFD/NFKC | Thống nhất biểu diễn Unicode, không phải segmentation |
+| `String.length()` | UTF-16 code unit | API limits/offsets defined in UTF-16 |
+| `String.codePoints()` | Unicode code point | Character code inspection, Unicode categories |
+| `BreakIterator.getCharacterInstance` | Character boundary per implementation/provider/locale | Iterating cut points, localization API integration |
+| Regex `\\X` | Extended grapheme cluster per regex engine/JDK | Matching grapheme spans, pattern-based counting |
+| `Normalizer.normalize` | NFC/NFD/NFKC normalization | Standardizing Unicode representation, not segmentation |
 
-Regex `\\X` và `BreakIterator` có thể không có **cùng hành vi với mọi Unicode sequence và mọi JDK**. Hai cơ chế sử dụng code path khác nhau, phiên bản dữ liệu Unicode có thể không giống nhau; cần kiểm chứng nếu tính đồng nhất là yêu cầu cứng.
+Regex `\\X` and `BreakIterator` may **not behave identically for every Unicode sequence across every JDK**. The two mechanisms take different code paths and can track different Unicode data versions; verify explicitly if strict parity is required.
 
-Không thay thế `BreakIterator.getCharacterInstance` bằng `Pattern.compile(".")`: dấu chấm trong regex không định nghĩa một grapheme cluster và có quy tắc về newline, supplementary code points riêng.
+Never replace `BreakIterator.getCharacterInstance` with `Pattern.compile(".")`: regex `.` does not define a grapheme cluster and has its own rules for newlines and supplementary code points.
 
-## 10. Phân đoạn ký tự có phụ thuộc locale không?
+## 10. Does Character Segmentation Depend on Locale?
 
-`BreakIterator` nhận `Locale` để chọn quy tắc phân đoạn thích hợp. Một ứng dụng cần biết locale văn bản hoặc locale của người dùng để thiết lập iterator. Tuy nhiên, có những giới hạn:
+`BreakIterator` accepts a `Locale` to pick segmentation rules. Applications should pass the text's or user's locale when instantiating the iterator. Still, keep these boundaries in mind:
 
-- Nhiều quy tắc **character boundaries** có tính Unicode chung, không đổi chỉ vì tiếng Việt so với tiếng Anh.
-- **Word boundary** và **line break** có thể chịu tác động locale rõ hơn (nhất là ngôn ngữ không dùng dấu cách tách từ).
-- Dữ liệu JDK/locale provider có thể khác nhau giữa môi trường.
-- Truyền `Locale.getDefault()` ngầm có thể làm behavior phụ thuộc JVM; khi cần tái lập chính xác, truyền locale tường minh.
+- Many **character boundary** rules are general Unicode rules and do not change solely between Vietnamese and English.
+- **Word boundary** and **line break** rules show much stronger locale impact (especially for languages without spaces between words).
+- JDK/locale provider data can vary between environments.
+- Relying implicitly on `Locale.getDefault()` makes behavior depend on JVM defaults; pass `Locale` explicitly for reproducibility.
 
-Không suy rằng `Locale.forLanguageTag("vi-VN")` tự kiểm tra chính tả, tự chuyển “hoà/hòa” theo quy tắc đặt dấu hoặc bỏ dấu thanh. Nó là **cấu hình của segmentation provider**, không phải bộ xử lý ngôn ngữ tiếng Việt hoàn chỉnh.
+Never assume `Locale.forLanguageTag("vi-VN")` checks spelling, enforces "hoà/hòa" tone-placement conventions, or strips accents. It configures the **segmentation provider**, not a full Vietnamese linguistic processor.
 
-### BreakIterator có tự normalize Unicode không?
+### Does BreakIterator Normalize Unicode Automatically?
 
-Không nên xem kết quả `BreakIterator` là một lời cam kết sẽ đổi NFC/NFD. API trả **offset**, không thay đổi chuỗi dữ liệu gốc. Hàm `takeClusters` giữ nguyên dãy code unit của phần được lấy.
+Never treat `BreakIterator` as a guarantee of NFC/NFD conversion. The API returns **offsets** without mutating the original string. `takeClusters` preserves the exact code units of the retained slice.
 
-Nếu một hệ thống muốn lưu NFC để tránh hai chuỗi nhìn giống nhưng code point khác nhau, hãy chuẩn hóa **ở ranh giới dữ liệu** theo chính sách riêng, rồi cập nhật offsets và mappings tương ứng. Đừng normalize sau khi đã lưu offset vì độ dài UTF-16 có thể thay đổi.
+If a system normalizes to NFC to avoid visually identical strings with different code points, normalize **at the data ingestion boundary** per policy and compute offsets/mappings afterward. Never normalize after storing offsets, because UTF-16 lengths can change.
 
-## 11. Những vấn đề hiệu năng và thread safety
+## 11. Performance and Thread-Safety Considerations
 
-`BreakIterator` là **đối tượng có trạng thái**: `setText` và các phương thức duyệt thay đổi vị trí hiện tại của iterator. Không chia sẻ một instance mutable cho nhiều request/thread cùng lúc rồi liên tục `setText`.
+`BreakIterator` is **stateful**: `setText` and traversal methods mutate the iterator's internal cursor. Never share one mutable instance across concurrent requests/threads calling `setText`.
 
-Một số hướng:
+Practical patterns:
 
-1. **Tạo iterator mới theo từng tác vụ** — dễ hiểu, đúng scope và an toàn về state.
-2. **Clone** iterator cấu hình sẵn nếu cần tái sử dụng cấu hình mà không chia sẻ con trỏ duyệt.
-3. Nếu buộc dùng chung, phải đồng bộ toàn bộ khối `setText`/duyệt; không chỉ đồng bộ một lần gọi `next`.
-4. Với text dài, duyệt trực tiếp và dừng khi đủ số cụm thay vì luôn tạo toàn bộ list.
+1. **Create a new iterator per operation** — simple, properly scoped, and thread-safe.
+2. **Clone** a preconfigured iterator if you want to reuse setup without sharing traversal state.
+3. If sharing is unavoidable, synchronize the entire `setText`/traversal block—not just individual `next()` calls.
+4. On long strings, iterate directly and stop once enough clusters are reached instead of always building a full list.
 
-Độ phức tạp xử lý segmentation còn phụ thuộc text/implementation; không nên đoán chi phí tuyệt đối hoặc giả định một phương thức `next` có cùng thời gian trên mọi chuỗi. Benchmark với dữ liệu thật gồm tiếng Việt có dấu, emoji và text mixed-script.
+Segmentation cost also depends on text complexity and implementation; do not guess absolute cost or assume every `next()` call runs in constant time across all strings. Benchmark with realistic data including Vietnamese diacritics, emojis, and mixed-script text.
 
-### Dữ liệu không tin cậy
+### Untrusted Input
 
-Khi người dùng gửi text dài, code segmentation nên kiểm soát độ dài input, thời gian xử lý và giới hạn tài nguyên theo nghiệp vụ. Bản thân `BreakIterator` không xác thực nội dung Unicode hợp lệ, không phát hiện mọi ký tự vô hình gây spoofing và không bảo đảm text “an toàn để hiển thị”.
+When users submit long text, segmentation code should enforce input length limits, processing budgets, and resource caps per business rules. `BreakIterator` itself does not validate well-formed Unicode, detect invisible spoofing characters, or guarantee text is "safe to display."
 
-Nếu cần cấm một số Unicode controls trong identifier, hãy kiểm tra theo schema riêng. Không loại tất cả combining marks chỉ để đơn giản hóa segmentation, vì làm vậy mất dấu tiếng Việt.
+If certain Unicode control characters must be forbidden in identifiers, validate against a dedicated schema. Never strip all combining marks merely to simplify segmentation, as that destroys Vietnamese diacritics.
 
-## 12. Xử lý ký tự điều khiển, khoảng trắng và dấu câu
+## 12. Handling Control Characters, Whitespace, and Punctuation
 
-Một *grapheme cluster* không nhất thiết là một chữ cái có thể in:
+A *grapheme cluster* is not necessarily a printable letter:
 
-- Khoảng trắng có thể là một cụm riêng.
-- Dấu chấm/dấu phẩy có thể tạo một cụm riêng.
-- Newline hoặc CRLF có quy tắc đặc biệt.
-- Ký tự format/zero-width có thể ảnh hưởng phân đoạn mà không có glyph hiển thị.
-- Một combining mark đứng lẻ ở đầu văn bản có thể hình thành một cụm dù không có base letter hợp lệ theo nhu cầu ngôn ngữ.
+- Spaces can each form a cluster.
+- Periods and commas can form clusters.
+- Newlines or CRLF follow special rules.
+- Format/zero-width characters can affect segmentation without producing visible glyphs.
+- An orphaned combining mark at the start of text can form a cluster even without a valid linguistic base letter.
 
-Vì vậy giới hạn `maxClusters = 20` **đếm cả khoảng trắng hoặc dấu câu** nếu chúng là những cụm riêng. Nếu yêu cầu nghiệp vụ là “20 chữ cái” hoặc “20 âm tiết” thì cần thêm bước xác định ký tự nào được tính; `BreakIterator` không tự biết đơn vị nghiệp vụ đó.
+Consequently, a limit like `maxClusters = 20` **counts spaces and punctuation** whenever they stand as separate clusters. If a business rule means "20 letters" or "20 syllables," add a separate check defining which characters count; `BreakIterator` has no awareness of that domain unit.
 
-Đặc biệt, không nên dùng segmentation để quyết định văn bản hợp lệ khi người dùng nhập tên riêng. Validator có thể cho phép chữ cái, dấu kết hợp, dấu nối, khoảng trắng tùy bối cảnh. Cắt theo cụm chỉ là một phần của UI/validation.
+In particular, never rely on segmentation alone to validate proper names. Validators may allow letters, combining marks, hyphens, and spaces depending on context. Cluster truncation is just one piece of UI/validation handling.
 
-### Dữ liệu với newline
+### Strings with Newlines
 
-`String` có thể chứa `\n` hoặc `\r\n`. Nếu cắt ở một position gần newline, hãy kiểm tra biên mà segmentation provider trả về; nếu UI cần duy trì nguyên cặp CRLF, có thể thêm test riêng. Không giả định `String.length()` hoặc count code points cho cặp newline cũng bằng grapheme count trong mọi ngữ cảnh.
+A `String` may contain `\n` or `\r\n`. When truncating near newlines, inspect the boundaries returned by your segmentation provider; if the UI must keep CRLF pairs intact, add explicit tests. Never assume `String.length()` or code-point count equals grapheme count for newline pairs in every context.
 
-## 13. Giới hạn theo số cụm khác giới hạn theo byte lưu trữ
+## 13. Cluster Limits Differ from Storage Byte Limits
 
-Một ô nhập có thể cần:
+A single input field might require:
 
-- Tối đa **100 grapheme cluster** theo trải nghiệm người dùng.
-- Tối đa **255 UTF-8 bytes** do giới hạn giao thức.
-- Chỉ cho phép một tập Unicode nhất định theo schema.
-- Giữ nguyên **NFC** khi lưu.
-- Không cho phép một số control character.
+- At most **100 grapheme clusters** for UX consistency.
+- At most **255 UTF-8 bytes** due to protocol/column limits.
+- Only characters from an allowed Unicode subset per schema.
+- **NFC** normalization upon storage.
+- Rejection of specific control characters.
 
-Đây là các yêu cầu **độc lập**; một check duy nhất không đủ.
+These are **independent requirements**; a single check cannot satisfy all of them.
 
-Ví dụ một cluster emoji có thể có nhiều byte UTF-8. Một chữ Việt dạng NFD có nhiều code point nhưng vẫn thường một cluster. Nếu kiểm tra số byte bằng cách `text.getBytes(StandardCharsets.UTF_8).length`, kết quả không phải số grapheme.
+For example, one emoji cluster can occupy many UTF-8 bytes. One NFD Vietnamese letter spans multiple code points yet usually forms one cluster. Checking byte length via `text.getBytes(StandardCharsets.UTF_8).length` does not count graphemes.
 
-Một policy hợp lý cho input:
+A sensible input policy:
 
-1. Chọn dạng normalization lưu trữ (nếu có).
-2. Quy định **đơn vị độ dài**: grapheme, code point, UTF-16 hay byte.
-3. Dùng `BreakIterator` hoặc segmentation phù hợp để kiểm tra grapheme.
-4. Nếu có giới hạn byte, kiểm tra byte sau encoding được quy định.
-5. Kiểm tra tập ký tự/schema và những control không được phép.
-6. Khi hiển thị text dài, dùng text layout để đảm bảo không vượt pixel, và ellipsis theo chính sách rõ ràng.
+1. Select storage normalization form (if any).
+2. Define the **length unit**: grapheme, code point, UTF-16, or byte.
+3. Use `BreakIterator` or an appropriate segmenter to enforce grapheme limits.
+4. If a byte limit applies, check byte length under the specified encoding.
+5. Validate allowed character sets/schema and forbidden control characters.
+6. When rendering long text, use text layout measurement to fit pixel bounds and ellipsize per an explicit policy.
 
-### Không dùng giới hạn grapheme để phòng mọi vấn đề tài nguyên
+### Do Not Rely on Grapheme Limits Alone for Resource Protection
 
-Một grapheme cluster có thể chứa nhiều combining marks; chuỗi chỉ một cluster vẫn có thể rất dài theo code point hoặc byte. Nếu nhận dữ liệu không tin cậy, nên đặt **giới hạn thô theo byte/code point** để tránh một cluster quá lớn gây áp lực xử lý, bên cạnh giới hạn số cụm cho UX.
+A single grapheme cluster can accumulate many combining marks; a 1-cluster string can still be huge in code points or bytes. When accepting untrusted data, enforce a **coarse raw byte/code-point limit** alongside UX cluster limits to prevent oversized clusters from exhausting processing resources.
 
-## 14. Kiểm thử đầy đủ với Java và Unicode
+## 14. Comprehensive Testing with Java and Unicode
 
-Một bộ test hữu ích:
+A practical test suite:
 
-| Trường hợp | Input minh họa | Điều cần xác nhận |
+| Case | Sample Input | What to Verify |
 | --- | --- | --- |
-| Chuỗi rỗng | `""` | 0 cụm, prefix rỗng |
-| ASCII | `ABC` | Các boundaries như dự kiến |
-| Tiếng Việt NFC | `"\u1EAF"` | Một cụm ở trường hợp cơ bản |
-| Tiếng Việt NFD | `"a\u0306\u0301"` | Không tách dấu breve/acute khỏi a |
-| Emoji ngoài BMP | `"\uD83D\uDE00"` | Không cắt giữa surrogate pair |
-| Emoji + skin tone | Thumbs-up + modifier | Kiểm tra provider/JDK có gom đúng không |
-| Emoji ZWJ | Woman + ZWJ + laptop | Kiểm tra quy tắc ZWJ và version Unicode |
-| Cờ regional indicator | Cặp RI Unicode | Kiểm tra quy tắc ghép cặp |
-| Variation selector | Symbol + VS16 | Không tách selector khỏi symbol theo chính sách |
-| CRLF | `"\r\n"` | Kiểm tra boundary cho cặp newline |
-| Combining mark đầu chuỗi | `"\u0301a"` | Không crash, giữ nội dung khi cắt |
-| Văn bản mixed-script | Tiếng Việt + Arabic/Hebrew | Segmentation không bị nhầm với bidi reorder |
-| Nhiều dấu liên tiếp | `"a\u0301\u0302\u0303"` | Không cắt tùy tiện giữa một cụm |
-| Input rất dài | Nhiều đoạn kết hợp | Đánh giá thời gian/bộ nhớ, giới hạn thô |
+| Empty string | `""` | 0 clusters, empty prefix |
+| ASCII | `ABC` | Boundaries as expected |
+| Vietnamese NFC | `"\u1EAF"` | One cluster in basic cases |
+| Vietnamese NFD | `"a\u0306\u0301"` | Breve/acute stay attached to `a` |
+| Non-BMP emoji | `"\uD83D\uDE00"` | Surrogate pair is never split |
+| Emoji + skin tone | Thumbs-up + modifier | Check whether JDK/provider groups properly |
+| Emoji ZWJ | Woman + ZWJ + laptop | Check ZWJ rules and Unicode version |
+| Regional indicator flags | Unicode RI pair | Check indicator pairing rules |
+| Variation selector | Symbol + VS16 | Selector stays attached to symbol per policy |
+| CRLF | `"\r\n"` | Verify boundary for newline pair |
+| Leading combining mark | `"\u0301a"` | No crash; preserves content on truncation |
+| Mixed-script text | Vietnamese + Arabic/Hebrew | Segmentation not confused with bidi reordering |
+| Multiple stacked marks | `"a\u0301\u0302\u0303"` | Never arbitrarily split mid-cluster |
+| Very long input | Many combining sequences | Latency/memory behavior and raw limits |
 
-Nếu cần đảm bảo tương thích với **Unicode GraphemeBreakTest.txt** của một phiên bản cụ thể, hãy dùng test data chính thức để kiểm tra segmentation engine. Không suy rằng vì một vài ví dụ emoji chạy đúng nên mọi quy tắc GB của UAX #29 đều được hỗ trợ.
+If strict compliance with a specific version of **Unicode `GraphemeBreakTest.txt`** is required, run the official test vectors against your segmentation engine. Never assume that because a few sample emojis work, all GB rules of UAX #29 are supported.
 
-### Kiểm tra đúng phiên bản runtime
+### Testing on the Exact Target Runtime
 
-Ứng dụng build bằng JDK 17 nhưng chạy trên JDK khác có thể nhận segmentation data khác. Trong CI:
+An application compiled with JDK 17 but deployed on another JDK may receive different segmentation data. In CI:
 
-- Chạy test bằng **runtime version mục tiêu**.
-- Ghi nhận JDK vendor/version/provider khi test segmentation quốc tế hóa quan trọng.
-- Không khóa cứng kết quả emoji phức hợp qua mọi runtime nếu không có hợp đồng phiên bản Unicode.
-- Kiểm tra text preview, caret/select/delete thực tế trong UI; logic backend đúng chưa bảo đảm renderer xử lý mọi tổ hợp đúng.
+- Run tests on the **target runtime version**.
+- Record JDK vendor, version, and locale provider in critical internationalization tests.
+- Do not hardcode complex emoji outcomes across all runtimes without an explicit Unicode-version contract.
+- Verify previews, caret movement, selection, and deletion in the real UI; correct backend segmentation does not guarantee the renderer handles every sequence properly.
 
-## 15. Sai lầm thường gặp
+## 15. Common Mistakes
 
-| Sai lầm | Vấn đề | Cách làm đúng |
+| Mistake | Problem | Correct Approach |
 | --- | --- | --- |
-| `String.length()` là số chữ nhìn thấy | Đếm UTF-16 code unit | Chọn đúng đơn vị cần giới hạn |
-| `codePoints()` chắc chắn cho số grapheme | Dấu kết hợp có code point riêng | Dùng segmentation theo cluster |
-| `substring(0, n)` luôn cắt an toàn | Có thể cắt giữa dấu hoặc surrogate | Lấy boundary từ BreakIterator |
-| Normalize NFC rồi cắt từng char | Emoji và nhiều tổ hợp vẫn nhiều code unit | Segmentation vẫn cần thiết |
-| Dùng `getWordInstance` để cắt theo chữ | Word breaks khác character breaks | Dùng `getCharacterInstance` |
-| Quên gọi `setText` | Iterator chưa phân tích đúng đầu vào | Set text trước khi duyệt |
-| Không kiểm tra `DONE` | Có thể dùng offset -1 và lỗi substring | Kiểm tra sentinel đúng |
-| Coi `end` là inclusive | substring có end-exclusive | Dùng `substring(start,end)` |
-| Xem offsets là code-point indexes | BreakIterator trả UTF-16 positions | Không trộn đơn vị chỉ số |
-| Gọi `preceding` như floor inclusive | Nó tìm boundary **strictly before** | Kiểm tra `isBoundary` trước |
-| Chia sẻ một iterator giữa threads | Iterator giữ mutable state | Tạo instance riêng/clone |
-| Giới hạn grapheme cũng giới hạn byte | Một cluster có thể dài nhiều byte | Đặt byte limit riêng |
-| Cắt theo cụm là đo độ rộng UI | Một cluster có thể nhiều glyph | Dùng renderer/text layout |
-| Mọi JDK 17 đều giống Unicode mới nhất | Provider/Unicode version có thể khác | Test runtime mục tiêu |
-| Cho rằng segmentation sửa chính tả | Nó chỉ tìm ranh giới text | Validation ngôn ngữ riêng |
-| Lọc hết combining marks để dễ cắt | Mất dấu tiếng Việt | Giữ dữ liệu, cắt theo biên |
+| Treating `String.length()` as visible character count | Counts UTF-16 code units | Pick the right unit for the limit |
+| Assuming `codePoints()` equals grapheme count | Combining marks have their own code points | Use cluster segmentation |
+| Assuming `substring(0, n)` always cuts safely | Can split diacritics or surrogates | Use boundaries from `BreakIterator` |
+| Normalizing to NFC and slicing by `char` | Emojis and many sequences still span multiple code units | Segmentation is still necessary |
+| Using `getWordInstance` for character slicing | Word breaks differ from character breaks | Use `getCharacterInstance` |
+| Forgetting `setText` | Iterator has not analyzed the input | Call `setText` before iterating |
+| Omitting `DONE` check | May pass `-1` offset to `substring` | Check the sentinel properly |
+| Treating `end` as inclusive | `substring` is end-exclusive | Use `substring(start, end)` |
+| Treating offsets as code-point indices | `BreakIterator` returns UTF-16 positions | Keep index units consistent |
+| Calling `preceding` as an inclusive floor | Searches **strictly before** offset | Check `isBoundary` first |
+| Sharing one iterator across threads | Iterator holds mutable state | Create/clone per task |
+| Equating grapheme limits with byte limits | One cluster can take many bytes | Enforce byte limits separately |
+| Equating cluster slicing with UI width | One cluster can span multiple glyphs | Use renderer/text layout |
+| Assuming every JDK 17 matches the latest Unicode | Providers/Unicode versions vary | Test on the target runtime |
+| Expecting segmentation to fix spelling | It only finds text boundaries | Perform linguistic validation separately |
+| Stripping combining marks to simplify cutting | Destroys Vietnamese accents | Preserve data and slice at boundaries |
 
-## 16. Bài tập thực hành
+## 16. Practice Exercises
 
-**Bài 1 — ba đơn vị.** Tạo `"\u1EAF"` và `"a\u0306\u0301"`. Đếm `length()`, `codePointCount` và số cụm bằng `BreakIterator.getCharacterInstance`. Giải thích vì sao hình chữ tương đương nhưng số code unit khác.
+**Exercise 1 — Three units.** Construct `"\u1EAF"` and `"a\u0306\u0301"`. Measure `length()`, `codePointCount`, and cluster count via `BreakIterator.getCharacterInstance`. Explain why visually equivalent characters have different code-unit counts.
 
-**Bài 2 — lỗi substring.** Cho `"A" + "a\u0306\u0301" + "B"`. Vì sao `substring(0,2)` làm mất hai dấu? Viết hàm lấy hai cụm đầu.
+**Exercise 2 — Substring bug.** Given `"A" + "a\u0306\u0301" + "B"`, why does `substring(0, 2)` drop both accents? Write a method returning the first two clusters.
 
-**Bài 3 — emoji ngoài BMP.** Dùng `"\uD83D\uDE00"`. Chỉ ra index nằm giữa surrogate pair. So sánh kết quả cắt theo code unit với cắt theo BreakIterator.
+**Exercise 3 — Non-BMP emoji.** Use `"\uD83D\uDE00"`. Identify the index sitting inside the surrogate pair. Compare slicing by code unit versus slicing with `BreakIterator`.
 
-**Bài 4 — isBoundary.** Với chuỗi demo có emoji ở khoảng `[4,6)`, dự đoán `isBoundary(5)`, `preceding(5)` và `following(5)`. Viết helper snap điểm cắt xuống boundary gần nhất không vượt giới hạn.
+**Exercise 4 — `isBoundary`.** Given the demo string with an emoji at `[4,6)`, predict `isBoundary(5)`, `preceding(5)`, and `following(5)`. Write a helper snapping a cut index down to the nearest boundary not exceeding the limit.
 
-**Bài 5 — ellipsis.** Viết hàm truncate có budget 8 cụm **bao gồm** một dấu `…` khi text bị cắt. Trường hợp không phải cắt thì không thêm ellipsis. Test input rỗng và budget 0.
+**Exercise 5 — Ellipsis.** Write a truncation helper with an 8-cluster budget **including** a trailing `…` when truncated. When no truncation occurs, omit the ellipsis. Test empty strings and budget `0`.
 
-**Bài 6 — regex X.** Dùng `Pattern.compile("\\X")` để đếm grapheme rồi so sánh với `BreakIterator.getCharacterInstance` trên NFC/NFD và một emoji ZWJ. Nếu JDK cho kết quả khác thì phần nào của hệ thống cần cố định policy?
+**Exercise 6 — Regex `\\X`.** Use `Pattern.compile("\\X")` to count graphemes and compare against `BreakIterator.getCharacterInstance` on NFC/NFD strings and a ZWJ emoji. If your JDK differs on any case, which part of the system needs a pinned policy?
 
-**Bài 7 — giới hạn lưu trữ.** Một username cho phép tối đa 20 cụm nhưng database giới hạn 64 UTF-8 bytes. Vì sao một check grapheme không đủ? Đề xuất thứ tự validation và thông báo lỗi cho người dùng.
+**Exercise 7 — Storage limits.** A username allows at most 20 clusters while the database column allows 64 UTF-8 bytes. Why is a grapheme check alone insufficient? Propose validation order and user-facing error messages.
 
-**Bài 8 — đa ngôn ngữ.** Với văn bản gồm chữ Latin, tiếng Việt có dấu và Arabic, thử phân đoạn bằng `BreakIterator`. Tại sao kết quả này không thay thế `java.text.Bidi` trong việc hiển thị RTL?
+**Exercise 8 — Multilingual text.** Given text mixing Latin, accented Vietnamese, and Arabic, segment it with `BreakIterator`. Why does this result not replace `java.text.Bidi` for RTL display?
 
-**Bài 9 — phụ thuộc JDK.** Thiết kế test gồm modifier, ZWJ, cờ RI và CRLF, chạy cùng test trên hai phiên bản Java. Ghi lại count và offsets. Thảo luận cách xử lý khi đầu ra khác nhau.
+**Exercise 9 — JDK dependency.** Build a test covering modifiers, ZWJ sequences, RI flags, and CRLF, and run the same test across two Java versions. Record cluster counts and offsets, and discuss how to handle differences.
 
-## 17. Kết luận
+## 17. Conclusion
 
-`BreakIterator.getCharacterInstance(Locale)` là API Java Core để duyệt **các ranh giới ký tự** của văn bản, hữu ích khi muốn cắt text không tách dấu kết hợp khỏi chữ cơ sở hoặc cắt đôi surrogate pair. Khi duyệt qua `first()/next()`, mỗi đoạn được lấy bằng `substring(start,end)` với chỉ số UTF-16 end-exclusive; không được hiểu số cụm là `String.length()`.
+`BreakIterator.getCharacterInstance(Locale)` is the Core Java API for iterating **character boundaries** in text, essential when truncating strings without detaching combining marks from base letters or splitting surrogate pairs. When traversing with `first()/next()`, extract each segment with `substring(start, end)` using end-exclusive UTF-16 indices; never mistake cluster count for `String.length()`.
 
-Phân đoạn text **khác** chuẩn hóa Unicode, kiểm tra chính tả, đo bề rộng glyph và hiển thị hai chiều. Với UI hiện đại có emoji phức hợp, cần kiểm tra khả năng của đúng JDK/provider và phiên bản Unicode; nếu cần tuân thủ hoàn toàn một profile Extended Grapheme Cluster nhất định, hãy chọn segmentation engine/test suite phù hợp.
+Text segmentation is **distinct from** Unicode normalization, spell checking, glyph-width measurement, and bidirectional layout. For modern UIs handling complex emojis, verify the exact capabilities of your JDK/provider and Unicode version; if strict conformance to a specific Extended Grapheme Cluster profile is required, select an appropriate segmentation engine and conformance test suite.
 
-**Nguyên tắc cốt lõi:** *Cắt văn bản theo boundary của cụm, không cắt bằng một chỉ số char tùy ý; luôn hiểu đơn vị offset và kiểm thử các chuỗi Unicode đa code point.*
+**Core principle:** *Slice text along cluster boundaries rather than arbitrary `char` indices; always track offset units carefully and test multi-code-point Unicode sequences.*
 
-### Tài liệu tham khảo
+### References
 
 - [`BreakIterator` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/BreakIterator.html)
 - [`String` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)

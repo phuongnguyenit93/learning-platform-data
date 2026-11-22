@@ -1,13 +1,13 @@
-# Phân biệt tham chiếu null với giá trị số 0 trong Java
+# Distinguishing a null Reference from the Numeric Value 0 in Java
 
-## 1. Vấn đề: “không có giá trị” khác “có giá trị bằng 0”
+## 1. The problem: “no value” differs from “value equals 0”
 
-Trong Java, `null` và số `0` biểu thị hai trạng thái khác nhau:
+In Java, `null` and the number `0` denote two different states:
 
-- **`null`**: biến có kiểu tham chiếu hiện không trỏ tới đối tượng nào. Đây có thể là dữ liệu chưa được cung cấp, chưa biết, không áp dụng hoặc một lỗi trong việc khởi tạo, tùy hợp đồng của ứng dụng.
-- **`0`**: một giá trị số thực sự, thường mang ý nghĩa đếm được bằng không, số dư bằng không, kết quả phép tính bằng không hoặc mã trạng thái có giá trị 0.
+- **`null`**: a reference-type variable currently points to no object. This may indicate data not yet provided, unknown, not applicable, or an initialization error, depending on the application's contract.
+- **`0`**: an actual numeric value, typically meaning a count of zero, a balance of zero, an arithmetic result of zero, or a status code with value 0.
 
-Với primitive `int`, không thể gán `null`. Với wrapper `Integer`, biến có thể tham chiếu một đối tượng chứa giá trị 0 **hoặc** chứa `null`.
+With primitive `int`, `null` cannot be assigned. With wrapper `Integer`, a variable can reference an object holding the value 0 **or** hold `null`.
 
 ~~~java
 int primitiveZero = 0;
@@ -19,34 +19,34 @@ System.out.println(boxedZero);     // 0
 System.out.println(missing);       // null
 ~~~
 
-Ba dòng trên là ví dụ đặt trong một phương thức. Khi in bằng `System.out.println(Object)`, tham chiếu null cho ra chữ `null`; điều đó không đồng nghĩa có một đối tượng `Integer` đặc biệt mang giá trị số “null”.
+These three lines are an example placed inside a method. When printed with `System.out.println(Object)`, a null reference outputs the text `null`; that does not mean there is a special `Integer` object carrying a numeric value “null”.
 
-Mục tiêu của bài này là chọn đúng mô hình cho dữ liệu có thể thiếu, nhận diện mọi chỗ Java **tự unbox**, và không vô tình gộp “không biết số lượng” thành “số lượng chắc chắn bằng 0”.
+The goal of this lesson is to pick the right model for potentially missing data, recognize every place Java **auto-unboxes**, and avoid accidentally collapsing “unknown quantity” into “quantity definitely equals 0”.
 
-## 2. Primitive và wrapper: hai miền giá trị khác nhau
+## 2. Primitives and wrappers: two different value domains
 
-| Kiểu | Giá trị số 0 | Có thể chứa null? | Dùng khi |
+| Type | Numeric value 0 | Can hold null? | Use when |
 | --- | --- | --- | --- |
-| `int` | `0` | Không | Luôn có số nguyên 32 bit hợp lệ |
-| `long` | `0L` | Không | Luôn có số nguyên 64 bit hợp lệ |
-| `double` | `0.0` | Không | Luôn có số thực, kể cả ±0.0 |
-| `Integer` | `Integer.valueOf(0)` | Có | Cần phân biệt số 0 và thiếu số nguyên |
-| `Long` | `Long.valueOf(0L)` | Có | Cần phân biệt số 0 và thiếu số nguyên dài |
-| `Double` | `Double.valueOf(0.0)` | Có | Cần phân biệt số 0 và thiếu số thực |
+| `int` | `0` | No | Always has a valid 32-bit integer |
+| `long` | `0L` | No | Always has a valid 64-bit integer |
+| `double` | `0.0` | No | Always has a floating-point number, including ±0.0 |
+| `Integer` | `Integer.valueOf(0)` | Yes | Must distinguish 0 from a missing integer |
+| `Long` | `Long.valueOf(0L)` | Yes | Must distinguish 0 from a missing long integer |
+| `Double` | `Double.valueOf(0.0)` | Yes | Must distinguish 0 from a missing floating-point number |
 
-`Integer`, `Long`, `Double`, `Short`, `Byte`, `Float` là các lớp wrapper cho primitive số tương ứng. `Character` và `Boolean` cũng là wrapper primitive, dù không phải lớp con của `Number`.
+`Integer`, `Long`, `Double`, `Short`, `Byte`, and `Float` are wrapper classes for their corresponding numeric primitives. `Character` and `Boolean` are also primitive wrappers, though not subclasses of `Number`.
 
 ~~~java
-// int n = null; // Không biên dịch: null không chuyển được thành int.
-Integer n = null; // Hợp lệ: Integer là kiểu tham chiếu.
-Integer z = 0;    // Hợp lệ: autoboxing từ int 0 thành Integer.
+// int n = null; // Does not compile: null cannot be converted to int.
+Integer n = null; // Valid: Integer is a reference type.
+Integer z = 0;    // Valid: autoboxing from int 0 to Integer.
 ~~~
 
-Một đối tượng wrapper bất biến: `Integer.valueOf(0)` đại diện giá trị 0, và không thể thay đổi nội dung của đối tượng thành 1. Tuy vậy, biến tham chiếu không `final` có thể được gán lại sang object khác hoặc `null`.
+A wrapper object is immutable: `Integer.valueOf(0)` represents the value 0, and the object's contents cannot be changed to 1. However, a non-`final` reference variable can be reassigned to another object or `null`.
 
-### Giá trị mặc định của field và phần tử mảng
+### Default values of fields and array elements
 
-Java gán mặc định `0` cho **field primitive `int`**, nhưng `null` cho **field kiểu `Integer`**:
+Java assigns default `0` to **`int` primitive fields**, yet `null` to **`Integer` fields**:
 
 ~~~java
 class Defaults {
@@ -54,117 +54,117 @@ class Defaults {
     Integer optionalCount;
 }
 
-// Trong một phương thức:
+// Inside a method:
 Defaults value = new Defaults();
 System.out.println(value.primitiveCount); // 0
 System.out.println(value.optionalCount);  // null
 ~~~
 
-Tương tự, `new int[3]` có các phần tử bằng 0; `new Integer[3]` có các phần tử bằng `null`. Biến cục bộ chưa gán không tự động được đọc với giá trị mặc định: trình biên dịch yêu cầu biến được gán chắc chắn (*definite assignment*) trước khi sử dụng.
+Similarly, `new int[3]` has elements equal to 0; `new Integer[3]` has elements equal to `null`. Unassigned local variables cannot automatically be read with default values: the compiler requires variables to be definitely assigned (*definite assignment*) before use.
 
-Điểm này quan trọng với DTO, entity và các mô hình đầu vào: chọn `int` có thể làm mất khả năng biểu diễn “chưa cung cấp”; chọn `Integer` buộc code nhận dữ liệu phải quyết định cách xử lý `null`.
+This matters for DTOs, entities, and input models: choosing `int` can forfeit the ability to represent “not provided”; choosing `Integer` forces code receiving the data to decide how to handle `null`.
 
-## 3. Boxing và unboxing có thể che giấu khác biệt null/0
+## 3. Boxing and unboxing can mask the null/0 difference
 
-**Boxing** chuyển giá trị primitive sang wrapper:
+**Boxing** converts a primitive value to a wrapper:
 
 ~~~java
 int raw = 0;
-Integer boxed = raw; // autoboxing, giá trị boxed là 0
+Integer boxed = raw; // autoboxing, boxed value is 0
 ~~~
 
-**Unboxing** chuyển wrapper trở lại primitive:
+**Unboxing** converts a wrapper back to a primitive:
 
 ~~~java
 Integer boxed = Integer.valueOf(0);
-int raw = boxed; // unboxing, raw là 0
+int raw = boxed; // unboxing, raw is 0
 ~~~
 
-Khi wrapper khác `null`, unboxing lấy giá trị primitive. Nếu wrapper là `null`, Java **ném `NullPointerException`** vì không có đối tượng nào để đọc giá trị bên trong.
+When the wrapper is non-`null`, unboxing retrieves the primitive value. If the wrapper is `null`, Java **throws `NullPointerException`** because there is no object from which to read an inner value.
 
 ~~~java
 Integer count = null;
 
-// Lệnh sau biên dịch được nhưng ném NullPointerException khi chạy:
+// The following statement compiles but throws NullPointerException at runtime:
 // int primitive = count;
 ~~~
 
-Phép chuyển đổi đó có thể xảy ra **ngầm**, ngay cả khi source code không viết `intValue()`:
+That conversion can happen **implicitly**, even when source code does not write `intValue()`:
 
 ~~~java
 Integer count = null;
 
-// Mỗi biểu thức sau đều đòi unbox count và sẽ ném NPE khi chạy:
+// Each expression below requires unboxing count and will throw NPE at runtime:
 // int next = count + 1;
 // boolean positive = count > 0;
 // boolean equalsZero = count == 0;
 // int multiplied = count * 2;
 ~~~
 
-Phân biệt lỗi unboxing với trường hợp giá trị là 0: với `Integer count = 0;`, các biểu thức trên hợp lệ và tính đúng theo số nguyên; với `count = null;`, Java không coi null là 0 để tiếp tục tính.
+Distinguish unboxing errors from the case where the value is 0: with `Integer count = 0;`, the expressions above are valid and compute properly as integers; with `count = null;`, Java does not treat null as 0 to keep computing.
 
-### Kiểm tra null trước khi dùng giá trị
+### Checking null before using the value
 
 ~~~java
 Integer count = null;
 
 if (count == null) {
-    System.out.println("Chưa có số lượng");
+    System.out.println("No quantity yet");
 } else if (count == 0) {
-    System.out.println("Số lượng bằng 0");
+    System.out.println("Quantity is 0");
 } else {
-    System.out.println("Số lượng là " + count);
+    System.out.println("Quantity is " + count);
 }
 ~~~
 
-Đoạn trên in `Chưa có số lượng`. Trong nhánh sau `else`, ta biết chắc `count` khác `null` nên biểu thức `count == 0` có thể unbox an toàn.
+The snippet above prints `No quantity yet`. Inside the branch after `else`, we know for certain `count` is non-`null`, so the expression `count == 0` can unbox safely.
 
-## 4. Toán tử ==: kiểm tra tham chiếu hay so sánh số?
+## 4. The == operator: reference check or numeric comparison?
 
-Ngữ nghĩa của `==` phụ thuộc **kiểu tĩnh của hai toán hạng**.
+The semantics of `==` depend on **the static types of both operands**.
 
-### Hai tham chiếu Integer
+### Two Integer references
 
 ~~~java
 Integer a = null;
 Integer b = null;
 Integer zero = Integer.valueOf(0);
 
-System.out.println(a == b);    // true: cùng là null
-System.out.println(a == zero); // false: null khác tham chiếu đối tượng
+System.out.println(a == b);    // true: both are null
+System.out.println(a == zero); // false: null differs from an object reference
 ~~~
 
-Khi cả hai toán hạng là wrapper tham chiếu, `==` kiểm tra **identity của tham chiếu**, không yêu cầu unboxing để so sánh giá trị.
+When both operands are wrapper references, `==` checks **reference identity**, requiring no unboxing to compare values.
 
-Một ví dụ khác:
+Another example:
 
 ~~~java
 Integer left = Integer.valueOf(1_000);
 Integer right = Integer.valueOf(1_000);
 
 System.out.println(left.equals(right)); // true
-// Không dùng left == right để xác định hai giá trị số có bằng nhau.
+// Do not use left == right to determine whether two numeric values are equal.
 ~~~
 
-`Integer.valueOf` bảo đảm cache ít nhất các giá trị từ −128 đến 127, và có thể cache thêm các giá trị khác. Vì vậy kết quả `==` giữa hai wrapper có giá trị bằng nhau không phải cách so sánh số ổn định.
+`Integer.valueOf` guarantees caching at least values from −128 to 127, and may cache other values. Thus the result of `==` between two wrappers with equal values is not a stable numeric comparison.
 
-### Một wrapper và một primitive
+### One wrapper and one primitive
 
 ~~~java
 Integer zero = 0;
-System.out.println(zero == 0); // true: Integer bị unbox thành int
+System.out.println(zero == 0); // true: Integer is unboxed to int
 ~~~
 
-Ngược lại:
+Conversely:
 
 ~~~java
 Integer missing = null;
-// System.out.println(missing == 0); // NPE khi chạy: unbox null.
+// System.out.println(missing == 0); // Runtime NPE: unboxes null.
 ~~~
 
-Vì vậy `missing == null` là một phép kiểm tra tham chiếu an toàn, nhưng `missing == 0` là phép so sánh số cần unbox và **không** an toàn nếu tham chiếu có thể null.
+Therefore `missing == null` is a safe reference check, whereas `missing == 0` is a numeric comparison requiring unboxing and is **not** safe if the reference can be null.
 
-**Thứ tự ưu tiên trong điều kiện:**
+**Precedence order in conditions:**
 
 ~~~java
 Integer count = null;
@@ -172,11 +172,11 @@ boolean isKnownZero = count != null && count == 0;
 System.out.println(isKnownZero); // false
 ~~~
 
-`&&` có đánh giá ngắn mạch: khi `count != null` là `false`, vế sau không được thực thi. Đây là một mẫu điều kiện an toàn để kiểm tra “đã có số và số đó bằng 0”.
+`&&` uses short-circuit evaluation: when `count != null` is `false`, the second side does not execute. This is a safe conditional pattern to check “a number is present and equals 0”.
 
-## 5. equals() và Objects.equals(): so sánh theo giá trị an toàn
+## 5. equals() and Objects.equals(): safe value-based comparison
 
-`Integer.equals()` so sánh giá trị **giữa hai đối tượng Integer**, còn `java.util.Objects.equals(a, b)` là cách tiện lợi để xử lý cả trường hợp null:
+`Integer.equals()` compares values **between two Integer objects**, while `java.util.Objects.equals(a, b)` is a convenient way to handle null cases too:
 
 ~~~java
 Integer missing = null;
@@ -188,32 +188,32 @@ System.out.println(java.util.Objects.equals(zero, anotherZero)); // true
 System.out.println(java.util.Objects.equals(null, null)); // true
 ~~~
 
-Giá trị `true` ở `Objects.equals(null, null)` chỉ nói rằng **hai tham chiếu đều thiếu** theo định nghĩa phép so sánh null-safe; không phải chúng bằng số 0.
+The `true` result of `Objects.equals(null, null)` only states that **both references are missing** under the null-safe comparison definition; not that they equal 0.
 
-Các lưu ý:
+Notes:
 
-- `missing.equals(zero)` ném `NullPointerException` vì gọi phương thức trên null.
-- `zero.equals(missing)` trả `false`; receiver `zero` khác null.
-- `Objects.equals(missing, zero)` trả `false` an toàn.
-- `Integer.valueOf(0).equals(Long.valueOf(0L))` trả `false` vì hai wrapper khác lớp dù cùng giá trị toán học 0.
+- `missing.equals(zero)` throws `NullPointerException` because a method is called on null.
+- `zero.equals(missing)` returns `false`; the receiver `zero` is non-null.
+- `Objects.equals(missing, zero)` safely returns `false`.
+- `Integer.valueOf(0).equals(Long.valueOf(0L))` returns `false` because the two wrappers belong to different classes despite both having mathematical value 0.
 
-Khi so sánh giá trị có thể null từ hai nguồn, `Objects.equals` thường rõ nghĩa hơn `==`. Nhưng nếu logic phải phân biệt các trạng thái “đều thiếu” và “đều có giá trị 0”, hãy kiểm tra null riêng rồi thực hiện so sánh nghiệp vụ.
+When comparing potentially null values from two sources, `Objects.equals` is usually clearer than `==`. However, if logic must distinguish “both missing” from “both equal to 0”, check null separately before performing business comparisons.
 
-## 6. Ba trạng thái thường gặp trong dữ liệu ứng dụng
+## 6. Three common states in application data
 
-Có thể cần phân biệt **ba trường hợp** thay vì chỉ hai:
+You may need to distinguish **three cases** instead of just two:
 
-| Trạng thái | Ví dụ | Ý nghĩa có thể có |
+| State | Example | Possible meaning |
 | --- | --- | --- |
-| Không có trường/khóa | Request JSON không gửi `count`; `Map` không có key | Khách hàng không yêu cầu cập nhật trường |
-| Có trường nhưng giá trị null | `{"count": null}`; `map.put("count", null)` | Khách hàng muốn xóa giá trị hoặc dữ liệu chưa biết |
-| Có trường với giá trị 0 | `{"count": 0}`; `map.put("count", 0)` | Khách hàng khẳng định số lượng là 0 |
+| Field/key absent | JSON request omits `count`; `Map` lacks key | Client did not request updating the field |
+| Field present with null value | `{"count": null}`; `map.put("count", null)` | Client wants to clear the value or data is unknown |
+| Field present with value 0 | `{"count": 0}`; `map.put("count", 0)` | Client asserts the quantity is 0 |
 
-Cách hiểu phụ thuộc **hợp đồng API**. Với HTTP PATCH, việc không gửi field có thể mang nghĩa “giữ nguyên”, còn gửi `null` có thể mang nghĩa “xóa”; với HTTP POST, hai trường hợp có thể được validation xử lý khác. Đây là thiết kế API, không phải quy tắc cố định của mọi thư viện JSON.
+Interpretation depends on the **API contract**. For HTTP PATCH, omitting a field can mean “leave unchanged”, whereas sending `null` can mean “clear”; for HTTP POST, the two cases may be handled differently by validation. This is API design, not a fixed rule of every JSON library.
 
-Một biến `Integer count` riêng lẻ chỉ biểu diễn được **null hoặc một số**; nó không lưu được riêng trạng thái “field vắng mặt” so với “field có mặt và null”. Muốn phân biệt đầy đủ ba trạng thái, cần thêm metadata về sự hiện diện, một cấu trúc dữ liệu có `containsKey`, hoặc một kiểu dữ liệu được thiết kế rõ ràng cho yêu cầu cập nhật.
+A single `Integer count` variable alone can only represent **null or a number**; it cannot separately store “field absent” versus “field present and null”. To fully distinguish all three states, you need presence metadata, a structure supporting `containsKey`, or a data type explicitly designed for update requests.
 
-### Map.get() không phân biệt được key vắng mặt với mapping null
+### Map.get() cannot distinguish an absent key from a null mapping
 
 ~~~java
 java.util.Map<String, Integer> counts = new java.util.HashMap<>();
@@ -225,7 +225,7 @@ System.out.println(counts.get("explicitNull")); // null
 System.out.println(counts.get("zero"));         // 0
 ~~~
 
-Hai lời gọi `get` đầu đều trả `null`, nhưng ý nghĩa khác nhau. Dùng `containsKey` để xác định key có tồn tại:
+The first two `get` calls both return `null`, yet their meanings differ. Use `containsKey` to determine whether the key exists:
 
 ~~~java
 System.out.println(counts.containsKey("absent"));       // false
@@ -233,20 +233,20 @@ System.out.println(counts.containsKey("explicitNull")); // true
 System.out.println(counts.containsKey("zero"));         // true
 ~~~
 
-Với `HashMap`, `getOrDefault` chỉ dùng giá trị mặc định khi **không có mapping cho key**; nếu key tồn tại và map tới null, kết quả vẫn là null:
+With `HashMap`, `getOrDefault` only uses the default value when **there is no mapping for the key**; if the key exists and maps to null, the result is still null:
 
 ~~~java
 System.out.println(counts.getOrDefault("absent", -1));       // -1
 System.out.println(counts.getOrDefault("explicitNull", -1)); // null
 ~~~
 
-Không nên dùng `map.getOrDefault(key, 0)` như một giải pháp tổng quát để biến mọi null thành 0. Nó không xử lý key được map tới null, và chính việc tự chuyển dữ liệu thiếu thành 0 có thể trái với hợp đồng nghiệp vụ.
+Do not use `map.getOrDefault(key, 0)` as a blanket solution to turn every null into 0. It does not handle keys mapped to null, and automatically turning missing data into 0 can violate the business contract.
 
-## 7. Chọn mô hình rõ ràng cho “không cung cấp số”
+## 7. Choosing a clear model for “number not provided”
 
-### Trường hợp 1: Giá trị luôn phải có
+### Case 1: Value must always exist
 
-Dùng primitive như `int` và validation ở ranh giới nhận dữ liệu. Khi số lượng có thể là 0 nhưng không được thiếu, biểu diễn bằng primitive là hợp lý sau khi đã xác thực đầu vào.
+Use a primitive like `int` and validate at the data-ingestion boundary. When quantity can be 0 yet must never be missing, representing it with a primitive makes sense once input has been validated.
 
 ~~~java
 static int requireCount(Integer count) {
@@ -260,11 +260,11 @@ static int requireCount(Integer count) {
 }
 ~~~
 
-Đây là **phương thức Java** để đặt trong một lớp, chưa phải chương trình chạy độc lập. Nhánh `count < 0` chỉ chạy sau khi kiểm tra null, do đó unboxing an toàn. Nếu đầu vào cần cho phép số âm, bỏ điều kiện đó theo nghiệp vụ.
+This is a **Java method** to place inside a class, not a standalone runnable program. The `count < 0` branch runs only after checking null, so unboxing is safe. If inputs must allow negative numbers, omit that check per business rules.
 
-### Trường hợp 2: Giá trị có thể chưa biết
+### Case 2: Value may be unknown
 
-Dùng `Integer` cùng một nhánh xử lý null rõ ràng:
+Use `Integer` together with an explicit null-handling branch:
 
 ~~~java
 static String describe(Integer count) {
@@ -274,11 +274,11 @@ static String describe(Integer count) {
 }
 ~~~
 
-Phương thức này phân biệt “chưa biết” với “đã biết bằng 0”. Đừng dùng `count == null ? 0 : count` nếu bạn còn cần giữ sự khác biệt.
+This method distinguishes “unknown” from “known to be 0”. Do not write `count == null ? 0 : count` if you still need to preserve the distinction.
 
-### Trường hợp 3: Muốn biểu thị thiếu giá trị bằng API chuyên dụng
+### Case 3: Expressing missing values via a dedicated API
 
-`java.util.OptionalInt` có thể mô tả “có số nguyên” hoặc “không có số nguyên”:
+`java.util.OptionalInt` can describe “has an integer” or “has no integer”:
 
 ~~~java
 java.util.OptionalInt absent = java.util.OptionalInt.empty();
@@ -289,23 +289,23 @@ System.out.println(presentZero.isPresent()); // true
 System.out.println(presentZero.getAsInt()); // 0
 ~~~
 
-`OptionalInt` loại nhu cầu dùng null cho chính giá trị optional này và tránh boxing của `Optional<Integer>`. Tuy nhiên, `absent.orElse(0)` **cố ý gộp** thiếu giá trị thành 0 khi lấy kết quả; chỉ làm vậy nếu nghiệp vụ cho phép.
+`OptionalInt` eliminates the need to use null for the optional value itself and avoids the boxing of `Optional<Integer>`. However, `absent.orElse(0)` **intentionally collapses** the missing value into 0 when extracting the result; only do so if business logic permits.
 
-`OptionalInt` phù hợp để thể hiện kết quả có/không có giá trị ở một số API. Với field entity, kiểu dữ liệu JSON, ORM hoặc thư viện serialization, nên chọn dạng được framework hỗ trợ rõ ràng và kiểm tra mapping thực tế; không mặc định mọi công cụ sẽ serialize Optional giống nhau.
+`OptionalInt` fits expressing presence/absence results in certain APIs. For entity fields, JSON data types, ORMs, or serialization libraries, pick a representation clearly supported by the framework and test actual mappings; do not assume every tool serializes Optional identically.
 
-## 8. Ternary, điều kiện và phương thức: unboxing ẩn
+## 8. Ternaries, conditions, and methods: hidden unboxing
 
-Toán tử điều kiện `condition ? a : b` có quy tắc xác định kiểu kết quả theo **kiểu các nhánh**. Khi trộn một wrapper với một primitive số cùng kiểu, Java có thể chọn kiểu primitive và unbox wrapper **chỉ ở nhánh được chọn**:
+The conditional operator `condition ? a : b` has rules determining the result type from **the branch types**. When mixing a wrapper with a numeric primitive of the same kind, Java can choose the primitive type and unbox the wrapper **only in the selected branch**:
 
 ~~~java
 Integer missing = null;
 boolean useMissing = true;
 
-// Đoạn này ném NullPointerException tại runtime:
+// This snippet throws NullPointerException at runtime:
 int result = useMissing ? missing : 0;
 ~~~
 
-Không có cách nào để ép Java tự hiểu `missing` là giá trị 0. Nếu muốn kết quả vẫn có khả năng null, phải chủ động dùng một biểu thức có kiểu tham chiếu và hợp đồng rõ ràng. Ví dụ:
+There is no way to force Java to implicitly interpret `missing` as 0. If the result must retain nullability, intentionally use an expression with a reference type and clear contract. For example:
 
 ~~~java
 Integer missing = null;
@@ -314,7 +314,7 @@ Integer selected = useMissing ? missing : Integer.valueOf(0);
 System.out.println(selected); // null
 ~~~
 
-Cũng cẩn thận với các hàm nhận primitive:
+Also be careful with methods taking primitives:
 
 ~~~java
 static void printCount(int value) {
@@ -322,55 +322,55 @@ static void printCount(int value) {
 }
 
 // Integer count = null;
-// printCount(count); // NPE khi cố unbox trước khi gọi hàm.
+// printCount(count); // NPE when trying to unbox before calling the method.
 ~~~
 
-Khi định nghĩa API nhận `Integer` hoặc trả `Integer`, người viết và người gọi phải hiểu liệu `null` là trạng thái hợp lệ hay vi phạm hợp đồng. Nếu một phương thức **luôn** trả số hợp lệ, kiểu trả về primitive tránh được khả năng trả null; nếu giá trị có thể vắng, hãy mô tả rõ và cân nhắc Optional hoặc kiểu kết quả biểu đạt trạng thái.
+When defining an API accepting `Integer` or returning `Integer`, authors and callers must understand whether `null` is a valid state or a contract violation. If a method **always** returns a valid number, a primitive return type eliminates the possibility of returning null; if the value can be absent, document it clearly and consider Optional or a state-expressing result type.
 
-## 9. Phân biệt null và 0 trong JDBC, cơ sở dữ liệu
+## 9. Distinguishing null and 0 in JDBC and databases
 
-Trong SQL, `NULL` là dấu hiệu thiếu/không biết giá trị theo mô hình cơ sở dữ liệu; còn số `0` là giá trị số. Với một cột nullable, hai trường hợp thường cần được bảo toàn riêng.
+In SQL, `NULL` marks missing/unknown values in the database model; `0` is a numeric value. For a nullable column, the two cases usually need to be preserved separately.
 
-Đặc biệt, `java.sql.ResultSet.getInt("quantity")` **trả 0 cho SQL NULL** theo hợp đồng JDBC. Để phân biệt, phải gọi `wasNull()` ngay sau getter tương ứng:
+Specifically, `java.sql.ResultSet.getInt("quantity")` **returns 0 for SQL NULL** under the JDBC contract. To distinguish them, call `wasNull()` immediately after the corresponding getter:
 
 ~~~java
-// Đoạn minh họa bên trong mã đã có java.sql.ResultSet rs:
+// Illustrative snippet inside code that already has java.sql.ResultSet rs:
 int raw = rs.getInt("quantity");
 Integer quantity = rs.wasNull() ? null : raw;
 ~~~
 
-Cần gọi `wasNull()` **ngay sau lần đọc cột đó**, vì nó phản ánh giá trị NULL của cột gần nhất được getter đọc. Nếu gọi các getter khác trước, thông tin có thể không còn tương ứng với `quantity`.
+You must call `wasNull()` **immediately after reading that column**, because it reflects the NULL status of the most recently read column by a getter. If other getters are called beforehand, the flag may no longer correspond to `quantity`.
 
-Một số driver/JDBC API có cách lấy object như `getObject(..., Integer.class)`, có thể trả null cho SQL NULL khi được hỗ trợ. Nên kiểm tra tài liệu và hành vi driver cụ thể, đặc biệt khi mapping sang DTO/ORM.
+Some drivers/JDBC APIs support object retrieval like `getObject(..., Integer.class)`, which can return null for SQL NULL when supported. Check the documentation and behavior of the specific driver, especially when mapping to DTOs/ORMs.
 
-**Bài học nghiệp vụ:** nếu “không có số lượng tồn kho được báo cáo” và “tồn kho bằng 0” là hai trạng thái khác nhau, việc map thẳng SQL NULL vào primitive `int` hoặc lấy `getInt` mà bỏ qua `wasNull()` có thể làm mất dữ liệu quan trọng.
+**Business lesson:** if “no inventory quantity reported” and “inventory equals 0” are two distinct states, mapping SQL NULL straight into primitive `int` or calling `getInt` while ignoring `wasNull()` can silently lose critical data.
 
-## 10. JSON, biểu mẫu và giá trị mặc định
+## 10. JSON, forms, and default values
 
-Khi nhận dữ liệu từ JSON hoặc form, cần định nghĩa rõ các trường hợp:
+When receiving data from JSON or forms, define each case clearly:
 
-- Field vắng: có dùng mặc định không, từ chối hay giữ nguyên giá trị cũ?
-- Field có `null`: có hợp lệ không? Có nghĩa “xóa giá trị” không?
-- Field có `0`: có phải giá trị hợp lệ hay vi phạm giới hạn tối thiểu?
-- Field có chuỗi `"0"`: có cho phép chuyển đổi chuỗi sang số không?
-- Field có chuỗi `"null"`: đó là chuỗi bốn ký tự, không phải Java `null` hay JSON `null`.
+- Field absent: apply a default, reject, or keep the previous value?
+- Field is `null`: is it valid? Does it mean “clear value”?
+- Field is `0`: is it a valid value or does it violate a minimum bound?
+- Field is the string `"0"`: is string-to-number coercion permitted?
+- Field is the string `"null"`: that is a four-character string, not Java `null` or JSON `null`.
 
-Các framework có thể có quy tắc deserialize, coercion, validation và default khác nhau. Không tự giả định Jackson, Gson, Spring Data Binding hoặc một thư viện khác luôn phân biệt đúng ba trạng thái khi ánh xạ mọi trường vào một `Integer` đơn giản.
+Frameworks can differ in deserialization, coercion, validation, and default rules. Do not blindly assume Jackson, Gson, Spring Data Binding, or another library automatically preserves all three states when mapping every field onto a plain `Integer`.
 
-Một ví dụ thiết kế:
+A design example:
 
-| Payload | Hành vi giả định của API cập nhật |
+| Payload | Assumed update API behavior |
 | --- | --- |
-| `{}` | Không thay đổi số lượng hiện có |
-| `{"quantity": null}` | Xóa số lượng đã lưu, nếu được phép |
-| `{"quantity": 0}` | Cập nhật số lượng thành 0 |
-| `{"quantity": 5}` | Cập nhật số lượng thành 5 |
+| `{}` | Do not change existing quantity |
+| `{"quantity": null}` | Clear stored quantity, if permitted |
+| `{"quantity": 0}` | Update quantity to 0 |
+| `{"quantity": 5}` | Update quantity to 5 |
 
-Đây là **quy ước API ví dụ**, không phải quy tắc tự động của Java hay JSON. Để triển khai đúng, phải lưu thông tin hiện diện của field và áp dụng validation theo hợp đồng.
+This is an **example API convention**, not an automatic rule of Java or JSON. To implement it accurately, track field presence and apply validation per contract.
 
-## 11. Chương trình Java 17+ hoàn chỉnh
+## 11. Complete Java 17+ program
 
-Tạo tệp `NullVsZeroDemo.java`:
+Create file `NullVsZeroDemo.java`:
 
 ~~~java
 import java.util.HashMap;
@@ -403,7 +403,7 @@ public class NullVsZeroDemo {
         System.out.println("describe five: " + describe(5));
 
         try {
-            int primitive = absent; // NPE do unboxing null
+            int primitive = absent; // NPE due to unboxing null
             System.out.println(primitive);
         } catch (NullPointerException ex) {
             System.out.println("unboxing absent: NPE");
@@ -428,14 +428,14 @@ public class NullVsZeroDemo {
 }
 ~~~
 
-Biên dịch và chạy với Java 17+:
+Compile and run with Java 17+:
 
 ~~~bash
 javac --release 17 NullVsZeroDemo.java
 java NullVsZeroDemo
 ~~~
 
-Kết quả stdout:
+Stdout output:
 
 ~~~text
 absent is null: true
@@ -455,16 +455,16 @@ optional absent present: false
 optional zero: 0
 ~~~
 
-Giải thích:
+Explanation:
 
-1. `absent == null` chỉ kiểm tra **tham chiếu**, trong khi `zero` trỏ tới wrapper hợp lệ chứa số 0.
-2. `Objects.equals(absent, zero)` trả false mà không gây NPE; số 0 chỉ bằng một giá trị số 0 cùng ngữ nghĩa phù hợp.
-3. `describe` chủ động bảo toàn ba trạng thái: thiếu, bằng 0, khác 0.
-4. Ép `absent` thành `int` thất bại khi chạy, cho thấy unboxing không thay null bằng 0.
-5. `HashMap.containsKey` phân biệt key vắng với key tồn tại được map tới null; `getOrDefault` chỉ lấy mặc định cho key vắng.
-6. `OptionalInt.empty()` và `OptionalInt.of(0)` phân biệt thiếu giá trị với giá trị 0, không cần tham chiếu null bên trong optional.
+1. `absent == null` only checks **reference equality**, whereas `zero` points to a valid wrapper holding 0.
+2. `Objects.equals(absent, zero)` returns false without throwing NPE; 0 only equals a numeric value 0 with matching semantics.
+3. `describe` intentionally preserves three states: missing, zero, and nonzero.
+4. Forcing `absent` to `int` fails at runtime, showing unboxing does not replace null with 0.
+5. `HashMap.containsKey` distinguishes an absent key from an existing key mapped to null; `getOrDefault` only applies the default for absent keys.
+6. `OptionalInt.empty()` and `OptionalInt.of(0)` separate missing values from 0 without needing a null reference inside the optional.
 
-## 12. Các kiểu wrapper khác cũng có cùng vấn đề
+## 12. Other wrapper types share the same issue
 
 ### Long, Short, Byte
 
@@ -475,9 +475,9 @@ System.out.println(absentId == null); // true
 System.out.println(idZero.longValue() == 0L); // true
 ~~~
 
-Nếu có `Long id = null;`, các phép cộng, so sánh số học hoặc unboxing xuống `long` sẽ ném NPE tương tự `Integer`. Không nên sử dụng số 0 làm “giá trị không tồn tại” trừ khi hợp đồng dữ liệu đã khẳng định 0 **không thể là giá trị hợp lệ**.
+If you have `Long id = null;`, additions, numeric comparisons, or unboxing to `long` will throw NPE just like `Integer`. Do not use 0 as a “non-existent value” unless the data contract establishes that 0 **cannot be a valid value**.
 
-### Double và Float
+### Double and Float
 
 ~~~java
 Double absentMeasurement = null;
@@ -487,13 +487,13 @@ System.out.println(absentMeasurement == null); // true
 System.out.println(zeroMeasurement == null);    // false
 ~~~
 
-Đối với floating point, còn có `+0.0` và `-0.0`. Cả hai là giá trị số thực hợp lệ, **đều khác `null`**. Phép toán số thực primitive `+0.0 == -0.0` trả true, trong khi `Double.equals()` phân biệt zero có dấu. Đây là câu hỏi **bình đẳng floating point**, tách biệt với việc kiểm tra tham chiếu null.
+For floating point, there are also `+0.0` and `-0.0`. Both are valid floating-point values, **both distinct from `null`**. Primitive floating-point comparison `+0.0 == -0.0` returns true, whereas `Double.equals()` distinguishes signed zeros. That is a question of **floating-point equality**, separate from checking null references.
 
-`Double.NaN` cũng **không phải null**. NaN đại diện một kết quả dấu phẩy động không xác định theo IEEE 754; đó vẫn là giá trị nằm trong một object `Double` nếu được boxing. Nếu ứng dụng còn cần phân biệt “thiếu số đo”, “NaN do phép toán” và “giá trị số 0”, phải quy định riêng từng trường hợp.
+`Double.NaN` is also **not null**. NaN represents an undefined floating-point result under IEEE 754; it is still a value inside a `Double` object when boxed. If the application also needs to distinguish “missing measurement”, “NaN from computation”, and “value 0”, define separate rules for each case.
 
-### Boolean: false khác null
+### Boolean: false differs from null
 
-Dù không phải số, `Boolean` là minh họa rất gần:
+Although not numeric, `Boolean` is a very close illustration:
 
 ~~~java
 Boolean noResponse = null;
@@ -503,11 +503,11 @@ System.out.println(noResponse == null);      // true
 System.out.println(Boolean.FALSE.equals(noResponse)); // false
 ~~~
 
-Một field có thể mang trạng thái “chưa trả lời”, “đã trả lời không”, “đã trả lời có”. Dùng primitive `boolean` sẽ không lưu được trạng thái chưa trả lời bằng null.
+A field can represent “no response yet”, “answered no”, and “answered yes”. Using primitive `boolean` cannot store the unanswered state as null.
 
-## 13. Khi nào được thay null bằng 0?
+## 13. When is replacing null with 0 acceptable?
 
-Chuyển giá trị thiếu sang 0 không phải lúc nào cũng sai. Nó phù hợp khi **hợp đồng nghiệp vụ xác định** thiếu dữ liệu tương đương số 0. Ví dụ một hàm thống kê tổng tiền của các loại phí tùy chọn có thể coi phí vắng mặt là 0.
+Converting a missing value to 0 is not always wrong. It is appropriate when **the business contract specifies** that missing data equals zero. For example, a function totaling optional fees might treat an absent fee as 0.
 
 ~~~java
 static int orZero(Integer value) {
@@ -515,84 +515,84 @@ static int orZero(Integer value) {
 }
 ~~~
 
-Phương thức này làm mất sự khác biệt giữa null và 0 **có chủ đích**. Đó phải là quyết định rõ ràng tại ranh giới xử lý, không phải mặc định áp dụng trong mọi tầng hệ thống.
+This method erases the difference between null and 0 **intentionally**. That must be an explicit decision at a processing boundary, not a default applied across every layer of the system.
 
-Cần tránh:
+Avoid:
 
 ~~~java
-// Mẫu dễ gây sai ý nghĩa nếu "chưa biết" khác "bằng 0":
+// Pattern prone to distorting meaning if "unknown" differs from "equals 0":
 // Integer stock = repository.findStock(...);
 // int safeStock = stock == null ? 0 : stock;
 ~~~
 
-Nếu `null` có nghĩa “chưa kiểm kê”, biến `safeStock` có thể bị hiểu nhầm thành “chắc chắn hết hàng”. Thay vào đó, giữ nullable value, tạo trạng thái enum rõ ràng, hoặc trả về một kết quả có cấu trúc chứa cả tình trạng xác thực.
+If `null` means “not yet inventoried”, the variable `safeStock` can be misinterpreted as “definitely out of stock”. Instead, keep a nullable value, introduce a clear enum status, or return a structured result containing verification status.
 
-**Nguyên tắc:** chỉ gộp trạng thái khi biết rõ người sử dụng kết quả cần ngữ nghĩa nào.
+**Rule:** only collapse states when you know for sure what semantics consumers of the result expect.
 
-## 14. Lỗi thường gặp và cách tránh
+## 14. Common mistakes and how to avoid them
 
-| Cách viết/thói quen | Rủi ro | Cách đúng |
+| Practice / habit | Risk | Right way |
 | --- | --- | --- |
-| `Integer x = null; int y = x;` | NPE do unboxing | Kiểm tra null hoặc đặt hợp đồng non-null |
-| `Integer x = null; x == 0` | NPE do so sánh số | `x != null && x == 0` |
-| `x.equals(0)` khi `x` nullable | NPE nếu x null | `Objects.equals(x, 0)` hoặc kiểm tra null |
-| `Integer a, b; a == b` để so giá trị | Phụ thuộc identity/cache | `Objects.equals(a, b)` |
-| Coi mọi `Integer` null là 0 | Mất nghĩa “chưa biết” | Chỉ gán mặc định khi nghiệp vụ cho phép |
-| `map.get(key) == null` nghĩa là key vắng | Không phân biệt key tồn tại với mapping null | `map.containsKey(key)` |
-| `map.getOrDefault(key, 0)` xử lý mọi null | Mapping tới null vẫn trả null | Xác định chính sách cho key vắng và null riêng |
-| `ResultSet.getInt` là đủ để đọc nullable SQL integer | SQL NULL cũng trả 0 | Gọi ngay `ResultSet.wasNull()` |
-| Dùng primitive field khi cần biết JSON field có mặt không | Không biểu diễn được null; còn mất thông tin “absent” | Theo dõi sự hiện diện và hợp đồng deserialize |
-| Coi chuỗi `"0"` bằng số 0 trước parse | Không cùng kiểu dữ liệu | Parse/validate theo định dạng đầu vào |
-| Gọi `OptionalInt.orElse(0)` rồi quên trạng thái absent | Cố ý mất thông tin thiếu | Dùng `isPresent()` hoặc xử lý nhánh absent trước |
-| Đánh đồng `Double.NaN`, `0.0` và `null` | Ba trường hợp có ngữ nghĩa khác nhau | Kiểm tra `null`, `Double.isNaN` và giá trị 0 riêng |
+| `Integer x = null; int y = x;` | NPE on unboxing | Check null or set non-null contract |
+| `Integer x = null; x == 0` | NPE on numeric comparison | `x != null && x == 0` |
+| `x.equals(0)` when `x` is nullable | NPE if x is null | `Objects.equals(x, 0)` or check null |
+| `Integer a, b; a == b` to compare values | Depends on identity/caching | `Objects.equals(a, b)` |
+| Treating every null `Integer` as 0 | Loses “unknown” meaning | Apply default only when business rules allow |
+| `map.get(key) == null` means key is absent | Fails to distinguish existing key with null mapping | `map.containsKey(key)` |
+| `map.getOrDefault(key, 0)` handles all nulls | Key mapped to null still returns null | Define separate policies for absent keys and null values |
+| `ResultSet.getInt` suffices for reading nullable SQL integers | SQL NULL also returns 0 | Immediately call `ResultSet.wasNull()` |
+| Using primitive fields when needing to know if a JSON field was present | Cannot represent null; loses “absent” info | Track presence and deserialization contract |
+| Treating string `"0"` as equal to number 0 before parsing | Different data types | Parse/validate per input format |
+| Calling `OptionalInt.orElse(0)` then forgetting the absent state | Intentionally drops missing info | Check `isPresent()` or handle absent branch first |
+| Equating `Double.NaN`, `0.0`, and `null` | Three cases with different semantics | Check `null`, `Double.isNaN`, and value 0 separately |
 
-## 15. Câu hỏi tự kiểm tra
+## 15. Self-check questions
 
-**Câu 1.** Hai dòng sau có giống nhau không?
+**Question 1.** Are these two lines the same?
 
 ~~~java
 Integer a = null;
 Integer b = 0;
 ~~~
 
-**Đáp án:** Không. `a` không trỏ tới object; `b` trỏ tới một `Integer` đại diện số 0. `a == null` true; `b == null` false.
+**Answer:** No. `a` points to no object; `b` points to an `Integer` representing 0. `a == null` is true; `b == null` is false.
 
-**Câu 2.** Vì sao `Integer count = null; if (count == 0) ...` ném lỗi?
+**Question 2.** Why does `Integer count = null; if (count == 0) ...` throw an error?
 
-**Đáp án:** Toán hạng `0` là primitive `int`, khiến Java unbox `count` để so sánh giá trị. Unboxing tham chiếu null gây `NullPointerException`.
+**Answer:** The operand `0` is primitive `int`, causing Java to unbox `count` to compare values. Unboxing a null reference causes `NullPointerException`.
 
-**Câu 3.** `Objects.equals(null, null)` trả true có nghĩa null bằng 0 không?
+**Question 3.** Does `Objects.equals(null, null)` returning true mean null equals 0?
 
-**Đáp án:** Không. Nó chỉ cho biết hai đối số cùng là null. `Objects.equals(null, 0)` trả false.
+**Answer:** No. It only indicates both arguments are null. `Objects.equals(null, 0)` returns false.
 
-**Câu 4.** Trong `HashMap`, `get("x")` trả null có chứng minh không có key x không?
+**Question 4.** In a `HashMap`, does `get("x")` returning null prove key x does not exist?
 
-**Đáp án:** Không. Key có thể tồn tại và được map tới null. Dùng `containsKey("x")` để phân biệt.
+**Answer:** No. The key may exist and be mapped to null. Use `containsKey("x")` to distinguish.
 
-**Câu 5.** Nếu cột SQL chứa NULL, `ResultSet.getInt("quantity")` trả gì và phải kiểm tra điều gì?
+**Question 5.** If a SQL column contains NULL, what does `ResultSet.getInt("quantity")` return and what must you check?
 
-**Đáp án:** Nó trả primitive 0. Gọi ngay `wasNull()` để phân biệt SQL NULL với giá trị số 0 thực sự.
+**Answer:** It returns primitive 0. Immediately call `wasNull()` to distinguish SQL NULL from an actual numeric value 0.
 
-**Câu 6.** Khi nào dùng `Integer` thay `int`?
+**Question 6.** When should you use `Integer` instead of `int`?
 
-**Đáp án:** Khi cần API object/generic hoặc cần diễn tả trạng thái có thể thiếu giá trị; nếu dữ liệu bắt buộc có số và không cần biểu diễn null, `int` thường đơn giản hơn.
+**Answer:** When object/generic APIs require it or when expressing a state that may lack a value; if data is guaranteed to hold a number and null representation is unneeded, `int` is usually simpler.
 
-**Câu 7.** `OptionalInt.empty().orElse(0)` và `OptionalInt.of(0).orElse(0)` cùng trả 0. Có còn phân biệt trạng thái đầu vào không?
+**Question 7.** `OptionalInt.empty().orElse(0)` and `OptionalInt.of(0).orElse(0)` both return 0. Can you still distinguish the input states?
 
-**Đáp án:** Không, vì lời gọi `orElse(0)` đã cố ý chuyển cả hai thành primitive 0. Nếu cần phân biệt, hãy dùng `isPresent()`/nhánh xử lý trước.
+**Answer:** No, because calling `orElse(0)` intentionally converted both to primitive 0. If distinction is needed, use `isPresent()`/handling branches beforehand.
 
-## 16. Ghi nhớ và tham khảo
+## 16. Takeaways and references
 
-- **`null` biểu thị không có object; số `0` biểu thị một giá trị hợp lệ**. Đây là khác biệt dữ liệu và nghiệp vụ, không chỉ cú pháp.
-- **Primitive không chứa null; wrapper có thể chứa null**. Tự động unboxing null sẽ ném `NullPointerException`.
-- **`== null` kiểm tra tham chiếu; `== 0` với wrapper yêu cầu unboxing**. Dùng null guard hoặc `Objects.equals` đúng ngữ cảnh.
-- **`Map.get`, JDBC `getInt` và việc deserialize field** có thể làm mất thông tin nếu không xử lý trạng thái thiếu một cách chủ đích.
-- Dùng `OptionalInt` hoặc cấu trúc kết quả có thông tin hiện diện khi hợp đồng API yêu cầu. Chỉ chuyển null thành 0 khi nghiệp vụ cho phép.
+- **`null` signifies no object; `0` signifies a valid value**. This is a data and business distinction, not merely syntax.
+- **Primitives cannot hold null; wrappers can hold null**. Auto-unboxing null throws `NullPointerException`.
+- **`== null` checks references; `== 0` with a wrapper requires unboxing**. Use null guards or `Objects.equals` in the right context.
+- **`Map.get`, JDBC `getInt`, and field deserialization** can lose information if missing states are not handled intentionally.
+- Use `OptionalInt` or result structures carrying presence info when API contracts require it. Only convert null to 0 when business logic permits.
 
-Tài liệu Java 17:
+Java 17 documentation:
 
-- [Java Language Specification — Boxing Conversion](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.7) và [Unboxing Conversion](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.8).
+- [Java Language Specification — Boxing Conversion](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.7) and [Unboxing Conversion](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.8).
 - [Java Language Specification — Equality Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.21).
-- [Integer API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html) và [Objects.equals API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Objects.html#equals(java.lang.Object,java.lang.Object)).
-- [Map API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html) và [OptionalInt API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/OptionalInt.html).
-- [JDBC ResultSet API](https://docs.oracle.com/en/java/javase/17/docs/api/java.sql/java/sql/ResultSet.html): `getInt` và `wasNull`.
+- [Integer API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html) and [Objects.equals API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Objects.html#equals(java.lang.Object,java.lang.Object)).
+- [Map API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html) and [OptionalInt API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/OptionalInt.html).
+- [JDBC ResultSet API](https://docs.oracle.com/en/java/javase/17/docs/api/java.sql/java/sql/ResultSet.html): `getInt` and `wasNull`.

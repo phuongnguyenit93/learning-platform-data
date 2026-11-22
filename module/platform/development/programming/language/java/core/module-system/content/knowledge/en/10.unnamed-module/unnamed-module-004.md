@@ -1,12 +1,12 @@
-# Classpath library khi ứng dụng đã modular
+# Classpath libraries when an application is already modular
 
-Một ứng dụng Java đã sử dụng Java Platform Module System (JPMS) vẫn có thể cần các thư viện cũ chưa có file module-info.java. Những thư viện này có thể tiếp tục nằm trên classpath trong khi ứng dụng chính được biên dịch và khởi chạy như một named module trên module path.
+A Java application that already uses the Java Platform Module System (JPMS) may still need legacy libraries that do not yet have a module-info.java file. These libraries can remain on the classpath while the main application is compiled and launched as a named module on the module path.
 
-Đây là cách chuyển đổi theo từng bước: ứng dụng giữ module descriptor và module graph của mình, còn thư viện chưa modular hóa được nạp vào unnamed module. Điểm cần xử lý là quan hệ đọc giữa named module và unnamed module. Theo mặc định, named module không đọc unnamed module, vì vậy ứng dụng thường cần tùy chọn **--add-reads** khi biên dịch và khi chạy.
+This is a step-by-step migration approach: the application keeps its module descriptor and module graph, while non-modularized libraries are loaded into an unnamed module. The point to handle is the readability relationship between the named module and the unnamed module. By default, a named module does not read unnamed modules, so the application typically needs the **--add-reads** option at compile time and runtime.
 
-## 1. Mô hình kết hợp module path và classpath
+## 1. Model combining module path and classpath
 
-Giả sử ứng dụng có cấu trúc:
+Suppose an application has the structure:
 
 ~~~text
 application/
@@ -21,15 +21,15 @@ application/
     └── legacy-codec.jar
 ~~~
 
-Trong đó:
+Where:
 
-- **com.example.app** là explicit named module, có module-info.java.
-- **com.example.api.jar** là modular JAR trên module path.
-- **legacy-client.jar** và **legacy-codec.jar** là thư viện chưa có module descriptor, được đặt trên classpath.
+- **com.example.app** is an explicit named module with module-info.java.
+- **com.example.api.jar** is a modular JAR on the module path.
+- **legacy-client.jar** and **legacy-codec.jar** are libraries without module descriptors, placed on the classpath.
 
-Khi ứng dụng chạy, module system phân giải named module trên module path. Các JAR nằm trên classpath được nạp vào unnamed module của application class loader. Các JAR classpath không tự trở thành những named module riêng biệt chỉ vì ứng dụng chính đã modular hóa.
+When the application runs, the module system resolves named modules on the module path. JARs on the classpath are loaded into the unnamed module of the application class loader. Classpath JARs do not automatically become separate named modules just because the main application has been modularized.
 
-Mô hình khái quát:
+Overview model:
 
 ~~~text
                   JVM
@@ -48,20 +48,20 @@ Mô hình khái quát:
         +---------------------> Unnamed module
 ~~~
 
-Named module và unnamed module có thể cùng tồn tại trong một tiến trình. Cần cấu hình quan hệ đọc phù hợp để mã trong named module tham chiếu được class của thư viện classpath.
+Named modules and unnamed modules can coexist within a single process. An appropriate readability relationship must be configured so code in the named module can reference classes from classpath libraries.
 
-## 2. Unnamed module và quy tắc đọc module
+## 2. Unnamed modules and module readability rules
 
-Mỗi class loader có một unnamed module. Với ứng dụng thông thường, các class và JAR trên classpath được đặt trong unnamed module của application class loader.
+Each class loader has one unnamed module. For a typical application, classes and JARs on the classpath are placed in the unnamed module of the application class loader.
 
-Unnamed module có hai đặc điểm quan trọng:
+An unnamed module has two important characteristics:
 
-- Nó đọc tất cả named module.
-- Tất cả package của nó được export và open.
+- It reads all named modules.
+- All of its packages are exported and open.
 
-Chiều ngược lại không tự động đúng: một named module không đọc unnamed module theo mặc định. Vì vậy, dù một JAR đã xuất hiện trên classpath và class loader có thể tìm bytecode của nó, mã trong named module vẫn có thể gặp lỗi biên dịch hoặc truy cập do thiếu quan hệ đọc.
+The reverse is not automatically true: a named module does not read unnamed modules by default. Therefore, even if a JAR is present on the classpath and the class loader can locate its bytecode, code in a named module may still encounter compilation or access errors due to a missing readability relationship.
 
-Không thể viết một directive như sau trong module-info.java:
+You cannot write a directive like the following in module-info.java:
 
 ~~~java
 module com.example.app {
@@ -69,11 +69,11 @@ module com.example.app {
 }
 ~~~
 
-**ALL-UNNAMED** là tên đích đặc biệt dành cho các tùy chọn dòng lệnh của Java compiler và launcher. Nó không phải tên module hợp lệ để khai báo trong requires. Muốn thêm quan hệ đọc từ named module tới unnamed module, hãy dùng **--add-reads**.
+**ALL-UNNAMED** is a special target name for command-line options of the Java compiler and launcher. It is not a valid module name to declare in requires. To add a readability relationship from a named module to unnamed modules, use **--add-reads**.
 
-## 3. Khai báo dependency của ứng dụng modular
+## 3. Declaring dependencies of a modular application
 
-Giả sử thư viện classpath cung cấp class:
+Suppose a classpath library provides the class:
 
 ~~~java
 // legacy-client.jar
@@ -86,7 +86,7 @@ public final class LegacyClient {
 }
 ~~~
 
-Ứng dụng modular sử dụng class đó:
+The modular application uses that class:
 
 ~~~java
 // src/com.example.app/com/example/app/Main.java
@@ -102,7 +102,7 @@ public class Main {
 }
 ~~~
 
-Descriptor của ứng dụng có thể khai báo dependency tới các named module khác:
+The application's descriptor can declare dependencies on other named modules:
 
 ~~~java
 module com.example.app {
@@ -110,39 +110,39 @@ module com.example.app {
 }
 ~~~
 
-Không thêm requires cho thư viện legacy trên classpath vì thư viện đó không có tên module riêng trong cấu hình này. Thay vào đó, compiler và JVM cần được cấp quan hệ đọc tới unnamed module bằng tùy chọn **--add-reads com.example.app=ALL-UNNAMED**.
+Do not add requires for the legacy library on the classpath because that library has no module name of its own in this configuration. Instead, the compiler and JVM need to be granted a readability relationship to the unnamed module using the option **--add-reads com.example.app=ALL-UNNAMED**.
 
-## 4. Biên dịch: classpath cho thư viện, module path cho module
+## 4. Compilation: classpath for libraries, module path for modules
 
-Khi biên dịch ứng dụng modular, cần phân biệt hai đường tìm kiếm:
+When compiling a modular application, distinguish the two search paths:
 
-- **--module-path** chứa các named module mà compiler cần phân giải.
-- **--class-path** chứa thư viện cũ và class không thuộc named module.
+- **--module-path** contains the named modules that the compiler needs to resolve.
+- **--class-path** contains legacy libraries and classes not belonging to named modules.
 
-Ví dụ trên Linux hoặc macOS:
+Example on Linux or macOS:
 
 ~~~bash
 javac --module-source-path src --module-path mods --class-path "libs/*" --add-reads com.example.app=ALL-UNNAMED -d out -m com.example.app
 ~~~
 
-Giải thích:
+Explanation:
 
-- **--module-source-path src** cho compiler biết nơi chứa source của các module.
-- **--module-path mods** cho compiler tìm các named module, ví dụ **com.example.api**.
-- **--class-path "libs/*"** đưa các JAR legacy vào classpath trong quá trình biên dịch.
-- **--add-reads com.example.app=ALL-UNNAMED** cho phép module ứng dụng đọc unnamed module để tham chiếu class của thư viện classpath.
-- **-d out** chỉ định thư mục output.
-- **-m com.example.app** chọn module cần biên dịch.
+- **--module-source-path src** tells the compiler where module sources are located.
+- **--module-path mods** tells the compiler where to find named modules, such as **com.example.api**.
+- **--class-path "libs/*"** puts the legacy JARs on the classpath during compilation.
+- **--add-reads com.example.app=ALL-UNNAMED** allows the application module to read the unnamed module to reference classes of classpath libraries.
+- **-d out** specifies the output directory.
+- **-m com.example.app** selects the module to compile.
 
-Trên Windows, ký tự phân tách nhiều entry trong classpath là dấu chấm phẩy (**;**); trên Linux và macOS là dấu hai chấm (**:**). Wildcard **libs/*** đưa các JAR nằm trực tiếp trong thư mục libs vào classpath, không tìm đệ quy các thư mục con.
+On Windows, the separator for multiple entries in the classpath is a semicolon (**;**); on Linux and macOS, it is a colon (**:**). The wildcard **libs/*** adds JARs located directly in the libs directory to the classpath; it does not search subdirectories recursively.
 
-Nếu bỏ **--add-reads**, compiler có thể báo package từ thư viện legacy không được nhìn thấy hoặc module không đọc được package đó. Khi gặp lỗi này, hãy xác định thư viện thực sự đang nằm trên classpath hay module path trước khi thay đổi descriptor.
+If **--add-reads** is omitted, the compiler may report that the package from the legacy library is not visible or that the module does not read that package. When encountering this error, verify whether the library is actually on the classpath or the module path before modifying the descriptor.
 
-## 5. Chạy: truyền lại classpath và quan hệ đọc
+## 5. Running: pass the classpath and readability relationship again
 
-Tùy chọn dùng lúc biên dịch không tự động trở thành cấu hình runtime. Khi chạy, cần cung cấp lại classpath và quan hệ đọc cho JVM.
+Options used at compile time do not automatically become the runtime configuration. When running, you must supply the classpath and readability relationship again to the JVM.
 
-Linux hoặc macOS:
+Linux or macOS:
 
 ~~~bash
 java --module-path "mods:out" --class-path "libs/*" --add-reads com.example.app=ALL-UNNAMED -m com.example.app/com.example.app.Main
@@ -154,46 +154,46 @@ Windows PowerShell:
 java --module-path "mods;out" --class-path "libs/*" --add-reads com.example.app=ALL-UNNAMED -m com.example.app/com.example.app.Main
 ~~~
 
-Các thành phần có ý nghĩa:
+Meaning of the components:
 
-- **--module-path** chứa module ứng dụng đã biên dịch và các named dependency.
-- **--class-path** chứa các thư viện legacy cần thiết ở runtime.
-- **--add-reads** thêm quan hệ đọc từ named module tới unnamed module.
-- **-m module/class** khởi chạy class main thuộc named module.
+- **--module-path** contains the compiled application module and named dependencies.
+- **--class-path** contains the legacy libraries needed at runtime.
+- **--add-reads** adds a readability relationship from the named module to the unnamed module.
+- **-m module/class** launches the main class belonging to the named module.
 
-Classpath runtime phải chứa cả những dependency gián tiếp mà thư viện legacy cần khi thực thi. Một JAR có mặt lúc biên dịch nhưng thiếu ở runtime vẫn có thể gây **NoClassDefFoundError**.
+The runtime classpath must also contain any transitive dependencies that the legacy library needs during execution. A JAR present at compile time but missing at runtime can still cause **NoClassDefFoundError**.
 
-Không nên chỉ dựa vào classpath của terminal hoặc IDE. Script chạy, container và cấu hình triển khai phải truyền cùng tập thư viện và các tùy chọn module cần thiết.
+Do not rely solely on the terminal or IDE classpath. Run scripts, containers, and deployment configurations must pass the same set of libraries and required module options.
 
-## 6. ALL-UNNAMED có ý nghĩa gì?
+## 6. What does ALL-UNNAMED mean?
 
-**ALL-UNNAMED** đại diện cho tất cả unnamed module, không phải một module có tên cố định. Một số tùy chọn module của Java sử dụng nó để áp dụng một quan hệ hoặc quyền truy cập cho các module không có tên.
+**ALL-UNNAMED** represents all unnamed modules, not a module with a fixed name. Several Java module options use it to apply a relationship or access permission for modules without names.
 
-Ví dụ:
+For example:
 
 ~~~bash
 --add-reads com.example.app=ALL-UNNAMED
 ~~~
 
-Có nghĩa là named module **com.example.app** được phép đọc các unnamed module.
+This means the named module **com.example.app** is allowed to read unnamed modules.
 
-Tùy chọn này có thể được dùng khi biên dịch và chạy. Nếu chỉ thêm ở runtime, compiler vẫn có thể từ chối mã nguồn tham chiếu thư viện classpath. Nếu chỉ thêm khi biên dịch, ứng dụng có thể biên dịch thành công nhưng lỗi lúc chạy vì module graph runtime vẫn thiếu quan hệ đọc.
+This option can be used at compile time and runtime. If added only at runtime, the compiler can still reject source code referencing classpath libraries. If added only at compile time, the application can compile successfully yet fail at runtime because the runtime module graph still lacks the readability relationship.
 
-Không nên nhầm các tùy chọn sau:
+Do not confuse the following options:
 
-| Tùy chọn | Mục đích |
+| Option | Purpose |
 | --- | --- |
-| --add-reads | Thêm quan hệ đọc giữa module nguồn và module đích |
-| --add-exports | Cho phép module đích truy cập một package của module nguồn |
-| --add-opens | Cho phép deep reflection vào package của module nguồn |
+| --add-reads | Adds a readability relationship between the source module and target module |
+| --add-exports | Allows the target module to access a package of the source module |
+| --add-opens | Allows deep reflection into a package of the source module |
 
-Khi named module cần gọi API public từ thư viện classpath, thường cần **--add-reads**. Nếu thư viện classpath cần truy cập package của named module, có thể phải xem xét quyền export hoặc open ở chiều ngược lại.
+When a named module needs to call public APIs from a classpath library, **--add-reads** is usually needed. If a classpath library needs to access a package of a named module, exporting or opening in the reverse direction may need to be considered.
 
-## 7. Khi thư viện classpath cần truy cập package của ứng dụng modular
+## 7. When a classpath library needs to access a package of a modular application
 
-Một trường hợp khác là thư viện legacy nằm trên classpath dùng reflection hoặc gọi API thuộc named module của ứng dụng.
+Another case is when a legacy library on the classpath uses reflection or calls an API belonging to the application's named module.
 
-Giả sử module ứng dụng có package:
+Suppose the application module has a package:
 
 ~~~java
 module com.example.app {
@@ -201,38 +201,38 @@ module com.example.app {
 }
 ~~~
 
-Unnamed module có thể đọc named module, nhưng package của named module chỉ được export theo các directive và cấu hình module tương ứng. Nếu thư viện classpath cần truy cập một package cụ thể, có thể dùng **--add-exports** để cấp quyền truy cập API cho tất cả unnamed module:
+An unnamed module can read a named module, but packages of the named module are only exported according to its directives and module configuration. If a classpath library needs to access a specific package, **--add-exports** can be used to grant API access to all unnamed modules:
 
 ~~~bash
 --add-exports com.example.app/com.example.app.internal=ALL-UNNAMED
 ~~~
 
-Nếu framework trên classpath cần deep reflection vào private member của package:
+If a framework on the classpath needs deep reflection into private members of a package:
 
 ~~~bash
 --add-opens com.example.app/com.example.app.model=ALL-UNNAMED
 ~~~
 
-Hai tùy chọn có mục đích khác nhau:
+These two options serve different purposes:
 
-- **--add-exports** cho phép truy cập các kiểu public trong package.
-- **--add-opens** cho phép deep reflection vào package.
+- **--add-exports** allows access to public types in the package.
+- **--add-opens** allows deep reflection into the package.
 
-Chỉ thêm quyền khi có thư viện cụ thể yêu cầu. Không nên mở toàn bộ package của ứng dụng cho ALL-UNNAMED vì điều đó làm giảm hiệu quả encapsulation mà JPMS cung cấp.
+Only add permissions when a specific library requires them. Do not open all packages of the application to ALL-UNNAMED because doing so reduces the encapsulation benefits that JPMS provides.
 
-## 8. Giữ thư viện trên classpath hay chuyển thành automatic module?
+## 8. Keep the library on the classpath or convert it to an automatic module?
 
-Một JAR legacy không có module-info.class có thể được xử lý theo hai cách khi ứng dụng modular.
+A legacy JAR without module-info.class can be handled in two ways when the application is modular.
 
-**Cách A: Giữ JAR trên classpath**
+**Approach A: Keep the JAR on the classpath**
 
-JAR thuộc unnamed module. Ứng dụng cần thêm quan hệ đọc với ALL-UNNAMED nếu named module tham chiếu class trong thư viện. Cách này phù hợp khi muốn giữ nguyên cách chạy legacy trong giai đoạn chuyển đổi.
+The JAR belongs to the unnamed module. The application needs to add a readability relationship with ALL-UNNAMED if a named module references classes in the library. This approach is suitable when wanting to preserve legacy execution behavior during the transition period.
 
-**Cách B: Đặt JAR trên module path**
+**Approach B: Place the JAR on the module path**
 
-Nếu JAR không có module-info.class nhưng được đặt trên module path, Java có thể coi nó là automatic module. Tên module có thể được lấy từ thuộc tính manifest **Automatic-Module-Name** hoặc suy ra từ tên JAR.
+If a JAR lacks module-info.class but is placed on the module path, Java can treat it as an automatic module. The module name can be taken from the **Automatic-Module-Name** manifest attribute or derived from the JAR filename.
 
-Khi đó, ứng dụng khai báo requires bằng tên automatic module:
+Then, the application declares requires using the automatic module name:
 
 ~~~java
 module com.example.app {
@@ -240,26 +240,26 @@ module com.example.app {
 }
 ~~~
 
-Ứng dụng không cần dùng quan hệ **--add-reads ...=ALL-UNNAMED** cho dependency đó vì nó đã được nhận diện như một named automatic module.
+The application does not need to use **--add-reads ...=ALL-UNNAMED** for that dependency because it is already recognized as a named automatic module.
 
-Automatic module thường export các package của nó và có khả năng đọc các named module khác. Điều này giúp thư viện cũ tham gia vào module graph, nhưng không tạo ra ranh giới encapsulation chặt như explicit named module.
+An automatic module normally exports its packages and can read other named modules. This helps legacy libraries participate in the module graph, but does not establish strict encapsulation boundaries like an explicit named module.
 
-| Tiêu chí | Classpath / unnamed module | Automatic module |
+| Criterion | Classpath / unnamed module | Automatic module |
 | --- | --- | --- |
-| Vị trí | Classpath | Module path |
-| Tên module | Không có tên tường minh | Tên từ manifest hoặc tên JAR |
-| requires trong app | Không thể requires trực tiếp | Có thể requires theo tên automatic module |
-| Quan hệ đọc từ app | Thường cần add-reads tới ALL-UNNAMED | Dùng dependency trong module graph |
-| Encapsulation | Package của unnamed module được export và open | Các package được export theo hành vi automatic module |
-| Mục tiêu | Tương thích và chuyển đổi từng bước | Bước trung gian để modular hóa dependency |
+| Location | Classpath | Module path |
+| Module name | No explicit name | Name from manifest or JAR filename |
+| requires in app | Cannot require directly | Can require by automatic module name |
+| Readability from app | Usually needs add-reads to ALL-UNNAMED | Uses dependency in the module graph |
+| Encapsulation | Unnamed module packages are exported and open | Packages are exported according to automatic module behavior |
+| Goal | Compatibility and incremental migration | Intermediate step to modularize dependencies |
 
-Nếu thư viện có thể được modular hóa chính thức, explicit module với module-info.java sẽ cho kết quả rõ ràng và kiểm soát tốt hơn automatic module.
+If the library can be formally modularized, an explicit module with module-info.java provides clearer results and better control than an automatic module.
 
-## 9. Thư viện classpath và dependency bắc cầu
+## 9. Classpath libraries and transitive dependencies
 
-Classpath không có module descriptor để mô tả quan hệ requires. Vì vậy, ứng dụng hoặc công cụ build phải bảo đảm tất cả JAR cần thiết đều có mặt trên classpath runtime.
+The classpath has no module descriptor to describe requires relationships. Therefore, the application or build tool must ensure all necessary JARs are present on the runtime classpath.
 
-Ví dụ:
+For example:
 
 ~~~text
 libs/
@@ -268,82 +268,82 @@ libs/
 └── legacy-logging.jar
 ~~~
 
-Nếu **legacy-client.jar** cần **legacy-codec.jar**, việc chỉ thêm client JAR vào classpath có thể đủ để biên dịch một phần mã nhưng chưa đủ để chạy. Hãy thêm các dependency runtime cần thiết:
+If **legacy-client.jar** needs **legacy-codec.jar**, adding only the client JAR to the classpath may suffice to compile part of the code but not to run it. Add the necessary runtime dependencies:
 
 ~~~bash
 --class-path "libs/*"
 ~~~
 
-Wildcard chỉ mở rộng các JAR trong một thư mục. Nếu dependency được đặt trong **libs/codec/**, cần thêm thư mục đó bằng một entry classpath riêng.
+The wildcard only expands JARs in a single directory. If dependencies are placed in **libs/codec/**, that directory must be added as a separate classpath entry.
 
-Cũng cần tránh đưa nhiều phiên bản của cùng một thư viện vào classpath. Khi các JAR có class trùng tên, class loader có thể nạp phiên bản không mong đợi tùy theo thứ tự tìm kiếm. Dùng Maven hoặc Gradle để phân giải và khóa dependency giúp giảm lỗi này.
+You should also avoid putting multiple versions of the same library on the classpath. When JARs contain classes with the same name, the class loader may load an unexpected version depending on search order. Using Maven or Gradle to resolve and lock dependencies helps reduce this error.
 
-## 10. Tích hợp với Maven và Gradle
+## 10. Integration with Maven and Gradle
 
-Trong dự án thực tế, không nên phải tự gõ một lệnh javac/java dài mỗi lần chạy. Hãy cấu hình build tool để giữ riêng compile classpath, module path và các tùy chọn module.
+In real projects, you should not have to manually type a long javac/java command on every run. Configure the build tool to keep the compile classpath, module path, and module options separate.
 
-Với Maven, dependency legacy có thể được khai báo như dependency bình thường. Cấu hình compiler plugin có thể truyền tùy chọn **--add-reads** qua compiler arguments. Cấu hình chạy test hoặc ứng dụng cũng phải truyền tùy chọn tương ứng cho JVM fork hoặc Java launcher.
+With Maven, legacy dependencies can be declared as normal dependencies. The compiler plugin configuration can pass **--add-reads** via compiler arguments. Test or application execution configurations must also pass the corresponding options to the forked JVM or Java launcher.
 
-Với Gradle, dependency legacy thường được khai báo trong configuration phù hợp như **implementation**. Nếu build đang dùng module path inference hoặc cấu hình module path riêng, hãy kiểm tra dependency thực tế được đặt ở classpath hay module path. Các compiler argument có thể được cấu hình qua **options.compilerArgs**, còn JVM runtime argument có thể được truyền qua **applicationDefaultJvmArgs**, **JavaExec.jvmArgs** hoặc cấu hình test tương ứng.
+With Gradle, legacy dependencies are usually declared in an appropriate configuration such as **implementation**. If the build uses module path inference or separate module path configuration, verify whether the dependency is actually placed on the classpath or the module path. Compiler arguments can be configured via **options.compilerArgs**, while JVM runtime arguments can be passed via **applicationDefaultJvmArgs**, **JavaExec.jvmArgs**, or the corresponding test configuration.
 
-Điều cần xác minh trong build:
+Things to verify in the build:
 
-- Thư viện legacy đang nằm trên classpath hay module path?
-- Compiler có nhận **--add-reads** không?
-- JVM chạy ứng dụng có nhận cùng tùy chọn không?
-- Tất cả dependency bắc cầu của thư viện có mặt ở runtime không?
-- Test runner và ứng dụng production có cùng cách phân giải module không?
+- Is the legacy library on the classpath or module path?
+- Does the compiler receive **--add-reads**?
+- Does the JVM running the application receive the same options?
+- Are all transitive dependencies of the library present at runtime?
+- Do the test runner and production application resolve modules in the same way?
 
-Không nên suy ra vị trí dependency chỉ từ tên configuration. Hãy xem task command line hoặc báo cáo dependency của build tool để xác nhận.
+Do not infer dependency placement solely from the configuration name. Inspect the task command line or the build tool's dependency report to confirm.
 
-## 11. Dùng ServiceLoader với thư viện legacy
+## 11. Using ServiceLoader with legacy libraries
 
-Một số thư viện cũ cung cấp implementation thông qua file cấu hình service tại **META-INF/services/** thay vì khai báo **provides ... with** trong module descriptor.
+Some legacy libraries provide implementations through service configuration files at **META-INF/services/** instead of declaring **provides ... with** in a module descriptor.
 
-Khi kết hợp service giữa named module và classpath, cần xác định rõ:
+When combining services between named modules and the classpath, clearly identify:
 
-- Module chứa service interface.
-- Module tiêu thụ service và directive **uses**.
-- Thư viện provider đang ở classpath hay module path.
-- Class loader nào được dùng để tìm provider.
+- The module containing the service interface.
+- The module consuming the service and the **uses** directive.
+- Whether the provider library is on the classpath or module path.
+- Which class loader is used to locate the provider.
 
-Nếu provider nằm trong classpath, nó thuộc unnamed module và thường sử dụng cơ chế provider configuration file truyền thống. Với ứng dụng modular, hãy chọn overload **ServiceLoader** và class loader phù hợp với cách triển khai; kiểm tra provider có được tìm thấy từ class loader mà ứng dụng đang sử dụng hay không.
+If the provider is on the classpath, it belongs to the unnamed module and usually uses the traditional provider configuration file mechanism. For modular applications, choose the **ServiceLoader** overload and class loader appropriate for the deployment; check whether the provider is found by the class loader the application is using.
 
-Khi có thể, nên chuyển provider thành named module và khai báo **provides ... with**. Cách đó làm quan hệ service rõ ràng trong module descriptor và module graph.
+When possible, convert the provider into a named module and declare **provides ... with**. That makes service relationships explicit in the module descriptor and module graph.
 
-## 12. Lỗi thường gặp khi dùng classpath library trong modular app
+## 12. Common errors when using classpath libraries in a modular app
 
-**Package is not visible hoặc module không đọc được dependency**
+**Package is not visible or module does not read dependency**
 
-Named module đang tham chiếu classpath library nhưng thiếu quan hệ đọc. Kiểm tra classpath và bổ sung **--add-reads module=ALL-UNNAMED** cho compiler và runtime.
+The named module is referencing a classpath library but lacks a readability relationship. Check the classpath and add **--add-reads module=ALL-UNNAMED** for the compiler and runtime.
 
-**Biên dịch thành công nhưng runtime báo NoClassDefFoundError**
+**Compiles successfully but runtime reports NoClassDefFoundError**
 
-Một dependency của thư viện không có trên classpath runtime hoặc lệnh chạy không dùng cùng cấu hình với lệnh biên dịch. Kiểm tra toàn bộ dependency bắc cầu và script triển khai.
+A library dependency is missing from the runtime classpath or the launch command does not use the same configuration as the compile command. Check all transitive dependencies and deployment scripts.
 
-**ClassNotFoundException khi nạp theo tên**
+**ClassNotFoundException when loading by name**
 
-Class loader được dùng để tìm class không nhìn thấy thư viện hoặc tên class sai. Kiểm tra classpath runtime, working directory và class loader truyền vào API nạp class.
+The class loader used to locate the class cannot see the library or the class name is wrong. Check the runtime classpath, working directory, and the class loader passed to the class-loading API.
 
-**Thư viện legacy gọi API của named module và bị chặn**
+**Legacy library calls a named module API and is blocked**
 
-Unnamed module đọc named module, nhưng package của named module có thể chưa export cho unnamed module. Kiểm tra **--add-exports**; nếu framework cần reflection sâu, xem xét **--add-opens**.
+The unnamed module reads the named module, but the package of the named module may not be exported to the unnamed module. Check **--add-exports**; if a framework needs deep reflection, consider **--add-opens**.
 
-**Đã thêm --add-reads khi compile nhưng chạy vẫn lỗi**
+**Added --add-reads at compile time but running still fails**
 
-Quan hệ đọc lúc biên dịch không tự động được chuyển sang runtime. Truyền lại tùy chọn **--add-reads** trong lệnh java hoặc cấu hình runtime của build tool.
+Compile-time readability is not automatically carried over to runtime. Pass the **--add-reads** option again in the java command or the build tool's runtime configuration.
 
-**JAR có Automatic-Module-Name nhưng vẫn thuộc unnamed module**
+**JAR has Automatic-Module-Name but still belongs to the unnamed module**
 
-Thuộc tính Automatic-Module-Name chỉ có ý nghĩa khi JAR được đặt trên module path để trở thành automatic module. Nếu JAR nằm trên classpath, nó vẫn thuộc unnamed module.
+The Automatic-Module-Name attribute only takes effect when the JAR is placed on the module path to become an automatic module. If the JAR is on the classpath, it still belongs to the unnamed module.
 
-**Trùng class hoặc lệch phiên bản thư viện**
+**Duplicate classes or mismatched library versions**
 
-Kiểm tra dependency tree và thứ tự classpath. Loại bỏ các phiên bản trùng, khóa phiên bản và kiểm tra nguồn class thực tế được nạp khi cần.
+Inspect the dependency tree and classpath order. Remove duplicate versions, lock versions, and verify the actual source of loaded classes when needed.
 
-## 13. Quan sát classpath và module runtime
+## 13. Observing classpath and runtime modules
 
-Có thể in các system property để xem môi trường khởi chạy:
+You can print system properties to inspect the launch environment:
 
 ~~~java
 System.out.println("java.class.path = "
@@ -353,7 +353,7 @@ System.out.println("jdk.module.path = "
     + System.getProperty("jdk.module.path"));
 ~~~
 
-Có thể kiểm tra module chứa một class:
+You can check the module containing a class:
 
 ~~~java
 Class<?> type = com.legacy.client.LegacyClient.class;
@@ -363,27 +363,27 @@ System.out.println("ClassLoader: " + type.getClassLoader());
 System.out.println("Is named: " + type.getModule().isNamed());
 ~~~
 
-Nếu class thuộc unnamed module, **type.getModule().isNamed()** trả về false. Đây là cách xác nhận thư viện thực tế đang được nạp từ classpath theo mô hình unnamed module.
+If the class belongs to an unnamed module, **type.getModule().isNamed()** returns false. This is how to confirm the library is actually being loaded from the classpath under the unnamed module model.
 
-Để xem log class loading trên JDK 9 trở lên:
+To view class loading logs on JDK 9 and later:
 
 ~~~bash
 java -Xlog:class+load=info --module-path mods --class-path "libs/*" --add-reads com.example.app=ALL-UNNAMED -m com.example.app/com.example.app.Main
 ~~~
 
-Log giúp tìm class nào được nạp và nguồn của nó, hữu ích khi có nhiều bản sao thư viện hoặc classpath khác nhau giữa local và production.
+The log helps find which class is loaded and its source, useful when there are multiple copies of a library or differences in classpath between local and production.
 
-## 14. Lộ trình chuyển đổi dependency legacy
+## 14. Legacy dependency migration roadmap
 
-Có thể quản lý việc chuyển đổi theo các bước:
+You can manage the migration in steps:
 
-1. Liệt kê tất cả JAR legacy và dependency bắc cầu của chúng.
-2. Xác định thư viện nào cần giữ trên classpath do chưa thể modular hóa.
-3. Thêm classpath và **--add-reads** cho named module thực sự cần dùng các thư viện đó.
-4. Kiểm tra riêng compile-time và runtime.
-5. Nếu thư viện cần truy cập package nội bộ của ứng dụng, cấp **--add-exports** hoặc **--add-opens** đúng phạm vi và có lý do rõ ràng.
-6. Khi thư viện ổn định, cân nhắc chuyển nó lên module path như automatic module.
-7. Khi có thể sửa hoặc nâng cấp thư viện, bổ sung module-info.java để tạo explicit named module.
-8. Gỡ các tùy chọn add-reads/add-exports/add-opens đã không còn cần thiết và kiểm tra lại ứng dụng.
+1. List all legacy JARs and their transitive dependencies.
+2. Identify which libraries must remain on the classpath because they cannot yet be modularized.
+3. Add the classpath and **--add-reads** for named modules that actually need to use those libraries.
+4. Verify compile-time and runtime separately.
+5. If a library needs access to internal packages of the application, grant **--add-exports** or **--add-opens** with the proper scope and clear justification.
+6. Once a library is stable, consider moving it to the module path as an automatic module.
+7. When able to modify or upgrade the library, add module-info.java to create an explicit named module.
+8. Remove add-reads/add-exports/add-opens options that are no longer needed and re-verify the application.
 
-Classpath library vẫn là một phần hợp lệ trong quá trình modular hóa Java. Nắm rõ unnamed module, quan hệ đọc, ALL-UNNAMED và sự khác nhau giữa classpath với module path giúp ứng dụng hiện đại tiếp tục dùng được thư viện cũ mà vẫn tiến dần tới cấu trúc module có dependency và API được kiểm soát.
+Classpath libraries remain a valid part of Java modularization. Understanding unnamed modules, readability relationships, ALL-UNNAMED, and the difference between the classpath and module path helps modern applications continue using legacy libraries while gradually moving toward a module structure with controlled dependencies and APIs.

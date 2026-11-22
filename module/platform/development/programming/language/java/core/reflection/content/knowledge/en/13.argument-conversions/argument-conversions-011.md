@@ -1,38 +1,38 @@
-# Mảng primitive không thay thế mảng wrapper trong Java Reflection
+# Primitive Arrays Do Not Substitute for Wrapper Arrays in Java Reflection
 
-## 1. Bản chất: boxing từng phần tử không biến đổi kiểu của cả mảng
+## 1. Nature of the issue: element-level boxing does not convert the type of an entire array
 
-Trong Java, các kiểu mảng `int[]` và `Integer[]` là **hai kiểu runtime khác nhau**:
+In Java, array types `int[]` and `Integer[]` are **two different runtime types**:
 
-- `int[]` lưu các phần tử **primitive `int`**, có giá trị mặc định `0`.
-- `Integer[]` lưu **tham chiếu tới đối tượng `Integer`**, có thể chứa `null` và có giá trị mặc định `null`.
-- Java hỗ trợ **boxing/unboxing từng giá trị** giữa `int` và `Integer`, nhưng **không tự động chuyển nguyên mảng** `int[]` thành `Integer[]` hoặc ngược lại.
-- Vì khác kiểu mảng, chúng **không thể thay thế nhau** trong tham số, biến gán, kiểu trường dữ liệu hoặc chữ ký tra cứu Reflection.
+- `int[]` stores **primitive `int`** elements, with default value `0`.
+- `Integer[]` stores **references to `Integer` objects**, can contain `null`, and has default value `null`.
+- Java supports **element-by-element boxing/unboxing** between `int` and `Integer`, but **does not automatically convert an entire `int[]` array** into `Integer[]` or vice versa.
+- Because they are different array types, they **are not interchangeable** in parameters, variable assignments, field types, or Reflection lookup signatures.
 
 ```java
 int value = 7;
-Integer boxedValue = value; // Boxing phần tử: hợp lệ.
-int unboxedValue = boxedValue; // Unboxing phần tử: hợp lệ.
+Integer boxedValue = value; // Element boxing: valid.
+int unboxedValue = boxedValue; // Element unboxing: valid.
 
 int[] primitives = {1, 2, 3};
-Integer[] wrappers = {1, 2, 3}; // Từng phần tử literal được boxing.
+Integer[] wrappers = {1, 2, 3}; // Each literal element is boxed.
 
-// MÃ MINH HỌA KHÔNG BIÊN DỊCH ĐƯỢC:
+// ILLUSTRATIVE CODE THAT DOES NOT COMPILE:
 // Integer[] wrong1 = primitives;
 // int[] wrong2 = wrappers;
 ```
 
-Không có quy tắc Java nào cho phép `Integer[] wrappers = primitives` bằng một chuyển đổi boxing ngầm định ở cấp mảng. Kể cả ép kiểu thông qua `Object` cũng không thể biến đổi dữ liệu:
+There is no Java rule allowing `Integer[] wrappers = primitives` via an implicit array-level boxing conversion. Even casting through `Object` cannot transform the data:
 
 ```java
-// Ví dụ minh họa: câu lệnh này biên dịch nhưng thất bại lúc chạy.
+// Illustrative example: this statement compiles but fails at runtime.
 // Integer[] invalid = (Integer[]) (Object) primitives;
 // Runtime: ClassCastException.
 ```
 
-Đặc biệt trong Reflection, việc tìm đúng tên phương thức nhưng truyền **kiểu mảng sai** thường dẫn tới `NoSuchMethodException` lúc tra cứu hoặc `IllegalArgumentException` lúc gọi.
+Specifically in Reflection, finding the right method name yet passing the **wrong array type** usually leads to `NoSuchMethodException` at lookup time or `IllegalArgumentException` at invocation time.
 
-## 2. Nhận diện hai kiểu bằng Class
+## 2. Identifying both types via Class
 
 ```java
 Class<?> primitiveArrayType = int[].class;
@@ -46,24 +46,24 @@ System.out.println(primitiveArrayType.getComponentType().isPrimitive()); // true
 System.out.println(wrapperArrayType.getComponentType().isPrimitive());   // false
 ```
 
-Đây là **đoạn minh họa trong một phương thức Java**, không phải chương trình chạy độc lập. So sánh `primitiveArrayType.equals(wrapperArrayType)` trả `false`. Cần lưu ý rằng **bản thân `int[]` là một kiểu tham chiếu** (do đó `int[].class.isPrimitive()` là `false`), còn **kiểu thành phần** `int.class` mới là primitive.
+This is an **illustrative snippet inside a Java method**, not a standalone runnable program. Comparing `primitiveArrayType.equals(wrapperArrayType)` returns `false`. Note that **`int[]` itself is a reference type** (hence `int[].class.isPrimitive()` is `false`), while its **component type** `int.class` is what is primitive.
 
-| Kiểu | `Class.getTypeName()` | `getComponentType()` | Chứa `null` như một phần tử? |
+| Type | `Class.getTypeName()` | `getComponentType()` | Can contain `null` as an element? |
 | --- | --- | --- | --- |
-| `int[]` | `int[]` | `int.class` | Không |
-| `Integer[]` | `java.lang.Integer[]` | `Integer.class` | Có |
-| `long[]` | `long[]` | `long.class` | Không |
-| `Long[]` | `java.lang.Long[]` | `Long.class` | Có |
-| `boolean[]` | `boolean[]` | `boolean.class` | Không |
-| `Boolean[]` | `java.lang.Boolean[]` | `Boolean.class` | Có |
+| `int[]` | `int[]` | `int.class` | No |
+| `Integer[]` | `java.lang.Integer[]` | `Integer.class` | Yes |
+| `long[]` | `long[]` | `long.class` | No |
+| `Long[]` | `java.lang.Long[]` | `Long.class` | Yes |
+| `boolean[]` | `boolean[]` | `boolean.class` | No |
+| `Boolean[]` | `java.lang.Boolean[]` | `Boolean.class` | Yes |
 
-Mọi cặp primitive/wrapper tương ứng đều có cùng nguyên tắc: `double[]` khác `Double[]`, `char[]` khác `Character[]`, v.v.
+Every corresponding primitive/wrapper pair follows the same rule: `double[]` differs from `Double[]`, `char[]` differs from `Character[]`, and so on.
 
-`Class.getName()` dùng định dạng tên nội bộ khác với `getTypeName()`, ví dụ `int[].class.getName()` trả `"[I"`, còn `Integer[].class.getName()` trả `"[Ljava.lang.Integer;"`. Dùng `getTypeName()` để hiển thị dễ đọc; không suy diễn hai mảng tương thích chỉ vì tên thành phần có vẻ tương ứng.
+`Class.getName()` uses an internal naming format different from `getTypeName()`, for example `int[].class.getName()` returns `"[I"`, while `Integer[].class.getName()` returns `"[Ljava.lang.Integer;"`. Use `getTypeName()` for readable display; do not infer that two arrays are compatible merely because their component names look related.
 
-## 3. Reflection tra cứu phương thức: chữ ký phải đúng loại mảng
+## 3. Reflection method lookup: signature must match the exact array kind
 
-Giả sử lớp có:
+Suppose a class has:
 
 ```java
 public static int sum(int[] values) {
@@ -71,48 +71,48 @@ public static int sum(int[] values) {
 }
 ```
 
-Cách tra cứu chính xác:
+Correct lookup:
 
 ```java
-// Phần minh họa trong chương trình có lớp Target.
+// Illustrative snippet inside a program with class Target.
 java.lang.reflect.Method sum =
         Target.class.getMethod("sum", int[].class);
 ```
 
-Cách sai:
+Wrong approach:
 
 ```java
-// Ném NoSuchMethodException: method sum(Integer[]) không tồn tại.
+// Throws NoSuchMethodException: method sum(Integer[]) does not exist.
 Target.class.getMethod("sum", Integer[].class);
 ```
 
-`getMethod(name, Class<?>... parameterTypes)` và `getDeclaredMethod(...)` khớp **chính xác từng `Class` của tham số đã khai báo**. Khi tham số là `int[]`, Reflection yêu cầu `int[].class`; không phân tích phần tử rồi áp dụng boxing thành `Integer[].class`. Ngược lại, với phương thức nhận `Integer[]`, phải tra bằng `Integer[].class`.
+`getMethod(name, Class<?>... parameterTypes)` and `getDeclaredMethod(...)` match **the exact `Class` of each declared parameter**. When the parameter is `int[]`, Reflection requires `int[].class`; it does not inspect elements and apply boxing to `Integer[].class`. Conversely, for a method accepting `Integer[]`, you must look up with `Integer[].class`.
 
-Tham số đa chiều cũng tương tự: `int[][].class` khác `Integer[][].class`; không tra cứu `process(int[][])` bằng `Integer[][].class`.
+Multidimensional parameters behave the same way: `int[][].class` differs from `Integer[][].class`; do not look up `process(int[][])` with `Integer[][].class`.
 
-### Phân biệt lookup với Method.invoke
+### Distinguishing lookup from Method.invoke
 
-Sau khi lấy được `Method`, đoạn gọi đúng là:
+After obtaining the `Method`, the correct invocation is:
 
 ```java
 int[] values = {1, 2, 3};
-Object answer = sum.invoke(null, (Object) values); // Phương thức static.
+Object answer = sum.invoke(null, (Object) values); // Static method.
 ```
 
-Ở đây `(Object) values` bảo đảm `values` là **một đối số duy nhất** của phương thức đích vì `Method.invoke(Object, Object...)` chính nó là API varargs. Với một `Integer[]` không được cast thành `Object`, Java có thể xử lý mảng `Object[]` ấy như danh sách đối số varargs, gây ra lỗi số lượng đối số ngoài lỗi kiểu. Cast rõ ràng giúp tách biệt hai vấn đề.
+Here `(Object) values` ensures `values` is **a single argument** of the target method because `Method.invoke(Object, Object...)` is itself a varargs API. With an `Integer[]` not cast to `Object`, Java may treat that `Object[]` array as the varargs argument list, causing an argument count error in addition to the type error. An explicit cast helps keep the two issues separate.
 
-Nếu dùng `Integer[] wrappers = {1, 2, 3}` rồi gọi:
+If you use `Integer[] wrappers = {1, 2, 3}` and then call:
 
 ```java
-// Có Method sum đại diện cho sum(int[]).
+// Given Method sum representing sum(int[]).
 sum.invoke(null, (Object) wrappers); // IllegalArgumentException.
 ```
 
-**Không có chuyển đổi cả mảng** ở bước `invoke`: dù `Integer` có thể unbox thành `int` khi một tham số trực tiếp là `int`, tham số `int[]` không nhận `Integer[]`. `invoke` không tự chọn overload khác và không tự dựng mảng mới.
+**There is no whole-array conversion** at the `invoke` step: even though `Integer` can unbox to `int` when a parameter is directly `int`, an `int[]` parameter does not accept `Integer[]`. `invoke` does not automatically select another overload and does not construct a new array.
 
-## 4. Constructor và Field cũng không đổi mảng primitive thành wrapper
+## 4. Constructor and Field also do not convert primitive arrays to wrapper arrays
 
-Quy tắc tương tự áp dụng khi Reflection làm việc với constructor và trường dữ liệu.
+The same rule applies when Reflection works with constructors and fields.
 
 ### Constructor
 
@@ -122,30 +122,30 @@ public Target(int[] values) {
 }
 ```
 
-Tra cứu:
+Lookup:
 
 ```java
 Constructor<Target> constructor =
-        Target.class.getConstructor(int[].class); // Đúng.
+        Target.class.getConstructor(int[].class); // Correct.
 ```
 
-Dùng `Target.class.getConstructor(Integer[].class)` sẽ ném `NoSuchMethodException` nếu không có constructor `(Integer[])`. Sau khi tìm đúng, `constructor.newInstance((Object) new int[] {1, 2})` hợp lệ. Truyền `Integer[]` vào constructor nhận `int[]` sẽ ném `IllegalArgumentException` do đối số sai kiểu.
+Using `Target.class.getConstructor(Integer[].class)` will throw `NoSuchMethodException` if there is no `(Integer[])` constructor. After finding the right one, `constructor.newInstance((Object) new int[] {1, 2})` is valid. Passing `Integer[]` to a constructor taking `int[]` will throw `IllegalArgumentException` due to invalid argument type.
 
 ### Field
 
-Giả sử:
+Suppose:
 
 ```java
 public int[] primitiveField;
 ```
 
-`Field.getType()` trả `int[].class`. Lệnh `field.set(target, new int[] {4, 5})` hợp lệ nếu caller được quyền ghi field đó, nhưng `field.set(target, new Integer[] {4, 5})` không hợp lệ và ném `IllegalArgumentException`. Reflection không thể gán mảng wrapper vào slot chứa mảng primitive.
+`Field.getType()` returns `int[].class`. Calling `field.set(target, new int[] {4, 5})` is valid if the caller has permission to write that field, whereas `field.set(target, new Integer[] {4, 5})` is invalid and throws `IllegalArgumentException`. Reflection cannot assign a wrapper array into a slot holding a primitive array.
 
-Trong chương trình ở phần tiếp theo, cả tra cứu Method, Constructor và gán Field đều được minh họa bằng một lớp `Target` duy nhất.
+In the program in the next section, Method lookup, Constructor lookup, and Field assignment are all demonstrated using a single `Target` class.
 
-## 5. Chương trình hoàn chỉnh Java 17+: đối chiếu các trường hợp
+## 5. Complete Java 17+ program: contrasting all cases
 
-Lưu nguyên mã vào tệp **`PrimitiveWrapperArraysDemo.java`**:
+Save the exact code to **`PrimitiveWrapperArraysDemo.java`**:
 
 ```java
 import java.lang.reflect.Array;
@@ -266,14 +266,14 @@ public class PrimitiveWrapperArraysDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac PrimitiveWrapperArraysDemo.java
 java PrimitiveWrapperArraysDemo
 ```
 
-Stdout chính xác trong môi trường Java 17+ thông thường:
+Exact stdout in a standard Java 17+ environment:
 
 ```text
 same class: false
@@ -301,50 +301,50 @@ unbox null: NullPointerException
 covariance: ArrayStoreException
 ```
 
-**Đọc kết quả theo từng cơ chế:**
+**Reading the results mechanism by mechanism:**
 
-1. `int[].class.equals(Integer[].class)` trả `false`, và `getComponentType().isPrimitive()` phân biệt hai phần tử.
-2. `getMethod("sum", int[].class)` đúng; `getMethod("sum", Integer[].class)` không tìm thấy chữ ký.
-3. `Method.invoke` nhận `int[]` làm một đối số nhưng từ chối `Integer[]`, không unbox toàn bộ mảng.
-4. Constructor nhận `int[]` và field khai báo `int[]` cũng từ chối thay thế bằng `Integer[]`.
-5. `Array.get(ints, 0)` **boxing giá trị phần tử riêng lẻ** thành `Integer`; `Array.set(ints, 0, Integer.valueOf(9))` có thể unbox phần tử rồi ghi vào mảng `int[]`.
-6. `Array.set(ints, 0, Long.valueOf(9))` không thực hiện chuyển đổi **narrowing `long` sang `int`**. Hỗ trợ boxing/unboxing ở **vị trí phần tử** không chứng minh có khả năng đổi kiểu của **toàn bộ mảng**.
-7. `Array.newInstance(int.class, 2)` tạo `int[]`; `Array.newInstance(Integer.class, 2)` tạo `Integer[]`. Loại phần tử đưa vào quyết định loại mảng được tạo.
-8. `IntStream.boxed()` và `Stream.mapToInt(...)` là hai cách **chuyển từng phần tử có chủ đích** để tạo mảng mới.
-9. Mảng wrapper có thể chứa `null`, nên unbox `null` có thể ném `NullPointerException`.
+1. `int[].class.equals(Integer[].class)` returns `false`, and `getComponentType().isPrimitive()` distinguishes the two element types.
+2. `getMethod("sum", int[].class)` is right; `getMethod("sum", Integer[].class)` cannot find the signature.
+3. `Method.invoke` accepts `int[]` as one argument yet rejects `Integer[]`, without unboxing the whole array.
+4. The constructor taking `int[]` and the field declared as `int[]` also reject substituting `Integer[]`.
+5. `Array.get(ints, 0)` **boxes the individual element value** into `Integer`; `Array.set(ints, 0, Integer.valueOf(9))` can unbox the element and write it into the `int[]` array.
+6. `Array.set(ints, 0, Long.valueOf(9))` does not perform **narrowing `long` to `int`**. Supporting boxing/unboxing at **an element position** does not prove the ability to convert the type of **the entire array**.
+7. `Array.newInstance(int.class, 2)` creates `int[]`; `Array.newInstance(Integer.class, 2)` creates `Integer[]`. The passed-in element type determines the created array type.
+8. `IntStream.boxed()` and `Stream.mapToInt(...)` are two ways to **intentionally convert each element** to build a new array.
+9. Wrapper arrays can contain `null`, so unboxing `null` can throw `NullPointerException`.
 
-## 6. Vì sao Array.get và Array.set có vẻ “boxing được”?
+## 6. Why do Array.get and Array.set seem to "support boxing"?
 
-API `java.lang.reflect.Array` thao tác trên **phần tử**, không đổi loại mảng:
+The `java.lang.reflect.Array` API operates on **elements**, without changing the array kind:
 
 ```java
 int[] values = {3, 4};
 
-Object element = Array.get(values, 0); // Integer(3) do boxing.
-Array.set(values, 1, Integer.valueOf(7)); // Unbox Integer thành int.
+Object element = Array.get(values, 0); // Integer(3) via boxing.
+Array.set(values, 1, Integer.valueOf(7)); // Unbox Integer to int.
 ```
 
-`Array.get` trả `Object` nên phần tử primitive phải được boxing thành wrapper phù hợp; các phương thức `Array.getInt`, `Array.getLong`, `Array.setInt`, ... cung cấp các thao tác chuyên biệt cho primitive, với các quy tắc chuyển đổi widening được hỗ trợ. `Array.set` nhận đối tượng phần tử và có thể unbox/widen khi tương thích; nó **không chấp nhận mọi wrapper** và không tự làm narrowing tùy ý.
+`Array.get` returns `Object`, so primitive elements must be boxed into the appropriate wrapper; methods `Array.getInt`, `Array.getLong`, `Array.setInt`, ... provide specialized primitive operations with supported widening conversion rules. `Array.set` accepts an element object and can unbox/widen when compatible; it **does not accept arbitrary wrappers** and does not perform arbitrary narrowing.
 
-Các trường hợp cần tách biệt:
+Cases to keep separate:
 
-| Thao tác | Kết quả |
+| Operation | Result |
 | --- | --- |
-| `Array.get(new int[] {5}, 0)` | Một `Integer` biểu diễn `5` |
-| `Array.set(intArray, 0, Integer.valueOf(5))` | Hợp lệ |
-| `Array.set(intArray, 0, Short.valueOf((short) 5))` | Hợp lệ: unbox `short`, widening sang `int` |
-| `Array.set(intArray, 0, Long.valueOf(5L))` | `IllegalArgumentException` vì không narrowing `long` về `int` |
-| `Array.set(intArray, 0, null)` | `IllegalArgumentException` vì `int` không thể chứa `null` |
-| `Array.set(integerArray, 0, null)` | Hợp lệ: `Integer[]` có thể chứa `null` |
-| `Array.set(integerArray, 0, Long.valueOf(5L))` | `IllegalArgumentException`: `Long` không gán được cho `Integer` |
+| `Array.get(new int[] {5}, 0)` | An `Integer` representing `5` |
+| `Array.set(intArray, 0, Integer.valueOf(5))` | Valid |
+| `Array.set(intArray, 0, Short.valueOf((short) 5))` | Valid: unbox `short`, widen to `int` |
+| `Array.set(intArray, 0, Long.valueOf(5L))` | `IllegalArgumentException` because `long` does not narrow to `int` |
+| `Array.set(intArray, 0, null)` | `IllegalArgumentException` because `int` cannot hold `null` |
+| `Array.set(integerArray, 0, null)` | Valid: `Integer[]` can hold `null` |
+| `Array.set(integerArray, 0, Long.valueOf(5L))` | `IllegalArgumentException`: `Long` is not assignable to `Integer` |
 
-**Kết luận của phần này:** phần tử có thể được boxing/unboxing theo quy tắc API, còn **`int[]` và `Integer[]` vẫn là hai đối tượng mảng thuộc hai lớp khác nhau**.
+**Conclusion of this section:** elements can be boxed/unboxed per API rules, while **`int[]` and `Integer[]` remain two array objects belonging to two different classes**.
 
-## 7. Chuyển mảng đúng cách khi cần tương tác với API khác
+## 7. Converting arrays properly when interacting with other APIs
 
-Nếu bên cung cấp trả `int[]` nhưng API nhận `Integer[]`, hãy **chuyển đổi tường minh** bằng cách tạo mảng mới và boxing từng phần tử.
+If a provider returns `int[]` yet an API accepts `Integer[]`, **convert explicitly** by creating a new array and boxing each element.
 
-### Từ int[] sang Integer[]
+### From int[] to Integer[]
 
 ```java
 int[] source = {10, 20, 30};
@@ -353,7 +353,7 @@ Integer[] boxed = java.util.Arrays.stream(source)
         .toArray(Integer[]::new);
 ```
 
-### Từ Integer[] sang int[]
+### From Integer[] to int[]
 
 ```java
 Integer[] source = {10, 20, 30};
@@ -362,57 +362,57 @@ int[] primitives = java.util.Arrays.stream(source)
         .toArray();
 ```
 
-Hai đoạn trên là **mảnh mã đặt trong phương thức**, không phải chương trình độc lập. Kết quả là **mảng mới** và sao chép giá trị phần tử; không có phép cast thay thế.
+Both snippets above are **code fragments placed inside a method**, not standalone programs. The result is a **new array** copying element values; there is no cast substitute.
 
-Với `Integer[]` có `null`, cần xác định quy tắc rõ ràng: báo lỗi, loại bỏ phần tử hoặc thay bằng giá trị mặc định có ý nghĩa với nghiệp vụ. Ví dụ `mapToInt(Integer::intValue)` sẽ thất bại khi gặp `null`; không nên ngầm biến mọi `null` thành `0` nếu ứng dụng phân biệt hai trạng thái.
+For `Integer[]` containing `null`, define an explicit rule: fail, filter out elements, or replace with a meaningful business default. For example, `mapToInt(Integer::intValue)` will fail upon encountering `null`; do not silently turn every `null` into `0` if the application distinguishes the two states.
 
-Khi dùng Reflection để gọi method nhận `int[]`, hãy chuyển đổi **trước** rồi truyền đúng mảng:
+When using Reflection to call a method accepting `int[]`, convert **first** and then pass the right array:
 
 ```java
-// Minh họa trong phương thức đã có Integer[] source và Method method.
+// Illustrative snippet inside a method having Integer[] source and Method method.
 int[] converted = java.util.Arrays.stream(source)
         .mapToInt(Integer::intValue)
         .toArray();
 Object result = method.invoke(null, (Object) converted);
 ```
 
-Đây là lựa chọn có chủ đích và có chi phí phân bổ bộ nhớ/O(n) theo số phần tử; Reflection **không tự động thực hiện** bước này.
+This is an intentional choice carrying allocation and O(n) cost proportional to element count; Reflection **does not perform this step automatically**.
 
-## 8. Mảng primitive không có cùng covariance với mảng wrapper
+## 8. Primitive arrays do not share covariance with wrapper arrays
 
-Mảng kiểu tham chiếu trong Java là *covariant*: vì `Integer` extends `Number`, một `Integer[]` có thể gán cho biến `Number[]`. JVM vẫn kiểm tra khi ghi phần tử:
+Reference-type arrays in Java are *covariant*: because `Integer` extends `Number`, an `Integer[]` can be assigned to a `Number[]` variable. The JVM still checks when writing elements:
 
 ```java
 Number[] array = new Integer[1];
-array[0] = Double.valueOf(3.14); // ArrayStoreException lúc chạy.
+array[0] = Double.valueOf(3.14); // ArrayStoreException at runtime.
 ```
 
-Ngược lại:
+Conversely:
 
 ```java
 int[] primitive = {1, 2};
 
-// Không biên dịch:
+// Does not compile:
 // Object[] elements = primitive;
 // Number[] numbers = primitive;
 
-Object singleObject = primitive; // Hợp lệ: mọi mảng đều là Object.
+Object singleObject = primitive; // Valid: every array is an Object.
 ```
 
-Một `int[]` có thể lưu như **một đối tượng** trong biến `Object` hoặc trong **một phần tử** của `Object[]`, nhưng **bản thân nó không phải `Object[]`**: các giá trị `int` không phải tham chiếu `Object`.
+An `int[]` can be stored as **one object** in an `Object` variable or in **one element** of an `Object[]`, yet **it is not itself an `Object[]`**: `int` values are not `Object` references.
 
-Ví dụ:
+Example:
 
 ```java
 Object[] container = {new int[] {1, 2}, new Integer[] {3, 4}};
-// container có hai phần tử, mỗi phần tử là một đối tượng mảng.
+// container has two elements, each element is an array object.
 ```
 
-Tương tự, `List<int[]>` là danh sách các mảng `int[]`; nó không tương đương `List<Integer>` và không chuyển thành `Integer[]`.
+Similarly, `List<int[]>` is a list of `int[]` arrays; it is not equivalent to `List<Integer>` and does not convert into `Integer[]`.
 
-## 9. Varargs, Arrays.asList và các bẫy liên quan
+## 9. Varargs, Arrays.asList, and related traps
 
-### 9.1. Parameter `int...` vẫn là `int[]`
+### 9.1. Parameter `int...` is still `int[]`
 
 ```java
 public static void printAll(int... numbers) {
@@ -420,16 +420,16 @@ public static void printAll(int... numbers) {
 }
 ```
 
-Ở runtime, `int...` là một tham số có kiểu `int[]`; tra cứu:
+At runtime, `int...` is a parameter of type `int[]`; lookup:
 
 ```java
-// Trong ngữ cảnh lớp Example có static method printAll(int...).
+// In the context of class Example having static method printAll(int...).
 Method method = Example.class.getMethod("printAll", int[].class);
 ```
 
-`getMethod("printAll", Integer[].class)` không khớp. `Method.isVarArgs()` có thể trả `true`, nhưng `Method.invoke` **không tự trải/đóng gói phần tử theo cú pháp gọi Java thông thường**; hãy truyền mảng phù hợp như một đối số.
+`getMethod("printAll", Integer[].class)` does not match. `Method.isVarArgs()` may return `true`, yet `Method.invoke` **does not automatically spread/pack elements as normal Java call syntax does**; pass the appropriate array as one argument.
 
-### 9.2. Arrays.asList khác nhau với primitive và wrapper
+### 9.2. Arrays.asList behaves differently for primitives and wrappers
 
 ```java
 int[] ints = {1, 2, 3};
@@ -438,44 +438,44 @@ Integer[] wrappers = {1, 2, 3};
 var a = java.util.Arrays.asList(ints);
 var b = java.util.Arrays.asList(wrappers);
 
-System.out.println(a.size()); // 1: phần tử duy nhất là cả int[].
-System.out.println(b.size()); // 3: mỗi Integer là một phần tử.
+System.out.println(a.size()); // 1: the sole element is the entire int[].
+System.out.println(b.size()); // 3: each Integer is one element.
 ```
 
-Lý do: `Arrays.asList(T... a)` nhận `T[]` thuộc kiểu tham chiếu; `int[]` không phải mảng `T[]` chứa các đối tượng `Integer`, nên nó được xem như **một đối tượng phần tử**.
+Reason: `Arrays.asList(T... a)` takes a reference-type `T[]`; `int[]` is not a `T[]` array holding `Integer` objects, so it is treated as **a single element object**.
 
-### 9.3. System.arraycopy không boxing một mảng
+### 9.3. System.arraycopy does not box an array
 
-`System.arraycopy(intArray, 0, integerArray, 0, n)` **không** sao chép bằng boxing từng phần tử; do kiểu phần tử primitive và reference không tương thích, nó ném `ArrayStoreException`. Hãy dùng vòng lặp/stream chuyển đổi thật sự khi cần.
+`System.arraycopy(intArray, 0, integerArray, 0, n)` **does not** copy by boxing each element; because primitive and reference element types are incompatible, it throws `ArrayStoreException`. Use an actual conversion loop or stream when needed.
 
-### 9.4. Mảng nhiều chiều
+### 9.4. Multidimensional arrays
 
-`int[][]` là mảng của các `int[]`, trong khi `Integer[][]` là mảng của `Integer[]`. Dù hai loại nhiều chiều đều là mảng các đối tượng ở cấp ngoài, **các mảng con vẫn không thể thay thế nhau**. Việc chuyển đổi phải đi qua từng hàng và từng phần tử, xử lý cả hàng `null` nếu dữ liệu cho phép.
+`int[][]` is an array of `int[]`, whereas `Integer[][]` is an array of `Integer[]`. Although both multidimensional kinds are arrays of objects at the outer level, **the inner sub-arrays are still not interchangeable**. Conversion must walk through each row and each element, handling `null` rows as well if data permits.
 
-## 10. Các lỗi phổ biến và cách khắc phục
+## 10. Common errors and how to fix them
 
-| Hiện tượng | Nguyên nhân | Cách xử lý |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| `NoSuchMethodException` cho `process(java.lang.Integer[])` | Method thực tế nhận `int[]` | Tra đúng `int[].class` |
-| `Method.invoke` ném `IllegalArgumentException` dù số phần tử đúng | Truyền `Integer[]` thay `int[]` | Chuyển từng phần tử thành `int[]`, rồi truyền `(Object) converted` |
-| Lệnh `Integer[] array = primitiveArray` không biên dịch | Java không boxing ở cấp mảng | Dùng `Arrays.stream(primitiveArray).boxed().toArray(Integer[]::new)` |
-| `Constructor.newInstance` từ chối `Integer[]` | Constructor khai báo tham số `int[]` | Tra/gọi đúng chữ ký `int[].class` và giá trị `int[]` |
-| `Field.set` từ chối wrapper array | Field khai báo `int[]` | Kiểm tra `getType()`, tạo đúng loại mảng |
-| `Array.get(intArray, 0)` trả `Integer`, tưởng cả mảng là `Integer[]` | API boxing **một phần tử** | Xem `array.getClass()` và `getComponentType()` |
-| `mapToInt(Integer::intValue)` ném NPE | `Integer[]` có phần tử `null` | Quy định xử lý `null` trước khi unbox |
-| `Arrays.asList(intArray).size()` bằng `1` | Cả `int[]` trở thành một phần tử của list | Dùng `Arrays.stream(intArray).boxed().toList()` để có `List<Integer>` |
-| `System.arraycopy` báo `ArrayStoreException` | API không boxing cả mảng khi copy | Chuyển đổi bằng loop hoặc stream |
-| Ép `(Integer[]) (Object) intArray` ném `ClassCastException` | Runtime class thật vẫn là `int[]` | Không dùng cast thay conversion |
+| `NoSuchMethodException` for `process(java.lang.Integer[])` | Method actually takes `int[]` | Look up exact `int[].class` |
+| `Method.invoke` throws `IllegalArgumentException` despite right element count | Passed `Integer[]` instead of `int[]` | Convert elements to `int[]`, then pass `(Object) converted` |
+| Statement `Integer[] array = primitiveArray` does not compile | Java does not box at the array level | Use `Arrays.stream(primitiveArray).boxed().toArray(Integer[]::new)` |
+| `Constructor.newInstance` rejects `Integer[]` | Constructor declares parameter `int[]` | Look up/call exact `int[].class` signature and `int[]` value |
+| `Field.set` rejects wrapper array | Field declares `int[]` | Check `getType()`, create exact array kind |
+| `Array.get(intArray, 0)` returns `Integer`, mistaking entire array for `Integer[]` | API boxes **one element** | Check `array.getClass()` and `getComponentType()` |
+| `mapToInt(Integer::intValue)` throws NPE | `Integer[]` has a `null` element | Define `null` handling before unboxing |
+| `Arrays.asList(intArray).size()` equals `1` | Entire `int[]` becomes one list element | Use `Arrays.stream(intArray).boxed().toList()` to get `List<Integer>` |
+| `System.arraycopy` throws `ArrayStoreException` | API does not box an entire array on copy | Convert using loop or stream |
+| Casting `(Integer[]) (Object) intArray` throws `ClassCastException` | Actual runtime class is still `int[]` | Do not use a cast in place of conversion |
 
-## 11. Tự kiểm tra
+## 11. Self-check
 
-1. **Có thể tra `void handle(int[] values)` bằng `getMethod("handle", Integer[].class)` không?** Không. Phải dùng `int[].class` vì chữ ký được khớp theo kiểu mảng đã khai báo.
-2. **Vì sao `Array.get(new int[]{5}, 0)` trả `Integer`?** Vì `Array.get` trả `Object`, nên boxing **phần tử `int`**; điều đó không biến `int[]` thành `Integer[]`.
-3. **`Object obj = new int[]{1,2}` có hợp lệ không? Còn `Object[] arr = new int[]{1,2}`?** Câu đầu hợp lệ; câu sau không biên dịch được.
-4. **`Integer[]` có thể có `null` trong khi `int[]` có không?** `Integer[]` có, `int[]` không thể chứa `null` như một phần tử.
-5. **Cách chuyển đổi tường minh `Integer[]` sang `int[]`?** Xác minh phần tử `null` theo nghiệp vụ, sau đó unbox từng phần tử, ví dụ bằng `Arrays.stream(values).mapToInt(Integer::intValue).toArray()`.
-6. **Có thể thay `int[][]` bằng `Integer[][]` trong Reflection không?** Không; kiểu mảng nhiều chiều vẫn khác và không có chuyển đổi boxing cấp mảng.
+1. **Can `void handle(int[] values)` be looked up with `getMethod("handle", Integer[].class)`?** No. You must use `int[].class` because the signature is matched by the declared array type.
+2. **Why does `Array.get(new int[]{5}, 0)` return `Integer`?** Because `Array.get` returns `Object`, so it boxes **the `int` element**; that does not turn `int[]` into `Integer[]`.
+3. **Is `Object obj = new int[]{1,2}` valid? What about `Object[] arr = new int[]{1,2}`?** The first is valid; the second does not compile.
+4. **Can `Integer[]` contain `null` while `int[]` can?** `Integer[]` can; `int[]` cannot contain `null` as an element.
+5. **How do you explicitly convert `Integer[]` to `int[]`?** Validate `null` elements per business rules, then unbox each element, for example with `Arrays.stream(values).mapToInt(Integer::intValue).toArray()`.
+6. **Can `int[][]` be substituted with `Integer[][]` in Reflection?** No; the multidimensional array types still differ and there is no array-level boxing conversion.
 
-**Ghi nhớ:** Boxing/unboxing hoạt động với **giá trị phần tử**, không chuyển đổi **kiểu của nguyên mảng**. Trong Reflection, luôn dùng đúng `Class` của tham số/field (`int[].class` hay `Integer[].class`) và thực hiện chuyển đổi mảng tường minh khi thật sự cần.
+**Takeaway:** Boxing/unboxing operates on **element values**, without converting **the type of the whole array**. In Reflection, always use the exact `Class` of the parameter/field (`int[].class` or `Integer[].class`) and perform explicit array conversion when genuinely needed.
 
-Tài liệu tham khảo: [Java Language Specification §5 — Conversions and Contexts](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html), [Java SE 17 `java.lang.reflect.Array`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Array.html), [Java SE 17 `Method.invoke`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html).
+References: [Java Language Specification §5 — Conversions and Contexts](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html), [Java SE 17 `java.lang.reflect.Array`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Array.html), [Java SE 17 `Method.invoke`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html).

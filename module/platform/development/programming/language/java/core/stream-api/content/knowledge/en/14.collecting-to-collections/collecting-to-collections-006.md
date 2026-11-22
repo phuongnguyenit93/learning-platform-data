@@ -1,20 +1,20 @@
-# Thu thập theo thứ tự sắp xếp bằng TreeSet
+# Collecting in Sorted Order with TreeSet
 
-Một ứng dụng thường cần thu thập dữ liệu thành tập hợp **vừa không trùng lặp, vừa có thứ tự xác định**: danh sách mã sản phẩm theo thứ tự chữ cái, các mốc giá tăng dần, hoặc bảng xếp hạng theo nhiều tiêu chí. Trong **Java Stream API**, cách diễn đạt rõ ràng cho nhu cầu này là dùng `collect(Collectors.toCollection(TreeSet::new))`.
+An application often needs to collect data into a set that is **both deduplicated and deterministically ordered**: an alphabetical list of product codes, ascending price tiers, or a multi-criteria ranking table. In the **Java Stream API**, the clear way to express this requirement is `collect(Collectors.toCollection(TreeSet::new))`.
 
-`TreeSet` là một `NavigableSet` dựa trên cấu trúc cây có thứ tự. Khi thu thập các phần tử vào `TreeSet`, Java sử dụng **thứ tự tự nhiên (`Comparable`)** hoặc một **`Comparator`** được cung cấp để sắp xếp các phần tử. Đặc biệt, cách so sánh này còn quyết định **phần tử nào được xem là trùng**.
+`TreeSet` is a `NavigableSet` backed by an ordered tree structure. When collecting elements into a `TreeSet`, Java uses **natural ordering (`Comparable`)** or a provided **`Comparator`** to sort the elements. Notably, this comparison also determines **which elements are considered duplicates**.
 
-Bài học thuộc chương **Thu thập thành Collection** của module **JAVA_STREAM_API**. Sau bài, bạn sẽ biết cách thu thập Stream vào `TreeSet`, tự định nghĩa thứ tự, phân biệt `TreeSet` với `sorted()`, `distinct()` và `Collectors.toSet()`, cũng như nhận diện các rủi ro về `Comparator`, `null`, dữ liệu thay đổi, parallel Stream, tài nguyên và hiệu năng. Kiến thức này là nền tảng khi làm việc với collector tùy chỉnh, grouping, `Spliterator` và Stream Gatherers.
+This lesson belongs to the **Collecting into Collections** chapter of the **JAVA_STREAM_API** module. After this lesson, you will know how to collect a Stream into a `TreeSet`, define custom ordering, distinguish `TreeSet` from `sorted()`, `distinct()`, and `Collectors.toSet()`, and recognize risks related to `Comparator`, `null`, mutable data, parallel Streams, resources, and performance. This knowledge lays the groundwork for custom collectors, grouping, `Spliterator`, and Stream Gatherers.
 
-## 1. Bài toán thực tế: cần vừa sắp xếp, vừa loại trùng
+## 1. Practical Problem: Needing Both Sorting and Deduplication
 
-Giả sử một hệ thống nhận các mã công nghệ do người dùng lựa chọn:
+Suppose a system receives technology codes selected by users:
 
 ~~~text
 java, kotlin, java, go, stream, kotlin
 ~~~
 
-Yêu cầu đầu ra là **mỗi mã chỉ xuất hiện một lần** và được **sắp xếp tăng dần**. Ta có thể viết:
+The output requirement is that **each code appears only once** and is **sorted in ascending order**. We can write:
 
 ~~~java
 import java.util.List;
@@ -31,51 +31,51 @@ public class TreeSetOverview {
             .collect(Collectors.toCollection(TreeSet::new));
 
         System.out.println(result); // [go, java, kotlin, stream]
-        System.out.println(technologies.size()); // 6: nguồn giữ nguyên
+        System.out.println(technologies.size()); // 6: source remains unchanged
     }
 }
 ~~~
 
-Trong ví dụ này, `TreeSet` dùng thứ tự tự nhiên của `String` (`String.compareTo`). Hai chuỗi bằng nhau theo cách so sánh đó chỉ được giữ một lần. Danh sách nguồn có 6 phần tử nhưng `TreeSet` kết quả còn 4 phần tử và được duyệt theo thứ tự tăng dần.
+In this example, `TreeSet` uses the natural ordering of `String` (`String.compareTo`). Two strings that compare equal under that comparison are kept only once. The source list has 6 elements, whereas the resulting `TreeSet` has 4 elements and iterates in ascending order.
 
-`TreeSet` **không phụ thuộc vào thứ tự xuất hiện** của phần tử để sắp xếp. Nếu thêm `"api"` vào cuối nguồn, nó sẽ xuất hiện ở đầu tập kết quả.
+`TreeSet` **does not depend on the appearance order** of elements for sorting. If `"api"` is appended to the end of the source, it will appear at the beginning of the resulting set.
 
-> Ví dụ sử dụng `List.of` (Java 9+). Bản thân `TreeSet` và `Collectors.toCollection` có thể dùng từ Java 8; nếu cần Java 8, thay `List.of(...)` bằng `Arrays.asList(...)`.
+> This example uses `List.of` (Java 9+). `TreeSet` and `Collectors.toCollection` themselves work since Java 8; if Java 8 is needed, replace `List.of(...)` with `Arrays.asList(...)`.
 
-## 2. TreeSet là kiểu Collection như thế nào?
+## 2. What Kind of Collection Is TreeSet?
 
-`java.util.TreeSet<E>` triển khai `NavigableSet<E>`, đồng thời tuân theo hành vi sắp xếp của `SortedSet<E>`. Những tính chất quan trọng:
+`java.util.TreeSet<E>` implements `NavigableSet<E>` and follows the sorting behavior of `SortedSet<E>`. Key properties:
 
-| Tính chất | Ý nghĩa khi dùng trong Stream |
+| Property | Meaning when used with Stream |
 |---|---|
-| Không lưu phần tử trùng theo quy tắc so sánh | Khi `compare(a, b) == 0` hoặc `a.compareTo(b) == 0`, `TreeSet` xem `a` và `b` là cùng một phần tử |
-| Các phần tử được sắp xếp | Duyệt tập theo comparator hoặc thứ tự tự nhiên |
-| Truy cập phần tử theo khoảng và mốc | Hỗ trợ `first`, `last`, `lower`, `floor`, `ceiling`, `higher` và các tập con |
-| Thay đổi được | Có thể gọi `add`, `remove`, `clear` trên `TreeSet` kết quả |
-| Không tự đồng bộ | Không dùng cùng một `TreeSet` để cập nhật đồng thời từ nhiều thread nếu chưa có thiết kế đồng bộ phù hợp |
-| Chi phí dựa trên cây cân bằng | Các thao tác cơ bản như `add`, `remove`, `contains` có chi phí thời gian bảo đảm ở mức logarit theo kích thước tập |
+| Does not store duplicates per comparison rule | When `compare(a, b) == 0` or `a.compareTo(b) == 0`, `TreeSet` treats `a` and `b` as the same element |
+| Elements are sorted | Iterates over the set according to the comparator or natural ordering |
+| Range and threshold element access | Supports `first`, `last`, `lower`, `floor`, `ceiling`, `higher`, and subset views |
+| Modifiable | Allows calling `add`, `remove`, `clear` on the resulting `TreeSet` |
+| Not thread-safe by default | Do not mutate the same `TreeSet` concurrently from multiple threads without proper synchronization |
+| Balanced-tree-based cost | Basic operations like `add`, `remove`, `contains` have guaranteed logarithmic time complexity in the set size |
 
-Một `TreeSet` mới tạo bằng `new TreeSet<>()` dùng **thứ tự tự nhiên**. Vì vậy các phần tử phải **so sánh được với nhau**, thường bằng cách triển khai `Comparable`. Nếu phần tử không có thứ tự tự nhiên phù hợp, hãy cung cấp `Comparator`.
+A `TreeSet` created with `new TreeSet<>()` uses **natural ordering**. Therefore, elements must be **mutually comparable**, usually by implementing `Comparable`. If elements lack an appropriate natural ordering, provide a `Comparator`.
 
 ~~~mermaid
 flowchart LR
     A["Stream: 7, 3, 7, 5, 3"] --> B["collect(toCollection(TreeSet::new))"]
     B --> C["TreeSet: 3, 5, 7"]
-    C --> D["Duyệt theo thứ tự tăng dần"]
+    C --> D["Iterate in ascending order"]
 ~~~
 
-Dòng dữ liệu vẫn tuân theo mô hình Stream: `stream()` tạo nguồn, `filter`/`map` là các bước trung gian lazy nếu có, và `collect(...)` là **terminal operation** tạo kết quả.
+The data flow still follows the Stream model: `stream()` creates the source, `filter`/`map` are lazy intermediate steps if present, and `collect(...)` is the **terminal operation** producing the result.
 
-## 3. Cơ chế Collectors.toCollection(TreeSet::new)
+## 3. Mechanism of Collectors.toCollection(TreeSet::new)
 
-`Collectors.toCollection` có dạng khái quát:
+`Collectors.toCollection` has the general signature:
 
 ~~~java
 static <T, C extends Collection<T>>
 Collector<T, ?, C> toCollection(Supplier<C> collectionFactory)
 ~~~
 
-Đối số `collectionFactory` là một `Supplier` tạo ra collection đích. Khi truyền `TreeSet::new`, ta yêu cầu collector tạo **`TreeSet` mới** và thêm các phần tử được xử lý vào đó.
+The `collectionFactory` argument is a `Supplier` that creates the target collection. Passing `TreeSet::new` instructs the collector to create a **new `TreeSet`** and insert processed elements into it.
 
 ~~~java
 TreeSet<Integer> numbers = java.util.stream.Stream.of(5, 1, 2, 5, 3)
@@ -84,16 +84,16 @@ TreeSet<Integer> numbers = java.util.stream.Stream.of(5, 1, 2, 5, 3)
 System.out.println(numbers); // [1, 2, 3, 5]
 ~~~
 
-Trong cách hiểu đơn giản khi chạy tuần tự:
+Conceptually, when running sequentially:
 
-1. Collector gọi supplier để có một `TreeSet` rỗng.
-2. Mỗi phần tử từ Stream được thêm bằng `add`.
-3. `TreeSet` dùng comparator hoặc thứ tự tự nhiên để tìm vị trí và phát hiện trùng.
-4. `collect` trả về tập kết quả.
+1. The collector calls the supplier to obtain an empty `TreeSet`.
+2. Each element from the Stream is inserted via `add`.
+3. `TreeSet` uses the comparator or natural ordering to find its position and detect duplicates.
+4. `collect` returns the resulting set.
 
-Với parallel Stream, collector có thể tạo nhiều bộ chứa, tích lũy riêng từng nhánh rồi hợp nhất. Không được giả định supplier chỉ được gọi đúng một lần hoặc các lời gọi diễn ra theo một thứ tự thread cố định.
+With a parallel Stream, the collector may create multiple containers, accumulate branches independently, and then merge them. Do not assume the supplier is called only once or that calls occur in a fixed thread order.
 
-### 3.1. Vì sao không chỉ dùng Collectors.toSet()?
+### 3.1. Why Not Just Use Collectors.toSet()?
 
 ~~~java
 List<Integer> source = List.of(5, 2, 5, 1, 3);
@@ -107,11 +107,11 @@ TreeSet<Integer> ascending = source.stream()
 System.out.println(ascending); // [1, 2, 3, 5]
 ~~~
 
-`Collectors.toSet()` có nhiệm vụ tạo một `Set`, nhưng **không bảo đảm loại triển khai hay thứ tự duyệt kết quả**. Kể cả khi một lần chạy in ra thứ tự tăng dần, không được dựa vào điều đó.
+`Collectors.toSet()` creates a `Set`, but **guarantees neither the implementation type nor result iteration order**. Even if a run prints in ascending order, never rely on that.
 
-`Collectors.toCollection(TreeSet::new)` thể hiện yêu cầu rõ ràng hơn: **tạo đúng `TreeSet`** và tuân theo thứ tự của kiểu tập này.
+`Collectors.toCollection(TreeSet::new)` states the requirement explicitly: **create an actual `TreeSet`** and follow that set type's ordering.
 
-### 3.2. Vì sao không chỉ gọi sorted()?
+### 3.2. Why Not Just Call sorted()?
 
 ~~~java
 List<Integer> values = List.of(5, 2, 5, 1, 3);
@@ -127,11 +127,11 @@ System.out.println(sortedButDuplicated); // [1, 2, 3, 5, 5]
 System.out.println(sortedAndUnique);     // [1, 2, 3, 5]
 ~~~
 
-`sorted()` **sắp xếp nhưng không loại trùng**; `TreeSet` vừa sắp xếp vừa loại trùng **theo phép so sánh của tập**.
+`sorted()` **sorts without deduplicating**; `TreeSet` both sorts and deduplicates **according to the set's comparison**.
 
-## 4. Thứ tự tự nhiên: Comparable
+## 4. Natural Ordering: Comparable
 
-Với `Integer`, `Long`, `String` và nhiều kiểu chuẩn có `Comparable`, `TreeSet::new` thường dùng được ngay.
+For `Integer`, `Long`, `String`, and many standard types implementing `Comparable`, `TreeSet::new` usually works out of the box.
 
 ~~~java
 import java.util.List;
@@ -148,11 +148,11 @@ System.out.println(orderedScores.first()); // 6
 System.out.println(orderedScores.last());  // 10
 ~~~
 
-**Cần nhớ:** `String.compareTo` so sánh theo thứ tự tự nhiên của chuỗi Java, vốn phân biệt chữ hoa/thường. Nó **không tự động** áp dụng cách xếp chữ cái dành riêng cho tiếng Việt hoặc các quy tắc ngôn ngữ tự nhiên.
+**Keep in mind:** `String.compareTo` compares using Java's natural string ordering, which is case-sensitive. It **does not automatically** apply language-specific alphabetical rules such as Vietnamese collation or natural-language rules.
 
-Ví dụ, `"Java"` và `"java"` là hai giá trị khác nhau trong `TreeSet<String>` dùng thứ tự tự nhiên. Khi cần chuẩn hóa mã hoặc sắp xếp theo ngôn ngữ, phải xác định rõ quy tắc nghiệp vụ.
+For example, `"Java"` and `"java"` are two distinct values in a `TreeSet<String>` using natural ordering. When normalizing codes or sorting by locale, define the business rule explicitly.
 
-### 4.1. Đối tượng không có Comparable thì sao?
+### 4.1. What About Objects Without Comparable?
 
 ~~~java
 record Product(String sku, long price) {}
@@ -162,15 +162,15 @@ List<Product> products = List.of(
     new Product("SP01", 100L)
 );
 
-// Không có thứ tự tự nhiên cho Product record.
+// No natural ordering exists for the Product record.
 // products.stream().collect(Collectors.toCollection(TreeSet::new));
 ~~~
 
-`record` tự sinh `equals` và `hashCode`, **không tự triển khai `Comparable`**. Một `TreeSet` dùng natural ordering có thể ném `ClassCastException` khi thêm các đối tượng không thể so sánh. Cách phù hợp là cung cấp `Comparator<Product>` như mục tiếp theo.
+A `record` automatically generates `equals` and `hashCode`, **not `Comparable`**. A `TreeSet` using natural ordering can throw `ClassCastException` when inserting non-comparable objects. The proper approach is to supply a `Comparator<Product>`, as shown in the next section.
 
-## 5. Chỉ định Comparator khi thu thập
+## 5. Specifying a Comparator When Collecting
 
-`TreeSet` có constructor nhận `Comparator<? super E>`. Vì `Collectors.toCollection` cần một supplier, hãy dùng lambda để tạo set kèm comparator:
+`TreeSet` has a constructor taking a `Comparator<? super E>`. Because `Collectors.toCollection` requires a supplier, use a lambda to construct the set with a comparator:
 
 ~~~java
 import java.util.Comparator;
@@ -188,11 +188,11 @@ TreeSet<Integer> descendingScores = scores.stream()
 System.out.println(descendingScores); // [10, 9, 8, 6]
 ~~~
 
-Nếu yêu cầu thứ tự tăng dần cho đối tượng có `Comparable`, có thể dùng `Comparator.naturalOrder()`. Nếu muốn giảm dần, `Comparator.reverseOrder()` là lựa chọn ngắn gọn. Nhưng khi kiểu đối tượng không so sánh được tự nhiên, cần comparator mô tả chính xác các trường sắp xếp.
+If you need ascending order for objects implementing `Comparable`, you can use `Comparator.naturalOrder()`. For descending order, `Comparator.reverseOrder()` is concise. When the object type is not naturally comparable, provide a comparator specifying the exact sort fields.
 
-### 5.1. Sắp xếp đối tượng theo một trường
+### 5.1. Sorting Objects by a Field
 
-Ví dụ mã đầy đủ chạy trên **Java 17+**:
+Complete runnable example on **Java 17+**:
 
 ~~~java
 import java.util.Comparator;
@@ -205,9 +205,9 @@ public class ProductOrderDemo {
 
     public static void main(String[] args) {
         List<Product> products = List.of(
-            new Product("SP03", "Bút",  30_000L),
-            new Product("SP01", "Sổ",  80_000L),
-            new Product("SP02", "Vở",  30_000L)
+            new Product("SP03", "Pen",  30_000L),
+            new Product("SP01", "Notebook",  80_000L),
+            new Product("SP02", "Exercise Book",  30_000L)
         );
 
         Comparator<Product> byPriceThenSku =
@@ -226,7 +226,7 @@ public class ProductOrderDemo {
 }
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 SP02: 30000
@@ -234,11 +234,11 @@ SP03: 30000
 SP01: 80000
 ~~~
 
-`comparingLong(Product::priceVnd)` xếp giá **tăng dần**. Khi hai giá bằng nhau, `thenComparing(Product::sku)` dùng mã sản phẩm để phá hòa, nên `SP02` đứng trước `SP03`.
+`comparingLong(Product::priceVnd)` sorts price in **ascending order**. When two prices are equal, `thenComparing(Product::sku)` uses the product SKU to break ties, so `SP02` precedes `SP03`.
 
-### 5.2. Sắp xếp giảm dần với nhiều tiêu chí
+### 5.2. Descending Sort with Multiple Criteria
 
-Nếu muốn giá giảm dần, cùng giá thì mã tăng dần:
+If you want descending price, and ascending SKU on ties:
 
 ~~~java
 Comparator<Product> byPriceDescThenSku =
@@ -252,17 +252,17 @@ TreeSet<Product> descending = products.stream()
     ));
 ~~~
 
-Đoạn trên dùng kiểu `Product` và biến `products` từ ví dụ trước đó. `reversed()` chỉ đảo comparator được xây đến thời điểm gọi; `thenComparing(Product::sku)` sau đó tiếp tục sắp mã **tăng dần** khi giá bằng nhau.
+The snippet above uses `Product` and `products` from the previous example. `reversed()` only reverses the comparator built up to that point; `thenComparing(Product::sku)` then continues sorting SKUs in **ascending** order when prices tie.
 
-**Tránh viết một phép trừ để so sánh số nguyên**, ví dụ `(a, b) -> (int) (a.priceVnd() - b.priceVnd())`. Phép trừ có thể tràn và ép `long` về `int` làm mất thông tin. `Comparator.comparingLong` và `Long.compare` an toàn hơn cho mục đích so sánh.
+**Avoid subtracting integers to compare them**, such as `(a, b) -> (int) (a.priceVnd() - b.priceVnd())`. Subtraction can overflow, and casting `long` to `int` loses information. `Comparator.comparingLong` and `Long.compare` are safer for comparisons.
 
-## 6. TreeSet loại trùng theo compare() == 0, không đơn thuần theo equals()
+## 6. TreeSet Deduplicates by compare() == 0, Not Simply by equals()
 
-Đây là điểm quan trọng nhất của bài.
+This is the most critical point of the lesson.
 
-Với `Stream.distinct()`, hai đối tượng được xem là trùng theo `equals()` (và cần tuân thủ hợp đồng `hashCode()`). Với `TreeSet`, hai phần tử được xem là trùng khi **comparator trả 0**, hoặc `compareTo` trả 0 nếu dùng thứ tự tự nhiên.
+With `Stream.distinct()`, two objects are considered duplicates by `equals()` (and must obey the `hashCode()` contract). With `TreeSet`, two elements are considered duplicates when **the comparator returns 0**, or `compareTo` returns 0 under natural ordering.
 
-Ví dụ đối với `BigDecimal`:
+Example with `BigDecimal`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -288,11 +288,11 @@ System.out.println(byEquals);        // 3
 System.out.println(byOrdering.size()); // 2
 ~~~
 
-`BigDecimal.equals` còn xét `scale` nên `1.0` và `1.00` khác nhau; `BigDecimal.compareTo` xem chúng có giá trị số bằng nhau. Vì thế `distinct()` giữ cả hai, còn `TreeSet` dùng natural ordering chỉ giữ một đại diện.
+`BigDecimal.equals` also checks `scale`, so `1.0` and `1.00` differ; `BigDecimal.compareTo` considers them numerically equal. Thus `distinct()` keeps both, whereas `TreeSet` using natural ordering keeps only one representative.
 
-### 6.1. Comparator chỉ so sánh giá có thể làm mất bản ghi
+### 6.1. A Price-Only Comparator Can Drop Records
 
-Quay lại `Product`:
+Returning to `Product`:
 
 ~~~java
 Comparator<Product> onlyPrice =
@@ -303,12 +303,12 @@ TreeSet<Product> byPrice = products.stream()
         () -> new TreeSet<>(onlyPrice)
     ));
 
-System.out.println(byPrice.size()); // 2, dù nguồn có 3 sản phẩm
+System.out.println(byPrice.size()); // 2, even though source has 3 products
 ~~~
 
-Hai sản phẩm `SP02` và `SP03` cùng giá 30.000 sẽ được coi là **trùng theo comparator**, dù chúng có mã khác nhau. Nếu mục tiêu là **sắp xếp nhưng giữ cả hai sản phẩm**, cần một comparator phân biệt chúng bằng tiêu chí tiếp theo, chẳng hạn `thenComparing(Product::sku)`.
+Both `SP02` and `SP03` cost 30,000 and are treated as **duplicates by the comparator**, even though they have different SKUs. If the goal is to **sort while keeping both products**, you need a comparator that distinguishes them via a secondary criterion, such as `thenComparing(Product::sku)`.
 
-Nếu cần bảo đảm comparator phân biệt tất cả record `Product` có các thành phần khác nhau, có thể thêm cả `name` làm tie-breaker:
+If you need to guarantee the comparator distinguishes all `Product` records with different components, you can also include `name` as a tie-breaker:
 
 ~~~java
 Comparator<Product> byPriceSkuName =
@@ -317,23 +317,23 @@ Comparator<Product> byPriceSkuName =
         .thenComparing(Product::name);
 ~~~
 
-Trong ví dụ với các trường khác null, comparator này phân biệt theo cả ba trường của record, phù hợp hơn với `equals` mặc định của record.
+In the example with non-null fields, this comparator distinguishes by all three record fields, aligning more closely with the record's default `equals`.
 
-### 6.2. Comparator nhất quán với equals nghĩa là gì?
+### 6.2. What Does a Comparator Consistent with equals Mean?
 
-Một comparator **nhất quán với equals** khi `compare(a, b) == 0` tương đương `a.equals(b)` cho các đối tượng liên quan. Đây là tính chất **nên có** nếu muốn `TreeSet` tuân thủ đầy đủ kỳ vọng chung của `Set` về bình đẳng.
+A comparator is **consistent with equals** when `compare(a, b) == 0` is equivalent to `a.equals(b)` for the relevant objects. This is a **recommended property** if you want `TreeSet` to fully uphold the general `Set` expectations for equality.
 
-Nếu comparator không nhất quán với `equals`, `TreeSet` vẫn có hành vi xác định theo quy tắc sắp xếp, nhưng có thể **không tuân thủ hợp đồng chung của `Set` về equality**. Điều này dễ gây bất ngờ khi kết hợp tập với các API dùng `equals` và `hashCode`.
+If a comparator is inconsistent with `equals`, `TreeSet` still behaves deterministically per its sorting rule, but may **violate the general `Set` contract for equality**. This easily leads to surprises when combining the set with APIs that use `equals` and `hashCode`.
 
-Hãy chọn comparator theo **mục tiêu nghiệp vụ**:
+Choose the comparator according to **business goals**:
 
-- Nếu cần tập các **sản phẩm duy nhất** và xếp theo giá: comparator nên có các tie-breaker để phân biệt các sản phẩm khác nhau.
-- Nếu cần **các mức giá duy nhất**: nên ánh xạ sang `priceVnd` trước, rồi thu `TreeSet<Long>`.
-- Nếu cần **một sản phẩm đại diện cho mỗi mã**, hãy xác định quy tắc chọn đại diện, rồi thu theo mã với cách xử lý trùng minh bạch.
+- If you need a set of **unique products** sorted by price: the comparator should have tie-breakers to distinguish different products.
+- If you need **unique price levels**: map to `priceVnd` first, then collect `TreeSet<Long>`.
+- If you need **one representative product per code**, define the representative-selection rule explicitly, then collect by code with transparent duplicate handling.
 
-Không nên chọn comparator chỉ theo một trường rồi vô tình loại bỏ dữ liệu ở những trường khác.
+Do not pick a comparator on a single field and accidentally discard records that differ in other fields.
 
-### 6.3. Chuỗi không phân biệt chữ hoa/thường
+### 6.3. Case-Insensitive Strings
 
 ~~~java
 import java.util.List;
@@ -347,16 +347,16 @@ TreeSet<String> caseInsensitive = languages.stream()
         () -> new TreeSet<>(String.CASE_INSENSITIVE_ORDER)
     ));
 
-System.out.println(caseInsensitive); // [Java, Kotlin] trong ví dụ tuần tự
+System.out.println(caseInsensitive); // [Java, Kotlin] in sequential example
 ~~~
 
-`String.CASE_INSENSITIVE_ORDER` xem `"Java"` và `"java"` tương đương để sắp xếp và khử trùng. Trong pipeline tuần tự có thứ tự như trên, đại diện được thêm đầu tiên trong nhóm là `"Java"`. Với nguồn unordered hoặc khi cần chọn một bản ghi cụ thể theo chính sách, nên **chuẩn hóa dữ liệu hoặc thiết kế quy tắc chọn đại diện riêng**, thay vì trông chờ vào hình thức chữ hoa/thường được giữ.
+`String.CASE_INSENSITIVE_ORDER` treats `"Java"` and `"java"` as equivalent for sorting and deduplication. In an ordered sequential pipeline like above, the first representative added in the group is `"Java"`. With unordered sources or when a specific record must be chosen by policy, **normalize the data or design a dedicated representative-selection rule** rather than relying on which casing happens to be kept.
 
-Nếu mục tiêu là **mã kỹ thuật thống nhất**, việc `map(value -> value.toLowerCase(Locale.ROOT))` trước khi thu vào `TreeSet` thường rõ nghĩa hơn so với chỉ dùng comparator không phân biệt chữ hoa/thường.
+If the goal is **canonical technical codes**, calling `map(value -> value.toLowerCase(Locale.ROOT))` before collecting into a `TreeSet` is usually clearer than relying solely on a case-insensitive comparator.
 
-## 7. Chuẩn hóa và lọc dữ liệu trước khi thu thập
+## 7. Normalizing and Filtering Data Before Collecting
 
-Giả sử dữ liệu người dùng có `null`, khoảng trắng và giá trị rỗng. Pipeline nên xác định bước chuẩn hóa trước khi thu thập:
+Suppose user input contains `null`, whitespace, and empty values. The pipeline should define normalization steps before collecting:
 
 ~~~java
 import java.util.Arrays;
@@ -383,32 +383,32 @@ public class NormalizedTreeSetDemo {
 }
 ~~~
 
-Thứ tự bước có lý do:
+The step order has a purpose:
 
-1. `filter(Objects::nonNull)` loại `null` trước khi gọi `trim`.
-2. `map(String::trim)` xóa khoảng trắng đầu/cuối.
-3. `filter(s -> !s.isEmpty())` bỏ các giá trị sau chuẩn hóa trở thành rỗng.
-4. `toLowerCase(Locale.ROOT)` thống nhất cách ghi mã theo quy tắc kỹ thuật.
-5. `collect(toCollection(TreeSet::new))` tạo tập được sắp xếp và không trùng.
+1. `filter(Objects::nonNull)` removes `null` before calling `trim`.
+2. `map(String::trim)` strips leading/trailing whitespace.
+3. `filter(s -> !s.isEmpty())` discards values that become empty after normalization.
+4. `toLowerCase(Locale.ROOT)` standardizes code casing according to technical rules.
+5. `collect(toCollection(TreeSet::new))` creates a sorted, deduplicated set.
 
-`TreeSet` ở đây khử trùng theo **chuỗi đã chuẩn hóa**. Nếu ta thu tập trước khi chuẩn hóa, các chuỗi gốc có thể được xem là khác nhau, và quy tắc yêu cầu sẽ không được đáp ứng.
+Here `TreeSet` deduplicates based on the **normalized strings**. If we collected before normalizing, the raw strings might be treated as distinct, failing to meet the requirement.
 
-Lưu ý: ví dụ chỉ đưa ra quy tắc chuẩn hóa mã kỹ thuật. Với họ tên, văn bản tiếng Việt, hoặc từ khóa đa ngôn ngữ, quy tắc collation/Unicode cần được xác định theo ngữ cảnh thay vì mặc định dùng `String.compareTo`.
+Note: this example only shows technical code normalization rules. For personal names, Vietnamese text, or multilingual keywords, collation/Unicode rules must be defined by context instead of defaulting to `String.compareTo`.
 
-## 8. Khi nào không nên dùng TreeSet?
+## 8. When Should You Not Use TreeSet?
 
-Có những nhu cầu trông giống “thu thập có thứ tự” nhưng thực ra cần kiểu Collection khác.
+Some requirements look like "ordered collection" but actually call for a different Collection type.
 
-| Nhu cầu thực tế | Cách tiếp cận | Lý do |
+| Practical need | Approach | Reason |
 |---|---|---|
-| Cần tất cả phần tử, kể cả trùng, được sắp xếp | `stream.sorted(comparator).collect(toList())` | `List` giữ các phần tử trùng |
-| Cần duy nhất theo `equals`, không quan tâm thứ tự | `collect(toSet())` | Không đòi hỏi cấu trúc cây |
-| Cần duy nhất theo `equals`, giữ **thứ tự xuất hiện** | `collect(toCollection(LinkedHashSet::new))` | `LinkedHashSet` dựa trên băm và thứ tự chèn |
-| Cần duy nhất theo comparator, luôn duyệt theo thứ tự sắp xếp | `collect(toCollection(() -> new TreeSet<>(comparator)))` | `TreeSet` kết hợp sắp xếp và khử trùng theo comparator |
-| Cần giữ bản ghi “tốt nhất” theo khóa nghiệp vụ | Collector vào `Map` với merge function rõ ràng | Có thể điều khiển chính sách chọn đại diện |
-| Chỉ cần vài kết quả đầu theo thứ tự tính toán | Xem xét `sorted` + `limit` hoặc thuật toán top-k chuyên dụng | Tránh lưu cả tập nếu không cần |
+| Need all elements, including duplicates, sorted | `stream.sorted(comparator).collect(toList())` | `List` retains duplicate elements |
+| Need unique elements per `equals`, order does not matter | `collect(toSet())` | Does not require a tree structure |
+| Need unique elements per `equals`, preserving **appearance order** | `collect(toCollection(LinkedHashSet::new))` | `LinkedHashSet` is hash-based and preserves insertion order |
+| Need unique elements per comparator, always iterated sorted | `collect(toCollection(() -> new TreeSet<>(comparator)))` | `TreeSet` combines comparator-based sorting and deduplication |
+| Need to keep the "best" record per business key | Collect into `Map` with an explicit merge function | Allows controlling representative-selection policy |
+| Only need the first few results in computed order | Consider `sorted` + `limit` or a dedicated top-k algorithm | Avoids storing the whole set unnecessarily |
 
-Ví dụ so sánh trực tiếp:
+Direct comparison example:
 
 ~~~java
 import java.util.LinkedHashSet;
@@ -432,9 +432,9 @@ TreeSet<Integer> naturalOrder = input.stream()
 // [1, 2, 3]
 ~~~
 
-`LinkedHashSet` giữ thứ tự chèn đầu tiên; `TreeSet` duyệt theo thứ tự của comparator. Hai tập có thể cùng số phần tử nhưng khác cách sắp xếp và **khác quy tắc xét trùng** khi kiểu dữ liệu có sự khác biệt giữa `equals` và comparator.
+`LinkedHashSet` keeps first-insertion order; `TreeSet` iterates according to the comparator. Two sets may have the same element count yet differ in ordering and **differ in duplicate semantics** when the data type exhibits a discrepancy between `equals` and the comparator.
 
-Một phương án khác để vừa sort vừa loại trùng theo `equals` là:
+Another option to both sort and deduplicate by `equals` is:
 
 ~~~java
 LinkedHashSet<Integer> sortedUniqueByEquals = input.stream()
@@ -443,11 +443,11 @@ LinkedHashSet<Integer> sortedUniqueByEquals = input.stream()
 // [1, 2, 3]
 ~~~
 
-Cách này phù hợp khi tính bình đẳng phải dựa trên `equals` và thứ tự cần dựa trên `sorted`. Khi comparator không nhất quán với `equals`, kết quả có thể khác cách thu vào `TreeSet`.
+This approach fits when equality must rely on `equals` while ordering must rely on `sorted`. When a comparator is inconsistent with `equals`, the result can differ from collecting into a `TreeSet`.
 
-## 9. Dùng TreeSet như NavigableSet sau collect
+## 9. Using TreeSet as a NavigableSet After collect
 
-Ưu điểm của `TreeSet` không dừng ở việc in theo thứ tự. Nó còn hỗ trợ tìm giá trị gần một mốc.
+The benefit of `TreeSet` does not stop at sorted printing. It also supports finding values near a threshold.
 
 ~~~java
 import java.util.List;
@@ -459,25 +459,25 @@ TreeSet<Integer> thresholds = List.of(10, 20, 30, 40).stream()
 
 System.out.println(thresholds.first());      // 10
 System.out.println(thresholds.last());       // 40
-System.out.println(thresholds.lower(20));    // 10: nhỏ hơn 20
-System.out.println(thresholds.floor(20));    // 20: nhỏ hơn hoặc bằng 20
-System.out.println(thresholds.ceiling(25));  // 30: lớn hơn hoặc bằng 25
-System.out.println(thresholds.higher(30));   // 40: lớn hơn 30
+System.out.println(thresholds.lower(20));    // 10: less than 20
+System.out.println(thresholds.floor(20));    // 20: less than or equal to 20
+System.out.println(thresholds.ceiling(25));  // 30: greater than or equal to 25
+System.out.println(thresholds.higher(30));   // 40: greater than 30
 ~~~
 
-Bảng các phép điều hướng:
+Navigation methods table:
 
-| Phương thức | Ý nghĩa khi dùng thứ tự tăng dần |
+| Method | Meaning under ascending order |
 |---|---|
-| `lower(x)` | Phần tử lớn nhất **nhỏ hơn** `x` |
-| `floor(x)` | Phần tử lớn nhất **nhỏ hơn hoặc bằng** `x` |
-| `ceiling(x)` | Phần tử nhỏ nhất **lớn hơn hoặc bằng** `x` |
-| `higher(x)` | Phần tử nhỏ nhất **lớn hơn** `x` |
-| `first()` / `last()` | Phần tử đầu/cuối theo comparator |
-| `descendingSet()` | View duyệt theo thứ tự ngược |
-| `headSet` / `tailSet` / `subSet` | View đại diện cho các khoảng của tập |
+| `lower(x)` | Greatest element **strictly less than** `x` |
+| `floor(x)` | Greatest element **less than or equal to** `x` |
+| `ceiling(x)` | Least element **greater than or equal to** `x` |
+| `higher(x)` | Least element **strictly greater than** `x` |
+| `first()` / `last()` | First/last element per comparator |
+| `descendingSet()` | View iterating in reverse order |
+| `headSet` / `tailSet` / `subSet` | Views representing ranges of the set |
 
-Ví dụ lấy tập con:
+Subset examples:
 
 ~~~java
 System.out.println(thresholds.headSet(30));    // [10, 20]
@@ -486,15 +486,15 @@ System.out.println(thresholds.subSet(20, 40)); // [20, 30]
 System.out.println(thresholds.descendingSet());// [40, 30, 20, 10]
 ~~~
 
-Trong các overload hai tham số trên, `headSet(to)` và `subSet(from, to)` **loại ranh giới trên**, còn `tailSet(from)` **bao gồm ranh giới dưới**. Các overload khác có thể nhận cờ boolean để chỉ rõ có bao gồm ranh giới hay không.
+In the two-argument / single-argument overloads above, `headSet(to)` and `subSet(from, to)` **exclude the upper bound**, while `tailSet(from)` **includes the lower bound**. Other overloads accept boolean flags to specify whether bounds are inclusive.
 
-**Cẩn thận:** nhiều phép lấy tập con hoặc `descendingSet()` trả về **view liên kết với TreeSet gốc**, không phải bản sao độc lập. Nếu sửa view, thay đổi có thể phản ánh lên tập gốc và ngược lại. Nếu muốn một snapshot, cần sao chép các phần tử.
+**Be careful:** many subset methods and `descendingSet()` return **views backed by the original TreeSet**, not independent copies. Modifying the view can reflect on the original set and vice versa. If you want a snapshot, copy the elements.
 
-### 9.1. Tập rỗng và null trong kết quả điều hướng
+### 9.1. Empty Sets and null in Navigation Results
 
-Với `TreeSet` rỗng, `first()` và `last()` ném `NoSuchElementException`. Các phép như `lower`, `floor`, `ceiling` và `higher` có thể trả `null` khi không có phần tử phù hợp, nhưng `null` cũng có thể là phần tử hợp lệ nếu comparator cho phép nó; do đó cần quy tắc dữ liệu phù hợp.
+On an empty `TreeSet`, `first()` and `last()` throw `NoSuchElementException`. Methods such as `lower`, `floor`, `ceiling`, and `higher` may return `null` when no matching element exists, yet `null` could also be a valid element if the comparator allows it; hence appropriate data rules are needed.
 
-Nếu chỉ muốn xem tập có phần tử hay không:
+If you only want to check whether the set has elements:
 
 ~~~java
 TreeSet<Integer> empty = java.util.stream.Stream.<Integer>empty()
@@ -505,9 +505,9 @@ if (!empty.isEmpty()) {
 }
 ~~~
 
-## 10. Xử lý null và Comparator phù hợp
+## 10. Handling null and Appropriate Comparators
 
-Với `TreeSet` sử dụng thứ tự tự nhiên, việc thêm `null` thường gây `NullPointerException`. Khi dữ liệu từ nguồn có thể chứa null, cách thường dùng là **lọc bỏ null** trước khi thu:
+With a `TreeSet` using natural ordering, inserting `null` typically causes `NullPointerException`. When source data may contain null, the usual approach is to **filter out null** before collecting:
 
 ~~~java
 import java.util.Arrays;
@@ -523,7 +523,7 @@ TreeSet<String> safe = Arrays.asList("Kotlin", null, "Java")
 System.out.println(safe); // [Java, Kotlin]
 ~~~
 
-Nếu nghiệp vụ **cần giữ null như một phần tử riêng**, bạn có thể dùng comparator hỗ trợ null:
+If business logic **requires keeping null as a distinct element**, you can use a null-safe comparator:
 
 ~~~java
 import java.util.Arrays;
@@ -543,15 +543,15 @@ TreeSet<String> withNull = Arrays.asList("Kotlin", null, "Java")
 System.out.println(withNull); // [null, Java, Kotlin]
 ~~~
 
-`Comparator.nullsFirst` đặt null trước các giá trị không null, đồng thời chỉ giữ **một null** vì hai null được comparator xem là bằng nhau. Nếu dùng `nullsLast`, null sẽ đứng cuối.
+`Comparator.nullsFirst` places null before non-null values and retains only **one null** because two nulls compare equal under the comparator. Using `nullsLast` puts null at the end.
 
-Việc cho phép null trong tập có thể khiến một số xử lý điều hướng hoặc nghiệp vụ khó phân biệt “không tìm thấy” với “phần tử null”. Trong hệ thống cần mô tả dữ liệu thiếu rõ ràng, cân nhắc chuẩn hóa đầu vào hoặc dùng kiểu trạng thái thay vì giữ null như một giá trị tập.
+Allowing null in a set can make some navigation operations or business logic hard to distinguish between "not found" and "the null element". In systems needing explicit representation of missing data, consider normalizing inputs or using a status type instead of storing null as a set member.
 
-## 11. Tránh thay đổi trường dùng để so sánh khi đối tượng đã nằm trong TreeSet
+## 11. Avoid Mutating Comparison Fields While an Object Is in a TreeSet
 
-Một `TreeSet` dựa vào quan hệ thứ tự của các phần tử để tổ chức cây. Nếu bạn thay đổi các trường dùng trong comparator **sau khi đã thêm đối tượng**, cấu trúc cây có thể không còn phù hợp với thứ tự mới.
+A `TreeSet` relies on the ordering relationship of elements to organize its tree. If you mutate fields used by the comparator **after adding the object**, the tree structure may no longer match the new ordering.
 
-Ví dụ thiết kế không an toàn:
+Unsafe design example:
 
 ~~~java
 class MutableScore {
@@ -573,21 +573,21 @@ TreeSet<MutableScore> ranking = java.util.stream.Stream.of(
         () -> new TreeSet<>(byScore)
     ));
 
-// Không nên thay đổi score của một phần tử đang nằm trong ranking.
+// Do not mutate score of an element already inside ranking.
 // ranking.first().score = 99;
 ~~~
 
-Khi giá trị khóa so sánh đổi, các thao tác `contains`, `remove`, `first` hoặc việc thêm tiếp phần tử có thể không cho kết quả như mong đợi. Đây là lỗi **mutable key**, tương tự rủi ro thay đổi trường ảnh hưởng `hashCode` khi đối tượng nằm trong `HashSet`.
+When the comparison key changes, `contains`, `remove`, `first`, or subsequent insertions may not behave as expected. This is the **mutable key** bug, similar to mutating a field affecting `hashCode` while the object is inside a `HashSet`.
 
-Cách thực hành an toàn:
+Safe practices:
 
-- Ưu tiên **record** hoặc đối tượng có trường sắp xếp bất biến.
-- Nếu thuộc tính sắp xếp thay đổi, **loại phần tử khỏi tập, cập nhật rồi thêm lại** theo thiết kế phù hợp, hoặc tạo tập mới từ dữ liệu đã cập nhật.
-- Comparator nên nhất quán theo thời gian trong lúc một TreeSet đang sử dụng nó; tránh phụ thuộc trạng thái ngoài biến đổi.
+- Prefer **records** or objects with immutable sort fields.
+- If a sort attribute changes, **remove the element from the set, update it, and re-insert it** per proper design, or build a new set from updated data.
+- The comparator should remain consistent over time while a TreeSet uses it; avoid depending on mutable external state.
 
-## 12. Thu thập song song và yêu cầu về tính đúng đắn
+## 12. Parallel Collection and Correctness Requirements
 
-`Collectors.toCollection(TreeSet::new)` không phải collector `CONCURRENT`. Nhưng vẫn có thể dùng trong `parallelStream()` vì framework có thể tạo **nhiều TreeSet độc lập** rồi kết hợp chúng:
+`Collectors.toCollection(TreeSet::new)` is not a `CONCURRENT` collector. Yet it can still be used in `parallelStream()` because the framework can create **multiple independent TreeSets** and combine them:
 
 ~~~java
 import java.util.List;
@@ -602,58 +602,58 @@ TreeSet<Integer> result = values.parallelStream()
 System.out.println(result); // [1, 3, 5, 7, 9]
 ~~~
 
-Trong ví dụ này, tính đúng đắn dựa vào luật thứ tự tự nhiên của `Integer` và cơ chế collector, không phụ thuộc thứ tự thread hoàn thành. Tuy nhiên, `TreeSet` **không thread-safe** khi nhiều thread tự ý cập nhật cùng một đối tượng tập bên ngoài pipeline.
+In this example, correctness relies on the natural ordering rule of `Integer` and the collector mechanism, independent of thread completion order. However, `TreeSet` is **not thread-safe** when multiple threads directly mutate the same set object outside the pipeline.
 
-Đoạn không nên sử dụng:
+Snippet to avoid:
 
 ~~~java
 TreeSet<Integer> shared = new TreeSet<>();
 
-// Nguy hiểm: nhiều thread cùng sửa shared.
+// Dangerous: multiple threads mutating shared concurrently.
 // values.parallelStream().forEach(shared::add);
 ~~~
 
-Tương tự, **supplier** trong `toCollection` phải tạo collection mới khi được gọi. Trả về một `TreeSet` dùng chung từ biến ngoài sẽ phá hỏng cơ chế tích lũy độc lập của collector.
+Similarly, the **supplier** in `toCollection` must create a new collection each time it is called. Returning a shared `TreeSet` from an outer variable breaks the collector's independent accumulation mechanism.
 
-### 12.1. Comparator cần thuần và nhất quán
+### 12.1. The Comparator Must Be Pure and Consistent
 
-Comparator không nên:
+A comparator must not:
 
-- Dựa trên biến đếm tăng dần, thời gian hiện tại hoặc giá trị ngẫu nhiên.
-- Thay đổi kết quả so sánh trong quá trình xây set.
-- Có tác dụng phụ làm thay đổi nguồn hay phần tử khi đang được xét.
+- Depend on an incrementing counter, current time, or random values.
+- Change comparison outcomes while building the set.
+- Have side effects that mutate the source or elements while they are being compared.
 
-Nếu cùng hai đối tượng được so sánh lại mà thứ tự thay đổi, cấu trúc cây có thể mất tính nhất quán; với xử lý song song, lỗi có thể càng khó tái hiện.
+If the same two objects are compared again and their relative order changes, the tree structure can become inconsistent; with parallel processing, bugs become even harder to reproduce.
 
-### 12.2. Không mặc định parallel nhanh hơn
+### 12.2. Do Not Assume Parallel Is Faster
 
-Khi kết hợp TreeSet từ các nhánh, framework có thể phải thêm phần tử của nhánh này vào set nhánh khác, phát sinh chi phí so sánh và cân bằng cây. Với tập nhỏ, xử lý tuần tự thường đơn giản hơn. Với tập lớn, cần đo thời gian, cấp phát bộ nhớ, chi phí comparator và số lượng giá trị duy nhất trên môi trường thật trước khi quyết định.
+When merging TreeSets from branches, the framework may have to insert elements from one branch into another branch's set, incurring comparison and tree-balancing costs. For small sets, sequential execution is usually simpler. For large sets, measure timing, memory allocation, comparator cost, and number of unique values in a real environment before deciding.
 
-## 13. Độ phức tạp, bộ nhớ và nguồn vô hạn
+## 13. Complexity, Memory, and Infinite Sources
 
-`TreeSet` dựa trên cấu trúc cây cân bằng, nên các thao tác cơ bản `add`, `remove` và `contains` có độ phức tạp **O(log k)** đối với `k` phần tử hiện có. Khi thu thập `n` phần tử vào TreeSet có `k` giá trị khác nhau, chi phí thường được nhìn như **O(n log k)**, tùy chi phí comparator. Bộ nhớ giữ lại dữ liệu kết quả tăng theo số phần tử duy nhất.
+`TreeSet` is backed by a balanced tree structure, so basic operations `add`, `remove`, and `contains` have **O(log k)** complexity for `k` current elements. When collecting `n` elements into a TreeSet with `k` distinct values, the cost is typically viewed as **O(n log k)**, depending on comparator cost. Memory retained by the result grows with the number of unique elements.
 
-So sánh định hướng:
+Comparison overview:
 
-| Phương án | Tính chất kết quả | Chi phí đáng lưu ý |
+| Option | Result properties | Notable costs |
 |---|---|---|
-| `collect(toSet())` | Không trùng theo `equals/hashCode`; không bảo đảm thứ tự | Thường thuận lợi cho bài toán không cần sắp xếp |
-| `sorted().collect(toList())` | Có thứ tự, giữ phần tử trùng | Cần tổ chức việc sắp xếp và giữ toàn bộ phần tử đầu ra |
-| `collect(toCollection(TreeSet::new))` | Có thứ tự theo comparator và loại trùng theo so sánh | Chi phí chèn vào cây và lưu các giá trị khác nhau |
-| `sorted().collect(toCollection(LinkedHashSet::new))` | Sắp xếp trước, rồi khử trùng theo `equals/hashCode` | Chi phí sắp xếp cùng cơ chế băm và chèn |
+| `collect(toSet())` | Unique per `equals/hashCode`; order not guaranteed | Often favorable when sorting is unnecessary |
+| `sorted().collect(toList())` | Ordered, retains duplicates | Must sort and retain all output elements |
+| `collect(toCollection(TreeSet::new))` | Ordered per comparator and deduplicated by comparison | Tree insertion cost and storing distinct values |
+| `sorted().collect(toCollection(LinkedHashSet::new))` | Sort first, then deduplicate by `equals/hashCode` | Sorting cost plus hashing and insertion structures |
 
-Không có phương án nào luôn tối ưu. Nếu chỉ cần **phần tử nhỏ nhất**, `stream.min(comparator)` có thể phù hợp hơn nhiều so với việc thu cả nguồn thành TreeSet chỉ để gọi `first()`. Nếu chỉ cần **một vài phần tử nhỏ nhất**, hãy cân nhắc yêu cầu dữ liệu, độ lớn và thuật toán top-k phù hợp.
+No option is universally optimal. If you only need the **minimum element**, `stream.min(comparator)` can be much better than collecting the whole source into a TreeSet just to call `first()`. If you only need the **first few smallest elements**, consider data requirements, scale, and an appropriate top-k algorithm.
 
-### 13.1. Thu toàn bộ một nguồn vô hạn sẽ không kết thúc
+### 13.1. Collecting an Entire Infinite Source Will Not Terminate
 
 ~~~java
-// Không chạy: nguồn vô hạn, thu toàn bộ vào TreeSet.
+// Do not run: infinite source, collecting everything into a TreeSet.
 // java.util.stream.IntStream.iterate(0, n -> n + 1)
 //     .boxed()
 //     .collect(Collectors.toCollection(TreeSet::new));
 ~~~
 
-Khi cần xử lý nguồn không giới hạn, phải có **điều kiện dừng** hoặc **giới hạn hữu hạn** trước terminal operation:
+When processing an unbounded source, there must be a **stopping condition** or **finite limit** before the terminal operation:
 
 ~~~java
 TreeSet<Integer> firstFive = java.util.stream.IntStream
@@ -665,21 +665,21 @@ TreeSet<Integer> firstFive = java.util.stream.IntStream
 System.out.println(firstFive); // [0, 1, 2, 3, 4]
 ~~~
 
-`limit(5)` bảo đảm chỉ lấy năm phần tử từ nguồn `iterate` tuần tự này. Lưu ý `sorted()` hoặc `distinct()` có thể cần trạng thái và tăng chi phí xử lý; đặt giới hạn sai vị trí có thể làm pipeline không kết thúc hoặc thay đổi kết quả.
+`limit(5)` ensures only five elements are taken from this sequential `iterate` source. Note that `sorted()` or `distinct()` may require state and increase processing cost; placing a limit in the wrong position can prevent termination or alter results.
 
-## 14. Tạo tập kết quả không cho phép sửa
+## 14. Creating an Unmodifiable Result Set
 
-`TreeSet` kết quả từ collector là **mutable**:
+A `TreeSet` returned from the collector is **mutable**:
 
 ~~~java
 TreeSet<String> languages = java.util.stream.Stream
     .of("Java", "Go", "Kotlin")
     .collect(Collectors.toCollection(TreeSet::new));
 
-languages.add("Scala"); // Hợp lệ.
+languages.add("Scala"); // Valid.
 ~~~
 
-Nếu ứng dụng cần công bố tập để người gọi chỉ đọc, có thể tạo một snapshot và dùng wrapper không cho phép sửa:
+If the application needs to publish a read-only set to callers, create a snapshot and wrap it with an unmodifiable wrapper:
 
 ~~~java
 import java.util.Collections;
@@ -689,20 +689,20 @@ import java.util.TreeSet;
 SortedSet<String> snapshot =
     Collections.unmodifiableSortedSet(new TreeSet<>(languages));
 
-// snapshot.add("Rust"); // Ném UnsupportedOperationException.
+// snapshot.add("Rust"); // Throws UnsupportedOperationException.
 ~~~
 
-`new TreeSet<>(languages)` tạo **bản sao hiện tại**; `unmodifiableSortedSet` chặn các thao tác sửa qua wrapper. Nếu chỉ bao một `TreeSet` gốc mà không sao chép, wrapper vẫn là **view** và có thể phản ánh thay đổi từ nơi khác nắm tham chiếu đến set gốc.
+`new TreeSet<>(languages)` creates a **copy of the current state**; `unmodifiableSortedSet` blocks modifications through the wrapper. If you merely wrap the original `TreeSet` without copying, the wrapper remains a **view** and can reflect changes made elsewhere holding a reference to the original set.
 
-Không nhầm điều này với `Collectors.toUnmodifiableSet()`: collector đó tạo set không thể sửa nhưng **không cam kết thứ tự sắp xếp hoặc loại triển khai TreeSet**.
+Do not confuse this with `Collectors.toUnmodifiableSet()`: that collector produces an unmodifiable set, but **does not promise sorted order or a TreeSet implementation**.
 
-## 15. Bài thực hành: danh mục giá sản phẩm
+## 15. Practice Exercise: Product Price Catalog
 
-Một cửa hàng cần lấy **các mức giá bán khác nhau theo thứ tự tăng dần** từ danh sách sản phẩm. Các giá âm là dữ liệu nhập sai nên phải bị loại; đồng thời cần tìm mức giá gần nhất **không nhỏ hơn 50.000 đồng**.
+A store needs to retrieve **distinct selling prices in ascending order** from a product list. Negative prices are invalid entries and must be excluded; additionally, it needs to find the closest price **not less than 50,000 VND**.
 
-**Yêu cầu:** xây pipeline khai báo dùng `filter`, `mapToLong` hoặc `map`, và `Collectors.toCollection`. Không dùng `forEach(sharedSet::add)`.
+**Requirement:** build a declarative pipeline using `filter`, `mapToLong` or `map`, and `Collectors.toCollection`. Do not use `forEach(sharedSet::add)`.
 
-Lời giải tham khảo (Java 17+):
+Reference solution (Java 17+):
 
 ~~~java
 import java.util.Comparator;
@@ -742,24 +742,24 @@ public class PriceLevelsPractice {
 }
 ~~~
 
-Trong bài này, `map(Product::priceVnd)` chuyển sản phẩm thành **mức giá**, sau đó `TreeSet<Long>` tự loại các mức giá trùng. Điều này diễn đạt đúng yêu cầu “mức giá khác nhau”. Nếu thu thẳng `Product` vào TreeSet theo giá, các sản phẩm khác nhau có cùng giá sẽ bị gộp, gây mất thông tin sản phẩm.
+In this exercise, `map(Product::priceVnd)` converts products into **price levels**, and then `TreeSet<Long>` automatically deduplicates prices. This accurately expresses the requirement "distinct price levels". Collecting `Product` directly into a TreeSet sorted by price would merge different products that share the same price, losing product information.
 
-**Tự kiểm tra:**
+**Self-Check:**
 
-1. `Collectors.toSet()` có bảo đảm tạo `TreeSet` không? — **Không**.
-2. `stream.sorted().collect(toList())` có loại phần tử trùng không? — **Không**.
-3. `TreeSet` dùng gì để xem hai phần tử là trùng? — **Kết quả so sánh bằng 0** của comparator hoặc `compareTo`.
-4. Vì sao `new TreeSet<Product>()` có thể lỗi với record `Product` không có comparator? — Record **không mặc định triển khai `Comparable`**.
-5. Khi nào cần `thenComparing`? — Khi comparator chính có thể xem các đối tượng khác nhau là đồng hạng nhưng nghiệp vụ phải giữ chúng tách biệt.
-6. `TreeSet` dùng natural order có tự chấp nhận `null` không? — **Không nên dựa vào điều đó**; lọc null hoặc dùng comparator hỗ trợ null theo chủ đích.
-7. `TreeSet` từ `collect` có thể gọi `add` sau khi thu không? — **Có**, nó là collection mutable.
-8. Có nên thay đổi trường dùng để so sánh của phần tử đang nằm trong TreeSet không? — **Không**, vì có thể làm hỏng quan hệ thứ tự của cây.
-9. Có thể dùng `parallelStream().collect(toCollection(TreeSet::new))` không? — **Có**, nếu collector và comparator tuân thủ hợp đồng; không suy ra rằng kết quả sẽ chạy nhanh hơn.
+1. Does `Collectors.toSet()` guarantee creating a `TreeSet`? — **No**.
+2. Does `stream.sorted().collect(toList())` remove duplicate elements? — **No**.
+3. What does `TreeSet` use to treat two elements as duplicates? — **Comparison returning 0** from the comparator or `compareTo`.
+4. Why can `new TreeSet<Product>()` fail for a `Product` record without a comparator? — Records **do not implement `Comparable` by default**.
+5. When is `thenComparing` needed? — When the primary comparator may treat distinct objects as tied while business rules require keeping them separate.
+6. Does a `TreeSet` using natural order automatically accept `null`? — **Do not rely on that**; filter out null or intentionally use a null-supporting comparator.
+7. Can `add` be called on a `TreeSet` returned from `collect`? — **Yes**, it is a mutable collection.
+8. Should you mutate the comparison field of an element already inside a TreeSet? — **No**, as it can corrupt the tree's ordering invariant.
+9. Can `parallelStream().collect(toCollection(TreeSet::new))` be used? — **Yes**, provided the collector and comparator obey their contracts; do not infer that it will run faster.
 
-## 16. Ghi nhớ khi chọn TreeSet trong Java Stream API
+## 16. Key Takeaways When Choosing TreeSet in Java Stream API
 
-**`collect(Collectors.toCollection(TreeSet::new))`** là cách rõ ràng để thu các phần tử thành một tập **được sắp xếp** và **không trùng theo phép so sánh**. Khi cần thứ tự khác tự nhiên, cung cấp `Comparator` trong supplier: `() -> new TreeSet<>(comparator)`.
+**`collect(Collectors.toCollection(TreeSet::new))`** is the explicit way to collect elements into a set that is **sorted** and **deduplicated by comparison**. When a non-natural order is needed, provide a `Comparator` inside the supplier: `() -> new TreeSet<>(comparator)`.
 
-Trước khi chọn TreeSet, cần trả lời ba câu hỏi: **dữ liệu có thực sự cần sắp xếp không**, **“trùng” được định nghĩa theo `equals` hay theo comparator**, và **có cần giữ các bản ghi khác nhau nhưng trùng một trường sắp xếp hay không**. Nếu cần giữ tất cả phần tử, hãy dùng `sorted` với `List`; nếu cần thứ tự xuất hiện và equality, cân nhắc `LinkedHashSet`; nếu cần chọn đại diện theo khóa, định nghĩa quy tắc riêng bằng collector.
+Before choosing TreeSet, answer three questions: **does the data truly need sorting**, **is "duplicate" defined by `equals` or by the comparator**, and **do distinct records sharing a sort field need to be kept**? If all elements must be retained, use `sorted` with a `List`; if appearance order and equality are needed, consider `LinkedHashSet`; if selecting a representative per key is needed, define an explicit rule with a collector.
 
-Cuối cùng, hãy đảm bảo **comparator nhất quán**, **trường so sánh ổn định**, **nguồn dữ liệu có giới hạn phù hợp**, và **không chia sẻ TreeSet mutable thiếu đồng bộ**. Những nguyên tắc này giúp sử dụng Stream API an toàn khi mở rộng sang grouping, collector tùy chỉnh, `Spliterator`, xử lý song song và Stream Gatherers.
+Finally, ensure **a consistent comparator**, **stable comparison fields**, **appropriately bounded data sources**, and **never share an unsynchronized mutable TreeSet**. These principles ensure safe Stream API usage when scaling to grouping, custom collectors, `Spliterator`, parallel processing, and Stream Gatherers.

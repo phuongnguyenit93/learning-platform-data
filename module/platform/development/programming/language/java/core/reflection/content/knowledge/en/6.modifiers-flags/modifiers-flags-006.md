@@ -1,31 +1,31 @@
-# `isSynthetic()` và các cấu trúc do trình biên dịch sinh trong Java Reflection
+# `isSynthetic()` and Compiler-Generated Structures in Java Reflection
 
-## 1. `synthetic` nghĩa là gì?
+## 1. What does `synthetic` mean?
 
-Khi biên dịch Java, trình biên dịch đôi khi phải tạo thêm class, field, method hoặc thành phần khác để thực hiện đúng ngữ nghĩa Java trên JVM. Một số thành phần này không tương ứng với khai báo trực tiếp hoặc ngầm định trong mã nguồn: chúng được gọi là **synthetic** và được đánh dấu trong dữ liệu của class file.
+When compiling Java, the compiler sometimes has to generate additional classes, fields, methods, or other elements to implement Java semantics properly on the JVM. Some of these elements do not correspond to direct or implicit declarations in source code: they are called **synthetic** and are marked in the class file's data.
 
-Qua Reflection, `isSynthetic()` giúp phân biệt những cấu trúc được đánh dấu *synthetic* với cấu trúc thông thường. Phương thức trả `boolean`:
+Through Reflection, `isSynthetic()` helps distinguish structures marked *synthetic* from ordinary structures. The method returns a `boolean`:
 
-- `true`: cấu trúc được class file/JVM phản ánh là synthetic.
-- `false`: không có chỉ dấu synthetic tương ứng; **không đồng nghĩa** với “chắc chắn do lập trình viên tự gõ”. Java có những thành phần được sinh ra nhưng hợp lệ ở cấp ngôn ngữ và không được đánh dấu synthetic.
+- `true`: the structure is reflected by the class file/JVM as synthetic.
+- `false`: there is no corresponding synthetic marker; **this is not synonymous** with "definitely typed manually by the programmer." Java has generated elements that are valid at the language level and are not marked synthetic.
 
-Ví dụ điển hình: để bảo đảm một phương thức ghi đè sau **type erasure** vẫn được gọi đúng, `javac` có thể sinh ra một *bridge method* không viết trong mã nguồn. Ngược lại, constructor mặc định do compiler cấp khi class không khai báo constructor thường **không synthetic**. Vì vậy không thể dùng `isSynthetic()` làm bộ phát hiện tuyệt đối mọi thứ do compiler tạo ra.
+A classic example: to ensure an overriding method continues to be called properly after **type erasure**, `javac` may generate a *bridge method* not written in source code. Conversely, the default constructor provided by the compiler when a class declares no constructor is usually **not synthetic**. Therefore, `isSynthetic()` cannot be used as an absolute detector for everything compiler-generated.
 
-**Phạm vi quan trọng:** `isSynthetic()` phản ánh đặc tính ở mức **binary/runtime**, không kiểm tra văn bản mã nguồn và không phân tích body của một method. Tên có ký tự `$` cũng không đủ chứng minh một thành phần là synthetic.
+**Important scope:** `isSynthetic()` reflects a **binary/runtime**-level property; it does not inspect source-code text and does not analyze a method's body. A name containing `$` is also not sufficient proof that an element is synthetic.
 
-## 2. Gọi `isSynthetic()` ở đâu?
+## 2. Where can `isSynthetic()` be called?
 
-| Thành phần Reflection | API | Dùng để hỏi |
+| Reflection element | API | Used to ask |
 | --- | --- | --- |
-| Kiểu (class/interface) | `Class<?>.isSynthetic()` | Bản thân kiểu có synthetic modifier hay không? |
-| Trường dữ liệu | `Field.isSynthetic()` | Trường đó có được đánh dấu synthetic không? |
-| Phương thức | `Method.isSynthetic()` | Phương thức đó có được đánh dấu synthetic không? |
-| Constructor | `Constructor<?>.isSynthetic()` | Constructor đó có được đánh dấu synthetic không? |
-| Tham số được mô tả qua Reflection | `Parameter.isSynthetic()` | Tham số có phải thành phần synthetic không? |
+| Type (class/interface) | `Class<?>.isSynthetic()` | Does the type itself have the synthetic modifier? |
+| Data field | `Field.isSynthetic()` | Is that field marked synthetic? |
+| Method | `Method.isSynthetic()` | Is that method marked synthetic? |
+| Constructor | `Constructor<?>.isSynthetic()` | Is that constructor marked synthetic? |
+| Parameter described via Reflection | `Parameter.isSynthetic()` | Is the parameter a synthetic element? |
 
-`Field`, `Method`, `Constructor` đều triển khai giao diện `java.lang.reflect.Member`, giao diện có `isSynthetic()`; `Class` và `Parameter` cung cấp phương thức riêng. Với các method, `Method.isBridge()` còn kiểm tra một tính chất khác: phương thức có phải *bridge method* hay không.
+`Field`, `Method`, and `Constructor` all implement the `java.lang.reflect.Member` interface, which provides `isSynthetic()`; `Class` and `Parameter` provide their own methods. For methods, `Method.isBridge()` checks another property: whether the method is a *bridge method*.
 
-Để quan sát các phần tử compiler có thể thêm, dùng các API **declared**:
+To observe elements the compiler may add, use the **declared** APIs:
 
 ~~~java
 Class<?> type = SomeType.class;
@@ -38,11 +38,11 @@ for (var m : methods) {
 }
 ~~~
 
-Đoạn này chỉ minh họa cách sử dụng Reflection (`SomeType` là tên lớp phải thay bằng class có thật); nó **không phải chương trình độc lập**. `getDeclaredMethods()` nhìn các method khai báo trong binary của chính class, bao gồm cả private và synthetic nếu có. `getMethods()` chỉ xét các public method của kiểu và các phương thức public kế thừa, nên có thể bỏ sót method synthetic không public. Tương tự, `getDeclaredFields()` hữu ích hơn `getFields()` khi kiểm tra các field do compiler sinh.
+This snippet only illustrates how to use Reflection (`SomeType` is a placeholder class name that must be replaced by a real class); it is **not a standalone program**. `getDeclaredMethods()` sees methods declared in the binary of the class itself, including private and synthetic ones if present. `getMethods()` only considers public methods of the type and inherited public methods, so it can miss non-public synthetic methods. Similarly, `getDeclaredFields()` is more useful than `getFields()` when inspecting compiler-generated fields.
 
-## 3. Ví dụ đầy đủ: bridge method, default constructor, anonymous class
+## 3. Complete example: bridge method, default constructor, anonymous class
 
-Lưu chương trình Java 17+ dưới đây thành `SyntheticReflectionDemo.java`:
+Save the Java 17+ program below as `SyntheticReflectionDemo.java`:
 
 ~~~java
 import java.lang.reflect.Field;
@@ -103,14 +103,14 @@ public class SyntheticReflectionDemo {
 }
 ~~~
 
-Biên dịch bằng `javac` và chạy:
+Compile with `javac` and run:
 
 ~~~bash
 javac --release 17 SyntheticReflectionDemo.java
 java SyntheticReflectionDemo
 ~~~
 
-Kết quả quan sát được với `javac` và JDK hỗ trợ Java 17 trở lên (tên field do compiler sinh là chi tiết triển khai, xem bên dưới):
+Observed output with `javac` and a JDK supporting Java 17 or later (the compiler-generated field name is an implementation detail, see below):
 
 ~~~text
 return=Object, bridge=true, synthetic=true
@@ -120,73 +120,73 @@ anonymous: true, synthetic: false
 synthetic inner field: this$0
 ~~~
 
-### Phân tích bridge method
+### Analyzing the bridge method
 
-`Box<T>.value()` sau khi xóa kiểu generic có mô tả JVM tương ứng với `Object value()`. Trong `TextBox`, phương thức ghi đè mà lập trình viên viết là `String value()`. Để giữ hành vi gọi đa hình tương thích với dạng đã xóa kiểu, `javac` còn phát sinh một phương thức chuyển tiếp gần tương đương ý tưởng sau:
+`Box<T>.value()` after generic type erasure has a JVM descriptor corresponding to `Object value()`. In `TextBox`, the overriding method written by the programmer is `String value()`. To preserve polymorphic invocation behavior compatible with the erased signature, `javac` also emits a forwarding method roughly equivalent in concept to:
 
 ~~~java
-// Mô tả ý tưởng ở mức bytecode; KHÔNG phải mã nguồn Java hợp lệ
-// để khai báo cùng lớp với String value().
+// Conceptual description at bytecode level; NOT valid Java source code
+// to declare in the same class as String value().
 Object value() {
-    return value(); // ủy quyền tới phương thức trả String
+    return value(); // delegates to the method returning String
 }
 ~~~
 
-Phần minh họa trên **không thể dán làm method thứ hai trong Java source**: ngôn ngữ Java không cho hai method cùng tên và danh sách tham số chỉ khác kiểu trả về. JVM phân biệt method descriptor gồm cả kiểu trả về và compiler có thể sinh bridge. Ở binary, phương thức trả `Object` mang các cờ `ACC_BRIDGE` và `ACC_SYNTHETIC`. Do đó Reflection báo `isBridge() == true` và `isSynthetic() == true` cho phương thức chuyển tiếp; method `String value()` vốn khai báo trong source có cả hai kết quả `false`.
+The illustration above **cannot be pasted as a second method in Java source**: the Java language does not allow two methods with the same name and parameter list differing only in return type. The JVM distinguishes method descriptors including return type, and the compiler can generate a bridge. In the binary, the method returning `Object` carries the `ACC_BRIDGE` and `ACC_SYNTHETIC` flags. Therefore Reflection reports `isBridge() == true` and `isSynthetic() == true` for the forwarding method; the `String value()` method declared in source has both results `false`.
 
-**Tác dụng thực tế:** Khi tìm method có thể dùng làm endpoint, handler hoặc mô tả API, đừng mù quáng xem tất cả method từ `getDeclaredMethods()` là những khai báo độc lập trong source. Bridge có thể dẫn đến hai `Method` cùng tên và cùng tham số nhưng kiểu trả về khác nhau. Cần chọn đúng method nghiệp vụ và cân nhắc loại bridge/synthetic nếu bài toán đòi hỏi khai báo do người viết.
+**Practical impact:** When searching for methods usable as endpoints, handlers, or API descriptions, do not blindly treat all methods from `getDeclaredMethods()` as independent declarations in source. A bridge can produce two `Method` objects with the same name and parameters but different return types. Choose the right business method and consider excluding bridge/synthetic methods if your problem requires user-written declarations.
 
-### Phân tích constructor và anonymous class
+### Analyzing constructors and anonymous classes
 
-- `TextBox` không khai báo constructor, nhưng compiler tạo constructor mặc định; `getDeclaredConstructor().isSynthetic()` trả `false` trong ví dụ. Điều này cho thấy **compiler-generated không luôn đồng nghĩa synthetic**.
-- Cú pháp `new Runnable() { ... }` thật sự khai báo một anonymous class trong mã nguồn. Reflection nhận ra `isAnonymousClass() == true`, còn `isSynthetic() == false` theo chương trình `javac` này. `isAnonymousClass()`, `isLocalClass()`, `isMemberClass()` và `isSynthetic()` trả lời các câu hỏi khác nhau.
-- `Outer.Inner` đọc `seed` của outer object, nên `javac` trong ví dụ lưu tham chiếu outer vào một field tổng hợp thường đặt tên `this$0`. Tên và cách triển khai field này **không phải hợp đồng ngôn ngữ**; compiler/JDK khác có thể tạo cấu trúc khác. Từ các bản Java hiện đại, compiler còn có thể bỏ field outer khi không cần giữ tham chiếu. Phải xem `Field.isSynthetic()` thay vì đoán từ tên.
+- `TextBox` declares no constructor, yet the compiler generates a default constructor; `getDeclaredConstructor().isSynthetic()` returns `false` in the example. This shows **compiler-generated does not always mean synthetic**.
+- The syntax `new Runnable() { ... }` actually declares an anonymous class in source code. Reflection recognizes `isAnonymousClass() == true`, while `isSynthetic() == false` under this `javac` compilation. `isAnonymousClass()`, `isLocalClass()`, `isMemberClass()`, and `isSynthetic()` answer different questions.
+- `Outer.Inner` reads `seed` of the outer object, so `javac` in the example stores the outer reference in a synthetic field usually named `this$0`. The name and implementation of this field **are not a language contract**; other compilers/JDKs may generate different structures. In modern Java versions, the compiler can even omit the outer field when retaining the reference is unnecessary. Always check `Field.isSynthetic()` rather than guessing from the name.
 
-## 4. Những cấu trúc synthetic thường gặp
+## 4. Common synthetic structures
 
-| Tình huống | Cấu trúc có thể xuất hiện | Cách kiểm tra và lưu ý |
+| Situation | Structure that may appear | How to check and notes |
 | --- | --- | --- |
-| Override phương thức generic sau type erasure | Bridge method | `Method.isBridge()` và `Method.isSynthetic()`; có ví dụ xác định ở trên. |
-| Ghi đè với kiểu trả về covariant | Bridge method khi binary cần giữ descriptor gốc | Xét `isBridge()`; không phải mọi override đều cần bridge. |
-| Inner/local class dùng trạng thái từ outer hoặc biến cục bộ được capture | Field giữ tham chiếu/giá trị captured | `Field.isSynthetic()`; sự tồn tại và tên field phụ thuộc compiler. |
-| Lambda expression | Cấu trúc hỗ trợ do compiler/JVM tạo, ví dụ method bổ trợ hoặc lớp runtime | Không dựa vào tên `lambda$...`, số lượng method hay hình dạng class như giao kèo ổn định. |
-| Truy cập private giữa các lớp lồng nhau | Trình biên dịch cũ có thể thêm accessor tổng hợp | Từ Java 11 có cơ chế nest-based access control; không mặc định chờ phương thức `access$...` xuất hiện. |
-| Enum và record | Một số member ngầm định, cùng các chi tiết triển khai khác | Member ngầm định hợp lệ ở cấp ngôn ngữ không nhất thiết synthetic; xét từng member cụ thể thay vì gắn nhãn toàn bộ. |
+| Overriding a generic method after type erasure | Bridge method | `Method.isBridge()` and `Method.isSynthetic()`; verified example above. |
+| Overriding with a covariant return type | Bridge method when binary needs to preserve original descriptor | Check `isBridge()`; not every override needs a bridge. |
+| Inner/local class using outer state or captured local variables | Field holding captured reference/value | `Field.isSynthetic()`; field existence and name depend on the compiler. |
+| Lambda expression | Support structure generated by compiler/JVM, e.g., helper method or runtime class | Do not rely on `lambda$...` names, method counts, or class shapes as a stable contract. |
+| Private access between nested classes | Older compilers could add synthetic accessors | Since Java 11 there is nest-based access control; do not assume `access$...` methods will appear. |
+| Enum and record | Certain implicit members, along with other implementation details | Implicit members valid at language level are not necessarily synthetic; inspect each member individually rather than labeling all of them. |
 
-Phân biệt **quy tắc ngôn ngữ** và **chiến lược hiện thực của compiler**. Các tên như `this$0`, `val$...`, `lambda$...`, `$VALUES` phổ biến trong bytecode do `javac` sinh, nhưng không có cam kết rằng mọi JDK hoặc compiler khác đều dùng đúng các tên này.
+Distinguish **language rules** from **compiler implementation strategies**. Names like `this$0`, `val$...`, `lambda$...`, and `$VALUES` are common in `javac`-generated bytecode, yet there is no guarantee every JDK or compiler uses those exact names.
 
-### Với tham số constructor/method
+### For constructor/method parameters
 
-`Executable.getParameters()` trả các đối tượng `Parameter`. Ba loại cần phân biệt:
+`Executable.getParameters()` returns `Parameter` objects. Three kinds must be distinguished:
 
-1. **Explicit:** tham số được viết rõ trong khai báo nguồn, ví dụ `void send(String text)`.
-2. **Implicit (mandated):** tham số ngầm định theo quy tắc ngôn ngữ; kiểm tra `Parameter.isImplicit()`.
-3. **Synthetic:** tham số không được khai báo tường minh hay ngầm định ở cấp source; kiểm tra `Parameter.isSynthetic()`.
+1. **Explicit:** parameters explicitly written in the source declaration, e.g., `void send(String text)`.
+2. **Implicit (mandated):** parameters implicit per language rules; check `Parameter.isImplicit()`.
+3. **Synthetic:** parameters neither explicitly nor implicitly declared at source level; check `Parameter.isSynthetic()`.
 
-Ví dụ, một inner class không static thường cần truyền tham chiếu tới đối tượng outer khi khởi tạo. Tham số bổ sung đó là thành phần constructor ở cấp binary, nhưng việc Reflection ghi nhận `isImplicit()`/`isSynthetic()` phụ thuộc metadata và cách compiler sinh class file. Khi cần kiểm tra thông tin tham số, cân nhắc biên dịch với `javac -parameters` để giữ metadata `MethodParameters`; đừng suy ra mọi tham số bổ sung đều synthetic, cũng đừng coi kết quả `false` khi thiếu metadata là bằng chứng về source.
+For example, a non-static inner class usually needs a reference to the outer object passed upon instantiation. That extra parameter is a constructor element at the binary level, while whether Reflection records `isImplicit()`/`isSynthetic()` depends on metadata and how the compiler emits the class file. When you need to inspect parameter information, consider compiling with `javac -parameters` to retain `MethodParameters` metadata; do not assume every extra parameter is synthetic, nor treat `false` when metadata is missing as proof about source code.
 
-## 5. Liên hệ cờ class file và `Modifier`
+## 5. Relationship to class file flags and `Modifier`
 
-JVM class file có cờ `ACC_SYNTHETIC` (giá trị hex `0x1000`) dành cho class/field/method tương ứng, và cờ `ACC_BRIDGE` (`0x0040`) cho method. Class file cũng có thể biểu diễn synthetic bằng thuộc tính `Synthetic` theo quy tắc của phiên bản class file.
+The JVM class file has the `ACC_SYNTHETIC` flag (hex value `0x1000`) for classes/fields/methods respectively, and the `ACC_BRIDGE` flag (`0x0040`) for methods. A class file can also represent synthetic via the `Synthetic` attribute per class-file version rules.
 
-Đây là các khái niệm từ **class file format**, không đơn giản là các từ khóa mà có thể viết trong Java source. Thư viện `java.lang.reflect.Modifier` chủ yếu diễn giải những modifier thông thường (public/private/static/final...); API Reflection có `isSynthetic()` và `isBridge()` riêng, nên hãy sử dụng các phương thức đó thay vì tự diễn giải magic bit từ `getModifiers()` để kết luận về synthetic.
+These are concepts from the **class file format**, not simply keywords writable in Java source. `java.lang.reflect.Modifier` primarily interprets ordinary modifiers (public/private/static/final...); the Reflection API provides dedicated `isSynthetic()` and `isBridge()`, so use those methods instead of interpreting magic bits from `getModifiers()` to draw conclusions about synthetic elements.
 
-Có thể đối chiếu với bytecode của chương trình ví dụ:
+You can cross-check with the bytecode of the example program:
 
 ~~~bash
 javap -v 'SyntheticReflectionDemo$TextBox'
 ~~~
 
-Dùng dấu nháy quanh tên có `$` để tránh shell thay thế ký tự này (đặc biệt trong Bash). Trong output, tìm hai method tên `value`:
+Quote names containing `$` to prevent the shell from expanding this character (especially in Bash). In the output, look for the two methods named `value`:
 
-- Phương thức trả `java.lang.String` được viết trong mã nguồn.
-- Bridge trả `java.lang.Object` có dòng flags chứa `ACC_BRIDGE, ACC_SYNTHETIC`.
+- The method returning `java.lang.String` was written in source code.
+- The bridge returning `java.lang.Object` has a flags line containing `ACC_BRIDGE, ACC_SYNTHETIC`.
 
-Khi kiểm tra class file thực tế, công cụ `javap -v` giúp xác minh dấu cờ và descriptor, còn Reflection giúp xử lý metadata của class được nạp lúc chạy. Không dùng `getName().contains("$")` để thay cho `isSynthetic()`: tên không phải bộ phân loại đáng tin cậy.
+When inspecting an actual class file, `javap -v` helps verify flag markers and descriptors, while Reflection handles metadata of classes loaded at runtime. Do not use `getName().contains("$")` as a substitute for `isSynthetic()`: names are not a reliable classifier.
 
-## 6. Dùng `isSynthetic()` khi xây framework/tool
+## 6. Using `isSynthetic()` when building frameworks/tools
 
-Một tình huống thường gặp là thu thập các method do lập trình viên khai báo để dựng metadata. Có thể bắt đầu bằng bộ lọc sau:
+A common scenario is collecting developer-declared methods to build metadata. You can start with the following filter:
 
 ~~~java
 import java.lang.reflect.Method;
@@ -201,29 +201,29 @@ static List<Method> userFacingMethods(Class<?> type) {
 }
 ~~~
 
-Đây là **đoạn method tiện ích**, cần đặt trong một class Java và có các import tương ứng; `toList()` có từ Java 16. Nó trả về method khai báo trong binary của class đã qua hai tiêu chí lọc, chứ **không khôi phục chính xác tập phương thức có mặt trong mã nguồn**. Method do compiler sinh nhưng không synthetic vẫn có thể lọt qua; method synthetic thực sự cần thiết cho công cụ phân tích bytecode lại bị loại.
+This is a **utility method snippet**, which must be placed inside a Java class with the corresponding imports; `toList()` is available since Java 16. It returns methods declared in the class binary that pass two filter criteria, rather than **exactly reconstructing the set of methods present in source code**. Compiler-generated non-synthetic methods can still slip through; synthetic methods genuinely needed by bytecode analysis tools would be excluded.
 
-Quy trình lựa chọn tùy mục tiêu:
+Selection workflow depending on goal:
 
-- **Tạo danh sách API nghiệp vụ:** lọc hoặc xử lý riêng bridge/synthetic, rồi xét visibility, annotation, override và quan hệ kế thừa theo yêu cầu thực tế. Không chỉ dựa vào `isSynthetic()`.
-- **Phân tích bytecode, debug, profiler, serializer cấp thấp:** có thể **cần giữ** các member synthetic vì chúng thể hiện cấu trúc runtime đang tồn tại.
-- **Đối chiếu phương thức sau type erasure:** xem cả `getDeclaredMethods()`, `isBridge()`, `getReturnType()` và signature; đừng suy ra một `Method` Reflection luôn tương ứng một khai báo Java nguồn.
+- **Building a business API list:** filter or handle bridge/synthetic separately, then evaluate visibility, annotations, overrides, and inheritance relationships per actual requirements. Do not rely solely on `isSynthetic()`.
+- **Bytecode analysis, debugging, profiling, low-level serialization:** you may **need to keep** synthetic members because they represent existing runtime structures.
+- **Matching methods after type erasure:** inspect `getDeclaredMethods()`, `isBridge()`, `getReturnType()`, and signatures together; do not assume one Reflection `Method` always corresponds to one Java source declaration.
 
-## 7. Lỗi thường gặp và bài tự kiểm tra
+## 7. Common mistakes and self-check exercise
 
-1. **“Mọi compiler-generated đều synthetic.”** Sai: constructor mặc định, một số member ngầm định của enum/record và class do cú pháp ngôn ngữ tạo ra là phản ví dụ quan trọng.
-2. **“Synthetic nghĩa là không gọi được.”** Sai: bridge synthetic vẫn có vai trò thực thi, có thể được gọi khi JVM điều phối dispatch.
-3. **“Tên chứa `$` chắc chắn synthetic.”** Sai: `$` có thể xuất hiện trong tên Java hợp lệ và compiler không bắt buộc giữ quy tắc tên nội bộ.
-4. **“Một method source = một method Reflection.”** Không luôn đúng: bridge tạo thêm phần tử trong `getDeclaredMethods()`.
-5. **“`getMethods()` đủ để soi các thành phần compiler sinh.”** Không luôn đúng: các thành phần private/package thường cần `getDeclaredMethods()` hoặc `getDeclaredFields()`.
-6. **“Mọi phiên bản javac sinh cùng accessor/field/lambda method.”** Không có bảo đảm: kiến trúc nestmates, phiên bản class file và tối ưu hóa của compiler có thể làm kết quả khác.
-7. **“`isSynthetic() == false` khẳng định member xuất hiện tường minh trong source.”** Sai: đó chỉ là thiếu chỉ dấu synthetic, không chứng minh nguồn gốc.
+1. **"Everything compiler-generated is synthetic."** False: default constructors, certain implicit enum/record members, and classes created by language syntax are key counterexamples.
+2. **"Synthetic means uncallable."** False: synthetic bridges still have an execution role and can be invoked when the JVM dispatches calls.
+3. **"A name containing `$` is definitely synthetic."** False: `$` can appear in valid Java identifiers and compilers are not required to preserve internal naming conventions.
+4. **"One source method = one Reflection method."** Not always true: bridges create an extra element in `getDeclaredMethods()`.
+5. **"`getMethods()` is enough to inspect compiler-generated elements."** Not always true: private/package elements usually require `getDeclaredMethods()` or `getDeclaredFields()`.
+6. **"Every `javac` version generates the same accessor/field/lambda methods."** No guarantee: nestmates architecture, class-file versions, and compiler optimizations can vary the output.
+7. **"`isSynthetic() == false` confirms the member appeared explicitly in source."** False: it is only the absence of the synthetic marker, not proof of origin.
 
-**Tự kiểm tra:** Thay `TextBox extends Box<String>` thành `TextBox extends Box<Integer>` và override `Integer value()`; dự đoán các method `value()` Reflective sẽ có kiểu trả về nào và method nào là bridge. Sau đó thử loại `isBridge()` trong bộ lọc để thấy method `Object value()` trở lại danh sách.
+**Self-check:** Change `TextBox extends Box<String>` to `TextBox extends Box<Integer>` and override `Integer value()`; predict what return types the reflective `value()` methods will have and which method is the bridge. Then try removing `isBridge()` from the filter to see `Object value()` reappear in the list.
 
-**Tài liệu chuẩn:**
+**Standard references:**
 - [Java SE 17 — `Class.isSynthetic()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#isSynthetic())
-- [Java SE 17 — `Method.isBridge()` và `Method.isSynthetic()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html)
+- [Java SE 17 — `Method.isBridge()` and `Method.isSynthetic()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html)
 - [Java SE 17 — `Parameter`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Parameter.html)
 - [JLS 17 §13.1 — The Form of a Binary](https://docs.oracle.com/javase/specs/jls/se17/html/jls-13.html#jls-13.1)
 - [JVMS 17 — Class File Format](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html)

@@ -1,12 +1,12 @@
-# NumberFormatException khi chuỗi không hợp lệ trong Java
+# `NumberFormatException` on Invalid Strings in Java
 
-> **Java core — language-basics / Lớp bao nguyên thủy**  
-> **Môi trường:** JDK 17+; không cần thư viện ngoài.  
-> **Mục tiêu:** Xác định tại sao chuyển chuỗi sang số có thể ném `NumberFormatException`, phân biệt sai định dạng với vượt miền, áp dụng đúng `Integer.parseInt`/`Long.parseLong`/`Double.parseDouble` và xử lý giá trị nhập không hợp lệ tại ranh giới chương trình.
+> **Java core — language-basics / Primitive Wrappers**  
+> **Environment:** JDK 17+; no external libraries required.  
+> **Objective:** Identify why converting a string to a number can throw `NumberFormatException`, distinguish malformed format from out-of-range values, properly apply `Integer.parseInt`/`Long.parseLong`/`Double.parseDouble`, and handle invalid input values at program boundaries.
 
-## 1. Một chuỗi không tự trở thành số
+## 1. A String Does Not Automatically Become a Number
 
-`String` chứa văn bản, còn các kiểu `int`, `long` và `double` lưu giá trị số. Muốn phân tích văn bản thành số, Java cung cấp các phương thức chuyển đổi của lớp bao (*wrapper*):
+`String` holds text, whereas `int`, `long`, and `double` store numeric values. To parse text into a number, Java provides conversion methods on the wrapper classes (*wrappers*):
 
 ~~~java
 int quantity = Integer.parseInt("42");  // 42
@@ -14,72 +14,72 @@ long count = Long.parseLong("3000000000"); // 3000000000L
 double rate = Double.parseDouble("3.14"); // 3.14
 ~~~
 
-Nếu không phân tích được chuỗi theo cú pháp hoặc miền giá trị mà phương thức yêu cầu, Java ném **`java.lang.NumberFormatException`** (*NFE*). Đây là một lớp con của `IllegalArgumentException`.
+If the string cannot be parsed according to the syntax or value range required by the method, Java throws **`java.lang.NumberFormatException`** (*NFE*). This is a subclass of `IllegalArgumentException`.
 
 ~~~java
-// int value = Integer.parseInt("12x"); // Nếu chạy: NumberFormatException.
+// int value = Integer.parseInt("12x"); // If executed: NumberFormatException.
 ~~~
 
-**Điểm chính:** `"12x"` vẫn là một `String` hợp lệ. Lỗi xảy ra khi **cố diễn giải nội dung đó thành số nguyên**, không phải khi tạo chuỗi.
+**Key point:** `"12x"` is still a valid `String`. The error occurs when **attempting to interpret that content as an integer**, not when creating the string.
 
-## 2. Các nhóm đầu vào gây `NumberFormatException`
+## 2. Input Categories That Cause `NumberFormatException`
 
-| Dữ liệu và phép chuyển | Kết quả | Nguyên nhân |
+| Data and Conversion Call | Result | Cause |
 | --- | --- | --- |
-| `Integer.parseInt("42")` | `42` | Chuỗi thập phân hợp lệ |
-| `Integer.parseInt("-7")` | `-7` | Dấu trừ hợp lệ |
-| `Integer.parseInt("+8")` | `8` | Dấu cộng đầu hợp lệ |
-| `Integer.parseInt("007")` | `7` | Dẫn đầu bằng 0 vẫn là thập phân mặc định |
-| `Integer.parseInt(" 42 ")` | NFE | Không tự bỏ khoảng trắng |
-| `Integer.parseInt("")` | NFE | Chuỗi rỗng |
-| `Integer.parseInt("12x")` | NFE | Có ký tự không hợp lệ ở hệ thập phân |
-| `Integer.parseInt("3.14")` | NFE | Số thập phân có phần lẻ không phải cú pháp `int` |
-| `Integer.parseInt("1_000")` | NFE | Dấu gạch dưới hợp lệ trong **literal Java**, không phải chuỗi nhập cho `parseInt` |
-| `Integer.parseInt("2147483648")` | NFE | Vượt `Integer.MAX_VALUE` là 2147483647 |
-| `Integer.parseInt(null)` | NFE | Không có chuỗi để phân tích |
-| `Byte.parseByte("128")` | NFE | Giá trị 128 vượt giới hạn `byte` là 127 |
+| `Integer.parseInt("42")` | `42` | Valid decimal string |
+| `Integer.parseInt("-7")` | `-7` | Valid minus sign |
+| `Integer.parseInt("+8")` | `8` | Valid leading plus sign |
+| `Integer.parseInt("007")` | `7` | Leading zeros are still decimal by default |
+| `Integer.parseInt(" 42 ")` | NFE | Does not automatically strip whitespace |
+| `Integer.parseInt("")` | NFE | Empty string |
+| `Integer.parseInt("12x")` | NFE | Contains invalid character in base 10 |
+| `Integer.parseInt("3.14")` | NFE | Decimal number with fractional part is not `int` syntax |
+| `Integer.parseInt("1_000")` | NFE | Underscore is valid in **Java literals**, not input strings for `parseInt` |
+| `Integer.parseInt("2147483648")` | NFE | Exceeds `Integer.MAX_VALUE` of 2147483647 |
+| `Integer.parseInt(null)` | NFE | No string to parse |
+| `Byte.parseByte("128")` | NFE | Value 128 exceeds `byte` limit of 127 |
 
-`Integer.parseInt` mặc định là **hệ cơ số 10**. Nó không hiểu cú pháp literal `0xFF` hoặc cách viết dấu gạch dưới trong mã nguồn; đừng nhầm định dạng của một **Java source literal** với định dạng của **chuỗi nhập ở runtime**.
+`Integer.parseInt` defaults to **base 10**. It does not understand literal syntax like `0xFF` or underscores used in source code; do not confuse the format of a **Java source literal** with the format of a **runtime input string**.
 
-Phương thức parse không tự xử lý toàn bộ ràng buộc nghiệp vụ: `"-1"` có thể phân tích thành `int` thành công, nhưng vẫn có thể **không hợp lệ** nếu đây là số lượng sản phẩm hoặc cổng mạng phải dương.
+Parsing methods do not handle all business constraints automatically: `"-1"` can be parsed into `int` successfully, yet still be **invalid** if it represents an item quantity or network port that must be positive.
 
-## 3. Radix: chuỗi hợp lệ phụ thuộc cơ số
+## 3. Radix: Valid Strings Depend on the Base
 
-Tham số `radix` quy định cơ số cần dùng cho `Integer.parseInt(String, int)`:
+The `radix` parameter specifies the base to use for `Integer.parseInt(String, int)`:
 
 ~~~java
 int hex = Integer.parseInt("FF", 16);   // 255
 int binary = Integer.parseInt("101", 2); // 5
 int decimal = Integer.parseInt("101", 10); // 101
 
-// Integer.parseInt("FF");     // NFE: F không phải chữ số thập phân.
-// Integer.parseInt("102", 2);  // NFE: 2 không thuộc cơ số 2.
+// Integer.parseInt("FF");     // NFE: F is not a decimal digit.
+// Integer.parseInt("102", 2);  // NFE: 2 does not belong to base 2.
 ~~~
 
-`Integer.parseInt("FF", 16)` yêu cầu chỉ định radix 16; không phải cast kiểu số. Radix hợp lệ cho `Integer.parseInt` nằm từ `Character.MIN_RADIX` (2) đến `Character.MAX_RADIX` (36); radix không hợp lệ cũng dẫn đến `NumberFormatException`.
+`Integer.parseInt("FF", 16)` requires specifying radix 16; it is not a numeric type cast. Valid radices for `Integer.parseInt` range from `Character.MIN_RADIX` (2) to `Character.MAX_RADIX` (36); an invalid radix also results in `NumberFormatException`.
 
-Nếu đầu vào có tiền tố `0x`, API `Integer.decode(...)` có quy tắc riêng để hiểu tiền tố. Không tự động thay thế `parseInt` bằng `decode` nếu định dạng đầu vào phải được kiểm soát chặt.
+If the input has a `0x` prefix, the `Integer.decode(...)` API has its own rules for recognizing prefixes. Do not automatically replace `parseInt` with `decode` if the input format must be strictly controlled.
 
-## 4. Phân biệt cú pháp, miền giá trị và loại số
+## 4. Distinguishing Syntax, Range, and Number Type
 
-Các hàm parse có định dạng/miền khác nhau:
+Parsing methods have different formats/ranges:
 
-| API | Ví dụ hợp lệ | Điểm cần lưu ý |
+| API | Valid Example | Important Notes |
 | --- | --- | --- |
-| `Byte.parseByte` | `"127"` | Vượt miền `byte` gây NFE |
-| `Short.parseShort` | `"-30000"` | Vượt miền `short` gây NFE |
-| `Integer.parseInt` | `"2147483647"` | Số thập phân có phần lẻ không hợp lệ |
-| `Long.parseLong` | `"2147483648"` | Lớn hơn `int` vẫn vừa `long` |
-| `Double.parseDouble` | `"3.14"` hoặc `"1e3"` | Hỗ trợ biểu diễn số thực, số mũ và token đặc biệt |
-| `Float.parseFloat` | `"2.5"` | Theo quy tắc parsing số thực, không giống `parseInt` |
+| `Byte.parseByte` | `"127"` | Exceeding `byte` range causes NFE |
+| `Short.parseShort` | `"-30000"` | Exceeding `short` range causes NFE |
+| `Integer.parseInt` | `"2147483647"` | Decimal numbers with fractional parts are invalid |
+| `Long.parseLong` | `"2147483648"` | Larger than `int` yet still fits in `long` |
+| `Double.parseDouble` | `"3.14"` or `"1e3"` | Supports floating-point, exponent notation, and special tokens |
+| `Float.parseFloat` | `"2.5"` | Follows floating-point parsing rules, unlike `parseInt` |
 
-**Quan trọng:** `Double.parseDouble("NaN")` trả giá trị **`Double.NaN`**, không ném NFE. Một chuỗi hợp lệ theo quy tắc `double` cũng **không nhất thiết là giá trị hữu hạn**: ví dụ đầu vào quá lớn có thể trở thành vô cực. Khi nghiệp vụ chỉ cho phép số thực hữu hạn, kiểm tra thêm `Double.isFinite(value)` sau khi parse.
+**Important:** `Double.parseDouble("NaN")` returns the value **`Double.NaN`**, without throwing NFE. A valid string according to `double` rules is **not necessarily a finite value** either: for instance, an overly large input can become infinity. When business rules only permit finite floating-point numbers, additionally check `Double.isFinite(value)` after parsing.
 
-Với lượng tiền cần chính xác tới chữ số thập phân, cân nhắc `BigDecimal` tạo từ chuỗi hợp lệ và quy tắc scale/rounding nghiệp vụ; không tùy tiện đưa tiền qua `double` rồi cho rằng tuyệt đối chính xác.
+For monetary amounts requiring precision to exact decimal digits, consider `BigDecimal` created from a validated string along with business scale/rounding rules; do not casually pass money through `double` and assume exact precision.
 
-## 5. Chương trình Java 17+ runnable
+## 5. Runnable Java 17+ Program
 
-Tạo file **NumberFormatDemo.java**:
+Create the file **NumberFormatDemo.java**:
 
 ~~~java
 public final class NumberFormatDemo {
@@ -162,14 +162,14 @@ public final class NumberFormatDemo {
 }
 ~~~
 
-Mở terminal trong thư mục chứa file, biên dịch và chạy (Bash, PowerShell hoặc Command Prompt):
+Open a terminal in the directory containing the file, compile, and run (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 NumberFormatDemo.java
 java NumberFormatDemo
 ~~~
 
-**Expected output chính xác:**
+**Exact expected output:**
 
 ~~~text
 plain=42
@@ -197,50 +197,50 @@ tooLargePort=port outside 1..65535
 missingPort=port required
 ~~~
 
-Chương trình **không phụ thuộc vào văn bản lỗi mặc định của JDK**: ở những ví dụ sai format, nó chỉ in tên loại exception; ở `parsePort`, thông báo do code tự định nghĩa nên dễ kiểm thử.
+The program **does not depend on the JDK's default error text**: for the invalid format examples, it only prints the exception type name; in `parsePort`, the messages are defined by our own code so they are easy to test.
 
-## 6. Xử lý lỗi đúng tại ranh giới nhập liệu
+## 6. Handling Errors Properly at Input Boundaries
 
-Ở hàm `parsePort`, các bước có chủ đích:
+In `parsePort`, the steps are intentional:
 
-1. **Kiểm tra dữ liệu thiếu:** `null` hoặc chuỗi trắng toàn bộ → `"port required"`. Tránh vô tình coi dữ liệu thiếu như số 0.
-2. **Chuẩn hóa đầu vào khi được phép:** `strip()` loại bỏ khoảng trắng đầu/cuối, nhưng chỉ vì hợp đồng của ví dụ **cho phép** khoảng trắng. Nếu định dạng nghiêm ngặt không chấp nhận khoảng trắng, hãy bỏ bước này.
-3. **Parse và bắt lỗi đúng nơi:** `Integer.parseInt` xử lý cú pháp số nguyên. `NumberFormatException` được chuyển thành một lỗi đầu vào có thông điệp nghiệp vụ, giữ nguyên `cause` để chẩn đoán.
-4. **Kiểm tra miền nghiệp vụ sau khi parse:** số nguyên `65536` có cú pháp đúng và vừa `int`, nhưng không hợp lệ làm cổng mạng; `"-1"` tương tự.
-5. **Không biến mọi lỗi thành số 0:** một chuỗi sai format thường cần được báo cho người dùng hoặc upstream, không phải âm thầm đưa vào phép tính.
+1. **Check for missing data:** `null` or an all-whitespace string → `"port required"`. Avoid accidentally treating missing data as 0.
+2. **Normalize input when allowed:** `strip()` removes leading/trailing whitespace, but only because this example's contract **allows** whitespace. If a strict format does not accept whitespace, omit this step.
+3. **Parse and catch errors in the right place:** `Integer.parseInt` handles integer syntax. `NumberFormatException` is translated into an input error with a business message, preserving `cause` for diagnostics.
+4. **Validate business range after parsing:** the integer `65536` has valid syntax and fits in `int`, yet is invalid as a network port; `"-1"` is similar.
+5. **Do not turn every error into 0:** a malformed string usually needs to be reported to the user or upstream caller, not silently fed into calculations.
 
-`try/catch` ở đây bao quanh phần **phân tích dữ liệu không đáng tin cậy**, thay vì bắt một khối ứng dụng quá lớn hoặc bắt `Exception` chung rồi bỏ qua. API nội bộ với hợp đồng khác có thể để NFE đi ra cho caller xử lý, thay vì luôn chuyển thành `IllegalArgumentException` mới.
+The `try/catch` here wraps **the parsing of untrusted data**, rather than catching around an overly large application block or catching generic `Exception` and ignoring it. Internal APIs with a different contract may let NFE propagate to the caller to handle, instead of always wrapping it in a new `IllegalArgumentException`.
 
-## 7. Vì sao không nên dựa vào `ex.getMessage()` để điều khiển logic?
+## 7. Why Should You Not Rely on `ex.getMessage()` for Control Flow?
 
-`NumberFormatException` cho biết có sự cố phân tích số, nhưng **chi tiết text của thông điệp** không phải định dạng nghiệp vụ ổn định để parser hoặc UI dựa vào. Tránh viết:
+`NumberFormatException` indicates a number-parsing failure, but **the exact wording of its message** is not a stable business format for parsers or UIs to depend on. Avoid writing:
 
 ~~~java
-// Không nên:
+// Not recommended:
 // if (ex.getMessage().contains("For input string")) { ... }
 ~~~
 
-Thay vào đó, bắt đúng **kiểu exception**, kiểm tra trường dữ liệu nguồn, rồi tự tạo một thông điệp rõ ràng như `"quantity must be a whole number"`. Có thể ghi log exception/cause theo chính sách hệ thống, nhưng không hiển thị chi tiết stack trace cho người dùng cuối.
+Instead, catch the exact **exception type**, check the source data field, and build a clear message yourself such as `"quantity must be a whole number"`. You can log the exception/cause according to system policy, but never expose raw stack trace details to end users.
 
-**Không nhầm với lỗi khác:**
+**Do not confuse with other errors:**
 
-- `Integer.parseInt("12x")` → **`NumberFormatException`** do text không phân tích được.
-- `int x = someIntegerWrapper;` khi wrapper là `null` → **`NullPointerException`** do unboxing, không phải lỗi cú pháp chuỗi.
-- `Integer.valueOf(12)` tạo/nhận wrapper từ giá trị nguyên, không phải parser cho một chuỗi văn bản sai cú pháp.
-- `Integer.valueOf("12x")` cũng có thể ném **`NumberFormatException`** vì phải phân tích chuỗi như số nguyên.
+- `Integer.parseInt("12x")` → **`NumberFormatException`** because the text cannot be parsed.
+- `int x = someIntegerWrapper;` when the wrapper is `null` → **`NullPointerException`** from unboxing, not a string syntax error.
+- `Integer.valueOf(12)` creates/retrieves a wrapper from an integer value, not a parser for a malformed text string.
+- `Integer.valueOf("12x")` can also throw **`NumberFormatException`** because it must parse the string as an integer.
 
-## 8. Bài tập tự luyện
+## 8. Practice Exercises
 
-**Bài 1:** Dự đoán kết quả của `Integer.parseInt("+15")`, `Integer.parseInt("015")`, `Integer.parseInt("15 ")`, `Integer.parseInt("15.0")` và giải thích vì sao chuỗi nguồn là `String` hợp lệ nhưng parser vẫn có thể từ chối.
+**Exercise 1:** Predict the results of `Integer.parseInt("+15")`, `Integer.parseInt("015")`, `Integer.parseInt("15 ")`, `Integer.parseInt("15.0")` and explain why the source string is a valid `String` yet the parser can still reject it.
 
-**Bài 2:** So sánh `Integer.parseInt("2147483648")` với `Long.parseLong("2147483648")`. Điều gì thay đổi khi chọn wrapper khác?
+**Exercise 2:** Compare `Integer.parseInt("2147483648")` with `Long.parseLong("2147483648")`. What changes when choosing a different wrapper?
 
-**Bài 3:** Dùng `Integer.parseInt("101", 2)` và `Integer.parseInt("101", 10)`. Cùng một chuỗi vì sao có thể thành hai số khác nhau?
+**Exercise 3:** Use `Integer.parseInt("101", 2)` and `Integer.parseInt("101", 10)`. Why can the same string turn into two different numbers?
 
-**Bài 4:** Viết hàm nhận số lượng sản phẩm dạng `String`. Từ chối null/trắng, parse số nguyên, sau đó từ chối lượng âm. Nêu lý do đây là hai lớp kiểm tra khác nhau.
+**Exercise 4:** Write a method accepting a product quantity as a `String`. Reject null/blank, parse the integer, then reject negative quantities. Explain why these are two separate validation layers.
 
-**Bài 5:** Thử `Double.parseDouble("NaN")` và `Double.parseDouble("1e309")`. Viết điều kiện `Double.isFinite(result)` nếu ứng dụng yêu cầu số đo hữu hạn.
+**Exercise 5:** Try `Double.parseDouble("NaN")` and `Double.parseDouble("1e309")`. Write a `Double.isFinite(result)` condition if the application requires finite measurements.
 
-### Ghi nhớ
+### Key Takeaways
 
-**`NumberFormatException` là dấu hiệu chuỗi không thể được diễn giải theo kiểu số, cơ số hoặc giới hạn đang yêu cầu.** Kiểm tra input thiếu và khoảng trắng theo hợp đồng; dùng đúng `parseInt`/`parseLong`/`parseDouble`; bắt NFE tại ranh giới dữ liệu không đáng tin cậy, rồi **kiểm tra tiếp điều kiện nghiệp vụ**. Đừng dựa vào text lỗi JDK và đừng âm thầm thay mọi đầu vào sai bằng 0.
+**`NumberFormatException` signals that a string cannot be interpreted under the requested numeric type, radix, or bounds.** Check missing inputs and whitespace per contract; use the right `parseInt`/`parseLong`/`parseDouble`; catch NFE at untrusted data boundaries, then **validate business constraints next**. Do not rely on JDK error text and never silently replace all invalid inputs with 0.

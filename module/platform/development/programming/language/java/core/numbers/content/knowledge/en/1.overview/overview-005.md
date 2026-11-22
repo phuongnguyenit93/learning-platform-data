@@ -1,81 +1,81 @@
-# Bản đồ primitive, wrapper, Number, BigInteger và BigDecimal trong Java
+# Map of Primitives, Wrappers, Number, BigInteger, and BigDecimal in Java
 
-> **Chủ đề:** Java core – numbers · **Nhóm:** Tổng quan  
-> **Mục tiêu:** Nhận diện các họ kiểu số trong Java, hiểu quan hệ giữa chúng, chọn đúng kiểu lưu trữ/tính toán và tránh lỗi chuyển đổi, tràn số, sai số thập phân.
+> **Topic:** Java core – numbers · **Group:** Overview  
+> **Goal:** Identify Java's numeric type families, understand their relationships, choose the right storage/computation type, and avoid conversion errors, overflow, and decimal inaccuracies.
 
-## 1. Bức tranh tổng thể
+## 1. The Big Picture
 
-Java có hai cách biểu diễn số thường gặp: **primitive** lưu một giá trị theo kiểu nguyên thủy; **object** biểu diễn số qua lớp wrapper hoặc các lớp số trong thư viện. Không có một “kiểu Number” chung bao trùm cả primitive lẫn object.
+Java has two common ways to represent numbers: **primitives** store a value directly as a primitive type; **objects** represent numbers through wrapper classes or numeric classes in the standard library. There is no single common "Number type" encompassing both primitives and objects.
 
 ```text
-Giá trị số trong Java
-├── Primitive (không kế thừa Object/Number)
-│   ├── Số nguyên có dấu: byte, short, int, long
-│   ├── Số thực dấu phẩy động: float, double
-│   └── char: mã UTF-16 16 bit không dấu, dùng được trong vài phép số học
+Numeric values in Java
+├── Primitive (does not inherit Object/Number)
+│   ├── Signed integers: byte, short, int, long
+│   ├── Floating-point real numbers: float, double
+│   └── char: unsigned 16-bit UTF-16 code unit, usable in some arithmetic operations
 └── Reference / object
-    ├── java.lang.Number (lớp trừu tượng)
+    ├── java.lang.Number (abstract class)
     │   ├── Byte, Short, Integer, Long
     │   ├── Float, Double
     │   └── java.math.BigInteger, java.math.BigDecimal
-    └── Character (wrapper của char; KHÔNG extends Number)
+    └── Character (wrapper for char; does NOT extend Number)
 
-boolean / Boolean: kiểu logic, không phải kiểu số.
+boolean / Boolean: logical type, not a numeric type.
 ```
 
-Cây trên là **bản đồ khái niệm**, không phải cây thừa kế từ primitive sang wrapper. Primitive `int` không phải lớp con của `Integer`; `Integer` mới là một đối tượng thuộc nhánh `Number`. `Character` và `Boolean` là wrapper nhưng không thuộc nhánh `Number`. Một số lớp chuyên dụng khác cũng kế thừa `Number`, nhưng không cần thiết để hiểu bộ kiểu số nền tảng này.
+The tree above is a **conceptual map**, not an inheritance tree from primitives to wrappers. Primitive `int` is not a subclass of `Integer`; `Integer` is an object under the `Number` branch. `Character` and `Boolean` are wrappers but do not belong to the `Number` branch. Some other specialized classes also extend `Number`, though they are unnecessary for understanding this foundational set of numeric types.
 
-## 2. Primitive: các kiểu nền tảng và miền giá trị
+## 2. Primitives: Foundational Types and Value Ranges
 
-| Kiểu | Kích thước | Ý nghĩa và phạm vi đáng nhớ | Ví dụ |
+| Type | Size | Meaning and Notable Range | Example |
 | --- | --- | --- | --- |
-| `byte` | 8 bit | Số nguyên có dấu: −128 đến 127 | `byte b = 100;` |
-| `short` | 16 bit | −32.768 đến 32.767 | `short s = 32000;` |
-| `int` | 32 bit | −2³¹ đến 2³¹ − 1 | `int n = 1_000_000;` |
-| `long` | 64 bit | −2⁶³ đến 2⁶³ − 1 | `long n = 3_000_000_000L;` |
-| `float` | 32 bit | IEEE 754 nhị phân; thường khoảng 6–7 chữ số thập phân có nghĩa | `float f = 1.5f;` |
-| `double` | 64 bit | IEEE 754 nhị phân; thường khoảng 15–16 chữ số thập phân có nghĩa | `double d = 1.5;` |
-| `char` | 16 bit | Mã đơn vị UTF-16 không dấu: 0 đến 65.535; chủ yếu biểu diễn ký tự | `char c = 'A';` |
+| `byte` | 8 bits | Signed integer: −128 to 127 | `byte b = 100;` |
+| `short` | 16 bits | −32,768 to 32,767 | `short s = 32000;` |
+| `int` | 32 bits | −2³¹ to 2³¹ − 1 | `int n = 1_000_000;` |
+| `long` | 64 bits | −2⁶³ to 2⁶³ − 1 | `long n = 3_000_000_000L;` |
+| `float` | 32 bits | IEEE 754 binary; typically about 6–7 significant decimal digits | `float f = 1.5f;` |
+| `double` | 64 bits | IEEE 754 binary; typically about 15–16 significant decimal digits | `double d = 1.5;` |
+| `char` | 16 bits | Unsigned UTF-16 code unit: 0 to 65,535; primarily represents characters | `char c = 'A';` |
 
-**Phân biệt phạm vi và độ chính xác:** `float`/`double` biểu diễn được những số có trị tuyệt đối rất lớn/nhỏ nhưng không biểu diễn chính xác mọi số thập phân. “15–16 chữ số” là ước lượng độ chính xác, không phải cam kết rằng một giá trị thập phân bất kỳ sẽ được giữ nguyên.
+**Distinguishing range and precision:** `float`/`double` can represent numbers with very large or very small absolute values, yet cannot represent every decimal number exactly. "15–16 digits" is a precision estimate, not a guarantee that an arbitrary decimal value will be preserved untouched.
 
-- Phép cộng, trừ, nhân trên `byte`, `short`, `char` thường được nâng lên `int` trước khi cho kết quả; ví dụ `byte x = 1, y = 2; int z = x + y;`. Muốn gán lại `byte` cần chuyển kiểu tường minh và tự chịu rủi ro mất dữ liệu.
-- Một biểu thức `int * int` được tính bằng `int`, dù biến nhận kết quả là `long`. Phải mở rộng ít nhất một toán hạng **trước phép nhân**.
-- Dùng chữ `L` (nên viết hoa) cho literal `long`; `f` hoặc `F` cho literal `float`. Dấu gạch dưới trong literal như `1_000_000` chỉ giúp đọc dễ hơn.
-- `boolean` không tham gia tính toán số học; `char` có thể nâng lên `int`, nhưng không phải lựa chọn phù hợp để lưu đại lượng số thông thường.
+- Addition, subtraction, and multiplication on `byte`, `short`, and `char` are normally promoted to `int` before producing a result; e.g., `byte x = 1, y = 2; int z = x + y;`. Assigning back to `byte` requires an explicit cast and accepting the risk of data loss.
+- An `int * int` expression is evaluated as `int`, even if the target variable is `long`. At least one operand must be widened **before multiplication**.
+- Use `L` (preferably uppercase) for `long` literals; `f` or `F` for `float` literals. Underscores in literals like `1_000_000` only aid readability.
+- `boolean` does not participate in arithmetic; `char` can be promoted to `int`, yet is not a suitable choice for storing general numeric quantities.
 
-**Tràn số nguyên:** khi phép tính primitive nguyên vượt miền kiểu, kết quả có thể quay vòng theo biểu diễn bit, không tự báo lỗi. `Math.addExact`, `Math.multiplyExact` và các hàm `*Exact` liên quan phát hiện tràn và ném `ArithmeticException`. Chúng không mở rộng miền giá trị; nếu cần vượt miền `long`, dùng `BigInteger`.
+**Integer overflow:** when a primitive integer operation exceeds the type's range, the result can wrap around according to bit representation without automatically signaling an error. `Math.addExact`, `Math.multiplyExact`, and related `*Exact` methods detect overflow and throw `ArithmeticException`. They do not widen the value range; if exceeding `long` is needed, use `BigInteger`.
 
-## 3. Wrapper: đối tượng tương ứng primitive
+## 3. Wrappers: Objects Corresponding to Primitives
 
-| Primitive | Wrapper | Kế thừa `Number`? |
+| Primitive | Wrapper | Extends `Number`? |
 | --- | --- | --- |
-| `byte` | `Byte` | Có |
-| `short` | `Short` | Có |
-| `int` | `Integer` | Có |
-| `long` | `Long` | Có |
-| `float` | `Float` | Có |
-| `double` | `Double` | Có |
-| `char` | `Character` | Không |
-| `boolean` | `Boolean` | Không |
+| `byte` | `Byte` | Yes |
+| `short` | `Short` | Yes |
+| `int` | `Integer` | Yes |
+| `long` | `Long` | Yes |
+| `float` | `Float` | Yes |
+| `double` | `Double` | Yes |
+| `char` | `Character` | No |
+| `boolean` | `Boolean` | No |
 
-Wrapper là các lớp **bất biến (immutable)**: không sửa được giá trị bên trong đối tượng sau khi tạo. Giá trị wrapper có thể là `null` vì đó là tham chiếu; primitive không thể là `null`.
+Wrappers are **immutable** classes: the value inside an object cannot be modified after creation. A wrapper value can be `null` because it is a reference; a primitive cannot be `null`.
 
-Java hỗ trợ:
+Java supports:
 
-- **Boxing:** `int` → `Integer`; ví dụ `Integer a = 42;`.
-- **Unboxing:** `Integer` → `int`; ví dụ `int b = a;`. Nếu `a == null`, unboxing ném `NullPointerException`.
-- **Chuyển đổi tường minh:** `Integer.parseInt("42")` trả `int`, còn `Integer.valueOf("42")` trả `Integer`. `Long.parseLong`, `Double.parseDouble`... có vai trò tương tự.
+- **Boxing:** `int` → `Integer`; e.g., `Integer a = 42;`.
+- **Unboxing:** `Integer` → `int`; e.g., `int b = a;`. If `a == null`, unboxing throws `NullPointerException`.
+- **Explicit conversion:** `Integer.parseInt("42")` returns `int`, while `Integer.valueOf("42")` returns `Integer`. `Long.parseLong`, `Double.parseDouble`, etc. play analogous roles.
 
-Wrapper hữu ích khi API đòi đối tượng: `List<Integer>` hợp lệ, `List<int>` không hợp lệ; khi cần biểu diễn giá trị thiếu bằng `null`; hoặc khi dùng API nhận `Number`. Mảng `int[]` và `Integer[]` là hai loại khác nhau; không có tự động chuyển cả mảng.
+Wrappers are useful when an API requires objects: `List<Integer>` is valid, `List<int>` is invalid; when representing missing values with `null`; or when using an API that accepts `Number`. Arrays `int[]` and `Integer[]` are two distinct types; there is no automatic conversion of the whole array.
 
-**So sánh:** `==` giữa hai wrapper tham chiếu so sánh danh tính đối tượng; `equals` so sánh giá trị theo cùng kiểu wrapper. Một số wrapper có bộ nhớ đệm đối tượng nhỏ, nên kết quả `==` có thể gây hiểu lầm. Với hai `Integer`, dùng `a.equals(b)` nếu chắc chắn khác `null`, hoặc `Objects.equals(a, b)` nếu có thể `null`. Đừng dùng `==` để kết luận hai đối tượng wrapper có cùng giá trị.
+**Comparison:** `==` between two wrapper references compares object identity; `equals` compares values within the same wrapper type. Some wrappers maintain an object cache for small values, so `==` results can be misleading. For two `Integer` instances, use `a.equals(b)` if guaranteed non-null, or `Objects.equals(a, b)` if `null` is possible. Do not rely on `==` to conclude two wrapper objects have the same value.
 
-**Chi phí:** primitive thường đơn giản hơn cho dữ liệu số dày đặc và tính toán liên tục. Boxing/unboxing trong vòng lặp hoặc collection có thể tạo thêm chi phí đối tượng và rủi ro `null`. Chỉ tối ưu dựa trên nhu cầu và đo đạc thực tế.
+**Overhead:** primitives are generally simpler for dense numeric data and tight computations. Boxing/unboxing inside loops or collections can introduce object overhead and `null` risk. Only optimize based on actual requirements and measurement.
 
-## 4. `Number` là gì, và không phải là gì?
+## 4. What `Number` Is, and What It Is Not
 
-`java.lang.Number` là **abstract class** chung của nhiều lớp biểu diễn số. Nó cung cấp hợp đồng lấy giá trị theo kiểu primitive:
+`java.lang.Number` is the common **abstract class** of many number representation classes. It provides a contract for retrieving values as primitive types:
 
 ```java
 Number value = Integer.valueOf(42);
@@ -83,20 +83,20 @@ int i = value.intValue();
 double d = value.doubleValue();
 ```
 
-Các phương thức chính gồm `byteValue()`, `shortValue()`, `intValue()`, `longValue()`, `floatValue()` và `doubleValue()`. Hai phương thức đầu có thể có triển khai chung dựa trên `intValue()`; bốn phương thức còn lại là thành phần trừu tượng trọng tâm của hợp đồng `Number`.
+Its primary methods are `byteValue()`, `shortValue()`, `intValue()`, `longValue()`, `floatValue()`, and `doubleValue()`. The first two may have default implementations based on `intValue()`; the remaining four form the core abstract contract of `Number`.
 
-**Giới hạn quan trọng:**
+**Important limitations:**
 
-1. `Number` là kiểu tham chiếu, nên không thể khai báo `Number n = 5;` rồi coi nó là primitive. Phép boxing cho phép gán `5` thành `Integer` rồi lên `Number`, nhưng biến `n` vẫn là tham chiếu.
-2. Không thể viết `n1 + n2` khi cả hai biến khai báo kiểu `Number`; `Number` không định nghĩa toán tử cộng đa hình. Chọn kiểu cụ thể hoặc thiết kế phép toán riêng sau khi biết chính xác yêu cầu.
-3. `intValue()`, `longValue()`... là **phép chuyển đổi**, có thể cắt phần thập phân, tràn hoặc làm tròn. Chúng không bảo toàn độ chính xác tùy ý: ví dụ `BigInteger` cực lớn chuyển sang `long` sẽ mất các bit cao.
-4. `Number` không khiến `BigDecimal`, `BigInteger` và `Double` có cùng quy tắc so sánh hoặc cùng khả năng biểu diễn. Không ép mọi số sang `double` chỉ để xử lý qua giao diện chung.
+1. `Number` is a reference type, so you cannot declare `Number n = 5;` and treat it as a primitive. Boxing allows assigning `5` as an `Integer` upcast to `Number`, yet `n` remains a reference.
+2. You cannot write `n1 + n2` when both variables are declared as `Number`; `Number` does not define a polymorphic addition operator. Pick a concrete type or design explicit operations once exact requirements are known.
+3. `intValue()`, `longValue()`, etc. are **conversions** that can truncate fractional parts, overflow, or round. They do not preserve arbitrary precision: e.g., converting a huge `BigInteger` to `long` drops the high bits.
+4. `Number` does not give `BigDecimal`, `BigInteger`, and `Double` the same comparison rules or representational capability. Do not force every number into `double` just to process through a common interface.
 
-Ví dụ ngắn: một API thống kê chấp nhận `Number` có thể đọc `doubleValue()` nếu chấp nhận mất độ chính xác. API kế toán cần tính toán tiền nên công khai `BigDecimal` trong hợp đồng, tránh ép sang `double`.
+Brief example: a statistics API accepting `Number` might read `doubleValue()` if loss of precision is acceptable. An accounting API calculating money should expose `BigDecimal` in its contract and avoid casting to `double`.
 
-## 5. `BigInteger`: số nguyên lớn tùy ý độ chính xác
+## 5. `BigInteger`: Large Integers of Arbitrary Precision
 
-`java.math.BigInteger` biểu diễn **số nguyên có dấu** vượt phạm vi cố định của `long`. Độ lớn chủ yếu chịu giới hạn bộ nhớ/chi phí xử lý, không bị giới hạn 64 bit như primitive. Nó là đối tượng bất biến và kế thừa `Number`.
+`java.math.BigInteger` represents **signed integers** beyond the fixed range of `long`. Magnitude is primarily bounded by memory and processing cost rather than a 64-bit primitive limit. It is an immutable object and extends `Number`.
 
 ```java
 import java.math.BigInteger;
@@ -106,15 +106,15 @@ BigInteger next = population.add(BigInteger.ONE);
 BigInteger squared = next.multiply(next);
 ```
 
-Các thao tác phổ biến: `add`, `subtract`, `multiply`, `divide` (chia lấy phần nguyên), `remainder`, `pow` (số mũ nguyên không âm), `gcd`, `compareTo`. `mod` dùng số chia dương và cho số dư không âm; phân biệt nó với `remainder` khi làm việc với số âm. Mỗi phép toán trả một kết quả mới; gọi `population.add(BigInteger.ONE)` mà bỏ kết quả **không thay đổi** `population`.
+Common operations: `add`, `subtract`, `multiply`, `divide` (integer quotient), `remainder`, `pow` (non-negative integer exponent), `gcd`, `compareTo`. `mod` takes a positive divisor and yields a non-negative remainder; distinguish it from `remainder` when working with negative numbers. Each operation returns a new result; calling `population.add(BigInteger.ONE)` and discarding the result **does not mutate** `population`.
 
-Tạo đối tượng bằng `new BigInteger("...")` cho số lớn dạng chuỗi, hoặc `BigInteger.valueOf(123L)` cho giá trị đã nằm trong `long`. Dùng `toString()` để xuất và `intValueExact()`/`longValueExact()` khi muốn ném `ArithmeticException` nếu giá trị không vừa kiểu đích. `intValue()`/`longValue()` thông thường có thể mất phần cao mà không báo lỗi.
+Create instances using `new BigInteger("...")` for large string numbers, or `BigInteger.valueOf(123L)` for values already fitting in `long`. Use `toString()` for output and `intValueExact()`/`longValueExact()` when you want `ArithmeticException` thrown if the value does not fit the target type. Plain `intValue()`/`longValue()` can drop high-order bits silently.
 
-**Khi chọn:** đếm số nguyên khổng lồ, tính toán tổ hợp/chỉnh hợp lớn, thuật toán số học nguyên. Nếu `long` đã đủ và chạy trong vòng lặp hiệu năng cao, chưa có lý do mặc định chuyển mọi thứ sang `BigInteger`.
+**When to choose:** huge integer counts, large combinatorics/permutations, integer-arithmetic algorithms. If `long` already suffices and runs in a performance-critical loop, there is no default reason to move everything to `BigInteger`.
 
-## 6. `BigDecimal`: số thập phân chính xác theo hệ 10
+## 6. `BigDecimal`: Exact Base-10 Decimal Numbers
 
-`java.math.BigDecimal` biểu diễn số thập phân bằng **giá trị nguyên không chia tỉ lệ (unscaled value)** và **scale**: về mặt toán học, giá trị = `unscaledValue × 10^(-scale)`. Ví dụ `"12.340"` có unscaled value `12340`, scale `3`. Nó bất biến, kế thừa `Number` và hỗ trợ độ chính xác thập phân do người lập trình kiểm soát.
+`java.math.BigDecimal` represents a decimal number via an **unscaled integer value** and a **scale**: mathematically, value = `unscaledValue × 10^(-scale)`. For example, `"12.340"` has unscaled value `12340` and scale `3`. It is immutable, extends `Number`, and supports programmer-controlled decimal precision.
 
 ```java
 import java.math.BigDecimal;
@@ -129,21 +129,21 @@ BigDecimal oneThird = BigDecimal.ONE.divide(
 ); // 0.33
 ```
 
-**Khởi tạo đúng rất quan trọng:**
+**Proper initialization matters greatly:**
 
-- `new BigDecimal("0.1")` biểu diễn đúng số thập phân `0.1`.
-- `BigDecimal.valueOf(0.1)` dùng dạng chuỗi của `double` và cho `0.1` trong ví dụ này; có ích khi đầu vào đã là `double`, nhưng không thể khôi phục mọi ý định/độ chính xác đã mất trước đó.
-- `new BigDecimal(0.1)` nhận **giá trị nhị phân thực tế** của literal `double`; kết quả không đúng bằng thập phân `0.1`. Tránh cách này nếu nguồn là số tiền hoặc số thập phân định trước.
-- `BigDecimal.valueOf(123L)` hữu ích cho số nguyên nhỏ; dùng chuỗi cho literal thập phân cần chính xác.
+- `new BigDecimal("0.1")` represents the exact decimal `0.1`.
+- `BigDecimal.valueOf(0.1)` uses `double`'s string form and yields `0.1` in this example; useful when the input is already a `double`, though it cannot recover intent or precision already lost earlier.
+- `new BigDecimal(0.1)` receives the **actual binary value** of the `double` literal; the result is not equal to exact decimal `0.1`. Avoid this when the source is money or a specified decimal.
+- `BigDecimal.valueOf(123L)` is handy for small integers; use strings for decimal literals requiring exactness.
 
-**Phép tính và rounding:**
+**Arithmetic and rounding:**
 
-- `add`, `subtract`, `multiply` không bắt buộc làm tròn nếu không truyền `MathContext`, nhưng kết quả có scale/precision theo phép toán.
-- Chia có thể tạo biểu diễn thập phân vô hạn: `BigDecimal.ONE.divide(new BigDecimal("3"))` ném `ArithmeticException` nếu không chỉ định quy tắc làm tròn. Chọn scale + `RoundingMode`, hoặc `MathContext` phù hợp với nghiệp vụ.
-- `setScale(2, RoundingMode.HALF_UP)` điều chỉnh số chữ số sau dấu thập phân; `MathContext(precision, roundingMode)` giới hạn **tổng chữ số có nghĩa**, không phải số chữ số sau dấu thập phân.
-- Không có một quy tắc làm tròn đúng cho mọi ứng dụng. `HALF_EVEN` hay `HALF_UP` phụ thuộc chuẩn và quy định nghiệp vụ; với tiền tệ, số chữ số lẻ còn tùy loại tiền/đơn vị và quy trình.
+- `add`, `subtract`, and `multiply` do not require rounding if no `MathContext` is passed, though the result gets a scale/precision dictated by the operation.
+- Division can yield an infinite decimal expansion: `BigDecimal.ONE.divide(new BigDecimal("3"))` throws `ArithmeticException` if no rounding rule is specified. Choose scale + `RoundingMode`, or an appropriate `MathContext` for the business rules.
+- `setScale(2, RoundingMode.HALF_UP)` adjusts the number of digits after the decimal point; `MathContext(precision, roundingMode)` limits **total significant digits**, not digits after the decimal point.
+- No single rounding rule fits every application. `HALF_EVEN` vs. `HALF_UP` depends on standards and business regulations; for currency, decimal places also depend on the currency/unit and workflow.
 
-**So sánh và lưu khóa:**
+**Comparison and map keys:**
 
 ```java
 BigDecimal x = new BigDecimal("1.0");
@@ -153,26 +153,26 @@ System.out.println(x.equals(y));           // false
 System.out.println(x.compareTo(y) == 0);    // true
 ```
 
-`equals` xét **cả giá trị và scale**; `compareTo` so sánh giá trị số học. Vì vậy `BigDecimal` dùng làm key của `HashMap` hoặc phần tử `HashSet` phải có quy tắc chuẩn hóa scale rõ ràng nếu nghiệp vụ coi `1.0` và `1.00` tương đương. `stripTrailingZeros()` có thể đưa scale về 0 hoặc âm, nên đừng mặc định dạng hiển thị sẽ giữ nguyên. `toPlainString()` hữu ích khi muốn chuỗi thập phân không dùng ký pháp lũy thừa.
+`equals` considers **both value and scale**; `compareTo` compares numeric value. Consequently, a `BigDecimal` used as a `HashMap` key or `HashSet` element must have a clear scale-normalization rule if business logic treats `1.0` and `1.00` as equivalent. `stripTrailingZeros()` can turn scale into 0 or negative, so do not assume display formatting will remain unchanged. `toPlainString()` is useful when wanting a decimal string without scientific notation.
 
-## 7. Lựa chọn kiểu theo yêu cầu
+## 7. Choosing a Type by Requirement
 
-| Tình huống | Lựa chọn thường phù hợp | Lý do chính |
+| Situation | Usually Suitable Choice | Main Reason |
 | --- | --- | --- |
-| Biến đếm/chỉ số/mã số nguyên vừa miền 32 bit | `int` | Tự nhiên trong Java, nhẹ, dễ dùng |
-| Số nguyên cần phạm vi 64 bit | `long` | Miền lớn hơn `int` nhưng vẫn hữu hạn |
-| Dữ liệu thô/định dạng nhị phân yêu cầu 8 hoặc 16 bit | `byte`, `short` | Khớp giao thức/định dạng; không vì thế mà mọi phép toán được thực hiện ở 8/16 bit |
-| Đo lường khoa học, đồ họa, thống kê chấp nhận xấp xỉ | `double` (hoặc `float` khi có lý do) | Tốc độ và miền số thực dấu phẩy động |
-| Số nguyên vượt `long` và cần phép toán chính xác | `BigInteger` | Không tràn tại biên 64 bit |
-| Tiền, đơn giá, tỷ lệ thập phân có quy tắc làm tròn rõ | `BigDecimal` | Biểu diễn thập phân chính xác và kiểm soát rounding |
-| API generic cần chấp nhận một họ đối tượng số | `Number` | Hợp đồng chuyển đổi chung; không hàm ý phép tính chính xác chung |
-| Collection/generic hoặc dữ liệu có thể thiếu | Wrapper tương ứng | Đối tượng, có thể `null`; chú ý unboxing |
+| Counters/indices/integer codes fitting 32-bit range | `int` | Natural in Java, lightweight, easy to use |
+| Integers needing 64-bit range | `long` | Wider range than `int` yet still finite |
+| Raw data/binary formats requiring 8 or 16 bits | `byte`, `short` | Matches protocol/format; does not mean all arithmetic runs in 8/16 bits |
+| Scientific measurements, graphics, statistics tolerating approximation | `double` (or `float` with reason) | Speed and floating-point real-number range |
+| Integers exceeding `long` needing exact operations | `BigInteger` | Does not overflow at the 64-bit boundary |
+| Money, unit prices, decimal rates with clear rounding rules | `BigDecimal` | Exact decimal representation and controlled rounding |
+| Generic API needing to accept a family of number objects | `Number` | Common conversion contract; does not imply generic exact arithmetic |
+| Collections/generics or potentially missing data | Corresponding wrapper | Object, can be `null`; watch out for unboxing |
 
-Không dùng `BigDecimal` chỉ vì `double` “không đủ lớn”: hai kiểu giải quyết hai vấn đề khác nhau là **số thực xấp xỉ nhị phân** và **số thập phân có độ chính xác/rounding kiểm soát**. Cũng không dùng `BigInteger` để thay `BigDecimal` nếu phép tính có phần thập phân.
+Do not use `BigDecimal` merely because `double` is "not big enough": the two types solve two different problems—**binary approximate reals** vs. **decimals with controlled precision/rounding**. Likewise, do not use `BigInteger` in place of `BigDecimal` if calculations involve a fractional part.
 
-## 8. Ví dụ Java 17+ chạy độc lập: kết nối cả bản đồ
+## 8. Standalone Java 17+ Example: Connecting the Full Map
 
-Tạo tệp `NumberMapDemo.java`:
+Create the file `NumberMapDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -204,14 +204,14 @@ public class NumberMapDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ```bash
 javac NumberMapDemo.java
 java NumberMapDemo
 ```
 
-Kết quả chuẩn:
+Standard output:
 
 ```text
 primitive=42
@@ -223,11 +223,11 @@ equals=false
 compareTo=true
 ```
 
-Ý nghĩa: `int` được boxing thành `Integer` rồi tham chiếu bằng `Number`; `BigInteger` vượt miền `long`; phép cộng `BigDecimal` giữ scale trong kết quả `0.30`; hai số thập phân bằng nhau về số học nhưng khác biểu diễn scale có kết quả `equals` khác nhau.
+Meaning: `int` is boxed into `Integer` and referenced via `Number`; `BigInteger` exceeds the `long` range; `BigDecimal` addition preserves scale in the result `0.30`; two decimals that are numerically equal yet differ in scale representation produce different `equals` results.
 
-## 9. Thử nghiệm lỗi thường gặp: tràn, sai số và unboxing
+## 9. Testing Common Mistakes: Overflow, Rounding Error, and Unboxing
 
-Tạo tệp `NumericPitfalls.java`:
+Create the file `NumericPitfalls.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -263,7 +263,7 @@ javac NumericPitfalls.java
 java NumericPitfalls
 ```
 
-Kết quả:
+Output:
 
 ```text
 overflowed=-1294967296
@@ -273,28 +273,28 @@ decimal=0.3
 unboxing=null -> NullPointerException
 ```
 
-Giải thích: `amount * 2` được tính ở 32 bit trước khi gán cho `long`; ép `(long) amount` trước phép nhân giúp phép nhân diễn ra ở 64 bit. `0.1` và `0.2` ở dạng `double` không biểu diễn chính xác tuyệt đối theo hệ nhị phân; hai chuỗi `"0.1"` và `"0.2"` ở `BigDecimal` giữ được giá trị thập phân mong muốn. Cuối cùng, tham chiếu wrapper có thể `null` và lỗi xuất hiện khi unboxing.
+Explanation: `amount * 2` is evaluated in 32 bits before assigning to `long`; casting `(long) amount` before multiplication makes the multiplication happen in 64 bits. `0.1` and `0.2` as `double` are not represented with absolute exactness in binary; the two strings `"0.1"` and `"0.2"` in `BigDecimal` preserve the intended decimal values. Finally, a wrapper reference can be `null`, and the error surfaces at unboxing.
 
-## 10. Những nhầm lẫn cần tránh
+## 10. Misconceptions to Avoid
 
-1. **“Mọi số đều là `Number`.”** Sai: primitive không kế thừa lớp nào, và `char`/`Character` không thuộc nhánh `Number`.
-2. **“Wrapper giống hệt primitive.”** Sai: wrapper là object, có `null`, phương thức, danh tính đối tượng và chi phí liên quan.
-3. **“Gán vào `long` tránh mọi tràn `int`.”** Sai nếu biểu thức trước phép gán vẫn tính bằng `int`.
-4. **“`double` chính xác cho mọi số tiền vì có nhiều chữ số.”** Sai: biểu diễn nhị phân của nhiều phân số thập phân là xấp xỉ.
-5. **“`new BigDecimal(0.1)` tương đương `new BigDecimal("0.1")`.”** Sai: đối số `double` đã mang giá trị nhị phân xấp xỉ.
-6. **“`BigDecimal.divide` luôn chạy được.”** Sai: phép chia không có biểu diễn thập phân hữu hạn có thể cần chỉ định rounding.
-7. **“Mọi `equals` số học đều nhất quán giữa các lớp.”** Sai: wrapper khác kiểu và `BigDecimal` khác scale có quy tắc `equals` riêng.
-8. **“Chuyển qua `Number.doubleValue()` không mất dữ liệu.”** Sai với số nguyên rất lớn và nhiều số thập phân; chuyển sang primitive có thể làm tròn/tràn.
-9. **“Gọi `add` sẽ sửa `BigInteger`/`BigDecimal`.”** Sai: cả hai bất biến; cần lưu kết quả trả về.
-10. **“`float`/`double` chỉ có các số hữu hạn.”** Sai: còn có `NaN`, dương/vô cực âm và số 0 có dấu. Các trường hợp này cần được xử lý rõ khi kiểm tra dữ liệu và so sánh.
+1. **"Every number is a `Number`."** False: primitives inherit no class, and `char`/`Character` do not belong to the `Number` branch.
+2. **"Wrappers are identical to primitives."** False: wrappers are objects, having `null`, methods, object identity, and associated overhead.
+3. **"Assigning to `long` avoids every `int` overflow."** False if the expression before assignment is still evaluated as `int`.
+4. **"`double` is exact for any monetary amount because it has many digits."** False: binary representation of many decimal fractions is approximate.
+5. **"`new BigDecimal(0.1)` is equivalent to `new BigDecimal("0.1")`."** False: the `double` argument already carries an approximate binary value.
+6. **"`BigDecimal.divide` always works."** False: division without a finite decimal representation may require specifying rounding.
+7. **"Every numeric `equals` is consistent across classes."** False: wrappers of different types and `BigDecimal` values with different scales have their own `equals` rules.
+8. **"Converting via `Number.doubleValue()` is lossless."** False for very large integers and many decimals; converting to a primitive can round or overflow.
+9. **"Calling `add` modifies `BigInteger`/`BigDecimal`."** False: both are immutable; the returned result must be saved.
+10. **"`float`/`double` only contain finite numbers."** False: there are also `NaN`, positive/negative infinity, and signed zeros. These cases must be handled explicitly during validation and comparison.
 
-## 11. Checklist khi thiết kế một giá trị số
+## 11. Checklist When Designing a Numeric Value
 
-- Giá trị có phần thập phân không? Nếu có, ứng dụng chấp nhận **xấp xỉ nhị phân** hay cần **thập phân chính xác có rounding**?
-- Giá trị nguyên lớn nhất/nhỏ nhất có vừa `int` hoặc `long` không? Cần phát hiện tràn hay miền số tùy ý?
-- API cần primitive hay object? Có chấp nhận `null` không, và đâu là điểm unboxing?
-- Có phép chuyển `Number` → primitive nào mất dữ liệu không?
-- Với `BigDecimal`: nguồn vào là chuỗi hay `double`; quy tắc scale, rounding, `equals`/`compareTo` và định dạng hiển thị được quyết định ở đâu?
-- Với dữ liệu đưa vào collection/map, quy tắc bằng nhau và chuẩn hóa đã nhất quán chưa?
+- Does the value have a fractional part? If so, does the application tolerate **binary approximation** or require **exact decimal with rounding**?
+- Do the minimum/maximum integers fit in `int` or `long`? Do you need overflow detection or an arbitrary integer range?
+- Does the API need primitives or objects? Is `null` allowed, and where does unboxing occur?
+- Is there any lossy `Number` → primitive conversion?
+- For `BigDecimal`: is the input source a string or `double`; where are scale, rounding, `equals`/`compareTo`, and display formatting rules decided?
+- For data placed into collections/maps, are equality and normalization rules consistent?
 
-**Ghi nhớ bản đồ:** `int/long/double` giải quyết phép toán primitive theo miền hữu hạn; wrapper cung cấp đối tượng cho những giá trị đó; `Number` là điểm chung để **đọc/chuyển đổi** số trong các lớp; `BigInteger` giải quyết **số nguyên rất lớn**; `BigDecimal` giải quyết **thập phân chính xác với quy tắc scale/rounding**.
+**Map takeaway:** `int/long/double` handle primitive arithmetic within finite ranges; wrappers provide objects for those values; `Number` is a common point to **read/convert** numbers across classes; `BigInteger` solves **very large integers**; `BigDecimal` solves **exact decimals with scale/rounding rules**.

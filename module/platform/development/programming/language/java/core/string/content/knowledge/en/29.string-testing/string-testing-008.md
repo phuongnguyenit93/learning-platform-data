@@ -1,43 +1,43 @@
-# Kiểm thử định dạng theo locale và chuyển mã hai chiều trong Java
+# Testing Locale Formatting and Round-Trip Encoding in Java
 
-Ứng dụng Java thường cần trình bày số, ngày tháng và văn bản theo ngôn ngữ/vùng miền (**Locale**), đồng thời chuyển đổi giữa **String (ký tự Unicode)** và **byte[] (dữ liệu có mã hóa Charset)**. Hai loại chuyển đổi này dễ gây lỗi âm thầm: chuỗi hiển thị đúng ở máy phát triển nhưng sai trên máy khác; dấu thập phân bị đọc nhầm; ký tự tiếng Việt hoặc emoji biến thành dấu hỏi; dữ liệu chỉ được phân tích một phần mà chương trình vẫn coi là hợp lệ.
+Java applications frequently format numbers, dates, and text according to language/region (**Locale**) while converting between **String (Unicode characters)** and **byte[] (Charset-encoded data)**. Both conversions cause silent bugs easily: strings render properly on a developer's machine yet break on another; decimal separators are misread; Vietnamese characters or emojis turn into question marks; or input is only partially parsed while the program still treats it as valid.
 
-Bài học tập trung vào **kiểm thử có tính tái lập**, **round-trip (chuyển đổi rồi chuyển ngược)** và cách phân biệt **khôi phục được dữ liệu gốc**, **khôi phục được giá trị ngữ nghĩa**, hoặc **mất thông tin không thể phục hồi**. Các ví dụ dùng Java 17+ và cố ý chọn Locale/Charset cụ thể để không phụ thuộc cài đặt mặc định của máy.
+This lesson focuses on **reproducible testing**, **round-trip conversion (converting forward and back)**, and distinguishing **exact original data recovery**, **semantic value recovery**, and **irreversible information loss**. Examples use Java 17+ and explicitly specify Locale/Charset to avoid depending on machine defaults.
 
-## 1. Hai loại chuyển đổi cần kiểm thử riêng
+## 1. Two Kinds of Conversions to Test Separately
 
-| Luồng xử lý | API Java thường dùng | Giá trị đầu vào và đầu ra | Điều cần kiểm thử |
+| Pipeline | Common Java APIs | Input and Output | What to Test |
 | --- | --- | --- | --- |
-| Số → văn bản theo vùng miền | NumberFormat, DecimalFormat, String.format(Locale, ...) | Number/BigDecimal → String | Dấu thập phân, phân nhóm, làm tròn, số chữ số, ký hiệu âm |
-| Văn bản theo vùng miền → số | NumberFormat.parse, DecimalFormat.parse | String → Number | Đúng Locale, dùng hết đầu vào, độ chính xác, lỗi dữ liệu |
-| Ngày → văn bản theo vùng miền | DateTimeFormatter.withLocale(...) | LocalDate/... → String | Thứ tự ngày-tháng, tên tháng, độ dài và vùng miền |
-| Văn bản ngày → ngày | LocalDate.parse(..., formatter) | String → LocalDate | Ngày hợp lệ, đúng formatter, không mất thông tin cần thiết |
-| Chuỗi Unicode → byte | String.getBytes(Charset), CharsetEncoder | String → byte[] | Charset đích biểu diễn được ký tự, có thay thế ký tự hay không |
-| Byte → chuỗi Unicode | new String(bytes, Charset), CharsetDecoder | byte[] → String | Charset giải mã đúng, byte lỗi, không âm thầm làm mất dữ liệu |
+| Number → localized text | NumberFormat, DecimalFormat, String.format(Locale, ...) | Number/BigDecimal → String | Decimal separator, grouping, rounding, digit count, minus sign |
+| Localized text → number | NumberFormat.parse, DecimalFormat.parse | String → Number | Right Locale, full input consumed, precision, invalid input |
+| Date → localized text | DateTimeFormatter.withLocale(...) | LocalDate/... → String | Day-month order, month names, length, and locale |
+| Date text → date | LocalDate.parse(..., formatter) | String → LocalDate | Valid date, matching formatter, no required info lost |
+| Unicode string → bytes | String.getBytes(Charset), CharsetEncoder | String → byte[] | Target charset supports characters, replacement behavior |
+| Bytes → Unicode string | new String(bytes, Charset), CharsetDecoder | byte[] → String | Right decoding charset, malformed bytes, no silent data loss |
 
-**Locale không phải Charset.** Locale điều khiển quy tắc biểu diễn/thông dịch văn bản theo ngôn ngữ và vùng miền (ví dụ 1.234,50 so với 1,234.50). Charset quy định cách biến nội dung ký tự thành byte và ngược lại (ví dụ UTF-8 hoặc ISO-8859-1). Chọn Locale.GERMANY không tự biến dữ liệu thành một bộ mã hóa nào đó; chọn UTF-8 cũng không quyết định cách hiển thị số thập phân.
+**Locale is not Charset.** Locale governs text formatting and interpretation by language and region (e.g., 1.234,50 vs. 1,234.50). Charset defines how character content maps to bytes and back (e.g., UTF-8 or ISO-8859-1). Choosing Locale.GERMANY does not automatically pick any character encoding; choosing UTF-8 does not decide how decimal numbers are formatted.
 
-## 2. Chọn điều kiện kiểm thử có thể lặp lại
+## 2. Choosing Reproducible Test Conditions
 
-Một bài kiểm thử tốt cần tránh phụ thuộc môi trường chạy. Nên làm rõ:
+A good test avoids depending on the runtime environment. Make explicit:
 
-1. **Locale cụ thể:** ví dụ Locale.US, Locale.GERMANY, Locale.FRANCE hoặc Locale.forLanguageTag("vi-VN"), thay vì tùy tiện lấy Locale.getDefault().
-2. **Charset cụ thể:** ví dụ StandardCharsets.UTF_8, StandardCharsets.ISO_8859_1, StandardCharsets.US_ASCII; tránh mã hóa mặc định nếu đang kiểm thử giao thức/tệp.
-3. **Quy tắc định dạng:** số chữ số thập phân, phân nhóm hàng nghìn, kiểu làm tròn, định dạng ngày và timezone khi có thời điểm tuyệt đối.
-4. **Miền dữ liệu:** giá trị 0, số âm, biên lớn, số có phần thập phân, dấu phân nhóm, chuỗi có dấu tiếng Việt, ký tự ngoài BMP (emoji), chuỗi rỗng và dữ liệu sai.
-5. **Hợp đồng round-trip:** cần bằng nhau **từng ký tự**, **từng byte** hay chỉ **giá trị số/ngày**?
+1. **Specific Locale:** e.g., Locale.US, Locale.GERMANY, Locale.FRANCE, or Locale.forLanguageTag("vi-VN"), instead of casually reading Locale.getDefault().
+2. **Specific Charset:** e.g., StandardCharsets.UTF_8, StandardCharsets.ISO_8859_1, StandardCharsets.US_ASCII; avoid default encodings when testing protocols or files.
+3. **Formatting rules:** decimal digits, thousands grouping, rounding mode, date format, and timezone when absolute instants are involved.
+4. **Data domain:** zero, negative numbers, large bounds, fractional values, grouping separators, Vietnamese accented strings, non-BMP characters (emojis), empty strings, and malformed input.
+5. **Round-trip contract:** must equality hold **character-for-character**, **byte-for-byte**, or only for **numeric/date value**?
 
-Các API của Java dùng dữ liệu vùng miền từ JDK (bao gồm nhà cung cấp dữ liệu locale). Chuỗi hiển thị cụ thể, tên tháng hoặc dấu cách phân nhóm có thể thay đổi tùy Locale, cấu hình và phiên bản JDK. Vì vậy, các bài test hợp đồng nên kết hợp: dữ liệu có quy tắc cố định do ứng dụng kiểm soát; và kiểm tra **round-trip** thay vì cố định mọi chuỗi bản địa hóa.
+Java APIs draw regional data from the JDK (including locale data providers). Exact rendered strings, month names, or grouping spaces can vary across Locales, configurations, and JDK versions. Therefore, contract tests should combine: data with fixed application-controlled formats; and **round-trip** checks instead of hardcoding every localized string.
 
-## 3. Kiểm thử định dạng và phân tích số theo Locale
+## 3. Testing Number Formatting and Parsing by Locale
 
-Ở Mỹ, chuỗi biểu diễn số có thể dùng dấu phẩy phân nhóm và dấu chấm thập phân; ở Đức thường đảo ngược hai dấu. Nếu một chuỗi được định dạng theo Locale này rồi phân tích bằng Locale khác, chương trình có thể đọc sai giá trị hoặc chỉ đọc được một phần chuỗi.
+In the US, formatted numbers can use a comma for grouping and a dot for the decimal separator; in Germany, those two symbols are reversed. If a string formatted in one Locale is parsed under another, the program may misread the value or consume only a prefix of the string.
 
-Với dữ liệu tiền tệ hoặc độ chính xác thập phân quan trọng, **BigDecimal** thường an toàn hơn double trong các phép tính yêu cầu giá trị thập phân chính xác. DecimalFormat có thể cấu hình để parse thành BigDecimal.
+For currency or critical decimal precision, **BigDecimal** is usually safer than double in calculations requiring exact decimal values. DecimalFormat can be configured to parse into BigDecimal.
 
-### Ví dụ Java 17: format → parse và kiểm tra toàn bộ đầu vào
+### Java 17 Example: format → parse and verifying full input consumption
 
-Tạo tệp **LocaleNumberRoundTrip.java**:
+Create **LocaleNumberRoundTrip.java**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -78,14 +78,14 @@ public class LocaleNumberRoundTrip {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 LocaleNumberRoundTrip.java
 java LocaleNumberRoundTrip
 ~~~
 
-Kết quả với các dấu phân cách của Locale.US và Locale.GERMANY:
+Output with Locale.US and Locale.GERMANY separators:
 
 ~~~text
 en-US: 1,234.50
@@ -96,15 +96,15 @@ full parse: true
 same value: true
 ~~~
 
-**Giải thích:** DecimalFormatSymbols xác định dấu thập phân/phân nhóm cho mỗi Locale; mẫu "#,##0.00" yêu cầu hai chữ số phần lẻ khi format. ParsePosition cho biết parser đã dùng tới vị trí nào. Kiểm tra **position.getIndex() == rendered.length()** ngăn trường hợp chỉ phân tích được một tiền tố.
+**Explanation:** DecimalFormatSymbols determines decimal/grouping separators for each Locale; the pattern "#,##0.00" requires two fractional digits when formatting. ParsePosition tracks how far the parser read. Checking **position.getIndex() == rendered.length()** prevents partial prefix parses from passing silently.
 
-**BigDecimal.compareTo(...) == 0** xác nhận giá trị toán học tương đương. BigDecimal.equals(...) còn xét cả scale, ví dụ 1.0 và 1.00 có giá trị số bằng nhau nhưng equals có thể khác nhau. Trong hệ thống cần giữ nguyên chính xác scale của đầu vào, format → parse có thể không đáp ứng hợp đồng đó nếu quy tắc định dạng đã làm tròn hoặc thay đổi số chữ số thập phân.
+**BigDecimal.compareTo(...) == 0** confirms mathematical value equality. BigDecimal.equals(...) also compares scale, so 1.0 and 1.00 are numerically equal yet equals returns false. In systems that must preserve exact input scale, format → parse may violate that contract if formatting rounds or changes decimal digit count.
 
-### Tại sao phải kiểm tra đã đọc hết chuỗi?
+### Why Must You Verify the Whole String Was Consumed?
 
-Một số parser định dạng số có thể chấp nhận tiền tố hợp lệ và dừng trước phần còn lại. Giả sử input là "1,234.50abc": parser có thể đọc được 1,234.50 nhưng không dùng hết các ký tự "abc". Việc parse trả về Number **không chứng minh** cả chuỗi đều hợp lệ.
+Some number parsers accept a valid prefix and stop before trailing characters. Suppose input is "1,234.50abc": the parser can read 1,234.50 while ignoring "abc". Returning a non-null Number **does not prove** the entire string was valid.
 
-Đoạn minh họa dưới đây (chưa phải chương trình độc lập) dùng cùng DecimalFormat đã cấu hình:
+The illustrative snippet below (not a standalone program) reuses the same configured DecimalFormat:
 
 ~~~java
 String input = "1,234.50abc";
@@ -115,11 +115,11 @@ boolean valid = number != null
         && position.getIndex() == input.length();
 ~~~
 
-Kết quả valid là **false** nếu parser chỉ đọc được tiền tố số. Tùy chính sách ứng dụng, có thể cần kiểm tra nghiêm ngặt hơn về dấu phân nhóm, ký hiệu âm, khoảng trắng hoặc chuẩn hóa trước khi chấp nhận dữ liệu nhập. Kiểm tra dùng hết đầu vào **chưa bảo đảm** chuỗi đúng mọi quy tắc trình bày mong muốn, vì một số parser có tính dễ dãi (lenient).
+Here valid is **false** because the parser only read a numeric prefix. Depending on application policy, you may need stricter checks on grouping separators, negative signs, whitespace, or normalization before accepting input. Checking full input consumption **still does not guarantee** every presentation rule is met, because some parsers are lenient.
 
-## 4. Không phải mọi phép format → parse đều giữ nguyên giá trị
+## 4. Not Every format → parse Preserves the Exact Value
 
-Nếu DecimalFormat chỉ hiển thị hai chữ số phần lẻ, giá trị có nhiều chữ số hơn có thể bị làm tròn:
+If DecimalFormat displays only two fractional digits, values with more digits can be rounded:
 
 ~~~java
 BigDecimal original = new BigDecimal("1.2345");
@@ -129,33 +129,33 @@ DecimalFormat format = new DecimalFormat(
 );
 format.setParseBigDecimal(true);
 
-String text = format.format(original);  // "1.23" theo rounding mặc định ở trường hợp này
-Number parsed = format.parse(text);    // 1.23, không phải 1.2345
+String text = format.format(original);  // "1.23" under default rounding in this case
+Number parsed = format.parse(text);    // 1.23, not 1.2345
 ~~~
 
-Đoạn trên là minh họa cơ chế mất độ chính xác do định dạng. Khi bài toán yêu cầu kết quả làm tròn cụ thể, **đặt rõ RoundingMode** thay vì phụ thuộc giá trị mặc định của formatter.
+This snippet illustrates precision loss caused by formatting. Whenever specific rounding behavior is required, **explicitly set RoundingMode** instead of relying on formatter defaults.
 
-Vì vậy phải chọn rõ hợp đồng:
+Choose the contract explicitly:
 
-- **Round-trip chính xác:** parse(format(x)) bằng x đối với mọi x được chấp nhận; chỉ có thể bảo đảm trong miền đầu vào và định dạng không mất thông tin.
-- **Round-trip trong sai số:** kết quả có thể lệch trong ngưỡng nghiệp vụ khi chấp nhận làm tròn; dùng kiểm tra giới hạn thích hợp cho giá trị floating-point.
-- **Round-trip chuẩn hóa:** format(parse(text)) có thể biến chuỗi thành cách biểu diễn chuẩn; không đòi hỏi từng ký tự văn bản giống đầu vào ban đầu.
-- **Chỉ hiển thị:** nếu định dạng đã cố ý làm tròn/chuyển đơn vị, không nên dùng lại chuỗi hiển thị làm nguồn dữ liệu tính toán chính.
+- **Exact round-trip:** parse(format(x)) equals x for every accepted x; only achievable within lossless input domains and formats.
+- **Round-trip within tolerance:** results may differ within business bounds when rounding is permitted; use appropriate range assertions for floating-point values.
+- **Canonicalizing round-trip:** format(parse(text)) converts a string to canonical form; exact character-by-character match with original input is not required.
+- **Display only:** if formatting intentionally rounds or rescales units, do not feed rendered display strings back as primary calculation data.
 
-**Tránh biến dữ liệu nghiệp vụ thành chuỗi rồi parse trở lại chỉ để truyền giữa các lớp.** Giữ giá trị số/ngày ở dạng kiểu dữ liệu thích hợp, chỉ format ở ranh giới hiển thị hoặc xuất tệp có hợp đồng cụ thể.
+**Avoid converting business data to strings and parsing back just to pass values between layers.** Keep numeric and date values in proper data types, formatting only at display boundaries or explicit export contracts.
 
-## 5. String.format và DateTimeFormatter cũng cần Locale rõ ràng
+## 5. String.format and DateTimeFormatter Also Need Explicit Locales
 
-String.format(Locale, ...) có thể định dạng số theo Locale. Ví dụ:
+String.format(Locale, ...) formats numbers according to a Locale. For example:
 
 ~~~java
 String us = String.format(Locale.US, "%,.2f", 1234.5);
 String de = String.format(Locale.GERMANY, "%,.2f", 1234.5);
 ~~~
 
-Với hai Locale trên, kết quả tương ứng thông thường là **1,234.50** và **1.234,50**. Nhưng **String.format** tạo văn bản, không cung cấp riêng một parser đảo ngược hoàn toàn của chính cú pháp format; muốn round-trip cần định nghĩa parser thích hợp.
+For those two Locales, typical outputs are **1,234.50** and **1.234,50**, respectively. However, **String.format** produces text and does not provide a built-in inverse parser for its format syntax; round-tripping requires defining an appropriate parser.
 
-Với ngày, **java.time.format.DateTimeFormatter** cho phép tạo formatter bản địa hóa và dùng cùng formatter để phân tích. Ví dụ đầy đủ, tệp **LocaleDateRoundTrip.java**:
+For dates, **java.time.format.DateTimeFormatter** lets you create a localized formatter and reuse it for parsing. Full example, **LocaleDateRoundTrip.java**:
 
 ~~~java
 import java.time.LocalDate;
@@ -187,22 +187,22 @@ java LocaleDateRoundTrip
 date round-trip: true
 ~~~
 
-Không cố định chính xác tên tháng tiếng Pháp trong output mẫu vì dữ liệu locale của môi trường có thể thay đổi cách hiển thị; ví dụ chỉ kiểm tra **giá trị ngày sau khi phân tích lại**. Với thời điểm có múi giờ, cần xác định ZoneId và loại giá trị (Instant, ZonedDateTime, LocalDateTime...), vì một chuỗi chỉ ghi ngày hoặc giờ có thể không mang đủ thông tin để phục hồi một Instant. Khi cần dữ liệu trao đổi độc lập với ngôn ngữ/vùng miền, nên ưu tiên định dạng ISO hoặc định dạng hợp đồng rõ ràng.
+Avoid hardcoding exact French month spelling in sample output assertions since environment locale data can vary rendering; this example checks **the parsed date value** instead. For zoned timestamps, specify ZoneId and the exact temporal type (Instant, ZonedDateTime, LocalDateTime...), because a date-only or time-only string may lack enough data to recover an Instant. For language-independent data interchange, prefer ISO formats or explicit protocol formats.
 
-## 6. Chuyển mã hai chiều: String ⇄ byte[]
+## 6. Two-Way Transcoding: String ⇄ byte[]
 
-**Charset** mô tả quy tắc ánh xạ từ chuỗi ký tự sang bytes và từ bytes trở lại ký tự. Hai thao tác phổ biến:
+**Charset** defines the mapping from character strings to bytes and from bytes back to characters. Two common operations:
 
 ~~~java
 byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
 String decoded = new String(bytes, StandardCharsets.UTF_8);
 ~~~
 
-Đây là đoạn minh họa; các biến và import cần được khai báo trong chương trình sử dụng. **Phải dùng đúng charset ở cả hai chiều**. Nếu bên gửi mã hóa UTF-8 nhưng bên nhận giải mã ISO-8859-1, những ký tự nhiều byte có thể biến thành chuỗi sai (mojibake).
+This is an illustrative snippet; variables and imports must be declared in the enclosing program. **The same charset must be used in both directions.** If a sender encodes in UTF-8 while the receiver decodes in ISO-8859-1, multi-byte characters become garbled text (mojibake).
 
-Với **UTF-8**, một String gồm các Unicode scalar value hợp lệ (không chứa surrogate đơn lẻ chưa ghép cặp) có thể round-trip mà không mất thông tin: **decode(encode(s, UTF-8), UTF-8).equals(s)**. Không nên xem đó là cam kết cho mọi dãy char Java có thể tạo được, vì String có thể chứa surrogate bị lỗi.
+For **UTF-8**, a String consisting of valid Unicode scalar values (no unpaired surrogates) round-trips losslessly: **decode(encode(s, UTF-8), UTF-8).equals(s)**. Do not treat that as guaranteed for every possible Java char sequence, since String can hold malformed surrogates.
 
-Tệp **CharsetRoundTripDemo.java**:
+File **CharsetRoundTripDemo.java**:
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -239,15 +239,15 @@ bytes stable: true
 wrong charset preserved: false
 ~~~
 
-Ở đây chuỗi có dấu và emoji kiểm tra đường đi có các ký tự nhiều byte. Dòng thứ ba cố ý giải mã sai charset và kiểm tra thất bại; đây là kiểm thử âm (negative test). Kiểm tra bytes sau khi giải mã lại cũng hữu ích khi hợp đồng cần **byte-level round-trip**, nhưng nếu chuỗi được chuẩn hóa hoặc định dạng truyền dữ liệu cho phép nhiều cách mã hóa tương đương thì phải định nghĩa lại tiêu chí kiểm thử.
+Here accented characters and an emoji exercise the multi-byte path. The third check intentionally decodes with the wrong charset and verifies failure; that is a negative test. Checking bytes after re-encoding is also helpful when the contract requires a **byte-level round-trip**, though if strings are normalized or a format allows multiple equivalent encodings, test criteria must be adjusted accordingly.
 
-## 7. Chuyển mã có mất thông tin và chế độ lỗi nghiêm ngặt
+## 7. Lossy Transcoding and Strict Error Mode
 
-Một số charset không thể biểu diễn mọi ký tự Unicode. Ví dụ **US_ASCII** chỉ biểu diễn tập ký tự ASCII; nó không mã hóa trực tiếp được toàn bộ chữ tiếng Việt. Các phương thức tiện dụng như String.getBytes(Charset) thường **thay ký tự không biểu diễn được bằng replacement bytes**, khiến việc encode có vẻ thành công nhưng dữ liệu gốc đã mất.
+Some charsets cannot represent all Unicode characters. For instance, **US_ASCII** represents only the ASCII set; it cannot directly encode all Vietnamese letters. Convenience methods like String.getBytes(Charset) typically **replace unmappable characters with replacement bytes**, making encoding appear to succeed while original data is lost.
 
-Đừng chỉ gọi encode rồi mặc định thành công nghĩa là an toàn: phải **đối chiếu round-trip** hoặc dùng **CharsetEncoder** với CodingErrorAction.REPORT để yêu cầu báo lỗi.
+Never call encode and assume success means safety: **verify round-trips** or use **CharsetEncoder** with CodingErrorAction.REPORT to demand errors.
 
-Tạo tệp **StrictCharsetDemo.java**:
+Create **StrictCharsetDemo.java**:
 
 ~~~java
 import java.nio.ByteBuffer;
@@ -304,15 +304,15 @@ strict ASCII rejected: true
 malformed UTF-8 rejected: true
 ~~~
 
-**Giải thích:** round-trip ASCII không khôi phục được chuỗi có dấu. Ở chế độ nghiêm ngặt, CharsetEncoder báo lỗi khi gặp ký tự không biểu diễn được; CharsetDecoder báo lỗi với byte UTF-8 sai cú pháp. Nếu ứng dụng cần an toàn dữ liệu, phải xác định cách xử lý khi lỗi phát sinh: báo lỗi cho người dùng, từ chối bản ghi, hoặc thay thế có ghi nhận rõ ràng. Không âm thầm chuyển sang charset khác rồi giả định sẽ luôn sửa được dữ liệu.
+**Explanation:** an ASCII round-trip fails to recover accented text. In strict mode, CharsetEncoder fails on unmappable characters; CharsetDecoder fails on syntactically invalid UTF-8 bytes. When data integrity is required, define how errors are handled: notify the user, reject the record, or replace with explicit logging. Do not silently switch charsets assuming data will always be repaired.
 
-**Malformatted và unmappable khác nhau:** malformed biểu thị dãy byte/ký tự đầu vào không hợp lệ theo bộ mã; unmappable là ký tự hợp lệ nhưng charset đích không ánh xạ được. CharsetEncoder và CharsetDecoder có thể được cấu hình riêng để REPORT, REPLACE hoặc IGNORE theo hợp đồng dữ liệu. Khi yêu cầu bảo toàn văn bản, REPLACE/IGNORE làm mất thông tin.
+**Malformed and unmappable are different:** malformed indicates an input byte/char sequence that is invalid in the encoding itself; unmappable means a valid character that the target charset cannot represent. CharsetEncoder and CharsetDecoder can be configured independently for REPORT, REPLACE, or IGNORE per data contract. When preserving text is required, REPLACE/IGNORE loses information.
 
-## 8. Kiểm thử hai chiều không có nghĩa mọi dạng văn bản là một
+## 8. Two-Way Transcoding Does Not Merge Equivalent Text Forms
 
-Hai chuỗi có thể trông giống nhau nhưng không có cùng các đơn vị Unicode. Chẳng hạn, một chữ é có thể được biểu diễn bằng một code point **U+00E9**, hoặc bằng chữ e **U+0065** cộng dấu sắc tổ hợp **U+0301**. UTF-8 round-trip sẽ giữ đúng **biểu diễn ban đầu** của mỗi chuỗi hợp lệ; nó **không tự chuẩn hóa Unicode**.
+Two strings can look alike without sharing the same Unicode units. For instance, é can be represented as a single code point **U+00E9**, or as letter e **U+0065** plus combining acute accent **U+0301**. A UTF-8 round-trip preserves the **exact original representation** of any valid string; it **does not perform Unicode normalization automatically**.
 
-Ví dụ tệp **NormalizationDemo.java**:
+Example file **NormalizationDemo.java**:
 
 ~~~java
 import java.text.Normalizer;
@@ -351,29 +351,29 @@ equal after NFC: true
 UTF-8 keeps representation: true
 ~~~
 
-Đây là ba phép kiểm tra khác nhau: **bằng nhau theo Java String.equals**, **tương đương sau chuẩn hóa NFC**, và **khôi phục chính xác code unit sau encode/decode UTF-8**. Không nên tùy tiện chuẩn hóa mọi dữ liệu khi chưa có yêu cầu nghiệp vụ: chuẩn hóa có thể thay đổi biểu diễn nguyên bản quan trọng với chữ ký số, so sánh bytes hoặc định dạng giao tiếp.
+These are three distinct checks: **equality under Java String.equals**, **equivalence after NFC normalization**, and **exact code unit preservation across UTF-8 encode/decode**. Do not normalize data arbitrarily without a business requirement: normalization alters raw representations that matter for digital signatures, byte comparisons, or wire formats.
 
-Nếu kiểm thử tìm kiếm không phân biệt dấu/hoa thường, còn phải xác định quy tắc collation/case folding theo Locale; chỉ thay đổi charset không giải quyết được vấn đề so sánh ngôn ngữ.
+When testing accent-insensitive or case-insensitive search, you must also specify Locale-specific collation/case-folding rules; changing charsets alone never solves linguistic comparison.
 
-## 9. Thiết kế test theo bất biến (property) và trường hợp biên
+## 9. Property- and Boundary-Driven Test Design
 
-Thay vì chỉ chụp một chuỗi hiển thị duy nhất, có thể đặt các bất biến rõ ràng:
+Rather than snapshotting a single formatted output string, establish clear invariants:
 
-| Loại kiểm thử | Bất biến đáng kiểm tra | Trường hợp biên |
+| Test Category | Invariant Worth Verifying | Boundary Cases |
 | --- | --- | --- |
-| Format/parse số trong miền an toàn | parse(format(x)) giữ giá trị số và dùng hết chuỗi | Số âm, số 0, rất lớn, phần lẻ, có làm tròn |
-| Format/parse ngày với đầy đủ thông tin | parse(format(date)) bằng date | Ngày nhuận, cuối tháng, thay đổi Locale |
-| UTF-8 round-trip | decode(encode(s)) bằng s với Unicode hợp lệ | Tiếng Việt, emoji, chuỗi rỗng, ký tự tổ hợp |
-| Byte-level round-trip | encode(decode(bytes)) khôi phục bytes hợp lệ khi charset/hợp đồng bảo đảm | Dãy byte biên, BOM, dữ liệu sai |
-| Negative test mã hóa | Charset không hỗ trợ phải báo lỗi hoặc round-trip thất bại rõ ràng | US_ASCII với chữ có dấu, surrogate đơn |
-| Negative test parse | Chuỗi sai bị từ chối, không chỉ chấp nhận một tiền tố | Văn bản thừa, sai dấu phân cách, số không hợp lệ |
-| Normalization | Bằng nhau sau quy tắc chuẩn hóa nếu hợp đồng yêu cầu | Ký tự dựng sẵn và tổ hợp |
+| Safe-domain number format/parse | parse(format(x)) preserves numeric value and consumes full string | Negative numbers, zero, very large values, decimals, rounding |
+| Full-info date format/parse | parse(format(date)) equals date | Leap days, end of month, changing Locale |
+| UTF-8 round-trip | decode(encode(s)) equals s for valid Unicode | Vietnamese text, emojis, empty string, combining characters |
+| Byte-level round-trip | encode(decode(bytes)) restores valid bytes when guaranteed by charset/contract | Boundary byte sequences, BOM, malformed input |
+| Encoding negative tests | Unsupported charset throws error or clearly fails round-trip | US_ASCII with accented characters, unpaired surrogates |
+| Parse negative tests | Invalid strings are rejected, not accepted via a prefix | Trailing garbage, wrong separators, invalid numbers |
+| Normalization | Equal after normalization rule when required by contract | Precomposed vs. decomposed characters |
 
-Với input ngẫu nhiên hoặc property-based testing, hãy giới hạn miền sinh dữ liệu theo **hợp đồng thực sự**. Ví dụ, không thể yêu cầu mọi BigDecimal đều round-trip chính xác với format chỉ in hai chữ số phần lẻ; không thể yêu cầu US_ASCII giữ nguyên mọi ký tự Unicode. Test nên cố tình có cả **trường hợp thành công** và **trường hợp mong đợi thất bại**.
+With random inputs or property-based testing, restrict generated data to the **actual contract domain**. For example, you cannot demand every BigDecimal round-trips exactly through a two-decimal-place format; you cannot demand US_ASCII preserves every Unicode character. Suites should deliberately include both **success cases** and **expected failure cases**.
 
-### Một bài kiểm thử tích hợp Java 17 không cần framework
+### A Framework-Free Java 17 Integration Test
 
-Tệp **LocaleCharsetContractTest.java**:
+File **LocaleCharsetContractTest.java**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -435,53 +435,53 @@ PASS: UTF-8 text round-trip
 PASS: negative ASCII test
 ~~~
 
-Phương thức check ném AssertionError nếu hợp đồng bị vi phạm, nên phép kiểm tra chạy được mà không phụ thuộc vào tùy chọn -ea của Java. Khi dự án đã dùng JUnit, có thể chuyển các mệnh đề này thành assertEquals/assertThrows và chạy qua nhiều bộ tham số Locale, Charset, trường hợp âm; nhưng cốt lõi vẫn là **định nghĩa rõ điều kiện được chấp nhận**.
+check throws AssertionError on contract violations, so the test works regardless of Java's -ea option. Once a project uses JUnit, these checks can become assertEquals/assertThrows parameterized across multiple Locales, Charsets, and negative cases; the core remains **defining acceptance criteria clearly**.
 
-## 10. Những lỗi phổ biến trong hệ thống thực tế
+## 10. Common Bugs in Production Systems
 
-| Triệu chứng | Nguyên nhân có thể gặp | Cách kiểm tra và xử lý |
+| Symptom | Likely Root Cause | How to Test and Fix |
 | --- | --- | --- |
-| Định dạng số thay đổi theo máy | Dùng Locale mặc định hoặc dữ liệu vùng miền khác nhau | Truyền Locale tường minh, cố định formatter theo hợp đồng |
-| Chuỗi số bị đọc sai hoặc một phần bị bỏ | Locale format và parse khác nhau; parser chỉ ăn tiền tố | Kiểm tra dấu, ParsePosition và tính hợp lệ toàn chuỗi |
-| Mất phần lẻ khi chuyển đổi hai chiều | Định dạng làm tròn hoặc giới hạn số chữ số | Xác định miền round-trip, dùng BigDecimal và quy tắc rounding rõ |
-| Ngày đổi cách viết theo JDK | Dữ liệu bản địa hóa/tên tháng khác nhau | Kiểm thử giá trị round-trip; chỉ đóng băng output nếu đặc tả yêu cầu |
-| Tiếng Việt thành dấu hỏi | Charset không biểu diễn được ký tự và âm thầm thay thế | Chọn UTF-8 khi phù hợp, bật REPORT với yêu cầu không mất dữ liệu |
-| Chữ bị lỗi kiểu mojibake | Bên encode/decode dùng Charset khác nhau | Theo dõi bytes tại ranh giới, thống nhất Charset end-to-end |
-| Byte lỗi nhưng chương trình vẫn chạy | Decoder mặc định thay thế ký tự | Dùng CharsetDecoder với CodingErrorAction.REPORT nếu cần nghiêm ngặt |
-| Emoji hoặc surrogate gây lỗi | String có surrogate chưa ghép cặp hoặc hệ thống không hỗ trợ | Tạo bộ dữ liệu Unicode hợp lệ, kiểm thử input malformed riêng |
-| Hai chuỗi trông giống nhau nhưng equals false | Khác cách tổ hợp code point, ví dụ NFC và NFD | Xác định quy tắc normalization, không nhầm với charset |
-| Test pass ở máy này nhưng fail ở CI | Locale/charset/timezone mặc định hoặc dữ liệu JDK khác | Chỉ định mọi tham số, khóa môi trường cần thiết và test bất biến |
-| Dữ liệu gốc khác sau format rồi parse | Chuỗi hiển thị vốn là dạng mất thông tin | Chuyển qua kiểu dữ liệu chính xác; không dùng output cho tính toán chính |
+| Number format changes by machine | Relying on default Locale or different locale data | Pass Locale explicitly; lock formatter to contract |
+| Numeric string misread or truncated | Mismatched format/parse Locales; prefix-only parser | Check sign, ParsePosition, and whole-string validity |
+| Fractional digits lost in round-trip | Formatting rounds or caps decimal places | Define round-trip domain; use BigDecimal and explicit rounding |
+| Date wording changes across JDKs | Localized month/formatting data differs | Test parsed date value; only freeze exact text if spec demands |
+| Vietnamese text becomes question marks | Target charset cannot encode characters and silently replaces | Use UTF-8 where appropriate; enable REPORT when lossless required |
+| Garbled mojibake text | Encoder and decoder use mismatched Charsets | Inspect raw bytes at boundaries; standardize Charset end-to-end |
+| Invalid bytes yet program keeps running | Default decoder replaces malformed sequences | Use CharsetDecoder with CodingErrorAction.REPORT when strict |
+| Emojis or surrogates fail | String holds unpaired surrogates or downstream lacks support | Build valid Unicode test sets; test malformed input separately |
+| Visually identical strings return equals false | Different code point composition, e.g. NFC vs. NFD | Define normalization policy; do not confuse with charset |
+| Tests pass locally yet fail in CI | Different default Locale/charset/timezone or JDK locale data | Specify every parameter, pin needed environment settings, test invariants |
+| Data differs after format then parse | Display string is inherently lossy | Pass structured types directly; never calculate from display text |
 
-## 11. Nguyên tắc triển khai an toàn
+## 11. Safe Implementation Principles
 
-- **Dùng định dạng bản địa hóa cho UI, không dùng làm định dạng trao đổi mặc định.** Giao thức nên định nghĩa chuẩn rõ ràng, chẳng hạn số ở dạng quy định hoặc ngày ISO-8601; giao diện trình bày theo Locale người dùng.
-- **Khi đọc văn bản từ file/API, xác định Charset đúng chỗ.** Nếu tệp hoặc giao thức chỉ định UTF-8, hãy dùng UTF-8 cả khi ghi và đọc, tránh phụ thuộc mặc định của hệ điều hành.
-- **Tách lỗi định dạng và lỗi mã hóa.** Số sai do dấu phẩy/thập phân khác với bytes không thể giải mã; cách phát hiện và khắc phục cũng khác.
-- **Không dùng phương thức parse dễ dãi làm xác thực duy nhất.** Kiểm tra đã xử lý hết đầu vào, miền giá trị và cú pháp do nghiệp vụ quy định.
-- **Đặt quy tắc xử lý lỗi rõ ràng.** Nếu dữ liệu phải được bảo toàn, ưu tiên chế độ REPORT rồi xử lý ngoại lệ thay vì REPLACE/IGNORE.
-- **Không giả định round-trip luôn giữ mọi thuộc tính.** Định dạng có thể làm tròn, bỏ timezone, thay scale; Unicode normalization và charset loss có thể làm thay đổi chính bytes hoặc nội dung.
+- **Use localized formats for UI, not as default interchange formats.** Protocols should define explicit standards such as canonical numbers or ISO-8601 dates; UIs format for the user's Locale.
+- **Specify Charset right where text is read from files or APIs.** If a file or protocol specifies UTF-8, pass UTF-8 on both write and read instead of relying on OS defaults.
+- **Separate formatting errors from encoding errors.** A wrong decimal/grouping separator is different from undecodable bytes; detection and remediation differ too.
+- **Never rely on lenient parsing as sole validation.** Verify full input consumption, valid ranges, and business syntax rules.
+- **Establish explicit error-handling rules.** When data preservation matters, prefer REPORT mode with exception handling over REPLACE/IGNORE.
+- **Never assume round-trips preserve every property.** Formatting can round, drop timezones, or alter scale; Unicode normalization and charset loss can change bytes or content.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-**Câu 1.** Một số được format theo Locale.GERMANY thành 1.234,50. Có nên parse lại bằng Locale.US không?
+**Question 1.** A number is formatted with Locale.GERMANY as 1.234,50. Should it be parsed back with Locale.US?
 
-**Trả lời:** không, nếu không có một hợp đồng chuyển đổi rõ ràng. Dấu chấm và dấu phẩy có vai trò khác nhau. Dùng cùng Locale/format hoặc định dạng trao đổi được chuẩn hóa, và kiểm tra parser đã đọc hết đầu vào.
+**Answer:** No, unless an explicit conversion contract exists. Dots and commas swap roles. Use the same Locale/format or a standardized interchange format, and verify the parser consumes the whole input.
 
-**Câu 2.** Gọi parse một chuỗi như "123abc" trả ra 123 có đủ chứng minh đầu vào hợp lệ không?
+**Question 2.** Does parsing "123abc" and getting 123 prove the input is valid?
 
-**Trả lời:** không. Cần kiểm tra toàn bộ chuỗi đã được tiêu thụ; có thể cần thêm điều kiện cú pháp/miền dữ liệu do nghiệp vụ đặt ra.
+**Answer:** No. You must check that the entire string was consumed, along with any business syntax and domain constraints.
 
-**Câu 3.** Vì sao encode rồi decode tiếng Việt bằng US_ASCII có thể trả về String khác ban đầu?
+**Question 3.** Why can encoding and decoding Vietnamese text with US_ASCII produce a different String than the original?
 
-**Trả lời:** US_ASCII không biểu diễn được nhiều ký tự có dấu. Các API tiện dụng có thể thay bằng ký tự đại diện; muốn từ chối mất dữ liệu thì dùng encoder/decoder strict với REPORT.
+**Answer:** US_ASCII cannot represent many accented characters. Convenience APIs substitute replacement characters; to reject data loss, use strict encoders/decoders with REPORT.
 
-**Câu 4.** Hai chuỗi é dạng dựng sẵn và e + dấu tổ hợp có thể cùng hiển thị, nhưng String.equals trả false. UTF-8 round-trip có tự làm chúng trở nên giống nhau không?
+**Question 4.** Precomposed é and e + combining accent may look identical, yet String.equals returns false. Does a UTF-8 round-trip make them equal?
 
-**Trả lời:** không. UTF-8 giữ được biểu diễn Unicode hợp lệ đã có; việc chuẩn hóa cần được thực hiện có chủ đích theo hợp đồng.
+**Answer:** No. UTF-8 preserves whatever valid Unicode representation you already had; normalization must be applied intentionally per contract.
 
-## 13. Ghi nhớ
+## 13. Takeaway
 
-Kiểm thử chuyển đổi hai chiều cần xác định **cái gì phải được giữ nguyên**. Với số/ngày, thường quan trọng nhất là **giá trị ngữ nghĩa** sau format rồi parse, đồng thời phải kiểm soát rounding, Locale, độ chính xác và việc phân tích hết chuỗi. Với văn bản, quan trọng là **ký tự Unicode** hoặc thậm chí **bytes** có được phục hồi, Charset ở hai chiều có nhất quán hay không, và phần nào của dữ liệu có thể bị thay thế.
+Testing round-trip conversions requires defining **what must remain invariant**. For numbers and dates, the **semantic value** after format-then-parse usually matters most, while controlling rounding, Locale, precision, and full-string parsing. For text, what matters is whether **Unicode characters** or even **raw bytes** are recovered, whether Charsets match on both ends, and what data might be silently replaced.
 
-Locale quy định **cách trình bày và diễn giải văn bản theo vùng miền**; Charset quy định **cách mã hóa nội dung thành bytes**. Đặt Locale/Charset tường minh, kiểm tra cả trường hợp đúng và sai, và dùng round-trip với điều kiện rõ ràng sẽ giúp bài kiểm thử ổn định hơn trên môi trường phát triển, máy chủ và CI.
+Locale governs **regional presentation and interpretation of text**; Charset governs **how content encodes into bytes**. Specifying Locale/Charset explicitly, testing both valid and invalid inputs, and asserting clear round-trip invariants keeps tests reliable across developer machines, servers, and CI.

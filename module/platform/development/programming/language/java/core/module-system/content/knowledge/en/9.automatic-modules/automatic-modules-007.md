@@ -1,33 +1,33 @@
-# Rủi ro tên module phụ thuộc tên file
+# Risks of Module Names Depending on File Names
 
-## 1. Automatic module lấy tên từ đâu?
+## 1. Where Does an Automatic Module Get Its Name?
 
-Một JAR không có `module-info.class` khi được đặt trên **module path** có thể được xem là một automatic module. JVM cần một tên module để đưa JAR đó vào module graph.
+A JAR without `module-info.class` when placed on the **module path** can be treated as an automatic module. The JVM needs a module name to place that JAR into the module graph.
 
-Tên automatic module được xác định theo thứ tự:
+The automatic module name is determined in order:
 
-1. Nếu manifest của JAR có thuộc tính `Automatic-Module-Name`, giá trị đó được dùng làm tên module.
-2. Nếu không có thuộc tính này, tên module được suy ra từ tên file JAR.
+1. If the JAR's manifest has the `Automatic-Module-Name` attribute, that value is used as the module name.
+2. If that attribute is absent, the module name is derived from the JAR file name.
 
-Ví dụ, một thư viện có file:
+For example, a library with the file:
 
 ~~~text
 payment-client-2.4.1.jar
 ~~~
 
-có thể được suy ra tên module là:
+may have its module name derived as:
 
 ~~~text
 payment.client
 ~~~
 
-Tên được suy ra bằng quy tắc chuẩn hóa tên file: bỏ phần mở rộng `.jar`, nhận diện và loại bỏ hậu tố phiên bản theo quy tắc đặt tên, thay các ký tự phân cách không hợp lệ bằng dấu chấm, gộp các dấu chấm liên tiếp và loại dấu chấm ở đầu/cuối. Đây là phép suy luận từ tên file, không phải tên được tác giả thư viện cam kết như một API ổn định.
+The name is derived using filename normalization rules: stripping the `.jar` extension, detecting and stripping the version suffix according to naming rules, replacing invalid separator characters with dots, collapsing consecutive dots, and stripping leading/trailing dots. This is an inference from the file name, not a name committed by the library author as a stable API.
 
-Khi JAR đã có module descriptor tường minh, tên trong descriptor là tên module được sử dụng. `Automatic-Module-Name` và tên suy ra từ file chỉ liên quan đến JAR chưa có descriptor tường minh.
+When a JAR already has an explicit module descriptor, the name in the descriptor is the module name used. `Automatic-Module-Name` and filename-derived names only apply to JARs without an explicit descriptor.
 
-## 2. Vì sao phụ thuộc vào tên file tạo ra rủi ro?
+## 2. Why Does Depending on File Names Create Risk?
 
-Giả sử ứng dụng khai báo:
+Suppose the application declares:
 
 ~~~java
 module com.acme.checkout {
@@ -35,32 +35,32 @@ module com.acme.checkout {
 }
 ~~~
 
-Khai báo `requires` tham chiếu đến **tên module**, không tham chiếu trực tiếp đến tên file JAR, Maven artifact hay đường dẫn trên đĩa.
+The `requires` declaration refers to the **module name**, not directly to the JAR file name, Maven artifact, or path on disk.
 
-Nếu tên module được suy ra từ file, việc đổi tên artifact hoặc cách đóng gói có thể làm thay đổi tên mà compiler và JVM nhìn thấy. Khi đó, dòng `requires payment.client;` có thể không còn khớp với module thực tế.
+If the module name is derived from the file, renaming the artifact or changing how it is packaged can alter the name seen by the compiler and the JVM. Then `requires payment.client;` may no longer match the actual module.
 
-Một số thay đổi có thể gây ảnh hưởng:
+Several changes can have an impact:
 
-- Nhà cung cấp đổi tên artifact hoặc tên file JAR.
-- Build pipeline thêm hoặc bỏ classifier trong tên file.
-- Một bản phân phối đổi quy ước đặt tên file.
-- Thư viện được chuyển từ một JAR gộp sang nhiều JAR có tên khác nhau.
-- Một công cụ đóng gói đổi tên JAR khi copy vào thư mục triển khai.
+- The vendor renames the artifact or the JAR file name.
+- The build pipeline adds or removes a classifier in the file name.
+- A distribution changes its file naming convention.
+- The library is split from one combined JAR into multiple differently named JARs.
+- A packaging tool renames the JAR when copying it into the deployment directory.
 
-Không phải mọi thay đổi phiên bản đều làm tên module thay đổi. Hậu tố phiên bản theo quy tắc thông thường thường được loại bỏ khi suy ra tên. Tuy nhiên, ứng dụng vẫn đang dựa vào một quy tắc đặt tên file và kết quả của nó, nên không nên xem tên suy ra là hợp đồng ổn định do nhà cung cấp bảo đảm.
+Not every version change alters the module name. Typical version suffixes are normally stripped when deriving the name. However, the application is still relying on a file naming convention and its derived outcome, so the derived name should not be treated as a vendor-guaranteed stable contract.
 
-## 3. Ví dụ tên file và tên module suy ra
+## 3. Examples of File Names and Derived Module Names
 
-Một số ví dụ minh họa:
+Some illustrative examples:
 
-| Tên file JAR | Tên automatic module có thể suy ra |
+| JAR File Name | Possible Derived Automatic Module Name |
 |---|---|
 | `payment-client-2.4.1.jar` | `payment.client` |
 | `json-core-1.8.jar` | `json.core` |
 | `acme-logging.jar` | `acme.logging` |
 | `legacy_http-3.0.jar` | `legacy.http` |
 
-Hãy chú ý rằng tên module suy ra từ file không nhất thiết trùng với Maven coordinates:
+Note that a module name derived from the file does not necessarily match Maven coordinates:
 
 ~~~text
 groupId    = com.vendor
@@ -70,20 +70,20 @@ file       = payment-client-2.4.1.jar
 module     = payment.client
 ~~~
 
-JPMS không tự lấy `groupId` để tạo prefix `com.vendor`. Nếu ứng dụng viết `requires com.vendor.payment.client;` trong khi JAR thực tế có tên automatic module `payment.client`, compiler sẽ không tìm thấy module được yêu cầu.
+JPMS does not automatically take `groupId` to form a `com.vendor` prefix. If the application writes `requires com.vendor.payment.client;` while the actual JAR has the automatic module name `payment.client`, the compiler will not find the requested module.
 
-Tên trong ví dụ là kết quả minh họa theo quy tắc suy ra; với dependency thực tế, luôn kiểm tra chính artifact đã được resolve trong build.
+The names in the examples illustrate results under the derivation rules; for actual dependencies, always verify the exact artifact resolved in your build.
 
-## 4. Rủi ro khi tên file thay đổi
+## 4. Risk When the File Name Changes
 
-Giả sử thư viện ban đầu được phân phối như sau:
+Suppose the library is initially distributed as:
 
 ~~~text
 libs/
 └── payment-client-2.4.1.jar
 ~~~
 
-Tên automatic module được suy ra là `payment.client`. Ứng dụng khai báo:
+The derived automatic module name is `payment.client`. The application declares:
 
 ~~~java
 module com.acme.checkout {
@@ -91,30 +91,30 @@ module com.acme.checkout {
 }
 ~~~
 
-Sau đó, một bước đóng gói đổi tên file thành:
+Later, a packaging step renames the file to:
 
 ~~~text
 libs/
 └── acme-payment.jar
 ~~~
 
-Nếu JAR không có `Automatic-Module-Name` và không có `module-info.class`, tên suy ra có thể trở thành `acme.payment`. Lúc này module consumer vẫn yêu cầu `payment.client`, trong khi module path chỉ có `acme.payment`.
+If the JAR lacks `Automatic-Module-Name` and lacks `module-info.class`, the derived name may become `acme.payment`. At this point, the consuming module still requests `payment.client`, while the module path only has `acme.payment`.
 
-Kết quả thường là lỗi phân giải module như:
+The typical result is a module resolution error such as:
 
 ~~~text
 module not found: payment.client
 ~~~
 
-Lỗi xuất hiện dù bytecode bên trong JAR có thể vẫn giống hệt trước khi đổi tên. Nguyên nhân nằm ở metadata tên module mà module system nhìn thấy.
+The error occurs even though the bytecode inside the JAR may be identical to before the rename. The cause lies in the module name metadata seen by the module system.
 
-Đổi tên file cũng có thể gây ra lỗi theo chiều ngược lại: một JAR mới vô tình được suy ra thành tên module mà code hiện tại chưa từng yêu cầu. Vì vậy, khi nâng cấp hoặc thay cách đóng gói dependency, cần kiểm tra tên module thực tế.
+Renaming a file can also cause errors in the reverse direction: a new JAR may accidentally derive a module name that existing code never requested. Therefore, when upgrading or changing how dependencies are packaged, check the actual module name.
 
-## 5. Rủi ro trùng tên module
+## 5. Risk of Duplicate Module Names
 
-Hai JAR khác nhau có thể suy ra cùng một tên module nếu tên file sau khi chuẩn hóa giống nhau.
+Two different JARs can derive the same module name if their normalized file names match.
 
-Ví dụ:
+Example:
 
 ~~~text
 libs/
@@ -122,24 +122,24 @@ libs/
 └── payment-client-3.0.0.jar
 ~~~
 
-Cả hai có thể được suy ra thành `payment.client`. Nếu cùng được đưa vào một cấu hình module, module resolver không thể xem chúng là hai module độc lập có cùng tên để ứng dụng chọn phiên bản tùy ý.
+Both can be derived as `payment.client`. If both are placed into the same module configuration, the module resolver cannot treat them as two independent modules with the same name so the application can pick versions arbitrarily.
 
-JPMS không cung cấp cơ chế nạp hai phiên bản của cùng một module name trong một module configuration như một dependency version resolver. Việc chọn phiên bản phải được build tool hoặc quy trình đóng gói xử lý trước khi tạo module path.
+JPMS does not provide a mechanism to load two versions of the same module name in a single module configuration like a dependency version resolver. Version selection must be handled by the build tool or packaging process before constructing the module path.
 
-Điều này cũng cho thấy không thể dùng automatic module name để cô lập phiên bản thư viện. Nếu cần hai phiên bản cùng tồn tại, phải thiết kế ranh giới triển khai hoặc class loader/layer phù hợp; việc đổi tên file JAR đơn thuần không tạo ra một cơ chế version isolation an toàn.
+This also shows you cannot use automatic module names to isolate library versions. If two versions must coexist, you must design appropriate deployment boundaries or class loaders/layers; merely renaming JAR files does not create a safe version isolation mechanism.
 
-## 6. Cách ổn định tên bằng Automatic-Module-Name
+## 6. How to Stabilize Names with Automatic-Module-Name
 
-Để tránh phụ thuộc vào tên file, nhà cung cấp thư viện có thể đặt thuộc tính `Automatic-Module-Name` trong manifest:
+To avoid relying on file names, library vendors can set the `Automatic-Module-Name` attribute in the manifest:
 
 ~~~text
 Manifest-Version: 1.0
 Automatic-Module-Name: com.acme.payment.client
 ~~~
 
-Khi JAR chưa có `module-info.class`, JPMS dùng tên trong manifest thay cho tên suy ra từ file. Vì vậy, file có thể được đổi tên hoặc có phiên bản mới mà module name vẫn ổn định, miễn là nhà cung cấp giữ nguyên thuộc tính đó.
+When the JAR lacks `module-info.class`, JPMS uses the name in the manifest instead of deriving one from the file name. Thus, the file can be renamed or given new versions while the module name stays stable, provided the vendor preserves that attribute.
 
-Consumer khi đó khai báo:
+Consumers then declare:
 
 ~~~java
 module com.acme.checkout {
@@ -147,7 +147,7 @@ module com.acme.checkout {
 }
 ~~~
 
-Ví dụ cấu hình Gradle Groovy cho thư viện do nhóm phát triển sở hữu:
+Example Gradle Groovy configuration for a library owned by your team:
 
 ~~~groovy
 tasks.named('jar') {
@@ -159,7 +159,7 @@ tasks.named('jar') {
 }
 ~~~
 
-Khi thư viện chuyển sang named module tường minh, nên giữ cùng tên trong `module-info.java`:
+When the library moves to an explicit named module, keep the same name in `module-info.java`:
 
 ~~~java
 module com.acme.payment.client {
@@ -167,77 +167,77 @@ module com.acme.payment.client {
 }
 ~~~
 
-Giữ tên nhất quán giúp consumer không phải đổi `requires` chỉ vì thư viện đã chuyển từ automatic module sang explicit named module.
+Keeping the name consistent ensures consumers do not have to change `requires` merely because the library moved from an automatic module to an explicit named module.
 
-Với thư viện bên thứ ba, nên ưu tiên bản phát hành đã công bố `Automatic-Module-Name` hoặc có module descriptor. Việc tự đổi tên file chỉ để làm cho `requires` khớp có thể khiến lần nâng cấp tiếp theo phát sinh lỗi và làm quy trình build khó dự đoán.
+For third-party libraries, prefer releases that already publish `Automatic-Module-Name` or have a module descriptor. Manually renaming files just to make `requires` match can cause errors on the next upgrade and make the build process unpredictable.
 
-## 7. Kiểm tra tên module thực tế bằng công cụ JDK
+## 7. Inspecting the Actual Module Name with JDK Tools
 
-Đừng đoán tên module chỉ từ Maven coordinates. Dùng chính file JAR đang được build sử dụng:
+Do not guess the module name solely from Maven coordinates. Use the exact JAR file used by the build:
 
 ~~~bash
 jar --describe-module --file libs/payment-client-2.4.1.jar
 ~~~
 
-Với JAR không có descriptor tường minh, đầu ra cho biết đây là automatic module và hiển thị tên được dùng. Nếu manifest có `Automatic-Module-Name`, hãy kiểm tra tên đó trong kết quả.
+For a JAR without an explicit descriptor, the output indicates that it is an automatic module and shows the name used. If the manifest has `Automatic-Module-Name`, check that name in the output.
 
-Có thể kiểm tra thêm manifest:
+You can also inspect the manifest:
 
 ~~~bash
 unzip -p libs/payment-client-2.4.1.jar META-INF/MANIFEST.MF
 ~~~
 
-Tìm dòng:
+Look for the line:
 
 ~~~text
 Automatic-Module-Name: com.acme.payment.client
 ~~~
 
-Nếu môi trường không có `unzip`, có thể giải nén manifest bằng công cụ ZIP sẵn có hoặc xem nội dung manifest trong artifact repository. Điểm quan trọng là kiểm tra đúng file JAR mà build đã resolve, không chỉ xem tên dependency trong file cấu hình.
+If the environment lacks `unzip`, you can extract the manifest with an available ZIP tool or view the manifest content in your artifact repository. The key point is to inspect the exact JAR resolved by the build, not only look at the dependency name in configuration files.
 
-Sau khi xác nhận tên, đối chiếu ba nơi:
+After confirming the name, verify three places:
 
-1. Tên module trong `requires` của consumer.
-2. Tên module hiển thị từ `jar --describe-module`.
-3. File JAR thực sự có trên module path lúc compile và runtime.
+1. The module name in the consumer's `requires`.
+2. The module name displayed by `jar --describe-module`.
+3. The JAR file actually present on the module path at compile time and runtime.
 
-## 8. Automatic module còn có đặc tính truy cập rộng
+## 8. Automatic Modules Also Have Broad Access Characteristics
 
-Tên file không phải rủi ro duy nhất khi dùng automatic module. Automatic module được thiết kế như một cơ chế chuyển tiếp để thư viện cũ có thể tham gia module path:
+File naming is not the only risk when using automatic modules. Automatic modules were designed as a transitional mechanism so legacy libraries can join the module path:
 
-- Automatic module export tất cả package của nó.
-- Automatic module đọc các module khác trong module configuration.
-- Nó chưa thể hiện ranh giới API chặt chẽ như một named module có descriptor được thiết kế rõ ràng.
+- An automatic module exports all of its packages.
+- An automatic module reads other modules in the module configuration.
+- It does not express strict API boundaries like a named module with a well-designed descriptor.
 
-Vì vậy, việc JAR có một tên module và có thể được dùng trong `requires` không có nghĩa thư viện đã được modular hóa hoàn chỉnh. Consumer vẫn có thể nhìn thấy nhiều package nội bộ hơn mức thư viện muốn hỗ trợ lâu dài.
+Therefore, having a module name and being usable in `requires` does not mean the library has been completely modularized. Consumers can still see more internal packages than the library wants to support long-term.
 
-Khi cần encapsulation rõ ràng, nên ưu tiên thư viện có `module-info.class` và chỉ export những package API cần thiết. Automatic module phù hợp để hỗ trợ chuyển đổi từng bước, nhưng không nên mặc định xem nó là trạng thái thiết kế cuối cùng.
+When clear encapsulation is needed, prefer libraries with `module-info.class` that export only the necessary API packages. Automatic modules are suited to step-by-step migration, but should not be assumed as the final design state.
 
-## 9. Quy trình xử lý khi nâng cấp dependency
+## 9. Workflow When Upgrading Dependencies
 
-Khi nâng cấp một JAR đang được sử dụng như automatic module, thực hiện các bước sau:
+When upgrading a JAR currently used as an automatic module, follow these steps:
 
-1. Resolve dependency bằng Maven/Gradle và xác định đường dẫn file JAR thực tế.
-2. Chạy `jar --describe-module --file <jar>` để lấy tên module.
-3. Kiểm tra manifest để biết có `Automatic-Module-Name` hay không.
-4. Đối chiếu tên module với chỉ thị `requires` của consumer.
-5. Kiểm tra module path không chứa hai JAR có cùng module name.
-6. Build lại consumer để phát hiện lỗi module resolution và readability.
-7. Chạy ứng dụng trên module path để xác nhận runtime sử dụng đúng artifact.
+1. Resolve dependencies with Maven/Gradle and locate the actual JAR file path.
+2. Run `jar --describe-module --file <jar>` to obtain the module name.
+3. Inspect the manifest to see whether `Automatic-Module-Name` is present.
+4. Compare the module name with the consumer's `requires` directives.
+5. Verify that the module path does not contain two JARs with the same module name.
+6. Rebuild the consumer to catch module resolution and readability errors.
+7. Run the application on the module path to confirm runtime uses the right artifact.
 
-Nếu tên module thay đổi, trước tiên xác định thay đổi đến từ manifest, tên file hay việc thư viện đã chuyển sang module descriptor tường minh. Sau đó mới quyết định cập nhật `requires` hoặc chọn phiên bản artifact khác.
+If the module name changed, first determine whether the change came from the manifest, the file name, or the library switching to an explicit module descriptor. Only then decide whether to update `requires` or pick a different artifact version.
 
-Không nên sửa module name dựa trên suy đoán hoặc đổi tên file một cách thủ công mà không ghi nhận quy tắc trong build. Tên module là một phần của contract mà consumer đang phụ thuộc.
+Do not adjust module names based on guesswork or manually rename files without recording the convention in the build. The module name is part of the contract that consumers depend on.
 
-## 10. Ghi nhớ
+## 10. Key Takeaways
 
-Automatic module cần tên để tham gia module graph. Nếu JAR có `Automatic-Module-Name`, JPMS dùng tên ổn định do nhà cung cấp khai báo. Nếu không có, tên được suy ra từ tên file JAR và có thể bị ảnh hưởng bởi cách đặt tên hoặc đóng gói artifact.
+An automatic module needs a name to join the module graph. If the JAR has `Automatic-Module-Name`, JPMS uses the stable name declared by the vendor. Otherwise, the name is derived from the JAR file name and can be affected by artifact naming or packaging.
 
-- `requires` tham chiếu đến module name, không phải Maven coordinates hay tên file.
-- Hậu tố phiên bản theo quy tắc thông thường thường được loại bỏ khi suy ra tên; không nên giả định mọi quy ước tên file đều cho kết quả ổn định.
-- Hai JAR có thể suy ra cùng module name và gây xung đột trong cùng module configuration.
-- `Automatic-Module-Name` giúp giữ tên ổn định qua thay đổi tên file.
-- Module descriptor tường minh là cách thể hiện ranh giới API rõ ràng hơn automatic module.
-- Luôn kiểm tra artifact thực tế bằng `jar --describe-module` trước khi kết luận tên module.
+- `requires` references the module name, not Maven coordinates or the file name.
+- Typical version suffixes are normally stripped during name derivation; do not assume every file naming convention yields stable results.
+- Two JARs can derive the same module name and conflict in the same module configuration.
+- `Automatic-Module-Name` helps keep the name stable across file name changes.
+- An explicit module descriptor is the way to express clearer API boundaries than an automatic module.
+- Always inspect the actual artifact with `jar --describe-module` before concluding the module name.
 
-Khi một dependency automatic module gây lỗi `module not found`, hãy kiểm tra tên module mà JAR thực sự công bố trước. Đó là bằng chứng trực tiếp để xác định `requires` đang tham chiếu sai tên hay build đang đưa sai artifact lên module path.
+When an automatic module dependency causes a `module not found` error, first check the module name the JAR actually publishes. That is the direct evidence for determining whether `requires` references the wrong name or the build puts the wrong artifact on the module path.

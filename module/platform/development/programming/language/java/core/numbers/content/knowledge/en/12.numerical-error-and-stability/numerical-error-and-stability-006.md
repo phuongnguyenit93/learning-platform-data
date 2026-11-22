@@ -1,8 +1,8 @@
-# Điều kiện bài toán và trường hợp sai số đầu vào bị khuếch đại
+# Problem Conditioning and Cases Where Input Error Is Amplified
 
-Trong tính toán số, **một kết quả sai nhiều không nhất thiết bắt nguồn từ code Java sai**. Có những bài toán vốn rất nhạy: chỉ thay đổi một lượng rất nhỏ trong dữ liệu đầu vào cũng làm **giá trị đầu ra thay đổi lớn theo tỷ lệ tương đối**. Tính chất này gọi là **điều kiện của bài toán** (*conditioning*). Một bài toán có điều kiện xấu (*ill-conditioned*) vẫn có thể được giải bằng thuật toán ổn định; ngược lại, một bài toán có điều kiện tốt vẫn có thể bị tính sai nếu chọn công thức hoặc cách triển khai không ổn định.
+In numerical computing, **a badly wrong result does not necessarily stem from buggy Java code**. Some problems are inherently sensitive: changing the input data by only a tiny amount causes **the output value to change drastically in relative terms**. This property is called **problem conditioning** (*conditioning*). An *ill-conditioned* problem can still be solved with a stable algorithm; conversely, a well-conditioned problem can still be computed inaccurately if an unstable formula or implementation is chosen.
 
-Ví dụ đơn giản là lấy hiệu hai số gần nhau:
+A simple example is taking the difference of two close numbers:
 
 ```text
 a = 1 + 2^-40
@@ -10,84 +10,84 @@ b = 1
 
 a - b = 2^-40
 
-Nếu a tăng 2^-50:
+If a increases by 2^-50:
 (a + 2^-50) - b = 2^-40 + 2^-50
 ```
 
-**Thay đổi tuyệt đối** của đầu vào và đầu ra đều là `2^-50`, nhưng **tỷ lệ thay đổi của đầu ra so với giá trị hiệu ban đầu** là `2^-10 = 0.0009765625` (gần 0,1%). Trong khi đó, tỷ lệ thay đổi của `a` chỉ khoảng `8.88 × 10^-16`. Chênh lệch tương đối được khuếch đại hơn **một nghìn tỷ lần**.
+The **absolute change** in both input and output is `2^-50`, yet the **ratio of output change to the initial difference** is `2^-10 = 0.0009765625` (nearly 0.1%). Meanwhile, the relative change in `a` is only about `8.88 × 10^-16`. The relative discrepancy is amplified more than **one trillion times**.
 
-Bài học sẽ giải thích điều kiện tuyệt đối, điều kiện tương đối, số điều kiện, phép trừ gần triệt tiêu, bài toán gần điểm kỳ dị, và cách phân biệt **độ nhạy vốn có của đầu vào** với **lỗi do thuật toán** khi lập trình Java.
+This lesson explains absolute conditioning, relative conditioning, condition numbers, near-canceling subtraction, problems near singularities, and how to distinguish **inherent input sensitivity** from **algorithmic error** when programming in Java.
 
-## 1. Hai loại sai số cần tách biệt
+## 1. Two Types of Error to Separate
 
-Cho một bài toán toán học nhận đầu vào `x` và tính đầu ra `f(x)`. Trong thực tế, máy tính có thể nhận `x̃` thay vì `x` do dữ liệu đo đạc, chuyển đổi văn bản sang số thực, hoặc kết quả của các phép tính trước đó. Sau đó máy tính tạo ra một kết quả xấp xỉ `ŷ`.
+Given a mathematical problem that takes input `x` and computes output `f(x)`. In practice, the computer may receive `x̃` instead of `x` due to measurement data, text-to-floating-point conversion, or results of prior calculations. The computer then produces an approximate result `ŷ`.
 
-Ta có thể phân tích hai ảnh hưởng khác nhau:
+We can analyze two distinct effects:
 
-1. **Ảnh hưởng của nhiễu đầu vào:** so sánh `f(x̃)` với `f(x)`. Nếu chỉ thay đổi một chút đầu vào mà kết quả đúng của bài toán thay đổi mạnh, **bài toán nhạy**. Đây là conditioning.
-2. **Ảnh hưởng của thuật toán/số học máy:** so sánh `ŷ` với `f(x̃)`. Nếu thuật toán tạo nhiều sai số bổ sung do làm tròn, overflow, underflow hoặc phép biến đổi bất lợi, đó là vấn đề **ổn định của thuật toán** (*numerical stability*).
+1. **Effect of input perturbation:** compare `f(x̃)` with `f(x)`. If a slight change in input causes the exact mathematical solution to change sharply, **the problem is sensitive**. This is conditioning.
+2. **Effect of algorithm/machine arithmetic:** compare `ŷ` with `f(x̃)`. If the algorithm introduces substantial additional error due to rounding, overflow, underflow, or adverse transformations, that is an issue of **algorithmic stability** (*numerical stability*).
 
-Một cách tóm lược:
+A concise summary:
 
 ```text
-Đầu vào lý tưởng x
-      │ sai số đo/chuyển đổi dữ liệu
+Ideal input x
+      │ measurement/data-conversion error
       ▼
-Đầu vào thực có x̃ ──[bài toán toán học]──► f(x̃)
-      │                                         │
-      └────────[thuật toán số thực tế]────────► ŷ
+Actual input x̃ ──[mathematical problem]──► f(x̃)
+      │                                       │
+      └──────[actual numerical algorithm]────► ŷ
 ```
 
-**Conditioning** liên quan tới chính hàm toán học và điểm đầu vào; **stability** liên quan tới cách tính hàm ấy. Thuật toán tốt có thể giảm sai số tính toán **thêm vào**, nhưng không thể bảo đảm khôi phục thông tin không có trong đầu vào.
+**Conditioning** pertains to the mathematical function itself and the input point; **stability** pertains to how that function is computed. A good algorithm can reduce **additional** computation error, but cannot guarantee recovering information absent from the input.
 
-## 2. Sai số tuyệt đối và sai số tương đối
+## 2. Absolute Error and Relative Error
 
-Với đại lượng đúng `v` và đại lượng xấp xỉ `ṽ`:
+For a true quantity `v` and an approximate quantity `ṽ`:
 
 ```text
-Sai số tuyệt đối:       |ṽ - v|
-Sai số tương đối:       |ṽ - v| / |v|    (khi v khác 0)
+Absolute error:         |ṽ - v|
+Relative error:         |ṽ - v| / |v|    (when v is nonzero)
 ```
 
-Ví dụ: cùng sai số tuyệt đối `0.001`, nhưng ở giá trị `1000` tỷ lệ chỉ `10^-6`, còn ở giá trị `0.01` tỷ lệ là `0.1`, tức **10%**. Vì vậy, cần nêu rõ đang nói tới **độ lớn tuyệt đối** hay **tỷ lệ tương đối**.
+For example: the same absolute error of `0.001` is only a `10^-6` ratio at a value of `1000`, whereas at a value of `0.01` it is a `0.1` ratio, or **10%**. Thus, you must clarify whether you are referring to **absolute magnitude** or **relative ratio**.
 
-Đối với đầu ra bằng 0 hoặc rất gần 0, sai số tương đối có thể **không xác định hoặc cực lớn** dù sai số tuyệt đối rất nhỏ. Khi đó, một chuẩn sai số tuyệt đối có thang đo nghiệp vụ thường hữu ích hơn. Không nên chia bừa cho một giá trị gần zero rồi diễn giải con số rất lớn như “thuật toán chắc chắn sai”.
+For an output of 0 or very close to 0, relative error can be **undefined or huge** even when absolute error is tiny. In such cases, an absolute error criterion scaled to the business domain is usually more useful. Do not blindly divide by a near-zero value and interpret the huge number as "the algorithm is definitely buggy."
 
-Lưu ý Java có `double` hữu hạn, `NaN`, Infinity và `+0.0`/`-0.0`; nếu tự viết công cụ đo sai số, hãy xác định cách xử lý các trường hợp này trước khi chia hoặc so sánh.
+Note that Java `double` has finite values, `NaN`, Infinity, and `+0.0`/`-0.0`; if writing your own error-measurement tool, define how these cases are handled before dividing or comparing.
 
-## 3. Điều kiện tuyệt đối và điều kiện tương đối của hàm một biến
+## 3. Absolute and Relative Conditioning of a Single-Variable Function
 
-Với hàm `f(x)` khả vi và nhiễu nhỏ `δx`, xấp xỉ tuyến tính là:
+For a differentiable function `f(x)` and a small perturbation `δx`, the linear approximation is:
 
 ```text
 δy = f(x + δx) - f(x) ≈ f'(x) × δx
 ```
 
-**Độ nhạy tuyệt đối cục bộ** được phản ánh bởi `|f'(x)|`: giá trị lớn cho biết nhiễu tuyệt đối nhỏ ở `x` có thể tạo thay đổi tuyệt đối lớn ở `f(x)`.
+**Local absolute sensitivity** is reflected by `|f'(x)|`: a large value indicates that a small absolute perturbation in `x` can produce a large absolute change in `f(x)`.
 
-Nếu `x ≠ 0` và `f(x) ≠ 0`, **số điều kiện tương đối cục bộ** thường được định nghĩa:
+If `x ≠ 0` and `f(x) ≠ 0`, the **local relative condition number** is typically defined as:
 
 ```text
 κ_rel(x) = |x × f'(x) / f(x)|
 ```
 
-Khi `δx` đủ nhỏ để xấp xỉ tuyến tính phù hợp:
+When `δx` is small enough for the linear approximation to hold:
 
 ```text
 |δy| / |f(x)| ≈ κ_rel(x) × (|δx| / |x|)
 ```
 
-Diễn giải:
+Interpretation:
 
-- `κ_rel ≈ 1`: sai số tương đối đầu ra cùng bậc với đầu vào (theo mô hình cục bộ).
-- `κ_rel ≫ 1`: sai số tương đối của đầu vào có thể được **khuếch đại mạnh** ở đầu ra; đây là điều kiện xấu về mặt tương đối.
-- `κ_rel ≪ 1`: một nhiễu tương đối nhỏ ở đầu vào có thể tạo nhiễu tương đối đầu ra còn nhỏ hơn.
+- `κ_rel ≈ 1`: output relative error is of the same order as input relative error (under the local model).
+- `κ_rel ≫ 1`: input relative error can be **strongly amplified** in the output; this is poor relative conditioning.
+- `κ_rel ≪ 1`: a small relative perturbation in input can produce an even smaller relative perturbation in output.
 
-Đây là **xấp xỉ cục bộ**, không phải bảo đảm cho mọi nhiễu lớn. Số điều kiện còn phụ thuộc **chuẩn đo đầu vào/đầu ra và cách đặt bài toán**; gần zero, thang đo tuyệt đối và tương đối có thể đưa tới những nhận định khác nhau.
+This is a **local approximation**, not a guarantee for large perturbations. The condition number also depends on **the input/output measurement norms and problem formulation**; near zero, absolute and relative scales can lead to different conclusions.
 
-## 4. Phép trừ hai số gần nhau: đầu ra nhỏ, độ nhạy tương đối lớn
+## 4. Subtracting Two Close Numbers: Small Output, High Relative Sensitivity
 
-Xét `f(a,b) = a - b`. Đây là bài toán hai đầu vào. Nếu cả `a` và `b` đều có nhiễu:
+Consider `f(a,b) = a - b`. This is a two-input problem. If both `a` and `b` are perturbed:
 
 ```text
 a → a + δa
@@ -96,15 +96,15 @@ b → b + δb
 (a + δa) - (b + δb) = (a - b) + (δa - δb)
 ```
 
-Sai số tuyệt đối của hiệu **không vượt** `|δa| + |δb|`, nhưng nếu `|a-b|` rất nhỏ so với `|a|` và `|b|`, sai số tương đối của hiệu có thể lớn. Một thước đo điều kiện tương đối cho phép trừ (với thành phần đầu vào có sai số tương đối cùng cỡ) là:
+The absolute error of the difference **does not exceed** `|δa| + |δb|`, yet if `|a-b|` is very small relative to `|a|` and `|b|`, the relative error of the difference can be huge. A relative conditioning measure for subtraction (when input components have comparable relative errors) is:
 
 ```text
 κ_sub ≈ (|a| + |b|) / |a - b|
 ```
 
-Khi `a ≈ b`, mẫu số rất nhỏ, khiến `κ_sub` lớn. Điều này không có nghĩa lệnh trừ của CPU nhất định sai. Trái lại, phép trừ hai số floating-point đủ gần nhau đôi khi còn **chính xác hoàn toàn đối với hai giá trị đã được biểu diễn** (liên quan tới định lý Sterbenz). Vấn đề là nếu dữ liệu đầu vào hơi đổi, **đáp án đúng của bài toán cũng đổi nhiều theo tỷ lệ**.
+When `a ≈ b`, the denominator is tiny, making `κ_sub` large. This does not mean the CPU's subtraction instruction is necessarily wrong. On the contrary, subtracting two sufficiently close floating-point numbers is sometimes **completely exact for the two represented values** (related to Sterbenz's lemma). The issue is that if the input data shifts slightly, **the exact answer to the problem also shifts significantly in proportion**.
 
-Ví dụ được chọn với các số nhị phân biểu diễn chính xác:
+An example chosen with exact representable binary numbers:
 
 ```java
 double a = 1.0 + 0x1.0p-40;
@@ -113,22 +113,22 @@ double difference = a - 1.0;
 double changedDifference = changedA - 1.0;
 ```
 
-Trong literal hex floating-point của Java, `0x1.0p-40` là `2^-40`, `0x1.0p-50` là `2^-50`. Tất cả các giá trị này được `double` biểu diễn chính xác.
+In Java hexadecimal floating-point literals, `0x1.0p-40` is `2^-40` and `0x1.0p-50` is `2^-50`. All of these values are represented accurately by `double`.
 
-| Chỉ số | Giá trị |
+| Metric | Value |
 | --- | --- |
-| Hiệu ban đầu `a - 1` | `2^-40` |
-| Nhiễu thêm vào `a` | `2^-50` ≈ `8.881784197001252E-16` |
-| Thay đổi tuyệt đối của hiệu | Cũng là `2^-50` |
-| Thay đổi tương đối của hiệu | `2^-10 = 0.0009765625` |
-| Thay đổi tương đối của `a` | Khoảng `8.88E-16` |
-| Hệ số khuếch đại tương đối tại điểm xét | Gần `2^40`, hơn một nghìn tỷ lần |
+| Initial difference `a - 1` | `2^-40` |
+| Perturbation added to `a` | `2^-50` ≈ `8.881784197001252E-16` |
+| Absolute change in difference | Also `2^-50` |
+| Relative change in difference | `2^-10 = 0.0009765625` |
+| Relative change in `a` | About `8.88E-16` |
+| Relative amplification factor at this point | Nearly `2^40`, over one trillion times |
 
-Trong ví dụ có đúng một đầu vào biến động, ta xem `f(a)=a-1`; số điều kiện tương đối là `|a/(a-1)| = 2^40+1`. Giá trị của hệ số khuếch đại tính bằng hai sai khác thực tế cũng bằng **1_099_511_627_777** (in dưới dạng số nguyên), trong khi phép trừ ở ví dụ **không mắc lỗi làm tròn đầu ra**. Đó là minh chứng rõ ràng rằng conditioning xấu và thuật toán mất ổn định **không phải một khái niệm**.
+In this example where exactly one input varies, we view `f(a)=a-1`; the relative condition number is `|a/(a-1)| = 2^40+1`. The amplification factor computed from the two actual differences also equals **1_099_511_627_777** (printed as an integer), while the subtraction in the example **suffers no output rounding error**. This clearly demonstrates that poor conditioning and algorithmic instability **are not the same concept**.
 
-## 5. Hàm có mẫu số gần zero: điều kiện xấu gần điểm kỳ dị
+## 5. Functions with a Near-Zero Denominator: Ill-Conditioning Near a Singularity
 
-Xét:
+Consider:
 
 ```text
 f(x) = 1 / (x - 1),   x ≠ 1
@@ -138,45 +138,45 @@ f'(x) = -1 / (x - 1)^2
 κ_rel(x) = |x / (x - 1)|
 ```
 
-Khi `x` tiến gần `1`, cả đạo hàm tuyệt đối lẫn số điều kiện tương đối có thể rất lớn. Ví dụ, với `x = 1 + 2^-20`:
+As `x` approaches `1`, both the absolute derivative and the relative condition number can become very large. For instance, with `x = 1 + 2^-20`:
 
 ```text
 f(x) = 2^20 = 1_048_576
 κ_rel(x) ≈ 2^20
 ```
 
-Nếu tăng `x` thêm `2^-40` (khoảng `9.09 × 10^-13`), đầu ra đổi thành gần `1_048_575.0000009537`. Đầu vào thay đổi cực nhỏ, nhưng sự thay đổi tương đối của đầu ra có độ lớn gần một phần triệu, tức hệ số khuếch đại vào khoảng một triệu lần so với sai số tương đối đầu vào.
+If `x` increases by `2^-40` (about `9.09 × 10^-13`), the output changes to nearly `1_048_575.0000009537`. The input changes by a tiny amount, yet the relative change in output has a magnitude of nearly one part per million—an amplification factor of roughly one million times relative to the input's relative error.
 
-Đây là hệ quả của bài toán **gần cực (pole)**, không phải do lập trình viên viết thiếu dấu ngoặc. Một thuật toán ổn định tính `1/(x-1)` vẫn phải chịu độ nhạy này nếu giá trị thực của `x` không chắc chắn.
+This is a consequence of the problem being **near a pole**, not because a programmer missed parentheses. A stable algorithm computing `1/(x-1)` must still suffer this sensitivity if the true value of `x` is uncertain.
 
-Tại **`x = 1.0` chính xác**, phép chia `1.0 / (x - 1.0)` trong Java trả **`+Infinity`** theo ngữ nghĩa floating-point; không ném `ArithmeticException` như phép chia **số nguyên** cho zero. Trong chương trình thực cần kiểm tra miền xác định và khoảng cách tới điểm kỳ dị trước khi dùng kết quả.
+At **exact `x = 1.0`**, dividing `1.0 / (x - 1.0)` in Java returns **`+Infinity`** per floating-point semantics; it does not throw `ArithmeticException` like **integer** division by zero. In real programs, check the domain and distance from the singularity before using the result.
 
-## 6. Vì sao “thuật toán ổn định” không xóa được điều kiện xấu?
+## 6. Why Can't a "Stable Algorithm" Eliminate Ill-Conditioning?
 
-Một thuật toán được gọi là **ổn định số** khi sai số do tính toán của nó được kiểm soát tốt so với yêu cầu và độ nhạy của bài toán. Phân biệt hai hướng đánh giá phổ biến:
+An algorithm is called **numerically stable** when its computational error is well controlled relative to the requirements and the sensitivity of the problem. Distinguish two common evaluation perspectives:
 
-- **Forward error:** `|ŷ - f(x)|`, tức khoảng cách từ đáp án máy tính đến đáp án lý tưởng tại đầu vào gốc.
-- **Backward error:** xem `ŷ` có thể được coi là đáp án đúng `f(x+Δx)` của **một đầu vào gần `x`** hay không. Nếu có với `Δx` đủ nhỏ theo chuẩn đã chọn, thuật toán có thể được đánh giá là ổn định ngược (*backward stable*).
+- **Forward error:** `|ŷ - f(x)|`, i.e., the distance from the machine's answer to the ideal answer at the original input.
+- **Backward error:** checking whether `ŷ` can be interpreted as the exact answer `f(x+Δx)` of **an input close to `x`**. If so, with `Δx` sufficiently small under the chosen norm, the algorithm can be judged *backward stable*.
 
-Với bài toán điều kiện tốt, một thuật toán có backward error nhỏ thường cho forward error nhỏ. Với bài toán điều kiện xấu, **ngay cả thay đổi đầu vào rất nhỏ** vẫn có thể cho forward error lớn. Một quy tắc phân tích ở mức xấp xỉ cục bộ là:
-
-```text
-sai số tương đối đầu ra
-    ≈ số điều kiện × sai số tương đối đầu vào
-      + ảnh hưởng sai số thuật toán
-```
-
-Công thức mang tính trực giác, không phải định luật cộng sai số có thể áp dụng nguyên xi cho mọi hàm hay mọi trường hợp `NaN`/Infinity. Phân tích chính xác cần xác định chuẩn đo, các hạng sai số và phạm vi đầu vào. Tuy vậy, nguyên tắc quan trọng là: **thuật toán tốt không thể làm một bài toán ill-conditioned trở thành well-conditioned chỉ bằng việc thay cách viết code**.
-
-## 7. Trường hợp ngược lại: bài toán không quá nhạy nhưng công thức tính gây mất ổn định
-
-Xét hàm:
+For a well-conditioned problem, an algorithm with small backward error usually yields small forward error. For an ill-conditioned problem, **even a very small input change** can produce large forward error. A rule of thumb at the local approximation level is:
 
 ```text
-g(x) = sqrt(x + 1) - sqrt(x),  với x ≥ 0
+output relative error
+    ≈ condition number × input relative error
+      + algorithmic error contribution
 ```
 
-Khi `x` rất lớn, hai căn bậc hai gần bằng nhau. Phép trừ hai số sau khi làm tròn có thể **triệt tiêu gần hết các chữ số có nghĩa**. Nhưng ta có thể biến đổi đại số (với `x ≥ 0`):
+This formula is intuitive rather than an additive error law applicable verbatim to every function or `NaN`/Infinity case. Exact analysis requires specifying the norm, error terms, and input range. Nevertheless, the crucial principle is: **a good algorithm cannot turn an ill-conditioned problem into a well-conditioned one merely by rewriting the code**.
+
+## 7. The Converse Case: Well-Behaved Problem, Unstable Formula
+
+Consider the function:
+
+```text
+g(x) = sqrt(x + 1) - sqrt(x),  for x ≥ 0
+```
+
+When `x` is very large, the two square roots are nearly equal. Subtracting the two numbers after rounding can **cancel out almost all significant digits**. Yet we can transform it algebraically (for `x ≥ 0`):
 
 ```text
 sqrt(x+1) - sqrt(x)
@@ -184,7 +184,7 @@ sqrt(x+1) - sqrt(x)
     = 1 / (sqrt(x+1)+sqrt(x))
 ```
 
-Trong Java:
+In Java:
 
 ```java
 double x = 1.0e16;
@@ -192,35 +192,35 @@ double direct = Math.sqrt(x + 1.0) - Math.sqrt(x);
 double stable = 1.0 / (Math.sqrt(x + 1.0) + Math.sqrt(x));
 ```
 
-Với `x = 1e16`, `x + 1.0` bị làm tròn về chính `x` ở kiểu `double`; cách viết trực tiếp cho **`0.0`**. Cách viết theo mẫu số cho khoảng **`5.0E-9`**, gần giá trị toán học `1/(2×10^8)`.
+For `x = 1e16`, `x + 1.0` rounds back to `x` in `double`; the direct formula gives **`0.0`**. The denominator-based form gives roughly **`5.0E-9`**, close to the mathematical value `1/(2×10^8)`.
 
-Điểm mấu chốt: **bài toán tính `g(x)` không tự nhiên vô vọng ở `x` lớn** (theo độ nhạy tương đối, nó khá tốt ở miền này), nhưng cách tính hiệu của hai căn gần nhau gây mất ổn định. Biến đổi công thức giúp tránh phép trừ gây hủy triệt tiêu. Đây là lỗi **thuật toán**, khác với ví dụ `a-b` có đầu vào không chắc chắn và hiệu rất nhỏ.
+The key takeaway: **computing `g(x)` is not inherently hopeless at large `x`** (in terms of relative sensitivity, it is quite well-conditioned in this region), yet computing the difference of two close square roots introduces instability. Rewriting the formula avoids cancellation-inducing subtraction. This is an **algorithmic** flaw, unlike the `a-b` example with uncertain inputs and a tiny difference.
 
-Không nên áp dụng công thức biến đổi một cách mù quáng cho mọi miền: cần kiểm tra miền xác định và nguy cơ overflow/underflow của các trung gian trong công thức mới. Với `x ≥ 0` hữu hạn của ví dụ và độ lớn thông dụng, dạng nghịch đảo là lựa chọn tốt để tránh cancellation.
+Do not blindly apply transformed formulas to every domain: check the domain of definition and risk of overflow/underflow of intermediates in the new formula. For the finite `x ≥ 0` and typical magnitudes in this example, the reciprocal form is a good choice to avoid cancellation.
 
-## 8. Một công thức tốt hơn còn có thể tránh overflow trung gian
+## 8. A Better Formula Can Also Avoid Intermediate Overflow
 
-Tính độ dài vector hai chiều:
+Computing the length of a 2D vector:
 
 ```text
 h(a,b) = sqrt(a^2 + b^2)
 ```
 
-Bài toán này thường **không nhạy quá mức** theo sai số tương đối của các thành phần khi độ lớn có ý nghĩa. Nhưng công thức trực tiếp có thể tràn dù kết quả cuối vẫn nằm trong phạm vi `double`:
+This problem is generally **not overly sensitive** to relative errors in its components when magnitudes are meaningful. However, the direct formula can overflow even though the final result still fits within the `double` range:
 
 ```java
 double a = 1.0e200;
 double naive = Math.sqrt(a * a + a * a); // Infinity.
-double robust = Math.hypot(a, a);        // Hữu hạn, khoảng 1.414e200.
+double robust = Math.hypot(a, a);        // Finite, about 1.414e200.
 ```
 
-Ở đây `a*a = 1e400` vượt `Double.MAX_VALUE` trước khi gọi `sqrt`. `Math.hypot` dùng phương pháp phù hợp để tránh overflow/underflow trung gian trong những trường hợp như vậy. Ví dụ này không phải “sửa điều kiện bài toán”: nó dùng **thuật toán tốt hơn** để tính một hàm vốn có kết quả hữu hạn.
+Here `a*a = 1e400` exceeds `Double.MAX_VALUE` before calling `sqrt`. `Math.hypot` uses an appropriate method to avoid intermediate overflow/underflow in such cases. This example is not "fixing problem conditioning": it uses a **better algorithm** to compute a function whose result is inherently finite.
 
-Thông điệp thực tiễn: trước khi tăng độ chính xác kiểu số, hãy xem có **hàm thư viện hoặc biến đổi ổn định** cho chính phép tính đang thực hiện không.
+Practical message: before increasing numeric type precision, check whether a **library function or stable transformation** exists for the exact operation you are performing.
 
-## 9. Chương trình Java 17+ chạy độc lập
+## 9. Standalone Java 17+ Program
 
-Tạo tệp **`ConditionSensitivityDemo.java`**:
+Create the file **`ConditionSensitivityDemo.java`**:
 
 ```java
 public class ConditionSensitivityDemo {
@@ -266,14 +266,14 @@ public class ConditionSensitivityDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 -encoding UTF-8 ConditionSensitivityDemo.java
 java ConditionSensitivityDemo
 ```
 
-Kết quả stdout chính xác:
+Exact stdout output:
 
 ```text
 gapHex=0x1.0p-40
@@ -292,19 +292,19 @@ hypotFinite=true
 inputIncrementLost=true
 ```
 
-Các dòng kiểm chứng ba nhóm kiến thức:
+These lines verify three groups of concepts:
 
-1. **Độ nhạy tương đối của phép trừ:** `absoluteInputChange` và `absoluteOutputChange` bằng nhau, nhưng `relativeOutputChange` gần `0.001`, còn `relativeAmplificationRounded` vượt `10^12`. Đây là bài toán nhạy dù phép trừ trên các giá trị biểu diễn được là chính xác.
-2. **Hàm gần điểm kỳ dị:** `nearPoleOriginal` và `nearPoleChanged` khác nhau sau một nhiễu rất nhỏ ở `x`.
-3. **Thuật toán có/không ổn định:** `directCancellation=0.0` so với `stableReformulation=5.0E-9`; `naiveHypotenuseInfinite=true` trong khi `hypotFinite=true`.
+1. **Relative sensitivity of subtraction:** `absoluteInputChange` and `absoluteOutputChange` are equal, yet `relativeOutputChange` is nearly `0.001`, and `relativeAmplificationRounded` exceeds `10^12`. This is a sensitive problem even though subtraction on the representable values is exact.
+2. **Function near a singularity:** `nearPoleOriginal` and `nearPoleChanged` differ after a tiny perturbation in `x`.
+3. **Stable vs. unstable algorithm:** `directCancellation=0.0` vs. `stableReformulation=5.0E-9`; `naiveHypotenuseInfinite=true` while `hypotFinite=true`.
 
-Dòng `inputIncrementLost=true` thể hiện sự thật bổ sung: ở `2^53`, `double` không còn biểu diễn được mọi số nguyên kế tiếp, nên `2^53 + 1.0` làm tròn về `2^53`. Nếu một chênh lệch **đã mất khi hình thành dữ liệu đầu vào**, thuật toán phía sau không có cách nào suy ra chính xác nó từ giá trị `double` ấy.
+The line `inputIncrementLost=true` demonstrates an additional fact: at `2^53`, `double` can no longer represent every consecutive integer, so `2^53 + 1.0` rounds to `2^53`. If a difference **was already lost when forming the input data**, downstream algorithms have no way to deduce it accurately from that `double` value.
 
-## 10. Độ chính xác biểu diễn khác điều kiện bài toán
+## 10. Representation Precision Differs from Problem Conditioning
 
-`float` có khoảng 24 bit significand hiệu dụng, `double` có khoảng 53 bit; mọi phép toán được biểu diễn trên lưới giá trị hữu hạn với khoảng cách phụ thuộc độ lớn. Công cụ `Math.ulp(x)` cho biết bước biểu diễn liên quan tới `x`, còn `Math.nextUp(x)` và `Math.nextDown(x)` giúp xem các giá trị kề nhau.
+`float` has about 24 effective significand bits and `double` has about 53 bits; all operations are represented on a finite grid of values with magnitude-dependent spacing. `Math.ulp(x)` reports the representation step associated with `x`, while `Math.nextUp(x)` and `Math.nextDown(x)` let you inspect adjacent values.
 
-Ví dụ:
+Example:
 
 ```java
 double limit = 0x1.0p53; // 2^53.
@@ -312,92 +312,92 @@ boolean lost = (limit + 1.0 == limit); // true.
 double step = Math.ulp(limit);        // 2.0.
 ```
 
-Dữ liệu đo/chuyển đổi có thể bị làm tròn khi tạo ra `double`, khiến `x̃` khác giá trị lý tưởng `x`. **Conditioning** mô tả tác động của sự khác biệt đó lên câu trả lời toán học, còn **ULP và quy tắc floating-point** mô tả một nguồn sai khác phổ biến trong máy tính.
+Measured/converted data can be rounded when creating a `double`, making `x̃` differ from the ideal value `x`. **Conditioning** describes the impact of that discrepancy on the mathematical answer, whereas **ULP and floating-point rules** describe a common source of computer discrepancy.
 
-Nếu một bài toán gần điểm kỳ dị có `κ_rel` rất lớn, sai số tương đối của đầu vào cỡ vài ULP vẫn có thể làm đầu ra đổi đáng kể. Nhưng chỉ nhìn ULP không đủ xác định chất lượng dữ liệu: sai số cảm biến, khuyết dữ liệu, mô hình hóa hoặc nhập liệu sai thường lớn hơn sai số làm tròn máy nhiều bậc.
+If a problem near a singularity has a very large `κ_rel`, an input relative error of just a few ULPs can still alter the output significantly. However, looking at ULP alone is not enough to judge data quality: sensor errors, missing data, modeling errors, or data-entry mistakes are often orders of magnitude larger than machine rounding error.
 
-## 11. Chọn thang đo và đơn vị trước khi báo cáo bài toán “nhạy”
+## 11. Choose Scale and Units Before Labeling a Problem "Sensitive"
 
-Tính điều kiện tương đối có thể thay đổi khi chọn đầu vào hoặc thang đo. Ví dụ `f(x)=x-1` gần `x=1` rất nhạy về **sai số tương đối của đầu ra** vì `f(x)` gần zero. Nhưng độ nhạy **tuyệt đối** `|f'(x)|=1` vẫn không lớn: đầu vào tăng bao nhiêu thì đầu ra tăng bấy nhiêu.
+Relative conditioning can change depending on the choice of input or scale. For example, `f(x)=x-1` near `x=1` is very sensitive in terms of **output relative error** because `f(x)` is near zero. Yet **absolute** sensitivity `|f'(x)|=1` is not large: whatever the input increases by, the output increases by the same amount.
 
-Nếu nghiệp vụ quan tâm **sai số tuyệt đối không quá `10^-9`**, việc đầu ra nhỏ bị sai tỷ lệ 50% không nhất thiết gây hậu quả. Ngược lại, nếu hệ thống dùng **tỷ lệ tăng trưởng**, độ nhạy tương đối lớn có thể là vấn đề nghiêm trọng.
+If business logic cares about **absolute error not exceeding `10^-9`**, a small output being off by 50% proportionally does not necessarily have consequences. Conversely, if the system uses **growth rates**, high relative sensitivity can be a serious problem.
 
-Khi đo nhiễu, xác định:
+When measuring perturbations, determine:
 
-- Đầu vào nào thay đổi: một tham số, nhiều tham số hay tất cả?
-- Dùng chuẩn nào cho vector đầu vào (ví dụ chuẩn vô cùng `L∞` hoặc Euclid `L2`)?
-- Nhiễu là tuyệt đối, tương đối, hay được mô tả bằng khoảng tin cậy từ dữ liệu đo?
-- Đầu ra yêu cầu **số chữ số có nghĩa**, sai số tuyệt đối, sai số tương đối hay giới hạn nghiệp vụ?
-- Có điểm `f(x)=0`, `x=0`, điểm kỳ dị hoặc bất liên tục làm công thức tương đối trở nên vô nghĩa không?
+- Which inputs vary: one parameter, several parameters, or all?
+- Which norm is used for the input vector (e.g., infinity norm `L∞` or Euclidean `L2`)?
+- Is the perturbation absolute, relative, or described by a confidence interval from measurement data?
+- Does the output require **significant digits**, absolute error, relative error, or a business bound?
+- Are there points `f(x)=0`, `x=0`, singularities, or discontinuities that render the relative formula meaningless?
 
-Với bài toán nhiều biến, **Jacobian** là phiên bản tổng quát của đạo hàm; độ nhạy phụ thuộc hướng nhiễu và chuẩn được chọn. Trong hệ tuyến tính `Ax=b`, số điều kiện ma trận `κ(A)` cho biết độ nhạy của nghiệm đối với nhiễu dữ liệu theo một chuẩn cụ thể. Không nên dùng nguyên công thức một biến `|x f'/f|` cho mọi hệ phương trình nhiều chiều.
+For multivariable problems, the **Jacobian** is the generalized version of the derivative; sensitivity depends on perturbation direction and chosen norm. In a linear system `Ax=b`, the matrix condition number `κ(A)` measures solution sensitivity to data perturbations under a specific norm. Do not apply the single-variable formula `|x f'/f|` verbatim to multidimensional equation systems.
 
-## 12. Gắn conditioning với bài toán dữ liệu thực tế
+## 12. Connecting Conditioning to Real-World Data Problems
 
-**Tình huống A — hiệu giữa hai phép đo lớn.** Ví dụ đo hai khối lượng gần `1000 kg` rồi trừ để tìm phần chênh `0.001 kg`. Nếu mỗi phép đo có độ bất định `±0.01 kg`, thì độ bất định của hiệu có thể lớn hơn chính kết quả cần tìm. Dùng `BigDecimal` để trừ chính xác các số thập phân đã ghi **không thể phục hồi độ chính xác đo đạc ban đầu**. Cần cảm biến/qui trình đo tốt hơn hoặc đo trực tiếp đại lượng chênh lệch.
+**Scenario A — difference between two large measurements.** For example, measuring two masses near `1000 kg` and subtracting to find a `0.001 kg` difference. If each measurement has an uncertainty of `±0.01 kg`, the uncertainty of the difference can exceed the target result itself. Using `BigDecimal` to subtract recorded decimals accurately **cannot recover the original measurement precision**. You need better sensors/measurement procedures or to measure the differential quantity directly.
 
-**Tình huống B — chia cho một độ lệch gần zero.** Ví dụ tính chỉ tiêu `1/(p - p0)` khi `p` gần `p0`. Một sai số rất nhỏ của cảm biến `p` sẽ làm chỉ tiêu thay đổi mạnh. Cần xác định miền hợp lệ, đặt ngưỡng khoảng cách tới `p0`, tính khoảng đầu ra tương ứng với bất định đầu vào hoặc đổi mô hình nếu gần điểm kỳ dị không có ý nghĩa nghiệp vụ.
+**Scenario B — dividing by a near-zero offset.** For example, computing an index `1/(p - p0)` when `p` is near `p0`. A tiny sensor error in `p` makes the index swing wildly. You must define a valid domain, enforce a distance threshold from `p0`, compute the output interval corresponding to input uncertainty, or change the model if near-singularity values have no business meaning.
 
-**Tình huống C — tính toán hình học lớn.** Độ dài hai cạnh `1e200` vẫn có thể cho đường chéo hữu hạn, nhưng công thức dùng `a*a+b*b` ở `double` gây overflow. `Math.hypot(a,b)` xử lý tốt hơn mà không cần giả sử dữ liệu gốc phải bớt chính xác.
+**Scenario C — large geometric calculations.** Side lengths of `1e200` can still yield a finite diagonal, yet a formula using `a*a+b*b` in `double` overflows. `Math.hypot(a,b)` handles this better without needing to assume original data must be less accurate.
 
-**Tình huống D — tính chênh của hai căn lớn.** Trực tiếp `sqrt(x+1)-sqrt(x)` có thể cho 0 dù đáp án dương. Biến đổi thành `1/(sqrt(x+1)+sqrt(x))` là sửa **thuật toán**, không phải giảm độ nhạy vốn có của hàm.
+**Scenario D — computing the difference of two large square roots.** Direct `sqrt(x+1)-sqrt(x)` can return 0 even though the answer is positive. Transforming to `1/(sqrt(x+1)+sqrt(x))` fixes the **algorithm**, rather than reducing the inherent sensitivity of the function.
 
-## 13. Cách kiểm thử độ nhạy một cách có hệ thống trong Java
+## 13. How to Test Sensitivity Systematically in Java
 
-Để đánh giá một hàm số trong ứng dụng, nên kết hợp:
+To evaluate a numerical function in an application, combine:
 
-1. **Tìm miền và điểm khó:** mẫu số gần zero, căn của số gần biên, hiệu hai đại lượng gần nhau, dữ liệu khác bậc độ lớn, điều kiện cực trị.
-2. **Ước lượng condition number** khi có đạo hàm hoặc mô hình toán học phù hợp; phân biệt tuyệt đối/tương đối và tránh chia cho zero.
-3. **Tạo perturbation có kiểm soát** cho đầu vào. Có thể dùng `Math.nextUp(x)`/`Math.nextDown(x)` để thay một bước biểu diễn, hoặc nhiễu theo sai số đo thực tế.
-4. **So hai nguồn sai số:** chạy thuật toán trên các đầu vào hơi khác nhau, rồi so với phương pháp tham chiếu có độ chính xác cao hơn hoặc công thức giải tích khi khả thi.
-5. **Thử thêm các giá trị biên:** gần zero, Infinity, NaN, subnormal, giá trị rất lớn, `Double.MAX_VALUE`, vùng đầu vào gây cancellation.
-6. **Thử tính chất (properties):** đơn điệu nếu mô hình phải đơn điệu, giá trị không âm nếu đại lượng không âm, giới hạn vật lý, khả năng kiểm tra ngược từ nghiệm về dữ liệu.
-7. **Ghi rõ thang sai số mong muốn** trong test, thay vì đòi `double` bằng đúng bit với đáp án thập phân lý tưởng trong mọi tình huống.
+1. **Identify domains and difficult points:** near-zero denominators, square roots near boundaries, differences of close quantities, data spanning orders of magnitude, extreme conditions.
+2. **Estimate condition numbers** when a derivative or mathematical model is available; distinguish absolute/relative and avoid dividing by zero.
+3. **Create controlled perturbations** for inputs. You can use `Math.nextUp(x)`/`Math.nextDown(x)` to shift by one representation step, or perturb according to realistic measurement error.
+4. **Compare two error sources:** run the algorithm on slightly perturbed inputs, then compare against a higher-precision reference method or analytical formula when feasible.
+5. **Test additional boundary values:** near zero, Infinity, NaN, subnormal, very large values, `Double.MAX_VALUE`, and input regions causing cancellation.
+6. **Test properties:** monotonicity if the model must be monotonic, non-negativity if quantities are non-negative, physical bounds, and backward-checking from solution to data.
+7. **State the desired error scale clearly** in tests, instead of demanding that `double` match an ideal decimal answer bit-for-bit in every scenario.
 
-Một số phép tính có thể dùng `BigDecimal` với `MathContext` đủ chính xác để tạo giá trị tham chiếu, nhưng **`BigDecimal` không hỗ trợ sẵn mọi hàm số học**, và nó không tự giải quyết mô hình ill-conditioned. Với biểu thức cần các hàm siêu việt, tham chiếu có thể cần thư viện số học độ chính xác cao hoặc biến đổi giải tích được kiểm chứng.
+Some calculations can use `BigDecimal` with a sufficiently precise `MathContext` to generate reference values, but **`BigDecimal` does not natively support all mathematical functions**, and it does not solve ill-conditioned models on its own. For expressions requiring transcendental functions, references may require high-precision arithmetic libraries or verified analytical transformations.
 
-## 14. Sai số forward/backward: hiểu đúng một kết quả khác nhau
+## 14. Forward/Backward Error: Properly Interpreting a Discrepancy
 
-Giả sử mô hình lý tưởng có `f(x)`, đầu vào lưu trong máy là `x̃`, kết quả máy là `ŷ`. Phân tích nên hỏi từng câu:
+Suppose the ideal model has `f(x)`, the machine-stored input is `x̃`, and the machine result is `ŷ`. Analysis should ask each question:
 
-| Câu hỏi | Đang nói về |
+| Question | What is it about? |
 | --- | --- |
-| `x̃` khác `x` bao nhiêu? | Sai số dữ liệu/biểu diễn |
-| `f(x̃)` khác `f(x)` bao nhiêu? | Độ nhạy của **bài toán** |
-| `ŷ` khác `f(x̃)` bao nhiêu? | Sai số **thuật toán** tại đầu vào đã lưu |
-| `ŷ` có bằng `f(x+Δx)` với `Δx` nhỏ không? | Góc nhìn **backward error** |
-| Cả hệ thống có đạt yêu cầu độ chính xác không? | Kết hợp mô hình, dữ liệu, thuật toán và điều kiện |
+| How much does `x̃` differ from `x`? | Data/representation error |
+| How much does `f(x̃)` differ from `f(x)`? | **Problem** sensitivity |
+| How much does `ŷ` differ from `f(x̃)`? | **Algorithmic** error at the stored input |
+| Does `ŷ` equal `f(x+Δx)` for a small `Δx`? | **Backward error** perspective |
+| Does the whole system meet accuracy requirements? | Combination of model, data, algorithm, and conditioning |
 
-Trong ví dụ `a = 1 + 2^-40`, phép trừ gần nhau **không phải thủ phạm chính**: cả giá trị gốc và giá trị nhiễu đều có thể lưu và trừ chính xác. Sự khuếch đại tương đối là thuộc tính của việc lấy **hiệu rất nhỏ giữa hai giá trị cỡ 1**.
+In the `a = 1 + 2^-40` example, subtracting nearby numbers **is not the main culprit**: both original and perturbed values can be stored and subtracted accurately. Relative amplification is an inherent property of taking **a tiny difference between two values of size ~1**.
 
-Ngược lại, trong ví dụ `sqrt(x+1)-sqrt(x)`, việc lựa chọn công thức trực tiếp tạo ra mất chữ số có nghĩa khi các trung gian bị làm tròn. Chuyển sang dạng nghịch đảo giúp giảm sai số tính toán; đó là cải thiện thuật toán, không phải tái định nghĩa đáp án toán học.
+Conversely, in the `sqrt(x+1)-sqrt(x)` example, choosing the direct formula causes loss of significant digits when intermediates are rounded. Switching to the reciprocal form reduces computational error; that is an algorithmic improvement, not a redefinition of the mathematical answer.
 
-## 15. Những nhầm lẫn thường gặp
+## 15. Common Misconceptions
 
-| Nhầm lẫn | Vì sao sai | Cách tiếp cận đúng |
+| Misconception | Why it is wrong | Correct approach |
 | --- | --- | --- |
-| Có kết quả sai lớn thì chắc chắn do Java `double` triển khai sai | Bài toán có thể có condition number rất lớn | Phân tích độ nhạy toán học trước |
-| Thuật toán ổn định sẽ luôn cho đáp án gần `f(x)` | Dữ liệu `x̃` có thể đã khác `x`; bài toán nhạy | Phân biệt sai số dữ liệu với sai số thuật toán |
-| Hai số gần nhau thì phép trừ luôn được CPU tính sai | Với các số floating-point đủ gần, phép trừ đôi khi chính xác | Xét nhiễu đầu vào và thuật toán riêng |
-| Sai số tương đối lớn thì sai số tuyệt đối cũng lớn | Đầu ra rất nhỏ dễ có sai số tương đối lớn | Nêu chuẩn lỗi phù hợp miền đo |
-| Tăng từ `float` lên `double` luôn chữa được điều kiện xấu | Tăng độ chính xác không đổi bản chất hàm toán học | Phân tích condition number và chất lượng dữ liệu |
-| `BigDecimal` sửa được nhiễu cảm biến | Nó chỉ tăng kiểm soát biểu diễn/tính toán | Cải thiện đo đạc hoặc mô hình nếu cần |
-| `sqrt(a*a+b*b)` an toàn khi kết quả cuối hữu hạn | Trung gian `a*a` có thể overflow | Dùng `Math.hypot(a,b)` |
-| `sqrt(x+1)-sqrt(x)` luôn an toàn vì toán học dương | Hai căn được làm tròn gần bằng nhau | Dùng biến đổi đại số ổn định |
-| Số điều kiện một biến áp dụng y hệt cho nhiều biến | Độ nhạy nhiều biến phụ thuộc chuẩn và hướng nhiễu | Xem Jacobian và condition number phù hợp |
-| So sánh `double` bằng `==` đủ để đánh giá tính đúng | Kết quả bị làm tròn và có thể rất gần nhau | Dùng tiêu chí sai số có thiết kế và test biên |
+| A large output error must mean Java `double` implementation is buggy | The problem itself may have a huge condition number | Analyze mathematical sensitivity first |
+| A stable algorithm will always give an answer close to `f(x)` | Input data `x̃` may already differ from `x`; problem is sensitive | Separate data error from algorithmic error |
+| Subtracting two close numbers is always miscomputed by the CPU | For sufficiently close floating-point numbers, subtraction can be exact | Analyze input perturbation and algorithm separately |
+| Large relative error implies large absolute error | Very small outputs easily have huge relative errors | Specify error criteria suited to the measurement domain |
+| Upgrading from `float` to `double` always fixes ill-conditioning | Increasing precision does not change the mathematical function's nature | Analyze condition number and data quality |
+| `BigDecimal` fixes sensor noise | It only increases control over representation/computation | Improve measurement or model if needed |
+| `sqrt(a*a+b*b)` is safe whenever the final result is finite | Intermediate `a*a` can overflow | Use `Math.hypot(a,b)` |
+| `sqrt(x+1)-sqrt(x)` is always safe because it is mathematically positive | The two square roots round to nearly equal numbers | Use a stable algebraic transformation |
+| Single-variable condition number applies identically to multiple variables | Multivariable sensitivity depends on norms and perturbation direction | Examine the Jacobian and appropriate condition number |
+| Comparing `double` with `==` suffices to verify correctness | Results are rounded and may be very close | Use designed error criteria and boundary tests |
 
-## 16. Câu hỏi tự kiểm tra
+## 16. Self-Check Questions
 
-1. **Conditioning là gì?** Là tính nhạy của đáp án toán học đối với thay đổi nhỏ ở đầu vào, tại miền/điểm và chuẩn đo đã xác định.
-2. **Numerical stability khác conditioning ở điểm nào?** Stability nói về sai số do **thuật toán tính**, conditioning nói về **bản thân bài toán**.
-3. **Với `f(x)=x-1`, tại `x` rất gần 1, tại sao sai số tương đối đầu ra tăng mạnh?** Vì `f(x)` rất nhỏ, trong khi nhiễu tuyệt đối của `x` vẫn truyền vào hiệu; số điều kiện tương đối `|x/(x-1)|` lớn.
-4. **Phép trừ hai số gần nhau có nhất thiết làm tròn sai không?** Không. Nó có thể chính xác trên hai số đã lưu, nhưng kết quả rất nhạy theo **sai số tương đối của đầu vào**.
-5. **Với `f(x)=1/(x-1)`, chuyện gì xảy ra khi `x` gần 1?** Đạo hàm và số điều kiện tương đối có thể rất lớn; một sai số nhỏ của `x` có thể làm `f(x)` thay đổi mạnh.
-6. **Vì sao `sqrt(1e16 + 1) - sqrt(1e16)` trong `double` có thể bằng zero?** Vì các giá trị trung gian bị làm tròn thành hai số như nhau; công thức trực tiếp gây cancellation.
-7. **Biến đổi ổn định hơn của `sqrt(x+1)-sqrt(x)` là gì với `x≥0`?** `1/(sqrt(x+1)+sqrt(x))`.
-8. **Vì sao `Math.hypot(1e200,1e200)` có thể hữu hạn trong khi `Math.sqrt(a*a+a*a)` là Infinity?** `a*a` đã overflow trước khi lấy căn; `Math.hypot` tránh trung gian không cần thiết đó.
-9. **Nếu một số đo có sai số vật lý lớn, đổi `double` sang `BigDecimal` có phục hồi giá trị chính xác không?** Không. Độ chính xác biểu diễn không phục hồi thông tin không tồn tại trong phép đo.
-10. **Khi nào dùng sai số tuyệt đối thay vì sai số tương đối?** Khi đầu ra có thể bằng/gần zero hoặc nghiệp vụ quy định dung sai tuyệt đối cụ thể.
+1. **What is conditioning?** The sensitivity of the mathematical answer to small changes in input, at a given point/domain and under a chosen measurement norm.
+2. **How does numerical stability differ from conditioning?** Stability concerns errors introduced by **the computation algorithm**, while conditioning concerns **the problem itself**.
+3. **For `f(x)=x-1`, at `x` very close to 1, why does output relative error spike?** Because `f(x)` is tiny while absolute perturbation of `x` still passes into the difference; the relative condition number `|x/(x-1)|` is large.
+4. **Does subtracting two close numbers necessarily round inaccurately?** No. It can be exact on the two stored numbers, yet the result is highly sensitive to **input relative error**.
+5. **For `f(x)=1/(x-1)`, what happens when `x` is near 1?** Both the derivative and relative condition number can be huge; a small error in `x` can cause `f(x)` to change sharply.
+6. **Why can `sqrt(1e16 + 1) - sqrt(1e16)` equal zero in `double`?** Because intermediate values round to identical numbers; the direct formula suffers cancellation.
+7. **What is a more stable transformation of `sqrt(x+1)-sqrt(x)` for `x≥0`?** `1/(sqrt(x+1)+sqrt(x))`.
+8. **Why can `Math.hypot(1e200,1e200)` be finite while `Math.sqrt(a*a+a*a)` is Infinity?** `a*a` overflows before taking the square root; `Math.hypot` avoids that unnecessary intermediate.
+9. **If a measurement has large physical error, does switching from `double` to `BigDecimal` recover the exact value?** No. Representation precision cannot recover information that does not exist in the measurement.
+10. **When should absolute error be used instead of relative error?** When the output can be zero/near zero or business rules specify a concrete absolute tolerance.
 
-**Ghi nhớ:** sai số đầu vào có thể bị **khuếch đại do điều kiện bài toán**, kể cả khi thuật toán hoàn toàn đúng trên các giá trị đã lưu. Hãy đo cả **sai số tuyệt đối và tương đối**, phân tích số điều kiện gần những điểm nhạy, phân biệt lỗi dữ liệu với lỗi thuật toán, rồi lựa chọn công thức số ổn định (`Math.hypot`, biến đổi tránh cancellation, kiểm tra miền) và độ chính xác phù hợp với yêu cầu.
+**Takeaway:** input error can be **amplified by problem conditioning**, even when the algorithm is completely exact on stored values. Measure both **absolute and relative error**, analyze condition numbers near sensitive points, separate data errors from algorithmic errors, and choose numerically stable formulas (`Math.hypot`, cancellation-avoiding transformations, domain checks) and precision appropriate to requirements.

@@ -1,82 +1,82 @@
-# So sánh bộ đếm thường, atomic và adder trong Java
+# Comparing Plain, Atomic, and Adder Counters in Java
 
-## 1. Vấn đề cần giải quyết
+## 1. Problem to Solve
 
-Giả sử ứng dụng có bốn luồng, mỗi luồng xử lý 100.000 sự kiện và phải tăng một bộ đếm chung. **Giá trị mong đợi là 400.000**, bất kể lịch chạy các luồng. Ba cách tiếp cận thường gặp là:
+Suppose an application has four threads, each processing 100,000 events and needing to increment a shared counter. **The expected value is 400,000**, regardless of thread scheduling. Three common approaches are:
 
-- **Bộ đếm thường:** biến `int` hoặc `long` được cập nhật bằng `count++`. Đơn giản và phù hợp khi chỉ một luồng sở hữu dữ liệu, nhưng **không an toàn** nếu nhiều luồng cùng tăng mà không đồng bộ.
-- **Bộ đếm atomic:** `AtomicInteger` hoặc `AtomicLong`. Cung cấp thao tác đọc, tăng, cộng và so sánh-đổi có tính nguyên tử đối với một giá trị chung.
-- **Bộ đếm adder:** `LongAdder`. Cho phép nhiều luồng cộng vào bộ đếm, có thể phân tán cập nhật trên nhiều ô để giảm contention; tổng được tính khi cần quan sát.
+- **Plain counter:** an `int` or `long` variable updated with `count++`. Simple and suitable when only one thread owns the data, yet **unsafe** if multiple threads increment concurrently without synchronization.
+- **Atomic counter:** `AtomicInteger` or `AtomicLong`. Provides atomic read, increment, add, and compare-and-set operations on a shared value.
+- **Adder counter:** `LongAdder`. Allows multiple threads to add to the counter, potentially striping updates across multiple cells to reduce contention; the sum is computed when observed.
 
-Một đối chứng rất quan trọng là **bộ đếm thường được bảo vệ bằng `synchronized`**. Đây vẫn là bộ đếm primitive nhưng có một khóa bảo vệ mọi truy cập phù hợp, nên có thể hoàn toàn đúng. Sự khác biệt là *plain unprotected* so với *plain protected*, không phải cứ dùng primitive thì luôn sai.
+A very important baseline for comparison is a **plain counter protected by `synchronized`**. It is still a primitive counter, yet has a lock guarding every appropriate access, so it can be completely correct. The distinction is *plain unprotected* vs. *plain protected*, not that primitives are always wrong.
 
-Cần trả lời cả ba câu hỏi: **Kết quả có đúng khi chạy đồng thời? Mỗi lần đọc có yêu cầu là snapshot nguyên tử không? Và hiệu năng có thật sự tốt hơn trên workload thực?**
+You must answer all three questions: **Is the result correct under concurrency? Does each read require an atomic snapshot? And is performance actually better on the real workload?**
 
-## 2. Tại sao count++ có thể làm mất lượt tăng?
+## 2. Why Can count++ Lose Increments?
 
 ~~~java
 class Counter {
     long count;
 
     void increment() {
-        count++; // KHÔNG atomic khi nhiều luồng cùng ghi
+        count++; // NOT atomic when multiple threads write concurrently
     }
 }
 ~~~
 
-`count++` là một biểu thức ngắn, nhưng về ngữ nghĩa nó gồm:
+`count++` is a short expression, yet semantically it consists of:
 
-1. Đọc giá trị cũ.
-2. Tính giá trị cũ cộng 1.
-3. Ghi giá trị mới trở lại.
+1. Reading the old value.
+2. Computing the old value plus 1.
+3. Writing the new value back.
 
-Khi hai luồng cùng thấy `count == 5`, cả hai tính 6 và cả hai ghi 6, tổng chỉ tăng một lần thay vì hai. Đây là *lost update*, một dạng **race condition**.
+When two threads both see `count == 5`, both compute 6 and both write 6, so the total increases only once instead of twice. This is a *lost update*, a form of **race condition**.
 
-| Thời điểm | Luồng A | Luồng B | Giá trị lưu |
+| Time | Thread A | Thread B | Stored value |
 | --- | --- | --- | ---: |
 | 0 | — | — | 5 |
-| 1 | Đọc 5 | — | 5 |
-| 2 | — | Đọc 5 | 5 |
-| 3 | Tính 6 | — | 5 |
-| 4 | — | Tính 6 | 5 |
-| 5 | Ghi 6 | — | 6 |
-| 6 | — | Ghi 6 | 6 |
+| 1 | Read 5 | — | 5 |
+| 2 | — | Read 5 | 5 |
+| 3 | Compute 6 | — | 5 |
+| 4 | — | Compute 6 | 5 |
+| 5 | Write 6 | — | 6 |
+| 6 | — | Write 6 | 6 |
 
-Đoạn chương trình thực tế có thể luôn in ra số mong đợi trong một vài lượt thử, nhưng điều đó **không chứng minh thread safety**. Lịch xen kẽ khác, số lõi khác hoặc tối ưu JVM khác có thể bộc lộ race.
+A real program might happen to print the expected number in a few trial runs, yet that **does not prove thread safety**. Different interleaving, different core counts, or different JVM optimizations can expose the race.
 
-### Volatile không sửa được ++
+### Volatile does not fix ++
 
 ~~~java
 class Counter {
     volatile long count;
 
     void increment() {
-        count++; // vẫn có thể lost update
+        count++; // lost updates can still occur
     }
 }
 ~~~
 
-`volatile` cung cấp ngữ nghĩa visibility và ordering cho các thao tác trên biến theo Java Memory Model. Nó **không gộp đọc–cộng–ghi thành một thao tác nguyên tử**. Hai luồng vẫn có thể đọc cùng giá trị rồi ghi cùng kết quả. Không dùng `Thread.sleep` hay thêm độ trễ để sửa race: chúng chỉ thay đổi timing.
+`volatile` provides visibility and ordering semantics for operations on the variable under the Java Memory Model. It **does not combine read–add–write into a single atomic operation**. Two threads can still read the same value and write the same result. Do not use `Thread.sleep` or add delays to fix a race: they only alter timing.
 
-Nếu bộ đếm **hoàn toàn thuộc về một luồng**, biến thường là lựa chọn tốt; không phải mọi biến đếm đều cần atomic.
+If a counter **belongs strictly to one thread**, a plain variable is a good choice; not every counter needs to be atomic.
 
-## 3. Bảng so sánh hành vi
+## 3. Behavior Comparison Table
 
-| Tiêu chí | `long count++` không đồng bộ | `AtomicLong` | `LongAdder` |
+| Criterion | Unsynchronized `long count++` | `AtomicLong` | `LongAdder` |
 | --- | --- | --- | --- |
-| Tăng từ nhiều luồng mà không mất lượt? | **Không** | Có | Có |
-| Giá trị đọc tức thời có ngữ nghĩa atomic? | Không đảm bảo | `get()` có | `sum()` không phải snapshot atomic |
-| Lấy giá trị trước/sau mỗi lượt tăng? | Không an toàn nếu chia sẻ | Có: `getAndIncrement`, `incrementAndGet` | Không |
-| So sánh-và-đổi một giá trị? | Không | Có: `compareAndSet` | Không |
-| Khi contention tăng cao | Sai về logic | Cạnh tranh cập nhật cùng một trạng thái | Có thể phân tán cập nhật để tăng throughput |
-| Chi phí bộ nhớ | Rất nhỏ | Đối tượng chứa trạng thái atomic | Có thể lớn hơn vì các ô phụ |
-| Trường hợp thường phù hợp | Single-thread hoặc đồng bộ từ bên ngoài | Cần linearizable operation/CAS/ID | Metrics, nhiều updates, ít đọc chính xác tức thời |
+| Increment from multiple threads without losing updates? | **No** | Yes | Yes |
+| Instantaneous read has atomic semantics? | Not guaranteed | `get()` does | `sum()` is not an atomic snapshot |
+| Retrieve value before/after each increment? | Unsafe if shared | Yes: `getAndIncrement`, `incrementAndGet` | No |
+| Compare-and-set a value? | No | Yes: `compareAndSet` | No |
+| Under high contention | Logically incorrect | Contention updating the same state | Can stripe updates to increase throughput |
+| Memory cost | Very small | Object holding atomic state | Can be larger due to extra cells |
+| Typically suitable cases | Single-thread or externally synchronized | Needs linearizable operations/CAS/IDs | Metrics, write-heavy, infrequent exact reads |
 
-**Không suy từ bảng thành thứ tự tốc độ cố định.** `AtomicLong` có thể nhanh hơn hoặc tương đương `LongAdder` ở contention thấp; `synchronized` cũng có thể đủ nhanh. Chỉ benchmark đúng workload mới kết luận được.
+**Do not infer a fixed speed ranking from the table.** `AtomicLong` can be faster than or comparable to `LongAdder` under low contention; `synchronized` can also be fast enough. Only benchmarking the actual workload can decide.
 
-## 4. AtomicInteger và AtomicLong
+## 4. AtomicInteger and AtomicLong
 
-### 4.1. Phương thức cơ bản
+### 4.1. Basic methods
 
 ~~~java
 import java.util.concurrent.atomic.AtomicLong;
@@ -89,26 +89,26 @@ long current = count.get(); // 2
 long afterAdd = count.addAndGet(10); // 12
 ~~~
 
-Tên phương thức thể hiện giá trị trả về:
+Method names indicate the return value:
 
-- `incrementAndGet()`: tăng, sau đó trả giá trị mới.
-- `getAndIncrement()`: trả giá trị cũ, sau đó tăng.
-- `addAndGet(delta)`: cộng, sau đó trả giá trị mới.
-- `getAndAdd(delta)`: trả giá trị cũ, sau đó cộng.
-- `get()` và `set(...)`: đọc/ghi một giá trị chung.
-- `compareAndSet(expected, update)`: cập nhật chỉ nếu giá trị hiện tại bằng expected, trả `true` khi thành công.
+- `incrementAndGet()`: increments, then returns the new value.
+- `getAndIncrement()`: returns the old value, then increments.
+- `addAndGet(delta)`: adds, then returns the new value.
+- `getAndAdd(delta)`: returns the old value, then adds.
+- `get()` and `set(...)`: reads/writes a shared value.
+- `compareAndSet(expected, update)`: updates only if the current value equals expected, returning `true` on success.
 
-`AtomicInteger` cung cấp biến thể 32 bit với tên phương thức tương tự. `AtomicLong` dùng 64 bit, phù hợp bộ đếm có thể vượt `Integer.MAX_VALUE`.
+`AtomicInteger` provides a 32-bit variant with matching method names. `AtomicLong` uses 64 bits, suitable for counters that can exceed `Integer.MAX_VALUE`.
 
-### 4.2. Vì sao không mất update?
+### 4.2. Why are updates not lost?
 
-Các phép tăng atomic được đồng bộ bởi cơ chế mà JVM/phần cứng cung cấp, thường dựa trên **CAS (compare-and-swap)** hoặc một thao tác phần cứng tương đương. Khi hai luồng cùng tăng từ 5, chỉ một luồng có thể cập nhật thành 6 trước; luồng còn lại phải làm việc với trạng thái mới và cập nhật thành 7.
+Atomic increments are synchronized by mechanisms provided by the JVM/hardware, commonly based on **CAS (compare-and-swap)** or an equivalent hardware operation. When two threads simultaneously increment from 5, only one can update to 6 first; the other must work against the new state and update to 7.
 
-Về hợp đồng, mỗi thao tác atomic có thể được hiểu như xảy ra ở **một điểm nguyên tử** (*linearization point*) đối với biến. Về hiệu năng, nhiều luồng cùng cạnh tranh một trạng thái có thể khiến các thao tác CAS phải thử lại; bởi vậy contention có thể gây chi phí.
+By contract, each atomic operation can be understood as occurring at a **single atomic point** (*linearization point*) on the variable. In performance terms, many threads competing on one state can force CAS retries; thus contention has a cost.
 
-Không nên mặc định mọi JDK hay CPU chạy cùng một chuỗi lệnh máy; người lập trình dựa vào hợp đồng API, không dựa vào giả định cách triển khai cụ thể.
+Do not assume every JDK or CPU runs the exact same machine instruction sequence; programmers rely on the API contract, not assumptions about specific implementations.
 
-### 4.3. Một phép get và một phép increment không tạo giao dịch
+### 4.3. A get followed by an increment does not form a transaction
 
 ~~~java
 if (count.get() < 100) {
@@ -116,9 +116,9 @@ if (count.get() < 100) {
 }
 ~~~
 
-Dù hai lời gọi **đều atomic riêng lẻ**, toàn bộ cặp “kiểm tra rồi tăng” **không atomic**. Hai luồng có thể cùng đọc 99, cùng thấy điều kiện đúng rồi đưa kết quả thành 101.
+Even though both calls **are individually atomic**, the combined "check-then-increment" pair **is not atomic**. Two threads can both read 99, both see the condition as true, and push the result to 101.
 
-Muốn giới hạn chặt, dùng một vòng lặp CAS:
+To enforce a strict cap, use a CAS loop:
 
 ~~~java
 static boolean tryIncrementBelow(
@@ -136,22 +136,22 @@ static boolean tryIncrementBelow(
 }
 ~~~
 
-Đây là phương thức minh họa đặt trong một lớp có import `AtomicLong`. Nếu `current < limit` và `limit` là giá trị long hợp lệ, `current + 1` không tràn. Để giữ invariant, các luồng sửa cùng bộ đếm phải tuân thủ giao thức cập nhật tương thích.
+This is an illustrative method placed in a class with `AtomicLong` imported. If `current < limit` and `limit` is a valid long value, `current + 1` does not overflow. To preserve the invariant, all threads modifying the same counter must follow compatible update protocols.
 
-`AtomicLong.updateAndGet(fn)` cũng hỗ trợ hàm cập nhật, nhưng hàm có thể chạy lại khi CAS thất bại: **không đặt side effect** như ghi cơ sở dữ liệu hoặc gửi thông báo trong `fn`.
+`AtomicLong.updateAndGet(fn)` also supports an update function, yet the function can re-run when CAS fails: **never put side effects** like database writes or sending notifications inside `fn`.
 
-### 4.4. Khi nào chọn Atomic?
+### 4.4. When to choose Atomic?
 
-- Cần phát hành số thứ tự theo từng increment, ví dụ `getAndIncrement()` trong phạm vi không tràn.
-- Cần giá trị snapshot tại một thời điểm logic cho **một biến**.
-- Cần CAS, cập nhật có điều kiện, `getAndSet` hoặc quản lý trạng thái có mối liên hệ chặt với từng thao tác.
-- Contention không quá cao hoặc đã đo thấy atomic đạt yêu cầu.
+- Needing to issue sequence numbers per increment, e.g. `getAndIncrement()` within non-overflowing bounds.
+- Needing a snapshot value at a logical point in time for **a single variable**.
+- Needing CAS, conditional updates, `getAndSet`, or state management tightly tied to each operation.
+- Contention is not too high, or benchmarks show atomic meets requirements.
 
-Atomic cho một biến không tự bảo vệ invariant trải trên **nhiều biến độc lập**. Nếu hai trường phải đổi cùng lúc như một giao dịch, cần đồng bộ phù hợp hoặc đóng gói toàn bộ trạng thái thành một đối tượng immutable được cập nhật qua một `AtomicReference`.
+An atomic for one variable does not automatically protect invariants spanning **multiple independent variables**. If two fields must change together as a transaction, use proper synchronization or encapsulate the entire state into an immutable object updated through an `AtomicReference`.
 
-## 5. LongAdder: giảm tranh chấp cập nhật
+## 5. LongAdder: Reducing Update Contention
 
-### 5.1. Cách dùng
+### 5.1. Usage
 
 ~~~java
 import java.util.concurrent.atomic.LongAdder;
@@ -162,50 +162,50 @@ requests.increment(); // +1
 requests.add(5);      // +5
 requests.decrement(); // -1
 
-long total = requests.sum(); // 5 nếu không có update đồng thời khác
+long total = requests.sum(); // 5 if no other concurrent updates
 ~~~
 
-`LongAdder` duy trì giá trị logic như một tổng, nhưng có thể sử dụng nhiều **ô đếm nội bộ**. Dưới contention, các luồng không nhất thiết đều cập nhật cùng một ô. Điều này có thể tăng throughput cho metric dạng “chỉ cần ghi rất nhiều, đọc thỉnh thoảng”.
+`LongAdder` maintains a logical value as a sum, yet may use multiple **internal counter cells**. Under contention, threads do not all have to update the exact same cell. This can improve throughput for "write very frequently, read occasionally" metrics.
 
-Nó không thay thế mọi vai trò của atomic vì đánh đổi cơ chế quan sát giá trị.
+It does not replace every role of atomics because it trades off value observation semantics.
 
-### 5.2. sum() không phải snapshot nguyên tử khi đang cập nhật
+### 5.2. sum() is not an atomic snapshot while updates are in progress
 
-Khi gọi `sum()`, LongAdder tính tổng các ô. Nếu luồng khác vẫn đang tăng, những ô khác nhau có thể được đọc ở **những thời điểm khác nhau**. Vì vậy:
+When calling `sum()`, LongAdder sums the cells. If other threads are still incrementing, different cells may be read at **different points in time**. Therefore:
 
-- `sum()` hữu ích cho metric gần thời gian thực.
-- `sum()` **không linearizable** như `AtomicLong.get()`.
-- Không dùng một phép `sum()` để thực thi giới hạn quota cần kiểm tra–cập nhật nguyên tử.
-- Khi **mọi cập nhật đã kết thúc** và được đồng bộ đúng, `sum()` trả tổng cuối chính xác.
+- `sum()` is useful for near-real-time metrics.
+- `sum()` is **not linearizable** like `AtomicLong.get()`.
+- Do not use a `sum()` check to enforce quota limits requiring atomic check-and-update.
+- Once **all updates have finished** and are properly synchronized, `sum()` returns the exact final total.
 
-Trong chương trình phần 7, tất cả thread đã được `join()` trước khi gọi `sum()`.
+In the program in Section 7, all threads have been `join()`ed before `sum()` is called.
 
-### 5.3. Không dùng adder để cấp ID
+### 5.3. Do not use an adder to issue IDs
 
-Đoạn sau **sai về tính duy nhất**:
+The following snippet is **wrong for uniqueness**:
 
 ~~~java
 long id = requests.sum();
 requests.increment();
 ~~~
 
-Hai thread có thể cùng đọc tổng trước khi tăng và nhận cùng id. LongAdder đảm bảo không mất phép cộng, **không cung cấp số trước/sau từng phép tăng**. Dùng `AtomicLong.getAndIncrement()` khi cần cấp số dựa trên một trạng thái trong JVM, đồng thời quản lý overflow và yêu cầu phối hợp giữa nhiều JVM.
+Two threads can read the same sum before incrementing and receive the same id. LongAdder guarantees no lost additions, **not per-increment before/after values**. Use `AtomicLong.getAndIncrement()` when issuing numbers from a single JVM state, while also managing overflow and cross-JVM coordination requirements.
 
-### 5.4. reset và sumThenReset
+### 5.4. reset and sumThenReset
 
 ~~~java
 long sinceLastCheck = requests.sumThenReset();
 ~~~
 
-`sumThenReset()` hữu ích cho thu số liệu từng giai đoạn khi đã bảo đảm **không có update đồng thời**. Đây không phải snapshot-và-reset nguyên tử với các increment đang tiếp tục. Nếu reset trong lúc các luồng tăng, một số cập nhật có thể không được phân vào các kỳ thống kê như mong đợi.
+`sumThenReset()` is useful for periodic stats collection once **no concurrent updates** are guaranteed. It is not an atomic snapshot-and-reset with ongoing increments. If resetting while threads are incrementing, some updates may not be bucketed into periods as expected.
 
-Khi cần phân kỳ chính xác, thiết kế giao thức dừng/giao nhận update, khóa, hai bucket được chuyển đổi có đồng bộ, hoặc ghi sự kiện theo timestamp phù hợp. Không coi `sumThenReset()` là phép “chốt sổ” an toàn cho mọi concurrency.
+When exact period boundaries are required, design a stop/handoff protocol for updates, locking, two synchronized alternating buckets, or timestamped event logging. Do not treat `sumThenReset()` as a safe "period-closing" operation under arbitrary concurrency.
 
-### 5.5. Các biến thể liên quan
+### 5.5. Related variants
 
-`DoubleAdder` hỗ trợ cộng các giá trị `double` nhưng vẫn có các vấn đề làm tròn nhị phân; không dùng nó thay `BigDecimal` khi tiền phải chính xác theo quy tắc decimal. `LongAccumulator` áp một hàm kết hợp với identity cho một số phép tổng hợp khác ngoài cộng.
+`DoubleAdder` supports summing `double` values yet still has binary rounding issues; do not use it instead of `BigDecimal` when money must be exact under decimal rules. `LongAccumulator` applies an associative operator with an identity for aggregations other than addition.
 
-## 6. Bộ đếm synchronized: một đối chứng an toàn
+## 6. Synchronized Counter: A Safe Baseline
 
 ~~~java
 class LockedCounter {
@@ -221,24 +221,24 @@ class LockedCounter {
 }
 ~~~
 
-`synchronized` bảo đảm chỉ một thread tại một thời điểm thực thi critical section dưới cùng monitor. Lời gọi `get()` cũng dùng monitor ấy, nên có cơ chế visibility phù hợp.
+`synchronized` guarantees only one thread at a time executes the critical section under the same monitor. Calling `get()` also uses that monitor, providing proper visibility.
 
-Cách này có thể tốt khi cần:
+This approach can work well when you need:
 
-- Mã đơn giản, dễ chứng minh tính đúng đắn.
-- Một nhóm trường chung cần giữ invariant.
-- Logic cập nhật gồm nhiều bước, không chỉ phép cộng.
-- Contention thấp hoặc chưa phải bottleneck sau khi đo.
+- Simple code that is easy to prove correct.
+- A group of shared fields that must maintain an invariant.
+- Multi-step update logic, not just simple addition.
+- Low contention, or profiling shows it is not a bottleneck.
 
-Không nên bảo vệ `increment()` bằng khóa nhưng lại để một đường đọc/ghi khác truy cập `count` không có đồng bộ tương ứng. Khi có nhiều đường cập nhật, tất cả phải theo cùng giao thức bảo vệ.
+Do not guard `increment()` with a lock while leaving another read/write path accessing `count` without matching synchronization. When there are multiple update paths, all must follow the same protection protocol.
 
-## 7. Ví dụ Java 17+ có kết quả xác định
+## 7. Java 17+ Example with Deterministic Results
 
-Ở một stress test thuần túy, `count++` có thể sai hoặc tình cờ đúng tùy lịch thread, khiến stdout không cố định. Vì vậy phần đầu chương trình **cố ý tách đọc và ghi** và cho cả hai thread đọc `0` trước khi ghi. Điều này mô phỏng đúng cơ chế mất update của `count++`, đồng thời cho kết quả chắc chắn.
+In a pure stress test, `count++` may fail or coincidentally pass depending on thread scheduling, making stdout non-deterministic. Therefore, the first part of the program **deliberately separates read and write** so both threads read `0` before writing. This faithfully reproduces the lost-update mechanism of `count++` while producing deterministic output.
 
-Phần thứ hai có bốn thread, mỗi thread tăng ba counter an toàn 100.000 lần. Chỉ sau khi các thread hoàn thành, main mới đọc tổng.
+The second part runs four threads, each incrementing three safe counters 100,000 times. Only after the threads finish does main read the totals.
 
-Tạo file **`CounterComparisonDemo.java`**:
+Create the file **`CounterComparisonDemo.java`**:
 
 ~~~java
 import java.util.concurrent.CountDownLatch;
@@ -346,14 +346,14 @@ public class CounterComparisonDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac CounterComparisonDemo.java
 java CounterComparisonDemo
 ~~~
 
-Stdout (đã đối chiếu với Java):
+Stdout (verified with Java):
 
 ~~~text
 plain forced collision: 1 (expected 2)
@@ -364,23 +364,23 @@ locked after join: 400000
 all safe counters exact: true
 ~~~
 
-**Cách giải thích:** `CountDownLatch` trong `forcedLostUpdate` chỉ điều phối hai thread để cả hai cùng đọc trước khi được phép ghi; nó không giúp bộ đếm nguyên tử. Vì cả hai snapshot đều bằng 0, cả hai cùng ghi 1, và kết quả là 1 thay vì 2. Chương trình minh họa *lost update* có thể tái lập; nếu thay bằng `count++` tự do, việc lỗi có xuất hiện ở lần chạy cụ thể không thể cam kết.
+**Explanation:** `CountDownLatch` in `forcedLostUpdate` only coordinates the two threads so both read before either is allowed to write; it does not make the counter atomic. Since both snapshots are 0, both write 1, resulting in 1 instead of 2. The program demonstrates a reproducible *lost update*; if replaced with uncoordinated `count++`, whether the bug triggers on any single run cannot be guaranteed.
 
-Ba bộ đếm còn lại hoàn tất 400.000 increments chính xác. `join()` bảo đảm luồng đã kết thúc trước khi kiểm tổng. Việc đặt cùng ba counter trong một vòng lặp **chỉ để kiểm đúng/sai**, không phải một benchmark tốc độ, vì sự hiện diện của synchronized và các primitive đồng bộ ảnh hưởng scheduling và tương tác CPU.
+The remaining three counters complete 400,000 increments accurately. `join()` ensures threads have finished before checking totals. Putting all three counters in one loop **is only for checking correctness**, not a speed benchmark, because the presence of synchronized and synchronization primitives affects scheduling and CPU interactions.
 
-## 8. Atomic và Adder không ngăn tràn kiểu số
+## 8. Atomics and Adders Do Not Prevent Numeric Overflow
 
-Thread-safe nghĩa là các lượt cập nhật không mất vì race, **không có nghĩa kết quả nằm trong phạm vi kiểu**.
+Thread-safe means updates are not lost to races, **not that results stay within the type's range**.
 
 ~~~java
 AtomicLong atomic = new AtomicLong(Long.MAX_VALUE);
 long wrapped = atomic.incrementAndGet();
-// Long.MIN_VALUE do tràn long
+// Long.MIN_VALUE due to long overflow
 ~~~
 
-`AtomicInteger` cũng có thể tràn `int`. `LongAdder` dùng giá trị long, nên vẫn cần chính sách riêng khi tổng có thể vượt phạm vi long.
+`AtomicInteger` can also overflow `int`. `LongAdder` uses `long` values, so a separate policy is still needed when the sum can exceed `long` range.
 
-Nếu tràn là lỗi, một hướng trên AtomicLong:
+If overflow is an error, one approach with AtomicLong:
 
 ~~~java
 AtomicLong safe = new AtomicLong(Long.MAX_VALUE - 1);
@@ -388,69 +388,69 @@ AtomicLong safe = new AtomicLong(Long.MAX_VALUE - 1);
 long max = safe.updateAndGet(Math::incrementExact);
 // Long.MAX_VALUE
 
-// Lần tiếp theo ném ArithmeticException:
+// The next call throws ArithmeticException:
 // safe.updateAndGet(Math::incrementExact);
 ~~~
 
-`Math.incrementExact` sẽ ném lỗi thay vì wrap. Hàm cập nhật phải **không có side effect**, vì `updateAndGet` có thể gọi lại khi CAS không thành công. Đây là một cơ chế phù hợp cho tính đúng đắn khi workload/contract cho phép, không phải tuyên bố rằng mọi bộ đếm cần dùng chính xác mẫu này.
+`Math.incrementExact` throws an error instead of wrapping. The update function must **have no side effects**, because `updateAndGet` may re-invoke it on CAS failure. This is a suitable correctness mechanism when workload/contract permits, not a claim that every counter must use this exact pattern.
 
-Nếu giá trị hợp lệ có thể lớn hơn `Long.MAX_VALUE`, cân nhắc mô hình dùng `BigInteger` với cơ chế đồng bộ được thiết kế rõ; `LongAdder` không phải dạng arbitrary-precision.
+If valid values can exceed `Long.MAX_VALUE`, consider a `BigInteger` model with explicitly designed synchronization; `LongAdder` is not arbitrary-precision.
 
-## 9. Snapshot và ranh giới quan sát
+## 9. Snapshots and Observation Boundaries
 
 ### 9.1. AtomicLong.get()
 
-`AtomicLong.get()` đọc một giá trị atomic, có ngữ nghĩa linearizable đối với trạng thái của biến đó. Tuy nhiên:
+`AtomicLong.get()` reads an atomic value, with linearizable semantics for that variable's state. However:
 
 ~~~java
 long first = atomic.get();
 long second = atomic.get();
 ~~~
 
-hai lần đọc có thể khác nhau vì thread khác tăng ở giữa. **Một thao tác atomic không tự biến mọi chuỗi thao tác liên tiếp thành giao dịch**.
+the two reads may differ because another thread incremented in between. **One atomic operation does not turn a sequence of consecutive operations into a transaction**.
 
 ### 9.2. LongAdder.sum()
 
-`sum()` có thể đọc những ô nội bộ tại các thời điểm khác nhau khi updates còn diễn ra. Nó phù hợp metric gần thời gian thực, nhưng không phù hợp cho kiểm tra quota cần chính xác nguyên tử.
+`sum()` can read internal cells at different times while updates are ongoing. It suits near-real-time metrics, yet is unsuitable for quota checks requiring atomic accuracy.
 
-Khi các worker đã kết thúc, `join()` và cơ chế đồng bộ tương ứng đảm bảo thay đổi của chúng được quan sát đúng, và `sum()` cho tổng cuối. Đây là điều kiện quan trọng để viết test chính xác cho LongAdder.
+Once workers have finished, `join()` and corresponding synchronization ensure their changes are properly observed, and `sum()` returns the final total. This is a critical precondition for writing valid LongAdder tests.
 
-### 9.3. Một JVM khác nhiều JVM
+### 9.3. One JVM vs. Multiple JVMs
 
-`AtomicLong` hoặc `LongAdder` chỉ đồng bộ trạng thái trong **cùng một object/JVM**. Nếu ứng dụng có ba instance trên ba server, mỗi instance có counter riêng; không tự có một bộ đếm toàn cục. Cần thiết kế hệ thống phân tán, cơ sở dữ liệu, event stream hay dịch vụ cấp ID theo yêu cầu nếu phải thống nhất liên node.
+`AtomicLong` or `LongAdder` only synchronizes state within **a single object/JVM**. If an application runs three instances on three servers, each instance has its own counter; there is no automatic global counter. You must design a distributed system, database, event stream, or ID-generation service per requirements if cross-node consistency is needed.
 
-## 10. Hiệu năng: đừng chỉ đo thời gian một vòng lặp
+## 10. Performance: Do Not Just Time One Loop
 
-Các yếu tố cần quan sát:
+Factors to observe:
 
-- **Contention:** nhiều luồng cùng muốn cập nhật.
-- **Throughput:** lượt increment mỗi giây.
-- **Latency:** độ trễ mỗi thao tác và phân phối đuôi.
-- **Memory footprint:** AtomicLong thường gọn hơn LongAdder đã phải mở rộng nhiều ô.
-- **Read frequency:** với LongAdder, việc gọi `sum()` thường xuyên làm thay đổi tỷ lệ chi phí đọc/ghi.
-- **Thread scheduling, JIT, GC, CPU topology:** ảnh hưởng lớn đến microbenchmark.
+- **Contention:** many threads attempting to update concurrently.
+- **Throughput:** increments per second.
+- **Latency:** per-operation delay and tail distribution.
+- **Memory footprint:** AtomicLong is typically more compact than a LongAdder that has expanded into many cells.
+- **Read frequency:** with LongAdder, calling `sum()` frequently shifts the read/write cost ratio.
+- **Thread scheduling, JIT, GC, CPU topology:** strongly affect microbenchmarks.
 
-Không có công thức “LongAdder luôn nhanh gấp N lần AtomicLong”. Dưới contention cao và đọc ít, LongAdder thường có ưu thế throughput. Với ít luồng, chi phí phân tán/thu tổng có thể không đáng, AtomicLong đơn giản hơn. Khi cần invariant phức tạp, `synchronized` có thể là thiết kế đúng ngay cả khi thao tác khóa có chi phí.
+There is no formula stating "LongAdder is always N times faster than AtomicLong." Under high contention and infrequent reads, LongAdder often has a throughput advantage. With few threads, striping/summing overhead may not pay off and AtomicLong is simpler. When complex invariants are needed, `synchronized` may be the right design even if locking has a cost.
 
-### 10.1. Cách benchmark bằng JMH
+### 10.1. How to benchmark with JMH
 
-**JMH (Java Microbenchmark Harness)** phù hợp hơn một phép đo `System.nanoTime()` duy nhất. Một benchmark có ý nghĩa cần:
+**JMH (Java Microbenchmark Harness)** is far more appropriate than a single `System.nanoTime()` measurement. A meaningful benchmark needs to:
 
-1. Tách riêng ba benchmark `plain/AtomicLong/LongAdder` hoặc `synchronized` theo mục tiêu, không cập nhật tất cả trong cùng một vòng.
-2. Thử nhiều số lượng thread: 1, 2, 4, 8... theo tải thực tế.
-3. Bảo đảm counter thực sự chia sẻ giữa các thread trong bài test contention.
-4. Dùng warmup, nhiều iteration/fork và tiêu thụ kết quả để tránh tối ưu bỏ mã.
-5. So cùng số lượng thao tác, cùng mô hình dữ liệu và cùng tần suất đọc.
-6. Đo cả throughput, latency và footprint/GC nếu relevant.
-7. Phân tích tính đúng đắn trước khi xem kết quả tốc độ.
+1. Separate `plain/AtomicLong/LongAdder` or `synchronized` benchmarks by target, never updating all in the same loop.
+2. Test multiple thread counts: 1, 2, 4, 8... matching real load.
+3. Ensure the counter is actually shared among threads in contention tests.
+4. Use warmup, multiple iterations/forks, and consume results to avoid dead-code elimination.
+5. Compare the same operation count, data model, and read frequency.
+6. Measure throughput, latency, and footprint/GC where relevant.
+7. Verify correctness before inspecting speed numbers.
 
-Nếu một bộ đếm thường không đồng bộ cho throughput lớn vì bỏ mất update, nó **không phải giải pháp tương đương chức năng** để đem ra so tốc độ công bằng.
+If an unsynchronized plain counter achieves high throughput because it drops updates, it is **not a functionally equivalent solution** for a fair speed comparison.
 
-Ví dụ phần 7 cố ý chạy cùng ba phương án để kiểm chúng trả đúng tổng, **không dùng output đó làm kết luận phương án nào nhanh hơn**.
+The example in Section 7 deliberately runs all three approaches together to verify they return the right sum; **do not use that output to conclude which approach is faster**.
 
-## 11. Kiểm thử đúng ngữ nghĩa
+## 11. Testing the Right Semantics
 
-### 11.1. Test đơn luồng
+### 11.1. Single-threaded test
 
 ~~~java
 AtomicLong counter = new AtomicLong();
@@ -461,112 +461,112 @@ counter.decrementAndGet();
 // counter.get() == 4
 ~~~
 
-Đây là test chức năng cơ bản, **không đủ** xác nhận tính đúng khi nhiều thread cùng cập nhật.
+This is a basic functional test, **insufficient** to verify correctness when multiple threads update concurrently.
 
-### 11.2. Test đa luồng
+### 11.2. Multi-threaded test
 
-Khởi tạo N thread, mỗi thread tăng M lần, chờ `join()` hoặc `Future.get()`, rồi so tổng:
+Launch N threads, each incrementing M times, wait for `join()` or `Future.get()`, then compare the sum:
 
 \[
 \text{expected}=N\times M.
 \]
 
-Đặt phép nhân kỳ vọng trong phạm vi đủ rộng:
+Compute the expected product in a wide enough range:
 
 ~~~java
 long expected = (long) threadCount * incrementsPerThread;
 ~~~
 
-Nếu nhân hai biến int trước khi cast, kỳ vọng của test có thể tự tràn và gây kết luận sai. Với tập dữ liệu rất lớn, phải xét cả nguy cơ tràn long.
+If two int variables are multiplied before casting, the test's expectation itself can overflow and cause false conclusions. For very large datasets, also check for `long` overflow risk.
 
-### 11.3. Stress test và lost update
+### 11.3. Stress tests and lost updates
 
-Một stress test chạy hàng nghìn lần và chưa thấy lỗi **không chứng minh** `count++` an toàn. Có thể thêm test điều phối hai luồng như chương trình đã cho, hoặc dùng công cụ chuyên kiểm tra tương tác luồng (ví dụ jcstress) nếu bài toán phức tạp.
+A stress test running thousands of times without showing a bug **does not prove** `count++` is safe. You can add a two-thread coordination test like the demo program, or use specialized concurrency testing tools (such as jcstress) for complex problems.
 
-Với LongAdder, test nên yêu cầu **tổng chính xác sau khi tất cả updates kết thúc**, không yêu cầu `sum()` đang chạy đồng thời là một snapshot nguyên tử. Nếu hợp đồng cần reset từng kỳ chính xác, test phải kiểm cả ranh giới chuyển kỳ và updates đồng thời.
+With LongAdder, tests should require **exact total after all updates finish**, not that a concurrent `sum()` is an atomic snapshot. If the contract requires exact per-period resets, tests must cover period-transition boundaries and concurrent updates.
 
-### 11.4. Test trường hợp nghiệp vụ đặc biệt
+### 11.4. Business edge-case tests
 
-Kiểm tra thêm:
+Also test:
 
-- Giá trị bắt đầu không phải 0.
-- Increment và decrement, giá trị âm hợp lệ hay không.
-- Tràn `Integer.MAX_VALUE`/`Long.MAX_VALUE` và chính sách lỗi.
-- CAS thất bại khi có cạnh tranh, tính đúng của vòng retry.
-- Điều kiện quota/giới hạn không bị vượt.
-- Đọc đang diễn ra cùng cập nhật; phân biệt yêu cầu snapshot nguyên tử với metric gần đúng.
-- Dừng worker, timeout và lỗi thread; không giả định mọi worker luôn hoàn thành trọn số lượt nếu có exception hoặc interruption.
+- Non-zero starting values.
+- Increments and decrements, whether negative values are valid.
+- `Integer.MAX_VALUE`/`Long.MAX_VALUE` overflow and error policies.
+- CAS failures under contention and correctness of retry loops.
+- Quota/limit conditions never being exceeded.
+- Reads occurring concurrently with updates; distinguishing atomic snapshot requirements from approximate metrics.
+- Worker shutdown, timeouts, and thread failures; do not assume every worker completes all iterations if exceptions or interruptions occur.
 
-## 12. Chọn phương án theo tình huống
+## 12. Choosing an Approach by Scenario
 
-| Yêu cầu chính | Gợi ý | Cần tránh |
+| Primary requirement | Suggestion | Avoid |
 | --- | --- | --- |
-| Chỉ một thread hoặc dữ liệu local | `long` bình thường | Thêm đồng bộ không cần thiết |
-| Nhiều thread, cần số trước/sau từng lượt | `AtomicLong` | Dùng `LongAdder.sum()` để cấp ID |
-| Nhiều thread ghi metric, thỉnh thoảng đọc | `LongAdder` | Coi `sum()` là snapshot atomic |
-| Kiểm tra ngưỡng cùng lúc với tăng | CAS loop hoặc khóa chung | `if(get < limit) increment()` |
-| Nhiều trường cùng invariant | `synchronized`/lock hoặc mô hình trạng thái atomic đúng | Nghĩ atomic riêng lẻ tạo giao dịch |
-| Cần reset đúng một ranh giới khi cập nhật liên tục | Protocol phân kỳ có đồng bộ | `sumThenReset()` không phối hợp |
-| Cần phát hiện overflow | Exact arithmetic/policy giới hạn | Nghĩ atomic hoặc adder tự ngăn tràn |
-| Nhiều server | Bộ đếm phân tán/DB/service thích hợp | Nghĩ atomic instance là global counter |
+| Single thread or thread-local data | Plain `long` | Adding unnecessary synchronization |
+| Multiple threads, need before/after value per increment | `AtomicLong` | Using `LongAdder.sum()` to issue IDs |
+| Multiple threads recording metrics, occasional reads | `LongAdder` | Treating `sum()` as an atomic snapshot |
+| Threshold check coupled with increment | CAS loop or shared lock | `if(get < limit) increment()` |
+| Multiple fields sharing an invariant | `synchronized`/lock or proper atomic state model | Assuming individual atomics form a transaction |
+| Need exact boundary reset while updates stream continuously | Synchronized period-handoff protocol | Uncoordinated `sumThenReset()` |
+| Need overflow detection | Exact arithmetic/bounds policy | Assuming atomics or adders prevent overflow |
+| Multiple servers | Appropriate distributed counter/DB/service | Assuming an atomic instance is a global counter |
 
-## 13. Các lỗi thường gặp
+## 13. Common Mistakes
 
-1. **Tin `count++` là nguyên tử vì chỉ một câu lệnh.** Nó có thể lost update.
-2. **Thêm `volatile` rồi coi như đã thread-safe.** Volatile không tạo atomic read-modify-write.
-3. **Dùng LongAdder để phát ID.** `sum()` và `increment()` không thành một giao dịch.
-4. **Tin `LongAdder.sum()` là snapshot nguyên tử.** Khi updates đồng thời, tổng có thể không tương ứng một điểm quan sát.
-5. **Dùng `sumThenReset()` khi threads còn cập nhật nhưng đòi chia kỳ tuyệt đối.** Cần protocol chính xác.
-6. **Dùng `AtomicLong.get()` rồi cập nhật ở lời gọi riêng để kiểm quota.** Có thể race giữa hai bước.
-7. **Cho rằng AtomicLong luôn nhanh hơn synchronized.** Cần đo; yêu cầu nhiều trường cũng quan trọng.
-8. **Cho rằng LongAdder luôn nhanh hơn AtomicLong.** Có thể không đúng với ít contention hoặc đọc dày.
-9. **Quên overflow.** Thread-safe không thay miền kiểu long/int.
-10. **Đọc plain counter bằng đường không đồng bộ trong khi ghi dùng khóa.** Mọi truy cập phải tuân thủ cùng cơ chế.
-11. **Cho side effect vào lambda `updateAndGet`.** Có thể chạy lại trong quá trình CAS.
-12. **Benchmark khi các phương án cùng được cập nhật trong một vòng.** Không cô lập overhead.
-13. **Lấy kết quả một lần stress test làm chứng cứ thread safety.** Race phụ thuộc scheduling.
-14. **Tưởng một AtomicLong điều phối nhiều JVM.** Nó chỉ thuộc một đối tượng trong một process.
-15. **Kiểm tra kết quả khi thread chưa join.** Khi đó kết quả chưa phải tổng cuối.
+1. **Believing `count++` is atomic because it is one statement.** It can suffer lost updates.
+2. **Adding `volatile` and assuming it is thread-safe.** Volatile does not make read-modify-write atomic.
+3. **Using LongAdder to issue IDs.** `sum()` and `increment()` do not form a transaction.
+4. **Believing `LongAdder.sum()` is an atomic snapshot.** Under concurrent updates, the sum may not correspond to any single instant.
+5. **Using `sumThenReset()` while threads are still updating yet expecting strict period splits.** An exact protocol is required.
+6. **Using `AtomicLong.get()` followed by updating in a separate call to check quotas.** Races can happen between the two steps.
+7. **Assuming AtomicLong is always faster than synchronized.** Measure; multi-field invariants also matter.
+8. **Assuming LongAdder is always faster than AtomicLong.** May not hold under low contention or heavy reads.
+9. **Forgetting overflow.** Thread safety does not change `long`/`int` bounds.
+10. **Reading a plain counter unsynchronized while writes use a lock.** All accesses must follow the same mechanism.
+11. **Putting side effects in an `updateAndGet` lambda.** It can re-run during CAS retries.
+12. **Benchmarking while updating all candidates in the same loop.** Fails to isolate overhead.
+13. **Taking one passing stress test as proof of thread safety.** Races depend on scheduling.
+14. **Thinking one AtomicLong coordinates multiple JVMs.** It belongs to one object in one process.
+15. **Checking results before threads have joined.** At that point the result is not the final total.
 
-## 14. Câu hỏi tự kiểm tra
+## 14. Self-Check Questions
 
-**Câu 1.** Hai luồng cùng thực hiện `count++`. Có luôn tăng đúng 2 không?  
-**Đáp án:** Không, có thể lost update do hai luồng đọc cùng giá trị cũ.
+**Question 1.** Two threads both execute `count++`. Will it always increase by exactly 2?  
+**Answer:** No, a lost update can happen because both threads read the same old value.
 
-**Câu 2.** `volatile long count; count++;` đã an toàn chưa?  
-**Đáp án:** Chưa. Volatile không khiến thao tác đọc–tính–ghi trở thành atomic.
+**Question 2.** Is `volatile long count; count++;` safe?  
+**Answer:** No. Volatile does not make read–compute–write atomic.
 
-**Câu 3.** Bộ đếm request có rất nhiều luồng cùng increment và chỉ xuất báo cáo mỗi 10 giây. Nên cân nhắc gì?  
-**Đáp án:** `LongAdder`, nếu yêu cầu chấp nhận tổng không phải snapshot nguyên tử khi đang cập nhật. Vẫn benchmark theo workload thực.
+**Question 3.** A request counter has many threads incrementing concurrently and only exports reports every 10 seconds. What should you consider?  
+**Answer:** `LongAdder`, if requirements accept that the sum is not an atomic snapshot during active updates. Still benchmark against the real workload.
 
-**Câu 4.** Cần ID khác nhau sau mỗi phép tăng trong một JVM, nên dùng gì?  
-**Đáp án:** `AtomicLong.getAndIncrement()` hoặc tương đương, với chính sách overflow và các đường cấp số nhất quán.
+**Question 4.** Need a distinct ID after each increment within one JVM—what should you use?  
+**Answer:** `AtomicLong.getAndIncrement()` or equivalent, with an overflow policy and consistent issuance paths.
 
-**Câu 5.** LongAdder có chính xác sau khi join mọi worker không?  
-**Đáp án:** Có nếu không còn update đồng thời và worker hoàn thành đúng; `sum()` là kết quả tổng sau thời điểm quiescent.
+**Question 5.** Is LongAdder exact after joining all workers?  
+**Answer:** Yes, if no concurrent updates remain and workers completed properly; `sum()` gives the exact total once quiescent.
 
-**Câu 6.** Bộ đếm primitive được bảo vệ bằng synchronized còn lost update không?  
-**Đáp án:** Không nếu mọi lần cập nhật đều dùng cùng monitor và đường đọc tuân thủ đồng bộ; vẫn phải kiểm vấn đề overflow.
+**Question 6.** Can a primitive counter protected by synchronized still lose updates?  
+**Answer:** No if every update uses the same monitor and read paths follow synchronization; you still need to check for overflow.
 
-**Câu 7.** `new AtomicLong(Long.MAX_VALUE).incrementAndGet()` có ném exception vì tràn không?  
-**Đáp án:** Không, kết quả wrap thành `Long.MIN_VALUE`. Cần cơ chế phát hiện tràn nếu nghiệp vụ yêu cầu.
+**Question 7.** Does `new AtomicLong(Long.MAX_VALUE).incrementAndGet()` throw an exception on overflow?  
+**Answer:** No, the result wraps to `Long.MIN_VALUE`. An overflow detection mechanism is needed if business rules require it.
 
-**Câu 8.** `if (atomic.get() < 100) atomic.incrementAndGet();` có luôn giới hạn đúng 100 khi có nhiều thread không?  
-**Đáp án:** Không, điều kiện và increment không nguyên tử như một nhóm; nên dùng CAS loop hoặc đồng bộ.
+**Question 8.** Does `if (atomic.get() < 100) atomic.incrementAndGet();` always enforce a cap of 100 across multiple threads?  
+**Answer:** No, the check and increment are not atomic together; use a CAS loop or synchronization.
 
-**Câu 9.** Một lần chạy plain counter nhanh và trả số đúng có chứng minh nó thread-safe không?  
-**Đáp án:** Không. Cần lý luận Java Memory Model và kiểm thử concurrency phù hợp, không dựa vào một lịch chạy.
+**Question 9.** Does one fast run of a plain counter returning the right number prove it is thread-safe?  
+**Answer:** No. Reasoning via the Java Memory Model and proper concurrency testing are needed, not a single execution schedule.
 
-**Câu 10.** Khi hai phương án đều đúng, làm sao chọn cái nhanh hơn?  
-**Đáp án:** Đo bằng JMH với mức contention, số threads, tần suất đọc, memory và thời gian warmup tương ứng workload thật.
+**Question 10.** When two approaches are both correct, how do you pick the faster one?  
+**Answer:** Measure with JMH using contention levels, thread counts, read frequency, memory, and warmup matching the real workload.
 
-## 15. Tài liệu Java chính thức
+## 15. Official Java Documentation
 
-- [`AtomicLong` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/AtomicLong.html): `get`, `getAndIncrement`, `compareAndSet` và cập nhật nguyên tử.
-- [`AtomicInteger` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/AtomicInteger.html): bộ đếm int với API atomic.
-- [`LongAdder` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/LongAdder.html): `increment`, `sum`, `sumThenReset` và giới hạn snapshot.
-- [`CountDownLatch` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CountDownLatch.html): điều phối thread.
-- [`Math` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html): `incrementExact` để phát hiện tràn.
-- [Java Language Specification 17, Memory Model](https://docs.oracle.com/javase/specs/jls/se17/html/jls-17.html#jls-17.4): happens-before, visibility và data races.
+- [`AtomicLong` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/AtomicLong.html): `get`, `getAndIncrement`, `compareAndSet`, and atomic updates.
+- [`AtomicInteger` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/AtomicInteger.html): `int` counter with atomic API.
+- [`LongAdder` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/LongAdder.html): `increment`, `sum`, `sumThenReset`, and snapshot limitations.
+- [`CountDownLatch` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CountDownLatch.html): thread coordination.
+- [`Math` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html): `incrementExact` for overflow detection.
+- [Java Language Specification 17, Memory Model](https://docs.oracle.com/javase/specs/jls/se17/html/jls-17.html#jls-17.4): happens-before, visibility, and data races.
 
-**Ghi nhớ:** Bộ đếm primitive không đồng bộ có thể mất update; `AtomicLong` cung cấp read/update atomic, CAS và giá trị cho mỗi lần tăng; `LongAdder` thích hợp cho cập nhật metric nhiều dưới contention nhưng `sum()` không phải snapshot nguyên tử. Ưu tiên hợp đồng chính xác trước, sau đó mới đo hiệu năng.
+**Remember:** Unsynchronized primitive counters can lose updates; `AtomicLong` provides atomic read/update, CAS, and per-increment values; `LongAdder` suits high-contention metric updates, though `sum()` is not an atomic snapshot. Prioritize the correctness contract first, then measure performance.

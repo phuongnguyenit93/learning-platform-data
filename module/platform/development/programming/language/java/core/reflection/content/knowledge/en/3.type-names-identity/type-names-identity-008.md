@@ -1,12 +1,12 @@
-# Nhận diện `isPrimitive()`, `isArray()`, `isInterface()` và `isAnnotation()` trong Java Reflection
+# Identifying `isPrimitive()`, `isArray()`, `isInterface()`, and `isAnnotation()` in Java Reflection
 
-Khi xử lý một kiểu dữ liệu chưa biết trước lúc biên dịch, Java cung cấp đối tượng `Class<?>` để mô tả kiểu đó ở runtime. Bốn phương thức `Class.isPrimitive()`, `Class.isArray()`, `Class.isInterface()` và `Class.isAnnotation()` giúp nhận diện **loại cấu trúc của chính kiểu** đang xét. Chúng đều trả về `boolean`, không nhận tham số và không cần tạo instance của kiểu.
+When handling a data type unknown at compile time, Java provides a `Class<?>` object to describe that type at runtime. The four methods `Class.isPrimitive()`, `Class.isArray()`, `Class.isInterface()`, and `Class.isAnnotation()` help identify **the structural kind of the type itself** under inspection. All four return `boolean`, take no parameters, and do not require creating an instance of the type.
 
-Đây là các câu hỏi về **metadata kiểu**, khác với câu hỏi “đối tượng có thuộc kiểu này không?” (dùng `isInstance(...)` hoặc `instanceof`), cũng khác với câu hỏi “lớp này có được gắn annotation X không?” (dùng `isAnnotationPresent(...)`).
+These are questions about **type metadata**, distinct from asking "does an object belong to this type?" (use `isInstance(...)` or `instanceof`), and also distinct from asking "is this class annotated with annotation X?" (use `isAnnotationPresent(...)`).
 
-## 1. Lấy đối tượng `Class<?>` để kiểm tra
+## 1. Obtaining a `Class<?>` Object to Inspect
 
-Có thể lấy đối tượng mô tả kiểu bằng một trong các cách sau:
+You can obtain the object describing a type in one of the following ways:
 
 ```java
 Class<?> primitiveType = int.class;
@@ -16,15 +16,15 @@ Class<?> runtimeType = "hello".getClass();
 Class<?> loadedType = Class.forName("java.lang.String");
 ```
 
-Đây là **đoạn minh họa** để đặt trong phương thức Java; nó không phải chương trình độc lập. `SomeType.class` hoạt động khi mã nguồn đã biết kiểu, `obj.getClass()` lấy kiểu runtime của một đối tượng khác `null`, còn `Class.forName(...)` tra cứu lớp theo tên nhị phân phù hợp với class loader và có thể phát sinh `ClassNotFoundException`.
+This is an **illustrative snippet** to place inside a Java method; it is not a standalone program. `SomeType.class` works when the type is known in source code, `obj.getClass()` gets the runtime type of a non-`null` object, and `Class.forName(...)` looks up a class by binary name compatible with the class loader and can throw `ClassNotFoundException`.
 
-Lưu ý: `Class.forName("int")` không tra ra primitive `int` như `int.class`; các dạng tên class và descriptor của mảng có quy tắc riêng. Để xử lý primitive khi cần lựa chọn từ tên, hãy tạo bảng ánh xạ tường minh, chẳng hạn `"int" → int.class`.
+Note: `Class.forName("int")` does not look up primitive `int` like `int.class`; array class names and descriptors have their own rules. To handle primitives when selecting from a name, build an explicit mapping table, such as `"int" → int.class`.
 
-## 2. Ý nghĩa chính xác của từng phương thức
+## 2. Exact Meaning of Each Method
 
-### `isPrimitive()`: kiểu nguyên thủy hoặc `void`
+### `isPrimitive()`: primitive type or `void`
 
-Trả về `true` với các đối tượng `Class` đại diện cho tám kiểu nguyên thủy `boolean`, `byte`, `short`, `char`, `int`, `long`, `float`, `double` **và `void.class`**. `void` không phải kiểu dữ liệu có giá trị thông thường, nhưng `Class.isPrimitive()` vẫn trả về `true` cho `void.class` theo đặc tả API.
+Returns `true` for the `Class` objects representing the eight primitive types `boolean`, `byte`, `short`, `char`, `int`, `long`, `float`, `double` **and `void.class`**. `void` is not an ordinary value-bearing data type, yet `Class.isPrimitive()` still returns `true` for `void.class` per the API specification.
 
 ```java
 int.class.isPrimitive();      // true
@@ -34,13 +34,13 @@ String.class.isPrimitive();   // false
 int[].class.isPrimitive();    // false
 ```
 
-`Integer` là **wrapper class**, không phải primitive `int`. Một mảng chứa primitive cũng là **kiểu mảng tham chiếu**, vì vậy `int[].class.isPrimitive()` là `false`; muốn kiểm tra **phần tử cơ sở** có nguyên thủy không, cần đi qua `getComponentType()`.
+`Integer` is a **wrapper class**, not primitive `int`. An array containing primitives is also a **reference array type**, so `int[].class.isPrimitive()` is `false`; to check whether the **base element** is primitive, you must unwrap via `getComponentType()`.
 
-Ứng dụng: bộ chuyển đổi dữ liệu, mapper và thư viện reflection dùng thông tin primitive để chọn quy tắc chuyển kiểu, xử lý giá trị mặc định hoặc yêu cầu một đối tượng tham chiếu. Với `void.class`, đừng xử lý như kiểu primitive có thể chứa giá trị.
+Application: data converters, mappers, and reflection libraries use primitive information to select conversion rules, handle default values, or require a reference object. For `void.class`, do not treat it as a primitive type that can hold a value.
 
-### `isArray()`: chính kiểu đang xét là mảng
+### `isArray()`: the inspected type itself is an array
 
-Trả về `true` nếu `Class` mô tả một kiểu mảng, kể cả mảng một chiều/nhiều chiều, mảng primitive, mảng object và mảng annotation:
+Returns `true` if `Class` describes an array type, including one-dimensional/multidimensional arrays, primitive arrays, object arrays, and annotation arrays:
 
 ```java
 int[].class.isArray();          // true
@@ -49,7 +49,7 @@ Runnable[].class.isArray();     // true
 String.class.isArray();         // false
 ```
 
-`getComponentType()` trả về kiểu thành phần trực tiếp của mảng; với kiểu không phải mảng, kết quả là `null`:
+`getComponentType()` returns the direct component type of the array; for non-array types, the result is `null`:
 
 ```java
 int[].class.getComponentType() == int.class;               // true
@@ -57,13 +57,13 @@ String[][].class.getComponentType() == String[].class;      // true
 String[].class.getComponentType() == String.class;          // true
 ```
 
-Với mảng nhiều chiều, `getComponentType()` giảm **một** cấp chiều mỗi lần; lặp cho tới khi `isArray()` là `false` để lấy kiểu phần tử tận cùng.
+For multidimensional arrays, `getComponentType()` reduces **one** dimension level each time; loop until `isArray()` is `false` to obtain the leaf element type.
 
-Không dùng `isArray()` để hỏi một class có **field kiểu mảng** hay method trả về mảng. Chỉ truyền `field.getType()` hoặc `method.getReturnType()` rồi kiểm tra nếu đó mới là thông tin cần biết.
+Do not use `isArray()` to ask whether a class has an **array-typed field** or a method returning an array. Only pass `field.getType()` or `method.getReturnType()` and check that if that is the information you need.
 
-### `isInterface()`: interface, bao gồm annotation interface
+### `isInterface()`: interfaces, including annotation interfaces
 
-Trả về `true` nếu đối tượng `Class` đại diện cho một interface. Điều quan trọng: kiểu khai báo bằng `@interface` **cũng là một interface đặc biệt**, vì vậy `MyAnnotation.class.isInterface()` và `MyAnnotation.class.isAnnotation()` có thể **đồng thời** là `true`.
+Returns `true` if the `Class` object represents an interface. Crucially, a type declared with `@interface` **is also a special interface**, so `MyAnnotation.class.isInterface()` and `MyAnnotation.class.isAnnotation()` can **simultaneously** be `true`.
 
 ```java
 Runnable.class.isInterface();             // true
@@ -73,35 +73,35 @@ String.class.isInterface();               // false
 Runnable[].class.isInterface();           // false
 ```
 
-Một lớp `implements Runnable` vẫn **là class**, nên `MyWorker.class.isInterface()` là `false`. Muốn kiểm tra lớp **có triển khai một interface** hay không, dùng `Runnable.class.isAssignableFrom(MyWorker.class)` hoặc duyệt metadata phù hợp, thay vì gọi `isInterface()` trên class implementation.
+A class that `implements Runnable` is still **a class**, so `MyWorker.class.isInterface()` is `false`. To check whether a class **implements an interface**, use `Runnable.class.isAssignableFrom(MyWorker.class)` or traverse the appropriate metadata, rather than calling `isInterface()` on the implementation class.
 
-Ứng dụng: framework phân biệt hợp đồng giao tiếp với implementation, xác thực kiểu cấu hình động, hoặc quyết định cách khám phá method. Vì annotation interface là tập con của interface, thứ tự phân nhánh cần được thiết kế rõ ràng.
+Application: frameworks distinguish interface contracts from implementations, validate dynamically configured types, or decide how to discover methods. Because annotation interfaces are a subset of interfaces, branching order must be designed clearly.
 
-### `isAnnotation()`: chính kiểu đó là annotation type
+### `isAnnotation()`: the type itself is an annotation type
 
-Trả về `true` nếu `Class` mô tả một kiểu annotation khai báo bằng `@interface`. Phương thức này **không** kiểm tra lớp đang xét có **được gắn annotation** hay không.
+Returns `true` if `Class` describes an annotation type declared with `@interface`. This method does **not** check whether the inspected class **has an annotation attached**.
 
-Giả sử có:
+Suppose we have:
 
 ```java
 @interface Tag {}
 @Tag class Book {}
 ```
 
-Khi đó:
+Then:
 
 ```java
-Tag.class.isAnnotation();   // true: Tag là annotation type
-Book.class.isAnnotation();  // false: Book vẫn là class
-Tag.class.isInterface();    // true: annotation type cũng là interface
-Tag[].class.isAnnotation(); // false: đây là kiểu mảng
+Tag.class.isAnnotation();   // true: Tag is an annotation type
+Book.class.isAnnotation();  // false: Book is still a class
+Tag.class.isInterface();    // true: an annotation type is also an interface
+Tag[].class.isAnnotation(); // false: this is an array type
 ```
 
-Muốn kiểm tra `Book` được gắn `@Tag` ở runtime, dùng `Book.class.isAnnotationPresent(Tag.class)` và bảo đảm annotation được khai báo retention phù hợp (thường `@Retention(RetentionPolicy.RUNTIME)`). `isAnnotation()` chỉ xét **bản chất kiểu `Tag`**, nên không phụ thuộc vào việc một class cụ thể có sử dụng `@Tag` hay không.
+To check whether `Book` is annotated with `@Tag` at runtime, use `Book.class.isAnnotationPresent(Tag.class)` and ensure the annotation is declared with appropriate retention (usually `@Retention(RetentionPolicy.RUNTIME)`). `isAnnotation()` only inspects the **nature of type `Tag`**, so it does not depend on whether a specific class uses `@Tag`.
 
-## 3. Bảng so sánh và những giao nhau quan trọng
+## 3. Comparison Table and Important Overlaps
 
-| Kiểu đem kiểm tra | `isPrimitive()` | `isArray()` | `isInterface()` | `isAnnotation()` |
+| Inspected type | `isPrimitive()` | `isArray()` | `isInterface()` | `isAnnotation()` |
 | --- | --- | --- | --- | --- |
 | `int.class` | `true` | `false` | `false` | `false` |
 | `void.class` | `true` | `false` | `false` | `false` |
@@ -109,20 +109,20 @@ Muốn kiểm tra `Book` được gắn `@Tag` ở runtime, dùng `Book.class.is
 | `int[].class` | `false` | `true` | `false` | `false` |
 | `String[][].class` | `false` | `true` | `false` | `false` |
 | `Runnable.class` | `false` | `false` | `true` | `false` |
-| `Tag.class` (khai báo `@interface`) | `false` | `false` | `true` | `true` |
+| `Tag.class` (declared `@interface`) | `false` | `false` | `true` | `true` |
 | `Tag[].class` | `false` | `true` | `false` | `false` |
-| `Book.class` (class được gắn `@Tag`) | `false` | `false` | `false` | `false` |
+| `Book.class` (class annotated with `@Tag`) | `false` | `false` | `false` | `false` |
 
-Hai nhận xét cần nhớ:
+Two points to remember:
 
-1. **Bốn điều kiện không tạo thành một phép chia thành bốn nhóm loại trừ tuyệt đối:** annotation type đồng thời thỏa `isInterface()` và `isAnnotation()`. Không nên giả định chỉ một cờ được `true`.
-2. **Cả bốn đều có thể là `false`:** đó là trạng thái bình thường của nhiều class thông thường, enum, record… Nếu cần nhận diện thêm enum/record, xem `isEnum()`, `isRecord()` (có trên các JDK phù hợp) và những API metadata khác. Không kết luận `false` nghĩa là “kiểu không hợp lệ”.
+1. **The four conditions do not form a partition into four mutually exclusive groups:** an annotation type satisfies both `isInterface()` and `isAnnotation()`. Do not assume only one flag can be `true`.
+2. **All four can be `false`:** that is the normal state of many ordinary classes, enums, records… If you also need to identify enums/records, see `isEnum()`, `isRecord()` (available on matching JDKs), and other metadata APIs. Do not conclude `false` means "invalid type".
 
-Một mảng của interface/annotation vẫn là **kiểu mảng**; `Runnable[].class.isInterface()` và `Tag[].class.isAnnotation()` đều `false` vì câu hỏi đang hỏi bản thân kiểu mảng, không hỏi phần tử.
+An array of an interface/annotation is still an **array type**; `Runnable[].class.isInterface()` and `Tag[].class.isAnnotation()` are both `false` because the question asks about the array type itself, not its elements.
 
-## 4. Chương trình Java 17+ có thể biên dịch và chạy
+## 4. Compilable and Runnable Java 17+ Program
 
-Tạo đúng tệp `TypeKindDemo.java`:
+Create the exact file `TypeKindDemo.java`:
 
 ```java
 import java.lang.annotation.ElementType;
@@ -190,14 +190,14 @@ public class TypeKindDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa file:
+Compile and run from the directory containing the file:
 
 ```bash
 javac TypeKindDemo.java
 java TypeKindDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 int => primitive=true, array=false, interface=false, annotation=false
@@ -214,17 +214,17 @@ String[][] dimensions => 2
 String[][] leaf type => java.lang.String
 ```
 
-**Giải thích kết quả:**
+**Explanation of output:**
 
-- `Marker` là annotation interface. Vì thế cả `isInterface()` và `isAnnotation()` đều `true`.
-- `Job` có `@Marker`, nhưng bản thân `Job` vẫn là class thường. `Job.class.isAnnotation()` là `false`, còn `isAnnotationPresent(Marker.class)` là `true` nhờ retention runtime.
-- `Marker[]` là một **kiểu mảng**, nên ba cờ primitive/interface/annotation đều `false` dù các phần tử có kiểu annotation.
-- `int.class`, `void.class` là primitive theo kết quả `Class.isPrimitive()`; `Integer.class` không phải.
-- `String[][].class` có hai chiều; việc gọi lặp `getComponentType()` lần lượt thu được `String[].class` rồi `String.class`.
+- `Marker` is an annotation interface. Therefore both `isInterface()` and `isAnnotation()` are `true`.
+- `Job` has `@Marker`, but `Job` itself is still an ordinary class. `Job.class.isAnnotation()` is `false`, while `isAnnotationPresent(Marker.class)` is `true` thanks to runtime retention.
+- `Marker[]` is an **array type**, so the three flags primitive/interface/annotation are all `false` even though its elements have an annotation type.
+- `int.class` and `void.class` are primitive according to `Class.isPrimitive()`; `Integer.class` is not.
+- `String[][].class` has two dimensions; repeatedly calling `getComponentType()` yields `String[].class` and then `String.class`.
 
-## 5. Ứng dụng trong code reflection và cách tổ chức điều kiện
+## 5. Applications in Reflection Code and Organizing Conditions
 
-Một công cụ phân tích cấu trúc kiểu có thể phân loại để quyết định cách xử lý metadata:
+A type-structure analysis tool can classify types to decide how to process metadata:
 
 ```java
 static String kindOf(Class<?> type) {
@@ -244,39 +244,39 @@ static String kindOf(Class<?> type) {
 }
 ```
 
-Đây là **method minh họa**, được đặt bên trong một class đang dùng; chưa phải chương trình độc lập. Đặt `isAnnotation()` **trước** `isInterface()` nếu mục tiêu là xác định **một nhãn riêng** cho annotation, vì annotation interface đáp ứng cả hai điều kiện. Tùy mục đích, có thể xét mảng hoặc primitive trước; chỉ cặp annotation/interface đòi hỏi lưu ý về tính chồng lấn.
+This is an **illustrative method**, placed inside an active class; it is not a standalone program. Put `isAnnotation()` **before** `isInterface()` if the goal is to assign a **separate label** for annotations, because annotation interfaces satisfy both conditions. Depending on the goal, you can check array or primitive first; only the annotation/interface pair requires attention to overlap.
 
-Tuy nhiên, không phải hệ thống nào cũng cần ép về một nhãn duy nhất. Nếu API cần phân tích đầy đủ khả năng của kiểu, hãy giữ riêng cả bốn cờ vì `annotation` đồng thời là `interface`.
+However, not every system needs to force a single label. If an API needs to analyze a type's capabilities thoroughly, keep all four flags separately because an `annotation` is simultaneously an `interface`.
 
-Ví dụ luồng kiểm tra kiểu từ `Field` của một class:
+Example type-checking flow from a class's `Field`:
 
 ```java
-// "field" là Field đã lấy được từ một class khác.
+// "field" is a Field already obtained from another class.
 Class<?> fieldType = field.getType();
 if (fieldType.isArray()) {
     Class<?> component = fieldType.getComponentType();
-    // Xử lý kiểu thành phần trực tiếp của field mảng.
+    // Handle the direct component type of the array field.
 } else if (fieldType.isPrimitive()) {
-    // Xử lý field nguyên thủy.
+    // Handle the primitive field.
 }
 ```
 
-Đây là **đoạn minh họa trong ngữ cảnh reflection**, không phải ứng dụng Java hoàn chỉnh. Để xử lý mảng nhiều chiều, lặp `getComponentType()`; nếu phần tử là primitive, `component.isPrimitive()` chỉ `true` khi đã xuống tới phần tử primitive.
+This is an **illustrative snippet in a reflection context**, not a complete Java application. To handle multidimensional arrays, loop `getComponentType()`; if the element is primitive, `component.isPrimitive()` becomes `true` only once you reach the primitive element.
 
-## 6. Phân biệt với những API thường bị nhầm
+## 6. Distinguishing from Commonly Confused APIs
 
-| Nhu cầu | API phù hợp | Vì sao khác |
+| Need | Appropriate API | Why it differs |
 | --- | --- | --- |
-| Kiểu `Class<?>` có đại diện primitive không? | `type.isPrimitive()` | Xét bản chất của kiểu, không xét giá trị |
-| Kiểu có phải mảng không? | `type.isArray()` | Không cho biết kiểu phần tử nếu chưa gọi `getComponentType()` |
-| Kiểu có phải một interface không? | `type.isInterface()` | Không xác định một **class** có implement interface nào |
-| Kiểu có phải annotation type không? | `type.isAnnotation()` | Không kiểm tra một đối tượng/class được gắn annotation gì |
-| Class/element có annotation `X` ở runtime không? | `element.isAnnotationPresent(X.class)` | Kiểm tra sự hiện diện của annotation có thể truy vấn tại runtime |
-| Một class có triển khai/thuộc kiểu khác không? | `SuperType.class.isAssignableFrom(SubType.class)` | Kiểm tra quan hệ gán kiểu; gồm cả interface và class |
-| Đối tượng có là instance của kiểu không? | `type.isInstance(object)` | Kiểm tra một object; khác bản chất của `type` |
-| Tìm kiểu thành phần mảng | `arrayType.getComponentType()` | Trả về một `Class<?>` hoặc `null` nếu không phải mảng |
+| Does `Class<?>` represent a primitive? | `type.isPrimitive()` | Examines the nature of the type, not a value |
+| Is the type an array? | `type.isArray()` | Does not tell the element type until `getComponentType()` is called |
+| Is the type an interface? | `type.isInterface()` | Does not determine whether a **class** implements any interface |
+| Is the type an annotation type? | `type.isAnnotation()` | Does not check what annotations are attached to an object/class |
+| Does a class/element have annotation `X` at runtime? | `element.isAnnotationPresent(X.class)` | Checks the presence of an annotation queryable at runtime |
+| Does a class implement/belong to another type? | `SuperType.class.isAssignableFrom(SubType.class)` | Checks assignment compatibility; includes both interfaces and classes |
+| Is an object an instance of a type? | `type.isInstance(object)` | Checks an object; differs from the nature of `type` |
+| Find the array component type | `arrayType.getComponentType()` | Returns a `Class<?>` or `null` if not an array |
 
-Ví dụ quan hệ kiểu:
+Type-relationship example:
 
 ```java
 Worker.class.isInterface();             // true
@@ -285,27 +285,27 @@ Worker.class.isAssignableFrom(Job.class); // true
 Worker.class.isInstance(new Job());     // true
 ```
 
-Với `isInstance(...)`, đối tượng `null` luôn cho `false`. Với kiểu primitive, `int.class.isInstance(1)` cũng là `false`: biểu thức `1` phải boxing thành `Integer` khi truyền làm `Object`, còn primitive `Class` không đại diện lớp instance tham chiếu.
+With `isInstance(...)`, a `null` object always yields `false`. For primitive types, `int.class.isInstance(1)` is also `false`: the expression `1` must be boxed into `Integer` when passed as `Object`, whereas primitive `Class` does not represent a reference instance class.
 
-## 7. Lỗi phổ biến và cách tránh
+## 7. Common Mistakes and How to Avoid Them
 
-1. **Nhầm wrapper với primitive.** `Integer.class.isPrimitive()` trả về `false`. Kiểm tra cả `int.class` và `Integer.class` bằng test nếu library của bạn có quy tắc riêng cho boxing.
-2. **Nhầm mảng primitive với primitive.** `int[].class.isArray()` là `true` còn `isPrimitive()` là `false`. Muốn biết loại phần tử, gọi `getComponentType()`.
-3. **Nhầm annotation type với class được gắn annotation.** `Marker.class.isAnnotation()` là `true`; `Job.class.isAnnotation()` là `false` dù `Job` có `@Marker`. Dùng `isAnnotationPresent(...)` cho câu hỏi gắn annotation.
-4. **Kiểm tra interface trước annotation rồi dừng.** `Marker.class.isInterface()` là `true` và làm nhánh annotation phía sau không chạy. Sắp điều kiện phù hợp với mục đích hoặc không ép các cờ vào một loại duy nhất.
-5. **Nhầm triển khai interface với chính interface.** Một class triển khai `Worker` không khiến `Job.class.isInterface()` thành `true`. Kiểm tra khả năng gán bằng `isAssignableFrom(...)` khi cần.
-6. **Chỉ xét mảng một chiều.** `String[][].class.getComponentType()` là `String[].class`. Lặp qua nhiều mức nếu cần tới kiểu phần tử cuối.
-7. **Cho rằng mọi kiểu phải thuộc một trong bốn nhóm.** `String.class`, `Integer.class` hay nhiều kiểu domain đều có cả bốn cờ `false`. Có thể xem thêm `isEnum()`, `isRecord()` hoặc thông tin khác tùy mục đích.
-8. **Dựa vào tên chuỗi thay cho metadata.** Tên kiểu mảng ở `getName()` như `[I` hoặc `[[Ljava.lang.String;` dễ gây nhầm. Ưu tiên `isArray()` và `getComponentType()`; dùng `Class<?>` đã lấy đúng từ API thay vì tự phân tích chuỗi tên.
+1. **Confusing wrappers with primitives.** `Integer.class.isPrimitive()` returns `false`. Check both `int.class` and `Integer.class` with tests if your library has special boxing rules.
+2. **Confusing primitive arrays with primitives.** `int[].class.isArray()` is `true` while `isPrimitive()` is `false`. To learn the element kind, call `getComponentType()`.
+3. **Confusing annotation types with annotated classes.** `Marker.class.isAnnotation()` is `true`; `Job.class.isAnnotation()` is `false` even though `Job` has `@Marker`. Use `isAnnotationPresent(...)` for annotation-attachment questions.
+4. **Checking interface before annotation and stopping.** `Marker.class.isInterface()` is `true` and prevents a subsequent annotation branch from running. Order conditions to match your goal or avoid forcing flags into a single category.
+5. **Confusing implementing an interface with being an interface.** A class implementing `Worker` does not make `Job.class.isInterface()` `true`. Check assignability with `isAssignableFrom(...)` when needed.
+6. **Considering only one-dimensional arrays.** `String[][].class.getComponentType()` is `String[].class`. Loop across levels if you need to reach the final element type.
+7. **Assuming every type must belong to one of the four groups.** `String.class`, `Integer.class`, and many domain types have all four flags `false`. You can also check `isEnum()`, `isRecord()`, or other information depending on your goal.
+8. **Relying on name strings instead of metadata.** Array type names in `getName()` such as `[I` or `[[Ljava.lang.String;` are easy to misread. Prefer `isArray()` and `getComponentType()`; use the `Class<?>` properly retrieved from the API instead of parsing name strings manually.
 
-## 8. Ghi nhớ và tự kiểm tra
+## 8. Takeaways and Self-Check
 
 - `void.class.isPrimitive()` → **`true`**; `Integer.class.isPrimitive()` → **`false`**.
 - `int[].class.isArray()` → **`true`**; `int[].class.getComponentType()` → **`int.class`**.
-- `String[][].class.getComponentType()` → **`String[].class`**, không đi thẳng tới `String.class`.
-- Với `@interface Marker`, `Marker.class.isInterface()` **và** `Marker.class.isAnnotation()` cùng là **`true`**.
-- Với `@Marker class Job`, `Job.class.isAnnotation()` → **`false`**; `Job.class.isAnnotationPresent(Marker.class)` chỉ quan sát được annotation nếu retention/runtime metadata phù hợp.
-- Mảng annotation (`Marker[].class`) là **mảng**, không phải annotation interface.
-- Bốn predicate mô tả **bản thân kiểu**, không kiểm tra mặc định quan hệ kế thừa, instance hoặc annotation hiện diện.
+- `String[][].class.getComponentType()` → **`String[].class`**, not jumping directly to `String.class`.
+- For `@interface Marker`, `Marker.class.isInterface()` **and** `Marker.class.isAnnotation()` are both **`true`**.
+- For `@Marker class Job`, `Job.class.isAnnotation()` → **`false`**; `Job.class.isAnnotationPresent(Marker.class)` can only observe the annotation if retention/runtime metadata is appropriate.
+- An annotation array (`Marker[].class`) is an **array**, not an annotation interface.
+- The four predicates describe **the type itself**; by default they do not check inheritance relationships, instances, or attached annotations.
 
-Khi viết công cụ reflection, hãy xác định chính xác **đối tượng `Class<?>` đang mô tả kiểu nào**: kiểu field, kiểu trả về, component của mảng hay kiểu class chính. Sau đó chọn predicate tương ứng, tránh suy luận từ tên hoặc từ kiểu của đối tượng khác.
+When writing reflection tools, identify precisely **which type the `Class<?>` object describes**: a field type, a return type, an array component, or the class type itself. Then pick the corresponding predicate, avoiding inference from names or from another object's type.

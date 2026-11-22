@@ -1,14 +1,14 @@
-# Chuyển kết quả thành mảng bằng toArray
+# Converting Results to an Array with `toArray`
 
-Trong chương **Duyệt, tìm kiếm và đối sánh** của **Java Stream API**, nhiều pipeline bắt đầu từ collection, mảng hoặc nguồn sinh dữ liệu, đi qua các bước `filter`, `map`, `flatMap` rồi cần trả về một kết quả có thể truyền cho API cũ, lưu vào trường dữ liệu hoặc truy cập theo chỉ số. **`toArray` là terminal operation dùng để kết thúc pipeline và thu các phần tử đầu ra vào một mảng.**
+In the **Traversal, Search, and Matching** chapter of the **Java Stream API**, many pipelines start from a collection, array, or data generator, pass through `filter`, `map`, and `flatMap`, and then need to return a result that can be passed to a legacy API, stored in a field, or accessed by index. **`toArray` is a terminal operation used to end a pipeline and collect output elements into an array.**
 
-Thao tác này có vẻ đơn giản, nhưng có ba điểm dễ nhầm: `Stream.toArray()` không tự tạo mảng có kiểu phần tử như `String[]`; dạng `Stream.toArray(String[]::new)` sử dụng một *array generator* để tạo mảng tham chiếu đúng kiểu; còn `IntStream`, `LongStream` và `DoubleStream` có `toArray()` riêng, trả về mảng nguyên thủy tương ứng.
+This operation looks simple, but there are three common pitfalls: `Stream.toArray()` does not automatically create a typed array like `String[]`; the `Stream.toArray(String[]::new)` form uses an *array generator* to allocate a reference array of the right type; and `IntStream`, `LongStream`, and `DoubleStream` have their own `toArray()` methods returning the corresponding primitive arrays.
 
-Bài học giải thích kiểu dữ liệu, cách dùng, các lỗi thường gặp, thứ tự phần tử và chi phí bộ nhớ khi dùng `toArray` trong một pipeline khai báo.
+This lesson explains data types, usage, common errors, element ordering, and memory overhead when using `toArray` in a declarative pipeline.
 
-## 1. Khi nào cần chuyển Stream thành mảng?
+## 1. When Should You Convert a Stream to an Array?
 
-Giả sử đã lọc một danh sách mã sản phẩm và chuẩn hóa chữ hoa. Một hệ thống bên ngoài yêu cầu tham số kiểu `String[]` thay vì `Stream<String>` hay `List<String>`. Ta có thể hoàn tất pipeline bằng `toArray(String[]::new)`:
+Suppose you have filtered a list of product codes and normalized them to uppercase. An external system requires a `String[]` parameter rather than a `Stream<String>` or `List<String>`. You can finish the pipeline with `toArray(String[]::new)`:
 
 ~~~java
 import java.util.Arrays;
@@ -30,39 +30,39 @@ public class ToArrayDemo {
 }
 ~~~
 
-Từng phần của pipeline có vai trò riêng:
+Each part of the pipeline has a clear role:
 
-1. `codes.stream()` tạo một Stream từ danh sách.
-2. `map(String::trim)` bỏ khoảng trắng ở đầu và cuối từng mã.
-3. `filter` loại mã rỗng.
-4. `map(String::toUpperCase)` tạo chuỗi mới theo dạng chữ hoa.
-5. `toArray(String[]::new)` **thực thi pipeline** và trả về mảng `String[]`.
+1. `codes.stream()` creates a Stream from the list.
+2. `map(String::trim)` strips leading and trailing whitespace from each code.
+3. `filter` removes empty codes.
+4. `map(String::toUpperCase)` produces uppercase strings.
+5. `toArray(String[]::new)` **executes the pipeline** and returns a `String[]` array.
 
-Kết quả `result` là một mảng thông thường của Java: có `length`, có thể truy cập `result[0]`, có kích thước cố định sau khi tạo và có thể thay phần tử theo chỉ số nếu muốn.
+The result `result` is an ordinary Java array: it has `length`, supports `result[0]` indexing, has a fixed size once created, and allows replacing elements by index if desired.
 
-## 2. Phân biệt ba cách gọi `toArray` quan trọng
+## 2. Distinguishing the Three Important Ways to Call `toArray`
 
-| Nguồn | Cách gọi | Kiểu trả về | Mục đích |
+| Source | Call | Return Type | Purpose |
 | --- | --- | --- | --- |
-| `Stream<T>` | `stream.toArray()` | `Object[]` | Khi chỉ cần mảng đối tượng tổng quát. |
-| `Stream<T>` | `stream.toArray(T[]::new)` | `T[]` tương ứng với kiểu mảng generator tạo | Khi cần mảng tham chiếu có kiểu cụ thể như `String[]`, `Employee[]`. |
-| `IntStream` | `stream.toArray()` | `int[]` | Thu các giá trị `int` mà không cần boxing. |
-| `LongStream` | `stream.toArray()` | `long[]` | Thu các giá trị `long`. |
-| `DoubleStream` | `stream.toArray()` | `double[]` | Thu các giá trị `double`. |
+| `Stream<T>` | `stream.toArray()` | `Object[]` | When only a general object array is needed. |
+| `Stream<T>` | `stream.toArray(T[]::new)` | `T[]` matching the array type created by the generator | When a specific reference array type such as `String[]` or `Employee[]` is needed. |
+| `IntStream` | `stream.toArray()` | `int[]` | Collect `int` values without boxing. |
+| `LongStream` | `stream.toArray()` | `long[]` | Collect `long` values. |
+| `DoubleStream` | `stream.toArray()` | `double[]` | Collect `double` values. |
 
-Với `Stream<T>`, dạng có generator dùng chữ ký khái quát:
+For `Stream<T>`, the generator overload has the generic signature:
 
 ~~~java
 <A> A[] toArray(java.util.function.IntFunction<A[]> generator)
 ~~~
 
-Hàm `generator` nhận một kích thước kiểu `int` và tạo ra mảng tương ứng, chẳng hạn `size -> new String[size]`. Dạng này thường được viết gọn thành method reference `String[]::new`.
+The `generator` function receives an `int` size and constructs a corresponding array, such as `size -> new String[size]`. This is commonly shortened to the method reference `String[]::new`.
 
-Điểm cốt lõi là **kiểu trả về của `toArray` phụ thuộc vào overload và kiểu Stream**. Việc các phần tử đầu vào “đều là chuỗi” không làm overload không tham số tự suy ra `String[]`.
+The core point is that **the return type of `toArray` depends on the overload and the Stream type**. Having input elements that “are all strings” does not make the parameterless overload infer `String[]`.
 
-## 3. `toArray()` không tham số: luôn làm việc với `Object[]`
+## 3. Parameterless `toArray()`: Always Works with `Object[]`
 
-Với Stream đối tượng, cách viết ngắn nhất là:
+For an object Stream, the shortest call is:
 
 ~~~java
 import java.util.Arrays;
@@ -75,29 +75,29 @@ Object[] result = Stream.of("Lan", "Minh", "An")
 System.out.println(Arrays.toString(result)); // [Lan, Minh]
 ~~~
 
-Dù các phần tử đều là `String`, kết quả của overload này có kiểu mảng runtime `Object[]`. Không được ép kiểu trực tiếp sang `String[]`:
+Even though all elements are `String`, this overload's result has runtime array type `Object[]`. You must not cast it directly to `String[]`:
 
 ~~~java
 Object[] objects = Stream.of("Lan", "Minh").toArray();
 
-// Sai khi chạy: Object[] không phải String[].
+// Fails at runtime: Object[] is not String[].
 String[] names = (String[]) objects; // ClassCastException
 ~~~
 
-**Cách sửa** là yêu cầu Stream tạo đúng kiểu mảng ngay lúc thu kết quả:
+**The fix** is to instruct the Stream to allocate the right array type when collecting the result:
 
 ~~~java
 String[] names = Stream.of("Lan", "Minh")
         .toArray(String[]::new);
 ~~~
 
-Nếu đã có `Object[]` hợp lệ và thực sự muốn tạo một mảng chuỗi mới, có thể dùng `Arrays.copyOf(objects, objects.length, String[].class)` khi mọi phần tử đều tương thích; tuy nhiên, trong một pipeline mới, `toArray(String[]::new)` rõ ràng và trực tiếp hơn.
+If you already have a valid `Object[]` and genuinely want to create a new string array, you can use `Arrays.copyOf(objects, objects.length, String[].class)` when every element is compatible; however, in a fresh pipeline, `toArray(String[]::new)` is clearer and more direct.
 
-Không nên dùng kiểu ép không an toàn hoặc `@SuppressWarnings` để che giấu lỗi kiểu mảng.
+Avoid unsafe casts or `@SuppressWarnings` to hide array type mismatches.
 
-## 4. `toArray(String[]::new)`: mảng đúng kiểu ngay tại điểm kết thúc
+## 4. `toArray(String[]::new)`: The Right Array Type at the Endpoint
 
-Ví dụ với tên người dùng:
+Example with user names:
 
 ~~~java
 import java.util.Arrays;
@@ -111,14 +111,14 @@ System.out.println(Arrays.toString(names)); // [Bình, Chi, Dũng]
 System.out.println(names.length);            // 3
 ~~~
 
-`String[]::new` là **tham chiếu đến constructor của mảng**, tương đương về ý nghĩa với:
+`String[]::new` is an **array constructor reference**, semantically equivalent to:
 
 ~~~java
 String[] names = Stream.of("Lan", "Minh")
         .toArray(size -> new String[size]);
 ~~~
 
-Với kiểu tự định nghĩa, có thể dùng cùng một mẫu:
+For custom types, the exact same pattern applies:
 
 ~~~java
 record Employee(String id, String department) {}
@@ -128,42 +128,42 @@ Employee[] developers = employees.stream()
         .toArray(Employee[]::new);
 ~~~
 
-Đoạn cuối giả định `employees` là một collection chứa `Employee`; cú pháp `record` cần Java 16 trở lên. Trên Java 8, thay `record` bằng class thông thường, còn `toArray(Employee[]::new)` vẫn dùng được.
+The last snippet assumes `employees` is a collection of `Employee`; `record` syntax requires Java 16 or later. On Java 8, replace `record` with a regular class, and `toArray(Employee[]::new)` still works.
 
-### Generator phải cung cấp mảng phù hợp
+### The Generator Must Supply a Proper Array
 
-`toArray(IntFunction<A[]>)` có thể gọi generator khi cần mảng cho phân đoạn dữ liệu hoặc phục vụ việc ghép kết quả, đặc biệt khi chạy song song. Vì vậy:
+`toArray(IntFunction<A[]>)` may call the generator whenever it needs arrays for data partitions or merging results, especially during parallel execution. Therefore:
 
-- Generator nên chỉ **tạo mảng mới với kích thước được yêu cầu**.
-- Không nên giả định generator chỉ được gọi đúng một lần hay lần nào cũng nhận số phần tử cuối cùng của toàn pipeline.
-- Không nên ghi log nghiệp vụ, tăng biến đếm dùng chung hoặc trả cùng một mảng chia sẻ để tạo side effect.
-- Nên dùng `String[]::new`, `Employee[]::new` hoặc lambda `size -> new MyType[size]` vì ngắn gọn và đúng hợp đồng.
+- The generator should only **allocate a new array of the requested size**.
+- Do not assume the generator is called only once or always receives the final element count of the entire pipeline.
+- Do not log business events, increment shared counters, or return the same shared array to produce side effects.
+- Prefer `String[]::new`, `Employee[]::new`, or `size -> new MyType[size]` because they are concise and satisfy the contract.
 
-Mảng phải có kiểu runtime tương thích với các phần tử cần lưu. Khi mã khai báo một Stream chứa đối tượng thuộc nhiều kiểu, không nên cố chuyển thành mảng kiểu hẹp chỉ nhờ array generator.
+The array must have a runtime type compatible with the elements to be stored. When code declares a Stream containing objects of mixed types, do not try to force them into a narrower array type solely via the array generator.
 
-## 5. Ba lỗi kiểu dữ liệu dễ gặp
+## 5. Three Common Type Errors
 
-### 5.1. `ClassCastException` khi ép `Object[]` thành `String[]`
+### 5.1. `ClassCastException` When Casting `Object[]` to `String[]`
 
 ~~~java
 Object[] source = Stream.of("a", "b").toArray();
-String[] wrong = (String[]) source; // Sai khi chạy.
+String[] wrong = (String[]) source; // Fails at runtime.
 ~~~
 
-Vấn đề không nằm ở từng phần tử `"a"`, `"b"`, mà ở **kiểu của chính mảng**. Mảng Java có kiểu runtime và không thể biến một `Object[]` đã tạo thành `String[]` bằng cast.
+The issue is not the individual elements `"a"` and `"b"`, but **the type of the array itself**. Java arrays carry a runtime component type, and an already-created `Object[]` cannot be turned into a `String[]` by casting.
 
-### 5.2. `ArrayStoreException` khi phần tử không khớp kiểu mảng
+### 5.2. `ArrayStoreException` When an Element Does Not Match the Array Type
 
 ~~~java
 import java.util.stream.Stream;
 
 Stream<Object> mixed = Stream.of("A", 42);
 
-// Có thể biên dịch, nhưng 42 không thể được lưu vào String[].
+// May compile, but 42 cannot be stored into String[].
 String[] wrong = mixed.toArray(String[]::new); // ArrayStoreException
 ~~~
 
-Tham số kiểu `<A>` của overload dùng generator cho phép chọn mảng đầu ra, nhưng **không ép các phần tử thành kiểu `A`**. Nếu mọi phần tử đều phải là chuỗi, hãy tạo `Stream<String>` một cách an toàn, kiểm tra/biến đổi từng phần tử trước khi thu mảng:
+The type parameter `<A>` on the generator overload lets you choose the output array, but **does not convert elements to type `A`**. If every element must be a string, safely produce a `Stream<String>`, validating or transforming each element before collecting the array:
 
 ~~~java
 String[] converted = Stream.<Object>of("A", 42)
@@ -173,11 +173,11 @@ String[] converted = Stream.<Object>of("A", 42)
 System.out.println(Arrays.toString(converted)); // [A, 42]
 ~~~
 
-`map(String::valueOf)` ở đây chuyển từng phần tử thành chuỗi. Nếu bài toán yêu cầu loại phần tử không phải chuỗi, thay bằng bước kiểm tra kiểu có chủ đích; hai cách đó có ý nghĩa nghiệp vụ khác nhau.
+Here `map(String::valueOf)` converts each element to a string. If the problem requires discarding non-string elements, replace it with an explicit type-checking step; the two approaches have different business meanings.
 
-### 5.3. Mảng có kiểu chung không phải `new T[n]`
+### 5.3. Generic Arrays Cannot Use `new T[n]`
 
-Trong phương thức generic, Java không cho tạo trực tiếp mảng `new T[n]` vì *type erasure*. Cách phổ biến là **yêu cầu caller cung cấp generator**:
+Inside a generic method, Java disallows directly creating `new T[n]` due to *type erasure*. The standard solution is **asking the caller to supply the generator**:
 
 ~~~java
 import java.util.Collection;
@@ -195,7 +195,7 @@ public static <T> T[] selectToArray(
 }
 ~~~
 
-Cách gọi:
+How to call it:
 
 ~~~java
 String[] selected = selectToArray(
@@ -207,22 +207,22 @@ String[] selected = selectToArray(
 // selected = ["Lan", "Minh"]
 ~~~
 
-Trong ví dụ này, caller xác định mảng kết quả cần có kiểu runtime `String[]`. Điều đó giúp phương thức tổng quát tránh phải ép kiểu mảng một cách không an toàn.
+In this example, the caller specifies that the result array must have runtime type `String[]`. That frees the generic method from unsafe array casts.
 
-## 6. Stream số nguyên thủy: `int[]` khác `Integer[]`
+## 6. Primitive Streams: `int[]` vs `Integer[]`
 
-Đây là khác biệt rất quan trọng giữa `Stream<Integer>` và `IntStream`.
+This is a very important distinction between `Stream<Integer>` and `IntStream`.
 
 ~~~java
 import java.util.Arrays;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-// Stream đối tượng: trả Integer[] khi dùng generator.
+// Object stream: returns Integer[] when using a generator.
 Integer[] boxed = Stream.of(1, 2, 3)
         .toArray(Integer[]::new);
 
-// IntStream: toArray() trả trực tiếp int[].
+// IntStream: toArray() returns int[] directly.
 int[] primitive = IntStream.of(1, 2, 3)
         .toArray();
 
@@ -230,17 +230,17 @@ System.out.println(Arrays.toString(boxed));     // [1, 2, 3]
 System.out.println(Arrays.toString(primitive)); // [1, 2, 3]
 ~~~
 
-Hai mảng in giống nhau nhưng khác kiểu và cách lưu trữ:
+The two arrays print identically but differ in type and storage:
 
-| Đặc điểm | `Integer[]` | `int[]` |
+| Characteristic | `Integer[]` | `int[]` |
 | --- | --- | --- |
-| Phần tử | Tham chiếu tới đối tượng `Integer` | Giá trị nguyên thủy `int` |
-| Chứa `null` | Có thể | Không |
-| Dùng cho API yêu cầu `int[]` | Không tương thích trực tiếp | Phù hợp |
-| Boxing/unboxing | Có thể phát sinh | Không cần khi làm việc với số nguyên thủy |
-| Mức sử dụng bộ nhớ | Thường cao hơn tùy cách cấp phát và chia sẻ đối tượng | Thường gọn hơn |
+| Elements | References to `Integer` objects | Primitive `int` values |
+| Can contain `null` | Yes | No |
+| Usable with APIs expecting `int[]` | Not directly compatible | Suitable |
+| Boxing/unboxing | May occur | Unnecessary when working with primitives |
+| Memory footprint | Usually higher depending on allocation and object sharing | Usually more compact |
 
-Chuyển từ `Stream<Integer>` sang `int[]`:
+Converting from `Stream<Integer>` to `int[]`:
 
 ~~~java
 import java.util.List;
@@ -252,9 +252,9 @@ int[] values = counts.stream()
         .toArray();
 ~~~
 
-Nếu dữ liệu có thể chứa `null`, bước `Integer::intValue` sẽ ném `NullPointerException` khi gặp phần tử đó. Cần xác định chính sách lọc hoặc thay thế `null` trước khi unboxing.
+If the data can contain `null`, `Integer::intValue` will throw `NullPointerException` upon encountering it. Define a policy to filter or replace `null` before unboxing.
 
-Chuyển từ `IntStream` sang `Integer[]`:
+Converting from `IntStream` to `Integer[]`:
 
 ~~~java
 Integer[] values = IntStream.range(1, 4)
@@ -263,13 +263,13 @@ Integer[] values = IntStream.range(1, 4)
 // [1, 2, 3]
 ~~~
 
-Tương tự, `LongStream.toArray()` trả về `long[]` và `DoubleStream.toArray()` trả về `double[]`.
+Similarly, `LongStream.toArray()` returns `long[]` and `DoubleStream.toArray()` returns `double[]`.
 
-> **Không thể** gọi `Stream<Integer>.toArray(int[]::new)` để nhận `int[]`: overload generic của `Stream<T>` dành cho mảng đối tượng (`A[]`), trong khi `int[]` là mảng nguyên thủy. Hãy chuyển sang `IntStream` bằng `mapToInt` rồi gọi `toArray()`.
+> You **cannot** call `Stream<Integer>.toArray(int[]::new)` to get `int[]`: `Stream<T>`'s generic overload expects an object array (`A[]`), while `int[]` is a primitive array. Convert to `IntStream` with `mapToInt` and then call `toArray()`.
 
-## 7. `toArray` là terminal operation: thực thi pipeline một lần
+## 7. `toArray` Is a Terminal Operation: Executes the Pipeline Once
 
-`filter`, `map` và nhiều intermediate operation chỉ tạo mô tả cho pipeline. `toArray` **kích hoạt việc duyệt và vật hóa kết quả**:
+`filter`, `map`, and many intermediate operations only build a description of the pipeline. `toArray` **triggers traversal and materializes the result**:
 
 ~~~java
 import java.util.Arrays;
@@ -281,11 +281,11 @@ Stream<String> pipeline = Stream.of("lan", "minh", "an")
 
 String[] result = pipeline.toArray(String[]::new); // [LAN, MINH]
 
-// Sai: pipeline đã kết thúc, không thể dùng lại đối tượng Stream này.
-long count = pipeline.count(); // IllegalStateException (thường gặp)
+// Wrong: the pipeline has already ended; this Stream object cannot be reused.
+long count = pipeline.count(); // IllegalStateException (typically)
 ~~~
 
-Nếu cần vừa mảng vừa một chỉ số khác như số phần tử, có thể lấy thông tin từ kết quả đã thu:
+If you need both the array and another metric like element count, obtain that information from the collected result:
 
 ~~~java
 String[] result = Stream.of("lan", "minh", "an")
@@ -296,13 +296,13 @@ String[] result = Stream.of("lan", "minh", "an")
 int count = result.length; // 2
 ~~~
 
-Đối với nguồn collection có thể duyệt lại, cũng có thể tạo **một Stream mới** cho mỗi phép tính khi cần. Không được gọi nhiều terminal operation trên cùng một đối tượng Stream.
+For a collection source that can be traversed multiple times, you can also create **a fresh Stream** for each computation when needed. Never invoke multiple terminal operations on the same Stream object.
 
-Một khác biệt với các phép tìm kiếm như `findFirst` hoặc đối sánh như `anyMatch` là `toArray` **phải thu toàn bộ kết quả đầu ra**, không tự dừng chỉ vì đã tìm thấy một phần tử thỏa điều kiện. Nếu cần vài phần tử đầu tiên, hãy thêm giới hạn trước `toArray`.
+A key difference from search operations like `findFirst` or matching operations like `anyMatch` is that `toArray` **must collect all output results**, never stopping early just because one matching element was found. If you only need the first few elements, place a limit before `toArray`.
 
-## 8. Thứ tự phần tử trong mảng kết quả
+## 8. Element Order in the Result Array
 
-Với Stream có *encounter order* (thứ tự duyệt xác định), `toArray` tạo mảng các phần tử **theo thứ tự gặp được**:
+For a Stream with an *encounter order* (defined traversal order), `toArray` builds the array **in encounter order**:
 
 ~~~java
 import java.util.Arrays;
@@ -317,7 +317,7 @@ Integer[] selected = numbers.stream()
 System.out.println(Arrays.toString(selected)); // [4, 2]
 ~~~
 
-Phép `filter` không tự sắp xếp dữ liệu. Nếu cần kết quả theo thứ tự tăng dần, sử dụng `sorted()` trước `toArray`:
+`filter` does not sort data. If ascending order is needed, apply `sorted()` before `toArray`:
 
 ~~~java
 Integer[] ascending = numbers.stream()
@@ -328,23 +328,23 @@ Integer[] ascending = numbers.stream()
 System.out.println(Arrays.toString(ascending)); // [2, 4]
 ~~~
 
-Một Stream **song song** nhưng vẫn có encounter order cũng phải giữ thứ tự đó trong kết quả của `toArray`:
+A **parallel** Stream that still has an encounter order must also preserve that order in `toArray`'s result:
 
 ~~~java
 Integer[] selected = numbers.parallelStream()
         .filter(n -> n > 1)
         .toArray(Integer[]::new);
 
-// Theo encounter order của List: [5, 4, 2]
+// Preserves the List's encounter order: [5, 4, 2]
 ~~~
 
-Ngược lại, nếu nguồn không có encounter order (ví dụ một số Stream tạo từ `HashSet`) hoặc pipeline cố ý gọi `unordered()`, **không có bảo đảm về thứ tự phần tử**. Tránh suy luận rằng `parallel()` luôn làm đảo thứ tự, hoặc `toArray` sẽ tự sắp xếp các phần tử.
+Conversely, if the source has no encounter order (such as some Streams created from a `HashSet`) or the pipeline deliberately calls `unordered()`, **there is no guarantee of element order**. Avoid assuming `parallel()` always scrambles order, or that `toArray` sorts elements automatically.
 
-Nếu thứ tự là một phần của hợp đồng API, hãy bảo đảm nguồn có thứ tự hoặc dùng phép `sorted` phù hợp với khóa nghiệp vụ.
+If order is part of the API contract, ensure the source is ordered or use `sorted` with an explicit business key.
 
-## 9. Mảng rỗng, `null` và các dạng dữ liệu khác
+## 9. Empty Arrays, `null`, and Other Data Shapes
 
-### 9.1. Khi không có phần tử thỏa bộ lọc
+### 9.1. When No Element Passes the Filter
 
 ~~~java
 String[] empty = Stream.of("A", "B")
@@ -354,9 +354,9 @@ String[] empty = Stream.of("A", "B")
 System.out.println(empty.length); // 0
 ~~~
 
-Kết quả là **một mảng có độ dài 0**, không phải `null`. Caller có thể duyệt an toàn bằng vòng lặp hoặc `Arrays.stream(empty)` mà không phải kiểm tra xem bản thân mảng có tồn tại hay không.
+The result is **a zero-length array**, not `null`. Callers can safely iterate over it with a loop or `Arrays.stream(empty)` without checking whether the array reference itself exists.
 
-### 9.2. Phần tử `null` có thể được giữ lại
+### 9.2. `null` Elements May Be Retained
 
 ~~~java
 import java.util.Arrays;
@@ -368,7 +368,7 @@ String[] names = Stream.of("Lan", null, "Minh")
 System.out.println(Arrays.toString(names)); // [Lan, null, Minh]
 ~~~
 
-`toArray` không loại `null`. Nếu downstream không chấp nhận phần tử `null`, cần xử lý có chủ đích:
+`toArray` does not remove `null`. If downstream consumers reject `null` elements, handle them deliberately:
 
 ~~~java
 import java.util.Objects;
@@ -378,11 +378,11 @@ String[] nonNull = Stream.of("Lan", null, "Minh")
         .toArray(String[]::new);
 ~~~
 
-Lưu ý: nếu gọi `map(String::trim)` trước bước loại `null`, chương trình sẽ lỗi ngay trong phép `map`.
+Note: calling `map(String::trim)` before filtering out `null` will fail inside `map`.
 
-### 9.3. Mảng hai chiều từ dữ liệu lồng nhau
+### 9.3. Two-Dimensional Arrays from Nested Data
 
-Có thể dùng `toArray` ở cả Stream bên trong và bên ngoài:
+You can use `toArray` on both the inner and outer Streams:
 
 ~~~java
 import java.util.Arrays;
@@ -402,11 +402,11 @@ String[][] matrix = groups.stream()
 System.out.println(Arrays.deepToString(matrix)); // [[A, B], [C]]
 ~~~
 
-Vì dùng `map` ở tầng ngoài, mỗi nhóm vẫn là một hàng riêng. Nếu thay bằng `flatMap`, các giá trị có thể được gộp thành một mảng một chiều; chọn cấu trúc dựa trên việc có cần giữ ranh giới nhóm hay không.
+Because `map` is used at the outer layer, each group remains a separate row. Using `flatMap` instead can merge values into a one-dimensional array; choose the structure based on whether group boundaries must be preserved.
 
-## 10. Phân biệt `Stream.toArray` và `Collection.toArray`
+## 10. Distinguishing `Stream.toArray` from `Collection.toArray`
 
-Java có nhiều API cùng tên `toArray` nhưng nhận đối số khác nhau:
+Java has multiple APIs named `toArray` that take different arguments:
 
 ~~~java
 import java.util.Arrays;
@@ -414,42 +414,42 @@ import java.util.List;
 
 List<String> names = Arrays.asList("Lan", "Minh");
 
-// Chuyển trực tiếp từ Collection sang mảng (API Collection).
+// Convert directly from Collection to array (Collection API).
 String[] fromCollection = names.toArray(new String[0]);
 
-// Chuyển kết quả pipeline Stream sang mảng (API Stream).
+// Convert Stream pipeline result to array (Stream API).
 String[] fromStream = names.stream()
         .filter(name -> name.length() > 3)
         .toArray(String[]::new);
 ~~~
 
-Không thể áp dụng cú pháp `stream.toArray(new String[0])` cho `Stream<String>` vì overload của Stream nhận **`IntFunction<A[]>`**, không nhận một đối tượng mảng đã tạo sẵn. Còn `Collection.toArray(T[])` là overload nhận mảng của Collection.
+You cannot write `stream.toArray(new String[0])` on `Stream<String>` because the Stream overload takes **`IntFunction<A[]>`**, not an already-allocated array object. Meanwhile `Collection.toArray(T[])` is Collection's array-accepting overload.
 
-Từ Java 11, `Collection` cũng có overload `toArray(IntFunction<T[]>)` nên có thể thấy `names.toArray(String[]::new)`; điều đó không làm hai API có cùng hợp đồng xử lý pipeline.
+Since Java 11, `Collection` also has a `toArray(IntFunction<T[]>)` overload so you may see `names.toArray(String[]::new)`; that does not give the two APIs the same pipeline-processing contract.
 
-Nếu dữ liệu đã là collection và chỉ cần sao chép trực tiếp sang mảng, dùng API của collection có thể đơn giản hơn. Khi cần `filter`, `map`, `flatMap` hoặc các phép biến đổi khai báo trước khi lấy mảng, sử dụng `Stream.toArray`.
+If the data is already a collection and you only need a direct copy into an array, the collection API can be simpler. When you need `filter`, `map`, `flatMap`, or declarative transformations before obtaining the array, use `Stream.toArray`.
 
-## 11. `toArray` hay `collect` / `toList`?
+## 11. `toArray` or `collect` / `toList`?
 
-Cả `toArray` lẫn các terminal operation thu collection đều **vật hóa** dữ liệu đầu ra, nhưng kiểu dữ liệu nhận được khác nhau.
+Both `toArray` and collection-gathering terminal operations **materialize** the output data, though the resulting types differ.
 
-| Tiêu chí | `toArray(String[]::new)` | `collect(Collectors.toList())` | `Stream.toList()` (Java 16+) |
+| Criterion | `toArray(String[]::new)` | `collect(Collectors.toList())` | `Stream.toList()` (Java 16+) |
 | --- | --- | --- | --- |
-| Kết quả | Mảng `String[]` | `List<String>` | `List<String>` |
-| Kích thước sau khi tạo | Độ dài cố định | Tùy implementation, thường có thể thay đổi khi dùng `Collectors.toList()` nhưng không được API bảo đảm kiểu collection cụ thể | Danh sách không sửa đổi được |
-| Truy cập theo chỉ số | `array[i]` | `list.get(i)` | `list.get(i)` |
-| Phù hợp với API yêu cầu mảng | Có | Cần chuyển đổi thêm | Cần chuyển đổi thêm |
-| API từ Java | Java 8 | Java 8 | Java 16 |
+| Result | `String[]` array | `List<String>` | `List<String>` |
+| Size after creation | Fixed length | Implementation-dependent; often mutable with `Collectors.toList()` though no specific collection type is guaranteed by the API | Unmodifiable list |
+| Index access | `array[i]` | `list.get(i)` | `list.get(i)` |
+| Fits APIs requiring arrays | Yes | Requires extra conversion | Requires extra conversion |
+| Available since | Java 8 | Java 8 | Java 16 |
 
-**Chọn mảng** khi giao diện tích hợp yêu cầu mảng, cần thao tác trực tiếp với `int[]` / `long[]` / `double[]`, hoặc cần cấu trúc kết quả có độ dài cố định. **Chọn List** khi xử lý theo contract collection, cần các phương thức collection, hoặc muốn truyền dữ liệu theo kiểu `List<T>`.
+**Choose an array** when integration interfaces require an array, when working directly with `int[]` / `long[]` / `double[]`, or when a fixed-length result structure is desired. **Choose a List** when working against collection contracts, needing collection methods, or passing data around as `List<T>`.
 
-Cả hai cách đều có chi phí lưu toàn bộ đầu ra. Một Stream vốn *lazy* sẽ mất ưu thế xử lý từng phần tử khi đã gom mọi kết quả vào một mảng lớn.
+Both approaches incur the cost of holding all output in memory. A naturally *lazy* Stream loses its element-by-element streaming advantage once all results are gathered into a large array.
 
-## 12. Giới hạn nguồn và chi phí bộ nhớ
+## 12. Source Limits and Memory Overhead
 
-Mảng Java có độ dài kiểu `int` và phải cấp phát bộ nhớ đủ chứa các phần tử hoặc tham chiếu tới chúng. Vì vậy, `toArray` không thích hợp để thu **nguồn vô hạn không được giới hạn**.
+Java arrays have an `int` length and must allocate enough memory to hold all elements or references to them. Consequently, `toArray` is unsuitable for collecting **unbounded infinite sources**.
 
-Ví dụ có thể kết thúc:
+Terminating example:
 
 ~~~java
 import java.util.Arrays;
@@ -462,36 +462,36 @@ Integer[] firstFive = Stream.iterate(0, n -> n + 1)
 System.out.println(Arrays.toString(firstFive)); // [0, 1, 2, 3, 4]
 ~~~
 
-Ví dụ nguy hiểm:
+Dangerous example:
 
 ~~~java
-// Không chạy mẫu này: Stream không có điểm kết thúc tự nhiên.
+// Do not run this snippet: the Stream has no natural stopping point.
 Object[] forever = Stream.generate(() -> "event")
         .toArray();
 ~~~
 
-Pipeline trên cố thu mọi phần tử của nguồn không giới hạn. Nó sẽ không thể tạo mảng kết quả hữu hạn bình thường; chương trình có thể chạy mãi hoặc hết tài nguyên trước khi hoàn tất.
+The pipeline above tries to collect every element from an unbounded source. It cannot produce a normal finite result array; the program may run forever or exhaust resources before finishing.
 
-Những lưu ý quan trọng về chi phí:
+Important cost considerations:
 
-- **Thời gian:** thông thường phải xử lý các phần tử đầu ra của pipeline, cùng chi phí của `filter`, `map`, `sorted` và các thao tác trước đó.
-- **Bộ nhớ:** cần nơi giữ mảng kết quả; một số pipeline, nhất là khi dùng `sorted`, `distinct` hoặc xử lý song song, còn có thể cần bộ đệm trung gian.
-- **Không biết trước kích thước:** nếu bộ lọc loại nhiều phần tử hoặc nguồn không báo kích thước, runtime có thể cần tích lũy và cấp phát trước khi tạo mảng cuối. Không nên xây logic dựa trên số lần generator được gọi.
-- **Độ lớn dữ liệu:** `toArray` có thể ném `OutOfMemoryError` hoặc các lỗi giới hạn kích thước mảng khi nguồn lớn hơn khả năng biểu diễn/cấp phát. Đừng dùng `toArray` để gom toàn bộ tệp nhật ký hoặc dữ liệu không có giới hạn rõ ràng.
-- **Song song:** `parallel()` không bảo đảm nhanh hơn. Thu một kết quả theo thứ tự có thể đòi hỏi chia lô và ghép lại; chỉ chọn xử lý song song khi công việc đủ lớn, các hàm độc lập và đã đo hiệu năng thực tế.
-- **Nguồn I/O:** nếu Stream gắn với tài nguyên như `Files.lines`, phải quản lý đóng nguồn bằng `try-with-resources`. `toArray` không tự động thay thế việc đóng tài nguyên I/O.
+- **Time:** typically must process all output elements of the pipeline, plus the cost of `filter`, `map`, `sorted`, and upstream operations.
+- **Memory:** requires space for the result array; some pipelines, especially with `sorted`, `distinct`, or parallel execution, may also require intermediate buffers.
+- **Unknown upfront size:** if filters drop many elements or the source does not report a size, the runtime may need to accumulate and allocate buffers before building the final array. Do not build logic around how many times the generator is called.
+- **Data volume:** `toArray` can throw `OutOfMemoryError` or array-size limit errors if the source exceeds allocation/representation limits. Never use `toArray` to load entire log files or unbounded datasets.
+- **Parallelism:** `parallel()` does not guarantee faster execution. Collecting an ordered result may require chunking and merging; use parallel processing only when work is large enough, functions are independent, and real performance measurements justify it.
+- **I/O sources:** if the Stream backs a resource like `Files.lines`, manage closing it with `try-with-resources`. `toArray` does not automatically replace closing I/O resources.
 
-Nếu chỉ cần kiểm tra một điều kiện, phép đối sánh như `anyMatch` có thể tránh tạo mảng; nếu chỉ cần vài phần tử đầu tiên, dùng `limit(n)` trước `toArray`. Nếu cần tổng hợp một con số, `count`, `sum`, `reduce` hoặc `collect` với collector phù hợp có thể tránh phải giữ mọi phần tử.
+If you only need to test a condition, matching operations like `anyMatch` avoid creating an array; if you only need a few initial elements, place `limit(n)` before `toArray`. If you need a single aggregate value, `count`, `sum`, `reduce`, or `collect` with a suitable collector avoids retaining every element.
 
-## 13. Trường hợp thực tế: lọc bản ghi trước khi gọi API cũ
+## 13. Practical Case: Filtering Records Before Calling a Legacy API
 
-Giả sử một thư viện cũ có phương thức:
+Suppose a legacy library exposes the method:
 
 ~~~java
 void submitUserIds(String[] ids);
 ~~~
 
-Dữ liệu ứng dụng đang ở dạng `List<User>` với trường `active`. Ta cần gửi mã những người dùng đang hoạt động, giữ thứ tự đầu vào và không gửi mã rỗng.
+Application data is in a `List<User>` with an `active` field. We need to submit the IDs of active users, preserving input order and omitting null or empty IDs.
 
 ~~~java
 import java.util.Arrays;
@@ -537,26 +537,26 @@ public class UserExportDemo {
 }
 ~~~
 
-Ở đây `toArray(String[]::new)` thể hiện rõ hợp đồng với API bên ngoài. Bộ lọc chạy **trước khi** tạo mảng nên không cần giữ bản ghi không phù hợp. Nguồn là `List` có encounter order, vì vậy mã `U-10` vẫn đứng trước `U-30`.
+Here `toArray(String[]::new)` clearly satisfies the contract with the external API. Filtering runs **before** creating the array so ineligible records do not need to be kept. The source is a `List` with encounter order, so `U-10` remains before `U-30`.
 
-Nếu dữ liệu từ database lớn, không nên giả định rằng `users.stream()` là phép truy vấn phát trực tiếp từ database: ví dụ đang làm việc trên một `List<User>` đã có trong bộ nhớ. Khi xử lý lượng dữ liệu lớn, cân nhắc phân trang, giới hạn số ID hoặc thiết kế API nhận từng lô.
+If data comes from a large database, do not assume `users.stream()` streams directly from the database: the example operates on an in-memory `List<User>`. When handling large data volumes, consider pagination, capping ID counts, or designing APIs that accept batches.
 
-## 14. Bảng tra cứu nhanh khi gặp lỗi
+## 14. Quick Error Troubleshooting Table
 
-| Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
+| Symptom | Common Cause | How to Handle |
 | --- | --- | --- |
-| `ClassCastException: [Ljava.lang.Object; ...` | Ép kết quả `Stream.toArray()` từ `Object[]` sang `String[]` | Gọi `toArray(String[]::new)` ngay từ Stream. |
-| `ArrayStoreException` | Generator tạo mảng có kiểu phần tử không chứa được một số giá trị | Đảm bảo kiểu mảng khớp các phần tử thực hoặc biến đổi từng phần tử trước khi thu. |
-| `NullPointerException` khi chuyển `Integer` sang `int` | Unboxing một phần tử `null` trong `mapToInt` | Xử lý `null` trước khi unboxing. |
-| Không biên dịch với `toArray(new String[0])` trên Stream | Nhầm overload của Collection với Stream | Dùng `toArray(String[]::new)`. |
-| Không biên dịch với `toArray(int[]::new)` trên `Stream<Integer>` | Dạng generic của Stream không tạo mảng primitive | Dùng `mapToInt(...).toArray()`. |
-| `IllegalStateException` khi gọi terminal operation tiếp theo | Tái sử dụng cùng đối tượng Stream đã chạy `toArray` | Tạo Stream mới từ nguồn có thể duyệt lại, hoặc dùng chính mảng đã thu. |
-| Kết quả chiếm quá nhiều RAM | `toArray` thu hết dữ liệu và có thể có bộ đệm trung gian | Hạn chế đầu vào, thu theo lô hoặc dùng terminal operation tổng hợp. |
-| Thứ tự đầu ra không đúng mong đợi | Nguồn không có encounter order hoặc thay đổi thứ tự pipeline | Xác định hợp đồng nguồn; nếu cần, dùng `sorted` theo khóa rõ ràng. |
+| `ClassCastException: [Ljava.lang.Object; ...` | Casting `Stream.toArray()` result from `Object[]` to `String[]` | Call `toArray(String[]::new)` directly on the Stream. |
+| `ArrayStoreException` | Generator creates an array whose component type cannot hold certain values | Ensure the array type matches actual elements or convert elements before collecting. |
+| `NullPointerException` when converting `Integer` to `int` | Unboxing a `null` element inside `mapToInt` | Handle `null` before unboxing. |
+| Does not compile with `toArray(new String[0])` on a Stream | Confusing Collection's overload with Stream's | Use `toArray(String[]::new)`. |
+| Does not compile with `toArray(int[]::new)` on `Stream<Integer>` | Stream's generic overload does not create primitive arrays | Use `mapToInt(...).toArray()`. |
+| `IllegalStateException` when calling a subsequent terminal operation | Reusing the same Stream object that already ran `toArray` | Create a new Stream from a reusable source, or use the collected array itself. |
+| Result consumes too much RAM | `toArray` collects all data and may allocate intermediate buffers | Limit input, process in batches, or use an aggregating terminal operation. |
+| Output order does not match expectations | Source lacks encounter order or pipeline altered ordering | Check the source's contract; if needed, use `sorted` with an explicit key. |
 
-## 15. Bài tập tự kiểm tra
+## 15. Self-Check Exercises
 
-**Bài 1.** Phân biệt kiểu mảng và kết quả:
+**Exercise 1.** Distinguish the array types and results:
 
 ~~~java
 Object[] a = Stream.of("x", "y").toArray();
@@ -564,16 +564,16 @@ String[] b = Stream.of("x", "y").toArray(String[]::new);
 int[] c = IntStream.of(1, 2).toArray();
 ~~~
 
-**Đáp án:** `a` là `Object[]`, `b` là `String[]`, `c` là `int[]`. Nội dung `a` và `b` giống nhau nhưng kiểu runtime của hai mảng khác nhau.
+**Answer:** `a` is `Object[]`, `b` is `String[]`, `c` is `int[]`. Contents of `a` and `b` are identical, but the runtime types of the two arrays differ.
 
-**Bài 2.** Sửa đoạn mã sau để tạo `int[]`:
+**Exercise 2.** Fix the snippet below to produce `int[]`:
 
 ~~~java
 List<Integer> values = Arrays.asList(3, 5, 7);
 Integer[] result = values.stream().toArray(Integer[]::new);
 ~~~
 
-**Đáp án:** Dùng `mapToInt` để chuyển từ Stream đối tượng sang IntStream:
+**Answer:** Use `mapToInt` to switch from an object Stream to an `IntStream`:
 
 ~~~java
 int[] result = values.stream()
@@ -581,7 +581,7 @@ int[] result = values.stream()
         .toArray();
 ~~~
 
-**Bài 3.** Với `Stream.of("abc", "x", "de", "four")`, kết quả sau là gì?
+**Exercise 3.** Given `Stream.of("abc", "x", "de", "four")`, what is the result below?
 
 ~~~java
 String[] result = Stream.of("abc", "x", "de", "four")
@@ -590,27 +590,27 @@ String[] result = Stream.of("abc", "x", "de", "four")
         .toArray(String[]::new);
 ~~~
 
-**Đáp án:** Mảng `["ABC", "FOUR"]` vì `filter` chỉ giữ `"abc"` và `"four"`, còn `map` biến đổi chúng thành chữ hoa. `toArray` thu đúng các phần tử sau biến đổi, theo encounter order.
+**Answer:** The array `["ABC", "FOUR"]` because `filter` retains only `"abc"` and `"four"`, and `map` converts them to uppercase. `toArray` collects the post-transformation elements in encounter order.
 
-**Bài 4.** Vì sao đoạn này không hoàn tất bình thường?
+**Exercise 4.** Why does this snippet fail to terminate normally?
 
 ~~~java
 String[] result = Stream.generate(() -> "OK")
         .toArray(String[]::new);
 ~~~
 
-**Đáp án:** `generate` tạo nguồn không giới hạn; `toArray` muốn thu hết luồng nên không có ranh giới kết thúc. Nếu chỉ cần 100 phần tử, thêm `limit(100)` trước `toArray(String[]::new)`.
+**Answer:** `generate` creates an unbounded source; `toArray` attempts to collect the entire stream and has no stopping boundary. If only 100 elements are needed, add `limit(100)` before `toArray(String[]::new)`.
 
-**Bài 5.** `Stream.toArray(String[]::new)` có bảo đảm array generator chỉ được gọi một lần không?
+**Exercise 5.** Does `Stream.toArray(String[]::new)` guarantee the array generator is called only once?
 
-**Đáp án:** Không. Generator có thể được gọi theo nhu cầu để tạo các mảng phục vụ phân đoạn hoặc ghép kết quả. Vì thế `String[]::new` là cách diễn đạt an toàn; không dùng generator để ghi nhận số lần duyệt hoặc cập nhật trạng thái chia sẻ.
+**Answer:** No. The generator may be invoked as needed to allocate arrays for partitions or merging results. Therefore `String[]::new` is a safe expression; never use the generator to count traversals or update shared state.
 
-## 16. Ghi nhớ
+## 16. Key Takeaways
 
-- `Stream.toArray()` trả về `Object[]`; không ép kiểu kết quả này thành mảng cụ thể bằng cast.
-- `Stream.toArray(String[]::new)` hoặc `toArray(size -> new String[size])` tạo mảng có kiểu phù hợp; các phần tử vẫn phải tương thích với kiểu mảng được yêu cầu.
-- `IntStream.toArray()`, `LongStream.toArray()`, `DoubleStream.toArray()` tạo `int[]`, `long[]`, `double[]`; muốn dùng chúng cần pipeline của primitive stream tương ứng.
-- `toArray` là terminal operation, kích hoạt và kết thúc một pipeline, thu toàn bộ kết quả hữu hạn vào mảng; nó không có cơ chế tự dừng trên nguồn vô hạn.
-- Giữ đúng hợp đồng về **kiểu dữ liệu**, **thứ tự**, **số lượng phần tử**, **vòng đời Stream** và **bộ nhớ** khi quyết định biến kết quả thành mảng.
+- `Stream.toArray()` returns `Object[]`; do not cast this result to a specific array type.
+- `Stream.toArray(String[]::new)` or `toArray(size -> new String[size])` creates a properly typed array; elements must still be compatible with the requested array type.
+- `IntStream.toArray()`, `LongStream.toArray()`, and `DoubleStream.toArray()` produce `int[]`, `long[]`, and `double[]`; to use them, convert to the corresponding primitive stream pipeline.
+- `toArray` is a terminal operation that triggers and ends a pipeline, collecting all finite results into an array; it has no automatic stopping mechanism on infinite sources.
+- Respect the contracts for **data types**, **ordering**, **element count**, **Stream lifecycle**, and **memory** when deciding to materialize results as an array.
 
-**Ý chính:** Khi kết quả phải là mảng, chọn overload `toArray` theo **kiểu mảng cần nhận**, thay vì dựa vào kiểu phần tử suy đoán. Với Stream đối tượng, cách viết `toArray(MyType[]::new)` rõ ràng và an toàn; với Stream số nguyên thủy, dùng overload `toArray()` của `IntStream`, `LongStream` hoặc `DoubleStream`.
+**Main Idea:** When the result must be an array, choose the `toArray` overload based on **the array type you need to receive**, rather than relying on inferred element types. For object Streams, `toArray(MyType[]::new)` is clear and safe; for primitive numeric Streams, use the parameterless `toArray()` overload on `IntStream`, `LongStream`, or `DoubleStream`.

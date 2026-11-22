@@ -1,46 +1,46 @@
-# Annotation processor và compiler arguments
+# Annotation processors and compiler arguments
 
-Trong Java, **annotation processor** là chương trình chạy trong quá trình biên dịch để phân tích annotation, kiểm tra quy tắc hoặc sinh thêm source/resource. Các công cụ như trình tạo mapper, metadata, adapter hoặc mã boilerplate thường dùng cơ chế này.
+In Java, an **annotation processor** is a program that runs during compilation to analyze annotations, enforce rules, or generate additional sources/resources. Tools that generate mappers, metadata, adapters, or boilerplate code commonly rely on this mechanism.
 
-Trong Java Platform Module System (JPMS), cần phân biệt rõ **module path của ứng dụng được biên dịch** và **đường dẫn dùng để tìm annotation processor**. Một JAR chứa processor không nhất thiết là dependency runtime của ứng dụng. Việc đặt nó đúng chỗ, khai báo cách phát hiện processor và truyền chính xác compiler arguments quyết định processor có chạy hay không.
+In the Java Platform Module System (JPMS), you must clearly distinguish **the module path of the application being compiled** from **the path used to locate annotation processors**. A JAR containing a processor is not necessarily a runtime dependency of the application. Placing it in the right location, declaring how the processor is discovered, and passing accurate compiler arguments determine whether the processor runs.
 
-Đây là chủ đề thuộc nhóm *Build tools*: tập trung vào `javac`, Maven, Gradle, cách đóng gói processor và chẩn đoán các lỗi build khi chuyển dự án sang named modules.
+This topic belongs to the *Build tools* group: focusing on `javac`, Maven, Gradle, how processors are packaged, and diagnosing build errors when migrating projects to named modules.
 
-## 1. Annotation processor làm việc ở giai đoạn nào?
+## 1. At which stage does an annotation processor run?
 
-Một luồng biên dịch thông thường có thể hình dung:
+A typical compilation flow can be pictured as:
 
-    Java source có annotation
+    Java source with annotations
              |
              v
-    javac phân tích source + module graph
+    javac analyzes sources + module graph
              |
              v
     Annotation processing rounds
-      - tìm các annotation hỗ trợ
-      - đọc cấu trúc source bằng Element/TypeMirror
-      - sinh thêm source hoặc resource bằng Filer
+      - find supported annotations
+      - read source structure via Element/TypeMirror
+      - generate extra sources or resources via Filer
              |
              v
-    javac biên dịch source ban đầu và source đã sinh
+    javac compiles original sources and generated sources
              |
              v
-    .class trong output directory/JAR
+    .class in output directory/JAR
 
-API chuẩn thuộc module `java.compiler`, đặc biệt:
+The standard API belongs to the `java.compiler` module, specifically:
 
-- `javax.annotation.processing.Processor`: hợp đồng của processor.
-- `javax.annotation.processing.AbstractProcessor`: lớp nền tiện dụng.
-- `javax.annotation.processing.RoundEnvironment`: thông tin của một vòng xử lý.
-- `javax.annotation.processing.ProcessingEnvironment`: truy cập `Messager`, `Filer`, `Elements`, `Types`, `Options`.
-- `javax.lang.model.element.Element` và `TypeElement`: biểu diễn cấu trúc Java ở compile time.
-- `javax.lang.model.type.TypeMirror`: biểu diễn kiểu theo mô hình ngôn ngữ Java.
+- `javax.annotation.processing.Processor`: the processor contract.
+- `javax.annotation.processing.AbstractProcessor`: a convenient base class.
+- `javax.annotation.processing.RoundEnvironment`: information about a processing round.
+- `javax.annotation.processing.ProcessingEnvironment`: access to `Messager`, `Filer`, `Elements`, `Types`, `Options`.
+- `javax.lang.model.element.Element` and `TypeElement`: compile-time representations of Java program structure.
+- `javax.lang.model.type.TypeMirror`: representation of types in the Java language model.
 
-Annotation processing không phải runtime reflection và không cần chạy ứng dụng để sinh mã. Processor chạy trong môi trường biên dịch và có thể tạo tệp mới trước khi `javac` hoàn thành biên dịch.
+Annotation processing is not runtime reflection and does not require running the application to generate code. The processor runs inside the compilation environment and can create new files before `javac` finishes compiling.
 
-## 2. Annotation khác processor
+## 2. Annotations vs. processors
 
-Annotation là metadata đặt trên source hoặc declaration:
+An annotation is metadata placed on source code or declarations:
 
     package com.example.app;
 
@@ -54,7 +54,7 @@ Annotation là metadata đặt trên source hoặc declaration:
     public @interface GenerateGreeting {
     }
 
-Class dùng annotation:
+Class using the annotation:
 
     package com.example.app;
 
@@ -62,20 +62,20 @@ Class dùng annotation:
     public class OrderService {
     }
 
-`@Retention(SOURCE)` phù hợp khi annotation chỉ cần cho compile-time processing; annotation không bắt buộc được giữ lại ở runtime. Processor sẽ đọc mô hình mã nguồn và có thể sinh thêm class.
+`@Retention(SOURCE)` is appropriate when the annotation is needed only for compile-time processing; the annotation does not need to be retained at runtime. The processor reads the source model and can generate additional classes.
 
-Một processor có thể hỗ trợ nhiều annotation. Hãy tách trách nhiệm:
+One processor can support multiple annotations. Keep responsibilities separate:
 
-- Annotation type khai báo dữ liệu hoặc dấu hiệu trong source.
-- Processor đọc và xử lý annotation theo vòng biên dịch.
-- Compiler quản lý tiến trình xử lý, output và việc biên dịch mã đã sinh.
-- Build tool quyết định processor nằm ở đâu và truyền argument nào cho compiler.
+- The annotation type declares data or markers in source code.
+- The processor reads and handles annotations across compilation rounds.
+- The compiler manages the processing lifecycle, outputs, and compilation of generated code.
+- The build tool decides where the processor resides and which arguments are passed to the compiler.
 
-Chỉ tạo annotation type không khiến bất kỳ mã nào tự động được sinh. Phải có processor được đăng ký và annotation processing được kích hoạt.
+Merely creating an annotation type does not cause any code to be generated automatically. A processor must be registered and annotation processing must be enabled.
 
-## 3. Viết một processor tối thiểu
+## 3. Writing a minimal processor
 
-Ví dụ dưới đây tạo class `com.example.app.generated.GreetingGenerated` khi gặp `@GenerateGreeting`.
+The example below creates the class `com.example.app.generated.GreetingGenerated` when encountering `@GenerateGreeting`.
 
     package com.example.processor;
 
@@ -140,58 +140,58 @@ Ví dụ dưới đây tạo class `com.example.app.generated.GreetingGenerated`
         }
     }
 
-Đây là ví dụ nhỏ nhất cho tình huống một class mang annotation. Processor thực tế cần xử lý **nhiều phần tử**, tránh tạo cùng một file nhiều lần và dùng originating elements phù hợp khi sinh tệp để hỗ trợ incremental builds.
+This is a minimal example for a single annotated class. Real-world processors must handle **multiple elements**, avoid creating the same file more than once, and provide appropriate originating elements when generating files to support incremental builds.
 
-Nếu gọi `Filer.createSourceFile(...)` nhiều lần cho cùng một tên file trong một lần compilation, compiler có thể báo lỗi `FilerException`. Processor không nên tạo lại file đã sinh ở vòng trước.
+If `Filer.createSourceFile(...)` is called multiple times for the same filename in a single compilation, the compiler may report `FilerException`. A processor should not recreate files already generated in an earlier round.
 
-## 4. Annotation processing diễn ra theo nhiều rounds
+## 4. Annotation processing runs in multiple rounds
 
-Một lần compiler chạy processor có thể gồm nhiều vòng (*rounds*).
+A single compiler execution of processors may consist of multiple *rounds*.
 
-Trong vòng đầu, processor nhận các annotation có mặt trong source. Khi processor tạo thêm source, compiler phân tích source mới và có thể mở vòng tiếp theo. Một vòng cuối thông báo quá trình processing sắp hoàn tất bằng `roundEnv.processingOver()`.
+In the first round, processors receive the annotations present in the source files. When a processor creates new sources, the compiler parses the new sources and can open another round. A final round signals that processing is finishing via `roundEnv.processingOver()`.
 
-Điều này quan trọng khi thiết kế generator:
+This matters when designing a generator:
 
-- Không giả định tất cả class cần dùng đã xuất hiện ngay vòng đầu.
-- Không tạo lại một class mang cùng tên ở nhiều vòng.
-- Dùng `RoundEnvironment.getElementsAnnotatedWith(...)` để lấy phần tử hợp lệ.
-- Phân biệt việc processor **claim** một annotation với việc chặn mọi processor khác: giá trị boolean của `process` cho biết các annotation được claim hay chưa.
-- Báo lỗi bằng `Messager` thay vì chỉ in ra standard output.
+- Do not assume all needed classes appear in the very first round.
+- Do not regenerate a class with the same name across multiple rounds.
+- Use `RoundEnvironment.getElementsAnnotatedWith(...)` to retrieve valid elements.
+- Distinguish a processor **claiming** an annotation from blocking all other processors: the boolean return value of `process` indicates whether the annotations are claimed.
+- Report errors through `Messager` rather than merely printing to standard output.
 
-Để quan sát rounds, dùng:
+To observe rounds, use:
 
     javac -XprintRounds -XprintProcessorInfo ...
 
-Các cờ `-X` chủ yếu hỗ trợ chẩn đoán compiler. Chúng không nên được hiểu là tùy chọn cấu hình logic nghiệp vụ của processor.
+The `-X` flags mainly serve compiler diagnostics. They should not be treated as options for configuring processor business logic.
 
-## 5. Hai đường tìm processor: processor path và processor module path
+## 5. Two paths to locate processors: processor path and processor module path
 
-JPMS làm rõ hai cách để compiler tìm processor:
+JPMS clarifies two ways for the compiler to locate processors:
 
-| Tùy chọn | Dùng cho | Cách đăng ký processor thường gặp |
+| Option | Used for | Common processor registration |
 |---|---|---|
-| `--processor-path path` hoặc `-processorpath path` | Processor JAR được nạp theo classpath riêng của compiler | `META-INF/services/javax.annotation.processing.Processor` |
-| `--processor-module-path path` | Processor được phân phối dưới dạng module | `provides javax.annotation.processing.Processor with ...` trong descriptor |
-| `--module-path path` | Dependency/module của **source đang được biên dịch** | `requires` trong source module |
-| `--class-path path` hoặc `-cp` | Dependency classpath của source đang được biên dịch | Các class/JAR thường, không tự là processor path được tách riêng khi đã cấu hình path processor |
+| `--processor-path path` or `-processorpath path` | Processor JARs loaded via a dedicated compiler classpath | `META-INF/services/javax.annotation.processing.Processor` |
+| `--processor-module-path path` | Processors distributed as modules | `provides javax.annotation.processing.Processor with ...` in the descriptor |
+| `--module-path path` | Dependencies/modules of **the sources being compiled** | `requires` in the source module |
+| `--class-path path` or `-cp` | Classpath dependencies of the sources being compiled | Regular classes/JARs; does not act as the processor path once a separate processor path is configured |
 
-**Điểm cốt lõi:** `--module-path` và `--processor-module-path` giải quyết hai mục đích khác nhau. Đặt processor JAR lên application module path không đồng nghĩa compiler chắc chắn sẽ chạy processor đó.
+**Core point:** `--module-path` and `--processor-module-path` serve two different purposes. Putting a processor JAR on the application module path does not mean the compiler is guaranteed to run that processor.
 
-Tương tự, dependency dùng để biên dịch annotation type cần được tìm thấy bởi source compilation; còn JAR thực thi processor cần được compiler tìm qua processor path hoặc processor module path. Hai tập dependency có thể giao nhau nhưng không phải một.
+Similarly, dependencies needed to compile annotation types must be visible to source compilation; the JAR executing the processor must be located by the compiler via the processor path or processor module path. The two dependency sets can overlap, but they are not the same.
 
-## 6. Khai báo processor JAR dạng classpath
+## 6. Declaring a classpath-style processor JAR
 
-Nếu processor được đóng gói trong JAR truyền thống, có thể đăng ký qua service configuration file:
+If a processor is packaged in a traditional JAR, it can be registered via a service configuration file:
 
     META-INF/services/javax.annotation.processing.Processor
 
-Nội dung:
+Contents:
 
     com.example.processor.GreetingProcessor
 
-Trong trường hợp có nhiều processor, ghi tên đầy đủ của mỗi processor trên một dòng riêng.
+If there are multiple processors, list the fully qualified name of each processor on its own line.
 
-Ví dụ biên dịch source với processor JAR riêng:
+Example compiling sources with a separate processor JAR:
 
     javac --processor-path libs/greeting-processor.jar
           -processor com.example.processor.GreetingProcessor
@@ -199,15 +199,15 @@ Ví dụ biên dịch source với processor JAR riêng:
           -d build/classes
           src/com/example/app/*.java
 
-Các ký hiệu xuống dòng chỉ để trình bày; khi chạy shell, hãy đặt lệnh trên một dòng hoặc dùng ký tự nối dòng phù hợp.
+The line breaks are for readability only; when running in a shell, place the command on one line or use the appropriate line-continuation character.
 
-`-processor` chỉ định cụ thể processor cần chạy, bỏ qua bước khám phá processor mặc định. Nếu đã có file `META-INF/services` hợp lệ và processor path được cấu hình, không nhất thiết phải ghi `-processor`; công cụ có thể phát hiện processor qua service configuration.
+`-processor` explicitly specifies the processor to run, bypassing default processor discovery. If a valid `META-INF/services` file exists and the processor path is configured, `-processor` does not necessarily need to be specified; the tool can discover the processor via service configuration.
 
-Với JAR classpath, processor thường cần **public constructor không tham số** để ServiceLoader của compiler khởi tạo.
+With a classpath JAR, the processor typically requires a **public no-argument constructor** so the compiler's ServiceLoader can instantiate it.
 
-## 7. Khai báo processor dưới dạng named module
+## 7. Declaring a processor as a named module
 
-Với named module `com.example.processor`, descriptor có thể là:
+For a named module `com.example.processor`, the descriptor can be:
 
     module com.example.processor {
         requires java.compiler;
@@ -216,15 +216,15 @@ Với named module `com.example.processor`, descriptor có thể là:
             with com.example.processor.GreetingProcessor;
     }
 
-Ý nghĩa:
+Meaning:
 
-- `requires java.compiler`: processor dùng API `javax.annotation.processing` và `javax.lang.model`.
-- `provides ... with ...`: đăng ký implementation của service `Processor`.
-- `GreetingProcessor` là lớp provider trong module; ví dụ kế thừa `AbstractProcessor`.
+- `requires java.compiler`: the processor uses the `javax.annotation.processing` and `javax.lang.model` APIs.
+- `provides ... with ...`: registers the implementation of the `Processor` service.
+- `GreetingProcessor` is the provider class in the module; for example, extending `AbstractProcessor`.
 
-Nếu processor dùng thư viện bên thứ ba, cần cung cấp các dependency đó trong môi trường processor module path sao cho module graph của processor resolve được.
+If the processor uses third-party libraries, supply those dependencies in the processor module path environment so the processor's module graph resolves.
 
-Ví dụ compiler nhận named-module processor:
+Example compiler invocation for a named-module processor:
 
     javac --module-path libs
           --processor-module-path processor-mods
@@ -232,41 +232,41 @@ Ví dụ compiler nhận named-module processor:
           -d out
           -m com.example.app
 
-Trong lệnh này:
+In this command:
 
-- `libs` chứa các module application cần để compile source.
-- `processor-mods` chứa processor module và những module phụ thuộc cần thiết cho processor.
-- `src` là source module layout.
-- `-m com.example.app` chỉ định source module cần compile.
+- `libs` holds the modules the application needs to compile sources.
+- `processor-mods` holds the processor module and any dependencies needed by the processor.
+- `src` is the module source layout.
+- `-m com.example.app` specifies the source module to compile.
 
-Đừng nhầm `provides javax.annotation.processing.Processor` trong **processor module** với `uses` hoặc `provides` của service nghiệp vụ mà ứng dụng sẽ sử dụng ở runtime. Processor là công cụ phục vụ **compile time**.
+Do not confuse `provides javax.annotation.processing.Processor` in a **processor module** with `uses` or `provides` of business services that the application uses at runtime. A processor is a **compile-time** tool.
 
-## 8. Các compiler arguments quan trọng
+## 8. Important compiler arguments
 
-| Argument | Công dụng |
+| Argument | Purpose |
 |---|---|
-| `-processor p1,p2` | Chạy danh sách processor theo tên, thay cho discovery mặc định |
-| `--processor-path path` | Chỉ định classpath dành cho processor |
-| `--processor-module-path path` | Chỉ định module path dành cho processor |
-| `-proc:none` | Tắt annotation processing |
-| `-proc:only` | Chỉ chạy annotation processing, không làm bước compilation tiếp theo |
-| `-proc:full` | Chạy annotation processing rồi tiếp tục compilation |
-| `-Akey=value` | Truyền option dành riêng cho processor |
-| `-s directory` | Thư mục output cho Java source do processor sinh |
-| `-d directory` | Thư mục chứa class được compiler tạo |
-| `-XprintRounds` | In thông tin các vòng annotation processing |
-| `-XprintProcessorInfo` | In thông tin processor được gọi và annotation xử lý |
-| `--module-path path` | Dependency modules cho source compilation |
-| `--module-source-path path` | Tổ chức nhiều source modules |
-| `--release version` | Compile theo API và class-file target của bản Java được chỉ định |
+| `-processor p1,p2` | Runs the named list of processors instead of default discovery |
+| `--processor-path path` | Specifies the classpath for processors |
+| `--processor-module-path path` | Specifies the module path for processors |
+| `-proc:none` | Disables annotation processing |
+| `-proc:only` | Runs only annotation processing without the subsequent compilation step |
+| `-proc:full` | Runs annotation processing and then proceeds with compilation |
+| `-Akey=value` | Passes an option specifically to processors |
+| `-s directory` | Output directory for Java sources generated by processors |
+| `-d directory` | Output directory for class files generated by the compiler |
+| `-XprintRounds` | Prints information about annotation processing rounds |
+| `-XprintProcessorInfo` | Prints information about invoked processors and processed annotations |
+| `--module-path path` | Dependency modules for source compilation |
+| `--module-source-path path` | Layout of multiple source modules |
+| `--release version` | Compiles against the API and class-file target of the specified Java version |
 
-Các tùy chọn `-A` và `-processor` phục vụ processor; `--module-path` và `--release` phục vụ tổng thể quá trình biên dịch. Việc đặt đúng nhóm argument giúp tránh lỗi đưa một tùy chọn cho JVM chạy ứng dụng thay vì JVM/compiler thực thi annotation processing.
+Options `-A` and `-processor` serve processors; `--module-path` and `--release` serve compilation as a whole. Grouping arguments correctly avoids passing an option meant for the application JVM instead of the compiler/JVM executing annotation processing.
 
-## 9. JDK 23 trở lên: annotation processing không còn bật ngầm
+## 9. JDK 23 and later: annotation processing is no longer implicitly enabled
 
-Một thay đổi quan trọng từ **JDK 23** là `javac` không còn tự động tìm và chạy processor trên classpath khi lệnh biên dịch không có cấu hình annotation processing tường minh.
+An important change starting in **JDK 23** is that `javac` no longer automatically searches for and runs processors on the classpath when the compile command has no explicit annotation processing configuration.
 
-Trước đó, một JAR vô tình chứa processor service file trên classpath có thể khiến processor chạy dù build không chủ động bật. Với JDK 23 trở lên, cần cấu hình rõ, ví dụ một trong các cách:
+Previously, a JAR accidentally containing a processor service file on the classpath could cause the processor to run even if the build did not intentionally enable it. With JDK 23 and later, configure it explicitly, for example in one of these ways:
 
     javac -proc:full ...
 
@@ -276,28 +276,28 @@ Trước đó, một JAR vô tình chứa processor service file trên classpath
 
     javac -processor com.example.processor.GreetingProcessor ...
 
-`-proc:full` yêu cầu cả processing và compilation. Một số dòng JDK cũ chỉ hỗ trợ `-proc:none` hoặc `-proc:only`; hỗ trợ `-proc:full` đã được bổ sung trong các bản cập nhật nhất định.
+`-proc:full` requests both processing and compilation. Some older JDK lines supported only `-proc:none` or `-proc:only`; `-proc:full` support was added in specific updates.
 
-Với build lâu dài, tốt nhất là **khai báo tường minh tập processor được tin cậy** và processor path/module path thay vì phụ thuộc vào cơ chế quét classpath ngầm. Điều này giúp build dễ tái lập hơn và tránh chạy processor ngoài dự kiến.
+For long-lived builds, it is best to **explicitly declare the trusted set of processors** and the processor path/module path rather than relying on implicit classpath scanning. This makes builds more reproducible and avoids running unintended processors.
 
-Khi nâng JDK mà các class generated đột nhiên biến mất, cần kiểm tra trước xem annotation processing còn được bật hay không, chứ không chỉ xem dependency của application có thay đổi không.
+When upgrading the JDK and generated classes suddenly disappear, first check whether annotation processing is still enabled rather than checking only whether application dependencies changed.
 
-## 10. Truyền tham số -A vào processor
+## 10. Passing -A parameters to processors
 
-Processor có thể định nghĩa option riêng. Ví dụ, muốn cấu hình prefix cho class được sinh:
+Processors can define custom options. For example, to configure a prefix for generated classes:
 
     javac --processor-path libs/greeting-processor.jar
           -Acodegen.prefix=Demo
           -d out
           src/com/example/app/*.java
 
-Bên trong processor:
+Inside the processor:
 
     String prefix = processingEnv
             .getOptions()
             .getOrDefault("codegen.prefix", "Default");
 
-Nên khai báo danh sách option được hỗ trợ:
+Supported options should be declared:
 
     @SupportedOptions("codegen.prefix")
     public final class GreetingProcessor
@@ -305,38 +305,38 @@ Nên khai báo danh sách option được hỗ trợ:
         // ...
     }
 
-Nếu annotation `@SupportedAnnotationTypes` và `@SupportedOptions` được sử dụng, các tên phải khớp với annotation hoặc option thực tế.
+When `@SupportedAnnotationTypes` and `@SupportedOptions` are used, the names must match the actual annotations or options.
 
-`-Acodegen.prefix=Demo` được `javac` chuyển tới processor. Nó không tương đương với:
+`-Acodegen.prefix=Demo` is forwarded by `javac` to the processor. It is not equivalent to:
 
     -Dcodegen.prefix=Demo
 
-`-D` là system property của JVM nếu được truyền cho JVM phù hợp; `-A` là giao diện option của annotation processor.
+`-D` is a JVM system property when passed to the appropriate JVM; `-A` is the option interface of annotation processors.
 
-## 11. Phân biệt argument cho javac và argument cho JVM biên dịch
+## 11. Distinguishing arguments for javac vs. arguments for the compiler JVM
 
-Không phải mọi flag liên quan đến module đều truyền ở cùng tầng.
+Not every module-related flag is passed at the same layer.
 
-- `--module-path` của `javac` cho biết các module để compiler **biên dịch source**.
-- `--processor-module-path` cho biết các module để compiler **tìm processor**.
-- `-A...` cấu hình processor.
-- `-J...` chuyển option cho **JVM đang chạy công cụ javac** khi gọi `javac` command-line launcher.
+- `javac`'s `--module-path` specifies modules for the compiler to **compile sources**.
+- `--processor-module-path` specifies modules for the compiler to **locate processors**.
+- `-A...` configures processors.
+- `-J...` passes an option to **the JVM running the javac tool** when invoking the `javac` command-line launcher.
 
-Sự khác biệt đặc biệt quan trọng nếu một processor đời cũ phụ thuộc vào API nội bộ của `jdk.compiler`, chẳng hạn package bắt đầu bằng `com.sun.tools.javac`. Những API đó không phải public compiler API ổn định.
+This distinction is especially important if a legacy processor relies on internal APIs of `jdk.compiler`, such as packages starting with `com.sun.tools.javac`. Those APIs are not stable public compiler APIs.
 
-Nếu công cụ thật sự phải truy cập package nội bộ từ unnamed module của compiler, một workaround có thể cần cờ JVM dạng:
+If a tool truly must access an internal package from the compiler's unnamed module, a workaround might require a JVM flag like:
 
     -J--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED
 
-Đây chỉ là ví dụ về **cấp quyền cho JVM thực thi javac**, không phải cách mở quyền tự động cho mọi module compile target. Với processor ở named module, module đích phải được xác định chính xác và có thể cần cấu hình khác.
+This is only an example of **granting access to the JVM executing javac**, not a way to automatically open permissions for every compilation target module. For a processor in a named module, the target module must be identified accurately and may require different configuration.
 
-Ưu tiên cập nhật processor để dùng `javax.annotation.processing` và `javax.lang.model` chuẩn; không nên dựa lâu dài vào API nội bộ `com.sun.tools.javac` vì các API này có thể thay đổi giữa các bản JDK.
+Prefer updating processors to use standard `javax.annotation.processing` and `javax.lang.model`; do not depend long-term on internal `com.sun.tools.javac` APIs because they can change between JDK releases.
 
-## 12. Source được sinh thuộc module nào?
+## 12. Which module do generated sources belong to?
 
-Nếu `javac` đang biên dịch named module `com.example.app`, source do processor tạo ra cho module đó sẽ được compiler xử lý như phần source compilation của module tương ứng theo cấu hình đầu ra.
+When `javac` is compiling named module `com.example.app`, sources created by a processor for that module are processed by the compiler as part of that module's source compilation according to the output layout.
 
-Ví dụ processor sinh:
+For example, the processor generates:
 
     package com.example.app.generated;
 
@@ -346,21 +346,21 @@ Ví dụ processor sinh:
         }
     }
 
-Nếu class generated chỉ được sử dụng **bên trong** `com.example.app`, không cần export package `com.example.app.generated`.
+If the generated class is used only **inside** `com.example.app`, package `com.example.app.generated` does not need to be exported.
 
-Nếu module khác cần gọi trực tiếp API public của package generated, module `com.example.app` phải export package đó:
+If another module needs to call public APIs of the generated package directly, module `com.example.app` must export that package:
 
     module com.example.app {
         exports com.example.app.generated;
     }
 
-Việc sinh class không tự động thêm `exports`, `requires` hoặc `opens` vào module descriptor.
+Generating classes does not automatically add `exports`, `requires`, or `opens` to the module descriptor.
 
-Nếu processor sinh source phụ thuộc vào thư viện khác, `javac` cần nhìn thấy dependency đó ở module path/classpath của source compilation. Dependency của chính processor không mặc nhiên trở thành dependency đọc được bởi module ứng dụng.
+If the processor generates sources that depend on another library, `javac` needs to see that dependency on the source compilation's module path/classpath. Dependencies of the processor itself do not automatically become dependencies readable by the application module.
 
-## 13. Generated sources và file output
+## 13. Generated sources and output files
 
-Các thư mục cần tách rõ:
+Directories should be kept clearly separated:
 
     project/
       src/
@@ -369,25 +369,25 @@ Các thư mục cần tách rõ:
         classes/
       processor-libs/
 
-- `src`: source do dự án quản lý.
-- `build/generated`: source sinh ra bởi annotation processing.
-- `build/classes`: file `.class` sau compilation.
-- `processor-libs`: processor JAR và dependency processor.
+- `src`: project-managed sources.
+- `build/generated`: sources generated by annotation processing.
+- `build/classes`: `.class` files after compilation.
+- `processor-libs`: processor JARs and processor dependencies.
 
-Có thể dùng:
+You can use:
 
     -s build/generated
     -d build/classes
 
-Thông thường không nên ghi đè file source do lập trình viên quản lý bằng kết quả sinh tự động. Build tool nên cấu hình generated directory nằm trong phạm vi build output, được dọn bằng clean task và không trùng với source root chính.
+Normally, developer-managed source files should not be overwritten by generated outputs. The build tool should configure the generated directory inside the build output tree, cleared by clean tasks, and distinct from the main source root.
 
-Nếu IDE không thấy class generated trong quá trình phát triển, hãy kiểm tra dự án có bật annotation processing không và IDE có đánh dấu generated source directory phù hợp hay không. Việc `javac` chạy thành công chưa chắc đồng nghĩa mọi IDE tự cập nhật ngay cấu hình nguồn sinh.
+If an IDE does not see generated classes during development, check whether annotation processing is enabled in the project and whether the IDE marks the generated source directory properly. `javac` succeeding does not guarantee every IDE immediately updates its generated source configuration.
 
-## 14. Cấu hình Maven Compiler Plugin
+## 14. Maven Compiler Plugin configuration
 
-Trong dự án Maven, các processor thường được đưa vào cấu hình riêng của `maven-compiler-plugin`, thay vì chỉ khai báo như dependency runtime.
+In Maven projects, processors are usually placed in dedicated `maven-compiler-plugin` configuration rather than declared only as runtime dependencies.
 
-Ví dụ với processor JAR dạng classpath, dùng `annotationProcessorPaths`:
+Example with a classpath-style processor JAR using `annotationProcessorPaths`:
 
     <plugin>
       <groupId>org.apache.maven.plugins</groupId>
@@ -403,17 +403,17 @@ Ví dụ với processor JAR dạng classpath, dùng `annotationProcessorPaths`:
       </configuration>
     </plugin>
 
-Ví dụ trên chỉ mô tả phần cấu hình liên quan; dự án vẫn cần có plugin version và cấu hình JDK phù hợp.
+The example above illustrates only the relevant configuration section; the project still needs a plugin version and appropriate JDK settings.
 
-Khi cần lựa chọn processor tường minh, plugin có thể nhận thêm cấu hình tên processor (tùy phiên bản). Không nên giả định chỉ thêm dependency `greeting-processor` trong `dependencies` là đủ, nhất là khi dùng JDK 23 trở lên.
+When explicit processor selection is required, the plugin can accept processor class names (depending on version). Do not assume merely adding a `greeting-processor` dependency in `dependencies` is enough, especially on JDK 23 and later.
 
-Với **modular annotation processors**, cách cấu hình phụ thuộc phiên bản Maven Compiler Plugin. Một số phiên bản mới hỗ trợ dependency type hoặc cơ chế cấu hình riêng cho processor trên module path; cần chọn đúng kiểu processor của artifact. Không tự đưa `--processor-module-path` và `--processor-path` vào cùng một cấu hình chỉ vì chưa rõ JAR thuộc loại nào.
+For **modular annotation processors**, configuration depends on the Maven Compiler Plugin version. Some newer versions support dependency types or dedicated configuration for processors on the module path; choose the right type for the processor artifact. Do not put both `--processor-module-path` and `--processor-path` into the same configuration just because it is unclear which type the JAR belongs to.
 
-Khi nâng Maven/JDK mà generated source mất đi, hãy kiểm tra log lệnh compiler thực tế và các tùy chọn processor được truyền, không chỉ kiểm tra POM có chứa artifact processor hay không.
+When upgrading Maven/JDK and generated sources disappear, inspect the actual compiler command log and passed processor options rather than checking only whether the POM lists the processor artifact.
 
-## 15. Cấu hình Gradle
+## 15. Gradle configuration
 
-Với Gradle Java plugin, có dependency configuration chuyên dùng cho annotation processors:
+With the Gradle Java plugin, there is a dedicated dependency configuration for annotation processors:
 
     plugins {
         id 'java'
@@ -424,24 +424,24 @@ Với Gradle Java plugin, có dependency configuration chuyên dùng cho annotat
         annotationProcessor 'com.example:greeting-processor:1.0.0'
     }
 
-`implementation` cung cấp dependency cho source application. `annotationProcessor` cung cấp processor cho Java compilation task. Cả hai có thể cần thiết nếu source dùng annotation type từ một thư viện, còn processor là artifact riêng.
+`implementation` supplies dependencies to application sources. `annotationProcessor` supplies the processor to the Java compilation task. Both may be necessary if sources use annotation types from one library while the processor is a separate artifact.
 
-Trong test source set, có thể cần:
+In test source sets, you may need:
 
     dependencies {
         testImplementation 'com.example:annotations-api:1.0.0'
         testAnnotationProcessor 'com.example:greeting-processor:1.0.0'
     }
 
-Nếu dự án dùng JPMS, có thể bật module path inference cho Java plugin:
+If the project uses JPMS, module-path inference can be enabled for the Java plugin:
 
     java {
         modularity.inferModulePath = true
     }
 
-Tuy nhiên, module path inference của application không tự đảm bảo mọi processor được cấu hình theo processor module path. Hãy kiểm tra phiên bản Gradle, plugin và cách artifact processor được đóng gói.
+However, module-path inference for the application does not automatically ensure every processor is configured on the processor module path. Check the Gradle version, plugins, and how the processor artifact is packaged.
 
-Khi cần truyền `-A` cho task `JavaCompile` cụ thể:
+When needing to pass `-A` to specific `JavaCompile` tasks:
 
     tasks.withType(JavaCompile).configureEach {
         options.compilerArgs += [
@@ -449,71 +449,71 @@ Khi cần truyền `-A` cho task `JavaCompile` cụ thể:
         ]
     }
 
-Chỉ truyền argument được processor hỗ trợ. Đưa processor JAR vào `runtimeOnly` không phải cách thông thường để kích hoạt annotation processing trong compile task.
+Pass only arguments supported by the processor. Putting the processor JAR in `runtimeOnly` is not the normal way to trigger annotation processing during the compile task.
 
-## 16. Unit test và testAnnotationProcessor
+## 16. Unit tests and testAnnotationProcessor
 
-Nhiều dự án dùng annotation processing không chỉ ở `src/main/java` mà còn trong test fixtures và `src/test/java`. Vì compile main và compile test thường là các task khác nhau, processor configuration cũng có thể tách biệt.
+Many projects use annotation processing not only in `src/main/java` but also in test fixtures and `src/test/java`. Since main compilation and test compilation are typically separate tasks, processor configurations can also be separate.
 
-Ví dụ:
+For example:
 
-- Main source dùng `annotationProcessor`.
-- Test source dùng `testAnnotationProcessor`.
-- Generated source của main và test thường nằm trong output directories khác nhau.
-- Một processor có thể cần quyền truy cập module khác khi compile test.
-- Test JVM không tự chạy annotation processor: processing thường diễn ra khi compile test sources.
+- Main sources use `annotationProcessor`.
+- Test sources use `testAnnotationProcessor`.
+- Generated sources for main and test typically go into separate output directories.
+- A processor may need different module access permissions when compiling tests.
+- The test JVM does not run annotation processors itself: processing normally happens when compiling test sources.
 
-Một test hữu ích có thể biên dịch một source mẫu có annotation rồi xác nhận class generated xuất hiện trong output. Đừng chỉ kiểm tra processor JAR đã được resolve làm dependency; cần chắc chắn processor thực sự được gọi.
+A useful verification test compiles a sample annotated source and asserts that the generated class appears in the output. Do not verify only that the processor JAR resolved as a dependency; verify that the processor was actually invoked.
 
-## 17. Chẩn đoán processor không chạy
+## 17. Diagnosing a processor that does not run
 
-Khi generated class bị thiếu, hãy đi theo thứ tự:
+When generated classes are missing, walk through in order:
 
-1. **Xác nhận JDK:** đang dùng JDK nào? Với JDK 23 trở lên, annotation processing có được bật tường minh không?
-2. **Xác nhận artifact:** processor JAR đã được tải và nằm trong processor path/module path không?
-3. **Xác nhận kiểu đóng gói:** JAR dùng `META-INF/services` hay named module có `provides`?
-4. **Xác nhận annotation type:** `@SupportedAnnotationTypes` có khớp tên đầy đủ của annotation không?
-5. **Xác nhận source:** annotation có thực sự xuất hiện trên phần tử đang compile không?
-6. **Xác nhận rounds:** dùng `-XprintRounds` và `-XprintProcessorInfo` để xem processor có được gọi không.
-7. **Xác nhận output:** generated source được ghi vào thư mục nào, class generated có được compile và đóng gói không?
-8. **Xác nhận lỗi Filer:** processor có sinh trùng file trong một compilation không?
-9. **Xác nhận module graph:** dependency của processor và dependency của application đã nằm đúng path chưa?
+1. **Check the JDK:** which JDK is used? On JDK 23+, is annotation processing explicitly enabled?
+2. **Check the artifact:** is the processor JAR downloaded and on the processor path/module path?
+3. **Check packaging style:** does the JAR use `META-INF/services` or is it a named module with `provides`?
+4. **Check annotation types:** does `@SupportedAnnotationTypes` match the fully qualified annotation name?
+5. **Check sources:** does the annotation actually appear on an element being compiled?
+6. **Check rounds:** use `-XprintRounds` and `-XprintProcessorInfo` to see whether the processor was invoked.
+7. **Check outputs:** which directory are generated sources written to, and are generated classes compiled and packaged?
+8. **Check Filer errors:** is the processor creating duplicate files in a single compilation?
+9. **Check module graphs:** are processor dependencies and application dependencies on their respective right paths?
 
-Thông báo thường gặp:
+Common messages:
 
-| Triệu chứng | Hướng chẩn đoán |
+| Symptom | Diagnostic direction |
 |---|---|
-| `Annotation processor ... not found` | Sai tên class trong `-processor`, JAR không nằm trên processor path/module path |
-| Generated class không tồn tại | Processing không được bật, annotation không khớp hoặc processor không tạo file |
-| `FilerException: Attempt to recreate a file` | Processor tạo trùng tên source/resource trong một lần compile |
-| `NoClassDefFoundError` trong processor | Thiếu dependency của chính processor trên processor path/module path |
-| `package ... is not visible` | Source module thiếu readability hoặc module chứa package chưa export |
-| `IllegalAccessError` khi processor dùng API nội bộ | JDK strong encapsulation hoặc phiên bản processor không tương thích |
-| IDE build được nhưng CI lỗi | JDK/toolchain/argument/processor path giữa IDE và CI không nhất quán |
+| `Annotation processor ... not found` | Wrong class name in `-processor`, or JAR missing from processor path/module path |
+| Generated class does not exist | Processing not enabled, annotation mismatch, or processor did not create the file |
+| `FilerException: Attempt to recreate a file` | Processor created the same source/resource name twice in one compilation |
+| `NoClassDefFoundError` inside processor | Processor's own dependency missing from processor path/module path |
+| `package ... is not visible` | Source module lacks readability or the module owning the package does not export it |
+| `IllegalAccessError` when processor uses internal APIs | JDK strong encapsulation or incompatible processor version |
+| Builds in IDE yet fails in CI | JDK/toolchain/arguments/processor path mismatch between IDE and CI |
 
-Các lỗi nói trên thuộc những tầng khác nhau. Một generated class thiếu vì processor không chạy sẽ không được sửa bằng cách `--add-opens` ngẫu nhiên vào module source.
+These errors belong to different layers. A generated class missing because the processor never ran will not be fixed by randomly adding `--add-opens` to source modules.
 
-## 18. Những nhầm lẫn thường gặp
+## 18. Common misconceptions
 
-- **Tưởng annotation và processor là một.** Annotation khai báo metadata, còn processor là chương trình compile time đọc annotation đó.
-- **Tưởng processor JAR trên runtime classpath là đủ.** Processor cần hiện diện trong môi trường compilation và được kích hoạt.
-- **Tưởng `--module-path` cũng là `--processor-module-path`.** Một path dành cho module đang được biên dịch, một path dành cho processor module.
-- **Tưởng `-proc:only` tạo đầy đủ class files như compile thông thường.** Nó chỉ thực hiện annotation processing, không tiếp tục bước compilation đầy đủ.
-- **Tưởng generated source tự được export khỏi named module.** Package generated vẫn chịu module descriptor.
-- **Tưởng JDK 23 trở lên vẫn quét processor trên classpath ngầm giống các bản cũ.** Cần cấu hình processing tường minh.
-- **Tưởng `-Akey=value` là JVM system property.** `-A` cung cấp option cho annotation processor.
-- **Tưởng `-J` và `--module-path` tác động cùng một tầng.** `-J` chuyển option đến JVM đang chạy compiler tool.
-- **Tưởng Maven/Gradle runtime dependency là đủ để processor hoạt động.** Hãy dùng configuration hoặc plugin setup dành riêng cho processors.
-- **Tưởng processor luôn là một named module.** Processor JAR classpath với `META-INF/services` vẫn là cơ chế hợp lệ.
+- **Assuming annotations and processors are the same thing.** Annotations declare metadata, while processors are compile-time programs that read those annotations.
+- **Assuming a processor JAR on the runtime classpath is enough.** Processors must be present in the compilation environment and enabled.
+- **Assuming `--module-path` is also `--processor-module-path`.** One path is for modules being compiled, the other is for processor modules.
+- **Assuming `-proc:only` produces complete class files like normal compilation.** It runs only annotation processing without continuing to full compilation.
+- **Assuming generated sources are automatically exported from a named module.** Generated packages remain governed by the module descriptor.
+- **Assuming JDK 23+ still scans processors implicitly on the classpath like older releases.** Explicit processing configuration is required.
+- **Assuming `-Akey=value` is a JVM system property.** `-A` supplies options to annotation processors.
+- **Assuming `-J` and `--module-path` affect the same layer.** `-J` passes options to the JVM running the compiler tool.
+- **Assuming a Maven/Gradle runtime dependency is enough for a processor to run.** Use configurations or plugin setups dedicated to processors.
+- **Assuming a processor is always a named module.** Classpath processor JARs with `META-INF/services` remain a valid mechanism.
 
-## Ghi nhớ
+## Key takeaways
 
-- API annotation processing chuẩn thuộc module `java.compiler`.
-- Processor có thể đăng ký qua `META-INF/services/javax.annotation.processing.Processor` hoặc `provides javax.annotation.processing.Processor with ...` trong named processor module.
-- `--processor-path` và `--processor-module-path` dùng để tìm processor; `--module-path` dành cho modules của source compilation.
-- `-processor` chọn processor tường minh; `-Akey=value` truyền cấu hình; `-s` và `-d` điều khiển output.
-- Từ JDK 23, hãy bật hoặc cấu hình annotation processing tường minh; `-proc:full` là một cách yêu cầu processing rồi compile.
-- Maven và Gradle nên tách processor dependencies khỏi dependency runtime của ứng dụng.
-- Khi debug, quan sát vòng processing và output trước khi sửa module access flags.
+- Standard annotation processing APIs belong to the `java.compiler` module.
+- A processor can be registered via `META-INF/services/javax.annotation.processing.Processor` or `provides javax.annotation.processing.Processor with ...` in a named processor module.
+- `--processor-path` and `--processor-module-path` locate processors; `--module-path` is for source compilation modules.
+- `-processor` selects processors explicitly; `-Akey=value` passes configuration; `-s` and `-d` control outputs.
+- Starting with JDK 23, enable or configure annotation processing explicitly; `-proc:full` is one way to request processing followed by compilation.
+- Maven and Gradle should separate processor dependencies from application runtime dependencies.
+- When debugging, inspect processing rounds and outputs before tweaking module access flags.
 
-Một build JPMS ổn định cần phân biệt ba lớp: **source module graph**, **processor discovery**, và **JVM/compiler options**. Khi đặt đúng processor path, service registration và compiler arguments, annotation processors có thể hoạt động nhất quán ngay cả khi ứng dụng được chia thành nhiều named modules.
+A stable JPMS build distinguishes three layers: **source module graph**, **processor discovery**, and **JVM/compiler options**. When the processor path, service registration, and compiler arguments are set correctly, annotation processors operate consistently even when an application is split into multiple named modules.

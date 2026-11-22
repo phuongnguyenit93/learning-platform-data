@@ -1,55 +1,55 @@
-# Tách dữ liệu có phần tử rỗng và giữ đúng dấu phân cách trong Java
+# Splitting Data with Empty Elements and Preserving Exact Delimiters in Java
 
-## Mục tiêu và bài toán
+## Goal and problem
 
-Khi đọc một dòng dữ liệu có cấu trúc, **phần tử rỗng vẫn là một phần tử hợp lệ**. Ví dụ chuỗi `,A,,B,` phân cách bằng dấu phẩy có **5 trường**, theo thứ tự: `""`, `"A"`, `""`, `"B"`, `""`. Dấu phẩy đầu tạo trường đầu rỗng; hai dấu phẩy kề nhau tạo trường giữa rỗng; dấu phẩy cuối tạo trường cuối rỗng. Bỏ bất kỳ trường nào có thể làm lệch vị trí cột.
+When reading a structured data line, **an empty element is still a valid element**. For example, the comma-delimited string `,A,,B,` has **5 fields**, in order: `""`, `"A"`, `""`, `"B"`, `""`. A leading comma creates an empty first field; two adjacent commas create an empty middle field; a trailing comma creates an empty final field. Dropping any field can shift column positions out of alignment.
 
-Có hai nhu cầu cần phân biệt:
+There are two needs to distinguish:
 
-1. **Giữ các trường rỗng** trong mảng kết quả, trong khi dấu phân cách có thể bỏ đi. Dùng `String.split(regex, -1)`.
-2. **Giữ nguyên cả dấu phân cách đã xuất hiện** (chẳng hạn chuỗi có cả `,` và `;`, hoặc số lượng/ký tự phân cách mang ý nghĩa). Dùng `Matcher` để lấy riêng các trường và các chuỗi phân cách, hoặc `splitWithDelimiters` trên Java 21+.
+1. **Preserve empty fields** in the resulting array, while delimiters can be discarded. Use `String.split(regex, -1)`.
+2. **Preserve the exact delimiters that appeared** (for instance when a string has both `,` and `;`, or when the count/characters of delimiters carry meaning). Use `Matcher` to extract fields and delimiter strings separately, or `splitWithDelimiters` on Java 21+.
 
-Không nên mặc định rằng `split` vừa giữ trường cuối rỗng, vừa trả về các dấu phân cách. Đó là hai thuộc tính khác nhau.
+Do not assume by default that `split` both preserves trailing empty fields and returns the delimiters. Those are two separate properties.
 
-## 1. Hiểu chính xác `String.split` và tham số `limit`
+## 1. Understanding `String.split` and the `limit` parameter accurately
 
-`String.split(String regex)` tương đương `split(regex, 0)`: các trường rỗng **ở cuối** bị loại khỏi kết quả. Trường rỗng ở đầu do một kết quả khớp có độ dài dương và trường rỗng ở giữa vẫn được giữ.
+`String.split(String regex)` is equivalent to `split(regex, 0)`: **trailing** empty fields are discarded from the result. A leading empty field caused by a positive-width match and middle empty fields are still preserved.
 
-| Lệnh | Kết quả (viết rõ chuỗi rỗng) | Ý nghĩa |
+| Call | Result (empty strings written explicitly) | Meaning |
 | --- | --- | --- |
-| `",A,,B,".split(",")` | `["", "A", "", "B"]` | Mất trường rỗng ở cuối |
-| `",A,,B,".split(",", 0)` | `["", "A", "", "B"]` | Giống lời gọi một tham số |
-| `",A,,B,".split(",", -1)` | `["", "A", "", "B", ""]` | Giữ cả trường cuối rỗng |
-| `"A,,B,".split(",", 2)` | `["A", ",B,"]` | Tách tối đa 1 lần; phần còn lại giữ nguyên |
-| `",,".split(",", -1)` | `["", "", ""]` | Hai dấu phân cách tạo ba trường rỗng |
-| `"abc".split(",", -1)` | `["abc"]` | Không có dấu phân cách |
-| `"".split(",", -1)` | `[""]` | Chuỗi đầu vào rỗng, kết quả có một phần tử |
+| `",A,,B,".split(",")` | `["", "A", "", "B"]` | Trailing empty field is lost |
+| `",A,,B,".split(",", 0)` | `["", "A", "", "B"]` | Same as the one-argument call |
+| `",A,,B,".split(",", -1)` | `["", "A", "", "B", ""]` | Preserves the trailing empty field as well |
+| `"A,,B,".split(",", 2)` | `["A", ",B,"]` | Splits at most once; remainder is kept intact |
+| `",,".split(",", -1)` | `["", "", ""]` | Two delimiters produce three empty fields |
+| `"abc".split(",", -1)` | `["abc"]` | No delimiter present |
+| `"".split(",", -1)` | `[""]` | Empty input string, result has one element |
 
-Ba chế độ `limit`:
+Three `limit` modes:
 
-- `limit > 0`: tối đa `limit - 1` lần tách; phần tử cuối chứa toàn bộ phần chưa tách. Dùng khi cố tình muốn giữ phần còn lại, ví dụ phân tách `key=value=more` bằng `split("=", 2)`.
-- `limit == 0`: tách hết và **loại các trường rỗng liên tiếp ở cuối**.
-- `limit < 0`: tách hết và **giữ mọi trường rỗng**, kể cả ở cuối. `-1` là giá trị quen dùng; `-2` có cùng hành vi về việc giữ trường rỗng.
+- `limit > 0`: at most `limit - 1` splits; the last element holds the entire unsplit remainder. Use when intentionally keeping the rest, e.g., splitting `key=value=more` with `split("=", 2)`.
+- `limit == 0`: split completely and **discard consecutive trailing empty fields**.
+- `limit < 0`: split completely and **keep all empty fields**, including trailing ones. `-1` is the conventional value; `-2` behaves the same regarding preserving empty fields.
 
-**Quy tắc thực hành:** dữ liệu dạng bản ghi mà số thứ tự trường cần chính xác thường nên dùng `split(delimiterRegex, -1)`. Đừng `trim()` hoặc `filter(s -> !s.isEmpty())` sau khi tách nếu khoảng trắng/trường rỗng có ý nghĩa.
+**Practical rule:** record-oriented data where field ordinal positions must be exact should usually use `split(delimiterRegex, -1)`. Do not `trim()` or `filter(s -> !s.isEmpty())` after splitting if whitespace/empty fields are meaningful.
 
-## 2. Dấu phân cách được hiểu là regex, không mặc định là ký tự literal
+## 2. Delimiters are interpreted as regex, not literal characters by default
 
-Đối số thứ nhất của `split` là **biểu thức chính quy**. Vì vậy:
+The first argument of `split` is a **regular expression**. Therefore:
 
-- Dấu phẩy `,` và dấu chấm phẩy `;` không có ý nghĩa regex đặc biệt trong ngữ cảnh đơn giản này.
-- Dấu gạch đứng `|`, dấu chấm `.`, dấu sao `*`, dấu ngoặc vuông... có thể mang ý nghĩa regex. Viết `text.split("|", -1)` để tách theo dấu `|` là sai.
-- Với dấu phân cách **cố định/literal**, đặc biệt lấy từ cấu hình hoặc người dùng, dùng `Pattern.quote(delimiter)`. Ví dụ `"a|b||".split(Pattern.quote("|"), -1)` trả về `["a", "b", "", ""]`.
-- Với dấu phân cách **là quy tắc regex có chủ đích**, viết regex rõ ràng: `"a,b;c".split("[,;]", -1)` tách theo từng dấu phẩy hoặc chấm phẩy. Nhưng mảng kết quả không cho biết tại vị trí nào đã dùng dấu nào.
-- Khi muốn gộp chuỗi dấu phân cách liên tiếp thành **một** dấu tách, regex `[,;]+` sẽ bỏ cấu trúc trường rỗng giữa các dấu. Chỉ dùng nếu nghiệp vụ thật sự cho phép.
+- Comma `,` and semicolon `;` have no special regex meaning in this simple context.
+- Pipe `|`, dot `.`, asterisk `*`, square brackets, etc., can carry regex meaning. Writing `text.split("|", -1)` to split on `|` is wrong.
+- For **fixed/literal** delimiters, especially from configuration or user input, use `Pattern.quote(delimiter)`. For example, `"a|b||".split(Pattern.quote("|"), -1)` returns `["a", "b", "", ""]`.
+- For delimiters that are **an intentional regex rule**, write the regex explicitly: `"a,b;c".split("[,;]", -1)` splits on each comma or semicolon. However, the resulting array does not tell you which delimiter was used at which position.
+- When wanting to collapse consecutive delimiters into **one** split, regex `[,;]+` drops empty field structures between delimiters. Only use it if business logic truly permits it.
 
-Regex có thể khớp chuỗi có độ dài bằng 0 (zero-width match), dẫn đến cách phân tách không trực quan. Với bài toán tách bản ghi có dấu phân cách hữu hình, nên chọn pattern luôn tiêu thụ ít nhất một ký tự. Cũng không thể lấy đúng toàn bộ dấu phân cách ban đầu chỉ từ `String[]` đã tách bằng regex cho nhiều ký tự phân cách khác nhau.
+A regex can match a zero-length string (zero-width match), leading to unintuitive splits. For splitting records with tangible delimiters, choose a pattern that always consumes at least one character. It is also impossible to recover all original delimiters solely from a `String[]` split with a regex matching multiple delimiter characters.
 
-## 3. Ví dụ Java 17+: giữ trường rỗng và giữ chính xác dấu phân cách
+## 3. Java 17+ example: preserving empty fields and exact delimiters
 
-Chương trình dưới đây minh họa cả hai hướng: `split(..., -1)` cho dấu phân cách cố định, và `Matcher.find()` khi cần giữ từng dấu đã khớp. Lớp `Tokenized` giữ hai danh sách theo thứ tự; với `n` dấu phân cách sẽ có `n + 1` trường, kể cả trường rỗng.
+The program below illustrates both approaches: `split(..., -1)` for a fixed delimiter, and `Matcher.find()` when each matched delimiter must be kept. The `Tokenized` class holds two lists in order; for `n` delimiters there will be `n + 1` fields, including empty fields.
 
-Tạo tệp `SplitPreservingDemo.java`:
+Create the file `SplitPreservingDemo.java`:
 
 ```java
 import java.util.ArrayList;
@@ -79,7 +79,7 @@ public class SplitPreservingDemo {
         System.out.println("Mixed same text: " + rebuild(tokens).equals(mixed));
     }
 
-    // Phục vụ minh họa: làm rõ vị trí các chuỗi rỗng trong output.
+    // For illustration: makes empty string positions clear in the output.
     private static String quoted(String[] fields) {
         StringBuilder out = new StringBuilder("[");
         for (int i = 0; i < fields.length; i++) {
@@ -134,14 +134,14 @@ public class SplitPreservingDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac SplitPreservingDemo.java
 java SplitPreservingDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 Default: ["", "A", "", "B"]
@@ -154,25 +154,25 @@ Separators: [",", ",", ";", ";"]
 Mixed same text: true
 ```
 
-Diễn giải:
+Explanation:
 
-- `split(",", -1)` trả về đúng 5 trường; ghép lại bằng **chính dấu phẩy cố định** tái tạo chuỗi đầu vào.
-- `Pattern.quote("|")` bảo đảm `|` được hiểu là một dấu phân cách literal; hai dấu `|` cuối làm phát sinh hai phần tử rỗng ở cuối (sau `blue`).
-- Trong `"A,,B;C;"`, trường thứ hai và trường cuối rỗng. Danh sách `separators` giữ nguyên từng dấu `,`/`;`, nên `rebuild` có thể khôi phục đúng chuỗi gốc.
-- Với pattern tiêu thụ ký tự, `matcher.start()` là chỉ số đầu dấu phân cách, `matcher.end()` là vị trí ngay sau nó; `substring(from, matcher.start())` nhận chính xác trường trước dấu tách, kể cả chuỗi rỗng. `matcher.group()` chứa **chuỗi khớp thực tế**, hữu ích cả khi dấu phân cách dài hơn một ký tự.
-- Hàm `quoted` chỉ nhằm hiển thị minh bạch các phần tử trong ví dụ; nếu dữ liệu có dấu nháy hoặc ký tự điều khiển, cần cách escape khi hiển thị phù hợp.
+- `split(",", -1)` returns all 5 fields; joining with **the same fixed comma** reconstructs the input string.
+- `Pattern.quote("|")` ensures `|` is treated as a literal delimiter; the two trailing `|` characters generate two empty elements at the end (after `blue`).
+- In `"A,,B;C;"`, the second field and the last field are empty. The `separators` list preserves each `,`/`;`, so `rebuild` can restore the exact original string.
+- With a character-consuming pattern, `matcher.start()` is the start index of the delimiter and `matcher.end()` is the position right after it; `substring(from, matcher.start())` gets the exact field before the delimiter, including empty strings. `matcher.group()` holds the **actual matched string**, which is useful even when the delimiter is longer than one character.
+- The `quoted` method is only meant to display elements transparently in the example; if data contains quotes or control characters, use appropriate escaping when printing.
 
-### Vì sao cần giữ danh sách dấu phân cách?
+### Why preserve the list of delimiters?
 
-Ví dụ `a,b;c` dùng regex `[,;]` và tách được `["a", "b", "c"]`, nhưng nếu ghép lại bằng dấu phẩy sẽ thành `a,b,c`, mất dấu chấm phẩy gốc. `String.join` chỉ bảo toàn bản gốc khi **mọi dấu phân cách thực sự là cùng một chuỗi cố định** và các trường đã được giữ đầy đủ, không có quy tắc escape/quote phức tạp.
+For example, `a,b;c` using regex `[,;]` splits into `["a", "b", "c"]`, but joining back with a comma becomes `a,b,c`, losing the original semicolon. `String.join` only preserves the original text when **every delimiter is actually the same fixed string** and all fields are kept intact without complex escape/quote rules.
 
-Trong đoạn `Matcher` ở trên, `fields.size() == separators.size() + 1` là bất biến đáng kiểm tra. Không chuẩn hóa khoảng trắng, không đổi dấu và không bỏ trường rỗng nếu mục tiêu là lưu/tái tạo dữ liệu nguyên trạng.
+In the `Matcher` snippet above, `fields.size() == separators.size() + 1` is an invariant worth checking. Do not normalize whitespace, change delimiters, or drop empty fields if the goal is storing/reconstructing data verbatim.
 
 ## 4. Java 21+: `String.splitWithDelimiters`
 
-Java 21 bổ sung `String.splitWithDelimiters(String regex, int limit)` và `Pattern.splitWithDelimiters(CharSequence input, int limit)`. Kết quả **xen kẽ trường, dấu phân cách, trường, dấu phân cách...**, thay vì chỉ trả các trường.
+Java 21 adds `String.splitWithDelimiters(String regex, int limit)` and `Pattern.splitWithDelimiters(CharSequence input, int limit)`. The result **alternates field, delimiter, field, delimiter...**, instead of returning only fields.
 
-Ví dụ Java 21 (đoạn minh họa, đặt trong một phương thức):
+Java 21 example (illustrative snippet, placed inside a method):
 
 ```java
 String input = "A,,B;";
@@ -181,38 +181,38 @@ String[] pieces = input.splitWithDelimiters("[,;]", -1);
 boolean same = String.join("", pieces).equals(input); // true
 ```
 
-Dùng `limit = -1` để giữ cả phần rỗng cuối; `limit = 0` vẫn bỏ phần rỗng ở cuối theo quy tắc API. Với `limit > 0`, tối đa `limit - 1` lần tách và phần cuối giữ phần chưa tách; mảng có tối đa `2 * limit - 1` phần tử. API này **không có trong Java 17**; trên Java 17 dùng cách `Matcher` phía trên.
+Use `limit = -1` to keep trailing empty parts too; `limit = 0` still drops trailing empty parts per API rules. With `limit > 0`, at most `limit - 1` splits occur and the final element keeps the unsplit remainder; the array has at most `2 * limit - 1` elements. This API **does not exist in Java 17**; on Java 17 use the `Matcher` approach above.
 
-Nếu cần thao tác nghiệp vụ theo trường, cặp danh sách `fields`/`separators` thường dễ hiểu hơn mảng xen kẽ; nếu chỉ cần tái tạo nguyên văn, mảng xen kẽ của Java 21 rất tiện.
+If business logic needs to work per field, the `fields`/`separators` list pair is usually easier to understand than an alternating array; if only verbatim reconstruction is needed, Java 21's alternating array is very convenient.
 
-## 5. Các bẫy làm hỏng dữ liệu
+## 5. Traps that corrupt data
 
-1. **Bỏ `-1`**: trường cuối rỗng biến mất, khiến số cột không còn đúng. Hãy thử `"id,name,"`.
-2. **Dùng regex sai**: `split(".")` không có nghĩa tách theo dấu chấm; hãy dùng `split(Pattern.quote("."), -1)` hoặc regex escape đúng.
-3. **Dùng `[,;]+` thay `[,;]`**: các dấu liền nhau thành một lần tách, làm mất trường rỗng ở giữa.
-4. **Xóa trường rỗng sau tách**: `filter(s -> !s.isBlank())` cũng loại các trường chỉ chứa khoảng trắng; làm thay đổi cả dữ liệu lẫn vị trí cột.
-5. **Tự động `trim()`**: `" A "` và `"A"` không giống nhau nếu giao thức xem khoảng trắng là dữ liệu.
-6. **Ghép bằng một dấu cố định dù nguồn dùng nhiều dấu**: không thể bảo đảm round-trip khi nguồn trộn `,` và `;`.
-7. **Nhầm dữ liệu phân cách đơn giản với CSV hoàn chỉnh**: `A,"B,C",D` có dấu phẩy **nằm trong trường được quote**; `split(",", -1)` vẫn cắt sai. CSV thật có escaping, quote đôi và thậm chí xuống dòng trong trường. Hãy dùng parser tuân theo định dạng (chẳng hạn thư viện Apache Commons CSV), đồng thời chỉ định dialect/quote/escape rõ ràng.
-8. **Tin vào cách in mặc định của mảng**: `Arrays.toString` có thể hiển thị phần tử rỗng khó phân biệt; khi kiểm tra hãy in `length` và bọc từng giá trị trong dấu nháy.
+1. **Omitting `-1`**: trailing empty fields disappear, making the column count wrong. Try `"id,name,"`.
+2. **Using regex incorrectly**: `split(".")` does not mean splitting on a dot; use `split(Pattern.quote("."), -1)` or a properly escaped regex.
+3. **Using `[,;]+` instead of `[,;]`**: consecutive delimiters become a single split, losing empty fields in between.
+4. **Dropping empty fields after splitting**: `filter(s -> !s.isBlank())` also removes whitespace-only fields; this alters both data and column positions.
+5. **Automatically calling `trim()`**: `" A "` and `"A"` are not identical if the protocol treats whitespace as data.
+6. **Joining with one fixed delimiter when the source uses multiple**: round-trip preservation cannot be guaranteed when the source mixes `,` and `;`.
+7. **Confusing simple delimited data with full CSV**: `A,"B,C",D` has a comma **inside a quoted field**; `split(",", -1)` still splits it wrongly. Real CSV has escaping, doubled quotes, and even newlines inside fields. Use a format-compliant parser (such as Apache Commons CSV), while explicitly specifying dialect/quote/escape.
+8. **Trusting default array printing**: `Arrays.toString` can display empty elements in a way that is hard to distinguish; when inspecting, print `length` and wrap each value in quotes.
 
-`String.split` cũng có quy tắc riêng với regex khớp zero-width tại đầu chuỗi: nó **không** tạo trường rỗng đầu giống một dấu phân cách có độ dài dương. Vì thế không suy diễn kết quả của zero-width regex từ các ví dụ về dấu phẩy.
+`String.split` also has a special rule for zero-width regex matches at the start of a string: it does **not** produce a leading empty field like a positive-length delimiter does. Therefore, do not extrapolate the behavior of zero-width regexes from comma examples.
 
-## 6. Checklist và bài tự kiểm tra
+## 6. Checklist and self-check exercises
 
-Với mỗi dòng dữ liệu phân cách, hãy trả lời bốn câu:
+For each delimited data line, answer four questions:
 
-1. Dấu phân cách là **chuỗi cố định** hay một **regex** được chủ ý thiết kế?
-2. Trường rỗng ở **đầu, giữa, cuối** có phải giữ lại hay không?
-3. Có cần bảo toàn **ký tự và độ dài của dấu phân cách thực tế** để khôi phục chuỗi ban đầu không?
-4. Đầu vào có **quote/escape/nested syntax** khiến tách regex đơn giản không đúng đặc tả không?
+1. Is the delimiter a **fixed string** or an intentionally designed **regex**?
+2. Must empty fields at the **beginning, middle, and end** be preserved?
+3. Is it necessary to preserve the **characters and length of the actual delimiters** to reconstruct the original string?
+4. Does the input have **quotes/escapes/nested syntax** that make simple regex splitting violate the specification?
 
-Tự kiểm tra: với `"|a||"` và dấu literal `|`, `split(Pattern.quote("|"), -1)` phải cho `["", "a", "", ""]`, số trường là 4. Với `"a|b;c|"`, nếu yêu cầu giữ nguyên dấu đã gặp, phải ghi nhớ lần lượt `"|", ";", "|"`; chỉ lưu các trường là chưa đủ.
+Self-check: with `"|a||"` and literal delimiter `|`, `split(Pattern.quote("|"), -1)` must produce `["", "a", "", ""]`, with a field count of 4. With `"a|b;c|"`, if preserving the encountered delimiters is required, `"|", ";", "|"` must be recorded in order; storing only the fields is not enough.
 
-**Kết luận kỹ thuật:** dùng `split(Pattern.quote(delimiter), -1)` khi cần giữ tất cả trường rỗng với một delimiter cố định. Khi cần giữ chính xác từng dấu phân cách hỗn hợp, dùng `Matcher` (Java 17+) hoặc `splitWithDelimiters(regex, -1)` (Java 21+), rồi xác minh bằng phép tái tạo chuỗi gốc.
+**Technical conclusion:** use `split(Pattern.quote(delimiter), -1)` when you need to preserve all empty fields with a fixed delimiter. When you need to preserve each mixed delimiter accurately, use `Matcher` (Java 17+) or `splitWithDelimiters(regex, -1)` (Java 21+), then verify by reconstructing the original string.
 
-## Tài liệu API tham khảo
+## API references
 
 - Java 17 `String.split`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html
-- Java 17 `Pattern.quote` và `Matcher`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html
+- Java 17 `Pattern.quote` and `Matcher`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html
 - Java 21 `Pattern.splitWithDelimiters`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/regex/Pattern.html

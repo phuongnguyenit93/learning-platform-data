@@ -1,26 +1,26 @@
-# So sánh trường nguyên thủy và trường tham chiếu khi cài đặt `equals`
+# Comparing Primitive Fields and Reference Fields When Implementing `equals`
 
-Khi tự cài đặt `equals(Object)` cho một lớp Java, phần cốt lõi là **so sánh những trường quyết định hai đối tượng có cùng giá trị theo bài toán hay không**. Cách so sánh phụ thuộc vào kiểu của trường:
+When manually implementing `equals(Object)` for a Java class, the core part is **comparing the fields that determine whether two objects have the same value according to the problem domain**. How you compare them depends on the field's type:
 
-- Với **kiểu nguyên thủy** như `int`, `long`, `boolean`, thường dùng `==` để so sánh trực tiếp giá trị. `float` và `double` cần quyết định rõ cách xử lý `NaN` và dấu của số không.
-- Với **kiểu tham chiếu** như `String`, lớp tự định nghĩa, danh sách hay mảng, `==` kiểm tra hai tham chiếu có trỏ tới cùng một đối tượng; muốn so sánh **giá trị/nội dung**, phải dùng phép so sánh phù hợp với kiểu đó.
-- `equals` của lớp chứa nhiều trường thường kết hợp các phép so sánh trên, đồng thời phải triển khai `hashCode` nhất quán.
+- For **primitive types** such as `int`, `long`, `boolean`, you usually use `==` to compare values directly. `float` and `double` require a clear decision on how to handle `NaN` and the sign of zero.
+- For **reference types** such as `String`, custom classes, lists, or arrays, `==` checks whether two references point to the same object; to compare **value/content**, you must use the comparison appropriate for that type.
+- `equals` of a class containing multiple fields usually combines the comparisons above, while also having to implement a consistent `hashCode`.
 
-Ví dụ, hai đối tượng `UserProfile` độc lập có cùng `age = 20` và `displayName = "Lan"` có thể được xem là bằng nhau. So sánh `age` bằng `==` là đúng vì đó là `int`; so sánh `displayName` bằng `==` lại có thể sai vì đó là `String`, và hai chuỗi nội dung giống nhau vẫn có thể là hai đối tượng khác nhau.
+For example, two independent `UserProfile` objects with the same `age = 20` and `displayName = "Lan"` can be considered equal. Comparing `age` with `==` is right because it is an `int`; comparing `displayName` with `==` can be wrong because it is a `String`, and two strings with identical content can still be two different objects.
 
-## 1. Trường nguyên thủy: so sánh giá trị
+## 1. Primitive Fields: Value Comparison
 
-Các kiểu nguyên thủy Java gồm `byte`, `short`, `int`, `long`, `float`, `double`, `char`, `boolean`. Giá trị của chúng nằm trực tiếp trong trường; không có tham chiếu tới đối tượng riêng cho giá trị nguyên thủy đó.
+Java primitive types include `byte`, `short`, `int`, `long`, `float`, `double`, `char`, `boolean`. Their values reside directly in the field; there is no reference to a separate object for that primitive value.
 
-| Kiểu trường | Cách so sánh khi triển khai `equals` | Điều cần biết |
+| Field type | How to compare when implementing `equals` | What to know |
 | --- | --- | --- |
-| `byte`, `short`, `int`, `long` | `a == b` | So sánh giá trị số; không có khái niệm hai instance của một `int`. |
-| `char` | `a == b` | So sánh giá trị `char` (đơn vị mã UTF-16), không phải so sánh văn bản đã chuẩn hóa. |
-| `boolean` | `a == b` | Cùng `true` hoặc cùng `false` thì bằng nhau. |
-| `float` | Thường dùng `Float.compare(a, b) == 0` | Phân biệt `+0.0f` với `-0.0f`; xem các `NaN` là bằng nhau trong quy tắc của `Float`. |
-| `double` | Thường dùng `Double.compare(a, b) == 0` | Có cùng quy tắc đặc biệt với `double`; dễ đồng bộ với `Double.hashCode`. |
+| `byte`, `short`, `int`, `long` | `a == b` | Compares numeric values; there is no concept of two instances of an `int`. |
+| `char` | `a == b` | Compares `char` values (UTF-16 code units), not normalized text comparison. |
+| `boolean` | `a == b` | Equal when both are `true` or both are `false`. |
+| `float` | Usually `Float.compare(a, b) == 0` | Distinguishes `+0.0f` from `-0.0f`; treats `NaN` values as equal under `Float`'s rules. |
+| `double` | Usually `Double.compare(a, b) == 0` | Has the same special rules for `double`; easy to keep in sync with `Double.hashCode`. |
 
-Đối với `float`/`double`, **`==` không sai về cú pháp**, nhưng nghĩa khác `Float.compare`/`Double.compare`:
+For `float`/`double`, **`==` is not syntactically wrong**, but its semantics differ from `Float.compare`/`Double.compare`:
 
 ~~~java
 System.out.println(0.0 == -0.0);                         // true
@@ -29,19 +29,19 @@ System.out.println(Double.NaN == Double.NaN);           // false
 System.out.println(Double.compare(Double.NaN, Double.NaN) == 0); // true
 ~~~
 
-Nếu lớp được thiết kế theo cách so sánh của `Double`, dùng `Double.compare` trong `equals` và `Double.hashCode` (hoặc `Objects.hash` có đóng hộp `double`) trong `hashCode`. Điều này đặc biệt hợp lý nếu muốn `equals` nhất quán với `Double.equals`.
+If the class is designed following `Double`'s comparison semantics, use `Double.compare` in `equals` and `Double.hashCode` (or `Objects.hash` which boxes `double`) in `hashCode`. This is especially reasonable if you want `equals` to be consistent with `Double.equals`.
 
-**Không dùng `Math.abs(a - b) < epsilon` tùy ý làm định nghĩa `equals` tổng quát:** quan hệ “chênh lệch nhỏ hơn ngưỡng” thường không có tính bắc cầu. Chẳng hạn khi ngưỡng là `0.1`, `0.00` gần `0.06`, `0.06` gần `0.12`, nhưng `0.00` không gần `0.12`. Điều này vi phạm hợp đồng `equals`. Dùng dung sai trong phép kiểm tra số thực riêng biệt khi phù hợp, thay vì tự động áp nó vào `Object.equals`.
+**Do not use an arbitrary `Math.abs(a - b) < epsilon` as a general `equals` definition:** the “difference smaller than threshold” relation is generally not transitive. For instance, when the threshold is `0.1`, `0.00` is close to `0.06`, `0.06` is close to `0.12`, but `0.00` is not close to `0.12`. This violates the `equals` contract. Use tolerance in a separate floating-point checking method when appropriate, rather than automatically applying it to `Object.equals`.
 
-## 2. Trường tham chiếu: phải hiểu `equals` của kiểu trường
+## 2. Reference Fields: Understanding the `equals` of the Field Type
 
-Một trường kiểu `String`, `Integer`, `Address` hay `List<String>` giữ **tham chiếu** (hoặc `null`). Trong `equals`:
+A field of type `String`, `Integer`, `Address`, or `List<String>` holds a **reference** (or `null`). Inside `equals`:
 
-- `a == b` là `true` nếu cùng tham chiếu hoặc cả hai đều `null`. Nó không kiểm tra nội dung của hai đối tượng khác nhau.
-- `a.equals(b)` gọi phương thức `equals` của đối tượng bên trái, nhưng ném `NullPointerException` nếu `a == null`.
-- `Objects.equals(a, b)` trả `true` khi cả hai `null`, trả `false` khi đúng một bên `null`, và khi cả hai khác `null` sẽ gọi `a.equals(b)`. Đây là lựa chọn tiện lợi, an toàn với `null` cho đa số trường tham chiếu có ngữ nghĩa `equals` phù hợp.
+- `a == b` is `true` if they share the same reference or both are `null`. It does not inspect the contents of two different objects.
+- `a.equals(b)` calls the `equals` method of the left-hand object, but throws `NullPointerException` if `a == null`.
+- `Objects.equals(a, b)` returns `true` when both are `null`, returns `false` when exactly one side is `null`, and when both are non-`null` calls `a.equals(b)`. This is a convenient, `null`-safe choice for most reference fields that have appropriate `equals` semantics.
 
-Ví dụ trực tiếp:
+Direct example:
 
 ~~~java
 String first = new String("Java");
@@ -53,30 +53,30 @@ System.out.println(java.util.Objects.equals(null, null));     // true
 System.out.println(java.util.Objects.equals(first, null));    // false
 ~~~
 
-Hai lệnh `new String(...)` trong ví dụ chủ động tạo hai đối tượng chuỗi độc lập để làm rõ khác biệt. Trong chương trình thông thường, không cần tạo `new String` từ literal chỉ để so sánh.
+The two `new String(...)` statements in the example intentionally create two independent string objects to make the difference clear. In normal programs, there is no need to create `new String` from a literal just for comparison.
 
-**`Objects.equals` không tự tạo “so sánh sâu”.** Nó chỉ ủy quyền cho `equals` của kiểu trường. Nếu kiểu đó kế thừa `Object.equals` mà không override, kết quả vẫn phản ánh danh tính. Ví dụ một lớp `Address` không override `equals` có thể khiến hai địa chỉ chứa các trường giống hệt nhau bị coi là khác nhau.
+**`Objects.equals` does not automatically create a “deep comparison”.** It merely delegates to the field type's `equals`. If that type inherits `Object.equals` without overriding it, the result still reflects identity. For example, an `Address` class that does not override `equals` can cause two addresses containing identical fields to be treated as different.
 
-### Chọn phép so sánh đúng cho từng kiểu tham chiếu
+### Choosing the Right Comparison for Each Reference Type
 
-| Kiểu trường | Cách so sánh thường phù hợp trong `equals` của lớp chứa |
+| Field type | Commonly appropriate comparison in the containing class's `equals` |
 | --- | --- |
-| `String` | `Objects.equals(name, that.name)` để so sánh chính xác nội dung và xử lý `null`. |
-| Lớp giá trị tự định nghĩa | `Objects.equals(address, that.address)`, **sau khi** `Address.equals` đã được định nghĩa đúng. |
-| `Integer`, `Long`, `Boolean` (wrapper) | `Objects.equals(boxed, that.boxed)` hoặc kiểm tra giá trị phù hợp; tránh `==` giữa hai wrapper vì cache/boxing có thể làm kết quả khó hiểu. |
-| `List` | `Objects.equals(list, that.list)`, nếu ngữ nghĩa danh sách là so phần tử cùng thứ tự. |
-| `Set` | `Objects.equals(set, that.set)`, nếu muốn so tập phần tử, không phụ thuộc thứ tự duyệt. |
-| `Map` | `Objects.equals(map, that.map)`, nếu muốn so các ánh xạ key-value tương ứng. |
-| Enum | `status == that.status` là thích hợp vì mỗi hằng enum là một instance duy nhất. |
-| Mảng nguyên thủy, ví dụ `int[]` | `Arrays.equals(a, b)` để so từng phần tử. |
-| Mảng đối tượng một chiều, ví dụ `String[]` | `Arrays.equals(a, b)` để so các phần tử bằng `Objects.equals`. |
-| Mảng lồng nhau, ví dụ `int[][]` | `Arrays.deepEquals(a, b)` nếu cần so nội dung các mảng con thay vì danh tính của từng mảng con. |
+| `String` | `Objects.equals(name, that.name)` to compare content accurately and handle `null`. |
+| Custom value class | `Objects.equals(address, that.address)`, **after** `Address.equals` has been properly defined. |
+| `Integer`, `Long`, `Boolean` (wrappers) | `Objects.equals(boxed, that.boxed)` or appropriate value check; avoid `==` between two wrappers because caching/boxing can make results confusing. |
+| `List` | `Objects.equals(list, that.list)`, if list semantics compare elements in the same order. |
+| `Set` | `Objects.equals(set, that.set)`, if you want to compare the set of elements, independent of iteration order. |
+| `Map` | `Objects.equals(map, that.map)`, if you want to compare corresponding key-value mappings. |
+| Enum | `status == that.status` is appropriate because each enum constant is a unique instance. |
+| Primitive array, e.g., `int[]` | `Arrays.equals(a, b)` to compare element by element. |
+| One-dimensional object array, e.g., `String[]` | `Arrays.equals(a, b)` to compare elements using `Objects.equals`. |
+| Nested array, e.g., `int[][]` | `Arrays.deepEquals(a, b)` if you need to compare the contents of sub-arrays rather than the identity of each sub-array. |
 
-Các so sánh theo `List`, `Set` và `Map` chỉ đúng khi **hợp đồng của phần tử/key/value** cũng đúng. Nếu phần tử là lớp không override `equals`, một collection có nội dung “trông như nhau” vẫn có thể không `equals`.
+Comparisons for `List`, `Set`, and `Map` are only correct when the **element/key/value contract** is also correct. If an element is a class that does not override `equals`, a collection whose contents “look the same” may still not be `equals`.
 
-### Riêng đối với mảng
+### Specifically for Arrays
 
-Mảng Java kế thừa `Object.equals` và **không override `equals` để so từng phần tử**. Vì thế:
+Java arrays inherit `Object.equals` and **do not override `equals` to compare element by element**. Therefore:
 
 ~~~java
 int[] a = {1, 2};
@@ -88,15 +88,15 @@ System.out.println(java.util.Objects.equals(a,b)); // false
 System.out.println(java.util.Arrays.equals(a,b));  // true
 ~~~
 
-`Arrays.equals` xử lý cả hai mảng `null`; nếu hai mảng có cùng độ dài và từng phần tử tương ứng bằng nhau, kết quả `true`. Đối với mảng chứa mảng, `Arrays.equals` chỉ so các phần tử mảng bên trong theo tham chiếu; `Arrays.deepEquals` có thể đi sâu vào mảng con. Nếu chọn `Arrays.deepEquals`, phần `hashCode` tương ứng thường phải dùng `Arrays.deepHashCode`. Với `Arrays.equals` một chiều, dùng `Arrays.hashCode`.
+`Arrays.equals` handles both arrays being `null`; if two arrays have the same length and corresponding elements are equal, the result is `true`. For arrays containing arrays, `Arrays.equals` only compares the inner array elements by reference; `Arrays.deepEquals` can descend into sub-arrays. If you choose `Arrays.deepEquals`, the corresponding `hashCode` must usually use `Arrays.deepHashCode`. With one-dimensional `Arrays.equals`, use `Arrays.hashCode`.
 
-Cần hiểu giới hạn: `Arrays.deepEquals` dành cho cây mảng thông thường; mảng có tham chiếu vòng trở lại chính nó không phải tình huống cần trông đợi phép duyệt sâu hoạt động an toàn.
+Understand the limitation: `Arrays.deepEquals` is meant for ordinary array trees; an array with a circular reference back to itself is not a situation where deep traversal should be expected to work safely.
 
-## 3. Ví dụ Java 17+: kết hợp nhiều kiểu trường trong `equals`
+## 3. Java 17+ Example: Combining Multiple Field Types in `equals`
 
-Giả sử hai kế hoạch học tập có cùng `level`, `active`, `rating`, `title`, danh sách chủ đề và các mốc tiến độ thì được xem là cùng giá trị. Các trường là dữ liệu của **value object**; đây không phải quy tắc so sánh danh tính thực thể trong mọi hệ thống.
+Suppose two study plans having the same `level`, `active`, `rating`, `title`, topic list, and progress checkpoints are considered to have the same value. The fields are data of a **value object**; this is not an entity identity comparison rule for every system.
 
-Tệp **`CoursePlanEqualsDemo.java`**:
+File **`CoursePlanEqualsDemo.java`**:
 
 ~~~java
 import java.util.Arrays;
@@ -120,7 +120,7 @@ public class CoursePlanEqualsDemo {
             this.level = level;
             this.active = active;
             this.rating = rating;
-            this.title = title; // Cho phép null; String bất biến.
+            this.title = title; // Allows null; String is immutable.
             this.checkpoints = Arrays.copyOf(
                 Objects.requireNonNull(checkpoints), checkpoints.length
             );
@@ -187,14 +187,14 @@ public class CoursePlanEqualsDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run using JDK 17 or higher:
 
 ~~~bash
 javac CoursePlanEqualsDemo.java
 java CoursePlanEqualsDemo
 ~~~
 
-Kết quả chuẩn:
+Expected output:
 
 ~~~text
 false
@@ -209,109 +209,109 @@ false
 true
 ~~~
 
-Đối chiếu từng kết quả:
+Checking each output:
 
-1. `first == second` → `false` vì hai lời gọi constructor tạo **hai `CoursePlan` độc lập**.
-2. `first.equals(second)` → `true`: các trường nguyên thủy bằng nhau; `String` có cùng nội dung; hai mảng khác instance nhưng có phần tử giống nhau; hai danh sách có phần tử cùng thứ tự.
-3. Hash của hai `CoursePlan` bằng nhau vì `hashCode` dùng cùng dữ liệu làm cơ sở mà `equals` sử dụng.
-4. `first.equals(changed)` → `false` vì `checkpoints` khác ở phần tử thứ hai (`3` so với `4`).
-5. `first.equals(null)` → `false` theo hợp đồng `equals`.
+1. `first == second` → `false` because two constructor calls create **two independent `CoursePlan` instances**.
+2. `first.equals(second)` → `true`: primitive fields are equal; `String` has the same content; the two arrays are different instances but have identical elements; the two lists have elements in the same order.
+3. The hashes of the two `CoursePlan` instances are equal because `hashCode` uses the same data as the basis that `equals` uses.
+4. `first.equals(changed)` → `false` because `checkpoints` differs at the second element (`3` versus `4`).
+5. `first.equals(null)` → `false` per the `equals` contract.
 6. `Objects.equals(null, null)` → `true`.
-7. `HashSet` có kích thước `2`: `first` và `second` được coi là cùng giá trị; `changed` là giá trị khác.
-8. Hai mảng `int[]` độc lập có cùng phần tử nên `Arrays.equals` trả `true`.
+7. `HashSet` has size `2`: `first` and `second` are treated as the same value; `changed` is a different value.
+8. Two independent `int[]` arrays have the same elements, so `Arrays.equals` returns `true`.
 9. `Double.compare(+0.0, -0.0) == 0` → `false`.
 10. `Double.compare(Double.NaN, Double.NaN) == 0` → `true`.
 
-Trong constructor, `Arrays.copyOf` sao chép mảng do người gọi đưa vào để họ không thể thay đổi nội dung trường qua tham chiếu mảng gốc. `List.copyOf` lưu danh sách không thể chỉnh sửa bằng thao tác thay đổi phần tử của danh sách. Vì danh sách ví dụ chỉ chứa `String` bất biến, thiết kế này phù hợp làm đối tượng giá trị ổn định. `List.copyOf` không cho các phần tử `null`; đây là ràng buộc được chọn cho ví dụ, không phải quy tắc bắt buộc của `equals`.
+In the constructor, `Arrays.copyOf` copies the array passed in by the caller so they cannot mutate the field's content through the original array reference. `List.copyOf` stores an unmodifiable list against element-modification operations on the list. Because the example list contains only immutable `String` elements, this design is suitable as a stable value object. `List.copyOf` does not allow `null` elements; that is a constraint chosen for the example, not a mandatory rule of `equals`.
 
-Tại sao `hashCode` có hai phần? `Objects.hash(...)` xử lý các trường nguyên thủy qua boxing và các trường tham chiếu qua mã băm của chúng; tuy nhiên, **mảng cần dùng `Arrays.hashCode`** để hash nội dung từng phần tử. Kết hợp bằng `31 * result + ...` để tất cả thành phần quyết định `equals` cũng đóng góp vào kết quả hash.
+Why does `hashCode` have two parts? `Objects.hash(...)` handles primitive fields via boxing and reference fields via their hash codes; however, **arrays need `Arrays.hashCode`** to hash the contents of each element. Combining via `31 * result + ...` ensures all components determining `equals` also contribute to the hash result.
 
-## 4. Quy tắc nhất quán giữa `equals` và `hashCode`
+## 4. Consistency Rules Between `equals` and `hashCode`
 
-Hợp đồng `equals` yêu cầu tính phản xạ, đối xứng, bắc cầu, nhất quán (khi dữ liệu liên quan không đổi) và `x.equals(null) == false` với `x != null`.
+The `equals` contract requires reflexivity, symmetry, transitivity, consistency (when relevant data does not change), and `x.equals(null) == false` for `x != null`.
 
-Hợp đồng `hashCode` yêu cầu:
+The `hashCode` contract requires:
 
-> Nếu `x.equals(y)` là `true`, thì **`x.hashCode() == y.hashCode()` phải là `true`**.
+> If `x.equals(y)` is `true`, then **`x.hashCode() == y.hashCode()` must be `true`**.
 
-Điều ngược lại không bắt buộc: hai giá trị khác nhau có thể có cùng hash (collision).
+The converse is not required: two different values can have the same hash (collision).
 
-Trong ví dụ, `level`, `active`, `rating`, `title`, `checkpoints`, `topics` đều ảnh hưởng tới `equals` và đều được phản ánh trong `hashCode`. Nếu bỏ `checkpoints` khỏi hash nhưng vẫn so trong `equals`, điều đó **không nhất thiết phá vỡ** mệnh đề “bằng nhau thì cùng hash”, nhưng có thể làm tăng collision. Ngược lại, nếu hash thêm một trường không tham gia `equals` và trường đó khác giữa hai đối tượng được coi là bằng nhau, sẽ **vi phạm hợp đồng**.
+In the example, `level`, `active`, `rating`, `title`, `checkpoints`, `topics` all affect `equals` and are all reflected in `hashCode`. Omitting `checkpoints` from the hash while still comparing it in `equals` **does not necessarily break** the “equal implies same hash” clause, though it can increase collisions. Conversely, hashing an extra field that does not participate in `equals` and differs between two objects considered equal will **violate the contract**.
 
-Để giữ tính ổn định, nên tránh thay đổi các trường tham gia `equals`/`hashCode` khi đối tượng đang là key của `HashMap` hoặc phần tử của `HashSet`. Nếu hash thay đổi sau khi lưu, thao tác tìm kiếm hay xóa có thể thất bại dù tham chiếu vẫn còn trong collection.
+To maintain stability, avoid modifying fields that participate in `equals`/`hashCode` while the object is a key in a `HashMap` or an element in a `HashSet`. If the hash changes after storage, lookup or removal operations can fail even though the reference is still inside the collection.
 
-## 5. Các lỗi thường gặp và cách sửa
+## 5. Common Mistakes and How to Fix Them
 
-### Lỗi 1: Dùng `==` cho `String` hoặc wrapper
+### Mistake 1: Using `==` for `String` or wrappers
 
 ~~~java
-// Dễ sai nếu mong so nội dung:
+// Prone to error if content comparison is intended:
 return age == that.age && name == that.name;
 
-// Đúng khi name là String và có thể null:
+// Correct when name is String and may be null:
 return age == that.age && Objects.equals(name, that.name);
 ~~~
 
-`Integer` và các wrapper khác cũng là kiểu tham chiếu. Một số giá trị đóng hộp có thể được tái sử dụng qua cache; điều này không làm `==` thành phép so sánh giá trị đáng tin cậy cho hai wrapper bất kỳ. Dùng `Objects.equals` khi cần so nội dung và xử lý `null`.
+`Integer` and other wrappers are also reference types. Some boxed values may be reused via caching; this does not make `==` a reliable value comparison for any two arbitrary wrappers. Use `Objects.equals` when comparing content and handling `null`.
 
-### Lỗi 2: Dùng `Objects.equals` cho mảng để mong so phần tử
+### Mistake 2: Using `Objects.equals` on arrays expecting element comparison
 
 ~~~java
-// Sai mục tiêu: đây vẫn là so tham chiếu của hai mảng.
+// Wrong goal: this still compares references of the two arrays.
 Objects.equals(firstArray, secondArray);
 
-// Đúng với int[] một chiều:
+// Correct for one-dimensional int[]:
 Arrays.equals(firstArray, secondArray);
 ~~~
 
-Đồng thời, dùng `Arrays.hashCode` tương ứng cho mảng một chiều; với mảng lồng nhau dùng cặp `Arrays.deepEquals` / `Arrays.deepHashCode` khi cần ngữ nghĩa sâu.
+At the same time, use the corresponding `Arrays.hashCode` for one-dimensional arrays; for nested arrays use the pair `Arrays.deepEquals` / `Arrays.deepHashCode` when deep semantics are needed.
 
-### Lỗi 3: Gọi `equals` trên trường có thể null
+### Mistake 3: Calling `equals` on a nullable field
 
 ~~~java
-// Có nguy cơ NullPointerException:
+// Risk of NullPointerException:
 title.equals(that.title);
 
-// An toàn khi một hoặc cả hai bên null:
+// Safe when one or both sides are null:
 Objects.equals(title, that.title);
 ~~~
 
-Nếu nghiệp vụ cấm `null`, cũng có thể kiểm tra ngay trong constructor bằng `Objects.requireNonNull(title)` rồi gọi `title.equals(that.title)` sau đó. Cần nhất quán với điều kiện hợp lệ của đối tượng.
+If the domain forbids `null`, you can also validate right in the constructor with `Objects.requireNonNull(title)` and then call `title.equals(that.title)`. Be consistent with the object's validity invariants.
 
-### Lỗi 4: So sánh thiếu hoặc thừa trường
+### Mistake 4: Comparing too few or too many fields
 
-Nếu `equals` chỉ so `name` mà hai người trùng tên chưa chắc là cùng người, cách định nghĩa giá trị có thể sai nghiệp vụ. Ngược lại, nếu thêm trường mô tả tạm thời như `lastViewedAt` vào `equals` của một value object vốn chỉ quan tâm `id`, hai giá trị đáng lẽ bằng nhau có thể bị phân biệt không cần thiết.
+If `equals` only compares `name` while two people with the same name are not necessarily the same person, the value definition may be wrong for the domain. Conversely, adding a transient descriptive field like `lastViewedAt` to `equals` of a value object that only cares about `id` can cause values that should be equal to be unnecessarily distinguished.
 
-**Chọn trường theo ý nghĩa của kiểu dữ liệu**, rồi bảo đảm `hashCode` tuân theo cùng quyết định. Việc IDE sinh phương thức tự động chỉ giúp tránh lỗi cú pháp; vẫn phải xem lại lựa chọn trường.
+**Choose fields based on the meaning of the data type**, then make sure `hashCode` follows the same decision. Auto-generating methods in an IDE only prevents syntax errors; you must still review the field selection.
 
-### Lỗi 5: Bỏ qua kiểu con và tính đối xứng
+### Mistake 5: Ignoring subtypes and symmetry
 
-Với lớp có thể được kế thừa, việc lớp cha dùng `instanceof Parent` còn lớp con lại so thêm một trường có thể khiến `parent.equals(child)` khác `child.equals(parent)`. Cần thiết kế chiến lược bình đẳng rõ ràng. Một lựa chọn đơn giản cho **value object** là dùng lớp `final`, như `CoursePlan` ở trên. Nếu lớp buộc phải mở cho kế thừa, hãy cân nhắc kiểm tra `getClass()` hoặc một chiến lược khác, đồng thời kiểm thử tính đối xứng/bắc cầu; không có công thức duy nhất đúng cho mọi mô hình kế thừa.
+For a class that can be inherited, having the superclass use `instanceof Parent` while the subclass compares an additional field can make `parent.equals(child)` differ from `child.equals(parent)`. A clear equality strategy must be designed. A simple choice for a **value object** is to use a `final` class, like `CoursePlan` above. If the class must remain open for inheritance, consider checking `getClass()` or another strategy, and test symmetry/transitivity; there is no single formula right for every inheritance model.
 
-### Lỗi 6: Hiểu nhầm `BigDecimal`, `String` hoặc collection
+### Mistake 6: Misunderstanding `BigDecimal`, `String`, or collections
 
-`BigDecimal("1.0")` và `BigDecimal("1.00")` có thể tương đương về số học theo `compareTo`, nhưng `equals` trả `false` vì xét cả `scale`. Tương tự, `String.equals` so chính xác chuỗi, kể cả chữ hoa/chữ thường; muốn chuẩn hóa trước so sánh phải đặt ra quy tắc rõ ràng và bảo đảm quy tắc đó cũng áp dụng nhất quán cho hash.
+`BigDecimal("1.0")` and `BigDecimal("1.00")` may be numerically equivalent by `compareTo`, but `equals` returns `false` because it considers `scale` as well. Similarly, `String.equals` compares strings exactly, including uppercase/lowercase; if you want normalization before comparison, you must establish a clear rule and ensure that rule also applies consistently to the hash.
 
-Với các collection, `Objects.equals` dựa vào `equals` của collection và phần tử. `List` giữ ngữ nghĩa thứ tự; `Set` so theo phần tử không phụ thuộc thứ tự duyệt; `Map` so theo ánh xạ key-value. Không được tự động coi mọi collection là các tập hợp phần tử không thứ tự.
+With collections, `Objects.equals` relies on the `equals` of the collection and its elements. `List` preserves order semantics; `Set` compares by elements regardless of iteration order; `Map` compares by key-value mappings. Do not automatically assume all collections are unordered sets of elements.
 
-## 6. Quy trình viết và kiểm thử `equals`
+## 6. Process for Writing and Testing `equals`
 
-1. **Xác định ý nghĩa “cùng giá trị”.** Chỉ rõ các trường tham gia so sánh và xem đó là value object hay entity có danh tính riêng.
-2. **Kiểm tra cùng tham chiếu:** `if (this == obj) return true;`.
-3. **Kiểm tra đối tượng đầu vào:** `null` và kiểu không phù hợp phải cho `false`. Với class `final`, `instanceof YourClass that` là một cách viết rõ ràng trong Java 17.
-4. **So sánh từng trường đúng kiểu:** nguyên thủy thường `==`, `float/double` chọn `Float.compare`/`Double.compare`, tham chiếu dùng `Objects.equals` khi hợp lý, mảng dùng `Arrays.equals` hoặc `Arrays.deepEquals`.
-5. **Viết `hashCode` tương ứng:** cùng thông tin xác định `equals` phải tạo ra cùng hash; riêng mảng cần `Arrays.hashCode` hoặc `Arrays.deepHashCode`.
-6. **Kiểm thử các ca thiết yếu:** cùng tham chiếu, hai instance có cùng dữ liệu, một trường thay đổi, `null`, kiểu không liên quan, chuỗi độc lập có cùng nội dung, mảng độc lập có cùng phần tử, `NaN`/`±0.0` nếu có `float/double`, và lưu/tìm trong `HashSet` hoặc `HashMap`.
-7. **Giữ trạng thái so sánh ổn định:** ưu tiên value object bất biến; không để mảng hoặc collection có thể thay đổi nội dung qua alias ngoài ý muốn.
+1. **Define the meaning of “same value”.** Specify which fields participate in the comparison and whether it is a value object or an entity with its own identity.
+2. **Check same reference:** `if (this == obj) return true;`.
+3. **Check the input object:** `null` and incompatible types must yield `false`. For a `final` class, `instanceof YourClass that` is a clear way to write it in Java 17.
+4. **Compare each field according to its type:** primitives usually `==`, `float/double` choose `Float.compare`/`Double.compare`, references use `Objects.equals` when appropriate, arrays use `Arrays.equals` or `Arrays.deepEquals`.
+5. **Write the corresponding `hashCode`:** the same information that determines `equals` must produce the same hash; arrays specifically need `Arrays.hashCode` or `Arrays.deepHashCode`.
+6. **Test essential cases:** same reference, two instances with the same data, one field changed, `null`, unrelated type, independent strings with the same content, independent arrays with the same elements, `NaN`/`±0.0` if `float/double` is present, and storing/looking up in `HashSet` or `HashMap`.
+7. **Keep comparison state stable:** prefer immutable value objects; do not let arrays or collections change their content via unintended aliases.
 
-Một `record` Java tự sinh `equals` và `hashCode` dựa trên các thành phần, rất thuận tiện cho nhiều value object. Tuy nhiên, **record chứa mảng không tự so sâu nội dung mảng**; component kiểu mảng vẫn so bằng ngữ nghĩa tham chiếu trong `equals` được sinh. Vì vậy vẫn cần cân nhắc kiểu thành phần trước khi chọn record để đại diện giá trị.
+A Java `record` automatically generates `equals` and `hashCode` based on its components, which is very convenient for many value objects. However, **a record containing an array does not automatically deep-compare array contents**; an array-typed component is still compared by reference semantics in the generated `equals`. Therefore, you still need to consider component types before choosing a record to represent a value.
 
-## 7. Tự kiểm tra
+## 7. Self-Check
 
-1. Một lớp có trường `int age` và `String name`. Vì sao `age == that.age` phù hợp nhưng `name == that.name` không đủ để xác định nội dung bằng nhau?
-2. Hai `int[]` độc lập chứa `{1, 2, 3}`. Hãy dự đoán kết quả của `==`, `Objects.equals` và `Arrays.equals`, rồi giải thích.
-3. Nếu hai đối tượng bằng nhau theo `equals` nhưng có hash khác nhau, điều gì có thể xảy ra khi đưa chúng vào `HashSet`?
-4. Vì sao `Double.compare(+0.0, -0.0)` và phép `+0.0 == -0.0` cho cách nhìn khác nhau về giá trị?
-5. Nếu trường `List<Address>` được so bằng `Objects.equals`, lớp `Address` cần có ngữ nghĩa `equals` nào để hai danh sách địa chỉ độc lập có cùng dữ liệu được xem là bằng nhau?
+1. A class has fields `int age` and `String name`. Why is `age == that.age` appropriate while `name == that.name` is insufficient to determine equal content?
+2. Two independent `int[]` arrays contain `{1, 2, 3}`. Predict the results of `==`, `Objects.equals`, and `Arrays.equals`, then explain.
+3. If two objects are equal according to `equals` but have different hashes, what can happen when putting them into a `HashSet`?
+4. Why do `Double.compare(+0.0, -0.0)` and `+0.0 == -0.0` give different views of value?
+5. If a `List<Address>` field is compared using `Objects.equals`, what `equals` semantics does the `Address` class need so that two independent address lists with the same data are considered equal?
 
-**Ghi nhớ:** Khi triển khai `equals`, hãy so **giá trị nguyên thủy bằng phép so phù hợp với kiểu**, so **trường tham chiếu qua ngữ nghĩa `equals` của đối tượng đó**, và xử lý **mảng riêng bằng các phương thức `Arrays`**. Cùng một tập trường và quy tắc so sánh phải nhất quán với `hashCode`; đó là nền tảng để hai đối tượng độc lập nhưng cùng giá trị hoạt động đúng trong Java collections.
+**Key takeaway:** When implementing `equals`, compare **primitive values with a comparison suited to their type**, compare **reference fields through that object's `equals` semantics**, and handle **arrays separately with `Arrays` methods**. The same set of fields and comparison rules must be consistent with `hashCode`; that is the foundation for two independent objects with the same value to work properly in Java collections.

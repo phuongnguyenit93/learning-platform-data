@@ -1,79 +1,79 @@
-# Lọc `static`, `synthetic`, `bridge` và thành viên không phù hợp khi thiết kế công cụ Reflection
+# Filtering `static`, `synthetic`, `bridge`, and Unsuitable Members When Designing Reflection Tools
 
-## 1. Vì sao một công cụ Reflection cần lọc thành viên?
+## 1. Why does a Reflection tool need to filter members?
 
-Một class có thể chứa hằng `static`, field do compiler sinh, bridge method phục vụ generic dispatch, method `Object`, hoặc API quản trị mà công cụ không được công bố. `getDeclaredMethods()` và `getDeclaredFields()` liệt kê ứng viên theo phạm vi truy vấn; chúng **không áp dụng hợp đồng nghiệp vụ**.
+A class may contain `static` constants, compiler-generated fields, bridge methods for generic dispatch, `Object` methods, or administrative APIs that the tool must not expose. `getDeclaredMethods()` and `getDeclaredFields()` list candidates according to query scope; they **do not enforce business contracts**.
 
-Bộ hiển thị hành vi của instance có thể bỏ `static` và `bridge`; trình phân tích bytecode lại cần giữ chính những member ấy. Vì vậy lọc dựa trên **vai trò đọc/ghi/gọi**, chữ ký, visibility, annotation và nguồn khai báo, với quyết định rõ khi gặp `synthetic`. Ví dụ Java 17+ trong bài minh họa cả hai bộ lọc: method hiển thị và field có thể ghi.
+An inspector displaying instance behavior may exclude `static` and `bridge`; a bytecode analyzer needs to keep those very members. Therefore, filtering is based on **read/write/invoke role**, signature, visibility, annotations, and declaration source, with explicit decisions for `synthetic`. The Java 17+ example in this article illustrates both filters: displayable methods and writable fields.
 
-## 2. Đọc đúng metadata trước khi lọc
+## 2. Reading metadata accurately before filtering
 
-`Class<?>` trả các nhóm thành viên sau:
+`Class<?>` returns the following member groups:
 
-| API | Phạm vi | Điểm cần chú ý |
+| API | Scope | Key points to note |
 | --- | --- | --- |
-| `getDeclaredMethods()` | Method khai báo trực tiếp trong class/interface, mọi visibility | Không tự lấy method kế thừa; có thể thấy bridge/synthetic |
-| `getMethods()` | Method `public` của kiểu và các method `public` được kế thừa | Có thể bao gồm method `Object`; không chỉ method do kiểu khai báo |
-| `getDeclaredFields()` | Field khai báo trực tiếp, mọi visibility | Có thể bao gồm field do compiler sinh |
-| `getFields()` | Field `public` của kiểu và field `public` được kế thừa | Field có thể bị che khuất, nên xem declaring class |
-| `getDeclaredConstructors()` | Constructor khai báo trực tiếp, mọi visibility | Constructor không kế thừa |
-| `getConstructors()` | Constructor `public` của chính kiểu | Không có “constructor kế thừa” |
+| `getDeclaredMethods()` | Methods declared directly on the class/interface, all visibilities | Does not automatically include inherited methods; may show bridge/synthetic methods |
+| `getMethods()` | `public` methods of the type and inherited `public` methods | May include `Object` methods; not limited to methods declared by the type |
+| `getDeclaredFields()` | Fields declared directly, all visibilities | May include compiler-generated fields |
+| `getFields()` | `public` fields of the type and inherited `public` fields | Fields may be hidden, so inspect declaring class |
+| `getDeclaredConstructors()` | Constructors declared directly, all visibilities | Constructors are not inherited |
+| `getConstructors()` | `public` constructors of the type itself | There is no "inherited constructor" |
 
-**Không có thứ tự trả về được bảo đảm** từ các mảng Reflection nói trên. Không dùng vị trí `methods[0]` hoặc `fields[0]` làm ý nghĩa nghiệp vụ; nếu cần đầu ra ổn định, tự sắp xếp theo khóa rõ ràng.
+**No return order is guaranteed** from the Reflection arrays above. Do not assign business meaning to `methods[0]` or `fields[0]`; if deterministic output is needed, sort explicitly by a clear key.
 
-Một metadata member có thể trả:
+Member metadata can return:
 
-- `member.getName()`: tên.
-- `member.getDeclaringClass()`: class/interface khai báo trực tiếp member.
-- `member.getModifiers()`: tập cờ modifier, giải mã bằng `java.lang.reflect.Modifier`.
-- `member.isSynthetic()`: member được đánh dấu synthetic trong class file.
-- Với `Method`: `isBridge()`, `isVarArgs()`, `getParameterTypes()`, `getReturnType()`, `getAnnotations()`.
-- Với `Field`: `getType()`, `getGenericType()` và `isEnumConstant()`.
-- Với `Constructor<?>`: `getParameterTypes()`, `isVarArgs()` và `isSynthetic()`.
+- `member.getName()`: name.
+- `member.getDeclaringClass()`: class/interface that directly declares the member.
+- `member.getModifiers()`: modifier flag set, decoded with `java.lang.reflect.Modifier`.
+- `member.isSynthetic()`: member marked synthetic in the class file.
+- For `Method`: `isBridge()`, `isVarArgs()`, `getParameterTypes()`, `getReturnType()`, `getAnnotations()`.
+- For `Field`: `getType()`, `getGenericType()`, and `isEnumConstant()`.
+- For `Constructor<?>`: `getParameterTypes()`, `isVarArgs()`, and `isSynthetic()`.
 
-Tên và modifier **không đủ** để quyết định có thể truy cập hoặc gọi: phải xét declaring class, package, module, receiver và quy tắc access tại nơi gọi.
+Name and modifiers are **not sufficient** to decide accessibility or invocability: you must consider declaring class, package, module, receiver, and access rules at the call site.
 
-## 3. Lọc `static` chính xác
+## 3. Filtering `static` accurately
 
-`static` có ý nghĩa khác nhau với field và method:
+`static` has different meanings for fields and methods:
 
-- **Static method** thuộc về class, không đòi instance receiver.
-- **Static field** thuộc về class, không đòi instance receiver; có thể là hằng, biến cấu hình hoặc dữ liệu dùng chung.
-- **Instance method/field** làm việc trên một đối tượng nhận lời gọi.
+- **Static method** belongs to the class and does not require an instance receiver.
+- **Static field** belongs to the class and does not require an instance receiver; it may be a constant, configuration variable, or shared data.
+- **Instance method/field** operates on an object receiving the call.
 
-Kiểm tra bằng `Modifier.isStatic(member.getModifiers())`:
+Check with `Modifier.isStatic(member.getModifiers())`:
 
 ```java
 boolean instanceMethod = !Modifier.isStatic(method.getModifiers());
 boolean instanceField = !Modifier.isStatic(field.getModifiers());
 ```
 
-Đây là đoạn minh họa; `method`, `field` và import `java.lang.reflect.Modifier` phải có trong ngữ cảnh.
+This is an illustrative snippet; `method`, `field`, and importing `java.lang.reflect.Modifier` must exist in context.
 
-Bộ ánh xạ trạng thái của *một đối tượng* thường bỏ static field. Công cụ liệt kê hàm tiện ích lại có thể **chỉ** chọn static method. Không áp bộ lọc “loại static” cho mọi công cụ một cách máy móc.
+A mapper for *one object's* state typically skips static fields. A tool listing utility functions might select **only** static methods. Do not apply an "exclude static" filter mechanically to every tool.
 
-**Lưu ý:** Class lồng khai báo `static` không có nghĩa constructor của nó là “static constructor”. Constructor không phải method static; lọc `Modifier.isStatic` trên method/field khác với quyết định loại constructor.
+**Note:** A nested class declared `static` does not mean its constructors are "static constructors". Constructors are not static methods; filtering `Modifier.isStatic` on methods/fields differs from deciding to exclude constructors.
 
-## 4. `synthetic` là gì?
+## 4. What is `synthetic`?
 
-`Member.isSynthetic()` cho biết member được đánh dấu **`ACC_SYNTHETIC`** trong metadata class file (theo cách JVM/Reflection biểu diễn). Compiler có thể tạo những member này để hiện thực các chi tiết ngôn ngữ như truy cập nội bộ, capture, bridge hoặc dạng hỗ trợ khác.
+`Member.isSynthetic()` indicates the member is marked **`ACC_SYNTHETIC`** in class file metadata (as represented by the JVM/Reflection). Compilers may generate such members to implement language features such as internal access, captures, bridges, or other support mechanisms.
 
-Ví dụ có thể gặp:
+Examples you may encounter:
 
-- Field tổng hợp chứa tham chiếu tới enclosing instance trong một số inner class.
-- Field compiler tạo để chứa giá trị bắt từ ngữ cảnh xung quanh.
-- Method trợ giúp compiler sinh ra.
-- Bridge method được tạo để bảo toàn đa hình khi có generic erasure hoặc covariant return.
+- A synthetic field holding a reference to the enclosing instance in certain inner classes.
+- A compiler-generated field storing captured values from surrounding context.
+- Compiler-generated helper methods.
+- Bridge methods created to preserve polymorphism with generic erasure or covariant returns.
 
-**Không dựa vào tên bắt đầu bằng `$`** để nhận biết synthetic: `$` là ký tự hợp lệ trong identifier Java, và quy ước tên compiler thay đổi theo trình biên dịch/phiên bản. Đồng thời, **không phải mọi member compiler tạo đều `isSynthetic() == true`**: chẳng hạn một accessor hợp lệ của record hoặc constructor mặc định có thể là API nguồn của kiểu.
+**Do not rely on names starting with `$`** to detect synthetic members: `$` is a valid character in Java identifiers, and compiler naming conventions vary across compilers/versions. At the same time, **not every compiler-generated member has `isSynthetic() == true`**: for instance, a valid record accessor or default constructor may be part of the type's source API.
 
-`isSynthetic()` phù hợp để loại member kỹ thuật ra khỏi giao diện nghiệp vụ, nhưng với công cụ phân tích bytecode hoặc debugger thì chính member synthetic lại là dữ liệu cần quan sát.
+`isSynthetic()` is suitable for removing technical members from business interfaces, whereas for bytecode analysis tools or debuggers, synthetic members themselves are data to observe.
 
-## 5. `bridge` xuất hiện vì sao, khác `synthetic` ra sao?
+## 5. Why does `bridge` appear, and how does it differ from `synthetic`?
 
-**Bridge method** là phương thức do compiler có thể tạo để bảo toàn quy tắc override/dispatch của Java khi chữ ký bytecode chịu ảnh hưởng của type erasure hoặc covariant return type.
+A **bridge method** is a method the compiler may generate to preserve Java override/dispatch rules when bytecode signatures are affected by type erasure or covariant return types.
 
-Ví dụ nguồn:
+Source example:
 
 ```java
 class Parent<T> {
@@ -90,31 +90,31 @@ class Child extends Parent<String> {
 }
 ```
 
-Ở bytecode, `Parent<T>.convert(T)` sử dụng dạng đã erasure tương ứng `convert(Object)`. `Child.convert(String)` có chữ ký khác tại mức JVM, nên compiler có thể sinh method bridge `convert(Object)` trong `Child` để chuyển kiểu đầu vào và gọi `convert(String)` thật.
+In bytecode, `Parent<T>.convert(T)` uses the erased form corresponding to `convert(Object)`. `Child.convert(String)` has a different signature at the JVM level, so the compiler may generate a bridge method `convert(Object)` in `Child` to cast the input type and invoke the actual `convert(String)`.
 
-Trong Reflection:
+In Reflection:
 
-- `Method.isBridge()` nhận biết method bridge.
-- `Method.isSynthetic()` thường cũng `true` trên bridge do `javac` tạo, nhưng **hai khái niệm không đồng nhất**. Đánh giá hai cờ riêng nếu chính sách cần.
-- Nếu công cụ hiển thị cả method triển khai và bridge như hai operation nghiệp vụ, người dùng có thể thấy trùng lặp hoặc hai chữ ký khó hiểu.
-- **Không xóa hoặc “vô hiệu hóa” bridge khi chạy chương trình.** Bridge là thành phần hợp lệ của hành vi đa hình Java. “Lọc” ở đây chỉ là quyết định *có đưa vào catalog API của công cụ hay không*.
+- `Method.isBridge()` detects bridge methods.
+- `Method.isSynthetic()` is also typically `true` on bridges generated by `javac`, but **the two concepts are not identical**. Evaluate both flags separately if policy requires it.
+- If a tool exposes both the implementation method and the bridge as two business operations, users may see duplicates or two confusing signatures.
+- **Do not delete or "disable" bridges at runtime.** Bridges are a valid part of Java polymorphic behavior. "Filtering" here only means deciding *whether to include them in the tool's API catalog*.
 
-Một bộ liệt kê method hướng tới lập trình viên thường lọc:
+A developer-facing method lister commonly filters:
 
 ```java
 !method.isBridge() && !method.isSynthetic()
 ```
 
-Nhưng đây vẫn là chính sách của công cụ. Công cụ phân tích tương thích binary, debugger hoặc bytecode inspector có thể phải giữ cả hai.
+Yet this remains a tool policy. Binary compatibility analyzers, debuggers, or bytecode inspectors may need to keep both.
 
-## 6. Ví dụ Java 17+ hoàn chỉnh: lọc method và field theo mục tiêu
+## 6. Complete Java 17+ example: filtering methods and fields by goal
 
-Ví dụ thiết kế hai danh sách:
+The example constructs two lists:
 
-1. **Method hiển thị:** chỉ method `public`, thuộc instance, được khai báo trực tiếp trong class, không synthetic/bridge, không tham số, có giá trị trả về.
-2. **Field có thể ghi qua giao diện dữ liệu:** chỉ field `public`, thuộc instance, không synthetic, không `final`.
+1. **Displayable methods:** only `public`, instance methods declared directly in the class, non-synthetic/non-bridge, zero parameters, with a return value.
+2. **Fields writable through a data interface:** only `public`, instance fields, non-synthetic, non-`final`.
 
-Lưu thành **`MemberFilterDemo.java`**:
+Save as **`MemberFilterDemo.java`**:
 
 ```java
 import java.lang.reflect.Field;
@@ -193,14 +193,14 @@ public class MemberFilterDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac MemberFilterDemo.java
 java MemberFilterDemo
 ```
 
-Kết quả khi biên dịch bằng `javac` của JDK 17:
+Output when compiled with JDK 17 `javac`:
 
 ```text
 methods=[describe]
@@ -208,52 +208,52 @@ writableFields=[label]
 bridges=1
 ```
 
-**Vì sao kết quả này đúng?**
+**Why is this output right?**
 
-- `describe()` được chọn: method `public`, instance, không tham số, trả `String` và không phải bridge/synthetic.
-- `version()` bị loại vì `static`; `reset()` bị loại vì trả `void`; `convert(String)` bị loại bởi chính sách method không tham số; `internal()` bị loại vì `private`.
-- Khi override `Parent<String>.convert(String)`, `javac` tạo một bridge kiểu `convert(Object)` trong `Sample`. Bộ lọc phát hiện bridge/synthetic và không đưa method này vào danh sách nghiệp vụ.
-- `label` được chọn vì là field `public`, instance, không `final`.
-- `category` bị loại vì `static`; `id` bị loại vì `final`; `secret` bị loại vì `private`.
-- `sorted()` làm kết quả đầu ra ổn định ngay cả khi `getDeclaredMethods()`/`getDeclaredFields()` không bảo đảm thứ tự.
+- `describe()` is selected: `public`, instance method, no parameters, returns `String`, and is neither bridge nor synthetic.
+- `version()` is excluded because it is `static`; `reset()` is excluded because it returns `void`; `convert(String)` is excluded by the zero-parameter method policy; `internal()` is excluded because it is `private`.
+- When overriding `Parent<String>.convert(String)`, `javac` generates a bridge like `convert(Object)` in `Sample`. The filter detects bridge/synthetic and excludes this method from the business list.
+- `label` is selected because it is a `public`, instance, non-`final` field.
+- `category` is excluded because it is `static`; `id` is excluded because it is `final`; `secret` is excluded because it is `private`.
+- `sorted()` makes the output deterministic even though `getDeclaredMethods()`/`getDeclaredFields()` do not guarantee order.
 
-**Giới hạn của ví dụ:** Đây là chính sách tạo một danh sách hiển thị và một danh sách field có thể ghi, **không phải** bộ lọc đúng cho mọi serializer, ORM, test framework hoặc API generator. Ví dụ dùng `getDeclared...` nên chỉ xét member khai báo trực tiếp trong `Sample`, không đưa inherited method `Object` vào kết quả. Nó kiểm tra modifier nhưng **chưa thực hiện kiểm tra quyền truy cập khi gọi trên module khác**: điều đó phải được giải quyết riêng khi tích hợp công cụ thực.
+**Limitations of the example:** This is a policy for building a display list and a writable-field list, **not** the right filter for every serializer, ORM, test framework, or API generator. The example uses `getDeclared...` so it only considers members declared directly in `Sample`, excluding inherited `Object` methods from the result. It checks modifiers but **does not yet check access permissions when invoked across different modules**: that must be addressed separately when integrating a real tool.
 
-## 7. Định nghĩa “không phù hợp” theo vai trò, chữ ký và visibility
+## 7. Defining "unsuitable" by role, signature, and visibility
 
-Bên cạnh `static`, `synthetic` và `bridge`, công cụ thường phải kiểm tra thêm:
+Besides `static`, `synthetic`, and `bridge`, a tool often must check:
 
-| Tiêu chí | Khi nào cần lọc? | Điều không được suy diễn |
+| Criterion | When to filter? | What must not be inferred |
 | --- | --- | --- |
-| `public` / `protected` / package-private / `private` | Khi chỉ công bố public API hoặc muốn giới hạn truy cập | Có modifier `public` chưa đảm bảo gọi được qua mọi module |
-| `abstract` | Nếu công cụ đòi thao tác tự có implementation trong class | Method abstract vẫn có thể được dispatch trên instance subclass cụ thể |
-| `final` trên field | Nếu công cụ muốn *ghi* field | Field `final` vẫn có thể đọc; không đồng nghĩa synthetic |
-| `transient` trên field | Khi serialization policy chọn bỏ transient | Không tự động vô nghĩa với mọi framework |
-| `volatile` trên field | Khi cần quy tắc truy cập đồng bộ thích hợp | `volatile` không đồng nghĩa field phải loại khỏi mọi danh sách |
-| `isVarArgs()` | Nếu bộ gọi không biết dựng mảng varargs | Varargs vẫn là Java method hợp lệ |
-| Danh sách tham số và kiểu trả về | Khi tool chỉ hỗ trợ một hình dạng API nhất định | Không suy ra method sai nếu chữ ký không khớp chính sách |
-| Annotation | Khi muốn chỉ công bố member được đánh dấu | Annotation chỉ đọc được ở runtime khi retention phù hợp |
-| Declaring class và kế thừa | Khi chỉ liệt kê API của class đang xét | Inherited/default methods có thể là API cần giữ |
-| Khả năng truy cập thực tế | Trước khi gọi method, constructor hoặc đọc/ghi field | Metadata tìm được chưa đồng nghĩa được phép sử dụng |
-| Cặp tên và chữ ký overload | Khi xây operation registry | Chỉ dùng tên method làm key có thể gây ghi đè overload |
+| `public` / `protected` / package-private / `private` | When exposing only public APIs or limiting access | Having the `public` modifier does not guarantee invocability across all modules |
+| `abstract` | If the tool requires an operation to have its own implementation in the class | An abstract method can still be dispatched on a concrete subclass instance |
+| `final` on fields | If the tool wants to *write* the field | A `final` field can still be read; does not mean synthetic |
+| `transient` on fields | When serialization policy chooses to skip transient | Not automatically meaningless to every framework |
+| `volatile` on fields | When appropriate concurrent access rules are needed | `volatile` does not mean a field must be excluded from all lists |
+| `isVarArgs()` | If the invoker cannot construct varargs arrays | Varargs is still a valid Java method |
+| Parameter list and return type | When the tool only supports a specific API shape | Do not judge a method broken just because its signature does not match policy |
+| Annotations | When publishing only marked members | Annotations are only readable at runtime with appropriate retention |
+| Declaring class and inheritance | When listing only the API of the class under inspection | Inherited/default methods may be APIs that should be kept |
+| Actual accessibility | Before invoking a method, constructor, or reading/writing a field | Discovering metadata does not mean permission to use it |
+| Name and overload signature pair | When building an operation registry | Using only the method name as key can overwrite overloads |
 
-Ví dụ trường `transient` có ý nghĩa với Java serialization truyền thống nhưng một thư viện ánh xạ dữ liệu có thể có hợp đồng riêng. Một method `void reset()` là API hợp lệ; nó chỉ bị loại nếu **công cụ đang xây danh sách hàm đọc có kết quả** như ví dụ trên.
+For example, a `transient` field is meaningful for traditional Java serialization, whereas a data-mapping library may have its own contract. A method `void reset()` is valid API; it is only excluded if **the tool is building a list of readable functions returning results** as in the example above.
 
-Nếu dùng danh sách method để tự động gọi, cần xác định rõ loại tham số có thể cấp được: `Class<?>[] getParameterTypes()`, `getReturnType()`, `getExceptionTypes()`, `isVarArgs()` và annotation của method/parameter. Không nên gọi ngẫu nhiên mọi method không tham số vì chúng có thể gây tác dụng phụ, ghi file, gửi request hoặc làm thay đổi state.
+If using the method list for automatic invocation, clearly determine what parameter types can be supplied: `Class<?>[] getParameterTypes()`, `getReturnType()`, `getExceptionTypes()`, `isVarArgs()`, and method/parameter annotations. Never randomly invoke every zero-argument method because they may cause side effects, write files, send requests, or mutate state.
 
-## 8. Chú ý khi duyệt kế thừa, overload và method của `Object`
+## 8. Notes when traversing inheritance, overloads, and `Object` methods
 
-`getDeclaredMethods()` chỉ xét những method khai báo trực tiếp. `getMethods()` xét public method theo phạm vi đã nói và có thể trả các method quen thuộc như `toString()`, `hashCode()` hoặc `getClass()` khi phù hợp.
+`getDeclaredMethods()` only considers directly declared methods. `getMethods()` considers public methods within the scope noted above and may return familiar methods such as `toString()`, `hashCode()`, or `getClass()` where applicable.
 
-Nếu chỉ muốn operation nghiệp vụ, có thể sử dụng chính sách công khai theo annotation thay vì tự suy luận từ tên. Khi cho phép method inherited:
+If only business operations are desired, you can use an explicit annotation-based policy instead of inferring from names. When allowing inherited methods:
 
-1. Xác định rõ có chấp nhận method thừa kế từ superclass hay interface mặc định (`default method`) không.
-2. Dùng `getDeclaringClass()` để biết nơi khai báo; đừng mặc định mọi `Method` trả về từ `Child.class.getMethods()` đều thuộc `Child`.
-3. Tránh coi mọi method cùng tên là trùng: `process(int)` và `process(String)` là **hai overload**.
-4. Khi tạo khóa operation, nên chứa tên và **danh sách kiểu tham số**; nếu tích hợp JVM signature/covariant return/bridge thì xác định chính sách biểu diễn đầy đủ.
-5. Có thể cần giải quyết method override theo quy tắc “triển khai phù hợp nhất” nếu làm catalog tổng hợp của hierarchy. Không lấy method đầu tiên được trả về để làm lựa chọn mặc định.
+1. Clarify whether methods inherited from superclasses or interface `default` methods are accepted.
+2. Use `getDeclaringClass()` to know where it was declared; do not assume every `Method` returned by `Child.class.getMethods()` belongs to `Child`.
+3. Avoid treating all methods with the same name as duplicates: `process(int)` and `process(String)` are **two overloads**.
+4. When constructing an operation key, include the name and **parameter type list**; if integrating JVM signatures/covariant returns/bridges, define a complete representation policy.
+5. You may need to resolve overridden methods according to the "most specific implementation" rule if building a combined hierarchy catalog. Never take the first method returned as the default choice.
 
-Ví dụ minh họa key phân biệt overload:
+Example illustrating an overload-distinguishing key:
 
 ```java
 static String signature(Method method) {
@@ -264,15 +264,15 @@ static String signature(Method method) {
 }
 ```
 
-Đoạn này phải đặt trong class có import `java.lang.reflect.Method` và `java.util.Arrays`; nó không phải chương trình độc lập. Trong hệ thống nhiều class, nên bổ sung identity của declaring class/loader/module cho những mục đích cần phân biệt thực thể. Với dữ liệu ổn định để so sánh, đừng chỉ dựa vào `Method.toString()` hoặc thứ tự tự nhiên của API Reflection.
+This snippet must be placed in a class with imports for `java.lang.reflect.Method` and `java.util.Arrays`; it is not a standalone program. In multi-class systems, add declaring class/loader/module identity for cases requiring entity disambiguation. For stable comparison data, do not rely solely on `Method.toString()` or the natural order of Reflection APIs.
 
-**Ví dụ đặc thù:** Record có accessor hợp lệ như `name()`; enum có các trường hằng enum và method do ngôn ngữ cung cấp; những thứ ấy có thể không mang cờ synthetic. Nếu một tool không muốn công bố chúng, phải có quy tắc theo **loại class/role/annotation** riêng, chứ không suy ra từ `isSynthetic()`.
+**Special cases:** Records have valid accessors like `name()`; enums have enum constant fields and language-provided methods; those items may not carry the synthetic flag. If a tool wishes not to publish them, it must have explicit rules based on **class kind/role/annotation**, rather than inferring from `isSynthetic()`.
 
-## 9. Annotation whitelist và chính sách tường minh
+## 9. Annotation whitelisting and explicit policy
 
-Với một tool thực hiện hành động thực tế, cách an toàn hơn việc tự động gọi mọi public method có thể là yêu cầu annotation định danh operation được hỗ trợ. Annotation cần `@Retention(RetentionPolicy.RUNTIME)` để đọc bằng Reflection tại runtime.
+For a tool that performs real actions, a safer approach than automatically invoking every public method is requiring an annotation that identifies supported operations. The annotation needs `@Retention(RetentionPolicy.RUNTIME)` to be read via Reflection at runtime.
 
-Ví dụ định hướng:
+Illustrative example:
 
 ```java
 import java.lang.annotation.Retention;
@@ -288,68 +288,68 @@ class ExampleActions {
     }
 
     public void deleteAll() {
-        // Không tự động công bố vì thiếu @ToolAction.
+        // Not automatically published because @ToolAction is missing.
     }
 }
 ```
 
-Đây là snippet minh họa, không có `main`. Khi duyệt `Method`, có thể thêm `method.isAnnotationPresent(ToolAction.class)` để chỉ nhận operation được chủ ý khai báo. Một hệ thống thật còn phải xác thực quyền của người dùng, giới hạn tham số, xử lý lỗi và side effect; annotation **không tự cung cấp quyền truy cập hay bảo mật**.
+This is an illustrative snippet without `main`. While iterating over `Method`, you can add `method.isAnnotationPresent(ToolAction.class)` to accept only intentionally declared operations. A real system must also authenticate user permissions, constrain parameters, handle errors, and manage side effects; annotations **do not by themselves grant access rights or security**.
 
-Cần quyết định trước về annotation kế thừa/override. `@Inherited` chỉ có quy tắc kế thừa đối với annotation trên **class**; không mặc nhiên khiến annotation trên method của superclass được kế thừa theo ý muốn của framework. Nếu cần quy tắc riêng cho method bị override, phải duyệt hierarchy và định nghĩa logic đó công khai.
+Decide annotation inheritance/override rules upfront. `@Inherited` only defines inheritance rules for annotations on **classes**; it does not implicitly cause annotations on superclass methods to be inherited as a framework might desire. If custom rules are needed for overridden methods, walk the hierarchy and define that logic explicitly.
 
-## 10. Trường hợp constructor và nested class
+## 10. Constructors and nested classes
 
-Constructor không dùng `Method.isBridge()`; có thể kiểm tra `Constructor.isSynthetic()`, visibility, annotation và danh sách tham số. Constructor không kế thừa, vì vậy `getDeclaredConstructors()` và `getConstructors()` có semantics khác hẳn các phương thức.
+Constructors do not use `Method.isBridge()`; you can check `Constructor.isSynthetic()`, visibility, annotations, and parameter lists. Constructors are not inherited, so `getDeclaredConstructors()` and `getConstructors()` have markedly different semantics from methods.
 
-Ví dụ công cụ dependency injection thường chọn một constructor có annotation thích hợp hoặc theo một quy ước xác định. Không mặc định chọn **constructor đầu tiên** trong mảng; thứ tự Reflection không ổn định. Không tự động gọi mọi constructor tìm được: constructor có thể làm công việc tốn kém, tạo tài nguyên hoặc có side effect.
+For example, dependency injection tools typically pick a constructor with an appropriate annotation or by a deterministic convention. Never default to picking the **first constructor** in the array; Reflection ordering is unstable. Never automatically invoke every discovered constructor: constructors can do expensive work, allocate resources, or have side effects.
 
-Đối với nested class, cần phân biệt:
+For nested classes, distinguish:
 
-- Nested class `static` thường không cần enclosing instance để tạo instance.
-- Non-static inner class thường có tham chiếu tới enclosing instance và constructor ở bytecode có thể mang tham số bổ sung liên quan tới enclosing instance.
-- Compiler có thể tạo field synthetic hỗ trợ mối liên hệ đó.
+- `static` nested classes usually do not need an enclosing instance to be instantiated.
+- Non-static inner classes usually hold a reference to an enclosing instance, and their bytecode constructors may carry an additional parameter related to the enclosing instance.
+- The compiler may generate synthetic fields supporting that relationship.
 
-Do đó, công cụ tự dựng constructor arguments cần quan sát **parameter types thực tế**, không suy từ hình thức mã nguồn và cũng không bỏ mọi tham số synthetic theo giả định cứng.
+Therefore, tools that automatically construct constructor arguments must inspect **actual parameter types**, rather than inferring from source appearance or skipping all synthetic parameters based on rigid assumptions.
 
-## 11. Quyền truy cập: “đủ điều kiện hiển thị” chưa phải “gọi được”
+## 11. Access rights: "eligible for display" is not yet "invocable"
 
-Trước khi gọi `Method.invoke(...)`, `Constructor.newInstance(...)` hoặc `Field.get/set(...)`, phải xét quyền của caller và module. Lớp `public` ở package không exported cho module gọi vẫn có thể không truy cập được theo cách kỳ vọng. `getDeclaredMethod` tìm private member không tự làm private member thành public.
+Before calling `Method.invoke(...)`, `Constructor.newInstance(...)`, or `Field.get/set(...)`, check the caller's and module's access permissions. A `public` class in a package not exported to the calling module may still be inaccessible in the expected way. `getDeclaredMethod` finding a private member does not turn the private member into public.
 
-Các điểm thực hành:
+Practical points:
 
-- `method.canAccess(receiver)`, `field.canAccess(receiver)` hoặc `constructor.canAccess(null)` có thể hỗ trợ kiểm tra truy cập ở ngữ cảnh thích hợp; instance member cần receiver phù hợp, static member dùng `null`.
-- Không lạm dụng `setAccessible(true)` để vượt bảo vệ; Java Platform Module System (JPMS) có thể từ chối deep reflection, ví dụ ném `InaccessibleObjectException`. `opens` và `exports` có mục đích khác nhau.
-- Nếu chuyển sang `MethodHandle` hoặc `VarHandle`, các thao tác `MethodHandles.Lookup` vẫn mang mô hình quyền riêng; việc đã có `Method` không bảo đảm `unreflect` sẽ thành công.
-- Khi registry cache metadata/handle theo class, cân nhắc vòng đời class loader: cache toàn cục có thể giữ class của plugin không được giải phóng.
+- `method.canAccess(receiver)`, `field.canAccess(receiver)`, or `constructor.canAccess(null)` can help check access in the appropriate context; instance members require a matching receiver, static members use `null`.
+- Do not abuse `setAccessible(true)` to bypass protection; the Java Platform Module System (JPMS) may reject deep reflection, e.g., throwing `InaccessibleObjectException`. `opens` and `exports` serve different purposes.
+- If switching to `MethodHandle` or `VarHandle`, `MethodHandles.Lookup` operations still carry their own access model; having a `Method` does not guarantee `unreflect` will succeed.
+- When a registry caches metadata/handles by class, consider class loader lifecycles: a global cache can pin plugin classes and prevent unloading.
 
-Bộ lọc metadata có thể xác định *ứng viên*. Trước khi thực hiện, công cụ phải xác thực capability của thao tác thực tế và chính sách quyền truy cập trong bối cảnh người dùng/chương trình.
+Metadata filters can identify *candidates*. Before execution, the tool must verify actual operation capabilities and access control policies in the user/program context.
 
-## 12. Kiểm tra chất lượng bộ lọc trong hệ thống thật
+## 12. Verifying filter quality in real systems
 
-Một bộ lọc đáng tin cậy phải có những kiểm tra sau:
+A reliable filter should include checks for:
 
-- **Generic bridge:** một override do erasure tạo bridge không xuất hiện hai lần trong danh sách nghiệp vụ, nhưng cơ chế dispatch Java vẫn hoạt động.
-- **Static:** field/method static được chọn hay loại theo chính sách đã công bố.
-- **Synthetic:** những member compiler sinh không lọt vào catalog nghiệp vụ nếu chính sách cấm, và một member không synthetic cũng không mặc nhiên được chấp nhận.
-- **Final, private, transient, varargs:** được xét riêng theo mục tiêu đọc, ghi, gọi hay serialize.
-- **Overload:** `f(int)` và `f(String)` có danh tính khác nhau.
-- **Inheritance/default method:** không bị bỏ hoặc nhân đôi ngoài chủ đích.
-- **Enum/record/nested class:** được kiểm tra với loại class cụ thể, không chỉ với tên field/method.
-- **Module/class loader:** cùng tên kiểu nhưng do loader khác định nghĩa không bị coi là một class duy nhất; lỗi quyền được xử lý minh bạch.
-- **Determinism:** kết quả được sắp xếp bằng comparator/key nhất quán, không phụ thuộc thứ tự Reflection.
-- **Side effects:** chỉ gọi thành viên mà hợp đồng và quyền đã cho phép; công cụ liệt kê metadata không cần thử chạy mọi method.
+- **Generic bridge:** an override whose erasure generates a bridge does not appear twice in the business list, yet Java dispatch continues to work.
+- **Static:** static fields/methods are included or excluded according to the published policy.
+- **Synthetic:** compiler-generated members do not slip into the business catalog if policy forbids them, and non-synthetic members are not accepted blindly either.
+- **Final, private, transient, varargs:** evaluated individually according to read, write, invoke, or serialization goals.
+- **Overload:** `f(int)` and `f(String)` have distinct identities.
+- **Inheritance/default method:** neither dropped nor duplicated unintentionally.
+- **Enum/record/nested class:** tested against specific class kinds, not just field/method names.
+- **Module/class loader:** same type name defined by different loaders is not treated as one class; access errors are handled transparently.
+- **Determinism:** results are sorted using a consistent comparator/key, independent of Reflection order.
+- **Side effects:** only invoke members permitted by contract and authorization; metadata listing tools must not speculatively run every method.
 
-Một thiết kế tốt nên tách ba bước **thu thập metadata → quyết định hợp lệ → thực thi hoặc công bố**. Nhờ đó có thể kiểm tra predicate lọc độc lập, giải thích vì sao một member bị bỏ và thay đổi chính sách theo từng tác vụ mà không làm biến đổi hành vi của Java runtime.
+A good design separates three steps: **metadata collection → validity decision → execution or publication**. This lets you test filter predicates independently, explain why a member was skipped, and change policies per task without altering Java runtime behavior.
 
-### Câu hỏi tự kiểm tra
+### Self-check questions
 
-1. Vì sao `getDeclaredMethods()` có thể trả nhiều method hơn số method viết trực tiếp trong source của subclass?
-2. `Method.isBridge()` dùng để phát hiện điều gì? Nếu bridge là synthetic, có nên bỏ kiểm tra bridge trong mọi công cụ không?
-3. Với một bộ serialize object, khi nào `Modifier.isStatic` là tiêu chí hợp lý? Khi nào là tiêu chí sai?
-4. Vì sao field `final` có thể được đọc nhưng thường không nên nằm trong danh sách có thể ghi?
-5. Vì sao dùng mỗi tên method làm khóa registry có thể làm mất overload?
-6. `getMethods()` và `getDeclaredMethods()` khác nhau thế nào về inherited member và visibility?
-7. Nếu `Method` là public nhưng package đích không exported cho module gọi, có thể bỏ bước kiểm tra truy cập không?
-8. Vì sao annotation whitelist cần `RetentionPolicy.RUNTIME`, và vì sao annotation vẫn chưa đủ để bảo đảm một lời gọi an toàn?
+1. Why can `getDeclaredMethods()` return more methods than the number written directly in a subclass's source code?
+2. What is `Method.isBridge()` used to detect? If a bridge is synthetic, should bridge checks be skipped in every tool?
+3. For an object serializer, when is `Modifier.isStatic` a reasonable criterion? When is it the wrong criterion?
+4. Why can a `final` field be read yet usually shouldn't appear in a writable list?
+5. Why can using only the method name as a registry key lose overloads?
+6. How do `getMethods()` and `getDeclaredMethods()` differ regarding inherited members and visibility?
+7. If a `Method` is public but the target package is not exported to the calling module, can the access check step be skipped?
+8. Why does an annotation whitelist require `RetentionPolicy.RUNTIME`, and why is an annotation still insufficient to guarantee a safe call?
 
-**Ghi nhớ:** `static`, `synthetic` và `bridge` là những đặc điểm kỹ thuật có ý nghĩa riêng. Công cụ Reflection nên lọc chúng theo **hợp đồng sử dụng cụ thể**, kết hợp với visibility, chữ ký, quyền truy cập, kế thừa, annotation và khả năng thực thi; không coi bất kỳ một cờ nào là tiêu chí chất lượng duy nhất.
+**Key takeaway:** `static`, `synthetic`, and `bridge` are technical characteristics with specific meanings. Reflection tools should filter them according to a **concrete usage contract**, combined with visibility, signature, access permissions, inheritance, annotations, and executability; never treat any single flag as the sole quality criterion.

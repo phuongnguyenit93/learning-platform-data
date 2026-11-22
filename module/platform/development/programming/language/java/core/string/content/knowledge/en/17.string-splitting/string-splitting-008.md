@@ -1,44 +1,44 @@
-# Pattern.splitAsStream() và xử lý kết quả lười trong Java
+# Pattern.splitAsStream() and Lazy Result Processing in Java
 
-## 1. Mục tiêu và ý tưởng cốt lõi
+## 1. Purpose and core idea
 
-Khi cần tách một chuỗi bằng **biểu thức chính quy (regex)** rồi lọc, chuyển đổi hoặc lấy một vài phần tử đầu tiên, Java cung cấp `Pattern.splitAsStream(CharSequence input)` trong `java.util.regex.Pattern` (từ Java 8). Phương thức trả về `Stream<String>` chứa các đoạn nằm giữa những lần khớp của regex.
+When you need to split a string using a **regular expression (regex)** and then filter, transform, or take only the first few elements, Java provides `Pattern.splitAsStream(CharSequence input)` in `java.util.regex.Pattern` (since Java 8). This method returns a `Stream<String>` containing the segments between regex matches.
 
-Thay vì tạo trước một mảng toàn bộ token như `String.split(regex)`, API này cho phép kết nối ngay với các thao tác Stream:
+Instead of allocating an array of all tokens upfront like `String.split(regex)`, this API lets you chain Stream operations directly:
 
-- **Intermediate operations** như `map`, `filter`, `distinct`, `limit`, `skip` thường xử lý lười: xây dựng pipeline chưa khiến các token được duyệt.
-- **Terminal operations** như `toList` (Java 16+), `collect`, `findFirst`, `anyMatch`, `forEach` mới kích hoạt việc duyệt.
-- Với terminal operation có thể **dừng sớm** (ví dụ `findFirst` hoặc `limit(2).toList()`), pipeline có thể tránh xử lý những phần tử còn lại. Đây là lợi ích chính của sự lười (laziness); không nên hiểu rằng mọi trường hợp đều tiết kiệm bộ nhớ hoặc thời gian.
+- **Intermediate operations** such as `map`, `filter`, `distinct`, `limit`, and `skip` generally operate lazily: building the pipeline does not traverse the tokens yet.
+- **Terminal operations** such as `toList` (Java 16+), `collect`, `findFirst`, `anyMatch`, and `forEach` trigger traversal.
+- With a short-circuiting **terminal operation** (such as `findFirst` or `limit(2).toList()`), the pipeline can avoid processing the remaining elements. That is the main benefit of laziness; do not assume it saves memory or time in every case.
 
-Cú pháp cơ bản:
+Basic syntax:
 
 ```java
-Pattern delimiter = Pattern.compile("\\s*,\\s*"); // Dấu phẩy, cho phép khoảng trắng hai bên
+Pattern delimiter = Pattern.compile("\\s*,\\s*"); // Comma, allowing whitespace on both sides
 Stream<String> tokens = delimiter.splitAsStream("java, spring, kafka");
-// Đến đây ta mới có pipeline; terminal operation bên dưới bắt đầu tiêu thụ stream.
+// Up to here we only have the pipeline; the terminal operation below starts consuming the stream.
 List<String> result = tokens.filter(s -> !s.isBlank()).toList();
 ```
 
-Regex `\\s*,\\s*` khớp dấu phẩy cùng khoảng trắng xung quanh. Kết quả là `[java, spring, kafka]`. Regex là **dấu phân tách**, không phải regex mô tả nội dung token; những phần khớp với dấu phân tách không xuất hiện trong stream.
+The regex `\\s*,\\s*` matches a comma along with surrounding whitespace. The result is `[java, spring, kafka]`. The regex describes the **delimiter**, not the token content; segments matching the delimiter do not appear in the stream.
 
-## 2. Cách splitAsStream hoạt động
+## 2. How splitAsStream works
 
-Với `Pattern.compile(",").splitAsStream("a,b,c")`, biểu thức `,` tìm hai vị trí phân tách và stream phát ra lần lượt `"a"`, `"b"`, `"c"`. Thứ tự các token là thứ tự trong input.
+With `Pattern.compile(",").splitAsStream("a,b,c")`, the pattern `,` finds two split positions and the stream emits `"a"`, `"b"`, `"c"` in order. Token order matches the input order.
 
-| Input | Regex | Các token theo thứ tự | Ý nghĩa |
+| Input | Regex | Tokens in order | Meaning |
 | --- | --- | --- | --- |
-| `"a,b,c"` | `","` | `["a", "b", "c"]` | Tách thông thường. |
-| `"a,,b"` | `","` | `["a", "", "b"]` | Giữ token rỗng **ở giữa**. |
-| `"a,b,,"` | `","` | `["a", "b"]` | Bỏ các token rỗng **ở cuối**. |
-| `",a,b"` | `","` | `["", "a", "b"]` | Dấu phân tách có độ dài dương ở đầu tạo token rỗng đầu tiên. |
-| `"abc"` | `","` | `["abc"]` | Không tìm thấy dấu phân tách: một token là toàn bộ input. |
-| `"abc"` | `"(?=a)"` | `["abc"]` | Khớp độ dài 0 ngay đầu chuỗi **không** tạo token rỗng đầu tiên. |
+| `"a,b,c"` | `","` | `["a", "b", "c"]` | Normal split. |
+| `"a,,b"` | `","` | `["a", "", "b"]` | Keeps **middle** empty token. |
+| `"a,b,,"` | `","` | `["a", "b"]` | Discards **trailing** empty tokens. |
+| `",a,b"` | `","` | `["", "a", "b"]` | A positive-length delimiter at the start creates a leading empty token. |
+| `"abc"` | `","` | `["abc"]` | No delimiter found: one token containing the entire input. |
+| `"abc"` | `"(?=a)"` | `["abc"]` | A zero-width match right at the start does **not** create a leading empty token. |
 
-**Quy tắc quan trọng:** `splitAsStream` loại bỏ các chuỗi rỗng ở cuối, tương tự cách tách với `limit = 0` của `Pattern.split(input, 0)`. Không được lẫn token rỗng ở giữa với token rỗng cuối. Nếu dữ liệu cần bảo toàn số cột trống ở cuối (chẳng hạn record phân cách bằng dấu `|`), hãy dùng `pattern.split(input, -1)`.
+**Important rule:** `splitAsStream` discards trailing empty strings, similar to splitting with `limit = 0` in `Pattern.split(input, 0)`. Do not confuse middle empty tokens with trailing empty tokens. If the data requires preserving trailing empty columns (for example, `|`-delimited records), use `pattern.split(input, -1)`.
 
-Các regex có độ dài khớp bằng 0 (zero-width match), ví dụ lookahead `(?=a)`, cần được kiểm tra cẩn thận khi dùng làm dấu phân tách. Khớp rỗng ở đầu khác khớp ký tự thật ở đầu; đặc điểm này ảnh hưởng số token.
+Regexes with zero-width matches, such as lookahead `(?=a)`, must be tested carefully when used as delimiters. A leading zero-width match behaves differently from a leading character match; this affects the token count.
 
-**Không có tham số `limit` trong `splitAsStream`.** `stream.limit(n)` là giới hạn **số token được tiêu thụ**, còn `Pattern.split(input, n)` giới hạn **số lần áp dụng dấu phân tách** và để phần dư trong phần tử cuối. Ví dụ:
+**There is no `limit` parameter in `splitAsStream`.** `stream.limit(n)` caps **the number of consumed tokens**, whereas `Pattern.split(input, n)` caps **the number of times the delimiter is applied** and leaves the remainder in the last element. For example:
 
 ```java
 Pattern p = Pattern.compile(",");
@@ -48,11 +48,11 @@ System.out.println(Arrays.toString(p.split("a,b,c,d", 2)));
 // [a, b,c,d]
 ```
 
-Hai kết quả khác nhau; khi muốn giữ toàn bộ phần còn lại vào cột cuối, hãy chọn `split(input, n)`.
+The two results differ; when you want to keep the entire remainder in the last column, choose `split(input, n)`.
 
-## 3. Ví dụ Java 17+ chạy độc lập
+## 3. Standalone Java 17+ example
 
-Tạo file **`SplitAsStreamDemo.java`**:
+Create the file **`SplitAsStreamDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -66,76 +66,76 @@ public class SplitAsStreamDemo {
     public static void main(String[] args) {
         String input = "java, spring,, kafka, ";
 
-        // toList() tiêu thụ toàn bộ stream và tạo danh sách kết quả.
+        // toList() consumes the entire stream and builds the result list.
         List<String> raw = COMMA.splitAsStream(input).toList();
-        System.out.println("So token: " + raw.size());
-        System.out.println("Token: " + raw.stream()
+        System.out.println("Token count: " + raw.size());
+        System.out.println("Tokens: " + raw.stream()
                 .map(s -> "[" + s + "]")
                 .collect(Collectors.joining(" ")));
 
-        // Bỏ token rỗng, viết hoa, rồi mới gom thành List.
+        // Drop empty tokens, uppercase, then collect into a List.
         List<String> normalized = COMMA.splitAsStream(input)
                 .filter(s -> !s.isBlank())
                 .map(String::toUpperCase)
                 .toList();
-        System.out.println("Da loc: " + normalized);
+        System.out.println("Filtered: " + normalized);
 
-        // Chỉ lấy tối đa hai token đầu tiên.
+        // Take at most the first two tokens.
         List<String> firstTwo = COMMA.splitAsStream(input).limit(2).toList();
-        System.out.println("Hai token dau: " + firstTwo);
+        System.out.println("First two tokens: " + firstTwo);
 
-        // findFirst() có thể dừng ngay khi gặp token phù hợp.
+        // findFirst() can stop as soon as it finds a matching token.
         String firstLong = COMMA.splitAsStream(input)
                 .filter(s -> s.length() >= 5)
                 .findFirst()
-                .orElse("<khong co>");
-        System.out.println("Token dai dau tien: " + firstLong);
+                .orElse("<none>");
+        System.out.println("First long token: " + firstLong);
 
-        // Token "NaN" nằm sau hai giá trị cần lấy, không bị parse.
+        // The "NaN" token comes after the two needed values, so it is not parsed.
         List<Integer> numbers = Pattern.compile(",")
                 .splitAsStream("10,20,NaN")
                 .map(Integer::parseInt)
                 .limit(2)
                 .toList();
-        System.out.println("Chi lay hai so: " + numbers);
+        System.out.println("Only two numbers: " + numbers);
 
-        // Cần giữ các trường trống ở cuối? Dùng split(input, -1).
+        // Need to preserve trailing empty fields? Use split(input, -1).
         System.out.println("split(..., -1): "
                 + Arrays.toString(COMMA.split(input, -1)));
     }
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa file:
+Compile and run from the directory containing the file:
 
 ```bash
 javac --release 17 SplitAsStreamDemo.java
 java SplitAsStreamDemo
 ```
 
-Kết quả stdout (đã kiểm tra bằng Java với chế độ biên dịch Java 17):
+Stdout output (verified on Java targeting Java 17):
 
 ```text
-So token: 4
-Token: [java] [spring] [] [kafka]
-Da loc: [JAVA, SPRING, KAFKA]
-Hai token dau: [java, spring]
-Token dai dau tien: spring
-Chi lay hai so: [10, 20]
+Token count: 4
+Tokens: [java] [spring] [] [kafka]
+Filtered: [JAVA, SPRING, KAFKA]
+First two tokens: [java, spring]
+First long token: spring
+Only two numbers: [10, 20]
 split(..., -1): [java, spring, , kafka, ]
 ```
 
-Giải thích:
+Explanation:
 
-1. Input có hai dấu phẩy liên tiếp nên có một token rỗng **ở giữa**. Dấu phẩy cuối tạo phần rỗng **ở cuối** và phần này bị `splitAsStream` bỏ đi: còn bốn token.
-2. `filter(s -> !s.isBlank())` bỏ chuỗi rỗng hoặc toàn khoảng trắng. `map(String::toUpperCase)` biến đổi token còn lại. Thứ tự `filter` trước `map` cũng giúp không biến đổi các token sẽ bị loại.
-3. `limit(2)` chỉ cần hai phần tử đầu; `findFirst()` dừng sau khi tìm thấy `spring` có độ dài từ năm ký tự.
-4. `map(Integer::parseInt).limit(2)` chỉ chuyển `10` và `20` thành số; vì chưa yêu cầu phần tử thứ ba nên chuỗi `NaN` không gây `NumberFormatException`. Nếu đổi terminal operation thành `toList()` mà bỏ `limit(2)` thì việc parse đến `NaN` sẽ ném ngoại lệ.
-5. `split(input, -1)` giữ thêm một trường trống cuối, nên output kết thúc bằng dấu phẩy trước dấu `]`.
+1. The input has two consecutive commas, so there is a **middle** empty token. The trailing comma creates a **trailing** empty part, which `splitAsStream` discards: four tokens remain.
+2. `filter(s -> !s.isBlank())` removes empty or whitespace-only strings. `map(String::toUpperCase)` transforms the remaining tokens. Placing `filter` before `map` also avoids transforming tokens that will be discarded.
+3. `limit(2)` only needs the first two elements; `findFirst()` stops after finding `spring`, which has at least five characters.
+4. `map(Integer::parseInt).limit(2)` only converts `10` and `20` to integers; because the third element is never requested, `"NaN"` does not cause a `NumberFormatException`. If you change the terminal operation to `toList()` without `limit(2)`, parsing `"NaN"` will throw an exception.
+5. `split(input, -1)` preserves the extra trailing empty field, so the output ends with a comma before `]`.
 
-## 4. Pipeline lười: khi nào thực sự làm việc?
+## 4. Lazy pipeline: when does work actually happen?
 
-Một pipeline có ba thành phần:
+A pipeline has three parts:
 
 ```text
 Pattern + CharSequence
@@ -147,9 +147,9 @@ splitAsStream(input)  -->  filter(...)  -->  map(...)  -->  limit(...)
                                                      toList()
 ```
 
-Việc gọi `splitAsStream` và xâu chuỗi các intermediate operation chưa yêu cầu Stream trả toàn bộ kết quả. Java bắt đầu duyệt khi gặp terminal operation. Các phần tử thường đi qua nhiều bước xử lý theo nhu cầu của terminal operation, thay vì tạo sẵn một mảng token rồi mới lọc.
+Calling `splitAsStream` and chaining intermediate operations does not ask the Stream for the full result yet. Java begins traversing when a terminal operation is reached. Elements typically flow through the processing steps on demand for the terminal operation, instead of building a full token array first and filtering afterward.
 
-Ví dụ:
+For example:
 
 ```java
 Pattern p = Pattern.compile(";");
@@ -161,14 +161,14 @@ List<String> firstValid = p.splitAsStream(" ;  alice ; ; bob ; carol ")
 System.out.println(firstValid); // [alice, bob]
 ```
 
-Dù input chứa nhiều đoạn, kết quả chỉ cần hai token hợp lệ. Pipeline có thể phải xem **nhiều hơn hai token nguồn** vì các token rỗng không vượt qua `filter`; `limit(2)` đếm phần tử **sau khi lọc**. Đảo thứ tự hai bước sẽ đổi ý nghĩa:
+Although the input contains many segments, the result only needs two valid tokens. The pipeline may have to inspect **more than two source tokens** because empty tokens fail `filter`; `limit(2)` counts elements **after filtering**. Swapping the order of those two steps changes the meaning:
 
-- `filter(...).limit(2)`: lấy tối đa hai token **hợp lệ**.
-- `limit(2).filter(...)`: chỉ xem hai token **đầu vào** rồi bỏ phần tử không hợp lệ; có thể thu được ít hơn hai token.
+- `filter(...).limit(2)`: takes at most two **valid** tokens.
+- `limit(2).filter(...)`: inspects only the first two **input** tokens and drops invalid ones; it may yield fewer than two tokens.
 
-Dừng sớm là **khả năng của pipeline**, không bảo đảm rằng toàn bộ regex engine hay mỗi bước nội bộ chỉ làm đúng một lượng công việc cố định. Với `toList()`, `count()`, `collect(...)` hoặc `forEach(...)` thông thường, việc duyệt cần đến hết stream; riêng một số tối ưu của Stream có thể khiến callback không được gọi như người viết mong đợi. Không dựa vào side effect trong `map`, `filter` hoặc `peek` để thực hiện công việc bắt buộc.
+Early stopping is a **pipeline capability**, not a guarantee that the entire regex engine or every internal step performs only a fixed amount of work. With `toList()`, `count()`, `collect(...)`, or ordinary `forEach(...)`, traversal runs to the end of the stream; furthermore, certain Stream optimizations may skip callbacks the author expected to run. Do not rely on side effects inside `map`, `filter`, or `peek` to perform required work.
 
-**Stream là một lần sử dụng:** sau terminal operation, không tái dùng stream cũ. Khi cần hai cách xử lý khác nhau, gọi lại `pattern.splitAsStream(input)` để tạo hai stream; `Pattern` có thể tái sử dụng.
+**Streams are single-use:** after a terminal operation, you cannot reuse the old stream. When you need two different passes, call `pattern.splitAsStream(input)` again to create a fresh stream; the `Pattern` itself can be reused.
 
 ```java
 Pattern p = Pattern.compile(",");
@@ -178,11 +178,11 @@ List<String> first = p.splitAsStream(input).limit(1).toList();
 System.out.println(total + " " + first); // 3 [a]
 ```
 
-## 5. Áp dụng trong chương trình
+## 5. Applying in programs
 
-### 5.1. Chuẩn hóa danh sách nhãn
+### 5.1. Normalizing a tag list
 
-Giả sử người dùng nhập danh sách tag ngăn cách bởi dấu chấm phẩy, có khoảng trắng, ô rỗng và nhãn lặp:
+Suppose a user enters a semicolon-separated list of tags with extra spaces, empty entries, and duplicate tags:
 
 ```java
 Pattern separator = Pattern.compile(";");
@@ -194,9 +194,9 @@ List<String> tags = separator.splitAsStream(" java ; spring ; ; java ; sql ; ")
 System.out.println(tags); // [java, spring, sql]
 ```
 
-`strip()` (Java 11+) loại bỏ khoảng trắng Unicode ở hai đầu theo `Character.isWhitespace`; khác `trim()` ở một số trường hợp Unicode. `distinct()` giữ lần xuất hiện đầu tiên theo thứ tự gặp đối với stream có thứ tự. Việc lọc token rỗng là lựa chọn của bài toán, **không tự động xảy ra cho token rỗng ở giữa**.
+`strip()` (Java 11+) removes leading and trailing Unicode whitespace according to `Character.isWhitespace`, differing from `trim()` in certain Unicode cases. `distinct()` preserves the first occurrence in encounter order for ordered streams. Filtering empty tokens is a choice of the problem domain; it **does not happen automatically for middle empty tokens**.
 
-### 5.2. Lấy một phần dữ liệu và kiểm tra hợp lệ
+### 5.2. Sampling data and validating
 
 ```java
 Pattern comma = Pattern.compile(",");
@@ -206,11 +206,11 @@ boolean hasAdmin = comma.splitAsStream("guest,editor,admin,viewer")
 System.out.println(hasAdmin); // true
 ```
 
-`anyMatch` trả về ngay khi đã biết kết quả là `true`; với dữ liệu đủ lớn và dấu phân tách phù hợp, điều này có thể tránh xử lý phần tử không cần thiết. Nếu không có token khớp, thao tác phải duyệt cho đến hết.
+`anyMatch` returns as soon as the result is known to be `true`; on sufficiently large inputs with a suitable delimiter, this can avoid processing unnecessary elements. If no token matches, the operation must scan to the end.
 
-### 5.3. Regex và delimiter đúng ý nghĩa
+### 5.3. Meaningful regexes and delimiters
 
-`Pattern.compile(regex)` diễn giải ký tự đặc biệt như `.`, `|`, `*`, `+`, dấu ngoặc. Ví dụ dấu `.` trong regex đại diện cho một ký tự bất kỳ; để tách theo **dấu chấm thật**, dùng `"\\."` hoặc `Pattern.quote(".")`:
+`Pattern.compile(regex)` interprets special characters such as `.`, `|`, `*`, `+`, and parentheses. For example, `.` in regex stands for any single character; to split on a **literal period**, use `"\\."` or `Pattern.quote(".")`:
 
 ```java
 Pattern dot = Pattern.compile(Pattern.quote("."));
@@ -218,35 +218,35 @@ System.out.println(dot.splitAsStream("api.example.com").toList());
 // [api, example, com]
 ```
 
-Khi delimiter do người dùng nhập như **văn bản thuần**, `Pattern.quote(userDelimiter)` thường an toàn hơn việc ghép trực tiếp delimiter vào regex. Khi muốn tách theo nhiều khoảng trắng, dùng regex `"\\s+"` và cân nhắc token rỗng đầu chuỗi nếu input bắt đầu bằng khoảng trắng.
+When a delimiter comes from user input as **plain text**, `Pattern.quote(userDelimiter)` is usually safer than interpolating the delimiter directly into a regex. When you want to split on runs of whitespace, use `"\\s+"` and account for a leading empty token if the input starts with whitespace.
 
-## 6. So sánh cách tách chuỗi
+## 6. Comparing splitting approaches
 
-| API | Kết quả | Đặc điểm và tình huống phù hợp |
+| API | Result | Characteristics and suitable scenarios |
 | --- | --- | --- |
-| `String.split(regex)` | `String[]` | Tiện cho thao tác đơn giản; tương ứng với `limit = 0`, bỏ trường rỗng ở cuối. |
-| `Pattern.split(input, limit)` | `String[]` | Chủ động điều khiển `limit`. `limit < 0` giữ cả trường rỗng cuối; `limit > 0` giới hạn số lần tách. |
-| `Pattern.splitAsStream(input)` | `Stream<String>` | Xâu chuỗi `filter/map/limit/findFirst`, hỗ trợ xử lý theo nhu cầu; không có tham số `limit` kiểu `split`. |
-| `String.lines()` | `Stream<String>` | Thích hợp khi mục tiêu là lấy các dòng phân cách bằng LF/CR/CRLF (Java 11+), không cần tự viết regex dòng. |
+| `String.split(regex)` | `String[]` | Convenient for simple operations; equivalent to `limit = 0`, drops trailing empty fields. |
+| `Pattern.split(input, limit)` | `String[]` | Explicit control over `limit`. `limit < 0` keeps trailing empty fields; `limit > 0` caps the number of splits. |
+| `Pattern.splitAsStream(input)` | `Stream<String>` | Chains `filter/map/limit/findFirst` with on-demand processing; has no `split`-style `limit` parameter. |
+| `String.lines()` | `Stream<String>` | Suitable when splitting lines separated by LF/CR/CRLF (Java 11+), without writing a line regex yourself. |
 
-Không mặc định rằng dùng stream luôn nhanh hơn mảng. Nếu cuối cùng vẫn `toList()` toàn bộ token thì chương trình phải duyệt toàn bộ dữ liệu và tạo List. Hãy chọn dựa trên việc cần dừng sớm, logic pipeline, yêu cầu giữ token rỗng và chi phí thực tế đã đo được.
+Do not assume streams are always faster than arrays. If you end up calling `toList()` on all tokens anyway, the program still scans the entire input and allocates a List. Choose based on early-exit needs, pipeline logic, empty-token preservation requirements, and measured cost.
 
-## 7. Những lỗi thường gặp
+## 7. Common mistakes
 
-1. **Nhầm regex với chuỗi ký tự thường.** `Pattern.compile(".")` sẽ khớp từng ký tự thay vì tách theo dấu chấm. Dùng `Pattern.quote(".")` hoặc `"\\."`.
-2. **Cho rằng mọi token rỗng đều bị bỏ.** `splitAsStream("a,,b")` với dấu phẩy vẫn có token `""` ở giữa. Nếu muốn loại bỏ, dùng `filter(s -> !s.isEmpty())` hoặc `!s.isBlank()` tùy yêu cầu.
-3. **Muốn giữ cột trống cuối nhưng dùng `splitAsStream`.** Vì API loại bỏ phần tử rỗng ở cuối, hãy chuyển sang `split(input, -1)` trước khi áp dụng quy tắc nghiệp vụ đòi bảo toàn vị trí cột.
-4. **Lẫn `limit(n)` với `split(input, n)`.** Thao tác Stream giới hạn số token xuất ra; tham số của `split` còn gộp phần dữ liệu chưa tách vào token cuối.
-5. **Cố sử dụng stream hai lần.** Stream đã chạy terminal operation không dùng lại được; tạo stream mới từ cùng `Pattern`.
-6. **Sửa input dạng mutable trong khi stream đang thực thi.** API nhận `CharSequence`, có thể là `StringBuilder`. Nếu input thay đổi trong quá trình terminal operation, kết quả là **không được xác định** theo hợp đồng API. Có thể chụp `builder.toString()` trước rồi xử lý trên chuỗi bất biến.
-7. **Nhầm dữ liệu CSV thực sự với tách dấu phẩy.** Dòng `"Nguyen, Van",25` có dấu phẩy bên trong trường được trích dẫn; `splitAsStream` với `,` không hiểu cú pháp CSV, dấu nháy hoặc escape. Dùng parser CSV đúng chuẩn khi cần.
-8. **Dùng `peek`/`map` cho side effect thiết yếu.** Pipeline có thể dừng sớm hoặc được tối ưu; xử lý side effect một cách tường minh ở nơi được bảo đảm, đặc biệt khi mã có tác động ngoài chương trình.
-9. **Biên dịch regex liên tục trong vòng lặp.** Nếu delimiter cố định và dùng nhiều lần, tạo một `Pattern` tái sử dụng. `Pattern` là bất biến và dùng lại được giữa nhiều lời gọi; `Matcher` riêng lẻ thì không nên dùng chung giữa các thread.
-10. **Bỏ qua chi phí regex.** Pattern phức tạp có thể tốn CPU trên input dài. Với dữ liệu đến từ bên ngoài, kiểm tra regex, kích thước input và hiệu năng, nhất là khi sử dụng biểu thức có nguy cơ backtracking quá mức.
+1. **Confusing regex with plain strings.** `Pattern.compile(".")` matches every character instead of splitting on a period. Use `Pattern.quote(".")` or `"\\."`.
+2. **Assuming all empty tokens are dropped.** `splitAsStream("a,,b")` with a comma still emits a middle `""` token. To remove it, use `filter(s -> !s.isEmpty())` or `!s.isBlank()` as needed.
+3. **Needing trailing empty columns while using `splitAsStream`.** Because this API discards trailing empty elements, switch to `split(input, -1)` before applying business rules that require preserving column positions.
+4. **Confusing `limit(n)` with `split(input, n)`.** The Stream operation limits the number of output tokens; `split`'s parameter also packs the unsplit remainder into the last token.
+5. **Trying to use a stream twice.** A stream that has executed a terminal operation cannot be reused; create a new stream from the same `Pattern`.
+6. **Mutating a mutable input while the stream executes.** The API accepts `CharSequence`, which could be a `StringBuilder`. If the input changes during a terminal operation, the result is **undefined** per the API contract. Snapshot `builder.toString()` first and process the immutable string.
+7. **Mistaking real CSV data for comma splitting.** The line `"Nguyen, Van",25` has a comma inside a quoted field; `splitAsStream` with `,` does not understand CSV syntax, quotes, or escapes. Use a proper CSV parser when needed.
+8. **Using `peek`/`map` for essential side effects.** A pipeline may short-circuit or be optimized; handle side effects explicitly where execution is guaranteed, especially when code affects external state.
+9. **Recompiling a regex repeatedly inside a loop.** If the delimiter is fixed and used many times, create a reusable `Pattern`. `Pattern` is immutable and safe to reuse across calls; an individual `Matcher` should not be shared across threads.
+10. **Ignoring regex cost.** Complex patterns can consume significant CPU on long inputs. For external data, review regex complexity, input size, and performance, especially with expressions prone to excessive backtracking.
 
-## 8. Bài tập tự kiểm tra
+## 8. Self-check exercises
 
-**Bài 1.** Dự đoán kết quả của hai dòng:
+**Exercise 1.** Predict the output of these two lines:
 
 ```java
 Pattern p = Pattern.compile(",");
@@ -254,9 +254,9 @@ System.out.println(p.splitAsStream(",x,,y,").toList());
 System.out.println(Arrays.toString(p.split(",x,,y,", -1)));
 ```
 
-Đáp án: stream có các token `["", "x", "", "y"]`; mảng với `-1` có thêm `""` ở cuối. Khi in trực tiếp `List`/mảng, biểu diễn token trống bằng mắt thường dễ gây nhầm, nên có thể bọc từng phần bằng dấu ngoặc vuông khi debug.
+Answer: the stream has tokens `["", "x", "", "y"]`; the array with `-1` has an extra `""` at the end. When printing a `List` or array directly, empty tokens are easy to misread by eye, so wrap each element in brackets when debugging.
 
-**Bài 2.** Với `"  ;a; ;b;c"` và delimiter `";"`, hãy lấy hai token **không rỗng** đầu tiên sau khi `strip`. Đáp án:
+**Exercise 2.** Given `"  ;a; ;b;c"` and delimiter `";"`, retrieve the first two **non-empty** tokens after calling `strip`. Answer:
 
 ```java
 List<String> answer = Pattern.compile(";")
@@ -268,10 +268,10 @@ List<String> answer = Pattern.compile(";")
 System.out.println(answer); // [a, b]
 ```
 
-**Bài 3.** Cần giữ chính xác ba cột của chuỗi `"a|b|"`, gồm cột cuối rỗng. Chọn `Pattern.compile(Pattern.quote("|")).split(input, -1)` để có `["a", "b", ""]`; dùng `splitAsStream` sẽ bỏ trường rỗng cuối.
+**Exercise 3.** You need to preserve all three columns of `"a|b|"`, including the trailing empty column. Choose `Pattern.compile(Pattern.quote("|")).split(input, -1)` to get `["a", "b", ""]`; using `splitAsStream` will drop the trailing empty field.
 
-## 9. Ghi nhớ
+## 9. Remember
 
-`Pattern.splitAsStream` phù hợp nhất khi **tách bằng regex rồi nối trực tiếp thao tác Stream**, đặc biệt khi chỉ cần một vài kết quả đầu. Nó duy trì thứ tự token, giữ phần rỗng ở giữa nhưng bỏ phần rỗng ở cuối. Kết hợp `filter/map/limit/findFirst` theo đúng thứ tự nghiệp vụ và chọn `Pattern.split(input, limit)` khi cần bảo toàn mọi cột hoặc gộp phần dữ liệu còn lại. Luôn phân biệt **tạo pipeline** với **terminal operation bắt đầu tiêu thụ**, và đừng suy diễn “lazy” thành cam kết hiệu năng trong mọi trường hợp.
+`Pattern.splitAsStream` fits best when **splitting by regex and feeding directly into Stream operations**, especially when only the first few results are needed. It preserves token order, keeps middle empty elements, and drops trailing empty elements. Combine `filter/map/limit/findFirst` in the right business order, and pick `Pattern.split(input, limit)` when you must preserve all columns or keep the remainder together. Always distinguish **pipeline creation** from **the terminal operation that starts consumption**, and do not treat "lazy" as a performance guarantee in all situations.
 
-**Tài liệu tham khảo:** [Java SE 17 — Pattern.splitAsStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html#splitAsStream(java.lang.CharSequence)), [Java SE 17 — Stream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/Stream.html), [Java SE 17 — String.split](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#split(java.lang.String,int)).
+**References:** [Java SE 17 — Pattern.splitAsStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html#splitAsStream(java.lang.CharSequence)), [Java SE 17 — Stream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/Stream.html), [Java SE 17 — String.split](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#split(java.lang.String,int)).

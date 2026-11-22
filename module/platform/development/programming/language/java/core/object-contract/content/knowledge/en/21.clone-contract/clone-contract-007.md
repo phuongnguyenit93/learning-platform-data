@@ -1,6 +1,6 @@
-# Quy ước bản sao khác tham chiếu, cùng lớp và thường cùng giá trị trong Java
+# Clone convention: distinct reference, same class, and usually equal values in Java
 
-Khi nói một object được **clone** trong Java, ta thường mong muốn một **đối tượng mới** có cùng kiểu runtime, mang dữ liệu ban đầu tương ứng với object gốc. Hợp đồng `Object.clone()` mô tả ba quy ước nổi bật:
+When we say an object is **cloned** in Java, we usually expect a **new object** of the same runtime type, carrying initial data matching the original object. The `Object.clone()` contract describes three prominent conventions:
 
 ~~~java
 x.clone() != x
@@ -8,29 +8,29 @@ x.clone().getClass() == x.getClass()
 x.clone().equals(x)
 ~~~
 
-Ba dòng trên là các **biểu thức minh họa quy ước**, chỉ có thể gọi trực tiếp nếu phương thức `clone()` đã được lớp cung cấp ở phạm vi truy cập phù hợp. Chúng **không phải ba bảo đảm tuyệt đối của mọi phương thức mang tên `clone`**. JavaDoc của `Object.clone()` nêu đây là những điều nên đúng *theo quy ước*, và có thể có ngoại lệ, nhất là biểu thức thứ ba.
+The three lines above are **expressions illustrating conventions**, which can only be called directly if the `clone()` method has been provided by the class with an appropriate access scope. They are **not three absolute guarantees of every method named `clone`**. The JavaDoc of `Object.clone()` states these are things that should hold *by convention*, and there can be exceptions, especially the third expression.
 
-Vì thế cần phân biệt: **sao chép object** khác với **sao chép toàn bộ đồ thị object được tham chiếu**, còn **cùng dữ liệu** không luôn đồng nghĩa `equals() == true`.
+Therefore, distinguish: **copying an object** is different from **copying the entire referenced object graph**, and **having the same data** does not always mean `equals() == true`.
 
-## 1. Ba quy ước có ý nghĩa gì?
+## 1. What do the three conventions mean?
 
-| Quy ước | Ý nghĩa | Giới hạn cần nhớ |
+| Convention | Meaning | Limitation to remember |
 |---|---|---|
-| `clone != original` | Clone thường là **instance mới**, khác tham chiếu với object gốc | Một phương thức clone tự viết có thể làm sai quy ước nếu trả chính `this` |
-| `clone.getClass() == original.getClass()` | Bản sao thường có **đúng cùng lớp runtime** | Đúng với đường sao chép thông thường qua `super.clone()`; override tự chế có thể trả lớp khác |
-| `clone.equals(original)` | Bản sao thường bằng bản gốc **theo định nghĩa equality của lớp** | Không bảo đảm nếu lớp không override `equals()` hoặc nếu clone cố tình đổi trường dùng để so sánh |
+| `clone != original` | Clone is usually a **new instance**, with a different reference from the original object | A custom-written clone method can violate the convention if it returns `this` |
+| `clone.getClass() == original.getClass()` | The copy usually has **the exact same runtime class** | True for the standard copying path via `super.clone()`; a custom override can return another class |
+| `clone.equals(original)` | The copy usually equals the original **by the class's equality definition** | Not guaranteed if the class does not override `equals()` or if clone intentionally changes a compared field |
 
-Ví dụ, nếu lớp `Customer` có `id = 7`, bản clone cũng có `id = 7` và lớp định nghĩa `equals()` theo `id`, thì `customer.clone().equals(customer)` thường là `true`. Nếu cùng lớp đó thừa hưởng `Object.equals()` theo **identity**, hai instance khác nhau sẽ cho `false` dù có các trường trùng nhau.
+For example, if class `Customer` has `id = 7`, the clone also has `id = 7`, and the class defines `equals()` by `id`, then `customer.clone().equals(customer)` is usually `true`. If that same class inherits `Object.equals()` by **identity**, two distinct instances will yield `false` despite having identical fields.
 
-Đừng gọi ba biểu thức trên là **luật kiểm tra bắt buộc** đối với tất cả lớp Java. Đó là **quy ước thiết kế và tiêu chí kiểm thử hữu ích** khi một API hứa cung cấp bản sao theo nghĩa thông thường.
+Do not call the three expressions above **mandatory verification laws** for all Java classes. They are **design conventions and useful testing criteria** when an API promises to provide a copy in the standard sense.
 
-## 2. `Object.clone()` và `Cloneable` hoạt động như thế nào?
+## 2. How do `Object.clone()` and `Cloneable` work?
 
-`Object` khai báo phương thức **`protected Object clone() throws CloneNotSupportedException`**. Vì là `protected`, mã bên ngoài không thể tùy ý viết `someObject.clone()` nếu lớp không công khai phương thức phù hợp.
+`Object` declares the method **`protected Object clone() throws CloneNotSupportedException`**. Because it is `protected`, external code cannot arbitrarily write `someObject.clone()` if the class does not expose an appropriate method publicly.
 
-`java.lang.Cloneable` là một **marker interface**: nó **không khai báo phương thức `clone()`**. Khi gọi cơ chế `Object.clone()` trên instance của lớp không triển khai `Cloneable` (và không phải mảng), cơ chế mặc định ném `CloneNotSupportedException`. Việc viết `implements Cloneable` một mình **không tự tạo một phương thức `public clone()`** cho người dùng bên ngoài.
+`java.lang.Cloneable` is a **marker interface**: it **does not declare a `clone()` method**. When invoking the `Object.clone()` mechanism on an instance of a class not implementing `Cloneable` (and not an array), the default mechanism throws `CloneNotSupportedException`. Writing `implements Cloneable` alone **does not automatically create a `public clone()` method** for external callers.
 
-Mẫu triển khai phổ biến:
+Common implementation pattern:
 
 ~~~java
 final class Item implements Cloneable {
@@ -51,13 +51,13 @@ final class Item implements Cloneable {
 }
 ~~~
 
-Đây là khai báo lớp có thể biên dịch, không có `main`. Vì `Item` là `final` và triển khai `Cloneable`, lệnh `super.clone()` theo thiết kế này không phát sinh `CloneNotSupportedException`; bọc lỗi thành `AssertionError` là một lựa chọn thể hiện bất biến đó. Lớp dùng **kiểu trả về hiệp biến** (`Item` thay vì `Object`), đồng thời mở rộng mức truy cập lên `public`.
+This is a compilable class declaration without `main`. Because `Item` is `final` and implements `Cloneable`, the `super.clone()` call under this design does not raise `CloneNotSupportedException`; wrapping the error into `AssertionError` is an option expressing that invariant. The class uses a **covariant return type** (`Item` instead of `Object`), while widening access level to `public`.
 
-Cơ chế `super.clone()` tạo một object mới với các trường được sao chép từ object hiện tại; nó **không gọi constructor của lớp được clone** như cách `new Item(...)` thường làm. Tuy nhiên, gọi `super.clone()` cũng **không tự sao chép sâu** các object nằm trong trường tham chiếu.
+The `super.clone()` mechanism creates a new object with fields copied from the current object; it **does not call the constructor of the cloned class** the way `new Item(...)` normally does. However, calling `super.clone()` also **does not automatically deep-copy** objects held in reference fields.
 
-## 3. Khác tham chiếu: bản clone là object mới
+## 3. Distinct reference: the clone is a new object
 
-Với một triển khai tuân quy ước, hai biến có thể chứa thông tin giống nhau nhưng không trỏ cùng một instance:
+With a convention-compliant implementation, two variables can contain identical information without pointing to the same instance:
 
 ~~~java
 Item original = new Item(7);
@@ -68,15 +68,15 @@ System.out.println(original != copied); // true
 System.out.println(original.getClass() == copied.getClass()); // true
 ~~~
 
-Đây là snippet sử dụng lớp `Item` ở mục trên và có thể đặt trong `main`. `==` với tham chiếu kiểm tra **identity**, không kiểm tra dữ liệu. Nếu hai biến cùng trỏ một instance, thay đổi trạng thái qua biến này tác động lên cùng object mà biến kia nhìn thấy. Nếu chúng khác instance, việc gán lại trường trực tiếp của bản này không tự thay đổi trường trực tiếp của bản kia.
+This is a snippet using the `Item` class above and can be placed inside `main`. `==` on references checks **identity**, not data. If two variables point to the same instance, modifying state through one variable affects the same object seen by the other. If they are different instances, reassigning a direct field of one copy does not automatically change the direct field of the other.
 
-Nhưng cần phân biệt **hai object gốc/clone khác nhau** với **các object con được chúng tham chiếu**: cả bản gốc và clone vẫn có thể cùng giữ tham chiếu đến một `List`, một array hoặc một object mutable. Đó là sao chép nông (*shallow copy*), phân tích ở phần dưới.
+However, distinguish **two different original/clone objects** from **child objects referenced by them**: both the original and the clone can still hold references to the same `List`, array, or mutable object. That is a *shallow copy*, analyzed below.
 
-Một override sai có thể viết `return this;` và làm `clone != original` thất bại. Trình biên dịch Java không tự chặn kiểu triển khai đó; trách nhiệm bảo vệ hợp đồng thuộc người viết API.
+An erroneous override could write `return this;` and cause `clone != original` to fail. The Java compiler does not block that kind of implementation automatically; the responsibility to uphold the contract belongs to the API author.
 
-## 4. Cùng lớp runtime: `getClass()`, không phải tên kiểu biến
+## 4. Same runtime class: `getClass()`, not variable type name
 
-Với `Object.clone()` thông thường, object được tạo có **cùng lớp runtime** với object nhận lời gọi. Nếu một biến được khai báo kiểu lớp cha nhưng trỏ tới instance lớp con, việc clone qua phương thức kế thừa có thể trả một object với lớp runtime **của lớp con**.
+With standard `Object.clone()`, the created object has **the same runtime class** as the object receiving the call. If a variable is declared with a superclass type yet points to a subclass instance, cloning through an inherited method can return an object with the runtime class **of the subclass**.
 
 ~~~java
 Object a = new Item(9);
@@ -85,22 +85,22 @@ Item b = ((Item) a).clone();
 System.out.println(a.getClass() == b.getClass()); // true
 ~~~
 
-Ở ví dụ này biến `a` được khai báo `Object`, nhưng instance thực tế là `Item`. Quy ước cùng lớp xét `getClass()` của **object runtime**, không xét tên kiểu khai báo của biến, cũng không chỉ dùng `instanceof`: `instanceof` chấp nhận cả lớp con, còn phép so `getClass() == getClass()` yêu cầu đúng lớp runtime.
+In this example variable `a` is declared `Object`, while the actual instance is `Item`. The same-class convention checks `getClass()` of the **runtime object**, not the declared type name of the variable, nor merely `instanceof`: `instanceof` accepts subclasses as well, whereas comparing `getClass() == getClass()` requires the exact runtime class.
 
-Khi lớp có kế thừa, `super.clone()` thường bảo toàn kiểu runtime vì clone tạo một đối tượng mới cùng kiểu thực tế của receiver. Nhưng triển khai lớp con phải cẩn thận sao chép các trường mutable do nó bổ sung; chỉ dựa vào `super.clone()` có thể để lại tham chiếu dùng chung.
+When a class uses inheritance, `super.clone()` usually preserves the runtime type because clone creates a new object of the receiver's actual type. However, subclass implementations must be careful to copy mutable fields added by them; relying solely on `super.clone()` can leave shared references behind.
 
-Một phương thức tự viết dưới tên `clone` nhưng tạo `new Base(...)` khi receiver là `Child` có thể phá quy ước cùng lớp. Đây là một lý do không nên giả định mọi override tuân hợp đồng chỉ từ tên phương thức.
+A custom-written method named `clone` that constructs `new Base(...)` when the receiver is `Child` can violate the same-class convention. This is one reason not to assume every override adheres to the contract solely from the method name.
 
-## 5. Thường cùng giá trị: vì sao `equals()` có thể vẫn false?
+## 5. Usually equal values: why can `equals()` still be false?
 
-Cần tách **trạng thái được sao chép** khỏi **quy tắc `equals()`**:
+Separate **copied state** from **`equals()` rules**:
 
-- Nếu lớp định nghĩa `equals()` theo các trường giá trị và clone giữ các trường tương ứng, `clone.equals(original)` thường `true`.
-- Nếu lớp **không override `equals()`**, mặc định của `Object.equals()` là identity. Clone là instance mới nên `clone.equals(original)` là `false`.
-- Nếu `equals()` phụ thuộc dữ liệu mà clone cố ý thay đổi (ví dụ đặt lại mã định danh), `equals()` có thể `false` ngay cả khi bản sao hợp lý cho nghiệp vụ.
-- Nếu lớp định nghĩa `equals()` sai đối xứng/bắc cầu hoặc có mutable state thay đổi trong lúc so sánh, kết quả cũng khó tin cậy. Đây là vấn đề thiết kế equality, không chỉ là vấn đề clone.
+- If a class defines `equals()` by value fields and clone preserves corresponding fields, `clone.equals(original)` is usually `true`.
+- If a class **does not override `equals()`**, the default of `Object.equals()` is identity. Since the clone is a new instance, `clone.equals(original)` is `false`.
+- If `equals()` depends on data that clone intentionally changes (for example, resetting an identifier), `equals()` can be `false` even when the copy is valid for business logic.
+- If a class defines `equals()` violating symmetry/transitivity or has mutable state changing during comparison, results are also unreliable. This is an equality design problem, not solely a clone problem.
 
-Ví dụ một lớp có clone nhưng vẫn dùng equality identity:
+Example of a class that has clone yet still uses identity equality:
 
 ~~~java
 final class IdentityItem implements Cloneable {
@@ -121,38 +121,38 @@ final class IdentityItem implements Cloneable {
 }
 ~~~
 
-Với hai biến `IdentityItem a = new IdentityItem(5);` và `IdentityItem b = a.clone();`, ta có `a != b` là `true`, `a.value == b.value` là `true`, nhưng `a.equals(b)` là `false`. Lớp này **không vi phạm quy tắc bắt buộc của `equals()`**; nó chỉ không đạt quy ước clone “thường equals” vì equality mặc định là identity.
+With two variables `IdentityItem a = new IdentityItem(5);` and `IdentityItem b = a.clone();`, we have `a != b` is `true`, `a.value == b.value` is `true`, yet `a.equals(b)` is `false`. This class **does not violate mandatory rules of `equals()`**; it only misses the "usually equals" clone convention because default equality is identity.
 
-Nếu muốn một **value object**, hãy định nghĩa `equals()` cùng `hashCode()` trên trường giá trị ổn định; khi dùng làm khóa trong `HashSet`/`HashMap`, tránh thay đổi trường tham gia equality/hash sau khi thêm.
+If you want a **value object**, define `equals()` alongside `hashCode()` over stable value fields; when used as keys in `HashSet`/`HashMap`, avoid changing fields participating in equality/hash after insertion.
 
-## 6. Sao chép nông và sao chép sâu: ý nghĩa thực tế của “bản sao”
+## 6. Shallow copy and deep copy: practical meaning of "a copy"
 
-`super.clone()` thực hiện sao chép trường theo cơ chế mặc định (*field-by-field copy*). Với trường primitive như `int`, giá trị được sao chép. Với trường tham chiếu như `int[] scores`, **giá trị tham chiếu** được sao chép: object gốc và clone có thể trỏ cùng một array.
+`super.clone()` performs field-by-field copying by the default mechanism (*field-by-field copy*). For primitive fields like `int`, the value is copied. For reference fields like `int[] scores`, the **reference value** is copied: the original object and the clone may point to the same array.
 
 ~~~text
-Trước clone:
+Before clone:
 Original ----> scores [10, 20]
 
-Sau super.clone() (shallow):
+After super.clone() (shallow):
 Original ----> scores [10, 20]
 Clone    -----^
 
-Sau copy thêm scores.clone() (tách array):
+After additionally copying scores.clone() (separate array):
 Original ----> scores [10, 20]
 Clone    ----> scores [10, 20]
 ~~~
 
-Đây là sơ đồ minh họa tham chiếu; hai dòng `[10, 20]` ở sơ đồ cuối đại diện cho **hai array khác nhau**, không phải cùng một array.
+This is a diagram illustrating references; the two `[10, 20]` lines in the final diagram represent **two different arrays**, not the same array.
 
-Nếu muốn clone có thể sửa array độc lập, cần sao chép trường array (chẳng hạn `copy.scores = scores.clone()`). Với cấu trúc phức tạp chứa nested arrays, list, map hoặc object mutable, việc sao chép một array/list bên ngoài **chưa đủ**: các phần tử tham chiếu bên trong có thể còn dùng chung, cần xem xét độ sâu phù hợp.
+If the clone should be able to modify the array independently, the array field needs to be copied (for example, `copy.scores = scores.clone()`). For complex structures containing nested arrays, lists, maps, or mutable objects, copying an outer array/list **is not enough**: inner referenced elements may still be shared, requiring consideration of appropriate depth.
 
-Thế nào là “deep copy” còn phụ thuộc hợp đồng nghiệp vụ: object bất biến như `String` có thể dùng chung an toàn, còn dữ liệu mutable thường cần được sao chép hoặc thay bằng mô hình bất biến. Không sao chép toàn bộ object graph vô điều kiện, đặc biệt khi có vòng tham chiếu, tài nguyên hệ thống hoặc identity được chia sẻ có chủ đích.
+What constitutes a "deep copy" also depends on the business contract: immutable objects like `String` can be shared safely, whereas mutable data usually needs to be copied or replaced with an immutable model. Do not copy the entire object graph unconditionally, especially when there are reference cycles, system resources, or intentionally shared identities.
 
-## 7. Chương trình Java 17 chạy được, có kết quả xác định
+## 7. Runnable Java 17 program with deterministic output
 
-Chương trình sau kiểm tra trực tiếp ba quy ước, so sánh shallow/deep copy, xác minh constructor không được gọi khi clone, và thử lớp thiếu `Cloneable`.
+The following program directly checks the three conventions, compares shallow/deep copies, verifies the constructor is not called during cloning, and tests a class missing `Cloneable`.
 
-Lưu file **`CloneContractDemo.java`**:
+Save file **`CloneContractDemo.java`**:
 
 ~~~java
 import java.util.Arrays;
@@ -216,7 +216,7 @@ public class CloneContractDemo {
                 throw new AssertionError(e);
             }
         }
-        // Không override equals(): dùng identity của Object.
+        // Does not override equals(): uses Object's identity.
     }
 
     static final class MissingMarker {
@@ -289,14 +289,14 @@ public class CloneContractDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng **JDK 17 trở lên**:
+Compile and run using **JDK 17 or later**:
 
 ~~~bash
 javac CloneContractDemo.java
 java CloneContractDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 clone different reference: true
@@ -322,38 +322,38 @@ array content equal: true
 missing marker: CloneNotSupportedException
 ~~~
 
-**Phân tích kết quả:**
+**Result analysis:**
 
-1. `Document.clone()` tạo instance mới (`!=`) cùng runtime class (`getClass() ==`). Khi chưa thay đổi dữ liệu, bản clone bằng bản gốc vì `Document.equals()` được định nghĩa theo `title` và nội dung array.
-2. `shallow.pages == original.pages` là `true`: hai Document khác nhau nhưng **cùng tham chiếu tới một array**. Chỉnh phần tử trong array ở bản gốc làm bản shallow nhìn thấy cùng thay đổi.
-3. `deepCopy()` tạo clone trước rồi tách `pages` bằng `pages.clone()`; hai array khác nhau, ban đầu có cùng nội dung. Sau khi sửa array của bản gốc, bản deep giữ dữ liệu cũ và `equals` so với bản gốc trở thành `false`.
-4. Bộ đếm constructor là 1 dù đã tạo thêm hai Document qua clone/deepCopy: `Object.clone()` không gọi constructor `Document`.
-5. `IdentityItem` chứng minh **cùng trường không đồng nghĩa `equals == true`** khi dùng triển khai `Object.equals()` mặc định.
-6. Array có `clone()` riêng, kết quả khác tham chiếu nhưng cùng runtime array class; với mảng primitive, các phần tử primitive được sao chép độc lập.
-7. `MissingMarker` cho thấy phương thức `Object.clone()` ném `CloneNotSupportedException` khi lớp không implements `Cloneable`; ngoại lệ được kiểm tra thay vì để chương trình dừng.
+1. `Document.clone()` creates a new instance (`!=`) of the same runtime class (`getClass() ==`). Before data changes, the clone equals the original because `Document.equals()` is defined by `title` and array contents.
+2. `shallow.pages == original.pages` is `true`: two different Documents yet **referencing the same array**. Modifying an element in the original's array makes the shallow copy observe the same change.
+3. `deepCopy()` clones first and then separates `pages` via `pages.clone()`; the two arrays are distinct, initially having identical contents. After modifying the original's array, the deep copy keeps the old data and `equals` compared to the original becomes `false`.
+4. The constructor counter is 1 even though two additional Documents were created via clone/deepCopy: `Object.clone()` does not call the `Document` constructor.
+5. `IdentityItem` proves **identical fields do not mean `equals == true`** when using the default `Object.equals()` implementation.
+6. Arrays have their own `clone()`, resulting in a distinct reference of the same runtime array class; for primitive arrays, primitive elements are copied independently.
+7. `MissingMarker` shows `Object.clone()` throws `CloneNotSupportedException` when the class does not implement `Cloneable`; the exception is checked rather than letting the program crash.
 
-**Giới hạn ví dụ:** `deepCopy()` chỉ sao chép sâu một tầng array primitive, vì mô hình `Document` ở đây chỉ có `String` (bất biến) và `int[]`. Với nested object mutable, cần chiến lược rõ ràng cho từng thành phần; gọi `clone()` một lần không tự tạo deep copy tổng quát.
+**Example limitation:** `deepCopy()` only deep-copies one level of primitive array, because the `Document` model here only has `String` (immutable) and `int[]`. With nested mutable objects, an explicit strategy is needed for each component; calling `clone()` once does not automatically produce a general deep copy.
 
-## 8. Kế thừa và Cloneable: vì sao dễ thiết kế sai?
+## 8. Inheritance and Cloneable: why is it easy to design wrongly?
 
-Một lớp cha có `public Parent clone()` dùng `super.clone()` cho phép lớp con kế thừa phương thức đó. Khi receiver thực tế là `Child`, bản sao do `Object.clone()` tạo ra vẫn có thể là **`Child` runtime**, dù kiểu trả về khai báo là `Parent`.
+A superclass with `public Parent clone()` using `super.clone()` allows subclasses to inherit that method. When the actual receiver is `Child`, the copy created by `Object.clone()` can still be **runtime `Child`**, even though the declared return type is `Parent`.
 
-Tuy vậy, kế thừa làm phát sinh hai nguy cơ:
+However, inheritance introduces two risks:
 
-- **Lớp con thêm trường tham chiếu mutable:** `super.clone()` chỉ sao chép giá trị tham chiếu; nếu lớp con muốn độc lập, nó phải override và sao chép phần mutable được thêm.
-- **Hợp đồng equality của các lớp khác nhau:** clone có thể cùng runtime class nhưng `equals()` của lớp cha/con có lỗi hoặc không có value equality. Vì vậy quy ước `clone.equals(original)` không được lấy làm chứng minh equality đã thiết kế đúng.
+- **Subclass adds mutable reference fields:** `super.clone()` only copies reference values; if the subclass wants independence, it must override and copy the added mutable parts.
+- **Different equality contracts across classes:** the clone may have the same runtime class, yet the parent/child class's `equals()` has bugs or lacks value equality. Hence the `clone.equals(original)` convention must not be taken as proof that equality was designed properly.
 
-Nếu một superclass không được xây dựng để hỗ trợ clone, cố override tùy tiện trong subclass có thể gây vấn đề với trạng thái nội bộ và các bất biến của constructor. Đặc biệt cần xem lớp có trường `final` trỏ đến mutable object hay không: clone nông giữ chung tham chiếu, còn thiết kế sao chép sâu với trường `final` không thể chỉ gán lại một cách tùy ý trong clone.
+If a superclass was not built to support cloning, attempting to override it arbitrarily in a subclass can cause issues with internal state and constructor invariants. In particular, check whether the class has `final` fields pointing to mutable objects: shallow cloning keeps shared references, while a deep-copy design with `final` fields cannot simply reassign them arbitrarily inside clone.
 
-**`Cloneable` là marker**, không phải giao diện định nghĩa `public clone()`; mã generic nhận `Cloneable` không tự gọi được `clone()` trên tham chiếu chỉ có kiểu `Cloneable`. Đây là một hạn chế quan trọng của cơ chế clone cũ.
+**`Cloneable` is a marker**, not an interface defining `public clone()`; generic code accepting `Cloneable` cannot automatically call `clone()` on a reference typed only as `Cloneable`. This is an important limitation of the legacy clone mechanism.
 
-## 9. Array, record và các lựa chọn sao chép khác
+## 9. Arrays, records, and other copying options
 
-**Array** có thể `clone()` trực tiếp. Với `int[]`, phần tử primitive được chép; với `Person[]`, bản sao là array mới nhưng mỗi phần tử ban đầu vẫn trỏ đến **cùng Person**. Không nhầm `array.clone()` với deep copy của các phần tử object.
+**Arrays** can be cloned directly with `clone()`. For `int[]`, primitive elements are copied; for `Person[]`, the copy is a new array yet each initial element still points to **the same Person**. Do not confuse `array.clone()` with a deep copy of object elements.
 
-**Record** được Java khai báo là `final`, tự có `equals()`/`hashCode()` theo component, nhưng không có một phương thức `public clone()` tự sinh để sao chép record. Với record bất biến thích hợp, thường không cần clone: có thể dùng trực tiếp cùng giá trị hoặc tạo record mới từ các component nếu cần instance khác.
+**Records** are declared `final` by Java, automatically have `equals()`/`hashCode()` based on components, but do not have an auto-generated `public clone()` method for copying records. For suitable immutable records, cloning is usually unnecessary: you can use the exact same value directly or create a new record from components if a distinct instance is needed.
 
-Nhiều thiết kế hiện đại ưu tiên **copy constructor** hoặc **static factory** vì nêu rõ chính sách sao chép:
+Many modern designs prefer a **copy constructor** or **static factory** because they explicitly state the copying policy:
 
 ~~~java
 final class Settings {
@@ -371,57 +371,57 @@ final class Settings {
 }
 ~~~
 
-Đây là một lớp minh họa không có `main`. Constructor nhận `Settings` tạo object mới và tạo array mới. Trong thiết kế này, cả constructor chính cũng thực hiện **defensive copy** để tránh người gọi giữ tham chiếu tới `flags` mutable. Nếu cung cấp getter trả array, cũng cần cân nhắc trả bản sao để bảo vệ bất biến.
+This is an illustrative class without `main`. The constructor accepting `Settings` creates a new object and creates a new array. In this design, the primary constructor also performs a **defensive copy** to prevent callers from keeping references to mutable `flags`. If a getter returning the array is provided, returning a copy should also be considered to protect immutability.
 
-Các lựa chọn như copy constructor/factory phù hợp khi API cần hợp đồng rõ: sao chép nông hay sâu, có giữ ID hay tạo ID mới, trường mutable nào tách, có cho sao chép qua kế thừa không.
+Options like copy constructors/factories fit when an API needs an explicit contract: shallow or deep copy, whether IDs are kept or regenerated, which mutable fields are separated, and whether copying is allowed through inheritance.
 
-## 10. Những lỗi thường gặp
+## 10. Common mistakes
 
-| Lỗi hoặc giả định | Vì sao sai | Hướng xử lý |
+| Mistake or assumption | Why it is wrong | How to handle |
 |---|---|---|
-| `implements Cloneable` là tự có `public clone()` | Interface marker không khai báo phương thức | Viết phương thức clone công khai nếu API cần |
-| Gọi `super.clone()` trên object không `Cloneable` | Cơ chế Object ném `CloneNotSupportedException` | Chỉ dùng với lớp thiết kế hỗ trợ clone, hoặc dùng copy constructor |
-| Clone có cùng field nên chắc `equals == true` | `Object.equals` mặc định theo identity | Đọc/định nghĩa equality đúng ngữ nghĩa |
-| `clone != original` nghĩa là không chia sẻ mutable state | Sao chép nông giữ nguyên tham chiếu ở trường | Sao chép thêm phần mutable cần độc lập |
-| `clone.getClass() == original.getClass()` luôn được JVM cưỡng chế | Override tự viết có thể trả kiểu khác | Duy trì hợp đồng và kiểm thử runtime class |
-| Thêm trường mutable ở subclass rồi chỉ kế thừa clone của cha | Mutable object mới có thể vẫn bị chia sẻ | Review và override clone ở subclass nếu cần |
-| Nghĩ clone gọi constructor | `Object.clone()` sao chép trường, không gọi constructor của lớp đó | Bảo vệ bất biến; cân nhắc copy constructor |
-| Dùng clone làm cơ chế duy nhất cho deep copy phức tạp | Nested references/vòng tham chiếu cần xử lý riêng | Quy định độ sâu, dùng factory hoặc sao chép có kiểm soát |
-| Dùng `equals` sai hoặc `hashCode` không khớp | Hỏng collection hash nếu dùng object làm khóa | Giữ hợp đồng equality/hash, tránh mutable key |
+| `implements Cloneable` automatically gives `public clone()` | The marker interface declares no methods | Write a public clone method if the API needs it |
+| Calling `super.clone()` on a non-`Cloneable` object | The Object mechanism throws `CloneNotSupportedException` | Only use with classes designed to support clone, or use a copy constructor |
+| Clone has the same fields so `equals == true` is guaranteed | `Object.equals` defaults to identity | Read/define equality with proper semantics |
+| `clone != original` means no shared mutable state | Shallow copy preserves references in fields | Additionally copy mutable parts needing independence |
+| `clone.getClass() == original.getClass()` is always enforced by the JVM | Custom overrides can return a different type | Maintain the contract and test runtime class |
+| Adding mutable fields in a subclass and merely inheriting parent's clone | New mutable objects may still be shared | Review and override clone in the subclass if needed |
+| Thinking clone calls the constructor | `Object.clone()` copies fields without calling that class's constructor | Protect invariants; consider a copy constructor |
+| Using clone as the sole mechanism for complex deep copies | Nested references/reference cycles need special handling | Specify depth, use a factory or controlled copying |
+| Misusing `equals` or mismatched `hashCode` | Breaks hash collections if objects are used as keys | Preserve equality/hash contract, avoid mutable keys |
 
-## 11. Cách kiểm thử hợp đồng clone
+## 11. How to test the clone contract
 
-Với `x` là một object dự kiến clone được, đừng chỉ kiểm tra nội dung bề ngoài. Nên kiểm thử các lớp quan hệ sau:
+For `x` as an object expected to be cloneable, do not check only surface contents. Test the following relationship layers:
 
-1. **Instance:** `clone != original` đúng theo hợp đồng công bố?
-2. **Kiểu runtime:** `clone.getClass() == original.getClass()`? Nếu thiết kế cố ý trả kiểu khác, đã ghi rõ?
-3. **Giá trị ban đầu:** trường primitive, tham chiếu bất biến và phần mutable có nội dung cần bảo toàn có được sao chép đúng không?
-4. **Equality:** `clone.equals(original)` có đúng theo **chính định nghĩa equals của lớp** không? Nếu không, đó là chủ đích hay lỗi?
-5. **Chia sẻ trạng thái:** sau khi sửa array/list mutable ở gốc, bản sao có bị thay đổi không? Điều đó có đúng với shallow/deep contract?
-6. **Kế thừa:** clone một object runtime thuộc subclass rồi xác minh kiểu thực và những trường được subclass bổ sung.
-7. **Ngoại lệ/truy cập:** lớp có cho phép clone không, quyền gọi là `public` hay `protected`, có cần xử lý `CloneNotSupportedException`?
-8. **Bất biến và hash:** clone hay các thay đổi sau clone có phá invariant, equality hoặc cấu trúc collection băm không?
+1. **Instance:** does `clone != original` hold per the published contract?
+2. **Runtime type:** does `clone.getClass() == original.getClass()` hold? If the design intentionally returns another type, is it documented?
+3. **Initial values:** are primitive fields, immutable references, and mutable parts whose contents must be preserved copied accurately?
+4. **Equality:** does `clone.equals(original)` behave according to **the class's own equals definition**? If not, is that intentional or a bug?
+5. **State sharing:** after modifying a mutable array/list on the original, is the copy altered? Does that match the shallow/deep contract?
+6. **Inheritance:** clone a runtime object belonging to a subclass and verify the actual type and fields added by the subclass.
+7. **Exception/access:** does the class permit cloning, is calling permission `public` or `protected`, and must `CloneNotSupportedException` be handled?
+8. **Invariants and hashing:** do cloning or post-clone mutations break invariants, equality, or hash collection structures?
 
-Không dùng ba quy ước như một câu thần chú để thay cho kiểm thử hành vi. Với một API sao chép mang mục tiêu khác (ví dụ tạo đơn hàng mới với ID mới), nên đặt tên và tài liệu rõ thay vì để người dùng hiểu nhầm là clone toàn bộ ý nghĩa giá trị.
+Do not use the three conventions as a magic spell in place of behavioral testing. For a copying API with another goal (for instance, creating a new order with a new ID), name and document it clearly instead of letting users mistakenly assume full value cloning.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-check questions
 
-**1.** `x.clone() != x` muốn bảo đảm điều gì?  
-**Đáp án:** Bản sao là instance mới, không phải chỉ một alias của object gốc. Đây là quy ước thiết kế, không phải luật tuyệt đối cho mọi override.
+**1.** What does `x.clone() != x` aim to ensure?  
+**Answer:** The copy is a new instance, not merely an alias of the original object. This is a design convention, not an absolute law for every override.
 
-**2.** Nếu clone có cùng class runtime nhưng `equals()` dùng `Object.equals()` mặc định, `clone.equals(original)` thường là gì?  
-**Đáp án:** `false`, vì hai instance khác nhau về identity. “Cùng dữ liệu” không mặc nhiên là value equality.
+**2.** If a clone has the same runtime class yet `equals()` uses default `Object.equals()`, what is `clone.equals(original)` usually?  
+**Answer:** `false`, because two instances differ in identity. "Same data" does not automatically mean value equality.
 
-**3.** `super.clone()` có tự clone mọi object được tham chiếu trong các trường không?  
-**Đáp án:** Không. Nó tạo shallow copy; các trường tham chiếu mutable có thể dùng chung object con.
+**3.** Does `super.clone()` automatically clone every object referenced in fields?  
+**Answer:** No. It creates a shallow copy; mutable reference fields can share child objects.
 
-**4.** Vì sao `Cloneable` chưa đủ để gọi `x.clone()` từ mã bên ngoài?  
-**Đáp án:** `Cloneable` không khai báo `public clone`; `Object.clone` là `protected`. Lớp phải cung cấp API sao chép có mức truy cập phù hợp.
+**4.** Why is `Cloneable` not enough to call `x.clone()` from external code?  
+**Answer:** `Cloneable` does not declare `public clone`; `Object.clone` is `protected`. The class must provide a copy API with appropriate access level.
 
-**5.** Có thể dùng `int[] copy = source.clone()` để có array mới độc lập không?  
-**Đáp án:** Có. Mảng mới khác tham chiếu và giá trị phần tử primitive được sao chép. Với `Object[]`, các tham chiếu đến phần tử object vẫn được chia sẻ nếu không sao chép thêm.
+**5.** Can `int[] copy = source.clone()` be used to get a new independent array?  
+**Answer:** Yes. The new array has a different reference and primitive element values are copied. For `Object[]`, references to element objects remain shared unless copied further.
 
-**6.** Khi nào nên chọn copy constructor thay vì clone?  
-**Đáp án:** Khi cần diễn đạt công khai quy tắc sao chép, kiểm soát trường mutable/invariant hoặc xử lý mô hình có kế thừa phức tạp.
+**6.** When should a copy constructor be chosen instead of clone?  
+**Answer:** When you need to explicitly express copying rules, control mutable fields/invariants, or handle models with complex inheritance.
 
-**Ghi nhớ:** Ba đặc điểm clone **khác tham chiếu, cùng lớp runtime và thường cùng giá trị** là các **quy ước mong đợi**. Để bản sao thực sự hữu ích, phải hiểu `equals()` của lớp và mức **độc lập của trạng thái mutable**, thay vì chỉ tin vào `super.clone()`.
+**Remember:** The three clone characteristics **distinct reference, same runtime class, and usually equal values** are **expected conventions**. To make a copy genuinely useful, you must understand the class's `equals()` and the level of **independence of mutable state**, rather than merely trusting `super.clone()`.

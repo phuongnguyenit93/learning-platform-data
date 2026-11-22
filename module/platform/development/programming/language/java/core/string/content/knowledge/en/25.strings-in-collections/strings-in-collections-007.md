@@ -1,46 +1,46 @@
-# Phân biệt String[] và List<String> khi chuyển đổi dữ liệu trong Java
+# Distinguishing String[] and List<String> When Converting Data in Java
 
-## 1. Vì sao cần phân biệt?
+## 1. Why Distinguish Them?
 
-Trong Java, **String[]** (mảng String) và **List<String>** (danh sách String) đều lưu một chuỗi các phần tử có thứ tự và truy cập bằng chỉ số bắt đầu từ 0. Tuy nhiên, **chúng không có cùng cơ chế lưu trữ, kích thước hay quyền thay đổi nội dung**.
+In Java, **String[]** (a String array) and **List<String>** (a String list) both store an ordered sequence of elements accessed by 0-based indices. However, **they do not share the same storage mechanism, sizing behavior, or mutability permissions**.
 
-Khi chuyển đổi dữ liệu, điều quan trọng không chỉ là “đọc được các String” mà còn là:
+When converting data, what matters is not only "being able to read the Strings" but also:
 
-- Danh sách có **dùng chung mảng ban đầu** hay tạo cấu trúc độc lập?
-- Có thể **thêm/xóa phần tử** hay chỉ thay thế phần tử hiện có?
-- Có thể **thay đổi phần tử** qua danh sách hay không?
-- Dữ liệu có được **sao chép tại thời điểm chuyển đổi** hay tiếp tục phản ánh thay đổi bên nguồn?
-- Có cho phép **null** không? Kiểu trả về thực sự của phương thức chuyển đổi là gì?
+- Does the list **share the original array** or create an independent structure?
+- Can you **add/remove elements** or only replace existing ones?
+- Can you **modify elements** through the list?
+- Is the data **copied at conversion time** or does it continue reflecting changes in the source?
+- Is **null** permitted? What is the actual runtime type returned by the conversion method?
 
-Hiểu những điều này giúp tránh lỗi **UnsupportedOperationException**, **ClassCastException**, **ArrayStoreException** và lỗi dữ liệu thay đổi ngoài ý muốn.
+Understanding these questions prevents **UnsupportedOperationException**, **ClassCastException**, **ArrayStoreException**, and unintended data mutations.
 
-Bài sử dụng **Java 17+**, chủ yếu các API chuẩn trong **java.util.Arrays**, **java.util.ArrayList**, **java.util.List** và **java.util.stream**.
+This lesson uses **Java 17+**, primarily standard APIs in **java.util.Arrays**, **java.util.ArrayList**, **java.util.List**, and **java.util.stream**.
 
-## 2. So sánh cấu trúc cơ bản
+## 2. Basic Structural Comparison
 
-| Tiêu chí | **String[]** | **List<String>** |
+| Criterion | **String[]** | **List<String>** |
 | --- | --- | --- |
-| Kiểu | Mảng Java với phần tử kiểu String | Interface collection có phần tử kiểu String |
-| Độ dài | Cố định khi tạo mảng; dùng **length** | Dùng **size()**; khả năng tăng/giảm phụ thuộc implementation |
-| Truy cập | **arr[i]** | **list.get(i)** |
-| Gán phần tử | **arr[i] = value** | **list.set(i, value)** nếu implementation hỗ trợ |
-| Thêm/xóa | Không thể thay đổi số phần tử của chính mảng | Có thể được hỗ trợ, ví dụ **ArrayList** |
-| Có chứa null? | Có | Tùy danh sách: **ArrayList** cho phép, **List.of** không cho phép |
-| In nội dung | **Arrays.toString(arr)** | Thường dùng **list.toString()** |
-| Duyệt | **for**, **Arrays.stream(arr)** | **for**, **list.stream()** |
-| Vấn đề thường gặp | Kích thước cố định, hiệp biến mảng | Quyền sửa phụ thuộc cách tạo List |
+| Type | Java array with String elements | Collection interface with String elements |
+| Length | Fixed at creation; uses **length** | Uses **size()**; ability to grow/shrink depends on implementation |
+| Access | **arr[i]** | **list.get(i)** |
+| Assign element | **arr[i] = value** | **list.set(i, value)** if implementation supports it |
+| Add/remove | Cannot change the element count of the array itself | May be supported, e.g., **ArrayList** |
+| Allows null? | Yes | Depends on the list: **ArrayList** allows it, **List.of** does not |
+| Print contents | **Arrays.toString(arr)** | Usually **list.toString()** |
+| Iterate | **for**, **Arrays.stream(arr)** | **for**, **list.stream()** |
+| Common pitfalls | Fixed size, array covariance | Mutability depends on how the List was created |
 
-**Không phải mọi List đều có thể thêm/xóa.** **List** là interface; bản thân kiểu **List<String>** không bảo đảm được gọi **add()**, **remove()** hoặc **set()** thành công. Quyền sửa phụ thuộc đối tượng cụ thể:
+**Not every List can add/remove elements.** **List** is an interface; the type **List<String>** alone does not guarantee that calling **add()**, **remove()**, or **set()** will succeed. Mutability depends on the concrete object:
 
-- **ArrayList**: có thể thay đổi kích thước và thay phần tử.
-- **Arrays.asList(array)**: thay phần tử được, nhưng **không** thêm/xóa làm đổi kích thước.
-- **List.of(...)** và **List.copyOf(...)**: danh sách **unmodifiable**, không cho sửa cấu trúc hoặc gán phần tử bằng các phương thức thay đổi List.
+- **ArrayList**: resizable and supports replacing elements.
+- **Arrays.asList(array)**: supports replacing elements, but **cannot** add/remove to change size.
+- **List.of(...)** and **List.copyOf(...)**: **unmodifiable** lists; they forbid structural changes or replacing elements through List mutators.
 
-Các danh sách này vẫn cùng có kiểu tham chiếu **List<String>**, nên cần biết cách chúng được tạo.
+All of these still share the reference type **List<String>**, so you need to know how they were created.
 
-## 3. Chuyển String[] thành List<String> bằng Arrays.asList()
+## 3. Converting String[] to List<String> with Arrays.asList()
 
-Đây là cách thông dụng khi muốn dùng các thao tác theo giao diện **List** trên dữ liệu mảng sẵn có:
+This is a common approach when you want to use **List** operations over existing array data:
 
 ~~~java
 import java.util.Arrays;
@@ -50,11 +50,11 @@ String[] names = {"An", "Binh", "Chi"};
 List<String> list = Arrays.asList(names);
 ~~~
 
-**Arrays.asList(names)** trả về danh sách kích thước cố định, **được hỗ trợ bởi chính mảng names** (*backed by the array*).
+**Arrays.asList(names)** returns a fixed-size list **backed by the `names` array itself**.
 
-Điều đó dẫn tới ba quy tắc quan trọng.
+This leads to three important rules.
 
-### 3.1. Có thể thay phần tử, và việc thay đổi phản ánh hai chiều
+### 3.1. Elements Can Be Replaced, and Changes Reflect Both Ways
 
 ~~~java
 String[] names = {"An", "Binh"};
@@ -67,32 +67,32 @@ names[1] = "Dung";
 System.out.println(list);                    // [Chi, Dung]
 ~~~
 
-Thay phần tử qua **list.set(...)** làm thay giá trị tại vị trí tương ứng của mảng. Thay phần tử qua **names[index]** cũng được phản ánh khi đọc từ List.
+Replacing an element via **list.set(...)** changes the value at the corresponding array index. Replacing an element via **names[index]** is likewise reflected when reading from the List.
 
-**String bất biến** không làm điều này biến mất: ta không sửa nội dung đối tượng String; ta đổi **tham chiếu đến phần tử String** tại một vị trí.
+**String immutability** does not prevent this: we are not mutating the String object's contents; we are changing the **reference to a String element** at a given slot.
 
-### 3.2. Không thể thêm hoặc xóa để đổi kích thước
+### 3.2. Cannot Add or Remove to Change Size
 
 ~~~java
 String[] names = {"An", "Binh"};
 List<String> list = Arrays.asList(names);
 
-// list.add("Chi");       // UnsupportedOperationException nếu thực thi
-// list.remove(0);        // UnsupportedOperationException nếu thực thi
-list.set(1, "Chi");       // Hợp lệ: thay giá trị ở chỉ số sẵn có
+// list.add("Chi");       // UnsupportedOperationException if executed
+// list.remove(0);        // UnsupportedOperationException if executed
+list.set(1, "Chi");       // Valid: replaces value at an existing index
 ~~~
 
-Lý do là mảng ban đầu có độ dài cố định; List do **Arrays.asList** trả về không hỗ trợ thao tác làm thay đổi số lượng phần tử.
+The reason is that the underlying array has a fixed length; the List returned by **Arrays.asList** does not support operations that alter element count.
 
-Một số tên phương thức như **sort()** hoặc **replaceAll()** có thể thực hiện vì chúng cập nhật phần tử trong kích thước hiện có; ngược lại, **clear()** hoặc **add()** sẽ thất bại. Không suy ra rằng chỉ vì có interface List thì mọi thao tác của List đều được hỗ trợ.
+Some methods such as **sort()** or **replaceAll()** can run because they update elements within the existing size; conversely, **clear()** or **add()** will fail. Do not assume that merely having the List interface means every List operation is supported.
 
-### 3.3. Đây là một dạng view, không phải bản sao tách biệt
+### 3.3. It Is a View, Not a Separate Copy
 
-**Arrays.asList** không sao chép mảng để tạo dữ liệu độc lập. Nếu code khác còn giữ biến **names** thì nó có thể ảnh hưởng đến danh sách.
+**Arrays.asList** does not copy the array into independent storage. If other code still holds the **names** variable, it can affect the list.
 
-Nếu chỉ cần truyền nhanh một mảng cho API nhận **List<String>**, cách này tiện. Nếu muốn danh sách có thể tăng/giảm hoặc muốn tách việc thay đổi phần tử khỏi mảng, hãy tạo **ArrayList** mới.
+If you just need to pass an array quickly to an API expecting **List<String>**, this is convenient. If you want a list that can grow/shrink or want element updates decoupled from the array, create a new **ArrayList**.
 
-## 4. Chuyển String[] thành ArrayList có thể thay đổi kích thước
+## 4. Converting String[] to a Resizable ArrayList
 
 ~~~java
 import java.util.ArrayList;
@@ -110,19 +110,19 @@ System.out.println(editable);              // [Dung, Chi]
 System.out.println(Arrays.toString(names)); // [An, Binh]
 ~~~
 
-**new ArrayList<>(...)** tạo cấu trúc danh sách độc lập với mảng ban đầu:
+**new ArrayList<>(...)** creates a list structure independent of the original array:
 
-- Có thể gọi **add**, **remove**, **clear**, **set** theo khả năng của ArrayList.
-- Gán phần tử hoặc thay đổi kích thước trong danh sách không đổi các vị trí của mảng nguồn.
-- Gán phần tử mới vào mảng nguồn không đổi các vị trí trong danh sách đã tạo.
+- You can call **add**, **remove**, **clear**, and **set** as supported by ArrayList.
+- Setting elements or changing size in the list does not change slots in the source array.
+- Assigning new elements to the source array does not change slots in the created list.
 
-Đây là **bản sao nông (shallow copy)**: phần tử được sao chép dưới dạng tham chiếu. Với **String**, mỗi String là immutable nên chia sẻ tham chiếu String không gây thay đổi nội dung String. Với danh sách các đối tượng **mutable** khác, việc sao chép danh sách **không** tự động sao chép sâu từng đối tượng.
+This is a **shallow copy**: elements are copied as references. For **String**, each String is immutable, so sharing String references cannot mutate String contents. For lists of other **mutable** objects, copying the list does **not** automatically deep-copy each element object.
 
-**Khi cần List có thể sửa, đây thường là lựa chọn rõ ràng nhất.** Có thể viết biến kiểu interface **List<String>** để không ràng buộc code gọi vào implementation cụ thể.
+**When you need a modifiable List, this is usually the clearest choice.** You can declare the variable with the **List<String>** interface type to avoid coupling callers to a concrete implementation.
 
-## 5. Tạo List không thể sửa bằng List.of()
+## 5. Creating an Unmodifiable List with List.of()
 
-Từ Java 9, **List.of(...)** tạo danh sách **unmodifiable**:
+Since Java 9, **List.of(...)** creates an **unmodifiable** list:
 
 ~~~java
 import java.util.Arrays;
@@ -137,28 +137,28 @@ System.out.println(immutableList);         // [An, Binh]
 System.out.println(Arrays.toString(names)); // [Chi, Binh]
 ~~~
 
-Trong trường hợp **String[]** này, **List.of(names)** nhận các phần tử của mảng làm phần tử List, và danh sách tạo ra **không liên kết với mảng nguồn như Arrays.asList**. Thay phần tử của mảng sau khi tạo danh sách không làm thay phần tử đã lưu trong List.
+In this **String[]** case, **List.of(names)** takes the array's elements as the List elements, and the resulting list is **not linked to the source array like Arrays.asList**. Replacing an array element after creating the list does not alter the elements stored in the List.
 
-Quy tắc:
+Rules:
 
-- Không thể **add**, **remove**, **set** vào List do **List.of** trả về; phương thức thay đổi danh sách ném **UnsupportedOperationException**.
-- **List.of** **không chấp nhận phần tử null**; nếu mảng có phần tử null, lúc tạo danh sách sẽ ném **NullPointerException**.
-- Danh sách **unmodifiable** khác với đảm bảo sao chép sâu mọi đối tượng phần tử. Ví dụ với **List<SomeMutableObject>**, bản thân đối tượng vẫn có thể bị sửa từ nơi khác nếu nơi đó có tham chiếu.
+- You cannot **add**, **remove**, or **set** on a List returned by **List.of**; mutating methods throw **UnsupportedOperationException**.
+- **List.of** **does not accept null elements**; if the array contains a null element, creating the list throws **NullPointerException**.
+- An **unmodifiable** list is not the same as deep-copying every element object. For example, with **List<SomeMutableObject>**, an object itself can still be mutated elsewhere if a reference to it exists.
 
-Một ví dụ dễ gặp lỗi:
+An easy-to-hit error example:
 
 ~~~java
 String[] values = {"A", null};
 
 // List<String> x = List.of(values); // NullPointerException
-List<String> y = Arrays.asList(values); // Hợp lệ: cho phép phần tử null
+List<String> y = Arrays.asList(values); // Valid: allows null elements
 ~~~
 
-Nếu bài toán yêu cầu **null** là giá trị hợp lệ, đừng dùng **List.of** hoặc **List.copyOf** trước khi xác định chính sách xử lý null.
+If the problem requires **null** as a valid value, do not use **List.of** or **List.copyOf** without first establishing a null-handling policy.
 
-### 5.1. List.copyOf khác gì?
+### 5.1. How Does List.copyOf Differ?
 
-Từ Java 10, **List.copyOf(collection)** tạo một danh sách unmodifiable chứa các phần tử tại thời điểm thực hiện, với quy tắc **không chấp nhận null**. Có thể dùng khi nguồn đã là một **Collection**:
+Since Java 10, **List.copyOf(collection)** creates an unmodifiable list containing the elements at the moment of the call, with the rule of **not accepting null**. Use it when the source is already a **Collection**:
 
 ~~~java
 List<String> editable = new ArrayList<>(List.of("A", "B"));
@@ -169,13 +169,13 @@ editable.set(0, "C");
 System.out.println(snapshot); // [A, B]
 ~~~
 
-**List.copyOf** có thể tái sử dụng một List đã unmodifiable phù hợp thay vì lúc nào cũng tạo đối tượng mới. Quy tắc cần quan tâm ở đây là **không để thay đổi cấu trúc/giá trị các vị trí qua nguồn làm thay đổi danh sách trả về**, không phải giả định luôn cấp phát một bản copy mới.
+**List.copyOf** may reuse an already-unmodifiable List when appropriate instead of always allocating a new object. The key guarantee here is that **structural/positional mutations through the source do not alter the returned list**, rather than assuming a fresh copy is always allocated.
 
-Với mảng nguồn, **List.of(array)** diễn đạt nhu cầu tạo List không thể sửa rất ngắn gọn. Với collection nguồn, **List.copyOf(collection)** diễn đạt rõ mục đích tạo snapshot.
+With an array source, **List.of(array)** expresses creating an unmodifiable List concisely. With a collection source, **List.copyOf(collection)** clearly expresses taking a snapshot.
 
-## 6. Ví dụ Java 17+ độc lập: so sánh ba cách chuyển đổi
+## 6. Standalone Java 17+ Example: Comparing the Three Conversions
 
-Tạo tệp **StringArrayListDemo.java**:
+Create the file **StringArrayListDemo.java**:
 
 ~~~java
 import java.util.ArrayList;
@@ -186,7 +186,7 @@ public class StringArrayListDemo {
     public static void main(String[] args) {
         String[] source = {"An", "Binh"};
 
-        // View kích thước cố định, liên kết hai chiều với source.
+        // Fixed-size view, linked bidirectionally to source.
         List<String> view = Arrays.asList(source);
         view.set(0, "Chi");
         System.out.println("array after view.set: "
@@ -195,7 +195,7 @@ public class StringArrayListDemo {
         source[1] = "Dung";
         System.out.println("view after array update: " + view);
 
-        // Bản sao cấu trúc độc lập, có thể thêm/xóa.
+        // Structurally independent copy, supports add/remove.
         List<String> dynamic =
                 new ArrayList<>(Arrays.asList(source));
         dynamic.add("Em");
@@ -204,12 +204,12 @@ public class StringArrayListDemo {
                 + Arrays.toString(source));
         System.out.println("dynamic: " + dynamic);
 
-        // List unmodifiable, không cùng dùng mảng source.
+        // Unmodifiable List, does not share the source array.
         List<String> immutable = List.of(source);
         source[0] = "Hoa";
         System.out.println("List.of snapshot: " + immutable);
 
-        // Chuyển List về mảng String[] mới.
+        // Convert List back to a new String[] array.
         String[] back = dynamic.toArray(String[]::new);
         back[1] = "Khac";
         System.out.println("converted array: "
@@ -219,14 +219,14 @@ public class StringArrayListDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac StringArrayListDemo.java
 java StringArrayListDemo
 ~~~
 
-Kết quả chuẩn:
+Expected output:
 
 ~~~text
 array after view.set: [Chi, Binh]
@@ -238,21 +238,21 @@ converted array: [Giang, Khac, Em]
 list after array edit: [Giang, Dung, Em]
 ~~~
 
-Diễn giải:
+Walkthrough:
 
-1. **view.set(0, "Chi")** thay vị trí 0 của chính mảng **source**.
-2. **source[1] = "Dung"** phản ánh ở **view**, vì view vẫn dùng mảng đó.
-3. **new ArrayList<>(...)** giữ các phần tử theo giá trị tại thời điểm tạo, nhưng có các vị trí độc lập. Sửa **dynamic** không thay **source**.
-4. **List.of(source)** tạo List không thể sửa từ các phần tử hiện tại; sau khi **source[0] = "Hoa"**, **immutable** vẫn chứa **Chi**.
-5. **dynamic.toArray(String[]::new)** tạo **String[]** mới. Sửa mảng **back** không làm **dynamic** đổi theo.
+1. **view.set(0, "Chi")** changes index 0 of the **source** array itself.
+2. **source[1] = "Dung"** appears in **view**, because view is still backed by that array.
+3. **new ArrayList<>(...)** keeps the element values at creation time, but has independent slots. Modifying **dynamic** does not change **source**.
+4. **List.of(source)** creates an unmodifiable List from the current elements; after **source[0] = "Hoa"**, **immutable** still holds **Chi**.
+5. **dynamic.toArray(String[]::new)** creates a new **String[]**. Editing the **back** array does not change **dynamic**.
 
-Đó là lý do hai lời gọi đều có dạng “chuyển mảng thành List” nhưng mang ngữ nghĩa sở hữu dữ liệu khác nhau.
+That is why two calls that both appear to "convert an array to a List" carry very different data-ownership semantics.
 
-## 7. Chuyển List<String> về String[]
+## 7. Converting List<String> Back to String[]
 
-Nếu phương thức nhận **String[]** nhưng dữ liệu đang ở **List<String>**, hãy dùng **toArray** có kiểu.
+If a method expects **String[]** while your data is in a **List<String>**, use the typed **toArray** overload.
 
-### 7.1. Cách hiện đại: toArray(String[]::new)
+### 7.1. Modern Way: toArray(String[]::new)
 
 ~~~java
 List<String> names = List.of("An", "Binh", "Chi");
@@ -261,26 +261,26 @@ String[] array = names.toArray(String[]::new);
 System.out.println(Arrays.toString(array)); // [An, Binh, Chi]
 ~~~
 
-Biến thể **Collection.toArray(IntFunction<T[]>)** xuất hiện từ Java 11. **String[]::new** là một **array constructor reference**: nó cung cấp cách tạo mảng String đúng kiểu mà API yêu cầu.
+The **Collection.toArray(IntFunction<T[]>)** overload was introduced in Java 11. **String[]::new** is an **array constructor reference**: it supplies a way to allocate a String array of the exact type requested by the API.
 
-Kết quả là một **mảng mới có kiểu String[]**, giữ thứ tự lặp của danh sách. Với List, thứ tự lặp trùng thứ tự các chỉ số.
+The result is a **new array of type String[]**, preserving the list's iteration order. For List, iteration order matches index order.
 
-### 7.2. Cách phổ biến lâu đời: toArray(new String[0])
+### 7.2. Long-Standing Idiom: toArray(new String[0])
 
 ~~~java
 List<String> names = List.of("An", "Binh");
 String[] array = names.toArray(new String[0]);
 ~~~
 
-Đây cũng là cách đúng và tương thích rộng rãi. Mảng đầu vào được dùng để chỉ rõ kiểu phần tử; khi mảng quá nhỏ, API cấp phát một mảng mới có kiểu runtime tương ứng. Với **new String[0]**, kết quả là **String[]** mới có độ dài bằng số phần tử.
+This is also valid and widely compatible. The input array specifies the element type; when the passed array is too small, the API allocates a new array of the matching runtime type. With **new String[0]**, the result is a new **String[]** whose length equals the element count.
 
-Có thể viết:
+You may also see:
 
 ~~~java
 String[] array = names.toArray(new String[names.size()]);
 ~~~
 
-Nếu mảng truyền vào đủ dài, API có thể **dùng chính mảng đó** để chứa kết quả; khi mảng dài hơn số phần tử, phần tử ngay sau kết quả được đặt thành **null**. Đây là điểm cần biết khi dùng lại một mảng có sẵn:
+If the passed array is large enough, the API may **reuse that exact array** to store the result; when the array is longer than the element count, the slot immediately after the last element is set to **null**. This is important to know when reusing an existing buffer array:
 
 ~~~java
 List<String> names = List.of("A", "B");
@@ -291,44 +291,44 @@ System.out.println(result == buffer);           // true
 System.out.println(Arrays.toString(buffer));   // [A, B, null, null]
 ~~~
 
-**Chọn một trong hai cách dễ đọc**: **list.toArray(String[]::new)** cho Java 11+, hoặc **list.toArray(new String[0])** khi muốn cách quen thuộc và tương thích với Java cũ hơn.
+**Pick either readable option**: **list.toArray(String[]::new)** for Java 11+, or **list.toArray(new String[0])** when preferring a familiar idiom compatible with older Java versions.
 
-### 7.3. Tránh toArray() không tham số nếu cần String[]
+### 7.3. Avoid Zero-Argument toArray() If You Need String[]
 
-**list.toArray()** trả về **Object[]**, không phải **String[]**:
+**list.toArray()** returns **Object[]**, not **String[]**:
 
 ~~~java
 List<String> names = List.of("A", "B");
-Object[] generic = names.toArray();      // Đúng: Object[]
-String[] typed = names.toArray(String[]::new); // Đúng: String[]
+Object[] generic = names.toArray();      // Valid: Object[]
+String[] typed = names.toArray(String[]::new); // Valid: String[]
 ~~~
 
-Đoạn sau sẽ thất bại ở runtime:
+The following will fail at runtime:
 
 ~~~java
 // String[] wrong = (String[]) names.toArray();
-// ClassCastException: Object[] không thể ép thành String[]
+// ClassCastException: Object[] cannot be cast to String[]
 ~~~
 
-Việc mọi phần tử đều là **String** **không biến kiểu runtime của Object[] thành String[]**. Phải yêu cầu mảng có kiểu thành phần đúng ngay từ lúc chuyển đổi.
+The fact that every element is a **String** **does not turn the runtime type of Object[] into String[]**. You must request an array of the proper component type during conversion.
 
-## 8. So sánh tính độc lập của dữ liệu sau chuyển đổi
+## 8. Comparing Data Independence After Conversion
 
-Đây là bảng chọn API theo mục đích phổ biến:
+Here is an API selection table for common goals:
 
-| Từ nguồn | Cách chuyển đổi | Có sửa kích thước List được không? | Liên kết thay phần tử với mảng nguồn? |
+| From source | Conversion method | Can resize List? | Element replacement linked to source array? |
 | --- | --- | --- | --- |
-| **String[]** | **Arrays.asList(arr)** | Không | Có, hai chiều |
-| **String[]** | **new ArrayList<>(Arrays.asList(arr))** | Có | Không |
-| **String[]** | **List.of(arr)** | Không; unmodifiable | Không |
-| **List<String>** | **list.toArray(String[]::new)** | Không áp dụng: kết quả là mảng | Không: mảng mới |
-| **List<String>** | **list.toArray(new String[0])** | Không áp dụng: kết quả là mảng | Không: mảng mới |
+| **String[]** | **Arrays.asList(arr)** | No | Yes, bidirectional |
+| **String[]** | **new ArrayList<>(Arrays.asList(arr))** | Yes | No |
+| **String[]** | **List.of(arr)** | No; unmodifiable | No |
+| **List<String>** | **list.toArray(String[]::new)** | N/A: result is an array | No: new array |
+| **List<String>** | **list.toArray(new String[0])** | N/A: result is an array | No: new array |
 
-Bảng nói về **thay phần tử hoặc kích thước của cấu trúc chứa**; không khẳng định có deep copy từng đối tượng. Với String immutable, mối quan hệ này thường đủ để quyết định cách chuyển đổi.
+The table describes **element replacement or resizing of the container structure**; it does not claim deep copying of individual objects. With immutable Strings, these relationships are usually sufficient to choose the right conversion.
 
-### 8.1. Unmodifiable view không đồng nghĩa snapshot
+### 8.1. An Unmodifiable View Is Not a Snapshot
 
-Có thêm cách bọc một List bằng **Collections.unmodifiableList(list)**:
+There is also the option of wrapping a List with **Collections.unmodifiableList(list)**:
 
 ~~~java
 String[] source = {"A", "B"};
@@ -339,16 +339,16 @@ source[0] = "C";
 System.out.println(readOnlyView); // [C, B]
 ~~~
 
-Người giữ **readOnlyView** không được gọi **set()** để thay phần tử qua wrapper, nhưng List bọc bên dưới vẫn là view trên mảng **source**. Khi source đổi, nội dung đọc từ wrapper đổi theo.
+Holders of **readOnlyView** cannot call **set()** to replace elements through the wrapper, yet the underlying wrapped List is still a view over **source**. When source changes, contents read through the wrapper change as well.
 
-Vì vậy, **read-only interface** và **snapshot độc lập** là hai khái niệm khác nhau:
+Therefore, a **read-only interface** and an **independent snapshot** are two different concepts:
 
-- Cần chỉ cấm phía nhận sửa qua reference? Wrapper unmodifiable có thể đủ, nhưng dữ liệu gốc vẫn có thể thay đổi.
-- Cần giữ tập phần tử ở thời điểm chuyển đổi? Dùng **List.of(array)** hoặc **List.copyOf(collection)** khi chính sách null cho phép.
+- Need only to forbid the receiver from mutating through its reference? An unmodifiable wrapper may suffice, though the underlying data can still change.
+- Need to freeze the set of elements at conversion time? Use **List.of(array)** or **List.copyOf(collection)** when the null policy permits.
 
-## 9. Null, chuỗi rỗng và mảng/danh sách rỗng
+## 9. Null, Empty Strings, and Empty Arrays/Lists
 
-**String rỗng ""** là một đối tượng String hợp lệ và **khác null**. Đừng loại bỏ nó chỉ vì một API không cho phần tử null.
+**An empty String ""** is a valid String object and **is not null**. Do not discard it simply because an API disallows null elements.
 
 ~~~java
 String[] source = {"A", null, ""};
@@ -361,23 +361,23 @@ System.out.println(dynamic.get(1) == null); // true
 System.out.println(dynamic.get(2).isEmpty()); // true
 
 // List<String> immutable = List.of(source);
-// Ném NullPointerException vì có phần tử null.
+// Throws NullPointerException because of the null element.
 ~~~
 
-Khi **chính mảng nguồn bằng null**, các thao tác chuyển đổi nhận mảng không phải là “tạo danh sách rỗng”:
+When **the source array itself is null**, conversion calls taking an array do not mean "create an empty list":
 
 ~~~java
 String[] source = null;
 
-// Arrays.asList(source) hoặc List.of(source) sẽ gặp lỗi null;
-// cần quyết định null nghĩa là gì theo hợp đồng API.
+// Arrays.asList(source) or List.of(source) will fail on null;
+// decide what null means according to the API contract.
 List<String> result =
         source == null ? List.of() : new ArrayList<>(Arrays.asList(source));
 ~~~
 
-Đây chỉ là **một chính sách minh họa**: chuyển null thành danh sách rỗng. Trong API khác, null có thể là dữ liệu thiếu không hợp lệ và nên được báo lỗi; không mặc định nuốt mất tín hiệu nghiệp vụ.
+This is only **one illustrative policy**: converting null into an empty list. In another API, null may represent invalid missing data that should raise an error; do not silently swallow business signals by default.
 
-Với dữ liệu rỗng thực sự:
+For genuinely empty data:
 
 ~~~java
 String[] emptyArray = new String[0];
@@ -387,60 +387,60 @@ System.out.println(Arrays.asList(emptyArray).isEmpty()); // true
 System.out.println(emptyList.toArray(String[]::new).length); // 0
 ~~~
 
-Mảng độ dài 0 và List không phần tử đều là cấu trúc hợp lệ. Nhưng một List rỗng unmodifiable vẫn không cho phép **add()**.
+A zero-length array and a zero-element List are both valid structures. However, an empty unmodifiable List still does not allow **add()**.
 
-## 10. Hiệp biến mảng và bất biến generics: vấn đề type safety
+## 10. Array Covariance and Generics Invariance: Type Safety Issues
 
-Sự khác nhau còn nằm ở hệ thống kiểu Java.
+Another difference lies in Java's type system.
 
-### 10.1. Mảng hiệp biến (covariant)
+### 10.1. Arrays Are Covariant
 
-Java cho phép gán **String[]** vào biến **Object[]**, vì String là lớp con của Object. Nhưng mảng giữ kiểu thành phần thực tế ở runtime:
+Java allows assigning a **String[]** to an **Object[]** variable because String is a subclass of Object. Yet the array retains its actual element type at runtime:
 
 ~~~java
 Object[] values = new String[]{"A", "B"};
-values[0] = "C"; // Hợp lệ
-// values[1] = 42; // ArrayStoreException ở runtime
+values[0] = "C"; // Valid
+// values[1] = 42; // ArrayStoreException at runtime
 ~~~
 
-Biến được khai báo là **Object[]**, nhưng đối tượng thực là **String[]**. Gán Integer vào mảng đó bị từ chối ở runtime.
+The variable is declared as **Object[]**, but the actual object is **String[]**. Assigning an Integer into that array is rejected at runtime.
 
-### 10.2. Generic List bất biến (invariant)
+### 10.2. Generic Lists Are Invariant
 
-Java không cho phép coi **List<String>** là **List<Object>**:
+Java does not allow treating **List<String>** as **List<Object>**:
 
 ~~~java
 List<String> names = new ArrayList<>();
-// List<Object> objects = names; // Lỗi biên dịch
+// List<Object> objects = names; // Compile error
 ~~~
 
-Điều này ngăn việc thêm đối tượng không phải String vào danh sách qua một tham chiếu **List<Object>**. Nếu chỉ cần **đọc** các phần tử như Object, có thể sử dụng wildcard:
+This prevents adding non-String objects into the list via a **List<Object>** reference. If you only need to **read** elements as Object, you can use a wildcard:
 
 ~~~java
 List<String> names = List.of("An", "Binh");
 List<? extends Object> readable = names;
 
 Object first = readable.get(0);
-// readable.add(123); // Không hợp lệ với wildcard extends
+// readable.add(123); // Invalid with extends wildcard
 ~~~
 
-Các quy tắc này giải thích tại sao chuyển đổi dữ liệu nên **giữ kiểu String[] hoặc List<String>**, tránh ép kiểu không an toàn sang mảng/generic khác.
+These rules explain why data conversions should **preserve String[] or List<String> types**, avoiding unsafe casts to other array or generic types.
 
-### 10.3. Tránh dùng raw type
+### 10.3. Avoid Raw Types
 
-Không nên viết:
+Avoid writing:
 
 ~~~java
 // List raw = Arrays.asList(new String[]{"A", "B"});
 ~~~
 
-Raw type bỏ bớt kiểm tra kiểu ở thời điểm biên dịch, dễ dẫn đến lỗi khi đưa dữ liệu qua API khác. Với Java hiện đại, khai báo rõ **List<String>**.
+Raw types bypass compile-time type checking, easily causing errors when passing data to other APIs. In modern Java, declare **List<String>** explicitly.
 
-## 11. Dùng Stream khi chuyển đổi cần xử lý phần tử
+## 11. Using Streams When Conversion Requires Processing Elements
 
-Nếu chỉ chuyển cấu trúc giữ nguyên các phần tử, **Arrays.asList** hoặc **toArray** thường đơn giản hơn. Nếu cần **lọc, ánh xạ, sắp xếp** trong quá trình chuyển, Stream phù hợp hơn.
+If you are just converting structures while keeping elements intact, **Arrays.asList** or **toArray** is usually simpler. If you need to **filter, map, or sort** during conversion, Streams are a better fit.
 
-### 11.1. Từ String[] thành List đã xử lý
+### 11.1. From String[] to a Processed List
 
 ~~~java
 import java.util.ArrayList;
@@ -456,12 +456,12 @@ List<String> clean = Arrays.stream(data)
         .collect(Collectors.toCollection(ArrayList::new));
 
 System.out.println(clean); // [An, Binh, Chi]
-clean.add("Dung");         // Được: kết quả là ArrayList
+clean.add("Dung");         // Works: result is an ArrayList
 ~~~
 
-**Collectors.toCollection(ArrayList::new)** làm rõ mong muốn có danh sách có thể thay đổi. Nếu dùng **Stream.toList()** (Java 16+), kết quả là List **unmodifiable**, không nên gọi **add()** hoặc **set()**.
+**Collectors.toCollection(ArrayList::new)** makes the desire for a modifiable list explicit. If **Stream.toList()** (Java 16+) is used, the result is an **unmodifiable** List, so **add()** or **set()** should not be called on it.
 
-### 11.2. Từ List thành mảng sau khi xử lý
+### 11.2. From List to an Array After Processing
 
 ~~~java
 List<String> names = List.of("An", "Binh", "Chi");
@@ -473,15 +473,15 @@ String[] shortNames = names.stream()
 System.out.println(Arrays.toString(shortNames)); // [An, Chi]
 ~~~
 
-**Stream.toArray(String[]::new)** tạo mảng đúng kiểu, tương tự ý tưởng dùng **Collection.toArray(String[]::new)**. Nhưng Stream phù hợp khi có thao tác trung gian; không cần mở Stream chỉ để chép List sang mảng.
+**Stream.toArray(String[]::new)** creates a properly typed array, similar in spirit to **Collection.toArray(String[]::new)**. However, Streams make sense when there are intermediate operations; there is no need to open a Stream merely to copy a List into an array.
 
-### 11.3. Đừng suy ra mọi collector trả ArrayList
+### 11.3. Do Not Assume Every Collector Returns an ArrayList
 
-Các cách như **Collectors.toList()** không hứa hẹn implementation hoặc quyền sửa cụ thể trong hợp đồng API. Nếu ứng dụng cần chắc chắn có thể thêm/xóa, hãy yêu cầu bằng **Collectors.toCollection(ArrayList::new)** hoặc chuyển kết quả thành **new ArrayList<>(...)**.
+Methods like **Collectors.toList()** make no API-contract guarantees regarding the specific implementation or mutability. If an application must be certain it can add/remove elements, request **Collectors.toCollection(ArrayList::new)** or wrap the result in **new ArrayList<>(...)**.
 
-## 12. Chuyển đổi ở ranh giới API và bảo vệ dữ liệu
+## 12. Converting at API Boundaries and Defensive Copying
 
-Giả sử một phương thức nhận mảng và lưu danh sách cho sử dụng lâu dài:
+Suppose a method receives an array and stores a list for long-term use:
 
 ~~~java
 import java.util.Arrays;
@@ -500,16 +500,16 @@ public class NameRepository {
 }
 ~~~
 
-Ý nghĩa:
+Implications:
 
-- **List.copyOf** tạo danh sách unmodifiable, không phụ thuộc việc gán lại phần tử trong mảng **input** sau đó.
-- Code bên ngoài không thể thay phần tử qua danh sách trả về.
-- Constructor **không chấp nhận null array hoặc null element**; đây phải là lựa chọn phù hợp với hợp đồng của lớp.
-- Đây là trường hợp **String** bất biến; nếu phần tử là đối tượng mutable, muốn bất biến sâu cần xem xét sao chép chính đối tượng phần tử.
+- **List.copyOf** creates an unmodifiable list unaffected by subsequent element reassignments in the **input** array.
+- External code cannot replace elements via the returned list.
+- The constructor **does not accept a null array or null elements**; this must align with the class's contract.
+- This relies on **String** being immutable; if elements are mutable objects, true deep immutability requires copying the element objects themselves.
 
-Nếu API cần nhận dữ liệu có thể chứa null hoặc cần cập nhật danh sách nội bộ, có thể sử dụng **new ArrayList<>(Arrays.asList(input))**, kết hợp quy định quyền sửa/đồng bộ thích hợp.
+If the API must accept data that may contain null or needs to update the internal list, you can use **new ArrayList<>(Arrays.asList(input))**, paired with appropriate mutability/synchronization policies.
 
-Khi trả **String[]** cho code khác, dùng **clone()** nếu không muốn bên nhận sửa cùng mảng nội bộ:
+When returning **String[]** to external code, use **clone()** if you do not want callers modifying the same internal array:
 
 ~~~java
 private final String[] stored = {"A", "B"};
@@ -519,28 +519,28 @@ public String[] getNames() {
 }
 ~~~
 
-**clone()** của mảng tạo một mảng mới cùng kiểu và cùng các tham chiếu phần tử; với String immutable, cách này thường đủ để tránh code gọi thay phần tử của mảng lưu trữ.
+An array's **clone()** creates a new array of the same type with the same element references; with immutable Strings, this is usually enough to prevent callers from altering slots of the stored array.
 
-**Không mặc định rằng chuyển đổi tự phòng thủ dữ liệu**: cụ thể, **Arrays.asList(source)** vẫn cho code gọi sửa các phần tử của mảng source qua **set()**.
+**Do not assume conversion automatically protects data defensively**: specifically, **Arrays.asList(source)** still lets callers mutate slots of the source array via **set()**.
 
-## 13. Các lỗi thường gặp và cách khắc phục
+## 13. Common Mistakes and Fixes
 
-| Tình huống | Nguyên nhân | Cách đúng |
+| Scenario | Cause | Correct approach |
 | --- | --- | --- |
-| **Arrays.asList(arr).add("X")** ném lỗi | List được hỗ trợ bởi mảng, kích thước cố định | **new ArrayList<>(Arrays.asList(arr))** |
-| **List.of(arr).set(0, "X")** ném lỗi | List unmodifiable | Chọn **new ArrayList<>(...)** khi cần sửa |
-| Sửa mảng làm List tự thay đổi | **Arrays.asList** dùng chung mảng | Dùng bản sao độc lập |
-| **(String[]) list.toArray()** ném lỗi | **toArray()** không tham số trả **Object[]** | **toArray(String[]::new)** hoặc **toArray(new String[0])** |
-| **List.of(arr)** ném NullPointerException | Mảng chứa phần tử null | Xử lý null hoặc chọn List cho phép null |
-| In mảng ra mã nhận dạng khó đọc | **array.toString()** không hiển thị nội dung | Dùng **Arrays.toString(array)** |
-| Nhầm **List<String>** luôn có thể add | Interface không bảo đảm implementation mutable | Biết nguồn gốc List; dùng ArrayList nếu cần |
-| Bọc **unmodifiableList** nhưng dữ liệu vẫn đổi | Wrapper chỉ chặn thay đổi qua nó; nguồn dưới vẫn có thể đổi | Tạo snapshot độc lập |
-| Ép mảng hoặc dùng raw generic không an toàn | Kiểu runtime và quy tắc generic khác nhau | Giữ **String[]**, **List<String>** đúng kiểu |
-| Sao chép List rồi tưởng sao chép sâu tất cả đối tượng | Các phần tử được copy theo tham chiếu | Cân nhắc deep copy nếu phần tử mutable |
+| **Arrays.asList(arr).add("X")** throws an error | List is backed by the array and fixed in size | **new ArrayList<>(Arrays.asList(arr))** |
+| **List.of(arr).set(0, "X")** throws an error | Unmodifiable list | Choose **new ArrayList<>(...)** when mutation is needed |
+| Editing the array silently alters the List | **Arrays.asList** shares the same array | Use an independent copy |
+| **(String[]) list.toArray()** throws an error | Zero-arg **toArray()** returns **Object[]** | **toArray(String[]::new)** or **toArray(new String[0])** |
+| **List.of(arr)** throws NullPointerException | Array contains a null element | Handle null or choose a List allowing null |
+| Printing an array outputs an unreadable identifier | **array.toString()** does not display contents | Use **Arrays.toString(array)** |
+| Assuming **List<String>** always supports add | Interface does not guarantee a mutable implementation | Know the List's origin; use ArrayList if needed |
+| Wrapping with **unmodifiableList** yet data still changes | Wrapper only blocks mutations through itself; underlying source can still change | Create an independent snapshot |
+| Unsafe array casts or raw generics | Runtime array types and generic rules differ | Keep **String[]** and **List<String>** properly typed |
+| Copying a List and assuming all objects are deep-copied | Elements are copied by reference | Consider deep copying if elements are mutable |
 
-## 14. Bài tập tự kiểm tra
+## 14. Self-Check Exercises
 
-### Bài 1: Dự đoán đầu ra
+### Exercise 1: Predict the Output
 
 ~~~java
 String[] data = {"A", "B"};
@@ -558,7 +558,7 @@ System.out.println(b);
 System.out.println(c);
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 [X, Y]
@@ -567,34 +567,34 @@ Kết quả:
 [A, B]
 ~~~
 
-Giải thích: **a** dùng chung mảng **data**; **b** tạo cấu trúc ArrayList riêng khi dữ liệu là **[A, B]**; **c** chốt các phần tử thành List unmodifiable tại thời điểm tạo. Việc thay đổi mảng sau đó không cập nhật **b** hoặc **c**.
+Explanation: **a** shares the **data** array; **b** creates a separate ArrayList structure while the data is **[A, B]**; **c** freezes the elements into an unmodifiable List at creation time. Subsequent changes to the array do not update **b** or **c**.
 
-### Bài 2: Chọn đúng API
+### Exercise 2: Choose the Right API
 
-Bạn có mảng **String[] tags** và cần:
+You have an array **String[] tags** and need to:
 
-1. Chỉ đọc các phần tử qua API nhận **List<String>**, có thể chấp nhận các thay đổi từ mảng nguồn → **Arrays.asList(tags)**.
-2. Thêm/xóa các nhãn trong List mà không làm thay mảng gốc → **new ArrayList<>(Arrays.asList(tags))**.
-3. Lưu một danh sách không thể sửa, không phản ánh các thay đổi vị trí mảng sau khi chuyển, và chắc chắn không có null → **List.of(tags)**.
-4. Trả một mảng String độc lập từ một List → **list.toArray(String[]::new)**.
-5. Lọc bỏ phần tử rỗng trước khi tạo mảng → Stream với **filter(...)** rồi **toArray(String[]::new)**.
+1. Read elements only through an API taking **List<String>**, where changes from the source array are acceptable → **Arrays.asList(tags)**.
+2. Add/remove tags in the List without modifying the original array → **new ArrayList<>(Arrays.asList(tags))**.
+3. Store an unmodifiable list that does not reflect subsequent array slot changes, guaranteed to have no nulls → **List.of(tags)**.
+4. Return an independent String array from a List → **list.toArray(String[]::new)**.
+5. Filter out empty elements before creating an array → Stream with **filter(...)** followed by **toArray(String[]::new)**.
 
-Hãy tự thay các giá trị bằng **null**, chuỗi rỗng hoặc danh sách không phần tử để kiểm tra cách từng API xử lý.
+Try replacing values with **null**, empty strings, or empty lists to observe how each API behaves.
 
-## 15. Checklist trước khi chuyển đổi trong chương trình thật
+## 15. Checklist Before Converting in Production Code
 
-- [ ] API đầu ra thực sự cần **String[]** hay **List<String>**?
-- [ ] Nếu cần List, muốn **view chung dữ liệu**, **bản sao sửa được** hay **snapshot unmodifiable**?
-- [ ] Phần tử null có hợp lệ không, hay cần loại bỏ/từ chối trước khi chuyển đổi?
-- [ ] Code gọi có cần **add/remove**, **set** hay chỉ đọc?
-- [ ] Có ai khác còn giữ mảng/List nguồn và có thể thay đổi nó sau chuyển đổi không?
-- [ ] Khi chuyển về mảng, đã gọi **toArray(String[]::new)** hoặc **toArray(new String[0])** chưa?
-- [ ] Nếu phần tử là đối tượng mutable thay vì String, đã phân biệt sao chép cấu trúc với deep copy chưa?
-- [ ] Đã thử các trường hợp rỗng, một phần tử, nhiều phần tử và thay đổi dữ liệu sau chuyển đổi chưa?
+- [ ] Does the output API actually need **String[]** or **List<String>**?
+- [ ] If a List is needed, do you want a **shared-data view**, a **modifiable copy**, or an **unmodifiable snapshot**?
+- [ ] Are null elements valid, or should they be filtered/rejected before conversion?
+- [ ] Does the caller need **add/remove**, **set**, or read-only access?
+- [ ] Does anyone else retain the source array/List and could mutate it after conversion?
+- [ ] When converting back to an array, did you call **toArray(String[]::new)** or **toArray(new String[0])**?
+- [ ] If elements are mutable objects instead of String, did you distinguish structural copying from deep copying?
+- [ ] Did you test empty, single-element, multi-element, and post-conversion mutation cases?
 
-**Ghi nhớ:** **String[]** có độ dài cố định; **List<String>** là một interface với quyền sửa tùy implementation. **Arrays.asList** tạo view kích thước cố định gắn với mảng; **new ArrayList<>(Arrays.asList(...))** tạo cấu trúc độc lập có thể sửa; **List.of** tạo List không thể sửa, không phản ánh việc thay phần tử của mảng nguồn; **toArray(String[]::new)** chuyển về mảng đúng kiểu. Chọn API theo **quyền sửa và quan hệ sở hữu dữ liệu**, không chỉ theo cú pháp ngắn nhất.
+**Remember:** **String[]** has a fixed length; **List<String>** is an interface whose mutability depends on its implementation. **Arrays.asList** creates a fixed-size view backed by the array; **new ArrayList<>(Arrays.asList(...))** creates an independent modifiable structure; **List.of** creates an unmodifiable List that does not reflect subsequent source array element changes; **toArray(String[]::new)** converts back to a properly typed array. Choose the API by **mutability permissions and data ownership**, not merely the shortest syntax.
 
-### Tài liệu tham khảo chính thức
+### Official References
 
 - Java SE 17, **java.util.Arrays** (asList, toString, stream): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Arrays.html
 - Java SE 17, **java.util.List** (of, copyOf, toArray): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html

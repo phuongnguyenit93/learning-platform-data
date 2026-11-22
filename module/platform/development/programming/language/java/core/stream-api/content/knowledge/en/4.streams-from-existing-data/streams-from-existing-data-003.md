@@ -1,21 +1,21 @@
-# Tạo Stream bằng Stream.of, Stream.empty và Stream.ofNullable
+# Creating a Stream with Stream.of, Stream.empty, and Stream.ofNullable
 
-Trong Java Stream API, không nhất thiết phải bắt đầu pipeline từ `Collection.stream()`. Ba phương thức factory `Stream.of(...)`, `Stream.empty()` và `Stream.ofNullable(...)` giúp tạo stream ngay từ những giá trị đang có trong chương trình, từ một tập hằng số nhỏ hoặc từ một giá trị có thể vắng mặt.
+In the Java Stream API, it is not always necessary to start a pipeline from `Collection.stream()`. The three factory methods `Stream.of(...)`, `Stream.empty()`, and `Stream.ofNullable(...)` help create a stream directly from values already present in the program, from a small set of constants, or from a possibly absent value.
 
-Đây là bài trong chương **Tạo Stream từ dữ liệu có sẵn** của module **JAVA_STREAM_API**. Mục tiêu là biết chọn đúng phương thức tạo stream, hiểu chính xác số phần tử được tạo ra, xử lý `null` an toàn và kết nối nguồn này với pipeline khai báo `filter`, `map`, `reduce`, `collect` hoặc `flatMap`. Các vấn đề về tài nguyên, trạng thái và hiệu năng cũng được chỉ ra ở những chỗ liên quan trực tiếp.
+This lesson belongs to the **Streams from Existing Data** chapter of the **JAVA_STREAM_API** module. The goal is to know how to choose the right stream creation method, understand the exact number of elements produced, handle `null` safely, and connect these sources to declarative pipelines with `filter`, `map`, `reduce`, `collect`, or `flatMap`. Issues related to resources, state, and performance are also pointed out where directly relevant.
 
-## 1. Nhìn nhanh: ba phương thức khác nhau ở đâu?
+## 1. At a Glance: Where Do the Three Methods Differ?
 
-| Phương thức | Đầu vào | Số phần tử trong stream | Khi nào nên dùng? |
+| Method | Input | Number of elements in stream | When to use? |
 |---|---|---|---|
-| `Stream.of(value)` | Một giá trị thuộc kiểu `T` | Chính xác **1**, kể cả khi giá trị là `null` | Đưa một đối tượng cụ thể vào pipeline |
-| `Stream.of(v1, v2, ...)` | Nhiều giá trị qua varargs | Bằng số đối số/phần tử mảng, có thể là **0** | Tạo stream từ vài giá trị có sẵn |
-| `Stream.empty()` | Không cần đối số | Chính xác **0** | Diễn đạt nhánh không có phần tử |
-| `Stream.ofNullable(value)` | Một giá trị có thể `null` | **0** nếu `null`, ngược lại **1** | Chuyển giá trị tùy chọn thành stream 0 hoặc 1 phần tử |
+| `Stream.of(value)` | One value of type `T` | Exactly **1**, even if the value is `null` | Feeding a specific object into a pipeline |
+| `Stream.of(v1, v2, ...)` | Multiple values via varargs | Equal to the number of arguments/array elements, which can be **0** | Creating a stream from a few existing values |
+| `Stream.empty()` | No arguments needed | Exactly **0** | Expressing a branch with no elements |
+| `Stream.ofNullable(value)` | One potentially `null` value | **0** if `null`, otherwise **1** | Turning an optional value into a 0- or 1-element stream |
 
-`Stream.of` và `Stream.empty` có từ Java 8; `Stream.ofNullable` có từ **Java 9**. Cả ba tạo stream tuần tự ban đầu. `Stream.toList()` được dùng trong một số ví dụ dưới đây và chỉ có từ **Java 16**; với Java 8–15 có thể thay bằng `collect(Collectors.toList())` trong những ví dụ không có yêu cầu riêng về tính bất biến của danh sách.
+`Stream.of` and `Stream.empty` have been available since Java 8; `Stream.ofNullable` was introduced in **Java 9**. All three create an initially sequential stream. `Stream.toList()` is used in some examples below and is only available from **Java 16**; on Java 8–15, you can replace it with `collect(Collectors.toList())` in examples that have no specific requirement for list immutability.
 
-Để dùng các ví dụ:
+To run the examples:
 
 ```java
 import java.util.Arrays;
@@ -27,9 +27,9 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 ```
 
-## 2. `Stream.of(...)`: từ một hoặc nhiều giá trị
+## 2. `Stream.of(...)`: From One or Many Values
 
-### 2.1. Tạo stream từ các phần tử được liệt kê
+### 2.1. Creating a Stream from Listed Elements
 
 ```java
 List<String> technologies = Stream.of("Java", "Kotlin", "Scala")
@@ -39,27 +39,27 @@ List<String> technologies = Stream.of("Java", "Kotlin", "Scala")
 System.out.println(technologies); // [JAVA, KOTLIN, SCALA]
 ```
 
-`Stream.of("Java", "Kotlin", "Scala")` tạo `Stream<String>` với ba phần tử theo thứ tự đã cung cấp. `map` là thao tác trung gian lazy: nó mô tả phép biến đổi; `toList()` là terminal operation kích hoạt pipeline và thu kết quả.
+`Stream.of("Java", "Kotlin", "Scala")` creates a `Stream<String>` with three elements in the order provided. `map` is a lazy intermediate operation: it describes the transformation; `toList()` is the terminal operation that triggers the pipeline and collects the result.
 
-Với một phần tử:
+With one element:
 
 ```java
 Stream<String> one = Stream.of("Java");
 System.out.println(one.count()); // 1
 ```
 
-Với không phần tử, lời gọi `Stream.of()` cũng tạo stream rỗng; nên chỉ rõ kiểu khi ngữ cảnh không đủ để suy luận:
+With zero elements, calling `Stream.of()` also creates an empty stream; specify the type explicitly when the context is insufficient for type inference:
 
 ```java
 Stream<String> none = Stream.<String>of();
 System.out.println(none.count()); // 0
 ```
 
-Trong mã thể hiện ý định “không có dữ liệu”, `Stream.empty()` thường dễ đọc hơn `Stream.of()`.
+In code expressing the intent "no data", `Stream.empty()` is usually more readable than `Stream.of()`.
 
-### 2.2. `Stream.of` không tự loại `null`
+### 2.2. `Stream.of` Does Not Automatically Remove `null`
 
-`Stream.of` có thể chứa một phần tử `null`. Nó cũng có thể chứa `null` xen giữa những phần tử hợp lệ:
+`Stream.of` can contain a single `null` element. It can also contain `null` interspersed among valid elements:
 
 ```java
 long oneNull = Stream.of((String) null).count();
@@ -69,9 +69,9 @@ System.out.println(oneNull);     // 1
 System.out.println(threeValues); // 3
 ```
 
-Ép kiểu `(String) null` ở đây rất có chủ ý: nó buộc gọi overload nhận **một đối tượng**, tránh sự mơ hồ với overload varargs khi viết `Stream.of(null)`. Nếu truyền một **mảng varargs tham chiếu `null`** như `Stream.of((String[]) null)`, lời gọi không tương đương một phần tử `null` và có thể ném `NullPointerException` khi tạo stream.
+The cast `(String) null` here is very intentional: it forces calling the overload that takes **one object**, avoiding ambiguity with the varargs overload when writing `Stream.of(null)`. If you pass a **`null` varargs reference array** such as `Stream.of((String[]) null)`, the call is not equivalent to one `null` element and can throw a `NullPointerException` when creating the stream.
 
-Việc stream cho phép chứa `null` **không** có nghĩa mọi thao tác phía sau đều chấp nhận nó:
+The fact that a stream allows containing `null` **does not** mean all downstream operations accept it:
 
 ```java
 List<String> names = Stream.of("An", null, "Bình")
@@ -82,11 +82,11 @@ List<String> names = Stream.of("An", null, "Bình")
 System.out.println(names); // [AN, BÌNH]
 ```
 
-Nếu bỏ `filter(Objects::nonNull)`, `String::toUpperCase` sẽ ném `NullPointerException` khi gặp phần tử `null`. Tương tự, `findFirst()` và `findAny()` có thể ném `NullPointerException` nếu phần tử chúng chọn là `null`. Hãy quyết định rõ việc có cho phép `null` tồn tại trong pipeline hay không.
+If you omit `filter(Objects::nonNull)`, `String::toUpperCase` will throw a `NullPointerException` when encountering the `null` element. Similarly, `findFirst()` and `findAny()` can throw a `NullPointerException` if the element they select is `null`. Decide explicitly whether `null` is allowed to exist in the pipeline.
 
-### 2.3. Cẩn thận với overload varargs và mảng
+### 2.3. Beware of Varargs Overloads and Arrays
 
-Với mảng **đối tượng** `String[]`, `Stream.of(array)` có thể coi từng phần tử trong mảng là phần tử của stream thông qua overload varargs:
+For an **object** array `String[]`, `Stream.of(array)` can treat each element in the array as a stream element through the varargs overload:
 
 ```java
 String[] languages = {"Java", "Go", "Rust"};
@@ -94,36 +94,36 @@ String[] languages = {"Java", "Go", "Rust"};
 List<String> values = Stream.of(languages).toList();
 System.out.println(values); // [Java, Go, Rust]
 
-// Ép sang Object để coi toàn bộ mảng là MỘT phần tử:
+// Cast to Object to treat the entire array as ONE element:
 long wholeArray = Stream.of((Object) languages).count();
 System.out.println(wholeArray); // 1
 ```
 
-Với **mảng kiểu nguyên thủy** `int[]`, không có sự bung phần tử thành `Stream<Integer>`:
+For a **primitive array** `int[]`, elements are not expanded into `Stream<Integer>`:
 
 ```java
 int[] scores = {10, 20, 30};
 
 Stream<int[]> arrays = Stream.of(scores);
-System.out.println(arrays.count());        // 1: một mảng int[]
+System.out.println(arrays.count());        // 1: one int[] array
 System.out.println(Arrays.stream(scores).sum()); // 60: IntStream
 System.out.println(IntStream.of(scores).sum());   // 60: IntStream
 ```
 
-`Stream.of(scores)` chứa đúng **một đối tượng mảng** `int[]`; `Arrays.stream(scores)` và `IntStream.of(scores)` mới tạo `IntStream` trên từng số nguyên. Với dữ liệu primitive lớn, ưu tiên `IntStream`, `LongStream`, `DoubleStream` khi phù hợp để tránh boxing không cần thiết.
+`Stream.of(scores)` contains exactly **one array object** `int[]`; `Arrays.stream(scores)` and `IntStream.of(scores)` are what create an `IntStream` over each integer. For large primitive data, prefer `IntStream`, `LongStream`, or `DoubleStream` when appropriate to avoid unnecessary boxing.
 
-Một nhầm lẫn tương tự xảy ra với `Collection`:
+A similar confusion occurs with `Collection`:
 
 ```java
 List<String> tags = List.of("core", "stream");
 
-System.out.println(Stream.of(tags).count()); // 1: một List<String>
-System.out.println(tags.stream().count());   // 2: hai String
+System.out.println(Stream.of(tags).count()); // 1: one List<String>
+System.out.println(tags.stream().count());   // 2: two Strings
 ```
 
-**Quy tắc:** muốn duyệt phần tử của `List` thì dùng `list.stream()`; muốn duyệt phần tử của một mảng thì `Arrays.stream(array)` thường diễn đạt rõ ý hơn; muốn đưa **cả** `List` hoặc mảng thành một giá trị duy nhất thì dùng `Stream.of(collection)` hoặc ép kiểu mảng phù hợp.
+**Rule:** to traverse elements of a `List`, use `list.stream()`; to traverse elements of an array, `Arrays.stream(array)` usually expresses the intent more clearly; to pass an **entire** `List` or array as a single value, use `Stream.of(collection)` or cast the array appropriately.
 
-### 2.4. Dùng `Stream.of` trong pipeline khai báo
+### 2.4. Using `Stream.of` in a Declarative Pipeline
 
 ```java
 int total = Stream.of(12, 7, 20, 5)
@@ -134,11 +134,11 @@ int total = Stream.of(12, 7, 20, 5)
 System.out.println(total); // 64 = 24 + 40
 ```
 
-`Stream.of(12, 7, 20, 5)` ở đây tạo `Stream<Integer>`. `filter` giữ hai phần tử, `map` nhân đôi, `reduce` tính tổng. Đây là kiểu pipeline xử lý dữ liệu khai báo: nói **cần làm gì** với nguồn, không cần tự viết vòng lặp để tích lũy từng phần tử.
+Here `Stream.of(12, 7, 20, 5)` creates a `Stream<Integer>`. `filter` keeps two elements, `map` doubles them, and `reduce` sums them. This is the declarative data processing pipeline style: stating **what to do** with the source without manually writing a loop to accumulate each element.
 
-## 3. `Stream.empty()`: thể hiện trường hợp không có dữ liệu
+## 3. `Stream.empty()`: Expressing the No-Data Case
 
-`Stream.empty()` trả về stream rỗng thuộc kiểu phần tử mà ngữ cảnh mong muốn:
+`Stream.empty()` returns an empty stream of the element type expected by the context:
 
 ```java
 Stream<String> emptyNames = Stream.empty();
@@ -147,14 +147,14 @@ List<String> result = emptyNames.toList();
 System.out.println(result); // []
 ```
 
-Nếu cần khai báo tường minh kiểu generic:
+If you need to declare the generic type explicitly:
 
 ```java
 Stream<String> empty = Stream.<String>empty();
 System.out.println(empty.count()); // 0
 ```
 
-Giá trị lớn nhất của `Stream.empty()` không phải tiết kiệm một dòng mã; đó là **giữ cùng kiểu trả về** `Stream<T>` cho mọi nhánh logic, giúp bên gọi ghép pipeline mà không phải xử lý `null`.
+The biggest value of `Stream.empty()` is not saving a line of code; it is **keeping the same return type** `Stream<T>` across all logic branches, allowing the caller to compose a pipeline without handling `null`.
 
 ```java
 static Stream<String> topicsFor(boolean enabled) {
@@ -164,7 +164,7 @@ static Stream<String> topicsFor(boolean enabled) {
     return Stream.of("stream", "collector", "spliterator");
 }
 
-// Bên gọi:
+// Caller:
 List<String> topics = topicsFor(false)
         .map(String::toUpperCase)
         .toList();
@@ -172,21 +172,21 @@ List<String> topics = topicsFor(false)
 System.out.println(topics); // []
 ```
 
-Trong một phương thức trả về stream, trả về `null` sẽ buộc bên gọi kiểm tra hoặc gây lỗi nếu gọi tiếp `.map(...)`; trả về `Stream.empty()` cho phép pipeline tiếp tục một cách tự nhiên.
+In a method returning a stream, returning `null` forces the caller to check for it or causes an error if `.map(...)` is chained onto it; returning `Stream.empty()` lets the pipeline continue naturally.
 
-### 3.1. Terminal operation trên stream rỗng
+### 3.1. Terminal Operations on an Empty Stream
 
-| Terminal operation | Kết quả của stream rỗng | Diễn giải |
+| Terminal operation | Result on empty stream | Interpretation |
 |---|---|---|
-| `count()` | `0` | Không có phần tử |
-| `toList()` | `[]` | Danh sách rỗng |
-| `findFirst()` | `Optional.empty()` | Không có phần tử đầu tiên |
-| `anyMatch(...)` | `false` | Không có phần tử nào thỏa |
-| `allMatch(...)` | `true` | Không tồn tại phần tử phản ví dụ |
-| `noneMatch(...)` | `true` | Không có phần tử nào thỏa |
-| `reduce(identity, op)` | `identity` | Không có giá trị để gộp |
+| `count()` | `0` | No elements |
+| `toList()` | `[]` | Empty list |
+| `findFirst()` | `Optional.empty()` | No first element |
+| `anyMatch(...)` | `false` | No matching element |
+| `allMatch(...)` | `true` | No counterexample element exists |
+| `noneMatch(...)` | `true` | No matching element |
+| `reduce(identity, op)` | `identity` | No values to combine |
 
-Mỗi dòng dưới đây tạo **một stream mới**; một stream không được tiêu thụ hai lần:
+Each line below creates **a new stream**; a stream cannot be consumed twice:
 
 ```java
 System.out.println(Stream.<Integer>empty().count());           // 0
@@ -195,9 +195,9 @@ System.out.println(Stream.<Integer>empty().allMatch(n -> n > 0)); // true
 System.out.println(Stream.<Integer>empty().reduce(10, Integer::sum)); // 10
 ```
 
-`allMatch` trên tập rỗng trả `true` theo quy tắc logic *vacuous truth*. Đừng suy diễn rằng “đã tìm thấy một phần tử thỏa điều kiện” khi kiểm tra `allMatch` trả `true` trên nguồn rỗng.
+`allMatch` on an empty set returns `true` by the logical rule of *vacuous truth*. Do not infer that "an element satisfying the condition was found" when observing `allMatch` return `true` on an empty source.
 
-### 3.2. Kết hợp với các stream khác
+### 3.2. Combining with Other Streams
 
 ```java
 Stream<String> base = Stream.of("Java", "Kotlin");
@@ -207,14 +207,14 @@ List<String> all = Stream.concat(base, extra).toList();
 System.out.println(all); // [Java, Kotlin]
 ```
 
-Khi nghiệp vụ không phát sinh phần tử ở một nhánh, `Stream.empty()` đóng vai trò như “nhánh không đóng góp dữ liệu” mà vẫn tương thích với `Stream.concat` hoặc `flatMap`.
+When business logic yields no elements in one branch, `Stream.empty()` serves as a "branch contributing no data" while remaining compatible with `Stream.concat` or `flatMap`.
 
-## 4. `Stream.ofNullable(value)`: một giá trị có thể vắng mặt
+## 4. `Stream.ofNullable(value)`: A Single Possibly Absent Value
 
-Java 9 bổ sung `Stream.ofNullable(T value)` với hợp đồng đơn giản:
+Java 9 added `Stream.ofNullable(T value)` with a simple contract:
 
-- `value != null`: stream chứa chính xác **một** phần tử đó.
-- `value == null`: stream rỗng, **không chứa** phần tử `null`.
+- `value != null`: stream contains that exact **one** element.
+- `value == null`: empty stream, **does not contain** a `null` element.
 
 ```java
 String nickname = null;
@@ -226,7 +226,7 @@ System.out.println(a); // []
 System.out.println(b); // [Java]
 ```
 
-So sánh trực tiếp với `Stream.of`:
+Direct comparison with `Stream.of`:
 
 ```java
 String value = null;
@@ -235,11 +235,11 @@ System.out.println(Stream.of((String) value).count()); // 1
 System.out.println(Stream.ofNullable(value).count());  // 0
 ```
 
-Với `value = "X"`, cả hai đều tạo một phần tử `"X"`. **Khác biệt chỉ xuất hiện khi giá trị là `null`**, nhưng khác biệt đó rất quan trọng khi các terminal operation không hỗ trợ phần tử `null`.
+With `value = "X"`, both create a single element `"X"`. **The difference only appears when the value is `null`**, yet that difference is crucial when terminal operations do not support `null` elements.
 
-### 4.1. Kết hợp `flatMap` để bỏ các thuộc tính thiếu
+### 4.1. Combining with `flatMap` to Skip Missing Properties
 
-Giả sử mỗi bản ghi khách hàng có địa chỉ email tùy chọn:
+Suppose each customer record has an optional email address:
 
 ```java
 record Customer(String name, String email) {}
@@ -258,9 +258,9 @@ List<String> emails = customers.stream()
 System.out.println(emails); // [an@example.com, chi@example.com]
 ```
 
-Đối với từng khách hàng, `Stream.ofNullable(customer.email())` tạo stream có **0 hoặc 1 email**. `flatMap` nối các stream con thành một stream phẳng, nên email `null` không đi tiếp xuống `map`.
+For each customer, `Stream.ofNullable(customer.email())` creates a stream with **0 or 1 email**. `flatMap` concatenates the sub-streams into a single flat stream, so `null` emails do not proceed down to `map`.
 
-Cùng bài toán có thể viết:
+The same problem can be written as:
 
 ```java
 List<String> emails = customers.stream()
@@ -270,9 +270,9 @@ List<String> emails = customers.stream()
         .toList();
 ```
 
-Hai cách đều hợp lý. `map(...).filter(Objects::nonNull)` thường đơn giản nhất khi chỉ loại `null` sau một phép lấy thuộc tính; `flatMap(...Stream.ofNullable(...))` hữu ích khi mô hình hóa **mỗi phần tử đầu vào đóng góp 0 hoặc 1 kết quả** hoặc khi cùng một pipeline đã cần `flatMap`.
+Both approaches are reasonable. `map(...).filter(Objects::nonNull)` is usually simplest when just removing `null` after a property extraction; `flatMap(...Stream.ofNullable(...))` is useful when modeling that **each input element contributes 0 or 1 result** or when the same pipeline already needs `flatMap`.
 
-### 4.2. Ghép nhiều nguồn dữ liệu có thể `null`
+### 4.2. Merging Multiple Potentially `null` Data Sources
 
 ```java
 String primaryCode = "JAVA";
@@ -286,9 +286,9 @@ List<String> codes = Stream.of(primaryCode, fallbackCode)
 System.out.println(codes); // [java]
 ```
 
-Ở đây `Stream.of(...)` tạo hai phần tử, trong đó có một `null`; `flatMap(Stream::ofNullable)` biến từng phần tử thành stream 0 hoặc 1 phần tử để loại giá trị thiếu. Trong trường hợp chỉ muốn loại `null`, `filter(Objects::nonNull)` thường trực tiếp và dễ đọc hơn.
+Here `Stream.of(...)` creates two elements, one of which is `null`; `flatMap(Stream::ofNullable)` turns each element into a 0- or 1-element stream to discard missing values. When you only want to remove `null`, `filter(Objects::nonNull)` is usually more direct and readable.
 
-### 4.3. Phân biệt với `Optional.ofNullable`
+### 4.3. Distinguishing from `Optional.ofNullable`
 
 ```java
 String token = null;
@@ -297,7 +297,7 @@ Optional<String> maybeToken = Optional.ofNullable(token);
 Stream<String> tokenStream = Stream.ofNullable(token);
 ```
 
-`Optional<T>` mô tả **một giá trị có thể vắng mặt** để trả về từ API hoặc biểu diễn kết quả phép tra cứu. `Stream<T>` mô tả **dãy 0 hoặc nhiều phần tử** để thực hiện pipeline. Nếu đã có `Optional<T>`, Java 9 cung cấp `optional.stream()` để lấy stream có 0 hoặc 1 phần tử:
+`Optional<T>` describes **a single possibly absent value** to return from an API or represent a lookup result. `Stream<T>` describes **a sequence of 0 or more elements** for running a pipeline. If you already have an `Optional<T>`, Java 9 provides `optional.stream()` to get a stream of 0 or 1 element:
 
 ```java
 Optional<String> maybe = Optional.of("java");
@@ -308,23 +308,23 @@ List<String> list = maybe.stream()
 System.out.println(list); // [JAVA]
 ```
 
-Không cần tạo `Optional` trung gian chỉ để biến một giá trị nullable thành stream; `Stream.ofNullable(value)` diễn đạt trực tiếp hơn.
+There is no need to create an intermediate `Optional` just to turn a nullable value into a stream; `Stream.ofNullable(value)` expresses it more directly.
 
-## 5. Chọn đúng factory trong tình huống thực tế
+## 5. Choosing the Right Factory in Real Scenarios
 
-| Dữ liệu đang có / yêu cầu | Cách viết gợi ý | Lý do |
+| Existing data / requirement | Suggested usage | Reason |
 |---|---|---|
-| Hai hằng số `"A"`, `"B"` | `Stream.of("A", "B")` | Hai phần tử xác định |
-| Một đối tượng luôn có mặt | `Stream.of(object)` | Một phần tử |
-| Một đối tượng có thể `null`, muốn bỏ nếu vắng | `Stream.ofNullable(object)` | Không tạo phần tử `null` |
-| Nhánh không có kết quả | `Stream.empty()` | Bảo toàn kiểu `Stream<T>` |
-| Một `List<T>` đã có | `list.stream()` | Duyệt các phần tử của list |
-| Một `T[]` đã có | `Arrays.stream(array)` | Rõ ràng duyệt từng phần tử mảng |
-| Một `int[]` đã có | `Arrays.stream(array)` hoặc `IntStream.of(array)` | Có `IntStream`, không phải `Stream<int[]>` |
-| Một `Optional<T>` đã có | `optional.stream()` | Chuyển Optional thành stream 0 hoặc 1 phần tử |
-| Nhiều thuộc tính nullable cần gom | `Stream.of(a, b).filter(Objects::nonNull)` | Loại `null` rõ ràng, đơn giản |
+| Two constants `"A"`, `"B"` | `Stream.of("A", "B")` | Two definite elements |
+| One always-present object | `Stream.of(object)` | One element |
+| One potentially `null` object, skip if absent | `Stream.ofNullable(object)` | Does not produce a `null` element |
+| Branch with no results | `Stream.empty()` | Preserves type `Stream<T>` |
+| An existing `List<T>` | `list.stream()` | Traverses list elements |
+| An existing `T[]` | `Arrays.stream(array)` | Clearly traverses each array element |
+| An existing `int[]` | `Arrays.stream(array)` or `IntStream.of(array)` | Produces `IntStream`, not `Stream<int[]>` |
+| An existing `Optional<T>` | `optional.stream()` | Converts Optional to a 0- or 1-element stream |
+| Multiple nullable properties to collect | `Stream.of(a, b).filter(Objects::nonNull)` | Removes `null` clearly and simply |
 
-### Ví dụ nghiệp vụ: thu thập nhãn tùy chọn
+### Business Example: Collecting Optional Labels
 
 ```java
 static Stream<String> labelsFor(String title, String category, boolean includeCategory) {
@@ -338,18 +338,18 @@ static Stream<String> labelsFor(String title, String category, boolean includeCa
             .filter(s -> !s.isEmpty());
 }
 
-// Bên gọi:
+// Caller:
 List<String> labels = labelsFor(" Java Stream ", null, true).toList();
 System.out.println(labels); // [Java Stream]
 ```
 
-Hàm luôn trả về `Stream<String>`, kể cả khi không có nhãn. `Stream.ofNullable` xử lý giá trị thiếu; `Stream.empty` thể hiện nhánh không thêm nhãn; `Stream.concat` nối hai nguồn. `map` và `filter` vẫn lazy đến khi `toList()` tiêu thụ stream.
+The method always returns `Stream<String>`, even when there are no labels. `Stream.ofNullable` handles missing values; `Stream.empty` represents the branch adding no label; `Stream.concat` joins the two sources. `map` and `filter` remain lazy until `toList()` consumes the stream.
 
-## 6. Các hợp đồng và giới hạn cần nhớ
+## 6. Contracts and Limits to Remember
 
-### 6.1. Thứ tự phần tử và chế độ thực thi
+### 6.1. Element Order and Execution Mode
 
-`Stream.of("C", "A", "B")` tạo stream có **encounter order** `C → A → B`; nếu sử dụng terminal operation giữ thứ tự như `toList()`, kết quả vẫn là `[C, A, B]`. `parallel()` cho phép xử lý trên nhiều thread nhưng bản thân nó không loại bỏ encounter order:
+`Stream.of("C", "A", "B")` creates a stream with **encounter order** `C → A → B`; if using an order-preserving terminal operation such as `toList()`, the result is still `[C, A, B]`. `parallel()` allows processing across multiple threads, but by itself it does not eliminate encounter order:
 
 ```java
 List<String> names = Stream.of("C", "A", "B")
@@ -360,23 +360,23 @@ List<String> names = Stream.of("C", "A", "B")
 System.out.println(names); // [c, a, b]
 ```
 
-`Stream.empty()` và `Stream.ofNullable(...)` có tối đa một phần tử, nên chạy song song trực tiếp trên chúng hầu như không đem lại lợi ích. Nếu dùng `forEach` song song, đừng mặc định hành động được thực thi theo thứ tự; khi cần bảo đảm thứ tự hành động trên một stream có thứ tự, dùng `forEachOrdered`.
+`Stream.empty()` and `Stream.ofNullable(...)` have at most one element, so running them directly in parallel brings almost no benefit. If using parallel `forEach`, do not assume the action executes in order; when action order must be guaranteed on an ordered stream, use `forEachOrdered`.
 
-### 6.2. Stream chỉ được tiêu thụ một lần
+### 6.2. A Stream Can Only Be Consumed Once
 
 ```java
 Stream<String> stream = Stream.of("A", "B");
 long size = stream.count();
 System.out.println(size); // 2
 
-// stream.toList(); // Sai: stream đã được tiêu thụ.
+// stream.toList(); // Wrong: stream has already been consumed.
 ```
 
-Sau terminal operation `count()`, không dùng lại cùng đối tượng `stream`. Tạo stream mới từ các giá trị nguồn nếu muốn chạy pipeline khác.
+After the terminal operation `count()`, do not reuse the same `stream` object. Create a new stream from the source values if you want to run another pipeline.
 
-### 6.3. Tham số được tính trước khi stream bắt đầu chạy
+### 6.3. Arguments Are Evaluated Before the Stream Starts Running
 
-Các thao tác trung gian `map` và `filter` thường lazy, nhưng **đối số truyền vào factory vẫn được Java tính ngay**:
+Intermediate operations `map` and `filter` are normally lazy, yet **arguments passed into the factory are still evaluated eagerly by Java**:
 
 ```java
 static String fetchValue() {
@@ -385,23 +385,23 @@ static String fetchValue() {
 }
 
 Stream<String> stream = Stream.ofNullable(fetchValue());
-// Đã in "fetchValue called" tại đây, trước terminal operation.
+// "fetchValue called" is already printed here, before any terminal operation.
 
 System.out.println(stream.map(String::toUpperCase).toList()); // [DATA]
 ```
 
-Không dùng `Stream.of(fetchValue())` hay `Stream.ofNullable(fetchValue())` để trì hoãn việc gọi `fetchValue()`. Hai phương thức chỉ đóng gói **giá trị đã được tính** vào stream. Nếu cần phát sinh dữ liệu theo nhu cầu, phải chọn một nguồn lazy thích hợp (chẳng hạn `Stream.generate(supplier)` với giới hạn số phần tử rõ ràng).
+Do not use `Stream.of(fetchValue())` or `Stream.ofNullable(fetchValue())` to defer calling `fetchValue()`. Both methods only wrap an **already-computed value** into a stream. If data must be generated on demand, choose an appropriate lazy source (for example `Stream.generate(supplier)` with an explicit element limit).
 
-### 6.4. Trạng thái dùng chung, tài nguyên và hiệu năng
+### 6.4. Shared State, Resources, and Performance
 
-- Không dùng `map` hoặc `peek` để tùy tiện cập nhật biến dùng chung, nhất là khi dùng `parallel()`. Ưu tiên phép biến đổi không side effect và terminal operation `collect`, `reduce` phù hợp.
-- Ba factory này tạo stream từ dữ liệu đã có, không tự mở tài nguyên cần đóng như file hay kết nối. Với các nguồn mở tài nguyên khác, ví dụ `Files.lines(path)`, cần `try-with-resources` để đóng stream.
-- `Stream.of` thuận tiện cho một tập giá trị nhỏ; nếu đã có `List` hoặc mảng lớn, dùng trực tiếp nguồn thích hợp. Tạo nhiều stream một phần tử rồi nối lồng quá sâu có thể gây chi phí không cần thiết; chọn cấu trúc pipeline rõ ràng và đo hiệu năng với dữ liệu thực tế.
-- `Stream.toList()` trả danh sách không thể chỉnh sửa, trong khi `Collectors.toList()` không cam kết khả năng chỉnh sửa hay kiểu danh sách cụ thể. Nếu cần một `ArrayList` có thể thay đổi, dùng `collect(Collectors.toCollection(ArrayList::new))` và import `java.util.ArrayList`.
+- Do not use `map` or `peek` to arbitrarily update shared variables, especially when using `parallel()`. Prefer side-effect-free transformations and appropriate `collect` or `reduce` terminal operations.
+- These three factories create streams from existing data and do not open closable resources such as files or connections. For sources that open other resources, such as `Files.lines(path)`, use `try-with-resources` to close the stream.
+- `Stream.of` is convenient for a small set of values; if you already have a large `List` or array, use the appropriate source directly. Creating many single-element streams and nesting concatenations too deeply can incur unnecessary overhead; choose a clear pipeline structure and measure performance with realistic data.
+- `Stream.toList()` returns an unmodifiable list, whereas `Collectors.toList()` makes no guarantee on mutability or concrete list type. If you need a mutable `ArrayList`, use `collect(Collectors.toCollection(ArrayList::new))` and import `java.util.ArrayList`.
 
-## 7. Ví dụ tổng hợp có thể chạy (Java 17+)
+## 7. Complete Runnable Example (Java 17+)
 
-Chương trình sau kiểm tra trường hợp nhiều phần tử, stream rỗng, giá trị nullable, mảng nguyên thủy và ghép thuộc tính:
+The following program tests multiple elements, an empty stream, nullable values, a primitive array, and combining properties:
 
 ```java
 import java.util.Arrays;
@@ -412,33 +412,33 @@ public class StreamFactoriesDemo {
     record User(String name, String nickname) {}
 
     public static void main(String[] args) {
-        // 1. Nhiều giá trị có sẵn.
+        // 1. Multiple existing values.
         System.out.println(Stream.of("A", "B", "C").toList());
         // [A, B, C]
 
-        // 2. Không có phần tử.
+        // 2. No elements.
         System.out.println(Stream.<String>empty().count());
         // 0
 
-        // 3. Một đối tượng có thể null.
+        // 3. One potentially null object.
         String nickname = null;
         System.out.println(Stream.ofNullable(nickname).toList());
         // []
         System.out.println(Stream.ofNullable("dev").toList());
         // [dev]
 
-        // 4. Một phần tử null khác stream rỗng.
+        // 4. One null element differs from an empty stream.
         System.out.println(Stream.of((String) null).count());
         // 1
 
-        // 5. Mảng primitive không được bung bởi Stream.of().
+        // 5. Primitive arrays are not unpacked by Stream.of().
         int[] nums = {1, 2, 3};
         System.out.println(Stream.of(nums).count());
         // 1
         System.out.println(Arrays.stream(nums).sum());
         // 6
 
-        // 6. Thu thập các giá trị nullable.
+        // 6. Collecting nullable values.
         List<User> users = List.of(
                 new User("An", "anna"),
                 new User("Bình", null),
@@ -454,13 +454,13 @@ public class StreamFactoriesDemo {
 }
 ```
 
-## 8. Tự kiểm tra
+## 8. Self-Check
 
-1. **`Stream.of((String) null).count()` trả gì?** Trả `1` vì `null` là một phần tử của stream.
-2. **`Stream.ofNullable(null)` khác gì `Stream.empty()`?** Cả hai đều rỗng trong trường hợp này; `ofNullable` còn có khả năng tạo một phần tử khi đầu vào không `null`.
-3. **`Stream.of(List.of(1, 2, 3)).count()` trả bao nhiêu?** Trả `1`, vì phần tử duy nhất là cả `List`. Muốn ba số, dùng `List.of(1, 2, 3).stream()`.
-4. **`Stream.of(new int[]{1, 2, 3}).count()` trả bao nhiêu?** Trả `1`; muốn stream gồm ba số nguyên, dùng `IntStream.of(1, 2, 3)` hoặc `Arrays.stream(array)`.
-5. **Vì sao `Stream.ofNullable(fetchValue())` không trì hoãn `fetchValue()`?** Vì Java tính đối số của phương thức trước khi gọi phương thức đó; tính lazy áp dụng cho các bước pipeline phía sau.
-6. **Muốn mỗi khách hàng đóng góp tối đa một email, bỏ qua `null`, dùng gì?** `customers.stream().flatMap(c -> Stream.ofNullable(c.email()))` hoặc `map(...).filter(Objects::nonNull)`.
+1. **What does `Stream.of((String) null).count()` return?** It returns `1` because `null` is an element of the stream.
+2. **How does `Stream.ofNullable(null)` differ from `Stream.empty()`?** Both are empty in this case; `ofNullable` can also produce one element when the input is non-`null`.
+3. **What does `Stream.of(List.of(1, 2, 3)).count()` return?** It returns `1`, because the sole element is the entire `List`. To get three numbers, use `List.of(1, 2, 3).stream()`.
+4. **What does `Stream.of(new int[]{1, 2, 3}).count()` return?** It returns `1`; to get a stream of three integers, use `IntStream.of(1, 2, 3)` or `Arrays.stream(array)`.
+5. **Why doesn't `Stream.ofNullable(fetchValue())` defer `fetchValue()`?** Because Java evaluates method arguments before calling the method; laziness applies to downstream pipeline steps.
+6. **To have each customer contribute at most one email, skipping `null`, what should you use?** `customers.stream().flatMap(c -> Stream.ofNullable(c.email()))` or `map(...).filter(Objects::nonNull)`.
 
-Hãy chọn `Stream.of` khi có các giá trị cụ thể, `Stream.empty` khi một nhánh không đóng góp phần tử, và `Stream.ofNullable` khi một giá trị đơn lẻ có thể vắng mặt. Sự lựa chọn này quyết định ngay từ nguồn việc pipeline tiếp theo nhìn thấy **0, 1 hay nhiều phần tử**, đặc biệt là có hay không có phần tử `null`.
+Choose `Stream.of` when you have concrete values, `Stream.empty` when a branch contributes no elements, and `Stream.ofNullable` when a single value may be absent. This choice determines right at the source whether the downstream pipeline sees **0, 1, or multiple elements**, especially whether `null` elements are present.

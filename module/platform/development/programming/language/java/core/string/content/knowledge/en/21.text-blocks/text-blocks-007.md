@@ -1,17 +1,17 @@
-# `String.stripIndent()` và `String.indent(int)` — xử lý thụt lề trong Java Text Block
+# `String.stripIndent()` and `String.indent(int)` — Handling Indentation in Java Text Blocks
 
-Khi viết JSON, HTML, SQL hoặc thông báo nhiều dòng bằng Java, **khoảng trắng đầu dòng** có thể phục vụ hai mục đích khác nhau: căn lề mã nguồn cho dễ đọc hoặc thể hiện cấu trúc thật của văn bản. Java cung cấp hai phương thức trên `String` giúp kiểm soát chúng:
+When writing JSON, HTML, SQL, or multiline messages in Java, **leading whitespace** can serve two different purposes: aligning source code for readability or representing the actual structure of the text. Java provides two methods on `String` to help control them:
 
-- `stripIndent()`: bỏ phần **thụt lề chung không cần thiết** ở đầu các dòng, giữ lại sự chênh lệch thụt lề giữa chúng và bỏ khoảng trắng thừa cuối dòng.
-- `indent(int n)`: thêm hoặc bớt **một số ký tự thụt lề đã chỉ định** cho *từng dòng*, đồng thời chuẩn hóa dấu kết thúc dòng.
+- `stripIndent()`: removes **unnecessary common indentation** at the start of lines, preserves relative indentation differences between them, and strips extra trailing whitespace at the end of lines.
+- `indent(int n)`: adds or removes **a specified number of indentation characters** for *each line*, while normalizing line terminators.
 
-Hai phương thức đặc biệt hữu ích khi làm việc với **text block** (`"""..."""`), nhưng cũng áp dụng cho mọi `String`, kể cả dữ liệu đọc từ file hoặc từ API.
+Both methods are especially useful when working with **text blocks** (`"""..."""`), yet they also apply to any `String`, including data read from files or APIs.
 
-## 1. Vì sao thụt lề trong text block cần được hiểu đúng?
+## 1. Why must indentation in text blocks be understood properly?
 
-Java 15 chính thức hỗ trợ text block: một cách viết chuỗi nhiều dòng bằng ba dấu ngoặc kép. Mã Java thường được thụt lề theo lớp, phương thức, khối điều kiện; nếu giữ nguyên mọi khoảng trắng trong source, chuỗi kết quả có thể bị lệch quá sâu.
+Java 15 officially introduced text blocks: a way to write multiline strings using triple double quotes. Java code is usually indented inside classes, methods, and conditional blocks; if every whitespace character in source were preserved, the resulting string could be indented far too deeply.
 
-Ví dụ:
+Example:
 
 ```java
 String html = """
@@ -22,7 +22,7 @@ String html = """
         """;
 ```
 
-Với cách bố trí trên, giá trị thực của `html` tương đương:
+With the layout above, the actual value of `html` is equivalent to:
 
 ```text
 <ul>
@@ -31,41 +31,41 @@ Với cách bố trí trên, giá trị thực của `html` tương đương:
 </ul>
 ```
 
-Trong chuỗi thực tế còn có ký tự `\n` sau `</ul>`. Trình biên dịch **đã tự bỏ khoảng trắng thụt lề phụ thuộc vị trí mã nguồn** nhưng giữ lại hai dấu cách trước mỗi thẻ `<li>`. Cơ chế này gọi là bỏ *incidental indentation* (thụt lề phụ).
+In the actual string, there is also an `\n` character after `</ul>`. The compiler **automatically stripped indentation whitespace attributable to source-code layout** while keeping the two spaces before each `<li>` tag. This mechanism is called stripping *incidental indentation*.
 
-**Điểm mấu chốt:** trình biên dịch đã xử lý thụt lề của text block khi tạo giá trị `String`. Gọi `stripIndent()` lần nữa trên text block đó không có nghĩa là Java sẽ tiếp tục xóa một mức thụt lề tùy ý.
+**Key takeaway:** the compiler has already processed the text block's indentation when creating the `String` value. Calling `stripIndent()` again on that text block does not mean Java will keep stripping another arbitrary level of indentation.
 
-## 2. `stripIndent()` hoạt động như thế nào?
+## 2. How does `stripIndent()` work?
 
-Chữ ký API:
+API signature:
 
 ```java
 public String stripIndent()
 ```
 
-`stripIndent()` được bổ sung ở **Java 15**. Thuật toán áp dụng cho chuỗi nhiều dòng:
+`stripIndent()` was added in **Java 15**. The algorithm applied to a multiline string:
 
-1. Phân chia văn bản thành các dòng. `\n`, `\r`, `\r\n` là dấu kết thúc dòng hợp lệ.
-2. Với **mọi dòng không rỗng theo `isBlank()`**, đếm số ký tự khoảng trắng ở đầu dòng. **Dòng cuối cũng được xét, ngay cả khi nó là dòng trống.**
-3. Chọn số nhỏ nhất trong các mức thụt lề ấy (thường gọi là *minimum indentation*).
-4. Bỏ đúng số ký tự khoảng trắng đầu dòng đó khỏi mỗi dòng **không trống**, đồng thời bỏ mọi khoảng trắng cuối dòng; các dòng chỉ có khoảng trắng trở thành chuỗi rỗng.
-5. Ghép lại bằng ký tự xuống dòng `\n` (LF), giữ nguyên **số lượng dấu kết thúc dòng** của đầu vào.
+1. Split the text into lines. `\n`, `\r`, and `\r\n` are valid line terminators.
+2. For **every line that is non-empty according to `isBlank()`**, count the number of leading whitespace characters. **The last line is also considered, even if it is blank.**
+3. Pick the smallest among those indentation counts (commonly called *minimum indentation*).
+4. Remove that exact number of leading whitespace characters from every **non-blank** line, and remove all trailing whitespace on each line; lines containing only whitespace become empty strings.
+5. Rejoin using `\n` (LF), preserving the **number of line terminators** from the input.
 
-Ví dụ, dùng dấu `·` để biểu diễn một dấu cách cho dễ quan sát:
+For example, using `·` to represent a single space for clarity:
 
 ```text
-Trước stripIndent():
+Before stripIndent():
 ····root··
 ······child··
 
-Sau stripIndent():
+After stripIndent():
 root
 ··child
 ```
 
-Hai dòng ban đầu lần lượt có **4** và **6** dấu cách ở đầu. Mức thụt lề chung là **4** nên kết quả còn **0** và **2** dấu cách. Hai dấu cách cuối từng dòng bị bỏ.
+The first two lines originally have **4** and **6** leading spaces, respectively. The common indentation is **4**, so the result has **0** and **2** spaces left. The two trailing spaces on each line are stripped.
 
-Có thể tự kiểm tra:
+You can test this yourself:
 
 ```java
 String text = "    root  \n      child  ";
@@ -73,11 +73,11 @@ String output = text.stripIndent();
 System.out.println(output.equals("root\n  child")); // true
 ```
 
-**Khác với `strip()`:** `strip()` chỉ loại khoảng trắng ở *hai đầu toàn bộ chuỗi*; `stripIndent()` xem xét thụt lề **theo từng dòng** và giữ cấu trúc tương đối bên trong.
+**Difference from `strip()`:** `strip()` only removes whitespace at *both ends of the entire string*; `stripIndent()` examines indentation **line by line** and preserves the internal relative structure.
 
-### Ngoại lệ dễ nhầm: dấu xuống dòng cuối chuỗi
+### Easy-to-miss exception: a trailing newline at the end of the string
 
-Hãy so sánh:
+Compare:
 
 ```java
 String a = "    root\n      child";
@@ -87,57 +87,57 @@ System.out.println(a.stripIndent().equals("root\n  child")); // true
 System.out.println(b.stripIndent().equals(b));             // true
 ```
 
-Đối với `b`, sau dấu `\n` cuối có **một dòng rỗng cuối cùng**, có mức thụt lề bằng 0. Vì thuật toán **vẫn xét dòng cuối dù nó trống**, mức thụt chung là 0: hai dòng nội dung **không bị kéo về trái**. Đây không phải lỗi của Java; nó là hệ quả của quy tắc xác định minimum indentation.
+For `b`, after the final `\n` there is **a final empty line**, whose indentation level is 0. Because the algorithm **still considers the last line even when it is blank**, the common indentation is 0: the two content lines **are not shifted to the left**. This is not a Java bug; it is a direct consequence of the minimum indentation rule.
 
-Điều này rất quan trọng khi nhận chuỗi từ file hoặc khi so sánh với text block. Text block có dấu kết thúc dòng theo cấu trúc của chính literal, và trình biên dịch còn xét vị trí dấu `"""` đóng để xác định phần thụt lề phụ trước khi tạo `String`. Vì vậy **đừng suy luận rằng gọi `stripIndent()` trên một `String` đã kết thúc bằng LF luôn giống thao tác mà trình biên dịch đã thực hiện trên text block**.
+This matters greatly when receiving strings from files or comparing against text blocks. A text block has line terminators governed by the structure of the literal itself, and the compiler also considers the position of the closing `"""` delimiter to determine incidental indentation before creating the `String`. Therefore, **do not assume calling `stripIndent()` on a `String` ending with LF always matches what the compiler did on a text block**.
 
-## 3. `indent(int n)` thêm và bớt thụt lề
+## 3. `indent(int n)` adds and removes indentation
 
-Chữ ký API:
+API signature:
 
 ```java
 public String indent(int n)
 ```
 
-`indent(int)` có từ **Java 12**. Giá trị `n` xác định cách điều chỉnh ở đầu **mỗi dòng**:
+`indent(int)` has existed since **Java 12**. The value of `n` determines how the start of **each line** is adjusted:
 
-| Tham số | Hành vi |
+| Parameter | Behavior |
 | --- | --- |
-| `n > 0` | Chèn đúng `n` dấu cách `U+0020` vào đầu mỗi dòng |
-| `n = 0` | Không sửa thụt lề từng dòng, **nhưng vẫn chuẩn hóa dấu xuống dòng** |
-| `n < 0` | Bỏ tối đa `abs(n)` ký tự khoảng trắng đầu mỗi dòng; dòng nào ít hơn thì bỏ hết phần khoảng trắng đầu dòng |
+| `n > 0` | Inserts exactly `n` space characters `U+0020` at the beginning of each line |
+| `n = 0` | Leaves line indentation unchanged, **yet still normalizes line endings** |
+| `n < 0` | Removes up to `abs(n)` leading whitespace characters from each line; lines with fewer have all their leading whitespace removed |
 
-Các dấu cách bên phải nội dung **không bị tự động xóa** bởi `indent()`. Khi `n < 0`, mỗi dòng được xử lý riêng; nó không tính mức thụt lề chung nhỏ nhất như `stripIndent()`.
+Spaces on the right side of the content **are not automatically removed** by `indent()`. When `n < 0`, each line is processed individually; it does not compute a minimum common indentation like `stripIndent()`.
 
-Giả sử `text = "    root  \n      child  "`:
+Suppose `text = "    root  \n      child  "`:
 
-| Lệnh | Kết quả (dấu `·` là một dấu cách, `\n` là ký tự LF) |
+| Call | Result (`·` is one space, `\n` is an LF character) |
 | --- | --- |
 | `text.stripIndent()` | `root\n··child` |
 | `text.indent(2)` | `······root··\n········child··\n` |
 | `text.indent(-2)` | `··root··\n····child··\n` |
 | `text.indent(0)` | `····root··\n······child··\n` |
 
-**Chú ý dấu LF ở cuối:** `indent()` tách chuỗi thành các dòng theo quy tắc tương tự `lines()`, rồi **thêm `\n` vào sau mỗi dòng trong kết quả**. Vì thế, chuỗi đầu vào có nội dung nhưng không kết thúc bằng dấu xuống dòng sẽ **có `\n` ở cuối sau khi gọi `indent()`**, kể cả `indent(0)`. Với chuỗi rỗng `""`, kết quả vẫn là chuỗi rỗng.
+**Note the trailing LF:** `indent()` splits the string into lines using rules similar to `lines()`, then **appends `\n` after each line in the result**. Consequently, a non-empty input string that does not end with a line terminator will **gain a trailing `\n` after calling `indent()`**, even with `indent(0)`. For the empty string `""`, the result remains an empty string.
 
-Ví dụ:
+Example:
 
 ```java
 System.out.println("A".indent(0).equals("A\n")); // true
 System.out.println("".indent(3).equals(""));      // true
 ```
 
-### Số âm không có nghĩa là bỏ đúng từng ấy dấu cách
+### A negative number does not mean removing that exact number of spaces
 
-`indent(-4)` bỏ **tối đa bốn ký tự khoảng trắng đầu mỗi dòng**. Dòng chỉ có hai dấu cách đầu dòng sẽ bị bỏ hai; dòng có sáu dấu cách sẽ còn hai. Nếu một dòng vốn không có thụt lề, dòng đó giữ nguyên.
+`indent(-4)` removes **up to four leading whitespace characters from each line**. A line with only two leading spaces loses two; a line with six leading spaces ends up with two. If a line already has no indentation, it stays unchanged.
 
-Ký tự tab `\t` được tính là **một ký tự khoảng trắng** trong phép đếm này; Java không tự đổi tab thành 4 hoặc 8 dấu cách hiển thị. Kết quả có thể gây ngạc nhiên khi đầu vào trộn tab với space.
+A tab character `\t` counts as **one whitespace character** in this count; Java does not expand tabs to 4 or 8 visual spaces. Results can be surprising when input mixes tabs and spaces.
 
-## 4. Ví dụ Java 17+ chạy độc lập, thấy rõ từng dấu cách
+## 4. Standalone Java 17+ example showing every space clearly
 
-Để phân biệt dấu cách và LF, dùng hàm `show` đổi dấu cách thành `_` và chuyển dấu xuống dòng thật thành chữ `\n`.
+To distinguish spaces and LF, use a `show` method that replaces spaces with `_` and converts actual newlines into the text `\n`.
 
-Tạo file `IndentAndStripIndentDemo.java`:
+Create `IndentAndStripIndentDemo.java`:
 
 ```java
 public class IndentAndStripIndentDemo {
@@ -177,14 +177,14 @@ public class IndentAndStripIndentDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac IndentAndStripIndentDemo.java
 java IndentAndStripIndentDemo
 ```
 
-Kết quả stdout (dấu `_` là **một** dấu cách thật trong chuỗi đầu vào):
+Stdout output (`_` represents **one** actual space in the input string):
 
 ```text
 raw          = ____root__\n______child__
@@ -198,15 +198,15 @@ endLF.strip  = ____root\n______child\n
 CRLF.indent  = __one\n____two\n
 ```
 
-Quan sát ba điều:
+Observe three things:
 
-1. `stripIndent()` bỏ phần thụt chung và khoảng trắng cuối mỗi dòng khi đầu vào **không có LF cuối**.
-2. `indent(2)` và `indent(-2)` giữ nguyên các dấu cách cuối nội dung; mọi dòng trong kết quả có LF kết thúc.
-3. Text block đã được trình biên dịch bỏ thụt lề phụ; gọi `block.indent(2)` thêm hai dấu cách mới cho từng dòng.
+1. `stripIndent()` removes common indentation and trailing whitespace on each line when the input **has no trailing LF**.
+2. `indent(2)` and `indent(-2)` preserve spaces at the end of content; every line in the result ends with an LF.
+3. The text block already had its incidental indentation stripped by the compiler; calling `block.indent(2)` adds two new spaces to each line.
 
-## 5. Kết hợp text block với `indent()` khi tạo nội dung lồng nhau
+## 5. Combining text blocks with `indent()` for nested content
 
-Một ứng dụng phổ biến là tạo đoạn HTML, thông báo hoặc cấu trúc cấu hình ở độ sâu khác nhau:
+A common use case is building HTML snippets, messages, or configuration blocks at different nesting depths:
 
 ```java
 String item = """
@@ -221,7 +221,7 @@ String html = "<ul>\n"
 System.out.print(html);
 ```
 
-Kết quả:
+Output:
 
 ```html
 <ul>
@@ -230,13 +230,13 @@ Kết quả:
 </ul>
 ```
 
-Phân tích: text block `item` sau biên dịch là `"<li>Java</li>\n<li>Regex</li>\n"`, nên `indent(2)` đặt hai dấu cách trước mỗi thẻ. Cách này tiện khi tạo một khối văn bản rồi lồng vào một khối khác.
+Analysis: after compilation, the text block `item` is `"<li>Java</li>\n<li>Regex</li>\n"`, so `indent(2)` places two spaces before each tag. This is convenient when creating one text block and nesting it inside another.
 
-**Không nên xem `indent()` là trình định dạng HTML, JSON hay YAML.** Nó chỉ thay đổi dấu cách đầu dòng và dấu kết thúc dòng, không kiểm tra cú pháp của cấu trúc bên trong. Với JSON có giá trị cần escape, hãy dùng serializer; với HTML từ dữ liệu không tin cậy, cần escape dữ liệu trước khi chèn.
+**Do not treat `indent()` as an HTML, JSON, or YAML formatter.** It only modifies leading spaces and line terminators, without validating internal syntax. For JSON with values needing escaping, use a serializer; for HTML built from untrusted data, escape data before inserting.
 
-### Chỉnh thụt lề bằng vị trí dấu `"""` đóng
+### Adjusting indentation using the closing `"""` delimiter position
 
-Trong text block, lượng thụt lề phụ bị bỏ thường phụ thuộc vào dòng có ít dấu cách nhất **và** vị trí dấu `"""` đóng:
+In a text block, the amount of incidental indentation stripped usually depends on the line with the fewest spaces **and** the position of the closing `"""`:
 
 ```java
 String a = """
@@ -250,15 +250,15 @@ String b = """
         """;
 ```
 
-Ở `a`, kết quả là `"first\n  second\n"`. Ở `b`, dấu đóng nằm ít thụt hơn phần nội dung: kết quả giữ bốn dấu cách trước `first` và sáu trước `second`. Điều này cho phép chủ động giữ một mức thụt lề, nhưng nên ưu tiên bố cục text block dễ đọc; khi cần tăng/giảm thụt lề **theo dữ liệu runtime**, `indent(n)` rõ ràng hơn.
+In `a`, the result is `"first\n  second\n"`. In `b`, the closing delimiter is indented less than the content: the result keeps four spaces before `first` and six before `second`. This allows preserving a fixed indentation level intentionally, though readable text block layout should come first; when indentation needs to increase or decrease **at runtime**, `indent(n)` is clearer.
 
-## 6. Khoảng trắng cuối dòng, dòng trống và dấu xuống dòng
+## 6. Trailing whitespace, blank lines, and newlines
 
-### Khoảng trắng cuối dòng
+### Trailing whitespace
 
-`stripIndent()` xóa khoảng trắng ở **cuối từng dòng**, kể cả khi đó là khoảng trắng có chủ ý. `indent()` không tự xóa phần đó. Nếu định dạng đầu ra cần giữ khoảng trắng cuối dòng (một số giao thức hoặc biểu diễn), hãy chọn API cẩn thận.
+`stripIndent()` removes whitespace at **the end of each line**, even when that whitespace was intentional. `indent()` does not automatically remove it. If the output format needs to preserve trailing whitespace (certain protocols or representations), choose the API carefully.
 
-Trong text block, trình biên dịch cũng coi khoảng trắng cuối dòng viết trực tiếp là phụ và thường loại bỏ. Java có escape `\s` để biểu diễn **một dấu cách có chủ ý**:
+In text blocks, the compiler also treats literal trailing whitespace as incidental and typically removes it. Java provides the `\s` escape to represent **an intentional space**:
 
 ```java
 String withSpace = """
@@ -268,15 +268,15 @@ String withSpace = """
 System.out.println(withSpace.equals("value \n")); // true
 ```
 
-Escape `\s` được xử lý sau bước bỏ khoảng trắng phụ nên có thể giữ dấu cách cuối dòng. Nếu gọi thêm `stripIndent()` lên `withSpace`, dấu cách cuối dòng đó có thể bị loại: phương thức runtime không biết nó có nguồn gốc từ escape.
+The `\s` escape is processed after incidental whitespace removal, so it can preserve trailing spaces. If you then call `stripIndent()` on `withSpace`, that trailing space can be removed: the runtime method does not know it originated from an escape.
 
-### Dòng trống
+### Blank lines
 
-`stripIndent()` thay một dòng chỉ chứa khoảng trắng bằng dòng rỗng, nhưng giữ số dấu xuống dòng. `indent(n)` xử lý mỗi dòng theo giá trị `n`: ví dụ khi `n > 0`, nó vẫn thêm dấu cách vào đầu một dòng rỗng. Hãy dùng `show` hoặc `String.equals` để kiểm tra chính xác thay vì chỉ nhìn văn bản hiển thị.
+`stripIndent()` replaces a whitespace-only line with an empty line while preserving the number of newlines. `indent(n)` processes every line according to `n`: for example, when `n > 0`, it still adds spaces to the start of a blank line. Use `show` or `String.equals` to check exact values rather than relying on visual display.
 
-### Chuẩn hóa CRLF và CR
+### Normalizing CRLF and CR
 
-Cả hai phương thức tạo kết quả dùng LF `\n` làm ký tự xuống dòng, kể cả khi đầu vào chứa CRLF `\r\n` hoặc CR `\r`. Ví dụ:
+Both methods produce results using LF `\n` as the line terminator, even when the input contains CRLF `\r\n` or CR `\r`. Example:
 
 ```java
 String source = "  A\r\n    B\r";
@@ -284,57 +284,57 @@ String output = source.indent(0);
 System.out.println(output.equals("  A\n    B\n")); // true
 ```
 
-Điều này hữu ích khi xử lý văn bản đến từ nhiều hệ điều hành; tuy nhiên nếu cần giữ **nguyên byte** hoặc kiểu kết thúc dòng ban đầu của file, không được coi hai phương thức là thao tác bảo toàn dữ liệu.
+This is useful when processing text coming from different operating systems; however, if you must preserve **exact bytes** or the file's original line-ending style, do not treat either method as a lossless operation.
 
-## 7. Chọn phương thức theo yêu cầu
+## 7. Choosing a method by requirement
 
-| Tình huống | Chọn |
+| Scenario | Choice |
 | --- | --- |
-| Văn bản nhiều dòng đến từ hệ thống khác, tất cả các dòng bị thụt sâu chung | `stripIndent()`, nhưng kiểm tra trường hợp dòng cuối trống |
-| Đã có text block, muốn lồng toàn bộ nội dung sâu thêm bốn cột dấu cách | `indent(4)` |
-| Muốn bỏ tối đa hai ký tự khoảng trắng đầu **mỗi dòng** | `indent(-2)` |
-| Muốn giữ nguyên độ thụt lề, chỉ chuẩn hóa LF và thêm LF cuối cho mỗi dòng | `indent(0)` |
-| Muốn xóa khoảng trắng ở hai đầu **toàn chuỗi**, không phân tích từng dòng | `strip()` |
-| Muốn bảo toàn nguyên trạng từng dấu cách và CRLF ban đầu | Không gọi các phương thức chuẩn hóa thụt lề này |
+| Multiline text from another system where all lines share deep indentation | `stripIndent()`, while checking the trailing-blank-line case |
+| Existing text block where the whole content should be nested four space columns deeper | `indent(4)` |
+| Need to remove up to two leading whitespace characters from **each line** | `indent(-2)` |
+| Need to keep indentation as is, only normalizing LF and ensuring a trailing LF on each line | `indent(0)` |
+| Need to strip whitespace at both ends of **the entire string**, without line-by-line analysis | `strip()` |
+| Need to preserve every original space and CRLF verbatim | Do not call these indentation-normalizing methods |
 
-Khi thụt lề có ý nghĩa cấu trúc (như YAML), **không tự động kéo lề bằng `stripIndent()` nếu chưa kiểm tra đầu vào**; đặc biệt, hãy kiểm tra dòng cuối, dòng trống và khoảng trắng có chủ ý. Nếu cần độ thụt chung ổn định, có thể xây dựng quy tắc riêng dựa trên định dạng đó.
+When indentation carries structural meaning (such as YAML), **do not blindly shift margins with `stripIndent()` without inspecting the input**; in particular, check the final line, blank lines, and intentional whitespace. If consistent common indentation is required, build rules tailored to that format.
 
-## 8. Lỗi thường gặp
+## 8. Common mistakes
 
-1. **Gọi `stripIndent()` hai lần với kỳ vọng mỗi lần giảm một cấp thụt lề.** Sau lần đầu, mức thụt chung có thể bằng 0; gọi tiếp không phải cách xóa thêm một cấp.
-2. **Không xét LF cuối chuỗi.** Dòng trống cuối có mức thụt 0 và có thể khiến `stripIndent()` không kéo các dòng trước về trái.
-3. **Nhầm `indent(-n)` với `stripIndent()`.** Phép số âm cắt đến `n` ký tự ở từng dòng; nó có thể làm mất thụt lề tương đối nếu các dòng có ít khoảng trắng.
-4. **Tưởng `indent(0)` không thay đổi dữ liệu.** Nó vẫn chuẩn hóa CRLF/CR thành LF và có thể thêm LF cuối.
-5. **Tin rằng `indent(n)` xóa khoảng trắng cuối dòng.** Chỉ `stripIndent()` thực hiện loại bỏ khoảng trắng cuối dòng; `indent()` giữ chúng.
-6. **Trộn tab và dấu cách rồi đo mức thụt lề bằng mắt.** Một ký tự tab được tính là một ký tự chứ không phải số cột hiển thị; cách căn lề có thể khác nhau tùy trình soạn thảo.
-7. **Thêm `stripIndent()` vào text block đã có cấu trúc đúng.** Trình biên dịch đã bỏ thụt lề phụ. Hãy kiểm tra `String` thực tế trước khi sửa thêm.
-8. **Bỏ qua tính bất biến của `String`.** Cả hai phương thức trả về một chuỗi mới; hãy gán hoặc sử dụng kết quả: `text = text.indent(2);` nếu muốn giữ thay đổi.
+1. **Calling `stripIndent()` twice expecting each call to reduce indentation by one level.** After the first call, the common indentation may be 0; calling it again is not a way to remove another level.
+2. **Overlooking a trailing LF in the string.** The trailing empty line has indentation 0 and can prevent `stripIndent()` from shifting earlier lines left.
+3. **Confusing `indent(-n)` with `stripIndent()`.** A negative count trims up to `n` characters per line; it can flatten relative indentation when lines have little whitespace.
+4. **Assuming `indent(0)` leaves data unchanged.** It still normalizes CRLF/CR to LF and can append a trailing LF.
+5. **Believing `indent(n)` removes trailing whitespace.** Only `stripIndent()` strips trailing line whitespace; `indent()` keeps it.
+6. **Mixing tabs and spaces and judging indentation by eye.** One tab character counts as one character rather than its visual column width; alignment can vary across editors.
+7. **Adding `stripIndent()` to a properly structured text block.** The compiler already removed incidental indentation. Check the actual `String` before modifying it further.
+8. **Forgetting `String` immutability.** Both methods return a new string; assign or use the return value: `text = text.indent(2);` if you want to keep the change.
 
-## 9. Tự kiểm tra kiến thức
+## 9. Knowledge check
 
-**Câu 1.** `"   one\n     two".stripIndent()` trả về gì?
+**Question 1.** What does `"   one\n     two".stripIndent()` return?
 
-Đáp án: `"one\n  two"`. Mức thụt chung nhỏ nhất là ba dấu cách.
+Answer: `"one\n  two"`. The minimum common indentation is three spaces.
 
-**Câu 2.** `"A".indent(0).equals("A")` là `true` hay `false`?
+**Question 2.** Is `"A".indent(0).equals("A")` `true` or `false`?
 
-Đáp án: `false`. Kết quả là `"A\n"`, vì `indent()` thêm LF ở cuối dòng.
+Answer: `false`. The result is `"A\n"`, because `indent()` appends an LF at the end of the line.
 
-**Câu 3.** `"  A\n B".indent(-3)` tạo chuỗi gì?
+**Question 3.** What string does `"  A\n B".indent(-3)` produce?
 
-Đáp án: `"A\nB\n"`. Mỗi dòng mất tối đa ba ký tự khoảng trắng đầu dòng, rồi có LF cuối.
+Answer: `"A\nB\n"`. Each line loses up to three leading whitespace characters, then gets a trailing LF.
 
-**Câu 4.** Vì sao `"  A\n  B\n".stripIndent()` vẫn giữ hai dấu cách đầu mỗi dòng?
+**Question 4.** Why does `"  A\n  B\n".stripIndent()` still keep two spaces at the start of each line?
 
-Đáp án: dòng cuối sau ký tự LF là dòng rỗng có mức thụt bằng 0, làm minimum indentation bằng 0.
+Answer: the last line after the LF character is an empty line with indentation 0, making the minimum indentation equal to 0.
 
-**Câu 5.** Text block đã chứa `"A\n  B\n"`. Muốn thêm bốn dấu cách trước mỗi dòng mà vẫn giữ hai dấu cách tương đối trước `B`, dùng gì?
+**Question 5.** A text block already contains `"A\n  B\n"`. How do you add four spaces before each line while keeping the two relative spaces before `B`?
 
-Đáp án: `text.indent(4)`, kết quả `"    A\n      B\n"`.
+Answer: `text.indent(4)`, resulting in `"    A\n      B\n"`.
 
-**Ghi nhớ:** `stripIndent()` tìm và loại *thụt lề chung* (đồng thời loại khoảng trắng cuối dòng); `indent(n)` cộng/trừ *lượng thụt xác định ở từng dòng* và luôn chuẩn hóa kết thúc dòng. Text block tự xử lý thụt lề phụ tại thời điểm biên dịch, nên cần phân biệt **chuỗi trong mã nguồn** với **giá trị `String` ở runtime**.
+**Remember:** `stripIndent()` finds and removes *common indentation* (while also stripping trailing line whitespace); `indent(n)` adds or subtracts *a fixed indentation amount per line* and always normalizes line endings. Text blocks handle incidental indentation at compile time, so distinguish **source-code text** from **the runtime `String` value**.
 
-## Tài liệu chính thức
+## Official documentation
 
-- [`String.indent(int)` và `String.stripIndent()`, Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html)
+- [`String.indent(int)` and `String.stripIndent()`, Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html)
 - [Text Blocks — Oracle Java Language Guide](https://docs.oracle.com/en/java/javase/21/language/text-blocks.html)

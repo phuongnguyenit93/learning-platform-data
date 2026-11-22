@@ -1,37 +1,37 @@
-# Reflection và unnamed module
+# Reflection and unnamed modules
 
-Trong Java Platform Module System (JPMS), class được nạp từ **classpath** thuộc unnamed module của class loader tương ứng. Unnamed module có một số quy tắc mở và đọc module đặc biệt để duy trì khả năng tương thích với ứng dụng Java truyền thống. Những quy tắc này ảnh hưởng trực tiếp đến reflection, đặc biệt khi ứng dụng kết hợp named module với thư viện hoặc framework vẫn chạy trên classpath.
+In the Java Platform Module System (JPMS), classes loaded from the **classpath** belong to the unnamed module of the corresponding class loader. Unnamed modules have special opening and readability rules to maintain compatibility with traditional Java applications. These rules directly affect reflection, especially when an application combines named modules with libraries or frameworks that still run on the classpath.
 
-Cần phân biệt hai hướng truy cập:
+Two access directions must be distinguished:
 
-- Code trong named module dùng reflection để kiểm tra class được nạp từ classpath.
-- Framework được nạp từ classpath dùng reflection để truy cập class trong named module.
+- Code in a named module using reflection to inspect a class loaded from the classpath.
+- A framework loaded from the classpath using reflection to access a class in a named module.
 
-Hai trường hợp có hướng truy cập khác nhau và quyền được cấp cũng khác nhau.
+These two cases have different access directions and different granted permissions.
 
-## 1. Unnamed module là gì?
+## 1. What is an unnamed module?
 
-Khi class được nạp từ classpath, Java đặt class đó vào unnamed module gắn với class loader đã định nghĩa class. Mỗi class loader có unnamed module riêng; vì vậy không nên hiểu rằng toàn bộ classpath của mọi class loader trong JVM luôn thuộc một unnamed module duy nhất.
+When a class is loaded from the classpath, Java places that class into the unnamed module associated with the class loader that defined it. Each class loader has its own unnamed module; therefore, you should not assume that the entire classpath of all class loaders in the JVM always belongs to a single unnamed module.
 
-Unnamed module không có tên module để khai báo trong **requires** và không có file **module-info.java**. Nó được duy trì để các ứng dụng và thư viện chưa modular hóa tiếp tục hoạt động.
+An unnamed module has no module name to declare in **requires** and has no **module-info.java** file. It is maintained so that unmodularized applications and libraries can continue to operate.
 
-Các đặc điểm quan trọng:
+Important characteristics:
 
-- Unnamed module đọc tất cả module khác trong cấu hình module.
-- Tất cả package của unnamed module được export.
-- Tất cả package của unnamed module cũng được open cho deep reflection.
-- Named module không tự động đọc unnamed module.
-- Không thể viết một directive **requires** trỏ tới unnamed module vì nó không có tên.
+- An unnamed module reads all other modules in the module configuration.
+- All packages of an unnamed module are exported.
+- All packages of an unnamed module are also open for deep reflection.
+- Named modules do not automatically read unnamed modules.
+- You cannot write a **requires** directive pointing to an unnamed module because it has no name.
 
-Vì vậy, classpath vẫn có thể cùng tồn tại với module path. Tuy nhiên, khi code trong named module cần tham chiếu trực tiếp tới kiểu nằm trên classpath, quan hệ đọc phải được xử lý riêng.
+Therefore, the classpath can still coexist with the module path. However, when code in a named module needs to directly reference a type on the classpath, the readability relationship must be handled separately.
 
-## 2. Vì sao unnamed module được mở cho reflection?
+## 2. Why are unnamed modules open for reflection?
 
-Các ứng dụng Java trước JPMS thường dựa vào reflection để làm việc với thư viện, framework và class được nạp động. Nếu classpath bị áp dụng ranh giới đóng gói nghiêm ngặt như named module ngay lập tức, nhiều framework cũ có thể ngừng hoạt động.
+Java applications prior to JPMS often relied on reflection to work with libraries, frameworks, and dynamically loaded classes. If strict encapsulation boundaries like those of named modules were immediately applied to the classpath, many legacy frameworks could stop working.
 
-Do đó, unnamed module có các package được export và open. Điều này cho phép code từ module khác truy cập API public và thực hiện deep reflection vào class trong unnamed module, miễn là class đã được nạp và các điều kiện truy cập khác được đáp ứng.
+Consequently, unnamed modules have their packages exported and open. This allows code from other modules to access public APIs and perform deep reflection on classes in the unnamed module, provided the class is loaded and other access conditions are met.
 
-Ví dụ class nằm trên classpath:
+Example of a class on the classpath:
 
 ~~~java
 package com.example.legacy;
@@ -41,7 +41,7 @@ public class LegacyRecord {
 }
 ~~~
 
-Code trong named module có thể tìm class bằng tên và dùng reflection:
+Code in a named module can look up the class by name and use reflection:
 
 ~~~java
 Class<?> type = Class.forName("com.example.legacy.LegacyRecord");
@@ -53,22 +53,22 @@ field.setAccessible(true);
 System.out.println(field.get(record));
 ~~~
 
-Trong ví dụ này, class đích thuộc unnamed module. Package của unnamed module được open, nên JPMS không chặn deep reflection chỉ vì package đó không có directive **opens** trong module descriptor.
+In this example, the target class belongs to an unnamed module. Packages of an unnamed module are open, so JPMS does not block deep reflection merely because that package lacks an **opens** directive in a module descriptor.
 
-Tuy nhiên, reflection vẫn phụ thuộc vào việc class có thể được class loader tìm thấy, constructor có thể tạo instance và các quy tắc truy cập Java khác. Unnamed module được open không có nghĩa mọi class hoặc thành viên đều tự động public.
+However, reflection still depends on whether the class can be found by the class loader, whether the constructor can instantiate it, and other Java access rules. Being open does not mean every class or member in an unnamed module automatically becomes public.
 
-## 3. Named module không tự động đọc unnamed module
+## 3. Named modules do not automatically read unnamed modules
 
-Chiều ngược lại có một quy tắc quan trọng: named module không tự động đọc unnamed module. Nếu source của named module tham chiếu trực tiếp tới class trên classpath, compiler có thể báo package không được đọc hoặc không thể truy cập.
+In the reverse direction, there is an important rule: a named module does not automatically read an unnamed module. If source code in a named module directly references a class on the classpath, the compiler may report that the package is not read or inaccessible.
 
-Ví dụ module ứng dụng:
+Example application module:
 
 ~~~java
 module com.example.app {
 }
 ~~~
 
-Code muốn dùng một class trên classpath:
+Code wanting to use a class on the classpath:
 
 ~~~java
 package com.example.app;
@@ -83,7 +83,7 @@ public class Main {
 }
 ~~~
 
-JAR chứa **LegacyRecord** có thể đã được đưa vào classpath, nhưng named module vẫn không tự động có cạnh đọc tới unnamed module. Có thể bổ sung cạnh đọc tạm thời bằng **--add-reads**:
+The JAR containing **LegacyRecord** may already be on the classpath, yet the named module still does not automatically have a read edge to the unnamed module. A temporary read edge can be added with **--add-reads**:
 
 ~~~bash
 javac --module-path mods \
@@ -94,7 +94,7 @@ javac --module-path mods \
       -m com.example.app
 ~~~
 
-Khi chạy, cũng cần cấu hình cạnh đọc tương ứng:
+At runtime, the corresponding read edge also needs to be configured:
 
 ~~~bash
 java --module-path out \
@@ -103,15 +103,15 @@ java --module-path out \
      --module com.example.app/com.example.app.Main
 ~~~
 
-**ALL-UNNAMED** là tên đích đặc biệt dành cho tùy chọn launcher. Nó đại diện cho các unnamed module trong môi trường chạy. Không thể dùng **ALL-UNNAMED** như tên module trong directive **requires** của **module-info.java**.
+**ALL-UNNAMED** is a special target name for launcher options. It represents the unnamed modules in the runtime environment. **ALL-UNNAMED** cannot be used as a module name in a **requires** directive of **module-info.java**.
 
-Nếu có thể, nên đưa thư viện cũ lên module path để Java nhận diện nó thành automatic module, rồi khai báo dependency bằng tên module ổn định. **--add-reads** phù hợp như một cầu nối có chủ đích trong quá trình chuyển đổi.
+If possible, move the legacy library to the module path so Java recognizes it as an automatic module, then declare the dependency using a stable module name. **--add-reads** is suitable as an intentional bridge during migration.
 
-## 4. Framework trên classpath reflection vào named module
+## 4. A framework on the classpath reflecting into a named module
 
-Một tình huống rất phổ biến là ứng dụng chính đã modular hóa, nhưng framework vẫn được nạp từ classpath. Khi đó framework thuộc unnamed module và có thể đọc các named module. Tuy nhiên, nếu framework cần truy cập private field, constructor hoặc method trong named module, package sở hữu class phải được mở cho framework.
+A very common situation is when the main application is already modularized, but a framework is still loaded from the classpath. In that case, the framework belongs to an unnamed module and can read named modules. However, if the framework needs to access private fields, constructors, or methods in a named module, the package owning the class must be opened to the framework.
 
-Ví dụ module ứng dụng:
+Example application module:
 
 ~~~java
 module com.example.app {
@@ -119,7 +119,7 @@ module com.example.app {
 }
 ~~~
 
-Giả sử entity nằm trong package:
+Suppose an entity resides in the package:
 
 ~~~java
 package com.example.app.model;
@@ -129,26 +129,26 @@ public class Customer {
 }
 ~~~
 
-Framework ORM trên classpath muốn truy cập field **email** bằng reflection. Package **com.example.app.model** chưa được mở, nên deep reflection có thể bị chặn.
+An ORM framework on the classpath wants to access the **email** field using reflection. The package **com.example.app.model** has not been opened, so deep reflection may be blocked.
 
-Có thể mở package ở runtime cho tất cả unnamed module bằng:
+You can open the package at runtime to all unnamed modules with:
 
 ~~~bash
 java --add-opens com.example.app/com.example.app.model=ALL-UNNAMED \
      --module com.example.app/com.example.app.Main
 ~~~
 
-Tùy chọn này có nghĩa:
+This option means:
 
-- **com.example.app** là module sở hữu package.
-- **com.example.app.model** là package cần mở.
-- **ALL-UNNAMED** là các unnamed module, nơi framework trên classpath được nạp.
+- **com.example.app** is the module owning the package.
+- **com.example.app.model** is the package to open.
+- **ALL-UNNAMED** refers to the unnamed modules, where the classpath framework is loaded.
 
-Một điểm cần nhớ: unnamed module đọc được named module không có nghĩa named module đã mở mọi package cho framework. Khả năng đọc module và quyền deep reflection là hai vấn đề riêng.
+One point to remember: the fact that an unnamed module can read a named module does not mean the named module has opened all its packages to the framework. Module readability and deep reflection permissions are two separate issues.
 
-## 5. opens trong module-info.java và ALL-UNNAMED
+## 5. opens in module-info.java and ALL-UNNAMED
 
-Trong **module-info.java**, có thể mở package cho một named module cụ thể:
+In **module-info.java**, you can open a package to a specific named module:
 
 ~~~java
 module com.example.app {
@@ -157,15 +157,15 @@ module com.example.app {
 }
 ~~~
 
-Cách này phù hợp khi framework ORM cũng là một named module có tên **com.example.orm**.
+This approach works when the ORM framework is also a named module named **com.example.orm**.
 
-Nếu framework nằm trên classpath, nó thuộc unnamed module và không có tên để đưa vào danh sách module đích trong directive **opens ... to ...**. Vì vậy, không viết **ALL-UNNAMED** trong module descriptor. Thay vào đó, có thể dùng tùy chọn launcher:
+If the framework is on the classpath, it belongs to an unnamed module and has no name to include in the target module list of an **opens ... to ...** directive. Therefore, you cannot write **ALL-UNNAMED** in a module descriptor. Instead, you can use the launcher option:
 
 ~~~bash
 --add-opens com.example.app/com.example.app.model=ALL-UNNAMED
 ~~~
 
-Hoặc mở package không giới hạn module đích:
+Or open the package without restricting the target module:
 
 ~~~java
 module com.example.app {
@@ -173,20 +173,20 @@ module com.example.app {
 }
 ~~~
 
-Directive **opens package;** mở package đó cho mọi module ở runtime. Nếu mục tiêu là chỉ cho framework trên classpath truy cập, **--add-opens ...=ALL-UNNAMED** thể hiện phạm vi hẹp hơn so với mở package cho mọi module.
+The **opens package;** directive opens that package to all modules at runtime. If the goal is only to grant access to a framework on the classpath, **--add-opens ...=ALL-UNNAMED** expresses a narrower scope than opening the package to every module.
 
-Không nên đổi toàn bộ module thành **open module** chỉ để hỗ trợ một framework classpath. Cách đó mở mọi package trong module cho reflection sâu và rộng hơn nhu cầu thông thường.
+You should not convert an entire module into an **open module** just to support a classpath framework. That opens every package in the module for deep reflection, which is broader than typically needed.
 
-## 6. Phân biệt --add-reads và --add-opens
+## 6. Distinguishing --add-reads and --add-opens
 
-Hai tùy chọn thường xuất hiện cùng nhau khi tích hợp code modular với thư viện cũ, nhưng chúng cấp quyền khác nhau.
+These two options often appear together when integrating modular code with legacy libraries, but they grant different permissions.
 
-| Tùy chọn | Cấp quyền gì? | Trường hợp điển hình |
+| Option | What permission does it grant? | Typical case |
 |---|---|---|
-| **--add-reads** | Bổ sung cạnh đọc giữa hai module | Named module cần đọc kiểu trong unnamed module |
-| **--add-opens** | Mở package của module nguồn cho deep reflection từ module đích | Framework trên classpath cần truy cập private member trong named module |
+| **--add-reads** | Adds a read edge between two modules | A named module needs to read types in an unnamed module |
+| **--add-opens** | Opens a package of the source module for deep reflection from the target module | A framework on the classpath needs to access private members in a named module |
 
-Ví dụ bổ sung cả hai trong một lệnh:
+Example adding both in a single command:
 
 ~~~bash
 java --module-path mods \
@@ -196,26 +196,26 @@ java --module-path mods \
      --module com.example.app/com.example.app.Main
 ~~~
 
-Ở đây, **--add-reads** cho phép module ứng dụng đọc unnamed module. **--add-opens** cho phép unnamed module reflection sâu vào package model của module ứng dụng.
+Here, **--add-reads** allows the application module to read the unnamed module. **--add-opens** allows the unnamed module to perform deep reflection into the application module's model package.
 
-Không nên dùng một tùy chọn thay cho tùy chọn còn lại. Mở package không tự tạo cạnh đọc cho code cần tham chiếu kiểu; thêm cạnh đọc cũng không tự cho phép reflection sâu vào private member của package đóng.
+Do not use one option in place of the other. Opening a package does not create a read edge for code needing to reference types; adding a read edge does not automatically allow deep reflection into private members of a closed package.
 
-## 7. Reflection vào classpath và reflection vào named module
+## 7. Reflection into the classpath vs. reflection into a named module
 
-Hai hướng truy cập có thể được so sánh như sau:
+The two access directions can be compared as follows:
 
-| Hướng reflection | Module đích | Quy tắc chính |
+| Reflection direction | Target module | Main rule |
 |---|---|---|
-| Named module reflection vào classpath class | Unnamed module | Package của unnamed module đã open |
-| Framework classpath reflection vào named-module class | Named module | Package đích phải open cho unnamed module nếu cần deep reflection |
-| Named module gọi trực tiếp kiểu classpath | Unnamed module | Named module cần cạnh đọc, ví dụ --add-reads |
-| Framework classpath gọi API public của named module | Named module | Package API cần export phù hợp; unnamed module đọc các named module |
+| Named module reflecting into a classpath class | Unnamed module | Packages of the unnamed module are already open |
+| Classpath framework reflecting into a named-module class | Named module | Target package must be open to the unnamed module if deep reflection is needed |
+| Named module directly calling a classpath type | Unnamed module | Named module needs a read edge, e.g. --add-reads |
+| Classpath framework calling a public API of a named module | Named module | API package needs appropriate export; unnamed module reads named modules |
 
-Bảng này giúp tránh nhầm lẫn rằng vì unnamed module được open nên mọi package trong named module cũng tự động mở. Quyền mở của unnamed module chỉ áp dụng cho package thuộc unnamed module đó.
+This table helps avoid the misconception that because an unnamed module is open, every package in a named module is also automatically open. The openness of an unnamed module only applies to packages belonging to that unnamed module.
 
-## 8. Ví dụ hoàn chỉnh: framework trên classpath truy cập entity
+## 8. Complete example: framework on the classpath accessing an entity
 
-Giả sử module ứng dụng có cấu trúc:
+Suppose the application module has the structure:
 
 ~~~text
 src/
@@ -247,7 +247,7 @@ public class Customer {
 }
 ~~~
 
-Framework trên classpath dùng reflection để đọc field:
+Framework on the classpath using reflection to read the field:
 
 ~~~java
 package com.example.orm;
@@ -264,7 +264,7 @@ public class EntityInspector {
 }
 ~~~
 
-Vì framework thuộc unnamed module, package model trong named module cần được mở cho nó. Có thể cấu hình:
+Because the framework belongs to an unnamed module, the model package in the named module must be opened to it. You can configure:
 
 ~~~bash
 java --module-path mods \
@@ -273,9 +273,9 @@ java --module-path mods \
      --module com.example.app/com.example.app.Main
 ~~~
 
-Nếu bỏ **--add-opens**, thao tác reflection sâu vào field private có thể thất bại với **InaccessibleObjectException**. Khi thêm đúng tùy chọn, quyền được cấp cho unnamed module mà framework thuộc về, trong phạm vi package model.
+If **--add-opens** is omitted, deep reflection on the private field may fail with **InaccessibleObjectException**. When the proper option is added, permission is granted to the unnamed module to which the framework belongs, scoped to the model package.
 
-Nếu framework được chuyển sang named module, có thể thay **ALL-UNNAMED** bằng module name cụ thể và chuyển directive vào **module-info.java**:
+If the framework is migrated to a named module, **ALL-UNNAMED** can be replaced with the specific module name and the directive moved into **module-info.java**:
 
 ~~~java
 module com.example.app {
@@ -283,58 +283,58 @@ module com.example.app {
 }
 ~~~
 
-Đây là cách thể hiện quyền tích hợp rõ ràng hơn khi cả hai phía đều có module descriptor.
+This is a clearer way to express integration permissions when both sides have module descriptors.
 
-## 9. Lưu ý khi dùng framework và test trên classpath
+## 9. Notes when using frameworks and tests on the classpath
 
-Các framework như ORM, JSON mapper, dependency injection hoặc test framework có thể dùng reflection theo nhiều cách. Không phải mọi thao tác reflection đều cần opens. Truy cập public API đã export thường không cần deep reflection.
+Frameworks such as ORMs, JSON mappers, dependency injection containers, or test frameworks can use reflection in various ways. Not every reflection operation requires opens. Accessing exported public APIs usually does not require deep reflection.
 
-Khi cấu hình môi trường chạy:
+When configuring the runtime environment:
 
-- Xác định framework đang thuộc named module hay unnamed module.
-- Xác định package của ứng dụng mà framework thực sự cần truy cập sâu.
-- Dùng qualified opens cho named module đích nếu framework đã modular hóa.
-- Dùng **--add-opens package=ALL-UNNAMED** khi framework thuộc classpath.
-- Đặt tùy chọn vào đúng JVM process chạy ứng dụng hoặc test; cấu hình cho compiler không tự động áp dụng cho tiến trình test/runtime.
-- Sau khi nâng cấp framework hoặc chuyển framework sang module path, xem lại các tùy chọn mở package cũ và loại bỏ những tùy chọn không còn cần thiết.
+- Determine whether the framework belongs to a named module or an unnamed module.
+- Identify which application packages the framework actually needs deep access to.
+- Use qualified opens to the target named module if the framework is already modularized.
+- Use **--add-opens package=ALL-UNNAMED** when the framework is on the classpath.
+- Place options on the actual JVM process running the application or tests; compiler configurations do not automatically apply to the test/runtime process.
+- After upgrading a framework or moving it to the module path, review old package-opening options and remove any that are no longer needed.
 
-Đối với Gradle hoặc Maven, các tùy chọn JVM cần được truyền vào forked test JVM hoặc application run task tương ứng. Chỉ đặt tùy chọn ở terminal chạy một tiến trình khác không làm thay đổi JVM đang chạy test.
+For Gradle or Maven, JVM options must be passed to the corresponding forked test JVM or application run task. Setting options only in a terminal running a different process does not alter the JVM running the tests.
 
-## 10. Lỗi thường gặp
+## 10. Common errors
 
-**InaccessibleObjectException khi framework truy cập private field**
+**InaccessibleObjectException when a framework accesses a private field**
 
-Kiểm tra package của class thuộc named module nào. Nếu framework thuộc unnamed module, mở đúng package cho **ALL-UNNAMED** bằng **--add-opens**.
+Check which named module the class's package belongs to. If the framework belongs to an unnamed module, open the exact package to **ALL-UNNAMED** using **--add-opens**.
 
-**Đã dùng --add-reads nhưng reflection vẫn thất bại**
+**Used --add-reads yet reflection still fails**
 
-Add-reads chỉ bổ sung quan hệ đọc. Nếu framework cần deep reflection vào package của named module, cần opens hoặc --add-opens riêng.
+Add-reads only adds a readability relationship. If the framework needs deep reflection into a named module's package, opens or --add-opens is needed separately.
 
-**Đã dùng --add-opens nhưng code named module vẫn không import được class trên classpath**
+**Used --add-opens yet named module code still cannot import a class on the classpath**
 
-Add-opens chỉ cấp quyền reflection. Named module cần cạnh đọc tới unnamed module nếu source tham chiếu trực tiếp tới kiểu classpath, ví dụ bằng **--add-reads**.
+Add-opens only grants reflection permission. A named module needs a read edge to the unnamed module if source code directly references classpath types, for example via **--add-reads**.
 
-**Mở package trong module-info.java cho ALL-UNNAMED không biên dịch**
+**Opening a package in module-info.java to ALL-UNNAMED does not compile**
 
-**ALL-UNNAMED** là ký hiệu đặc biệt của tùy chọn launcher, không phải tên module hợp lệ trong directive opens của module descriptor. Dùng **--add-opens** ở runtime hoặc mở package cho một named module có tên cụ thể.
+**ALL-UNNAMED** is a special symbol for launcher options, not a valid module name in the opens directive of a module descriptor. Use **--add-opens** at runtime or open the package to a specific named module.
 
-**Framework vẫn bị chặn dù module đã có opens**
+**Framework is still blocked even though the module has opens**
 
-Kiểm tra package và module đích có chính xác không. Framework có thể được nạp từ classpath trong unnamed module khác, hoặc lỗi đến từ một package khác mà framework cũng cần xử lý.
+Verify that the package and target module are accurate. The framework might be loaded from the classpath in another unnamed module, or the error may come from a different package that the framework also needs to process.
 
-**Đã mở toàn bộ module nhưng vẫn không import được package**
+**Opened the entire module yet still cannot import a package**
 
-Open module chỉ mở package cho reflection sâu, không export mọi package cho truy cập thông thường. Cần thêm exports phù hợp nếu module khác phải dùng API public.
+An open module only opens packages for deep reflection; it does not export all packages for normal access. Appropriate exports must be added if another module needs to use public APIs.
 
-## 11. Ghi nhớ
+## 11. Takeaways
 
-- Mỗi class loader có unnamed module riêng cho các class do nó định nghĩa trong unnamed module.
-- Unnamed module đọc mọi module và tất cả package của nó được export, open.
-- Named module không tự động đọc unnamed module; code tham chiếu trực tiếp tới classpath có thể cần **--add-reads**.
-- Framework trên classpath có thể đọc named module, nhưng deep reflection vào package của named module cần package được mở cho unnamed module.
-- **--add-opens module/package=ALL-UNNAMED** mở package cụ thể cho các unnamed module.
-- Không thể ghi **ALL-UNNAMED** làm module đích trong directive opens của **module-info.java**.
-- **--add-reads** và **--add-opens** giải quyết hai loại quyền khác nhau.
-- Nên mở package model cần thiết cho framework, giữ các package khác đóng gói và tránh open module toàn bộ nếu không có yêu cầu rõ ràng.
+- Each class loader has its own unnamed module for classes it defines in the unnamed module.
+- An unnamed module reads all modules, and all of its packages are exported and open.
+- A named module does not automatically read unnamed modules; code directly referencing the classpath may need **--add-reads**.
+- A framework on the classpath can read named modules, but deep reflection into a named module's package requires the package to be opened to the unnamed module.
+- **--add-opens module/package=ALL-UNNAMED** opens a specific package to unnamed modules.
+- **ALL-UNNAMED** cannot be written as a target module in an opens directive of **module-info.java**.
+- **--add-reads** and **--add-opens** address two different kinds of permissions.
+- Open only the necessary model packages for frameworks, keep other packages encapsulated, and avoid making the entire module open unless clearly required.
 
-Khi tích hợp framework classpath vào ứng dụng modular, hãy xác định chiều reflection trước. Nếu code modular reflection vào classpath, package đích đã được open theo quy tắc unnamed module. Nếu framework classpath reflection vào named module, module sở hữu class phải mở package cụ thể cho **ALL-UNNAMED**. Cách phân biệt này giúp cấu hình JPMS đúng phạm vi và giữ ranh giới module có chủ đích.
+When integrating a classpath framework into a modular application, identify the reflection direction first. If modular code reflects into the classpath, the target package is already open under unnamed module rules. If a classpath framework reflects into a named module, the module owning the class must open the specific package to **ALL-UNNAMED**. This distinction helps configure JPMS with the right scope and maintain intentional module boundaries.

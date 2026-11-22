@@ -1,37 +1,37 @@
-# Cache wrapper và giới hạn không nên dùng làm hợp đồng nhận dạng trong Java
+# Wrapper Caching and Why It Must Not Be Used as an Identity Contract in Java
 
-## 1. Vấn đề: hai đối tượng có cùng giá trị chưa chắc là cùng đối tượng
+## 1. The problem: two objects with the same value are not necessarily the same object
 
-Khi làm việc với `Integer`, `Long`, `Short`, `Byte` và các lớp wrapper khác, có hai câu hỏi **khác nhau**:
+When working with `Integer`, `Long`, `Short`, `Byte`, and other wrapper classes, there are two **different** questions:
 
-1. **Hai đối tượng biểu diễn cùng một giá trị hay không?** Thông thường dùng `equals` theo hợp đồng của lớp wrapper, hoặc dùng toán tử số học sau khi unbox nếu đã kiểm tra `null`.
-2. **Hai biến tham chiếu có trỏ đến chính cùng một đối tượng hay không?** Với hai tham chiếu, `==` kiểm tra *reference identity*.
+1. **Do two objects represent the same value?** Normally use `equals` per the wrapper class contract, or use arithmetic operators after unboxing if `null` has been checked.
+2. **Do two reference variables point to the exact same object?** With two references, `==` checks *reference identity*.
 
-Java có cơ chế **cache wrapper**: một số lần boxing hoặc gọi `valueOf` có thể trả về đối tượng đã được dùng trước đó thay vì cấp phát đối tượng mới. Vì vậy, `==` giữa một số cặp wrapper có giá trị nhỏ có thể trả `true`, trong khi các giá trị khác có thể trả `false`.
+Java has a **wrapper caching** mechanism: some boxing operations or `valueOf` calls can return a previously used object instead of allocating a new one. Consequently, `==` between certain pairs of wrappers with small values can return `true`, whereas other values may return `false`.
 
-Điều quan trọng nhất của bài học:
+The most important takeaway of this lesson:
 
-> **Cache wrapper không phải hợp đồng nhận dạng số.** Đừng dùng `==` giữa hai tham chiếu wrapper để quyết định chúng có cùng giá trị số, và đừng dùng wrapper làm khóa khóa đồng bộ dựa vào identity.
+> **Wrapper caching is not a numeric identity contract.** Do not use `==` between two wrapper references to decide if they have the same numeric value, and do not use wrappers as synchronization locks relying on identity.
 
-Ví dụ cơ bản:
+Basic example:
 
 ```java
 Integer a = Integer.valueOf(127);
 Integer b = Integer.valueOf(127);
-System.out.println(a == b);      // true: thuộc phạm vi cache được bảo đảm
+System.out.println(a == b);      // true: within the guaranteed cache range
 
 Integer x = Integer.valueOf(200);
 Integer y = Integer.valueOf(200);
-System.out.println(x.equals(y)); // true: cùng kiểu Integer và cùng giá trị
+System.out.println(x.equals(y)); // true: same Integer type and same value
 ```
 
-Không kết luận rằng `x == y` **luôn** `false`. Việc cache thêm giá trị ngoài miền bảo đảm tùy triển khai và cấu hình JVM. Điều chắc chắn để kiểm tra giá trị là `x.equals(y)`.
+Do not conclude that `x == y` is **always** `false`. Caching additional values outside the guaranteed range depends on the JVM implementation and configuration. The reliable way to check value equality is `x.equals(y)`.
 
-## 2. Wrapper là đối tượng; boxing và unboxing là chuyển đổi
+## 2. Wrappers are objects; boxing and unboxing are conversions
 
-Java có sáu wrapper số quen thuộc:
+Java has six familiar numeric wrappers:
 
-| Primitive | Wrapper | Ví dụ tạo từ primitive |
+| Primitive | Wrapper | Example created from primitive |
 | --- | --- | --- |
 | `byte` | `Byte` | `Byte.valueOf((byte) 12)` |
 | `short` | `Short` | `Short.valueOf((short) 12)` |
@@ -40,142 +40,142 @@ Java có sáu wrapper số quen thuộc:
 | `float` | `Float` | `Float.valueOf(12.0f)` |
 | `double` | `Double` | `Double.valueOf(12.0)` |
 
-Mỗi wrapper là lớp `final`, bất biến, mở rộng `Number`. Đối tượng wrapper có **identity** như một đối tượng tham chiếu; nhưng giá trị số mà nó giữ mới là điều thường có ý nghĩa cho nghiệp vụ.
+Each wrapper is a `final`, immutable class extending `Number`. A wrapper object has **identity** like any reference object; however, the numeric value it holds is what usually matters for business logic.
 
-**Boxing** biến primitive thành wrapper:
+**Boxing** turns a primitive into a wrapper:
 
 ```java
 int primitive = 42;
-Integer boxed = primitive; // autoboxing; tương đương ý nghĩa với Integer.valueOf
+Integer boxed = primitive; // autoboxing; semantically equivalent to Integer.valueOf
 ```
 
-**Unboxing** lấy primitive từ wrapper:
+**Unboxing** retrieves a primitive from a wrapper:
 
 ```java
 Integer boxed = Integer.valueOf(42);
-int primitive = boxed; // gọi chuyển đổi giá trị tương ứng
+int primitive = boxed; // invokes the corresponding value conversion
 ```
 
-Java tự chèn boxing/unboxing trong nhiều trường hợp, kể cả gán, phép toán, một số phép so sánh và thao tác collection. Những chuyển đổi đó có thể làm code trông như chỉ đang thao tác số, dù trong thực tế có tham chiếu đối tượng và nguy cơ `null`.
+Java automatically inserts boxing/unboxing in many places, including assignments, arithmetic operations, certain comparisons, and collection operations. Those conversions can make code look as if it is only manipulating numbers, even though object references and `null` risks exist in reality.
 
-Các phương thức `valueOf` là lựa chọn tạo wrapper thông thường. Các constructor kiểu `new Integer(...)`, `new Long(...)` đã bị deprecate, được đánh dấu hướng tới loại bỏ trong Java hiện đại; không nên tạo đối tượng mới chỉ để ép kiểm tra identity. Nếu nghiệp vụ thật sự cần một thực thể có định danh riêng, hãy định nghĩa lớp thực thể có ID phù hợp.
+The `valueOf` methods are the standard choice for creating wrappers. Constructors like `new Integer(...)` and `new Long(...)` have been deprecated and marked for removal in modern Java; you should not construct new objects merely to force identity checks. If business logic genuinely requires an entity with its own identity, define an entity class with an appropriate ID.
 
-## 3. Cache wrapper thực sự bảo đảm điều gì?
+## 3. What does wrapper caching actually guarantee?
 
-### 3.1. Phạm vi cache được bảo đảm
+### 3.1. Guaranteed cache ranges
 
-Các factory `valueOf` của nhóm wrapper nguyên có cam kết tái sử dụng các đối tượng trong phạm vi sau:
+The `valueOf` factory methods of the integer wrapper group commit to reusing objects in the following ranges:
 
-| Wrapper | Phạm vi có đối tượng cache được bảo đảm qua `valueOf` | Ghi chú |
+| Wrapper | Range with guaranteed cached objects via `valueOf` | Notes |
 | --- | --- | --- |
-| `Byte` | Toàn bộ miền `byte`: `-128..127` | Mọi giá trị `byte` đều nằm trong miền này |
-| `Short` | `-128..127` | Có thể cache thêm giá trị |
-| `Integer` | `-128..127` | Có thể cache thêm giá trị |
-| `Long` | `-128..127` | Có thể cache thêm giá trị |
-| `Float` | **Không có cam kết phạm vi cache kiểu trên** | Không suy ra identity từ cùng giá trị |
-| `Double` | **Không có cam kết phạm vi cache kiểu trên** | Không suy ra identity từ cùng giá trị |
+| `Byte` | Entire `byte` range: `-128..127` | Every `byte` value falls in this range |
+| `Short` | `-128..127` | Additional values may be cached |
+| `Integer` | `-128..127` | Additional values may be cached |
+| `Long` | `-128..127` | Additional values may be cached |
+| `Float` | **No cache range guarantee like above** | Do not infer identity from equal values |
+| `Double` | **No cache range guarantee like above** | Do not infer identity from equal values |
 
-Với `Byte.valueOf`, mọi giá trị hợp lệ đều thuộc khoảng `-128..127`. Với `Short.valueOf`, `Integer.valueOf` và `Long.valueOf`, giá trị trong khoảng đó được trả về từ cache như cam kết của API. Ngoài khoảng, việc hai lời gọi trả về cùng một đối tượng **không phải hợp đồng được bảo đảm**.
+With `Byte.valueOf`, all valid values fall in `-128..127`. With `Short.valueOf`, `Integer.valueOf`, and `Long.valueOf`, values in that range are returned from the cache as promised by the API. Outside that range, whether two calls return the same object **is not a guaranteed contract**.
 
 ```java
 Byte a = Byte.valueOf((byte) -128);
 Byte b = Byte.valueOf((byte) -128);
-// a == b được bảo đảm true
+// a == b is guaranteed true
 
 Short c = Short.valueOf((short) 127);
 Short d = Short.valueOf((short) 127);
-// c == d được bảo đảm true
+// c == d is guaranteed true
 
 Long e = Long.valueOf(127L);
 Long f = Long.valueOf(127L);
-// e == f được bảo đảm true
+// e == f is guaranteed true
 ```
 
-Có các wrapper khác như `Boolean` và `Character` nhưng chúng không thuộc sáu lớp số nói trên. `Boolean.valueOf` trả các instance `TRUE` hoặc `FALSE`; `Character.valueOf` bảo đảm cache các ký tự từ `'\u0000'` đến `'\u007f'`. Những ví dụ này nhấn mạnh rằng **mỗi API có hợp đồng riêng**; không có quy tắc “tất cả wrapper cache `-128..127`”.
+There are other wrappers such as `Boolean` and `Character`, though they do not belong to the six numeric classes above. `Boolean.valueOf` returns the `TRUE` or `FALSE` instances; `Character.valueOf` guarantees caching characters from `'\u0000'` to `'\u007f'`. These examples emphasize that **each API has its own contract**; there is no blanket rule that “all wrappers cache `-128..127`”.
 
-### 3.2. Quy tắc boxing trong đặc tả Java
+### 3.2. Boxing rules in the Java specification
 
-Ngoài cam kết API của `valueOf`, đặc tả Java quy định những trường hợp kết quả boxing có identity được chia sẻ, đáng chú ý gồm các biểu thức hằng (constant expression) kiểu `byte`, `short`, `int`, `long` trong `-128..127`, `char` trong `0..127`, và các giá trị `boolean`.
+Beyond the `valueOf` API commitment, the Java specification defines cases where boxing results share identity, notably constant expressions of types `byte`, `short`, `int`, and `long` in `-128..127`, `char` in `0..127`, and `boolean` values.
 
-Nhưng **đừng diễn dịch ngược** rằng mọi phép boxing của bất kỳ biểu thức nào, ở mọi giá trị hoặc mọi wrapper, đều có identity ổn định. Đặc tả cho phép triển khai chia sẻ thêm đối tượng trong một số trường hợp và các tối ưu triển khai có thể thay đổi.
+However, **do not reverse-interpret** this to mean that every boxing of any expression, at any value or for any wrapper, has stable identity. The specification permits implementations to share additional objects in some cases, and implementation optimizations can change.
 
-Một ví dụ thường thấy:
+A common example:
 
 ```java
 Integer a = 100;
 Integer b = 100;
-System.out.println(a == b); // true trong phạm vi bảo đảm
+System.out.println(a == b); // true within the guaranteed range
 
 Integer x = 200;
 Integer y = 200;
-// Không dựa vào x == y để xác định cùng giá trị
+// Do not rely on x == y to determine equal values
 ```
 
-Trường hợp thứ hai có thể tạo hai đối tượng hoặc dùng cache mở rộng. **Ứng dụng phải cho cùng quyết định nghiệp vụ trên mọi JVM hợp lệ**, dù kết quả identity có thể khác.
+The second case may create two objects or use an extended cache. **An application must make the exact same business decision across every valid JVM**, even if identity outcomes differ.
 
-### 3.3. Cache không phải “tập đối tượng có ID số”
+### 3.3. The cache is not a “pool of objects with numeric IDs”
 
-Cache giúp giảm số lần cấp phát wrapper thường gặp, nhất là các giá trị nhỏ. Nhưng các giá trị nguyên thủy như `42` không có identity; identity chỉ là thuộc tính của tham chiếu đối tượng wrapper cụ thể.
+Caching reduces allocations of commonly occurring wrappers, especially small values. Yet primitive values such as `42` have no identity; identity is only a property of a specific wrapper object reference.
 
-Không được coi cache như một cơ chế *interning* tổng quát có thể thay cho:
+Do not treat the cache as a general *interning* mechanism that can replace:
 
-- định danh bản ghi, mã người dùng hay khóa nghiệp vụ;
-- cơ chế singleton do ứng dụng thiết kế;
-- bộ khóa đồng bộ riêng;
-- quan hệ `equals` và `hashCode` trong `HashMap`/`HashSet`.
+- record identifiers, user IDs, or business keys;
+- application-designed singleton mechanisms;
+- dedicated synchronization lock sets;
+- `equals` and `hashCode` relationships in `HashMap`/`HashSet`.
 
-Việc dùng wrapper để đại diện ID hoàn toàn hợp lệ (ví dụ `Map<Integer, Customer>`), **nếu giá trị được so sánh bằng `equals`**, không phải vì hai tham chiếu `Integer` phải trỏ đến cùng một instance.
+Using wrappers to represent IDs is completely valid (e.g., `Map<Integer, Customer>`), **as long as values are compared with `equals`**, not because two `Integer` references must point to the same instance.
 
-## 4. `==` giữa hai wrapper khác `==` khi có primitive
+## 4. `==` between two wrappers vs. `==` when a primitive is involved
 
-Cùng ký hiệu `==` có thể dẫn đến hai cơ chế khác nhau, phụ thuộc **kiểu tĩnh của toán hạng**.
+The same `==` symbol can lead to two different mechanisms, depending on **the static types of the operands**.
 
-### Hai toán hạng đều là tham chiếu wrapper
+### Both operands are wrapper references
 
 ```java
 Integer a = Integer.valueOf(200);
 Integer b = Integer.valueOf(200);
 
-boolean sameObject = (a == b);  // so sánh tham chiếu
+boolean sameObject = (a == b);  // reference comparison
 boolean sameValue = a.equals(b); // true
 ```
 
-`sameObject` không nên được dùng để quyết định `sameValue`. Nếu có `null`, gọi `a.equals(b)` khi `a == null` gây `NullPointerException`.
+`sameObject` should not be used to decide `sameValue`. If `null` is possible, calling `a.equals(b)` when `a == null` causes a `NullPointerException`.
 
-### Một bên wrapper, một bên primitive
+### One side wrapper, one side primitive
 
 ```java
 Integer boxed = Integer.valueOf(200);
 int raw = 200;
 
-System.out.println(boxed == raw); // true: boxed được unbox, rồi so sánh int
+System.out.println(boxed == raw); // true: boxed is unboxed, then int comparison
 ```
 
-Khi ngữ cảnh áp dụng *binary numeric promotion*, Java unbox wrapper để thực hiện so sánh giá trị số. Vì vậy kết quả `boxed == raw` có thể đúng ngay cả khi `boxed == anotherBoxed` không có bảo đảm đúng.
+When the context applies *binary numeric promotion*, Java unboxes the wrapper to perform a numeric value comparison. Thus `boxed == raw` can evaluate to true even when `boxed == anotherBoxed` has no guarantee of being true.
 
-Cẩn thận với `null`:
+Be careful with `null`:
 
 ```java
 Integer missing = null;
-// System.out.println(missing == 0); // Ném NullPointerException do unboxing
+// System.out.println(missing == 0); // Throws NullPointerException due to unboxing
 ```
 
-Đừng “sửa” một phép so sánh wrapper bằng cách đổi một toán hạng thành primitive nếu đầu vào có thể `null` mà chưa quy định cách xử lý dữ liệu thiếu.
+Do not “fix” a wrapper comparison by changing one operand to a primitive if the input can be `null` without specifying how missing data is handled.
 
-### Hai tham chiếu `null`
+### Two `null` references
 
 ```java
 Integer first = null;
 Integer second = null;
 
-System.out.println(first == second); // true: cả hai đều là null
+System.out.println(first == second); // true: both are null
 ```
 
-`true` ở đây chỉ nghĩa là cùng tham chiếu `null`. Nó **không** nghĩa hai giá trị số tồn tại và bằng nhau. Nếu cần diễn giải `null` là “thiếu dữ liệu”, phải nêu quy tắc riêng.
+`true` here only means both are the `null` reference. It does **not** mean two numeric values exist and are equal. If `null` must be interpreted as “missing data”, state a separate rule.
 
-## 5. Cách kiểm tra giá trị đúng và an toàn
+## 5. How to check values accurately and safely
 
-### 5.1. Hai wrapper cùng kiểu, chắc chắn không `null`
+### 5.1. Two wrappers of the same type, guaranteed non-`null`
 
 ```java
 Integer left = Integer.valueOf(200);
@@ -184,11 +184,11 @@ Integer right = Integer.valueOf(200);
 boolean sameValue = left.equals(right); // true
 ```
 
-`Integer.equals` so sánh giá trị `int` và loại wrapper tương ứng; không dựa vào số lượng đối tượng được cache.
+`Integer.equals` compares the `int` value and corresponding wrapper type; it does not depend on how many objects are cached.
 
-### 5.2. Wrapper có thể `null`
+### 5.2. Wrappers that may be `null`
 
-Dùng `java.util.Objects.equals`:
+Use `java.util.Objects.equals`:
 
 ```java
 import java.util.Objects;
@@ -200,9 +200,9 @@ System.out.println(Objects.equals(left, right)); // false
 System.out.println(Objects.equals(null, null));  // true
 ```
 
-`Objects.equals(a, b)` trả `true` khi hai tham chiếu cùng `null`, hoặc khi `a != null` và `a.equals(b)`. Đây là chính sách **so sánh đối tượng có tính đến null**, không phải phép kiểm tra “hai số hợp lệ bằng nhau”. Nếu miền nghiệp vụ không cho phép `null`, phải từ chối nó trước.
+`Objects.equals(a, b)` returns `true` when both references are `null`, or when `a != null` and `a.equals(b)`. This is a **null-aware object comparison policy**, not a check for “two valid numbers are equal”. If the business domain forbids `null`, reject it first.
 
-### 5.3. Nếu muốn so sánh số primitive
+### 5.3. When primitive numeric comparison is desired
 
 ```java
 Integer left = Integer.valueOf(200);
@@ -214,11 +214,11 @@ if (left != null && right != null
 }
 ```
 
-Việc unbox tường minh làm rõ phép so sánh giá trị. Đây là cách tốt khi phép tính sau đó thực sự cần `int` và kiểm tra `null` đã hoàn tất.
+Explicit unboxing makes the value comparison clear. This is a good approach when subsequent calculations genuinely need `int` and `null` checks are already complete.
 
-### 5.4. Hai wrapper thuộc *khác lớp*
+### 5.4. Two wrappers of *different classes*
 
-`Integer.valueOf(10).equals(Long.valueOf(10L))` là `false`: hợp đồng `equals` của wrapper nguyên yêu cầu cùng loại wrapper và cùng giá trị.
+`Integer.valueOf(10).equals(Long.valueOf(10L))` is `false`: the `equals` contract of integer wrappers requires the same wrapper type and the same value.
 
 ```java
 Integer a = Integer.valueOf(10);
@@ -226,11 +226,11 @@ Long b = Long.valueOf(10L);
 System.out.println(a.equals(b)); // false
 ```
 
-Nếu nghiệp vụ muốn hai số khác kiểu được coi tương đương về giá trị toán học, phải định nghĩa một cách chuẩn hóa **không làm mất dữ liệu** trước khi so sánh. Ví dụ với `Integer` và `Long` hữu hạn, `a.longValue() == b.longValue()` bảo toàn mọi giá trị `int`. Không tự chuyển mọi `Number` thành `double` vì nhiều `long` khác nhau có thể làm tròn thành cùng một `double`.
+If business logic wants two numbers of different types to be considered equivalent in mathematical value, define a **lossless** normalization before comparing. For example, with finite `Integer` and `Long`, `a.longValue() == b.longValue()` preserves every `int` value. Do not blindly convert every `Number` to `double`, because multiple distinct `long` values can round to the same `double`.
 
-### 5.5. `Float` và `Double` có hợp đồng đặc biệt
+### 5.5. `Float` and `Double` have special contracts
 
-`Double.equals` và `Float.equals` không đồng nhất với toán tử primitive `==` cho các giá trị đặc biệt:
+`Double.equals` and `Float.equals` do not match the primitive `==` operator for special values:
 
 ```java
 System.out.println(Double.NaN == Double.NaN); // false
@@ -243,13 +243,13 @@ System.out.println(
         Double.valueOf(+0.0).equals(Double.valueOf(-0.0))); // false
 ```
 
-Tương tự với `Float`: wrapper `equals` coi các giá trị NaN là bằng nhau và phân biệt `+0.0f`/`-0.0f`. Đây là hợp đồng của lớp, **không** phải hệ quả của cache.
+Similarly for `Float`: wrapper `equals` treats NaN values as equal and distinguishes `+0.0f`/`-0.0f`. This is the class contract, **not** a consequence of caching.
 
-Khi cần so sánh gần đúng kết quả tính toán có sai số dấu phẩy động, phải định nghĩa dung sai và chính sách NaN/vô cực riêng. Quan hệ “gần bằng” không thể mặc nhiên thay `equals` cho khóa collection vì có thể không bắc cầu.
+When approximate comparison is needed for floating-point results with rounding error, define a dedicated tolerance and NaN/infinity policy. An “approximately equal” relation cannot implicitly replace `equals` for collection keys because it may not be transitive.
 
-## 6. Ví dụ chạy được trên Java 17
+## 6. Runnable example on Java 17
 
-Lưu mã sau vào `WrapperCacheDemo.java`:
+Save the following code to `WrapperCacheDemo.java`:
 
 ```java
 import java.util.Objects;
@@ -275,8 +275,8 @@ public class WrapperCacheDemo {
         Integer largeA = Integer.valueOf(200);
         Integer largeB = Integer.valueOf(200);
 
-        // Không in largeA == largeB: identity ngoài cache bảo đảm
-        // không phải kết quả ổn định để dùng làm quy tắc nghiệp vụ.
+        // Do not print largeA == largeB: identity outside the guaranteed cache
+        // is not a stable result to rely on for business rules.
         System.out.println("Integer 200 equals: "
                 + largeA.equals(largeB));
         System.out.println("Integer 200 primitive values: "
@@ -303,14 +303,14 @@ public class WrapperCacheDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac WrapperCacheDemo.java
 java WrapperCacheDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 Integer 127 same object: true
@@ -326,22 +326,22 @@ Double NaN wrapper equals: true
 Double signed zero wrapper equals: false
 ```
 
-Các kiểm tra tham chiếu trong chương trình **chỉ dùng phạm vi cache được bảo đảm**. Chương trình chủ động không phụ thuộc kết quả `largeA == largeB`, do đó đầu ra mang cùng ý nghĩa trên các JVM tuân thủ hợp đồng API. Phần còn lại kiểm tra giá trị qua `equals` hoặc primitive sau khi unbox rõ ràng.
+The reference checks in the program **only use guaranteed cache ranges**. The program deliberately avoids depending on the outcome of `largeA == largeB`, so the output carries the same meaning across JVMs compliant with the API contract. The remainder checks values via `equals` or primitives after explicit unboxing.
 
-## 7. Tại sao không dùng wrapper làm khóa đồng bộ?
+## 7. Why not use wrappers as synchronization locks?
 
-Ví dụ mã có hại:
+Example of harmful code:
 
 ```java
 Integer lock = Integer.valueOf(42);
 synchronized (lock) {
-    // Không nên khóa theo đối tượng wrapper!
+    // Do not synchronize on a wrapper object!
 }
 ```
 
-Một số wrapper được cache hoặc dùng chung; đoạn mã không liên quan cũng có thể nhận đúng **cùng tham chiếu**. Hệ quả có thể là tranh chấp khóa ngoài dự kiến, trì hoãn, hoặc rủi ro đồng bộ rất khó tìm. Các wrapper cũng được Java xem là **value-based classes**: nhà phát triển được khuyến cáo không dựa vào identity để đồng bộ hóa. Với JDK hiện đại, trình biên dịch có thể cảnh báo khi cố `synchronized` trên đối tượng wrapper.
+Some wrappers are cached or shared; unrelated code can receive the exact **same reference**. Consequences can include unexpected lock contention, delays, or very hard-to-find synchronization bugs. Wrappers are also regarded by Java as **value-based classes**: developers are advised not to rely on identity for synchronization. In modern JDKs, the compiler may warn when attempting `synchronized` on a wrapper object.
 
-Để khóa bảo vệ trạng thái của một instance, hãy tạo đối tượng khóa chuyên biệt do chính class sở hữu:
+To lock and protect an instance's state, create a dedicated lock object owned by the class itself:
 
 ```java
 public final class SafeCounter {
@@ -362,29 +362,29 @@ public final class SafeCounter {
 }
 ```
 
-Ở đây `lock` có identity riêng phục vụ đồng bộ; không bị dùng chung do cache số nhỏ. Nếu yêu cầu là bộ đếm đồng thời, `AtomicInteger` cũng là lựa chọn có ý nghĩa, tùy bài toán.
+Here `lock` has its own dedicated identity for synchronization; it is not shared due to small-number caching. If a concurrent counter is required, `AtomicInteger` is also a meaningful option depending on the problem.
 
-**Không nên dùng `System.identityHashCode(integer)` làm ID nghiệp vụ.** Giá trị đó phụ thuộc identity đối tượng, không phải giá trị số hay mã định danh bền vững; nó có thể khác giữa các lần chạy và không bảo đảm duy nhất.
+**Do not use `System.identityHashCode(integer)` as a business ID.** That value depends on object identity, not the numeric value or a persistent identifier; it can vary across runs and is not guaranteed unique.
 
-## 8. Cache ảnh hưởng hiệu năng như thế nào?
+## 8. How does caching affect performance?
 
-Wrapper cache chủ yếu là một tối ưu để **tái sử dụng đối tượng** cho những giá trị thường xuất hiện. Nhưng không nên suy diễn:
+Wrapper caching is primarily an optimization to **reuse objects** for frequently occurring values. However, do not infer:
 
-- Cứ autoboxing là cấp phát mới: nhiều trường hợp có cache hoặc JVM tối ưu loại bỏ cấp phát.
-- Cứ `valueOf` là trả về cùng object cho mọi giá trị: ngoài khoảng bảo đảm, không có cam kết chung như vậy.
-- Dùng `Integer` hiệu quả như primitive `int` trong mọi tình huống: wrapper là tham chiếu đối tượng, có thể `null`, cần boxing/unboxing và có thể tăng chi phí bộ nhớ hoặc thao tác.
-- Mở rộng cache sẽ cải thiện hiệu năng mọi ứng dụng: hiệu quả phụ thuộc dữ liệu, JVM, GC, tối ưu JIT và cách truy cập; phải benchmark đúng tải thực.
+- That every autoboxing allocates a new object: many cases use caching or JVM optimizations that eliminate allocations.
+- That `valueOf` returns the same object for every value: outside the guaranteed range, there is no such general commitment.
+- That using `Integer` is as efficient as primitive `int` in every situation: a wrapper is an object reference, can be `null`, requires boxing/unboxing, and can increase memory or operational overhead.
+- That expanding the cache improves performance for every application: effectiveness depends on data, JVM, GC, JIT optimizations, and access patterns; you must benchmark under real workloads.
 
-Ví dụ:
+Example:
 
 ```java
 Integer count = 0;
-count++; // unbox -> cộng một int -> box -> gán tham chiếu mới
+count++; // unbox -> add an int -> box -> assign new reference
 ```
 
-Đối tượng `Integer` là bất biến: phép tăng **không sửa instance cũ**. Nếu giá trị mới thuộc vùng cache, JVM có thể dùng instance tái sử dụng; nếu ngoài vùng, cách triển khai có thể khác.
+`Integer` objects are immutable: incrementing **does not mutate the old instance**. If the new value falls in the cache region, the JVM may use a reused instance; if outside, the implementation may differ.
 
-Để đếm số học thuần túy trong vòng lặp nóng, ưu tiên primitive:
+For pure arithmetic counting in a hot loop, prefer primitives:
 
 ```java
 int sum = 0;
@@ -393,11 +393,11 @@ for (int i = 0; i < 1000; i++) {
 }
 ```
 
-Khi cần `List<Integer>`, `Map<String, Long>` hoặc generic nhận kiểu tham chiếu, wrapper là công cụ đúng, nhưng cần phân biệt đánh giá hiệu năng và tính đúng đắn.
+When you need `List<Integer>`, `Map<String, Long>`, or generics accepting reference types, wrappers are the right tool, but distinguish performance evaluation from correctness.
 
-## 9. Cache mở rộng và tính di động
+## 9. Extended caches and portability
 
-JDK/VM có thể có cấu hình hoặc tối ưu riêng để mở rộng phạm vi `Integer` được cache. Điều này giải thích vì sao cùng một đoạn thử:
+A JDK/VM may have its own configuration or optimizations to extend the cached `Integer` range. This explains why the same test snippet:
 
 ```java
 Integer x = Integer.valueOf(200);
@@ -405,23 +405,23 @@ Integer y = Integer.valueOf(200);
 boolean sameReference = x == y;
 ```
 
-có thể trả `true` trong một môi trường và `false` trong một môi trường khác. Kết quả đó **không chứng minh hai giá trị khác nhau**, và cũng **không phải** tín hiệu để phân nhánh logic.
+can return `true` in one environment and `false` in another. That result **does not prove two values are different**, nor is it a signal to branch logic on.
 
-Một số triển khai có thể tối ưu boxing nhờ phân tích escape hoặc tối ưu máy ảo. Đừng dùng kết quả đo identity, `identityHashCode` hay số lần cấp phát trong một lần chạy làm hợp đồng API về tính bằng nhau.
+Some implementations can optimize boxing through escape analysis or VM optimizations. Do not turn identity measurements, `identityHashCode`, or allocation counts in a single run into an API contract for equality.
 
-Quy tắc thiết kế bền vững:
+Sustainable design rules:
 
-1. Cần *numeric equality* → `equals`, `Objects.equals`, hoặc primitive comparison khi có thể unbox an toàn.
-2. Cần định danh thực thể → giữ một ID bất biến riêng và định nghĩa `equals`/`hashCode` theo nghiệp vụ.
-3. Cần identity đối tượng thực sự → dùng đối tượng có ownership và vòng đời rõ ràng, không dùng wrapper số.
-4. Cần synchronization → dùng khóa riêng (`new Object()`), primitive atomic hoặc cơ chế đồng bộ thích hợp.
-5. Cần tối ưu → đo hiệu năng và áp dụng cấu trúc dữ liệu phù hợp, không đánh đổi đúng/sai để phụ thuộc cache.
+1. Need *numeric equality* → `equals`, `Objects.equals`, or primitive comparison when safe to unbox.
+2. Need entity identity → keep a separate immutable ID and define `equals`/`hashCode` according to business logic.
+3. Need true object identity → use an object with clear ownership and lifecycle, not a numeric wrapper.
+4. Need synchronization → use a private lock (`new Object()`), atomic primitives, or an appropriate synchronization mechanism.
+5. Need optimization → measure performance and adopt suitable data structures without trading correctness to depend on caching.
 
-## 10. Vấn đề với collection và các phép kiểm tra
+## 10. Issues with collections and checks
 
-### `HashMap`/`HashSet` dùng `equals` và `hashCode`
+### `HashMap`/`HashSet` use `equals` and `hashCode`
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.HashSet;
@@ -433,45 +433,45 @@ ids.add(Integer.valueOf(200));
 System.out.println(ids.contains(Integer.valueOf(200))); // true
 ```
 
-Hai lần `valueOf(200)` **không cần** trả cùng tham chiếu. `HashSet` dùng hợp đồng `hashCode`/`equals` của `Integer` để tìm đúng phần tử.
+The two `valueOf(200)` calls **do not need** to return the same reference. `HashSet` uses `Integer`'s `hashCode`/`equals` contract to find the right element.
 
-Ngược lại, `IdentityHashMap` cố ý so sánh khóa theo tham chiếu, nên wrapper không phù hợp nếu ý định là nhận dạng bằng giá trị số. Kể cả khi thử cho thấy một số giá trị nhỏ hoạt động nhờ cache, logic sẽ dễ sai khi giá trị vượt vùng cache hoặc triển khai thay đổi.
+Conversely, `IdentityHashMap` intentionally compares keys by reference, so wrappers are unsuitable if the intent is identification by numeric value. Even if tests show small values working due to caching, logic will easily fail once values exceed the cache range or implementations change.
 
-### Phép so sánh gần đúng không phải `equals`
+### Approximate comparisons are not `equals`
 
-Với `Float`/`Double`, nếu cần dung sai vì sai số tính toán, hãy dùng tiêu chí riêng cho phép kiểm thử số học. Một tiêu chí như `Math.abs(a-b) < epsilon` không phải quan hệ tương đương tổng quát: có thể không bắc cầu, cũng không thay hợp đồng `hashCode`.
+For `Float`/`Double`, if a tolerance is needed due to calculation errors, use a dedicated criterion for numeric checks. A criterion like `Math.abs(a-b) < epsilon` is not a general equivalence relation: it may fail transitivity and does not replace the `hashCode` contract.
 
-### Autounboxing trong collection
+### Auto-unboxing in collections
 
-Khi lấy dữ liệu từ `List<Integer>`:
+When retrieving data from `List<Integer>`:
 
 ```java
 Integer nullableId = null;
-// int id = nullableId; // Ném NullPointerException
+// int id = nullableId; // Throws NullPointerException
 ```
 
-Bất kể cache có hay không, `null` là một tham chiếu hợp lệ với wrapper và cần chính sách xử lý. `Objects.equals` chỉ giúp so sánh an toàn với `null`; nó không bảo đảm mọi giá trị truyền vào hợp lệ theo miền nghiệp vụ.
+Regardless of caching, `null` is a valid reference for a wrapper and requires a handling policy. `Objects.equals` only helps compare safely with `null`; it does not guarantee every passed value is valid according to the business domain.
 
-## 11. Lỗi thường gặp và cách sửa
+## 11. Common errors and fixes
 
-| Lỗi | Vì sao sai | Cách làm đúng |
+| Error | Why it is wrong | Correct approach |
 | --- | --- | --- |
-| `Integer a=200, b=200; if (a==b)` | So sánh tham chiếu; identity ngoài cache không ổn định | `a.equals(b)` nếu không null |
-| Nghĩ toàn bộ wrapper cache `-128..127` | `Float`/`Double` không có cam kết cache như wrapper nguyên | Đọc đúng hợp đồng API từng loại |
-| Giả định ngoài `127` thì `==` luôn sai | JVM có thể cache thêm | Không dựa vào identity |
-| Dùng `synchronized(Integer.valueOf(1))` | Có thể khóa trùng object dùng chung; wrapper value-based | Khóa riêng do ứng dụng quản lý |
-| `Integer x=null; x==0` | Tự unbox `null` gây `NullPointerException` | Kiểm tra `null` trước |
-| So sánh `Integer(10)` với `Long(10)` bằng `equals` rồi kỳ vọng `true` | `equals` yêu cầu đúng wrapper type | Chọn chuyển đổi giữ nguyên giá trị và chính sách chung |
-| Coi `Double.equals` giống `double ==` với NaN/±0 | Hai API có hợp đồng khác nhau | Dùng đúng kiểu so sánh |
-| Tạo wrapper bằng constructor vì muốn identity riêng | API deprecated; wrapper value-based không phù hợp làm thực thể định danh | Thiết kế class định danh riêng |
-| Dùng `IdentityHashMap<Integer, ...>` để tìm khóa theo giá trị | Identity khác equality; cache chỉ che giấu lỗi cho một số số | Dùng `HashMap<Integer, ...>` |
-| Dùng `System.identityHashCode(wrapper)` làm mã bền vững | Không phải ID số, không bảo đảm duy nhất | Dùng ID rõ ràng từ domain |
-| Giả định `Integer` bất biến có thể `++` tại chỗ | `++` unbox, tính, box đối tượng giá trị mới | Dùng primitive/atomic theo yêu cầu |
-| Thấy `a==b` đúng nên kết luận phép so sánh số luôn đúng | Có thể tình cờ dùng cache | Viết test trên cả giá trị trong và ngoài cache; kiểm tra `equals` |
+| `Integer a=200, b=200; if (a==b)` | Reference comparison; identity outside cache is unstable | `a.equals(b)` if non-null |
+| Thinking all wrappers cache `-128..127` | `Float`/`Double` have no cache guarantee like integer wrappers | Read each type's API contract |
+| Assuming outside `127`, `==` is always false | JVM may cache additional values | Do not rely on identity |
+| Using `synchronized(Integer.valueOf(1))` | Can accidentally lock on a shared object; wrappers are value-based | Application-managed private lock |
+| `Integer x=null; x==0` | Auto-unboxes `null` causing `NullPointerException` | Check `null` first |
+| Comparing `Integer(10)` with `Long(10)` via `equals` expecting `true` | `equals` requires matching wrapper type | Choose a value-preserving conversion and unified policy |
+| Treating `Double.equals` like `double ==` for NaN/±0 | The two APIs have different contracts | Use the right kind of comparison |
+| Creating wrappers with constructors to get separate identity | Deprecated API; value-based wrappers are unfit as identity entities | Design a dedicated entity class |
+| Using `IdentityHashMap<Integer, ...>` to look up keys by value | Identity differs from equality; caching only hides bugs for some numbers | Use `HashMap<Integer, ...>` |
+| Using `System.identityHashCode(wrapper)` as a persistent code | Not a numeric ID, not guaranteed unique | Use an explicit domain ID |
+| Assuming immutable `Integer` can `++` in place | `++` unboxes, computes, and boxes a new value object | Use primitives/atomics as required |
+| Seeing `a==b` true and concluding numeric comparison is always right | Might accidentally hit the cache | Write tests for values inside and outside cache; verify `equals` |
 
-## 12. Bài tập có giải thích
+## 12. Exercises with explanations
 
-**Bài 1.** Hãy dự đoán:
+**Exercise 1.** Predict:
 
 ```java
 Integer a = Integer.valueOf(127);
@@ -479,34 +479,34 @@ Integer b = Integer.valueOf(127);
 boolean same = a == b;
 ```
 
-**Đáp án:** `true`. Đây là phạm vi cache được cam kết bởi `Integer.valueOf`. Tuy nhiên, dùng `equals` vẫn là lựa chọn đúng để biểu diễn ý nghĩa “bằng giá trị”.
+**Answer:** `true`. This is within the cache range committed by `Integer.valueOf`. However, using `equals` remains the right choice to express “equal by value”.
 
-**Bài 2.** Nếu thay `127` bằng `200` thì có chắc `same` là `false` không?
+**Exercise 2.** If `127` is replaced with `200`, is `same` guaranteed to be `false`?
 
-**Đáp án:** Không. `Integer.valueOf` có thể cache thêm giá trị ngoài `-128..127`; kết quả identity không bảo đảm. `a.equals(b)` luôn là `true` cho hai `Integer` cùng giá trị 200.
+**Answer:** No. `Integer.valueOf` may cache additional values outside `-128..127`; the identity outcome is not guaranteed. `a.equals(b)` is always `true` for two `Integer`s with the same value 200.
 
-**Bài 3.** Tại sao `Integer.valueOf(200) == 200` là `true` dù phép so sánh hai tham chiếu `Integer` có thể khác?
+**Exercise 3.** Why is `Integer.valueOf(200) == 200` `true` even though comparing two `Integer` references can differ?
 
-**Đáp án:** Một toán hạng là primitive `int`, nên wrapper được unbox và so sánh **giá trị số**; ở đây không còn là so sánh hai tham chiếu.
+**Answer:** One operand is primitive `int`, so the wrapper is unboxed and **numeric values** are compared; this is no longer comparing two references.
 
-**Bài 4.** Điều gì xảy ra khi chạy `Integer a = null; System.out.println(a == 0);`?
+**Exercise 4.** What happens when running `Integer a = null; System.out.println(a == 0);`?
 
-**Đáp án:** `NullPointerException` khi Java cố unbox `a` để so sánh với primitive `0`.
+**Answer:** `NullPointerException` when Java tries to unbox `a` to compare with primitive `0`.
 
-**Bài 5.** `Objects.equals(null, null)` trả gì? Có nghĩa hai giá trị số hợp lệ bằng nhau không?
+**Exercise 5.** What does `Objects.equals(null, null)` return? Does it mean two valid numeric values are equal?
 
-**Đáp án:** `true` theo hợp đồng so sánh tham chiếu nullable; không, cả hai đều biểu thị không có đối tượng số. Nghiệp vụ cần phân biệt dữ liệu thiếu với số 0.
+**Answer:** `true` under the nullable reference comparison contract; no, both indicate the absence of a numeric object. Business logic must distinguish missing data from 0.
 
-**Bài 6.** Hai `Long.valueOf(127L)` có được phép coi là cùng tham chiếu? Có nên dùng điều này làm logic định danh?
+**Exercise 6.** Are two `Long.valueOf(127L)` instances guaranteed to be the same reference? Should this be used as identification logic?
 
-**Đáp án:** Hợp đồng cache `Long.valueOf` bảo đảm chia sẻ ở `-128..127`. Nhưng không nên dùng identity wrapper làm định danh; thay vào đó so sánh bằng giá trị hoặc mô hình ID nghiệp vụ riêng.
+**Answer:** The `Long.valueOf` cache contract guarantees sharing in `-128..127`. However, wrapper identity should not be used as an identifier; instead compare by value or model a separate business ID.
 
-**Bài 7.** Vì sao dùng `Integer.valueOf(42)` làm monitor cho `synchronized` nguy hiểm?
+**Exercise 7.** Why is using `Integer.valueOf(42)` as a monitor for `synchronized` dangerous?
 
-**Đáp án:** Giá trị cache có thể khiến những phần mã khác không liên quan nhận cùng object. Khóa bị chia sẻ ngoài ý muốn, và wrapper thuộc nhóm value-based nên không thích hợp cho đồng bộ dựa vào identity. Dùng đối tượng khóa riêng.
+**Answer:** Cached values can cause unrelated parts of code to receive the same object. Locks become unintentionally shared, and wrappers are value-based so they are unsuitable for identity-based synchronization. Use a private lock object.
 
-**Bài 8.** Khi một `HashSet<Integer>` chứa `200`, vì sao `contains(Integer.valueOf(200))` đúng mà không cần cache?
+**Exercise 8.** When a `HashSet<Integer>` contains `200`, why is `contains(Integer.valueOf(200))` true without relying on caching?
 
-**Đáp án:** Collection so khớp dựa vào `hashCode`/`equals`, không dựa vào `==` của tham chiếu. Hai `Integer` cùng giá trị có hợp đồng hash/equality tương thích.
+**Answer:** Collections match based on `hashCode`/`equals`, not reference `==`. Two `Integer`s with the same value have compatible hash/equality contracts.
 
-**Kết luận:** Cache wrapper là chi tiết tối ưu có **một số bảo đảm phạm vi cụ thể**, không phải cơ chế định danh giá trị. Đọc đúng kiểu của toán hạng để hiểu `==`; dùng `equals` hoặc `Objects.equals` cho wrapper (với chính sách `null`), dùng primitive khi cần tính toán, và luôn dùng đối tượng riêng khi cần identity hoặc khóa đồng bộ.
+**Conclusion:** Wrapper caching is an optimization detail with **certain specific range guarantees**, not a value identification mechanism. Read operand types accurately to understand `==`; use `equals` or `Objects.equals` for wrappers (with a `null` policy), use primitives when computing, and always use dedicated objects when identity or synchronization locks are needed.

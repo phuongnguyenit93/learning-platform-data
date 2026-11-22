@@ -1,50 +1,50 @@
-# Phân biệt giải pháp tạm thời với sửa descriptor lâu dài
+# Distinguishing Temporary Workarounds from Long-Term Descriptor Fixes
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Khi chuyển một ứng dụng sang Java Platform Module System (JPMS), có thể gặp lỗi vì module không đọc được module khác, package chưa được export, hoặc thư viện dùng reflection truy cập thành phần bên trong module. Java cung cấp các tùy chọn launcher như `--add-reads`, `--add-exports` và `--add-opens` để điều chỉnh hành vi module graph trong lúc chạy.
+When migrating an application to the Java Platform Module System (JPMS), you may encounter errors because a module cannot read another module, a package is not exported, or a library uses reflection to access internal module members. Java provides launcher options such as `--add-reads`, `--add-exports`, and `--add-opens` to adjust module graph behavior at runtime.
 
-Các tùy chọn này hữu ích để chạy thử, hỗ trợ thư viện cũ hoặc làm cầu nối trong quá trình migration. Tuy nhiên, nếu quan hệ phụ thuộc và quyền truy cập là một phần ổn định của thiết kế ứng dụng, cách giải quyết lâu dài thường là sửa `module-info.java` của module mà ta sở hữu, rồi biên dịch và phát hành lại module.
+These options are useful for testing, supporting legacy libraries, or serving as a bridge during migration. However, if dependency relationships and access permissions are a stable part of the application's design, the long-term solution is usually to modify `module-info.java` of the module you own, then recompile and release the module.
 
-Bài này phân biệt hai cách tiếp cận, chỉ ra mỗi tùy chọn giải quyết loại vấn đề nào và cách chọn phạm vi thay đổi nhỏ nhất.
+This lesson distinguishes the two approaches, shows which type of problem each option solves, and explains how to choose the smallest scope of change.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Nhận diện lỗi readability, export và reflective access.
-- Chọn đúng tùy chọn runtime tương ứng.
-- Chuyển một workaround thành khai báo module descriptor phù hợp.
-- Hiểu giới hạn của `--add-modules` và `--patch-module`.
-- Tránh giữ các quyền truy cập rộng không cần thiết trong cấu hình production.
+- Identify readability, export, and reflective access errors.
+- Choose the right corresponding runtime option.
+- Convert a workaround into an appropriate module descriptor declaration.
+- Understand the limitations of `--add-modules` and `--patch-module`.
+- Avoid keeping unnecessarily broad access permissions in production configurations.
 
-## 2. Ba quan hệ khác nhau trong JPMS
+## 2. Three Different Relationships in JPMS
 
-Trước khi chọn cờ runtime, cần phân biệt ba khái niệm:
+Before choosing a runtime flag, distinguish three concepts:
 
-**Readability — khả năng đọc module**
+**Readability — ability to read a module**
 
-Một module chỉ có thể tham chiếu kiểu và API của module khác khi có quan hệ đọc phù hợp. Quan hệ này thường đến từ directive `requires` trong `module-info.java`.
+A module can reference types and APIs of another module only when an appropriate read relationship exists. This relationship typically comes from a `requires` directive in `module-info.java`.
 
-**Export — quyền truy cập package ở mức biên dịch và liên kết**
+**Export — package access permission at compile and link time**
 
-Một module có thể đọc module khác nhưng vẫn không truy cập được type trong package chưa được module đó export. Directive `exports` xác định package nào được công khai cho module khác.
+A module can read another module yet still be unable to access types in a package that the target module has not exported. The `exports` directive determines which packages are exposed to other modules.
 
-**Open — quyền truy cập reflection sâu**
+**Open — deep reflection access permission**
 
-Một package được export cho phép truy cập API công khai theo quy tắc ngôn ngữ và module. Điều đó không tự động cho phép reflection truy cập các thành viên private. Directive `opens` cấp quyền mở package cho deep reflection trong runtime.
+An exported package allows accessing public APIs under language and module rules. That does not automatically permit reflection to access private members. The `opens` directive grants permission to open a package for deep reflection at runtime.
 
-Ba loại lỗi này không thể thay thế cho nhau. Ví dụ, thêm readability không tự export package; export package cũng không tự mở private member cho reflection.
+These three error types are not interchangeable. For example, adding readability does not automatically export packages; exporting a package does not automatically open private members for reflection.
 
-## 3. Các tùy chọn runtime thường gặp
+## 3. Common Runtime Options
 
-### --add-reads: bổ sung quan hệ readability
+### --add-reads: adding a readability relationship
 
-Cú pháp:
+Syntax:
 
 ~~~bash
 java --add-reads <source-module>=<target-module> ...
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --add-reads com.example.app=com.example.legacy \
@@ -52,100 +52,100 @@ java --add-reads com.example.app=com.example.legacy \
      --module com.example.app/com.example.app.Main
 ~~~
 
-Tùy chọn này bổ sung quan hệ để module `com.example.app` đọc được module `com.example.legacy` trong lần chạy đó. Nó không tự export package của legacy module. Nếu package cần dùng vẫn chưa được export, ứng dụng còn cần quyền export phù hợp.
+This option adds a relationship so that module `com.example.app` can read module `com.example.legacy` for that run. It does not automatically export packages of the legacy module. If the needed package is still unexported, the application also needs appropriate export permission.
 
-Có thể dùng `ALL-UNNAMED` làm target khi muốn thêm readability tới các module unnamed trên classpath:
+You can use `ALL-UNNAMED` as the target when adding readability to unnamed modules on the classpath:
 
 ~~~bash
 java --add-reads com.example.app=ALL-UNNAMED ...
 ~~~
 
-Không nên thêm quan hệ rộng nếu ứng dụng chỉ cần đọc một named module cụ thể.
+Do not add a broad relationship if the application only needs to read a specific named module.
 
-### --add-exports: export package cho module đích
+### --add-exports: exporting a package to a target module
 
-Cú pháp:
+Syntax:
 
 ~~~bash
 java --add-exports <source-module>/<package>=<target-module> ...
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --add-exports java.base/sun.nio.ch=ALL-UNNAMED ...
 ~~~
 
-Ví dụ này export package nội bộ `sun.nio.ch` của `java.base` cho các module unnamed trong lần chạy hiện tại. Đây thường là workaround khi thư viện cũ trên classpath phụ thuộc vào API nội bộ JDK.
+This example exports the internal `sun.nio.ch` package of `java.base` to unnamed modules for the current run. This is commonly a workaround when a legacy library on the classpath depends on an internal JDK API.
 
-Có thể giới hạn target vào một named module:
+You can restrict the target to a named module:
 
 ~~~bash
 java --add-exports java.base/sun.nio.ch=com.example.app ...
 ~~~
 
-`--add-exports` điều chỉnh quyền truy cập tới các type public trong package được chỉ định. Nó không mở private members cho deep reflection. Nếu lỗi xảy ra khi framework dùng reflection truy cập private field hoặc method, hãy xem xét `--add-opens`.
+`--add-exports` adjusts access to public types in the specified package. It does not open private members for deep reflection. If the error occurs when a framework uses reflection to access a private field or method, consider `--add-opens`.
 
-Tùy chọn `--add-exports` cũng có phiên bản dùng lúc biên dịch với `javac`, để compiler chấp nhận việc tham chiếu package được export bổ sung. Cờ của launcher chỉ giải quyết runtime; nếu source code cần biên dịch với quyền export đó, phải cấu hình compiler tương ứng.
+The `--add-exports` option also has a compile-time form for `javac`, allowing the compiler to accept references to the additionally exported package. Launcher flags only address runtime; if source code needs to compile with that export permission, configure the compiler accordingly.
 
-### --add-opens: mở package cho deep reflection
+### --add-opens: opening a package for deep reflection
 
-Cú pháp:
+Syntax:
 
 ~~~bash
 java --add-opens <source-module>/<package>=<target-module> ...
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --add-opens java.base/java.lang=ALL-UNNAMED ...
 ~~~
 
-Tùy chọn này mở package `java.lang` của `java.base` cho deep reflection từ các module unnamed. Framework có thể dùng quyền này để truy cập private members thông qua reflection trong runtime.
+This option opens package `java.lang` of `java.base` for deep reflection from unnamed modules. Frameworks can use this permission to access private members via reflection at runtime.
 
-Nên giới hạn module đích nếu biết rõ thư viện nào cần quyền:
+Restrict the target module if you know which library needs the permission:
 
 ~~~bash
 java --add-opens java.base/java.lang=com.example.framework ...
 ~~~
 
-`--add-opens` không phải cách thay thế tổng quát cho `--add-exports`. Nó phục vụ reflective access ở runtime, không làm package trở thành API công khai để source code import tùy ý.
+`--add-opens` is not a general replacement for `--add-exports`. It serves reflective access at runtime and does not turn a package into a public API for source code to import arbitrarily.
 
-### --add-modules: bổ sung root module cần resolve
+### --add-modules: adding root modules to resolve
 
-Cú pháp:
+Syntax:
 
 ~~~bash
 java --add-modules <module-name>[,<module-name>...] ...
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --add-modules java.sql --module-path mods --module com.example.app/com.example.app.Main
 ~~~
 
-Tùy chọn này yêu cầu resolver đưa các module được nêu vào tập root modules để resolve. Nó hữu ích khi ứng dụng cần một module có thể quan sát nhưng module đó chưa được kéo vào graph từ các root thông thường.
+This option instructs the resolver to include the named modules in the root module set for resolution. It is useful when an application needs an observable module that has not been pulled into the graph from normal roots.
 
-`--add-modules` không tạo quan hệ readability tùy ý và không export package. Nếu module app cần đọc module được thêm, vẫn phải có quan hệ readability thích hợp, thường là `requires` trong descriptor hoặc một điều chỉnh `--add-reads` có chủ đích.
+`--add-modules` does not create arbitrary readability relationships and does not export packages. If the app module needs to read an added module, an appropriate readability relationship must still exist, usually `requires` in the descriptor or an intentional `--add-reads` adjustment.
 
-## 4. Bảng chọn nhanh theo loại lỗi
+## 4. Quick Selection Table by Error Type
 
-| Vấn đề | Tùy chọn runtime thường dùng | Khai báo descriptor tương ứng |
+| Issue | Common Runtime Option | Corresponding Descriptor Declaration |
 | --- | --- | --- |
-| Module A cần đọc module B | `--add-reads A=B` | `requires B;` trong A |
-| Module B cần công khai package p cho A | `--add-exports B/p=A` | `exports p to A;` trong B |
-| Framework cần deep reflection vào package p của B | `--add-opens B/p=A` | `opens p to A;` trong B |
-| Cần đưa module M vào tập root để resolve | `--add-modules M` | Không có directive thay thế trực tiếp; kiểm tra root/configuration của ứng dụng |
+| Module A needs to read module B | `--add-reads A=B` | `requires B;` in A |
+| Module B needs to expose package p to A | `--add-exports B/p=A` | `exports p to A;` in B |
+| Framework needs deep reflection into package p of B | `--add-opens B/p=A` | `opens p to A;` in B |
+| Need to add module M to root set for resolution | `--add-modules M` | No direct replacement directive; inspect application root/configuration |
 
-Descriptor tương ứng chỉ có thể sửa khi bạn sở hữu hoặc có thể phát hành lại module chứa khai báo. Consumer không thể tự sửa `exports` hoặc `opens` bên trong descriptor của một module thư viện bên thứ ba.
+The corresponding descriptor can only be edited when you own or can re-release the module containing the declaration. A consumer cannot directly edit `exports` or `opens` inside the descriptor of a third-party library module.
 
-## 5. Sửa module-info.java để thể hiện quan hệ lâu dài
+## 5. Editing module-info.java to Express Long-Term Relationships
 
-Giả sử module app cần dùng API của module library.
+Suppose the app module needs to use the library module's API.
 
-Descriptor của app:
+App descriptor:
 
 ~~~java
 module com.example.app {
@@ -153,7 +153,7 @@ module com.example.app {
 }
 ~~~
 
-Descriptor của library:
+Library descriptor:
 
 ~~~java
 module com.example.library {
@@ -161,13 +161,13 @@ module com.example.library {
 }
 ~~~
 
-Ở đây:
+Here:
 
-- `requires` khai báo app đọc library.
-- `exports` công khai package API cho module đọc library.
-- Package nội bộ không cần export vẫn được giữ encapsulated.
+- `requires` declares that app reads library.
+- `exports` exposes the API package to modules that read library.
+- Internal packages that do not need exporting remain encapsulated.
 
-Nếu chỉ muốn export package cho một module cụ thể, dùng qualified export:
+If you want to export a package only to a specific module, use a qualified export:
 
 ~~~java
 module com.example.library {
@@ -175,11 +175,11 @@ module com.example.library {
 }
 ~~~
 
-Cách này giới hạn module được phép truy cập package, thay vì mở API cho mọi module đọc library.
+This limits which modules are allowed to access the package, rather than opening the API to every module that reads library.
 
-### Khi cần deep reflection
+### When Deep Reflection Is Needed
 
-Nếu framework hợp lệ cần reflection sâu vào một package do bạn sở hữu, có thể khai báo:
+If a legitimate framework needs deep reflection into a package you own, you can declare:
 
 ~~~java
 module com.example.domain {
@@ -187,13 +187,13 @@ module com.example.domain {
 }
 ~~~
 
-Directive `opens` không đồng nghĩa với `exports`:
+The `opens` directive is not synonymous with `exports`:
 
-- `exports` phục vụ truy cập API công khai theo quy tắc module.
-- `opens` phục vụ reflection sâu trong runtime.
-- `opens` không làm package trở thành API để source code module khác import và sử dụng private member.
+- `exports` serves public API access according to module rules.
+- `opens` serves deep reflection at runtime.
+- `opens` does not make a package an API for another module's source code to import and use private members.
 
-Nếu cần mở toàn bộ package trong một module cho reflection, có thể dùng dạng open module:
+If you need to open all packages in a module for reflection, you can use an open module:
 
 ~~~java
 open module com.example.domain {
@@ -201,11 +201,11 @@ open module com.example.domain {
 }
 ~~~
 
-Một open module mở các package của module cho deep reflection. Khi chỉ một số package cần mở, nên dùng các directive `opens` có phạm vi cụ thể để giữ encapsulation tốt hơn.
+An open module opens the module's packages for deep reflection. When only a few packages need opening, use specifically scoped `opens` directives to preserve better encapsulation.
 
-## 6. Ví dụ chuyển workaround thành descriptor
+## 6. Example: Converting a Workaround into a Descriptor
 
-Giả sử ứng dụng hiện chạy được nhờ lệnh:
+Suppose an application currently runs thanks to the command:
 
 ~~~bash
 java --add-reads com.example.app=com.example.legacy \
@@ -214,14 +214,14 @@ java --add-reads com.example.app=com.example.legacy \
      --module com.example.app/com.example.app.Main
 ~~~
 
-Lệnh trên đang bổ sung hai điều kiện:
+The command above supplies two conditions:
 
-1. App đọc được module legacy.
-2. Package `com.example.legacy.api` được export cho app.
+1. App can read the legacy module.
+2. Package `com.example.legacy.api` is exported to app.
 
-Nếu bạn sở hữu cả hai module, hãy thể hiện các quan hệ này trong descriptor.
+If you own both modules, express these relationships in the descriptors.
 
-Module app:
+App module:
 
 ~~~java
 module com.example.app {
@@ -229,7 +229,7 @@ module com.example.app {
 }
 ~~~
 
-Module legacy:
+Legacy module:
 
 ~~~java
 module com.example.legacy {
@@ -237,40 +237,40 @@ module com.example.legacy {
 }
 ~~~
 
-Sau khi biên dịch và phát hành lại hai module, lệnh chạy không cần hai cờ workaround nữa:
+After recompiling and releasing both modules, the run command no longer needs the two workaround flags:
 
 ~~~bash
 java --module-path mods \
      --module com.example.app/com.example.app.Main
 ~~~
 
-Đối với deep reflection, làm tương tự: xác định package và module thực sự cần mở, rồi thêm `opens package.name to target.module;` vào descriptor của module sở hữu package đó nếu đây là yêu cầu thiết kế ổn định.
+For deep reflection, do the same: identify the exact package and module that need opening, then add `opens package.name to target.module;` to the descriptor of the module owning that package if it is a stable design requirement.
 
-## 7. --patch-module không phải sửa descriptor
+## 7. --patch-module Is Not a Descriptor Fix
 
-Cú pháp:
+Syntax:
 
 ~~~bash
 java --patch-module <module>=<path> ...
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --patch-module com.example.app=build/patches/app ...
 ~~~
 
-`--patch-module` đưa thêm class hoặc resource vào nội dung của một module hiện có trong runtime. Nó thường phục vụ test, instrumentation hoặc compatibility workaround có kiểm soát.
+`--patch-module` injects additional classes or resources into the contents of an existing module at runtime. It typically serves testing, instrumentation, or controlled compatibility workarounds.
 
-Nó không sửa nội dung `module-info.class` theo nghĩa cập nhật descriptor đã phát hành. Không nên dùng patch module như cách thay thế lâu dài cho việc thiết kế lại dependency, export hoặc opens.
+It does not modify `module-info.class` in the sense of updating a released descriptor. Do not use module patching as a long-term replacement for redesigning dependencies, exports, or opens.
 
-Nếu module cần một package API mới, hãy sửa source và descriptor của module rồi build lại. Nếu đang test một thay đổi class trước khi đóng gói, patch module có thể là công cụ tạm thời phù hợp.
+If a module needs a new API package, edit the module's source and descriptor and rebuild. If you are testing a class change before packaging, patching a module can be a suitable temporary tool.
 
-## 8. Cách đặt tùy chọn vào lệnh chạy
+## 8. Placing Options in the Run Command
 
-Các tùy chọn module của launcher được đặt trước tùy chọn xác định ứng dụng, ví dụ `-m` hoặc `-jar`.
+Launcher module options are placed before the option identifying the application, such as `-m` or `-jar`.
 
-Chạy modular application:
+Running a modular application:
 
 ~~~bash
 java --add-opens java.base/java.lang=com.example.framework \
@@ -278,14 +278,14 @@ java --add-opens java.base/java.lang=com.example.framework \
      --module com.example.app/com.example.app.Main
 ~~~
 
-Chạy executable JAR trên classpath:
+Running an executable JAR on the classpath:
 
 ~~~bash
 java --add-opens java.base/java.lang=ALL-UNNAMED \
      -jar app.jar
 ~~~
 
-Nếu cần nhiều quyền, có thể khai báo nhiều tùy chọn:
+If multiple permissions are needed, multiple options can be declared:
 
 ~~~bash
 java --add-reads com.example.app=com.example.legacy \
@@ -295,43 +295,43 @@ java --add-reads com.example.app=com.example.legacy \
      --module com.example.app/com.example.app.Main
 ~~~
 
-Hãy lưu cấu hình launch trong script hoặc cấu hình deployment có kiểm soát nếu workaround phải được áp dụng nhất quán. Điều này giúp các môi trường chạy cùng một tập tham số và tránh việc mỗi máy phát triển tự thêm cờ khác nhau.
+Store launch configurations in a controlled script or deployment configuration if a workaround must be applied consistently. This ensures environments run with the same set of arguments and avoids each developer's machine adding different flags manually.
 
-## 9. Giới hạn và rủi ro của workaround
+## 9. Limitations and Risks of Workarounds
 
-Các cờ runtime có phạm vi ảnh hưởng rõ ràng, nhưng nếu giữ chúng lâu dài mà không quản lý sẽ tạo ra chi phí bảo trì:
+Runtime flags have a clear scope of impact, yet keeping them long-term without governance creates maintenance costs:
 
-- **Ẩn lỗi thiết kế module:** dependency hoặc package boundary chưa đúng có thể bị che đi bởi các quyền được cấp thêm.
-- **Tăng phạm vi truy cập:** `ALL-UNNAMED` cấp quyền cho toàn bộ unnamed modules, rộng hơn một module đích cụ thể.
-- **Phụ thuộc cấu hình khởi chạy:** chạy qua IDE, service wrapper, container hoặc script khác có thể quên truyền các cờ cần thiết.
-- **Phụ thuộc implementation nội bộ:** package như `sun.nio.ch` không phải API được cam kết ổn định. Bản JDK mới có thể thay đổi hoặc loại bỏ implementation.
-- **Khó đóng gói và kiểm soát:** quyền truy cập nằm trong tham số triển khai thay vì contract module được review cùng source.
+- **Hiding module design flaws:** incorrect dependencies or package boundaries can be masked by additionally granted permissions.
+- **Widening access scope:** `ALL-UNNAMED` grants permissions to all unnamed modules, broader than a specific target module.
+- **Launch configuration dependency:** running via an IDE, service wrapper, container, or another script can omit required flags.
+- **Internal implementation dependency:** packages like `sun.nio.ch` are not stability-guaranteed APIs. Newer JDK releases can alter or remove the implementation.
+- **Harder encapsulation and control:** access permissions sit in deployment parameters rather than module contracts reviewed alongside source code.
 
-Từ JDK 17, cơ chế strong encapsulation đối với các package nội bộ của JDK được áp dụng chặt chẽ; tùy chọn cũ `--illegal-access` đã bị loại bỏ. Khi thư viện cũ truy cập nội bộ JDK, hãy ưu tiên nâng cấp thư viện hoặc chuyển sang API được hỗ trợ. Cờ `--add-opens` hay `--add-exports` chỉ nên là cầu nối có phạm vi và thời hạn rõ ràng.
+Since JDK 17, strong encapsulation for internal JDK packages has been strictly enforced; the legacy `--illegal-access` option has been removed. When a legacy library accesses JDK internals, prefer upgrading the library or migrating to supported APIs. Flags like `--add-opens` or `--add-exports` should only be scoped, time-bound bridges.
 
-## 10. Quy trình xử lý nên áp dụng
+## 10. Recommended Resolution Workflow
 
-Khi gặp lỗi module access, thực hiện theo trình tự:
+When encountering a module access error, proceed in order:
 
-1. Đọc chính xác thông báo lỗi để xác định đó là readability, export hay deep reflection.
-2. Xác định module nguồn, package và module đích được nhắc đến trong lỗi.
-3. Kiểm tra descriptor bằng `jar --describe-module` hoặc `java --describe-module`.
-4. Nếu cần xác nhận giả thuyết nhanh, thêm đúng một cờ runtime với target hẹp rồi chạy lại.
-5. Nếu workaround xác nhận đúng nguyên nhân, xác định module nào thuộc quyền sở hữu của dự án.
-6. Với module do dự án sở hữu, sửa `requires`, `exports` hoặc `opens` cho đúng contract, rồi build và test lại.
-7. Với thư viện bên thứ ba, ưu tiên nâng cấp hoặc thay thư viện. Nếu buộc phải giữ workaround, quản lý cờ trong cấu hình triển khai và ghi rõ dependency nào yêu cầu quyền đó.
-8. Sau khi descriptor hoặc thư viện đã được sửa, bỏ cờ tạm thời và xác nhận ứng dụng vẫn chạy.
+1. Read the exact error message to identify whether it is readability, export, or deep reflection.
+2. Identify the source module, package, and target module mentioned in the error.
+3. Inspect descriptors using `jar --describe-module` or `java --describe-module`.
+4. If you need to verify a hypothesis quickly, add exactly one runtime flag with a narrow target and re-run.
+5. If the workaround confirms the cause, identify which module is owned by your project.
+6. For project-owned modules, fix `requires`, `exports`, or `opens` to match the intended contract, then rebuild and retest.
+7. For third-party libraries, prefer upgrading or replacing the library. If forced to keep a workaround, manage the flag in deployment configuration and document which dependency requires that permission.
+8. Once the descriptor or library is fixed, remove the temporary flag and verify the application still runs.
 
-Không thêm tất cả các cờ cùng lúc ngay từ đầu. Thay đổi từng quyền nhỏ giúp xác định chính xác nguyên nhân và tránh cấp quyền thừa.
+Do not add all flags at once from the start. Changing one small permission at a time helps pinpoint the exact cause and avoids granting excessive permissions.
 
-## 11. Ghi nhớ
+## 11. Key Takeaways
 
-- `--add-reads` bổ sung readability; descriptor tương ứng thường là `requires`.
-- `--add-exports` công khai package cho module đích; descriptor tương ứng là `exports`.
-- `--add-opens` mở package cho deep reflection; descriptor tương ứng là `opens`.
-- `--add-modules` bổ sung root module cần resolve, không thay thế `requires`, `exports` hoặc `opens`.
-- `--patch-module` thêm nội dung vào module khi chạy, không phải cách sửa descriptor lâu dài.
-- Cờ launcher phù hợp để chẩn đoán, thử nghiệm hoặc làm cầu nối migration.
-- Quan hệ ổn định và thuộc quyền sở hữu của dự án nên được thể hiện trong `module-info.java`, kiểm thử và phát hành cùng module.
+- `--add-reads` adds readability; the corresponding descriptor directive is usually `requires`.
+- `--add-exports` exposes a package to a target module; the corresponding descriptor directive is `exports`.
+- `--add-opens` opens a package for deep reflection; the corresponding descriptor directive is `opens`.
+- `--add-modules` adds root modules to resolve, not replacing `requires`, `exports`, or `opens`.
+- `--patch-module` adds content to a module at runtime, not a long-term descriptor fix.
+- Launcher flags are suitable for diagnostics, experimentation, or migration bridges.
+- Stable relationships owned by the project should be expressed in `module-info.java`, tested, and released with the module.
 
-Hãy xem workaround runtime như một bằng chứng giúp xác định quyền nào đang thiếu. Khi đã biết nguyên nhân và kiểm soát được module liên quan, chuyển quan hệ đó vào descriptor phù hợp để cấu hình chạy trở nên đơn giản, nhất quán và dễ bảo trì.
+Treat runtime workarounds as evidence that identifies which permission is missing. Once you know the cause and control the relevant modules, move that relationship into the appropriate descriptor so the runtime configuration becomes simple, consistent, and maintainable.

@@ -1,69 +1,69 @@
-# `ParsePosition`: vị trí kết thúc và vị trí lỗi khi phân tích đầu vào trong Java
+# `ParsePosition`: Ending Position and Error Position When Parsing Input in Java
 
-## 1. Vì sao parse thành công chưa chắc đầu vào hợp lệ?
+## 1. Why Does a Successful Parse Not Guarantee Valid Input?
 
-Trong ứng dụng bản địa hóa, người dùng nhập số, ngày tháng và các chuỗi có dấu phân cách khác nhau tùy `Locale`. Java có những API như `NumberFormat`, `DecimalFormat` và `DateFormat` để đọc dữ liệu ấy. Tuy nhiên, nhiều phương thức phân tích của `java.text` **được phép đọc một tiền tố hợp lệ rồi dừng**, dù phía sau còn ký tự chưa được xử lý.
+In localized applications, users enter numbers, dates, and strings with separators that vary by `Locale`. Java provides APIs such as `NumberFormat`, `DecimalFormat`, and `DateFormat` to read such data. However, many parsing methods in `java.text` **are allowed to read a valid prefix and stop**, even if unprocessed characters remain afterward.
 
-Ví dụ, với bộ ký hiệu Đức:
+For example, with German symbols:
 
 ```text
-Đầu vào: 1.234,56abc
+Input:    1.234,56abc
           └──────┘└─┘
-          đã đọc  chưa đọc
-Giá trị: 1234.56
-Vị trí kết thúc: 8 (đếm từ 0)
+           parsed  unread
+Value: 1234.56
+Ending index: 8 (0-based)
 ```
 
-Nếu chương trình chỉ kiểm tra `parse(...)` trả về `Number` khác `null`, nó có thể coi `1.234,56abc` là một số hợp lệ, dù yêu cầu nghiệp vụ là **toàn bộ ô nhập phải là một số**.
+If a program only checks that `parse(...)` returns a non-`null` `Number`, it could treat `1.234,56abc` as a valid number, even when business requirements state that **the entire input field must be a number**.
 
-`java.text.ParsePosition` cho phép ta biết **vị trí bắt đầu**, **vị trí parser dừng sau khi đọc**, và **vị trí lỗi khi parser không đọc được đầu vào**. Đây là công cụ thiết yếu để phân biệt:
+`java.text.ParsePosition` lets you inspect the **starting position**, the **position where the parser stopped after reading**, and the **error position when the parser fails to read the input**. It is an essential tool for distinguishing:
 
-- **Thành công một phần:** đọc được một giá trị, nhưng còn hậu tố chưa tiêu thụ.
-- **Thành công toàn bộ:** đọc được một giá trị và vị trí dừng bằng độ dài đầu vào.
-- **Không thể phân tích:** không đọc được giá trị tại vị trí yêu cầu; phương thức thường trả `null` và cập nhật error index.
-- **Sai quy tắc nghiệp vụ:** parser có thể đọc hết chuỗi nhưng giá trị vẫn không phù hợp với loại dữ liệu, độ chính xác, phạm vi hoặc định dạng mà sản phẩm quy định.
+- **Partial success:** a value was read, but an unconsumed suffix remains.
+- **Full success:** a value was read and the stopping position equals the input length.
+- **Unparseable:** no value could be read at the requested position; the method typically returns `null` and updates the error index.
+- **Business rule failure:** the parser may read the entire string, yet the value still violates the data type, precision, range, or format rules required by the product.
 
-**Nguyên tắc:** `ParsePosition` cung cấp thông tin về tiến độ parser; nó **không tự biến parser thành bộ kiểm tra dữ liệu nghiêm ngặt**. Ứng dụng phải tự đặt tiêu chí chấp nhận phù hợp.
+**Principle:** `ParsePosition` reports parser progress; it **does not automatically turn a parser into a strict data validator**. The application must still enforce its own acceptance criteria.
 
-## 2. `ParsePosition` là gì?
+## 2. What Is `ParsePosition`?
 
-Lớp `java.text.ParsePosition` là một đối tượng **mutable** giữ hai số nguyên:
+The `java.text.ParsePosition` class is a **mutable** object holding two integers:
 
-| Thành phần | Phương thức | Ý nghĩa |
+| Component | Methods | Meaning |
 | --- | --- | --- |
-| Vị trí đang đọc (`index`) | `getIndex()`, `setIndex(int)` | Vị trí bắt đầu khi truyền vào parser; sau khi đọc thành công, thường là vị trí **ngay sau ký tự cuối cùng được tiêu thụ** |
-| Vị trí lỗi (`errorIndex`) | `getErrorIndex()`, `setErrorIndex(int)` | Vị trí lỗi mà parser ghi nhận nếu việc phân tích không thành công |
-| Khởi tạo | `new ParsePosition(startIndex)` | Chỉ định chỉ số bắt đầu, thường là `0`; error index mặc định là `-1` |
+| Current reading position (`index`) | `getIndex()`, `setIndex(int)` | Starting position when passed to the parser; after a successful read, typically the position **immediately after the last consumed character** |
+| Error position (`errorIndex`) | `getErrorIndex()`, `setErrorIndex(int)` | Position of the error recorded by the parser if parsing failed |
+| Construction | `new ParsePosition(startIndex)` | Specifies the starting index, usually `0`; default error index is `-1` |
 
-Cách sử dụng điển hình:
+Typical usage:
 
 ```java
 ParsePosition position = new ParsePosition(0);
 Number value = numberFormat.parse(input, position);
 
 if (value == null) {
-    // Không có giá trị đọc được ở vị trí yêu cầu.
+    // No value could be read at the requested position.
 } else if (position.getIndex() != input.length()) {
-    // Chỉ mới đọc một phần chuỗi.
+    // Only a prefix of the string was read.
 } else {
-    // Đã đọc toàn bộ chuỗi ở mức parser.
+    // The entire string was read at the parser level.
 }
 ```
 
-Đây là **đoạn mã minh họa**, sử dụng các biến `numberFormat` và `input` đã có; ví dụ chạy độc lập có đầy đủ import và class ở phần sau.
+This is an **illustrative code snippet** using existing `numberFormat` and `input` variables; standalone runnable examples with full imports and classes appear later.
 
-### Hai vị trí khác nhau
+### Two Different Positions
 
-- `getIndex()` trả **vị trí parser đã đi tới**, không phải lúc nào cũng là độ dài chuỗi.
-- `getErrorIndex()` trả **vị trí parser báo lỗi**, không phải “số ký tự còn lại” và cũng không phải “vị trí dừng” trong mọi trường hợp.
-- `-1` ở `errorIndex` có nghĩa **không ghi nhận vị trí lỗi**. Điều này **không bảo đảm toàn bộ chuỗi hợp lệ**.
-- Khi có một kết quả `Number` khác `null` nhưng `index < input.length()`, cần phát hiện **dữ liệu dư** bằng `index` — ngay cả khi `errorIndex == -1`.
+- `getIndex()` returns **how far the parser progressed**, which is not always the length of the string.
+- `getErrorIndex()` returns **the position where the parser reported an error**, not the “number of remaining characters” and not the “stopping position” in every case.
+- `-1` in `errorIndex` means **no error position was recorded**. This **does not guarantee the entire string is valid**.
+- When a non-`null` `Number` is returned but `index < input.length()`, you must detect **trailing data** using `index` — even when `errorIndex == -1`.
 
-Chỉ số của `ParsePosition` là vị trí trong chuỗi Java, tức chỉ số của **đơn vị mã UTF-16** như các phương thức `String.length()` và `substring()`. Không nên nhầm chúng với số byte UTF-8 hoặc số ký tự người dùng nhìn thấy. Với emoji và những ký tự ngoài BMP, một code point có thể chiếm hai đơn vị UTF-16.
+`ParsePosition` indices are positions in a Java string, i.e., indices of **UTF-16 code units**, just like `String.length()` and `substring()`. Do not confuse them with UTF-8 byte counts or user-perceived characters. For emojis and characters outside the BMP, a single code point can occupy two UTF-16 code units.
 
-## 3. API nào nhận `ParsePosition`?
+## 3. Which APIs Accept `ParsePosition`?
 
-Các API quan trọng của `java.text` gồm:
+Key APIs in `java.text` include:
 
 ```java
 NumberFormat.parse(String source, ParsePosition pos)
@@ -71,20 +71,20 @@ DateFormat.parse(String source, ParsePosition pos)
 Format.parseObject(String source, ParsePosition pos)
 ```
 
-Các bộ định dạng chuyên biệt như `DecimalFormat` và `SimpleDateFormat` thừa kế/triển khai các khả năng này.
+Specialized formatters such as `DecimalFormat` and `SimpleDateFormat` inherit/implement these capabilities.
 
-| Cách gọi | Giá trị trả về | Trường hợp lỗi | Phạm vi tiêu thụ đầu vào |
+| Call | Return Value | Failure Behavior | Input Consumption Scope |
 | --- | --- | --- | --- |
-| `NumberFormat.parse(text, pos)` | `Number` hoặc `null` | Thường trả `null`, ghi error index | Có thể chỉ đọc tiền tố hợp lệ |
-| `DateFormat.parse(text, pos)` | `Date` hoặc `null` | Thường trả `null`, ghi error index | Có thể chỉ đọc tiền tố hợp lệ |
-| `Format.parseObject(text, pos)` | `Object` hoặc `null` | Phụ thuộc formatter cụ thể | Có thể chỉ đọc tiền tố hợp lệ |
-| `NumberFormat.parse(text)` | `Number` | Có thể ném `ParseException` nếu không parse được từ đầu | **Không tự bảo đảm toàn bộ text được tiêu thụ** |
+| `NumberFormat.parse(text, pos)` | `Number` or `null` | Usually returns `null`, records error index | May read only a valid prefix |
+| `DateFormat.parse(text, pos)` | `Date` or `null` | Usually returns `null`, records error index | May read only a valid prefix |
+| `Format.parseObject(text, pos)` | `Object` or `null` | Depends on specific formatter | May read only a valid prefix |
+| `NumberFormat.parse(text)` | `Number` | May throw `ParseException` if unparseable from start | **Does not guarantee full text consumption** |
 
-Sự khác biệt cần nhớ: overload **không có** `ParsePosition` trông tiện lợi nhưng thường không cung cấp vị trí dừng để bạn kiểm tra hậu tố. `ParseException` không phải bằng chứng duy nhất của dữ liệu sai; nếu parser đã đọc được tiền tố hợp lệ, có thể **không ném exception** dù vẫn còn chữ ở cuối.
+Key takeaway: overloads **without** `ParsePosition` look convenient, but they usually do not expose the stopping position so you can check for a trailing suffix. `ParseException` is not the only indicator of bad data; if the parser reads a valid prefix, it may **throw no exception** even when letters follow at the end.
 
-## 4. Ví dụ đầy đủ: phân tích số kiểu Đức và quan sát ba trạng thái
+## 4. Complete Example: Parsing German Numbers and Observing All Three States
 
-Tạo tệp **`ParsePositionNumberDemo.java`**:
+Create the file **`ParsePositionNumberDemo.java`**:
 
 ```java
 import java.text.DecimalFormat;
@@ -122,14 +122,14 @@ public class ParsePositionNumberDemo {
 }
 ```
 
-Biên dịch và chạy bằng Java 17+:
+Compile and run with Java 17+:
 
 ```bash
 javac -encoding UTF-8 ParsePositionNumberDemo.java
 java -cp . ParsePositionNumberDemo
 ```
 
-Kết quả với bộ ký hiệu Đức trên JDK hỗ trợ locale tương ứng:
+Output with German symbols on a JDK supporting that locale:
 
 ```text
 input=1.234,56, value=1234.56, index=8, error=-1, whole=true
@@ -138,20 +138,20 @@ input=abc, value=null, index=0, error=0, whole=false
 input=12,3, value=12.3, index=4, error=-1, whole=true
 ```
 
-**Đọc từng dòng:**
+**Reading line by line:**
 
-1. `1.234,56` có tám đơn vị UTF-16; `DecimalFormat` đọc hết và trả về số `1234.56`.
-2. `1.234,56abc` trả **cùng giá trị**, nhưng dừng ở `index=8`, trong khi `input.length()=11`. Đây là **thành công một phần**.
-3. `abc` không bắt đầu bằng số phù hợp, nên `value=null`, `index=0` và `errorIndex=0` ở ví dụ.
-4. `12,3` được đọc trọn, dù pattern có hai chữ số phần thập phân. **Pattern format hai chữ số không phải quy tắc bắt buộc dữ liệu nhập phải có đúng hai chữ số.** Nếu nghiệp vụ yêu cầu đúng hai chữ số thập phân, cần kiểm tra bổ sung.
+1. `1.234,56` has eight UTF-16 code units; `DecimalFormat` reads all of it and returns `1234.56`.
+2. `1.234,56abc` returns the **same value**, but stops at `index=8`, while `input.length()=11`. This is **partial success**.
+3. `abc` does not start with a valid number, so `value=null`, `index=0`, and `errorIndex=0` in this example.
+4. `12,3` is read completely, even though the pattern specifies two fractional digits. **A two-decimal-digit formatting pattern is not a rule forcing input to have exactly two decimal digits.** If business rules require exact two decimal places, add an extra check.
 
-Lời gọi `formatter.setParseBigDecimal(true)` giúp nhận `BigDecimal` cho giá trị số thập phân thông thường, thuận lợi để giảm vấn đề sai số nhị phân trong tính toán tiền và các giá trị thập phân. Điều đó không tự bảo đảm đầu vào đã được xác thực theo tất cả ràng buộc nghiệp vụ.
+Calling `formatter.setParseBigDecimal(true)` yields a `BigDecimal` for finite decimal numbers, helping reduce binary floating-point rounding issues in monetary and decimal calculations. That alone does not guarantee the input satisfies all business constraints.
 
-## 5. `index` là vị trí bắt đầu và vị trí kết thúc
+## 5. `index` Is Both the Starting Position and the Ending Position
 
-Không bắt buộc phân tích từ đầu chuỗi. Khi dữ liệu có **tiền tố được phép** hoặc được nhúng trong một định dạng lớn, có thể bắt đầu từ vị trí khác 0.
+Parsing does not have to start at index 0. When data has an **allowed prefix** or is embedded inside a larger format, you can start at a non-zero offset.
 
-Ví dụ chuỗi:
+Example string:
 
 ```text
 x:1.234,56!
@@ -160,7 +160,7 @@ x:1.234,56!
   start=2 end=10
 ```
 
-Tệp **`ParseFromOffsetDemo.java`**:
+File **`ParseFromOffsetDemo.java`**:
 
 ```java
 import java.text.DecimalFormat;
@@ -189,14 +189,14 @@ public class ParseFromOffsetDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 ParseFromOffsetDemo.java
 java -cp . ParseFromOffsetDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 number=1234.56
@@ -206,45 +206,45 @@ error=-1
 remaining=!
 ```
 
-Lưu ý: `index=10` là chỉ số **tuyệt đối trong chuỗi nguồn**, không phải “số ký tự đã đọc” tính từ vị trí 2. Số đơn vị UTF-16 đã đọc là `end - start = 8`. Với parser một giá trị toàn chuỗi, điều kiện là `pos.getIndex() == source.length()` khi bắt đầu tại 0. Với parser một đoạn con, điều kiện kết thúc cần so với **ranh giới của đoạn được phép**, không nhất thiết là hết toàn bộ chuỗi nguồn.
+Note: `index=10` is an **absolute index in the source string**, not the “number of characters read” starting from index 2. The number of UTF-16 code units consumed is `end - start = 8`. For a whole-string single-value parser starting at 0, the condition is `pos.getIndex() == source.length()`. For parsing a substring segment, the ending condition must compare against the **boundary of the allowed segment**, not necessarily the end of the entire source string.
 
-Trường hợp start index nằm ngoài phần có thể đọc hoặc ký tự tại start không phù hợp, hãy kiểm tra kết quả và error index; đừng giả định parser tự bỏ qua mọi tiền tố hoặc mọi khoảng trắng.
+If the start index is out of bounds for readable content or the character at the start is invalid, inspect the return value and error index; do not assume the parser automatically skips any prefix or whitespace.
 
-## 6. `getErrorIndex()`: vị trí lỗi không giống vị trí kết thúc
+## 6. `getErrorIndex()`: Error Position Is Not the Ending Position
 
-Khi parse thất bại, error index cho biết nơi parser ghi nhận lỗi (theo cách triển khai của formatter). Ví dụ:
+When parsing fails, the error index indicates where the parser recorded the failure (according to the formatter's implementation). For example:
 
 ```text
 input = "abc"
-NumberFormat tại index 0
+NumberFormat at index 0
 → value = null
 → index = 0
 → errorIndex = 0
 ```
 
-Nhưng trong `input="1.234,56abc"`, Java đã đọc được một giá trị số và dừng ở chữ `a`. **Đây không được tự coi là lỗi của formatter**; nó có thể trả `errorIndex=-1` vì nhận được một tiền tố số hợp lệ. **Chỉ ứng dụng mới biết hậu tố `abc` có bị cấm hay không.**
+However, in `input="1.234,56abc"`, Java successfully read a numeric value and stopped at `'a'`. **This is not automatically treated as a formatter error**; it may return `errorIndex=-1` because it recognized a valid numeric prefix. **Only the application knows whether the `abc` suffix is forbidden.**
 
-Nếu muốn báo lỗi giao diện với nội dung “Có ký tự không hợp lệ tại vị trí X”, một quy tắc thực tiễn:
+To display a UI error such as “Invalid character at position X”, a practical rule is:
 
 ```java
 if (value == null) {
     int errorAt = pos.getErrorIndex();
-    // báo lỗi parse tại errorAt nếu giá trị này >= 0
+    // report parse error at errorAt if this value >= 0
 } else if (pos.getIndex() < input.length()) {
     int unexpectedAt = pos.getIndex();
-    // báo dữ liệu dư tại unexpectedAt
+    // report trailing data at unexpectedAt
 }
 ```
 
-Đoạn trên minh họa với các biến `value`, `pos` và `input` đã khai báo trước; không phải chương trình độc lập.
+This snippet assumes `value`, `pos`, and `input` are already declared; it is not a standalone program.
 
-Một số parser báo vị trí lỗi ở nơi **chúng phát hiện ra** lỗi, có thể là cuối chuỗi hoặc sau vài ký tự đã khớp, không nhất thiết là vị trí ký tự “sai” theo cảm nhận của người dùng. Vì thế hãy xem `errorIndex` là **thông tin chẩn đoán do parser cung cấp**, không phải một bảo đảm UI có thể tô sáng ngay một grapheme.
+Some parsers report the error index where **they detect** the failure, which may be at the end of the string or after several matched characters, rather than the character position a human perceives as “wrong.” Treat `errorIndex` as **diagnostic information provided by the parser**, not a UI guarantee for highlighting a single grapheme.
 
-## 7. Viết hàm nhận số chỉ khi đọc hết chuỗi
+## 7. Writing a Function That Accepts a Number Only When the Full String Is Read
 
-Nếu trường nhập liệu yêu cầu **một số duy nhất**, ta nên kiểm tra cả kết quả trả về và số ký tự đã tiêu thụ. Ví dụ độc lập sau trả về `Optional<BigDecimal>`.
+If an input field requires a **single number**, check both the return value and the number of characters consumed. The standalone example below returns `Optional<BigDecimal>`.
 
-Tạo **`StrictNumberInputDemo.java`**:
+Create **`StrictNumberInputDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -290,14 +290,14 @@ public class StrictNumberInputDemo {
 }
 ```
 
-Biên dịch/chạy với JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac -encoding UTF-8 StrictNumberInputDemo.java
 java -cp . StrictNumberInputDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 1.234,56 -> 1234.56
@@ -306,21 +306,21 @@ abc -> INVALID
 12,3 -> 12.3
 ```
 
-Hàm này chấp nhận `12,3` vì parser đã đọc hết chuỗi. Nếu biểu mẫu bắt buộc **hai chữ số phần thập phân**, không cho dấu nhóm tùy ý, chỉ chấp nhận giá trị dương, hoặc giới hạn số chữ số, hãy **thêm validation** phù hợp. `ParsePosition` chỉ giải quyết việc parser đã **đọc được bao nhiêu**, không quy định đầy đủ chuẩn dữ liệu của ứng dụng.
+This function accepts `12,3` because the parser read the whole string. If the form requires **exactly two fractional digits**, forbids arbitrary grouping separators, accepts only positive values, or caps the digit count, **add appropriate validation**. `ParsePosition` only tells you **how much the parser read**; it does not enforce the full data standard of your application.
 
-### Khoảng trắng có được phép không?
+### Should Whitespace Be Allowed?
 
-Cần xác định chính sách ngay từ thiết kế:
+Decide the policy upfront during design:
 
-- Nếu muốn chấp nhận khoảng trắng hai đầu, có thể chuẩn hóa đầu vào **trước** khi parse. Nhưng sau đó vị trí lỗi sẽ tính trên chuỗi **đã chuẩn hóa**, không còn tương ứng trực tiếp với chỉ số của chuỗi gốc.
-- Nếu muốn chỉ chấp nhận đúng một định dạng và không có khoảng trắng đầu/cuối, không tự `trim()` hoặc `strip()` trước khi kiểm tra.
-- Trong nhiều locale, dấu phân cách nhóm có thể là **khoảng trắng đặc biệt** (ví dụ no-break space hoặc narrow no-break space), không giống ký tự space ASCII. Tránh tự thay thế mọi khoảng trắng bằng khoảng trắng thường khi chưa hiểu dữ liệu và yêu cầu.
+- If leading/trailing whitespace is allowed, you can normalize the input **before** parsing. Note that error positions will then refer to the **normalized** string rather than directly mapping to indices in the original string.
+- If only an exact format with no leading/trailing whitespace is allowed, do not automatically `trim()` or `strip()` before checking.
+- In many locales, the grouping separator can be a **special space** (such as a no-break space or narrow no-break space), not an ASCII space. Avoid replacing all whitespace with plain spaces without understanding the data and requirements.
 
-## 8. Ngày tháng: `DateFormat` cũng có thể đọc một phần
+## 8. Dates: `DateFormat` Can Also Perform Partial Reads
 
-`java.text.DateFormat` và `SimpleDateFormat` cũng nhận `ParsePosition`. Có thêm một vấn đề: ngày `31.02.2025` là **ngày không tồn tại** dù hình thức trông giống mẫu `dd.MM.yyyy`. Với `SimpleDateFormat`, đặt `setLenient(false)` để tránh tự điều chỉnh ngày không hợp lệ.
+`java.text.DateFormat` and `SimpleDateFormat` also accept `ParsePosition`. There is an additional concern: `31.02.2025` is a **nonexistent date** even though it looks like the pattern `dd.MM.yyyy`. With `SimpleDateFormat`, call `setLenient(false)` to prevent silently rolling invalid dates into another month.
 
-Tạo **`DateParsePositionDemo.java`**:
+Create **`DateParsePositionDemo.java`**:
 
 ```java
 import java.text.ParsePosition;
@@ -355,14 +355,14 @@ public class DateParsePositionDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 DateParsePositionDemo.java
 java -cp . DateParsePositionDemo
 ```
 
-Kết quả với pattern và dữ liệu trong ví dụ:
+Output with the pattern and data in the example:
 
 ```text
 input=28.02.2025, parsed=true, index=10, error=-1, whole=true
@@ -370,23 +370,23 @@ input=28.02.2025tail, parsed=true, index=10, error=-1, whole=false
 input=31.02.2025, parsed=false, index=0, error=10, whole=false
 ```
 
-Nhìn vào `28.02.2025tail`: `setLenient(false)` kiểm soát tính hợp lệ của **giá trị ngày**, nhưng **không có nghĩa** parser bắt buộc tiêu thụ hết chuỗi. Để kiểm tra toàn bộ đầu vào, vẫn phải so `position.getIndex()` với `input.length()`.
+Look at `28.02.2025tail`: `setLenient(false)` controls the validity of the **date value**, but it **does not mean** the parser must consume the entire string. To verify the whole input, you still need to compare `position.getIndex()` against `input.length()`.
 
-`31.02.2025` bị từ chối do ngày không tồn tại; trong ví dụ này, `errorIndex=10` đánh dấu nơi parser ghi nhận lỗi khi đã phân tích hình thức ngày. Đừng dùng con số 10 như một quy tắc phổ quát cho mọi lỗi ngày tháng hoặc mọi JDK.
+`31.02.2025` is rejected because the date does not exist; in this example, `errorIndex=10` marks where the parser recorded the failure after parsing the date shape. Do not rely on the specific number 10 as a universal rule across all date errors or JDK versions.
 
-Đặt timezone UTC ở ví dụ để tránh phụ thuộc môi trường khi chuyển ngày thành `Date`, dù chương trình chỉ in trạng thái thành công/thất bại. Đối với dự án mới, nên cân nhắc API `java.time` như `LocalDate` và `DateTimeFormatter` khi làm việc với ngày lịch.
+The example sets UTC as the time zone to avoid environment dependence when converting the date to `Date`, even though it only prints pass/fail status. For new projects, consider the `java.time` API such as `LocalDate` and `DateTimeFormatter` when working with calendar dates.
 
-## 9. Khác biệt giữa API `java.text` và `java.time`
+## 9. Differences Between `java.text` and `java.time` APIs
 
-Trong Java 8+, `DateTimeFormatter` thuộc `java.time.format` cũng có overload:
+In Java 8+, `DateTimeFormatter` in `java.time.format` also has an overload:
 
 ```java
 TemporalAccessor parse(CharSequence text, ParsePosition position)
 ```
 
-Nhưng **không nên mặc định** cách báo lỗi của `DateTimeFormatter` giống `NumberFormat.parse(text, position)`. `java.time` có bước phân tích thành các trường thời gian và bước **resolve** các trường thành ngày/giờ hợp lệ; lỗi tại bước resolve có thể ném `DateTimeParseException` ngay cả khi `ParsePosition` đã tiến tới cuối chuỗi.
+However, **do not assume** `DateTimeFormatter`'s error reporting works identically to `NumberFormat.parse(text, position)`. `java.time` separates parsing into temporal fields from **resolving** those fields into a valid date/time; an error during resolution can throw `DateTimeParseException` even when `ParsePosition` has advanced to the end of the string.
 
-Ví dụ:
+Example:
 
 ```java
 DateTimeFormatter formatter = DateTimeFormatter
@@ -399,125 +399,125 @@ TemporalAccessor parsed =
 LocalDate date = LocalDate.from(parsed);
 ```
 
-Đây là **trích đoạn** cần các import `java.text.ParsePosition`, `java.time.LocalDate`, `java.time.format.DateTimeFormatter`, `java.time.format.ResolverStyle`, `java.time.temporal.TemporalAccessor`. Nó minh họa cơ chế đọc một phần và cách chuyển `TemporalAccessor` thành `LocalDate`.
+This is a **snippet** requiring imports for `java.text.ParsePosition`, `java.time.LocalDate`, `java.time.format.DateTimeFormatter`, `java.time.format.ResolverStyle`, and `java.time.temporal.TemporalAccessor`. It illustrates partial reading and converting `TemporalAccessor` to `LocalDate`.
 
-Nếu đầu vào là `2025-02-31`, resolver `STRICT` không tạo được một ngày hợp lệ và có thể ném `DateTimeParseException`. Vì vậy:
+If the input is `2025-02-31`, the `STRICT` resolver cannot produce a valid date and may throw `DateTimeParseException`. Therefore:
 
-- Với `java.text.NumberFormat` hoặc `DateFormat`, phải kiểm tra `null`, `index` và `errorIndex` theo hợp đồng của từng API.
-- Với `java.time.DateTimeFormatter`, cần xử lý **ngoại lệ** khi parse/resolve, và hiểu `ParsePosition` là thông tin vị trí trong thao tác phân tích.
-- Với một chuỗi đầu vào được yêu cầu phải là **một ngày hoàn chỉnh**, `LocalDate.parse(text, formatter)` thường đơn giản và trực tiếp hơn overload có `ParsePosition`; nó yêu cầu một kết quả phù hợp trong phạm vi phương thức parse toàn chuỗi và báo lỗi bằng exception.
+- With `java.text.NumberFormat` or `DateFormat`, check `null`, `index`, and `errorIndex` according to each API's contract.
+- With `java.time.DateTimeFormatter`, handle **exceptions** thrown during parsing/resolving, and treat `ParsePosition` as positional metadata for the parse operation.
+- For an input string expected to be **one complete date**, `LocalDate.parse(text, formatter)` is usually simpler and more direct than the `ParsePosition` overload; it requires matching the full string within its parse contract and signals errors via exceptions.
 
-**Không trộn `DateTimeFormatter` với `SimpleDateFormat` như thể hai lớp có cùng quy tắc pattern và xử lý lỗi.** Chúng thuộc hai hệ API khác nhau, đặc biệt về resolver và đối tượng ngày/giờ.
+**Do not mix `DateTimeFormatter` and `SimpleDateFormat` as if both classes shared the same pattern rules and error handling.** They belong to two different API families, especially regarding resolvers and date/time types.
 
-## 10. Những bẫy tinh vi khi dùng `ParsePosition`
+## 10. Subtle Pitfalls When Using `ParsePosition`
 
-### 10.1. Tái sử dụng `ParsePosition` mà không reset
+### 10.1. Reusing `ParsePosition` Without Resetting
 
-`ParsePosition` có trạng thái. Nếu sau một phép parse, `index` đang là 8 và bạn đưa lại cùng đối tượng cho chuỗi khác, parser sẽ **bắt đầu từ vị trí 8**, không phải tự quay về 0.
+`ParsePosition` is stateful. If after one parse `index` is 8 and you pass the same object to parse another string, the parser will **start at position 8** instead of automatically resetting to 0.
 
-Tương tự, `errorIndex` có thể là thông tin cũ nếu bạn tái sử dụng đối tượng và formatter không đặt lại nó theo cách bạn kỳ vọng. Một phép parse thành công không có hợp đồng chung rằng mọi phương thức sẽ tự reset `errorIndex` về `-1`.
+Similarly, `errorIndex` can retain stale information if you reuse the object and the formatter does not reset it the way you expect. A successful parse carries no universal contract that every method resets `errorIndex` to `-1`.
 
-Cách an toàn nhất cho các trường nhập độc lập:
+The safest approach for independent input fields:
 
 ```java
 ParsePosition pos = new ParsePosition(0);
 Number value = formatter.parse(input, pos);
 ```
 
-Tạo **đối tượng mới cho mỗi lần kiểm tra**. Nếu thực sự phải dùng lại, đặt cả `setIndex(start)` và `setErrorIndex(-1)`, và hiểu rõ parser sử dụng đối tượng như thế nào.
+Create a **new instance for each check**. If reuse is truly necessary, reset both `setIndex(start)` and `setErrorIndex(-1)`, and understand exactly how the parser interacts with the object.
 
-### 10.2. Nhầm `errorIndex == -1` với đã parse toàn bộ
+### 10.2. Mistaking `errorIndex == -1` for Full Parsing
 
-Đầu vào `1.234,56abc` đã cho ví dụ rõ: `value != null`, `errorIndex == -1`, nhưng `index == 8` trong chuỗi dài 11. Nếu nghiệp vụ yêu cầu cả chuỗi phải là số, đó là lỗi **dữ liệu dư** mà Java không nhất thiết coi là lỗi cú pháp ở phần đã đọc.
+`input="1.234,56abc"` demonstrated this clearly: `value != null`, `errorIndex == -1`, yet `index == 8` in a length-11 string. If business rules require the entire string to be a number, that is a **trailing data** error that Java does not necessarily treat as a syntax error in the parsed portion.
 
-### 10.3. Chỉ kiểm tra `index > 0`
+### 10.3. Checking Only `index > 0`
 
-Nếu bắt đầu ở vị trí 5, `index > 0` không nói được parser đã đọc thêm ký tự nào. Hãy kiểm tra `value != null` và chỉ số đầu/cuối theo đúng phạm vi mong muốn.
+If you started at index 5, `index > 0` does not tell you whether the parser read any additional characters. Check `value != null` and compare start/end indices against the expected bounds.
 
-### 10.4. Không tính tới Unicode
+### 10.4. Ignoring Unicode
 
-`ParsePosition` đếm chỉ số theo UTF-16. Ví dụ chuỗi chứa emoji ở đầu có thể có `String.length()` lớn hơn số code point. Khi hiển thị vị trí lỗi cho người dùng, nhất là nếu bôi chọn trong UI, cần ánh xạ chỉ số theo hệ biểu diễn của giao diện và không cắt giữa surrogate pair.
+`ParsePosition` counts indices in UTF-16 code units. For example, a string with a leading emoji has a larger `String.length()` than its code point count. When displaying an error position to users—especially when highlighting a selection in the UI—map the index to the UI's representation and avoid splitting inside a surrogate pair.
 
-### 10.5. Tin rằng pattern của `DecimalFormat` xác thực hình thức nhập
+### 10.5. Assuming `DecimalFormat` Patterns Validate Input Shape
 
-Pattern `#,##0.00` phục vụ chủ yếu cho định dạng; việc parser chấp nhận `12,3` chứng minh nó không tự bắt buộc hai chữ số thập phân. Quy tắc grouping cũng có thể linh hoạt tùy formatter. Đừng lấy thành công của parser làm chứng nhận input đáp ứng mọi yêu cầu về dấu nhóm, số chữ số, số âm, giới hạn giá trị hay chuẩn dữ liệu kế toán.
+A pattern like `#,##0.00` is primarily for formatting; the fact that the parser accepts `12,3` proves it does not enforce two fractional digits. Grouping rules can also be lenient depending on the formatter. Never take parser success as proof that input satisfies all requirements for grouping separators, digit counts, signs, value limits, or accounting data standards.
 
-### 10.6. Coi parse locale như parse dữ liệu giao thức
+### 10.6. Treating Locale Parsing Like Protocol Data Parsing
 
-Dữ liệu máy-máy (API JSON, ID, mã ISO, file trao đổi) thường có **định dạng chuẩn riêng** không phụ thuộc ngôn ngữ UI. Không dùng `Locale.getDefault()` một cách ngầm định để đọc các trường máy-máy. Phân biệt:
+Machine-to-machine data (JSON APIs, IDs, ISO codes, interchange files) typically uses a **dedicated canonical format** independent of UI language. Never implicitly use `Locale.getDefault()` to parse machine-to-machine fields. Distinguish:
 
-- **Input người dùng:** có thể cần `NumberFormat` / `DateFormat` / `DateTimeFormatter` theo locale và chính sách sản phẩm.
-- **Input giao thức:** dùng parser theo chuẩn giao thức, không cho dấu nhóm và dấu decimal đổi theo tùy chọn UI.
-- **Input dữ liệu nghiệp vụ quan trọng:** ngoài đúng cú pháp, cần kiểm tra miền giá trị, precision, rounding, currency/timezone, đơn vị và an toàn.
+- **User input:** may require `NumberFormat` / `DateFormat` / `DateTimeFormatter` per locale and product policy.
+- **Protocol input:** use a protocol-compliant parser without letting grouping or decimal separators vary with UI preferences.
+- **Critical business data:** beyond valid syntax, validate value range, precision, rounding, currency/timezone, unit, and safety limits.
 
-### 10.7. Chia sẻ formatter mutable giữa các luồng
+### 10.7. Sharing Mutable Formatters Across Threads
 
-`DecimalFormat` và `SimpleDateFormat` là các đối tượng mutable, không mặc định an toàn để dùng chung giữa các thread. `ParsePosition` cũng mutable; không chia sẻ một instance cho các tác vụ parse đồng thời. Dùng instance riêng hoặc quản lý đồng bộ thích hợp. Với `java.time.DateTimeFormatter`, đối tượng formatter bất biến và có thể chia sẻ an toàn hơn theo thiết kế API.
+`DecimalFormat` and `SimpleDateFormat` are mutable objects and are not thread-safe for concurrent sharing by default. `ParsePosition` is also mutable; do not share one instance across concurrent parse operations. Use separate instances or proper synchronization. With `java.time.DateTimeFormatter`, the formatter itself is immutable and designed to be safely shared.
 
-## 11. Cách thiết kế validator đầu vào có vị trí lỗi
+## 11. Designing an Input Validator That Reports Error Positions
 
-Một validator thực tế nên phân biệt ít nhất ba loại kết quả:
+A practical validator should distinguish at least three outcome types:
 
-| Trạng thái | Ví dụ | Thông tin cần hiển thị |
+| Status | Example | Information to Report |
 | --- | --- | --- |
-| `VALID` | `1.234,56` | Giá trị đã parse; chính sách miền giá trị tiếp tục áp dụng |
-| `PARSE_ERROR` | `abc` | Vị trí lỗi từ `getErrorIndex()` nếu có |
-| `TRAILING_INPUT` | `1.234,56abc` | Vị trí bắt đầu phần dư từ `getIndex()` |
+| `VALID` | `1.234,56` | Parsed value; domain range policies still apply |
+| `PARSE_ERROR` | `abc` | Error position from `getErrorIndex()` if available |
+| `TRAILING_INPUT` | `1.234,56abc` | Start of trailing data from `getIndex()` |
 
-Nếu dùng form nhận một giá trị số, logic trung tâm có thể là:
+For a form accepting a single numeric value, the core logic can be:
 
 ```text
 parse(input, new ParsePosition(0))
          |
          +-- value == null --------> PARSE_ERROR
-         |                           vị trí = errorIndex (nếu có)
+         |                           position = errorIndex (if available)
          |
          +-- index != input.length()
          |                       ---> TRAILING_INPUT
-         |                           vị trí = index
+         |                           position = index
          |
-         +-- giá trị đọc được hết --> Kiểm tra nghiệp vụ
+         +-- full value read ------> Business validation
                                      (min/max, scale, sign, ...)
-                                     rồi mới VALID
+                                     then VALID
 ```
 
-Đừng hiển thị tràn lan lỗi parser thô cho người dùng cuối; lỗi UI cần hướng dẫn đúng locale, ví dụ “Nhập số với dấu phẩy thập phân” khi ngôn ngữ/vùng sử dụng dấu phẩy. Với `errorIndex < 0` trong một phép parse thất bại, hãy dùng một thông báo tổng quát hoặc đánh dấu toàn trường; không tạo vị trí lỗi giả.
+Do not expose raw parser errors wholesale to end users; UI errors should provide locale-appropriate guidance, such as “Enter a number with a decimal comma” when the language/region uses a comma. When `errorIndex < 0` on a failed parse, use a general message or highlight the entire field; do not fabricate an error position.
 
-Để đánh dấu một đoạn con, luôn kiểm tra giới hạn `0 <= position <= input.length()` trước khi dùng `substring`, đặc biệt khi giá trị chỉ số xuất phát từ các parser khác nhau hoặc bị thay đổi trong code.
+Before highlighting a substring, always check bounds `0 <= position <= input.length()` prior to calling `substring`, especially when indices come from different parsers or are adjusted in code.
 
-## 12. Kiểm thử tối thiểu nên có
+## 12. Minimum Tests You Should Have
 
-Để bảo đảm validator vừa đúng locale vừa không bỏ lọt hậu tố:
+To ensure a validator is both locale-accurate and catches trailing suffixes:
 
-1. **Chuỗi hợp lệ hoàn toàn:** với số Đức `1.234,56`, kỳ vọng `value != null`, `index == length`.
-2. **Chuỗi có hậu tố:** `1.234,56abc` có thể parse ra số nhưng phải bị từ chối nếu trường yêu cầu số nguyên vẹn.
-3. **Lỗi ngay đầu:** `abc` → `null`, có error index theo parser.
-4. **Vị trí bắt đầu khác 0:** kiểm tra `index` cuối là chỉ số tuyệt đối.
-5. **Chuỗi rỗng/null:** chính sách nhập bắt buộc/không bắt buộc phải rõ; đừng truyền `null` cho parser nếu API không chấp nhận.
-6. **Khoảng trắng và dấu Unicode:** kiểm tra dấu grouping thực dùng và chính sách khoảng trắng.
-7. **Ngày hợp lệ nhưng có hậu tố:** `28.02.2025tail` phải bị từ chối trong validator toàn chuỗi.
-8. **Ngày không tồn tại:** `31.02.2025` phải bị từ chối nếu dùng parsing nghiêm ngặt.
-9. **Phân biệt thành công parser và hợp đồng nghiệp vụ:** `12,3` có thể parse hết nhưng vẫn không phù hợp trường yêu cầu đúng hai số lẻ.
-10. **Dữ liệu cực lớn hoặc chính xác cao:** kiểm tra kiểu Number trả về, `BigDecimal`, scale và giới hạn nghiệp vụ.
-11. **Tái sử dụng đối tượng:** xác nhận không dùng `index` hoặc `errorIndex` còn sót từ lần trước.
-12. **Đa locale và đa runtime:** đối chiếu US, Đức, Việt Nam và các locale triển khai thực tế; dữ liệu locale trong JDK/CLDR có thể thay đổi giữa các phiên bản.
+1. **Fully valid string:** for German number `1.234,56`, expect `value != null` and `index == length`.
+2. **String with suffix:** `1.234,56abc` may parse a number, but must be rejected if the field requires a whole number.
+3. **Failure at start:** `abc` → `null`, with an error index reported by the parser.
+4. **Non-zero start position:** verify that the final `index` is an absolute index.
+5. **Empty/null strings:** required/optional input policies must be explicit; do not pass `null` to parsers that reject it.
+6. **Whitespace and Unicode separators:** test actual grouping separators and whitespace policies.
+7. **Valid date with suffix:** `28.02.2025tail` must be rejected by a whole-string validator.
+8. **Nonexistent date:** `31.02.2025` must be rejected under strict parsing.
+9. **Distinguishing parser success from business contract:** `12,3` can parse completely yet fail a field requiring exactly two fractional digits.
+10. **Huge or high-precision values:** verify returned `Number` type, `BigDecimal`, scale, and business limits.
+11. **Object reuse:** verify no stale `index` or `errorIndex` leaks from prior parses.
+12. **Multi-locale and multi-runtime:** compare US, Germany, Vietnam, and actual target deployment locales; locale data in JDK/CLDR can change between versions.
 
-## 13. Phân biệt `ParsePosition`, `FieldPosition` và `ParseException`
+## 13. Distinguishing `ParsePosition`, `FieldPosition`, and `ParseException`
 
-Ba tên dễ gây nhầm:
+Three similar names that are easily confused:
 
-- **`ParsePosition`**: dùng trong **parse** để mang vị trí bắt đầu, vị trí kết thúc và vị trí lỗi; không tự ném ngoại lệ chỉ vì tồn tại ký tự dư.
-- **`FieldPosition`**: thường dùng trong **format** để xác định vị trí một trường trong chuỗi đầu ra, chẳng hạn phần nguyên; không thay thế `ParsePosition`.
-- **`ParseException`**: một số overload parse báo lỗi bằng exception, có `getErrorOffset()`, nhưng bạn vẫn cần hiểu liệu API đó có buộc tiêu thụ hết input hay không.
+- **`ParsePosition`**: used in **parsing** to track starting position, ending position, and error position; does not throw an exception merely because trailing characters exist.
+- **`FieldPosition`**: typically used in **formatting** to locate a specific field within the output string, such as the integer part; does not replace `ParsePosition`.
+- **`ParseException`**: some parse overloads report errors via exception with `getErrorOffset()`, though you still must check whether that API enforces full input consumption.
 
-Không nên chọn một trong ba chỉ vì chúng đều có chữ “Position” hoặc “Parse”. Nếu ứng dụng cần báo **vị trí phần dư của số** và giữ quyền quyết định chấp nhận toàn chuỗi, `ParsePosition` là công cụ trực tiếp.
+Do not pick among the three just because they contain “Position” or “Parse.” If your application needs to report **where trailing data begins in a number** and retain control over whole-string acceptance, `ParsePosition` is the direct tool.
 
-## 14. Ghi nhớ
+## 14. Key Takeaways
 
-- **`ParsePosition.getIndex()`** là vị trí ngay sau phần đầu vào parser đã tiêu thụ thành công, không nhất thiết là hết chuỗi.
-- **`getErrorIndex()`** biểu thị vị trí lỗi do parser ghi nhận; `-1` **không có nghĩa** không còn dữ liệu dư.
-- Với yêu cầu **chỉ chấp nhận một giá trị chiếm toàn bộ input**, phải kiểm tra **giá trị trả về khác `null` và `getIndex() == input.length()`**; sau đó vẫn áp dụng validation nghiệp vụ.
-- Khi parse từ một offset, `index` là vị trí **tuyệt đối trong chuỗi nguồn**; chỉ số Java tính theo **UTF-16**, không phải byte.
-- **Dùng `ParsePosition` mới** cho mỗi phép phân tích độc lập để tránh trạng thái `index`/`errorIndex` cũ.
-- Với ngày tháng, còn phải kiểm soát **tính hợp lệ lịch** (`setLenient(false)` hoặc resolver nghiêm ngặt), không chỉ vị trí kết thúc.
-- Trên `java.time`, các bước resolve có thể ném `DateTimeParseException`; đừng giả định mọi API parse có cùng hợp đồng lỗi như `java.text.NumberFormat`.
+- **`ParsePosition.getIndex()`** is the position immediately after the input portion successfully consumed by the parser, not necessarily the end of the string.
+- **`getErrorIndex()`** indicates the error position recorded by the parser; `-1` **does not mean** no trailing data remains.
+- When requiring **a single value spanning the entire input**, verify **a non-`null` return value and `getIndex() == input.length()`**; then still run business validation.
+- When parsing from an offset, `index` is an **absolute index in the source string**; Java string indices count **UTF-16** code units, not bytes.
+- **Create a fresh `ParsePosition`** for each independent parse to avoid stale `index`/`errorIndex` state.
+- For dates, you must also enforce **calendar validity** (`setLenient(false)` or a strict resolver), not just the ending position.
+- In `java.time`, resolution steps can throw `DateTimeParseException`; do not assume every parse API shares the same error contract as `java.text.NumberFormat`.

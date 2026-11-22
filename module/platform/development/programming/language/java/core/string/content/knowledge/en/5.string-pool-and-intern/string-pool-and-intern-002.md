@@ -1,60 +1,60 @@
-# Biểu thức hằng chuỗi được tính khi biên dịch trong Java
+# Compile-Time String Constant Expressions in Java
 
-## 1. Hiện tượng cần hiểu
+## 1. The Phenomenon to Understand
 
-Hai cách viết sau tạo ra **cùng một giá trị chuỗi** `"Java"`:
+The following two ways of writing create **the same string value** `"Java"`:
 
 ```java
 String a = "Java";
 String b = "Ja" + "va";
 ```
 
-Điểm thú vị: biểu thức `"Ja" + "va"` **không cần ghép hai chuỗi trong lúc chương trình chạy**. Vì cả hai toán hạng đều là hằng, trình biên dịch Java có thể và theo ngữ nghĩa ngôn ngữ sẽ xử lý chúng như một **biểu thức hằng chuỗi** (*constant string expression*), có giá trị `"Java"` ngay từ lúc biên dịch.
+The interesting point: the expression `"Ja" + "va"` **does not need to join two strings while the program is running**. Because both operands are constants, the Java compiler can—and by language semantics does—treat them as a **constant string expression**, having the value `"Java"` already at compile time.
 
 ```java
 System.out.println(a == b);      // true
 System.out.println(a.equals(b)); // true
 ```
 
-Ở ví dụ này, `a == b` là `true` vì các chuỗi có giá trị là biểu thức hằng được **intern**: chuỗi có cùng nội dung dùng chung một tham chiếu chuẩn hóa trong *string pool*. Tuy nhiên, trong ứng dụng thực tế, muốn kiểm tra **nội dung văn bản**, luôn ưu tiên `.equals(...)` thay vì dựa vào `==`.
+In this example, `a == b` is `true` because strings that are the values of constant expressions are **interned**: strings with the same content share a canonicalized reference in the *string pool*. However, in real-world applications, when you want to check **text content**, always prefer `.equals(...)` instead of relying on `==`.
 
-Bài học này giải thích điều kiện để phép nối chuỗi được tính khi biên dịch, mối liên hệ với pool và `intern()`, cách phân biệt với nối chuỗi lúc chạy, cùng các nhầm lẫn khi đọc hoặc tối ưu mã Java.
+This lesson explains the conditions for string concatenation to be evaluated at compile time, its relationship to the pool and `intern()`, how to distinguish it from runtime concatenation, and common misconceptions when reading or optimizing Java code.
 
-## 2. Biểu thức hằng (*constant expression*) là gì?
+## 2. What Is a Constant Expression?
 
-**Constant expression** là biểu thức có giá trị được xác định từ những thành phần và phép toán được Java cho phép tại thời điểm biên dịch. Quy tắc ngôn ngữ được mô tả trong *Java Language Specification*, mục **15.29 – Constant Expressions**.
+A **constant expression** is an expression whose value is determined from components and operations permitted by Java at compile time. The language rules are described in the *Java Language Specification*, section **15.29 – Constant Expressions**.
 
-Với chuỗi, các ví dụ đơn giản là:
+For strings, simple examples are:
 
 ```java
-String first = "Java";                   // Literal chuỗi
-String second = "Ja" + "va";             // Nối hai literal
-String version = "Java " + 17;           // Chuỗi cộng với hằng số nguyên
-String calculated = "Kết quả: " + (1 + 2); // Hằng số học + chuỗi
+String first = "Java";                   // String literal
+String second = "Ja" + "va";             // Concatenating two literals
+String version = "Java " + 17;           // String plus integer constant
+String calculated = "Result: " + (1 + 2); // Arithmetic constant + string
 ```
 
-Giá trị tương ứng là `"Java"`, `"Java"`, `"Java 17"` và `"Kết quả: 3"`.
+The corresponding values are `"Java"`, `"Java"`, `"Java 17"`, and `"Result: 3"`.
 
-Toán tử `+` có hai ý nghĩa liên quan ở đây:
+The `+` operator has two related meanings here:
 
-- Nếu hai toán hạng là số, `+` có thể là phép cộng số học.
-- Nếu một toán hạng là `String`, `+` dùng để **nối chuỗi**, chuyển toán hạng còn lại sang biểu diễn văn bản theo quy tắc của Java.
+- If both operands are numbers, `+` can be arithmetic addition.
+- If one operand is `String`, `+` performs **string concatenation**, converting the other operand to its textual representation according to Java's rules.
 
-Khi các thành phần của phép nối thỏa điều kiện *constant expression*, nội dung kết quả được tính trước, không cần thực hiện một phép nối động tại thời điểm chạy.
+When the components of a concatenation satisfy the conditions of a *constant expression*, the resulting content is computed ahead of time, without needing to perform a dynamic concatenation at runtime.
 
-**Phân biệt hai thời điểm:** *Tính nội dung chuỗi lúc biên dịch* không có nghĩa trình biên dịch đã tạo một đối tượng `String` Java nằm trong heap của tiến trình tương lai. Trình biên dịch biểu diễn hằng trong dữ liệu của class file; khi class được sử dụng, JVM giải quyết literal/hằng chuỗi theo cơ chế runtime và pool.
+**Distinguishing two points in time:** *Computing string content at compile time* does not mean the compiler has already created a Java `String` object sitting in the heap of a future process. The compiler represents the constant in the class file's data; when the class is used, the JVM resolves string literals/constants according to runtime and pool mechanisms.
 
-## 3. Khi nào một biến được coi là hằng tại thời điểm biên dịch?
+## 3. When Is a Variable Considered a Compile-Time Constant?
 
-Đặt từ khóa `final` lên biến **chưa đủ** để mọi cách sử dụng biến trở thành constant expression.
+Putting the `final` keyword on a variable is **not enough** for every use of that variable to become a constant expression.
 
-Java dùng thuật ngữ **constant variable** cho biến:
+Java uses the term **constant variable** for a variable that:
 
-1. Có kiểu nguyên thủy (*primitive*) hoặc `String`.
-2. Được khai báo `final`.
-3. Được khởi tạo **bằng một constant expression** ngay trong phần khai báo.
+1. Has a *primitive* type or `String`.
+2. Is declared `final`.
+3. Is initialized **with a constant expression** directly in its declaration.
 
-Ví dụ về các biến hằng hợp lệ (đặt trong phương thức):
+Examples of valid constant variables (placed inside a method):
 
 ```java
 final String PREFIX = "Ja";
@@ -65,9 +65,9 @@ String a = WORD;              // "Java"
 String b = "Java " + MAJOR;    // "Java 17"
 ```
 
-Vì `PREFIX`, `WORD` và `MAJOR` thỏa ba điều kiện, trình biên dịch có thể thay các tham chiếu của chúng bằng giá trị hằng khi xác định biểu thức.
+Because `PREFIX`, `WORD`, and `MAJOR` satisfy all three conditions, the compiler can substitute their constant values when evaluating expressions.
 
-Các trường `static final` cũng có thể là constant variable:
+`static final` fields can also be constant variables:
 
 ```java
 class Constants {
@@ -76,19 +76,19 @@ class Constants {
 }
 ```
 
-Nhưng hãy xem những ví dụ **không** phải constant variable:
+Now look at examples that are **not** constant variables:
 
 ```java
-String prefix = "Ja";                  // Không final
-final String fromMethod = getPrefix(); // Gọi phương thức lúc chạy
-final String boxed = new String("Ja"); // Khởi tạo bằng new
+String prefix = "Ja";                  // Not final
+final String fromMethod = getPrefix(); // Runtime method call
+final String boxed = new String("Ja"); // Initialized with new
 ```
 
-Trong đó `getPrefix()` giả sử là phương thức được định nghĩa ở nơi khác, trả về `String`; ba dòng này chỉ minh họa cú pháp trong ngữ cảnh có khai báo phương thức phù hợp.
+Here `getPrefix()` is assumed to be a method defined elsewhere returning `String`; these three lines only illustrate syntax in a context where an appropriate method is declared.
 
-Cả khi `getPrefix()` luôn trả về `"Ja"`, hoặc `new String("Ja")` luôn chứa cùng ký tự, các biểu thức ấy vẫn **không** trở thành constant expression chỉ vì ta dự đoán được kết quả.
+Even if `getPrefix()` always returns `"Ja"`, or `new String("Ja")` always contains the same characters, those expressions still do **not** become constant expressions merely because we can predict the result.
 
-Một biến `final` được **gán trong khối khởi tạo** thay vì có initializer ngay trong khai báo cũng không thỏa định nghĩa constant variable:
+A `final` variable that is **assigned in an initializer block** instead of having an initializer directly in its declaration also does not satisfy the definition of a constant variable:
 
 ```java
 class Config {
@@ -99,29 +99,29 @@ class Config {
 }
 ```
 
-Sau đó `Config.PREFIX + "va"` là phép nối phụ thuộc giá trị của biến tại runtime, không phải constant expression theo quy tắc đã nêu.
+Subsequently, `Config.PREFIX + "va"` is a concatenation depending on the variable's value at runtime, not a constant expression under the stated rules.
 
-### So sánh nhanh
+### Quick comparison
 
-| Biểu thức | Hằng khi biên dịch? | Giải thích |
+| Expression | Compile-time constant? | Explanation |
 |---|---|---|
-| `"Ja" + "va"` | Có | Hai toán hạng là literal |
-| `"Java " + 17` | Có | Literal chuỗi và hằng số nguyên |
-| `final String x = "Ja";` rồi `x + "va"` | Có | `x` là constant variable |
-| `String x = "Ja";` rồi `x + "va"` | Không | `x` không `final` |
-| `final String x = method();` rồi `x + "va"` | Không | Initializer là lời gọi phương thức |
-| `final String x = new String("Ja");` rồi `x + "va"` | Không | Initializer không phải constant expression |
-| `String.valueOf(17) + "!"` | Không | Có lời gọi phương thức |
+| `"Ja" + "va"` | Yes | Both operands are literals |
+| `"Java " + 17` | Yes | String literal and integer constant |
+| `final String x = "Ja";` then `x + "va"` | Yes | `x` is a constant variable |
+| `String x = "Ja";` then `x + "va"` | No | `x` is not `final` |
+| `final String x = method();` then `x + "va"` | No | Initializer is a method call |
+| `final String x = new String("Ja");` then `x + "va"` | No | Initializer is not a constant expression |
+| `String.valueOf(17) + "!"` | No | Contains a method call |
 
-Ở bảng này, các dòng chứa khai báo biến và biểu thức nối mô tả những đoạn mã riêng biệt, không phải một chương trình đầy đủ. Đừng đồng nhất “có giá trị luôn giống nhau khi chạy” với “được JLS công nhận là constant expression”.
+In this table, rows containing a variable declaration and a concatenation expression describe separate code snippets, not a single complete program. Do not equate "always evaluates to the same value at runtime" with "recognized by the JLS as a constant expression."
 
-## 4. Mối liên hệ giữa constant expression, string pool và `intern()`
+## 4. Relationship Between Constant Expressions, the String Pool, and `intern()`
 
-### String pool hoạt động thế nào?
+### How does the String pool work?
 
-*String pool* là cơ chế JVM duy trì tham chiếu chuẩn hóa cho các chuỗi có cùng nội dung. String literal và các `String` là **giá trị của constant expression** được intern để các giá trị hằng tương đương tham chiếu đến cùng một đối tượng chuỗi chuẩn hóa.
+The *String pool* is the JVM mechanism that maintains a canonicalized reference for strings with the same content. String literals and `String` values that are **values of constant expressions** are interned so that equivalent constant values reference the same canonicalized string object.
 
-Vì vậy:
+Therefore:
 
 ```java
 String literal = "Java";
@@ -130,9 +130,9 @@ String folded = "Ja" + "va";
 System.out.println(literal == folded); // true
 ```
 
-Nội dung `"Ja" + "va"` được coi là hằng `"Java"`, và hai biểu thức hằng nội dung tương đương dùng chung tham chiếu chuẩn hóa.
+The content `"Ja" + "va"` is treated as the constant `"Java"`, and two constant expressions with equivalent content share the canonicalized reference.
 
-### Nối chuỗi lúc chạy là tình huống khác
+### Runtime concatenation is a different situation
 
 ```java
 String prefix = "Ja";
@@ -142,11 +142,11 @@ System.out.println("Java".equals(joined)); // true
 System.out.println("Java" == joined);       // false
 ```
 
-`prefix` không phải constant variable. Biểu thức `prefix + "va"` cần đọc giá trị của biến khi chạy; nó là phép nối động, cho một đối tượng kết quả khác với đối tượng interned được literal `"Java"` tham chiếu. Nội dung bằng nhau vẫn không đồng nghĩa tham chiếu bằng nhau.
+`prefix` is not a constant variable. The expression `prefix + "va"` must read the variable's value at runtime; it is a dynamic concatenation, producing a result object distinct from the interned object referenced by the literal `"Java"`. Equal content still does not mean equal reference.
 
-### `intern()` đóng vai trò gì?
+### What role does `intern()` play?
 
-`String.intern()` trả về tham chiếu chuẩn hóa trong pool cho chuỗi có cùng nội dung. Nếu chưa có chuỗi tương ứng trong pool, cơ chế intern sẽ thiết lập tham chiếu chuẩn hóa đó theo hợp đồng API.
+`String.intern()` returns the canonicalized reference in the pool for a string with the same content. If no corresponding string exists in the pool yet, the interning mechanism establishes that canonicalized reference according to the API contract.
 
 ```java
 String prefix = "Ja";
@@ -156,13 +156,13 @@ System.out.println(joined == "Java");          // false
 System.out.println(joined.intern() == "Java"); // true
 ```
 
-Lời gọi `intern()` **không biến phép cộng lúc chạy thành phép cộng lúc biên dịch**. Đây là một hành động lúc chương trình chạy để lấy tham chiếu chuẩn hóa. Nó cũng không thay nội dung của `joined`: `String` bất biến.
+Calling `intern()` **does not turn runtime concatenation into compile-time concatenation**. It is a runtime action to obtain the canonicalized reference. Nor does it alter the content of `joined`: `String` is immutable.
 
-Một lưu ý về thuật ngữ: **constant pool trong class file** là cấu trúc dữ liệu lưu nhiều loại hằng và tham chiếu biểu tượng của mã biên dịch; **string pool** là cơ chế chia sẻ đối tượng `String` khi thực thi. Hai khái niệm có liên hệ, nhưng không phải một nơi chứa duy nhất và cũng không nên coi là đồng nghĩa.
+A note on terminology: the **constant pool in a class file** is a data structure storing many kinds of constants and symbolic references for compiled code; the **string pool** is the runtime mechanism for sharing `String` objects. The two concepts are related, but they are not a single storage location and should not be treated as synonymous.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh và kết quả kiểm chứng
+## 5. Complete Java 17+ Example and Verification Output
 
-Tạo tệp **`StringConstantExpressionDemo.java`**:
+Create the file **`StringConstantExpressionDemo.java`**:
 
 ```java
 public class StringConstantExpressionDemo {
@@ -216,7 +216,7 @@ public class StringConstantExpressionDemo {
 }
 ```
 
-Biên dịch và chạy (JDK 17 trở lên):
+Compile and run (JDK 17 or later):
 
 ```bash
 javac -encoding UTF-8 StringConstantExpressionDemo.java
@@ -237,86 +237,86 @@ literal == interned runtime: true
 literal.equals(runtime): true
 ```
 
-**Đọc kết quả:**
+**Reading the output:**
 
-1. `folded`, `fromLocalConstant` và `fromStaticConstant` có nội dung được xác định bởi constant expression. Chúng cùng tham chiếu đến giá trị interned `"Java"` như literal.
-2. `runtimeConcat`, `fromMethod` và `fromLateFinal` tham gia phép nối lúc chạy, nên nội dung vẫn là `"Java"` nhưng đối tượng kết quả không phải đối tượng được literal `"Java"` tham chiếu.
-3. `new String("Java")` yêu cầu tạo một đối tượng `String` riêng; vì thế tham chiếu khác literal ngay cả khi nội dung giống nhau.
-4. `runtimeConcat.intern()` lấy tham chiếu chuẩn hóa của `"Java"` và so sánh bằng `==` với literal sẽ là `true`.
-5. `literal.equals(runtimeConcat)` là `true`, xác nhận so sánh nội dung không phụ thuộc hai biến có trỏ đến cùng đối tượng hay không.
+1. `folded`, `fromLocalConstant`, and `fromStaticConstant` have content determined by constant expressions. They point to the same interned `"Java"` value as the literal.
+2. `runtimeConcat`, `fromMethod`, and `fromLateFinal` involve runtime concatenation, so their content is still `"Java"`, but the resulting object is not the object referenced by the literal `"Java"`.
+3. `new String("Java")` requests creating a distinct `String` object; therefore its reference differs from the literal even though the content is the same.
+4. `runtimeConcat.intern()` obtains the canonicalized reference for `"Java"`, and comparing it with `==` against the literal evaluates to `true`.
+5. `literal.equals(runtimeConcat)` is `true`, confirming that content comparison does not depend on whether two variables point to the same object.
 
-Ví dụ kiểm soát rõ nguồn của từng chuỗi để minh họa quy tắc. Trong chương trình thông thường, **không dùng kết quả `==` giữa `String` để suy đoán dữ liệu đã được tính lúc nào**; nếu mục tiêu là so sánh văn bản, dùng `equals`.
+The example carefully controls the origin of each string to illustrate the rules. In ordinary programs, **do not use `==` between `String` values to infer when data was computed**; if the goal is text comparison, use `equals`.
 
-## 6. Nhận diện phép ghép hằng qua bytecode
+## 6. Recognizing Constant Folding via Bytecode
 
-Với đoạn nguồn:
+For the source snippet:
 
 ```java
 String result = "Ja" + "va";
 ```
 
-Compiler có thể đưa thẳng nội dung `"Java"` vào class file thay vì mã nối hai toán hạng riêng. Đây là *constant folding*: rút gọn biểu thức hằng trước khi chương trình thực thi.
+The compiler can place the content `"Java"` directly into the class file instead of code that concatenates two separate operands. This is *constant folding*: reducing constant expressions before the program executes.
 
-Có thể quan sát class file được tạo ở mục 5 bằng:
+You can inspect the class file generated in section 5 using:
 
 ```bash
 javap -c -p StringConstantExpressionDemo
 ```
 
-Kết quả `javap` phụ thuộc compiler và phiên bản JDK, nhưng bạn có thể tìm các lệnh tải hằng chuỗi như `ldc ... // String Java` ở những chỗ dùng constant expression. Với phép nối runtime, bytecode của `javac` trên JDK hiện đại thường sử dụng `invokedynamic` và cơ chế nối chuỗi của JVM; cách sinh bytecode có thể thay đổi qua các bản JDK.
+The `javap` output depends on the compiler and JDK version, but you can look for instructions loading string constants such as `ldc ... // String Java` where constant expressions are used. For runtime concatenation, `javac` bytecode on modern JDKs typically uses `invokedynamic` and the JVM's string concatenation mechanism; bytecode generation details may vary across JDK releases.
 
-**Không cần dựa vào một opcode cụ thể để hiểu quy tắc**. Điều cốt lõi là: phép nối của constant expression có giá trị xác định trước theo JLS; phép nối phụ thuộc biến không phải constant variable phải sử dụng dữ liệu runtime.
+**You do not need to rely on a specific opcode to understand the rule.** The core point is: concatenating constant expressions produces a value determined beforehand under the JLS; concatenation depending on a non-constant variable must use runtime data.
 
-Cũng cần tránh hiểu sai rằng một biểu thức được tối ưu nhờ JIT lúc chạy sẽ tự động trở thành **constant expression của ngôn ngữ Java**. Đây là hai tầng khác nhau: tính hằng theo JLS được xác định từ mã nguồn/biên dịch, còn JIT là tối ưu thực thi.
+You should also avoid the misconception that an expression optimized by the JIT at runtime automatically becomes a **constant expression of the Java language**. These are two different layers: constantness under the JLS is determined from source code/compilation, whereas the JIT is an execution-time optimization.
 
-## 7. Những lỗi hiểu sai thường gặp
+## 7. Common Misconceptions
 
-### Lỗi 1: “Có chữ `final` là trình biên dịch tính hết”
+### Mistake 1: "If it has `final`, the compiler computes everything"
 
-Không đúng. Hãy so sánh:
+Incorrect. Compare:
 
 ```java
 final String a = "Ja";             // Constant variable
-final String b = "J".concat("a");  // Không phải constant variable
+final String b = "J".concat("a");  // Not a constant variable
 ```
 
-`b` là `final`, nhưng lời gọi `concat(...)` không phải constant expression theo định nghĩa JLS. `b + "va"` vẫn không phải phép nối hằng tại thời điểm biên dịch.
+`b` is `final`, but calling `concat(...)` is not a constant expression as defined by the JLS. `b + "va"` is still not a compile-time constant concatenation.
 
-### Lỗi 2: “Dùng `==` để so sánh hai chuỗi sẽ nhanh hơn nên an toàn”
+### Mistake 2: "Using `==` to compare two strings is faster and therefore safe"
 
-`==` so sánh **đồng nhất đối tượng**. Những chuỗi hằng được intern có thể tình cờ làm phép so sánh `==` cho kết quả đúng như nội dung, nhưng chuỗi nhập từ người dùng, đọc file, API hoặc ghép động thường không có bảo đảm ấy.
+`==` compares **object identity**. Interned constant strings can coincidentally make `==` appear to work like content comparison, but strings from user input, file reading, APIs, or dynamic concatenation generally have no such guarantee.
 
-Dùng:
+Use:
 
 ```java
 "Java".equals(candidate)
 ```
 
-Khi `candidate` có thể là `null`, cách viết này tránh `NullPointerException` ở phía nhận phương thức. Hoặc dùng `java.util.Objects.equals(a, b)` khi cả hai biến đều có thể `null`.
+When `candidate` might be `null`, this style avoids a `NullPointerException` on the receiver. Or use `java.util.Objects.equals(a, b)` when both variables can be `null`.
 
-### Lỗi 3: “Nối hai giá trị luôn giống nhau thì chắc chắn là nối hằng”
+### Mistake 3: "Concatenating two values that are always the same must be constant concatenation"
 
-Ví dụ `getPrefix() + "va"` vẫn là nối runtime, dù phương thức `getPrefix()` luôn trả `"Ja"`. Quy tắc xét **cấu trúc biểu thức** và những thành phần được JLS cho phép, không dựa vào việc con người biết trước kết quả.
+For example, `getPrefix() + "va"` is still runtime concatenation, even if `getPrefix()` always returns `"Ja"`. The rule examines **expression structure** and the components allowed by the JLS, not whether a human knows the result in advance.
 
-### Lỗi 4: “Compiler đã tính chuỗi thì chương trình hoàn toàn không dùng bộ nhớ cho `String`”
+### Mistake 4: "Once the compiler computes the string, the program uses no memory at all for `String`"
 
-Sai. Compiler xác định **nội dung hằng**, còn JVM vẫn có đối tượng `String` được sử dụng ở runtime. Việc intern giúp tái sử dụng tham chiếu của các hằng có cùng nội dung, chứ không xóa khái niệm đối tượng chuỗi.
+False. The compiler determines the **constant content**, while the JVM still has `String` objects used at runtime. Interning helps reuse references for constants with the same content; it does not eliminate the concept of string objects.
 
-### Lỗi 5: “Gọi `intern()` sẽ làm toàn bộ việc xử lý chuỗi nhanh hơn”
+### Mistake 5: "Calling `intern()` makes all string processing faster"
 
-Không có quy tắc chung như vậy. `intern()` mang thêm hoạt động quản lý tham chiếu chuẩn hóa; chỉ nên sử dụng khi thực sự hiểu yêu cầu chia sẻ/chuẩn hóa tham chiếu và đặc điểm dữ liệu. Cách so sánh nội dung bình thường vẫn là `.equals(...)`; không cần intern mọi chuỗi để so sánh.
+There is no such universal rule. `intern()` adds the work of managing canonicalized references; it should only be used when you genuinely understand the reference sharing/canonicalization requirement and data characteristics. Normal content comparison remains `.equals(...)`; you do not need to intern every string in order to compare it.
 
-## 8. Khi nào kiến thức này hữu ích?
+## 8. When Is This Knowledge Useful?
 
-- **Đọc kết quả `==` bất ngờ:** giải thích vì sao `"a" + "b" == "ab"` có thể đúng trong biểu thức hằng, còn nối bằng biến có cùng nội dung thì khác.
-- **Hiểu compiler:** nhận diện ranh giới giữa tính hằng tại biên dịch và nối chuỗi tại runtime.
-- **Đọc bytecode:** hiểu tại sao source dùng toán tử `+` mà class file chỉ cần tải một hằng chuỗi.
-- **Thiết kế hằng dùng chung:** `static final String` được khởi tạo bởi constant expression có thể được nội tuyến giá trị vào mã của lớp sử dụng khi biên dịch. Vì thế nếu thay giá trị hằng công khai trong thư viện, các lớp đã biên dịch trước đó có thể vẫn giữ giá trị cũ cho tới khi được biên dịch lại. Không nên dựa vào field hằng biên dịch để cung cấp cấu hình cần thay đổi mà không biên dịch lại client.
-- **Tránh tối ưu hóa sai:** lựa chọn giữa `==`, `.equals(...)` và `intern()` dựa vào **ngữ nghĩa** cần thiết, không chỉ vào việc thấy hai chuỗi có nội dung giống nhau.
+- **Interpreting unexpected `==` results:** explaining why `"a" + "b" == "ab"` can be true in constant expressions, whereas concatenating with a variable that yields the same content behaves differently.
+- **Understanding the compiler:** recognizing the boundary between compile-time constantness and runtime concatenation.
+- **Reading bytecode:** understanding why source code uses the `+` operator while the class file only needs to load a single string constant.
+- **Designing shared constants:** a `static final String` initialized by a constant expression can have its value inlined into consuming classes at compile time. Therefore, if you change a public constant's value in a library, previously compiled classes may retain the old value until recompiled. Do not rely on compile-time constant fields to supply configuration that needs to change without recompiling clients.
+- **Avoiding misguided optimizations:** choosing among `==`, `.equals(...)`, and `intern()` based on the **semantics** required, not merely because two strings appear to have the same content.
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-**Câu 1.** Đoạn sau in gì?
+**Question 1.** What does the following snippet print?
 
 ```java
 String x = "ab";
@@ -324,9 +324,9 @@ String y = "a" + "b";
 System.out.println(x == y);
 ```
 
-**Đáp án:** `true`, vì `"a" + "b"` là constant expression có giá trị interned `"ab"`.
+**Answer:** `true`, because `"a" + "b"` is a constant expression with the interned value `"ab"`.
 
-**Câu 2.** Thêm `final` vào biến có thay đổi kết quả không?
+**Question 2.** Does adding `final` to the variable change the result?
 
 ```java
 String a = "a";
@@ -334,25 +334,25 @@ String x = a + "b";
 System.out.println(x == "ab");
 ```
 
-**Đáp án:** Mã như trên in `false`. Nếu thay khai báo bằng `final String a = "a";`, `a` trở thành constant variable; phép nối `a + "b"` là constant expression và kết quả so sánh được in là `true`.
+**Answer:** The code as written prints `false`. If you change the declaration to `final String a = "a";`, `a` becomes a constant variable; the concatenation `a + "b"` is a constant expression, and the comparison prints `true`.
 
-**Câu 3.** Vì sao ví dụ này vẫn nối lúc chạy?
+**Question 3.** Why does this example still concatenate at runtime?
 
 ```java
 final String a = new String("a");
 String x = a + "b";
 ```
 
-**Đáp án:** `a` không phải constant variable vì initializer dùng `new`, vốn không là constant expression.
+**Answer:** `a` is not a constant variable because its initializer uses `new`, which is not a constant expression.
 
-**Câu 4.** `String t = dynamic + "ab";` có nên dùng `t.intern() == "someValue"` để kiểm tra nội dung không?
+**Question 4.** For `String t = dynamic + "ab";`, should you use `t.intern() == "someValue"` to check content?
 
-**Đáp án:** Không cần. Khi muốn kiểm tra văn bản, dùng `"someValue".equals(t)`. `intern()` phục vụ chuẩn hóa tham chiếu, không phải công cụ so sánh nội dung thông thường.
+**Answer:** No need. When you want to check text, use `"someValue".equals(t)`. `intern()` serves reference canonicalization, not routine content comparison.
 
-**Câu 5.** “Tính khi biên dịch” và “intern lúc chạy” có mâu thuẫn không?
+**Question 5.** Do "computed at compile time" and "interned at runtime" contradict each other?
 
-**Đáp án:** Không. Compiler xác định **giá trị hằng của biểu thức**, còn JVM sử dụng cơ chế **chuỗi chuẩn hóa trong runtime** để biểu diễn và chia sẻ đối tượng `String` tương ứng.
+**Answer:** No. The compiler determines the **constant value of the expression**, while the JVM uses its **runtime canonical string mechanism** to represent and share the corresponding `String` object.
 
-## 10. Điểm cần nhớ
+## 10. Key Takeaways
 
-Một biểu thức nối chuỗi chỉ được xem là **constant expression** khi các thành phần tuân theo đúng quy tắc ngôn ngữ Java; literal và **constant variable** là những trường hợp thường gặp. Giá trị `String` của constant expression được intern, nên các chuỗi hằng có cùng nội dung dùng chung tham chiếu chuẩn hóa. Phép nối sử dụng biến không hằng hay lời gọi phương thức là nối runtime, dù nội dung cuối cùng trông giống hệt. Hãy dùng kiến thức về string pool để hiểu Java, và dùng `.equals(...)` khi cần kiểm tra nội dung văn bản.
+A string concatenation expression is considered a **constant expression** only when its components strictly follow the rules of the Java language; literals and **constant variables** are the common cases. The `String` value of a constant expression is interned, so constant strings with the same content share a canonicalized reference. Concatenation using non-constant variables or method calls is runtime concatenation, even if the final content looks identical. Use knowledge of the string pool to understand Java, and use `.equals(...)` when you need to check text content.

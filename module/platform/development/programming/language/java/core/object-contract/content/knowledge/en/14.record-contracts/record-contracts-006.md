@@ -1,28 +1,28 @@
-# Record chỉ bất biến nông và vẫn có thể chứa dữ liệu thay đổi được
+# Records Are Only Shallowly Immutable and Can Still Hold Mutable Data
 
-## 1. Điều quan trọng cần hiểu
+## 1. What Matters Most to Understand
 
-Trong Java 17+, `record` cho phép khai báo một lớp chuyên biểu diễn dữ liệu bằng danh sách **record components**. Với ví dụ:
+In Java 17+, `record` lets you declare a class dedicated to representing data via a list of **record components**. Given the example:
 
 ```java
 record Profile(String name, java.util.List<String> roles) {}
 ```
 
-Java sinh các trường `private final` tương ứng với `name` và `roles`, constructor, accessor `name()`/`roles()` và các phương thức `equals()`, `hashCode()`, `toString()`. Bản thân lớp record cũng là `final`, nghĩa là không thể kế thừa để mở rộng nó.
+Java generates `private final` fields corresponding to `name` and `roles`, a constructor, `name()`/`roles()` accessors, and the `equals()`, `hashCode()`, and `toString()` methods. The record class itself is also `final`, meaning it cannot be extended via inheritance.
 
-Tuy nhiên, `final` trên **trường tham chiếu** chỉ ngăn gán lại tham chiếu đó sau khi khởi tạo. Nó **không đóng băng đối tượng mà tham chiếu đang trỏ tới**. Do đó, một record có thể giữ `List`, `Map`, mảng, `Date`, `StringBuilder` hoặc đối tượng do bạn tạo có trạng thái thay đổi được. Nếu record giữ trực tiếp một đối tượng mutable, dữ liệu quan sát được qua record vẫn có thể đổi.
+However, `final` on a **reference field** only prevents reassigning that reference after initialization. It **does not freeze the object the reference points to**. Consequently, a record can hold a `List`, `Map`, array, `Date`, `StringBuilder`, or a custom object you wrote that has mutable state. If a record directly holds a mutable object, the data observed through the record can still change.
 
-**Phân biệt ba khái niệm:**
+**Distinguish three concepts:**
 
-- **Không gán lại được trường (final reference):** trường `roles` luôn giữ cùng tham chiếu đã được khởi tạo; không thể viết `profile.roles = other` từ bên ngoài.
-- **Bất biến nông (shallow immutability):** cấu trúc bên ngoài không cho thay tham chiếu thành phần, nhưng dữ liệu nằm trong đối tượng được tham chiếu có thể đổi.
-- **Bất biến sâu (deep immutability):** mọi trạng thái có thể quan sát và ảnh hưởng đến giá trị đều không thể thay đổi thông qua các tham chiếu có sẵn; điều này đòi hỏi cả các thành phần lồng bên trong cũng bất biến hoặc được sao chép/phong tỏa phù hợp.
+- **Unreassignable field (final reference):** the `roles` field always keeps the same reference it was initialized with; you cannot write `profile.roles = other` from outside.
+- **Shallow immutability:** the outer structure does not allow replacing the component reference, yet the data inside the referenced object can change.
+- **Deep immutability:** all observable state affecting the value cannot be modified through any available references; this requires nested components to also be immutable or appropriately copied/isolated.
 
-**Record không mặc nhiên đảm bảo bất biến sâu.** Record là công cụ mô hình hóa dữ liệu với hợp đồng về các components, chứ không phải cơ chế tự động đóng băng toàn bộ đồ thị đối tượng.
+**Records do not automatically guarantee deep immutability.** A record is a data-modeling tool with a contract over its components, not a mechanism that automatically freezes an entire object graph.
 
-## 2. Cơ chế: `final` cố định tham chiếu, không cố định trạng thái
+## 2. Mechanism: `final` Fixes the Reference, Not the State
 
-Xem đoạn mã minh họa:
+Consider this illustrative snippet:
 
 ```java
 record Team(String name, java.util.List<String> members) {}
@@ -33,49 +33,49 @@ Team team = new Team("Backend", people);
 
 people.add("Binh");
 
-// team.members() nay có ["An", "Binh"].
+// team.members() now has ["An", "Binh"].
 ```
 
-`team.members()` trả lại danh sách mà record đang giữ; do constructor mặc định không sao chép nó, biến `people` và component `members` trỏ tới cùng `ArrayList`.
+`team.members()` returns the list the record holds; because the default constructor does not copy it, the variable `people` and the component `members` point to the same `ArrayList`.
 
-Người sử dụng có thể thay đổi danh sách theo ít nhất hai đường:
+Callers can mutate the list through at least two paths:
 
-1. Giữ tham chiếu đầu vào `people` rồi gọi `people.add(...)`; record sẽ quan sát được thay đổi ấy.
-2. Gọi `team.members().add(...)`; accessor được sinh mặc định trả chính tham chiếu `List` đang lưu.
+1. Keep the input reference `people` and call `people.add(...)`; the record will observe that change.
+2. Call `team.members().add(...)`; the default generated accessor returns the exact `List` reference stored internally.
 
-`private final` chỉ áp dụng cho **trường `members` của record**. Nó không làm các phương thức `add`, `remove`, `clear` của một `ArrayList` trở nên bất hợp pháp.
+`private final` applies only to **the record's `members` field**. It does not make `add`, `remove`, or `clear` on an `ArrayList` illegal.
 
-Nếu component là `String` hoặc một giá trị bất biến phù hợp, ta không gặp vấn đề biến đổi nội dung qua chính đối tượng đó. Nhưng chỉ cần có một component mutable, không thể tuyên bố mọi trạng thái của record đều bất biến.
+If a component is a `String` or an appropriate immutable value, we do not face content mutation through that object itself. Yet having just one mutable component makes it impossible to claim that all state of the record is immutable.
 
-## 3. Những gì Java bảo đảm và không bảo đảm cho record
+## 3. What Java Guarantees and Does Not Guarantee for Records
 
-| Thuộc tính | Record bảo đảm | Record không tự bảo đảm |
+| Property | What a Record Guarantees | What a Record Does Not Automatically Guarantee |
 | --- | --- | --- |
-| Kiểu record | Là kiểu `final`, không có lớp con | Toàn bộ các đối tượng được component trỏ tới là bất biến |
-| Trường component | Trường tương ứng là `private final` | Đối tượng tham chiếu không bị sửa từ nơi khác |
-| Accessor mặc định | Cung cấp `componentName()` | Tự sao chép phòng vệ (defensive copy) khi trả component |
-| Constructor mặc định | Nhận các giá trị component và lưu vào trường | Tự sao chép/kiểm tra cấu trúc mutable |
-| `equals()`/`hashCode()` mặc định | Dựa trên các components theo quy tắc Java | Kết quả luôn ổn định khi component mutable bị sửa |
-| `toString()` mặc định | Biểu diễn tên record và các component | Bản chụp bất biến hoặc dữ liệu an toàn để công khai |
-| Mảng hoặc collection làm component | Có thể lưu tham chiếu tới chúng | So sánh sâu mọi phần tử hoặc khóa trạng thái bên trong |
+| Record type | Is a `final` type, no subclasses | All objects pointed to by components are immutable |
+| Component fields | Corresponding fields are `private final` | Referenced objects cannot be modified elsewhere |
+| Default accessors | Provides `componentName()` | Automatically performs defensive copying when returning components |
+| Default constructor | Receives component values and stores them in fields | Automatically copies/validates mutable structures |
+| Default `equals()`/`hashCode()` | Based on components per Java rules | Results remain stable if a mutable component is modified |
+| Default `toString()` | Represents record name and components | An immutable snapshot or data safe to expose publicly |
+| Arrays or collections as components | Can store references to them | Deeply compares all elements or locks internal state |
 
-Một record có thể định nghĩa phương thức, constructor để xác thực/sao chép đầu vào, hoặc accessor riêng. Nó vẫn không được khai báo thêm **instance field** độc lập ngoài các component fields mà cấu trúc record cho phép; các trường `static` vẫn có thể tồn tại theo quy tắc Java. Hạn chế này không đồng nghĩa với việc đối tượng được giữ trong component là immutable.
+A record can define methods, constructors to validate/copy inputs, or custom accessors. It still cannot declare extra standalone **instance fields** beyond the component fields permitted by record syntax; `static` fields can still exist under Java rules. This restriction does not mean the objects held inside components are immutable.
 
-## 4. Vì sao dữ liệu mutable còn liên quan đến hợp đồng `equals()` và `hashCode()`?
+## 4. Why Does Mutable Data Also Affect the `equals()` and `hashCode()` Contract?
 
-Một điểm rất quan trọng của **hợp đồng record** là các phương thức `equals()` và `hashCode()` được sinh dựa trên những components.
+A crucial aspect of the **record contract** is that the generated `equals()` and `hashCode()` methods are based on the components.
 
-Với record:
+Given the record:
 
 ```java
 record Task(String title, java.util.List<String> labels) {}
 ```
 
-thành phần `labels` được so theo quan hệ bằng nhau của `List`. Các `List` tiêu chuẩn so bằng **dãy phần tử** và tính hash theo nội dung của dãy. Vì vậy, sau khi thêm phần tử vào danh sách được lưu, kết quả `task.hashCode()` có thể đổi. Đối với một record khác, `task.equals(otherTask)` cũng có thể chuyển từ `true` sang `false` hoặc ngược lại nếu dữ liệu tham gia so sánh bị sửa.
+the `labels` component is compared using `List` equality. Standard `List`s compare by **sequence of elements** and compute their hash from the sequence's contents. Thus, after adding an element to the stored list, `task.hashCode()` can change. Relative to another record, `task.equals(otherTask)` can also flip from `true` to `false` or vice versa if data participating in comparison is modified.
 
-Điều này không tự động vi phạm hợp đồng của `equals`: hợp đồng nhất quán chỉ áp dụng khi dữ liệu dùng để so sánh không thay đổi. Nhưng record mutable sẽ tạo rủi ro lớn khi trở thành khóa trong `HashMap` hoặc phần tử của `HashSet`.
+This does not automatically violate the `equals` contract: the consistency contract only applies when the data used for comparison does not change. However, mutable records pose major risks when used as keys in a `HashMap` or elements in a `HashSet`.
 
-Ví dụ:
+Example:
 
 ```java
 java.util.List<String> labels =
@@ -84,14 +84,14 @@ Task key = new Task("study", labels);
 
 java.util.Set<Task> items = new java.util.HashSet<>();
 items.add(key);
-labels.add("spring"); // Thay dữ liệu dùng để tạo hash.
+labels.add("spring"); // Mutates the data used to compute the hash.
 ```
 
-Sau phép `add` cuối, giá trị hash của `key` có thể khác hash tại thời điểm `items.add(key)`. `HashSet` lưu phần tử theo vị trí tính từ hash cũ, nên tra cứu `items.contains(key)` có thể thất bại dù **đang giữ chính tham chiếu key đó**. Không nên viết bài test mặc định rằng mọi cấu hình hash đều chắc chắn thất bại vì hash/bucket collision và kích thước bảng có thể ảnh hưởng; điều cần tránh là **biến đổi khóa sau khi đưa vào collection**.
+After the final `add`, `key`'s hash value may differ from the hash at the time of `items.add(key)`. `HashSet` places the element in a slot computed from the old hash, so looking up `items.contains(key)` can fail even when **holding the exact same `key` reference**. You should not write tests assuming every hash configuration is guaranteed to fail because hash/bucket collisions and table sizes can affect outcomes; what to avoid is **mutating a key after inserting it into a collection**.
 
-### Khác biệt giữa `List` và mảng trong component
+### Difference Between `List` and Arrays as Components
 
-Với `List`, phép `equals` tiêu chuẩn xét phần tử. Nhưng Java array **không override `Object.equals()` theo nội dung**. Do đó:
+For `List`, standard `equals` inspects elements. However, Java arrays **do not override `Object.equals()` by contents**. Therefore:
 
 ```java
 record Bytes(byte[] content) {}
@@ -99,25 +99,25 @@ record Bytes(byte[] content) {}
 Bytes a = new Bytes(new byte[] {1, 2});
 Bytes b = new Bytes(new byte[] {1, 2});
 
-// java.util.Arrays.equals(a.content(), b.content()) là true.
-// a.equals(b) là false: hai mảng khác tham chiếu.
+// java.util.Arrays.equals(a.content(), b.content()) is true.
+// a.equals(b) is false: two arrays with different references.
 ```
 
-Các bình luận ở trên là kết quả của đoạn minh họa; không cần thay code `equals` của record để có được chúng. Record sinh ra `equals` cho component mảng theo quan hệ bằng nhau của tham chiếu mảng, **không tự gọi `Arrays.equals`**. Nếu muốn mảng được so theo nội dung, phải tự thiết kế `equals`/`hashCode` phù hợp (và sao chép phòng vệ), hoặc đổi mô hình sang dạng giá trị bất biến có quan hệ bằng nhau đúng yêu cầu.
+The comments above describe the outcome of the illustrative snippet; there is no need to change the record's `equals` code to observe them. Records generate `equals` for array components using array reference equality, **without automatically calling `Arrays.equals`**. If you want arrays compared by contents, you must manually design an appropriate `equals`/`hashCode` (and defensive copies), or change the model to an immutable value type with the desired equality relation.
 
-**Ghi nhớ:** Bất biến và bằng nhau là hai vấn đề liên quan nhưng **khác nhau**. Chặn sửa mảng bằng clone vẫn không làm record mặc định tự so các byte theo nội dung.
+**Remember:** Immutability and equality are two related yet **distinct** concerns. Blocking array mutation with cloning still does not make a default record compare bytes by contents.
 
-## 5. Hai ranh giới phải bảo vệ khi muốn bất biến sâu
+## 5. Two Boundaries to Protect When Deep Immutability Is Needed
 
-Với dữ liệu mutable, cần xem xét **cả đầu vào constructor và đầu ra accessor**. Chẳng hạn, record chứa `byte[]` phải clone khi nhận để bên gọi không sửa mảng gốc, đồng thời clone khi trả để accessor không làm lộ mảng nội bộ. Với `List<String>`, `List.copyOf` trong compact constructor thường đủ vì danh sách không sửa được và `String` bất biến; `Collections.unmodifiableList(source)` chỉ là view nên chưa chụp snapshot.
+For mutable data, you must examine **both constructor inputs and accessor outputs**. For instance, a record containing `byte[]` must clone on input so the caller cannot mutate the original array, and also clone on return so the accessor does not expose the internal array. For `List<String>`, `List.copyOf` in a compact constructor is usually enough because the list is unmodifiable and `String` is immutable; `Collections.unmodifiableList(source)` is only a view and does not take a snapshot.
 
-Các biện pháp này phụ thuộc vào kiểu phần tử và hợp đồng sở hữu. `List.copyOf(List<MutableItem>)` vẫn cho phép sửa từng item qua alias; mảng đa chiều cần xem xét từng tầng. Nếu yêu cầu so nội dung mảng, cần đồng bộ `equals` và `hashCode`, vì generated equality chỉ so identity mảng. Bài về canonical constructor và accessor tiếp theo hướng dẫn cách hiện thực từng bước.
+These measures depend on element types and ownership contracts. `List.copyOf(List<MutableItem>)` still allows mutating each item via an alias; multi-dimensional arrays require examining every level. If array content comparison is required, `equals` and `hashCode` must be synchronized, because generated equality only compares array identity. The following lesson on canonical constructors and accessors walks through step-by-step implementation.
 
-## 6. Ví dụ Java 17+ hoàn chỉnh
+## 6. Complete Java 17+ Example
 
-Ví dụ sau minh họa ba tình huống: record giữ `List` gốc; record chụp snapshot `List<String>`; record chụp snapshot `List` nhưng giữ phần tử mutable; và mảng đã clone nhưng `equals` mặc định vẫn so tham chiếu mảng.
+The following example illustrates three scenarios: a record keeping the original `List`; a record taking a `List<String>` snapshot; a record taking a `List` snapshot yet holding mutable elements; and a cloned array where default `equals` still compares array references.
 
-Tạo tệp **`RecordShallowDemo.java`**:
+Create the file **`RecordShallowDemo.java`**:
 
 ```java
 import java.util.ArrayList;
@@ -230,14 +230,14 @@ public class RecordShallowDemo {
 }
 ```
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ```bash
 javac RecordShallowDemo.java
 java RecordShallowDemo
 ```
 
-**Kết quả:**
+**Output:**
 
 ```text
 loose aliases source: true
@@ -254,31 +254,31 @@ same byte contents: true
 record equality for arrays: false
 ```
 
-### Giải thích từng bước
+### Step-by-Step Explanation
 
-1. `loose.roles() == source` là `true` vì record giữ nguyên tham chiếu danh sách. `safe.roles() == source` là `false` vì `List.copyOf` tạo snapshot từ `ArrayList` gốc.
-2. Sau `source.add("admin")`, danh sách của `loose` có thêm `"admin"`. `safe` vẫn chỉ có `"reader"`.
-3. `loose.hashCode()` đổi vì `List.hashCode()` phụ thuộc nội dung. Với `safe`, snapshot `List<String>` không đổi nên hash cũng ổn định.
-4. `safe.roles().add("editor")` ném `UnsupportedOperationException`; chương trình bắt ngoại lệ và in thông báo.
-5. `Holder` đã sao chép danh sách `Tag` nên `originals.clear()` không làm mất phần tử trong holder. Nhưng cả hai vẫn giữ **cùng đối tượng `Tag`**; vì thế `tag.rename("published")` làm tên tag trong holder thay đổi.
-6. `ByteData` clone mảng ở cả constructor và accessor, nên chỉnh `input[0]` bên ngoài không làm đổi dữ liệu nội bộ.
-7. `Arrays.equals(left.bytes(), right.bytes())` là `true` vì cùng byte. Nhưng `left.equals(right)` là `false` vì record mặc định so hai component kiểu `byte[]` theo danh tính của hai mảng khác nhau.
+1. `loose.roles() == source` is `true` because the record keeps the exact list reference. `safe.roles() == source` is `false` because `List.copyOf` creates a snapshot from the original `ArrayList`.
+2. After `source.add("admin")`, `loose`'s list gains `"admin"`. `safe` still has only `"reader"`.
+3. `loose.hashCode()` changes because `List.hashCode()` depends on contents. With `safe`, the `List<String>` snapshot does not change so its hash stays stable.
+4. `safe.roles().add("editor")` throws `UnsupportedOperationException`; the program catches the exception and prints the message.
+5. `Holder` copied the `Tag` list so `originals.clear()` does not remove the element inside `holder`. However, both still hold **the exact same `Tag` object**; hence `tag.rename("published")` changes the tag name inside `holder`.
+6. `ByteData` clones the array in both the constructor and accessor, so editing `input[0]` externally does not alter internal data.
+7. `Arrays.equals(left.bytes(), right.bytes())` is `true` because the bytes match. However, `left.equals(right)` is `false` because by default the record compares the two `byte[]` components by the identity of two distinct arrays.
 
-Ví dụ sử dụng `HashSet` để minh họa trường hợp khóa biến đổi hash; nó **không phụ thuộc** vào việc `contains` luôn trả `false` trên mọi JVM hay cấu hình bảng băm. Rủi ro là hash động có thể phá việc tra cứu chính xác khi đối tượng đã nằm trong hash collection.
+The example uses `HashSet` to illustrate a key with a mutating hash; it **does not depend** on `contains` always returning `false` across every JVM or hash table configuration. The risk is that a changing hash can break accurate lookup once the object is already inside a hash collection.
 
-## 7. Nếu cần record thật sự bất biến sâu
+## 7. If a Truly Deeply Immutable Record Is Needed
 
-Một chiến lược có thể áp dụng:
+One strategy you can apply:
 
-1. **Chọn các component bất biến ngay từ thiết kế:** ưu tiên `String`, primitive, enum, `BigInteger`, `BigDecimal` và các value object đã được kiểm chứng bất biến.
-2. **Dùng snapshot cho collection:** `List.copyOf`, `Set.copyOf`, `Map.copyOf` nếu các lựa chọn này phù hợp với chính sách null, thứ tự và ý nghĩa dữ liệu.
-3. **Kiểm tra cả phần tử lồng bên trong:** nếu các phần tử mutable, biến đổi chúng thành record/value object bất biến trước khi đưa vào collection, hoặc thực hiện sao chép phòng vệ đúng kiểu.
-4. **Đóng các đường rò rỉ qua accessor:** không trả trực tiếp mảng hoặc đối tượng mutable nội bộ nếu người gọi không được phép sửa.
-5. **Giữ hợp đồng equality ổn định:** những thành phần dùng trong `equals`/`hashCode` không nên thay đổi khi record làm key hoặc phần tử set.
-6. **Rõ ràng về chính sách null và validation:** `List.copyOf` từ chối null; cần quy định rõ có cho phép thiếu dữ liệu hay không.
-7. **Viết test cho các alias đầu vào và đầu ra:** sửa dữ liệu gốc sau khi tạo, thử sửa giá trị accessor trả về, và sửa phần tử lồng bên trong để kiểm tra phạm vi bất biến thực tế.
+1. **Choose immutable components from the start:** prefer `String`, primitives, enums, `BigInteger`, `BigDecimal`, and verified immutable value objects.
+2. **Use snapshots for collections:** `List.copyOf`, `Set.copyOf`, `Map.copyOf` if those choices match your null policy, ordering, and data semantics.
+3. **Check nested elements as well:** if elements are mutable, transform them into immutable records/value objects before putting them into the collection, or perform type-appropriate defensive copying.
+4. **Close leak paths through accessors:** do not directly return internal arrays or mutable objects if callers are not allowed to mutate them.
+5. **Keep the equality contract stable:** components used in `equals`/`hashCode` should not change when the record serves as a key or set element.
+6. **Be explicit about null policies and validation:** `List.copyOf` rejects nulls; specify clearly whether missing data is allowed.
+7. **Write tests for input and output aliases:** mutate original data after creation, attempt to mutate accessor return values, and mutate nested elements to verify the actual scope of immutability.
 
-Ví dụ với các phần tử có thể thay đổi:
+Example with mutable elements:
 
 ```java
 record MutableAddress(StringBuilder street) {}
@@ -292,56 +292,56 @@ record Person(String name, List<AddressValue> addresses) {
 }
 ```
 
-Đây là đoạn khai báo minh họa cần `import java.util.List;`. `MutableAddress` không sâu bất biến vì `StringBuilder` có thể sửa. Ngược lại, `AddressValue` chỉ giữ `String`, còn `Person` chụp snapshot danh sách các `AddressValue`, nên **trong phạm vi các component vừa định nghĩa và không có trạng thái mutable khác**, chúng tạo nên đồ thị giá trị bất biến.
+This is an illustrative declaration snippet requiring `import java.util.List;`. `MutableAddress` is not deeply immutable because `StringBuilder` can be modified. Conversely, `AddressValue` holds only a `String`, and `Person` snapshots a list of `AddressValue`s, so **within the scope of the defined components and with no other mutable state**, they form an immutable value graph.
 
-Không nên gọi bất biến sâu chỉ vì một lớp có từ khóa `record` hoặc chỉ vì accessor trả về collection “unmodifiable”; phải xem xét **đối tượng được chứa**.
+Do not call something deeply immutable merely because a class has the `record` keyword or because an accessor returns an "unmodifiable" collection; examine **the contained objects**.
 
-## 8. Nguyên tắc thực hành và những lỗi phổ biến
+## 8. Practical Guidelines and Common Mistakes
 
-| Cách làm sai hoặc thiếu | Vấn đề | Hướng giải quyết |
+| Wrong or Incomplete Practice | Problem | How to Fix |
 | --- | --- | --- |
-| Dùng `record User(List<String> roles) {}` rồi mặc định cho là bất biến | Lộ tham chiếu `ArrayList` từ constructor và accessor | Dùng snapshot trong canonical constructor nếu cần giá trị bất biến. |
-| Chỉ đặt `private final` cho biến tham chiếu | Không khóa nội dung `List`, `Map`, mảng hoặc object mutable | Sao chép phòng vệ và xem xét tính bất biến của từng component. |
-| Dùng `Collections.unmodifiableList(source)` trực tiếp | Chỉ chặn sửa qua view; chỉnh `source` vẫn tác động | Dùng `List.copyOf` nếu muốn snapshot cấu trúc. |
-| Dùng `new ArrayList<>(source)` rồi trả qua accessor | Bản sao có thể vẫn bị sửa qua accessor | Trả collection không sửa được hoặc bản sao phòng vệ. |
-| Dùng `List.copyOf(List<MutableItem>)` rồi coi là sâu bất biến | Các phần tử vẫn giữ tham chiếu mutable | Chuyển đổi từng phần tử sang immutable value hoặc sao chép sâu theo yêu cầu. |
-| Clone mảng khi nhận nhưng trả mảng trực tiếp | Bên ngoài có thể sửa mảng nội bộ qua accessor | Clone cả khi nhận và khi trả. |
-| Clone mảng rồi mong `record.equals` so nội dung | Mảng không override `equals` theo nội dung | Tự định nghĩa equality/hash theo mảng hoặc dùng component kiểu giá trị thích hợp. |
-| Đưa record chứa `ArrayList` mutable làm key `HashMap` | Hash thay đổi sau khi thêm có thể phá tra cứu | Thiết kế snapshot bất biến trước khi dùng làm key. |
-| Cho rằng `final` của record ngăn mọi side effect | Phương thức vẫn có thể gọi mutator của đối tượng tham chiếu, ghi log, tác động hệ thống khác | Phân biệt trạng thái nội bộ record, tham chiếu và side effect ngoài đối tượng. |
+| Using `record User(List<String> roles) {}` and assuming it is immutable | Exposes the `ArrayList` reference via constructor and accessor | Use a snapshot in the canonical constructor if immutable values are needed. |
+| Relying solely on `private final` for reference variables | Does not lock contents of `List`, `Map`, arrays, or mutable objects | Defensively copy and check immutability of each component. |
+| Using `Collections.unmodifiableList(source)` directly | Only blocks mutation through the view; editing `source` still affects it | Use `List.copyOf` when a structural snapshot is desired. |
+| Using `new ArrayList<>(source)` and returning it via accessor | The copy can still be mutated via the accessor | Return an unmodifiable collection or a defensive copy. |
+| Using `List.copyOf(List<MutableItem>)` and calling it deeply immutable | Elements still hold mutable references | Convert each element to an immutable value or deep-copy as required. |
+| Cloning an array on input but returning the array directly | External callers can mutate the internal array via the accessor | Clone both on input and on output. |
+| Cloning an array and expecting `record.equals` to compare contents | Arrays do not override `equals` by contents | Manually define array-based equality/hash or use an appropriate value-type component. |
+| Putting a record holding a mutable `ArrayList` as a `HashMap` key | Hash changes after insertion can break lookup | Design an immutable snapshot before using as a key. |
+| Assuming a record's `final` prevents all side effects | Methods can still call mutators on referenced objects, write logs, or affect other systems | Distinguish internal record state, references, and external side effects. |
 
-### Trường hợp nào cho phép record có mutable component?
+### When Is a Record Allowed to Have a Mutable Component?
 
-Không phải mọi record đều bắt buộc sâu bất biến. Có những API cố ý bọc một tài nguyên hoặc một đối tượng trạng thái để truyền nhiều giá trị gọn hơn. Điều này có thể hợp lệ nếu quy ước sở hữu và vòng đời dữ liệu được xác định rõ.
+Not every record is required to be deeply immutable. Some APIs intentionally wrap a resource or a state object to pass multiple values concisely. This can be valid if ownership conventions and data lifecycles are clearly defined.
 
-Tuy vậy, record mặc định được thiết kế xoay quanh **giá trị của components**. Nếu các component thay đổi theo thời gian, cần đánh giá nghiêm túc những hệ quả đối với `equals()`, `hashCode()`, `toString()`, tính an toàn luồng, việc serialize dữ liệu và việc dùng object làm cache key.
+Nevertheless, default records are designed around **component values**. If components change over time, seriously evaluate the consequences for `equals()`, `hashCode()`, `toString()`, thread safety, data serialization, and using the object as a cache key.
 
-**Đặc biệt:** `final` không tự tạo thread-safety. Một component `List` mutable có thể đang được nhiều luồng cùng đọc/ghi; record không thay thế cho các quy tắc đồng bộ, ownership hay bất biến sâu.
+**Specifically:** `final` does not create thread-safety on its own. A mutable `List` component may be read/written concurrently by multiple threads; records do not replace synchronization rules, ownership, or deep immutability.
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-**Câu 1.** Record có trường component `private final List<String> roles`. Điều gì được bảo đảm?
+**Question 1.** A record has a component field `private final List<String> roles`. What is guaranteed?
 
-**Đáp án:** Tham chiếu trường được khởi tạo và không thể gán lại sau đó. Nội dung danh sách vẫn có thể đổi nếu đối tượng danh sách mutable và còn đường tham chiếu để sửa.
+**Answer:** The field reference is initialized and cannot be reassigned afterward. The list contents can still change if the list object is mutable and a reference to mutate it remains accessible.
 
-**Câu 2.** Vì sao `List.copyOf(source)` khác `Collections.unmodifiableList(source)`?
+**Question 2.** Why is `List.copyOf(source)` different from `Collections.unmodifiableList(source)`?
 
-**Đáp án:** `List.copyOf` cung cấp snapshot không sửa được của cấu trúc danh sách từ đầu vào mutable; `Collections.unmodifiableList` là view không sửa được nhưng có thể phản ánh các thay đổi được thực hiện trên danh sách nền.
+**Answer:** `List.copyOf` provides an unmodifiable snapshot of the list structure from a mutable input; `Collections.unmodifiableList` is an unmodifiable view that can still reflect modifications made to the underlying list.
 
-**Câu 3.** `List.copyOf` có giúp record chứa `List<StringBuilder>` bất biến sâu không?
+**Question 3.** Does `List.copyOf` make a record containing `List<StringBuilder>` deeply immutable?
 
-**Đáp án:** Không. Danh sách không cho thêm/xóa phần tử qua API nhưng các `StringBuilder` bên trong vẫn có thể `append` hoặc sửa khác.
+**Answer:** No. The list does not allow adding/removing elements via its API, yet the `StringBuilder`s inside can still be appended to or otherwise mutated.
 
-**Câu 4.** Vì sao record chứa `List` mutable có thể gây rắc rối khi được dùng làm key của `HashMap`?
+**Question 4.** Why can a record containing a mutable `List` cause trouble when used as a `HashMap` key?
 
-**Đáp án:** Record sinh `hashCode()` từ các components. Với `List`, hash thay đổi theo nội dung; thay đổi danh sách sau khi đưa key vào map có thể làm tra cứu theo bucket cũ thất bại.
+**Answer:** Records generate `hashCode()` from their components. For `List`, the hash changes with contents; mutating the list after inserting the key into the map can cause lookups in the old bucket to fail.
 
-**Câu 5.** Hai record chứa hai `byte[]` khác nhau nhưng có byte giống hệt sẽ mặc định bằng nhau qua `equals()` không?
+**Question 5.** Will two records holding two distinct `byte[]` arrays with identical bytes be equal by default via `equals()`?
 
-**Đáp án:** Không. Mảng mặc định so tham chiếu, không so toàn bộ phần tử. Nếu yêu cầu so nội dung, cần quy tắc equality/hash khác.
+**Answer:** No. Arrays default to comparing references, not all elements. If content comparison is required, a different equality/hash rule is needed.
 
-**Câu 6.** Muốn record lưu mảng mà bên ngoài không sửa được dữ liệu nội bộ, cần làm gì?
+**Question 6.** To make a record store an array such that external code cannot mutate internal data, what must be done?
 
-**Đáp án:** Clone mảng trong constructor để tách đầu vào và clone tiếp ở accessor để không lộ mảng nội bộ. Nếu cần equality theo nội dung, thiết kế riêng `equals`/`hashCode` phù hợp.
+**Answer:** Clone the array in the constructor to isolate input and clone again in the accessor so the internal array is not exposed. If content equality is needed, design appropriate `equals`/`hashCode` manually.
 
-**Ghi nhớ:** Record của Java cố định **tham chiếu các component** và cung cấp hợp đồng giá trị tiện lợi, nhưng **không tự biến các đối tượng được tham chiếu thành bất biến sâu**. Khi cần bất biến thực sự, phải kiểm soát đầu vào, đối tượng lồng nhau, accessor và quan hệ `equals()`/`hashCode()`.
+**Key Takeaway:** Java records fix **component references** and provide a convenient value contract, yet **they do not automatically make referenced objects deeply immutable**. When true immutability is needed, control inputs, nested objects, accessors, and the `equals()`/`hashCode()` relation.

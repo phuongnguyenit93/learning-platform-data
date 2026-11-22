@@ -1,26 +1,26 @@
-# Kiểm tra từng nhánh bằng bảng trường hợp đầu vào trong Java
+# Testing Each Branch with an Input Case Table in Java
 
-> **Java core — language-basics / Rẽ nhánh if**  
-> **Môi trường:** JDK 17+, một file Java độc lập, không dùng thư viện bên ngoài.  
-> **Mục tiêu:** Chuyển các nhánh `if / else if / else` thành **bảng trường hợp đầu vào – đầu ra mong đợi**, kiểm thử các biên và điều kiện chồng lấp, chạy kiểm tra tự động và nhận biết giới hạn của việc thử một vài giá trị ngẫu nhiên.
+> **Java core — language-basics / if branching**  
+> **Environment:** JDK 17+, single standalone Java file, no external libraries.  
+> **Goal:** Turn `if / else if / else` branches into an **input–expected output case table**, test boundaries and overlapping conditions, run automated verification, and recognize the limits of testing only a few random values.
 
-## 1. Tại sao cần bảng kiểm tra từng nhánh?
+## 1. Why is a branch test table needed?
 
-Một chuỗi `if / else if / else` có nhiều đường đi. Chạy một giá trị thuận tiện, ví dụ chỉ `score = 95`, **không chứng minh** các nhánh khác hoạt động đúng.
+An `if / else if / else` chain has multiple paths. Running one convenient value, such as only `score = 95`, **does not prove** that the other branches work properly.
 
-Cách làm có thể lặp lại:
+A repeatable approach:
 
-1. Đọc điều kiện theo đúng **thứ tự** và xác định những nhánh có thể được chọn.
-2. Ghi rõ mỗi **đầu vào**, **nhánh mong đợi** và **kết quả mong đợi** vào bảng.
-3. Chọn ít nhất một trường hợp đi vào **mỗi nhánh**, kể cả `else` và đường xử lý dữ liệu không hợp lệ.
-4. Thêm dữ liệu **ngay dưới, đúng tại và ngay trên** các ngưỡng có ý nghĩa.
-5. Chạy chương trình, so sánh **actual** với **expected**, báo FAIL khi khác nhau.
+1. Read conditions in their exact **order** and identify which branches can be selected.
+2. Write each **input**, **expected branch**, and **expected result** into a table.
+3. Pick at least one case entering **each branch**, including `else` and invalid-data handling paths.
+4. Add data **just below, right at, and just above** meaningful thresholds.
+5. Run the program, compare **actual** against **expected**, and report FAIL on mismatch.
 
-**Lưu ý:** Bảng do người viết thiết kế là một bộ *test cases*, không tự động chứng minh mọi đầu vào đều đúng. Một bảng tốt giúp nhìn rõ nhánh còn thiếu; kiểm thử càng chặt cần xét cả tổ hợp điều kiện, lỗi, null và thay đổi trạng thái.
+**Note:** A manually designed table is a set of *test cases*, not an automatic proof that every possible input is correct. A good table makes missing branches obvious; stricter testing also considers condition combinations, errors, null, and state mutations.
 
-## 2. Ví dụ: phân loại điểm theo chuỗi loại trừ
+## 2. Example: grading via an exclusive chain
 
-Quy tắc nghiệp vụ: điểm phải thuộc `0..100`; các nhãn lần lượt là `A` (≥90), `B` (≥75), `C` (≥50), `D` (còn lại).
+Business rule: score must be in `0..100`; labels are `A` (≥90), `B` (≥75), `C` (≥50), `D` (rest).
 
 ~~~java
 static String classifyScore(int score) {
@@ -38,34 +38,34 @@ static String classifyScore(int score) {
 }
 ~~~
 
-Java chỉ chọn **nhánh đúng đầu tiên** trong chuỗi. Do đó cần kiểm tra ngưỡng cao trước ngưỡng thấp: nếu kiểm tra `score >= 50` trước `score >= 90`, điểm 95 có thể bị phân loại thành C.
+Java selects only the **first true branch** in the chain. Therefore, check higher thresholds before lower ones: checking `score >= 50` before `score >= 90` would misclassify a score of 95 as C.
 
-Các nhánh cần được quan sát: `INVALID`, `A`, `B`, `C`, `D`. Riêng điều kiện đầu `score < 0 || score > 100` có **hai lý do khác nhau** khiến giá trị không hợp lệ: quá thấp hoặc quá cao. Kiểm thử cả hai để tránh bỏ sót lỗi chỉ xuất hiện ở một phía.
+Branches to observe: `INVALID`, `A`, `B`, `C`, `D`. Specifically, the first condition `score < 0 || score > 100` has **two distinct reasons** why a value is invalid: too low or too high. Test both so you do not miss a bug occurring on only one side.
 
-## 3. Bảng test cases và giá trị sát ranh giới
+## 3. Test case table and near-boundary values
 
-| Đầu vào `score` | Nhánh mong đợi | Expected | Lý do chọn |
+| Input `score` | Expected branch | Expected | Selection reason |
 | ---: | --- | --- | --- |
-| -1 | Không hợp lệ | `INVALID` | Dưới ngưỡng 0 |
-| 0 | `else` | `D` | Biên dưới hợp lệ |
-| 49 | `else` | `D` | Ngay dưới 50 |
-| 50 | `score >= 50` | `C` | Ngay tại 50 |
-| 74 | `score >= 50` | `C` | Ngay dưới 75 |
-| 75 | `score >= 75` | `B` | Ngay tại 75 |
-| 89 | `score >= 75` | `B` | Ngay dưới 90 |
-| 90 | `score >= 90` | `A` | Ngay tại 90 |
-| 100 | `score >= 90` | `A` | Biên trên hợp lệ |
-| 101 | Không hợp lệ | `INVALID` | Trên ngưỡng 100 |
+| -1 | Invalid | `INVALID` | Below 0 threshold |
+| 0 | `else` | `D` | Valid lower bound |
+| 49 | `else` | `D` | Just below 50 |
+| 50 | `score >= 50` | `C` | Right at 50 |
+| 74 | `score >= 50` | `C` | Just below 75 |
+| 75 | `score >= 75` | `B` | Right at 75 |
+| 89 | `score >= 75` | `B` | Just below 90 |
+| 90 | `score >= 90` | `A` | Right at 90 |
+| 100 | `score >= 90` | `A` | Valid upper bound |
+| 101 | Invalid | `INVALID` | Above 100 threshold |
 
-Bảng bao phủ **cả năm nhánh đầu ra** và các biên quan trọng. Đặc biệt, với `score == 50`, điều kiện `score >= 50` phải đúng; với `score == 49` phải sai. Cặp này giúp phát hiện lỗi vô tình đổi `>=` thành `>`.
+The table covers **all five output branches** and key boundaries. In particular, for `score == 50`, `score >= 50` must be true; for `score == 49`, it must be false. This pair detects accidentally changing `>=` to `>`.
 
-Với nhánh kiểm tra `score < 0 || score > 100`, `score = -1` làm vế trái đúng nên vế phải không chạy do short-circuit; `score = 101` làm vế trái sai và vế phải đúng. Hai trường hợp kiểm thử các tình huống khác nhau của điều kiện ghép.
+For the `score < 0 || score > 100` check, `score = -1` makes the left side true so the right side does not run due to short-circuiting; `score = 101` makes the left side false and the right side true. The two cases test different paths through the compound condition.
 
-**Không nhất thiết liệt kê mọi điểm 0..100** để kiểm tra biên, nhưng có thể dùng thêm kiểm thử toàn miền hoặc sinh trường hợp khi yêu cầu độ tin cậy cao hơn.
+**You do not necessarily need to list every score 0..100** to test boundaries, though full-range testing or case generation can be added when higher assurance is required.
 
-## 4. Bảng cho nhiều `if` độc lập khác với chuỗi `else if`
+## 4. Tables for multiple independent `if` statements differ from `else if` chains
 
-Với hai cờ `review` và `urgent`, **cả hai hành động có thể cần chạy**:
+With two flags `review` and `urgent`, **both actions may need to run**:
 
 ~~~java
 StringBuilder actions = new StringBuilder();
@@ -79,36 +79,36 @@ if (urgent) {
 String result = actions.length() == 0 ? "NONE" : actions.toString();
 ~~~
 
-Các trường hợp phải kiểm tra:
+Cases that must be tested:
 
-| `review` | `urgent` | Expected | Nhánh thực thi |
+| `review` | `urgent` | Expected | Executed branches |
 | --- | --- | --- | --- |
-| false | false | `NONE` | Không nhánh nào |
-| true | false | `REVIEW` | Chỉ `if` đầu |
-| false | true | `URGENT` | Chỉ `if` thứ hai |
-| true | true | `REVIEW+URGENT` | **Cả hai `if`** |
+| false | false | `NONE` | No branch |
+| true | false | `REVIEW` | First `if` only |
+| false | true | `URGENT` | Second `if` only |
+| true | true | `REVIEW+URGENT` | **Both `if` statements** |
 
-Nếu vô tình thay `if (urgent)` bằng `else if (urgent)`, trường hợp `true, true` sẽ bị thiếu `URGENT`. Đây là lý do bảng **tổ hợp các điều kiện** quan trọng hơn chỉ thử riêng từng cờ.
+If `if (urgent)` is accidentally replaced with `else if (urgent)`, the `true, true` case will miss `URGENT`. This is why a **combination table of conditions** matters more than testing each flag alone.
 
-Với một chuỗi loại trừ `if/else if/else`, bảng lại cần xác nhận **chỉ một nhánh** chạy và điều kiện phía sau nhánh đã chọn không được đánh giá.
+With an exclusive `if/else if/else` chain, on the other hand, the table should verify that **only one branch** executes and conditions after the chosen branch are not evaluated.
 
-## 5. Phân biệt độ phủ nhánh và kiểm thử giá trị biên
+## 5. Distinguishing branch coverage from boundary-value testing
 
-| Kỹ thuật | Câu hỏi cần trả lời | Ví dụ |
+| Technique | Question to answer | Example |
 | --- | --- | --- |
-| Bao phủ nhánh đầu ra | Mọi nhánh `if/else if/else` đã được chọn ít nhất một lần chưa? | Đầu ra `INVALID`, `A`, `B`, `C`, `D` |
-| Kiểm tra giá trị biên | Dấu `<`, `<=`, `>`, `>=` có chính xác tại ranh giới không? | 49/50, 74/75, 89/90 |
-| Tổ hợp điều kiện | Các điều kiện đồng thời đúng/sai có bị bỏ quên không? | Hai cờ true/true |
-| Điều kiện ghép | Mỗi nguyên nhân làm một điều kiện ghép đúng/sai đã được xét chưa? | Điểm `-1` và `101` |
-| Giá trị ngoại lệ | Đầu vào ngoài miền, null hoặc trạng thái không hợp lệ được xử lý ra sao? | `score=-1`, `score=101` |
+| Output branch coverage | Has every `if/else if/else` branch been taken at least once? | Outputs `INVALID`, `A`, `B`, `C`, `D` |
+| Boundary value testing | Are `<`, `<=`, `>`, `>=` exact at boundaries? | 49/50, 74/75, 89/90 |
+| Condition combinations | Are simultaneous true/false combinations overlooked? | Both flags true/true |
+| Compound conditions | Has each cause making a compound condition true/false been tested? | Scores `-1` and `101` |
+| Exceptional/edge values | How are out-of-range, null, or invalid states handled? | `score=-1`, `score=101` |
 
-**Bao phủ nhánh chưa đủ để bảo đảm tính đúng.** Ví dụ một test có thể vào nhánh B bằng điểm 80, nhưng không phát hiện lỗi ở biên 75. Độ phủ cao cũng không thay thế việc đối chiếu với **yêu cầu nghiệp vụ**.
+**Branch coverage alone is not enough to guarantee correctness.** For example, a test can enter branch B with score 80, yet miss an off-by-one bug at boundary 75. High coverage also does not replace checking against **business requirements**.
 
-Khi điều kiện phụ thuộc thứ tự hoặc có side effect, hãy lập bảng thể hiện **biểu thức nào được đánh giá**; không giả định mọi `else if` đều chạy. Với `null`, cần thiết kế đầu vào có và không có dữ liệu, kiểm tra guard trước khi gọi phương thức.
+When conditions depend on order or have side effects, build a table showing **which expressions get evaluated**; do not assume every `else if` runs. For `null`, design inputs with and without data, checking guards before calling methods.
 
-## 6. Chương trình Java 17+ tự kiểm tra bảng đầu vào
+## 6. Self-verifying Java 17+ program for input case tables
 
-Tạo file **IfBranchCaseTableDemo.java**:
+Create the file **IfBranchCaseTableDemo.java**:
 
 ~~~java
 public final class IfBranchCaseTableDemo {
@@ -196,14 +196,14 @@ public final class IfBranchCaseTableDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 IfBranchCaseTableDemo.java
 java IfBranchCaseTableDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 score=-1,expected=INVALID,actual=INVALID,status=PASS
@@ -224,34 +224,34 @@ review=true,urgent=true,expected=REVIEW+URGENT,actual=REVIEW+URGENT,status=PASS
 flagTests=4/4
 ~~~
 
-Bài demo dùng `record` có sẵn trong Java 17 để khai báo từng dòng dữ liệu thử; test tách **expected** khỏi **actual** rồi so sánh bằng `equals`. Nếu thay đổi logic làm hai giá trị không trùng nhau, chương trình in `FAIL` và ném `AssertionError` sau khi chạy hết bảng.
+The demo uses `record` available in Java 17 to declare each row of test data; the test separates **expected** from **actual** and compares them with `equals`. If a logic change makes the two values mismatch, the program prints `FAIL` and throws `AssertionError` after running through the table.
 
-Các giá trị expected phải được suy ra từ **đặc tả**, không sao chép máy móc từ output hiện tại của hàm cần kiểm thử; nếu không test có thể luôn PASS dù code sai yêu cầu.
+Expected values must be derived from the **specification**, not mechanically copied from the current output of the function under test; otherwise tests can always PASS even when the code violates requirements.
 
-## 7. Checklist trước khi kết luận nhánh đã được kiểm tra
+## 7. Checklist before concluding branches are tested
 
-- Tất cả nhánh có thể chọn, kể cả `else`, đã có ít nhất một test?
-- Mọi ngưỡng có test ngay **dưới / bằng / trên** hay chưa?
-- Điều kiện ghép `&&`/`||` có test cho các tình huống quyết định ở vế trái và vế phải?
-- Nhiều `if` độc lập có test khi **cả hai cùng đúng**?
-- Các trường hợp không hợp lệ, null, empty hoặc ngoài miền đã có expected rõ ràng?
-- Mỗi hàng đều so sánh expected với actual và **báo lỗi khi mismatch**?
-- Sau khi sửa thứ tự nhánh hoặc toán tử, các test cũ có được chạy lại không?
+- Have all selectable branches, including `else`, been given at least one test?
+- Does every threshold have tests right **below / at / above** it?
+- Do compound `&&`/`||` conditions have tests for deciding outcomes on both left and right sides?
+- Do multiple independent `if` statements have a test when **both are true**?
+- Do invalid, null, empty, or out-of-range cases have clear expected results?
+- Does each row compare expected against actual and **fail on mismatch**?
+- After reordering branches or changing operators, are existing tests re-run?
 
-Để có độ tin cậy cao hơn, kết hợp test case table với kiểm thử tự động như JUnit khi dự án đã dùng framework; ví dụ trong bài này chỉ cần JDK 17 và chương trình `main` tự kiểm tra.
+For higher confidence, combine case tables with automated testing frameworks like JUnit when a project uses one; the example in this lesson needs only JDK 17 and a self-checking `main` program.
 
-## 8. Bài tập thực hành
+## 8. Practice exercises
 
-**Bài 1.** Lập bảng đầu vào cho `if (x < 0) ... else if (x == 0) ... else ...`. Chọn ít nhất `-1`, `0` và `1`, ghi đúng nhánh và expected.
+**Exercise 1.** Build an input table for `if (x < 0) ... else if (x == 0) ... else ...`. Choose at least `-1`, `0`, and `1`, recording the exact branch and expected result.
 
-**Bài 2.** Trong `classifyScore`, cố ý đổi `score >= 75` thành `score > 75`. Dòng nào trong bảng dự kiến FAIL? Vì sao?
+**Exercise 2.** In `classifyScore`, intentionally change `score >= 75` to `score > 75`. Which row in the table is expected to FAIL? Why?
 
-**Bài 3.** Đổi thứ tự hai nhánh `score >= 90` và `score >= 50`. Hàng đầu vào nào giúp phát hiện lỗi chọn nhánh đầu tiên?
+**Exercise 3.** Swap the order of the two branches `score >= 90` and `score >= 50`. Which input row catches the wrong first-branch selection bug?
 
-**Bài 4.** Với hai `if` độc lập cho `review` và `urgent`, giải thích vì sao cần đủ bốn tổ hợp. Điều gì xảy ra nếu đổi `if` thứ hai thành `else if`?
+**Exercise 4.** With two independent `if` statements for `review` and `urgent`, explain why all four combinations are needed. What happens if the second `if` is changed to `else if`?
 
-**Bài 5.** Thêm yêu cầu riêng cho `score == 100` (ví dụ nhãn `PERFECT`) và cập nhật cả code lẫn bảng test: nhánh mới nên đặt ở đâu để được chọn?
+**Exercise 5.** Add a special requirement for `score == 100` (e.g., label `PERFECT`) and update both code and test table: where must the new branch be placed so that it gets selected?
 
-### Ghi nhớ
+### Key takeaway
 
-**Kiểm thử rẽ nhánh bắt đầu từ bảng đầu vào → nhánh dự kiến → kết quả dự kiến.** Mỗi nhánh cần có ca thử; các ngưỡng cần test sát biên; điều kiện chồng lấp và nhiều `if` độc lập cần test theo tổ hợp. Việc kiểm tra expected/actual chỉ có ý nghĩa khi expected được xác định độc lập với mã đang kiểm thử.
+**Branch testing starts with a table: input → expected branch → expected result.** Every branch needs a test case; thresholds need near-boundary tests; overlapping conditions and multiple independent `if` statements need combination tests. Checking expected vs. actual is only meaningful when expected values are determined independently of the code under test.

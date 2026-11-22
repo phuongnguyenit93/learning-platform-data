@@ -1,39 +1,39 @@
-# Tên automatic module từ Automatic-Module-Name
+# Automatic Module Name from Automatic-Module-Name
 
-## 1. Bối cảnh và mục tiêu
+## 1. Context and Objectives
 
-Từ Java 9, Java Platform Module System (JPMS) cho phép ứng dụng tổ chức mã thành **named modules**. Trong giai đoạn chuyển thư viện cũ sang module path, nhiều JAR chưa có `module-info.class`. Khi đặt một JAR như vậy trên **module path**, Java có thể coi nó là **automatic module** để các module đã khai báo rõ ràng có thể sử dụng thư viện đó.
+Since Java 9, the Java Platform Module System (JPMS) allows applications to organize code into **named modules**. While migrating legacy libraries to the module path, many JARs do not yet have `module-info.class`. When such a JAR is placed on the **module path**, Java can treat it as an **automatic module** so that explicitly declared modules can use that library.
 
-Điểm quan trọng của bài này là: tác giả thư viện có thể khai báo **tên module ổn định** bằng thuộc tính `Automatic-Module-Name` trong manifest của JAR. Người dùng thư viện sẽ dùng đúng tên đó trong câu lệnh `requires` của `module-info.java`.
+The key takeaway of this lesson is that library authors can declare a **stable module name** using the `Automatic-Module-Name` attribute in the JAR's manifest. Library consumers will use that exact name in the `requires` statement of `module-info.java`.
 
-Sau bài này, bạn có thể:
-- Phân biệt tên module lấy từ manifest với tên tự suy ra từ tên file JAR.
-- Khai báo `Automatic-Module-Name` khi đóng gói JAR.
-- Dùng tên module đã khai báo trong `requires` và kiểm tra bằng công cụ `jar`.
-- Nhận biết những lỗi thường gặp khi một thư viện được đưa lên module path.
+After this lesson, you will be able to:
+- Distinguish a module name obtained from the manifest from a name automatically derived from the JAR file name.
+- Declare `Automatic-Module-Name` when packaging a JAR.
+- Use the declared module name in `requires` and verify it with the `jar` tool.
+- Recognize common errors when a library is placed on the module path.
 
-## 2. Java xác định tên automatic module như thế nào?
+## 2. How Does Java Determine the Automatic Module Name?
 
-Một JAR **không chứa module descriptor** `module-info.class` được xem là automatic module khi được đặt trên module path. Java xác định tên của nó theo thứ tự sau:
+A JAR **without a module descriptor** `module-info.class` is treated as an automatic module when placed on the module path. Java determines its name in the following order:
 
-1. Nếu phần manifest chính (`META-INF/MANIFEST.MF`) có thuộc tính `Automatic-Module-Name` hợp lệ, dùng **giá trị thuộc tính đó**.
-2. Nếu không có thuộc tính này, Java **suy ra tên từ tên file JAR**, loại phần phiên bản và chuẩn hóa các dấu phân cách theo quy tắc của JPMS.
+1. If the main section of the manifest (`META-INF/MANIFEST.MF`) has a valid `Automatic-Module-Name` attribute, use **that attribute's value**.
+2. If this attribute is absent, Java **derives the name from the JAR file name**, stripping the version part and normalizing separators according to JPMS rules.
 
-Ví dụ, file `example-util-1.0.jar` có thể được suy ra thành `example.util`. Nếu manifest ghi `Automatic-Module-Name: com.example.util`, tên module là **`com.example.util`**, bất kể tên file JAR chứa phiên bản nào.
+For example, the file `example-util-1.0.jar` may be derived as `example.util`. If the manifest specifies `Automatic-Module-Name: com.example.util`, the module name is **`com.example.util`**, regardless of whatever version the JAR file name contains.
 
-| Tình huống | Tên module được dùng |
+| Scenario | Module Name Used |
 | --- | --- |
-| JAR có `module-info.class` | Tên trong câu lệnh `module ... { }` của module descriptor |
-| JAR chưa có descriptor, manifest có `Automatic-Module-Name` | Giá trị `Automatic-Module-Name` |
-| JAR chưa có descriptor và không có thuộc tính trên | Tên suy ra từ tên file JAR |
+| JAR has `module-info.class` | Name in the `module ... { }` statement of the module descriptor |
+| JAR has no descriptor, manifest has `Automatic-Module-Name` | Value of `Automatic-Module-Name` |
+| JAR has no descriptor and lacks the attribute above | Name derived from the JAR file name |
 
-**Lưu ý:** Khi JAR đã có module descriptor thực sự, tên trong descriptor có hiệu lực; manifest không đổi tên một explicit module. Thuộc tính `Automatic-Module-Name` cũng không biến JAR thành explicit module.
+**Note:** When a JAR already has a real module descriptor, the name in the descriptor takes effect; the manifest does not rename an explicit module. The `Automatic-Module-Name` attribute also does not turn a JAR into an explicit module.
 
-## 3. Khai báo Automatic-Module-Name trong MANIFEST.MF
+## 3. Declaring Automatic-Module-Name in MANIFEST.MF
 
-Giả sử thư viện có các lớp trong package `com.example.util`, được đóng gói thành `example-util-1.0.jar`. Ta muốn các ứng dụng luôn gọi thư viện bằng tên module `com.example.util`.
+Suppose a library has classes in the package `com.example.util`, packaged as `example-util-1.0.jar`. We want applications to always refer to the library by the module name `com.example.util`.
 
-Nội dung manifest tối thiểu có thể là:
+The minimal manifest content can be:
 
 ```text
 Manifest-Version: 1.0
@@ -41,25 +41,25 @@ Automatic-Module-Name: com.example.util
 
 ```
 
-Thuộc tính phải nằm trong **main section** của file `META-INF/MANIFEST.MF`. Dòng trống cuối cùng kết thúc section. Khi dùng công cụ đóng gói JAR, nên để công cụ sinh và chuẩn hóa manifest thay vì chỉnh sửa tùy tiện file nằm trong JAR.
+The attribute must be in the **main section** of `META-INF/MANIFEST.MF`. The trailing blank line terminates the section. When using JAR packaging tools, let the tool generate and normalize the manifest rather than arbitrarily editing files inside the JAR.
 
-Tên module `com.example.util` là tên Java hợp lệ, dùng dấu chấm để phân cấp. Nên dùng quy ước tên đảo ngược miền giống tên package. Các tên chứa dấu gạch ngang, dấu cách, hoặc thành phần không phải định danh Java hợp lệ không phù hợp với tên module.
+The module name `com.example.util` is a valid Java name, using dots for hierarchy. You should follow the reverse-domain naming convention just like package names. Names containing hyphens, spaces, or components that are not valid Java identifiers are unsuitable as module names.
 
-Tên này là **giao ước công khai của thư viện**: khi ứng dụng đã viết `requires com.example.util;`, đổi tên module sẽ làm mã ứng dụng phải sửa theo.
+This name is part of the **library's public contract**: once applications have written `requires com.example.util;`, changing the module name will force application code to be updated accordingly.
 
-### Đóng gói thủ công với jar
+### Manual Packaging with jar
 
-Giả sử các file `.class` đã được biên dịch vào thư mục `build/util-classes`, còn nội dung manifest ở file `manifest.mf`:
+Suppose the `.class` files have been compiled into the `build/util-classes` directory, and the manifest content is in the file `manifest.mf`:
 
 ```bash
 jar --create --file example-util-1.0.jar --manifest manifest.mf -C build/util-classes .
 ```
 
-JAR thành phẩm phải có manifest khai báo tên ở trên và chứa các lớp thư viện. Đặt JAR đó lên module path để Java nhận diện là automatic module.
+The resulting JAR must have the manifest declaring the name above and contain the library classes. Place that JAR on the module path so Java recognizes it as an automatic module.
 
-### Cấu hình Maven
+### Maven Configuration
 
-Với dự án đóng gói kiểu `jar`, có thể cấu hình `maven-jar-plugin` trong `pom.xml`:
+For a project with `jar` packaging, you can configure `maven-jar-plugin` in `pom.xml`:
 
 ```xml
 <build>
@@ -79,11 +79,11 @@ Với dự án đóng gói kiểu `jar`, có thể cấu hình `maven-jar-plugin
 </build>
 ```
 
-Sau khi đóng gói, hãy kiểm tra **JAR cuối cùng được phát hành**. Nếu quy trình còn có bước tạo fat JAR, shading hoặc repackaging, cần bảo đảm manifest trong artifact cuối vẫn giữ đúng thuộc tính này.
+After packaging, inspect the **final published JAR**. If your build pipeline includes steps to create a fat JAR, shading, or repackaging, make sure the manifest in the final artifact still preserves this attribute.
 
-### Cấu hình Gradle (Groovy DSL)
+### Gradle Configuration (Groovy DSL)
 
-Trong `build.gradle`:
+In `build.gradle`:
 
 ```groovy
 tasks.withType(Jar).configureEach {
@@ -93,11 +93,11 @@ tasks.withType(Jar).configureEach {
 }
 ```
 
-Nếu dự án có nhiều nhiệm vụ tạo JAR, kiểm tra manifest của đúng artifact mà người dùng tải về.
+If the project has multiple JAR-building tasks, inspect the manifest of the exact artifact that users download.
 
-## 4. Sử dụng tên đó từ một explicit module
+## 4. Using That Name from an Explicit Module
 
-Giả sử thư viện có lớp:
+Suppose the library has the class:
 
 ```java
 package com.example.util;
@@ -111,7 +111,7 @@ public final class Texts {
 }
 ```
 
-Ứng dụng có module descriptor `src/app/module-info.java` như sau:
+The application has the module descriptor `src/app/module-info.java` as follows:
 
 ```java
 module com.example.app {
@@ -119,7 +119,7 @@ module com.example.app {
 }
 ```
 
-Lớp chính của ứng dụng:
+The application's main class:
 
 ```java
 package com.example.app;
@@ -128,55 +128,55 @@ import com.example.util.Texts;
 
 public class Main {
     public static void main(String[] args) {
-        System.out.println(Texts.trimToEmpty("  Xin chào JPMS  "));
+        System.out.println(Texts.trimToEmpty("  Hello JPMS  "));
     }
 }
 ```
 
-Ở đây `requires com.example.util;` tham chiếu **tên module trong manifest**, không phải tên Maven artifact, tên file JAR đầy đủ hoặc tên package của một lớp bất kỳ.
+Here `requires com.example.util;` references the **module name in the manifest**, not the Maven artifact name, the full JAR file name, or the package name of any arbitrary class.
 
-Ví dụ chạy trên môi trường có JDK 9 trở lên, khi `libs/` chứa `example-util-1.0.jar` và cấu trúc nguồn giống các đường dẫn trên:
+Example running on an environment with JDK 9 or later, when `libs/` contains `example-util-1.0.jar` and the source layout matches the paths above:
 
 ```bash
 javac --module-path libs -d build/app-classes src/app/module-info.java src/app/com/example/app/Main.java
 java --module-path "libs:build/app-classes" --module com.example.app/com.example.app.Main
 ```
 
-Đầu ra mong đợi:
+Expected output:
 
 ```text
-Xin chào JPMS
+Hello JPMS
 ```
 
-Trong lệnh `java`, dấu `:` phân tách nhiều mục của module path trên Linux/macOS; trên Windows, thay bằng dấu `;`. Tên automatic module chỉ tham gia cơ chế JPMS khi JAR ở **module path**. Khi cùng JAR nằm trên **classpath**, JVM xử lý nó theo cơ chế classpath truyền thống và không yêu cầu `requires` cho JAR đó.
+In the `java` command, `:` separates multiple module path entries on Linux/macOS; on Windows, replace it with `;`. The automatic module name participates in JPMS only when the JAR is on the **module path**. When the same JAR is on the **classpath**, the JVM handles it via the traditional classpath mechanism and does not require `requires` for that JAR.
 
-## 5. Kiểm tra tên module thực tế
+## 5. Verifying the Actual Module Name
 
-Không nên đoán tên module từ tên file hoặc tên thư viện được công bố. Dùng công cụ đi kèm JDK:
+You should not guess the module name from the file name or published library name. Use the tool included with the JDK:
 
 ```bash
 jar --describe-module --file example-util-1.0.jar
 ```
 
-Với JAR chưa có `module-info.class` nhưng có manifest khai báo tên, công cụ sẽ mô tả một **automatic module** có tên `com.example.util`. Cách trình bày dòng kết quả có thể khác nhau giữa các phiên bản JDK; thông tin cần đối chiếu là **tên module** và **trạng thái automatic**.
+For a JAR that has no `module-info.class` yet has a manifest declaring the name, the tool will describe an **automatic module** named `com.example.util`. The exact formatting of the output lines may vary between JDK versions; the information to verify is the **module name** and the **automatic status**.
 
-Có thể xem manifest trực tiếp bằng công cụ giải nén JAR/ZIP để xác nhận mục `META-INF/MANIFEST.MF` có dòng:
+You can view the manifest directly with a JAR/ZIP extraction tool to confirm that the `META-INF/MANIFEST.MF` entry contains the line:
 
 ```text
 Automatic-Module-Name: com.example.util
 ```
 
-Hãy xác minh trên **bản JAR thực sự được đưa vào module path**, đặc biệt khi dự án có các gói `sources`, `tests`, bản phân phối đã đổi tên hoặc quá trình đóng gói nhiều bước.
+Verify this on the **actual JAR placed on the module path**, especially when the project has `sources` or `tests` packages, renamed distributions, or a multi-step packaging process.
 
-## 6. Automatic-Module-Name làm gì và không làm gì?
+## 6. What Automatic-Module-Name Does and Does Not Do
 
-- **Ổn định tên để phụ thuộc:** thay vì viết `requires example.util;` theo tên file suy ra, ứng dụng có thể dùng `requires com.example.util;` nhất quán qua các phiên bản JAR.
-- **Hỗ trợ di trú sang JPMS:** thư viện chưa có descriptor vẫn có thể được ứng dụng modular sử dụng trong giai đoạn chuyển đổi.
-- **Không định nghĩa phụ thuộc của thư viện:** chỉ có tên trong manifest không tạo ra các câu `requires`, `exports` hay `opens` cho một explicit module.
-- **Không tự modular hóa thư viện:** automatic module được JPMS đối xử linh hoạt, như đọc các module khác và xuất các package của nó, để tương thích với mã cũ. Cơ chế đó khác với việc khai báo quyền đọc, package xuất và package mở một cách có chủ đích trong `module-info.java`.
-- **Không làm tên package và tên module thành một:** tên module thường gần với namespace thư viện nhưng là một danh tính riêng. Một module có thể chứa nhiều package.
+- **Stabilizes the name to depend on:** instead of writing `requires example.util;` based on a derived filename, applications can use `requires com.example.util;` consistently across JAR versions.
+- **Supports migration to JPMS:** a library without a descriptor can still be used by modular applications during the transition phase.
+- **Does not define the library's dependencies:** merely having a name in the manifest does not create `requires`, `exports`, or `opens` clauses as an explicit module would.
+- **Does not automatically modularize the library:** JPMS treats an automatic module permissively, such as reading other modules and exporting its own packages, for compatibility with legacy code. That mechanism differs from intentionally declaring readability, exported packages, and opened packages in `module-info.java`.
+- **Does not merge package names and module names into one:** a module name is often close to the library's namespace, but it is a separate identity. A single module can contain multiple packages.
 
-Khi thư viện chuyển sang explicit module trong phiên bản sau, nên giữ lại chính xác tên `com.example.util` trong descriptor:
+When the library transitions to an explicit module in a later release, you should keep the exact name `com.example.util` in the descriptor:
 
 ```java
 module com.example.util {
@@ -184,46 +184,46 @@ module com.example.util {
 }
 ```
 
-Nhờ vậy, các ứng dụng vốn đã viết `requires com.example.util;` có thể giữ nguyên tên phụ thuộc. Tuy nhiên, việc chuyển sang explicit module vẫn có thể thay đổi mức độ truy cập vào các package và yêu cầu phụ thuộc, nên cần đánh giá tác động tương thích riêng.
+As a result, applications that already wrote `requires com.example.util;` can keep the dependency name unchanged. However, migrating to an explicit module can still change package accessibility and dependency requirements, so compatibility impacts must be evaluated separately.
 
-## 7. Lỗi thường gặp và cách xác định nguyên nhân
+## 7. Common Errors and How to Identify the Cause
 
-### Lỗi: module not found: com.example.util
+### Error: module not found: com.example.util
 
-Nguyên nhân thường gặp:
-- JAR chưa được đặt đúng trên module path của bước biên dịch/chạy.
-- Manifest của artifact cuối không có `Automatic-Module-Name` như dự kiến.
-- Tên trong `requires` khác tên thực tế của JAR (ví dụ dùng `example.util` trong khi manifest ghi `com.example.util`).
+Common causes:
+- The JAR was not properly placed on the module path during compilation/execution.
+- The manifest of the final artifact does not contain `Automatic-Module-Name` as expected.
+- The name in `requires` differs from the JAR's actual name (for example, using `example.util` while the manifest specifies `com.example.util`).
 
-Cách xử lý: chạy `jar --describe-module --file ...` trên đúng JAR, rồi đối chiếu tên với `module-info.java` và tham số `--module-path`.
+How to fix: run `jar --describe-module --file ...` on the exact JAR, then compare the name with `module-info.java` and the `--module-path` option.
 
-### Lỗi vì tên module trùng nhau
+### Error Due to Duplicate Module Names
 
-Hai JAR khác nhau cùng công bố `Automatic-Module-Name: com.example.util` không thể đại diện cho hai module riêng biệt với cùng tên trong một cấu hình module đã phân giải. Hãy bảo đảm mỗi thư viện có danh tính module duy nhất; rà soát các phiên bản JAR bị đưa vào cùng module path.
+Two different JARs declaring the same `Automatic-Module-Name: com.example.util` cannot represent two separate modules with the same name in a resolved module configuration. Ensure each library has a unique module identity; audit JAR versions placed on the same module path.
 
-### Lỗi vì tên không hợp lệ
+### Error Due to an Invalid Name
 
-Giá trị như `example-util` chứa dấu gạch ngang nên không phải tên module Java hợp lệ. Hãy chọn tên như `com.example.util`, đóng gói lại, rồi kiểm tra kết quả bằng `jar --describe-module`.
+A value such as `example-util` contains a hyphen and is therefore not a valid Java module name. Choose a name like `com.example.util`, repackage, and verify the result with `jar --describe-module`.
 
-### Lỗi do split package hoặc phụ thuộc chưa tương thích
+### Errors from Split Packages or Incompatible Dependencies
 
-Tạo tên module ổn định không giải quyết mọi xung đột module path. Nếu hai module cung cấp cùng một package hoặc thư viện cũ phụ thuộc vào mã chưa bố trí đúng classpath/module path, quá trình phân giải hay biên dịch vẫn có thể thất bại. Khi đó cần kiểm tra **cấu trúc package và sơ đồ phụ thuộc**, thay vì chỉ sửa tên manifest.
+Creating a stable module name does not resolve all module path conflicts. If two modules provide the same package or a legacy library depends on code not properly arranged on the classpath/module path, resolution or compilation can still fail. In that case, inspect the **package structure and dependency graph**, rather than only fixing the manifest name.
 
-## 8. Khi nào nên khai báo thuộc tính này?
+## 8. When Should You Declare This Attribute?
 
-Tác giả của **thư viện JAR chưa có module descriptor** nên cân nhắc khai báo `Automatic-Module-Name` sớm, nhất là khi thư viện có người dùng đang chuyển ứng dụng sang JPMS. Một tên rõ ràng, ổn định giúp giảm rủi ro tên tự suy ra thay đổi khi đổi `artifactId`, cách đặt tên file hoặc quy trình phát hành.
+Authors of **JAR libraries without a module descriptor** should consider declaring `Automatic-Module-Name` early, especially when the library has users migrating their applications to JPMS. A clear, stable name reduces the risk of the derived name changing when `artifactId`, file naming, or release processes change.
 
-Quy trình thực hành gợi ý:
+Recommended workflow:
 
-1. Chọn tên module theo namespace ổn định, ví dụ `com.example.util`.
-2. Đưa `Automatic-Module-Name` vào manifest của JAR phân phối.
-3. Đóng gói bản phát hành và xác nhận tên bằng `jar --describe-module`.
-4. Dùng đúng tên đó trong `requires` của ứng dụng modular.
-5. Khi bổ sung `module-info.java` cho thư viện, tiếp tục dùng tên cũ và xem xét rõ các `requires`, `exports`, `opens` cần khai báo.
+1. Choose a module name under a stable namespace, such as `com.example.util`.
+2. Add `Automatic-Module-Name` to the manifest of the distributed JAR.
+3. Package the release and confirm the name with `jar --describe-module`.
+4. Use that exact name in `requires` within modular applications.
+5. When adding `module-info.java` to the library, continue using the previous name and explicitly review the `requires`, `exports`, and `opens` directives needed.
 
-## 9. Tự luyện tập
+## 9. Practice Exercises
 
-**Bài 1.** Có file `client-tools-2.3.jar` chưa có descriptor, manifest ghi `Automatic-Module-Name: vn.example.client.tools`. Ứng dụng cần khai báo gì?
+**Exercise 1.** You have a file `client-tools-2.3.jar` without a descriptor, whose manifest specifies `Automatic-Module-Name: vn.example.client.tools`. What does the application need to declare?
 
 ```java
 module vn.example.app {
@@ -231,14 +231,14 @@ module vn.example.app {
 }
 ```
 
-**Bài 2.** Một nhóm đổi tên file `client-tools-2.3.jar` thành `client-tools-2.4.jar` nhưng giữ manifest ở bài 1. Tên module có đổi không?
+**Exercise 2.** A team renames `client-tools-2.3.jar` to `client-tools-2.4.jar` while keeping the manifest from Exercise 1. Does the module name change?
 
-**Không.** Nếu JAR vẫn là automatic module, tên từ manifest vẫn là `vn.example.client.tools`.
+**No.** As long as the JAR remains an automatic module, the name from the manifest is still `vn.example.client.tools`.
 
-**Bài 3.** Nếu xóa `Automatic-Module-Name` và giữ JAR trên module path, tên có còn được bảo đảm là `vn.example.client.tools` không?
+**Exercise 3.** If `Automatic-Module-Name` is removed and the JAR is kept on the module path, is the name still guaranteed to be `vn.example.client.tools`?
 
-**Không.** Java sẽ suy ra tên từ tên file JAR theo quy tắc của JPMS; tên này có thể khác tên đã dùng trong các câu `requires`.
+**No.** Java will derive the name from the JAR file name according to JPMS rules; this name may differ from the name already used in `requires` statements.
 
-## Ghi nhớ
+## Key Takeaways
 
-`Automatic-Module-Name` là thuộc tính trong **manifest của JAR chưa modular hóa** giúp công bố **tên automatic module ổn định**. Java ưu tiên tên này so với tên suy ra từ file JAR khi thư viện được đặt trên **module path**. Dùng `jar --describe-module` để kiểm tra và tham chiếu đúng tên trong `requires`.
+`Automatic-Module-Name` is an attribute in the **manifest of a non-modularized JAR** that publishes a **stable automatic module name**. Java prioritizes this name over the name derived from the JAR file when the library is placed on the **module path**. Use `jar --describe-module` to verify and reference the exact name in `requires`.

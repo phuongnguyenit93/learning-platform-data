@@ -1,31 +1,31 @@
-# Bỏ tiền tố thỏa điều kiện bằng `dropWhile`
+# Dropping a Conditional Prefix with `dropWhile`
 
-## 1. Bài toán: bỏ phần đầu của một dãy cho đến mốc chuyển trạng thái
+## 1. The Problem: Discarding the Head of a Sequence Until a State Transition
 
-Trong Java Stream API, không phải lúc nào ta cũng muốn **lọc tất cả** phần tử thỏa một điều kiện. Đôi khi ta chỉ muốn bỏ một đoạn **liên tiếp ở đầu** của dãy, rồi giữ nguyên tất cả những phần tử còn lại:
+In the Java Stream API, we do not always want to **filter out every** element matching a condition. Sometimes we only want to discard a **contiguous leading section** of a sequence and keep all remaining elements intact:
 
-- Bỏ các dòng chú thích ở đầu tệp, bắt đầu xử lý từ dòng dữ liệu đầu tiên.
-- Bỏ các sự kiện có thời gian trước một mốc, nếu sự kiện đã được sắp theo thời gian.
-- Bỏ các công việc đã hoàn thành ở đầu danh sách, tiếp tục từ công việc chưa hoàn thành đầu tiên.
-- Bỏ các ID đã duyệt qua trong một danh sách tăng dần để lấy trang kế tiếp.
+- Skipping leading comment lines in a file and processing from the first data line onward.
+- Discarding events with timestamps before a cutoff, provided events are already sorted chronologically.
+- Skipping completed tasks at the front of a list and continuing from the first incomplete task.
+- Skipping already-processed IDs in an ascending list to fetch the next page.
 
-`dropWhile` diễn đạt đúng thao tác này: **bỏ tiền tố dài nhất gồm các phần tử liên tiếp thỏa predicate** của một stream **có thứ tự gặp phần tử** (*encounter order*).
+`dropWhile` expresses this exact operation: **discarding the longest prefix of contiguous elements satisfying a predicate** on a stream with an **encounter order**.
 
-Hình dung dãy số:
+Visualizing the sequence:
 
 ```text
-Nguồn:       [1, 2, 4, 8, 3, 10]
-Điều kiện:   n < 5
+Source:      [1, 2, 4, 8, 3, 10]
+Condition:   n < 5
                      ▲
-               8 là phần tử đầu tiên KHÔNG thỏa
+               8 is the FIRST element that does NOT match
 
-Bỏ:          [1, 2, 4]
-Giữ lại:              [8, 3, 10]
+Dropped:     [1, 2, 4]
+Retained:             [8, 3, 10]
 ```
 
-Điểm mấu chốt: **số `3` vẫn được giữ lại** dù `3 < 5`, vì nó đứng sau phần tử `8` đã làm kết thúc tiền tố cần bỏ.
+Key point: **the number `3` is still kept** even though `3 < 5`, because it appears after `8`, which ended the dropped prefix.
 
-Ví dụ Java:
+Java example:
 
 ```java
 import java.util.List;
@@ -39,66 +39,66 @@ List<Integer> result = values.stream()
 System.out.println(result); // [8, 3, 10]
 ```
 
-Bài học thuộc phần **Thứ tự, loại trùng và cắt lát** của module `JAVA_STREAM_API`. Sau bài, bạn cần:
+This lesson belongs to the **Ordering, Deduplication, and Slicing** section of the `JAVA_STREAM_API` module. After this lesson, you should be able to:
 
-1. Đọc và vận dụng đúng chữ ký `dropWhile` cùng quy tắc **tiền tố liên tiếp**.
-2. Phân biệt `dropWhile` với `takeWhile`, `filter`, `skip`, `limit` và `sorted`.
-3. Nhận ra tác động của encounter order và stream không có thứ tự.
-4. Dùng `dropWhile` trong pipeline khai báo kết hợp `map`, `reduce`, `collect` hoặc grouping.
-5. Kiểm thử những biên quan trọng: nguồn rỗng, tất cả phần tử thỏa, không phần tử nào thỏa, điều kiện đúng trở lại ở phía sau.
-6. Đánh giá tính lười, tác dụng phụ, nguồn vô hạn và chi phí xử lý song song.
+1. Read and apply the `dropWhile` signature and the **contiguous prefix** rule accurately.
+2. Distinguish `dropWhile` from `takeWhile`, `filter`, `skip`, `limit`, and `sorted`.
+3. Recognize the effect of encounter order and unordered streams.
+4. Use `dropWhile` in declarative pipelines combined with `map`, `reduce`, `collect`, or grouping.
+5. Test critical boundary cases: empty source, all elements matching, no elements matching, condition becoming true again later.
+6. Evaluate laziness, side effects, infinite sources, and parallel processing costs.
 
-## 2. Đọc chữ ký API và hợp đồng chính thức
+## 2. Reading the Official API Signature and Contract
 
-Trên `java.util.stream.Stream<T>`, phương thức có chữ ký:
+On `java.util.stream.Stream<T>`, the method signature is:
 
 ```java
 Stream<T> dropWhile(Predicate<? super T> predicate)
 ```
 
-`dropWhile` được giới thiệu trong **Java 9**. Những thành phần trong chữ ký cho biết:
+`dropWhile` was introduced in **Java 9**. The parts of the signature mean:
 
-| Thành phần | Ý nghĩa |
+| Component | Meaning |
 | --- | --- |
-| `Stream<T>` ở đầu | Kết quả là stream cùng kiểu phần tử `T` |
-| `Predicate<? super T>` | Hàm kiểm tra phần tử, nhận `T` hoặc kiểu cha tương thích và trả `boolean` |
-| `true` từ predicate | Phần tử **có thể bị bỏ** nếu còn thuộc tiền tố đang xét |
-| `false` đầu tiên | Kết thúc tiền tố bị bỏ trên **ordered stream**; phần tử này được giữ |
-| Giá trị trả về | Stream gồm phần đuôi sau khi đã bỏ tiền tố, hoặc stream rỗng |
+| Leading `Stream<T>` | Result is a stream of the same element type `T` |
+| `Predicate<? super T>` | Element-testing function accepting `T` or a compatible supertype and returning `boolean` |
+| `true` from predicate | Element **may be dropped** if still within the prefix being examined |
+| First `false` | Ends the dropped prefix on an **ordered stream**; this element is kept |
+| Return value | Stream containing the suffix after dropping the prefix, or an empty stream |
 
-Theo Javadoc, đây là một **stateful intermediate operation** (phép toán trung gian có trạng thái), đồng thời là **short-circuiting intermediate operation**. Nó cần ghi nhận thời điểm đã gặp phần tử đầu tiên không thỏa; từ thời điểm ấy, các phần tử sau được giữ lại, kể cả khi predicate của chúng sẽ trả `true`.
+According to the Javadoc, this is a **stateful intermediate operation** as well as a **short-circuiting intermediate operation**. It must record when the first non-matching element has been seen; from that point onward, subsequent elements are kept even if the predicate would return `true` for them.
 
-Là **intermediate operation**, `dropWhile` không tự tiêu thụ stream. Terminal operation như `toList`, `findFirst` hoặc `count` mới yêu cầu dữ liệu đi qua pipeline:
+As an **intermediate operation**, `dropWhile` does not consume the stream on its own. A terminal operation such as `toList`, `findFirst`, or `count` triggers data flow through the pipeline:
 
 ```java
 var pipeline = values.stream()
-    .dropWhile(n -> n < 5); // Mới xây dựng pipeline.
+    .dropWhile(n -> n < 5); // Only builds the pipeline.
 
-List<Integer> suffix = pipeline.toList(); // Kích hoạt việc xử lý.
+List<Integer> suffix = pipeline.toList(); // Triggers processing.
 ```
 
-Một stream chỉ nên được tiêu thụ một lần. Nếu cần một kết quả từ `dropWhile` và một kết quả từ `filter`, tạo hai stream mới từ collection nguồn.
+A stream should be consumed only once. If you need one result from `dropWhile` and another from `filter`, create two new streams from the source collection.
 
-Tài liệu chính thức:
+Official documentation:
 
-- [`Stream.dropWhile` trong Javadoc Java 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/Stream.html#dropWhile(java.util.function.Predicate))
+- [`Stream.dropWhile` in Java 21 Javadoc](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/Stream.html#dropWhile(java.util.function.Predicate))
 - [Package `java.util.stream`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/package-summary.html)
 - [`IntStream.dropWhile`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/stream/IntStream.html#dropWhile(java.util.function.IntPredicate))
 
-Chọn tài liệu phù hợp với phiên bản JDK đang chạy. Các ví dụ trong bài dùng `toList()` (Java 16+) và `record` (Java 16+), nên các chương trình minh họa đầy đủ nhắm đến **JDK 17 trở lên**; riêng phương thức `dropWhile` đã có từ JDK 9.
+Consult the documentation matching your JDK version. The examples in this lesson use `toList()` (Java 16+) and `record` (Java 16+), so full demo programs target **JDK 17 or later**; `dropWhile` itself has been available since JDK 9.
 
-## 3. Quy tắc chính xác trên stream có thứ tự
+## 3. Exact Rule on an Ordered Stream
 
-Gọi dãy nguồn có thứ tự là `x₀, x₁, ..., xₙ₋₁` và điều kiện là `p(x)`. Tìm chỉ số đầu tiên `k` sao cho `p(xₖ) == false`. Khi đó:
+Let the ordered source sequence be `x₀, x₁, ..., xₙ₋₁` and the condition be `p(x)`. Find the first index `k` such that `p(xₖ) == false`. Then:
 
-- Bỏ tất cả phần tử `x₀ ... xₖ₋₁`.
-- Giữ lại `xₖ ... xₙ₋₁`.
-- Nếu mọi phần tử đều thỏa, kết quả rỗng.
-- Nếu phần tử đầu tiên đã không thỏa, kết quả gồm toàn bộ nguồn.
+- Drop all elements `x₀ ... xₖ₋₁`.
+- Keep `xₖ ... xₙ₋₁`.
+- If every element matches, the result is empty.
+- If the very first element fails, the entire source is retained.
 
-Không cần tìm một mốc ở cuối dãy, cũng không cần điều kiện trở thành false **vĩnh viễn**. Chỉ lần đầu tiên chuyển từ true sang false trong quá trình đi từ đầu dãy mới quyết định chỗ cắt.
+There is no search for a boundary at the end of the sequence, nor does the condition have to remain false **forever**. Only the first transition from true to false while moving from the start of the sequence determines the cut point.
 
-| Nguồn có thứ tự | Predicate | Kết quả `dropWhile` |
+| Ordered source | Predicate | `dropWhile` result |
 | --- | --- | --- |
 | `[1, 2, 3, 7, 2, 8]` | `n < 5` | `[7, 2, 8]` |
 | `[1, 2, 3]` | `n < 5` | `[]` |
@@ -107,15 +107,15 @@ Không cần tìm một mốc ở cuối dãy, cũng không cần điều kiện
 | `[5, 6, 7]` | `n < 5` | `[5, 6, 7]` |
 | `[1, 2, 5, 3]` | `n <= 5` | `[3]` |
 
-Ví dụ cuối cho thấy **ranh giới `<` và `<=` khác nhau**: nếu predicate là `n <= 5`, số `5` vẫn nằm trong tiền tố bị bỏ. Khi triển khai mốc thời gian hoặc ID, cần nói rõ **giữ hay bỏ giá trị bằng mốc**.
+The final example shows that **strict `<` and inclusive `<=` boundaries differ**: if the predicate is `n <= 5`, `5` stays inside the dropped prefix. When implementing timestamp or ID cutoffs, state explicitly whether **boundary equality is kept or dropped**.
 
-## 4. So sánh `dropWhile`, `takeWhile`, `filter` và `skip`
+## 4. Comparing `dropWhile`, `takeWhile`, `filter`, and `skip`
 
-Các phương thức này nhìn giống nhau vì đều làm dãy kết quả ngắn lại, nhưng hợp đồng khác nhau.
+These methods look similar because they all shorten the resulting sequence, yet their contracts differ.
 
-### 4.1. `dropWhile` so với `filter`
+### 4.1. `dropWhile` vs `filter`
 
-`filter` áp dụng điều kiện cho **mọi phần tử được đánh giá**. `dropWhile` chỉ quyết định **điểm cắt tiền tố**.
+`filter` applies the condition to **every evaluated element**. `dropWhile` only decides the **prefix cutoff point**.
 
 ```java
 List<Integer> source = List.of(1, 2, 8, 3, 10);
@@ -131,11 +131,11 @@ List<Integer> filtered = source.stream()
 // [8, 10]
 ```
 
-Nếu điều kiện có thể đúng trở lại phía sau một phần tử không thỏa, **hai kết quả khác nhau**. Chỉ thay `dropWhile` bằng `filter` khi nghiệp vụ thật sự muốn lựa chọn từng phần tử riêng lẻ.
+If the condition can become true again after a failing element, **the two results differ**. Replace `dropWhile` with `filter` only when business logic genuinely wants element-by-element selection.
 
-### 4.2. `dropWhile` so với `takeWhile`
+### 4.2. `dropWhile` vs `takeWhile`
 
-Trên stream **có thứ tự**, cả hai cùng dựa vào tiền tố dài nhất thỏa predicate nhưng tác động ngược nhau:
+On an **ordered** stream, both use the longest prefix satisfying the predicate, but with opposite actions:
 
 ```java
 List<Integer> source = List.of(1, 2, 8, 3, 10);
@@ -149,11 +149,11 @@ List<Integer> suffix = source.stream()
     .toList(); // [8, 3, 10]
 ```
 
-Với nguồn có thứ tự, `takeWhile` giữ tiền tố, `dropWhile` bỏ cùng tiền tố. Nếu cần tách hai phần để dùng độc lập, tạo **hai pipeline** từ cùng nguồn có thể duyệt lại; đừng cố tái sử dụng stream đã được terminal operation tiêu thụ.
+On an ordered source, `takeWhile` keeps the prefix and `dropWhile` discards the same prefix. If you need both parts independently, create **two pipelines** from the same re-iterable source; never try to reuse a stream already consumed by a terminal operation.
 
-### 4.3. `dropWhile` so với `skip`
+### 4.3. `dropWhile` vs `skip`
 
-`skip(long n)` bỏ **số lượng cố định** `n` phần tử đầu, không dựa vào giá trị:
+`skip(long n)` discards a **fixed count** of `n` leading elements, regardless of values:
 
 ```java
 List<Integer> source = List.of(1, 2, 8, 3, 10);
@@ -167,31 +167,31 @@ System.out.println(source.stream()
     .toList()); // [8, 3, 10]
 ```
 
-Hai kết quả tình cờ giống nhau vì có đúng hai số đầu nhỏ hơn `5`. Nếu nguồn đổi thành `[1, 2, 4, 8, 3, 10]` thì `skip(2)` giữ `4`, còn `dropWhile(n -> n < 5)` bỏ cả `4`. `skip` phù hợp với phân trang theo vị trí, còn `dropWhile` phù hợp khi mốc được mô tả bằng điều kiện.
+The two results match only by coincidence because there happen to be two leading numbers below `5`. If the source changes to `[1, 2, 4, 8, 3, 10]`, `skip(2)` keeps `4`, while `dropWhile(n -> n < 5)` drops `4` as well. `skip` suits positional pagination, whereas `dropWhile` suits condition-defined cutoffs.
 
-### 4.4. Bảng chọn phép toán
+### 4.4. Operation Selection Table
 
-| Yêu cầu nghiệp vụ | Chọn | Lý do |
+| Business requirement | Choose | Reason |
 | --- | --- | --- |
-| Bỏ các phần tử đầu liên tiếp thỏa điều kiện | `dropWhile(predicate)` | Cắt theo điều kiện của tiền tố |
-| Lấy các phần tử đầu liên tiếp thỏa điều kiện | `takeWhile(predicate)` | Giữ tiền tố |
-| Chỉ giữ mọi phần tử thỏa điều kiện, bất kể vị trí | `filter(predicate)` | Kiểm tra từng phần tử |
-| Bỏ đúng `n` phần tử đầu | `skip(n)` | Cắt theo số lượng |
-| Giới hạn tối đa `n` phần tử kết quả | `limit(n)` | Cắt theo số lượng đầu ra |
-| Sắp xếp dữ liệu theo comparator | `sorted(comparator)` | Thay đổi thứ tự để xác định lại tiền tố |
+| Drop contiguous leading elements matching a condition | `dropWhile(predicate)` | Slices by prefix condition |
+| Take contiguous leading elements matching a condition | `takeWhile(predicate)` | Keeps the prefix |
+| Keep every element matching a condition, regardless of position | `filter(predicate)` | Evaluates each element individually |
+| Drop exactly the first `n` elements | `skip(n)` | Slices by count |
+| Cap output to at most `n` elements | `limit(n)` | Caps by output count |
+| Sort data by a comparator | `sorted(comparator)` | Reorders to redefine the prefix |
 
-## 5. Encounter order là điều kiện quyết định
+## 5. Encounter Order Is the Decisive Condition
 
-Quy tắc “tiền tố” chỉ xác định rõ khi stream có **encounter order**. Nguồn thường có thứ tự gồm `List`, mảng, `IntStream.range` và `Stream.of`. Các cấu trúc như `HashSet` thường **không bảo đảm encounter order**.
+The "prefix" rule is well-defined only when the stream has an **encounter order**. Commonly ordered sources include `List`, arrays, `IntStream.range`, and `Stream.of`. Structures such as `HashSet` typically **do not guarantee encounter order**.
 
-### 5.1. Nguồn có thứ tự
+### 5.1. Ordered Sources
 
 ```java
 List<String> lines = List.of(
-    "# file được tạo tự động",
-    "# phiên bản 2",
+    "# auto-generated file",
+    "# version 2",
     "id,name",
-    "# dấu # này là một phần dữ liệu phía sau",
+    "# this # sign is part of the subsequent data",
     "1,An"
 );
 
@@ -200,16 +200,16 @@ List<String> content = lines.stream()
     .toList();
 
 System.out.println(content);
-// [id,name, # dấu # này là một phần dữ liệu phía sau, 1,An]
+// [id,name, # this # sign is part of the subsequent data, 1,An]
 ```
 
-`dropWhile` chỉ bỏ hai dòng chú thích ở **đầu**. Dòng bắt đầu `#` xuất hiện sau header `id,name` vẫn được giữ lại. Nếu chỉ muốn loại bỏ **mọi** dòng chú thích, phải dùng `filter(line -> !line.startsWith("#"))` theo chính sách định dạng dữ liệu.
+`dropWhile` drops only the two **leading** comment lines. The line starting with `#` after the `id,name` header is retained. If you instead want to strip **all** comment lines, use `filter(line -> !line.startsWith("#"))` per your data-format policy.
 
-### 5.2. Nguồn không có thứ tự: hợp đồng khác hẳn
+### 5.2. Unordered Sources: A Completely Different Contract
 
-Với **unordered stream**, Javadoc không định nghĩa “tiền tố đầu tiên”. Nếu có những phần tử thỏa predicate, `dropWhile` có thể bỏ **một tập con bất kỳ** trong số các phần tử thỏa, kể cả tập rỗng. Các phần tử không thỏa predicate vẫn phải được giữ. Do đó không thể hứa trước chính xác phần tử nào thỏa predicate sẽ còn lại.
+For an **unordered stream**, the Javadoc defines no "first prefix". If some elements satisfy the predicate, `dropWhile` may drop **any subset** of those matching elements, including the empty set. Non-matching elements must still be retained. Consequently, you cannot predict exactly which matching elements will remain.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.Set;
@@ -221,25 +221,25 @@ List<Integer> result = numbers.stream()
     .dropWhile(n -> n < 5)
     .toList();
 
-// Không được khẳng định result == [8, 9]
-// hay một thứ tự đầu ra cố định.
-// Hai phần tử 8 và 9 không thỏa n < 5 nên không bị dropWhile loại bỏ.
+// Do not assert result == [8, 9]
+// or any fixed output order.
+// 8 and 9 do not satisfy n < 5, so dropWhile cannot drop them.
 ```
 
-Không dùng `unordered()` chỉ vì nghĩ thao tác này đơn thuần làm pipeline nhanh hơn: nó cho phép một **tập kết quả khác** trong trường hợp `dropWhile`. Nếu yêu cầu là bỏ một tiền tố xác định theo thứ tự thời gian hoặc thứ tự công việc, phải **có và giữ encounter order**.
+Do not add `unordered()` merely assuming it speeds up the pipeline: for `dropWhile`, it permits a **different result set**. If the requirement is to drop a deterministic prefix by time or task order, you must **have and preserve encounter order**.
 
-Nếu mọi phần tử đều thỏa, `dropWhile` có thể loại hết chúng; trên unordered stream nó không bắt buộc loại toàn bộ. Nếu không phần tử nào thỏa, không phần tử nào có thể bị loại bởi `dropWhile`.
+If every element matches, `dropWhile` may drop all of them; on an unordered stream it is not required to drop all of them. If no element matches, `dropWhile` cannot drop any element.
 
-### 5.3. `sorted` biến đổi ý nghĩa của tiền tố
+### 5.3. `sorted` Redefines the Meaning of the Prefix
 
-`sorted` tạo thứ tự gặp phần tử theo phép so sánh. Điều này thường hữu ích khi điều kiện cắt là một **ngưỡng tăng dần**, nhưng cũng làm thay đổi thứ tự dữ liệu so với nguồn ban đầu.
+`sorted` establishes an encounter order based on comparison. This is often helpful when the cutoff condition is an **ascending threshold**, though it also alters element order relative to the original source.
 
 ```java
 List<Integer> values = List.of(6, 1, 8, 2, 4);
 
 System.out.println(values.stream()
     .dropWhile(n -> n < 5)
-    .toList()); // [6, 1, 8, 2, 4] vì 6 không thỏa ngay từ đầu.
+    .toList()); // [6, 1, 8, 2, 4] because 6 fails immediately at the start.
 
 System.out.println(values.stream()
     .sorted()
@@ -247,11 +247,11 @@ System.out.println(values.stream()
     .toList()); // [6, 8]
 ```
 
-Khi thêm `sorted()`, nghiệp vụ chuyển từ “bỏ tiền tố theo thứ tự nhập liệu” sang “bỏ những giá trị nhỏ hơn ngưỡng sau khi sắp tăng dần”. `sorted` là phép toán trung gian có trạng thái, có thể cần duyệt, sắp xếp và lưu nhiều phần tử trước khi trả kết quả; cân nhắc chi phí khi dữ liệu lớn.
+Adding `sorted()` shifts the semantics from "drop the prefix in input order" to "drop values below the threshold after sorting ascending". `sorted` is a stateful intermediate operation that may need to inspect, sort, and buffer many elements before returning results; weigh the cost on large datasets.
 
-## 6. Ví dụ thực tế: lấy sự kiện từ mốc thời gian
+## 6. Practical Example: Taking Events from a Timestamp Cutoff Onward
 
-Giả sử hệ thống có các sự kiện đến **không theo thứ tự thời gian**, nhưng báo cáo cần giữ những sự kiện xảy ra từ một mốc trở đi. Ta sắp xếp rồi dùng `dropWhile` theo thời điểm:
+Suppose a system receives events **out of chronological order**, yet a report must retain events occurring from a cutoff timestamp onward. Sort first, then apply `dropWhile` on the timestamp:
 
 ```java
 import java.time.Instant;
@@ -283,26 +283,26 @@ public class EventsAfterCutoff {
 }
 ```
 
-Ở đây:
+Here:
 
-1. `sorted(Comparator.comparing(Event::occurredAt))` định nghĩa encounter order theo thời điểm tăng dần.
-2. `dropWhile(event -> event.occurredAt().isBefore(cutoff))` bỏ các sự kiện **trước** mốc.
-3. Sự kiện xảy ra **đúng mốc** được giữ vì `isBefore(cutoff)` trả `false` khi bằng nhau.
-4. `map(Event::id)` chuyển mỗi sự kiện thành ID; `toList()` thu kết quả theo thứ tự đã sắp.
+1. `sorted(Comparator.comparing(Event::occurredAt))` defines encounter order in ascending timestamp order.
+2. `dropWhile(event -> event.occurredAt().isBefore(cutoff))` drops events **before** the cutoff.
+3. An event occurring **exactly at the cutoff** is kept because `isBefore(cutoff)` returns `false` when equal.
+4. `map(Event::id)` maps each event to its ID; `toList()` collects results in sorted order.
 
-Nếu yêu cầu chỉ giữ sự kiện **sau** mốc, đổi predicate thành:
+If the requirement is to keep events **strictly after** the cutoff, change the predicate to:
 
 ```java
 .dropWhile(event -> !event.occurredAt().isAfter(cutoff))
 ```
 
-Biểu thức mới bỏ cả sự kiện bằng mốc, vì “không sau cutoff” bao gồm **trước hoặc bằng**.
+This expression drops events at the cutoff as well, since "not after cutoff" covers **before or equal**.
 
-**Quan trọng:** `dropWhile` không làm bộ lọc thời gian đúng trên dữ liệu có timestamp lộn xộn nếu bỏ bước sắp xếp. Nếu nguồn đã **được cam kết** tăng dần theo thời gian, có thể bỏ `sorted` để tránh chi phí sắp xếp. Nếu không cần giữ thứ tự, mà chỉ muốn tất cả sự kiện không trước cutoff, dùng `filter(event -> !event.occurredAt().isBefore(cutoff))` có thể trực tiếp và phù hợp hơn.
+**Important:** `dropWhile` does not act as a valid time filter on unsorted timestamps if you omit sorting. If the source is already **guaranteed** to be ascending by time, you can omit `sorted` to avoid sorting overhead. If ordering does not need to be preserved and you simply want all events not before the cutoff, `filter(event -> !event.occurredAt().isBefore(cutoff))` may be more direct and appropriate.
 
-## 7. Ví dụ thực tế: tiếp tục từ công việc chưa hoàn thành đầu tiên
+## 7. Practical Example: Resuming from the First Incomplete Task
 
-Xét danh sách công việc theo thứ tự ưu tiên. Ta muốn bỏ các công việc đã hoàn thành **ở đầu dãy**, rồi giữ tất cả công việc từ điểm bắt đầu xử lý tiếp:
+Consider a prioritized list of tasks. We want to skip completed tasks **at the head of the sequence**, then keep everything from the point where work resumes:
 
 ```java
 import java.util.List;
@@ -325,7 +325,7 @@ List<String> remainingFromFirstIncomplete = tasks.stream()
 System.out.println(remainingFromFirstIncomplete); // [C, D, E]
 ```
 
-**Vì sao `D` vẫn được giữ dù đã hoàn thành?** Đây là phép “tiếp tục từ vị trí chưa hoàn thành đầu tiên”, cần giữ phần đuôi để có thể xem xét trạng thái các công việc theo thứ tự. Nếu nghiệp vụ chỉ muốn **danh sách công việc chưa hoàn thành** ở bất kỳ vị trí nào, dùng:
+**Why is `D` kept even though it is done?** This models "resuming from the first incomplete position", keeping the suffix so task states can be inspected in sequence. If business logic simply wants a **list of incomplete tasks** regardless of position, use:
 
 ```java
 List<String> incompleteIds = tasks.stream()
@@ -336,13 +336,13 @@ List<String> incompleteIds = tasks.stream()
 System.out.println(incompleteIds); // [C, E]
 ```
 
-Mấu chốt của thiết kế là định nghĩa rõ **bỏ tiền tố theo thứ tự** hay **lọc phần tử theo trạng thái**, vì hai bài toán không giống nhau.
+The design crux is clarifying whether you mean **drop a leading prefix in order** or **filter elements by status**, because the two problems are not identical.
 
-## 8. Kết hợp `dropWhile` với `limit`, `map`, `reduce` và `collect`
+## 8. Combining `dropWhile` with `limit`, `map`, `reduce`, and `collect`
 
-### 8.1. Lấy trang dữ liệu theo mốc
+### 8.1. Keyset-Style Paging by Threshold
 
-Giả sử ID đã tăng dần và cần lấy tối đa hai ID **lớn hơn** cursor `20`:
+Suppose IDs are already ascending and we need up to two IDs **greater than** cursor `20`:
 
 ```java
 List<Integer> ids = List.of(10, 20, 30, 40, 50);
@@ -356,9 +356,9 @@ List<Integer> page = ids.stream()
 System.out.println(page); // [30, 40]
 ```
 
-Điều kiện để cách này đúng là nguồn được sắp tăng dần theo cùng tiêu chí so với cursor. Với nguồn `[30, 10, 40]`, phần tử đầu `30` làm tiền tố cần bỏ kết thúc ngay; `10` vẫn xuất hiện trong kết quả. Nếu dữ liệu nằm trong database lớn, hãy cân nhắc đưa điều kiện cursor và giới hạn vào truy vấn thay vì tải toàn bộ về JVM rồi mới `dropWhile`.
+For this to be correct, the source must be sorted ascending by the same criterion as the cursor. Given `[30, 10, 40]`, the first element `30` ends the dropped prefix immediately, so `10` still appears in the output. If data lives in a large database, push the cursor condition and limit into the query instead of loading everything into the JVM before calling `dropWhile`.
 
-Thứ tự các phép toán rất quan trọng:
+Operation order matters greatly:
 
 ```java
 List<Integer> byCursorThenLimit = ids.stream()
@@ -372,9 +372,9 @@ List<Integer> limitedBeforeCursor = ids.stream()
     .toList(); // []
 ```
 
-Đặt `limit` trước `dropWhile` chỉ xem xét hai ID đầu và loại cả hai, nên không còn dữ liệu.
+Putting `limit` before `dropWhile` inspects only the first two IDs and drops both, leaving no data.
 
-### 8.2. Tính tổng phần đuôi
+### 8.2. Summing the Suffix
 
 ```java
 List<Integer> points = List.of(1, 3, 5, 10, 2);
@@ -387,11 +387,11 @@ int totalAfterThreshold = points.stream()
 System.out.println(totalAfterThreshold); // 17 = 5 + 10 + 2
 ```
 
-Khi cần tính tổng số nguyên thủy, `mapToInt` và `sum` tránh phải tạo nhiều `Integer` trung gian để gộp bằng `reduce`.
+When summing primitive integers, `mapToInt` and `sum` avoid creating many intermediate `Integer` wrappers for `reduce`.
 
-### 8.3. Grouping phần đuôi của dãy sự kiện
+### 8.3. Grouping the Suffix of an Event Sequence
 
-Sử dụng lại danh sách `events` đã được sắp thứ tự theo `occurredAt` trong mục 6. Có thể gom các sự kiện từ mốc theo loại:
+Reusing the `events` list sorted by `occurredAt` from section 6, we can group events from the cutoff onward by message type:
 
 ```java
 import java.util.Map;
@@ -406,11 +406,11 @@ Map<String, Long> countByMessage = events.stream()
     ));
 ```
 
-`dropWhile` quyết định **những sự kiện nào thuộc phần đuôi cần thống kê**; `collect(groupingBy(...))` là phép toán kết thúc tổng hợp. Kết quả `Map` không bảo đảm thứ tự duyệt khóa; nếu cần thứ tự hiển thị, hãy chỉ định chính sách sắp xếp hoặc sử dụng overload phù hợp của collector.
+`dropWhile` determines **which events belong to the suffix to aggregate**; `collect(groupingBy(...))` is the aggregating terminal operation. The resulting `Map` does not guarantee key iteration order; if display ordering is required, specify a sort policy or use the appropriate collector overload.
 
-## 9. Đầu vào rỗng, điều kiện biên và `null`
+## 9. Empty Inputs, Boundary Conditions, and `null`
 
-### 9.1. Những trường hợp cần nắm vững
+### 9.1. Cases to Master
 
 ```java
 import java.util.List;
@@ -435,11 +435,11 @@ System.out.println(
 ); // [8, 1, 2]
 ```
 
-Nguồn rỗng không có phần tử nào để giữ. Nếu mọi phần tử đều thỏa điều kiện, `dropWhile` bỏ toàn bộ dãy. Nếu phần tử đầu tiên đã không thỏa, nó giữ nguyên cả dãy có thứ tự.
+An empty source has no elements to retain. If all elements satisfy the condition, `dropWhile` drops the entire sequence. If the very first element fails, it keeps the entire ordered sequence.
 
-### 9.2. Predicate bằng `null` và phần tử `null`
+### 9.2. `null` Predicate and `null` Elements
 
-Truyền một `Predicate` bằng `null` cho `dropWhile` là không hợp lệ và có thể gây `NullPointerException`. Phần tử **bên trong stream** có thể bằng `null` nếu nguồn cho phép, nên predicate cần có chính sách phù hợp:
+Passing a `null` `Predicate` to `dropWhile` is invalid and can throw `NullPointerException`. Elements **inside the stream** may be `null` if the source permits them, so the predicate needs an explicit policy:
 
 ```java
 import java.util.ArrayList;
@@ -451,7 +451,7 @@ data.add(null);
 data.add("start");
 data.add("");
 
-// Quy ước: cả chuỗi rỗng và null ở đầu đều là phần cần bỏ.
+// Convention: both leading empty strings and nulls are dropped.
 List<String> result = data.stream()
     .dropWhile(value -> value == null || value.isEmpty())
     .toList();
@@ -459,14 +459,14 @@ List<String> result = data.stream()
 System.out.println(result); // [start, ""]
 ```
 
-Nếu `null` là lỗi dữ liệu, nên từ chối sớm thay vì âm thầm coi đó là phần tử cần bỏ. `List.of(...)` không nhận `null`, nên ví dụ dùng `ArrayList` để minh họa. Khi kết quả chứa `null`, cũng cần lưu ý một số terminal operation hoặc collector có quy tắc riêng với giá trị `null`.
+If `null` represents corrupt data, reject it early rather than silently treating it as something to skip. `List.of(...)` rejects `null`, so the example uses `ArrayList`. When results contain `null`, also note that some terminal operations or collectors have specific rules regarding `null` values.
 
-### 9.3. Không dùng predicate có trạng thái ngoài
+### 9.3. Do Not Use Predicates with External State
 
-Tránh viết:
+Avoid writing:
 
 ```java
-// Phản ví dụ: predicate thay đổi trạng thái ngoài và dựa vào số lần gọi.
+// Anti-pattern: predicate mutates external state and relies on invocation count.
 java.util.concurrent.atomic.AtomicInteger calls =
     new java.util.concurrent.atomic.AtomicInteger();
 
@@ -475,21 +475,21 @@ var result = values.stream()
     .toList();
 ```
 
-`AtomicInteger` an toàn về cập nhật đồng thời nhưng predicate vẫn có side effect, phụ thuộc vào trạng thái thay đổi và không thể kiểm thử như một điều kiện thuần. Javadoc yêu cầu behavioral parameter của stream phải **non-interfering** và thường phải **stateless**. Kết quả có thể phụ thuộc vào cách triển khai hoặc chế độ thực thi; dùng `skip(2)` nếu bài toán là bỏ hai phần tử, dùng predicate chỉ dựa trên giá trị nếu bài toán là cắt theo điều kiện.
+`AtomicInteger` makes concurrent updates safe, yet the predicate still has side effects, depends on mutable state, and cannot be tested as a pure condition. The Javadoc requires stream behavioral parameters to be **non-interfering** and generally **stateless**. Output may depend on implementation or execution mode; use `skip(2)` if the task is dropping two elements, and use a value-only predicate if slicing by condition.
 
-Không chỉnh sửa collection nguồn trong predicate:
+Do not mutate the source collection inside the predicate:
 
 ```java
-// Không làm:
+// Do not do this:
 // list.stream().dropWhile(item -> {
-//     list.remove(item); // Can thiệp vào nguồn đang được duyệt.
+//     list.remove(item); // Interferes with the source being traversed.
 //     return item.isOld();
 // }).toList();
 ```
 
-## 10. Stream vô hạn và điều kiện dừng
+## 10. Infinite Streams and Termination Conditions
 
-`dropWhile` có thể hoạt động với stream vô hạn nếu **cuối cùng sẽ gặp** phần tử không thỏa predicate và một terminal operation phía sau đủ điều kiện kết thúc:
+`dropWhile` can work on infinite streams if it **eventually encounters** an element failing the predicate and a downstream terminal operation can terminate:
 
 ```java
 import java.util.List;
@@ -503,30 +503,30 @@ List<Integer> afterOneHundred = Stream.iterate(0, n -> n + 1)
 System.out.println(afterOneHundred); // [100, 101, 102, 103]
 ```
 
-Nhưng nếu một stream vô hạn **luôn** thỏa predicate, `dropWhile` không thể tìm phần tử đầu tiên cần giữ:
+However, if an infinite stream **always** satisfies the predicate, `dropWhile` can never find the first element to keep:
 
 ```java
-// Ví dụ có nguy cơ không kết thúc; KHÔNG chạy như một bài test thường.
+// Example that risks non-termination; DO NOT run as a normal test.
 // Stream.generate(() -> 0)
 //     .dropWhile(n -> n == 0)
 //     .findFirst();
 ```
 
-`findFirst()` chỉ có thể trả khi có một phần tử đầu ra, còn `dropWhile` ở đây luôn bỏ phần tử nhận được. Đặt `limit(n)` **trước** `dropWhile` sẽ giới hạn phần nguồn phải duyệt, nhưng cũng đổi ý nghĩa vì chỉ quan sát tối đa `n` phần tử ban đầu.
+`findFirst()` can only return once an output element exists, while `dropWhile` keeps discarding every element received. Placing `limit(n)` **before** `dropWhile` bounds the inspected source, though it also changes semantics because at most `n` initial elements are examined.
 
-Không đặt `sorted()` lên một nguồn vô hạn để mong nó cung cấp thứ tự cho `dropWhile`: việc sắp xếp toàn bộ nguồn vô hạn nói chung không thể hoàn thành.
+Do not place `sorted()` on an infinite source expecting it to supply order to `dropWhile`: sorting an entire infinite source generally cannot complete.
 
-## 11. Chi phí, xử lý song song và rủi ro hiệu năng
+## 11. Cost, Parallelism, and Performance Risks
 
-### 11.1. Đặc điểm khi chạy tuần tự
+### 11.1. Sequential Execution Characteristics
 
-Khi stream có thứ tự và chạy tuần tự, `dropWhile` cần xác định tiền tố: nó kiểm tra các phần tử đầu cho đến phần tử không thỏa đầu tiên; sau đó các phần tử còn lại được chuyển tiếp theo yêu cầu của downstream operation. Chẳng hạn `dropWhile(...).limit(5)` có thể dừng sớm sau khi nhận đủ năm phần tử ở phần đuôi, nếu phía nguồn và các bước trước cho phép.
+When the stream is ordered and sequential, `dropWhile` must determine the prefix: it checks leading elements until the first failing one, then forwards remaining elements as requested by downstream operations. For example, `dropWhile(...).limit(5)` can stop early once five suffix elements are received, provided the source and upstream steps allow it.
 
-Với nguồn đã có thứ tự và predicate đơn giản, cách này thường dễ hiểu và không đòi hỏi tạo danh sách phụ chỉ để tìm vị trí cắt. Nhưng chi phí thực tế phụ thuộc các thao tác trước/sau nó, nguồn dữ liệu, khả năng short-circuit và số phần tử phải bỏ.
+With an ordered source and a simple predicate, this is usually straightforward and requires no auxiliary list just to locate the cut point. Actual cost still depends on surrounding operations, the data source, short-circuiting behavior, and how many elements are dropped.
 
-### 11.2. `parallel()` có thể tốn kém khi cần giữ thứ tự
+### 11.2. `parallel()` Can Be Expensive When Ordering Must Be Preserved
 
-Javadoc lưu ý `dropWhile` trên **ordered parallel stream** có thể rất tốn chi phí nếu phải bảo toàn “tiền tố dài nhất”: các luồng xử lý những phần khác nhau của nguồn nhưng vẫn phải xác định ranh giới theo thứ tự toàn cục.
+The Javadoc notes that `dropWhile` on an **ordered parallel stream** can be quite costly when preserving the "longest prefix": threads process different chunks of the source while still having to locate the boundary in global order.
 
 ```java
 List<Integer> numbers = java.util.stream.IntStream.range(0, 100_000)
@@ -540,13 +540,13 @@ List<Integer> remaining = numbers.parallelStream()
 System.out.println(remaining.size()); // 10000
 ```
 
-Không suy ra `parallelStream` nhanh hơn chỉ vì có nhiều lõi CPU. Hãy đo trên bộ dữ liệu thật. Nếu nguồn có thứ tự cần bảo toàn và phép cắt rẻ, tuần tự có thể là lựa chọn tốt hơn.
+Do not assume `parallelStream` is faster just because you have multiple CPU cores. Measure on real datasets. When source order must be kept and the check is cheap, sequential execution is often the better choice.
 
-Một số trường hợp **không phụ thuộc thứ tự đầu ra và chấp nhận ngữ nghĩa unordered** có thể cân nhắc `unordered()` để giảm chi phí; nhưng thay đổi này cho phép `dropWhile` bỏ một tập con tùy ý các phần tử thỏa predicate, nên **không tương đương** với cắt theo mốc. Chỉ thực hiện nếu đặc tả đầu ra cho phép.
+Cases that **do not depend on output order and accept unordered semantics** may consider `unordered()` to reduce overhead; however, that change allows `dropWhile` to drop an arbitrary subset of matching elements, so it is **not equivalent** to a threshold cut. Do this only if the output specification permits it.
 
-### 11.3. Primitive streams
+### 11.3. Primitive Streams
 
-Các kiểu `IntStream`, `LongStream` và `DoubleStream` cũng có `dropWhile` với predicate nguyên thủy tương ứng:
+`IntStream`, `LongStream`, and `DoubleStream` also offer `dropWhile` with their corresponding primitive predicates:
 
 ```java
 import java.util.stream.IntStream;
@@ -558,17 +558,17 @@ int sum = IntStream.range(0, 8)
 System.out.println(sum); // 18
 ```
 
-`IntStream.dropWhile(IntPredicate)` tránh boxing sang `Integer`. Đối với `DoubleStream`, cần xác định chính sách khi gặp `NaN`, vô cực hoặc dấu của số không, vì phép so sánh số thực có những trường hợp biên đặc biệt. Ví dụ `Double.NaN < 5` là `false`, vì vậy một phần tử `NaN` có thể làm tiền tố bị bỏ kết thúc sớm.
+`IntStream.dropWhile(IntPredicate)` avoids boxing to `Integer`. For `DoubleStream`, define an explicit policy for `NaN`, infinities, and signed zeros, since floating-point comparisons have edge cases. For example, `Double.NaN < 5` evaluates to `false`, so a `NaN` element can end the dropped prefix early.
 
-### 11.4. Stream Gatherers và tác vụ cắt lát nâng cao
+### 11.4. Stream Gatherers and Advanced Slicing
 
-Stream Gatherers là API chính thức từ **JDK 24** để mô tả các phép biến đổi trung gian có thể duy trì trạng thái như cửa sổ hoặc phép quét tích lũy. Tuy nhiên, khi yêu cầu chỉ là “bỏ tiền tố thỏa predicate”, `dropWhile` đơn giản và biểu đạt đúng ý hơn. Không dùng Gatherers để thay thế một thao tác đã có sẵn, trừ khi nghiệp vụ cần trạng thái hay quy tắc cắt phức tạp hơn.
+Stream Gatherers became an official API in **JDK 24** for expressing stateful intermediate transformations such as windows or prefix scans. However, when the requirement is simply "drop a prefix matching a predicate", `dropWhile` is simpler and communicates intent more clearly. Do not use Gatherers to replace an existing built-in operation unless business logic needs richer state or slicing rules.
 
-## 12. Kiểm thử ngữ nghĩa và những lỗi dễ mắc
+## 12. Testing Semantics and Common Pitfalls
 
-### 12.1. Unit test JUnit 5
+### 12.1. JUnit 5 Unit Tests
 
-Các test này dùng JDK 17+ và JUnit Jupiter; chúng không kiểm tra số lần predicate được gọi mà kiểm tra **đầu ra được bảo đảm**:
+These tests use JDK 17+ and JUnit Jupiter; rather than asserting how many times the predicate runs, they verify **guaranteed outputs**:
 
 ```java
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -645,59 +645,59 @@ class DropWhileTest {
 }
 ```
 
-Không nên có test dạng “predicate phải được gọi chính xác N lần” hoặc khẳng định một tập phần tử cụ thể trên unordered stream, vì đó không phải hợp đồng đầu ra được API bảo đảm.
+Avoid tests like "predicate must be called exactly N times" or asserting a specific element set on an unordered stream, as those are not guaranteed by the API contract.
 
-### 12.2. Sáu lỗi thiết kế phổ biến
+### 12.2. Six Common Design Mistakes
 
-| Lỗi | Hệ quả | Cách xử lý |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Dùng `dropWhile` để bỏ mọi phần tử không hợp lệ | Phần tử không hợp lệ sau ranh giới vẫn còn | Dùng `filter` nếu cần lọc toàn bộ |
-| Quên xác định encounter order | Điểm cắt không được bảo đảm | Dùng nguồn có thứ tự, hoặc `sorted` khi nghiệp vụ cần sắp xếp |
-| Dùng `unordered()` khi cần ranh giới chính xác | Tập phần tử bị bỏ có thể thay đổi | Giữ ordered semantics |
-| Nhầm `<` với `<=` | Mất hoặc giữ sai phần tử bằng ngưỡng | Định nghĩa rõ ranh giới trong yêu cầu và test |
-| Đặt `limit` trước `dropWhile` không có chủ đích | Chỉ tìm điểm cắt trong một lát dữ liệu ban đầu | Đặt `dropWhile` trước `limit` nếu cần giới hạn phần đuôi |
-| Predicate có tác dụng phụ hoặc sửa nguồn | Kết quả khó dự đoán, rủi ro khi song song | Dùng predicate thuần, không can thiệp nguồn |
+| Using `dropWhile` to remove all invalid elements | Invalid elements after the boundary remain | Use `filter` if full filtering is needed |
+| Forgetting to ensure encounter order | Cut point is not guaranteed | Use an ordered source, or `sorted` when business logic requires sorting |
+| Using `unordered()` when an exact boundary is needed | Dropped element set may vary | Keep ordered semantics |
+| Confusing `<` with `<=` | Boundary value is mistakenly dropped or kept | Specify boundaries explicitly in requirements and tests |
+| Unintentionally placing `limit` before `dropWhile` | Searches for cut point only within an initial slice | Put `dropWhile` before `limit` when capping the suffix |
+| Predicate has side effects or mutates source | Unpredictable results, parallel race bugs | Use pure, non-interfering predicates |
 
-## 13. Bài tập thực hành
+## 13. Practice Exercises
 
-**Bài 1 — Bỏ header đầu tệp.** Với dữ liệu:
+**Exercise 1 — Dropping a file header.** Given:
 
 ```java
 List<String> lines = List.of(
     "# generated",
     "# schema 1",
     "name,age",
-    "# ghi chú trong dữ liệu",
+    "# note inside data",
     "An,20"
 );
 ```
 
-Hãy tạo danh sách giữ từ dòng `name,age` đến cuối. Giải thích vì sao dòng bắt đầu `#` ở sau vẫn nằm trong kết quả. Sau đó sửa bài toán thành “bỏ tất cả dòng bắt đầu `#`” và chọn lại phép toán phù hợp.
+Produce a list retaining lines from `name,age` to the end. Explain why the later line starting with `#` still appears in the output. Then change the problem to "drop every line starting with `#`" and pick the appropriate operation.
 
-**Bài 2 — Mốc có bao gồm giá trị bằng không?** Cho `[2, 4, 6, 8, 3]` và ngưỡng `6`. Viết hai pipeline:
+**Exercise 2 — Should the boundary include equality?** Given `[2, 4, 6, 8, 3]` and threshold `6`. Write two pipelines:
 
-- Bỏ các phần tử đầu **nhỏ hơn** `6`. Kết quả dự kiến `[6, 8, 3]`.
-- Bỏ các phần tử đầu **nhỏ hơn hoặc bằng** `6`. Kết quả dự kiến `[8, 3]`.
+- Drop leading elements **strictly less than** `6`. Expected output `[6, 8, 3]`.
+- Drop leading elements **less than or equal to** `6`. Expected output `[8, 3]`.
 
-**Bài 3 — Phân trang.** Cho danh sách ID tăng dần `[10, 20, 30, 40, 50, 60]`, cursor `30` và kích thước trang `2`. Lấy `[40, 50]` bằng `dropWhile` và `limit`. Thử đổi thứ tự hai phép toán và giải thích kết quả khác nhau.
+**Exercise 3 — Pagination.** Given an ascending ID list `[10, 20, 30, 40, 50, 60]`, cursor `30`, and page size `2`. Retrieve `[40, 50]` using `dropWhile` and `limit`. Try swapping the two operations and explain why the output differs.
 
-**Bài 4 — Dữ liệu chưa sắp xếp.** Cho `[9, 1, 5, 2, 12]`, yêu cầu “giữ các số từ `5` trở lên”. Hãy giải thích vì sao `dropWhile(n -> n < 5)` trên dãy ban đầu không đúng yêu cầu. Viết lời giải dùng `filter`. Nếu yêu cầu thêm “kết quả tăng dần”, thêm `sorted` ở vị trí thích hợp.
+**Exercise 4 — Unsorted data.** Given `[9, 1, 5, 2, 12]`, requirement "keep numbers `5` and above". Explain why `dropWhile(n -> n < 5)` on the raw sequence is wrong. Write a solution using `filter`. If "ascending output" is also required, add `sorted` in the right place.
 
-**Bài 5 — Đánh giá song song.** Một lập trình viên thay `stream()` bằng `parallelStream()` vì thấy có 100.000 phần tử, rồi gọi `unordered()` để cải thiện hiệu năng. Hãy phân tích sự khác nhau giữa **tính đúng** (có còn bỏ đúng tiền tố theo mốc?) và **hiệu năng** (có nhanh hơn không?). Viết lại giải pháp đúng nếu cần giữ thứ tự ID tăng dần.
+**Exercise 5 — Parallel evaluation.** A developer replaces `stream()` with `parallelStream()` upon seeing 100,000 elements, and calls `unordered()` to boost performance. Analyze the impact on both **correctness** (does it still drop the exact threshold prefix?) and **performance** (is it guaranteed faster?). Rewrite the solution correctly if ascending ID order must be preserved.
 
-## 14. Ghi nhớ khi áp dụng
+## 14. Checklist Before Applying
 
-| Câu hỏi trước khi dùng | Điều cần quyết định |
+| Question to ask beforehand | Decision to make |
 | --- | --- |
-| Cần bỏ một tiền tố hay lọc mọi phần tử? | `dropWhile` khác `filter` |
-| Stream có encounter order không? | Quy tắc tiền tố cần thứ tự xác định |
-| Phần tử đầu không thỏa có được giữ lại không? | **Có** trên ordered stream |
-| Sau phần tử đầu không thỏa, predicate lại đúng thì sao? | Các phần tử phía sau vẫn được giữ |
-| Giá trị bằng ngưỡng có bị bỏ không? | Phụ thuộc `<` hay `<=` trong predicate |
-| Có thể tất cả phần tử đều thỏa không? | Kết quả có thể rỗng; cần xử lý |
-| Nguồn có thể vô hạn không? | Bảo đảm sẽ đến mốc, và terminal operation có thể kết thúc |
-| Có cần `limit` sau khi bỏ tiền tố không? | Đặt theo đúng ngữ nghĩa phân trang/cắt lát |
-| Có muốn chạy song song hoặc bỏ thứ tự không? | Kiểm tra lại hợp đồng và đo hiệu năng |
-| Có dùng `IntStream`/`LongStream`/`DoubleStream` không? | Dùng `dropWhile` theo kiểu nguyên thủy |
+| Need to drop a prefix or filter all elements? | `dropWhile` differs from `filter` |
+| Does the stream have an encounter order? | Prefix rules require deterministic order |
+| Is the first non-matching element kept? | **Yes** on an ordered stream |
+| What if the predicate becomes true again after the first failure? | Later elements are still kept |
+| Should values equal to the threshold be dropped? | Depends on `<` vs `<=` in the predicate |
+| Could all elements match? | Output can be empty; handle it |
+| Could the source be infinite? | Ensure the cutoff is reached and the terminal operation can finish |
+| Need `limit` after dropping the prefix? | Order them according to pagination/slicing semantics |
+| Thinking of running parallel or dropping order? | Re-check the contract and benchmark |
+| Using `IntStream`/`LongStream`/`DoubleStream`? | Use the primitive-typed `dropWhile` |
 
-`dropWhile` giúp diễn đạt trực tiếp việc **bỏ phần đầu liên tiếp thỏa điều kiện** trong pipeline Java Stream API. Để dùng đúng, hãy xác định thứ tự của nguồn, ranh giới predicate và ý nghĩa của phần đuôi sau khi cắt; sau đó mới kết hợp với `map`, `reduce`, `collect`, grouping hoặc các thao tác cắt lát khác. Tính lười và xử lý song song có thể ảnh hưởng thời điểm thực thi, tài nguyên và chi phí, nhưng không thay đổi hợp đồng tiền tố của một **ordered stream**.
+`dropWhile` directly expresses **dropping a contiguous matching head** in a Java Stream API pipeline. To use it properly, determine the source's order, the predicate boundary, and the meaning of the retained suffix before combining it with `map`, `reduce`, `collect`, grouping, or other slicing operations. Laziness and parallelism affect execution timing, resources, and cost, but they do not alter the prefix contract of an **ordered stream**.

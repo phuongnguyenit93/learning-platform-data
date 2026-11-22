@@ -1,13 +1,13 @@
-# Gán mảng chỉ sao chép tham chiếu — Java 17+
+# Assigning Arrays Copies Only the Reference — Java 17+
 
-## 1. Bản chất của phép gán mảng
+## 1. Nature of array assignment
 
-Mảng trong Java là **đối tượng (object)**. Biến có kiểu mảng như `int[]` giữ **giá trị tham chiếu** tới đối tượng ấy. Phép gán từ biến mảng này sang biến mảng khác **sao chép giá trị tham chiếu**, không tạo mảng mới và không sao chép từng phần tử.
+Arrays in Java are **objects**. An array-typed variable such as `int[]` holds a **reference value** pointing to that object. Assigning from one array variable to another **copies the reference value**, without creating a new array or copying individual elements.
 
 ~~~java
 int[] a = {10, 20, 30};
-int[] b = a;             // Cùng tham chiếu một mảng.
-b[0] = 99;               // Sửa phần tử trong mảng chung.
+int[] b = a;             // Both reference the same array.
+b[0] = 99;               // Modifies the element in the shared array.
 System.out.println(a[0]);
 ~~~
 
@@ -17,30 +17,30 @@ System.out.println(a[0]);
 99
 ~~~
 
-Mô hình:
+Model:
 
 ~~~text
-Biến a ───────┐
+Variable a ───┐
               ▼
           int[] {99, 20, 30}
               ▲
-Biến b ───────┘
+Variable b ───┘
 ~~~
 
-`a` và `b` là **hai biến khác nhau**, nhưng tại thời điểm đó trỏ **cùng đối tượng mảng**. Thuật ngữ thường dùng là **alias** (bí danh/tham chiếu cùng đối tượng).
+`a` and `b` are **two different variables**, yet at that point in time they point to **the same array object**. The common term for this is an **alias** (two references to the same object).
 
-**Quy tắc:** `b = a;` không tương đương `b = a.clone();` hoặc `b = Arrays.copyOf(a, a.length);`.
+**Rule:** `b = a;` is not equivalent to `b = a.clone();` or `b = Arrays.copyOf(a, a.length);`.
 
-## 2. Phân biệt sửa phần tử và gán lại tham chiếu
+## 2. Distinguishing element modification from reference reassignment
 
 ~~~java
 int[] a = {1, 2};
 int[] b = a;
 
-b[0] = 7;            // Sửa object mà cả a và b cùng trỏ.
+b[0] = 7;            // Modifies the object that both a and b point to.
 System.out.println(java.util.Arrays.toString(a));
 
-b = new int[]{8, 9}; // Chỉ thay tham chiếu được giữ trong biến b.
+b = new int[]{8, 9}; // Changes only the reference held in variable b.
 System.out.println(java.util.Arrays.toString(a));
 System.out.println(java.util.Arrays.toString(b));
 ~~~
@@ -53,18 +53,18 @@ System.out.println(java.util.Arrays.toString(b));
 [8, 9]
 ~~~
 
-Hai loại thao tác:
+Two kinds of operations:
 
-| Thao tác | Tác động lên |
+| Operation | Affects |
 |---|---|
-| `b = a;` | Tham chiếu trong **biến b**; không tạo mảng |
-| `b[0] = 7;` | **Phần tử** ở mảng mà b đang chỉ tới |
-| `b = new int[]{8, 9};` | Chuyển **biến b** sang đối tượng mảng mới |
-| `a[0]` sau khi b chuyển sang mảng khác | Vẫn đọc mảng cũ mà a chỉ tới |
+| `b = a;` | The reference in **variable b**; creates no array |
+| `b[0] = 7;` | The **element** in the array that b currently points to |
+| `b = new int[]{8, 9};` | Switches **variable b** to a new array object |
+| `a[0]` after b switches to another array | Still reads the old array that a points to |
 
-Một lần gán lại `b` không “kéo theo” `a`, dù trước đó `a == b`. **Đừng nhầm việc thay nội dung object với việc thay biến tham chiếu.**
+Reassigning `b` does not "drag along" `a`, even if `a == b` was true beforehand. **Do not confuse changing an object's contents with changing a reference variable.**
 
-## 3. `==` kiểm tra có phải cùng đối tượng mảng
+## 3. `==` checks whether two variables reference the same array object
 
 ~~~java
 int[] first = {1, 2};
@@ -84,21 +84,21 @@ false
 true
 ~~~
 
-- Với hai tham chiếu mảng, `==` kiểm tra chúng trỏ đến **cùng object** hay không.
-- Hai đối tượng mảng khác nhau vẫn có thể chứa các phần tử **bằng nhau**.
-- `Arrays.equals(int[], int[])` so nội dung lần lượt từng phần tử của hai mảng một chiều `int[]`.
+- For two array references, `==` checks whether they point to **the same object**.
+- Two distinct array objects can still hold **equal** elements.
+- `Arrays.equals(int[], int[])` compares the contents element by element of two one-dimensional `int[]` arrays.
 
-| Muốn kiểm tra | Dùng |
+| To check | Use |
 |---|---|
-| Hai biến có trỏ cùng mảng? | `a == b` |
-| Hai mảng `int[]` có cùng dãy giá trị? | `Arrays.equals(a, b)` |
-| Muốn in các phần tử mảng `int[]` | `Arrays.toString(a)` |
+| Do two variables point to the same array? | `a == b` |
+| Do two `int[]` arrays have the same sequence of values? | `Arrays.equals(a, b)` |
+| To print the elements of an `int[]` array | `Arrays.toString(a)` |
 
-`a.equals(b)` với mảng Java thông thường **không tự so sánh từng phần tử** như `Arrays.equals`. Không dùng `==` để kết luận hai mảng có nội dung bằng nhau.
+`a.equals(b)` on normal Java arrays **does not automatically compare element by element** like `Arrays.equals`. Do not use `==` to conclude that two arrays have equal contents.
 
-## 4. Vì sao truyền mảng vào phương thức cũng có thể làm đổi dữ liệu?
+## 4. Why passing an array into a method can also change data
 
-Java **truyền đối số theo giá trị** (*pass-by-value*). Khi đối số là biến tham chiếu mảng, **giá trị được sao chép chính là tham chiếu**.
+Java **passes arguments by value** (*pass-by-value*). When an argument is an array reference variable, **the value being copied is the reference itself**.
 
 ~~~java
 static void changeElement(int[] values) {
@@ -106,7 +106,7 @@ static void changeElement(int[] values) {
 }
 
 static void rebindParameter(int[] values) {
-    values = new int[]{7, 8}; // Chỉ gán lại biến tham số cục bộ.
+    values = new int[]{7, 8}; // Reassigns only the local parameter variable.
     values[0] = 70;
 }
 ~~~
@@ -127,13 +127,13 @@ System.out.println(java.util.Arrays.toString(original));
 [50, 2, 3]
 ~~~
 
-Trong `changeElement`, tham số `values` là **bản sao tham chiếu** nhưng trỏ đến **cùng mảng** như `original`; sửa `values[0]` làm thay dữ liệu caller. Trong `rebindParameter`, phép gán `values = new int[]{...}` chỉ đổi **tham số trong lần gọi**; biến `original` ở caller vẫn trỏ tới mảng cũ.
+In `changeElement`, the parameter `values` is a **copy of the reference** that still points to **the same array** as `original`; modifying `values[0]` changes the caller's data. In `rebindParameter`, assigning `values = new int[]{...}` only changes **the parameter for that call**; the variable `original` in the caller still points to the old array.
 
-Đây **không phải pass-by-reference** theo nghĩa phương thức có thể gán lại biến tham chiếu của caller. Nếu cần caller sử dụng mảng mới, phương thức có thể **trả mảng mới**, rồi caller tự gán: `original = createNewArray(original);`.
+This is **not pass-by-reference** in the sense that a method could reassign the caller's reference variable. If the caller needs to use a new array, the method can **return the new array**, and the caller assigns it explicitly: `original = createNewArray(original);`.
 
-## 5. Sao chép nội dung để tránh chia sẻ mảng `int[]`
+## 5. Copying contents to avoid sharing an `int[]` array
 
-Các cách thông dụng:
+Common approaches:
 
 ~~~java
 import java.util.Arrays;
@@ -153,7 +153,7 @@ false
 true
 ~~~
 
-`clone()` trên `int[]` tạo **mảng mới cùng kiểu, cùng độ dài và cùng giá trị phần tử**. `Arrays.copyOf(original, original.length)` cũng tạo mảng mới. Sau khi có bản sao:
+`clone()` on `int[]` creates **a new array of the same type, same length, and same element values**. `Arrays.copyOf(original, original.length)` also creates a new array. After having a copy:
 
 ~~~java
 clone[0] = 99;
@@ -168,28 +168,28 @@ System.out.println(Arrays.toString(clone));
 [99, 2, 3]
 ~~~
 
-Vì hai mảng `int[]` giờ độc lập, sửa giá trị nguyên thủy ở bản sao không ảnh hưởng bản gốc.
+Because the two `int[]` arrays are now independent, modifying primitive values in the copy does not affect the original.
 
-| Kỹ thuật | Tạo mảng đích mới? | Độ dài đích |
+| Technique | Creates a new destination array? | Destination length |
 |---|---|---|
-| `int[] b = a;` | **Không** | Không có mảng mới |
-| `int[] b = a.clone();` | **Có** | Bằng `a.length` |
-| `int[] b = Arrays.copyOf(a, a.length);` | **Có** | Bằng `a.length` |
-| `int[] b = Arrays.copyOf(a, 5);` | **Có** | Bằng `5` |
-| `System.arraycopy(a, 0, b, 0, n)` | **Không tự tạo b** | B phải được cấp phát sẵn đủ chỗ |
+| `int[] b = a;` | **No** | No new array |
+| `int[] b = a.clone();` | **Yes** | Equal to `a.length` |
+| `int[] b = Arrays.copyOf(a, a.length);` | **Yes** | Equal to `a.length` |
+| `int[] b = Arrays.copyOf(a, 5);` | **Yes** | Equal to `5` |
+| `System.arraycopy(a, 0, b, 0, n)` | **Does not create b automatically** | `b` must already be allocated with enough space |
 
-Với `Arrays.copyOf(a, 5)`, nếu mảng gốc dài 3, hai vị trí thêm vào của `int[]` có giá trị mặc định `0`. Nếu độ dài mới nhỏ hơn, các phần tử vượt quá sẽ không được sao chép.
+With `Arrays.copyOf(a, 5)`, if the original array has length 3, the two added slots of `int[]` have default value `0`. If the new length is smaller, trailing elements beyond the new length are not copied.
 
-**Cẩn thận:** `clone()` hay `copyOf` vẫn là **shallow copy** khi các phần tử mảng là tham chiếu tới đối tượng có thể thay đổi. Điều này sẽ được phân biệt ngay sau đây.
+**Caution:** `clone()` or `copyOf` is still a **shallow copy** when the array elements are references to mutable objects. This distinction is illustrated right below.
 
-## 6. Mảng chứa đối tượng: sao chép mảng không sao chép đối tượng phần tử
+## 6. Object arrays: copying the array does not copy the element objects
 
 ~~~java
 StringBuilder[] first = {
     new StringBuilder("A"),
     new StringBuilder("B")
 };
-StringBuilder[] second = first.clone(); // Mảng ngoài khác, item tham chiếu chung.
+StringBuilder[] second = first.clone(); // Different outer array, shared item references.
 
 second[0].append("!");
 System.out.println(first[0]);
@@ -207,16 +207,16 @@ B
 C
 ~~~
 
-`second[0].append("!")` sửa **object `StringBuilder` được hai mảng cùng tham chiếu**, nên `first[0]` cũng hiển thị `A!`. Trái lại, `second[1] = new StringBuilder("C")` chỉ thay **tham chiếu phần tử** tại vị trí 1 của mảng `second`; `first[1]` vẫn trỏ tới `"B"`.
+`second[0].append("!")` mutates **the `StringBuilder` object referenced by both arrays**, so `first[0]` also displays `A!`. By contrast, `second[1] = new StringBuilder("C")` only replaces the **element reference** at slot 1 of `second`; `first[1]` still points to `"B"`.
 
-Vì vậy cần phân biệt hai tầng:
+Therefore, distinguish two levels:
 
-1. **Mảng**: `first` và `second` là hai đối tượng mảng khác nhau sau `clone()`.
-2. **Object phần tử**: các phần tử tương ứng vẫn có thể là cùng tham chiếu tới một object mutable.
+1. **The array**: `first` and `second` are two distinct array objects after `clone()`.
+2. **Element objects**: corresponding elements can still be references to the same mutable object.
 
-Muốn tách biệt cả nội dung mutable, cần tạo **bản sao của từng object phần tử**, theo hợp đồng của kiểu ấy. Với `String` (bất biến), chia sẻ tham chiếu thường không gây vấn đề thay đổi nội dung. Còn với `StringBuilder`, sửa nội dung sẽ tác động lên mọi tham chiếu tới object đó.
+To isolate mutable contents as well, you must create **copies of each element object**, according to that type's contract. With `String` (immutable), sharing references typically causes no content-mutation issues. With `StringBuilder`, mutating contents affects every reference to that object.
 
-## 7. Khi gán `null` hoặc trả về mảng mới
+## 7. Assigning `null` or returning a new array
 
 ~~~java
 int[] a = {3, 4};
@@ -234,9 +234,9 @@ true
 [3, 4]
 ~~~
 
-Gán `b = null` chỉ khiến **biến b** không còn trỏ tới mảng; `a` vẫn giữ mảng đó. Nếu sau đó truy cập `b.length` hoặc `b[0]`, Java ném `NullPointerException`.
+Assigning `b = null` only stops **variable b** from pointing to the array; `a` still holds that array. Accessing `b.length` or `b[0]` afterward throws `NullPointerException`.
 
-Một phương thức có thể trả một tham chiếu **mới** để caller chủ động thay biến:
+A method can return a **new** reference so the caller can intentionally update its variable:
 
 ~~~java
 static int[] appendZero(int[] source) {
@@ -258,11 +258,11 @@ System.out.println(java.util.Arrays.toString(longer));
 [3, 4, 0]
 ~~~
 
-Mảng có độ dài cố định. `appendZero` không “nới dài” object cũ mà **cấp phát mảng khác**. Nếu caller muốn dùng mảng dài hơn cho biến `a`, cần `a = appendZero(a);`.
+Arrays have a fixed length. `appendZero` does not "extend" the old object; it **allocates another array**. If the caller wants variable `a` to use the longer array, it must write `a = appendZero(a);`.
 
-## 8. Chương trình Java 17+ hoàn chỉnh
+## 8. Complete Java 17+ program
 
-Lưu đúng file **`ArrayReferenceAssignmentDemo.java`**:
+Save to the exact file **`ArrayReferenceAssignmentDemo.java`**:
 
 ~~~java
 import java.util.Arrays;
@@ -339,7 +339,7 @@ public final class ArrayReferenceAssignmentDemo {
 }
 ~~~
 
-Yêu cầu **JDK 17 trở lên**; không dùng thư viện ngoài JDK hoặc preview feature.
+Requires **JDK 17 or later**; uses no libraries outside the JDK or preview features.
 
 **Bash (Linux/macOS):**
 
@@ -383,24 +383,24 @@ object new second=C
 object shared array=false
 ~~~
 
-Phân tích theo trình tự: `alias` ban đầu cùng tham chiếu với `original`, nên ghi qua alias và qua tham số `mutateElement` làm mảng gốc đổi. Gán lại tham số `values` trong `rebindParameter` không làm caller trỏ mảng mới. `clone()` và `copyOf` tạo các mảng `int[]` độc lập. `System.arraycopy` sao chép phần tử vào mảng đích có sẵn. Ở phần `StringBuilder[]`, clone chỉ tách **mảng**, không tạo bản sao các đối tượng phần tử mutable.
+Step-by-step analysis: `alias` initially shares the same reference as `original`, so writing through `alias` and through the `mutateElement` parameter changes the original array. Reassigning the `values` parameter inside `rebindParameter` does not make the caller point to a new array. `clone()` and `copyOf` create independent `int[]` arrays. `System.arraycopy` copies elements into an already allocated destination array. In the `StringBuilder[]` part, `clone` only separates **the arrays**, without creating copies of the mutable element objects.
 
-## 9. Sai lầm thường gặp
+## 9. Common mistakes
 
-| Sai lầm | Hậu quả / cách hiểu sai | Cách đúng |
+| Mistake | Consequence / misconception | Correct approach |
 |---|---|---|
-| `int[] b = a;` là copy dữ liệu | Hai biến vẫn cùng object | Dùng `a.clone()` hoặc `Arrays.copyOf` |
-| `b[0] = 5` chỉ ảnh hưởng b | Khi alias, a cũng thấy thay đổi | Phân biệt biến tham chiếu với mảng |
-| `b = new int[2]` khiến a đổi theo | Chỉ b trỏ sang object mới | Phép gán biến không sửa biến khác |
-| `a == b` kiểm tra phần tử bằng nhau | Nó so identity | Dùng `Arrays.equals` cho nội dung `int[]` |
-| `values = new int[]{...}` trong method gán lại array của caller | Tham số là bản sao tham chiếu | Trả mảng mới, caller tự gán |
-| `clone()` trên `StringBuilder[]` clone từng StringBuilder | Các object phần tử vẫn có thể dùng chung | Sao chép từng object khi cần |
-| `System.arraycopy` tự tạo mảng đích | Đích phải tồn tại, đủ kích thước | Khởi tạo đích trước |
-| `b = null` làm a cũng null | Chỉ b bị gán lại | a vẫn có thể trỏ tới mảng cũ |
+| `int[] b = a;` copies data | Both variables still point to the same object | Use `a.clone()` or `Arrays.copyOf` |
+| `b[0] = 5` affects only b | When aliased, a also sees the change | Distinguish reference variables from the array |
+| `b = new int[2]` makes a change too | Only b points to the new object | Assigning one variable does not modify another variable |
+| `a == b` checks equal elements | It compares identity | Use `Arrays.equals` for `int[]` contents |
+| `values = new int[]{...}` inside a method reassigns the caller's array | The parameter is a copy of the reference | Return the new array and have the caller assign it |
+| `clone()` on `StringBuilder[]` clones each StringBuilder | Element objects can still be shared | Copy each object individually when needed |
+| `System.arraycopy` automatically creates the destination array | Destination must already exist with enough capacity | Allocate destination beforehand |
+| `b = null` also makes a null | Only b is reassigned | `a` can still point to the old array |
 
-## 10. Bài tập và đáp án
+## 10. Exercises and answers
 
-**A — Dự đoán giá trị:**
+**A — Predict the value:**
 
 ~~~java
 int[] a = {2, 4};
@@ -409,9 +409,9 @@ b[1] = 9;
 System.out.println(a[1]);
 ~~~
 
-**Đáp án:** `9`, vì hai biến trỏ cùng mảng.
+**Answer:** `9`, because both variables point to the same array.
 
-**B — Gán lại biến:**
+**B — Reassigning a variable:**
 
 ~~~java
 int[] a = {2, 4};
@@ -420,9 +420,9 @@ b = new int[]{7};
 System.out.println(a.length + "," + b.length);
 ~~~
 
-**Đáp án:** `2,1`. Việc chuyển b sang mảng mới không đổi a.
+**Answer:** `2,1`. Switching `b` to a new array does not change `a`.
 
-**C — So sánh tham chiếu và nội dung:**
+**C — Comparing references and contents:**
 
 ~~~java
 int[] a = {1, 2};
@@ -431,14 +431,14 @@ System.out.println(a == b);
 System.out.println(Arrays.equals(a, b));
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 false
 true
 ~~~
 
-**D — Phương thức nhận mảng:**
+**D — Method receiving an array:**
 
 ~~~java
 static void edit(int[] a) {
@@ -447,21 +447,21 @@ static void edit(int[] a) {
 }
 ~~~
 
-Sau `int[] x = {1}; edit(x);`, giá trị `x[0]` là **5**. Gán `a = new int[]{8}` không đổi tham chiếu biến `x` ở caller.
+After `int[] x = {1}; edit(x);`, the value of `x[0]` is **5**. Assigning `a = new int[]{8}` does not change the caller's `x` reference variable.
 
-**E — Khi clone mảng object:** `StringBuilder[] copy = original.clone();` làm `copy == original` thành **false**, nhưng `copy[0] == original[0]` có thể **true**. Muốn thay đổi trạng thái `StringBuilder` độc lập, cần sao chép chính object đó.
+**E — When cloning an object array:** `StringBuilder[] copy = original.clone();` makes `copy == original` **false**, yet `copy[0] == original[0]` can be **true**. To change `StringBuilder` state independently, you must copy that object itself.
 
-## 11. Checklist và kết luận
+## 11. Checklist and conclusion
 
-- [ ] Hiểu biến kiểu `T[]` chứa tham chiếu tới đối tượng mảng.
-- [ ] Biết phép gán `b = a` chỉ sao chép tham chiếu, không copy phần tử.
-- [ ] Phân biệt sửa `b[i]` với gán lại `b`.
-- [ ] Dùng `==` kiểm tra cùng object, `Arrays.equals` kiểm tra nội dung `int[]`.
-- [ ] Hiểu Java truyền tham chiếu mảng **theo giá trị** khi gọi phương thức.
-- [ ] Dùng `clone()`/`Arrays.copyOf` để tạo mảng nguyên thủy mới độc lập.
-- [ ] Biết `System.arraycopy` sao chép vào mảng đích đã được tạo.
-- [ ] Nhận diện shallow copy khi mảng chứa các object mutable.
-- [ ] Không nhầm `null` của một biến với trạng thái biến khác.
-- [ ] Chạy `ArrayReferenceAssignmentDemo.java` với Java 17+ và đối chiếu exact stdout.
+- [ ] Understand that a variable of type `T[]` holds a reference to an array object.
+- [ ] Know that assigning `b = a` only copies the reference, without copying elements.
+- [ ] Distinguish modifying `b[i]` from reassigning `b`.
+- [ ] Use `==` to check for the same object, and `Arrays.equals` to check `int[]` contents.
+- [ ] Understand that Java passes array references **by value** on method calls.
+- [ ] Use `clone()`/`Arrays.copyOf` to create a new independent primitive array.
+- [ ] Know that `System.arraycopy` copies into an already created destination array.
+- [ ] Recognize shallow copying when an array contains mutable objects.
+- [ ] Do not confuse `null` on one variable with the state of another variable.
+- [ ] Run `ArrayReferenceAssignmentDemo.java` with Java 17+ and verify exact stdout.
 
-**Kết luận:** Với mảng một chiều trong Java, `b = a` chỉ **sao chép tham chiếu**; cả hai tên biến cùng nhìn một đối tượng mảng cho tới khi một biến được gán lại. Sửa phần tử qua alias làm thay đổi dữ liệu chung. Muốn có mảng `int[]` độc lập, cần **tạo bản sao đối tượng mảng**; nếu phần tử là object mutable, có thể phải sao chép thêm chính các object phần tử.
+**Conclusion:** For one-dimensional arrays in Java, `b = a` only **copies the reference**; both variable names point to the same array object until one variable is reassigned. Modifying elements through an alias changes the shared data. To get an independent `int[]` array, you must **create a copy of the array object**; if elements are mutable objects, you may also need to copy the element objects themselves.

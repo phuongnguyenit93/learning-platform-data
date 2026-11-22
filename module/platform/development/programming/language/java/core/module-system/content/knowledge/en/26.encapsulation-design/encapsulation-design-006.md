@@ -1,14 +1,14 @@
-# Module boundary và thay đổi implementation
+# Module Boundaries and Changing Implementations
 
-Java Platform Module System (JPMS) giúp một ứng dụng xác định rõ package nào là API công khai và package nào thuộc phần triển khai nội bộ. Ranh giới này tạo điều kiện để nhóm phát triển thay đổi thuật toán, cấu trúc class hoặc cách lưu trữ bên trong mà không buộc mọi module sử dụng phải thay đổi theo.
+The Java Platform Module System (JPMS) helps an application clearly define which packages are public API and which belong to the internal implementation. This boundary enables the development team to change internal algorithms, class structures, or storage mechanisms without forcing every consuming module to change alongside them.
 
-Muốn thay implementation an toàn, trước hết cần thiết kế một **contract ổn định ở module boundary**. Consumer chỉ phụ thuộc vào kiểu và hành vi được công khai; implementation cụ thể nằm trong package không export. Khi thay đổi bên trong, cần giữ tương thích với contract đó.
+To swap implementations safely, you first need to design a **stable contract at the module boundary**. Consumers depend only on the exposed types and behavior; the concrete implementation resides in unexported packages. When making internal changes, compatibility with that contract must be preserved.
 
-## 1. Module boundary bảo vệ điều gì?
+## 1. What Does a Module Boundary Protect?
 
-Một module có thể chứa nhiều package. Trong file module descriptor (module-info.java), khai báo exports xác định package nào được module khác sử dụng như API Java thông thường.
+A module can contain multiple packages. In the module descriptor file (module-info.java), the exports declaration specifies which packages are used by other modules as standard Java APIs.
 
-Ví dụ:
+For example:
 
 ~~~java
 module com.example.orders {
@@ -16,32 +16,32 @@ module com.example.orders {
 }
 ~~~
 
-Trong module này:
+In this module:
 
-- Package com.example.orders.api là bề mặt API được công khai.
-- Các package khác, chẳng hạn com.example.orders.internal, không được export và được giữ bên trong module.
-- Class public trong package không export vẫn có thể được sử dụng bởi code thuộc cùng module, nhưng module khác không thể truy cập nó như một API thông thường.
+- The com.example.orders.api package is the exposed API surface.
+- Other packages, such as com.example.orders.internal, are not exported and are kept inside the module.
+- A public class in an unexported package can still be used by code belonging to the same module, but other modules cannot access it as a normal API.
 
-Module boundary ở cấp module rộng hơn access modifier của từng class. Modifier public cho biết class/member có thể được truy cập theo quy tắc Java; exports quyết định package có được công khai qua ranh giới module hay không.
+The module boundary operates at a broader level than individual class access modifiers. The public modifier indicates that a class/member can be accessed according to Java rules; exports determines whether the package is exposed across the module boundary.
 
-Cần phân biệt:
+Note the distinction:
 
-| Cơ chế | Phạm vi và ý nghĩa |
+| Mechanism | Scope and Meaning |
 | --- | --- |
-| private | Chỉ truy cập bên trong class khai báo |
-| package-private | Truy cập trong cùng package |
-| protected | Truy cập theo quy tắc package và kế thừa |
-| public | Công khai theo quy tắc truy cập Java |
-| exports | Cho phép module khác truy cập public API trong package được export |
-| opens | Cho phép deep reflection vào package theo quy tắc JPMS |
+| private | Accessible only within the declaring class |
+| package-private | Accessible within the same package |
+| protected | Accessible by package and inheritance rules |
+| public | Public according to Java access rules |
+| exports | Allows other modules to access public APIs in the exported package |
+| opens | Allows deep reflection into the package under JPMS rules |
 
-Một package không export không trở thành API công khai chỉ vì bên trong có class public.
+An unexported package does not become a public API merely because it contains a public class.
 
-## 2. Tách API khỏi implementation
+## 2. Separating API from Implementation
 
-Giả sử module orders cung cấp chức năng tạo đơn hàng. Consumer chỉ cần biết cách gọi dịch vụ và nhận kết quả. Consumer không cần biết implementation đang dùng database nào, thuật toán tính giá ra sao hoặc class nào thực hiện công việc.
+Suppose the orders module provides order creation functionality. Consumers only need to know how to invoke the service and receive the result. Consumers do not need to know which database the implementation uses, how the pricing algorithm works, or which classes perform the work.
 
-Cấu trúc gợi ý:
+Suggested structure:
 
 ~~~text
 com.example.orders/
@@ -55,7 +55,7 @@ com.example.orders/
     └── DefaultOrderService.java
 ~~~
 
-Module descriptor chỉ export package API:
+The module descriptor exports only the API package:
 
 ~~~java
 module com.example.orders {
@@ -63,9 +63,9 @@ module com.example.orders {
 }
 ~~~
 
-### API contract
+### API Contract
 
-OrderRequest và OrderResult là các kiểu dữ liệu mà consumer được phép sử dụng:
+OrderRequest and OrderResult are the data types consumers are allowed to use:
 
 ~~~java
 package com.example.orders.api;
@@ -81,7 +81,7 @@ public record OrderResult(String orderId, boolean accepted) {
 }
 ~~~
 
-Interface mô tả hành vi:
+The interface describing the behavior:
 
 ~~~java
 package com.example.orders.api;
@@ -91,7 +91,7 @@ public interface OrderService {
 }
 ~~~
 
-Factory tạo implementation và chỉ trả về interface:
+The factory creates the implementation and returns only the interface:
 
 ~~~java
 package com.example.orders.api;
@@ -109,9 +109,9 @@ public final class OrderServices {
 }
 ~~~
 
-### Implementation nội bộ
+### Internal Implementation
 
-Class triển khai nằm trong package không export:
+The implementation class resides in an unexported package:
 
 ~~~java
 package com.example.orders.internal;
@@ -135,11 +135,11 @@ public final class DefaultOrderService implements OrderService {
 }
 ~~~
 
-Class DefaultOrderService có thể là public để factory ở package khác trong cùng module tạo instance. Package internal không được export nên consumer bên ngoài không thể phụ thuộc trực tiếp vào class này.
+The DefaultOrderService class can be public so the factory in another package of the same module can instantiate it. Because the internal package is not exported, external consumers cannot depend directly on this class.
 
-### Consumer sử dụng API
+### Consumer Using the API
 
-Module sử dụng chỉ cần khai báo dependency tới module orders:
+The consuming module only needs to declare a dependency on the orders module:
 
 ~~~java
 module com.example.shop {
@@ -147,7 +147,7 @@ module com.example.shop {
 }
 ~~~
 
-Code consumer:
+Consumer code:
 
 ~~~java
 import com.example.orders.api.OrderRequest;
@@ -164,13 +164,13 @@ public class Checkout {
 }
 ~~~
 
-Consumer biết interface, request và result. Consumer không cần import DefaultOrderService hoặc biết package internal tồn tại.
+The consumer knows the interface, request, and result. The consumer does not need to import DefaultOrderService or know that the internal package exists.
 
-## 3. Thay implementation mà không đổi consumer
+## 3. Changing Implementations Without Changing Consumers
 
-Khi contract đã được tách rõ, module có thể thay class triển khai mà không thay đổi API.
+When the contract is clearly separated, the module can replace implementation classes without altering the API.
 
-Ví dụ, phiên bản đầu dùng:
+For example, the initial version uses:
 
 ~~~java
 public OrderService create() {
@@ -178,7 +178,7 @@ public OrderService create() {
 }
 ~~~
 
-Phiên bản sau chuyển sang:
+A later version switches to:
 
 ~~~java
 public OrderService create() {
@@ -186,58 +186,58 @@ public OrderService create() {
 }
 ~~~
 
-OptimizedOrderService cũng nằm trong package nội bộ và implement OrderService. Nếu chữ ký API và hành vi được cam kết vẫn tương thích, consumer tiếp tục gọi OrderServices.create() như trước.
+OptimizedOrderService also resides in an internal package and implements OrderService. If the API signatures and promised behavior remain compatible, consumers keep calling OrderServices.create() as before.
 
-Những thay đổi thường có thể thực hiện bên trong module:
+Changes that can typically be made inside the module:
 
-- Thay thuật toán xử lý hoặc cấu trúc dữ liệu.
-- Thêm cache, batching hoặc tối ưu truy vấn.
-- Chia một implementation lớn thành nhiều class nội bộ.
-- Thay thư viện nội bộ hoặc cách kết nối hạ tầng.
-- Đổi tên, di chuyển hoặc xóa class trong package không export.
-- Thêm package nội bộ để tổ chức code.
-- Thay implementation mặc định trong factory.
+- Changing processing algorithms or data structures.
+- Adding caching, batching, or query optimizations.
+- Splitting a large implementation into multiple internal classes.
+- Replacing internal libraries or infrastructure connection mechanisms.
+- Renaming, moving, or deleting classes in unexported packages.
+- Adding internal packages to organize code.
+- Changing the default implementation in the factory.
 
-Đây là lợi ích chính của encapsulation ở cấp module: consumer phụ thuộc vào contract, không phụ thuộc vào chi tiết triển khai.
+This is the primary benefit of module-level encapsulation: consumers depend on the contract, not on implementation details.
 
-Tuy nhiên, giữ nguyên chữ ký method chưa đủ để bảo đảm tương thích. Implementation mới còn phải tôn trọng ý nghĩa của contract: kết quả, điều kiện lỗi, quy tắc validate, tính nhất quán dữ liệu, thread-safety và các cam kết về thứ tự xử lý nếu API đã công bố.
+However, preserving method signatures is not enough to guarantee compatibility. The new implementation must also honor the semantics of the contract: outputs, error conditions, validation rules, data consistency, thread-safety, and ordering guarantees if published by the API.
 
-## 4. Những thay đổi có thể phá vỡ API contract
+## 4. Changes That Can Break the API Contract
 
-Khi thay đổi package được export, cần đánh giá tác động tới cả source compatibility, binary compatibility và behavioral compatibility.
+When modifying exported packages, assess the impact on source compatibility, binary compatibility, and behavioral compatibility.
 
-| Thay đổi | Tác động có thể xảy ra |
+| Change | Possible Impact |
 | --- | --- |
-| Xóa public class hoặc public method đã công khai | Consumer có thể không biên dịch hoặc gặp lỗi liên kết lúc chạy |
-| Đổi tên package được export | Consumer phải sửa import và module descriptor |
-| Đổi kiểu tham số hoặc kiểu trả về | Chữ ký method thay đổi; mã đã biên dịch có thể không liên kết được |
-| Đổi method instance thành static hoặc ngược lại | Cách gọi và binary contract thay đổi |
-| Thay đổi interface mà consumer implement | Có thể làm implementation của consumer không còn tương thích |
-| Xóa một package khỏi exports | Consumer ở module khác mất quyền truy cập package |
-| Thay đổi ý nghĩa kết quả hoặc điều kiện lỗi | Có thể phá behavioral compatibility dù chữ ký không đổi |
-| Thay đổi class nội bộ không được export | Thường không ảnh hưởng trực tiếp tới consumer tuân thủ module boundary |
+| Removing an already published public class or public method | Consumers may fail to compile or encounter runtime linkage errors |
+| Renaming an exported package | Consumers must update imports and module descriptors |
+| Changing parameter types or return types | Method signature changes; already compiled code may fail to link |
+| Changing an instance method to static or vice versa | Calling convention and binary contract change |
+| Changing an interface that consumers implement | Can make consumer implementations incompatible |
+| Removing a package from exports | Consumers in other modules lose access to the package |
+| Changing result semantics or error conditions | Can break behavioral compatibility even if signatures stay unchanged |
+| Changing unexported internal classes | Generally has no direct impact on consumers respecting the module boundary |
 
-Một trường hợp cần chú ý là thêm abstract method vào interface công khai. Consumer có thể đang cung cấp implementation riêng của interface đó. Khi interface thêm abstract method, implementation cũ có thể không còn đáp ứng contract mới. Nếu phù hợp về ngữ nghĩa, có thể cân nhắc default method hoặc tạo interface mở rộng riêng để biểu diễn capability mới.
+One case requiring care is adding an abstract method to a public interface. Consumers might be providing their own implementations of that interface. When an interface adds an abstract method, older implementations may no longer satisfy the new contract. Where semantically appropriate, consider a default method or create a separate extended interface to represent the new capability.
 
-Không nên đưa class implementation nội bộ vào chữ ký API. Ví dụ:
+Do not place internal implementation classes in API signatures. For example:
 
 ~~~java
-// Không nên: làm lộ implementation type trong public contract.
+// Avoid: exposes implementation type in public contract.
 public DefaultOrderService create();
 ~~~
 
-Hãy trả về interface hoặc abstraction được công khai:
+Return an exposed interface or abstraction instead:
 
 ~~~java
-// Tốt hơn: consumer chỉ phụ thuộc contract.
+// Better: consumer depends only on the contract.
 public OrderService create();
 ~~~
 
-Nếu một public method trả về kiểu nằm trong package không export, consumer có thể gặp khó khăn khi biên dịch và sử dụng kết quả. Kiểu dữ liệu xuất hiện trong chữ ký API cũng là một phần của ranh giới công khai.
+If a public method returns a type residing in an unexported package, consumers may struggle to compile and use the result. Data types appearing in API signatures are also part of the public boundary.
 
-## 5. Exports, qualified exports và opens trong thiết kế boundary
+## 5. Exports, Qualified Exports, and Opens in Boundary Design
 
-Khai báo export không tham chiếu đến module cụ thể sẽ công khai package cho mọi module đọc được module này:
+An export declaration that does not reference specific modules exposes the package to every module that reads this module:
 
 ~~~java
 module com.example.orders {
@@ -245,7 +245,7 @@ module com.example.orders {
 }
 ~~~
 
-Nếu package chỉ được phép sử dụng bởi một số module cụ thể, JPMS hỗ trợ qualified exports:
+If a package should only be used by certain specific modules, JPMS supports qualified exports:
 
 ~~~java
 module com.example.orders {
@@ -255,9 +255,9 @@ module com.example.orders {
 }
 ~~~
 
-Cách này có thể hữu ích khi cần một API tích hợp dành riêng cho module khác. Tuy nhiên, qualified export tạo ra quan hệ phụ thuộc rõ ràng giữa hai module. Nếu dùng quá rộng, nó có thể làm giảm khả năng thay đổi độc lập.
+This can be useful when an integration API reserved for another module is needed. However, a qualified export creates an explicit dependency between the two modules. If overused, it can reduce the ability to change independently.
 
-opens có mục đích khác:
+opens serves a different purpose:
 
 ~~~java
 module com.example.orders {
@@ -268,40 +268,40 @@ module com.example.orders {
 }
 ~~~
 
-Package model được mở cho module com.example.json để framework có thể thực hiện deep reflection. Package này không vì thế trở thành API Java thông thường.
+The model package is opened to the com.example.json module so the framework can perform deep reflection. This does not make the package a normal Java API.
 
-Một open module mở tất cả package cho deep reflection theo quy tắc JPMS:
+An open module opens all packages for deep reflection under JPMS rules:
 
 ~~~java
 open module com.example.legacy {
 }
 ~~~
 
-Đây là phạm vi rộng và làm giảm mức encapsulation. Với thiết kế module mới, nên cân nhắc mở đúng package và đúng module cần truy cập.
+This is a broad scope and lowers the level of encapsulation. For new module designs, consider opening only the exact packages and exact modules needing access.
 
-## 6. Giữ implementation có thể thay đổi trong dài hạn
+## 6. Keeping Implementations Changeable Over the Long Term
 
-Một số nguyên tắc giúp module dễ phát triển:
+Some principles help modules evolve cleanly:
 
-**Công khai abstraction thay vì class cụ thể.** Consumer nên phụ thuộc interface, record hoặc kiểu dữ liệu thuộc API package. Factory hoặc constructor công khai chịu trách nhiệm cung cấp implementation phù hợp.
+**Expose abstractions instead of concrete classes.** Consumers should depend on interfaces, records, or data types belonging to the API package. Factories or public constructors are responsible for providing an appropriate implementation.
 
-**Giữ kiểu nội bộ ngoài chữ ký API.** Không để method public trả về hoặc nhận các kiểu chỉ tồn tại trong package internal. Nếu dữ liệu cần được trao đổi qua boundary, hãy định nghĩa kiểu hợp đồng trong package API.
+**Keep internal types out of API signatures.** Do not let public methods return or accept types that only exist in internal packages. If data must be exchanged across the boundary, define contract types in the API package.
 
-**Giữ contract có ý nghĩa rõ ràng.** Mô tả nullability, exception, validation, trạng thái, thread-safety và các điều kiện vận hành mà consumer được phép dựa vào. Implementation mới phải duy trì các cam kết này.
+**Keep contract semantics clear.** Document nullability, exceptions, validation, state, thread-safety, and operational conditions that consumers are permitted to rely on. New implementations must uphold these commitments.
 
-**Tách capability tùy chọn.** Nếu một số implementation có chức năng bổ sung, cân nhắc interface mở rộng hoặc capability riêng thay vì liên tục thêm method bắt buộc vào interface gốc.
+**Separate optional capabilities.** If some implementations have additional features, consider extended interfaces or separate capabilities instead of continually adding mandatory methods to the base interface.
 
-**Ẩn lựa chọn triển khai.** Để factory, dependency injection hoặc service discovery quyết định implementation. Consumer không nên tự khởi tạo class internal.
+**Hide implementation selection.** Let factories, dependency injection, or service discovery decide the implementation. Consumers should not instantiate internal classes themselves.
 
-**Giới hạn package export.** Chỉ export những package mà module thực sự cam kết hỗ trợ như API. Không export toàn bộ package chỉ để làm cho một consumer truy cập được class nội bộ.
+**Limit package exports.** Only export packages that the module genuinely commits to supporting as API. Do not export an entire package just so one consumer can access an internal class.
 
-**Quản lý deprecation có lộ trình.** Khi API cũ cần thay thế, có thể đánh dấu deprecated, cung cấp API mới, tài liệu migration và một giai đoạn tương thích trước khi loại bỏ ở phiên bản major phù hợp.
+**Manage deprecation with a roadmap.** When an old API needs replacement, mark it deprecated, provide the new API, migration documentation, and a compatibility period before removing it in an appropriate major version.
 
-## 7. Khi cần nhiều implementation: dùng ServiceLoader
+## 7. When Multiple Implementations Are Needed: Use ServiceLoader
 
-Factory nội bộ phù hợp khi một module tự quyết định implementation. Nếu cần cho module khác cung cấp plugin, có thể thiết kế một service interface công khai và sử dụng ServiceLoader.
+An internal factory fits when a module chooses its own implementation. If other modules need to supply plugins, you can design a public service interface and use ServiceLoader.
 
-Module chứa service API khai báo:
+The module containing the service API declares:
 
 ~~~java
 module com.example.payment.api {
@@ -320,7 +320,7 @@ public interface PaymentProcessor {
 }
 ~~~
 
-Module provider phụ thuộc vào API và đăng ký implementation:
+The provider module depends on the API and registers the implementation:
 
 ~~~java
 module com.example.payment.card {
@@ -331,7 +331,7 @@ module com.example.payment.card {
 }
 ~~~
 
-Class provider có thể nằm trong package không export:
+The provider class can reside in an unexported package:
 
 ~~~java
 package com.example.payment.card;
@@ -351,7 +351,7 @@ public final class CardPaymentProcessor
 }
 ~~~
 
-Module consumer khai báo sử dụng service:
+The consumer module declares usage of the service:
 
 ~~~java
 module com.example.checkout {
@@ -361,7 +361,7 @@ module com.example.checkout {
 }
 ~~~
 
-Consumer tìm implementation:
+Consumer discovers implementations:
 
 ~~~java
 import com.example.payment.api.PaymentProcessor;
@@ -374,41 +374,41 @@ ServiceLoader.load(PaymentProcessor.class)
     .forEach(processor -> processor.process("PAY-001"));
 ~~~
 
-ServiceLoader giúp consumer phụ thuộc vào service contract thay vì phụ thuộc trực tiếp vào module provider. Provider cần được đưa vào module resolution và service binding phù hợp để runtime tìm thấy. Với named module, các khai báo uses và provides thể hiện quan hệ này trong module descriptor.
+ServiceLoader lets consumers depend on the service contract rather than directly depending on provider modules. Providers must be included in module resolution and appropriate service binding to be found at runtime. With named modules, uses and provides declarations express this relationship in the module descriptor.
 
-Cách thiết kế này hữu ích cho plugin architecture, nhiều adapter hoặc các implementation được lựa chọn theo môi trường triển khai.
+This design approach is useful for plugin architectures, multiple adapters, or implementations chosen based on the deployment environment.
 
-## 8. Kiểm tra module boundary khi thay đổi
+## 8. Verifying Module Boundaries When Making Changes
 
-Khi refactor implementation hoặc thay đổi module descriptor, nên kiểm tra các điểm sau:
+When refactoring implementations or modifying the module descriptor, check the following points:
 
-1. Liệt kê package được export trong module-info.java.
-2. Xác nhận public API chỉ tham chiếu các kiểu thuộc package được công khai hoặc các module dependency phù hợp.
-3. Xác nhận package nội bộ không vô tình được export.
-4. Kiểm tra module consumer vẫn biên dịch và gọi API như trước.
-5. Kiểm tra các module provider hoặc service implementation nếu có.
-6. Chạy kiểm thử contract để so sánh kết quả và hành vi của implementation mới.
-7. Kiểm tra tương thích nhị phân khi thay module đã được consumer biên dịch trước đó.
-8. Kiểm tra opens và qualified exports để bảo đảm quyền truy cập chỉ được cấp theo mục đích thiết kế.
+1. List the packages exported in module-info.java.
+2. Confirm that public APIs only reference types in exposed packages or appropriate module dependencies.
+3. Confirm that internal packages are not accidentally exported.
+4. Check that consuming modules still compile and call the API as before.
+5. Check provider modules or service implementations if any exist.
+6. Run contract tests to compare results and behavior of the new implementation.
+7. Check binary compatibility when replacing a module that consumers were previously compiled against.
+8. Check opens and qualified exports to ensure access permissions are granted only according to design intent.
 
-Có thể dùng công cụ JDK để hỗ trợ phân tích:
+JDK tools can be used to assist analysis:
 
 ~~~shell
-# Xem dependency và package được sử dụng trong JAR
+# View dependencies and packages used in the JAR
 jdeps --module-path mods --module com.example.orders
 
-# Phân tích dependency theo module
+# Analyze dependencies by module
 jdeps --module-path mods --print-module-deps app.jar
 
-# Xem descriptor của một module JAR
+# View descriptor of a module JAR
 jar --describe-module --file mods/com.example.orders.jar
 ~~~
 
-jdeps giúp phát hiện dependency và hỗ trợ đánh giá module migration. Nó không thay thế kiểm thử behavioral contract hoặc kiểm tra tương thích API.
+jdeps helps detect dependencies and supports evaluating module migration. It does not replace behavioral contract testing or API compatibility checks.
 
-## 9. Ví dụ tư duy trước và sau khi thay implementation
+## 9. Before-and-After Mindset Example When Replacing an Implementation
 
-Giả sử phiên bản đầu có:
+Suppose the initial version has:
 
 ~~~text
 com.example.orders
@@ -419,14 +419,14 @@ com.example.orders
     └── DefaultOrderService
 ~~~
 
-Consumer chỉ gọi:
+Consumers only call:
 
 ~~~java
 OrderService service = OrderServices.create();
 service.place(request);
 ~~~
 
-Ở phiên bản sau, nhóm phát triển cần thay đổi cách xử lý:
+In a later version, the development team needs to change the processing approach:
 
 ~~~text
 com.example.orders
@@ -440,12 +440,12 @@ com.example.orders
     └── OrderRepositoryAdapter
 ~~~
 
-Nếu module descriptor và contract API vẫn tương thích, consumer tiếp tục sử dụng cùng cách gọi. Các class nội bộ có thể được thêm, xóa hoặc tổ chức lại theo nhu cầu triển khai.
+If the module descriptor and API contract remain compatible, consumers continue using the same call pattern. Internal classes can be added, removed, or reorganized according to implementation needs.
 
-Ngược lại, nếu consumer trực tiếp khởi tạo DefaultOrderService, import package internal hoặc gọi method chỉ có trên implementation cụ thể, consumer đã phụ thuộc vào chi tiết triển khai. Khi thay class, module orders sẽ phải giữ lại compatibility adapter hoặc yêu cầu consumer sửa mã.
+Conversely, if consumers directly instantiate DefaultOrderService, import the internal package, or call methods present only on a specific implementation, consumers have depended on implementation details. When replacing the class, the orders module will have to keep a compatibility adapter or require consumers to modify their code.
 
-Đó là lý do cần giữ boundary rõ ràng ngay từ đầu, thay vì chỉ dựa vào quy ước đặt tên như Internal, Default hoặc Impl.
+That is why clear boundaries must be maintained from the beginning, rather than relying solely on naming conventions such as Internal, Default, or Impl.
 
-## Kết luận
+## Conclusion
 
-Module boundary xác định phần nào là contract được công khai và phần nào thuộc implementation nội bộ. Khi consumer chỉ phụ thuộc vào API package, module có thể thay thuật toán, class, thư viện và cấu trúc nội bộ mà không buộc consumer thay đổi. Muốn duy trì khả năng đó, cần quản lý exports, giữ kiểu nội bộ ngoài chữ ký API, duy trì behavioral contract và kiểm tra tương thích khi phát hành phiên bản mới.
+The module boundary defines which part is the exposed contract and which belongs to the internal implementation. When consumers depend only on API packages, a module can change algorithms, classes, libraries, and internal structures without forcing consumers to change. To preserve that capability, manage exports, keep internal types out of API signatures, maintain the behavioral contract, and verify compatibility when releasing new versions.

@@ -1,47 +1,47 @@
-# Locale của MessageFormat và các formatter thành phần
+# MessageFormat Locale and Component Formatters
 
-**MessageFormat** trong Java Core xây dựng thông điệp có tham số từ một mẫu văn bản: câu chữ do bản dịch cung cấp, còn các giá trị được chèn có thể là số, ngày, giờ, phần trăm hoặc tiền tệ. Việc truyền một **Locale** đúng giúp các tham số hiển thị theo quy ước của người đọc. Tuy nhiên, MessageFormat có một chi tiết dễ gây lỗi: **locale được giữ trong MessageFormat không tự cập nhật các formatter thành phần đã tạo trước đó**.
+**MessageFormat** in Java Core constructs parameterized messages from a text pattern: the wording is supplied by translations, while the inserted values can be numbers, dates, times, percentages, or currency amounts. Passing the right **Locale** ensures parameters render according to the reader's conventions. However, MessageFormat has a detail that easily causes bugs: **the locale held by MessageFormat does not automatically update component formatters that were already created**.
 
-Bài học này phân tích cơ chế locale của **java.text.MessageFormat**, các formatter con như **NumberFormat**, **DecimalFormat**, **DateFormat**, **SimpleDateFormat** và **ChoiceFormat**, cách thay thế chúng, cách dùng với **java.time** hiện đại và lỗi thường gặp khi ứng dụng chạy trên nhiều môi trường hoặc phục vụ nhiều người dùng. Các ví dụ dùng Java 17+.
+This lesson examines the locale mechanism of **java.text.MessageFormat**, its subformatters such as **NumberFormat**, **DecimalFormat**, **DateFormat**, **SimpleDateFormat**, and **ChoiceFormat**, how to replace them, how to use them with modern **java.time**, and common pitfalls when applications run across multiple environments or serve multiple users. Examples target Java 17+.
 
-## 1. Locale nằm ở đâu trong quá trình tạo thông điệp?
+## 1. Where Does Locale Sit in Message Construction?
 
-Một thông điệp bản địa hóa có ba lớp riêng:
+A localized message has three distinct layers:
 
-1. **Ngôn ngữ câu chữ:** được quyết định bởi mẫu đã dịch, thường lấy từ **ResourceBundle**.
-2. **Vị trí và kiểu tham số:** được ghi trong mẫu bằng các placeholder như **{0}**, **{1,number,integer}** hoặc **{2,date,short}**.
-3. **Cách biến tham số thành chuỗi:** do formatter thành phần thực hiện, với locale và có thể cả múi giờ, tiền tệ hoặc pattern riêng.
+1. **Sentence wording:** determined by the translated pattern, usually loaded from a **ResourceBundle**.
+2. **Parameter position and type:** recorded in the pattern via placeholders such as **{0}**, **{1,number,integer}**, or **{2,date,short}**.
+3. **How parameters are converted to strings:** handled by component formatters, using a locale and potentially a time zone, currency, or custom pattern.
 
-Ví dụ mẫu:
+Example pattern:
 
 ~~~text
 Xin chào {0}, tổng tiền của bạn là {1,number,currency}.
 ~~~
 
-Argument **0** có thể là tên người, argument **1** là số tiền. Dù mẫu là tiếng Việt, nếu formatter tiền được tạo theo **en-US** thì ký hiệu và dấu phân cách vẫn có thể theo Hoa Kỳ. **MessageFormat không dịch tự động**; nó chỉ thay thế tham số và sử dụng formatter phù hợp.
+Argument **0** can be a person's name, and argument **1** a monetary amount. Even though the pattern is in Vietnamese, if the currency formatter was created with **en-US**, the currency symbol and separators can still follow US conventions. **MessageFormat does not translate automatically**; it only substitutes parameters and invokes the appropriate formatters.
 
-| Đối tượng | Vai trò | Điều không làm thay |
+| Object | Role | What it does not do |
 | --- | --- | --- |
-| **ResourceBundle** | Tìm mẫu thông điệp theo locale/candidate chain | Không quyết định mọi formatter custom |
-| **MessageFormat** | Parse mẫu, quản lý placeholder, dùng locale để tạo formatter | Không tự thay mọi formatter đã tồn tại khi đổi locale |
-| **NumberFormat/DecimalFormat** | Chuyển số thành chuỗi | Không xác nhận giá trị tiền hay tỷ giá nghiệp vụ |
-| **DateFormat/SimpleDateFormat** | Chuyển Date thành chuỗi ngày/giờ | Không tự biết múi giờ người dùng |
-| **ChoiceFormat** | Chọn nhánh từ các ngưỡng số | Không cung cấp đầy đủ ngữ pháp số nhiều mọi ngôn ngữ |
+| **ResourceBundle** | Looks up message patterns along the locale/candidate chain | Does not decide every custom formatter |
+| **MessageFormat** | Parses patterns, manages placeholders, uses locale to create formatters | Does not automatically replace existing formatters when locale changes |
+| **NumberFormat/DecimalFormat** | Converts numbers to strings | Does not validate monetary values or business exchange rates |
+| **DateFormat/SimpleDateFormat** | Converts Date to date/time strings | Does not automatically know the user's time zone |
+| **ChoiceFormat** | Selects a branch from numeric thresholds | Does not provide complete plural grammar for all languages |
 
-Locale là ngữ cảnh ngôn ngữ/vùng, **không đồng nhất** với ZoneId, mã Currency, charset hoặc bản dịch đã tồn tại của ứng dụng.
+Locale is a language/region context, **not identical** to ZoneId, Currency code, charset, or the application's existing translations.
 
-## 2. Constructor nào nhận Locale?
+## 2. Which Constructor Accepts Locale?
 
-Hai cách tạo thường dùng:
+Two common ways to instantiate:
 
 ~~~java
 MessageFormat implicit = new MessageFormat(pattern);
 MessageFormat explicit = new MessageFormat(pattern, locale);
 ~~~
 
-Đây là mã minh họa trong một phương thức, với import **java.text.MessageFormat**, biến **pattern** và **locale**. Constructor đầu dùng **Locale mặc định thuộc Locale.Category.FORMAT** của JVM. Constructor thứ hai nhận locale tường minh.
+This is illustrative code inside a method, importing **java.text.MessageFormat** with variables **pattern** and **locale**. The first constructor uses the JVM's **default Locale belonging to Locale.Category.FORMAT**. The second constructor accepts an explicit locale.
 
-Java không có factory **MessageFormat.getInstance(locale)** như NumberFormat. Dùng constructor tường minh là cách rõ ràng để ứng dụng đa người dùng tránh phụ thuộc vào locale của máy chủ.
+Java has no **MessageFormat.getInstance(locale)** factory like NumberFormat does. Using the explicit constructor is the clear way for multi-user applications to avoid depending on the server's locale.
 
 ~~~java
 import java.text.MessageFormat;
@@ -60,7 +60,7 @@ public class BasicMessageLocale {
 }
 ~~~
 
-Lưu **BasicMessageLocale.java** và chạy:
+Save **BasicMessageLocale.java** and run:
 
 ~~~bash
 javac BasicMessageLocale.java
@@ -74,11 +74,11 @@ Value: 1.50
 Value: 1,50
 ~~~
 
-Giá trị đầu vào đều là **double 1.5**. Chỉ cách trình bày dấu thập phân khác vì hai **DecimalFormat** con được tạo theo locale khác nhau. Chính phần mẫu **Value:** không đổi ngôn ngữ vì MessageFormat không dịch mẫu.
+Both inputs are **double 1.5**. Only the decimal separator differs because the two child **DecimalFormat** instances were created with different locales. The pattern text **Value:** itself does not change language because MessageFormat does not translate patterns.
 
-## 3. Pattern xác định formatter con như thế nào?
+## 3. How Patterns Determine Subformatters
 
-Cú pháp placeholder thường có ba dạng:
+Placeholder syntax generally takes three forms:
 
 ~~~text
 {argumentIndex}
@@ -86,29 +86,29 @@ Cú pháp placeholder thường có ba dạng:
 {argumentIndex,formatType,formatStyle}
 ~~~
 
-Chỉ số đối số bắt đầu từ 0 và trỏ vào mảng **Object[]**. Các format type được Java 17 MessageFormat chuẩn hỗ trợ gồm **number**, **date**, **time** và **choice**.
+Argument indices start at 0 and point into the **Object[]** array. The format types supported by standard Java 17 MessageFormat are **number**, **date**, **time**, and **choice**.
 
-| Placeholder | Formatter con |
+| Placeholder | Subformatter |
 | --- | --- |
 | **{0,number}** | NumberFormat.getInstance(locale) |
 | **{0,number,integer}** | NumberFormat.getIntegerInstance(locale) |
 | **{0,number,percent}** | NumberFormat.getPercentInstance(locale) |
 | **{0,number,currency}** | NumberFormat.getCurrencyInstance(locale) |
-| **{0,number,0.00}** | DecimalFormat với DecimalFormatSymbols theo locale |
+| **{0,number,0.00}** | DecimalFormat with DecimalFormatSymbols for locale |
 | **{0,date}** | DateFormat.getDateInstance(DEFAULT, locale) |
 | **{0,date,short}** | DateFormat.getDateInstance(SHORT, locale) |
 | **{0,time,short}** | DateFormat.getTimeInstance(SHORT, locale) |
-| **{0,date,dd/MM/yyyy}** | SimpleDateFormat với pattern và locale |
-| **{0,choice,...}** | ChoiceFormat từ chuỗi ngưỡng và nhánh |
-| **{0}** | Không có formatter cố định ở lúc parse pattern |
+| **{0,date,dd/MM/yyyy}** | SimpleDateFormat with pattern and locale |
+| **{0,choice,...}** | ChoiceFormat from threshold and branch string |
+| **{0}** | No fixed formatter at pattern-parse time |
 
-Các formatter cho phần tử đã khai báo kiểu như **{0,number,...}** được tạo khi constructor hoặc **applyPattern(...)** phân tích mẫu. Còn với placeholder không khai báo kiểu như **{0}**, khi chạy **format**, MessageFormat xét đối số: **Number** được định dạng theo NumberFormat mặc định của **getLocale()**; **java.util.Date** được định dạng ngày/giờ short theo locale; **String** được chèn nguyên văn, còn đối tượng khác có thể dùng **toString()**.
+Formatters for typed elements like **{0,number,...}** are created when the constructor or **applyPattern(...)** parses the pattern. For untyped placeholders like **{0}**, at **format** execution time MessageFormat inspects the argument: a **Number** is formatted using the default NumberFormat of **getLocale()**; a **java.util.Date** is formatted with short date/time per locale; a **String** is inserted verbatim, while other objects may use **toString()**.
 
-Vì thế **setLocale** có thể ảnh hưởng tới placeholder không có formatter cố định, nhưng **không sửa** những DecimalFormat/DateFormat đã tạo. Phải phân biệt hai thời điểm này khi debug kết quả.
+Thus **setLocale** can affect untyped placeholders without fixed formatters, but **does not modify** already-created DecimalFormat/DateFormat instances. Distinguish these two stages when debugging output.
 
-## 4. setLocale không tự sửa formatter thành phần đã tạo
+## 4. setLocale Does Not Automatically Update Existing Component Formatters
 
-API có:
+The API provides:
 
 ~~~java
 message.getLocale();
@@ -116,9 +116,9 @@ message.setLocale(newLocale);
 message.applyPattern(pattern);
 ~~~
 
-**getLocale()** trả locale mà MessageFormat giữ. **setLocale(...)** đổi ngữ cảnh dùng cho những formatter tạo sau này và những placeholder không có format type. **applyPattern(...)** đọc lại pattern, tạo mới formatter cho những placeholder đã khai báo kiểu dựa trên locale hiện tại.
+**getLocale()** returns the locale held by MessageFormat. **setLocale(...)** changes the context used for formatters created afterward and for untyped placeholders. **applyPattern(...)** re-parses the pattern, creating new formatters for typed placeholders based on the current locale.
 
-Nếu bạn làm:
+If you do:
 
 ~~~java
 MessageFormat message = new MessageFormat(
@@ -126,9 +126,9 @@ MessageFormat message = new MessageFormat(
 message.setLocale(Locale.GERMANY);
 ~~~
 
-formatter đã tạo theo Hoa Kỳ vẫn còn. Dù **message.getLocale()** đã là **de-DE**, số vẫn có thể sử dụng dấu chấm. Thực tế này được nêu rõ trong hợp đồng API Java 17.
+the formatter created for the US remains intact. Even though **message.getLocale()** is now **de-DE**, the number may still use a period. This behavior is explicitly stated in the Java 17 API contract.
 
-### 4.1. Thí nghiệm đầy đủ có kết quả chính xác
+### 4.1. Complete Experiment with Exact Output
 
 **File MessageFormatLocaleDemo.java**
 
@@ -173,7 +173,7 @@ public class MessageFormatLocaleDemo {
 }
 ~~~
 
-Lưu **MessageFormatLocaleDemo.java**, biên dịch/chạy:
+Save **MessageFormatLocaleDemo.java**, compile and run:
 
 ~~~bash
 javac -encoding UTF-8 MessageFormatLocaleDemo.java
@@ -190,13 +190,13 @@ custom=Value: 1.50
 afterSetLocale=Value: 1.50
 ~~~
 
-**Phân tích:** Constructor tạo DecimalFormat theo en-US; **setLocale(Locale.GERMANY)** không sửa formatter cũ; **applyPattern** tạo mới DecimalFormat theo de-DE; **setFormatByArgumentIndex** gắn một formatter tường minh theo en-US; đổi locale MessageFormat lần nữa không ghi đè formatter custom đó.
+**Analysis:** The constructor creates a DecimalFormat for en-US; **setLocale(Locale.GERMANY)** does not alter the old formatter; **applyPattern** creates a new DecimalFormat for de-DE; **setFormatByArgumentIndex** attaches an explicit en-US formatter; changing MessageFormat's locale again does not overwrite that custom formatter.
 
-Đây là điểm phân biệt quan trọng nhất giữa **locale của MessageFormat** và **locale/cấu hình của formatter thành phần**.
+This is the most important distinction between **the MessageFormat's locale** and **the locale/configuration of component formatters**.
 
-## 5. Cách an toàn để đổi ngôn ngữ thông điệp
+## 5. Safe Ways to Change Message Language
 
-Với hệ thống xử lý từng request, dễ hiểu nhất là **tạo một MessageFormat mới** bằng pattern đã dịch và locale đã resolve:
+For per-request systems, the clearest approach is to **create a new MessageFormat** using the translated pattern and resolved locale:
 
 ~~~java
 String localizedPattern = bundle.getString("order.total");
@@ -208,42 +208,42 @@ String result = formatter.format(
         new Object[] {amount});
 ~~~
 
-Đoạn này là minh họa, cần có **bundle**, **selectedLocale**, **amount** và import phù hợp. Mỗi lần tạo, các formatter con được khởi tạo nhất quán theo locale đã chọn.
+This snippet is illustrative, requiring **bundle**, **selectedLocale**, **amount**, and appropriate imports. Each instantiation initializes child formatters consistently for the chosen locale.
 
-Nếu dùng lại instance trong một luồng tuần tự, có thể làm:
+If reusing an instance on a sequential single thread, you can do:
 
 ~~~java
 message.setLocale(newLocale);
 message.applyPattern(newPattern);
 ~~~
 
-Nhưng **applyPattern** sẽ tạo lại các formatter con theo mẫu; những tùy chỉnh cũ bằng **setFormat...** cần được đánh giá và gắn lại. Đặc biệt, **không làm kiểu này trên một MessageFormat được dùng chung giữa request đồng thời**, vì các setter và formatter legacy là mutable.
+However, **applyPattern** recreates child formatters from the pattern; prior customizations via **setFormat...** must be re-evaluated and re-attached. In particular, **never do this on a MessageFormat shared across concurrent requests**, because setters and legacy formatters are mutable.
 
-Cũng đừng dùng **Locale.setDefault** để chuyển ngôn ngữ cho một request. Đây là trạng thái toàn JVM, có thể khiến request khác nhận định dạng sai.
+Also never use **Locale.setDefault** to switch languages for a single request. That is JVM-wide state and can cause other requests to receive the wrong formatting.
 
-## 6. Gắn formatter tùy chỉnh bằng setFormatByArgumentIndex
+## 6. Attaching Custom Formatters with setFormatByArgumentIndex
 
-Các phương thức chính:
+Key methods:
 
-| API | Cách xác định placeholder |
+| API | How it identifies placeholders |
 | --- | --- |
-| **setFormat(int index, Format)** | Thứ tự phần tử trong câu pattern, từ trái qua phải |
-| **setFormatByArgumentIndex(int argumentIndex, Format)** | Chỉ số đối số; áp dụng cho mọi vị trí dùng chỉ số đó |
-| **setFormats(Format[])** | Theo thứ tự các phần tử định dạng xuất hiện |
-| **setFormatsByArgumentIndex(Format[])** | Theo chỉ số đối số |
-| **getFormats()** | Trả formatter theo thứ tự xuất hiện |
-| **getFormatsByArgumentIndex()** | Trả formatter theo chỉ số đối số; với chỉ số lặp, formatter ở lần xuất hiện cuối được phản ánh trong phần tử đó |
+| **setFormat(int index, Format)** | Element order in the pattern sentence, left to right |
+| **setFormatByArgumentIndex(int argumentIndex, Format)** | Argument index; applies to every position using that index |
+| **setFormats(Format[])** | In order of format element appearance |
+| **setFormatsByArgumentIndex(Format[])** | By argument index |
+| **getFormats()** | Returns formatters in appearance order |
+| **getFormatsByArgumentIndex()** | Returns formatters by argument index; for repeated indices, the last occurrence's formatter is reflected in that slot |
 
-Bản dịch có thể đảo thứ tự tham số. Ví dụ:
+Translations may reorder parameters. For example:
 
 ~~~text
 Pattern A: "{0} bought {1,number,integer} items."
 Pattern B: "{1,number,integer} sản phẩm đã được {0} mua."
 ~~~
 
-Trong hai mẫu, **argument 1** là số lượng, nhưng vị trí xuất hiện của phần tử số lượng đã đổi. **setFormatByArgumentIndex(1, formatter)** vẫn chọn đúng đối số; **setFormat(1, formatter)** có thể chọn sai phần tử khi bản dịch đảo câu.
+In both patterns, **argument 1** is the quantity, yet the position of the quantity element changed. **setFormatByArgumentIndex(1, formatter)** still targets the right argument; **setFormat(1, formatter)** can target the wrong element when a translation reorders the sentence.
 
-### 6.1. Ví dụ chạy được
+### 6.1. Runnable Example
 
 **File ArgumentIndexDemo.java**
 
@@ -267,7 +267,7 @@ public class ArgumentIndexDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac ArgumentIndexDemo.java
@@ -280,15 +280,15 @@ Stdout:
 Items=4; ratio=25%
 ~~~
 
-Dù **argument 0** nằm ở placeholder thứ hai, formatter phần trăm vẫn gắn đúng nó.
+Even though **argument 0** sits in the second placeholder, the percentage formatter still attaches to it properly.
 
-**Bẫy:** Nếu cùng argument xuất hiện nhiều lần với những kiểu khác nhau, ví dụ **{0,number,integer}** và **{0,number,0.00}**, thì **setFormatByArgumentIndex(0, custom)** ghi đè formatter ở **tất cả** vị trí chứa argument 0. Khi mỗi lần xuất hiện cần định dạng riêng, hãy cân nhắc **setFormat(elementIndex, ...)** có kiểm soát hoặc tách đối số cho rõ nghĩa.
+**Pitfall:** If the same argument appears multiple times with different styles—such as **{0,number,integer}** and **{0,number,0.00}**—then **setFormatByArgumentIndex(0, custom)** overwrites the formatter at **all** positions containing argument 0. When each occurrence needs distinct formatting, consider controlled **setFormat(elementIndex, ...)** calls or separate arguments for clarity.
 
-## 7. NumberFormat, DecimalFormat và tiền tệ
+## 7. NumberFormat, DecimalFormat, and Currency
 
-Với placeholder **{0,number}**, MessageFormat tạo NumberFormat theo locale hiện tại khi pattern được áp dụng. Với **{0,number,0.00}**, nó tạo DecimalFormat dựa trên pattern và DecimalFormatSymbols của locale. DecimalFormat có thể có cấu hình số chữ số thập phân, phân nhóm và rounding riêng.
+For the placeholder **{0,number}**, MessageFormat creates a NumberFormat for the current locale when the pattern is applied. For **{0,number,0.00}**, it creates a DecimalFormat based on the pattern and the locale's DecimalFormatSymbols. DecimalFormat can have its own fraction digits, grouping, and rounding settings.
 
-Một ví dụ NumberFormat tường minh:
+An explicit NumberFormat example:
 
 ~~~java
 Locale locale = Locale.GERMANY;
@@ -301,11 +301,11 @@ number.setMaximumFractionDigits(2);
 message.setFormatByArgumentIndex(0, number);
 ~~~
 
-Đây là đoạn minh họa cần import **MessageFormat**, **NumberFormat**, **Locale**. Khi gọi format với số, formatter được gắn sẽ kiểm soát cách hiển thị.
+This illustrative snippet requires importing **MessageFormat**, **NumberFormat**, and **Locale**. When `format` is called with a number, the attached formatter controls its rendering.
 
-### 7.1. Locale không xác định đơn vị tiền giao dịch
+### 7.1. Locale Does Not Determine Transaction Currency
 
-**{0,number,currency}** chọn mặc định tiền tệ từ locale. Nhưng một đơn hàng USD hoàn toàn có thể được hiển thị bằng giao diện tiếng Việt. Với tiền thực tế, đơn vị tiền đến từ dữ liệu giao dịch:
+**{0,number,currency}** selects a default currency from the locale. However, a USD order can perfectly well be displayed in a Vietnamese UI. For real money, the currency unit comes from transaction data:
 
 ~~~java
 Locale displayLocale = Locale.forLanguageTag("vi-VN");
@@ -318,19 +318,19 @@ MessageFormat message = new MessageFormat(
 message.setFormatByArgumentIndex(0, money);
 ~~~
 
-Cần import **Locale**, **Currency**, **NumberFormat**, **MessageFormat**. **setCurrency** không đổi tỷ giá hay giá trị tiền, mà chỉ thay thông tin về đơn vị tiền hiển thị. Với tiền tệ cần tính toán chính xác, sử dụng **BigDecimal** và quy tắc rounding nghiệp vụ; định dạng không thể thay thế phép tính đó.
+Requires importing **Locale**, **Currency**, **NumberFormat**, and **MessageFormat**. **setCurrency** does not change exchange rates or monetary values; it only changes the displayed currency unit metadata. For exact monetary calculations, use **BigDecimal** and business rounding rules; formatting cannot replace those calculations.
 
-### 7.2. Cấu hình formatter có thể khác getLocale()
+### 7.2. Formatter Configuration Can Differ from getLocale()
 
-Sau khi gọi **setFormatByArgumentIndex(0, NumberFormat.getInstance(Locale.US))**, MessageFormat vẫn có thể giữ **Locale.GERMANY**. Vì formatter custom là một object riêng, **getLocale() không chứng minh toàn bộ subformatter đang dùng cùng locale**. Khi output trộn dấu phân cách hoặc ký hiệu, kiểm tra các formatter gắn thủ công và tùy chọn của chúng.
+After calling **setFormatByArgumentIndex(0, NumberFormat.getInstance(Locale.US))**, MessageFormat can still hold **Locale.GERMANY**. Because a custom formatter is an independent object, **getLocale() does not prove all subformatters share the same locale**. When output mixes separators or symbols, inspect manually attached formatters and their options.
 
-## 8. DateFormat, SimpleDateFormat và múi giờ
+## 8. DateFormat, SimpleDateFormat, and Time Zones
 
-MessageFormat Java 17 sử dụng **java.text.DateFormat** cho **{0,date}**/**{0,time}**. Với format style **short**, **medium**, **long** hoặc **full**, MessageFormat chọn DateFormat factory tương ứng. Với style là pattern như **dd/MM/yyyy**, nó tạo **SimpleDateFormat** theo locale.
+Java 17 MessageFormat uses **java.text.DateFormat** for **{0,date}**/**{0,time}**. For styles **short**, **medium**, **long**, or **full**, MessageFormat picks the corresponding DateFormat factory. For a pattern style like **dd/MM/yyyy**, it creates a **SimpleDateFormat** for the locale.
 
-**DateFormat/SimpleDateFormat** thuộc hệ API cũ và thường nhận **java.util.Date**. Không nên đưa trực tiếp **LocalDate** hoặc **Instant** vào **{0,date,short}** và mong Java tự chuyển kiểu.
+**DateFormat/SimpleDateFormat** belong to the legacy API and typically accept **java.util.Date**. Do not pass **LocalDate** or **Instant** directly into **{0,date,short}** expecting Java to convert types automatically.
 
-Một ví dụ kiểm soát timezone:
+An example controlling time zone:
 
 ~~~java
 Locale locale = Locale.US;
@@ -349,20 +349,20 @@ String output = message.format(new Object[] {
 });
 ~~~
 
-Đoạn minh họa cần import **Locale**, **MessageFormat**, **DateFormat**, **TimeZone** và đặt trong một phương thức. **Locale** chọn cách viết ngày; **TimeZone** quy định chuyển thời điểm sang ngày giờ địa phương. Vì cách trình bày ngày có thể đổi theo dữ liệu locale của JDK, không nên ghi cứng output cho mọi bản JDK trong test nếu chưa cố định runtime.
+This illustrative snippet requires importing **Locale**, **MessageFormat**, **DateFormat**, and **TimeZone** inside a method. **Locale** chooses date presentation; **TimeZone** determines how the instant maps to local date/time. Because date formatting can vary with JDK locale data, do not hardcode outputs across all JDK versions in tests without pinning the runtime.
 
-Nếu không đặt timezone, DateFormat có thể phụ thuộc default timezone của máy chủ. Hai máy cùng locale vẫn có thể in ngày khác nhau nếu cùng một Instant rơi qua ranh giới ngày. Với server và API, hãy chọn **ZoneId** hoặc TimeZone theo dữ liệu thực tế, không suy ra nó từ locale.
+Without a time zone set, DateFormat can depend on the server's default time zone. Two machines with the same locale can print different dates if an Instant crosses a midnight boundary. For servers and APIs, choose **ZoneId** or TimeZone from actual data, never inferring it from locale.
 
-## 9. Kết hợp java.time với MessageFormat
+## 9. Combining java.time with MessageFormat
 
-API **java.time** mới hơn dùng **DateTimeFormatter**, một đối tượng immutable. Nhưng DateTimeFormatter không trực tiếp là subclass của **java.text.Format**; vì thế không thể chỉ ép kiểu nó thành DateFormat.
+The newer **java.time** API uses **DateTimeFormatter**, which is immutable. However, DateTimeFormatter is not directly a subclass of **java.text.Format**, so you cannot simply cast it to DateFormat.
 
-Có hai chiến lược rõ ràng:
+There are two clear strategies:
 
-- **Định dạng trước** bằng DateTimeFormatter rồi đưa String vào placeholder không định dạng **{0}**.
-- **Gắn adapter** do **DateTimeFormatter.toFormat()** trả về, dùng **MessageFormat.setFormatByArgumentIndex(...)** với đối tượng thời gian phù hợp.
+- **Pre-format** using DateTimeFormatter and pass the resulting String into an unformatted placeholder **{0}**.
+- **Attach the adapter** returned by **DateTimeFormatter.toFormat()**, using **MessageFormat.setFormatByArgumentIndex(...)** with a suitable temporal object.
 
-Ví dụ đầy đủ có output ổn định:
+Complete example with stable output:
 
 **File ModernTimeMessage.java**
 
@@ -391,7 +391,7 @@ public class ModernTimeMessage {
 }
 ~~~
 
-Lưu **ModernTimeMessage.java**, chạy:
+Save **ModernTimeMessage.java**, run:
 
 ~~~bash
 javac -encoding UTF-8 ModernTimeMessage.java
@@ -404,15 +404,15 @@ Stdout:
 Ngày giao hàng: 28/10/2026
 ~~~
 
-**Giải thích:** Adapter **toFormat()** biến DateTimeFormatter thành một Format có thể gắn vào MessageFormat. Locale nằm ở DateTimeFormatter và được thiết lập khi tạo đối tượng, còn pattern **dd/MM/uuuu** định nghĩa chính xác hình thức. Nếu gọi **message.setLocale(Locale.US)** về sau thì formatter adapter này không tự đổi.
+**Explanation:** The **toFormat()** adapter wraps DateTimeFormatter into a Format attachable to MessageFormat. The locale lives on DateTimeFormatter and is set at creation, while the pattern **dd/MM/uuuu** defines the exact presentation. Calling **message.setLocale(Locale.US)** later does not automatically update this formatter adapter.
 
-Với Instant cần hiển thị giờ địa phương, dùng DateTimeFormatter có ZoneId tường minh; một locale không tự quyết định múi giờ. Nếu đã định dạng trước thành chuỗi, MessageFormat chỉ chèn chuỗi đó và không tự chuyển đổi lại.
+For an Instant that needs local time display, use DateTimeFormatter with an explicit ZoneId; a locale does not determine a time zone. If already pre-formatted into a string, MessageFormat merely inserts that string without re-converting it.
 
-## 10. ChoiceFormat và giới hạn của locale
+## 10. ChoiceFormat and Locale Limitations
 
-**ChoiceFormat** lựa chọn chuỗi dựa trên một giá trị số và các khoảng/ngưỡng định nghĩa trong pattern hoặc mảng. Nó hữu ích cho vài điều kiện đơn giản nhưng **không thay thế hệ thống xử lý số nhiều đầy đủ** của nhiều ngôn ngữ. Locale của MessageFormat không tự dịch các nhánh ChoiceFormat.
+**ChoiceFormat** selects a string based on a numeric value and intervals/thresholds defined in a pattern or arrays. It is useful for a few simple conditions, but **does not replace a full pluralization system** across multiple languages. MessageFormat's locale does not automatically translate ChoiceFormat branches.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ~~~java
 ChoiceFormat choice = new ChoiceFormat(
@@ -431,55 +431,55 @@ System.out.println(
         message.format(new Object[] {3}));
 ~~~
 
-Cần import **ChoiceFormat**, **MessageFormat**, **Locale**; đây là đoạn code bên trong một phương thức. Với đối số 3, ChoiceFormat lấy nhánh cuối. Nhánh này chứa placeholder lồng, vì vậy MessageFormat định dạng số đó theo locale của chính nó. Ý nghĩa đầu ra: **Giỏ hàng: 3 mục**.
+Requires importing **ChoiceFormat**, **MessageFormat**, and **Locale**; this is a snippet inside a method. With argument 3, ChoiceFormat picks the last branch. That branch contains a nested placeholder, so MessageFormat formats the number using its own locale. Output meaning: **Giỏ hàng: 3 mục**.
 
-**Lưu ý:** các từ trong ba nhánh là câu chữ tiếng Việt được viết sẵn, không phải bản dịch sinh tự động. Với tiếng Anh, tiếng Nga, tiếng Ả Rập hoặc các ngôn ngữ có quy tắc số nhiều khác, cần bản dịch và cơ chế điều kiện phù hợp. Đừng chỉ thay locale của MessageFormat rồi giữ ChoiceFormat tiếng Việt, vì ngôn ngữ của nhánh sẽ không đổi.
+**Note:** the words in the three branches are pre-written Vietnamese strings, not automatically generated translations. For English, Russian, Arabic, or other languages with different plural rules, appropriate translations and conditional mechanisms are required. Do not just change MessageFormat's locale while keeping a Vietnamese ChoiceFormat, because the branch text will not change.
 
-Nếu pattern có lựa chọn số nhiều phức tạp, giới tính, cách biến cách hoặc điều kiện lồng, cân nhắc một cơ chế bản địa hóa chuyên biệt đã được thiết kế cho các ngôn ngữ sản phẩm hỗ trợ.
+If a pattern requires complex plurals, gender, grammatical cases, or nested conditions, consider a dedicated localization mechanism designed for the languages supported by the product.
 
-## 11. Pattern và quy tắc dấu nháy đơn
+## 11. Patterns and Single-Quote Rules
 
-MessageFormat có cú pháp escape đặc biệt. Dấu nháy đơn trong pattern là ký tự cú pháp dùng để quote các đoạn literal; muốn hiển thị một dấu nháy đơn thực sự thường phải viết **hai dấu nháy đơn liên tiếp**.
+MessageFormat has special escaping syntax. A single quote in a pattern is a syntactic character used to quote literal spans; to display an actual single quote, you usually must write **two consecutive single quotes**.
 
 ~~~text
-Pattern sai ý định: You're {0}
-Pattern phù hợp:   You''re {0}
+Unintended pattern: You're {0}
+Proper pattern:     You''re {0}
 ~~~
 
-Đoạn thứ nhất có thể thay đổi cách placeholder được phân tích. Đây là lỗi rất thường gặp khi người dịch hoặc lập trình viên ghép pattern từ câu văn tự nhiên chứa dấu nháy. Quy tắc escape của MessageFormat còn khác với escape của chuỗi Java và của file **.properties**.
+The first snippet can change how placeholders are parsed. This is a very common error when translators or developers assemble patterns from natural text containing apostrophes. MessageFormat's escaping rules also differ from Java string escaping and **.properties** file escaping.
 
-Dấu ngoặc nhọn **{** và **}** cũng tham gia cú pháp placeholder; nếu muốn chúng xuất hiện như văn bản thông thường, phải quote đúng. Với pattern phức tạp, hãy chạy test format bằng những tham số mẫu cho từng ngôn ngữ, thay vì chỉ kiểm tra file dịch tồn tại.
+Curly braces **{** and **}** also participate in placeholder syntax; if they must appear as ordinary text, quote them properly. For complex patterns, run formatting tests with sample arguments for each language rather than merely checking that translation files exist.
 
-**Không coi pattern từ nguồn không tin cậy là một chuỗi bất kỳ để format.** Mẫu có thể gây lỗi cú pháp hoặc lựa chọn định dạng ngoài mong muốn. Chỉ dùng những pattern đã xác minh, có chính sách cập nhật và kiểm thử phù hợp.
+**Do not treat a pattern from an untrusted source as an arbitrary string to format.** A pattern can trigger syntax errors or unintended format selection. Only use verified patterns with proper update and testing policies.
 
-## 12. ResourceBundle cung cấp ngôn ngữ, MessageFormat định dạng giá trị
+## 12. ResourceBundle Supplies Language, MessageFormat Formats Values
 
-Trong ứng dụng đa ngôn ngữ, luồng thường là:
+In a multilingual application, the typical flow is:
 
 ~~~text
-Người dùng / hồ sơ / Accept-Language
+User / profile / Accept-Language
               |
               v
-     Chọn supported Locale
+     Select supported Locale
               |
               v
-     ResourceBundle theo Locale
+     ResourceBundle by Locale
               |
               v
-       Lấy pattern đã dịch
+     Retrieve translated pattern
               |
               v
- new MessageFormat(pattern, Locale)
+  new MessageFormat(pattern, Locale)
               |
               v
-  Gắn formatter con đặc thù
-  (Currency, TimeZone, java.time)
+   Attach specific subformatters
+   (Currency, TimeZone, java.time)
               |
               v
       format(Object[] values)
 ~~~
 
-Ví dụ các file ở classpath:
+Example classpath files:
 
 **messages.properties**
 
@@ -493,7 +493,7 @@ notice=You have {0,number,integer} messages.
 notice=Bạn có {0,number,integer} tin nhắn.
 ~~~
 
-Đoạn Java:
+Java snippet:
 
 ~~~java
 Locale locale = Locale.forLanguageTag("vi-VN");
@@ -507,72 +507,72 @@ System.out.println(
         message.format(new Object[] {3}));
 ~~~
 
-Cần import **Locale**, **ResourceBundle**, **MessageFormat**. Với các resource nêu trên trong classpath, stdout:
+Requires importing **Locale**, **ResourceBundle**, and **MessageFormat**. With the resources above on the classpath, stdout:
 
 ~~~text
 Bạn có 3 tin nhắn.
 ~~~
 
-Cần phân biệt hai lớp fallback: **lựa chọn ResourceBundle** có chuỗi ứng viên và có thể xét JVM default trong một số trường hợp không có bundle phù hợp; còn **MessageFormat** định dạng tham số bằng locale/subformatter đã được thiết lập. Để kết quả hoàn toàn ổn định, chính sách fallback bundle cũng phải được kiểm soát; chỉ truyền locale vào MessageFormat không làm thay điều đó.
+Distinguish two fallback layers: **ResourceBundle selection** walks a candidate chain and may inspect the JVM default in certain cases when no matching bundle exists; meanwhile, **MessageFormat** formats parameters using its configured locale/subformatters. For completely deterministic output, the bundle fallback policy must also be controlled; merely passing a locale to MessageFormat does not handle that.
 
-Với named module/JPMS và cách đóng gói tài nguyên đặc thù, cần kiểm thử cách tìm bundle tương ứng. ResourceBundle được dùng để tìm mẫu văn bản, không phải để ép một formatter con đã tự tạo dùng locale mới.
+With named modules/JPMS and specialized resource packaging, test bundle lookup accordingly. ResourceBundle is used to locate text patterns, not to force an already-constructed subformatter to adopt a new locale.
 
-## 13. Lỗi phổ biến khi dùng locale của formatter con
+## 13. Common Bugs When Using Subformatter Locales
 
-| Lỗi | Hiện tượng | Hướng xử lý |
+| Error | Symptom | How to handle |
 | --- | --- | --- |
-| Dùng **MessageFormat.format(pattern, args...)** tĩnh | Kết quả theo locale FORMAT mặc định của JVM | Dùng constructor có locale |
-| Gọi **setLocale** sau khi tạo **{0,number}** | Số vẫn theo locale cũ | Tạo MessageFormat mới hoặc applyPattern đúng lúc |
-| Gắn NumberFormat của locale khác | Dấu phân cách không thống nhất với câu dịch | Tạo formatter custom theo locale đã resolve |
-| Gắn **setFormat(0, ...)** trong bản dịch đảo chỗ | Formatter rơi vào argument khác | Ưu tiên setFormatByArgumentIndex khi thích hợp |
-| Dùng **{0,date}** với **LocalDate** | Không tương thích DateFormat legacy | toFormat adapter hoặc định dạng trước |
-| Dùng DateFormat không chỉ định timezone | Ngày/giờ khác giữa dev và server | Đặt timezone theo nghiệp vụ |
-| Dùng currency theo locale để diễn giải giao dịch | Hiển thị sai đơn vị tiền | Lấy Currency từ dữ liệu thanh toán |
-| Gắn ChoiceFormat đã hardcode tiếng Việt vào locale khác | Câu pha ngôn ngữ | Dịch nhánh hoặc thay cơ chế plural |
-| Chia sẻ MessageFormat mutable giữa thread | Race hoặc kết quả ngôn ngữ không ổn định | Tạo instance theo request/cách ly phù hợp |
-| Cho rằng String.format và MessageFormat là một | Pattern được xử lý sai | Chọn API và cú pháp tương ứng |
-| Không kiểm tra bản dịch có dấu nháy | Placeholder biến mất, pattern sai | Test các pattern sau khi dịch |
+| Using static **MessageFormat.format(pattern, args...)** | Result follows the JVM's default FORMAT locale | Use the constructor accepting a locale |
+| Calling **setLocale** after creating **{0,number}** | Numbers still use the old locale | Create a new MessageFormat or call applyPattern at the right time |
+| Attaching a NumberFormat from another locale | Separators inconsistent with the translated sentence | Create custom formatters with the resolved locale |
+| Calling **setFormat(0, ...)** on reordered translations | Formatter lands on a different argument | Prefer setFormatByArgumentIndex when appropriate |
+| Using **{0,date}** with **LocalDate** | Incompatible with legacy DateFormat | Use toFormat adapter or pre-format |
+| Using DateFormat without specifying time zone | Dates/times differ between dev and server | Set time zone per business requirements |
+| Using locale currency to interpret transactions | Displays wrong currency unit | Take Currency from payment data |
+| Attaching a hardcoded Vietnamese ChoiceFormat to other locales | Mixed-language sentences | Translate branches or replace plural mechanism |
+| Sharing mutable MessageFormat across threads | Race conditions or unstable language output | Create per-request instances or isolate properly |
+| Assuming String.format and MessageFormat are identical | Patterns are parsed incorrectly | Choose the matching API and syntax |
+| Not testing translations containing quotes | Disappearing placeholders, malformed patterns | Test patterns after translation |
 
-**Một khác biệt quan trọng:** **String.format(Locale, ...) / Formatter** dùng cú pháp dấu phần trăm như **%.2f**, còn **MessageFormat** dùng placeholder trong ngoặc nhọn như **{0,number,0.00}**. Không chuyển pattern giữa hai API mà không viết lại cú pháp.
+**One key difference:** **String.format(Locale, ...) / Formatter** uses percent-sign syntax like **%.2f**, whereas **MessageFormat** uses brace placeholders like **{0,number,0.00}**. Do not move patterns between the two APIs without rewriting the syntax.
 
-## 14. Kiểm thử hành vi quan trọng
+## 14. Testing Critical Behavior
 
-Các kiểm thử nên bao gồm:
+Tests should cover:
 
-1. Cùng một số với **Locale.US** và **Locale.GERMANY** phải dùng dấu thập phân theo locale đã chọn.
-2. **getLocale()** phản ánh locale mới sau **setLocale**; formatter số đã tạo trước đó vẫn giữ định dạng cũ.
-3. Gọi **applyPattern** sau khi đổi locale tạo formatter mới theo locale mới.
-4. **setFormatByArgumentIndex** áp vào đúng argument dù thứ tự xuất hiện thay đổi giữa bản dịch.
-5. Với một argument lặp nhiều lần, hiểu việc setFormatByArgumentIndex ghi đè tất cả vị trí.
-6. Formatter custom có locale hoặc currency khác vẫn giữ cấu hình riêng của nó.
-7. DateFormat được gắn timezone tường minh khi cần kết quả thời gian ổn định.
-8. LocalDate được format bởi DateTimeFormatter.toFormat hoặc chuyển thành chuỗi phù hợp trước khi truyền vào MessageFormat.
-9. ResourceBundle cung cấp đúng pattern và các trường hợp thiếu khóa/fallback được kiểm soát.
-10. Mỗi bản dịch có dấu nháy, ngoặc nhọn và placeholder được parse/format đúng.
-11. Test chạy dưới các JVM default khác nhau mà vẫn cho cùng kết quả khi đã truyền mọi locale tường minh.
-12. Phiên bản JDK và dữ liệu CLDR được tính đến nếu snapshot bắt buộc trùng từng byte của tên tháng, ký hiệu tiền tệ hoặc dấu cách.
+1. The same number with **Locale.US** and **Locale.GERMANY** must use the decimal separator of the chosen locale.
+2. **getLocale()** reflects the new locale after **setLocale**; previously created numeric formatters retain their old formatting.
+3. Calling **applyPattern** after changing locale creates new formatters for the new locale.
+4. **setFormatByArgumentIndex** applies to the right argument even if appearance order changes across translations.
+5. For an argument repeated multiple times, verify understanding that setFormatByArgumentIndex overwrites all positions.
+6. Custom formatters with a different locale or currency retain their own configuration.
+7. DateFormat has an explicit time zone attached when deterministic time output is required.
+8. LocalDate is formatted via DateTimeFormatter.toFormat or converted to an appropriate string before passing into MessageFormat.
+9. ResourceBundle supplies the right pattern and missing-key/fallback cases are controlled.
+10. Every translation with single quotes, curly braces, and placeholders parses and formats properly.
+11. Tests run under different JVM defaults still yield identical output when all locales are passed explicitly.
+12. JDK version and CLDR data are accounted for if snapshots require byte-for-byte matches on month names, currency symbols, or whitespace.
 
-Để mô phỏng JVM default khác nhau, ưu tiên **chạy các test trong process riêng**. **Locale.setDefault** sửa trạng thái toàn JVM và có thể làm các test chạy song song can thiệp nhau.
+To simulate different JVM defaults, prefer **running tests in separate processes**. **Locale.setDefault** mutates JVM-wide state and can cause parallel tests to interfere with one another.
 
-**Không nên chỉ assert một chuỗi ngày dài hoặc ký hiệu tiền trên mọi JDK** nếu chưa cố định dữ liệu locale; một số dấu cách, ký hiệu và tên tháng có thể thay đổi giữa các bản JDK. Với numeric pattern đơn giản như ví dụ 0.00, stdout được chỉ định rõ và dễ đối chiếu.
+**Do not assert a single long date string or currency symbol across all JDKs** without pinning locale data; certain whitespace, symbols, and month names can change between JDK releases. With simple numeric patterns like the 0.00 example, stdout is well-defined and easy to compare.
 
-## 15. Checklist khi triển khai
+## 15. Implementation Checklist
 
-- Resolve **supported Locale** trước khi tra bản dịch và định dạng thông điệp.
-- Đọc pattern theo đúng ngôn ngữ từ resource đã chuẩn bị.
-- Tạo **new MessageFormat(pattern, locale)** thay vì ngầm dùng default JVM.
-- Dùng formatter thành phần tương ứng với cùng locale, trừ khi yêu cầu nghiệp vụ bắt buộc dùng cấu hình khác.
-- Đặt rõ **Currency**, **TimeZone** và quy tắc rounding; không suy từ locale.
-- Hiểu **setLocale** không cập nhật các formatter đã được tạo.
-- Khi dùng **applyPattern** để đổi locale, kiểm tra và gắn lại formatter tùy chỉnh.
-- Dùng **setFormatByArgumentIndex** khi bản dịch có thể đảo thứ tự các tham số; xử lý riêng khi một argument cần nhiều kiểu format.
-- Dùng **DateTimeFormatter.toFormat()** hoặc định dạng trước khi đầu vào là kiểu java.time.
-- Kiểm tra cú pháp MessageFormat cho mọi bản dịch, nhất là dấu nháy đơn và ngoặc nhọn.
-- Không chia sẻ instance mutable rồi thay đổi locale/pattern trong nhiều request đồng thời.
-- Kiểm thử ResourceBundle fallback và output dưới nhiều locale/JDK phù hợp với hợp đồng của sản phẩm.
+- Resolve the **supported Locale** before looking up translations and formatting messages.
+- Read the pattern in the right language from prepared resources.
+- Construct **new MessageFormat(pattern, locale)** rather than implicitly using the JVM default.
+- Use component formatters matching the same locale, unless business rules require another setting.
+- Explicitly set **Currency**, **TimeZone**, and rounding rules; do not infer them from locale.
+- Understand that **setLocale** does not update already-created formatters.
+- When using **applyPattern** to switch locales, inspect and re-attach custom formatters.
+- Use **setFormatByArgumentIndex** when translations can reorder parameters; handle separately when one argument needs multiple formats.
+- Use **DateTimeFormatter.toFormat()** or pre-format when inputs are java.time types.
+- Validate MessageFormat syntax for all translations, especially single quotes and curly braces.
+- Never share a mutable instance and mutate locale/pattern across concurrent requests.
+- Test ResourceBundle fallback and output across locales/JDKs matching the product contract.
 
-## 16. Ghi nhớ
+## 16. Key Takeaways
 
-**Locale của MessageFormat chỉ là ngữ cảnh dùng khi tạo hoặc lựa chọn formatter con, không phải một công tắc đổi toàn bộ định dạng đã tồn tại.** Những placeholder có type như **number/date/time** tạo formatter khi pattern được áp dụng; **setLocale** sau đó không đổi chúng. Formatter được gắn tường minh bằng **setFormatByArgumentIndex** còn có thể dùng locale, timezone và currency riêng.
+**MessageFormat's locale is only the context used when creating or selecting subformatters, not a switch that reconfigures all existing formatters.** Typed placeholders like **number/date/time** create formatters when the pattern is applied; calling **setLocale** afterward does not change them. Formatters explicitly attached via **setFormatByArgumentIndex** can also carry their own locale, time zone, and currency.
 
-Cách thiết kế dễ kiểm soát là lấy pattern đã dịch theo locale người dùng, tạo MessageFormat mới bằng chính locale đó, cấu hình formatter thành phần có chủ đích, rồi format các tham số có kiểu. Việc này giúp thông điệp nhất quán trên Java 17+, giữa các request và giữa dev, CI, production.
+A controllable design is to fetch the translated pattern for the user's locale, construct a new MessageFormat with that exact locale, intentionally configure component formatters, and format typed parameters. This keeps messages consistent on Java 17+, across requests, and across dev, CI, and production.

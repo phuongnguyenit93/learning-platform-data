@@ -1,45 +1,45 @@
-# `notify()` không chuyển khóa ngay cho luồng được đánh thức
+# `notify()` Does Not Immediately Transfer the Lock to the Woken Thread
 
-Khi một luồng gọi `notify()` trên một đối tượng trong Java, **luồng đang đợi có thể được chọn để thức dậy, nhưng không được trao ngay monitor lock**. Luồng gọi `notify()` vẫn giữ khóa cho đến khi nó thực sự nhả monitor. Chỉ sau khi giành lại đúng monitor, luồng được đánh thức mới có thể hoàn tất `wait()` và tiếp tục chạy phần mã được bảo vệ bởi `synchronized`.
+When a thread calls `notify()` on an object in Java, **a waiting thread may be selected to wake up, but it is not immediately handed the monitor lock**. The thread calling `notify()` keeps the lock until it actually releases the monitor. Only after reacquiring that monitor can the woken thread finish `wait()` and continue executing the code protected by `synchronized`.
 
-Đây là điểm cần nắm vững khi phối hợp luồng bằng `Object.wait()`, `Object.notify()` và `Object.notifyAll()`.
+This is an essential point to grasp when coordinating threads using `Object.wait()`, `Object.notify()`, and `Object.notifyAll()`.
 
-## 1. Monitor, wait set và ý nghĩa của “đánh thức”
+## 1. Monitor, wait set, and the meaning of "waking up"
 
-Mỗi đối tượng Java có một **monitor** (khóa dùng cho `synchronized`) và một **wait set** (tập các luồng đang chờ thông qua `wait()` trên chính đối tượng đó).
+Every Java object has a **monitor** (the lock used for `synchronized`) and a **wait set** (the set of threads waiting via `wait()` on that exact object).
 
-- `synchronized (lock) { ... }` yêu cầu luồng lấy monitor của `lock` trước khi vào khối. Trong lúc luồng giữ monitor, luồng khác không thể đồng thời đi vào vùng `synchronized` dùng cùng monitor.
-- `lock.wait()` chỉ được gọi khi luồng đang giữ monitor của `lock`. Nó đưa luồng vào wait set và **nhả monitor của `lock`** trong khi chờ. Khi trở về từ `wait()`, luồng đã lấy lại monitor đó. Nếu luồng trước đó đã lấy monitor lồng nhau (reentrant), `wait()` giải phóng và sau đó lấy lại số lần sở hữu tương ứng theo đặc tả.
-- `lock.notify()`, cũng phải gọi khi đang sở hữu monitor của `lock`, chọn tùy ý **một** luồng trong wait set của đối tượng này để cho phép tiếp tục chờ lấy khóa. Nếu không có luồng đang chờ thì lời gọi không có tác dụng lưu lại cho tương lai.
-- `lock.notifyAll()` loại tất cả các luồng đang chờ khỏi wait set. Điều này **không** làm tất cả cùng chạy trong vùng `synchronized`: mỗi thời điểm chỉ một luồng có thể sở hữu monitor ấy.
+- `synchronized (lock) { ... }` requires a thread to acquire `lock`'s monitor before entering the block. While a thread holds the monitor, another thread cannot concurrently enter a `synchronized` region using the same monitor.
+- `lock.wait()` may only be called when the thread holds `lock`'s monitor. It puts the thread into the wait set and **releases `lock`'s monitor** while waiting. Upon returning from `wait()`, the thread has reacquired that monitor. If the thread had previously acquired the monitor multiple times (reentrant), `wait()` releases and later reacquires the corresponding hold count according to the specification.
+- `lock.notify()`, which must also be called while owning `lock`'s monitor, arbitrarily selects **one** thread in this object's wait set to allow it to proceed toward acquiring the lock. If no thread is waiting, the call has no effect stored for the future.
+- `lock.notifyAll()` removes all waiting threads from the wait set. This **does not** let them all run concurrently inside the `synchronized` region: at any moment only one thread can own that monitor.
 
-Điểm phân biệt cốt lõi: **`wait()` nhả monitor khi bắt đầu chờ; `notify()` không nhả monitor khi báo hiệu**. Cách nói “luồng được đánh thức” chỉ có nghĩa luồng đó đủ điều kiện tiếp tục quá trình trở về từ `wait()`, chưa có nghĩa nó đã đi qua `wait()` hoặc đang thực thi.
+Core distinction: **`wait()` releases the monitor when starting to wait; `notify()` does not release the monitor when signaling**. Saying a thread "woke up" only means that thread is eligible to continue the process of returning from `wait()`, not that it has already passed `wait()` or is executing.
 
-## 2. Trình tự chính xác khi `notify()` được gọi
+## 2. Exact sequence when `notify()` is called
 
-Giả sử hai luồng cùng dùng đối tượng `lock`: W (waiter) đợi điều kiện, N (notifier) thay đổi điều kiện và báo hiệu.
+Suppose two threads share the `lock` object: W (waiter) waits for a condition, N (notifier) changes the condition and signals.
 
-1. **W vào `synchronized (lock)`**, thấy điều kiện chưa thỏa và gọi `lock.wait()`. W nằm trong wait set, đồng thời nhả monitor để các luồng khác có thể vào.
-2. **N lấy monitor**, cập nhật trạng thái chia sẻ rồi gọi `lock.notify()`. JVM chọn một luồng trong wait set (giả sử W). **N vẫn là chủ sở hữu monitor** ngay sau lời gọi.
-3. **N tiếp tục chạy** các câu lệnh còn lại trong vùng `synchronized`. W chưa thể hoàn tất `wait()` bởi chưa thể lấy lại monitor đang do N giữ. Nếu N thực hiện xử lý chậm trong vùng khóa, W phải chờ thêm.
-4. **N nhả monitor**, thường khi ra khỏi khối/phương thức `synchronized`. Từ thời điểm này, W có thể cạnh tranh lấy monitor với các luồng khác.
-5. **Khi W lấy lại được monitor**, `wait()` mới có thể trả về bình thường (nếu không có tình huống ngắt), rồi W kiểm tra lại điều kiện và tiếp tục xử lý.
+1. **W enters `synchronized (lock)`**, sees the condition is not satisfied, and calls `lock.wait()`. W is placed in the wait set and simultaneously releases the monitor so other threads can enter.
+2. **N acquires the monitor**, updates shared state, and calls `lock.notify()`. The JVM picks one thread in the wait set (say W). **N remains the monitor owner** right after the call.
+3. **N continues running** the remaining statements inside the `synchronized` region. W cannot finish `wait()` yet because it cannot reacquire the monitor held by N. If N performs slow processing inside the locked region, W must wait longer.
+4. **N releases the monitor**, typically when exiting the `synchronized` block/method. From this point onward, W can contend for the monitor with other threads.
+5. **Once W reacquires the monitor**, `wait()` can return normally (assuming no interruption), and W rechecks the condition and continues processing.
 
-`notify()` không có cam kết về thời điểm chạy tiếp, thứ tự ưu tiên, tính công bằng hay việc W sẽ là luồng tiếp theo lấy khóa. Nếu có nhiều luồng đợi, `notify()` không bảo đảm chọn luồng nào. Trạng thái `Thread.State` quan sát được chỉ là ảnh chụp nhất thời; thường có thể thấy luồng bị chặn khi đợi monitor, nhưng không nên phụ thuộc vào một chuỗi trạng thái chính xác cho mọi JVM.
+`notify()` makes no guarantees about when execution resumes, priority order, fairness, or that W will be the next thread to acquire the lock. If multiple threads are waiting, `notify()` does not guarantee which one is picked. Observable `Thread.State` values are only momentary snapshots; you may often see a thread blocked waiting for the monitor, but you should not rely on an exact sequence of states across all JVMs.
 
-Có thể hình dung thứ tự bắt buộc với cùng monitor:
+You can visualize the mandatory ordering with the same monitor:
 
 ```text
-W: giữ lock → wait() và nhả lock ──────────────┐
-N:                   lấy lock → notify() → xử lý tiếp → nhả lock
-W:                                                     tranh lock → wait() trở về
+W: holds lock → wait() and releases lock ───────┐
+N:                    acquires lock → notify() → continues work → releases lock
+W:                                                                contends for lock → wait() returns
 ```
 
-Thông báo làm W đủ điều kiện tiếp tục, **không phải thao tác “bàn giao khóa”** từ N sang W.
+Notification makes W eligible to continue, **not a "lock handoff" operation** from N to W.
 
-## 3. Chương trình Java 17+ chạy được, thứ tự kết quả ổn định
+## 3. Runnable Java 17+ program with stable output order
 
-Lưu thành `NotifyMonitorDemo.java`:
+Save as `NotifyMonitorDemo.java`:
 
 ```java
 import java.util.concurrent.CountDownLatch;
@@ -57,7 +57,7 @@ public class NotifyMonitorDemo {
                     while (!canProceed) {
                         MONITOR.wait();
                     }
-                    System.out.println("waiter: da lay lai monitor");
+                    System.out.println("waiter: reacquired monitor");
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
@@ -70,8 +70,8 @@ public class NotifyMonitorDemo {
         synchronized (MONITOR) {
             canProceed = true;
             MONITOR.notify();
-            System.out.println("notifier: notify xong, van giu monitor");
-            System.out.println("notifier: sap thoat synchronized");
+            System.out.println("notifier: notify done, still holding monitor");
+            System.out.println("notifier: about to exit synchronized");
         }
 
         waiter.join();
@@ -79,120 +79,120 @@ public class NotifyMonitorDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac NotifyMonitorDemo.java
 java NotifyMonitorDemo
 ```
 
-Kết quả chuẩn (ba dòng luôn theo thứ tự này nếu chương trình chạy bình thường, không bị ngắt từ bên ngoài):
+Expected output (all three lines always appear in this order when the program runs normally without external interruption):
 
 ```text
-notifier: notify xong, van giu monitor
-notifier: sap thoat synchronized
-waiter: da lay lai monitor
+notifier: notify done, still holding monitor
+notifier: about to exit synchronized
+waiter: reacquired monitor
 ```
 
-**Giải thích vì sao kết quả ổn định:**
+**Why the output order is stable:**
 
-- `WAITER_READY.countDown()` xảy ra **bên trong** vùng khóa của waiter. Main chờ latch rồi mới cố lấy `MONITOR`; khi main vào được khối `synchronized`, waiter đã nhả monitor thông qua `wait()` (hoặc đã tạm thức dậy và chờ tiếp). Latch chỉ điều phối việc thiết lập ví dụ, không thay thế monitor trong cơ chế chính.
-- `canProceed` được đọc và ghi khi đã giữ cùng `MONITOR`. Vòng `while` còn xử lý được trường hợp thức dậy không do thông báo (spurious wakeup); không cần `volatile` cho biến này trong ví dụ.
-- Sau `MONITOR.notify()`, main vẫn ở trong khối `synchronized` nên in xong **cả hai dòng** của notifier trước khi waiter có cơ hội lấy lại monitor và in dòng của mình. Chương trình không dùng `sleep()` hoặc dự đoán lịch chạy để tạo ra thứ tự này.
-- `waiter.join()` giúp main chờ luồng con kết thúc trước khi kết thúc chương trình; `join()` không phải thao tác bàn giao monitor ở chỗ gọi `notify()`.
+- `WAITER_READY.countDown()` happens **inside** the waiter's locked region. `main` waits on the latch before trying to acquire `MONITOR`; by the time `main` enters the `synchronized` block, `waiter` has already released the monitor via `wait()` (or temporarily woken up and waited again). The latch only coordinates the example's setup, not replacing the monitor in the main mechanism.
+- `canProceed` is read and written while holding the same `MONITOR`. The `while` loop also handles wakeups without notifications (spurious wakeups); `volatile` is unnecessary for this variable in this example.
+- After `MONITOR.notify()`, `main` is still inside the `synchronized` block and therefore prints **both** notifier lines before `waiter` has any chance to reacquire the monitor and print its own line. The program does not use `sleep()` or guess thread scheduling to produce this order.
+- `waiter.join()` ensures `main` waits for the child thread to finish before ending the program; `join()` is not a monitor handoff at the `notify()` site.
 
-Nếu thay dòng `MONITOR.notify()` bằng `MONITOR.notifyAll()`, với chỉ một waiter trong ví dụ, tính chất “không nhả khóa ngay” vẫn giữ nguyên.
+If you replace `MONITOR.notify()` with `MONITOR.notifyAll()`, with only one waiter in the example, the "does not release the lock immediately" property still holds.
 
-## 4. Vì sao đặt việc chậm ngay sau `notify()` có thể gây trễ?
+## 4. Why placing slow work right after `notify()` can cause delays
 
-Xét **đoạn mã minh họa bên trong phương thức có `throws InterruptedException`**, sử dụng đối tượng monitor và biến điều kiện đã được khai báo:
+Consider an **illustrative code snippet inside a method with `throws InterruptedException`**, using an already-declared monitor object and condition variable:
 
 ```java
 synchronized (monitor) {
     condition = true;
     monitor.notify();
-    Thread.sleep(500); // Luồng báo hiệu vẫn giữ monitor trong lúc ngủ.
+    Thread.sleep(500); // The signaling thread still holds the monitor while sleeping.
 }
 ```
 
-`Thread.sleep(500)` tạm dừng luồng gọi nhưng **không giải phóng monitor**. Dù một waiter đã được `notify()` chọn, nó vẫn không thể trở về từ `wait()` cho đến khi luồng báo hiệu rời khối `synchronized` (và waiter lấy lại khóa). Thời lượng ngủ thực tế không phải cam kết thời gian chờ chính xác.
+`Thread.sleep(500)` pauses the calling thread but **does not release the monitor**. Even though a waiter has been selected by `notify()`, it still cannot return from `wait()` until the signaling thread leaves the `synchronized` block (and the waiter reacquires the lock). The actual sleep duration is not an exact wait-time guarantee.
 
-Tương tự, thực hiện I/O, tính toán tốn thời gian hoặc đợi tài nguyên khác trong vùng khóa sau `notify()` có thể kéo dài thời gian chờ. Nên giữ đoạn bảo vệ ngắn, cập nhật trạng thái và báo hiệu dưới monitor, rồi làm các công việc không cần khóa ở bên ngoài.
+Similarly, performing I/O, expensive computation, or waiting for other resources inside the locked region after `notify()` can prolong wait times. Keep the protected section short, update state and signal under the monitor, and do work that does not need the lock outside.
 
-Nếu notifier tự gọi `wait()` trên cùng monitor thì thao tác `wait()` của notifier **có** giải phóng monitor; đó là hành vi riêng của `wait()`, không phải do `notify()` đã chuyển khóa. Ra khỏi `synchronized` bình thường hoặc do ngoại lệ cũng nhả monitor theo quy tắc của khối.
+If the notifier itself calls `wait()` on the same monitor, then the notifier's `wait()` operation **does** release the monitor; that is the behavior of `wait()` itself, not because `notify()` transferred the lock. Exiting `synchronized` normally or via an exception also releases the monitor according to block rules.
 
-## 5. Mối liên hệ với tính nhìn thấy của dữ liệu
+## 5. Relationship with data visibility
 
-Việc waiter phải lấy lại monitor còn bảo đảm một phần quan trọng của tính đúng đắn:
+Requiring the waiter to reacquire the monitor also ensures an important part of correctness:
 
-- N ghi `canProceed = true` khi giữ monitor, rồi nhả monitor lúc rời `synchronized`.
-- Lần mở khóa của N **happens-before** lần lấy khóa tiếp theo của W trên cùng monitor. Vì thế, sau khi W lấy lại khóa, nó nhìn thấy các cập nhật phù hợp với quy tắc Java Memory Model.
-- Đặc tả cũng có quy tắc đồng bộ giữa tác vụ thông báo và lần trở về từ `wait()` được thông báo; tuy nhiên **không quy tắc nào biến `notify()` thành thao tác nhả khóa ngay lập tức**.
+- N writes `canProceed = true` while holding the monitor, then releases the monitor when exiting `synchronized`.
+- N's unlock **happens-before** W's subsequent lock acquisition on the same monitor. Therefore, after W reacquires the lock, it observes the updates in accordance with Java Memory Model rules.
+- The specification also defines synchronization rules between a notification action and a return from a notified `wait()`; however, **no rule turns `notify()` into an immediate lock release**.
 
-Không được dựa vào việc gọi `notify()` mà tự bỏ `synchronized` quanh việc kiểm tra và cập nhật trạng thái dùng chung. Hai bên phải thống nhất đối tượng khóa và điều kiện.
+Do not rely on calling `notify()` to omit `synchronized` around checking and updating shared state. Both sides must agree on the lock object and condition.
 
-## 6. Mẫu phối hợp đúng theo điều kiện
+## 6. Proper condition-coordination pattern
 
-Hai đoạn sau là **mã mẫu trong các phương thức phù hợp**, với `monitor` là cùng một đối tượng và `condition` là trạng thái chia sẻ luôn được bảo vệ bởi monitor:
+The two snippets below are **template code inside appropriate methods**, with `monitor` being the same object and `condition` being shared state always protected by the monitor:
 
-**Luồng chờ:**
+**Waiting thread:**
 
 ```java
 synchronized (monitor) {
     while (!condition) {
         monitor.wait();
     }
-    // Điều kiện đã thỏa, và luồng đang giữ monitor.
+    // Condition is satisfied, and the thread holds the monitor.
 }
 ```
 
-**Luồng báo hiệu:**
+**Signaling thread:**
 
 ```java
 synchronized (monitor) {
-    condition = true;    // Đổi trạng thái trước khi thông báo.
-    monitor.notifyAll(); // Luồng chờ vẫn phải giành lại monitor.
+    condition = true;    // Update state before notifying.
+    monitor.notifyAll(); // Waiting thread still must reacquire the monitor.
 }
 ```
 
-Hãy nhớ rằng `wait()` có thể trở về do thông báo, do ngắt, do hết hạn với bản `wait(timeout)`, hoặc do **spurious wakeup**. Vì vậy, điều kiện phải được kiểm tra trong **`while`**, không chỉ trong `if`. `wait()` dạng không timeout vẫn có thể bị `InterruptedException`; mã bao quanh phải xử lý hoặc khai báo ngoại lệ đó. Nếu waiter thức dậy nhưng điều kiện lại không còn đúng vì một luồng khác đã xử lý trước, vòng `while` đưa waiter vào chờ tiếp.
+Remember that `wait()` can return due to notification, interruption, expiration on `wait(timeout)`, or a **spurious wakeup**. Therefore, the condition must be checked in **`while`**, not just in `if`. Untimed `wait()` can still suffer `InterruptedException`; enclosing code must handle or declare that exception. If a waiter wakes up and the condition is no longer true because another thread handled it first, the `while` loop puts the waiter back into waiting.
 
-Tín hiệu `notify()` **không được lưu lại**: nếu gọi khi wait set rỗng, một luồng bắt đầu `wait()` sau đó sẽ không nhận lại tín hiệu cũ. Việc đặt phép kiểm tra điều kiện và lời gọi `wait()` trong cùng vùng `synchronized` tránh khe hở kiểm tra–chờ có thể gây mất tín hiệu ở mô hình dùng đúng monitor.
+A `notify()` signal **is not saved**: if called when the wait set is empty, a thread starting `wait()` afterward will not receive the old signal. Placing the condition check and the `wait()` call inside the same `synchronized` region prevents a check–wait gap that could cause missed signals in a properly locked model.
 
-Chọn `notify()` khi có thể chứng minh việc đánh thức tùy ý một waiter là đủ và đúng; chọn `notifyAll()` khi có nhiều waiter hoặc nhiều điều kiện chờ, vì `notify()` có thể đánh thức một luồng không đáp ứng được điều kiện cần tiến triển. `notifyAll()` có chi phí đánh thức thêm luồng nhưng vẫn không cho chạy đồng thời trong cùng monitor.
+Choose `notify()` when you can prove that waking an arbitrary waiter is sufficient and correct; choose `notifyAll()` when there are multiple waiters or multiple wait conditions, because `notify()` might wake a thread that does not match the condition needed to make progress. `notifyAll()` has the cost of waking extra threads yet still does not allow concurrent execution inside the same monitor.
 
-## 7. Lỗi thường gặp và cách sửa
+## 7. Common errors and how to fix them
 
-| Hiểu sai / cách viết | Điều thực sự xảy ra | Cách xử lý |
+| Misconception / pattern | What actually happens | How to handle |
 | --- | --- | --- |
-| “Gọi `notify()` là waiter chạy ngay.” | Notifier tiếp tục giữ monitor; waiter phải chờ và lấy lại khóa. | Chỉ dựa trên điều kiện chia sẻ, không giả định thứ tự chạy tức thì. |
-| Gọi `monitor.notify()` ở ngoài `synchronized (monitor)`. | Ném `IllegalMonitorStateException` do không giữ đúng monitor. | Lấy khóa **cùng đối tượng** khi gọi `wait/notify/notifyAll`. |
-| Dùng `if (!condition) monitor.wait();`. | Spurious wakeup hoặc cạnh tranh điều kiện khiến luồng tiếp tục sai. | Kiểm tra lại điều kiện bằng `while`. |
-| Đổi điều kiện ngoài khóa, sau đó mới thông báo. | Có thể gây race hoặc lỗi nhìn thấy dữ liệu và phá vỡ giao thức chờ. | Bảo vệ cả cập nhật, kiểm tra và thao tác báo hiệu bằng cùng monitor. |
-| Gọi `notify()` trên đối tượng khác đối tượng mà waiter dùng `wait()`. | Wait set thuộc từng đối tượng; waiter không được đánh thức bằng thông báo đó. | Dùng cùng đối tượng monitor thực sự. |
-| Giữ monitor để làm I/O hoặc `sleep()` sau `notify()`. | Waiter có thể bị chặn lâu dù đã được thông báo. | Thu ngắn vùng khóa; dời việc không cần khóa ra ngoài. |
-| Cho rằng `notifyAll()` trao khóa cùng lúc cho mọi waiter. | Mọi waiter được phép tiếp tục, nhưng từng luồng phải giành khóa một cách loại trừ. | Viết điều kiện đúng, chấp nhận cạnh tranh và kiểm tra lại. |
-| Bỏ qua `InterruptedException` hoặc giả định chỉ `notify()` mới làm `wait()` trở về. | Luồng chờ có thể bị ngắt; chương trình dễ treo hoặc bỏ sót yêu cầu dừng. | Có chiến lược xử lý ngắt rõ ràng và vòng kiểm tra điều kiện. |
+| "Calling `notify()` makes the waiter run right away." | The notifier keeps holding the monitor; the waiter must wait and reacquire the lock. | Rely only on shared conditions, not assumptions about immediate execution order. |
+| Calling `monitor.notify()` outside `synchronized (monitor)`. | Throws `IllegalMonitorStateException` due to not holding the right monitor. | Lock **the same object** when calling `wait/notify/notifyAll`. |
+| Using `if (!condition) monitor.wait();`. | Spurious wakeups or condition contention cause the thread to proceed erroneously. | Recheck the condition using `while`. |
+| Changing the condition outside the lock, then notifying. | Can cause races or data-visibility bugs and break the wait protocol. | Protect updating, checking, and signaling with the same monitor. |
+| Calling `notify()` on a different object than the one the waiter calls `wait()` on. | Wait sets belong to each object; the waiter is not woken by that notification. | Use the exact same actual monitor object. |
+| Holding the monitor to do I/O or `sleep()` after `notify()`. | The waiter can be blocked for a long time even though notified. | Shorten the locked section; move lock-free work outside. |
+| Assuming `notifyAll()` gives the lock to all waiters simultaneously. | Every waiter becomes eligible to proceed, but each must acquire the lock exclusively. | Write accurate conditions, accept contention, and recheck. |
+| Ignoring `InterruptedException` or assuming only `notify()` makes `wait()` return. | Waiting thread can be interrupted; program may hang or drop stop requests. | Have a clear interruption-handling strategy and a condition-checking loop. |
 
-## 8. Câu hỏi kiểm tra
+## 8. Check questions
 
-**Hỏi:** Sau `notify()`, notifier còn thực hiện 100 câu lệnh trong cùng khối `synchronized`. Waiter có thể tiếp tục ngay sau `wait()` trong lúc đó không?
+**Question:** After `notify()`, the notifier executes 100 more statements inside the same `synchronized` block. Can the waiter proceed past `wait()` during that time?
 
-**Đáp:** Không, nếu cả hai thao tác dùng cùng monitor. Waiter phải lấy lại monitor trước khi `wait()` kết thúc, nên phải chờ notifier nhả khóa. Số lượng câu lệnh không quan trọng; ranh giới sở hữu monitor mới quyết định.
+**Answer:** No, if both operations use the same monitor. The waiter must reacquire the monitor before `wait()` finishes, so it must wait for the notifier to release the lock. The number of statements does not matter; the monitor ownership boundary decides.
 
-**Hỏi:** Ngay khi notifier ra khỏi `synchronized`, waiter có chắc chắn chạy trước một luồng thứ ba đang cố lấy khóa không?
+**Question:** As soon as the notifier exits `synchronized`, is the waiter guaranteed to run before a third thread trying to acquire the lock?
 
-**Đáp:** Không. Java không bảo đảm waiter được `notify()` chọn sẽ giành monitor kế tiếp; các luồng có thể cạnh tranh.
+**Answer:** No. Java does not guarantee that a waiter selected by `notify()` will acquire the monitor next; threads may contend.
 
-**Hỏi:** Nếu không có waiter nào vào `wait()` lúc `notify()` được gọi thì sao?
+**Question:** What happens if no waiter is in `wait()` when `notify()` is called?
 
-**Đáp:** Không có thông báo tồn đọng. Một waiter xuất hiện sau đó chỉ có thể tiến triển nếu điều kiện cho phép, được báo hiệu trong tương lai hoặc có nguyên nhân thức dậy khác.
+**Answer:** No pending notification is stored. A waiter appearing later can proceed only if the condition permits, if signaled in the future, or due to another wakeup cause.
 
-## 9. Ghi nhớ và tài liệu gốc
+## 9. Key takeaways and primary references
 
-**Công thức nhớ:** `wait()` = chờ và nhả monitor; `notify()` = báo cho một waiter nhưng **vẫn giữ monitor**; waiter trở về từ `wait()` = **đã lấy lại monitor**.
+**Memory formula:** `wait()` = wait and release monitor; `notify()` = signal one waiter while **still holding the monitor**; waiter returning from `wait()` = **has reacquired the monitor**.
 
 - [Java Language Specification §17.1: Synchronization](https://docs.oracle.com/javase/specs/jls/se17/html/jls-17.html#jls-17.1)
-- [Java Language Specification §17.2.1–17.2.2: Wait và Notification](https://docs.oracle.com/javase/specs/jls/se17/html/jls-17.html#jls-17.2)
+- [Java Language Specification §17.2.1–17.2.2: Wait and Notification](https://docs.oracle.com/javase/specs/jls/se17/html/jls-17.html#jls-17.2)
 - [Java Language Specification §17.4.5: Happens-before](https://docs.oracle.com/javase/specs/jls/se17/html/jls-17.html#jls-17.4.5)
 - [Java SE 17 API: `Object`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html)

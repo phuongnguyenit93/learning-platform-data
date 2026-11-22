@@ -1,32 +1,32 @@
-# Tách mẫu câu đầy đủ và cung cấp ngữ cảnh cho bản dịch
+# Separating Complete Sentence Templates and Providing Context for Translations
 
-## 1. Vấn đề: bản dịch không phải là phép thay từng từ
+## 1. The Problem: Translation Is Not Word-by-Word Substitution
 
-Trong Java localization, việc tách một câu thành các mảnh nhỏ rồi nối lại ở runtime thường có vẻ thuận tiện:
+In Java localization, splitting a sentence into small fragments and concatenating them at runtime often seems convenient:
 
 ```java
-// Không nên dùng làm thiết kế cho nội dung đa ngôn ngữ
+// Do not use as a design for multilingual content
 String message = prefix + count + suffix;
 ```
 
-Nhưng câu trong ngôn ngữ tự nhiên có **trật tự từ, số nhiều, giống ngữ pháp, cách xưng hô và ngữ cảnh**. Không có bảo đảm rằng mọi ngôn ngữ đều đặt số đếm ở giữa đúng hai mảnh giống tiếng Anh. Một từ ngắn cũng có thể có nhiều nghĩa: `Open` là nút “Mở”, nhưng `Open` ở trạng thái cửa hàng lại là “Đang mở cửa”; `Save` là lệnh lưu, còn trong một ngữ cảnh khác có thể nói về tiết kiệm.
+However, natural-language sentences have **word order, plurals, grammatical gender, forms of address, and context**. There is no guarantee that every language places the count between the exact same two fragments as English. A short word can also have multiple meanings: `Open` as an action button (e.g., “Mở” in Vietnamese), whereas `Open` as a store status means “Open for business” (e.g., “Đang mở cửa” in Vietnamese); `Save` is a save command, while in another context it can mean saving money.
 
-Nguyên tắc quan trọng:
+Important principle:
 
-> **Tách nguyên một thông điệp có nghĩa thành một đơn vị dịch**, chứa những placeholder có ngữ nghĩa rõ ràng. Hãy đưa cho người dịch đủ ngữ cảnh để họ có thể viết lại toàn bộ câu cho đúng ngôn ngữ đích.
+> **Extract an entire meaningful message as one translation unit**, containing placeholders with clear semantics. Give translators enough context so they can rewrite the whole sentence naturally in the target language.
 
-Trong Java, một cách triển khai phổ biến là đặt câu đầy đủ trong `ResourceBundle` rồi dùng `MessageFormat` để chèn dữ liệu. Cách này cho phép bản dịch **đổi thứ tự placeholder**, thay cách diễn đạt và, khi cần, chọn các biến thể theo số lượng/ngữ pháp.
+In Java, a common implementation puts complete sentences in a `ResourceBundle` and uses `MessageFormat` to insert data. This lets translations **reorder placeholders**, adjust phrasing, and, when needed, select variants by quantity or grammar.
 
-Bài này tập trung vào: **đơn vị thông điệp phải đủ nghĩa**, **tài liệu ngữ cảnh cho người dịch**, **hợp đồng placeholder**, **số nhiều và biến thể ngữ pháp**, và **kiểm thử bản dịch thực tế**.
+This lesson focuses on: **meaningful message units**, **context documentation for translators**, **placeholder contracts**, **plurals and grammatical variants**, and **testing real translations**.
 
-## 2. Vì sao nối chuỗi làm mất khả năng dịch đúng?
+## 2. Why Does String Concatenation Destroy Translation Quality?
 
-### 2.1. Trật tự từ không cố định
+### 2.1. Word order is not fixed
 
-Ví dụ ứng dụng có hai biến `customer` và `orderId`. Cách ghép mảnh:
+Suppose an application has two variables `customer` and `orderId`. Fragment concatenation:
 
 ```java
-// Ví dụ phản diện: các fragment được giữ ở nhiều resource key
+// Anti-pattern: fragments stored across multiple resource keys
 String text = bundle.getString("hello.prefix")
         + customer
         + bundle.getString("order.middle")
@@ -34,9 +34,9 @@ String text = bundle.getString("hello.prefix")
         + bundle.getString("order.suffix");
 ```
 
-Cách này giả định người dịch bắt buộc giữ đúng thứ tự: mở đầu → tên người → đoạn giữa → mã đơn hàng → kết thúc. Nhưng bản dịch tiếng Việt có thể hợp lý hơn khi bắt đầu bằng **đơn hàng** rồi mới đến **tên khách hàng**. Người dịch không thể đổi thứ tự hai giá trị nếu chương trình đã cố định bằng phép nối.
+This assumes translators must preserve the exact order: greeting → customer name → middle text → order ID → ending. However, a Vietnamese translation may be more natural starting with the **order** and then the **customer name**. Translators cannot swap the order of those two values if the program hardcodes it through concatenation.
 
-Thay bằng **một thông điệp trọn nghĩa**:
+Replace it with **one complete meaningful message**:
 
 ```properties
 # Messages_en.properties
@@ -48,88 +48,88 @@ order.ready=Hello {0}, order {1} is ready.
 order.ready=Đơn hàng {1} của {0} đã sẵn sàng.
 ```
 
-Với cùng dữ liệu `{0} = "Lan"`, `{1} = "A-7"`, hai câu kết quả lần lượt là:
+With the same data `{0} = "Lan"`, `{1} = "A-7"`, the two resulting sentences are respectively:
 
 ```text
 Hello Lan, order A-7 is ready.
 Đơn hàng A-7 của Lan đã sẵn sàng.
 ```
 
-Sự khác biệt nằm hoàn toàn trong **mẫu câu**, không cần viết `if (locale...)` để hoán đổi các phần văn bản trong Java.
+The difference resides entirely in the **sentence template**, without needing `if (locale...)` in Java to swap text segments.
 
-### 2.2. Số nhiều có thể thay đổi cả câu
+### 2.2. Plurals can change the entire sentence
 
-Ví dụ tiếng Anh:
+English example:
 
 ```text
 You have 1 new message.
 You have 3 new messages.
 ```
 
-Nếu chỉ dịch riêng danh từ `message` và nối `s`, ứng dụng đã hard-code ngữ pháp tiếng Anh vào chương trình. Cách đó không phù hợp cho nhiều ngôn ngữ: một số cần nhiều nhóm số lượng; một số có cách chia từ hoặc thay đổi phần khác trong câu; một số không cần đổi danh từ theo số đếm như tiếng Anh.
+If you only translate the noun `message` separately and append `s`, the application has hardcoded English grammar into the program. That approach fails for many languages: some need multiple quantity groups; some inflect words or change other parts of the sentence; some do not inflect nouns by count like English.
 
-Ngay cả trường hợp không có thông báo cũng có thể cần một **câu riêng**:
+Even the zero-message case may require a **distinct sentence**:
 
 ```text
 You have no new messages.
 Bạn không có thông báo mới.
 ```
 
-Đừng coi `0`, `1` và “nhiều” chỉ là vài đuôi từ có thể dịch riêng. Chọn **mẫu câu đầy đủ** cho biến thể cần thiết.
+Do not treat `0`, `1`, and “many” as merely a few word endings that can be translated in isolation. Choose **complete sentence templates** for the required variants.
 
-### 2.3. Giống ngữ pháp, vai trò người tham gia và ngữ cảnh
+### 2.3. Grammatical gender, participant roles, and context
 
-Một thông báo có thể phụ thuộc người thực hiện hành động, đối tượng bị tác động hoặc danh từ đi kèm. Chẳng hạn nội dung dạng “{người A} đã mời {người B}” có thể có cấu trúc khác trong ngôn ngữ đích. Bản dịch cũng cần biết danh tính hiển thị của `{0}` là **tên người**, **mã**, **mốc thời gian**, hay **số lượng**.
+A message may depend on the actor performing an action, the affected object, or an accompanying noun. For instance, content like “{person A} invited {person B}” may have a different structure in the target language. Translators also need to know whether `{0}` displays a **person's name**, an **ID**, a **timestamp**, or a **quantity**.
 
-**Không suy ra quy tắc giống ngữ pháp từ giới tính người dùng** một cách tùy tiện; chỉ sử dụng những thuộc tính mà dữ liệu nghiệp vụ thực sự cung cấp và ngôn ngữ đích cần. Với nhiều hệ thống, thiết kế câu trung tính, tránh phụ thuộc giống ngữ pháp sẽ dễ bản địa hóa hơn.
+**Do not infer grammatical gender rules from a user's personal gender** arbitrarily; use only attributes that business data actually supplies and the target language requires. For many systems, designing neutral sentences that avoid grammatical-gender dependencies is easier to localize.
 
-## 3. Xác định đúng đơn vị dịch
+## 3. Identifying the Right Translation Unit
 
-Một **translation unit** tốt là thông điệp có nghĩa trong một ngữ cảnh hiển thị cụ thể. Đó không nhất thiết luôn là một đoạn văn dài; nhãn độc lập như “Tìm kiếm” có thể là một đơn vị dịch. Nhưng **không được cắt một câu đang cần ngữ pháp thống nhất thành các mảnh tùy ý**.
+A good **translation unit** is a meaningful message in a specific display context. It does not always have to be a long paragraph; a standalone label like “Search” can be a translation unit. However, **you must not cut a sentence requiring unified grammar into arbitrary fragments**.
 
-| Thiết kế không nên dùng | Vì sao có vấn đề? | Thiết kế phù hợp hơn |
+| Design to Avoid | Why Is It Problematic? | Better Design |
 | --- | --- | --- |
-| `"You have " + n + " new message" + pluralSuffix` | Đuôi số nhiều và thứ tự từ bị đóng đinh | Các mẫu câu `inbox.zero`, `inbox.one`, `inbox.other` theo chính sách ngôn ngữ |
-| `"Hello " + name + ", order " + id + " is ready."` | Người dịch không đổi được trật tự tên và mã | `order.ready=Hello {0}, order {1} is ready.` |
-| `"Open"` dùng cho mọi nơi | Không biết là hành động hay trạng thái | `file.action.open`, `store.status.open` |
-| Ghép `"From"` + tên + `"to"` + tên | Có thể thay đổi trật tự/giới từ trong ngôn ngữ khác | Một thông điệp hoàn chỉnh có hai placeholder |
-| Dịch riêng một từ rồi tái sử dụng ở tiêu đề, nút, tooltip | Cùng từ nguồn có thể có nghĩa khác nhau | Khóa và context phân biệt từng chức năng |
+| `"You have " + n + " new message" + pluralSuffix` | Plural suffix and word order are hardcoded | Complete sentence templates `inbox.zero`, `inbox.one`, `inbox.other` per language policy |
+| `"Hello " + name + ", order " + id + " is ready."` | Translators cannot reorder name and ID | `order.ready=Hello {0}, order {1} is ready.` |
+| `"Open"` reused everywhere | Unclear whether it is an action or a status | `file.action.open`, `store.status.open` |
+| Concatenating `"From"` + name + `"to"` + name | Word order or prepositions may change in other languages | One complete message with two placeholders |
+| Translating a single word and reusing it in titles, buttons, tooltips | The same source word can have different meanings | Separate keys and context per function |
 
-Nguyên tắc **“một đơn vị có nghĩa”** không có nghĩa phải lặp vô điều kiện cùng một câu ở hàng trăm nơi: khi hai vị trí có **cùng nghĩa, cùng vai trò, cùng ràng buộc giao diện**, có thể tái sử dụng một key. Nhưng nếu ngữ cảnh khác nhau, việc dùng chung chỉ vì câu tiếng Anh trông giống nhau dễ dẫn đến bản dịch sai.
+The **“one meaningful unit”** principle does not mean blindly duplicating the exact same sentence in hundreds of places: when two places share the **same meaning, same role, and same UI constraints**, a single key can be reused. But if the contexts differ, sharing a key simply because the English text looks identical easily leads to wrong translations.
 
-## 4. Cung cấp ngữ cảnh gì cho người dịch?
+## 4. What Context Should Be Provided to Translators?
 
-Người dịch không nhìn thấy toàn bộ mã nguồn hoặc luồng nghiệp vụ. Một chuỗi như `Open`, `Pending`, `1 of 3` hay `{0} added {1}` **không đủ thông tin để dịch chính xác**. Nên gắn **translator context** với từng đơn vị dịch:
+Translators do not see the entire source code or business flow. A string like `Open`, `Pending`, `1 of 3`, or `{0} added {1}` **does not carry enough information to translate accurately**. Attach **translator context** to each translation unit:
 
-1. **Mục đích hiển thị:** nút bấm, tiêu đề, trạng thái, toast, email, thông báo xác nhận, trợ năng hay lỗi biểu mẫu?
-2. **Vị trí và ảnh chụp giao diện:** màn hình nào, phần tử trước/sau là gì, ai là người đọc?
-3. **Ý nghĩa nghiệp vụ:** “open” là “mở file” hay “đang hoạt động”? “charge” là tính phí hay sạc pin?
-4. **Mô tả mọi placeholder:** `{0}` là tên người; `{1}` là mã đơn hàng; `{2}` là số tiền đã **được format**. Đừng chỉ ghi “arg 0, arg 1”.
-5. **Loại dữ liệu và ví dụ:** số lượng `0/1/2/5`, mẫu tên dài, mã có dấu nối, ngày/giờ theo vùng, dữ liệu có ký tự đặc biệt.
-6. **Biến thể ngữ pháp:** trường hợp số không, một, nhiều; role của người tham gia; giống ngữ pháp nếu sản phẩm thực sự quản lý được thông tin này.
-7. **Ràng buộc giao diện:** chiều dài gợi ý, nhãn tối đa, khả năng xuống dòng, hỗ trợ RTL, có được viết tắt không?
-8. **Định dạng/markup:** placeholder chứa văn bản thuần, liên kết, số tiền hay markup? Có ký tự đặc biệt của `MessageFormat` cần giữ nguyên không?
-9. **Hành vi khi thiếu dịch:** fallback về ngôn ngữ nào? Nội dung ưu tiên dùng văn phong trang trọng hay thân mật?
+1. **Display purpose:** button, heading, status, toast, email, confirmation notice, accessibility label, or form error?
+2. **Location and UI screenshot:** which screen, what precedes/follows it, and who is the reader?
+3. **Business meaning:** does “open” mean “open a file” or “currently open for business”? Does “charge” mean billing or battery charging?
+4. **Description of every placeholder:** `{0}` is a person's name; `{1}` is an order ID; `{2}` is an already **formatted** monetary amount. Do not just write “arg 0, arg 1”.
+5. **Data types and examples:** counts `0/1/2/5`, long sample names, hyphenated IDs, localized dates/times, data containing special characters.
+6. **Grammatical variants:** zero, one, many cases; participant roles; grammatical gender if the product actually manages that information.
+7. **UI constraints:** suggested length, max label width, line-wrapping capability, RTL support, whether abbreviations are allowed.
+8. **Formatting/markup:** does the placeholder contain plain text, links, currency, or markup? Are there special `MessageFormat` characters that must be preserved?
+9. **Behavior when translation is missing:** which language does it fall back to? Should tone favor formal or informal register?
 
-Ví dụ một key với ngữ cảnh tốt:
+Example of a key with good context:
 
 ```text
 Key: order.ready
 Source: Hello {0}, order {1} is ready.
-Description: Thông báo xuất hiện sau khi đơn đặt hàng chuẩn bị xong.
-{0}: displayName — tên hiển thị của khách, ví dụ "Lan".
-{1}: orderId — mã đơn hàng, ví dụ "A-7", giữ nguyên.
-Audience: người mua hàng.
-Tone: ngắn gọn, lịch sự; có thể đảo thứ tự placeholder.
-UI: có thể xuống dòng; không được xóa một trong hai placeholder.
-Screenshot: ảnh của màn hình theo dõi đơn hàng trong hệ thống dịch.
+Description: Notification shown after an order finishes preparing.
+{0}: displayName — customer's display name, e.g., "Lan".
+{1}: orderId — order identifier, e.g., "A-7", keep unchanged.
+Audience: buyer/customer.
+Tone: concise, polite; placeholder order may be changed.
+UI: line wrapping allowed; neither placeholder may be removed.
+Screenshot: image of the order-tracking screen in the translation system.
 ```
 
-Chú thích `#` trong file `.properties` có thể giúp người đọc file, nhưng **`ResourceBundle` không trả những comment đó qua `getString`**. Nền tảng quản lý bản dịch nên lưu context dưới dạng metadata riêng, file đi kèm hoặc comment được công cụ trích xuất bảo toàn. Đừng giả định mọi pipeline sẽ chuyển nguyên comment đến người dịch.
+`#` comments in `.properties` files can help someone reading the file, but **`ResourceBundle` does not return those comments via `getString`**. Translation management platforms should store context as separate metadata, companion files, or comments preserved by extraction tools. Do not assume every pipeline passes comments verbatim to translators.
 
-## 5. Đặt khóa theo nghĩa và ngữ cảnh, không theo nguyên văn tiếng Anh
+## 5. Name Keys by Meaning and Context, Not by Literal English Text
 
-Khóa resource nên ổn định khi thay đổi câu chữ:
+Resource keys should remain stable when wording changes:
 
 ```properties
 order.ready=Hello {0}, order {1} is ready.
@@ -138,21 +138,21 @@ file.action.open=Open
 store.status.open=Open
 ```
 
-Hai key cuối có cùng bản tiếng Anh nhưng **ngữ cảnh dịch khác nhau**. Trong tiếng Việt, một số bản dịch phù hợp có thể là `Mở` và `Đang mở cửa`.
+The last two keys have the same English text but **different translation contexts**. In Vietnamese, suitable translations might be `Mở` and `Đang mở cửa`.
 
-Nên tránh các khóa kiểu `YouHaveNewMessages`, `hello_prefix` hoặc khóa bằng nguyên chuỗi tiếng Anh nếu chúng khiến thay đổi copy đồng nghĩa với đổi API và khó duy trì context. Có thể nhóm key theo tính năng và loại thông điệp: `inbox.empty`, `inbox.count`, `order.ready`, `file.action.open`.
+Avoid keys like `YouHaveNewMessages`, `hello_prefix`, or keys equal to the full English string if they make copy edits equivalent to API changes and make context hard to maintain. Keys can be grouped by feature and message type: `inbox.empty`, `inbox.count`, `order.ready`, `file.action.open`.
 
-**Một khóa không nhất thiết tương đương một câu về mặt dấu chấm:** tiêu đề, CTA độc lập và aria-label vẫn là các đơn vị hoàn chỉnh theo chức năng. Tiêu chí là người dịch biết **mục đích và ngữ cảnh ngữ pháp** của đơn vị đó.
+**A key does not necessarily correspond to a single period-terminated sentence:** headings, standalone CTAs, and `aria-label`s are still functionally complete units. The criterion is that the translator knows the **purpose and grammatical context** of that unit.
 
-## 6. Ví dụ chạy được: một câu đầy đủ, thứ tự placeholder và số lượng
+## 6. Runnable Example: Complete Sentences, Placeholder Order, and Counts
 
-Ví dụ sau dùng Java 17+, `ResourceBundle` + `MessageFormat`. Nó minh họa:
+The following example uses Java 17+, `ResourceBundle` + `MessageFormat`. It illustrates:
 
-- Mỗi biến thể số lượng được dịch bằng **một câu đầy đủ**, không nối tiền tố/hậu tố.
-- Bản dịch có quyền **đổi thứ tự `{0}` và `{1}`**.
-- Từ khóa và giá trị trong resource là một **hợp đồng** giữa mã và người dịch.
+- Each count variant is translated as a **complete sentence**, without prefix/suffix concatenation.
+- Translations are free to **swap the order of `{0}` and `{1}`**.
+- Keys and values in resources form a **contract** between code and translators.
 
-Tạo cấu trúc:
+Create the directory structure:
 
 ```text
 workspace/
@@ -165,7 +165,7 @@ workspace/
     └── Messages_vi.properties
 ```
 
-**`demo/Messages.properties`** — fallback gốc bằng tiếng Anh:
+**`demo/Messages.properties`** — base English fallback:
 
 ```properties
 inbox.zero=You have no new messages.
@@ -177,22 +177,22 @@ order.ready=Hello {0}, order {1} is ready.
 **`demo/Messages_en.properties`**:
 
 ```properties
-# inbox.*: Thông báo số tin nhắn chưa đọc. {0}: số lượng nguyên không âm.
+# inbox.*: Unread message count notice. {0}: non-negative integer count.
 inbox.zero=You have no new messages.
 inbox.one=You have {0} new message.
 inbox.other=You have {0} new messages.
-# order.ready: {0} là tên khách, {1} là mã đơn hàng.
+# order.ready: {0} is customer name, {1} is order ID.
 order.ready=Hello {0}, order {1} is ready.
 ```
 
 **`demo/Messages_vi.properties`**:
 
 ```properties
-# inbox.*: Số thông báo mới. {0}: số lượng nguyên không âm.
+# inbox.*: New notification count. {0}: non-negative integer count.
 inbox.zero=Bạn không có thông báo mới.
 inbox.one=Bạn có {0} thông báo mới.
 inbox.other=Bạn có {0} thông báo mới.
-# order.ready: {0} là tên khách; {1} là mã đơn, được đảo thứ tự.
+# order.ready: {0} is customer name; {1} is order ID, reordered.
 order.ready=Đơn hàng {1} của {0} đã sẵn sàng.
 ```
 
@@ -224,7 +224,7 @@ public class MessageContextDemo {
         ResourceBundle bundle =
                 ResourceBundle.getBundle(BASE_NAME, locale, CONTROL);
 
-        // Chỉ là chính sách minh họa cho hai ngôn ngữ đã triển khai.
+        // Illustrative policy only for the two implemented languages.
         String key = count == 0 ? "inbox.zero"
                 : count == 1 ? "inbox.one"
                 : "inbox.other";
@@ -257,14 +257,14 @@ public class MessageContextDemo {
 }
 ```
 
-Từ thư mục `workspace`, chạy bằng JDK 17+:
+From the `workspace` directory, run with JDK 17+:
 
 ```bash
 javac -encoding UTF-8 -d . src/demo/MessageContextDemo.java
 java -cp . demo.MessageContextDemo
 ```
 
-Đầu ra (terminal hiển thị UTF-8 đúng):
+Output (with a properly configured UTF-8 terminal):
 
 ```text
 en-US | You have no new messages.
@@ -277,104 +277,104 @@ vi-VN | Bạn có 3 thông báo mới.
 vi-VN | Đơn hàng A-7 của Lan đã sẵn sàng.
 ```
 
-### Vì sao ví dụ này đáng chú ý?
+### Why is this example noteworthy?
 
-**Không có đoạn mã nào nối riêng “You have”, tên danh từ hay đuôi số nhiều.** Java chỉ chọn một **key ngữ nghĩa** rồi đưa dữ liệu vào câu đã dịch. Người dịch tiếng Việt thay cả câu `order.ready` để đưa mã đơn hàng lên trước tên khách, nhưng hợp đồng `{0}` và `{1}` vẫn giữ nguyên.
+**No code concatenates “You have”, noun names, or plural suffixes separately.** Java simply selects a **semantic key** and supplies data to the translated sentence. The Vietnamese translator rewrote the whole `order.ready` sentence to put the order ID before the customer name, yet the `{0}` and `{1}` contract remained intact.
 
-`ResourceBundle` sẽ tìm `Messages_en.properties` khi yêu cầu `en-US`, và `Messages_vi.properties` khi yêu cầu `vi-VN`. `getNoFallbackControl` bỏ nhánh thử default locale của JVM nhưng vẫn cho phép tài nguyên gốc; chính sách này giúp ví dụ ổn định. Tệp properties cần nằm trên runtime classpath đúng đường dẫn `demo/`.
+`ResourceBundle` finds `Messages_en.properties` when requesting `en-US`, and `Messages_vi.properties` when requesting `vi-VN`. `getNoFallbackControl` skips trying the JVM default locale while still allowing the root resource; this policy keeps the example deterministic. Properties files must be on the runtime classpath at the exact `demo/` path.
 
-**Giới hạn chủ ý:** điều kiện `count == 0 / 1 / other` chỉ để minh họa thông điệp **tiếng Anh và tiếng Việt trong bài**; đó **không phải thuật toán plural dùng chung cho tất cả ngôn ngữ**. Một số ngôn ngữ có nhiều loại số nhiều hoặc quy tắc xét số thập phân phức tạp. Với ứng dụng đa ngôn ngữ thật, phải dùng quy tắc plural của locale (ví dụ hệ thống dựa trên CLDR/ICU khi phù hợp), chứ không sao chép nhánh này cho mọi quốc gia.
+**Intentional limitation:** the `count == 0 / 1 / other` condition only illustrates **English and Vietnamese messages in this lesson**; it is **not a shared plural algorithm for all languages**. Some languages have more plural categories or complex decimal rules. For real multilingual applications, use locale plural rules (such as a CLDR/ICU-based system when appropriate) rather than copying these branches to every country.
 
-## 7. Số nhiều: tách biến thể câu và chọn đúng quy tắc ngôn ngữ
+## 7. Plurals: Separating Sentence Variants and Choosing the Right Language Rules
 
-Cần phân biệt hai việc:
+Two tasks must be distinguished:
 
-1. **Chọn biến thể ngữ pháp** cho một số lượng/đại lượng cụ thể.
-2. **Format số được in ra** cho locale đã chọn.
+1. **Selecting the grammatical variant** for a specific count/quantity.
+2. **Formatting the printed number** for the selected locale.
 
-`NumberFormat` lo cách biểu diễn số, không tự quyết định toàn bộ ngữ pháp danh từ. `MessageFormat` tiêu chuẩn của `java.text` hỗ trợ các dạng như `number` và `choice`, nhưng nó **không phải engine CLDR plural hoàn chỉnh** với các nhãn `zero`, `one`, `two`, `few`, `many`, `other` áp dụng tự động cho mọi locale.
+`NumberFormat` handles number representation, not overall noun grammar. Standard `java.text.MessageFormat` supports formats like `number` and `choice`, but it is **not a complete CLDR plural engine** with `zero`, `one`, `two`, `few`, `many`, `other` labels automatically applied for every locale.
 
-Ví dụ `ChoiceFormat` có thể chọn giữa những nhánh dựa trên ngưỡng số:
+For example, `ChoiceFormat` can select among branches based on numeric thresholds:
 
 ```java
-// Trích đoạn minh họa: không phải quy tắc plural tổng quát.
+// Illustrative snippet: not a general plural rule.
 String pattern = "{0,choice,0#No items|1#One item|1<Many items}";
 String text = new MessageFormat(pattern, Locale.US)
         .format(new Object[] {3});
 ```
 
-Kết quả `text` là `Many items`. Tuy nhiên, các ngưỡng đó chỉ diễn đạt một **chính sách cụ thể** của pattern, không thay thế quy tắc plural của tiếng Ả Rập, tiếng Nga, tiếng Ba Lan... và những ngôn ngữ khác.
+The result `text` is `Many items`. However, those thresholds only express a **specific policy** of the pattern, not a replacement for plural rules of Arabic, Russian, Polish, and other languages.
 
-Nếu sử dụng hệ thống có hỗ trợ **plural categories theo CLDR**, các nhãn `zero/one/two/few/many/other` phải được chọn **bởi quy tắc locale**, không được hiểu đơn giản `one` luôn là số bằng 1 hoặc `few` luôn là 2–4. Kể cả giá trị 0 đôi khi được thể hiện bằng `other` theo quy tắc của ngôn ngữ; một câu “Không có mục nào” vẫn có thể là **trường hợp nghiệp vụ riêng** được thiết kế tường minh.
+If using a system that supports **CLDR plural categories**, the labels `zero/one/two/few/many/other` must be selected **by locale rules**, rather than naively assuming `one` always equals 1 or `few` always equals 2–4. Even the value 0 is sometimes expressed by `other` under a language's rules; a sentence like “No items” can still be an **explicit business special case** designed deliberately.
 
-### Vì sao phải giữ câu đầy đủ trong từng nhánh?
+### Why keep complete sentences in every branch?
 
-Không nên chỉ định nghĩa:
+You should not define only:
 
 ```text
 singularSuffix=""
 pluralSuffix="s"
 ```
 
-Thay vào đó, dùng các đơn vị câu đầy đủ như `inbox.one` và `inbox.other` hoặc một thông điệp plural được công cụ l10n hỗ trợ. Người dịch có thể cần thay **động từ, cách, mạo từ, tính từ, vị trí số đếm và danh từ** cùng lúc. Hệ thống dịch cần cho xem toàn bộ các nhánh cạnh nhau và biết chúng sẽ hiển thị ở đâu.
+Instead, use complete sentence units such as `inbox.one` and `inbox.other`, or a plural message supported by an l10n tool. Translators may need to change **verbs, grammatical cases, articles, adjectives, count placement, and nouns** all at once. The translation system should display all branches side by side and indicate where they appear.
 
-## 8. Cung cấp hợp đồng placeholder rõ ràng
+## 8. Providing an Explicit Placeholder Contract
 
-Placeholder là **biến số/ngữ nghĩa**, không phải văn bản được dịch tùy ý. Với Java `MessageFormat`, dạng phổ biến là `{0}`, `{1}`, `{2,number}`, `{3,date}`.
+Placeholders are **variables/semantic slots**, not text to be translated arbitrarily. With Java `MessageFormat`, common forms are `{0}`, `{1}`, `{2,number}`, `{3,date}`.
 
-Ví dụ hợp đồng:
+Example contract:
 
-| Placeholder | Ý nghĩa | Kiểu dữ liệu | Ví dụ | Người dịch cần biết |
+| Placeholder | Meaning | Data Type | Example | What Translators Need to Know |
 | --- | --- | --- | --- | --- |
-| `{0}` | Tên hiển thị khách hàng | `String` | `Lan` | Có thể dài hoặc có dấu nháy; không được đổi nghĩa |
-| `{1}` | Mã đơn hàng | `String` | `A-7` | Không dịch nội dung mã; có thể chuyển vị trí |
-| `{2}` | Số lượng chưa đọc | `int` hoặc `Number` | `3` | Quy tắc plural cần xử lý riêng |
-| `{3}` | Mốc thời gian | `Temporal/Date` theo API sử dụng | Ngày giao hàng | Chọn vùng giờ/lịch và mẫu định dạng phù hợp |
+| `{0}` | Customer display name | `String` | `Lan` | May be long or contain quotes; do not alter meaning |
+| `{1}` | Order ID | `String` | `A-7` | Do not translate code content; position may move |
+| `{2}` | Unread count | `int` or `Number` | `3` | Plural rules require separate handling |
+| `{3}` | Timestamp | `Temporal/Date` per API used | Delivery date | Choose appropriate timezone/calendar and formatting style |
 
-Trong `MessageFormat`, **thứ tự phần tử của `Object[]` phải giữ đúng hợp đồng** dù người dịch được quyền **đảo vị trí placeholder trong pattern**. Nếu nội dung tiếng Việt đặt `{1}` trước `{0}`, Java vẫn truyền tham số theo thứ tự ban đầu `{"Lan", "A-7"}`.
+In `MessageFormat`, **the element order of `Object[]` must obey the contract** even when translators are allowed to **reorder placeholders inside the pattern**. If Vietnamese content places `{1}` before `{0}`, Java still passes arguments in the original order `{"Lan", "A-7"}`.
 
-Không nên bảo người dịch “giữ nguyên vị trí placeholder”, vì điều đó phá mục tiêu thay đổi trật tự câu. Nên yêu cầu: **giữ nguyên tập placeholder, chỉ số và ý nghĩa**, cho phép đổi vị trí xuất hiện nếu câu cần; nếu cần lặp một tham số trong bản dịch thì phải xác định điều đó có hợp lệ với API không.
+Do not tell translators to “keep placeholder positions unchanged”, because that defeats grammatical reordering. Instead require: **preserve the placeholder set, indices, and meanings**, allowing positions to move if the sentence needs it; if repeating an argument in a translation is needed, verify whether the API supports it.
 
-### Tên tham số có nghĩa và giới hạn của `MessageFormat`
+### Meaningful parameter names and `MessageFormat` limits
 
-Java `MessageFormat` chuẩn dùng **chỉ số** như `{0}`, không tự hỗ trợ `{customerName}` theo cú pháp placeholder có tên. Vì vậy một lớp dịch vụ có thể định nghĩa tên ngữ nghĩa trong mã/metadata rồi ánh xạ chúng sang chỉ số khi tạo `Object[]`. Với nền tảng l10n hỗ trợ placeholder đặt tên, vẫn cần hợp đồng rõ về kiểu và ý nghĩa.
+Standard Java `MessageFormat` uses **numeric indices** such as `{0}` and does not natively support named placeholders like `{customerName}`. Thus a service layer can define semantic names in code/metadata and map them to indices when building `Object[]`. With l10n platforms supporting named placeholders, an explicit contract on types and meanings is still required.
 
-Đừng tùy tiện trộn cú pháp ICU MessageFormat với `java.text.MessageFormat`; khả năng `plural` hoặc `select` của thư viện khác không mặc nhiên chạy được trong parser Java chuẩn. Chọn một engine, tài liệu hóa cú pháp và kiểm thử tất cả resource theo engine đó.
+Do not arbitrarily mix ICU MessageFormat syntax with `java.text.MessageFormat`; another library's `plural` or `select` features do not run out of the box in the standard Java parser. Choose one engine, document its syntax, and validate all resources against that engine.
 
-## 9. Cẩn trọng với `MessageFormat`, escape và dữ liệu động
+## 9. Caution with `MessageFormat`, Escaping, and Dynamic Data
 
-Khi câu đầy đủ chứa dấu nháy đơn và dấu ngoặc nhọn, `MessageFormat` có quy tắc escape riêng:
+When complete sentences contain single quotes and curly braces, `MessageFormat` has its own escaping rules:
 
-- `{0}` là placeholder; muốn hiển thị chữ `{0}` như ký hiệu, dùng `'{0}'` trong pattern.
-- `''` trong pattern in một dấu nháy đơn literal. Ví dụ pattern `It''s {0}.` mới có đầu ra `It's Lan.`.
-- `'{'` và `'}'` lần lượt in ngoặc mở/đóng literal.
-- Dấu nháy đơn mở quote nhưng không đóng có thể khiến placeholder bị in nguyên văn **mà không ném exception**.
-- Dấu gạch chéo ngược là escape của Java source hoặc properties ở những tầng riêng; nó không tự thay thế cơ chế nháy đơn của `MessageFormat`.
+- `{0}` is a placeholder; to display the text `{0}` literally as characters, use `'{0}'` in the pattern.
+- `''` in a pattern prints one literal single quote. For example, `It''s {0}.` produces `It's Lan.`.
+- `'{'` and `'}'` print literal opening and closing braces respectively.
+- An unclosed single quote can cause placeholders to be printed verbatim **without throwing an exception**.
+- Backslashes belong to Java source or properties escaping at separate layers; they do not replace `MessageFormat`'s single-quote mechanism.
 
-Đối với văn bản **tham số** như `O'Brien` hoặc `{0}` nằm trong tên người, `MessageFormat` không phân tích lại nó như pattern thông thường. Đừng tự nhân đôi nháy đơn trong dữ liệu nhập rồi tạo ra tên hiển thị sai. Chỉ áp dụng quy tắc quote của `MessageFormat` cho **pattern**.
+For **argument** text such as `O'Brien` or `{0}` inside a person's name, `MessageFormat` does not re-parse it as an ordinary pattern. Do not double single quotes in input data and produce corrupted display names. Apply `MessageFormat` quoting rules only to **patterns**.
 
-**Ranh giới an toàn:** hệ thống i18n không tự động ngăn XSS khi chuỗi kết quả được chèn vào HTML. Nếu ứng dụng web hiển thị thông điệp, hãy escape/encode theo **ngữ cảnh đầu ra** và dùng component/template API an toàn. Đừng coi người dịch hoặc placeholder là HTML đáng tin, đừng nối markup/URL không được kiểm soát vào câu; phần bôi đậm và liên kết nên được biểu diễn thành thành phần giao diện riêng hoặc cấu trúc được phép với ranh giới rõ ràng.
+**Security boundary:** an i18n system does not automatically prevent XSS when the resulting string is inserted into HTML. If a web app displays messages, escape/encode for the **output context** and use safe component/template APIs. Do not treat translators or placeholders as trusted HTML, and do not concatenate unvalidated markup/URLs into sentences; bold text and links should be represented as separate UI components or allowed structures with clear boundaries.
 
-## 10. Ngữ cảnh cho người dịch khi có yếu tố ngữ pháp phức tạp
+## 10. Context for Translators When Complex Grammar Applies
 
-### 10.1. Đừng buộc người dịch suy ra giới tính hoặc vai trò
+### 10.1. Do not force translators to guess gender or roles
 
-Ví dụ thông báo “{0} đã gửi {1} một lời mời” có hai người tham gia. Một ngôn ngữ đích có thể cần điều chỉnh từ ngữ theo người thực hiện hoặc người nhận. Nếu người dịch chỉ thấy `{0} invited {1}` mà không biết vai trò, họ dễ đổi sai hướng hành động.
+For example, the message “{0} sent {1} an invitation” involves two participants. A target language may need to adjust phrasing depending on the actor or recipient. If a translator only sees `{0} invited {1}` without knowing roles, they can easily reverse the action's direction.
 
-Cần mô tả:
+Describe it explicitly:
 
 ```text
-{0}: người gửi lời mời (actor)
-{1}: người nhận lời mời (recipient)
-Người đọc: người nhận thông báo
-Ngữ cảnh: thông báo hệ thống ngay sau hành động gửi thành công
+{0}: invitation sender (actor)
+{1}: invitation recipient (recipient)
+Reader: notification recipient
+Context: system notification immediately after a successful send action
 ```
 
-Nếu sản phẩm không có dữ liệu ngữ pháp cần thiết, hãy cân nhắc một **câu trung tính** thay vì giả định giới tính hoặc tự suy từ tên người.
+If the product lacks the required grammatical data, consider a **neutral sentence** instead of assuming gender or guessing from a person's name.
 
-### 10.2. Không tái sử dụng cùng một từ giữa các ngữ cảnh khác nhau
+### 10.2. Do not reuse the same word across different contexts
 
-Một nhãn `Archive` có thể là **hành động lưu trữ**, **danh mục hồ sơ**, hoặc **trạng thái đã lưu**. Ngay cả khi bản nguồn cùng một từ, bản dịch có thể khác về loại từ và sắc thái. Dùng key riêng cho từng nghĩa:
+A label `Archive` can be an **archive action**, a **records folder**, or an **archived status**. Even when the source uses the exact same word, translations may differ in part of speech and nuance. Use separate keys per meaning:
 
 ```properties
 document.action.archive=Archive
@@ -382,39 +382,39 @@ navigation.archive=Archive
 document.status.archived=Archived
 ```
 
-Đừng dùng chung key chỉ để giảm số dòng resource. Điều quan trọng không phải tối thiểu hóa số key mà là **bảo toàn đúng ngữ nghĩa**.
+Do not share keys merely to reduce line counts in resources. What matters is not minimizing key count, but **preserving accurate semantics**.
 
-### 10.3. Cẩn trọng với chiều dài và văn bản giao diện
+### 10.3. Mind UI length and text layout
 
-Một câu đủ nghĩa có thể dài hơn bản tiếng Anh. Hãy cho phép giao diện xuống dòng hoặc co giãn phù hợp, kiểm thử trên mobile và các kích thước font/trợ năng. Nếu áp giới hạn ký tự, cần nói rõ đó là giới hạn cứng hay gợi ý; đừng bắt người dịch bỏ thông tin thiết yếu mà không có giải pháp thiết kế.
+A complete, natural sentence can be longer than the English version. Allow the UI to wrap lines or resize appropriately, and test on mobile and across font sizes and accessibility settings. If applying character limits, clarify whether they are hard limits or guidelines; do not force translators to drop essential information without a design solution.
 
-### 10.4. Tên riêng, số, ngày, tiền và đơn vị
+### 10.4. Proper names, numbers, dates, currency, and units
 
-Người dịch cần biết placeholder chứa **dữ liệu nguyên bản** hay **chuỗi đã được format**. Ví dụ:
+Translators need to know whether a placeholder holds **raw data** or an **already-formatted string**. For example:
 
-- Mã đơn hàng và mã định danh: thường giữ nguyên, không dịch.
-- Số tiền: dùng giá trị số + mã tiền theo dữ liệu nghiệp vụ; không tự quy đổi tiền tệ chỉ vì đổi locale.
-- Ngày giờ: locale quyết định cách hiển thị, còn `ZoneId` là thông tin riêng.
-- Số lượng: có thể cần một **giá trị số** để chọn nhánh plural, không chỉ chuỗi đã format.
+- Order IDs and identifiers: usually kept unchanged, untranslated.
+- Monetary amounts: use numeric value + currency code from business data; never convert currency just because the locale changed.
+- Dates and times: locale determines display format, while `ZoneId` is separate information.
+- Quantities: may require a **numeric value** to select plural branches, not just a formatted string.
 
-Không cho người dịch sửa hoặc dịch các placeholder thành ký tự cố định trong câu. Thông điệp cần tương thích mọi giá trị hợp lệ của ứng dụng, không chỉ ảnh chụp mẫu.
+Do not let translators edit or replace placeholders with fixed characters in the sentence. Messages must work for every valid application value, not just a sample screenshot.
 
-## 11. Kiểm thử cả bản dịch và ngữ cảnh, không chỉ cú pháp
+## 11. Test Both Translations and Context, Not Just Syntax
 
-Bước kiểm tra lý tưởng có cả **kiểm thử tự động** lẫn **review ngôn ngữ trên giao diện**:
+An ideal verification step combines **automated tests** with **in-UI linguistic review**:
 
-1. **Kiểm tra đầy đủ key:** mọi locale được cam kết hỗ trợ có các key cần thiết hoặc fallback được xác định rõ. Thiếu key có thể khiến `ResourceBundle` lấy chuỗi từ parent mà không báo lỗi.
-2. **Kiểm tra placeholder:** bản dịch không làm mất `{0}`, `{1}` cần thiết, không nhầm chỉ số; cho phép thay thứ tự đúng ngữ pháp. Cần parser/hợp đồng phù hợp với engine, không chỉ đếm chuỗi bằng regex.
-3. **Phân tích pattern:** thử tạo `MessageFormat` cho các mẫu; kiểm tra nháy đơn, ngoặc và subformat. Nhưng parser chấp nhận không chứng minh thông điệp đúng ý.
-4. **Kiểm tra kết quả sau format:** dùng giá trị đại diện; so sánh cả câu đầy đủ trong các locale được triển khai.
-5. **Kiểm tra trường hợp số lượng:** 0, 1, 2, 5, số lớn và nếu áp dụng cả số thập phân. Với thư viện plural theo CLDR, dùng bộ giá trị đại diện theo **locale** để chạm mọi category.
-6. **Kiểm tra đổi thứ tự tham số:** bản dịch có thể in `{1}` trước `{0}`; dùng hai giá trị dễ phân biệt (ví dụ tên `Lan` và mã `A-7`) để phát hiện đổi nhầm.
-7. **Kiểm tra ngữ cảnh hiển thị:** chụp ảnh có dữ liệu thật/giả lập, kiểm tra vị trí nút, tiêu đề, trạng thái, tiếng Việt có dấu, font, chiều rộng, màn hình nhỏ và trợ năng.
-8. **Kiểm tra chuỗi có apostrophe:** `It's`, `don't`, tên `O'Brien`; phân biệt dấu nháy trong pattern với dữ liệu.
-9. **Kiểm tra ngôn ngữ có ngữ pháp khác:** có cần variant khác theo vai trò, số lượng, giống ngữ pháp hoặc cách xưng hô? Đừng lấy tiếng Anh làm mô hình ngữ pháp duy nhất.
-10. **Kiểm tra hợp đồng theo phiên bản:** khi thêm/sửa placeholder, thông báo cho đội dịch, cập nhật context và kiểm thử bản dịch cũ trước khi phát hành.
+1. **Check key completeness:** every committed supported locale has required keys or an explicitly defined fallback. Missing keys can make `ResourceBundle` silently pull strings from a parent bundle without errors.
+2. **Check placeholders:** translations do not drop required `{0}`, `{1}` or mix up indices; allow grammatically valid reordering. Use a parser/contract check aligned with the engine rather than merely counting strings with regex.
+3. **Parse patterns:** try constructing `MessageFormat` for all patterns; check single quotes, braces, and subformats. Note that parser acceptance does not prove the message means the right thing.
+4. **Check formatted output:** use representative values; compare complete sentences across deployed locales.
+5. **Check quantity cases:** 0, 1, 2, 5, large numbers, and decimals if applicable. With CLDR plural libraries, use representative values per **locale** to hit every category.
+6. **Check reordered parameters:** translations may print `{1}` before `{0}`; use two easily distinguishable values (such as name `Lan` and ID `A-7`) to catch swapped indices.
+7. **Check UI context:** take screenshots with real/mocked data, inspect button placement, headings, statuses, Vietnamese diacritics, fonts, widths, small screens, and accessibility.
+8. **Check strings with apostrophes:** `It's`, `don't`, names like `O'Brien`; distinguish quotes in patterns from data.
+9. **Check languages with different grammar:** are additional variants needed by role, quantity, grammatical gender, or register? Do not treat English as the sole grammatical model.
+10. **Check versioned contracts:** when adding/modifying placeholders, notify the translation team, update context, and test old translations before release.
 
-Một phép kiểm tra nhỏ trong Java có thể giúp khóa hợp đồng hai tham số:
+A small Java test can lock down a two-parameter contract:
 
 ```java
 import java.text.MessageFormat;
@@ -446,65 +446,65 @@ public class ContextContractTest {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 ContextContractTest.java
 java -cp . ContextContractTest
 ```
 
-Kết quả nếu hợp đồng và mẫu câu đúng:
+Output when the contract and sentence templates are correct:
 
 ```text
 2 context checks passed
 ```
 
-Đây là kiểm thử **hợp đồng** chứ không thể thay thế review chất lượng bản dịch; những câu sai ngữ pháp nhưng vẫn chứa đủ placeholder vẫn có thể vượt qua kiểm thử tự động.
+This is a **contract** test and cannot replace translation quality review; grammatically broken sentences that still contain all placeholders can still pass automated checks.
 
-## 12. Quy trình phối hợp giữa developer và người dịch
+## 12. Collaboration Workflow Between Developers and Translators
 
-**Trước khi gửi bản nguồn cho người dịch:**
+**Before sending source text to translators:**
 
-- Chọn key mang nghĩa nghiệp vụ, không dựa vào hình thức câu tiếng Anh.
-- Thiết kế mỗi thông điệp là một **đơn vị hoàn chỉnh**; không tách thành mảnh chỉ để nối ở runtime.
-- Với thông điệp có biến, viết context cho từng placeholder; cung cấp ảnh màn hình, ví dụ giá trị và những nhánh số lượng.
-- Xác định engine thông điệp (`java.text.MessageFormat`, ICU hoặc cơ chế khác) và quy tắc escape tương ứng.
-- Chọn chính sách fallback và danh sách locale mà sản phẩm thực sự hỗ trợ.
+- Choose keys carrying business meaning rather than relying on English phrasing.
+- Design each message as a **complete unit**; do not split it into fragments just to concatenate at runtime.
+- For messages with variables, write context for each placeholder; supply screenshots, example values, and quantity branches.
+- Specify the message engine (`java.text.MessageFormat`, ICU, or another mechanism) and corresponding escaping rules.
+- Choose the fallback policy and the list of locales the product actually supports.
 
-**Trong quá trình dịch:**
+**During translation:**
 
-- Cho phép đổi trật tự placeholder nhưng yêu cầu giữ đúng **nghĩa/chỉ số/kiểu**.
-- Không ép người dịch giữ nguyên số từ, cấu trúc câu, cách dùng dấu câu của bản tiếng Anh.
-- Cung cấp công cụ xem preview theo locale với dữ liệu mẫu, kể cả 0, 1 và nhiều.
-- Cho phép người dịch đặt câu hỏi hoặc phản hồi khi nội dung nguồn mơ hồ.
+- Allow reordering placeholders while requiring **meaning/index/type** to stay intact.
+- Do not force translators to match English word counts, sentence structures, or punctuation usage.
+- Provide preview tooling per locale with sample data, including 0, 1, and many.
+- Allow translators to ask questions or raise feedback when source content is ambiguous.
 
-**Trước khi phát hành:**
+**Before release:**
 
-- Kiểm tra cú pháp pattern và các placeholder với engine sẽ chạy ở production.
-- Kiểm tra giá trị thực trên UI, giới hạn độ dài, khả năng xuống dòng, dấu tiếng Việt, RTL khi có, và trợ năng.
-- Kiểm thử các ngữ cảnh dễ nhầm như “Open”, “Save”, nhãn trạng thái và thông báo có hai người tham gia.
-- Đảm bảo mọi thay đổi ở hợp đồng placeholder đều đi cùng cập nhật bản dịch và tài liệu context.
+- Validate pattern syntax and placeholders against the engine running in production.
+- Check real values in the UI, length limits, line wrapping, Vietnamese diacritics, RTL where applicable, and accessibility.
+- Test easily confused contexts such as “Open”, “Save”, status labels, and two-participant messages.
+- Ensure every change to a placeholder contract is accompanied by updated translations and context documentation.
 
-## 13. Các lỗi thường gặp
+## 13. Common Mistakes
 
-| Lỗi | Hậu quả | Cách sửa |
+| Mistake | Consequence | How to Fix |
 | --- | --- | --- |
-| Nối `prefix + count + suffix` | Khóa chặt trật tự câu, khó xử lý số nhiều | Dịch một mẫu câu đầy đủ và chọn nhánh theo locale |
-| Dịch riêng “message” và thêm `s` | Đưa ngữ pháp tiếng Anh vào mọi ngôn ngữ | Dùng quy tắc plural đúng locale và câu đầy đủ |
-| Dùng một key `open` cho mọi màn hình | Mơ hồ hành động/trạng thái | Key theo nghĩa, kèm mô tả/ảnh ngữ cảnh |
-| Chỉ gửi `{0}`, `{1}` không giải thích | Người dịch nhầm tên người với số/mã | Hợp đồng placeholder có vai trò, kiểu và ví dụ |
-| Yêu cầu giữ nguyên vị trí placeholder | Không thể đảo trật tự từ hợp ngữ pháp | Giữ **chỉ số và ý nghĩa**, cho phép thay thứ tự |
-| Xem `0/1/other` là luật của mọi ngôn ngữ | Sai số nhiều với nhiều locale | Dùng dữ liệu plural theo ngôn ngữ, kiểm thử category |
-| Cho người dịch nhận một từ không có ảnh hoặc ngữ cảnh | Từ có nhiều nghĩa bị dịch sai | Cung cấp screenshot, vị trí và hành động nghiệp vụ |
-| Đưa nguyên HTML vào resource không kiểm soát | Lỗi layout hoặc rủi ro XSS | Dùng component an toàn và encode theo context |
-| Dịch từng fragment nhưng kiểm thử chỉ câu tiếng Anh | Không phát hiện lỗi đảo vị trí/ngữ pháp | Kiểm thử toàn thông điệp ở mỗi locale |
-| Chỉ kiểm tra `MessageFormat` không ném lỗi | Câu có thể sai nghĩa, mất placeholder do quote | So sánh output và review ngôn ngữ |
-| Tưởng fallback có nghĩa bản dịch đã đủ | Một số câu rơi về ngôn ngữ gốc | Kiểm tra độ phủ key và theo dõi fallback |
+| Concatenating `prefix + count + suffix` | Locks sentence order, makes plurals hard to handle | Translate a complete sentence template and select branches per locale |
+| Translating “message” separately and appending `s` | Forces English grammar onto every language | Use locale-accurate plural rules and complete sentences |
+| Using one `open` key for every screen | Ambiguity between action and status | Keys by meaning, accompanied by description/context screenshots |
+| Sending `{0}`, `{1}` with no explanation | Translators confuse person names with numbers/codes | Placeholder contract with roles, types, and examples |
+| Requiring placeholder positions to stay fixed | Prevents grammatically valid word reordering | Preserve **indices and meanings**, allow reordering |
+| Treating `0/1/other` as the rule for every language | Wrong plurals for many locales | Use language-specific plural data and test categories |
+| Giving translators a word without screenshots or context | Polysemous words get mistranslated | Provide screenshots, placement, and business action |
+| Putting raw HTML in resources without control | Layout breakage or XSS risks | Use safe components and context-appropriate encoding |
+| Translating fragments but testing only the English sentence | Fails to catch reordering/grammar bugs | Test full messages in every locale |
+| Checking only that `MessageFormat` throws no errors | Sentence may lose meaning or drop placeholders due to quotes | Compare outputs and perform linguistic review |
+| Assuming fallback means translations are complete | Some sentences fall back to the source language | Audit key coverage and monitor fallbacks |
 
-## 14. Ghi nhớ
+## 14. Key Takeaways
 
-- **Đơn vị dịch nên là thông điệp trọn nghĩa.** Không ghép những mảnh văn bản cố định rồi hy vọng mọi ngôn ngữ đều có cùng ngữ pháp.
-- **Placeholder phải có hợp đồng rõ ràng:** vị trí, ý nghĩa, kiểu dữ liệu, ví dụ và khả năng thay đổi thứ tự khi dịch.
-- **Ngữ cảnh là một phần của chất lượng bản dịch:** ảnh giao diện, chức năng, đối tượng đọc, vai trò dữ liệu và phong cách cần được cung cấp cùng chuỗi nguồn.
-- **Số nhiều và giống ngữ pháp không phải thao tác thêm hậu tố.** Khi cần, chọn các mẫu câu đầy đủ theo quy tắc locale hoặc dùng thư viện l10n hỗ trợ ngữ pháp tương ứng.
-- **`ResourceBundle` tìm câu đã dịch; `MessageFormat` chèn dữ liệu.** Cả hai không tự quyết định câu có tự nhiên, đúng ngữ cảnh hay đúng văn hóa hay không; phải có review và kiểm thử.
+- **The translation unit should be a complete meaningful message.** Do not assemble fixed text fragments hoping every language shares the same grammar.
+- **Placeholders must have a clear contract:** position, meaning, data type, examples, and permission to reorder during translation.
+- **Context is part of translation quality:** UI screenshots, function, target audience, data roles, and tone must be provided alongside source strings.
+- **Plurals and grammatical gender are not suffix-appending operations.** When needed, select complete sentence templates according to locale rules or use an l10n library supporting the appropriate grammar.
+- **`ResourceBundle` finds translated sentences; `MessageFormat` inserts data.** Neither decides on its own whether a sentence is natural, contextually right, or culturally appropriate; review and testing are essential.

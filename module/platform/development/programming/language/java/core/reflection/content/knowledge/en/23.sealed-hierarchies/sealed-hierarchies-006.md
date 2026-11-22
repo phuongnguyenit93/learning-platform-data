@@ -1,50 +1,50 @@
-# Đọc metadata, nạp lớp và kích hoạt khởi tạo
+# Reading Metadata, Loading Classes, and Triggering Initialization
 
-Khi Reflection trả về một đối tượng `Class<?>`, điều đó không tự chứng minh bộ khởi tạo `static` của lớp đã chạy. Ngược lại, một thao tác có tên nghe giống “chỉ đọc”, như đọc giá trị trường tĩnh, vẫn có thể kích hoạt khởi tạo lớp.
+When Reflection returns a `Class<?>` object, that alone does not prove the class's `static` initializer has run. Conversely, an operation whose name sounds "read-only", such as reading a static field's value, can still trigger class initialization.
 
-Trong phân cấp sealed, `getPermittedSubclasses()` còn có thể yêu cầu lấy các đối tượng `Class` của những kiểu được cho phép. Vì vậy, cần phân biệt **quan sát metadata**, **nạp hoặc phân giải kiểu** và **thực thi bộ khởi tạo lớp**.
+In a sealed hierarchy, `getPermittedSubclasses()` can also require obtaining the `Class` objects of the permitted types. Therefore, you must distinguish **observing metadata**, **loading or resolving types**, and **executing class initializers**.
 
-Bài dùng Java 17 trở lên để quan sát ba việc này qua một bộ nạp riêng, thay vì suy đoán trạng thái từ việc đã thấy tên lớp.
+This article uses Java 17 or later to observe these three things through a separate class loader, rather than guessing state from having seen a class name.
 
-## 1. Các khái niệm cần tách riêng
+## 1. Concepts to Keep Separate
 
-| Khái niệm | Điều đang diễn ra | Không nên suy ra |
+| Concept | What is happening | What not to infer |
 | --- | --- | --- |
-| Nạp lớp (*loading*) | Tìm và tạo biểu diễn runtime của một lớp từ định nghĩa lớp | Chưa đủ để kết luận mã `static` đã chạy |
-| Liên kết (*linking*) | Kiểm tra, chuẩn bị và phân giải các tham chiếu cần thiết | Không đồng nhất với thực hiện các biểu thức khởi tạo tĩnh |
-| Khởi tạo lớp (*initialization*) | Thực hiện các biểu thức khởi tạo trường tĩnh và khối `static` theo quy tắc Java | Không phải tạo một đối tượng mới mỗi lần |
-| Khởi tạo đối tượng | Tạo một instance và chạy chuỗi constructor của nó | Không có nghĩa bộ khởi tạo lớp chạy lại |
+| Loading | Finding and creating a runtime representation of a class from a class definition | Not enough to conclude `static` code has run |
+| Linking | Verifying, preparing, and resolving needed references | Do not equate with executing static initializer expressions |
+| Class initialization | Executing static field initializers and `static` blocks per Java rules | Does not create a new object each time |
+| Object instantiation | Creating an instance and running its constructor chain | Does not mean the class initializer runs again |
 
-Đây là những giai đoạn được phân biệt trong [JLS về quá trình thực thi Java](https://docs.oracle.com/javase/specs/jls/se21/html/jls-12.html). Việc phân giải tham chiếu có thể được thực hiện theo cách sớm hoặc muộn mà đặc tả cho phép; đừng suy ra toàn bộ tiến trình liên kết chỉ từ vài dòng log của chương trình.
+These are the phases distinguished in [the JLS on Java execution](https://docs.oracle.com/javase/specs/jls/se21/html/jls-12.html). Reference resolution may be performed eagerly or lazily as permitted by the specification; do not infer the entire linking timeline from just a few lines of program logs.
 
-Bộ khởi tạo lớp thường được nói tới bằng tên đặc biệt `<clinit>` trong bytecode. Nó khác các constructor tạo instance mà bạn lấy qua `getConstructor()`.
+The class initializer is commonly referred to by the special name `<clinit>` in bytecode. It differs from the instance-creating constructors obtained via `getConstructor()`.
 
-## 2. Metadata là thông tin; sử dụng thành viên là hành động khác
+## 2. Metadata Is Information; Using Members Is a Different Action
 
-Với một lớp thông thường đã xác định:
+For an identified ordinary class:
 
-| Thao tác | Ý nghĩa chính | Có yêu cầu chạy khởi tạo lớp đích không? |
+| Operation | Primary meaning | Does it require running target class initialization? |
 | --- | --- | --- |
-| Lấy class literal như `SomeType.class` | Lấy đối tượng mô tả kiểu | Không chỉ vì class literal |
-| `Class.forName(name, false, loader)` | Tìm và nạp kiểu qua bộ nạp đã chọn | Không yêu cầu khởi tạo lớp được chỉ tên |
-| `Class.forName(name, true, loader)` | Tìm kiểu và yêu cầu khởi tạo | Có, nếu chưa khởi tạo |
-| `Class.forName(name)` với tên lớp thông thường | Biến thể có yêu cầu khởi tạo | Có |
-| Tìm `Field`, `Method`, `Constructor` | Lấy metadata thành viên | Chưa phải đọc giá trị, gọi phương thức hay tạo instance |
-| `Field.get(null)` trên trường tĩnh | Đọc giá trị trường | Có thể khởi tạo lớp khai báo trường |
-| `Method.invoke(null, ...)` trên phương thức tĩnh | Thực thi phương thức | Có thể khởi tạo lớp khai báo phương thức |
-| `Constructor.newInstance(...)` | Tạo đối tượng qua constructor | Khởi tạo lớp cần thiết trước khi tạo đối tượng nếu chưa có |
+| Taking a class literal such as `SomeType.class` | Obtaining the type descriptor object | Not solely because of the class literal |
+| `Class.forName(name, false, loader)` | Finding and loading the type via the chosen loader | Does not request initialization of the named class |
+| `Class.forName(name, true, loader)` | Finding the type and requesting initialization | Yes, if not yet initialized |
+| `Class.forName(name)` with an ordinary class name | Overload that requests initialization | Yes |
+| Looking up `Field`, `Method`, `Constructor` | Obtaining member metadata | Not yet reading a value, calling a method, or creating an instance |
+| `Field.get(null)` on a static field | Reading the field value | May initialize the class declaring the field |
+| `Method.invoke(null, ...)` on a static method | Executing the method | May initialize the class declaring the method |
+| `Constructor.newInstance(...)` | Creating an object via constructor | Initializes the class first if not yet initialized before creating the object |
 
-Quy tắc của tham số `initialize` và biến thể một tham số nằm trong [API `Class.forName`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#forName(java.lang.String,boolean,java.lang.ClassLoader)). Tên “Reflection” không quyết định hành vi; thao tác cụ thể mới quyết định.
+The rules for the `initialize` parameter and the single-argument overload are in the [`Class.forName` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#forName(java.lang.String,boolean,java.lang.ClassLoader)). The word "Reflection" does not dictate behavior; the specific operation does.
 
-Ví dụ, `getField("VALUE")` hỏi trường nào tồn tại; `field.get(null)` hỏi giá trị của trường đó. Hai bước liên tiếp nhưng có hệ quả khác nhau.
+For example, `getField("VALUE")` asks which field exists; `field.get(null)` asks for that field's value. Two consecutive steps, yet with different consequences.
 
-## 3. Thí nghiệm tách bộ nạp và bộ khởi tạo
+## 3. Experiment Separating the Loader and the Initializer
 
-Ví dụ có một lớp sealed `Root` và ba lớp con được cho phép. Các dòng bắt đầu bằng `INIT` do mã khởi tạo tĩnh in ra; các dòng `CTOR` do constructor của đối tượng in ra.
+The example has a sealed class `Root` and three permitted subclasses. Lines starting with `INIT` are printed by static initialization code; `CTOR` lines are printed by object constructors.
 
-Bộ nạp `TrackingLoader` ghi lại những lớp `probe.*` mà chính nó đã định nghĩa thành công. Nó dùng bộ nạp nền tảng làm cha để các lớp thử nghiệm được nạp qua bộ nạp riêng, thay vì được bộ nạp ứng dụng nhận trước.
+The `TrackingLoader` loader records which `probe.*` classes it has successfully defined itself. It uses the platform class loader as its parent so the test classes are loaded via the custom loader instead of being picked up first by the application class loader.
 
-Tạo năm tệp với cấu trúc:
+Create five files with this structure:
 
 ```text
 LifecycleDemo.java
@@ -55,7 +55,7 @@ probe/
   LeafC.java
 ```
 
-### Tệp `LifecycleDemo.java`
+### File `LifecycleDemo.java`
 
 ```java
 import java.io.IOException;
@@ -141,7 +141,7 @@ public class LifecycleDemo {
 }
 ```
 
-### Tệp `probe/Root.java`
+### File `probe/Root.java`
 
 ```java
 package probe;
@@ -160,7 +160,7 @@ public sealed class Root permits LeafA, LeafB, LeafC {
 }
 ```
 
-### Tệp `probe/LeafA.java`
+### File `probe/LeafA.java`
 
 ```java
 package probe;
@@ -172,7 +172,7 @@ public final class LeafA extends Root {
 }
 ```
 
-### Tệp `probe/LeafB.java`
+### File `probe/LeafB.java`
 
 ```java
 package probe;
@@ -188,7 +188,7 @@ public final class LeafB extends Root {
 }
 ```
 
-### Tệp `probe/LeafC.java`
+### File `probe/LeafC.java`
 
 ```java
 package probe;
@@ -204,16 +204,16 @@ public final class LeafC extends Root {
 }
 ```
 
-### Biên dịch và chạy
+### Compile and run
 
-Tạo thư mục `out`, rồi chạy các lệnh tại thư mục chứa `LifecycleDemo.java`:
+Create the `out` directory, then run the commands in the directory containing `LifecycleDemo.java`:
 
 ```bash
 javac -encoding UTF-8 --release 17 -Xlint:all -Werror -d out LifecycleDemo.java probe/Root.java probe/LeafA.java probe/LeafB.java probe/LeafC.java
 java -cp out LifecycleDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 1. Acquire Root Class without initialization
@@ -241,124 +241,124 @@ CTOR Root
 CTOR LeafC
 ```
 
-Danh sách lớp được sắp xếp trước khi in để không phụ thuộc thứ tự phần tử của `getPermittedSubclasses()`. Ví dụ quan sát các mốc cần thiết, không cố ghi log mọi lần JVM thực hiện từng bước phân giải nội bộ.
+The class list is sorted before printing so it does not depend on `getPermittedSubclasses()`'s element order. The example observes the essential milestones without attempting to log every internal resolution step performed by the JVM.
 
-## 4. Đọc từng mốc trong kết quả
+## 4. Reading Each Milestone in the Output
 
-### Mốc 1: có `Class` nhưng chưa có `INIT`
+### Milestone 1: having a `Class` without `INIT`
 
-`Class.forName("probe.Root", false, loader)` trả đối tượng `Class` cho `Root`. Chương trình in `Root Class ready`, nhưng chưa có `INIT Root`.
+`Class.forName("probe.Root", false, loader)` returns the `Class` object for `Root`. The program prints `Root Class ready`, yet there is no `INIT Root`.
 
-Như vậy, “đã có đối tượng `Class`” khác với “bộ khởi tạo lớp đã chạy”. Đây là cơ sở cho công cụ cần kiểm tra cấu trúc trước khi chủ động kích hoạt hành vi của lớp.
+Thus, "already having a `Class` object" differs from "the class initializer has run". This is the foundation for tools that need to inspect structure before actively triggering class behavior.
 
-`false` cũng không có nghĩa tên lớp chắc chắn hợp lệ hoặc không thể xảy ra lỗi. Việc tìm, nạp và liên kết vẫn có thể gặp lỗi riêng, dù chưa yêu cầu chạy bộ khởi tạo.
+`false` also does not mean the class name is guaranteed valid or that errors cannot happen. Finding, loading, and linking can still fail on their own, even without requesting the initializer to run.
 
-### Mốc 2: đọc sealed metadata có thể cần thêm lớp
+### Milestone 2: reading sealed metadata can require additional classes
 
-`getPermittedSubclasses()` trả các kiểu được cho phép của `Root`. Sau bước này, bộ nạp đã định nghĩa `Root`, `LeafA`, `LeafB`, `LeafC`, nhưng không có dòng `INIT` nào của chúng trong kết quả trước mốc 3.
+`getPermittedSubclasses()` returns the permitted types of `Root`. After this step, the loader has defined `Root`, `LeafA`, `LeafB`, and `LeafC`, yet none of their `INIT` lines appear in the output before milestone 3.
 
-Điều quan sát được là **các lớp đã được định nghĩa để phục vụ việc lấy metadata**, trong khi phần mã khởi tạo tĩnh của chúng chưa thực hiện.
+What is observed is that **the classes have been defined to serve metadata retrieval**, while their static initialization code has not yet executed.
 
-[API `getPermittedSubclasses()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getPermittedSubclasses()) mô tả việc cố lấy `Class` của các mục bằng bộ nạp định nghĩa kiểu hiện tại. Vì vậy, không xem lời gọi này như việc chỉ sao chép một danh sách các lớp vốn đã được nạp trước đó.
+The [`getPermittedSubclasses()` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getPermittedSubclasses()) describes attempting to obtain the `Class` of each entry using the current type's defining class loader. Therefore, do not view this call as merely copying a list of classes that were already loaded earlier.
 
-Sau đó, chương trình lấy `Field`, `Method` và `Constructor`. Dòng `Member metadata ready` vẫn xuất hiện trước mọi dòng `INIT`. Chưa có giá trị trường được đọc, phương thức đích được gọi hay đối tượng thử nghiệm được tạo.
+Next, the program retrieves `Field`, `Method`, and `Constructor`. The line `Member metadata ready` still appears before any `INIT` line. No field value has been read, target method invoked, or test object constructed yet.
 
-### Mốc 3: đọc giá trị trường tĩnh
+### Milestone 3: reading a static field value
 
-Lời gọi `value.get(null)` làm `Root` khởi tạo, nên `INIT Root` xuất hiện trước `VALUE = 42`.
+Calling `value.get(null)` causes `Root` to initialize, so `INIT Root` appears before `VALUE = 42`.
 
-`null` ở đây là đối tượng nhận không cần dùng cho trường `static`; nó không có nghĩa giá trị trường bằng `null`.
+`null` here is the unused receiver for a `static` field; it does not mean the field value is `null`.
 
-Quy tắc khởi tạo lớp khai báo trường khi đọc giá trị tĩnh qua Reflection được nêu trong [API `Field.get`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Field.html#get(java.lang.Object)). Ví dụ dùng trường `int VALUE` được khởi tạo qua một lời gọi phương thức để việc quan sát không bị nhầm với hằng biên dịch.
+The rule for initializing the field-declaring class when reading a static value via Reflection is stated in the [`Field.get` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Field.html#get(java.lang.Object)). The example uses an `int VALUE` field initialized via a method call so that observation is not confused with a compile-time constant.
 
-### Mốc 4: yêu cầu khởi tạo tường minh
+### Milestone 4: explicit initialization request
 
-`Class.forName("probe.LeafA", true, loader)` chạy khởi tạo `LeafA`. `Root` đã khởi tạo thành công ở mốc 3 nên không chạy lại.
+`Class.forName("probe.LeafA", true, loader)` runs `LeafA`'s initialization. `Root` was already initialized successfully at milestone 3, so it does not run again.
 
-Lặp lại cùng yêu cầu không tạo thêm dòng `INIT LeafA`. Với chính định nghĩa lớp đó, khởi tạo thành công không được thực hiện lại mỗi khi chương trình yêu cầu sử dụng.
+Repeating the same request produces no extra `INIT LeafA` line. For that same class definition, successful initialization is not re-executed every time the program requests to use it.
 
-### Mốc 5: gọi phương thức tĩnh
+### Milestone 5: invoking a static method
 
-Tìm `Method ping` trước đó chưa chạy nội dung của `ping`. Đến `ping.invoke(null)`, chương trình khởi tạo `LeafB`, rồi mới in `CALL LeafB.ping` từ phần thân phương thức.
+Looking up `Method ping` earlier did not run `ping`'s body. Upon `ping.invoke(null)`, the program initializes `LeafB`, and only then prints `CALL LeafB.ping` from the method body.
 
-Đó là hai hành động khác nhau có thể diễn ra trong cùng lời gọi: bảo đảm lớp được khởi tạo rồi thực thi phương thức. [API `Method.invoke`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html#invoke(java.lang.Object,java.lang.Object...)) quy định hành vi này đối với phương thức tĩnh.
+Those are two distinct actions that can happen in the same call: ensuring the class is initialized, then executing the method. The [`Method.invoke` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html#invoke(java.lang.Object,java.lang.Object...)) specifies this behavior for static methods.
 
-### Mốc 6: tạo hai đối tượng
+### Milestone 6: constructing two objects
 
-Lần `newInstance()` đầu tiên chạy `INIT LeafC`, sau đó chạy constructor của `Root` và `LeafC`. Lần thứ hai chỉ chạy hai constructor đối tượng; không có thêm `INIT LeafC`.
+The first `newInstance()` runs `INIT LeafC`, then runs the constructors of `Root` and `LeafC`. The second call runs only the two object constructors; there is no second `INIT LeafC`.
 
-Đây là khác biệt giữa **khởi tạo một lớp** và **khởi tạo từng instance**. [API `Constructor.newInstance`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Constructor.html#newInstance(java.lang.Object...)) nêu việc khởi tạo lớp khai báo constructor trước khi tạo instance nếu cần.
+This is the difference between **initializing a class** and **constructing each instance**. The [`Constructor.newInstance` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Constructor.html#newInstance(java.lang.Object...)) specifies initializing the constructor's declaring class before creating the instance if necessary.
 
-## 5. Lớp cha, interface và nơi thực sự khai báo thành viên
+## 5. Superclasses, Interfaces, and Where Members Are Actually Declared
 
-Nếu một lớp con cần được khởi tạo trước khi lớp cha đã hoàn tất khởi tạo, Java khởi tạo lớp cha theo quy tắc tương ứng trước. Trong thí nghiệm, `Root` được khởi tạo sớm bởi việc đọc `VALUE`, nên các mốc sau không cần chạy lại phần đó.
+If a subclass needs to be initialized before its superclass has completed initialization, Java initializes the superclass first per the corresponding rules. In the experiment, `Root` was initialized early by reading `VALUE`, so later milestones did not need to repeat that part.
 
-Không mở rộng máy móc thành kết luận rằng “khởi tạo một interface luôn khởi tạo mọi superinterface”. Quy tắc interface và các interface có phương thức mặc định có những điều kiện riêng trong đặc tả.
+Do not mechanically generalize this into a conclusion that "initializing an interface always initializes every superinterface". Interface rules and interfaces with default methods have specific conditions in the specification.
 
-Với thành viên tĩnh kế thừa, cần chú ý lớp **thực sự khai báo** thành viên. Việc tra cứu một trường qua kiểu con không tự biến trường đó thành trường do kiểu con khai báo. Có thể dùng `getDeclaringClass()` trên `Field` hoặc `Method` để giữ thông tin này trong báo cáo.
+For inherited static members, pay attention to the class **that actually declares** the member. Looking up a field through a subtype does not turn that field into one declared by the subtype. You can use `getDeclaringClass()` on `Field` or `Method` to preserve this information in reports.
 
-Những chi tiết này giúp giải thích vì sao log `INIT` không nhất thiết xuất hiện ở kiểu mà người đọc mã đang nhìn bằng mắt đầu tiên.
+These details help explain why an `INIT` log does not necessarily appear on the first type the code reader looks at visually.
 
-## 6. Không biến “không khởi tạo” thành “không có tác động”
+## 6. Do Not Turn "Without Initialization" into "No Side Effects"
 
-Tham số `false` kiểm soát yêu cầu khởi tạo đối với lớp được chỉ tên. Nó không biến một bộ nạp tùy biến thành mã thuần túy chỉ đọc bộ nhớ.
+The `false` argument controls the initialization request for the named class. It does not turn a custom loader into purely read-only in-memory code.
 
-Bộ nạp có thể tìm tệp, đọc tài nguyên hoặc thực hiện logic của chính nó. Việc phân giải metadata cũng có thể cần những kiểu khác. Vì vậy, một công cụ nên nói rõ nó tránh **chủ động khởi tạo lớp đích**, thay vì tuyên bố rằng mọi bước khám phá đều không thể thực thi bất kỳ mã hay thao tác nào.
+A loader may search files, read resources, or execute its own logic. Metadata resolution may also require other types. Therefore, a tool should state clearly that it avoids **actively initializing the target class**, rather than claiming no discovery step can execute any code or operation.
 
-Cũng không thể đo trạng thái khởi tạo chỉ bằng việc một lớp đã xuất hiện trong danh sách của bộ nạp hoặc danh sách các lớp đã nạp. Thí nghiệm có một mốc mà cả bốn lớp đã được định nghĩa nhưng chưa lớp thử nghiệm nào in `INIT`.
+Nor can initialization state be measured merely by whether a class appears in a loader's list or the loaded-classes list. The experiment includes a milestone where all four classes have been defined, yet none of the test classes has printed `INIT`.
 
-Ngược lại, đọc giá trị một trường tĩnh hoặc gọi một phương thức để “thử xem lớp đã khởi tạo chưa” có thể chính là hành động kích hoạt khởi tạo, làm thay đổi điều bạn định quan sát.
+Conversely, reading a static field's value or calling a method to "check whether a class has initialized" may itself be the action that triggers initialization, changing what you intended to observe.
 
-## 7. Lỗi và thời điểm quan sát
+## 7. Errors and When They Are Observed
 
-Nên phân biệt các nhóm lỗi:
+Separate error categories:
 
-| Bước | Ví dụ vấn đề |
+| Step | Example issue |
 | --- | --- |
-| Tìm và nạp lớp | Không tìm thấy lớp qua bộ nạp đã chọn |
-| Liên kết hoặc phân giải | Định nghĩa lớp hay phụ thuộc không phù hợp |
-| Khởi tạo lớp | Biểu thức trường tĩnh hoặc khối `static` thất bại |
-| Gọi thành viên sau đó | Sai quyền truy cập, sai đối số hoặc phần thân đích ném ngoại lệ |
+| Finding and loading a class | Class not found via the chosen loader |
+| Linking or resolution | Incompatible class definition or dependency |
+| Class initialization | Static field initializer expression or `static` block fails |
+| Later member invocation | Illegal access, invalid arguments, or target body throws an exception |
 
-Lỗi trong quá trình khởi tạo tĩnh có thể xuất hiện dưới dạng `ExceptionInInitializerError`. Sau một lần khởi tạo thất bại, lần sử dụng tiếp theo còn có thể báo `NoClassDefFoundError` do lớp ở trạng thái lỗi; không phải mọi lỗi mang tên này đều chỉ là thiếu một tệp `.class`.
+Failures during static initialization can surface as `ExceptionInInitializerError`. After a failed initialization, subsequent uses may report `NoClassDefFoundError` because the class is in an erroneous state; not every error with that name is merely a missing `.class` file.
 
-Đừng đồng nhất lỗi khởi tạo lớp với ngoại lệ được ném từ phần thân phương thức hoặc constructor đích. Với lời gọi Reflection, thời điểm thất bại ảnh hưởng đến cách ngoại lệ được đưa ra hoặc bọc lại; cần giữ nguyên nguyên nhân khi phân tích.
+Do not confuse a class initialization error with an exception thrown from a target method or constructor body. For Reflection calls, when the failure occurs affects how exceptions are thrown or wrapped; preserve the original cause during analysis.
 
-Khởi tạo thành công là trạng thái của một định nghĩa lớp cụ thể. Hai bộ nạp khác nhau có thể định nghĩa hai lớp cùng tên nhị phân nhưng có trạng thái khởi tạo riêng. Trong thí nghiệm, bộ nạp riêng giúp giữ bối cảnh quan sát rõ ràng.
+Successful initialization is a state of a specific class definition. Two different loaders can define two classes with the same binary name while maintaining separate initialization states. In the experiment, the separate loader keeps the observation context clear.
 
-`close()` của `URLClassLoader` dùng để đóng tài nguyên do bộ nạp quản lý; nó không có nghĩa JVM lập tức dỡ mọi lớp đã được định nghĩa hoặc đặt lại bộ khởi tạo của chúng.
+`URLClassLoader`'s `close()` closes resources managed by the loader; it does not mean the JVM immediately unloads every defined class or resets their initializers.
 
-## 8. Cách tổ chức công cụ Reflection
+## 8. How to Structure a Reflection Tool
 
-Một luồng xử lý dễ kiểm chứng là:
+A verifiable processing flow is:
 
-1. Chọn đúng bộ nạp và lấy `Class` với chính sách khởi tạo phù hợp.
-2. Đọc metadata cần thiết, như sealed, thành viên và chữ ký.
-3. Xác minh điều kiện của công cụ mà chưa dùng việc gọi thử thành viên làm phép kiểm tra cấu trúc.
-4. Chỉ ở bước cần thực thi mới đọc giá trị tĩnh, gọi phương thức hoặc tạo đối tượng.
-5. Báo lỗi theo đúng bước để không nhầm thiếu metadata với lỗi khởi tạo.
+1. Select the appropriate loader and obtain `Class` with the appropriate initialization policy.
+2. Read the required metadata, such as sealed status, members, and signatures.
+3. Verify tool conditions without using speculative member invocation as a structural check.
+4. Only at the execution step read static values, invoke methods, or instantiate objects.
+5. Report errors according to the exact step so missing metadata is not confused with initialization failure.
 
-Cách phân chia này đặc biệt hữu ích khi xây danh mục kiểu, kiểm tra phân cấp sealed hoặc chuẩn bị bộ chuyển đổi dữ liệu. Nó giúp giải thích hành động nào có thể làm mã ứng dụng bắt đầu chạy.
+This separation is especially useful when building type catalogs, validating sealed hierarchies, or preparing data mappers. It helps explain which actions can cause application code to start executing.
 
-## 9. Lỗi thường gặp và tự kiểm tra
+## 9. Common Mistakes and Self-Check
 
-| Suy luận sai | Phân biệt cần giữ |
+| Wrong inference | Distinction to preserve |
 | --- | --- |
-| Có `Class<?>` là static initializer đã chạy | Biểu diễn kiểu so với trạng thái khởi tạo |
-| Chỉ đọc metadata nên không thể nạp thêm lớp | Metadata có thể cần lấy hoặc phân giải kiểu liên quan |
-| `Class.forName(name)` giống biến thể truyền `false` | Chính sách khởi tạo của từng overload |
-| Lấy được `Method` nghĩa là đã gọi phương thức | Metadata so với `invoke` |
-| Tìm `Field` giống đọc giá trị trường | `getField` so với `Field.get` |
-| Mỗi `newInstance()` chạy lại bộ khởi tạo tĩnh | Khởi tạo lớp so với constructor từng đối tượng |
-| `false` bảo đảm không có tác động nào từ bộ nạp | Khởi tạo lớp đích so với logic nạp lớp |
-| Đọc thành viên qua lớp con luôn khởi tạo chính lớp con | Kiểu dùng để tra cứu so với lớp khai báo thành viên |
+| Having `Class<?>` means static initializer has run | Type representation vs. initialization state |
+| Only reading metadata means no extra classes can be loaded | Metadata may require obtaining or resolving related types |
+| `Class.forName(name)` behaves like the overload passed `false` | Initialization policy of each overload |
+| Obtaining a `Method` means the method was called | Metadata vs. `invoke` |
+| Looking up a `Field` is the same as reading its value | `getField` vs. `Field.get` |
+| Every `newInstance()` re-runs the static initializer | Class initialization vs. per-instance constructor |
+| `false` guarantees zero side effects from the loader | Target class initialization vs. class-loading logic |
+| Reading a member via a subclass always initializes that subclass | Lookup type vs. member-declaring class |
 
-Hãy thử thay đổi từng mốc trong thí nghiệm:
+Try modifying each milestone in the experiment:
 
-1. Bỏ bước đọc `VALUE`: trước khi `INIT LeafA`, phần khởi tạo nào cần được thực hiện?
-2. Giữ việc tìm `ping` nhưng bỏ `ping.invoke(null)`: tại sao `INIT LeafB` không xuất hiện chỉ vì đã có `Method`?
-3. Chỉ tạo một đối tượng `LeafC`: số dòng `INIT` và `CTOR` thay đổi thế nào?
-4. Đổi lần `Class.forName` đầu tiên từ `false` sang `true`: `INIT Root` chuyển tới vị trí nào?
-5. Tại sao không thể dùng `value.get(null)` làm một phép hỏi thụ động rằng lớp đã khởi tạo chưa?
+1. Remove the step reading `VALUE`: before `INIT LeafA`, which initialization must occur?
+2. Keep looking up `ping` but remove `ping.invoke(null)`: why does `INIT LeafB` not appear even though `Method` was obtained?
+3. Construct only one `LeafC` object: how do the `INIT` and `CTOR` line counts change?
+4. Change the first `Class.forName` from `false` to `true`: where does `INIT Root` move?
+5. Why can `value.get(null)` not be used as a passive check for whether a class has initialized?
 
-Hãy theo dõi riêng **đối tượng `Class` đã có**, **những kiểu được nạp hoặc phân giải**, và **mã khởi tạo đã được kích hoạt**. Ba thông tin này liên quan với nhau nhưng không thay thế cho nhau.
+Track **obtained `Class` objects**, **loaded or resolved types**, and **triggered initialization code** separately. These three pieces of information are related, yet do not substitute for one another.

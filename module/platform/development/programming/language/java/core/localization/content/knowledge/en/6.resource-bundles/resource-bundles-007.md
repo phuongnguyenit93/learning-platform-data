@@ -1,65 +1,65 @@
-# PropertyResourceBundle so với ListResourceBundle trong Java
+# PropertyResourceBundle vs. ListResourceBundle in Java
 
-## Mục tiêu
+## Objective
 
-Khi ứng dụng Java cần hiển thị nội dung theo ngôn ngữ, `ResourceBundle` cung cấp giao diện chung để tìm tài nguyên theo tên khóa (key) và `Locale`. Hai cách tổ chức tài nguyên tiêu biểu trong thư viện chuẩn là **`PropertyResourceBundle`** — đọc cặp khóa/giá trị từ nội dung định dạng `.properties` — và **`ListResourceBundle`** — lấy tài nguyên từ mã Java qua phương thức `getContents()`.
+When a Java application needs to display content by language, `ResourceBundle` provides a common interface to look up resources by key name and `Locale`. Two typical resource implementations in the standard library are **`PropertyResourceBundle`** — reading key/value pairs from `.properties`-formatted content — and **`ListResourceBundle`** — retrieving resources from Java code via `getContents()`.
 
-Sau bài học này, bạn có thể:
+After this lesson, you can:
 
-- Giải thích điểm chung và điểm khác nhau về **nguồn dữ liệu, kiểu giá trị, biên dịch, phân phối và bảo trì**.
-- Tạo bundle từ tệp `.properties` và từ lớp Java `ListResourceBundle`, rồi tra cứu qua một API chung `ResourceBundle.getBundle(...)`.
-- Hiểu cách đặt tên bundle theo `Locale`, tìm bundle phù hợp, tìm khóa trong cha và chọn định dạng nguồn khi cả tệp lớp lẫn `.properties` cùng tên.
-- Phân biệt `getString(...)` với `getObject(...)` khi giá trị không phải `String`.
-- Hiểu quy tắc mã hóa của `PropertyResourceBundle` trên Java 17+, giới hạn của `Reader` và `InputStream`, cùng những lỗi thường gặp.
+- Explain similarities and differences in **data source, value types, compilation, distribution, and maintenance**.
+- Create bundles from `.properties` files and from `ListResourceBundle` Java classes, then look them up through the unified `ResourceBundle.getBundle(...)` API.
+- Understand bundle naming by `Locale`, resolving matching bundles, looking up keys in parents, and source format precedence when both a class file and a `.properties` file share the same name.
+- Distinguish `getString(...)` from `getObject(...)` when values are not `String`.
+- Understand `PropertyResourceBundle` encoding rules on Java 17+, `Reader` vs. `InputStream` boundaries, and common mistakes.
 
-Bài học tập trung vào **hai hiện thực của ResourceBundle**. Cơ chế lựa chọn locale, bộ lọc ngôn ngữ và quản lý nội dung sản phẩm là những phần liên quan nhưng cần được giữ riêng.
+This lesson focuses on **these two `ResourceBundle` implementations**. Locale selection mechanisms, language filtering, and product content management are related topics that should be kept separate.
 
-## 1. Điểm chung: cả hai là ResourceBundle
+## 1. Common Ground: Both Are `ResourceBundle`
 
-`PropertyResourceBundle` và `ListResourceBundle` đều kế thừa `java.util.ResourceBundle`. Người sử dụng tài nguyên thông thường không cần biết dữ liệu được lưu trong tệp properties hay lớp Java:
+`PropertyResourceBundle` and `ListResourceBundle` both extend `java.util.ResourceBundle`. Ordinary resource consumers do not need to know whether data is stored in a properties file or a Java class:
 
 ```java
 ResourceBundle bundle = ResourceBundle.getBundle("Messages", locale);
 String greeting = bundle.getString("greeting");
 ```
 
-Đây là đoạn minh họa dùng trong một phương thức, giả định đã có biến `locale` kiểu `Locale`, và đã nhập `java.util.ResourceBundle`.
+This is an illustrative snippet used inside a method, assuming a `Locale` variable `locale` already exists and `java.util.ResourceBundle` is imported.
 
-Trong mô hình này:
+In this model:
 
-1. **Base name** `"Messages"` đại diện một **họ bundle**.
-2. **Locale được yêu cầu** cho biết ngôn ngữ/vùng cần tìm.
-3. **Bundle cụ thể** (ví dụ `Messages_vi.properties` hoặc lớp `Messages_en`) cung cấp các khóa và giá trị.
-4. **ResourceBundle API** giải quyết candidate, parent/fallback và tra cứu khóa.
+1. **Base name** `"Messages"` represents a **bundle family**.
+2. **Requested locale** specifies the target language/region to search for.
+3. **Specific bundle** (such as `Messages_vi.properties` or class `Messages_en`) supplies the keys and values.
+4. **`ResourceBundle` API** resolves candidates, parent/fallback chains, and key lookup.
 
-`ResourceBundle` quyết định quá trình lựa chọn và tra cứu; mỗi lớp con quyết định **cách lưu các cặp khóa/giá trị của riêng nó**. Vì vậy, hai hiện thực có thể thay thế cho nhau ở cấp gọi API, nhưng khác nhau khi viết và bảo trì nguồn tài nguyên.
+`ResourceBundle` governs selection and lookup; each subclass decides **how its own key/value pairs are stored**. Consequently, the two implementations are interchangeable at the API call level, yet differ in how resource sources are authored and maintained.
 
-`ResourceBundle` cũng có bộ đệm (cache) và chiến lược fallback. Việc sửa tệp nguồn trên đĩa **không bảo đảm** lần gọi `getBundle` kế tiếp đọc lại ngay; vấn đề cache thuộc lớp `ResourceBundle`, không riêng một kiểu bundle.
+`ResourceBundle` also has a cache and fallback strategy. Editing a source file on disk **does not guarantee** the next `getBundle` call immediately reads the changes; caching belongs to `ResourceBundle` itself, not just one bundle type.
 
-## 2. So sánh tổng quan
+## 2. High-Level Comparison
 
-| Tiêu chí | `PropertyResourceBundle` | `ListResourceBundle` |
+| Criterion | `PropertyResourceBundle` | `ListResourceBundle` |
 | --- | --- | --- |
-| Nguồn dữ liệu | Nội dung dạng Java `.properties` | Một lớp Java kế thừa `ListResourceBundle` |
-| Định nghĩa tài nguyên | Các dòng `key=value`, dấu phân tách và escape của properties | Override `protected Object[][] getContents()` |
-| Kiểu key | `String` | `String` |
-| Kiểu value | `String` | `Object` — có thể là `String`, `Integer`, `String[]`, v.v. |
-| Có cần biên dịch mã dịch thuật? | Không cần biên dịch `.properties`, nhưng phải đóng gói như classpath resource | Có, vì giá trị được khai báo trong mã Java |
-| Cách đặt tên theo locale | `Messages.properties`, `Messages_vi.properties`, … | `Messages`, `Messages_vi`, … (các lớp Java công khai tương ứng) |
-| Trường hợp phù hợp | Thông điệp giao diện, nhãn và văn bản dịch do người dịch quản lý | Tài nguyên có kiểu đối tượng, tài nguyên tạo thuận tiện bằng mã Java |
-| Rủi ro thường gặp | Sai tên/đường dẫn resource, lỗi escape/encoding, thiếu key | Sai cấu trúc `Object[][]`, lớp không tải được, thay đổi tài nguyên phải biên dịch lại |
+| Data source | Java `.properties`-formatted content | A Java class extending `ListResourceBundle` |
+| Resource definition | `key=value` lines, properties delimiters, and escapes | Override `protected Object[][] getContents()` |
+| Key type | `String` | `String` |
+| Value type | `String` | `Object` — can be `String`, `Integer`, `String[]`, etc. |
+| Needs compiling translation source? | No compilation for `.properties`, though must be packaged as classpath resource | Yes, because values are declared in Java code |
+| Naming by locale | `Messages.properties`, `Messages_vi.properties`, … | `Messages`, `Messages_vi`, … (corresponding public Java classes) |
+| Best suited for | UI messages, labels, and translated text managed by translators | Typed object resources or resources conveniently generated in Java |
+| Common risks | Wrong resource name/path, escape/encoding bugs, missing keys | Malformed `Object[][]` structure, unloadable class, recompilation needed on resource edits |
 
-Chọn loại nào phụ thuộc nội dung:
+Which one to choose depends on the content:
 
-- **Văn bản, nhãn, câu thông báo, mẫu `MessageFormat`**: tệp `.properties` thường dễ chỉnh sửa, diff và giao cho người dịch.
-- **Dữ liệu thật sự cần kiểu Java** (như mảng chuỗi, số, đối tượng bất biến): `ListResourceBundle` có thể phù hợp.
-- Một bộ tài nguyên pha trộn vẫn được, nhưng cần đặt tên, quy tắc tải và kiểu giá trị nhất quán để tránh tác dụng phụ khó dự đoán.
+- **Text, labels, messages, `MessageFormat` patterns**: `.properties` files are usually easier to edit, diff, and hand off to translators.
+- **Data that genuinely requires Java types** (such as string arrays, numbers, immutable objects): `ListResourceBundle` can be appropriate.
+- Mixing both in one resource set works, provided naming, loading rules, and value types remain consistent to avoid unpredictable side effects.
 
-Không phải vì `ListResourceBundle` viết bằng Java mà nó tự dịch văn bản, và không phải vì `PropertyResourceBundle` dùng tệp đơn giản mà nó tự cập nhật khi file đổi.
+Just because `ListResourceBundle` is written in Java does not mean it auto-translates text, and just because `PropertyResourceBundle` uses plain text files does not mean it auto-refreshes when files change.
 
-## 3. PropertyResourceBundle: cặp khóa và chuỗi trong .properties
+## 3. `PropertyResourceBundle`: Key-String Pairs in `.properties`
 
-Một tệp properties có thể trông như sau:
+A properties file might look like:
 
 ```properties
 # Messages.properties
@@ -68,7 +68,7 @@ help=Contact support
 source=Root bundle
 ```
 
-Bản tiếng Việt:
+Vietnamese version:
 
 ```properties
 # Messages_vi.properties
@@ -76,58 +76,58 @@ greeting=Xin chào
 help=Liên hệ hỗ trợ
 ```
 
-Những tệp này thuộc cùng họ bundle có base name `Messages`.
+These files belong to the same bundle family with base name `Messages`.
 
-Khi gọi:
+When calling:
 
 ```java
 ResourceBundle vi = ResourceBundle.getBundle(
         "Messages", Locale.forLanguageTag("vi-VN"));
 ```
 
-`ResourceBundle` có thể chọn `Messages_vi.properties` cho locale `vi-VN` vì không có biến thể `vi_VN` riêng. Nếu bản tiếng Việt thiếu key `source`, tài nguyên ở base bundle `Messages.properties` có thể được dùng qua parent chain.
+`ResourceBundle` can select `Messages_vi.properties` for locale `vi-VN` when no dedicated `vi_VN` variant exists. If the Vietnamese file lacks key `source`, the resource in base bundle `Messages.properties` can be resolved through the parent chain.
 
-Tệp `.properties` không chứa biểu thức Java thực thi. Giá trị như:
+`.properties` files do not contain executable Java expressions. Values like:
 
 ```properties
 maxRetries=3
 enabled=true
 ```
 
-vẫn là các chuỗi `"3"` và `"true"` khi đọc qua `PropertyResourceBundle`. Nếu cần `int` hoặc `boolean`, mã ứng dụng phải kiểm tra và chuyển đổi:
+are still strings `"3"` and `"true"` when read via `PropertyResourceBundle`. If you need an `int` or `boolean`, application code must validate and convert:
 
 ```java
 int retries = Integer.parseInt(bundle.getString("maxRetries"));
 boolean enabled = Boolean.parseBoolean(bundle.getString("enabled"));
 ```
 
-Đây là đoạn minh họa trong phương thức có biến `bundle`. Với đầu vào có thể bị sửa, hãy kiểm tra giá trị và xử lý `NumberFormatException` thích hợp.
+This is an illustrative snippet inside a method with variable `bundle`. For editable input, validate values and handle `NumberFormatException` appropriately.
 
-### Quy tắc cú pháp .properties
+### `.properties` Syntax Rules
 
-- `=` và `:` có thể phân cách key với value; whitespace cũng có thể đóng vai trò dấu phân cách theo định dạng properties.
-- Dòng bắt đầu bằng `#` hoặc `!` là comment (sau khoảng trắng đầu dòng cho phép).
-- Dấu gạch chéo ngược `\` dùng cho escape, chẳng hạn `\n` và `\uXXXX`; một số ký tự đặc biệt trong key cần escape.
-- Phần continuation dùng dấu `\` ở cuối dòng vật lý có quy tắc riêng. Đừng suy ra văn bản hiển thị sẽ luôn giữ newline chỉ vì file xuống dòng.
+- `=` and `:` can separate keys from values; whitespace can also act as a delimiter under the properties format.
+- Lines starting with `#` or `!` are comments (after optional leading whitespace).
+- Backslash `\` is used for escapes, such as `\n` and `\uXXXX`; certain special characters in keys require escaping.
+- Line continuations using trailing `\` at the end of a physical line follow specific rules. Do not assume displayed text will preserve newlines simply because the file wraps onto another line.
 
-Vì vậy, khi viết thông điệp có dấu `:`, `=` hoặc `\`, cần phân biệt vị trí key/value và kiểm thử giá trị tải ra. Java properties **không phải JSON, YAML hay Java source**, và không tự giải thích placeholder của `MessageFormat`: placeholder chỉ được xử lý nếu bạn truyền chuỗi vào formatter thích hợp.
+Therefore, when writing messages containing `:`, `=`, or `\`, distinguish key vs. value positions and test the loaded values. Java properties are **not JSON, YAML, or Java source**, and do not evaluate `MessageFormat` placeholders on their own: placeholders are processed only if you pass the string to the appropriate formatter.
 
-### Mã hóa trên Java 17+
+### Encoding on Java 17+
 
-Đây là điểm dễ nhầm do tài liệu cũ:
+This is an area often misunderstood due to older documentation:
 
-- **Từ Java 9**, cơ chế đọc `PropertyResourceBundle` qua byte stream ưu tiên **UTF-8**. Với chuỗi byte không hợp lệ UTF-8, hành vi mặc định có thể đọc lại bằng **ISO-8859-1** để tương thích với nguồn cũ.
-- System property `java.util.PropertyResourceBundle.encoding` được đặt thành `UTF-8` hoặc `ISO-8859-1` có thể yêu cầu một encoding cụ thể cho quá trình đọc byte stream. Nếu ép UTF-8, byte không hợp lệ có thể gây lỗi thay vì fallback.
-- Property encoding nói trên được xét khi **lớp `PropertyResourceBundle` được khởi tạo**. Đổi property giữa chừng không phải cách đáng tin để đổi encoding của các bundle đã tải.
-- Constructor `PropertyResourceBundle(Reader)` dùng các ký tự mà `Reader` đã giải mã; **charset là trách nhiệm của mã tạo Reader**, không phải của constructor này.
+- **Starting in Java 9**, `PropertyResourceBundle` reading from a byte stream prefers **UTF-8**. For byte sequences that are invalid UTF-8, default behavior can fall back to **ISO-8859-1** for compatibility with legacy sources.
+- Setting the system property `java.util.PropertyResourceBundle.encoding` to `UTF-8` or `ISO-8859-1` can request a specific encoding for byte-stream reading. If UTF-8 is forced, invalid bytes can trigger an error instead of falling back.
+- This encoding property is checked when the **`PropertyResourceBundle` class is initialized**. Changing the property mid-run is not a reliable way to alter encoding for already-loaded bundles.
+- The `PropertyResourceBundle(Reader)` constructor uses characters already decoded by the `Reader`; **charset selection is the responsibility of the code creating the `Reader`**, not this constructor.
 
-Vì thế, trên Java 17+, thường có thể viết trực tiếp `greeting=Xin chào` trong `Messages_vi.properties` được lưu UTF-8. Đừng áp dụng máy móc quan niệm “properties chỉ đọc ISO-8859-1 và luôn phải escape mọi ký tự Unicode” của các môi trường Java cũ.
+Thus, on Java 17+, you can normally write `greeting=Xin chào` directly in a UTF-8 saved `Messages_vi.properties`. Do not mechanically apply the legacy Java rule that "properties read only ISO-8859-1 and every Unicode character must always be escaped."
 
-Lưu ý: `java.util.Properties.load(InputStream)` là API khác với cơ chế đọc của `PropertyResourceBundle`. Không suy ra chúng có cùng hợp đồng encoding chỉ vì cùng cú pháp tệp.
+Note: `java.util.Properties.load(InputStream)` is a different API from `PropertyResourceBundle`'s loading mechanism. Do not assume they share the same encoding contract just because they share the file syntax.
 
-### Constructor trực tiếp khác với getBundle
+### Direct Constructor vs. `getBundle`
 
-Có thể tạo riêng một `PropertyResourceBundle` từ `InputStream` hoặc `Reader`:
+You can instantiate a `PropertyResourceBundle` directly from an `InputStream` or `Reader`:
 
 ```java
 import java.io.StringReader;
@@ -138,13 +138,13 @@ PropertyResourceBundle direct = new PropertyResourceBundle(
 String greeting = direct.getString("greeting");
 ```
 
-Đây là đoạn minh họa đặt trong một phương thức có khả năng xử lý hoặc khai báo `IOException`. `StringReader` đã cung cấp chuỗi Unicode nên không có bước giải mã UTF-8 trong `PropertyResourceBundle`.
+This is an illustrative snippet placed inside a method that handles or declares `IOException`. `StringReader` already provides a Unicode character stream, so `PropertyResourceBundle` performs no UTF-8 byte decoding here.
 
-Khi tạo bundle trực tiếp như vậy, bạn tự quản lý nguồn và không tự động nhận đầy đủ quá trình giải quyết tên, locale, cache và parent chain của `ResourceBundle.getBundle(...)`. Với tập thông điệp đa ngôn ngữ thông thường, `getBundle` là điểm vào thuận tiện hơn.
+When creating a bundle directly like this, you manage the source yourself and do not automatically receive `ResourceBundle.getBundle(...)`'s name resolution, locale matching, caching, or parent chain. For typical multilingual message sets, `getBundle` is the more convenient entry point.
 
-## 4. ListResourceBundle: lớp Java trả về Object[][]
+## 4. `ListResourceBundle`: A Java Class Returning `Object[][]`
 
-`ListResourceBundle` là lớp trừu tượng (`abstract`). Để tạo bundle, viết một lớp con public và override `getContents()`:
+`ListResourceBundle` is an `abstract` class. To create a bundle, write a public subclass and override `getContents()`:
 
 ```java
 import java.util.ListResourceBundle;
@@ -161,11 +161,11 @@ public class Messages_en extends ListResourceBundle {
 }
 ```
 
-Lưu trong `Messages_en.java` và biên dịch thành `Messages_en.class`.
+Save it in `Messages_en.java` and compile to `Messages_en.class`.
 
-Mỗi hàng trong `Object[][]` có đúng **hai phần tử**: key và value. Key phải là `String`, còn value có thể là đối tượng Java thích hợp. Không được đặt key trùng nhau hoặc value không hợp lệ rồi giả định loader tự giải quyết rõ ràng mọi xung đột. Tốt nhất giữ key duy nhất, giá trị khác null và bộ dữ liệu dễ kiểm thử.
+Each row in `Object[][]` has exactly **two elements**: key and value. Keys must be `String`, while values can be any appropriate Java object. Never include duplicate keys or invalid values and assume the loader will cleanly resolve conflicts. Best practice is keeping keys unique, values non-null, and datasets easy to test.
 
-Khi gọi:
+When calling:
 
 ```java
 ResourceBundle en = ResourceBundle.getBundle(
@@ -176,35 +176,35 @@ Integer retries = (Integer) en.getObject("maxRetries");
 Boolean enabled = (Boolean) en.getObject("enabled");
 ```
 
-Đây là đoạn minh họa trong phương thức có `import java.util.ResourceBundle;` và `import java.util.Locale;`.
+This is an illustrative snippet inside a method with `import java.util.ResourceBundle;` and `import java.util.Locale;`.
 
-Điều quan trọng là **giá trị có kiểu**:
+Crucially, **values are typed**:
 
-- `getObject(key)` trả `Object`, có thể cast sau khi biết hoặc kiểm tra kiểu.
-- `getString(key)` chỉ thích hợp khi giá trị thực sự là `String`.
-- `getStringArray(key)` dành cho giá trị `String[]`.
-- Gọi `getString("maxRetries")` đối với `Integer.valueOf(3)` sẽ gây `ClassCastException`; kiểu runtime không tự chuyển số thành văn bản cho bạn.
+- `getObject(key)` returns `Object`, which can be cast after knowing or checking its type.
+- `getString(key)` is valid only when the value is actually a `String`.
+- `getStringArray(key)` is for `String[]` values.
+- Calling `getString("maxRetries")` on `Integer.valueOf(3)` throws `ClassCastException`; runtime types do not auto-convert numbers to text for you.
 
-Không nên dùng `ListResourceBundle` như kho bất kỳ object tùy ý có trạng thái thay đổi. Tài nguyên được cache và có thể được nhiều luồng sử dụng; các giá trị bất biến hoặc được quản lý thread-safe giúp tránh lỗi đồng thời. Một bundle chứa mảng mutable cũng cần chiến lược bảo vệ nếu trả tham chiếu trực tiếp cho mã gọi.
+Do not use `ListResourceBundle` as an arbitrary store for mutable stateful objects. Resources are cached and may be accessed by multiple threads; immutable or safely managed values help prevent concurrency bugs. A bundle holding mutable arrays also needs defensive strategies if returning direct references to callers.
 
-### Khi nào ListResourceBundle hữu ích?
+### When Is `ListResourceBundle` Useful?
 
-Có những tình huống muốn biểu diễn tài nguyên vốn không tự nhiên là một chuỗi, ví dụ danh sách lựa chọn cố định, dãy tên đã tổ chức hoặc giá trị cần giữ kiểu mà không phải parse từ văn bản. Khi ấy khai báo bằng Java có thể rõ ràng.
+There are cases where you want to represent a resource that is not naturally a single string—such as a fixed list of choices, an ordered sequence of names, or values whose types should be preserved without text parsing. In those cases, declaring them in Java can be clear.
 
-Mặt trái là người dịch thường cần đụng vào mã nguồn hoặc một quy trình tạo Java class; file phải được biên dịch và phát hành cùng ứng dụng. Nếu tất cả giá trị đều là văn bản giao diện, `.properties` thường đơn giản và dễ bảo trì hơn.
+The downside is that translators often have to touch source code or a Java-class generation pipeline; files must be compiled and released with the application. When all values are UI text, `.properties` is usually simpler and easier to maintain.
 
-## 5. Ví dụ hoàn chỉnh: hai cách khai báo cùng một họ bundle
+## 5. Complete Example: Two Ways to Declare the Same Bundle Family
 
-Ví dụ sau chạy trên **Java 17+** và chứng minh:
+The following example runs on **Java 17+** and demonstrates:
 
-1. `ResourceBundle.getBundle(...)` có thể tải `Messages_en.class` lẫn `Messages_vi.properties` trong cùng một họ.
-2. Giá trị của lớp Java có thể là `Integer`.
-3. Khóa không có ở bản địa phương hóa có thể được lấy từ bundle gốc.
-4. `getString(...)` không tự ép kiểu một `Integer`.
+1. `ResourceBundle.getBundle(...)` can load both `Messages_en.class` and `Messages_vi.properties` in the same family.
+2. Values in a Java class bundle can be `Integer`.
+3. Keys absent from a localized bundle can be resolved from the root bundle.
+4. `getString(...)` does not automatically coerce an `Integer`.
 
-Tạo bốn tệp sau trong **cùng một thư mục**.
+Create these four files in the **same directory**.
 
-### Tệp 1: Messages.properties
+### File 1: `Messages.properties`
 
 ```properties
 greeting=Hello from root
@@ -212,16 +212,16 @@ help=Help from root
 origin=Root resource
 ```
 
-### Tệp 2: Messages_vi.properties
+### File 2: `Messages_vi.properties`
 
-Lưu bằng **UTF-8**:
+Save as **UTF-8**:
 
 ```properties
 greeting=Xin chào
 help=Trợ giúp bằng tiếng Việt
 ```
 
-### Tệp 3: Messages_en.java
+### File 3: `Messages_en.java`
 
 ```java
 import java.util.ListResourceBundle;
@@ -238,7 +238,7 @@ public class Messages_en extends ListResourceBundle {
 }
 ```
 
-### Tệp 4: BundleTypesDemo.java
+### File 4: `BundleTypesDemo.java`
 
 ```java
 import java.util.Locale;
@@ -271,14 +271,14 @@ public class BundleTypesDemo {
 }
 ```
 
-Mở terminal tại thư mục chứa cả bốn tệp và chạy:
+Open a terminal in the directory containing all four files and run:
 
 ```bash
 javac -encoding UTF-8 Messages_en.java BundleTypesDemo.java
 java -cp . BundleTypesDemo
 ```
 
-Stdout mong đợi:
+Expected stdout:
 
 ```text
 Messages_en
@@ -292,23 +292,23 @@ Root resource
 Wrong type for getString
 ```
 
-Giải thích kết quả:
+Result explanation:
 
-- `en-GB` không có bản riêng `Messages_en_GB`, nên chọn bản ngôn ngữ `Messages_en` (lớp Java). Lớp này có `greeting`, `maxRetries` và `enabled`.
-- `help` không được khai báo ở `Messages_en`, nên lời gọi lấy được giá trị từ `Messages.properties`, là tài nguyên gốc.
-- `vi-VN` không có bản riêng `Messages_vi_VN`, nên tìm `Messages_vi.properties`. Các khóa tiếng Việt được đọc từ tệp UTF-8; `origin` lấy từ tài nguyên gốc.
-- `getClass().getSimpleName()` cho biết kiểu hiện thực được trả về trong ví dụ. Kiểm tra kiểu chỉ để **quan sát**; mã sản phẩm thường nên dùng giao diện `ResourceBundle`.
-- `maxRetries` trong lớp Java là `Integer`, nên `getObject` trả đối tượng số. `getString` trên cùng key gây `ClassCastException` và được bắt để in dòng cuối.
+- `en-GB` has no dedicated `Messages_en_GB`, so it selects language bundle `Messages_en` (the Java class). This class defines `greeting`, `maxRetries`, and `enabled`.
+- `help` is not declared in `Messages_en`, so the lookup gets the value from `Messages.properties`, the root resource.
+- `vi-VN` has no dedicated `Messages_vi_VN`, so it finds `Messages_vi.properties`. The Vietnamese keys are read from the UTF-8 file; `origin` comes from the root resource.
+- `getClass().getSimpleName()` shows which implementation was returned in the example. Inspecting the concrete class is only for **observation**; production code should normally program against the `ResourceBundle` interface.
+- `maxRetries` in the Java class is an `Integer`, so `getObject` returns the numeric object. Calling `getString` on the same key throws `ClassCastException`, which is caught to print the last line.
 
-Kết quả không phụ thuộc locale mặc định của JVM vì hai locale được yêu cầu đều có bundle tương ứng, và base bundle luôn có sẵn. Để giữ đúng kết quả, hãy đảm bảo không có các lớp/tệp `Messages*` khác cùng tên trong classpath.
+The output does not depend on the JVM's default locale because both requested locales have matching bundles and the base bundle is present. To keep the output consistent, ensure no other `Messages*` classes or files with the same name exist on the classpath.
 
-Trong dự án có package, phải nhất quán với tên đầy đủ: ví dụ lớp `com.example.i18n.Messages_en` và resource `com/example/i18n/Messages_vi.properties`, sau đó gọi `getBundle("com.example.i18n.Messages", locale)`.
+In a project with packages, stay consistent with fully qualified names: for example class `com.example.i18n.Messages_en` and resource `com/example/i18n/Messages_vi.properties`, then call `getBundle("com.example.i18n.Messages", locale)`.
 
-## 6. ResourceBundle lựa chọn .class hay .properties ra sao?
+## 6. How `ResourceBundle` Chooses `.class` vs. `.properties`
 
-Khi dùng `ResourceBundle.getBundle(baseName, locale)` với cơ chế mặc định cho classpath thông thường, quá trình tìm kiếm được định hướng bởi **base name**, **locale candidates** và **định dạng được phép**.
+When calling `ResourceBundle.getBundle(baseName, locale)` under standard default classpath mechanics, the search is guided by **base name**, **locale candidates**, and **allowed formats**.
 
-Ví dụ với `Messages` và yêu cầu `en-GB`, các ứng viên liên quan có thể là:
+For `Messages` and a request for `en-GB`, the relevant candidates might be:
 
 ```text
 Messages_en_GB
@@ -316,34 +316,34 @@ Messages_en
 Messages
 ```
 
-Với mỗi ứng viên, bộ tải xem có lớp Java thích hợp hay tệp `.properties` thích hợp hay không. **Ở cùng một candidate name**, thứ tự định dạng mặc định là **`java.class` trước `java.properties`**. Vì vậy, nếu đồng thời có lớp `Messages_en` và tệp `Messages_en.properties`, trong cơ chế classpath mặc định, lớp Java được ưu tiên cho candidate `Messages_en`.
+For each candidate, the loader checks whether a matching Java class or `.properties` file exists. **For the same candidate name**, the default format order is **`java.class` before `java.properties`**. Thus, if both class `Messages_en` and file `Messages_en.properties` exist simultaneously, default classpath mechanics prioritize the Java class for candidate `Messages_en`.
 
-Tuy nhiên, **độ cụ thể của locale cũng quan trọng**: một tệp `Messages_en_GB.properties` cho locale cụ thể hơn có thể được chọn trước lớp `Messages_en`. Không diễn giải “class được ưu tiên” thành “mọi class trong họ bundle luôn thắng mọi tệp properties”.
+However, **locale specificity also matters**: a `Messages_en_GB.properties` file for a more specific locale can be selected before the `Messages_en` class. Do not misinterpret "classes have priority" as "every class in the bundle family always beats every properties file."
 
-### Các trường hợp cần ghi nhớ
+### Cases to Remember
 
-| Tình huống | Kết quả thường thấy với lookup mặc định |
+| Situation | Typical Outcome with Default Lookup |
 | --- | --- |
-| Có `Messages_vi.properties` và yêu cầu `vi-VN` | Chọn bản `vi` khi không có `vi_VN` phù hợp |
-| Có `Messages_en.class`, `Messages_en.properties` ở cùng candidate | Bản `.class` có ưu tiên định dạng |
-| Có `Messages_en_GB.properties` và `Messages_en.class`, yêu cầu `en-GB` | Ưu tiên candidate cụ thể `en_GB` |
-| Bản đã chọn thiếu một key, bundle cha có key | Tìm key qua parent chain |
-| Không có bundle nào tìm được theo cơ chế fallback | `MissingResourceException` có thể được ném |
-| Một key có trong cả con và cha | Giá trị tại con che giá trị cùng key của cha |
+| `Messages_vi.properties` exists and `vi-VN` is requested | Selects `vi` when no matching `vi_VN` exists |
+| Both `Messages_en.class` and `Messages_en.properties` exist for the same candidate | `.class` takes format precedence |
+| `Messages_en_GB.properties` and `Messages_en.class` exist, `en-GB` requested | More specific candidate `en_GB` wins |
+| Selected bundle lacks a key, parent bundle has it | Key resolved via parent chain |
+| No bundle found under fallback rules | `MissingResourceException` may be thrown |
+| A key exists in both child and parent | Child value shadows parent value for the same key |
 
-Lookup và fallback không đơn giản chỉ là thay chuỗi `"vi-VN"` thành `"vi"`. Với một số đầu vào thiếu ứng viên, cơ chế mặc định có thể xét default locale của JVM rồi tới bundle gốc. Kết quả phụ thuộc cấu hình runtime, class loader, custom `ResourceBundle.Control` hoặc module nếu ứng dụng sử dụng những cơ chế đó.
+Lookup and fallback are not simply replacing `"vi-VN"` with `"vi"`. For some inputs lacking candidates, default mechanics may check the JVM's default locale before the root bundle. Behavior depends on runtime configuration, class loader, custom `ResourceBundle.Control`, or modules if the application uses them.
 
-Vì thế, **không nên xem mọi lần lookup thất bại của ngôn ngữ được yêu cầu đều lập tức chọn base bundle**. Để đưa ra quyết định ngôn ngữ có thể đoán trước trong ứng dụng, hãy giải quyết danh sách locale sản phẩm hỗ trợ trước khi tra tài nguyên.
+Therefore, **do not assume every lookup miss for a requested language immediately jumps to the base bundle**. To make predictable language decisions in an application, resolve the product's supported locales before looking up resources.
 
-### Tránh đè tên ngoài ý muốn
+### Avoiding Unintended Shadowing
 
-Trong ví dụ, lớp `Messages_en` và file `Messages_vi.properties` hỗ trợ hai locale khác nhau nên rõ ràng. Nếu dự án vô tình đóng gói **cả** `Messages_en.class` và `Messages_en.properties`, đội ngũ có thể chỉnh properties mà không thấy thay đổi vì class được chọn trước.
+In the example, class `Messages_en` and file `Messages_vi.properties` support two different locales, so there is no ambiguity. If a project accidentally packages **both** `Messages_en.class` and `Messages_en.properties`, the team might edit the properties file without seeing changes because the class gets picked first.
 
-Khi chuyển một họ bundle từ loại này sang loại kia, hãy kiểm tra artifact cuối (JAR/classpath), loại bỏ tài nguyên cũ gây che khuất và kiểm thử đầu ra của các locale được hỗ trợ. Không chỉ nhìn nội dung thư mục nguồn.
+When migrating a bundle family from one format to the other, inspect the final artifact (JAR/classpath), remove stale shadowing resources, and test output across supported locales. Do not look only at the source directory.
 
-## 7. Kiểu giá trị: điểm khác biệt ảnh hưởng trực tiếp đến API
+## 7. Value Types: Differences That Directly Affect the API
 
-`PropertyResourceBundle` cung cấp chuỗi. `ListResourceBundle` có thể cung cấp những kiểu object tùy mục đích.
+`PropertyResourceBundle` provides strings. `ListResourceBundle` can provide arbitrary object types as needed.
 
 ```java
 protected Object[][] getContents() {
@@ -355,9 +355,9 @@ protected Object[][] getContents() {
 }
 ```
 
-Đây là nội dung minh họa cho override `getContents()` bên trong một lớp kế thừa `ListResourceBundle`, không phải chương trình độc lập.
+This illustrates overriding `getContents()` inside a subclass of `ListResourceBundle`, not a standalone program.
 
-Khi dùng tài nguyên này:
+When consuming this resource:
 
 ```java
 String title = bundle.getString("title");
@@ -365,87 +365,87 @@ int count = (Integer) bundle.getObject("retryCount");
 String[] tabs = bundle.getStringArray("tabs");
 ```
 
-Các biểu thức minh họa trên giả định biến `bundle` đã chứa bundle tương ứng.
+These illustrative expressions assume `bundle` already holds the corresponding bundle.
 
-Nếu vô tình thay `retryCount` từ `Integer` thành chuỗi `"5"`, phép cast sang `Integer` sẽ thất bại. Đây là một thay đổi **hợp đồng kiểu**, dù key giữ nguyên. Ngược lại, khi dùng properties, app thường phải parse `"5"` thành `int` ở tầng sử dụng và xử lý dữ liệu không hợp lệ.
+If `retryCount` is accidentally changed from `Integer` to the string `"5"`, casting to `Integer` will fail. That is a **type-contract change**, even though the key stayed the same. Conversely, with properties files, the app typically parses `"5"` to `int` at the call site and handles invalid data.
 
-Không nên đưa giá trị kiểu bất kỳ vào `ListResourceBundle` chỉ để tránh parse. Với các nhãn giao diện, cả đội phát triển và người dịch thường dễ kiểm tra văn bản hơn khi khóa và giá trị đều là `String`.
+Do not put arbitrary typed values into `ListResourceBundle` just to avoid parsing. For UI labels, both developers and translators usually find text easier to inspect when keys and values are all `String`.
 
-## 8. Thiếu key, cache và lỗi tải tài nguyên
+## 8. Missing Keys, Caching, and Resource Loading Errors
 
-### Thiếu key
+### Missing Keys
 
-`getString("missingKey")` không trả chuỗi rỗng mặc định. Nếu key không có ở bundle hiện tại và các bundle cha, `ResourceBundle` ném `MissingResourceException`. Cách xử lý nên phù hợp chính sách sản phẩm:
+`getString("missingKey")` does not return an empty string by default. If the key is absent from the current bundle and all parent bundles, `ResourceBundle` throws `MissingResourceException`. Handling should align with product policy:
 
-- Trong phát triển/test: phát hiện key thiếu sớm để tránh phát hành giao diện thiếu dịch.
-- Trong production: fallback thông điệp đã xác định hoặc log được kiểm soát; không âm thầm trả null rồi gây `NullPointerException` ở nơi khác.
-- Khi dịch thuật: giữ key nhất quán và tránh đổi key mà chưa cập nhật mọi bản địa phương hóa.
+- During development/testing: detect missing keys early to avoid releasing a partially translated UI.
+- In production: use a defined fallback message or controlled logging; never silently return `null` and trigger `NullPointerException` elsewhere.
+- During translation: keep keys consistent and avoid renaming keys without updating all localizations.
 
-Key trong resource bundle có phân biệt chữ hoa/chữ thường. `title` và `Title` là hai key khác nhau.
+Resource bundle keys are case-sensitive. `title` and `Title` are two distinct keys.
 
-### Cache
+### Caching
 
-`ResourceBundle.getBundle(...)` có cơ chế cache bundle đã giải quyết. Cập nhật trực tiếp `Messages_vi.properties` trên đĩa trong lúc ứng dụng chạy **không** có nghĩa bundle đang được giữ và mọi lần lookup tiếp theo tự cập nhật ngay.
+`ResourceBundle.getBundle(...)` caches resolved bundles. Updating `Messages_vi.properties` directly on disk while the application runs does **not** mean held bundle references or subsequent lookups immediately see the new contents.
 
-Tùy nhu cầu, có thể dùng `ResourceBundle.clearCache()` (hoặc overload theo class loader) và quản lý quy trình tải lại phù hợp. Việc clear cache không sửa các tham chiếu `ResourceBundle` đã được code lưu từ trước; cũng không bảo đảm mọi class loader, module và framework nạp lại theo cùng cách. Nếu yêu cầu hot-reload tài nguyên, cần thiết kế và kiểm thử quy trình cụ thể.
+Depending on needs, you can use `ResourceBundle.clearCache()` (or the class-loader overload) and manage an appropriate reload workflow. Clearing the cache does not alter `ResourceBundle` references already stored by code, nor does it guarantee every class loader, module, and framework reloads identically. If hot-reloading resources is required, design and test a dedicated workflow.
 
-### Lỗi cấu hình
+### Configuration Errors
 
-- Đặt sai base name hoặc đặt resource ngoài classpath có thể dẫn đến `MissingResourceException`.
-- Java class bundle không load được (sai visibility/package/constructor) có thể bị bỏ qua trong quá trình tìm ứng viên hoặc gây lỗi tùy đường tải; phải kiểm tra nguyên nhân class loading.
-- Tệp `.properties` có escape sai có thể gây `IllegalArgumentException` trong quá trình parse.
-- Việc ép encoding UTF-8 với byte không hợp lệ có thể dẫn tới lỗi mã hóa khi đọc `PropertyResourceBundle`.
-- Dữ liệu `Object[][]` không đúng hợp đồng (key không phải `String`, null value, trùng key) là lỗi của lớp `ListResourceBundle`; không kỳ vọng `ResourceBundle` tự khắc phục nội dung không hợp lệ.
+- A wrong base name or placing resources outside the classpath can lead to `MissingResourceException`.
+- An unloadable Java class bundle (wrong visibility/package/constructor) may be skipped during candidate resolution or raise an error depending on the loading path; inspect the class-loading cause.
+- A `.properties` file with invalid escapes can throw `IllegalArgumentException` during parsing.
+- Enforcing UTF-8 decoding with invalid bytes can cause encoding errors when reading `PropertyResourceBundle`.
+- `Object[][]` data violating the contract (non-`String` key, null value, duplicate keys) is a bug in the `ListResourceBundle` class; do not expect `ResourceBundle` to repair invalid content.
 
-Để kiểm tra nhanh, hãy xác minh **tên base**, **đường dẫn package**, **class loader**, **artifact thực sự có trong runtime**, **locale yêu cầu**, và **nguồn tài nguyên được chọn**.
+For quick diagnostics, verify **base name**, **package path**, **class loader**, **actual runtime artifact contents**, **requested locale**, and **selected resource source**.
 
-## 9. Khi nào nên chọn từng loại?
+## 9. When Should You Choose Each One?
 
-Chọn `PropertyResourceBundle` khi:
+Choose `PropertyResourceBundle` when:
 
-- Nội dung chủ yếu là văn bản dịch, nhãn, thông điệp lỗi, template hiển thị.
-- Người dịch hoặc pipeline localization cần sửa dữ liệu mà không phải sửa mã Java.
-- Bạn cần diff các bộ khóa/giá trị giữa những ngôn ngữ và kiểm tra key thiếu.
-- Bạn muốn giữ nguồn dịch tách khỏi logic Java.
+- Content is mainly translated text, labels, error messages, and display templates.
+- Translators or localization pipelines need to edit data without modifying Java code.
+- You need to diff key/value sets across languages and check for missing keys.
+- You want to keep translation sources separate from Java logic.
 
-Chọn `ListResourceBundle` khi:
+Choose `ListResourceBundle` when:
 
-- Tài nguyên là các object Java có kiểu và giữ kiểu đem lại lợi ích thật.
-- Một số giá trị cấu trúc khó diễn đạt rõ bằng properties dạng chuỗi.
-- Bạn kiểm soát việc biên dịch và phát hành class tài nguyên.
-- Nhóm phát triển có test kiểm tra các key và kiểu giá trị.
+- Resources are typed Java objects and preserving types provides real value.
+- Certain structured values are awkward to express cleanly as string properties.
+- You control compilation and release of resource classes.
+- The development team has tests validating keys and value types.
 
-Có thể pha trộn hai cách trong cùng họ, như ví dụ, nhưng phải nắm **quy tắc lựa chọn nguồn**, **kiểu trả về** và **parent fallback**. Một hệ thống phức tạp đôi khi nên tách một phần dữ liệu có cấu trúc ra khỏi `ResourceBundle` thay vì nhét mọi thứ vào danh sách đa kiểu.
+You can mix both approaches within the same family, as shown in the example, provided you understand **source selection rules**, **return types**, and **parent fallback**. In complex systems, separating non-localized structured data out of `ResourceBundle` is sometimes cleaner than stuffing everything into mixed-type bundles.
 
-### Checklist triển khai
+### Implementation Checklist
 
-1. Chọn base name ổn định như `com.example.i18n.Messages`.
-2. Đặt đúng tên từng bản ngôn ngữ theo quy tắc locale candidate của Java.
-3. Đảm bảo class và properties được đóng gói vào classpath/module đúng vị trí.
-4. Thống nhất key giữa các locale và kiểm tra key thiếu.
-5. Giữ kiểu giá trị ổn định đối với code gọi `getObject`/`getStringArray`.
-6. Lưu `.properties` bằng UTF-8 trên Java 17+ và có test cho Unicode.
-7. Nếu chuyển từ file sang class hoặc ngược lại, kiểm tra không còn tài nguyên cùng tên che khuất.
-8. Quyết định rõ chính sách fallback, cache/reload và danh sách locale được hỗ trợ.
+1. Choose a stable base name such as `com.example.i18n.Messages`.
+2. Name each language variant accurately according to Java's candidate locale rules.
+3. Ensure classes and properties are packaged in the right classpath/module locations.
+4. Keep keys consistent across locales and test for missing keys.
+5. Keep value types stable for callers using `getObject`/`getStringArray`.
+6. Save `.properties` as UTF-8 on Java 17+ and write tests for Unicode.
+7. When migrating from files to classes or vice versa, verify no same-named resources remain to shadow the new ones.
+8. Explicitly decide fallback policy, cache/reload behavior, and the supported locale list.
 
-## 10. Các câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-**Câu 1.** Nếu `Messages_vi.properties` có `count=5`, `getObject("count")` trả kiểu gì? Vì sao không thể cast thẳng sang `Integer` như khi lấy từ `ListResourceBundle` có `Integer.valueOf(5)`?
+**Question 1.** If `Messages_vi.properties` has `count=5`, what type does `getObject("count")` return? Why can't you cast it straight to `Integer` as when reading from a `ListResourceBundle` containing `Integer.valueOf(5)`?
 
-**Câu 2.** Ứng dụng có cả `Messages_en.class` và `Messages_en.properties`. Với cùng candidate `Messages_en` và lookup mặc định, dữ liệu ở đâu được ưu tiên? Nếu thêm `Messages_en_GB.properties` và yêu cầu `en-GB`, vị trí ưu tiên của candidate cụ thể thay đổi thế nào?
+**Question 2.** An application has both `Messages_en.class` and `Messages_en.properties`. For the same candidate `Messages_en` under default lookup, which source takes precedence? If you add `Messages_en_GB.properties` and request `en-GB`, how does specific-candidate precedence change?
 
-**Câu 3.** Bundle `Messages_vi.properties` thiếu key `help` nhưng `Messages.properties` có key này. Tại sao `getString("help")` vẫn có thể trả giá trị? Nếu cả bundle cha không có key, ngoại lệ nào xảy ra?
+**Question 3.** Bundle `Messages_vi.properties` lacks key `help`, yet `Messages.properties` has it. Why can `getString("help")` still return a value? If even the parent bundle lacks the key, what exception occurs?
 
-**Câu 4.** Vì sao `PropertyResourceBundle` trên Java 17+ không cần bắt buộc dùng Unicode escape cho mọi ký tự tiếng Việt? Tại sao constructor nhận `Reader` lại không tự giải mã UTF-8?
+**Question 4.** Why does `PropertyResourceBundle` on Java 17+ not require Unicode escapes for every Vietnamese character? Why does the `Reader`-accepting constructor not perform UTF-8 decoding itself?
 
-**Câu 5.** Nếu bạn sửa `Messages_vi.properties` khi ứng dụng đang chạy, liệu tham chiếu `ResourceBundle` đang được giữ có tự động đổi giá trị không? Cơ chế cache ảnh hưởng thế nào?
+**Question 5.** If you edit `Messages_vi.properties` while the application is running, do existing `ResourceBundle` references automatically pick up the new values? How does caching affect this?
 
-**Câu 6.** Bộ tài nguyên hiện tại chỉ chứa thông điệp `String`. Hãy giải thích tại sao một nhóm có nhiều người dịch có thể ưu tiên `PropertyResourceBundle`, và trường hợp nào thực sự đáng dùng `ListResourceBundle`.
+**Question 6.** A resource set currently holds only `String` messages. Explain why a team with multiple translators might prefer `PropertyResourceBundle`, and when `ListResourceBundle` is genuinely worthwhile.
 
-## 11. Kết luận
+## 11. Conclusion
 
-`PropertyResourceBundle` và `ListResourceBundle` cùng thực hiện hợp đồng `ResourceBundle` nhưng có nguồn và kiểu dữ liệu khác nhau. **PropertyResourceBundle** đọc tài nguyên kiểu properties và biểu diễn giá trị bằng `String`, rất hợp với văn bản bản địa hóa. **ListResourceBundle** lấy tài nguyên từ `Object[][]` trong lớp Java, hỗ trợ giá trị là đối tượng có kiểu nhưng đòi hỏi biên dịch và kiểm soát hợp đồng kiểu.
+`PropertyResourceBundle` and `ListResourceBundle` both implement the `ResourceBundle` contract, yet differ in source format and data types. **`PropertyResourceBundle`** reads properties-style resources and exposes values as `String`, making it well suited for localized text. **`ListResourceBundle`** retrieves resources from `Object[][]` in a Java class, supporting typed object values at the cost of compilation and type-contract enforcement.
 
-Ở lớp sử dụng, `ResourceBundle.getBundle(baseName, locale)` giải quyết việc chọn bản phù hợp, parent/fallback và tra cứu khóa. Hãy hiểu ưu tiên class-vs-properties theo **cùng candidate**, giữ sự khác biệt giữa candidate cụ thể và định dạng nguồn, và kiểm thử cả Unicode lẫn key/type khi phát hành.
+At the usage layer, `ResourceBundle.getBundle(baseName, locale)` handles selecting the matching bundle, parent/fallback chains, and key lookup. Understand class-vs-properties precedence **for the same candidate**, keep specific candidates distinct from source formats, and test both Unicode and keys/types before release.
 
-Tài liệu API tham khảo: [`ResourceBundle`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html), [`PropertyResourceBundle`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/PropertyResourceBundle.html), [`ListResourceBundle`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ListResourceBundle.html) (Java SE 17).
+API documentation references: [`ResourceBundle`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html), [`PropertyResourceBundle`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/PropertyResourceBundle.html), [`ListResourceBundle`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ListResourceBundle.html) (Java SE 17).

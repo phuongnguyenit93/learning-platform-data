@@ -1,32 +1,32 @@
-# String.equals với null và đối tượng không phải String
+# String.equals with null and Non-String Objects
 
-Trong Java, **String.equals(Object)** kiểm tra xem đối số có phải một **String có cùng nội dung** với String ở phía gọi hay không. Hai tình huống dễ nhầm nhất là truyền **null** và truyền **một đối tượng thuộc kiểu khác String**:
+In Java, **String.equals(Object)** checks whether the argument is a **String with the same content** as the calling String. The two most easily confused situations are passing **null** and passing **an object of a type other than String**:
 
-- Một String không-null gọi **equals(null)** luôn trả về **false**, không ném ngoại lệ.
-- Một String không-null gọi **equals(đối tượng không phải String)** luôn trả về **false**, ngay cả khi đối tượng đó có thể in ra văn bản giống hệt String.
-- Nếu **biến ở phía trước dấu chấm là null**, lời gọi **biến.equals(...)** ném **NullPointerException** trước khi String.equals() có cơ hội thực thi.
+- A non-null String calling **equals(null)** always returns **false**, without throwing an exception.
+- A non-null String calling **equals(non-String object)** always returns **false**, even if that object can print the exact same text as the String.
+- If the **variable before the dot is null**, calling **variable.equals(...)** throws **NullPointerException** before String.equals() ever gets a chance to run.
 
-Phân biệt **đối số null** với **đối tượng gọi phương thức null** là chìa khóa để đọc đúng kết quả và viết điều kiện so sánh an toàn.
+Distinguishing a **null argument** from a **null receiving object** is key to reading results accurately and writing safe comparison conditions.
 
-## 1. Chữ ký và nguyên tắc so sánh
+## 1. Signature and Comparison Principles
 
-String cung cấp phương thức:
+String provides the method:
 
 ~~~java
 public boolean equals(Object anObject)
 ~~~
 
-Đây là **chữ ký API để minh họa**, không phải khai báo một phương thức mới mà người học cần thêm vào lớp. Phương thức nhận tham số kiểu Object, nhưng **String.equals() chỉ xét nội dung bằng nhau khi đối số thực sự là một đối tượng String**. Nó không tự đổi Integer, StringBuilder, char[] hoặc bất kỳ kiểu nào khác thành String để so sánh.
+This is an **illustrative API signature**, not a new method declaration that learners need to add to a class. The method takes an Object parameter, yet **String.equals() only considers content equal when the argument is actually a String object**. It does not automatically convert Integer, StringBuilder, char[], or any other type into a String for comparison.
 
-Với đối tượng String đang gọi phương thức:
+For the String object invoking the method:
 
-1. Nếu hai tham chiếu cùng trỏ tới một String, kết quả là true.
-2. Nếu đối số là một String khác đối tượng nhưng có cùng dãy đơn vị mã UTF-16, kết quả vẫn là true.
-3. Nếu đối số là null, kết quả là false.
-4. Nếu đối số không phải String, kết quả là false.
-5. Nếu cả hai đều là String nhưng nội dung khác nhau, kết quả là false.
+1. If both references point to the same String, the result is true.
+2. If the argument is a different String object with the same sequence of UTF-16 code units, the result is still true.
+3. If the argument is null, the result is false.
+4. If the argument is not a String, the result is false.
+5. If both are Strings with different content, the result is false.
 
-**equals() so sánh giá trị nội dung; toán tử == so sánh danh tính tham chiếu** khi cả hai toán hạng là kiểu tham chiếu. Đây là hai phép kiểm tra khác nhau.
+**equals() compares content values; the == operator compares reference identity** when both operands are reference types. These are two distinct checks.
 
 ~~~java
 String first = new String("Java");
@@ -36,11 +36,11 @@ System.out.println(first == second);      // false
 System.out.println(first.equals(second)); // true
 ~~~
 
-Hai lệnh new tạo hai đối tượng String khác nhau, nên == là false. Nội dung "Java" bằng nhau nên equals() là true.
+The two `new` statements create two distinct String objects, so == is false. The content "Java" matches, so equals() is true.
 
-## 2. Truyền null cho String.equals(): kết quả false
+## 2. Passing null to String.equals(): Returns false
 
-Ví dụ:
+Example:
 
 ~~~java
 String language = "Java";
@@ -51,35 +51,35 @@ System.out.println(language.equals(missing)); // false
 System.out.println("Java".equals(null));      // false
 ~~~
 
-**Vì sao không ném NullPointerException?** Đối tượng ở phía gọi (language hoặc literal "Java") tồn tại. Java thực thi String.equals(), và phương thức xác định null không phải đối tượng String có nội dung bằng nó.
+**Why is NullPointerException not thrown?** The object on the calling side (language or the literal "Java") exists. Java executes String.equals(), and the method determines that null is not a String object with equal content.
 
-So sánh với cách gọi ngược lại:
+Compare that with calling it the other way around:
 
 ~~~java
 String missing = null;
-System.out.println(missing.equals("Java")); // Ném NullPointerException
+System.out.println(missing.equals("Java")); // Throws NullPointerException
 ~~~
 
-Đoạn trên là **minh họa lỗi**, không phải đoạn cần chạy chung với những ví dụ đang in kết quả phía trước. Phép truy cập phương thức qua biến missing không có đối tượng nhận vì missing bằng null. Đây là lỗi ở **receiver** (đối tượng nhận lời gọi), không phải do equals() “không nhận null”.
+The snippet above is an **error illustration**, not code to be run alongside the examples printing outputs earlier. Attempting to access a method through missing has no receiving object because missing is null. This is an error on the **receiver** (the object receiving the call), not because equals() "rejects null".
 
-Có thể ghi nhớ:
+Keep in mind:
 
-| Biểu thức | Kết quả | Nguyên nhân |
+| Expression | Result | Reason |
 |---|---|---|
-| "Java".equals(null) | false | Receiver là String hợp lệ; đối số null |
-| "Java".equals("Java") | true | Nội dung bằng nhau |
-| "Java".equals("java") | false | Phân biệt chữ hoa/chữ thường |
-| ((String) null).equals("Java") | NullPointerException | Receiver là null |
-| null == null | true | == cho phép so sánh hai tham chiếu null |
-| "Java" == null | false | Tham chiếu String không-null |
+| "Java".equals(null) | false | Receiver is a valid String; argument is null |
+| "Java".equals("Java") | true | Content is equal |
+| "Java".equals("java") | false | Case-sensitive |
+| ((String) null).equals("Java") | NullPointerException | Receiver is null |
+| null == null | true | == allows comparing two null references |
+| "Java" == null | false | Non-null String reference |
 
-**Không dùng trực tiếp null.equals(...):** từ khóa null không phải biểu thức nhận lời gọi phương thức hợp lệ; trường hợp chạy thực tế là một biến tham chiếu có giá trị null, như missing.equals(...).
+**Do not use null.equals(...) directly:** the null keyword is not a valid receiver expression for a method call; the real runtime scenario is a reference variable whose value is null, such as missing.equals(...).
 
-## 3. Truyền đối tượng khác String: luôn false
+## 3. Passing a Non-String Object: Always false
 
-Vì chữ ký nhận Object, trình biên dịch cho phép truyền nhiều loại tham số. Nhưng String.equals() **không ép kiểu ngầm thành String**, không gọi toString() rồi so sánh, và không so sánh “hai đối tượng hiển thị giống nhau” nếu đối tượng kia không phải String.
+Because the signature accepts Object, the compiler allows passing many kinds of arguments. However, String.equals() **does not implicitly cast to String**, does not call toString() and then compare, and does not compare "two objects that display identically" if the other object is not a String.
 
-Ví dụ:
+Example:
 
 ~~~java
 String text = "42";
@@ -88,9 +88,9 @@ Integer number = 42;
 System.out.println(text.equals(number)); // false
 ~~~
 
-Mặc dù number.toString() tạo ra "42", number là Integer nên text.equals(number) là false.
+Even though number.toString() produces "42", number is an Integer, so text.equals(number) is false.
 
-Tương tự:
+Similarly:
 
 ~~~java
 String text = "Java";
@@ -100,13 +100,13 @@ System.out.println(text.equals(builder));            // false
 System.out.println(text.equals(builder.toString())); // true
 ~~~
 
-StringBuilder có nội dung hiển thị "Java" nhưng **không phải String**. toString() tạo String mới, lúc đó String.equals() mới so sánh được nội dung.
+StringBuilder displays "Java" as its content, yet it is **not a String**. toString() creates a new String, at which point String.equals() can compare the content.
 
-### Bảng những kiểu đối số khác nhau
+### Table of Different Argument Types
 
-Giả sử receiver luôn là **"Java"**:
+Assume the receiver is always **"Java"**:
 
-| Đối số | Loại đối số ở runtime | Kết quả equals() |
+| Argument | Runtime Argument Type | equals() Result |
 |---|---|---|
 | "Java" | String | true |
 | new String("Java") | String | true |
@@ -118,7 +118,7 @@ Giả sử receiver luôn là **"Java"**:
 | Integer.valueOf(123) | Integer | false |
 | new Object() | Object | false |
 
-Nếu cần **cố ý** so sánh nội dung String với một CharSequence khác, có thể cân nhắc **String.contentEquals(CharSequence)**. Chẳng hạn:
+If you **intentionally** need to compare String content with another CharSequence, you can consider **String.contentEquals(CharSequence)**. For example:
 
 ~~~java
 String text = "Java";
@@ -128,11 +128,11 @@ System.out.println(text.equals(builder));        // false
 System.out.println(text.contentEquals(builder)); // true
 ~~~
 
-Hai phương thức trả về khác nhau vì **hợp đồng so sánh khác nhau**: equals() chỉ chấp nhận String có cùng nội dung, còn contentEquals() được thiết kế để so sánh nội dung với CharSequence. Không nên tự thay equals() bằng contentEquals() ở mọi nơi, vì ý nghĩa yêu cầu so sánh kiểu dữ liệu có thể khác.
+The two methods return different results because they have **different comparison contracts**: equals() only accepts a String with the same content, whereas contentEquals() is designed to compare content against a CharSequence. You should not blindly replace equals() with contentEquals() everywhere, because data-type comparison requirements may differ.
 
-## 4. Kiểu khai báo Object không quyết định kết quả: kiểu thực tế mới quan trọng
+## 4. Declared Type Object Does Not Decide the Result: Actual Type Matters
 
-Một biến khai báo kiểu **Object** vẫn có thể trỏ tới String. Trong trường hợp đó, khi truyền nó cho String.equals(), phương thức xét **đối tượng thực tại runtime**, không chỉ nhìn kiểu khai báo.
+A variable declared as **Object** can still point to a String. In that case, when it is passed to String.equals(), the method checks the **actual runtime object**, not merely the declared type.
 
 ~~~java
 String expected = "Java";
@@ -146,13 +146,13 @@ System.out.println(expected.equals(builderValue)); // false
 System.out.println(expected.equals(nullValue));    // false
 ~~~
 
-Ở dòng thứ nhất, stringValue có kiểu biến Object nhưng giá trị thực là String chứa "Java", nên kết quả true. Dòng thứ hai tham chiếu StringBuilder, nên false. Dòng cuối là null, cũng false.
+On the first line, stringValue has variable type Object, but its actual value is a String containing "Java", so the result is true. The second line references a StringBuilder, so it is false. The last line is null, also false.
 
-**Không được suy diễn rằng tham số Object đồng nghĩa các kiểu đều được đổi sang String.** Object là kiểu tham số rộng; logic cụ thể của String.equals() mới quyết định thế nào là bằng nhau.
+**Do not infer that an Object parameter means all types are converted to String.** Object is a broad parameter type; the specific logic inside String.equals() decides what counts as equal.
 
-## 5. Khi receiver có thể `null`: chọn cách gọi phù hợp
+## 5. When the Receiver Can Be `null`: Choose the Right Call Pattern
 
-Nếu cần kiểm tra một trạng thái cố định, hãy gọi `equals()` trên literal. Nếu muốn gọi trên biến, dùng `&&` để bảo đảm biến khác `null` trước khi gọi:
+If you need to check against a fixed status, call `equals()` on the literal. If you want to call it on a variable, use `&&` to ensure the variable is non-`null` before calling:
 
 ~~~java
 String status = null;
@@ -160,15 +160,15 @@ System.out.println("ACTIVE".equals(status)); // false
 System.out.println(status != null && status.equals("ACTIVE")); // false
 ~~~
 
-Với **hai** tham chiếu đều có thể `null`, `Objects.equals(left, right)` trả `true` nếu cùng `null`, trả `false` nếu chỉ một bên `null`, còn khi `left` khác `null` thì dùng `left.equals(right)`. Nếu hai giá trị chưa được cung cấp không được coi là bằng nhau trong nghiệp vụ, phải kiểm tra tính hiện diện riêng.
+For **two** references that can both be `null`, `Objects.equals(left, right)` returns `true` if both are `null`, returns `false` if only one side is `null`, and calls `left.equals(right)` when `left` is non-`null`. If two unprovided values must not be treated as equal in your business logic, check presence separately.
 
-Bài kế tiếp giải thích đầy đủ `Objects.equals` qua String, mảng và các lớp tự định nghĩa. Ở đây, khác biệt cần nhớ là **đối số `null`** so với **receiver `null`** của chính `String.equals(Object)`.
+The next article fully explains `Objects.equals` across Strings, arrays, and custom classes. Here, the distinction to remember is a **`null` argument** versus a **`null` receiver** for `String.equals(Object)` itself.
 
-## 6. Chương trình Java 17+ chạy độc lập
+## 6. Standalone Java 17+ Program
 
-Chương trình dưới đây tổng hợp cả null, đối số không phải String, biến khai báo Object, Objects.equals() và các mẫu so sánh an toàn.
+The program below brings together null, non-String arguments, Object-typed variables, Objects.equals(), and safe comparison patterns.
 
-Lưu thành file **StringEqualsNullAndTypeDemo.java**:
+Save as **StringEqualsNullAndTypeDemo.java**:
 
 ~~~java
 import java.util.Objects;
@@ -215,14 +215,14 @@ public class StringEqualsNullAndTypeDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ~~~bash
 javac StringEqualsNullAndTypeDemo.java
 java StringEqualsNullAndTypeDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 literal-null=false
@@ -241,21 +241,21 @@ equal-new-instance=true
 null-receiver=NullPointerException
 ~~~
 
-Những chi tiết cần quan sát:
+Details to observe:
 
-1. **Ba dòng đầu** đều false vì receiver là String thực, còn đối số null.
-2. **object-string=true** chứng minh Object có thể đang tham chiếu một String thật.
-3. **object-builder=false** và **object-number=false** chứng minh String.equals() không chuyển kiểu đối số.
-4. **builder-content=true** và **builder-string=true** dùng các phương thức có ngữ nghĩa so sánh khác, nên có thể kiểm tra cùng nội dung theo chủ đích.
-5. **objects-null-null=true** thể hiện khác biệt giữa Objects.equals() và String.equals(null).
-6. **different-case=false** cho thấy equals() phân biệt chữ hoa/thường.
-7. **null-receiver=NullPointerException** là kết quả của khối catch: lời gọi trên missing thật sự gây ngoại lệ và được bắt để chương trình tiếp tục.
+1. **The first three lines** are all false because the receiver is a real String while the argument is null.
+2. **object-string=true** proves that an Object variable can actually be referencing a real String.
+3. **object-builder=false** and **object-number=false** prove that String.equals() does not convert the argument's type.
+4. **builder-content=true** and **builder-string=true** use methods with different comparison semantics, allowing content matching when intended.
+5. **objects-null-null=true** shows the difference between Objects.equals() and String.equals(null).
+6. **different-case=false** shows that equals() is case-sensitive.
+7. **null-receiver=NullPointerException** comes from the catch block: calling the method on missing genuinely throws the exception and is caught so the program can continue.
 
-## 7. Ứng dụng thực tế: kiểm tra dữ liệu đầu vào, trạng thái và giá trị nullable
+## 7. Practical Applications: Validating Input, Status, and Nullable Values
 
-### Kiểm tra một trạng thái có thể bị thiếu
+### Checking a Status That May Be Missing
 
-Ví dụ một phương thức nhận trạng thái từ một API:
+Example of a method receiving a status from an API:
 
 ~~~java
 static boolean isReady(String status) {
@@ -263,13 +263,13 @@ static boolean isReady(String status) {
 }
 ~~~
 
-Đây là **phương thức minh họa**, cần đặt bên trong một lớp Java khi sử dụng. Nó trả về true chỉ khi status là String bằng chính xác "READY"; với null, "ready", hoặc "" đều trả về false.
+This is an **illustrative method** that must be placed inside a Java class when used. It returns true only when status is a String equal to exact "READY"; for null, "ready", or "", it returns false.
 
-Cách viết này tự nhiên khi ứng dụng muốn kiểm tra **một hằng giá trị duy nhất** và thiếu dữ liệu được coi là không khớp.
+This style is natural when an application wants to check **a single constant value** and missing data counts as a mismatch.
 
-### Khi hai giá trị vắng mặt cũng được coi là bằng nhau
+### When Two Absent Values Are Also Considered Equal
 
-Giả sử trước và sau của một trường nullable đều không có dữ liệu. Để phát hiện thay đổi giữa hai String nullable:
+Suppose both the old and new values of a nullable field have no data. To detect changes between two nullable Strings:
 
 ~~~java
 static boolean hasChanged(String oldValue, String newValue) {
@@ -277,13 +277,13 @@ static boolean hasChanged(String oldValue, String newValue) {
 }
 ~~~
 
-Khi oldValue và newValue đều null, kết quả false (không có thay đổi). Khi một bên null và bên kia có giá trị, kết quả true. Khi hai String cùng nội dung, kết quả false.
+When both oldValue and newValue are null, the result is false (no change). When one side is null and the other has a value, the result is true. When both Strings have the same content, the result is false.
 
-**Cần lựa chọn chủ ý:** trong một số nghiệp vụ, “không có dữ liệu” không đồng nghĩa “bằng nhau”; khi đó đừng máy móc dùng Objects.equals() mà không làm rõ quy tắc so sánh.
+**Choose deliberately:** in some business domains, "no data" does not mean "equal"; in those cases, do not mechanically use Objects.equals() without clarifying the comparison rules.
 
-### Khi giá trị đến dưới dạng Object
+### When Values Arrive as Object
 
-Trong xử lý Object hoặc dữ liệu nhiều loại, đừng nhầm toString() với kiểm tra kiểu:
+When processing Objects or multi-type data, do not confuse toString() with type checking:
 
 ~~~java
 static boolean isJavaString(Object candidate) {
@@ -291,43 +291,43 @@ static boolean isJavaString(Object candidate) {
 }
 ~~~
 
-Hàm trả về true nếu candidate thực sự là String có nội dung "Java", không chấp nhận StringBuilder hiển thị "Java" hoặc đối tượng khác chỉ vì toString() cho cùng văn bản.
+The function returns true if candidate is actually a String with content "Java", rejecting a StringBuilder displaying "Java" or other objects just because toString() produces the same text.
 
-Nếu nghiệp vụ **thật sự cho phép nhiều kiểu** và muốn chuẩn hóa thành String, phải thiết kế quy tắc chuyển đổi riêng và cân nhắc null, định dạng số, locale cùng các trường hợp không hợp lệ. String.equals(Object) tự nó không có trách nhiệm thực hiện chuẩn hóa đó.
+If the business logic **genuinely permits multiple types** and wants to normalize them into a String, you must design explicit conversion rules and account for null, number formatting, locale, and invalid cases. String.equals(Object) itself is not responsible for performing that normalization.
 
-## 8. Những ngộ nhận và lỗi phổ biến
+## 8. Common Misconceptions and Pitfalls
 
-### Nhầm 1: equals(null) chắc chắn ném NullPointerException
+### Mistake 1: equals(null) definitely throws NullPointerException
 
-Sai. **"Java".equals(null)** trả về false. **nullable.equals("Java")** chỉ ném NullPointerException khi nullable thực sự null. Vị trí của null trong lời gọi rất quan trọng.
+False. **"Java".equals(null)** returns false. **nullable.equals("Java")** only throws NullPointerException when nullable is actually null. The position of null in the call matters greatly.
 
-### Nhầm 2: Vì tham số khai báo Object, equals() sẽ so sánh với mọi kiểu
+### Mistake 2: Because the parameter is declared as Object, equals() compares against any type
 
-Sai. Chữ ký **Object** cho phép truyền tham số vào phương thức; nó không có nghĩa phương thức sẽ chuyển tham số thành String. "42".equals(42) trả về false (đối số int được boxing thành Integer); "42".equals(Integer.valueOf(42)) cũng false.
+False. The **Object** signature allows passing an argument into the method; it does not mean the method converts the argument into a String. "42".equals(42) returns false (the int argument is boxed into Integer); "42".equals(Integer.valueOf(42)) is also false.
 
-### Nhầm 3: Hai đối tượng có toString() giống nhau thì equals() phải true
+### Mistake 3: Two objects with identical toString() must have equals() return true
 
-Sai. toString() chủ yếu cung cấp biểu diễn văn bản; hợp đồng equals() của từng lớp mới quyết định tính bằng nhau. String.equals() không gọi toString() của đối số để so sánh.
+False. toString() primarily provides a textual representation; each class's equals() contract decides equality. String.equals() does not call the argument's toString() to compare.
 
-### Nhầm 4: Dùng == thay equals() cho String
+### Mistake 4: Using == instead of equals() for String
 
-Sai nếu mục tiêu là so sánh **nội dung**. == chỉ so sánh tham chiếu. String literal có thể được intern nên đôi lúc == có vẻ đúng, nhưng không thể dùng kết quả tình cờ đó làm quy tắc nghiệp vụ.
+Wrong if the goal is comparing **content**. == only compares references. String literals can be interned so == may occasionally appear to work, but you cannot use that coincidental outcome as a business rule.
 
-### Nhầm 5: Objects.equals(null, null) phải false vì String.equals(null) false
+### Mistake 5: Objects.equals(null, null) must be false because String.equals(null) is false
 
-Sai. Hai API có hợp đồng khác nhau. Objects.equals(null, null) là true; trong trường hợp này **không có đối tượng String nào nhận lời gọi equals()**.
+False. The two APIs have different contracts. Objects.equals(null, null) is true; in that case **no String object receives an equals() call**.
 
-### Nhầm 6: null, chuỗi rỗng và chuỗi toàn khoảng trắng đều như nhau
+### Mistake 6: null, empty string, and whitespace-only string are all the same
 
-Sai. null nghĩa là không có tham chiếu; "" là một String hợp lệ độ dài 0; " " là String chứa một dấu cách. Ví dụ "".equals(null) là false, "".equals("") là true, và "".equals(" ") là false. Nếu nghiệp vụ muốn coi các giá trị đó tương đương, cần quy tắc xử lý dữ liệu khác trước khi so sánh.
+False. null means no reference; "" is a valid String of length 0; " " is a String containing one space. For instance, "".equals(null) is false, "".equals("") is true, and "".equals(" ") is false. If the business logic wants to treat those values as equivalent, separate data-handling rules are needed before comparing.
 
-### Nhầm 7: equals() tự bỏ qua chữ hoa/thường hoặc chuẩn hóa Unicode
+### Mistake 7: equals() automatically ignores case or normalizes Unicode
 
-Sai. String.equals() so sánh đúng dãy đơn vị mã UTF-16, phân biệt "Java" với "java". Nếu cần bỏ qua một phần khác biệt chữ hoa/thường, có String.equalsIgnoreCase(String), nhưng phương thức này **không phải** phép đối chiếu chuỗi theo tất cả quy tắc locale hay chuẩn hóa Unicode. Chuẩn hóa theo nghiệp vụ phải được quyết định rõ ràng.
+False. String.equals() compares the exact sequence of UTF-16 code units, distinguishing "Java" from "java". If you need to ignore certain case differences, there is String.equalsIgnoreCase(String), though that method is **not** a full locale-aware string collation or Unicode normalization. Business-driven normalization must be decided explicitly.
 
-### Nhầm 8: Dùng ép kiểu String cho đối tượng bất kỳ sẽ giải quyết vấn đề
+### Mistake 8: Casting any object to String will solve the problem
 
-Sai. Nếu candidate trỏ tới StringBuilder, lệnh (String) candidate gây ClassCastException. Kiểm tra kiểu bằng instanceof trước khi cast, hoặc chuyển đổi chỉ khi ứng dụng thực sự muốn chấp nhận loại dữ liệu đó.
+False. If candidate points to a StringBuilder, `(String) candidate` causes ClassCastException. Check the type with instanceof before casting, or convert only when the application genuinely intends to accept that data type.
 
 ~~~java
 Object candidate = new StringBuilder("Java");
@@ -339,29 +339,29 @@ if (candidate instanceof String text) {
 }
 ~~~
 
-Đây là **đoạn minh họa** với pattern matching instanceof được Java 17 hỗ trợ. Kết quả là **Not a String**; không có cast sai kiểu.
+This is an **illustrative snippet** using pattern matching for instanceof supported in Java 17. The output is **Not a String**; there is no invalid cast.
 
-## 9. Tóm tắt theo trường hợp và tự kiểm tra
+## 9. Summary by Case and Self-Check
 
-| Cần xác định | Câu trả lời |
+| Need to determine | Answer |
 |---|---|
-| String không-null gọi equals(null)? | false |
-| String không-null gọi equals(StringBuilder cùng nội dung)? | false |
-| String không-null gọi equals(Object trỏ tới String cùng nội dung)? | true |
-| Biến String null gọi equals("abc")? | NullPointerException |
-| Cả hai String nullable đều null, dùng Objects.equals()? | true |
-| StringBuilder muốn so sánh nội dung với String? | Chủ động chuyển bằng toString() hoặc dùng contentEquals() theo yêu cầu |
-| Muốn kiểm tra với hằng "OK" và biến nullable? | "OK".equals(value) |
-| Muốn so sánh hai String nullable theo quy tắc null/null là bằng nhau? | Objects.equals(a, b) |
+| Non-null String calling equals(null)? | false |
+| Non-null String calling equals(StringBuilder with same content)? | false |
+| Non-null String calling equals(Object pointing to String with same content)? | true |
+| Null String variable calling equals("abc")? | NullPointerException |
+| Both nullable Strings are null, using Objects.equals()? | true |
+| StringBuilder needing content comparison with String? | Explicitly convert with toString() or use contentEquals() as required |
+| Checking against constant "OK" and a nullable variable? | "OK".equals(value) |
+| Comparing two nullable Strings where null/null counts as equal? | Objects.equals(a, b) |
 
-**Tự trả lời:**
+**Answer for yourself:**
 
-1. Vì sao "123".equals(123) là false dù hai phía có biểu diễn văn bản giống nhau?
-2. Vì sao Object x = "Java"; thì "Java".equals(x) là true, nhưng Object y = new StringBuilder("Java"); lại false?
-3. Sự khác nhau giữa "Java".equals(nullable) và nullable.equals("Java") là gì khi nullable null?
-4. Tại sao Objects.equals(null, null) trả về true trong khi "Java".equals(null) trả về false?
-5. Nếu một trường trạng thái có thể null, bạn sẽ chọn "READY".equals(status) hay status.equals("READY"), và vì sao?
+1. Why is "123".equals(123) false even though both sides have the same text representation?
+2. Why does Object x = "Java"; make "Java".equals(x) true, while Object y = new StringBuilder("Java"); returns false?
+3. What is the difference between "Java".equals(nullable) and nullable.equals("Java") when nullable is null?
+4. Why does Objects.equals(null, null) return true while "Java".equals(null) returns false?
+5. If a status field can be null, would you choose "READY".equals(status) or status.equals("READY"), and why?
 
-**Đáp án cốt lõi:** (1) String.equals() yêu cầu đối số thực tế là String, số nguyên không phải String. (2) Kiểu đối tượng runtime quyết định, không phải kiểu biến Object hay chữ hiển thị. (3) Receiver non-null trả false, receiver null gây ngoại lệ. (4) Objects.equals() xử lý hai tham chiếu null theo hợp đồng riêng. (5) Đặt literal bên trái để kiểm tra an toàn.
+**Core answers:** (1) String.equals() requires the actual argument to be a String; an integer is not a String. (2) The runtime object type decides, not the Object variable type or displayed text. (3) A non-null receiver returns false, whereas a null receiver throws an exception. (4) Objects.equals() handles two null references under its own contract. (5) Put the literal on the left for a safe check.
 
-**Ghi nhớ:** **Đối số null → false; đối số không phải String → false; receiver null → NullPointerException.** Dùng String literal ở bên trái khi so sánh với hằng, hoặc dùng Objects.equals() cho hai String có thể null nếu quy tắc **null bằng null** là phù hợp.
+**Remember:** **null argument → false; non-String argument → false; null receiver → NullPointerException.** Put the String literal on the left when comparing against a constant, or use Objects.equals() for two nullable Strings when the **null equals null** rule is appropriate.

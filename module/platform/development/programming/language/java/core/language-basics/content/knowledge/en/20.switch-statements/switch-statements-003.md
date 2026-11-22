@@ -1,8 +1,8 @@
-# `switch` dạng dấu hai chấm và cơ chế rơi tiếp xuống nhánh sau — Java 17+
+# Colon-Style `switch` and Fall-Through Behavior — Java 17+
 
-Trong Java, một `switch` dạng **dấu hai chấm** (*colon-style switch statement*) đặt các nhãn `case ...:` và `default:` trước những câu lệnh sẽ chạy. Điểm cần nhớ là **nhãn `case` không tự kết thúc một nhánh**: khi đã bắt đầu từ nhãn khớp, Java tiếp tục chạy các câu lệnh bên dưới, kể cả qua những nhãn `case` khác, cho đến khi gặp `break`, `return`, `throw` hoặc kết thúc khối `switch`.
+In Java, a **colon-style `switch` statement** (*colon-style switch statement*) places `case ...:` and `default:` labels before the statements to execute. The key point to remember is that **a `case` label does not automatically end a branch**: once execution starts from a matching label, Java continues running the statements below it, even across other `case` labels, until it encounters `break`, `return`, `throw`, or the end of the `switch` block.
 
-Hiện tượng này gọi là **fall-through** (*rơi tiếp xuống nhánh sau*).
+This behavior is called **fall-through** (*falling through to the next branch*).
 
 ~~~java
 int code = 1;
@@ -17,34 +17,34 @@ switch (code) {
 }
 ~~~
 
-Với `code = 1`, chương trình in **cả `one` và `two`**. Lý do: không có `break` sau `case 1:`, nên sau khi in `one`, luồng xử lý tiếp tục tới câu lệnh bên dưới `case 2:` mà **không kiểm tra lại điều kiện case 2**.
+With `code = 1`, the program prints **both `one` and `two`**. The reason: there is no `break` after `case 1:`, so after printing `one`, control continues to the statement under `case 2:` without **re-checking the case 2 condition**.
 
-## 1. Cú pháp `switch` dạng dấu hai chấm
+## 1. Colon-Style `switch` Syntax
 
 ~~~java
 switch (expression) {
     case CONSTANT_1:
-        // Các câu lệnh cho nhãn thứ nhất
+        // Statements for the first label
         break;
     case CONSTANT_2:
-        // Các câu lệnh cho nhãn thứ hai
+        // Statements for the second label
         break;
     default:
-        // Trường hợp không nhãn case nào khớp
+        // When no case label matches
 }
 ~~~
 
-Quy tắc thực thi:
+Execution rules:
 
-1. Java đánh giá **biểu thức chọn** `expression` đúng một lần cho lần thực hiện `switch` đó.
-2. Tìm **nhãn `case` tương ứng** với giá trị, hoặc chuyển tới `default` nếu không nhãn nào khớp.
-3. Bắt đầu chạy **từ vị trí nhãn đã chọn**.
-4. Tiếp tục lần lượt qua các câu lệnh bên dưới; những nhãn xuất hiện tiếp theo **không phải hàng rào tự động**.
-5. `break;` thông thường thoát khỏi `switch` gần nhất; câu lệnh phía sau khối `switch` được thực hiện tiếp.
+1. Java evaluates the **selector expression** `expression` exactly once for that `switch` execution.
+2. Finds the **matching `case` label** for the value, or jumps to `default` if no label matches.
+3. Starts executing **from the selected label's position**.
+4. Continues sequentially through the statements below; subsequent labels **are not automatic barriers**.
+5. A standard `break;` exits the innermost enclosing `switch`; execution continues with the statement after the `switch` block.
 
-**`default` không bắt buộc.** Nếu không có `case` khớp và không có `default`, Java bỏ qua toàn bộ thân `switch`.
+**`default` is optional.** If no `case` matches and there is no `default`, Java skips the entire `switch` body.
 
-### Bảng hành vi điển hình
+### Typical Behavior Table
 
 ~~~java
 switch (n) {
@@ -60,18 +60,18 @@ switch (n) {
 }
 ~~~
 
-| Giá trị `n` | Những dòng được in từ `switch` | Giải thích |
+| Value of `n` | Lines printed from `switch` | Explanation |
 | --- | --- | --- |
-| 1 | A, B, C | Rơi qua case 2 và case 3 trước khi gặp `break` |
-| 2 | B, C | Rơi qua case 3 |
-| 3 | C | Dừng tại `break` |
-| 9 | D | Không case nào khớp; chạy `default` |
+| 1 | A, B, C | Falls through case 2 and case 3 before hitting `break` |
+| 2 | B, C | Falls through case 3 |
+| 3 | C | Stops at `break` |
+| 9 | D | No case matches; runs `default` |
 
-Không nên suy luận rằng chỉ vì biểu thức chọn bằng 1 thì “chỉ câu lệnh của case 1 được chạy”. Trong dạng dấu hai chấm, **`break` mới tạo ranh giới dừng thực thi**.
+Do not assume that just because the selector expression equals 1, "only the statements of case 1 will run." In colon style, **`break` is what creates the execution boundary**.
 
-## 2. Chương trình Java 17+ hoàn chỉnh
+## 2. Complete Java 17+ Program
 
-Tạo tệp UTF-8 tên **`SwitchColonDemo.java`**:
+Create a UTF-8 file named **`SwitchColonDemo.java`**:
 
 ~~~java
 public class SwitchColonDemo {
@@ -245,7 +245,7 @@ public class SwitchColonDemo {
 }
 ~~~
 
-Dùng **JDK 17 trở lên**. Mở PowerShell (Windows) hoặc Bash (Linux/macOS) tại thư mục chứa file:
+Use **JDK 17 or higher**. Open PowerShell (Windows) or Bash (Linux/macOS) in the directory containing the file:
 
 ~~~bash
 java -version
@@ -254,7 +254,7 @@ javac -encoding UTF-8 SwitchColonDemo.java
 java SwitchColonDemo
 ~~~
 
-**Exact expected stdout** của riêng lệnh `java SwitchColonDemo`:
+**Exact expected stdout** of `java SwitchColonDemo` alone:
 
 ~~~text
 == fall-through ==
@@ -317,15 +317,15 @@ stateOther=unknown
 yieldResult=two
 ~~~
 
-Hai lệnh `java -version` và `javac -version` cho thông tin phụ thuộc phiên bản JDK cài đặt và không nằm trong expected stdout cố định.
+The two commands `java -version` and `javac -version` output information depending on the installed JDK version and are not part of the fixed expected stdout.
 
-## 3. Điểm dừng của luồng fall-through
+## 3. Stopping Points of Fall-Through Flow
 
-Nhãn `case:` không tạo ranh giới dừng; `break;` thoát switch gần nhất. `return` rời phương thức, còn `throw` chuyển điều khiển sang xử lý ngoại lệ. Khi switch nằm trong vòng lặp, `continue` tác động lên vòng lặp phù hợp. Các khác biệt về lệnh thoát, switch lồng nhau và vòng lặp được thực hành chi tiết ở bài kế tiếp.
+A `case:` label does not create a stopping boundary; `break;` exits the innermost switch. `return` exits the method, while `throw` transfers control to exception handling. When a switch is inside a loop, `continue` affects the enclosing loop. Differences among exit statements, nested switches, and loops are practiced in detail in the next lesson.
 
-## 4. Rơi tiếp có chủ ý: gom nhiều nhãn `case`
+## 4. Intentional Fall-Through: Grouping Multiple `case` Labels
 
-Một ứng dụng dễ hiểu của fall-through là **nhiều nhãn dùng chung một thân lệnh**:
+A clear use of fall-through is **multiple labels sharing one statement body**:
 
 ~~~java
 switch (month) {
@@ -344,9 +344,9 @@ switch (month) {
 }
 ~~~
 
-Với `month == 12`, Java vào nhãn `case 12:`, đi qua `case 1:`, `case 2:` mà không có câu lệnh nào ở giữa, rồi in `winter`. Đây là **fall-through có chủ ý**, không phải rủi ro bị chạy các hành động khác nhau.
+With `month == 12`, Java enters `case 12:`, passes through `case 1:` and `case 2:` with no statements in between, and prints `winter`. This is **intentional fall-through**, without the risk of running different actions.
 
-Trong Java 17, các nhãn có cùng thân cũng có thể viết theo dạng danh sách:
+In Java 17, labels with the same body can also be written as a comma-separated list:
 
 ~~~java
 switch (month) {
@@ -358,11 +358,11 @@ switch (month) {
 }
 ~~~
 
-Dạng dấu hai chấm vẫn cần `break` nếu muốn dừng sau nhóm. Khi nhiệm vụ chỉ là chọn một giá trị và không cần fall-through, `case ... ->` thường biểu đạt ý định rõ hơn.
+The colon form still needs `break` if you want to stop after the group. When the task is simply selecting one value and fall-through is not needed, `case ... ->` usually expresses intent more clearly.
 
-## 5. `default` không bắt buộc đứng cuối
+## 5. `default` Does Not Have to Be Last
 
-`default:` là điểm bắt đầu khi **không nhãn `case` nào khớp**, nhưng vị trí viết của nó trong khối `switch` có thể không ở cuối.
+`default:` is the entry point when **no `case` label matches**, yet its written position inside the `switch` block does not have to be at the end.
 
 ~~~java
 switch (value) {
@@ -377,21 +377,21 @@ switch (value) {
 }
 ~~~
 
-Nếu `value == 9`, Java bắt đầu ở `default`, in `default` rồi **rơi tiếp** xuống `case 2:` để in `two` trước khi gặp `break`. Nếu `value == 2`, Java bắt đầu **trực tiếp tại `case 2:`** và chỉ in `two`.
+If `value == 9`, Java starts at `default`, prints `default`, and then **falls through** into `case 2:` to print `two` before hitting `break`. If `value == 2`, Java starts **directly at `case 2:`** and prints only `two`.
 
-| `value` | Kết quả |
+| `value` | Result |
 | --- | --- |
 | 1 | `one` |
 | 2 | `two` |
-| 9 | `default`, rồi `two` |
+| 9 | `default`, then `two` |
 
-**Khuyến nghị:** thông thường đặt `default` cuối và kết thúc rõ ràng từng nhánh giúp tránh gây nhầm lẫn; đặt `default` ở giữa là hợp lệ nhưng phải xét khả năng fall-through.
+**Recommendation:** placing `default` last and ending each branch explicitly helps avoid confusion; placing `default` in the middle is valid, but requires considering fall-through.
 
-## 6. Phạm vi biến cục bộ trong các nhãn `case`
+## 6. Local Variable Scope Across `case` Labels
 
-Một nhãn `case` **không tự tạo một scope mới**. Các khai báo biến cục bộ ở những case khác nhau trong cùng khối `switch` có thể xung đột tên, và việc sử dụng trước khi được gán có thể dẫn đến lỗi **definite assignment**.
+A `case` label **does not automatically create a new scope**. Local variable declarations in different cases within the same `switch` block can collide in name, and using one before assignment can cause a **definite assignment** error.
 
-Cách rõ ràng là tạo một khối riêng cho từng case:
+A clean approach is to create a separate block for each case:
 
 ~~~java
 switch (option) {
@@ -401,7 +401,7 @@ switch (option) {
         break;
     }
     case 2: {
-        int result = 20; // Khai báo lại hợp lệ vì ở block khác.
+        int result = 20; // Redeclaration is valid because it is in a different block.
         System.out.println(result);
         break;
     }
@@ -411,65 +411,65 @@ switch (option) {
 }
 ~~~
 
-Đừng nhầm `case:` với khối `{...}`: nhãn là điểm vào của luồng điều khiển; dấu ngoặc nhọn mới tạo phạm vi block rõ ràng. Cách viết có `{ }` còn giúp tránh vô tình đọc một biến chưa được khởi tạo ở đường đi khác.
+Do not confuse `case:` with a `{...}` block: a label is a control-flow entry point, whereas curly braces create an explicit block scope. Writing `{ }` also prevents accidentally reading a variable uninitialized on another path.
 
-## 7. Ràng buộc selector và nhãn
+## 7. Selector and Label Constraints
 
-Trong Java 17 tiêu chuẩn, switch hỗ trợ `byte`, `short`, `char`, `int` và wrapper tương ứng, `String`, hoặc enum. Nhãn hằng phải hợp lệ ở compile time, tương thích miền giá trị và không trùng. Selector tham chiếu `null` gây `NullPointerException`, không chạy `default`. Các bảng kiểu selector và chính sách null có bài chuyên biệt; ở đây ta dùng chúng làm điều kiện đầu vào của cơ chế dấu hai chấm.
+In standard Java 17, switch supports `byte`, `short`, `char`, `int` and their corresponding wrappers, `String`, or enum. Constant labels must be compile-time valid, range-compatible, and non-duplicate. A `null` reference selector causes `NullPointerException`, without running `default`. Selector type tables and null policies have dedicated lessons; here we use them as preconditions for the colon mechanism.
 
-## 8. Đối chiếu nhanh với `case ... ->`
+## 8. Quick Comparison with `case ... ->`
 
-Dạng `case ...:` có thể fall-through và thường cần `break` sau phần thân. Dạng `case ... ->` thực hiện một rule, không chạy sang rule sau; có thể nhóm nhiều giá trị bằng `case 1, 2 -> ...`. Không trộn hai dạng trong một switch. Bài mũi tên giải thích riêng cách dùng block và scope.
+The `case ...:` form can fall through and usually needs `break` after the body. The `case ... ->` form executes a single rule and does not fall through to the next rule; multiple values can be grouped using `case 1, 2 -> ...`. Do not mix the two forms in one switch. The arrow lesson explains blocks and scopes separately.
 
-## 9. Switch ở trong vòng lặp
+## 9. `switch` Inside a Loop
 
-Nếu switch nằm trong `for`, thiếu `break` vẫn gây fall-through **bên trong switch**. Trái lại, `continue;` chuyển tới lần lặp kế tiếp và bỏ qua phần còn lại của thân vòng lặp, không nhảy sang nhãn case khác. Bài `break` có trace cụ thể về tương tác giữa switch, vòng lặp và các cấu trúc lồng nhau.
+If a switch is inside a `for` loop, omitting `break` still causes fall-through **inside the switch**. In contrast, `continue;` jumps to the next loop iteration and skips the rest of the loop body, rather than jumping to another case label. The `break` lesson gives concrete traces of interactions among switch, loops, and nested structures.
 
-## 10. Lỗi thường gặp
+## 10. Common Mistakes
 
-| Hiểu nhầm | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| “Mỗi `case:` tự kết thúc như `if/else if`.” | Không; thiếu `break` có thể rơi tiếp |
-| “Java kiểm tra lại điều kiện ở mỗi nhãn sau.” | Không; đã nhảy tới nhãn khớp thì chạy tuần tự |
-| “`break` trong switch luôn kết thúc phương thức.” | Chỉ thoát switch gần nhất |
-| “`default` đứng giữa sẽ luôn dừng trước case sau.” | Vẫn có thể fall-through |
-| “`case 1: case 2:` là lỗi.” | Hợp lệ và dùng để gom nhãn |
-| “Hai case có thể khai báo cùng tên biến vì case tạo scope.” | Case không tự tạo block; cần `{ }` khi thích hợp |
-| “`switch(null)` tự động chạy `default`.” | Thông thường ném `NullPointerException` trong Java 17 |
-| “`case x ->` cũng có fall-through nếu không có `break`.” | Dạng rule `->` không rơi tiếp |
-| “`continue` trong switch chuyển sang case tiếp theo.” | Nó chuyển sang lần lặp kế khi switch nằm trong vòng lặp |
-| “Trong switch expression, `break` tạo giá trị trả về.” | Dùng `yield` hoặc switch rule thích hợp |
+| "Each `case:` ends automatically like `if/else if`." | No; omitting `break` can fall through |
+| "Java re-checks the condition at each subsequent label." | No; once jumped to the matching label, execution runs sequentially |
+| "`break` in a switch always exits the method." | It only exits the innermost switch |
+| "A `default` in the middle always stops before the next case." | It can still fall through |
+| "`case 1: case 2:` is an error." | Valid and used to group labels |
+| "Two cases can declare the same variable name because case creates a scope." | A case does not create a block; `{ }` is needed when appropriate |
+| "`switch(null)` automatically runs `default`." | Normally throws `NullPointerException` in Java 17 |
+| "`case x ->` also falls through without `break`." | Arrow rule `->` does not fall through |
+| "`continue` in a switch moves to the next case." | It advances to the next loop iteration when the switch is inside a loop |
+| "In a switch expression, `break` produces the return value." | Use `yield` or an appropriate switch rule |
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-Check Exercises
 
-1. `switch(1) { case 1: print("A"); case 2: print("B"); break; }` có thể in gì?  
-   *Đáp án:* `AB` theo thứ tự, vì thiếu `break` sau case 1.
-2. Nếu thêm `break;` ngay sau `print("A")` thì còn in `B` không?  
-   *Đáp án:* Không.
-3. Với `case 1: case 2: System.out.println("yes"); break;`, giá trị 1 và 2 có chạy chung phần thân không?  
-   *Đáp án:* Có.
-4. `default` có bắt buộc đặt cuối khối `switch` không?  
-   *Đáp án:* Không; nhưng đặt giữa cần chú ý fall-through.
-5. Trong switch có `default: print("D"); case 2: print("B"); break;`, chọn giá trị 9 cho gì?  
-   *Đáp án:* In `D` rồi `B`.
-6. Dùng `break` trong switch nằm trong vòng `for` có kết thúc luôn vòng lặp không?  
-   *Đáp án:* Không; chỉ thoát switch gần nhất.
-7. Vì sao nên dùng `{ }` cho mỗi case có khai báo biến cục bộ?  
-   *Đáp án:* Tạo scope rõ ràng và tránh xung đột tên/khởi tạo.
-8. `switch` dạng mũi tên `case 1 -> ...` có rơi qua case 2 không?  
-   *Đáp án:* Không.
-9. Nếu selector là `String null` trong Java 17 thông thường, `default` có xử lý nó không?  
-   *Đáp án:* Không; phải xử lý null trước để tránh `NullPointerException`.
+1. What can `switch(1) { case 1: print("A"); case 2: print("B"); break; }` print?  
+   *Answer:* `AB` in order, because `break` is missing after case 1.
+2. If you add `break;` right after `print("A")`, does it still print `B`?  
+   *Answer:* No.
+3. With `case 1: case 2: System.out.println("yes"); break;`, do values 1 and 2 run the same body?  
+   *Answer:* Yes.
+4. Does `default` have to be placed at the end of a `switch` block?  
+   *Answer:* No; however, placing it in the middle requires attention to fall-through.
+5. In a switch with `default: print("D"); case 2: print("B"); break;`, what does selector value 9 produce?  
+   *Answer:* Prints `D` then `B`.
+6. Does using `break` inside a switch nested in a `for` loop terminate the loop as well?  
+   *Answer:* No; it only exits the innermost switch.
+7. Why should you use `{ }` for each case that declares local variables?  
+   *Answer:* To create a clear scope and avoid name/initialization conflicts.
+8. Does an arrow-style `switch` `case 1 -> ...` fall through into case 2?  
+   *Answer:* No.
+9. If the selector is a `null` `String` in standard Java 17, does `default` handle it?  
+   *Answer:* No; handle null beforehand to avoid `NullPointerException`.
 
 ## Checklist
 
-- [ ] Phân biệt `case ...:` (dạng dấu hai chấm) với `case ... ->` (dạng mũi tên).
-- [ ] Hiểu điểm vào `case` và việc **rơi tiếp** qua nhãn sau nếu không dừng.
-- [ ] Đặt `break` khi mỗi nhánh cần độc lập; ghi rõ ý định khi cố tình fall-through.
-- [ ] Biết gom nhiều nhãn dùng chung phần thân.
-- [ ] Không mặc định `default` tạo ranh giới dừng.
-- [ ] Dùng khối `{ }` khi khai báo biến cục bộ trong case.
-- [ ] Phân biệt `break`, `continue`, `return` và `yield`.
-- [ ] Xử lý null selector trước khi dùng `switch` Java 17 thông thường.
+- [ ] Distinguish `case ...:` (colon style) from `case ... ->` (arrow style).
+- [ ] Understand `case` entry points and **falling through** past subsequent labels if not stopped.
+- [ ] Place `break` when each branch must be independent; clearly document intent when fall-through is deliberate.
+- [ ] Know how to group multiple labels sharing a body.
+- [ ] Do not assume `default` creates a stopping boundary.
+- [ ] Use `{ }` blocks when declaring local variables inside a case.
+- [ ] Distinguish `break`, `continue`, `return`, and `yield`.
+- [ ] Handle null selectors before using standard Java 17 `switch`.
 
-**Kết luận:** Điểm khác biệt lớn nhất của `switch` dạng dấu hai chấm là **fall-through**: khi đã vào một nhãn, Java chạy tiếp các câu lệnh phía dưới cho đến khi bị ngắt hoặc hết khối. Dùng `break` có chủ đích, gom nhãn khi cần chung hành vi và cân nhắc dạng `->` để giảm nguy cơ rơi tiếp ngoài ý muốn.
+**Conclusion:** The biggest distinguishing feature of colon-style `switch` is **fall-through**: once a label is entered, Java executes the statements below sequentially until interrupted or the block ends. Use `break` deliberately, group labels when shared behavior is needed, and consider `->` to reduce the risk of unintended fall-through.

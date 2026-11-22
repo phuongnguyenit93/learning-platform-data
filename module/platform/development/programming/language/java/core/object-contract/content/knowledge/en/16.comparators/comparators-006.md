@@ -1,12 +1,12 @@
-# Comparator.nullsFirst() và Comparator.nullsLast() trong Java
+# `Comparator.nullsFirst()` and `Comparator.nullsLast()` in Java
 
-Khi sắp xếp, dữ liệu thực tế có thể chứa `null`: một phần tử `null` trong `List`, một trường chưa được điền hoặc một khóa trích xuất từ object có giá trị `null`. Nếu chuyển thẳng các giá trị đó cho một comparator không hỗ trợ `null`, ứng dụng có thể gặp `NullPointerException`. Java cung cấp hai phương thức tĩnh **`Comparator.nullsFirst()`** và **`Comparator.nullsLast()`** để quy định vị trí của `null` một cách tường minh.
+When sorting, real-world data can contain `null`: a `null` element in a `List`, an unfilled field, or a key extracted from an object whose value is `null`. Passing those values straight into a comparator that does not support `null` can cause a `NullPointerException`. Java provides two static methods—**`Comparator.nullsFirst()`** and **`Comparator.nullsLast()`**—to specify the position of `null` explicitly.
 
-Mục tiêu của bài: hiểu hợp đồng của hai phương thức, phân biệt **phần tử null** với **thuộc tính null**, kết hợp với `comparing`/`thenComparing`/`reversed`, và tránh lỗi khi dùng `List.sort`, stream hoặc `TreeSet`.
+Lesson goal: understand the contract of both methods, distinguish a **null element** from a **null property**, combine them with `comparing`/`thenComparing`/`reversed`, and avoid bugs when using `List.sort`, streams, or `TreeSet`.
 
-## 1. Ý nghĩa và chữ ký API
+## 1. Meaning and API Signatures
 
-Trong `java.util.Comparator`, hai phương thức có dạng:
+In `java.util.Comparator`, the two methods have the form:
 
 ~~~java
 public static <T> Comparator<T> nullsFirst(
@@ -16,28 +16,28 @@ public static <T> Comparator<T> nullsLast(
         Comparator<? super T> comparator);
 ~~~
 
-Đây là **chữ ký API để tham khảo**, không phải đoạn khai báo cần dán vào lớp của bạn. Chúng tạo ra **comparator mới** từ comparator được cung cấp:
+These are **API signatures for reference**, not declarations to paste into your class. They produce a **new comparator** from the provided comparator:
 
-| Tình huống | `nullsFirst(c)` | `nullsLast(c)` |
+| Situation | `nullsFirst(c)` | `nullsLast(c)` |
 |---|---|---|
-| Cả hai đều `null` | Bằng nhau: kết quả `0` | Bằng nhau: kết quả `0` |
-| Vế trái `null`, phải khác `null` | Số âm | Số dương |
-| Vế trái khác `null`, phải `null` | Số dương | Số âm |
-| Cả hai khác `null` | Giao cho `c.compare(a,b)` | Giao cho `c.compare(a,b)` |
+| Both are `null` | Equal: result `0` | Equal: result `0` |
+| Left is `null`, right is non-null | Negative number | Positive number |
+| Left is non-null, right is `null` | Positive number | Negative number |
+| Both are non-null | Delegates to `c.compare(a,b)` | Delegates to `c.compare(a,b)` |
 
-Chỉ **dấu** của kết quả so sánh là phần hợp đồng: đừng viết chương trình phụ thuộc bắt buộc nhận đúng `-1` hoặc `1`. Hai phương thức không sửa danh sách và không loại phần tử; chúng chỉ tạo **quy tắc thứ tự** để truyền vào nơi cần `Comparator<T>`.
+Only the **sign** of the comparison result is part of the contract: never write code that depends on receiving exact `-1` or `1`. The two methods do not mutate lists or remove elements; they only create an **ordering rule** to pass wherever a `Comparator<T>` is needed.
 
-Cách đọc:
+How to read them:
 
-- `Comparator.nullsFirst(Comparator.naturalOrder())`: các giá trị `null` đứng **trước**, các giá trị khác `null` tăng dần theo thứ tự tự nhiên.
-- `Comparator.nullsLast(Comparator.naturalOrder())`: các giá trị `null` đứng **sau**, các giá trị khác `null` tăng dần.
-- Phần tử không null vẫn được so bởi comparator bên trong. Hai giá trị không null có được xem ngang hàng hay không do **comparator bên trong** quyết định.
+- `Comparator.nullsFirst(Comparator.naturalOrder())`: `null` values come **first**, non-null values ascend in natural order.
+- `Comparator.nullsLast(Comparator.naturalOrder())`: `null` values come **last**, non-null values ascend.
+- Non-null elements are still compared by the inner comparator. Whether two non-null values are considered tied is decided by the **inner comparator**.
 
-`Comparator.naturalOrder()` đòi hỏi kiểu có thứ tự tự nhiên phù hợp (thường là triển khai `Comparable`). `nullsFirst`/`nullsLast` không tự cung cấp khả năng so sánh cho những object không có thứ tự.
+`Comparator.naturalOrder()` requires a type with a suitable natural order (typically implementing `Comparable`). `nullsFirst`/`nullsLast` do not themselves grant comparability to objects that lack an order.
 
-## 2. Ví dụ cơ bản: sắp danh sách có phần tử null
+## 2. Basic Example: Sorting a List Containing Null Elements
 
-Giả sử có các số nguyên đóng hộp `Integer`:
+Suppose we have boxed `Integer` values:
 
 ~~~java
 List<Integer> numbers =
@@ -50,43 +50,43 @@ numbers.sort(Comparator.nullsLast(Comparator.naturalOrder()));
 System.out.println(numbers); // [1, 2, 3, null, null]
 ~~~
 
-Đây là đoạn minh họa đặt trong `main`, cần import `List`, `ArrayList`, `Arrays`, `Comparator` trong `java.util`. `ArrayList` cho phép `null`; danh sách được tạo qua `Arrays.asList` rồi sao chép thành `ArrayList` để dễ thao tác.
+This is an illustrative snippet placed inside `main`, requiring imports of `List`, `ArrayList`, `Arrays`, and `Comparator` from `java.util`. `ArrayList` allows `null`; the list is created via `Arrays.asList` and then copied into an `ArrayList` for easy mutation.
 
-Nếu gọi `numbers.sort(Comparator.naturalOrder())` trực tiếp trên danh sách có `null`, phép so sánh theo thứ tự tự nhiên không xử lý được phần tử `null` và thường ném `NullPointerException`. Cách khắc phục là **bao comparator** bằng `nullsFirst` hoặc `nullsLast`, theo yêu cầu dữ liệu.
+If you call `numbers.sort(Comparator.naturalOrder())` directly on a list containing `null`, natural-order comparison cannot handle `null` elements and typically throws `NullPointerException`. The fix is to **wrap the comparator** with `nullsFirst` or `nullsLast`, according to data requirements.
 
-`List.of(3, null, 1)` không dùng được để tạo fixture tương tự, vì factory `List.of` từ chối `null` ngay khi tạo. Đây là chính sách của **factory collection**, độc lập với comparator.
+`List.of(3, null, 1)` cannot be used to create a similar fixture, because the `List.of` factory rejects `null` immediately upon creation. That is a policy of the **collection factory**, independent of the comparator.
 
-## 3. Hai đối tượng null và hai khóa sắp xếp null là chuyện khác nhau
+## 3. Null Objects and Null Sort Keys Are Different Things
 
-Xem một bản ghi:
+Consider a record:
 
 ~~~java
 record Employee(String name, Integer priority) {}
 ~~~
 
-Một `List<Employee>` có hai kiểu `null`:
+A `List<Employee>` can have two kinds of `null`:
 
-1. **Phần tử null**: chính biến tham chiếu `Employee` trong list là `null`.
-2. **Khóa null**: phần tử là `Employee` hợp lệ nhưng `employee.priority()` là `null`.
+1. **Null element**: the `Employee` reference itself in the list is `null`.
+2. **Null key**: the element is a valid `Employee`, but `employee.priority()` is `null`.
 
-Hai cách đặt `nullsLast` cho kết quả khác nhau:
+Two ways of placing `nullsLast` produce different results:
 
 ~~~java
-// Xử lý phần tử Employee null, còn Employee hợp lệ được so theo priority.
+// Handles null Employee elements; valid Employees are compared by priority.
 Comparator<Employee> objectNullLast =
         Comparator.nullsLast(
                 Comparator.comparing(Employee::priority));
 
-// Xử lý giá trị priority null nhưng vẫn đòi hỏi Employee khác null.
+// Handles null priority values, but still requires Employee to be non-null.
 Comparator<Employee> keyNullLast =
         Comparator.comparing(
                 Employee::priority,
                 Comparator.nullsLast(Comparator.naturalOrder()));
 ~~~
 
-Hai đoạn là snippet minh họa và cần một record `Employee` như trên. `objectNullLast` **không an toàn khi thuộc tính `priority` bị null**, vì `Comparator.comparing(Employee::priority)` mặc định so khóa theo natural ordering. `keyNullLast` xử lý được thuộc tính `priority == null`, nhưng **không an toàn nếu toàn bộ phần tử Employee là null**, vì extractor `Employee::priority` không thể gọi trên `null`.
+Both are illustrative snippets requiring an `Employee` record as above. `objectNullLast` is **unsafe when the `priority` property is null**, because `Comparator.comparing(Employee::priority)` compares keys using natural ordering by default. `keyNullLast` handles `priority == null`, but is **unsafe if the entire `Employee` element is null**, because the `Employee::priority` extractor cannot be called on `null`.
 
-Muốn xử lý **cả hai**, đặt `nullsLast` ở hai tầng:
+To handle **both**, apply `nullsLast` at two layers:
 
 ~~~java
 Comparator<Employee> byPriority =
@@ -97,20 +97,20 @@ Comparator<Employee> byPriority =
                                 Comparator.naturalOrder())));
 ~~~
 
-Comparator phía **trong** quyết định vị trí của *khóa* `priority == null` trong số các Employee không null. Comparator phía **ngoài** quyết định vị trí của *object* `Employee == null`. Đây là mô hình quan trọng nhất khi dữ liệu lồng các tham chiếu nullable.
+The **inner** comparator determines the position of a `priority == null` *key* among non-null Employees. The **outer** comparator determines the position of an `Employee == null` *object*. This is the most important pattern when data nests nullable references.
 
-Tương tự, `Comparator.comparing(Employee::name, Comparator.nullsFirst(String.CASE_INSENSITIVE_ORDER))` cho phép **tên null**, nhưng chưa cho phép **Employee null**. Nếu cần cả hai, tiếp tục bao toàn bộ comparator bằng `Comparator.nullsFirst` hoặc `nullsLast`.
+Similarly, `Comparator.comparing(Employee::name, Comparator.nullsFirst(String.CASE_INSENSITIVE_ORDER))` permits **null names**, but does not yet permit **null Employees**. If both are needed, wrap the entire comparator with `Comparator.nullsFirst` or `nullsLast` as well.
 
-## 4. Kết hợp với thenComparing để phá hòa
+## 4. Combining with `thenComparing` to Break Ties
 
-Một ứng dụng thường sắp nhân viên theo `priority` tăng dần, nhưng những người cùng mức ưu tiên nên được sắp tiếp theo tên. Quy tắc cần định nghĩa:
+An application often sorts employees by ascending `priority`, while employees at the same priority level should be further sorted by name. Rules to define:
 
-- `Employee` null đứng cuối.
-- `priority` null đứng sau các ưu tiên có số.
-- Trong cùng priority (kể cả hai khóa null), so tên tăng dần.
-- Nếu tên có thể null, phải thêm chính sách null riêng cho tên.
+- Null `Employee` comes last.
+- Null `priority` comes after numeric priorities.
+- Within the same priority (including two null keys), compare name ascending.
+- If name can also be null, add a dedicated null policy for name.
 
-Ví dụ với tên luôn không null:
+Example when name is always non-null:
 
 ~~~java
 Comparator<Employee> order =
@@ -121,9 +121,9 @@ Comparator<Employee> order =
                 .thenComparing(Employee::name));
 ~~~
 
-Đây là đoạn minh họa trong chương trình có record `Employee`. `thenComparing` chạy khi phần so sánh trước trả `0` giữa hai Employee **khác null**. Nếu cả hai priority đều null, comparator khóa trả `0`; khi ấy thứ tự theo tên mới quyết định ai đứng trước.
+This is an illustrative snippet in a program containing the `Employee` record. `thenComparing` runs when the preceding comparison returns `0` between two **non-null** Employees. If both priorities are null, the key comparator returns `0`; then ordering by name decides who comes first.
 
-Nếu tên cũng nullable, thay phần tên bằng:
+If name is also nullable, replace the name part with:
 
 ~~~java
 .thenComparing(
@@ -131,39 +131,39 @@ Nếu tên cũng nullable, thay phần tên bằng:
         Comparator.nullsLast(Comparator.naturalOrder()))
 ~~~
 
-Đây chỉ là đoạn **nối tiếp phương thức** của comparator ở trên, không phải một biểu thức Java độc lập. `thenComparing` giúp thứ tự ổn định về logic của khóa; nó **không tự xóa các bản ghi trùng**. Với `List.sort` và `Stream.sorted`, những phần tử ngang hàng theo comparator vẫn nằm trong kết quả.
+This is only a **method-chaining continuation** of the comparator above, not a standalone Java expression. `thenComparing` makes the order deterministic by key logic; it **does not automatically remove duplicate records**. With `List.sort` and `Stream.sorted`, elements tied under the comparator remain in the result.
 
-## 5. reversed() có thể đảo cả vị trí null
+## 5. `reversed()` Can Also Flip Null Placement
 
-Một nhầm lẫn thường gặp là nghĩ `reversed()` chỉ đảo tăng/giảm của giá trị không null. Trên thực tế, nó đảo **toàn bộ quan hệ thứ tự**, gồm vị trí của `null`.
+A common mistake is thinking `reversed()` only reverses the ascending/descending direction of non-null values. In reality, it reverses **the entire ordering relation**, including the position of `null`.
 
 ~~~java
 Comparator<Integer> firstAscending =
         Comparator.nullsFirst(Comparator.naturalOrder());
 
 Comparator<Integer> reversedWhole = firstAscending.reversed();
-// reversedWhole: số giảm dần, null chuyển xuống cuối.
+// reversedWhole: numbers descending, null moves to the end.
 
 Comparator<Integer> firstDescending =
         Comparator.nullsFirst(Comparator.reverseOrder());
-// firstDescending: null vẫn đứng đầu, số giảm dần.
+// firstDescending: null stays first, numbers descending.
 ~~~
 
-Vì vậy:
+Therefore:
 
-| Yêu cầu | Cách tạo comparator |
+| Requirement | How to create the comparator |
 |---|---|
-| Null đầu, số tăng | `nullsFirst(naturalOrder())` |
-| Null cuối, số tăng | `nullsLast(naturalOrder())` |
-| Null đầu, số giảm | `nullsFirst(reverseOrder())` |
-| Null cuối, số giảm | `nullsLast(reverseOrder())` |
-| Đảo hẳn một quy tắc đang có | `existingComparator.reversed()` |
+| Null first, numbers ascending | `nullsFirst(naturalOrder())` |
+| Null last, numbers ascending | `nullsLast(naturalOrder())` |
+| Null first, numbers descending | `nullsFirst(reverseOrder())` |
+| Null last, numbers descending | `nullsLast(reverseOrder())` |
+| Flip an existing rule completely | `existingComparator.reversed()` |
 
-Nếu đang có comparator nhiều tầng, gọi `reversed()` cuối cùng sẽ đảo **toàn bộ thứ tự** của nó. Để giữ vị trí null nhưng chỉ đảo một trường, hãy đảo **comparator của trường đó trước**, sau đó đưa vào `nullsFirst`/`nullsLast` tại tầng tương ứng.
+If you already have a multi-layer comparator, calling `reversed()` at the end reverses **its entire order**. To preserve null placement while reversing only one field, reverse **that field's comparator first**, then pass it into `nullsFirst`/`nullsLast` at the appropriate layer.
 
-## 6. Chương trình Java 17 chạy được
+## 6. Runnable Java 17 Program
 
-Lưu file **`ComparatorNullsDemo.java`**:
+Save the file **`ComparatorNullsDemo.java`**:
 
 ~~~java
 import java.util.ArrayList;
@@ -244,14 +244,14 @@ public class ComparatorNullsDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng **JDK 17+**:
+Compile and run with **JDK 17+**:
 
 ~~~bash
 javac ComparatorNullsDemo.java
 java ComparatorNullsDemo
 ~~~
 
-Đầu ra dự kiến:
+Expected output:
 
 ~~~text
 numbers first: [null, null, 1, 2, 3]
@@ -265,37 +265,37 @@ tree set size: 2
 tree set contains null: true
 ~~~
 
-**Đọc kết quả:**
+**Reading the results:**
 
-1. Hai comparator đầu chỉ thay vị trí của `null`, các số không null vẫn tăng dần.
-2. Comparator nhân viên có **hai lớp bảo vệ null**: trường `priority` null xếp sau số, còn phần tử `Employee` null xếp cuối danh sách. `thenComparing(Employee::name)` sắp `An` trước `Dung` (cùng priority 2) và `Binh` trước `Lan` (cùng priority null).
-3. `firstAscending.reversed()` chuyển null từ đầu xuống cuối, đồng thời đảo số sang giảm dần. Nếu muốn null vẫn đầu, hãy đặt `reverseOrder()` **bên trong** `nullsFirst`.
-4. Khi comparator truyền vào `nullsFirst` là `null`, mọi giá trị **khác null** được coi là ngang hàng (kết quả so sánh `0`), nhưng chúng đều đứng sau null.
-5. `TreeSet` được truyền comparator hỗ trợ null nên có thể chứa một null. Hai chuỗi `"An"` và `"AN"` bị coi cùng khóa vì `CASE_INSENSITIVE_ORDER.compare` trả `0`, mặc dù `String.equals` phân biệt chữ hoa/thường.
+1. The first two comparators only change the position of `null`, while non-null numbers stay ascending.
+2. The employee comparator has **two layers of null protection**: a null `priority` field sorts after numeric priorities, while a null `Employee` element goes to the very end of the list. `thenComparing(Employee::name)` orders `An` before `Dung` (both priority 2) and `Binh` before `Lan` (both priority null).
+3. `firstAscending.reversed()` moves null from the front to the end, while reversing numbers to descending. To keep null at the front, put `reverseOrder()` **inside** `nullsFirst`.
+4. When the comparator passed into `nullsFirst` is `null`, all **non-null** values are treated as equal (comparison result `0`), yet all of them come after null.
+5. `TreeSet` is supplied with a null-supporting comparator, so it can hold one null. The two strings `"An"` and `"AN"` are treated as the same key because `CASE_INSENSITIVE_ORDER.compare` returns `0`, even though `String.equals` is case-sensitive.
 
-Chú ý: kết quả `TreeSet` trong ví dụ chỉ in số phần tử và phép `contains`; không nên suy rằng mọi `TreeSet` mặc định đều cho phép null. Điều đó **phụ thuộc comparator đang dùng**.
+Note: the `TreeSet` output in the example only prints element count and `contains`; do not assume every `TreeSet` allows null by default. That **depends on the comparator in use**.
 
-## 7. Trường hợp comparator đầu vào là null
+## 7. Case Where the Input Comparator Is Null
 
-Java cho phép:
+Java permits:
 
 ~~~java
 Comparator<String> c = Comparator.nullsLast(null);
 ~~~
 
-Đây là cú pháp hợp lệ. Khi comparator đối số là **`null`**, wrapper chỉ phân biệt **null** với **khác null**; mọi giá trị khác null được xem là ngang hàng vì không có comparator nền để sắp chúng.
+This is valid syntax. When the argument comparator is **`null`**, the wrapper only distinguishes **null** from **non-null**; all non-null values are treated as tied because there is no underlying comparator to order them.
 
-Hệ quả:
+Consequences:
 
-- `c.compare("a","z") == 0` dù hai chuỗi không bằng nhau theo `String.equals`.
-- Một `TreeSet<String>` dùng `c` có thể gộp mọi chuỗi không null thành **một khóa**.
-- Các phần tử không null không có quan hệ từ điển; lựa chọn này **không thay thế** `Comparator.naturalOrder()`.
+- `c.compare("a","z") == 0` even though the two strings are unequal by `String.equals`.
+- A `TreeSet<String>` using `c` can collapse all non-null strings into **a single key**.
+- Non-null elements have no lexicographical ordering relation; this option **does not replace** `Comparator.naturalOrder()`.
 
-Trong phần lớn chương trình muốn sắp xếp có ý nghĩa, hãy cung cấp một comparator **không null** như `naturalOrder()`, `reverseOrder()` hoặc `comparing(...)`.
+In most programs that need meaningful sorting, supply a **non-null** comparator such as `naturalOrder()`, `reverseOrder()`, or `comparing(...)`.
 
-## 8. Stream, List.sort và collection có thứ tự
+## 8. Streams, `List.sort`, and Ordered Collections
 
-Cùng một comparator có thể được dùng trong nhiều API:
+The same comparator can be used across multiple APIs:
 
 ~~~java
 List<Integer> sorted = values.stream()
@@ -303,50 +303,50 @@ List<Integer> sorted = values.stream()
         .toList();
 ~~~
 
-Ở đây `values` là một `List<Integer>` đã được khai báo. `Stream.sorted` tạo stream theo thứ tự phù hợp; `toList()` nhận kết quả thành list và không yêu cầu sửa list nguồn. `List.sort(c)` sắp **trực tiếp** trên list có thể thay đổi; `Collections.sort(list, c)` dùng comparator được truyền vào.
+Here `values` is an already-declared `List<Integer>`. `Stream.sorted` produces a stream in the appropriate order; `toList()` collects the result into a list without requiring the source list to be mutated. `List.sort(c)` sorts **in place** on a mutable list; `Collections.sort(list, c)` uses the supplied comparator.
 
-Nếu dùng `TreeSet` hoặc `TreeMap`, `compare == 0` có ý nghĩa **trùng khóa**. Một comparator chỉ nhìn một thuộc tính hoặc comparator nền `null` có thể khiến nhiều object khác nhau theo `equals` bị gộp thành một. Việc xử lý `null` an toàn **không bảo đảm** comparator nhất quán với `equals`; cần kiểm tra hợp đồng và mục đích của collection.
+When using `TreeSet` or `TreeMap`, `compare == 0` means **duplicate key**. A comparator inspecting only one property or having a `null` underlying comparator can cause multiple objects that differ by `equals` to be merged into one. Safe `null` handling **does not guarantee** that the comparator is consistent with `equals`; verify the contract and intent of the collection.
 
-## 9. Các lỗi thường gặp
+## 9. Common Mistakes
 
-| Lỗi | Vì sao xảy ra | Cách xử lý |
+| Mistake | Why it happens | Fix |
 |---|---|---|
-| `naturalOrder()` gặp null | Không có chính sách cho null | Bao bằng `nullsFirst`/`nullsLast` |
-| Bao comparator ngoài nhưng khóa vẫn null | `nullsLast(comparing(...))` chỉ xử lý **object null** | Bao comparator **của khóa** bằng nullsFirst/Last |
-| Bảo vệ khóa nhưng object có thể null | Method reference trích khóa được gọi trên null | Bao toàn bộ comparator sau cùng |
-| `comparingInt(Employee::priority)` với `Integer priority` null | Unboxing `null` gây `NullPointerException` | Dùng `comparing` với comparator xử lý khóa null hoặc chọn giá trị mặc định |
-| `reversed()` làm null đổi vị trí | Đảo toàn bộ thứ tự | Đảo comparator nền **trước** khi bao null policy |
-| `nullsFirst(null)` dùng để sắp chuỗi theo chữ | Mọi giá trị không null ngang nhau | Truyền `Comparator.naturalOrder()` hoặc comparator thực sự |
-| `TreeSet` mất các object khác nhau | Comparator trả `0` cho nhiều giá trị | Thêm tie-breaker phân biệt khóa hoặc chọn collection khác |
-| Tưởng `nullsLast` lọc hết null | Wrapper chỉ quy định thứ tự | Dùng `filter(Objects::nonNull)` nếu bài toán thật sự cần loại null |
-| Tên/khóa phụ cũng null | `thenComparing` không được bảo vệ | Định nghĩa null policy cho từng khóa có thể null |
+| `naturalOrder()` encounters null | No policy for null | Wrap with `nullsFirst`/`nullsLast` |
+| Wrapping outer comparator while key is still null | `nullsLast(comparing(...))` only handles **null objects** | Wrap the **key's** comparator with nullsFirst/Last |
+| Protecting the key while the object can be null | Key-extracting method reference gets called on null | Wrap the entire comparator at the outer level |
+| `comparingInt(Employee::priority)` with null `Integer priority` | Unboxing `null` causes `NullPointerException` | Use `comparing` with a null-safe key comparator or choose a default value |
+| `reversed()` flips null placement | Reverses the entire order | Reverse the base comparator **before** wrapping the null policy |
+| `nullsFirst(null)` used to sort strings alphabetically | All non-null values tie | Pass `Comparator.naturalOrder()` or a real comparator |
+| `TreeSet` drops distinct objects | Comparator returns `0` for multiple values | Add a key-distinguishing tie-breaker or choose another collection |
+| Assuming `nullsLast` filters out nulls | The wrapper only specifies ordering | Use `filter(Objects::nonNull)` if the problem actually requires removing nulls |
+| Secondary name/key is also null | `thenComparing` is unprotected | Define a null policy for each nullable key |
 
-## 10. Chọn phương án theo yêu cầu
+## 10. Choosing a Solution by Requirement
 
-- **Null đầu, giá trị tăng dần:** `Comparator.nullsFirst(Comparator.naturalOrder())`.
-- **Null cuối, giá trị tăng dần:** `Comparator.nullsLast(Comparator.naturalOrder())`.
-- **Null cuối, giá trị giảm dần:** `Comparator.nullsLast(Comparator.reverseOrder())`.
-- **Object không null nhưng khóa nullable:** `Comparator.comparing(Foo::key, Comparator.nullsLast(Comparator.naturalOrder()))`.
-- **Cả object và khóa có thể null:** bao comparator khóa như trên, rồi `Comparator.nullsLast(...)` cho object.
-- **Nhiều khóa:** dùng `thenComparing`; đặt null policy **ở từng khóa** cần xử lý null.
+- **Null first, values ascending:** `Comparator.nullsFirst(Comparator.naturalOrder())`.
+- **Null last, values ascending:** `Comparator.nullsLast(Comparator.naturalOrder())`.
+- **Null last, values descending:** `Comparator.nullsLast(Comparator.reverseOrder())`.
+- **Non-null object, nullable key:** `Comparator.comparing(Foo::key, Comparator.nullsLast(Comparator.naturalOrder()))`.
+- **Both object and key can be null:** wrap the key comparator as above, then wrap with `Comparator.nullsLast(...)` for the object.
+- **Multiple keys:** use `thenComparing`; apply the null policy **on each key** that needs null handling.
 
-Khi kiểm thử, cần thử tối thiểu các cặp: `null/null`, `null/value`, `value/null`, hai value khác nhau, hai object không null có khóa null, hai object có cùng khóa nhưng thuộc tính phụ khác nhau, và cả đảo thứ tự với `reversed()`.
+When testing, cover at minimum these pairs: `null/null`, `null/value`, `value/null`, two distinct values, two non-null objects with null keys, two objects with the same key but different secondary attributes, and reversed ordering with `reversed()`.
 
-## 11. Tự kiểm tra
+## 11. Self-Check
 
-**Câu 1.** `Comparator.nullsFirst(Comparator.naturalOrder())` so `null` với số 5 cho kết quả gì?  
-**Đáp án:** Một số âm; null đứng trước 5. Không phụ thuộc giá trị số âm cụ thể.
+**Question 1.** What does `Comparator.nullsFirst(Comparator.naturalOrder())` return when comparing `null` with `5`?  
+**Answer:** A negative number; null comes before 5. Do not depend on a specific negative integer value.
 
-**Câu 2.** Tại sao `Comparator.nullsLast(Comparator.comparing(Employee::priority))` vẫn có thể ném exception?  
-**Đáp án:** Nó chỉ cho phép **Employee object** null. Một Employee khác null có `priority == null` vẫn gây lỗi khi so khóa theo natural ordering.
+**Question 2.** Why can `Comparator.nullsLast(Comparator.comparing(Employee::priority))` still throw an exception?  
+**Answer:** It only permits a null **Employee object**. A non-null Employee with `priority == null` still fails when comparing keys under natural ordering.
 
-**Câu 3.** Muốn sắp priority giảm dần nhưng priority null vẫn ở cuối thì dùng gì?  
-**Đáp án:** `Comparator.comparing(Employee::priority, Comparator.nullsLast(Comparator.reverseOrder()))` cho các Employee khác null; bao thêm ngoài nếu Employee có thể null.
+**Question 3.** To sort priority descending while keeping null priority at the end, what should be used?  
+**Answer:** `Comparator.comparing(Employee::priority, Comparator.nullsLast(Comparator.reverseOrder()))` for non-null Employees; add an outer wrapper if Employee itself can be null.
 
-**Câu 4.** Nếu có `Comparator<Integer> c = Comparator.nullsFirst(Comparator.naturalOrder())`, dùng `c.reversed()` còn giữ null đầu không?  
-**Đáp án:** Không. Nó đảo toàn bộ thứ tự nên null xuống cuối và các số giảm dần.
+**Question 4.** Given `Comparator<Integer> c = Comparator.nullsFirst(Comparator.naturalOrder())`, does `c.reversed()` still keep null first?  
+**Answer:** No. It reverses the entire order, moving null to the end and sorting numbers descending.
 
-**Câu 5.** `Comparator.nullsLast(null)` có so được hai String theo chữ cái không?  
-**Đáp án:** Không. Nó xem tất cả hai String khác null là ngang hàng, trả `0`.
+**Question 5.** Can `Comparator.nullsLast(null)` compare two Strings alphabetically?  
+**Answer:** No. It treats any two non-null Strings as equal, returning `0`.
 
-**Ghi nhớ:** `nullsFirst`/`nullsLast` **bọc một comparator**, đưa null lên đầu hoặc xuống cuối nhưng không tự so nội dung non-null. Với object có thuộc tính nullable, hãy đặt chính sách null **đúng tầng**, và cân nhắc hiệu ứng của `reversed`, `thenComparing` cùng collection đang sử dụng.
+**Takeaway:** `nullsFirst`/`nullsLast` **wrap a comparator**, placing null at the front or end without comparing non-null contents themselves. For objects with nullable properties, place the null policy **at the right layer**, and account for the effects of `reversed`, `thenComparing`, and the collection being used.

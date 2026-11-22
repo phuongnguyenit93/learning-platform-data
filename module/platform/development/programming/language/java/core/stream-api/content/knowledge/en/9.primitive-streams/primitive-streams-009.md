@@ -1,20 +1,20 @@
-# Thu thập Stream nguyên thủy bằng collect ba tham số
+# Collecting Primitive Streams with Three-Argument collect
 
-Trong Java Stream API, `IntStream`, `LongStream` và `DoubleStream` cho phép xử lý các giá trị nguyên thủy mà không phải chuyển từng giá trị thành `Integer`, `Long` hoặc `Double`. Các phép kết thúc có sẵn như `sum()`, `average()` và `summaryStatistics()` giải quyết nhiều nhu cầu thống kê. Tuy nhiên, khi muốn **tích lũy các giá trị vào một đối tượng kết quả tùy chỉnh**, chẳng hạn bộ đếm nhiều nhóm, cấu trúc thống kê nghiệp vụ, danh sách hoặc chuỗi định dạng, ta có thể dùng phương thức **`collect` ba tham số**.
+In the Java Stream API, `IntStream`, `LongStream`, and `DoubleStream` allow processing primitive values without converting each one into `Integer`, `Long`, or `Double`. Built-in terminal operations such as `sum()`, `average()`, and `summaryStatistics()` cover many statistical needs. However, when you want to **accumulate values into a custom result object**—such as multi-bucket counters, business statistics structures, lists, or formatted strings—you can use the **three-argument `collect` method**.
 
-Bài học thuộc chương **Stream kiểu nguyên thủy** của module `JAVA_STREAM_API`. Đây là một hình thức *mutable reduction* trong pipeline lazy: bộ tích lũy cập nhật đối tượng kết quả, còn bộ kết hợp gộp kết quả từ các phần xử lý, đặc biệt quan trọng với parallel stream. Ta sẽ học cách thiết kế ba hàm `supplier`, `accumulator`, `combiner` đúng hợp đồng, phân biệt với `Collectors` trên `Stream<T>`, đồng thời nhận diện những giới hạn về trạng thái, tràn số, tài nguyên và hiệu năng.
+This lesson belongs to the **Primitive Streams** chapter of the `JAVA_STREAM_API` module. It is a form of *mutable reduction* in a lazy pipeline: the accumulator updates a result container, while the combiner merges partial results from separate processing segments, which is especially important for parallel streams. We will learn how to design the three functions `supplier`, `accumulator`, and `combiner` according to contract, distinguish this from `Collectors` on `Stream<T>`, and recognize limits regarding state, overflow, resources, and performance.
 
-## 1. Vì sao Stream nguyên thủy có collect riêng?
+## 1. Why do primitive Streams have their own collect?
 
-Java có ba loại Stream nguyên thủy chính:
+Java has three primary primitive Stream types:
 
-| Loại Stream | Phần tử | Hàm tích lũy dùng trong `collect` |
+| Stream Type | Element | Accumulator function used in `collect` |
 | --- | --- | --- |
 | `IntStream` | `int` | `ObjIntConsumer<R>` |
 | `LongStream` | `long` | `ObjLongConsumer<R>` |
 | `DoubleStream` | `double` | `ObjDoubleConsumer<R>` |
 
-Chữ ký khái quát của `IntStream.collect`:
+General signature of `IntStream.collect`:
 
 ```java
 <R> R collect(
@@ -24,13 +24,13 @@ Chữ ký khái quát của `IntStream.collect`:
 )
 ```
 
-Với `LongStream` và `DoubleStream`, vị trí `ObjIntConsumer<R>` lần lượt được thay bằng `ObjLongConsumer<R>` và `ObjDoubleConsumer<R>`. Cả ba phương thức đã có từ **Java 8**.
+For `LongStream` and `DoubleStream`, `ObjIntConsumer<R>` is replaced by `ObjLongConsumer<R>` and `ObjDoubleConsumer<R>`, respectively. All three methods have been available since **Java 8**.
 
-Ba thành phần có nhiệm vụ độc lập:
+The three components have independent responsibilities:
 
-1. **`supplier`**: tạo **một đối tượng kết quả mới, rỗng** thuộc kiểu `R`, chẳng hạn `new ArrayList<>()`, `new long[10]` hoặc `new Stats()`.
-2. **`accumulator`**: nhận **đối tượng `R` hiện tại và một giá trị nguyên thủy**, sau đó cập nhật đối tượng. Nó có kiểu `void`, ví dụ `(list, n) -> list.add(n)`.
-3. **`combiner`**: nhận **hai đối tượng kết quả từng được tích lũy riêng**, rồi gộp kết quả thứ hai **vào đối tượng thứ nhất**. Nó cũng có kiểu `void`, ví dụ `(left, right) -> left.addAll(right)`.
+1. **`supplier`**: creates **a new, empty result object** of type `R`, such as `new ArrayList<>()`, `new long[10]`, or `new Stats()`.
+2. **`accumulator`**: receives **the current `R` object and a primitive value**, then updates the object. It returns `void`, e.g., `(list, n) -> list.add(n)`.
+3. **`combiner`**: receives **two independently accumulated result objects** and merges the second result **into the first object**. It also returns `void`, e.g., `(left, right) -> left.addAll(right)`.
 
 ```text
 IntStream: 3, 5, 7, 9
@@ -48,16 +48,16 @@ IntStream: 3, 5, 7, 9
      └── combine(A, B)┘
              │
              ▼
-       Stats tổng hợp
+      Aggregated Stats
 ```
 
-Sơ đồ minh họa một cách **có thể** phân hoạch dữ liệu khi chạy song song; Java không cam kết luôn tạo chính xác hai bộ tích lũy hay chia dữ liệu theo cách này. Khi chạy tuần tự, `combiner` có thể không được gọi.
+The diagram illustrates one **possible** way data may be partitioned during parallel execution; Java does not guarantee always creating exactly two accumulators or splitting data this way. During sequential execution, `combiner` may never be called.
 
-**Điểm phân biệt:** `IntStream` không có overload `collect(Collector)` giống `Stream<T>`. Cú pháp `IntStream.range(0, 5).collect(Collectors.toList())` sẽ **không biên dịch**. Nếu muốn dùng `Collectors.toList()` hoặc `Collectors.groupingBy()`, cần chuyển sang `Stream<Integer>` qua `boxed()`, hoặc `mapToObj(...)` nếu cần ánh xạ sang một kiểu object khác.
+**Key distinction:** `IntStream` does not have a `collect(Collector)` overload like `Stream<T>`. The syntax `IntStream.range(0, 5).collect(Collectors.toList())` **will not compile**. If you want to use `Collectors.toList()` or `Collectors.groupingBy()`, convert to `Stream<Integer>` via `boxed()`, or use `mapToObj(...)` if mapping to another object type is needed.
 
-## 2. Ví dụ đầu tiên: gom int thành List<Integer>
+## 2. First example: collecting int values into List<Integer>
 
-Cách viết dễ hiểu nhất là gom toàn bộ số nguyên vào `ArrayList<Integer>`:
+The easiest example to understand collects all integers into an `ArrayList<Integer>`:
 
 ```java
 import java.util.ArrayList;
@@ -74,15 +74,15 @@ List<Integer> numbers = IntStream.rangeClosed(1, 5)
 System.out.println(numbers); // [1, 2, 3, 4, 5]
 ```
 
-Đối chiếu mỗi dòng với hợp đồng:
+Matching each line against the contract:
 
-- `() -> new ArrayList<Integer>()` tạo danh sách riêng để tích lũy.
-- `(list, n) -> list.add(n)` thêm một `int` vào danh sách, với việc **boxing** thành `Integer` vì `List<Integer>` lưu object.
-- `(left, right) -> left.addAll(right)` gộp hai danh sách; không cần trả về danh sách nào vì `BiConsumer` trả `void`.
+- `() -> new ArrayList<Integer>()` creates a separate list for accumulation.
+- `(list, n) -> list.add(n)` adds an `int` to the list, **boxing** it into `Integer` since `List<Integer>` stores objects.
+- `(left, right) -> left.addAll(right)` merges two lists; no list needs to be returned because `BiConsumer` returns `void`.
 
-Viết bằng method reference sẽ ngắn hơn, nhưng cách có lambda thể hiện rõ hai đối số của `accumulator` và `combiner`. Có thể chọn kiểu cụ thể `ArrayList<Integer>` làm kết quả nếu muốn tránh nhầm suy luận generic.
+Using method references is shorter, while lambdas make the two arguments of `accumulator` and `combiner` explicit. You can pick a concrete type like `ArrayList<Integer>` as the target if you want to avoid generic type inference ambiguity.
 
-Nếu mục tiêu chỉ là giữ toàn bộ `int` nguyên thủy, `toArray()` diễn đạt trực tiếp hơn và tránh boxing:
+If the goal is merely keeping all primitive `int` values, `toArray()` expresses intent more directly and avoids boxing:
 
 ```java
 int[] primitiveValues = IntStream.rangeClosed(1, 5).toArray();
@@ -90,76 +90,76 @@ System.out.println(java.util.Arrays.toString(primitiveValues));
 // [1, 2, 3, 4, 5]
 ```
 
-Không nên dùng `collect` chỉ vì có thể; hãy bắt đầu từ kết quả muốn biểu diễn. `List<Integer>` cần object; `int[]` và các phép kết thúc số học có thể tiết kiệm bộ nhớ và chi phí boxing trong nhiều trường hợp.
+Do not use `collect` just because you can; start from the result you want to represent. `List<Integer>` requires objects; `int[]` and numeric terminal operations can save memory and boxing overhead in many cases.
 
-## 3. Ba tham số có hợp đồng gì khi xử lý song song?
+## 3. What contract must the three parameters satisfy for parallel processing?
 
-`collect` là *mutable reduction*. Nó cho phép tạo một số bộ chứa cục bộ, đưa phần tử vào từng bộ chứa, rồi gộp chúng thành kết quả chung. Để kết quả đúng khi số lượng và cách chia nhánh thay đổi, ba hàm phải có các đặc tính sau.
+`collect` is *mutable reduction*. It allows creating multiple local containers, feeding elements into each container, and merging them into a combined result. For results to remain correct when the number and partitioning of branches vary, the three functions must satisfy the following properties.
 
-### 3.1. Supplier tạo đối tượng mới mỗi lần gọi
+### 3.1. Supplier creates a new object on every call
 
-Đúng:
+Right:
 
 ```java
 () -> new ArrayList<Integer>()
 ```
 
-Sai:
+Wrong:
 
 ```java
 List<Integer> shared = new ArrayList<>();
 
-// SAI: mọi lần gọi supplier đều trả cùng một đối tượng.
+// WRONG: every supplier invocation returns the exact same object.
 () -> shared
 ```
 
-Nếu supplier trả lại cùng một bộ chứa, các nhánh song song có thể ghi vào cùng đối tượng không an toàn luồng; ngay cả khi không có race, việc gộp kết quả của một đối tượng với chính nó cũng có thể tạo phần tử trùng lặp. `supplier` phải tạo một **kết quả độc lập** ở mỗi lần được gọi.
+If the supplier returns the same container, parallel branches can write to the same thread-unsafe object; even without a race, merging an object's contents with itself can duplicate elements. `supplier` must create an **independent container** on every invocation.
 
-### 3.2. Accumulator cập nhật bộ chứa được nhận
+### 3.2. Accumulator mutates the container it receives
 
-Đúng:
+Right:
 
 ```java
 (list, n) -> list.add(n)
 ```
 
-Sai khi kỳ vọng thay thế kết quả:
+Wrong when expecting to replace the result:
 
 ```java
-// SAI: đổi tham chiếu tham số cục bộ không thay kết quả collect.
+// WRONG: reassigning the local parameter does not change the collect result.
 (list, n) -> list = new ArrayList<Integer>()
 ```
 
-`accumulator` là `ObjIntConsumer<R>`, không trả `R`. Vì vậy nó cần **thay đổi trạng thái đối tượng bộ chứa** theo hợp đồng của kiểu `R`. Không dùng biến đếm ngoài Stream để “giữ kết quả” thay cho bộ chứa được cấp.
+`accumulator` is an `ObjIntConsumer<R>` and does not return `R`. Therefore, it must **mutate the state of the container object** according to `R`'s contract. Do not use an external counter outside the Stream to “hold the result” instead of the provided container.
 
-### 3.3. Combiner gộp dữ liệu vào đối tượng thứ nhất
+### 3.3. Combiner merges data into the first object
 
-Đúng:
+Right:
 
 ```java
 (left, right) -> left.addAll(right)
 ```
 
-Sai:
+Wrong:
 
 ```java
-// SAI: gán lại biến left cục bộ; dữ liệu không được gộp.
+// WRONG: reassigning local variable left; data is not merged.
 (left, right) -> left = right
 ```
 
-`combiner` cần gộp **cả hai phần kết quả** và giữ đúng đặc tính toán học. Nó không được giả định chỉ có một bộ chứa hoặc luôn được gọi đúng một lần.
+`combiner` must merge **both partial results** and preserve mathematical properties. It must not assume there is only one container or that it is always called a fixed number of times.
 
-### 3.4. Đồng nhất và kết hợp được
+### 3.4. Identity and associativity
 
-Ta có thể tưởng tượng bộ chứa rỗng do `supplier` tạo ra là phần tử **đơn vị**. Gộp với bộ chứa rỗng không được làm thay đổi ý nghĩa kết quả. Việc gộp ba nhánh theo `(A + B) + C` hoặc `A + (B + C)` phải cho kết quả tương đương về mặt nghiệp vụ.
+You can think of the empty container produced by `supplier` as the **identity** element. Merging with an empty container must not alter the meaning of the result. Merging three branches as `(A + B) + C` or `A + (B + C)` must produce semantically equivalent business results.
 
-Đối với danh sách dùng phép nối, toán tử là **nối dãy**, có tính kết hợp và giữ thứ tự trong từng nhánh. Đối với thống kê tổng, toán tử gộp phải cộng **tổng với tổng** và **số lượng với số lượng**. Không được lấy trung bình của các số trung bình mà bỏ qua số lượng phần tử ở từng nhánh.
+For lists combined by concatenation, the operator is **sequence concatenation**, which is associative and preserves order within each branch. For sum statistics, the merge operator must add **sum to sum** and **count to count**. Never average averages while ignoring element counts in each branch.
 
-Đồng thời, cách gộp hai kết quả phải tương thích với cách accumulator thêm từng phần tử. Nếu kết quả sau khi gộp khác với việc thêm lần lượt toàn bộ phần tử vào một bộ chứa, thiết kế có thể hỏng khi bật `parallel()`.
+Furthermore, how two results are merged must be compatible with how the accumulator adds individual elements. If merging yields a different result from adding all elements sequentially into a single container, the design can break when `parallel()` is enabled.
 
-## 4. Ví dụ thực tế: thống kê count, sum và average trong một lượt
+## 4. Practical example: computing count, sum, and average in one pass
 
-Giả sử cần đếm số giao dịch, cộng tổng giá trị và tính trung bình. Ta có thể thiết kế bộ chứa `Stats` tự tích lũy:
+Suppose we need to count transactions, sum values, and compute the average. We can design a self-accumulating `Stats` container:
 
 ```java
 import java.util.stream.IntStream;
@@ -191,22 +191,22 @@ System.out.println(stats.sum);       // 24
 System.out.println(stats.average()); // 6.0
 ```
 
-Ý nghĩa của từng tham số:
+Meaning of each parameter:
 
-| Tham số | Trên bộ chứa `Stats` |
+| Parameter | On the `Stats` container |
 | --- | --- |
-| `supplier` | `Stats::new` tạo `count = 0`, `sum = 0` |
-| `accumulator` | `Stats::add` nhận một `int` rồi tăng `count`, cộng `sum` |
-| `combiner` | `Stats::combine` cộng hai bộ đếm và hai tổng |
-| Terminal result | Một `Stats` đã gộp có thể được dùng để tính trung bình |
+| `supplier` | `Stats::new` initializes `count = 0`, `sum = 0` |
+| `accumulator` | `Stats::add` takes an `int`, increments `count`, and adds to `sum` |
+| `combiner` | `Stats::combine` adds two counts and two sums |
+| Terminal result | The merged `Stats` instance can be queried for the average |
 
-`sum` dùng `long` thay vì `int` để mở rộng miền giá trị cộng; tuy vậy **`long` vẫn có thể tràn** nếu tổng rất lớn. Nếu cần chính xác tuyệt đối vượt miền 64 bit, cân nhắc `BigInteger` hoặc cơ chế kiểm tra tràn số tùy yêu cầu.
+`sum` uses `long` rather than `int` to expand the additive domain; however, **`long` can still overflow** if the total is huge. If exact precision beyond 64 bits is required, consider `BigInteger` or overflow checks as needed.
 
-Điều quan trọng hơn là **không tính trung bình của mỗi nhánh rồi lấy trung bình cộng các nhánh**. Ví dụ các nhánh `[10, 20]` và `[100]` có trung bình lần lượt 15 và 100. Kết hợp sai bằng `(15 + 100) / 2 = 57.5`; trung bình thực của ba giá trị là `130 / 3 ≈ 43.33`. Bộ chứa `(sum, count)` gộp được một cách đúng đắn, rồi mới tính trung bình cuối cùng.
+More importantly, **do not compute the average of each branch and then take the arithmetic mean of the branch averages**. For example, branches `[10, 20]` and `[100]` have averages 15 and 100, respectively. Combining them wrongly as `(15 + 100) / 2 = 57.5`; the true average of the three values is `130 / 3 ≈ 43.33`. A `(sum, count)` container merges properly first, and only then computes the final average.
 
-### Khi nào nên dùng summaryStatistics()?
+### When should you use summaryStatistics()?
 
-Nếu chỉ cần thống kê cơ bản của `int`, Java đã có `IntSummaryStatistics`:
+If you only need basic statistics for `int`, Java already provides `IntSummaryStatistics`:
 
 ```java
 import java.util.IntSummaryStatistics;
@@ -222,11 +222,11 @@ System.out.println(s.getMin());     // 3
 System.out.println(s.getMax());     // 9
 ```
 
-Tự viết `Stats` hợp lý khi nghiệp vụ cần **thêm nhiều trường hoặc logic riêng**, chẳng hạn đếm số giao dịch bị từ chối, lưu histogram, phát hiện số ngày có doanh thu dương, hay phân loại theo ngưỡng. Để lấy đúng năm số liệu cơ bản trên, `summaryStatistics()` ngắn và dễ bảo trì hơn.
+Writing a custom `Stats` makes sense when business logic needs **extra fields or custom rules**, such as counting rejected transactions, storing a histogram, tracking days with positive revenue, or classifying by thresholds. To obtain just those five basic metrics above, `summaryStatistics()` is shorter and easier to maintain.
 
-## 5. Gom số vào các nhóm: histogram bằng long[]
+## 5. Grouping numbers into buckets: a histogram using long[]
 
-Đây là ví dụ nơi `collect` ba tham số thực sự phát huy lợi ích của Stream nguyên thủy. Giả sử điểm kiểm tra trong đoạn **0–100** và cần đếm theo mười nhóm điểm: 0–9, 10–19, ..., 90–100.
+This is an example where three-argument `collect` truly shines on primitive Streams. Suppose exam scores are in the range **0–100** and we want to count them across ten score buckets: 0–9, 10–19, ..., 90–100.
 
 ```java
 import java.util.Arrays;
@@ -254,20 +254,20 @@ System.out.println(Arrays.toString(histogram));
 // [1, 2, 1, 0, 0, 0, 0, 0, 0, 2]
 ```
 
-Giải thích:
+Explanation:
 
-- `supplier` tạo **mảng đếm riêng**, đã khởi tạo 0 cho mỗi nhánh.
-- `accumulator` xác định nhóm và tăng ô tương ứng. Điểm 100 được đưa vào nhóm cuối nhờ `Math.min`.
-- `combiner` cộng từng ô của mảng bên phải vào mảng bên trái.
-- `filter` loại giá trị nằm ngoài miền hợp lệ trước khi đưa vào nhóm. Quy tắc bỏ điểm ngoài miền là **quyết định nghiệp vụ của ví dụ**, không phải hành vi mặc định của `collect`.
+- `supplier` allocates a **fresh counter array** initialized to zeros for each branch.
+- `accumulator` determines the bucket and increments that slot. A score of 100 goes into the last bucket thanks to `Math.min`.
+- `combiner` adds each slot of the right array into the left array.
+- `filter` discards out-of-range values before bucketing. Dropping out-of-range scores is **this example's business rule**, not a default behavior of `collect`.
 
-Số lượng nhóm được cố định và ít, nên bộ nhớ dành cho mỗi bộ chứa là `O(10)`. Trong chế độ song song, nhiều bộ chứa có thể tồn tại đồng thời; việc tạo quá nhiều nhánh vẫn có chi phí. Mảng `long[]` tránh phải tạo một `Integer` làm khóa mỗi lần cập nhật như cách gom theo `Map<Integer,Long>`, nhưng đánh đổi bằng việc các nhóm phải xác định trước.
+The number of buckets is small and fixed, so memory per container is `O(10)`. In parallel mode, multiple containers can exist simultaneously; creating too many branches still has overhead. The `long[]` array avoids allocating an `Integer` key on every update as a `Map<Integer,Long>` grouping would, at the trade-off of requiring known, fixed buckets upfront.
 
-Khi **không** biết trước các nhóm, hoặc cần gom bằng khóa object phức tạp, có thể thích hợp hơn nếu dùng `boxed()` hoặc `mapToObj(...)` kết hợp `Collectors.groupingBy(...)`. Không nên ép mọi bài toán vào mảng chỉ để tránh boxing.
+When buckets are **not** known in advance, or when grouping by complex object keys is needed, using `boxed()` or `mapToObj(...)` with `Collectors.groupingBy(...)` may be more appropriate. Do not force every problem into an array solely to avoid boxing.
 
-## 6. Tạo chuỗi kết quả với StringJoiner
+## 6. Building a string result with StringJoiner
 
-`collect` có thể tích lũy vào đối tượng khác List hoặc mảng. Ví dụ tạo chuỗi gồm các số nguyên cách nhau bởi dấu phẩy:
+`collect` can accumulate into objects other than Lists or arrays. For example, building a comma-separated string of integers:
 
 ```java
 import java.util.StringJoiner;
@@ -283,13 +283,13 @@ StringJoiner joined = IntStream.rangeClosed(1, 5)
 System.out.println(joined.toString()); // [1, 2, 3, 4, 5]
 ```
 
-`StringJoiner::merge` cũng có thể làm combiner. Khác với việc nối chuỗi bằng `String` bất biến nhiều lần, `StringJoiner` là một đối tượng có thể cập nhật. Đặc điểm này phù hợp cho mutable reduction. Ở ví dụ tuần tự có encounter order, kết quả giữ thứ tự 1 đến 5.
+`StringJoiner::merge` also works as a combiner. Unlike concatenating immutable `String` values repeatedly, `StringJoiner` is a mutable object. This property fits mutable reduction. In the sequential example with encounter order, the result preserves order 1 to 5.
 
-Khi bật parallel stream, điều kiện để kết quả duy trì thứ tự gặp phần tử vẫn là Stream có encounter order và combiner gộp các nhánh đúng thứ tự. Không dùng `unordered()` hoặc giả định thứ tự gọi accumulator là thứ tự cuối cùng. Nếu phải tạo một chuỗi cực lớn, cần cân nhắc bộ nhớ của chuỗi kết quả; Stream nguyên thủy không làm biến mất chi phí tạo văn bản.
+When `parallel` is enabled, preserving encounter order still requires the Stream to have an encounter order and the combiner to merge branches in order. Do not use `unordered()` or assume accumulator call order is the final order. If building an enormous string, consider the memory of the resulting string; primitive Streams do not eliminate text-creation costs.
 
-## 7. Áp dụng với LongStream và DoubleStream
+## 7. Applying to LongStream and DoubleStream
 
-Cùng một mô hình ba tham số xuất hiện ở cả `LongStream` và `DoubleStream`. Ví dụ dùng bộ thống kê có sẵn làm đối tượng mutable reduction:
+The same three-argument model appears on both `LongStream` and `DoubleStream`. Example using built-in statistics objects for mutable reduction:
 
 ```java
 import java.util.LongSummaryStatistics;
@@ -308,7 +308,7 @@ System.out.println(longStats.getCount()); // 2
 System.out.println(longStats.getSum());   // 30000000000
 ```
 
-Với `DoubleStream`:
+With `DoubleStream`:
 
 ```java
 import java.util.DoubleSummaryStatistics;
@@ -322,28 +322,28 @@ DoubleSummaryStatistics doubleStats = DoubleStream.of(1.5, 2.5, 3.0)
         );
 
 System.out.println(doubleStats.getCount());   // 3
-System.out.println(doubleStats.getAverage()); // gần 2.3333333333333335
+System.out.println(doubleStats.getAverage()); // near 2.3333333333333335
 ```
 
-Lưu ý với số thực: `double` dùng biểu diễn dấu phẩy động hữu hạn. Phép cộng không kết hợp hoàn toàn theo toán học khi làm tròn, nên kết quả tổng/trung bình **có thể khác chút ít** khi thay đổi cách phân hoạch hoặc thứ tự thực thi, nhất là với các giá trị rất lớn và rất nhỏ trộn lẫn. Ngay cả `DoubleStream.sum()` cũng có những giới hạn độ chính xác của số thực; nếu nghiệp vụ yêu cầu số tiền chính xác theo đơn vị nhỏ nhất hoặc số thập phân chính xác, cân nhắc `long` theo đơn vị nhỏ nhất hoặc `BigDecimal` với chính sách làm tròn rõ ràng.
+Note on floating-point numbers: `double` uses finite floating-point representation. Addition is not strictly mathematically associative when rounding occurs, so sum/average results **can differ slightly** when partitioning or execution order changes, especially with very large and very small values mixed together. Even `DoubleStream.sum()` has floating-point precision limits; if business rules require exact currency in minor units or exact decimals, consider `long` minor units or `BigDecimal` with an explicit rounding policy.
 
-Không dùng `DoubleStream.collect` như một bảo đảm rằng kết quả sẽ giống từng bit giữa tuần tự và song song. Bộ tích lũy phải có hành vi gộp hợp lý, còn độ chính xác số học phải được thiết kế theo yêu cầu.
+Do not treat `DoubleStream.collect` as a guarantee of bit-for-bit identical results between sequential and parallel runs. The accumulator must merge cleanly, while numeric precision must be designed according to requirements.
 
-## 8. So sánh collect ba tham số và các API khác
+## 8. Comparing three-argument collect with other APIs
 
-| Nhu cầu | API hợp lý | Ghi chú |
+| Need | Suitable API | Notes |
 | --- | --- | --- |
-| Tính tổng `int`, `long`, `double` | `sum()` | Ngắn gọn; kiểm tra tràn và sai số theo kiểu số |
-| Trung bình của `IntStream` | `average()` | Trả `OptionalDouble` vì Stream có thể rỗng |
-| Min/max | `min()` / `max()` | Trả kiểu Optional nguyên thủy |
-| Count/sum/min/max/average | `summaryStatistics()` | Đã có bộ thống kê tích lũy |
-| Giữ mọi phần tử dưới dạng nguyên thủy | `toArray()` | Kết quả `int[]`, `long[]` hoặc `double[]` |
-| Biến mỗi `int` thành object rồi dùng Collector | `mapToObj(...).collect(Collectors...)` | Trả `Stream<R>` để dùng Collector |
-| Giữ các số vào `List<Integer>` | `boxed().collect(Collectors.toList())` hoặc `collect(...)` ba tham số | Boxing không thể tránh khi tạo List kiểu wrapper |
-| Tính histogram cố định hoặc nhiều chỉ số tùy chỉnh | `collect(supplier, accumulator, combiner)` | Chủ động thiết kế mutable container và phép gộp |
-| Gom nhóm theo khóa linh hoạt, downstream collector phức tạp | `boxed().collect(Collectors.groupingBy(...))` | Dễ diễn đạt nhưng có boxing |
+| Sum `int`, `long`, or `double` | `sum()` | Concise; watch overflow and error per numeric type |
+| Average of `IntStream` | `average()` | Returns `OptionalDouble` since Stream may be empty |
+| Min/max | `min()` / `max()` | Returns primitive Optional type |
+| Count/sum/min/max/average | `summaryStatistics()` | Built-in summary accumulator |
+| Keep all elements as primitives | `toArray()` | Produces `int[]`, `long[]`, or `double[]` |
+| Turn each `int` into an object then use Collector | `mapToObj(...).collect(Collectors...)` | Returns `Stream<R>` to use Collectors |
+| Collect numbers into `List<Integer>` | `boxed().collect(Collectors.toList())` or 3-arg `collect(...)` | Boxing is unavoidable when creating a wrapper List |
+| Fixed histogram or multiple custom metrics | `collect(supplier, accumulator, combiner)` | Full control over mutable container and merge operation |
+| Grouping by flexible keys, complex downstream collectors | `boxed().collect(Collectors.groupingBy(...))` | Expressive, though incurs boxing |
 
-Ví dụ với `Collectors` yêu cầu chuyển kiểu:
+Example with `Collectors` requiring type conversion:
 
 ```java
 import java.util.List;
@@ -357,7 +357,7 @@ List<Integer> values = IntStream.rangeClosed(1, 5)
 System.out.println(values); // [1, 2, 3, 4, 5]
 ```
 
-Nếu mỗi số cần trở thành một object cụ thể, `mapToObj` tránh bước boxed rồi map thành object:
+If each number must become a specific object, `mapToObj` avoids boxing and then mapping to an object:
 
 ```java
 List<String> labels = IntStream.rangeClosed(1, 3)
@@ -367,13 +367,13 @@ List<String> labels = IntStream.rangeClosed(1, 3)
 System.out.println(labels); // [item-1, item-2, item-3]
 ```
 
-Các `Collector` dựng bằng `Collector.of(...)` có các tham số riêng, có thể khai báo *characteristics* và hỗ trợ downstream collecting. Nhưng overload ba tham số của `IntStream` **không nhận `Collector`**, và combiner của nó có kiểu `BiConsumer<R,R>` thay vì `BinaryOperator<R>` thường gặp trong `Collector.of`. Không chuyển nguyên xi mã combiner có `return left` sang đây khi thiết kế lambda.
+`Collector`s built with `Collector.of(...)` have their own parameters, can declare *characteristics*, and support downstream collecting. However, the three-argument overload on `IntStream` **does not accept a `Collector`**, and its combiner has type `BiConsumer<R,R>` instead of the `BinaryOperator<R>` commonly seen in `Collector.of`. Do not copy a combiner containing `return left` verbatim here when writing lambdas.
 
-## 9. Lỗi quan trọng khi bật parallel()
+## 9. Critical mistakes when enabling parallel()
 
-Parallel stream làm lộ những thiết kế combiner sai mà pipeline tuần tự chưa thể hiện.
+Parallel streams expose broken combiner designs that sequential pipelines may hide.
 
-### Sai: giữ mutable container bên ngoài
+### Wrong: holding an external mutable container
 
 ```java
 import java.util.ArrayList;
@@ -382,13 +382,13 @@ import java.util.stream.IntStream;
 
 List<Integer> shared = new ArrayList<>();
 
-// SAI: tác dụng phụ lên shared từ nhiều nhánh.
+// WRONG: side effects on shared from multiple branches.
 IntStream.range(0, 10_000)
         .parallel()
         .forEach(shared::add);
 ```
 
-`ArrayList` không được bảo vệ cho ghi đồng thời, nên có thể thiếu phần tử, lỗi hoặc trạng thái sai. Dùng `collect` với supplier tạo container mới và combiner phù hợp:
+`ArrayList` is not protected for concurrent writes, so it can drop elements, throw exceptions, or end up in a corrupted state. Use `collect` with a supplier creating fresh containers and a proper combiner:
 
 ```java
 List<Integer> safe = IntStream.range(0, 10_000)
@@ -400,12 +400,12 @@ List<Integer> safe = IntStream.range(0, 10_000)
         );
 ```
 
-Mỗi nhánh có thể cập nhật bộ chứa riêng, rồi bộ kết hợp gộp kết quả. Không cần sử dụng `Collections.synchronizedList` để che giấu việc supplier dùng chung một object; sửa đúng cách tạo và gộp mới là giải pháp.
+Each branch updates its own container, and the combiner merges results. Do not use `Collections.synchronizedList` to mask a supplier returning a shared object; creating and merging properly is the real fix.
 
-### Sai: combiner bỏ dữ liệu bên phải
+### Wrong: combiner discards the right-hand data
 
 ```java
-// SAI: combiner không thực hiện bất kỳ phép gộp nào.
+// WRONG: combiner performs no merging at all.
 IntStream.rangeClosed(1, 100)
         .parallel()
         .collect(
@@ -415,27 +415,27 @@ IntStream.rangeClosed(1, 100)
         );
 ```
 
-Kết quả khi chạy tuần tự có thể giống mong đợi vì combiner không được gọi, nhưng song song có thể mất tổng của các nhánh. Sửa bằng `(left, right) -> left[0] += right[0]`.
+Sequential execution may appear to give the expected result because the combiner is never invoked, yet parallel execution can lose sums from sub-branches. Fix with `(left, right) -> left[0] += right[0]`.
 
-### Sai: tính toán không kết hợp được
+### Wrong: non-associative computation
 
-Các phép như trừ liên tiếp hoặc chia liên tiếp không thích hợp cho combiner tùy ý:
+Operations such as repeated subtraction or repeated division are unsuitable for arbitrary combiners:
 
 ```java
-// Ví dụ sai về ý nghĩa nếu muốn thực hiện phép trừ liên tiếp:
-// Không thể giả định kết hợp kết quả các nhánh bằng phép trừ
-// sẽ tương đương duyệt lần lượt toàn bộ giá trị.
+// Semantically wrong example if trying to perform sequential subtraction:
+// You cannot assume combining branch results with subtraction
+// equals traversing all values in order.
 ```
 
-Với bài toán tính trung bình, phân vị, phương sai, tỷ lệ hoặc tỉ suất, cần lưu **thống kê đủ** trong container (như `sum`, `count` và các thành phần khác), rồi tính chỉ số ở bước cuối. Nếu phép toán không có cách gộp đúng hợp đồng, không nên ép chạy parallel bằng một combiner tùy ý.
+For computing averages, quantiles, variances, ratios, or rates, store **sufficient statistics** in the container (such as `sum`, `count`, and other components), and derive the metric at the final step. If an operation has no contract-compliant merge rule, do not force parallel execution with an ad-hoc combiner.
 
-### Chi phí và kích thước nguồn
+### Overhead and source size
 
-Ngay cả combiner đúng cũng không bảo đảm parallel nhanh hơn. Song song có thêm chi phí tách công việc, tạo bộ chứa, kết hợp nhánh và tranh chấp tài nguyên CPU/bộ nhớ. Với vài chục phần tử, một vòng lặp hoặc Stream tuần tự thường đơn giản hơn; với tập lớn và mỗi phần tử xử lý đủ nặng, parallel có thể có lợi. Cần đo trên JDK và dữ liệu thực, không suy đoán dựa vào số lõi CPU.
+Even a valid combiner does not guarantee parallel execution is faster. Parallelism adds work-splitting, container-allocation, branch-merging, and CPU/memory contention costs. For a few dozen elements, a loop or sequential Stream is usually simpler; for large datasets with heavy per-element work, parallel can pay off. Measure on the real JDK and data rather than guessing from CPU core count.
 
-## 10. Hợp đồng lifecycle: terminal collect vẫn không tự đóng nguồn I/O
+## 10. Lifecycle contract: terminal collect still does not close I/O sources
 
-`collect` là terminal operation. Khi gọi, pipeline bắt đầu được tiêu thụ và không được sử dụng lại; **nhưng terminal operation không tự gọi `close()` trên nguồn I/O**. Nếu pipeline nguyên thủy bắt nguồn từ `Files.lines`, cần đóng Stream tệp ở phạm vi sở hữu tài nguyên.
+`collect` is a terminal operation. Once invoked, the pipeline is consumed and cannot be reused; **however, the terminal operation does not automatically call `close()` on I/O sources**. If a primitive pipeline originates from `Files.lines`, close the file Stream at the resource-owning scope.
 
 ```java
 import java.io.IOException;
@@ -454,13 +454,13 @@ static Stats summarizeNumbers(Path file) throws IOException {
 }
 ```
 
-Ví dụ giả định tệp chứa các dòng là số nguyên hợp lệ hoặc dòng rỗng. Nếu gặp một dòng sai định dạng, `Integer.parseInt` sẽ ném `NumberFormatException` và `try-with-resources` vẫn đóng Stream tệp. Lỗi đọc giữa pipeline lazy có thể xuất hiện dưới dạng `UncheckedIOException`. Trong chương trình thật, cần nêu chính sách xử lý dòng lỗi: bỏ qua có chủ đích, ghi nhận hoặc dừng xử lý.
+The example assumes the file contains valid integer lines or blank lines. If a malformed line is encountered, `Integer.parseInt` throws `NumberFormatException` and `try-with-resources` still closes the file Stream. Read errors during lazy pipeline traversal may surface as `UncheckedIOException`. In real programs, state the policy for malformed lines: skip intentionally, log/record, or abort processing.
 
-Tài nguyên nằm ở **Stream nguồn ngoài** do `Files.lines` tạo; việc chuyển sang `IntStream` bằng `mapToInt` không khiến tệp tự giải phóng khi `collect` hoàn tất. Không trả một Stream đã bị đóng ra ngoài khối `try` để người gọi tiếp tục duyệt.
+The resource resides in the **outer source Stream** created by `Files.lines`; converting to `IntStream` via `mapToInt` does not make the file release itself when `collect` finishes. Never return a closed Stream outside the `try` block for the caller to traverse later.
 
-## 11. Ví dụ tổng hợp: thống kê kết quả kiểm tra
+## 11. Combined example: exam result statistics
 
-Yêu cầu: từ dãy điểm có thể chứa dữ liệu nằm ngoài phạm vi `0..100`, cần thống kê **số lượng hợp lệ**, **số lượng đạt (>= 50)** và **tổng điểm hợp lệ** trong một lượt duyệt.
+Requirement: from a sequence of scores that may include out-of-range values outside `0..100`, compute **valid count**, **passing count (>= 50)**, and **total valid score** in a single pass.
 
 ```java
 import java.util.Arrays;
@@ -501,20 +501,20 @@ System.out.println(result.totalScore); // 259
 System.out.println(result.average());  // 51.8
 ```
 
-Bước `filter` thể hiện quy tắc bỏ điểm ngoài miền, trước khi ghi vào bộ thống kê. Accumulator chỉ xử lý **một điểm `int` mỗi lần**; combiner gộp từng thành phần độc lập và giữ nguyên đơn vị. Đổi `Arrays.stream(input)` thành `Arrays.stream(input).parallel()` không đòi hỏi sửa công thức thống kê vì `ExamStats::combine` thỏa quy tắc gộp này (trong phạm vi không tràn số).
+The `filter` step expresses the rule to drop out-of-range scores before feeding the statistics container. The accumulator processes **one `int` score at a time**; the combiner sums each component independently while preserving units. Changing `Arrays.stream(input)` to `Arrays.stream(input).parallel()` requires no change to the statistics formula because `ExamStats::combine` satisfies this merge rule (within non-overflow bounds).
 
-Nếu cần phân biệt “dữ liệu không hợp lệ” với “bị bỏ qua” để xuất báo cáo kiểm toán, không nên loại bỏ bằng `filter` một cách âm thầm. Có thể thay bằng bộ tích lũy có cả trường `invalid` và xử lý trực tiếp từng điểm để đếm đầy đủ.
+If you need to distinguish “invalid data” from “skipped” for an audit report, do not silently drop them via `filter`. Instead, use an accumulator with an `invalid` field and handle every score directly for complete accounting.
 
-## 12. Tự kiểm tra
+## 12. Self-check
 
-1. Tại sao `IntStream.collect(Collectors.toList())` không biên dịch? **Vì** `IntStream.collect` yêu cầu **ba hàm** `supplier`, `ObjIntConsumer`, `BiConsumer`; overload nhận `Collector` thuộc `Stream<T>`.
-2. Trong bộ tích lũy List, `supplier` có thể trả cùng một `ArrayList` cho mọi lời gọi không? **Không**, mỗi lần cần tạo bộ chứa độc lập.
-3. Vì sao combiner `(left, right) -> {}` nguy hiểm? **Vì** kết quả từ nhánh bên phải bị mất khi pipeline cần gộp song song.
-4. Nếu chỉ cần `int[]`, chọn `collect` hay `toArray()`? **`toArray()`** thường trực tiếp và tránh boxing hơn.
-5. `IntSummaryStatistics` có cần tự viết combiner không? **Không** nếu gọi `summaryStatistics()`; có thể dùng `IntSummaryStatistics::combine` khi cố ý gọi `collect` ba tham số.
-6. Khi tính trung bình song song, tại sao lưu `sum` và `count` tốt hơn gộp hai `average` bằng trung bình cộng? **Vì** các nhánh có thể có số phần tử khác nhau.
-7. `collect` chạy xong trên `Files.lines` đã đóng tệp chưa? **Chưa**; đóng Stream nguồn qua `try-with-resources`.
-8. Tại sao kiểu `long` trong bộ tích lũy vẫn cần kiểm tra miền dữ liệu? **Vì** phép cộng `long` vẫn có thể tràn nếu tổng vượt giới hạn.
-9. `DoubleStream.collect` có bảo đảm kết quả tổng từng bit giống nhau giữa tuần tự và song song không? **Không**; phép cộng dấu phẩy động bị ảnh hưởng bởi thứ tự và cách nhóm.
+1. Why does `IntStream.collect(Collectors.toList())` fail to compile? **Because** `IntStream.collect` requires **three functions**: `supplier`, `ObjIntConsumer`, and `BiConsumer`; the overload taking `Collector` belongs to `Stream<T>`.
+2. In a List accumulator, can `supplier` return the exact same `ArrayList` on every call? **No**, each call must return an independent container.
+3. Why is the combiner `(left, right) -> {}` dangerous? **Because** results from the right-hand branch are lost whenever the pipeline performs parallel merging.
+4. If you only need an `int[]`, should you pick `collect` or `toArray()`? **`toArray()`** is usually more direct and avoids boxing.
+5. Do you need to write a combiner yourself for `IntSummaryStatistics`? **No** when calling `summaryStatistics()`; you can pass `IntSummaryStatistics::combine` if explicitly invoking three-argument `collect`.
+6. When computing an average in parallel, why is storing `sum` and `count` better than averaging two branch `average` values? **Because** branches can have different element counts.
+7. Has `collect` running on `Files.lines` closed the file? **No**; close the source Stream via `try-with-resources`.
+8. Why does a `long` field inside an accumulator still need data-range checks? **Because** `long` addition can still overflow if the total exceeds its limit.
+9. Does `DoubleStream.collect` guarantee bit-for-bit identical sum results between sequential and parallel runs? **No**; floating-point addition is affected by ordering and grouping.
 
-**Nguyên tắc áp dụng:** Dùng `collect(supplier, accumulator, combiner)` khi Stream nguyên thủy cần xây dựng **một kết quả mutable tùy chỉnh**. Supplier tạo trạng thái mới, accumulator thêm một giá trị, combiner gộp đúng hai trạng thái; ba hàm phải nhất quán để hoạt động chính xác với cả tuần tự và song song. Khi đã có `sum()`, `toArray()` hoặc `summaryStatistics()` đáp ứng nhu cầu, ưu tiên API chuyên dụng để đơn giản và giảm lỗi.
+**Practical rule:** Use `collect(supplier, accumulator, combiner)` when a primitive Stream needs to construct **a custom mutable result**. The supplier creates a fresh state, the accumulator adds one value, and the combiner properly merges two states; all three functions must be consistent to work correctly in both sequential and parallel modes. When `sum()`, `toArray()`, or `summaryStatistics()` already meets the need, prefer the specialized API for simplicity and fewer bugs.

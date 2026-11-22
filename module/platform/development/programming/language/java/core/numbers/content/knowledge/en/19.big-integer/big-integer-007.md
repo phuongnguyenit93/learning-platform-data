@@ -1,21 +1,21 @@
-# BigInteger.pow, sqrt, sqrtAndRemainder và gcd trong Java
+# BigInteger.pow, sqrt, sqrtAndRemainder, and gcd in Java
 
-## 1. Mục tiêu bài học
+## 1. Lesson Goal
 
-**java.math.BigInteger** là lớp số nguyên có độ chính xác tùy ý trong Java. Thay vì bị giới hạn ở 32 bit của int hoặc 64 bit của long, nó có thể biểu diễn và tính toán số nguyên rất lớn trong giới hạn bộ nhớ và khả năng xử lý của môi trường.
+**java.math.BigInteger** is Java's arbitrary-precision integer class. Rather than being limited to 32 bits of `int` or 64 bits of `long`, it can represent and compute with very large integers within the memory and processing limits of the environment.
 
-Bài này tập trung vào bốn phương thức:
+This lesson focuses on four methods:
 
-- **pow(int exponent)**: tính lũy thừa nguyên với số mũ nguyên **không âm**.
-- **sqrt()**: lấy **căn bậc hai nguyên**, tức phần nguyên dưới của căn bậc hai số không âm.
-- **sqrtAndRemainder()**: đồng thời lấy **căn bậc hai nguyên** và **phần dư** so với bình phương căn nguyên.
-- **gcd(BigInteger val)**: ước chung lớn nhất (greatest common divisor) của hai số nguyên, kể cả đầu vào âm hoặc 0.
+- **pow(int exponent)**: computes integer exponentiation with a **non-negative** integer exponent.
+- **sqrt()**: takes the **integer square root**, i.e., the floor integer part of the square root of a non-negative number.
+- **sqrtAndRemainder()**: simultaneously obtains the **integer square root** and the **remainder** relative to the square of that integer root.
+- **gcd(BigInteger val)**: greatest common divisor of two integers, including negative or 0 inputs.
 
-Điểm chung là **kết quả nguyên chính xác**, không cần đổi sang double và không phải chấp nhận mất chữ số do số dấu phẩy động. Bạn sẽ học định nghĩa, giới hạn đầu vào, trường hợp biên, cách kết hợp các phương thức, tối ưu có căn cứ và kiểm thử bằng chương trình Java 17+.
+What they share is **exact integer results**, without needing to convert to `double` or accept digit loss from floating-point numbers. You will learn definitions, input bounds, edge cases, combining methods, justified optimizations, and testing with a Java 17+ program.
 
-## 2. Ôn lại BigInteger: bất biến và tính toán chính xác
+## 2. Reviewing BigInteger: Immutability and Exact Arithmetic
 
-Tạo BigInteger bằng chuỗi thập phân hoặc một giá trị long:
+Create a `BigInteger` from a decimal string or a `long` value:
 
 ~~~java
 import java.math.BigInteger;
@@ -25,70 +25,70 @@ BigInteger b = BigInteger.valueOf(42);
 BigInteger sum = a.add(b);
 ~~~
 
-Các phép tính **không sửa** a và b. BigInteger là kiểu đối tượng **immutable**: mỗi phương thức trả về một giá trị kết quả theo quy tắc API, còn toán hạng ban đầu không đổi. Với các hằng hay dùng, sử dụng **BigInteger.ZERO**, **ONE**, **TWO**, **TEN** (TWO có từ Java 9).
+Operations **do not modify** `a` and `b`. `BigInteger` is an **immutable** object type: each method returns a result value according to API rules while the original operands remain unchanged. For common constants, use **BigInteger.ZERO**, **ONE**, **TWO**, **TEN** (`TWO` since Java 9).
 
-Đừng viết:
+Do not write:
 
 ~~~java
-// Không hợp lệ: BigInteger không có phép cộng toán tử + giữa các đối tượng.
+// Invalid: BigInteger does not have the + operator between objects.
 // BigInteger invalid = a + b;
 ~~~
 
-Hãy dùng a.add(b), a.multiply(b), a.pow(...). Đặc tính bất biến cũng có nghĩa:
+Use `a.add(b)`, `a.multiply(b)`, `a.pow(...)`. Immutability also means:
 
 ~~~java
 BigInteger x = BigInteger.valueOf(3);
-x.pow(4);                 // kết quả bị bỏ qua
-System.out.println(x);   // vẫn là 3
+x.pow(4);                 // result is discarded
+System.out.println(x);   // still 3
 BigInteger y = x.pow(4);  // 81
 ~~~
 
-### Vì sao không chuyển qua double?
+### Why Not Convert Through `double`?
 
-Dạng double chỉ có khoảng **53 bit chính xác** trong significand; các số nguyên lớn không luôn được biểu diễn đúng. Ví dụ một số có hàng trăm chữ số có thể vượt hẳn miền hữu hạn của double. Khi muốn căn bậc hai nguyên hoặc gcd **chính xác** trên số lớn, hãy giữ dữ liệu ở BigInteger, không đi qua Math.sqrt(double).
+The `double` type has only about **53 bits of precision** in its significand; large integers cannot always be represented accurately. For example, a number with hundreds of digits can completely exceed the finite range of `double`. When wanting an **exact** integer square root or gcd on large numbers, keep the data in `BigInteger` rather than routing through `Math.sqrt(double)`.
 
-## 3. So sánh nhanh bốn API
+## 3. Quick Comparison of the Four APIs
 
-| Phương thức | Input | Output | Ý nghĩa toán học | Trường hợp cần lưu ý |
+| Method | Input | Output | Mathematical meaning | Cases to watch |
 | --- | --- | --- | --- | --- |
-| **a.pow(e)** | e kiểu **int**, e ≥ 0 | BigInteger | a^e chính xác | e âm → ArithmeticException |
-| **n.sqrt()** | n ≥ 0 | BigInteger | floor(√n) | n âm → ArithmeticException |
-| **n.sqrtAndRemainder()** | n ≥ 0 | BigInteger[2] | [s, n−s²], s=floor(√n) | n âm → ArithmeticException |
-| **a.gcd(b)** | a, b là BigInteger | BigInteger | gcd(|a|,|b|) không âm | gcd(0,0) = 0 |
+| **a.pow(e)** | `e` of type **int**, e ≥ 0 | BigInteger | exact a^e | negative `e` → ArithmeticException |
+| **n.sqrt()** | n ≥ 0 | BigInteger | floor(√n) | negative `n` → ArithmeticException |
+| **n.sqrtAndRemainder()** | n ≥ 0 | BigInteger[2] | [s, n−s²], s=floor(√n) | negative `n` → ArithmeticException |
+| **a.gcd(b)** | a, b are BigInteger | BigInteger | non-negative gcd(|a|,|b|) | gcd(0,0) = 0 |
 
-**pow** đã có từ các phiên bản Java rất sớm. **sqrt** và **sqrtAndRemainder** được giới thiệu từ **Java 9**; trong Java 17 chúng có sẵn. **gcd** cũng có sẵn trong Java 17.
+**pow** has existed since very early Java versions. **sqrt** and **sqrtAndRemainder** were introduced in **Java 9**; in Java 17 they are available. **gcd** is also available in Java 17.
 
-Chữ **floor** nghĩa là lấy số nguyên lớn nhất không vượt giá trị thực. Với n=200, √200 xấp xỉ 14.142..., nên kết quả **sqrt() bằng 14**, không phải số thập phân 14.142.
+The word **floor** means taking the greatest integer not exceeding the real value. For n=200, √200 is approximately 14.142..., so **sqrt() equals 14**, not the decimal 14.142.
 
-## 4. pow(int exponent): lũy thừa số nguyên chính xác
+## 4. pow(int exponent): Exact Integer Exponentiation
 
-Với BigInteger a và số mũ e không âm:
+For a `BigInteger` `a` and non-negative exponent `e`:
 
 \[
-a^e = \underbrace{a\times a\times\dots\times a}_{e\text{ thừa số}}
+a^e = \underbrace{a\times a\times\dots\times a}_{e\text{ factors}}
 \]
 
-Phương thức:
+Method:
 
 ~~~java
 BigInteger base = BigInteger.valueOf(12);
 BigInteger result = base.pow(5); // 248832
 ~~~
 
-Kết quả là BigInteger chính xác. Không có overflow 32/64 bit trong phép nhân nội bộ theo cách int hoặc long thường gặp; tuy nhiên nếu kết quả quá lớn so với bộ nhớ hay giới hạn triển khai, thao tác vẫn có thể không thực hiện được.
+The result is an exact `BigInteger`. There is no 32/64-bit overflow in internal multiplications as commonly happens with `int` or `long`; however, if the result is too large for memory or implementation limits, the operation can still fail to complete.
 
-### Số mũ là int, không phải BigInteger
+### The Exponent Is `int`, Not `BigInteger`
 
-Chữ ký là **BigInteger pow(int exponent)**:
+The signature is **BigInteger pow(int exponent)**:
 
 ~~~java
 BigInteger x = BigInteger.valueOf(7);
 BigInteger y = x.pow(4); // 2401
 ~~~
 
-Không có overload **pow(BigInteger)** với ý nghĩa lũy thừa tổng quát. Nếu bạn có một BigInteger làm số mũ, phải thiết kế lại thuật toán hoặc chuyển về int với kiểm tra **intValueExact()** nếu thật sự thỏa giới hạn. Không biến một số mũ cực lớn thành int bằng intValue() rồi cho rằng kết quả vẫn đúng: thao tác đó có thể mất bit.
+There is no **pow(BigInteger)** overload for general exponentiation. If you have a `BigInteger` as an exponent, you must redesign the algorithm or convert to `int` with an **intValueExact()** check if it genuinely satisfies the bound. Never turn an enormous exponent into `int` with `intValue()` and assume the result is still right: that operation can lose bits.
 
-### Dấu âm theo tính chẵn lẻ của số mũ
+### Negative Sign by Parity of the Exponent
 
 \[
 (-3)^4=81,\qquad (-3)^5=-243
@@ -100,11 +100,11 @@ BigInteger even = minusThree.pow(4); // 81
 BigInteger odd = minusThree.pow(5);  // -243
 ~~~
 
-Đối với cơ số âm, số mũ chẵn tạo kết quả không âm, số mũ lẻ tạo kết quả âm. Với cơ số dương, kết quả dương khi số mũ dương.
+For a negative base, an even exponent produces a non-negative result and an odd exponent produces a negative result. For a positive base, the result is positive when the exponent is positive.
 
-### Các trường hợp 0 và số mũ 0
+### Cases of 0 and Exponent 0
 
-Trong API BigInteger:
+In the `BigInteger` API:
 
 ~~~java
 BigInteger a = BigInteger.ZERO.pow(0); // 1
@@ -112,85 +112,85 @@ BigInteger b = BigInteger.ZERO.pow(5); // 0
 BigInteger c = BigInteger.TEN.pow(0);  // 1
 ~~~
 
-Theo quy ước của phép lũy thừa nguyên trong API, **0.pow(0) trả BigInteger.ONE**. Đừng nhầm quy ước lập trình này với việc tìm giới hạn giải tích tại (0,0): đó là câu hỏi toán học khác.
+By the API's integer exponentiation convention, **0.pow(0) returns BigInteger.ONE**. Do not confuse this programming convention with taking an analytic limit at (0,0): that is a different mathematical question.
 
-### Số mũ âm là không hợp lệ
+### Negative Exponents Are Invalid
 
 ~~~java
 BigInteger base = BigInteger.valueOf(2);
 // base.pow(-1) -> ArithmeticException
 ~~~
 
-Đối với số nguyên, **2^−1=1/2** không còn thuộc tập số nguyên. BigInteger.pow không trả phân số hoặc số thập phân, và **ném ArithmeticException khi exponent < 0**. Nếu bài toán cần số mũ âm, hãy thiết kế biểu diễn phân số/BigDecimal hoặc thuật toán cụ thể; không ép kiểu ngầm.
+For integers, **2^−1=1/2** no longer belongs to the set of integers. `BigInteger.pow` does not return fractions or decimals, and **throws ArithmeticException when exponent < 0**. If the problem requires negative exponents, design a fraction/`BigDecimal` representation or a specific algorithm; do not implicitly coerce types.
 
-### pow khác Math.pow
+### `pow` Differs from `Math.pow`
 
-| Đặc điểm | BigInteger.pow | Math.pow |
+| Feature | BigInteger.pow | Math.pow |
 | --- | --- | --- |
-| Cơ số | BigInteger | double |
-| Số mũ | int không âm | double |
-| Kết quả | BigInteger nguyên chính xác | double, có thể làm tròn |
-| Số cực lớn | Không bị chặn bởi 64 bit, vẫn có giới hạn tài nguyên | Có thể overflow thành Infinity |
-| Số mũ âm | Không hỗ trợ; ArithmeticException | Có hỗ trợ theo ngữ nghĩa double |
+| Base | BigInteger | double |
+| Exponent | non-negative int | double |
+| Result | Exact integer BigInteger | double, subject to rounding |
+| Very large numbers | Not capped at 64 bits, still resource-bounded | Can overflow to Infinity |
+| Negative exponents | Unsupported; ArithmeticException | Supported under double semantics |
 
-Ví dụ **BigInteger.TEN.pow(20)** cho chính xác **100000000000000000000**. Dùng **Math.pow(10,20)** trả một double có biểu diễn riêng, và khi áp dụng sang số nguyên lớn nói chung không có bảo đảm giữ mọi chữ số.
+For example, **BigInteger.TEN.pow(20)** yields exact **100000000000000000000**. Calling **Math.pow(10,20)** returns a `double` with its own representation, and when applied to large integers in general there is no guarantee of keeping every digit.
 
-### Không tự dùng vòng lặp nhân ngây thơ cho kết quả khổng lồ
+### Do Not Write Naive Multiplication Loops for Giant Results
 
-Có thể viết vòng lặp nhân để minh họa toán học, nhưng BigInteger.pow đã được tối ưu theo đặc điểm kiểu. Một số mũ rất lớn có thể tạo kết quả có hàng triệu bit hoặc hơn. Với **input không đáng tin cậy**, kiểm tra số mũ và giới hạn độ dài kết quả **trước** khi chạy; không dựa vào việc BigInteger có độ chính xác tùy ý để bỏ giới hạn tài nguyên.
+You can write a multiplication loop for mathematical illustration, but `BigInteger.pow` is already optimized for the type's characteristics. A very large exponent can generate a result with millions of bits or more. For **untrusted input**, validate the exponent and bound output length **before** running; do not rely on `BigInteger`'s arbitrary precision to omit resource limits.
 
-## 5. sqrt(): căn bậc hai nguyên, không phải căn thập phân
+## 5. sqrt(): Integer Square Root, Not Decimal Root
 
-Với n là BigInteger không âm, đặt:
+For a non-negative `BigInteger` `n`, let:
 
 \[
 s=\lfloor\sqrt n\rfloor
 \]
 
-Khi đó s là **số nguyên không âm lớn nhất thỏa s² ≤ n**. Định nghĩa tương đương:
+Then `s` is the **largest non-negative integer satisfying s² ≤ n**. Equivalent definition:
 
 \[
 s^2\le n <(s+1)^2
 \]
 
-Ví dụ:
+Examples:
 
-| n | √n trong toán học | n.sqrt() |
+| n | √n in mathematics | n.sqrt() |
 | ---: | ---: | ---: |
 | 0 | 0 | 0 |
 | 1 | 1 | 1 |
-| 2 | xấp xỉ 1.414... | 1 |
-| 15 | xấp xỉ 3.873... | 3 |
+| 2 | approx. 1.414... | 1 |
+| 15 | approx. 3.873... | 3 |
 | 16 | 4 | 4 |
-| 17 | xấp xỉ 4.123... | 4 |
+| 17 | approx. 4.123... | 4 |
 | 81 | 9 | 9 |
-| 200 | xấp xỉ 14.142... | 14 |
+| 200 | approx. 14.142... | 14 |
 
 ~~~java
 BigInteger n = BigInteger.valueOf(200);
 BigInteger floorRoot = n.sqrt(); // 14
 ~~~
 
-**sqrt() không trả double**, không làm tròn đến số nguyên gần nhất, cũng không lấy ceiling. Nó lấy **floor** của căn bậc hai không âm.
+**sqrt() does not return a double**, does not round to the nearest integer, and does not take the ceiling. It takes the **floor** of the non-negative square root.
 
-### Tại sao phải dùng BigInteger.sqrt thay vì Math.sqrt(double)?
+### Why Use `BigInteger.sqrt` Instead of `Math.sqrt(double)`?
 
-Nếu n có hàng chục hoặc hàng trăm chữ số, việc chuyển sang double có thể **làm tròn n**, thậm chí thành **Infinity**. Áp dụng Math.sqrt lên giá trị đã đổi kiểu rồi cast kết quả về long/int không thể khôi phục thông tin đã mất.
+If `n` has tens or hundreds of digits, converting to `double` can **round `n`**, or even turn it into **Infinity**. Applying `Math.sqrt` to the converted value and casting back to `long`/`int` cannot recover lost information.
 
-Ngay cả khi double còn hữu hạn, phép làm tròn có thể khiến căn của một số rất gần số chính phương trở thành một số nguyên **không đúng**. BigInteger.sqrt tính đúng kết quả nguyên của **chính n**, không dựa vào xấp xỉ double làm kết quả đầu ra.
+Even when `double` remains finite, rounding can cause the root of a number very close to a perfect square to become an **incorrect** integer. `BigInteger.sqrt` computes the exact integer result of **`n` itself**, without relying on a `double` approximation as the output.
 
-### sqrt của số âm
+### `sqrt` of a Negative Number
 
 ~~~java
 BigInteger negative = BigInteger.valueOf(-4);
 // negative.sqrt() -> ArithmeticException
 ~~~
 
-BigInteger là số nguyên thực có dấu, không phải số phức. Với **n < 0**, sqrt() ném **ArithmeticException**. Hãy kiểm tra **n.signum() >= 0** nếu giao diện cần lỗi có thông điệp riêng.
+`BigInteger` represents real signed integers, not complex numbers. For **n < 0**, `sqrt()` throws **ArithmeticException**. Check **n.signum() >= 0** if the interface needs a custom error message.
 
-### Kiểm tra số chính phương
+### Checking for a Perfect Square
 
-Số chính phương là số dạng k² với k nguyên. Với n ≥ 0:
+A perfect square is a number of the form k² with integer `k`. For n ≥ 0:
 
 ~~~java
 static boolean isPerfectSquare(BigInteger n) {
@@ -202,22 +202,22 @@ static boolean isPerfectSquare(BigInteger n) {
 }
 ~~~
 
-Đây là phương thức minh họa cần đặt bên trong class và import **java.math.BigInteger**. Với n=81, s=9, phép so sánh trả true. Với n=200, s=14, 14²=196 khác 200, trả false.
+This is an illustrative method to be placed inside a class with `import java.math.BigInteger`. For n=81, s=9, the comparison returns `true`. For n=200, s=14, 14²=196 differs from 200, returning `false`.
 
-Một cách có thể tận dụng API tiếp theo là dùng **sqrtAndRemainder()[1].signum() == 0** trên n không âm.
+An alternative using the next API is **sqrtAndRemainder()[1].signum() == 0** on non-negative `n`.
 
-## 6. sqrtAndRemainder(): lấy đồng thời căn nguyên và phần dư
+## 6. sqrtAndRemainder(): Getting Integer Root and Remainder Together
 
-Với n ≥ 0:
+For n ≥ 0:
 
 \[
 s=\lfloor\sqrt n\rfloor,\qquad r=n-s^2
 \]
 
-**BigInteger.sqrtAndRemainder()** trả **mảng BigInteger[] gồm chính xác hai phần tử**:
+**BigInteger.sqrtAndRemainder()** returns a **`BigInteger[]` array of exactly two elements**:
 
-- **result[0]** là s, căn bậc hai nguyên.
-- **result[1]** là r, phần dư khi trừ đi s².
+- **result[0]** is `s`, the integer square root.
+- **result[1]** is `r`, the remainder after subtracting s².
 
 ~~~java
 BigInteger n = BigInteger.valueOf(200);
@@ -227,33 +227,33 @@ BigInteger s = pair[0]; // 14
 BigInteger r = pair[1]; // 4
 ~~~
 
-Phải gọi **r = n−s²**, **không phải** phép chia lấy dư như **n % s**. Ví dụ 200 chia 14 dư 4 trùng ngẫu nhiên trong ví dụ này, nhưng về tổng quát hai định nghĩa không đồng nhất.
+Be sure to call **`r = n−s²`**, **not** division remainder like **`n % s`**. For example, 200 modulo 14 being 4 is merely a coincidence in this example, and the two definitions are not identical in general.
 
-Lấy n=99 để thấy rõ:
+Take n=99 to see clearly:
 
 ~~~java
 BigInteger[] pair = BigInteger.valueOf(99).sqrtAndRemainder();
 // s = 9, r = 99-81 = 18
-// Nhưng 99 % 9 = 0. Hai loại "remainder" khác nhau.
+// Yet 99 % 9 = 0. Two different kinds of "remainder".
 ~~~
 
-### Các bất biến toán học quan trọng
+### Important Mathematical Invariants
 
-Do s=floor(√n):
+Because s=floor(√n):
 
 \[
 s^2\le n <(s+1)^2=s^2+2s+1
 \]
 
-Suy ra:
+Hence:
 
 \[
 n=s^2+r,\qquad 0\le r<2s+1
 \]
 
-Vì r nguyên, có thể viết **0 ≤ r ≤ 2s**.
+Since `r` is an integer, this can be written **0 ≤ r ≤ 2s**.
 
-Dùng bất biến này để kiểm tra kết quả:
+Use this invariant to verify results:
 
 ~~~java
 BigInteger[] qr = n.sqrtAndRemainder();
@@ -265,33 +265,33 @@ boolean validRange = r.signum() >= 0
         && r.compareTo(s.shiftLeft(1).add(BigInteger.ONE)) < 0;
 ~~~
 
-Đoạn code minh họa nằm trong method với **n ≥ 0** đã khai báo; **shiftLeft(1)** nhân s với 2. Mọi bước đều là BigInteger, không lo tràn int/long trong phép nhân/tổng.
+The illustrative snippet sits inside a method with **n ≥ 0** already declared; **shiftLeft(1)** multiplies `s` by 2. Every step uses `BigInteger`, avoiding `int`/`long` overflow in multiplication/addition.
 
-### Khi nào dùng sqrtAndRemainder thay sqrt?
+### When to Use `sqrtAndRemainder` Instead of `sqrt`?
 
-- Cần đồng thời **căn nguyên** và **phần dư**.
-- Cần kiểm tra **số chính phương** (r=0).
-- Cần một bất biến đầu ra để kiểm thử thuật toán số nguyên.
-- Muốn biết n nằm **cách bình phương nguyên lớn nhất không vượt n bao xa**.
+- Need both the **integer root** and the **remainder**.
+- Need to check for a **perfect square** (r=0).
+- Need an output invariant to test integer algorithms.
+- Want to know **how far `n` is from the largest integer square not exceeding `n`**.
 
-Ví dụ:
+Examples:
 
-| n | s = floor(√n) | r = n−s² | n là số chính phương? |
+| n | s = floor(√n) | r = n−s² | Is n a perfect square? |
 | ---: | ---: | ---: | --- |
-| 0 | 0 | 0 | Có |
-| 1 | 1 | 0 | Có |
-| 2 | 1 | 1 | Không |
-| 81 | 9 | 0 | Có |
-| 99 | 9 | 18 | Không |
-| 200 | 14 | 4 | Không |
+| 0 | 0 | 0 | Yes |
+| 1 | 1 | 0 | Yes |
+| 2 | 1 | 1 | No |
+| 81 | 9 | 0 | Yes |
+| 99 | 9 | 18 | No |
+| 200 | 14 | 4 | No |
 
-sqrtAndRemainder() cũng **ném ArithmeticException cho số âm**. Nếu chỉ cần s, dùng sqrt() là trực tiếp và rõ ràng hơn.
+`sqrtAndRemainder()` also **throws ArithmeticException for negative numbers**. If only `s` is needed, calling `sqrt()` is more direct and clearer.
 
-## 7. gcd(BigInteger): ước chung lớn nhất
+## 7. gcd(BigInteger): Greatest Common Divisor
 
-**gcd** là viết tắt của **greatest common divisor**, tiếng Việt là **ước chung lớn nhất**. Đối với hai số nguyên a, b không cùng bằng 0, gcd(a,b) là số nguyên dương lớn nhất chia hết cả hai.
+**gcd** stands for **greatest common divisor**. For two integers `a`, `b` not both zero, `gcd(a,b)` is the largest positive integer dividing both.
 
-Ví dụ:
+Example:
 
 ~~~java
 BigInteger a = BigInteger.valueOf(54);
@@ -299,11 +299,11 @@ BigInteger b = BigInteger.valueOf(24);
 BigInteger g = a.gcd(b); // 6
 ~~~
 
-Các ước chung dương của 54 và 24 gồm 1, 2, 3, 6; số lớn nhất là 6.
+The positive common divisors of 54 and 24 are 1, 2, 3, 6; the largest is 6.
 
-### Số âm không làm gcd âm
+### Negative Numbers Do Not Make `gcd` Negative
 
-**BigInteger.gcd** luôn trả số **không âm**, về bản chất:
+**BigInteger.gcd** always returns a **non-negative** number; fundamentally:
 
 \[
 \gcd(a,b)=\gcd(|a|,|b|)
@@ -314,9 +314,9 @@ BigInteger g = BigInteger.valueOf(-54)
         .gcd(BigInteger.valueOf(24)); // 6
 ~~~
 
-Nếu cả hai toán hạng khác 0, gcd trả số dương. Với một toán hạng 0, gcd trả độ lớn tuyệt đối của toán hạng còn lại.
+If either operand is nonzero, `gcd` returns a positive number. With one operand equal to 0, `gcd` returns the absolute magnitude of the other operand.
 
-### Các trường hợp zero
+### Zero Cases
 
 | a | b | a.gcd(b) |
 | ---: | ---: | ---: |
@@ -327,31 +327,31 @@ Nếu cả hai toán hạng khác 0, gcd trả số dương. Với một toán h
 | 0 | 0 | **0** |
 | 101 | 24 | 1 |
 
-Trong lý thuyết số có thể có những cách nói khác nhau về gcd(0,0), nhưng **API BigInteger.gcd(0,0) định nghĩa trả 0**. Không tự ném exception cho trường hợp này nếu muốn bám sát hành vi API.
+In number theory there may be different conventions for `gcd(0,0)`, but **the BigInteger.gcd(0,0) API defines it to return 0**. Do not throw your own exception for this case if you want to stay faithful to API behavior.
 
-**Gcd bằng 1** nghĩa là hai số **nguyên tố cùng nhau** (*coprime*), không nhất thiết từng số đều là số nguyên tố.
+**A gcd equal to 1** means the two numbers are **coprime**, without either number necessarily being prime itself.
 
-### Vì sao gcd phù hợp với số rất lớn?
+### Why Is `gcd` Suitable for Very Large Numbers?
 
-Thuật toán Euclid dựa trên phép chia lấy dư:
+The Euclidean algorithm relies on division with remainder:
 
 \[
 \gcd(a,b)=\gcd(b,a\bmod b)
 \]
 
-Lặp cho đến khi số dư bằng 0. Java cung cấp BigInteger.gcd đã triển khai sẵn, nên không cần tự viết phiên bản dựa trên int/long rồi vô tình overflow hoặc làm mất các chữ số lớn.
+Repeating until the remainder is 0. Java provides `BigInteger.gcd` built-in, so you do not need to write an `int`/`long`-based version that accidentally overflows or drops large digits.
 
-Ví dụ nếu đầu vào có hàng trăm chữ số, không chuyển về long để tính gcd. Giữ BigInteger và gọi a.gcd(b).
+For example, if inputs have hundreds of digits, do not convert to `long` to compute `gcd`. Keep them as `BigInteger` and call `a.gcd(b)`.
 
-## 8. Ứng dụng kết hợp: rút gọn phân số bằng gcd
+## 8. Combined Application: Reducing Fractions Using `gcd`
 
-Cho phân số a/b với **b ≠ 0**. Nếu g=gcd(a,b) thì:
+Given a fraction a/b with **b ≠ 0**. If g=gcd(a,b) then:
 
 \[
 \frac{a}{b}=\frac{a/g}{b/g}
 \]
 
-Ví dụ **84/30** có gcd bằng 6 nên rút gọn thành **14/5**:
+For example, **84/30** has gcd 6, so it reduces to **14/5**:
 
 ~~~java
 BigInteger numerator = BigInteger.valueOf(84);
@@ -365,25 +365,25 @@ BigInteger reducedNumerator = numerator.divide(g);   // 14
 BigInteger reducedDenominator = denominator.divide(g); // 5
 ~~~
 
-Đây là đoạn minh họa bên trong method. BigInteger.divide chia nguyên và ở đây **chia hết** vì g là ước chung.
+This is an illustrative snippet inside a method. `BigInteger.divide` performs integer division and here **divides evenly** because `g` is a common divisor.
 
-Để có biểu diễn phân số chuẩn, thường quy định **mẫu số dương**: nếu denominator âm, đổi dấu cả tử và mẫu trước hoặc sau bước rút gọn. Nếu numerator=0, gcd(0,b)=|b|, nên phân số 0/b có thể chuẩn hóa thành 0/1 (khi đã chuẩn hóa dấu mẫu).
+For a canonical fraction representation, a **positive denominator** is usually required: if the denominator is negative, flip the signs of both numerator and denominator before or after reduction. If `numerator=0`, `gcd(0,b)=|b|`, so the fraction `0/b` normalizes to `0/1` (once the denominator sign is normalized).
 
-**Cảnh báo:** gcd(0,0)=0, nhưng 0/0 vẫn là phân số không hợp lệ; phải kiểm tra mẫu số bằng 0 **trước** khi chia cho gcd.
+**Warning:** `gcd(0,0)=0`, yet `0/0` is still an invalid fraction; check for a zero denominator **before** dividing by `gcd`.
 
-## 9. Ứng dụng kết hợp: bội chung nhỏ nhất (LCM)
+## 9. Combined Application: Least Common Multiple (LCM)
 
-Bội chung nhỏ nhất của hai số nguyên a, b có thể tính từ gcd:
+The least common multiple of two integers `a`, `b` can be computed from `gcd`:
 
 \[
 \operatorname{lcm}(a,b)=
 \begin{cases}
-0,&a=0\text{ hoặc }b=0\\
-\left|\frac{a}{\gcd(a,b)}\times b\right|,&\text{ngược lại}
+0,&a=0\text{ or }b=0\\
+\left|\frac{a}{\gcd(a,b)}\times b\right|,&\text{otherwise}
 \end{cases}
 \]
 
-Để tránh tạo ra trung gian lớn hơn mức cần thiết, **chia cho gcd trước rồi mới nhân**:
+To avoid producing an intermediate value larger than necessary, **divide by gcd first and then multiply**:
 
 ~~~java
 static BigInteger lcm(BigInteger a, BigInteger b) {
@@ -394,51 +394,51 @@ static BigInteger lcm(BigInteger a, BigInteger b) {
 }
 ~~~
 
-Đây là phương thức minh họa cần đặt bên trong class. Ví dụ lcm(84,30)=420; với đầu vào âm, **abs()** đảm bảo kết quả không âm. Với BigInteger, nhân không bị overflow kiểu long nhưng vẫn có chi phí bộ nhớ/CPU, nên giảm trung gian có ích.
+This is an illustrative method to place inside a class. For example, `lcm(84,30)=420`; for negative inputs, **`abs()`** ensures a non-negative result. With `BigInteger`, multiplication does not suffer `long`-style overflow, yet still incurs memory/CPU cost, so shrinking intermediates helps.
 
-## 10. pow với số rất lớn: giới hạn CPU và bộ nhớ
+## 10. `pow` with Very Large Numbers: CPU and Memory Limits
 
-Có thể tạo giá trị **10^1.000.000** bằng BigInteger.TEN.pow(1_000_000) nếu môi trường đủ tài nguyên, nhưng kết quả sẽ có hơn một triệu chữ số thập phân. Vấn đề không còn là overflow 64 bit mà là:
+You can construct **10^1,000,000** with `BigInteger.TEN.pow(1_000_000)` if the environment has sufficient resources, but the result will have over one million decimal digits. The issue is no longer 64-bit overflow, but rather:
 
-- Kích thước đối tượng, nhu cầu heap và bộ nhớ tạm.
-- Thời gian tính lũy thừa và thời gian chuyển giá trị sang chuỗi.
-- Khả năng bị người dùng lợi dụng số mũ cực lớn làm tiêu hao tài nguyên.
-- Giới hạn nội bộ của BigInteger và cấu hình JVM.
+- Object size, heap demand, and temporary memory.
+- Time to compute the power and time to convert the value to a string.
+- Risk of users exploiting huge exponents to exhaust resources.
+- Internal `BigInteger` limits and JVM configuration.
 
-Một ước lượng gần đúng cho a khác 0, |a|>1 và số mũ e:
+A rough estimate for nonzero `a`, `|a|>1`, and exponent `e`:
 
 \[
 \operatorname{bitLength}(|a^e|)
 \approx e\log_2|a|+1
 \]
 
-Đây là **ước lượng kích thước**, không phải công thức đếm bit chính xác cho mọi n. Nếu parse một số mũ do người dùng gửi, đặt hạn mức theo ngữ cảnh ứng dụng **trước khi gọi pow**.
+This is a **size estimate**, not an exact bit-counting formula for every `n`. If parsing a user-supplied exponent, enforce an application-appropriate limit **before calling `pow`**.
 
-Nếu chỉ cần **a^e modulo m**, đừng tạo toàn bộ a^e rồi mới lấy remainder: dùng **BigInteger.modPow(exponent, modulus)** theo hợp đồng của nó để tiết kiệm tài nguyên. modPow là một API khác, đặc biệt hữu ích trong thuật toán modulo và mật mã; nó **không phải** phép lũy thừa nguyên thuần của bài này.
+If you only need **a^e modulo m**, do not build the full `a^e` and then take the remainder: use **BigInteger.modPow(exponent, modulus)** according to its contract to save resources. `modPow` is a separate API, especially useful in modular algorithms and cryptography; it is **not** the pure integer exponentiation of this lesson.
 
-## 11. sqrt của số khổng lồ: không dùng căn double làm đáp án
+## 11. `sqrt` of Giant Numbers: Do Not Use `double` Root as the Answer
 
-Với n có hàng trăm chữ số, **sqrt()** cho kết quả nguyên đúng theo giá trị n. Ví dụ:
+For `n` with hundreds of digits, **sqrt()** gives the exact integer result matching `n`'s value. Example:
 
 ~~~java
 BigInteger n = BigInteger.TEN.pow(40);
 BigInteger s = n.sqrt();
-// s bằng 10^20 = 100000000000000000000
+// s equals 10^20 = 100000000000000000000
 ~~~
 
-Khi n là số chính phương, sqrtAndRemainder trả phần dư 0. Với số không chính phương, phần dư cho biết khoảng cách từ n đến bình phương s², và luôn nhỏ hơn 2s+1.
+When `n` is a perfect square, `sqrtAndRemainder` returns remainder 0. For non-squares, the remainder shows the distance from `n` to the square `s²`, and is always less than `2s+1`.
 
-Một bài toán phổ biến là kiểm tra n có phải số chính phương trước khi phân tích thêm. Dùng **n.signum() < 0** để từ chối miền không hợp lệ, rồi:
+A common task is checking whether `n` is a perfect square before factoring further. Use **n.signum() < 0** to reject invalid domain values, then:
 
 ~~~java
 boolean perfect = n.sqrtAndRemainder()[1].signum() == 0;
 ~~~
 
-Đoạn này cần n là BigInteger **không âm** và đã được khai báo. Không so sánh kết quả Math.sqrt(n.doubleValue()) với số nguyên lớn, vì doubleValue() có thể mất chính xác hoặc thành Infinity.
+This snippet requires `n` to be a **non-negative** `BigInteger` already declared. Never compare `Math.sqrt(n.doubleValue())` against large integers, because `doubleValue()` can lose precision or become `Infinity`.
 
-## 12. Dấu và exception: bảng kiểm biên
+## 12. Signs and Exceptions: Boundary Check Table
 
-| Tình huống | Kết quả/hành vi |
+| Situation | Result/behavior |
 | --- | --- |
 | **BigInteger.valueOf(12).pow(5)** | 248832 |
 | **BigInteger.valueOf(-3).pow(4)** | 81 |
@@ -453,38 +453,38 @@ boolean perfect = n.sqrtAndRemainder()[1].signum() == 0;
 | **BigInteger.valueOf(-54).gcd(BigInteger.valueOf(24))** | 6 |
 | **BigInteger.ZERO.gcd(BigInteger.ZERO)** | 0 |
 
-Nếu đối số là tham chiếu **null**, không coi nó là số 0. Tùy phương thức và vị trí null, chương trình có thể ném NullPointerException; khi xử lý dữ liệu bên ngoài, hãy kiểm tra null riêng trước các phép tính.
+If an argument is a **`null`** reference, do not treat it as 0. Depending on the method and null position, the program may throw `NullPointerException`; when handling external data, perform explicit null checks before operations.
 
-## 13. Kiểm tra đúng bằng bất biến thay vì chỉ so output
+## 13. Verifying Correctness via Invariants Instead of Only Comparing Output
 
-Một số điều kiện QA hữu ích:
+Several useful QA conditions:
 
-- **pow**: với e chẵn, a.pow(e) không âm; với e lẻ, dấu kết quả theo dấu a; a.pow(0)=1.
-- **sqrt**: s=n.sqrt() thì s≥0, s²≤n và (s+1)²>n.
-- **sqrtAndRemainder**: n=s²+r, r≥0, r<2s+1; n chính phương khi r=0.
-- **gcd**: g≥0, nếu g>0 thì a.remainder(g)=0 và b.remainder(g)=0; gcd(a,b)=gcd(b,a)=gcd(|a|,|b|); gcd(a,0)=|a|.
-- **Bất biến**: a, b, n vẫn giữ giá trị ban đầu sau khi gọi các phương thức.
+- **pow**: for even `e`, `a.pow(e)` is non-negative; for odd `e`, result sign matches `a`'s sign; `a.pow(0)=1`.
+- **sqrt**: for `s=n.sqrt()`, `s≥0`, `s²≤n`, and `(s+1)²>n`.
+- **sqrtAndRemainder**: `n=s²+r`, `r≥0`, `r<2s+1`; `n` is a perfect square when `r=0`.
+- **gcd**: `g≥0`, if `g>0` then `a.remainder(g)=0` and `b.remainder(g)=0`; `gcd(a,b)=gcd(b,a)=gcd(|a|,|b|)`; `gcd(a,0)=|a|`.
+- **Immutability**: `a`, `b`, `n` retain their original values after calling the methods.
 
-Kiểm thử cả **0, 1, số âm (nếu API cho phép), số chính phương và số sát hai phía số chính phương**, cũng như các số có hàng trăm chữ số. Với phép kiểm thử property-based, giới hạn kích thước n/e để bộ kiểm thử không tiêu thụ quá nhiều tài nguyên.
+Test **0, 1, negative numbers (where API allows), perfect squares, and numbers adjacent to both sides of perfect squares**, as well as numbers with hundreds of digits. For property-based tests, bound sizes of `n`/`e` so the test suite does not consume excessive resources.
 
-**Đừng chỉ kiểm tra giá trị dạng chuỗi rồi bỏ qua loại exception.** Điều kiện exponent âm của pow và radicand âm của sqrt là một phần hợp đồng API cần test.
+**Do not only test string output values and ignore exception types.** The negative exponent condition of `pow` and negative radicand condition of `sqrt` are part of the API contract to test.
 
-## 14. Khác biệt phiên bản và cú pháp API
+## 14. Version Differences and API Syntax
 
-Tất cả ví dụ chạy độc lập ở đây hướng đến **Java 17+**:
+All standalone runnable examples here target **Java 17+**:
 
-- **BigInteger.pow(int)** nhận số mũ nguyên kiểu int không âm.
-- **BigInteger.sqrt()** và **sqrtAndRemainder()** có từ **Java 9**, không có trong các bản Java 8 cũ.
-- **BigInteger.gcd(BigInteger)** trả số không âm.
-- **BigInteger.TWO** xuất hiện từ Java 9; nếu cần tương thích Java 8, dùng BigInteger.valueOf(2).
+- **BigInteger.pow(int)** takes a non-negative `int` integer exponent.
+- **BigInteger.sqrt()** and **sqrtAndRemainder()** appeared in **Java 9**, unavailable in older Java 8 releases.
+- **BigInteger.gcd(BigInteger)** returns a non-negative number.
+- **BigInteger.TWO** appeared in Java 9; if Java 8 compatibility is needed, use `BigInteger.valueOf(2)`.
 
-BigInteger không hỗ trợ operator overloading của toán tử **^** để tính lũy thừa. Trong Java, **^** trên kiểu nguyên thủy là phép XOR theo bit, **không phải** phép nâng lũy thừa. Để tính 2^10, viết **BigInteger.valueOf(2).pow(10)**, không viết 2 ^ 10.
+`BigInteger` does not support operator overloading of the **^** operator for exponentiation. In Java, **^** on primitive types is bitwise XOR, **not** exponentiation. To compute 2^10, write **BigInteger.valueOf(2).pow(10)**, not `2 ^ 10`.
 
-Tương tự, không có phương thức **BigInteger.sqrt(double precision)** hay **pow(BigInteger exponent)** phù hợp với những ý nghĩa đơn giản trên. Dùng đúng chữ ký trong tài liệu API và thiết kế lại khi bài toán có loại đầu vào khác.
+Likewise, there is no **BigInteger.sqrt(double precision)** or **pow(BigInteger exponent)** method matching those simple meanings. Use the exact signatures in the API docs and redesign when the problem has different input types.
 
-## 15. Chương trình Java 17+ chạy độc lập
+## 15. Standalone Runnable Java 17+ Program
 
-Tạo tệp **BigIntegerOperationsDemo.java** với mã sau:
+Create file **BigIntegerOperationsDemo.java** with the following code:
 
 ~~~java
 import java.math.BigInteger;
@@ -546,7 +546,7 @@ public class BigIntegerOperationsDemo {
 }
 ~~~
 
-Lệnh:
+Commands:
 
 ~~~bash
 javac --release 17 BigIntegerOperationsDemo.java
@@ -575,89 +575,89 @@ negative exponent: ArithmeticException
 negative square root: ArithmeticException
 ~~~
 
-### Phân tích kết quả chương trình
+### Program Output Analysis
 
-1. **12^5** được tính là 248832. Trong Java, ký hiệu **^** ở phần tên nhãn chỉ là văn bản; để tính lũy thừa dùng phương thức pow.
-2. **(-3)^5** âm, còn **(-3)^4** dương theo quy tắc số mũ lẻ/chẵn.
-3. **10^20** là một số nguyên lớn được in đủ chữ số nhờ BigInteger, không có dạng ký pháp khoa học của double.
-4. **0^0** trả 1 đúng quy ước API BigInteger.
-5. **sqrt(200)** trả 14, còn **sqrtAndRemainder** trả [14,4], vì 14²=196 và 200−196=4.
-6. Dòng reconstruct(200) kiểm tra bất biến **n=s²+r**.
-7. Bình phương của 123456789 là số chính phương; sqrt lấy lại chính xác 123456789.
-8. **sqrtAndRemainder(81)** có r=0 nên 81 là số chính phương.
-9. gcd xử lý dấu âm, zero và cặp coprime đúng quy tắc.
-10. Với số lớn 10^40, sqrt trả chính xác 10^20.
-11. pow với exponent âm và sqrt với n âm đều ném **ArithmeticException**; chương trình bắt để minh họa mà không dừng sớm.
+1. **12^5** is computed as 248832. In Java, the **^** symbol in the label is only text; to compute exponentiation use the `pow` method.
+2. **(-3)^5** is negative, while **(-3)^4** is positive according to odd/even exponent rules.
+3. **10^20** is a large integer printed with all digits intact thanks to `BigInteger`, without `double` scientific notation.
+4. **0^0** returns 1 per `BigInteger` API convention.
+5. **sqrt(200)** returns 14, while **sqrtAndRemainder** returns `[14,4]`, since 14²=196 and 200−196=4.
+6. The `reconstruct(200)` line verifies the **n=s²+r** invariant.
+7. The square of 123456789 is a perfect square; `sqrt` recovers exact 123456789.
+8. **sqrtAndRemainder(81)** has `r=0`, so 81 is a perfect square.
+9. `gcd` handles negative signs, zero, and coprime pairs per specification.
+10. For the large number 10^40, `sqrt` returns exact 10^20.
+11. `pow` with a negative exponent and `sqrt` with negative `n` both throw **ArithmeticException**; the program catches them to demonstrate without exiting early.
 
-Những giá trị trên được kiểm tra bằng API BigInteger trên JDK. Các method sử dụng đều có trong Java 17.
+These values are verified using the `BigInteger` API on the JDK. All used methods exist in Java 17.
 
-## 16. Những lỗi phổ biến và cách tránh
+## 16. Common Mistakes and How to Avoid Them
 
-| Lỗi | Tại sao sai | Hướng đúng |
+| Mistake | Why it is wrong | Right direction |
 | --- | --- | --- |
-| Dùng toán tử **^** để tính số mũ | Trong Java ^ là XOR, không phải phép lũy thừa | Dùng **pow(int)** |
-| Gọi **pow(-1)** để tính nghịch đảo | Số mũ âm không được chấp nhận | Biểu diễn phân số hoặc số thập phân theo bài toán |
-| Chuyển n lớn sang double rồi Math.sqrt | Có thể mất độ chính xác/Infinity | Dùng **BigInteger.sqrt()** |
-| Nghĩ sqrt(200) sẽ là 14.142... | API trả căn **nguyên** | Dùng BigDecimal.sqrt nếu thật sự cần căn thập phân và quy tắc precision |
-| Nghĩ sqrt sẽ làm tròn gần nhất | sqrt lấy floor, không phải round | Kiểm tra s²≤n<(s+1)² |
-| Cho rằng remainder là n % s | sqrtAndRemainder trả **n−s²** | Xác định đúng bất biến |
-| Lấy phần tử thứ nhất của mảng làm remainder | Kết quả [0] là căn, [1] là dư | Gán rõ biến root/remainder |
-| Kiểm tra n chính phương chỉ bằng Math.sqrt(n.doubleValue()) | Sai ở số lớn gần bình phương | Dùng sqrtAndRemainder()[1] == 0 |
-| Gọi sqrt cho số âm mà không có chính sách | ArithmeticException | Kiểm tra signum trước |
-| Nghĩ gcd(-54,24) = -6 | API trả số không âm | Kết quả =6 |
-| Nghĩ gcd(0,0) ném exception | API định nghĩa kết quả 0 | Test trường hợp zero |
-| Dùng gcd trước khi kiểm tra mẫu phân số bằng 0 | 0/0 vẫn không hợp lệ | Validate denominator != 0 |
-| Nhân a*b rồi chia gcd để tính lcm với long | Có thể overflow long | BigInteger và chia gcd trước khi nhân |
-| Bỏ qua kết quả **x.pow(e)** | BigInteger immutable | Gán đối tượng trả về |
-| Chạy pow với exponent cực lớn từ input | Tốn nhiều bộ nhớ/CPU | Giới hạn exponent và kích cỡ output |
-| Dùng BigInteger.pow cho a^e mod m | Tạo số trung gian lớn không cần thiết | Cân nhắc **modPow** |
-| Dùng hằng BigInteger.TWO trên Java 8 | TWO có từ Java 9 | Java 17 hỗ trợ; Java 8 dùng valueOf(2) |
+| Using the **^** operator for exponents | In Java `^` is XOR, not exponentiation | Use **pow(int)** |
+| Calling **pow(-1)** to compute inverse | Negative exponents are rejected | Represent fraction or decimal per problem |
+| Converting large `n` to `double` then `Math.sqrt` | Can lose precision/Infinity | Use **BigInteger.sqrt()** |
+| Thinking `sqrt(200)` will be 14.142... | API returns **integer** root | Use `BigDecimal.sqrt` if decimal root and precision rules are truly needed |
+| Thinking `sqrt` rounds to nearest | `sqrt` takes floor, not round | Check s²≤n<(s+1)² |
+| Assuming remainder is `n % s` | `sqrtAndRemainder` returns **n−s²** | Identify the right invariant |
+| Taking the first array element as remainder | Result `[0]` is root, `[1]` is remainder | Name root/remainder variables clearly |
+| Checking perfect square only via `Math.sqrt(n.doubleValue())` | Fails for large numbers near squares | Use `sqrtAndRemainder()[1] == 0` |
+| Calling `sqrt` on negative numbers without a policy | `ArithmeticException` | Check `signum` beforehand |
+| Thinking `gcd(-54,24) = -6` | API returns non-negative number | Result =6 |
+| Thinking `gcd(0,0)` throws an exception | API defines result 0 | Test the zero case |
+| Using `gcd` before checking zero denominator | `0/0` is still invalid | Validate `denominator != 0` |
+| Multiplying `a*b` then dividing by `gcd` for `lcm` in `long` | Can overflow `long` | Use `BigInteger` and divide by `gcd` before multiplying |
+| Discarding result of **x.pow(e)** | `BigInteger` is immutable | Assign returned object |
+| Running `pow` with huge exponents from input | Consumes heavy memory/CPU | Limit exponent and output size |
+| Using `BigInteger.pow` for `a^e mod m` | Creates unnecessarily huge intermediates | Consider **modPow** |
+| Using `BigInteger.TWO` on Java 8 | `TWO` appeared in Java 9 | Java 17 supports it; Java 8 uses `valueOf(2)` |
 
-## 17. Bài tập thực hành
+## 17. Practice Exercises
 
-**Bài 1.** Tính 7^4 bằng BigInteger. Phương thức nào cần gọi?
+**Exercise 1.** Compute 7^4 using `BigInteger`. Which method should be called?
 
-*Đáp án:* **BigInteger.valueOf(7).pow(4)**, kết quả **2401**.
+*Answer:* **BigInteger.valueOf(7).pow(4)**, result **2401**.
 
-**Bài 2.** Giá trị **BigInteger.ZERO.pow(0)** là bao nhiêu? **BigInteger.TEN.pow(-1)** thì sao?
+**Exercise 2.** What is **BigInteger.ZERO.pow(0)**? What about **BigInteger.TEN.pow(-1)**?
 
-*Đáp án:* Trường hợp đầu trả **BigInteger.ONE (1)**; trường hợp sau ném **ArithmeticException** vì exponent âm.
+*Answer:* The first returns **BigInteger.ONE (1)**; the second throws **ArithmeticException** due to the negative exponent.
 
-**Bài 3.** Cho n=99, sqrtAndRemainder trả gì?
+**Exercise 3.** Given n=99, what does `sqrtAndRemainder` return?
 
-*Đáp án:* √99 nằm giữa 9 và 10, s=9, r=99−81=18, nên trả **[9,18]**. Phần dư này không phải 99%9.
+*Answer:* √99 lies between 9 and 10, s=9, r=99−81=18, so it returns **[9,18]**. This remainder is not `99%9`.
 
-**Bài 4.** Cho n=81, làm thế nào biết n chính phương mà không dùng double?
+**Exercise 4.** Given n=81, how do you know `n` is a perfect square without using `double`?
 
-*Đáp án:* **n.sqrtAndRemainder()[1].signum() == 0** (với n là BigInteger không âm) hoặc so **n.sqrt().pow(2).equals(n)**.
+*Answer:* **n.sqrtAndRemainder()[1].signum() == 0** (for non-negative `BigInteger` `n`) or compare **n.sqrt().pow(2).equals(n)**.
 
-**Bài 5.** gcd(-54, 24) và gcd(0,0) trả bao nhiêu?
+**Exercise 5.** What do `gcd(-54, 24)` and `gcd(0,0)` return?
 
-*Đáp án:* **6** và **0** theo hợp đồng BigInteger.gcd.
+*Answer:* **6** and **0** per the `BigInteger.gcd` contract.
 
-**Bài 6.** Vì sao không lấy BigInteger.valueOf(101).gcd(BigInteger.valueOf(24)) bằng 101? Kết quả là gì?
+**Exercise 6.** Why is `BigInteger.valueOf(101).gcd(BigInteger.valueOf(24))` not 101? What is the result?
 
-*Đáp án:* 101 và 24 không có ước chung dương nào ngoài 1, nên gcd bằng **1**.
+*Answer:* 101 and 24 share no positive common divisors other than 1, so the gcd is **1**.
 
-**Bài 7.** Rút gọn phân số 84/30 bằng gcd được bao nhiêu?
+**Exercise 7.** What does reducing the fraction 84/30 with `gcd` produce?
 
-*Đáp án:* gcd(84,30)=6; tử mới 84/6=14, mẫu mới 30/6=5, tức **14/5**.
+*Answer:* gcd(84,30)=6; new numerator 84/6=14, new denominator 30/6=5, giving **14/5**.
 
-**Bài 8.** LCM của 84 và 30 bằng bao nhiêu? Nên tính theo thứ tự nào?
+**Exercise 8.** What is the LCM of 84 and 30? In what order should it be computed?
 
-*Đáp án:* **420**. Lấy **84/gcd(84,30)=14**, sau đó nhân 30. Trong mã BigInteger nên xử lý đầu vào zero và dấu.
+*Answer:* **420**. Take **84/gcd(84,30)=14**, then multiply by 30. In `BigInteger` code, handle zero inputs and signs.
 
-**Bài 9.** Vì sao cần giới hạn pow khi nhận cơ số và số mũ từ request HTTP, dù dùng BigInteger?
+**Exercise 9.** Why must `pow` be bounded when receiving base and exponent from an HTTP request, even when using `BigInteger`?
 
-*Đáp án:* Kết quả có thể dài hàng triệu hoặc hàng tỷ bit, gây áp lực bộ nhớ/CPU và thậm chí vượt giới hạn triển khai. BigInteger không có nghĩa tài nguyên vô hạn.
+*Answer:* The result can be millions or billions of bits long, putting pressure on memory/CPU and even exceeding implementation limits. `BigInteger` does not mean infinite resources.
 
-**Bài 10.** Với n=200, chứng minh phần dư từ sqrtAndRemainder nằm trong khoảng cho phép.
+**Exercise 10.** For n=200, prove that the remainder from `sqrtAndRemainder` lies within the allowed range.
 
-*Đáp án:* s=14, r=4. **0≤4<2×14+1=29**, và **14²+4=200**.
+*Answer:* s=14, r=4. **0≤4<2×14+1=29**, and **14²+4=200**.
 
-## 18. Tài liệu tham khảo chính thức
+## 18. Official References
 
-- [BigInteger Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html): chữ ký và hợp đồng **pow(int)**, **sqrt()**, **sqrtAndRemainder()**, **gcd(BigInteger)**, cùng những phương thức hỗ trợ.
-- [BigDecimal Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): cân nhắc khi cần kết quả căn ở dạng thập phân thay vì căn nguyên; **sqrt(MathContext)** yêu cầu độ chính xác và quy tắc làm tròn.
-- [Java SE 17 Math](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html): đối chiếu **Math.sqrt(double)** với căn nguyên BigInteger và các giới hạn double.
-- [Java Language Specification SE 17 — Integer Types and Values](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.1): các giới hạn int/long và phép tính nguyên thủy.
+- [BigInteger Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html): signatures and contracts of **pow(int)**, **sqrt()**, **sqrtAndRemainder()**, **gcd(BigInteger)**, and supporting methods.
+- [BigDecimal Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): consider when a decimal root is needed instead of an integer root; **sqrt(MathContext)** requires precision and rounding rules.
+- [Java SE 17 Math](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html): contrasting **Math.sqrt(double)** with `BigInteger` integer roots and `double` limits.
+- [Java Language Specification SE 17 — Integer Types and Values](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.1): `int`/`long` limits and primitive operations.

@@ -1,18 +1,18 @@
-# Ordering, duplicate provider và lựa chọn implementation
+# Ordering, duplicate providers, and implementation selection
 
-Trong Java, `ServiceLoader` cho phép một module hoặc ứng dụng tìm các implementation của một service interface mà không cần phụ thuộc trực tiếp vào từng class triển khai. Một service có thể có nhiều provider cùng lúc: ví dụ nhiều payment gateway, nhiều serializer hoặc nhiều plugin.
+In Java, `ServiceLoader` allows a module or application to discover implementations of a service interface without depending directly on each implementation class. A service can have multiple providers at the same time: for example, multiple payment gateways, multiple serializers, or multiple plugins.
 
-Khi có nhiều provider, ứng dụng cần giải quyết ba vấn đề:
+When there are multiple providers, the application needs to solve three problems:
 
-- **Ordering:** thứ tự provider được phát hiện có ổn định và có ý nghĩa ưu tiên hay không?
-- **Duplicate provider:** cùng một provider có thể được đăng ký lặp ở đâu, và ứng dụng xử lý trùng như thế nào?
-- **Implementation selection:** khi có nhiều implementation hợp lệ, quy tắc nào quyết định implementation được sử dụng?
+- **Ordering:** is the order in which providers are discovered stable, and does it carry priority semantics?
+- **Duplicate providers:** where can the same provider be registered multiple times, and how does the application handle duplicates?
+- **Implementation selection:** when there are multiple valid implementations, what rule determines which implementation is used?
 
-`ServiceLoader` chịu trách nhiệm khám phá provider. Nó không tự định nghĩa chính sách nghiệp vụ để chọn provider tốt nhất. Nếu kết quả cần ổn định, ứng dụng phải đặt quy tắc lựa chọn rõ ràng.
+`ServiceLoader` is responsible for discovering providers. It does not itself define a business policy for choosing the best provider. If results must be deterministic, the application must establish explicit selection rules.
 
-## 1. Một service có thể có nhiều provider
+## 1. A service can have multiple providers
 
-Giả sử ứng dụng thanh toán định nghĩa một service interface:
+Suppose a payment application defines a service interface:
 
 ~~~java
 package com.acme.payment.spi;
@@ -26,7 +26,7 @@ public interface PaymentGateway {
 }
 ~~~
 
-Các implementation có thể đến từ những module khác nhau:
+Implementations may come from different modules:
 
 ~~~java
 package com.acme.payment.stripe;
@@ -70,7 +70,7 @@ public final class BankGateway implements PaymentGateway {
 }
 ~~~
 
-Một module consumer có thể tìm tất cả implementation bằng:
+A consumer module can discover all implementations with:
 
 ~~~java
 ServiceLoader<PaymentGateway> loader =
@@ -81,13 +81,13 @@ for (PaymentGateway gateway : loader) {
 }
 ~~~
 
-Vòng lặp có thể trả về nhiều provider. Điều này là hành vi bình thường của SPI: một service interface mô tả hợp đồng chung, còn provider cung cấp các cách triển khai khác nhau.
+The loop may return multiple providers. This is normal SPI behavior: a service interface describes the shared contract, while providers supply different implementations.
 
-## 2. Đăng ký provider trong named module
+## 2. Registering providers in named modules
 
-Với JPMS, provider có thể được khai báo trong `module-info.java`.
+With JPMS, providers can be declared in `module-info.java`.
 
-Module chứa service API:
+Module containing the service API:
 
 ~~~java
 module com.acme.payment.spi {
@@ -95,7 +95,7 @@ module com.acme.payment.spi {
 }
 ~~~
 
-Module consumer:
+Consumer module:
 
 ~~~java
 module com.acme.checkout {
@@ -104,9 +104,9 @@ module com.acme.checkout {
 }
 ~~~
 
-Directive `uses` khai báo rằng module checkout tiêu thụ service `PaymentGateway`. Nó giúp module system biết service nào cần được tìm khi sử dụng cơ chế service binding và `ServiceLoader`.
+The `uses` directive declares that the checkout module consumes the `PaymentGateway` service. It lets the module system know which services need to be located when using service binding and `ServiceLoader`.
 
-Module provider:
+Provider module:
 
 ~~~java
 module com.acme.payment.stripe {
@@ -117,7 +117,7 @@ module com.acme.payment.stripe {
 }
 ~~~
 
-Một provider khác có thể nằm trong module riêng:
+Another provider can reside in a separate module:
 
 ~~~java
 module com.acme.payment.bank {
@@ -128,52 +128,52 @@ module com.acme.payment.bank {
 }
 ~~~
 
-Provider class phải đáp ứng quy tắc của `ServiceLoader`. Cách thông dụng là class public triển khai service và có public no-argument constructor. Với provider trong named module, có thể dùng public static provider method theo quy tắc JPMS để tạo đối tượng service; cách này hữu ích khi cần factory hoặc cấu hình khởi tạo.
+The provider class must satisfy `ServiceLoader` rules. The common approach is a public class implementing the service with a public no-argument constructor. For providers in named modules, a public static provider method following JPMS rules can be used to create the service object; this is useful when a factory or initialization configuration is needed.
 
-Trong kiến trúc plugin dùng `ModuleLayer`, có thể chỉ định layer cần tìm provider:
+In a plugin architecture using `ModuleLayer`, you can specify the layer to search for providers:
 
 ~~~java
 ServiceLoader<PaymentGateway> loader =
     ServiceLoader.load(pluginLayer, PaymentGateway.class);
 ~~~
 
-Cách gọi này giúp ứng dụng tìm provider trong layer được chỉ định và các parent layer của nó. Đây là lựa chọn phù hợp khi provider được nạp động trong plugin layer. Service API nên được chia sẻ từ layer cha để consumer và provider cùng tham chiếu một định nghĩa interface.
+This call lets the application search for providers in the specified layer and its parent layers. It is the right choice when providers are loaded dynamically in a plugin layer. The service API should be shared from a parent layer so the consumer and providers reference the same interface definition.
 
-## 3. Đăng ký provider trên classpath
+## 3. Registering providers on the classpath
 
-Thư viện chưa được modularize có thể đăng ký provider bằng file cấu hình:
+Unmodularized libraries can register providers using a configuration file:
 
 ~~~text
 META-INF/services/com.acme.payment.spi.PaymentGateway
 ~~~
 
-Nội dung file liệt kê tên đầy đủ của các provider class, mỗi dòng một class:
+The file contents list the fully qualified names of the provider classes, one class per line:
 
 ~~~text
 com.acme.payment.stripe.StripeGateway
 com.acme.payment.bank.BankGateway
 ~~~
 
-Các dòng có thể chứa khoảng trắng và comment bắt đầu bằng ký tự `#`. File được đọc theo UTF-8. Dòng trùng tên provider trong cùng một provider-configuration file bị bỏ qua theo quy tắc của `ServiceLoader`.
+Lines may contain whitespace and comments starting with `#`. The file is read as UTF-8. Duplicate provider names within the same provider-configuration file are ignored according to `ServiceLoader` rules.
 
-Với classpath, `ServiceLoader.load(PaymentGateway.class)` thường dùng thread context class loader để tìm provider configuration và class tương ứng. Vì vậy, khi ứng dụng hoặc framework thay đổi context class loader, tập provider được tìm thấy cũng có thể thay đổi.
+On the classpath, `ServiceLoader.load(PaymentGateway.class)` typically uses the thread context class loader to locate provider configurations and their corresponding classes. Consequently, when an application or framework changes the context class loader, the set of discovered providers may also change.
 
-Không nên trộn lẫn hai kiểu đăng ký:
+Do not mix the two registration styles:
 
-- Named module khai báo service bằng `uses` và `provides`.
-- Provider trên classpath khai báo class trong `META-INF/services`.
+- Named modules declare services with `uses` and `provides`.
+- Providers on the classpath declare classes in `META-INF/services`.
 
-Cả hai cùng phục vụ SPI, nhưng nguồn metadata và phạm vi class loading khác nhau.
+Both serve SPI, but their metadata sources and class-loading scopes differ.
 
-## 4. Ordering: thứ tự provider được phát hiện
+## 4. Ordering: the order in which providers are discovered
 
-`ServiceLoader` tìm provider một cách lazy. Provider chỉ được nạp hoặc khởi tạo khi ứng dụng duyệt kết quả hoặc gọi `Provider.get()`. Service loader cũng lưu cache các provider đã được nạp; những lần duyệt tiếp theo có thể trả lại các instance đã cache trước khi tìm provider mới.
+`ServiceLoader` discovers providers lazily. Providers are only loaded or instantiated when the application iterates the results or calls `Provider.get()`. A service loader also caches loaded providers; subsequent iterations may return cached instances before searching for new providers.
 
-Không nên xem thứ tự phát hiện provider là một chính sách ưu tiên nghiệp vụ.
+Do not treat provider discovery order as a business priority policy.
 
-Với provider trên classpath, thứ tự có thể chịu ảnh hưởng bởi thứ tự resource được class loader trả về và thứ tự tên class trong từng file cấu hình. Với provider trong named module, không nên dựa vào thứ tự module được resolver tìm thấy hoặc thứ tự lặp của một tập module. API không cung cấp một hợp đồng ưu tiên toàn cục để ứng dụng chọn implementation theo vị trí.
+For providers on the classpath, order can be affected by the order in which resources are returned by the class loader and the order of class names within each configuration file. For providers in named modules, do not rely on the order in which modules are found by the resolver or the iteration order of a module set. The API does not provide a global priority contract for an application to select an implementation by position.
 
-Ví dụ sau có vẻ ngắn gọn:
+The following example looks concise:
 
 ~~~java
 PaymentGateway gateway =
@@ -182,22 +182,22 @@ PaymentGateway gateway =
         .orElseThrow();
 ~~~
 
-Nhưng `findFirst()` chỉ lấy provider đầu tiên trong encounter order hiện tại. Nếu thứ tự discovery thay đổi do classpath, module finder, plugin layer hoặc cách đóng gói, implementation được chọn có thể thay đổi theo.
+However, `findFirst()` only takes the first provider in the current encounter order. If discovery order changes due to the classpath, module finder, plugin layer, or packaging, the chosen implementation can change accordingly.
 
-Chỉ dùng `findFirst()` khi ứng dụng thực sự không quan tâm provider nào được chọn, hoặc khi thứ tự đã được đảm bảo bởi một cấu hình do ứng dụng kiểm soát. Nếu provider có ưu tiên, hãy biểu diễn ưu tiên thành dữ liệu và sắp xếp rõ ràng.
+Use `findFirst()` only when the application genuinely does not care which provider is selected, or when the order is already guaranteed by a configuration controlled by the application. If providers have priorities, represent priority as data and sort explicitly.
 
-## 5. Duplicate provider: trùng ở đâu?
+## 5. Duplicate providers: where do duplicates come from?
 
-Trùng provider có thể xuất hiện ở nhiều mức:
+Duplicate providers can occur at multiple levels:
 
-1. **Trùng dòng trong cùng file cấu hình:** cùng tên provider được liệt kê nhiều lần trong một file `META-INF/services`.
-2. **Trùng đăng ký trong quá trình đóng gói:** cùng implementation được đưa vào nhiều dependency hoặc nhiều resource cấu hình.
-3. **Trùng implementation logic:** hai class khác nhau thực hiện cùng một chức năng hoặc cùng tự nhận một mã provider.
-4. **Trùng giữa các nguồn khám phá:** ứng dụng kết hợp provider từ classpath và module layer, khiến cùng một implementation hoặc cùng một chức năng xuất hiện từ nhiều nơi.
+1. **Duplicate lines in the same configuration file:** the same provider name is listed multiple times in a single `META-INF/services` file.
+2. **Duplicate registration during packaging:** the same implementation is pulled into multiple dependencies or multiple configuration resources.
+3. **Duplicate logical implementation:** two different classes perform the same function or claim the same provider code.
+4. **Duplicates across discovery sources:** the application combines providers from the classpath and a module layer, causing the same implementation or functionality to appear from multiple places.
 
-`ServiceLoader` bỏ qua tên provider bị lặp trong cùng một provider-configuration file. Tuy nhiên, điều đó không giải quyết được mọi trường hợp trùng về mặt nghiệp vụ. Hai class khác nhau có thể cùng trả về `id()` là `stripe`; một class cũng có thể được đóng gói hoặc nạp trong những môi trường khác nhau.
+`ServiceLoader` ignores repeated provider names within the same provider-configuration file. However, that does not solve all business-level duplicate cases. Two different classes can both return `id()` as `stripe`; a single class can also be packaged or loaded in different environments.
 
-Vì vậy, service nên có một định danh ổn định như `id()`. Ứng dụng có thể kiểm tra ID trùng sau khi khám phá provider:
+Therefore, a service should have a stable identifier such as `id()`. The application can check for duplicate IDs after discovering providers:
 
 ~~~java
 Map<String, PaymentGateway> byId = new HashMap<>();
@@ -216,18 +216,18 @@ for (PaymentGateway gateway : ServiceLoader
 }
 ~~~
 
-Cách này phát hiện hai implementation cùng công bố một ID. Nếu hệ thống cho phép nhiều phiên bản của một provider, ID cần bao gồm namespace hoặc version theo hợp đồng đã định nghĩa.
+This detects two implementations advertising the same ID. If the system allows multiple versions of a provider, the ID should include a namespace or version according to a defined contract.
 
-Đừng tự động bỏ provider trùng bằng cách giữ phần tử đầu tiên. Khi thứ tự discovery không được bảo đảm, cách đó có thể âm thầm chọn implementation khác nhau giữa các lần chạy. Với cấu hình sai, báo lỗi rõ ràng thường dễ chẩn đoán hơn.
+Do not automatically discard duplicate providers by keeping the first element. When discovery order is not guaranteed, doing so can silently select different implementations across runs. For misconfigurations, failing with a clear error is usually much easier to diagnose.
 
-## 6. Chọn implementation bằng priority và tie-breaker
+## 6. Selecting an implementation using priority and a tie-breaker
 
-Một service có thể định nghĩa hai thuộc tính:
+A service can define two properties:
 
-- `priority()`: số nguyên lớn hơn biểu thị mức ưu tiên cao hơn.
-- `id()`: mã duy nhất, ổn định để xử lý trường hợp bằng điểm ưu tiên.
+- `priority()`: a higher integer indicates higher priority.
+- `id()`: a unique, stable identifier to resolve priority ties.
 
-Ví dụ lựa chọn provider:
+Example of provider selection:
 
 ~~~java
 import java.util.Comparator;
@@ -252,19 +252,19 @@ PaymentGateway selected = gateways.stream()
     );
 ~~~
 
-Quy tắc ở đây là:
+The rules here are:
 
-1. Provider có priority cao hơn được chọn trước.
-2. Nếu priority bằng nhau, ID có thứ tự từ điển nhỏ hơn được chọn.
-3. Nếu không có provider, ứng dụng báo lỗi rõ ràng.
+1. A provider with higher priority is selected first.
+2. If priorities are equal, the ID with the smaller lexicographical order is selected.
+3. If no provider exists, the application reports a clear error.
 
-Comparator đã định nghĩa đầy đủ tie-breaker nên kết quả không phụ thuộc encounter order, miễn là mỗi provider có ID ổn định và duy nhất.
+The Comparator defines a complete tie-breaker so the result does not depend on encounter order, provided each provider has a unique and stable ID.
 
-Nếu nghiệp vụ cần lựa chọn theo region, currency, tenant hoặc feature flag, hãy đưa tiêu chí đó vào một policy riêng. Ví dụ, ứng dụng có thể lọc các gateway hỗ trợ currency trước, sau đó mới sắp xếp theo priority. Không nên dùng priority đơn lẻ nếu một provider không đủ khả năng xử lý yêu cầu hiện tại.
+If the business logic requires selection by region, currency, tenant, or feature flag, put those criteria into a separate policy. For example, the application can filter gateways supporting the currency first, and only then sort by priority. Do not rely on priority alone if a provider is incapable of handling the current request.
 
-## 7. Kiểm tra ID trùng trước khi chọn
+## 7. Checking for duplicate IDs before selecting
 
-Có thể kết hợp phát hiện duplicate với lựa chọn implementation trong cùng một bước:
+You can combine duplicate detection with implementation selection in a single step:
 
 ~~~java
 Map<String, PaymentGateway> providersById = new HashMap<>();
@@ -301,15 +301,15 @@ PaymentGateway selected = providersById.values().stream()
     );
 ~~~
 
-Ví dụ này giả định provider được khởi tạo thành công và `id()` là một phần của service contract. Nếu khởi tạo provider có chi phí cao, có side effect hoặc cần cấu hình trước, nên thiết kế factory/configuration riêng để việc discovery không kích hoạt toàn bộ hoạt động nghiệp vụ.
+This example assumes providers instantiate successfully and `id()` is part of the service contract. If instantiating a provider is expensive, has side effects, or requires prior configuration, design a separate factory/configuration so discovery does not trigger full business operations.
 
-Một lựa chọn khác là kiểm tra metadata trước khi tạo instance bằng `ServiceLoader.stream()` và `Provider.type()`. Tuy nhiên, metadata class chỉ hữu ích nếu chính sách lựa chọn có thể xác định từ type hoặc annotation mà không cần gọi provider. Nếu priority là dữ liệu runtime do instance cung cấp, ứng dụng vẫn phải tạo instance để đọc nó.
+Another option is to inspect metadata before creating an instance using `ServiceLoader.stream()` and `Provider.type()`. However, class metadata is only useful if the selection policy can be determined from the type or annotations without calling the provider. If priority is runtime data supplied by the instance, the application still must create the instance to read it.
 
-## 8. Lọc provider theo khả năng thay vì chỉ theo thứ tự
+## 8. Filtering providers by capability rather than just order
 
-Priority trả lời provider nào được ưu tiên, nhưng chưa chắc provider nào phù hợp với request.
+Priority answers which provider is preferred, but not necessarily which provider fits the request.
 
-Ví dụ, một gateway chỉ hỗ trợ USD và EUR:
+For example, a gateway might only support USD and EUR:
 
 ~~~java
 public interface PaymentGateway {
@@ -323,7 +323,7 @@ public interface PaymentGateway {
 }
 ~~~
 
-Chọn trong nhóm provider hỗ trợ currency:
+Selecting among providers that support the currency:
 
 ~~~java
 PaymentGateway selected = ServiceLoader
@@ -343,21 +343,21 @@ PaymentGateway selected = ServiceLoader
     );
 ~~~
 
-Luồng lựa chọn nên phản ánh thứ tự nghiệp vụ:
+The selection flow should reflect business order:
 
-1. Loại provider không tương thích với request.
-2. Loại provider bị tắt bởi cấu hình hoặc feature flag.
-3. Sắp xếp provider còn lại theo priority.
-4. Dùng tie-breaker ổn định.
-5. Báo lỗi nếu không còn provider phù hợp.
+1. Exclude providers incompatible with the request.
+2. Exclude providers disabled by configuration or feature flags.
+3. Sort remaining providers by priority.
+4. Apply a deterministic tie-breaker.
+5. Report an error if no matching provider remains.
 
-Nếu ứng dụng cần người vận hành chọn implementation, có thể dùng cấu hình tường minh như `payment.gateway=stripe`. Khi đó, ServiceLoader vẫn đảm nhiệm discovery, còn cấu hình quyết định provider được chọn. Cần báo lỗi nếu ID được cấu hình không tồn tại hoặc provider không hỗ trợ request.
+If the application needs operators to choose the implementation, an explicit configuration such as `payment.gateway=stripe` can be used. In that case, ServiceLoader still handles discovery, while configuration decides which provider is chosen. Report an error if the configured ID does not exist or the provider does not support the request.
 
-## 9. Provider được khởi tạo lazy và cache như thế nào?
+## 9. How are providers lazily initialized and cached?
 
-`ServiceLoader` không nhất thiết tạo tất cả provider ngay khi gọi `load()`. Việc tìm và khởi tạo diễn ra khi ứng dụng duyệt iterator hoặc lấy instance từ `Provider`.
+`ServiceLoader` does not necessarily create all providers right when `load()` is called. Discovery and instantiation happen when the application iterates the iterator or retrieves an instance from `Provider`.
 
-API `stream()` trả về các `ServiceLoader.Provider<S>`. Mỗi provider descriptor có thể cho biết type trước khi gọi `get()` để tạo instance:
+The `stream()` API returns `ServiceLoader.Provider<S>` elements. Each provider descriptor can reveal its type before calling `get()` to create an instance:
 
 ~~~java
 ServiceLoader<PaymentGateway> loader =
@@ -368,36 +368,36 @@ loader.stream().forEach(provider -> {
 });
 ~~~
 
-Khi cần instance:
+When an instance is needed:
 
 ~~~java
 PaymentGateway gateway = provider.get();
 ~~~
 
-Các instance đã được nạp được cache trong service loader. Nếu cấu hình provider thay đổi hoặc ứng dụng cần khám phá lại, có thể gọi:
+Loaded instances are cached in the service loader. If provider configuration changes or the application needs to rediscover providers, it can call:
 
 ~~~java
 loader.reload();
 ~~~
 
-`reload()` xóa cache provider đã nạp; lần duyệt tiếp theo sẽ tìm lại provider theo cấu hình hiện tại. Nó không tự thay đổi module layer, module path hoặc các JAR đã được define trong runtime.
+`reload()` clears the cache of loaded providers; the next iteration will search for providers again against the current configuration. It does not automatically change module layers, the module path, or JARs already defined in the runtime.
 
-Một `ServiceLoader` không được thiết kế để dùng đồng thời an toàn từ nhiều thread. Nếu cần truy cập đồng thời, hãy tạo loader theo phạm vi sử dụng phù hợp hoặc đồng bộ hóa việc truy cập theo thiết kế của ứng dụng.
+A `ServiceLoader` is not designed for safe concurrent use from multiple threads. If concurrent access is needed, create loaders scoped to their usage or synchronize access according to the application's design.
 
-## 10. Xử lý lỗi khi provider được phát hiện
+## 10. Handling errors when providers are discovered
 
-Quá trình discovery hoặc khởi tạo có thể thất bại. Một số nguyên nhân thường gặp:
+Discovery or instantiation can fail. Common causes include:
 
-- Tên provider trong `META-INF/services` không hợp lệ.
-- Provider class không tìm thấy bởi class loader.
-- Provider không triển khai service interface.
-- Constructor hoặc provider method không thể gọi.
-- Provider ném exception khi khởi tạo.
-- Module provider khai báo sai service hoặc module consumer thiếu `uses`.
+- An invalid provider name in `META-INF/services`.
+- The provider class cannot be found by the class loader.
+- The provider does not implement the service interface.
+- The constructor or provider method cannot be invoked.
+- The provider throws an exception during initialization.
+- The provider module misdeclares the service or the consumer module lacks `uses`.
 
-`ServiceLoader` có thể ném `ServiceConfigurationError` khi cấu hình hoặc provider không hợp lệ. Không nên bắt lỗi rồi âm thầm bỏ qua tất cả provider hỏng, vì ứng dụng có thể tiếp tục với một implementation không đáp ứng yêu cầu.
+`ServiceLoader` can throw `ServiceConfigurationError` when a configuration or provider is invalid. Do not catch the error and silently skip all broken providers, as the application might continue with an implementation that does not meet requirements.
 
-Ví dụ ghi rõ provider gặp lỗi:
+Example explicitly reporting a failing provider:
 
 ~~~java
 try {
@@ -413,18 +413,18 @@ try {
 }
 ~~~
 
-Nếu hệ thống có chính sách fallback, hãy xác định rõ provider nào được phép thay thế, điều kiện nào kích hoạt fallback và cách ghi log. Không nên xem provider bất kỳ còn chạy được là fallback hợp lệ.
+If the system has a fallback policy, explicitly define which provider is permitted as a substitute, what conditions trigger fallback, and how it is logged. Do not treat any arbitrary working provider as a valid fallback.
 
-## 11. Chọn provider trong plugin layer
+## 11. Selecting providers in plugin layers
 
-Khi plugin được nạp vào layer con, nên dùng overload nhận layer để giới hạn phạm vi khám phá:
+When plugins are loaded into a child layer, use the overload taking a layer to scope discovery:
 
 ~~~java
 ServiceLoader<PaymentGateway> loader =
     ServiceLoader.load(pluginLayer, PaymentGateway.class);
 ~~~
 
-Giả sử:
+Suppose:
 
 ~~~text
 Parent layer
@@ -435,37 +435,37 @@ Plugin layer
 └── com.acme.payment.bank
 ~~~
 
-Hai module provider khai báo `provides` cho service API ở parent. Ứng dụng có thể khám phá các provider trong plugin layer và các parent layer theo quy tắc của overload này.
+Both provider modules declare `provides` for the service API in the parent. The application can discover providers in the plugin layer and its parent layers according to this overload's rules.
 
-Nếu ứng dụng có nhiều plugin layer độc lập, có thể tạo một service loader cho từng layer rồi kết hợp các candidate theo policy của host. Khi kết hợp, hãy kiểm tra ID trùng trên toàn bộ tập candidate; hai plugin khác layer vẫn có thể công bố cùng một ID.
+If the application has multiple independent plugin layers, it can create a service loader for each layer and combine candidates according to the host's policy. When combining, check for duplicate IDs across the entire candidate set; two plugins in different layers can still advertise the same ID.
 
-Không nên dựa vào thứ tự của `pluginLayer.modules()` để quyết định provider ưu tiên. Đây là tập module của layer, không phải danh sách ưu tiên service. Hãy lấy provider qua ServiceLoader rồi áp dụng policy rõ ràng.
+Do not rely on the order of `pluginLayer.modules()` to decide the preferred provider. That is the layer's set of modules, not a service priority list. Fetch providers through ServiceLoader and then apply an explicit policy.
 
-## 12. Các nguyên tắc thiết kế
+## 12. Design principles
 
-- **Định danh ổn định:** mỗi provider nên có ID duy nhất trong phạm vi mà ứng dụng quản lý.
-- **Ưu tiên rõ ràng:** nếu có nhiều implementation, định nghĩa priority và tie-breaker thay vì dùng `findFirst()`.
-- **Không phụ thuộc discovery order:** thứ tự provider có thể thay đổi theo nguồn cấu hình, class loader hoặc layer.
-- **Kiểm tra duplicate:** phát hiện ID trùng và báo lỗi cấu hình có thể hành động được.
-- **Tách discovery khỏi selection:** ServiceLoader tìm candidate; policy của ứng dụng chọn candidate phù hợp.
-- **Lọc theo capability:** kiểm tra provider hỗ trợ request hiện tại trước khi so sánh ưu tiên.
-- **Quản lý lifecycle:** hiểu lazy initialization, cache, `reload()` và giới hạn thread-safety.
-- **Giữ service API ổn định:** provider và consumer cùng phụ thuộc vào SPI module, không phụ thuộc trực tiếp vào implementation của nhau.
+- **Stable identifier:** each provider should have a unique ID within the scope managed by the application.
+- **Explicit priority:** if multiple implementations exist, define priority and a tie-breaker instead of using `findFirst()`.
+- **Do not depend on discovery order:** provider order can vary by configuration source, class loader, or layer.
+- **Check for duplicates:** detect duplicate IDs and report an actionable configuration error.
+- **Separate discovery from selection:** ServiceLoader finds candidates; application policy selects the right candidate.
+- **Filter by capability:** verify that a provider supports the current request before comparing priorities.
+- **Manage lifecycle:** understand lazy initialization, caching, `reload()`, and thread-safety limits.
+- **Keep the service API stable:** providers and consumers both depend on the SPI module, not directly on each other's implementations.
 
-## 13. Chẩn đoán các vấn đề thường gặp
+## 13. Diagnosing common issues
 
-| Triệu chứng | Nguyên nhân có thể | Hướng kiểm tra |
+| Symptom | Possible cause | What to check |
 | --- | --- | --- |
-| Không tìm thấy provider | Thiếu `uses`, thiếu `provides`, thiếu file service hoặc sai layer/class loader | Kiểm tra descriptor, `META-INF/services` và overload `ServiceLoader.load` |
-| Provider đầu tiên thay đổi giữa các môi trường | Code dựa vào encounter order | Thêm priority và tie-breaker ổn định |
-| Cùng một chức năng xuất hiện nhiều lần | Provider được đăng ký qua nhiều artifact hoặc module | Kiểm tra provider ID và nguồn đăng ký |
-| Hai provider có cùng ID | Trùng cấu hình hoặc contract không quy định ID duy nhất | Fail fast và sửa registration |
-| Provider lỗi khi duyệt | Class không nạp được hoặc constructor/provider method thất bại | Kiểm tra nguyên nhân của `ServiceConfigurationError` |
-| Provider mới không xuất hiện sau khi thay đổi cấu hình | Loader đang giữ cache hoặc layer chưa được tạo lại | Cân nhắc `reload()` và kiểm tra lifecycle của layer |
-| Plugin không tương thích service interface | SPI class bị nạp từ định nghĩa khác hoặc sai version | Đặt SPI trong parent layer chung và kiểm tra defining class loader |
+| No provider found | Missing `uses`, missing `provides`, missing service file, or wrong layer/class loader | Check descriptors, `META-INF/services`, and the `ServiceLoader.load` overload |
+| First provider changes across environments | Code relies on encounter order | Add priority and a deterministic tie-breaker |
+| Same functionality appears multiple times | Provider registered via multiple artifacts or modules | Check provider IDs and registration sources |
+| Two providers share the same ID | Duplicate configuration or contract does not enforce unique IDs | Fail fast and fix registration |
+| Provider fails during iteration | Class cannot be loaded or constructor/provider method fails | Check the cause of `ServiceConfigurationError` |
+| New provider does not appear after config change | Loader holds a cache or layer has not been recreated | Consider `reload()` and inspect layer lifecycle |
+| Plugin is incompatible with service interface | SPI class loaded from a different definition or wrong version | Place SPI in a shared parent layer and check the defining class loader |
 
-## Kết luận
+## Conclusion
 
-`ServiceLoader` có thể khám phá nhiều implementation của cùng một service. Nó hỗ trợ đăng ký provider bằng `provides ... with ...` trong named module hoặc file `META-INF/services` trên classpath, đồng thời nạp provider theo cơ chế lazy và cache instance đã được tìm thấy.
+`ServiceLoader` can discover multiple implementations of the same service. It supports registering providers via `provides ... with ...` in named modules or via `META-INF/services` files on the classpath, while loading providers lazily and caching discovered instances.
 
-Ứng dụng cần tự định nghĩa cách xử lý nhiều provider. Hãy cấp ID ổn định, phát hiện ID trùng, lọc theo capability và chọn implementation bằng priority cùng tie-breaker xác định. `findFirst()` chỉ phản ánh encounter order hiện tại; nó không phải chính sách ưu tiên bền vững. Với plugin layer, dùng `ServiceLoader.load(layer, service)` để khám phá đúng phạm vi rồi áp dụng cùng policy lựa chọn của ứng dụng.
+The application must define how to handle multiple providers. Assign stable IDs, detect duplicate IDs, filter by capability, and select implementations using priority and a deterministic tie-breaker. `findFirst()` only reflects the current encounter order; it is not a durable priority policy. With plugin layers, use `ServiceLoader.load(layer, service)` to discover within the proper scope and apply the same application selection policy.

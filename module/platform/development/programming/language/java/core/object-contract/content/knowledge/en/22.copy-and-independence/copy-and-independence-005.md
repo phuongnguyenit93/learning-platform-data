@@ -1,76 +1,76 @@
-# Trường `final` và giới hạn của cách bổ sung sao chép sau `super.clone()`
+# `final` Fields and the Limitation of Adding Copying After `super.clone()`
 
-## 1. Vấn đề cần giải quyết
+## 1. The Problem to Solve
 
-Khi sao chép một đối tượng Java, ta thường muốn tạo **một instance mới** nhưng bảo đảm những dữ liệu có thể thay đổi bên trong không bị chia sẻ ngoài ý muốn với đối tượng gốc. Với mảng, `List`, `Map` hoặc những object mutable, chỉ sao chép tham chiếu là chưa đủ.
+When copying a Java object, we usually want to create **a new instance** while ensuring that mutable data inside it is not unintentionally shared with the original object. For arrays, `List`, `Map`, or mutable objects, simply copying the reference is not enough.
 
-Một cách được nhắc đến trong mã Java kế thừa là:
+One approach mentioned in legacy Java code is:
 
-1. Gọi `super.clone()` để tạo một instance có các trường ban đầu được sao chép từ đối tượng hiện tại.
-2. Sau đó, trên object bản sao, **gán lại các trường tham chiếu mutable** thành bản sao riêng (ví dụ `result.items = new ArrayList<>(items)`).
+1. Call `super.clone()` to create an instance whose initial fields are copied from the current object.
+2. Then, on the copied object, **reassign the mutable reference fields** to separate copies (for example `result.items = new ArrayList<>(items)`).
 
-Kỹ thuật này **có giới hạn quan trọng khi field được khai báo `final`**. Với:
+This technique **has an important limitation when a field is declared `final`**. With:
 
 ```java
 private final int[] values;
 ```
 
-câu lệnh `result.values = values.clone();` bên trong `clone()` **không biên dịch được**, vì Java không cho phép gán lại trường `final` trong một phương thức thông thường, dù trường đó thuộc instance mới do `super.clone()` tạo ra.
+the statement `result.values = values.clone();` inside `clone()` **does not compile**, because Java does not allow reassigning a `final` field in an ordinary method, even though that field belongs to the new instance created by `super.clone()`.
 
-Trong khi đó, `super.clone()` vẫn sao chép được **giá trị tham chiếu** của trường `final`. Hệ quả là object gốc và object clone có thể giữ **cùng một mảng mutable**:
+Meanwhile, `super.clone()` still copies the **reference value** of the `final` field. As a result, the original object and the cloned object can hold **the same mutable array**:
 
 ```text
-Trước clone:
+Before clone:
 original.values ─────> int[] {1, 2}
 
-Sau super.clone() (bản sao nông):
+After super.clone() (shallow copy):
 original.values ──┐
-                  ├────> cùng một int[] {1, 2}
+                  ├────> same int[] {1, 2}
 copy.values ──────┘
 
-Mong muốn nếu độc lập:
+Desired if independent:
 original.values ─────> int[] {1, 2}
-copy.values ─────────> int[] {1, 2} (mảng khác)
+copy.values ─────────> int[] {1, 2} (different array)
 ```
 
-Đây là trọng tâm của bài: **`final` làm tham chiếu không thể bị gán lại sau khởi tạo thông thường, nhưng không làm đối tượng được tham chiếu trở nên bất biến; `super.clone()` lại thực hiện sao chép nông, còn cách sửa bằng gán lại field sau clone bị chặn bởi `final`.**
+This is the core of the lesson: **`final` prevents a reference from being reassigned after normal initialization, but does not make the referenced object immutable; `super.clone()` performs a shallow copy, and the fix of reassigning the field after cloning is blocked by `final`.**
 
-## 2. Hiểu chính xác `final` trên trường dữ liệu
+## 2. Understanding `final` on Data Fields Precisely
 
-So sánh ba trường hợp:
+Compare these cases:
 
-| Khai báo | Điều `final` bảo vệ | Điều nó **không** bảo vệ |
+| Declaration | What `final` protects | What it does **not** protect |
 | --- | --- | --- |
-| `private final int count;` | Sau khi khởi tạo, không thể gán lại `count` từ phương thức thông thường | Không có object con mutable trong trường primitive này |
-| `private final String name;` | Không thể gán lại tham chiếu `name` | `String` tự nó bất biến; đó là thuộc tính của lớp `String`, không phải phép màu của `final` |
-| `private final int[] scores;` | Không thể gán lại tham chiếu `scores` trong method | Vẫn có thể gọi `scores[0] = 99`; phần tử mảng mutable |
-| `private final List<Item> items;` | Không thể gán lại tham chiếu `items` | Có thể sửa collection nếu loại list cho phép; cũng có thể sửa từng `Item` mutable |
+| `private final int count;` | After initialization, `count` cannot be reassigned from an ordinary method | There is no mutable child object in this primitive field |
+| `private final String name;` | The `name` reference cannot be reassigned | `String` itself is immutable; that is a property of the `String` class, not magic from `final` |
+| `private final int[] scores;` | The `scores` reference cannot be reassigned in a method | You can still call `scores[0] = 99`; array elements are mutable |
+| `private final List<Item> items;` | The `items` reference cannot be reassigned | The collection can be modified if the list type allows it; each mutable `Item` can also be modified |
 
-Ví dụ:
+Example:
 
 ```java
-// Mảnh code trong một class; không phải chương trình độc lập.
+// Code snippet inside a class; not a standalone program.
 private final int[] scores = {5, 10};
 
 void update() {
-    scores[0] = 20;            // Hợp lệ: sửa phần tử mảng
-    // scores = new int[] {5}; // LỖI BIÊN DỊCH: gán lại final field
+    scores[0] = 20;            // Valid: modifies array element
+    // scores = new int[] {5}; // COMPILE ERROR: reassigning final field
 }
 ```
 
-Một field `final` có thể được khởi tạo trong khai báo hoặc trong constructor theo quy tắc Java về gán một lần; không được gán lại tùy tiện trong các method khác. Với tham chiếu mutable, điều đó là **cố định địa chỉ tham chiếu ở cấp ngôn ngữ**, không phải *deep immutability*.
+A `final` field can be initialized in its declaration or in a constructor under Java's definite-assignment rules; it cannot be arbitrarily reassigned in other methods. For a mutable reference, that is **fixing the reference address at the language level**, not *deep immutability*.
 
-Cần phân biệt `final class` với `final field`: lớp `final` không thể bị kế thừa, nhưng các object được lưu trong field của nó vẫn có thể mutable. Ngược lại, một trường `final` có thể xuất hiện trong lớp không `final`.
+Distinguish `final class` from `final field`: a `final` class cannot be subclassed, yet objects stored in its fields can still be mutable. Conversely, a `final` field can appear in a non-`final` class.
 
-## 3. `Cloneable`, `Object.clone()` và bản sao nông
+## 3. `Cloneable`, `Object.clone()`, and Shallow Copies
 
-### 3.1. `Cloneable` không tự cung cấp một phương thức `clone()` public
+### 3.1. `Cloneable` Does Not Automatically Provide a Public `clone()` Method
 
-`java.lang.Cloneable` là một **marker interface**. Nó không khai báo phương thức `clone()` để bên gọi tùy ý sử dụng. `Object.clone()` là phương thức `protected`, có thể được lớp con override để công bố API clone phù hợp.
+`java.lang.Cloneable` is a **marker interface**. It does not declare a `clone()` method for callers to invoke freely. `Object.clone()` is a `protected` method, which subclasses can override to expose an appropriate clone API.
 
-Khi `Object.clone()` được gọi trên instance không hỗ trợ `Cloneable`, nó có thể ném `CloneNotSupportedException`. Các mảng Java là trường hợp đặc biệt: mảng hỗ trợ clone và `array.clone()` tạo mảng mới với phần tử được sao chép nông theo cấp mảng.
+When `Object.clone()` is called on an instance that does not support `Cloneable`, it can throw `CloneNotSupportedException`. Java arrays are a special case: arrays support cloning, and `array.clone()` creates a new array with elements shallow-copied at the array level.
 
-Một mẫu truyền thống:
+A traditional pattern:
 
 ```java
 @Override
@@ -83,27 +83,27 @@ public Example clone() {
 }
 ```
 
-Đây là mảnh code minh họa bên trong lớp `Example implements Cloneable`. Bắt exception thành `AssertionError` chỉ hợp lý nếu bạn **biết chắc** class thực hiện `Cloneable` và `super.clone()` có thể hoạt động theo hợp đồng; không sao chép cơ học sang mọi cây kế thừa.
+This is an illustrative code snippet inside a class `Example implements Cloneable`. Catching the exception into `AssertionError` only makes sense if you **know for sure** the class implements `Cloneable` and `super.clone()` works under the contract; do not copy it mechanically across every inheritance hierarchy.
 
-### 3.2. `super.clone()` không chạy constructor của lớp đang được clone
+### 3.2. `super.clone()` Does Not Run the Constructor of the Class Being Cloned
 
-`Object.clone()` tạo một đối tượng có các field ban đầu nhận các giá trị như đối tượng nguồn theo cơ chế shallow copy. Nó **không gọi constructor thông thường** của lớp đó để khởi tạo lại các trường hoặc kiểm tra lại toàn bộ bất biến.
+`Object.clone()` creates an object whose fields initially receive the same values as the source object via shallow copy. It **does not call the ordinary constructor** of that class to reinitialize fields or recheck all invariants.
 
-Do vậy:
+Therefore:
 
-- Trường primitive nhận cùng giá trị primitive.
-- Trường `String` hay object bất biến có thể giữ cùng tham chiếu; thường an toàn vì nội dung không thể sửa.
-- Trường tham chiếu tới mảng, collection hoặc object mutable được sao chép dưới dạng **cùng một tham chiếu**.
-- Trường `final` cũng được chép giá trị ban đầu, nhưng code Java trong `clone()` không được gán lại nó sau đó.
+- Primitive fields receive the same primitive values.
+- `String` or immutable object fields can keep the same reference; usually safe because their contents cannot be modified.
+- Fields referencing arrays, collections, or mutable objects are copied as **the same reference**.
+- `final` fields also have their initial value copied, but Java code in `clone()` cannot reassign them afterward.
 
-Điều này không đồng nghĩa Java nói “không thể clone class có `final`”: **vẫn có thể clone**, nhưng nếu field `final` trỏ tới dữ liệu mutable cần độc lập, kỹ thuật “`super.clone()` rồi gán lại field” không đáp ứng được.
+This does not mean Java says “a class with `final` cannot be cloned”: **it can still be cloned**, but if a `final` field points to mutable data requiring independence, the “`super.clone()` then reassign field” technique cannot satisfy it.
 
-## 4. Vì sao đoạn sửa shallow clone thông thường không áp dụng cho `final`?
+## 4. Why the Usual Shallow-Clone Fix Does Not Apply to `final`
 
-Với field không `final`, lớp cũ thường viết:
+With a non-`final` field, legacy classes often wrote:
 
 ```java
-// Mảnh code trong một lớp implements Cloneable, có List<String> items.
+// Code snippet inside a class that implements Cloneable, with List<String> items.
 @Override
 public Example clone() {
     try {
@@ -116,43 +116,43 @@ public Example clone() {
 }
 ```
 
-Mảnh này giả định `items` là trường **không final** và các phần tử `String` bất biến. `new ArrayList<>(items)` tạo list mới, nhưng chỉ shallow copy các phần tử. Nếu `items` chứa `MutableItem`, hai list khác nhau vẫn chia sẻ chính các phần tử mutable.
+This snippet assumes `items` is a **non-final** field and `String` elements are immutable. `new ArrayList<>(items)` creates a new list, but only shallow-copies the elements. If `items` contains `MutableItem`, the two different lists still share the very same mutable elements.
 
-Đổi khai báo thành:
+Change the declaration to:
 
 ```java
 private final List<String> items;
 ```
 
-thì dòng:
+and the line:
 
 ```java
 result.items = new ArrayList<>(this.items);
 ```
 
-trở thành **compile-time error**: không thể gán lại trường `final`. Không thể lách giới hạn chỉ bằng cách cast, gọi setter hay bỏ `private`; setter vẫn không có quyền gán lại field final đã khởi tạo.
+becomes a **compile-time error**: cannot assign a value to a `final` field. You cannot bypass this restriction merely by casting, calling a setter, or removing `private`; a setter still has no right to reassign an already-initialized `final` field.
 
-**Không sửa bằng cách thao tác trực tiếp vào collection đã chia sẻ**:
+**Do not fix it by mutating the shared collection directly**:
 
 ```java
-// KHÔNG đúng nếu original.items và result.items trỏ cùng một list!
+// WRONG if original.items and result.items point to the same list!
 result.items.clear();
 result.items.addAll(this.items);
 ```
 
-Thao tác như thế thay đổi **chính collection mà bản gốc cũng sở hữu**. Với `this.items` trỏ cùng đối tượng, `clear()` còn làm mất dữ liệu nguồn trước khi `addAll` chạy. Đây không phải cách tạo bản sao độc lập.
+Such operations mutate **the very collection owned by the original**. With `this.items` pointing to the same object, `clear()` even wipes out the source data before `addAll` runs. This is not a way to create an independent copy.
 
-Tương tự, gọi `result.values[0] = ...` trên mảng `final` sau clone chỉ sửa phần tử của cùng mảng, không tách thành mảng mới.
+Similarly, calling `result.values[0] = ...` on a `final` array after cloning only modifies an element of the same array, rather than separating it into a new array.
 
-## 5. Ví dụ Java 17 hoàn chỉnh: chia sẻ nguy hiểm và hai phương án an toàn
+## 5. Complete Java 17 Example: Dangerous Sharing and Two Safe Alternatives
 
-Ví dụ sau kiểm tra ba thiết kế:
+The following example tests three designs:
 
-1. `ShallowFinalClone` có `private final int[]` và override `clone()` bằng `super.clone()`. Mảng nguồn được copy vào constructor nhưng bản gốc và clone **vẫn chung mảng** sau clone.
-2. `SafeCopy` giữ `private final int[]` và có **copy constructor**, tạo mảng mới khi xây object. Bản gốc và bản copy có thể thay đổi độc lập.
-3. `DeepCloneMutableField` cố ý để field mảng **không final**, cho phép clone bằng `super.clone()` rồi gán lại một bản sao mảng. Nó minh họa điểm giới hạn cú pháp: kỹ thuật này hoạt động khi field không final nhưng phải đánh đổi sự cố định tham chiếu ở cấp field.
+1. `ShallowFinalClone` has `private final int[]` and overrides `clone()` using `super.clone()`. The source array is copied in the constructor, yet the original and the clone **still share the array** after cloning.
+2. `SafeCopy` keeps `private final int[]` and has a **copy constructor**, creating a new array when constructing the object. The original and the copy can be mutated independently.
+3. `DeepCloneMutableField` intentionally leaves the array field **non-final**, allowing cloning via `super.clone()` followed by reassigning a copy of the array. It illustrates the syntax boundary: this technique works when the field is non-final, at the trade-off of giving up reference immutability at the field level.
 
-Lưu tệp **`FinalCloneDemo.java`**:
+Save the file **`FinalCloneDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -182,9 +182,9 @@ public class FinalCloneDemo {
         public ShallowFinalClone clone() {
             try {
                 return (ShallowFinalClone) super.clone();
-                // Không thể viết:
+                // Cannot write:
                 // result.values = this.values.clone();
-                // vì values là final.
+                // because values is final.
             } catch (CloneNotSupportedException e) {
                 throw new AssertionError(e);
             }
@@ -217,7 +217,7 @@ public class FinalCloneDemo {
     }
 
     static final class DeepCloneMutableField implements Cloneable {
-        private int[] values; // Không final để có thể gán lại trong clone()
+        private int[] values; // Non-final so it can be reassigned in clone()
 
         DeepCloneMutableField(int[] input) {
             values = Objects.requireNonNull(input, "input").clone();
@@ -289,14 +289,14 @@ public class FinalCloneDemo {
 }
 ```
 
-Biên dịch và chạy bằng **JDK 17 trở lên**, trong thư mục chứa tệp:
+Compile and run with **JDK 17 or higher**, in the directory containing the file:
 
 ```bash
 javac FinalCloneDemo.java
 java FinalCloneDemo
 ```
 
-Kết quả xác định:
+Deterministic output:
 
 ```text
 Constructor detached input: [1, 2]
@@ -311,17 +311,17 @@ Repaired original: [1, 2]
 Repaired copy: [7, 2]
 ```
 
-**Diễn giải:**
+**Interpretation:**
 
-- Constructor của `ShallowFinalClone` đã `clone()` mảng input nên sửa `external[0]` không ảnh hưởng nội bộ. Nhưng đó chỉ là ranh giới **caller → original**. Khi gọi `original.clone()`, `super.clone()` lại tạo **hai object giữ chung một field tham chiếu**, và `final` không tách được object được tham chiếu.
-- `clone.update(0, 7)` thay đổi mảng chung; kết quả snapshot của cả gốc và clone đều `[7, 2]`. Đây là lỗi độc lập của bản sao, không phải do getter làm lộ tham chiếu.
-- `SafeCopy(SafeCopy other)` **tạo object bằng constructor**, nên có quyền gán giá trị mới cho field `final` ngay trong giai đoạn khởi tạo. Mảng được clone riêng, các lần sửa sau đó độc lập.
-- `DeepCloneMutableField.clone()` dùng được `copy.values = values.clone()` vì `values` không final. Nó vẫn cần copy đúng mọi thành phần mutable khác của lớp nếu có; đây chỉ là ví dụ với một mảng primitive.
-- Các bản sao đều là instance khác nhau. Mục tiêu “độc lập” đề cập **không chia sẻ nội dung mutable cần sở hữu riêng**, không phải chỉ kiểm tra `clone != original`.
+- `ShallowFinalClone`'s constructor already called `clone()` on the input array, so modifying `external[0]` does not affect internal state. However, that is only the **caller → original** boundary. When `original.clone()` is called, `super.clone()` creates **two objects holding the same reference field**, and `final` cannot separate the referenced object.
+- `clone.update(0, 7)` modifies the shared array; snapshots of both the original and the clone become `[7, 2]`. This is a copy independence bug, not a getter exposing a reference.
+- `SafeCopy(SafeCopy other)` **creates the object via a constructor**, so it is allowed to assign a new value to the `final` field during initialization. The array is cloned separately, and subsequent edits are independent.
+- `DeepCloneMutableField.clone()` can use `copy.values = values.clone()` because `values` is not `final`. It must still properly copy all other mutable components of the class if any exist; this is only an example with a single primitive array.
+- All copies are distinct instances. The goal of “independence” refers to **not sharing mutable contents requiring separate ownership**, not just checking `clone != original`.
 
-## 6. Giải pháp ưu tiên: copy constructor hoặc factory tạo object mới
+## 6. Preferred Solution: Copy Constructor or Factory Creating a New Object
 
-Khi class cần trường `final` và cả trạng thái được sao chép độc lập, **copy constructor** là cách trực tiếp:
+When a class needs `final` fields and independently copied state, a **copy constructor** is the direct approach:
 
 ```java
 public final class Snapshot {
@@ -341,15 +341,15 @@ public final class Snapshot {
 }
 ```
 
-Lưu ý: đoạn này là một class độc lập không có `main`; nếu biên dịch riêng, lưu `Snapshot.java`. Việc kiểm tra `null` phải được bổ sung nếu input được phép không hợp lệ và cần thông báo lỗi rõ ràng.
+Note: this snippet is a standalone class without `main`; if compiling separately, save as `Snapshot.java`. `null` checks should be added if invalid inputs are possible and a clear error message is needed.
 
-Cách làm này đáp ứng ba yêu cầu:
+This approach satisfies three requirements:
 
-1. **Khởi tạo field final hợp lệ:** constructor gán tham chiếu một lần trong vòng đời tạo instance.
-2. **Copy-in:** tránh bên gọi sửa mảng đầu vào rồi làm thay đổi snapshot.
-3. **Copy-out:** getter không trả trực tiếp mảng nội bộ.
+1. **Valid `final` field initialization:** the constructor assigns the reference once during instance construction.
+2. **Copy-in:** prevents the caller from mutating the input array and altering the snapshot.
+3. **Copy-out:** the getter does not return the internal array directly.
 
-Có thể tạo factory đặt tên thể hiện rõ chính sách:
+You can create a factory whose name states the policy clearly:
 
 ```java
 public static Snapshot copyOf(Snapshot source) {
@@ -357,34 +357,34 @@ public static Snapshot copyOf(Snapshot source) {
 }
 ```
 
-Đây là mảnh code thêm **bên trong** lớp `Snapshot` ở trên, không phải phương thức độc lập nằm ngoài class.
+This is an additional code snippet **inside** the `Snapshot` class above, not a standalone method outside the class.
 
-### 6.1. “Copy constructor” không mặc định là deep copy
+### 6.1. A “Copy Constructor” Is Not Automatically a Deep Copy
 
-Nếu field là `List<MutableItem>`, viết `new ArrayList<>(other.items)` chỉ sao chép **collection vỏ ngoài**; các `MutableItem` vẫn có thể được chia sẻ. Nếu mỗi phần tử cần sở hữu riêng, constructor phải copy đúng cấp dữ liệu mutable:
+If a field is `List<MutableItem>`, writing `new ArrayList<>(other.items)` only copies the **outer collection shell**; the `MutableItem` instances may still be shared. If each element needs separate ownership, the constructor must copy at the right level of mutable data:
 
 ```java
-// Mảnh code: giả sử MutableItem có copy constructor.
+// Code snippet: suppose MutableItem has a copy constructor.
 List<MutableItem> copiedItems = other.items.stream()
     .map(MutableItem::new)
     .toList();
 ```
 
-`Stream.toList()` trong Java 17 tạo list không cho sửa cấu trúc, nhưng nếu `MutableItem` vẫn là mutable thì bản sao cho phép sửa từng phần tử; đó có thể đúng với một lớp sở hữu riêng phần tử, miễn các tham chiếu ấy không bị lộ trái phép. Nếu muốn trạng thái bất biến sâu, hãy dùng immutable value object hoặc snapshot record cho từng phần tử.
+`Stream.toList()` in Java 17 creates a structurally unmodifiable list, though if `MutableItem` remains mutable then the copy allows mutating individual elements; that can be right for a class owning its own elements, provided those references are not leaked improperly. If deeply immutable state is wanted, use an immutable value object or snapshot record for each element.
 
-### 6.2. Khi nào không cần copy từng thành phần?
+### 6.2. When Is Copying Each Component Unnecessary?
 
-Không phải tham chiếu nào cũng phải clone:
+Not every reference must be cloned:
 
-- `String`, `LocalDate`, `Instant`, `BigInteger`, các value object bất biến được thiết kế đúng: chia sẻ tham chiếu thường an toàn.
-- `List<String>` đã tạo bằng `List.copyOf`, với phần tử `String` bất biến và không có alias mutable ảnh hưởng, có thể chia sẻ như một immutable value.
-- Immutable record với **mọi component bất biến sâu** có thể được tái sử dụng trong bản sao mà không phá sự độc lập quan sát được.
+- `String`, `LocalDate`, `Instant`, `BigInteger`, and properly designed immutable value objects: sharing references is usually safe.
+- A `List<String>` created with `List.copyOf`, with immutable `String` elements and no affecting mutable aliases, can be shared as an immutable value.
+- An immutable record with **all deeply immutable components** can be reused in the copy without breaking observable independence.
 
-Ngược lại, chỉ gắn `final` vào `List<MutableItem>` hoặc dùng `List.copyOf` chưa tự biến `MutableItem` thành bất biến. Tập hợp có cấu trúc không sửa được nhưng chứa object mutable **không phải** immutable graph.
+Conversely, merely marking `List<MutableItem>` as `final` or using `List.copyOf` does not make `MutableItem` immutable. A structurally unmodifiable collection containing mutable objects is **not** an immutable graph.
 
-## 7. Có thể giữ `clone()` public mà không dùng `super.clone()` không?
+## 7. Can You Keep Public `clone()` Without Using `super.clone()`?
 
-Với một lớp `final` tự thiết kế, nếu API đã yêu cầu tên `clone()`, bạn có thể **tạo instance mới bằng constructor** trong override thay vì dùng `super.clone()`:
+For a self-designed `final` class, if an API already requires the name `clone()`, you can **create a new instance via constructor** inside the override instead of using `super.clone()`:
 
 ```java
 public final class CloneByConstructor implements Cloneable {
@@ -401,90 +401,90 @@ public final class CloneByConstructor implements Cloneable {
 }
 ```
 
-Đây là một class có thể biên dịch nếu lưu `CloneByConstructor.java`; không chứa `main`. Trong ví dụ này, constructor sẽ clone mảng đầu vào lần nữa, bảo đảm bản sao có mảng riêng. Implement `Cloneable` là lựa chọn để giữ một API quen thuộc, nhưng **không phải điều kiện cần** để phương thức tự viết ở đây dùng `new` tạo object mới; nó chỉ quan trọng khi sử dụng cơ chế `Object.clone()`.
+This is a compilable class if saved as `CloneByConstructor.java`; it does not contain `main`. In this example, the constructor clones the input array again, ensuring the copy has its own array. Implementing `Cloneable` is an option to keep a familiar API, but is **not a necessary condition** for this hand-written method to use `new` to create a new object; it only matters when using the `Object.clone()` mechanism.
 
-Tuy vậy, **đừng áp dụng ngây thơ cho cây kế thừa mở**: constructor của class cha/con có thể có bất biến, loại runtime của object có thể là subclass, và một bản sao được tạo bằng constructor của lớp cha có thể làm mất trạng thái/lớp con. Thường nên thiết kế copy constructor hoặc factory rõ ràng cho từng kiểu, hoặc ưu tiên value object bất biến.
+However, **do not apply this naively to an open inheritance hierarchy**: superclass/subclass constructors may enforce invariants, the runtime type of the object may be a subclass, and a copy created via the superclass constructor can lose subclass state/type. Usually it is better to design a clear copy constructor or factory per type, or prefer immutable value objects.
 
-Nếu class là `final` như `CloneByConstructor`, không có subclass nên việc tạo đúng kiểu bản sao dễ kiểm soát hơn.
+If the class is `final` like `CloneByConstructor`, there are no subclasses, so creating the right copy type is easier to control.
 
-## 8. Vì sao bỏ `final` chỉ để phục vụ `super.clone()` chưa chắc tốt?
+## 8. Why Removing `final` Just for `super.clone()` May Not Be Good
 
-Một lựa chọn về mặt cú pháp là bỏ `final`:
+One syntactic option is to remove `final`:
 
 ```java
-private int[] values; // Có thể gán lại trong clone(), nhưng không còn final.
+private int[] values; // Can be reassigned in clone(), but no longer final.
 ```
 
-Điều đó cho phép:
+That allows:
 
 ```java
 Example copy = (Example) super.clone();
 copy.values = values.clone();
 ```
 
-Đây là mảnh code giả định lớp `Example implements Cloneable`, có field `values` không final và đang trong method `clone()` có xử lý checked exception phù hợp.
+This is a snippet assuming a class `Example implements Cloneable`, with a non-final `values` field, inside a `clone()` method with appropriate checked-exception handling.
 
-Tuy nhiên việc bỏ `final` đánh đổi:
+However, removing `final` trades off:
 
-- **Bất biến tham chiếu**: các method khác trong class có thể gán lại field, tăng không gian trạng thái cần kiểm soát.
-- **Tín hiệu thiết kế**: người đọc không còn được bảo đảm rằng field tham chiếu không bị thay sau khi object được khởi tạo.
-- **An toàn công bố và concurrency**: `final` có ngữ nghĩa bộ nhớ riêng theo Java Memory Model khi object được xây đúng và không làm lộ `this` trong constructor. Loại bỏ `final` có thể khiến lý luận về khởi tạo/công bố khó hơn; nó không tự động khiến code sai, nhưng không nên bỏ qua lợi ích này chỉ vì clone.
-- **Bảo trì**: phải luôn nhớ cập nhật `clone()` khi thêm field mutable mới; quên copy một field là thêm một đường chia sẻ không mong muốn.
+- **Reference invariant:** other methods in the class can reassign the field, increasing the state space to reason about.
+- **Design signal:** readers no longer have a guarantee that the reference field does not change after the object is initialized.
+- **Publication safety and concurrency:** `final` carries specific memory semantics under the Java Memory Model when the object is properly constructed without leaking `this` in the constructor. Removing `final` can make reasoning about initialization/publication harder; it does not automatically make code wrong, but this benefit should not be discarded merely for `clone()`.
+- **Maintenance:** you must always remember to update `clone()` when adding a new mutable field; forgetting to copy a field introduces an unwanted sharing path.
 
-Không cần khẳng định mọi class nên bất biến. Nếu yêu cầu thật sự cần một class mutable được clone theo giao thức riêng, field không final và deep-copy có kiểm soát là thiết kế có thể chấp nhận. Nhưng nếu yêu cầu lõi là một snapshot không đổi hoặc một value object, constructor/factory và các field final thường dễ chứng minh đúng hơn.
+There is no need to claim every class should be immutable. If requirements genuinely demand a mutable class cloned under its own protocol, non-final fields and controlled deep copying are an acceptable design. But if the core requirement is an unchanging snapshot or a value object, constructors/factories and `final` fields are usually easier to prove correct.
 
-## 9. Tác động tới `equals()`, `hashCode()` và collection băm
+## 9. Impact on `equals()`, `hashCode()`, and Hash Collections
 
-Khi sao chép một object, cần tách **độc lập trạng thái** khỏi **bình đẳng theo giá trị**:
+When copying an object, separate **state independence** from **value equality**:
 
-- `original == copy` phải là `false` nếu tạo instance mới thật sự.
-- `original.equals(copy)` có thể là `true` hoặc `false` tùy ngữ nghĩa equality của class. Với value object cùng thành phần, thường là `true`; với entity so theo danh tính riêng, tùy chiến lược ID.
-- `original.hashCode() == copy.hashCode()` **bắt buộc** khi `equals` nói bằng nhau; hai object khác nhau vẫn có thể trùng hash hợp lệ.
-- `toString()` có thể hiển thị cùng nội dung dù clone chia sẻ mutable object; chuỗi dễ đọc **không chứng minh** sự độc lập.
+- `original == copy` must be `false` if a genuinely new instance was created.
+- `original.equals(copy)` can be `true` or `false` depending on the class's equality semantics. For value objects with identical components, it is usually `true`; for entities compared by distinct identity, it depends on the ID strategy.
+- `original.hashCode() == copy.hashCode()` is **required** when `equals` reports equality; two distinct objects may still legitimately have the same hash.
+- `toString()` may display the same content even when a clone shares a mutable object; identical readable strings **do not prove** independence.
 
-Nếu `equals/hashCode` dựa trên mảng mutable được chia sẻ bởi clone, thao tác thay đổi thông qua clone có thể làm hash của object gốc **thay đổi ngầm**. Nếu gốc đang là khóa `HashMap` hoặc phần tử `HashSet`, lookup có thể thất bại.
+If `equals/hashCode` is based on a mutable array shared by a clone, mutating through the clone can **silently change** the original object's hash. If the original is currently a `HashMap` key or `HashSet` element, lookups can fail.
 
-Ví dụ:
+Example:
 
 ```java
-// Mảnh code: giả sử key.hashCode() dựa trên nội dung một mảng mutable.
+// Code snippet: suppose key.hashCode() is based on the contents of a mutable array.
 set.add(original);
-CloneType copy = original.clone(); // super.clone() chia sẻ mảng final
-copy.updateValue(0, 99);          // có thể khiến original.hashCode() đổi
-boolean found = set.contains(original); // không được bảo đảm như kỳ vọng
+CloneType copy = original.clone(); // super.clone() shares the final array
+copy.updateValue(0, 99);          // may cause original.hashCode() to change
+boolean found = set.contains(original); // not guaranteed as expected
 ```
 
-Mã trên minh họa hệ quả thiết kế; không phải một chương trình Java độc lập. Nếu object được dùng làm khóa băm, những trường tham gia `equals/hashCode` cần ổn định trong thời gian nó nằm trong cấu trúc băm, hoặc phải chọn biểu diễn identity phù hợp. Defensive copying chỉ giải quyết alias từ bên ngoài; bản thân class vẫn có method sửa trạng thái thì đối tượng vẫn mutable.
+The code above illustrates a design consequence; it is not a standalone Java program. If an object is used as a hash key, fields participating in `equals/hashCode` need to remain stable while it resides in a hash structure, or an appropriate identity representation must be chosen. Defensive copying only solves external aliasing; if the class itself has mutating methods, the object remains mutable.
 
-## 10. Các cách xử lý khi có tập hợp hoặc đối tượng lồng nhau
+## 10. Handling Collections or Nested Objects
 
 ### 10.1. `final List<String>`
 
-Nếu class nhận list chứa `String` và muốn chụp snapshot cấu trúc:
+If a class receives a list containing `String`s and wants to take a structural snapshot:
 
 ```java
-// Mảnh code bên trong constructor; input: List<String>.
+// Code snippet inside constructor; input: List<String>.
 this.tags = List.copyOf(input);
 ```
 
-Với field `private final List<String> tags;`, lời gọi `List.copyOf` tạo/gắn một list không sửa được với các String bất biến. Khi tạo một bản sao nghiệp vụ sau này, có thể dùng lại `tags` nếu bảo đảm tính immutable của nội dung. **Không cần** `super.clone()` rồi gán lại `tags` để đạt độc lập giá trị.
+With field `private final List<String> tags;`, calling `List.copyOf` creates/assigns an unmodifiable list with immutable `String` elements. When creating a business copy later, `tags` can be reused if immutability of contents is guaranteed. There is **no need** to call `super.clone()` and reassign `tags` to achieve value independence.
 
 ### 10.2. `final List<MutableItem>`
 
-Nếu `MutableItem` thay đổi được, `List.copyOf(items)` chỉ tạo/giữ list không cho sửa **cấu trúc**; các phần tử mutable vẫn chia sẻ. Cần copy hoặc chuyển thành immutable item trong constructor:
+If `MutableItem` is mutable, `List.copyOf(items)` only creates/keeps a **structurally** unmodifiable list; mutable elements are still shared. Each item must be copied or converted to an immutable item in the constructor:
 
 ```java
-// Mảnh code: ItemSnapshot là record chỉ chứa immutable fields.
+// Code snippet: ItemSnapshot is a record containing only immutable fields.
 this.items = input.stream()
     .map(x -> new ItemSnapshot(x.id(), x.name()))
     .toList();
 ```
 
-Đoạn này giả định field có kiểu `List<ItemSnapshot>`, input có `id()` và `name()`, còn các component của `ItemSnapshot` bất biến. `Stream.toList()` trả list không cho sửa cấu trúc trong Java 17. Đây là snapshot các trường được chọn, không phải “clone tất cả” tự động.
+This snippet assumes the field has type `List<ItemSnapshot>`, `input` has `id()` and `name()`, and `ItemSnapshot`'s components are immutable. `Stream.toList()` returns a structurally unmodifiable list in Java 17. This is a snapshot of selected fields, not an automatic “clone everything”.
 
 ### 10.3. `final int[][]`
 
-`matrix.clone()` chỉ sao chép mảng ngoài; các hàng `int[]` vẫn chia sẻ. Nếu cần độc lập toàn bộ ma trận:
+`matrix.clone()` only copies the outer array; the `int[]` rows are still shared. If full matrix independence is needed:
 
 ```java
 static int[][] copyMatrix(int[][] source) {
@@ -496,89 +496,89 @@ static int[][] copyMatrix(int[][] source) {
 }
 ```
 
-Đây là hàm minh họa giả định `source` và mọi hàng khác `null`; chính sách `null` phải được thiết kế thêm nếu dữ liệu cho phép. Hãy gọi `copyMatrix` trong constructor để gán field final, và khi trả ma trận ra ngoài để không làm lộ alias.
+This illustrative method assumes `source` and every row are non-`null`; a `null` policy must be designed additionally if data allows nulls. Call `copyMatrix` in the constructor to assign the final field, and when returning the matrix externally so aliases are not exposed.
 
-### 10.4. Object graph có vòng tham chiếu
+### 10.4. Object Graphs with Circular References
 
-Với nhiều node tham chiếu qua lại, “deep copy” có thể cần bảng ánh xạ từ node cũ sang node mới để giữ cấu trúc và xử lý vòng; copy constructor đơn giản trên từng node có thể lặp vô hạn hoặc vô tình tạo nhiều bản sao của cùng node. Nếu yêu cầu nghiệp vụ chỉ cần vài giá trị, thiết kế immutable DTO/snapshot thường ít lỗi hơn việc clone toàn bộ graph.
+With multiple nodes referencing one another, “deep copy” may need a mapping table from old nodes to new nodes to preserve structure and handle cycles; a simple copy constructor per node can loop infinitely or accidentally create multiple copies of the same node. If business requirements only need a few values, designing an immutable DTO/snapshot is usually less error-prone than cloning the entire graph.
 
-## 11. Đặt câu hỏi đúng trước khi chọn giải pháp
+## 11. Asking the Right Questions Before Choosing a Solution
 
-Một bảng lựa chọn thực tế:
+A practical decision table:
 
-| Nhu cầu | Giải pháp phù hợp | Ghi chú |
+| Need | Suitable solution | Notes |
 | --- | --- | --- |
-| Snapshot/value object có `final` và dữ liệu cần độc lập | Copy constructor hoặc factory + defensive copy | Dễ bảo toàn final field và bất biến |
-| Chỉ có field primitive và immutable references | Chia sẻ các giá trị immutable có thể chấp nhận | Không cần deep-copy vô ích |
-| Bắt buộc tương thích clone cũ, field mutable không final | `super.clone()` rồi thay từng reference mutable bằng bản sao | Cập nhật mỗi khi thêm trường cần copy |
-| Bắt buộc API tên `clone()` nhưng class `final` có mutable final field | Override `clone()` để gọi constructor/factory mới | Không bắt buộc dùng `super.clone()` |
-| Đang có `final List<MutableItem>` cần bất biến sâu | Chuyển từng item thành immutable value snapshot | `List.copyOf` đơn lẻ chưa đủ |
-| Class/graph có kế thừa hoặc quan hệ phức tạp | Thiết kế giao thức copy chuyên biệt hoặc snapshot theo miền | Cẩn thận mất subtype và vòng tham chiếu |
+| Snapshot/value object with `final` and data needing independence | Copy constructor or factory + defensive copy | Easy to preserve `final` fields and invariants |
+| Only primitive fields and immutable references | Sharing immutable values is acceptable | Avoids pointless deep copies |
+| Must stay compatible with legacy `clone`, non-final mutable fields | `super.clone()` then replace each mutable reference with a copy | Update whenever a new field needing copy is added |
+| API requires method named `clone()`, `final` class with mutable final field | Override `clone()` to call a new constructor/factory | Using `super.clone()` is not mandatory |
+| Have `final List<MutableItem>` needing deep immutability | Convert each item to an immutable value snapshot | `List.copyOf` alone is not enough |
+| Class/graph with inheritance or complex relationships | Design a dedicated copy protocol or domain-specific snapshot | Watch out for losing subtypes and circular references |
 
-**Không có một “deep clone” tự động đúng cho mọi object Java**: tài nguyên file/socket, lock, entity ID, kết nối database và object graph có thể có quy tắc sở hữu riêng. Clone một connection hoặc copy cùng business ID có thể không mang ý nghĩa hợp lệ. Cần quyết định rõ đối tượng mới được phép chia sẻ gì và phải độc lập với cái gì.
+**There is no single automatic “deep clone” right for every Java object**: file/socket resources, locks, entity IDs, database connections, and object graphs may each have their own ownership rules. Cloning a connection or copying the same business ID may make no valid sense. You must clearly decide what the new object is allowed to share and what it must be independent from.
 
-## 12. Các lỗi thường gặp
+## 12. Common Mistakes
 
-| Sai lầm | Vì sao sai? | Hướng khắc phục |
+| Mistake | Why is it wrong? | How to fix |
 | --- | --- | --- |
-| Nghĩ `final int[]` làm mảng bất biến | Chỉ cố định tham chiếu, phần tử vẫn sửa được | Defensive copy và API không lộ alias |
-| Nghĩ `super.clone()` tự deep copy | Chỉ sao chép nông các field | Thiết kế copy từng thành phần mutable |
-| Viết `copy.finalField = ...` sau `super.clone()` | Không biên dịch: không được gán lại final field | Copy constructor/factory tạo instance mới |
-| Gọi `copy.items.clear()/addAll` để “sửa” alias | Hai object có thể chung list, sửa clone cũng sửa gốc | Tạo collection mới trong constructor hoặc cho field không final nếu đúng thiết kế |
-| Dùng `new ArrayList<>(source)` và cho rằng phần tử mutable đã độc lập | Chỉ copy vỏ collection | Copy phần tử mutable hoặc snapshot immutable |
-| Chỉ copy input ở constructor rồi `super.clone()` | Caller đã tách nhưng clone mới vẫn chia sẻ nội bộ với gốc | Áp dụng riêng chiến lược copy khi tạo clone |
-| Bỏ `final` mà không xét thiết kế | Mất cam kết cố định tham chiếu và thay đổi cách lý luận concurrency | Ưu tiên constructor khi muốn field final |
-| Để clone kế thừa từ class cha bỏ sót field mới của subclass | Bản sao có thể chia sẻ trạng thái mutable hoặc mất bất biến | Thiết kế copy cho cả lớp cha/con và kiểm thử |
-| Dùng `clone()` mà không có chiến lược xử lý lỗi/`Cloneable` | `Object.clone()` có thể ném `CloneNotSupportedException` | Dùng API copy rõ ràng hoặc triển khai Cloneable đúng |
-| Gọi clone rồi chỉ kiểm tra `original != copy` | Hai object khác tham chiếu vẫn có thể chung mảng | Thử sửa bản sao và xác nhận gốc không đổi |
+| Thinking `final int[]` makes the array immutable | Only fixes the reference; elements can still be mutated | Defensive copy and APIs that do not leak aliases |
+| Thinking `super.clone()` automatically deep-copies | Only shallow-copies fields | Design copying for each mutable component |
+| Writing `copy.finalField = ...` after `super.clone()` | Does not compile: cannot reassign a `final` field | Copy constructor/factory creating a new instance |
+| Calling `copy.items.clear()/addAll` to “fix” aliasing | Both objects may share the list; editing the clone edits the original | Create a new collection in constructor or make field non-final if design warrants |
+| Using `new ArrayList<>(source)` and assuming mutable elements are independent | Only copies the collection shell | Copy mutable elements or take an immutable snapshot |
+| Copying input only in constructor then calling `super.clone()` | Caller is detached, yet the new clone still shares internals with original | Apply a separate copy strategy when creating clones |
+| Removing `final` without considering design | Loses reference-fixity guarantee and changes concurrency reasoning | Prefer constructor when `final` fields are wanted |
+| Letting an inherited clone miss new fields of a subclass | Copy may share mutable state or violate invariants | Design copying for both parent/child classes and test |
+| Using `clone()` without error-handling/`Cloneable` strategy | `Object.clone()` can throw `CloneNotSupportedException` | Use an explicit copy API or implement `Cloneable` properly |
+| Calling clone and only checking `original != copy` | Two objects with different references can still share arrays | Try mutating the copy and confirm the original is unchanged |
 
-## 13. Checklist kiểm thử
+## 13. Testing Checklist
 
-Đối với lớp có mutable final field và yêu cầu copy độc lập:
+For a class with mutable `final` fields requiring independent copies:
 
-1. **Kiểm tra tạo instance khác:** `original != copy`.
-2. **Kiểm tra nội dung khởi đầu:** các giá trị cần tương đương sau khi copy.
-3. **Kiểm tra alias:** sửa qua phương thức của bản copy, quan sát xem bản gốc có đổi không.
-4. **Kiểm tra input alias:** sửa mảng/list đầu vào sau constructor; object đã tạo có đổi không?
-5. **Kiểm tra output alias:** nếu getter trả array/list, sửa giá trị nhận về có ảnh hưởng nội bộ không?
-6. **Kiểm tra nested mutable:** mảng nhiều chiều hoặc phần tử mutable có được copy đến đúng độ sâu không?
-7. **Kiểm tra equals/hashCode:** bản sao độc lập không được làm hash của object gốc thay đổi ngoài ý muốn; quan hệ equality phù hợp domain.
-8. **Kiểm tra null, collection order và invariant:** chiến lược copy không vô ý đổi điều kiện hợp lệ, thứ tự hay tính duy nhất.
-9. **Kiểm tra khai báo `final` và compile:** những giải pháp dùng constructor gán được field trong thời điểm hợp lệ; các giải pháp gán lại trong `clone()` sẽ bị Java từ chối.
-10. **Kiểm tra các subtype:** nếu có inheritance, clone có giữ đúng runtime type và các invariant của từng lớp không?
+1. **Check distinct instance creation:** `original != copy`.
+2. **Check initial contents:** values must be equivalent after copying.
+3. **Check aliasing:** mutate through the copy's methods, observe whether the original changes.
+4. **Check input aliasing:** mutate input arrays/lists after the constructor; does the created object change?
+5. **Check output aliasing:** if getters return arrays/lists, does mutating the returned values affect internal state?
+6. **Check nested mutables:** are multidimensional arrays or mutable elements copied to the right depth?
+7. **Check `equals`/`hashCode`:** independent copies must not unexpectedly alter the original object's hash; equality relationship fits the domain.
+8. **Check nulls, collection order, and invariants:** the copy strategy must not accidentally alter validity conditions, ordering, or uniqueness.
+9. **Check `final` declarations and compilation:** constructor-based solutions assign fields at a valid point; solutions reassigning inside `clone()` will be rejected by Java.
+10. **Check subtypes:** if inheritance is present, does cloning preserve the runtime type and each class's invariants?
 
-Một kiểm thử chỉ so mảng ban đầu bằng nhau không đủ để chứng minh độc lập. Cần chủ động **thay đổi bản sao sau khi tạo** rồi đối chiếu bản gốc; đây là cách nhanh nhất để phát hiện shared mutable state.
+A test that only checks whether initial arrays are equal is not enough to prove independence. You must actively **mutate the copy after creation** and compare against the original; this is the fastest way to detect shared mutable state.
 
-## 14. Tự kiểm tra
+## 14. Self-Check
 
-**Câu 1.** Một lớp có `private final int[] numbers`. `super.clone()` có sao chép các phần tử sang mảng mới không?
+**Question 1.** A class has `private final int[] numbers`. Does `super.clone()` copy the elements into a new array?
 
-**Đáp án:** Không. Bản sao shallow giữ cùng tham chiếu mảng. Field `final` vẫn được sao chép giá trị tham chiếu ban đầu, chứ không tự tạo mảng mới.
+**Answer:** No. The shallow copy keeps the same array reference. The `final` field still has its initial reference value copied, rather than automatically creating a new array.
 
-**Câu 2.** Vì sao `copy.numbers = numbers.clone()` sau `super.clone()` không biên dịch nếu `numbers` là `final`?
+**Question 2.** Why does `copy.numbers = numbers.clone()` after `super.clone()` not compile if `numbers` is `final`?
 
-**Đáp án:** Vì đó là phép gán lại final field trong phương thức `clone()`, không phải thao tác khởi tạo field hợp lệ ở constructor hay initializer. Object được sinh bởi `super.clone()` không làm mất quy tắc `final` của ngôn ngữ.
+**Answer:** Because that is reassigning a `final` field inside the `clone()` method, not a valid field initialization in a constructor or initializer. An object produced by `super.clone()` does not waive the language's `final` rules.
 
-**Câu 3.** Có thể viết `numbers[0] = 3` dù `numbers` là final không? Điều đó giải quyết deep copy không?
+**Question 3.** Can you write `numbers[0] = 3` even if `numbers` is `final`? Does that solve deep copying?
 
-**Đáp án:** Có thể sửa phần tử nếu mảng mutable; nhưng không tạo mảng mới, nên không giải quyết vấn đề chia sẻ alias. Nếu clone đang chung mảng với gốc, cả hai cùng quan sát thay đổi.
+**Answer:** You can modify elements if the array is mutable; however, it does not create a new array, so it does not solve alias sharing. If the clone shares the array with the original, both observe the change.
 
-**Câu 4.** Cách nào giữ được `private final int[] numbers` nhưng tạo hai instance sở hữu mảng riêng?
+**Question 4.** How can you keep `private final int[] numbers` yet create two instances owning separate arrays?
 
-**Đáp án:** Copy constructor hoặc factory gọi constructor, và clone mảng khi gán field lúc tạo instance. Nếu cần API `clone()`, có thể tự tạo một instance bằng constructor trong phương thức đó đối với lớp có thiết kế phù hợp.
+**Answer:** A copy constructor or a factory calling a constructor, cloning the array when assigning the field at instance creation time. If a `clone()` API is needed, you can construct a new instance using the constructor inside that method for an appropriately designed class.
 
-**Câu 5.** `List.copyOf(List<MutableItem>)` có tạo immutable graph không?
+**Question 5.** Does `List.copyOf(List<MutableItem>)` create an immutable graph?
 
-**Đáp án:** Không. Nó không cho sửa cấu trúc list nhưng vẫn tham chiếu các `MutableItem`; để có bất biến sâu cần immutable item hoặc copy từng item đúng mức.
+**Answer:** No. It prevents modifying the list structure, yet still references the `MutableItem` instances; to get deep immutability, immutable items or proper per-item copying is needed.
 
-**Câu 6.** Sau khi `super.clone()`, hai object có `original != copy` và `original.toString().equals(copy.toString())`. Đã chứng minh độc lập chưa?
+**Question 6.** After `super.clone()`, two objects have `original != copy` and `original.toString().equals(copy.toString())`. Is independence proven?
 
-**Đáp án:** Chưa. Cả hai chỉ xác nhận instance khác và biểu diễn chuỗi tương tự. Cần thử thay đổi dữ liệu mutable thông qua một bên và quan sát bên kia.
+**Answer:** Not yet. Both only confirm distinct instances and similar string representations. You must try mutating mutable data through one side and observe the other.
 
-**Câu 7.** Có nhất thiết phải bỏ `final` để có bản sao độc lập không?
+**Question 7.** Is it necessary to remove `final` to get an independent copy?
 
-**Đáp án:** Không. Chỉ việc **gán lại sau `super.clone()`** bị chặn. Tạo object mới qua constructor/factory cho phép khởi tạo field final bằng tham chiếu đã được sao chép, mà vẫn giữ thiết kế cố định tham chiếu.
+**Answer:** No. Only **reassigning after `super.clone()`** is blocked. Creating a new object via a constructor/factory allows initializing the `final` field with an already-copied reference, while keeping the reference-fixing design.
 
 ---
 
-**Ghi nhớ:** `final` cố định **tham chiếu của field**, không làm bất biến dữ liệu được tham chiếu. `super.clone()` tạo **bản sao nông**, không tự sao chép mảng/collection; cách “`super.clone()` rồi gán lại field” không áp dụng cho trường `final`. Khi cần độc lập thực sự mà vẫn giữ field final, ưu tiên **copy constructor/factory với defensive copying**, và kiểm thử bằng cách sửa bản sao rồi xác nhận bản gốc không thay đổi.
+**Takeaway:** `final` fixes the **field's reference**, without making the referenced data immutable. `super.clone()` creates a **shallow copy**, without automatically copying arrays/collections; the “`super.clone()` then reassign field” pattern does not apply to `final` fields. When genuine independence is needed while keeping `final` fields, prefer a **copy constructor/factory with defensive copying**, and test by mutating the copy and confirming the original does not change.

@@ -1,56 +1,56 @@
-# jmod create và module native command
+# jmod create and Module Native Commands
 
-JMOD là định dạng archive của JDK dùng để đóng gói nội dung module phục vụ quá trình liên kết runtime image. Ngoài class Java và module descriptor, một JMOD có thể chứa native command, native library, cấu hình, header, legal notice và man page.
+JMOD is a JDK archive format used to package module contents for linking a runtime image. In addition to Java classes and the module descriptor, a JMOD can contain native commands, native libraries, configuration files, headers, legal notices, and man pages.
 
-Lệnh `jmod create` tạo file `.jmod` từ các đầu vào đã chuẩn bị. Khi dùng `jlink` để tạo runtime image, nội dung phù hợp trong JMOD được đưa vào image. Chủ đề này đặc biệt quan trọng khi module Java cần phân phối kèm một chương trình native có thể gọi từ shell hoặc từ `ProcessBuilder`.
+The `jmod create` command creates a `.jmod` file from prepared inputs. When using `jlink` to build a runtime image, the appropriate contents inside the JMOD are placed into the image. This topic is especially important when a Java module needs to distribute a native program that can be invoked from a shell or from `ProcessBuilder`.
 
-Cần phân biệt hai loại native artifact:
+Distinguish two types of native artifacts:
 
-- **Native command** là executable độc lập, ví dụ `acme-check` hoặc `acme-check.exe`. Đóng gói nó bằng `jmod create --cmds`; khi link module, command được đặt trong thư mục `bin` của runtime image.
-- **Native library** là thư viện dùng từ code Java qua JNI hoặc cơ chế native tương ứng, ví dụ `libacme.so`, `acme.dll` hoặc `libacme.dylib`. Đóng gói bằng `--libs`, không phải `--cmds`.
+- A **native command** is a standalone executable, such as `acme-check` or `acme-check.exe`. Package it with `jmod create --cmds`; when linking the module, the command is placed in the `bin` directory of the runtime image.
+- A **native library** is a library used from Java code via JNI or a corresponding native mechanism, such as `libacme.so`, `acme.dll`, or `libacme.dylib`. Package it with `--libs`, not `--cmds`.
 
-## 1. Cấu trúc của một JMOD
+## 1. Structure of a JMOD
 
-JMOD có thể chứa những section sau:
+A JMOD can contain the following sections:
 
-| Section | Nội dung | Tùy chọn jmod create |
+| Section | Contents | jmod create Option |
 |---|---|---|
-| `classes/` | Class Java, resource và `module-info.class` | `--class-path` |
-| `bin/` | Native command executable | `--cmds` |
-| `conf/` | File cấu hình của module | `--config` |
+| `classes/` | Java classes, resources, and `module-info.class` | `--class-path` |
+| `bin/` | Native command executables | `--cmds` |
+| `conf/` | Module configuration files | `--config` |
 | `include/` | Native header files | `--header-files` |
-| `legal/` | License và legal notices | `--legal-notices` |
+| `legal/` | Licenses and legal notices | `--legal-notices` |
 | `lib/` | Native libraries | `--libs` |
 | `man/` | Man pages | `--man-pages` |
 
-Không phải module nào cũng cần tất cả section. Một module thuần Java có thể chỉ cần `classes/`; module cung cấp native command sẽ có thêm `bin/`.
+Not every module needs all sections. A pure Java module might only need `classes/`; a module providing a native command will also have `bin/`.
 
-Module descriptor vẫn là phần quan trọng của JMOD. Đối với module được dùng làm đầu vào cho `jlink`, thư mục class đầu vào phải có `module-info.class` hợp lệ để công cụ xác định tên module và dependency.
+The module descriptor remains an essential part of a JMOD. For a module used as input to `jlink`, the input classes directory must contain a valid `module-info.class` so the tool can determine the module name and dependencies.
 
-## 2. Cú pháp jmod create
+## 2. jmod create Syntax
 
-Cú pháp tổng quát:
+General syntax:
 
 ~~~bash
 jmod create [OPTIONS] <jmod-file>
 ~~~
 
-Các tùy chọn thường dùng:
+Commonly used options:
 
-| Tùy chọn | Ý nghĩa |
+| Option | Meaning |
 |---|---|
-| `--class-path <path>` | Thư mục chứa class và resource của module |
-| `--cmds <path>` | Thư mục chứa native command executable |
-| `--libs <path>` | Thư mục chứa native library |
-| `--config <path>` | Thư mục chứa file cấu hình |
-| `--header-files <path>` | Thư mục chứa header dùng cho native integration |
-| `--legal-notices <path>` | Thư mục chứa license/legal notice |
-| `--man-pages <path>` | Thư mục chứa man page |
-| `--main-class <class>` | Main class của module, nếu module có entry point Java |
-| `--module-version <version>` | Version được ghi vào metadata module |
-| `--target-platform <target-platform>` | Nền tảng đích mà JMOD được tạo cho |
+| `--class-path <path>` | Directory containing module classes and resources |
+| `--cmds <path>` | Directory containing native command executables |
+| `--libs <path>` | Directory containing native libraries |
+| `--config <path>` | Directory containing configuration files |
+| `--header-files <path>` | Directory containing headers used for native integration |
+| `--legal-notices <path>` | Directory containing license/legal notices |
+| `--man-pages <path>` | Directory containing man pages |
+| `--main-class <class>` | Main class of the module, if the module has a Java entry point |
+| `--module-version <version>` | Version recorded in module metadata |
+| `--target-platform <target-platform>` | Target platform for which the JMOD is created |
 
-Ví dụ tạo JMOD chỉ có class Java:
+Example creating a JMOD with Java classes only:
 
 ~~~bash
 jmod create \
@@ -59,7 +59,7 @@ jmod create \
   build/jmods/com.acme.tools.jmod
 ~~~
 
-Ví dụ có thêm native command:
+Example adding a native command:
 
 ~~~bash
 jmod create \
@@ -69,11 +69,11 @@ jmod create \
   build/jmods/com.acme.tools.jmod
 ~~~
 
-Tên file JMOD thường phản ánh module name, nhưng module name chính thức nằm trong `module-info.class`. Đổi tên file không làm thay đổi tên module bên trong descriptor.
+The JMOD filename usually reflects the module name, but the official module name resides inside `module-info.class`. Renaming the file does not change the module name inside the descriptor.
 
-## 3. Chuẩn bị một module Java để đóng gói
+## 3. Preparing a Java Module for Packaging
 
-Ví dụ module có tên `com.acme.tools`:
+Example module named `com.acme.tools`:
 
 ~~~text
 project/
@@ -97,7 +97,7 @@ module com.acme.tools {
 }
 ~~~
 
-Class Java:
+Java class:
 
 ~~~java
 package com.acme.tools;
@@ -109,7 +109,7 @@ public class ToolInfo {
 }
 ~~~
 
-Compile module:
+Compile the module:
 
 ~~~bash
 javac \
@@ -118,7 +118,7 @@ javac \
   src/com.acme.tools/com/acme/tools/ToolInfo.java
 ~~~
 
-Sau khi compile, thư mục `build/classes/com.acme.tools` cần có cấu trúc:
+After compiling, the `build/classes/com.acme.tools` directory should have the structure:
 
 ~~~text
 build/classes/com.acme.tools/
@@ -129,11 +129,11 @@ build/classes/com.acme.tools/
             └── ToolInfo.class
 ~~~
 
-Đây là đầu vào cho `--class-path`. Không đưa source `.java` vào JMOD thay cho class đã compile.
+This is the input for `--class-path`. Do not put `.java` source files into a JMOD in place of compiled classes.
 
-## 4. Chuẩn bị native command
+## 4. Preparing a Native Command
 
-Một native command là chương trình thực thi riêng của hệ điều hành. Ví dụ C đơn giản:
+A native command is an executable program specific to the operating system. Simple C example:
 
 ~~~c
 #include <stdio.h>
@@ -144,23 +144,23 @@ int main(void) {
 }
 ~~~
 
-Lưu file thành `native/acme-check.c`.
+Save the file as `native/acme-check.c`.
 
-Trên Linux hoặc macOS, dùng compiler C phù hợp với nền tảng:
+On Linux or macOS, use a C compiler appropriate for the platform:
 
 ~~~bash
 mkdir -p native/bin
 cc -O2 -o native/bin/acme-check native/acme-check.c
 ~~~
 
-Kiểm tra file thực thi:
+Verify the executable file:
 
 ~~~bash
 file native/bin/acme-check
 ./native/bin/acme-check
 ~~~
 
-Trên Windows với Microsoft C/C++ Build Tools, có thể tạo executable tương ứng:
+On Windows with Microsoft C/C++ Build Tools, you can build the corresponding executable:
 
 ~~~powershell
 New-Item -ItemType Directory -Force native/bin
@@ -168,19 +168,19 @@ cl /O2 /Fe:native/bin/acme-check.exe native/acme-check.c
 native/bin/acme-check.exe
 ~~~
 
-Thư mục truyền cho `--cmds` chứa **binary đã biên dịch**, không phải file source C. Tên file command sẽ được giữ trong runtime image; trên Windows thường có phần mở rộng `.exe`.
+The directory passed to `--cmds` contains **compiled binaries**, not C source files. The command filename will be preserved in the runtime image; on Windows it typically has the `.exe` extension.
 
-Native command phải phù hợp với hệ điều hành và kiến trúc CPU của runtime image đích. Một binary Linux không thể chạy trong runtime image Windows chỉ vì nó được đóng gói trong JMOD.
+The native command must match the operating system and CPU architecture of the target runtime image. A Linux binary cannot run in a Windows runtime image merely because it was packaged in a JMOD.
 
-## 5. Đóng gói module và native command bằng jmod create
+## 5. Packaging the Module and Native Command with jmod create
 
-Tạo thư mục chứa JMOD:
+Create the directory for JMODs:
 
 ~~~bash
 mkdir -p build/jmods
 ~~~
 
-Tạo JMOD:
+Create the JMOD:
 
 ~~~bash
 jmod create \
@@ -190,14 +190,14 @@ jmod create \
   build/jmods/com.acme.tools.jmod
 ~~~
 
-Trong lệnh trên:
+In the command above:
 
-- `--class-path` lấy `module-info.class`, class Java và resource của module.
-- `--cmds` lấy các native executable trong `native/bin`.
-- `--module-version` ghi version vào module metadata.
-- Đối số cuối cùng là đường dẫn file JMOD cần tạo.
+- `--class-path` takes `module-info.class`, Java classes, and module resources.
+- `--cmds` takes native executables in `native/bin`.
+- `--module-version` records the version in module metadata.
+- The final argument is the path of the JMOD file to create.
 
-Nếu module còn có native library, config, header, license hoặc man page, có thể bổ sung các tùy chọn tương ứng:
+If the module also has native libraries, configs, headers, licenses, or man pages, you can add the corresponding options:
 
 ~~~bash
 jmod create \
@@ -212,24 +212,24 @@ jmod create \
   build/jmods/com.acme.tools.jmod
 ~~~
 
-Chỉ truyền các thư mục thực sự cần thiết. Các thư mục đầu vào phải chứa đúng loại artifact mà tùy chọn mô tả.
+Pass only the directories that are genuinely needed. Input directories must contain the exact artifact types described by the options.
 
-Nếu đóng gói binary cho một nền tảng cụ thể, có thể gắn metadata nền tảng bằng `--target-platform`. Giá trị phải theo định danh target platform mà bộ JDK/toolchain đang dùng hỗ trợ. Giữ nhất quán JDK, kiến trúc và hệ điều hành khi tạo JMOD và runtime image.
+If packaging binaries for a specific platform, you can attach platform metadata with `--target-platform`. The value must follow a target platform identifier supported by the JDK/toolchain in use. Keep the JDK, architecture, and operating system consistent when creating JMODs and runtime images.
 
-## 6. Phân biệt --cmds, --libs và --header-files
+## 6. Distinguishing --cmds, --libs, and --header-files
 
-Ba tùy chọn này dễ nhầm vì đều liên quan native code, nhưng mục đích khác nhau.
+These three options are easy to confuse because all relate to native code, but their purposes differ.
 
-### --cmds: executable được gọi như command
+### --cmds: Executables Invoked as Commands
 
-Ví dụ:
+Example:
 
 ~~~text
 native/bin/
 └── acme-check
 ~~~
 
-Sau khi link module, command được đưa vào:
+After linking the module, the command is placed in:
 
 ~~~text
 runtime/
@@ -239,23 +239,23 @@ runtime/
     └── acme-check
 ~~~
 
-Có thể chạy trực tiếp từ shell:
+It can be run directly from the shell:
 
 ~~~bash
 runtime/bin/acme-check
 ~~~
 
-Trên Windows:
+On Windows:
 
 ~~~powershell
 runtime/bin/acme-check.exe
 ~~~
 
-Command này có thể là một tiện ích độc lập, không nhất thiết phải được Java class gọi. Nó cũng không trở thành main class của module chỉ vì được đóng gói trong JMOD.
+This command can be a standalone utility and does not necessarily have to be invoked by a Java class. Nor does it become the module's main class just because it is packaged in the JMOD.
 
-### --libs: thư viện native được Java nạp
+### --libs: Native Libraries Loaded by Java
 
-Ví dụ:
+Example:
 
 ~~~text
 native/lib/
@@ -264,7 +264,7 @@ native/lib/
 └── acme_native.dll
 ~~~
 
-Tên và định dạng thực tế phụ thuộc hệ điều hành. Một Java class có thể gọi native library qua JNI, ví dụ:
+Actual names and formats depend on the operating system. A Java class can call a native library via JNI, for example:
 
 ~~~java
 public final class NativeBridge {
@@ -276,7 +276,7 @@ public final class NativeBridge {
 }
 ~~~
 
-Thư viện được đóng gói bằng:
+The library is packaged with:
 
 ~~~bash
 jmod create \
@@ -285,11 +285,11 @@ jmod create \
   build/jmods/com.acme.tools.jmod
 ~~~
 
-`System.loadLibrary` nạp thư viện native theo cơ chế tìm kiếm library path của JVM. Việc đóng gói thư viện vào JMOD giúp nó được đưa vào runtime image khi module được link; vẫn cần kiểm tra tên thư viện, kiến trúc, ABI và cách JVM tìm thấy thư viện trong image.
+`System.loadLibrary` loads the native library according to the JVM's library path search mechanism. Packaging the library into a JMOD ensures it is included in the runtime image when the module is linked; you still need to verify library naming, architecture, ABI, and how the JVM locates the library in the image.
 
-### --header-files: header dùng khi tích hợp native
+### --header-files: Headers Used for Native Integration
 
-Header C/C++ có thể được tạo bởi `javac -h` khi Java class khai báo native method:
+C/C++ headers can be generated by `javac -h` when a Java class declares native methods:
 
 ~~~bash
 javac -h native/include \
@@ -297,13 +297,13 @@ javac -h native/include \
   src/com.acme.tools/com/acme/tools/NativeBridge.java
 ~~~
 
-Thư mục `native/include` có thể được đóng gói bằng `--header-files` để phân phối header cùng module. Header không phải executable và cũng không phải native library; nó hỗ trợ compile native code tương thích với Java API/JNI.
+The `native/include` directory can be packaged with `--header-files` to distribute headers alongside the module. Headers are neither executables nor native libraries; they support compiling native code compatible with the Java API/JNI.
 
-## 7. Link JMOD thành runtime image bằng jlink
+## 7. Linking JMODs into a Runtime Image with jlink
 
-JMOD là đầu vào cho công cụ liên kết. Java launcher không nạp file `.jmod` trực tiếp như một module runtime. Dùng `jlink` để tạo runtime image có module cần thiết.
+JMOD is an input for the linker tool. The Java launcher does not load a `.jmod` file directly as a runtime module. Use `jlink` to create a runtime image containing the required modules.
 
-Trên Linux/macOS:
+On Linux/macOS:
 
 ~~~bash
 jlink \
@@ -312,45 +312,45 @@ jlink \
   --output runtime
 ~~~
 
-Trên Windows PowerShell:
+On Windows PowerShell:
 
 ~~~powershell
 $jmods = Join-Path $env:JAVA_HOME "jmods"
 jlink --module-path "$jmods;build/jmods" --add-modules com.acme.tools --output runtime
 ~~~
 
-`--module-path` chứa cả JMOD của JDK và JMOD ứng dụng. `--add-modules` chọn module cần đưa vào image; dependency được giải quyết theo descriptor. `--output` xác định thư mục runtime image.
+`--module-path` contains both JDK JMODs and application JMODs. `--add-modules` selects the modules to include in the image; dependencies are resolved from descriptors. `--output` specifies the runtime image directory.
 
-Sau khi link thành công, chạy native command trong image:
+After linking succeeds, run the native command in the image:
 
 ~~~bash
 runtime/bin/acme-check
 ~~~
 
-Trên Windows:
+On Windows:
 
 ~~~powershell
 runtime/bin/acme-check.exe
 ~~~
 
-Kiểm tra module có trong image:
+Verify the modules in the image:
 
 ~~~bash
 runtime/bin/java --list-modules
 runtime/bin/java --describe-module com.acme.tools
 ~~~
 
-Nếu JMOD chứa native library, hãy kiểm tra thư viện cũng đã được link vào image và thử nạp từ một chương trình Java trong runtime đó.
+If the JMOD contains a native library, verify that the library was also linked into the image and test loading it from a Java program in that runtime.
 
-## 8. Kiểm tra nội dung JMOD
+## 8. Inspecting JMOD Contents
 
-Dùng `jmod list` để xem các entry:
+Use `jmod list` to view entries:
 
 ~~~bash
 jmod list build/jmods/com.acme.tools.jmod
 ~~~
 
-Có thể thấy các entry tương tự:
+You may see entries similar to:
 
 ~~~text
 classes/module-info.class
@@ -358,21 +358,21 @@ classes/com/acme/tools/ToolInfo.class
 bin/acme-check
 ~~~
 
-Dùng `jmod describe` để xem metadata module:
+Use `jmod describe` to view module metadata:
 
 ~~~bash
 jmod describe build/jmods/com.acme.tools.jmod
 ~~~
 
-Đầu ra có thể hiển thị tên module, version, exports, requires và target platform nếu metadata có khai báo. `jmod describe` tập trung vào descriptor; dùng `jmod list` để kiểm tra file được đóng gói.
+The output can show the module name, version, exports, requires, and target platform if declared in metadata. `jmod describe` focuses on the descriptor; use `jmod list` to inspect packaged files.
 
-Muốn giải nén archive để kiểm tra từng section:
+To extract the archive to inspect each section:
 
 ~~~bash
 jmod extract --dir extracted build/jmods/com.acme.tools.jmod
 ~~~
 
-Sau đó kiểm tra:
+Then inspect:
 
 ~~~text
 extracted/
@@ -385,16 +385,16 @@ extracted/
 └── man/
 ~~~
 
-Chỉ những section có nội dung mới xuất hiện. Việc extract hữu ích để xác nhận binary command đã được đưa vào đúng section trước khi tạo runtime image.
+Only sections that have content appear. Extracting is useful to confirm the binary command was placed in the right section before creating the runtime image.
 
-## 9. Native command khác với jlink --launcher
+## 9. Native Commands vs. jlink --launcher
 
-Không nhầm native command đóng gói trong JMOD với launcher được tạo bởi `jlink --launcher`.
+Do not confuse a native command packaged in a JMOD with a launcher generated by `jlink --launcher`.
 
-- `jmod create --cmds` đóng gói **một executable native có sẵn** vào JMOD. Đây có thể là công cụ C/C++ độc lập.
-- `jlink --launcher` tạo launcher để khởi chạy một module Java và main class của nó.
+- `jmod create --cmds` packages **an existing native executable** into the JMOD. This can be a standalone C/C++ tool.
+- `jlink --launcher` creates a launcher to start a Java module and its main class.
 
-Ví dụ tạo launcher Java:
+Example creating a Java launcher:
 
 ~~~bash
 jlink \
@@ -404,50 +404,50 @@ jlink \
   --output runtime
 ~~~
 
-Lệnh trên tạo launcher `runtime/bin/acme-java` để chạy main class Java. Nó không thay thế native command đã được đóng gói qua `--cmds`; hai loại command có thể cùng tồn tại nếu tên không xung đột.
+The command above creates the launcher `runtime/bin/acme-java` to run the Java main class. It does not replace a native command packaged via `--cmds`; both kinds of commands can coexist as long as their names do not collide.
 
-Nếu module chỉ cung cấp một native command mà không có main class Java, không cần khai báo `--launcher` cho module đó.
+If a module only provides a native command without a Java main class, there is no need to specify `--launcher` for that module.
 
-## 10. Các lỗi thường gặp
+## 10. Common Errors
 
-**jmod create báo không tìm thấy module descriptor.** Kiểm tra `--class-path` có trỏ tới thư mục gốc chứa `module-info.class` hay không. Đừng trỏ nhầm vào package con hoặc thư mục source.
+**jmod create reports that the module descriptor cannot be found.** Check whether `--class-path` points to the root directory containing `module-info.class`. Do not mistakenly point to a subpackage or source directory.
 
-**JMOD được tạo nhưng không tìm thấy native command sau jlink.** Kiểm tra command có thực sự nằm trong thư mục truyền cho `--cmds`, `jmod list` có entry `bin/...`, và module chứa JMOD đã được chọn trong `--add-modules`.
+**JMOD was created, but the native command is missing after jlink.** Check that the command actually resides in the directory passed to `--cmds`, `jmod list` shows the `bin/...` entry, and the module containing the JMOD was selected in `--add-modules`.
 
-**Command có trong runtime nhưng không chạy được.** Kiểm tra executable bit trên Unix, định dạng binary, kiến trúc CPU, dynamic dependencies và thư viện hệ điều hành cần thiết. Trên Windows, kiểm tra đúng file `.exe` và runtime dependency của compiler.
+**Command is present in the runtime but fails to execute.** Check the executable bit on Unix, binary format, CPU architecture, dynamic dependencies, and required OS libraries. On Windows, verify the `.exe` file and compiler runtime dependencies.
 
-**Dùng --libs nhưng mong command xuất hiện trong bin.** `--libs` đóng gói native library; command executable phải được đưa vào bằng `--cmds`.
+**Used --libs but expected the command to appear in bin.** `--libs` packages native libraries; command executables must be included using `--cmds`.
 
-**Dùng --cmds để đóng gói JNI library.** JNI library không phải command độc lập. Đưa nó vào `--libs`, sau đó kiểm tra `System.loadLibrary` và cấu hình nạp native library.
+**Used --cmds to package a JNI library.** A JNI library is not a standalone command. Put it in `--libs`, then verify `System.loadLibrary` and native library loading configuration.
 
-**JMOD chạy được trên máy tạo nhưng không chạy trên máy đích.** Native content phụ thuộc OS, CPU architecture và ABI. Tạo JMOD/runtime image cho đúng target platform; không sao chép binary Linux vào image Windows hoặc ngược lại.
+**JMOD works on the build machine but fails on the target machine.** Native content depends on OS, CPU architecture, and ABI. Build JMODs/runtime images for the exact target platform; do not copy a Linux binary into a Windows image or vice versa.
 
-**Java launcher báo không tìm thấy module khi trỏ trực tiếp tới JMOD.** JMOD dùng cho link time. Hãy dùng `jlink` để tạo runtime image, sau đó chạy ứng dụng từ image đó.
+**Java launcher reports module not found when pointing directly to a JMOD.** JMODs are for link time. Use `jlink` to create a runtime image, then run the application from that image.
 
-**Trùng tên command trong nhiều module.** Nhiều native command cùng được link vào một runtime image có thể xung đột tên file trong `bin`. Đặt tên command có namespace rõ ràng, ví dụ `acme-db-check`, và tránh để hai module sở hữu cùng tên executable.
+**Command name collision across multiple modules.** Multiple native commands linked into the same runtime image can collide on filenames in `bin`. Give commands clear namespaced names, such as `acme-db-check`, and avoid having two modules own the same executable name.
 
-## 11. Quy trình đóng gói khuyến nghị
+## 11. Recommended Packaging Workflow
 
-1. Compile module Java để tạo `module-info.class` và class/resource.
-2. Build native command riêng cho đúng OS và kiến trúc đích.
-3. Phân loại native artifact: executable vào `--cmds`, JNI/shared library vào `--libs`, header vào `--header-files`.
-4. Tạo JMOD bằng `jmod create` và chỉ truyền các section cần thiết.
-5. Dùng `jmod list` để xác nhận các entry, đặc biệt là `bin/<command>` và `lib/<library>`.
-6. Dùng `jmod describe` để xác nhận module name, version và descriptor.
-7. Dùng `jlink` để tạo runtime image từ JMOD cùng JMOD của JDK.
-8. Chạy native command từ `runtime/bin` và kiểm tra ứng dụng Java trên cùng runtime image.
-9. Thực hiện kiểm thử trên đúng hệ điều hành và kiến trúc sẽ triển khai.
+1. Compile the Java module to produce `module-info.class` and classes/resources.
+2. Build the native command separately for the exact target OS and architecture.
+3. Categorize native artifacts: executables in `--cmds`, JNI/shared libraries in `--libs`, headers in `--header-files`.
+4. Create the JMOD with `jmod create` and pass only the required sections.
+5. Use `jmod list` to confirm entries, especially `bin/<command>` and `lib/<library>`.
+6. Use `jmod describe` to confirm the module name, version, and descriptor.
+7. Use `jlink` to create a runtime image from the JMOD along with JDK JMODs.
+8. Run the native command from `runtime/bin` and test the Java application on the same runtime image.
+9. Run tests on the exact operating system and architecture to be deployed.
 
-## 12. Thực hành
+## 12. Practice
 
-1. Tạo module `com.acme.tools` với `module-info.java` và class `ToolInfo`.
-2. Compile module vào `build/classes/com.acme.tools`.
-3. Viết chương trình C `acme-check.c`, compile thành executable trong `native/bin`.
-4. Dùng `jmod create --class-path ... --cmds ...` tạo `com.acme.tools.jmod`.
-5. Dùng `jmod list` xác nhận có `classes/module-info.class` và `bin/acme-check`.
-6. Dùng `jlink` tạo runtime image chỉ chứa module cần thiết.
-7. Chạy `runtime/bin/acme-check` và `runtime/bin/java --describe-module com.acme.tools`.
-8. Nếu có JNI library, tạo thêm một native library, đóng gói bằng `--libs`, viết Java bridge và kiểm tra `System.loadLibrary` trong runtime image.
-9. Thử tạo JMOD cho một target platform khác bằng toolchain tương ứng; ghi nhận vì sao binary native không thể dùng tùy ý giữa các hệ điều hành.
+1. Create module `com.acme.tools` with `module-info.java` and class `ToolInfo`.
+2. Compile the module into `build/classes/com.acme.tools`.
+3. Write the C program `acme-check.c` and compile it into an executable in `native/bin`.
+4. Use `jmod create --class-path ... --cmds ...` to create `com.acme.tools.jmod`.
+5. Use `jmod list` to verify the presence of `classes/module-info.class` and `bin/acme-check`.
+6. Use `jlink` to create a runtime image containing only the required modules.
+7. Run `runtime/bin/acme-check` and `runtime/bin/java --describe-module com.acme.tools`.
+8. If you have a JNI library, create an additional native library, package it with `--libs`, write a Java bridge, and test `System.loadLibrary` inside the runtime image.
+9. Try building a JMOD for a different target platform using the corresponding toolchain; note why native binaries cannot be used arbitrarily across operating systems.
 
-Khi đóng gói native content cho module, hãy phân biệt executable, shared library và header. `--cmds` đưa native command vào `bin` của runtime image; `--libs` đưa thư viện native vào image để Java có thể nạp; `--header-files` phân phối header cho quá trình tích hợp native. JMOD gom các thành phần đó với descriptor và class Java, còn `jlink` tạo runtime image cuối cùng có thể triển khai.
+When packaging native content for a module, distinguish executables, shared libraries, and headers. `--cmds` places native commands in `bin` of the runtime image; `--libs` places native libraries into the image for Java to load; `--header-files` distributes headers for native integration. JMOD bundles these components with the descriptor and Java classes, while `jlink` creates the final deployable runtime image.

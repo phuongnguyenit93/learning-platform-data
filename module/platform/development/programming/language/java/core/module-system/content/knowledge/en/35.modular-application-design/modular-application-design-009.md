@@ -1,56 +1,56 @@
-# Rà soát graph bằng dependency và access evidence
+# Reviewing the Graph Using Dependency and Access Evidence
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể rà soát module graph của một ứng dụng JPMS bằng bằng chứng từ module descriptor, dependency analysis và runtime; xác định dependency nào là trực tiếp, transitive hoặc chỉ phục vụ implementation; kiểm tra readability, exports và opens theo đúng hướng; phát hiện package hoặc dependency bị lộ ngoài ý muốn; và ghi lại kết luận có thể kiểm chứng trước khi thay đổi kiến trúc.
+After this lesson, you will be able to review the module graph of a JPMS application using evidence from module descriptors, dependency analysis, and runtime; identify which dependencies are direct, transitive, or implementation-only; verify readability, `exports`, and `opens` in the right direction; detect unintentionally exposed packages or dependencies; and document verifiable findings before making architectural changes.
 
-## 1. Vì sao cần rà soát module graph bằng bằng chứng?
+## 1. Why review the module graph using evidence?
 
-Module graph không chỉ là danh sách các dòng `requires`. Nó mô tả các module được phân giải, quan hệ readability giữa chúng, package được export hoặc open và các service được sử dụng/cung cấp.
+A module graph is more than a list of `requires` lines. It describes resolved modules, readability relationships among them, exported or opened packages, and services used/provided.
 
-Một graph tốt phải trả lời được các câu hỏi:
+A sound graph should answer:
 
-- Module nào là root của ứng dụng hoặc plugin layer?
-- Module nào cần thiết để biên dịch và chạy từng capability?
-- Dependency nào xuất hiện trong public API và cần được truyền tiếp?
-- Consumer nào thực sự cần đọc module hoặc package khác?
-- Package nào phải được mở cho reflection, và module nào là target?
-- Provider module nào được thêm vào graph qua service binding?
-- Có dependency, export hoặc open nào không còn được sử dụng hoặc đang mở quá rộng?
+- Which modules are the roots of the application or plugin layers?
+- Which modules are required to compile and run each capability?
+- Which dependencies appear in the public API and need to be propagated?
+- Which consumers genuinely need to read another module or package?
+- Which packages must be opened for reflection, and which modules are the targets?
+- Which provider modules are pulled into the graph via service binding?
+- Are any dependencies, exports, or opens unused or opened too broadly?
 
-Không nên kết luận một dependency là thừa chỉ vì tên module không xuất hiện trong một đoạn code ngắn. Dependency có thể được dùng trong public signature, reflection, service loading, resource lookup, generated code hoặc một đường chạy chỉ xuất hiện ở runtime. Hãy kết hợp nhiều nguồn bằng chứng và kiểm tra cả build lẫn runtime.
+Do not conclude a dependency is redundant merely because a module name does not appear in a short code snippet. A dependency may be used in public signatures, reflection, service loading, resource lookup, generated code, or a code path exercised only at runtime. Combine multiple sources of evidence and verify both build and runtime.
 
-## 2. Bốn lớp bằng chứng cần thu thập
+## 2. Four layers of evidence to collect
 
-### Module descriptor
+### Module descriptors
 
-`module-info.java` và `module-info.class` cho biết ý định của module: `requires`, `exports`, `opens`, `uses` và `provides`. Đây là điểm xuất phát để hiểu graph được khai báo.
+`module-info.java` and `module-info.class` state the module's intent: `requires`, `exports`, `opens`, `uses`, and `provides`. This is the starting point for understanding the declared graph.
 
 ### Static dependency analysis
 
-Các công cụ như `jdeps` phân tích bytecode để tìm dependency giữa module/package/class. Kết quả giúp phát hiện dependency trực tiếp, dependency tới JDK internal API hoặc sự phụ thuộc chưa được mô tả đúng trong descriptor.
+Tools such as `jdeps` analyze bytecode to find dependencies across modules/packages/classes. The output helps uncover direct dependencies, dependencies on internal JDK APIs, or dependencies not properly reflected in descriptors.
 
 ### Runtime resolution
 
-Launcher có thể in thông tin module được phân giải bằng `--show-module-resolution`. Đây là bằng chứng về graph được tạo trong lần khởi chạy cụ thể, với module path, root modules và JVM options cụ thể.
+The launcher can print resolved module information via `--show-module-resolution`. This provides evidence of the graph built in a specific launch, with a specific module path, root modules, and JVM options.
 
 ### Runtime access checks
 
-Các API như `Module.canRead`, `Module.isExported` và `Module.isOpen` giúp kiểm tra quan hệ access giữa hai module cụ thể. Đây là bằng chứng về trạng thái runtime, đặc biệt hữu ích khi debug reflection hoặc plugin layer.
+APIs such as `Module.canRead`, `Module.isExported`, and `Module.isOpen` verify access relationships between two specific modules. This is runtime-state evidence, particularly useful when debugging reflection or plugin layers.
 
-Không nguồn nào tự nó trả lời toàn bộ câu hỏi. Descriptor mô tả khai báo, `jdeps` quan sát bytecode, launcher phản ánh lần resolve cụ thể, còn runtime access API kiểm tra một quan hệ cụ thể tại thời điểm chạy.
+No single source answers every question on its own. Descriptors describe declarations, `jdeps` observes bytecode, the launcher reflects a specific resolution pass, and runtime access APIs check a specific relationship at runtime.
 
-## 3. Bắt đầu từ descriptor của từng module
+## 3. Start from each module's descriptor
 
-Với modular JAR, dùng:
+For a modular JAR, run:
 
 ~~~bash
 jar --describe-module --file mods/com.acme.orders.jar
 ~~~
 
-Kết quả cho biết module name và các directive đã được đóng gói. Hãy đối chiếu với source `module-info.java` nếu có; artifact đang chạy mới là thứ quyết định runtime.
+The output shows the module name and packaged directives. Cross-check against source `module-info.java` if available; the running artifact is what determines runtime behavior.
 
-Một descriptor ví dụ:
+Example descriptor:
 
 ~~~java
 module com.acme.orders {
@@ -65,62 +65,62 @@ module com.acme.orders {
 }
 ~~~
 
-Khi review, phân loại từng directive:
+During review, classify each directive:
 
-| Directive | Câu hỏi rà soát |
-| --- | --- |
-| `requires` | Module có thực sự cần dependency này để biên dịch hoặc chạy không? |
-| `requires transitive` | Kiểu từ dependency có xuất hiện trong API công khai khiến consumer cần readability không? |
-| `requires static` | Dependency có chỉ cần ở compile time hoặc optional ở runtime theo thiết kế không? |
-| `exports` | Package có phải API mà consumer được hỗ trợ sử dụng không? |
-| Qualified `exports` | Những target module được liệt kê có thực sự cần package này không? |
-| `opens` | Framework nào cần deep reflection vào package này? |
-| `uses` | Module có thực sự tải service type này không? |
-| `provides` | Provider có được đăng ký đúng service type và implementation không? |
+| Directive | Review question |
+|---|---|
+| `requires` | Does the module genuinely need this dependency to compile or run? |
+| `requires transitive` | Do types from the dependency appear in the public API such that consumers need readability? |
+| `requires static` | Is the dependency intentionally compile-time only or optional at runtime by design? |
+| `exports` | Is the package an API that consumers are supported in using? |
+| Qualified `exports` | Do the listed target modules genuinely need this package? |
+| `opens` | Which framework needs deep reflection into this package? |
+| `uses` | Does the module actually load this service type? |
+| `provides` | Is the provider registered with the right service type and implementation? |
 
-Đừng sửa descriptor chỉ để làm output ngắn hơn. Mỗi directive cần có lý do và bằng chứng tương ứng.
+Do not edit descriptors just to make output shorter. Each directive needs a corresponding justification and evidence.
 
-## 4. Dùng jdeps để kiểm tra dependency bytecode
+## 4. Using `jdeps` to inspect bytecode dependencies
 
-Chạy phân tích dependency của một module:
+Run dependency analysis for a module:
 
 ~~~bash
 jdeps --module-path mods --check com.acme.orders
 ~~~
 
-`--check` kiểm tra descriptor và dependency của module, đồng thời có thể gợi ý cách khai báo `requires` phù hợp. Đọc toàn bộ output để phân biệt dependency được khai báo, dependency được tìm thấy trong bytecode và các cảnh báo liên quan.
+`--check` validates the module's descriptor and dependencies and can suggest appropriate `requires` declarations. Read the full output to distinguish declared dependencies, bytecode-discovered dependencies, and related warnings.
 
-Xem dependency ở mức module:
+View dependencies at the module level:
 
 ~~~bash
 jdeps --module-path mods --list-deps --module com.acme.orders
 ~~~
 
-Xem dependency xuất hiện trong public API:
+View dependencies appearing in the public API:
 
 ~~~bash
 jdeps --module-path mods --api-only --module com.acme.orders
 ~~~
 
-`--api-only` hữu ích khi xác định dependency nào lộ ra qua public signature. Nếu module orders trả về kiểu `Money` từ module money, consumer có thể cần readability tới module money. Đây là tình huống cần xem xét `requires transitive`.
+`--api-only` is useful for identifying which dependencies leak through public signatures. If the `orders` module returns type `Money` from the `money` module, consumers may need readability to `money`. This is when `requires transitive` should be considered.
 
-Có thể in danh sách module dependency tối thiểu để hỗ trợ tạo runtime image:
+You can print the minimal list of module dependencies to assist runtime image creation:
 
 ~~~bash
 jdeps --module-path mods --print-module-deps --module com.acme.orders
 ~~~
 
-Output của `jdeps` là bằng chứng static từ bytecode được phân tích. Nó không tự biết mọi dependency được nạp động bằng reflection, tên class lấy từ cấu hình, service provider được phát hiện lúc chạy hoặc resource được truy cập theo tên. Hãy xem kết quả như một phần của review, không phải bằng chứng rằng mọi đường chạy đã được bao phủ.
+`jdeps` output is static evidence from analyzed bytecode. It does not automatically know about every dependency loaded dynamically via reflection, class names read from configuration, service providers discovered at runtime, or resources accessed by name. Treat the output as part of a review, not proof that every execution path is covered.
 
-## 5. Phân biệt dependency trực tiếp, transitive và implementation-only
+## 5. Distinguishing direct, transitive, and implementation-only dependencies
 
-Giả sử:
+Suppose:
 
-- `com.acme.orders` dùng `Money` từ `com.acme.money`.
-- Public API của orders trả về `Money`.
-- `com.acme.client` chỉ khai báo `requires com.acme.orders`.
+- `com.acme.orders` uses `Money` from `com.acme.money`.
+- The public API of `orders` returns `Money`.
+- `com.acme.client` only declares `requires com.acme.orders`.
 
-Descriptor của orders có thể cần:
+The descriptor of `orders` may need:
 
 ~~~java
 module com.acme.orders {
@@ -129,9 +129,9 @@ module com.acme.orders {
 }
 ~~~
 
-Vì kiểu `Money` xuất hiện trong public API của orders, readability tới `com.acme.money` là một phần của hợp đồng mà consumer cần.
+Because `Money` appears in the public API of `orders`, readability to `com.acme.money` is part of the contract consumers require.
 
-Ngược lại, nếu orders chỉ dùng `Money` trong package implementation không export, dependency có thể là:
+Conversely, if `orders` only uses `Money` in an unexported implementation package, the dependency can be:
 
 ~~~java
 module com.acme.orders {
@@ -140,21 +140,21 @@ module com.acme.orders {
 }
 ~~~
 
-Không nên chuyển mọi `requires` thành `requires transitive`. Việc truyền tiếp dependency làm graph của consumer rộng hơn và khiến implementation dependency trở thành một phần của contract.
+Do not turn every `requires` into `requires transitive`. Propagating dependencies widens consumers' graphs and turns implementation dependencies into part of the contract.
 
-Với `requires static`, hãy kiểm tra dependency có thật sự optional ở runtime và code có xử lý trường hợp module không hiện diện hay không. Từ khóa `static` không có nghĩa là module system bỏ qua dependency trong mọi bước; nó biểu thị dependency cần ở compile time nhưng có thể không bắt buộc ở runtime.
+For `requires static`, verify whether the dependency is truly optional at runtime and whether code handles the module's absence. The `static` keyword does not mean the module system ignores the dependency in every step; it indicates a dependency required at compile time that may be absent at runtime.
 
-## 6. Rà soát exports và public surface
+## 6. Reviewing `exports` and public surface
 
-Với mỗi package được export, hãy xác định:
+For each exported package, identify:
 
-1. Consumer nào đang dùng package?
-2. Những public type nào thực sự cần được hỗ trợ?
-3. Package có chứa implementation class, adapter hoặc persistence detail không?
-4. Có thể tách API ra package riêng để giảm bề mặt công khai không?
-5. Có nên dùng qualified export thay cho export không giới hạn không?
+1. Which consumers are using the package?
+2. Which public types genuinely need to be supported?
+3. Does the package contain implementation classes, adapters, or persistence details?
+4. Can the API be separated into a distinct package to shrink the public surface?
+5. Should a qualified export be used instead of an unrestricted export?
 
-Ví dụ:
+For example:
 
 ~~~java
 module com.acme.orders {
@@ -163,17 +163,17 @@ module com.acme.orders {
 }
 ~~~
 
-`com.acme.orders.api` là public API cho consumer nói chung. SPI chỉ được export cho module integration đã chỉ định.
+`com.acme.orders.api` is the public API for general consumers. The SPI is exported only to the specified `integration` module.
 
-Đừng nhầm `public` trong Java với việc package được export. Một class public trong package không export vẫn không phải API truy cập thông thường cho module khác. Ngược lại, khi export một package, các public type trong package đó có thể trở thành điểm phụ thuộc của consumer.
+Do not confuse `public` in Java with a package being exported. A `public` class in an unexported package is still not normal accessible API for other modules. Conversely, once a package is exported, all `public` types inside it can become dependency targets for consumers.
 
-Đối với mỗi export, hãy ghi rõ lý do: public API, SPI, compatibility contract hay integration point. Nếu không thể xác định consumer hoặc use case, cần điều tra thêm trước khi xóa export vì có thể consumer nằm ngoài repository hiện tại.
+For each export, document its rationale: public API, SPI, compatibility contract, or integration point. If no consumer or use case can be identified, investigate further before removing the export, as consumers may reside outside the current repository.
 
-## 7. Rà soát opens và bằng chứng reflection
+## 7. Reviewing `opens` and reflection evidence
 
-`opens` cấp quyền deep reflection ở runtime. Đây là một ranh giới riêng với `exports`.
+`opens` grants deep reflection access at runtime. It is a separate boundary from `exports`.
 
-Ví dụ:
+For example:
 
 ~~~java
 module com.acme.orders {
@@ -182,35 +182,35 @@ module com.acme.orders {
 }
 ~~~
 
-Khi rà soát, yêu cầu bằng chứng cụ thể:
+During review, require concrete evidence:
 
-- Framework nào thực hiện reflection?
-- Framework đang chạy trong named module hay unnamed module?
-- Package nào chứa field/constructor/method cần truy cập?
-- Lỗi runtime hoặc tài liệu framework có chỉ rõ package và target module không?
-- Có thể thay reflection bằng API công khai hoặc extension point không?
+- Which framework performs reflection?
+- Does the framework run in a named module or the unnamed module?
+- Which packages contain the fields/constructors/methods that need access?
+- Do runtime errors or framework docs specify the exact package and target module?
+- Can reflection be replaced with a public API or extension point?
 
-Nếu framework chạy trong named module, qualified opens thường là lựa chọn rõ ràng:
+If the framework runs in a named module, qualified `opens` is usually the clearest option:
 
 ~~~java
 opens com.acme.orders.persistence to org.example.orm;
 ~~~
 
-Nếu framework chạy trên class path, runtime option có thể là:
+If the framework runs on the classpath, the runtime option may be:
 
 ~~~bash
 --add-opens com.acme.orders/com.acme.orders.persistence=ALL-UNNAMED
 ~~~
 
-Không mở toàn bộ module chỉ để xử lý một lỗi reflection ở một package. Cũng không xóa opens chỉ vì không thấy lời gọi reflection trong source: framework có thể truy cập field theo metadata, annotation hoặc tên lấy từ cấu hình.
+Do not open an entire module just to resolve a reflection error in one package. Likewise, do not remove `opens` solely because no reflection calls appear in source: a framework may access fields by metadata, annotations, or names loaded from configuration.
 
-API `Module.isOpen(packageName, targetModule)` giúp kiểm tra trạng thái open hiện tại. Nó không cho biết vì sao package được mở; hãy đối chiếu với descriptor và JVM options.
+The `Module.isOpen(packageName, targetModule)` API checks the current open state. It does not explain why the package was opened; cross-reference with descriptors and JVM options.
 
-## 8. Kiểm tra readability và exports theo đúng hướng
+## 8. Checking readability and exports in the right direction
 
-Để một module client sử dụng public type trong module API, hai điều kiện quan trọng là readability và export.
+For a client module to use a public type in an API module, two key conditions are readability and export.
 
-Ví dụ:
+For example:
 
 ~~~java
 Module client = Client.class.getModule();
@@ -223,20 +223,20 @@ System.out.println("readable = " + readable);
 System.out.println("exported = " + exported);
 ~~~
 
-Hướng gọi cần chú ý:
+Pay attention to call direction:
 
-- `client.canRead(api)`: client là module cần đọc API.
-- `api.isExported(packageName, client)`: API là module sở hữu package và client là target.
+- `client.canRead(api)`: `client` is the module needing to read the API.
+- `api.isExported(packageName, client)`: `api` is the module owning the package and `client` is the target.
 
-Nếu kiểm tra reflection sâu, dùng:
+To check deep reflection, use:
 
 ~~~java
 boolean open = api.isOpen("com.acme.orders.persistence", client);
 ~~~
 
-Một package có thể export nhưng không open. Consumer có thể gọi public API nhưng không được deep-reflect vào private field. Một package open cho reflection cũng không tự động trở thành API public để consumer biên dịch phụ thuộc.
+A package can be exported without being opened. Consumers can call the public API without being allowed to deep-reflect into private fields. Likewise, a package opened for reflection does not automatically become public API that consumers can compile dependencies against.
 
-Khi kiểm tra một class cụ thể, bắt đầu từ:
+When inspecting a specific class, start with:
 
 ~~~java
 Module module = SomeType.class.getModule();
@@ -246,45 +246,47 @@ System.out.println("layer = " + module.getLayer());
 System.out.println("loader = " + module.getClassLoader());
 ~~~
 
-Thông tin layer và class loader hữu ích khi ứng dụng có nhiều module layer hoặc plugin. Hai module cùng tên ở hai layer khác nhau có thể là hai module instance khác nhau.
+Layer and class loader information is useful when an application has multiple module layers or plugins. Two modules with the same name in two different layers can be two distinct module instances.
 
-## 9. Quan sát graph thực tế khi khởi động
+## 9. Observing the actual graph at startup
 
-Chạy ứng dụng với:
+Run the application with:
 
 ~~~bash
-java --show-module-resolution      --module-path mods      --module com.acme.app/com.acme.app.Main
+java --show-module-resolution \
+     --module-path mods \
+     --module com.acme.app/com.acme.app.Main
 ~~~
 
-Launcher sẽ in thông tin quá trình resolve module. Dùng output để xác nhận:
+The launcher prints details of the module resolution process. Use the output to verify:
 
-- Root module có đúng không?
-- Dependency bắt buộc có được tìm thấy không?
-- Module nào được resolve từ module path?
-- Có module JDK hoặc provider nào được đưa vào graph?
-- Có khác biệt nào giữa môi trường local, test và production không?
+- Are the root modules correct?
+- Are required dependencies found?
+- Which modules are resolved from the module path?
+- Are any JDK modules or providers pulled into the graph?
+- Are there differences between local, test, and production environments?
 
-Kết quả phụ thuộc chính xác vào module path, root module, parent configuration và JVM options của lần chạy đó. Vì vậy, khi báo cáo một kết luận, ghi lại command hoặc cấu hình launcher đã dùng.
+Results depend precisely on the module path, root modules, parent configuration, and JVM options of that specific run. Therefore, when reporting a finding, record the launcher command or configuration used.
 
-Có thể liệt kê module runtime:
+You can list runtime modules:
 
 ~~~bash
 java --module-path mods --list-modules
 ~~~
 
-Và xem descriptor của module:
+And inspect a module's descriptor:
 
 ~~~bash
 java --module-path mods --describe-module com.acme.orders
 ~~~
 
-Các lệnh này giúp kiểm tra module mà launcher có thể quan sát và descriptor của module cụ thể. Chúng không thay thế việc xác nhận module layer do ứng dụng tự tạo trong runtime nếu ứng dụng dùng dynamic plugin loading.
+These commands verify modules visible to the launcher and individual module descriptors. They do not replace validating module layers created dynamically by the application at runtime if dynamic plugin loading is used.
 
-## 10. Rà soát service binding và provider
+## 10. Reviewing service binding and providers
 
-Service có thể làm graph runtime rộng hơn những gì nhìn thấy từ các dòng `requires` trực tiếp.
+Services can make the runtime graph wider than what is visible from direct `requires` lines.
 
-Consumer khai báo:
+Consumer declares:
 
 ~~~java
 module com.acme.app {
@@ -293,7 +295,7 @@ module com.acme.app {
 }
 ~~~
 
-Provider khai báo:
+Provider declares:
 
 ~~~java
 module com.acme.formatter.upper {
@@ -304,64 +306,64 @@ module com.acme.formatter.upper {
 }
 ~~~
 
-Khi tạo configuration bằng `resolveAndBind(...)`, module system có thể bind provider module phù hợp vào graph. Nếu chỉ kiểm tra `requires`, bạn có thể bỏ sót provider được thêm thông qua service binding.
+When creating a configuration with `resolveAndBind(...)`, the module system can bind matching provider modules into the graph. If you inspect only `requires`, you can miss providers added via service binding.
 
-Khi review, hãy kiểm tra:
+During review, verify:
 
-- Consumer có khai báo `uses` đúng service type không?
-- Provider có khai báo `provides` đúng interface không?
-- Provider có nằm trong module finder được dùng để resolve không?
-- Provider có dependency riêng nào cần được phân giải không?
-- Runtime layer mà `ServiceLoader` tìm kiếm có chứa provider không?
+- Does the consumer declare `uses` for the right service type?
+- Does the provider declare `provides` for the right interface?
+- Is the provider in the module finder used for resolution?
+- Does the provider have its own dependencies that must be resolved?
+- Does the runtime layer searched by `ServiceLoader` contain the provider?
 
-Có thể kiểm tra configuration bằng `Configuration.modules()` và `findModule(name)`. Việc provider có mặt trong configuration chưa chứng minh provider instance đã khởi tạo thành công; cần kiểm tra service loading trong integration test.
+Configurations can be inspected with `Configuration.modules()` and `findModule(name)`. A provider being present in the configuration does not prove the provider instance initialized successfully; test service loading in integration tests.
 
-## 11. Phân biệt static evidence và runtime evidence
+## 11. Distinguishing static evidence from runtime evidence
 
-Một số tình huống thường gây hiểu nhầm:
+Several situations commonly cause misunderstandings:
 
-| Quan sát | Điều có thể kết luận | Điều chưa thể kết luận |
-| --- | --- | --- |
-| `jdeps` tìm thấy dependency | Bytecode được phân tích tham chiếu tới module/package đó | Mọi đường chạy runtime đều dùng dependency |
-| `jdeps` không thấy dependency | Không tìm thấy dependency tĩnh trong phạm vi phân tích | Không có reflection, service hoặc class name được nạp động |
-| Descriptor export package | Package được khai báo export theo target | Mọi consumer đều đọc được module |
-| `canRead` trả về true | Module hiện tại có readability tới module đích | Package cụ thể đã được export |
-| `isExported` trả về true | Package được export cho target module | Deep reflection vào private member được phép |
-| `isOpen` trả về true | Package mở cho deep reflection từ target | Framework đang sử dụng reflection hoặc API có thể thay đổi an toàn |
-| `--show-module-resolution` liệt kê module | Module đã được resolve trong lần chạy đó | Mọi provider đều khởi tạo hoặc mọi plugin layer đều giống graph này |
+| Observation | What can be concluded | What cannot yet be concluded |
+|---|---|---|
+| `jdeps` finds a dependency | Analyzed bytecode references that module/package | Every runtime execution path uses the dependency |
+| `jdeps` finds no dependency | No static dependency found within analyzed scope | No reflection, service, or dynamically loaded class names exist |
+| Descriptor exports a package | Package is declared exported for targets | Every consumer can read the module |
+| `canRead` returns `true` | Current module has readability to the target module | Specific package is exported |
+| `isExported` returns `true` | Package is exported to target module | Deep reflection into private members is allowed |
+| `isOpen` returns `true` | Package is open for deep reflection from target | Framework actively uses reflection or API can be changed safely |
+| `--show-module-resolution` lists a module | Module was resolved during that launch | Every provider initializes or every plugin layer matches this graph |
 
-Khi đưa ra kết luận, hãy nói rõ loại bằng chứng và phạm vi của nó. Ví dụ: "jdeps trên artifact release tìm thấy dependency X" khác với "runtime production đã resolve module X" và khác với "consumer Y có thể truy cập package Z".
+When stating conclusions, specify the type of evidence and its scope. For example, "`jdeps` on the release artifact found dependency X" differs from "production runtime resolved module X" and differs from "consumer Y can access package Z".
 
-## 12. Quy trình review module graph có thể lặp lại
+## 12. Repeatable module graph review workflow
 
-Một quy trình thực tế cho từng release:
+A practical per-release workflow:
 
-1. Thu thập modular JAR hoặc exploded module đúng artifact sẽ phát hành.
-2. Dùng `jar --describe-module` để ghi nhận descriptor thực tế.
-3. Chạy `jdeps --check`, `--list-deps` và `--api-only` cho các module trọng yếu.
-4. Đối chiếu dependency bytecode với `requires` và `requires transitive`.
-5. Liệt kê mọi `exports`, qualified exports và `opens`, gắn mỗi mục với consumer/framework cụ thể.
-6. Kiểm tra `uses`/`provides` và provider được tìm thấy trong configuration.
-7. Chạy ứng dụng với `--show-module-resolution` trong môi trường gần production.
-8. Dùng runtime access checks hoặc integration test để xác nhận readability, export và open ở các đường truy cập quan trọng.
-9. Ghi lại command, JDK version, module path, JVM options và artifact checksum/version để kết quả có thể tái lập.
-10. Chỉ đề xuất thay đổi sau khi xác định vấn đề và tác động tới consumer.
+1. Collect the exact modular JARs or exploded modules to be released.
+2. Use `jar --describe-module` to record actual descriptors.
+3. Run `jdeps --check`, `--list-deps`, and `--api-only` for critical modules.
+4. Reconcile bytecode dependencies against `requires` and `requires transitive`.
+5. List every `exports`, qualified export, and `opens`, tying each entry to a concrete consumer/framework.
+6. Check `uses`/`provides` and providers found in the configuration.
+7. Launch the application with `--show-module-resolution` in a production-like environment.
+8. Use runtime access checks or integration tests to confirm readability, exports, and opens along critical access paths.
+9. Record commands, JDK version, module path, JVM options, and artifact checksums/versions so results are reproducible.
+10. Propose changes only after identifying issues and consumer impact.
 
-Nếu ứng dụng dùng plugin layer được tạo động, bổ sung kiểm tra cho từng loại layer và class loader quan trọng. Graph của boot layer không tự đại diện cho mọi graph do ứng dụng tạo sau đó.
+If the application uses dynamically created plugin layers, add checks for each significant layer type and class loader. The boot layer's graph does not automatically represent graphs created later by the application.
 
-## 13. Cách ghi nhận kết quả review
+## 13. How to document review findings
 
-Một kết luận tốt nên nêu:
+A solid finding should state:
 
-- **Subject**: module, package hoặc quan hệ đang được xem xét.
-- **Evidence**: descriptor, jdeps output, launcher resolution, runtime check hoặc integration test.
-- **Scope**: artifact, JDK version, module path, root module và layer.
-- **Finding**: dependency thiếu/thừa, export quá rộng, opens không có căn cứ hoặc access cần thiết chưa được cấp.
-- **Impact**: module/consumer nào bị ảnh hưởng và ở compile time hay runtime.
-- **Action**: thay đổi descriptor, JVM option, build configuration hoặc giữ nguyên với lý do.
-- **Verification**: lệnh/test nào chứng minh thay đổi giải quyết đúng vấn đề.
+- **Subject**: the module, package, or relationship under review.
+- **Evidence**: descriptor, `jdeps` output, launcher resolution, runtime check, or integration test.
+- **Scope**: artifact, JDK version, module path, root modules, and layer.
+- **Finding**: missing/excess dependency, overly broad export, unjustified `opens`, or missing required access.
+- **Impact**: which modules/consumers are affected, and at compile time or runtime.
+- **Action**: descriptor change, JVM option, build configuration, or keep as-is with rationale.
+- **Verification**: which command/test proves the change resolves the issue.
 
-Ví dụ:
+Example:
 
 ~~~text
 Finding: com.acme.orders exports com.acme.orders.internal
@@ -374,20 +376,20 @@ Action: confirm external consumers, then consider qualified export
 Verification: compile supported consumers and run integration tests.
 ~~~
 
-Đừng ghi "dependency không cần thiết" nếu chỉ dựa trên việc tìm kiếm một tên class trong repository. Có thể có consumer ngoài repository, reflection hoặc service configuration. Nếu chưa có bằng chứng, ghi rõ điều cần xác minh.
+Do not label a dependency "unnecessary" based solely on searching for a class name in a repository. There may be external consumers, reflection, or service configurations. When evidence is missing, explicitly record what needs verification.
 
-## 14. Những sai lầm thường gặp khi review
+## 14. Common mistakes during review
 
-- **Chỉ đọc `module-info.java`**: bỏ qua descriptor trong artifact thực tế, dependency bytecode và runtime graph.
-- **Coi output `jdeps` là toàn bộ runtime dependency**: reflection, service loading và class name động có thể không được thể hiện đầy đủ.
-- **Đảo hướng access check**: gọi `api.canRead(client)` thay vì `client.canRead(api)`.
-- **Đánh đồng exports với opens**: public API access và deep reflection là hai quyền khác nhau.
-- **Xóa opens không có bằng chứng**: framework có thể dùng metadata hoặc reflection động.
-- **Giữ exports quá rộng vì "có thể cần sau này"**: public surface trở thành cam kết khó thu hẹp.
-- **Thêm transitive cho mọi requires**: làm dependency implementation rò rỉ sang consumer.
-- **Chỉ kiểm tra boot layer**: bỏ qua plugin layer hoặc configuration được tạo động.
-- **Không ghi lại môi trường chạy**: kết quả resolution có thể khác giữa máy local và production.
+- **Reading only `module-info.java`**: ignoring descriptors in actual artifacts, bytecode dependencies, and the runtime graph.
+- **Treating `jdeps` output as complete runtime dependencies**: reflection, service loading, and dynamic class names may not be fully represented.
+- **Reversing access check direction**: calling `api.canRead(client)` instead of `client.canRead(api)`.
+- **Equating `exports` with `opens`**: public API access and deep reflection are two distinct permissions.
+- **Removing `opens` without evidence**: frameworks may rely on metadata or dynamic reflection.
+- **Keeping `exports` overly broad "just in case"**: public surface becomes a commitment hard to shrink later.
+- **Adding `transitive` to every `requires`**: leaks implementation dependencies to consumers.
+- **Checking only the boot layer**: overlooking plugin layers or dynamically created configurations.
+- **Omitting runtime environment details**: resolution results can differ between local machines and production.
 
-## Ghi nhớ
+## Key takeaways
 
-Rà soát JPMS graph cần kết hợp descriptor, static dependency analysis, runtime resolution và access checks. `jdeps` giúp tìm dependency bytecode và dependency trong public API; `jar --describe-module` cho biết descriptor trong artifact; `--show-module-resolution` cho thấy graph của lần chạy cụ thể; `canRead`, `isExported` và `isOpen` kiểm tra quan hệ truy cập theo đúng hướng. Hãy ghi rõ phạm vi và loại bằng chứng trước khi xóa dependency, thu hẹp export hoặc thay đổi opens.
+Reviewing a JPMS graph requires combining descriptors, static dependency analysis, runtime resolution, and access checks. `jdeps` uncovers bytecode dependencies and dependencies in public APIs; `jar --describe-module` reveals packaged descriptors; `--show-module-resolution` shows the graph for a specific run; `canRead`, `isExported`, and `isOpen` verify access relationships in the proper direction. State the scope and type of evidence clearly before removing dependencies, narrowing exports, or changing `opens`.

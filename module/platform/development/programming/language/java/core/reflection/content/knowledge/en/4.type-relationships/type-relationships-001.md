@@ -1,40 +1,40 @@
-# `Class.getSuperclass()`: lớp cha trực tiếp và các trường hợp trả về `null`
+# `Class.getSuperclass()`: Direct Superclass and Cases Returning `null`
 
-## 1. Ý nghĩa của `getSuperclass()`
+## 1. Meaning of `getSuperclass()`
 
-Trong Java Reflection, đối tượng `Class<?>` mô tả một kiểu tại runtime. Gọi `type.getSuperclass()` để lấy đối tượng `Class` đại diện cho **lớp cha trực tiếp** được xác định qua quan hệ `extends`. Ví dụ, nếu `class Dog extends Animal` thì `Dog.class.getSuperclass() == Animal.class`. Phương thức không tự duyệt toàn bộ chuỗi tổ tiên và không liệt kê các interface.
+In Java Reflection, a `Class<?>` object describes a type at runtime. Call `type.getSuperclass()` to obtain the `Class` object representing the **direct superclass** defined via the `extends` relationship. For example, if `class Dog extends Animal`, then `Dog.class.getSuperclass() == Animal.class`. The method does not automatically traverse the entire ancestor chain and does not list interfaces.
 
-Khai báo phương thức trong `java.lang.Class<T>`:
+Method declaration in `java.lang.Class<T>`:
 
 ```java
 public Class<? super T> getSuperclass()
 ```
 
-Khi làm việc với `Class<?>`, có thể gán kết quả cho `Class<?> parent`. Giá trị `null` là **kết quả hợp lệ theo hợp đồng API**, không phải bằng chứng Reflection gặp lỗi hoặc ném ngoại lệ.
+When working with `Class<?>`, you can assign the result to `Class<?> parent`. A `null` value is a **valid result according to the API contract**, not evidence that Reflection failed or threw an exception.
 
-Java phân biệt superclass với superinterface: class chỉ có tối đa một superclass trực tiếp, có thể triển khai nhiều interface; interface có thể mở rộng nhiều interface nhưng không có superclass theo `getSuperclass()`.
+Java distinguishes a superclass from a superinterface: a class has at most one direct superclass and can implement multiple interfaces; an interface can extend multiple interfaces but has no superclass according to `getSuperclass()`.
 
-## 2. Chính xác khi nào trả `null`?
+## 2. Exactly When Does It Return `null`?
 
-| Kiểu được hỏi | Kết quả | Giải thích |
+| Queried type | Result | Explanation |
 | --- | --- | --- |
-| `Object.class` | `null` | `java.lang.Object` là gốc chuỗi kế thừa của các class thông thường, không có lớp cha. |
-| Mọi interface, chẳng hạn `Runnable.class` | `null` | Ngay cả khi interface có `extends` interface khác, quan hệ đó được tra bằng `getInterfaces()`. |
-| Mọi primitive: `boolean`, `byte`, `short`, `char`, `int`, `long`, `float`, `double` (ví dụ `int.class`) | `null` | Primitive không phải class kế thừa từ `Object`. |
-| `void.class` hoặc `Void.TYPE` | `null` | `void` biểu thị không có giá trị trả về; không có superclass. |
+| `Object.class` | `null` | `java.lang.Object` is the root of the inheritance chain for regular classes and has no superclass. |
+| Any interface, such as `Runnable.class` | `null` | Even when an interface has `extends` for other interfaces, that relationship is queried using `getInterfaces()`. |
+| Any primitive: `boolean`, `byte`, `short`, `char`, `int`, `long`, `float`, `double` (e.g., `int.class`) | `null` | Primitives are not classes that inherit from `Object`. |
+| `void.class` or `Void.TYPE` | `null` | `void` represents no return value; it has no superclass. |
 
-Một annotation type khai báo bằng `@interface` cũng là interface, nên `MyAnnotation.class.getSuperclass()` bằng `null`. Kể cả khi interface kế thừa nhiều interface, kết quả vẫn `null`.
+An annotation type declared with `@interface` is also an interface, so `MyAnnotation.class.getSuperclass()` equals `null`. Even when an interface inherits from multiple interfaces, the result is still `null`.
 
-**Các trường hợp dễ nhầm:**
+**Commonly confused cases:**
 
-- `int.class.getSuperclass() == null`, trong khi `Integer.class.getSuperclass() == Number.class`. Primitive và wrapper là các kiểu khác nhau.
-- `void.class.getSuperclass() == null`, nhưng `Void.class.getSuperclass() == Object.class`. `java.lang.Void` là một class tham chiếu khác với `void`.
-- `String[].class.getSuperclass() == Object.class`, `int[].class.getSuperclass() == Object.class`. Mảng là kiểu tham chiếu; **mọi array class đều có superclass phản chiếu là `Object`**, bất kể kiểu phần tử hay số chiều.
-- Class bình thường không khai báo `extends` có superclass là `Object` (ngoại trừ chính `Object`); enum có superclass `Enum`, còn record có superclass `Record`.
+- `int.class.getSuperclass() == null`, while `Integer.class.getSuperclass() == Number.class`. Primitives and wrappers are different types.
+- `void.class.getSuperclass() == null`, whereas `Void.class.getSuperclass() == Object.class`. `java.lang.Void` is a reference class distinct from `void`.
+- `String[].class.getSuperclass() == Object.class`, `int[].class.getSuperclass() == Object.class`. Arrays are reference types; **every array class has a reflective superclass of `Object`**, regardless of element type or number of dimensions.
+- Regular classes that do not declare `extends` have `Object` as their superclass (except `Object` itself); enums have `Enum` as their superclass, and records have `Record` as their superclass.
 
-## 3. Ví dụ Java 17 hoàn chỉnh
+## 3. Complete Java 17 Example
 
-Tạo tệp `SuperclassDemo.java` với nội dung:
+Create a file named `SuperclassDemo.java` with the following content:
 
 ```java
 public class SuperclassDemo {
@@ -79,14 +79,14 @@ public class SuperclassDemo {
 }
 ```
 
-Biên dịch/chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or higher:
 
 ```bash
 javac SuperclassDemo.java
 java SuperclassDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Object -> null
@@ -104,16 +104,16 @@ Child implements -> Named
 Void.class -> Object
 ```
 
-**Đọc kết quả:**
+**Reading the output:**
 
-- `Named` vẫn có superinterface `Runnable`, nhưng `getSuperclass()` bằng `null`; `getInterfaces()` cho biết interface mà `Named` mở rộng trực tiếp.
-- `Child` vừa `extends Parent` vừa `implements Named`. `getSuperclass()` trả `Parent`, trong khi `getInterfaces()` trả interface khai báo trực tiếp là `Named`.
-- `Parent` mặc định kế thừa `Object`. `Status` kế thừa `Enum`, `Point` kế thừa `Record`; cả hai vẫn có superclass.
-- `String[]` và `String[][]` đều trả `Object`, không trả class biểu diễn kiểu phần tử. `Void.class` là class tham chiếu nên trả `Object`.
+- `Named` still has the superinterface `Runnable`, yet `getSuperclass()` equals `null`; `getInterfaces()` indicates the interface that `Named` directly extends.
+- `Child` both `extends Parent` and `implements Named`. `getSuperclass()` returns `Parent`, whereas `getInterfaces()` returns the directly declared interface `Named`.
+- `Parent` inherits from `Object` by default. `Status` inherits from `Enum`, `Point` inherits from `Record`; both still have a superclass.
+- `String[]` and `String[][]` both return `Object`, not the class representing the element type. `Void.class` is a reference class so it returns `Object`.
 
-## 4. Đi qua nhiều cấp superclass
+## 4. Traversing Multiple Superclass Levels
 
-Vì mỗi lần gọi chỉ trả **lớp cha gần nhất**, cần lặp đến `null` để đi hết chuỗi. Đặt đoạn sau trong `main()` của chương trình phía trên:
+Because each call returns only the **nearest superclass**, you need to loop until `null` to walk the entire chain. Place the following snippet inside `main()` of the program above:
 
 ```java
 Class<?> current = Child.class;
@@ -123,7 +123,7 @@ while (current != null) {
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
 Child
@@ -131,41 +131,41 @@ Parent
 Object
 ```
 
-Vòng lặp in kiểu đầu vào, rồi từng lớp cha; sau `Object`, `getSuperclass()` là `null` và vòng lặp dừng. Nếu bắt đầu bằng interface hoặc primitive, vòng lặp chỉ in chính kiểu đó. Cần nhớ vòng lặp này **không đi theo các nhánh interface**.
+The loop prints the input type, then each superclass; after `Object`, `getSuperclass()` is `null` and the loop stops. If you start with an interface or a primitive, the loop prints only that type itself. Remember that this loop **does not follow interface branches**.
 
-Khi bài toán là kiểm tra quan hệ **có thể gán kiểu**, `Base.class.isAssignableFrom(Candidate.class)` thường phù hợp hơn tự duyệt superclass. Ví dụ, `Named.class.isAssignableFrom(Child.class)` là `true` dù `Named` không nằm trong chuỗi superclass của `Child`. Chiều hỏi ở đây là: một giá trị kiểu `Candidate` có thể gán cho biến kiểu `Base` không?
+When the task is to check a **type assignability** relationship, `Base.class.isAssignableFrom(Candidate.class)` is usually more appropriate than manually traversing superclasses. For example, `Named.class.isAssignableFrom(Child.class)` is `true` even though `Named` is not in the superclass chain of `Child`. The question direction here is: can a value of type `Candidate` be assigned to a variable of type `Base`?
 
-## 5. Phân biệt các API liên quan
+## 5. Distinguishing Related APIs
 
-| Câu hỏi | API | Ý nghĩa |
+| Question | API | Meaning |
 | --- | --- | --- |
-| Lớp cha trực tiếp? | `getSuperclass()` | Trả `Class` hoặc `null` theo hợp đồng ở mục 2. |
-| Lớp cha và thông tin generic trong khai báo? | `getGenericSuperclass()` | Trả `Type`, có thể là `ParameterizedType`. |
-| Interface được triển khai/mở rộng trực tiếp? | `getInterfaces()` | Trả mảng `Class<?>[]`; có thể là mảng rỗng. |
-| Interface trực tiếp cùng đối số generic? | `getGenericInterfaces()` | Trả `Type[]`, không tự duyệt tổ tiên. |
-| Kiểm tra nhóm kiểu? | `isInterface()`, `isPrimitive()`, `isArray()` | Phân loại kiểu trước khi xử lý kết quả `null`. |
-| Kiểu thành phần của mảng? | `getComponentType()` | Ví dụ: `String[][].class.getComponentType() == String[].class`. |
-| Có thể gán kiểu, bao gồm interface? | `isAssignableFrom(...)` | Kiểm tra quan hệ thay vì chỉ lấy superclass gần nhất. |
+| Direct superclass? | `getSuperclass()` | Returns `Class` or `null` according to the contract in section 2. |
+| Superclass and generic information in the declaration? | `getGenericSuperclass()` | Returns `Type`, which may be a `ParameterizedType`. |
+| Directly implemented/extended interfaces? | `getInterfaces()` | Returns a `Class<?>[]` array; may be an empty array. |
+| Direct interfaces with generic type arguments? | `getGenericInterfaces()` | Returns `Type[]`, does not automatically traverse ancestors. |
+| Check type category? | `isInterface()`, `isPrimitive()`, `isArray()` | Classifies the type before handling a `null` result. |
+| Component type of an array? | `getComponentType()` | For example: `String[][].class.getComponentType() == String[].class`. |
+| Type assignability, including interfaces? | `isAssignableFrom(...)` | Checks the relationship instead of only getting the nearest superclass. |
 
-Do cơ chế xóa kiểu generic (*type erasure*), `getSuperclass()` trả `Class` cho lớp cha thô. Nếu khai báo `class TextBox extends Box<String>`, thì `TextBox.class.getSuperclass() == Box.class`; muốn đọc phần `<String>` trong khai báo phải dùng `getGenericSuperclass()`. Thông tin đó cũng không có nghĩa có thể khôi phục mọi đối số generic của đối tượng bất kỳ tại runtime.
+Due to generic *type erasure*, `getSuperclass()` returns the `Class` for the raw superclass. If you declare `class TextBox extends Box<String>`, then `TextBox.class.getSuperclass() == Box.class`; to read the `<String>` part in the declaration, you must use `getGenericSuperclass()`. That information also does not mean all generic arguments of an arbitrary object can be recovered at runtime.
 
-Một class có thể kế thừa interface thông qua class cha; `getInterfaces()` trên chính class đó chỉ đưa ra interface trực tiếp mà class khai báo. Nếu cần lập danh sách mọi interface tổ tiên, phải tiếp tục đọc `getInterfaces()` ở các interface, đồng thời đi qua các superclass liên quan.
+A class can inherit interfaces through a superclass; `getInterfaces()` on that class itself only gives the direct interfaces that the class declares. If you need to list all ancestor interfaces, you must continue reading `getInterfaces()` on those interfaces, while also traversing the relevant superclasses.
 
-## 6. Lỗi thường gặp
+## 6. Common Mistakes
 
-**Không kiểm tra `null` trước khi gọi tiếp.** Dòng `type.getSuperclass().getName()` có thể ném `NullPointerException` với `Object.class`, interface, primitive hoặc `void.class`. Cách an toàn:
+**Not checking for `null` before chaining another call.** The line `type.getSuperclass().getName()` can throw `NullPointerException` for `Object.class`, interfaces, primitives, or `void.class`. Safe approach:
 
 ```java
 Class<?> parent = type.getSuperclass();
-String name = parent == null ? "(không có superclass)" : parent.getName();
+String name = parent == null ? "(no superclass)" : parent.getName();
 ```
 
-**Hiểu `null` là “kiểu không có quan hệ kế thừa nào”.** Interface vẫn có thể `extends` interface khác; `getSuperclass()` không phản ánh nhánh đó. Dùng `getInterfaces()` để đọc trực tiếp, hoặc duyệt đệ quy khi muốn đủ tất cả superinterface.
+**Interpreting `null` as "the type has no inheritance relationship at all".** An interface can still `extends` other interfaces; `getSuperclass()` does not reflect that branch. Use `getInterfaces()` to read direct interfaces, or traverse recursively when you want all superinterfaces.
 
-**Cho rằng array hoặc wrapper cũng phải trả `null`.** Array có superclass là `Object`. `Integer` là class nên có superclass `Number`. Kết quả của primitive khác kết quả của lớp bao tương ứng.
+**Assuming arrays or wrappers must also return `null`.** Arrays have `Object` as their superclass. `Integer` is a class, so it has `Number` as its superclass. The result for a primitive differs from that of its corresponding wrapper class.
 
-**Nhầm `void.class` với `Void.class`.** `void.class` trả `null`; `Void.class` trả `Object.class`. Tên gần giống không đồng nghĩa hai `Class` giống nhau.
+**Confusing `void.class` with `Void.class`.** `void.class` returns `null`; `Void.class` returns `Object.class`. Similar names do not mean the two `Class` objects are the same.
 
-**Dùng `getSuperclass()` để hỏi class có triển khai interface hay không.** API này không đi qua `implements`; hãy dùng `isAssignableFrom` theo đúng chiều hoặc duyệt các interface nếu cần giải thích đường quan hệ.
+**Using `getSuperclass()` to ask whether a class implements an interface.** This API does not walk `implements`; use `isAssignableFrom` in the right direction or traverse the interfaces if you need to explain the relationship path.
 
-Quy tắc cần nhớ: **`Object`, interface, primitive và `void` cho `null`; array cho `Object.class`; class, enum và record trả superclass trực tiếp tương ứng.**
+Rule to remember: **`Object`, interfaces, primitives, and `void` yield `null`; arrays yield `Object.class`; classes, enums, and records return their respective direct superclass.**

@@ -1,14 +1,14 @@
-# GenericArrayType khác Class của mảng cụ thể trong Java Reflection
+# `GenericArrayType` vs. Concrete Array `Class` in Java Reflection
 
-## 1. Vì sao cùng là mảng nhưng Reflection trả về hai loại Type?
+## 1. Why Does Reflection Return Two Kinds of `Type` for Arrays?
 
-Khi đọc thông tin kiểu generic bằng Reflection, không phải mọi kiểu mảng đều được biểu diễn bằng `Class<?>`. API `java.lang.reflect.Type` có nhiều dạng triển khai, trong đó:
+When reading generic type information via Reflection, not every array type is represented by `Class<?>`. The `java.lang.reflect.Type` API has several implementations, among which:
 
-- **`Class<?>`** biểu diễn kiểu thực tế có thể được JVM nhận diện tại runtime: `String[]`, `int[]`, `Number[]`, `List[]`, `String[][]`, v.v.
-- **`GenericArrayType`** mô tả **khai báo kiểu mảng mà kiểu thành phần là `TypeVariable` hoặc `ParameterizedType`** (hoặc ở mảng nhiều chiều, là một `GenericArrayType` khác). Ví dụ `T[]`, `List<String>[]`, `T[][]`.
-- Một `GenericArrayType` là **metadata về kiểu generic trong khai báo**, không phải một kiểu mảng runtime mới, không phải đối tượng mảng và không tự cung cấp `Class` của tham số generic đã được giữ lại trong runtime.
+- **`Class<?>`** represents an actual type recognizable by the JVM at runtime: `String[]`, `int[]`, `Number[]`, `List[]`, `String[][]`, etc.
+- **`GenericArrayType`** describes **an array type declaration whose component type is a `TypeVariable` or `ParameterizedType`** (or for multidimensional arrays, another `GenericArrayType`). Examples include `T[]`, `List<String>[]`, `T[][]`.
+- A `GenericArrayType` is **metadata about a generic type in a declaration**, not a new runtime array type, not an array object, and it does not itself provide a `Class` for generic arguments retained at runtime.
 
-Ví dụ:
+Example:
 
 ```java
 class Box<T extends Number> {
@@ -19,35 +19,35 @@ class Box<T extends Number> {
 }
 ```
 
-Nếu dùng `Field.getGenericType()`:
+When using `Field.getGenericType()`:
 
-| Khai báo field | `getGenericType()` thường là | Ý nghĩa |
+| Field declaration | `getGenericType()` is typically | Meaning |
 | --- | --- | --- |
-| `T[] genericValues` | `GenericArrayType` | Thành phần `T` là `TypeVariable` |
-| `List<String>[] parameterizedValues` | `GenericArrayType` | Thành phần `List<String>` là `ParameterizedType` |
-| `String[] concreteValues` | `Class<?>` | Kiểu mảng cụ thể `String[].class` |
-| `int[] primitiveValues` | `Class<?>` | Kiểu mảng cụ thể `int[].class` |
-| `T[][] nestedValues` | `GenericArrayType` | Thành phần ngoài là `T[]`, lại là `GenericArrayType` |
+| `T[] genericValues` | `GenericArrayType` | Component `T` is a `TypeVariable` |
+| `List<String>[] parameterizedValues` | `GenericArrayType` | Component `List<String>` is a `ParameterizedType` |
+| `String[] concreteValues` | `Class<?>` | Concrete array type `String[].class` |
+| `int[] primitiveValues` | `Class<?>` | Concrete array type `int[].class` |
+| `T[][] nestedValues` | `GenericArrayType` | Outer component is `T[]`, itself a `GenericArrayType` |
 
-**Điểm cần nhớ:** “Có dấu `[]`” chỉ cho biết cấu trúc mảng. Muốn biết Reflection trả về `Class` hay `GenericArrayType`, phải xem **đối tượng `Type` cụ thể** do API generic trả về, không chỉ dựa vào tên chuỗi.
+**Key point:** "Having `[]`" only indicates an array structure. To know whether Reflection returns `Class` or `GenericArrayType`, inspect **the concrete `Type` object** returned by the generic API, rather than relying only on string names.
 
-## 2. Ba lớp khái niệm phải tách biệt
+## 2. Three Conceptual Layers to Keep Separate
 
-### 2.1. `Type` là mô hình metadata chung
+### 2.1. `Type` Is the General Metadata Model
 
-`java.lang.reflect.Type` là interface chung cho các cách mô tả kiểu qua Reflection:
+`java.lang.reflect.Type` is the common interface for describing types via Reflection:
 
-- `Class<?>`: lớp/interface, primitive, hoặc kiểu mảng runtime cụ thể.
-- `ParameterizedType`: kiểu có đối số generic như `List<String>`.
-- `TypeVariable<?>`: biến kiểu như `T` trong `class Box<T>`.
-- `WildcardType`: ký tự đại diện như `? extends Number`.
-- `GenericArrayType`: mảng với thành phần là kiểu generic không biểu diễn đơn thuần bằng `Class`.
+- `Class<?>`: class/interface, primitive, or concrete runtime array type.
+- `ParameterizedType`: type with generic arguments such as `List<String>`.
+- `TypeVariable<?>`: type variable such as `T` in `class Box<T>`.
+- `WildcardType`: wildcard such as `? extends Number`.
+- `GenericArrayType`: array whose component is a generic type not representable purely by `Class`.
 
-Không nên ép mọi `Type` về `Class<?>`, vì `GenericArrayType` **không implement `Class`**.
+Do not cast every `Type` to `Class<?>`, because `GenericArrayType` **does not implement `Class`**.
 
-### 2.2. `Class` mô tả mảng runtime
+### 2.2. `Class` Describes Runtime Arrays
 
-`String[].class` là một đối tượng `Class`, đồng thời cũng implement `Type`. Nó có các API:
+`String[].class` is a `Class` object, and it also implements `Type`. It has the APIs:
 
 ```java
 String[].class.isArray();                       // true
@@ -55,11 +55,11 @@ String[].class.getComponentType() == String.class; // true
 int[].class.getComponentType() == int.class;     // true
 ```
 
-`getComponentType()` trả về `Class<?>` cho loại phần tử của một **array class**; không có trường hợp trả về `ParameterizedType` hay `TypeVariable`.
+`getComponentType()` returns a `Class<?>` for the element type of an **array class**; it never returns a `ParameterizedType` or `TypeVariable`.
 
-### 2.3. `GenericArrayType` mô tả kiểu thành phần generic
+### 2.3. `GenericArrayType` Describes Generic Component Types
 
-`GenericArrayType.getGenericComponentType()` trả về **`Type`** thay vì `Class`; giá trị có thể là `TypeVariable`, `ParameterizedType`, hoặc `GenericArrayType` khi nhiều chiều.
+`GenericArrayType.getGenericComponentType()` returns **`Type`** instead of `Class`; the value can be a `TypeVariable`, `ParameterizedType`, or `GenericArrayType` when multidimensional.
 
 ```java
 Type type = Box.class.getDeclaredField("genericValues")
@@ -71,33 +71,33 @@ if (type instanceof GenericArrayType arrayType) {
 }
 ```
 
-Đây là **mảnh mã đặt trong phương thức** có các import `java.lang.reflect.*` và khai báo `Box` phù hợp, không phải một chương trình độc lập. API trả về `Type` vì kiểu `T` không nhất thiết được xác định là một `Class` cụ thể ở điểm khai báo đó.
+This is a **code fragment placed inside a method** with `import java.lang.reflect.*` and an appropriate `Box` declaration, not a standalone program. The API returns `Type` because `T` is not necessarily determined to be a concrete `Class` at that declaration site.
 
-## 3. Generic Type khác runtime erasure: vì sao T[] trở thành Number[]?
+## 3. Generic Type vs. Runtime Erasure: Why Does `T[]` Become `Number[]`?
 
-Xét `class Sample<T extends Number>` với field `T[] genericValues`:
+Consider `class Sample<T extends Number>` with field `T[] genericValues`:
 
-- `field.getGenericType()` trả metadata kiểu `T[]`, thường là `GenericArrayType`.
-- `field.getType()` trả **`Class` sau erasure**, cụ thể `Number[].class`.
-- `((GenericArrayType) field.getGenericType()).getGenericComponentType()` là `TypeVariable` mô tả `T`.
-- Bound đầu tiên của `T` ở đây là `Number`, nên erasure của `T` là `Number`.
+- `field.getGenericType()` returns metadata for `T[]`, typically a `GenericArrayType`.
+- `field.getType()` returns **the erased `Class`**, specifically `Number[].class`.
+- `((GenericArrayType) field.getGenericType()).getGenericComponentType()` is a `TypeVariable` describing `T`.
+- The first bound of `T` here is `Number`, so the erasure of `T` is `Number`.
 
-Tương tự, với `List<String>[]`, kiểu thành phần generic vẫn là `List<String>`, nhưng erasure của phần tử là `List`; do đó `Field.getType()` trả `List[].class`.
+Similarly, for `List<String>[]`, the generic component type remains `List<String>`, while the element erasure is `List`; hence `Field.getType()` returns `List[].class`.
 
 | Field | `Field.getType().getTypeName()` | `Field.getGenericType().getTypeName()` |
 | --- | --- | --- |
-| `T[]`, với `T extends Number` | `java.lang.Number[]` | `T[]` |
+| `T[]`, with `T extends Number` | `java.lang.Number[]` | `T[]` |
 | `List<String>[]` | `java.util.List[]` | `java.util.List<java.lang.String>[]` |
 | `List<?>[]` | `java.util.List[]` | `java.util.List<?>[]` |
 | `String[]` | `java.lang.String[]` | `java.lang.String[]` |
 | `int[]` | `int[]` | `int[]` |
-| `T[][]`, với `T extends Number` | `java.lang.Number[][]` | `T[][]` |
+| `T[][]`, with `T extends Number` | `java.lang.Number[][]` | `T[][]` |
 
-**Erasure không biến `T[]` thành đối tượng `GenericArrayType` ở runtime.** Ngược lại, runtime array class vẫn phải là một `Class` cụ thể (ví dụ `Number[]`); `GenericArrayType` là cách API giữ thông tin khai báo generic có sẵn trong class-file metadata.
+**Erasure does not turn `T[]` into a `GenericArrayType` object at runtime.** Rather, the runtime array class still has to be a concrete `Class` (such as `Number[]`); `GenericArrayType` is how the API preserves generic declaration information stored in class-file metadata.
 
-## 4. Ví dụ Java 17+ hoàn chỉnh: đọc đúng từng loại Type
+## 4. Complete Java 17+ Example: Reading Each Kind of `Type` Correctly
 
-Lưu chương trình dưới tên `GenericArrayTypeDemo.java`:
+Save the program as `GenericArrayTypeDemo.java`:
 
 ```java
 import java.lang.reflect.Array;
@@ -180,7 +180,7 @@ public class GenericArrayTypeDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac GenericArrayTypeDemo.java
@@ -207,24 +207,24 @@ Dynamic array: java.lang.Number[]
 Concrete String[] instanceof Class: true
 ```
 
-Đầu ra được xây dựng không dựa vào thứ tự ngẫu nhiên của Reflection: các field được tra riêng theo tên, các tham số method được lấy theo thứ tự khai báo. Mọi loại `Type` đều được phân loại bằng `instanceof` thay vì kiểm tra tên lớp triển khai nội bộ JDK.
+The output is constructed without relying on arbitrary Reflection ordering: fields are looked up individually by name, and method parameters are retrieved in declaration order. Every `Type` kind is classified with `instanceof` rather than inspecting internal JDK implementation class names.
 
-**Ý nghĩa quan trọng của kết quả:**
+**Key takeaways from the output:**
 
-1. `genericValues` có metadata `T[]` → `GenericArrayType`; component `T` → `TypeVariable`, trong khi erased array class là `Number[]`.
-2. `parameterizedValues` và `wildcardValues` có component `List<String>` và `List<?>` → `ParameterizedType`. Metadata này giữ đối số generic mà `getType()` đã loại bỏ.
-3. `concreteValues` và `primitiveValues` vẫn có generic type là chính `Class` của mảng.
-4. `nestedValues` có component ngoài là `T[]`, do đó có thêm một cấp `GenericArrayType`.
-5. `Method.getParameterTypes()` trả các `Class` theo erasure, còn `getGenericParameterTypes()` trả danh sách `Type` giàu thông tin hơn.
-6. `Method.getGenericReturnType()` giữ kiểu trả về `List<String>[]` là `GenericArrayType`.
-7. `Array.newInstance(Number.class, 2)` tạo mảng `Number[]` thực sự. Không có constructor/allocator chung nhận `GenericArrayType` để tạo một `T[]` còn chưa biết `T` tại runtime.
+1. `genericValues` has metadata `T[]` → `GenericArrayType`; component `T` → `TypeVariable`, while the erased array class is `Number[]`.
+2. `parameterizedValues` and `wildcardValues` have components `List<String>` and `List<?>` → `ParameterizedType`. This metadata keeps generic arguments that `getType()` strips.
+3. `concreteValues` and `primitiveValues` still have the array's `Class` itself as their generic type.
+4. `nestedValues` has outer component `T[]`, so there is another `GenericArrayType` level.
+5. `Method.getParameterTypes()` returns erased `Class` objects, whereas `getGenericParameterTypes()` returns a richer `Type` list.
+6. `Method.getGenericReturnType()` preserves the return type `List<String>[]` as a `GenericArrayType`.
+7. `Array.newInstance(Number.class, 2)` creates an actual `Number[]` array. There is no general constructor/allocator accepting `GenericArrayType` to create a `T[]` when `T` is unknown at runtime.
 
-## 5. Phân tích mảng nhiều chiều bằng getGenericComponentType()
+## 5. Analyzing Multidimensional Arrays with `getGenericComponentType()`
 
-Với khai báo `T[][]`, gọi `getGenericComponentType()` một lần lấy ra `T[]`, **chưa phải `T`**. Phải phân tích từng cấp:
+For the declaration `T[][]`, calling `getGenericComponentType()` once yields `T[]`, **not yet `T`**. You must peel off each level:
 
 ```java
-// Đoạn này đặt trong phương thức; giả định đã có Type type từ field T[][].
+// Place this snippet inside a method; assumes Type type comes from field T[][].
 while (type instanceof GenericArrayType arrayType) {
     System.out.println("Array dimension: " + type.getTypeName());
     type = arrayType.getGenericComponentType();
@@ -232,7 +232,7 @@ while (type instanceof GenericArrayType arrayType) {
 System.out.println("Innermost component: " + type.getTypeName());
 ```
 
-Kết quả đối với `T[][]`:
+Output for `T[][]`:
 
 ```text
 Array dimension: T[][]
@@ -240,110 +240,110 @@ Array dimension: T[]
 Innermost component: T
 ```
 
-Với mảng **cụ thể** `String[][]`, toàn bộ giá trị ban đầu là `Class`; cần một nhánh riêng:
+For a **concrete** array `String[][]`, the entire initial value is a `Class`; a separate branch is needed:
 
 ```java
-// Trong phương thức có biến Type type:
+// Inside a method with variable Type type:
 if (type instanceof Class<?> clazz && clazz.isArray()) {
     System.out.println(clazz.getComponentType().getTypeName());
 }
 ```
 
-Với `String[][]`, `getComponentType()` trả `String[].class`; tiếp tục gọi `getComponentType()` mới lấy `String.class`. Một hàm phân tích `Type` tổng quát cần xử lý **cả hai đường**: `GenericArrayType` và `Class.isArray()`.
+For `String[][]`, `getComponentType()` returns `String[].class`; calling `getComponentType()` again yields `String.class`. A general `Type` analyzer must handle **both paths**: `GenericArrayType` and `Class.isArray()`.
 
-## 6. Tại sao getMethod nhận Class chứ không nhận GenericArrayType?
+## 6. Why Does `getMethod` Accept `Class` Instead of `GenericArrayType`?
 
-Các API định vị phương thức như:
+Method lookup APIs such as:
 
 ```java
 clazz.getMethod("accept",
         Number[].class, String[].class, List[].class);
 ```
 
-nhận `Class<?>... parameterTypes`, nghĩa là dùng chữ ký **sau erasure**, không nhận `Type...` hay `GenericArrayType`.
+accept `Class<?>... parameterTypes`, meaning they use the **erased** signature, not `Type...` or `GenericArrayType`.
 
-Trong ví dụ, phương thức khai báo:
+In the example, the method declared as:
 
 ```java
 public void accept(T[] values, String[] names, List<String>[] lists)
 ```
 
-được tìm bằng `Number[].class`, `String[].class`, `List[].class` vì `T extends Number`. Không thể truyền `T[].class` (Java không có class literal cho `T[]` ở vị trí đó) và cũng không thể ép `GenericArrayType` thành `Class`.
+is looked up with `Number[].class`, `String[].class`, `List[].class` because `T extends Number`. You cannot pass `T[].class` (Java has no class literal for `T[]` there), nor can you cast `GenericArrayType` to `Class`.
 
-Sau khi tìm được `Method`, có thể đọc:
+Once the `Method` is found, you can read:
 
-- `method.getParameterTypes()`: các `Class<?>[]` runtime sau erasure.
-- `method.getGenericParameterTypes()`: các `Type[]` biểu diễn khai báo generic.
-- `method.getReturnType()`: `Class<?>` của kiểu trả về sau erasure.
-- `method.getGenericReturnType()`: `Type` có thể là `GenericArrayType`.
+- `method.getParameterTypes()`: runtime `Class<?>[]` after erasure.
+- `method.getGenericParameterTypes()`: `Type[]` representing the generic declaration.
+- `method.getReturnType()`: `Class<?>` of the erased return type.
+- `method.getGenericReturnType()`: `Type`, which can be a `GenericArrayType`.
 
-Phân biệt **định vị method để gọi** với **phân tích generic để tạo schema, serialize, validate hoặc tài liệu hóa**. Một method có parameter `List<String>[]` vẫn phải được tìm bằng `List[].class` và JVM chỉ kiểm tra runtime array component là `List`, không thể tự xác nhận mọi phần tử List chứa chuỗi.
+Distinguish **locating a method to invoke** from **analyzing generics to generate schemas, serialize, validate, or document**. A method with parameter `List<String>[]` still must be looked up with `List[].class`, and the JVM only checks the runtime array component is `List`, without automatically verifying every `List` element contains strings.
 
-## 7. GenericArrayType không phải đối tượng mảng và không tạo mảng giúp bạn
+## 7. `GenericArrayType` Is Not an Array Object and Does Not Create Arrays for You
 
-Hãy phân biệt:
+Distinguish:
 
 ```java
 Type metadata = Sample.class.getField("genericValues").getGenericType();
-// metadata đại diện cho khai báo T[], không phải một mảng chứa T.
+// metadata represents the T[] declaration, not an array holding T.
 ```
 
-với:
+from:
 
 ```java
 Object actualArray = java.lang.reflect.Array.newInstance(Number.class, 3);
-// actualArray thực sự là mảng Number[3].
+// actualArray is actually a Number[3] array.
 ```
 
-`Array.newInstance(Class<?> componentType, int length)` yêu cầu **Class của kiểu thành phần thực tế**. Nếu chỉ nắm một `GenericArrayType` chứa `T`, bạn phải biết cách ánh xạ `T` sang kiểu runtime thực sự (hoặc lựa chọn erasure/bound phù hợp mục đích). **Không thể chuyển metadata `T[]` thành `T[].class` chỉ bằng cast**.
+`Array.newInstance(Class<?> componentType, int length)` requires the **`Class` of the actual component type**. If you only hold a `GenericArrayType` containing `T`, you must know how to map `T` to a real runtime type (or choose the appropriate erasure/bound for your purpose). **You cannot turn `T[]` metadata into `T[].class` by casting**.
 
-Đặc biệt, `new T[3]` không hợp lệ trong phần thân lớp generic Java thông thường vì `T` không reifiable. Tương tự, `new List<String>[3]` bị cấm bởi quy tắc generic array creation. Nhưng **`List<?>[]` là trường hợp tinh tế**: `List<?>` là kiểu reifiable theo JLS, do đó `new List<?>[3]` hợp lệ. Dù vậy, **metadata khai báo field `List<?>[]` vẫn có thể là `GenericArrayType`** vì component có dạng `ParameterizedType`. Quy tắc tạo mảng trong ngôn ngữ và việc chọn interface `Type` trong Reflection là **hai câu hỏi khác nhau**.
+In particular, `new T[3]` is invalid in the body of an ordinary Java generic class because `T` is non-reifiable. Likewise, `new List<String>[3]` is forbidden by generic array creation rules. However, **`List<?>[]` is a subtle case**: `List<?>` is a reifiable type per the JLS, so `new List<?>[3]` is valid. Even so, **the field declaration metadata `List<?>[]` can still be `GenericArrayType`** because the component has `ParameterizedType` form. Array creation rules in the language and the `Type` interface chosen by Reflection are **two different questions**.
 
-Thay vì tạo `List<String>[]` bằng cast không kiểm soát, thường ưu tiên `List<List<String>>` khi cần tập hợp động có generic type safety. Khi buộc làm việc với thư viện nhận mảng generic, hãy phân biệt cảnh báo unchecked, phạm vi mảng, và những thao tác ghi phần tử có thể gây heap pollution.
+Instead of creating `List<String>[]` via unchecked casts, prefer `List<List<String>>` when you need a dynamic collection with generic type safety. When forced to interoperate with a library taking generic arrays, keep track of unchecked warnings, array covariance/scope, and element writes that can cause heap pollution.
 
-## 8. Không nhầm với ParameterizedType hoặc mảng primitive-wrapper
+## 8. Do Not Confuse with `ParameterizedType` or Primitive/Wrapper Arrays
 
-Một số lỗi khái niệm thường gặp:
+Some common conceptual mistakes:
 
-| Trường hợp | Loại Type được trả về trong generic reflection |
+| Case | `Type` kind returned in generic reflection |
 | --- | --- |
-| Field `List<String> items` | `ParameterizedType` (không phải mảng) |
+| Field `List<String> items` | `ParameterizedType` (not an array) |
 | Field `List<String>[] items` | `GenericArrayType`, component `ParameterizedType` |
 | Field `T value` | `TypeVariable` |
 | Field `T[] values` | `GenericArrayType`, component `TypeVariable` |
-| Field `String[] names` | `Class` của `String[]` |
-| Field `int[] numbers` | `Class` của `int[]` |
-| Field `Integer[] numbers` | `Class` của `Integer[]` |
+| Field `String[] names` | `Class` of `String[]` |
+| Field `int[] numbers` | `Class` of `int[]` |
+| Field `Integer[] numbers` | `Class` of `Integer[]` |
 
-`int[].class` và `Integer[].class` đều là `Class` của mảng cụ thể, mặc dù **hai loại mảng đó không thể thay thế nhau**: Java boxing/unboxing ở cấp phần tử không tự động chuyển cả mảng. Sự khác nhau giữa **`Class` và `GenericArrayType`** là ở mô hình kiểu generic được phản chiếu, không phải ở primitive hay wrapper.
+`int[].class` and `Integer[].class` are both `Class` objects for concrete arrays, even though **those two array types are not interchangeable**: Java element-level boxing/unboxing does not automatically convert an entire array. The difference between **`Class` and `GenericArrayType`** lies in the reflected generic type model, not in primitives vs. wrappers.
 
-Đồng thời, `ParameterizedType` biểu diễn riêng `List<String>`; nó trở thành **component** của `GenericArrayType` khi toàn khai báo là `List<String>[]`.
+At the same time, `ParameterizedType` represents `List<String>` by itself; it becomes the **component** of `GenericArrayType` when the full declaration is `List<String>[]`.
 
-## 9. Lỗi thường gặp khi xử lý metadata
+## 9. Common Mistakes When Handling Metadata
 
-| Lỗi hoặc hiện tượng | Nguyên nhân | Cách xử lý |
+| Mistake or symptom | Cause | How to handle |
 | --- | --- | --- |
-| `ClassCastException` khi ép `field.getGenericType()` về `Class<?>` | Kiểu khai báo là `T[]` hoặc `List<String>[]` | Kiểm tra `instanceof GenericArrayType` trước |
-| Gọi `getComponentType()` trên kết quả chỉ được khai báo `Type` | `Type` không có method này | Nếu là `Class` array thì dùng `Class.getComponentType()`; nếu `GenericArrayType` dùng `getGenericComponentType()` |
-| Chỉ đọc `getType()` nên mất `List<String>` | `getType()` trả kiểu đã erasure | Dùng `getGenericType()` để giữ khai báo generic |
-| Cố tra `accept(T[],...)` bằng một `GenericArrayType` | `getMethod` chỉ nhận `Class<?>...` | Tra bằng `Number[].class`, `String[].class`, `List[].class` đúng erasure |
-| Cố tạo `new T[3]` | Biến kiểu không reifiable | Dùng collection hoặc có `Class` của component runtime để tạo qua `Array.newInstance` |
-| Tin rằng `GenericArrayType` cung cấp đối tượng mảng | Đây là metadata `Type`, không phải array instance | Phân biệt `Type`, `Class` và object |
-| Coi `T[][]` chỉ có một cấp `GenericArrayType` | Thành phần ngoài là `T[]` | Duyệt đệ quy tới `TypeVariable` cuối |
-| So sánh bằng tên `getClass().getName()` của implementation `Type` | Implementation nội bộ không phải hợp đồng công khai | Kiểm tra các interface `GenericArrayType`, `ParameterizedType`, `TypeVariable` |
-| Coi `List<?>[]` có thể tạo được nên Reflection trả `Class` | Tính reifiable và dạng metadata generic không đồng nhất | Phân biệt luật tạo mảng và dạng `Type` do Reflection trả |
-| Giả định `Integer[]` là `GenericArrayType` vì `Integer` là wrapper | `Integer` là lớp cụ thể; mảng có runtime class xác định | Kết quả là `Class` của `Integer[]` |
+| `ClassCastException` when casting `field.getGenericType()` to `Class<?>` | Declared type is `T[]` or `List<String>[]` | Check `instanceof GenericArrayType` first |
+| Calling `getComponentType()` on a result declared only as `Type` | `Type` does not have this method | If `Class` array, use `Class.getComponentType()`; if `GenericArrayType`, use `getGenericComponentType()` |
+| Reading only `getType()` and losing `List<String>` | `getType()` returns the erased type | Use `getGenericType()` to preserve the generic declaration |
+| Trying to look up `accept(T[],...)` using a `GenericArrayType` | `getMethod` only accepts `Class<?>...` | Look up with `Number[].class`, `String[].class`, `List[].class` matching erasure |
+| Trying to write `new T[3]` | Type variable is non-reifiable | Use a collection or obtain the runtime component's `Class` to allocate via `Array.newInstance` |
+| Believing `GenericArrayType` provides an array object | It is `Type` metadata, not an array instance | Distinguish `Type`, `Class`, and object |
+| Treating `T[][]` as having only one `GenericArrayType` level | The outer component is `T[]` | Traverse recursively down to the final `TypeVariable` |
+| Comparing by `getClass().getName()` of the `Type` implementation | Internal implementations are not part of the public contract | Check the interfaces `GenericArrayType`, `ParameterizedType`, `TypeVariable` |
+| Assuming `List<?>[]` can be created so Reflection returns `Class` | Reifiability and generic metadata representation are distinct | Separate array creation rules from the `Type` form returned by Reflection |
+| Assuming `Integer[]` is `GenericArrayType` because `Integer` is a wrapper | `Integer` is a concrete class; the array has a definite runtime class | The result is `Class` of `Integer[]` |
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-1. **Một field `List<Long>[] values` trả `getGenericType()` là gì?** Thông thường là `GenericArrayType`; `getGenericComponentType()` là `ParameterizedType` của `List<Long>`, còn `getType()` là `List[].class`.
-2. **Một field `long[] values` trả `getGenericType()` là gì?** `Class` của `long[]`.
-3. **Với `class Box<T extends Number>` và field `T[] values`, `getType()` là gì?** `Number[].class`; `getGenericType()` phản ánh `T[]` dưới dạng `GenericArrayType`.
-4. **Với `T[][]`, gọi `getGenericComponentType()` một lần đã nhận `T` chưa?** Chưa; lần đầu nhận `T[]`, lần hai mới đến `T`.
-5. **Có thể lấy `GenericArrayType` rồi dùng `Array.newInstance(type, 5)` trực tiếp không?** Không; overload thông dụng của `Array.newInstance` cần `Class<?> componentType`, không nhận `Type`.
-6. **Nếu method nhận `List<String>[]`, tra bằng kiểu nào?** `List[].class` ở vị trí tham số tương ứng, rồi dùng `getGenericParameterTypes()` để xem đối số `String`.
-7. **`List<?>[]` có thể khai báo và `new List<?>[2]` không?** Có; đây là trường hợp reifiable với unbounded wildcard, nhưng kết quả đọc generic metadata có thể vẫn là `GenericArrayType`.
+1. **What does `getGenericType()` return for a field `List<Long>[] values`?** Typically `GenericArrayType`; `getGenericComponentType()` is a `ParameterizedType` for `List<Long>`, while `getType()` is `List[].class`.
+2. **What does `getGenericType()` return for a field `long[] values`?** `Class` of `long[]`.
+3. **For `class Box<T extends Number>` and field `T[] values`, what is `getType()`?** `Number[].class`; `getGenericType()` reflects `T[]` as a `GenericArrayType`.
+4. **For `T[][]`, does calling `getGenericComponentType()` once yield `T`?** No; the first call yields `T[]`, and the second reaches `T`.
+5. **Can you take a `GenericArrayType` and pass it directly to `Array.newInstance(type, 5)`?** No; the standard overload of `Array.newInstance` requires `Class<?> componentType`, not `Type`.
+6. **If a method takes `List<String>[]`, what type do you look it up with?** `List[].class` at the corresponding parameter position, then use `getGenericParameterTypes()` to inspect the `String` argument.
+7. **Can `List<?>[]` be declared and `new List<?>[2]` be created?** Yes; this is a reifiable case with an unbounded wildcard, yet reading generic metadata can still yield `GenericArrayType`.
 
-**Ghi nhớ:** `Class` biểu diễn **mảng cụ thể tại runtime**; `GenericArrayType` mô tả **kiểu mảng trong khai báo generic**, với thành phần có thể là `TypeVariable` hoặc `ParameterizedType`. Chọn `Field.getType()` khi cần runtime class và `Field.getGenericType()` khi cần mô hình generic; luôn kiểm tra `instanceof` trước khi phân tích.
+**Takeaway:** `Class` represents **concrete arrays at runtime**; `GenericArrayType` describes **array types in generic declarations**, whose component can be a `TypeVariable` or `ParameterizedType`. Choose `Field.getType()` when you need the runtime class and `Field.getGenericType()` when you need the generic model; always check `instanceof` before analyzing.
 
-Tham khảo: [GenericArrayType — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/GenericArrayType.html), [Type — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Type.html), [Field — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html), [JLS §10.1 Array Types](https://docs.oracle.com/javase/specs/jls/se17/html/jls-10.html#jls-10.1).
+References: [GenericArrayType — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/GenericArrayType.html), [Type — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Type.html), [Field — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html), [JLS §10.1 Array Types](https://docs.oracle.com/javase/specs/jls/se17/html/jls-10.html#jls-10.1).

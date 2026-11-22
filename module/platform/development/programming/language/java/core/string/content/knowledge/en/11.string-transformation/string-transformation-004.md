@@ -1,16 +1,16 @@
-# `String.repeat(int)`: số lần lặp, chuỗi rỗng và giá trị âm trong Java
+# `String.repeat(int)`: Repetition Count, Empty Strings, and Negative Values in Java
 
-## 1. `repeat()` dùng để làm gì?
+## 1. What Is `repeat()` Used For?
 
-Khi cần lặp lại **nguyên vẹn một chuỗi** nhiều lần và ghép các bản sao liền nhau, lớp `java.lang.String` cung cấp phương thức:
+When you need to repeat **an entire string intact** multiple times and concatenate the copies consecutively, the `java.lang.String` class provides the method:
 
 ```java
 public String repeat(int count)
 ```
 
-Phương thức `String.repeat(int)` có từ **Java 11** và dùng được trên Java 17 trở lên. Nó tạo ra **giá trị chuỗi kết quả** bằng cách lặp toàn bộ nội dung của chuỗi nhận lời gọi đúng `count` lần. Không có dấu phân cách nào được tự thêm vào giữa các lần lặp.
+`String.repeat(int)` has been available since **Java 11** and works on Java 17 and later. It produces a **resulting string value** by repeating the entire content of the receiver string exactly `count` times. No separator is automatically inserted between repetitions.
 
-Ví dụ, trong phần thân một phương thức Java:
+For example, inside the body of a Java method:
 
 ```java
 String word = "ha";
@@ -19,7 +19,7 @@ String result = word.repeat(3);
 System.out.println(result); // hahaha
 ```
 
-Cách hiểu trực quan:
+Intuitive view:
 
 ```text
 "ha".repeat(3)
@@ -27,30 +27,30 @@ Cách hiểu trực quan:
     = "hahaha"
 ```
 
-`repeat` đặc biệt tiện để tạo các dấu phân cách, ký tự đệm, đường kẻ minh họa, hoặc chuỗi mẫu với số lần lặp đã biết. Nó **không sửa nội dung của chuỗi gốc** vì `String` là bất biến (*immutable*).
+`repeat` is especially convenient for generating separators, padding characters, divider lines, or pattern strings with a known repetition count. It **does not modify the original string content** because `String` is *immutable*.
 
-**Quy tắc quan trọng nhất:** tham số `count` phải **không âm**. Giá trị `0` là hợp lệ và cho chuỗi rỗng; số âm khiến phương thức ném `IllegalArgumentException`.
+**Most important rule:** the `count` parameter must be **non-negative**. The value `0` is valid and produces an empty string; a negative number causes the method to throw `IllegalArgumentException`.
 
-## 2. Bảng hành vi theo số lần lặp
+## 2. Behavior Table by Repetition Count
 
-Giả sử chuỗi nhận lời gọi là `"ab"`:
+Suppose the receiver string is `"ab"`:
 
-| Biểu thức | Kết quả hoặc hành vi | Ý nghĩa |
+| Expression | Result or behavior | Meaning |
 |---|---|---|
-| `"ab".repeat(0)` | `""` | Lặp không lần nào |
-| `"ab".repeat(1)` | `"ab"` | Giữ cùng nội dung, một lần |
-| `"ab".repeat(2)` | `"abab"` | Nối hai bản sao |
-| `"ab".repeat(3)` | `"ababab"` | Nối ba bản sao |
-| `"ab".repeat(-1)` | `IllegalArgumentException` | Số lần lặp âm là không hợp lệ |
+| `"ab".repeat(0)` | `""` | Repeat zero times |
+| `"ab".repeat(1)` | `"ab"` | Keep same content, once |
+| `"ab".repeat(2)` | `"abab"` | Concatenate two copies |
+| `"ab".repeat(3)` | `"ababab"` | Concatenate three copies |
+| `"ab".repeat(-1)` | `IllegalArgumentException` | Negative repetition count is invalid |
 
-Điều này khác cách một số người mới học có thể phỏng đoán:
+This differs from what some beginners might guess:
 
-- `repeat(0)` **không** trả về chuỗi gốc và cũng **không** trả `null`. Nó trả về chuỗi rỗng `""`.
-- `repeat(1)` cho **nội dung giống chuỗi gốc**. Không nên dựa vào phép so sánh tham chiếu `==` để kiểm tra kết quả, dù triển khai JDK có thể tái sử dụng đối tượng trong trường hợp này.
-- `repeat(2)` trở lên nối các bản sao **không chèn khoảng trắng, dấu phẩy hay xuống dòng** giữa chúng.
-- `repeat(-1)` không có nghĩa là “bỏ một phần tử” hoặc “lặp ngược”. Đó là đối số sai, nên Java ném ngoại lệ.
+- `repeat(0)` **does not** return the original string and **does not** return `null`. It returns the empty string `""`.
+- `repeat(1)` produces **content identical to the original string**. You should not rely on reference comparison `==` to verify the result, even though a JDK implementation may reuse the object in this case.
+- `repeat(2)` and higher concatenate copies **without inserting spaces, commas, or newlines** between them.
+- `repeat(-1)` does not mean "drop one element" or "repeat in reverse." It is an invalid argument, so Java throws an exception.
 
-Một chuỗi nhiều ký tự luôn được lặp **cả cụm**:
+A multi-character string is always repeated **as a whole**:
 
 ```java
 System.out.println("Java ".repeat(3)); // Java Java Java 
@@ -58,11 +58,11 @@ System.out.println("ab".repeat(3));    // ababab
 System.out.println("-=".repeat(3));    // -=-=-=
 ```
 
-Trong ví dụ đầu, khoảng trắng nằm **sẵn trong** chuỗi `"Java "`. Do đó kết quả có cả dấu cách cuối cùng. Nếu gọi `"Java".repeat(3)`, kết quả sẽ là `"JavaJavaJava"`.
+In the first example, the space is **already inside** `"Java "`. Therefore, the result also has the trailing space. If you call `"Java".repeat(3)`, the result will be `"JavaJavaJava"`.
 
-## 3. Trường hợp chuỗi nhận lời gọi rỗng
+## 3. Empty Receiver String Case
 
-Một **chuỗi rỗng** được biểu diễn bằng `""` và có độ dài bằng `0`. Khi nội dung gốc rỗng, lặp bao nhiêu lần **không âm** thì kết quả vẫn rỗng:
+An **empty string** is represented by `""` and has length `0`. When the original content is empty, repeating it any **non-negative** number of times still produces an empty string:
 
 ```java
 "".repeat(0) // ""
@@ -70,21 +70,21 @@ Một **chuỗi rỗng** được biểu diễn bằng `""` và có độ dài b
 "".repeat(5) // ""
 ```
 
-Bởi vì nối các chuỗi rỗng không tạo thêm ký tự nào:
+Because concatenating empty strings produces no additional characters:
 
 ```text
 "" + "" + "" = ""
 ```
 
-Dù chuỗi nhận lời gọi có nội dung hay không, quy tắc đối với **số âm** vẫn giữ nguyên:
+Whether the receiver string has content or not, the rule for **negative numbers** remains the same:
 
 ```java
-"".repeat(-2); // Ném IllegalArgumentException
+"".repeat(-2); // Throws IllegalArgumentException
 ```
 
-Đây là điểm cần nhớ: **chuỗi rỗng không làm cho số lần lặp âm trở nên hợp lệ**.
+This is a key point to remember: **an empty string does not make a negative repetition count valid**.
 
-### Chuỗi rỗng khác với `null`
+### Empty String Differs from `null`
 
 ```java
 String empty = "";
@@ -94,70 +94,70 @@ String missing = null;
 // missing.repeat(3); // NullPointerException
 ```
 
-`empty` tham chiếu đến một đối tượng `String` hợp lệ có `length() == 0`; vì vậy `repeat` gọi được. `missing` là tham chiếu `null`, nên không có đối tượng nào để nhận lời gọi phương thức. Lỗi này khác với `IllegalArgumentException` khi truyền `count` âm cho một chuỗi hợp lệ.
+`empty` references a valid `String` object with `length() == 0`; therefore, `repeat` can be called. `missing` is a `null` reference, so there is no object to receive the method call. This error differs from `IllegalArgumentException` when passing a negative `count` to a valid string.
 
-## 4. Số âm và ngoại lệ `IllegalArgumentException`
+## 4. Negative Numbers and `IllegalArgumentException`
 
-`repeat(int count)` yêu cầu `count >= 0`. Khi `count < 0`, Java ném một ngoại lệ kiểu `IllegalArgumentException`.
+`repeat(int count)` requires `count >= 0`. When `count < 0`, Java throws an exception of type `IllegalArgumentException`.
 
 ```java
 String line = "-";
 line.repeat(-1); // IllegalArgumentException
 ```
 
-Để bắt ngoại lệ trong tình huống thử nghiệm:
+To catch the exception in a test scenario:
 
 ```java
 try {
     String result = "ab".repeat(-3);
     System.out.println(result);
 } catch (IllegalArgumentException ex) {
-    System.out.println("count phải không âm");
+    System.out.println("count must be non-negative");
 }
 ```
 
 **Stdout:**
 
 ```text
-count phải không âm
+count must be non-negative
 ```
 
-Không nên dùng `catch (Exception ignored) {}` để âm thầm bỏ lỗi nếu giá trị `count` đến từ công thức hay đầu vào người dùng. Thường tốt hơn là làm rõ quy tắc nghiệp vụ trước khi gọi:
+You should not use `catch (Exception ignored) {}` to silently swallow errors if `count` comes from a formula or user input. It is usually better to make the business rule explicit before calling:
 
 ```java
 static String repeatSafely(String text, int count) {
     if (count < 0) {
-        throw new IllegalArgumentException("count phải >= 0");
+        throw new IllegalArgumentException("count must be >= 0");
     }
     return text.repeat(count);
 }
 ```
 
-Đây là một phương thức minh họa đặt bên trong một lớp. Phép kiểm tra giúp thông báo lỗi dễ hiểu hơn trong mã ứng dụng, nhưng bản thân `repeat` đã kiểm tra số lần lặp âm.
+This is an illustrative method placed inside a class. The check provides a clearer error message in application code, though `repeat` itself already checks for negative repetition counts.
 
-### Khi `count` được tính bằng biểu thức
+### When `count` Is Computed by an Expression
 
-Một tình huống thực tế là tính số dấu cách cần thêm để đạt độ rộng mong muốn:
+A practical scenario is computing the number of spaces needed to reach a desired width:
 
 ```java
 String label = "Java";
 int width = 3;
 int padding = width - label.length(); // -1
-// String result = label + " ".repeat(padding); // Lỗi vì count = -1
+// String result = label + " ".repeat(padding); // Error because count = -1
 ```
 
-Nếu ý định là **không thêm đệm khi nội dung đã dài**, có thể chặn về `0`:
+If the intent is **to add no padding when the content is already long enough**, you can clamp to `0`:
 
 ```java
 int padding = Math.max(0, width - label.length());
 String result = label + " ".repeat(padding);
 ```
 
-Ở đây `Math.max(0, ...)` phản ánh **quy tắc nghiệp vụ của việc đệm chuỗi**. Không nên tự động biến mọi `count` âm thành `0` trong mọi tình huống: đôi khi số âm là lỗi dữ liệu cần được thông báo rõ ràng.
+Here `Math.max(0, ...)` reflects the **business rule for string padding**. You should not automatically turn every negative `count` into `0` in all situations: sometimes a negative number is a data error that must be reported clearly.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh
+## 5. Complete Java 17+ Example
 
-Lưu nội dung sau vào tệp **`StringRepeatDemo.java`**:
+Save the following content into **`StringRepeatDemo.java`**:
 
 ```java
 public class StringRepeatDemo {
@@ -179,7 +179,7 @@ public class StringRepeatDemo {
         show("emojiTwice", "😀".repeat(2));
 
         System.out.println("original=" + unit);
-        unit.repeat(3); // Giá trị trả về bị bỏ qua
+        unit.repeat(3); // Return value is discarded
         System.out.println("discarded=" + unit);
 
         String saved = unit.repeat(3);
@@ -196,7 +196,7 @@ public class StringRepeatDemo {
 }
 ```
 
-Biên dịch và chạy bằng **JDK 17 trở lên**:
+Compile and run with **JDK 17 or later**:
 
 ```bash
 javac -encoding UTF-8 StringRepeatDemo.java
@@ -220,23 +220,23 @@ negative=IllegalArgumentException
 dashes=[------], length=6
 ```
 
-### Phân tích kết quả
+### Output Analysis
 
-1. `repeat(0)` trả `""` nên phần nội dung trong dấu `[]` trống và `length()` là `0`.
-2. `repeat(1)`, `repeat(2)` và `repeat(3)` tạo nội dung tương ứng `"ab"`, `"abab"` và `"ababab"`.
-3. `""` lặp `5` lần hoặc `0` lần vẫn là chuỗi rỗng.
-4. `"😀"` là **một Unicode code point** nhưng được biểu diễn bằng **hai UTF-16 code unit**; hai emoji có `String.length() == 4`.
-5. `unit.repeat(3);` tính kết quả rồi bỏ qua, nên biến `unit` vẫn giữ `"ab"`. Khi lưu kết quả vào `saved`, giá trị `"ababab"` được giữ lại.
-6. `"" .repeat(-1)` (trong code viết không có dấu cách giữa `""` và `.repeat`) vẫn ném `IllegalArgumentException`, cho thấy đối số âm bị từ chối ngay cả khi chuỗi rỗng.
-7. `"-".repeat(6)` tạo đúng sáu dấu gạch nối, không có dấu phân cách bổ sung.
+1. `repeat(0)` returns `""`, so the content inside `[]` is empty and `length()` is `0`.
+2. `repeat(1)`, `repeat(2)`, and `repeat(3)` produce `"ab"`, `"abab"`, and `"ababab"`, respectively.
+3. `""` repeated `5` times or `0` times remains an empty string.
+4. `"😀"` is **one Unicode code point** represented by **two UTF-16 code units**; two emojis have `String.length() == 4`.
+5. `unit.repeat(3);` computes the result and discards it, so `unit` still holds `"ab"`. When the result is stored in `saved`, `"ababab"` is retained.
+6. `"" .repeat(-1)` (written without a space between `""` and `.repeat` in code) still throws `IllegalArgumentException`, showing that negative arguments are rejected even on an empty string.
+7. `"-".repeat(6)` produces exactly six hyphens, with no extra separators.
 
-Ví dụ dùng `show` để kẹp nội dung trong `[]`: nhờ vậy chuỗi rỗng dễ nhận biết hơn khi in ra màn hình.
+The example uses `show` to wrap content in `[]`: this makes empty strings easier to spot when printed on screen.
 
-## 6. `repeat()` và tính bất biến của `String`
+## 6. `repeat()` and `String` Immutability
 
-Giống `trim()`, `replace()`, `substring()` hay `toUpperCase()`, `repeat()` là phương thức tạo **giá trị trả về** và không sửa nội dung đối tượng `String` nhận lời gọi.
+Like `trim()`, `replace()`, `substring()`, or `toUpperCase()`, `repeat()` is a method that produces a **return value** and does not modify the content of the receiving `String` object.
 
-**Sai nếu mục đích là cập nhật biến:**
+**Wrong if the goal is to update the variable:**
 
 ```java
 String marker = "*";
@@ -244,16 +244,16 @@ marker.repeat(4);
 System.out.println(marker); // *
 ```
 
-Lời gọi `marker.repeat(4)` đã trả về `"****"`, nhưng kết quả bị bỏ qua. Để giữ kết quả, có thể:
+The call `marker.repeat(4)` returned `"****"`, but the result was discarded. To keep the result, you can:
 
-**Gán lại biến:**
+**Reassign the variable:**
 
 ```java
 marker = marker.repeat(4);
 System.out.println(marker); // ****
 ```
 
-**Hoặc lưu vào biến khác:**
+**Or store it in another variable:**
 
 ```java
 String original = "*";
@@ -263,17 +263,17 @@ System.out.println(original); // *
 System.out.println(repeated); // ****
 ```
 
-**Hoặc dùng ngay làm đối số:**
+**Or use it directly as an argument:**
 
 ```java
 System.out.println("*".repeat(4)); // ****
 ```
 
-Không có lý do gì để giả định `repeat()` làm tăng độ dài của chính đối tượng `String` cũ. Java chỉ cho phép thay đổi **giá trị của biến tham chiếu** bằng phép gán lại; đối tượng `String` vốn bất biến.
+There is no reason to assume `repeat()` increases the length of the old `String` object itself. Java only allows changing the **value of a reference variable** via reassignment; `String` objects themselves are immutable.
 
-### Không dựa vào `==` để nhận diện kết quả
+### Do Not Rely on `==` to Identify Results
 
-Khi `count == 1`, nội dung kết quả giống nội dung gốc. Triển khai JDK có thể trả về cùng một đối tượng `String`, nhưng đây không phải điều kiện cần để sử dụng phương thức.
+When `count == 1`, the resulting content equals the original content. A JDK implementation may return the same `String` object, but this is not a requirement to rely on when using the method.
 
 ```java
 String source = new String("xy");
@@ -282,17 +282,17 @@ String once = source.repeat(1);
 System.out.println(source.equals(once)); // true
 ```
 
-Dùng `.equals(...)` để kiểm tra nội dung; dùng `==` trên hai `String` là so **tham chiếu đối tượng**, không phải so văn bản.
+Use `.equals(...)` to check content; using `==` on two `String`s compares **object references**, not text.
 
-## 7. Độ dài kết quả và lưu ý về bộ nhớ
+## 7. Result Length and Memory Considerations
 
-Nếu chuỗi ban đầu có `m = source.length()` (đo bằng **UTF-16 code unit**) và `count = n` là số nguyên không âm, độ dài của chuỗi kết quả về mặt toán học là:
+If the initial string has `m = source.length()` (measured in **UTF-16 code units**) and `count = n` is a non-negative integer, the length of the resulting string mathematically is:
 
 \[
 L = m \times n
 \]
 
-Ví dụ:
+Example:
 
 ```java
 String a = "abc";
@@ -302,48 +302,48 @@ System.out.println(b);          // abcabcabcabc
 System.out.println(b.length()); // 12 = 3 * 4
 ```
 
-Với chuỗi rỗng, `m == 0`, kết quả luôn có độ dài `0` cho mọi `n >= 0`. Với `n == 0`, kết quả cũng có độ dài `0` bất kể chuỗi gốc.
+For an empty string, `m == 0`, so the result always has length `0` for any `n >= 0`. For `n == 0`, the result also has length `0` regardless of the source string.
 
-### Không nên tạo chuỗi khổng lồ
+### Avoid Creating Huge Strings
 
-`repeat` có thể yêu cầu cấp phát bộ nhớ tương ứng với kích thước kết quả. Một `count` dương rất lớn kết hợp với chuỗi dài có thể gây vấn đề về bộ nhớ hoặc làm chương trình chậm. Nếu yêu cầu kích thước vượt khả năng biểu diễn hoặc cấp phát của JVM, thao tác có thể thất bại, chẳng hạn bằng **`OutOfMemoryError`**.
+`repeat` may require allocating memory proportional to the result size. A very large positive `count` combined with a long string can cause memory issues or slow down the program. If the requested size exceeds what the JVM can represent or allocate, the operation may fail, for instance with **`OutOfMemoryError`**.
 
-Không chạy thử ví dụ nguy hiểm như sau trong một ứng dụng bình thường:
+Do not run dangerous examples like the following in a normal application:
 
 ```java
-// Minh họa không nên thực thi: có nguy cơ tiêu thụ bộ nhớ rất lớn.
+// Illustration not meant to be executed: risks consuming huge memory.
 String huge = "abcdefghij".repeat(Integer.MAX_VALUE);
 ```
 
-Đây là vấn đề **kích thước/bộ nhớ**, khác với lỗi `IllegalArgumentException` do `count` âm. Đừng dựa vào một thông báo lỗi cụ thể hoặc vào việc JVM luôn cấp phát được chuỗi chỉ vì `count >= 0`.
+This is a **size/memory** issue, distinct from the `IllegalArgumentException` caused by negative `count`. Do not rely on a specific error message or assume the JVM can always allocate the string just because `count >= 0`.
 
-Khi dữ liệu từ người dùng quyết định số lần lặp, hãy đặt giới hạn phù hợp. Ví dụ, phương thức dưới đây giới hạn tổng độ dài kết quả bằng một mức do ứng dụng đặt ra:
+When user-supplied data determines the repetition count, set appropriate limits. For example, the method below limits the total result length to an application-defined threshold:
 
 ```java
 static String boundedRepeat(String text, int count, int maxUnits) {
     if (text == null) {
-        throw new IllegalArgumentException("text không được null");
+        throw new IllegalArgumentException("text must not be null");
     }
     if (count < 0 || maxUnits < 0) {
-        throw new IllegalArgumentException("count và maxUnits phải không âm");
+        throw new IllegalArgumentException("count and maxUnits must be non-negative");
     }
 
     long expectedUnits = (long) text.length() * count;
     if (expectedUnits > maxUnits) {
-        throw new IllegalArgumentException("Kết quả vượt giới hạn");
+        throw new IllegalArgumentException("Result exceeds limit");
     }
 
     return text.repeat(count);
 }
 ```
 
-Phép ép `(long)` trước phép nhân giúp tránh **tràn số nguyên `int`** khi kiểm tra kích thước. Kiểm tra này giới hạn số UTF-16 code unit theo chính sách ứng dụng, chứ không bảo đảm mọi hoạt động cấp phát bộ nhớ luôn thành công.
+Casting to `(long)` before multiplication prevents **`int` integer overflow** during the size check. This check limits the number of UTF-16 code units per application policy, rather than guaranteeing that every memory allocation will always succeed.
 
-## 8. Unicode và ký tự nhiều đơn vị UTF-16
+## 8. Unicode and Multi-Unit UTF-16 Characters
 
-`repeat` không thao tác riêng từng ký tự để chọn hoặc cắt. Nó lặp **toàn bộ chuỗi gốc**, nên những cặp surrogate hợp lệ ở bên trong một bản sao vẫn được sao chép cùng nhau.
+`repeat` does not operate on individual characters to select or slice them. It repeats the **entire source string**, so valid surrogate pairs inside a copy are still copied together.
 
-Ví dụ:
+Example:
 
 ```java
 String emoji = "😀";
@@ -356,24 +356,24 @@ System.out.println(
 ); // 3
 ```
 
-`String.length()` tính UTF-16 code unit; mỗi emoji ở đây gồm hai code unit, nên ba emoji có độ dài `6` nhưng chỉ có `3` Unicode code point.
+`String.length()` counts UTF-16 code units; each emoji here consists of two code units, so three emojis have length `6` yet only `3` Unicode code points.
 
-Tương tự, với ký tự tiếng Việt được biểu diễn bằng nhiều code point (ví dụ chữ cái cộng dấu kết hợp), `repeat` vẫn sao chép **đúng chuỗi mã đầu vào**. Phương thức **không chuẩn hóa Unicode**, không đổi chữ hoa/thường và không tự gộp các ký tự kết hợp.
+Similarly, for Vietnamese characters represented by multiple code points (such as a base letter plus a combining mark), `repeat` still copies the **exact input code sequence**. The method **does not normalize Unicode**, does not change case, and does not automatically compose combining characters.
 
-Nếu chuỗi nguồn vốn chứa một surrogate không ghép cặp hợp lệ, `repeat` cũng không tự sửa hoặc kiểm tra tính hợp lệ của dữ liệu Unicode ấy. Nó chỉ lặp chuỗi theo nội dung đã có.
+If the source string already contains an unpaired surrogate, `repeat` also does not automatically fix or validate that Unicode data. It simply repeats the string with its existing content.
 
-## 9. Khi nào nên và không nên sử dụng `repeat()`?
+## 9. When Should You Use and Not Use `repeat()`?
 
-### Tạo đường kẻ hoặc dấu nhấn văn bản
+### Creating Divider Lines or Text Accents
 
 ```java
 String line = "-".repeat(12);
 System.out.println(line); // ------------
 ```
 
-Đơn giản và dễ hiểu hơn việc tự viết vòng lặp để nối một ký tự cố định.
+Simpler and easier to read than manually writing a loop to append a fixed character.
 
-### Tạo phần đệm có số lượng xác định
+### Creating Padding of a Known Length
 
 ```java
 String label = "OK";
@@ -383,35 +383,35 @@ String padded = label + " ".repeat(Math.max(0, width - label.length()));
 System.out.println("[" + padded + "]"); // [OK    ]
 ```
 
-Ví dụ tính độ rộng theo `String.length()` (UTF-16 code unit). Nếu cần canh cột chính xác theo **độ rộng hiển thị của terminal**, `length()` không đủ cho mọi emoji, ký tự kết hợp hoặc chữ có độ rộng khác nhau.
+This example computes width using `String.length()` (UTF-16 code units). If you need exact column alignment by **terminal display width**, `length()` is insufficient for emojis, combining characters, or characters of varying display widths.
 
-### Tạo nhiều dòng trống hoặc ký tự xuống dòng
+### Creating Multiple Blank Lines or Newline Characters
 
 ```java
 String twoNewlines = "\n".repeat(2);
 ```
 
-Kết quả chứa hai ký tự xuống dòng. Khi in chuỗi này trực tiếp, các dòng trống có thể khó nhận diện bằng mắt; đây là lý do các ví dụ QA thường in thêm nhãn hoặc độ dài.
+The result contains two newline characters. When printed directly, blank lines can be hard to spot visually; this is why QA examples often print additional labels or lengths.
 
-### Phân biệt với việc nối có dấu phân cách
+### Distinguishing from Joining with Separators
 
 ```java
 String result = "Java".repeat(3);
 // "JavaJavaJava"
 ```
 
-Nếu muốn `"Java,Java,Java"`, cần tự xây dựng logic về **dấu phân cách**. Một cách đơn giản là dùng `String.join` với danh sách các phần tử:
+If you want `"Java,Java,Java"`, you need to build **separator** logic yourself. A simple approach is using `String.join` with a list of elements:
 
 ```java
 String joined = String.join(",", java.util.Collections.nCopies(3, "Java"));
 System.out.println(joined); // Java,Java,Java
 ```
 
-`repeat` tự nó **không** có đối số cho dấu phân cách; `String.join` thực hiện một bài toán khác là nối các phần tử bằng ký tự phân tách.
+`repeat` itself has **no** parameter for a separator; `String.join` solves a different problem of joining elements with a delimiter.
 
-### Trường hợp vòng lặp hoặc `StringBuilder` phù hợp hơn
+### Cases Where a Loop or `StringBuilder` Is Better
 
-`repeat` phù hợp khi muốn lặp **cùng một mẫu** đúng số lần. Nếu nội dung ở mỗi bước khác nhau, chẳng hạn `"1, 2, 3"` hay mỗi dòng chứa một số thứ tự mới, hãy dùng vòng lặp và `StringBuilder` hoặc những API tập hợp thích hợp.
+`repeat` fits when you want to repeat the **same pattern** an exact number of times. If the content differs at each step, such as `"1, 2, 3"` or each line containing a new index, use a loop with `StringBuilder` or appropriate collection APIs.
 
 ```java
 StringBuilder builder = new StringBuilder();
@@ -424,43 +424,43 @@ for (int i = 1; i <= 3; i++) {
 System.out.println(builder); // 1, 2, 3
 ```
 
-Phương thức `String.repeat` không nhận một callback để sinh nội dung mới ở từng lượt. Nó luôn lặp chính chuỗi nhận lời gọi.
+`String.repeat` does not take a callback to generate new content on each iteration. It always repeats the receiver string itself.
 
-## 10. Những lỗi phổ biến
+## 10. Common Mistakes
 
-| Cách hiểu hoặc mã | Vấn đề | Cách sửa / nguyên tắc |
+| Misconception or code | Issue | Fix / principle |
 |---|---|---|
-| `"ab".repeat(0)` sẽ trả `"ab"` | Sai: số lần lặp `0` tạo chuỗi rỗng | Dự đoán kết quả `""` |
-| `"".repeat(5)` sẽ báo lỗi | Sai: chuỗi rỗng là đầu vào hợp lệ | Kết quả vẫn `""` |
-| `"".repeat(-1)` sẽ trả `""` | Sai: `count < 0` bị từ chối | Xử lý hoặc báo lỗi `IllegalArgumentException` |
-| `text.repeat(3);` tự sửa `text` | `String` bất biến | Gán lại hoặc sử dụng giá trị trả về |
-| `"ha".repeat(3)` tự thêm dấu cách | Không có dấu phân cách mặc định | Đặt dấu cách vào mẫu nếu cần |
-| `String value = null; value.repeat(2);` | Gọi phương thức trên `null` | Kiểm tra đầu vào, tránh `NullPointerException` |
-| `repeat` chấp nhận số thực `2.5` | Tham số phải là `int` | Chọn số nguyên theo quy tắc nghiệp vụ |
-| `repeat` luôn an toàn với `Integer.MAX_VALUE` | Chuỗi đầu ra có thể quá lớn | Giới hạn `count` và kích thước dự kiến |
-| `"😀".repeat(2).length()` bằng `2` | `length()` đếm UTF-16 code unit | Kết quả ví dụ là `4`, tương ứng 2 code point |
+| `"ab".repeat(0)` will return `"ab"` | Wrong: repetition count `0` creates an empty string | Expect `""` |
+| `"".repeat(5)` will throw an error | Wrong: empty string is valid input | Result stays `""` |
+| `"".repeat(-1)` will return `""` | Wrong: `count < 0` is rejected | Handle or report `IllegalArgumentException` |
+| `text.repeat(3);` mutates `text` | `String` is immutable | Reassign or use the return value |
+| `"ha".repeat(3)` adds spaces automatically | No default separator | Include the space in the pattern if needed |
+| `String value = null; value.repeat(2);` | Calling a method on `null` | Validate input, avoid `NullPointerException` |
+| `repeat` accepts floating-point `2.5` | Parameter must be `int` | Choose an integer according to business rules |
+| `repeat` is always safe with `Integer.MAX_VALUE` | Output string can be too large | Limit `count` and expected size |
+| `"😀".repeat(2).length()` equals `2` | `length()` counts UTF-16 code units | Example result is `4`, corresponding to 2 code points |
 
-### Chú ý khi kiểm tra ngoại lệ
+### Note When Testing Exceptions
 
-Đừng kiểm tra thông báo (`ex.getMessage()`) như một chuỗi cố định. Thông điệp có thể khác tùy JDK hoặc đường đi thực thi. Khi dạy khái niệm, điều cần xác nhận ở trường hợp số âm là **kiểu ngoại lệ `IllegalArgumentException`** và nguyên nhân `count < 0`.
+Do not check the exception message (`ex.getMessage()`) as a fixed string. The message can vary by JDK or execution path. When teaching the concept, what to verify for negative numbers is the **exception type `IllegalArgumentException`** and the cause `count < 0`.
 
-## 11. Kiểm thử các trường hợp biên
+## 11. Testing Edge Cases
 
-Bạn có thể tạo một phương thức tự kiểm tra, đặt bên trong lớp Java:
+You can create a self-test method placed inside a Java class:
 
 ```java
 static void testRepeat() {
     if (!"".equals("abc".repeat(0))) {
-        throw new AssertionError("repeat(0) phải trả chuỗi rỗng");
+        throw new AssertionError("repeat(0) must return empty string");
     }
     if (!"abc".equals("abc".repeat(1))) {
-        throw new AssertionError("repeat(1) phải giữ nội dung");
+        throw new AssertionError("repeat(1) must preserve content");
     }
     if (!"abcabc".equals("abc".repeat(2))) {
-        throw new AssertionError("repeat(2) phải ghép hai bản sao");
+        throw new AssertionError("repeat(2) must concatenate two copies");
     }
     if (!"".equals("".repeat(100))) {
-        throw new AssertionError("Chuỗi rỗng lặp vẫn rỗng");
+        throw new AssertionError("Repeating empty string must stay empty");
     }
 
     boolean negativeRejected = false;
@@ -470,43 +470,43 @@ static void testRepeat() {
         negativeRejected = true;
     }
     if (!negativeRejected) {
-        throw new AssertionError("count âm phải bị từ chối");
+        throw new AssertionError("Negative count must be rejected");
     }
 }
 ```
 
-Có thể gọi `testRepeat();` từ `main`. Nếu đúng hết, phương thức kết thúc bình thường mà không in gì. Các khẳng định này dùng `AssertionError` được ném trực tiếp nên không phụ thuộc cờ chạy `-ea`.
+You can call `testRepeat();` from `main`. If all checks pass, the method finishes normally without printing anything. These assertions throw `AssertionError` directly, so they do not depend on the `-ea` runtime flag.
 
-Bộ kiểm thử tập trung vào **đặc tả của phương thức**: `0`, `1`, số dương, chuỗi rỗng và số âm. Đây là những ca cần có khi bạn viết hàm tiện ích dựa trên `repeat()`.
+The test suite focuses on the **method specification**: `0`, `1`, positive numbers, empty strings, and negative numbers. These are the essential cases to include when writing utility methods based on `repeat()`.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-**Câu 1.** `"xy".repeat(3)` tạo chuỗi gì và độ dài bằng bao nhiêu?
+**Question 1.** What string does `"xy".repeat(3)` produce and what is its length?
 
-**Đáp án:** `"xyxyxy"`, độ dài `6` UTF-16 code unit.
+**Answer:** `"xyxyxy"`, length `6` UTF-16 code units.
 
-**Câu 2.** `"-".repeat(0)` và `"".repeat(10)` có trả cùng nội dung không?
+**Question 2.** Do `"-".repeat(0)` and `"".repeat(10)` return the same content?
 
-**Đáp án:** Có. Cả hai đều trả chuỗi rỗng `""`.
+**Answer:** Yes. Both return the empty string `""`.
 
-**Câu 3.** Vì sao `String x = "a"; x.repeat(4);` rồi in `x` vẫn ra `"a"`?
+**Question 3.** Why does `String x = "a"; x.repeat(4);` followed by printing `x` still output `"a"`?
 
-**Đáp án:** `String` bất biến; kết quả `"aaaa"` đã bị bỏ qua. Muốn giữ kết quả cần `x = x.repeat(4);` hoặc lưu vào biến khác.
+**Answer:** `String` is immutable; the `"aaaa"` result was discarded. To keep the result, you need `x = x.repeat(4);` or store it in another variable.
 
-**Câu 4.** `String.repeat(-5)` và `null.repeat(5)` có gây cùng lỗi không?
+**Question 4.** Do `String.repeat(-5)` and `null.repeat(5)` cause the same error?
 
-**Đáp án:** Không. Gọi trên một `String` hợp lệ với `count = -5` gây `IllegalArgumentException`; cố gọi phương thức trên tham chiếu `null` gây `NullPointerException`.
+**Answer:** No. Calling on a valid `String` with `count = -5` causes `IllegalArgumentException`; attempting to call the method on a `null` reference causes `NullPointerException`.
 
-**Câu 5.** Tại sao không nên thực hiện `"abc".repeat(count)` khi `count` do người dùng nhập mà không giới hạn?
+**Question 5.** Why should you avoid executing `"abc".repeat(count)` when `count` is user-supplied without limits?
 
-**Đáp án:** `count` quá lớn có thể yêu cầu lượng bộ nhớ rất lớn. Nên kiểm tra tính hợp lệ, giới hạn số lần lặp hoặc tổng độ dài dự kiến theo yêu cầu ứng dụng.
+**Answer:** An overly large `count` can request a huge amount of memory. Validate inputs and limit the repetition count or expected total length per application requirements.
 
-**Câu 6.** `"ab".repeat(3)` và `String.join("-", Collections.nCopies(3, "ab"))` khác nhau thế nào?
+**Question 6.** How do `"ab".repeat(3)` and `String.join("-", Collections.nCopies(3, "ab"))` differ?
 
-**Đáp án:** `repeat` tạo `"ababab"`; `String.join` với danh sách ba phần tử và dấu nối `"-"` tạo `"ab-ab-ab"`. `repeat` không tự chèn dấu phân cách.
+**Answer:** `repeat` produces `"ababab"`; `String.join` with a three-element list and delimiter `"-"` produces `"ab-ab-ab"`. `repeat` does not automatically insert separators.
 
-## 13. Ghi nhớ
+## 13. Key Takeaways
 
-`String.repeat(int count)` lặp **toàn bộ nội dung chuỗi** đúng `count` lần, liền nhau và không thêm dấu phân cách. Với `count = 0`, kết quả là `""`; với `count = 1`, nội dung không đổi; với `count > 1`, các bản sao được nối liên tục. Chuỗi rỗng lặp một số lần **không âm** vẫn rỗng, nhưng **mọi `count` âm đều gây `IllegalArgumentException`**, kể cả với chuỗi rỗng.
+`String.repeat(int count)` repeats the **entire string content** exactly `count` times, consecutively and without adding separators. For `count = 0`, the result is `""`; for `count = 1`, the content is unchanged; for `count > 1`, copies are concatenated back-to-back. An empty string repeated any **non-negative** number of times stays empty, whereas **any negative `count` throws `IllegalArgumentException`**, even on an empty string.
 
-Vì `String` bất biến, bạn phải **sử dụng giá trị trả về** của `repeat` nếu muốn giữ kết quả. Khi số lần lặp đến từ dữ liệu ngoài hoặc phép tính, hãy xác thực số âm và giới hạn tổng độ dài trước khi cấp phát chuỗi lớn.
+Because `String` is immutable, you must **use the return value** of `repeat` if you want to keep the result. When the repetition count comes from external data or calculations, validate against negative numbers and bound the total length before allocating large strings.

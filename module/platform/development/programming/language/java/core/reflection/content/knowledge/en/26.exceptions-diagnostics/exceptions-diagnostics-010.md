@@ -1,25 +1,25 @@
-# `AnnotationTypeMismatchException` và `IncompleteAnnotationException` trong Java Reflection
+# `AnnotationTypeMismatchException` and `IncompleteAnnotationException` in Java Reflection
 
-## 1. Vấn đề: annotation hợp lệ lúc biên dịch nhưng không còn khớp lúc chạy
+## 1. The Problem: An Annotation Valid at Compile Time No Longer Matches at Runtime
 
-Hai ngoại lệ trong `java.lang.annotation` thường xuất hiện khi **annotation được ghi vào một class file theo định nghĩa cũ**, còn tại runtime JVM đang dùng **định nghĩa annotation mới** không tương thích. Class file mang annotation lưu tên và giá trị của các phần tử annotation; nó không tự được cập nhật khi thư viện định nghĩa annotation thay đổi.
+Two exceptions in `java.lang.annotation` typically occur when **an annotation was written into a class file against an older definition**, while at runtime the JVM uses **a newer, incompatible annotation definition**. A class file carrying an annotation stores the names and values of annotation elements; it is not automatically updated when the library defining the annotation changes.
 
-Hãy phân biệt:
+Distinguish the two:
 
-| Ngoại lệ | Điều kiện điển hình | Điều gì không còn khớp? |
+| Exception | Typical condition | What no longer matches? |
 | --- | --- | --- |
-| `AnnotationTypeMismatchException` | Phần tử `value()` từng trả về `String`, phiên bản mới trả về `int` | **Kiểu giá trị cũ** khác kiểu phần tử trong định nghĩa hiện tại |
-| `IncompleteAnnotationException` | Định nghĩa mới thêm phần tử bắt buộc `owner()` nhưng class file cũ chưa lưu giá trị | **Thiếu giá trị** cho phần tử không có `default` |
+| `AnnotationTypeMismatchException` | Element `value()` used to return `String`; the new version returns `int` | **Old value's type** differs from the element's type in the current definition |
+| `IncompleteAnnotationException` | New definition adds a required element `owner()` while the old class file stored no value | **Missing value** for an element without a `default` |
 
-Cả hai đều là **`RuntimeException` (unchecked)**. Chúng có thể xảy ra trong chương trình có source code hiện tại trông hoàn toàn đúng, vì class file ứng dụng và thư viện trên runtime classpath/module path không được biên dịch cùng một hợp đồng annotation.
+Both are **`RuntimeException` (unchecked)**. They can happen in a program whose current source code looks completely valid, because the application class file and the library on the runtime classpath/module path were not compiled against the same annotation contract.
 
-Trong Reflection, việc có `Class<?>` hoặc gọi `getAnnotation(...)` thành công **chưa bảo đảm đọc được mọi phần tử**: lỗi thường bộc lộ khi gọi trực tiếp `annotation.value()` / `annotation.owner()`. Thời điểm chi tiết có thể phụ thuộc cách API hoặc framework duyệt và xử lý annotation; không nên coi bước lấy annotation là bằng chứng dữ liệu đã hợp lệ.
+In Reflection, having `Class<?>` or calling `getAnnotation(...)` successfully **does not guarantee every element can be read**: the error usually surfaces when directly calling `annotation.value()` / `annotation.owner()`. Exact timing can depend on how an API or framework traverses and processes annotations; do not treat retrieving the annotation as proof that its data is valid.
 
-Sau bài học, bạn có thể tái tạo cả hai lỗi, hiểu API chẩn đoán, phân biệt với các lỗi annotation khác, và sửa xung đột phiên bản một cách có kiểm chứng.
+After this lesson, you will be able to reproduce both errors, understand the diagnostic APIs, distinguish them from other annotation errors, and resolve version conflicts in a verifiable way.
 
-## 2. Nền tảng: annotation lưu gì trong class file?
+## 2. Background: What Does an Annotation Store in a Class File?
 
-Xét annotation dùng ở runtime:
+Consider a runtime-retained annotation:
 
 ~~~java
 import java.lang.annotation.Retention;
@@ -36,25 +36,25 @@ public @interface Info {
 public class Record {}
 ~~~
 
-`@Retention(RetentionPolicy.RUNTIME)` giúp các API Reflection như `Class.getAnnotation(Info.class)` nhìn thấy annotation. Khi `Record.java` được biên dịch, giá trị `id = "A1"` trở thành một phần metadata trong `Record.class`.
+`@Retention(RetentionPolicy.RUNTIME)` makes the annotation visible to Reflection APIs such as `Class.getAnnotation(Info.class)`. When `Record.java` is compiled, the value `id = "A1"` becomes part of the metadata inside `Record.class`.
 
-Ở phiên bản hiện tại của annotation, mỗi phần tử được khai báo bằng **method không tham số** như `String id()`. `Info.class` được nạp theo classloader/module ở runtime, còn `Record.class` có metadata đã ghi từ lần biên dịch trước. Nếu triển khai chỉ cập nhật `Info.class` mà không biên dịch lại `Record.class`, hai nguồn có thể không thống nhất.
+In the current version of an annotation, each element is declared as a **no-argument method** like `String id()`. `Info.class` is loaded by the runtime classloader/module, whereas `Record.class` holds metadata written during a previous compilation. If a deployment updates only `Info.class` without recompiling `Record.class`, the two sources can disagree.
 
-Các điểm quan trọng:
+Key points:
 
-- Annotation có thể chứa các kiểu phần tử mà Java cho phép, ví dụ primitive, `String`, `Class`, enum, annotation và mảng một chiều của các kiểu hợp lệ. Không thể tùy tiện đổi `String` sang `int` rồi mong dữ liệu cũ tự chuyển kiểu.
-- Một phần tử có thể khai báo `default`; khi class file không ghi giá trị tường minh cho phần tử đó, API annotation có thể dùng giá trị mặc định từ định nghĩa **hiện tại**.
-- `RetentionPolicy.CLASS` được giữ trong class file nhưng không được các API Reflection runtime thông thường trả về như `RUNTIME`; `SOURCE` không lưu vào class file.
-- Việc chỉ có một tệp `.java` đúng không xác nhận runtime đúng: phải xem phiên bản `.class` thật sự được nạp.
+- Annotations can hold element types permitted by Java, such as primitives, `String`, `Class`, enums, annotations, and one-dimensional arrays of valid types. You cannot arbitrarily change `String` to `int` and expect old data to auto-convert.
+- An element may declare a `default`; when the class file stores no explicit value for that element, the annotation API can use the default value from the **current** definition.
+- `RetentionPolicy.CLASS` is retained in the class file yet is not returned by normal runtime Reflection APIs like `RUNTIME`; `SOURCE` is not stored in the class file.
+- Merely having a valid `.java` source file does not prove runtime correctness: you must inspect the `.class` version actually being loaded.
 
-## 3. `AnnotationTypeMismatchException` — kiểu phần tử đã thay đổi
+## 3. `AnnotationTypeMismatchException` — Element Type Changed
 
-Theo Java SE 17, ngoại lệ này biểu thị rằng chương trình cố đọc một **phần tử annotation mà kiểu đã thay đổi** sau khi annotation được biên dịch hoặc tuần tự hóa.
+According to Java SE 17, this exception indicates that a program attempted to read an **annotation element whose type changed** after the annotation was compiled or serialized.
 
-Ví dụ lịch sử:
+Historical example:
 
 ~~~java
-// Phiên bản v1, khi lớp sử dụng annotation được biên dịch
+// Version v1, when the class using the annotation was compiled
 public @interface State {
     String value();
 }
@@ -65,18 +65,18 @@ public @interface State {
 public class Stored {}
 ~~~
 
-Phiên bản mới lại định nghĩa:
+The new version instead defines:
 
 ~~~java
-// Phiên bản v2 đang có mặt khi chạy
+// Version v2 present at runtime
 public @interface State {
     int value();
 }
 ~~~
 
-Class file cũ của `Stored` vẫn mang giá trị dạng chuỗi `"READY"`, trong khi `State.value()` hiện yêu cầu `int`. Khi gọi `State.value()` trên annotation lấy từ `Stored.class`, runtime không thể trả về kiểu đã khai báo và có thể ném `AnnotationTypeMismatchException`.
+The old `Stored` class file still carries the string value `"READY"`, while `State.value()` now expects `int`. When calling `State.value()` on the annotation retrieved from `Stored.class`, the runtime cannot return the declared type and can throw `AnnotationTypeMismatchException`.
 
-### Dữ liệu chẩn đoán của ngoại lệ
+### Diagnostic Data on the Exception
 
 ~~~java
 catch (AnnotationTypeMismatchException ex) {
@@ -86,16 +86,16 @@ catch (AnnotationTypeMismatchException ex) {
 }
 ~~~
 
-- `element()` trả về `java.lang.reflect.Method` đại diện **phần tử annotation trong định nghĩa hiện tại**. Dùng `getDeclaringClass()`, `getName()`, `getReturnType()` để kiểm tra method mong đợi.
-- `foundType()` trả về mô tả kiểu của dữ liệu sai được tìm thấy; chuỗi **có định dạng không được đặc tả**, có thể kèm giá trị. Không parse chuỗi này như một API ổn định, và không dùng nó làm contract để kiểm tra tự động.
-- `getMessage()` có ích cho log nhưng nội dung thông báo không phải định dạng để hệ thống khác phụ thuộc.
-- Đây là lỗi **không tương thích metadata**, không phải `ClassCastException` thông thường do ứng dụng ép một `Object` sai kiểu.
+- `element()` returns the `java.lang.reflect.Method` representing **the annotation element in the current definition**. Use `getDeclaringClass()`, `getName()`, and `getReturnType()` to inspect the expected method.
+- `foundType()` returns a type description of the mismatched data found; the string **has an unspecified format** and may include the value. Do not parse this string as a stable API, and do not rely on it as an automated check contract.
+- `getMessage()` is useful for logs, though the message content is not a format other systems should depend on.
+- This is a **metadata incompatibility** error, not an ordinary `ClassCastException` caused by application code casting an `Object` to the wrong type.
 
-## 4. `IncompleteAnnotationException` — thiếu phần tử bắt buộc mới
+## 4. `IncompleteAnnotationException` — Missing New Required Element
 
-Ngoại lệ này xảy ra khi code đọc một **phần tử mới được thêm vào annotation interface sau khi nơi sử dụng đã được biên dịch**, nhưng class file cũ không chứa giá trị và phần tử mới **không có mặc định**.
+This exception occurs when code reads an **element added to an annotation interface after the usage site was compiled**, where the old class file contains no value and the new element **has no default**.
 
-Ví dụ:
+Example:
 
 ~~~java
 // v1
@@ -109,19 +109,19 @@ public @interface Metadata {
 public class Stored {}
 ~~~
 
-Sau đó thư viện thay bằng:
+Later the library changes to:
 
 ~~~java
 // v2
 public @interface Metadata {
     String id();
-    String owner(); // mới thêm, không có default
+    String owner(); // newly added, no default
 }
 ~~~
 
-Khi gọi `metadata.id()`, dữ liệu `"X1"` vẫn hợp lệ. Khi gọi `metadata.owner()`, class file cũ không có `owner` và định nghĩa mới cũng không cung cấp `default` nên runtime ném `IncompleteAnnotationException`.
+When calling `metadata.id()`, the `"X1"` data is still valid. When calling `metadata.owner()`, the old class file has no `owner` and the new definition provides no `default`, so the runtime throws `IncompleteAnnotationException`.
 
-### Đọc thuộc tính chẩn đoán
+### Reading Diagnostic Properties
 
 ~~~java
 catch (IncompleteAnnotationException ex) {
@@ -130,18 +130,18 @@ catch (IncompleteAnnotationException ex) {
 }
 ~~~
 
-- `annotationType()` trả về `Class<? extends Annotation>` của annotation có phần tử bị thiếu.
-- `elementName()` trả về tên phần tử bị thiếu, ví dụ `owner`.
-- Constructor `IncompleteAnnotationException(Class<? extends Annotation>, String)` có thể dùng trong code đặc biệt tự xây cơ chế annotation, nhưng trong thực hành thường bạn **bắt và chẩn đoán** lỗi do hệ thống đọc annotation phát hiện.
-- Thêm phần tử với giá trị mặc định, ví dụ `String owner() default "UNKNOWN";`, thường giúp **class file cũ vẫn đọc được** phần tử đó mà không cần khai báo giá trị mới. Đây là lựa chọn thiết kế API cần cân nhắc, không giải quyết mọi kiểu thay đổi không tương thích khác.
+- `annotationType()` returns `Class<? extends Annotation>` for the annotation with the missing element.
+- `elementName()` returns the name of the missing element, e.g., `owner`.
+- The constructor `IncompleteAnnotationException(Class<? extends Annotation>, String)` can be used in specialized code building custom annotation mechanisms, though in practice you normally **catch and diagnose** errors detected by the annotation-reading system.
+- Adding an element with a default value, e.g., `String owner() default "UNKNOWN";`, generally allows **older class files to still read** that element without declaring a new value. That is an API design choice to evaluate, and it does not resolve other kinds of incompatible changes.
 
-## 5. Thực hành đầy đủ: tạo hai lỗi bằng hai phiên bản của cùng annotation
+## 5. Full Hands-On Practice: Triggering Both Errors Using Two Versions of the Same Annotation
 
-Thí nghiệm dưới đây không cần sửa bytecode thủ công. Ta chủ động **biên dịch bản cũ vào một thư mục**, biên dịch **định nghĩa mới cùng chương trình đọc** vào thư mục khác, rồi ưu tiên class mới trên classpath. Điều này mô phỏng lỗi nâng phiên bản dependency nhưng quên biên dịch lại class từng dùng annotation.
+The experiment below requires no manual bytecode editing. We deliberately **compile the old version into one directory**, compile **the new definition along with the reader program** into another directory, and place the new classes ahead on the classpath. This simulates upgrading a dependency version while forgetting to recompile a class that used the annotation.
 
-Yêu cầu JDK 17+; lệnh dùng `javac --release 17` để cố định cú pháp/API Java 17.
+JDK 17+ is required; commands use `javac --release 17` to pin Java 17 syntax/API.
 
-### 5.1. Cấu trúc dự án
+### 5.1. Project Structure
 
 ~~~text
 annotation-compat-demo/
@@ -158,9 +158,9 @@ annotation-compat-demo/
     └── new/
 ~~~
 
-Các file trong `out` là **đầu ra** của `javac`, không phải file source. Tạo những thư mục này trước khi chạy lệnh biên dịch bên dưới.
+The files in `out` are **outputs** of `javac`, not source files. Create these directories before running the compile commands below.
 
-### 5.2. Nguồn phiên bản cũ
+### 5.2. Old Version Source
 
 File `old/demo/State.java`:
 
@@ -200,9 +200,9 @@ package demo;
 public class Stored {}
 ~~~
 
-Ở lần biên dịch này, `Stored.class` lưu `State.value` dạng chuỗi và chỉ lưu `Metadata.id`; nó chưa từng biết phương thức `Metadata.owner()`.
+During this compilation, `Stored.class` records `State.value` as a string and stores only `Metadata.id`; it has never heard of `Metadata.owner()`.
 
-### 5.3. Nguồn phiên bản mới
+### 5.3. New Version Source
 
 File `current/demo/State.java`:
 
@@ -214,7 +214,7 @@ import java.lang.annotation.RetentionPolicy;
 
 @Retention(RetentionPolicy.RUNTIME)
 public @interface State {
-    int value(); // v1 là String
+    int value(); // v1 was String
 }
 ~~~
 
@@ -229,7 +229,7 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Metadata {
     String id();
-    String owner(); // v1 chưa có; cố ý không khai báo default
+    String owner(); // absent in v1; intentionally no default
 }
 ~~~
 
@@ -269,13 +269,13 @@ public class Reader {
 }
 ~~~
 
-Chương trình đọc cố ý dùng `Class.forName("demo.Stored")`: `Reader.java` **không cần compile-time dependency trực tiếp** lên `Stored.class` của bản cũ. Cả `State` và `Metadata` ở chương trình đọc đều là định nghĩa mới.
+The reader program intentionally uses `Class.forName("demo.Stored")`: `Reader.java` **needs no direct compile-time dependency** on the old `Stored.class`. Both `State` and `Metadata` in the reader program are the new definitions.
 
-### 5.4. Biên dịch và chạy
+### 5.4. Compiling and Running
 
-Chạy lệnh trong thư mục `annotation-compat-demo`.
+Run commands inside the `annotation-compat-demo` directory.
 
-Trên Linux/macOS:
+On Linux/macOS:
 
 ~~~bash
 mkdir -p out/old out/new
@@ -289,7 +289,7 @@ javac --release 17 -d out/new \
 java -cp "out/new:out/old" demo.Reader
 ~~~
 
-Trên Windows PowerShell, dùng đường dẫn tương đương và dấu `;` làm dấu phân cách classpath:
+On Windows PowerShell, use equivalent paths and `;` as the classpath separator:
 
 ~~~powershell
 New-Item -ItemType Directory -Force out\old, out\new | Out-Null
@@ -300,9 +300,9 @@ javac --release 17 -d out\new current\demo\State.java current\demo\Metadata.java
 java -cp "out\new;out\old" demo.Reader
 ~~~
 
-**Thứ tự trong classpath rất quan trọng:** `out/new` đứng trước nên runtime dùng `demo.State` và `demo.Metadata` phiên bản mới; `demo.Stored` chỉ có trong `out/old`. Không cho `Stored.java` được biên dịch lại với hai annotation mới trong lúc chuẩn bị thí nghiệm, vì compiler lúc đó sẽ phát hiện khai báo `@State("READY")` sai kiểu và `@Metadata` thiếu `owner`.
+**Classpath order matters greatly:** `out/new` comes first so the runtime uses the new versions of `demo.State` and `demo.Metadata`; `demo.Stored` exists only in `out/old`. Do not allow `Stored.java` to be recompiled against the two new annotations while preparing the experiment, as the compiler would then catch `@State("READY")` having the wrong type and `@Metadata` missing `owner`.
 
-Kết quả thực tế được đối chiếu bằng `javac --release 17`, chạy trên JDK 21:
+Actual output verified with `javac --release 17`, running on JDK 21:
 
 ~~~text
 State present: true
@@ -312,18 +312,18 @@ Missing element: owner
 Annotation type: Metadata
 ~~~
 
-Giải thích từng dòng:
+Line-by-line explanation:
 
-1. `getAnnotation(State.class)` vẫn tìm thấy annotation trên `Stored.class`.
-2. `state.value()` yêu cầu `int` nhưng class file lưu chuỗi; exception được bắt và `element().getName()` cho `value`.
-3. `metadata.id()` vẫn trả `X1`, vì phần tử này không thay đổi.
-4. `metadata.owner()` không có giá trị lưu trong class file và cũng không có default; `elementName()` cho `owner`, `annotationType()` cho `Metadata`.
+1. `getAnnotation(State.class)` still finds the annotation on `Stored.class`.
+2. `state.value()` expects `int`, yet the class file stores a string; the exception is caught and `element().getName()` gives `value`.
+3. `metadata.id()` still returns `X1`, because that element did not change.
+4. `metadata.owner()` has no value stored in the class file and no default; `elementName()` gives `owner`, and `annotationType()` gives `Metadata`.
 
-Kết quả trên là **một tình huống tái hiện lỗi xác định**, không phải khẳng định rằng mọi thao tác lấy annotation trên mọi class file không tương thích đều sẽ hoàn tất trước khi ném lỗi. Annotation hỏng cấu trúc hoặc dependency thiếu có thể thất bại theo đường đi khác.
+The result above is **one deterministic reproduction scenario**, not a claim that every annotation retrieval operation on every incompatible class file will complete before throwing. Structurally corrupted annotations or missing dependencies can fail along different paths.
 
-## 6. Thử sửa lỗi `IncompleteAnnotationException` bằng `default`
+## 6. Trying to Fix `IncompleteAnnotationException` with `default`
 
-Ở file `current/demo/Metadata.java`, đổi thành:
+In `current/demo/Metadata.java`, change it to:
 
 ~~~java
 package demo;
@@ -338,33 +338,33 @@ public @interface Metadata {
 }
 ~~~
 
-Chỉ biên dịch lại bản **current** (`out/new`); vẫn giữ nguyên `Stored.class` từ `out/old`. Lúc này `metadata.owner()` có thể dùng giá trị mặc định `UNKNOWN` từ định nghĩa hiện tại. Output phần metadata chuyển từ:
+Recompile only the **current** version (`out/new`), keeping `Stored.class` from `out/old` intact. Now `metadata.owner()` can use the default value `UNKNOWN` from the current definition. The metadata portion of the output changes from:
 
 ~~~text
 Missing element: owner
 Annotation type: Metadata
 ~~~
 
-sang:
+to:
 
 ~~~text
 owner=UNKNOWN
 ~~~
 
-**Chú ý:** `AnnotationTypeMismatchException` ở `State.value()` **vẫn tồn tại**, vì kiểu giá trị lưu cũ chưa tương thích với kiểu mới. Default chỉ xử lý phần tử *vắng mặt*, không tự chuyển kiểu cho phần tử đã lưu sai.
+**Note:** `AnnotationTypeMismatchException` on `State.value()` **still remains**, because the old stored value type is still incompatible with the new type. A default handles only *absent* elements; it does not convert an already stored mismatched-type element.
 
-Một hướng sửa đầy đủ hơn là chuẩn hóa các phiên bản dependency và **biên dịch lại tất cả mã dùng annotation** với contract mới. Khi đó compiler phát hiện `@State("READY")` không còn hợp lệ với `int value()` và `@Metadata(id = "X1")` thiếu `owner` (nếu không có default), buộc người duy trì cập nhật source tương ứng.
+A more complete fix is standardizing dependency versions and **recompiling all code that uses the annotation** against the new contract. The compiler will then flag `@State("READY")` as invalid for `int value()` and `@Metadata(id = "X1")` as missing `owner` (if no default exists), forcing maintainers to update the corresponding source.
 
-## 7. Vì sao lỗi lại xuất hiện trong Reflection hoặc framework?
+## 7. Why Do These Errors Surface in Reflection or Frameworks?
 
-Nhiều thư viện dùng annotation để cấu hình mapping, validation, dependency injection, test, serialization hoặc các bộ xử lý plugin. Một framework có thể:
+Many libraries use annotations to configure mapping, validation, dependency injection, tests, serialization, or plugin processors. A framework may:
 
-1. Quét class bằng `Class<?>` hoặc `AnnotatedElement`.
-2. Lấy annotation bằng `getAnnotation`, `getDeclaredAnnotation` hay `getAnnotationsByType`.
-3. Đọc phần tử annotation để quyết định hành vi, chẳng hạn `annotation.value()`.
-4. Phát hiện dữ liệu class file cũ không phù hợp với hợp đồng annotation mới.
+1. Scan classes via `Class<?>` or `AnnotatedElement`.
+2. Retrieve annotations via `getAnnotation`, `getDeclaredAnnotation`, or `getAnnotationsByType`.
+3. Read annotation elements to decide behavior, such as `annotation.value()`.
+4. Encounter old class-file data incompatible with the new annotation contract.
 
-Để chẩn đoán đúng, trước hết xác định **method nào đã được gọi**, trên **annotation type nào**, bằng **classloader nào** và từ **artifact/version nào**. Có thể ghi thông tin có cơ sở như:
+To diagnose accurately, first identify **which method was called**, on **which annotation type**, by **which classloader**, and from **which artifact/version**. You can log grounded diagnostic info like:
 
 ~~~java
 Class<?> inspected = Class.forName("demo.Stored");
@@ -376,39 +376,39 @@ System.out.println(annotationType.getName());
 System.out.println(annotationType.getClassLoader());
 ~~~
 
-Đây là **fragment chẩn đoán**; trong ứng dụng thực tế cần thay tên `demo.Stored` và `demo.State` theo loại annotation đang gặp. Tránh log toàn bộ annotation bằng `toString()` như phương pháp chẩn đoán duy nhất: việc tạo biểu diễn chuỗi có thể đọc nhiều phần tử và chạm vào dữ liệu đang lỗi.
+This is a **diagnostic snippet**; in a real application replace `demo.Stored` and `demo.State` with the annotation type you encountered. Avoid logging the whole annotation via `toString()` as your sole diagnostic approach: building the string representation may read multiple elements and trip over failing data.
 
-Nếu framework gọi accessor qua `java.lang.reflect.Method.invoke(...)`, ngoại lệ phát sinh trong method có thể được bọc bằng **`InvocationTargetException`**. Khi đó cần xem `getCause()` để tìm `AnnotationTypeMismatchException` hoặc `IncompleteAnnotationException` thực sự. Gọi trực tiếp `annotation.value()` như ví dụ ở trên có thể nhận ngoại lệ unchecked trực tiếp.
+If a framework invokes the accessor via `java.lang.reflect.Method.invoke(...)`, the exception thrown inside the method may be wrapped in **`InvocationTargetException`**. In that case inspect `getCause()` to find the real `AnnotationTypeMismatchException` or `IncompleteAnnotationException`. Calling `annotation.value()` directly as in the example above receives the unchecked exception directly.
 
-## 8. Phân biệt với các ngoại lệ và lỗi gần giống
+## 8. Distinguishing from Similar Exceptions and Errors
 
-| Loại | Tình huống thường gặp | Dấu hiệu quan trọng |
+| Type | Common scenario | Key indicator |
 | --- | --- | --- |
-| `AnnotationTypeMismatchException` | Giá trị annotation lưu trong class file không còn khớp kiểu phần tử hiện tại | `element()` và `foundType()` |
-| `IncompleteAnnotationException` | Phần tử mới không có giá trị được lưu và không có default | `annotationType()` và `elementName()` |
-| `EnumConstantNotPresentException` | Giá trị enum trong annotation trỏ tới hằng không còn tồn tại | `enumType()` và `constantName()` |
-| `TypeNotPresentException` | Không giải quyết được tên một kiểu, có thể khi đọc phần tử annotation kiểu `Class<?>` | `typeName()` và `getCause()` |
-| `AnnotationFormatError` | Class file có metadata annotation sai định dạng hoặc không hợp lệ theo parser | Là **`Error`**, cần kiểm tra class file/tool sinh bytecode |
-| `ClassCastException` | Ép object sai kiểu trong ứng dụng hoặc interceptor | Không mặc nhiên đồng nghĩa metadata annotation đã đổi |
-| `InvocationTargetException` | Reflection `Method.invoke` bọc lỗi mà method được gọi ném | Kiểm tra `getCause()` trước khi kết luận |
+| `AnnotationTypeMismatchException` | Stored annotation value in class file no longer matches current element type | `element()` and `foundType()` |
+| `IncompleteAnnotationException` | New element has no stored value and no default | `annotationType()` and `elementName()` |
+| `EnumConstantNotPresentException` | Enum value in annotation points to a constant that no longer exists | `enumType()` and `constantName()` |
+| `TypeNotPresentException` | Cannot resolve a type name, possibly when reading a `Class<?>` annotation element | `typeName()` and `getCause()` |
+| `AnnotationFormatError` | Class file has malformed annotation metadata invalid to the parser | Is an **`Error`**; inspect class file/bytecode-generating tool |
+| `ClassCastException` | Wrong object cast in application or interceptor | Does not inherently mean annotation metadata changed |
+| `InvocationTargetException` | Reflection `Method.invoke` wraps error thrown by invoked method | Check `getCause()` before concluding |
 
-Đừng bắt chung `RuntimeException` rồi bỏ qua annotation lỗi: framework có thể tiếp tục chạy với cấu hình thiếu hoặc sai. Trong một pipeline build, nên coi mismatch là lỗi tương thích phiên bản cần sửa. Việc bắt riêng các exception thường thích hợp ở lớp log/chẩn đoán hoặc nơi có hành vi fallback được xác định rõ.
+Do not catch `RuntimeException` broadly and ignore broken annotations: the framework may continue running with missing or wrong configuration. In a build pipeline, treat mismatches as version-compatibility defects that need fixing. Catching specific exceptions is normally appropriate at logging/diagnostic layers or where a clearly defined fallback behavior exists.
 
-## 9. Các bước khắc phục một cách có hệ thống
+## 9. Systematic Remediation Steps
 
-### 9.1. Xác nhận chính xác annotation đang được dùng
+### 9.1. Confirm the Exact Annotation Being Used
 
-Từ stack trace và exception:
+From the stack trace and exception:
 
-- `AnnotationTypeMismatchException.element()`: xác định tên phần tử, lớp khai báo và kiểu trả về hiện tại.
-- `AnnotationTypeMismatchException.foundType()`: dùng như dữ liệu phụ để gợi ý kiểu cũ, không parse cứng cấu trúc chuỗi.
-- `IncompleteAnnotationException.annotationType()` và `elementName()`: xác định type và phần tử mới bắt buộc.
+- `AnnotationTypeMismatchException.element()`: identifies element name, declaring class, and current return type.
+- `AnnotationTypeMismatchException.foundType()`: use as secondary hint about the old type; do not hard-parse its string structure.
+- `IncompleteAnnotationException.annotationType()` and `elementName()`: identify the type and new required element.
 
-Sau đó so sánh API annotation giữa **bản compile** và **bản runtime**, xem release notes hoặc thay đổi mã nguồn thật sự. Nếu annotation do bên thứ ba cung cấp, cần kiểm tra toàn bộ cây dependency.
+Then compare the annotation API between **compile time** and **runtime**, reviewing release notes or actual source changes. If the annotation is provided by a third party, inspect the entire dependency tree.
 
-### 9.2. Kiểm tra class file và classpath/module path
+### 9.2. Inspect Class Files and Classpath/Module Path
 
-Dùng công cụ JDK:
+Use JDK tools:
 
 ~~~bash
 javap -v -p -classpath out/old demo.Stored
@@ -416,46 +416,46 @@ javap -p -classpath out/new demo.State
 javap -p -classpath out/new demo.Metadata
 ~~~
 
-`javap -v` có thể hiển thị metadata annotation và tên phần tử ghi trong `RuntimeVisibleAnnotations`. Các lệnh trên minh họa thư mục của bài thực hành; trong hệ thống thực tế, thay bằng đường dẫn tới JAR/lớp đang chạy.
+`javap -v` displays annotation metadata and element names recorded in `RuntimeVisibleAnnotations`. The commands above illustrate the exercise directories; in a real system, substitute paths to the running JARs/classes.
 
-Kiểm tra **nhiều phiên bản JAR của cùng thư viện**, thứ tự classpath, classloader tùy biến, module path và các build artifact cũ. Tên package/class giống nhau không có nghĩa bytecode hoặc loader đang dùng giống nhau.
+Check for **multiple JAR versions of the same library**, classpath order, custom classloaders, module path, and stale build artifacts. Identical package/class names do not mean the underlying bytecode or loader is the same.
 
-### 9.3. Chọn phương án sửa đúng với contract
+### 9.3. Choose the Right Fix for the Contract
 
-- **Lỗi type mismatch:** khôi phục kiểu cũ để tương thích hoặc sửa source sử dụng annotation theo kiểu mới rồi **clean build và triển khai đồng bộ**.
-- **Lỗi incomplete:** cập nhật mọi vị trí sử dụng annotation để cung cấp phần tử mới, hoặc thêm `default` khi giá trị mặc định có ý nghĩa hợp lý và bảo đảm tương thích.
-- **Thư viện nhiều module:** đồng bộ version của annotation API với module đã biên dịch sử dụng nó; không trộn class cũ và class mới sau một lần nâng cấp.
-- **Code generator và bytecode tool:** kiểm tra pipeline sinh mã, vì công cụ có thể ghi annotation payload thiếu/sai ngay cả khi source Java thông thường không cho phép.
+- **Type mismatch error:** restore the old type for compatibility, or update annotation usages in source to the new type and **clean build and deploy consistently**.
+- **Incomplete error:** update all annotation usage sites to supply the new element, or add `default` when a sensible default value preserves compatibility.
+- **Multi-module libraries:** synchronize the annotation API version with the modules compiled against it; do not mix old and new classes after an upgrade.
+- **Code generators and bytecode tools:** inspect code-generation pipelines, as tools can emit incomplete/wrong annotation payloads even when normal Java source would disallow it.
 
-**Không** giải quyết bằng việc đổi tên exception, ép kiểu kết quả, hoặc dùng `setAccessible(true)`. Đây là lỗi **hợp đồng dữ liệu annotation tại runtime**, không phải thiếu quyền đọc private member.
+**Do not** solve this by renaming exceptions, casting results, or using `setAccessible(true)`. This is an **annotation data-contract error at runtime**, not lack of permission to read a private member.
 
-## 10. Thiết kế annotation để giảm rủi ro nâng cấp
+## 10. Designing Annotations to Reduce Upgrade Risk
 
-Khi công bố một annotation dùng chung cho nhiều module/JAR:
+When publishing an annotation shared across multiple modules/JARs:
 
-1. Xem **tên và kiểu của element** như hợp đồng API và hợp đồng binary metadata. Đổi kiểu trả về, xóa/đổi tên element là thay đổi cần đánh giá ảnh hưởng.
-2. Cân nhắc **`default` cho element mới** nếu có giá trị mặc định hợp lý. Đừng gán default tùy tiện nếu thiếu cấu hình có thể gây hành vi nguy hiểm hoặc âm thầm sai.
-3. Thử nghiệm với **consumer artifact đã biên dịch bằng bản trước**: chạy bằng annotation API mới để phát hiện lỗi tương thích, ngoài kiểm tra compile source mới.
-4. Với thay đổi breaking, sử dụng lộ trình nâng version, migration guide và dependency constraints/BOM để tránh trộn nhiều phiên bản.
-5. Khi dùng Reflection, ghi log có ngữ cảnh (annotation type, element, origin artifact), rồi báo rõ lỗi tương thích; không dựa vào output `toString()` của annotation.
-6. Nếu giá trị cần cấu trúc phức tạp và thay đổi thường xuyên, cân nhắc mô hình metadata có schema/version rõ ràng thay vì đẩy mọi cấu hình vào annotation.
+1. Treat **element names and types** as both API contracts and binary metadata contracts. Changing return types or deleting/renaming elements requires impact assessment.
+2. Consider **`default` for new elements** if a reasonable default exists. Do not assign defaults carelessly if missing configuration could cause dangerous or silently wrong behavior.
+3. Test against **consumer artifacts compiled with the previous version**: run them with the new annotation API to catch compatibility errors, beyond compiling new source.
+4. For breaking changes, use a version-upgrade path, migration guide, and dependency constraints/BOMs to avoid mixing versions.
+5. When using Reflection, log with context (annotation type, element, origin artifact) and report compatibility errors clearly; do not rely on the annotation's `toString()` output.
+6. If values require complex, frequently changing structures, consider a metadata model with an explicit schema/version instead of pushing all configuration into annotations.
 
-## 11. Tự kiểm tra
+## 11. Self-Check
 
-1. Class `Stored` được biên dịch với `@State("READY")` khi `State.value()` trả `String`. Runtime đổi `value()` thành `int` nhưng không biên dịch lại `Stored`. Lỗi nào? **`AnnotationTypeMismatchException` khi đọc phần tử không khớp.**
-2. Một element `owner()` được thêm mà không có `default`; class file cũ không chứa nó. Lỗi nào? **`IncompleteAnnotationException` khi truy cập `owner()`.**
-3. Thêm `default "UNKNOWN"` cho `owner()` giúp trường hợp nào? **Phần tử bị thiếu**; không sửa dữ liệu sai kiểu đã tồn tại.
-4. Vì sao `getAnnotation(...) != null` chưa chứng minh hợp đồng đúng? Vì lỗi có thể phát sinh **khi đọc element** của annotation đã được lấy.
-5. Khi bắt `AnnotationTypeMismatchException`, API nào cho biết method có vấn đề? **`element()`**, trả về `Method`.
-6. Với `IncompleteAnnotationException`, lấy annotation type và tên phần tử bị thiếu ở đâu? **`annotationType()`** và **`elementName()`**.
-7. Tại sao source hiện tại compile được vẫn có lỗi runtime? Vì JVM có thể đang nạp **class file consumer cũ** cùng **annotation API mới**, hoặc dependency/classloader không đồng bộ.
-8. `foundType()` có an toàn để viết parser phụ thuộc format không? **Không**; API không đặc tả định dạng chuỗi.
+1. Class `Stored` was compiled with `@State("READY")` when `State.value()` returned `String`. Runtime changes `value()` to `int` without recompiling `Stored`. Which error? **`AnnotationTypeMismatchException` when reading the mismatched element.**
+2. An element `owner()` is added without a `default`; the old class file lacks it. Which error? **`IncompleteAnnotationException` when accessing `owner()`.**
+3. Which case does adding `default "UNKNOWN"` to `owner()` help? **Missing element**; it does not fix existing mismatched-type data.
+4. Why does `getAnnotation(...) != null` not prove the contract matches? Because the error may occur **when reading elements** of the retrieved annotation.
+5. When catching `AnnotationTypeMismatchException`, which API identifies the problematic method? **`element()`**, returning `Method`.
+6. For `IncompleteAnnotationException`, where do you obtain the annotation type and missing element name? **`annotationType()`** and **`elementName()`**.
+7. Why can current source compile cleanly yet still throw these errors at runtime? Because the JVM may be loading **an old consumer class file** alongside **a new annotation API**, or dependencies/classloaders are out of sync.
+8. Is `foundType()` safe to write a format-dependent parser against? **No**; the API does not specify the string format.
 
-## 12. Tài liệu Java 17
+## 12. Java 17 Documentation
 
 - [Oracle Java 17 — AnnotationTypeMismatchException](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/annotation/AnnotationTypeMismatchException.html)
 - [Oracle Java 17 — IncompleteAnnotationException](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/annotation/IncompleteAnnotationException.html)
 - [Oracle Java 17 — AnnotatedElement](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AnnotatedElement.html)
 - [Oracle Java 17 — RetentionPolicy](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/annotation/RetentionPolicy.html)
 
-**Ghi nhớ:** `AnnotationTypeMismatchException` báo **giá trị cũ sai kiểu theo element hiện tại**; `IncompleteAnnotationException` báo **element bắt buộc mới bị thiếu**. Cả hai thường là triệu chứng class file và định nghĩa annotation khác phiên bản. Muốn sửa tận gốc, tìm class/JAR thực tế JVM đang nạp, đối chiếu API giữa các bản và đồng bộ lại cách biên dịch/triển khai.
+**Takeaway:** `AnnotationTypeMismatchException` reports **an old value whose type mismatches the current element**; `IncompleteAnnotationException` reports **a missing new required element**. Both are typically symptoms of version drift between class files and annotation definitions. To fix the root cause, find the actual class/JAR the JVM is loading, compare APIs across versions, and synchronize compilation/deployment.

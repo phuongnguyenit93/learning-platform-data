@@ -1,20 +1,20 @@
-# Thiết kế API công khai thay vì phụ thuộc nội bộ JDK
+# Designing Public APIs Instead of Depending on JDK Internals
 
-Java Reflection cho phép đọc metadata và gọi thành viên khi đáp ứng quy tắc truy cập; nó không biến mọi class nhìn thấy trong JDK thành **API được hỗ trợ lâu dài**. Trong hệ thống module Java (JPMS), một lớp có chữ `public` vẫn có thể nằm trong package không được `exports` và không được dùng như một hợp đồng công khai. Cách thiết kế bền vững là chọn API công khai có tài liệu, đặt ranh giới module rõ ràng, che giấu implementation và dùng Reflection đúng phạm vi quyền truy cập.
+Java Reflection allows reading metadata and invoking members when access rules are satisfied; it does not turn every class visible in the JDK into a **long-term supported API**. In the Java Platform Module System (JPMS), a class marked `public` can still reside in a package that is not `exports`-ed and must not be used as a public contract. Sustainable design chooses documented public APIs, sets clear module boundaries, hides implementations, and uses Reflection within permitted access boundaries.
 
-Bài học này thuộc chủ đề **Module và đóng gói**: ta sẽ nhận diện API JDK nội bộ, hiểu vì sao việc cưỡng ép truy cập dễ hỏng khi nâng JDK, thiết kế API ổn định cho module của chính mình, kiểm tra bằng Reflection và lập kế hoạch chuyển đổi mã đang dùng nội bộ JDK.
+This lesson belongs to the **Modules and Encapsulation** topic: we will identify internal JDK APIs, understand why forcing access breaks easily on JDK upgrades, design stable APIs for our own modules, verify with Reflection, and plan migration away from JDK internals.
 
-## 1. “Public” về cú pháp khác “public API” về hợp đồng
+## 1. Syntactic "Public" Differs from Contract "Public API"
 
-Một class có thể là `public class Example`, nhưng có ít nhất ba câu hỏi khác nhau:
+A class may be `public class Example`, yet there are at least three distinct questions:
 
-1. **Class/member có modifier `public` không?** `Modifier.isPublic(type.getModifiers())` hoặc `Modifier.isPublic(method.getModifiers())` kiểm tra một phần metadata.
-2. **Package có được module sở hữu `exports` cho module gọi không?** Với named module, JPMS kiểm tra accessibility tại ranh giới module. Package không export không trở thành API dùng trực tiếp chỉ vì class là `public`.
-3. **API đó có được JDK hoặc thư viện cam kết hỗ trợ, ghi tài liệu và duy trì không?** Đây là câu hỏi về tính ổn định, khả năng tương thích và chính sách phát hành. JPMS giúp đóng gói, nhưng `exports` tự nó không phải một cam kết tương thích vô hạn.
+1. **Does the class/member have the `public` modifier?** `Modifier.isPublic(type.getModifiers())` or `Modifier.isPublic(method.getModifiers())` checks one piece of metadata.
+2. **Is the package `exports`-ed by its owning module to the calling module?** With named modules, JPMS checks accessibility at module boundaries. An unexported package does not become a directly usable API just because a class is `public`.
+3. **Is that API committed to be supported, documented, and maintained by the JDK or library?** This is a question of stability, compatibility, and release policy. JPMS assists encapsulation, yet `exports` by itself is not an eternal compatibility guarantee.
 
-Các namespace mang tính cảnh báo khi gặp trong ứng dụng là `jdk.internal.*`, nhiều package `sun.*`, `sun.reflect.*` hoặc `sun.security.*`. Chúng có thể thay đổi, bị đóng gói chặt hơn hoặc bị loại khỏi runtime. Một ngoại lệ đáng chú ý là một số API được tài liệu hóa trong package có tiền tố `com.sun.*`, chẳng hạn `com.sun.net.httpserver.HttpServer` thuộc module `jdk.httpserver`: **không thể chỉ dựa vào tiền tố package để kết luận API có được hỗ trợ hay không**. Hãy tra chính tài liệu API và module của phiên bản JDK mà dự án hỗ trợ.
+Warning-sign namespaces when encountered in an application are `jdk.internal.*`, many `sun.*` packages, `sun.reflect.*`, or `sun.security.*`. They can change, become more strongly encapsulated, or be removed from the runtime. A notable exception is certain documented APIs in `com.sun.*`-prefixed packages, such as `com.sun.net.httpserver.HttpServer` in module `jdk.httpserver`: **you cannot judge whether an API is supported from the package prefix alone**. Consult the official API and module documentation for the JDK version your project supports.
 
-Một ví dụ quen thuộc: mục tiêu mã hóa/giải mã Base64 nên dùng `java.util.Base64` (API chính thức), thay vì dựa vào bộ mã hóa nội bộ cũ của JDK.
+A familiar example: Base64 encoding/decoding should use `java.util.Base64` (the official API), rather than relying on legacy internal JDK encoders.
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -26,49 +26,49 @@ byte[] decoded = Base64.getDecoder().decode(encoded);
 String result = new String(decoded, StandardCharsets.UTF_8);
 ```
 
-Đây là đoạn minh họa để đặt trong một phương thức. API `Base64` có hợp đồng công khai, nằm trong `java.base`; ứng dụng không cần mở package nội bộ hay dùng Reflection để mã hóa Base64.
+This is an illustrative snippet meant to sit inside a method. The `Base64` API has a public contract and lives in `java.base`; the application needs neither internal package opening nor Reflection to encode Base64.
 
-**Nguyên tắc:** từ khóa `public` chỉ là một phần của câu chuyện. Muốn phụ thuộc lâu dài, cần kiểm tra **package được xuất khẩu cho bên dùng, khả năng truy cập thật sự và tư cách API được hỗ trợ**.
+**Principle:** the `public` keyword is only part of the story. To depend on something long term, verify **that the package is exported to consumers, actual accessibility, and supported-API status**.
 
-## 2. Ranh giới JPMS: requires, exports và opens
+## 2. JPMS Boundaries: requires, exports, and opens
 
-JPMS (Java Platform Module System, Java 9+) mô tả phụ thuộc và truy cập module bằng `module-info.java`.
+JPMS (Java Platform Module System, Java 9+) describes module dependencies and access in `module-info.java`.
 
-| Khai báo hoặc cơ chế | Mục đích | Tác động đáng nhớ |
+| Declaration or Mechanism | Purpose | Impact to Remember |
 | --- | --- | --- |
-| `requires com.example.lib;` | Module hiện tại đọc module `com.example.lib` | Chỉ đọc được module chưa đủ để truy cập các package không export |
-| `exports com.example.lib.api;` | Mở package API cho code từ các module đọc module này | Cho phép truy cập kiểu/thành viên public theo quy tắc Java; Reflection thông thường trên API public cũng dùng được |
-| `exports com.example.lib.spi to com.example.plugin;` | Export có điều kiện tới module được nêu | Module khác không được import trực tiếp package này |
-| `opens com.example.lib.model;` | Cho phép truy cập Reflection sâu ở runtime | Không cấp quyền import package không export ở compile time |
-| `opens com.example.lib.model to com.example.serializer;` | Mở package cho một module Reflection cụ thể | Giới hạn phạm vi mở so với `opens` không định danh |
-| Không `exports`, không `opens` | Giấu chi tiết implementation | Code bên ngoài không có quyền truy cập trực tiếp hoặc truy cập Reflection sâu thông thường |
+| `requires com.example.lib;` | Current module reads module `com.example.lib` | Reading the module alone is not enough to access unexported packages |
+| `exports com.example.lib.api;` | Exposes API package to code from modules reading this module | Allows accessing public types/members per Java rules; regular Reflection on public APIs also works |
+| `exports com.example.lib.spi to com.example.plugin;` | Qualified export to the named module | Other modules cannot directly import this package |
+| `opens com.example.lib.model;` | Allows deep Reflection access at runtime | Does not grant permission to import an unexported package at compile time |
+| `opens com.example.lib.model to com.example.serializer;` | Opens package to one specific Reflection module | Narrows open scope compared to unqualified `opens` |
+| Neither `exports` nor `opens` | Hides implementation details | External code has neither direct access nor normal deep Reflection access |
 
-`exports` và `opens` **không thay thế nhau**:
+`exports` and `opens` **do not replace each other**:
 
-- `exports` phục vụ API public. Đọc metadata và gọi public method trên public class thuộc package đã export có thể thực hiện qua Reflection mà không cần mở package để sửa quyền truy cập.
-- `opens` cho phép các công cụ như serializer hoặc dependency injection truy cập sâu vào thành viên không public khi truy cập đó thực sự cần thiết và còn phù hợp với các kiểm tra khác. Nó **không** làm một package trở thành package được import bình thường tại compile time.
-- `open module com.example.lib { ... }` mở toàn bộ package của module cho Reflection sâu. Đây là lựa chọn rộng; thường nên ưu tiên `opens package to framework.module` chính xác khi làm việc với framework.
-- Một package có thể vừa `exports` vừa `opens` nếu có lý do rõ ràng cho cả hai; còn API public thông thường chỉ cần `exports`.
+- `exports` serves public APIs. Reading metadata and calling public methods on public classes in an exported package can be done via Reflection without opening the package to override access checks.
+- `opens` lets tools such as serializers or dependency injection perform deep access to non-public members when that access is genuinely required and passes other checks. It **does not** make a package normally importable at compile time.
+- `open module com.example.lib { ... }` opens every package of the module for deep Reflection. This is broad; usually prefer exact `opens package to framework.module` when working with frameworks.
+- A package can be both `exports`-ed and `opens`-ed when there is a clear reason for both; regular public APIs only need `exports`.
 
-Đối với một class trong named module, cần xét cả việc module gọi **đọc** module sở hữu (readability), package **được export** tới bên gọi và member có quyền truy cập phù hợp. Khả năng tải `Class` bằng tên hay lấy được metadata không đồng nghĩa sẽ gọi hợp lệ được một thành viên.
+For a class in a named module, consider whether the calling module **reads** the owning module (readability), whether the package is **exported** to the caller, and whether the member has suitable access rights. Being able to load a `Class` by name or retrieve metadata does not mean invoking a member will be permitted.
 
-### Kiểm tra xuất khẩu/mở package bằng API công khai của Module
+### Checking Export/Open Status via Module's Public API
 
 ```java
 Module owner = String.class.getModule();
-Module caller = MyClass.class.getModule(); // MyClass thuộc ứng dụng của bạn
+Module caller = MyClass.class.getModule(); // MyClass belongs to your application
 
 boolean publicApiVisible = owner.isExported("java.lang", caller);
 boolean deepReflectionAllowed = owner.isOpen("java.lang", caller);
 ```
 
-Đây là đoạn minh họa, `MyClass` là lớp ứng dụng do bạn định nghĩa. Hai hàm `Module.isExported(String, Module)` và `Module.isOpen(String, Module)` phân biệt quyền export và open **đối với module gọi cụ thể**. Với JDK 17 tiêu chuẩn, `java.base` export `java.lang` nhưng không mở không điều kiện package này cho mọi ứng dụng; vì vậy đừng mặc định đọc được mọi field private của `String`.
+This is an illustrative snippet, where `MyClass` is an application class you define. `Module.isExported(String, Module)` and `Module.isOpen(String, Module)` distinguish export and open permissions **for a specific calling module**. With standard JDK 17, `java.base` exports `java.lang` yet does not unconditionally open that package to every application; therefore do not assume you can read every private field of `String`.
 
-Kiểm tra `Module.isExported` vẫn chưa đủ để kết luận một API an toàn dùng lâu dài: nó chỉ mô tả chính sách truy cập JPMS của phiên bản runtime đang xét.
+Checking `Module.isExported` alone is still not enough to conclude an API is safe for long-term use: it only describes the JPMS access policy of the runtime version being inspected.
 
-## 3. Ví dụ kiến trúc: chỉ xuất khẩu API, giữ implementation trong module
+## 3. Architectural Example: Export Only the API, Keep Implementation Inside the Module
 
-Thiết kế một thư viện `com.example.greeter` với hai package:
+Design a library `com.example.greeter` with two packages:
 
 ```text
 src/
@@ -85,9 +85,9 @@ src/
     └── com/example/app/Main.java
 ```
 
-Mục tiêu: module ứng dụng có thể tạo dịch vụ qua factory và sử dụng interface public. Thư viện được phép thay đổi `DefaultGreeter` mà không bắt người dùng phụ thuộc vào lớp implementation.
+Goal: the application module can instantiate the service via a factory and use the public interface. The library remains free to change `DefaultGreeter` without forcing users to depend on the implementation class.
 
-### Tệp 1 — src/com.example.greeter/module-info.java
+### File 1 — src/com.example.greeter/module-info.java
 
 ```java
 module com.example.greeter {
@@ -95,9 +95,9 @@ module com.example.greeter {
 }
 ```
 
-Cố ý **không export** package `com.example.greeter.internal`. Code của chính module `com.example.greeter` vẫn dùng được class trong package đó theo quyền truy cập Java thông thường.
+Intentionally **do not export** package `com.example.greeter.internal`. Code within `com.example.greeter` itself can still use classes in that package under normal Java access rules.
 
-### Tệp 2 — src/com.example.greeter/com/example/greeter/api/Greeter.java
+### File 2 — src/com.example.greeter/com/example/greeter/api/Greeter.java
 
 ```java
 package com.example.greeter.api;
@@ -107,7 +107,7 @@ public interface Greeter {
 }
 ```
 
-### Tệp 3 — src/com.example.greeter/com/example/greeter/api/Greeters.java
+### File 3 — src/com.example.greeter/com/example/greeter/api/Greeters.java
 
 ```java
 package com.example.greeter.api;
@@ -124,9 +124,9 @@ public final class Greeters {
 }
 ```
 
-Factory trả về **interface** thay vì `DefaultGreeter`, giữ hợp đồng của bên gọi nhỏ và rõ.
+The factory returns the **interface** rather than `DefaultGreeter`, keeping the caller's contract small and clear.
 
-### Tệp 4 — src/com.example.greeter/com/example/greeter/internal/DefaultGreeter.java
+### File 4 — src/com.example.greeter/com/example/greeter/internal/DefaultGreeter.java
 
 ```java
 package com.example.greeter.internal;
@@ -141,9 +141,9 @@ public final class DefaultGreeter implements Greeter {
 }
 ```
 
-Từ khóa `public` của `DefaultGreeter` là cần thiết để factory ở package khác trong cùng module gọi constructor công khai. Nhưng class này vẫn không nằm trong public API **đối với module ứng dụng** vì package không được export.
+The `public` keyword on `DefaultGreeter` is needed so the factory in another package of the same module can call the public constructor. However, this class is still not part of the public API **for the application module** because its package is not exported.
 
-### Tệp 5 — src/com.example.app/module-info.java
+### File 5 — src/com.example.app/module-info.java
 
 ```java
 module com.example.app {
@@ -151,9 +151,9 @@ module com.example.app {
 }
 ```
 
-Ứng dụng chỉ khai báo phụ thuộc vào module thư viện, rồi dùng các type từ package exported.
+The application simply declares its dependency on the library module, then uses types from exported packages.
 
-### Tệp 6 — src/com.example.app/com/example/app/Main.java
+### File 6 — src/com.example.app/com/example/app/Main.java
 
 ```java
 package com.example.app;
@@ -187,16 +187,16 @@ public final class Main {
 }
 ```
 
-### Biên dịch và chạy
+### Compiling and Running
 
-Tại thư mục cha chứa `src`, chạy bằng JDK 17+:
+In the parent directory containing `src`, run using JDK 17+:
 
 ```bash
 javac --module-source-path src -d out -m com.example.greeter,com.example.app
 java --module-path out -m com.example.app/com.example.app.Main
 ```
 
-Kết quả:
+Output:
 
 ```text
 Hello, Java
@@ -207,21 +207,21 @@ Internal exported: false
 Reflection: Hello, Reflection
 ```
 
-**Tại sao Reflection vẫn gọi được?** `getMethod("greet", String.class)` tìm ra method public trên **interface `Greeter` thuộc package đã export**. Reflection gọi qua hợp đồng công khai; JVM dispatch đến implementation thật, dù implementation nằm trong package ẩn. Đây là một ví dụ đóng gói đúng cách: bên gọi không cần nhập hoặc thao tác Reflection sâu với `DefaultGreeter`.
+**Why does Reflection still work?** `getMethod("greet", String.class)` finds the public method on **interface `Greeter` in the exported package**. Reflection invokes through the public contract; the JVM dispatches to the real implementation, even though the implementation sits in a hidden package. This is an example of proper encapsulation: the caller never needs to import or deep-reflect on `DefaultGreeter`.
 
-Nếu thử thêm vào `Main.java`:
+If you try adding to `Main.java`:
 
 ```java
 import com.example.greeter.internal.DefaultGreeter;
 ```
 
-compiler từ chối import package không export trong module `com.example.greeter`. Dù `DefaultGreeter` có modifier `public`, module `com.example.app` không được quyền phụ thuộc trực tiếp vào package này.
+the compiler rejects importing the unexported package in module `com.example.greeter`. Even though `DefaultGreeter` has the `public` modifier, module `com.example.app` is not permitted to depend directly on that package.
 
-**Lưu ý:** mã ví dụ cung cấp đầy đủ các tệp cho modular compilation. Nó cần đúng cấu trúc thư mục và tên module. Cú pháp `--module-source-path`, `-m` và `--module-path` thuộc công cụ JDK, không phụ thuộc shell-specific command substitution.
+**Note:** the example code provides all files for modular compilation. It requires the exact directory structure and module names. The `--module-source-path`, `-m`, and `--module-path` syntax belongs to JDK tools and does not rely on shell-specific command substitution.
 
-## 4. Reflection không vượt được đóng gói của JPMS
+## 4. Reflection Does Not Bypass JPMS Encapsulation
 
-Những thao tác dưới đây có ý nghĩa khác nhau:
+The operations below have different meanings:
 
 ```java
 Class<?> type = Class.forName("java.lang.String");
@@ -229,9 +229,9 @@ java.lang.reflect.Method method =
         type.getMethod("substring", int.class);
 ```
 
-`String` nằm trong `java.lang` là package public/exported của `java.base`, nên phương thức public có thể được dùng bằng API thông thường hoặc Reflection theo kiểm tra truy cập.
+`String` resides in `java.lang`, a public/exported package of `java.base`, so public methods can be used via normal APIs or Reflection under access checks.
 
-Còn đây là **mã minh họa kiểu truy cập không nên xây thành tính năng**:
+Meanwhile, here is **illustrative code showing an access pattern you must not build features on**:
 
 ```java
 java.lang.reflect.Field internal =
@@ -239,9 +239,9 @@ java.lang.reflect.Field internal =
 internal.setAccessible(true);
 ```
 
-Trên nhiều bản JDK 17+, `String` có field private tên `value`, nhưng **đừng phụ thuộc vào tên hoặc cấu trúc lưu trữ đó**: một JDK khác hoặc phiên bản sau có thể thay đổi. `getDeclaredField` có thể trả metadata, nhưng `setAccessible(true)` có thể ném `java.lang.reflect.InaccessibleObjectException` vì `java.base` không mở `java.lang` cho module gọi. Nếu field không còn tồn tại, có thể gặp `NoSuchFieldException` từ bước tìm metadata.
+Across many JDK 17+ builds, `String` has a private field named `value`, yet **do not depend on that name or storage layout**: another JDK or future release can change it. `getDeclaredField` can return metadata, but `setAccessible(true)` can throw `java.lang.reflect.InaccessibleObjectException` because `java.base` does not open `java.lang` to the calling module. If the field no longer exists, `NoSuchFieldException` can occur at the metadata lookup step.
 
-Hãy chọn API public phù hợp mục đích:
+Choose the public API that fits your intent:
 
 ```java
 String text = "hello";
@@ -250,56 +250,56 @@ int length = text.length();
 byte[] utf8 = text.getBytes(java.nio.charset.StandardCharsets.UTF_8);
 ```
 
-Các API trên biểu đạt **ý định** (ký tự, độ dài, encoding), không buộc code phải hiểu storage private của `String`.
+These APIs express **intent** (characters, length, encoding) without forcing code to understand `String`'s private storage.
 
-### Các lỗi/khả năng cần phân biệt
+### Errors/Outcomes to Distinguish
 
-| Hiện tượng | Nguyên nhân phổ biến | Cách xử lý hợp lý |
+| Symptom | Common Cause | Sound Resolution |
 | --- | --- | --- |
-| Compile error báo package không visible/exported | Package thuộc named module nhưng không được export cho code gọi | Dùng API xuất khẩu chính thức; điều chỉnh module descriptor nếu package thuộc dự án mình và việc export có chủ đích |
-| `InaccessibleObjectException` khi `setAccessible(true)` | JPMS từ chối bật truy cập sâu tới package không open | Tránh đọc private JDK fields; với package của chính mình, `opens ... to ...` nếu có lý do |
-| `IllegalAccessException` khi `Method.invoke` hoặc `Field.get` | Access check của thành viên/kiểu không thỏa | Dùng public API hợp lệ; đảm bảo receiver, quyền truy cập và module tương ứng |
-| `ClassNotFoundException`/`NoSuchMethodException` | Tên class/method hoặc phiên bản triển khai khác với giả định | Không ghim tên internal; dùng API documented và cơ chế phát hiện capability rõ ràng |
-| `Class.forName(name)` thành công nhưng invoke thất bại | Class loading và quyền truy cập member là hai bước khác nhau | Không coi việc tải class là “đã được phép sử dụng API” |
+| Compile error saying package is not visible/exported | Package belongs to a named module and is not exported to calling code | Use the official exported API; update the module descriptor if you own the package and exporting is intentional |
+| `InaccessibleObjectException` on `setAccessible(true)` | JPMS denies enabling deep access to an unopened package | Avoid reading private JDK fields; for your own packages, use `opens ... to ...` if justified |
+| `IllegalAccessException` on `Method.invoke` or `Field.get` | Member/type access check is not satisfied | Use valid public APIs; ensure proper receiver, access permission, and module |
+| `ClassNotFoundException`/`NoSuchMethodException` | Class/method name or implementation version differs from assumption | Do not hard-code internal names; use documented APIs and clear capability detection |
+| `Class.forName(name)` succeeds yet invoke fails | Class loading and member access permission are two separate steps | Do not equate loading a class with "being permitted to use the API" |
 
-`AccessibleObject.trySetAccessible()` (Java 9+) trả về `false` khi không bật truy cập được, thay vì luôn ném exception cho thất bại quyền truy cập; các lỗi khác vẫn có thể xảy ra. Dùng nó để viết code chẩn đoán dễ kiểm soát lỗi, **không phải** để thăm dò rồi cưỡng ép encapsulation của JDK.
+`AccessibleObject.trySetAccessible()` (Java 9+) returns `false` when access cannot be enabled, instead of always throwing an exception on access-permission failure; other errors can still occur. Use it to write cleanly controlled diagnostic code, **not** to probe and force JDK encapsulation.
 
-## 5. API thay thế phù hợp cho những nhu cầu thường gặp
+## 5. Suitable Replacement APIs for Common Needs
 
-| Nhu cầu thực tế | Ví dụ phụ thuộc không nên mặc định dùng | Hướng public API nên xem xét |
+| Practical Need | Dependency Example to Avoid by Default | Public API Direction to Consider |
 | --- | --- | --- |
-| Mã hóa/giải mã Base64 | Bộ giải mã Base64 nội bộ JDK đời cũ | `java.util.Base64` |
-| Atomic update hoặc truy cập biến có memory semantics cụ thể | `sun.misc.Unsafe` chỉ để CAS/read/write field | `java.util.concurrent.atomic` hoặc `java.lang.invoke.VarHandle` khi phù hợp |
-| Gọi method/constructor, khám phá metadata | Hack quyền truy cập với `sun.reflect.*` | `java.lang.reflect`, `java.lang.invoke.MethodHandles`, constructor/factory public |
-| Tính toán mật mã, chữ ký và secure random | Implementation trực tiếp dưới `sun.security.*` | `java.security`, `javax.crypto`, nhà cung cấp thuật toán qua chuẩn JCA/JCE |
-| Truy cập thông tin JVM và môi trường | Đọc field private của lớp runtime JDK | `Runtime`, `ManagementFactory`, `java.lang.management` theo dữ liệu cần |
-| Xử lý nội dung `String` | Đọc private `String.value` | `String.charAt`, `codePoints`, `getBytes(Charset)`, `length` |
-| Cơ chế tải file, tài nguyên và module | Can thiệp cấu trúc nội bộ class loader | `ClassLoader.getResource*`, `Class.getResource*`, `Module`, `ServiceLoader` theo mục tiêu |
+| Base64 encoding/decoding | Legacy internal JDK Base64 decoders | `java.util.Base64` |
+| Atomic updates or variable access with specific memory semantics | `sun.misc.Unsafe` just for CAS/field read/write | `java.util.concurrent.atomic` or `java.lang.invoke.VarHandle` where appropriate |
+| Invoking methods/constructors, metadata discovery | Access hacks with `sun.reflect.*` | `java.lang.reflect`, `java.lang.invoke.MethodHandles`, public constructors/factories |
+| Cryptography, signatures, and secure random | Direct implementations under `sun.security.*` | `java.security`, `javax.crypto`, standard JCA/JCE providers |
+| Accessing JVM and environment metrics | Reading private fields of JDK runtime classes | `Runtime`, `ManagementFactory`, `java.lang.management` per needed data |
+| Processing `String` contents | Reading private `String.value` | `String.charAt`, `codePoints`, `getBytes(Charset)`, `length` |
+| Loading files, resources, and modules | Intervening in internal class loader structures | `ClassLoader.getResource*`, `Class.getResource*`, `Module`, `ServiceLoader` per goal |
 
-Bảng là **định hướng theo mục đích**, không khẳng định từng API thay thế hoàn toàn mọi khả năng của internal API. Chẳng hạn `sun.misc.Unsafe` có nhiều nhóm tính năng khác nhau; cần phân loại việc sử dụng thực tế để chọn `VarHandle`, atomic classes, API foreign function/memory được hỗ trợ trên JDK mục tiêu, hoặc thiết kế lại.
+The table is **grouped by intent**, without claiming every replacement API covers 100% of every internal API's capabilities. For example, `sun.misc.Unsafe` spans several distinct feature groups; classify your actual usage to choose `VarHandle`, atomic classes, supported foreign function/memory APIs on your target JDK, or a redesign.
 
-Tương tự, `MethodHandles.privateLookupIn` là API public nhưng **không phải đường vòng qua quyền module**: để tạo private lookup cho lớp ở module khác, các điều kiện module/open package vẫn phải được đáp ứng. Không thiết kế thư viện bằng giả định lookup có thể truy cập mọi private JDK class.
+Similarly, `MethodHandles.privateLookupIn` is a public API yet **not a bypass around module permissions**: to create a private lookup for a class in another module, module/open-package conditions must still be satisfied. Do not design libraries assuming a lookup can access any private JDK class.
 
-## 6. Hai cờ khởi chạy thường gây hiểu nhầm: add-exports và add-opens
+## 6. Two Frequently Misunderstood Launch Flags: add-exports and add-opens
 
-JDK có các cờ tương thích/chẩn đoán được dùng trong một số hệ thống cũ:
+The JDK provides compatibility/diagnostic flags used in some legacy systems:
 
 ```bash
-# Ví dụ dạng cú pháp, không phải cấu hình khuyến nghị lâu dài:
+# Syntax example, not a recommended long-term configuration:
 java --add-exports java.base/jdk.internal.misc=ALL-UNNAMED -cp app.jar com.example.Main
 
 java --add-opens java.base/java.lang=ALL-UNNAMED -cp app.jar com.example.Main
 ```
 
-- `--add-exports module/package=target` mở quyền truy cập package ở mức **API public** đối với target được chỉ định. Nó thường được dùng tạm khi code cần import/link tới public types trong package vốn không export.
-- `--add-opens module/package=target` mở package đối với **Reflection sâu** ở runtime, ví dụ cho phép framework cũ thử truy cập private members. Cờ này không biến private member thành public compile-time API.
-- `ALL-UNNAMED` áp dụng cho các unnamed modules (thường là code chạy trên classpath). Với named module, target nên là **tên module cụ thể**. Việc mở quyền có thể cần cấu hình tương ứng cả compile time và runtime, tùy trường hợp.
-- Cờ mở quyền **không sửa hợp đồng API** và không bảo đảm internal class/method vẫn tồn tại hoặc giữ semantics sau nâng JDK.
-- Với Java 17, cơ chế nới truy cập tổng quát `--illegal-access` của thời Java 9–16 đã trở nên lỗi thời/không còn hiệu lực nới encapsulation. Không dùng nó làm giải pháp cho môi trường Java 17+.
+- `--add-exports module/package=target` grants access to a package at the **public API** level for the specified target. It is usually used temporarily when code needs to import/link public types in an unexported package.
+- `--add-opens module/package=target` opens a package for **deep Reflection** at runtime, e.g., letting a legacy framework attempt accessing private members. This flag does not turn private members into a compile-time public API.
+- `ALL-UNNAMED` applies to unnamed modules (typically code running on the classpath). For named modules, the target should be a **specific module name**. Enabling permission may require corresponding configuration at both compile time and runtime, depending on the case.
+- Opening flags **do not repair API contracts** and do not guarantee internal classes/methods still exist or preserve semantics after a JDK upgrade.
+- Starting in Java 17, the broad `--illegal-access` relaxation mechanism from Java 9–16 became obsolete and no longer relaxes encapsulation. Do not use it as a solution for Java 17+ environments.
 
-Một rule thiết kế thực dụng: nếu hệ thống chỉ chạy được khi mở `java.base/java.lang` để đọc field private của `String`, hãy ghi nhận đó là **nợ tương thích** và thay code bằng API public trước khi coi quá trình migration hoàn tất.
+A pragmatic design rule: if a system only runs by opening `java.base/java.lang` to read `String`'s private fields, record that as **compatibility debt** and replace the code with public APIs before considering migration complete.
 
-Nếu framework thật sự cần Reflection vào **class do bạn sở hữu**, khai báo module có chủ đích:
+If a framework genuinely needs Reflection into **classes you own**, declare modules intentionally:
 
 ```java
 module com.example.domain {
@@ -308,103 +308,103 @@ module com.example.domain {
 }
 ```
 
-Đây là ví dụ module descriptor **minh họa**; module `com.example.serializer` phải hiện diện trong đồ thị module khi build/run tương ứng. Nó bảo vệ hợp đồng API xuất khẩu, đồng thời chỉ trao quyền Reflection sâu vào package model cho serializer được nêu. Không nên “mở toàn bộ” chỉ để tránh phải xác định package thật sự cần truy cập.
+This is an **illustrative** module descriptor; module `com.example.serializer` must be present in the module graph at the corresponding build/run step. It protects the exported API contract while granting deep Reflection access to the model package only to the named serializer. Do not "open everything" merely to avoid identifying which package actually needs access.
 
-## 7. Phát hiện phụ thuộc nội bộ JDK trước khi nâng phiên bản
+## 7. Detecting Internal JDK Dependencies Before Upgrading Versions
 
-Một bước quan trọng là xác định phụ thuộc theo **cả hai hướng tĩnh và động**.
+An important step is identifying dependencies in **both static and dynamic directions**.
 
-### Quét tĩnh bằng jdeps
+### Static Scanning with jdeps
 
-Trên JDK có công cụ `jdeps`, quét file JAR ứng dụng:
+The JDK ships with `jdeps`; scan the application JAR file:
 
 ```bash
 jdeps --jdk-internals app.jar
 ```
 
-Tùy cấu trúc ứng dụng, bổ sung classpath/module-path cho các thư viện phụ thuộc để `jdeps` phân tích chính xác hơn. Với multi-release JAR, có thể chỉ định phiên bản mục tiêu, ví dụ `--multi-release 17`. `jdeps --jdk-internals` báo các phụ thuộc tĩnh đáng chú ý tới JDK internal API và trong nhiều trường hợp gợi ý API công khai thay thế.
+Depending on application structure, add classpath/module-path entries for dependent libraries so `jdeps` analyzes more accurately. For multi-release JARs, you can specify the target version, e.g., `--multi-release 17`. `jdeps --jdk-internals` reports notable static dependencies on JDK internal APIs and in many cases suggests replacement public APIs.
 
-**Giới hạn:** `jdeps` phân tích bytecode và phụ thuộc có thể quan sát tĩnh, nên có thể **bỏ sót truy cập xây tên class bằng chuỗi và Reflection**, code sinh động, plugin nạp về sau hoặc native integration. Không coi kết quả `jdeps` rỗng là bằng chứng toàn bộ đường chạy không dùng internals.
+**Limitation:** `jdeps` analyzes bytecode and statically observable dependencies, so it can **miss accesses constructing class names from strings and Reflection**, dynamically generated code, later-loaded plugins, or native integrations. Never treat an empty `jdeps` report as proof that no execution path uses internals.
 
-### Rà soát Reflection và cấu hình runtime
+### Reviewing Reflection and Runtime Configuration
 
-Tìm trong chính code/cấu hình dự án:
+Search within your project's own code and configuration for:
 
-- Chuỗi tên package `sun.`, `jdk.internal.`, `sun.reflect.`, cùng những lời gọi `Class.forName`/`getDeclared*`/`setAccessible` tới class của JDK.
-- Các VM flags `--add-opens`, `--add-exports`; xác định nơi nào đang cần chúng và mục tiêu cụ thể.
-- Thư viện JSON, ORM, DI, bytecode agent, proxy hoặc plugin cũ: chúng có thể dùng Reflection sâu trong code bên thứ ba dù code ứng dụng không gọi trực tiếp.
-- Các kịch bản chạy quan trọng: module-path so với classpath, test, dev, CI và môi trường production có thể có tập flags khác nhau.
+- Package name strings `sun.`, `jdk.internal.`, `sun.reflect.`, along with `Class.forName`/`getDeclared*`/`setAccessible` calls targeting JDK classes.
+- VM flags `--add-opens` and `--add-exports`; identify where they are needed and their exact targets.
+- Legacy JSON, ORM, DI, bytecode agent, proxy, or plugin libraries: they may use deep Reflection in third-party code even if application code does not call it directly.
+- Critical run profiles: module-path vs classpath, tests, dev, CI, and production environments may have different flag sets.
 
-Khi tìm thấy dependency, hãy ghi rõ **mục đích nghiệp vụ**, API nội bộ cụ thể, thay thế public và mức độ rủi ro nâng phiên bản. Đây là cách tránh “chữa” mọi chỗ bằng cùng một flag rồi bỏ sót vấn đề thiết kế.
+When you find a dependency, document the **business purpose**, exact internal API, public replacement, and version-upgrade risk level. That prevents "patching" every place with the same flag and missing design flaws.
 
-## 8. Thiết kế API bền vững cho thư viện Java của chính bạn
+## 8. Designing Sustainable APIs for Your Own Java Libraries
 
-Các nguyên tắc giúp lớp nội bộ có thể thay đổi mà ứng dụng sử dụng không phải sửa theo:
+Principles that let internal classes evolve without forcing consuming applications to change:
 
-1. **Định nghĩa hợp đồng trước:** export package `api` chứa interface, factory, record/DTO hoặc class ổn định. Chỉ trả về kiểu có thể truy cập từ bên gọi. Tránh để public method trả về kiểu nội bộ mà consumer không thể gọi tên hoặc xử lý đúng.
-2. **Ẩn implementation thực tế:** package `internal`/`impl` không export; khởi tạo qua factory hoặc dependency injection công khai. Đừng hướng dẫn consumer `Class.forName("...internal...")`.
-3. **Chỉ mở Reflection tối thiểu:** package nào cần serializer/DI đọc private fields thì cân nhắc `opens ... to ...` cho đúng module. Nếu có thể thiết kế constructor, accessor hoặc adapter public thay cho deep reflection thì API sẽ dễ bảo trì hơn.
-4. **Không xuất khẩu ngẫu nhiên package nội bộ chỉ để sửa lỗi biên dịch:** việc thêm `exports` sẽ biến chi tiết implementation thành thứ consumer có thể phụ thuộc. Mọi lần tái cấu trúc package này về sau có thể gây lỗi.
-5. **Dùng `ServiceLoader` khi cần plugin/extensibility:** nhà cung cấp có thể được cấu hình bằng `provides ... with ...`, còn bên tiêu thụ dùng `uses ...` và interface service phù hợp. Không bắt caller nhận biết implementation private bằng tên class cố định.
-6. **Giữ API tương thích có chủ đích:** khi thay signature, kiểu trả về, yêu cầu module hoặc hành vi được tài liệu hóa, đánh giá tương thích nguồn/nhị phân và kiểm thử consumer. Từ “public” một mình không bảo đảm tương thích.
-7. **Đặt chính sách hỗ trợ rõ:** chỉ dựa vào API công khai của phiên bản Java tối thiểu đã công bố; tránh ngầm yêu cầu phiên bản mới hơn qua reflection vào class không có trong baseline.
+1. **Define the contract first:** export an `api` package containing interfaces, factories, records/DTOs, or stable classes. Return only types accessible to callers. Avoid public methods returning internal types that consumers cannot name or handle cleanly.
+2. **Hide actual implementations:** keep `internal`/`impl` packages unexported; instantiate via factories or public dependency injection. Do not instruct consumers to call `Class.forName("...internal...")`.
+3. **Open minimal Reflection:** for packages where serializers/DI need to read private fields, consider `opens ... to ...` for the right module. If you can design public constructors, accessors, or adapters instead of deep reflection, the API will be easier to maintain.
+4. **Do not randomly export internal packages just to fix compile errors:** adding `exports` turns implementation details into something consumers can depend on. Any future refactoring of that package can cause breakage.
+5. **Use `ServiceLoader` when plugins/extensibility are needed:** providers can be configured with `provides ... with ...`, while consumers use `uses ...` and the proper service interface. Do not force callers to identify private implementations by fixed class names.
+6. **Maintain API compatibility deliberately:** when changing signatures, return types, module requirements, or documented behavior, evaluate source/binary compatibility and test consumers. The word "public" alone does not guarantee compatibility.
+7. **State support policies clearly:** rely only on public APIs of the declared minimum Java version; avoid implicitly requiring newer versions by reflecting on classes absent from the baseline.
 
-Trong ví dụ ở mục 3, nếu `DefaultGreeter` chuyển từ tạo chuỗi trực tiếp sang dùng tài nguyên cấu hình, caller vẫn chỉ nhìn thấy `Greeter.greet(String)`. Đây là lợi ích của abstraction kết hợp encapsulation JPMS.
+In the section 3 example, if `DefaultGreeter` switches from building strings directly to reading a configuration resource, callers still see only `Greeter.greet(String)`. That is the benefit of abstraction combined with JPMS encapsulation.
 
-## 9. Migration theo từng bước: từ implementation detail sang hợp đồng
+## 9. Step-by-Step Migration: From Implementation Detail to Contract
 
-Giả sử một codebase đang dùng Reflection để lấy trực tiếp backing array của `String` rồi xử lý byte. Khi nâng JDK, thao tác này có thể thất bại do field/private layout thay đổi hoặc do `java.base/java.lang` không open.
+Suppose a codebase uses Reflection to directly grab `String`'s backing array and process bytes. When upgrading the JDK, this operation can fail because the private field/layout changed or because `java.base/java.lang` is not open.
 
-Quy trình:
+Workflow:
 
-1. **Phân tích ý định:** cần duyệt ký tự, Unicode code point, UTF-8 bytes hay chỉ độ dài? Đó là các yêu cầu khác nhau, nên không thể thay tất cả bằng cùng một API.
-2. **Chọn API công khai:** `charAt` duyệt UTF-16 code units; `codePoints` làm việc theo Unicode code points; `getBytes(StandardCharsets.UTF_8)` tạo mảng byte UTF-8; `length` cho số UTF-16 code units. Không lẫn code point count với `length()`.
-3. **Thay phụ thuộc nội bộ và loại bỏ mở quyền không cần thiết:** xóa reflection hack, cờ `--add-opens` nếu không còn caller nào cần.
-4. **Kiểm chứng đúng hành vi:** thêm test với ký tự ngoài BMP, null input nếu nghiệp vụ có, encoding và hiệu năng thực tế nếu đây là đường nóng. Không giả định backing array nội bộ có encoding hoặc bố cục cố định.
-5. **Kiểm chứng môi trường deployment:** chạy trên JDK tối thiểu đã hỗ trợ, thử module-path khi module hóa, chạy toàn bộ luồng tích hợp có plugin/agent.
-6. **Giám sát tương thích:** dùng `jdeps --jdk-internals` trong quy trình kiểm tra bản build khi phù hợp và review các VM flags mới được thêm.
+1. **Analyze intent:** do you need to iterate characters, Unicode code points, UTF-8 bytes, or just length? Those are different requirements and cannot all be replaced by the same API.
+2. **Choose the public API:** `charAt` iterates UTF-16 code units; `codePoints` works in Unicode code points; `getBytes(StandardCharsets.UTF_8)` produces a UTF-8 byte array; `length` gives the number of UTF-16 code units. Do not confuse code point count with `length()`.
+3. **Replace the internal dependency and remove unnecessary opens:** delete the reflection hack and `--add-opens` flags if no caller needs them anymore.
+4. **Verify exact behavior:** add tests with non-BMP characters, null inputs if applicable, encoding, and real performance if this is a hot path. Do not assume an internal backing array has a fixed encoding or layout.
+5. **Verify the deployment environment:** run on the minimum supported JDK, test module-path if modularized, and run full integration flows with plugins/agents.
+6. **Monitor compatibility:** use `jdeps --jdk-internals` in build verification where appropriate and review newly added VM flags.
 
-Với một dependency bên thứ ba bắt buộc dùng internals, ưu tiên nâng lên phiên bản thư viện có hỗ trợ JDK mục tiêu hoặc thay thư viện. Cờ mở module chỉ nên là **biện pháp tạm có phạm vi và kế hoạch gỡ**, nếu vận hành thật sự đòi hỏi.
+For a third-party dependency that requires internals, prioritize upgrading to a library version supporting the target JDK or replacing the library. Module-opening flags should only be a **scoped temporary measure with a removal plan**, if operations genuinely demand it.
 
-## 10. Lỗi thường gặp
+## 10. Common Mistakes
 
-| Sai lầm | Vì sao nguy hiểm | Cách đúng |
+| Mistake | Why It Is Dangerous | Right Approach |
 | --- | --- | --- |
-| “Class `public` nghĩa là public API” | JPMS còn kiểm tra export; API có thể chỉ là implementation detail | Xem tài liệu hỗ trợ, module sở hữu, package export và mục đích API |
-| “`Class.forName` thành công nghĩa là gọi được mọi method” | Class loading tách biệt với quyền access/reflection | Chỉ gọi public method trên API được export hoặc mở quyền có chủ đích cho code mình sở hữu |
-| Dùng `setAccessible(true)` cho `java.base` rồi cho rằng nó luôn hoạt động | Strong encapsulation có thể gây `InaccessibleObjectException` | Dùng `String`/collections/JCA/JDK APIs public thay cho private fields |
-| Dùng `--add-opens` để sửa lỗi import package không export | Opens chỉ phục vụ reflection runtime, không cấp quyền compile-time import | Thiết kế exported public API; phân biệt với `--add-exports` |
-| Thêm `--add-exports` vĩnh viễn | Vẫn khóa chặt ứng dụng vào package nội bộ | Di chuyển sang supported API, giới hạn workaround |
-| Tự động thay `Unsafe` bằng một API bất kỳ | Những tính năng khác nhau đòi hỏi giải pháp khác nhau | Phân loại thao tác, chọn `VarHandle`, atomic API hoặc giải pháp phù hợp |
-| Coi tên `com.sun.*` đều nội bộ | Một số API dạng này được JDK công bố và tài liệu hóa | Đánh giá theo module/tài liệu, không theo tiền tố đơn thuần |
-| Chỉ chạy `jdeps` rồi tuyên bố không phụ thuộc internal API | Reflection động và native có thể không hiện trong static dependency | Kết hợp code review, cấu hình, integration test và jdeps |
-| Exports toàn bộ `impl` vì consumer muốn import một class | Đưa implementation thành phụ thuộc của client | Dùng factory/service interface/DTO trong package `api` |
-| Dùng `opens` rộng toàn module vì framework | Nới quyền Reflection quá mức cần thiết | Ưu tiên mở package cụ thể, qualified `opens ... to ...` nếu phù hợp |
+| "A `public` class means a public API" | JPMS also checks exports; the class may just be an implementation detail | Check support docs, owning module, package exports, and API purpose |
+| "`Class.forName` succeeded, so any method can be called" | Class loading is separate from access/reflection permissions | Call only public methods on exported APIs, or grant intentional open permissions for code you own |
+| Calling `setAccessible(true)` on `java.base` and assuming it always works | Strong encapsulation can cause `InaccessibleObjectException` | Use public `String`/collections/JCA/JDK APIs instead of private fields |
+| Using `--add-opens` to fix an unexported package import error | Opens serves only runtime reflection, not compile-time imports | Design exported public APIs; distinguish from `--add-exports` |
+| Adding `--add-exports` permanently | Still locks the application to internal packages | Migrate to supported APIs and limit workarounds |
+| Blindly replacing `Unsafe` with any arbitrary API | Different features require different solutions | Classify operations and choose `VarHandle`, atomic APIs, or fitting alternatives |
+| Treating all `com.sun.*` names as internal | Some such APIs are publicly exposed and documented by the JDK | Evaluate by module/documentation, not by prefix alone |
+| Running only `jdeps` and declaring zero internal API dependencies | Dynamic reflection and native code may not appear in static dependencies | Combine code review, config checks, integration tests, and jdeps |
+| Exporting the whole `impl` package because a consumer wants to import one class | Turns implementation into a client dependency | Use factories/service interfaces/DTOs in the `api` package |
+| Using module-wide `opens` for a framework | Relaxes Reflection permissions far more broadly than needed | Prefer opening specific packages, qualified `opens ... to ...` when appropriate |
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-**Câu 1.** `public class DefaultGreeter` ở package không export có thể import từ named module khác chỉ vì class có modifier `public` không?
+**Question 1.** Can `public class DefaultGreeter` in an unexported package be imported from another named module just because the class has the `public` modifier?
 
-**Trả lời:** Không. JPMS kiểm tra quyền export của package đối với module gọi; modifier `public` không đủ.
+**Answer:** No. JPMS checks package export permission for the calling module; the `public` modifier is not enough.
 
-**Câu 2.** `exports package` khác `opens package` ở đâu?
+**Question 2.** How does `exports package` differ from `opens package`?
 
-**Trả lời:** `exports` cung cấp quyền truy cập API public từ các module đọc được module sở hữu; `opens` cho phép Reflection sâu tại runtime theo phạm vi mở. `opens` một mình không cấp quyền import thông thường ở compile time.
+**Answer:** `exports` grants access to public APIs from modules that can read the owning module; `opens` grants deep Reflection at runtime within the open scope. `opens` alone does not grant normal compile-time import permission.
 
-**Câu 3.** Trong ví dụ `Greeter`, vì sao `method.invoke(service, "Reflection")` hoạt động khi implementation không export?
+**Question 3.** In the `Greeter` example, why does `method.invoke(service, "Reflection")` work when the implementation is not exported?
 
-**Trả lời:** `Method` là thành viên public thuộc interface `Greeter` ở package API được export. JVM dispatch lời gọi instance đến implementation ẩn bên trong module, nên không cần mở package implementation cho caller.
+**Answer:** `Method` is a public member belonging to interface `Greeter` in the exported API package. The JVM dispatches the instance call to the hidden implementation inside the module, so the implementation package does not need to be opened to the caller.
 
-**Câu 4.** `--add-opens java.base/java.lang=ALL-UNNAMED` có biến việc đọc private field `String` thành thiết kế API tốt không?
+**Question 4.** Does `--add-opens java.base/java.lang=ALL-UNNAMED` turn reading `String`'s private field into good API design?
 
-**Trả lời:** Không. Nó chỉ nới quyền Reflection cho target được chỉ định, không biến representation private thành hợp đồng public ổn định.
+**Answer:** No. It only relaxes Reflection permission for the specified target; it does not turn a private representation into a stable public contract.
 
-**Câu 5.** `jdeps --jdk-internals` không báo gì có nghĩa ứng dụng không dùng internals?
+**Question 5.** Does `jdeps --jdk-internals` reporting nothing mean the application uses no internals?
 
-**Trả lời:** Không chắc. Mã có thể tạo tên class ở runtime, gọi Reflection theo chuỗi, nạp plugin hay thực hiện thao tác native ngoài phạm vi phân tích phụ thuộc tĩnh.
+**Answer:** Not necessarily. Code can construct class names at runtime, invoke Reflection by string, load plugins, or perform native operations outside static dependency analysis.
 
-**Câu 6.** Có thể dùng `Modifier.isPublic(type.getModifiers())` làm tiêu chí duy nhất để xác nhận “API được hỗ trợ” không?
+**Question 6.** Can `Modifier.isPublic(type.getModifiers())` be used as the sole criterion to confirm a "supported API"?
 
-**Trả lời:** Không. Cần xem module, quyền export, tài liệu, phiên bản Java mục tiêu và chính sách tương thích.
+**Answer:** No. You must check the module, export permission, documentation, target Java version, and compatibility policy.
 
-**Ghi nhớ:** Reflection là công cụ khám phá/call metadata trong giới hạn truy cập Java, còn **API công khai** là ranh giới hợp đồng của hệ thống. Hãy dùng supported JDK APIs, export đúng package API của mình, giữ implementation không export và mở Reflection sâu chỉ khi thật sự có nhu cầu hợp lệ.
+**Takeaway:** Reflection is a tool for metadata discovery and member invocation within Java access limits, whereas a **public API** is the system's contract boundary. Use supported JDK APIs, export only your API packages, keep implementations unexported, and open deep Reflection only when there is a genuine, legitimate need.

@@ -1,6 +1,6 @@
-# `Math.floorDiv`, `Math.floorMod` và khác biệt với `/`, `%` trong Java
+# `Math.floorDiv`, `Math.floorMod`, and Differences from `/` and `%` in Java
 
-Với số nguyên dương, hai cách tính thương và phần dư thường cho cùng kết quả:
+For positive integers, both ways of computing quotients and remainders usually yield the same result:
 
 ```java
 System.out.println(7 / 3);                 // 2
@@ -9,9 +9,9 @@ System.out.println(Math.floorDiv(7, 3));   // 2
 System.out.println(Math.floorMod(7, 3));   // 1
 ```
 
-Nhưng khi có **số âm**, kết quả khác nhau. Java định nghĩa `/` trên số nguyên là phép **chia lấy thương làm tròn về 0** (*truncating division*), còn `Math.floorDiv` làm tròn thương **xuống âm vô cùng** (*floor division*). Tương ứng, `%` là phép **remainder** theo phép chia làm tròn về 0, còn `Math.floorMod` lấy phần dư theo phép chia floor.
+However, when **negative numbers** are involved, the results differ. Java defines `/` on integers as **truncating division** (rounding the quotient toward zero), whereas `Math.floorDiv` rounds the quotient **down toward negative infinity** (*floor division*). Correspondingly, `%` is the **remainder** under truncating division, whereas `Math.floorMod` computes the remainder under floor division.
 
-Ví dụ quan trọng nhất:
+The most important example:
 
 ```java
 System.out.println(-7 / 3);                 // -2
@@ -20,35 +20,35 @@ System.out.println(Math.floorDiv(-7, 3));   // -3
 System.out.println(Math.floorMod(-7, 3));   // 2
 ```
 
-Nếu bài toán xử lý chỉ số vòng, nhóm dữ liệu theo khoảng thời gian, tọa độ ô lưới hoặc số âm, chọn nhầm `%` và `floorMod` có thể gây sai logic dù chương trình biên dịch thành công.
+If a problem handles circular indices, time-interval bucketing, grid cell coordinates, or negative numbers, confusing `%` and `floorMod` can cause logic bugs even though the program compiles cleanly.
 
-## 1. Phân biệt “chia lấy thương” và “chia floor”
+## 1. Distinguishing "Truncating Division" and "Floor Division"
 
-Cho hai số nguyên `x` và `y`, với `y != 0`:
+Given two integers `x` and `y`, with `y != 0`:
 
-- `x / y` lấy thương nguyên bằng cách **bỏ phần thập phân theo hướng về 0**.
-- `Math.floorDiv(x, y)` lấy thương bằng cách **làm tròn xuống số nguyên nhỏ hơn hoặc bằng thương toán học**.
+- `x / y` computes the integer quotient by **discarding the fractional part toward zero**.
+- `Math.floorDiv(x, y)` computes the quotient by **rounding down to the greatest integer less than or equal to the mathematical quotient**.
 
-Ví dụ, thương toán học của `-7 / 3` là khoảng `-2.333…`. Làm tròn **về 0** được `-2`; làm tròn **xuống âm vô cùng** được `-3`.
+For example, the mathematical quotient of `-7 / 3` is approximately `-2.333…`. Rounding **toward 0** gives `-2`; rounding **down toward negative infinity** gives `-3`.
 
-| `x` | `y` | Thương toán học | `x / y` | `Math.floorDiv(x, y)` |
+| `x` | `y` | Mathematical quotient | `x / y` | `Math.floorDiv(x, y)` |
 | ---: | ---: | ---: | ---: | ---: |
-| 7 | 3 | 2,333… | 2 | 2 |
-| −7 | 3 | −2,333… | −2 | −3 |
-| 7 | −3 | −2,333… | −2 | −3 |
-| −7 | −3 | 2,333… | 2 | 2 |
+| 7 | 3 | 2.333… | 2 | 2 |
+| −7 | 3 | −2.333… | −2 | −3 |
+| 7 | −3 | −2.333… | −2 | −3 |
+| −7 | −3 | 2.333… | 2 | 2 |
 | −6 | 3 | −2 | −2 | −2 |
-| −1 | 3 | −0,333… | 0 | −1 |
+| −1 | 3 | −0.333… | 0 | −1 |
 
-**Khi phép chia hết**, hai cách cho cùng thương. **Khi còn dư và hai toán hạng trái dấu**, `floorDiv` nhỏ hơn `/` đúng một đơn vị. Khi hai toán hạng cùng dấu, thương không âm nên làm tròn về 0 trùng với làm tròn xuống. Điều này áp dụng cho số nguyên trong miền biểu diễn thông thường, ngoại trừ trường hợp tràn `MIN_VALUE / -1` được nêu riêng ở phần 6.
+**When division is exact**, both approaches produce the same quotient. **When there is a remainder and the two operands have opposite signs**, `floorDiv` is strictly one less than `/`. When both operands have the same sign, the quotient is non-negative, so truncating toward zero matches rounding down. This holds for integers in normal representable ranges, except for the `MIN_VALUE / -1` overflow case noted separately in section 6.
 
-Java thực hiện phép chia `int` và `long` hoàn toàn bằng số nguyên. Không cần, và thường không nên, chuyển sang `double` rồi gọi `Math.floor`: với `long` lớn hơn `2^53`, `double` có thể mất độ chính xác, khiến thương và ranh giới bucket sai.
+Java performs `int` and `long` division entirely using integers. There is no need—and it is usually inadvisable—to convert to `double` and call `Math.floor`: for `long` values larger than `2^53`, `double` can lose precision, corrupting quotients and bucket boundaries.
 
-## 2. Phân biệt `%` và `Math.floorMod`
+## 2. Distinguishing `%` and `Math.floorMod`
 
-Phần dư được xác định cùng với **cách làm tròn thương**.
+The remainder is defined alongside **how the quotient is rounded**.
 
-Với phép chia thường của Java:
+With Java's standard division:
 
 ```text
 q = x / y
@@ -56,7 +56,7 @@ r = x % y
 x = q * y + r
 ```
 
-Với phép chia floor:
+With floor division:
 
 ```text
 q = Math.floorDiv(x, y)
@@ -64,9 +64,9 @@ r = Math.floorMod(x, y)
 x = q * y + r
 ```
 
-Các đẳng thức trên mô tả quan hệ số học giữa thương và phần dư. Khi tự tính `q * y` bằng `int`/`long`, cần chú ý phép nhân có thể tràn trong trường hợp biên; đừng dùng phép tính lại này như một cách thay thế không kiểm tra cho `floorMod`. Trường hợp `MIN_VALUE / -1` còn có ngoại lệ tràn thương riêng.
+The identities above describe the arithmetic relationship between quotient and remainder. When computing `q * y` yourself using `int`/`long`, note that multiplication can overflow in boundary cases; do not use this recomputation as an unchecked replacement for `floorMod`. The `MIN_VALUE / -1` case also has its own quotient overflow exception.
 
-### Bảng kết quả đầy đủ khi có dấu âm
+### Full Results Table with Negative Signs
 
 | `x` | `y` | `x / y` | `x % y` | `floorDiv(x,y)` | `floorMod(x,y)` |
 | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -77,51 +77,51 @@ Các đẳng thức trên mô tả quan hệ số học giữa thương và ph�
 | −6 | 3 | −2 | 0 | −2 | 0 |
 | −1 | 3 | 0 | −1 | −1 | 2 |
 
-Nhận xét hai quy tắc về dấu:
+Note the two sign rules:
 
-1. `x % y` có **cùng dấu với số bị chia `x`**, hoặc bằng 0. Vì thế `-7 % 3` bằng `-1`, không phải `2`.
-2. `Math.floorMod(x, y)` có **cùng dấu với số chia `y`**, hoặc bằng 0. Vì thế `Math.floorMod(-7, 3)` bằng `2`, nhưng `Math.floorMod(7, -3)` bằng `-2`.
+1. `x % y` has the **same sign as the dividend `x`**, or is `0`. Thus `-7 % 3` equals `-1`, not `2`.
+2. `Math.floorMod(x, y)` has the **same sign as the divisor `y`**, or is `0`. Thus `Math.floorMod(-7, 3)` equals `2`, while `Math.floorMod(7, -3)` equals `-2`.
 
-Đặc biệt, khi **`y > 0`**, giá trị `Math.floorMod(x, y)` luôn nằm trong khoảng **`0 <= r < y`**, ngay cả khi `x` âm. Đây là đặc tính thường cần cho index vòng hoặc phân nhóm theo modulo không âm.
+In particular, when **`y > 0`**, `Math.floorMod(x, y)` always lies in the range **`0 <= r < y`**, even when `x` is negative. This is the property usually desired for circular indices or non-negative modular grouping.
 
-Khi **`y < 0`**, giá trị `floorMod` thỏa **`y < r <= 0`**. Không nên gọi `floorMod` là “luôn không âm” nếu chưa bảo đảm **số chia dương**.
+When **`y < 0`**, `floorMod` satisfies **`y < r <= 0`**. Do not call `floorMod` "always non-negative" without ensuring a **positive divisor**.
 
-### Kiểm tra công thức với số âm
+### Verifying the Formula with Negative Numbers
 
-Với `x = -7`, `y = 3`:
+With `x = -7`, `y = 3`:
 
-- Phép chia thường: `q = -2` và `r = -1`, nên `-7 = (-2) * 3 + (-1)`.
-- Phép chia floor: `q = -3` và `r = 2`, nên `-7 = (-3) * 3 + 2`.
+- Standard division: `q = -2` and `r = -1`, so `-7 = (-2) * 3 + (-1)`.
+- Floor division: `q = -3` and `r = 2`, so `-7 = (-3) * 3 + 2`.
 
-Với `x = 7`, `y = -3`:
+With `x = 7`, `y = -3`:
 
-- Phép chia thường: `q = -2` và `r = 1`, nên `7 = (-2) * (-3) + 1`.
-- Phép chia floor: `q = -3` và `r = -2`, nên `7 = (-3) * (-3) + (-2)`.
+- Standard division: `q = -2` and `r = 1`, so `7 = (-2) * (-3) + 1`.
+- Floor division: `q = -3` and `r = -2`, so `7 = (-3) * (-3) + (-2)`.
 
-Cả hai mô hình nhất quán; điểm khác nhau là **quy tắc chọn thương** và do đó là **quy tắc chọn phần dư**.
+Both models are internally consistent; the difference lies in **the rule for choosing the quotient** and consequently **the rule for choosing the remainder**.
 
-## 3. Cơ chế tạo ra khác biệt
+## 3. Mechanism Creating the Difference
 
-Với `x`, `y` là các số nguyên khác trường hợp chia cho 0:
+For integers `x` and `y` excluding division by zero:
 
-- Nếu phép chia **hết**, cả hai mô hình có cùng thương, phần dư bằng 0.
-- Nếu phép chia **còn dư và hai toán hạng cùng dấu**, thương toán học dương nên cắt về 0 cũng là làm tròn xuống; hai mô hình trùng nhau.
-- Nếu phép chia **còn dư và hai toán hạng trái dấu**, thương toán học âm, có phần lẻ. `/` làm tròn lên về 0, còn `floorDiv` lấy giá trị nhỏ hơn một đơn vị; `floorMod` điều chỉnh phần dư tương ứng theo số chia.
+- If division is **exact**, both models give the same quotient and remainder `0`.
+- If division **has a remainder and both operands share the same sign**, the mathematical quotient is positive, so truncating toward zero is the same as rounding down; the two models coincide.
+- If division **has a remainder and the two operands have opposite signs**, the mathematical quotient is negative with a fractional part. `/` rounds up toward zero, while `floorDiv` takes the value one unit smaller; `floorMod` adjusts the remainder accordingly by the divisor.
 
-Đặt `q0 = x / y` và `r0 = x % y`. Khi `r0 != 0` và `x`, `y` trái dấu, có thể mô tả về mặt toán học:
+Let `q0 = x / y` and `r0 = x % y`. When `r0 != 0` and `x`, `y` have opposite signs, this can be described mathematically as:
 
 ```text
 qFloor = q0 - 1
 rFloor = r0 + y
 ```
 
-Nếu không thỏa điều kiện đó, `qFloor = q0` và `rFloor = r0`. Đây là lời giải thích cơ chế, không phải lời khuyên tự cài đặt phép chia floor trong mọi bối cảnh: Java có sẵn `Math.floorDiv`/`Math.floorMod`, rõ ràng hơn và xử lý những góc cạnh của số nguyên.
+Otherwise, `qFloor = q0` and `rFloor = r0`. This explains the mechanism, not a recommendation to hand-roll floor division everywhere: Java provides `Math.floorDiv`/`Math.floorMod`, which are clearer and handle integer edge cases.
 
-**Lưu ý về phép chia:** với số nguyên, `-1 / 3` là `0` chứ không phải số `-0.333…`. Java không giữ số lẻ trong kết quả `int`. Nếu viết `-1.0 / 3`, phép toán trở thành chấm động và có kết quả gần `-0.333…`; `Math.floorDiv` chỉ dành cho kiểu nguyên, không dùng với `double`.
+**Note on division:** with integers, `-1 / 3` is `0`, not `-0.333…`. Java does not keep fractional parts in an `int` result. Writing `-1.0 / 3` makes it floating-point and yields approximately `-0.333…`; `Math.floorDiv` is only for integer types, not `double`.
 
-## 4. API `Math.floorDiv` và `Math.floorMod`
+## 4. `Math.floorDiv` and `Math.floorMod` API
 
-Các overload thông dụng của `java.lang.Math` gồm:
+Common overloads in `java.lang.Math` include:
 
 ```java
 int q1 = Math.floorDiv(-7, 3);
@@ -133,39 +133,39 @@ long r2 = Math.floorMod(-7L, 3L);
 int r3 = Math.floorMod(-7L, 3);
 ```
 
-Kết quả của `floorDiv(long, int)` là `long`, còn kết quả của `floorMod(long, int)` là `int` do độ lớn phần dư luôn nhỏ hơn độ lớn số chia. Các overload `int,int` cho `int` và `long,long` cho `long`.
+The return type of `floorDiv(long, int)` is `long`, whereas the return type of `floorMod(long, int)` is `int` because the magnitude of the remainder is always smaller than the magnitude of the divisor. The `int,int` overloads return `int` and `long,long` return `long`.
 
-**Không có overload tương đương cho `float` và `double`.** Nếu muốn làm việc với số thực, cần quy định bài toán làm tròn/phần dư chấm động riêng (ví dụ `Math.floor` hoặc `Math.IEEEremainder` có quy tắc khác). Không được áp dụng máy móc các luật số nguyên cho số thực có sai số biểu diễn.
+**There are no equivalent overloads for `float` and `double`.** To work with floating-point numbers, specify the appropriate floating-point rounding/remainder rules (e.g., `Math.floor` or `Math.IEEEremainder` have different rules). Do not mechanically apply integer rules to floating-point numbers that carry representation error.
 
-Các phương thức `floorDiv` và `floorMod` có từ Java 8, nên dùng được trên Java 17+. Chúng không sửa biến đầu vào: trả về kết quả mới, giống các toán tử tính toán.
+`floorDiv` and `floorMod` have existed since Java 8, so they work on Java 17+. They do not mutate input variables: they return new values, just like arithmetic operators.
 
-### Số chia bằng 0
+### Divisor Equal to 0
 
-Cả `/`, `%`, `Math.floorDiv` và `Math.floorMod` trên các kiểu nguyên đều ném `ArithmeticException` nếu **số chia bằng 0**:
+`/`, `%`, `Math.floorDiv`, and `Math.floorMod` on integer types all throw `ArithmeticException` if the **divisor is 0**:
 
 ```java
 int size = 0;
-// int invalid = 10 % size;            // Ném ArithmeticException khi chạy.
-// int alsoInvalid = Math.floorMod(10, size); // Cũng ném ArithmeticException.
+// int invalid = 10 % size;            // Throws ArithmeticException at runtime.
+// int alsoInvalid = Math.floorMod(10, size); // Also throws ArithmeticException.
 ```
 
-Không gọi modulo với kích thước collection rỗng hoặc số bucket bằng 0. Nếu giá trị `y` đến từ bên ngoài, kiểm tra `y != 0` trước, và với bài toán yêu cầu remainder không âm, kiểm tra mạnh hơn là `y > 0`.
+Never call modulo with an empty collection size or zero bucket count. If `y` comes from outside, check `y != 0` first, and for problems requiring a non-negative remainder, enforce the stronger check `y > 0`.
 
-## 5. Ứng dụng 1: chỉ số vòng và modulo không âm
+## 5. Application 1: Circular Indexing and Non-Negative Modulo
 
-Giả sử ta muốn đi lùi một bước trong vòng tròn 5 phần tử. Index hợp lệ là 0, 1, 2, 3, 4. Đi lùi từ vị trí 0 phải trở về 4.
+Suppose we want to step backward one position in a 5-element ring. Valid indices are `0, 1, 2, 3, 4`. Stepping backward from position `0` must wrap to `4`.
 
 ```java
 int capacity = 5;
 int current = 0;
 
-int wrong = (current - 1) % capacity;            // -1: không phải index hợp lệ.
+int wrong = (current - 1) % capacity;            // -1: not a valid index.
 int correct = Math.floorMod(current - 1, capacity); // 4.
 ```
 
-Lý do: `%` giữ dấu của số bị chia `-1`. Còn `Math.floorMod(-1, 5)` chuẩn hóa về tập `[0, 4]`.
+Reason: `%` preserves the sign of the dividend `-1`. Meanwhile, `Math.floorMod(-1, 5)` normalizes into `[0, 4]`.
 
-Với bộ đếm có thể âm hoặc vị trí logic cần quy về chỉ số vòng, điều kiện cần là **số chia dương**:
+For counters that can go negative or logical positions needing mapping to a circular index, the necessary condition is a **positive divisor**:
 
 ```java
 static int wrapIndex(long logicalIndex, int capacity) {
@@ -176,37 +176,37 @@ static int wrapIndex(long logicalIndex, int capacity) {
 }
 ```
 
-Đây là đoạn phương thức minh họa, không phải một chương trình độc lập. Overload `Math.floorMod(long, int)` trả `int`, nên hữu ích khi chỉ số logic dùng `long` nhưng mảng/buffer có `int capacity`.
+This is an illustrative method snippet, not a standalone program. The `Math.floorMod(long, int)` overload returns `int`, making it handy when the logical index uses `long` while the array/buffer has an `int capacity`.
 
-Với `capacity = 5`, `wrapIndex(-1, 5)` trả 4; `wrapIndex(5, 5)` trả 0; `wrapIndex(-6, 5)` trả 4. Chỉ số vòng là một **ánh xạ theo modulo**. Nó không tự ngăn race condition hay kiểm soát chuyện ghi đè trong ring buffer đa luồng.
+With `capacity = 5`, `wrapIndex(-1, 5)` returns `4`; `wrapIndex(5, 5)` returns `0`; `wrapIndex(-6, 5)` returns `4`. Circular indexing is a **modulo mapping**. It does not prevent race conditions or control overwriting in a multithreaded ring buffer.
 
-**Sai lầm khác:** dùng `Math.abs(index % capacity)` để tránh số âm. Với `index = -1`, `capacity = 5`, cách này cho 1, trong khi index vòng đúng là 4. Hơn nữa `Math.abs(Integer.MIN_VALUE)` vẫn âm do tràn. Hãy dùng `floorMod` khi cần dư không âm.
+**Another mistake:** using `Math.abs(index % capacity)` to avoid negative numbers. With `index = -1` and `capacity = 5`, this yields `1`, whereas the true circular index is `4`. Moreover, `Math.abs(Integer.MIN_VALUE)` stays negative due to overflow. Use `floorMod` when a non-negative remainder is needed.
 
-## 6. Ứng dụng 2: phân nhóm theo khoảng, bucket và thời gian âm
+## 6. Application 2: Interval Grouping, Bucketing, and Negative Time
 
-Giả sử một dòng thời gian được đo bằng số nguyên giây so với mốc 0. Mỗi bucket dài 60 giây và cần sắp xếp các thời điểm **trước** mốc 0.
+Suppose a timeline is measured in integer seconds relative to epoch `0`. Each bucket is 60 seconds wide, and timestamps **before** `0` must be bucketed.
 
-Với thời điểm `t = -1`:
+For timestamp `t = -1`:
 
 ```java
 long t = -1L;
-long bucketWrong = t / 60;                  // 0: làm tròn về 0.
+long bucketWrong = t / 60;                  // 0: truncates toward 0.
 long bucketCorrect = Math.floorDiv(t, 60);  // -1: bucket [-60, -1].
 int secondsIntoBucket = Math.floorMod(t, 60); // 59.
 ```
 
-Theo mô hình bucket floor:
+Under the floor bucket model:
 
 ```text
 t = bucketIndex * 60 + offset
 -1 = (-1) * 60 + 59
 ```
 
-Tức thời điểm −1 nằm trong bucket bắt đầu tại −60, offset 59 giây. Nếu dùng `t / 60`, thời điểm −1 bị xếp vào bucket 0, không đúng với các khoảng cố định dạng `[k*60, (k+1)*60)`.
+That is, timestamp `−1` lies in the bucket starting at `−60` with an offset of `59` seconds. Using `t / 60` places `−1` into bucket `0`, which breaks fixed intervals of the form `[k*60, (k+1)*60)`.
 
-Một số ví dụ với bucket dài 60:
+Several examples with 60-second buckets:
 
-| `t` (giây) | `t / 60` | `floorDiv(t,60)` | `t % 60` | `floorMod(t,60)` |
+| `t` (seconds) | `t / 60` | `floorDiv(t,60)` | `t % 60` | `floorMod(t,60)` |
 | ---: | ---: | ---: | ---: | ---: |
 | 61 | 1 | 1 | 1 | 1 |
 | 60 | 1 | 1 | 0 | 0 |
@@ -215,11 +215,11 @@ Một số ví dụ với bucket dài 60:
 | −60 | −1 | −1 | 0 | 0 |
 | −61 | −1 | −2 | −1 | 59 |
 
-Quy tắc này phù hợp với việc chia tọa độ âm thành ô lưới, gom số nguyên vào dải độ rộng cố định, hay chia timestamp tương đối thành bucket (khi miền dữ liệu và hệ quy chiếu đã được xác định). Với dữ liệu thời gian thực, còn phải chú ý đơn vị milliseconds/nanoseconds, múi giờ, lịch và ranh giới thời gian; `floorDiv` chỉ giải quyết **phép chia số nguyên**, không giải quyết toàn bộ nghiệp vụ thời gian.
+This rule fits partitioning negative coordinates into grid cells, grouping integers into fixed-width bands, or bucketing relative timestamps (once the data domain and reference frame are defined). For real-world time data, also watch milliseconds/nanoseconds units, time zones, calendars, and time boundaries; `floorDiv` only solves **integer division**, not all time-domain business logic.
 
-### Tọa độ ô lưới có thể âm
+### Grid Coordinates That Can Be Negative
 
-Giả sử chiều rộng mỗi ô là 10 đơn vị. Tọa độ `x = -1` phải nằm trong ô từ −10 đến −1:
+Suppose each cell is 10 units wide. Coordinate `x = -1` should fall in the cell from `−10` to `−1`:
 
 ```java
 int cellWidth = 10;
@@ -228,11 +228,11 @@ int cellNumber = Math.floorDiv(coordinate, cellWidth); // -1
 int offset = Math.floorMod(coordinate, cellWidth);     // 9
 ```
 
-Nếu dùng `coordinate / cellWidth`, ô sẽ được xác định là 0, tạo sai lệch tại các tọa độ âm. Đây là một nguyên nhân phổ biến gây lỗi khi chia không gian có gốc tọa độ 0.
+Using `coordinate / cellWidth` would assign cell `0`, creating distortion at negative coordinates. This is a common bug when partitioning a coordinate space centered at `0`.
 
-## 7. Góc cạnh quan trọng: tràn số nguyên nhỏ nhất chia cho −1
+## 7. Important Edge Case: Overflow of Minimum Integer Divided by `−1`
 
-Java có một trường hợp đặc biệt: `Integer.MIN_VALUE` bằng `-2147483648`, trong khi số dương `2147483648` **không vừa kiểu `int`**. Vì vậy:
+Java has a special case: `Integer.MIN_VALUE` equals `-2147483648`, while the positive number `2147483648` **does not fit in `int`**. Therefore:
 
 ```java
 int min = Integer.MIN_VALUE;
@@ -242,47 +242,47 @@ System.out.println(min % -1);                 // 0
 System.out.println(Math.floorMod(min, -1));   // 0
 ```
 
-Về toán học, thương đúng phải là `2147483648`. Java trả `Integer.MIN_VALUE` vì phép chia số nguyên xảy ra tình huống **overflow**; không ném ngoại lệ cho trường hợp này. `Math.floorDiv` cũng không tự phát hiện overflow đó. Tương tự, `Long.MIN_VALUE / -1L` và `Math.floorDiv(Long.MIN_VALUE, -1L)` trả `Long.MIN_VALUE`.
+Mathematically, the exact quotient should be `2147483648`. Java returns `Integer.MIN_VALUE` because integer division encounters **overflow**; no exception is thrown in this case. `Math.floorDiv` does not automatically detect that overflow either. Likewise, `Long.MIN_VALUE / -1L` and `Math.floorDiv(Long.MIN_VALUE, -1L)` return `Long.MIN_VALUE`.
 
-Điều này **không phủ nhận quy tắc floor** trong miền thông thường. Nó nhắc rằng ngay cả `floorDiv` vẫn trả một giá trị kiểu `int`/`long` hữu hạn, nên phép toán có thể mất kết quả toán học khi vượt miền biểu diễn.
+This **does not invalidate the floor rule** in normal ranges. It reminds us that even `floorDiv` returns a finite `int`/`long` value, so the operation can lose the mathematical result when exceeding the representable range.
 
-Nếu nghiệp vụ phải tính thương chính xác trong trường hợp này, có thể mở rộng **trước phép chia**:
+If business logic must compute the exact quotient in this case, widen **before dividing**:
 
 ```java
 long exactIntQuotient = (long) Integer.MIN_VALUE / -1;
 // exactIntQuotient = 2147483648L.
 ```
 
-Nếu toán hạng `long` có khả năng gặp `Long.MIN_VALUE / -1L` và cần kết quả nguyên chính xác lớn hơn `long`, cân nhắc `BigInteger` (với kiểm tra chia 0) hoặc kiểm tra riêng tình huống tràn.
+If `long` operands can encounter `Long.MIN_VALUE / -1L` and an exact integer result larger than `long` is needed, consider `BigInteger` (with zero-divisor validation) or explicitly guard for the overflow condition.
 
-Các cặp quan trọng khác cần nhớ:
+Other key pairs to remember:
 
-- Với `x % y` và `floorMod(x, y)`, phép chia **hết** cho `y` luôn có dư 0 (khi `y != 0`).
-- Với số chia dương, `floorMod(Integer.MIN_VALUE, 3)` vẫn là một giá trị trong `0..2`; không cần lấy trị tuyệt đối của số âm lớn.
-- Nếu `y = Integer.MIN_VALUE`, số chia là âm; kết quả `floorMod` có thể âm. Đừng gọi `Math.abs(y)` để tự “biến thành modulus dương”, vì `Math.abs(Integer.MIN_VALUE)` bị tràn.
+- For both `x % y` and `floorMod(x, y)`, an **exact** division by `y` always has remainder `0` (when `y != 0`).
+- With a positive divisor, `floorMod(Integer.MIN_VALUE, 3)` is still a value in `0..2`; there is no need to take the absolute value of large negative numbers.
+- If `y = Integer.MIN_VALUE`, the divisor is negative; the `floorMod` result can be negative. Never call `Math.abs(y)` to "turn it into a positive modulus", because `Math.abs(Integer.MIN_VALUE)` overflows.
 
-## 8. Tránh nhầm với “modulo” và phép toán của các API khác
+## 8. Avoiding Confusion with "Modulo" and Other APIs' Operations
 
-Trong toán học, “modulo dương” thường được dùng để lấy đại diện của một lớp đồng dư trong khoảng `0..m-1` với `m > 0`. Trong Java, `%` là **remainder** theo phép chia cắt về 0; nó có thể âm. `Math.floorMod(x, m)` với `m > 0` phù hợp hơn với đại diện modulo không âm.
+In mathematics, "positive modulo" is often used to pick a representative of a congruence class in `0..m-1` for `m > 0`. In Java, `%` is the **remainder** from truncating division; it can be negative. `Math.floorMod(x, m)` with `m > 0` matches the non-negative modulo representative.
 
-Một số tài liệu gọi `a % b` là “modulo” một cách thông tục. Khi đọc, hãy xem ví dụ với số âm và hợp đồng API trước khi suy ra phép toán nào được dùng.
+Some documentation informally calls `a % b` "modulo". When reading, check examples with negative numbers and the API contract before inferring which operation is used.
 
-### Liên hệ với `BigInteger`
+### Relation to `BigInteger`
 
-`BigInteger.divide`/`remainder` áp dụng quy tắc lấy thương cắt về 0 và phần dư phù hợp. `BigInteger.mod(m)` trả kết quả không âm nhưng yêu cầu `m` **dương**; nếu modulus không dương, nó ném `ArithmeticException`. Nó không hoàn toàn thay thế `Math.floorMod` cho trường hợp số chia âm.
+`BigInteger.divide`/`remainder` apply truncating quotient and matching remainder rules. `BigInteger.mod(m)` returns a non-negative result but requires `m` to be **positive**; if the modulus is non-positive, it throws `ArithmeticException`. It does not fully replace `Math.floorMod` for negative-divisor cases.
 
 ```java
-// Đoạn minh họa trong nơi đã import java.math.BigInteger:
+// Illustrative snippet where java.math.BigInteger is imported:
 BigInteger x = BigInteger.valueOf(-7);
 System.out.println(x.remainder(BigInteger.valueOf(3))); // -1
 System.out.println(x.mod(BigInteger.valueOf(3)));       // 2
 ```
 
-Nếu cần miền số nguyên lớn hơn `long`, chọn `BigInteger`; đừng chuyển một số `long` rất lớn qua `double` để thử làm tròn xuống.
+If an integer range larger than `long` is needed, choose `BigInteger`; do not pass a very large `long` through `double` to attempt floor rounding.
 
-## 9. Ví dụ Java 17+ chạy độc lập
+## 9. Standalone Java 17+ Example
 
-Tạo tệp `FloorArithmeticDemo.java`:
+Create a file `FloorArithmeticDemo.java`:
 
 ```java
 public class FloorArithmeticDemo {
@@ -325,7 +325,7 @@ public class FloorArithmeticDemo {
 }
 ```
 
-Biên dịch, chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ```bash
 javac FloorArithmeticDemo.java
@@ -350,37 +350,37 @@ Long dividend, int divisor: 2
 Division by zero: ArithmeticException
 ```
 
-Chương trình thể hiện bốn kết hợp dấu của hai toán hạng, số chia hết, số bị chia gần 0, cách đưa chỉ số âm vào vòng và phân bucket âm. Nó cũng kiểm chứng overflow ở `Integer.MIN_VALUE / -1` và ngoại lệ khi số chia bằng 0.
+The program demonstrates all four sign combinations of the two operands, exact division, dividends near zero, mapping negative indices onto a ring, and negative bucketing. It also verifies overflow at `Integer.MIN_VALUE / -1` and the exception when the divisor is `0`.
 
-## 10. Quy trình chọn toán tử cho bài toán thực tế
+## 10. Process for Choosing Operators in Real Problems
 
-| Nhu cầu | Ưu tiên | Lý do |
+| Requirement | Preference | Reason |
 | --- | --- | --- |
-| Chia số nguyên và muốn thương **cắt về 0** | `/` | Đúng ngữ nghĩa phép chia nguyên mặc định Java |
-| Phần dư theo phép chia cắt về 0; dấu theo số bị chia | `%` | Dùng khi hợp đồng yêu cầu remainder Java |
-| Chia vào bucket/ô lưới số nguyên, có thể chứa giá trị âm | `Math.floorDiv` | Biên nhóm nhất quán với làm tròn xuống |
-| Đưa index âm vào khoảng `0..size−1` với `size>0` | `Math.floorMod(index, size)` | Dư không âm khi modulus dương |
-| Lấy offset không âm trong bucket độ rộng dương | `Math.floorMod(value, width)` | Offset thuộc `[0,width)` |
-| Phép toán có thể vượt miền `int`/`long` | Kiểm tra miền, mở rộng kiểu trước, `BigInteger` nếu cần | `floorDiv` cũng chịu giới hạn miền kiểu trả về |
-| Có số chia bằng 0 hoặc size không dương | Kiểm tra đầu vào và đưa ra lỗi rõ ràng | Tránh `ArithmeticException` bất ngờ và kết quả modulo không hợp đồng |
+| Integer division wanting quotient **truncated toward zero** | `/` | Matches Java's default integer division semantics |
+| Remainder under truncating division; sign matches dividend | `%` | Use when the contract requires Java remainder |
+| Partitioning into integer buckets/grid cells, possibly containing negative values | `Math.floorDiv` | Group boundaries consistent with floor rounding |
+| Mapping a negative index into `0..size−1` with `size>0` | `Math.floorMod(index, size)` | Non-negative remainder when modulus is positive |
+| Getting a non-negative offset within a positive-width bucket | `Math.floorMod(value, width)` | Offset lies in `[0,width)` |
+| Operation may exceed `int`/`long` range | Check range, widen type beforehand, `BigInteger` if needed | `floorDiv` is also bound by the return type's range |
+| Divisor may be `0` or size non-positive | Validate input and raise a clear error | Prevents unexpected `ArithmeticException` and out-of-contract modulo results |
 
-### Những lỗi thường gặp
+### Common Mistakes
 
-1. **Tưởng `%` luôn cho số không âm.** `-7 % 3` là `-1`. Dùng `floorMod` với modulus dương khi cần `0..m-1`.
-2. **Tưởng `floorMod` luôn không âm với mọi số chia.** `Math.floorMod(7, -3)` bằng `-2`. Kiểm tra `m > 0` nếu cần index.
-3. **Tính `Math.abs(x % m)` để sửa chỉ số âm.** Giá trị thường sai hướng và `Math.abs(MIN_VALUE)` còn có thể tràn.
-4. **Dùng `/` để phân bucket tọa độ/thời gian âm.** `-1 / 60` bằng 0, trong khi `floorDiv(-1,60)` bằng −1.
-5. **Tự tính floor bằng `Math.floor((double)x / y)` cho mọi `long`.** Chuyển sang `double` có thể mất độ chính xác, đặc biệt với số rất lớn.
-6. **Quên trường hợp `MIN_VALUE / -1`.** `floorDiv` không tự phát hiện tràn số nguyên này; nếu cần thương toán học chính xác, mở rộng kiểu hoặc dùng `BigInteger`.
-7. **Dùng modulo với size bằng 0.** Cả `%` lẫn `floorMod` sẽ ném `ArithmeticException`. Đặt điều kiện size dương trước.
+1. **Assuming `%` always yields a non-negative number.** `-7 % 3` is `-1`. Use `floorMod` with a positive modulus when `0..m-1` is needed.
+2. **Assuming `floorMod` is always non-negative for any divisor.** `Math.floorMod(7, -3)` equals `-2`. Check `m > 0` when an index is needed.
+3. **Computing `Math.abs(x % m)` to fix negative indices.** Values usually wrap in the wrong direction, and `Math.abs(MIN_VALUE)` can still overflow.
+4. **Using `/` to bucket negative coordinates/timestamps.** `-1 / 60` equals `0`, whereas `floorDiv(-1,60)` equals `−1`.
+5. **Computing floor manually via `Math.floor((double)x / y)` for any `long`.** Converting to `double` can lose precision, especially for very large numbers.
+6. **Forgetting the `MIN_VALUE / -1` case.** `floorDiv` does not automatically detect this integer overflow; if the exact mathematical quotient is needed, widen the type or use `BigInteger`.
+7. **Calling modulo with size `0`.** Both `%` and `floorMod` throw `ArithmeticException`. Enforce a positive size condition beforehand.
 
-### Tự kiểm tra
+### Self-Check
 
-1. Tính `-8 / 3`, `-8 % 3`, `Math.floorDiv(-8,3)` và `Math.floorMod(-8,3)`. Vì sao hai thương và hai phần dư khác nhau?
-2. Với `Math.floorMod(8,-3)`, kết quả có không âm không? Đặc tính nào của số chia quyết định dấu phần dư?
-3. Một ring buffer có 7 phần tử; vị trí logic là −2. `-2 % 7` và `Math.floorMod(-2,7)` khác nhau thế nào?
-4. Timestamp có giá trị −61 giây, bucket width 60. Vì sao bucket phải là −2 với phương pháp floor?
-5. `Math.floorDiv(Integer.MIN_VALUE,-1)` có trả thương toán học chính xác không? Làm sao xử lý khi bài toán cần kết quả 2147483648?
-6. Hai toán tử `/`, `%` và hai phương thức floor có ném ngoại lệ chia cho 0 trên kiểu nguyên không?
+1. Compute `-8 / 3`, `-8 % 3`, `Math.floorDiv(-8,3)`, and `Math.floorMod(-8,3)`. Why do the two quotients and two remainders differ?
+2. For `Math.floorMod(8,-3)`, is the result non-negative? Which property of the divisor determines the remainder's sign?
+3. A ring buffer has 7 elements; the logical position is `−2`. How do `-2 % 7` and `Math.floorMod(-2,7)` differ?
+4. A timestamp has value `−61` seconds, bucket width `60`. Why must the bucket be `−2` under the floor method?
+5. Does `Math.floorDiv(Integer.MIN_VALUE,-1)` return the exact mathematical quotient? How do you handle it when the problem needs `2147483648`?
+6. Do `/`, `%`, and the two floor methods throw a divide-by-zero exception on integer types?
 
-**Ghi nhớ:** `/` và `%` là phép chia/phần dư số nguyên **làm tròn thương về 0**. `Math.floorDiv` và `Math.floorMod` dùng quy tắc **làm tròn thương xuống**. Với modulus dương, `floorMod` giúp đưa mọi số nguyên, kể cả số âm, vào khoảng phần dư không âm; với divisor âm, phần dư floor có thể âm. Chọn cách chia theo ngữ nghĩa bài toán và kiểm tra chia 0, miền kiểu số nguyên, cùng những trường hợp tràn.
+**Key Takeaway:** `/` and `%` are integer division/remainder **truncating the quotient toward zero**. `Math.floorDiv` and `Math.floorMod` use **floor rounding of the quotient**. With a positive modulus, `floorMod` maps any integer—including negative ones—into a non-negative remainder range; with a negative divisor, floor remainder can be negative. Choose the division rule according to the problem semantics and check for division by zero, integer type ranges, and overflow cases.

@@ -1,12 +1,12 @@
-# requires static cho phụ thuộc chỉ cần lúc biên dịch
+# requires static for Compile-Time-Only Dependencies
 
-Trong Java Platform Module System (JPMS), chỉ thị **requires static** dùng để khai báo một dependency bắt buộc phải có khi biên dịch nhưng có thể vắng mặt ở runtime. Đây là cách mô tả những thư viện hỗ trợ compile-time, chẳng hạn annotation, metadata hoặc tích hợp tùy chọn mà ứng dụng không cần nạp trong mọi lần chạy.
+In the Java Platform Module System (JPMS), the **requires static** directive is used to declare a dependency that must be present at compile time but may be absent at runtime. This is the way to describe libraries supporting compile-time tasks, such as annotations, metadata, or optional integrations that the application does not need to load on every run.
 
-Điểm quan trọng là từ khóa static chỉ làm cho dependency trở thành tùy chọn ở giai đoạn chạy. Nó không làm dependency tùy chọn ở giai đoạn biên dịch, không tự tải thư viện khi cần và cũng không bảo vệ mã khỏi lỗi liên kết nếu chương trình thực sự sử dụng lớp của dependency đang vắng mặt.
+The key point is that the static keyword only makes the dependency optional at runtime. It does not make the dependency optional at compile time, does not automatically download the library when needed, and does not protect code from linkage errors if the program actually uses classes from an absent dependency.
 
-## 1. Cú pháp và ý nghĩa
+## 1. Syntax and Meaning
 
-Cú pháp trong module-info.java:
+Syntax in module-info.java:
 
 ~~~java
 module com.example.orders {
@@ -14,16 +14,16 @@ module com.example.orders {
 }
 ~~~
 
-Mô-đun orders cần đọc mô-đun annotations để biên dịch. Khi khởi chạy, bộ phân giải mô-đun không bắt buộc phải tìm thấy annotations chỉ vì có khai báo requires static.
+The orders module needs to read the annotations module to compile. At launch, the module resolver is not required to find annotations solely because requires static is declared.
 
-So sánh với requires thông thường:
+Comparison with regular requires:
 
-| Khai báo | Khi biên dịch | Khi chạy |
+| Declaration | At compile time | At runtime |
 | --- | --- | --- |
-| requires module.name | Dependency phải có và được phân giải | Dependency phải có để mô-đun được phân giải. |
-| requires static module.name | Dependency phải có và được phân giải | Dependency có thể vắng mặt nếu không được yêu cầu bởi quan hệ khác. |
+| requires module.name | The dependency must be present and resolved | The dependency must be present for the module to be resolved. |
+| requires static module.name | The dependency must be present and resolved | The dependency may be absent if not required by another relationship. |
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.example.orders {
@@ -32,25 +32,25 @@ module com.example.orders {
 }
 ~~~
 
-Ở đây:
+Here:
 
-- com.example.customer.api là dependency thông thường. Thiếu nó, mô-đun orders không thể được phân giải đúng.
-- com.example.annotations là dependency compile-time. Nó phải có trên module path khi biên dịch orders, nhưng có thể không cần trong cấu hình runtime.
+- com.example.customer.api is a regular dependency. Without it, the orders module cannot be resolved properly.
+- com.example.annotations is a compile-time dependency. It must be on the module path when compiling orders, but may not be needed in the runtime configuration.
 
-requires static vẫn tạo quan hệ đọc mô-đun trong quá trình biên dịch. Do đó, mã nguồn có thể tham chiếu các kiểu thuộc dependency đó và trình biên dịch vẫn kiểm tra được chúng.
+requires static still establishes a module readability relationship during compilation. Therefore, source code can reference types belonging to that dependency and the compiler can still check them.
 
-## 2. Vì sao cần dependency chỉ ở compile-time?
+## 2. Why are compile-time-only dependencies needed?
 
-Không phải thư viện nào xuất hiện trong mã nguồn cũng cần được đóng gói cùng ứng dụng lúc chạy. Một số dependency chỉ cung cấp thông tin cho compiler hoặc công cụ build.
+Not every library appearing in source code needs to be packaged with the application at runtime. Some dependencies only provide information to the compiler or build tools.
 
-Các trường hợp thường gặp:
+Common cases:
 
-- **Annotation compile-time:** đánh dấu mã để compiler, annotation processor hoặc công cụ sinh mã xử lý.
-- **Metadata:** cung cấp kiểu hoặc thông tin mô tả chỉ được dùng khi biên dịch.
-- **Tích hợp tùy chọn:** một mô-đun có thể biên dịch với API mở rộng nhưng bản chạy cơ bản không kích hoạt phần tích hợp đó.
-- **API hỗ trợ:** thư viện cần biết một kiểu ở thời điểm biên dịch, nhưng phần triển khai runtime được cung cấp bởi môi trường khác hoặc không được sử dụng trong cấu hình tối giản.
+- **Compile-time annotations:** mark code for processing by the compiler, annotation processors, or code generation tools.
+- **Metadata:** provide types or descriptive information used only during compilation.
+- **Optional integrations:** a module can compile against an extended API while a minimal runtime run does not activate that integration part.
+- **Supporting APIs:** a library needs to know a type at compile time, while the runtime implementation is supplied by another environment or is not used in a minimal configuration.
 
-Ví dụ một annotation đánh dấu lớp cần được công cụ build xử lý:
+Example of an annotation marking classes that need to be processed by a build tool:
 
 ~~~java
 package com.example.annotations;
@@ -63,7 +63,7 @@ public @interface GenerateMetadata {
 }
 ~~~
 
-Mô-đun sử dụng annotation:
+Module using the annotation:
 
 ~~~java
 module com.example.orders {
@@ -71,7 +71,7 @@ module com.example.orders {
 }
 ~~~
 
-Lớp trong mô-đun:
+Class inside the module:
 
 ~~~java
 package com.example.orders.model;
@@ -84,15 +84,15 @@ public class Order {
 }
 ~~~
 
-Compiler cần nhìn thấy kiểu GenerateMetadata để kiểm tra mã nguồn. Nếu annotation có retention là CLASS, metadata annotation được lưu trong bytecode nhưng không yêu cầu ứng dụng phải đọc annotation bằng reflection ở runtime.
+The compiler needs to see the GenerateMetadata type to verify the source code. If the annotation has CLASS retention, annotation metadata is stored in bytecode but does not require the application to read the annotation via reflection at runtime.
 
-Nếu một công cụ runtime cần tìm và xử lý annotation đó, dependency chứa annotation phải có mặt ở runtime và package/type phải truy cập được theo các quy tắc tương ứng. requires static không làm cho annotation runtime tự xuất hiện khi JAR đã bị loại khỏi cấu hình chạy.
+If a runtime tool needs to find and process that annotation, the dependency containing the annotation must be present at runtime and the package/type must be accessible according to the corresponding rules. requires static does not make a runtime annotation appear automatically once its JAR has been excluded from the run configuration.
 
-## 3. Dependency vẫn bắt buộc khi biên dịch
+## 3. The dependency is still mandatory at compile time
 
-Một hiểu nhầm phổ biến là dùng requires static để bỏ qua một thư viện bị thiếu trong lúc build. Điều đó không đúng.
+A common misconception is using requires static to skip a missing library during a build. That is incorrect.
 
-Khi biên dịch, mô-đun được khai báo sau requires static vẫn phải quan sát được trên module path. Ví dụ:
+At compile time, the module declared after requires static must still be observable on the module path. For example:
 
 ~~~java
 module com.example.orders {
@@ -100,29 +100,29 @@ module com.example.orders {
 }
 ~~~
 
-Nếu compiler không tìm thấy com.example.annotations, quá trình biên dịch sẽ báo lỗi module not found.
+If the compiler cannot find com.example.annotations, compilation will report a module not found error.
 
-Lệnh biên dịch có thể chỉ rõ module path:
+The compile command can specify the module path explicitly:
 
 ~~~bash
 javac --module-path libs --module-source-path src -d out -m com.example.orders
 ~~~
 
-Trong đó thư mục libs phải chứa mô-đun annotations hoặc một JAR có thể được nhận diện thành mô-đun phù hợp.
+In this command, the libs directory must contain the annotations module or a JAR that can be recognized as an appropriate module.
 
-Có thể kiểm tra tên mô-đun của JAR:
+You can check the module name of a JAR:
 
 ~~~bash
 jar --describe-module --file libs/example-annotations.jar
 ~~~
 
-Không nên suy đoán module name từ tên file. Với JAR modular, tên được khai báo trong module-info.class; với automatic module, tên có thể đến từ Automatic-Module-Name hoặc được suy ra từ tên JAR.
+Do not guess the module name from the file name. For a modular JAR, the name is declared in module-info.class; for an automatic module, the name may come from Automatic-Module-Name or be derived from the JAR name.
 
-## 4. Dependency có thể vắng mặt ở runtime trong trường hợp nào?
+## 4. In what cases can a dependency be absent at runtime?
 
-Giả sử ứng dụng chỉ dùng annotation để đánh dấu mã và không cần đọc annotation khi chạy. Khi đó dependency annotation có thể không được đưa vào runtime image.
+Suppose an application only uses annotations to mark code and does not need to read annotations at runtime. In that case, the annotation dependency can be omitted from the runtime image.
 
-Cấu hình module:
+Module configuration:
 
 ~~~java
 module com.example.orders {
@@ -130,11 +130,11 @@ module com.example.orders {
 }
 ~~~
 
-Lúc biên dịch, annotations phải có mặt. Lúc chạy, nếu annotations không được mô-đun khác yêu cầu và không được thêm làm root module, bộ phân giải có thể bỏ qua dependency static này.
+At compile time, annotations must be present. At runtime, if annotations is not required by another module and is not added as a root module, the resolver can omit this static dependency.
 
-Điều đó không có nghĩa mọi tham chiếu đến kiểu trong dependency đều an toàn khi thư viện bị loại khỏi runtime. Nếu chương trình thực sự cần nạp, liên kết, khởi tạo hoặc gọi một kiểu thuộc dependency bị thiếu, lỗi như NoClassDefFoundError hoặc ClassNotFoundException có thể xuất hiện.
+That does not mean every reference to types in the dependency is safe when the library is excluded from runtime. If the program actually needs to load, link, initialize, or call a type belonging to the missing dependency, errors such as NoClassDefFoundError or ClassNotFoundException may occur.
 
-Ví dụ, đoạn mã sau có tham chiếu trực tiếp đến một lớp của dependency:
+For example, the following code snippet has a direct reference to a class from a dependency:
 
 ~~~java
 package com.example.orders;
@@ -149,15 +149,15 @@ public class OptionalGateway {
 }
 ~~~
 
-Nếu mô-đun chứa Client không có ở runtime nhưng nhánh connect vẫn được thực thi, ứng dụng không thể thực hiện lời gọi đó. requires static không tự biến lời gọi thành tùy chọn.
+If the module containing Client is absent at runtime yet the connect branch is still executed, the application cannot execute that call. requires static does not automatically make calls optional.
 
-Muốn phần tích hợp thực sự có thể bật/tắt, cần thiết kế đường chạy riêng: tách implementation sang mô-đun adapter, kiểm tra khả năng có mặt của implementation hoặc sử dụng một SPI. Không nên để phần lõi luôn gọi trực tiếp các lớp chỉ có trong dependency tùy chọn.
+To make an integration genuinely toggleable, you need to design a separate execution path: extract the implementation into an adapter module, check for the presence of the implementation, or use an SPI. You should not let core code always directly call classes that exist only in an optional dependency.
 
-## 5. requires static và annotation
+## 5. requires static and annotations
 
-Annotation là trường hợp dễ gặp nhất vì nhiều annotation chỉ phục vụ compiler hoặc công cụ phân tích mã.
+Annotations are the most common case because many annotations only serve the compiler or code analysis tools.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.example.domain {
@@ -165,7 +165,7 @@ module com.example.domain {
 }
 ~~~
 
-Một lớp sử dụng annotation:
+A class using the annotation:
 
 ~~~java
 package com.example.domain.model;
@@ -178,23 +178,23 @@ public class Customer {
 }
 ~~~
 
-Nếu annotation chỉ được đọc ở compile-time hoặc công cụ xử lý bytecode sau khi biên dịch, ứng dụng có thể không cần thư viện annotation trong runtime image.
+If the annotation is only read at compile time or by post-compile bytecode processing tools, the application may not need the annotation library in the runtime image.
 
-Cần phân biệt retention:
+Retention policies must be distinguished:
 
-| Retention | Nơi lưu annotation | Khả năng sử dụng |
+| Retention | Where the annotation is stored | Usability |
 | --- | --- | --- |
-| SOURCE | Chỉ trong mã nguồn, bị loại khỏi bytecode | Compiler hoặc annotation processor xử lý khi biên dịch. |
-| CLASS | Được lưu trong class file, không yêu cầu reflection runtime nhìn thấy | Công cụ đọc bytecode có thể xử lý sau biên dịch. |
-| RUNTIME | Được lưu trong class file và có thể đọc bằng reflection | Nếu ứng dụng/framework cần đọc annotation, kiểu annotation phải sẵn có và truy cập được lúc chạy. |
+| SOURCE | Only in source code, discarded from bytecode | Processed by the compiler or annotation processors during compilation. |
+| CLASS | Stored in the class file, does not require runtime reflection visibility | Tools reading bytecode can process it after compilation. |
+| RUNTIME | Stored in the class file and readable via reflection | If the application/framework needs to read the annotation, the annotation type must be available and accessible at runtime. |
 
-Nếu annotation có RetentionPolicy.RUNTIME và framework dùng reflection để tìm annotation, đừng loại thư viện annotation khỏi runtime mà không kiểm tra hành vi của framework. Dependency compile-time-only chỉ phù hợp khi phần chạy không cần nạp kiểu annotation đó.
+If an annotation has RetentionPolicy.RUNTIME and a framework uses reflection to find annotations, do not exclude the annotation library from runtime without checking the framework's behavior. A compile-time-only dependency is only appropriate when the runtime execution does not need to load that annotation type.
 
-Một annotation processor cũng là một công cụ chạy trong tiến trình compiler. Dependency của processor và dependency của mã sản phẩm có thể là hai nhóm khác nhau; không nên nhầm requires static trong module descriptor của ứng dụng với cấu hình processor path của build tool.
+An annotation processor is also a tool running inside the compiler process. Processor dependencies and production code dependencies may be two different groups; do not confuse requires static in the application's module descriptor with the build tool's processor path configuration.
 
-## 6. requires static kết hợp transitive
+## 6. requires static combined with transitive
 
-Có thể kết hợp hai modifier:
+The two modifiers can be combined:
 
 ~~~java
 module com.example.api {
@@ -202,14 +202,14 @@ module com.example.api {
 }
 ~~~
 
-Hai modifier có ý nghĩa riêng:
+The two modifiers have distinct meanings:
 
-- **static:** dependency bắt buộc khi biên dịch nhưng tùy chọn khi chạy.
-- **transitive:** truyền quan hệ readability tới các mô-đun đọc mô-đun hiện tại trong ngữ cảnh phân giải tương ứng.
+- **static:** the dependency is mandatory at compile time but optional at runtime.
+- **transitive:** propagates the readability relationship to modules reading the current module in the corresponding resolution context.
 
-Khai báo này phù hợp khi kiểu từ dependency xuất hiện trong API công khai và dependency chỉ cần thiết ở compile-time.
+This declaration is appropriate when types from the dependency appear in the public API and the dependency is only needed at compile time.
 
-Ví dụ một thư viện API dùng annotation để đánh dấu kiểu trả về hoặc tham số:
+Example of an API library using annotations to mark return types or parameters:
 
 ~~~java
 module com.example.customer.api {
@@ -218,33 +218,33 @@ module com.example.customer.api {
 }
 ~~~
 
-Các mô-đun biên dịch dựa trên customer.api có thể đọc contract.annotations thông qua quan hệ transitive. Tuy nhiên, nếu annotation không cần ở runtime, cấu hình runtime vẫn có thể không chứa mô-đun đó.
+Modules compiling against customer.api can read contract.annotations through the transitive relationship. However, if the annotation is not needed at runtime, the runtime configuration can still omit that module.
 
-Chỉ dùng dạng kết hợp này khi cả hai ý định đều đúng. Nếu dependency chỉ được sử dụng bên trong và không phải phần của API công khai, requires static thông thường là đủ.
+Use this combined form only when both intents are true. If the dependency is only used internally and is not part of the public API, regular requires static is sufficient.
 
-## 7. Khác biệt với các cách đánh dấu dependency tùy chọn khác
+## 7. Differences from other ways of marking optional dependencies
 
-requires static là một chỉ thị của JPMS trong module descriptor. Nó mô tả quan hệ giữa các mô-đun ở cấp nền tảng Java.
+requires static is a JPMS directive in the module descriptor. It describes relationships between modules at the Java platform level.
 
-Các build tool có cấu hình dependency riêng. Ví dụ, Gradle có cấu hình compileOnly để cung cấp dependency khi biên dịch nhưng không đưa nó vào runtime classpath mặc định. Khi dùng modular JAR, cấu hình build và module descriptor phải nhất quán: compiler cần thấy mô-đun trong module path để thỏa mãn requires static.
+Build tools have their own dependency configurations. For example, Gradle has the compileOnly configuration to provide a dependency during compilation without placing it on the default runtime classpath. When using modular JARs, the build configuration and the module descriptor must be consistent: the compiler needs to see the module on the module path to satisfy requires static.
 
-Trong Maven, optional dependency điều khiển việc dependency có được truyền tiếp tới người dùng của artifact hay không; nó không đồng nghĩa trực tiếp với requires static. Scope provided cũng có quy tắc phân phối và runtime riêng. Hãy xem dependency graph và classpath/module path thực tế thay vì suy luận chỉ từ tên cấu hình.
+In Maven, an optional dependency controls whether a dependency is transitively propagated to consumers of the artifact; it is not directly synonymous with requires static. The provided scope also has its own distribution and runtime rules. Inspect the actual dependency graph and classpath/module path rather than inferring solely from configuration names.
 
-Một checklist ngắn:
+A short checklist:
 
-- Module descriptor có requires static cho dependency chỉ cần compile-time.
-- Build tool cung cấp dependency đó trong compile module path.
-- Runtime configuration loại dependency khi thật sự không cần.
-- Mã thực thi không gọi trực tiếp lớp thuộc dependency đã loại.
-- Annotation/framework không cần đọc kiểu annotation ở runtime nếu dependency vắng mặt.
+- The module descriptor has requires static for compile-time-only dependencies.
+- The build tool provides that dependency on the compile module path.
+- The runtime configuration excludes the dependency when it is genuinely unnecessary.
+- Executed code does not directly call classes belonging to the excluded dependency.
+- Annotations/frameworks do not need to read annotation types at runtime when the dependency is absent.
 
-## 8. Khi dependency optional cần được sử dụng lúc runtime
+## 8. When an optional dependency needs to be used at runtime
 
-Nếu tính năng optional cần gọi thư viện tại runtime, có một số cách thiết kế.
+If an optional feature needs to call a library at runtime, there are several design approaches.
 
-### Cách A: tách adapter thành mô-đun riêng
+### Approach A: Extract the adapter into a separate module
 
-Giữ mô-đun lõi không phụ thuộc thư viện optional:
+Keep the core module independent of the optional library:
 
 ~~~java
 module com.example.orders {
@@ -252,7 +252,7 @@ module com.example.orders {
 }
 ~~~
 
-Tạo adapter:
+Create an adapter:
 
 ~~~java
 module com.example.orders.audit {
@@ -261,68 +261,68 @@ module com.example.orders.audit {
 }
 ~~~
 
-Ứng dụng nào cần audit mới thêm mô-đun adapter vào runtime. Cách này giữ dependency rõ ràng và tránh để lớp lõi tham chiếu trực tiếp API tùy chọn.
+Only applications needing auditing add the adapter module to runtime. This approach keeps dependencies clear and avoids having core classes directly reference optional APIs.
 
-### Cách B: dùng SPI
+### Approach B: Use SPI
 
-Mô-đun lõi khai báo một interface do chính nó sở hữu, consumer/provider được kết nối qua uses và provides. Mô-đun adapter phụ thuộc vào thư viện ngoài và cung cấp implementation của interface đó.
+The core module declares an interface it owns itself, and consumers/providers are connected via uses and provides. The adapter module depends on the external library and provides an implementation of that interface.
 
-Nhờ vậy, mô-đun lõi chỉ biết hợp đồng service. Khi provider không được cài đặt, ứng dụng có thể không kích hoạt tính năng optional mà không cần nạp lớp của thư viện ngoài.
+As a result, the core module only knows the service contract. When no provider is installed, the application can disable the optional feature without needing to load classes of the external library.
 
-### Cách C: nạp lớp theo nhu cầu
+### Approach C: Load classes on demand
 
-Một số tích hợp có thể kiểm tra sự hiện diện của lớp bằng reflection hoặc class loader. Cách này phù hợp với adapter rất nhỏ, nhưng cần xử lý tên lớp, class loader, module readability và lỗi khởi tạo. Không nên coi Class.forName là giải pháp chung cho mọi dependency tùy chọn.
+Some integrations may check for class presence using reflection or a class loader. This approach suits very small adapters, but requires handling class names, class loaders, module readability, and initialization errors. Class.forName should not be treated as a general solution for all optional dependencies.
 
-Trong hệ thống modular, tách adapter hoặc dùng SPI thường giúp mô tả dependency rõ hơn so với việc rải kiểm tra reflection trong mã nghiệp vụ.
+In a modular system, extracting an adapter or using an SPI usually describes dependencies more clearly than scattering reflection checks throughout business code.
 
-## 9. Những lỗi thường gặp với requires static
+## 9. Common Errors with requires static
 
-| Triệu chứng | Nguyên nhân | Cách xử lý |
+| Symptom | Cause | Resolution |
 | --- | --- | --- |
-| module not found khi compile | Dependency static không có trên module path lúc biên dịch | Thêm dependency vào compile module path. |
-| NoClassDefFoundError khi chạy | Nhánh mã đã sử dụng lớp thuộc dependency bị loại | Đưa dependency vào runtime hoặc tách đường chạy optional. |
-| Annotation không được framework nhận diện | Annotation dependency không có ở runtime hoặc retention không phù hợp | Kiểm tra retention và cấu hình runtime của framework. |
-| Consumer không thấy kiểu trong API | Thiếu exports hoặc readability | Kiểm tra requires và exports ở cả hai mô-đun. |
-| Dependency vẫn xuất hiện ở runtime | Nó được yêu cầu bởi mô-đun khác hoặc được thêm như root module | Kiểm tra module resolution và runtime dependency graph. |
+| module not found during compile | The static dependency is not on the module path at compile time | Add the dependency to the compile module path. |
+| NoClassDefFoundError at runtime | An executed code branch used a class belonging to an excluded dependency | Include the dependency at runtime or separate the optional execution path. |
+| Annotation not recognized by framework | The annotation dependency is absent at runtime or retention is inappropriate | Check retention and the framework's runtime configuration. |
+| Consumer cannot see types in API | Missing exports or readability | Check requires and exports in both modules. |
+| Dependency still appears at runtime | It is required by another module or added as a root module | Check module resolution and the runtime dependency graph. |
 
-Một dependency được khai báo static vẫn có thể xuất hiện ở runtime nếu nó được yêu cầu theo một đường khác hoặc được đưa trực tiếp vào cấu hình khởi chạy. Từ khóa static không phải lệnh loại bỏ JAR khỏi mọi runtime image.
+A dependency declared static can still appear at runtime if it is required via another path or explicitly included in the launch configuration. The static keyword is not a command to strip a JAR from every runtime image.
 
-## 10. Kiểm tra hành vi compile-time và runtime
+## 10. Verifying Compile-Time and Runtime Behavior
 
-Dùng lệnh mô tả JAR để xác nhận module name:
+Use the describe JAR command to confirm the module name:
 
 ~~~bash
 jar --describe-module --file libs/example-annotations.jar
 ~~~
 
-Biên dịch mô-đun với dependency có trên module path:
+Compile the module with the dependency present on the module path:
 
 ~~~bash
 javac --module-path libs --module-source-path src -d out -m com.example.orders
 ~~~
 
-Xem các mô-đun trong runtime:
+List modules in the runtime:
 
 ~~~bash
 java --list-modules
 ~~~
 
-Xem quá trình phân giải mô-đun khi chạy ứng dụng:
+Observe module resolution when running the application:
 
 ~~~bash
 java --show-module-resolution --module-path out -m com.example.orders/com.example.orders.Main
 ~~~
 
-Nếu dependency static vắng mặt, cần xác minh ứng dụng vẫn chạy được trên đúng lệnh khởi chạy dự kiến và các đường mã optional không bị gọi. Nếu dependency xuất hiện do một mô-đun khác yêu cầu, hãy kiểm tra lại module graph để biết đường phụ thuộc thực tế.
+If the static dependency is absent, verify that the application still runs on the intended launch command and that optional code paths are not invoked. If the dependency appears because another module requires it, re-check the module graph to see the actual dependency path.
 
-## 11. Nguyên tắc sử dụng
+## 11. Usage Principles
 
-- Dùng requires static khi dependency cần cho compile-time nhưng không bắt buộc cho runtime của cấu hình ứng dụng.
-- Đảm bảo dependency vẫn có mặt trên module path khi biên dịch.
-- Không dùng static để che giấu dependency bị thiếu trong build.
-- Không gọi trực tiếp lớp optional trên đường chạy có thể được kích hoạt khi dependency vắng mặt.
-- Với annotation, kiểm tra retention và xem framework có đọc annotation bằng reflection ở runtime không.
-- Dùng requires static transitive khi dependency vừa optional ở runtime vừa là phần của hợp đồng API cần truyền tiếp readability.
-- Với tích hợp runtime có thể bật/tắt, ưu tiên tách adapter hoặc dùng SPI để dependency không lan vào mô-đun lõi.
+- Use requires static when a dependency is needed at compile time but not mandatory for the application configuration's runtime.
+- Ensure the dependency is still present on the module path during compilation.
+- Do not use static to hide a missing dependency in the build.
+- Do not directly call optional classes on an execution path that can be triggered when the dependency is absent.
+- For annotations, check retention and whether a framework reads the annotation via reflection at runtime.
+- Use requires static transitive when a dependency is both optional at runtime and part of the API contract requiring readability propagation.
+- For toggleable runtime integrations, prefer extracting adapters or using SPI so dependencies do not leak into the core module.
 
-Giá trị của requires static nằm ở việc mô tả chính xác thời điểm một dependency là bắt buộc. Khi compile-time và runtime được thiết kế rõ ràng, dự án có thể giữ các công cụ hỗ trợ và tích hợp tùy chọn mà không buộc mọi cấu hình chạy phải mang theo chúng.
+The value of requires static lies in accurately describing when a dependency is mandatory. When compile time and runtime are clearly designed, a project can retain supporting tools and optional integrations without forcing every runtime configuration to carry them.

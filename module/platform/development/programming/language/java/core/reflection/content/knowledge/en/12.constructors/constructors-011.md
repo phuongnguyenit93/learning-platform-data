@@ -1,16 +1,16 @@
-# Khởi tạo lớp và lỗi xảy ra trước hoặc trong constructor khi dùng Java Reflection
+# Class Initialization and Errors Occurring Before or Inside Constructors in Java Reflection
 
-Khi tạo đối tượng bằng Reflection, nhiều lập trình viên thấy `Constructor.newInstance(...)` ném lỗi rồi kết luận rằng *constructor bị lỗi*. Kết luận này có thể sai: **JVM phải bảo đảm lớp đã được khởi tạo (class initialization) trước khi thực sự chạy constructor**. Lỗi có thể xảy ra trong static field initializer, static block, quá trình khởi tạo superclass, kiểm tra quyền truy cập, khớp tham số, instance initializer, superclass constructor hoặc thân constructor đang gọi.
+When creating an object via Reflection, many programmers see `Constructor.newInstance(...)` throw an error and conclude that *the constructor is broken*. That conclusion can be wrong: **the JVM must ensure the class has been initialized (class initialization) before actually running the constructor**. Errors can occur in a static field initializer, a static block, superclass initialization, access checks, parameter matching, an instance initializer, a superclass constructor, or the invoked constructor body itself.
 
-Bài này tập trung phân biệt **khởi tạo lớp (`<clinit>`)** với **khởi tạo đối tượng (`<init>`)** và xác định lỗi ở giai đoạn nào khi dùng `Class`, `Constructor` và `Constructor.newInstance(...)`. Các ví dụ chạy được bằng Java 17+.
+This lesson focuses on distinguishing **class initialization (`<clinit>`)** from **object initialization (`<init>`)** and identifying at which stage an error occurs when using `Class`, `Constructor`, and `Constructor.newInstance(...)`. Examples are runnable with Java 17+.
 
-## 1. Hai khái niệm thường bị gọi chung là "khởi tạo"
+## 1. Two Concepts Often Lumped Together as "Initialization"
 
-### Class initialization: khởi tạo lớp
+### Class Initialization
 
-*Class initialization* là quá trình JVM thực thi các static field initializer và static initializer block thuộc một lớp, theo thứ tự văn bản khai báo và theo các quy tắc của Java Language Specification. JVM cần khởi tạo superclass liên quan trước khi khởi tạo lớp con, đồng thời bảo đảm quá trình khởi tạo một lớp được điều phối giữa các thread.
+*Class initialization* is the process where the JVM executes the static field initializers and static initializer blocks belonging to a class, in textual declaration order and according to the rules of the Java Language Specification. The JVM needs to initialize the relevant superclass before initializing a subclass, while also ensuring initialization of a class is coordinated across threads.
 
-Ví dụ:
+Example:
 
 ~~~java
 class Service {
@@ -27,42 +27,42 @@ class Service {
 }
 ~~~
 
-Đây là **mã minh họa**, chưa có `main`. Trong lần khởi tạo `Service` đầu tiên, lời gọi `loadConfig()` in trước, rồi static block in sau. Hai hành động này thuộc **khởi tạo lớp**, không phải thân constructor. Trong bytecode, phần việc đó được JVM tổ chức trong phương thức khởi tạo lớp đặc biệt `<clinit>`.
+This is **illustrative code**, without `main`. On the first initialization of `Service`, calling `loadConfig()` prints first, then the static block prints. Both actions belong to **class initialization**, not the constructor body. In bytecode, that work is organized by the JVM in the special class initialization method `<clinit>`.
 
-**Không đồng nhất ba trạng thái:**
+**Do not equate three states:**
 
-1. **Loading (nạp):** JVM tìm và định nghĩa cấu trúc lớp.
-2. **Linking (liên kết):** xác minh, chuẩn bị và có thể phân giải các tham chiếu.
-3. **Initialization (khởi tạo):** thực thi logic khởi tạo static nếu chưa thực thi xong.
+1. **Loading:** the JVM locates and defines the class structure.
+2. **Linking:** verifies, prepares, and optionally resolves references.
+3. **Initialization:** executes static initialization logic if it has not yet completed.
 
-Lấy được đối tượng `Class<?>` không tự chứng minh rằng initialization đã diễn ra.
+Obtaining a `Class<?>` object does not by itself prove that initialization has already happened.
 
-### Object initialization: khởi tạo đối tượng
+### Object Initialization
 
-Khi thực sự tạo instance của một class thông thường, JVM cấp phát đối tượng rồi thực hiện chuỗi constructor theo quy tắc Java:
+When actually creating an instance of an ordinary class, the JVM allocates the object and executes the constructor chain per Java rules:
 
-- Superclass constructor được gọi trong quy trình tạo instance trước khi chạy phần thân constructor của subclass.
-- Các instance field initializer và instance initializer block của mỗi class chạy vào thời điểm thích hợp sau khi gọi superclass constructor và trước phần thân constructor tương ứng.
-- Thân constructor có thể gán field, kiểm tra tham số, gọi service và ném exception.
+- The superclass constructor is invoked during instance creation before running the subclass constructor body.
+- Each class's instance field initializers and instance initializer blocks execute at the appropriate point after calling the superclass constructor and before the corresponding constructor body.
+- The constructor body can assign fields, validate parameters, call services, and throw exceptions.
 
-Constructor xuất hiện trong bytecode với tên đặc biệt `<init>`. Đây **không phải** `<clinit>`; một class có thể được khởi tạo một lần rồi tạo nhiều instance bằng nhiều lời gọi constructor.
+A constructor appears in bytecode under the special name `<init>`. This **is not** `<clinit>`; a class can be initialized once and then create many instances via many constructor invocations.
 
-## 2. Reflection kích hoạt giai đoạn nào?
+## 2. Which Stage Does Reflection Trigger?
 
-| Thao tác | Tự nó có bắt buộc khởi tạo class đích không? | Điều cần nhớ |
+| Operation | Does it by itself force initialization of the target class? | Key point to remember |
 | --- | --- | --- |
-| `SomeClass.class` | Không | Lấy class literal, chưa chạy static initializer chỉ vì thao tác này |
-| `SomeClass.class.getDeclaredConstructor(...)` | Không | Chỉ tra cứu metadata/chữ ký constructor |
-| `getDeclaredConstructors()`, `getConstructor(...)` | Không | Khám phá constructor; không tạo instance |
-| `Class.forName("pkg.SomeClass")` | Có, mặc định yêu cầu khởi tạo | Lỗi static initializer có thể nổ **ngay tại `forName`** |
-| `Class.forName(name, false, loader)` | Không yêu cầu khởi tạo class đích | Hữu ích khi muốn nạp/tra cứu metadata trước |
-| `constructor.newInstance(args...)` | Có, nếu đủ điều kiện đi tới tạo instance và class chưa khởi tạo | JVM phải khởi tạo class trước khi thực thi constructor |
-| `new SomeClass(...)` | Có | Tương tự về nhu cầu khởi tạo class, nhưng đường ngoại lệ khác Reflection |
-| Truy cập/gọi một static member đủ điều kiện gây active use | Có thể | Có ngoại lệ về constant variables và quy tắc `JLS 12.4.1` |
+| `SomeClass.class` | No | Obtains the class literal; does not run static initializers merely from this operation |
+| `SomeClass.class.getDeclaredConstructor(...)` | No | Only looks up constructor metadata/signature |
+| `getDeclaredConstructors()`, `getConstructor(...)` | No | Discovers constructors; does not create an instance |
+| `Class.forName("pkg.SomeClass")` | Yes, requests initialization by default | Static initializer errors can blow up **right at `forName`** |
+| `Class.forName(name, false, loader)` | Does not request initialization of the target class | Useful when wanting to load/inspect metadata first |
+| `constructor.newInstance(args...)` | Yes, if conditions allow reaching instance creation and class is not initialized yet | JVM must initialize the class before executing the constructor |
+| `new SomeClass(...)` | Yes | Similar regarding class initialization requirement, though exception paths differ from Reflection |
+| Accessing/calling a static member qualifying as active use | Possibly | Has exceptions for constant variables and `JLS 12.4.1` rules |
 
-**Chú ý phạm vi:** "không khởi tạo class đích" ở bảng không có nghĩa API không thể kích hoạt bất cứ hoạt động nạp/liên kết kiểu liên quan nào. Điều chắc chắn có ích trong bài là `getDeclaredConstructor` không chạy static block của class đích như hành vi mặc định của `Constructor.newInstance`.
+**Scope note:** "does not initialize the target class" in the table does not mean the API cannot trigger any loading/linking of related types. What is definitely useful in this lesson is that `getDeclaredConstructor` does not run the target class's static block the way `Constructor.newInstance` does by default.
 
-Ví dụ hai lời gọi khác nhau:
+Example of two different calls:
 
 ~~~java
 Class<?> metadataOnly = Class.forName(
@@ -72,33 +72,33 @@ Class<?> metadataOnly = Class.forName(
 Class<?> initialized = Class.forName("com.example.Service");
 ~~~
 
-Đây là **mã minh họa**; cần class `com.example.Service` tồn tại và được class loader nhìn thấy. Lời gọi đầu không yêu cầu khởi tạo class đích; lời gọi thứ hai yêu cầu khởi tạo. Nếu class đã được khởi tạo từ trước, JVM không lặp lại static initializer chỉ vì có lời gọi mới.
+This is **illustrative code**; it requires class `com.example.Service` to exist and be visible to the class loader. The first call does not request initializing the target class; the second call requests initialization. If the class has already been initialized earlier, the JVM does not repeat static initializers just because of a new call.
 
-## 3. Thứ tự class initialization và constructor trong một lần tạo object
+## 3. Order of Class Initialization and Constructors During Object Creation
 
-Xét một lớp con kế thừa lớp cha. Trong tình huống class chưa được khởi tạo và gọi constructor thành công, thứ tự dễ quan sát như sau:
+Consider a subclass inheriting a parent class. When the classes have not yet been initialized and the constructor call succeeds, the observable order is as follows:
 
 ~~~text
-Tìm Constructor bằng getDeclaredConstructor()
-    ↓ không thực thi static initializer
-Gọi Constructor.newInstance()
-    ↓ kiểm tra điều kiện, chuẩn bị gọi
-Khởi tạo superclass cần thiết
-    ↓ static fields/static blocks của superclass
-Khởi tạo class đích
-    ↓ static fields/static blocks của class đích
-Tạo instance và thực hiện chuỗi constructor
+Look up Constructor via getDeclaredConstructor()
+    ↓ does not execute static initializer
+Call Constructor.newInstance()
+    ↓ check conditions, prepare invocation
+Initialize required superclass
+    ↓ static fields/static blocks of superclass
+Initialize target class
+    ↓ static fields/static blocks of target class
+Create instance and execute constructor chain
     ↓ superclass constructor; instance initializers
-Chạy thân constructor của class đích
+Run target class constructor body
     ↓
-newInstance() trả về đối tượng
+newInstance() returns object
 ~~~
 
-Sơ đồ này mô tả đường thành công; một lỗi ở bất kỳ giai đoạn liên quan có thể cắt ngang các bước phía sau. Trình tự kiểm tra quyền, đối số và một số lỗi xảy ra trước khi class initialization còn phụ thuộc điều kiện cụ thể của API, nên đừng dùng sơ đồ để khẳng định thứ tự tất cả các lỗi kiểm tra đầu vào.
+This diagram depicts the success path; an error at any relevant stage can cut short subsequent steps. The exact order of permission checks, argument checks, and certain errors occurring before class initialization also depends on specific API conditions, so do not use the diagram to assert the ordering of all input-validation errors.
 
-### Ví dụ đầy đủ 1: metadata không khởi tạo, `newInstance` mới khởi tạo
+### Complete Example 1: Metadata Does Not Initialize, `newInstance` Triggers Initialization
 
-Tạo tệp **`ConstructorInitOrderDemo.java`**:
+Create the file **`ConstructorInitOrderDemo.java`**:
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -140,7 +140,7 @@ public class ConstructorInitOrderDemo {
 }
 ~~~
 
-Chạy trong cùng thư mục:
+Run in the same directory:
 
 ~~~bash
 javac --release 17 ConstructorInitOrderDemo.java
@@ -159,20 +159,20 @@ ChildStage.<init>
 Instance created: true
 ~~~
 
-Giải thích:
+Explanation:
 
-1. `ChildStage.class` và `getDeclaredConstructor()` cho phép lấy metadata mà chưa chạy static block của `ChildStage`.
-2. `ctor.newInstance()` yêu cầu khởi tạo `ChildStage`. `ParentStage` cần được khởi tạo trước; hai dòng `<clinit>` xuất hiện theo thứ tự superclass rồi subclass.
-3. Khi bắt đầu thực thi chuỗi constructor, `ParentStage()` chạy trước `ChildStage()`, nên hai dòng `<init>` xuất hiện sau static initializers.
-4. `newInstance` hoàn tất và trả object, nên dòng `Instance created: true` xuất hiện cuối.
+1. `ChildStage.class` and `getDeclaredConstructor()` allow retrieving metadata without yet running `ChildStage`'s static block.
+2. `ctor.newInstance()` requires initializing `ChildStage`. `ParentStage` must be initialized first; the two `<clinit>` lines appear in superclass-then-subclass order.
+3. When starting the constructor chain, `ParentStage()` runs before `ChildStage()`, so the two `<init>` lines appear after the static initializers.
+4. `newInstance` completes and returns the object, so `Instance created: true` appears last.
 
-Trong một chương trình có nhiều lần tạo object, static block thường chỉ chạy **một lần cho mỗi lần khởi tạo thành công của class** tương ứng trong một runtime/class loader; constructor chạy **mỗi lần tạo instance**.
+In a program that creates many objects, a static block normally runs **only once per successful initialization of the corresponding class** in a runtime/class loader; the constructor runs **each time an instance is created**.
 
-## 4. Lỗi **trước khi** thân constructor bắt đầu: static initialization
+## 4. Errors **Before** the Constructor Body Starts: Static Initialization
 
-Nếu một static field initializer hoặc static block ném exception trong quá trình class initialization, thân constructor của class đích **chưa được chạy**. Với lỗi thuộc nhóm exception thông thường không phải `Error`, JVM biểu diễn lỗi khởi tạo bằng `ExceptionInInitializerError`. Ngoại lệ gây ra lỗi có thể đọc qua `getCause()`.
+If a static field initializer or static block throws an exception during class initialization, the target class's constructor body **has not run yet**. For errors belonging to ordinary non-`Error` exceptions, the JVM represents the initialization failure with `ExceptionInInitializerError`. The causing exception can be read via `getCause()`.
 
-Ví dụ:
+Example:
 
 ~~~java
 class Broken {
@@ -188,11 +188,11 @@ class Broken {
 }
 ~~~
 
-Đoạn này chỉ minh họa. Nếu tạo instance của `Broken` lần đầu và `fail()` ném `IllegalStateException`, JVM không tới được dòng in trong constructor.
+This snippet is illustrative only. If creating an instance of `Broken` for the first time and `fail()` throws `IllegalStateException`, the JVM never reaches the print statement inside the constructor.
 
-### Ví dụ đầy đủ 2: lần đầu `ExceptionInInitializerError`, lần sau `NoClassDefFoundError`
+### Complete Example 2: First `ExceptionInInitializerError`, Next `NoClassDefFoundError`
 
-Tạo tệp **`ConstructorStaticFailureDemo.java`**:
+Create the file **`ConstructorStaticFailureDemo.java`**:
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -252,30 +252,30 @@ Cause: IllegalStateException
 Second: NoClassDefFoundError
 ~~~
 
-**Vì sao có hai lỗi khác nhau?**
+**Why are there two different errors?**
 
-- Dòng đầu xác nhận lấy `Constructor` **không kích hoạt** static initialization.
-- Lần `newInstance` đầu tiên đưa JVM vào khởi tạo `BrokenInitialization`; `fail()` ném `IllegalStateException`. JVM báo `ExceptionInInitializerError` tại ranh giới khởi tạo class.
-- Dòng `Constructor entered` **không bao giờ xuất hiện**, vì class chưa hoàn tất initialization.
-- Class thất bại initialization bị đánh dấu ở trạng thái **erroneous** đối với runtime đang xét. Lần active use tiếp theo cùng class thường gặp `NoClassDefFoundError` do class không thể được khởi tạo lại theo cách đơn giản trong cùng class loader.
+- The first line confirms that getting `Constructor` **does not trigger** static initialization.
+- The first `newInstance` leads the JVM into initializing `BrokenInitialization`; `fail()` throws `IllegalStateException`. The JVM reports `ExceptionInInitializerError` at the class initialization boundary.
+- The line `Constructor entered` **never appears**, because the class never completed initialization.
+- A class whose initialization failed is marked in an **erroneous** state for that runtime. Subsequent active use of the same class typically encounters `NoClassDefFoundError` because the class cannot be simply re-initialized in the same class loader.
 
-`NoClassDefFoundError` ở đây **không** có nghĩa bytecode hoặc file `.class` tự nhiên biến mất. Nó có thể biểu thị class đã rơi vào trạng thái lỗi khởi tạo. Để tìm nguyên nhân, phải truy ngược log/stack trace về lỗi `ExceptionInInitializerError` lần đầu, thay vì chỉ truy tìm đường dẫn classpath.
+`NoClassDefFoundError` here **does not** mean bytecode or the `.class` file vanished. It can indicate the class fell into a failed-initialization state. To find the cause, trace logs/stack traces back to the initial `ExceptionInInitializerError`, rather than only checking classpath entries.
 
-**Ngoại lệ quan trọng:** nếu static initializer ném trực tiếp một `Error` (ví dụ một `Error` cụ thể do ứng dụng tạo hoặc lỗi VM), JVM có thể truyền chính `Error` đó thay vì bọc nó trong `ExceptionInInitializerError`. Vì vậy không nên viết logic bắt lỗi class initialization chỉ dựa vào một loại wrapper trong mọi tình huống.
+**Important exception to note:** if a static initializer directly throws an `Error` (for instance, an application-defined `Error` or VM error), the JVM may propagate that exact `Error` instead of wrapping it in `ExceptionInInitializerError`. Therefore, do not write class-initialization error-catching logic relying solely on one wrapper type in all situations.
 
-## 5. Lỗi **trong** constructor: `InvocationTargetException`
+## 5. Errors **Inside** the Constructor: `InvocationTargetException`
 
-Khác với static initialization trước khi vào constructor, khi code bên trong constructor ném exception, `Constructor.newInstance(...)` phản ánh lỗi đó qua `java.lang.reflect.InvocationTargetException`. Exception gốc nằm trong:
+Unlike static initialization before entering the constructor, when code inside the constructor throws an exception, `Constructor.newInstance(...)` surfaces that error via `java.lang.reflect.InvocationTargetException`. The original exception is in:
 
 ~~~java
 Throwable original = invocationTargetException.getCause();
 ~~~
 
-Đây là **đoạn mã minh họa**. `InvocationTargetException` cho biết phép gọi phản chiếu đã đi tới code thực thi, và một throwable xuất hiện từ code được gọi; nó không mô tả đầy đủ vị trí sâu nhất của lỗi nếu constructor gọi tiếp nhiều method khác.
+This is an **illustrative snippet**. `InvocationTargetException` indicates the reflective call reached executable code, and a throwable emerged from the invoked code; it does not fully describe the deepest location of the error if the constructor calls further methods.
 
-### Ví dụ đầy đủ 3: class khởi tạo thành công nhưng constructor ném exception
+### Complete Example 3: Class Initializes Successfully Yet Constructor Throws an Exception
 
-Tạo tệp **`ConstructorBodyFailureDemo.java`**:
+Create the file **`ConstructorBodyFailureDemo.java`**:
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -324,42 +324,42 @@ Wrapper: InvocationTargetException
 Cause: IllegalArgumentException
 ~~~
 
-Phân tích: static initializer chạy thành công trước. Dòng `<init>` xác nhận constructor đã bắt đầu. Chính thân constructor ném `IllegalArgumentException`, vì vậy Reflection báo `InvocationTargetException` và giữ lỗi gốc làm `cause`.
+Analysis: the static initializer ran successfully first. The `<init>` line confirms the constructor began. The constructor body itself threw `IllegalArgumentException`, so Reflection reports `InvocationTargetException` and keeps the original error as `cause`.
 
-**Một constructor ném exception không nhất thiết khiến class ở trạng thái erroneous.** Class trong ví dụ đã khởi tạo static thành công; những lời gọi constructor tiếp theo có thể được thử lại, dù constructor vẫn tiếp tục ném exception do logic của nó. Điều này khác với static initialization thất bại ở phần trước.
+**A constructor throwing an exception does not automatically put the class in an erroneous state.** The class in the example initialized statically with success; subsequent constructor calls can be retried, even though the constructor continues throwing exceptions per its logic. This differs from the failed static initialization in the previous section.
 
-### Lỗi trong instance field initializer hoặc constructor của superclass
+### Errors in Instance Field Initializers or Superclass Constructors
 
-"Trong constructor" theo góc nhìn `Constructor.newInstance` bao gồm cả code được chạy trong quá trình tạo đối tượng, **không chỉ** những dòng trực tiếp trong thân constructor của class đích:
+"Inside the constructor" from `Constructor.newInstance`'s perspective includes code executed during object creation, **not only** lines directly inside the target class's constructor body:
 
-- Superclass constructor ném lỗi trước khi thân subclass constructor được thực hiện.
-- Instance field initializer/instance initializer block của class đích ném lỗi.
-- Constructor gọi một method khác và method đó ném lỗi.
-- Constructor kích hoạt lần đầu một class phụ thuộc có static initializer bị lỗi.
+- A superclass constructor throws an error before the subclass constructor body executes.
+- An instance field initializer/instance initializer block of the target class throws an error.
+- The constructor calls another method and that method throws an error.
+- The constructor triggers for the first time a dependent class whose static initializer fails.
 
-Trong những trường hợp throwable phát sinh sau khi việc gọi constructor phản chiếu đã bắt đầu thực thi code khởi tạo đối tượng, `InvocationTargetException` có thể bọc throwable sâu hơn, bao gồm một `ExceptionInInitializerError` từ **class phụ thuộc được khởi tạo trong constructor**. Vì vậy **phải xem toàn bộ cause chain và stack trace**, không chỉ nhìn một wrapper ngoài cùng để đoán vị trí.
+In cases where a throwable arises after the reflective constructor call has begun executing object-initialization code, `InvocationTargetException` may wrap a deeper throwable, including an `ExceptionInInitializerError` from **a dependent class initialized inside the constructor**. Therefore, **inspect the entire cause chain and stack trace**, not just the outermost wrapper to guess the location.
 
-## 6. Bảng phân biệt các lỗi theo thời điểm
+## 6. Table Distinguishing Errors by Timing
 
-| Lỗi | Giai đoạn điển hình | Ý nghĩa và hướng xử lý |
+| Error | Typical stage | Meaning and how to handle |
 | --- | --- | --- |
-| `NoSuchMethodException` | Tra cứu `getDeclaredConstructor(...)` | Không có constructor đúng danh sách kiểu tham số; chưa đến bước gọi |
-| `IllegalAccessException` | Gọi `Constructor.newInstance(...)` khi thiếu quyền | Constructor có nhưng caller không có quyền truy cập phù hợp |
-| `InaccessibleObjectException` | Gọi `setAccessible(true)` | Module đích không cho phép mở quyền sâu trong điều kiện hiện tại |
-| `IllegalArgumentException` | Xác thực đối số khi `newInstance(...)` | Số lượng/loại đối số không phù hợp với signature hoặc thao tác không hợp lệ |
-| `InstantiationException` | Tạo instance một kiểu không thể instantiate (ví dụ abstract class) | Constructor metadata có thể tồn tại, nhưng không thể tạo instance trực tiếp |
-| `ExceptionInInitializerError` | Class initialization trước constructor, khi exception thông thường xảy ra | Xem cause của lỗi static initialization, constructor chưa bắt đầu |
-| `NoClassDefFoundError` | Sử dụng class đã khởi tạo thất bại hoặc không định nghĩa được class | Xem cause/stack trace, đặc biệt log lần đầu class initialization thất bại |
-| `InvocationTargetException` | Throwable từ code được gọi trong quá trình chạy constructor | Xem `getCause()` để tìm lỗi thực tế |
-| `LinkageError` và một số `Error` khác | Nạp/liên kết/khởi tạo class hoặc thực thi | Có thể truyền trực tiếp; phân tích theo loại lỗi và nguyên nhân gốc |
+| `NoSuchMethodException` | Lookup `getDeclaredConstructor(...)` | No constructor with the exact parameter type list; invocation not reached |
+| `IllegalAccessException` | Calling `Constructor.newInstance(...)` without permission | Constructor exists, yet caller lacks appropriate access permission |
+| `InaccessibleObjectException` | Calling `setAccessible(true)` | Target module does not permit opening deep access under current conditions |
+| `IllegalArgumentException` | Validating arguments during `newInstance(...)` | Argument count/types do not match signature or invalid operation |
+| `InstantiationException` | Instantiating a non-instantiable type (e.g. abstract class) | Constructor metadata may exist, yet direct instantiation is impossible |
+| `ExceptionInInitializerError` | Class initialization before constructor, when an ordinary exception occurs | Inspect the cause of the static initialization error; constructor has not started |
+| `NoClassDefFoundError` | Using a class whose initialization failed or cannot be defined | Inspect cause/stack trace, especially logs from the first class initialization failure |
+| `InvocationTargetException` | Throwable from code called while running the constructor | Inspect `getCause()` to find the actual error |
+| `LinkageError` and certain other `Error`s | Loading/linking/initializing a class or executing | May propagate directly; analyze by error type and root cause |
 
-**Đừng nhầm `NoSuchMethodException` với `NoClassDefFoundError`:** cái đầu nói lookup constructor không có chữ ký đã hỏi; cái sau liên quan đến việc class không thể được định nghĩa/khởi tạo/thực thi như yêu cầu. Cũng đừng tự động bắt `Exception` rồi cho rằng đã bắt đủ class initialization errors vì `ExceptionInInitializerError` và `NoClassDefFoundError` đều thuộc nhánh `Error` của `Throwable`.
+**Do not confuse `NoSuchMethodException` with `NoClassDefFoundError`:** the first says constructor lookup found no requested signature; the second relates to a class failing to be defined/initialized/executed as required. Also do not merely catch `Exception` and assume all class initialization errors are caught, because `ExceptionInInitializerError` and `NoClassDefFoundError` both belong to the `Error` branch of `Throwable`.
 
-Cả `InvocationTargetException` và `ExceptionInInitializerError` có thể xuất hiện trong cùng một chuỗi nguyên nhân ở chương trình phức tạp. Hãy phân biệt lỗi *khởi tạo chính class đang new* với lỗi *khởi tạo class phụ thuộc trong thân constructor*.
+Both `InvocationTargetException` and `ExceptionInInitializerError` can appear in the same cause chain in complex programs. Distinguish an error *initializing the class being instantiated* from an error *initializing a dependent class inside the constructor body*.
 
-## 7. Vai trò của `Class.forName`: lỗi có thể xảy ra sớm hơn bạn nghĩ
+## 7. Role of `Class.forName`: Errors Can Happen Earlier Than You Think
 
-Nếu trình tự mã là:
+If the code sequence is:
 
 ~~~java
 Class<?> type = Class.forName("com.example.Broken");
@@ -367,7 +367,7 @@ Constructor<?> ctor = type.getDeclaredConstructor();
 Object value = ctor.newInstance();
 ~~~
 
-Đây là **mã minh họa** với class `com.example.Broken` giả định. `Class.forName(String)` mặc định yêu cầu khởi tạo class, nên static initializer có thể lỗi **ngay ở dòng đầu**, trước khi `getDeclaredConstructor` được gọi. Nếu mục tiêu là phân tích metadata trước khi active use, dùng overload:
+This is **illustrative code** with a hypothetical `com.example.Broken` class. `Class.forName(String)` requests class initialization by default, so the static initializer can fail **right on the first line**, before `getDeclaredConstructor` is called. If the goal is analyzing metadata before active use, use the overload:
 
 ~~~java
 ClassLoader loader = Thread.currentThread().getContextClassLoader();
@@ -376,36 +376,36 @@ Class<?> type = Class.forName(
         "com.example.Broken", false, loader);
 
 Constructor<?> ctor = type.getDeclaredConstructor();
-// Chỉ khi gọi ctor.newInstance() mới yêu cầu class đích khởi tạo.
+// Only calling ctor.newInstance() requires the target class to initialize.
 ~~~
 
-Đoạn này cũng là **mã minh họa**, cần class có thật, quyền Reflection hợp lệ và xử lý ngoại lệ. `initialize=false` trì hoãn **initialization** chứ không biến class lỗi thành class có thể khởi tạo thành công. Việc nạp/liên kết hoặc kiểm tra class loader vẫn có thể gặp lỗi riêng.
+This snippet is also **illustrative code**, requiring a real class, valid Reflection permissions, and exception handling. `initialize=false` defers **initialization** rather than turning a broken class into one that can initialize successfully. Loading/linking or class loader checks can still encounter their own errors.
 
-Không dùng phương án `Class.forName(name, false, loader)` như cơ chế bảo mật để chạy code không tin cậy; nó chỉ thay đổi thời điểm class initialization chứ không loại bỏ các tác động khi class được sử dụng về sau.
+Do not use `Class.forName(name, false, loader)` as a security mechanism for untrusted code; it only changes the timing of class initialization rather than eliminating effects when the class is used later.
 
-## 8. Constructor Reflection còn có thể thất bại trước khi thực thi mã ứng dụng
+## 8. Constructor Reflection Can Also Fail Before Executing Application Code
 
-### Chữ ký phải khớp tuyệt đối
+### Signatures Must Match Strictly
 
 ~~~java
 Constructor<?> ctor = Example.class
         .getDeclaredConstructor(String.class, int.class);
 ~~~
 
-Đoạn này chỉ hợp lệ khi `Example` khai báo constructor đúng danh sách tham số `String, int`. Reflection **không** dùng autoboxing hoặc widening để tìm constructor theo "chữ ký gần đúng":
+This snippet is valid only when `Example` declares a constructor with the exact parameter list `String, int`. Reflection **does not** use autoboxing or widening to find a constructor by "approximate signature":
 
-- `int.class` khác `Integer.class`.
-- `String[].class` khác `String.class`; varargs `String...` được biểu diễn là tham số mảng `String[]`.
-- Parameterized type như `List<String>` chịu type erasure ở runtime và thường tra theo `List.class`.
-- Constructor không được kế thừa, nên không thể tra constructor của superclass trên `Class<?>` của subclass.
+- `int.class` differs from `Integer.class`.
+- `String[].class` differs from `String.class`; varargs `String...` is represented as an array parameter `String[]`.
+- Parameterized types like `List<String>` undergo type erasure at runtime and are normally looked up with `List.class`.
+- Constructors are not inherited, so you cannot look up a superclass constructor on a subclass's `Class<?>`.
 
-Sai chữ ký làm `getDeclaredConstructor` ném `NoSuchMethodException`, ngay cả khi constructor khác có thể tạo instance hợp lệ.
+A wrong signature causes `getDeclaredConstructor` to throw `NoSuchMethodException`, even if another constructor could create a valid instance.
 
-### Quyền truy cập và ranh giới module
+### Access Permissions and Module Boundaries
 
-`getDeclaredConstructor` có thể trả metadata cho constructor `private`, nhưng `newInstance` còn kiểm tra truy cập. Nếu cần deep reflection, `trySetAccessible()` có thể trả `false` khi module không cho phép; `setAccessible(true)` có thể ném `InaccessibleObjectException`. Nếu caller và target cùng module, thường có thể mở quyền sâu theo quy tắc JPMS, nhưng chỉ nên làm khi có mục tiêu chính đáng và đã xử lý điều kiện thất bại.
+`getDeclaredConstructor` can return metadata for a `private` constructor, yet `newInstance` also checks access. If deep reflection is needed, `trySetAccessible()` can return `false` when the module forbids it; `setAccessible(true)` can throw `InaccessibleObjectException`. If caller and target are in the same module, deep access can normally be opened per JPMS rules, yet should only be done with legitimate reason and failure handling.
 
-Một pattern an toàn:
+A safe pattern:
 
 ~~~java
 Constructor<?> ctor = type.getDeclaredConstructor(String.class);
@@ -417,24 +417,24 @@ if (!ctor.canAccess(null) && !ctor.trySetAccessible()) {
 Object instance = ctor.newInstance("demo");
 ~~~
 
-Đây là **đoạn mã minh họa**, với `type` là `Class<?>` hợp lệ. `Constructor#canAccess` dùng đối số `null`. Với field/method instance sẽ dùng receiver tương ứng. Nếu code dừng ở bước kiểm tra quyền, đó **không phải** lỗi trong thân constructor.
+This is an **illustrative snippet**, with `type` being a valid `Class<?>`. `Constructor#canAccess` takes argument `null`. Instance fields/methods use their corresponding receiver. If execution stops at the permission check, that **is not** an error inside the constructor body.
 
-### Kiểu không được tạo instance trực tiếp
+### Types That Cannot Be Instantiated Directly
 
-Một abstract class có thể có constructor để subclass gọi `super(...)`, và Reflection có thể tìm metadata của constructor đó, nhưng `Constructor.newInstance` vẫn không thể tạo object trực tiếp của abstract class: có thể ném `InstantiationException`. Interface không có constructor instance để tra cứu theo cách thông thường. Constructor enum cũng chịu hạn chế riêng khi khởi tạo qua Reflection; đừng dùng `Constructor.newInstance` để tạo enum constant mới.
+An abstract class can have constructors for subclasses to call `super(...)`, and Reflection can find that constructor's metadata, yet `Constructor.newInstance` still cannot directly create an object of the abstract class: it can throw `InstantiationException`. Interfaces have no instance constructors to look up in the ordinary way. Enum constructors also have special restrictions when instantiating via Reflection; do not use `Constructor.newInstance` to create new enum constants.
 
-## 9. Cách đọc stack trace để tìm gốc lỗi
+## 9. How to Read Stack Traces to Locate the Root Error
 
-Một quy trình chẩn đoán hữu ích:
+A useful diagnostic workflow:
 
-1. **Đánh dấu giai đoạn:** log sau khi có `Class<?>`, sau khi tìm `Constructor<?>`, ngay trước và ngay sau `newInstance`. Thông tin này giúp biết lỗi xảy ra ở lookup, initialization hay invocation.
-2. **Phân loại throwable:** `NoSuchMethodException` ở lookup; lỗi truy cập/đối số trước khi vào code đích; `ExceptionInInitializerError` liên quan initialization; `InvocationTargetException` liên quan throwable trong việc thực thi constructor.
-3. **Đi sâu vào cause:** in class name, message và `getCause()` lặp lại có giới hạn hoặc ghi đầy đủ stack trace vào log an toàn.
-4. **Xác định class thực sự thất bại:** có thể là superclass, class đích hoặc class phụ thuộc được active-use trong constructor.
-5. **Nếu gặp `NoClassDefFoundError` ở lần sau:** tìm log **lần sử dụng đầu tiên**; lỗi thứ hai thường chỉ là hậu quả của init failure đầu.
-6. **Sửa nguyên nhân gốc:** cấu hình static, file, classpath/module path, dependency, quyền truy cập hoặc logic constructor; hạn chế retry mù quáng nếu class đã ở trạng thái erroneous.
+1. **Mark stages:** log after obtaining `Class<?>`, after finding `Constructor<?>`, right before and right after `newInstance`. This helps identify whether the error occurred during lookup, initialization, or invocation.
+2. **Classify the throwable:** `NoSuchMethodException` at lookup; access/argument errors before entering target code; `ExceptionInInitializerError` related to initialization; `InvocationTargetException` related to throwables during constructor execution.
+3. **Walk the causes:** print class name, message, and bounded repeated `getCause()` calls or write the full stack trace to a secure log.
+4. **Identify the actually failing class:** it may be a superclass, the target class, or a dependent class actively used inside the constructor.
+5. **If `NoClassDefFoundError` appears on a later attempt:** check logs from **the first use**; the second error is often just a consequence of the first init failure.
+6. **Fix the root cause:** static configuration, files, classpath/module path, dependencies, access permissions, or constructor logic; avoid blind retries once the class is in an erroneous state.
 
-Ví dụ đoạn mã phân loại trong ứng dụng (giả sử `ctor` đã xác định và quyền truy cập hợp lệ):
+Example diagnostic classification snippet in an application (assuming `ctor` is already identified and access is permitted):
 
 ~~~java
 try {
@@ -450,83 +450,83 @@ try {
 }
 ~~~
 
-Đây là **mã minh họa chẩn đoán**, cần được đặt trong phương thức khai báo/xử lý thêm checked exceptions như `InstantiationException` và `IllegalAccessException`; nó không phải chương trình độc lập. Log thực tế phải tránh tiết lộ bí mật từ exception message hoặc stack trace nếu dữ liệu nhạy cảm.
+This is **diagnostic illustrative code**, which must be placed in a method declaring/handling additional checked exceptions such as `InstantiationException` and `IllegalAccessException`; it is not a standalone program. Real logs must avoid leaking secrets from exception messages or stack traces if sensitive data is involved.
 
-## 10. Khởi tạo thất bại có thể được chạy lại không?
+## 10. Can Failed Initialization Be Retried?
 
-Nếu static initialization của class **thất bại**, JVM đánh dấu class ở trạng thái erroneous trong runtime định nghĩa class đó. Một lần `newInstance` thứ hai trên **chính class ấy** thường sẽ thất bại với `NoClassDefFoundError`; không có API Reflection chuẩn để "reset" trạng thái class và chạy lại static initializer của cùng `Class<?>`.
+If a class's static initialization **fails**, the JVM marks the class in an erroneous state within the runtime that defined it. A second `newInstance` on **that exact class** will typically fail with `NoClassDefFoundError`; there is no standard Reflection API to "reset" class state and rerun the static initializer of the same `Class<?>`.
 
-Muốn phục hồi, thường phải xử lý nguyên nhân trước khi JVM khởi tạo class (ví dụ cấu hình hợp lệ), khởi động lại tiến trình, hoặc trong kiến trúc được thiết kế đặc biệt, nạp một bản định nghĩa class mới bằng class loader khác và xử lý lifecycle tương ứng. Đừng dùng loader mới làm giải pháp chữa cháy chung vì nó có thể thay đổi danh tính kiểu và quản lý tài nguyên phức tạp hơn.
+To recover, one must usually resolve the cause before the JVM initializes the class (e.g. valid configuration), restart the process, or in a specially designed architecture, load a new class definition with another class loader and manage its lifecycle accordingly. Do not use a new loader as a generic band-aid because it can alter type identity and complicate resource management.
 
-Ngược lại, nếu **constructor** ném exception sau khi class đã init thành công, class không bị đánh dấu erroneous chỉ vì constructor thất bại. Lời gọi constructor tiếp theo có thể chạy lại và có thể thành công nếu điều kiện đầu vào/trạng thái cho phép.
+Conversely, if a **constructor** throws an exception after the class has initialized successfully, the class is not marked erroneous merely because the constructor failed. Subsequent constructor calls can rerun and may succeed if input/state conditions allow.
 
-### Vấn đề đa luồng
+### Multithreading Aspects
 
-Initialization của một class được JVM đồng bộ theo quy tắc riêng. Một thread khởi tạo class và thất bại thì những thread khác cần sử dụng class đó có thể nhận lỗi do class không khởi tạo được. Không nên viết logic chỉ nhìn `ExceptionInInitializerError` để xác nhận tất cả các thread đều quan sát cùng một exception wrapper. Giữ nguyên cause chain và log sự kiện đầu giúp điều tra chính xác hơn.
+Class initialization is synchronized by the JVM under its own rules. If one thread initializes a class and fails, other threads needing that class can receive errors because the class failed to initialize. Do not write logic inspecting only `ExceptionInInitializerError` to assume every thread observes the same exception wrapper. Preserving the cause chain and logging the first event makes investigation far more accurate.
 
-## 11. Liên hệ với `Class.newInstance()` cũ
+## 11. Connection to the Legacy `Class.newInstance()`
 
-`Class.newInstance()` đã deprecated từ Java 9 và có thể để ngoại lệ checked từ constructor thoát ra theo cách gây khó khăn cho kiểm tra ngoại lệ. Ưu tiên `getDeclaredConstructor().newInstance()` để chọn constructor và nhận `InvocationTargetException#getCause()` cho lỗi trong quá trình khởi tạo instance. Cả hai API vẫn tuân theo quy tắc **class phải khởi tạo thành công trước khi constructor có thể chạy**; vì vậy phải phân biệt lỗi static initialization với lỗi trong constructor.
+`Class.newInstance()` has been deprecated since Java 9 and can let checked exceptions escape from the constructor in a way that undermines exception checking. Prefer `getDeclaredConstructor().newInstance()` to select constructors and read `InvocationTargetException#getCause()` for errors during instance initialization. Both APIs still obey the rule that **the class must initialize successfully before the constructor can run**; therefore static initialization errors must be distinguished from errors inside the constructor.
 
-## 12. Các lỗi suy luận thường gặp
+## 12. Common Reasoning Errors
 
-1. **Tưởng `getDeclaredConstructor` chạy static block.** Đây là lookup metadata; active use thông qua `newInstance` hoặc `Class.forName(name)` mới có thể yêu cầu initialization.
-2. **Đồng nhất `<clinit>` với `<init>`.** `<clinit>` là class initialization; `<init>` là constructor của mỗi instance.
-3. **Thấy `ExceptionInInitializerError` rồi sửa constructor body.** Trước hết phải kiểm tra static field initializer/static block và initialization của superclass.
-4. **Thấy `InvocationTargetException` rồi chỉ log wrapper.** Lấy `getCause()` để thấy throwable thực sự từ constructor path.
-5. **Thấy `NoClassDefFoundError` rồi kết luận class file bị xóa.** Có thể class init đã thất bại trước đó; tìm log ban đầu.
-6. **Cho rằng mọi init failure đều bọc `ExceptionInInitializerError`.** Lỗi thuộc nhánh `Error` có thể truyền trực tiếp.
-7. **Cho rằng constructor ném exception khiến class unusable mãi mãi.** Điều này khác class initialization thất bại; một constructor call lỗi không tự biến class thành erroneous.
-8. **Bắt mỗi `Exception` để xử lý mọi loại thất bại.** `ExceptionInInitializerError`, `NoClassDefFoundError` thuộc `Error`; phân loại rõ rồi để lỗi nghiêm trọng đi lên khi phù hợp.
-9. **Tự động mở toàn bộ module vì constructor `private`.** Quy tắc JPMS và quyền truy cập phải được xử lý cụ thể; mở module không sửa lỗi static initialization.
-10. **Retry liên tục cùng `Constructor` sau khi class init thất bại.** Việc gọi lại không reset static state; có thể chỉ tạo chuỗi `NoClassDefFoundError`.
-11. **Lẫn lỗi sai tham số với lỗi bên trong constructor.** `IllegalArgumentException` do `newInstance` kiểm tra argument khác với `InvocationTargetException` có `cause` là `IllegalArgumentException` do constructor tự ném.
-12. **Không để ý superclass/instance initializer.** Lỗi ở code khởi tạo object của superclass hay initializer có thể xảy ra trước dòng đầu thân constructor của subclass, dù class initialization của subclass đã thành công.
+1. **Thinking `getDeclaredConstructor` runs the static block.** It is a metadata lookup; active use via `newInstance` or `Class.forName(name)` is what can require initialization.
+2. **Equating `<clinit>` with `<init>`.** `<clinit>` is class initialization; `<init>` is each instance's constructor.
+3. **Seeing `ExceptionInInitializerError` and editing the constructor body.** First check static field initializers/static blocks and superclass initialization.
+4. **Seeing `InvocationTargetException` and logging only the wrapper.** Call `getCause()` to see the actual throwable from the constructor path.
+5. **Seeing `NoClassDefFoundError` and concluding the class file was deleted.** Class init may have failed earlier; look for the initial log.
+6. **Assuming every init failure wraps in `ExceptionInInitializerError`.** Errors in the `Error` branch can propagate directly.
+7. **Assuming a constructor throwing an exception makes the class permanently unusable.** That differs from failed class initialization; a failed constructor call does not automatically turn the class erroneous.
+8. **Catching only `Exception` to handle all failure types.** `ExceptionInInitializerError` and `NoClassDefFoundError` belong to `Error`; classify clearly and let severe errors surface where appropriate.
+9. **Automatically opening an entire module because of a `private` constructor.** JPMS rules and access permissions must be handled specifically; opening a module does not fix a static initialization error.
+10. **Repeatedly retrying the same `Constructor` after class init fails.** Calling again does not reset static state; it may only produce a stream of `NoClassDefFoundError`.
+11. **Confusing wrong-parameter errors with errors inside the constructor.** `IllegalArgumentException` from `newInstance` argument checking differs from `InvocationTargetException` whose `cause` is an `IllegalArgumentException` thrown by the constructor itself.
+12. **Overlooking superclasses/instance initializers.** Errors in superclass object initialization or initializers can happen before the first line of the subclass constructor body, even though the subclass's class initialization succeeded.
 
-## 13. Bài tự kiểm tra
+## 13. Self-Check Exercise
 
-**Câu 1.** `SomeType.class.getDeclaredConstructor()` có bảo đảm static block của `SomeType` đã chạy không?
+**Question 1.** Does `SomeType.class.getDeclaredConstructor()` guarantee that `SomeType`'s static block has run?
 
-**Đáp án:** Không. Lấy metadata constructor không tự khởi tạo class đích.
+**Answer:** No. Retrieving constructor metadata does not initialize the target class.
 
-**Câu 2.** Static field initializer của class đích ném `IllegalStateException` ở lần active use đầu. `Constructor.newInstance` thường biểu hiện lỗi gì?
+**Question 2.** The target class's static field initializer throws `IllegalStateException` on first active use. What error does `Constructor.newInstance` typically exhibit?
 
-**Đáp án:** `ExceptionInInitializerError` có `cause` là `IllegalStateException`, phát sinh trước khi constructor body bắt đầu.
+**Answer:** `ExceptionInInitializerError` with `cause` being `IllegalStateException`, occurring before the constructor body begins.
 
-**Câu 3.** Sau init failure, vì sao gọi lại cùng `Constructor.newInstance` thường ném `NoClassDefFoundError`?
+**Question 3.** After init failure, why does calling the same `Constructor.newInstance` again usually throw `NoClassDefFoundError`?
 
-**Đáp án:** JVM đánh dấu class đã khởi tạo thất bại ở trạng thái erroneous, nên không chạy lại static initializer như một lần thử mới bình thường.
+**Answer:** The JVM marks the failed-initialization class in an erroneous state, so it does not rerun the static initializer as an ordinary fresh attempt.
 
-**Câu 4.** Static initializer chạy thành công, nhưng constructor ném `IllegalArgumentException`. Reflection trả lỗi gì?
+**Question 4.** The static initializer runs successfully, yet the constructor throws `IllegalArgumentException`. What error does Reflection return?
 
-**Đáp án:** `InvocationTargetException`; gọi `getCause()` sẽ thấy `IllegalArgumentException`.
+**Answer:** `InvocationTargetException`; calling `getCause()` reveals `IllegalArgumentException`.
 
-**Câu 5.** Nếu `Class.forName("pkg.Broken")` được gọi trước lookup constructor thì init failure xảy ra ở đâu?
+**Question 5.** If `Class.forName("pkg.Broken")` is called before constructor lookup, where does init failure occur?
 
-**Đáp án:** Có thể nổ ngay tại `Class.forName(String)`, vì overload này mặc định yêu cầu initialization.
+**Answer:** It can blow up right at `Class.forName(String)`, because this overload requests initialization by default.
 
-**Câu 6.** Constructor của class con ném lỗi từ superclass constructor trước khi subclass body bắt đầu. Có thể thấy `InvocationTargetException` không?
+**Question 6.** A subclass constructor hits an error from a superclass constructor before the subclass body starts. Can `InvocationTargetException` be observed?
 
-**Đáp án:** Có. Đường thực thi gọi constructor bao gồm bước gọi superclass constructor; `InvocationTargetException#getCause()` giúp truy ngược throwable từ quá trình khởi tạo đối tượng.
+**Answer:** Yes. The constructor invocation path includes calling the superclass constructor; `InvocationTargetException#getCause()` traces back to the throwable from object initialization.
 
-**Câu 7.** `NoSuchMethodException` khi gọi `getDeclaredConstructor(int.class)` có đồng nghĩa lỗi class initialization không?
+**Question 7.** Does `NoSuchMethodException` when calling `getDeclaredConstructor(int.class)` mean a class initialization error?
 
-**Đáp án:** Không. Đây là thất bại của tra cứu chữ ký constructor, xảy ra trước việc gọi constructor.
+**Answer:** No. That is a failure of constructor signature lookup, occurring before constructor invocation.
 
-**Câu 8.** Class đã init thành công, constructor thất bại vì một input cụ thể. Có thể khởi tạo instance khác không?
+**Question 8.** The class initialized successfully, and the constructor failed due to a specific input. Can another instance still be created?
 
-**Đáp án:** Có thể nếu sửa đầu vào/điều kiện và gọi constructor lại; class không trở thành erroneous chỉ vì một constructor call thất bại.
+**Answer:** Yes, if inputs/conditions are fixed and the constructor is invoked again; the class does not become erroneous merely because one constructor call failed.
 
-## 14. Checklist phân tích nhanh
+## 14. Quick Analysis Checklist
 
-Khi lỗi Reflection liên quan constructor, hãy ghi lại:
+When a Reflection error involves a constructor, note:
 
-- **Class đích:** tên `Class#getName()`, class loader và module khi liên quan.
-- **Metadata:** constructor tìm được chưa? Chữ ký `getParameterTypes()` đúng chưa?
-- **Quyền:** `canAccess(null)`, `trySetAccessible()`, khả năng giới hạn bởi JPMS.
-- **Điểm lỗi:** `Class.forName`, `getDeclaredConstructor`, `newInstance` hay một lời gọi bên trong constructor?
-- **Throwable ngoài cùng và gốc:** `getCause()`, stack trace đầy đủ; có `ExceptionInInitializerError`/`NoClassDefFoundError` hay `InvocationTargetException`?
-- **Thời điểm:** lần active use đầu hay lần dùng tiếp theo? Static initialization đã thành công chưa?
-- **Superclass và dependency:** exception thực sự bắt nguồn từ initializer/constructor nào?
+- **Target class:** `Class#getName()`, class loader, and module when relevant.
+- **Metadata:** Was the constructor found? Is the `getParameterTypes()` signature right?
+- **Permissions:** `canAccess(null)`, `trySetAccessible()`, possible JPMS restrictions.
+- **Failure point:** `Class.forName`, `getDeclaredConstructor`, `newInstance`, or a call inside the constructor?
+- **Outermost and root throwable:** `getCause()`, full stack trace; is it `ExceptionInInitializerError`/`NoClassDefFoundError` or `InvocationTargetException`?
+- **Timing:** First active use or subsequent use? Has static initialization succeeded?
+- **Superclass and dependencies:** Which initializer/constructor did the exception actually originate from?
 
-**Ghi nhớ:** `getDeclaredConstructor()` tìm metadata; `Constructor.newInstance()` yêu cầu class sẵn sàng, vì vậy JVM có thể chạy `<clinit>` **trước** khi vào `<init>`. Static initialization failure thường hiện ra qua `ExceptionInInitializerError` lần đầu và `NoClassDefFoundError` sau đó; throwable từ code của constructor path thường được Reflection bọc thành `InvocationTargetException`. Luôn đọc **cause chain** để sửa đúng nơi xảy ra lỗi.
+**Key takeaway:** `getDeclaredConstructor()` looks up metadata; `Constructor.newInstance()` requires the class to be ready, so the JVM may run `<clinit>` **before** entering `<init>`. Static initialization failure typically surfaces as `ExceptionInInitializerError` the first time and `NoClassDefFoundError` afterward; throwables from code on the constructor path are typically wrapped by Reflection into `InvocationTargetException`. Always read the **cause chain** to fix the exact place where the error occurred.

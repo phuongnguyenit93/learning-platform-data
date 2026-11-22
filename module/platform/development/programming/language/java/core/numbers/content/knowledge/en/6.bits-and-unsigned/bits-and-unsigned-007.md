@@ -1,58 +1,58 @@
-# `compareUnsigned`, `divideUnsigned` và `remainderUnsigned` trong Java
+# `compareUnsigned`, `divideUnsigned`, and `remainderUnsigned` in Java
 
-## 1. Vấn đề: `int`/`long` có dấu nhưng dữ liệu đôi khi phải hiểu là không dấu
+## 1. The Problem: Signed `int`/`long` vs. Data That Must Be Read as Unsigned
 
-Java chỉ có kiểu nguyên thủy `int` 32 bit và `long` 64 bit **có dấu**; không có kiểu nguyên thủy `uint` hay `ulong`. Tuy nhiên, cùng một chuỗi bit có thể được diễn giải thành số có dấu hoặc không dấu:
+Java only has **signed** 32-bit `int` and 64-bit `long` primitive types; there are no primitive `uint` or `ulong` types. However, the same sequence of bits can be interpreted as either a signed or an unsigned number:
 
-| Mẫu bit | Diễn giải có dấu | Diễn giải không dấu |
+| Bit Pattern | Signed Interpretation | Unsigned Interpretation |
 | --- | ---: | ---: |
-| `int` toàn bit `0` | 0 | 0 |
-| `int` `0x7FFFFFFF` | 2.147.483.647 | 2.147.483.647 |
-| `int` `0x80000000` | -2.147.483.648 | 2.147.483.648 |
-| `int` `0xFFFFFFFF` | -1 | 4.294.967.295 |
-| `long` `0xFFFFFFFFFFFFFFFFL` | -1 | 18.446.744.073.709.551.615 |
+| `int` all `0` bits | 0 | 0 |
+| `int` `0x7FFFFFFF` | 2,147,483,647 | 2,147,483,647 |
+| `int` `0x80000000` | -2,147,483,648 | 2,147,483,648 |
+| `int` `0xFFFFFFFF` | -1 | 4,294,967,295 |
+| `long` `0xFFFFFFFFFFFFFFFFL` | -1 | 18,446,744,073,709,551,615 |
 
-Với 32 bit, miền không dấu là `0..2^32-1`; với 64 bit, miền không dấu là `0..2^64-1`. Hai cách hiểu **không thay đổi các bit đang lưu**. Chúng chỉ thay đổi ý nghĩa của việc so sánh, chia, lấy dư hoặc hiển thị các bit đó.
+With 32 bits, the unsigned range is `0..2^32-1`; with 64 bits, the unsigned range is `0..2^64-1`. The two views **do not alter the stored bits**. They only change the meaning of comparing, dividing, taking the remainder, or displaying those bits.
 
-Ví dụ, `int value = -1;` có mẫu bit `0xFFFFFFFF`. Nếu dùng quy tắc số có dấu, `-1 < 1`; nếu diễn giải như số không dấu 32 bit, `4_294_967_295 > 1`. Java cung cấp các phương thức tĩnh giúp thực hiện **phép toán theo cách hiểu không dấu** mà vẫn dùng `int`/`long`.
+For example, `int value = -1;` has the bit pattern `0xFFFFFFFF`. Under signed rules, `-1 < 1`; when interpreted as a 32-bit unsigned number, `4_294_967_295 > 1`. Java provides static methods to perform **operations under unsigned semantics** while still using `int`/`long`.
 
-Ba nhóm API chính (có từ Java 8):
+Three main API groups (available since Java 8):
 
-- `Integer.compareUnsigned(int x, int y)` và `Long.compareUnsigned(long x, long y)`.
-- `Integer.divideUnsigned(int dividend, int divisor)` và `Long.divideUnsigned(long dividend, long divisor)`.
-- `Integer.remainderUnsigned(int dividend, int divisor)` và `Long.remainderUnsigned(long dividend, long divisor)`.
+- `Integer.compareUnsigned(int x, int y)` and `Long.compareUnsigned(long x, long y)`.
+- `Integer.divideUnsigned(int dividend, int divisor)` and `Long.divideUnsigned(long dividend, long divisor)`.
+- `Integer.remainderUnsigned(int dividend, int divisor)` and `Long.remainderUnsigned(long dividend, long divisor)`.
 
-Các phương thức này phù hợp khi một **giao thức, trường bit, định dạng file, bộ đếm hoặc mã định danh** định nghĩa các bit là số nguyên không dấu. Chúng không biến Java thành ngôn ngữ có kiểu nguyên thủy unsigned mới.
+These methods are appropriate when a **protocol, bit field, file format, counter, or identifier** defines the bits as an unsigned integer. They do not turn Java into a language with new unsigned primitive types.
 
-## 2. Ngữ nghĩa của `compareUnsigned`
+## 2. Semantics of `compareUnsigned`
 
-`compareUnsigned(x, y)` so sánh hai mẫu bit sau khi diễn giải chúng là **số không dấu**, rồi trả về một `int`:
+`compareUnsigned(x, y)` compares two bit patterns after interpreting them as **unsigned numbers**, and returns an `int`:
 
-- Giá trị **âm**: `x` nhỏ hơn `y` theo thứ tự không dấu.
-- `0`: hai mẫu bit bằng nhau.
-- Giá trị **dương**: `x` lớn hơn `y` theo thứ tự không dấu.
+- **Negative** value: `x` is less than `y` in unsigned order.
+- `0`: both bit patterns are equal.
+- **Positive** value: `x` is greater than `y` in unsigned order.
 
-Không nên phụ thuộc vào giá trị chính xác là `-1` hay `1`; hợp đồng của phương thức là **dấu của kết quả**. Khi dùng Comparator, kiểm tra `< 0`, `== 0` hoặc `> 0`.
+Do not rely on the exact return value being `-1` or `1`; the method's contract is the **sign of the result**. When using a Comparator, check `< 0`, `== 0`, or `> 0`.
 
 ```java
-int a = -1;  // bit 0xFFFFFFFF => unsigned 4294967295.
+int a = -1;  // bits 0xFFFFFFFF => unsigned 4294967295.
 int b = 1;
 
 System.out.println(Integer.compare(a, b) < 0);         // true.
 System.out.println(Integer.compareUnsigned(a, b) > 0); // true.
 ```
 
-Với phép so sánh thông thường, `-1 < 1`. Với unsigned, `0xFFFFFFFF` đại diện cho `4_294_967_295` nên lớn hơn `1`.
+Under ordinary comparison, `-1 < 1`. Under unsigned semantics, `0xFFFFFFFF` represents `4_294_967_295`, so it is greater than `1`.
 
-Một cách đọc nhanh mẫu bit:
+A quick way to read bit patterns:
 
-- Nếu hai `int` cùng có bit dấu bằng `0`, so sánh có dấu và không dấu có cùng thứ tự.
-- Nếu hai `int` cùng có bit dấu bằng `1`, thứ tự so sánh của chúng cũng giống nhau (cả hai cùng nằm ở nửa cao của miền unsigned).
-- Nếu một giá trị có bit dấu `1` (hiện ra là số âm) và giá trị kia có bit dấu `0`, **giá trị hiện ra âm sẽ lớn hơn theo unsigned**.
+- If two `int`s both have sign bit `0`, signed and unsigned comparisons have the same order.
+- If two `int`s both have sign bit `1`, their relative comparison order is also the same (both lie in the upper half of the unsigned range).
+- If one value has sign bit `1` (appearing negative) and the other has sign bit `0`, **the value appearing negative is greater as unsigned**.
 
-Quy tắc tương tự áp dụng cho `long` với 64 bit.
+The same rule applies to 64-bit `long`.
 
-### Ví dụ sắp xếp theo thứ tự không dấu
+### Example: sorting in unsigned order
 
 ```java
 import java.util.ArrayList;
@@ -63,25 +63,25 @@ numbers.sort(Integer::compareUnsigned);
 System.out.println(numbers); // [0, 2, -2, -1]
 ```
 
-Danh sách vẫn in các giá trị theo kiểu `int` **có dấu**, nhưng thứ tự sắp xếp đã dựa trên ý nghĩa unsigned: `0`, `2`, `4_294_967_294`, `4_294_967_295`. Đừng dùng `Comparator.naturalOrder()` hoặc phép so sánh `<` có dấu nếu trường dữ liệu bắt buộc được xếp theo unsigned.
+The list still prints the values in **signed** `int` form, yet the sort order is based on unsigned meaning: `0`, `2`, `4_294_967_294`, `4_294_967_295`. Do not use `Comparator.naturalOrder()` or signed `<` comparison when a field must be ordered as unsigned.
 
-Lưu ý `Arrays.sort(int[])` sắp xếp theo số `int` có dấu. Để có comparator unsigned, ví dụ trên dùng danh sách `Integer` hoặc cần triển khai chiến lược sắp xếp unsigned riêng.
+Note that `Arrays.sort(int[])` sorts as signed `int`. To use an unsigned comparator, the example above uses a `List<Integer>`, or else you need to implement a custom unsigned sorting strategy.
 
-## 3. Ngữ nghĩa của `divideUnsigned` và `remainderUnsigned`
+## 3. Semantics of `divideUnsigned` and `remainderUnsigned`
 
-Với hai mẫu bit có cùng độ rộng `w`, đặt:
+Given two bit patterns of the same bit width `w`, let:
 
-- `A` là giá trị không dấu của `dividend`, trong miền `0..2^w-1`.
-- `B` là giá trị không dấu của `divisor`, **phải khác 0**.
-- `Q = floor(A / B)` là thương nguyên không dấu.
-- `R = A - B * Q` là số dư, thỏa `0 <= R < B`.
+- `A` be the unsigned value of `dividend`, in `0..2^w-1`.
+- `B` be the unsigned value of `divisor`, which **must be nonzero**.
+- `Q = floor(A / B)` be the unsigned integer quotient.
+- `R = A - B * Q` be the remainder, satisfying `0 <= R < B`.
 
-Khi `divisor` có mẫu bit bằng 0, cả hai phương thức chia/lấy dư unsigned đều ném `ArithmeticException`, giống phép chia nguyên thông thường.
+When `divisor` has an all-zero bit pattern, both unsigned divide and remainder methods throw `ArithmeticException`, just like ordinary integer division.
 
-### Ví dụ với `int`
+### Example with `int`
 
 ```java
-int dividend = -1; // 0xFFFFFFFF, nghĩa unsigned = 4294967295.
+int dividend = -1; // 0xFFFFFFFF, unsigned value = 4294967295.
 int divisor = 10;
 
 int signedQuotient = dividend / divisor;
@@ -95,25 +95,25 @@ System.out.println(unsignedQuotient); // 429496729
 System.out.println(unsignedRemainder);// 5
 ```
 
-Về unsigned, `4_294_967_295 = 10 × 429_496_729 + 5`. Kết quả unsigned khác hoàn toàn so với `-1 / 10 == 0` và `-1 % 10 == -1` theo phép toán có dấu. Đây là **thay đổi quy tắc số học**, không đơn thuần thay đổi cách in số.
+As unsigned, `4_294_967_295 = 10 × 429_496_729 + 5`. The unsigned results differ completely from `-1 / 10 == 0` and `-1 % 10 == -1` under signed operations. This is a **change in arithmetic rules**, not merely a change in how numbers are printed.
 
-### Trường hợp mẫu số có bit dấu bằng 1
+### Case where the divisor has sign bit 1
 
 ```java
 int dividend = 10;
-int divisor = -1; // Nghĩa unsigned = 4294967295.
+int divisor = -1; // Unsigned value = 4294967295.
 
 System.out.println(Integer.divideUnsigned(dividend, divisor));    // 0
 System.out.println(Integer.remainderUnsigned(dividend, divisor)); // 10
 ```
 
-Dưới cách hiểu unsigned, mẫu số lớn hơn tử số, nên thương bằng 0 và dư bằng chính tử số. Không được coi mẫu số `-1` là số âm khi suy luận về kết quả unsigned.
+Under unsigned interpretation, the divisor is larger than the dividend, so the quotient is 0 and the remainder equals the dividend itself. Do not treat the divisor `-1` as a negative number when reasoning about unsigned results.
 
-## 4. Kết quả phép chia unsigned vẫn có kiểu `int`/`long`
+## 4. Unsigned Division Results Still Have Type `int`/`long`
 
-Đây là điểm dễ gây hiểu nhầm nhất: các API unsigned **trả về kiểu nguyên thủy có dấu của Java**.
+This is the easiest point to misunderstand: the unsigned APIs **return Java's signed primitive types**.
 
-`Integer.divideUnsigned` trả về `int`; `Long.divideUnsigned` trả về `long`. Nếu thương unsigned lớn hơn miền dương của kiểu đó, mẫu bit kết quả khi in trực tiếp có thể xuất hiện như **một số âm**.
+`Integer.divideUnsigned` returns `int`; `Long.divideUnsigned` returns `long`. If the unsigned quotient exceeds the positive range of that type, the resulting bit pattern can appear as **a negative number** when printed directly.
 
 ```java
 int x = -1; // unsigned 4294967295.
@@ -124,9 +124,9 @@ System.out.println(Integer.toUnsignedString(q)); // 4294967295
 System.out.println(Integer.toUnsignedLong(q));   // 4294967295
 ```
 
-Lý do: thương unsigned thực sự là `4_294_967_295`, có mẫu bit `0xFFFFFFFF`. API trả mẫu bit đó dưới kiểu `int`, nên `System.out.println(q)` in `-1` theo cách hiểu có dấu. Muốn đọc đúng unsigned, dùng `Integer.toUnsignedString(q)` hoặc chuyển thành `long` không dấu với `Integer.toUnsignedLong(q)`.
+Reason: the actual unsigned quotient is `4_294_967_295`, which has the bit pattern `0xFFFFFFFF`. The API returns that bit pattern as an `int`, so `System.out.println(q)` prints `-1` under signed interpretation. To read it properly as unsigned, use `Integer.toUnsignedString(q)` or convert to an unsigned `long` via `Integer.toUnsignedLong(q)`.
 
-**Đặc biệt với `long`**:
+**Especially with `long`**:
 
 ```java
 long allBits = -1L; // unsigned 18446744073709551615.
@@ -136,7 +136,7 @@ System.out.println(quotient);                       // -1
 System.out.println(Long.toUnsignedString(quotient)); // 18446744073709551615
 ```
 
-Không có một kiểu nguyên thủy Java nào đủ lưu toàn bộ miền unsigned 64 bit dưới dạng một **số không âm**. Nếu cần biểu diễn số nguyên toán học từ 0 đến `2^64-1`, có thể dùng `BigInteger` thông qua chuỗi unsigned:
+No Java primitive type can store the entire unsigned 64-bit range as a **non-negative number**. If you need to represent mathematical integers from 0 to `2^64-1`, you can use `BigInteger` via the unsigned string:
 
 ```java
 import java.math.BigInteger;
@@ -146,11 +146,11 @@ BigInteger asPositive = new BigInteger(Long.toUnsignedString(bits));
 System.out.println(asPositive); // 18446744073709551615
 ```
 
-Đừng dùng `BigInteger.valueOf(bits)` trong trường hợp muốn số **không dấu**: nó bảo toàn giá trị có dấu `-1`.
+Do not use `BigInteger.valueOf(bits)` when you want an **unsigned** number: it preserves the signed value `-1`.
 
-## 5. So sánh unsigned không đồng nghĩa với ép kiểu mở rộng thông thường
+## 5. Unsigned Conversion Is Not Ordinary Widening Conversion
 
-Một `int` âm khi gán thẳng vào `long` được **mở rộng dấu**:
+A negative `int` assigned directly to `long` is **sign-extended**:
 
 ```java
 int bits = -1;
@@ -162,7 +162,7 @@ System.out.println(signedWiden);   // -1
 System.out.println(unsignedWiden); // 4294967295
 ```
 
-`Integer.toUnsignedLong(bits)` tương đương với `bits & 0xFFFF_FFFFL`. Mặt nạ giữ đúng 32 bit của `int` và xóa các bit cao trong `long`. Đây là cách có ích khi muốn làm phép tính unsigned 32 bit bằng một kiểu **đủ rộng để giữ toàn bộ giá trị 32 bit ở dạng không âm**.
+`Integer.toUnsignedLong(bits)` is equivalent to `bits & 0xFFFF_FFFFL`. The mask keeps the exact 32 bits of the `int` and clears the upper bits in `long`. This is useful when you want to do unsigned 32-bit arithmetic using a type **wide enough to hold every 32-bit value in non-negative form**.
 
 ```java
 int a = -1;
@@ -175,9 +175,9 @@ long quotient = unsignedA / unsignedB; // 2147483647
 long remainder = unsignedA % unsignedB; // 1
 ```
 
-Với `int`, cách mở rộng đúng vào `long` rồi chia hoạt động vì `long` đủ sức chứa `0..2^32-1`. Nhưng với **unsigned `long`**, không thể dùng `long` như một nơi chứa toàn bộ miền 0..2^64-1 dưới dạng số không âm. Đó là lý do `Long.divideUnsigned`/`Long.remainderUnsigned` đặc biệt hữu ích; nếu cần tính toán với số lớn vượt miền, hãy dùng `BigInteger`.
+For `int`, widening properly into `long` and then dividing works because `long` can hold `0..2^32-1`. However, for **unsigned `long`**, `long` cannot serve as a container for the full 0..2^64-1 range as non-negative values. That is why `Long.divideUnsigned`/`Long.remainderUnsigned` are especially valuable; if you need arithmetic on large numbers beyond that range, use `BigInteger`.
 
-## 6. Ví dụ unsigned 64 bit: so sánh và chia mà không mất bit
+## 6. Unsigned 64-Bit Example: Comparing and Dividing Without Losing Bits
 
 ```java
 long maxUnsignedBits = -1L; // 0xFFFFFFFFFFFFFFFF.
@@ -193,13 +193,13 @@ System.out.println(Long.toUnsignedString(q)); // 9223372036854775807
 System.out.println(Long.toUnsignedString(r)); // 1
 ```
 
-Unsigned `2^64-1` chia `2` cho thương `2^63-1`, dư `1`. Trường hợp này thương vừa đúng miền dương `long`, nhưng các phép chia khác có thể trả về bit mang dấu âm; vì vậy dùng `Long.toUnsignedString` là thói quen tốt khi xuất dữ liệu theo định dạng unsigned.
+Unsigned `2^64-1` divided by `2` gives quotient `2^63-1`, remainder `1`. In this case the quotient happens to fit in the positive range of `long`, yet other divisions can return bit patterns with a negative sign bit; therefore using `Long.toUnsignedString` is a good habit when formatting output as unsigned.
 
-**Lưu ý:** `Long.divideUnsigned(x, y)` không làm phép chia dấu phẩy động, không làm tròn và không trả `Infinity`. Đây là phép chia **nguyên không dấu** trên 64 bit; mẫu số bằng `0L` ném `ArithmeticException`.
+**Note:** `Long.divideUnsigned(x, y)` does not perform floating-point division, does not round, and does not return `Infinity`. It is **64-bit unsigned integer division**; a divisor of `0L` throws `ArithmeticException`.
 
-## 7. Liên hệ giữa ba phép toán và quy tắc chia có dư
+## 7. Relationship Between the Three Operations and the Division-with-Remainder Identity
 
-Với các giá trị unsigned `A`, `B != 0`, phép chia đảm bảo:
+For unsigned values `A` and `B != 0`, division guarantees:
 
 ```text
 A = B * Q + R
@@ -207,9 +207,9 @@ A = B * Q + R
 Q = floor(A / B)
 ```
 
-Các biểu thức toán học phía trên được hiểu **trên miền số nguyên không dấu**. Nếu kiểm chứng bằng toán tử `*` và `+` của Java ở cùng độ rộng bit, các phép tính trung gian có thể tràn theo phép toán nguyên cố định và kết quả hiển thị dưới dạng số có dấu.
+The mathematical expressions above are understood **over the domain of unsigned integers**. If you verify them using Java's `*` and `+` operators at the same bit width, intermediate computations can wrap under fixed-width integer arithmetic and display as signed values.
 
-Để kiểm chứng một ví dụ unsigned 32 bit một cách dễ đọc, hãy dùng `long` và `Integer.toUnsignedLong`:
+To verify an unsigned 32-bit example in a readable way, use `long` and `Integer.toUnsignedLong`:
 
 ```java
 int a = -1;
@@ -226,22 +226,22 @@ System.out.println(A == B * Q + R); // true.
 System.out.println(R < B);          // true.
 ```
 
-Với phép chia unsigned 64 bit, việc nhân `B * Q` có thể vượt miền `long`, nên muốn kiểm chứng bằng số nguyên toán học không mất dữ liệu có thể dùng `BigInteger` (hoặc so sánh theo quan hệ modulo phù hợp).
+For unsigned 64-bit division, multiplying `B * Q` can exceed the range of `long`, so to verify mathematically without data loss you can use `BigInteger` (or compare using appropriate modular arithmetic).
 
-## 8. Chuyển dữ liệu unsigned sang/ra khỏi chuỗi
+## 8. Converting Unsigned Data to and from Strings
 
-Nếu dữ liệu giao tiếp dùng văn bản thập phân unsigned, đừng lấy `String.valueOf(value)` hoặc `Integer.parseInt` làm giải pháp mặc định cho các giá trị vượt `Integer.MAX_VALUE`.
+If external communication uses unsigned decimal text, do not default to `String.valueOf(value)` or `Integer.parseInt` for values exceeding `Integer.MAX_VALUE`.
 
-| Mục đích | API | Kết quả/ghi chú |
+| Purpose | API | Result / Notes |
 | --- | --- | --- |
-| In `int` theo unsigned | `Integer.toUnsignedString(value)` | In từ 0 đến 4294967295. |
-| In `long` theo unsigned | `Long.toUnsignedString(value)` | In từ 0 đến 18446744073709551615. |
-| Đọc chuỗi unsigned 32 bit | `Integer.parseUnsignedInt(text)` | Trả `int` mang đúng mẫu bit; có thể trông âm khi in signed. |
-| Đọc chuỗi unsigned 64 bit | `Long.parseUnsignedLong(text)` | Trả `long` mang đúng mẫu bit; có thể trông âm khi in signed. |
-| Đọc `int` như unsigned thành `long` dương | `Integer.toUnsignedLong(value)` | Giữ 32 bit và diễn giải thành 0..4294967295. |
-| Đọc unsigned `long` thành số toán học dương | `new BigInteger(Long.toUnsignedString(value))` | Có thể biểu diễn đầy đủ miền 64 bit. |
+| Print `int` as unsigned | `Integer.toUnsignedString(value)` | Prints from 0 to 4294967295. |
+| Print `long` as unsigned | `Long.toUnsignedString(value)` | Prints from 0 to 18446744073709551615. |
+| Parse unsigned 32-bit string | `Integer.parseUnsignedInt(text)` | Returns `int` holding the exact bit pattern; may look negative when printed signed. |
+| Parse unsigned 64-bit string | `Long.parseUnsignedLong(text)` | Returns `long` holding the exact bit pattern; may look negative when printed signed. |
+| Read `int` as unsigned into positive `long` | `Integer.toUnsignedLong(value)` | Keeps 32 bits and interprets as 0..4294967295. |
+| Read unsigned `long` as positive mathematical integer | `new BigInteger(Long.toUnsignedString(value))` | Can represent the entire 64-bit range. |
 
-Ví dụ:
+Example:
 
 ```java
 int u32 = Integer.parseUnsignedInt("4294967295");
@@ -253,13 +253,13 @@ System.out.println(u64);                         // -1.
 System.out.println(Long.toUnsignedString(u64)); // 18446744073709551615.
 ```
 
-Các phương thức `parseUnsignedInt` và `parseUnsignedLong` kiểm tra miền hợp lệ của kiểu unsigned tương ứng và ném `NumberFormatException` với chuỗi không hợp lệ hoặc số vượt giới hạn. Chúng **không** mở rộng kích thước biến thành một kiểu unsigned mới.
+`parseUnsignedInt` and `parseUnsignedLong` validate the range of the corresponding unsigned type and throw `NumberFormatException` on invalid strings or out-of-range numbers. They **do not** widen the variable into a new unsigned type.
 
-Cùng một dữ liệu có thể có cách hiển thị rất khác nhau. Khi xây dựng API, log hoặc lưu tệp, hãy thống nhất rõ **trường được mô tả là signed hay unsigned**, dùng phương thức chuyển đổi tương ứng.
+The same data can be displayed very differently. When designing APIs, logs, or file storage, agree explicitly on **whether a field is signed or unsigned**, and use the corresponding conversion methods.
 
-## 9. So sánh với `byte`/`short` và xử lý bit
+## 9. Comparison with `byte`/`short` and Bit Handling
 
-Các phương thức `compareUnsigned`, `divideUnsigned` và `remainderUnsigned` trực tiếp được cung cấp bởi `Integer` và `Long`. Với `byte` và `short`, nên chuyển sang giá trị dương theo miền unsigned trước khi so sánh/chia:
+`compareUnsigned`, `divideUnsigned`, and `remainderUnsigned` are directly provided on `Integer` and `Long`. For `byte` and `short`, convert to positive values in the unsigned range before comparing or dividing:
 
 ```java
 byte raw = (byte) 0xFF;
@@ -273,13 +273,13 @@ System.out.println(u8 % 10);   // 5
 System.out.println(u16 > u8);  // true
 ```
 
-`Byte.toUnsignedInt` tương đương với `raw & 0xFF`; `Short.toUnsignedInt` tương đương với `raw16 & 0xFFFF`. Sau khi chuyển sang `int` dương, các phép so sánh và chia có dấu thông thường có cùng kết quả với unsigned **vì mọi toán hạng đang ở trong miền dương đủ rộng**.
+`Byte.toUnsignedInt` is equivalent to `raw & 0xFF`; `Short.toUnsignedInt` is equivalent to `raw16 & 0xFFFF`. After converting to a positive `int`, ordinary signed comparisons and divisions give the same result as unsigned **because all operands lie within a wide enough positive range**.
 
-Khi dữ liệu nhị phân được ghép thành `int` hoặc `long`, cần xác định cách sắp xếp byte (*endianness*) và cách diễn giải trường từ giao thức. Một trường 32 bit có bit cao nhất bằng 1 sẽ trông âm trong Java, dù giao thức quy định đó là số unsigned lớn; khi đó ba API trên giữ đúng ngữ nghĩa cần dùng.
+When binary data is assembled into `int` or `long`, determine the byte order (*endianness*) and field interpretation from the protocol. A 32-bit field with its highest bit set to 1 will look negative in Java, even though the protocol defines it as a large unsigned integer; in that case, the three APIs above preserve the required semantics.
 
-## 10. Ví dụ Java 17+ hoàn chỉnh
+## 10. Complete Java 17+ Example
 
-Tạo tệp **`UnsignedOperationsDemo.java`**:
+Create the file **`UnsignedOperationsDemo.java`**:
 
 ```java
 import java.math.BigInteger;
@@ -337,14 +337,14 @@ public class UnsignedOperationsDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac UnsignedOperationsDemo.java
 java UnsignedOperationsDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 signed compare -1 < 1 = true
@@ -364,35 +364,35 @@ parsed unsigned int bits = -1
 division by zero detected
 ```
 
-Bài toán trong ví dụ dùng đúng một bộ bit nhưng so sánh, chia và in theo hai cách hiểu khác nhau. Chú ý `items` sau sort vẫn hiển thị các giá trị có dấu; điều quan trọng là comparator đã xếp chúng theo **thứ tự không dấu**.
+The example uses the exact same bits yet compares, divides, and prints them under two different interpretations. Note that `items` after sorting still displays signed values; the important point is that the comparator ordered them in **unsigned order**.
 
-## 11. Lỗi thường gặp
+## 11. Common Mistakes
 
-1. **Dùng `x < y` để so sánh trường giao thức unsigned.** Nếu bit dấu khác nhau, thứ tự có dấu có thể trái ngược unsigned. Dùng `compareUnsigned`.
-2. **Dùng `x / y` hoặc `x % y` cho hai mẫu bit unsigned.** Phép chia/lấy dư mặc định diễn giải toán hạng theo signed. Dùng `divideUnsigned`/`remainderUnsigned` khi quy tắc dữ liệu là unsigned.
-3. **Nghĩ kết quả `divideUnsigned` luôn hiển thị không âm.** Kiểu trả về vẫn là `int` hoặc `long`. Với kết quả vượt miền signed dương, hãy dùng `toUnsignedString` hoặc chuyển sang kiểu đủ rộng thích hợp.
-4. **Đổi `int` âm sang `long` bằng gán trực tiếp và tưởng là unsigned.** Chuyển đổi mở rộng thông thường giữ dấu. Dùng `Integer.toUnsignedLong` hoặc `x & 0xFFFF_FFFFL`.
-5. **Cho rằng `Long.toUnsignedString(x)` sửa đổi giá trị `x`.** Hàm chỉ tạo cách biểu diễn chuỗi của cùng một mẫu 64 bit.
-6. **Gọi `Math.abs(x)` để xử lý số nguyên unsigned.** Trị tuyệt đối không chuyển cách diễn giải bit, và với `MIN_VALUE` còn có bẫy tràn.
-7. **Quên kiểm tra mẫu số 0.** Cả phép chia/lấy dư unsigned đều ném `ArithmeticException` khi mẫu số có bit bằng 0.
-8. **Đánh đồng `Math.floorDiv`/`Math.floorMod` với phép toán unsigned.** Các hàm `floorDiv`/`floorMod` dùng quy tắc làm tròn/dấu trên toán hạng có dấu, không phải unsigned 32/64 bit.
-9. **Đọc `long` unsigned tối đa bằng `Long.parseLong`.** Giá trị `2^64-1` vượt `Long.MAX_VALUE`; dùng `Long.parseUnsignedLong` rồi hiển thị bằng `Long.toUnsignedString`.
-10. **Nhầm giữa “bit pattern” và “số nguyên toán học”.** API unsigned định nghĩa cách xử lý mẫu 32/64 bit; khi cần lưu giá trị dương từ 0 đến `2^64-1` như số toán học, chuyển sang `BigInteger` thích hợp.
+1. **Using `x < y` to compare unsigned protocol fields.** If sign bits differ, signed order can be the opposite of unsigned order. Use `compareUnsigned`.
+2. **Using `x / y` or `x % y` on two unsigned bit patterns.** Default division/remainder interprets operands as signed. Use `divideUnsigned`/`remainderUnsigned` when the data rules are unsigned.
+3. **Thinking `divideUnsigned` results always display as non-negative.** The return type is still `int` or `long`. For results exceeding the positive signed range, use `toUnsignedString` or convert to a suitably wide type.
+4. **Converting a negative `int` to `long` by direct assignment and assuming it is unsigned.** Ordinary widening conversion preserves the sign. Use `Integer.toUnsignedLong` or `x & 0xFFFF_FFFFL`.
+5. **Assuming `Long.toUnsignedString(x)` modifies `x`.** The method only produces a string representation of the same 64-bit pattern.
+6. **Calling `Math.abs(x)` to handle unsigned integers.** Absolute value does not change bit interpretation, and for `MIN_VALUE` it also has an overflow trap.
+7. **Forgetting to check for a 0 divisor.** Both unsigned divide and remainder throw `ArithmeticException` when the divisor has all 0 bits.
+8. **Equating `Math.floorDiv`/`Math.floorMod` with unsigned operations.** `floorDiv`/`floorMod` apply rounding/sign rules on signed operands, not unsigned 32/64-bit semantics.
+9. **Parsing the maximum unsigned `long` with `Long.parseLong`.** The value `2^64-1` exceeds `Long.MAX_VALUE`; use `Long.parseUnsignedLong` and display with `Long.toUnsignedString`.
+10. **Confusing "bit pattern" with "mathematical integer".** Unsigned APIs define how to process 32/64-bit patterns; when you need to store positive values from 0 to `2^64-1` as mathematical numbers, convert to `BigInteger` appropriately.
 
-## 12. Chọn API nào trong thực tế?
+## 12. Which API to Choose in Practice?
 
-| Nhu cầu | Cách dùng |
+| Need | What to Use |
 | --- | --- |
-| So sánh thứ tự hai trường unsigned 32 bit | `Integer.compareUnsigned(a, b)` |
-| So sánh thứ tự hai trường unsigned 64 bit | `Long.compareUnsigned(a, b)` |
-| Chia unsigned 32 bit | `Integer.divideUnsigned(a, b)` |
-| Lấy dư unsigned 32 bit | `Integer.remainderUnsigned(a, b)` |
-| Chia/lấy dư unsigned 64 bit | `Long.divideUnsigned(a, b)`, `Long.remainderUnsigned(a, b)` |
-| In đúng số unsigned | `Integer.toUnsignedString(x)`, `Long.toUnsignedString(x)` |
-| Đọc số unsigned trong chuỗi | `Integer.parseUnsignedInt(s)`, `Long.parseUnsignedLong(s)` |
-| Mở rộng unsigned 32 bit thành số dương | `Integer.toUnsignedLong(x)` |
-| Biểu diễn unsigned 64 bit như số dương tùy ý | `new BigInteger(Long.toUnsignedString(x))` |
+| Compare order of two unsigned 32-bit fields | `Integer.compareUnsigned(a, b)` |
+| Compare order of two unsigned 64-bit fields | `Long.compareUnsigned(a, b)` |
+| Unsigned 32-bit division | `Integer.divideUnsigned(a, b)` |
+| Unsigned 32-bit remainder | `Integer.remainderUnsigned(a, b)` |
+| Unsigned 64-bit division/remainder | `Long.divideUnsigned(a, b)`, `Long.remainderUnsigned(a, b)` |
+| Print unsigned number accurately | `Integer.toUnsignedString(x)`, `Long.toUnsignedString(x)` |
+| Parse unsigned number from string | `Integer.parseUnsignedInt(s)`, `Long.parseUnsignedLong(s)` |
+| Widen unsigned 32-bit to positive number | `Integer.toUnsignedLong(x)` |
+| Represent unsigned 64-bit as arbitrary positive number | `new BigInteger(Long.toUnsignedString(x))` |
 
-**Ghi nhớ:** Java vẫn lưu `int`/`long` như các kiểu số nguyên có dấu, nhưng `compareUnsigned`, `divideUnsigned` và `remainderUnsigned` thực hiện thao tác theo **cách diễn giải không dấu của cùng mẫu bit**. Phân biệt phép toán với cách hiển thị kết quả, xử lý mẫu số 0 và dùng API chuyển đổi/chuỗi unsigned khi cần giao tiếp với bên ngoài.
+**Remember:** Java still stores `int`/`long` as signed integer types, yet `compareUnsigned`, `divideUnsigned`, and `remainderUnsigned` perform operations under the **unsigned interpretation of the same bit pattern**. Distinguish the arithmetic operation from how the result is formatted, handle a 0 divisor, and use unsigned conversion/string APIs when communicating externally.
 
-**Tài liệu tham khảo:** [Java SE 21 Integer API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Integer.html), [Java SE 21 Long API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Long.html), [Java Language Specification §4.2.1 — Integral Types and Values](https://docs.oracle.com/javase/specs/jls/se21/html/jls-4.html#jls-4.2.1).
+**References:** [Java SE 21 Integer API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Integer.html), [Java SE 21 Long API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Long.html), [Java Language Specification §4.2.1 — Integral Types and Values](https://docs.oracle.com/javase/specs/jls/se21/html/jls-4.html#jls-4.2.1).

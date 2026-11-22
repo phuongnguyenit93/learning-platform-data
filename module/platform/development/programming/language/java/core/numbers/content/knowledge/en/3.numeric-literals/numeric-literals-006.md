@@ -1,21 +1,21 @@
-# Literal số thực, ký hiệu mũ và hậu tố F, D trong Java
+# Floating-Point Literals, Exponent Notation, and F, D Suffixes in Java
 
-## 1. Mục tiêu của bài học
+## 1. Lesson Objectives
 
-Trong Java, **floating-point literal** là cách viết trực tiếp một giá trị số thực trong mã nguồn. Bài này thuộc nhóm **Literal và cơ số** của Java Core — Numbers. Sau khi học, bạn cần:
+In Java, a **floating-point literal** is a way of writing a real numeric value directly in source code. This lesson belongs to the **Literals and Bases** section of Java Core — Numbers. After studying it, you should be able to:
 
-- Đọc và viết đúng các dạng literal thập phân như `3.14`, `.5`, `10.`, `6.02e23`.
-- Hiểu ký hiệu mũ `e`/`E` là **lũy thừa cơ số 10**, trong khi `p`/`P` của literal thập lục phân biểu diễn **lũy thừa cơ số 2**.
-- Biết `f`/`F` tạo literal kiểu `float`; `d`/`D` hoặc không có hậu tố tạo literal kiểu `double`.
-- Phân biệt **kiểu của literal**, **kiểu của biến nhận giá trị**, **ép kiểu** và **độ chính xác lưu trữ**.
-- Nhận diện quy tắc dấu, dấu chấm, chữ số, dấu gạch dưới, trường hợp sai cú pháp và literal vượt giới hạn biểu diễn.
-- Tự đối chiếu Java Language Specification (JLS) và chạy ví dụ bằng JDK 17 trở lên.
+- Read and write decimal literal forms correctly, such as `3.14`, `.5`, `10.`, `6.02e23`.
+- Understand that `e`/`E` exponent notation represents a **power of 10**, while `p`/`P` in hexadecimal literals represents a **power of 2**.
+- Know that `f`/`F` produces a `float` literal; `d`/`D` or no suffix produces a `double` literal.
+- Distinguish **literal type**, **receiving variable type**, **casting**, and **storage precision**.
+- Identify rules for signs, decimal points, digits, underscores, syntax errors, and out-of-range literals.
+- Cross-check the Java Language Specification (JLS) yourself and run the examples with JDK 17 or higher.
 
-**Điểm cốt lõi:** một literal được phân tích và gán kiểu ngay khi biên dịch. Dấu phẩy động trong chương trình Java dùng dấu chấm `.`, không dùng dấu phẩy `,` theo cách ghi số của một số ngôn ngữ tự nhiên.
+**Key point:** a literal is parsed and assigned its type at compile time. Floating-point numbers in Java programs use a period `.`, not a comma `,` as used for numbers in some natural languages.
 
-## 2. Literal số thực là gì?
+## 2. What Is a Floating-Point Literal?
 
-Hãy bắt đầu bằng những khai báo sau:
+Let us start with these declarations:
 
 ```java
 int whole = 12;
@@ -24,39 +24,39 @@ double scientific = 1.2e1;
 float small = 12.0F;
 ```
 
-Cả bốn biến có thể biểu diễn lượng mười hai, nhưng **kiểu và cú pháp nguồn không giống nhau**:
+All four variables can represent the quantity twelve, yet their **types and source syntax are not the same**:
 
-| Cách viết | Loại token/kiểu | Ý nghĩa |
+| Notation | Token/Type Kind | Meaning |
 | --- | --- | --- |
-| `12` | Literal số nguyên kiểu `int` | Mười hai |
-| `12L` | Literal số nguyên kiểu `long` | Mười hai, vẫn là số nguyên |
-| `12.0` | Literal số thực kiểu `double` | Mười hai dưới dạng floating point |
-| `12.` | Literal số thực kiểu `double` | Tương đương `12.0` |
-| `.5` | Literal số thực kiểu `double` | Một nửa |
-| `12e0` | Literal số thực kiểu `double` | 12 × 10⁰ |
-| `12f`, `12.0F` | Literal số thực kiểu `float` | Mười hai dưới dạng `float` |
-| `12d`, `12.0D` | Literal số thực kiểu `double` | Hậu tố `D` ghi rõ kiểu mặc định |
-| `0x1.8p3` | Literal số thực kiểu `double`, dạng hex | (1 + 8/16) × 2³ = 12 |
+| `12` | Integer literal of type `int` | Twelve |
+| `12L` | Integer literal of type `long` | Twelve, still an integer |
+| `12.0` | Floating-point literal of type `double` | Twelve as floating point |
+| `12.` | Floating-point literal of type `double` | Equivalent to `12.0` |
+| `.5` | Floating-point literal of type `double` | One half |
+| `12e0` | Floating-point literal of type `double` | 12 × 10⁰ |
+| `12f`, `12.0F` | Floating-point literal of type `float` | Twelve as `float` |
+| `12d`, `12.0D` | Floating-point literal of type `double` | `D` suffix states the default type explicitly |
+| `0x1.8p3` | Floating-point literal of type `double`, hex form | (1 + 8/16) × 2³ = 12 |
 
-Trong Java, số thực primitive gồm hai kiểu:
+In Java, primitive floating-point numbers consist of two types:
 
-- `float`: khuôn dạng IEEE 754 **binary32**, có khoảng 24 bit significand (xấp xỉ 6–9 chữ số thập phân có nghĩa khi biểu diễn/khôi phục).
-- `double`: khuôn dạng IEEE 754 **binary64**, có khoảng 53 bit significand (xấp xỉ 15–17 chữ số thập phân có nghĩa khi biểu diễn/khôi phục).
+- `float`: IEEE 754 **binary32** format, with roughly 24 significand bits (approximately 6–9 significant decimal digits when representing/round-tripping).
+- `double`: IEEE 754 **binary64** format, with roughly 53 significand bits (approximately 15–17 significant decimal digits when representing/round-tripping).
 
-Đó là độ chính xác **nhị phân hữu hạn**, không phải số lượng chữ số sau dấu chấm. Không nên kết luận rằng literal có nhiều chữ số thập phân sẽ được giữ chính xác nguyên vẹn trong `double` hay `float`.
+That is **finite binary precision**, not a count of digits after the decimal point. Do not conclude that a literal with many decimal digits will be preserved exactly in `double` or `float`.
 
-## 3. Bốn dạng cú pháp literal số thực thập phân
+## 3. Four Syntactic Forms of Decimal Floating-Point Literals
 
-Theo JLS `3.10.2, literal thập phân phải có **ít nhất một chữ số**, và phải có **dấu chấm, phần mũ hoặc hậu tố kiểu số thực**. Dưới đây là bốn cách viết tiêu biểu:
+According to JLS `3.10.2, a decimal literal must have **at least one digit**, and must have **a decimal point, an exponent part, or a floating-point type suffix**. Below are the four typical forms:
 
-| Dạng | Ví dụ hợp lệ | Giải thích |
+| Form | Valid Examples | Explanation |
 | --- | --- | --- |
-| Chữ số rồi dấu chấm, có hoặc không có phần lẻ | `1.`, `1.25`, `1.25e2` | Có `.` nên là floating-point literal |
-| Dấu chấm rồi chữ số | `.25`, `.25F`, `.25e+2` | Được phép bỏ số 0 trước dấu chấm |
-| Chữ số rồi phần mũ | `1e3`, `12E-2`, `10e0D` | `e`/`E` đủ để biến thành literal số thực |
-| Chữ số rồi hậu tố `F/f/D/d` | `1f`, `20F`, `3d` | Hậu tố nhận diện kiểu ngay cả khi không có `.` |
+| Digits then decimal point, with or without fractional digits | `1.`, `1.25`, `1.25e2` | Presence of `.` makes it a floating-point literal |
+| Decimal point then digits | `.25`, `.25F`, `.25e+2` | Omitting the 0 before the decimal point is allowed |
+| Digits then exponent part | `1e3`, `12E-2`, `10e0D` | `e`/`E` suffices to make it a floating-point literal |
+| Digits then `F/f/D/d` suffix | `1f`, `20F`, `3d` | Suffix identifies the type even without `.` |
 
-Cụ thể, các literal sau đều hợp lệ:
+Specifically, all of the following literals are valid:
 
 ```java
 double a = 7.0;
@@ -69,21 +69,21 @@ float g = .7F;
 double h = 7D;
 ```
 
-Ngược lại, `7` là literal số nguyên `int`; việc gán nó vào biến `double` là **widening conversion**, không biến token `7` thành floating-point literal. Đây là khác biệt quan trọng khi phân tích overload, biểu thức và giá trị trung gian.
+Conversely, `7` is an `int` integer literal; assigning it to a `double` variable is a **widening conversion**, and does not turn the token `7` into a floating-point literal. This is an important distinction when analyzing overloads, expressions, and intermediate values.
 
-**Không dùng dấu phẩy trong literal:** `3,14` không tạo ra số thực “ba phẩy mười bốn”. Trong cú pháp Java, dấu phẩy có vai trò phân cách ở một số cấu trúc. Viết `3.14` trong mã nguồn; chỉ dùng định dạng địa phương khi xử lý chuỗi nhập/xuất.
+**Do not use commas in literals:** `3,14` does not create the floating-point number "three point one four." In Java syntax, a comma acts as a separator in certain constructs. Write `3.14` in source code; use locale formatting only when handling input/output strings.
 
-## 4. Ký hiệu mũ thập phân: e và E
+## 4. Decimal Exponent Notation: e and E
 
-Dạng tổng quát dễ nhớ:
+Easy-to-remember general form:
 
 ```text
-phần_trị_số e hoặc E dấu_mũ_tùy_chọn chữ_số_mũ
+significand e or E optional_exponent_sign exponent_digits
 ```
 
-Về toán học, `aeb` có nghĩa là **a × 10ᵇ** khi `a`, `b` là phần trị số và số mũ tương ứng. Chữ `e` là ký hiệu cú pháp, **không phải** hằng số Euler `e ≈ 2.71828...`.
+Mathematically, `aeb` means **a × 10ᵇ** where `a` and `b` are the significand and exponent respectively. The letter `e` is a syntactic marker, **not** Euler's constant `e ≈ 2.71828...`.
 
-| Literal | Phép tính toán học | Giá trị |
+| Literal | Mathematical Calculation | Value |
 | --- | --- | --- |
 | `1e3` | 1 × 10³ | 1000 |
 | `2.5E2` | 2.5 × 10² | 250 |
@@ -92,28 +92,28 @@ Về toán học, `aeb` có nghĩa là **a × 10ᵇ** khi `a`, `b` là phần tr
 | `7e0` | 7 × 10⁰ | 7 |
 | `.75e+1` | 0.75 × 10¹ | 7.5 |
 
-- `e` và `E` tương đương; `1e3` và `1E3` có cùng kiểu `double` và cùng giá trị.
-- Sau `e`/`E` **bắt buộc phải có số mũ nguyên viết bằng chữ số thập phân**.
-- Dấu `+`/`-` ngay sau `e`/`E` là phần hợp lệ của phần mũ: `1e+3`, `1e-3`.
-- `1e`, `1e+`, `1e-` không có đủ phần mũ và không hợp lệ.
-- `1e2.5` không hợp lệ dưới dạng một literal; phần số mũ phải là số nguyên.
-- Số mũ không làm literal đổi thành `BigDecimal`; `6.02e23` vẫn là `double` nếu không có hậu tố `F`.
+- `e` and `E` are equivalent; `1e3` and `1E3` have the same `double` type and the same value.
+- After `e`/`E`, **an integer exponent written with decimal digits is required**.
+- A `+`/`-` sign immediately after `e`/`E` is a valid part of the exponent: `1e+3`, `1e-3`.
+- `1e`, `1e+`, and `1e-` lack a complete exponent and are invalid.
+- `1e2.5` is invalid as a literal; the exponent must be an integer.
+- Exponent notation does not convert a literal to `BigDecimal`; `6.02e23` is still a `double` if it has no `F` suffix.
 
-**Lưu ý khi đọc log:** Java có thể tự in `1.0E7` thay vì một chuỗi gồm toàn chữ số. Cách `Double.toString`/`Float.toString` chọn biểu diễn chuỗi là chuyện **xuất giá trị**, tách biệt cú pháp literal nguồn `1e7`.
+**Note when reading logs:** Java may print `1.0E7` instead of an all-digit string. How `Double.toString`/`Float.toString` chooses a string representation is a matter of **value output**, separate from source literal syntax `1e7`.
 
-## 5. Hậu tố F/f và D/d quyết định kiểu của literal
+## 5. Suffixes F/f and D/d Determine the Literal's Type
 
-Quy tắc chuẩn của ngôn ngữ:
+Standard language rule:
 
-| Hậu tố | Kiểu literal | Ví dụ |
+| Suffix | Literal Type | Examples |
 | --- | --- | --- |
-| `f` hoặc `F` | `float` | `3.14f`, `5F`, `2e-3F` |
-| `d` hoặc `D` | `double` | `3.14d`, `5D`, `2e-3D` |
-| Không có hậu tố | `double` | `3.14`, `5e0`, `0x1p1` |
+| `f` or `F` | `float` | `3.14f`, `5F`, `2e-3F` |
+| `d` or `D` | `double` | `3.14d`, `5D`, `2e-3D` |
+| No suffix | `double` | `3.14`, `5e0`, `0x1p1` |
 
-Hậu tố có thể viết hoa/thường. Nên ưu tiên `F` và `D` khi cần nói rõ kiểu; `D` thường có thể bỏ vì `double` đã là mặc định.
+Suffixes can be uppercase or lowercase. Prefer `F` and `D` when clarity about type is needed; `D` can usually be omitted since `double` is already the default.
 
-### 5.1. Kiểu literal khác kiểu biến nhận
+### 5.1. Literal Type vs. Receiving Variable Type
 
 ```java
 float a = 1.25F;       // float -> float
@@ -123,69 +123,69 @@ double d = 1.25D;      // double -> double
 double e = 1;          // int -> double, widening
 ```
 
-Trong `double c = 1.25F;`, **giá trị được tạo theo độ chính xác `float` trước**, rồi mới chuyển rộng sang `double`. Chuyển rộng không khôi phục những chữ số đã mất trong `float`.
+In `double c = 1.25F;`, **the value is created at `float` precision first**, and only then widened to `double`. Widening does not recover digits already lost in `float`.
 
-Ví dụ sau **không biên dịch**:
+The following example **does not compile**:
 
 ```java
 float wrong = 1.25;
 ```
 
-Vì `1.25` không có hậu tố nên là literal `double`; Java không tự thu hẹp từ `double` sang `float` trong phép gán như vậy. Sửa thành `float correct = 1.25F;`. Có thể ép kiểu tường minh `(float) 1.25` khi phù hợp, nhưng không nên thay thế hậu tố chỉ để làm mất cảnh báo về chuyển hẹp.
+Because `1.25` has no suffix, it is a `double` literal; Java does not automatically narrow from `double` to `float` in such an assignment. Fix it to `float correct = 1.25F;`. You can use an explicit cast `(float) 1.25` when appropriate, but you should not replace the suffix merely to silence a narrowing warning.
 
-Trường hợp tương tự:
+Similar case:
 
 ```java
-float rate = 1e2F;  // hợp lệ, float
-double distance = 1e2; // hợp lệ, double
-// float bad = 1e2;    // lỗi biên dịch: double -> float
+float rate = 1e2F;  // valid, float
+double distance = 1e2; // valid, double
+// float bad = 1e2;    // compile error: double -> float
 ```
 
-### 5.2. Vì sao 0.1F và 0.1 không “giống hệt” nhau?
+### 5.2. Why Are 0.1F and 0.1 Not "Identical"?
 
-`0.1F` được làm tròn sang biểu diễn binary32; `0.1` được làm tròn sang binary64. Khi `float` được mở rộng thành `double` để so sánh hoặc gán, số đã làm tròn ở binary32 vẫn giữ giá trị đó. Do đó **một literal có hậu tố khác có thể dẫn đến khác biệt giá trị**, ngay cả khi chúng có cùng các chữ số thập phân trong mã nguồn.
+`0.1F` is rounded to binary32 representation; `0.1` is rounded to binary64. When a `float` is widened to `double` for comparison or assignment, the value already rounded in binary32 keeps that rounded value. Thus, **literals with different suffixes can produce different values**, even when they have the exact same decimal digits in source code.
 
-Chỉ dùng `D` khi nó giúp người đọc hoặc một công cụ sinh mã thấy rõ ý định. Đừng chọn `F` chỉ để tiết kiệm bộ nhớ nếu chưa đánh giá sai số cho bài toán.
+Only use `D` when it helps readers or a code generator see the intent clearly. Do not choose `F` just to save memory without evaluating the rounding error for your problem.
 
-### 5.3. F/D không phải ký hiệu chuyển kiểu hay đơn vị
+### 5.3. F/D Are Not Type-Conversion Operators or Units
 
-`1.5F` là **một literal `float`**; `(float) 1.5` là **một cast** trên literal `double`. `L` biểu thị literal `long` nguyên, không được gắn vào số thực: `1.5L` hoặc `1e3L` không hợp lệ. Java cũng không có hậu tố built-in kiểu `M` để tạo `BigDecimal` như một số ngôn ngữ khác.
+`1.5F` is **a `float` literal**; `(float) 1.5` is **a cast** on a `double` literal. `L` denotes an integer `long` literal and cannot be attached to floating-point numbers: `1.5L` or `1e3L` is invalid. Java also has no built-in suffix like `M` to create a `BigDecimal` as some other languages do.
 
-## 6. Literal số thực thập lục phân và ký hiệu p/P
+## 6. Hexadecimal Floating-Point Literals and p/P Notation
 
-Ngoài số thực thập phân, Java còn cho phép **hexadecimal floating-point literal**. Dạng này bắt đầu bằng `0x` hoặc `0X`, dùng chữ số thập lục phân `0–9` và `A–F/a–f` cho **significand** (phần trị số), rồi **bắt buộc có phần mũ `p`/`P`**.
+In addition to decimal floating-point numbers, Java allows **hexadecimal floating-point literals**. This form starts with `0x` or `0X`, uses hexadecimal digits `0–9` and `A–F/a–f` for the **significand**, and **requires a `p`/`P` exponent part**.
 
-Khác biệt mấu chốt:
+Key difference:
 
 - `1.5e2` = 1.5 × **10²** = 150.
 - `0x1.8p2` = (1 + 8/16) × **2²** = 6.
 - `0x1.fp2` = (1 + 15/16) × **2²** = 7.75.
 
-Dù hệ chữ số phần trị số là **cơ số 16**, phần mũ `p` vẫn là **lũy thừa cơ số 2**. Các chữ số viết sau `p`/`P` là chữ số **thập phân** của số mũ, không phải hexadecimal.
+Even though the significand's digits are **base 16**, the `p` exponent is a **power of 2**. The digits written after `p`/`P` are **decimal** digits of the exponent, not hexadecimal.
 
-| Literal hex | Diễn giải | Giá trị thập phân |
+| Hex Literal | Interpretation | Decimal Value |
 | --- | --- | --- |
 | `0x1p0` | 1 × 2⁰ | 1 |
 | `0x1p3` | 1 × 2³ | 8 |
 | `0x1.8p1` | (1 + 8/16) × 2¹ | 3 |
 | `0x1.fp2` | (1 + 15/16) × 2² | 7.75 |
 | `0x.8p0` | (8/16) × 2⁰ | 0.5 |
-| `0x1p-3F` | 1 × 2⁻³, kiểu `float` | 0.125 |
-| `0X1.0P+2D` | 1 × 2², kiểu `double` | 4 |
+| `0x1p-3F` | 1 × 2⁻³, type `float` | 0.125 |
+| `0X1.0P+2D` | 1 × 2², type `double` | 4 |
 
-Được phép viết `0x1.p3` hoặc `0x1p3` (sau `0x1` có thể có hoặc không có dấu chấm), miễn là có chữ số significand và có `p`/`P` với số mũ hợp lệ.
+You may write `0x1.p3` or `0x1p3` (a decimal point after `0x1` is optional), as long as there are significand digits and a `p`/`P` with a valid exponent.
 
-**Tại sao dùng hex?** Các giá trị nhị phân như `0x1.8p1` có thể mô tả chính xác bit và lũy thừa 2, thuận lợi khi đọc tài liệu IEEE 754, kiểm tra bit hoặc cần giá trị nhị phân xác định. Chẳng hạn `0x1.0p-3` biểu diễn chính xác `0.125` trong binary32/binary64. Dùng số thực thập phân khi ý nghĩa nghiệp vụ theo hệ 10 dễ đọc hơn.
+**Why use hex?** Binary-aligned values like `0x1.8p1` can describe exact bits and powers of 2, which is handy when reading IEEE 754 specs, inspecting bits, or needing an exact binary value. For instance, `0x1.0p-3` represents `0.125` exactly in binary32/binary64. Use decimal floating-point numbers when base-10 business semantics are easier to read.
 
-**Phân biệt với số nguyên hex:** `0x10` là literal nguyên `int` bằng 16; `0x10p0` là literal số thực `double` bằng 16. `0x1.8` không hợp lệ như một floating-point literal vì thiếu `p` và số mũ.
+**Distinguishing from hex integers:** `0x10` is an `int` integer literal equal to 16; `0x10p0` is a `double` floating-point literal equal to 16. `0x1.8` is invalid as a floating-point literal because it lacks `p` and an exponent.
 
-## 7. Dấu âm, dấu dương và ký tự gạch dưới
+## 7. Minus Signs, Plus Signs, and Underscores
 
-### 7.1. Dấu trước số và dấu trong phần mũ
+### 7.1. Signs Before the Number vs. Signs in the Exponent
 
-Trong `-1.25F`, dấu `-` đứng trước literal là **toán tử một ngôi** tác động lên literal dương `1.25F`; bản thân token floating-point literal không bao gồm dấu âm phía trước. Ngược lại, dấu `-` ở `1e-3` hoặc `0x1p-3` **nằm trong phần số mũ** của literal.
+In `-1.25F`, the `-` before the literal is the **unary minus operator** acting on the positive literal `1.25F`; the floating-point literal token itself does not include a leading minus sign. In contrast, the `-` in `1e-3` or `0x1p-3` **is part of the exponent** of the literal.
 
-Ví dụ:
+Example:
 
 ```java
 double negative = -1.5;
@@ -194,11 +194,11 @@ double tinyPowerTwo = 0x1p-3;
 double positive = +.5;
 ```
 
-Các biến trên lần lượt có giá trị `-1.5`, `0.001`, `0.125` và `0.5`. Không đặt dấu `-` ở sau hậu tố: `1.5F-` không tạo literal âm.
+These variables have the values `-1.5`, `0.001`, `0.125`, and `0.5`, respectively. Do not put a `-` sign after a suffix: `1.5F-` does not create a negative literal.
 
-### 7.2. Gạch dưới giữa các chữ số
+### 7.2. Underscores Between Digits
 
-Dấu `_` cho phép nhóm chữ số trong **phần nguyên, phần lẻ, phần mũ**, không thay đổi giá trị số:
+`_` allows grouping digits in the **integer part, fractional part, and exponent part** without changing the numeric value:
 
 ```java
 double a = 1_234.5_6;
@@ -206,78 +206,78 @@ double b = 1.2_5e+1_0;
 float c = 0x1.8_0p+1F;
 ```
 
-Các dạng này hợp lệ. `_` phải ở **giữa các chữ số của cùng một thành phần**. Những kiểu viết sau không hợp lệ:
+These forms are valid. `_` must be **between digits of the same component**. The following notations are invalid:
 
 ```java
-// double a = _1.0;    // gạch dưới ở đầu
-// double b = 1_.0;    // ngay trước dấu chấm
-// double c = 1._0;    // ngay sau dấu chấm
-// double d = 1e_3;    // ngay sau e
-// double e = 1e+_3;   // ngay sau dấu mũ
-// float  f = 1.0_F;   // ngay trước hậu tố
-// double g = 0x_1p0;  // ngay sau tiền tố 0x
+// double a = _1.0;    // underscore at the start
+// double b = 1_.0;    // immediately before decimal point
+// double c = 1._0;    // immediately after decimal point
+// double d = 1e_3;    // immediately after e
+// double e = 1e+_3;   // immediately after exponent sign
+// float  f = 1.0_F;   // immediately before suffix
+// double g = 0x_1p0;  // immediately after 0x prefix
 ```
 
-Một literal có thể có nhiều dấu `_` liên tiếp **nếu chúng nằm giữa các chữ số**; dù hợp lệ, hãy ưu tiên nhóm rõ ràng, dễ đọc.
+A literal may contain multiple consecutive `_` **if they lie between digits**; although valid, prefer clear, readable grouping.
 
-## 8. Độ chính xác và việc biên dịch literal
+## 8. Precision and Literal Compilation
 
-Khi `javac` gặp một literal hợp lệ, nó chuyển các chữ số nguồn thành giá trị khả biểu diễn của kiểu `float` hoặc `double` theo quy tắc của Java. Hai biểu diễn nguồn trông có vẻ cùng lượng toán học không có nghĩa mọi chữ số đều được giữ nguyên trong binary32/binary64.
+When `javac` encounters a valid literal, it converts the source digits into a representable value of type `float` or `double` according to Java's rules. Two source representations that appear to express the same mathematical quantity do not guarantee all digits are preserved identically in binary32/binary64.
 
-### 8.1. 0.1 là trường hợp kinh điển
+### 8.1. 0.1 Is the Classic Case
 
-`0.1` trong hệ thập phân không biểu diễn chính xác bằng một số nhị phân hữu hạn. Do đó:
+`0.1` in decimal cannot be represented exactly as a finite binary fraction. Therefore:
 
-- `double d = 0.1;` tạo giá trị binary64 gần `0.1`.
-- `float f = 0.1F;` tạo giá trị binary32 gần `0.1`.
-- `double widened = f;` mở rộng **chính giá trị binary32 đã làm tròn**, không làm nó bằng giá trị binary64 của literal `0.1`.
+- `double d = 0.1;` creates a binary64 value close to `0.1`.
+- `float f = 0.1F;` creates a binary32 value close to `0.1`.
+- `double widened = f;` widens **that already rounded binary32 value**; it does not make it equal to the binary64 value of the `0.1` literal.
 
-Điều đáng chú ý là `System.out.println(0.1F)` vẫn có thể in `0.1`: thuật toán chuyển floating point sang chuỗi chọn dạng thập phân ngắn thể hiện lại giá trị đó; nó **không chứng minh** giá trị lưu chính xác bằng 1/10.
+Notably, `System.out.println(0.1F)` can still print `0.1`: the floating-point-to-string conversion algorithm chooses a short decimal form that round-trips back to that value; it **does not prove** the stored value equals exactly 1/10.
 
-### 8.2. Hex có thể biểu diễn chính xác các phân số nhị phân
+### 8.2. Hex Can Represent Binary Fractions Exactly
 
-`0x1p-1` đúng bằng `0.5` và `0x1p-3` đúng bằng `0.125`. Các giá trị là bội/lũy thừa 2 phù hợp miền exponent và precision có thể biểu diễn chính xác ở dạng IEEE 754 nhị phân.
+`0x1p-1` equals exactly `0.5` and `0x1p-3` equals exactly `0.125`. Values that are multiples/powers of 2 fitting within the exponent and precision bounds can be represented exactly in IEEE 754 binary format.
 
-Không suy ra mọi literal hex đều không mất precision. Nếu significand có quá nhiều bit hoặc số mũ đưa giá trị ngoài miền biểu diễn, việc làm tròn hoặc lỗi biên dịch vẫn xảy ra.
+Do not conclude that every hex literal suffers no precision loss. If the significand has too many bits or the exponent pushes the value outside the representable range, rounding or a compile error still occurs.
 
-### 8.3. Dùng BigDecimal khi yêu cầu thập phân chính xác
+### 8.3. Use BigDecimal When Exact Decimal Representation Is Required
 
-Nếu nghiệp vụ cần chính xác số thập phân như `0.1`, có thể tạo:
+If business logic requires exact decimal numbers like `0.1`, you can construct:
 
 ```java
 java.math.BigDecimal price = new java.math.BigDecimal("0.1");
 ```
 
-Đây là **lời gọi constructor từ một `String`**, không phải một BigDecimal literal. Dùng `new BigDecimal(0.1)` mang giá trị nhị phân gần đúng của `double` vào đối tượng, nên không thay thế được cách tạo từ chuỗi nếu yêu cầu đúng `0.1` trong hệ thập phân.
+This is a **constructor call from a `String`**, not a BigDecimal literal. Using `new BigDecimal(0.1)` passes the approximate binary `double` value into the object, so it cannot replace constructing from a string when an exact decimal `0.1` is required.
 
-## 9. Ranh giới: overflow, underflow và số đặc biệt
+## 9. Boundaries: Overflow, Underflow, and Special Values
 
-### 9.1. Literal quá lớn hoặc quá nhỏ
+### 9.1. Literals That Are Too Large or Too Small
 
-Java phân biệt giữa **floating-point literal ngoài miền biểu diễn** và **phép toán runtime sinh giá trị đặc biệt**.
+Java distinguishes between **out-of-range floating-point literals** and **runtime operations producing special values**.
 
-- Một literal **khác 0** quá lớn đến mức chuyển theo rounding thành vô cực gây **lỗi biên dịch**.
-- Một literal **khác 0** quá nhỏ đến mức chuyển theo rounding thành `0.0` cũng gây **lỗi biên dịch**.
-- Nếu kết quả nhỏ nhưng vẫn là một **subnormal khác 0**, literal vẫn có thể hợp lệ.
+- A **non-zero** literal so large that rounding converts it to infinity causes a **compile error**.
+- A **non-zero** literal so small that rounding converts it to `0.0` also causes a **compile error**.
+- If the small result is still a **non-zero subnormal**, the literal can still be valid.
 
-Ví dụ sau cố ý **không biên dịch**:
+The following examples intentionally **do not compile**:
 
 ```java
-// double tooLarge = 1e400;   // tràn thành Infinity khi chuyển literal
-// float tooLargeF = 1e40F;   // tràn miền float
-// double tooTiny = 1e-400;   // literal khác 0 nhưng làm tròn thành zero
-// float tooTinyF = 1e-50F;   // tương tự với float
+// double tooLarge = 1e400;   // overflows to Infinity when converting literal
+// float tooLargeF = 1e40F;   // overflows float range
+// double tooTiny = 1e-400;   // non-zero literal rounded to zero
+// float tooTinyF = 1e-50F;   // same for float
 ```
 
-Các comment trên để minh họa lỗi nếu bỏ dấu `//`; không nên xóa comment rồi ghép với các ví dụ chạy được.
+These comments illustrate errors if `//` is removed; do not uncomment them and mix them with runnable examples.
 
-Những giới hạn tham khảo: `Float.MAX_VALUE` là số `float` hữu hạn dương lớn nhất; `Double.MAX_VALUE` là số `double` hữu hạn dương lớn nhất. `Float.MIN_VALUE` và `Double.MIN_VALUE` là **số dương khác 0 nhỏ nhất (subnormal)** của mỗi kiểu, **không phải số âm nhỏ nhất**. `MIN_NORMAL` là số dương normal nhỏ nhất.
+Reference limits: `Float.MAX_VALUE` is the largest positive finite `float`; `Double.MAX_VALUE` is the largest positive finite `double`. `Float.MIN_VALUE` and `Double.MIN_VALUE` are the **smallest non-zero positive (subnormal)** values of each type, **not the most negative number**. `MIN_NORMAL` is the smallest positive normal value.
 
-Ví dụ `1.4e-45F` là một dạng thập phân làm tròn thành `Float.MIN_VALUE`, còn `0x1p-149F` biểu diễn chính xác cùng giá trị nhỏ nhất này. Với `double`, `0x1p-1074` là giá trị `Double.MIN_VALUE`.
+For example, `1.4e-45F` is a decimal form that rounds to `Float.MIN_VALUE`, while `0x1p-149F` represents that exact smallest value. For `double`, `0x1p-1074` is the value of `Double.MIN_VALUE`.
 
-### 9.2. NaN và Infinity không phải literal từ khóa
+### 9.2. NaN and Infinity Are Not Keyword Literals
 
-Java **không** có cú pháp floating-point literal tên `NaN` hay `Infinity`. Sử dụng:
+Java does **not** have floating-point literal syntax named `NaN` or `Infinity`. Use:
 
 ```java
 double positiveInfinity = Double.POSITIVE_INFINITY;
@@ -287,15 +287,15 @@ double notANumber = Double.NaN;
 boolean ok = Double.isNaN(notANumber);
 ```
 
-Phép toán runtime như `1.0 / 0.0` có thể cho `Infinity` và `0.0 / 0.0` có thể cho `NaN` theo phép toán số thực. Khác với `int` chia cho 0, phép chia số thực với 0 không mặc định ném `ArithmeticException`.
+Runtime operations like `1.0 / 0.0` can yield `Infinity` and `0.0 / 0.0` can yield `NaN` under floating-point arithmetic. Unlike `int` division by 0, floating-point division by 0 does not throw `ArithmeticException` by default.
 
-### 9.3. Dấu của số 0
+### 9.3. Sign of Zero
 
-`0.0` và `-0.0` được so sánh bằng `==` là `true`, nhưng IEEE 754 có hai mẫu bit khác nhau. Ví dụ `1.0 / 0.0` tạo dương vô cực, `1.0 / -0.0` tạo âm vô cực. Đây là lý do không nên coi `-0.0` hoàn toàn tương đương `0.0` trong mọi phép tính số thực.
+`0.0` and `-0.0` compare `true` with `==`, yet IEEE 754 has two distinct bit patterns. For example, `1.0 / 0.0` yields positive infinity, while `1.0 / -0.0` yields negative infinity. This is why `-0.0` should not be treated as completely equivalent to `0.0` in all floating-point computations.
 
-## 10. Ví dụ hoàn chỉnh: đọc literal, phần mũ và hậu tố
+## 10. Complete Example: Reading Literals, Exponents, and Suffixes
 
-Lưu toàn bộ nội dung thành **`FloatingLiterals.java`**:
+Save the entire content as **`FloatingLiterals.java`**:
 
 ```java
 public class FloatingLiterals {
@@ -319,14 +319,14 @@ public class FloatingLiterals {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac --release 17 FloatingLiterals.java
 java FloatingLiterals
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 12.5
@@ -339,17 +339,17 @@ java FloatingLiterals
 false
 ```
 
-Giải thích:
+Explanation:
 
-1. `12.5` và `.75` dùng cú pháp thập phân; `1.2e3` = 1200.0.
-2. `1.25F` có kiểu `float` và được `println` in dưới dạng `1.25`.
+1. `12.5` and `.75` use decimal syntax; `1.2e3` = 1200.0.
+2. `1.25F` has type `float` and is printed by `println` as `1.25`.
 3. `0x1.8p1` = (1 + 8/16) × 2 = `3.0`; `0x1p-3F` = 1/8 = `0.125`.
-4. `Double.toHexString` tạo chuỗi biểu diễn hex của giá trị `double`; với `3.0`, kết quả `0x1.8p1`.
-5. `0.1F == 0.1` là `false` vì toán hạng `float` được chuyển thành `double` để so sánh nhưng vẫn mang sai số làm tròn của binary32; hai toán hạng không chứa cùng giá trị.
+4. `Double.toHexString` produces the hex representation string of a `double` value; for `3.0`, the result is `0x1.8p1`.
+5. `0.1F == 0.1` is `false` because the `float` operand is converted to `double` for comparison while still carrying the binary32 rounding error; the two operands do not hold the same value.
 
-## 11. Ví dụ hoàn chỉnh: precision, zero và giá trị đặc biệt
+## 11. Complete Example: Precision, Zero, and Special Values
 
-Lưu thành **`LiteralPrecision.java`**:
+Save as **`LiteralPrecision.java`**:
 
 ```java
 public class LiteralPrecision {
@@ -368,14 +368,14 @@ public class LiteralPrecision {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 LiteralPrecision.java
 java LiteralPrecision
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 false
@@ -385,78 +385,78 @@ false
 true
 ```
 
-Diễn giải: chuyển `0.1F` sang `double` hiển thị rõ giá trị binary32 gần đúng; `0x1.0p-1` và `0.5` cùng đúng 1/2; zero dương/âm khác mẫu bit; phép chia `double` dương cho 0.0 tạo vô cực nên `Double.isInfinite` trả về `true`.
+Interpretation: converting `0.1F` to `double` clearly displays the approximate binary32 value; `0x1.0p-1` and `0.5` both equal exactly 1/2; positive and negative zero have different bit patterns; dividing a positive `double` by 0.0 yields infinity, so `Double.isInfinite` returns `true`.
 
-## 12. Những ví dụ sai cần nhận ra khi đọc mã
+## 12. Invalid Examples to Recognize When Reading Code
 
-Các dòng sau là **mã cố ý sai** để nhận diện lỗi, không phải đoạn Java độc lập có thể biên dịch:
+The following lines are **intentionally invalid code** for recognizing errors, not a standalone compilable Java snippet:
 
 ```java
-// double a = 1e;         // phần mũ thiếu chữ số
-// double b = 1e+;        // phần mũ thiếu chữ số sau dấu
-// double c = 1e2.5;      // mũ không phải số nguyên
-// double d = 0x1.8;      // hex float bắt buộc có p/P
-// double e = 0x1.8e2;    // e là chữ số hex, không thay cho mũ p
-// float  f = 1.25;       // literal double không tự gán vào float
-// double g = 1.5L;       // L chỉ dành cho literal nguyên
-// double h = 1e3L;       // không thể gắn L sau số thực
-// double i = 1.0_M;      // underscore sai chỗ, M không phải hậu tố số thực
-// double j = 1e400;      // literal khác 0 tràn thành Infinity
-// float  k = 1e-50F;     // literal khác 0 underflow thành zero
+// double a = 1e;         // exponent missing digits
+// double b = 1e+;        // exponent missing digits after sign
+// double c = 1e2.5;      // exponent is not an integer
+// double d = 0x1.8;      // hex float requires p/P
+// double e = 0x1.8e2;    // e is a hex digit, does not substitute for exponent p
+// float  f = 1.25;       // double literal does not auto-assign to float
+// double g = 1.5L;       // L is only for integer literals
+// double h = 1e3L;       // cannot attach L after floating-point number
+// double i = 1.0_M;      // misplaced underscore, M is not a float/double suffix
+// double j = 1e400;      // non-zero literal overflows to Infinity
+// float  k = 1e-50F;     // non-zero literal underflows to zero
 ```
 
-Một lỗi đọc mã khác: tưởng `2e3F` nghĩa là 2 × 10³ rồi “đổi sang float ở cuối”. Trên thực tế, **toàn bộ token `2e3F`** là literal `float`, và giá trị của nó đã tuân theo quy tắc làm tròn binary32 khi được tạo.
+Another code-reading mistake: thinking `2e3F` means 2 × 10³ and then "converted to float at the end." In reality, **the entire token `2e3F`** is a `float` literal, and its value already obeys binary32 rounding rules when created.
 
-## 13. Bảng quyết định nhanh
+## 13. Quick Decision Table
 
-| Muốn biểu diễn | Viết | Tránh nhầm |
+| Want to Represent | Write | Avoid Confusing |
 | --- | --- | --- |
-| Số `double` theo thập phân | `2.5` hoặc `2.5D` | `2.5` mặc định đã là `double` |
-| Số `float` theo thập phân | `2.5F` | `float x = 2.5;` không hợp lệ |
-| Lũy thừa cơ số 10 | `2.5e3` | `e` không phải hằng số Euler |
-| Lũy thừa cơ số 10 cho `float` | `2.5e3F` | Phần mũ không thay đổi quy tắc kiểu |
-| Biểu diễn nhị phân bằng hex | `0x1.4p2` | Mũ hex dùng `p`, nghĩa là 2² |
-| Hex số thực kiểu `float` | `0x1p-3F` | `0x1p-3` không hậu tố là `double` |
-| Số nguyên hệ 16 | `0x10` | Đây là `int`, không phải hex float |
-| Số thập phân tiền tệ chính xác | `new BigDecimal("2.50")` | Java không có `BigDecimal` literal |
-| Vô cực/NaN | `Double.POSITIVE_INFINITY`, `Double.NaN` | `Infinity`/`NaN` không phải token literal |
+| Decimal `double` number | `2.5` or `2.5D` | `2.5` is already `double` by default |
+| Decimal `float` number | `2.5F` | `float x = 2.5;` is invalid |
+| Power of 10 | `2.5e3` | `e` is not Euler's constant |
+| Power of 10 for `float` | `2.5e3F` | Exponent does not alter type rules |
+| Binary-exact representation in hex | `0x1.4p2` | Hex exponent uses `p`, meaning 2² |
+| Hex floating-point of type `float` | `0x1p-3F` | Unsuffixed `0x1p-3` is `double` |
+| Base-16 integer | `0x10` | This is an `int`, not a hex float |
+| Exact decimal currency value | `new BigDecimal("2.50")` | Java has no `BigDecimal` literal |
+| Infinity / NaN | `Double.POSITIVE_INFINITY`, `Double.NaN` | `Infinity`/`NaN` are not literal tokens |
 
-## 14. Bài luyện tập và đáp án giải thích
+## 14. Practice Exercises and Explained Answers
 
-**Bài 1 — Xác định kiểu.** Với `3`, `3F`, `3D`, `3.0`, `3e0`, `0x3p0`, `0x3`, hãy tự chia thành `int`/`float`/`double` trước khi xem đáp án.
+**Exercise 1 — Identify types.** Given `3`, `3F`, `3D`, `3.0`, `3e0`, `0x3p0`, and `0x3`, classify them into `int`/`float`/`double` before checking the answer.
 
-Đáp án: `3` và `0x3` là `int`; `3F` là `float`; `3D`, `3.0`, `3e0` và `0x3p0` là `double`.
+Answer: `3` and `0x3` are `int`; `3F` is `float`; `3D`, `3.0`, `3e0`, and `0x3p0` are `double`.
 
-**Bài 2 — Tính giá trị mũ.** Tính bằng tay `1.5e2`, `1.5e-2`, `0x1.8p2` và `0x1p-4`.
+**Exercise 2 — Compute exponent values.** Compute by hand: `1.5e2`, `1.5e-2`, `0x1.8p2`, and `0x1p-4`.
 
-Đáp án lần lượt: `150.0`, `0.015`, `6.0` và `0.0625`. Hai dạng đầu nhân lũy thừa 10; hai dạng sau nhân lũy thừa 2.
+Answers in order: `150.0`, `0.015`, `6.0`, and `0.0625`. The first two multiply by powers of 10; the last two multiply by powers of 2.
 
-**Bài 3 — Tìm lỗi.** Các đoạn `float x = 2.5;`, `double y = 1e;`, `double z = 0x1.8;` lỗi ở đâu?
+**Exercise 3 — Find the errors.** Where are the errors in `float x = 2.5;`, `double y = 1e;`, and `double z = 0x1.8;`?
 
-Đáp án: `2.5` mặc định là `double` và không thể tự chuyển hẹp sang `float`; `1e` thiếu số mũ; hex float `0x1.8` thiếu mũ `p`. Cách sửa tương ứng: `2.5F`, `1e0` và `0x1.8p0`.
+Answer: `2.5` defaults to `double` and cannot automatically narrow to `float`; `1e` is missing an exponent; hex float `0x1.8` is missing the `p` exponent. Corresponding fixes: `2.5F`, `1e0`, and `0x1.8p0`.
 
-**Bài 4 — Phân biệt precision.** Giải thích vì sao `double d = 0.1F;` và `double e = 0.1;` có thể khác nhau mặc dù hai biến đều có kiểu `double`.
+**Exercise 4 — Distinguish precision.** Explain why `double d = 0.1F;` and `double e = 0.1;` can differ even though both variables have type `double`.
 
-Đáp án: kiểu **literal** quyết định bước làm tròn đầu tiên. `0.1F` đã làm tròn theo binary32 rồi mới mở rộng; `0.1` làm tròn trực tiếp theo binary64.
+Answer: the **literal's** type determines the first rounding step. `0.1F` is rounded in binary32 before widening; `0.1` is rounded directly in binary64.
 
-**Bài 5 — Đọc dấu.** Trong `-0x1p-3F`, có bao nhiêu dấu âm và vai trò từng dấu?
+**Exercise 5 — Read signs.** In `-0x1p-3F`, how many minus signs are there and what is each one's role?
 
-Đáp án: hai dấu. Dấu đầu là toán tử âm một ngôi tác động lên literal; dấu sau `p` là dấu của số mũ `-3`. Kết quả là `-0.125F`.
+Answer: two signs. The first is the unary minus operator acting on the literal; the sign after `p` is the sign of the exponent `-3`. The result is `-0.125F`.
 
-**Bài 6 — Phân biệt lỗi lúc biên dịch và runtime.** Tại sao `double x = 1e400;` lỗi biên dịch trong khi `double x = 1.0 / 0.0;` có thể tạo vô cực lúc chạy?
+**Exercise 6 — Distinguish compile-time vs. runtime errors.** Why is `double x = 1e400;` a compile error while `double x = 1.0 / 0.0;` can produce infinity at runtime?
 
-Đáp án: một **literal khác 0** được làm tròn thành vô cực là lỗi biên dịch theo JLS, còn phép chia floating point có quy tắc tạo giá trị IEEE 754 đặc biệt.
+Answer: a **non-zero literal** that rounds to infinity is a compile error per the JLS, whereas floating-point division has rules for producing special IEEE 754 values.
 
-## 15. Checklist đã nắm vững
+## 15. Mastery Checklist
 
-- [ ] Tôi phân biệt `1`, `1.0`, `1e0`, `1F` và `1D` về loại literal.
-- [ ] Tôi giải thích được `e/E` nhân lũy thừa 10, `p/P` nhân lũy thừa 2.
-- [ ] Tôi tự đổi được `0x1.8p1` sang `3.0` và hiểu vì sao hex float luôn cần phần mũ.
-- [ ] Tôi biết literal không hậu tố là `double`; `F/f` là `float`; `D/d` xác nhận `double`.
-- [ ] Tôi giải thích được vì sao `float x = 1.2;` lỗi dù giá trị có vẻ nhỏ.
-- [ ] Tôi viết được underscore đúng chỗ, phân biệt dấu âm một ngôi với dấu của số mũ.
-- [ ] Tôi không nhầm cách hiển thị `0.1F` với độ chính xác lưu trữ.
-- [ ] Tôi biết literal quá lớn/quá nhỏ có thể lỗi **biên dịch**, còn `NaN`/`Infinity` là hằng số/API hoặc kết quả phép toán.
-- [ ] Tôi chạy được hai ví dụ hoàn chỉnh và tự xác minh stdout.
+- [ ] I can distinguish `1`, `1.0`, `1e0`, `1F`, and `1D` by literal kind.
+- [ ] I can explain that `e/E` multiplies by a power of 10, while `p/P` multiplies by a power of 2.
+- [ ] I can convert `0x1.8p1` to `3.0` on my own and understand why hex floats always require an exponent part.
+- [ ] I know unsuffixed literals are `double`; `F/f` is `float`; `D/d` confirms `double`.
+- [ ] I can explain why `float x = 1.2;` fails even though the value looks small.
+- [ ] I can place underscores properly and distinguish unary minus from an exponent's minus sign.
+- [ ] I do not confuse how `0.1F` is displayed with its storage precision.
+- [ ] I know overly large/small literals can cause **compile** errors, while `NaN`/`Infinity` are constants/APIs or operation results.
+- [ ] I ran both complete examples and verified stdout myself.
 
-**Tài liệu tiêu chuẩn để đối chiếu:** [Java Language Specification 17, `3.10.2 Floating-Point Literals](https://docs.oracle.com/javase/specs/jls/se17/html/jls-3.html#jls-3.10.2); [JLS 17, `4.2.3 Floating-Point Types, Formats, and Values](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.3); [Java SE 17, Float API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html); [Java SE 17, Double API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html).
+**Standard reference documentation:** [Java Language Specification 17, `3.10.2 Floating-Point Literals](https://docs.oracle.com/javase/specs/jls/se17/html/jls-3.html#jls-3.10.2); [JLS 17, `4.2.3 Floating-Point Types, Formats, and Values](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.3); [Java SE 17, Float API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html); [Java SE 17, Double API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html).

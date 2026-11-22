@@ -1,74 +1,74 @@
-# Giới hạn của việc định dạng rồi phân tích để khôi phục dữ liệu gốc
+# Limitations of Formatting Then Parsing to Recover Original Data
 
-## 1. Câu hỏi cốt lõi: `parse(format(x))` có bằng `x` không?
+## 1. The Core Question: Does `parse(format(x))` Equal `x`?
 
-Trong Java Core Localization, quá trình **định dạng (format)** chuyển một giá trị có cấu trúc thành chuỗi dễ đọc theo locale, còn **phân tích (parse)** cố gắng diễn giải một chuỗi thành giá trị có cấu trúc. Hai việc này có liên quan nhưng **không mặc nhiên là hai phép toán nghịch đảo**.
+In Java Core Localization, **formatting** turns a structured value into a human-readable string for a locale, while **parsing** attempts to interpret a string back into a structured value. The two operations are related, but they are **not automatically exact inverses**.
 
 ```text
-Giá trị ban đầu x
+Original value x
       |
       | format(x, locale, pattern, precision...)
       v
-   Chuỗi hiển thị s
+  Display string s
       |
       | parse(s, locale, pattern, parser options...)
       v
-  Giá trị được khôi phục x'
+  Recovered value x'
 ```
 
-Có hai điều kiện rất khác:
+There are two very different criteria:
 
-- **Về giá trị:** `x'` có cùng nghĩa toán học/thời điểm với `x` hay không?
-- **Về dữ liệu gốc:** `x'` có giữ **đầy đủ kiểu, scale, độ chính xác, múi giờ, offset, ký tự và ngữ cảnh** của `x` hay không?
+- **By value:** does `x'` have the same mathematical value or instant in time as `x`?
+- **By original data:** does `x'` retain the **exact type, scale, precision, time zone, offset, characters, and context** of `x`?
 
-Thậm chí khi số học bằng nhau, đối tượng có thể không bằng nhau: `BigDecimal("1.20")` và `BigDecimal("1.2")` có cùng trị số nhưng `equals` trả `false` do khác scale. Một đối tượng `ZonedDateTime` với vùng `Asia/Ho_Chi_Minh` có thể bị giảm thành `OffsetDateTime` chỉ mang `+07:00`, nên thời điểm vẫn đúng nhưng danh tính vùng giờ đã mất.
+Even when numerically equal, objects may not be equal: `BigDecimal("1.20")` and `BigDecimal("1.2")` have the same numeric value, yet `equals` returns `false` due to differing scale. A `ZonedDateTime` in `Asia/Ho_Chi_Minh` can be reduced to an `OffsetDateTime` carrying only `+07:00`, preserving the instant while losing the region zone identity.
 
-Bài này tập trung giải thích **giới hạn của việc định dạng rồi phân tích để khôi phục dữ liệu gốc** trong nhóm *Phân tích đầu vào*: nguyên nhân, minh chứng Java 17+, những lỗi thường gặp và cách thiết kế lưu trữ/trao đổi dữ liệu an toàn.
+This lesson explains the **limitations of formatting then parsing to recover original data** in the *Input Parsing* module: root causes, Java 17+ demonstrations, common mistakes, and how to design safe data storage and interchange.
 
-### Mục tiêu học tập
+### Learning Objectives
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-1. Phân biệt `parse(format(x))` với `format(parse(s))` và hiểu vì sao cả hai không đảm bảo round-trip tuyệt đối.
-2. Nhận diện **mất độ chính xác**, **mất scale**, **mất kiểu dữ liệu**, **mất vùng giờ** và **mất thông tin văn bản ban đầu**.
-3. Dùng `DecimalFormat`, `ParsePosition` và `DateTimeFormatter` đúng mục đích, không coi chúng là bộ serializer.
-4. Thiết kế đầu vào có **locale rõ ràng**, kiểm tra **toàn bộ chuỗi** và kiểm tra miền dữ liệu.
-5. Lựa chọn biểu diễn lưu trữ chính tắc bằng kiểu số, `BigDecimal` và các dạng ISO 8601 phù hợp.
+1. Distinguish `parse(format(x))` from `format(parse(s))` and understand why neither guarantees an absolute round-trip.
+2. Recognize **precision loss**, **scale loss**, **data type loss**, **time zone loss**, and **loss of original text formatting**.
+3. Use `DecimalFormat`, `ParsePosition`, and `DateTimeFormatter` for their intended purpose rather than as serializers.
+4. Design input pipelines with **explicit locales**, **whole-string checks**, and domain validation.
+5. Choose canonical storage representations using appropriate numeric types, `BigDecimal`, and ISO 8601 forms.
 
-## 2. Vì sao một phép format thường không thể đảo ngược?
+## 2. Why Is Formatting Usually Not Reversible?
 
-Muốn parse chính xác lại mọi thông tin của `x`, phép format phải không làm mất thông tin cần thiết. Nhưng formatter dành cho người đọc được thiết kế để **bỏ bớt chi tiết** hoặc **thay đổi cách biểu diễn**:
+To parse back every piece of `x` accurately, formatting would have to lose zero required information. However, human-facing formatters are built to **omit details** or **alter representation**:
 
-- **Làm tròn:** `1234.567` hiển thị `1,234.57` khi chỉ cho hai chữ số phần lẻ.
-- **Bỏ các số 0 cuối:** `BigDecimal("1.20")` hiển thị `1.2` theo pattern tối đa hai chữ số phần lẻ nhưng không bắt buộc hai chữ số.
-- **Chỉ hiện ngày:** thời gian `08:45:37.123456789` không có trong chuỗi `28/10/2026`.
-- **Chỉ hiện offset:** `+07:00` không chứa tên vùng giờ gốc `Asia/Ho_Chi_Minh`.
-- **Thay đổi locale:** dấu `,` có thể là phân nhóm ở `en-US` nhưng thập phân ở `de-DE`.
-- **Biểu diễn đồng nghĩa:** `"1,234.50"` và `"1234.50"` có thể cùng được parse thành một giá trị; parser không biết input ban đầu viết theo dạng nào.
-- **Thay chữ số, dấu hoặc khoảng trắng:** kết quả có thể dùng Arabic-Indic digits, U+202F, tiền tố/ký hiệu tiền tệ; một bước parse không luôn phục hồi các ký tự gốc.
+- **Rounding:** `1234.567` displays as `1,234.57` when only two fractional digits are shown.
+- **Dropping trailing zeros:** `BigDecimal("1.20")` displays as `1.2` under a pattern allowing up to two optional fractional digits.
+- **Date-only output:** time-of-day `08:45:37.123456789` is absent from `28/10/2026`.
+- **Offset-only output:** `+07:00` does not contain the original zone name `Asia/Ho_Chi_Minh`.
+- **Locale differences:** `,` can be a grouping separator in `en-US` but a decimal separator in `de-DE`.
+- **Equivalent representations:** `"1,234.50"` and `"1234.50"` can parse to the same value; the parser cannot tell which form the original input used.
+- **Digit, sign, or space transformations:** output may use Arabic-Indic digits, U+202F, or currency prefixes/symbols; parsing back does not always recover the original characters.
 
-Về mặt toán học, nếu hai giá trị `x1` và `x2` khác nhau nhưng formatter trả **cùng một chuỗi**, thì không thể tồn tại một parser chỉ nhìn chuỗi ấy mà khôi phục chính xác **cả hai**. Đây là tính **không đơn ánh (non-injective)** của phép format.
+Mathematically, if two distinct values `x1` and `x2` produce **the exact same string** from a formatter, no parser inspecting only that string can faithfully recover **both**. This is the **non-injective** nature of formatting.
 
-Ví dụ:
+Example:
 
 ```text
 format(1.20, pattern "#,##0.##") = "1.2"
 format(1.2,  pattern "#,##0.##") = "1.2"
 ```
 
-Cả hai đầu vào dẫn đến cùng `"1.2"`, nên sau parse không thể suy ra người dùng/bộ dữ liệu ban đầu đã dùng scale 2 hay scale 1.
+Both inputs yield `"1.2"`, so after parsing you cannot deduce whether the original dataset had scale 2 or scale 1.
 
-**Kết luận:** chuỗi hiển thị không nên được xem là bản sao dự phòng toàn vẹn của dữ liệu gốc.
+**Conclusion:** a display string should never be treated as a lossless backup of original data.
 
-## 3. Ba cấp độ round-trip phải phân biệt
+## 3. Three Round-Trip Levels to Distinguish
 
-| Mục tiêu | Ví dụ kiểm tra | Có thể mất những gì? |
+| Goal | Example Check | What Can Still Be Lost? |
 | --- | --- | --- |
-| **Cùng giá trị số học** | `a.compareTo(b) == 0` với `BigDecimal` | Scale, hình thức viết, số 0 cuối |
-| **Cùng dữ liệu/đối tượng** | `a.equals(b)` với kiểu có ngữ nghĩa rõ | Precision, scale, zone ID, nano-giây, loại dữ liệu |
-| **Cùng chuỗi byte/ký tự ban đầu** | `originalText.equals(formattedAgain)` | Dấu nhóm, whitespace Unicode, chữ số, kiểu viết, dấu `+`, số 0 đầu |
+| **Same numeric value** | `a.compareTo(b) == 0` for `BigDecimal` | Scale, written shape, trailing zeros |
+| **Same data/object** | `a.equals(b)` for semantically rich types | Precision, scale, zone ID, nanoseconds, runtime type |
+| **Exact original character/byte sequence** | `originalText.equals(formattedAgain)` | Grouping separators, Unicode whitespace, digit script, notation style, `+` sign, leading zeros |
 
-Ví dụ, parser có thể đọc:
+For instance, a parser can read:
 
 ```text
 "1234.50"
@@ -76,16 +76,16 @@ Ví dụ, parser có thể đọc:
 "001234.50"
 ```
 
-thành cùng `BigDecimal("1234.50")` trong một số cấu hình `en-US`. Nhưng khi định dạng lại bằng `#,##0.00`, tất cả đều thành `"1,234.50"`. Nếu mục tiêu là phục hồi chuỗi đầu vào **chính xác từng ký tự**, bạn phải lưu chính chuỗi đầu vào hoặc thông tin biểu diễn bổ sung.
+into the exact same `BigDecimal("1234.50")` under certain `en-US` configurations. Yet when formatted back with `#,##0.00`, all three become `"1,234.50"`. If your goal is to recover the input string **character-for-character**, you must store the raw input string or additional presentation metadata.
 
-Cũng cần phân biệt hai biểu thức:
+Also distinguish these two expressions:
 
-- `parse(format(x))`: từ giá trị → văn bản → giá trị. Có thể mất độ chính xác/cấu trúc.
-- `format(parse(s))`: từ văn bản → giá trị → văn bản. Thường **chuẩn hóa cách viết** nên không bằng `s` dù giá trị vẫn hợp lệ.
+- `parse(format(x))`: value → text → value. Can lose precision or structure.
+- `format(parse(s))`: text → value → text. Often **canonicalizes spelling**, so it need not equal `s` even when the value is valid.
 
-## 4. Mất độ chính xác do rounding và giới hạn phần lẻ
+## 4. Precision Loss from Rounding and Fractional Digit Limits
 
-`DecimalFormat` có thể chỉ hiển thị một số chữ số phần thập phân:
+`DecimalFormat` may display only a bounded number of fractional digits:
 
 ```java
 DecimalFormat formatter = new DecimalFormat(
@@ -93,42 +93,42 @@ DecimalFormat formatter = new DecimalFormat(
         DecimalFormatSymbols.getInstance(Locale.US));
 ```
 
-Pattern `#,##0.00` yêu cầu hai chữ số phần lẻ. Giá trị `1234.567` được hiển thị `1,234.57` theo quy tắc rounding hiệu lực; lúc parse lại không còn cách nào biết chữ số cuối `7` của giá trị ban đầu.
+The pattern `#,##0.00` requires two fractional digits. The value `1234.567` displays as `1,234.57` under the active rounding mode; when parsed back, there is no way to recover the original trailing digit `7`.
 
-Ví dụ:
+Example:
 
 ```text
-Giá trị BigDecimal:  1234.567
-Chuỗi hiển thị:      1,234.57
-Giá trị parse lại:   1234.57
-Sai khác:            0.003
+BigDecimal value:  1234.567
+Display string:    1,234.57
+Re-parsed value:   1234.57
+Difference:        0.003
 ```
 
-`setMaximumFractionDigits(2)` và `setRoundingMode(...)` giúp kiểm soát **đầu ra hiển thị**; chúng không làm phép format trở thành không mất mát. Việc parser có `setParseBigDecimal(true)` vẫn không giúp phục hồi chữ số đã bị formatter loại bỏ.
+`setMaximumFractionDigits(2)` and `setRoundingMode(...)` control **display output**; they do not make formatting lossless. Enabling `setParseBigDecimal(true)` on the parser cannot bring back digits already discarded by the formatter.
 
-**Dùng `BigDecimal` để tránh sai số nhị phân** là việc khác với **tránh mất chữ số do formatter làm tròn**. Một BigDecimal chính xác đến hàng trăm chữ số vẫn có thể bị format thành một chuỗi chỉ có hai chữ số phần lẻ.
+**Using `BigDecimal` to avoid binary floating-point error** is different from **preventing digit loss from formatter rounding**. A `BigDecimal` accurate to hundreds of digits can still be formatted into a string with only two fractional digits.
 
-## 5. Mất `scale` dù giá trị vẫn bằng nhau
+## 5. Losing `scale` Even When Values Remain Equal
 
-`BigDecimal` có hai khía cạnh đáng chú ý: **giá trị số học** và **scale**.
+`BigDecimal` has two notable facets: **numeric value** and **scale**.
 
 ```text
 new BigDecimal("1.20") : scale 2
 new BigDecimal("1.2")  : scale 1
 ```
 
-Pattern `#,##0.##` cho phép tối đa hai chữ số phần lẻ nhưng không bắt buộc, nên cả hai có thể được hiển thị `1.2`. Sau khi parse lại:
+The pattern `#,##0.##` allows up to two optional fractional digits, so both format as `1.2`. After parsing back:
 
-- `compareTo(...) == 0`: vẫn cùng giá trị số học.
-- `equals(...)`: có thể `false` vì đối tượng ban đầu có scale khác.
+- `compareTo(...) == 0`: still numerically equal.
+- `equals(...)`: can be `false` because the original object had a different scale.
 
-Scale có thể quan trọng trong số tiền, chuẩn hiển thị hóa đơn, độ phân giải phép đo hoặc yêu cầu audit. Nếu nghiệp vụ cần giữ scale đầu vào, đừng dựa vào formatter bỏ số 0; lưu giá trị cùng scale hoặc dùng một biểu diễn decimal chính tắc có chính sách scale rõ.
+Scale can matter in monetary amounts, invoice formatting standards, measurement resolution, or audit requirements. If business logic requires preserving input scale, do not rely on a formatter that strips trailing zeros; store the value along with its scale or use a canonical decimal representation with an explicit scale policy.
 
-Ngược lại, nếu scale **không** phải thuộc tính nghiệp vụ, không cần đòi `BigDecimal.equals` sau mọi round-trip: có thể kiểm tra `compareTo` để so giá trị. Chính sách kiểm tra phải theo nghĩa dữ liệu, không chọn bừa phương thức equality.
+Conversely, if scale is **not** a business attribute, do not require `BigDecimal.equals` after every round-trip: use `compareTo` to compare numeric values. Comparison semantics must follow data meaning rather than an arbitrary equality method.
 
-## 6. Ví dụ Java 17+: cùng giá trị nhưng không khôi phục đầy đủ
+## 6. Java 17+ Example: Same Value Context, Incomplete Recovery
 
-Tạo file `NumberRoundTripDemo.java`:
+Create the file `NumberRoundTripDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -183,14 +183,14 @@ public class NumberRoundTripDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac NumberRoundTripDemo.java
 java NumberRoundTripDemo
 ```
 
-Kết quả trên JDK có dữ liệu locale tiêu chuẩn:
+Output on a JDK with standard locale data:
 
 ```text
 original: 1234.567
@@ -206,50 +206,50 @@ percent display: 12%
 percent parsed: 0.12
 ```
 
-**Ba cơ chế mất thông tin:**
+**Three mechanisms of information loss:**
 
-1. `1234.567 → 1,234.57 → 1234.57`: mất chữ số do rounding.
-2. `1.20 → 1.2 → 1.2`: giữ giá trị nhưng mất scale.
-3. `0.1245 → 12% → 0.12`: định dạng phần trăm thường nhân 100 và làm tròn số hiển thị; parse không phục hồi số thập phân gốc.
+1. `1234.567 → 1,234.57 → 1234.57`: digit loss due to rounding.
+2. `1.20 → 1.2 → 1.2`: preserves numeric value while losing scale.
+3. `0.1245 → 12% → 0.12`: percentage formatting multiplies by 100 and rounds for display; parsing does not recover the original decimal fraction.
 
-`NumberFormat.getPercentInstance` có quy tắc phụ thuộc locale/provider; ví dụ này dùng `Locale.US` và mặc định hiển thị phần trăm nguyên trên JDK đã kiểm thử. Trong sản phẩm, chọn rõ phần lẻ cần hiển thị và rounding policy.
+`NumberFormat.getPercentInstance` has locale/provider-dependent rules; this example uses `Locale.US` and displays whole percentages by default on tested JDKs. In production, explicitly configure fractional digits and rounding policy.
 
-## 7. Chế độ parse cũng có thể mất độ chính xác
+## 7. Parse Mode Can Also Lose Precision
 
-Ngay cả trước khi format, nếu parse số thành `double`, bạn có thể mất chữ số:
+Even before formatting, parsing a number into `double` can drop digits:
 
 ```text
 input:      12345678901234567890.123456789
-Double:     một giá trị nhị phân xấp xỉ
-BigDecimal: giữ chính xác các chữ số thập phân đã đọc
+Double:     an approximate binary value
+BigDecimal: preserves exact parsed decimal digits
 ```
 
-Trong Java, `NumberFormat.parse(...)` thường trả về `Long` hoặc `Double` theo dữ liệu/cấu hình. Với `DecimalFormat`, bật `setParseBigDecimal(true)` giúp parse các số **hữu hạn** thành `BigDecimal`, nhưng không làm đầu ra display trước đó chính xác trở lại.
+In Java, `NumberFormat.parse(...)` normally returns `Long` or `Double` depending on input and configuration. On `DecimalFormat`, enabling `setParseBigDecimal(true)` parses **finite** numbers into `BigDecimal`, though it cannot restore precision already discarded by prior display formatting.
 
-Đối tượng `BigDecimal` cần được giữ xuyên suốt xử lý; chuyển `BigDecimal.doubleValue()` rồi quay lại `new BigDecimal(double)` có thể gây mất giá trị. Với input decimal canonical không có dấu ngăn cách locale, `new BigDecimal("1234.50")` tránh phải parse bằng `DecimalFormat`.
+Keep `BigDecimal` throughout processing; calling `BigDecimal.doubleValue()` and converting back via `new BigDecimal(double)` can corrupt values. For canonical decimal inputs without locale separators, `new BigDecimal("1234.50")` avoids `DecimalFormat` parsing altogether.
 
-**Ngoại lệ của `setParseBigDecimal(true)`:** `NaN` hoặc vô cực có thể được parse thành `Double` chứ không phải `BigDecimal`. `BigDecimal` cũng không giữ âm zero phân biệt với zero. Nếu domain chỉ chấp nhận số hữu hạn, kiểm tra kiểu kết quả và miền giá trị.
+**Exceptions to `setParseBigDecimal(true)`:** `NaN` or infinity can still parse as `Double` rather than `BigDecimal`. Nor does `BigDecimal` preserve negative zero distinctly from zero. If the domain allows only finite numbers, check both the returned type and value range.
 
-## 8. Locale không khớp: cùng chuỗi, hai giá trị
+## 8. Locale Mismatch: Same String, Two Different Values
 
-Locale khác nhau có thể gán **vai trò ngược nhau** cho dấu `.` và `,`:
+Different locales can assign **opposite roles** to `.` and `,`:
 
-| Chuỗi | Theo `en-US` | Theo `de-DE` |
+| String | Under `en-US` | Under `de-DE` |
 | --- | --- | --- |
-| `1,234` | một nghìn hai trăm ba mươi tư | một phẩy hai ba bốn |
-| `1.234` | một phẩy hai ba bốn | một nghìn hai trăm ba mươi tư |
-| `1,234.50` | một nghìn hai trăm ba mươi tư phẩy năm | không thể mặc định hiểu đúng |
-| `1.234,50` | không thể mặc định hiểu đúng | một nghìn hai trăm ba mươi tư phẩy năm |
+| `1,234` | one thousand two hundred thirty-four | one point two three four |
+| `1.234` | one point two three four | one thousand two hundred thirty-four |
+| `1,234.50` | one thousand two hundred thirty-four point five | cannot be assumed to parse accurately |
+| `1.234,50` | cannot be assumed to parse accurately | one thousand two hundred thirty-four point five |
 
-Vì vậy, nếu định dạng ở `de-DE` mà parse lại bằng parser `en-US`, bạn có thể nhận **số sai nhưng không có exception**, hoặc parser chỉ đọc một phần chuỗi.
+Thus if you format in `de-DE` and parse back with an `en-US` parser, you can get the **wrong number with no exception**, or the parser may read only a prefix of the string.
 
-Tương tự, dấu phân nhóm của `fr-FR` có thể là U+202F (*narrow no-break space*), không phải space ASCII thông thường. Các hệ chữ số như `arab`, `thai` hoặc BCP 47 extension `u-nu-*` làm văn bản trông khác mà giá trị số không đổi. Không tự thay mọi dấu chấm/phẩy hoặc bỏ mọi whitespace để "chuẩn hóa" input; hãy dùng đúng locale của nguồn dữ liệu và validation tường minh.
+Similarly, the grouping separator for `fr-FR` can be U+202F (*narrow no-break space*), not a standard ASCII space. Numeral systems such as `arab`, `thai`, or BCP 47 `u-nu-*` extensions change the text appearance while representing the same numeric value. Never blindly swap dots/commas or strip all whitespace to “normalize” input; use the data source's true locale and explicit validation.
 
-**Locale dùng để format và parse phải được truyền rõ ràng**, thường là cùng locale và cùng chính sách ký hiệu, khi ứng dụng có chủ đích thực hiện round-trip hiển thị. Không gọi `Locale.setDefault(userLocale)` trên mỗi request: default locale là trạng thái chung của JVM, không phải riêng từng người dùng.
+**The locales used for formatting and parsing must be passed explicitly**—usually the same locale and symbol policy when an application intentionally performs a display round-trip. Never call `Locale.setDefault(userLocale)` per request: the default locale is JVM-wide shared state, not per-user state.
 
-## 9. `parse` có thể chỉ đọc một tiền tố
+## 9. `parse` Can Read Only a Prefix
 
-Một lỗi phổ biến khác: nghĩ rằng `parse(input)` trả một số nghĩa là **toàn bộ chuỗi đã được xác thực**. Trên thực tế, `NumberFormat.parse` có thể chấp nhận phần đầu rồi dừng:
+Another common mistake: assuming `parse(input)` returning a number means the **entire string was validated**. In reality, `NumberFormat.parse` can match a leading prefix and stop:
 
 ```text
 raw:      "1,234.50oops"
@@ -257,7 +257,7 @@ parsed:   1234.50
 ignored:  "oops"
 ```
 
-Dùng `ParsePosition` để biết parser tiêu thụ bao nhiêu ký tự:
+Use `ParsePosition` to check how many characters the parser consumed:
 
 ```java
 import java.math.BigDecimal;
@@ -306,7 +306,7 @@ javac LocaleParseLimitsDemo.java
 java LocaleParseLimitsDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 US 1,234: 1234
@@ -319,64 +319,64 @@ fully parsed: false
 wrong grouping: 1234.5
 ```
 
-Diễn giải:
+Interpretation:
 
-- Chuỗi `1,234` có ý nghĩa khác nhau giữa hai locale.
-- Parser Mỹ đọc `1.234,50` thành `1.234` rồi bỏ phần `,50`.
-- `ParsePosition.getIndex()` kiểm tra số ký tự đã tiêu thụ; trong ví dụ mới đọc 8/12 ký tự.
-- Nhiều parser số Java **không kiểm tra nghiêm ngặt vị trí dấu phân nhóm**, vì vậy `12,34.5` có thể vẫn được đọc thành `1234.5`.
+- `"1,234"` has opposite meanings across the two locales.
+- The US parser reads `"1.234,50"` as `1.234` and ignores `,50`.
+- `ParsePosition.getIndex()` checks consumed characters; in this example only 8 of 12 characters were read.
+- Many Java number parsers **do not strictly enforce grouping separator positions**, so `"12,34.5"` still parses as `1234.5`.
 
-**Quan trọng:** chỉ kiểm tra `position.getIndex() == input.length()` vẫn không đảm bảo input là biểu diễn đúng duy nhất theo quy ước của locale. Với input số tiền hoặc dữ liệu được kiểm soát chặt, phải kiểm tra thêm định dạng được phép, độ dài, ký tự, thập phân, grouping, miền giá trị và scale. Không nên tin rằng `parse(format(x))` hoặc `format(parse(s))` chứng minh dữ liệu gốc hoàn toàn hợp lệ.
+**Important:** checking `position.getIndex() == input.length()` alone still does not guarantee that the input is the single canonical representation for that locale. For monetary inputs or strictly controlled data, also validate permitted formatting, length, character set, decimal places, grouping, value range, and scale. Never assume `parse(format(x))` or `format(parse(s))` proves the original data is completely valid.
 
-## 10. Mất kiểu dữ liệu, ký hiệu và hình thức viết ban đầu
+## 10. Loss of Data Type, Signs, and Original Written Shape
 
-Formatter có thể chuyển nhiều kiểu sang cùng một chuỗi:
+A formatter can map multiple distinct types to the same string:
 
-- Số nguyên `1`, số thực `1.0`, `BigDecimal("1.00")` đều có thể hiển thị `"1"`.
-- `-0.0` có thể hiển thị `"-0.00"`, nhưng parser đang bật `setParseBigDecimal(true)` trả `BigDecimal("0.00")` và không giữ dấu âm của zero.
-- Số được nhập `"0012"` có thể format lại thành `"12"`, mất hai chữ số 0 đầu.
-- Input có dấu `+`, có hoặc không có grouping hoặc dùng khoảng trắng Unicode khác nhau có thể được chuẩn hóa thành một biểu diễn duy nhất.
+- Integer `1`, floating-point `1.0`, and `BigDecimal("1.00")` can all format as `"1"`.
+- `-0.0` can format as `"-0.00"`, yet a parser with `setParseBigDecimal(true)` returns `BigDecimal("0.00")` without preserving the negative sign on zero.
+- Input `"0012"` can re-format as `"12"`, losing its two leading zeros.
+- Input with a `+` sign, with or without grouping, or with differing Unicode whitespace gets normalized into one canonical representation.
 
-Vì thế cần hỏi **dữ liệu nào thật sự cần lưu**. Với số lượng hàng hóa, có thể chỉ cần giá trị nguyên. Với mã có số 0 đầu như `0012`, **đó là mã định danh dạng chuỗi**, không phải số nên đừng parse thành số rồi format lại. Với dữ liệu kiểm toán cần bảo tồn nguyên văn đầu vào, lưu giá trị canonical **và** raw input theo chính sách bảo mật/dữ liệu.
+Therefore, ask **what data truly needs to be stored**. For item quantities, an integer value may suffice. For codes with leading zeros like `0012`, **it is a string identifier**, not a number—never parse it as a number and format it back. For audit logs requiring exact original text preservation, store the canonical value **and** raw input under data/privacy governance.
 
-Cùng một nguyên tắc áp dụng cho định dạng tiền tệ và phần trăm: ký hiệu `$` không đủ phân biệt mọi mã tiền như USD/CAD/AUD; số `12%` không tự cho biết giá trị đầu vào là tỷ lệ `0.12`, số phần trăm `12`, hay một số đã làm tròn từ `0.1245`. Kiểu và đơn vị phải nằm trong schema/domain, không đoán ngược từ chuỗi UI.
+The same principle applies to currency and percentage formats: a `$` symbol cannot distinguish between USD, CAD, and AUD; `12%` does not reveal whether the underlying value was ratio `0.12`, percentage `12`, or a rounded `0.1245`. Type and unit belong in the schema/domain, never guessed backward from a UI string.
 
-## 11. Date/time còn mất nhiều thông tin hơn số
+## 11. Date/Time Loses Even More Information Than Numbers
 
-`java.time.format.DateTimeFormatter` cũng được thiết kế cho **trình bày** và **phân tích theo pattern**, không tự đóng gói đầy đủ mọi trường của đối tượng thời gian.
+`java.time.format.DateTimeFormatter` is likewise designed for **presentation** and **pattern-based parsing**, not automatically packaging every field of a temporal object.
 
-Ví dụ đối tượng:
+Example object:
 
 ```text
 2026-10-28T08:45:37.123456789
 ```
 
-Nếu định dạng bằng pattern `dd/MM/uuuu HH:mm`, chuỗi chỉ còn:
+If formatted with pattern `dd/MM/uuuu HH:mm`, the string retains only:
 
 ```text
 28/10/2026 08:45
 ```
 
-Sau khi parse lại thành `LocalDateTime`, seconds và nanoseconds không có trong chuỗi nên được khôi phục ở giá trị mặc định 0 (nếu kiểu đích có thể được tạo), không phải giá trị cũ. Hai thời điểm `08:45:01` và `08:45:59` có thể cùng hiển thị `08:45`.
+When parsed back into `LocalDateTime`, seconds and nanoseconds were absent from the string and default to 0 (if the target type can be constructed), rather than restoring the original values. Two distinct times `08:45:01` and `08:45:59` can both format to `08:45`.
 
-Tương tự:
+Similarly:
 
-| Định dạng | Phần có thể bị mất |
+| Format | What Can Be Lost |
 | --- | --- |
-| `dd/MM/uuuu` | Giờ, phút, giây, nano-giây |
-| `dd/MM/uuuu HH:mm` | Giây và nano-giây; không chứa zone/offset |
-| `HH:mm` | Ngày, offset, zone; không thể khôi phục `Instant` chỉ từ đây |
-| `ISO_OFFSET_DATE_TIME` | Offset được giữ nhưng **region ZoneId** như `Europe/Paris` có thể không được ghi |
-| Một mẫu có tên tháng địa phương hóa | Chịu ảnh hưởng locale, có thể mơ hồ/khác dữ liệu khi parse không cùng locale |
-| Mẫu 2 chữ số năm `yy` | Không bảo tồn nguyên văn năm đầy đủ nếu không có quy ước diễn giải bổ sung |
+| `dd/MM/uuuu` | Hour, minute, second, nanosecond |
+| `dd/MM/uuuu HH:mm` | Seconds and nanoseconds; no zone/offset |
+| `HH:mm` | Date, offset, zone; cannot recover an `Instant` from this alone |
+| `ISO_OFFSET_DATE_TIME` | Offset is kept, but a **region ZoneId** like `Europe/Paris` is not recorded |
+| Patterns with localized month names | Locale-dependent; ambiguous or fails if parsed under a different locale |
+| Two-digit year patterns `yy` | Does not preserve the full century without extra pivot assumptions |
 
-Chỉ lưu `LocalDateTime` không đủ xác định một thời điểm tuyệt đối nếu không có múi giờ/offset. Ở nơi có quy tắc giờ mùa hè (DST), một giờ địa phương có thể **không tồn tại** (gap) hoặc **lặp hai lần** (overlap); cùng chuỗi `02:30` chưa chắc xác định duy nhất `Instant`. Không giải quyết bằng cách lấy default timezone của máy chủ.
+Storing only `LocalDateTime` cannot identify an absolute instant without a time zone or offset. In regions observing Daylight Saving Time (DST), a local wall-clock time can **not exist** (a gap) or **occur twice** (an overlap); `02:30` alone may not uniquely identify an `Instant`. Never work around this by falling back to the server's default time zone.
 
-**Một lưu ý Java:** trong pattern của `DateTimeFormatter`, `uuuu` biểu thị năm proleptic, còn `yyyy` là year-of-era. Khi parse ngày chặt chẽ (STRICT) mà không có era, các pattern `yyyy` có thể cần thông tin era hoặc resolver phù hợp. Trong ví dụ dưới dùng `uuuu`.
+**A Java detail:** in `DateTimeFormatter` patterns, `uuuu` represents proleptic year, whereas `yyyy` is year-of-era. Under strict parsing (`STRICT`) without an era field, `yyyy` patterns can require era info or a matching resolver. The example below uses `uuuu`.
 
-## 12. Ví dụ Java 17+: mất giây/nano-giây và danh tính vùng giờ
+## 12. Java 17+ Example: Losing Seconds/Nanoseconds and Time Zone Identity
 
-Tạo file `DateTimeRoundTripDemo.java`:
+Create the file `DateTimeRoundTripDemo.java`:
 
 ```java
 import java.time.LocalDateTime;
@@ -432,7 +432,7 @@ javac DateTimeRoundTripDemo.java
 java DateTimeRoundTripDemo
 ```
 
-Đầu ra với phiên bản Java đã đối chiếu:
+Output on the verified Java version:
 
 ```text
 original: 2026-10-28T08:45:37.123456789
@@ -447,22 +447,22 @@ zone kept: Asia/Ho_Chi_Minh
 zoned equal: true
 ```
 
-Giải thích:
+Explanation:
 
-1. `DateTimeFormatter` với phút là độ phân giải cuối cùng đã **bỏ giây và nano-giây**.
-2. `ISO_OFFSET_DATE_TIME` giữ được offset và đủ thông tin về instant ở ví dụ, nhưng `OffsetDateTime` được chuyển sang `ZonedDateTime` có zone ID chỉ là `+07:00`, không còn `Asia/Ho_Chi_Minh`.
-3. `ISO_ZONED_DATE_TIME` có thể lưu cả `[Asia/Ho_Chi_Minh]` và phục hồi zone với trường hợp này, nhưng điều đó không làm cho **mọi pattern tùy biến** trở thành lossless.
-4. Các quy tắc múi giờ trong tzdb có thể cập nhật; nếu ứng dụng phải tái hiện chính xác cách hiển thị lịch sử dưới một bộ quy tắc cụ thể, cần thiết kế lưu trữ/phiên bản dữ liệu phù hợp.
+1. `DateTimeFormatter` at minute resolution **dropped seconds and nanoseconds**.
+2. `ISO_OFFSET_DATE_TIME` preserves the offset and enough information for the instant in this case, but converting `OffsetDateTime` to `ZonedDateTime` gives a zone ID of `+07:00`, not `Asia/Ho_Chi_Minh`.
+3. `ISO_ZONED_DATE_TIME` can store `[Asia/Ho_Chi_Minh]` and restore the zone here, but that does not make **arbitrary custom patterns** lossless.
+4. Time zone rules in tzdb can be updated over time; if an application must reproduce exact historical display under a specific rule version, design appropriate storage and data versioning.
 
-Trong các hệ thống nghiệp vụ, thường lưu `Instant` cho thời điểm tuyệt đối, và lưu thêm `ZoneId` nếu cần bảo tồn ý nghĩa "giờ địa phương của vùng" để hiển thị về sau. Với lịch hẹn tương lai, có thể cần lưu `LocalDateTime` và `ZoneId` để giữ giờ tường minh theo khu vực, đồng thời xác định chính sách khi gặp DST gap/overlap.
+In business systems, store `Instant` for absolute points in time, and also store `ZoneId` if you need to preserve the regional “local wall-clock” semantics for future display. For future recurring appointments, you may need `LocalDateTime` plus `ZoneId` to keep explicit local time alongside a policy for DST gaps and overlaps.
 
-## 13. Parse ngày giờ có thể "sửa" input nếu cấu hình quá dễ dãi
+## 13. Date/Time Parsing Can “Fix” Invalid Input If Configured Too Leniently
 
-Không chỉ mất thông tin, parser ngày cũ còn có thể tự chuẩn hóa ngày ngoài miền.
+Not only can information be lost, legacy date parsers can silently adjust out-of-range dates.
 
-Ví dụ `java.text.SimpleDateFormat` có chế độ **lenient** mặc định, nên một ngày không tồn tại như "32/01/2026" có thể bị quy đổi sang tháng khác khi parse. Trên code mới, ưu tiên `java.time` với `DateTimeFormatter` và lựa chọn `ResolverStyle.STRICT` khi cần xác thực input.
+For example, `java.text.SimpleDateFormat` defaults to **lenient** mode, so a nonexistent date like `"32/01/2026"` can roll over into the next month when parsed. In new code, prefer `java.time` with `DateTimeFormatter` and `ResolverStyle.STRICT` when validating input.
 
-Ví dụ **độc lập**:
+**Standalone** example:
 
 ```java
 import java.time.LocalDate;
@@ -498,81 +498,81 @@ invalid date rejected
 2026-02-28
 ```
 
-`STRICT` giúp phát hiện ngày lịch không hợp lệ nhưng không tự cung cấp zone/offset đã thiếu, và cũng không khôi phục các trường đã bỏ khỏi pattern. **Strict parsing và lossless serialization là hai yêu cầu khác nhau.**
+`STRICT` catches invalid calendar dates, yet it does not supply missing zones/offsets or restore fields omitted from the pattern. **Strict parsing and lossless serialization are two different requirements.**
 
-## 14. Chuỗi được format lại không nhất thiết bằng chuỗi đầu vào
+## 14. Re-Formatted Strings Do Not Necessarily Match Input Strings
 
-Giả sử người dùng nhập:
+Suppose a user enters:
 
 ```text
 1234.50
 ```
 
-Parser theo `en-US` có thể tạo `BigDecimal("1234.50")`. Nếu formatter bật grouping, khi hiển thị lại có thể thu:
+An `en-US` parser produces `BigDecimal("1234.50")`. When formatted back with grouping enabled, display output becomes:
 
 ```text
 1,234.50
 ```
 
-Về giá trị, hai chuỗi có thể tương đương; về ký tự, chúng khác nhau. Thậm chí phần whitespace có thể khác `U+0020` so với `U+202F`; locale có thể chọn hệ chữ số `latn`, `arab` hoặc `thai`. Do đó:
+Numerically the two strings are equivalent; character-by-character they differ. Even whitespace can differ (`U+0020` vs `U+202F`), or a locale might use `latn`, `arab`, or `thai` numeral scripts. Therefore:
 
-- **Không so sánh chuỗi UI** để quyết định hai số/đối tượng thời gian có bằng nhau.
-- **Không lấy chuỗi UI làm chữ ký, mã định danh hay khóa cache** trừ khi hợp đồng xác định rõ mọi thuộc tính biểu diễn.
-- **Không dùng `format(parse(s)).equals(s)` làm validator duy nhất**: nó có thể từ chối đầu vào hợp lệ nhưng viết khác chuẩn, hoặc chấp nhận đầu vào đã bị parser làm mất thông tin.
+- **Do not compare UI strings** to decide whether two numbers or temporal values are equal.
+- **Do not use UI strings as signatures, identifiers, or cache keys** unless the contract defines every single representation property.
+- **Do not rely on `format(parse(s)).equals(s)` as your sole validator**: it can reject valid inputs written slightly differently, or accept inputs from which the parser already dropped information.
 
-Nếu yêu cầu xác minh tính **chính tắc của một định dạng nhập**, có thể parse chặt và kiểm tra lại theo schema được định nghĩa rõ, nhưng đó là chính sách ứng dụng, **không** phải bảo đảm chung của mọi formatter.
+If you need to verify the **canonical form of an input format**, parse strictly and check against an explicit schema—but treat that as an application policy, **not** a general guarantee of every formatter.
 
-## 15. Những trường hợp khác cũng không round-trip tự động
+## 15. Other Cases That Do Not Round-Trip Automatically
 
-### Tiền tệ và đơn vị
+### Currency and Units
 
-Một chuỗi `$1,234.50` chứa ký hiệu `$` nhưng không tự truyền đầy đủ mã tiền tệ, quy tắc làm tròn và đơn vị tính. `NumberFormat.getCurrencyInstance(locale)` có thể dùng currency mặc định của locale, không nhất thiết là currency của giao dịch. Nếu lưu tiền, cần cấu trúc như **amount + currency code**, không suy currency từ dấu tiền.
+A string `"$1,234.50"` contains a `$` sign without unambiguously conveying currency code, rounding rules, or unit. `NumberFormat.getCurrencyInstance(locale)` uses the locale's default currency, which may not match the transaction's currency. When storing money, use a structure like **amount + currency code** instead of inferring currency from a symbol.
 
-### Phần trăm
+### Percentages
 
-Định dạng phần trăm thường nhân 100 rồi thêm `%`; số `0.1245` có thể hiển thị `12%`. Nếu parse lại, có thể chỉ được `0.12`. Không lấy dữ liệu dạng tỷ lệ `12` và `0.12` làm một nếu chưa thống nhất domain representation.
+Percentage formatting typically multiplies by 100 and appends `%`; `0.1245` may render as `12%`. Parsing back yields only `0.12`. Never mix ratio data (`0.12`) and percentage-point data (`12`) without standardizing the domain representation.
 
-### Compact numbers
+### Compact Numbers
 
-Chuỗi như `1K`, `1,2 nghìn` hoặc dạng tắt theo ngôn ngữ có thể chứa giá trị làm tròn và hậu tố; không thể luôn suy lại số gốc chính xác. Dùng `NumberFormat.getCompactNumberInstance` cho trình bày nếu phù hợp, nhưng không dùng chuỗi compact cho lưu trữ.
+Strings like `1K`, `1,2 nghìn`, or language-specific abbreviations contain rounded values and suffixes; you cannot reliably reconstruct the exact original number. Use `NumberFormat.getCompactNumberInstance` for display when appropriate, never as a storage format.
 
-### Ký hiệu đặc biệt và âm zero
+### Special Symbols and Negative Zero
 
-`DecimalFormat` có thể định dạng `Double.NaN`, vô cực hoặc `-0.0`; sau parse `BigDecimal` không có tương đương cho NaN/vô cực và không duy trì trạng thái âm zero như `double`. Nếu các trạng thái đặc biệt là một phần domain, phải có schema/kiểu dữ liệu thích hợp; không chỉ lưu chuỗi hiển thị.
+`DecimalFormat` can format `Double.NaN`, infinity, or `-0.0`; after parsing, `BigDecimal` has no representation for NaN/infinity and does not distinguish negative zero like `double` does. If such special states are part of your domain, model them explicitly in your schema/types rather than relying on display strings.
 
-## 16. Thiết kế đúng: tách giá trị miền, lưu trữ và trình bày
+## 16. Proper Design: Separating Domain Values, Storage, and Presentation
 
-Hãy xác định rõ mục tiêu của từng tầng:
+Define clear responsibilities for each layer:
 
-| Tầng | Đại diện nên dùng | Chỉ thực hiện |
+| Layer | Recommended Representation | Responsibilities Only |
 | --- | --- | --- |
-| **Domain** | `BigDecimal`, `long`, `Instant`, `ZonedDateTime` hoặc kiểu nghiệp vụ rõ nghĩa | Tính toán, xác thực, diễn giải |
-| **Storage / API** | Cột decimal/numeric, JSON number theo schema, decimal string canonical, ISO 8601 và metadata cần thiết | Giữ những trường dữ liệu cần round-trip |
-| **Presentation** | `NumberFormat`, `DecimalFormat`, `DateTimeFormatter` kèm `Locale` | Chuyển thành văn bản người dùng đọc được |
-| **Input** | Parser theo locale + validator có chính sách rõ | Hiểu chuỗi người dùng nhập, từ chối input sai |
+| **Domain** | `BigDecimal`, `long`, `Instant`, `ZonedDateTime`, or well-typed business objects | Calculations, validation, interpretation |
+| **Storage / API** | `DECIMAL`/`NUMERIC` columns, schema-typed JSON numbers, canonical decimal strings, ISO 8601, and needed metadata | Retaining all fields required for round-trip fidelity |
+| **Presentation** | `NumberFormat`, `DecimalFormat`, `DateTimeFormatter` with `Locale` | Rendering text for human readers |
+| **Input** | Locale-aware parser + validator with explicit policy | Interpreting user-entered text and rejecting invalid input |
 
-Ví dụ một luồng an toàn:
+Example of a safe flow:
 
 ```text
 User input: "1.234,50" (de-DE)
     |
     | DecimalFormat de-DE; setParseBigDecimal(true)
-    | ParsePosition + validation domain
+    | ParsePosition + domain validation
     v
 BigDecimal("1234.50")
     |
-    +--> Lưu DECIMAL(14,2) hoặc decimal string theo schema
+    +--> Store in DECIMAL(14,2) or schema decimal string
     |
-    +--> Hiển thị "1,234.50" cho en-US
+    +--> Display "1,234.50" for en-US
     |
-    +--> Hiển thị "1.234,50" cho de-DE
+    +--> Display "1.234,50" for de-DE
 ```
 
-Nếu cần giữ **cách người dùng đã nhập**, phải lưu raw input như một thuộc tính riêng (có giới hạn/kiểm soát dữ liệu cá nhân, bảo mật và retention). Không thể khôi phục input raw từ BigDecimal canonical nếu những ký tự biểu diễn đã bị bỏ qua.
+If you need to preserve **how the user typed the input**, store raw input as a separate field (subject to privacy, security, and retention controls). You cannot reconstruct raw input text from a canonical `BigDecimal` once presentation characters have been discarded.
 
-### Ví dụ lưu trữ decimal chính tắc và khôi phục
+### Canonical Decimal Storage and Restoration Example
 
-Tạo file `CanonicalDecimalDemo.java`:
+Create the file `CanonicalDecimalDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -612,74 +612,74 @@ same BigDecimal: true
 display: 1.234,50
 ```
 
-Ở đây `BigDecimal.toPlainString()` mang dữ liệu số decimal và scale trong ví dụ này. Nó phù hợp cho hợp đồng lưu trữ decimal string được xác định rõ; với `BigDecimal` có scale âm, `toPlainString()` có thể thay đổi biểu diễn scale khi khôi phục, nên nếu **bảo toàn mọi scale ở mọi trường hợp** là yêu cầu nghiêm ngặt, dùng `toString()` cùng `new BigDecimal(String)` hoặc lưu `unscaledValue` + `scale` rõ ràng. Không xem `toPlainString` là hợp đồng tuyệt đối cho mọi đặc tính biểu diễn của mọi BigDecimal.
+Here `BigDecimal.toPlainString()` preserves the decimal digits and scale for this example. It suits well-defined decimal-string storage contracts; for `BigDecimal` values with negative scale, `toPlainString()` can alter scale representation upon restoration, so if **preserving every scale in all cases** is a strict requirement, use `toString()` with `new BigDecimal(String)` or store `unscaledValue` + `scale` explicitly. Do not treat `toPlainString` as an absolute contract for every representation property of all `BigDecimal`s.
 
-Dạng canonical không chỉ là "bỏ dấu nhóm": phải định nghĩa cả kiểu, dấu âm, giới hạn, độ chính xác, scale, timezone/currency khi áp dụng.
+Canonical form means more than “stripping grouping separators”: you must also define type, negative sign, bounds, precision, scale, and time zone/currency where applicable.
 
-## 17. Checklist kiểm tra round-trip trong Java
+## 17. Checklist for Checking Round-Trips in Java
 
-Trước khi quyết định dùng `parse(format(x))`, trả lời các câu hỏi:
+Before choosing `parse(format(x))`, answer these questions:
 
-1. **Mục đích:** muốn giữ đúng giá trị toán học, đúng đối tượng, đúng thời điểm, hay đúng chuỗi gốc?
-2. **Có rounding không?** Cấu hình maximum fraction digits, precision và rounding mode là gì?
-3. **Có mất scale không?** `BigDecimal.equals` khác `compareTo` như thế nào trong domain?
-4. **Có mất field không?** Formatter ngày/giờ có bỏ seconds/nanos/zone/offset/era/chronology không?
-5. **Locale nào được dùng hai chiều?** Có ổn định giữa các request và hệ thống khác nhau không?
-6. **Có ký hiệu và nhóm số mơ hồ không?** Dấu `,`, `.`, U+202F, non-Latin digits được xử lý ra sao?
-7. **Parser có dùng hết chuỗi không?** Kiểm tra `ParsePosition`/parse-unresolved hoặc API parse strict thích hợp.
-8. **Parser có lenient không?** Có chấp nhận grouping sai hoặc ngày không tồn tại rồi sửa ngầm không?
-9. **Có giá trị đặc biệt không?** NaN, infinity, signed zero, ngày DST gap/overlap, tiền tệ?
-10. **Có yêu cầu lưu chính xác raw text không?** Nếu có, không thể suy từ giá trị parsed.
-11. **Đã kiểm tra đủ các phiên bản/locale provider chưa?** Dữ liệu CLDR, pattern và Unicode symbols có thể thay đổi.
-12. **Serialization có schema không?** Lưu type/scale, currency, zone và phần metadata cần thiết, thay vì một chuỗi display.
+1. **Goal:** do you need to preserve the mathematical value, exact object identity, exact instant, or exact original string?
+2. **Is rounding involved?** What are the maximum fraction digits, precision, and rounding mode?
+3. **Can scale be lost?** How does `BigDecimal.equals` differ from `compareTo` in your domain?
+4. **Are fields dropped?** Does the date/time formatter omit seconds, nanos, zone, offset, era, or chronology?
+5. **Which locale is used in both directions?** Is it stable across requests and different hosts?
+6. **Are symbols or grouping ambiguous?** How are `,`, `.`, U+202F, and non-Latin digits handled?
+7. **Does the parser consume the full string?** Check `ParsePosition`/unresolved state or use an appropriate strict parse API.
+8. **Is the parser lenient?** Will it accept invalid grouping or silently fix nonexistent dates?
+9. **Are there special values?** NaN, infinity, signed zero, DST gaps/overlaps, currency?
+10. **Must raw text be preserved verbatim?** If so, it cannot be reconstructed from a parsed value.
+11. **Have all runtime versions/locale providers been tested?** CLDR data, patterns, and Unicode symbols can evolve.
+12. **Does serialization have a schema?** Persist type/scale, currency, zone, and required metadata rather than a display string.
 
-Đối với test round-trip, nên tách riêng:
+For round-trip tests, separate assertions clearly:
 
-- `assertNumericEquals`: kiểm tra số học bằng nhau nếu chấp nhận mất scale.
-- `assertEquals`: kiểm tra đầy đủ identity/scale/zone nếu đây là hợp đồng.
-- `assertTextEquals`: chỉ dùng khi yêu cầu bảo tồn **đúng văn bản**.
-- `assertRejectsInvalid`: kiểm tra dữ liệu thừa, sai dấu nhóm, ngày không hợp lệ, các số đặc biệt không cho phép.
+- `assertNumericEquals`: check numeric equality when scale loss is acceptable.
+- `assertEquals`: verify full identity/scale/zone when that is the contract.
+- `assertTextEquals`: use only when **exact text preservation** is required.
+- `assertRejectsInvalid`: verify rejection of trailing text, wrong grouping, invalid dates, and disallowed special numbers.
 
-## 18. Lỗi thường gặp
+## 18. Common Mistakes
 
-| Sai lầm | Hệ quả | Hướng xử lý |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Dùng `format(x)` làm phương thức serialize mặc định | Rounding, locale và pattern có thể làm mất dữ liệu | Lưu schema canonical/domain value |
-| Parse lại số đã làm tròn rồi mong bằng số gốc | Chữ số không còn trong chuỗi | Không dùng display làm nguồn sự thật |
-| Nghĩ `setParseBigDecimal(true)` tự khôi phục precision đã mất | Nó chỉ giữ chính xác **chuỗi được parse** | Bảo toàn dữ liệu trước khi format |
-| So `BigDecimal.equals` mà không xem scale | Kết luận khác nhau dù cùng số học | Chọn equality theo nghiệp vụ |
-| Dùng parser khác locale formatter | Giá trị sai hoặc parse một phần | Truyền locale và settings tường minh |
-| Không kiểm tra phần đuôi input | `parse` nhận tiền tố, bỏ dữ liệu sai | `ParsePosition` và validation |
-| Coi parse hết chuỗi là xác thực grouping | Parser có thể dễ dãi với nhóm dấu | Kiểm tra cú pháp theo hợp đồng |
-| Format date chỉ đến phút rồi đòi phục hồi nano-giây | Thông tin đã bị bỏ | Dùng lưu trữ thời gian đầy đủ |
-| Lưu offset mà không lưu region zone ID | Không khôi phục `Asia/Ho_Chi_Minh` | Lưu `ZoneId` nếu cần |
-| Lưu `LocalDateTime` rồi suy thành instant bằng default timezone | Có thể sai DST/vùng giờ | Lưu `Instant` hoặc zone và chính sách DST |
-| Xem `NaN`/infinity là `BigDecimal` | ClassCastException hoặc dữ liệu không hợp lệ | Kiểm tra kiểu và domain |
-| Lưu mã `0012` như số | Mất số 0 đầu | Mã định danh phải là `String` |
-| Dùng `DecimalFormat` singleton mutable giữa thread | Race và thay đổi cấu hình | Formatter riêng từng xử lý |
-| Dựa vào chuỗi locale để suy currency | Ký hiệu tiền có thể mơ hồ | Lưu currency code độc lập |
+| Using `format(x)` as the default serialization mechanism | Rounding, locale, and pattern can lose data | Store canonical schema/domain values |
+| Re-parsing a rounded display number and expecting the original | Discarded digits are gone from the string | Never use display strings as the source of truth |
+| Thinking `setParseBigDecimal(true)` restores lost precision | It only preserves the **string actually parsed** | Preserve precision before formatting |
+| Calling `BigDecimal.equals` without considering scale | Inequality despite identical arithmetic value | Choose equality semantics per business logic |
+| Parsing with a different locale than formatting | Wrong value or partial parse | Pass locale and settings explicitly |
+| Not checking trailing input | `parse` accepts prefix and ignores bad tail | Use `ParsePosition` and validation |
+| Treating full-string consumption as grouping validation | Parser may be lenient about separator placement | Validate syntax per contract |
+| Formatting dates to minutes and expecting nanoseconds back | Sub-minute fields were discarded | Persist full temporal precision |
+| Storing offset without region zone ID | Cannot recover `Asia/Ho_Chi_Minh` | Store `ZoneId` when needed |
+| Storing `LocalDateTime` and converting to instant via default timezone | Wrong across DST or regions | Store `Instant` or zone plus DST policy |
+| Assuming `NaN`/infinity becomes `BigDecimal` | `ClassCastException` or invalid data | Validate runtime type and domain |
+| Storing code `0012` as a number | Leading zeros are lost | Identifiers must be `String` |
+| Sharing a mutable `DecimalFormat` singleton across threads | Race conditions and config corruption | Use per-operation formatters |
+| Inferring currency from a localized display string | Currency symbols can be ambiguous | Store currency code separately |
 
-## 19. Tự kiểm tra
+## 19. Self-Check
 
-1. **`parse(format(new BigDecimal("1234.567")))`** với pattern chỉ có hai chữ số thập phân có thể ra số nào? **`1234.57`**, không phải `1234.567`.
-2. **`1.20` và `1.2`** được format thành `1.2`: có khôi phục scale ban đầu được không? **Không**, vì hai dữ liệu khác nhau đã thành cùng một chuỗi.
-3. Nếu dùng `parseBigDecimal` thì chữ số đã bị formatter làm tròn có quay lại không? **Không**; parser chỉ có chuỗi đầu vào hiện tại.
-4. Chuỗi `1,234` ở `en-US` và `de-DE` có cùng giá trị không? **Không**; locale có thể hiểu nó là `1234` hoặc `1.234`.
-5. Vì sao `parse("1,234.50oops")` có thể trả số mà không báo lỗi? **Parser có thể chấp nhận tiền tố**; kiểm tra `ParsePosition`.
-6. Nếu chuỗi hiển thị chỉ đến phút, có thể khôi phục nano-giây gốc từ nó không? **Không**.
-7. `ISO_OFFSET_DATE_TIME` giữ offset `+07:00` có khôi phục `ZoneId.of("Asia/Ho_Chi_Minh")` không? **Không tự động**; offset không phải region ID.
-8. Có thể suy `Instant` chính xác từ `LocalDateTime` mà không biết zone/offset không? **Không**, đặc biệt có DST gap/overlap.
-9. Với `BigDecimal("1.20")` và `BigDecimal("1.2")`, `compareTo` và `equals` khác nhau thế nào? **`compareTo==0` nhưng `equals=false`**.
-10. Muốn bảo toàn byte/ký tự người dùng đã nhập như `"001234.50"`, chỉ lưu `BigDecimal` có đủ không? **Không**; phải lưu raw text hoặc metadata biểu diễn bổ sung.
-11. Khi lưu dữ liệu tiền tệ, format `"$10.00"` có đủ thông tin không? **Không**; cần mã tiền tệ và amount theo schema.
-12. Đâu là ranh giới trách nhiệm tốt nhất? **Domain/storage giữ cấu trúc và dữ liệu chính xác, presentation format theo locale, input parser + validator chuyển chuỗi thành domain value.**
+1. **What can `parse(format(new BigDecimal("1234.567")))`** produce under a two-decimal-digit pattern? **`1234.57`**, not `1234.567`.
+2. **`1.20` and `1.2`** both format as `1.2`: can you recover the original scale? **No**, because two distinct values mapped to the exact same string.
+3. If you enable `parseBigDecimal`, do digits rounded off by the formatter come back? **No**; the parser only sees the current input string.
+4. Does `"1,234"` have the same value in `en-US` and `de-DE`? **No**; the locales interpret it as `1234` vs `1.234`.
+5. Why can `parse("1,234.50oops")` return a number without throwing? **The parser can accept a prefix**; inspect `ParsePosition`.
+6. If a display string stops at minutes, can original nanoseconds be recovered from it? **No**.
+7. Does `ISO_OFFSET_DATE_TIME` keeping offset `+07:00` restore `ZoneId.of("Asia/Ho_Chi_Minh")`? **Not automatically**; an offset is not a region ID.
+8. Can you derive an exact `Instant` from `LocalDateTime` without knowing zone/offset? **No**, especially across DST gaps/overlaps.
+9. For `BigDecimal("1.20")` and `BigDecimal("1.2")`, how do `compareTo` and `equals` differ? **`compareTo == 0` while `equals == false`**.
+10. To preserve the exact bytes/characters typed by a user like `"001234.50"`, is storing `BigDecimal` alone sufficient? **No**; store the raw text or extra presentation metadata.
+11. When storing monetary data, does formatting `"$10.00"` carry enough information? **No**; you need the currency code and amount in a proper schema.
+12. What is the cleanest separation of responsibilities? **Domain/storage keeps exact types and data, presentation formats per locale, and input parser + validator converts text into domain values.**
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 21 — NumberFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/NumberFormat.html): format/parse theo locale và phạm vi của parser.
-- [Java SE 21 — DecimalFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/DecimalFormat.html): pattern, rounding, `setParseBigDecimal`, trường hợp `NaN`/infinity.
-- [Java SE 21 — ParsePosition](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/ParsePosition.html): kiểm tra phần đã được parse.
-- [Java SE 21 — BigDecimal](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html): giá trị, scale, precision, canonical strings.
-- [Java SE 21 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/format/DateTimeFormatter.html): pattern, ISO formatters và resolver style.
-- [Java SE 21 — ZonedDateTime](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/ZonedDateTime.html): zone, offset, instant và DST.
-- [Unicode CLDR — Date/Number Formats](https://cldr.unicode.org/): dữ liệu locale có thể ảnh hưởng ký hiệu và kiểu định dạng.
+- [Java SE 21 — NumberFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/NumberFormat.html): locale-aware formatting/parsing and parser boundaries.
+- [Java SE 21 — DecimalFormat](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/DecimalFormat.html): patterns, rounding, `setParseBigDecimal`, and `NaN`/infinity handling.
+- [Java SE 21 — ParsePosition](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/ParsePosition.html): inspecting consumed length.
+- [Java SE 21 — BigDecimal](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/math/BigDecimal.html): numeric value, scale, precision, and canonical strings.
+- [Java SE 21 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/format/DateTimeFormatter.html): patterns, ISO formatters, and resolver styles.
+- [Java SE 21 — ZonedDateTime](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/time/ZonedDateTime.html): zones, offsets, instants, and DST.
+- [Unicode CLDR — Date/Number Formats](https://cldr.unicode.org/): locale data that influences symbols and format styles.

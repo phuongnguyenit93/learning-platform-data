@@ -1,6 +1,6 @@
-# `Integer.toString`, `Long.toString` và `radix` trong Java
+# `Integer.toString`, `Long.toString`, and `radix` in Java
 
-Java lưu các giá trị `int` và `long` dưới dạng số nguyên nhị phân có dấu. Khi chương trình cần hiển thị ra màn hình, ghi log, trao đổi dữ liệu hoặc xuất văn bản theo hệ 2, 8, 10, 16..., ta phải **định dạng giá trị số thành `String`**. `Integer.toString` và `Long.toString` là hai API cơ bản thực hiện việc này.
+Java stores `int` and `long` values as signed binary integers. When a program needs to display them on screen, write logs, exchange data, or output text in base 2, 8, 10, 16, etc., we must **format the numeric value into a `String`**. `Integer.toString` and `Long.toString` are the two fundamental APIs that perform this task.
 
 ```java
 int number = 42;
@@ -11,13 +11,13 @@ System.out.println(Integer.toString(number, 8));   // 52
 System.out.println(Integer.toString(number, 16));  // 2a
 ```
 
-Cả bốn kết quả là các **chuỗi khác nhau biểu diễn cùng giá trị số nguyên 42**. Tham số `radix` quyết định **cơ số khi chuyển thành chữ số**, không biến đổi giá trị gốc của biến và không tạo thêm tiền tố như `0x`. Với số âm, còn có sự khác biệt quan trọng giữa định dạng **giá trị có dấu** bằng `toString(value, radix)` và định dạng **mẫu bit không dấu** bằng `toHexString`, `toBinaryString` hay `toUnsignedString`.
+All four results are **different strings representing the same integer value 42**. The `radix` parameter determines **the base when converting into digits**, does not modify the variable's original value, and does not add prefixes such as `0x`. For negative numbers, there is also an important distinction between formatting a **signed value** with `toString(value, radix)` and formatting an **unsigned bit pattern** with `toHexString`, `toBinaryString`, or `toUnsignedString`.
 
-Bài này tập trung vào hợp đồng của hai phương thức, các cơ số hợp lệ, âm/dương và giá trị biên, mối quan hệ với parser, những cách định dạng có tiền tố/độ rộng, và các lỗi thường gặp khi lưu hoặc truyền số.
+This lesson focuses on the contract of both methods, valid radices, negative/positive and boundary values, their relationship with parsers, ways to format with prefixes/width, and common mistakes when storing or transmitting numbers.
 
-## 1. Giá trị số khác với cách viết số
+## 1. Numeric values differ from how numbers are written
 
-Giả sử chương trình có:
+Suppose a program has:
 
 ```java
 int a = 42;
@@ -26,32 +26,32 @@ int c = 0b101010;
 int d = 052;
 ```
 
-Trong Java source, compiler hiểu bốn **integer literal** theo cơ số 10, 16, 2 và 8. Nhưng tất cả biến ở đây đều chứa giá trị số học **42**. Một biến `int` **không lưu ký ức** rằng nó được gán bằng literal hex hay binary.
+In Java source code, the compiler interprets four **integer literals** in base 10, 16, 2, and 8. However, all variables here hold the arithmetic value **42**. An `int` variable **retains no memory** of whether it was assigned using a hex or binary literal.
 
-`Integer.toString(a, 16)`, `Integer.toString(b, 16)`, `Integer.toString(c, 16)` và `Integer.toString(d, 16)` đều trả `"2a"`. Phương thức không tìm lại cú pháp literal ban đầu: nó nhận **giá trị**, sau đó xây chuỗi chữ số theo cơ số yêu cầu.
+`Integer.toString(a, 16)`, `Integer.toString(b, 16)`, `Integer.toString(c, 16)`, and `Integer.toString(d, 16)` all return `"2a"`. The method does not recover the original literal syntax: it receives the **value**, then builds the digit string in the requested base.
 
-### Các khái niệm cần phân biệt
+### Concepts to distinguish
 
-| Khái niệm | Ví dụ | Giai đoạn và tác dụng |
+| Concept | Example | Stage and effect |
 | --- | --- | --- |
-| Numeric literal | `0x2A`, `0b101010`, `42` | Cú pháp mã nguồn, do compiler phân tích |
-| Primitive numeric value | `int value = 42;` | Giá trị số học được thao tác khi chạy |
-| Numeric formatting | `Integer.toString(value, 16)` | Tạo `String` biểu diễn giá trị theo cơ số 16 |
-| Numeric parsing | `Integer.parseInt("2a", 16)` | Đọc `String` theo cơ số và tạo giá trị `int` |
-| Unsigned bit formatting | `Integer.toHexString(-1)` | Diễn giải mẫu 32 bit theo cách không dấu |
+| Numeric literal | `0x2A`, `0b101010`, `42` | Source code syntax, parsed by the compiler |
+| Primitive numeric value | `int value = 42;` | Arithmetic value manipulated at runtime |
+| Numeric formatting | `Integer.toString(value, 16)` | Creates a `String` representing the value in base 16 |
+| Numeric parsing | `Integer.parseInt("2a", 16)` | Reads a `String` according to a base and produces an `int` value |
+| Unsigned bit formatting | `Integer.toHexString(-1)` | Interprets the 32-bit pattern as unsigned |
 
-**Định dạng và phân tích là hai chiều khác nhau.** Không nên dùng `parseInt` khi mục tiêu là *hiển thị* số; cũng không dùng `toString` để *kiểm tra* một chuỗi đầu vào.
+**Formatting and parsing are two opposite directions.** Do not use `parseInt` when the goal is to *display* a number; nor use `toString` to *validate* an input string.
 
-## 2. Các overload quan trọng
+## 2. Important overloads
 
-`Integer` và `Long` nằm trong `java.lang` nên không cần import riêng.
+`Integer` and `Long` reside in `java.lang`, so no separate import is needed.
 
-| API | Tham số | Kiểu trả về | Ý nghĩa |
+| API | Parameters | Return type | Meaning |
 | --- | --- | --- | --- |
-| `Integer.toString(int value)` | Một `int` | `String` | Biểu diễn thập phân có dấu |
-| `Integer.toString(int value, int radix)` | Giá trị và cơ số | `String` | Biểu diễn có dấu trong cơ số yêu cầu |
-| `Long.toString(long value)` | Một `long` | `String` | Biểu diễn thập phân có dấu |
-| `Long.toString(long value, int radix)` | Giá trị và cơ số | `String` | Biểu diễn có dấu trong cơ số yêu cầu |
+| `Integer.toString(int value)` | One `int` | `String` | Signed decimal representation |
+| `Integer.toString(int value, int radix)` | Value and base | `String` | Signed representation in the requested base |
+| `Long.toString(long value)` | One `long` | `String` | Signed decimal representation |
+| `Long.toString(long value, int radix)` | Value and base | `String` | Signed representation in the requested base |
 
 ```java
 int count = -42;
@@ -63,43 +63,43 @@ String c = Long.toString(distance);       // "4294967296"
 String d = Long.toString(distance, 16);   // "100000000"
 ```
 
-Phân biệt tên lớp theo kiểu dữ liệu: `Long.toString` nhận `long` và xử lý được miền rộng hơn `int`. Bạn **không** thể kỳ vọng gọi `Integer.toString((int) someLong)` giữ nguyên một giá trị `long` vượt giới hạn `int`, bởi thông tin có thể mất ở **phép cast trước lời gọi**.
+Distinguish the class names by data type: `Long.toString` accepts `long` and handles a wider range than `int`. You **cannot** expect calling `Integer.toString((int) someLong)` to preserve a `long` value that exceeds the `int` range, because information can be lost in the **cast before the call**.
 
-Các phương thức trên là `static`: dùng `Integer.toString(...)` hoặc `Long.toString(...)`. Không cần tạo `new Integer(...)`/`new Long(...)` để định dạng.
+The methods above are `static`: use `Integer.toString(...)` or `Long.toString(...)`. There is no need to create `new Integer(...)`/`new Long(...)` for formatting.
 
-### `String.valueOf` và nối chuỗi là gì?
+### What about `String.valueOf` and string concatenation?
 
-`String.valueOf(42)`, `Integer.toString(42)` và `"" + 42` thường cho chuỗi `"42"` theo hệ 10. Nhưng:
+`String.valueOf(42)`, `Integer.toString(42)`, and `"" + 42` normally produce the base-10 string `"42"`. However:
 
-- `String.valueOf(int)`/`String.valueOf(long)` không có tham số `radix`.
-- `Integer.toString(value, radix)` diễn đạt rõ ý muốn chọn hệ cơ số khác.
-- `Integer.valueOf(int)` lại **tạo/lấy đối tượng wrapper `Integer`**, không phải tạo chuỗi.
-- `Integer.toString()` gọi trên **đối tượng wrapper** là phương thức instance không tham số; còn `Integer.toString(int)` là phương thức static. Đừng nhầm chữ ký.
+- `String.valueOf(int)`/`String.valueOf(long)` do not have a `radix` parameter.
+- `Integer.toString(value, radix)` clearly expresses the intent to choose another base.
+- `Integer.valueOf(int)` **creates/retrieves an `Integer` wrapper object**, not a string.
+- `Integer.toString()` called on a **wrapper object** is a no-arg instance method, whereas `Integer.toString(int)` is a static method. Do not confuse the signatures.
 
-Trong mã muốn hiển thị binary/hex một cách tường minh, chọn `toString(value, radix)` hoặc API chuyên biệt phù hợp ngữ nghĩa có dấu/không dấu.
+In code that aims to explicitly display binary/hex, choose `toString(value, radix)` or a specialized API matching the signed/unsigned semantics.
 
-## 3. `radix`: cơ số 2 đến 36
+## 3. `radix`: base 2 to 36
 
-`radix` là cơ số dùng để diễn đạt một số bằng các chữ số. Với hai overload nhận radix của `Integer.toString` và `Long.toString`, các giá trị hợp lệ là:
+`radix` is the base used to express a number with digits. For the radix-accepting overloads of `Integer.toString` and `Long.toString`, valid values are:
 
 ```java
 Character.MIN_RADIX // 2
 Character.MAX_RADIX // 36
 ```
 
-Java dùng các ký tự chữ số:
+Java uses the digit characters:
 
 ```text
 0 1 2 3 4 5 6 7 8 9 a b c ... z
 ```
 
-- Với radix 2: `0`, `1`.
-- Với radix 8: `0` đến `7`.
-- Với radix 10: `0` đến `9`.
-- Với radix 16: `0` đến `9` và `a` đến `f`.
-- Với radix 36: `0` đến `9` và `a` đến `z`.
+- For radix 2: `0`, `1`.
+- For radix 8: `0` through `7`.
+- For radix 10: `0` through `9`.
+- For radix 16: `0` through `9` and `a` through `f`.
+- For radix 36: `0` through `9` and `a` through `z`.
 
-Các chữ cái trong chuỗi do hai phương thức tạo ra là **chữ thường** (`a..z`).
+The letters in the strings produced by both methods are **lowercase** (`a..z`).
 
 ```java
 System.out.println(Integer.toString(42, 2));   // 101010
@@ -109,14 +109,14 @@ System.out.println(Integer.toString(42, 16));  // 2a
 System.out.println(Integer.toString(35, 36));  // z
 ```
 
-**Không có radix 1, 0, 37 hay −2** trong API này. Một điểm không hiển nhiên: `toString(value, radix)` **không ném `NumberFormatException` khi radix ngoài 2–36**; thay vào đó, nó **dùng thập phân (radix 10)** theo hợp đồng JDK.
+**There is no radix 1, 0, 37, or -2** in this API. One non-obvious point: `toString(value, radix)` **does not throw `NumberFormatException` when radix is outside 2–36**; instead, it **uses decimal (radix 10)** per the JDK contract.
 
 ```java
-System.out.println(Integer.toString(255, 1));  // 255, fallback radix 10
-System.out.println(Long.toString(255L, 37));   // 255, fallback radix 10
+System.out.println(Integer.toString(255, 1));  // 255, fallback to radix 10
+System.out.println(Long.toString(255L, 37));   // 255, fallback to radix 10
 ```
 
-Vì cơ số sai có thể bị che khuất, một ứng dụng nhận `radix` từ người dùng nên **tự kiểm tra phạm vi**:
+Because an invalid base can be masked, an application that receives `radix` from a user should **validate the range itself**:
 
 ```java
 static String formatStrictRadix(int value, int radix) {
@@ -127,11 +127,11 @@ static String formatStrictRadix(int value, int radix) {
 }
 ```
 
-Đây là hàm minh họa cần đặt trong class. Nó xây dựng chính sách **báo lỗi rõ ràng khi radix sai**, chặt hơn lựa chọn fallback thập phân của `Integer.toString`.
+This is an illustrative method to be placed inside a class. It establishes a policy of **explicitly reporting an error when radix is invalid**, stricter than the decimal fallback choice of `Integer.toString`.
 
-### `radix` không làm đổi số
+### `radix` does not alter the number
 
-Một số nguyên `42` vẫn là `42` dù được hiển thị `101010`, `52` hay `2a`. Chỉ chuỗi kết quả khác. Muốn đưa chuỗi trở về giá trị, parser phải biết đúng cơ số tương ứng:
+An integer `42` remains `42` whether displayed as `101010`, `52`, or `2a`. Only the resulting string differs. To convert the string back to the value, the parser must know the corresponding base:
 
 ```java
 int original = 42;
@@ -139,11 +139,11 @@ String encoded = Integer.toString(original, 16);  // "2a"
 int decoded = Integer.parseInt(encoded, 16);      // 42
 ```
 
-Nếu `Integer.parseInt("2a")` được gọi không có radix 16, nó sẽ ném `NumberFormatException` vì parser mặc định thập phân và ký tự `a` không hợp lệ trong radix 10.
+If `Integer.parseInt("2a")` is called without radix 16, it will throw `NumberFormatException` because the parser defaults to decimal and the character `a` is invalid in radix 10.
 
-## 4. Các trường hợp số 0, số dương và số âm
+## 4. Zero, positive, and negative cases
 
-### Giá trị 0
+### Zero
 
 ```java
 System.out.println(Integer.toString(0));       // "0"
@@ -151,9 +151,9 @@ System.out.println(Integer.toString(0, 2));    // "0"
 System.out.println(Long.toString(0L, 36));     // "0"
 ```
 
-Số 0 luôn có biểu diễn chuỗi `"0"` trong các radix hợp lệ; không có chuỗi rỗng hoặc dấu âm.
+The number 0 always has the string representation `"0"` in valid radices; there is no empty string or minus sign.
 
-### Số âm: dấu `-` đi trước các chữ số
+### Negative numbers: `-` sign precedes the digits
 
 ```java
 System.out.println(Integer.toString(-42));      // -42
@@ -162,14 +162,14 @@ System.out.println(Integer.toString(-42, 16));  // -2a
 System.out.println(Long.toString(-42L, 36));    // -16
 ```
 
-`Integer.toString(-42, 16)` trả **`"-2a"`**, không trả chuỗi mẫu bit 32-bit của số âm. Phần chữ số `2a` biểu diễn **độ lớn 42**, còn `-` diễn đạt dấu. Vì vậy hai chuỗi:
+`Integer.toString(-42, 16)` returns **`"-2a"`**, not the 32-bit pattern string of the negative number. The digits `2a` represent the **magnitude 42**, while `-` conveys the sign. Therefore, these two strings:
 
 - `Integer.toString(-1, 16)` → `"-1"`;
 - `Integer.toHexString(-1)` → `"ffffffff"`;
 
-đều liên quan đến cùng giá trị `int -1` nhưng **khác quy ước hiển thị**.
+both relate to the same `int -1` value but **follow different display conventions**.
 
-### Giá trị biên `MIN_VALUE` có được xử lý đúng?
+### Is the boundary value `MIN_VALUE` handled properly?
 
 ```java
 System.out.println(Integer.toString(Integer.MIN_VALUE));
@@ -178,18 +178,18 @@ System.out.println(Long.toString(Long.MIN_VALUE));
 // -9223372036854775808
 ```
 
-`Integer.MIN_VALUE` bằng `-2^31`, `Long.MIN_VALUE` bằng `-2^63`. Giá trị dương tương ứng không biểu diễn được trong cùng kiểu signed. Các phương thức `toString` của JDK **xử lý đúng** hai giá trị này. Không tự cài đặt formatter bằng cách lấy `Math.abs(value)` trước rồi đổi cơ số mà quên tràn:
+`Integer.MIN_VALUE` equals `-2^31`, and `Long.MIN_VALUE` equals `-2^63`. The corresponding positive values cannot be represented in the same signed types. The JDK `toString` methods **handle both of these values correctly**. Do not implement a formatter yourself by taking `Math.abs(value)` first and converting bases while forgetting overflow:
 
 ```java
 System.out.println(Math.abs(Integer.MIN_VALUE));
-// -2147483648: vẫn âm vì overflow.
+// -2147483648: still negative due to overflow.
 ```
 
-Nếu cần tự triển khai thuật toán chuyển chữ số, phải xử lý MIN_VALUE bằng kỹ thuật an toàn như làm việc trên giá trị âm hoặc mở rộng kiểu trước. Với nhu cầu ứng dụng bình thường, dùng phương thức JDK có sẵn đơn giản hơn.
+If you need to implement a digit-conversion algorithm yourself, you must handle `MIN_VALUE` with safe techniques such as working on negative values or widening the type first. For normal application needs, using the built-in JDK methods is simpler.
 
-## 5. So sánh định dạng signed với biểu diễn mẫu bit
+## 5. Comparing signed formatting with bit-pattern representation
 
-`Integer.toString(value, radix)` và `Long.toString(value, radix)` chuyển **giá trị có dấu** thành chữ số theo cơ số đã chọn. Với số âm, chúng đặt dấu trừ trước phần độ lớn: `Integer.toString(-42,16)` là `"-2a"`. Trong khi đó, `Integer.toHexString(-42)` là `"ffffffd6"`: nó diễn giải **mẫu 32 bit không dấu** của cùng biến.
+`Integer.toString(value, radix)` and `Long.toString(value, radix)` convert a **signed value** into digits in the chosen base. For negative numbers, they place a minus sign before the magnitude: `Integer.toString(-42,16)` is `"-2a"`. Meanwhile, `Integer.toHexString(-42)` is `"ffffffd6"`: it interprets the **unsigned 32-bit pattern** of the same variable.
 
 ```java
 System.out.println(Integer.toString(-1,16)); // -1
@@ -197,11 +197,11 @@ System.out.println(Integer.toHexString(-1)); // ffffffff
 System.out.println(Long.toString(-1L,16));   // -1
 ```
 
-Không dùng hai kiểu chuỗi này thay nhau khi cần round-trip. Chọn `toString(value, radix)` cho giá trị signed; chọn nhóm `toBinaryString`/`toHexString` và `toUnsignedString` khi thực sự cần nhìn bit pattern. Quy tắc sign extension, hiển thị full-width 32/64 bit, `parseUnsignedInt`/`parseUnsignedLong` và giới hạn `byte`/`short` là trọng tâm bài kế tiếp.
+Do not use these two string styles interchangeably when a round-trip is required. Choose `toString(value, radix)` for signed values; choose the `toBinaryString`/`toHexString` group and `toUnsignedString` when you genuinely need to view the bit pattern. Sign extension rules, full-width 32/64-bit display, `parseUnsignedInt`/`parseUnsignedLong`, and `byte`/`short` limitations are the focus of the next lesson.
 
-## 6. Biểu diễn unsigned là một hợp đồng riêng
+## 6. Unsigned representation is a separate contract
 
-Đối với `int -1`, `Integer.toUnsignedString(-1)` trả `"4294967295"`; với cơ số 16, `Integer.toUnsignedString(-1,16)` trả `"ffffffff"`. Mẫu bit vẫn giữ nguyên, chỉ cách đọc thay đổi. `Integer.parseUnsignedInt("ffffffff",16)` trả lại cùng bit pattern, mà nếu in như signed `int` sẽ thấy `-1`.
+For `int -1`, `Integer.toUnsignedString(-1)` returns `"4294967295"`; with radix 16, `Integer.toUnsignedString(-1,16)` returns `"ffffffff"`. The bit pattern remains unchanged; only the way it is read changes. `Integer.parseUnsignedInt("ffffffff",16)` returns the same bit pattern, which if printed as a signed `int` will show `-1`.
 
 ```java
 String text = Integer.toUnsignedString(-1, 16);
@@ -209,29 +209,29 @@ int decodedBits = Integer.parseUnsignedInt(text, 16);
 System.out.println(decodedBits == -1); // true
 ```
 
-Đừng đưa chuỗi unsigned có giá trị lớn hơn `Integer.MAX_VALUE` vào `Integer.parseInt` theo signed. Tại ranh giới API, cần quy định rõ signedness, radix và chiều rộng bit. Bài `toBinaryString, toHexString và toUnsignedString` đi sâu về các quy tắc này.
+Do not pass an unsigned string whose value is greater than `Integer.MAX_VALUE` into `Integer.parseInt` as signed. At API boundaries, clearly specify signedness, radix, and bit width. The lesson on `toBinaryString`, `toHexString`, and `toUnsignedString` covers these rules in depth.
 
-## 7. Định dạng không tự có `0x`, `0b`, `#` hay hậu tố
+## 7. Formatting does not automatically add `0x`, `0b`, `#`, or suffixes
 
-`Integer.toString(42,16)` trả `"2a"` chứ không trả `"0x2a"`. `Long.toString(42L,2)` trả `"101010"` chứ không có `"0b"`. Formatter cũng **không tự thêm** underscore phân nhóm, chữ `L`, chữ hoa, ký hiệu `#` hoặc độ rộng cố định.
+`Integer.toString(42,16)` returns `"2a"`, not `"0x2a"`. `Long.toString(42L,2)` returns `"101010"` without `"0b"`. The formatter also **does not automatically add** grouping underscores, the letter `L`, uppercase letters, the `#` symbol, or a fixed width.
 
 ```java
 String digits = Integer.toString(42, 16); // "2a"
 String shown = "0x" + digits;             // "0x2a"
 ```
 
-Nếu chuỗi đầu ra phục vụ **giao thức máy-máy**, tránh thêm tiền tố trang trí khi giao thức chỉ yêu cầu digits. Nếu phục vụ UI hoặc log, tiền tố có thể hữu ích để người đọc biết radix.
+If the output string is for a **machine-to-machine protocol**, avoid adding decorative prefixes when the protocol only requires digits. If it is for UI or logs, prefixes can help readers identify the radix.
 
-### Đặt dấu âm và tiền tố đúng vị trí
+### Placing the minus sign and prefix in the right positions
 
-Cách ngây thơ:
+A naive approach:
 
 ```java
 String wrong = "0x" + Integer.toString(-42,16);
-// "0x-2a" — không phải cú pháp chuẩn mà Integer.decode chấp nhận.
+// "0x-2a" — not a standard syntax accepted by Integer.decode.
 ```
 
-Nếu bạn thiết kế một định dạng signed hex tương thích với `Integer.decode`, đặt dấu **trước** tiền tố:
+If you are designing a signed hex format compatible with `Integer.decode`, place the sign **before** the prefix:
 
 ```java
 static String signedHexWithPrefix(int value) {
@@ -248,11 +248,11 @@ System.out.println(signedHexWithPrefix(-42)); // -0x2a
 System.out.println(Integer.decode("-0x2a"));  // -42
 ```
 
-Đây là phương thức minh họa đặt trong class. Cách dùng `substring(1)` trên dấu có sẵn tránh phải tính `-value`, vì `-Integer.MIN_VALUE` có thể tràn. Tuy nhiên nó áp dụng cho **giá trị signed**, không phải quy ước bitmask unsigned. Với bitmask, `"0x" + Integer.toHexString(value)` thường diễn đạt tốt hơn.
+This is an illustrative method to be placed inside a class. Using `substring(1)` on the existing sign avoids having to compute `-value`, because `-Integer.MIN_VALUE` can overflow. However, it applies to **signed values**, not unsigned bitmask conventions. For bitmasks, `"0x" + Integer.toHexString(value)` usually expresses the intent better.
 
-## 8. Viết chữ hoa, thêm số 0 đầu và độ rộng cố định
+## 8. Uppercase letters, leading zeros, and fixed width
 
-Các kết quả `toString(value,radix)` có dạng tối giản: không thêm số 0 đầu, và dùng chữ thường. Nếu một định dạng yêu cầu **ít nhất 8 chữ số hex**, bạn phải bổ sung quy tắc riêng.
+The results of `toString(value,radix)` are minimal: no leading zeros are added, and lowercase letters are used. If a format requires **at least 8 hex digits**, you must apply a separate rule.
 
 ```java
 int value = 42;
@@ -260,41 +260,41 @@ String padded = String.format(java.util.Locale.ROOT, "%08x", value);
 System.out.println(padded); // 0000002a
 ```
 
-`String.format` dùng các quy tắc của `Formatter`, ở đây:
+`String.format` uses `Formatter` rules, where:
 
-- `%x`: định dạng hexadecimal chữ thường.
-- `%X`: định dạng hexadecimal chữ hoa.
-- `8`: độ rộng tối thiểu 8 ký tự.
-- `0`: điền chữ số 0 ở bên trái cho đủ độ rộng.
-- `Locale.ROOT`: lựa chọn ổn định cho việc định dạng không phụ thuộc ngôn ngữ vùng.
+- `%x`: lowercase hexadecimal format.
+- `%X`: uppercase hexadecimal format.
+- `8`: minimum width of 8 characters.
+- `0`: pads with leading zeros on the left to reach the width.
+- `Locale.ROOT`: a stable choice for locale-independent formatting.
 
 ```java
 System.out.println(String.format(java.util.Locale.ROOT,"%08X", 42));
 // 0000002A
 ```
 
-**Bẫy:** `%08x` không có nghĩa “cắt xuống 8 ký tự”. Độ rộng là **tối thiểu**, không phải giới hạn tối đa. Nếu giá trị cần nhiều chữ số hơn, formatter không tự bỏ những chữ số quan trọng.
+**Pitfall:** `%08x` does not mean "truncate to 8 characters". The width is a **minimum**, not a maximum limit. If a value requires more digits, the formatter does not automatically drop significant digits.
 
-Ngoài ra, với **số nguyên âm** và `%x`, quy ước Formatter có thể dùng biểu diễn unsigned bit pattern. Không nhầm nó với `Integer.toString(-42,16)` dạng `"-2a"`.
+Additionally, for **negative integers** and `%x`, Formatter conventions may use the unsigned bit-pattern representation. Do not confuse it with `Integer.toString(-42,16)` producing `"-2a"`.
 
-### Nếu muốn chính xác 8 chữ số hex cho một `int`?
+### What if you want exact 8 hex digits for an `int`?
 
-`Integer.toHexString(value)` sinh tối đa 8 chữ số hex cho mẫu 32 bit, nhưng thường không padding các số nhỏ. Có thể kết hợp `String.format("%08x", value)` khi muốn hiển thị toàn bộ word 32 bit. Với `long`, thường dùng `%016x` để hiển thị 16 chữ số hex của word 64 bit.
+`Integer.toHexString(value)` produces up to 8 hex digits for a 32-bit pattern, though it usually does not pad small numbers. You can use `String.format("%08x", value)` when you want to display the full 32-bit word. For `long`, `%016x` is commonly used to display the 16 hex digits of a 64-bit word.
 
-### Không làm mất số 0 đầu của dữ liệu định danh
+### Do not lose leading zeros of identifier data
 
-Một chuỗi như `"00042"` có thể là mã hồ sơ, không đơn thuần là biểu diễn số học của 42. Chuyển nó bằng:
+A string like `"00042"` might be a record code, not merely the arithmetic representation of 42. Converting it via:
 
 ```java
 int n = Integer.parseInt("00042");
-String restored = Integer.toString(n); // "42", mất ba số 0 đầu.
+String restored = Integer.toString(n); // "42", lost the three leading zeros.
 ```
 
-Không có cách nào để `Integer.toString` suy ra độ rộng ban đầu của chuỗi vì biến số `int` đã **không lưu** số 0 đầu. Nếu cần giữ đúng định danh, giữ `String` và validate theo schema. Nếu độ rộng cố định là thuộc tính nghiệp vụ, định dạng lại với chiều rộng đã biết.
+There is no way for `Integer.toString` to infer the original string width because the `int` variable **does not store** leading zeros. If you need to preserve the exact identifier, keep it as a `String` and validate against a schema. If fixed width is a business property, reformat it with the known width.
 
-## 9. Parse và format có thể là hai chiều thuận nghịch, với điều kiện
+## 9. Parsing and formatting can be reversible, under conditions
 
-Với một radix hợp lệ `2..36` và một giá trị `int`, cặp sau khôi phục giá trị gốc:
+With a valid radix `2..36` and an `int` value, the following pair restores the original value:
 
 ```java
 int original = -42;
@@ -306,7 +306,7 @@ System.out.println(text);                // -2a
 System.out.println(restored == original); // true
 ```
 
-Tương tự cho `long`:
+Similarly for `long`:
 
 ```java
 long original = 4_294_967_296L;
@@ -314,27 +314,27 @@ String text = Long.toString(original, 16); // "100000000"
 long restored = Long.parseLong(text, 16);
 ```
 
-Các cặp là `toString`/`parseInt` và `Long.toString`/`Long.parseLong`, **không phải** tự động thêm dấu `0x` hay ký tự phân nhóm. Nếu muốn format bit pattern unsigned, phải dùng cặp unsigned thích hợp.
+The pairs are `toString`/`parseInt` and `Long.toString`/`Long.parseLong`; they do **not** automatically add `0x` or grouping characters. If you want to format an unsigned bit pattern, you must use the appropriate unsigned pair.
 
-### Những điều phá vỡ round trip
+### What breaks a round trip
 
-| Nguyên nhân | Ví dụ | Kết quả |
+| Cause | Example | Result |
 | --- | --- | --- |
-| Parse sai radix | Format `42` radix 16 → `"2a"`, parse radix 10 | `NumberFormatException` |
-| Tự thêm tiền tố rồi parseInt | `"0x2a"` với radix 16 | Parser không tự bỏ `0x` |
-| Dùng bitstring unsigned và parser signed | `"ffffffff"` → `parseInt(...,16)` | Vượt miền `int` signed |
-| Sử dụng cast thu hẹp trước format | `(int) 4_294_967_296L` | Mất giá trị trước khi `toString` chạy |
-| Quên ký hiệu dấu | Đổi `"-2a"` thành `"2a"` | Giá trị âm bị đổi thành dương |
-| Dùng radix sai ngoài phạm vi mà không validate | `toString(255,1)` | Silent fallback sang `"255"` hệ 10 |
-| Cho rằng định dạng giữ khoảng trắng/zero đầu | `"00042"` → parse → `toString` | Chỉ còn `"42"` |
+| Parsing with the wrong radix | Format `42` radix 16 → `"2a"`, parse radix 10 | `NumberFormatException` |
+| Adding a prefix then calling `parseInt` | `"0x2a"` with radix 16 | Parser does not automatically strip `0x` |
+| Mixing unsigned bitstrings with a signed parser | `"ffffffff"` → `parseInt(...,16)` | Exceeds signed `int` range |
+| Using a narrowing cast before formatting | `(int) 4_294_967_296L` | Value lost before `toString` runs |
+| Dropping the sign symbol | Changing `"-2a"` to `"2a"` | Negative value turns into positive |
+| Using an out-of-range radix without validation | `toString(255,1)` | Silent fallback to `"255"` in base 10 |
+| Assuming formatting preserves whitespace/leading zeros | `"00042"` → parse → `toString` | Only `"42"` remains |
 
-Một giao thức số nguyên nên **quy định radix, signedness, tiền tố, chữ hoa/chữ thường, độ rộng, quy tắc số 0 đầu và phạm vi giá trị**. Một phương thức formatter đơn lẻ không thay thế được tài liệu định dạng.
+An integer protocol should **specify radix, signedness, prefix, letter case, width, leading-zero rules, and value range**. A single formatter method cannot replace a format specification.
 
-## 10. Lưu ý về Unicode digits và chữ hoa/chữ thường
+## 10. Notes on Unicode digits and letter case
 
-`Integer.toString(value, radix)` và `Long.toString(value, radix)` dùng bảng chữ số ASCII dạng `0..9a..z`, phù hợp cho giao thức không phụ thuộc locale.
+`Integer.toString(value, radix)` and `Long.toString(value, radix)` use an ASCII digit table of the form `0..9a..z`, suitable for locale-independent protocols.
 
-Trong khi đó `Integer.parseInt(text, radix)` và `Long.parseLong(text, radix)` sử dụng quy tắc chữ số dựa trên `Character.digit` nên có thể nhận một số ký tự chữ số Unicode được JDK hỗ trợ, cũng như chữ hoa `A..Z` với radix phù hợp. **Ngôn ngữ formatter chuẩn và tập input parser chấp nhận không nhất thiết giống hệt nhau.**
+Meanwhile, `Integer.parseInt(text, radix)` and `Long.parseLong(text, radix)` use digit rules based on `Character.digit`, so they can accept some JDK-supported Unicode digit characters, as well as uppercase `A..Z` for appropriate radices. **The canonical formatter output language and the input set accepted by the parser are not necessarily identical.**
 
 ```java
 System.out.println(Integer.toString(255,16)); // ff
@@ -342,13 +342,13 @@ System.out.println(Integer.parseInt("FF",16)); // 255
 System.out.println(Integer.parseInt("ff",16)); // 255
 ```
 
-Nếu giao thức bắt buộc **chỉ ASCII, chỉ lowercase**, đừng nghĩ `parseInt` tự làm validator cho cả schema. Hãy kiểm tra tập ký tự và chuẩn hóa theo chính sách của giao thức.
+If a protocol mandates **ASCII-only, lowercase-only**, do not assume `parseInt` acts as a validator for the entire schema. Validate the character set and normalize according to the protocol's policy.
 
-Việc dùng `toString` thông thường **không phụ thuộc `Locale`** để chọn ký tự chữ số. Nếu bạn cần hiển thị số theo quy tắc văn hóa như phân nhóm hàng nghìn hoặc dấu số thập phân địa phương, hãy dùng `NumberFormat`/`Formatter` đúng mục đích. `Integer.toString` có lợi khi cần chuỗi máy-máy đơn giản, nhất quán.
+Using standard `toString` **does not depend on `Locale`** to select digit characters. If you need to display numbers according to cultural conventions such as thousands grouping or local decimal separators, use `NumberFormat`/`Formatter` appropriately. `Integer.toString` is advantageous when simple, consistent machine-to-machine strings are needed.
 
-## 11. Trường hợp `Long.MIN_VALUE` và miền giá trị dài hơn `int`
+## 11. `Long.MIN_VALUE` and ranges larger than `int`
 
-`long` là số nguyên signed 64 bit, có miền `-9_223_372_036_854_775_808` tới `9_223_372_036_854_775_807`. Khi giá trị vượt `int`, chọn `Long.toString` để giữ nguyên giá trị.
+`long` is a 64-bit signed integer with a range from `-9_223_372_036_854_775_808` to `9_223_372_036_854_775_807`. When a value exceeds `int`, choose `Long.toString` to preserve the value.
 
 ```java
 long large = 4_294_967_296L; // 2^32
@@ -356,20 +356,20 @@ System.out.println(Long.toString(large));    // 4294967296
 System.out.println(Long.toString(large,16)); // 100000000
 ```
 
-`Integer.toString` không chấp nhận `long` trực tiếp nếu chưa chuyển kiểu:
+`Integer.toString` does not accept `long` directly without type conversion:
 
 ```java
-// Integer.toString(large); // Lỗi biên dịch: long không tự thu hẹp thành int.
-String wrong = Integer.toString((int) large); // "0": đã mất bit cao.
+// Integer.toString(large); // Compile error: long does not automatically narrow to int.
+String wrong = Integer.toString((int) large); // "0": high bits lost.
 ```
 
-Với `Long.MIN_VALUE`, `Long.toString` bảo đảm trả chuỗi signed đúng `"-9223372036854775808"`. Cũng như `int`, không tự áp dụng `Math.abs(Long.MIN_VALUE)` rồi mong ra số dương cùng kiểu, vì `Math.abs(Long.MIN_VALUE)` vẫn âm do overflow.
+For `Long.MIN_VALUE`, `Long.toString` guarantees returning the correct signed string `"-9223372036854775808"`. Just like with `int`, do not apply `Math.abs(Long.MIN_VALUE)` expecting a positive number of the same type, because `Math.abs(Long.MIN_VALUE)` remains negative due to overflow.
 
-Với số nguyên còn lớn hơn `long`, chọn `java.math.BigInteger`. `BigInteger.toString(int radix)` cũng hỗ trợ biểu diễn theo cơ số 2..36, nhưng có hợp đồng riêng; đừng ép về `longValue()` chỉ để dùng `Long.toString` vì khi đó có thể mất thông tin.
+For integers even larger than `long`, choose `java.math.BigInteger`. `BigInteger.toString(int radix)` also supports representations in bases 2..36, but it has its own contract; do not force it into `longValue()` just to use `Long.toString`, as doing so can lose information.
 
-## 12. Chương trình độc lập Java 17+
+## 12. Standalone Java 17+ program
 
-Tạo tệp `RadixFormatDemo.java`:
+Create the file `RadixFormatDemo.java`:
 
 ```java
 import java.util.Locale;
@@ -420,14 +420,14 @@ public class RadixFormatDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac --release 17 RadixFormatDemo.java
 java RadixFormatDemo
 ```
 
-Stdout đã được kiểm chứng:
+Verified stdout:
 
 ```text
 Integer default: -42
@@ -453,13 +453,13 @@ Unsigned parse hex: -1
 Padded hex: 0000002a
 ```
 
-Ví dụ thể hiện định dạng `int`/`long` ở các radix thông dụng, sự chuyển về radix 10 khi tham số sai, số âm signed so với mẫu bit hex không dấu, giá trị biên, round trip signed/unsigned và độ rộng hex cố định. Các chuỗi stdout phản ánh giá trị thực tế của JDK chứ không suy đoán từ ký hiệu `0x` trong source.
+The example demonstrates `int`/`long` formatting in common radices, falling back to radix 10 on an invalid argument, signed negative numbers versus unsigned hex bit patterns, boundary values, signed/unsigned round trips, and fixed hex width. The stdout strings reflect actual JDK behavior rather than guessing from `0x` notation in source code.
 
-## 13. Một số tình huống áp dụng
+## 13. Practical application scenarios
 
-### A. Hiển thị flags và bitmask
+### A. Displaying flags and bitmasks
 
-Khi debug trạng thái cờ, bạn thường quan tâm **bit pattern** hơn giá trị signed. Ví dụ:
+When debugging flag states, you usually care more about the **bit pattern** than the signed value. For example:
 
 ```java
 int flags = 0xA5000001;
@@ -467,74 +467,74 @@ String bitsHex = Integer.toHexString(flags); // a5000001
 String allBitsHex = String.format(Locale.ROOT, "%08x", flags);
 ```
 
-Nếu dùng `Integer.toString(flags,16)`, vì bit dấu bằng 1, chuỗi sẽ bắt đầu bằng dấu `-` cùng chữ số thể hiện độ lớn signed, không phải word hex 8 chữ số của mẫu bit. Hãy xác định rõ log cần **signed value** hay **raw bit pattern**.
+If you use `Integer.toString(flags,16)`, because the sign bit is 1, the string will start with `-` followed by digits representing the signed magnitude, rather than the 8-digit hex word of the bit pattern. Be clear about whether the log needs the **signed value** or the **raw bit pattern**.
 
-### B. Xây mã định danh ngắn theo radix 36
+### B. Building short identifiers in radix 36
 
-Đối với **số nguyên không âm** đã có sẵn:
+For an existing **non-negative integer**:
 
 ```java
 int id = 35;
 String compact = Integer.toString(id, 36); // "z"
 ```
 
-Cơ số 36 có thể tạo chữ ngắn hơn thập phân với số lớn, nhưng đó chỉ là **cách biểu diễn**. Nó không tạo tính bảo mật, không tăng entropy và không bảo đảm mã duy nhất ngoài giá trị nguồn. Nếu phải giữ chữ hoa, độ rộng hoặc check digit, đó là quy tắc bổ sung của giao thức.
+Base 36 can produce shorter strings than decimal for large numbers, but that is merely a **representation**. It does not provide security, increase entropy, or guarantee uniqueness beyond the source value. If uppercase letters, fixed width, or check digits must be preserved, those are additional rules of the protocol.
 
-### C. Lưu giá trị số vào file hoặc JSON
+### C. Saving numeric values to files or JSON
 
-Khi giao thức quy định số nguyên thập phân, `Integer.toString(value)` và `Long.toString(value)` sinh chuỗi ổn định không có dấu phân nhóm hàng nghìn. Nhưng trong JSON, kiểu **number** và **string** khác nhau: ghi `"42"` là dữ liệu chuỗi, còn ghi `42` là token số. Đừng quyết định sơ đồ dữ liệu chỉ dựa trên kết quả formatter.
+When a protocol specifies decimal integers, `Integer.toString(value)` and `Long.toString(value)` produce stable strings without thousands separators. However, in JSON, **number** and **string** types differ: writing `"42"` is string data, whereas writing `42` is a numeric token. Do not decide the data schema solely based on formatter output.
 
-Với số `long` vượt độ chính xác nguyên liên tiếp của JavaScript `Number` (2^53), một số hệ thống lựa chọn **truyền string decimal** để tránh mất chính xác ở phía nhận; đây là quyết định hợp đồng giữa các hệ, không phải thiếu sót của `Long.toString`.
+For `long` numbers exceeding the contiguous integer precision of JavaScript `Number` (2^53), some systems choose to **transmit decimal strings** to avoid precision loss on the receiving side; this is a contract decision between systems, not a flaw of `Long.toString`.
 
-### D. Đọc/ghi hex trên hai hệ thống
+### D. Reading/writing hex across two systems
 
-Nếu bên gửi dùng `Integer.toHexString` cho bitmask và bên nhận dùng `Integer.parseInt`, lỗi có thể xuất hiện khi bit cao nhất bằng 1. Với một mẫu 32-bit không dấu, dùng `Integer.parseUnsignedInt(text,16)` phía nhận; với long 64-bit, dùng `Long.parseUnsignedLong` khi đúng schema. Thêm tiền tố hoặc padding nếu giao thức yêu cầu, nhưng bên nhận phải hiểu đúng tiền tố và độ rộng.
+If the sender uses `Integer.toHexString` for a bitmask and the receiver uses `Integer.parseInt`, errors can occur when the highest bit is 1. For an unsigned 32-bit pattern, use `Integer.parseUnsignedInt(text,16)` on the receiving side; for 64-bit `long`, use `Long.parseUnsignedLong` when matching the schema. Add prefixes or padding if the protocol requires them, but the receiver must properly understand the prefix and width.
 
-## 14. Lỗi thường gặp
+## 14. Common mistakes
 
-| Sai lầm | Vì sao sai | Hướng khắc phục |
+| Mistake | Why it is wrong | How to fix |
 | --- | --- | --- |
-| Cho rằng `radix` thay đổi giá trị `int` | Nó chỉ thay cách biểu diễn thành chuỗi | Phân biệt numeric value và formatting |
-| Tưởng `toString(value,16)` tự trả `"0x..."` | Nó chỉ sinh chữ số cùng dấu nếu âm | Thêm prefix có chủ đích hoặc dùng formatter |
-| Mong kết quả hexadecimal viết hoa | `toString` dùng `a..z` | `toUpperCase(Locale.ROOT)` hoặc `%X` khi phù hợp |
-| Dùng radix 1/37 và chờ exception | `toString` fallback radix 10 | Validate radix nếu input có thể sai |
-| Nhầm `Integer.toString(-1,16)` và `Integer.toHexString(-1)` | `"-1"` khác `"ffffffff"` | Chọn signed vs bit-pattern format |
-| Parse `"ffffffff"` bằng `parseInt(...,16)` | Vượt `Integer.MAX_VALUE` signed | `parseUnsignedInt(...,16)` |
-| Parse `"2a"` bằng radix 10 | Chữ `a` không hợp lệ | Chuyển đúng radix 16 |
-| Đọc `"0x2a"` bằng `parseInt(...,16)` | Parser không tự hiểu prefix | `decode` hoặc strip prefix sau validation |
-| Dùng `Integer.toString((int) longValue)` | Cast có thể mất dữ liệu trước format | `Long.toString(longValue,radix)` |
-| Tự dùng `Math.abs(MIN_VALUE)` để format âm | `abs` có thể overflow | Dùng API JDK đúng |
-| Cho rằng `toString` tự padding để đủ độ rộng | Kết quả tối giản, không padding | `Formatter`/`String.format` |
-| Dùng `toString` cho mã giữ số 0 đầu | Không thể phục hồi độ rộng gốc sau parse | Giữ `String` hoặc schema độ rộng |
-| Cho rằng toString tạo chuỗi “bảo mật” | Radix 36 chỉ là biểu diễn | Thiết kế mã có bảo mật riêng |
-| Tưởng mọi `String` do `toString` tạo ra đều có thể parse radix bất kỳ | Cần đúng radix và signedness | Lưu metadata cơ số trong giao thức |
-| Nhầm `Integer.valueOf` với `Integer.toString` | Một hàm trả wrapper, một hàm trả `String` | Xem chữ ký và kiểu trả về |
-| Dùng `Integer.parseInt` khi giá trị vượt `int` | Out of range sẽ báo lỗi | Chọn `Long.parseLong` hoặc `BigInteger` |
+| Thinking `radix` changes the `int` value | It only changes the string representation | Distinguish numeric value from formatting |
+| Expecting `toString(value,16)` to return `"0x..."` automatically | It only produces digits plus a sign if negative | Add the prefix intentionally or use a formatter |
+| Expecting uppercase hexadecimal output | `toString` uses `a..z` | Use `toUpperCase(Locale.ROOT)` or `%X` when appropriate |
+| Using radix 1/37 and expecting an exception | `toString` falls back to radix 10 | Validate radix if input can be invalid |
+| Confusing `Integer.toString(-1,16)` and `Integer.toHexString(-1)` | `"-1"` differs from `"ffffffff"` | Choose signed vs bit-pattern format |
+| Parsing `"ffffffff"` with `parseInt(...,16)` | Exceeds signed `Integer.MAX_VALUE` | Use `parseUnsignedInt(...,16)` |
+| Parsing `"2a"` with radix 10 | The letter `a` is invalid | Pass the correct radix 16 |
+| Reading `"0x2a"` with `parseInt(...,16)` | The parser does not automatically understand prefixes | Use `decode` or strip the prefix after validation |
+| Using `Integer.toString((int) longValue)` | Casting can lose data before formatting | Use `Long.toString(longValue,radix)` |
+| Using `Math.abs(MIN_VALUE)` yourself to format negatives | `abs` can overflow | Use the proper JDK API |
+| Assuming `toString` auto-pads to a width | Results are minimal, unpadded | Use `Formatter`/`String.format` |
+| Using `toString` for codes that preserve leading zeros | Cannot recover original width after parsing | Keep `String` or a width schema |
+| Assuming `toString` creates "secure" strings | Radix 36 is just a representation | Design codes with dedicated security |
+| Assuming any `String` from `toString` can be parsed with any radix | Requires matching radix and signedness | Store base metadata in the protocol |
+| Confusing `Integer.valueOf` with `Integer.toString` | One returns a wrapper, the other returns a `String` | Check signatures and return types |
+| Using `Integer.parseInt` when values exceed `int` | Out of range will throw an error | Choose `Long.parseLong` or `BigInteger` |
 
-## 15. Tự kiểm tra
+## 15. Self-check
 
-1. `Integer.toString(42,16)` trả chuỗi gì? Có tự thêm `0x` không?
-2. `Integer.toString(-42,16)` và `Integer.toHexString(-42)` giống hay khác nhau? Giải thích theo signed value và bit pattern.
-3. Vì sao `Integer.toString(255,1)` không ném exception mà trả `"255"`? Nếu một API cần báo lỗi radix sai, bạn nên làm gì?
-4. `Long.toString(4_294_967_296L,16)` trả gì? Vì sao không thể dùng `Integer.toString((int) 4_294_967_296L,16)` để giữ cùng giá trị?
-5. Hai lời gọi `Integer.toUnsignedString(-1)` và `Integer.toString(-1)` tạo kết quả nào? Mẫu bit ban đầu có thay đổi không?
-6. Nếu nhận được `"ffffffff"` như word hex 32-bit, bạn nên dùng `parseInt` hay `parseUnsignedInt`? Vì sao?
-7. Định dạng radix 36 của 35 là gì? Nó có tạo mã duy nhất, bí mật hoặc có độ dài cố định không?
-8. Khi nào nên dùng `String.format(Locale.ROOT,"%08x", value)` thay vì `Integer.toString(value,16)`?
-9. Vì sao `"00042"` không thể được khôi phục nguyên dạng bằng `Integer.parseInt` rồi `Integer.toString`? Tình huống nào cần giữ `String`?
-10. Viết phép kiểm tra round trip signed từ `int` sang cơ số 2, 8, 10, 16 và trở lại `int`.
-11. Nếu formatter dùng radix 16 nhưng parser mặc định radix 10, chuyện gì xảy ra với `"2a"`?
-12. Nếu ứng dụng nhận `radix` từ input người dùng, vì sao nên validate trong `2..36` thay vì dựa vào fallback của `toString`?
-13. Vì sao `Integer.toString(value,16)` trả chữ thường? Làm thế nào tạo uppercase mà không phụ thuộc locale?
-14. Khi lưu một bitmask có thể âm trong signed `int`, format và parse thế nào để giữ nguyên 32 bit?
+1. What string does `Integer.toString(42,16)` return? Does it automatically add `0x`?
+2. Are `Integer.toString(-42,16)` and `Integer.toHexString(-42)` the same or different? Explain in terms of signed value and bit pattern.
+3. Why does `Integer.toString(255,1)` not throw an exception and instead return `"255"`? If an API needs to report an error on an invalid radix, what should you do?
+4. What does `Long.toString(4_294_967_296L,16)` return? Why can't `Integer.toString((int) 4_294_967_296L,16)` be used to preserve the same value?
+5. What results do the two calls `Integer.toUnsignedString(-1)` and `Integer.toString(-1)` produce? Does the underlying bit pattern change?
+6. If you receive `"ffffffff"` as a 32-bit hex word, should you use `parseInt` or `parseUnsignedInt`? Why?
+7. What is the radix-36 format of 35? Does it create a unique, secret, or fixed-length code?
+8. When should you use `String.format(Locale.ROOT,"%08x", value)` instead of `Integer.toString(value,16)`?
+9. Why can `"00042"` not be restored in its original form using `Integer.parseInt` followed by `Integer.toString`? In what situations should `String` be kept?
+10. Write a signed round-trip test from `int` to base 2, 8, 10, 16 and back to `int`.
+11. If the formatter uses radix 16 but the parser defaults to radix 10, what happens with `"2a"`?
+12. If an application takes `radix` from user input, why should it validate within `2..36` instead of relying on `toString`'s fallback?
+13. Why does `Integer.toString(value,16)` return lowercase letters? How do you produce uppercase without depending on locale?
+14. When storing a bitmask that may be negative in a signed `int`, how should you format and parse it to preserve all 32 bits?
 
-## 16. Tài liệu chính thức
+## 16. Official documentation
 
-- [Java SE 17 — `Integer.toString(int, int)`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html#toString(int,int)): radix 2..36, chữ số `0..9a..z`, dấu âm và fallback radix 10.
-- [Java SE 17 — `Long.toString(long, int)`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html#toString(long,int)): cùng nguyên tắc định dạng signed trên 64 bit.
-- [Java SE 17 — `Integer.toUnsignedString`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html#toUnsignedString(int,int)): diễn giải unsigned của 32 bit.
-- [Java SE 17 — `Integer.toHexString`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html#toHexString(int)): chuỗi hex không dấu của mẫu `int`.
-- [Java SE 17 — `Integer.parseInt`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html#parseInt(java.lang.String,int)): phân tích chuỗi có dấu theo radix.
-- [Java SE 17 — `Formatter`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Formatter.html): các quy tắc `%x`/`%X`, padding, width và định dạng văn bản.
+- [Java SE 17 — `Integer.toString(int, int)`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html#toString(int,int)): radix 2..36, digits `0..9a..z`, negative sign, and radix 10 fallback.
+- [Java SE 17 — `Long.toString(long, int)`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html#toString(long,int)): the same signed formatting rules for 64 bits.
+- [Java SE 17 — `Integer.toUnsignedString`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html#toUnsignedString(int,int)): unsigned interpretation of 32 bits.
+- [Java SE 17 — `Integer.toHexString`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html#toHexString(int)): unsigned hex string of an `int` bit pattern.
+- [Java SE 17 — `Integer.parseInt`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html#parseInt(java.lang.String,int)): parsing a signed string according to a radix.
+- [Java SE 17 — `Formatter`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Formatter.html): rules for `%x`/`%X`, padding, width, and text formatting.
 
-**Kết luận:** `Integer.toString` và `Long.toString` là API chuyển **giá trị số nguyên** thành **chuỗi chữ số theo radix**; chúng không làm đổi giá trị, không tự thêm prefix, không padding và trả chữ thường ở cơ số trên 10. Với số âm, `toString(value,radix)` dùng **dấu trừ**, còn `toHexString`/`toBinaryString`/`toUnsignedString` phù hợp khi cần **biểu diễn mẫu bit theo nghĩa không dấu**. Hãy quy định rõ signedness, radix và quy tắc giao thức khi định dạng hoặc parse ngược, đồng thời validate radix để tránh fallback thập phân không mong muốn.
+**Conclusion:** `Integer.toString` and `Long.toString` are APIs that convert an **integer value** into a **digit string according to a radix**; they do not change the value, do not automatically add prefixes, do not pad, and return lowercase letters for bases above 10. For negative numbers, `toString(value,radix)` uses a **minus sign**, while `toHexString`/`toBinaryString`/`toUnsignedString` are appropriate when you need to **represent the bit pattern in an unsigned sense**. Explicitly define signedness, radix, and protocol rules when formatting or parsing back, and validate the radix to avoid unwanted decimal fallbacks.

@@ -1,24 +1,24 @@
-# Giữ hoặc bỏ trường rỗng cuối khi tách chuỗi
+# Keeping or discarding trailing empty fields when splitting strings
 
-Với chuỗi `"Lan,Java,,"`, hai dấu phẩy cuối có thể thể hiện **hai cột đang rỗng**. Nếu bỏ chúng, bản ghi bốn cột bị biến thành bản ghi hai cột. Quy tắc `limit` đã được học ở bài trước; bài này tập trung vào **tác động với dữ liệu có cấu trúc**, cách kiểm tra số trường và việc phân biệt rỗng với trắng.
+In the string `"Lan,Java,,"`, the two trailing commas may represent **two empty columns**. Discarding them turns a four-column record into a two-column record. The `limit` rules were covered in the previous lesson; this lesson focuses on **the impact on structured data**, how to validate field counts, and distinguishing empty from blank.
 
-## 1. Không được nhầm trường rỗng với trường thiếu
+## 1. Never confuse an empty field with a missing field
 
-| Đầu vào | `split(",")` | `split(",", -1)` |
+| Input | `split(",")` | `split(",", -1)` |
 | --- | --- | --- |
 | `"Lan,Java,,"` | `["Lan", "Java"]` | `["Lan", "Java", "", ""]` |
 | `"A,B,"` | `["A", "B"]` | `["A", "B", ""]` |
 | `"A,,C,"` | `["A", "", "C"]` | `["A", "", "C", ""]` |
-| `",,"` | Mảng độ dài 0 | Ba phần `""` |
-| `""` | Một phần `""` | Một phần `""` |
+| `",,"` | Array of length 0 | Three `""` elements |
+| `""` | One `""` element | One `""` element |
 
-`split(regex)` dùng `limit=0`, nên **mọi** phần rỗng cuối bị loại; `split(regex, -1)` giữ chúng. Những phần rỗng ở đầu và giữa vẫn tồn tại nếu không nằm trong chính đoạn đuôi bị loại.
+`split(regex)` uses `limit=0`, so **all** trailing empty elements are removed; `split(regex, -1)` keeps them. Leading and middle empty elements remain if they are not part of the removed trailing tail.
 
-Khi thử dữ liệu rỗng, in `parts.length` và chỉ số từng trường. `Arrays.toString` không thêm dấu nháy quanh chuỗi rỗng; nhìn `[]` thôi dễ nhầm mảng rỗng với mảng một phần tử rỗng.
+When testing empty data, print `parts.length` and the index of each field. `Arrays.toString` does not add quotes around empty strings; looking at `[]` alone makes it easy to confuse an empty array with an array containing one empty element.
 
-## 2. Ví dụ kiểm tra schema bốn cột
+## 2. Four-column schema validation example
 
-Lưu thành `PreserveColumnsDemo.java` (JDK 17+):
+Save as `PreserveColumnsDemo.java` (JDK 17+):
 
 ```java
 public class PreserveColumnsDemo {
@@ -67,11 +67,11 @@ true
 false
 ```
 
-Với delimiter literal đơn ký tự `","`, `String.join(",", input.split(",", -1))` dựng lại nguyên chuỗi bao gồm các dấu cuối; bản `split(",")` đã làm mất chúng. Không suy rộng tính chất khôi phục nguyên văn cho mọi regex vì regex có thể khớp nhiều kiểu hoặc nhiều ký tự khác nhau.
+With a single-character literal delimiter `","`, `String.join(",", input.split(",", -1))` reconstructs the exact original string including trailing delimiters; the `split(",")` version lost them. Do not generalize this exact-reconstruction property to every regex because a regex can match varying patterns or lengths.
 
-## 3. `""` khác `" "` và khác trường không hiện diện
+## 3. `""` differs from `" "` and from an absent field
 
-`"A, ,"` dùng `split(",", -1)` cho `["A", " ", ""]`. Trường thứ hai chứa **một dấu cách**, còn trường thứ ba có độ dài bằng 0:
+`"A, ,"` with `split(",", -1)` gives `["A", " ", ""]`. The second field contains **a single space**, while the third field has length 0:
 
 ```java
 String[] fields = "A, ,".split(",", -1);
@@ -80,23 +80,23 @@ System.out.println(fields[1].isBlank()); // true
 System.out.println(fields[2].isEmpty()); // true
 ```
 
-`strip()`, `trim()` hoặc `isBlank()` có thể hữu ích khi quy tắc dữ liệu cho phép chuẩn hóa khoảng trắng, nhưng không được áp dụng vô điều kiện vào dữ liệu cần bảo toàn giá trị gốc.
+`strip()`, `trim()`, or `isBlank()` can be useful when data rules allow whitespace normalization, but they must not be applied unconditionally to data whose original values must be preserved.
 
-Bản ghi `"A,B"` có hai trường, còn `"A,B,"` có trường thứ ba tồn tại nhưng rỗng. Nếu định dạng yêu cầu ba cột, giữ chúng bằng `-1`, xác minh `parts.length==3`, sau đó mới kiểm tra từng giá trị bắt buộc. `split` không tự xác thực schema.
+The record `"A,B"` has two fields, whereas `"A,B,"` has an existing but empty third field. If the format requires three columns, preserve them with `-1`, verify `parts.length==3`, and only then validate each required value. `split` does not validate schemas automatically.
 
-## 4. Chọn chính sách xử lý
+## 4. Choosing a handling policy
 
-Dùng `-1` khi cần đếm đúng số cột, ánh xạ đối tượng, khôi phục dữ liệu hoặc ghi nhận trường trống cuối. Dùng mặc định nếu định dạng cho phép **cố ý bỏ** phần rỗng cuối. Với dấu phân cách nguyên văn như `|` hay `.`, có thể kết hợp `Pattern.quote(delimiter)` cùng `-1`.
+Use `-1` when you need exact column counts, object mapping, data reconstruction, or tracking trailing empty fields. Use the default if the format allows **intentionally omitting** trailing empty parts. For literal delimiters such as `|` or `.`, you can combine `Pattern.quote(delimiter)` with `-1`.
 
-Cả hai cách đều chưa đủ để đọc **CSV có dấu nháy**: dấu phẩy bên trong trường được nháy cần parser CSV. Trường rỗng cuối chỉ là một trong nhiều yêu cầu của parser.
+Neither approach is sufficient for reading **quoted CSV**: commas inside quoted fields require a CSV parser. Trailing empty fields are only one of a parser's many requirements.
 
-## Tự kiểm tra
+## Self-check
 
-1. `"x,y,,".split(",", -1)` có mấy phần và các phần cuối là gì?
-2. Vì sao `",,".split(",")` có `length=0` còn `"".split(",")` có `length=1`?
-3. Cần bốn cột từ `"id,name,note,"` thì chọn overload nào?
-4. `"A, ,"` có hai trường cuối giống nhau không?
+1. How many parts does `"x,y,,".split(",", -1)` have, and what are the trailing parts?
+2. Why does `",,".split(",")` have `length=0` while `"".split(",")` has `length=1`?
+3. If you need four columns from `"id,name,note,"`, which overload should you choose?
+4. Do the last two fields of `"A, ,"` have the same value?
 
-**Đáp án:** (1) Bốn phần, hai phần cuối là `""`. (2) Chuỗi toàn delimiter tạo toàn phần rỗng rồi bị xóa; chuỗi rỗng không chứa lần khớp `,` nào nên trả chính nó. (3) `split(",", -1)` và kiểm tra `length==4`. (4) Không, một trường chứa dấu cách, trường còn lại rỗng.
+**Answers:** (1) Four parts; the last two are `""`. (2) An all-delimiter string produces only empty parts, which are all removed; an empty string contains no `,` matches, so it returns itself. (3) `split(",", -1)` and check `length==4`. (4) No; one field contains a space, and the other is empty.
 
-**Ghi nhớ:** **Giữ trường rỗng trước, kiểm tra schema sau.**
+**Remember:** **Preserve empty fields first, validate the schema afterward.**

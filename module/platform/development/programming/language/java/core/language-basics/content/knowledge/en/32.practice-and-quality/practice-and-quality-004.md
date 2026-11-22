@@ -1,145 +1,145 @@
-# Chú thích lý do và viết tài liệu cho phương thức khi cần (Java 17+)
+# Commenting Reasons and Documenting Methods When Needed (Java 17+)
 
-## 1. Mục tiêu của chú thích và tài liệu
+## 1. Purpose of comments and documentation
 
-Mã Java cần đủ rõ để người đọc hiểu **chương trình đang làm gì**; chú thích (`comment`) và tài liệu phương thức giúp giải thích những điều **khó suy ra chỉ từ mã**: lý do một quyết định được đưa ra, giả định nội bộ, giới hạn, hợp đồng với người gọi, tác dụng phụ và hành vi khi gặp lỗi.
+Java code needs to be clear enough for readers to understand **what the program is doing**; comments and method documentation help explain things that are **hard to infer from code alone**: why a decision was made, internal assumptions, limits, the caller contract, side effects, and error behavior.
 
-Nguyên tắc thực hành:
+Practical principles:
 
-- **Đặt tên biến, lớp và phương thức rõ ràng trước.** `calculateTotal()` dễ hiểu hơn `calc()`, `isEligible` dễ hiểu hơn `flag`.
-- **Chú thích “vì sao” ở chỗ có quyết định không hiển nhiên**, như một ngưỡng theo nghiệp vụ hoặc lý do dùng khoảng nửa mở. Không chép lại từng dòng lệnh bằng văn xuôi.
-- **Dùng Javadoc khi phương thức cần mô tả hợp đồng cho người gọi**, nhất là API public, hành vi có điều kiện, tham số có giới hạn, kết quả đặc biệt hoặc ngoại lệ cần dự đoán.
-- **Giữ nội dung đúng với mã.** Chú thích sai còn nguy hiểm hơn không có chú thích: nó khiến người bảo trì tin vào hành vi không còn tồn tại.
-- **Đừng thay kiểm tra và tên tốt bằng chú thích dài.** Chú thích không thực thi, không kiểm tra dữ liệu, không bảo đảm điều kiện luôn đúng.
+- **Name variables, classes, and methods clearly first.** `calculateTotal()` is easier to understand than `calc()`, and `isEligible` is clearer than `flag`.
+- **Comment "why" where a decision is non-obvious**, such as a business threshold or the reason for a half-open interval. Do not paraphrase every line of code in prose.
+- **Use Javadoc when a method needs to describe a contract for callers**, especially for public APIs, conditional behavior, constrained parameters, special return values, or predictable exceptions.
+- **Keep documentation accurate to the code.** A wrong comment is more dangerous than no comment: it misleads maintainers into trusting behavior that no longer exists.
+- **Do not replace validation and good names with long comments.** Comments do not execute, do not validate data, and do not guarantee invariants hold.
 
-Bài học này tập trung vào mã Java core và tài liệu ở cấp phương thức. Javadoc dùng để công bố *hợp đồng*, còn lời giải thích ở giữa thân phương thức dùng để bảo tồn *lý do thiết kế* khó nhận thấy.
+This lesson focuses on core Java code and method-level documentation. Javadoc publishes the *contract*, while inline explanations inside a method body preserve non-obvious *design rationale*.
 
-## 2. Ba dạng chú thích Java
+## 2. Three forms of Java comments
 
-Java hỗ trợ các cú pháp chính:
+Java supports three main comment forms:
 
-| Loại | Cú pháp | Dùng khi |
+| Type | Syntax | When to use |
 | --- | --- | --- |
-| Một dòng | `// nội dung` | Giải thích ngắn ngay trước một quyết định |
-| Nhiều dòng | `/* nội dung */` | Ghi chú ngắn nhiều dòng; tránh dài và lặp mã |
-| Javadoc | `/** nội dung */` | Viết tài liệu có cấu trúc cho lớp, phương thức, constructor hoặc thành viên thích hợp |
+| Single-line | `// content` | Brief explanation right before a decision |
+| Multi-line | `/* content */` | Short multi-line note; avoid long blocks that repeat code |
+| Javadoc | `/** content */` | Structured documentation for a class, method, constructor, or appropriate member |
 
-Ví dụ **minh họa bên trong phương thức**, chưa phải file có `main`:
+Illustrative example **inside a method**, not yet a file with `main`:
 
 ```java
-// Phần dư chưa đủ một bậc tích điểm không được quy đổi.
+// The remainder below one points tier is not converted.
 long basePoints = amountVnd / 10_000L;
 
 /*
- * Với hợp đồng này, kết quả được giới hạn theo ngưỡng
- * đã được quyết định trước trong chính sách sản phẩm.
+ * Under this contract, the result is capped according to the threshold
+ * previously decided in the product policy.
  */
 long limitedPoints = Math.min(basePoints, 500L);
 ```
 
-Trình biên dịch bỏ qua nội dung chú thích `//` và `/* ... */` khi phân tích chương trình. Tuy nhiên, trình tạo tài liệu **`javadoc`** có thể đọc các khối `/** ... */` và sinh tài liệu HTML.
+The compiler ignores `//` and `/* ... */` comments when parsing the program. However, the **`javadoc`** documentation tool reads `/** ... */` blocks and generates HTML documentation.
 
-Không đặt `//` trong chuỗi `"https://example.org"` rồi nghĩ nó sẽ bắt đầu chú thích: trong string literal, dấu `//` chỉ là ký tự văn bản. Không lồng `/* ... */` vào bên trong một `/* ... */` khác vì Java không hỗ trợ block comment lồng nhau.
+Do not write `//` inside a string like `"https://example.org"` thinking it starts a comment: inside a string literal, `//` is just text characters. Do not nest `/* ... */` inside another `/* ... */` because Java does not support nested block comments.
 
-## 3. Chú thích “vì sao”, không lặp “làm gì”
+## 3. Comment "why", do not repeat "what"
 
-### Chú thích thừa
+### Redundant comments
 
 ```java
-count++;               // Tăng count lên một.
-price = price * 2;     // Nhân giá với hai.
-return price;          // Trả về price.
+count++;               // Increment count by one.
+price = price * 2;     // Multiply price by two.
+return price;          // Return price.
 ```
 
-Các câu sau `//` chỉ diễn giải đúng cú pháp mà người đọc đã nhìn thấy. Nếu mọi dòng đều có chú thích như vậy, việc rà soát mã chậm hơn mà không tăng hiểu biết.
+The text after `//` merely restates the syntax the reader already sees. If every line has comments like this, code review slows down without adding understanding.
 
-### Chú thích giữ lại lý do có giá trị
+### Comments that preserve valuable rationale
 
 ```java
-// Chỉ tính điểm cho mỗi bậc 10.000 VND tròn;
-// làm tròn lên sẽ cấp điểm cho cả phần tiền chưa đủ bậc.
+// Only award points for each full 10,000 VND tier;
+// rounding up would grant points for an incomplete tier.
 long basePoints = amountVnd / 10_000L;
 ```
 
-Ở đây, một phép chia nguyên có thể nhìn giống “vô tình làm mất phần thập phân”. Chú thích giải thích vì sao **phải** chia nguyên: đó là chính sách tính điểm, không phải lỗi làm tròn.
+Here, integer division might look like "accidentally dropping the fractional part." The comment explains why integer division **must** be used: it is the points policy, not a rounding bug.
 
-Một ví dụ khác:
+Another example:
 
 ```java
-// Khoảng [start, end) tránh tính hai lần mốc chung
-// khi ghép hai ca liên tiếp [9:00, 10:00) và [10:00, 11:00).
+// Half-open interval [start, end) avoids double-counting the shared boundary
+// when joining two consecutive shifts [9:00, 10:00) and [10:00, 11:00).
 return minute >= startInclusive && minute < endExclusive;
 ```
 
-Người đọc thấy ngay ý nghĩa biểu thức nhưng khó biết lý do dùng `< endExclusive` thay cho `<= endExclusive`. Chú thích lưu lại quyết định thiết kế để người sửa không vô tình tạo lỗi tại ranh giới.
+A reader immediately sees what the expression does, but may not know why `< endExclusive` is used instead of `<= endExclusive`. The comment preserves the design decision so future edits do not accidentally introduce a boundary bug.
 
-**Kiểm tra chất lượng chú thích:** Nếu xóa chú thích mà người đọc vẫn hiểu đủ lý do từ tên hàm và biểu thức, có lẽ chú thích đó không cần thiết. Nếu thiếu chú thích khiến họ dễ sửa sai một quy tắc quan trọng, chú thích nên được giữ.
+**Comment quality test:** If removing a comment still leaves the reader fully understanding the reason from the method name and expression, that comment is likely unnecessary. If removing it makes someone likely to break an important rule by mistake, the comment should stay.
 
-## 4. Javadoc là hợp đồng của phương thức
+## 4. Javadoc is the method's contract
 
-Javadoc bắt đầu bằng `/**`, đặt **ngay trước khai báo** muốn mô tả. Thông thường tài liệu phương thức gồm một câu mô tả ngắn, sau đó giải thích ràng buộc quan trọng, và các thẻ dành cho người gọi.
+Javadoc starts with `/**` and is placed **immediately before the declaration** it describes. Typically, method documentation has a concise summary sentence, followed by important constraints and tags for the caller.
 
 ```java
 /**
- * Tính điểm tích lũy theo giá trị đơn hàng.
+ * Calculates loyalty points based on order amount.
  *
- * <p>Mỗi 10.000 VND tròn được một điểm cơ bản. Thành viên
- * nhận điểm gấp đôi khi đơn hàng đạt ít nhất 100.000 VND.
- * Kết quả không vượt 500 điểm.
+ * <p>Every full 10,000 VND earns one base point. Members
+ * receive double points when the order reaches at least 100,000 VND.
+ * The result does not exceed 500 points.
  *
- * @param amountVnd giá trị đơn hàng tính bằng VND, không âm
- * @param member true nếu khách hàng là thành viên
- * @return số điểm được cấp, từ 0 đến 500
- * @throws IllegalArgumentException nếu amountVnd âm
+ * @param amountVnd order amount in VND, non-negative
+ * @param member true if the customer is a member
+ * @return points awarded, from 0 to 500
+ * @throws IllegalArgumentException if amountVnd is negative
  */
 public static int calculatePoints(long amountVnd, boolean member) {
-    // Phần thân phương thức được trình bày đầy đủ ở ví dụ bên dưới.
+    // The full method body is shown in the example below.
     return 0;
 }
 ```
 
-Đoạn trên **chỉ minh họa cấu trúc Javadoc**, phần thân trả `0` là mã minh họa hình dạng phương thức, chưa phải hiện thực của chính sách đã mô tả. Dùng phiên bản hoàn chỉnh ở phần 5 để biên dịch và chạy. Không đưa một phần thân giả như vậy vào mã sản phẩm.
+The snippet above **only illustrates Javadoc structure**; the body returning `0` is a placeholder showing method shape, not the implementation of the described policy. Use the complete version in section 5 to compile and run. Never leave such a dummy body in production code.
 
-Các thẻ hay dùng:
+Commonly used tags:
 
-| Thẻ | Nội dung nên viết | Khi dùng |
+| Tag | What to write | When to use |
 | --- | --- | --- |
-| Mô tả đầu `/** ... */` | Phương thức có ý nghĩa gì, điều kiện chính của hợp đồng | Khi phương thức cần tài liệu |
-| `@param name` | Ý nghĩa, đơn vị, giới hạn của từng tham số | Khi tài liệu hóa tham số |
-| `@return` | Ý nghĩa giá trị trả về, giới hạn, sentinel nếu có | Với phương thức có giá trị trả về |
-| `@throws ExceptionType` | Loại ngoại lệ và điều kiện làm phát sinh | Khi caller cần biết điều kiện lỗi |
-| `@see Type#method(...)` | Dẫn tới API liên quan | Khi liên kết bổ sung có ích |
-| `@since` | Phiên bản API bắt đầu xuất hiện | Với API có quản lý phiên bản |
-| `@deprecated` | Giải thích API cũ và lối thay thế | Khi API được ngừng khuyến nghị |
+| Opening description `/** ... */` | What the method means and main contract conditions | Whenever a method needs documentation |
+| `@param name` | Meaning, unit, and bounds of each parameter | When documenting parameters |
+| `@return` | Meaning of return value, bounds, sentinel if any | For methods that return a value |
+| `@throws ExceptionType` | Exception type and the condition that triggers it | When callers need to know error conditions |
+| `@see Type#method(...)` | Reference to a related API | When cross-references are helpful |
+| `@since` | API version where it was introduced | For versioned APIs |
+| `@deprecated` | Explanation of old API and its replacement | When an API is deprecated |
 
-**Phân biệt `@throws` và `throws`:** `@throws` là **thẻ tài liệu** viết trong comment; `throws IOException` là **cú pháp Java** trong chữ ký để khai báo khả năng phát sinh checked exception. Viết `@throws IOException` không thay được phần `throws IOException` mà compiler yêu cầu.
+**Distinguishing `@throws` and `throws`:** `@throws` is a **documentation tag** inside a comment; `throws IOException` is **Java syntax** in the method signature declaring checked exceptions that may be thrown. Writing `@throws IOException` does not replace the `throws IOException` clause required by the compiler.
 
-Các `@param` phải khớp tên tham số thật. Nếu đổi `amountVnd` thành `orderValue`, cần sửa lại tên trong tài liệu. Với JavaDoc, các ký tự trông như HTML cần được viết cẩn thận: ưu tiên `{@code >=}`, `{@code <}` hoặc `&lt;` trong văn bản Javadoc để tránh lỗi phân tích markup. `{@code ...}` thường thích hợp để nhắc tới đoạn mã ngắn.
+Each `@param` must match the actual parameter name. If you rename `amountVnd` to `orderValue`, update the documentation too. In Javadoc, HTML-like characters must be handled carefully: prefer `{@code >=}`, `{@code <}`, or `&lt;` in Javadoc text to avoid markup parsing errors. `{@code ...}` is generally well suited for short code snippets.
 
-## 5. Chương trình Java 17+ đầy đủ: chính sách tích điểm
+## 5. Complete Java 17+ program: loyalty points policy
 
-Tạo file **`LoyaltyPolicy.java`**:
+Create the file **`LoyaltyPolicy.java`**:
 
 ```java
 /**
- * Quy tắc tích điểm cho đơn hàng, dùng đơn vị tiền là VND.
+ * Loyalty points rules for orders, using VND as the currency unit.
  */
 public final class LoyaltyPolicy {
     private LoyaltyPolicy() {
-        // Không tạo đối tượng từ lớp tiện ích.
+        // Prevent instantiation of utility class.
     }
 
     /**
-     * Tính số điểm tích lũy được cấp cho một đơn hàng.
+     * Calculates loyalty points awarded for an order.
      *
-     * <p>Mỗi 10.000 VND tròn mang lại một điểm cơ bản.
-     * Thành viên nhận điểm gấp đôi từ mức 100.000 VND.
-     * Tổng điểm tối đa cho một đơn là 500.
+     * <p>Every full 10,000 VND grants one base point.
+     * Members receive double points starting from 100,000 VND.
+     * Maximum points per order is 500.
      *
-     * @param amountVnd tổng tiền đơn hàng, đơn vị VND, phải không âm
-     * @param member true nếu người mua là thành viên
-     * @return số điểm của đơn hàng trong khoảng 0 đến 500
-     * @throws IllegalArgumentException nếu amountVnd âm
+     * @param amountVnd order total, in VND, must be non-negative
+     * @param member true if the buyer is a member
+     * @return points for the order in the range 0 to 500
+     * @throws IllegalArgumentException if amountVnd is negative
      */
     public static int calculatePoints(long amountVnd, boolean member) {
         if (amountVnd < 0) {
@@ -147,20 +147,20 @@ public final class LoyaltyPolicy {
                     "amountVnd must be non-negative");
         }
 
-        // Phần dư dưới 10.000 VND chưa đủ một bậc tích điểm.
+        // Remainder below 10,000 VND does not qualify for a points tier.
         long basePoints = amountVnd / 10_000L;
 
         long awarded = member && amountVnd >= 100_000L
                 ? basePoints * 2
                 : basePoints;
 
-        // Giữ trần để đơn giá trị lớn không được cấp điểm vô hạn.
+        // Cap the points so high-value orders do not earn unlimited points.
         return (int) Math.min(awarded, 500L);
     }
 }
 ```
 
-Tạo file **`LoyaltyDemo.java`** cùng thư mục:
+Create the file **`LoyaltyDemo.java`** in the same directory:
 
 ```java
 public class LoyaltyDemo {
@@ -181,7 +181,7 @@ public class LoyaltyDemo {
 }
 ```
 
-Chạy tại thư mục chứa hai file, bằng **JDK 17+** (PowerShell, CMD hoặc bash). Tạo thư mục `out` nếu chưa có:
+Run from the directory containing both files using **JDK 17+** (PowerShell, CMD, or bash). Create the `out` directory if it does not exist:
 
 ```sh
 mkdir out
@@ -189,7 +189,7 @@ javac -encoding UTF-8 --release 17 -d out LoyaltyPolicy.java LoyaltyDemo.java
 java -cp out LoyaltyDemo
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 regular=4
@@ -198,52 +198,52 @@ capped=500
 error=amountVnd must be non-negative
 ```
 
-Đối chiếu với hợp đồng và chú thích:
+Compare against the contract and comments:
 
-- `45_000 / 10_000` cho `4` bậc nguyên; người mua thường nhận 4 điểm.
-- `120_000 / 10_000` cho 12 điểm cơ bản; thành viên đạt ngưỡng 100.000 VND nhận 24 điểm.
-- `3_000_000 / 10_000` cho 300 điểm cơ bản; nhân đôi thành 600 nhưng giới hạn 500.
-- Giá trị âm bị từ chối bằng `IllegalArgumentException` đúng như thẻ `@throws`.
+- `45_000 / 10_000` gives `4` full tiers; a non-member receives 4 points.
+- `120_000 / 10_000` gives 12 base points; a member meeting the 100,000 VND threshold receives 24 points.
+- `3_000_000 / 10_000` gives 300 base points; doubled to 600, then capped at 500.
+- Negative values are rejected with `IllegalArgumentException`, matching the `@throws` tag.
 
-Phương thức `calculatePoints` **không cần khai báo `throws IllegalArgumentException`**, bởi đó là unchecked exception; thông tin ở `@throws` vẫn hữu ích vì caller biết điều kiện sai. Dùng `long` cho số tiền giúp tránh sự thiếu hụt miền giá trị của `int` trong ví dụ; phép nhân đôi ở đây không tràn `long` vì kết quả của phép chia `amountVnd / 10_000L` được chặn bởi miền của `long`.
+The `calculatePoints` method **does not need to declare `throws IllegalArgumentException`**, because it is an unchecked exception; the `@throws` documentation is still useful so callers know the error condition. Using `long` for the monetary amount avoids the limited range of `int` in the example; doubling here does not overflow `long` because the result of `amountVnd / 10_000L` is bounded well within `long` range.
 
-Trong ví dụ có hai cấp tài liệu: **Javadoc** mô tả hợp đồng bên ngoài của phương thức; **chú thích trong thân** diễn giải lý do làm tròn xuống và lý do đặt trần. Không cần thêm các câu như `// kiểm tra nếu amountVnd nhỏ hơn 0` vì biểu thức `if` đã nói rõ điều đó.
+The example has two documentation levels: **Javadoc** describes the method's external contract; **in-body comments** explain why it rounds down and why it caps the points. You do not need comments like `// check if amountVnd is less than 0` because the `if` expression already makes that clear.
 
-## 6. Sinh tài liệu HTML từ Javadoc
+## 6. Generating HTML documentation from Javadoc
 
-Khi chương trình đã có một API cần người khác đọc, công cụ **`javadoc`** đi kèm JDK có thể tạo trang HTML từ các khối `/** ... */`:
+Once a program has an API that others need to read, the **`javadoc`** tool included with the JDK can generate HTML pages from `/** ... */` blocks:
 
 ```sh
 javadoc -encoding UTF-8 -docencoding UTF-8 -d docs LoyaltyPolicy.java
 ```
 
-Tùy hệ điều hành, shell và JDK, thông báo tiến trình của lệnh `javadoc` sẽ khác nhau; không có stdout cố định cần ghi nhớ. Sau khi chạy thành công, xem trang tài liệu tương ứng của `LoyaltyPolicy` trong thư mục `docs` (ví dụ `docs/LoyaltyPolicy.html`).
+Depending on OS, shell, and JDK, progress output from `javadoc` will vary; there is no fixed stdout to memorize. After running it successfully, open the corresponding documentation page for `LoyaltyPolicy` in the `docs` directory (for example `docs/LoyaltyPolicy.html`).
 
-`-encoding UTF-8` áp dụng khi đọc source; `-docencoding UTF-8` chỉ định encoding của tài liệu được tạo. `javac` vẫn chịu trách nhiệm biên dịch mã, còn `javadoc` tạo tài liệu cho người đọc. Tài liệu HTML không bảo đảm logic đúng và không thay thế kiểm thử.
+`-encoding UTF-8` applies when reading source files; `-docencoding UTF-8` specifies the encoding of generated documentation. `javac` remains responsible for compiling code, whereas `javadoc` produces documentation for readers. HTML documentation does not guarantee correct logic and does not replace testing.
 
-Có thể dùng `javadoc -Xdoclint:all ...` trong môi trường hỗ trợ để kiểm tra thêm nội dung và cấu trúc Javadoc. Đây là bước kiểm tra chất lượng tài liệu, không phải lời hứa rằng mọi điều kiện nghiệp vụ đã được thực thi đúng.
+You can run `javadoc -Xdoclint:all ...` in environments that support it to check Javadoc content and structure further. This is a documentation quality check, not a guarantee that all business rules are implemented correctly.
 
-## 7. Tình huống cần giải thích lý do: khoảng thời gian nửa mở
+## 7. A case needing rationale: half-open time intervals
 
-Đối với bài toán ghép ca làm việc liên tiếp, dùng khoảng `[startInclusive, endExclusive)` rất hữu ích: mốc kết thúc của ca trước sẽ là mốc bắt đầu của ca tiếp theo, nhưng không bị tính vào cả hai ca.
+When joining consecutive work shifts, using a half-open interval `[startInclusive, endExclusive)` is very helpful: the end time of the previous shift equals the start time of the next shift without counting the boundary in both shifts.
 
-Tạo file **`TimeWindowDemo.java`**:
+Create the file **`TimeWindowDemo.java`**:
 
 ```java
 public class TimeWindowDemo {
     /**
-     * Kiểm tra một phút có thuộc khoảng thời gian nửa mở hay không.
+     * Checks whether a minute falls within a half-open time window.
      *
-     * <p>Khoảng có dạng [startInclusive, endExclusive), nghĩa là
-     * phút đầu được tính nhưng phút cuối không được tính.
+     * <p>The window has the form [startInclusive, endExclusive), meaning
+     * the start minute is included while the end minute is excluded.
      *
-     * @param minute phút cần kiểm tra, tính từ đầu ngày
-     * @param startInclusive phút đầu được tính
-     * @param endExclusive phút cuối không được tính
-     * @return true nếu minute thuộc khoảng
+     * @param minute minute to check, counted from the start of the day
+     * @param startInclusive first included minute
+     * @param endExclusive first excluded minute
+     * @return true if minute belongs to the window
      */
     static boolean contains(int minute, int startInclusive, int endExclusive) {
-        // Loại trừ mốc cuối giúp hai ca giáp nhau không tính trùng.
+        // Excluding the upper bound prevents adjacent shifts from overlapping.
         return minute >= startInclusive && minute < endExclusive;
     }
 
@@ -255,7 +255,7 @@ public class TimeWindowDemo {
 }
 ```
 
-Ở đây số phút tính từ đầu ngày: 09:00 là 540, 09:59 là 599, 10:00 là 600.
+Here, minutes are counted from the start of the day: 09:00 is 540, 09:59 is 599, and 10:00 is 600.
 
 ```sh
 javac -encoding UTF-8 --release 17 -d out TimeWindowDemo.java
@@ -270,90 +270,90 @@ Stdout:
 10:00-next=true
 ```
 
-Chú thích có giá trị vì giúp người sửa hiểu lý do của `minute < endExclusive`. Chữ ký có tên `startInclusive`/`endExclusive` làm rõ phần “làm gì”; Javadoc bổ sung đơn vị đo và ý nghĩa kết quả.
+The comment is valuable because it helps maintainers understand why `minute < endExclusive` is used. The signature names `startInclusive`/`endExclusive` make the "what" clear; Javadoc adds the measurement unit and meaning of the result.
 
-**Giới hạn của ví dụ:** phương thức giả định các phút được truyền hợp lệ (`0`–`1439` cho `minute`; ranh giới hợp lý trong ngày cho `startInclusive` và `endExclusive`, `startInclusive <= endExclusive`). Nó chưa kiểm tra dữ liệu đầu vào. Nếu chuyển thành public API nhận dữ liệu người dùng, cần thiết kế và thực thi validation, đồng thời tài liệu hóa quy tắc lỗi; chỉ viết `@param` không tự kiểm tra giới hạn.
+**Limitation of the example:** the method assumes valid minutes are passed (`0`–`1439` for `minute`; sensible daily bounds for `startInclusive` and `endExclusive`, with `startInclusive <= endExclusive`). It does not yet validate inputs. If converted into a public API accepting user data, you must design and enforce validation and document the error rules; writing `@param` alone does not enforce bounds.
 
-## 8. Khi nào cần Javadoc và khi nào có thể bỏ?
+## 8. When is Javadoc needed and when can it be omitted?
 
-| Trường hợp | Gợi ý |
+| Case | Recommendation |
 | --- | --- |
-| Public API dùng bởi lớp/module/người khác | Tài liệu hóa mục đích, đơn vị, điều kiện, output, ngoại lệ và tác dụng phụ quan trọng |
-| Phương thức có quy tắc nghiệp vụ khó đoán | Mô tả hợp đồng với Javadoc; ghi chú lý do ngay bên cạnh quyết định bất ngờ |
-| Internal helper ngắn, tên và kiểu tự nói lên hành vi | Có thể bỏ chú thích để giảm nhiễu |
-| Phương thức phức tạp có giả định hoặc thuật toán ít gặp | Ghi rõ bất biến, tiền/hậu điều kiện, lý do chọn hướng tiếp cận; thêm ví dụ khi cần |
-| Override thực hiện đúng hợp đồng đã rõ ở cha/interface | Tránh sao chép tài liệu; có thể dùng `{@inheritDoc}` nếu phù hợp |
-| API có tác dụng phụ, thay đổi trạng thái hay luồng thực thi | Nêu hành vi quan trọng để caller không sử dụng sai |
-| API cũ đang bị thay thế | Ghi `@Deprecated` trong Java và Javadoc `@deprecated` kèm hướng chuyển đổi |
-| Thử nghiệm một lần rất ngắn, tên biến rõ | Không cần viết tài liệu dài cho từng dòng |
+| Public API used by other classes/modules/people | Document purpose, units, conditions, output, exceptions, and key side effects |
+| Method with non-obvious business rules | Describe the contract with Javadoc; add inline rationale right next to surprising decisions |
+| Short internal helper whose name and types speak for themselves | Comments can be omitted to reduce noise |
+| Complex method with assumptions or uncommon algorithms | State invariants, pre/postconditions, and why the approach was chosen; add examples if helpful |
+| Override implementing an already clear parent/interface contract | Avoid duplicating docs; use `{@inheritDoc}` if appropriate |
+| API with side effects, state mutation, or control-flow impact | State key behavior so callers do not misuse it |
+| Old API being replaced | Use `@Deprecated` in Java and Javadoc `@deprecated` with migration guidance |
+| Very short one-off test with clear variable names | No need to write lengthy documentation for every line |
 
-Mục tiêu không phải đạt số dòng comment hay phần trăm bao phủ Javadoc cao nhất. Mục tiêu là người đọc **dự đoán được hợp đồng** và **không xóa mất quyết định thiết kế quan trọng** chỉ vì mã nhìn có vẻ có thể đơn giản hơn.
+The goal is not the highest comment count or Javadoc coverage percentage. The goal is for readers to **predict the contract** and **avoid deleting an important design decision** just because the code looks like it could be simplified.
 
-## 9. Viết Javadoc tốt: những điều nên nói rõ
+## 9. Writing good Javadoc: what to state explicitly
 
-Đối với phương thức cần tài liệu, hãy rà từng nhóm thông tin sau nếu chúng có ý nghĩa:
+For methods that need documentation, check each of the following areas if relevant:
 
-1. **Ý nghĩa kết quả:** ví dụ “điểm tích lũy”, không chỉ “trả về `int`” vì chữ ký đã nói kiểu.
-2. **Đơn vị:** `amountVnd` là VND, `durationSeconds` là giây; không nên để người dùng tự suy ra.
-3. **Miền hợp lệ:** số âm bị từ chối, `null` có được không, danh sách rỗng xử lý thế nào.
-4. **Ranh giới:** khoảng đóng `[a,b]` hay nửa mở `[a,b)`, các ngưỡng `>=` và `>` khác nhau ra sao.
-5. **Điều kiện lỗi:** chính xác loại ngoại lệ và tình huống xảy ra. `@throws` mô tả hành vi thực tế; không liệt kê bừa mọi ngoại lệ của Java.
-6. **Tác dụng phụ:** cập nhật trạng thái, gọi I/O, sửa mutable argument, đóng tài nguyên, tác động đến thứ tự xử lý.
-7. **Độ xác định:** cùng input cho cùng output không, có phụ thuộc giờ hiện tại, locale, cấu hình hay nguồn dữ liệu ngoài không.
-8. **Quy tắc làm tròn hoặc sentinel:** ví dụ chia nguyên bỏ phần dư, `-1` biểu thị không tìm thấy, `Optional.empty()` biểu thị không có giá trị, nếu có.
+1. **Meaning of the result:** e.g., "loyalty points," not just "returns an `int`" since the signature already shows the type.
+2. **Units:** `amountVnd` is VND, `durationSeconds` is seconds; do not force readers to guess.
+3. **Valid domain:** whether negative numbers are rejected, whether `null` is allowed, and how empty lists are handled.
+4. **Boundaries:** closed interval `[a,b]` or half-open `[a,b)`, and how thresholds `>=` vs. `>` behave.
+5. **Error conditions:** exact exception type and when it is thrown. `@throws` describes actual behavior; do not list random Java exceptions.
+6. **Side effects:** updating state, performing I/O, mutating arguments, closing resources, or affecting processing order.
+7. **Determinism:** whether identical inputs yield identical outputs, or whether it depends on current time, locale, configuration, or external data sources.
+8. **Rounding or sentinel rules:** e.g., integer division drops the remainder, `-1` means not found, or `Optional.empty()` means absent, if applicable.
 
-Viết theo nhu cầu của caller. Javadoc của `calculatePoints` không cần tường thuật “khai báo biến `basePoints` rồi gọi `Math.min`”; đó là chi tiết triển khai mà người gọi không cần biết và có thể thay đổi.
+Write for the caller's needs. Javadoc for `calculatePoints` does not need to narrate "declares `basePoints` and calls `Math.min`"; those are implementation details callers do not need to know and may change.
 
-## 10. Những lỗi chú thích và Javadoc thường gặp
+## 10. Common comment and Javadoc mistakes
 
-**Chú thích lỗi thời.** Ví dụ:
+**Outdated comments.** Example:
 
 ```java
-// Giảm giá 10%.
+// 10% discount.
 int discounted = price * 80 / 100;
 ```
 
-Mã hiện đang giảm 20%, còn chú thích nói 10%. Khi thay đổi quy tắc, cần cập nhật cả mã, test và tài liệu; tốt hơn là đặt tên hằng như `DISCOUNT_PERCENT` để tránh nhiều nơi nêu lại giá trị.
+The code now applies a 20% discount while the comment says 10%. When changing a rule, update code, tests, and documentation together; even better, define a named constant like `DISCOUNT_PERCENT` so the value is not repeated across places.
 
-**Chú thích mơ hồ:** `// fix bug`, `// logic khó`, `// xử lý đặc biệt` không giúp người khác. Nên giải thích điều kiện cụ thể và hệ quả nếu bỏ quyết định đó. Không dùng chú thích để giữ lại một khối mã cũ bị vô hiệu hóa; lịch sử Git phù hợp hơn.
+**Vague comments:** `// fix bug`, `// complex logic`, `// special handling` help nobody. Explain the concrete condition and what breaks if the decision is removed. Do not use comments to keep blocks of dead old code; Git history is much better suited for that.
 
-**Javadoc trái với hành vi:** ghi `@return null if missing` trong khi mã ném ngoại lệ, hoặc ghi `@throws IOException` nhưng thực tế không có đường thực thi nào ném loại đó theo hợp đồng, gây hiểu lầm. Viết tài liệu sau khi đã thống nhất hành vi và kiểm tra lại sau sửa đổi.
+**Javadoc contradicting behavior:** documenting `@return null if missing` when the code throws an exception, or writing `@throws IOException` when no execution path actually throws it per the contract, causes confusion. Write documentation once behavior is settled and re-check it after edits.
 
-**Lặp nghĩa của tên:** `/** Gets customer. */ Customer getCustomer()` hầu như không thêm thông tin. Nếu getter chỉ trả trường tương ứng, API nội bộ đơn giản có thể không cần giải thích riêng; nếu trả bản sao phòng vệ hoặc đọc dữ liệu từ xa thì nên nói rõ điều đó.
+**Repeating the name:** `/** Gets customer. */ Customer getCustomer()` adds almost no information. If a getter simply returns a field, a simple internal API may need no separate explanation; if it returns a defensive copy or fetches data remotely, state that clearly.
 
-**Sai tên thẻ:** `@param amount` khi phương thức khai báo `amountVnd`; hoặc `@return` cho phương thức `void`. Chạy `javadoc`/doclint để phát hiện một số vấn đề cấu trúc.
+**Wrong tag names:** `@param amount` when the method declares `amountVnd`; or `@return` on a `void` method. Run `javadoc`/doclint to catch structural issues.
 
-**Lẫn Javadoc với chú thích bình thường:** `// @param value ...` không tạo thẻ `@param` trong tài liệu sinh ra; thẻ cần nằm trong khối Javadoc. Mã Java vẫn biên dịch nếu chú thích chưa hoàn chỉnh, nhưng tài liệu cho caller không vì thế mà tự đúng.
+**Confusing Javadoc with regular comments:** `// @param value ...` does not create a `@param` tag in generated docs; tags belong inside a Javadoc block. Java code still compiles if comments are incomplete, but caller documentation does not fix itself.
 
-**Nhúng ký hiệu markup sai:** trong Javadoc, dấu `<`, `>`, `&` có thể liên quan cú pháp HTML. Dùng `{@code ...}` hoặc escape phù hợp khi muốn hiển thị mã và toán tử. Đừng đặt ví dụ Java nhiều dòng tùy tiện trong HTML khiến trang tài liệu bị vỡ; dùng cấu trúc hỗ trợ và kiểm tra trang kết quả.
+**Incorrect embedded markup:** in Javadoc, `<`, `>`, and `&` can interact with HTML syntax. Use `{@code ...}` or proper escapes when displaying code and operators. Do not drop arbitrary multiline Java snippets into HTML in ways that break the generated page; use supported constructs and inspect the output page.
 
-**Viết quá dài cho hàm quá nhỏ:** nội dung thừa khó đồng bộ. Nếu một tên hàm rõ nghĩa cùng kiểu dữ liệu đủ truyền đạt hợp đồng, vài câu giải thích trọng yếu sẽ tốt hơn một trang lặp lại mã.
+**Writing overly long docs for tiny methods:** excess prose is hard to keep in sync. When a clear method name and parameter types already convey the contract, a few focused sentences beat a page repeating the code.
 
-## 11. Quy trình bảo trì chú thích cùng mã
+## 11. Workflow for maintaining comments alongside code
 
-Khi thay đổi phương thức:
+When modifying a method:
 
-1. Đọc tên, chữ ký, Javadoc và các comment gần vùng mã cần sửa; xác định **hợp đồng hiện tại**.
-2. Thay đổi code và kiểm thử theo yêu cầu; giữ rõ cái gì thay đổi ở đầu vào, tính toán, kết quả, ngoại lệ.
-3. Cập nhật mô tả, các thẻ `@param`/`@return`/`@throws`, ngưỡng/đơn vị và comment “vì sao” nếu quyết định đã đổi.
-4. Loại bỏ chú thích thừa hoặc lỗi thời; đừng để comment mâu thuẫn với biểu thức.
-5. Chạy `javac`, kiểm tra stdout/test và sinh `javadoc` khi API/tài liệu liên quan bị sửa.
-6. Nhờ người đọc khác nhìn tài liệu **trước khi xem phần thân**: họ có dự đoán đúng kết quả và lỗi không?
+1. Read the name, signature, Javadoc, and nearby comments around the code to change; identify the **current contract**.
+2. Update code and tests per requirements; keep track of what changed in inputs, calculations, outputs, and exceptions.
+3. Update the summary, `@param`/`@return`/`@throws` tags, thresholds/units, and "why" comments if decisions changed.
+4. Remove redundant or outdated comments; never leave comments contradicting expressions.
+5. Run `javac`, verify stdout/tests, and regenerate `javadoc` when relevant APIs or docs change.
+6. Ask another reader to look at the documentation **before reading the body**: can they predict the results and errors accurately?
 
-Một review tốt không chỉ hỏi “comment đã có chưa” mà hỏi “comment còn đúng không, và có giải thích lý do mà tên/mã chưa thể hiện không?”.
+A good review does not just ask "are comments present?"—it asks "are the comments still true, and do they explain rationale that names and code alone do not?"
 
-## 12. Tự kiểm tra
+## 12. Self-check
 
-**1. Chú thích `// tăng i lên một` sau `i++` có cần không?** Thường không; nó lặp đúng thao tác đã hiển thị.
+**1. Is the comment `// increment i by one` after `i++` necessary?** Usually no; it repeats the exact operation already shown.
 
-**2. Vì sao nên ghi chú khi dùng khoảng `[start, end)`?** Để giải thích tránh đếm trùng mốc chung giữa các khoảng liên tiếp, chứ không phải chỉ nhắc `<` nghĩa là “nhỏ hơn”.
+**2. Why add a comment when using `[start, end)`?** To explain that it avoids double-counting the shared boundary between consecutive intervals, not merely to remind readers that `<` means "less than."
 
-**3. Nếu phương thức có tham số `amountVnd` nhưng Javadoc ghi `@param amount`, lỗi gì?** Tên trong tài liệu không khớp chữ ký; cập nhật thẻ, dùng `javadoc`/doclint để rà soát.
+**3. If a method has parameter `amountVnd` but Javadoc writes `@param amount`, what is wrong?** The name in the documentation does not match the signature; update the tag and use `javadoc`/doclint to check.
 
-**4. `@throws IllegalArgumentException` có tự ném ngoại lệ khi số âm không?** Không. Nó chỉ mô tả hợp đồng; nhánh `throw new IllegalArgumentException(...)` trong mã mới thực sự báo lỗi.
+**4. Does `@throws IllegalArgumentException` automatically throw an exception on negative numbers?** No. It only documents the contract; the `throw new IllegalArgumentException(...)` branch in code is what actually raises the error.
 
-**5. Khi API thay đổi ngưỡng từ 100.000 lên 200.000 VND, cần sửa gì?** Quy tắc ở mã, các bài test và mọi Javadoc/chú thích mô tả ngưỡng. Nếu không, tài liệu sẽ gây hiểu lầm.
+**5. When an API changes a threshold from 100,000 to 200,000 VND, what must be updated?** The rule in code, the tests, and all Javadoc/comments describing that threshold. Otherwise, the documentation becomes misleading.
 
-**6. `javac` có tự sinh trang HTML từ `/** ... */` không?** Không. Công cụ `javadoc` được dùng để sinh tài liệu, còn `javac` biên dịch chương trình.
+**6. Does `javac` automatically generate HTML pages from `/** ... */`?** No. The `javadoc` tool generates documentation, while `javac` compiles the program.
 
-**Ghi nhớ:** Hãy để tên và cấu trúc mã giải thích *làm gì*; comment nên lưu lại *vì sao*, còn Javadoc nên cho người gọi biết *hợp đồng* — dữ liệu hợp lệ, kết quả, ngoại lệ và giới hạn. Viết khi có giá trị, rồi duy trì cùng mỗi lần thay đổi hành vi.
+**Remember:** Let names and code structure explain *what*; comments should preserve *why*, and Javadoc should tell callers the *contract* — valid inputs, results, exceptions, and limits. Write documentation when it adds value, and maintain it whenever behavior changes.

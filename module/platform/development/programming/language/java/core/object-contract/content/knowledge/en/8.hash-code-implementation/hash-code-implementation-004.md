@@ -1,33 +1,33 @@
-# Dùng phương thức `hashCode()` của các lớp bao cho kiểu nguyên thủy
+# Using Wrapper Class `hashCode()` Methods for Primitive Types
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Khi tự cài đặt `hashCode()` cho một lớp Java, ta cần chuyển từng trường tham gia quan hệ bằng nhau thành giá trị băm kiểu `int`, rồi kết hợp các giá trị ấy theo một quy tắc ổn định. Với trường có kiểu nguyên thủy (`primitive`), Java cung cấp ngay các phương thức `hashCode(primitive)` **tĩnh** trên lớp bao tương ứng, ví dụ `Integer.hashCode(int)` hoặc `Double.hashCode(double)`.
+When implementing `hashCode()` yourself for a Java class, you need to convert each field participating in the equality relation into an `int` hash value, then combine those values using a stable rule. For fields of primitive types (`primitive`), Java directly provides **static** `hashCode(primitive)` methods on the corresponding wrapper classes, such as `Integer.hashCode(int)` or `Double.hashCode(double)`.
 
-Sau bài này, bạn cần:
+After this lesson, you should:
 
-- Biết đủ tám cặp primitive và wrapper; gọi đúng phương thức static mà không cần đóng hộp thủ công.
-- Hiểu vì sao kết quả `hashCode` của từng loại có thể khác cách ép kiểu thô sang `int`, đặc biệt `long`, `float` và `double`.
-- Cài đặt `equals()` và `hashCode()` nhất quán khi lớp có nhiều trường primitive.
-- Tránh nhầm lẫn giữa hash của **một giá trị**, hash kết hợp của **một đối tượng nhiều trường**, và danh tính đối tượng.
-- Biết xử lý `NaN`, `+0.0` và `-0.0` để không phá hợp đồng `equals`/`hashCode`.
+- Know all eight primitive–wrapper pairs; call the right static method without manual boxing.
+- Understand why each type's `hashCode` result can differ from a raw cast to `int`, especially for `long`, `float`, and `double`.
+- Implement `equals()` and `hashCode()` consistently when a class has multiple primitive fields.
+- Avoid confusing the hash of **a single value**, the combined hash of **a multi-field object**, and object identity.
+- Know how to handle `NaN`, `+0.0`, and `-0.0` so you do not break the `equals`/`hashCode` contract.
 
-## 2. Phương thức static của tám lớp bao
+## 2. Static Methods of the Eight Wrapper Classes
 
-Tất cả lớp dưới đây thuộc `java.lang`, không cần `import`. Mỗi phương thức nhận trực tiếp một primitive và trả về `int`:
+All classes below are in `java.lang` and require no `import`. Each method takes a primitive directly and returns an `int`:
 
-| Kiểu nguyên thủy | Lớp bao | Cách lấy hash từ primitive | Quy tắc chính |
+| Primitive type | Wrapper class | How to get the hash from a primitive | Key rule |
 | --- | --- | --- | --- |
 | `boolean` | `Boolean` | `Boolean.hashCode(value)` | `true → 1231`, `false → 1237`. |
-| `byte` | `Byte` | `Byte.hashCode(value)` | Trả về trị số `byte` dưới dạng `int`. |
-| `short` | `Short` | `Short.hashCode(value)` | Trả về trị số `short` dưới dạng `int`. |
-| `char` | `Character` | `Character.hashCode(value)` | Trả về mã số của đơn vị mã UTF-16 kiểu `char`. |
-| `int` | `Integer` | `Integer.hashCode(value)` | Trả về chính giá trị `int`. |
-| `long` | `Long` | `Long.hashCode(value)` | Trộn 32 bit cao và 32 bit thấp. |
-| `float` | `Float` | `Float.hashCode(value)` | Dựa trên `Float.floatToIntBits(value)`. |
-| `double` | `Double` | `Double.hashCode(value)` | Dựa trên bit của `Double.doubleToLongBits(value)`, rồi trộn hai nửa 32 bit. |
+| `byte` | `Byte` | `Byte.hashCode(value)` | Returns the `byte` numeric value as an `int`. |
+| `short` | `Short` | `Short.hashCode(value)` | Returns the `short` numeric value as an `int`. |
+| `char` | `Character` | `Character.hashCode(value)` | Returns the numeric code of the `char` UTF-16 code unit. |
+| `int` | `Integer` | `Integer.hashCode(value)` | Returns the `int` value itself. |
+| `long` | `Long` | `Long.hashCode(value)` | Mixes the high 32 bits and low 32 bits. |
+| `float` | `Float` | `Float.hashCode(value)` | Based on `Float.floatToIntBits(value)`. |
+| `double` | `Double` | `Double.hashCode(value)` | Based on the bits of `Double.doubleToLongBits(value)`, then mixes both 32-bit halves. |
 
-Ví dụ gọi trực tiếp:
+Direct call examples:
 
 ```java
 int ageHash = Integer.hashCode(25);
@@ -37,31 +37,31 @@ int ratioHash = Float.hashCode(1.5f);
 int amountHash = Double.hashCode(1.5);
 ```
 
-Đây là đoạn minh họa, không phải chương trình độc lập. Các phương thức `hashCode(primitive)` tĩnh đã có từ Java 8, do đó dùng được trong Java 17+.
+This is an illustrative snippet, not a standalone program. The static `hashCode(primitive)` methods have existed since Java 8, so they work in Java 17+.
 
-### Static `hashCode(primitive)` và instance `hashCode()`
+### Static `hashCode(primitive)` vs. Instance `hashCode()`
 
-Lớp bao còn có phương thức `hashCode()` **của đối tượng**:
+Wrapper classes also have an **instance** `hashCode()` method:
 
 ```java
-int a = Integer.hashCode(42);        // static: tham số int
-int b = Integer.valueOf(42).hashCode(); // instance: đối tượng Integer
+int a = Integer.hashCode(42);        // static: int parameter
+int b = Integer.valueOf(42).hashCode(); // instance: Integer object
 // a == b
 ```
 
-Hai cách cho cùng kết quả đối với giá trị tương ứng. Tuy nhiên, khi dữ liệu gốc đã là primitive, hãy ưu tiên lời gọi static: diễn đạt ý định rõ, không cần tạo một biến wrapper, tránh yêu cầu đóng hộp chỉ để gọi instance method. Không khẳng định rằng mỗi lần autoboxing chắc chắn cấp phát đối tượng: JVM có thể dùng cache hoặc tối ưu hóa.
+Both approaches produce the same result for the corresponding value. However, when the source data is already a primitive, prefer the static call: it expresses intent clearly, requires no wrapper variable, and avoids boxing just to call an instance method. Do not claim that every autoboxing operation necessarily allocates an object: the JVM may use caching or optimizations.
 
-Một biến tham chiếu wrapper có thể `null`; gọi `wrapper.hashCode()` trực tiếp khi null sẽ ném `NullPointerException`. Primitive không bao giờ null, vì vậy `Integer.hashCode(int)` không gặp trường hợp đó.
+A wrapper reference variable can be `null`; calling `wrapper.hashCode()` directly when `null` throws a `NullPointerException`. A primitive can never be `null`, so `Integer.hashCode(int)` never runs into that case.
 
-## 3. Hiểu cơ chế từng nhóm kiểu
+## 3. Understanding How Each Type Group Works
 
-### 3.1. `boolean`, `byte`, `short`, `char` và `int`
+### 3.1. `boolean`, `byte`, `short`, `char`, and `int`
 
-`Boolean.hashCode(true)` trả `1231`; `Boolean.hashCode(false)` trả `1237`. Đây là các hằng số do Java định nghĩa, **không phải** `1` và `0`.
+`Boolean.hashCode(true)` returns `1231`; `Boolean.hashCode(false)` returns `1237`. These are Java-defined constants, **not** `1` and `0`.
 
-`Byte.hashCode(byte)` và `Short.hashCode(short)` trả về giá trị số sau khi chuyển sang `int`. Với giá trị âm, dấu âm được bảo toàn. `Character.hashCode(char)` trả về mã số của một `char` (0–65535), vốn là **một đơn vị mã UTF-16**, không nhất thiết đại diện cho toàn bộ một ký tự Unicode nằm ngoài Basic Multilingual Plane. `Integer.hashCode(int)` trả về đúng giá trị `int` đầu vào.
+`Byte.hashCode(byte)` and `Short.hashCode(short)` return the numeric value converted to `int`. For negative values, the negative sign is preserved. `Character.hashCode(char)` returns the numeric code of a `char` (`0–65535`), which is **one UTF-16 code unit**, not necessarily representing a full Unicode character outside the Basic Multilingual Plane. `Integer.hashCode(int)` returns the exact input `int` value.
 
-Ví dụ:
+Examples:
 
 ```java
 Boolean.hashCode(true);          // 1231
@@ -72,19 +72,19 @@ Character.hashCode('A');        // 65
 Integer.hashCode(42);           // 42
 ```
 
-Các con số này là giá trị hash của từng primitive; **không đảm bảo khác nhau giữa mọi đầu vào hoặc mọi kiểu dữ liệu**. Các đối tượng phức hợp phải kết hợp hash theo những trường tạo nên giá trị của chúng.
+These numbers are the hash values of individual primitives; **they are not guaranteed to be distinct across all inputs or across different data types**. Composite objects must combine hashes across the fields that make up their value.
 
-### 3.2. `long`: không ép kiểu mất 32 bit cao
+### 3.2. `long`: Do Not Cast and Drop the High 32 Bits
 
-`long` có 64 bit, còn `hashCode()` phải trả `int` có 32 bit. Công thức chuẩn của `Long.hashCode(long value)` tương đương:
+A `long` has 64 bits, while `hashCode()` must return a 32-bit `int`. The standard formula for `Long.hashCode(long value)` is equivalent to:
 
 ```java
 (int) (value ^ (value >>> 32))
 ```
 
-Đây là biểu thức minh họa: XOR 32 bit cao với 32 bit thấp, rồi lấy 32 bit kết quả. Khi ép thẳng `(int) value`, 32 bit cao bị bỏ đi; vì vậy hai giá trị `long` chỉ khác nhau ở phần cao có thể bị trùng hash một cách không cần thiết.
+This is an illustrative expression: XOR the high 32 bits with the low 32 bits, then take the resulting 32 bits. When you cast directly with `(int) value`, the high 32 bits are discarded; thus two `long` values that differ only in their upper bits can collide unnecessarily.
 
-Ví dụ:
+Example:
 
 ```java
 long id = 0x1_0000_0002L;
@@ -92,41 +92,41 @@ int lowOnly = (int) id;       // 2
 int mixed = Long.hashCode(id); // 3: 1 XOR 2
 ```
 
-`Long.hashCode` vẫn có thể xảy ra collision, vì không thể ánh xạ không trùng mọi giá trị 64 bit vào miền 32 bit. Mục tiêu là tạo kết quả băm xác định và phù hợp với hợp đồng, không phải tạo mã định danh duy nhất.
+`Long.hashCode` can still experience collisions, because you cannot map all 64-bit values into a 32-bit domain without overlaps. The goal is a deterministic, contract-compliant hash result, not a unique identifier.
 
-### 3.3. `float` và `double`: dùng bit chuẩn hóa của kiểu dấu phẩy động
+### 3.3. `float` and `double`: Use Canonical Floating-Point Bits
 
-Không dùng `(int) someFloat` hay `(int) someDouble` làm phương án mặc định. Ép kiểu số thực sang `int` chuyển đổi trị số, có thể mất phần thập phân và không giữ các phân biệt quan trọng trong hợp đồng của wrapper.
+Do not use `(int) someFloat` or `(int) someDouble` as a default approach. Casting a floating-point number to `int` converts the numeric magnitude, drops the fractional part, and loses important distinctions preserved by the wrapper contract.
 
-Về ngữ nghĩa, các cách tính là:
+Semantically, the computations are:
 
 ```java
 int floatHash = Float.floatToIntBits(valueFloat);
 
-// Hành vi tương đương Double.hashCode(valueDouble):
+// Behavior equivalent to Double.hashCode(valueDouble):
 long bits = Double.doubleToLongBits(valueDouble);
 int doubleHash = (int) (bits ^ (bits >>> 32));
 ```
 
-Đây là đoạn minh họa công thức; giả sử hai biến `valueFloat` và `valueDouble` đã được khai báo đúng kiểu.
+This is a formula illustration; assume `valueFloat` and `valueDouble` are already declared with the appropriate types.
 
-`Float.floatToIntBits` và `Double.doubleToLongBits` **quy các biểu diễn NaN khác nhau về một biểu diễn bit NaN chuẩn** cho mục đích so sánh/hash. Chúng vẫn phân biệt dấu của zero:
+`Float.floatToIntBits` and `Double.doubleToLongBits` **collapse different NaN bit representations into a single canonical NaN bit pattern** for comparison/hashing purposes. They still distinguish the sign of zero:
 
-- `Float.hashCode(+0.0f)` khác `Float.hashCode(-0.0f)`.
-- `Double.hashCode(+0.0)` khác `Double.hashCode(-0.0)`.
-- Các payload NaN khác nhau được chuẩn hóa về cùng bit pattern, nên có cùng hash theo phương thức wrapper tương ứng.
+- `Float.hashCode(+0.0f)` differs from `Float.hashCode(-0.0f)`.
+- `Double.hashCode(+0.0)` differs from `Double.hashCode(-0.0)`.
+- Different NaN payloads are normalized to the same bit pattern, so they share the same hash under the corresponding wrapper method.
 
-Điểm này đặc biệt quan trọng khi viết `equals()`:
+This point is especially important when writing `equals()`:
 
-- Toán tử primitive `0.0 == -0.0` là `true`; `Double.compare(0.0, -0.0)` **khác 0**.
-- Toán tử primitive `Double.NaN == Double.NaN` là `false`; `Double.compare(Double.NaN, Double.NaN)` là `0`.
-- Nếu `equals()` của lớp dùng `==` để so trường `double` nhưng `hashCode()` dùng `Double.hashCode`, hai đối tượng chứa `+0.0` và `-0.0` có thể được `equals` coi bằng nhau nhưng có hash khác nhau, **vi phạm hợp đồng**.
+- The primitive operator `0.0 == -0.0` is `true`; `Double.compare(0.0, -0.0)` **is non-zero**.
+- The primitive operator `Double.NaN == Double.NaN` is `false`; `Double.compare(Double.NaN, Double.NaN)` is `0`.
+- If a class's `equals()` uses `==` to compare a `double` field while `hashCode()` uses `Double.hashCode`, two objects holding `+0.0` and `-0.0` could be treated as equal by `equals` yet have different hashes, **violating the contract**.
 
-Với ý định dùng ngữ nghĩa wrapper, so `double` bằng `Double.compare(a, b) == 0` và so `float` bằng `Float.compare(a, b) == 0`, đồng thời dùng `Double.hashCode`/`Float.hashCode`. Nếu bài toán cần một quan hệ bằng nhau khác (chẳng hạn coi `+0.0` và `-0.0` bằng nhau), hãy **chuẩn hóa nhất quán cả trong `equals` và `hashCode`**. Không tự dùng so sánh sai số `epsilon` cho `equals` vì “gần bằng” thông thường có thể không bắc cầu.
+When wrapper semantics are intended, compare `double` with `Double.compare(a, b) == 0` and `float` with `Float.compare(a, b) == 0`, together with `Double.hashCode`/`Float.hashCode`. If the problem requires a different equality relation (such as treating `+0.0` and `-0.0` as equal), **normalize consistently in both `equals` and `hashCode`**. Do not use an `epsilon` tolerance comparison for `equals` because ordinary "nearly equal" relations may fail transitivity.
 
-## 4. Từ hash từng trường đến hash của đối tượng
+## 4. From Individual Field Hashes to an Object Hash
 
-Một lớp có nhiều trường cần tạo hash tổng hợp. Một mẫu phổ biến:
+A class with multiple fields needs to build a composite hash. A common pattern:
 
 ```java
 int result = 1;
@@ -135,19 +135,19 @@ result = 31 * result + Long.hashCode(id);
 result = 31 * result + Boolean.hashCode(active);
 ```
 
-`31` là hệ số thường gặp trong Java, **không phải yêu cầu bắt buộc của hợp đồng**. Phép nhân/cộng `int` có thể tràn số; Java thực hiện tràn `int` theo quy tắc 32 bit và đó là điều bình thường trong một phép băm. Cần giữ **đúng thứ tự và cùng tập trường** mỗi lần tính.
+`31` is a common multiplier in Java, **not a mandatory requirement of the contract**. `int` multiplication/addition may overflow; Java performs `int` overflow under 32-bit wrap-around rules, which is normal in hashing. You must keep the **exact same order and same set of fields** on every computation.
 
-Quan trọng hơn công thức cụ thể là hợp đồng của `Object.hashCode()`:
+More important than any specific formula is the `Object.hashCode()` contract:
 
-> Nếu `a.equals(b)` trả `true`, thì `a.hashCode() == b.hashCode()` bắt buộc là `true`.
+> If `a.equals(b)` returns `true`, then `a.hashCode() == b.hashCode()` must be `true`.
 
-Chiều ngược lại không bắt buộc: hai đối tượng không bằng nhau vẫn có thể chung hash. Hash cũng **không** chứng minh hai đối tượng là cùng một tham chiếu.
+The converse is not required: two unequal objects can still share a hash. Nor does a hash prove that two objects are the same reference.
 
-Các trường dùng để so `equals` phải tương ứng với các trường dùng để tính `hashCode`. Đừng thêm trường tạm, số lần truy cập, địa chỉ đối tượng hoặc timestamp thay đổi vào hash khi chúng không phải một phần giá trị bằng nhau. Với đối tượng làm khóa của `HashMap` hoặc phần tử của `HashSet`, tránh thay đổi trạng thái có ảnh hưởng đến hash sau khi thêm vào collection.
+The fields used to compare in `equals` must correspond to the fields used to compute `hashCode`. Do not include transient fields, access counts, object addresses, or changing timestamps in the hash when they are not part of the equality value. For objects used as `HashMap` keys or `HashSet` elements, avoid mutating state that affects the hash after adding them to the collection.
 
-## 5. Chương trình Java 17+ đầy đủ
+## 5. Complete Java 17+ Program
 
-Tạo tệp `WrapperHashCodeDemo.java`. Ví dụ gọi cả tám wrapper và cài đặt `equals`/`hashCode` cho một value object có các trường primitive:
+Create the file `WrapperHashCodeDemo.java`. The example invokes all eight wrappers and implements `equals`/`hashCode` for a value object with primitive fields:
 
 ```java
 import java.util.HashSet;
@@ -237,14 +237,14 @@ public class WrapperHashCodeDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac WrapperHashCodeDemo.java
 java WrapperHashCodeDemo
 ```
 
-Kết quả mong đợi trên Java 17+:
+Expected output on Java 17+:
 
 ```text
 boolean: 1231
@@ -266,118 +266,118 @@ NaN hashes equal: true
 Objects.hash(42): 73
 ```
 
-### Giải thích kết quả
+### Explaining the Output
 
-1. `Boolean` dùng hai hằng số hash; `Byte`/`Short`/`Character`/`Integer` phản ánh trị số theo quy tắc riêng từng kiểu.
-2. `Long.hashCode(0x1_0000_0002L)` trộn phần cao `1` và phần thấp `2` thành `3`.
-3. `Float.hashCode(1.5f)` và `Double.hashCode(1.5)` dựa trên mẫu bit chuẩn của số thực, không phải ép `1.5` thành số nguyên `1`.
-4. `a` và `b` là hai đối tượng khác danh tính (`==` là `false`), nhưng mọi trường tham gia `equals` giống nhau, nên `a.equals(b)` là `true` và hash bằng nhau.
-5. Vì hash và equality phù hợp, `HashSet` tìm được `b` dù chỉ thêm `a`.
-6. Primitive `0.0 == -0.0` đúng, nhưng wrapper hash phân biệt dấu zero. Tương tự, `Double.compare` và `Double.hashCode` cùng coi mọi NaN là tương đương theo quy tắc bit chuẩn.
-7. `Objects.hash(42)` trả `73`, khác `Integer.hashCode(42) == 42`, vì đây là **hàm kết hợp hash của danh sách tham số**, kể cả khi chỉ có một phần tử: với một tham số, phép hash mảng bắt đầu từ `1` rồi nhân `31` và cộng hash của phần tử.
+1. `Boolean` uses two hash constants; `Byte`/`Short`/`Character`/`Integer` reflect the numeric value according to each type's rule.
+2. `Long.hashCode(0x1_0000_0002L)` mixes the high part `1` and the low part `2` into `3`.
+3. `Float.hashCode(1.5f)` and `Double.hashCode(1.5)` are based on the canonical floating-point bit patterns, not casting `1.5` to the integer `1`.
+4. `a` and `b` are two objects with different identities (`==` is `false`), but every field participating in `equals` matches, so `a.equals(b)` is `true` and their hashes are equal.
+5. Because hash and equality match, `HashSet` finds `b` even though only `a` was added.
+6. Primitive `0.0 == -0.0` is true, whereas the wrapper hash distinguishes the sign of zero. Likewise, `Double.compare` and `Double.hashCode` both treat all NaNs as equivalent under the canonical bit rule.
+7. `Objects.hash(42)` returns `73`, unlike `Integer.hashCode(42) == 42`, because it is a **combining hash function over an argument list**, even with a single element: with one argument, array hashing starts at `1`, multiplies by `31`, and adds the element's hash.
 
-## 6. So sánh với `Objects.hash` và `Objects.hashCode`
+## 6. Comparison with `Objects.hash` and `Objects.hashCode`
 
-Có ba API dễ bị nhầm:
+Three APIs are easily confused:
 
-| Lời gọi | Ý nghĩa | Lưu ý |
+| Call | Meaning | Note |
 | --- | --- | --- |
-| `Integer.hashCode(value)` | Hash trực tiếp một `int` | Rõ ràng, không yêu cầu biến wrapper. |
-| `Objects.hashCode(object)` | Gọi hash của **một đối tượng**, trả `0` nếu null | Primitive truyền vào sẽ cần boxing để thành `Object`. |
-| `Objects.hash(a, b, ...)` | Kết hợp hash của nhiều đối tượng trong danh sách tham số | Dùng varargs/mảng, primitive phải boxing; kết quả một phần tử vẫn có thể khác hash riêng của phần tử. |
+| `Integer.hashCode(value)` | Directly hashes an `int` | Clear, requires no wrapper variable. |
+| `Objects.hashCode(object)` | Calls the hash of **a single object**, returning `0` if `null` | Passing a primitive requires boxing into an `Object`. |
+| `Objects.hash(a, b, ...)` | Combines the hashes of multiple objects in an argument list | Uses varargs/array, primitives must be boxed; a single-element result can still differ from that element's own hash. |
 
-Ví dụ:
+Example:
 
 ```java
 Integer.valueOf(42).hashCode(); // 42
 Integer.hashCode(42);           // 42
 Objects.hashCode(42);           // 42 (boxing)
-Objects.hash(42);               // 73 (một phần tử trong mảng)
-Objects.hash(10, true, 1.5);    // hash tổng hợp các giá trị
+Objects.hash(42);               // 73 (one element in an array)
+Objects.hash(10, true, 1.5);    // combined hash of the values
 ```
 
-Đoạn minh họa cần `import java.util.Objects;`.
+This snippet requires `import java.util.Objects;`.
 
-`Objects.hash(...)` thuận tiện để viết ít mã, nhưng tạo mảng varargs và có thể boxing các primitive; với mã hash được tính rất thường xuyên hoặc nơi có yêu cầu hiệu năng nghiêm ngặt, cách kết hợp tường minh từ các phương thức static wrapper có thể giảm các đối tượng trung gian. JVM có thể tối ưu hóa cấp phát, do đó cần **benchmark đúng workload** trước khi kết luận về chênh lệch hiệu năng thực tế.
+`Objects.hash(...)` is convenient for writing concise code, but it allocates a varargs array and may box primitives; for very frequently computed hashes or strict performance requirements, explicitly combining static wrapper methods can reduce intermediate objects. The JVM may optimize allocations, so **benchmark on a realistic workload** before drawing conclusions about actual performance differences.
 
-`Arrays.hashCode(primitiveArray)` lại là API riêng để tính hash theo các **phần tử của một mảng**. Đừng dùng `array.hashCode()` nếu `equals()` của lớp so nội dung mảng: mảng kế thừa cách hash theo danh tính của `Object`. Trong trường hợp đó, `Arrays.equals(a, b)` thường cần đi cùng `Arrays.hashCode(a)` (mảng lồng nhau có những API `deepEquals`/`deepHashCode` riêng).
+`Arrays.hashCode(primitiveArray)` is a separate API for computing the hash over the **elements of an array**. Do not use `array.hashCode()` if the class's `equals()` compares array contents: arrays inherit `Object`'s identity-based hashing. In that case, `Arrays.equals(a, b)` usually needs to be paired with `Arrays.hashCode(a)` (nested arrays have dedicated `deepEquals`/`deepHashCode` APIs).
 
-## 7. Những lỗi cần tránh
+## 7. Mistakes to Avoid
 
-### Lỗi 1: Ép `long` xuống `int`
+### Mistake 1: Casting `long` down to `int`
 
 ```java
-// Dễ bỏ mất ảnh hưởng của 32 bit cao:
+// Easily loses the influence of the high 32 bits:
 int hash = (int) orderId;
 
-// Bao gồm cả phần cao và thấp:
+// Includes both high and low parts:
 int hash = Long.hashCode(orderId);
 ```
 
-### Lỗi 2: Ép `float` hoặc `double` xuống `int`
+### Mistake 2: Casting `float` or `double` down to `int`
 
 ```java
-// Mất phần thập phân và nhiều phân biệt của số thực:
+// Loses the fractional part and many floating-point distinctions:
 int hash = (int) temperature;
 
-// Hành vi theo wrapper:
+// Wrapper behavior:
 int hash = Double.hashCode(temperature);
 ```
 
-### Lỗi 3: `equals` so dấu phẩy động bằng `==` nhưng hash dùng wrapper
+### Mistake 3: `equals` compares floats with `==`, while `hashCode` uses the wrapper
 
 ```java
-// Không nhất quán khi dữ liệu có +0.0 và -0.0:
+// Inconsistent when data contains +0.0 and -0.0:
 return this.value == other.value;
 
-// Nếu hash dùng Double.hashCode(value), có thể chọn:
+// If hash uses Double.hashCode(value), you can choose:
 return Double.compare(this.value, other.value) == 0;
 ```
 
-Các đoạn trên chỉ là **dòng minh họa bên trong phương thức của một lớp có trường `double value`**, không phải chương trình Java độc lập. Phải xác định trước quan hệ bằng nhau mong muốn; nếu yêu cầu coi hai zero bằng nhau, thay vì sử dụng `Double.compare`, hãy chuẩn hóa chúng cùng về `+0.0` cho cả so sánh và hash.
+The snippets above are only **illustrative lines inside methods of a class with a `double value` field**, not standalone Java programs. You must decide on the desired equality relation first; if two zeros should be treated as equal, instead of using `Double.compare`, normalize both to `+0.0` for both comparison and hashing.
 
-### Lỗi 4: Chỉ dùng hash của một trường trong khi `equals` xét nhiều trường
+### Mistake 4: Hashing only one field when `equals` checks multiple fields
 
-Điều này có thể **vẫn không vi phạm** hợp đồng `equals/hashCode` nếu hash đó bất biến cho mọi cặp được coi là bằng nhau, nhưng thường làm tăng collision và suy giảm hiệu năng collection. Hãy cân nhắc kết hợp đầy đủ các trường tạo nên equality. Chiều ngược lại nguy hiểm hơn: thêm trường **không tham gia `equals`** nhưng có thể khác nhau giữa hai đối tượng bằng nhau vào hash sẽ **vi phạm hợp đồng**.
+This may **still not violate** the `equals/hashCode` contract if that hash is invariant for every pair considered equal, though it often increases collisions and degrades collection performance. Consider combining all fields that make up equality. The opposite direction is more dangerous: adding a field to the hash that **does not participate in `equals`** and can differ between two equal objects **violates the contract**.
 
-### Lỗi 5: Nghĩ rằng “hash khác nhau” mới chứng minh hai đối tượng khác nhau
+### Mistake 5: Thinking "different hashes" are required to prove two objects differ
 
-Nếu hai hash **khác nhau** thì hai đối tượng không thể bằng nhau theo một triển khai tuân thủ hợp đồng; tuy nhiên, hai hash **bằng nhau** chưa chứng minh hai đối tượng bằng nhau. `HashMap` và `HashSet` vẫn cần kiểm tra equality khi thích hợp.
+If two hashes **differ**, the two objects cannot be equal under a contract-compliant implementation; however, **equal** hashes do not prove two objects are equal. `HashMap` and `HashSet` still need to check equality where appropriate.
 
-### Lỗi 6: Hash dựa vào trạng thái có thể thay đổi
+### Mistake 6: Hashing mutable state
 
-Nếu trường tham gia `equals/hashCode` bị sửa sau khi đối tượng vào `HashSet`, lời gọi `contains` có thể không tìm được phần tử cũ. Ưu tiên khóa bất biến với trường `final` và không để lộ thành phần mutable gây ảnh hưởng đến hash.
+If a field participating in `equals/hashCode` is modified after the object enters a `HashSet`, `contains` may fail to find the existing element. Prefer immutable keys with `final` fields and avoid exposing mutable components that affect the hash.
 
-## 8. Checklist cài đặt `hashCode` cho lớp có primitive
+## 8. Checklist for Implementing `hashCode` on Classes with Primitives
 
-1. Liệt kê đúng các trường quyết định quan hệ bằng nhau của lớp.
-2. Với mỗi trường primitive, dùng `Boolean/Byte/Short/Character/Integer/Long/Float/Double.hashCode(value)` tương ứng.
-3. Với trường là tham chiếu có thể null, dùng quy tắc null-safe, ví dụ `Objects.hashCode(field)`; với chuỗi, collection hoặc mảng, xem chính hợp đồng equality của chúng.
-4. Kết hợp các giá trị hash theo thứ tự ổn định, ví dụ nhân `31` rồi cộng.
-5. Kiểm tra hai đối tượng bằng nhau **luôn** có hash bằng nhau, kể cả các ca biên: số âm, `long` có bit cao, `NaN`, `+0.0`/`-0.0` và null (nếu được phép).
-6. Kiểm thử việc thêm một key và tìm bằng một key khác có cùng giá trị trong `HashSet`/`HashMap`.
-7. Nếu hash nằm trên đường nóng hiệu năng, đo trước khi quyết định dùng `Objects.hash` hay kết hợp thủ công.
+1. List the exact fields that determine the class's equality relation.
+2. For each primitive field, use the corresponding `Boolean/Byte/Short/Character/Integer/Long/Float/Double.hashCode(value)`.
+3. For nullable reference fields, use a null-safe rule such as `Objects.hashCode(field)`; for strings, collections, or arrays, check their own equality contracts.
+4. Combine hash values in a stable order, such as multiplying by `31` and adding.
+5. Verify that two equal objects **always** have equal hashes, including edge cases: negative numbers, `long` with high bits set, `NaN`, `+0.0`/`-0.0`, and `null` (if permitted).
+6. Test inserting a key and looking it up with another key of the same value in `HashSet`/`HashMap`.
+7. If hashing lies on a hot performance path, measure before deciding between `Objects.hash` and manual combination.
 
-## 9. Câu hỏi tự kiểm tra
+## 9. Self-Check Questions
 
-**Câu 1.** Vì sao nên dùng `Long.hashCode(id)` thay vì `(int) id` cho trường `long`?
+**Question 1.** Why should you use `Long.hashCode(id)` instead of `(int) id` for a `long` field?
 
-**Trả lời:** Vì `Long.hashCode` kết hợp cả hai nửa 32 bit. Ép kiểu xuống `int` chỉ giữ nửa thấp.
+**Answer:** Because `Long.hashCode` combines both 32-bit halves. Casting to `int` keeps only the low half.
 
-**Câu 2.** Với `double`, dùng `value == other.value` trong `equals` và `Double.hashCode(value)` trong `hashCode` có luôn an toàn không?
+**Question 2.** For `double`, is using `value == other.value` in `equals` and `Double.hashCode(value)` in `hashCode` always safe?
 
-**Trả lời:** Không. Primitive `+0.0 == -0.0` trả `true` trong khi hai giá trị có hash wrapper khác nhau. Nếu chọn ngữ nghĩa wrapper, dùng `Double.compare(...) == 0` và `Double.hashCode(...)` nhất quán.
+**Answer:** No. Primitive `+0.0 == -0.0` returns `true` while those two values have different wrapper hashes. If choosing wrapper semantics, use `Double.compare(...) == 0` and `Double.hashCode(...)` consistently.
 
-**Câu 3.** `Integer.hashCode(42)` và `Objects.hash(42)` có bằng nhau không?
+**Question 3.** Are `Integer.hashCode(42)` and `Objects.hash(42)` equal?
 
-**Trả lời:** Không. Trường hợp này lần lượt là `42` và `73` vì `Objects.hash` dùng thuật toán hash mảng chứa một phần tử.
+**Answer:** No. In this case they are `42` and `73` respectively because `Objects.hash` uses the single-element array hashing algorithm.
 
-**Câu 4.** Có thể dùng cùng một mã hash cho nhiều đối tượng khác nhau không?
+**Question 4.** Can multiple unequal objects share the same hash code?
 
-**Trả lời:** Có. Collision được phép. Điều bắt buộc là những đối tượng được `equals` coi bằng nhau phải có mã hash bằng nhau.
+**Answer:** Yes. Collisions are permitted. What is mandatory is that objects considered equal by `equals` must have equal hash codes.
 
-**Câu 5.** Khi trường `boolean enabled` tham gia `equals`, cách hash trực tiếp là gì?
+**Question 5.** When a `boolean enabled` field participates in `equals`, what is the direct way to hash it?
 
-**Trả lời:** `Boolean.hashCode(enabled)`, trả về `1231` nếu `true` và `1237` nếu `false`.
+**Answer:** `Boolean.hashCode(enabled)`, which returns `1231` if `true` and `1237` if `false`.
 
-**Ghi nhớ:** Các phương thức `hashCode(primitive)` **tĩnh trên lớp bao** cho phép chuyển primitive thành `int` theo quy tắc Java đã định nghĩa. Hãy kết hợp chúng nhất quán với các trường trong `equals()`, đặc biệt cẩn thận với `long`, `float` và `double`.
+**Remember:** The **static `hashCode(primitive)` methods on wrapper classes** convert primitives into `int` following Java's defined rules. Combine them consistently with the fields in `equals()`, taking special care with `long`, `float`, and `double`.

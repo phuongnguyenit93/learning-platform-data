@@ -1,10 +1,10 @@
-# Field `volatile`: đọc/ghi và cập nhật nguyên tử trong Java Reflection
+# `volatile` fields: reading/writing and atomic updates in Java Reflection
 
-## 1. Vấn đề: `volatile` không có nghĩa là `++` nguyên tử
+## 1. The problem: `volatile` does not mean atomic `++`
 
-Với một trường Java khai báo `volatile`, Java Memory Model bảo đảm **ngữ nghĩa đọc/ghi volatile**: khả năng nhìn thấy thay đổi giữa các luồng (*visibility*), một số ràng buộc thứ tự (*ordering*), và tính nguyên tử của **một lần đọc hoặc một lần ghi**. Nhưng `volatile` không biến **chuỗi nhiều thao tác** thành một giao dịch nguyên tử (*atomic transaction*).
+For a Java field declared `volatile`, the Java Memory Model guarantees **volatile read/write semantics**: visibility of changes across threads, certain ordering constraints, and atomicity of **a single read or a single write**. However, `volatile` does not turn **a sequence of multiple operations** into an atomic transaction.
 
-Điều đó vẫn đúng khi đọc/ghi trường bằng Reflection:
+That remains true when reading/writing a field with Reflection:
 
 ~~~java
 Field field = Counter.class.getDeclaredField("value");
@@ -12,15 +12,15 @@ int before = field.getInt(counter);
 field.setInt(counter, before + 1);
 ~~~
 
-Đây chỉ là đoạn minh họa, cần đặt trong phương thức có quyền truy cập thích hợp và xử lý/khai báo checked exceptions. Nếu `Counter.value` là `volatile int`, `getInt` là một lần đọc volatile và `setInt` là một lần ghi volatile. **Hai lời gọi tách rời không tạo thành một phép tăng nguyên tử.**
+This is merely an illustrative snippet and must be placed inside a method with appropriate access permissions and checked exception handling/declarations. If `Counter.value` is `volatile int`, `getInt` is one volatile read and `setInt` is one volatile write. **Two separate calls do not form an atomic increment.**
 
-Hai luồng có thể cùng đọc `0` rồi cùng ghi `1`, khiến một lần tăng bị mất (*lost update*).
+Two threads can both read `0` and then both write `1`, causing one increment to be lost (*lost update*).
 
-> **Phân biệt:** *Atomic read/write* của một field khác với *atomic read–modify–write* (RMW) như `incrementAndGet`, `getAndAdd` hoặc `compareAndSet`.
+> **Distinction:** An *atomic read/write* of a field differs from an *atomic read–modify–write* (RMW) such as `incrementAndGet`, `getAndAdd`, or `compareAndSet`.
 
-## 2. Đọc metadata và giá trị của Field volatile
+## 2. Reading metadata and values of a volatile Field
 
-Cho lớp sau:
+Given the following class:
 
 ~~~java
 class Counter {
@@ -28,7 +28,7 @@ class Counter {
 }
 ~~~
 
-Ta có thể xem modifier và thao tác với instance:
+We can inspect modifiers and operate on an instance:
 
 ~~~java
 Field field = Counter.class.getDeclaredField("value");
@@ -38,22 +38,22 @@ int value = field.getInt(counter);
 field.setInt(counter, 5);
 ~~~
 
-Các ví dụ này là đoạn trích Java, không phải chương trình độc lập; cần import `java.lang.reflect.Field`, `java.lang.reflect.Modifier`, có biến `counter`, và xử lý ngoại lệ phù hợp.
+These examples are Java excerpts, not standalone programs; they require importing `java.lang.reflect.Field` and `java.lang.reflect.Modifier`, having a `counter` variable, and handling appropriate exceptions.
 
-- `getDeclaredField("value")` tìm trường được khai báo tại lớp, kể cả private; `getField` chỉ tìm trường public đủ điều kiện. Tra cứu được metadata **không đồng nghĩa** có quyền đọc/ghi.
-- `Modifier.isVolatile(field.getModifiers())` kiểm tra field được khai báo `volatile`. `volatile` là modifier của field, không phải “chế độ bật” cho từng đối tượng `Field`.
-- `getInt(counter)` và `setInt(counter, number)` đọc/ghi trường kiểu `int`. Các accessor `get`/`set` tổng quát cũng truy cập trường nền; chúng không làm mất ngữ nghĩa volatile vốn có.
-- Với field **instance**, receiver phải có kiểu phù hợp với lớp khai báo; field **static** có thể được truy cập bằng receiver `null` (`Field.get/set` bỏ qua giá trị receiver cho static field).
-- Field private có thể cần `trySetAccessible()` hay `setAccessible(true)`; quyền deep reflection còn chịu giới hạn module. **Mở quyền truy cập không biến read–modify–write thành nguyên tử.**
-- `Field` cung cấp các phép đọc/ghi đơn lẻ, không có `Field.incrementAndGet()` hoặc `Field.compareAndSet()`.
+- `getDeclaredField("value")` finds the field declared on the class, including private ones; `getField` only finds eligible public fields. Retrieving metadata **is not equivalent** to having read/write permission.
+- `Modifier.isVolatile(field.getModifiers())` checks whether the field is declared `volatile`. `volatile` is a modifier of the field, not a "toggle mode" on an individual `Field` object.
+- `getInt(counter)` and `setInt(counter, number)` read/write the `int` field. General `get`/`set` accessors also access the underlying field; they do not strip away its inherent volatile semantics.
+- For **instance** fields, the receiver must be compatible with the declaring class; **static** fields can be accessed with a `null` receiver (`Field.get/set` ignores the receiver value for static fields).
+- Private fields may require `trySetAccessible()` or `setAccessible(true)`; deep reflection rights are further subject to module restrictions. **Opening access permissions does not turn read–modify–write into an atomic operation.**
+- `Field` provides single read/write operations, not `Field.incrementAndGet()` or `Field.compareAndSet()`.
 
-Nếu field volatile nhưng bạn thực hiện `field.getInt(...)`, tính toán, rồi `field.setInt(...)`, không có gì ngăn luồng khác xen vào giữa hai lời gọi.
+If a field is volatile yet you execute `field.getInt(...)`, compute, and then `field.setInt(...)`, nothing prevents another thread from interleaving between the two calls.
 
-## 3. `volatile` thực sự bảo đảm điều gì?
+## 3. What does `volatile` actually guarantee?
 
-### 3.1. Visibility và happens-before
+### 3.1. Visibility and happens-before
 
-Một lần đọc/ghi volatile là *synchronization action*. Theo Java Memory Model, một lần ghi vào biến volatile *synchronizes-with* các lần đọc cùng biến volatile về sau trong synchronization order, tạo quan hệ *happens-before*. Điều đó cho phép truyền trạng thái qua một cờ báo:
+A volatile read/write is a *synchronization action*. Under the Java Memory Model, a write to a volatile variable *synchronizes-with* subsequent reads of the same volatile variable in synchronization order, establishing a *happens-before* relationship. That enables passing state via a flag:
 
 ~~~java
 class Message {
@@ -61,53 +61,53 @@ class Message {
     volatile boolean ready;
 }
 
-// Luồng gửi:
+// Sender thread:
 message.data = 42;
 message.ready = true;
 
-// Luồng nhận:
+// Receiver thread:
 if (message.ready) {
     System.out.println(message.data);
 }
 ~~~
 
-Đoạn trên mô tả hai luồng, không phải chương trình Java độc lập. Khi luồng nhận thấy `ready == true` từ lần ghi của luồng gửi, các ghi trước đó như `data = 42` được công bố tới những lần đọc sau của luồng nhận. Đây là giao thức *publication* đơn giản; nếu có các ghi cạnh tranh khác, phải xem lại bất biến và thứ tự của toàn bộ chương trình.
+The snippet above describes two threads, not a standalone Java program. When the receiver observes `ready == true` from the sender's write, prior writes such as `data = 42` are published to subsequent reads in the receiver thread. This is a simple *publication* protocol; if there are other competing writes, the invariants and ordering of the whole program must be reviewed.
 
-Đừng diễn giải thành “mọi field trong object đều volatile”. Nếu `volatile List<String> items`, phép đọc/ghi **tham chiếu `items`** có ngữ nghĩa volatile; nhưng `items.add(x)` vẫn phụ thuộc vào an toàn luồng của chính collection. `ArrayList` không trở thành thread-safe vì biến tham chiếu được khai báo volatile.
+Do not interpret this as "every field inside the object is volatile". If `volatile List<String> items`, reading/writing **the `items` reference** has volatile semantics; however, `items.add(x)` still depends on the thread safety of the collection itself. `ArrayList` does not become thread-safe simply because the reference variable is declared volatile.
 
-### 3.2. Nguyên tử cho một lần đọc hoặc một lần ghi
+### 3.2. Atomicity for a single read or a single write
 
-Một lần đọc/ghi giá trị của **chính biến volatile** có tính nguyên tử tương ứng với kiểu của nó. `volatile long` và `volatile double` được bảo đảm không bị chia thành hai nửa giá trị không nhất quán. Điều này khác bảo đảm cho chuỗi **đọc → tính toán → ghi**.
+A single read/write of **the volatile variable itself** has atomicity corresponding to its type. `volatile long` and `volatile double` are guaranteed not to tear into two inconsistent halves. This differs from a guarantee for a **read → compute → write** sequence.
 
-Với `volatile int count`, một lệnh `count = 7` là một ghi volatile; `int x = count` là một đọc volatile; nhưng `count++` vẫn gồm đọc giá trị cũ, tính giá trị mới, ghi lại.
+With `volatile int count`, a statement `count = 7` is a volatile write; `int x = count` is a volatile read; yet `count++` still consists of reading the old value, computing the new value, and writing back.
 
-### 3.3. Không phải khóa
+### 3.3. Not a lock
 
-`volatile` không cung cấp *mutual exclusion*. Nó không tự bảo vệ bất biến gồm nhiều biến, chẳng hạn “`available + reserved == total`”. Nếu cần cập nhật hai trường như một transaction, hãy xét `synchronized`/`Lock` hoặc một trạng thái bất biến thay thế nguyên tử.
+`volatile` does not provide *mutual exclusion*. It does not automatically protect multi-variable invariants, such as "`available + reserved == total`". If two fields must be updated as a single transaction, consider `synchronized`/`Lock` or an immutable state object swapped atomically.
 
-## 4. Timeline của một lần tăng bị mất
+## 4. Timeline of a lost increment
 
-Ban đầu `value = 0`. Hai luồng A, B cùng thực hiện:
+Initially `value = 0`. Two threads A and B both execute:
 
 ~~~java
 int oldValue = field.getInt(counter);       // volatile read
 field.setInt(counter, oldValue + 1);        // volatile write
 ~~~
 
-Một cách sắp xen kẽ hợp lệ:
+One valid interleaving:
 
-| Bước | Luồng A | Luồng B | Giá trị chung |
+| Step | Thread A | Thread B | Shared value |
 | --- | --- | --- | --- |
-| 1 | Đọc `0` | — | 0 |
-| 2 | — | Đọc `0` | 0 |
-| 3 | Ghi `1` | — | 1 |
-| 4 | — | Ghi `1` | 1 |
+| 1 | Reads `0` | — | 0 |
+| 2 | — | Reads `0` | 0 |
+| 3 | Writes `1` | — | 1 |
+| 4 | — | Writes `1` | 1 |
 
-Kết quả cuối là **1**, dù có hai yêu cầu tăng; mỗi đọc/ghi volatile đơn lẻ đều đúng quy tắc JMM. Dù mã là `x++`, `x += 1`, `getInt`/`setInt` hay `getVolatile`/`setVolatile`, nếu không có CAS, thao tác atomic RMW hoặc khóa, *lost update* vẫn có thể xảy ra.
+The final result is **1**, despite two increment requests; each individual volatile read/write obeys JMM rules. Whether the code is `x++`, `x += 1`, `getInt`/`setInt`, or `getVolatile`/`setVolatile`, without CAS, an atomic RMW operation, or a lock, *lost updates* can still happen.
 
-## 5. Chương trình Java 17+ tái hiện lỗi một cách xác định
+## 5. Java 17+ program reproducing the bug deterministically
 
-Lưu thành **`VolatileReflectionDemo.java`**:
+Save as **`VolatileReflectionDemo.java`**:
 
 ~~~java
 import java.lang.invoke.MethodHandles;
@@ -129,7 +129,7 @@ public class VolatileReflectionDemo {
         System.out.println("volatile: "
                 + Modifier.isVolatile(field.getModifiers()));
 
-        // Buộc cả hai luồng đọc 0 trước khi một luồng được ghi.
+        // Force both threads to read 0 before either writes.
         CyclicBarrier bothRead = new CyclicBarrier(2);
         Runnable unsafe = () -> {
             try {
@@ -149,7 +149,7 @@ public class VolatileReflectionDemo {
         b.join();
         System.out.println("Field get+set: " + field.getInt(counter));
 
-        // Cùng field, nhưng dùng phép tăng nguyên tử.
+        // Same field, but using an atomic increment.
         counter.value = 0;
         AtomicIntegerFieldUpdater<Counter> updater =
                 AtomicIntegerFieldUpdater.newUpdater(
@@ -170,7 +170,7 @@ public class VolatileReflectionDemo {
         System.out.println("AtomicIntegerFieldUpdater: "
                 + field.getInt(counter));
 
-        // Một phép RMW nguyên tử qua VarHandle.
+        // An atomic RMW operation via VarHandle.
         VarHandle handle = MethodHandles.lookup().findVarHandle(
                 Counter.class, "value", int.class);
 
@@ -182,14 +182,14 @@ public class VolatileReflectionDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac VolatileReflectionDemo.java
 java VolatileReflectionDemo
 ~~~
 
-Đầu ra chính xác:
+Exact output:
 
 ~~~text
 volatile: true
@@ -198,19 +198,19 @@ AtomicIntegerFieldUpdater: 2000
 VarHandle old=2000, new=2001
 ~~~
 
-**Phần 1 — lost update:** `CyclicBarrier` khiến cả hai luồng đều phải hoàn thành `field.getInt(counter)` trước khi luồng nào gọi `setInt`. Cả hai đều lưu `snapshot = 0`; hai thao tác ghi kế tiếp đều ghi 1. Kết quả **luôn 1 trong thí nghiệm này**; ta không phụ thuộc vào lịch chạy ngẫu nhiên để phát hiện race.
+**Part 1 — lost update:** `CyclicBarrier` forces both threads to complete `field.getInt(counter)` before either calls `setInt`. Both store `snapshot = 0`; both subsequent writes store 1. The result is **always 1 in this experiment**; we do not rely on random thread scheduling to observe the race.
 
-**Phần 2 — cập nhật nguyên tử:** Hai luồng cùng tăng 1000 lần bằng `AtomicIntegerFieldUpdater.incrementAndGet`. Mỗi lần tăng là một read–modify–write nguyên tử trên cùng field, tổng cộng đúng **2000**.
+**Part 2 — atomic update:** Two threads each increment 1000 times using `AtomicIntegerFieldUpdater.incrementAndGet`. Each increment is an atomic read–modify–write on the same field, totaling exactly **2000**.
 
-**Phần 3 — VarHandle:** `getAndAdd(counter, 1)` trả giá trị trước cập nhật (2000) và cộng thêm 1 như một thao tác nguyên tử; `getVolatile(counter)` đọc 2001. Cả hai API đều giữ quy tắc kiểu field và quyền truy cập thích hợp.
+**Part 3 — VarHandle:** `getAndAdd(counter, 1)` returns the pre-update value (2000) and adds 1 as an atomic operation; `getVolatile(counter)` reads 2001. Both APIs enforce proper field type rules and access permissions.
 
-Không dùng `Thread.sleep` để “thử may rủi”; barrier giúp chứng minh rõ lỗi. Chương trình dùng field public để tách bạch lỗi về concurrency khỏi lỗi Java access control.
+Do not use `Thread.sleep` to "try your luck"; the barrier clearly demonstrates the bug. The program uses a public field to isolate concurrency bugs from Java access control errors.
 
-## 6. Ba lựa chọn sửa lỗi
+## 6. Three options to fix the bug
 
 ### 6.1. `AtomicIntegerFieldUpdater`
 
-Khi muốn giữ một trường instance `volatile int` trong class hiện hữu, sử dụng:
+When you want to keep a `volatile int` instance field in an existing class, use:
 
 ~~~java
 AtomicIntegerFieldUpdater<Counter> updater =
@@ -221,38 +221,38 @@ int previous = updater.getAndIncrement(counter);
 boolean swapped = updater.compareAndSet(counter, previous + 1, 50);
 ~~~
 
-Đoạn code minh họa dùng lớp `Counter` của ví dụ đầy đủ và cần ngữ cảnh Java phù hợp. `compareAndSet` chỉ trả `true` nếu giá trị hiện tại đúng bằng `expected`; ví dụ không khẳng định CAS phải thành công dưới cạnh tranh.
+This illustrative snippet uses the `Counter` class from the full example and needs an appropriate Java context. `compareAndSet` only returns `true` if the current value exactly equals `expected`; the example does not assert that CAS must succeed under contention.
 
-Điều kiện: trường phải là **instance** `volatile int` (không phải static), với quyền truy cập được phép. Có `AtomicLongFieldUpdater` và `AtomicReferenceFieldUpdater` cho các kiểu tương ứng. Factory có thể báo lỗi nếu field không đúng kiểu/không volatile/không truy cập được.
+Conditions: the field must be an **instance** `volatile int` (not static), with permitted access rights. `AtomicLongFieldUpdater` and `AtomicReferenceFieldUpdater` exist for the corresponding types. The factory can throw an error if the field has the wrong type, is not volatile, or is inaccessible.
 
-Một updater chỉ giúp các đường cập nhật sử dụng đúng thao tác nguyên tử. Nếu phần còn lại của ứng dụng vẫn đọc rồi tự ghi lại bằng `setInt` mà không phối hợp, dữ liệu vẫn có thể mất cập nhật.
+An updater only helps update paths that use the proper atomic operations. If the rest of the application still reads and writes back via `setInt` without coordination, data can still lose updates.
 
-### 6.2. `VarHandle`: tránh nhầm access mode và thao tác nguyên tử
+### 6.2. `VarHandle`: avoid confusing access modes with atomic operations
 
-Có thể lấy VarHandle cho trường, nếu `Lookup` có quyền:
+You can obtain a `VarHandle` for the field if `Lookup` has permission:
 
 ~~~java
 VarHandle vh = MethodHandles.lookup().findVarHandle(
         Counter.class, "value", int.class);
 
-// Hai thao tác RIÊNG LẺ: không phải increment nguyên tử.
+// Two SEPARATE operations: not an atomic increment.
 int before = (int) vh.getVolatile(counter);
 vh.setVolatile(counter, before + 1);
 
-// Một thao tác RMW nguyên tử:
+// One atomic RMW operation:
 int previous = (int) vh.getAndAdd(counter, 1);
 boolean success = vh.compareAndSet(counter, previous + 1, 10);
 ~~~
 
-Đây là đoạn minh họa, không phải chương trình chạy độc lập. `compareAndSet` chỉ thành công nếu giá trị hiện tại đúng với `expected`.
+This is an illustrative snippet, not a standalone runnable program. `compareAndSet` only succeeds if the current value matches `expected`.
 
-`VarHandle` còn có các access mode như `get`/`set` (plain), `getOpaque`/`setOpaque`, `getAcquire`/`setRelease`, `getVolatile`/`setVolatile`, bên cạnh những chế độ atomic RMW. Các mode có memory ordering khác nhau: **đừng cho rằng mọi cách truy cập qua VarHandle tự động có volatile semantics**. Nếu cần đọc/ghi trường volatile và sự phối hợp giữa luồng, chọn access mode có hợp đồng memory ordering phù hợp.
+`VarHandle` also offers access modes such as `get`/`set` (plain), `getOpaque`/`setOpaque`, `getAcquire`/`setRelease`, and `getVolatile`/`setVolatile`, alongside atomic RMW modes. Different modes have different memory ordering: **do not assume every access through a VarHandle automatically has volatile semantics**. If volatile field reads/writes and cross-thread coordination are needed, choose an access mode with the matching memory ordering contract.
 
-`VarHandle.getAndAdd` hoặc `compareAndSet` là công cụ phù hợp cho một biến; không có nghĩa cả một nghiệp vụ với nhiều field được bảo vệ.
+`VarHandle.getAndAdd` or `compareAndSet` is the right tool for a single variable; it does not mean an entire multi-field operation is protected.
 
-### 6.3. `AtomicInteger` hoặc khóa
+### 6.3. `AtomicInteger` or locks
 
-Nếu có thể đổi mô hình đối tượng, một trường kiểu `AtomicInteger` diễn đạt mục đích rõ hơn:
+If the object model can be changed, an `AtomicInteger` field expresses the intent more clearly:
 
 ~~~java
 private final java.util.concurrent.atomic.AtomicInteger count =
@@ -263,46 +263,46 @@ void increase() {
 }
 ~~~
 
-Đây là đoạn minh họa bên trong class. Với nhiều biến cần cập nhật nhất quán, một khối `synchronized` hoặc `Lock` có thể thuận tiện hơn CAS trên từng biến đơn lẻ.
+This is an illustrative snippet inside a class. When multiple variables must be updated consistently, a `synchronized` block or `Lock` can be more convenient than CAS on individual variables.
 
-## 7. Reflection: quyền truy cập và thread safety là hai trục khác nhau
+## 7. Reflection: access permissions and thread safety are two separate axes
 
-Một số trường hợp thường gây nhầm:
+Commonly confused scenarios:
 
-| Tình huống | Điều thực sự xảy ra |
+| Scenario | What actually happens |
 | --- | --- |
-| `Modifier.isVolatile(field.getModifiers()) == true` | Trường được khai báo volatile; không chứng minh được thao tác đọc–tính–ghi là nguyên tử. |
-| `field.trySetAccessible() == true` | Được phép bỏ qua kiểm tra truy cập Java trên `Field` đó; không tạo khóa. |
-| `field.getInt(target)` rồi `field.setInt(target, x)` | Hai thao tác riêng; có thể bị luồng khác xen giữa. |
-| `getVolatile` rồi `setVolatile` trên VarHandle | Từng thao tác có ngữ nghĩa volatile nhưng cặp thao tác vẫn không RMW nguyên tử. |
-| `getAndAdd` hoặc `compareAndSet` | Cập nhật nguyên tử đối với biến đích theo hợp đồng API. |
-| `volatile List<?> items` | Công bố/đọc tham chiếu với volatile semantics; không bảo đảm các lần sửa collection đều thread-safe. |
-| `volatile int x; volatile int y;` | Không tự bảo đảm bất biến chung giữa `x` và `y`. |
+| `Modifier.isVolatile(field.getModifiers()) == true` | The field is declared volatile; does not prove read–compute–write operations are atomic. |
+| `field.trySetAccessible() == true` | Permitted to bypass Java access checks on that `Field`; does not create a lock. |
+| `field.getInt(target)` then `field.setInt(target, x)` | Two separate operations; another thread can interleave between them. |
+| `getVolatile` then `setVolatile` on a VarHandle | Each operation has volatile semantics, yet the pair is still not an atomic RMW. |
+| `getAndAdd` or `compareAndSet` | Atomic update on the target variable per API contract. |
+| `volatile List<?> items` | Publishes/reads the reference with volatile semantics; does not guarantee collection mutations are thread-safe. |
+| `volatile int x; volatile int y;` | Does not automatically preserve a joint invariant between `x` and `y`. |
 
-Đừng lẫn lỗi truy cập Reflection (`IllegalAccessException`, `IllegalArgumentException` khi receiver không hợp lệ) với race condition. Sửa quyền truy cập bằng `setAccessible` không chữa được *lost update*.
+Do not confuse Reflection access errors (`IllegalAccessException`, `IllegalArgumentException` on invalid receiver) with race conditions. Fixing access permissions with `setAccessible` does not cure a *lost update*.
 
-**Giới hạn kiểu:** một field không thể vừa `final` vừa `volatile`; Java cấm kết hợp hai modifier ấy. `AtomicIntegerFieldUpdater` yêu cầu field instance và không áp dụng trực tiếp cho `static volatile int`. Với trường static, có thể dùng `static final AtomicInteger`, khóa, hoặc một `VarHandle` static phù hợp.
+**Type limitations:** a field cannot be both `final` and `volatile`; Java forbids combining those two modifiers. `AtomicIntegerFieldUpdater` requires an instance field and does not apply directly to `static volatile int`. For static fields, you can use `static final AtomicInteger`, locks, or an appropriate static `VarHandle`.
 
-## 8. Checklist chọn giải pháp
+## 8. Checklist for choosing a solution
 
-1. Chỉ cần một luồng thông báo cờ trạng thái cho các luồng khác? `volatile` có thể đủ khi thiết kế giao thức visibility/ordering chuẩn.
-2. Cần đọc/ghi **một giá trị riêng lẻ** với visibility giữa luồng? Trường volatile và accessor tương thích là lựa chọn đơn giản.
-3. Cần `count++`, `count += delta`, “nếu vẫn bằng X thì đổi thành Y”? Chọn `AtomicInteger`, `AtomicIntegerFieldUpdater`, `VarHandle.getAndAdd`/`compareAndSet`, hoặc khóa.
-4. Cần cập nhật nhiều field đồng thời theo một bất biến? Xét khóa hoặc đối tượng trạng thái bất biến được thay nguyên tử.
-5. Tên field chỉ biết lúc runtime? Kiểm tra `getType()`, `getModifiers()`, instance/static và quyền truy cập, rồi chọn công cụ phù hợp; `Field.get/set` không có CAS.
-6. Viết test concurrency? Cố gắng tạo lịch xen kẽ kiểm soát được như `CyclicBarrier`, thay vì dựa vào một lần chạy stress không thấy lỗi.
+1. Only need one thread to signal a status flag to other threads? `volatile` can suffice when a proper visibility/ordering protocol is designed.
+2. Need to read/write **a single standalone value** with cross-thread visibility? A volatile field and compatible accessor are a simple choice.
+3. Need `count++`, `count += delta`, or "if still equal to X, change to Y"? Choose `AtomicInteger`, `AtomicIntegerFieldUpdater`, `VarHandle.getAndAdd`/`compareAndSet`, or a lock.
+4. Need to update multiple fields together under an invariant? Consider a lock or an immutable state object replaced atomically.
+5. Field name only known at runtime? Inspect `getType()`, `getModifiers()`, instance/static, and access permissions, then select the right tool; `Field.get/set` has no CAS.
+6. Writing concurrency tests? Aim to create controllable interleavings like `CyclicBarrier`, rather than relying on a stress run that happens not to fail.
 
-### Tự kiểm tra
+### Self-check
 
-- Hai luồng thực hiện `volatileCount++` khi ban đầu bằng 0. Kết quả chắc chắn 2? **Không**, có thể 1 vì mất cập nhật.
-- `Field.getInt`/`setInt` trên `volatile int` có bỏ qua visibility của volatile? **Không**, nhưng hai lời gọi vẫn độc lập.
-- `VarHandle.getVolatile` rồi `setVolatile` có thay được `getAndAdd`? **Không**, vì không phải atomic RMW.
-- `AtomicIntegerFieldUpdater` làm việc với `static volatile int`? **Không**, chỉ với instance field thỏa điều kiện.
-- `volatile List` có biến `ArrayList.add` thành thread-safe? **Không**, cần an toàn luồng của collection hoặc đồng bộ riêng.
+- Two threads execute `volatileCount++` when initially 0. Is the result guaranteed to be 2? **No**, it may be 1 due to lost updates.
+- Do `Field.getInt`/`setInt` on `volatile int` bypass volatile visibility? **No**, yet the two calls remain independent.
+- Can `VarHandle.getVolatile` followed by `setVolatile` replace `getAndAdd`? **No**, because it is not an atomic RMW.
+- Does `AtomicIntegerFieldUpdater` work on `static volatile int`? **No**, only on qualifying instance fields.
+- Does `volatile List` make `ArrayList.add` thread-safe? **No**, thread safety of the collection or separate synchronization is required.
 
-**Kết luận:** `volatile` bảo đảm ngữ nghĩa cho **từng lần đọc/ghi field** và quan hệ visibility/ordering giữa luồng. Reflection vẫn tôn trọng thuộc tính ấy. Muốn cập nhật mà không mất giá trị, phải dùng **atomic read–modify–write** hoặc **đồng bộ hóa** thích hợp.
+**Conclusion:** `volatile` guarantees semantics for **each individual field read/write** and cross-thread visibility/ordering relationships. Reflection respects that property. To update without losing values, you must use **atomic read–modify–write** or appropriate **synchronization**.
 
-### Tài liệu chuẩn
+### Standard references
 
 - [Java Language Specification 17 — §17.4 Memory Model](https://docs.oracle.com/javase/specs/jls/se17/html/jls-17.html#jls-17.4)
 - [JDK 17 — `java.lang.reflect.Field`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html)

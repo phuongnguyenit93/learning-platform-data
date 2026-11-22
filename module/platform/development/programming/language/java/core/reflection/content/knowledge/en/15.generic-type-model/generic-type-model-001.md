@@ -1,8 +1,8 @@
-# Class khác Type: mô hình kiểu generic trong Java Reflection
+# Class vs. Type: The Generic Type Model in Java Reflection
 
-## 1. Vì sao chỉ dùng Class<?> là chưa đủ?
+## 1. Why Is Using Only `Class<?>` Not Enough?
 
-Trong Java, `Class<?>` mô tả một lớp, interface, enum, record, kiểu nguyên thủy hoặc kiểu mảng mà JVM biết ở thời điểm chạy. Chẳng hạn:
+In Java, `Class<?>` describes a class, interface, enum, record, primitive type, or array type known to the JVM at runtime. For example:
 
 ~~~java
 Class<?> stringType = String.class;
@@ -10,7 +10,7 @@ Class<?> listType = java.util.List.class;
 Class<?> arrayType = String[].class;
 ~~~
 
-Nhưng khi xét Java Generics, có những cách viết kiểu mang thêm thông tin mà chỉ một đối tượng `Class<?>` không diễn đạt đủ:
+However, when considering Java Generics, there are type expressions that carry additional information that a `Class<?>` object alone cannot sufficiently express:
 
 ~~~java
 java.util.List<String>
@@ -20,25 +20,25 @@ T[]
 java.util.List<String>[]
 ~~~
 
-Hai khai báo `List<String>` và `List<Integer>` đều có **raw class** là `List.class`, nhưng phần tử kiểu (`String` hay `Integer`) khác nhau. Muốn đọc **chữ ký generic** còn được lưu ở class file, Reflection cung cấp giao diện `java.lang.reflect.Type` và một số dạng triển khai của nó.
+Both declarations `List<String>` and `List<Integer>` have the **raw class** `List.class`, yet their type arguments (`String` vs. `Integer`) differ. To read the **generic signature** preserved in the class file, Reflection provides the `java.lang.reflect.Type` interface and several implementations of it.
 
-**Điểm cốt lõi:** `Class<?>` **là một dạng `Type`**, nhưng **không phải mọi `Type` đều là `Class<?>`**. Một `Type` có thể biểu diễn một lớp thông thường, một generic type đã được tham số hóa, biến kiểu, wildcard hoặc kiểu mảng có thành phần là kiểu generic.
+**Key point:** `Class<?>` **is a kind of `Type`**, but **not every `Type` is a `Class<?>`**. A `Type` can represent an ordinary class, a parameterized generic type, a type variable, a wildcard, or an array type whose component is a generic type.
 
-Bài này giúp bạn biết khi nào dùng `Class<?>`, khi nào cần `Type`, cách phân loại các dạng `Type`, và hiểu điều gì thật sự còn tồn tại sau **type erasure**.
+This lesson helps you know when to use `Class<?>`, when `Type` is needed, how to classify the forms of `Type`, and what actually survives **type erasure**.
 
-## 2. So sánh Class<?> và Type
+## 2. Comparing `Class<?>` and `Type`
 
-| Câu hỏi | `Class<?>` | `Type` |
+| Question | `Class<?>` | `Type` |
 | --- | --- | --- |
-| Vai trò | Đại diện cho một kiểu runtime đã được JVM nhận diện | Giao diện chung mô tả các kiểu trong metadata Java, bao gồm chữ ký generic |
-| Có biểu diễn `String.class` không? | Có | Có, vì `Class` triển khai `Type` |
-| Có chứa đối số `String` của `List<String>` không? | Không: `List.class` chỉ là kiểu thô | Có thể, qua `ParameterizedType` |
-| Có thể là một biến kiểu `T` không? | Không có `Class` riêng cho mỗi `T` | Có, qua `TypeVariable<?>` |
-| Có biểu diễn `? extends Number` không? | Không | Có, qua `WildcardType` |
-| Có biểu diễn `T[]` không? | `Class` chỉ đại diện cho dạng mảng sau xóa kiểu | Có, qua `GenericArrayType` |
-| Có các API như `getDeclaredMethods()`, `getConstructor()`, `isAssignableFrom()`? | Có | Không; `Type` chỉ có API chung như `getTypeName()` |
+| Role | Represents a runtime type recognized by the JVM | General interface describing types in Java metadata, including generic signatures |
+| Does it represent `String.class`? | Yes | Yes, because `Class` implements `Type` |
+| Does it contain the `String` argument of `List<String>`? | No: `List.class` is only the raw type | Potentially, via `ParameterizedType` |
+| Can it be a type variable `T`? | There is no separate `Class` for each `T` | Yes, via `TypeVariable<?>` |
+| Does it represent `? extends Number`? | No | Yes, via `WildcardType` |
+| Does it represent `T[]`? | `Class` only represents the erased array form | Yes, via `GenericArrayType` |
+| Does it have APIs like `getDeclaredMethods()`, `getConstructor()`, `isAssignableFrom()`? | Yes | No; `Type` only has general APIs such as `getTypeName()` |
 
-`Type` là một **interface**, không phải “Class nâng cấp” có tất cả hàm của `Class`. Nếu bạn có một biến kiểu `Type`, không thể gọi trực tiếp `type.getDeclaredMethods()` mà chưa chứng minh nó là `Class<?>`.
+`Type` is an **interface**, not an "upgraded Class" with all the methods of `Class`. If you have a variable of type `Type`, you cannot call `type.getDeclaredMethods()` directly without first proving it is a `Class<?>`.
 
 ~~~java
 Type type = String.class;
@@ -47,9 +47,9 @@ if (type instanceof Class<?> clazz) {
 }
 ~~~
 
-Đoạn này minh họa với import `java.lang.reflect.Type`. Pattern matching cho `instanceof` được hỗ trợ trong Java 17.
+This snippet illustrates the usage with `import java.lang.reflect.Type`. Pattern matching for `instanceof` is supported in Java 17.
 
-Quan hệ quan trọng:
+Important relationships:
 
 ~~~text
                     java.lang.reflect.Type (interface)
@@ -69,11 +69,11 @@ Quan hệ quan trọng:
                                                        ? super Integer
 ~~~
 
-Sơ đồ trên biểu diễn **các loại đối tượng Type có thể nhận được** chứ không phải cây kế thừa class cụ thể; các nhánh cuối là interface chuyên biệt cùng nằm dưới `Type`.
+The diagram above depicts **the kinds of `Type` objects you can obtain**, rather than a concrete class inheritance hierarchy; the leaf branches are specialized interfaces that all sit under `Type`.
 
-## 3. Năm dạng Type cần nhận diện
+## 3. Five Forms of `Type` to Recognize
 
-### 3.1. Class<?> — kiểu JVM thông thường
+### 3.1. `Class<?>` — Ordinary JVM Types
 
 ~~~java
 Type a = String.class;         // Class
@@ -82,34 +82,34 @@ Type c = String[].class;       // Class
 Type d = java.util.List.class; // Class
 ~~~
 
-`String[]` dù là kiểu mảng vẫn có `Class` runtime thật. Nếu component là một kiểu reifiable cụ thể như `String`, Java biết được class mảng tương ứng ở runtime.
+`String[]`, even though it is an array type, still has a real runtime `Class`. If the component is a concrete reifiable type like `String`, Java knows the corresponding array class at runtime.
 
-Các API `Class` rất hữu ích khi bạn cần lấy constructor, method, field, kiểm tra `isInstance`/`isAssignableFrom` hoặc tạo mảng qua Reflection. `Class<?>` thích hợp với **kiểu runtime** và **kiểu đã bị xóa tham số generic**.
+The `Class` APIs are very useful when you need to retrieve constructors, methods, or fields, check `isInstance`/`isAssignableFrom`, or create arrays via Reflection. `Class<?>` fits **runtime types** and **types whose generic parameters have been erased**.
 
-### 3.2. ParameterizedType — kiểu có đối số generic cụ thể
+### 3.2. `ParameterizedType` — Types with Concrete Generic Arguments
 
-Ví dụ `List<String>`, `Map<String, Integer>` hoặc `List<? extends Number>` khi xuất hiện trong metadata khai báo:
+For example, `List<String>`, `Map<String, Integer>`, or `List<? extends Number>` when appearing in declaration metadata:
 
 ~~~java
 Type type = Sample.class.getDeclaredField("names").getGenericType();
 if (type instanceof ParameterizedType p) {
     Type raw = p.getRawType();                 // List
     Type[] arguments = p.getActualTypeArguments(); // [String]
-    Type owner = p.getOwnerType();            // null cho List<String>
+    Type owner = p.getOwnerType();            // null for List<String>
 }
 ~~~
 
-Đây là mã minh họa giả định `Sample` khai báo `List<String> names`; chương trình đầy đủ ở phần 7.
+This is an illustrative snippet assuming `Sample` declares `List<String> names`; the full program is in section 7.
 
-- `getRawType()`: kiểu thô, thường là `Class<?>` như `List.class`.
-- `getActualTypeArguments()`: các đối số kiểu theo đúng thứ tự khai báo; **mỗi phần tử là `Type`**, có thể là `Class`, `ParameterizedType`, `TypeVariable` hoặc `WildcardType`.
-- `getOwnerType()`: kiểu chứa đối với một số kiểu thành viên lồng nhau; có thể là `null` khi không có owner liên quan.
+- `getRawType()`: the raw type, usually a `Class<?>` such as `List.class`.
+- `getActualTypeArguments()`: the type arguments in declaration order; **each element is a `Type`**, which can be a `Class`, `ParameterizedType`, `TypeVariable`, or `WildcardType`.
+- `getOwnerType()`: the enclosing type for certain nested member types; it can be `null` when no owner is involved.
 
-Với `Map<String, List<Integer>>`, đối số thứ hai tự nó là một `ParameterizedType`. Không được giả định mọi phần tử trong `getActualTypeArguments()` đều có thể ép sang `Class<?>`.
+For `Map<String, List<Integer>>`, the second argument is itself a `ParameterizedType`. Never assume every element in `getActualTypeArguments()` can be cast to `Class<?>`.
 
-### 3.3. TypeVariable<?> — biến kiểu T, E, K, V
+### 3.3. `TypeVariable<?>` — Type Variables `T`, `E`, `K`, `V`
 
-Ví dụ:
+For example:
 
 ~~~java
 class Box<T extends Number> {
@@ -117,20 +117,20 @@ class Box<T extends Number> {
 }
 ~~~
 
-`value.getGenericType()` cho ra `TypeVariable` mang tên `T`. `value.getType()` trả về **`Number.class`**, vì `Number` là giới hạn trên đầu tiên và dùng làm kiểu sau xóa (erasure).
+`value.getGenericType()` yields a `TypeVariable` named `T`. `value.getType()` returns **`Number.class`**, because `Number` is the first upper bound and is used as the erased type.
 
-Các API đáng chú ý:
+Notable APIs:
 
-- `getName()` trả tên biến kiểu, chẳng hạn `"T"`.
-- `getBounds()` trả các giới hạn trên dạng `Type[]`; nếu không khai báo giới hạn, giới hạn mặc định là `Object`.
-- `getGenericDeclaration()` cho biết `Class`, `Method` hoặc `Constructor` nào khai báo biến kiểu.
-- `Class#getTypeParameters()` và `Method#getTypeParameters()` liệt kê các biến kiểu do chính đối tượng tương ứng khai báo.
+- `getName()` returns the type variable's name, such as `"T"`.
+- `getBounds()` returns the upper bounds as `Type[]`; if no bound is declared, the default bound is `Object`.
+- `getGenericDeclaration()` tells which `Class`, `Method`, or `Constructor` declared the type variable.
+- `Class#getTypeParameters()` and `Method#getTypeParameters()` list the type variables declared by the respective entity itself.
 
-Cẩn thận: `T` trong `class Box<T>` **không tự trở thành `String.class`** chỉ vì một object nào đó được gán cho biến nguồn `Box<String>`. Metadata khai báo `Box<T>` vẫn chứa `T`. Để biết một subclass khai báo rõ `extends Box<String>`, cần đọc `getGenericSuperclass()` của **subclass**, không dựa vào riêng `Box.class.getTypeParameters()`.
+Be careful: `T` in `class Box<T>` **does not automatically become `String.class`** just because some object is assigned to a source variable `Box<String>`. The declaration metadata of `Box<T>` still contains `T`. To know that a subclass explicitly declares `extends Box<String>`, you need to read `getGenericSuperclass()` of the **subclass**, rather than relying solely on `Box.class.getTypeParameters()`.
 
-### 3.4. WildcardType — ký hiệu ? và các giới hạn
+### 3.4. `WildcardType` — The `?` Notation and Its Bounds
 
-Ví dụ:
+For example:
 
 ~~~java
 List<?> anything;
@@ -138,17 +138,17 @@ List<? extends Number> numbers;
 List<? super Integer> targets;
 ~~~
 
-Bên ngoài, cả ba kiểu trường đều thường là `ParameterizedType` có raw type `List`. **WildcardType nằm bên trong danh sách type arguments**, chẳng hạn phần tử đầu tiên của `List<? extends Number>`.
+On the outside, all three field types are usually `ParameterizedType` with raw type `List`. **`WildcardType` sits inside the type arguments list**, such as the first element of `List<? extends Number>`.
 
-- `getUpperBounds()` lấy giới hạn trên. Với `? extends Number`, đó là `Number`; với `?` thông thường là `Object`.
-- `getLowerBounds()` lấy giới hạn dưới. Với `? super Integer`, đó là `Integer`; nếu không có giới hạn dưới, mảng này rỗng.
-- Không lấy được wildcard bằng cách gọi `getGenericType()` trên trường `List<? extends Number>` rồi ép ngay sang `WildcardType`; cần đi qua `ParameterizedType#getActualTypeArguments()`.
+- `getUpperBounds()` retrieves the upper bounds. For `? extends Number`, that is `Number`; for plain `?`, it is `Object`.
+- `getLowerBounds()` retrieves the lower bounds. For `? super Integer`, that is `Integer`; if there is no lower bound, this array is empty.
+- You cannot obtain a wildcard by calling `getGenericType()` on a `List<? extends Number>` field and immediately casting it to `WildcardType`; you must go through `ParameterizedType#getActualTypeArguments()`.
 
-Wildcard là một thành phần của **kiểu khai báo**, không phải một class có thể nạp bằng `Class.forName("? extends Number")`.
+A wildcard is a component of a **declared type**, not a class that can be loaded with `Class.forName("? extends Number")`.
 
-### 3.5. GenericArrayType — mảng có component generic
+### 3.5. `GenericArrayType` — Arrays with a Generic Component
 
-Ví dụ:
+For example:
 
 ~~~java
 class Bag<T> {
@@ -158,33 +158,33 @@ class Bag<T> {
 }
 ~~~
 
-Khi phản chiếu generic type của từng field:
+When reflecting each field's generic type:
 
-| Trường | `getType()` | `getGenericType()` |
+| Field | `getType()` | `getGenericType()` |
 | --- | --- | --- |
-| `T[] history`, với `T extends Number` | `Number[].class` | `GenericArrayType` mô tả `T[]` |
-| `List<String>[] groups` | `List[].class` | `GenericArrayType` mô tả `List<String>[]` |
-| `String[] labels` | `String[].class` | `Class<?>` đại diện cho `String[]` |
+| `T[] history`, with `T extends Number` | `Number[].class` | `GenericArrayType` describing `T[]` |
+| `List<String>[] groups` | `List[].class` | `GenericArrayType` describing `List<String>[]` |
+| `String[] labels` | `String[].class` | `Class<?>` representing `String[]` |
 
-`GenericArrayType#getGenericComponentType()` trả `Type` của **thành phần mảng**. Đối với `T[]`, thành phần là `TypeVariable`; đối với `List<String>[]`, thành phần là `ParameterizedType`.
+`GenericArrayType#getGenericComponentType()` returns the `Type` of the **array component**. For `T[]`, the component is a `TypeVariable`; for `List<String>[]`, the component is a `ParameterizedType`.
 
-**Không phải mọi mảng đều là GenericArrayType**. Mảng của một kiểu runtime reifiable như `String[]` hay `int[]` thường được biểu diễn bằng `Class<?>`.
+**Not every array is a `GenericArrayType`**. An array of a reifiable runtime type such as `String[]` or `int[]` is usually represented by `Class<?>`.
 
-## 4. Reflection API nào trả Class, API nào trả Type?
+## 4. Which Reflection APIs Return `Class` and Which Return `Type`?
 
-Các cặp API này dễ bị lẫn:
+These API pairs are easy to confuse:
 
-| Nhu cầu | API kiểu thô / erasure | API giữ metadata generic |
+| Need | Raw / erased type API | Generic metadata-preserving API |
 | --- | --- | --- |
-| Kiểu của field | `Field.getType() -> Class<?>` | `Field.getGenericType() -> Type` |
-| Kiểu trả về method | `Method.getReturnType() -> Class<?>` | `Method.getGenericReturnType() -> Type` |
-| Các kiểu tham số method/constructor | `getParameterTypes() -> Class<?>[]` | `getGenericParameterTypes() -> Type[]` |
-| Exception khai báo của method/constructor | `getExceptionTypes() -> Class<?>[]` | `getGenericExceptionTypes() -> Type[]` |
-| Lớp cha trực tiếp | `Class.getSuperclass() -> Class<?>` | `Class.getGenericSuperclass() -> Type` |
-| Các interface trực tiếp | `Class.getInterfaces() -> Class<?>[]` | `Class.getGenericInterfaces() -> Type[]` |
-| Biến kiểu do class/method/constructor khai báo | Không có phép suy từ mỗi `Class<?>` thô | `getTypeParameters() -> TypeVariable<?>[]` |
+| Field type | `Field.getType() -> Class<?>` | `Field.getGenericType() -> Type` |
+| Method return type | `Method.getReturnType() -> Class<?>` | `Method.getGenericReturnType() -> Type` |
+| Method/constructor parameter types | `getParameterTypes() -> Class<?>[]` | `getGenericParameterTypes() -> Type[]` |
+| Method/constructor declared exceptions | `getExceptionTypes() -> Class<?>[]` | `getGenericExceptionTypes() -> Type[]` |
+| Direct superclass | `Class.getSuperclass() -> Class<?>` | `Class.getGenericSuperclass() -> Type` |
+| Direct interfaces | `Class.getInterfaces() -> Class<?>[]` | `Class.getGenericInterfaces() -> Type[]` |
+| Type variables declared by class/method/constructor | Cannot be inferred from raw `Class<?>` alone | `getTypeParameters() -> TypeVariable<?>[]` |
 
-Ví dụ:
+Example:
 
 ~~~java
 class Store {
@@ -193,15 +193,15 @@ class Store {
 }
 ~~~
 
-- `customers`: `getType() == List.class`, còn `getGenericType().getTypeName()` là `java.util.List<java.lang.String>`.
-- `load()`: `getReturnType() == List.class`, còn `getGenericReturnType()` có thể mô tả đầy đủ `List<String>`.
-- Nếu method có tham số `Map<String, Integer>`, dùng `getGenericParameterTypes()` để đọc các type argument. `getParameterTypes()` chỉ chứa `Map.class`.
+- `customers`: `getType() == List.class`, whereas `getGenericType().getTypeName()` is `java.util.List<java.lang.String>`.
+- `load()`: `getReturnType() == List.class`, whereas `getGenericReturnType()` can describe the full `List<String>`.
+- If a method has a `Map<String, Integer>` parameter, use `getGenericParameterTypes()` to read the type arguments. `getParameterTypes()` only contains `Map.class`.
 
-**Lưu ý về tên:** `getTypeName()` cung cấp biểu diễn văn bản của `Type` phục vụ hiển thị/chẩn đoán. Để xử lý kiểu một cách có cấu trúc, hãy dùng `instanceof` và các phương thức chuyên biệt thay vì tách chuỗi `"<...>"` bằng regex.
+**Note on names:** `getTypeName()` provides a textual representation of `Type` for display/diagnostics. To process types structurally, use `instanceof` and specialized methods instead of splitting `"<...>"` strings with regex.
 
-## 5. Type erasure: metadata generic còn gì sau biên dịch?
+## 5. Type Erasure: What Generic Metadata Remains After Compilation?
 
-Java Generics chủ yếu dùng **type erasure** để tương thích bytecode. Trong nhiều vị trí runtime, JVM thao tác với raw type và giới hạn trên của type variable. Ví dụ:
+Java Generics primarily use **type erasure** for bytecode compatibility. In many runtime places, the JVM operates on raw types and the upper bounds of type variables. For example:
 
 ~~~java
 List<String> words = new ArrayList<>();
@@ -210,29 +210,29 @@ List<Integer> numbers = new ArrayList<>();
 System.out.println(words.getClass() == numbers.getClass()); // true
 ~~~
 
-(Đoạn minh họa cần import `java.util.List` và `java.util.ArrayList`.)
+(This snippet requires importing `java.util.List` and `java.util.ArrayList`.)
 
-Nếu hai object trên đều là `ArrayList`, `getClass()` không chứa thông tin `String` hay `Integer`. Java cũng không có cú pháp class literal `List<String>.class`. Hai dòng này có nội dung khác nhau:
+If both objects above are `ArrayList`, `getClass()` does not contain `String` or `Integer`. Java also has no class literal syntax like `List<String>.class`. These two lines have different meanings:
 
 ~~~java
-Class<?> raw = List.class; // đại diện kiểu runtime List
+Class<?> raw = List.class; // represents the runtime type List
 Type metadata = Store.class
         .getDeclaredField("customers").getGenericType(); // List<String>
 ~~~
 
-Vậy tại sao `Field.getGenericType()` vẫn thấy `String`?
+So why does `Field.getGenericType()` still see `String`?
 
-- Trình biên dịch Java có thể ghi **generic signature metadata** cho các khai báo như field, method, superclass và interface vào class file.
-- Reflection đọc metadata này và xây dựng `ParameterizedType`, `TypeVariable`, `WildcardType` hoặc `GenericArrayType` tương ứng.
-- Metadata mô tả **kiểu được khai báo tại vị trí đó**, không chứng minh kiểu runtime thực của toàn bộ object hoặc từng phần tử dữ liệu.
+- The Java compiler can write **generic signature metadata** for declarations such as fields, methods, superclasses, and interfaces into the class file.
+- Reflection reads this metadata and constructs the corresponding `ParameterizedType`, `TypeVariable`, `WildcardType`, or `GenericArrayType`.
+- The metadata describes **the type declared at that site**, not proof of the actual runtime type of the entire object or every data element.
 
-Ví dụ, field khai báo `List<String> customers` có chữ ký chứa `String`. Nhưng một object `new ArrayList<String>()` không tự mang “chứng chỉ runtime rằng mọi phần tử luôn là String”. Nếu mã dùng raw type, unchecked cast hoặc reflection để đưa sai giá trị vào collection, generic signature của field vẫn giữ nguyên.
+For example, a field declared as `List<String> customers` has a signature containing `String`. However, an object `new ArrayList<String>()` does not carry a "runtime certificate that every element is always a String." If code uses raw types, unchecked casts, or reflection to put a wrong value into the collection, the field's generic signature remains unchanged.
 
-**Giới hạn cần nhớ:** Không thể dùng `obj.getClass()` để khôi phục đối số generic đã bị xóa của một đối tượng `new ArrayList<String>()` chỉ dựa trên object đó. Muốn giữ thông tin kiểu cho serialization/deserialization, thường phải cung cấp thêm một đối tượng mô tả kiểu hoặc dùng kỹ thuật **type token**.
+**Limitation to remember:** You cannot use `obj.getClass()` to recover the erased generic argument of a `new ArrayList<String>()` object from that object alone. To retain type information for serialization/deserialization, you usually need to supply an additional type descriptor object or use the **type token** technique.
 
-## 6. Cách duyệt cấu trúc Type đúng và an toàn
+## 6. How to Traverse a `Type` Structure Correctly and Safely
 
-Một tiện ích phân loại dạng Type có thể viết:
+A utility to classify `Type` kinds can be written as:
 
 ~~~java
 static String kind(Type type) {
@@ -245,18 +245,18 @@ static String kind(Type type) {
 }
 ~~~
 
-Đây là phương thức sẽ xuất hiện trong chương trình hoàn chỉnh phần 7, với import `java.lang.reflect.*`.
+This method will appear in the complete program in section 7, with `import java.lang.reflect.*`.
 
-Một quy trình đọc kiểu có cấu trúc:
+A structured process for reading types:
 
-1. Nhận `Type` qua `getGenericType()`, `getGenericReturnType()`, `getGenericSuperclass()` hoặc nguồn metadata phù hợp.
-2. Nếu `type instanceof Class<?>`: đây là lớp/interface/primitive/array runtime. Với array class có thể dùng `clazz.getComponentType()`.
-3. Nếu `ParameterizedType`: đọc `getRawType()`, duyệt **đệ quy** từng phần tử `getActualTypeArguments()` và, khi liên quan, xét `getOwnerType()`.
-4. Nếu `TypeVariable<?>`: đọc `getName()`, `getBounds()` và `getGenericDeclaration()`. Đừng mặc định biến kiểu đã được thay bằng một Class cụ thể.
-5. Nếu `WildcardType`: đọc cả `getUpperBounds()` và `getLowerBounds()`.
-6. Nếu `GenericArrayType`: tiếp tục xét `getGenericComponentType()`; component lại có thể là một dạng Type khác.
+1. Obtain the `Type` via `getGenericType()`, `getGenericReturnType()`, `getGenericSuperclass()`, or the appropriate metadata source.
+2. If `type instanceof Class<?>`: this is a runtime class/interface/primitive/array. For an array class, you can use `clazz.getComponentType()`.
+3. If `ParameterizedType`: read `getRawType()`, **recursively** traverse each element of `getActualTypeArguments()`, and, when relevant, inspect `getOwnerType()`.
+4. If `TypeVariable<?>`: read `getName()`, `getBounds()`, and `getGenericDeclaration()`. Do not assume the type variable has already been substituted with a concrete `Class`.
+5. If `WildcardType`: read both `getUpperBounds()` and `getLowerBounds()`.
+6. If `GenericArrayType`: continue inspecting `getGenericComponentType()`; the component itself may be another kind of `Type`.
 
-Ví dụ với `Map<String, List<? extends Number>>`, cấu trúc logic là:
+For example, with `Map<String, List<? extends Number>>`, the logical structure is:
 
 ~~~text
 ParameterizedType: Map<String, List<? extends Number>>
@@ -268,13 +268,13 @@ ParameterizedType: Map<String, List<? extends Number>>
       upperBounds: Class(Number)
 ~~~
 
-Cây ví dụ giúp thấy vì sao đoạn code `(Class<?>) p.getActualTypeArguments()[1]` có thể ném `ClassCastException`: phần tử thứ hai là `ParameterizedType` chứ không phải Class.
+This example tree shows why `(Class<?>) p.getActualTypeArguments()[1]` can throw `ClassCastException`: the second element is a `ParameterizedType`, not a `Class`.
 
-Khi xử lý thư viện thực tế, có thể gặp generic signature thiếu hoặc không hợp lệ do class file được sinh/thay đổi. Một số thao tác Reflection liên quan generic có thể gây `TypeNotPresentException`, `MalformedParameterizedTypeException` hoặc `GenericSignatureFormatError`. Hãy dùng dữ liệu type có cấu trúc khi có thể và báo lỗi metadata rõ ràng.
+When working with real-world libraries, you may encounter missing or invalid generic signatures in generated/modified class files. Some generic Reflection operations can throw `TypeNotPresentException`, `MalformedParameterizedTypeException`, or `GenericSignatureFormatError`. Use structured type data when possible and report metadata errors clearly.
 
-## 7. Chương trình Java 17+ đầy đủ: quan sát Class và các dạng Type
+## 7. Complete Java 17+ Program: Observing `Class` and the Forms of `Type`
 
-Tạo **một tệp** tên `ClassVsTypeDemo.java`:
+Create **one file** named `ClassVsTypeDemo.java`:
 
 ~~~java
 import java.lang.reflect.*;
@@ -348,14 +348,14 @@ public class ClassVsTypeDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa `ClassVsTypeDemo.java`:
+Compile and run in the directory containing `ClassVsTypeDemo.java`:
 
 ~~~bash
 javac --release 17 ClassVsTypeDemo.java
 java ClassVsTypeDemo
 ~~~
 
-**Stdout đã kiểm chứng bằng JDK 21 với `--release 17`:**
+**Verified stdout on JDK 21 with `--release 17`:**
 
 ~~~text
 names: raw=java.util.List, generic=java.util.List<java.lang.String>, kind=ParameterizedType
@@ -371,37 +371,37 @@ IntegerBox parent arg=java.lang.Integer
 captured=java.util.List<java.lang.String>
 ~~~
 
-### Giải thích bằng bằng chứng trong output
+### Explanation Using Evidence in the Output
 
-**`names`:** Kiểu runtime là `List`. Generic signature giữ `String`, nên `getGenericType()` là `ParameterizedType` và `getActualTypeArguments()[0]` là `String.class`.
+**`names`:** The runtime type is `List`. The generic signature preserves `String`, so `getGenericType()` is a `ParameterizedType` and `getActualTypeArguments()[0]` is `String.class`.
 
-**`value`:** Trong khai báo `Box<T extends Number>`, `T` vẫn là biến kiểu ở metadata. `Field.getType()` cho kiểu sau erasure `Number.class`, trong khi `getGenericType()` trả `TypeVariable` mang tên `T`. Giới hạn trên được in thành `Number`.
+**`value`:** In the declaration `Box<T extends Number>`, `T` remains a type variable in metadata. `Field.getType()` gives the erased type `Number.class`, while `getGenericType()` returns a `TypeVariable` named `T`. Its upper bound prints as `Number`.
 
-**`history`:** Với field `T[]`, raw runtime array có component erasure `Number`, nhưng generic signature giữ component `T`, do đó `GenericArrayType`.
+**`history`:** For the field `T[]`, the raw runtime array has erased component `Number`, but the generic signature preserves component `T`, hence `GenericArrayType`.
 
-**`rates`:** Bên ngoài là `List<? extends Number>`, một `ParameterizedType`. Type argument nằm bên trong là `WildcardType`, có upper bound `Number`.
+**`rates`:** The outer type is `List<? extends Number>`, a `ParameterizedType`. The type argument inside is a `WildcardType` with upper bound `Number`.
 
-**`groups` và `labels`:** `List<String>[]` là `GenericArrayType` vì component `List<String>` có tham số generic. `String[]` lại là một `Class` runtime. Đây là một trong các phép so sánh dễ thấy nhất của `Class` và `Type`.
+**`groups` and `labels`:** `List<String>[]` is a `GenericArrayType` because its component `List<String>` has a generic parameter. `String[]` is a runtime `Class`. This is one of the clearest comparisons between `Class` and `Type`.
 
-**`IntegerBox`:** Đối tượng `IntegerBox.class.getGenericSuperclass()` trả về chữ ký `Box<Integer>` trong metadata của subclass, vì vậy có thể đọc `Integer`. Điều này **khác với** việc lấy một object của `Box` không có subclass xác định và hỏi `getClass()` xem tham số `T` là gì.
+**`IntegerBox`:** `IntegerBox.class.getGenericSuperclass()` returns the `Box<Integer>` signature in the subclass's metadata, so `Integer` can be read. This **differs from** taking an object of `Box` with no specific subclass and asking `getClass()` what the `T` argument is.
 
-**`TypeCapture`:** Anonymous subclass có khai báo generic superclass chứa `List<String>`. Phương thức `capture()` đọc chữ ký superclass đó để thu được `ParameterizedType`, giữ lại đối số `String`.
+**`TypeCapture`:** The anonymous subclass has a generic superclass declaration containing `List<String>`. The `capture()` method reads that superclass signature to obtain a `ParameterizedType`, preserving the `String` argument.
 
-Phần output được xây từ tên kiểu chuẩn của các Type, không in tên lớp triển khai nội bộ `sun.reflect.generics.reflectiveObjects.*`, vì tên triển khai nội bộ không phải hợp đồng API công khai.
+The output is constructed from the canonical type names of the `Type` objects rather than printing internal implementation class names `sun.reflect.generics.reflectiveObjects.*`, because internal implementation names are not part of the public API contract.
 
-## 8. Type token: giữ thông tin List<String> khi API cần Type
+## 8. Type Tokens: Preserving `List<String>` Information When an API Needs `Type`
 
-Đôi khi API nhận một tham số kiểu chung để cấu hình parser, JSON serializer, dependency injection hoặc converter:
+Sometimes an API accepts a general type parameter to configure a parser, JSON serializer, dependency injection container, or converter:
 
 ~~~java
 void register(Type type) {
-    // Đọc cấu trúc Type để biết kiểu dữ liệu cần xử lý.
+    // Read the Type structure to determine the data type to handle.
 }
 ~~~
 
-Đây là ví dụ chữ ký minh họa, không phải chương trình độc lập.
+This is an illustrative signature example, not a standalone program.
 
-Gọi `register(List.class)` chỉ cung cấp raw class; thông tin `String` không còn. Một kỹ thuật thường dùng là **generic type token** thông qua anonymous subclass:
+Calling `register(List.class)` only supplies the raw class; the `String` information is gone. A common technique is a **generic type token** via an anonymous subclass:
 
 ~~~java
 abstract class TypeCapture<T> {
@@ -416,24 +416,24 @@ System.out.println(listOfStrings.getTypeName());
 // java.util.List<java.lang.String>
 ~~~
 
-Đoạn minh họa cần import `java.lang.reflect.Type`, `java.lang.reflect.ParameterizedType` và `java.util.List`. Phương thức `capture()` dựa trên điều kiện **subclass thực sự khai báo superclass có tham số generic**, như anonymous subclass `new TypeCapture<List<String>>() {}`. Nếu tạo subclass raw hoặc thay cấu trúc kế thừa, việc ép `(ParameterizedType)` không còn được bảo đảm.
+This snippet requires importing `java.lang.reflect.Type`, `java.lang.reflect.ParameterizedType`, and `java.util.List`. The `capture()` method relies on the condition that **the subclass actually declares a superclass with generic arguments**, such as the anonymous subclass `new TypeCapture<List<String>>() {}`. If you create a raw subclass or alter the inheritance structure, casting to `(ParameterizedType)` is no longer guaranteed.
 
-Vì sao cách này giữ được thông tin? Trình biên dịch ghi kiểu `List<String>` vào **generic superclass signature của anonymous subclass**, nên Reflection có thể đọc nó. Nó **không khôi phục** thông tin từ một `ArrayList<String>` object bình thường đã bị erasure.
+Why does this approach preserve the information? The compiler writes the `List<String>` type into the **anonymous subclass's generic superclass signature**, so Reflection can read it. It **does not recover** information from an ordinary erased `ArrayList<String>` object.
 
-Một số thư viện cung cấp sẵn API type token, ví dụ `TypeReference<T>` hoặc `TypeToken<T>`. Đừng giả định mọi thư viện dùng cùng API hoặc cùng quy tắc equality; ý tưởng chung là lưu `Type` đã mô tả đầy đủ vào thời điểm khai báo.
+Some libraries provide ready-made type token APIs, such as `TypeReference<T>` or `TypeToken<T>`. Do not assume every library uses the same API or the same equality rules; the shared idea is to store a `Type` fully described at declaration time.
 
-## 9. Phân biệt ba thông tin thường bị đánh đồng
+## 9. Distinguishing Three Commonly Conflated Pieces of Information
 
-### Kiểu runtime của đối tượng
+### Runtime Type of an Object
 
 ~~~java
 Object value = java.util.List.of("a", "b");
 Class<?> runtimeClass = value.getClass();
 ~~~
 
-`runtimeClass` mô tả **lớp triển khai thật sự** mà JVM tạo ra cho danh sách. Nó không nói `List<String>` từ biến nguồn. Với factory `List.of`, tên lớp triển khai là chi tiết nội bộ, không nên in/so sánh tên để lập luận về generic.
+`runtimeClass` describes the **actual implementation class** that the JVM created for the list. It does not reveal `List<String>` from the source variable. With factories like `List.of`, the implementation class name is an internal detail and should not be printed or compared to reason about generics.
 
-### Kiểu khai báo tại một vị trí
+### Declared Type at a Site
 
 ~~~java
 class Response {
@@ -442,9 +442,9 @@ class Response {
 Type declaredType = Response.class.getDeclaredField("values").getGenericType();
 ~~~
 
-Chữ ký field có thể cho biết `List<String>`. Nó là **metadata của khai báo**, không phải bằng chứng rằng danh sách đang chứa đúng kiểu phần tử tại mọi thời điểm.
+The field signature can tell us `List<String>`. It is **declaration metadata**, not proof that the list contains elements of that exact type at all times.
 
-### Kiểu thực tế sau khi liên kết generic qua kế thừa
+### Effective Type After Binding Generics Through Inheritance
 
 ~~~java
 class Parent<T> { }
@@ -452,77 +452,77 @@ class Child extends Parent<String> { }
 Type parentSignature = Child.class.getGenericSuperclass();
 ~~~
 
-`parentSignature` là `ParameterizedType` chứa `String` vì mã nguồn của **Child** đã cố định tham số kế thừa. Nếu chuỗi kế thừa phức tạp hơn, để ánh xạ biến kiểu qua nhiều cấp thường phải duyệt và thế TypeVariable bằng type argument có liên quan; không có chuyện mỗi `getGenericSuperclass()` tự giải toàn bộ chuỗi kế thừa.
+`parentSignature` is a `ParameterizedType` containing `String` because the source code of **`Child`** fixed the inheritance argument. If the inheritance chain is more complex, mapping type variables across multiple levels typically requires traversing and substituting each `TypeVariable` with the relevant type argument; `getGenericSuperclass()` alone does not resolve an entire inheritance chain.
 
-Ba mục tiêu này dẫn đến ba API khác nhau. Nên đặt câu hỏi rõ: cần biết class của object, kiểu field/method được khai báo, hay type argument của một superclass/interface?
+These three goals lead to three different APIs. Ask clearly: do you need the object's class, the declared type of a field/method, or the type argument of a superclass/interface?
 
-## 10. Những lỗi thường gặp và cách khắc phục
+## 10. Common Mistakes and How to Fix Them
 
-| Cách hiểu hoặc đoạn code sai | Vì sao sai | Cách đúng |
+| Misconception or wrong code | Why it is wrong | Correct approach |
 | --- | --- | --- |
-| `Class<?> c = (Class<?>) field.getGenericType();` cho mọi field | Với `List<String>` nó là `ParameterizedType`, không phải Class | Dùng `instanceof` phân nhánh theo dạng `Type` |
-| So sánh `List<String>` và `List<Integer>` bằng `getType()` | Cả hai cho raw `List.class` | Dùng `getGenericType()` và đọc type arguments |
-| `Class.forName("java.util.List<java.lang.String>")` | Chuỗi chứa generic signature, không phải binary name của class | Dùng `List.class` cho class, hoặc lấy `Type` từ signature/token |
-| `List<String>.class` | Java không cho tạo class literal cho parameterized type | Dùng `List.class` hoặc type token khi cần `List<String>` |
-| `(Class<?>) p.getActualTypeArguments()[0]` trong mọi trường hợp | Đối số có thể là `WildcardType`, `TypeVariable` hoặc `ParameterizedType` | Phân loại và xử lý đệ quy |
-| Xem `TypeVariable<T>` là `T.class` | Không có class literal độc lập cho biến kiểu T | Đọc bounds và ngữ cảnh generic declaration |
-| Cho rằng mọi kiểu mảng là `GenericArrayType` | `String[]` có runtime `Class` | Kiểm tra cả `Class#isArray()` và `GenericArrayType` |
-| Dùng `object.getClass()` để lấy `List<String>` | Type erasure không lưu tham số generic như thuộc tính object | Giữ `Type` từ khai báo hoặc type token |
-| Đoán cấu trúc từ `Type#getTypeName()` bằng tách dấu phẩy và góc | Generic type có thể lồng sâu, có owner/wildcard/array | Dùng `ParameterizedType`, `WildcardType` và API chuyên biệt |
-| Cho rằng `getGenericType()` bảo đảm object chứa dữ liệu đúng generic | Metadata không tự kiểm tra phần tử ở runtime | Thực hiện kiểm tra dữ liệu ở tầng ứng dụng nếu cần |
+| `Class<?> c = (Class<?>) field.getGenericType();` for every field | For `List<String>` it is a `ParameterizedType`, not a `Class` | Use `instanceof` to branch by `Type` kind |
+| Comparing `List<String>` and `List<Integer>` with `getType()` | Both yield raw `List.class` | Use `getGenericType()` and read the type arguments |
+| `Class.forName("java.util.List<java.lang.String>")` | The string contains a generic signature, not a binary class name | Use `List.class` for the class, or get `Type` from signature/token |
+| `List<String>.class` | Java does not allow class literals for parameterized types | Use `List.class`, or a type token when `List<String>` is needed |
+| `(Class<?>) p.getActualTypeArguments()[0]` in all cases | The argument may be a `WildcardType`, `TypeVariable`, or `ParameterizedType` | Classify and process recursively |
+| Treating `TypeVariable<T>` as `T.class` | There is no standalone class literal for type variable `T` | Read bounds and the generic declaration context |
+| Assuming every array type is `GenericArrayType` | `String[]` has a runtime `Class` | Check both `Class#isArray()` and `GenericArrayType` |
+| Using `object.getClass()` to obtain `List<String>` | Type erasure does not store generic arguments as an object property | Keep `Type` from a declaration or type token |
+| Guessing structure from `Type#getTypeName()` by splitting commas and angle brackets | Generic types can be deeply nested and have owners/wildcards/arrays | Use `ParameterizedType`, `WildcardType`, and specialized APIs |
+| Assuming `getGenericType()` guarantees the object holds data matching the generic | Metadata does not automatically validate elements at runtime | Perform data validation at the application layer if needed |
 
-### Type và AnnotatedType có giống nhau không?
+### Are `Type` and `AnnotatedType` the Same?
 
-Không. `Type` mô tả cấu trúc kiểu, còn `java.lang.reflect.AnnotatedType` cho phép kiểm tra **annotation gắn lên chính vị trí sử dụng kiểu** (*type-use annotation*). Ví dụ một field có annotation trên generic argument có thể cần `Field.getAnnotatedType()` để đọc annotation tương ứng. `AnnotatedType#getType()` trả lại đối tượng `Type` cơ sở. Đừng nhầm `Field.getAnnotations()` (annotation của declaration) với annotation của các nút bên trong type.
+No. `Type` describes type structure, whereas `java.lang.reflect.AnnotatedType` lets you inspect **annotations attached directly to a type use** (*type-use annotations*). For example, a field with an annotation on a generic argument may require `Field.getAnnotatedType()` to read that annotation. `AnnotatedType#getType()` returns the underlying `Type` object. Do not confuse `Field.getAnnotations()` (annotations on the declaration) with annotations on inner nodes of the type.
 
-### Khi nào không cần generic metadata?
+### When Is Generic Metadata Not Needed?
 
-Nếu bài toán là gọi public method, khởi tạo đối tượng bằng constructor, kiểm tra `Class.isInstance` hoặc xử lý field `int`, `String`, việc dùng `Class<?>` thường đã đủ. Chỉ dùng chuỗi xử lý `ParameterizedType`, `TypeVariable` v.v. khi nghiệp vụ **thật sự cần phân tích chữ ký generic**.
+If your task is calling a public method, instantiating an object via a constructor, checking `Class.isInstance`, or handling `int` or `String` fields, using `Class<?>` is usually sufficient. Only use the `ParameterizedType`, `TypeVariable`, etc. handling pipeline when the business logic **truly needs to analyze generic signatures**.
 
-## 11. Bài tập thực hành có đáp án
+## 11. Practice Exercises with Answers
 
-**Bài 1.** Với `List<String> names`, `field.getType()` và `field.getGenericType()` lần lượt là gì?
+**Exercise 1.** For `List<String> names`, what are `field.getType()` and `field.getGenericType()` respectively?
 
-**Đáp án:** `List.class` và một `ParameterizedType` mô tả `List<String>`. Type argument đầu là `String.class`.
+**Answer:** `List.class` and a `ParameterizedType` describing `List<String>`. The first type argument is `String.class`.
 
-**Bài 2.** Với `class Box<T extends Number> { T value; }`, vì sao `getType()` trả `Number.class` thay vì `T.class`?
+**Exercise 2.** For `class Box<T extends Number> { T value; }`, why does `getType()` return `Number.class` instead of `T.class`?
 
-**Đáp án:** Sau type erasure, `T` có giới hạn trên là `Number`; `T` được giữ trong metadata generic dạng `TypeVariable` và không có class literal `T.class`.
+**Answer:** After type erasure, `T` has upper bound `Number`; `T` is preserved in generic metadata as a `TypeVariable`, and there is no class literal `T.class`.
 
-**Bài 3.** Với `List<? super Integer> list`, đối tượng `Type` ngoài cùng và type argument bên trong thuộc dạng nào?
+**Exercise 3.** For `List<? super Integer> list`, what kind of `Type` is the outermost object and what kind is the type argument inside?
 
-**Đáp án:** Ngoài cùng là `ParameterizedType`, argument là `WildcardType`. `getLowerBounds()[0]` cho `Integer.class`.
+**Answer:** The outermost is `ParameterizedType`, and the argument is `WildcardType`. `getLowerBounds()[0]` gives `Integer.class`.
 
-**Bài 4.** Vì sao `String[]` thường là `Class` trong khi `List<String>[]` thường là `GenericArrayType`?
+**Exercise 4.** Why is `String[]` typically a `Class` while `List<String>[]` is typically a `GenericArrayType`?
 
-**Đáp án:** Mảng `String[]` có component reifiable và có runtime class xác định. Component `List<String>` mang tham số generic, được biểu diễn trong generic signature; array generic đó cần `GenericArrayType`.
+**Answer:** The array `String[]` has a reifiable component and a definite runtime class. The component `List<String>` carries a generic argument represented in the generic signature; that generic array requires `GenericArrayType`.
 
-**Bài 5.** Một field khai báo `Map<String, List<Integer>>`. Có an toàn khi ép argument thứ hai của Map sang `Class<?>` không?
+**Exercise 5.** A field is declared as `Map<String, List<Integer>>`. Is it safe to cast the second argument of `Map` to `Class<?>`?
 
-**Đáp án:** Không; argument thứ hai là một `ParameterizedType` mô tả `List<Integer>`. Cần duyệt lồng nhau.
+**Answer:** No; the second argument is a `ParameterizedType` describing `List<Integer>`. Nested traversal is required.
 
-**Bài 6.** `new ArrayList<String>().getClass()` có cho phép lấy `String.class` bằng một API trên Class của object không?
+**Exercise 6.** Does `new ArrayList<String>().getClass()` allow retrieving `String.class` via an API on the object's `Class`?
 
-**Đáp án:** Không, generic argument đã bị erasure. Có thể giữ nó bằng generic field metadata hoặc một type token khai báo rõ `List<String>`.
+**Answer:** No, the generic argument has been erased. It can be preserved via generic field metadata or a type token explicitly declaring `List<String>`.
 
-**Bài 7.** Với `class Child extends Box<Integer>`, API nào giúp đọc `Integer` từ khai báo kế thừa?
+**Exercise 7.** For `class Child extends Box<Integer>`, which API helps read `Integer` from the inheritance declaration?
 
-**Đáp án:** `Child.class.getGenericSuperclass()`, sau đó nếu là `ParameterizedType` thì đọc `getActualTypeArguments()`.
+**Answer:** `Child.class.getGenericSuperclass()`, then if it is a `ParameterizedType`, read `getActualTypeArguments()`.
 
-**Bài 8.** Tại sao API serialization nên nhận `Type` thay vì chỉ nhận `Class<?>` khi cần phân tích `List<User>`?
+**Exercise 8.** Why should a serialization API accept `Type` instead of only `Class<?>` when it needs to analyze `List<User>`?
 
-**Đáp án:** `Class<?>` chỉ cho `List.class`; `Type` có thể giữ cả `User` bên trong generic signature/token, giúp serializer biết kiểu phần tử cần ánh xạ.
+**Answer:** `Class<?>` only provides `List.class`; `Type` can retain `User` inside the generic signature/token, helping the serializer know the element type to map.
 
-## 12. Tóm tắt để ghi nhớ
+## 12. Summary to Remember
 
-- **`Class<?>` là một `Type`**, nhưng `Type` có thể mang cấu trúc generic mà `Class<?>` không mô tả được.
-- Năm dạng cốt lõi: **`Class`, `ParameterizedType`, `TypeVariable`, `WildcardType`, `GenericArrayType`**.
-- **`getType()`** lấy class/erasure của field; **`getGenericType()`** có thể đọc generic signature của khai báo. Các cặp API tương tự áp dụng với method, constructor, superclass và interface.
-- **Type erasure** không xóa mọi generic signature của các khai báo, nhưng nó ngăn việc suy ra type argument chỉ từ `object.getClass()` của một generic object thông thường.
-- Khi phải truyền `List<String>` cho framework, hãy cung cấp `Type` giữ generic information từ metadata hoặc dùng type token; đừng cố tạo `List<String>.class`.
-- Đọc `Type` bằng **phân nhánh và duyệt cấu trúc**, không ép mọi thứ sang `Class<?>` và không tự parse văn bản `getTypeName()`.
+- **`Class<?>` is a `Type`**, but `Type` can carry generic structure that `Class<?>` cannot describe.
+- The five core forms: **`Class`, `ParameterizedType`, `TypeVariable`, `WildcardType`, `GenericArrayType`**.
+- **`getType()`** retrieves a field's class/erasure; **`getGenericType()`** can read the declaration's generic signature. Similar API pairs apply to methods, constructors, superclasses, and interfaces.
+- **Type erasure** does not erase all generic signatures on declarations, but it prevents inferring type arguments solely from `object.getClass()` of an ordinary generic object.
+- When you must pass `List<String>` to a framework, supply a `Type` that preserves generic information from metadata or use a type token; do not try to write `List<String>.class`.
+- Read `Type` by **branching and traversing the structure**, not by casting everything to `Class<?>` or manually parsing the text of `getTypeName()`.
 
-### Tài liệu Java chính thức
+### Official Java Documentation
 
 - [Java SE 17 — `java.lang.reflect.Type`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Type.html).
 - [Java SE 17 — `ParameterizedType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/ParameterizedType.html).

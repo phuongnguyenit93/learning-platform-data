@@ -1,89 +1,89 @@
-# Sắp xếp nhiều tiêu chí bằng Comparator
+# Multi-Criteria Sorting with Comparator
 
-> **Chương:** Thứ tự, loại trùng và cắt lát  
+> **Chapter:** Ordering, Deduplication, and Slicing  
 > **Module:** JAVA_STREAM_API  
-> **Mục tiêu:** Xây dựng bộ so sánh nhiều cấp với `Comparator`, áp dụng cho `Stream.sorted(...)`, kiểm soát thứ tự tăng/giảm, xử lý trường hợp bằng nhau và kết hợp an toàn với `distinct`, `skip`, `limit`.
+> **Goal:** Build multi-level comparators with `Comparator`, apply them to `Stream.sorted(...)`, control ascending/descending order, handle ties, and safely combine them with `distinct`, `skip`, and `limit`.
 
-Khi xử lý dữ liệu bằng **Java Stream API**, yêu cầu sắp xếp hiếm khi chỉ là “theo tên tăng dần”. Danh sách ứng viên có thể cần **điểm cao trước**, nếu bằng điểm thì **phòng ban theo bảng chữ cái**, nếu vẫn bằng thì **thời điểm đăng ký sớm trước**, cuối cùng **mã định danh** để thứ tự ổn định. Với đơn hàng, ta có thể ưu tiên trạng thái, tổng tiền rồi ngày tạo. Những yêu cầu này chính là **sắp xếp nhiều tiêu chí** (*multi-criteria sorting*).
+When processing data with the **Java Stream API**, sorting requirements are rarely just "by name ascending". A candidate list may need **highest score first**, if tied then **department alphabetically**, if still tied then **earliest registration order**, and finally **ID** so the order is deterministic. For orders, you might prioritize status, total amount, and then creation date. These requirements are **multi-criteria sorting**.
 
-Trong pipeline khai báo của module **JAVA_STREAM_API**, `sorted(comparator)` là phép toán trung gian có trạng thái. Để dùng nó đúng, phải hiểu hợp đồng của `Comparator`, thứ tự gặp phần tử (*encounter order*), hành vi lazy và ảnh hưởng tới hiệu năng, nhất là khi kết hợp lọc, phân trang, thu thập kết quả hoặc xử lý song song. Các kỹ năng này cũng cần thiết khi làm việc với grouping, collector tùy chỉnh, `Spliterator` và các phép biến đổi Stream nâng cao.
+In the declarative pipelines of the **JAVA_STREAM_API** module, `sorted(comparator)` is a stateful intermediate operation. To use it properly, you must understand the contract of `Comparator`, *encounter order*, lazy behavior, and performance implications—especially when combining filtering, pagination, result collection, or parallel processing. These skills are also essential when working with grouping, custom collectors, `Spliterator`, and advanced Stream transformations.
 
-## 1. Từ yêu cầu nghiệp vụ đến chuỗi tiêu chí
+## 1. From Business Requirements to a Chain of Criteria
 
-Giả sử có năm hồ sơ cần xếp hạng:
+Suppose there are five candidate profiles to rank:
 
-| Mã hồ sơ | Tên | Điểm | Nhóm | Thứ tự đăng ký |
+| Profile ID | Name | Score | Team | Registration Order |
 | --- | --- | ---: | --- | ---: |
 | U04 | An | 90 | Backend | 100 |
-| U02 | Bình | 95 | Mobile | 103 |
+| U02 | Binh | 95 | Mobile | 103 |
 | U03 | Chi | 95 | Backend | 101 |
 | U01 | Dung | 95 | Backend | 101 |
 | U05 | Em | 95 | Mobile | 101 |
 
-Quy tắc sắp xếp:
+Sorting rules:
 
-1. **Điểm giảm dần**: điểm cao đứng trước.
-2. **Nhóm tăng dần** theo thứ tự từ điển: Backend trước Mobile.
-3. **Thứ tự đăng ký tăng dần**: đăng ký trước đứng trước.
-4. **Mã hồ sơ tăng dần** để loại bỏ tình huống nhiều phần tử có cùng ba khóa đầu.
+1. **Score descending**: higher scores come first.
+2. **Team ascending** in lexicographical order: Backend before Mobile.
+3. **Registration order ascending**: earlier registration comes first.
+4. **Profile ID ascending** to eliminate ties when multiple elements share the first three keys.
 
-Kết quả mong đợi:
+Expected result:
 
 ```text
 U01  Dung  95  Backend  101
 U03  Chi   95  Backend  101
 U05  Em    95  Mobile   101
-U02  Bình  95  Mobile   103
+U02  Binh  95  Mobile   103
 U04  An    90  Backend  100
 ```
 
-Ta có thể hình dung cách quyết định thứ tự giữa hai hồ sơ:
+We can visualize how order is decided between two profiles:
 
 ```text
-So điểm:
-  khác nhau? -> quyết định (điểm lớn hơn đứng trước)
+Compare score:
+  different? -> decide (higher score comes first)
        |
-      bằng
+     equal
        v
-So nhóm:
-  khác nhau? -> quyết định (nhóm A-Z)
+Compare team:
+  different? -> decide (team A-Z)
        |
-      bằng
+     equal
        v
-So thứ tự đăng ký:
-  khác nhau? -> quyết định (số nhỏ hơn trước)
+Compare registration order:
+  different? -> decide (smaller number first)
        |
-      bằng
+     equal
        v
-So mã:
-  khác nhau? -> quyết định (mã A-Z)
+Compare ID:
+  different? -> decide (ID A-Z)
        |
-      bằng
+     equal
        v
-Hai hồ sơ tương đương theo tất cả khóa sắp xếp
+Two profiles are equivalent across all sort keys
 ```
 
-**Nguyên tắc:** tiêu chí đứng trước có độ ưu tiên cao hơn. Tiêu chí tiếp theo **chỉ được xét khi kết quả so sánh trước đó bằng 0**.
+**Principle:** earlier criteria have higher priority. The next criterion **is only evaluated when the previous comparison returns 0**.
 
-## 2. Comparator hoạt động như thế nào?
+## 2. How Does `Comparator` Work?
 
-`Comparator<T>` là một functional interface trong `java.util`, có phương thức:
+`Comparator<T>` is a functional interface in `java.util` with the method:
 
 ```java
 int compare(T left, T right);
 ```
 
-Ý nghĩa dấu của kết quả:
+Meaning of the result's sign:
 
-| `compare(a, b)` | Quan hệ sắp xếp |
+| `compare(a, b)` | Sort relationship |
 | --- | --- |
-| Âm (`< 0`) | `a` đứng trước `b`. |
-| Bằng `0` | `a` và `b` tương đương **theo tiêu chí so sánh**. |
-| Dương (`> 0`) | `a` đứng sau `b`. |
+| Negative (`< 0`) | `a` comes before `b`. |
+| Equal to `0` | `a` and `b` are equivalent **under the comparison criterion**. |
+| Positive (`> 0`) | `a` comes after `b`. |
 
-Giá trị trả về **không bắt buộc** là `-1`, `0` hoặc `1`; Java chỉ dùng dấu của nó.
+The return value **does not have to be** `-1`, `0`, or `1`; Java only uses its sign.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.Comparator;
@@ -95,51 +95,51 @@ System.out.println(ascending.compare(2, 9) < 0);  // true
 System.out.println(descending.compare(2, 9) > 0); // true
 ```
 
-Một bộ so sánh hợp lệ phải tuân thủ các thuộc tính quan trọng:
+A valid comparator must satisfy key properties:
 
-- **Đảo dấu hợp lý:** dấu của `compare(a,b)` là dấu đối nghịch với `compare(b,a)`.
-- **Tính bắc cầu (transitivity):** nếu `a` trước `b` và `b` trước `c` thì `a` phải trước `c`.
-- **Tính nhất quán khi bằng nhau theo Comparator:** nếu `compare(a,b) == 0`, kết quả so sánh `a` và `b` với cùng `c` phải có dấu giống nhau.
-- Các khóa dùng để so sánh cần giữ ổn định trong quá trình sắp xếp; không thay đổi chúng giữa các lần gọi `compare`.
+- **Antisymmetric sign:** the sign of `compare(a,b)` is opposite to `compare(b,a)`.
+- **Transitivity:** if `a` precedes `b` and `b` precedes `c`, then `a` must precede `c`.
+- **Consistency under Comparator equality:** if `compare(a,b) == 0`, comparing `a` and `b` against any `c` must yield the same sign.
+- Keys used in comparisons must remain stable during sorting; do not mutate them between `compare` calls.
 
-Vi phạm hợp đồng có thể khiến thuật toán sắp xếp trả kết quả không đáng tin cậy hoặc ném `IllegalArgumentException` trong một số trường hợp.
+Violating this contract can cause sorting algorithms to return unreliable results or throw `IllegalArgumentException` in certain cases.
 
-### 2.1. Comparator và Comparable khác nhau
+### 2.1. `Comparator` vs `Comparable`
 
-- `Comparable<T>` định nghĩa **thứ tự tự nhiên** của một kiểu qua `compareTo`, ví dụ `String`, `Integer` và `LocalDate`.
-- `Comparator<T>` là **thứ tự được cung cấp từ bên ngoài**, có thể tùy biến theo yêu cầu và kết hợp nhiều tiêu chí mà không sửa lớp dữ liệu.
+- `Comparable<T>` defines a type's **natural order** via `compareTo`, such as `String`, `Integer`, and `LocalDate`.
+- `Comparator<T>` is an **externally supplied order** that can be customized per requirement and combined across multiple criteria without modifying the data class.
 
-`Stream.sorted()` không có tham số dùng thứ tự tự nhiên; phần tử phải so sánh được với nhau. `Stream.sorted(comparator)` dùng bộ so sánh đã truyền.
+Parameterless `Stream.sorted()` uses natural order; elements must be mutually comparable. `Stream.sorted(comparator)` uses the provided comparator.
 
 ```java
-List<String> names = List.of("Chi", "An", "Bình");
+List<String> names = List.of("Chi", "An", "Binh");
 
 List<String> natural = names.stream()
     .sorted()
-    .toList(); // [An, Bình, Chi]
+    .toList(); // [An, Binh, Chi]
 
 List<String> byLength = names.stream()
     .sorted(Comparator.comparingInt(String::length))
-    .toList(); // [An, Chi, Bình]
+    .toList(); // [An, Chi, Binh]
 ```
 
-Nếu phần tử không có `Comparable` thích hợp, dùng `sorted()` có thể gây `ClassCastException` khi pipeline thực thi. Với các record hoặc đối tượng nghiệp vụ, nên truyền một `Comparator` rõ ràng.
+If elements lack an appropriate `Comparable`, calling `sorted()` can throw `ClassCastException` when the pipeline executes. For records or business objects, passing an explicit `Comparator` is recommended.
 
-## 3. Tạo tiêu chí đầu tiên với comparing
+## 3. Creating the Primary Criterion with `comparing`
 
-`Comparator` cung cấp các factory method và cách kết hợp để mô tả sắp xếp trực tiếp:
+`Comparator` provides factory methods and combinators to express sorting directly:
 
-| Phương thức | Ý nghĩa |
+| Method | Meaning |
 | --- | --- |
-| `Comparator.comparing(keyExtractor)` | So sánh theo khóa trích ra, dùng thứ tự tự nhiên của khóa. |
-| `Comparator.comparing(keyExtractor, keyComparator)` | So sánh khóa theo Comparator được chỉ định. |
-| `Comparator.comparingInt(...)` | So sánh khóa kiểu `int` mà không cần boxing trong quá trình trích khóa. |
-| `Comparator.comparingLong(...)` | So sánh khóa kiểu `long`. |
-| `Comparator.comparingDouble(...)` | So sánh khóa kiểu `double`. |
-| `Comparator.naturalOrder()` | Thứ tự tự nhiên. |
-| `Comparator.reverseOrder()` | Đảo thứ tự tự nhiên. |
+| `Comparator.comparing(keyExtractor)` | Compares by the extracted key using the key's natural order. |
+| `Comparator.comparing(keyExtractor, keyComparator)` | Compares the key using the specified Comparator. |
+| `Comparator.comparingInt(...)` | Compares an `int` key without boxing during key extraction. |
+| `Comparator.comparingLong(...)` | Compares a `long` key. |
+| `Comparator.comparingDouble(...)` | Compares a `double` key. |
+| `Comparator.naturalOrder()` | Natural order. |
+| `Comparator.reverseOrder()` | Reverses natural order. |
 
-Dùng record minh họa (Java 16+):
+Using a record for illustration (Java 16+):
 
 ```java
 record Candidate(
@@ -151,56 +151,56 @@ record Candidate(
 ) {}
 ```
 
-Sắp xếp theo điểm tăng dần:
+Sort by score ascending:
 
 ```java
 Comparator<Candidate> byScoreAsc =
     Comparator.comparingInt(Candidate::score);
 ```
 
-Sắp xếp điểm giảm dần:
+Sort by score descending:
 
 ```java
 Comparator<Candidate> byScoreDesc =
     Comparator.comparingInt(Candidate::score).reversed();
 ```
 
-Sắp xếp tên:
+Sort by name:
 
 ```java
 Comparator<Candidate> byName =
     Comparator.comparing(Candidate::name);
 ```
 
-Đối với kiểu nguyên thủy, ưu tiên `comparingInt`, `comparingLong` hoặc `comparingDouble` khi phù hợp. Cách này làm rõ loại khóa và tránh tạo wrapper chỉ để so sánh.
+For primitive types, prefer `comparingInt`, `comparingLong`, or `comparingDouble` when applicable. This makes the key type explicit and avoids creating wrapper objects solely for comparison.
 
-### 3.1. Tránh phép trừ trong compare
+### 3.1. Avoid Subtraction in `compare`
 
-Không viết bộ so sánh số nguyên bằng cách lấy hiệu một cách tùy tiện:
+Do not write integer comparators by arbitrarily subtracting values:
 
 ```java
 Comparator<Integer> unsafe = (a, b) -> a - b;
 ```
 
-Ví dụ với `a = Integer.MAX_VALUE` và `b = -1`, phép trừ vượt giới hạn `int` có thể làm sai dấu. Điều đó phá hỏng ý nghĩa thứ tự.
+For example, with `a = Integer.MAX_VALUE` and `b = -1`, subtraction overflows `int` and flips the sign. That breaks the ordering semantics.
 
-Dùng:
+Use:
 
 ```java
 Comparator<Integer> safe = Integer::compare;
 
-// Hoặc cho Candidate:
+// Or for Candidate:
 Comparator<Candidate> byScore =
     Comparator.comparingInt(Candidate::score);
 ```
 
-Tương tự với `long`, dùng `Long.compare` hoặc `comparingLong`.
+Similarly for `long`, use `Long.compare` or `comparingLong`.
 
-## 4. Ghép nhiều tiêu chí bằng thenComparing
+## 4. Chaining Multiple Criteria with `thenComparing`
 
-Đây là kỹ thuật chính của bài học. `thenComparing` nhận một Comparator thứ cấp; nó chỉ được sử dụng nếu Comparator trước đó trả về `0`.
+This is the core technique of this lesson. `thenComparing` accepts a secondary Comparator; it is only consulted if the preceding Comparator returns `0`.
 
-### 4.1. Ví dụ đủ bốn cấp
+### 4.1. Complete Four-Level Example
 
 ```java
 Comparator<Candidate> ranking = Comparator
@@ -211,14 +211,14 @@ Comparator<Candidate> ranking = Comparator
     .thenComparing(Candidate::id);
 ```
 
-Đọc từ trên xuống:
+Reading from top to bottom:
 
-- `comparingInt(Candidate::score).reversed()`: điểm cao trước.
-- `thenComparing(Candidate::team)`: khi đồng điểm, nhóm theo thứ tự tự nhiên.
-- `thenComparingLong(Candidate::registeredOrder)`: khi cùng điểm và nhóm, hồ sơ sớm trước.
-- `thenComparing(Candidate::id)`: khóa cuối cùng giúp thứ tự có tính xác định nếu mã là duy nhất.
+- `comparingInt(Candidate::score).reversed()`: higher score first.
+- `thenComparing(Candidate::team)`: on equal scores, team in natural order.
+- `thenComparingLong(Candidate::registeredOrder)`: on equal score and team, earlier registration first.
+- `thenComparing(Candidate::id)`: final key makes the order deterministic if IDs are unique.
 
-Áp dụng:
+Applying it:
 
 ```java
 List<Candidate> sorted = candidates.stream()
@@ -226,20 +226,20 @@ List<Candidate> sorted = candidates.stream()
     .toList();
 ```
 
-`sorted(ranking)` là một **phép toán trung gian**. Đến `toList()`, Stream mới được đánh giá và trả danh sách theo thứ tự mới. `candidates` không bị sắp xếp tại chỗ.
+`sorted(ranking)` is an **intermediate operation**. Only at `toList()` is the Stream evaluated and returned as a list in the new order. `candidates` is not sorted in place.
 
-### 4.2. thenComparing có những overload nào?
+### 4.2. What Overloads Does `thenComparing` Have?
 
-| Dạng | Mục đích |
+| Form | Purpose |
 | --- | --- |
-| `thenComparing(Comparator<? super T>)` | Ghép Comparator thứ cấp đã có. |
-| `thenComparing(keyExtractor)` | Sắp xếp theo khóa kiểu object với thứ tự tự nhiên. |
-| `thenComparing(keyExtractor, keyComparator)` | Sắp xếp theo khóa kiểu object với Comparator riêng. |
-| `thenComparingInt(keyExtractor)` | So sánh khóa `int` thứ cấp. |
-| `thenComparingLong(keyExtractor)` | So sánh khóa `long` thứ cấp. |
-| `thenComparingDouble(keyExtractor)` | So sánh khóa `double` thứ cấp. |
+| `thenComparing(Comparator<? super T>)` | Chains an existing secondary Comparator. |
+| `thenComparing(keyExtractor)` | Sorts by an object key using its natural order. |
+| `thenComparing(keyExtractor, keyComparator)` | Sorts by an object key using a custom Comparator. |
+| `thenComparingInt(keyExtractor)` | Compares a secondary `int` key. |
+| `thenComparingLong(keyExtractor)` | Compares a secondary `long` key. |
+| `thenComparingDouble(keyExtractor)` | Compares a secondary `double` key. |
 
-Ví dụ tái sử dụng các Comparator có tên:
+Example reusing named Comparators:
 
 ```java
 Comparator<Candidate> byTeam =
@@ -258,33 +258,33 @@ Comparator<Candidate> ranking = Comparator
     .thenComparing(byId);
 ```
 
-Cách tách biến hữu ích nếu một tiêu chí có logic phức tạp, cần tái sử dụng hoặc kiểm thử riêng.
+Extracting variables is helpful when a criterion has complex logic, needs reuse, or requires isolated unit testing.
 
-## 5. Đảo chiều từng tiêu chí: lỗi reversed() rất dễ gặp
+## 5. Reversing Individual Criteria: A Common `reversed()` Bug
 
-`Comparator.reversed()` đảo **toàn bộ Comparator hiện tại**, không chỉ bước so sánh viết sát cạnh nó trong chuỗi logic.
+`Comparator.reversed()` reverses the **entire current Comparator**, not just the comparison step written immediately next to it in the fluent chain.
 
-Giả sử muốn **điểm giảm dần**, nhưng **tên tăng dần**.
+Suppose you want **score descending**, but **name ascending**.
 
-**Đúng:**
+**Correct:**
 
 ```java
 Comparator<Candidate> correct = Comparator
     .comparingInt(Candidate::score)
-    .reversed()                        // Chỉ đảo comparator theo điểm.
-    .thenComparing(Candidate::name);   // Tên vẫn tăng dần.
+    .reversed()                        // Reverses only the score comparator.
+    .thenComparing(Candidate::name);   // Name stays ascending.
 ```
 
-**Sai nếu mục tiêu chỉ là đảo điểm:**
+**Wrong if the goal is only to reverse score:**
 
 ```java
 Comparator<Candidate> wrong = Comparator
     .comparingInt(Candidate::score)
     .thenComparing(Candidate::name)
-    .reversed(); // Đảo cả điểm VÀ tên.
+    .reversed(); // Reverses BOTH score AND name.
 ```
 
-Khi muốn đảo **riêng tiêu chí thứ hai**, tạo Comparator phụ rồi đảo nó:
+When you want to reverse **only the second criterion**, create a sub-comparator and reverse it:
 
 ```java
 Comparator<Candidate> scoreAscNameDesc = Comparator
@@ -294,7 +294,7 @@ Comparator<Candidate> scoreAscNameDesc = Comparator
     );
 ```
 
-Hoặc cung cấp Comparator dành riêng cho khóa:
+Or provide a dedicated Comparator for the key:
 
 ```java
 Comparator<Candidate> scoreAscNameDesc2 = Comparator
@@ -305,9 +305,9 @@ Comparator<Candidate> scoreAscNameDesc2 = Comparator
     );
 ```
 
-Hai cách trên đều sắp theo **điểm tăng dần, tên giảm dần**.
+Both approaches sort by **score ascending, name descending**.
 
-### 5.1. Khi cả hai tiêu chí đều giảm dần
+### 5.1. When Both Criteria Are Descending
 
 ```java
 Comparator<Candidate> scoreDescNameDesc = Comparator
@@ -318,11 +318,11 @@ Comparator<Candidate> scoreDescNameDesc = Comparator
     );
 ```
 
-Việc viết rõ hướng cho từng cấp giúp ngăn thay đổi ngoài ý muốn khi yêu cầu nghiệp vụ được sửa sau này.
+Explicitly specifying the direction of each level helps prevent unintended changes when business requirements are updated later.
 
-### 5.2. Comparator cho ngày và thời gian
+### 5.2. Comparators for Dates and Times
 
-`LocalDate`, `Instant` và nhiều kiểu `java.time` có thứ tự tự nhiên. Ví dụ ưu tiên hạn xử lý gần nhất:
+`LocalDate`, `Instant`, and many `java.time` types have natural ordering. For example, prioritizing the earliest due date:
 
 ```java
 record Task(String id, int priority, java.time.LocalDate dueDate) {}
@@ -334,7 +334,7 @@ Comparator<Task> byPriorityDescDueAsc = Comparator
     .thenComparing(Task::id);
 ```
 
-Nếu ngày muộn nhất cần đứng trước:
+If the latest date needs to come first:
 
 ```java
 Comparator<Task> byPriorityDescDueDesc = Comparator
@@ -347,11 +347,11 @@ Comparator<Task> byPriorityDescDueDesc = Comparator
     .thenComparing(Task::id);
 ```
 
-Tư duy nhất quán: mỗi cấp có một **khóa** và một **hướng**. Không phụ thuộc vào cảm giác của tên `reversed` ở cuối chuỗi.
+Consistent mental model: each level has a **key** and a **direction**. Do not rely on intuition from placing `reversed` at the end of the chain.
 
-## 6. Một ví dụ Java chạy độc lập
+## 6. Standalone Runnable Java Example
 
-Ví dụ sau dùng Java 17+, kết hợp đúng bốn tiêu chí nêu đầu bài. Lưu vào `MultiCriteriaSortDemo.java`:
+The following example uses Java 17+ and implements the exact four criteria introduced at the start. Save it as `MultiCriteriaSortDemo.java`:
 
 ```java
 import java.util.Comparator;
@@ -369,7 +369,7 @@ public class MultiCriteriaSortDemo {
     public static void main(String[] args) {
         List<Candidate> candidates = List.of(
             new Candidate("U04", "An", 90, "Backend", 100),
-            new Candidate("U02", "Bình", 95, "Mobile", 103),
+            new Candidate("U02", "Binh", 95, "Mobile", 103),
             new Candidate("U03", "Chi", 95, "Backend", 101),
             new Candidate("U01", "Dung", 95, "Backend", 101),
             new Candidate("U05", "Em", 95, "Mobile", 101)
@@ -398,19 +398,19 @@ public class MultiCriteriaSortDemo {
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
-U01 | Dung  | 95 | Backend | 101
+U01 | Dung | 95 | Backend | 101
 U03 | Chi  | 95 | Backend | 101
 U05 | Em   | 95 | Mobile  | 101
-U02 | Bình | 95 | Mobile  | 103
+U02 | Binh | 95 | Mobile  | 103
 U04 | An   | 90 | Backend | 100
 ```
 
-Vì các mã hồ sơ duy nhất, tiêu chí cuối cùng phân biệt được mọi cặp hồ sơ. Đây là một cách thực tế để bảo đảm thứ tự nhất quán giữa những lần xử lý cùng một bộ dữ liệu, đặc biệt khi phân trang.
+Because profile IDs are unique, the final criterion distinguishes every pair of profiles. This is a practical way to guarantee consistent order across repeated runs on the same dataset, especially when paginating.
 
-Nếu chỉ muốn lấy mã hồ sơ sau sắp xếp:
+If you only want the profile IDs after sorting:
 
 ```java
 List<String> rankedIds = candidates.stream()
@@ -421,15 +421,15 @@ List<String> rankedIds = candidates.stream()
 // [U01, U03, U05, U02, U04]
 ```
 
-Trong trường hợp tổng quát, hãy đặt `sorted` trước `map` nếu ánh xạ bỏ đi thông tin cần dùng để sắp xếp. Nếu ánh xạ thành một đối tượng vẫn giữ đủ khóa và đáp ứng cùng quy tắc, có thể thiết kế thứ tự khác; điều quan trọng là đảm bảo tính tương đương về ngữ nghĩa.
+In general, place `sorted` before `map` if mapping discards information needed for sorting. If mapping produces an object that still retains enough keys and satisfies the same rule, a different order may be designed; the key is preserving semantic equivalence.
 
-## 7. Xử lý null ở khóa sắp xếp và ở chính phần tử
+## 7. Handling `null` in Sort Keys and in Elements Themselves
 
-### 7.1. Khóa có thể null
+### 7.1. Nullable Keys
 
-`Comparator.comparing(Candidate::team)` mặc định sử dụng thứ tự tự nhiên của `String` và sẽ không xử lý được khóa `null` khi cần so sánh nó với khóa khác.
+`Comparator.comparing(Candidate::team)` uses `String`'s natural order by default and cannot handle a `null` key when comparing it against another key.
 
-Nếu yêu cầu là “nhóm chưa biết xếp cuối”, viết:
+If the requirement is "unknown team goes last", write:
 
 ```java
 Comparator<Candidate> byNullableTeam = Comparator.comparing(
@@ -438,7 +438,7 @@ Comparator<Candidate> byNullableTeam = Comparator.comparing(
 );
 ```
 
-Nếu “nhóm chưa biết xếp đầu”:
+If "unknown team goes first":
 
 ```java
 Comparator<Candidate> byNullableTeamFirst = Comparator.comparing(
@@ -447,7 +447,7 @@ Comparator<Candidate> byNullableTeamFirst = Comparator.comparing(
 );
 ```
 
-Có thể ghép vào chuỗi:
+You can chain this into the sequence:
 
 ```java
 Comparator<Candidate> rankingWithNullTeam = Comparator
@@ -459,11 +459,11 @@ Comparator<Candidate> rankingWithNullTeam = Comparator
     .thenComparing(Candidate::id);
 ```
 
-`nullsLast(...)` ở đây áp dụng cho **giá trị khóa `team`**, không phải toàn bộ `Candidate`.
+Here `nullsLast(...)` applies to the **`team` key value**, not the entire `Candidate`.
 
-### 7.2. Toàn bộ phần tử có thể null
+### 7.2. Whole Elements That May Be `null`
 
-Nếu Stream có phần tử `null` (ví dụ một nguồn cho phép điều đó), cần bọc comparator dùng cho cả phần tử:
+If the Stream contains `null` elements (for example, from a source that permits them), wrap the element-level comparator:
 
 ```java
 Comparator<Candidate> nonNullComparator =
@@ -477,49 +477,49 @@ List<Candidate> sorted = candidatesWithNulls.stream()
     .toList();
 ```
 
-`candidatesWithNulls` là danh sách minh họa cần có trong chương trình sử dụng đoạn mã này.
+`candidatesWithNulls` is an illustrative list that must exist in a program using this snippet.
 
-Hai tình huống khác nhau:
+Two distinct cases:
 
-- `Candidate` tồn tại nhưng `candidate.team() == null`: xử lý **khóa null**.
-- Bản thân phần tử `Candidate` là `null`: xử lý **phần tử null**.
+- `Candidate` exists, but `candidate.team() == null`: handle a **nullable key**.
+- The `Candidate` element itself is `null`: handle a **nullable element**.
 
-Không dùng `nullsLast` ở lớp ngoài rồi kỳ vọng nó tự xử lý khóa có thể null bên trong đối tượng.
+Do not wrap the outer comparator in `nullsLast` and expect it to automatically handle nullable keys inside the object.
 
-### 7.3. Đảo chiều và vị trí null
+### 7.3. Reversing and `null` Position
 
-`Comparator.nullsLast(Comparator.reverseOrder())` có nghĩa **giá trị khác null giảm dần, null vẫn ở cuối**. Nhưng gọi `reversed()` trên **toàn bộ** Comparator có `nullsLast` sẽ đảo cả vị trí null thành đầu.
+`Comparator.nullsLast(Comparator.reverseOrder())` means **non-null values descending, `null` stays last**. However, calling `reversed()` on the **entire** Comparator created with `nullsLast` also flips `null` to the front.
 
-Ví dụ:
+Example:
 
 ```java
 Comparator<String> descendingButNullLast =
     Comparator.nullsLast(Comparator.reverseOrder());
 ```
 
-Chọn chính sách null theo nghiệp vụ, sau đó mới chọn hướng sắp xếp cho giá trị khác null.
+Choose the `null` policy according to business rules first, then choose the sort direction for non-null values.
 
-## 8. Comparator bằng 0, stability và thứ tự gặp phần tử
+## 8. Comparator Returning 0, Stability, and Encounter Order
 
-Hai phần tử được coi là **bằng nhau theo Comparator** nếu `compare(a,b) == 0`. Điều đó **không có nghĩa** `a.equals(b)` là `true`.
+Two elements are considered **equal by a Comparator** if `compare(a,b) == 0`. That **does not mean** `a.equals(b)` is `true`.
 
-Ví dụ chỉ sắp xếp theo điểm:
+For example, sorting only by score:
 
 ```java
 Comparator<Candidate> byScoreOnly =
     Comparator.comparingInt(Candidate::score);
 ```
 
-Hai hồ sơ `U01` và `U03` đều có điểm 95, vì vậy `byScoreOnly.compare(u01, u03) == 0`, dù mã, tên và đối tượng khác nhau.
+Both `U01` and `U03` have score 95, so `byScoreOnly.compare(u01, u03) == 0`, even though their IDs, names, and object instances differ.
 
-### 8.1. sorted có ổn định không?
+### 8.1. Is `sorted` Stable?
 
-Theo hợp đồng `Stream.sorted(...)`:
+By the `Stream.sorted(...)` contract:
 
-- Với Stream **có thứ tự gặp phần tử** (*ordered stream*), việc sắp xếp **ổn định** (*stable*): các phần tử bằng nhau theo Comparator vẫn giữ thứ tự tương đối như ở nguồn.
-- Với Stream **không có thứ tự gặp phần tử** (*unordered stream*), **không có bảo đảm ổn định** cho các phần tử có khóa bằng nhau.
+- On an **ordered stream**, sorting is **stable**: elements that compare equal under the Comparator retain their relative source order.
+- On an **unordered stream**, there is **no stability guarantee** for elements with equal keys.
 
-Ví dụ:
+Example:
 
 ```java
 record Item(String id, int score) {}
@@ -535,14 +535,14 @@ List<String> ids = items.stream()
     .map(Item::id)
     .toList();
 
-// [B, A, C] — A và C bằng điểm, giữ thứ tự tương đối từ List.
+// [B, A, C] — A and C tie on score, preserving relative List order.
 ```
 
-Nếu lấy phần tử từ một nguồn không bảo đảm thứ tự, chẳng hạn một `HashSet`, đừng dựa vào vị trí gốc để quyết định ai đứng trước khi bằng khóa.
+If elements come from a source with no guaranteed order, such as a `HashSet`, do not rely on source position to decide which tied element comes first.
 
-### 8.2. Thêm tie-breaker để kết quả có tính xác định
+### 8.2. Add a Tie-Breaker for Deterministic Results
 
-Thêm khóa thứ cấp:
+Add a secondary key:
 
 ```java
 Comparator<Item> byScoreThenId = Comparator
@@ -550,13 +550,13 @@ Comparator<Item> byScoreThenId = Comparator
     .thenComparing(Item::id);
 ```
 
-Với mã `id` duy nhất và bất biến trong quá trình sắp xếp, các cặp phần tử khác nhau sẽ được phân biệt. Khi đó việc xếp hạng không phụ thuộc vào thứ tự nguồn giữa các khóa bằng nhau.
+With a unique and immutable `id` during sorting, distinct elements are separated. Ranking then does not depend on source ordering among equal keys.
 
-Đặc biệt quan trọng với kết quả hiển thị cho người dùng, thống kê cần tái lập và phân trang. Nếu mã không duy nhất, cần một khóa cuối cùng có khả năng phân biệt các bản ghi theo yêu cầu nghiệp vụ.
+This is especially important for user-facing results, reproducible statistics, and pagination. If IDs are not unique, use a final key capable of distinguishing records per business requirements.
 
-### 8.3. Comparator khác distinct và equals
+### 8.3. `Comparator` Differs from `distinct` and `equals`
 
-`Stream.distinct()` loại trùng dựa trên `Object.equals`, **không sử dụng Comparator truyền cho `sorted`**.
+`Stream.distinct()` removes duplicates based on `Object.equals`, **not using the Comparator passed to `sorted`**.
 
 ```java
 record Entry(String id, int score) {}
@@ -571,16 +571,16 @@ List<Entry> result = entries.stream()
     .distinct()
     .toList();
 
-// Giữ cả A và B: hai record khác nhau theo equals.
+// Keeps both A and B: the two records are distinct under equals.
 ```
 
-Một `TreeSet` hoặc `TreeMap` lại dùng Comparator (hoặc thứ tự tự nhiên) để quyết định tính tương đương của khóa; nếu Comparator trả về 0 cho hai khóa khác nhau theo `equals`, cấu trúc này có thể xem chúng là cùng một khóa. Vì thế, **không thay thế `distinct()` bằng `collect(toCollection(() -> new TreeSet<>(byScoreOnly)))`** nếu mục tiêu là giữ các bản ghi khác mã nhưng đồng điểm.
+A `TreeSet` or `TreeMap`, on the other hand, uses the Comparator (or natural order) to determine key equivalence; if the Comparator returns 0 for two keys that differ under `equals`, those structures treat them as the same key. Therefore, **do not replace `distinct()` with `collect(toCollection(() -> new TreeSet<>(byScoreOnly)))`** if your goal is to keep records with different IDs and equal scores.
 
-## 9. Sắp xếp chuỗi: phân biệt chữ hoa, chuẩn hóa và ngôn ngữ
+## 9. Sorting Strings: Case Sensitivity, Normalization, and Locale
 
-`Comparator.comparing(Candidate::name)` dựa trên `String.compareTo`, so sánh thứ tự mã UTF-16. Đó không phải lúc nào cũng là thứ tự tên hiển thị tự nhiên theo tiếng Việt.
+`Comparator.comparing(Candidate::name)` relies on `String.compareTo`, comparing UTF-16 code units. That is not always the natural display order in Vietnamese.
 
-### 9.1. So sánh không phân biệt hoa thường
+### 9.1. Case-Insensitive Comparison
 
 ```java
 Comparator<Candidate> byNameIgnoringCase = Comparator.comparing(
@@ -589,7 +589,7 @@ Comparator<Candidate> byNameIgnoringCase = Comparator.comparing(
 );
 ```
 
-Nếu các tên chỉ khác kiểu chữ (chẳng hạn `"an"` và `"An"`), Comparator này có thể trả 0. Khi cần thứ tự nhất quán cho cả hai:
+If names differ only in letter case (for instance `"an"` and `"An"`), this Comparator may return 0. When a consistent order for both is needed:
 
 ```java
 Comparator<Candidate> byNameIgnoringCaseThenId = Comparator
@@ -597,9 +597,9 @@ Comparator<Candidate> byNameIgnoringCaseThenId = Comparator
     .thenComparing(Candidate::id);
 ```
 
-### 9.2. So sánh theo ngôn ngữ
+### 9.2. Locale-Sensitive Comparison
 
-Để xếp tên theo quy tắc ngôn ngữ địa phương, có thể cân nhắc `java.text.Collator`:
+To sort names by local language rules, consider `java.text.Collator`:
 
 ```java
 import java.text.Collator;
@@ -616,13 +616,13 @@ Comparator<Candidate> byVietnameseName = Comparator.comparing(
 );
 ```
 
-`Collator` cung cấp quy tắc so sánh tùy locale và có thể tùy chỉnh mức độ phân biệt chữ. Kết quả cụ thể phụ thuộc cấu hình, dữ liệu và môi trường. Với pipeline song song, cần lưu ý `Collator` là đối tượng có trạng thái cấu hình; đừng chia sẻ một instance đang bị thay đổi giữa các luồng.
+`Collator` provides locale-specific collation rules and allows configuring strength levels. Exact results depend on configuration, data, and environment. In parallel pipelines, note that `Collator` holds mutable configuration state; do not share a mutated instance across threads.
 
-Một quy tắc chuẩn hóa (trim, chuyển hoa/thường, chuẩn hóa Unicode) cần phù hợp nghiệp vụ. **Không tùy ý bỏ dấu tiếng Việt** nếu hệ thống cần phân biệt những tên khác nhau.
+Any normalization rule (trimming, case conversion, Unicode normalization) must match business requirements. **Do not arbitrarily strip Vietnamese diacritics** if the system must distinguish different names.
 
-## 10. Kết hợp sorted với filter, skip và limit
+## 10. Combining `sorted` with `filter`, `skip`, and `limit`
 
-Pipeline phổ biến cho danh sách tìm kiếm:
+A common pipeline for search listings:
 
 ```java
 List<Candidate> page = candidates.stream()
@@ -633,53 +633,53 @@ List<Candidate> page = candidates.stream()
     .toList();
 ```
 
-Đọc theo thứ tự logic:
+Reading in logical order:
 
-1. `filter` chọn tập bản ghi hợp lệ.
-2. `sorted` thiết lập thứ tự xếp hạng nhiều tiêu chí.
-3. `skip(2)` bỏ qua hai bản ghi đầu **theo thứ tự đã sắp**.
-4. `limit(2)` lấy tối đa hai bản ghi tiếp theo.
-5. `toList()` đánh giá và trả kết quả.
+1. `filter` selects qualifying records.
+2. `sorted` establishes multi-criteria ranking order.
+3. `skip(2)` skips the first two records **in the sorted order**.
+4. `limit(2)` takes at most the next two records.
+5. `toList()` evaluates and returns the result.
 
-Với bộ dữ liệu của mục 6, `page` chứa `U05` rồi `U02`.
+With the dataset in section 6, `page` contains `U05` followed by `U02`.
 
-### 10.1. Đổi chỗ sorted và limit có thể đổi kết quả
+### 10.1. Swapping `sorted` and `limit` Can Change the Result
 
 ```java
-// Lấy hai hồ sơ đầu của nguồn, sau đó mới sắp xếp:
+// Take the first two profiles from the source, then sort them:
 List<Candidate> firstTwoSorted = candidates.stream()
     .limit(2)
     .sorted(ranking)
     .toList();
 ```
 
-Kết quả chỉ được chọn từ hai phần tử đầu nguồn (`U04` và `U02`); hồ sơ `U01` có thứ hạng cao nhất không thể xuất hiện.
+The result can only choose from the first two source elements (`U04` and `U02`); the highest-ranked profile `U01` cannot appear.
 
-Ngược lại:
+Conversely:
 
 ```java
-// Xếp hạng toàn bộ rồi lấy hai hồ sơ tốt nhất:
+// Rank everything, then take the top two profiles:
 List<Candidate> topTwo = candidates.stream()
     .sorted(ranking)
     .limit(2)
     .toList();
 
-// [U01, U03] theo thứ tự mã hồ sơ.
+// [U01, U03] by profile ID.
 ```
 
-Nếu yêu cầu là **top N toàn bộ dữ liệu**, phải sắp theo tiêu chí trước rồi cắt lát, hoặc sử dụng thuật toán top-K chuyên dụng bảo toàn đúng kết quả.
+If the requirement is the **global top N**, you must sort by the criteria before slicing, or use a dedicated top-K algorithm that preserves the exact result.
 
-### 10.2. Phân trang ổn định cần khóa cuối cùng
+### 10.2. Stable Pagination Requires a Final Tie-Breaker Key
 
-Nếu nhiều bản ghi có cùng điểm, nhóm và ngày đăng ký mà nguồn không có thứ tự ổn định, phân trang bằng `skip` và `limit` có thể phân bố những bản ghi đồng hạng vào các trang khác nhau qua các lần truy vấn. Thêm tiêu chí khóa duy nhất vào Comparator giúp quyết định thứ tự giữa chúng.
+If multiple records share the same score, team, and registration time and the source has no stable order, paginating with `skip` and `limit` can place tied records onto different pages across queries. Adding a unique key criterion to the Comparator determines the order among them.
 
-Tuy nhiên, **Comparator đầy đủ không thể bảo đảm phân trang nhất quán khi tập dữ liệu thay đổi giữa các lần tải trang**. Với hệ thống cập nhật liên tục, cần chiến lược phù hợp như snapshot hoặc phân trang dựa trên khóa (*keyset pagination*) ở nguồn dữ liệu.
+However, **even a complete Comparator cannot guarantee consistent pagination if the dataset changes between page loads**. In continuously updated systems, use an appropriate strategy such as snapshots or *keyset pagination* at the data source.
 
-## 11. Hiệu năng: sorted là phép toán có trạng thái
+## 11. Performance: `sorted` Is a Stateful Operation
 
-`filter` và `map` thường có thể xử lý từng phần tử khi cần. `sorted` là phép toán **stateful**: muốn biết phần tử đầu tiên theo thứ tự sắp xếp toàn cục, nó thông thường phải xem toàn bộ đầu vào hữu hạn và giữ dữ liệu cần thiết để sắp xếp.
+`filter` and `map` can typically process one element at a time as needed. `sorted` is **stateful**: to know the first element in global sort order, it normally must examine the entire finite input and retain the data needed to sort.
 
-Giả sử:
+Suppose:
 
 ```java
 long count = candidates.stream()
@@ -688,22 +688,22 @@ long count = candidates.stream()
     .count();
 ```
 
-Vì chỉ cần đếm và việc sắp xếp không làm thay đổi số phần tử, triển khai Stream có thể tối ưu bỏ qua việc thực hiện sắp xếp trong một số trường hợp. **Không dùng tác động phụ trong Comparator như một việc bắt buộc phải xảy ra**.
+Because only the count is needed and sorting does not change the element count, the Stream implementation may optimize away the actual sort in some cases. **Do not rely on side effects inside a Comparator as mandatory behavior**.
 
-### 11.1. Chi phí thường gặp
+### 11.1. Typical Costs
 
-Với `n` phần tử hữu hạn:
+For `n` finite elements:
 
-- Việc sắp xếp so sánh thông thường có chi phí thời gian khoảng `O(n log n)`.
-- Sắp xếp trên Stream thường cần bộ đệm `O(n)` để phục vụ thứ tự toàn cục.
-- Mỗi lần so sánh có thể trích xuất lại các khóa, đặc biệt khi dùng phương thức tính toán phức tạp.
-- Chuỗi `thenComparing` thường giúp tránh tính các khóa phụ với những cặp phần tử đã khác nhau ở khóa chính, nhưng không bảo đảm mỗi khóa chỉ được tính một lần cho một phần tử.
+- General comparison sorting typically has time complexity around `O(n log n)`.
+- Stream sorting typically requires an `O(n)` buffer to establish global order.
+- Each comparison may re-extract keys, especially when using expensive computed methods.
+- A `thenComparing` chain usually avoids computing secondary keys for pairs that already differ on the primary key, but does not guarantee each key is extracted only once per element.
 
-Không có kết luận rằng Stream nhanh hơn hay chậm hơn mọi cách sắp xếp khác: `List.sort(comparator)` có thể phù hợp khi muốn sửa thứ tự chính collection, trong khi `stream().sorted(...).toList()` phù hợp khi cần kết quả mới và kết hợp phép lọc/biến đổi.
+There is no blanket rule that Streams are faster or slower than every other sort: `List.sort(comparator)` may fit better when mutating the collection's order in place, whereas `stream().sorted(...).toList()` fits when producing a new result combined with filtering/mapping.
 
-### 11.2. Chọn đúng thứ tự các phép toán
+### 11.2. Choosing the Right Operation Order
 
-Thông thường, lọc trước khi sắp xếp sẽ giảm lượng dữ liệu cần xử lý:
+Usually, filtering before sorting reduces the amount of data to process:
 
 ```java
 List<Candidate> eligible = candidates.stream()
@@ -712,19 +712,19 @@ List<Candidate> eligible = candidates.stream()
     .toList();
 ```
 
-Nếu điều kiện lọc không phụ thuộc thứ tự, cách này tương đương về tập kết quả với việc sắp rồi lọc, và thường có thể giảm công sắp xếp. Nhưng không thể tự do đổi chỗ `limit` hoặc `skip` như đã minh họa.
+If the filter condition does not depend on order, this produces the same result set as sorting then filtering and often reduces sorting work. You cannot, however, freely reorder `limit` or `skip` as illustrated earlier.
 
-Đặc biệt, trên nguồn có khả năng **vô hạn**, `sorted()` toàn cục thường không thể phát ra kết quả vì không có thời điểm hoàn tất thu thập các phần tử. Cần giới hạn nguồn theo yêu cầu bài toán **trước** khi sắp xếp hoặc dùng một phương án xử lý dòng dữ liệu chuyên biệt.
+In particular, on a potentially **infinite** source, a global `sorted()` cannot generally emit results because there is no moment when collecting elements finishes. Bound the source per the problem requirements **before** sorting, or use a specialized streaming algorithm.
 
-### 11.3. Khi cần top K trên dữ liệu lớn
+### 11.3. When You Need Top K on Large Datasets
 
-`stream().sorted(comparator).limit(k)` rất dễ đọc và phù hợp cho nhiều bài toán dữ liệu vừa. Nếu `n` rất lớn còn `k` nhỏ, cấu trúc như **priority queue kích thước K** có thể giảm độ phức tạp xuống khoảng `O(n log k)` cùng bộ nhớ `O(k)`, miễn là cài đặt đúng tiêu chí và xử lý đồng hạng.
+`stream().sorted(comparator).limit(k)` is readable and well suited to medium-sized datasets. If `n` is very large while `k` is small, a structure such as a **size-K priority queue** can reduce complexity to roughly `O(n log k)` with `O(k)` memory, provided the criteria and tie-breaking are implemented properly.
 
-Đó là một lựa chọn thuật toán khác, không đơn thuần là hoán đổi `sorted` và `limit`. Chỉ tối ưu theo hướng này khi kích thước dữ liệu và phép đo hiệu năng cho thấy cần thiết.
+That is a different algorithmic choice, not merely swapping `sorted` and `limit`. Only optimize that way when data scale and benchmarks show it is needed.
 
-## 12. Sắp xếp song song và thứ tự gặp phần tử
+## 12. Parallel Sorting and Encounter Order
 
-`sorted(comparator)` hoạt động với cả Stream tuần tự và song song:
+`sorted(comparator)` works on both sequential and parallel Streams:
 
 ```java
 List<Candidate> rankedInParallel = candidates.parallelStream()
@@ -732,23 +732,23 @@ List<Candidate> rankedInParallel = candidates.parallelStream()
     .toList();
 ```
 
-Với `List` là nguồn ordered, thứ tự kết quả vẫn phải tuân thủ Comparator, và các phần tử đồng hạng giữ tính ổn định theo hợp đồng `sorted`. Tuy nhiên:
+With an ordered `List` source, the output order must still obey the Comparator, and tied elements remain stable per the `sorted` contract. However:
 
-- Sắp xếp là phép toán có trạng thái; quá trình chia/ghép việc và bộ đệm có chi phí.
-- Comparator phải **không gây tác động phụ làm thay đổi dữ liệu** và phải nhất quán giữa các lần gọi.
-- Comparator có thể được gọi nhiều lần và không có bảo đảm số lần, thứ tự hay luồng thực hiện.
-- Với Stream không có thứ tự gặp phần tử, `sorted` không bảo đảm ổn định cho các phần tử mà Comparator xem là bằng nhau.
-- `forEach` khi chạy song song không bảo đảm thứ tự in; nếu cần xuất đúng thứ tự gặp phần tử, cân nhắc `forEachOrdered` hoặc thu danh sách bằng `toList()`.
+- Sorting is stateful; splitting/merging work and buffering carry overhead.
+- The Comparator must **not cause side effects that mutate data** and must be consistent across calls.
+- The Comparator may be invoked multiple times with no guarantees on call count, order, or executing thread.
+- For an unordered Stream, `sorted` does not guarantee stability for elements the Comparator treats as equal.
+- `forEach` in parallel does not guarantee print order; if encounter-order output is required, consider `forEachOrdered` or collecting a list with `toList()`.
 
-Ví dụ tránh nhầm lẫn:
+Example to avoid confusion:
 
 ```java
-// Không dựa vào thứ tự được in trong forEach của parallel stream:
+// Do not rely on the print order of forEach on a parallel stream:
 candidates.parallelStream()
     .sorted(ranking)
     .forEach(c -> System.out.println(c.id()));
 
-// Thu kết quả rồi duyệt theo List để bảo toàn thứ tự:
+// Collect results and iterate the List to preserve order:
 List<Candidate> ranked = candidates.parallelStream()
     .sorted(ranking)
     .toList();
@@ -756,13 +756,13 @@ List<Candidate> ranked = candidates.parallelStream()
 ranked.forEach(c -> System.out.println(c.id()));
 ```
 
-Thực thi song song **không tự bảo đảm tăng tốc**. Cần xét kích thước dữ liệu, chi phí so sánh, đặc tính `Spliterator`, băng thông bộ nhớ, số lõi và tải thực tế.
+Parallel execution **does not automatically guarantee a speedup**. Consider dataset size, comparison cost, `Spliterator` characteristics, memory bandwidth, core count, and actual workload.
 
-## 13. Cách kiểm tra một Comparator nhiều cấp
+## 13. How to Test a Multi-Level Comparator
 
-Với một bộ so sánh xếp hạng, nên tự kiểm tra ba trường hợp: **khác khóa chính**, **bằng khóa chính nhưng khác khóa phụ**, và **bằng mọi khóa ngoại trừ khóa cuối**.
+For a ranking comparator, test at least three cases: **different primary key**, **equal primary key but different secondary key**, and **all keys equal except the final key**.
 
-Ví dụ có thể đặt cùng `record Candidate` và `Comparator<Candidate> ranking` của mục 6:
+For example, alongside `record Candidate` and `Comparator<Candidate> ranking` from section 6:
 
 ```java
 Candidate a = new Candidate("U10", "A", 95, "Backend", 101);
@@ -771,45 +771,45 @@ Candidate c = new Candidate("U12", "C", 95, "Mobile", 101);
 Candidate d = new Candidate("U13", "D", 95, "Backend", 102);
 Candidate e = new Candidate("U14", "E", 95, "Backend", 101);
 
-assert ranking.compare(a, b) < 0; // Điểm cao trước.
-assert ranking.compare(a, c) < 0; // Cùng điểm, Backend trước Mobile.
-assert ranking.compare(a, d) < 0; // Cùng điểm/nhóm, đăng ký sớm trước.
-assert ranking.compare(a, e) < 0; // Các khóa trước bằng, id nhỏ hơn trước.
+assert ranking.compare(a, b) < 0; // Higher score first.
+assert ranking.compare(a, c) < 0; // Same score, Backend before Mobile.
+assert ranking.compare(a, d) < 0; // Same score/team, earlier registration first.
+assert ranking.compare(a, e) < 0; // Prior keys equal, smaller id first.
 ```
 
-Trong Java, `assert` bị tắt theo mặc định; chạy chương trình với `-ea` nếu muốn các điều kiện `assert` được kiểm tra. Trong kiểm thử tự động thực tế, có thể dùng assertion của framework kiểm thử.
+In Java, `assert` is disabled by default; run with `-ea` if you want `assert` statements evaluated. In real automated tests, use your testing framework's assertions.
 
-Ngoài ra, với logic Comparator tự viết, cần kiểm tra tính bắc cầu và các trường hợp biên: số âm, giá trị lớn, khóa `null`, chuỗi khác hoa/thường, nguồn không có thứ tự. Một Comparator ghép bằng factory methods chuẩn thường dễ đọc và ít lỗi hơn thuật toán so sánh nhiều nhánh viết tay.
+Additionally, for custom Comparator logic, check transitivity and edge cases: negative numbers, large values, `null` keys, case differences in strings, and unordered sources. A Comparator composed from standard factory methods is generally more readable and less error-prone than a hand-written multi-branch comparison algorithm.
 
-## 14. Những lỗi thường gặp
+## 14. Common Mistakes
 
-| Lỗi | Vì sao sai hoặc rủi ro | Hướng sửa |
+| Mistake | Why it is wrong or risky | How to fix |
 | --- | --- | --- |
-| Dùng `(a,b) -> a.score() - b.score()` | Có thể tràn số nguyên. | `comparingInt(Candidate::score)` hoặc `Integer.compare`. |
-| Viết `.thenComparing(...).reversed()` khi chỉ muốn đảo khóa chính | Đảo toàn bộ chuỗi đã tạo. | Gọi `reversed()` trước `thenComparing` hoặc đảo riêng Comparator phụ. |
-| Chỉ sắp theo điểm khi cần phân trang ổn định | Nhiều bản ghi bằng điểm có thứ tự chưa được quyết định nếu nguồn unordered. | Thêm khóa cuối xác định như mã duy nhất. |
-| Dùng `limit(k).sorted(...)` để lấy top K toàn bộ nguồn | Đã bỏ các phần tử đứng sau `k` phần tử nguồn. | `sorted(...).limit(k)` hoặc thuật toán top-K chuyên dụng. |
-| Nghĩ `distinct()` dùng Comparator của `sorted` | `distinct` dựa trên `equals`. | Tách yêu cầu loại trùng khỏi yêu cầu sắp xếp. |
-| Dùng `TreeSet` với Comparator chỉ theo điểm | Những phần tử khác nhau có điểm bằng nhau có thể bị xem như trùng. | Dùng Comparator đầy đủ theo định danh hoặc chọn cấu trúc phù hợp. |
-| Không xử lý khóa nullable | Có thể ném `NullPointerException`. | `nullsFirst` / `nullsLast` ở đúng lớp khóa. |
-| Viết Comparator phụ thuộc biến thay đổi trong lúc sắp | Quan hệ thứ tự không nhất quán. | Giữ khóa và quy tắc so sánh ổn định. |
-| Ghi log hoặc đếm trong `compare` rồi dựa vào số lần gọi | Số lần/đường thực thi do thuật toán quyết định và có thể được tối ưu. | Tách logic nghiệp vụ khỏi Comparator. |
-| Nghĩ `parallelStream().sorted(...)` luôn nhanh hơn | Chi phí chia/ghép và lưu trữ có thể lớn hơn lợi ích. | Đo hiệu năng bằng dữ liệu thực. |
-| Sắp xếp nguồn vô hạn bằng `sorted()` rồi `limit()` | `sorted()` cần biết thứ tự toàn cục trước khi có thể phát phần tử. | Giới hạn phần tử đầu vào hoặc thay thuật toán. |
+| Using `(a,b) -> a.score() - b.score()` | Can overflow integers. | `comparingInt(Candidate::score)` or `Integer.compare`. |
+| Writing `.thenComparing(...).reversed()` when only reversing the primary key | Reverses the entire chain built so far. | Call `reversed()` before `thenComparing`, or reverse only the sub-comparator. |
+| Sorting only by score when stable pagination is required | Tied records have undetermined order if the source is unordered. | Add a deterministic final key such as a unique ID. |
+| Using `limit(k).sorted(...)` to get the global top K | Drops elements beyond the first `k` source elements. | `sorted(...).limit(k)` or a dedicated top-K algorithm. |
+| Thinking `distinct()` uses `sorted`'s Comparator | `distinct` is based on `equals`. | Separate deduplication rules from sorting rules. |
+| Using `TreeSet` with a score-only Comparator | Distinct elements with equal scores can be treated as duplicates. | Use a complete Comparator with identity, or choose a suitable structure. |
+| Ignoring nullable keys | Can throw `NullPointerException`. | `nullsFirst` / `nullsLast` at the key comparator level. |
+| Writing a Comparator that depends on state mutated during sorting | Inconsistent ordering relation. | Keep keys and comparison rules stable. |
+| Logging or counting inside `compare` and relying on call count | Call count and execution path are algorithm-dependent and may be optimized away. | Separate business logic from the Comparator. |
+| Assuming `parallelStream().sorted(...)` is always faster | Splitting/merging and buffering overhead can outweigh gains. | Benchmark on realistic data. |
+| Sorting an infinite source with `sorted()` then `limit()` | `sorted()` needs global order before emitting elements. | Limit input elements first or change algorithms. |
 
-## 15. Bài tập tự thực hành
+## 15. Practice Exercises
 
-**Bài 1 – Xếp hạng nhân viên.** Có `Employee(String id, String department, int performance, long joinedAt)`. Sắp theo hiệu suất giảm dần, phòng ban tăng dần, ngày gia nhập tăng dần, mã tăng dần. Hãy tạo Comparator bằng `comparingInt` và các overload `thenComparing`.
+**Exercise 1 – Employee ranking.** Given `Employee(String id, String department, int performance, long joinedAt)`. Sort by performance descending, department ascending, join date ascending, and ID ascending. Build the Comparator using `comparingInt` and `thenComparing` overloads.
 
-**Bài 2 – Điều khiển chiều thứ cấp.** Từ comparator của Bài 1, thay quy tắc phòng ban thành **giảm dần** nhưng giữ hiệu suất giảm dần và các tiêu chí khác tăng dần. Xác định tại sao đặt `reversed()` ở cuối toàn bộ chuỗi không đúng.
+**Exercise 2 – Controlling secondary direction.** Starting from Exercise 1's comparator, change the department rule to **descending** while keeping performance descending and the remaining criteria ascending. Explain why putting `reversed()` at the very end of the chain is wrong.
 
-**Bài 3 – Dữ liệu khuyết thiếu.** Với `Ticket(String id, Integer severity, String owner)`, `owner` có thể `null`. Sắp theo `severity` giảm dần, rồi `owner` tăng dần nhưng `null` ở cuối, cuối cùng theo `id`. Xử lý thêm tình huống `severity` cũng có thể `null` nếu yêu cầu.
+**Exercise 3 – Missing data.** Given `Ticket(String id, Integer severity, String owner)`, where `owner` may be `null`. Sort by `severity` descending, then `owner` ascending with `null` last, and finally by `id`. Also handle the case where `severity` may be `null` if required.
 
-**Bài 4 – Lấy top N.** Từ 10.000 bản ghi, lọc trạng thái hợp lệ, lấy 5 bản ghi có điểm cao nhất. Viết pipeline đúng và giải thích vì sao `limit(5).sorted(...)` không đạt yêu cầu.
+**Exercise 4 – Taking the top N.** From 10,000 records, filter for valid status and take the 5 records with the highest score. Write the correct pipeline and explain why `limit(5).sorted(...)` does not meet the requirement.
 
-**Bài 5 – Comparator và trùng lặp.** Tạo hai record khác nhau cùng điểm rồi so sánh kết quả của `sorted(...).distinct()` với việc thu vào `TreeSet` chỉ so sánh theo điểm. Giải thích vì sao số phần tử có thể khác nhau.
+**Exercise 5 – Comparator and duplicates.** Create two distinct records with the same score, then compare the result of `sorted(...).distinct()` against collecting into a `TreeSet` that compares only by score. Explain why the element counts can differ.
 
-Gợi ý cho Bài 1:
+Hint for Exercise 1:
 
 ```java
 Comparator<Employee> ranking = Comparator
@@ -819,16 +819,16 @@ Comparator<Employee> ranking = Comparator
     .thenComparing(Employee::id);
 ```
 
-Đoạn này giả định `Employee` là record được định nghĩa trong bài tập; nếu `department` có thể `null`, bổ sung bộ so sánh cho khóa nullable như mục 7.
+This snippet assumes `Employee` is the record defined in the exercise; if `department` can be `null`, add a nullable-key comparator as shown in section 7.
 
-## 16. Tóm tắt kiến thức cần nhớ
+## 16. Summary of Key Points to Remember
 
-- **`Comparator<T>` quyết định thứ tự bằng dấu của `compare(a,b)`**. Thứ tự đúng cần nhất quán và có tính bắc cầu.
-- **`comparing(...)`, `comparingInt(...)`, `comparingLong(...)`, `comparingDouble(...)`** tạo tiêu chí chính; **`thenComparing(...)`** xây dựng các tiêu chí ưu tiên thấp hơn.
-- **`reversed()` đảo toàn bộ Comparator tại vị trí được gọi**; muốn đảo riêng một khóa, hãy đảo Comparator của khóa đó trước khi ghép.
-- **`nullsFirst` và `nullsLast`** xử lý giá trị `null`; phân biệt khóa null với cả phần tử null.
-- **`Stream.sorted(comparator)` là phép trung gian có trạng thái và lazy**. Với nguồn ordered, sắp xếp ổn định cho các phần tử bằng khóa; với nguồn unordered, không bảo đảm ổn định.
-- **`sorted(...).skip(...).limit(...)`** biểu diễn phân trang sau xếp hạng; **`limit(...).sorted(...)`** là bài toán khác. Thêm khóa định danh duy nhất khi cần thứ tự xác định.
-- **Comparator không quyết định quy tắc `distinct()`**; phép loại trùng dựa trên `equals`, còn một số cấu trúc sorted set/map dùng Comparator để phân biệt khóa.
-- **Chi phí của `sorted` có thể đáng kể**, đặc biệt với dữ liệu lớn, nguồn vô hạn và xử lý song song. Đo đạc và chọn thuật toán theo nhu cầu thực tế.
-- Hiểu rõ thứ tự, đặc tính của nguồn `Spliterator`, tính thuần của lambda và hành vi `collect` sẽ giúp sử dụng hiệu quả các kỹ thuật khác trong **JAVA_STREAM_API**, từ grouping đến collector tùy chỉnh và Stream Gatherers.
+- **`Comparator<T>` determines order by the sign of `compare(a,b)`**. A valid order must be consistent and transitive.
+- **`comparing(...)`, `comparingInt(...)`, `comparingLong(...)`, `comparingDouble(...)`** build the primary criterion; **`thenComparing(...)`** adds lower-priority criteria.
+- **`reversed()` reverses the entire Comparator at the point where it is called**; to reverse a single key, reverse that key's Comparator before chaining.
+- **`nullsFirst` and `nullsLast`** handle `null` values; distinguish a nullable key from a nullable element.
+- **`Stream.sorted(comparator)` is stateful and lazy**. On ordered streams, sorting is stable for tied elements; on unordered streams, stability is not guaranteed.
+- **`sorted(...).skip(...).limit(...)`** expresses pagination after ranking; **`limit(...).sorted(...)`** is a different problem. Add a unique identifier key when deterministic order is required.
+- **A Comparator does not define `distinct()`'s rule**; deduplication relies on `equals`, whereas some sorted sets/maps use the Comparator to distinguish keys.
+- **The cost of `sorted` can be substantial**, especially with large datasets, infinite sources, and parallel processing. Measure and choose algorithms according to real needs.
+- Understanding ordering, `Spliterator` source characteristics, lambda purity, and `collect` behavior will help you use other techniques in **JAVA_STREAM_API** effectively, from grouping to custom collectors and Stream Gatherers.

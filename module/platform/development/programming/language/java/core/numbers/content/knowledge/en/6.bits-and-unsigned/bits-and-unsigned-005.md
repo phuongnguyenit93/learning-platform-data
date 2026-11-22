@@ -1,10 +1,10 @@
-# Mặt nạ bit và chuyển `byte` sang giá trị 0 đến 255 trong Java
+# Bitmasks and Converting `byte` to a Value from 0 to 255 in Java
 
-## 1. Vấn đề: cùng tám bit nhưng có hai cách hiểu
+## 1. The Problem: Same Eight Bits, Two Ways to Read Them
 
-Trong Java, kiểu nguyên thủy `byte` chứa **8 bit có dấu** và có miền giá trị từ `-128` đến `127`. Tuy nhiên, khi xử lý file nhị phân, màu sắc RGB, dữ liệu mạng, ảnh hoặc giao thức, một byte thường được hiểu như **8 bit không dấu**, tức giá trị từ `0` đến `255`. Cùng một mẫu bit có thể có hai giá trị tùy cách diễn giải.
+In Java, the primitive `byte` type holds **8 signed bits** and has a value range from `-128` to `127`. However, when processing binary files, RGB colors, network data, images, or protocols, a byte is often treated as **8 unsigned bits**, i.e., a value from `0` to `255`. The exact same bit pattern can represent two values depending on how it is interpreted.
 
-| Mẫu 8 bit | Hiểu dưới dạng `byte` Java có dấu | Hiểu không dấu |
+| 8-Bit Pattern | Read as Signed Java `byte` | Read as Unsigned |
 | --- | ---: | ---: |
 | `0000_0000` | 0 | 0 |
 | `0000_0001` | 1 | 1 |
@@ -13,57 +13,57 @@ Trong Java, kiểu nguyên thủy `byte` chứa **8 bit có dấu** và có mi�
 | `1010_0101` | -91 | 165 |
 | `1111_1111` | -1 | 255 |
 
-Java **không có kiểu nguyên thủy `unsigned byte`**. Khi cần giá trị không dấu từ 0 đến 255, ta lưu mẫu bit ban đầu trong `byte`, rồi chuyển sang một kiểu có miền rộng hơn, thường là `int`, bằng **mặt nạ bit**:
+Java **has no primitive `unsigned byte` type**. When you need an unsigned value from 0 to 255, you keep the original bit pattern in a `byte`, then convert it to a wider type—usually `int`—using a **bitmask**:
 
 ```java
-byte value = (byte) 0xA5; // 0xA5 = 165, ngoài miền byte có dấu.
+byte value = (byte) 0xA5; // 0xA5 = 165, outside the signed byte range.
 int unsigned = value & 0xFF;
 
 System.out.println(value);    // -91
 System.out.println(unsigned); // 165
 ```
 
-`value & 0xFF` là cách viết phổ biến để lấy **8 bit thấp** của một giá trị nguyên dưới dạng số không dấu. Java 8+ còn cung cấp `Byte.toUnsignedInt(value)` với mục đích tương đương, rõ nghĩa hơn ở nơi cần chuyển `byte` sang `int` không dấu.
+`value & 0xFF` is the common idiom to extract the **low 8 bits** of an integer value as an unsigned number. Java 8+ also provides `Byte.toUnsignedInt(value)` for the same purpose, which expresses intent more clearly wherever a `byte` needs to be converted to an unsigned `int`.
 
-## 2. Mặt nạ bit (*bit mask*) là gì?
+## 2. What Is a *Bit Mask*?
 
-*Mặt nạ bit* là một giá trị có các bit được chọn là `1`, các bit không cần giữ là `0`. Khi kết hợp với toán tử AND theo bit `&`:
+A *bit mask* is a value with `1` bits in the positions you want to select and `0` bits in positions you do not want to keep. When combined with the bitwise AND operator `&`:
 
-- Bit ở vị trí mặt nạ là `1`: giữ nguyên bit tương ứng của toán hạng.
-- Bit ở vị trí mặt nạ là `0`: kết quả tại vị trí đó thành `0`.
+- Where the mask bit is `1`: the corresponding bit of the operand is preserved.
+- Where the mask bit is `0`: the result at that position becomes `0`.
 
-Bảng chân trị của phép AND theo bit:
+Truth table for bitwise AND:
 
-| Bit A | Bit mask | `A & mask` |
+| Bit A | Mask bit | `A & mask` |
 | ---: | ---: | ---: |
 | 0 | 0 | 0 |
 | 0 | 1 | 0 |
 | 1 | 0 | 0 |
 | 1 | 1 | 1 |
 
-`0xFF` là số nguyên thập lục phân có giá trị `255`. Ở kiểu `int` 32 bit, nó có dạng:
+`0xFF` is a hexadecimal integer with the value `255`. As a 32-bit `int`, it looks like:
 
 ```text
 0x000000FF
 00000000 00000000 00000000 11111111
-                                ^^^^^^^^
-                          giữ tám bit thấp
+                           ^^^^^^^^
+                      keeps low eight bits
 ```
 
-Khi tính `n & 0xFF`, tám bit thấp của `n` được giữ lại; **24 bit cao của kết quả `int` đều bằng 0**. Vì vậy, kết quả luôn nằm trong khoảng `0..255`, bất kể `n` ban đầu dương hay âm.
+When computing `n & 0xFF`, the low eight bits of `n` are kept; **the upper 24 bits of the `int` result are all 0**. Therefore, the result is always in `0..255`, regardless of whether `n` was originally positive or negative.
 
-Ví dụ với một `int` bình thường:
+Example with an ordinary `int`:
 
 ```java
 int n = 0x1234;
 int lowByte = n & 0xFF; // 0x34 = 52.
 ```
 
-Nó chỉ giữ tám bit thấp, **không phải kiểm tra xem `n` có thuộc khoảng 0..255 hay không**. Nếu giá trị ban đầu nằm ngoài khoảng đó, dữ liệu bit cao bị bỏ đi. Ta sẽ phân biệt “trích xuất bit” và “kiểm tra miền” ở phần sau.
+It only preserves the low eight bits; **it does not check whether `n` falls within 0..255**. If the original value was outside that range, the upper bits are discarded. We will distinguish "bit extraction" from "range validation" later.
 
-## 3. Vì sao `byte` âm khi chuyển thẳng sang `int`?
+## 3. Why Is a `byte` Negative When Assigned Directly to `int`?
 
-Khi mở rộng một `byte` có dấu sang `int`, Java **giữ nguyên giá trị số có dấu**. Về mặt bit, cách biểu diễn có thể hiểu bằng *sign extension* (mở rộng bit dấu):
+When widening a signed `byte` to `int`, Java **preserves the signed numeric value**. At the bit level, this representation works via *sign extension*:
 
 ```java
 byte b = (byte) 0xA5;
@@ -71,29 +71,29 @@ int signed = b;
 System.out.println(signed); // -91
 ```
 
-`0xA5` có tám bit `1010_0101`. Bit cao nhất của `byte` là `1`, nên `byte` được hiểu là `-91`. Khi mở rộng sang `int`, phần bit cao được điền bằng `1` để giữ lại giá trị âm:
+`0xA5` has the eight bits `1010_0101`. The highest bit of the `byte` is `1`, so the `byte` is interpreted as `-91`. When widened to `int`, the upper bits are filled with `1` to preserve the negative value:
 
 ```text
-byte (8 bit):             10100101                  = -91
-int sau sign extension:   11111111 11111111 11111111 10100101
+byte (8 bits):             10100101                  = -91
+int after sign extension:  11111111 11111111 11111111 10100101
                          = 0xFFFFFFA5              = -91
 
-AND 0x000000FF:          00000000 00000000 00000000 10100101
+AND 0x000000FF:            00000000 00000000 00000000 10100101
                          = 0x000000A5              = 165
 ```
 
-Vì sao `& 0xFF` hiệu quả?
+Why does `& 0xFF` work?
 
-1. `byte` được nâng lên `int` khi tham gia phép AND với literal `0xFF` (kiểu `int`).
-2. Nếu `byte` âm, quá trình nâng kiểu giữ bit dấu, tạo ra các bit `1` ở phần cao của `int`.
-3. AND với `0x000000FF` xóa sạch 24 bit cao; giữ nguyên tám bit dữ liệu gốc.
-4. Kết quả là **`int` không âm từ 0 đến 255**, đúng với cách hiểu 8 bit không dấu.
+1. `byte` is promoted to `int` when participating in AND with the literal `0xFF` (type `int`).
+2. If the `byte` is negative, promotion preserves the sign bit, creating `1` bits in the upper part of the `int`.
+3. ANDing with `0x000000FF` clears all 24 upper bits, leaving the original eight data bits untouched.
+4. The result is a **non-negative `int` from 0 to 255**, matching the 8-bit unsigned interpretation.
 
-Như vậy `& 0xFF` **không thay đổi bit đang có trong biến `byte`**; nó tạo ra một kết quả `int` mới. Một `byte` có giá trị `-1` vẫn là `-1` sau khi gọi `Byte.toUnsignedInt` hoặc tính mặt nạ; chỉ cách diễn giải tám bit thành `int` mới thay đổi.
+Thus `& 0xFF` **does not mutate the bits stored in the `byte` variable**; it creates a new `int` result. A `byte` with value `-1` is still `-1` after calling `Byte.toUnsignedInt` or applying the mask; only the interpretation of those eight bits as an `int` changes.
 
-## 4. Hai cách chuẩn để chuyển `byte` thành `int` 0..255
+## 4. Two Standard Ways to Convert `byte` to `int` 0..255
 
-### 4.1. Dùng mặt nạ `& 0xFF`
+### 4.1. Using the `& 0xFF` Mask
 
 ```java
 byte b = (byte) 0xFF;
@@ -102,9 +102,9 @@ System.out.println(b);        // -1
 System.out.println(unsigned); // 255
 ```
 
-Ưu điểm: ngắn, dễ kết hợp khi phân tích bit, dịch bit và ghép các byte. Nhược điểm: người đọc cần hiểu `0xFF` giữ tám bit thấp.
+Pros: short, easy to combine when parsing bits, shifting, and assembling bytes. Cons: readers must know that `0xFF` keeps the low eight bits.
 
-### 4.2. Dùng `Byte.toUnsignedInt`
+### 4.2. Using `Byte.toUnsignedInt`
 
 ```java
 byte b = (byte) 0x80;
@@ -113,9 +113,9 @@ System.out.println(b);        // -128
 System.out.println(unsigned); // 128
 ```
 
-`Byte.toUnsignedInt(byte x)` là phương thức tĩnh từ Java 8, trả về `int` chứa giá trị **không dấu của tám bit**. Với mọi giá trị `byte`, nó cho cùng kết quả như `b & 0xFF`.
+`Byte.toUnsignedInt(byte x)` is a static method introduced in Java 8 that returns an `int` containing the **unsigned value of the eight bits**. For every `byte` value, it produces the exact same result as `b & 0xFF`.
 
-| Dữ liệu đầu vào `byte` | `b & 0xFF` | `Byte.toUnsignedInt(b)` |
+| Input `byte` | `b & 0xFF` | `Byte.toUnsignedInt(b)` |
 | ---: | ---: | ---: |
 | -128 | 128 | 128 |
 | -91 | 165 | 165 |
@@ -124,27 +124,27 @@ System.out.println(unsigned); // 128
 | 1 | 1 | 1 |
 | 127 | 127 | 127 |
 
-**Nên chọn gì?** Dùng `Byte.toUnsignedInt(b)` khi muốn diễn đạt rõ “đọc byte như một số không dấu”. Dùng `b & 0xFF` khi đang thao tác trực tiếp với mặt nạ, trường bit hoặc ghép các byte trong một biểu thức bitwise. Cả hai đều đúng và đều cho ra kiểu `int`.
+**Which should you choose?** Use `Byte.toUnsignedInt(b)` when you want to clearly express "read this byte as an unsigned number". Use `b & 0xFF` when directly manipulating bitmasks, bit fields, or assembling bytes inside a bitwise expression. Both are correct and produce type `int`.
 
-## 5. Dấu `&` là phép toán bit, khác `&&`
+## 5. `&` Is a Bitwise Operator, Different from `&&`
 
-Với hai toán hạng số nguyên, `&` áp dụng AND cho từng bit. Với toán hạng boolean, `&` cũng có dạng AND logic **không đoản mạch**. Trong khi đó `&&` chỉ dùng cho điều kiện logic, có đoản mạch và không thể dùng để tạo mặt nạ số nguyên.
+With two integer operands, `&` applies AND to each bit. With boolean operands, `&` also acts as a **non-short-circuiting** logical AND. Meanwhile, `&&` is solely for boolean conditions, short-circuits, and cannot be used for integer masking.
 
 ```java
 byte b = (byte) 0xF0;
 int unsigned = b & 0xFF; // 240.
 
-// int error = b && 0xFF; // Không biên dịch: && yêu cầu boolean.
+// int error = b && 0xFF; // Does not compile: && requires boolean.
 ```
 
-Mặt nạ không phải phép so sánh kiểu `b >= 0` hay phép lấy giá trị tuyệt đối. Với `b = -1`, `Math.abs(b)` cho `1` khi giá trị được nâng lên `int`; nhưng `b & 0xFF` cho `255`. Hai bài toán hoàn toàn khác nhau.
+Masking is not a comparison like `b >= 0` nor an absolute value operation. For `b = -1`, `Math.abs(b)` gives `1` once promoted to `int`; however, `b & 0xFF` gives `255`. They solve completely different problems.
 
-## 6. Dùng mặt nạ để lấy nibble và ghép nhiều byte
+## 6. Using Masks to Extract Nibbles and Combine Multiple Bytes
 
-Một *nibble* là bốn bit. Từ một `byte`, có thể trích xuất nibble thấp và nibble cao để xử lý mã màu, header nhị phân hoặc giao thức.
+A *nibble* is four bits. From a `byte`, you can extract the low nibble and high nibble to process color codes, binary headers, or protocols.
 
 ```java
-byte b = (byte) 0xAB;      // -85 dưới dạng byte có dấu.
+byte b = (byte) 0xAB;      // -85 as signed byte.
 int unsigned = b & 0xFF;  // 171.
 int lowNibble = unsigned & 0x0F;       // 11 = 0xB.
 int highNibble = unsigned >>> 4;       // 10 = 0xA.
@@ -153,13 +153,13 @@ System.out.println(lowNibble);  // 11
 System.out.println(highNibble); // 10
 ```
 
-Ở đây `0x0F` chỉ giữ bốn bit thấp; sau khi đã chuyển sang `unsigned` trong miền 0..255, dịch phải logic `>>> 4` đưa bốn bit cao xuống thấp.
+Here `0x0F` keeps only the low four bits; after converting to `unsigned` in 0..255, logical right shift `>>> 4` moves the high four bits into the low positions.
 
-**Bẫy:** nếu dịch trực tiếp `b >>> 4` khi `b` âm, `b` được nâng thành `int` có các bit cao bằng `1`. Dù `>>>` chèn `0` từ trái, kết quả có thể vẫn là một số lớn với các bit cao còn lại. Hãy viết `(b & 0xFF) >>> 4` hoặc `(b >>> 4) & 0x0F` nếu chỉ muốn nibble cao.
+**Trap:** if you shift `b >>> 4` directly when `b` is negative, `b` is promoted to an `int` whose upper bits are `1`. Even though `>>>` inserts `0` from the left, the result can still be a large number with remaining high bits. Write `(b & 0xFF) >>> 4` or `(b >>> 4) & 0x0F` if you only want the high nibble.
 
-### Ghép hai byte thành số nguyên không dấu 16 bit
+### Combining two bytes into a 16-bit unsigned integer
 
-Giả sử `high` và `low` lần lượt là byte cao, byte thấp của một số được lưu theo thứ tự *big-endian*:
+Suppose `high` and `low` are the high and low bytes of a number stored in *big-endian* order:
 
 ```java
 byte high = (byte) 0xFF;
@@ -171,17 +171,17 @@ int value = (Byte.toUnsignedInt(high) << 8)
 System.out.println(value); // 65408 = 0xFF80.
 ```
 
-Ta lấy giá trị không dấu của từng byte trước khi ghép:
+We obtain the unsigned value of each byte before combining:
 
-- `Byte.toUnsignedInt(high)` trả `255`; dịch trái 8 bit cho `0xFF00`.
-- `Byte.toUnsignedInt(low)` trả `128`; phép OR theo bit `|` tạo `0xFF80`.
-- Vì kiểu `int` đủ chứa toàn bộ khoảng 0..65535 nên kết quả `65408` đúng với cách hiểu unsigned 16-bit.
+- `Byte.toUnsignedInt(high)` returns `255`; shifting left 8 bits gives `0xFF00`.
+- `Byte.toUnsignedInt(low)` returns `128`; bitwise OR `|` produces `0xFF80`.
+- Because `int` easily holds the entire 0..65535 range, the result `65408` matches the unsigned 16-bit interpretation.
 
-Nếu ghép các byte có dấu mà quên mask, *sign extension* của `high` hoặc `low` có thể làm sai kết quả. Khi ghép nhiều byte, cần quyết định **thứ tự byte (endianness)** và **dấu** theo định dạng dữ liệu trước khi viết phép dịch/OR. Ví dụ trên quy ước byte đầu là phần cao; định dạng *little-endian* sẽ có công thức khác.
+If you combine signed bytes and forget to mask, *sign extension* of `high` or `low` can corrupt the result. When assembling multiple bytes, determine the **byte order (endianness)** and **signedness** from the data format before writing shifts/ORs. The example above assumes the first byte is the high part; *little-endian* format uses a different formula.
 
-## 7. Chuyển ngược số 0..255 về mẫu tám bit trong `byte`
+## 7. Converting 0..255 Back to an Eight-Bit Pattern in `byte`
 
-Một số trong khoảng `0..255` có thể được mã hóa thành tám bit bằng cách cast xuống `byte`:
+A number in the range `0..255` can be encoded into eight bits by casting down to `byte`:
 
 ```java
 int unsigned = 255;
@@ -191,16 +191,16 @@ System.out.println(packed);                   // -1
 System.out.println(Byte.toUnsignedInt(packed)); // 255
 ```
 
-Trong biến `packed`, tám bit đều là `1`; giá trị `byte` của Java là `-1`. Điều này **không có nghĩa dữ liệu 255 đã mất**: tám bit ban đầu vẫn được giữ và có thể đọc trở lại bằng `Byte.toUnsignedInt`.
+In `packed`, all eight bits are `1`; Java's `byte` value is `-1`. This **does not mean the data 255 was lost**: the original eight bits are preserved and can be read back via `Byte.toUnsignedInt`.
 
-Tuy nhiên, cast hẹp **không kiểm tra miền**. Ví dụ:
+However, narrowing casts **do not perform range checks**. Example:
 
 ```java
 int unexpected = 300;
 byte truncated = (byte) unexpected; // 44.
 ```
 
-`300` có biểu diễn nhị phân dài hơn tám bit; giữ tám bit thấp cho `44`. Khi ứng dụng cần đảm bảo dữ liệu đã đúng miền unsigned byte, phải kiểm tra **trước** khi cast:
+`300` has a binary representation longer than eight bits; keeping only the low eight bits gives `44`. When an application must ensure the data fits within the unsigned byte range, validate **before** casting:
 
 ```java
 static byte packUnsignedByte(int value) {
@@ -211,13 +211,13 @@ static byte packUnsignedByte(int value) {
 }
 ```
 
-Đây là ví dụ một phương thức ứng dụng tự định nghĩa, dùng khi **lỗi vượt miền phải bị phát hiện**. Không dùng `value & 0xFF` như phép kiểm tra đầu vào: biểu thức đó sẽ biến `300` thành `44` mà không cảnh báo.
+This is an example of a custom application method used when **out-of-range errors must be detected**. Do not use `value & 0xFF` as input validation: that expression silently turns `300` into `44` without warning.
 
-## 8. `byte[]`, `ByteBuffer` và dữ liệu nhị phân từ file/mạng
+## 8. `byte[]`, `ByteBuffer`, and Binary Data from Files/Networks
 
-### Mảng `byte[]`
+### `byte[]` Arrays
 
-Dữ liệu file hoặc mạng thường nằm trong mảng `byte[]`:
+File or network data often resides in a `byte[]` array:
 
 ```java
 byte[] payload = {(byte) 0x00, (byte) 0x80, (byte) 0xFF};
@@ -228,7 +228,7 @@ for (byte item : payload) {
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
 0
@@ -236,9 +236,9 @@ Kết quả:
 255
 ```
 
-Đối với một phần tử `payload[i]`, `payload[i] & 0xFF` là cách thay thế trực tiếp. Đừng kiểm tra `payload[i] > 127` để tìm các byte “trên 127”: một biến `byte` **không bao giờ lớn hơn 127**. Hãy lấy số không dấu bằng `Byte.toUnsignedInt(payload[i])` trước khi so sánh.
+For an element `payload[i]`, `payload[i] & 0xFF` is a direct alternative. Do not check `payload[i] > 127` to find bytes "above 127": a `byte` variable **can never be greater than 127**. Obtain the unsigned number with `Byte.toUnsignedInt(payload[i])` before comparing.
 
-### `ByteBuffer.get()` trả về `byte` có dấu
+### `ByteBuffer.get()` Returns a Signed `byte`
 
 ```java
 import java.nio.ByteBuffer;
@@ -248,14 +248,14 @@ byte item = buffer.get();
 int unsigned = Byte.toUnsignedInt(item); // 255.
 ```
 
-`ByteBuffer.get()` đọc một byte dưới dạng `byte` nguyên thủy. Nếu muốn một giá trị số nguyên không dấu, phải mask hoặc gọi `Byte.toUnsignedInt`. `ByteBuffer` cũng có các phương thức đọc số nhiều byte (`getShort`, `getInt`, …), chịu ảnh hưởng thứ tự byte; cách xử lý unsigned cho nhiều byte không đồng nhất với mask chỉ một byte.
+`ByteBuffer.get()` reads one byte as a primitive `byte`. If you want an unsigned integer value, mask it or call `Byte.toUnsignedInt`. `ByteBuffer` also has methods to read multi-byte numbers (`getShort`, `getInt`, …), which depend on byte order; unsigned handling for multi-byte values is not identical to masking a single byte.
 
-### Khác biệt rất quan trọng: `InputStream.read()` đã trả về `int`
+### Very Important Difference: `InputStream.read()` Already Returns `int`
 
-Với `java.io.InputStream.read()`, khi có byte dữ liệu, phương thức **đã trả về `int` từ 0 đến 255**. Giá trị `-1` được dành riêng làm tín hiệu **đã hết luồng (EOF)**.
+With `java.io.InputStream.read()`, when a data byte is available, the method **already returns an `int` from 0 to 255**. The value `-1` is reserved as the **end-of-stream (EOF)** signal.
 
 ```java
-int next = input.read(); // input là InputStream đã được tạo.
+int next = input.read(); // input is an already-created InputStream.
 if (next == -1) {
     System.out.println("EOF");
 } else {
@@ -263,24 +263,24 @@ if (next == -1) {
 }
 ```
 
-Đây là đoạn minh họa trong một ngữ cảnh đã có biến `input` kiểu `InputStream`; **không phải chương trình chạy độc lập**.
+This is an illustrative snippet in a context that already has an `InputStream` variable named `input`; **it is not a standalone runnable program**.
 
-**Không viết `int value = input.read() & 0xFF` nếu chưa kiểm tra EOF**: khi `read()` trả `-1`, `-1 & 0xFF` thành `255`, che mất tín hiệu kết thúc luồng.
+**Do not write `int value = input.read() & 0xFF` before checking for EOF**: when `read()` returns `-1`, `-1 & 0xFF` becomes `255`, masking the end-of-stream signal.
 
-Sự khác biệt cần phân biệt:
+Key distinction to keep in mind:
 
-| API | Kiểu nhận được | Ý nghĩa của `-1` |
+| API | Returned Type | Meaning of `-1` |
 | --- | --- | --- |
-| `byte[][index]` | `byte` (-128..127) | Một mẫu bit dữ liệu `0xFF` hợp lệ |
-| `ByteBuffer.get()` | `byte` (-128..127) | Một mẫu bit dữ liệu `0xFF` hợp lệ |
-| `InputStream.read()` | `int` (0..255 hoặc -1) | **EOF**, không phải byte dữ liệu |
-| `DataInputStream.readUnsignedByte()` | `int` (0..255) | Không dùng -1 làm giá trị kết thúc; hết dữ liệu gây `EOFException` |
+| `byte[][index]` | `byte` (-128..127) | A valid `0xFF` data bit pattern |
+| `ByteBuffer.get()` | `byte` (-128..127) | A valid `0xFF` data bit pattern |
+| `InputStream.read()` | `int` (0..255 or -1) | **EOF**, not a data byte |
+| `DataInputStream.readUnsignedByte()` | `int` (0..255) | Does not use -1 as end marker; end of data throws `EOFException` |
 
-Khi dùng `InputStream.read(byte[])`, dữ liệu thực tế được đặt trong `byte[]`, nhưng chính giá trị trả về của phương thức là **số byte đã đọc** (hoặc `-1` khi EOF). Không nhầm số byte đã đọc với một byte dữ liệu cụ thể.
+When using `InputStream.read(byte[])`, the actual data is placed in `byte[]`, while the method's return value itself is the **number of bytes read** (or `-1` on EOF). Do not confuse the byte count read with an individual data byte.
 
-## 9. Ví dụ Java 17+ chạy độc lập
+## 9. Standalone Runnable Java 17+ Example
 
-Tạo tệp **`UnsignedByteMaskDemo.java`**:
+Create the file **`UnsignedByteMaskDemo.java`**:
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -330,14 +330,14 @@ public class UnsignedByteMaskDemo {
 }
 ```
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ```bash
 javac UnsignedByteMaskDemo.java
 java UnsignedByteMaskDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 signed=-91
@@ -354,29 +354,29 @@ stream data=255
 stream EOF=-1
 ```
 
-Kết quả `signed hex=ffffffa5` thể hiện `byte` âm được mở rộng dấu khi chuyển sang `int`. `unsigned hex=a5` thể hiện các bit cao đã bị xóa bởi mặt nạ `0xFF`. Hai dòng cuối xác nhận `InputStream.read()` phân biệt rõ byte `0xFF` (trả `255`) với EOF (trả `-1`).
+The output `signed hex=ffffffa5` shows the negative `byte` being sign-extended when converted to `int`. `unsigned hex=a5` shows the upper bits cleared by the `0xFF` mask. The last two lines confirm that `InputStream.read()` clearly distinguishes the `0xFF` byte (returning `255`) from EOF (returning `-1`).
 
-## 10. Các lỗi thường gặp
+## 10. Common Mistakes
 
-1. **Nhầm `byte` là kiểu 0..255.** Trong Java, `byte` là kiểu **có dấu**, từ -128 đến 127. Cần `int` khi muốn lưu giá trị 0..255.
-2. **Cho rằng `int u = b;` đã tạo giá trị unsigned.** Lệnh này bảo toàn giá trị có dấu bằng mở rộng dấu; khi `b < 0`, `u` cũng âm. Phải dùng `b & 0xFF` hoặc `Byte.toUnsignedInt(b)`.
-3. **Dùng `Math.abs(b)` để chuyển không dấu.** Trị tuyệt đối không chuyển cách diễn giải tám bit, đặc biệt `-1` phải trở thành `255`, không phải `1`.
-4. **Dùng `b >>> 4` trực tiếp để lấy nibble cao.** Với `byte` âm, Java mở rộng dấu thành `int` trước khi dịch. Hãy mask trước rồi dịch.
-5. **Ghép nhiều byte mà không mask.** Một byte âm khi nâng kiểu có thể đưa các bit `1` lên những vị trí cao ngoài ý muốn. Dùng `Byte.toUnsignedInt` cho từng byte trước khi dịch và OR.
-6. **Nghĩ `b & 0xFF` làm `b` thành kiểu unsigned.** Biến `b` không đổi; kết quả biểu thức là `int`.
-7. **Nhầm `&` với `&&`.** `&` trên số nguyên là AND từng bit; `&&` dành cho các điều kiện boolean.
-8. **Mask `InputStream.read()` trước khi kiểm tra EOF.** `-1` là EOF nhưng `-1 & 0xFF == 255`; thao tác đó có thể biến tín hiệu EOF thành byte dữ liệu giả.
-9. **Dùng `value & 0xFF` như phép kiểm tra dữ liệu nhập từ 0..255.** Mask cắt bỏ bit cao; nếu cần bác bỏ số ngoài miền, hãy kiểm tra điều kiện `value < 0 || value > 255` trước khi chuyển sang `byte`.
-10. **Cho rằng các giá trị `byte` âm là dữ liệu bị hỏng.** Chúng chỉ là cách nhìn có dấu của một mẫu tám bit. Với dữ liệu nhị phân, phải xem giao thức định nghĩa trường đó là có dấu hay không dấu.
+1. **Mistaking `byte` for a 0..255 type.** In Java, `byte` is **signed**, from -128 to 127. You need `int` to store values 0..255.
+2. **Assuming `int u = b;` creates an unsigned value.** This statement preserves the signed value via sign extension; when `b < 0`, `u` is also negative. You must use `b & 0xFF` or `Byte.toUnsignedInt(b)`.
+3. **Using `Math.abs(b)` for unsigned conversion.** Absolute value does not change the eight-bit interpretation; specifically, `-1` must become `255`, not `1`.
+4. **Using `b >>> 4` directly to get the high nibble.** For a negative `byte`, Java sign-extends to `int` before shifting. Mask first, then shift.
+5. **Combining multiple bytes without masking.** A negative byte upon promotion can introduce `1` bits into unintended upper positions. Use `Byte.toUnsignedInt` on each byte before shifting and ORing.
+6. **Thinking `b & 0xFF` turns `b` into an unsigned type.** The variable `b` does not change; the expression result is `int`.
+7. **Confusing `&` with `&&`.** `&` on integers is bitwise AND; `&&` is for boolean conditions.
+8. **Masking `InputStream.read()` before checking EOF.** `-1` is EOF, yet `-1 & 0xFF == 255`; doing so can turn an EOF signal into a fake data byte.
+9. **Using `value & 0xFF` to validate 0..255 input.** Masking truncates high bits; if out-of-range numbers must be rejected, check `value < 0 || value > 255` before converting to `byte`.
+10. **Assuming negative `byte` values are corrupted data.** They are merely the signed view of an eight-bit pattern. For binary data, consult the protocol to see whether a field is defined as signed or unsigned.
 
-## 11. Quy tắc chọn cách làm trong thực tế
+## 11. Practical Rules of Thumb
 
-- Nếu đã có **`byte` dữ liệu** và muốn số nguyên không dấu: dùng `Byte.toUnsignedInt(b)` hoặc `b & 0xFF`.
-- Nếu đang **trích xuất bit** trong `int`: dùng mặt nạ thích hợp, như `& 0x0F` cho nibble thấp hoặc `& 0xFF` cho byte thấp.
-- Nếu cần **tách/ghép nhiều byte**: quy định thứ tự byte trước; chuyển từng phần tử sang kiểu không dấu rồi dịch/OR.
-- Nếu có **số nguyên đầu vào** cần đóng gói thành một byte: kiểm tra 0..255 trước khi cast nếu không cho phép cắt bit.
-- Nếu đang đọc bằng **`InputStream.read()`**: xử lý `-1` như EOF trước mọi phép mask; `read()` đã trả `0..255` khi đọc thành công.
+- If you have a **`byte` of data** and want an unsigned integer: use `Byte.toUnsignedInt(b)` or `b & 0xFF`.
+- If you are **extracting bits** within an `int`: use the appropriate mask, such as `& 0x0F` for the low nibble or `& 0xFF` for the low byte.
+- If you need to **split/combine multiple bytes**: establish byte order first; convert each element to unsigned before shifting/ORing.
+- If you have an **input integer** to pack into a byte: validate 0..255 before casting if truncation is not allowed.
+- If you are reading via **`InputStream.read()`**: handle `-1` as EOF before any masking; `read()` already returns `0..255` on success.
 
-**Ghi nhớ:** `byte` của Java luôn có dấu, nhưng **mẫu 8 bit của nó vẫn giữ nguyên**. Mặt nạ `& 0xFF` hoặc `Byte.toUnsignedInt(b)` chuyển cách diễn giải mẫu đó thành một `int` từ 0 đến 255. Khi làm việc với file/mạng, luôn phân biệt **giá trị byte dữ liệu** với **giá trị điều khiển như EOF** và kiểm tra miền nếu cần.
+**Remember:** Java's `byte` is always signed, yet **its 8-bit pattern remains intact**. Masking with `& 0xFF` or `Byte.toUnsignedInt(b)` switches the interpretation of that pattern to an `int` from 0 to 255. When working with files/networks, always distinguish **data byte values** from **control values like EOF** and validate ranges when required.
 
-**Tài liệu tham khảo:** [Java Language Specification §4.2.1 — Integral Types and Values](https://docs.oracle.com/javase/specs/jls/se21/html/jls-4.html#jls-4.2.1); [§5.1.2 — Widening Primitive Conversion](https://docs.oracle.com/javase/specs/jls/se21/html/jls-5.html#jls-5.1.2); [§15.22 — Bitwise and Logical Operators](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.22); [Byte.toUnsignedInt API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Byte.html#toUnsignedInt(byte)); [InputStream.read API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/InputStream.html#read()).
+**References:** [Java Language Specification §4.2.1 — Integral Types and Values](https://docs.oracle.com/javase/specs/jls/se21/html/jls-4.html#jls-4.2.1); [§5.1.2 — Widening Primitive Conversion](https://docs.oracle.com/javase/specs/jls/se21/html/jls-5.html#jls-5.1.2); [§15.22 — Bitwise and Logical Operators](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.22); [Byte.toUnsignedInt API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Byte.html#toUnsignedInt(byte)); [InputStream.read API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/io/InputStream.html#read()).

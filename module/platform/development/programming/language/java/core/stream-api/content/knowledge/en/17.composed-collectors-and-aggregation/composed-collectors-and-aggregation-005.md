@@ -1,22 +1,22 @@
-# Làm phẳng đầu vào Collector bằng flatMapping
+# Flattening Collector Input with flatMapping
 
-Trong Java Stream API, một phần tử đầu vào thường chứa **nhiều giá trị con**: một đơn hàng có nhiều nhãn, một bài viết có nhiều từ khóa, một hóa đơn có nhiều dòng chi tiết. Khi cần tổng hợp các giá trị con **theo nhóm của phần tử cha**, `Collectors.flatMapping` cho phép biến mỗi phần tử cha thành một `Stream` con rồi chuyển **từng phần tử con** cho collector phía sau. Đây là một cách ghép các collector nhiều tầng mà không phải tự tạo danh sách trung gian.
+In the Java Stream API, an input element often contains **multiple child values**: an order has multiple tags, an article has multiple keywords, an invoice has multiple line items. When you need to aggregate those child values **by the parent element's group**, `Collectors.flatMapping` lets you turn each parent element into a child `Stream` and pass **each child element** to a downstream collector. This is a way to compose multi-level collectors without manually creating intermediate lists.
 
-Bài thuộc chương **Collector nhiều tầng và tổng hợp** của module **JAVA_STREAM_API**. Mục tiêu là hiểu chính xác `flatMapping`, phân biệt nó với `Stream.flatMap`, thực hành `groupingBy` với các downstream collector, và xử lý các giới hạn về thứ tự, dữ liệu null, trạng thái, tài nguyên và thực thi song song. Kiến thức này gắn với các pipeline khai báo, lazy, `filter`, `map`, `reduce` và `collect`; đồng thời giúp chuẩn bị cho collector tùy chỉnh, `Spliterator` và những phép biến đổi nâng cao như Stream Gatherers.
+This lesson belongs to the **Composed Collectors and Aggregation** chapter of the **JAVA_STREAM_API** module. The goal is to understand `flatMapping` accurately, distinguish it from `Stream.flatMap`, practice `groupingBy` with downstream collectors, and handle constraints around ordering, null data, state, resources, and parallel execution. This knowledge connects to declarative lazy pipelines, `filter`, `map`, `reduce`, and `collect`; it also prepares you for custom collectors, `Spliterator`, and advanced transformations such as Stream Gatherers.
 
-## 1. Bài toán: một phần tử cha có nhiều phần tử con
+## 1. Problem: a parent element has multiple child elements
 
-Giả sử có những đơn hàng:
+Suppose we have these orders:
 
-| Mã đơn | Khu vực | Nhãn của đơn |
+| Order ID | Region | Order tags |
 |---|---|---|
 | D01 | Bắc | gấp, dễ vỡ |
 | D02 | Bắc | gấp, quà tặng |
-| D03 | Nam | *(không có nhãn)* |
-| D04 | Trung | *(danh sách nhãn chưa được cung cấp)* |
+| D03 | Nam | *(no tags)* |
+| D04 | Trung | *(tag list not provided)* |
 | D05 | Nam | ưu tiên |
 
-Yêu cầu: với **mỗi khu vực**, tạo tập hợp các nhãn xuất hiện trong đơn hàng của khu vực đó. Kết quả mong đợi về mặt nội dung là:
+Requirement: for **each region**, build the set of tags appearing in orders of that region. The expected result in terms of content is:
 
 ```text
 Bắc   -> {gấp, dễ vỡ, quà tặng}
@@ -24,12 +24,12 @@ Nam   -> {ưu tiên}
 Trung -> {}
 ```
 
-Ta cần hai tầng xử lý khác nhau:
+We need two distinct processing levels:
 
-1. **Nhóm các đơn hàng** theo khu vực của đơn.
-2. **Làm phẳng nhãn** của các đơn trong mỗi nhóm rồi gom nhãn vào tập hợp.
+1. **Group orders** by the order's region.
+2. **Flatten the tags** of orders within each group and collect the tags into a set.
 
-`Collectors.groupingBy` giải quyết tầng thứ nhất. `Collectors.flatMapping` giải quyết tầng thứ hai, còn `Collectors.toSet` quyết định dạng kết quả cuối của mỗi nhóm:
+`Collectors.groupingBy` handles the first level. `Collectors.flatMapping` handles the second level, while `Collectors.toSet` determines the final result shape of each group:
 
 ```java
 Map<String, Set<String>> tagsByRegion = orders.stream()
@@ -40,11 +40,11 @@ Map<String, Set<String>> tagsByRegion = orders.stream()
                         Collectors.toSet())));
 ```
 
-Đây là **mẫu ý tưởng** cho dữ liệu có danh sách nhãn không null. Trong thực tế, nếu `getTags()` có thể trả `null`, phải xử lý trước khi gọi `stream()`. Ví dụ hoàn chỉnh và null-safe nằm ở phần 4.
+This is the **conceptual pattern** for data with a non-null tag list. In practice, if `getTags()` can return `null`, you must handle that before calling `stream()`. A complete, null-safe example is in section 4.
 
-## 2. Chữ ký và cơ chế của Collectors.flatMapping
+## 2. Signature and mechanism of Collectors.flatMapping
 
-`Collectors.flatMapping` được bổ sung từ **Java 9** trong `java.util.stream.Collectors`. Chữ ký khái quát:
+`Collectors.flatMapping` was added in **Java 9** in `java.util.stream.Collectors`. General signature:
 
 ```java
 static <T, U, A, R> Collector<T, ?, R> flatMapping(
@@ -52,16 +52,16 @@ static <T, U, A, R> Collector<T, ?, R> flatMapping(
         Collector<? super U, A, R> downstream)
 ```
 
-| Tham số/kiểu | Ý nghĩa |
+| Parameter/type | Meaning |
 |---|---|
-| `T` | Kiểu phần tử cha đi vào collector |
-| `U` | Kiểu phần tử con được mapper phát ra |
-| `A` | Kiểu trạng thái tích lũy của downstream collector |
-| `R` | Kiểu kết quả cuối cùng của downstream collector |
-| `mapper` | Nhận một `T` và trả `Stream` gồm **0, 1 hoặc nhiều** phần tử `U` |
-| `downstream` | Nhận từng phần tử `U` và thu thập thành `R` |
+| `T` | Parent element type entering the collector |
+| `U` | Child element type emitted by the mapper |
+| `A` | Accumulation state type of the downstream collector |
+| `R` | Final result type of the downstream collector |
+| `mapper` | Takes one `T` and returns a `Stream` of **0, 1, or many** `U` elements |
+| `downstream` | Receives each `U` element and collects into `R` |
 
-Có thể đọc luồng xử lý ở mức khái niệm:
+Conceptually, you can read the processing flow as:
 
 ```text
           Stream<Order>
@@ -81,25 +81,25 @@ flatMapping   flatMapping    flatMapping
 {gấp, ...}  {ưu tiên}         {}
 ```
 
-**Quan trọng:** `flatMapping` không phải thao tác trung gian gọi trực tiếp trên `Stream`. Nó là **một Collector** để ghép với collector khác. Hàm mapper ở đây trả một `Stream<U>` chứ không trả một `U` đơn lẻ.
+**Important:** `flatMapping` is not an intermediate operation called directly on a `Stream`. It is **a Collector** composed with another collector. The mapper function here returns a `Stream<U>`, not a single `U`.
 
-### 2.1. Các trường hợp 0, 1 và nhiều phần tử
+### 2.1. Cases of 0, 1, and many elements
 
-Với một đơn hàng có ba nhãn, mapper có thể tạo Stream gồm ba nhãn; downstream nhận cả ba. Nếu danh sách nhãn rỗng, mapper tạo Stream rỗng và downstream **không nhận phần tử nào** từ đơn ấy. Nếu một đơn có đúng một nhãn, downstream nhận một phần tử.
+For an order with three tags, the mapper can produce a Stream of three tags; the downstream receives all three. If the tag list is empty, the mapper produces an empty Stream and the downstream **receives zero elements** from that order. If an order has one tag, the downstream receives one element.
 
-Việc một mapper phát ra **không có phần tử con** không có nghĩa bản thân **đơn hàng cha đã biến mất khỏi phép grouping**. Đây là khác biệt quan trọng với cách làm phẳng đầu vào **trước khi** nhóm.
+A mapper emitting **zero child elements** does not mean the **parent order itself disappears from grouping**. This is a crucial difference from flattening the input **before** grouping.
 
-### 2.2. Đặc điểm vòng đời của Stream con
+### 2.2. Lifecycle characteristics of child Streams
 
-Theo hợp đồng của `Collectors.flatMapping`, **mỗi Stream do mapper trả về được đóng sau khi các phần tử của nó đã được đưa vào downstream collector**. Nếu mapper trả về **Stream null**, implementation xem đó là Stream rỗng.
+By the contract of `Collectors.flatMapping`, **each Stream returned by the mapper is closed after its elements have been fed into the downstream collector**. If the mapper returns a **null Stream**, the implementation treats it as an empty Stream.
 
-Không nên cố tình trả `null` để biểu thị không có dữ liệu; dùng `Stream.empty()` tường minh dễ đọc và tránh che khuất lỗi trong mapper. Cần nhớ thêm rằng việc đóng **Stream con** không có nghĩa tất cả tài nguyên của **Stream nguồn bên ngoài** tự động được đóng. Với nguồn I/O như `Files.lines`, hãy quản lý vòng đời nguồn bằng `try-with-resources`.
+Do not intentionally return `null` to represent missing data; using `Stream.empty()` explicitly is clearer and avoids masking bugs inside the mapper. Remember also that closing the **child Stream** does not automatically close all resources of the **outer source Stream**. For I/O sources such as `Files.lines`, manage the source lifecycle with `try-with-resources`.
 
-## 3. Vì sao đặt flatMapping bên trong groupingBy?
+## 3. Why place flatMapping inside groupingBy?
 
-Hai pipeline nhìn tương tự nhưng có thể cho **tập khóa Map khác nhau**.
+Two pipelines that look similar can yield **different Map key sets**.
 
-### 3.1. Làm phẳng trước rồi mới groupingBy
+### 3.1. Flatten first, then groupingBy
 
 ```java
 Map<String, List<String>> byRegion = orders.stream()
@@ -113,11 +113,11 @@ Map<String, List<String>> byRegion = orders.stream()
                         Collectors.toList())));
 ```
 
-Đoạn minh họa này cũng giả định `getTags()` khác null; ví dụ chạy độc lập ở phần 4 cung cấp phiên bản an toàn.
+This illustration also assumes `getTags()` is non-null; the standalone runnable example in section 4 provides a null-safe version.
 
-Ở đây, `flatMap` là thao tác trung gian **trước** `groupingBy`. Một đơn không có nhãn sẽ không tạo ra cặp `(khu vực, nhãn)` nào. Nếu tất cả đơn của một khu vực đều không có nhãn, khóa khu vực đó **có thể không tồn tại trong Map kết quả**.
+Here, `flatMap` is an intermediate operation **before** `groupingBy`. An order with no tags emits no `(region, tag)` pair. If all orders in a region have no tags, that region key **may not exist in the resulting Map**.
 
-### 3.2. groupingBy trước, flatMapping ở downstream
+### 3.2. groupingBy first, flatMapping in downstream
 
 ```java
 Map<String, List<String>> byRegion = orders.stream()
@@ -128,22 +128,22 @@ Map<String, List<String>> byRegion = orders.stream()
                         Collectors.toList())));
 ```
 
-`groupingBy` nhận **đơn hàng cha** và tạo nhóm cho khu vực của nó. Collector `flatMapping` chỉ thay đổi **những phần tử được đưa vào downstream**, không quyết định một đơn có thuộc nhóm hay không.
+`groupingBy` receives the **parent order** and creates a group for its region. The `flatMapping` collector only alters **the elements passed to the downstream**, not whether an order belongs to a group.
 
-Với một khu vực có đơn nhưng không có nhãn, khóa khu vực vẫn tồn tại và giá trị có thể là **danh sách rỗng**. Nhưng khu vực **không có bất kỳ đơn hàng nào trong nguồn** sẽ không được `groupingBy` tự tạo thành khóa.
+For a region that has orders with no tags, the region key still exists and its value can be an **empty list**. However, a region **with no orders at all in the source** will not have a key created automatically by `groupingBy`.
 
-| Nguồn dữ liệu | `stream.flatMap(...).collect(groupingBy(...))` | `stream.collect(groupingBy(..., flatMapping(...)))` |
+| Source data | `stream.flatMap(...).collect(groupingBy(...))` | `stream.collect(groupingBy(..., flatMapping(...)))` |
 |---|---|---|
-| Có đơn và có nhãn | Có nhóm | Có nhóm |
-| Có đơn nhưng danh sách nhãn rỗng | Không có nhóm từ đơn ấy | Nhóm tồn tại, downstream rỗng nếu các đơn khác cũng không có nhãn |
-| Có đơn và danh sách nhãn null được chuyển thành Stream rỗng | Không có phần tử để lập nhóm | Giữ nhóm của đơn cha |
-| Không có đơn thuộc khu vực đó | Không có nhóm | Không có nhóm |
+| Has orders with tags | Group exists | Group exists |
+| Has orders, but tag list is empty | No group contributed by that order | Group exists; downstream is empty if other orders also lack tags |
+| Has orders, and null tag list is turned into empty Stream | No elements for grouping | Preserves parent order's group |
+| No orders for that region | No group | No group |
 
-**Quyết định đặt thao tác làm phẳng trước hay sau khi nhóm là quyết định nghiệp vụ:** cần loại bỏ nhóm không có giá trị con, hay cần giữ nhóm đó để báo cáo “có đơn nhưng chưa có nhãn”?
+**Deciding whether to flatten before or after grouping is a business decision:** should groups with no child values be omitted, or must they be kept to report “orders exist, but have no tags yet”?
 
-## 4. Ví dụ Java 9 hoàn chỉnh: nhãn đơn hàng theo khu vực
+## 4. Complete Java 9 example: order tags by region
 
-Ví dụ dưới đây tự chạy được từ **Java 9 trở lên**. Nó chuẩn hóa nhãn, loại null và chuỗi trắng, rồi tạo cả **tập nhãn khác nhau** và **số lượt nhãn xuất hiện** theo khu vực.
+The example below runs standalone on **Java 9 or later**. It normalizes tags, removes nulls and blank strings, and produces both the **set of distinct tags** and **tag occurrence counts** per region.
 
 ```java
 import java.util.AbstractMap;
@@ -181,7 +181,7 @@ public class FlatMappingCollectorDemo {
         }
     }
 
-    // Tạo một Stream con mới cho từng đơn, không sửa danh sách nguồn.
+    // Creates a new child Stream per order without mutating the source list.
     static Stream<String> normalizedTags(Order order) {
         List<String> tags = order.getTags();
         if (tags == null) {
@@ -205,7 +205,7 @@ public class FlatMappingCollectorDemo {
                         Arrays.asList("ưu tiên", "  "))
         );
 
-        // 1) Nhóm đơn hàng cha, làm phẳng nhãn ở downstream.
+        // 1) Group parent orders, flatten tags in the downstream.
         Map<String, Set<String>> uniqueTagsByRegion = orders.stream()
                 .collect(Collectors.groupingBy(
                         Order::getRegion,
@@ -218,7 +218,7 @@ public class FlatMappingCollectorDemo {
         System.out.println(uniqueTagsByRegion.containsKey("Trung")); // true
         System.out.println(uniqueTagsByRegion.get("Trung").isEmpty()); // true
 
-        // 2) Đếm SỐ LƯỢT nhãn, bao gồm cả nhãn xuất hiện nhiều lần.
+        // 2) Count tag OCCURRENCES, including repeated tags.
         Map<String, Long> tagCountByRegion = orders.stream()
                 .collect(Collectors.groupingBy(
                         Order::getRegion,
@@ -230,7 +230,7 @@ public class FlatMappingCollectorDemo {
         System.out.println(tagCountByRegion.get("Nam"));   // 1
         System.out.println(tagCountByRegion.get("Trung")); // 0
 
-        // 3) Làm phẳng trước khi grouping: nhóm không có nhãn biến mất.
+        // 3) Flatten before grouping: groups without tags disappear.
         Map<String, List<String>> flatFirst = orders.stream()
                 .flatMap(order -> normalizedTags(order)
                         .map(tag -> new AbstractMap.SimpleEntry<>(
@@ -243,37 +243,37 @@ public class FlatMappingCollectorDemo {
 
         System.out.println(flatFirst.containsKey("Trung")); // false
 
-        // 4) Với nhóm chỉ có đơn rỗng, kết quả vẫn là giá trị rỗng.
+        // 4) For a group with no orders at all, there is still no key.
         System.out.println(uniqueTagsByRegion.containsKey("Tây")); // false
     }
 }
 ```
 
-**Giải thích kết quả:**
+**Result explanation:**
 
-- Khu vực **Bắc** có bốn lần xuất hiện nhãn hợp lệ: `gấp`, `dễ vỡ`, `gấp`, `quà tặng`. `toSet` bỏ nhãn `gấp` trùng, nên chỉ còn **ba nhãn phân biệt**; `counting` vẫn đếm **bốn lượt**.
-- Khu vực **Nam** có một nhãn hợp lệ `ưu tiên`, vì đơn D03 không có nhãn và chuỗi chỉ có khoảng trắng ở D05 bị lọc.
-- Khu vực **Trung** có một đơn D04 nhưng danh sách nhãn là null. `normalizedTags` trả `Stream.empty()`, nên downstream `toSet` trả tập hợp rỗng và `counting` trả `0L`. **Khóa "Trung" vẫn tồn tại** khi dùng `groupingBy(..., flatMapping(...))`.
-- Khu vực **Tây** không có đơn nào nên không được tạo thành nhóm.
-- `toSet` và Map mặc định của `groupingBy` **không cam kết thứ tự duyệt**; ví dụ chỉ kiểm tra nội dung qua `get`, `containsKey` và `size`.
+- The **Bắc** region has four valid tag occurrences: `gấp`, `dễ vỡ`, `gấp`, `quà tặng`. `toSet` deduplicates `gấp`, leaving **three distinct tags**; `counting` still counts **four occurrences**.
+- The **Nam** region has one valid tag `ưu tiên`, because order D03 has no tags and the whitespace-only string in D05 is filtered out.
+- The **Trung** region has one order D04 whose tag list is null. `normalizedTags` returns `Stream.empty()`, so downstream `toSet` returns an empty set and `counting` returns `0L`. **The `"Trung"` key still exists** when using `groupingBy(..., flatMapping(...))`.
+- The **Tây** region has no orders, so no group is created for it.
+- `toSet` and default `groupingBy` Maps **do not guarantee iteration order**; the example checks content using `get`, `containsKey`, and `size`.
 
-Đây là một ví dụ dùng `flatMapping` đúng với ý nghĩa nghiệp vụ: **giữ nhóm theo phần tử cha**, nhưng cho phép mỗi phần tử cha đóng góp **0 hoặc nhiều phần tử con**.
+This is an example of using `flatMapping` in line with business semantics: **grouping by the parent element**, while allowing each parent element to contribute **0 or more child elements**.
 
-## 5. Kết hợp flatMapping với các downstream collector khác
+## 5. Combining flatMapping with other downstream collectors
 
-`flatMapping` không giới hạn ở `toSet`. Nó chuyển các phần tử `U` cho **bất kỳ downstream collector phù hợp**:
+`flatMapping` is not limited to `toSet`. It forwards `U` elements to **any suitable downstream collector**:
 
-| Downstream | Kết quả theo mỗi nhóm | Trường hợp nhóm có cha nhưng không có con |
+| Downstream | Per-group result | Case where group has parent but no children |
 |---|---|---|
-| `Collectors.toList()` | Danh sách phần tử con, có thể chứa trùng lặp | Danh sách rỗng |
-| `Collectors.toSet()` | Tập phần tử con phân biệt | Tập hợp rỗng |
-| `Collectors.counting()` | Số lượt phần tử con | `0L` |
-| `Collectors.summingInt(String::length)` | Tổng số ký tự nhãn | `0` |
-| `Collectors.joining(", ")` | Chuỗi nối các nhãn | Chuỗi rỗng `""` |
-| `Collectors.mapping(..., toList())` | Biến đổi thêm sau khi làm phẳng | Danh sách rỗng |
-| `Collectors.filtering(..., toSet())` (Java 9+) | Lọc phần tử con trước khi thêm vào tập | Tập hợp rỗng |
+| `Collectors.toList()` | List of child elements, may contain duplicates | Empty list |
+| `Collectors.toSet()` | Set of distinct child elements | Empty set |
+| `Collectors.counting()` | Count of child element occurrences | `0L` |
+| `Collectors.summingInt(String::length)` | Total character count of tags | `0` |
+| `Collectors.joining(", ")` | Joined string of tags | Empty string `""` |
+| `Collectors.mapping(..., toList())` | Further transformation after flattening | Empty list |
+| `Collectors.filtering(..., toSet())` (Java 9+) | Filter child elements before adding to set | Empty set |
 
-### 5.1. Giữ phần tử trùng nhau bằng toList
+### 5.1. Keeping duplicates with toList
 
 ```java
 Map<String, List<String>> allTags = orders.stream()
@@ -287,11 +287,11 @@ System.out.println(allTags.get("Bắc"));
 // [gấp, dễ vỡ, gấp, quà tặng]
 ```
 
-Nếu Stream nguồn là một `List` có encounter order, collector giữ thứ tự tương ứng cho các phần tử trong `List` kết quả; tuy nhiên, thứ tự **duyệt các khóa Map** từ `groupingBy` là chuyện khác và không được mặc định ổn định.
+If the source Stream is a `List` with encounter order, the collector preserves that order for elements in the resulting `List`; however, **Map key iteration order** from `groupingBy` is a separate matter and is not guaranteed stable by default.
 
-### 5.2. Đếm không trùng lặp bằng collectingAndThen
+### 5.2. Counting distinct items with collectingAndThen
 
-`Collectors.counting()` đếm **lượt xuất hiện**, trong khi đôi khi cần **số nhãn khác nhau**:
+`Collectors.counting()` counts **occurrences**, whereas sometimes you need the **number of distinct tags**:
 
 ```java
 Map<String, Integer> uniqueCount = orders.stream()
@@ -307,11 +307,11 @@ System.out.println(uniqueCount.get("Bắc"));   // 3
 System.out.println(uniqueCount.get("Trung")); // 0
 ```
 
-Ở đây, `toSet()` tích lũy các nhãn phân biệt; `collectingAndThen` gọi finisher `Set::size` để chuyển tập thành số lượng. Đây là ví dụ **collector lồng nhiều tầng**: `groupingBy → flatMapping → collectingAndThen → toSet`.
+Here, `toSet()` accumulates distinct tags; `collectingAndThen` calls the `Set::size` finisher to convert the set into a count. This is an example of a **multi-level composed collector**: `groupingBy → flatMapping → collectingAndThen → toSet`.
 
-### 5.3. Biến đổi hoặc lọc tiếp phần tử con
+### 5.3. Transforming or further filtering child elements
 
-`Collectors.mapping` biến **mỗi phần tử** thành một phần tử mới; `Collectors.flatMapping` biến **mỗi phần tử** thành một Stream có thể chứa nhiều phần tử. Có thể lồng chúng:
+`Collectors.mapping` converts **each element** into a new element; `Collectors.flatMapping` converts **each element** into a Stream that can hold multiple elements. They can be nested:
 
 ```java
 Map<String, Set<String>> upperCaseTags = orders.stream()
@@ -324,7 +324,7 @@ Map<String, Set<String>> upperCaseTags = orders.stream()
                                 Collectors.toSet()))));
 ```
 
-Với collector `filtering` từ Java 9, có thể chỉ giữ nhãn có độ dài từ bốn ký tự:
+With the `filtering` collector from Java 9, you can retain only tags of length at least four characters:
 
 ```java
 Map<String, List<String>> longTags = orders.stream()
@@ -337,38 +337,38 @@ Map<String, List<String>> longTags = orders.stream()
                                 Collectors.toList()))));
 
 System.out.println(longTags.get("Bắc"));
-// [dễ vỡ, quà tặng]; "gấp" có ba ký tự nên bị loại.
+// [dễ vỡ, quà tặng]; "gấp" has three characters so it is excluded.
 System.out.println(longTags.get("Trung")); // []
 ```
 
-Trên các đoạn code nhỏ trong mục này, `orders` và `FlatMappingCollectorDemo.normalizedTags` dùng từ ví dụ hoàn chỉnh ở phần 4. Việc bỏ phần tử con bằng downstream `filtering` vẫn giữ nhóm đã được tạo cho phần tử cha.
+In the snippets of this section, `orders` and `FlatMappingCollectorDemo.normalizedTags` come from the complete example in section 4. Dropping child elements with downstream `filtering` still preserves the group already created for the parent element.
 
-## 6. So sánh mapping, flatMapping, filtering và flatMap
+## 6. Comparing mapping, flatMapping, filtering, and flatMap
 
-Những tên phương thức gần nhau rất dễ gây nhầm lẫn:
+Similar method names are easy to confuse:
 
-| Cách viết | Cấp hoạt động | Hình dạng biến đổi | Tác động đối với nhóm |
+| Form | Operating level | Transformation shape | Effect on groups |
 |---|---|---|---|
-| `stream.map(f)` | Thao tác trung gian trên Stream | Mỗi `T` → một `U`, kể cả U có thể null | Có thể đổi dữ liệu trước khi lập nhóm |
-| `stream.flatMap(f)` | Thao tác trung gian trên Stream | Mỗi `T` → 0..n phần tử `U` | Nếu dùng trước grouping, cha không sinh con có thể không tạo nhóm |
-| `Collectors.mapping(f, downstream)` | Collector downstream | Mỗi `T` → một `U` rồi tích lũy | Nhóm được lập từ cha nếu đặt bên trong groupingBy |
-| `Collectors.flatMapping(f, downstream)` | Collector downstream (Java 9+) | Mỗi `T` → 0..n phần tử `U` rồi tích lũy | Nhóm được lập từ cha, kể cả khi mapper phát 0 phần tử |
-| `Collectors.filtering(p, downstream)` | Collector downstream (Java 9+) | Mỗi `T` → giữ hoặc bỏ trước downstream | Nhóm được lập từ cha, kể cả khi bị downstream lọc hết |
+| `stream.map(f)` | Stream intermediate operation | Each `T` → one `U`, even if `U` can be null | Can change data before grouping |
+| `stream.flatMap(f)` | Stream intermediate operation | Each `T` → 0..n `U` elements | If used before grouping, parents with 0 children may not create a group |
+| `Collectors.mapping(f, downstream)` | Downstream collector | Each `T` → one `U`, then accumulated | Group is formed from parent if placed inside `groupingBy` |
+| `Collectors.flatMapping(f, downstream)` | Downstream collector (Java 9+) | Each `T` → 0..n `U` elements, then accumulated | Group is formed from parent, even if mapper emits 0 elements |
+| `Collectors.filtering(p, downstream)` | Downstream collector (Java 9+) | Each `T` → kept or dropped before downstream | Group is formed from parent, even if all elements are filtered out downstream |
 
-**Quy tắc chọn nhanh:** Nếu nhiệm vụ chỉ là tạo một Stream con chung cho tất cả phần tử, `Stream.flatMap` rất tự nhiên. Nếu nhiệm vụ là **tổng hợp nhiều giá trị con bên trong từng nhóm cha**, `Collectors.flatMapping` thường biểu đạt đúng hơn và có thể giữ những nhóm không có giá trị con.
+**Quick rule of thumb:** If the task is simply to produce a combined Stream of children for all elements, `Stream.flatMap` is natural. If the task is to **aggregate multiple child values inside each parent group**, `Collectors.flatMapping` usually expresses this better and can preserve groups with zero child values.
 
-### 6.1. Không nhầm flatMapping với mapping một giá trị
+### 6.1. Do not confuse flatMapping with single-value mapping
 
 ```java
-// Với mapping, mỗi Order chỉ đóng góp một số nguyên:
+// With mapping/summing, each Order contributes only one integer:
 Map<String, Integer> totalTagLists = orders.stream()
         .collect(Collectors.groupingBy(
                 Order::getRegion,
                 Collectors.summingInt(order ->
                         order.getTags() == null ? 0 : 1)));
-// Đây là số đơn có danh sách tags khác null, KHÔNG phải số nhãn.
+// This is the number of orders with non-null tag lists, NOT the number of tags.
 
-// Với flatMapping + counting, mỗi Order đóng góp mọi nhãn hợp lệ:
+// With flatMapping + counting, each Order contributes all valid tags:
 Map<String, Long> totalTags = orders.stream()
         .collect(Collectors.groupingBy(
                 Order::getRegion,
@@ -377,19 +377,19 @@ Map<String, Long> totalTags = orders.stream()
                         Collectors.counting())));
 ```
 
-Hãy kiểm tra **đơn vị đếm**: đếm đơn, đếm danh sách nhãn, đếm lượt nhãn và đếm nhãn phân biệt là bốn phép tính khác nhau.
+Verify the **counting unit**: counting orders, counting tag lists, counting tag occurrences, and counting distinct tags are four different computations.
 
-## 7. Xử lý null và Stream con rỗng
+## 7. Handling null and empty child Streams
 
-Ba cấp null có thể xuất hiện trong một pipeline lồng nhau:
+Three levels of null can arise in a nested pipeline:
 
-1. **Đơn hàng cha là null**: `Order::getRegion` hoặc `Order::getTags` sẽ lỗi; phải lọc đơn null trước hoặc xử lý rõ ràng.
-2. **Danh sách nhãn của một đơn là null**: không thể gọi `tags.stream()`; cần trả `Stream.empty()` hoặc dùng API null-safe.
-3. **Một phần tử bên trong danh sách nhãn là null**: `tags.stream()` vẫn phát ra null; downstream có thể nhận nó nếu không lọc.
+1. **The parent order is null**: `Order::getRegion` or `Order::getTags` will fail; filter out null orders first or handle explicitly.
+2. **An order's tag list is null**: cannot call `tags.stream()`; return `Stream.empty()` or use a null-safe API.
+3. **An element inside the tag list is null**: `tags.stream()` still emits null; the downstream may receive it unless filtered.
 
 ```java
 Map<String, Set<String>> byRegion = orders.stream()
-        .filter(Objects::nonNull) // Bảo vệ chính Order.
+        .filter(Objects::nonNull) // Protects Order itself.
         .collect(Collectors.groupingBy(
                 Order::getRegion,
                 Collectors.flatMapping(
@@ -399,15 +399,15 @@ Map<String, Set<String>> byRegion = orders.stream()
                         Collectors.toSet())));
 ```
 
-`Stream.ofNullable` cũng có từ **Java 9**: nếu danh sách nhãn null, nó tạo Stream rỗng; nếu không null, nó chứa đúng một danh sách để `flatMap(List::stream)` mở ra các phần tử. `filter(Objects::nonNull)` cuối chỉ loại **phần tử nhãn null**, không loại null của danh sách.
+`Stream.ofNullable` was also introduced in **Java 9**: if the tag list is null, it creates an empty Stream; if non-null, it contains that single list so `flatMap(List::stream)` expands its elements. The final `filter(Objects::nonNull)` only drops **null tag elements**, not a null list.
 
-Trong ví dụ này, `region` được giả định không null. Nếu `getRegion()` trả null, `groupingBy` có thể ném `NullPointerException` vì classifier không chấp nhận khóa null; quyết định chính sách lọc đơn hoặc ánh xạ region thiếu thành một nhãn nhóm.
+In this example, `region` is assumed non-null. If `getRegion()` returns null, `groupingBy` can throw `NullPointerException` because the classifier does not accept null keys; decide on a policy to filter orders or map missing regions to a group label.
 
-### 7.1. Mapper của flatMapping trả null thì sao?
+### 7.1. What if flatMapping's mapper returns null?
 
-Hợp đồng của `Collectors.flatMapping` xử lý một **Stream null do mapper trả về** như Stream rỗng. Nhưng đây là cơ chế dự phòng ở mức Collector, không phải lời hứa rằng phép gọi như `order.getTags().stream()` trên danh sách null sẽ an toàn. Biểu thức đó đã ném ngoại lệ **trước khi mapper trả một Stream**.
+The contract of `Collectors.flatMapping` treats a **null Stream returned by the mapper** as an empty Stream. However, this is a Collector-level fallback, not a promise that calling `order.getTags().stream()` on a null list will be safe. That expression throws an exception **before the mapper ever returns a Stream**.
 
-Nên viết:
+Write:
 
 ```java
 order -> order.getTags() == null
@@ -415,20 +415,20 @@ order -> order.getTags() == null
         : order.getTags().stream()
 ```
 
-hoặc dùng `Stream.ofNullable(...)` như trên để ý định bỏ dữ liệu thiếu được thể hiện rõ.
+or use `Stream.ofNullable(...)` as shown above so the intent to skip missing data is explicit.
 
-## 8. Thứ tự, tính lazy và vòng đời tài nguyên
+## 8. Ordering, laziness, and resource lifecycle
 
-`flatMapping` là một Collector dùng trong thao tác kết thúc `collect`. Pipeline bên trên nó như `filter` và `map` vẫn hoạt động theo cơ chế lazy của Stream; hàm ánh xạ trong `flatMapping` được áp dụng khi dữ liệu thực sự được thu thập.
+`flatMapping` is a Collector used in the `collect` terminal operation. The upstream pipeline such as `filter` and `map` still operates under Stream laziness; the mapping function inside `flatMapping` is applied when data is actually collected.
 
-### 8.1. Chọn downstream quyết định cách giữ thứ tự
+### 8.1. Downstream choice determines order preservation
 
-- `toList` giữ các phần tử theo encounter order nếu có yêu cầu thứ tự từ nguồn và collector.
-- `toSet` loại phần tử trùng nhau và **không cam kết thứ tự duyệt**.
-- `toCollection(LinkedHashSet::new)` có thể dùng khi cần một tập hợp không trùng nhau **và giữ thứ tự chèn**.
-- `toCollection(TreeSet::new)` sắp xếp theo thứ tự tự nhiên hoặc comparator của tập, không nhất thiết là encounter order.
+- `toList` preserves elements in encounter order if ordering is required by the source and collector.
+- `toSet` removes duplicates and **does not guarantee iteration order**.
+- `toCollection(LinkedHashSet::new)` can be used when you need a set without duplicates **that preserves insertion order**.
+- `toCollection(TreeSet::new)` sorts by natural order or the set's comparator, not necessarily encounter order.
 
-Ví dụ giữ thứ tự nhãn xuất hiện và loại trùng:
+Example preserving tag appearance order while deduplicating:
 
 ```java
 Map<String, java.util.LinkedHashSet<String>> orderedTags =
@@ -444,13 +444,13 @@ System.out.println(orderedTags.get("Bắc"));
 // [gấp, dễ vỡ, quà tặng]
 ```
 
-Đây là thứ tự phần tử **trong giá trị Set** của khu vực Bắc; Map tạo bởi `groupingBy` vẫn không mặc nhiên duyệt khóa theo thứ tự khu vực.
+This is the element order **inside the Set value** of the `"Bắc"` region; the Map produced by `groupingBy` still does not iterate keys in region order by default.
 
-### 8.2. Các Stream con được đóng; nguồn I/O cần quản lý riêng
+### 8.2. Child Streams are closed; I/O sources need separate management
 
-Nếu mapper tạo một Stream gắn với tài nguyên, `flatMapping` sẽ đóng Stream con sau khi chuyển các phần tử tới downstream. Tuy nhiên, nên cân nhắc chi phí mở/đóng tài nguyên cho **mỗi phần tử cha**: một nguồn I/O cho từng đơn hàng có thể rất đắt và dễ vượt giới hạn tài nguyên nếu thiết kế không phù hợp.
+If the mapper creates a resource-backed Stream, `flatMapping` closes the child Stream after forwarding its elements to the downstream. However, consider the cost of opening/closing a resource **for every parent element**: an I/O source per order can be very expensive and easily exhaust resource limits if poorly designed.
 
-Khi Stream ngoài được tạo từ một tài nguyên cần đóng, hãy bọc chính nguồn đó:
+When the outer Stream is created from a closeable resource, wrap that source itself:
 
 ```java
 import java.nio.file.Files;
@@ -459,7 +459,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-Path path = java.nio.file.Paths.get("data.txt"); // Cần có tệp này.
+Path path = java.nio.file.Paths.get("data.txt"); // File must exist.
 
 try (Stream<String> lines = Files.lines(path)) {
     List<String> nonEmpty = lines
@@ -469,17 +469,17 @@ try (Stream<String> lines = Files.lines(path)) {
 }
 ```
 
-Đây là đoạn minh họa cú pháp quản lý nguồn; khi thực thi phải có tệp `data.txt` tại thư mục làm việc (hoặc thay bằng đường dẫn phù hợp). `collect` tự nó không thay thế `try-with-resources` cho nguồn tệp bên ngoài.
+This snippet illustrates resource-management syntax; at runtime `data.txt` must exist in the working directory (or replace with an appropriate path). `collect` itself does not replace `try-with-resources` for an external file source.
 
-### 8.3. Không tái sử dụng một Stream con
+### 8.3. Do not reuse a child Stream
 
-`Stream` thường chỉ tiêu thụ được một lần. Mapper nên **tạo Stream mới cho mỗi lần gọi**, thay vì trả cùng một biến `Stream` đã được dùng ở đơn trước. Trả một Stream đã đóng hoặc đã tiêu thụ có thể gây `IllegalStateException`.
+A `Stream` can generally be consumed only once. The mapper should **create a new Stream on each invocation**, rather than returning the same `Stream` variable already used on a previous order. Returning a closed or already-consumed Stream can cause `IllegalStateException`.
 
-Một `List` có thể được duyệt nhiều lần bằng các Stream mới, miễn danh sách không bị thay đổi trái quy tắc trong khi duyệt. Điều này khác với tái sử dụng chính đối tượng `Stream`.
+A `List` can be traversed multiple times with new Streams, provided the list is not illegally modified during traversal. This differs from reusing the `Stream` object itself.
 
-## 9. Hiệu năng và xử lý song song
+## 9. Performance and parallel processing
 
-Khi dùng `groupingBy(..., flatMapping(...))` trên parallel stream, framework có thể tạo các container tích lũy trung gian cho từng nhánh, chuyển các phần tử con tới downstream, rồi gộp các container. Điều này yêu cầu downstream collector tuân thủ **hợp đồng đơn vị, kết hợp và tương đương** để kết quả hợp lệ qua nhiều cách chia.
+When using `groupingBy(..., flatMapping(...))` on a parallel stream, the framework can create intermediate accumulation containers per branch, feed child elements to the downstream, and then merge the containers. This requires the downstream collector to obey the **identity, associativity, and equivalence contracts** so results remain valid across partitions.
 
 ```java
 Map<String, Set<String>> parallelResult = orders.parallelStream()
@@ -490,83 +490,83 @@ Map<String, Set<String>> parallelResult = orders.parallelStream()
                         Collectors.toSet())));
 ```
 
-Đoạn trên không chia sẻ một `HashSet` mutable bên ngoài pipeline. Các container do collector quản lý được tạo và kết hợp theo quy tắc của framework, nên không cần dùng `Collections.synchronizedSet` chỉ để viết một phép thu thập thông thường.
+The snippet above does not share a mutable `HashSet` outside the pipeline. Containers managed by the collector are created and combined according to framework rules, so there is no need to use `Collections.synchronizedSet` just to write an ordinary collection operation.
 
-Để an toàn và dễ kiểm chứng:
+For safety and verifiability:
 
-- Mapper và các hàm của downstream nên **không can thiệp vào nguồn** và tránh trạng thái mutable được chia sẻ giữa nhiều worker.
-- Không giả định thứ tự gọi mapper hoặc thứ tự chạy các worker khi dùng `parallelStream()`; dùng kết quả có ngữ nghĩa không phụ thuộc thứ tự nếu nghiệp vụ cho phép.
-- `groupingBy` song song có thể phải **gộp nhiều Map**, gây chi phí đáng kể nếu nhiều nhóm hoặc dữ liệu phân bố phức tạp.
-- `groupingByConcurrent` có thể thích hợp nếu thứ tự không quan trọng và downstream tương thích, nhưng bản thân việc chuyển sang concurrent collector **không bảo đảm nhanh hơn**.
-- Với số lượng phần tử con lớn, `toList` có thể giữ toàn bộ dữ liệu trong bộ nhớ, còn `counting` hay `summingInt` thường chỉ cần trạng thái tích lũy nhỏ cho mỗi nhóm.
+- The mapper and downstream functions should be **non-interfering** and avoid mutable state shared across workers.
+- Do not assume mapper invocation order or worker execution order when using `parallelStream()`; use order-independent result semantics when business rules permit.
+- Parallel `groupingBy` may have to **merge many Maps**, incurring notable cost with many groups or skewed data distributions.
+- `groupingByConcurrent` may fit when order does not matter and the downstream is compatible, though switching to a concurrent collector **does not guarantee faster speed**.
+- With large numbers of child elements, `toList` may retain all data in memory, whereas `counting` or `summingInt` typically need only a small accumulation state per group.
 
-Đặt `flatMapping` bên trong collector tránh phải tự vật chất hóa một danh sách trung gian để grouping, nhưng mỗi lần gọi mapper vẫn có chi phí tạo và duyệt Stream con. Đừng xem việc dùng Stream đồng nghĩa tự động tiết kiệm bộ nhớ nếu downstream cuối vẫn phải giữ nhiều phần tử.
+Placing `flatMapping` inside the collector avoids manually materializing an intermediate list for grouping, yet each mapper invocation still pays the cost of creating and traversing a child Stream. Do not equate using Streams with automatic memory savings if the final downstream must still hold many elements.
 
-## 10. Khi nào không nên dùng flatMapping?
+## 10. When should you not use flatMapping?
 
-Không cần cố ép mọi bài toán sang `Collectors.flatMapping`:
+Do not force every problem into `Collectors.flatMapping`:
 
-| Bài toán | Cách phù hợp hơn |
+| Problem | Better approach |
 |---|---|
-| Cần làm phẳng một danh sách danh sách rồi trả một Stream mới | `Stream.flatMap` |
-| Chỉ ánh xạ mỗi cha thành đúng một giá trị rồi thu thập theo nhóm | `Collectors.mapping` |
-| Chỉ lọc phần tử trước downstream | `Collectors.filtering` hoặc `Stream.filter` theo chính sách nhóm |
-| Chỉ cần đếm số đơn theo khu vực | `groupingBy(Order::getRegion, counting())` |
-| Chỉ cần tính tổng một trường nguyên thủy | `summingInt`/`summingLong` hoặc primitive stream |
-| Cần báo cáo nhóm theo cha, trong mỗi nhóm gom các con | `groupingBy(..., flatMapping(...))` |
+| Need to flatten a list of lists and return a new Stream | `Stream.flatMap` |
+| Only map each parent to exactly one value and collect by group | `Collectors.mapping` |
+| Only filter elements before downstream | `Collectors.filtering` or `Stream.filter` per group policy |
+| Only need to count orders per region | `groupingBy(Order::getRegion, counting())` |
+| Only need to sum a primitive field | `summingInt`/`summingLong` or primitive stream |
+| Need a report grouped by parent, collecting children inside each group | `groupingBy(..., flatMapping(...))` |
 
-Nếu nghiệp vụ **không muốn giữ nhóm rỗng**, đôi khi `Stream.flatMap` trước grouping sẽ đơn giản hơn. Nếu nghiệp vụ **bắt buộc giữ nhóm rỗng**, downstream `flatMapping` thể hiện ý nghĩa rõ hơn.
+If the business logic **does not want to keep empty groups**, sometimes `Stream.flatMap` before grouping is simpler. If the business logic **requires keeping empty groups**, downstream `flatMapping` expresses the intent more clearly.
 
-## 11. Lỗi phổ biến và cách sửa
+## 11. Common errors and fixes
 
-| Dấu hiệu | Nguyên nhân | Cách sửa |
+| Symptom | Cause | Fix |
 |---|---|---|
-| `NullPointerException` ở `order.getTags().stream()` | Danh sách con null | Trả `Stream.empty()` hoặc dùng `Stream.ofNullable` |
-| `NullPointerException` khi gọi getter trên `Order` | Phần tử cha null | Lọc `Objects::nonNull` trước grouping |
-| Nhóm không có nhãn bị mất khỏi Map | Làm phẳng trước `groupingBy` | Đặt `flatMapping` làm downstream của `groupingBy` |
-| Tưởng `counting` đếm số đơn | Thực ra nó đếm phần tử **sau** `flatMapping` | Xác định đơn vị đếm; đặt `counting` ở đúng tầng |
-| Số nhãn không trùng vẫn bị lặp | Dùng `toList` | Dùng `toSet` hoặc `toCollection(LinkedHashSet::new)` |
-| Thứ tự nhãn không ổn định | `toSet` không có cam kết thứ tự | Dùng collection có thứ tự hoặc sắp xếp rõ ràng |
-| Stream con dùng chung bị lỗi `already operated upon or closed` | Mapper trả lại Stream cũ | Tạo Stream mới cho từng phần tử cha |
-| Nhãn bên trong danh sách null vẫn đi qua | Chỉ kiểm tra danh sách con khác null | Lọc phần tử con bằng `Objects::nonNull` |
-| Collector song song có side effect bất ngờ | Mapper sửa biến chung hoặc nguồn | Dùng hàm thuần, để collector quản lý trạng thái |
-| Dùng `flatMapping` trên Java 8 | API chưa tồn tại ở Java 8 | Nâng lên Java 9+ hoặc tự triển khai chiến lược khác |
+| `NullPointerException` at `order.getTags().stream()` | Null child list | Return `Stream.empty()` or use `Stream.ofNullable` |
+| `NullPointerException` when calling getter on `Order` | Null parent element | Filter `Objects::nonNull` before grouping |
+| Groups without tags disappear from Map | Flattening before `groupingBy` | Place `flatMapping` as the downstream of `groupingBy` |
+| Expecting `counting` to count orders | It actually counts elements **after** `flatMapping` | Identify the counting unit; place `counting` at the right layer |
+| Distinct tag counts still include duplicates | Using `toList` | Use `toSet` or `toCollection(LinkedHashSet::new)` |
+| Unstable tag order | `toSet` makes no ordering guarantee | Use an ordered collection or sort explicitly |
+| Reused child Stream fails with `already operated upon or closed` | Mapper returned an old Stream | Create a fresh Stream for each parent element |
+| Null tags inside a non-null list still pass through | Only checked that the child list is non-null | Filter child elements with `Objects::nonNull` |
+| Parallel collector has unexpected side effects | Mapper mutates shared variable or source | Use pure functions; let the collector manage state |
+| Using `flatMapping` on Java 8 | API did not exist in Java 8 | Upgrade to Java 9+ or use an alternative strategy |
 
-## 12. Bài tập tự kiểm tra có đáp án
+## 12. Self-check exercises with answers
 
-### Bài 1. Xác định số lượt nhãn
+### Exercise 1. Determining tag occurrence count
 
-Hai đơn của khu vực A có danh sách nhãn `["x", "y"]` và `["x"]`. Kết quả của `groupingBy(region, flatMapping(tagsStream, counting()))` cho khu vực A là bao nhiêu?
+Two orders in region A have tag lists `["x", "y"]` and `["x"]`. What is the result of `groupingBy(region, flatMapping(tagsStream, counting()))` for region A?
 
-**Đáp án:** `3L`, vì `counting` nhận **ba lượt nhãn**, kể cả nhãn `"x"` lặp lại. Nếu dùng `toSet` thì khu vực A chỉ có hai nhãn phân biệt.
+**Answer:** `3L`, because `counting` receives **three tag occurrences**, including the repeated `"x"` tag. With `toSet`, region A would have only two distinct tags.
 
-### Bài 2. Nhóm không có giá trị con
+### Exercise 2. Group without child values
 
-Khu vực B có một đơn nhưng danh sách nhãn rỗng. Khu vực C không có đơn nào. Kết quả `groupingBy(Order::getRegion, flatMapping(..., toList()))` có những khóa nào?
+Region B has one order with an empty tag list. Region C has no orders. What keys does the result of `groupingBy(Order::getRegion, flatMapping(..., toList()))` contain?
 
-**Đáp án:** Khu vực B **có khóa** với danh sách rỗng. Khu vực C **không có khóa** vì không có phần tử cha để tạo nhóm.
+**Answer:** Region B **has a key** with an empty list. Region C **has no key** because there is no parent element to create the group.
 
-### Bài 3. So sánh hai thứ tự pipeline
+### Exercise 3. Comparing two pipeline orders
 
-Vì sao `orders.stream().flatMap(...).collect(groupingBy(...))` có thể làm mất một nhóm, còn `orders.stream().collect(groupingBy(..., flatMapping(...)))` vẫn giữ?
+Why can `orders.stream().flatMap(...).collect(groupingBy(...))` drop a group, whereas `orders.stream().collect(groupingBy(..., flatMapping(...)))` preserves it?
 
-**Đáp án:** Ở cách thứ nhất, phần tử cha bị thay bằng các phần tử con **trước** khi phân nhóm. Cha có 0 con không tạo phần tử nào. Ở cách thứ hai, `groupingBy` nhìn thấy cha trước, tạo nhóm, còn việc làm phẳng chỉ ảnh hưởng các giá trị trong nhóm.
+**Answer:** In the first approach, parent elements are replaced by child elements **before** grouping. Parents with 0 children emit no elements. In the second approach, `groupingBy` sees the parent first and creates the group, while flattening only affects the values inside the group.
 
-### Bài 4. Chọn downstream
+### Exercise 4. Choosing the downstream
 
-Một khu vực có các nhãn `["gấp", "quà tặng", "gấp"]`. Muốn giữ ba lượt theo thứ tự ban đầu thì chọn `toList` hay `toSet`? Muốn hai nhãn phân biệt thì chọn gì?
+A region has tags `["gấp", "quà tặng", "gấp"]`. To keep all three occurrences in their original order, do you choose `toList` or `toSet`? To keep two distinct tags, what should you choose?
 
-**Đáp án:** `toList` giữ ba lượt khi đầu vào có encounter order. `toSet` giữ hai nhãn phân biệt nhưng không cam kết thứ tự. Nếu cần cả phân biệt và thứ tự chèn, dùng `toCollection(LinkedHashSet::new)`.
+**Answer:** `toList` keeps all three occurrences when the input has encounter order. `toSet` keeps two distinct tags without guaranteeing order. If you need both uniqueness and insertion order, use `toCollection(LinkedHashSet::new)`.
 
-### Bài 5. Xử lý null ở đúng cấp
+### Exercise 5. Handling null at the right level
 
-`order.getTags()` có thể null, và bên trong một danh sách không null vẫn có phần tử null. Có đủ nếu chỉ viết `Stream.ofNullable(order.getTags())`?
+`order.getTags()` can be null, and inside a non-null list there can still be null elements. Is writing only `Stream.ofNullable(order.getTags())` sufficient?
 
-**Đáp án:** Chưa đủ. `ofNullable` cho Stream gồm **một danh sách** hoặc Stream rỗng. Còn phải làm phẳng danh sách thành nhãn bằng `flatMap(List::stream)`, rồi lọc nhãn null bằng `filter(Objects::nonNull)`.
+**Answer:** Not sufficient. `ofNullable` produces a Stream of **one list** or an empty Stream. You must also flatten the list into tags with `flatMap(List::stream)`, and then filter out null tags with `filter(Objects::nonNull)`.
 
-### Bài 6. Đếm ký tự nhãn theo nhóm
+### Exercise 6. Counting tag characters per group
 
-Hãy tính tổng độ dài nhãn hợp lệ của mỗi khu vực, sử dụng `Collectors.flatMapping` và downstream `summingInt`.
+Compute the total length of valid tags for each region using `Collectors.flatMapping` and downstream `summingInt`.
 
 ```java
 Map<String, Integer> charactersByRegion = orders.stream()
@@ -577,8 +577,8 @@ Map<String, Integer> charactersByRegion = orders.stream()
                         Collectors.summingInt(String::length))));
 ```
 
-**Đáp án:** Mỗi nhãn đã chuẩn hóa đóng góp `length()` ký tự vào tổng của nhóm. Nhóm có đơn nhưng không có nhãn hợp lệ nhận kết quả `0`. Đây là số ký tự của **các lượt nhãn**, không phải tổng độ dài các nhãn phân biệt.
+**Answer:** Each normalized tag contributes `length()` characters to its group's total. A group with orders but no valid tags receives `0`. This is the character count of **tag occurrences**, not the total length of distinct tags.
 
-## 13. Ghi nhớ
+## 13. Key takeaway
 
-`Collectors.flatMapping(mapper, downstream)` (Java 9+) là **bộ chuyển đổi Collector**: mỗi phần tử cha tạo một Stream gồm **0 hoặc nhiều phần tử con**, rồi từng phần tử con được đưa vào downstream. Dùng nó đặc biệt hiệu quả về cách diễn đạt khi cần `groupingBy` các đối tượng cha nhưng tổng hợp các giá trị con, **giữ cả những nhóm có cha mà không có con**. Hãy phân biệt rõ làm phẳng **trước grouping** bằng `Stream.flatMap` với làm phẳng **bên trong grouping** bằng `Collectors.flatMapping`; chọn đúng downstream, xử lý null theo từng cấp, tạo Stream con mới và kiểm soát thứ tự, tài nguyên, trạng thái cũng như chi phí song song.
+`Collectors.flatMapping(mapper, downstream)` (Java 9+) is a **Collector adapter**: each parent element produces a Stream of **0 or more child elements**, and each child element is fed into the downstream. It is especially expressive when you need `groupingBy` on parent objects while aggregating child values, **preserving even groups that have parents with no children**. Clearly distinguish flattening **before grouping** via `Stream.flatMap` from flattening **inside grouping** via `Collectors.flatMapping`; pick the right downstream, handle nulls at each level, create fresh child Streams, and control ordering, resources, state, and parallelism overhead.

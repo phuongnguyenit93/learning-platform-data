@@ -1,30 +1,30 @@
-# Hàm khởi tạo sao chép và phương thức tạo bản sao có tên trong Java
+# Copy Constructors and Named Copy Methods in Java
 
-## 1. Bài toán: một đối tượng mới có độc lập với đối tượng gốc không?
+## 1. The Problem: Is a New Object Independent of the Original Object?
 
-Trong Java, biến có kiểu tham chiếu chứa **tham chiếu đến đối tượng**, không chứa toàn bộ đối tượng. Vì vậy, gán `Profile b = a;` chỉ tạo thêm một tên cùng trỏ tới đối tượng `a`. Thay đổi trạng thái qua `b` cũng chính là thay đổi trạng thái thấy được qua `a`.
+In Java, reference-type variables hold a **reference to an object**, not the entire object itself. Therefore, assigning `Profile b = a;` only creates another name pointing to object `a`. Mutating state through `b` is also mutating the state visible through `a`.
 
-Khi cần hai đối tượng có dữ liệu ban đầu tương đương nhưng có thể phát triển độc lập, ta **tạo một đối tượng mới** và chủ động xác định cách sao chép từng thành phần. Hai cách phổ biến trong Java là:
+When you need two objects with equivalent initial data that can evolve independently, you **create a new object** and explicitly define how each component is copied. Two common approaches in Java are:
 
-- **Copy constructor (hàm khởi tạo sao chép)**: `new Profile(existing)`. Constructor nhận một đối tượng cùng loại và khởi tạo trạng thái của đối tượng mới từ nó.
-- **Named copy method / named copy factory (phương thức tạo bản sao có tên)**: `Profile.copyOf(existing)`, `Profile.from(existing)` hoặc `existing.copy()`. Tên phương thức biểu đạt ý định, còn phần triển khai quyết định có tạo đối tượng mới và sao chép sâu đến đâu.
+- **Copy constructor:** `new Profile(existing)`. A constructor takes an object of the same type and initializes the new object's state from it.
+- **Named copy method / named copy factory:** `Profile.copyOf(existing)`, `Profile.from(existing)`, or `existing.copy()`. The method name expresses intent, while the implementation decides whether a new object is created and how deep the copy goes.
 
-Java **không tự tạo copy constructor** cho class. Khác một số ngôn ngữ, truyền đối tượng vào constructor cùng loại không tự động có nghĩa “copy”: tác giả class phải định nghĩa hành vi đó.
+Java **does not automatically generate a copy constructor** for a class. Unlike some languages, passing an object into a constructor of the same type does not automatically mean “copy”: the class author must define that behavior.
 
-Ví dụ ngắn về khác biệt giữa **gán tham chiếu** và **tạo bản sao**:
+Short example of the difference between **reference assignment** and **creating a copy**:
 
 ```java
-Profile alias = original;                   // Cùng một đối tượng.
-Profile copy = new Profile(original);       // Đối tượng mới theo hợp đồng copy.
+Profile alias = original;                   // Same object.
+Profile copy = new Profile(original);       // New object per the copy contract.
 boolean sameObject = alias == original;     // true
-boolean copiedObject = copy == original;    // false nếu constructor tạo object mới.
+boolean copiedObject = copy == original;    // false if constructor creates a new object.
 ```
 
-Đoạn trên dùng class `Profile` được định nghĩa trong chương trình đầy đủ ở phần 4.
+The snippet above uses the `Profile` class defined in the full program in section 4.
 
-## 2. Copy constructor hoạt động như thế nào?
+## 2. How Does a Copy Constructor Work?
 
-Mẫu cơ bản:
+Basic pattern:
 
 ```java
 public final class Point {
@@ -42,33 +42,33 @@ public final class Point {
 }
 ```
 
-- `Point(Point source)` là **constructor**, không có kiểu trả về.
-- `new Point(source)` luôn cấp phát một `Point` mới nếu khởi tạo thành công.
-- Dòng `this(source.x, source.y)` dùng lại constructor chính, giảm nguy cơ bỏ sót trường hoặc áp dụng quy tắc kiểm tra khác nhau.
-- `int` được sao chép theo giá trị. Với trường là tham chiếu, điều cần quyết định là **sao chép tham chiếu, sao chép container, hay sao chép luôn đối tượng bên trong**.
+- `Point(Point source)` is a **constructor**, with no return type.
+- `new Point(source)` always allocates a new `Point` if construction succeeds.
+- The line `this(source.x, source.y)` reuses the primary constructor, reducing the risk of missing a field or applying different validation rules.
+- `int` is copied by value. For reference fields, what must be decided is **whether to copy the reference, copy the container, or also copy the inner objects**.
 
-Một copy constructor tốt nên công khai hợp đồng: sau khi sao chép, những thay đổi nào ở bản gốc hoặc bản sao có thể ảnh hưởng lẫn nhau? Hợp đồng ấy quan trọng hơn việc “có constructor nhận cùng kiểu”.
+A good copy constructor should state its contract clearly: after copying, which changes to the original or the copy can affect the other? That contract matters more than “having a constructor that accepts the same type”.
 
-## 3. Sao chép nông, sâu và chia sẻ có chủ ý
+## 3. Shallow Copy, Deep Copy, and Intentional Sharing
 
-Giả sử `Person` chứa một `Address` có thể đổi `city` và một `List<String>` có thể thêm phần tử.
+Suppose `Person` holds an `Address` whose `city` can change and a `List<String>` to which elements can be added.
 
-| Cách làm | Thành phần được tạo mới | Hệ quả |
+| Approach | Component created anew | Consequence |
 | --- | --- | --- |
-| `this.address = source.address;` | Không tạo `Address` mới | Hai `Person` cùng thấy thay đổi địa chỉ: **shallow copy** đối với trường này |
-| `this.address = new Address(source.address);` | Tạo `Address` mới | Thay đổi `city` ở một bên không tác động bên kia |
-| `this.tags = source.tags;` | Không tạo list mới | Thêm/xóa phần tử ở một bên ảnh hưởng list bên kia |
-| `this.tags = new ArrayList<>(source.tags);` | Tạo list mới, giữ tham chiếu đến phần tử | Hai list độc lập về thêm/xóa; **các phần tử** không tự được deep-copy |
+| `this.address = source.address;` | No new `Address` created | Both `Person`s see address changes: **shallow copy** for this field |
+| `this.address = new Address(source.address);` | New `Address` created | Changing `city` on one side does not affect the other |
+| `this.tags = source.tags;` | No new list created | Adding/removing elements on one side affects the other's list |
+| `this.tags = new ArrayList<>(source.tags);` | New list created, keeps references to elements | Both lists are independent for add/remove; **elements** are not automatically deep-copied |
 
-**Shallow copy** tạo đối tượng bao ngoài mới nhưng vẫn chia sẻ một hay nhiều tham chiếu bên trong. **Deep copy** sao chép tiếp những đối tượng mutable mà hợp đồng yêu cầu phải độc lập. “Deep” có phạm vi theo đồ thị đối tượng: không có quy tắc rằng mọi reference phải luôn tạo mới. `String`, enum và kiểu giá trị bất biến thường an toàn khi dùng chung.
+**Shallow copy** creates a new outer object while still sharing one or more inner references. **Deep copy** goes further to copy the mutable objects that the contract requires to be independent. “Deep” is scoped by the object graph: there is no rule that every reference must always be recreated. `String`, enums, and immutable value types are usually safe to share.
 
-Ví dụ, `new ArrayList<>(source.tags)` đủ để tách hai danh sách `String` vì các chuỗi là bất biến. Nếu đổi sang `List<MutableTask>`, hai list vẫn có thể chứa **cùng các `MutableTask`**. Khi đó cần tạo từng `MutableTask` mới nếu đòi hỏi thay đổi task độc lập.
+For example, `new ArrayList<>(source.tags)` suffices to separate two `String` lists because strings are immutable. If changed to `List<MutableTask>`, both lists can still contain **the same `MutableTask` instances**. In that case, a new `MutableTask` must be created for each element if independent task mutations are required.
 
-**Tính độc lập cần xét cả hai chiều**: thay đổi bản gốc không làm hỏng bản sao, và thay đổi bản sao cũng không làm hỏng bản gốc. Ngoài ra, constructor nhận dữ liệu từ bên ngoài có thể cần **defensive copy** ngay lúc đầu để tránh caller giữ và sửa tham chiếu vào nội bộ.
+**Independence must be considered in both directions**: mutating the original does not corrupt the copy, and mutating the copy does not corrupt the original. In addition, a constructor receiving external data may need a **defensive copy** right at the start to prevent the caller from retaining and mutating an internal reference.
 
-## 4. Ví dụ hoàn chỉnh Java 17+: ba cách sao chép, một hợp đồng độc lập
+## 4. Complete Java 17+ Example: Three Ways to Copy, One Independence Contract
 
-Lưu thành tệp **`CopyPatternsDemo.java`**:
+Save as **`CopyPatternsDemo.java`**:
 
 ```java
 import java.util.ArrayList;
@@ -98,8 +98,8 @@ public class CopyPatternsDemo {
 
     static final class Profile {
         private final String name;
-        private final Address address;       // Reference final, Address vẫn mutable.
-        private final List<String> tags;     // Reference final, List vẫn mutable.
+        private final Address address;       // Final reference, Address is still mutable.
+        private final List<String> tags;     // Final reference, List is still mutable.
 
         Profile(String name, Address address, List<String> tags) {
             this.name = Objects.requireNonNull(name, "name");
@@ -109,19 +109,19 @@ public class CopyPatternsDemo {
                     Objects.requireNonNull(tags, "tags"));
         }
 
-        // (1) Copy constructor: tái sử dụng constructor chính.
+        // (1) Copy constructor: reuses the primary constructor.
         Profile(Profile source) {
             this(Objects.requireNonNull(source, "source").name,
                     source.address,
                     source.tags);
         }
 
-        // (2) Named static factory: diễn đạt rõ ý định ở phía caller.
+        // (2) Named static factory: clearly expresses intent at the call site.
         static Profile copyOf(Profile source) {
             return new Profile(source);
         }
 
-        // (3) Named instance method: thuận tiện khi đã có đối tượng.
+        // (3) Named instance method: convenient when an object is already held.
         Profile copy() {
             return new Profile(this);
         }
@@ -148,7 +148,7 @@ public class CopyPatternsDemo {
         Profile byFactory = Profile.copyOf(original);
         Profile byMethod = original.copy();
 
-        // Chỉ thay đổi bản gốc và các đầu vào vẫn do caller giữ.
+        // Only mutate the original and the inputs still held by the caller.
         original.moveTo("Da Nang");
         original.addTag("oop");
         inputAddress.setCity("Hue");
@@ -166,14 +166,14 @@ public class CopyPatternsDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or higher:
 
 ```bash
 javac CopyPatternsDemo.java
 java CopyPatternsDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 original: An / Da Nang / [java, oop]
@@ -183,64 +183,64 @@ method: An / Ha Noi / [java]
 distinct objects: true
 ```
 
-Giải thích theo luồng:
+Flow explanation:
 
-1. Constructor chính **chép phòng vệ** `Address` và list từ đầu vào. Vì thế sửa `inputAddress` hay `inputTags` sau đó không đổi `original`.
-2. Copy constructor gọi constructor chính; địa chỉ được sao chép bằng `new Address(...)`, còn list tạo bằng `new ArrayList<>(...)`. Do phần tử trong list là `String` bất biến, mức sao chép này đủ cho ví dụ.
-3. `copyOf` và `copy()` **ủy quyền cùng một điểm thực thi**, tránh ba bản logic copy lệch nhau.
-4. Khi `original` chuyển thành “Da Nang” và được thêm tag “oop”, ba bản sao vẫn giữ ảnh chụp dữ liệu trước sửa đổi.
-5. `!=` chỉ chứng minh các đối tượng ngoài khác tham chiếu. Tính độc lập của **trường bên trong** được thể hiện bằng kết quả địa chỉ và list.
+1. The primary constructor **defensively copies** `Address` and the list from the inputs. Therefore, mutating `inputAddress` or `inputTags` afterward does not change `original`.
+2. The copy constructor calls the primary constructor; the address is copied via `new Address(...)`, and the list is created via `new ArrayList<>(...)`. Since the list elements are immutable `String`s, this level of copying suffices for the example.
+3. `copyOf` and `copy()` **delegate to a single implementation point**, avoiding three diverging copies of the copy logic.
+4. When `original` moves to “Da Nang” and gets the `"oop"` tag added, all three copies still retain the pre-mutation data snapshot.
+5. `!=` only proves the outer objects have different references. Independence of **inner fields** is demonstrated by the address and list outputs.
 
-Dấu `final` ở `address` và `tags` chỉ ngăn **gán lại reference của trường**; bản thân `Address` và `List` vẫn mutable. Vì vậy không thể dựa vào `final` để bỏ bước sao chép phòng vệ.
+The `final` modifier on `address` and `tags` only prevents **reassigning the field reference**; `Address` and `List` themselves remain mutable. Thus you cannot rely on `final` to skip the defensive copy step.
 
-## 5. Phương thức tạo bản sao có tên: khi nào dùng và đặt tên gì?
+## 5. Named Copy Methods: When to Use and What to Name Them?
 
-Hai hình thức thường gặp:
+Two common forms:
 
 ```java
-Profile a = new Profile(original);  // Constructor nhận Profile.
-Profile b = Profile.copyOf(original); // Static factory có tên.
-Profile c = original.copy();         // Instance method có tên.
+Profile a = new Profile(original);  // Constructor accepting Profile.
+Profile b = Profile.copyOf(original); // Named static factory.
+Profile c = original.copy();         // Named instance method.
 ```
 
-| API | Ưu điểm chính | Điểm phải nói rõ trong tài liệu |
+| API | Main advantage | Must be stated clearly in documentation |
 | --- | --- | --- |
-| `new T(source)` | Dễ tìm, gần với cú pháp tạo object, bắt buộc tạo đối tượng `T` mới nếu thành công | Có sao chép sâu hay chỉ chép trường? Điều kiện input hợp lệ? |
-| `T.copyOf(source)` | Ý định dễ đọc, có thể giấu chi tiết khởi tạo, tập trung kiểm tra/chuẩn hóa | **Tên không bảo đảm** luôn trả object mới: vài API bất biến có thể tái sử dụng instance |
-| `source.copy()` | Tự nhiên khi thao tác trên instance; có thể hỗ trợ hành vi riêng theo loại đối tượng | Trả về cùng kiểu hay kiểu cơ sở? Mức độ độc lập? |
-| `T.from(source)` | Hữu ích khi chuyển từ kiểu nguồn khác hoặc biểu diễn khác | `from` thường thiên về **chuyển đổi**, không mặc nhiên có nghĩa deep copy |
-| `withX(newValue)` | Diễn đạt bản sao có chỉnh một thuộc tính, hợp với immutable value object | Các trường không đổi có được chia sẻ hay không? |
+| `new T(source)` | Easy to find, close to object-creation syntax, forced to create a new `T` object if it succeeds | Is it a deep copy or only field copy? Valid input conditions? |
+| `T.copyOf(source)` | Readable intent, can hide construction details, centralizes validation/normalization | **The name does not guarantee** always returning a new object: some immutable APIs may reuse instances |
+| `source.copy()` | Natural when operating on an instance; can support type-specific behavior | Returns the same type or a base type? Degree of independence? |
+| `T.from(source)` | Useful when converting from another source type or representation | `from` usually leans toward **conversion**, and does not inherently mean deep copy |
+| `withX(newValue)` | Expresses a copy with one property changed, fitting immutable value objects | Are unchanged fields shared or not? |
 
-Trong ví dụ, `Profile.copyOf` **luôn** gọi `new Profile(source)`, nên trả object mới. Đừng suy rộng quy tắc này cho mọi thư viện: chẳng hạn factory cho kiểu bất biến có thể trả lại chính input theo hợp đồng riêng. Nếu caller bắt buộc cần **định danh đối tượng mới** (`result != source`), cần ghi rõ trong API và kiểm chứng bằng test.
+In the example, `Profile.copyOf` **always** calls `new Profile(source)`, so it returns a new object. Do not generalize this rule to every library: for example, a factory for an immutable type may return the input itself under its own contract. If the caller strictly needs a **new object identity** (`result != source`), document it in the API and verify it with tests.
 
-Một biến thể hữu ích khi muốn “sao chép và đổi một trường” là phương thức `withName`:
+A useful variant when you want to “copy and change one field” is a `withName` method:
 
 ```java
-// Phương thức thêm vào class Profile ở phần 4 (không phải chương trình độc lập).
+// Method added to class Profile in section 4 (not a standalone program).
 Profile withName(String newName) {
     return new Profile(newName, address, tags);
 }
 ```
 
-Vì constructor chính đã sao chép `Address` và list, `withName` vẫn duy trì hợp đồng độc lập trong ví dụ. Với class bất biến thực sự, các giá trị bất biến thường có thể chia sẻ an toàn để giảm cấp phát.
+Because the primary constructor already copies `Address` and the list, `withName` still upholds the independence contract in the example. For truly immutable classes, immutable values can usually be shared safely to reduce allocations.
 
-## 6. Thiết kế hợp đồng sao chép chính xác
+## 6. Designing an Accurate Copy Contract
 
-Trước khi viết một copy constructor hay copy method, hãy xác định các điểm sau:
+Before writing a copy constructor or copy method, determine the following points:
 
-**(a) Những trường nào là giá trị, những trường nào có thể thay đổi?** Primitive, `String`, enum và các value object bất biến có thể sao chép giá trị/tham chiếu. Các object mutable phải được xem xét theo quyền sở hữu dữ liệu và mức độc lập mong muốn.
+**(a) Which fields are values, and which fields are mutable?** Primitives, `String`, enums, and immutable value objects can have their value/reference copied. Mutable objects must be evaluated according to data ownership and the desired degree of independence.
 
-**(b) Có giữ được bất biến của class không?** Tái sử dụng constructor hoặc một hàm kiểm tra nội bộ duy nhất để các bản sao thỏa cùng điều kiện: trường bắt buộc không null, collection có phần tử hợp lệ, dữ liệu ở trạng thái nhất quán. Copy constructor không nên bỏ qua các quy tắc mà constructor bình thường tuân thủ.
+**(b) Are class invariants preserved?** Reuse the constructor or a single internal validation helper so copies satisfy the same conditions: required fields are non-null, collections have valid elements, and data is in a consistent state. A copy constructor should not bypass rules that normal constructors enforce.
 
-**(c) Chia sẻ đối tượng con có chủ ý hay vô tình?** Nếu hai bản sao **được phép** cùng nhìn một cache bất biến, một service, hay nguồn dữ liệu dùng chung, ghi rõ đó là quan hệ chia sẻ. Không cố copy file handle, thread, lock, socket, connection hoặc tài nguyên ngoài chỉ để “deep copy mọi thứ”. Với tài nguyên, cần hợp đồng vòng đời và ownership riêng.
+**(c) Is child object sharing intentional or accidental?** If two copies are **allowed** to look at the same immutable cache, service, or shared data source, document that as a shared relationship. Do not try to copy file handles, threads, locks, sockets, connections, or external resources just to “deep copy everything”. For resources, separate lifecycle and ownership contracts are needed.
 
-**(d) Có trạng thái dẫn xuất hoặc bí mật nội bộ không?** Trường cache suy ra từ dữ liệu chính thường nên tính lại hoặc làm rỗng có chủ ý; identity, version, thời điểm tạo, id nghiệp vụ và trạng thái đăng ký event cần quyết định rõ là **giữ** hay **cấp mới**. Sao chép toàn bộ field máy móc có thể phá bất biến.
+**(d) Is there derived state or internal secrets?** Cache fields derived from primary data should usually be recomputed or intentionally cleared; identity, version, creation timestamp, business IDs, and event-subscription state require explicit decisions on whether to **preserve** or **mint anew**. Mechanically copying every field can break invariants.
 
-**(e) Có null hoặc phần tử mutable lồng nhau không?** `Objects.requireNonNull(source, "source")` giúp lỗi đầu vào rõ ràng. Với trường nullable, tự định nghĩa trường hợp null thay vì gọi constructor copy trên null. Với `List<MutableItem>`, phải copy từng item nếu mỗi item cần độc lập. Đồ thị có **tham chiếu vòng** hoặc nhiều nhánh cùng trỏ một object cần cơ chế theo dõi identity khi deep copy để tránh đệ quy vô hạn và không làm mất quan hệ chia sẻ nội bộ.
+**(e) Are there nulls or nested mutable elements?** `Objects.requireNonNull(source, "source")` keeps input failures clear. For nullable fields, define the null case explicitly instead of invoking a copy constructor on null. For `List<MutableItem>`, copy each item if each item needs independence. Graphs with **circular references** or multiple branches pointing to the same object need an identity-tracking mechanism during deep copying to avoid infinite recursion and avoid losing internal sharing relationships.
 
-**(f) Có nhiều luồng sửa dữ liệu đồng thời không?** Copy nhiều mutable field theo từng bước **không tự tạo snapshot nguyên tử**. Nếu thread khác có thể sửa nguồn giữa chừng, dùng lock, immutable snapshot hoặc chiến lược đồng bộ phù hợp. Copy constructor không tự giải quyết thread safety.
+**(f) Are multiple threads mutating data concurrently?** Copying multiple mutable fields step by step **does not automatically produce an atomic snapshot**. If another thread can mutate the source mid-way, use locks, immutable snapshots, or an appropriate synchronization strategy. A copy constructor does not automatically solve thread safety.
 
-### Gợi ý JavaDoc cho hợp đồng
+### JavaDoc Suggestion for the Contract
 
 ```java
 /**
@@ -256,13 +256,13 @@ Profile(Profile source) {
 }
 ```
 
-Đoạn JavaDoc này minh họa cách mô tả **phạm vi độc lập** cụ thể; constructor đầy đủ đã có ở phần 4.
+This JavaDoc snippet illustrates how to describe a specific **independence scope**; the full constructor appeared in section 4.
 
-## 7. Về kế thừa, record và clone()
+## 7. On Inheritance, Records, and `clone()`
 
-**Class có kế thừa:** Copy constructor trong lớp cha chỉ biết phần state của lớp cha; nếu gọi `new Base(subclassInstance)`, đối tượng nhận được là `Base`, phần riêng của subclass không được giữ. Với phân cấp phức tạp, hãy cân nhắc copy method có contract đa hình, protected copy hook hoặc một thiết kế bất biến/không kế thừa. Tránh gọi phương thức có thể override từ constructor vì trạng thái subclass có thể chưa được khởi tạo hoàn chỉnh.
+**Classes with inheritance:** A copy constructor in a parent class only knows the parent class's slice of state; if you call `new Base(subclassInstance)`, the resulting object is a `Base`, and the subclass-specific part is not preserved. For complex hierarchies, consider a copy method with a polymorphic contract, a protected copy hook, or an immutable/non-inherited design. Avoid calling overridable methods from a constructor because subclass state may not yet be fully initialized.
 
-**Record Java:** Record thường là lựa chọn tốt cho dữ liệu dạng giá trị ít thay đổi; record không tự deep-copy reference mutable. Một record chứa `List` vẫn cần snapshot/defensive copy nếu muốn trạng thái ổn định. Non-canonical constructor trong record phải ủy quyền cho canonical constructor:
+**Java records:** Records are often a good choice for rarely changing value-like data; records do not automatically deep-copy mutable references. A record holding a `List` still needs a snapshot/defensive copy if stable state is desired. A non-canonical constructor in a record must delegate to the canonical constructor:
 
 ```java
 record Coordinate(int x, int y) {
@@ -272,30 +272,30 @@ record Coordinate(int x, int y) {
 }
 ```
 
-Với một `Coordinate` bất biến, việc tạo bản sao mới thường **không cần thiết** về mặt hành vi; chia sẻ cùng instance là an toàn nếu API không yêu cầu identity khác nhau.
+For an immutable `Coordinate`, creating a new copy is usually **behaviorally unnecessary**; sharing the same instance is safe if the API does not require distinct identities.
 
-**`Object.clone()`:** Cơ chế `Cloneable`/`clone()` mang các quy ước và góc cạnh riêng, và phép sao chép mặc định của `Object.clone()` là shallow. Copy constructor hoặc named factory thường dễ diễn đạt kiểm tra đầu vào, bất biến và ownership hơn. Không cần dùng `clone()` chỉ vì bài toán có chữ “copy”.
+**`Object.clone()`:** The `Cloneable`/`clone()` mechanism carries its own conventions and edge cases, and `Object.clone()`'s default copy is shallow. A copy constructor or named factory usually expresses input validation, invariants, and ownership more clearly. There is no need to use `clone()` just because the problem mentions the word “copy”.
 
-## 8. Lỗi phổ biến và cách tránh
+## 8. Common Mistakes and How to Avoid Them
 
-1. **Nhầm gán tham chiếu với sao chép:** `b = a` không tạo object mới. Dùng constructor hoặc factory được định nghĩa rõ hợp đồng.
-2. **Sao chép bao ngoài nhưng giữ chung object mutable:** `this.address = source.address` làm hai bản ghi liên đới. Sao chép `Address` khi cần tách độc lập.
-3. **Tưởng constructor `new ArrayList<>(list)` sao chép sâu mọi phần tử:** thao tác này chỉ tạo list mới; từng element mutable có thể vẫn chung tham chiếu.
-4. **Tạo hai logic copy riêng:** constructor một kiểu, `copyOf` một kiểu khiến mỗi đường cho kết quả khác nhau. Chọn một chỗ cài đặt và ủy quyền từ API còn lại.
-5. **Quên cập nhật copy khi class thêm trường:** bản sao mất thông tin hoặc sai invariant. Rà soát toàn bộ state và test khi thêm trường mới.
-6. **Sao chép nguồn chưa nhất quán trong môi trường đa luồng:** snapshot có thể chứa dữ liệu từ nhiều thời điểm. Tổ chức đồng bộ trước khi chép.
-7. **Dùng `==` để kết luận hai bản sao có cùng giá trị:** `==` so sánh identity với object; kiểm tra giá trị theo contract (accessor, `equals()` phù hợp) và kiểm tra độc lập bằng thay đổi state.
-8. **Đặt tên `copyOf` nhưng không mô tả hành vi:** người đọc có thể kỳ vọng object mới hoặc deep copy. Viết rõ có tái sử dụng instance, chép nông/sâu, và xử lý null thế nào.
+1. **Confusing reference assignment with copying:** `b = a` does not create a new object. Use a constructor or factory with a clearly defined contract.
+2. **Copying the outer shell while sharing mutable objects:** `this.address = source.address` couples the two records. Copy `Address` when independence is needed.
+3. **Assuming `new ArrayList<>(list)` deep-copies all elements:** this only creates a new list; individual mutable elements may still share references.
+4. **Creating two separate copy logics:** one logic in the constructor and another in `copyOf` causes different paths to produce different results. Pick one implementation point and delegate from the other APIs.
+5. **Forgetting to update copying when adding a field to the class:** copies lose data or break invariants. Audit all state and tests whenever adding a new field.
+6. **Copying an inconsistent source in a multithreaded environment:** the snapshot may contain data from different points in time. Arrange synchronization before copying.
+7. **Using `==` to conclude two copies have the same value:** `==` compares object identity; verify values per the contract (accessors, appropriate `equals()`) and verify independence by mutating state.
+8. **Naming a method `copyOf` without describing its behavior:** readers may expect a new object or a deep copy. Clearly document whether instances are reused, whether copying is shallow/deep, and how null is handled.
 
-## 9. Cách kiểm tra bản sao
+## 9. How to Test Copies
 
-Một bộ kiểm tra có ý nghĩa cần chứng minh cả **giá trị ban đầu** lẫn **độc lập sau khi sửa**, thay vì chỉ kiểm tra object khác reference:
+A meaningful test suite must prove both **initial values** and **independence after mutation**, rather than only checking that objects have different references:
 
-- Tạo nguồn có ít nhất một trường mutable lồng nhau và một collection; copy bằng từng API được công khai.
-- So sánh dữ liệu quan sát được ngay sau copy.
-- Thay đổi trường mutable ở nguồn; kiểm tra bản sao vẫn giữ giá trị cũ.
-- Thay đổi trường mutable ở bản sao; kiểm tra nguồn không thay đổi.
-- Thử null, dữ liệu không hợp lệ và phần tử mutable trong collection theo hợp đồng đã công bố.
-- Với đối tượng giữ quan hệ tham chiếu vòng hoặc alias giữa các nhánh, kiểm tra cấu trúc quan hệ sau deep copy, nếu hợp đồng yêu cầu.
+- Create a source with at least one nested mutable field and one collection; copy using each exposed API.
+- Compare observable data immediately after copying.
+- Mutate the mutable field on the source; check that the copy retains its old value.
+- Mutate the mutable field on the copy; check that the source does not change.
+- Test null, invalid data, and mutable elements inside collections according to the published contract.
+- For objects preserving circular references or aliasing across branches, check structural relationships after deep copying, if required by the contract.
 
-**Quy tắc chọn cách dùng:** `new T(existing)` ngắn gọn khi cần tạo bản sao kiểu `T` một cách trực tiếp. `T.copyOf(existing)` dễ đọc khi muốn API có tên, kiểm soát cách khởi tạo và thống nhất chính sách sao chép. `existing.copy()` thuận tiện cho thao tác theo instance. Dù chọn cách nào, điều quyết định là **hợp đồng về dữ liệu được sao chép và dữ liệu được chia sẻ**, được bảo đảm bằng triển khai và kiểm thử.
+**Rule for choosing which style to use:** `new T(existing)` is concise when you need to create a copy of type `T` directly. `T.copyOf(existing)` is readable when you want a named API, control over instantiation, and a unified copy policy. `existing.copy()` is convenient for instance-level operations. Whichever style you choose, what decides correctness is **the contract for what data is copied and what data is shared**, backed by implementation and tests.

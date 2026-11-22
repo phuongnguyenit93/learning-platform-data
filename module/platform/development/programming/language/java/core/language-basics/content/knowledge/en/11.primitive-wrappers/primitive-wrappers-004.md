@@ -1,37 +1,37 @@
-# Phân biệt so sánh tham chiếu lớp bao với so sánh giá trị — Java 17+
+# Distinguishing Wrapper Reference Comparison from Value Comparison — Java 17+
 
-Trong Java, các lớp bao (*wrapper classes*) như `Integer`, `Long`, `Double`, `Float`, `Boolean`, `Character`, `Byte`, `Short` là **kiểu tham chiếu** bao bọc các giá trị nguyên thủy. Vì vậy, hai câu hỏi sau **không giống nhau**:
+In Java, **wrapper classes** such as `Integer`, `Long`, `Double`, `Float`, `Boolean`, `Character`, `Byte`, and `Short` are **reference types** that wrap primitive values. Therefore, the following two questions are **not the same**:
 
-1. **Hai biến có trỏ cùng một đối tượng không?** Dùng `==` khi hai toán hạng thực sự được so sánh dưới dạng tham chiếu.
-2. **Hai đối tượng có giá trị bằng nhau theo quy tắc của lớp bao không?** Dùng `equals()` hoặc `Objects.equals()`, tùy việc có thể gặp `null`.
+1. **Do two variables point to the same object?** Use `==` when both operands are genuinely being compared as references.
+2. **Do two objects have equal values according to the wrapper class's rules?** Use `equals()` or `Objects.equals()`, depending on whether `null` can occur.
 
 ~~~java
 Integer a = Integer.valueOf(100);
 Integer b = Integer.valueOf(100);
 
-System.out.println(a == b);      // true trong truong hop gia tri 100 duoc cache.
-System.out.println(a.equals(b)); // true do gia tri bang nhau.
+System.out.println(a == b);      // true when the value 100 is cached.
+System.out.println(a.equals(b)); // true because the values are equal.
 ~~~
 
-**Điểm quan trọng:** kết quả `a == b` là `true` **không phải vì `==` đã so giá trị số**. Đây là hệ quả của việc hai tham chiếu cùng trỏ một wrapper được dùng chung thông qua cơ chế cache.
+**Key point:** the result `a == b` being `true` is **not because `==` compared the numeric values**. It is a consequence of both references pointing to the same shared wrapper obtained through the caching mechanism.
 
-## 1. Bảng phân biệt các phép so sánh
+## 1. Table Distinguishing Comparison Operations
 
-| Biểu thức | Ý nghĩa chính | Có an toàn với null không? |
+| Expression | Primary Meaning | Null-Safe? |
 | --- | --- | --- |
-| `wrapperA == wrapperB` | So **đồng nhất tham chiếu** khi cả hai là wrapper tham chiếu cùng kiểu | Có, nếu chỉ so tham chiếu |
-| `wrapperA.equals(wrapperB)` | So **giá trị wrapper** theo triển khai `equals` | Không nếu `wrapperA == null` |
-| `Objects.equals(wrapperA, wrapperB)` | So bằng nhau, có xử lý hai vế `null` | Có |
-| `intA == intB` | So giá trị primitive `int` | Primitive không nhận `null` |
-| `wrapperA == intB` | Wrapper có thể được **unbox**, rồi so giá trị primitive | Không an toàn nếu wrapper là `null` |
-| `Integer.compare(a, b)` | So thứ tự hai `int`, trả âm/0/dương | `a` và `b` là primitive |
-| `wrapperA.compareTo(wrapperB)` | So thứ tự hai wrapper tương thích | Có thể ném NPE khi dùng null |
+| `wrapperA == wrapperB` | Compares **reference identity** when both are wrapper references of the same type | Yes, if only comparing references |
+| `wrapperA.equals(wrapperB)` | Compares **wrapper values** according to the `equals` implementation | No if `wrapperA == null` |
+| `Objects.equals(wrapperA, wrapperB)` | Checks equality, handling `null` on either side | Yes |
+| `intA == intB` | Compares primitive `int` values | Primitives cannot hold `null` |
+| `wrapperA == intB` | The wrapper can be **unboxed**, then primitive values are compared | Unsafe if wrapper is `null` |
+| `Integer.compare(a, b)` | Compares order of two `int`s, returning negative/0/positive | `a` and `b` are primitives |
+| `wrapperA.compareTo(wrapperB)` | Compares order of two compatible wrappers | Can throw NPE when null is involved |
 
-Java chọn quy tắc dựa trên **kiểu toán hạng**, không phải vì một bên “trông giống số”. Đặc biệt, `Integer == Integer` (hai wrapper) và `Integer == int` (một wrapper, một primitive) có thể dẫn đến **hai kiểu so sánh khác nhau**.
+Java selects rules based on **operand types**, not because one side "looks like a number". In particular, `Integer == Integer` (two wrappers) and `Integer == int` (one wrapper, one primitive) can lead to **two different kinds of comparisons**.
 
-## 2. Ví dụ Java 17+ chạy được
+## 2. Runnable Java 17+ Example
 
-Lưu thành tệp UTF-8 **`WrapperEqualityDemo.java`**:
+Save as a UTF-8 file **`WrapperEqualityDemo.java`**:
 
 ~~~java
 import java.util.Objects;
@@ -112,7 +112,7 @@ public class WrapperEqualityDemo {
 }
 ~~~
 
-Trong PowerShell (Windows) hoặc Bash (Linux/macOS), chạy tại thư mục có tệp bằng **JDK 17+**:
+In PowerShell (Windows) or Bash (Linux/macOS), run from the directory containing the file using **JDK 17+**:
 
 ~~~bash
 java -version
@@ -121,7 +121,7 @@ javac -encoding UTF-8 WrapperEqualityDemo.java
 java WrapperEqualityDemo
 ~~~
 
-**Expected output chính xác của lệnh `java WrapperEqualityDemo`:**
+**Exact expected output of `java WrapperEqualityDemo`:**
 
 ~~~text
 smallSameReference=true
@@ -150,22 +150,22 @@ booleanWrapper=true
 numericDifferentWrappers=false
 ~~~
 
-Các lệnh kiểm tra `java -version` và `javac -version` có đầu ra tùy JDK, không thuộc khối expected output trên.
+The `java -version` and `javac -version` commands have JDK-dependent output and are not part of the expected output block above.
 
-## 3. Cache chỉ là một nguyên nhân khiến phép `==` có vẻ đúng
+## 3. Caching Is Only One Reason `==` Can Appear Correct
 
-`Integer.valueOf(int)` được bảo đảm tái sử dụng đối tượng cho các số từ **−128 đến 127**:
+`Integer.valueOf(int)` is guaranteed to reuse objects for integers from **−128 to 127**:
 
 ~~~java
 Integer a = Integer.valueOf(100);
 Integer b = Integer.valueOf(100);
-System.out.println(a == b); // true, vì cùng đối tượng được cache.
+System.out.println(a == b); // true, because it is the same cached object.
 ~~~
 
-Với giá trị ngoài vùng bắt buộc, ví dụ `1_000`, không nên công bố output cố định cho `Integer.valueOf(1000) == Integer.valueOf(1000)`; JVM có thể cache rộng hơn. `equals` mới là hợp đồng so giá trị ổn định. Bài kế tiếp giải thích riêng về phạm vi cache của `Byte`, `Short`, `Long`, `Character`, `Boolean` và những gì **không được bảo đảm** về object identity.
+For values outside the guaranteed range, such as `1_000`, you should not state a fixed output for `Integer.valueOf(1000) == Integer.valueOf(1000)`; the JVM may cache more broadly. `equals` is the stable contract for value comparison. The next lesson separately explains the cache ranges of `Byte`, `Short`, `Long`, `Character`, `Boolean`, and what is **not guaranteed** regarding object identity.
 
 
-## 4. Khi một vế là primitive, `==` có thể kích hoạt unboxing
+## 4. When One Side Is a Primitive, `==` Can Trigger Unboxing
 
 ~~~java
 Integer wrapper = Integer.valueOf(100);
@@ -173,32 +173,32 @@ int number = 100;
 System.out.println(wrapper == number); // true.
 ~~~
 
-Với `Integer == int`, Java có thể **unbox** wrapper thành `int` và áp dụng phép so số primitive. Vì vậy kết quả phản ánh giá trị số **nhưng chỉ sau khi unboxing**.
+With `Integer == int`, Java can **unbox** the wrapper to `int` and apply primitive numeric comparison. Therefore, the result reflects the numeric value **only after unboxing**.
 
-Nếu wrapper là `null`:
+If the wrapper is `null`:
 
 ~~~java
 Integer maybe = null;
 int number = 100;
 
 // boolean same = maybe == number;
-// Runtime: NullPointerException khi unboxing maybe.
+// Runtime: NullPointerException when unboxing maybe.
 ~~~
 
-Ngược lại, phép so sau **không unbox** chỉ vì gặp `null` nếu cả hai toán hạng có kiểu tham chiếu cùng kiểu:
+Conversely, the following comparison **does not unbox** merely because `null` is encountered if both operands have the same reference type:
 
 ~~~java
 Integer a = null;
 Integer b = Integer.valueOf(100);
 
-System.out.println(a == b); // false, khong NPE.
+System.out.println(a == b); // false, no NPE.
 ~~~
 
-**Quy tắc nhớ:** hãy xem **kiểu tĩnh của cả hai toán hạng** trước khi giải thích `==`, và tránh những biểu thức so sánh gây unboxing một wrapper có thể null.
+**Rule to remember:** always check the **static types of both operands** before explaining `==`, and avoid comparison expressions that unbox a potentially null wrapper.
 
-## 5. `equals()` của wrapper so cái gì?
+## 5. What Does Wrapper `equals()` Compare?
 
-Với `Integer`, phương thức `equals` trả `true` khi đối số là một **`Integer`** chứa cùng giá trị `int`:
+For `Integer`, the `equals` method returns `true` when the argument is an **`Integer`** containing the same `int` value:
 
 ~~~java
 Integer a = Integer.valueOf(42);
@@ -209,22 +209,22 @@ System.out.println(a.equals(b)); // true.
 System.out.println(a.equals(c)); // false.
 ~~~
 
-`Integer(42)` và `Long(42)` mang **giá trị toán học** tương ứng nhưng **không phải cùng kiểu wrapper**. `equals` của hai lớp không tự chuyển `Long` sang `Integer`.
+`Integer(42)` and `Long(42)` carry corresponding **mathematical values** but are **not the same wrapper type**. Neither class's `equals` automatically converts `Long` to `Integer`.
 
-Đối với `Double`/`Float`, còn có hai điểm đặc biệt:
+For `Double`/`Float`, there are also two special points:
 
-| Cặp dữ liệu | So bằng primitive `==` | Wrapper `equals` |
+| Data Pair | Primitive `==` Comparison | Wrapper `equals` |
 | --- | --- | --- |
-| `Double.NaN` và `Double.NaN` | `false` | `true` |
-| `+0.0d` và `-0.0d` | `true` | `false` |
+| `Double.NaN` and `Double.NaN` | `false` | `true` |
+| `+0.0d` and `-0.0d` | `true` | `false` |
 
-`Double.equals` dùng quy tắc bit của `Double.doubleToLongBits`: các biểu diễn NaN được chuẩn hóa khi kiểm tra bình đẳng, còn dấu của zero được phân biệt. `Float.equals` có cách xử lý tương tự. Vì thế **không thay thế tùy tiện** so sánh số thực primitive bằng `equals` nếu đặc tả bài toán cần quy tắc IEEE 754 của toán tử `==`.
+`Double.equals` uses the bit rules of `Double.doubleToLongBits`: NaN representations are canonicalized when checking equality, while the sign of zero is distinguished. `Float.equals` behaves similarly. Therefore, **do not arbitrarily replace** primitive floating-point comparisons with `equals` if the problem specification requires the IEEE 754 rules of the `==` operator.
 
-Nếu muốn so thứ tự, `Integer.compare`, `Long.compare`, `Double.compare` hoặc `compareTo` có ngữ nghĩa khác với kiểm tra cùng tham chiếu. `Double.compare(+0.0, -0.0)` trả kết quả **dương**, như ví dụ.
+If you want ordering comparisons, `Integer.compare`, `Long.compare`, `Double.compare`, or `compareTo` have different semantics from checking reference equality. `Double.compare(+0.0, -0.0)` returns a **positive** result, as shown in the example.
 
-## 6. `null`: cách so an toàn
+## 6. `null`: How to Compare Safely
 
-**`equals` có thể ném NPE khi đối tượng nhận lời gọi là null:**
+**`equals` can throw an NPE when the receiver object is null:**
 
 ~~~java
 Integer a = null;
@@ -234,20 +234,20 @@ Integer b = 10;
 System.out.println(Objects.equals(a, b)); // false.
 ~~~
 
-`Objects.equals(a, b)` kiểm tra an toàn khi một hoặc cả hai biến có thể null; hai giá trị null được coi là bằng nhau. Tuy vậy, việc **“hai giá trị đều thiếu” có nên được coi là tương đương trong nghiệp vụ hay không** là quyết định riêng của ứng dụng.
+`Objects.equals(a, b)` checks safely when one or both variables may be null; two null values are considered equal. However, whether **"both values missing" should be treated as equivalent in business logic** is a separate application decision.
 
-| Yêu cầu | Cách viết | Ghi chú |
+| Requirement | How to Write It | Notes |
 | --- | --- | --- |
-| Wrapper biết chắc không null, cùng kiểu | `a.equals(b)` | So giá trị wrapper |
-| Hai wrapper có thể null | `Objects.equals(a, b)` | Null-safe, dùng `equals` cho đối tượng |
-| Một wrapper so với giá trị cố định | `Integer.valueOf(10).equals(a)` | Đối tượng nhận lời gọi chắc chắn khác null |
-| Muốn so primitive và wrapper nullable | `a != null && a.intValue() == 10` | Kiểm tra null trước unboxing |
-| Muốn thứ tự tăng/giảm | `Integer.compare(x, y)` | Dùng primitive; xử lý null trước nếu nguồn là wrapper |
-| Muốn kiểm tra cùng đối tượng | `a == b` | Chỉ khi identity thật sự là mục tiêu |
+| Wrappers known non-null, same type | `a.equals(b)` | Compares wrapper values |
+| Two wrappers that may be null | `Objects.equals(a, b)` | Null-safe, uses `equals` for objects |
+| One wrapper against a fixed value | `Integer.valueOf(10).equals(a)` | Receiver object is guaranteed non-null |
+| Comparing a primitive and a nullable wrapper | `a != null && a.intValue() == 10` | Null check before unboxing |
+| Ascending/descending ordering | `Integer.compare(x, y)` | Uses primitives; handle null first if source is a wrapper |
+| Checking same object | `a == b` | Only when identity is genuinely the goal |
 
-**Không dùng `Objects.equals` như một phép so số học xuyên kiểu:** `Objects.equals(Integer.valueOf(1), Long.valueOf(1))` là `false` vì hai wrapper khác lớp.
+**Do not use `Objects.equals` as a cross-type numeric comparison:** `Objects.equals(Integer.valueOf(1), Long.valueOf(1))` is `false` because the two wrappers have different classes.
 
-## 7. Autoboxing, cache và toán tử gán lại
+## 7. Autoboxing, Caching, and Reassignment
 
 ~~~java
 Integer a = 7;
@@ -258,36 +258,36 @@ System.out.println(a); // 8.
 System.out.println(b); // 7.
 ~~~
 
-`a + 1` unbox `Integer` thành `int`, cộng thành 8, sau đó boxing kết quả để gán lại `a`. Wrapper bất biến: phép gán này **không sửa** đối tượng đang được `b` tham chiếu.
+`a + 1` unboxes `Integer` to `int`, adds to get 8, then boxes the result to reassign `a`. Wrappers are immutable: this assignment **does not modify** the object referenced by `b`.
 
-Cache là tối ưu hóa khả thi cho đối tượng bất biến; sự tồn tại của cache không làm `Integer` trở thành primitive. Đừng cố suy đoán số lượng đối tượng được cấp phát chỉ từ cú pháp boxing nếu không có kiểm chứng thực tế và không phải trọng tâm nghiệp vụ.
+Caching is a possible optimization for immutable objects; the existence of a cache does not turn `Integer` into a primitive. Do not try to guess how many objects are allocated solely from boxing syntax without empirical verification and unless it is central to the problem.
 
-## 8. Bài tập tự kiểm tra
+## 8. Self-Check Exercises
 
-1. **Hai wrapper `Integer`:** `Integer a = 100, b = 100; a == b` trả gì?  
-   *Đáp án:* `true` với autoboxing hằng 100 thuộc vùng cache bắt buộc; nhưng không dùng `==` như phép so giá trị nói chung.
-2. **Wrapper lớn:** `Integer a = Integer.valueOf(1000); Integer b = Integer.valueOf(1000); a.equals(b)` trả gì?  
-   *Đáp án:* `true`. Không cần giả định kết quả `a == b`.
-3. **Khác loại:** `Integer.valueOf(42).equals(Long.valueOf(42L))` trả gì?  
-   *Đáp án:* `false` vì đối số không phải `Integer`.
-4. **Unboxing:** `Integer x = null; boolean same = (x == 10);` xảy ra gì?  
-   *Đáp án:* Ném `NullPointerException` khi unbox `x`.
-5. **Null-safe:** `Objects.equals(null, null)` và `Objects.equals(null, Integer.valueOf(1))` là gì?  
-   *Đáp án:* Lần lượt `true` và `false`.
-6. **NaN:** Tại sao `Double.NaN == Double.NaN` là false, còn `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))` là true?  
-   *Đáp án:* Phép `==` primitive tuân theo quy tắc NaN số thực; wrapper `equals` áp dụng quy tắc bình đẳng trên biểu diễn bit đã chuẩn hóa NaN.
-7. **Zero có dấu:** `Double.valueOf(0.0).equals(Double.valueOf(-0.0))` là gì?  
-   *Đáp án:* `false`; wrapper phân biệt dấu của zero, dù `0.0 == -0.0` là `true`.
+1. **Two `Integer` wrappers:** `Integer a = 100, b = 100; a == b` returns what?  
+   *Answer:* `true` with autoboxing of the constant 100 in the guaranteed cache range; however, do not use `==` as a general value comparison.
+2. **Large wrappers:** `Integer a = Integer.valueOf(1000); Integer b = Integer.valueOf(1000); a.equals(b)` returns what?  
+   *Answer:* `true`. Do not assume a fixed result for `a == b`.
+3. **Different types:** `Integer.valueOf(42).equals(Long.valueOf(42L))` returns what?  
+   *Answer:* `false` because the argument is not an `Integer`.
+4. **Unboxing:** `Integer x = null; boolean same = (x == 10);` — what happens?  
+   *Answer:* Throws `NullPointerException` when unboxing `x`.
+5. **Null-safe:** What are `Objects.equals(null, null)` and `Objects.equals(null, Integer.valueOf(1))`?  
+   *Answer:* `true` and `false`, respectively.
+6. **NaN:** Why is `Double.NaN == Double.NaN` false, while `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))` is true?  
+   *Answer:* Primitive `==` follows floating-point NaN rules; wrapper `equals` applies equality rules on the NaN-canonicalized bit representation.
+7. **Signed zero:** What is `Double.valueOf(0.0).equals(Double.valueOf(-0.0))`?  
+   *Answer:* `false`; the wrapper distinguishes the sign of zero, even though `0.0 == -0.0` is `true`.
 
 ## Checklist
 
-- [ ] Phân biệt **identity tham chiếu** với **bình đẳng giá trị wrapper**.
-- [ ] Với hai wrapper cùng kiểu, `==` kiểm tra đối tượng; `equals` kiểm tra giá trị wrapper.
-- [ ] Không dựa vào cache `Integer` để suy đoán kết quả của `==` cho mọi số.
-- [ ] Khi wrapper so với primitive, kiểm tra nguy cơ **unboxing null**.
-- [ ] Dùng `Objects.equals` khi hai wrapper có thể null.
-- [ ] Không coi `Integer` và `Long` có giá trị bằng nhau là `equals` bằng nhau.
-- [ ] Nhớ `Double`/`Float` khác biệt về `NaN` và `+0.0`/`-0.0`.
-- [ ] Chọn `compare`/`compareTo` khi cần so thứ tự thay vì bình đẳng.
+- [ ] Distinguish **reference identity** from **wrapper value equality**.
+- [ ] For two wrappers of the same type, `==` checks the object; `equals` checks the wrapper value.
+- [ ] Do not rely on `Integer` caching to predict the result of `==` for all numbers.
+- [ ] When comparing a wrapper to a primitive, check the risk of **unboxing null**.
+- [ ] Use `Objects.equals` when two wrappers may be null.
+- [ ] Do not treat `Integer` and `Long` with equal numeric values as `equals`.
+- [ ] Remember the differences of `Double`/`Float` regarding `NaN` and `+0.0`/`-0.0`.
+- [ ] Choose `compare`/`compareTo` when ordering is needed instead of equality.
 
-**Kết luận:** Muốn kiểm tra **cùng đối tượng**, hãy dùng `==` giữa tham chiếu và hiểu rõ cache. Muốn kiểm tra **cùng giá trị lớp bao**, dùng `equals` hoặc `Objects.equals` (nếu có null). Với một bên primitive, luôn xem xét **unboxing** trước khi tin rằng phép `==` an toàn.
+**Conclusion:** To check for **the same object**, use `==` between references and understand caching. To check for **the same wrapper value**, use `equals` or `Objects.equals` (when null is possible). When one side is primitive, always check **unboxing** before assuming `==` is safe.

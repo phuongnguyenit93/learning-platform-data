@@ -1,25 +1,25 @@
-# Lọc dữ liệu bằng `filter` và các điều kiện kết hợp
+# Filtering Data with `filter` and Combined Conditions
 
-> **Chương:** Lọc và biến đổi phần tử  
-> **Module:** `JAVA_STREAM_API` — xử lý dữ liệu khai báo bằng Java Stream API qua pipeline lazy, `filter`, `map`, `reduce`, `collect`; mở rộng tới grouping, collector tùy chỉnh, `Spliterator`, xử lý song song và Stream Gatherers, với sự chú ý tới trạng thái, tài nguyên và hiệu năng.
+> **Chapter:** Filtering and Transforming Elements  
+> **Module:** `JAVA_STREAM_API` — declarative data processing with the Java Stream API via lazy pipelines, `filter`, `map`, `reduce`, `collect`; extending to grouping, custom collectors, `Spliterator`, parallel processing, and Stream Gatherers, with attention to state, resources, and performance.
 
-`filter` là một trong những phép toán được dùng nhiều nhất của Stream API. Thay vì duyệt danh sách bằng vòng lặp rồi tự thêm các phần tử đạt yêu cầu vào một danh sách khác, ta mô tả trực tiếp **điều kiện để một phần tử được giữ lại**. Trong thực tế, điều kiện thường không chỉ là “giá lớn hơn 100” mà còn kết hợp trạng thái, ngày tháng, quyền truy cập, từ khóa hoặc các lựa chọn tìm kiếm.
+`filter` is one of the most frequently used operations in the Stream API. Instead of iterating through a list with a loop and manually adding qualifying elements to another list, we directly describe the **condition for an element to be retained**. In practice, conditions are often not just "price greater than 100" but also combine status, dates, access permissions, keywords, or search options.
 
-Sau bài học này, bạn có thể viết `filter` cho một điều kiện, kết hợp nhiều điều kiện bằng toán tử logic hoặc `Predicate`, tổ chức những điều kiện phức tạp theo cách dễ kiểm tra, đồng thời tránh các lỗi liên quan đến `null`, thứ tự xử lý và trạng thái dùng chung.
+After this lesson, you will be able to write `filter` for a single condition, combine multiple conditions using logical operators or `Predicate`, organize complex conditions in a testable way, and avoid errors related to `null`, processing order, and shared state.
 
-## 1. `filter` hoạt động như thế nào?
+## 1. How Does `filter` Work?
 
-Chữ ký của phương thức trên `Stream<T>`:
+The method signature on `Stream<T>`:
 
 ```java
 Stream<T> filter(Predicate<? super T> predicate)
 ```
 
-- `Predicate<T>` là một functional interface có phương thức `boolean test(T value)`.
-- Khi `predicate` trả về `true`, phần tử **được giữ lại**; trả về `false` thì **bị loại bỏ**.
-- `filter` là **intermediate operation**: trả về một Stream để có thể nối tiếp các bước khác, không tự thu thập dữ liệu thành `List`.
-- `filter` là phép toán **không trạng thái (stateless)** và **lazy**: mỗi phần tử có thể được kiểm tra độc lập, và quá trình xử lý thường chỉ bắt đầu khi có terminal operation.
-- Với nguồn có encounter order như `List`, `filter` giữ nguyên thứ tự tương đối của những phần tử còn lại.
+- `Predicate<T>` is a functional interface with the method `boolean test(T value)`.
+- When `predicate` returns `true`, the element is **retained**; when it returns `false`, it is **discarded**.
+- `filter` is an **intermediate operation**: it returns a Stream so further steps can be chained, and does not itself collect data into a `List`.
+- `filter` is a **stateless** and **lazy** operation: each element can be tested independently, and processing typically only begins when a terminal operation is present.
+- For sources with an encounter order such as `List`, `filter` preserves the relative order of the remaining elements.
 
 ```java
 import java.util.List;
@@ -34,12 +34,12 @@ System.out.println(evenNumbers);  // [2, 4, 8]
 System.out.println(numbers);      // [9, 2, 7, 4, 8]
 ```
 
-Trong ví dụ, `n -> n % 2 == 0` là một `Predicate<Integer>` được biểu diễn bằng lambda. `filter` tạo luồng kết quả mà không sửa danh sách `numbers`; `toList()` (Java 16+) là phép toán kết thúc tạo ra danh sách không cho phép sửa đổi qua các phương thức như `add` hoặc `remove`.
+In the example, `n -> n % 2 == 0` is a `Predicate<Integer>` expressed as a lambda. `filter` produces the result stream without modifying the `numbers` list; `toList()` (Java 16+) is a terminal operation that creates a list that does not allow modification through methods such as `add` or `remove`.
 
-Sơ đồ logic:
+Logical diagram:
 
 ```text
-Nguồn List       filter(n -> n % 2 == 0)     toList()
+Source List      filter(n -> n % 2 == 0)     toList()
    9          ────────── false ──────×
    2          ────────── true  ───────────→  2
    7          ────────── false ──────×
@@ -48,17 +48,17 @@ Nguồn List       filter(n -> n % 2 == 0)     toList()
                                            [2, 4, 8]
 ```
 
-## 2. Kết hợp điều kiện bằng `&&`, `||` và `!`
+## 2. Combining Conditions with `&&`, `||`, and `!`
 
-Một lambda `filter` có thể chứa biểu thức boolean với nhiều tiêu chí.
+A `filter` lambda can contain a boolean expression with multiple criteria.
 
-| Toán tử | Ý nghĩa | Ví dụ | Khi nào biểu thức là `true`? |
+| Operator | Meaning | Example | When is the expression `true`? |
 | --- | --- | --- | --- |
-| `&&` | Và (AND) | `n > 0 && n < 10` | Cả hai điều kiện đúng. |
-| `||` | Hoặc (OR) | `n < 0 || n > 100` | Ít nhất một điều kiện đúng. |
-| `!` | Phủ định (NOT) | `!(n == 0)` | Điều kiện bên trong sai. |
+| `&&` | AND | `n > 0 && n < 10` | Both conditions are true. |
+| `||` | OR | `n < 0 || n > 100` | At least one condition is true. |
+| `!` | NOT | `!(n == 0)` | The inner condition is false. |
 
-Ví dụ lọc số nguyên dương, chẵn và nhỏ hơn 10:
+Example filtering positive, even integers less than 10:
 
 ```java
 List<Integer> result = List.of(-4, 0, 2, 3, 8, 10, 12).stream()
@@ -68,7 +68,7 @@ List<Integer> result = List.of(-4, 0, 2, 3, 8, 10, 12).stream()
 // [2, 8]
 ```
 
-Ví dụ lọc số **nằm ngoài** khoảng `[10, 20]`:
+Example filtering numbers **outside** the range `[10, 20]`:
 
 ```java
 List<Integer> outside = List.of(5, 10, 15, 20, 25).stream()
@@ -78,41 +78,41 @@ List<Integer> outside = List.of(5, 10, 15, 20, 25).stream()
 // [5, 25]
 ```
 
-### Dùng dấu ngoặc để diễn đạt đúng nghiệp vụ
+### Using Parentheses to Express Business Rules Accurately
 
-Java ưu tiên `!` trước `&&`, rồi mới tới `||`. Vì vậy, hai biểu thức sau **khác nhau**:
+Java evaluates `!` before `&&`, and then `||`. Therefore, the following two expressions are **different**:
 
 ```java
-// Nghĩa là: (đã thanh toán VÀ đủ giá trị) HOẶC là khách VIP.
+// Means: (paid AND high value) OR VIP customer.
 paid && highValue || vip
 
-// Nghĩa là: đã thanh toán VÀ (đủ giá trị HOẶC là khách VIP).
+// Means: paid AND (high value OR VIP customer).
 paid && (highValue || vip)
 ```
 
-Nếu chính sách yêu cầu **mọi đơn đều phải thanh toán**, biểu thức thứ nhất sai: một đơn của khách VIP chưa thanh toán vẫn được giữ lại. Khi có cả AND và OR, hãy viết dấu ngoặc theo nhóm điều kiện nghiệp vụ ngay cả khi đã nhớ thứ tự ưu tiên toán tử.
+If the policy requires **all orders to be paid**, the first expression is wrong: an unpaid order from a VIP customer would still be kept. When combining both AND and OR, always write parentheses around business condition groups even if you already remember operator precedence.
 
-### Short-circuit của các biểu thức logic
+### Short-Circuiting of Logical Expressions
 
-`&&` và `||` thực hiện *short-circuit evaluation* **trên từng phần tử**:
+`&&` and `||` perform *short-circuit evaluation* **per element**:
 
-- Trong `a && b`, khi `a` là `false`, Java không cần đánh giá `b`.
-- Trong `a || b`, khi `a` là `true`, Java không cần đánh giá `b`.
+- In `a && b`, when `a` is `false`, Java does not need to evaluate `b`.
+- In `a || b`, when `a` is `true`, Java does not need to evaluate `b`.
 
-Ví dụ, `text != null && !text.isBlank()` an toàn nếu `text` là `null` vì Java sẽ không gọi `text.isBlank()` khi vế trái sai. Tránh thay `&&` thành `&` hoặc `||` thành `|` khi mục đích là short-circuit boolean: `&` và `|` luôn đánh giá cả hai vế.
+For example, `text != null && !text.isBlank()` is safe if `text` is `null` because Java will not call `text.isBlank()` when the left-hand side is false. Avoid replacing `&&` with `&` or `||` with `|` when the goal is boolean short-circuiting: `&` and `|` always evaluate both sides.
 
-Đây là short-circuit của **biểu thức điều kiện**. Nó khác với khả năng dừng sớm của **toàn pipeline** khi dùng `limit`, `findFirst`, `anyMatch` và các terminal operation phù hợp.
+This is short-circuiting of a **conditional expression**. It differs from the early-termination capability of an **entire pipeline** when using `limit`, `findFirst`, `anyMatch`, and appropriate terminal operations.
 
-## 3. Ví dụ thực tế: tìm đơn hàng thỏa nhiều chính sách
+## 3. Real-World Example: Finding Orders Matching Multiple Policies
 
-Giả sử cần chọn đơn hàng theo quy tắc:
+Suppose we need to select orders according to these rules:
 
-1. Trạng thái là `PAID`.
-2. Tổng tiền ít nhất 100.
-3. Ngày tạo từ **01/10/2026** trở đi (tính cả ngày đó).
-4. Đồng thời phải là đơn ưu tiên **hoặc** có tổng tiền ít nhất 200.
+1. Status is `PAID`.
+2. Total amount is at least 100.
+3. Created date is from **01/10/2026** onward (inclusive).
+4. Must also be a priority order **or** have a total amount of at least 200.
 
-Chương trình Java 17+ dưới đây chạy độc lập và có thể sao chép vào `FilterOrdersDemo.java`:
+The Java 17+ program below runs standalone and can be copied into `FilterOrdersDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -163,30 +163,30 @@ public class FilterOrdersDemo {
 }
 ```
 
-Kết quả mong đợi:
+Expected output:
 
 ```text
 [DH-01, DH-04, DH-06]
 ```
 
-| Đơn | Trạng thái | Tổng tiền | Ngày tạo | Ưu tiên | Kết quả |
+| Order | Status | Total | Created Date | Priority | Result |
 | --- | --- | ---: | --- | --- | --- |
-| DH-01 | PAID | 120 | 05/10/2026 | Có | Giữ: ưu tiên, đủ tiền và đúng ngày. |
-| DH-02 | PENDING | 500 | 06/10/2026 | Có | Loại: chưa thanh toán. |
-| DH-03 | PAID | 80 | 06/10/2026 | Có | Loại: dưới 100. |
-| DH-04 | PAID | 250 | 02/10/2026 | Không | Giữ: tổng tiền ít nhất 200. |
-| DH-05 | PAID | 160 | 30/09/2026 | Có | Loại: trước ngày bắt đầu. |
-| DH-06 | PAID | 180 | 07/10/2026 | Có | Giữ: đơn ưu tiên. |
+| DH-01 | PAID | 120 | 05/10/2026 | Yes | Keep: priority, sufficient total, and valid date. |
+| DH-02 | PENDING | 500 | 06/10/2026 | Yes | Discard: not paid. |
+| DH-03 | PAID | 80 | 06/10/2026 | Yes | Discard: under 100. |
+| DH-04 | PAID | 250 | 02/10/2026 | No | Keep: total at least 200. |
+| DH-05 | PAID | 160 | 30/09/2026 | Yes | Discard: before start date. |
+| DH-06 | PAID | 180 | 07/10/2026 | Yes | Keep: priority order. |
 
-Chú ý ba chi tiết trong ví dụ:
+Note three details in the example:
 
-- Dùng `"PAID".equals(o.status())` để so sánh **nội dung chuỗi**, tránh `==` (so sánh tham chiếu) và tránh lỗi nếu `status` là `null`.
-- Dùng `BigDecimal.compareTo(...) >= 0` cho phép so sánh số tiền theo giá trị; `BigDecimal.equals(...)` còn xét cả `scale`, nên không phải lựa chọn phù hợp cho kiểm tra ngưỡng.
-- Dùng `!createdAt.isBefore(startDate)` để bao gồm chính `startDate`. Cần bảo đảm `createdAt` khác `null` trước khi gọi phương thức trên nó.
+- Use `"PAID".equals(o.status())` to compare **string content**, avoiding `==` (reference comparison) and avoiding an error if `status` is `null`.
+- Using `BigDecimal.compareTo(...) >= 0` compares monetary amounts by value; `BigDecimal.equals(...)` also considers `scale`, so it is not suitable for threshold checks.
+- Use `!createdAt.isBefore(startDate)` to include `startDate` itself. Ensure `createdAt` is non-`null` before calling methods on it.
 
-## 4. Tách điều kiện thành `Predicate` có thể tái sử dụng
+## 4. Extracting Conditions into Reusable `Predicate` Instances
 
-Khi điều kiện dài hoặc xuất hiện ở nhiều chỗ, `java.util.function.Predicate<T>` giúp đặt tên cho từng quy tắc và kết hợp chúng một cách rõ nghĩa:
+When conditions are long or appear in multiple places, `java.util.function.Predicate<T>` helps name individual rules and combine them clearly:
 
 ```java
 import java.math.BigDecimal;
@@ -216,29 +216,29 @@ List<String> ids = orders.stream()
 // [DH-01, DH-04, DH-06]
 ```
 
-Đoạn trên sử dụng `record Order` và biến `orders` đã khai báo trong ví dụ hoàn chỉnh ở mục 3. `Predicate` cung cấp ba phương thức quan trọng:
+The snippet above uses `record Order` and the `orders` variable declared in the complete example in Section 3. `Predicate` provides three important methods:
 
-| Phương thức | Nghĩa | Tương đương khi kiểm tra một phần tử `x` |
+| Method | Meaning | Equivalent when testing an element `x` |
 | --- | --- | --- |
-| `p.and(q)` | Kết hợp hai điều kiện bằng AND | `p.test(x) && q.test(x)` |
-| `p.or(q)` | Kết hợp hai điều kiện bằng OR | `p.test(x) || q.test(x)` |
-| `p.negate()` | Đảo kết quả điều kiện | `!p.test(x)` |
+| `p.and(q)` | Combines two conditions with AND | `p.test(x) && q.test(x)` |
+| `p.or(q)` | Combines two conditions with OR | `p.test(x) || q.test(x)` |
+| `p.negate()` | Inverts the condition result | `!p.test(x)` |
 
-Giống `&&` và `||`, hai phương thức `and` và `or` được xác định để đánh giá điều kiện thứ hai **khi cần thiết**. `Predicate` cũng hỗ trợ method reference, ví dụ `Order::priority`, khi phương thức trả về `boolean`.
+Like `&&` and `||`, the `and` and `or` methods are defined to evaluate the second condition **only when necessary**. `Predicate` also supports method references, such as `Order::priority`, when the method returns `boolean`.
 
-**Một lỗi kết hợp điều kiện phổ biến:**
+**A common condition-combining mistake:**
 
 ```java
-// Sai nếu chính sách yêu cầu mọi đơn đều đã thanh toán:
+// Wrong if the policy requires all orders to be paid:
 Predicate<Order> incorrect = paid.and(atLeast100).or(priority);
 
-// Đúng: nhóm điều kiện OR phải nằm bên trong điều kiện AND:
+// Correct: the OR group must be nested inside the AND condition:
 Predicate<Order> correct = paid.and(atLeast100).and(priority.or(atLeast200));
 ```
 
-Biểu thức `incorrect` chấp nhận đơn `PENDING` nếu `priority` đúng. Khi dùng chuỗi `.and(...).or(...)`, luôn kiểm tra cách nhóm tương đương với dấu ngoặc trong biểu thức logic; nếu cần, đặt tên cho từng nhóm `Predicate` trước khi kết hợp.
+The `incorrect` expression accepts `PENDING` orders if `priority` is true. When chaining `.and(...).or(...)`, always verify that the grouping matches the parentheses in the logical expression; if needed, name each `Predicate` group before combining.
 
-### Phủ định với `negate` và `Predicate.not`
+### Negation with `negate` and `Predicate.not`
 
 ```java
 Predicate<Order> cancelled = o -> "CANCELLED".equals(o.status());
@@ -249,7 +249,7 @@ List<Order> activeOrders = orders.stream()
         .toList();
 ```
 
-Với Java 11+, `Predicate.not(...)` thuận tiện khi muốn phủ định một method reference ngay tại chỗ:
+With Java 11+, `Predicate.not(...)` is convenient when you want to negate a method reference inline:
 
 ```java
 List<String> nonBlank = List.of("Java", "  ", "Stream").stream()
@@ -259,11 +259,11 @@ List<String> nonBlank = List.of("Java", "  ", "Stream").stream()
 // [Java, Stream]
 ```
 
-Để chạy từng đoạn riêng biệt, khai báo/import kiểu và dữ liệu được nhắc tới; chương trình đầy đủ ở mục 3 không phụ thuộc các đoạn mở rộng này.
+To run each snippet separately, declare/import the referenced types and data; the full program in Section 3 does not depend on these extended snippets.
 
-## 5. Kiểm tra `null`, chuỗi và dữ liệu thiếu
+## 5. Checking `null`, Strings, and Missing Data
 
-`filter` chỉ giữ hoặc loại phần tử theo predicate mà bạn viết; nó **không tự ngăn `NullPointerException`**. Hãy loại `null` trước những phép gọi phương thức, hoặc viết điều kiện có kiểm tra `null` ở vế trái của `&&`.
+`filter` only keeps or discards elements according to the predicate you write; it **does not automatically prevent `NullPointerException`**. Filter out `null` before calling methods, or write conditions with a `null` check on the left-hand side of `&&`.
 
 ```java
 import java.util.Arrays;
@@ -284,9 +284,9 @@ List<String> cleaned = raw.stream()
 System.out.println(cleaned); // [java, stream, api]
 ```
 
-Ở đây, `Objects::nonNull` loại giá trị `null` trước khi gọi `trim`; `Predicate.not(String::isBlank)` bỏ chuỗi rỗng hoặc toàn khoảng trắng; điều kiện độ dài được áp dụng **sau** khi đã chuẩn hóa khoảng trắng. `Arrays.asList` được dùng vì dữ liệu ví dụ có `null`; `List.of(...)` không chấp nhận phần tử `null`.
+Here, `Objects::nonNull` removes `null` values before calling `trim`; `Predicate.not(String::isBlank)` drops empty or whitespace-only strings; the length condition is applied **after** whitespace has been normalized. `Arrays.asList` is used because the sample data contains `null`; `List.of(...)` does not accept `null` elements.
 
-Lọc chuỗi không phân biệt chữ hoa/chữ thường có thể dùng `equalsIgnoreCase`:
+Case-insensitive string filtering can use `equalsIgnoreCase`:
 
 ```java
 String requestedStatus = "paid";
@@ -296,11 +296,11 @@ List<Order> paidOrders = orders.stream()
         .toList();
 ```
 
-Nếu input có thể là `null`, hãy xác định rõ chính sách xử lý: bỏ qua bộ lọc, loại phần tử thiếu dữ liệu, hay báo lỗi cho người gọi. Không thể mặc định cả ba cách là tương đương về nghiệp vụ.
+If inputs can be `null`, clearly define the handling policy: skip the filter, discard elements with missing data, or report an error to the caller. You cannot assume all three approaches are equivalent in business semantics.
 
-## 6. Bộ lọc động theo tiêu chí tìm kiếm
+## 6. Dynamic Filters Based on Search Criteria
 
-Một màn hình tìm kiếm thường cho phép để trống trạng thái hoặc ngưỡng tiền. Trong trường hợp đó, ta có thể **xây dựng `Predicate` từng bước** thay vì tạo nhiều nhánh `if/else` bên trong pipeline:
+A search screen often allows leaving the status or price threshold blank. In that case, we can **build a `Predicate` step by step** instead of creating multiple `if/else` branches inside the pipeline:
 
 ```java
 import java.math.BigDecimal;
@@ -324,18 +324,18 @@ static Predicate<Order> buildOrderFilter(
     return result;
 }
 
-// Gọi trong một lớp có định nghĩa record Order:
+// Call inside a class that defines record Order:
 Predicate<Order> search = buildOrderFilter("PAID", new BigDecimal("150"));
 List<Order> matchingOrders = orders.stream().filter(search).toList();
 ```
 
-`o -> true` là điều kiện ban đầu cho phép mọi phần tử đi qua. Mỗi tiêu chí được cung cấp sẽ được nối thêm bằng `.and(...)`. Nếu không có tiêu chí nào, mọi phần tử của nguồn được giữ lại.
+`o -> true` is the initial condition allowing all elements to pass through. Each provided criterion is appended with `.and(...)`. If no criteria are provided, every element from the source is retained.
 
-Các đoạn mã ở mục 4 và 6 là phần mở rộng dựa trên `Order` trong ví dụ chính. Trong ứng dụng thực tế, hãy tổ chức hàm tạo predicate trong lớp chứa kiểu dữ liệu tương ứng; tránh để tiêu chí có thể thay đổi trong lúc Stream đang chạy.
+The code snippets in Sections 4 and 6 are extensions based on `Order` from the main example. In real applications, organize predicate builder functions in the class containing the corresponding data type; avoid letting criteria mutate while the Stream is running.
 
-## 7. `filter`, `map` và thứ tự các bước trong pipeline
+## 7. `filter`, `map`, and Step Order in a Pipeline
 
-Thông thường, nếu chỉ cần biến đổi các phần tử **đạt điều kiện**, hãy lọc trước khi thực hiện phép biến đổi tốn chi phí, miễn là điều kiện lọc vẫn được đánh giá trên đúng loại dữ liệu:
+Typically, if you only need to transform elements that **satisfy a condition**, filter before performing an expensive transformation, provided the filter condition can still be evaluated on the right data type:
 
 ```java
 List<String> names = orders.stream()
@@ -344,7 +344,7 @@ List<String> names = orders.stream()
         .toList();
 ```
 
-Nếu biến đổi trước, điều kiện sau đó phải xét trên kiểu dữ liệu **đã biến đổi**:
+If you transform first, the subsequent condition must operate on the **transformed** data type:
 
 ```java
 List<String> namesStartingWithA = orders.stream()
@@ -353,24 +353,24 @@ List<String> namesStartingWithA = orders.stream()
         .toList();
 ```
 
-Đừng tùy tiện đảo `filter` và `map`. Chẳng hạn, `filter(o -> o.total() >= ...)` cần đối tượng `Order`; nếu `.map(Order::customer)` chạy trước, dữ liệu đã thành `String` và không còn thông tin tổng tiền để kiểm tra.
+Do not arbitrarily swap `filter` and `map`. For instance, `filter(o -> o.total() >= ...)` needs an `Order` object; if `.map(Order::customer)` runs first, the data has become a `String` and no longer has total amount information to check.
 
-**Một điểm tinh tế về tính lazy:** hai bước `filter` liên tiếp về mặt logic có thể viết thành một bước với `&&`:
+**A subtlety about laziness:** two consecutive `filter` steps can logically be written as a single step with `&&`:
 
 ```java
 .filter(o -> "PAID".equals(o.status()))
 .filter(o -> o.total().compareTo(new BigDecimal("100")) >= 0)
 
-// Tương đương khi các predicate thuần, độc lập và không có side effect:
+// Equivalent when predicates are pure, independent, and have no side effects:
 .filter(o -> "PAID".equals(o.status())
         && o.total().compareTo(new BigDecimal("100")) >= 0)
 ```
 
-Sự tương đương này dựa trên **hành vi trả kết quả**, không phải cam kết tuyệt đối về số lần callback được gọi trong mọi tối ưu của Stream. Các lambda nên không phụ thuộc trạng thái thay đổi bên ngoài và không sửa nguồn dữ liệu trong khi duyệt.
+This equivalence is based on **result-returning behavior**, not an absolute guarantee on the exact number of callback invocations across all Stream optimizations. Lambdas should not depend on mutable external state and should not modify the data source during traversal.
 
-## 8. `filter` khác `takeWhile` và các phép kiểm tra tồn tại
+## 8. How `filter` Differs from `takeWhile` and Existence Checks
 
-`filter` xét riêng từng phần tử; `takeWhile` (Java 9+) lấy **đoạn đầu liên tiếp** thỏa điều kiện trên Stream có thứ tự. Chúng không thể thay thế nhau:
+`filter` evaluates each element individually; `takeWhile` (Java 9+) takes the **leading contiguous prefix** satisfying the condition on an ordered Stream. They are not interchangeable:
 
 ```java
 List<Integer> values = List.of(2, 4, 1, 6, 8);
@@ -384,32 +384,32 @@ System.out.println(values.stream()
 // [2, 4]
 ```
 
-Ngoài ra, nếu mục tiêu chỉ là **trả lời có/không** thay vì tạo danh sách, dùng terminal operation phù hợp:
+Additionally, if the goal is simply to **answer yes/no** rather than create a list, use the appropriate terminal operation:
 
-| Mục tiêu | Cách viết | Kết quả |
+| Goal | How to write | Result |
 | --- | --- | --- |
-| Lấy mọi phần tử phù hợp | `stream.filter(p).toList()` | `List<T>` |
-| Có ít nhất một phần tử phù hợp? | `stream.anyMatch(p)` | `boolean` |
-| Tất cả phần tử đều phù hợp? | `stream.allMatch(p)` | `boolean` |
-| Không phần tử nào phù hợp? | `stream.noneMatch(p)` | `boolean` |
-| Lấy phần tử phù hợp đầu tiên theo encounter order | `stream.filter(p).findFirst()` | `Optional<T>` |
-| Đếm các phần tử phù hợp | `stream.filter(p).count()` | `long` |
+| Get all matching elements | `stream.filter(p).toList()` | `List<T>` |
+| Is there at least one matching element? | `stream.anyMatch(p)` | `boolean` |
+| Do all elements match? | `stream.allMatch(p)` | `boolean` |
+| Do no elements match? | `stream.noneMatch(p)` | `boolean` |
+| Get the first matching element by encounter order | `stream.filter(p).findFirst()` | `Optional<T>` |
+| Count matching elements | `stream.filter(p).count()` | `long` |
 
-Ví dụ:
+Example:
 
 ```java
 boolean hasExpensivePaidOrder = orders.stream()
         .anyMatch(o -> "PAID".equals(o.status())
                 && o.total().compareTo(new BigDecimal("200")) >= 0);
 
-// true: có DH-04.
+// true: DH-04 exists.
 ```
 
-`anyMatch`, `allMatch`, `noneMatch` có thể dừng khi đã đủ thông tin xác định kết quả. Trên Stream rỗng, `anyMatch` là `false`, còn `allMatch` và `noneMatch` là `true` theo định nghĩa toán học (*vacuous truth*).
+`anyMatch`, `allMatch`, and `noneMatch` can terminate as soon as enough information is available to determine the result. On an empty Stream, `anyMatch` is `false`, while `allMatch` and `noneMatch` are `true` by mathematical definition (*vacuous truth*).
 
-## 9. Lazy evaluation, dừng sớm và hiệu năng
+## 9. Lazy Evaluation, Short-Circuiting, and Performance
 
-`filter` là phép toán trung gian lazy. Ví dụ sau chỉ cần tìm hai số chẵn đầu tiên:
+`filter` is a lazy intermediate operation. The following example only needs to find the first two even numbers:
 
 ```java
 List<Integer> firstTwo = List.of(1, 2, 3, 4, 5, 6).stream()
@@ -420,30 +420,30 @@ List<Integer> firstTwo = List.of(1, 2, 3, 4, 5, 6).stream()
 // [2, 4]
 ```
 
-Với pipeline tuần tự có thứ tự, khi tìm được `2` và `4`, `limit(2)` đã đủ kết quả nên thường không cần duyệt tới `5`, `6`. `filter` không yêu cầu lưu toàn bộ phần tử nguồn; nó chỉ quyết định giữ hay bỏ từng phần tử. Trong ví dụ trên, **`limit`** là bước giới hạn số lượng và tạo khả năng dừng sớm cho toàn pipeline.
+With an ordered sequential pipeline, once `2` and `4` are found, `limit(2)` already has enough results so it typically does not need to traverse `5` and `6`. `filter` does not require storing all source elements; it only decides whether to keep or discard each element. In the example above, **`limit`** is the step that bounds the count and enables early termination for the entire pipeline.
 
-Một vài quy tắc khi tối ưu:
+A few rules when optimizing:
 
-- Đặt bộ lọc ít tốn chi phí hoặc có khả năng loại nhiều phần tử trước các bước xử lý nặng, **nếu** thứ tự đánh giá đó giữ nguyên ngữ nghĩa.
-- Trên dữ liệu rất lớn, cân nhắc lọc trước các bước có trạng thái như `sorted()` hoặc `distinct()` nếu điều kiện lọc không phụ thuộc kết quả của các bước đó; nếu thứ tự bước ảnh hưởng kết quả, phải ưu tiên tính đúng đắn.
-- `filter` tương đối phù hợp với Stream song song vì là phép toán không trạng thái, nhưng `parallelStream()` **không mặc nhiên nhanh hơn**. Kích thước dữ liệu, chi phí từng predicate, đặc tính nguồn và chi phí phân chia/gộp đều quan trọng.
-- Với Stream có thứ tự như `List`, `filter(...).toList()` bảo toàn thứ tự các phần tử được giữ. Tuy nhiên, không nên dựa vào thứ tự **thực thi lambda** khi dùng Stream song song hoặc khi tối ưu có thể bỏ qua một bước.
+- Place inexpensive filters or filters likely to eliminate many elements before heavy processing steps, **provided** that evaluation order preserves semantics.
+- On very large datasets, consider filtering before stateful steps such as `sorted()` or `distinct()` if the filter condition does not depend on the results of those steps; if step order affects the outcome, prioritize correctness.
+- `filter` fits parallel Streams relatively well because it is a stateless operation, yet `parallelStream()` is **not automatically faster**. Data size, cost per predicate, source characteristics, and splitting/merging overhead all matter.
+- With ordered Streams like `List`, `filter(...).toList()` preserves the order of retained elements. However, do not rely on the **lambda execution order** when using parallel Streams or when optimizations might skip a step.
 
-Đừng sử dụng `peek`, phép tăng bộ đếm, ghi log hay cập nhật đối tượng bên ngoài như cơ chế bắt buộc để tính kết quả của một pipeline: một số callback có thể không được thực thi do tối ưu, còn pipeline song song có thể thực hiện callback trong các luồng khác nhau.
+Do not use `peek`, counter increments, logging, or updating external objects as a required mechanism to compute a pipeline's result: some callbacks may not execute due to optimization, and a parallel pipeline may execute callbacks on different threads.
 
-## 10. Những lỗi thường gặp
+## 10. Common Mistakes
 
-| Lỗi | Vì sao sai hoặc khó bảo trì? | Cách xử lý |
+| Mistake | Why is it wrong or hard to maintain? | How to handle it |
 | --- | --- | --- |
-| `status == "PAID"` | `==` so sánh tham chiếu của `String`. | Dùng `"PAID".equals(status)` hoặc so sánh enum phù hợp. |
-| `name.isBlank()` khi `name` có thể `null` | Có thể gây `NullPointerException`. | Kiểm tra `name != null` trước hoặc `.filter(Objects::nonNull)`. |
-| `a && b || c` khi yêu cầu `a && (b || c)` | OR có thể cho phép phần tử vi phạm điều kiện bắt buộc. | Nhóm điều kiện bằng ngoặc hoặc `Predicate` rõ tên. |
-| Dùng `BigDecimal.equals` để lọc tiền theo ngưỡng | `equals` xét cả scale; không biểu diễn quan hệ lớn hơn/nhỏ hơn. | Dùng `compareTo`. |
-| Dùng `filter(...).count() > 0` chỉ để kiểm tra tồn tại | Có thể phải đếm toàn bộ phần tử phù hợp. | Dùng `anyMatch(...)`. |
-| Ghi vào danh sách ngoài trong `filter` | Tạo side effect, khó đoán khi lazy hoặc parallel. | Dùng `filter(...).toList()` hoặc `collect(...)`. |
-| Dùng `filter` khi cần giữ tiền tố liên tiếp | `filter` vẫn tiếp tục kiểm tra phần tử sau vị trí không thỏa. | Xem `takeWhile` khi đúng ngữ nghĩa. |
+| `status == "PAID"` | `==` compares `String` references. | Use `"PAID".equals(status)` or an appropriate enum comparison. |
+| `name.isBlank()` when `name` may be `null` | May throw `NullPointerException`. | Check `name != null` first or `.filter(Objects::nonNull)`. |
+| `a && b || c` when `a && (b || c)` is required | OR may allow elements violating a mandatory condition. | Group conditions with parentheses or well-named `Predicate`s. |
+| Using `BigDecimal.equals` to filter money by threshold | `equals` checks scale as well; does not express greater-than/less-than relations. | Use `compareTo`. |
+| Using `filter(...).count() > 0` just to check existence | May have to count all matching elements. | Use `anyMatch(...)`. |
+| Writing to an external list inside `filter` | Creates side effects, unpredictable with lazy or parallel execution. | Use `filter(...).toList()` or `collect(...)`. |
+| Using `filter` when a contiguous prefix is needed | `filter` keeps checking elements after a non-matching position. | Consider `takeWhile` when semantically appropriate. |
 
-Ví dụ **không nên dùng** trạng thái biến đổi bên ngoài để chọn phần tử:
+Example of **not using** mutable external state to select elements:
 
 ```java
 import java.util.concurrent.atomic.AtomicInteger;
@@ -454,11 +454,11 @@ List<Integer> unstable = numbers.parallelStream()
         .toList();
 ```
 
-Việc chọn phần tử ở đây phụ thuộc **thứ tự các luồng chạy predicate**, không nhất thiết là chỉ số ban đầu. `AtomicInteger` bảo đảm cập nhật nguyên tử nhưng không biến phép lọc này thành phép chọn theo vị trí ổn định. Nếu thực sự cần chỉ số, hãy diễn đạt theo `IntStream.range(0, list.size())` trên danh sách có truy cập chỉ số hiệu quả.
+Element selection here depends on the **order in which threads execute the predicate**, not necessarily the original index. `AtomicInteger` ensures atomic updates but does not turn this filter into stable index-based selection. If you truly need indices, express it using `IntStream.range(0, list.size())` on a list with efficient indexed access.
 
-## 11. Tự luyện tập và kiểm tra hiểu bài
+## 11. Self-Practice and Understanding Check
 
-**Bài 1 — Khoảng giá trị và tính chẵn.** Cho `List.of(-2, 0, 3, 4, 9, 12)`. Giữ các số chẵn, lớn hơn `0` và không vượt quá `10`.
+**Exercise 1 — Value range and parity.** Given `List.of(-2, 0, 3, 4, 9, 12)`. Keep even numbers greater than `0` and not exceeding `10`.
 
 ```java
 List<Integer> answer = List.of(-2, 0, 3, 4, 9, 12).stream()
@@ -467,24 +467,24 @@ List<Integer> answer = List.of(-2, 0, 3, 4, 9, 12).stream()
 // [4]
 ```
 
-**Bài 2 — Kết hợp điều kiện OR trong một nhóm.** Chọn đơn đã thanh toán, đồng thời là đơn ưu tiên **hoặc** có tổng tiền ít nhất 200. Biểu thức phù hợp:
+**Exercise 2 — Combining OR conditions in a group.** Select orders that are paid, and are either priority orders **or** have a total of at least 200. Suitable expression:
 
 ```java
 Predicate<Order> rule = paid.and(priority.or(atLeast200));
 ```
 
-**Bài 3 — Nhận biết short-circuit.** Điều gì xảy ra với `"abc".equals(s) || s.length() >= 5` khi `s` là `null`?
+**Exercise 3 — Recognizing short-circuiting.** What happens with `"abc".equals(s) || s.length() >= 5` when `s` is `null`?
 
-**Đáp án:** Vế trái trả `false`; Java tiếp tục đánh giá `s.length()` và ném `NullPointerException`. Hãy viết `s != null && ("abc".equals(s) || s.length() >= 5)` nếu muốn loại `null` an toàn.
+**Answer:** The left-hand side returns `false`; Java continues evaluating `s.length()` and throws `NullPointerException`. Write `s != null && ("abc".equals(s) || s.length() >= 5)` if you want to filter out `null` safely.
 
-**Bài 4 — Chọn terminal operation.** Muốn biết có đơn `PAID` giá trên 500 hay không, có cần `.filter(...).toList()` không?
+**Exercise 4 — Choosing a terminal operation.** If you want to know whether there is any `PAID` order priced over 500, do you need `.filter(...).toList()`?
 
-**Đáp án:** Không cần tạo danh sách nếu chỉ muốn boolean. Dùng `orders.stream().anyMatch(o -> "PAID".equals(o.status()) && o.total().compareTo(new BigDecimal("500")) > 0)`.
+**Answer:** There is no need to create a list if you only want a boolean. Use `orders.stream().anyMatch(o -> "PAID".equals(o.status()) && o.total().compareTo(new BigDecimal("500")) > 0)`.
 
-## Ghi nhớ
+## Key Takeaways
 
-- `filter(Predicate<T>)` **giữ phần tử khi điều kiện là `true`**, không sửa nguồn, giữ thứ tự tương đối trên Stream có thứ tự và hoạt động lazy.
-- Kết hợp điều kiện bằng `&&`, `||`, `!`, và **dùng ngoặc** để thể hiện đúng luật nghiệp vụ; các toán tử `&&`/`||` short-circuit cho từng phần tử.
-- Khi điều kiện dài, dùng `Predicate.and`, `or`, `negate` và đặt tên cho các quy tắc để giảm lỗi ưu tiên logic.
-- Lọc dữ liệu thực tế cần xử lý rõ `null`, so sánh chuỗi bằng `equals`, so sánh `BigDecimal` bằng `compareTo` và tránh lambda có side effect.
-- Chọn `anyMatch`, `allMatch`, `noneMatch`, `findFirst` hoặc `count` tùy loại kết quả cần nhận; sắp xếp thứ tự các bước theo **tính đúng đắn trước, hiệu năng sau**.
+- `filter(Predicate<T>)` **keeps elements when the condition is `true`**, does not modify the source, preserves relative order on ordered Streams, and operates lazily.
+- Combine conditions with `&&`, `||`, `!`, and **use parentheses** to accurately reflect business rules; `&&`/`||` operators short-circuit per element.
+- When conditions are long, use `Predicate.and`, `or`, `negate` and name rules clearly to reduce logical precedence bugs.
+- Real-world data filtering requires handling `null` explicitly, comparing strings with `equals`, comparing `BigDecimal` with `compareTo`, and avoiding lambdas with side effects.
+- Choose `anyMatch`, `allMatch`, `noneMatch`, `findFirst`, or `count` depending on the desired result type; order pipeline steps for **correctness first, performance second**.

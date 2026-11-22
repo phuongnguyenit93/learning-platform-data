@@ -1,70 +1,70 @@
-# Trường hợp không sealed và kết quả API tương ứng
+# Unsealed Cases and Corresponding API Results
 
-## 1. False không mô tả đầy đủ khả năng kế thừa
+## 1. False Does Not Fully Describe Inheritability
 
-Khi khảo sát một kiểu bằng Reflection, câu hỏi:
+When inspecting a type with Reflection, the question:
 
 ~~~java
 type.isSealed()
 ~~~
 
-chỉ xác định kiểu đó có phải lớp hoặc interface sealed hay không.
+only determines whether that type is a sealed class or interface.
 
-Nếu kết quả là `false`, chưa thể kết luận rằng:
+If the result is `false`, you still cannot conclude that:
 
-- Kiểu đó được khai báo bằng từ khóa `non-sealed`.
-- Kiểu đó có thể được kế thừa tự do.
-- Kiểu đó không có lớp con.
-- Kiểu đó là một lớp có thể tạo đối tượng.
-- Có thể gọi `getPermittedSubclasses()` rồi dùng kết quả như một mảng khác `null`.
+- The type was declared with the `non-sealed` keyword.
+- The type can be freely inherited.
+- The type has no subclasses.
+- The type is an instantiable class.
+- You can call `getPermittedSubclasses()` and use the result as a non-`null` array.
 
-Ví dụ, một lớp `final` không sealed nhưng cũng không cho tạo lớp con. Một lớp thường không final cũng không sealed, song có thể có nhiều lớp con. Interface thường, record, mảng và token primitive lại có những đặc điểm riêng.
+For instance, a `final` class is not sealed, yet also does not allow subclasses. An ordinary class that is neither `final` nor `sealed` can have many subclasses. Ordinary interfaces, records, arrays, and primitive tokens each have their own characteristics.
 
-Để hiểu đúng, cần tách **trạng thái sealed**, **các quy tắc kế thừa khác** và **danh sách các kiểu con được cho phép trực tiếp**.
+To understand properly, separate **sealed status**, **other inheritance rules**, and **the list of directly permitted subtypes**.
 
-## 2. Hai API và hợp đồng false/null
+## 2. The Two APIs and the false/null Contract
 
-Các API trên `Class<?>`:
+The APIs on `Class<?>`:
 
 ~~~java
 public boolean isSealed();
 public Class<?>[] getPermittedSubclasses();
 ~~~
 
-Đây là các chữ ký rút gọn để minh họa; hai phương thức có trong Java 17 trở lên.
+These are abbreviated signatures for illustration; both methods exist in Java 17 and later.
 
-Hợp đồng quan trọng:
+Key contract:
 
-| Trạng thái kiểu đang xét | `isSealed()` | `getPermittedSubclasses()` |
+| Status of the inspected type | `isSealed()` | `getPermittedSubclasses()` |
 | --- | --- | --- |
-| Lớp hoặc interface sealed | `true` | Mảng khác `null`, có thể rỗng theo hợp đồng API |
-| Lớp hoặc interface không sealed | `false` | `null` |
-| Mảng, primitive hoặc `void` | `false` | `null` |
+| Sealed class or interface | `true` | Non-`null` array, may be empty per API contract |
+| Unsealed class or interface | `false` | `null` |
+| Array, primitive, or `void` | `false` | `null` |
 
-Vì vậy, với kiểu không sealed, **kết quả API là `null`, không phải mảng rỗng**. Đây là hành vi bình thường, không phải lỗi tải kiểu chỉ vì giá trị trả về bằng `null`.
+Therefore, for an unsealed type, **the API result is `null`, not an empty array**. This is normal behavior, not a type-loading failure just because the return value is `null`.
 
-Tài liệu [Class.isSealed](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#isSealed()) và [Class.getPermittedSubclasses](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getPermittedSubclasses()) nêu sự phân biệt này.
+The documentation for [Class.isSealed](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#isSealed()) and [Class.getPermittedSubclasses](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getPermittedSubclasses()) states this distinction.
 
-Điểm đối chiếu cần nhớ:
+Reference points to remember:
 
 ~~~text
 null
-    -> kiểu đang xét không sealed
+    -> the type under inspection is not sealed
 
-mảng khác null
-    -> kiểu đang xét sealed
-    -> đọc các phần tử để biết các kiểu con trực tiếp mà API thu được
+non-null array
+    -> the type under inspection is sealed
+    -> read the elements to see the direct subtypes obtained by the API
 ~~~
 
-Không dùng riêng `permitted.length == 0` làm phép kiểm tra “không sealed”. Với kết quả `null`, biểu thức đó còn gây `NullPointerException`.
+Do not use `permitted.length == 0` alone as the check for "not sealed". With a `null` result, that expression will also throw `NullPointerException`.
 
-## 3. “Không sealed” khác với từ khóa non-sealed
+## 3. "Not Sealed" Differs from the non-sealed Keyword
 
-Trong cách nói thông thường, “không sealed” có nghĩa `isSealed() == false`. Đây là một nhóm rộng.
+In everyday speech, "not sealed" means `isSealed() == false`. This is a broad category.
 
-Từ khóa `non-sealed` có ý nghĩa cụ thể trong ngôn ngữ Java: nó được dùng ở một nhánh trực tiếp của phân cấp sealed để cho phép nhánh đó tiếp tục mở rộng mà không giữ danh sách `permits` ở chính nhánh đó.
+The `non-sealed` keyword has a specific meaning in the Java language: it is used on a direct branch of a sealed hierarchy to allow that branch to remain extensible without maintaining a `permits` list on that branch itself.
 
-Ví dụ:
+Example:
 
 ~~~java
 sealed interface Root permits OpenBranch, End {
@@ -77,22 +77,22 @@ final class End implements Root {
 }
 ~~~
 
-Đây là một nhóm khai báo có thể đặt cùng tệp trong cùng package.
+This is a group of declarations that can be placed in the same file within the same package.
 
-Cả `OpenBranch.class.isSealed()` và `End.class.isSealed()` đều trả về `false`, nhưng:
+Both `OpenBranch.class.isSealed()` and `End.class.isSealed()` return `false`, yet:
 
-- `OpenBranch` cho phép tiếp tục tạo lớp con theo các quy tắc Java thông thường.
-- `End` là lớp final nên không có lớp con.
+- `OpenBranch` allows further subclassing under normal Java rules.
+- `End` is a `final` class, so it has no subclasses.
 
-Một lớp thường độc lập cũng có thể cho `false` mà không hề khai báo `non-sealed`.
+An ordinary standalone class also yields `false` without ever being declared `non-sealed`.
 
-Do đó, **không đổi tên kết quả `!type.isSealed()` thành “có modifier non-sealed”** trong công cụ phân tích. Các API `Class` dùng trong Java 17/21 của bài không có một phương thức `isNonSealed()` để đọc nguyên văn từ khóa đó.
+Consequently, **do not rename the result `!type.isSealed()` to "has the non-sealed modifier"** in an analysis tool. The `Class` APIs used in Java 17/21 in this article do not provide an `isNonSealed()` method to read that literal keyword.
 
-Quy tắc về lớp sealed, final và non-sealed được mô tả tại [JLS §8.1.1.2](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.1.1.2).
+The rules for `sealed`, `final`, and `non-sealed` classes are described in [JLS §8.1.1.2](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.1.1.2).
 
-## 4. Chương trình đầy đủ: đối chiếu các nhóm không sealed
+## 4. Complete Program: Comparing Unsealed Groups
 
-Lưu chương trình sau vào `NotSealedApiDemo.java`:
+Save the following program to `NotSealedApiDemo.java`:
 
 ~~~java
 import java.lang.reflect.Modifier;
@@ -172,14 +172,14 @@ public class NotSealedApiDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 trở lên, không cần preview:
+Compile and run with JDK 17 or later, no preview required:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 NotSealedApiDemo.java
 java NotSealedApiDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 sealed root -> sealed=true; permitted=[End, OpenApi, OpenBranch]
@@ -202,108 +202,108 @@ Root accepts Extension: true
 Extension is directly permitted by Root: false
 ~~~
 
-Danh sách permitted của `Root` được sắp xếp theo tên khi in. API không cam kết thứ tự các phần tử; việc sắp xếp làm kết quả trình bày ổn định.
+`Root`'s permitted list is sorted by name when printed. The API does not promise element ordering; sorting makes the output stable.
 
-### 4.1. Lớp thường và lớp final cùng cho false/null
+### 4.1. Ordinary classes and final classes both yield false/null
 
-Hai dòng:
+The two lines:
 
 ~~~text
 ordinary class -> sealed=false; permitted=null
 ordinary final class -> sealed=false; permitted=null
 ~~~
 
-có cùng cặp kết quả sealed, dù đặc điểm kế thừa khác nhau.
+have the same pair of sealed results, even though their inheritance characteristics differ.
 
-Nếu công cụ muốn biết một **lớp** có modifier final hay không, phải xem thuộc tính phù hợp như `Modifier.isFinal(type.getModifiers())`. Trong chương trình, `Closed` là final còn `Plain` không final.
+If a tool wants to know whether a **class** has the `final` modifier, it must check the appropriate property such as `Modifier.isFinal(type.getModifiers())`. In the program, `Closed` is `final` while `Plain` is not `final`.
 
-Không suy “không sealed nghĩa là mở cho kế thừa” từ một giá trị boolean duy nhất. Việc kế thừa còn phụ thuộc loại kiểu, final, khả năng truy cập và các quy tắc ngôn ngữ khác.
+Do not infer "not sealed means open for inheritance" from a single boolean value. Inheritability also depends on type kind, `final`, accessibility, and other language rules.
 
-### 4.2. Interface thường và interface non-sealed đều cho false/null
+### 4.2. Ordinary interfaces and non-sealed interfaces both yield false/null
 
-`OrdinaryInterface` không thuộc một khai báo sealed nào. `OpenApi` là interface non-sealed mở rộng trực tiếp `Root`.
+`OrdinaryInterface` does not belong to any sealed declaration. `OpenApi` is a `non-sealed` interface directly extending `Root`.
 
-Hai interface có bối cảnh khai báo khác nhau, nhưng đều không sealed ở chính kiểu đang xét, nên `getPermittedSubclasses()` đều trả về `null`.
+The two interfaces have different declaration contexts, yet neither is sealed at the type itself, so `getPermittedSubclasses()` returns `null` for both.
 
-`null` không phải danh sách rỗng các lớp đang triển khai interface. API này không có nhiệm vụ quét mọi lớp triển khai một interface mở.
+`null` is not an empty list of classes currently implementing the interface. This API is not responsible for scanning all classes implementing an open interface.
 
-### 4.3. Một kiểu con của sealed không nhất thiết sealed
+### 4.3. A subtype of a sealed type is not necessarily sealed
 
-`Root` sealed không làm mọi hậu duệ của nó cùng sealed.
+`Root` being sealed does not make all of its descendants sealed.
 
-Trong chương trình:
+In the program:
 
-- `Root` có `isSealed() == true`.
-- `OpenBranch`, `OpenApi` và `End` đều có `isSealed() == false`.
-- Mỗi lần gọi API hỏi trạng thái của đúng token lớp hoặc interface nhận lời gọi.
+- `Root` has `isSealed() == true`.
+- `OpenBranch`, `OpenApi`, and `End` all have `isSealed() == false`.
+- Each API call queries the status of the exact class or interface token receiving the call.
 
-Nếu cần xem trạng thái của cha, hãy lấy đúng token cha. Không kỳ vọng `OpenBranch.class.getPermittedSubclasses()` trả về danh sách khai báo trong `Root`.
+If you need the parent's status, obtain the parent token itself. Do not expect `OpenBranch.class.getPermittedSubclasses()` to return the list declared in `Root`.
 
-### 4.4. Có lớp con thực tế nhưng permitted vẫn null
+### 4.4. Real subclasses exist yet permitted is still null
 
-`Extension` là lớp con của `OpenBranch`. Tuy nhiên `OpenBranch` không sealed nên API permitted vẫn trả về `null`.
+`Extension` is a subclass of `OpenBranch`. However, `OpenBranch` is not sealed, so the permitted API still returns `null`.
 
-Hai dòng cuối chương trình còn cho thấy:
+The final two lines of the program also show:
 
 ~~~text
 Root accepts Extension: true
 Extension is directly permitted by Root: false
 ~~~
 
-`Extension` là một kiểu con gián tiếp của `Root`, thông qua `OpenBranch`. Nó không phải một phần tử trong danh sách kiểu con **trực tiếp** được `Root` cho phép.
+`Extension` is an indirect subtype of `Root`, via `OpenBranch`. It is not an element in the list of subtypes **directly** permitted by `Root`.
 
-Từ `getPermittedSubclasses() == null` không thể suy ra “không có lớp con”. API không liệt kê toàn bộ hậu duệ thực tế hoặc toàn bộ các lớp đã được nạp.
+From `getPermittedSubclasses() == null`, you cannot infer "no subclasses exist". The API does not list all actual descendants or all loaded classes.
 
-## 5. Record, enum, mảng, primitive và void
+## 5. Record, enum, array, primitive, and void
 
-### 5.1. Record không sealed
+### 5.1. Records are not sealed
 
-Record là lớp final một cách ngầm định. Với `Point` trong chương trình:
+A record is implicitly a `final` class. For `Point` in the program:
 
 ~~~text
 record -> sealed=false; permitted=null
 ~~~
 
-Đây không phải một nhánh mở của phân cấp. Record không cho tạo lớp con, nhưng đặc điểm đó đến từ tính final, không phải trạng thái sealed.
+This is not an open branch of the hierarchy. Records do not allow subclassing, but that characteristic comes from being `final`, not from sealed status.
 
-Ngay cả khi record triển khai một interface sealed và được phép làm một nhánh trực tiếp, bản thân record vẫn là final, không tự trở thành sealed.
+Even when a record implements a sealed interface and is permitted as a direct branch, the record itself remains `final` and does not become `sealed`.
 
-### 5.2. Enum cần xem cấu trúc khai báo
+### 5.2. Enums require checking declaration structure
 
-Enum `Light` không có hằng nào kèm phần thân lớp riêng. Nó là final ngầm định và cho:
+The enum `Light` has no constants with their own class bodies. It is implicitly `final` and yields:
 
 ~~~text
 enum without constant bodies -> sealed=false; permitted=null
 ~~~
 
-Tuy nhiên, không được suy rộng rằng mọi enum đều không sealed. Nếu ít nhất một hằng có phần thân riêng, lớp enum được sealed ngầm định; các lớp vô danh của phần thân hằng là các lớp con trực tiếp được phép.
+However, do not generalize that all enums are unsealed. If at least one constant has its own class body, the enum class is implicitly sealed; the anonymous classes of the constant bodies are the permitted direct subclasses.
 
-Do đó, “không thấy chữ sealed trong mã nguồn” không đủ để kết luận `isSealed() == false`.
+Therefore, "not seeing the word sealed in source code" is not sufficient to conclude `isSealed() == false`.
 
-### 5.3. Mảng không nhận trạng thái sealed của phần tử
+### 5.3. Arrays do not inherit the sealed status of their elements
 
-Cả hai token sau đều biểu diễn kiểu mảng:
+Both tokens below represent array types:
 
 ~~~java
 String[].class
 Root[].class
 ~~~
 
-Ngay cả khi `Root.class.isSealed()` là `true`, `Root[].class.isSealed()` vẫn là `false` và permitted của kiểu mảng là `null`.
+Even though `Root.class.isSealed()` is `true`, `Root[].class.isSealed()` is still `false` and the array type's permitted list is `null`.
 
-Quan hệ giữa một mảng và kiểu phần tử không phải quan hệ một lớp con trong danh sách `permits`. Nếu muốn khảo sát trạng thái của kiểu phần tử, hãy lấy `getComponentType()` rồi hỏi trên token đó.
+The relationship between an array and its element type is not a subclass relationship in a `permits` list. If you want to inspect the element type's status, call `getComponentType()` and query that token.
 
-### 5.4. Primitive và void cũng có token Class
+### 5.4. Primitives and void also have Class tokens
 
-`int.class` và `void.class` là các token hợp lệ để gọi hai API. Chúng cho `false` và `null`, không ném lỗi chỉ vì không phải lớp đối tượng thông thường.
+`int.class` and `void.class` are valid tokens on which to call both APIs. They return `false` and `null`, without throwing an error just for not being ordinary object classes.
 
-Điều đó không có nghĩa primitive hoặc `void` là các lớp có thể được kế thừa. Cần dùng các truy vấn như `isPrimitive()`, `isArray()` và `isInterface()` theo mục đích phân loại.
+That does not mean primitives or `void` are inheritable classes. Use queries such as `isPrimitive()`, `isArray()`, and `isInterface()` for classification.
 
-Cũng phân biệt token `void.class` với một biến `Class<?>` có giá trị `null`. Biến tham chiếu `null` không phải token kiểu; gọi phương thức trên nó sẽ gây `NullPointerException`.
+Also distinguish the `void.class` token from a `Class<?>` variable holding `null`. A `null` reference variable is not a type token; calling a method on it will throw `NullPointerException`.
 
-## 6. Thí nghiệm đối chiếu: enum sealed ngầm định
+## 6. Comparison Experiment: Implicitly Sealed Enum
 
-Để tránh phân loại chỉ theo sự có mặt của từ khóa trong mã nguồn, tạo tệp `ImplicitSealedEnumDemo.java`:
+To avoid classifying solely by the presence of keywords in source code, create `ImplicitSealedEnumDemo.java`:
 
 ~~~java
 import java.lang.reflect.Modifier;
@@ -336,14 +336,14 @@ public class ImplicitSealedEnumDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 ImplicitSealedEnumDemo.java
 java ImplicitSealedEnumDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 enum is sealed: true
@@ -354,37 +354,37 @@ body class is sealed: false
 body permitted is null: true
 ~~~
 
-Ở đây:
+Here:
 
-- `Mode` là sealed ngầm định vì `SPECIAL` có phần thân riêng.
-- Lớp thực tế riêng của hằng `SPECIAL` là một lớp con final của `Mode`.
-- Khi hỏi trên chính lớp con đó, kết quả lại là `false/null`.
+- `Mode` is implicitly sealed because `SPECIAL` has its own class body.
+- The actual runtime class of constant `SPECIAL` is a `final` subclass of `Mode`.
+- When querying that subclass itself, the result is `false/null`.
 
-Ví dụ làm rõ rằng trạng thái được quan sát trên **từng token kiểu**, không lan tự động từ enum sang lớp con của hằng hay ngược lại.
+The example clarifies that status is observed per **individual type token**, rather than propagating automatically from an enum to its constant's subclass or vice versa.
 
-Quy tắc final hoặc sealed ngầm định của enum nằm tại [JLS §8.9](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.9).
+The implicit `final` or `sealed` rules for enums are in [JLS §8.9](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.9).
 
-## 7. Null và mảng rỗng không thể tùy tiện đổi nghĩa cho nhau
+## 7. Null and Empty Arrays Cannot Be Swapped Arbitrarily
 
-Một đoạn mã dễ gây lỗi là:
+An error-prone snippet is:
 
 ~~~java
-// Minh họa cách gọi thiếu kiểm tra; có thể gây NullPointerException.
+// Illustrates an unchecked call; may throw NullPointerException.
 for (Class<?> child : type.getPermittedSubclasses()) {
     System.out.println(child.getName());
 }
 ~~~
 
-Đoạn trên chỉ an toàn khi đã biết `type` sealed và việc gọi API hoàn tất bình thường. Nếu `type` là lớp thường, kết quả `null` khiến vòng lặp thất bại.
+The snippet above is only safe when `type` is already known to be sealed and the API call completes normally. If `type` is an ordinary class, the `null` result causes the loop to fail.
 
-Có hai cách xử lý tùy hợp đồng của công cụ.
+There are two ways to handle this depending on the tool's contract.
 
-### 7.1. Chỉ xử lý kiểu sealed
+### 7.1. Process only sealed types
 
-Có thể kiểm tra trạng thái trước:
+You can check the status first:
 
 ~~~java
-// Đoạn minh họa trong một phương thức, với type khác null.
+// Illustrative snippet inside a method, with non-null type.
 if (type.isSealed()) {
     for (Class<?> child : type.getPermittedSubclasses()) {
         System.out.println(child.getName());
@@ -394,13 +394,13 @@ if (type.isSealed()) {
 }
 ~~~
 
-Nhánh `else` cho biết API danh sách permitted không áp dụng theo cùng cách với một kiểu sealed. Nó không nói kiểu đó có hay không có hậu duệ.
+The `else` branch indicates that the permitted-list API does not apply in the same way as to a sealed type. It does not say whether the type has descendants.
 
-### 7.2. Chuẩn hóa để tiện dùng nhưng giữ cờ trạng thái
+### 7.2. Normalize for convenience while preserving the status flag
 
-Nếu tầng trình bày muốn luôn có một danh sách khác `null`, hãy giữ riêng trạng thái sealed.
+If a presentation layer wants a non-`null` list at all times, preserve the sealed status separately.
 
-Ví dụ các khai báo hỗ trợ dưới đây đặt trong một lớp; cần import `java.util.Arrays`, `java.util.List` và `java.util.Objects`:
+For example, the supporting declarations below are placed inside a class; import `java.util.Arrays`, `java.util.List`, and `java.util.Objects`:
 
 ~~~java
 record SealedInfo(boolean sealed, List<Class<?>> permitted) {
@@ -418,7 +418,7 @@ static SealedInfo inspectSealing(Class<?> type) {
 }
 ~~~
 
-Cách gọi minh họa trong chương trình đầu:
+Illustrative calls inside the first program:
 
 ~~~java
 SealedInfo root = inspectSealing(Root.class);
@@ -430,7 +430,7 @@ System.out.println(open.sealed() + "/" + open.permitted().size());
 System.out.println(closed.sealed() + "/" + closed.permitted().size());
 ~~~
 
-Kết quả của riêng đoạn gọi:
+Output of just the call snippet:
 
 ~~~text
 true/3
@@ -438,55 +438,55 @@ false/0
 false/0
 ~~~
 
-Danh sách đã chuẩn hóa rỗng cho `open` và `closed` là **quy ước của hàm hỗ trợ**, không phải kết quả nguyên bản của `Class.getPermittedSubclasses()`.
+The empty normalized lists for `open` and `closed` are **a convention of the helper function**, not the raw return value of `Class.getPermittedSubclasses()`.
 
-Giữ cờ `sealed` tránh làm mất khác biệt giữa “không sealed” và “sealed nhưng API trả một danh sách không có phần tử”. Nếu công cụ cần phân biệt thêm final hoặc các loại token khác, hãy bổ sung đúng thông tin phân loại cần thiết.
+Keeping the `sealed` flag avoids losing the difference between "not sealed" and "sealed where the API returned a list with no elements". If the tool also needs to distinguish `final` or other token kinds, add the exact classification information needed.
 
-## 8. Vì sao API vẫn cho phép mảng rỗng với kiểu sealed?
+## 8. Why Does the API Still Allow an Empty Array for a Sealed Type?
 
-Khai báo Java sealed thông thường phải đáp ứng các quy tắc về kiểu con được phép. Không nên từ câu chữ “mảng có thể rỗng” của Reflection mà suy ra người viết Java có thể tùy ý khai báo một lớp sealed không có nhánh hợp lệ.
+Ordinary Java `sealed` declarations must satisfy the rules for permitted subtypes. You should not infer from Reflection's wording "the array may be empty" that a Java author can arbitrarily declare a sealed class with no valid branches.
 
-Ở mức API, `getPermittedSubclasses()` cố lấy các đối tượng `Class` được ghi trong metadata và chỉ đưa vào kết quả những kiểu mà nó thu được, phù hợp quan hệ trực tiếp. Nếu không lấy được một đối tượng `Class` tương ứng, mục đó có thể bị bỏ qua theo hợp đồng phương thức.
+At the API level, `getPermittedSubclasses()` attempts to obtain the `Class` objects recorded in metadata and includes in the result only those types it obtains that satisfy the direct relationship. If a corresponding `Class` object cannot be obtained, that entry may be omitted per the method contract.
 
-Vì vậy, trong môi trường tải lớp hoặc đóng gói không đầy đủ, số phần tử quan sát được không nên bị coi là bản kiểm kê tuyệt đối mọi tên trong metadata class file.
+Therefore, in incomplete class-loading or packaging environments, the observed element count should not be treated as an absolute inventory of every name in class-file metadata.
 
-Sự phân biệt vẫn là:
+The distinction remains:
 
-- `null`: kiểu không sealed.
-- Mảng rỗng khác `null`: kiểu sealed nhưng không có phần tử được trả về trong lần truy vấn đó.
+- `null`: the type is not sealed.
+- Non-`null` empty array: the type is sealed, yet no elements were returned in that query.
 
-Không phân loại trạng thái sealed bằng cách chỉ kiểm tra số lượng phần tử. Cũng không gọi một nhánh `non-sealed` là “sealed với danh sách rỗng”.
+Do not classify sealed status solely by checking element count. Also do not call a `non-sealed` branch "sealed with an empty list".
 
-## 9. Không suy trạng thái từ chuỗi modifier hay tên lớp
+## 9. Do Not Infer Status from Modifier Strings or Class Names
 
-Trong class file, sealed được biểu diễn bằng thuộc tính `PermittedSubclasses`, không phải một cờ `ACC_SEALED` tương tự `ACC_FINAL`. Điều này được mô tả tại [JVMS §4.7.31](https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.7.31).
+In class files, sealing is represented by the `PermittedSubclasses` attribute, not an `ACC_SEALED` flag analogous to `ACC_FINAL`. This is described in [JVMS §4.7.31](https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html#jvms-4.7.31).
 
-Vì vậy, công cụ nên dùng `Class.isSealed()`, không tự tìm chữ `sealed` trong chuỗi do `Modifier.toString(...)` tạo.
+Therefore, tools should use `Class.isSealed()`, rather than searching for the word `sealed` in the string produced by `Modifier.toString(...)`.
 
-Tương tự, tên lớp, việc lớp là lồng hay ở cấp cao nhất, hoặc việc có một lớp cha sealed không thay cho việc hỏi đúng trạng thái trên token hiện tại.
+Similarly, class names, whether a class is nested or top-level, or having a sealed superclass do not replace querying the exact status on the current token.
 
-`getDeclaredClasses()` cũng không thay thế `getPermittedSubclasses()`: một API khảo sát các lớp thành viên được khai báo, API kia khảo sát các nhánh trực tiếp được sealed cho phép. Một lớp con có thể được khai báo ở nơi khác, và một lớp thành viên không nhất thiết là lớp con.
+`getDeclaredClasses()` also does not replace `getPermittedSubclasses()`: one API inspects declared member classes, while the other inspects direct branches permitted by sealing. A subclass may be declared elsewhere, and a member class is not necessarily a subclass.
 
-Khi gặp kiểu không sealed, nếu công cụ cần tìm mọi lớp con thực tế, đó là một bài toán khám phá kiểu riêng. Kết quả `null` không tự cung cấp một danh sách những lớp đó.
+When encountering an unsealed type, if a tool needs to find all actual subclasses, that is a separate type-discovery problem. A `null` result does not provide a list of those classes.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-1. Một lớp `final` cho `isSealed() == false`. `getPermittedSubclasses()` trả mảng rỗng hay `null`?
-2. Có thể kết luận một lớp có từ khóa `non-sealed` chỉ từ `!type.isSealed()` không?
-3. `OpenBranch` có lớp con `Extension`. Vì sao permitted của `OpenBranch` vẫn bằng `null`?
-4. Nếu `Root` sealed, `Root[].class.isSealed()` có tự cho `true` không?
-5. Enum không có từ khóa sealed trong mã nguồn có nhất thiết cho `isSealed() == false` không?
-6. Tại sao không dùng `getPermittedSubclasses().length == 0` để nhận diện kiểu không sealed?
-7. Kiểu con gián tiếp của một root sealed có nhất thiết có mặt trong danh sách permitted của root không?
-8. Khi hàm hỗ trợ chuẩn hóa `null` thành danh sách rỗng, vì sao nên giữ riêng cờ sealed?
+1. A `final` class gives `isSealed() == false`. Does `getPermittedSubclasses()` return an empty array or `null`?
+2. Can you conclude a class has the `non-sealed` keyword solely from `!type.isSealed()`?
+3. `OpenBranch` has subclass `Extension`. Why is `OpenBranch`'s permitted list still `null`?
+4. If `Root` is sealed, does `Root[].class.isSealed()` automatically return `true`?
+5. Must an enum without the `sealed` keyword in source code necessarily return `isSealed() == false`?
+6. Why should you not use `getPermittedSubclasses().length == 0` to detect an unsealed type?
+7. Must an indirect subtype of a sealed root necessarily be present in the root's permitted list?
+8. When a helper normalizes `null` into an empty list, why should the `sealed` flag be kept separately?
 
-Đáp án:
+Answers:
 
-1. Trả về `null`.
-2. Không. Nhiều kiểu khác như lớp final, lớp thường, interface thường và record cũng cho `false`.
-3. Nó không sealed; API không có nhiệm vụ liệt kê các lớp con thực tế của nhánh mở.
-4. Không. Kiểu mảng cho `false`; token phần tử và token mảng là hai kiểu khác nhau.
-5. Không. Enum có hằng kèm phần thân riêng được sealed ngầm định.
-6. Với kiểu không sealed, kết quả là `null` và truy cập `length` gây lỗi; mảng rỗng khác `null` còn có ý nghĩa API khác.
-7. Không. Danh sách chỉ mô tả các kiểu con trực tiếp được phép mà API thu được.
-8. Để giữ khác biệt giữa trạng thái không sealed và trạng thái sealed có danh sách trả về rỗng.
+1. It returns `null`.
+2. No. Many other types such as `final` classes, ordinary classes, ordinary interfaces, and records also return `false`.
+3. It is not sealed; the API is not responsible for listing actual subclasses of an open branch.
+4. No. Array types return `false`; the element token and the array token are two different types.
+5. No. An enum with a constant having its own class body is implicitly sealed.
+6. For unsealed types, the result is `null` and accessing `length` throws an error; a non-`null` empty array also has a different API meaning.
+7. No. The list only describes the directly permitted subtypes obtained by the API.
+8. To preserve the distinction between an unsealed state and a sealed state whose returned list is empty.

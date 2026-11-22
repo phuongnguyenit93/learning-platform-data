@@ -1,8 +1,8 @@
-# BigDecimal.toPlainString() và bảo toàn cách trình bày mong muốn
+# BigDecimal.toPlainString() and Preserving the Desired Presentation
 
-## 1. Mục tiêu: xuất số thập phân ở dạng thông thường
+## 1. Goal: Outputting Decimal Numbers in Plain Form
 
-`BigDecimal` trong Java biểu diễn số thập phân có độ chính xác tùy ý. Một số có thể được xuất dưới dạng **ký pháp khoa học** như `1E+3` hoặc `1.2E-7`. Khi cần một chuỗi số thập phân thông thường, **không chứa `E` hoặc `e` để biểu diễn số mũ**, hãy dùng `toPlainString()`:
+`BigDecimal` in Java represents decimal numbers of arbitrary precision. A number may be output in **scientific notation** such as `1E+3` or `1.2E-7`. When you need a plain decimal string **without `E` or `e` representing an exponent**, use `toPlainString()`:
 
 ```java
 BigDecimal large = new BigDecimal("1E+3");
@@ -14,21 +14,21 @@ System.out.println(small.toString());      // 1.2E-7
 System.out.println(small.toPlainString()); // 0.00000012
 ```
 
-`toPlainString()` chỉ **chuyển cách biểu diễn của giá trị thành `String`**. Nó không làm tròn, không thay đổi `BigDecimal` nguồn, không thêm dấu phân cách hàng nghìn và không tự chọn số lượng chữ số thập phân theo nghiệp vụ. Muốn “bảo toàn cách trình bày mong muốn” cần phân biệt rõ **giá trị**, **scale**, **cách chuyển ra chuỗi** và **định dạng dành cho người đọc**.
+`toPlainString()` only **converts the value's representation into a `String`**. It does not round, does not modify the source `BigDecimal`, does not add thousands separators, and does not automatically choose the number of decimal digits according to business rules. "Preserving the desired presentation" requires clearly distinguishing between **value**, **scale**, **string conversion**, and **human-readable formatting**.
 
-> Các đoạn mã minh họa rời bên dưới sử dụng `import java.math.BigDecimal;` và, khi có làm tròn, `import java.math.RoundingMode;`. Chương trình Java 17+ đầy đủ có lệnh biên dịch và đầu ra nằm ở mục 7.
+> Standalone illustrative snippets below use `import java.math.BigDecimal;` and, when rounding is involved, `import java.math.RoundingMode;`. Complete Java 17+ programs with compilation commands and outputs are in Section 7.
 
-## 2. Ba cách chuyển BigDecimal sang chuỗi
+## 2. Three Ways to Convert BigDecimal to String
 
-Ba phương thức liên quan có mục đích khác nhau:
+The three related methods serve different purposes:
 
-| Phương thức | Cách biểu diễn | Điểm cần nhớ |
+| Method | Representation | Key Points to Remember |
 | --- | --- | --- |
-| `toString()` | Chuỗi chuẩn (*canonical*) của `BigDecimal`, có thể dùng ký pháp khoa học. | Đặc tả bảo đảm chuỗi thể hiện phân biệt được cặp `unscaledValue` và `scale`; có thể dùng để tái tạo cùng trạng thái số học và scale qua constructor nhận `String`. |
-| `toPlainString()` | Dạng thập phân thông thường, không dùng số mũ. | Dễ đọc hoặc phù hợp nơi yêu cầu decimal text không số mũ; khi scale âm, chuyển lại từ chuỗi này có thể **khác scale**. |
-| `toEngineeringString()` | Có thể dùng ký pháp kỹ thuật, với số mũ (khi có) là bội số của 3. | Hữu ích cho biểu diễn kỹ thuật; không phải lựa chọn thay cho `toPlainString()` nếu đầu ra cấm ký pháp số mũ. |
+| `toString()` | Canonical string of `BigDecimal`, may use scientific notation. | The specification guarantees the string distinguishes the `unscaledValue` and `scale` pair; it can be used to reconstruct the same numeric state and scale via the `String` constructor. |
+| `toPlainString()` | Plain decimal form, without exponents. | Easy to read or suitable where exponent-free decimal text is required; when scale is negative, parsing back from this string may **change the scale**. |
+| `toEngineeringString()` | May use engineering notation, with the exponent (when present) being a multiple of 3. | Useful for engineering representation; not a substitute for `toPlainString()` if the output prohibits exponential notation. |
 
-Ví dụ:
+Examples:
 
 ```java
 BigDecimal a = new BigDecimal("123.4500");
@@ -43,42 +43,42 @@ System.out.println(c.toString());      // 1.2E-7
 System.out.println(c.toPlainString()); // 0.00000012
 ```
 
-Với nhiều giá trị thông thường, `toString()` và `toPlainString()` có thể giống hệt. Sự khác biệt nổi bật khi đối tượng có **scale âm** hoặc giá trị đủ nhỏ để `toString()` chọn ký pháp khoa học theo quy tắc biểu diễn của `BigDecimal`.
+For many ordinary values, `toString()` and `toPlainString()` can be identical. The difference becomes prominent when the object has a **negative scale** or a value small enough for `toString()` to choose scientific notation under `BigDecimal`'s representation rules.
 
-`String.valueOf(bigDecimal)` và phép nối chuỗi như `"value=" + bigDecimal` gọi đến cách biểu diễn `toString()` thông qua chuyển đối tượng sang chuỗi. Nếu yêu cầu cụ thể là **không số mũ**, hãy gọi `toPlainString()` tường minh.
+`String.valueOf(bigDecimal)` and string concatenation such as `"value=" + bigDecimal` invoke the `toString()` representation via object-to-string conversion. If the specific requirement is **no exponent**, call `toPlainString()` explicitly.
 
-## 3. Vì sao xuất hiện E+3 hoặc E-7? Vai trò của scale
+## 3. Why Do E+3 or E-7 Appear? The Role of Scale
 
-`BigDecimal` được xác định bởi một số nguyên không xét dấu phẩy (*unscaled value*) và một số nguyên `scale`:
+`BigDecimal` is defined by an integer without a decimal point (*unscaled value*) and an integer `scale`:
 
 ```text
-giá trị = unscaledValue × 10^(-scale)
+value = unscaledValue × 10^(-scale)
 ```
 
-Ví dụ:
+Examples:
 
-| Khởi tạo | Trị số | `scale()` | `toString()` | `toPlainString()` |
+| Initialization | Numeric Value | `scale()` | `toString()` | `toPlainString()` |
 | --- | --- | ---: | --- | --- |
 | `new BigDecimal("12.3400")` | 12.3400 | 4 | `12.3400` | `12.3400` |
 | `new BigDecimal("1E+3")` | 1000 | -3 | `1E+3` | `1000` |
 | `new BigDecimal("1.2E-7")` | 0.00000012 | 8 | `1.2E-7` | `0.00000012` |
 | `new BigDecimal("0.00")` | 0 | 2 | `0.00` | `0.00` |
 
-`scale` không phải số chữ số có nghĩa (*precision*). Nó cho biết vị trí dấu thập phân đối với `unscaledValue`. Scale **có thể âm**: `1E+3` biểu diễn `1 × 10³` và có scale `-3`. Khi chuyển sang dạng plain, `toPlainString()` viết đủ chữ số 0 thành `1000`.
+`scale` is not the number of significant digits (*precision*). It specifies the position of the decimal point relative to `unscaledValue`. Scale **can be negative**: `1E+3` represents `1 × 10³` and has a scale of `-3`. When converting to plain form, `toPlainString()` writes out all the zeros to produce `1000`.
 
-Với scale không âm, `toPlainString()` in vị trí dấu chấm thập phân phù hợp, kể cả các chữ số 0 cuối do scale quy định; ví dụ `12.3400` vẫn là `12.3400`. Đây là cách giữ **biểu diễn decimal đã có trong đối tượng** khi cần hiển thị đúng số lượng chữ số lẻ đang lưu.
+With a non-negative scale, `toPlainString()` prints the decimal point at the appropriate position, including trailing zeros dictated by the scale; for example, `12.3400` remains `12.3400`. This is how you preserve the **decimal representation already held in the object** when you need to display the exact number of fractional digits currently stored.
 
-Điều đó khác với việc khôi phục **chính xác chuỗi nhập ban đầu**: `BigDecimal` không lưu mọi ký tự, dấu `+`, số 0 ở đầu hoặc kiểu viết số mũ trong văn bản gốc.
+This differs from recovering the **exact original input string**: `BigDecimal` does not store every character, `+` sign, leading zeros, or exponential style from the original text.
 
-## 4. toPlainString() không làm tròn và không tự cố định chữ số thập phân
+## 4. toPlainString() Does Not Round and Does Not Fix Decimal Places
 
-So sánh ba nhu cầu riêng biệt:
+Compare three distinct needs:
 
-1. **Không dùng số mũ:** `value.toPlainString()`.
-2. **Buộc kết quả có đúng hai chữ số sau dấu chấm:** trước hết chọn `value.setScale(2, roundingMode)`, sau đó mới `toPlainString()`.
-3. **Hiển thị cho con người với dấu phân nhóm, dấu thập phân theo ngôn ngữ hoặc ký hiệu tiền tệ:** dùng công cụ định dạng như `NumberFormat` hoặc `DecimalFormat` với `Locale` và quy tắc làm tròn phù hợp.
+1. **No exponent:** `value.toPlainString()`.
+2. **Force the result to have exactly two digits after the decimal point:** first call `value.setScale(2, roundingMode)`, and only then call `toPlainString()`.
+3. **Human-friendly display with grouping separators, locale-specific decimal separators, or currency symbols:** use a formatter like `NumberFormat` or `DecimalFormat` with the appropriate `Locale` and rounding rules.
 
-Ví dụ:
+Example:
 
 ```java
 BigDecimal amount = new BigDecimal("12.3");
@@ -88,9 +88,9 @@ System.out.println(amount.setScale(2).toPlainString()); // 12.30
 System.out.println(amount.toPlainString());           // 12.3
 ```
 
-`setScale(2)` ở đây tăng scale từ 1 lên 2 nên không phải làm tròn. Phương thức trả về **`BigDecimal` kết quả mới về mặt ngữ nghĩa**; đối tượng `amount` ban đầu không thay đổi vì `BigDecimal` bất biến. Không nên giả định JVM luôn tạo tham chiếu vật lý khác, đặc biệt khi scale yêu cầu đã đúng.
+Here `setScale(2)` increases the scale from 1 to 2, so no rounding is required. The method returns a **semantically new `BigDecimal` result**; the original `amount` object does not change because `BigDecimal` is immutable. You should not assume the JVM always allocates a physically different reference, especially when the requested scale already matches.
 
-Nếu cần giảm scale mà phải loại chữ số khác 0, overload `setScale(int)` sẽ ném `ArithmeticException`. Khi nghiệp vụ cho phép làm tròn, nêu rõ `RoundingMode`:
+If reducing the scale requires discarding non-zero digits, the `setScale(int)` overload will throw `ArithmeticException`. When business logic permits rounding, specify `RoundingMode` explicitly:
 
 ```java
 BigDecimal raw = new BigDecimal("12.345");
@@ -101,15 +101,15 @@ System.out.println(
 ); // 12.35
 ```
 
-**Không làm tròn vô tình trong bước trình bày.** `toPlainString()` tự nó không thay giá trị; lời gọi `setScale(2, HALF_UP)` đã chủ động áp dụng quy tắc làm tròn. Với tiền tệ, thuế, thống kê hoặc dữ liệu lưu trữ, cần xác định rõ thời điểm và phương pháp làm tròn theo hợp đồng nghiệp vụ.
+**Do not round accidentally during the presentation step.** `toPlainString()` itself does not change the value; the `setScale(2, HALF_UP)` call actively applied the rounding rule. For currency, taxes, statistics, or persisted data, clearly define when and how rounding happens according to the business contract.
 
-## 5. “Bảo toàn cách trình bày” có nhiều mức khác nhau
+## 5. "Preserving Presentation" Has Multiple Levels
 
-Cần xác định chính xác thứ muốn giữ:
+You must determine precisely what you want to preserve:
 
-### 5.1. Giữ trị số toán học
+### 5.1. Preserving Mathematical Numeric Value
 
-Hai chuỗi `1E+3` và `1000` mô tả cùng một số. Trong phép so sánh trị số `BigDecimal.compareTo()`, chúng bằng nhau:
+The two strings `1E+3` and `1000` describe the same number. Under `BigDecimal.compareTo()` numeric comparison, they are equal:
 
 ```java
 BigDecimal scientific = new BigDecimal("1E+3");
@@ -118,30 +118,30 @@ BigDecimal plain = new BigDecimal("1000");
 System.out.println(scientific.compareTo(plain)); // 0
 ```
 
-Nếu giao thức chỉ yêu cầu trị số decimal chính xác và cấm số mũ, `toPlainString()` có thể phù hợp.
+If the protocol only requires an exact decimal value and forbids exponents, `toPlainString()` may be appropriate.
 
-### 5.2. Giữ scale đang có khi scale không âm
+### 5.2. Preserving Existing Scale When Scale Is Non-Negative
 
-`new BigDecimal("12.3400").toPlainString()` cho `"12.3400"`; hai chữ số 0 cuối vẫn xuất hiện. Giá trị `new BigDecimal("12.34")` chỉ in `"12.34"` vì scale của nó là 2, không phải 4. `toPlainString()` phản ánh trạng thái biểu diễn đã có, **không tự khôi phục** số chữ số 0 mà một bước xử lý trước đó đã bỏ.
+`new BigDecimal("12.3400").toPlainString()` yields `"12.3400"`; both trailing zeros still appear. The value `new BigDecimal("12.34")` only prints `"12.34"` because its scale is 2, not 4. `toPlainString()` reflects the existing representation state and **does not restore** zeros that an earlier processing step removed.
 
-Nếu phải luôn in hai chữ số thập phân, tạo đối tượng có scale 2 theo quy tắc phù hợp trước khi xuất.
+If two decimal places must always be printed, produce an object with scale 2 using the appropriate rule before outputting.
 
-### 5.3. Giữ nguyên cả chữ viết người dùng đã nhập
+### 5.3. Preserving the Exact User-Entered Text
 
-`BigDecimal` không lưu bản sao nguyên văn chuỗi nguồn. Ví dụ:
+`BigDecimal` does not store a verbatim copy of the source string. For example:
 
 ```java
 BigDecimal x = new BigDecimal("00012.300");
 System.out.println(x.toPlainString()); // 12.300
 ```
 
-Số 0 ở đầu không còn. Tương tự, cách viết `+12.30`, `12.30` và một số kiểu ký pháp số mũ có thể được chuẩn hóa khi tạo `BigDecimal`. Nếu yêu cầu sản phẩm là **lưu chính xác chuỗi người dùng đã nhập** (chẳng hạn biên bản, đơn hàng có chữ viết gốc, trường văn bản được ký số), phải lưu riêng `String originalInput`, đồng thời phân tích thành `BigDecimal` để tính toán khi cần.
+The leading zeros are gone. Similarly, notations like `+12.30`, `12.30`, and various exponential formats are normalized when constructing `BigDecimal`. If the product requirement is to **store the exact string the user entered** (such as audit records, orders with original text, or digitally signed text fields), you must store `String originalInput` separately while parsing it into `BigDecimal` for calculations when needed.
 
-Ví dụ về số 0 âm: `new BigDecimal("-0.00").toPlainString()` xuất `"0.00"`, không giữ dấu âm đầu vào. `BigDecimal` biểu diễn giá trị 0, không giữ “negative zero” như một thành phần ngữ nghĩa riêng của dữ liệu decimal.
+Example with negative zero: `new BigDecimal("-0.00").toPlainString()` outputs `"0.00"`, not preserving the input's negative sign. `BigDecimal` represents the value 0 and does not preserve "negative zero" as a separate semantic component of decimal data.
 
-### 5.4. Giữ scale âm khi chuyển qua chuỗi rồi đọc lại
+### 5.4. Preserving Negative Scale Across String Round-Trips
 
-Đây là trường hợp **dễ bị bỏ sót**:
+This is a case that is **easily overlooked**:
 
 ```java
 BigDecimal original = new BigDecimal("1E+3");     // scale = -3
@@ -154,9 +154,9 @@ System.out.println(original.equals(restored));  // false
 System.out.println(original.compareTo(restored)); // 0
 ```
 
-Hai đối tượng bằng nhau về **trị số**, nhưng `equals()` trả `false` vì `BigDecimal.equals()` xét cả biểu diễn và scale. Không nên dùng `toPlainString()` làm chuỗi *round-trip* khi hợp đồng dữ liệu cần bảo toàn **cả scale âm**.
+The two objects are equal in **numeric value**, but `equals()` returns `false` because `BigDecimal.equals()` considers both representation and scale. You should not use `toPlainString()` as a *round-trip* string when the data contract requires preserving **negative scales as well**.
 
-Ngược lại:
+Conversely:
 
 ```java
 BigDecimal original = new BigDecimal("1E+3");
@@ -165,11 +165,11 @@ BigDecimal restored = new BigDecimal(original.toString());
 System.out.println(original.equals(restored)); // true
 ```
 
-`toString()` được thiết kế là biểu diễn chuẩn một-một của cặp unscaled value và scale, thuận lợi cho việc chuyển ra chuỗi rồi khôi phục `BigDecimal` với cùng biểu diễn. Vì vậy, lựa chọn phương thức xuất cần xuất phát từ yêu cầu **hiển thị không số mũ** hay **bảo toàn dữ liệu BigDecimal khi truyền/lưu**.
+`toString()` is designed as a one-to-one canonical representation of the unscaled value and scale pair, making it ideal for serializing to a string and restoring a `BigDecimal` with the same representation. Therefore, choosing an output method should stem from whether the requirement is **exponent-free display** or **preserving BigDecimal data during transmission/storage**.
 
-## 6. Tác động của stripTrailingZeros() và các phép chuyển đổi trước khi xuất
+## 6. Impact of stripTrailingZeros() and Pre-Output Conversions
 
-`stripTrailingZeros()` bỏ các chữ số 0 cuối có thể bỏ mà không thay đổi giá trị số học, rồi trả về `BigDecimal`. Nó có thể thay đổi scale sang **âm**:
+`stripTrailingZeros()` removes removable trailing zeros without changing the numeric value, then returns a `BigDecimal`. It can change the scale to **negative**:
 
 ```java
 BigDecimal amount = new BigDecimal("1000");
@@ -181,9 +181,9 @@ System.out.println(stripped.toPlainString()); // 1000
 System.out.println(stripped.scale());         // -3
 ```
 
-Nếu sau khi `stripTrailingZeros()` lại gọi `toString()`, ký pháp khoa học có thể xuất hiện dù đầu vào ban đầu là số thông thường. `toPlainString()` tạo dạng không số mũ, nhưng **không phục hồi scale và dấu 0 cuối của biểu diễn gốc** đã bị `stripTrailingZeros()` loại bỏ.
+If `toString()` is called after `stripTrailingZeros()`, scientific notation can appear even though the original input was an ordinary number. `toPlainString()` produces an exponent-free form, but **does not restore the scale and trailing zeros of the original representation** that `stripTrailingZeros()` removed.
 
-Ví dụ:
+Example:
 
 ```java
 BigDecimal original = new BigDecimal("12.3400");
@@ -193,11 +193,11 @@ System.out.println(original.toPlainString()); // 12.3400
 System.out.println(stripped.toPlainString()); // 12.34
 ```
 
-Nếu hợp đồng hiển thị đòi đúng bốn vị trí thập phân, đừng gọi `stripTrailingZeros()` trước khi xuất; hoặc áp dụng `setScale(4)` khi việc nâng scale là có chủ đích. Nên định nghĩa một nơi chịu trách nhiệm cho việc “chuẩn hóa số để lưu” và một nơi cho việc “định dạng số để xem”, thay vì trộn các thao tác này trong nhiều lớp.
+If the display contract demands exactly four decimal places, do not call `stripTrailingZeros()` before outputting; or apply `setScale(4)` when increasing the scale is intentional. You should define one place responsible for "normalizing numbers for storage" and another for "formatting numbers for viewing," rather than mixing these operations across multiple layers.
 
-### Tránh tạo BigDecimal từ double nếu yêu cầu decimal chính xác
+### Avoid Creating BigDecimal from double When Exact Decimals Are Required
 
-`new BigDecimal(0.1)` biểu diễn chính xác giá trị nhị phân của `double` literal `0.1`, vốn là một xấp xỉ của số thập phân 0.1. `toPlainString()` **không sửa được** sai khác đầu vào đó. Ưu tiên:
+`new BigDecimal(0.1)` represents the exact binary value of the `double` literal `0.1`, which is an approximation of the decimal number 0.1. `toPlainString()` **cannot fix** that input discrepancy. Prefer:
 
 ```java
 BigDecimal fromText = new BigDecimal("0.1");
@@ -207,11 +207,11 @@ System.out.println(fromText.toPlainString());   // 0.1
 System.out.println(fromDouble.toPlainString()); // 0.1
 ```
 
-`BigDecimal.valueOf(double)` sử dụng biểu diễn chuỗi của `double` để dựng `BigDecimal`; điều đó thường phù hợp cho literal như `0.1`, nhưng không thể khôi phục chữ số thập phân đã bị mất bởi những phép tính `double` trước đó.
+`BigDecimal.valueOf(double)` uses the string representation of `double` to construct the `BigDecimal`; this is usually suitable for literals like `0.1`, but cannot recover decimal digits already lost by earlier `double` arithmetic.
 
-## 7. Chương trình Java 17+ chạy độc lập
+## 7. Standalone Runnable Java 17+ Program
 
-Lưu toàn bộ mã sau thành `BigDecimalPlainStringDemo.java`:
+Save all the following code as `BigDecimalPlainStringDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -256,14 +256,14 @@ public class BigDecimalPlainStringDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa file:
+Compile and run from the directory containing the file:
 
 ```bash
 javac BigDecimalPlainStringDemo.java
 java BigDecimalPlainStringDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 thousand toString = 1E+3
@@ -282,23 +282,23 @@ canonical equals original = true
 same numeric value = true
 ```
 
-Đối chiếu phần đầu để thấy lợi ích của `toPlainString()` với số mũ; phần giữa cho thấy dấu 0 cuối được giữ hay bị loại tùy **scale hiện tại**; phần cuối chứng minh một bản decimal text không số mũ có thể **mất thông tin scale âm** khi đọc lại, dù vẫn bảo toàn giá trị số học.
+Compare the first part to see the benefit of `toPlainString()` with exponents; the middle part shows trailing zeros being kept or removed depending on the **current scale**; the last part proves that an exponent-free decimal text version can **lose negative scale information** when read back, even though it preserves the numeric value.
 
-## 8. Hiển thị theo locale, tiền tệ và trao đổi dữ liệu
+## 8. Locale Display, Currency, and Data Exchange
 
-### 8.1. Chuỗi plain phù hợp khi nào?
+### 8.1. When Is a Plain String Appropriate?
 
-`toPlainString()` hữu ích khi đích yêu cầu một số thập phân ASCII cơ bản:
+`toPlainString()` is useful when the target requires a basic ASCII decimal number:
 
-- Giá trị đặt vào tệp văn bản hoặc một trường decimal quy định **không dùng số mũ**.
-- Chuỗi số thập phân trao đổi với hệ thống có thể đọc dấu chấm làm dấu thập phân, không yêu cầu dấu phân nhóm.
-- Các thông báo kỹ thuật cần xem toàn bộ chữ số thập phân thay vì ký pháp khoa học.
+- Values placed in a text file or a decimal field that mandates **no exponents**.
+- Decimal strings exchanged with systems that read a period as the decimal separator and do not require grouping separators.
+- Technical messages where viewing all decimal digits is preferred over scientific notation.
 
-Tuy nhiên, cần kiểm tra hợp đồng của hệ thống đích: có nơi chấp nhận ký pháp số mũ, có nơi bắt buộc scale cố định, có nơi giới hạn số chữ số hoặc độ dài. `toPlainString()` không bảo đảm đáp ứng mọi giới hạn đó.
+However, you must check the target system's contract: some places accept exponential notation, some enforce a fixed scale, and some limit digit count or length. `toPlainString()` does not guarantee meeting all those constraints.
 
-### 8.2. Giao diện cho người dùng thường cần formatter
+### 8.2. User Interfaces Usually Need a Formatter
 
-Ví dụ muốn hiển thị `1234.50` theo chuẩn sử dụng dấu chấm phân nhóm và dấu phẩy thập phân ở Đức:
+For example, if you want to display `1234.50` using the German convention of a dot for grouping and a comma for the decimal separator:
 
 ```java
 import java.math.BigDecimal;
@@ -319,39 +319,39 @@ public class LocaleNumberDemo {
 }
 ```
 
-Lưu thành `LocaleNumberDemo.java` rồi chạy `javac LocaleNumberDemo.java` và `java LocaleNumberDemo`. Với dữ liệu và `Locale.GERMANY` trên Java 17+, đầu ra:
+Save as `LocaleNumberDemo.java`, then run `javac LocaleNumberDemo.java` and `java LocaleNumberDemo`. With this data and `Locale.GERMANY` on Java 17+, the output is:
 
 ```text
 1234.50
 1.234,50
 ```
 
-Khác biệt ở đây là **quy tắc trình bày của locale**, không phải thay đổi giá trị trong `BigDecimal`. `NumberFormat` có khả năng làm tròn để vừa mức chữ số hiển thị; nếu có yêu cầu nghiệp vụ cụ thể về làm tròn, hãy thiết lập và kiểm thử chính sách phù hợp thay vì phụ thuộc hoàn toàn vào mặc định của formatter. Với tiền tệ, sử dụng formatter tiền tệ khi cần ký hiệu tiền, vị trí ký hiệu và quy tắc hiển thị; không tự ghép ký hiệu tiền vào chuỗi plain nếu có yêu cầu địa phương hóa.
+The difference here is **locale presentation rules**, not a change to the value inside `BigDecimal`. `NumberFormat` may round to fit the display digit limits; if there are specific business requirements for rounding, configure and test the appropriate policy rather than relying solely on the formatter's defaults. For currency, use a currency formatter when currency symbols, symbol placement, and display rules are needed; do not manually concatenate currency symbols onto a plain string if localization is required.
 
-### 8.3. Lưu trữ và serialization: chọn theo hợp đồng
+### 8.3. Storage and Serialization: Choose by Contract
 
-Nếu muốn bảo toàn **cả unscaled value và scale**, `toString()` có đặc tính round-trip phù hợp cho `BigDecimal` qua constructor `String`. Cũng có thể lưu tường minh `unscaledValue` cùng `scale` khi thiết kế cấu trúc dữ liệu chuyên biệt.
+If you want to preserve **both unscaled value and scale**, `toString()` has round-trip properties suitable for `BigDecimal` via the `String` constructor. You can also explicitly store `unscaledValue` alongside `scale` when designing a specialized data structure.
 
-Nếu hợp đồng yêu cầu **đầu ra không có ký pháp số mũ** và chỉ quan tâm trị số, `toPlainString()` thường hợp lý. Khi đọc lại, đừng giả định `equals()` giữ nguyên với số từng có scale âm; so sánh `compareTo() == 0` nếu mục tiêu thực sự là bằng nhau về trị số.
+If the contract requires **output without exponential notation** and only cares about numeric value, `toPlainString()` is usually reasonable. When reading it back, do not assume `equals()` holds for numbers that previously had a negative scale; compare with `compareTo() == 0` if numeric equality is the actual goal.
 
-Đối với JSON, cơ sở dữ liệu, XML hoặc API, kiểm tra kiểu dữ liệu, quy tắc serialize của thư viện và giới hạn độ dài/precision/scale cụ thể. Không nên tự cho rằng mọi serializer đều gọi `toPlainString()`, hoặc rằng mọi hệ thống lưu chữ số 0 và scale giống Java.
+For JSON, databases, XML, or APIs, verify the data type, the library's serialization rules, and specific length/precision/scale limits. You should not assume every serializer calls `toPlainString()`, or that every system stores trailing zeros and scale the same way Java does.
 
-### 8.4. Cân nhắc hiệu năng và độ dài
+### 8.4. Performance and Length Considerations
 
-Một `BigDecimal` chứa số mũ rất lớn vẫn có thể được biểu diễn dưới dạng chuỗi khoa học ngắn gọn. Khi chuyển thành dạng plain, nhiều chữ số 0 phải xuất hiện trực tiếp.
+A `BigDecimal` holding a very large exponent can still be represented as a compact scientific string. When converted to plain form, many zeros must be materialized directly.
 
 ```java
 BigDecimal large = new BigDecimal("1E+10");
 System.out.println(large.toPlainString()); // 10000000000
 ```
 
-Với số mũ quá lớn, chuỗi plain có thể dài bất thường, tiêu tốn bộ nhớ và không phù hợp với giới hạn kích thước payload. Trước khi xuất dữ liệu đầu vào không tin cậy, cần giới hạn phạm vi trị số, scale, độ dài hoặc sử dụng biểu diễn khác theo yêu cầu giao thức. Không dùng `toPlainString()` vô điều kiện trên dữ liệu có số mũ không giới hạn.
+With an excessively large exponent, a plain string can become unusually long, consume significant memory, and violate payload size limits. Before outputting untrusted input data, constrain the numeric range, scale, length, or use another representation as required by the protocol. Do not call `toPlainString()` unconditionally on data with unbounded exponents.
 
-## 9. Mẫu áp dụng và các lỗi thường gặp
+## 9. Usage Patterns and Common Pitfalls
 
-### Mẫu 1 — Decimal text không số mũ, có đúng hai chữ số thập phân
+### Pattern 1 — Exponent-Free Decimal Text with Exactly Two Decimal Places
 
-Khi hợp đồng yêu cầu đúng 2 chữ số sau dấu chấm và quy định `HALF_UP`:
+When the contract requires exactly 2 digits after the decimal point and specifies `HALF_UP`:
 
 ```java
 static String toPlainTwoDecimals(BigDecimal value) {
@@ -359,13 +359,13 @@ static String toPlainTwoDecimals(BigDecimal value) {
 }
 ```
 
-Đây là **phương thức minh họa** phải đặt trong một lớp và import `BigDecimal`, `RoundingMode` tương ứng; chính sách `HALF_UP` và scale 2 chỉ là ví dụ. Một số nghiệp vụ có quy tắc làm tròn riêng hoặc không cho phép làm tròn giá trị gốc.
+This is an **illustrative method** that must be placed inside a class with the corresponding `BigDecimal` and `RoundingMode` imports; the `HALF_UP` policy and scale 2 are just examples. Some business domains have their own rounding rules or forbid rounding the original value.
 
-Nếu tuyệt đối không cho phép mất chữ số, có thể thay bằng `value.setScale(2, RoundingMode.UNNECESSARY).toPlainString()`. Trường hợp đầu vào cần giảm scale mà có chữ số khác 0 bị bỏ sẽ ném `ArithmeticException`, giúp phát hiện dữ liệu vi phạm hợp đồng.
+If losing digits is strictly forbidden, you can substitute `value.setScale(2, RoundingMode.UNNECESSARY).toPlainString()`. If an input requires reducing scale and non-zero digits would be discarded, it will throw `ArithmeticException`, helping detect contract-violating data.
 
-### Mẫu 2 — Bảo toàn chính xác text nhập vào
+### Pattern 2 — Preserving the Exact Input Text
 
-Nếu yêu cầu giữ mọi ký tự gốc:
+If the requirement is to keep every original character:
 
 ```java
 String originalInput = "00012.300";
@@ -375,57 +375,57 @@ System.out.println(originalInput);        // 00012.300
 System.out.println(value.toPlainString()); // 12.300
 ```
 
-Lưu chuỗi gốc riêng; `BigDecimal` giữ thông tin để tính toán, **không phải kho lưu nguyên văn**. Đặc biệt cần chú ý khoảng trắng, ký hiệu cộng, số 0 đầu và chuẩn dấu phân cách theo locale trước khi parse.
+Store the original string separately; `BigDecimal` holds information for computation, **it is not a verbatim text archive**. Pay special attention to whitespace, plus signs, leading zeros, and locale separator conventions before parsing.
 
-### Mẫu 3 — Cấu trúc round-trip có giữ scale
+### Pattern 3 — Round-Trip Structure Preserving Scale
 
-Khi mục tiêu là khôi phục đúng đối tượng `BigDecimal` theo `equals()`, dùng `toString()` rồi `new BigDecimal(text)`, hoặc lưu hai thành phần `unscaledValue` và `scale`. Không dùng plain text thay thế tùy ý khi scale âm có thể xuất hiện.
+When the goal is to restore the exact `BigDecimal` object according to `equals()`, use `toString()` followed by `new BigDecimal(text)`, or store the two components `unscaledValue` and `scale`. Do not arbitrarily substitute plain text when negative scales may occur.
 
-### Sai lầm thường gặp
+### Common Pitfalls
 
-1. **Cho rằng `toPlainString()` tự làm tròn:** nó chỉ xuất chuỗi. Muốn giảm chữ số phải có thao tác làm tròn tường minh.
-2. **Cho rằng `toPlainString()` luôn có đúng hai chữ số lẻ:** số chữ số phụ thuộc scale đang có. `12.3` vẫn là `12.3`, còn `12.3000` vẫn là `12.3000` nếu chưa thay scale.
-3. **Cho rằng chuỗi kết quả luôn khớp nguyên văn input:** `"00012.300"` thành `"12.300"`; mất cách viết gốc.
-4. **Dùng `stripTrailingZeros()` trước khi cần giữ số chữ số lẻ:** `12.3400` thành `12.34`. Đây là thay đổi biểu diễn có chủ đích và không thể đoán lại mọi dấu 0 ban đầu.
-5. **Dùng `toPlainString()` cho serialization phải giữ scale âm:** `1E+3` thành `1000`, parse lại có scale 0 thay vì -3.
-6. **Dùng `new BigDecimal(double)` và nghĩ rằng xuất plain sửa được sai số đầu vào:** không đúng; nên kiểm soát cách tạo số và toán học trước khi chuyển sang chuỗi.
-7. **Dùng `toPlainString()` để định dạng locale:** nó không thêm dấu phân cách hàng nghìn, không chọn dấu phẩy thập phân và không hiển thị đơn vị tiền.
-8. **Dùng `equals()` khi chỉ cần bằng nhau về trị số:** `1E+3` và `1000` có thể khác scale; dùng `compareTo() == 0` cho so sánh trị số.
-9. **Bỏ qua quy mô của chuỗi plain:** số có mũ lớn có thể bung ra nhiều chữ số 0; áp đặt giới hạn theo giao thức trước khi xuất.
-10. **Nhầm chuỗi với đối tượng:** `toPlainString()` trả `String`; việc gọi nó không sửa hay định dạng vĩnh viễn `BigDecimal` nguồn. Muốn lưu cách trình bày, lưu riêng chuỗi, cấu hình formatter hoặc hợp đồng định dạng.
+1. **Assuming `toPlainString()` rounds automatically:** it only outputs a string. To reduce digits, an explicit rounding operation is required.
+2. **Assuming `toPlainString()` always has exactly two fractional digits:** the number of digits depends on the current scale. `12.3` stays `12.3`, and `12.3000` stays `12.3000` if the scale has not been changed.
+3. **Assuming the resulting string always matches the verbatim input:** `"00012.300"` becomes `"12.300"`; original formatting is lost.
+4. **Using `stripTrailingZeros()` before needing to keep the fractional digit count:** `12.3400` becomes `12.34`. This is an intentional representation change and the original trailing zeros cannot all be guessed back.
+5. **Using `toPlainString()` for serialization that must preserve negative scale:** `1E+3` becomes `1000`, which parses back with scale 0 instead of -3.
+6. **Using `new BigDecimal(double)` and thinking plain output fixes input error:** false; you must control number creation and math before converting to a string.
+7. **Using `toPlainString()` for locale formatting:** it does not add thousands separators, choose a decimal comma, or display currency units.
+8. **Using `equals()` when only numeric equality is needed:** `1E+3` and `1000` can have different scales; use `compareTo() == 0` for numeric comparison.
+9. **Ignoring the size of plain strings:** numbers with large exponents can expand into huge numbers of zeros; enforce protocol limits before outputting.
+10. **Confusing the string with the object:** `toPlainString()` returns a `String`; calling it does not modify or permanently format the source `BigDecimal`. To save presentation settings, store the string, formatter configuration, or formatting contract separately.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-**Câu 1.** Vì sao `new BigDecimal("1E+3").toPlainString()` là `"1000"`?
+**Question 1.** Why is `new BigDecimal("1E+3").toPlainString()` equal to `"1000"`?
 
-**Đáp án:** `toPlainString()` biểu diễn decimal không số mũ. Giá trị `1 × 10³` được viết bằng các chữ số thông thường.
+**Answer:** `toPlainString()` represents the decimal without exponents. The value `1 × 10³` is written using ordinary digits.
 
-**Câu 2.** Vì sao `new BigDecimal("12.3400").toPlainString()` vẫn là `"12.3400"`?
+**Question 2.** Why does `new BigDecimal("12.3400").toPlainString()` remain `"12.3400"`?
 
-**Đáp án:** Đối tượng có scale 4. `toPlainString()` không tự bỏ số 0 cuối hoặc chọn scale khác.
+**Answer:** The object has scale 4. `toPlainString()` does not automatically drop trailing zeros or pick a different scale.
 
-**Câu 3.** Nếu muốn `"12.30"` từ `new BigDecimal("12.3")` thì làm gì?
+**Question 3.** What should you do if you want `"12.30"` from `new BigDecimal("12.3")`?
 
-**Đáp án:** `value.setScale(2).toPlainString()`, vì chỉ tăng scale từ 1 lên 2 và thêm số 0 không mất độ chính xác.
+**Answer:** `value.setScale(2).toPlainString()`, because increasing the scale from 1 to 2 and adding zeros loses no precision.
 
-**Câu 4.** Nếu cần `"12.35"` từ `new BigDecimal("12.345")` với quy tắc `HALF_UP`?
+**Question 4.** What if you need `"12.35"` from `new BigDecimal("12.345")` using the `HALF_UP` rule?
 
-**Đáp án:** `value.setScale(2, RoundingMode.HALF_UP).toPlainString()`. Việc làm tròn đến `12.35` diễn ra ở `setScale()`.
+**Answer:** `value.setScale(2, RoundingMode.HALF_UP).toPlainString()`. Rounding to `12.35` takes place in `setScale()`.
 
-**Câu 5.** `new BigDecimal(new BigDecimal("1E+3").toPlainString())` có `equals()` với bản gốc không?
+**Question 5.** Does `new BigDecimal(new BigDecimal("1E+3").toPlainString())` satisfy `equals()` with the original?
 
-**Đáp án:** Không. Bản gốc có scale -3, bản parse từ `"1000"` có scale 0. `compareTo()` vẫn trả 0 vì trị số bằng nhau.
+**Answer:** No. The original has scale -3, whereas the one parsed from `"1000"` has scale 0. `compareTo()` still returns 0 because their numeric values are equal.
 
-**Câu 6.** Lúc nào ưu tiên `toString()` thay vì `toPlainString()`?
+**Question 6.** When should `toString()` be preferred over `toPlainString()`?
 
-**Đáp án:** Khi cần biểu diễn canonical có thể tái tạo đúng unscaled value và scale qua constructor nhận chuỗi, và hợp đồng cho phép ký pháp khoa học.
+**Answer:** When you need a canonical representation that can reproduce the exact unscaled value and scale via the string constructor, and the contract permits scientific notation.
 
-**Câu 7.** Muốn hiện `"1.234,50"` theo quy ước Đức thì dùng `toPlainString()` hay formatter?
+**Question 7.** To display `"1.234,50"` according to German conventions, do you use `toPlainString()` or a formatter?
 
-**Đáp án:** Dùng `NumberFormat` hoặc `DecimalFormat` được cấu hình theo `Locale.GERMANY`, với chính sách chữ số thập phân và rounding phù hợp.
+**Answer:** Use `NumberFormat` or `DecimalFormat` configured for `Locale.GERMANY`, with the appropriate decimal-digit and rounding policy.
 
-**Câu 8.** Muốn lưu lại chính xác input `"00012.300"`, chỉ giữ `BigDecimal` có đủ không?
+**Question 8.** To save the exact input `"00012.300"`, is keeping only the `BigDecimal` sufficient?
 
-**Đáp án:** Không. Cần lưu riêng chuỗi input gốc nếu những chữ số 0 đầu hoặc dấu/ký hiệu định dạng ban đầu là dữ liệu cần bảo toàn.
+**Answer:** No. You need to store the original input string separately if leading zeros or original signs/formatting symbols are data that must be preserved.
 
-**Ghi nhớ:** `toPlainString()` tạo **chuỗi số thập phân không dùng ký pháp khoa học** từ `BigDecimal` đang có. Nó bảo toàn trị số nhưng **không tự cố định scale, làm tròn, định dạng locale hay lưu nguyên văn văn bản nhập**. Nếu cần bảo toàn scale âm khi serialize, cân nhắc `toString()` hoặc lưu cấu trúc; nếu cần số chữ số hiển thị cụ thể, áp dụng `setScale()` theo đúng quy tắc rồi mới xuất.
+**Takeaway:** `toPlainString()` produces a **decimal string without scientific notation** from an existing `BigDecimal`. It preserves the numeric value but **does not automatically fix scale, round, apply locale formatting, or store input text verbatim**. If negative scale must be preserved during serialization, consider `toString()` or structured storage; if a specific number of display digits is required, apply `setScale()` under the proper rules before outputting.

@@ -1,34 +1,34 @@
-# Lọc, đếm và biến đổi dữ liệu bằng IntStream trong Java String
+# Filtering, Counting, and Transforming Data with IntStream in Java String
 
-## Mục tiêu bài học
+## Lesson Objectives
 
-Một `String` có thể tạo ra một `IntStream` để xử lý từng đơn vị ký tự dưới dạng số nguyên, từ đó lọc những phần tử cần giữ, đếm số phần tử thỏa điều kiện, tính tổng hoặc biến đổi dữ liệu. Sau bài này, bạn có thể:
+A `String` can produce an `IntStream` to process each character unit as an integer, allowing you to filter elements to keep, count elements matching a condition, compute sums, or transform data. After this lesson, you will be able to:
 
-- Dùng `String.chars()` và `String.codePoints()` đúng mục đích, hiểu sự khác nhau giữa **UTF-16 code unit** và **Unicode code point**.
-- Tạo pipeline với `filter`, `map`, `mapToObj` và các phép kết thúc như `count`, `sum`, `collect`.
-- Chuyển kết quả xử lý các code point về `String` bằng `StringBuilder.appendCodePoint`.
-- Nhận diện bẫy của Unicode, phép đếm, luồng dùng một lần và các phép biến đổi chữ hoa/chữ thường.
+- Use `String.chars()` and `String.codePoints()` for their intended purposes, understanding the difference between a **UTF-16 code unit** and a **Unicode code point**.
+- Build pipelines with `filter`, `map`, `mapToObj`, and terminal operations such as `count`, `sum`, and `collect`.
+- Convert processed code points back into a `String` using `StringBuilder.appendCodePoint`.
+- Recognize pitfalls involving Unicode, counting, single-use streams, and case transformations.
 
-## 1. IntStream là gì, và vì sao String trả về IntStream?
+## 1. What Is IntStream, and Why Does String Return IntStream?
 
-`java.util.stream.IntStream` là một *primitive stream*: nó biểu diễn một chuỗi giá trị `int`, hỗ trợ các thao tác xử lý theo pipeline mà không phải bọc từng phần tử thành `Integer`. Đây là stream xử lý dữ liệu **trong bộ nhớ**, không phải `InputStream` dùng để đọc byte từ tệp hoặc mạng.
+`java.util.stream.IntStream` is a *primitive stream*: it represents a sequence of `int` values, supporting pipeline operations without boxing each element into an `Integer`. This is a stream for processing data **in memory**, not an `InputStream` for reading bytes from a file or network.
 
-`String` cung cấp hai phương thức quan trọng:
+`String` provides two key methods:
 
 ~~~java
 IntStream utf16Units = text.chars();
 IntStream unicodePoints = text.codePoints();
 ~~~
 
-- `chars()` tạo luồng các **UTF-16 code unit** của chuỗi; mỗi giá trị được mở rộng từ `char` thành `int`. Một Unicode supplementary character (ví dụ emoji nhiều ký tự trong UTF-16) sẽ trở thành hai phần tử surrogate riêng.
-- `codePoints()` tạo luồng các **Unicode code point**; hai surrogate hợp lệ liên tiếp được kết hợp thành một code point. Những code unit thông thường vẫn là một phần tử. Đây thường là lựa chọn phù hợp để lọc hoặc kiểm tra ký tự theo các phương thức `Character.isLetter(int)`, `Character.isDigit(int)`.
-- Cả hai phương thức đều **không** tự động tách “chữ nhìn thấy trên màn hình” (*grapheme cluster*). Một ký tự hiển thị có thể gồm nhiều code point, chẳng hạn chữ cái cộng dấu kết hợp hoặc emoji nối bằng ký tự Zero Width Joiner.
+- `chars()` produces a stream of the string's **UTF-16 code units**; each value is widened from `char` to `int`. A Unicode supplementary character (such as a multi-unit emoji in UTF-16) becomes two separate surrogate elements.
+- `codePoints()` produces a stream of **Unicode code points**; two consecutive valid surrogates are combined into a single code point. Regular code units remain single elements. This is usually the right choice for filtering or checking characters with methods like `Character.isLetter(int)` and `Character.isDigit(int)`.
+- Neither method automatically segments “characters visible on screen” (*grapheme clusters*). One visible character can consist of multiple code points, such as a base letter plus a combining mark or an emoji joined by a Zero Width Joiner.
 
-Nếu chỉ làm việc với mã ASCII, kết quả của `chars()` và `codePoints()` thường trùng nhau; với nội dung đa ngôn ngữ, nên quyết định dựa trên đơn vị bạn cần xử lý.
+When working strictly with ASCII, the outputs of `chars()` and `codePoints()` usually match; for multilingual content, decide based on the unit you need to process.
 
-### Ví dụ kiểm chứng UTF-16 và code point
+### Example Verifying UTF-16 and Code Points
 
-Lưu vào `UnicodeStreamDemo.java`:
+Save to `UnicodeStreamDemo.java`:
 
 ~~~java
 import java.util.stream.Collectors;
@@ -49,14 +49,14 @@ public class UnicodeStreamDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 UnicodeStreamDemo.java
 java UnicodeStreamDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 4
@@ -65,40 +65,40 @@ Kết quả:
 U+0041, U+1F600, U+0042
 ~~~
 
-`"A😀B"` có ba Unicode code point nhưng bốn UTF-16 code unit, do `😀` được lưu bằng một cặp surrogate. `String.length()` và `chars().count()` đều phản ánh số code unit trong ví dụ; `codePoints().count()` phản ánh số code point. **Đừng gọi cả ba kết quả là “số ký tự người dùng nhìn thấy”.**
+`"A😀B"` has three Unicode code points but four UTF-16 code units, because `😀` is stored as a surrogate pair. `String.length()` and `chars().count()` both reflect the code unit count in this example; `codePoints().count()` reflects the code point count. **Do not call all three results “the number of user-visible characters”.**
 
-## 2. Pipeline gồm những bước nào?
+## 2. What Steps Make Up a Pipeline?
 
-Một pipeline thường có ba thành phần:
+A pipeline typically consists of three parts:
 
 ~~~text
-String.codePoints()      // nguồn: IntStream của code point
-  .filter(...)            // thao tác trung gian: giữ các giá trị thỏa điều kiện
-  .map(...)               // thao tác trung gian: biến đổi int -> int
-  .count()                // thao tác kết thúc: trả về long
+String.codePoints()      // source: IntStream of code points
+  .filter(...)            // intermediate op: keeps values matching a condition
+  .map(...)               // intermediate op: transforms int -> int
+  .count()                // terminal op: returns long
 ~~~
 
-Các phép trung gian như `filter`, `map`, `distinct`, `sorted`, `limit` thường tạo một luồng mới mô tả việc sẽ xử lý, nhưng chưa chạy toàn bộ dữ liệu ngay. Thao tác kết thúc như `count`, `sum`, `forEach` hoặc `collect` sẽ kích hoạt pipeline (ngoại trừ những tối ưu hóa hợp lệ của thư viện Stream). Mỗi stream chỉ được tiêu thụ một lần.
+Intermediate operations such as `filter`, `map`, `distinct`, `sorted`, and `limit` generally create a new stream describing what will be processed without immediately running over all data. Terminal operations such as `count`, `sum`, `forEach`, or `collect` trigger the pipeline (subject to valid Stream library optimizations). Each stream can be consumed only once.
 
-| Phép toán | Đặc điểm | Ví dụ trong bài |
+| Operation | Characteristic | Example in This Lesson |
 | --- | --- | --- |
-| `filter(IntPredicate)` | Giữ giá trị `int` khi predicate trả về `true` | Lọc chữ số với `Character::isDigit` |
-| `map(IntUnaryOperator)` | Đổi mỗi `int` thành một `int` khác | Đổi code point thành chữ in hoa |
-| `mapToObj(IntFunction<R>)` | Đổi từ `int` thành object | Biến code point thành chuỗi `"U+...."` |
-| `distinct()` | Loại giá trị `int` trùng nhau | Lấy danh sách code point duy nhất |
-| `sorted()` | Sắp xếp giá trị số nguyên | Sắp theo mã code point |
-| `count()` | Trả về số phần tử kiểu `long` | Đếm chữ số |
-| `sum()` | Tính tổng kiểu `int` | Cộng các chữ số ASCII sau khi đổi mã |
-| `findFirst()` | Tìm phần tử đầu tiên, trả về `OptionalInt` | Tìm code point số đầu tiên |
-| `collect(...)` | Gom kết quả bằng container mutable | Xây dựng `StringBuilder` |
+| `filter(IntPredicate)` | Keeps `int` values when the predicate returns `true` | Filtering digits with `Character::isDigit` |
+| `map(IntUnaryOperator)` | Transforms each `int` into another `int` | Converting code points to uppercase |
+| `mapToObj(IntFunction<R>)` | Transforms an `int` into an object | Formatting a code point as `"U+...."` |
+| `distinct()` | Removes duplicate `int` values | Getting unique code points |
+| `sorted()` | Sorts integer values | Sorting by code point value |
+| `count()` | Returns element count as `long` | Counting digits |
+| `sum()` | Computes total as `int` | Summing ASCII digits after numeric conversion |
+| `findFirst()` | Finds the first element, returning `OptionalInt` | Finding the first digit code point |
+| `collect(...)` | Accumulates results using a mutable container | Building a `StringBuilder` |
 
-`filter` không sửa `String` gốc: `String` là bất biến (*immutable*). Nếu cần kết quả thành chuỗi mới, bạn phải thu gom các phần tử còn lại vào cấu trúc hoặc đối tượng khác.
+`filter` does not modify the original `String`: `String` is *immutable*. If you need a new string as output, you must collect the remaining elements into another structure or object.
 
-## 3. Lọc, đếm và tính tổng chữ số
+## 3. Filtering, Counting, and Summing Digits
 
-Giả sử đầu vào là `"a1B2c3😀"`. Ta muốn đếm code point dạng chữ số, đếm dạng chữ cái và tính tổng **giá trị các chữ số ASCII**.
+Suppose the input is `"a1B2c3😀"`. We want to count digit code points, count letter code points, and compute the sum of **the ASCII digit values**.
 
-Lưu vào `FilterCountDemo.java`:
+Save to `FilterCountDemo.java`:
 
 ~~~java
 public class FilterCountDemo {
@@ -125,7 +125,7 @@ public class FilterCountDemo {
 }
 ~~~
 
-Chạy bằng `javac -encoding UTF-8 FilterCountDemo.java` và `java FilterCountDemo`:
+Run with `javac -encoding UTF-8 FilterCountDemo.java` and `java FilterCountDemo`:
 
 ~~~text
 Digits: 3
@@ -133,22 +133,22 @@ Letters: 3
 ASCII digit sum: 6
 ~~~
 
-Từng bước:
+Step by step:
 
-1. `codePoints()` tạo luồng gồm `a`, `1`, `B`, `2`, `c`, `3`, `😀` (đại diện dưới dạng `int`).
-2. `filter(Character::isDigit)` chỉ giữ ba chữ số và `count()` cho `3L` (kiểu `long`).
-3. `filter(Character::isLetter)` giữ `a`, `B`, `c` nên kết quả cũng là `3L`.
-4. Bộ lọc `cp >= '0' && cp <= '9'` chủ động giới hạn ở **ASCII 0–9**. Sau đó `map(cp -> cp - '0')` đổi mã của `'1'`, `'2'`, `'3'` thành giá trị số 1, 2, 3, rồi `sum()` cho `6`.
+1. `codePoints()` produces a stream of `a`, `1`, `B`, `2`, `c`, `3`, `😀` (represented as `int`s).
+2. `filter(Character::isDigit)` keeps only the three digits, and `count()` yields `3L` (type `long`).
+3. `filter(Character::isLetter)` keeps `a`, `B`, `c`, so the result is also `3L`.
+4. The filter `cp >= '0' && cp <= '9'` deliberately restricts to **ASCII 0–9**. Then `map(cp -> cp - '0')` converts the codes of `'1'`, `'2'`, `'3'` to numeric values 1, 2, 3, and `sum()` yields `6`.
 
-**Cẩn thận:** `Character.isDigit(int)` có thể nhận diện chữ số của nhiều hệ chữ viết ngoài ASCII. Vì vậy, không được tùy tiện dùng `cp - '0'` cho tất cả code point mà `isDigit` chấp nhận. Nếu cần giá trị số của chữ số Unicode, dùng `Character.digit(cp, 10)` và xử lý kết quả `-1` khi không có giá trị ở hệ cơ số yêu cầu.
+**Be careful:** `Character.isDigit(int)` can recognize digits from many scripts beyond ASCII. Therefore, never blindly apply `cp - '0'` to all code points accepted by `isDigit`. If you need the numeric value of a Unicode digit, use `Character.digit(cp, 10)` and handle `-1` when there is no value in the requested radix.
 
-Ví dụ `codePoints().filter(Character::isDigit).count()` là phép **đếm số code point thuộc loại chữ số**, không tự động cho biết giá trị số, số chữ trong một chuỗi và cũng không xác thực rằng toàn bộ input là số. Muốn kiểm tra toàn chuỗi, có thể dùng `String.matches` với mẫu phù hợp hoặc kiểm tra tất cả code point và quy tắc độ dài riêng.
+For example, `codePoints().filter(Character::isDigit).count()` is an operation that **counts code points classified as digits**; it does not automatically tell you a numeric value, the number of characters in a string, or validate that the entire input is numeric. To validate an entire string, use `String.matches` with an appropriate pattern or check all code points and length rules separately.
 
-## 4. Biến đổi và giữ lại ký tự để tạo chuỗi mới
+## 4. Transforming and Keeping Characters to Build a New String
 
-`map` trong `IntStream` trả về một `int` cho mỗi phần tử đầu vào. Khi làm việc với Unicode code point, phải tạo chuỗi đầu ra bằng thao tác hiểu **code point**, thay vì ép `int` thành `char`.
+`map` on an `IntStream` returns one `int` for each input element. When working with Unicode code points, you must construct the output string with an operation that understands **code points**, rather than casting `int` to `char`.
 
-Ví dụ muốn lấy các code point thuộc chữ cái rồi đổi thành chữ in hoa. Lưu `TransformStreamDemo.java`:
+For example, suppose you want to extract letter code points and convert them to uppercase. Save `TransformStreamDemo.java`:
 
 ~~~java
 public class TransformStreamDemo {
@@ -169,32 +169,32 @@ public class TransformStreamDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 TransformStreamDemo.java
 java TransformStreamDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 ABC
 ~~~
 
-Ý nghĩa các bước:
+Meaning of the steps:
 
-- `filter(Character::isLetter)` loại chữ số và emoji khỏi ví dụ, giữ `a`, `B`, `c`.
-- `map(Character::toUpperCase)` biến mỗi code point thành code point in hoa tương ứng nếu có.
-- `collect(supplier, accumulator, combiner)` tạo một `StringBuilder`, nối từng code point bằng `appendCodePoint` và cung cấp thao tác gộp các builder (nếu pipeline được xử lý theo nhánh song song); `toString()` lấy chuỗi kết quả.
+- `filter(Character::isLetter)` removes digits and the emoji from the example, keeping `a`, `B`, `c`.
+- `map(Character::toUpperCase)` converts each code point to its uppercase code point equivalent if one exists.
+- `collect(supplier, accumulator, combiner)` creates a `StringBuilder`, appends each code point via `appendCodePoint`, and provides a combiner to merge builders (if the pipeline runs in parallel); `toString()` yields the final string.
 
-Tại sao không dùng `(char) cp`? Vì phép ép kiểu đó chỉ giữ 16 bit thấp và có thể phá hỏng ký tự ngoài Basic Multilingual Plane. `StringBuilder.appendCodePoint(int)` bổ sung đúng một hoặc hai UTF-16 code unit cho code point hợp lệ.
+Why not use `(char) cp`? Because that cast keeps only the low 16 bits and can corrupt characters outside the Basic Multilingual Plane. `StringBuilder.appendCodePoint(int)` appends the proper one or two UTF-16 code units for a valid code point.
 
-**Giới hạn của phép đổi hoa bằng code point:** `Character.toUpperCase(int)` chỉ trả về **một** code point trên mỗi đầu vào và không xử lý đầy đủ những quy tắc đổi hoa phụ thuộc ngôn ngữ hoặc cần mở rộng thành nhiều ký tự. Nếu bài toán là chuyển **cả chuỗi** thành chữ in hoa theo ngôn ngữ, hãy cân nhắc `text.toUpperCase(locale)` và chính sách chuẩn hóa Unicode, thay vì cho rằng pipeline trên luôn cho cùng kết quả.
+**Limitation of code-point uppercasing:** `Character.toUpperCase(int)` returns only **one** code point per input and does not handle all locale-dependent casing rules or one-to-many character expansions. If the task is to convert an **entire string** to uppercase for a given language, consider `text.toUpperCase(locale)` and a Unicode normalization policy rather than assuming the pipeline above always produces the same result.
 
-## 5. Dùng mapToObj khi muốn kết quả không còn là int
+## 5. Using mapToObj When the Output Is No Longer an int
 
-`mapToObj` hữu ích nếu mỗi code point cần được biểu diễn thành một object, chẳng hạn chuỗi nhãn hoặc đối tượng dữ liệu. Ví dụ:
+`mapToObj` is useful when each code point must be represented as an object, such as a label string or data record. Example:
 
 ~~~java
 import java.util.stream.Collectors;
@@ -212,25 +212,25 @@ public class CodePointListDemo {
 }
 ~~~
 
-Lưu thành `CodePointListDemo.java`, biên dịch và chạy bằng `javac -encoding UTF-8 CodePointListDemo.java` rồi `java CodePointListDemo`. Kết quả:
+Save as `CodePointListDemo.java`, compile and run with `javac -encoding UTF-8 CodePointListDemo.java` then `java CodePointListDemo`. Output:
 
 ~~~text
 U+0041, U+1F600, U+0042
 ~~~
 
-Ở đây `mapToObj` chuyển từng `int` thành `String`; sau đó `Collectors.joining(", ")` ghép các phần thành một chuỗi. Đây là hướng phù hợp khi cần hiển thị metadata cho từng code point. Nếu chỉ cần tạo lại chuỗi Unicode từ các code point đã được lọc/biến đổi, cách `collect(StringBuilder::new, ...appendCodePoint..., StringBuilder::append)` ở phần trước tránh tạo nhiều chuỗi trung gian nhỏ.
+Here `mapToObj` converts each `int` into a `String`; then `Collectors.joining(", ")` joins the parts into one string. This approach works well when you need to display metadata for each code point. If you only need to rebuild a Unicode string from filtered/transformed code points, the `collect(StringBuilder::new, ...appendCodePoint..., StringBuilder::append)` approach in the previous section avoids creating many small intermediate strings.
 
-## 6. Khi nào nên dùng chars(), codePoints() hoặc IntStream.range()?
+## 6. When Should You Use chars(), codePoints(), or IntStream.range()?
 
-Ba cách đều có ích nhưng trả lời những câu hỏi khác nhau:
+All three approaches are useful, but they answer different questions:
 
-| Nguồn | Đơn vị duyệt | Phù hợp nhất |
+| Source | Unit Iterated | Best Suited For |
 | --- | --- | --- |
-| `text.chars()` | UTF-16 code unit (`char` dạng `int`) | Xử lý mã ASCII, thao tác rõ ràng dựa trên `char` hoặc code unit |
-| `text.codePoints()` | Unicode code point (`int`) | Lọc/đếm chữ cái, chữ số, ký tự Unicode và biến đổi theo `Character` |
-| `IntStream.range(0, text.length())` | Chỉ số `char` 0 đến `length() - 1` | Khi cần **vị trí UTF-16** (offset) của ký tự theo `charAt` |
+| `text.chars()` | UTF-16 code unit (`char` as `int`) | ASCII processing, operations explicitly based on `char` or code units |
+| `text.codePoints()` | Unicode code point (`int`) | Filtering/counting letters, digits, Unicode characters, and `Character`-based transforms |
+| `IntStream.range(0, text.length())` | `char` index 0 to `length() - 1` | When you need the **UTF-16 position** (offset) of characters for `charAt` |
 
-Ví dụ tìm chỉ số UTF-16 của chữ cái trong chuỗi ASCII:
+Example finding UTF-16 indices of letters in an ASCII string:
 
 ~~~java
 import java.util.stream.Collectors;
@@ -250,32 +250,32 @@ public class IndexStreamDemo {
 }
 ~~~
 
-Lưu `IndexStreamDemo.java`, chạy `javac -encoding UTF-8 IndexStreamDemo.java` và `java IndexStreamDemo`. Kết quả:
+Save `IndexStreamDemo.java`, run `javac -encoding UTF-8 IndexStreamDemo.java` and `java IndexStreamDemo`. Output:
 
 ~~~text
 0:a, 2:B
 ~~~
 
-Mẫu này phù hợp với `"a1B2"` vì toàn bộ dữ liệu ở ASCII. Với Unicode supplementary character, `charAt(i)` chỉ trả về một surrogate của cặp và chỉ số `i` là **offset code unit**, không phải chỉ số code point. Khi cần offset theo code point, hãy xem `String.offsetByCodePoints`, `String.codePointAt` hoặc cơ chế duyệt có quản lý offset. Không đánh đồng chỉ số code unit với vị trí “ký tự thứ N” trong văn bản hiển thị.
+This pattern works for `"a1B2"` because all data is ASCII. With Unicode supplementary characters, `charAt(i)` returns only one surrogate of the pair and index `i` is a **code unit offset**, not a code point index. When you need code point offsets, look at `String.offsetByCodePoints`, `String.codePointAt`, or an offset-aware traversal loop. Do not equate a code unit index with the position of the “Nth character” in displayed text.
 
-### Đếm code point không phải đếm grapheme cluster
+### Counting Code Points Is Not Counting Grapheme Clusters
 
-Ví dụ ký tự `é` có thể được biểu diễn bằng một code point `U+00E9` hoặc hai code point `U+0065` và `U+0301` (chữ `e` kèm dấu kết hợp). `codePoints().count()` có thể cho số đếm khác nhau với hai chuỗi trông giống nhau. Với emoji có thành phần kết hợp, một hình hiển thị cũng có thể có nhiều code point.
+For example, the character `é` can be represented by one code point `U+00E9` or two code points `U+0065` and `U+0301` (letter `e` with a combining mark). `codePoints().count()` can give different counts for two strings that look identical. For emoji with combining components, a single displayed glyph can also consist of multiple code points.
 
-Nếu yêu cầu của sản phẩm là đếm “ký tự người dùng nhìn thấy”, cắt chuỗi theo ranh giới grapheme hoặc áp giới hạn ký tự trên ô nhập, chỉ dùng `IntStream` theo code point là chưa đủ. Cần bộ phân đoạn Unicode phù hợp và cân nhắc chuẩn hóa văn bản cho bài toán cụ thể.
+If a product requirement is to count “user-visible characters”, truncate strings at grapheme boundaries, or enforce character limits in an input field, an `IntStream` over code points alone is not enough. You need an appropriate Unicode segmenter and should consider text normalization for your specific problem.
 
-## 7. Pipeline được chạy một lần, và phép đếm không có tác dụng phụ mong muốn
+## 7. Pipelines Run Once, and Counting Should Not Rely on Side Effects
 
-Một lỗi thường gặp là lưu `IntStream` rồi cố dùng lại:
+A common mistake is saving an `IntStream` and trying to reuse it:
 
 ~~~java
-// Minh họa lỗi: không phải chương trình hoàn chỉnh.
+// Error illustration: not a complete program.
 var stream = "A1B2".codePoints();
 long count = stream.filter(Character::isDigit).count();
-// stream.count(); // Sai: stream đã được tiêu thụ, sẽ ném IllegalStateException.
+// stream.count(); // Error: stream has already been consumed, throws IllegalStateException.
 ~~~
 
-Tạo **stream mới** cho mỗi phép kết thúc:
+Create a **new stream** for each terminal operation:
 
 ~~~java
 String text = "A1B2";
@@ -287,13 +287,13 @@ long letterCount = text.codePoints()
         .count();
 ~~~
 
-Không nhét side effect vào `filter`/`map` chỉ để đếm số lần gọi. Thư viện Stream có thể tối ưu hóa pipeline; ví dụ, `count()` trên nguồn có kích thước đã biết có thể trả về kết quả mà không cần chạy các phép trung gian không ảnh hưởng số lượng. Hãy dùng kết quả trả về từ thao tác kết thúc để xác định đầu ra, thay vì giả định mọi phép trung gian đều chạy đúng một lần cho mỗi phần tử.
+Do not put side effects inside `filter`/`map` just to count invocations. The Stream library can optimize pipelines; for instance, `count()` on a sized source can return the result without executing intermediate operations that do not affect the count. Use the return value of the terminal operation to determine output, rather than assuming every intermediate operation runs once per element.
 
-`forEach` cũng không đảm bảo thứ tự quan sát trong stream song song; nếu thật sự cần thứ tự gặp phần tử (*encounter order*), có `forEachOrdered`. Với xử lý ký tự chuỗi thông thường, hãy ưu tiên pipeline tuần tự, ngắn và dễ hiểu trước khi cân nhắc parallelization.
+`forEach` also does not guarantee encounter order on a parallel stream; if encounter order truly matters, use `forEachOrdered`. For typical string character processing, prefer sequential, concise, readable pipelines before considering parallelization.
 
-## 8. Kỹ thuật bổ sung: tìm, loại trùng và giới hạn
+## 8. Additional Techniques: Finding, Deduplicating, and Limiting
 
-Một số nhu cầu thực tế ngoài lọc/đếm/biến đổi:
+Some practical needs beyond filtering/counting/transforming:
 
 ~~~java
 import java.util.OptionalInt;
@@ -307,7 +307,7 @@ public class MoreIntStreamDemo {
                 .findFirst();
         System.out.println(firstDigit.isPresent()
                 ? Character.toString(firstDigit.getAsInt())
-                : "Không có");
+                : "None");
 
         long uniqueLetters = text.codePoints()
                 .filter(Character::isLetter)
@@ -318,40 +318,40 @@ public class MoreIntStreamDemo {
 }
 ~~~
 
-Lưu `MoreIntStreamDemo.java` rồi chạy `javac -encoding UTF-8 MoreIntStreamDemo.java` và `java MoreIntStreamDemo`. Kết quả:
+Save `MoreIntStreamDemo.java`, then run `javac -encoding UTF-8 MoreIntStreamDemo.java` and `java MoreIntStreamDemo`. Output:
 
 ~~~text
 1
 2
 ~~~
 
-`findFirst()` trả về `OptionalInt`, vì có thể không có phần tử phù hợp; nên dùng `isPresent`/`orElse`/`ifPresent` tùy ngữ cảnh thay vì gọi `getAsInt()` vô điều kiện. `distinct()` loại code point trùng nhau; trong ví dụ có hai chữ cái khác nhau là `a` và `b`. Phép này so sánh **giá trị code point**, không tự gom các cách viết Unicode tương đương hoặc so sánh không phân biệt hoa/thường.
+`findFirst()` returns `OptionalInt`, because no matching element might exist; use `isPresent`/`orElse`/`ifPresent` as appropriate instead of calling `getAsInt()` unconditionally. `distinct()` removes duplicate code points; in the example there are two distinct letters, `a` and `b`. This operation compares **code point values** and does not automatically merge canonically equivalent Unicode forms or perform case-insensitive comparison.
 
-`limit(n)` có thể giới hạn số phần tử đi tiếp trong stream, nhưng giới hạn `n` **code point** không nhất thiết là giới hạn `n` ký tự hiển thị trên UI. Với `sorted()`, thứ tự là thứ tự số nguyên của code point, không phải thứ tự bảng chữ cái theo `Locale`.
+`limit(n)` can cap the number of elements passing through the stream, but limiting to `n` **code points** is not necessarily limiting to `n` UI-rendered characters. With `sorted()`, ordering is numeric code point order, not locale-sensitive alphabetical order.
 
-## 9. Lỗi thường gặp
+## 9. Common Mistakes
 
-**1. Chọn chars() cho văn bản đa ngôn ngữ rồi xem mỗi phần tử là một ký tự Unicode.** Surrogate pair bị tách làm hai, nên phép lọc theo `Character.isLetter(int)` hoặc khôi phục bằng cast `char` có thể sai. Dùng `codePoints()` khi xử lý code point.
+**1. Choosing chars() for multilingual text and treating each element as one Unicode character.** Surrogate pairs are split in two, so filtering with `Character.isLetter(int)` or reconstructing via `char` cast can fail. Use `codePoints()` when processing code points.
 
-**2. Đếm count() rồi nghĩ đó là số ký tự trên màn hình.** `chars().count()` là số UTF-16 code unit; `codePoints().count()` là số Unicode code point; không cách nào mặc nhiên đếm đúng grapheme cluster.
+**2. Calling count() and assuming it is the number of characters on screen.** `chars().count()` is the UTF-16 code unit count; `codePoints().count()` is the Unicode code point count; neither inherently counts grapheme clusters.
 
-**3. Nhầm đếm với tổng.** `filter(...).count()` đếm số phần tử phù hợp; `filter(...).map(...).sum()` cộng các giá trị sau biến đổi. `count()` trả `long`; `sum()` của `IntStream` trả `int` và có khả năng tràn số khi giá trị quá lớn.
+**3. Confusing count with sum.** `filter(...).count()` counts matching elements; `filter(...).map(...).sum()` adds the transformed values. `count()` returns `long`; `IntStream.sum()` returns `int` and can overflow if values are large.
 
-**4. Biến đổi mã code point bằng cast char.** `(char) cp` có thể làm mất phần mã cao. Dùng `appendCodePoint` hoặc `Character.toChars(cp)` khi xây chuỗi.
+**4. Converting code points via a char cast.** `(char) cp` can lose the upper bits. Use `appendCodePoint` or `Character.toChars(cp)` when building strings.
 
-**5. Áp dụng cp - '0' cho mọi chữ số Unicode.** Phép trừ đơn giản chỉ đúng theo giả định mã chữ số ASCII liên tiếp. Nếu cần số Unicode, hãy dùng `Character.digit(cp, 10)` và xử lý ký tự không có giá trị số.
+**5. Applying cp - '0' to all Unicode digits.** Simple subtraction only works assuming consecutive ASCII digit codes. For Unicode digits, use `Character.digit(cp, 10)` and handle characters without a numeric value.
 
-**6. Đòi dùng lại một stream đã kết thúc.** Sau `count()`, `sum()`, `collect()` hoặc `forEach()`, hãy gọi lại `text.codePoints()` để tạo pipeline mới.
+**6. Trying to reuse a consumed stream.** After `count()`, `sum()`, `collect()`, or `forEach()`, call `text.codePoints()` again to create a new pipeline.
 
-**7. Đồng nhất toUpperCase(code point) với toUpperCase(Locale).** Chuyển từng code point có thể không xử lý biến thể theo ngôn ngữ hay phép đổi hoa một thành nhiều. Chọn API dựa trên yêu cầu chuyển đổi **ký tự** hay **văn bản**.
+**7. Equating toUpperCase(code point) with toUpperCase(Locale).** Per-code-point conversion may miss locale-specific variants or one-to-many uppercase expansions. Choose the API based on whether you need **character-level** or **text-level** conversion.
 
-**8. Lạm dụng stream cho logic quá đơn giản.** Với kiểm tra một vị trí hoặc thao tác cố định, vòng lặp hay `String` API chuyên biệt có thể rõ ràng hơn. Stream hữu ích khi cần biểu đạt chuỗi phép lọc, biến đổi, kết hợp hoặc thống kê.
+**8. Overusing streams for trivial logic.** For checking a single position or a fixed operation, a loop or specialized `String` API can be clearer. Streams shine when expressing chains of filters, transformations, combinations, or aggregations.
 
-**9. Giả định lọc chữ cái sẽ giữ dấu kết hợp đi cùng chữ.** Một dấu combining mark có thể không thỏa `Character.isLetter` và bị xóa, làm thay đổi văn bản. Trước khi lọc ký tự Unicode, hãy định nghĩa chính sách với dấu kết hợp, chuẩn hóa và grapheme.
+**9. Assuming filtering letters keeps combining marks attached to letters.** A combining mark may fail `Character.isLetter` and be dropped, altering the text. Before filtering Unicode characters, define your policy for combining marks, normalization, and graphemes.
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-Check Exercises
 
-Cho chuỗi `"A7b0C3"`, dự đoán các biểu thức sau:
+Given the string `"A7b0C3"`, predict the following expressions:
 
 ~~~java
 String value = "A7b0C3";
@@ -372,22 +372,22 @@ long differentLetters = value.codePoints()
         .count();
 ~~~
 
-**Đáp án:** `digits = 3` vì có `7`, `0`, `3`; `sum = 10`; `differentLetters = 3` vì ba chữ cái `a`, `b`, `c` khác nhau sau khi đổi về chữ thường.
+**Answers:** `digits = 3` because of `7`, `0`, `3`; `sum = 10`; `differentLetters = 3` because the three letters `a`, `b`, `c` are distinct after converting to lowercase.
 
-Bài mở rộng: sửa phép lọc để chỉ nhận chữ cái ASCII `A-Z` hoặc `a-z`; tiếp theo thử chuỗi có `😀` và một chữ có dấu kết hợp, rồi so sánh `length()`, `chars().count()`, `codePoints().count()`. Quan sát những khác biệt để lựa chọn đơn vị xử lý phù hợp.
+Extension exercise: modify the filter to accept only ASCII letters `A-Z` or `a-z`; next, test a string containing `😀` and a letter with a combining mark, then compare `length()`, `chars().count()`, and `codePoints().count()`. Observe the differences to choose the appropriate processing unit.
 
-## Checklist áp dụng vào dự án
+## Project Application Checklist
 
-1. Xác định đầu vào là ASCII, UTF-16 code unit, Unicode code point hay grapheme cluster.
-2. Chọn đúng nguồn `chars()`, `codePoints()` hoặc `IntStream.range(...)` tùy đơn vị.
-3. Viết rõ predicate của `filter`, tránh đồng nhất chữ số ASCII với toàn bộ chữ số Unicode.
-4. Với `map` trên code point, giữ miền giá trị hợp lệ; khi xây chuỗi dùng `appendCodePoint`.
-5. Chọn thao tác kết thúc thích hợp: `count` cho số phần tử, `sum` cho tổng, `findFirst` cho tìm kiếm, `collect` cho ghép chuỗi.
-6. Mỗi phép kết thúc cần một stream mới; kiểm tra chuỗi rỗng, ký tự bổ sung, dấu kết hợp và input không phù hợp giả định.
+1. Determine whether the input is ASCII, UTF-16 code units, Unicode code points, or grapheme clusters.
+2. Choose the right source: `chars()`, `codePoints()`, or `IntStream.range(...)` depending on the unit.
+3. Write clear `filter` predicates, avoiding equating ASCII digits with all Unicode digits.
+4. When using `map` on code points, keep values in valid ranges; when building strings, use `appendCodePoint`.
+5. Choose the appropriate terminal operation: `count` for element counts, `sum` for totals, `findFirst` for searching, `collect` for string assembly.
+6. Use a fresh stream for each terminal operation; test empty strings, supplementary characters, combining marks, and inputs that violate assumptions.
 
-## Tài liệu chính thức
+## Official Documentation
 
-- [Java SE 17 — String.chars() và String.codePoints()](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
+- [Java SE 17 — String.chars() and String.codePoints()](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
 - [Java SE 17 — IntStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/IntStream.html)
 - [Java SE 17 — Character](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html)
 - [Java SE 17 — StringBuilder.appendCodePoint(int)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html#appendCodePoint(int))

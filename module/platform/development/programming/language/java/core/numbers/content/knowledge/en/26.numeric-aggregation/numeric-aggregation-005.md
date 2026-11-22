@@ -1,33 +1,33 @@
-# `min`, `max` và các `Optional` chuyên biệt khi tổng hợp số trong Java
+# `min`, `max`, and Specialized `Optional` Types When Aggregating Numbers in Java
 
-## 1. Mục tiêu và bài toán
+## 1. Goal and Problem
 
-Khi tổng hợp dữ liệu số trong Java, hai yêu cầu phổ biến là tìm **giá trị nhỏ nhất (`min`)** và **giá trị lớn nhất (`max`)**. Ví dụ: mức nhiệt thấp nhất trong ngày, độ trễ lớn nhất của request, điểm số cao nhất hoặc số lượng đơn hàng nhỏ nhất.
+When aggregating numeric data in Java, two common requirements are finding the **minimum (`min`)** and **maximum (`max`)** values. Examples include the lowest daily temperature, highest request latency, highest score, or smallest order quantity.
 
-Khó khăn xuất hiện khi **nguồn dữ liệu rỗng**. Một dãy không có phần tử không có giá trị nhỏ nhất hoặc lớn nhất xác định. Java Stream API biểu diễn điều này bằng `OptionalInt`, `OptionalLong`, `OptionalDouble` hoặc `Optional<T>`; người gọi phải quyết định cách xử lý trường hợp thiếu dữ liệu.
+The difficulty arises when **the data source is empty**. A sequence with no elements has no defined minimum or maximum value. The Java Stream API represents this with `OptionalInt`, `OptionalLong`, `OptionalDouble`, or `Optional<T>`; the caller must decide how to handle missing data.
 
 ```java
 OptionalInt minimum = IntStream.of(8, 3, 12).min();
 OptionalInt maximum = IntStream.of(8, 3, 12).max();
-// minimum chứa 3; maximum chứa 12
+// minimum holds 3; maximum holds 12
 ```
 
-Sau bài học, bạn có thể chọn đúng overload `min`/`max`, hiểu vì sao API trả `Optional`, xử lý dãy rỗng an toàn, phân biệt stream nguyên thủy và stream đối tượng, đánh giá trường hợp `NaN`/`-0.0`, và áp dụng `summaryStatistics()` khi cần nhiều phép tổng hợp trên cùng nguồn.
+After this lesson, you will be able to choose the right `min`/`max` overload, understand why the API returns `Optional`, handle empty sequences safely, distinguish primitive streams from object streams, evaluate `NaN`/`-0.0` cases, and apply `summaryStatistics()` when multiple aggregations are needed over the same source.
 
-## 2. `min` và `max` trên ba kiểu stream nguyên thủy
+## 2. `min` and `max` on the Three Primitive Stream Types
 
-Java có ba giao diện stream chuyên biệt cho số nguyên thủy:
+Java has three specialized stream interfaces for primitive numbers:
 
-| Kiểu stream | Phương thức | Kết quả | Loại giá trị |
+| Stream type | Methods | Result | Value type |
 | --- | --- | --- | --- |
 | `IntStream` | `min()`, `max()` | `OptionalInt` | `int` |
 | `LongStream` | `min()`, `max()` | `OptionalLong` | `long` |
 | `DoubleStream` | `min()`, `max()` | `OptionalDouble` | `double` |
-| `Stream<T>` | `min(Comparator)`, `max(Comparator)` | `Optional<T>` | Đối tượng |
+| `Stream<T>` | `min(Comparator)`, `max(Comparator)` | `Optional<T>` | Object |
 
-Các phương thức `min()`/`max()` của primitive stream là **terminal operation**: chúng tiêu thụ stream để tính kết quả. Không có overload nhận `Comparator` trên `IntStream`, `LongStream`, `DoubleStream`; các kiểu số nguyên thủy dùng thứ tự số tự nhiên của mình. Với `Stream<T>`, bạn phải truyền một `Comparator` xác định thứ tự.
+The `min()`/`max()` methods on primitive streams are **terminal operations**: they consume the stream to compute the result. There is no overload taking a `Comparator` on `IntStream`, `LongStream`, or `DoubleStream`; primitive numeric types use their natural numeric order. On `Stream<T>`, you must pass a `Comparator` defining the ordering.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.OptionalInt;
@@ -46,13 +46,13 @@ System.out.println(largestLong.orElseThrow());   // 5000000000
 System.out.println(smallestDouble.orElseThrow()); // 1.25
 ```
 
-Đây là **đoạn mã nhúng**: đặt các lệnh trong một phương thức, cùng các `import` đã nêu. Chương trình độc lập có thể chạy ở mục 8.
+This is an **embedded snippet**: place these statements inside a method together with the listed `import`s. A standalone runnable program is in Section 8.
 
-Các hàm này tìm cực trị theo **giá trị phần tử**. Nếu muốn tìm *phần tử có giá trị điểm số lớn nhất* nhưng vẫn giữ ID, nhãn hoặc thông tin khác, hãy dùng `Stream<T>.max(comparator)` thay vì chỉ chuyển mọi đối tượng thành `int`.
+These functions find extrema by **element value**. If you want to find *the element with the highest score* while keeping its ID, label, or other fields, use `Stream<T>.max(comparator)` instead of converting every object into just an `int`.
 
-### 2.1. Vì sao kết quả là `Optional`?
+### 2.1. Why Is the Result an `Optional`?
 
-Vì không thể gán cực trị hợp lệ cho một stream rỗng:
+Because no valid extremum can be assigned to an empty stream:
 
 ```java
 OptionalInt none = IntStream.empty().max();
@@ -61,18 +61,18 @@ System.out.println(none.isPresent()); // false
 System.out.println(none.isEmpty());   // true
 ```
 
-`OptionalInt.empty()` không phải số `0`. Trả `0`, `Integer.MIN_VALUE` hay `null` làm kết quả mặc định sẽ thay đổi ý nghĩa của bài toán nếu giá trị đó vốn có thể xuất hiện trong dữ liệu.
+`OptionalInt.empty()` is not the number `0`. Returning `0`, `Integer.MIN_VALUE`, or `null` as a default would change the meaning of the problem whenever that value could legitimately appear in the data.
 
-Các overload `min`/`max` với primitive stream tương đương một phép **reduction không có identity** theo phép lấy cực tiểu/cực đại, như `reduce(Integer::min)` với `IntStream`. Vì không có identity phổ quát phân biệt được dãy rỗng, kết quả tự nhiên là `OptionalInt`.
+The `min`/`max` methods on primitive streams are equivalent to a **reduction without an identity** using minimum/maximum selection, such as `reduce(Integer::min)` on `IntStream`. Because there is no universal identity that distinguishes an empty sequence, the natural result is `OptionalInt`.
 
-### 2.2. Khoảng kiểu dữ liệu và chuyển đổi
+### 2.2. Data Type Ranges and Conversions
 
-- `IntStream` chứa `int`, từ `Integer.MIN_VALUE` đến `Integer.MAX_VALUE`. Nó không tự nâng mọi đầu vào thành `long`.
-- `LongStream` chứa `long`, phù hợp số vượt giới hạn `int`.
-- `DoubleStream` chứa `double`, nên chịu các đặc tính số dấu phẩy động IEEE 754 như `NaN`, vô cực và `-0.0`.
-- `Stream<Integer>`, `Stream<Long>`, `Stream<Double>` là **stream đối tượng**, có thể cần boxing/unboxing nếu chuyển kiểu và dùng `Optional<T>` thay vì `OptionalInt`/`OptionalLong`/`OptionalDouble`.
+- `IntStream` holds `int`, from `Integer.MIN_VALUE` to `Integer.MAX_VALUE`. It does not automatically widen inputs to `long`.
+- `LongStream` holds `long`, suitable for numbers beyond `int` bounds.
+- `DoubleStream` holds `double`, so it is subject to IEEE 754 floating-point specifics such as `NaN`, infinities, and `-0.0`.
+- `Stream<Integer>`, `Stream<Long>`, `Stream<Double>` are **object streams**, which may require boxing/unboxing when converting types and use `Optional<T>` instead of `OptionalInt`/`OptionalLong`/`OptionalDouble`.
 
-Ví dụ danh sách `List<Integer>`:
+Example with a `List<Integer>`:
 
 ```java
 List<Integer> numbers = List.of(7, 2, 11);
@@ -81,62 +81,62 @@ OptionalInt min = numbers.stream()
         .min();
 ```
 
-Lệnh trên cần `import java.util.List; import java.util.OptionalInt;`. `List.of(...)` không chứa `null`, nên chuyển thành primitive an toàn. Với một `List<Integer>` khác có phần tử `null`, unboxing sẽ gây `NullPointerException`; phải đưa ra chính sách lọc/từ chối `null` rõ ràng.
+The statement above requires `import java.util.List; import java.util.OptionalInt;`. `List.of(...)` contains no `null`, so converting to primitives is safe. For another `List<Integer>` that contains `null` elements, unboxing throws `NullPointerException`; you must establish an explicit policy to filter or reject `null`.
 
-## 3. Các phương thức của `OptionalInt`, `OptionalLong` và `OptionalDouble`
+## 3. Methods of `OptionalInt`, `OptionalLong`, and `OptionalDouble`
 
-Ba lớp chuyên biệt lưu trạng thái **có hoặc không có một giá trị nguyên thủy**, tránh phải đóng hộp vào `Integer`, `Long`, `Double` chỉ để biểu diễn “có thể vắng mặt”.
+The three specialized classes hold the state of **having or not having a primitive value**, avoiding boxing into `Integer`, `Long`, or `Double` just to represent "possibly absent".
 
-| Nhu cầu | `OptionalInt` | `OptionalLong` | `OptionalDouble` |
+| Need | `OptionalInt` | `OptionalLong` | `OptionalDouble` |
 | --- | --- | --- | --- |
-| Kiểm tra hiện diện | `isPresent()` / `isEmpty()` | `isPresent()` / `isEmpty()` | `isPresent()` / `isEmpty()` |
-| Lấy giá trị khi chắc chắn có | `getAsInt()` | `getAsLong()` | `getAsDouble()` |
-| Có giá trị thì lấy, thiếu thì thay | `orElse(int)` | `orElse(long)` | `orElse(double)` |
-| Tính fallback khi thiếu | `orElseGet(IntSupplier)` | `orElseGet(LongSupplier)` | `orElseGet(DoubleSupplier)` |
-| Thiếu thì ném ngoại lệ | `orElseThrow()` | `orElseThrow()` | `orElseThrow()` |
-| Chạy hành động nếu có | `ifPresent(IntConsumer)` | `ifPresent(LongConsumer)` | `ifPresent(DoubleConsumer)` |
-| Hai nhánh có/không | `ifPresentOrElse(...)` | `ifPresentOrElse(...)` | `ifPresentOrElse(...)` |
-| Chuyển thành stream 0 hoặc 1 phần tử | `stream()` | `stream()` | `stream()` |
+| Check presence | `isPresent()` / `isEmpty()` | `isPresent()` / `isEmpty()` | `isPresent()` / `isEmpty()` |
+| Get value when guaranteed present | `getAsInt()` | `getAsLong()` | `getAsDouble()` |
+| Get value if present, else fallback | `orElse(int)` | `orElse(long)` | `orElse(double)` |
+| Compute fallback when absent | `orElseGet(IntSupplier)` | `orElseGet(LongSupplier)` | `orElseGet(DoubleSupplier)` |
+| Throw if absent | `orElseThrow()` | `orElseThrow()` | `orElseThrow()` |
+| Run action if present | `ifPresent(IntConsumer)` | `ifPresent(LongConsumer)` | `ifPresent(DoubleConsumer)` |
+| Two branches present/absent | `ifPresentOrElse(...)` | `ifPresentOrElse(...)` | `ifPresentOrElse(...)` |
+| Convert to 0- or 1-element stream | `stream()` | `stream()` | `stream()` |
 
-Trong Java 17, `isEmpty()`, `stream()`, `ifPresentOrElse()` và `orElseThrow()` đều có thể được sử dụng. Các kiểu primitive Optional **không cung cấp đầy đủ mọi phép biến đổi** giống `Optional<T>`; chẳng hạn không thể mặc định viết `optionalInt.map(x -> ...)` như với `Optional<Integer>`.
+In Java 17, `isEmpty()`, `stream()`, `ifPresentOrElse()`, and `orElseThrow()` are all available. Primitive Optional types **do not provide all the transformation methods** of `Optional<T>`; for example, you cannot write `optionalInt.map(x -> ...)` directly as you can with `Optional<Integer>`.
 
-### 3.1. Khi nào dùng `orElse`, `orElseGet` và `orElseThrow`?
+### 3.1. When to Use `orElse`, `orElseGet`, and `orElseThrow`?
 
 ```java
 OptionalInt optional = IntStream.of(4, 9, 2).max();
 
 int mustExist = optional.orElseThrow(); // 9
-int fallback = optional.orElse(-1);     // 9 vì Optional có giá trị
+int fallback = optional.orElse(-1);     // 9 because Optional has a value
 
 OptionalInt missing = IntStream.empty().min();
-int defaultValue = missing.orElse(0);   // 0 theo CHÍNH SÁCH người gọi
+int defaultValue = missing.orElse(0);   // 0 by caller POLICY
 ```
 
-`orElse(0)` chỉ phù hợp nếu nghiệp vụ định nghĩa **không có phần tử = 0**. Đây không phải định nghĩa toán học của min/max trên tập rỗng. Ví dụ đo nhiệt độ, `0°C` là một phép đo hợp lệ, nên dùng `0` để biểu diễn “không có phép đo” là nguy hiểm.
+`orElse(0)` is only appropriate if business logic defines **no elements = 0**. That is not the mathematical definition of min/max on an empty set. For instance, when measuring temperature, `0°C` is a valid measurement, so using `0` to mean "no measurement" is dangerous.
 
-Nếu dữ liệu bắt buộc không rỗng, thể hiện điều đó bằng ngoại lệ:
+If data is required to be non-empty, express that with an exception:
 
 ```java
 int peak = IntStream.of(4, 9, 2)
         .max()
         .orElseThrow(() ->
-                new IllegalStateException("Không có dữ liệu tính cực đại"));
+                new IllegalStateException("No data to compute maximum"));
 ```
 
-Đây là đoạn nhúng. `orElseGet(() -> expensiveFallback())` chỉ tính fallback khi Optional rỗng; còn đối số truyền vào `orElse(expensiveFallback())` được đánh giá trước khi gọi `orElse`, ngay cả khi đã có giá trị. Fallback kiểu primitive phải trả đúng kiểu `int`, `long` hoặc `double`.
+This is an embedded snippet. `orElseGet(() -> expensiveFallback())` evaluates the fallback only when the Optional is empty; whereas the argument passed to `orElse(expensiveFallback())` is evaluated before calling `orElse`, even when a value is already present. A primitive fallback must return the exact type `int`, `long`, or `double`.
 
-Khi thiếu dữ liệu là trạng thái bình thường, hãy **giữ nguyên Optional** ở ranh giới API để tầng gọi quyết định. Khi thiếu dữ liệu là lỗi của hợp đồng, dùng `orElseThrow` có thông báo phù hợp.
+When missing data is a normal state, **preserve the Optional** at the API boundary so the calling layer can decide. When missing data violates the contract, use `orElseThrow` with an informative message.
 
-### 3.2. Không gọi `getAs...()` khi chưa xác thực
+### 3.2. Do Not Call `getAs...()` Without Validation
 
 ```java
 OptionalLong empty = LongStream.empty().min();
 // empty.getAsLong() -> NoSuchElementException
 ```
 
-`getAsInt`, `getAsLong` và `getAsDouble` chỉ dùng sau `isPresent()` hoặc khi có bảo đảm miền dữ liệu khác rằng Optional không thể rỗng. Nếu bạn định ném lỗi khi thiếu dữ liệu, `orElseThrow()` truyền đạt ý định rõ hơn.
+`getAsInt`, `getAsLong`, and `getAsDouble` should only be used after `isPresent()` or when another domain invariant guarantees the Optional cannot be empty. If you intend to throw an error when data is missing, `orElseThrow()` communicates that intent more clearly.
 
-### 3.3. Xử lý với `ifPresent`, `ifPresentOrElse` và `stream`
+### 3.3. Handling with `ifPresent`, `ifPresentOrElse`, and `stream`
 
 ```java
 OptionalInt maybe = IntStream.of(2, 8, 5).max();
@@ -144,18 +144,18 @@ OptionalInt maybe = IntStream.of(2, 8, 5).max();
 maybe.ifPresent(value -> System.out.println("max=" + value));
 
 maybe.ifPresentOrElse(
-        value -> System.out.println("Có giá trị: " + value),
-        () -> System.out.println("Dữ liệu rỗng"));
+        value -> System.out.println("Value present: " + value),
+        () -> System.out.println("Empty data"));
 
 int[] result = maybe.stream().map(x -> x * 2).toArray();
-// result là mảng chỉ chứa 16
+// result is an array containing only 16
 ```
 
-Các đoạn này là ví dụ nhúng dùng `OptionalInt` và `IntStream`. `stream()` hữu ích nếu muốn xử lý tiếp 0 hoặc 1 giá trị bằng pipeline primitive mà không tự kiểm tra nhánh rỗng.
+These snippets are embedded examples using `OptionalInt` and `IntStream`. `stream()` is useful when you want to continue processing 0 or 1 value in a primitive pipeline without manually checking the empty branch.
 
-## 4. `Stream<T>.min/max` và bộ so sánh (`Comparator`)
+## 4. `Stream<T>.min/max` and Comparators (`Comparator`)
 
-Với stream đối tượng, thư viện không biết quy tắc sắp xếp của từng kiểu; API cần comparator:
+For an object stream, the library does not know the ordering rules for every type; the API requires a comparator:
 
 ```java
 import java.util.Comparator;
@@ -179,15 +179,15 @@ System.out.println(smallest.orElseThrow().id()); // sensor-C
 System.out.println(largest.orElseThrow().id());  // sensor-B
 ```
 
-Đây là **đoạn nhúng** minh họa một `record` Java 17. Nếu đặt record trong cùng một file `.java` với lớp demo khác, bảo đảm tuân thủ quy tắc tên và số lớp `public`.
+This is an **embedded snippet** illustrating a Java 17 `record`. If placing the record in the same `.java` file as another demo class, ensure naming rules and `public` class count rules are respected.
 
-`Comparator.comparingInt` đọc `int` qua `ToIntFunction`, tránh boxing cần thiết chỉ để so sánh. Với trường `long`/`double`, có các hàm `comparingLong`/`comparingDouble`. `Stream<Integer>` có thể dùng `Comparator.naturalOrder()` để lấy `Optional<Integer>`; `mapToInt(Integer::intValue).min()` phù hợp hơn nếu cần `OptionalInt`.
+`Comparator.comparingInt` reads `int` via `ToIntFunction`, avoiding unnecessary boxing just to compare. For `long`/`double` fields, there are `comparingLong`/`comparingDouble`. `Stream<Integer>` can use `Comparator.naturalOrder()` to get `Optional<Integer>`; `mapToInt(Integer::intValue).min()` is more suitable if you want `OptionalInt`.
 
-### 4.1. Khi nhiều phần tử cùng cực trị
+### 4.1. When Multiple Elements Tie at the Extremum
 
-Giả sử hai đơn hàng có điểm `9`. `max(byScore)` có thể chọn một trong hai; **không dựa vào phần tử cụ thể được chọn khi comparator coi chúng ngang nhau**, đặc biệt trong xử lý song song hoặc sau khi thứ tự nguồn thay đổi.
+Suppose two orders both have score `9`. `max(byScore)` may pick either of them; **do not rely on which specific element is picked when the comparator considers them equal**, especially under parallel processing or after source order changes.
 
-Nếu nghiệp vụ yêu cầu một phần tử xác định, quy định tiêu chí phụ:
+If business logic requires a deterministic element, specify a secondary criterion:
 
 ```java
 Comparator<Reading> ranking = Comparator
@@ -197,13 +197,13 @@ Comparator<Reading> ranking = Comparator
 Reading selected = readings.stream().max(ranking).orElseThrow();
 ```
 
-Với comparator này, khi score bằng nhau, `max` chọn ID lớn hơn theo thứ tự từ điển. Nếu muốn ưu tiên ID nhỏ hơn khi score bằng nhau, phải định nghĩa lại tiêu chí phụ, ví dụ `thenComparing(Reading::id, Comparator.reverseOrder())` cho trường hợp lấy `max`. Đây là quyết định miền dữ liệu, không phải mặc định của Stream API.
+With this comparator, when scores tie, `max` picks the lexicographically larger ID. If you want to prefer the smaller ID on a score tie, redefine the secondary criterion—for example `thenComparing(Reading::id, Comparator.reverseOrder())` when taking `max`. This is a domain decision, not a Stream API default.
 
-Comparator nên có tính nhất quán, tính bắc cầu và không dựa vào trạng thái thay đổi trong lúc stream đang chạy. Nếu không, kết quả tổng hợp trở nên khó dự đoán.
+A comparator must be consistent, transitive, and independent of state mutated while the stream runs. Otherwise, aggregation results become unpredictable.
 
 ### 4.2. `Collectors.minBy/maxBy`
 
-Khi đang dùng `collect` hoặc nhóm dữ liệu:
+When already inside `collect` or grouping data:
 
 ```java
 import java.util.Comparator;
@@ -215,11 +215,11 @@ Optional<Integer> min = List.of(6, 3, 9)
         .collect(Collectors.minBy(Comparator.naturalOrder()));
 ```
 
-`Collectors.minBy` trả `Optional<T>` giống `Stream.min(comparator)`; nó hữu ích khi kết hợp với collector khác như `groupingBy`. Nếu chỉ lấy cực trị của toàn stream, gọi trực tiếp `.min(comparator)` hoặc `.max(comparator)` thường đơn giản hơn.
+`Collectors.minBy` returns `Optional<T>` like `Stream.min(comparator)`; it is useful when combined with other collectors such as `groupingBy`. If you only want the extremum of the whole stream, calling `.min(comparator)` or `.max(comparator)` directly is usually simpler.
 
-## 5. Dữ liệu rỗng và ý nghĩa nghiệp vụ
+## 5. Empty Data and Business Semantics
 
-Một nguồn có thể rỗng vì hoàn toàn không có bản ghi, vì filter loại hết mọi phần tử, hoặc vì dữ liệu đầu vào lỗi/không có quyền truy cập. Các trường hợp này có thể có cùng kết quả `Optional.empty()` nhưng **nguyên nhân nghiệp vụ khác nhau**.
+A source may be empty because there are no records at all, because a filter removed every element, or because input data was invalid/inaccessible. These cases can all produce the same `Optional.empty()` result, yet have **different business causes**.
 
 ```java
 OptionalInt expensivePeak = IntStream.of(10, 20, 30)
@@ -227,22 +227,22 @@ OptionalInt expensivePeak = IntStream.of(10, 20, 30)
         .max(); // OptionalInt.empty()
 ```
 
-Trước khi chọn fallback, cần trả lời:
+Before choosing a fallback, answer:
 
-- **Không có dữ liệu là trạng thái bình thường?** Trả về `OptionalInt`/`OptionalLong`/`OptionalDouble` cho caller.
-- **Dữ liệu bắt buộc phải tồn tại?** Ném lỗi rõ nguyên nhân, chẳng hạn `orElseThrow`.
-- **Có đơn vị mặc định được quy định?** Có thể dùng `orElse(fallback)`; ghi rõ fallback là chính sách của miền nghiệp vụ.
-- **Cần JSON/REST?** Thiết kế biểu diễn “không có giá trị” trong DTO/API rõ ràng. Không giả định mọi thư viện JSON đều serialize primitive Optional theo cùng một cách; chuyển sang kiểu DTO/giao thức đã định nghĩa khi xuất dữ liệu.
+- **Is having no data a normal state?** Return `OptionalInt`/`OptionalLong`/`OptionalDouble` to the caller.
+- **Is data required to exist?** Throw a clear exception, e.g., via `orElseThrow`.
+- **Is there a defined default unit?** You may use `orElse(fallback)`; document clearly that the fallback is a domain policy.
+- **Need JSON/REST?** Design an explicit "no value" representation in the DTO/API. Do not assume every JSON library serializes primitive Optionals the same way; convert to a well-defined DTO/protocol type when exporting data.
 
-Không thay Optional rỗng bằng một giá trị cực biên như `Integer.MAX_VALUE` hoặc `Integer.MIN_VALUE` rồi không ghi rõ điều kiện tồn tại, vì giá trị cực biên là một giá trị số thực sự hợp lệ trong miền `int`.
+Do not replace an empty Optional with an extreme sentinel like `Integer.MAX_VALUE` or `Integer.MIN_VALUE` without an explicit existence flag, because those extreme values are valid integers in the `int` domain.
 
-## 6. Trường hợp đặc biệt với `DoubleStream.min/max`
+## 6. Special Cases with `DoubleStream.min/max`
 
-`double` không giống số nguyên vì có các giá trị và thứ tự đặc biệt:
+`double` differs from integers because it has special values and ordering:
 
 ### 6.1. `NaN`
 
-Nếu **bất kỳ phần tử** nào trong `DoubleStream` là `Double.NaN`, thì theo hợp đồng Java 17, `min()`/`max()` trả `OptionalDouble` **có giá trị `NaN`**, kể cả khi các phần tử khác hữu hạn.
+If **any element** in a `DoubleStream` is `Double.NaN`, then by the Java 17 contract, `min()`/`max()` returns an `OptionalDouble` **containing `NaN`**, even when all other elements are finite.
 
 ```java
 double result = DoubleStream.of(3.0, Double.NaN, -5.0)
@@ -252,35 +252,35 @@ double result = DoubleStream.of(3.0, Double.NaN, -5.0)
 System.out.println(result); // NaN
 ```
 
-`OptionalDouble` lúc này **không rỗng**. `isPresent()` chỉ cho biết có phần tử được tổng hợp, không khẳng định giá trị là số hữu hạn.
+Here `OptionalDouble` is **not empty**. `isPresent()` only indicates an element was aggregated, not that the value is a finite number.
 
-Nếu miền dữ liệu quy định phải bỏ `NaN`, lọc có chủ đích:
+If the domain rules specify discarding `NaN`, filter intentionally:
 
 ```java
 OptionalDouble cleanMin = DoubleStream.of(3.0, Double.NaN, -5.0)
         .filter(d -> !Double.isNaN(d))
         .min();
-// cleanMin chứa -5.0
+// cleanMin holds -5.0
 ```
 
-Nếu không chấp nhận cả vô cực, dùng `Double.isFinite(d)` để chỉ giữ các giá trị hữu hạn. Tuy nhiên, lọc dữ liệu là **quy tắc nghiệp vụ**; với dữ liệu đáng lẽ phải hợp lệ, từ chối một bản ghi có `NaN` có thể thích hợp hơn là âm thầm bỏ qua.
+If infinities are also unacceptable, use `Double.isFinite(d)` to keep only finite values. However, filtering data is a **business rule**; for data expected to be valid, rejecting a record containing `NaN` may be more appropriate than silently ignoring it.
 
-### 6.2. Hai loại số không: `-0.0` và `+0.0`
+### 6.2. Two Zeros: `-0.0` and `+0.0`
 
-Java phân biệt dấu của số không ở kiểu `double`:
+Java distinguishes the sign of zero in `double`:
 
 ```java
 System.out.println(DoubleStream.of(+0.0, -0.0).min().orElseThrow()); // -0.0
 System.out.println(DoubleStream.of(+0.0, -0.0).max().orElseThrow()); // 0.0
 ```
 
-`DoubleStream.min()` coi `-0.0` nhỏ hơn `+0.0`; `max()` coi `+0.0` lớn hơn `-0.0`, phù hợp với thứ tự của `Double.compare`. Nếu dấu của số 0 có ý nghĩa với phép đo hay phép tính tiếp theo, không xóa dấu một cách tùy tiện.
+`DoubleStream.min()` treats `-0.0` as less than `+0.0`; `max()` treats `+0.0` as greater than `-0.0`, consistent with `Double.compare`. If the sign of zero carries meaning for measurements or downstream math, do not strip the sign arbitrarily.
 
-### 6.3. Vô cực và độ chính xác số dấu phẩy động
+### 6.3. Infinity and Floating-Point Precision
 
-`Double.POSITIVE_INFINITY`/`Double.NEGATIVE_INFINITY` có thể tham gia min/max. Kết quả vẫn thuộc kiểu `double` và chịu sai số của biểu diễn số dấu phẩy động. Ví dụ phép tổng hợp **min/max** tự nó không làm tròn thêm như phép cộng liên tục, nhưng từng giá trị nguồn có thể đã bị xấp xỉ trước đó.
+`Double.POSITIVE_INFINITY`/`Double.NEGATIVE_INFINITY` can participate in min/max. The result remains `double` and reflects floating-point representation accuracy. Note that **min/max** aggregation itself does not introduce extra rounding like repeated addition does, though individual source values may already have been approximated beforehand.
 
-Nếu miền dữ liệu là tiền tệ/thập phân cần biểu diễn chính xác, cân nhắc `BigDecimal` trong `Stream<BigDecimal>` cùng comparator tự nhiên thay vì tự động chuyển sang `double`:
+If the domain involves currency/decimals requiring exact representation, consider `BigDecimal` in `Stream<BigDecimal>` with its natural comparator instead of automatically converting to `double`:
 
 ```java
 Optional<BigDecimal> min = List.of(
@@ -290,11 +290,11 @@ Optional<BigDecimal> min = List.of(
         .min(BigDecimal::compareTo);
 ```
 
-Đây là đoạn nhúng cần `import java.math.BigDecimal; import java.util.List; import java.util.Optional;`. Chú ý `BigDecimal.compareTo` so theo **giá trị số**, trong khi `BigDecimal.equals` còn xét scale; bài toán cực trị thường muốn so giá trị.
+This embedded snippet requires `import java.math.BigDecimal; import java.util.List; import java.util.Optional;`. Note that `BigDecimal.compareTo` compares by **numeric value**, whereas `BigDecimal.equals` also checks scale; extrema problems typically want numeric value comparison.
 
-## 7. Tính đồng thời min và max bằng `summaryStatistics()`
+## 7. Computing min and max Together with `summaryStatistics()`
 
-Nếu cần cả min, max, count, sum và average của cùng một nguồn, có thể lấy tất cả trong **một lần duyệt**:
+If you need min, max, count, sum, and average of the same source, you can gather all of them in **a single traversal**:
 
 ```java
 import java.util.IntSummaryStatistics;
@@ -310,38 +310,38 @@ System.out.println(stats.getSum());   // 31
 System.out.println(stats.getAverage()); // 6.2
 ```
 
-Java có `IntSummaryStatistics`, `LongSummaryStatistics` và `DoubleSummaryStatistics`. `summaryStatistics()` hữu ích khi cần nhiều metric và tránh việc cố tái sử dụng một stream đã bị tiêu thụ.
+Java provides `IntSummaryStatistics`, `LongSummaryStatistics`, and `DoubleSummaryStatistics`. `summaryStatistics()` is useful when multiple metrics are needed and avoids trying to reuse an already consumed stream.
 
-**Lưu ý với nguồn rỗng:** `IntSummaryStatistics` có `count == 0`; khi chưa có phần tử, `getMin()` trả `Integer.MAX_VALUE`, `getMax()` trả `Integer.MIN_VALUE`. Đây là **giá trị khởi tạo nội bộ**, không phải min/max có nghĩa cho tập rỗng. Với `LongSummaryStatistics`, các giá trị mặc định tương tự theo miền `long`. Với `DoubleSummaryStatistics`, min và max của nguồn rỗng lần lượt là `Double.POSITIVE_INFINITY` và `Double.NEGATIVE_INFINITY`.
+**Note on empty sources:** `IntSummaryStatistics` has `count == 0`; when no elements have been seen, `getMin()` returns `Integer.MAX_VALUE` and `getMax()` returns `Integer.MIN_VALUE`. These are **internal initial values**, not meaningful min/max for an empty set. For `LongSummaryStatistics`, the defaults are analogous in the `long` range. For `DoubleSummaryStatistics`, min and max of an empty source are `Double.POSITIVE_INFINITY` and `Double.NEGATIVE_INFINITY`, respectively.
 
-Vì vậy, trước khi sử dụng cực trị:
+Therefore, before using extrema:
 
 ```java
 IntSummaryStatistics stats = IntStream.empty().summaryStatistics();
 if (stats.getCount() == 0) {
-    System.out.println("Không có dữ liệu");
+    System.out.println("No data");
 } else {
     System.out.println(stats.getMin());
 }
 ```
 
-`summaryStatistics()` có thêm chính sách về tổng/average: `int` sum có thể tràn số nguyên, `long` sum cũng có thể tràn, còn phép tính trên `double` có thể mang sai số dấu phẩy động. Vì vậy, chọn công cụ theo yêu cầu phép tổng hợp, không dùng statistics như một giải pháp “chính xác tuyệt đối” cho mọi chỉ số.
+`summaryStatistics()` also carries sum/average rules: `int` sums can fit in `long` (`getSum()`), `long` sums can still overflow, and `double` calculations can incur floating-point error. Choose tools based on aggregation requirements rather than treating statistics as an "infinitely exact" solution for every metric.
 
-### Stream chỉ dùng một lần
+### Streams Are Single-Use
 
-Đoạn sau **không hợp lệ** vì một stream không được dùng lại sau terminal operation:
+The following is **invalid** because a stream cannot be reused after a terminal operation:
 
 ```java
 IntStream source = IntStream.of(3, 7, 2);
 int min = source.min().orElseThrow();
-// source.max(); // IllegalStateException: stream đã bị tiêu thụ
+// source.max(); // IllegalStateException: stream has already been consumed
 ```
 
-Muốn lấy cả min và max, tạo hai stream mới từ nguồn có thể duyệt lại (ví dụ `Arrays.stream(array)` mỗi lần) hoặc dùng `summaryStatistics()` một lượt. Với nguồn I/O chỉ đọc một lần, `summaryStatistics()` thường là hướng hợp lý cho các thống kê được hỗ trợ.
+To get both min and max, create two new streams from a re-traversable source (e.g., `Arrays.stream(array)` each time) or use `summaryStatistics()` in a single pass. For a single-read I/O source, `summaryStatistics()` is usually the sensible approach for supported metrics.
 
-## 8. Chương trình Java 17+ chạy được
+## 8. Runnable Java 17+ Program
 
-Lưu vào **`MinMaxOptionalDemo.java`**:
+Save as **`MinMaxOptionalDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -402,14 +402,14 @@ public class MinMaxOptionalDemo {
 }
 ```
 
-Biên dịch và chạy trên JDK 17 trở lên:
+Compile and run on JDK 17 or newer:
 
 ```bash
 javac MinMaxOptionalDemo.java
 java MinMaxOptionalDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 int min = -2
@@ -424,65 +424,65 @@ stats min/max = -2/13
 NaN max = NaN
 ```
 
-**Giải thích:** Các số trong `scores` cho min `-2` và max `13`; `IntStream.empty()` dẫn tới Optional rỗng. `LongStream` giữ được giá trị `5_000_000_000` vượt phạm vi `int`. `DoubleStream` giữ dấu của `-0.0`. Comparator giữ nguyên bản ghi `Reading` gắn với điểm cực trị. `summaryStatistics` đếm năm phần tử và cùng cực trị. Giá trị `NaN` trong nguồn làm `DoubleStream.max()` trả `NaN` thay vì trả `3.0`.
+**Explanation:** The numbers in `scores` yield min `-2` and max `13`; `IntStream.empty()` leads to an empty Optional. `LongStream` preserves `5_000_000_000` beyond `int` bounds. `DoubleStream` preserves the sign of `-0.0`. The comparator preserves the `Reading` record associated with the extreme score. `summaryStatistics` counts five elements and reports the same extrema. `NaN` in the source causes `DoubleStream.max()` to return `NaN` rather than `3.0`.
 
-Trong chương trình này, `orElseThrow()` trên các stream không rỗng là hợp lệ vì dữ liệu mẫu đã định rõ. Với nguồn có thể rỗng từ API hoặc database, phải xử lý từng Optional theo chính sách của miền thay vì mặc định `orElseThrow` ở mọi nơi.
+In this program, `orElseThrow()` on non-empty streams is valid because sample data is hardcoded. For potentially empty sources from an API or database, handle each Optional according to domain policy instead of calling `orElseThrow` everywhere by default.
 
-## 9. Hiệu năng, song song và thứ tự so sánh
+## 9. Performance, Parallelism, and Comparison Order
 
-Để tìm riêng min hoặc max, một phép duyệt đầy đủ thông thường có độ phức tạp thời gian **O(n)** và không cần sắp xếp toàn bộ dữ liệu. `stream().sorted().findFirst()` có thể tìm giá trị thấp nhất nhưng phải sắp xếp và thường tốn nhiều tài nguyên hơn `min(comparator)`.
+To find min or max alone, a full pass normally has **O(n)** time complexity and does not need to sort the entire dataset. `stream().sorted().findFirst()` can find the lowest value, but it sorts everything and usually consumes more resources than `min(comparator)`.
 
-Với `IntStream`/`LongStream`/`DoubleStream`, tránh boxing không cần thiết trong quá trình reduction. Khi dữ liệu đã là `List<Reading>`, việc chuyển sang một primitive stream để lấy giá trị rồi truy ngược về đối tượng có thể tạo thêm vấn đề; dùng comparator trực tiếp để giữ metadata.
+With `IntStream`/`LongStream`/`DoubleStream`, avoid unnecessary boxing during reduction. When data is already a `List<Reading>`, converting to a primitive stream just to get a number and then mapping back to the object can introduce extra issues; use a comparator directly to retain metadata.
 
-`min` và `max` có thể dùng với stream song song nếu nguồn, mapping và comparator được thiết kế an toàn:
+`min` and `max` can be used with parallel streams if the source, mapping, and comparator are safely designed:
 
 ```java
 OptionalInt min = IntStream.rangeClosed(1, 1_000_000)
         .parallel()
         .min();
-// Kết quả có giá trị 1, nhưng việc parallel có nhanh hơn hay không phải đo.
+// Result has value 1, though whether parallel is faster must be measured.
 ```
 
-Nếu nhiều đối tượng được comparator coi ngang nhau, không dựa vào việc chọn một phần tử cụ thể; hãy tạo tiêu chí phụ nếu cần kết quả duy nhất theo hợp đồng. Không để comparator đọc/ghi shared mutable state hay thay đổi các giá trị đang được so sánh giữa chừng.
+If multiple objects are considered equal by the comparator, do not rely on a specific one being picked; add a tie-breaker criterion if a unique result is required by contract. Never let a comparator read/write shared mutable state or mutate values being compared mid-stream.
 
-Không sử dụng `min`/`max` trên một nguồn đang bị sửa đồng thời thiếu đồng bộ; tính đúng đắn của kết quả còn phụ thuộc vào ràng buộc của collection/source. Với các Stream API, nguồn và các lambda phải tuân thủ nguyên tắc không can thiệp và không có trạng thái dùng chung nguy hiểm.
+Do not run `min`/`max` over a source being concurrently modified without synchronization; correctness also depends on the collection/source guarantees. Under the Stream API, sources and lambdas must follow non-interference and avoid unsafe shared state.
 
-## 10. Những lỗi thường gặp
+## 10. Common Mistakes
 
-| Sai lầm | Hệ quả | Cách làm |
+| Mistake | Consequence | Solution |
 | --- | --- | --- |
-| Gọi `getAsInt()` trên kết quả của stream rỗng | `NoSuchElementException` | Dùng `orElse`, `orElseThrow`, `ifPresent` hoặc trả Optional |
-| Nghĩ `OptionalInt.empty()` tương đương `0` | Báo min/max giả, che mất dữ liệu | Giữ trạng thái vắng mặt rõ ràng |
-| Dùng `Integer.MIN_VALUE` làm mặc định max mà không kiểm tra hiện diện | Không phân biệt được rỗng với dữ liệu thật có giá trị cực biên | Trả Optional hoặc thêm flag hiện diện |
-| Gọi `.min()` rồi `.max()` trên cùng một Stream | `IllegalStateException` | Tạo stream mới hoặc dùng `summaryStatistics()` |
-| Dùng `Stream<T>.min()` không có comparator | Không biên dịch | Truyền `Comparator` hoặc chuyển sang primitive stream phù hợp |
-| Gọi `getAsInt` trên `Optional<Integer>` | Không biên dịch | Với object Optional dùng `get`/`orElseThrow`; muốn primitive dùng `mapToInt` |
-| Không xử lý `NaN` trong `DoubleStream` | Min/max chứa `NaN` dù các số khác hợp lệ | Định nghĩa chính sách reject/filter theo miền |
-| Nhầm `-0.0` bằng `+0.0` về mọi ngữ nghĩa | Kết quả hiển thị và thứ tự cực trị bất ngờ | Xem quy tắc `Double.compare` và hợp đồng ứng dụng |
-| Comparator chỉ xét score khi cần kết quả thắng cuộc duy nhất | Các bản ghi cùng score không phân biệt | Thêm tiêu chí phụ bằng `thenComparing` |
-| Dùng `summaryStatistics.getMin()` trên tập rỗng mà không xét count | Nhận giá trị khởi tạo nội bộ thay vì min thực | Kiểm tra `getCount() > 0` |
-| Dùng `sorted()` để lấy một cực trị | Tốn thời gian/bộ nhớ không cần thiết | Dùng terminal `min` hoặc `max` |
-| Đưa `null` vào `mapToInt(Integer::intValue)` | `NullPointerException` khi unboxing | Xác thực, lọc hoặc xử lý null có chủ đích |
+| Calling `getAsInt()` on an empty stream result | `NoSuchElementException` | Use `orElse`, `orElseThrow`, `ifPresent`, or return Optional |
+| Thinking `OptionalInt.empty()` equals `0` | Reports fake min/max, hides missing data | Keep absence state explicit |
+| Using `Integer.MIN_VALUE` as max default without checking presence | Cannot distinguish empty from real extreme values | Return Optional or add a presence flag |
+| Calling `.min()` then `.max()` on the same Stream | `IllegalStateException` | Create a new stream or use `summaryStatistics()` |
+| Using `Stream<T>.min()` without a comparator | Does not compile | Pass a `Comparator` or convert to the proper primitive stream |
+| Calling `getAsInt` on `Optional<Integer>` | Does not compile | For object Optional use `get`/`orElseThrow`; for primitive use `mapToInt` |
+| Ignoring `NaN` in `DoubleStream` | Min/max becomes `NaN` despite other valid numbers | Define reject/filter policy per domain |
+| Treating `-0.0` as identical to `+0.0` in every semantic | Unexpected display and extremum order | Check `Double.compare` rules and application contract |
+| Comparator checking only score when a unique winner is needed | Records with tied scores are indistinguishable | Add secondary criteria via `thenComparing` |
+| Using `summaryStatistics.getMin()` on empty set without checking count | Receives internal initial sentinel instead of true min | Check `getCount() > 0` |
+| Using `sorted()` to get a single extremum | Unnecessary time/memory cost | Use terminal `min` or `max` |
+| Passing `null` into `mapToInt(Integer::intValue)` | `NullPointerException` on unboxing | Validate, filter, or handle nulls intentionally |
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-Check Exercises
 
-1. Cho `IntStream.of(-3, 0, 9, 9)`: `min`, `max` trả gì? Vì sao dùng `OptionalInt` thay vì trả trực tiếp `int`?
-2. Sau `.filter(x -> x > 100)` trên dãy trên, Optional của `max()` là gì? Khi nào bạn sẽ dùng `orElseThrow` thay vì `orElse(0)`?
-3. Với các `Reading(id, score)` có hai phần tử cùng `score`, hãy định nghĩa tie-breaker để lấy score lớn nhất, rồi ưu tiên ID *nhỏ nhất*.
-4. Với `DoubleStream.of(2.0, Double.NaN, -10.0)`, kết quả `.min()` là gì? Sửa pipeline để chỉ xét giá trị hữu hạn.
-5. Vì sao `IntStream.empty().summaryStatistics().getMin()` không thể coi là cực tiểu của tập dữ liệu? Bạn cần kiểm tra thuộc tính nào?
-6. Một request cần `min`, `max`, `count` trên nguồn chỉ đọc được một lần. Nên gọi ba terminal operation trên cùng stream, hay chọn phương pháp nào?
-7. Viết hàm nhận `List<Integer>` và trả `OptionalInt` chứa giá trị lớn nhất, với quy tắc từ chối `null`, không dùng `sorted()`.
+1. Given `IntStream.of(-3, 0, 9, 9)`: what do `min` and `max` return? Why return `OptionalInt` instead of returning `int` directly?
+2. After `.filter(x -> x > 100)` on the sequence above, what is the Optional from `max()`? When would you use `orElseThrow` instead of `orElse(0)`?
+3. For `Reading(id, score)` with two elements sharing the same `score`, define a tie-breaker to take the highest score, and prefer the *smallest* ID on ties.
+4. For `DoubleStream.of(2.0, Double.NaN, -10.0)`, what is `.min()`? Fix the pipeline to consider only finite values.
+5. Why can `IntStream.empty().summaryStatistics().getMin()` not be treated as the dataset's minimum? Which property must you check?
+6. A request needs `min`, `max`, and `count` on a source that can only be read once. Should you call three terminal operations on the same stream, or which approach should you choose?
+7. Write a function taking `List<Integer>` and returning `OptionalInt` with the maximum value, rejecting `null`, without using `sorted()`.
 
-**Gợi ý:** (1) min `-3`, max `9`, vì nguồn bất kỳ có thể rỗng. (2) `OptionalInt.empty()`; `orElseThrow` khi thiếu dữ liệu vi phạm hợp đồng. (3) `comparingInt(Reading::score).thenComparing(Reading::id, Comparator.reverseOrder())` rồi `.max(...)`. (4) `NaN`; dùng `.filter(Double::isFinite)` nếu quy tắc miền yêu cầu. (5) `getCount() == 0` có nghĩa chưa có phần tử. (6) `summaryStatistics()` một lần. (7) dùng `stream().mapToInt(Integer::intValue).max()` sau khi bảo đảm không có null.
+**Hints:** (1) min `-3`, max `9`, because any source might be empty. (2) `OptionalInt.empty()`; use `orElseThrow` when missing data violates the contract. (3) `comparingInt(Reading::score).thenComparing(Reading::id, Comparator.reverseOrder())` then `.max(...)`. (4) `NaN`; use `.filter(Double::isFinite)` if domain rules require it. (5) `getCount() == 0` means no elements yet. (6) Single-pass `summaryStatistics()`. (7) use `stream().mapToInt(Integer::intValue).max()` after ensuring no nulls.
 
-## 12. Ghi nhớ áp dụng
+## 12. Key Takeaways
 
-Để lấy cực trị trên dữ liệu số, ưu tiên `IntStream.min/max`, `LongStream.min/max`, `DoubleStream.min/max` theo kiểu dữ liệu và nhận `OptionalInt`, `OptionalLong`, `OptionalDouble`. Với dữ liệu đối tượng, dùng `Stream<T>.min/max(Comparator)` để giữ toàn bộ đối tượng. Hãy xác định chính sách **thiếu dữ liệu** rõ ràng, đặc biệt khi stream rỗng do filter; không tùy tiện thay bằng 0.
+To obtain extrema on numeric data, prefer `IntStream.min/max`, `LongStream.min/max`, and `DoubleStream.min/max` matching the data type, receiving `OptionalInt`, `OptionalLong`, and `OptionalDouble`. For object data, use `Stream<T>.min/max(Comparator)` to preserve the full object. Define a clear **missing-data** policy, especially when a stream becomes empty after filtering; do not arbitrarily substitute 0.
 
-Nếu cần nhiều chỉ số trên cùng stream, dùng `summaryStatistics()` và kiểm tra `count` trước khi đọc ý nghĩa min/max của nguồn rỗng. Với `double`, xác định chính sách cho `NaN`, vô cực và dấu số không. Khi cần thứ tự ổn định cho các bản ghi bằng điểm, định nghĩa comparator có tiêu chí phụ.
+If you need multiple metrics on the same stream, use `summaryStatistics()` and check `count` before reading min/max on empty sources. For `double`, define policies for `NaN`, infinity, and zero sign. When stable ordering is needed for tied records, define a comparator with secondary criteria.
 
-Tài liệu API Java SE 17:
+Java SE 17 API documentation:
 - [`IntStream`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/IntStream.html), [`LongStream`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/LongStream.html), [`DoubleStream`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/DoubleStream.html).
 - [`OptionalInt`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/OptionalInt.html), [`OptionalLong`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/OptionalLong.html), [`OptionalDouble`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/OptionalDouble.html).
 - [`Stream`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/Stream.html), [`IntSummaryStatistics`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/IntSummaryStatistics.html).

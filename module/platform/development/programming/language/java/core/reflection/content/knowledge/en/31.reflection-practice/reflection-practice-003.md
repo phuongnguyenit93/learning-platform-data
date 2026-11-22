@@ -1,15 +1,15 @@
-# Tạo factory từ constructor có kiểu và thông báo lỗi rõ ràng — Java Reflection
+# Building a Typed Constructor-Based Factory with Clear Error Messages — Java Reflection
 
-## 1. Bài toán thực hành
+## 1. Practice Problem
 
-Giả sử hệ thống có nhiều implementation của interface `Report` và muốn tạo instance tương ứng tại runtime. Mỗi implementation có một **constructor nhận `String title`**. Caller cần:
+Suppose a system has multiple implementations of a `Report` interface and wants to instantiate the appropriate one at runtime. Each implementation has a **constructor taking `String title`**. The caller needs to:
 
-- Yêu cầu factory tạo instance với **đúng kiểu `T extends Report`**, không phải nhận `Object` rồi ép kiểu tràn lan.
-- Kiểm tra constructor mong đợi **một lần khi tạo factory**, thay vì tìm lại metadata trong mọi request.
-- Nêu rõ lỗi thiếu class, sai contract, thiếu chữ ký constructor, constructor không public, không thể instantiate, hay **lỗi xuất phát từ chính thân constructor**.
-- Giữ nguyên `cause` và stack trace khi bọc exception, giúp người vận hành biết sai do cấu hình/Reflection hay do mã nghiệp vụ.
+- Ask the factory to create an instance with the **exact type `T extends Report`**, rather than receiving `Object` and casting everywhere.
+- Check the expected constructor **once when creating the factory**, instead of looking up metadata on every request.
+- Clearly report missing classes, contract mismatches, missing constructor signatures, non-public constructors, uninstantiable types, or **errors originating from the constructor body itself**.
+- Preserve the `cause` and stack trace when wrapping exceptions, helping operators tell whether a failure comes from configuration/Reflection or business logic.
 
-Thiết kế mong muốn:
+Desired design:
 
 ```java
 TypedFactory<PdfReport> factory = TypedFactory.forClass(PdfReport.class);
@@ -17,13 +17,13 @@ PdfReport report = factory.create("Monthly");
 System.out.println(report.render()); // PDF: Monthly
 ```
 
-Đây là mảnh minh họa dùng các class được định nghĩa đầy đủ ở phần 5. `TypedFactory<PdfReport>` giúp trình biên dịch biết `create(...)` trả về `PdfReport`, còn Reflection chỉ được dùng trong lớp factory.
+This is an illustrative snippet using classes fully defined in Section 5. `TypedFactory<PdfReport>` lets the compiler know `create(...)` returns `PdfReport`, while Reflection is confined to the factory class.
 
-**Ý tưởng:** gom rủi ro Reflection vào một ranh giới nhỏ, biểu diễn phần còn lại của ứng dụng qua interface và kiểu generic. Factory không cần biến mọi lệnh gọi Java thành `Method.invoke`; sau khi tạo đối tượng, dùng đa hình thông thường.
+**Idea:** isolate Reflection risks behind a small boundary, and express the rest of the application using interfaces and generic types. A factory does not need to turn every Java call into `Method.invoke`; after creating the object, use ordinary polymorphism.
 
-## 2. “Constructor có kiểu” nghĩa là gì?
+## 2. What Does a "Typed Constructor" Mean?
 
-API `java.lang.reflect.Constructor<T>` giữ thông tin kiểu instance sẽ được tạo:
+The `java.lang.reflect.Constructor<T>` API retains the type information of the instance to be created:
 
 ```java
 Class<PdfReport> type = PdfReport.class;
@@ -31,99 +31,99 @@ Constructor<PdfReport> ctor = type.getConstructor(String.class);
 PdfReport report = ctor.newInstance("Monthly");
 ```
 
-Đoạn minh họa trên cần `import java.lang.reflect.Constructor;` và các class từ ví dụ đầy đủ bên dưới; nó phát sinh checked reflection exceptions nên phương thức bao quanh phải `throws` hoặc `catch` thích hợp.
+The snippet above requires `import java.lang.reflect.Constructor;` and the classes from the complete example below; it throws checked reflection exceptions, so the enclosing method must declare `throws` or `catch` them appropriately.
 
-Các thành phần:
+Components:
 
-| Thành phần | Ý nghĩa |
+| Component | Meaning |
 |---|---|
-| `Class<T>` | Runtime token đại diện cho kiểu cụ thể `T` |
-| `Constructor<T>` | Metadata constructor tạo instance tương ứng với `T` |
-| `type.getConstructor(String.class)` | Tra constructor **public**, có **chính xác một** tham số khai báo kiểu `String` |
-| `constructor.newInstance(title)` | Kiểm tra điều kiện gọi và chạy thân constructor, trả `T` nếu thành công |
-| `TypedFactory<T extends Report>` | Gói constructor và cung cấp API tạo mới có kiểu, ràng buộc kiểu trả về theo `Report` |
+| `Class<T>` | Runtime token representing the concrete type `T` |
+| `Constructor<T>` | Constructor metadata creating an instance corresponding to `T` |
+| `type.getConstructor(String.class)` | Looks up a **public** constructor with **exactly one** parameter declared as `String` |
+| `constructor.newInstance(title)` | Checks invocation conditions and runs the constructor body, returning `T` on success |
+| `TypedFactory<T extends Report>` | Wraps the constructor and provides a typed creation API, bounding the return type to `Report` |
 
-Trong factory generic:
+Inside the generic factory:
 
 ```java
 public final class TypedFactory<T extends Report> {
     private final Constructor<T> constructor;
-    // Các thành viên khác...
+    // Other members...
 }
 ```
 
-Đây là mảnh khai báo thiết kế; class chạy đầy đủ nằm ở phần 5.
+This is a design declaration snippet; the complete runnable class is in Section 5.
 
-### Điều type safety đảm bảo — và không đảm bảo
+### What Type Safety Guarantees — and Does Not Guarantee
 
-`TypedFactory<PdfReport>.create(...)` trả về `PdfReport` tại compile time. Dùng `Class<T>` lấy từ literal `PdfReport.class` giúp các bước tra cứu an toàn hơn kiểu `Class<?>` và cast `(T) rawObject` không được kiểm soát.
+`TypedFactory<PdfReport>.create(...)` returns `PdfReport` at compile time. Using a `Class<T>` obtained from the `PdfReport.class` literal makes lookup steps safer than raw `Class<?>` and unchecked `(T) rawObject` casts.
 
-Tuy nhiên, **generic không làm runtime lookup biến thành compile-time lookup**:
+However, **generics do not turn runtime lookup into compile-time lookup**:
 
-- Lớp có thể thiếu constructor `public PdfReport(String)`.
-- Constructor có thể nằm ở phạm vi `private` hoặc `protected`.
-- Thân constructor có thể ném `IllegalArgumentException`, `IOException`, `Error`, v.v.
-- Trong các môi trường module/class loader, vẫn có thể có lỗi access, linkage hoặc class initialization.
+- The class might lack a `public PdfReport(String)` constructor.
+- The constructor might have `private` or `protected` visibility.
+- The constructor body might throw `IllegalArgumentException`, `IOException`, `Error`, etc.
+- In module/class loader environments, access, linkage, or class initialization errors can still occur.
 
-Factory phải chẩn đoán rõ ràng các điểm này. Không hứa rằng vì sử dụng `Constructor<T>` nên Reflection không thể lỗi tại runtime.
+The factory must diagnose these clearly. Do not promise that using `Constructor<T>` makes Reflection immune to runtime failures.
 
-## 3. Chọn đúng constructor: public, declared, signature và class hợp lệ
+## 3. Selecting the Right Constructor: public, declared, signature, and valid class
 
-Hai API thường gặp:
+Two common APIs:
 
 ```java
 type.getConstructor(String.class);
 type.getDeclaredConstructor(String.class);
 ```
 
-- `getConstructor(...)` tìm **constructor public** với parameter types được chỉ định.
-- `getDeclaredConstructor(...)` tìm constructor khai báo ngay trong class, bao gồm non-public.
-- Constructor **không được kế thừa** từ superclass: không có cơ chế tìm public inherited constructor như method.
-- Hai API tra cứu trên dựa vào **danh sách kiểu tham số chính xác**. Chúng không tự boxing `int` thành `Integer`, không tự chọn overload hoặc convert `CharSequence` thành `String`.
-- `Class.getConstructor(...)` ném `NoSuchMethodException` khi không có constructor public đúng signature, kể cả khi tồn tại private constructor cùng signature.
-- Constructor không phải method thông thường; không tra bằng `getMethod("ClassName", ...)`.
+- `getConstructor(...)` finds a **public constructor** with the specified parameter types.
+- `getDeclaredConstructor(...)` finds a constructor declared directly in the class, including non-public ones.
+- Constructors are **not inherited** from superclasses: there is no mechanism to look up a public inherited constructor as with methods.
+- Both lookup APIs rely on the **exact parameter type list**. They do not auto-box `int` to `Integer`, select overloads automatically, or convert `CharSequence` to `String`.
+- `Class.getConstructor(...)` throws `NoSuchMethodException` when there is no public constructor matching the signature, even if a private constructor with the same signature exists.
+- Constructors are not regular methods; do not look them up with `getMethod("ClassName", ...)`.
 
-Với parameter `String`:
+For a `String` parameter:
 
-| Constructor thực tế | `getConstructor(String.class)` |
+| Actual constructor | `getConstructor(String.class)` |
 |---|---|
-| `public PdfReport(String title)` | Tìm được |
-| `private PdfReport(String title)` | Ném `NoSuchMethodException` |
-| `public PdfReport(CharSequence title)` | Ném `NoSuchMethodException` |
-| `public PdfReport()` | Ném `NoSuchMethodException` |
-| `public PdfReport(String title, int version)` | Ném `NoSuchMethodException` |
-| `public PdfReport(String... values)` | Ném `NoSuchMethodException` nếu tìm bằng `String.class`, vì kiểu tham số ở bytecode là `String[].class` |
+| `public PdfReport(String title)` | Found |
+| `private PdfReport(String title)` | Throws `NoSuchMethodException` |
+| `public PdfReport(CharSequence title)` | Throws `NoSuchMethodException` |
+| `public PdfReport()` | Throws `NoSuchMethodException` |
+| `public PdfReport(String title, int version)` | Throws `NoSuchMethodException` |
+| `public PdfReport(String... values)` | Throws `NoSuchMethodException` when looked up with `String.class`, because the bytecode parameter type is `String[].class` |
 
-**Không tự động “thử tất cả constructor cho tới khi một cái chạy được”**: điều đó khiến API factory khó đoán và có thể thực thi code không mong muốn. Quy định rõ chữ ký contract; khi không khớp, báo lỗi cấu hình có hành động sửa cụ thể.
+**Do not automatically "try every constructor until one works"**: that makes the factory API unpredictable and can execute unintended code. Specify the contract signature clearly; when it does not match, report a configuration error with concrete corrective guidance.
 
-Trước khi tạo instance cần lưu ý `abstract class` và `interface` không thể được instantiate theo cách này. Ví dụ chọn kiểm tra sớm trong factory để sinh thông báo rõ ràng. Với enum, record, member class không static, anonymous/local class hoặc lớp từ JPMS module, cấu trúc/khả năng khởi tạo có các ràng buộc riêng; không ép mọi class vào hợp đồng `(String)`.
+Before instantiating, note that `abstract class` and `interface` types cannot be instantiated this way. The example checks early in the factory to produce a clear message. For enums, records, non-static member classes, anonymous/local classes, or classes from JPMS modules, structure and instantiation have their own constraints; do not force every class into a `(String)` contract.
 
-## 4. Thiết kế factory và các nhóm lỗi
+## 4. Designing the Factory and Error Categories
 
-Ở bài thực hành, ta chia lỗi thành hai ngoại lệ runtime riêng:
+In this practice exercise, we split errors into two distinct runtime exceptions:
 
-- `FactoryConfigurationException`: thiết lập factory không hợp lệ — class không tồn tại, không implement `Report`, trừu tượng, không có constructor public `(String)`, hoặc kiểm tra metadata bị chặn. Đây thường là lỗi của deploy/config/plugin contract.
-- `FactoryCreationException`: factory đã được tạo nhưng **tạo instance thất bại** — constructor đích ném lỗi, hoặc bước invocation gặp vấn đề về access/arguments/instantiation.
+- `FactoryConfigurationException`: invalid factory setup — the class does not exist, does not implement `Report`, is abstract, lacks a public `(String)` constructor, or metadata inspection is denied. This is usually a deployment/config/plugin contract error.
+- `FactoryCreationException`: the factory was created, but **instance creation failed** — the target constructor threw an error, or invocation encountered access/argument/instantiation issues.
 
-Cả hai giữ một `Throwable cause`, không chỉ thông báo chuỗi. Mẫu thông điệp nên nêu **loại lỗi, class, signature và nguyên nhân gốc**:
+Both preserve a `Throwable cause`, not just a string message. Message templates should state **error kind, class, signature, and root cause**:
 
 ```text
 Missing public constructor (String) on WrongConstructor
 Constructor of FailingReport failed: IllegalArgumentException: invalid title
 ```
 
-Không nên viết duy nhất `"Cannot create object"` hoặc `"Reflection failed"`: người sửa không biết phải đổi cấu hình, sửa constructor, hay sửa input.
+Avoid writing only `"Cannot create object"` or `"Reflection failed"`: maintainers will not know whether to change configuration, fix the constructor, or fix the input.
 
-### Ba giai đoạn có trách nhiệm khác nhau
+### Three Stages with Distinct Responsibilities
 
 ```text
-input Class<T> hoặc configured class name
+input Class<T> or configured class name
              |
              v
-[1] xác minh class + contract T extends Report
+[1] verify class + contract T extends Report
              |
              v
-[2] resolve và cache public Constructor<T>(String)
+[2] resolve and cache public Constructor<T>(String)
              |
              v
 [3] create(title) -> Constructor.newInstance(title)
@@ -131,20 +131,20 @@ input Class<T> hoặc configured class name
      +-------+-----------------------+
      |                               |
      v                               v
-Reflection invocation lỗi      Constructor body ném Throwable
+Reflection invocation error    Constructor body throws Throwable
 IllegalAccessException,        InvocationTargetException
 InstantiationException, ...                |
      |                                  getCause()
      v                                      v
 FactoryCreationException       FactoryCreationException
-(với cause gốc)                  (với cause của target)
+(with original cause)          (with target's cause)
 ```
 
-Việc **tra cứu constructor được thực hiện trước** giúp lỗi thiếu constructor xuất hiện ngay tại `forClass`, thay vì chờ tới request đầu tiên. Đây là kiểu **fail fast** hữu ích khi factory được tạo trong bước bootstrap.
+Performing **constructor lookup upfront** ensures missing-constructor errors surface immediately in `forClass`, rather than waiting for the first request. This is a useful **fail-fast** pattern when factories are created during bootstrap.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh, có thông báo lỗi rõ ràng
+## 5. Complete Java 17+ Example with Clear Error Messages
 
-Tạo file duy nhất **`TypedFactoryDemo.java`**:
+Create a single file named **`TypedFactoryDemo.java`**:
 
 ```java
 import java.lang.reflect.Constructor;
@@ -317,14 +317,14 @@ public class TypedFactoryDemo {
 }
 ```
 
-Chạy tại thư mục chứa file:
+Run in the directory containing the file:
 
 ```bash
 javac --release 17 TypedFactoryDemo.java
 java TypedFactoryDemo
 ```
 
-**Stdout thực tế** khi biên dịch/chạy chương trình:
+**Actual stdout** when compiling and running the program:
 
 ```text
 success: PDF: Monthly
@@ -337,27 +337,27 @@ wrong type: Configured class java.lang.String does not implement Report
 missing type: Cannot load class: demo.NotFound
 ```
 
-Mã đã được biên dịch bằng `javac --release 17` và chạy thành công. Nó sử dụng public nested classes trong một file để tiện sao chép; trong ứng dụng thực tế nên tách `TypedFactory` và implementation thành các class/package được quản lý rõ ràng.
+The code was compiled with `javac --release 17` and ran successfully. It uses public nested classes in a single file for easy copying; in a real application, separate `TypedFactory` and implementations into cleanly managed classes and packages.
 
-## 6. Đọc kết quả: phân loại đúng từng trường hợp
+## 6. Reading the Output: Classifying Every Case Properly
 
-**Đường thành công:** `TypedFactory.forClass(PdfReport.class)` nhận một `Class<PdfReport>`; `getConstructor(String.class)` tìm constructor public đúng chữ ký. `create("Monthly")` trả một đối tượng kiểu `PdfReport`; caller gọi `render()` bình thường, không cần `Method.invoke`.
+**Success path:** `TypedFactory.forClass(PdfReport.class)` receives a `Class<PdfReport>`; `getConstructor(String.class)` finds the public constructor with the exact signature. `create("Monthly")` returns an object of type `PdfReport`; the caller invokes `render()` normally without needing `Method.invoke`.
 
-**Sai chữ ký:** `WrongConstructor` chỉ có constructor `(int)`. Đây không phải lỗi “tham số runtime không chuyển được”; factory phát hiện **thiếu constructor `(String)` ngay tại lookup**, bắt `NoSuchMethodException` và chuyển thành `FactoryConfigurationException` có thông tin rõ ràng.
+**Wrong signature:** `WrongConstructor` only has an `(int)` constructor. This is not a "runtime parameter cannot be converted" error; the factory detects the **missing `(String)` constructor at lookup time**, catches `NoSuchMethodException`, and translates it into a `FactoryConfigurationException` with clear details.
 
-**Constructor private:** `PrivateReport` có `(String)` nhưng private. `getConstructor(String.class)` không trả constructor này; thông báo “missing public constructor” chính xác theo contract của factory. Không tự tìm private constructor rồi `setAccessible(true)` vì điều đó làm đổi hợp đồng truy cập và có thể vi phạm giới hạn JPMS.
+**Private constructor:** `PrivateReport` has `(String)` but it is private. `getConstructor(String.class)` does not return it; the "missing public constructor" message matches the factory's contract. Do not fall back to finding the private constructor and calling `setAccessible(true)`, as that alters the access contract and can violate JPMS restrictions.
 
-**Abstract class:** `AbstractReport` là một type hợp lệ theo `T extends Report` nhưng không instantiate trực tiếp được. Chặn trước bằng `Modifier.isAbstract` để báo lỗi cấu hình thay vì để `Constructor.newInstance` thất bại muộn.
+**Abstract class:** `AbstractReport` is a valid type under `T extends Report` but cannot be instantiated directly. Checking early with `Modifier.isAbstract` reports a configuration error rather than letting `Constructor.newInstance` fail later.
 
-**Lỗi trong thân constructor:** `FailingReport(String)` hợp lệ, nhưng khi chạy ném `IllegalArgumentException("invalid title")`. `Constructor.newInstance` **bọc lỗi của mã đích trong `InvocationTargetException`**. Factory dùng `e.getCause()` để lấy lại `IllegalArgumentException`, tạo `FactoryCreationException` với cause gốc và thông báo có loại lỗi + nội dung.
+**Error in the constructor body:** `FailingReport(String)` is valid, yet throws `IllegalArgumentException("invalid title")` when executed. `Constructor.newInstance` **wraps target-code errors in `InvocationTargetException`**. The factory uses `e.getCause()` to retrieve `IllegalArgumentException` and creates a `FactoryCreationException` with the original cause and a message containing the error type and details.
 
-**Class sai contract:** `Class.forName("java.lang.String")` tìm được class, nhưng `String` không implement `Report`. `asSubclass(Report.class)` ném `ClassCastException`; factory chuyển sang thông báo cấu hình “does not implement Report”. Không ép kiểu `(Class<Report>)` bằng unchecked cast để che mất lỗi.
+**Class violates contract:** `Class.forName("java.lang.String")` finds the class, but `String` does not implement `Report`. `asSubclass(Report.class)` throws `ClassCastException`; the factory translates it into a configuration error saying "does not implement Report". Do not silence the check with an unchecked `(Class<Report>)` cast.
 
-**Class không tồn tại:** `Class.forName("demo.NotFound")` ném `ClassNotFoundException`. Đây là lỗi **tìm class**, khác với `NoSuchMethodException` khi class tồn tại nhưng constructor không khớp.
+**Non-existent class:** `Class.forName("demo.NotFound")` throws `ClassNotFoundException`. This is a **class lookup** error, distinct from `NoSuchMethodException` when the class exists but the constructor does not match.
 
-## 7. Vì sao factory cần giữ nguyên cause?
+## 7. Why Must the Factory Preserve the Cause?
 
-Nếu chỉ ghi:
+If you only write:
 
 ```java
 catch (Exception e) {
@@ -365,9 +365,9 @@ catch (Exception e) {
 }
 ```
 
-thì stack trace của lỗi gốc bị mất khỏi **chuỗi nguyên nhân**; rất khó biết nguyên nhân là constructor thiếu, security restriction, null input hay bug bên trong implementation.
+then the original error's stack trace is lost from the **cause chain**; it becomes very hard to tell whether the failure was a missing constructor, a security restriction, a null input, or a bug inside the implementation.
 
-Giữ cause:
+Preserving the cause:
 
 ```java
 catch (InvocationTargetException e) {
@@ -378,26 +378,26 @@ catch (InvocationTargetException e) {
 }
 ```
 
-Đoạn này là **mảnh code minh họa** nằm trong `TypedFactory<T>`, với biến `type` và `FactoryCreationException` đã tồn tại. Khi log exception được ném ra, stack trace có đường đi qua lớp factory rồi đến lỗi của constructor. Không chỉ log `getMessage()` nếu cần phân tích stack trace.
+This is an **illustrative code snippet** inside `TypedFactory<T>`, where `type` and `FactoryCreationException` already exist. When the thrown exception is logged, the stack trace shows the path through the factory class down to the constructor failure. Do not log only `getMessage()` when stack trace analysis is needed.
 
-### Phân biệt wrapper ngoài và nguyên nhân bên trong
+### Distinguishing the Outer Wrapper from the Inner Cause
 
-| Giai đoạn | Exception gốc/quan sát | Nên báo |
+| Stage | Original/observed exception | What to report |
 |---|---|---|
-| `getConstructor` không tìm thấy chữ ký public | `NoSuchMethodException` | Cấu hình sai: thiếu public constructor `(String)` |
-| `Class.forName` không tìm thấy class | `ClassNotFoundException` | Cấu hình sai: class name/class loader/classpath |
-| `asSubclass` không thỏa contract | `ClassCastException` | Cấu hình sai: implementation không phải subtype của interface |
-| `Constructor.newInstance` thiếu quyền | `IllegalAccessException` | Không thể gọi constructor do access control/module |
-| Constructor body ném exception | `InvocationTargetException` bọc Throwable | Thất bại khi tạo object: **nguyên nhân thực trong `getCause()`** |
-| Lỗi không tương thích lớp/runtime | `LinkageError`, `ExceptionInInitializerError` ... | Lỗi linkage/khởi tạo JVM, không nhất thiết là lỗi từ body constructor |
+| `getConstructor` cannot find public signature | `NoSuchMethodException` | Misconfiguration: missing public constructor `(String)` |
+| `Class.forName` cannot find class | `ClassNotFoundException` | Misconfiguration: class name / class loader / classpath |
+| `asSubclass` fails contract | `ClassCastException` | Misconfiguration: implementation is not a subtype of the interface |
+| `Constructor.newInstance` lacks access | `IllegalAccessException` | Cannot invoke constructor due to access control/module |
+| Constructor body throws exception | `InvocationTargetException` wrapping Throwable | Object creation failure: **actual cause is in `getCause()`** |
+| Class/runtime incompatibility error | `LinkageError`, `ExceptionInInitializerError`, etc. | JVM linkage/initialization error, not necessarily from the constructor body |
 
-**Điểm quan trọng:** `InvocationTargetException` là wrapper của Reflection invocation; `FactoryCreationException` trong ví dụ là **wrapper do ứng dụng tự định nghĩa**. Hai lớp này không phải một. Người sử dụng factory chỉ phải hiểu contract do ứng dụng công bố; người bảo trì có thể xem cause để điều tra gốc.
+**Key point:** `InvocationTargetException` is the Reflection invocation wrapper; `FactoryCreationException` in the example is an **application-defined wrapper**. These two classes are not the same. Factory callers only need to understand the contract published by the application; maintainers can inspect the cause to investigate the root issue.
 
-Trong production, quyết định có bọc hay **truyền tiếp `Error` nghiêm trọng** (ví dụ `OutOfMemoryError`) phải có chính sách riêng. Ví dụ chọn một loại exception đầu ra dễ hiểu cho mục đích học, nhưng không nên nuốt `Error` hoặc biến mọi lỗi JVM nghiêm trọng thành lỗi nghiệp vụ có thể retry.
+In production, whether to wrap or **rethrow serious `Error`s** (such as `OutOfMemoryError`) requires an explicit policy. The example chooses one easy-to-understand output exception type for learning purposes, but you should not swallow `Error`s or turn severe JVM failures into retryable business errors.
 
-## 8. Factory có kiểu khi class được cấu hình bằng String
+## 8. A Typed Factory When the Class Is Configured as a String
 
-Khi runtime nhận tên implementation từ file cấu hình, `Class.forName(className)` trả `Class<?>`. Để bảo toàn contract `Report`, dùng:
+When runtime receives an implementation name from a configuration file, `Class.forName(className)` returns `Class<?>`. To preserve the `Report` contract, use:
 
 ```java
 Class<? extends Report> reportType =
@@ -407,13 +407,13 @@ TypedFactory<? extends Report> factory =
 Report report = factory.create("Monthly");
 ```
 
-Đây là **mảnh code minh họa** với `configuredName` do ứng dụng cung cấp và các class ở ví dụ đầy đủ. Khi class được quyết định từ chuỗi runtime, compiler không thể biết trước nó là `PdfReport` hay `OtherReport`; do đó kiểu trả về an toàn là `? extends Report` hoặc `Report`, **không phải `PdfReport`**.
+This is an **illustrative snippet** with an application-supplied `configuredName` and the classes from the complete example. When the class is decided from a runtime string, the compiler cannot know ahead of time whether it is `PdfReport` or `OtherReport`; hence the safe return type is `? extends Report` or `Report`, **not `PdfReport`**.
 
-Nếu cần caller nhận chính xác `PdfReport`, truyền `PdfReport.class` trực tiếp hoặc kiểm tra/ép subtype một cách tường minh trước khi dùng.
+If a caller needs `PdfReport` specifically, pass `PdfReport.class` directly or explicitly check/cast the subtype before using it.
 
-**Không nạp class từ chuỗi do người dùng không tin cậy gửi lên mà không kiểm soát.** `Class.forName(String)` mặc định có thể **khởi tạo class**; initializer có thể chạy code dù bạn chưa gọi constructor. Với hệ plugin, nên dùng allowlist/registry, tên implementation được xác minh, class loader được phép, và tránh tiết lộ toàn bộ classpath qua message trả cho client.
+**Do not load classes from untrusted user-supplied strings without controls.** By default, `Class.forName(String)` can **initialize the class**; static initializers can execute code even before you call the constructor. For a plugin system, use an allowlist/registry, verified implementation names, permitted class loaders, and avoid leaking the full classpath in client-facing error messages.
 
-Nếu muốn tách load class khỏi initialization, overload:
+If you want to separate class loading from initialization, use the overload:
 
 ```java
 Class<?> rawType = Class.forName(
@@ -422,64 +422,64 @@ Class<?> rawType = Class.forName(
         Thread.currentThread().getContextClassLoader());
 ```
 
-Đây là mảnh code minh họa. `initialize=false` chỉ trì hoãn initialization; khi instantiate về sau, class có thể vẫn bị initialize và phát sinh lỗi. Thread context class loader có thể không phù hợp trong mọi ứng dụng: quyết định loader theo kiến trúc plugin/module, không mặc định luôn đúng. Trong hệ JPMS và khi dùng nhiều class loader, kiểm tra visibility, module boundaries và hành vi load thực tế.
+This is an illustrative snippet. `initialize=false` only defers initialization; when instantiating later, the class may still be initialized and throw an error. The thread context class loader may not be appropriate in every application: choose the loader according to your plugin/module architecture, rather than assuming it is always right. In JPMS systems and multi-classloader setups, verify visibility, module boundaries, and actual loading behavior.
 
-## 9. Vì sao chọn resolve constructor một lần, rồi cache?
+## 9. Why Resolve the Constructor Once and Cache It?
 
-Thiết kế giữ:
+The design retains:
 
 ```java
 private final Class<T> type;
 private final Constructor<T> constructor;
 ```
 
-Trong mỗi `TypedFactory<T>` instance, `getConstructor(String.class)` chỉ chạy trong `forClass`; `create` dùng lại `Constructor<T>`. Cách này:
+In each `TypedFactory<T>` instance, `getConstructor(String.class)` runs only in `forClass`; `create` reuses `Constructor<T>`. This approach:
 
-1. **Fail fast** khi cấu hình implementation không thỏa constructor contract.
-2. Tránh lặp lại lookup metadata mỗi lần tạo object.
-3. Gom logging/exception translation một chỗ.
-4. Tăng khả năng test vì mỗi trường hợp lỗi đi qua một API factory nhất quán.
+1. **Fails fast** when the implementation configuration violates the constructor contract.
+2. Avoids repeating metadata lookup on every object creation.
+3. Centralizes logging and exception translation in one place.
+4. Improves testability because every failure mode goes through a consistent factory API.
 
-Tuy nhiên, **constructor body vẫn chạy cho mỗi `create(...)`** và có thể thất bại theo dữ liệu đầu vào. Cache metadata không phải cache instance, không đồng nghĩa factory singleton hay thread-safe của chính object được tạo.
+However, **the constructor body still runs on every `create(...)`** and may fail depending on input data. Caching metadata is not caching instances, nor does it imply a singleton factory or thread safety of the created object itself.
 
-Một factory bất biến chỉ giữ `Class<T>` và `Constructor<T>` có thể được tái sử dụng từ nhiều thread; nhưng nếu implement constructor tạo shared mutable state hoặc chạm tài nguyên dùng chung, thread safety của quá trình tạo vẫn phụ thuộc implementation và resource.
+An immutable factory holding only `Class<T>` and `Constructor<T>` can be reused across multiple threads; however, if the constructor implementation creates shared mutable state or touches shared resources, thread safety of creation still depends on the implementation and those resources.
 
-### Tránh memory leak với plugin/class loader
+### Avoiding Memory Leaks with Plugins and Class Loaders
 
-Một biến `static Map<Class<?>, TypedFactory<?>>` sống suốt vòng đời ứng dụng có thể giữ strong reference tới `Class`/`Constructor` và class loader plugin. Trong hệ có unload/redeploy, cân nhắc:
+A `static Map<Class<?>, TypedFactory<?>>` living for the entire application lifetime can hold strong references to `Class`/`Constructor` and plugin class loaders. In systems with unloading/redeployment, consider:
 
-- Đặt factory trong vòng đời plugin rồi giải phóng registry khi plugin dừng.
-- Gắn metadata theo class bằng `ClassValue` nếu phù hợp.
-- Cẩn trọng khi dùng `WeakHashMap<Class<?>, ...>` vì value có thể tham chiếu ngược tới class, làm yếu key không còn hữu ích.
-- Không cache bằng duy nhất chuỗi `getName()` khi có nhiều class loader, vì cùng binary name có thể là hai runtime classes khác nhau.
+- Scoping the factory to the plugin's lifecycle and releasing the registry when the plugin stops.
+- Attaching metadata per class using `ClassValue` when appropriate.
+- Being careful with `WeakHashMap<Class<?>, ...>` because values may hold back-references to the class, defeating weak keys.
+- Not caching solely by the `getName()` string when multiple class loaders exist, because the same binary name can belong to two distinct runtime classes.
 
-Việc cache cần cân nhắc theo profiling; với số lần khởi tạo rất ít, class factory đơn giản và kiểm tra chuẩn xác thường quan trọng hơn tối ưu vi mô.
+Caching should be guided by profiling; for very infrequent instantiations, a simple factory class and accurate checks matter more than micro-optimization.
 
-## 10. Thông báo lỗi tốt: đủ dữ kiện nhưng không lộ bí mật
+## 10. Good Error Messages: Informative Without Leaking Secrets
 
-Thông báo cấu hình tốt có thể có mẫu:
+A good configuration error message can follow this pattern:
 
 ```text
 Cannot construct report implementation com.example.PdfReport:
 expected public constructor (java.lang.String)
 ```
 
-Trong hệ thống thực, nên có:
+In real systems, include:
 
-- **Thao tác:** load/verify constructor/create.
-- **Class:** tên đầy đủ (`type.getName()`) để phân biệt package.
-- **Expected signature:** ví dụ `(java.lang.String)`, không chỉ tên method chung chung.
-- **Loại lỗi:** `NoSuchMethodException`, `IllegalAccessException`, hoặc failure từ target.
-- **Root cause:** giữ bằng constructor exception nhận `cause`.
-- **Ngữ cảnh có kiểm soát:** operation ID, plugin/module, class loader nếu cần điều tra.
+- **Operation:** load / verify constructor / create.
+- **Class:** full name (`type.getName()`) to distinguish packages.
+- **Expected signature:** e.g. `(java.lang.String)`, not just a generic method name.
+- **Error kind:** `NoSuchMethodException`, `IllegalAccessException`, or failure from target.
+- **Root cause:** preserved via an exception constructor taking `cause`.
+- **Controlled context:** operation ID, plugin/module, or class loader if needed for investigation.
 
-Ví dụ sử dụng `getSimpleName()` cho stdout ngắn và ổn định; khi logging production có nhiều class cùng tên, nên dùng `getName()`, kèm module/loader khi cần.
+The example uses `getSimpleName()` for short, stable stdout; in production logging where multiple classes can share a simple name, use `getName()`, along with module/loader details when needed.
 
-Không đưa vào thông báo/log các giá trị nhạy cảm như password, token, dữ liệu khách hàng hoặc chuỗi đầu vào bí mật chỉ để debug. Có thể nói “constructor argument validation failed” và giữ root cause trong log nội bộ, thay vì phản chiếu nguyên văn input từ người dùng qua API công khai.
+Never include sensitive values such as passwords, tokens, secret keys, personal data, or secret input strings in error messages or logs just for debugging. You can say "constructor argument validation failed" and keep the root cause in internal logs, rather than echoing verbatim user input over a public API.
 
-### Không nuốt lỗi thành null
+### Do Not Swallow Errors into Null
 
-Tránh:
+Avoid:
 
 ```java
 try {
@@ -489,73 +489,73 @@ try {
 }
 ```
 
-Đây là **phản ví dụ** trong method trả `T`. Nếu object `null` được dùng về sau, caller sẽ nhận `NullPointerException` ở nơi không liên quan, làm mất stack trace của nguyên nhân ban đầu. Hãy ném lỗi có cấu trúc hoặc dùng kết quả kiểu `Result<T, Error>` được định nghĩa rõ theo hợp đồng ứng dụng.
+This is an **anti-pattern** in a method returning `T`. If the `null` object is used later, the caller gets a `NullPointerException` at an unrelated location, losing the stack trace of the original cause. Throw a structured error or return a `Result<T, Error>` type clearly defined by the application contract.
 
-## 11. Những lỗi thường gặp khi thiết kế factory Reflection
+## 11. Common Mistakes When Designing a Reflection Factory
 
-**1. Dùng raw type `Constructor` hoặc ép `(T) ctor.newInstance(...)` vô điều kiện.** Raw type loại bỏ thông tin compile-time; dùng `Class<T>` và `Constructor<T>`, hoặc `asSubclass(BaseType.class)` khi type đến từ runtime name.
+**1. Using raw `Constructor` or casting `(T) ctor.newInstance(...)` unconditionally.** Raw types strip compile-time information; use `Class<T>` and `Constructor<T>`, or `asSubclass(BaseType.class)` when the type comes from a runtime name.
 
-**2. Gọi `getDeclaredConstructor` rồi mặc định nó gọi được.** Declared lookup có thể tìm private constructor, nhưng `newInstance` vẫn kiểm tra quyền. `setAccessible(true)` không bảo đảm vượt module access và không nên dùng chỉ để “lách” contract public constructor.
+**2. Calling `getDeclaredConstructor` and assuming it is invokable.** Declared lookup can find a private constructor, yet `newInstance` still checks access. `setAccessible(true)` does not guarantee bypassing module access and should not be used merely to "circumvent" a public constructor contract.
 
-**3. Nhầm lookup error với target error.** Thiếu constructor là `NoSuchMethodException` lúc resolve; lỗi do code constructor ném thường nằm trong `InvocationTargetException.getCause()`. Xử lý chúng ở hai nhánh khác nhau.
+**3. Confusing lookup errors with target errors.** A missing constructor is `NoSuchMethodException` during resolution; an error thrown by constructor code is inside `InvocationTargetException.getCause()`. Handle them in separate branches.
 
-**4. Bắt `Exception` chung rồi in `"Factory failed"`.** Loại bỏ chi tiết actionable; giữ nguyên cause và tách configuration vs creation.
+**4. Catching generic `Exception` and printing `"Factory failed"`.** Strips actionable details; preserve the cause and separate configuration from creation.
 
-**5. Dùng `type.newInstance()` đã deprecated.** Dùng `getDeclaredConstructor().newInstance()` hoặc `getConstructor(...).newInstance(...)`; hợp đồng exception của `Class.newInstance()` khác, đặc biệt khi constructor ném checked exceptions.
+**5. Using the deprecated `type.newInstance()`.** Use `getDeclaredConstructor().newInstance()` or `getConstructor(...).newInstance(...)`; `Class.newInstance()` has a different exception contract, especially when the constructor throws checked exceptions.
 
-**6. Cho caller truyền danh sách `Object... args` mà không định nghĩa signature.** Dễ xuất hiện mismatched arity, boxing, varargs hoặc ép kiểu sai. Với factory `create(String)`, caller biết chính xác input contract.
+**6. Letting callers pass `Object... args` without defining a signature.** Easily leads to mismatched arity, boxing, varargs, or wrong-cast issues. With a `create(String)` factory, callers know the exact input contract.
 
-**7. Không kiểm tra `interface`/`abstract`, constructor signature và service contract trước khi phục vụ request.** Lỗi bị phát hiện muộn, khó xác định cấu hình sai. Validate tại bootstrap khi có thể.
+**7. Failing to check `interface`/`abstract`, constructor signature, and service contract before serving requests.** Errors surface late and misconfigurations become hard to pinpoint. Validate at bootstrap whenever possible.
 
-**8. Tưởng `Class.forName` chỉ “đọc metadata”.** Overload một tham số có thể kích hoạt class initialization. Class name từ input không đáng tin cần kiểm soát.
+**8. Assuming `Class.forName` only "reads metadata".** The single-argument overload can trigger class initialization. Class names from untrusted input must be controlled.
 
-**9. Cache factory toàn cục qua strong Class key trong hệ plugin reload.** Có thể giữ class loader cũ. Chọn ownership và lifecycle cache rõ ràng.
+**9. Caching factories globally via strong `Class` keys in plugin-reloading systems.** Can retain old class loaders. Choose clear ownership and cache lifecycles.
 
-**10. Tự retry constructor đích sau khi nó ném exception.** Constructor có thể đã tạo side effects trước khi thất bại (mở file, ghi DB, gửi request). Chỉ retry khi action idempotent và có chính sách retry cụ thể.
+**10. Automatically retrying a target constructor after it throws an exception.** The constructor may already have produced side effects before failing (opening files, writing to a DB, sending requests). Retry only when the action is idempotent and governed by an explicit retry policy.
 
-**11. Nhận thông báo từ Reflection là hợp đồng ổn định.** JDK/compiler có thể thay text message; test nên kiểm tra **loại exception, cause và phần message ứng dụng tự kiểm soát**.
+**11. Treating Reflection error messages as a stable contract.** The JDK or compiler can change message text; tests should assert on **exception type, cause, and the message parts controlled by your application**.
 
-## 12. Bài tập mở rộng
+## 12. Practice Extensions
 
-### Bài 1 — Factory không tham số
+### Exercise 1 — No-argument factory
 
-Thử viết `TypedFactory<T>` với `getConstructor()` và `create()`, rồi so sánh với interface `Supplier<T>`. Nếu toàn bộ implementation biết lúc compile time, factory bằng method reference (`PdfReport::new` khi constructor signature phù hợp) thường đơn giản hơn Reflection.
+Try writing `TypedFactory<T>` with `getConstructor()` and `create()`, then compare it with the `Supplier<T>` interface. When all implementations are known at compile time, a factory using a method reference (`PdfReport::new` when the constructor signature matches) is usually simpler than Reflection.
 
-### Bài 2 — Factory nhận nhiều tham số
+### Exercise 2 — Multi-argument factory
 
-Đổi contract thành `create(String title, int pages)`; tra `type.getConstructor(String.class, int.class)`. Viết test cho trường hợp class chỉ có constructor `(String, Integer)`: Reflection **không tự tìm overload đó**.
+Change the contract to `create(String title, int pages)`; look up `type.getConstructor(String.class, int.class)`. Write a test for a class that only has a `(String, Integer)` constructor: Reflection **does not automatically find that overload**.
 
-### Bài 3 — Viết assertion trên exception
+### Exercise 3 — Asserting on exceptions
 
-Dùng JUnit hoặc test harness của dự án để kiểm tra:
-- `forClass(WrongConstructor.class)` ném `FactoryConfigurationException` với cause `NoSuchMethodException`.
-- `forClass(PrivateReport.class)` báo **thiếu public constructor**.
-- `forClass(AbstractReport.class)` báo abstract type.
-- `forClass(FailingReport.class).create("bad")` ném `FactoryCreationException` với `getCause() instanceof IllegalArgumentException`.
-- `fromName("java.lang.String")` báo class không thuộc `Report`.
-- `forClass(PdfReport.class).create("ok")` trả đúng `PdfReport` và nội dung mong đợi.
+Use JUnit or your project's test harness to verify:
+- `forClass(WrongConstructor.class)` throws `FactoryConfigurationException` with cause `NoSuchMethodException`.
+- `forClass(PrivateReport.class)` reports **missing public constructor**.
+- `forClass(AbstractReport.class)` reports an abstract type.
+- `forClass(FailingReport.class).create("bad")` throws `FactoryCreationException` with `getCause() instanceof IllegalArgumentException`.
+- `fromName("java.lang.String")` reports that the class does not implement `Report`.
+- `forClass(PdfReport.class).create("ok")` returns the expected `PdfReport` and rendered output.
 
-### Bài 4 — Đăng ký plugin theo interface
+### Exercise 4 — Registering plugins by interface
 
-Thay nhận tên class tùy ý bằng registry `Map<String, Class<? extends Report>>` đã validate. Client chọn một ID như `"pdf"` thay vì tên Java binary class trực tiếp; phần registry có thể được xây từ `ServiceLoader` khi cần plugin registration.
+Replace accepting arbitrary class names with a validated `Map<String, Class<? extends Report>>` registry. Clients select an ID such as `"pdf"` instead of a Java binary class name directly; the registry can be populated from `ServiceLoader` when plugin registration is needed.
 
-## 13. Checklist trước khi dùng trong hệ thống
+## 13. Pre-Production Checklist
 
-1. **Contract rõ:** factory tạo kiểu `T extends Report` và cần đúng public constructor `(String)`.
-2. **Typed metadata:** dùng `Class<T>`, `Constructor<T>`, không dùng raw casts tùy tiện.
-3. **Fail fast:** kiểm tra class cụ thể, tính abstract, constructor signature khi tạo factory.
-4. **Tách lỗi:** configuration/lookup khác create/invocation và exception do constructor đích ném.
-5. **Preserve cause:** luôn giữ cause khi bọc, dùng thông báo có class + signature.
-6. **Không bypass access vô điều kiện:** ưu tiên public constructor và API rõ, tôn trọng JPMS.
-7. **An toàn runtime class name:** validate, allowlist và quản lý class loader; không nhận tùy ý input không tin cậy.
-8. **Cache có vòng đời:** tránh lookup lặp, nhưng không giữ class loader plugin vô thời hạn.
-9. **Test cả đường thành công và thất bại:** chú ý primitive/wrapper, abstract, private, target runtime exception.
-10. **Giữ log có ích nhưng tối thiểu:** không rò rỉ input nhạy cảm và không nuốt root cause.
+1. **Clear contract:** the factory creates `T extends Report` and requires an exact public `(String)` constructor.
+2. **Typed metadata:** use `Class<T>` and `Constructor<T>`, avoiding arbitrary raw casts.
+3. **Fail fast:** validate concrete class, non-abstract status, and constructor signature when creating the factory.
+4. **Separate errors:** distinguish configuration/lookup from creation/invocation and exceptions thrown by the target constructor.
+5. **Preserve cause:** always keep the cause when wrapping, using messages with class + signature.
+6. **No unconditional access bypass:** prefer public constructors and explicit APIs, respecting JPMS.
+7. **Safe runtime class names:** validate, allowlist, and manage class loaders; do not accept arbitrary untrusted input.
+8. **Lifecycle-aware caching:** avoid repeated lookups, but do not retain plugin class loaders indefinitely.
+9. **Test both success and failure paths:** pay attention to primitive/wrapper, abstract, private, and target runtime exceptions.
+10. **Keep logs useful yet minimal:** do not leak sensitive input and do not swallow the root cause.
 
-## 14. Tóm tắt
+## 14. Summary
 
-- `Class<T>` + `Constructor<T>` là nền tảng để tạo **factory Reflection có kiểu trả về**.
-- `getConstructor(String.class)` ràng buộc rõ **public constructor với chính xác một tham số String**, và kiểm tra sớm ngay lúc cấu hình factory.
-- `Constructor.newInstance` có thể bọc exception từ **thân constructor đích** trong `InvocationTargetException`; giữ `getCause()` khi chuyển sang exception ứng dụng.
-- Thông báo lỗi tốt phân biệt **lỗi class/contract/constructor lookup** với **lỗi tạo instance/target logic**, không chỉ nói “Reflection failed”.
-- Sau khi tạo thành công, gọi qua `Report`/`PdfReport` bình thường. Reflection nên nằm trong lớp factory nhỏ, có trách nhiệm và test rõ ràng.
+- `Class<T>` + `Constructor<T>` form the foundation for building a **typed Reflection factory**.
+- `getConstructor(String.class)` explicitly enforces a **public constructor with exactly one `String` parameter**, checked early during factory configuration.
+- `Constructor.newInstance` can wrap exceptions from the **target constructor body** in `InvocationTargetException`; preserve `getCause()` when translating to an application exception.
+- Good error messages distinguish **class/contract/constructor lookup errors** from **instantiation/target logic errors**, rather than simply saying "Reflection failed".
+- After successful creation, invoke methods normally via `Report`/`PdfReport`. Reflection should live inside a small, well-scoped, thoroughly tested factory class.

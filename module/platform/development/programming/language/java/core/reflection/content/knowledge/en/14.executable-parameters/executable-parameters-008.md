@@ -1,50 +1,50 @@
-# Annotation trên từng tham số của Method và Constructor trong Java Reflection
+# Annotations on Individual Method and Constructor Parameters in Java Reflection
 
-Khi dùng Java Reflection để kiểm tra **tham số của một phương thức hoặc constructor**, ta không chỉ biết số lượng, tên và kiểu dữ liệu; ta còn có thể đọc **annotation được gắn trên từng tham số**. Điều này rất quan trọng trong những framework dùng annotation để khai báo cách lấy dữ liệu đầu vào, kiểm tra hợp lệ, dependency injection, ánh xạ HTTP/JSON hoặc cấu hình cơ chế tạo object.
+When using Java Reflection to inspect **parameters of a method or constructor**, we do not only learn their count, names, and data types; we can also read **annotations attached to each parameter**. This is crucial in frameworks that use annotations to declare how to extract input data, validate values, perform dependency injection, map HTTP/JSON, or configure object creation.
 
-Ví dụ:
+Example:
 
 ```java
 public void createUser(@Named("username") String name,
                        @Positive int age) {
-    // Logic xử lý.
+    // Processing logic.
 }
 ```
 
-Đây là **đoạn minh họa cú pháp**, trong đó `@Named` và `@Positive` là các annotation do ứng dụng hoặc thư viện định nghĩa, không phải annotation chuẩn sẵn có trong Java SE. Hai annotation tương ứng với **hai tham số khác nhau**. Runtime có thể đọc metadata này nếu kiểu annotation được định nghĩa với `@Retention(RetentionPolicy.RUNTIME)`.
+This is a **syntax illustration**, in which `@Named` and `@Positive` are application- or library-defined annotations, not built-in Java SE annotations. The two annotations correspond to **two different parameters**. Runtime code can read this metadata if the annotation type is defined with `@Retention(RetentionPolicy.RUNTIME)`.
 
-Bài học tập trung vào cách Reflection xác định annotation **của từng parameter** trên `java.lang.reflect.Method` và `java.lang.reflect.Constructor`, cách dùng `Executable.getParameterAnnotations()` và `Parameter`, sự khác nhau giữa annotation trên **khai báo tham số** và **kiểu sử dụng (type-use)**, cùng các vấn đề `RUNTIME` retention, `-parameters`, repeatable annotation và synthetic/implicit parameters.
+This lesson focuses on how Reflection identifies annotations **of each parameter** on `java.lang.reflect.Method` and `java.lang.reflect.Constructor`, how to use `Executable.getParameterAnnotations()` and `Parameter`, the difference between annotations on **parameter declarations** and **type uses (type-use)**, as well as `RUNTIME` retention, `-parameters`, repeatable annotations, and synthetic/implicit parameters.
 
-## 1. Các lớp Reflection liên quan
+## 1. Related Reflection Classes
 
-Một phương thức hoặc constructor là một **executable**. Java có lớp nền `java.lang.reflect.Executable`; hai lớp triển khai quan trọng là:
+A method or constructor is an **executable**. Java has the base class `java.lang.reflect.Executable`; the two key concrete classes are:
 
-- `Method`: metadata của một phương thức.
-- `Constructor<T>`: metadata của constructor.
-- `Parameter`: metadata của **một tham số** trong một `Method` hoặc `Constructor`.
-- `Annotation`: interface nền `java.lang.annotation.Annotation`, đại diện cho một annotation runtime.
-- `AnnotatedType`: metadata annotation gắn vào **việc sử dụng kiểu** của một tham số, không đồng nhất với annotation gắn vào khai báo tham số.
+- `Method`: metadata of a method.
+- `Constructor<T>`: metadata of a constructor.
+- `Parameter`: metadata of **a single parameter** in a `Method` or `Constructor`.
+- `Annotation`: the base interface `java.lang.annotation.Annotation`, representing a runtime annotation.
+- `AnnotatedType`: annotation metadata attached to the **type use** of a parameter, distinct from annotations attached to the parameter declaration.
 
-Các API thường dùng:
+Commonly used APIs:
 
-| API | Trả về | Dùng khi nào |
+| API | Returns | When to Use |
 |---|---|---|
-| `executable.getParameterCount()` | `int` | Biết số tham số trong metadata của executable |
-| `executable.getParameters()` | `Parameter[]` | Cần xử lý từng tham số cùng tên, kiểu và annotation |
-| `executable.getParameterAnnotations()` | `Annotation[][]` | Cần danh sách annotation **theo chỉ số tham số** |
-| `parameter.getAnnotations()` | `Annotation[]` | Đọc các annotation runtime được gắn trực tiếp lên một parameter |
-| `parameter.getAnnotation(MyAnnotation.class)` | `MyAnnotation` hoặc `null` | Tìm một annotation cụ thể trên parameter |
-| `parameter.isAnnotationPresent(MyAnnotation.class)` | `boolean` | Kiểm tra nhanh sự tồn tại của annotation |
-| `parameter.getAnnotationsByType(MyAnnotation.class)` | `MyAnnotation[]` | Lấy cả annotation **repeatable** cùng loại |
-| `parameter.getType()` | `Class<?>` | Xem kiểu khai báo sau type erasure |
-| `parameter.getParameterizedType()` | `Type` | Xem thông tin generic type của parameter |
-| `executable.getAnnotatedParameterTypes()` | `AnnotatedType[]` | Đọc annotation `TYPE_USE` trên kiểu của từng parameter |
+| `executable.getParameterCount()` | `int` | Know the parameter count in the executable's metadata |
+| `executable.getParameters()` | `Parameter[]` | Need to handle each parameter along with its name, type, and annotations |
+| `executable.getParameterAnnotations()` | `Annotation[][]` | Need the annotation list **by parameter index** |
+| `parameter.getAnnotations()` | `Annotation[]` | Read runtime annotations attached directly to a parameter |
+| `parameter.getAnnotation(MyAnnotation.class)` | `MyAnnotation` or `null` | Look up a specific annotation on the parameter |
+| `parameter.isAnnotationPresent(MyAnnotation.class)` | `boolean` | Quickly check whether an annotation exists |
+| `parameter.getAnnotationsByType(MyAnnotation.class)` | `MyAnnotation[]` | Retrieve **repeatable** annotations of the same type |
+| `parameter.getType()` | `Class<?>` | Inspect declared type after type erasure |
+| `parameter.getParameterizedType()` | `Type` | Inspect generic type information of the parameter |
+| `executable.getAnnotatedParameterTypes()` | `AnnotatedType[]` | Read `TYPE_USE` annotations on each parameter's type |
 
-`Method` và `Constructor` có chung nhiều phương thức kể trên vì đều là `Executable`. Do đó, cách đọc annotation của tham số thường có thể tái sử dụng cho cả hai.
+`Method` and `Constructor` share many of the methods listed above because both are `Executable`. Consequently, parameter annotation reading logic can often be reused for both.
 
-## 2. Khai báo annotation dành cho tham số
+## 2. Declaring an Annotation for Parameters
 
-Annotation là một kiểu được khai báo bằng `@interface`. Hai meta-annotation quan trọng nhất trong tình huống này là:
+An annotation is a type declared with `@interface`. The two most important meta-annotations in this scenario are:
 
 ```java
 import java.lang.annotation.ElementType;
@@ -59,36 +59,36 @@ public @interface Named {
 }
 ```
 
-Đoạn code này có thể lưu thành **`Named.java`** và biên dịch độc lập nếu có JDK; đây là annotation mẫu, không phải chương trình có `main`.
+This snippet can be saved as **`Named.java`** and compiled standalone with a JDK; it is a sample annotation, not a program with `main`.
 
-- `@Target(ElementType.PARAMETER)` cho phép dùng `@Named` trên **khai báo tham số** của method, constructor (và các vị trí parameter phù hợp khác).
-- `@Retention(RetentionPolicy.RUNTIME)` làm cho annotation được lưu lại và có thể được Reflection đọc lúc chạy.
-- `String value();` là một **phần tử của annotation**. Nếu annotation được khai báo `@Named("id")`, gọi `named.value()` nhận chuỗi `"id"`.
-- Nếu annotation không có `@Retention`, mặc định là **`RetentionPolicy.CLASS`**; class file có thể mang metadata nhưng core Reflection **không cung cấp annotation đó ở runtime**.
+- `@Target(ElementType.PARAMETER)` allows using `@Named` on **parameter declarations** of methods, constructors (and other valid parameter sites).
+- `@Retention(RetentionPolicy.RUNTIME)` ensures the annotation is retained and readable by Reflection at runtime.
+- `String value();` is an **annotation element**. If the annotation is written `@Named("id")`, calling `named.value()` yields the string `"id"`.
+- If an annotation has no `@Retention`, the default is **`RetentionPolicy.CLASS`**; the class file may carry metadata, but core Reflection **does not provide that annotation at runtime**.
 
-Ví dụ:
+Example:
 
 ```java
 public User(@Named("id") String id) {
-    // Constructor của User.
+    // Constructor of User.
 }
 ```
 
-Annotation trên parameter có thể đóng vai trò hướng dẫn framework đọc dữ liệu đầu vào. Tuy nhiên, Java **không tự động validate hoặc bind dữ liệu** chỉ vì parameter có `@Named`: framework/ứng dụng phải chủ động đọc và xử lý annotation.
+Parameter annotations can guide frameworks in reading input data. However, Java **does not automatically validate or bind data** merely because a parameter has `@Named`: the framework/application must explicitly read and process the annotation.
 
-### Ba mức retention
+### Three Retention Levels
 
-| Retention | Được ghi vào class file? | Core Reflection đọc annotation lúc runtime? |
+| Retention | Written to Class File? | Core Reflection Reads Annotation at Runtime? |
 |---|---|---|
-| `SOURCE` | Không; compiler thường bỏ sau khi xử lý source | Không |
-| `CLASS` | Có | Không, theo cơ chế runtime annotation Reflection chuẩn |
-| `RUNTIME` | Có | Có, khi loại annotation và metadata có thể truy cập |
+| `SOURCE` | No; compiler typically discards after source processing | No |
+| `CLASS` | Yes | No, under standard runtime Reflection annotation rules |
+| `RUNTIME` | Yes | Yes, when the annotation type and metadata are accessible |
 
-Nếu `parameter.getAnnotation(Named.class)` trả `null`, **chưa chắc** annotation đó không từng xuất hiện trong source: nó có thể có retention không phù hợp, nằm trên type-use chứ không phải parameter declaration, bị đặt vào parameter khác hoặc không tồn tại trong bytecode runtime.
+If `parameter.getAnnotation(Named.class)` returns `null`, it **does not necessarily mean** the annotation was never in source: it may have an unsuitable retention, sit on a type-use rather than the parameter declaration, be placed on another parameter, or be absent from runtime bytecode.
 
-## 3. `getParameterAnnotations()`: mảng hai chiều căn theo tham số
+## 3. `getParameterAnnotations()`: Two-Dimensional Array Aligned by Parameter
 
-Ví dụ có method sau:
+Suppose we have the following method:
 
 ```java
 public void submit(@Named("user") String username,
@@ -97,7 +97,7 @@ public void submit(@Named("user") String username,
 }
 ```
 
-Giả định `@Named` và `@Positive` đều là annotation runtime, có target `PARAMETER`. Khi tra cứu method:
+Assume `@Named` and `@Positive` are both runtime annotations targeting `PARAMETER`. When looking up the method:
 
 ```java
 Method method = Example.class.getMethod(
@@ -106,24 +106,24 @@ Method method = Example.class.getMethod(
 Annotation[][] annotations = method.getParameterAnnotations();
 ```
 
-Các đoạn trên là **minh họa**, `Example` và `Positive` phải được định nghĩa riêng, và code có import `java.lang.reflect.Method`, `java.lang.annotation.Annotation`. Mảng được tổ chức theo cấu trúc:
+The snippets above are **illustrative**: `Example` and `Positive` must be defined separately, and the code imports `java.lang.reflect.Method`, `java.lang.annotation.Annotation`. The array is organized as:
 
 ```text
 annotations
-  [0] -> annotation của username: @Named("user")
-  [1] -> annotation của count:    @Positive
-  [2] -> annotation của note:     (mảng rỗng)
+  [0] -> annotations of username: @Named("user")
+  [1] -> annotations of count:    @Positive
+  [2] -> annotations of note:     (empty array)
 ```
 
-Quy tắc quan trọng:
+Key rules:
 
-1. **Chiều ngoài** có một phần tử cho mỗi tham số theo thứ tự khai báo/chữ ký của executable. `annotations.length` tương ứng với `method.getParameterCount()`.
-2. **Chiều trong** chứa annotation của **tham số ở chỉ số đó**. Một parameter có thể có không, một hoặc nhiều annotation.
-3. Tham số không có annotation runtime được biểu diễn bằng **mảng annotation rỗng**, không phải bỏ hẳn phần tử ở chiều ngoài.
-4. Với executable không có tham số, mảng ngoài có độ dài **`0`**.
-5. Không dựa vào **thứ tự các annotation khác loại** trong mảng ở cùng một parameter để làm logic nghiệp vụ; hãy tìm theo annotation type. Đặc biệt, repeatable annotations có thể được lưu qua **container annotation**.
+1. **The outer dimension** has one element per parameter in the executable's declaration/signature order. `annotations.length` corresponds to `method.getParameterCount()`.
+2. **The inner dimension** holds the annotations of **the parameter at that index**. A parameter can have zero, one, or multiple annotations.
+3. A parameter with no runtime annotations is represented by an **empty annotation array**, not by omitting the element from the outer dimension.
+4. For an executable with no parameters, the outer array has length **`0`**.
+5. Do not rely on the **order of annotations of different types** in the array on the same parameter for business logic; look up by annotation type. In particular, repeatable annotations may be stored via a **container annotation**.
 
-Mẫu duyệt đáng tin cậy:
+Reliable iteration pattern:
 
 ```java
 Annotation[][] matrix = method.getParameterAnnotations();
@@ -133,11 +133,11 @@ for (int index = 0; index < matrix.length; index++) {
 }
 ```
 
-Đây là đoạn minh họa đặt trong code đã có `method` cùng import `Annotation`. Nếu muốn đọc metadata ngoài annotation, ta lấy `Parameter[]` và ghép bằng **cùng chỉ số**.
+This is an illustrative snippet placed where `method` and the `Annotation` import already exist. To read metadata beyond annotations, retrieve `Parameter[]` and pair by **the same index**.
 
-## 4. `Parameter`: truy vấn từng tham số theo loại annotation
+## 4. `Parameter`: Querying Individual Parameters by Annotation Type
 
-Thay vì tự duyệt mảng hai chiều, `Parameter` cung cấp API gần với việc xử lý từng parameter hơn:
+Instead of manually traversing a two-dimensional array, `Parameter` provides an API closer to per-parameter processing:
 
 ```java
 Parameter[] parameters = method.getParameters();
@@ -150,19 +150,19 @@ for (Parameter parameter : parameters) {
 }
 ```
 
-Đây là ví dụ dùng kiểu `Named` tự định nghĩa và `Method method` đã có. Điểm mạnh là ta xử lý tên, kiểu và annotation của **một tham số** trong cùng một đối tượng.
+This example uses a custom `Named` type and an existing `Method method`. Its strength is handling the name, type, and annotations of **a single parameter** in one object.
 
-- `getAnnotation(T.class)` trả một annotation phù hợp hoặc `null`.
-- `isAnnotationPresent(T.class)` cho biết có annotation cùng loại theo API kiểm tra không.
-- `getAnnotations()` trả các annotation runtime có trên parameter; với repeatable annotations, có thể thấy container thay vì từng annotation lặp.
-- `getDeclaredAnnotations()` trên `Parameter` đọc annotation được khai báo trực tiếp. Parameter **không có cơ chế kế thừa annotation như lớp**; vì vậy không nên thiết kế logic dựa vào annotation parameter của superclass tự động truyền xuống.
-- `getAnnotationsByType(T.class)` là cách thích hợp khi `T` có thể được đánh dấu `@Repeatable`.
+- `getAnnotation(T.class)` returns a matching annotation or `null`.
+- `isAnnotationPresent(T.class)` reports whether an annotation of that type is present per the lookup API.
+- `getAnnotations()` returns runtime annotations present on the parameter; for repeatable annotations, you may see the container instead of individual repeated annotations.
+- `getDeclaredAnnotations()` on `Parameter` reads annotations declared directly. Parameters **do not have class-like annotation inheritance**; therefore, do not design logic assuming superclass parameter annotations automatically propagate down.
+- `getAnnotationsByType(T.class)` is the appropriate way when `T` may be marked `@Repeatable`.
 
-Một annotation như `@Named("id")` là metadata runtime được đọc qua interface `Named`. Gọi `named.value()` để nhận giá trị annotation; không nhầm với việc **lấy giá trị của argument** được truyền vào lúc method thực sự chạy. Reflection metadata mô tả khai báo, không ghi lại argument từ một invocation cụ thể.
+An annotation like `@Named("id")` is runtime metadata read via the `Named` interface. Call `named.value()` to get the annotation value; do not confuse it with **retrieving the argument value** passed when the method actually runs. Reflection metadata describes declarations, not recorded arguments from a specific invocation.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: Method, Constructor, RUNTIME, TYPE_USE, Repeatable
+## 5. Complete Java 17+ Example: Method, Constructor, RUNTIME, TYPE_USE, Repeatable
 
-Tạo một tệp **`ParameterAnnotationDemo.java`** với nội dung sau. Mọi annotation và class thử nghiệm đều được đặt trong một public outer class, nên không cần thư viện ngoài Java SE:
+Create a file **`ParameterAnnotationDemo.java`** with the following contents. All test annotations and classes are placed inside one public outer class, so no libraries outside Java SE are required:
 
 ```java
 import java.lang.annotation.*;
@@ -257,14 +257,14 @@ public class ParameterAnnotationDemo {
 }
 ```
 
-Chạy với JDK 17+ từ thư mục chứa tệp:
+Run with JDK 17+ from the directory containing the file:
 
 ```bash
 javac -parameters ParameterAnnotationDemo.java
 java ParameterAnnotationDemo
 ```
 
-**Stdout đã được đối chiếu khi biên dịch và chạy:**
+**Stdout verified upon compilation and execution:**
 
 ```text
 method parameters: 3
@@ -286,21 +286,21 @@ constructor raw annotation count: 1
 empty annotation slots: 0
 ```
 
-### Phân tích từng nhóm output
+### Analysis of Each Output Group
 
-1. `send` có ba tham số. Ở `send[0]`, `@Label("to")` và `@Tag("email")` đều có `RUNTIME` retention và target `PARAMETER`, vì vậy `getParameterAnnotations()[0]` có **2 annotation**.
-2. `send[1]` được đánh dấu `@CompileOnly`, nhưng annotation có retention `CLASS`, nên **không hiển thị bằng core Reflection**; mảng annotation runtime của tham số này rỗng.
-3. `send[2]` có `@NonNullType` với target `TYPE_USE`. Nó được lưu trên **kiểu `String` được sử dụng ở tham số**, không được trả như parameter-declaration annotation. `getAnnotatedParameterTypes()[2]` nhìn thấy nó, trong khi `Parameter.isAnnotationPresent(NonNullType.class)` trả `false`.
-4. `Label.value()` trả `to`, và `getAnnotationsByType(Tag.class)` trả annotation `Tag` để đọc `email`.
-5. Chạy `javac -parameters` giữ **tên tham số ở mức Reflection**: `isNamePresent() == true`, `getName()` trả `recipient`. Nếu biên dịch **không có `-parameters`** trong trường hợp Java source thông thường này, `isNamePresent()` có thể là `false`, tên do Reflection suy ra có thể là `arg0`. Việc đọc các annotation runtime **không cần** `-parameters`.
-6. Constructor `Service(String,int)` cũng có `Parameter[]`. Tham số đầu tiên chứa `@Label("id")`. Tham số thứ hai có hai `@Tag` lặp; `getAnnotationsByType(Tag.class)` trả **2** phần tử, còn `getParameterAnnotations()[1]` thông thường thấy **1 container annotation `@Tags`**.
-7. Method `empty()` không tham số nên `getParameterAnnotations()` trả mảng ngoài độ dài `0`.
+1. `send` has three parameters. On `send[0]`, `@Label("to")` and `@Tag("email")` both have `RUNTIME` retention and `PARAMETER` target, so `getParameterAnnotations()[0]` has **2 annotations**.
+2. `send[1]` is annotated with `@CompileOnly`, but that annotation has `CLASS` retention, so it is **not visible via core Reflection**; this parameter's runtime annotation array is empty.
+3. `send[2]` has `@NonNullType` with target `TYPE_USE`. It is stored on **the `String` type used at the parameter**, not returned as a parameter-declaration annotation. `getAnnotatedParameterTypes()[2]` sees it, whereas `Parameter.isAnnotationPresent(NonNullType.class)` returns `false`.
+4. `Label.value()` returns `to`, and `getAnnotationsByType(Tag.class)` returns the `Tag` annotation to read `email`.
+5. Running `javac -parameters` preserves **parameter names at the Reflection level**: `isNamePresent() == true`, and `getName()` returns `recipient`. If compiled **without `-parameters`** in this standard Java source case, `isNamePresent()` may be `false` and the Reflection-synthesized name may be `arg0`. Reading runtime annotations **does not require** `-parameters`.
+6. Constructor `Service(String,int)` also has `Parameter[]`. The first parameter contains `@Label("id")`. The second parameter has two repeated `@Tag` annotations; `getAnnotationsByType(Tag.class)` returns **2** elements, whereas `getParameterAnnotations()[1]` normally sees **1 `@Tags` container annotation**.
+7. Method `empty()` has no parameters, so `getParameterAnnotations()` returns an outer array of length `0`.
 
-**Quan trọng:** ví dụ chỉ **đọc metadata**. Không có chỗ nào Java tự kích hoạt validate `@Label`, `@Tag` hoặc `@NonNullType`. Annotation type-use ở đây chỉ là nhãn tùy chỉnh; nó **không tự ngăn** truyền `null` vào tham số.
+**Important:** the example only **reads metadata**. Nowhere does Java automatically trigger validation for `@Label`, `@Tag`, or `@NonNullType`. The type-use annotation here is just a custom marker; it **does not automatically prevent** passing `null` into the parameter.
 
-## 6. Annotation trên parameter khác annotation trên type-use
+## 6. Parameter Annotations vs. Type-Use Annotations
 
-Java hỗ trợ hai kiểu vị trí có thể nhìn gần giống nhau trong source:
+Java supports two annotation positions that can look nearly identical in source code:
 
 ```java
 void process(@Label("input") String value) {
@@ -310,26 +310,26 @@ void processType(@NonNullType String value) {
 }
 ```
 
-Cả hai dòng là đoạn minh họa được khai báo trong một class thích hợp, với `@Label` có target `PARAMETER`, `@NonNullType` có target `TYPE_USE`.
+Both lines are illustrative snippets declared inside an appropriate class, with `@Label` targeting `PARAMETER` and `@NonNullType` targeting `TYPE_USE`.
 
-- `@Label` là **annotation của khai báo tham số**. Dùng `Parameter.getAnnotation(Label.class)` hoặc `Executable.getParameterAnnotations()`.
-- `@NonNullType` là **annotation của việc sử dụng kiểu `String`**. Dùng `Executable.getAnnotatedParameterTypes()` rồi đọc `AnnotatedType`.
-- Nếu một annotation type được phép target cả `PARAMETER` lẫn `TYPE_USE`, compiler có thể ghi metadata cho cả các ngữ cảnh phù hợp; không nên phỏng đoán bằng cách nhìn vị trí chữ `@` trong source. Hãy đọc `@Target` và kiểm tra API phù hợp.
+- `@Label` is a **parameter declaration annotation**. Use `Parameter.getAnnotation(Label.class)` or `Executable.getParameterAnnotations()`.
+- `@NonNullType` is a **type-use annotation on `String`**. Use `Executable.getAnnotatedParameterTypes()` and then read `AnnotatedType`.
+- If an annotation type is allowed to target both `PARAMETER` and `TYPE_USE`, the compiler can emit metadata for both applicable contexts; do not guess by looking at where `@` appears in source. Check `@Target` and use the appropriate API.
 
-`getAnnotatedParameterTypes()` trả mảng `AnnotatedType[]`, tương ứng theo thứ tự với các parameter types. Điều này hữu ích khi mô tả các kiểu có annotation gắn sâu:
+`getAnnotatedParameterTypes()` returns an `AnnotatedType[]` array matching parameter types in order. This is useful when describing types with deeply nested annotations:
 
 ```java
 void store(java.util.List<@NonNullType String> names) {
 }
 ```
 
-Đây là **đoạn minh họa** về annotation trên **generic type argument**, không phải annotation của parameter declaration. Để đọc `@NonNullType` ở `String` bên trong `List`, có thể xem `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()` sau khi xác định `AnnotatedType` bên ngoài là `AnnotatedParameterizedType`.
+This is an **illustrative snippet** of an annotation on a **generic type argument**, not a parameter declaration annotation. To read `@NonNullType` on `String` inside `List`, inspect `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()` after verifying that the outer `AnnotatedType` is an `AnnotatedParameterizedType`.
 
-Phân biệt với annotation chỉ có target `PARAMETER`: các API `Parameter.getAnnotations()` không tự “đào sâu” vào annotation trên generic type arguments, các lớp phần tử của mảng hoặc annotated wildcard.
+Contrast this with annotations targeting only `PARAMETER`: `Parameter.getAnnotations()` APIs do not automatically "drill down" into annotations on generic type arguments, array element layers, or annotated wildcards.
 
-## 7. Repeatable annotation: tại sao số đếm có thể khác?
+## 7. Repeatable Annotations: Why Counts Can Differ
 
-Giả sử annotation được đánh dấu:
+Suppose an annotation is marked:
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
@@ -340,7 +340,7 @@ public @interface Tag {
 }
 ```
 
-và khai báo container tương ứng:
+and the corresponding container is declared:
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
@@ -350,24 +350,24 @@ public @interface Tags {
 }
 ```
 
-Hai đoạn là khai báo minh họa; cần đặt trong file/class phù hợp và import `java.lang.annotation.*`. Khi sử dụng:
+Both snippets are illustrative declarations; they must be placed in appropriate files/classes and import `java.lang.annotation.*`. When used:
 
 ```java
 public void authorize(@Tag("reader") @Tag("writer") String user) {
 }
 ```
 
-Java compiler có thể lưu hai `@Tag` thông qua container `@Tags`. Vì thế:
+The Java compiler can store the two `@Tag` annotations via the `@Tags` container. Therefore:
 
-- `parameter.getAnnotationsByType(Tag.class)` trả **hai `Tag`**, phù hợp cho việc xử lý annotation repeatable.
-- `parameter.getAnnotation(Tag.class)` **không nên** được giả định sẽ trả một trong hai `Tag` khi chúng được lưu dưới dạng container; có thể trả `null`.
-- `parameter.getAnnotations()` và `getParameterAnnotations()` có thể phản ánh **container annotation** `Tags` thay vì hai `Tag` riêng lẻ. Số phần tử thô trong mảng khác với số annotation `Tag` thực tế về mặt lặp.
+- `parameter.getAnnotationsByType(Tag.class)` returns **two `Tag` instances**, suited for handling repeatable annotations.
+- `parameter.getAnnotation(Tag.class)` **should not** be assumed to return one of the two `Tag` annotations when they are stored in a container; it may return `null`.
+- `parameter.getAnnotations()` and `getParameterAnnotations()` may reflect the **container annotation** `Tags` rather than two individual `Tag` entries. The raw element count in the array differs from the actual number of repeated `Tag` annotations.
 
-Ví dụ hoàn chỉnh ở mục 5 xác nhận `getAnnotationsByType(Tag.class).length == 2` trong khi số annotation thô trên cùng constructor parameter là `1`. Đừng dùng `getAnnotations().length` để khẳng định “chỉ có một tag” mà không hiểu cấu trúc repeatable annotation.
+The complete example in section 5 confirms `getAnnotationsByType(Tag.class).length == 2` while the raw annotation count on that same constructor parameter is `1`. Do not use `getAnnotations().length` to assert "there is only one tag" without understanding repeatable annotation structure.
 
-## 8. Tên tham số và annotation là hai loại metadata độc lập
+## 8. Parameter Names and Annotations Are Two Independent Metadata Kinds
 
-Hai API thường xuất hiện cạnh nhau:
+Two APIs frequently appear side by side:
 
 ```java
 Parameter parameter = method.getParameters()[0];
@@ -375,21 +375,21 @@ String name = parameter.getName();
 Annotation[] annotations = parameter.getAnnotations();
 ```
 
-Đây là đoạn minh họa trong code có `Method method` tương ứng và import `Parameter`, `Annotation`. Nhưng có khác biệt quan trọng:
+This is an illustrative snippet in code that has a matching `Method method` and imports `Parameter`, `Annotation`. Yet there is an important distinction:
 
-- Tên tham số thông thường được compiler giữ lại cho Reflection nhờ tùy chọn **`javac -parameters`**, để `Parameter.isNamePresent()` trả `true` và `getName()` phản ánh tên đã biên dịch.
-- Annotation muốn có mặt trong core Reflection cần **`@Retention(RUNTIME)`** và đúng target; `-parameters` không làm cho annotation retention `CLASS` xuất hiện ở runtime.
-- Một framework dùng annotation như `@Named("userId")` có thể hoạt động dù method parameter ở runtime chỉ có tên `arg0`, vì nó đọc phần tử annotation `value()`, không phụ thuộc vào `getName()`.
-- Ngược lại, code sử dụng tên tham số để bind mà không kiểm tra `isNamePresent()` có thể xử lý sai nếu class được build không có `-parameters`.
+- Ordinary parameter names are retained by the compiler for Reflection via **`javac -parameters`**, so `Parameter.isNamePresent()` returns `true` and `getName()` reflects the compiled name.
+- Annotations present in core Reflection require **`@Retention(RUNTIME)`** and the right target; `-parameters` does not make `CLASS`-retention annotations appear at runtime.
+- A framework using annotations like `@Named("userId")` can work even if the runtime method parameter is named `arg0`, because it reads the annotation's `value()` element rather than relying on `getName()`.
+- Conversely, code using parameter names for binding without checking `isNamePresent()` may misbehave if classes are built without `-parameters`.
 
-Khuyến nghị: khi cần bind theo tên, ưu tiên annotation tường minh nếu thiết kế API yêu cầu tính ổn định trước thay đổi compiler flags; nếu dùng tên thực của parameter, hãy quy định và kiểm tra rõ `-parameters` trong quy trình build.
+Recommendation: when binding by name, prefer explicit annotations if the API design requires stability against compiler flag changes; if using actual parameter names, explicitly enforce and verify `-parameters` in the build pipeline.
 
-## 9. Method, Constructor và các tham số do compiler tạo
+## 9. Method, Constructor, and Compiler-Generated Parameters
 
-Thông thường, mảng `Parameter[]` và annotation matrix được căn theo thứ tự của parameter types trong executable:
+Normally, `Parameter[]` and the annotation matrix align in the order of the executable's parameter types:
 
 ```java
-Executable executable = /* Method hoặc Constructor được truyền vào */;
+Executable executable = /* Passed-in Method or Constructor */;
 Parameter[] parameters = executable.getParameters();
 Annotation[][] annotations = executable.getParameterAnnotations();
 
@@ -399,23 +399,23 @@ for (int i = 0; i < parameters.length; i++) {
 }
 ```
 
-Đây là đoạn minh họa, không phải một chương trình độc lập. Nếu không có metadata parameter names, việc duyệt theo **index** vẫn hoạt động.
+This is an illustrative snippet, not a standalone program. When parameter name metadata is absent, indexing by **position** still works.
 
-Tuy nhiên, một số constructor đặc biệt có **parameter bổ sung ở bytecode**:
+However, some special constructors have **extra parameters in bytecode**:
 
-- Constructor của một **non-static inner class** có thể nhận tham chiếu tới instance của enclosing class.
-- Constructor của **enum** có tham số nội bộ do compiler/JVM sử dụng, ngoài những tham số hiển thị trong khai báo source.
-- Compiler có thể sinh tham số **synthetic** hoặc đánh dấu tham số **implicit/mandated**, tùy construct và compiler.
+- The constructor of a **non-static inner class** may receive a reference to the enclosing class instance.
+- An **enum** constructor has internal parameters used by the compiler/JVM in addition to those visible in the source declaration.
+- The compiler may generate **synthetic** parameters or mark parameters **implicit/mandated**, depending on the construct and compiler.
 
-Vì vậy, khi viết framework tổng quát, không nên suy rằng parameter thứ 0 trong mọi constructor luôn tương ứng với tham số đầu tiên do lập trình viên trực tiếp viết. Có thể kiểm tra `Parameter.isSynthetic()`, `Parameter.isImplicit()` và metadata compiler khi cần; đồng thời đối chiếu `Executable.getParameterTypes()`, `getParameters()` và annotation array theo **cùng executable**.
+Therefore, when writing a general-purpose framework, do not infer that parameter 0 of every constructor always corresponds to the first parameter directly written by the programmer. You can inspect `Parameter.isSynthetic()`, `Parameter.isImplicit()`, and compiler metadata as needed, while pairing `Executable.getParameterTypes()`, `getParameters()`, and annotation arrays from the **same executable**.
 
-Trong trường hợp constructor do compiler sinh đặc biệt, metadata về annotation/parameter đôi khi cần xử lý thận trọng theo bytecode thực tế và phiên bản compiler. Đừng dùng tên `arg0` hoặc số parameter giả định thay cho việc kiểm tra reflection metadata.
+In special compiler-generated constructor cases, annotation/parameter metadata sometimes requires careful handling based on actual bytecode and compiler version. Do not use the name `arg0` or assumed parameter counts instead of checking reflection metadata.
 
-### Overriding không tự kế thừa annotation của tham số
+### Overriding Does Not Automatically Inherit Parameter Annotations
 
-Nếu interface hoặc superclass khai báo một method với parameter annotation, method override ở subclass **không tự động nhận** annotation của parameter cũ. `@Inherited` của Java chỉ áp dụng cho một số **class-level annotations**, không truyền parameter annotations qua override.
+If an interface or superclass declares a method with parameter annotations, an overriding method in a subclass **does not automatically inherit** the old parameter annotations. Java's `@Inherited` applies only to certain **class-level annotations**, and does not propagate parameter annotations through overriding.
 
-Ví dụ:
+Example:
 
 ```java
 interface Handler {
@@ -429,13 +429,13 @@ class HandlerImpl implements Handler {
 }
 ```
 
-Đây là đoạn minh họa với `Label` runtime annotation thích hợp. Nếu tra cứu parameter annotations trên `HandlerImpl.handle(String)`, không được mặc định nhìn thấy `@Label("command")` của `Handler.handle(String)`. Một framework muốn kế thừa quy ước annotation từ interface phải **tự xác định method tương ứng và đọc metadata từ interface**.
+This is an illustrative snippet with an appropriate `Label` runtime annotation. If you inspect parameter annotations on `HandlerImpl.handle(String)`, you must not assume you will see `@Label("command")` from `Handler.handle(String)`. A framework wishing to inherit annotation conventions from an interface must **explicitly locate the corresponding method and read metadata from the interface**.
 
-Đây là điểm khác biệt quan trọng giữa “method cùng chữ ký ở nhiều cấp type” và “annotation thực sự gắn vào parameter của Method cụ thể được trả về từ Reflection”.
+This is an important distinction between "methods with the same signature across multiple type levels" and "annotations actually attached to parameters of the specific `Method` returned by Reflection".
 
-## 10. Tra cứu đúng method/constructor trước khi đọc annotation
+## 10. Looking Up the Right Method/Constructor Before Reading Annotations
 
-Trước khi lấy annotations, cần chọn đúng executable:
+Before reading annotations, select the right executable:
 
 ```java
 Method m = Service.class.getMethod(
@@ -445,19 +445,19 @@ Constructor<Service> c =
         Service.class.getConstructor(String.class, int.class);
 ```
 
-Đây là hai lệnh minh họa trùng với class ví dụ ở mục 5. `getMethod(name, parameterTypes)` tra cứu public method theo tên + **chữ ký kiểu tham số**; `getConstructor(parameterTypes)` tra cứu constructor public. Nếu cần metadata của private executable, dùng `getDeclaredMethod` hoặc `getDeclaredConstructor`.
+These two illustrative calls match the example class in section 5. `getMethod(name, parameterTypes)` looks up a public method by name + **parameter type signature**; `getConstructor(parameterTypes)` looks up a public constructor. If you need metadata of private executables, use `getDeclaredMethod` or `getDeclaredConstructor`.
 
-Lưu ý:
+Notes:
 
-1. Annotation **không tham gia phân biệt overload**. Hai method không thể được overload chỉ vì annotation trên parameter khác nhau; điều quan trọng là tên method và dãy parameter types theo Java.
-2. `int.class` và `Integer.class` là **hai kiểu chữ ký khác nhau**. Khi lookup, Java Reflection không tự chọn overload theo boxing của argument runtime.
-3. Varargs parameter `String... names` xuất hiện trong reflection parameter types như kiểu **`String[]`**.
-4. Generic parameter như `List<String>` thường có erased runtime type `List.class`; muốn metadata generic dùng `getGenericParameterTypes()` hoặc `Parameter.getParameterizedType()`.
-5. Tìm được metadata executable không có nghĩa có thể **invoke** nó. Access checks, module encapsulation và tham số truyền vào vẫn có thể ảnh hưởng việc gọi. Đọc annotation thông thường không yêu cầu thực thi executable.
+1. Annotations **do not participate in overload resolution**. Two methods cannot be overloaded merely because annotations on their parameters differ; what matters is the method name and Java parameter type sequence.
+2. `int.class` and `Integer.class` are **two different signature types**. During lookup, Java Reflection does not select overloads via boxing of runtime arguments.
+3. A varargs parameter `String... names` appears in reflection parameter types as **`String[]`**.
+4. A generic parameter such as `List<String>` typically has erased runtime type `List.class`; for generic metadata, use `getGenericParameterTypes()` or `Parameter.getParameterizedType()`.
+5. Finding executable metadata does not mean you can **invoke** it. Access checks, module encapsulation, and passed arguments can still affect invocation. Ordinary annotation reading does not require executing the executable.
 
-## 11. Ứng dụng thực tế: annotation-driven validation và binding
+## 11. Practical Application: Annotation-Driven Validation and Binding
 
-Giả sử một framework muốn đọc annotation `@Label` để biết tên trường JSON hoặc tên HTTP parameter:
+Suppose a framework wants to read the `@Label` annotation to learn the JSON field name or HTTP parameter name:
 
 ```java
 Method endpoint = Controller.class.getMethod(
@@ -472,76 +472,76 @@ for (int i = 0; i < params.length; i++) {
     String externalName = label.value();
     Class<?> targetType = params[i].getType();
 
-    // Ánh xạ externalName -> dữ liệu đầu vào -> chuyển đổi kiểu targetType,
-    // sau đó kiểm tra điều kiện nghiệp vụ trước khi Method.invoke.
+    // Map externalName -> input data -> convert to targetType,
+    // then validate business conditions before Method.invoke.
 }
 ```
 
-Đây là **đoạn minh họa thiết kế**, giả định có `Controller` với public method phù hợp và annotation `Label`. Không phải chương trình chạy độc lập. Framework thực tế cần bổ sung xử lý kiểu, field missing/null, số lượng argument, security, validate và exception.
+This is a **design illustration snippet**, assuming a `Controller` with an appropriate public method and `Label` annotation. It is not a standalone runnable program. A real framework must add type handling, missing/null field handling, argument count checks, security, validation, and exception handling.
 
-Quy trình hợp lý:
+Reasonable workflow:
 
-1. Tra cứu chính xác `Method` hoặc `Constructor`.
-2. Lấy `Parameter[]` theo thứ tự executable.
-3. Với mỗi parameter, lấy annotation có `RUNTIME` retention mà framework hiểu, hoặc type-use annotations khi đúng mục tiêu.
-4. Đọc thành phần của annotation (`value()`, `required()`, ... nếu annotation đó định nghĩa) để xây dựng quy tắc bind/validate.
-5. Chuyển dữ liệu ngoài thành kiểu Java phù hợp với `getType()`/`getParameterizedType()`.
-6. Kiểm tra lỗi và quyền truy cập; cuối cùng mới gọi `Method.invoke` hoặc `Constructor.newInstance` nếu cần.
+1. Look up the exact `Method` or `Constructor`.
+2. Retrieve `Parameter[]` in executable order.
+3. For each parameter, read annotations with `RUNTIME` retention understood by the framework, or type-use annotations where targeted.
+4. Read annotation elements (`value()`, `required()`, ... if defined by that annotation) to build binding/validation rules.
+5. Convert external data into the Java type matching `getType()`/`getParameterizedType()`.
+6. Check errors and access permissions; only then call `Method.invoke` or `Constructor.newInstance` if needed.
 
-**Không có bước nào Java tự thực thi annotation giúp bạn.** Ví dụ `@Positive` do người học tự định nghĩa không tự ngăn một số âm được truyền vào method. Với Bean Validation như Jakarta Validation, các thư viện chuyên dụng cung cấp engine và quy tắc; core Reflection chỉ là một phần cơ chế khám phá metadata.
+**At no step does Java automatically execute annotations for you.** For example, a learner-defined `@Positive` does not automatically prevent a negative number from being passed to the method. With Bean Validation such as Jakarta Validation, dedicated libraries provide the engine and rules; core Reflection is only part of the metadata discovery mechanism.
 
-## 12. Lỗi thường gặp và cách khắc phục
+## 12. Common Errors and Fixes
 
-| Triệu chứng | Nguyên nhân khả dĩ | Kiểm tra hoặc hướng giải quyết |
+| Symptom | Possible Cause | Check or Resolution |
 |---|---|---|
-| `parameter.getAnnotation(MyAnno.class)` là `null` | Annotation không có `RUNTIME` retention | Kiểm tra khai báo `@Retention(RUNTIME)`; build lại class |
-| `getParameterAnnotations()[i]` rỗng nhưng source có annotation | Annotation là `TYPE_USE`, `CLASS`/`SOURCE` hoặc không đúng parameter được đọc | Dùng `getAnnotatedParameterTypes()` nếu là `TYPE_USE`; xem retention |
-| `getAnnotations().length` bằng 1 dù source ghi hai annotation cùng loại | Repeatable annotations được lưu qua container | Dùng `getAnnotationsByType(Tag.class)` |
-| `Parameter.getName()` là `arg0` | Không có metadata tên param runtime | Biên dịch với `javac -parameters`, kiểm tra `isNamePresent()` |
-| `getMethod(...)` ném `NoSuchMethodException` | Tên, số lượng hoặc kiểu param lookup không đúng; method không public | Kiểm tra đúng overload và visibility; cân nhắc `getDeclaredMethod` |
-| Annotation có ở interface nhưng không thấy trên override class | Parameter annotation không tự kế thừa qua override | Framework cần đọc annotation từ method ở interface/supertype |
-| Duyệt annotations theo tên param rồi bị lệch | Tên param không đáng tin nếu không có `-parameters` hoặc có compiler-generated params | Ưu tiên chỉ số kết hợp `getParameters()` từ cùng executable |
-| Code dùng `getAnnotation(...).value()` gây `NullPointerException` | Không có annotation runtime đúng loại | Kiểm tra khác `null` hoặc dùng `isAnnotationPresent` |
-| Annotation được đọc nhưng không có validation nào chạy | Reflection chỉ đọc metadata; không cung cấp validation engine | Viết logic xử lý hoặc tích hợp framework chuyên dụng |
-| Lỗi khi đọc phần tử của annotation runtime bất thường | Annotation type hoặc class metadata thay đổi, type không hiện diện, giá trị không phù hợp | Kiểm tra runtime classpath/module và compatibility; một số API có thể ném lỗi như `TypeNotPresentException`, `AnnotationTypeMismatchException` hoặc `IncompleteAnnotationException` |
+| `parameter.getAnnotation(MyAnno.class)` is `null` | Annotation lacks `RUNTIME` retention | Check `@Retention(RUNTIME)` declaration; rebuild classes |
+| `getParameterAnnotations()[i]` is empty while source has annotation | Annotation is `TYPE_USE`, `CLASS`/`SOURCE`, or wrong parameter read | Use `getAnnotatedParameterTypes()` if `TYPE_USE`; check retention |
+| `getAnnotations().length` is 1 even though source has two annotations of the same type | Repeatable annotations are stored via a container | Use `getAnnotationsByType(Tag.class)` |
+| `Parameter.getName()` is `arg0` | No runtime parameter name metadata | Compile with `javac -parameters`, check `isNamePresent()` |
+| `getMethod(...)` throws `NoSuchMethodException` | Lookup name, count, or parameter types are wrong; method is not public | Check exact overload and visibility; consider `getDeclaredMethod` |
+| Annotation is on interface but missing on overriding class | Parameter annotations are not inherited through overriding | Framework must read annotations from the interface/supertype method |
+| Iterating annotations by parameter name gets misaligned | Parameter names are unreliable without `-parameters` or with compiler-generated params | Prefer indices combined with `getParameters()` from the same executable |
+| Code calling `getAnnotation(...).value()` throws `NullPointerException` | Matching runtime annotation is absent | Check for `null` or use `isAnnotationPresent` |
+| Annotation is read but no validation runs | Reflection only reads metadata; it provides no validation engine | Write processing logic or integrate a dedicated framework |
+| Errors when reading elements of unusual runtime annotations | Annotation type or class metadata changed, type not present, mismatched value | Check runtime classpath/modules and compatibility; some APIs can throw errors like `TypeNotPresentException`, `AnnotationTypeMismatchException`, or `IncompleteAnnotationException` |
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-Check Questions
 
-**Câu 1.** Method có ba tham số nhưng chỉ tham số thứ hai gắn `@Label` runtime. `getParameterAnnotations()` có bao nhiêu phần tử chiều ngoài?
+**Question 1.** A method has three parameters, but only the second parameter carries a runtime `@Label`. How many outer elements does `getParameterAnnotations()` have?
 
-**Đáp án:** Ba phần tử. Parameter thứ nhất và thứ ba tương ứng mảng annotation rỗng; phần tử thứ hai chứa annotation.
+**Answer:** Three elements. The first and third parameters correspond to empty annotation arrays; the second element contains the annotation.
 
-**Câu 2.** Khai báo `@Target(PARAMETER)` nhưng không ghi `@Retention`. Reflection có chắc đọc được annotation này không?
+**Question 2.** An annotation declares `@Target(PARAMETER)` without `@Retention`. Is Reflection guaranteed to read this annotation?
 
-**Đáp án:** Không. Retention mặc định là `CLASS`; core Reflection không hiển thị nó như runtime annotation. Muốn đọc bằng `Parameter.getAnnotation` cần `RetentionPolicy.RUNTIME`.
+**Answer:** No. The default retention is `CLASS`; core Reflection does not expose it as a runtime annotation. Reading via `Parameter.getAnnotation` requires `RetentionPolicy.RUNTIME`.
 
-**Câu 3.** Tại sao `javac -parameters` không làm `@CompileOnly` trong ví dụ hiển thị?
+**Question 3.** Why doesn't `javac -parameters` make `@CompileOnly` in the example appear?
 
-**Đáp án:** `-parameters` lưu metadata **tên tham số**. `@CompileOnly` có retention `CLASS`, nên không được trả về trong runtime annotation APIs; đây là hai cơ chế khác nhau.
+**Answer:** `-parameters` stores **parameter name** metadata. `@CompileOnly` has `CLASS` retention, so it is not returned in runtime annotation APIs; these are two separate mechanisms.
 
-**Câu 4.** `@NonNullType` có target `TYPE_USE` được gắn trước `String body`. API nào phù hợp để đọc?
+**Question 4.** `@NonNullType` with target `TYPE_USE` is placed before `String body`. Which API is appropriate to read it?
 
-**Đáp án:** `method.getAnnotatedParameterTypes()[index]`, sau đó `AnnotatedType.getAnnotation(NonNullType.class)` hoặc `isAnnotationPresent`. Không mặc định nó là parameter-declaration annotation.
+**Answer:** `method.getAnnotatedParameterTypes()[index]`, then `AnnotatedType.getAnnotation(NonNullType.class)` or `isAnnotationPresent`. Do not assume it is a parameter-declaration annotation.
 
-**Câu 5.** Một parameter có `@Tag("a") @Tag("b")`. Để lấy tất cả tag nên dùng gì?
+**Question 5.** A parameter has `@Tag("a") @Tag("b")`. What should be used to retrieve all tags?
 
-**Đáp án:** `parameter.getAnnotationsByType(Tag.class)`, vì `Tag` là repeatable; đừng dùng `getAnnotation(Tag.class)` để mong lấy ngẫu nhiên một tag.
+**Answer:** `parameter.getAnnotationsByType(Tag.class)`, because `Tag` is repeatable; do not use `getAnnotation(Tag.class)` expecting a single arbitrary tag.
 
-**Câu 6.** Interface khai báo parameter `@Label("id")`, còn class implement override method mà không ghi lại annotation. Class implement có tự nhận annotation đó khi gọi Reflection không?
+**Question 6.** An interface declares parameter `@Label("id")`, while the implementing class overrides the method without repeating the annotation. Does the implementing class automatically receive that annotation when queried via Reflection?
 
-**Đáp án:** Không. Parameter annotations không tự kế thừa khi method được override. Framework phải tìm method của interface và đọc metadata ở đó nếu muốn áp dụng quy tắc từ interface.
+**Answer:** No. Parameter annotations are not automatically inherited when a method is overridden. A framework must locate the interface method and read metadata there if it wants to apply interface rules.
 
-**Câu 7.** Constructor có thể tra cứu annotation parameter giống method không?
+**Question 7.** Can constructors be queried for parameter annotations just like methods?
 
-**Đáp án:** Có. `Method` và `Constructor` đều kế thừa `Executable`, nên có `getParameters()`, `getParameterAnnotations()`, `getAnnotatedParameterTypes()`; cần lưu ý implicit/synthetic parameters trong một số constructor đặc biệt.
+**Answer:** Yes. `Method` and `Constructor` both inherit from `Executable`, so they have `getParameters()`, `getParameterAnnotations()`, and `getAnnotatedParameterTypes()`; keep in mind implicit/synthetic parameters on certain special constructors.
 
-## Tài liệu chuẩn để tra cứu
+## Official Reference Sources
 
 - Java SE API: `java.lang.reflect.Executable` — `getParameters`, `getParameterCount`, `getParameterAnnotations`, `getAnnotatedParameterTypes`.
 - Java SE API: `java.lang.reflect.Parameter` — `getName`, `isNamePresent`, `getType`, `getParameterizedType`, `getAnnotationsByType`, `isSynthetic`, `isImplicit`.
 - Java SE API: `java.lang.reflect.AnnotatedType`, `AnnotatedParameterizedType`.
 - Java SE API: `java.lang.annotation.Retention`, `RetentionPolicy`, `Target`, `ElementType`, `Repeatable`.
-- Java Language Specification: phần về annotation types, type annotations, method/constructor parameters; Java Virtual Machine Specification: runtime-visible parameter/type annotations.
-- Công cụ `javac`: tùy chọn `-parameters` để lưu tên tham số được Reflection sử dụng.
+- Java Language Specification: sections on annotation types, type annotations, and method/constructor parameters; Java Virtual Machine Specification: runtime-visible parameter/type annotations.
+- `javac` tool: `-parameters` option to store parameter names used by Reflection.
 
-**Ghi nhớ:** Annotation trên từng tham số được đọc qua **`Executable.getParameterAnnotations()`** hoặc **`Parameter.getAnnotation(s)`**, căn theo đúng parameter index. Chỉ annotation có **`RUNTIME` retention** mới hiện qua core Reflection; annotation `TYPE_USE` được đọc qua **`AnnotatedType`**; annotation lặp nên lấy bằng **`getAnnotationsByType`**. Tên tham số có cần `-parameters` hay không là vấn đề khác với việc giữ annotation, và việc có annotation **không tự chạy validation**.
+**Remember:** Annotations on individual parameters are read via **`Executable.getParameterAnnotations()`** or **`Parameter.getAnnotation(s)`**, aligned by the exact parameter index. Only annotations with **`RUNTIME` retention** appear through core Reflection; `TYPE_USE` annotations are read via **`AnnotatedType`**; repeatable annotations should be retrieved with **`getAnnotationsByType`**. Whether parameter names require `-parameters` is separate from retaining annotations, and having an annotation **does not automatically run validation**.

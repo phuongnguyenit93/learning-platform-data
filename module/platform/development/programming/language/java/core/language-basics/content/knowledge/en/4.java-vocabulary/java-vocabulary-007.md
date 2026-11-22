@@ -1,77 +1,77 @@
-# Chú thích một dòng, nhiều dòng và chú thích tài liệu trong Java
+# Single-Line, Multi-Line, and Documentation Comments in Java
 
-## 1. Ba dạng chú thích cần phân biệt
+## 1. Three types of comments to distinguish
 
-Chú thích (*comment*) là phần văn bản dành cho người đọc mã nguồn. Trong Java 17+, bạn sẽ gặp ba dạng chính:
+A **comment** is text intended for human readers of source code. In Java 17+, you will encounter three main forms:
 
-| Dạng | Cú pháp | Phạm vi | Mục đích thường gặp |
+| Form | Syntax | Scope | Common purpose |
 |---|---|---|---|
-| Chú thích một dòng | `// nội dung` | Từ `//` tới hết dòng | Giải thích một quyết định ngắn, cảnh báo một trường hợp |
-| Chú thích khối | `/* nội dung */` | Từ `/*` đến `*/`, có thể qua nhiều dòng | Diễn giải ngắn nhiều dòng, ghi chú nội bộ |
-| Chú thích tài liệu | `/** nội dung */` | Một khối đặc biệt được công cụ Javadoc nhận diện | Mô tả API: lớp, phương thức, tham số, giá trị trả về, ngoại lệ |
+| Single-line comment | `// content` | From `//` to the end of the line | Explain a brief decision, warn about a case |
+| Block comment | `/* content */` | From `/*` to `*/`, may span multiple lines | Short multi-line explanation, internal notes |
+| Documentation comment | `/** content */` | A special block recognized by the Javadoc tool | Document APIs: classes, methods, parameters, return values, exceptions |
 
-Trong chương trình Java thông thường, **nội dung chú thích không phải câu lệnh để JVM thực thi**. Trình biên dịch xử lý các dấu chú thích khi phân tích mã nguồn; nội dung của chúng không trở thành logic chạy của chương trình. Công cụ **`javadoc`** có thể đọc chú thích tài liệu để sinh trang HTML.
+In regular Java programs, **comment content is not a statement for the JVM to execute**. The compiler processes comment markers while parsing source code; their content does not become runtime program logic. The **`javadoc`** tool can read documentation comments to generate HTML pages.
 
-Ví dụ phân biệt trực quan:
+Visual comparison example:
 
 ~~~java
-int price = 100; // Giải thích ngay sau câu lệnh
+int price = 100; // Explanation right after the statement
 
-/* Đây là chú thích khối
-   trải qua nhiều dòng. */
+/* This is a block comment
+   spanning multiple lines. */
 
 /**
- * Đây là chú thích tài liệu.
- * Thường đặt trước khai báo cần được mô tả.
+ * This is a documentation comment.
+ * Usually placed before the declaration to be described.
  */
 class Product {
 }
 ~~~
 
-**Quy tắc cốt lõi:** dùng chú thích để giải thích **tại sao** mã được viết như vậy, điều kiện hay cam kết của API; không cần diễn đạt lại mọi phép gán hoặc mọi dấu chấm phẩy mà mã đã thể hiện rõ.
+**Core rule:** use comments to explain **why** the code is written that way, conditions, or API contracts; do not restate every assignment or every semicolon that the code already makes obvious.
 
-## 2. Chú thích một dòng: `//`
+## 2. Single-line comments: `//`
 
-Từ hai dấu gạch chéo liên tiếp ở ngoài chuỗi ký tự, phần còn lại của **dòng nguồn** được xem là chú thích.
+Starting from two consecutive slashes outside a character/string literal, the remainder of the **source line** is treated as a comment.
 
 ~~~java
 int minimumAge = 18;
 int userAge = 17;
 
-// Quy định nghiệp vụ: người dưới 18 tuổi không được đăng ký.
+// Business rule: people under 18 are not allowed to register.
 boolean eligible = userAge >= minimumAge;
 System.out.println(eligible); // false
 ~~~
 
-Nếu một dòng có lệnh trước `//`, lệnh **vẫn được thực hiện**; chỉ phần sau dấu `//` là chú thích. Hai cách sử dụng phù hợp:
+If a line has a statement before `//`, the statement **is still executed**; only the part after `//` is a comment. Two appropriate ways to use it:
 
-- Đặt chú thích ở **dòng riêng phía trên** đoạn xử lý khi cần lý giải một quy tắc.
-- Đặt chú thích **cuối dòng** khi thực sự ngắn và không làm mã khó đọc.
+- Place the comment on **its own line above** the code block when explaining a rule.
+- Place the comment at the **end of the line** when it is genuinely brief and does not hurt readability.
 
-Ví dụ không nên viết chú thích dư thừa:
-
-~~~java
-int total = 10; // Gán giá trị 10 cho total
-~~~
-
-Giá trị đã rõ từ code. Thông tin hữu ích hơn có thể là lý do dùng 10, điều kiện của bài toán hoặc đơn vị tính.
-
-**Chú thích `//` không kéo dài sang dòng tiếp theo**:
+Example of a redundant comment to avoid:
 
 ~~~java
-int a = 1; // chỉ dòng này
-int b = 2; // câu lệnh dòng sau vẫn hoạt động
+int total = 10; // Assign value 10 to total
 ~~~
 
-## 3. Chú thích nhiều dòng: `/* ... */`
+The value is already clear from the code. More useful information would be the reason for using 10, problem constraints, or the unit of measurement.
 
-Chú thích khối bắt đầu ở `/*` và kết thúc tại **cặp `*/` đầu tiên** tương ứng theo quá trình phân tích ký tự của Java. Nó có thể nằm cùng dòng hoặc trải qua nhiều dòng.
+**A `//` comment does not extend to the next line**:
+
+~~~java
+int a = 1; // this line only
+int b = 2; // statement on the next line still runs
+~~~
+
+## 3. Multi-line comments: `/* ... */`
+
+A block comment begins at `/*` and ends at the **first matching `*/` pair** during Java's character scanning. It can fit on a single line or span multiple lines.
 
 ~~~java
 /*
- * Công thức demo:
- * thành tiền = số lượng × đơn giá.
- * Dữ liệu đều là số nguyên không âm.
+ * Demo formula:
+ * subtotal = quantity × unit price.
+ * All data are non-negative integers.
  */
 int quantity = 3;
 long unitPrice = 120_000L;
@@ -79,47 +79,47 @@ long subtotal = unitPrice * quantity;
 System.out.println(subtotal); // 360000
 ~~~
 
-Chú thích khối cũng có thể đặt xen giữa một số token khi cú pháp cho phép:
+A block comment can also be placed between certain tokens where syntax allows:
 
 ~~~java
-int result = 2 /* giữ phép nhân minh họa */ * 3;
+int result = 2 /* keep illustrative multiplication */ * 3;
 System.out.println(result); // 6
 ~~~
 
-Dùng kiểu xen giữa biểu thức quá thường xuyên sẽ làm code khó đọc. Thực tế, chú thích khối thường đặt thành một đoạn riêng.
+Inserting comments inside expressions too often makes code hard to read. In practice, block comments are usually written as a separate paragraph.
 
-### Chú thích khối **không lồng nhau**
+### Block comments **do not nest**
 
-Đây là lỗi dễ gặp:
+This is a common mistake:
 
 ~~~java
-/* Khối ngoài
-   /* Khối trong */
-   phần còn lại ở đây không phải chú thích
+/* Outer block
+   /* Inner block */
+   the rest here is not a comment
 */
 ~~~
 
-`*/` đầu tiên kết thúc khối ngoài. Phần chữ còn lại sẽ bị Java xem như mã nguồn và có thể gây lỗi biên dịch. Java **không hỗ trợ chú thích khối lồng nhau**. Khi cần hai đoạn giải thích độc lập, dùng hai khối riêng hoặc các dòng `//`.
+The first `*/` closes the outer block. The remaining text will be treated by Java as source code and may cause a compile error. Java **does not support nested block comments**. When you need two independent explanations, use two separate blocks or `//` lines.
 
-Một khối thiếu `*/` cũng gây lỗi biên dịch, chẳng hạn thông báo về *unclosed comment*. Nếu editor tô màu cả phần còn lại của tệp như chú thích, hãy kiểm tra dấu đóng.
+A block missing `*/` also causes a compile error, such as an *unclosed comment* message. If the editor highlights the entire rest of the file as a comment, check for the closing delimiter.
 
-## 4. Chú thích tài liệu: `/** ... */`
+## 4. Documentation comments: `/** ... */`
 
-**Javadoc comment** có cú pháp bắt đầu bằng `/**` và kết thúc bằng `*/`. Nội dung bên trong thường mô tả **khai báo đứng ngay sau chú thích**, ví dụ public class hoặc public method.
+A **Javadoc comment** starts with `/**` and ends with `*/`. The content inside typically describes **the declaration immediately following the comment**, such as a public class or public method.
 
 ~~~java
 /**
- * Các phép tính đơn giản dùng trong ví dụ.
+ * Simple calculations used in examples.
  */
 public class Calculator {
 
     /**
-     * Cộng hai số nguyên và phát hiện tràn số.
+     * Adds two integers and detects overflow.
      *
-     * @param a số hạng thứ nhất
-     * @param b số hạng thứ hai
-     * @return tổng của a và b
-     * @throws ArithmeticException nếu phép cộng vượt miền int
+     * @param a the first addend
+     * @param b the second addend
+     * @return the sum of a and b
+     * @throws ArithmeticException if the addition overflows the int range
      */
     public static int add(int a, int b) {
         return Math.addExact(a, b);
@@ -127,52 +127,52 @@ public class Calculator {
 }
 ~~~
 
-Phần mở đầu là **mô tả**. Các dòng bắt đầu bằng `@` trong chú thích tài liệu là **block tags của Javadoc**, ví dụ `@param`, `@return`, `@throws`.
+The opening section is the **description**. Lines starting with `@` in a documentation comment are **Javadoc block tags**, such as `@param`, `@return`, and `@throws`.
 
-Dấu `*` ở đầu mỗi dòng nội dung là **kiểu trình bày quen thuộc**, không phải phép nhân Java; `javadoc` hiểu cấu trúc của khối chú thích tài liệu.
+The leading `*` on each content line is a **familiar formatting style**, not Java multiplication; `javadoc` understands the structure of documentation comment blocks.
 
-### Các tag thường dùng
+### Commonly used tags
 
-| Tag | Ý nghĩa | Khi nên dùng |
+| Tag | Meaning | When to use |
 |---|---|---|
-| `@param name` | Ý nghĩa một tham số; `name` phải khớp tên tham số | Method/constructor có tham số |
-| `@return` | Giá trị/kết quả trả về | Method trả giá trị, không dùng để mô tả kết quả của method `void` |
-| `@throws Type` | Điều kiện có thể phát sinh exception | API có hành vi lỗi cần giải thích |
-| `@since` | Phiên bản kể từ khi API tồn tại | API ổn định hoặc thư viện phát hành phiên bản |
-| `@see` | Tham chiếu tài liệu liên quan | Người đọc cần xem thêm type/method khác |
-| `@deprecated` | Giải thích API không nên tiếp tục dùng | Thường kết hợp annotation `@Deprecated` |
-| `{@code ...}` | Hiển thị đoạn code trong phần mô tả | Ví dụ `{@code count > 0}` |
-| `{@link Type}` | Tạo liên kết tới phần tử tài liệu được nhận diện | Khi dẫn tới API liên quan |
+| `@param name` | Meaning of a parameter; `name` must match the parameter name | Methods/constructors with parameters |
+| `@return` | Return value/result | Methods that return a value; do not use to describe a `void` method's result |
+| `@throws Type` | Condition under which an exception can be thrown | APIs with error behaviors that need explanation |
+| `@since` | Version since the API has existed | Stable APIs or versioned libraries |
+| `@see` | Reference to related documentation | Readers need to inspect another type/method |
+| `@deprecated` | Explains an API that should no longer be used | Usually paired with the `@Deprecated` annotation |
+| `{@code ...}` | Displays a code snippet inside a description | E.g. `{@code count > 0}` |
+| `{@link Type}` | Creates a link to a recognized documentation element | When pointing to a related API |
 
-Hai dạng có dấu `{@...}` là **inline tags**, có thể xuất hiện giữa câu; `@param` và `@return` là **block tags**, thường mỗi tag bắt đầu ở một dòng riêng trong Javadoc comment.
+The two forms with `{@...}` are **inline tags**, which can appear mid-sentence; `@param` and `@return` are **block tags**, each usually starting on its own line in the Javadoc comment.
 
-**Chú thích tài liệu không phải annotation.** `@Deprecated` đặt **trong mã** là annotation; `@deprecated` nằm **trong Javadoc** là tag mô tả. Chỉ thêm văn bản `@deprecated` vào Javadoc không tự thay thế mọi tác dụng của annotation `@Deprecated`.
+**A documentation comment is not an annotation.** `@Deprecated` placed **in code** is an annotation; `@deprecated` **inside Javadoc** is a descriptive tag. Merely adding `@deprecated` text in Javadoc does not automatically replace all effects of the `@Deprecated` annotation.
 
-## 5. Ví dụ Java 17 hoàn chỉnh: code, comment và Javadoc
+## 5. Complete Java 17 example: code, comments, and Javadoc
 
-Tạo tệp đúng tên **`CommentDemo.java`**, lưu bằng UTF-8:
+Create a file named **`CommentDemo.java`**, saved as UTF-8:
 
 ~~~java
 /**
- * Minh họa ba dạng chú thích trong Java.
+ * Demonstrates the three forms of comments in Java.
  *
- * <p>Ví dụ tính tiền hàng nguyên đơn vị đồng.
+ * <p>Example calculating an order total in whole VND units.
  *
  * @since 1.0
  */
 public final class CommentDemo {
     private CommentDemo() {
-        // Không tạo instance của class chỉ chứa tiện ích.
+        // Do not instantiate a utility-only class.
     }
 
     /**
-     * Tính tiền hàng bằng phép nhân kiểm tra tràn số.
+     * Calculates the order total using overflow-checked multiplication.
      *
-     * @param quantity số lượng, phải không âm
-     * @param unitPrice đơn giá nguyên đồng, phải không âm
-     * @return thành tiền theo đơn vị đồng
-     * @throws IllegalArgumentException nếu đầu vào âm
-     * @throws ArithmeticException nếu phép nhân tràn long
+     * @param quantity item count, must be non-negative
+     * @param unitPrice unit price in whole VND, must be non-negative
+     * @return total amount in VND
+     * @throws IllegalArgumentException if inputs are negative
+     * @throws ArithmeticException if multiplication overflows long
      */
     public static long total(int quantity, long unitPrice) {
         if (quantity < 0 || unitPrice < 0) {
@@ -180,22 +180,22 @@ public final class CommentDemo {
         }
 
         /*
-         * Dùng multiplyExact để không âm thầm trả về
-         * một số tiền sai do tràn số nguyên.
+         * Use multiplyExact so we do not silently return
+         * an incorrect amount due to integer overflow.
          */
         return Math.multiplyExact((long) quantity, unitPrice);
     }
 
     /**
-     * Điểm vào chương trình.
+     * Program entry point.
      *
-     * @param args đối số dòng lệnh; demo không sử dụng
+     * @param args command-line arguments; unused by demo
      */
     public static void main(String[] args) {
         long result = total(3, 120_000L);
         System.out.println("Tong: " + result); // 360000
 
-        // Những dấu giống comment trong chuỗi vẫn là nội dung chuỗi.
+        // Comment-like markers inside strings are still string content.
         String url = "https://example.com/items";
         String marker = "/* khong phai comment */";
         System.out.println("URL: " + url);
@@ -204,9 +204,9 @@ public final class CommentDemo {
 }
 ~~~
 
-### Biên dịch và chạy trên JDK 17+
+### Compiling and running on JDK 17+
 
-Mở terminal tại thư mục chứa `CommentDemo.java`.
+Open a terminal in the directory containing `CommentDemo.java`.
 
 **Bash (Linux/macOS):**
 
@@ -224,7 +224,7 @@ javac --release 17 -encoding UTF-8 .\CommentDemo.java
 java -cp . CommentDemo
 ~~~
 
-Kết quả của lệnh `java`:
+Output of the `java` command:
 
 ~~~text
 Tong: 360000
@@ -232,15 +232,15 @@ URL: https://example.com/items
 Marker: /* khong phai comment */
 ~~~
 
-Chú thích một dòng, khối và Javadoc comment **không được in**. Những ký tự `//`, `/*` và `*/` trong **string literal** được in như ký tự thông thường vì chúng nằm trong chuỗi.
+Single-line, block, and Javadoc comments **are not printed**. The `//`, `/*`, and `*/` characters inside **string literals** are printed as ordinary characters because they are inside strings.
 
-**Điều cần nhận ra:** chú thích giải thích ý định dùng `Math.multiplyExact`, nhưng chính **lệnh gọi method** mới phát hiện tràn số. Viết chú thích “đã xử lý tràn số” mà code chỉ nhân bằng `*` thông thường sẽ không khiến chương trình an toàn hơn.
+**What to recognize:** the comment explains the intent behind using `Math.multiplyExact`, yet it is **the method call itself** that detects overflow. Writing a comment "overflow handled" while the code only multiplies with ordinary `*` will not make the program any safer.
 
-## 6. Sinh tài liệu HTML bằng công cụ javadoc
+## 6. Generating HTML documentation with the javadoc tool
 
-JDK không chỉ có `javac` và `java` mà còn có **`javadoc`**. Đây là công cụ đọc chú thích tài liệu và thông tin khai báo để sinh trang API.
+The JDK includes not only `javac` and `java`, but also **`javadoc`**. This tool reads documentation comments and declaration information to generate API pages.
 
-Từ thư mục chứa file mẫu, chạy:
+From the directory containing the sample file, run:
 
 **Bash:**
 
@@ -249,19 +249,19 @@ javadoc -quiet -encoding UTF-8 -docencoding UTF-8 \
   -charset UTF-8 -d docs CommentDemo.java
 ~~~
 
-**PowerShell (một dòng):**
+**PowerShell (single line):**
 
 ~~~powershell
 javadoc -quiet -encoding UTF-8 -docencoding UTF-8 -charset UTF-8 -d docs .\CommentDemo.java
 ~~~
 
-Thư mục **`docs`** được tạo để lưu HTML. Với class public ở default package như ví dụ, tệp tài liệu của class thường là:
+A **`docs`** folder is created to store the HTML files. For a public class in the default package as in this example, the class's documentation file is usually:
 
 ~~~text
 docs/CommentDemo.html
 ~~~
 
-Có thể kiểm tra tệp:
+You can verify the file exists:
 
 **Bash:**
 
@@ -275,25 +275,25 @@ ls docs/CommentDemo.html
 Test-Path .\docs\CommentDemo.html
 ~~~
 
-`Test-Path` trả **`True`** nếu tệp tồn tại. Bạn có thể mở tệp HTML bằng trình duyệt để xem mô tả class, method `total`, các tham số, giá trị trả về và các ngoại lệ được ghi trong Javadoc.
+`Test-Path` returns **`True`** if the file exists. You can open the HTML file in a browser to inspect the class description, the `total` method, its parameters, return value, and the exceptions documented in Javadoc.
 
-**Không nên cam kết nguyên văn đầu ra của lệnh `javadoc`**, vì số dòng thông báo, cảnh báo DocLint và danh sách file tạo ra có thể khác theo JDK/tùy chọn. Tiêu chí kiểm tra chính là lệnh kết thúc thành công và tài liệu HTML được sinh đúng.
+**Do not rely on exact verbatim output from the `javadoc` command**, because message line counts, DocLint warnings, and generated file lists can vary by JDK/options. The main verification criteria are that the command exits successfully and the HTML documentation is generated properly.
 
-Nếu tài liệu public API không chứa một method hoặc field, kiểm tra **mức hiển thị** của phần tử và các tùy chọn của `javadoc`. Mặc định công cụ không nhất thiết liệt kê mọi thành viên private. Có thể dùng `javadoc -private ...` nếu bạn thật sự cần tài liệu cho các thành viên private trong mục đích nội bộ.
+If the public API documentation omits a method or field, check the element's **visibility** and `javadoc` options. By default, the tool does not necessarily list every private member. You can use `javadoc -private ...` if you genuinely need documentation for private members for internal purposes.
 
-## 7. Chú thích ở đúng vị trí và đúng mục tiêu
+## 7. Comments in the right place and for the right goal
 
-### Chú thích tài liệu cho API; chú thích thường cho giải thích cục bộ
+### Documentation comments for APIs; regular comments for local explanations
 
-Chú thích tài liệu nên đặt **ngay trước khai báo cần mô tả**:
+A documentation comment should be placed **immediately before the declaration it describes**:
 
 ~~~java
 /**
- * Tính diện tích hình chữ nhật.
+ * Calculates the area of a rectangle.
  *
- * @param width chiều rộng không âm
- * @param height chiều cao không âm
- * @return diện tích theo đơn vị bình phương
+ * @param width non-negative width
+ * @param height non-negative height
+ * @return area in square units
  */
 static long area(long width, long height) {
     if (width < 0 || height < 0) {
@@ -303,145 +303,145 @@ static long area(long width, long height) {
 }
 ~~~
 
-Nếu đoạn code chỉ cần giải thích một quyết định cục bộ, ví dụ lý do dùng một thuật toán hoặc giới hạn hiệu năng, `//` hay `/* ... */` thường hợp lý hơn.
+If a piece of code only needs to explain a local decision, such as why an algorithm was chosen or a performance constraint, `//` or `/* ... */` is usually more appropriate.
 
-**Javadoc không tự thực thi hợp đồng.** `@param width chiều rộng không âm` không làm JVM từ chối số âm; phương thức cần có validation phù hợp hoặc bên gọi phải bảo đảm tiền điều kiện theo thiết kế. Tài liệu phải **khớp với hành vi thật**.
+**Javadoc does not enforce contracts.** `@param width non-negative width` does not make the JVM reject negative numbers; the method needs proper validation or the caller must guarantee preconditions by design. Documentation must **match actual behavior**.
 
-### Mô tả *vì sao*, không sao chép *cái gì*
+### Describe *why*, do not duplicate *what*
 
-Ít hữu ích:
+Less useful:
 
 ~~~java
-quantity++; // Tăng quantity thêm 1.
+quantity++; // Increment quantity by 1.
 ~~~
 
-Hữu ích hơn nếu có quy tắc rõ ràng:
+More useful when there is a clear rule:
 
 ~~~java
-// Chỉ tăng sau khi kiểm tra còn đủ hàng trong kho.
+// Only increment after checking there is sufficient stock in inventory.
 quantity++;
 ~~~
 
-Ví dụ trên vẫn cần **có code kiểm tra kho thực sự** ở nơi phù hợp; chú thích không thay cho thực thi quy tắc.
+The example above still needs **actual inventory-checking code** in the right place; a comment does not substitute for enforcing a rule.
 
-## 8. Những bẫy từ vựng liên quan đến dấu comment
+## 8. Lexical traps related to comment markers
 
-### 8.1. Comment marker trong string/char/text block không phải comment
+### 8.1. Comment markers in strings/chars/text blocks are not comments
 
 ~~~java
-String website = "https://example.org";  // Có // bên trong chuỗi
-String marker = "/* sample */";          // Có /* */ bên trong chuỗi
+String website = "https://example.org";  // Contains // inside the string
+String marker = "/* sample */";          // Contains /* */ inside the string
 char slash = '/';
 ~~~
 
-Nội dung bên trong string literal hoặc character literal được nhận diện là **ký tự của literal**, không phải dấu mở chú thích. Với **text block** (`"""`) của Java 17, nguyên tắc tương tự: các dấu `//` hoặc `/* ... */` nằm trong nội dung của text block không tự tạo chú thích.
+Content inside a string literal or character literal is recognized as **literal characters**, not comment openers. For Java 17 **text blocks** (`"""`), the same rule applies: `//` or `/* ... */` inside a text block's content do not create comments.
 
-### 8.2. Đừng dựa vào comment để "vô hiệu hóa" mã lâu dài
+### 8.2. Do not rely on comments to "disable" code long-term
 
-Đoạn:
+Snippets like:
 
 ~~~java
 // sendEmail(customer);
 ~~~
 
-có thể hữu ích khi thử nghiệm ngắn, nhưng giữ mã đã bị comment lâu dài làm chương trình khó đọc và mơ hồ về chức năng. Tốt hơn là xóa mã không còn dùng (version control lưu lịch sử), hoặc dùng điều kiện/cấu hình rõ ràng nếu hành vi thực sự cần bật/tắt.
+can be helpful during brief testing, yet keeping commented-out code long-term makes programs hard to read and creates ambiguity about functionality. It is better to delete unused code (version control preserves history), or use explicit conditions/configuration if behavior genuinely needs toggling.
 
-### 8.3. Chú ý Unicode escape trong Java source
+### 8.3. Watch out for Unicode escapes in Java source
 
-Java xử lý **Unicode escapes** ở một giai đoạn rất sớm của quá trình đọc nguồn, **trước khi xác định comment và string literal** theo từ vựng. Vì vậy các chuỗi ký tự thoạt nhìn giống comment có chứa dạng escape đặc biệt có thể không được phân tích như bạn đoán. Đừng dựa vào comment để che giấu các Unicode escapes mang ý nghĩa cú pháp; nếu nghi ngờ, kiểm tra mã nguồn thực tế và thử biên dịch bằng đúng JDK mục tiêu.
+Java processes **Unicode escapes** at a very early stage of reading source code, **before lexically identifying comments and string literals**. Thus, character sequences that look like comments containing special escape forms might not be parsed the way you expect. Do not rely on comments to hide syntactically meaningful Unicode escapes; when in doubt, inspect the actual source code and test-compile with the target JDK.
 
-### 8.4. Comment có thể che lỗi khi xóa/mở rộng code
+### 8.4. Comments can hide errors when deleting/expanding code
 
-Một dấu `/*` bị bỏ sót dấu kết thúc có thể khiến nhiều dòng mã sau đó nằm trong comment hoặc tạo lỗi `unclosed comment`. Một dấu `*/` thừa ngoài comment thường làm mã lỗi cú pháp. Hãy nhìn highlight của editor và kiểm tra các cặp dấu.
+An unclosed `/*` can put many subsequent lines inside a comment or trigger an `unclosed comment` error. A stray `*/` outside a comment usually causes a syntax error. Watch your editor's syntax highlighting and verify matching delimiters.
 
-## 9. Javadoc: những lỗi viết tài liệu hay gặp
+## 9. Javadoc: common documentation mistakes
 
-| Vấn đề | Vì sao không tốt? | Cách khắc phục |
+| Issue | Why it is bad | How to fix |
 |---|---|---|
-| Viết `@param name` nhưng method có tham số `userName` | Tag không khớp khai báo | Dùng đúng tên tham số |
-| Method trả `int` nhưng mô tả `@return` sai đơn vị | Người gọi API dễ hiểu sai | Nêu kết quả và đơn vị chính xác |
-| Method có thể ném exception nhưng tài liệu không nói điều kiện | Khó dùng API an toàn | Bổ sung `@throws` với điều kiện cụ thể |
-| Viết ký tự `<` trực tiếp trong đoạn tài liệu muốn hiển thị như code | Có thể bị hiểu là markup HTML | Dùng `{@code x < 10}` hoặc escape thích hợp |
-| Chỉ ghi `/** TODO */` cho mọi method | Không mô tả hợp đồng thực sự | Viết nội dung hữu ích hoặc bỏ comment không cần thiết |
-| Đổi chữ ký method nhưng không cập nhật Javadoc | Tài liệu lỗi thời, có thể có cảnh báo | Sửa tag và ví dụ cùng lúc |
-| Xem Javadoc như cơ chế validation | Comment không được chạy | Viết check trong code và test |
+| Writing `@param name` when the method has parameter `userName` | Tag does not match declaration | Use the exact parameter name |
+| Method returns `int` but `@return` describes the wrong unit | API callers easily misunderstand | State the exact result and unit |
+| Method can throw an exception but docs omit the condition | Hard to use the API safely | Add `@throws` with the specific condition |
+| Writing `<` directly in doc text meant to display as code | May be parsed as HTML markup | Use `{@code x < 10}` or appropriate escaping |
+| Writing only `/** TODO */` on every method | Fails to describe the actual contract | Write useful content or remove unnecessary comments |
+| Changing a method signature without updating Javadoc | Stale docs, may trigger warnings | Update tags and examples together |
+| Treating Javadoc as a validation mechanism | Comments are not executed | Write checks in code and tests |
 
-**Không nhầm** cú pháp `/** ... */` với `/* ... */`: cả hai đều là khối comment, nhưng `/**` đặt trước khai báo được công cụ Javadoc xử lý như tài liệu API. Một đoạn comment Javadoc không có khai báo phù hợp ngay sau không thay thế cho việc gắn tài liệu vào thành phần mong muốn.
+**Do not confuse** `/** ... */` with `/* ... */`: both are block comments, yet `/**` placed before a declaration is processed by the Javadoc tool as API documentation. A Javadoc comment without a matching declaration right after it does not attach documentation to the intended element.
 
-## 10. Thực hành phân biệt ba loại
+## 10. Practice distinguishing the three types
 
-Xét đoạn mã:
+Consider this code:
 
 ~~~java
 /**
- * Chuyển một độ dài từ mét sang centimet.
+ * Converts a length from meters to centimeters.
  *
- * @param meters số mét không âm
- * @return số centimet
- * @throws IllegalArgumentException nếu đầu vào âm
+ * @param meters non-negative number of meters
+ * @return number of centimeters
+ * @throws IllegalArgumentException if input is negative
  */
 static long toCentimeters(long meters) {
     if (meters < 0) {
         throw new IllegalArgumentException("Negative meters");
     }
-    // 1 mét = 100 centimet.
+    // 1 meter = 100 centimeters.
     return Math.multiplyExact(meters, 100L);
 }
 
-/* Dùng trong ví dụ chạy đơn giản:
+/* Used in a simple runnable example:
    toCentimeters(3) => 300 */
 ~~~
 
-Tự trả lời:
+Answer on your own:
 
-1. Đoạn nào là chú thích một dòng?
-2. Đoạn nào tạo nội dung tài liệu cho method?
-3. Đoạn nào là chú thích khối thông thường?
-4. Khi gọi `toCentimeters(3)`, các comment có được in ra không?
+1. Which part is a single-line comment?
+2. Which part generates documentation content for the method?
+3. Which part is a regular block comment?
+4. When calling `toCentimeters(3)`, are any comments printed?
 
-**Đáp án:** dòng `// 1 mét...` là chú thích một dòng; khối `/** ... */` là Javadoc của `toCentimeters`; khối `/* Dùng ... */` là chú thích khối thông thường. Không comment nào được in bởi lời gọi method; kết quả method là số `300`.
+**Answer:** the line `// 1 meter...` is a single-line comment; the `/** ... */` block is the Javadoc for `toCentimeters`; the `/* Used ... */` block is a regular block comment. No comments are printed by calling the method; the method returns the number `300`.
 
-## 11. Bài tập có đáp án
+## 11. Exercises with answers
 
-### Bài A — chọn đúng kiểu chú thích
+### Exercise A — choose the right comment style
 
-Bạn muốn ghi một giải thích ngắn cho quy tắc ở dòng tiếp theo; muốn ghi ghi chú nội bộ nhiều dòng; và muốn công khai hợp đồng của một method có hai tham số.
+You want to write a brief explanation for a rule on the next line; write a multi-line internal note; and publish the contract of a method taking two parameters.
 
-**Đáp án:** lần lượt dùng `//`, `/* ... */`, và `/** ... */` với `@param`, `@return` (nếu trả giá trị), `@throws` (khi cần).
+**Answer:** respectively use `//`, `/* ... */`, and `/** ... */` with `@param`, `@return` (if returning a value), and `@throws` (when needed).
 
-### Bài B — sửa comment chưa đóng
+### Exercise B — fix an unclosed comment
 
-Đoạn:
+Snippet:
 
 ~~~java
 int a = 1;
-/* giai thich
+/* explanation
 int b = 2;
 ~~~
 
-**Đáp án:** thêm `*/` vào điểm kết thúc đúng của comment. Nếu `int b = 2;` cần được thực thi, đặt nó **sau** `*/`.
+**Answer:** add `*/` at the proper end of the comment. If `int b = 2;` needs to execute, place it **after** `*/`.
 
-### Bài C — dự đoán đầu ra
+### Exercise C — predict the output
 
 ~~~java
-int x = 3 /* vẫn đang trong phép tính */ + 2;
+int x = 3 /* still inside the calculation */ + 2;
 String s = "http://localhost";
 System.out.println(x);
 System.out.println(s);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 5
 http://localhost
 ~~~
 
-`/* ... */` không làm mất toán tử `+` ở ngoài comment; `//` trong chuỗi URL không mở chú thích.
+`/* ... */` does not remove the `+` operator outside the comment; `//` inside the URL string does not start a comment.
 
-### Bài D — viết Javadoc đủ hợp đồng
+### Exercise D — write a complete Javadoc contract
 
-Cho:
+Given:
 
 ~~~java
 static int divide(int numerator, int denominator) {
@@ -452,40 +452,40 @@ static int divide(int numerator, int denominator) {
 }
 ~~~
 
-Hãy viết chú thích tài liệu nêu hai tham số, kết quả và điều kiện lỗi.
+Write a documentation comment stating both parameters, the result, and the error condition.
 
-**Đáp án gợi ý:**
+**Suggested answer:**
 
 ~~~java
 /**
- * Chia hai số nguyên theo quy tắc chia nguyên của Java.
+ * Divides two integers according to Java integer division rules.
  *
- * @param numerator số bị chia
- * @param denominator số chia, phải khác 0
- * @return thương nguyên, làm tròn về 0
- * @throws IllegalArgumentException nếu denominator bằng 0
+ * @param numerator the dividend
+ * @param denominator the divisor, must be non-zero
+ * @return integer quotient, truncated toward 0
+ * @throws IllegalArgumentException if denominator is 0
  */
 ~~~
 
-Lưu ý: phép chia `Integer.MIN_VALUE / -1` là trường hợp đặc biệt có kết quả `Integer.MIN_VALUE` theo quy tắc tràn int; tài liệu chi tiết hơn nên nêu nếu hợp đồng ứng dụng yêu cầu xử lý khác.
+Note: `Integer.MIN_VALUE / -1` is a special case yielding `Integer.MIN_VALUE` per int overflow rules; more detailed docs should mention this if the application contract requires different handling.
 
-### Bài E — tạo và kiểm tra HTML
+### Exercise E — generate and inspect HTML
 
-Dùng file `CommentDemo.java` ở mục 5, chạy `javadoc`, rồi mở `docs/CommentDemo.html`. Tìm tài liệu của `total`, kiểm tra các mô tả `quantity`, `unitPrice`, `@return` và `@throws`.
+Using `CommentDemo.java` from section 5, run `javadoc`, then open `docs/CommentDemo.html`. Locate the documentation for `total`, and verify the descriptions for `quantity`, `unitPrice`, `@return`, and `@throws`.
 
-**Đáp án kỳ vọng:** trang API có phần mô tả method và các mục Parameters/Returns/Throws tương ứng (cách trình bày thay đổi theo JDK). Nếu file không được tạo, kiểm tra kết quả lệnh, đường dẫn hiện hành và cảnh báo DocLint trước khi kết luận nội dung source sai.
+**Expected answer:** the API page contains the method description and corresponding Parameters/Returns/Throws sections (layout varies by JDK). If the file is not generated, check the command output, current working path, and DocLint warnings before concluding the source content is wrong.
 
-## 12. Checklist tự đánh giá
+## 12. Self-assessment checklist
 
-- [ ] Nhận diện được ba cú pháp `//`, `/* ... */`, `/** ... */`.
-- [ ] Hiểu `//` hết hiệu lực tại cuối dòng và comment khối phải đóng `*/`.
-- [ ] Biết block comment **không lồng nhau**.
-- [ ] Hiểu `//` và `/* ... */` bên trong chuỗi không trở thành comment.
-- [ ] Biết Javadoc comment dùng cho tài liệu API, không phải câu lệnh thực thi.
-- [ ] Viết được `@param`, `@return`, `@throws` theo chữ ký/hợp đồng method.
-- [ ] Phân biệt tag Javadoc `@deprecated` với annotation `@Deprecated`.
-- [ ] Biên dịch/chạy `CommentDemo.java` bằng `javac`/`java` và đối chiếu đầu ra.
-- [ ] Dùng `javadoc -d docs` để sinh và xem tài liệu HTML.
-- [ ] Viết chú thích giải thích quyết định, quy tắc và giới hạn, thay vì lặp lại điều mã đã nói.
+- [ ] Identify the three syntaxes `//`, `/* ... */`, and `/** ... */`.
+- [ ] Understand that `//` ends at the end of the line and block comments must be closed with `*/`.
+- [ ] Know that block comments **do not nest**.
+- [ ] Understand that `//` and `/* ... */` inside strings do not become comments.
+- [ ] Know that Javadoc comments are for API documentation, not executable statements.
+- [ ] Write `@param`, `@return`, and `@throws` matching the method signature/contract.
+- [ ] Distinguish the Javadoc `@deprecated` tag from the `@Deprecated` annotation.
+- [ ] Compile/run `CommentDemo.java` with `javac`/`java` and verify the output.
+- [ ] Use `javadoc -d docs` to generate and inspect HTML documentation.
+- [ ] Write comments explaining decisions, rules, and constraints, rather than repeating what the code already says.
 
-**Kết luận:** `//` phù hợp cho chú thích ngắn; `/* ... */` cho chú thích khối; `/** ... */` cho tài liệu API sinh được bằng `javadoc`. Chú thích giúp người đọc hiểu mã nhưng **không tự thay đổi hành vi JVM**. Một comment tốt phải đúng với code hiện tại, rõ ràng về ý định và được cập nhật khi hành vi thay đổi.
+**Conclusion:** `//` fits brief comments; `/* ... */` fits block comments; `/** ... */` fits API documentation generated with `javadoc`. Comments help readers understand code yet **do not alter JVM behavior**. A good comment must match the current code, state intent clearly, and be updated whenever behavior changes.

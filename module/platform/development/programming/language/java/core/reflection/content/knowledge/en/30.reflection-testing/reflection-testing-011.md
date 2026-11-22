@@ -1,92 +1,92 @@
-# Kiểm thử cache không giữ plugin đã hết vòng đời
+# Testing That Caches Do Not Retain End-of-Lifecycle Plugins
 
-## 1. Vấn đề: plugin đã dừng nhưng classloader vẫn còn sống
+## 1. The Problem: Plugin Stopped, Yet ClassLoader Still Alive
 
-Trong ứng dụng Java tải plugin động (plugin manager, server ứng dụng, công cụ kiểm thử, hệ thống hot reload), mỗi plugin có thể được nạp bằng một `ClassLoader` riêng, chẳng hạn `URLClassLoader`. Khi plugin bị gỡ, ứng dụng thường mong muốn không còn đối tượng, class hay metadata nào của plugin bị giữ bởi mã sống lâu hơn.
+In Java applications that dynamically load plugins (plugin managers, application servers, test tools, hot-reload systems), each plugin can be loaded with its own `ClassLoader`, such as `URLClassLoader`. When a plugin is unloaded, the application usually expects no objects, classes, or metadata of that plugin to remain retained by longer-lived code.
 
-Một lỗi phổ biến là **cache reflection trong phần lõi ứng dụng vô tình giữ classloader của plugin**:
+A common bug is **a reflection cache in the core application accidentally retaining the plugin's class loader**:
 
 ```text
-GC roots của ứng dụng lõi
+GC roots of the core application
   └─ static metadataCache
       └─ Map entry
-          ├─ key: Class<?> của plugin ──> defining ClassLoader
+          ├─ key: plugin's Class<?> ──> defining ClassLoader
           └─ value: Method/Field/Constructor ──> declaring Class ──> ClassLoader
 ```
 
-Một `Class<?>` được định nghĩa bởi plugin loader gắn với loader đó trong quá trình tồn tại; các đối tượng `Method`, `Field`, `Constructor` hay `MethodHandle` có thể giữ các tham chiếu liên quan tới class/plugin. Khi cache toàn cục giữ những đối tượng này, **`plugin.stop()` hoặc `URLClassLoader.close()` không đủ** để plugin trở nên không còn reachable.
+A `Class<?>` defined by a plugin loader remains tied to that loader during its lifetime; `Method`, `Field`, `Constructor`, or `MethodHandle` objects can retain references related to the plugin's classes. When a global cache retains these objects, **`plugin.stop()` or `URLClassLoader.close()` is not enough** to make the plugin unreachable.
 
-Hệ quả có thể là:
+Consequences can include:
 
-- Số lượng classloader và class đã nạp tăng qua các lượt reload;
-- Bộ nhớ metadata/class và heap không trở lại trạng thái ổn định;
-- Plugin cũ còn giữ registry, listener hoặc dữ liệu; các bản plugin mới có thể gặp xung đột;
-- Hot reload kéo dài dẫn tới tăng bộ nhớ, chi phí GC và lỗi tài nguyên.
+- The number of class loaders and loaded classes grows across reload cycles;
+- Metadata/class memory and heap fail to return to a steady baseline;
+- Old plugins keep holding registries, listeners, or data; new plugin versions may hit conflicts;
+- Repeated hot reloads lead to rising memory usage, GC overhead, and resource exhaustion.
 
-Mục tiêu của bài này là **thiết kế kiểm thử xác nhận cache không giữ plugin sau khi kết thúc vòng đời**, đồng thời tránh ngộ nhận rằng chỉ một lần `System.gc()` không thu được classloader là bằng chứng chắc chắn có memory leak.
+The goal of this lesson is to **design tests verifying that caches do not retain plugins after their lifecycle ends**, while avoiding the misconception that a single `System.gc()` failing to collect a class loader is definitive proof of a memory leak.
 
-## 2. Hiểu chính xác “đã hết vòng đời” và “được giải phóng”
+## 2. Understanding "End of Lifecycle" and "Collected" Accurately
 
-Một plugin thường trải qua các bước:
+A plugin typically goes through these steps:
 
-1. **Load**: tạo loader riêng, nạp class, phát hiện metadata, tạo instance và đăng ký dịch vụ.
-2. **Use**: gọi plugin, có thể cache `Method`/`Field`/`MethodHandle`/descriptor để tránh scan lặp.
-3. **Deactivate**: ngừng nhận yêu cầu mới, đợi tác vụ đang chạy kết thúc và không tạo callback mới.
-4. **Cleanup**: unregister listener/service, cancel task, đóng tài nguyên, bỏ cache entries và xóa reference từ host.
-5. **Close loader**: đóng `URLClassLoader` khi phù hợp; thao tác này giúp giải phóng resource và ngăn việc nạp từ các URL của loader theo hợp đồng API, nhưng **không cưỡng chế class unloading**.
-6. **Observe eligibility**: không còn strong-reference path từ GC roots tới đối tượng classloader/class/plugin.
-7. **Eventually collect**: GC *có thể* thu dọn classloader và các lớp liên quan khi chúng không còn reachable; **thời điểm không được cam kết**.
+1. **Load**: create an isolated loader, load classes, discover metadata, instantiate objects, and register services.
+2. **Use**: invoke the plugin, potentially caching `Method`/`Field`/`MethodHandle`/descriptors to avoid repeated scanning.
+3. **Deactivate**: stop accepting new requests, wait for in-flight tasks to finish, and stop creating new callbacks.
+4. **Cleanup**: unregister listeners/services, cancel tasks, close resources, evict cache entries, and clear references from the host.
+5. **Close loader**: close `URLClassLoader` when appropriate; this releases resources and prevents loading from the loader's URLs per the API contract, but **does not force class unloading**.
+6. **Observe eligibility**: no strong-reference path remains from GC roots to the class loader/classes/plugin.
+7. **Eventually collect**: the GC *may* collect the class loader and its associated classes once unreachable; **timing is not guaranteed**.
 
-Phân biệt hai mục tiêu kiểm thử:
+Distinguish two testing goals:
 
-| Mục tiêu | Phương pháp đáng tin cậy |
+| Goal | Reliable method |
 | --- | --- |
-| Host đã loại bỏ cache entry/registration theo hợp đồng? | Kiểm thử xác định bằng API: `cache.size() == 0`, registry không còn id, task canceled, `close()` được gọi |
-| Loader đã trở nên eligible for collection? | Dùng `WeakReference<ClassLoader>`/`ReferenceQueue`, tách scope strong references, kiểm tra trong nhiều chu kỳ |
-| Loader đã thực sự bị GC thu gom? | Quan sát `WeakReference.get() == null` hoặc queue event; thường cần thử nhiều lần, kết quả có thể không kết luận |
-| Không còn leak trong môi trường thật? | Thử reload nhiều vòng + metrics classloader/class count/heap + profiler/JFR, không dựa vào một phép đo |
+| Did the host remove cache entries/registrations per contract? | Deterministic API checks: `cache.size() == 0`, ID absent from registry, tasks canceled, `close()` called |
+| Did the loader become eligible for collection? | Use `WeakReference<ClassLoader>`/`ReferenceQueue`, isolate strong-reference scopes, inspect across cycles |
+| Was the loader actually collected by GC? | Observe `WeakReference.get() == null` or queue event; usually needs multiple attempts, result may be inconclusive |
+| No remaining leak in real environments? | Run multi-cycle reloads + classloader/class count/heap metrics + profiler/JFR, not a single measurement |
 
-**“Không quan sát GC xảy ra” khác “có chứng cứ leak”.** `System.gc()` chỉ là yêu cầu/hint; GC có thể bị cấu hình hạn chế, hoãn hoặc có bộ thu khác nhau giữa JDK. Dùng timeout hợp lý, kết quả *inconclusive* và chẩn đoán reachability nếu cần.
+**"Did not observe GC happen" is different from "evidence of a leak."** `System.gc()` is only a hint/request; GC may be restricted by flags, deferred, or behave differently across JDK collectors. Use reasonable timeouts, report *inconclusive* results when appropriate, and diagnose reachability when needed.
 
-## 3. Cache reflection nào có thể giữ plugin?
+## 3. Which Reflection Caches Can Retain a Plugin?
 
-### 3.1. Strong-reference cache giữ key hoặc value của plugin
+### 3.1. Strong-Reference Caches Holding Plugin Keys or Values
 
-Ví dụ một framework sở hữu classloader lâu dài:
+Example of a framework owning a long-lived class loader:
 
 ```java
 static final java.util.Map<Class<?>, java.lang.reflect.Method> METHOD_CACHE =
         new java.util.concurrent.ConcurrentHashMap<>();
 ```
 
-Nếu key là `pluginClass` thì map giữ class đó mạnh. Nếu value là `Method` khai báo bởi plugin class, value cũng có thể giữ declaring class. Một cache `Map<String, Method>` cũng không an toàn chỉ vì key là `String`: value vẫn giữ method của plugin.
+If the key is `pluginClass`, the map strongly retains that class. If the value is a `Method` declared by a plugin class, the value can also retain its declaring class. A `Map<String, Method>` cache is not safe merely because the key is `String`: the value still retains the plugin's method.
 
-Tương tự, những kiểu metadata khác cần đánh giá:
+Similarly, other metadata types must be evaluated:
 
 - `Class<?>`, `Method`, `Field`, `Constructor<?>`, `RecordComponent`;
-- `MethodHandle`, `VarHandle`, `MethodHandles.Lookup`, bound handle được `bindTo(pluginInstance)`;
-- `MethodType` hoặc schema/descriptor chứa `Class<?>`, annotation instance, accessor lambda;
-- `java.beans.BeanInfo`/`PropertyDescriptor` và framework metadata cache;
-- `ServiceLoader`, factory, callback/`Runnable`, instance hoặc classloader được lưu trong registry.
+- `MethodHandle`, `VarHandle`, `MethodHandles.Lookup`, bound handles created via `bindTo(pluginInstance)`;
+- `MethodType`, or schemas/descriptors containing `Class<?>`, annotation instances, or accessor lambdas;
+- `java.beans.BeanInfo`/`PropertyDescriptor` and framework metadata caches;
+- `ServiceLoader`, factories, callbacks/`Runnable`, instances, or class loaders stored in registries.
 
-Không phải mọi giá trị metadata đều chắc chắn giữ classloader; **phân tích object graph thực tế**. Nhưng coi bất kỳ entry nào có tham chiếu tới `Class<?>` hoặc instance của plugin là có nguy cơ cho tới khi chứng minh lifecycle an toàn.
+Not every metadata value is guaranteed to retain a class loader; **analyze the actual object graph**. However, treat any entry holding a reference to a plugin's `Class<?>` or instance as risky until lifecycle safety is proven.
 
-### 3.2. `WeakHashMap` không tự động giải quyết mọi vòng tham chiếu
+### 3.2. `WeakHashMap` Does Not Automatically Break Every Reference Cycle
 
-Ví dụ thiết kế dễ sai:
+Flawed design example:
 
 ```java
 Map<Class<?>, Method> cache = new WeakHashMap<>();
 cache.put(pluginClass, pluginClass.getMethod("run"));
 ```
 
-Fragment này cần import `Map`, `WeakHashMap`, `Method` và có `pluginClass`. Dù key là weak, **value `Method` có thể tham chiếu mạnh ngược về declaring class**. Vì `WeakHashMap` vẫn giữ value mạnh, đường `map -> value -> class (weak key)` có thể khiến class sống mãi; key không được dọn như kỳ vọng.
+This fragment requires importing `Map`, `WeakHashMap`, `Method`, and having `pluginClass`. Even though the key is weak, **the `Method` value can hold a strong reference back to its declaring class**. Because `WeakHashMap` still holds values strongly, the path `map -> value -> class (weak key)` can keep the class alive indefinitely; the key is never reclaimed as expected.
 
-Weak key chỉ có ích nếu cấu trúc value không dẫn ngược về key hoặc loader qua bất cứ strong-reference path nào. Trong thực tế có thể dùng `ClassValue<T>` hoặc explicit eviction theo plugin lifecycle thay vì đoán một map có weak key là đủ.
+Weak keys only help if the value structure does not point back to the key or loader through any strong-reference path. In practice, use `ClassValue<T>` or explicit eviction tied to plugin lifecycle instead of assuming a weak-key map is sufficient.
 
-### 3.3. `ClassValue<T>` cho metadata gắn với vòng đời class
+### 3.3. `ClassValue<T>` for Metadata Tied to Class Lifecycle
 
-`ClassValue` cung cấp cơ chế lưu một giá trị được tính dựa theo `Class<?>` và được JVM quản lý theo lifecycle của class. Ví dụ:
+`ClassValue` provides a mechanism to store a value computed from a `Class<?>` and managed by the JVM alongside the class's lifecycle. Example:
 
 ```java
 private static final ClassValue<Method> REFLECTIVE_ADD = new ClassValue<>() {
@@ -101,16 +101,16 @@ private static final ClassValue<Method> REFLECTIVE_ADD = new ClassValue<>() {
 };
 ```
 
-Đây là **fragment** cần import `java.lang.reflect.Method` và khai báo trong class. Cache gắn với class theo `ClassValue` phù hợp hơn một static strong map có key `Class<?>` cho nhiều trường hợp, đặc biệt hệ thống nạp lớp động.
+This is a **fragment** requiring `import java.lang.reflect.Method` and placement inside a class. Caching per class with `ClassValue` fits many dynamic class-loading systems better than a static strong map keyed by `Class<?>`.
 
-Nhưng `ClassValue` **không bảo đảm plugin có thể unload** nếu cùng `Method`/plugin instance còn bị giữ ở nơi khác (ví dụ một static registry, listener hay queue). Ngoài ra, `computeValue` có thể chạy nhiều lần trong race; giá trị nên được tính theo cách idempotent và không dựa vào side effect duy nhất. Khi policy metadata thay đổi, cần chiến lược invalidation/`remove(type)` phù hợp.
+However, `ClassValue` **does not guarantee a plugin can unload** if that same `Method` or plugin instance is retained elsewhere (such as a static registry, listener, or queue). In addition, `computeValue` can run multiple times under races; values should be computed idempotently without relying on single-execution side effects. When metadata policies change, use an appropriate invalidation/`remove(type)` strategy.
 
-### 3.4. Cache theo plugin ID và eviction
+### 3.4. Caching by Plugin ID and Explicit Eviction
 
-Nếu host chủ động quản lý vòng đời, một chính sách rõ ràng là cache theo plugin ID/generation và **xóa mọi descriptor gắn với generation tại unload**. Ví dụ:
+If the host actively manages lifecycle, a clear policy is caching by plugin ID/generation and **removing all descriptors belonging to that generation at unload**. Example:
 
 ```java
-// Pseudocode minh họa kiến trúc, không phải Java API có sẵn.
+// Illustrative architectural pseudocode, not an existing Java API.
 onPluginUnload(pluginId) {
     stopNewCalls(pluginId);
     waitForInFlightCalls(pluginId);
@@ -121,50 +121,50 @@ onPluginUnload(pluginId) {
 }
 ```
 
-Ưu điểm: kiểm thử được eviction một cách **xác định**, không phải đợi GC. Điểm quan trọng là không để một nhiệm vụ async hoặc callback cũ có thể ghi lại cache entry sau khi vừa cleanup. Dùng generation token, trạng thái CLOSED hoặc synchronization phù hợp để ngăn *resurrection* của cache entries cũ.
+Advantage: eviction can be tested **deterministically**, without waiting for GC. The critical requirement is preventing an old async task or callback from writing back a cache entry right after cleanup. Use generation tokens, a `CLOSED` state, or proper synchronization to prevent *resurrection* of stale cache entries.
 
-## 4. Thiết kế một bài kiểm thử đúng
+## 4. Designing a Proper Test
 
-Một test chất lượng gồm cả **negative control** (mẫu cache sai thật sự giữ loader) và **positive case** (cleanup bỏ mọi strong references có thể kiểm soát).
+A quality test includes both a **negative control** (the flawed cache pattern actually retains the loader) and a **positive case** (cleanup clears all controllable strong references).
 
-### 4.1. Tạo plugin với loader riêng
+### 4.1. Creating a Plugin with an Isolated Loader
 
-Dùng `URLClassLoader` với URL trỏ tới thư mục chứa bytecode plugin và parent phù hợp. Plugin class phải được **định nghĩa thực sự bởi loader riêng**. Nếu chỉ tải `java.lang.String` từ bootstrap/platform loader và gắn `WeakReference` vào một loader rỗng, phép thử không chứng minh gì về metadata plugin.
+Use `URLClassLoader` with a URL pointing to a directory containing plugin bytecode and a suitable parent. The plugin class must be **actually defined by the isolated loader**. Loading `java.lang.String` from the bootstrap/platform loader and attaching a `WeakReference` to an empty loader proves nothing about plugin metadata.
 
-Có thể tạo một Java source nhỏ, compile vào thư mục tạm bằng `javax.tools.JavaCompiler`, sau đó nạp class bằng `Class.forName(name, true, pluginLoader)`. Dùng `pluginClass.getClassLoader() == pluginLoader` làm assertion trước khi bắt đầu.
+You can generate a small Java source file, compile it into a temporary directory using `javax.tools.JavaCompiler`, and load the class via `Class.forName(name, true, pluginLoader)`. Assert `pluginClass.getClassLoader() == pluginLoader` before proceeding.
 
-### 4.2. Tách scope mạnh khỏi bước quan sát
+### 4.2. Isolating Strong Scope from the Observation Step
 
-Trong hàm tạo/plugin-use, các biến cục bộ như `Class<?> pluginClass`, `Method method`, `Object pluginInstance` hoặc `URLClassLoader loader` đều có thể là strong references. JIT có quyền giữ local reachable lâu hơn bạn tưởng.
+Inside a setup/plugin-use method, local variables such as `Class<?> pluginClass`, `Method method`, `Object pluginInstance`, or `URLClassLoader loader` can all act as strong references. The JIT is permitted to keep locals reachable longer than you expect.
 
-Vì vậy hãy đặt **tất cả load/use/close trong một hàm helper không inline ở mức thiết kế test** rồi chỉ trả ra `WeakReference<ClassLoader>`; không mang theo `Class<?>` hoặc `Method`. Việc tách hàm giảm nguy cơ chính test tự giữ loader. Đừng lưu plugin object vào trường static của test hoặc lambda callback, đừng ghi instance vào assertion failure message còn sống.
+Therefore, place **all load/use/close steps in a helper method that avoids leaking references** and return only a `WeakReference<ClassLoader>`; do not return `Class<?>` or `Method`. Separating the helper reduces the risk of the test itself retaining the loader. Never store plugin objects in static test fields or lambda callbacks, and never embed live instances into assertion failure messages.
 
-### 4.3. Dùng `WeakReference` và `ReferenceQueue` đúng mục đích
+### 4.3. Using `WeakReference` and `ReferenceQueue` Properly
 
-`WeakReference.get() == null` chứng tỏ referent đã được GC xóa weak reference. Khi đăng ký một reference với `ReferenceQueue`, có thể kiểm tra sự kiện enqueue bằng `queue.poll()` hoặc `queue.remove(timeout)`. Đó là **dấu hiệu GC thu dọn**, không phải tín hiệu synchronous từ `ClassLoader.close()`.
+`WeakReference.get() == null` proves the GC cleared the weak reference to the referent. When registering a reference with a `ReferenceQueue`, you can check enqueue events using `queue.poll()` or `queue.remove(timeout)`. That is a **signal of GC collection**, not a synchronous signal from `ClassLoader.close()`.
 
-Thử nhiều lần có khoảng nghỉ; nếu không quan sát collection, báo *inconclusive* hoặc kích hoạt heap analysis. Không dùng `Thread.sleep(100)` như bằng chứng loader phải biến mất trong 100 ms. Không đặt timeout cực nhỏ khiến CI flaky; cũng không cấp phát vô hạn để “ép GC” đến `OutOfMemoryError`.
+Retry multiple times with pauses; if collection is not observed, report *inconclusive* or trigger heap analysis. Do not use `Thread.sleep(100)` as proof that a loader must disappear within 100 ms. Do not set tiny timeouts that make CI flaky; nor allocate unbounded memory to "force GC" until `OutOfMemoryError`.
 
-### 4.4. Cleanup phải đo được độc lập với GC
+### 4.4. Cleanup Must Be Measurable Independently of GC
 
-Cần assert các sự kiện có tính xác định:
+Assert deterministic events:
 
-- `cache.size()`/plugin-specific entry count về 0 sau unload;
-- registry, listener, command handler, scheduled job, executor/task và callback của plugin được giải phóng;
-- không còn thread của plugin hay TCCL (`Thread.contextClassLoader`) trỏ vào loader cũ;
-- loader/resource được `close` theo hợp đồng; streams/JAR handles đã đóng;
-- nếu có framework global caches, biết rõ cơ chế eviction/hook (ví dụ JavaBeans `Introspector.flushFromCaches(pluginClass)` trong ngữ cảnh thích hợp);
-- không còn request in-flight tiếp tục gọi hoặc đăng ký lại listener/cache của plugin vừa unload.
+- `cache.size()` / plugin-specific entry count drops to 0 after unload;
+- plugin registries, listeners, command handlers, scheduled jobs, executors/tasks, and callbacks are released;
+- no plugin threads or TCCL (`Thread.contextClassLoader`) still point to the old loader;
+- loaders/resources are `close`d per contract; streams/JAR handles are closed;
+- if framework global caches exist, know their eviction hooks/APIs (e.g., JavaBeans `Introspector.flushFromCaches(pluginClass)` in appropriate contexts);
+- no in-flight requests continue invoking or re-registering listeners/caches of the unloaded plugin.
 
-Nếu những assertion này chưa đạt, không cần dựa vào GC để kết luận cleanup đang lỗi.
+If these assertions are not met, you do not need GC to conclude cleanup is broken.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: thấy cache sai giữ loader và dọn cache
+## 5. Complete Java 17+ Example: Seeing a Flawed Cache Retain a Loader and Clearing It
 
-Ví dụ dưới đây compile một plugin Java nhỏ **ngay trong thư mục tạm**, nạp bằng `URLClassLoader`, gọi method qua reflection, cố tình lưu `Class<?> -> Method` trong static cache **sai** để thể hiện đường strong reference, rồi xóa cache. Sau đó chương trình chỉ *thử quan sát* GC.
+The example below compiles a small Java plugin **directly inside a temporary directory**, loads it via `URLClassLoader`, invokes a method via reflection, intentionally stores `Class<?> -> Method` in a **flawed** static cache to demonstrate the strong-reference path, and then clears the cache. Afterward, the program merely *attempts to observe* GC.
 
-> Chạy bằng **JDK**, không phải JRE rút gọn, vì cần `ToolProvider.getSystemJavaCompiler()`. Chương trình tạo và xóa thư mục tạm trong quá trình chạy; không tải plugin từ mạng.
+> Run with a **JDK**, not a stripped JRE, because `ToolProvider.getSystemJavaCompiler()` is required. The program creates and deletes a temporary directory during execution; it does not download plugins from the network.
 
-Lưu thành **`PluginCacheLifecycleDemo.java`**:
+Save as **`PluginCacheLifecycleDemo.java`**:
 
 ```java
 import java.lang.ref.ReferenceQueue;
@@ -181,11 +181,11 @@ import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 
 public class PluginCacheLifecycleDemo {
-    // CỐ TÌNH SAI: host cache giữ mạnh cả Class lẫn Method của plugin.
+    // INTENTIONALLY FLAWED: host cache strongly retains both plugin Class and Method.
     static final Map<Class<?>, Method> BAD_CACHE = new ConcurrentHashMap<>();
     static final ReferenceQueue<ClassLoader> QUEUE = new ReferenceQueue<>();
 
-    // Trả ra CHỈ weak ref. Mọi strong ref tạm được giữ trong scope này.
+    // Returns ONLY a weak ref. All temporary strong refs remain inside this scope.
     static WeakReference<ClassLoader> loadUseAndClose() throws Exception {
         Path root = Files.createTempDirectory("plugin-classloader-test-");
         Path javaFile = root.resolve("demo/Plugin.java");
@@ -217,7 +217,7 @@ public class PluginCacheLifecycleDemo {
                 }
                 Method method = plugin.getMethod("hello");
 
-                // Tạo đường tham chiếu mạnh: BAD_CACHE -> Class/Method -> loader.
+                // Creates strong-reference path: BAD_CACHE -> Class/Method -> loader.
                 BAD_CACHE.put(plugin, method);
 
                 Object instance = plugin.getConstructor().newInstance();
@@ -237,7 +237,7 @@ public class PluginCacheLifecycleDemo {
     static boolean observeCollection(WeakReference<ClassLoader> ref)
             throws InterruptedException {
         for (int i = 0; i < 15; i++) {
-            System.gc(); // Hint, KHÔNG bảo đảm chạy GC ngay.
+            System.gc(); // Hint; does NOT guarantee immediate GC.
             if (ref.get() == null || QUEUE.poll() == ref) {
                 return true;
             }
@@ -253,7 +253,7 @@ public class PluginCacheLifecycleDemo {
         System.out.println("loader reachable via bad cache: "
                 + (reference.get() != null));
 
-        // Cleanup bắt buộc: entry thuộc plugin phải được evict.
+        // Mandatory cleanup: plugin entries must be evicted.
         BAD_CACHE.clear();
         System.out.println("bad cache empty after cleanup: "
                 + BAD_CACHE.isEmpty());
@@ -266,14 +266,14 @@ public class PluginCacheLifecycleDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 PluginCacheLifecycleDemo.java
 java PluginCacheLifecycleDemo
 ```
 
-Ba dòng đầu và dòng cleanup có kết quả xác định trong trường hợp biên dịch/nạp plugin thành công:
+The first three lines and the cleanup line have deterministic output when plugin compilation/loading succeeds:
 
 ```text
 plugin call: hello
@@ -282,160 +282,160 @@ loader reachable via bad cache: true
 bad cache empty after cleanup: true
 ```
 
-Dòng cuối phụ thuộc thời điểm GC. Hai kết quả có thể xảy ra:
+The final line depends on GC timing. Two outcomes are possible:
 
 ```text
 GC: collected (observed)
 ```
 
-hoặc:
+or:
 
 ```text
 GC: not observed (inconclusive)
 ```
 
-**Không coi nhánh thứ hai là test failure chắc chắn.** Kết quả chứng minh một phần quan trọng: khi `BAD_CACHE` còn entry, loader vẫn reachable thông qua cache; sau `BAD_CACHE.clear()`, đường tham chiếu cụ thể đó đã bị loại bỏ. Cần quan sát các đường tham chiếu khác của một ứng dụng thật nếu loader vẫn tồn tại qua nhiều lần GC.
+**Do not treat the second branch as a definite test failure.** The output proves a key point: while `BAD_CACHE` holds an entry, the loader remains reachable through the cache; after `BAD_CACHE.clear()`, that specific reference path is removed. In a real application, inspect other reference paths if the loader persists across multiple GC cycles.
 
-Tại sao demo dùng `ClassLoader.getPlatformClassLoader()` làm parent? Class `demo.Plugin` không phụ thuộc class của host, và parent platform không có định nghĩa `demo.Plugin`; nhờ đó plugin class chắc chắn được định nghĩa trong loader riêng. Hệ thống thật có thể chọn parent khác để chia sẻ API plugin, nhưng phải bảo đảm không vô tình load plugin implementation từ loader cha.
+Why does the demo use `ClassLoader.getPlatformClassLoader()` as parent? `demo.Plugin` does not depend on host classes, and the platform parent has no definition of `demo.Plugin`; thus the plugin class is guaranteed to be defined in the isolated loader. Real systems may pick another parent to share plugin APIs, but must ensure they do not accidentally load plugin implementations from the parent loader.
 
-Điểm giới hạn của demo: `BAD_CACHE.clear()` xóa **toàn bộ** cache giả lập cho một plugin. Trong hệ thống đa plugin, chỉ evict entries thuộc đúng plugin generation; không xóa metadata của plugin khác. Và `QUEUE` minh họa queue sự kiện weak ref; không phải cần thiết để xác nhận cache entry đã bị evict.
+Limitation of the demo: `BAD_CACHE.clear()` wipes the **entire** simulated cache for one plugin. In a multi-plugin system, evict only entries belonging to the exact plugin generation; do not wipe metadata of other plugins. And `QUEUE` illustrates the weak-reference event queue; it is not required to verify that cache entries were evicted.
 
-## 6. Viết test regression chắc chắn, tránh flaky GC test
+## 6. Writing Reliable Regression Tests, Avoiding Flaky GC Tests
 
-Nên chia test thành hai tầng.
+Divide tests into two tiers.
 
-### Tầng A — Kiểm thử cleanup xác định (bắt buộc)
+### Tier A — Deterministic Cleanup Tests (Mandatory)
 
-Tạo fake plugin với một ID hoặc generation rõ ràng. Thực hiện lần lượt:
+Create a fake plugin with an explicit ID or generation. Perform in sequence:
 
-1. Đăng ký service, tạo cache entries bằng reflection, tạo listener/task đã biết.
-2. Xác minh trong trạng thái ACTIVE, các entries cần dùng có tồn tại.
-3. Gọi `stop/unload`; chờ các tác vụ in-flight hoàn tất theo hợp đồng.
-4. Assert cache không còn entries của **đúng plugin generation**.
-5. Assert registry/listener/thread/task đã được unregister/cancel; loader đã đóng khi áp dụng.
-6. Assert API không chấp nhận thêm call/cache write sau trạng thái CLOSED.
-7. Nạp plugin thế hệ mới có cùng tên class và cùng plugin ID; đảm bảo metadata thế hệ cũ không bị tái sử dụng.
+1. Register services, populate cache entries via reflection, and create known listeners/tasks.
+2. Verify while `ACTIVE`, expected entries exist.
+3. Invoke `stop/unload`; wait for in-flight tasks to complete per contract.
+4. Assert the cache has zero entries for that **exact plugin generation**.
+5. Assert registries/listeners/threads/tasks are unregistered/canceled; loader is closed where applicable.
+6. Assert the API rejects further calls/cache writes after transitioning to `CLOSED`.
+7. Load a new generation of the plugin with the same class name and same plugin ID; ensure old-generation metadata is not reused.
 
-Đây là bài kiểm thử không cần ép GC; nó nên chạy ổn định trong CI ở mọi JDK được hỗ trợ.
+This test requires no forced GC; it should run reliably in CI across every supported JDK.
 
-### Tầng B — Kiểm thử quan sát loader collection (diagnostic/integration)
+### Tier B — Loader Collection Observation Tests (Diagnostic/Integration)
 
-- Tạo classloader riêng và plugin class thật, dùng `WeakReference<ClassLoader>`; có thể bổ sung weak refs tới `Class<?>` hay plugin instance, nhưng **không giữ mạnh** các referent đó trong test.
-- Chạy load/unload nhiều vòng, helper riêng cho mỗi vòng.
-- Sau cleanup, yêu cầu GC theo chu kỳ **giới hạn** và lấy kết quả từ weak refs/`ReferenceQueue`.
-- Nếu có weak ref bị clear, đó là bằng chứng collection đã được quan sát cho referent ấy.
-- Nếu không clear, phân loại **không kết luận**, thu heap dump/đồ thị dominator để tìm root pinning; không mặc định “leak”.
-- Dùng workload lặp và classloader metrics để tìm xu hướng retention lâu dài, không suy từ một điểm đo.
+- Create an isolated class loader and real plugin class, using `WeakReference<ClassLoader>`; optionally add weak refs to `Class<?>` or plugin instances, while **never strongly retaining** those referents in the test.
+- Run multiple load/unload cycles, with a separate helper per cycle.
+- After cleanup, request GC over **bounded** cycles and read results from weak refs/`ReferenceQueue`.
+- If a weak ref is cleared, that is observed evidence of collection for that referent.
+- If not cleared, classify as **inconclusive**, collect a heap dump/dominator graph to locate pinning roots; do not automatically assume "leak."
+- Use repeated workloads and classloader metrics to spot long-term retention trends, rather than inferring from a single data point.
 
-Một test chạy trên JUnit có thể dùng `assertTimeout` hoặc cơ chế deadline cho pha chờ **giữ ổn định thời gian kiểm thử**, nhưng tuyệt đối không ép việc GC phải xảy ra trước deadline trong môi trường mà JVM không hứa hẹn điều đó. Nếu sản phẩm có yêu cầu giải phóng tài nguyên định lượng, xác minh tài nguyên có hợp đồng release rõ ràng (đóng file descriptor, unregister listener, số cache entries) trước; kiểm chứng class unloading qua integration metrics riêng.
+A JUnit test can use `assertTimeout` or a deadline mechanism for the wait phase **to keep test duration bounded**, but must never mandate that GC occur before a deadline in an environment where the JVM makes no such promise. If a product has quantitative resource-release requirements, verify resources with explicit release contracts (closing file descriptors, unregistering listeners, cache entry counts) first; verify class unloading via separate integration metrics.
 
-### Negative control: xác nhận test có thể nhận ra leak thật
+### Negative Control: Confirming the Test Can Catch Real Leaks
 
-Trong một lượt test được cách ly:
+In an isolated test run:
 
-- Giữ `Class<?>` hoặc `Method` của plugin trong static cache host;
-- Sau khi helper trả về chỉ weak ref, xác minh strong cache còn entry và `weak.get() != null`;
-- Xóa entry đó, kiểm tra `cache.isEmpty()`;
-- Sau đó **có thể** chờ/quan sát GC.
+- Retain a plugin's `Class<?>` or `Method` in the host's static cache;
+- After the helper returns only the weak ref, verify the strong cache still holds the entry and `weak.get() != null`;
+- Clear that entry, check `cache.isEmpty()`;
+- Afterward, you **may** wait/observe GC.
 
-Với negative control này, bạn chứng minh bộ kiểm thử nhìn thấy ít nhất một đường retention xác định. Nếu chỉ test bản “tốt” mà không có mẫu rò rỉ có chủ ý, chưa chắc helper quan sát/cleanup đã được thiết kế đúng.
+With this negative control, you prove the test suite can detect at least one deterministic retention path. Testing only the "good" version without an intentional leak sample leaves uncertainty about whether the observation/cleanup helpers were built properly.
 
-## 7. Những nguồn giữ classloader nằm ngoài cache reflection
+## 7. Sources Retaining ClassLoaders Outside Reflection Caches
 
-Ngay cả khi metadata cache được thiết kế hợp lý, plugin vẫn có thể bị giữ bởi:
+Even when the metadata cache is properly designed, a plugin can still be retained by:
 
-| Nguồn tham chiếu | Cách phát sinh | Hướng xử lý |
+| Reference source | How it arises | Mitigation |
 | --- | --- | --- |
-| Static registry trong host | `Map<String, PluginHandler>` lưu instance/plugin callback | Unregister theo plugin generation |
-| Executor/Thread đang chạy | Runnable/lambda nắm `pluginInstance`/`ClassLoader` | Stop và join/chờ task; loại references trong queue |
-| Thread context classloader (TCCL) | Thread host gọi `setContextClassLoader(pluginLoader)` rồi không khôi phục | Dùng `try/finally` để khôi phục TCCL; dừng plugin threads |
-| `ThreadLocal` | Thread sống lâu giữ value thuộc plugin | Gọi `remove()` trên đúng thread hoặc quản lý vòng đời thread |
-| Listener/MBean/observer | Host event bus giữ listener class của plugin | Unregister theo token rõ ràng |
-| Scheduler, timer, callback | Job tương lai capture plugin object | Cancel; loại queue entry và chặn re-registration |
-| JavaBeans metadata | `Introspector` hoặc framework cache giữ `BeanInfo`/descriptor | Xem API flush/invalidation, ví dụ `Introspector.flushFromCaches(clazz)` khi phù hợp |
-| Service discovery | `ServiceLoader`/factory giữ provider instances hoặc loader | Giải phóng loader/provider và cache liên quan |
-| Logging / tracing / metrics | Logger appender, instrumentation hoặc exporter giữ callback/class | Remove registrations khi plugin stop |
-| JNI/native handles/file resources | Native code/JAR handle giữ tài nguyên | Đóng đúng tài nguyên, giải phóng registration theo API native |
+| Static registry in host | `Map<String, PluginHandler>` holding plugin instances/callbacks | Unregister by plugin generation |
+| Running Executor/Thread | Runnable/lambda capturing `pluginInstance`/`ClassLoader` | Stop and join/await tasks; purge references in queues |
+| Thread context classloader (TCCL) | Host thread calls `setContextClassLoader(pluginLoader)` and fails to restore it | Use `try/finally` to restore TCCL; stop plugin threads |
+| `ThreadLocal` | Long-lived thread holds a plugin-owned value | Call `remove()` on the right thread or manage thread lifecycle |
+| Listener/MBean/observer | Host event bus retains plugin listener class | Unregister using an explicit token |
+| Scheduler, timer, callback | Future job captures plugin object | Cancel; remove queue entries and block re-registration |
+| JavaBeans metadata | `Introspector` or framework cache retains `BeanInfo`/descriptors | Check flush/invalidation APIs, e.g., `Introspector.flushFromCaches(clazz)` when appropriate |
+| Service discovery | `ServiceLoader`/factory retains provider instances or loader | Release loader/providers and related caches |
+| Logging / tracing / metrics | Logger appender, instrumentation, or exporter retains callbacks/classes | Remove registrations when plugin stops |
+| JNI/native handles/file resources | Native code/JAR handles hold resources | Close resources properly, release registrations per native API |
 
-Một static field **nằm trong chính class plugin** không tự tạo GC root bên ngoài plugin nếu toàn bộ loader/class của nó đã unreachable; rủi ro là tham chiếu từ **host/JDK thread/registry sống lâu** dẫn ngược vào plugin. Khi điều tra, luôn hỏi “GC root nào đang giữ đường mạnh tới loader?”.
+A static field **inside the plugin class itself** does not create an external GC root outside the plugin once its entire loader/classes are unreachable; the risk is references from **long-lived host/JDK threads/registries** pointing back into the plugin. When investigating, always ask: "Which GC root holds a strong path to the loader?"
 
-### Ví dụ khôi phục TCCL an toàn
+### Safe TCCL Restoration Example
 
 ```java
 ClassLoader old = Thread.currentThread().getContextClassLoader();
 try {
     Thread.currentThread().setContextClassLoader(pluginLoader);
-    // Tác vụ ngắn hạn cần loader của plugin.
+    // Short-lived work requiring the plugin's loader.
 } finally {
     Thread.currentThread().setContextClassLoader(old);
 }
 ```
 
-Fragment trên cần biến `pluginLoader` hợp lệ. Đây là hygiene cho các thread tái sử dụng từ pool. Nó không thay thế việc stop các thread thực sự được plugin tạo ra. Khi dùng thread pool, cần quản lý cả `Runnable`/`Callable` đang nằm trong queue.
+The fragment above requires a valid `pluginLoader` variable. This is hygiene for threads reused from a pool. It does not replace stopping threads actually spawned by the plugin. When using thread pools, also manage `Runnable`/`Callable` tasks sitting in queues.
 
-## 8. Thiết kế cache cho nhiều plugin, classloader và hot reload
+## 8. Designing Caches for Multiple Plugins, ClassLoaders, and Hot Reload
 
-### Key phải phân biệt phiên bản plugin
+### Keys Must Distinguish Plugin Versions
 
-Cùng tên fully qualified class, ví dụ `com.example.Plugin`, có thể được định nghĩa bởi **hai classloader khác nhau**. Ở Java, identity của class liên quan đến *binary name + defining classloader*. Vì vậy cache theo **string class name** đơn thuần có thể trả metadata cũ sai classloader sau reload.
+The same fully qualified class name, e.g., `com.example.Plugin`, can be defined by **two different class loaders**. In Java, class identity ties to *binary name + defining class loader*. Therefore, caching purely by **string class name** can return stale metadata from the wrong class loader after reload.
 
-Nếu cache theo tên, hãy gắn thêm plugin generation/classloader identity bằng một khóa có lifecycle quản lý chặt chẽ; đồng thời evict khi unload. Tránh lưu key strong-ref classloader vĩnh viễn vào global cache.
+If caching by name, attach the plugin generation/classloader identity using a key with strictly managed lifecycle, and evict on unload. Avoid storing strong classloader keys permanently in a global cache.
 
-### Cache data “safe” vẫn có thể bị một value pinning
+### "Safe" Cache Data Can Still Pin via a Value
 
-Một wrapper `CachedAccessPlan` có thể tưởng chỉ giữ tên/kiểu dưới dạng text, nhưng một field ẩn như `Method getter`, `Class<?> type`, `MethodHandle access` hay `Supplier<?> lambda` có thể giữ plugin. Kiểm tra object graph của **value**, không chỉ kiểu key.
+A wrapper like `CachedAccessPlan` may look like it only stores text names/types, yet a hidden field such as `Method getter`, `Class<?> type`, `MethodHandle access`, or `Supplier<?> lambda` can retain the plugin. Inspect the object graph of **values**, not only key types.
 
-### Dọn cache dưới concurrency
+### Cache Eviction Under Concurrency
 
-Plugin có thể bị unload đúng lúc request khác đang dùng cache:
+A plugin can be unloaded at the exact moment another request is using the cache:
 
-1. Chuyển plugin sang trạng thái `STOPPING` để chặn cấp phiên gọi mới.
-2. Đợi/hủy request in-flight theo hợp đồng.
-3. Xóa metadata/registry/task đã thuộc generation đó.
-4. Đóng tài nguyên/loader.
-5. Đặt `CLOSED`; mọi lookup muộn của generation cũ phải bị từ chối.
+1. Transition the plugin to `STOPPING` to block issuing new call sessions.
+2. Await/cancel in-flight requests per contract.
+3. Delete metadata/registries/tasks belonging to that generation.
+4. Close resources/loaders.
+5. Set `CLOSED`; any late lookup for the old generation must be rejected.
 
-Nếu chỉ gọi `cache.remove(key)` rồi một worker còn chạy lại `computeIfAbsent` và tạo entry mới, plugin cũ bị giữ lại. Kiểm thử race cần dùng barrier/latch điều phối một request đang lookup, đồng thời stop plugin; cuối test bảo đảm **không có repopulation**.
+Merely calling `cache.remove(key)` while a worker is still running `computeIfAbsent` and recreating the entry leaves the old plugin retained. Concurrency tests should use barriers/latches coordinating an in-flight lookup while stopping the plugin; at the end of the test, verify **no repopulation** occurred.
 
-### Bảo vệ reference qua nhiều bản JDK
+### Guarding References Across JDK Versions
 
-Nhiều bản JDK có thể thay đổi nội bộ reflection, GC và class unloading. Đừng dùng một magic threshold hoặc suy đoán cache internal `Method` để xác nhận unload. Kiểm thử trên JDK mục tiêu (ít nhất version được support) với assert dựa trên **public lifecycle contract**, kết hợp quan sát `WeakReference`/JFR/heap analysis. Đặc biệt khi nâng JDK, cache dùng internal accessor của JDK là thiết kế dễ vỡ.
+Different JDK versions can change internals of reflection, GC, and class unloading. Never rely on a magic threshold or guess internal `Method` caches to confirm unloading. Test on target JDKs (at least supported versions) with assertions based on the **public lifecycle contract**, combined with `WeakReference`/JFR/heap analysis observations. Especially across JDK upgrades, caches using internal JDK accessors are brittle designs.
 
-## 9. Công cụ chẩn đoán khi loader chưa biến mất
+## 9. Diagnostic Tools When Loaders Fail to Disappear
 
-Khi tích hợp reload nhiều vòng mà số loader/class không ổn định:
+When multi-cycle reload integration shows unstable loader/class counts:
 
-1. Ghi số plugin generations đã đóng, cache entries theo generation, thread/task/registry còn hoạt động.
-2. Thử bật Unified Logging về class unload nếu cần: `-Xlog:class+unload=info` (trên HotSpot hỗ trợ cú pháp này). Log sự kiện class unload chỉ khi nó thật sự xảy ra, không phải cam kết thời điểm.
-3. Dùng JFR hoặc heap dump và công cụ phân tích dominator paths để tìm **GC root → host cache/registry/thread → plugin classloader**.
-4. Kiểm tra static map `Class<?> -> Method`, `WeakHashMap` có value tham chiếu key, `ClassValue` bị external leak, thread context loader, `ThreadLocal`, scheduled executors.
-5. Xác định object thực sự đang bị giữ: loader, `Class<?>`, plugin instance, metadata/handle, thread hay resource. Một heap snapshot đơn lẻ cần được đọc cẩn thận; số classloaded cao có thể do workload hoặc GC chưa chạy.
-6. Loại bỏ một strong-reference path, chạy lại chuỗi test tương đương; so sánh metrics và object graph. Tránh thay nhiều yếu tố cùng lúc rồi không còn biết nguyên nhân.
+1. Record counts of closed plugin generations, cache entries per generation, and active threads/tasks/registries.
+2. Enable Unified Logging for class unloading if needed: `-Xlog:class+unload=info` (supported on HotSpot). It logs class-unload events only when they actually occur, without guaranteeing timing.
+3. Use JFR or heap dumps and dominator-path analysis tools to trace **GC root → host cache/registry/thread → plugin classloader**.
+4. Inspect static `Class<?> -> Method` maps, `WeakHashMap`s with values referencing keys, externally leaked `ClassValue`s, thread context loaders, `ThreadLocal`s, and scheduled executors.
+5. Identify which object is actually retained: loader, `Class<?>`, plugin instance, metadata/handle, thread, or resource. A single heap snapshot must be read carefully; high loaded-class counts can result from workload or GC not having run yet.
+6. Remove one strong-reference path and re-run an equivalent test sequence; compare metrics and object graphs. Avoid changing multiple factors at once and losing visibility into the root cause.
 
-Khi phân tích đồ thị, nhớ rằng **một classloader có thể chứa nhiều lớp**; việc thấy một loader còn sống có thể giữ lại lượng lớn metadata dù chỉ một listener hoặc một `Method` bị cache sai.
+When analyzing graphs, remember that **one class loader can hold many classes**; seeing a single loader stay alive can retain large amounts of metadata even if only one listener or one `Method` was miscached.
 
-## 10. Lỗi thường gặp và câu hỏi tự kiểm tra
+## 10. Common Mistakes and Self-Check Questions
 
-- **“`URLClassLoader.close()` đã gọi, vậy class chắc chắn unload”:** sai; `close()` giải phóng tài nguyên loader nhưng không xóa các strong references hiện có.
-- **“`System.gc()` một lần không thu gom thì chắc chắn memory leak”:** sai; GC không cam kết thời điểm.
-- **“`WeakHashMap<Class<?>, Method>` là an toàn vì key weak”:** sai nếu value `Method` giữ class/key.
-- **“`ClassValue` sửa mọi leak”:** sai khi listener, registry, thread hoặc một cache khác vẫn giữ plugin.
-- **“Cache class name là đủ để phân biệt plugin sau reload”:** sai vì cùng tên class có thể đến từ hai loader khác nhau.
-- **“Một lần xóa cache entry là xong dù plugin đang chạy song song”:** sai nếu task muộn có thể tạo lại entry.
-- **“Chỉ đo heap usage ngay sau stop”:** chưa đủ; heap memory khác metaspace và còn phụ thuộc GC, allocation pressure, classloader count, JIT warm-up.
-- **“Test giữ biến `Class<?>`/`Method` ngoài scope rồi chờ GC”:** chính test có thể là nguồn giữ plugin và tạo false positive.
+- **"`URLClassLoader.close()` was called, so classes definitely unloaded":** false; `close()` releases loader resources but does not clear existing strong references.
+- **"One `System.gc()` didn't collect, so there's definitely a memory leak":** false; GC makes no timing guarantees.
+- **"`WeakHashMap<Class<?>, Method>` is safe because keys are weak":** false if the `Method` value retains the class/key.
+- **"`ClassValue` fixes every leak":** false when listeners, registries, threads, or another cache still retain the plugin.
+- **"Caching class name is enough to distinguish plugins after reload":** false because the same class name can come from two different loaders.
+- **"Removing a cache entry once is enough even while the plugin runs concurrently":** false if a late task can recreate the entry.
+- **"Measuring heap usage right after stop is enough":** insufficient; heap memory differs from metaspace and also depends on GC, allocation pressure, classloader count, and JIT warm-up.
+- **"Test keeps `Class<?>`/`Method` variables in scope while waiting for GC":** the test itself can pin the plugin and produce a false positive.
 
-Tự kiểm tra:
+Self-check:
 
-1. Static cache của host lưu `Method` khai báo trong plugin; plugin đóng URLClassLoader nhưng method vẫn trong cache. Có nguy cơ giữ loader không? **Có**: metadata có thể giữ declaring class và loader.
-2. Cần test chắc chắn không flaky trong CI: dùng gì trước? **Assert eviction/unregistration/stop chính xác**, rồi quan sát GC ở tầng integration riêng.
-3. `weak.get() != null` sau 100 ms có chứng minh leak? **Không**.
-4. Dùng `WeakHashMap<Class<?>, Method>` có đủ an toàn không? **Không**, phải xét đường tham chiếu từ value về key.
-5. Reload hai plugin class cùng tên nhưng khác loader: identity class có giống nhau không? **Không**.
-6. Nếu cache đã xóa mà classloader vẫn sống, cần điều tra gì? **Các GC roots khác:** thread/TCCL, ThreadLocal, listener, task, service registry, framework cache và object graph.
-7. Một request đang chạy có thể thêm cache entry của plugin `CLOSED` sau cleanup. Kiểm thử gì? **Race test với generation token/barrier**, đảm bảo không thể repopulate entry.
+1. A host static cache stores a `Method` declared in a plugin; the plugin closes its `URLClassLoader`, yet the method stays in the cache. Is there a risk of retaining the loader? **Yes**: metadata can retain the declaring class and loader.
+2. Need a deterministic, non-flaky CI test: what do you use first? **Assert exact eviction/unregistration/stop**, then observe GC at a separate integration layer.
+3. Does `weak.get() != null` after 100 ms prove a leak? **No**.
+4. Is using `WeakHashMap<Class<?>, Method>` safe enough? **No**, you must inspect reference paths from value back to key.
+5. Reload two plugin classes with the same name under different loaders: is their class identity identical? **No**.
+6. If the cache was cleared yet the class loader stays alive, what should you investigate? **Other GC roots:** threads/TCCL, `ThreadLocal`, listeners, tasks, service registries, framework caches, and the object graph.
+7. An in-flight request might add a cache entry for a `CLOSED` plugin after cleanup. What do you test? **A race test with a generation token/barrier**, ensuring entries cannot be repopulated.
 
-Đọc thêm từ API chuẩn:
+Further reading from standard APIs:
 
 - [`java.lang.ref.WeakReference` — Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ref/WeakReference.html)
 - [`ReferenceQueue` — Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ref/ReferenceQueue.html)

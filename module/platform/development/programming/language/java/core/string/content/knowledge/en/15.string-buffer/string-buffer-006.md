@@ -1,12 +1,12 @@
-# Chuyển từ StringBuffer sang String trong Java
+# Converting from StringBuffer to String in Java
 
-## 1. Mục tiêu học tập
+## 1. Learning Objectives
 
-`StringBuffer` là lớp dùng để **xây dựng và chỉnh sửa** chuỗi ký tự qua nhiều thao tác như `append()`, `insert()`, `delete()`, `replace()`. Nội dung bên trong `StringBuffer` có thể thay đổi (*mutable*). Ngược lại, `String` là kiểu chuỗi **bất biến** (*immutable*): một đối tượng `String` đã được tạo không bị thay đổi nội dung.
+`StringBuffer` is a class used to **build and edit** character sequences through operations like `append()`, `insert()`, `delete()`, and `replace()`. The content inside a `StringBuffer` can change (*mutable*). Conversely, `String` is an **immutable** string type: once a `String` object is created, its content cannot be modified.
 
-Khi hoàn thành việc xây dựng văn bản, ta thường cần lấy kết quả dưới dạng `String`, chẳng hạn để truyền cho một API yêu cầu `String`, lưu một bản kết quả ổn định hoặc so sánh và xử lý bằng các phương thức của `String`.
+When finished building text, we often need to obtain the result as a `String`, for example to pass to an API requiring `String`, store a stable result, or compare and process using `String` methods.
 
-Cách trực tiếp nhất là:
+The most direct way is:
 
 ~~~java
 StringBuffer buffer = new StringBuffer("Java");
@@ -16,21 +16,21 @@ String result = buffer.toString();
 System.out.println(result); // Java Core
 ~~~
 
-Sau bài học, bạn cần có khả năng:
+After this lesson, you should be able to:
 
-1. Phân biệt `StringBuffer` mutable với `String` immutable.
-2. Chuyển `StringBuffer` sang `String` bằng `toString()`, constructor `new String(buffer)` và hiểu khi nào nên dùng `String.valueOf(buffer)`.
-3. Giải thích vì sao `String` kết quả là **bản chụp nội dung** (*snapshot*) không thay đổi khi buffer tiếp tục bị sửa.
-4. Nhận biết chuyển đổi không xóa, không đặt lại độ dài, không vô hiệu hóa buffer và không tự động chuyển mọi tham chiếu khác sang `String`.
-5. Xử lý `null`, buffer rỗng, Unicode, định dạng đầu ra và API nhận `CharSequence`.
-6. Biết giới hạn của các phương thức đồng bộ của `StringBuffer` khi có nhiều luồng.
-7. Xác minh bằng ví dụ Java 17+ có thể biên dịch và chạy độc lập.
+1. Distinguish mutable `StringBuffer` from immutable `String`.
+2. Convert `StringBuffer` to `String` via `toString()`, the `new String(buffer)` constructor, and understand when to use `String.valueOf(buffer)`.
+3. Explain why the resulting `String` is a **content snapshot** that does not change when the buffer continues to be modified.
+4. Recognize that conversion does not clear, reset length, invalidate the buffer, or automatically convert all other references to `String`.
+5. Handle `null`, empty buffers, Unicode, output formatting, and APIs accepting `CharSequence`.
+6. Know the limits of `StringBuffer`'s synchronized methods under multi-threading.
+7. Verify with standalone compilable and runnable Java 17+ examples.
 
-Kiến thức cần có: đối tượng/tham chiếu, phương thức, `String`, `StringBuffer`, tính bất biến và phép gán.
+Prerequisites: objects/references, methods, `String`, `StringBuffer`, immutability, and assignment.
 
-## 2. Cách chính: gọi StringBuffer.toString()
+## 2. Primary Way: Calling StringBuffer.toString()
 
-Cú pháp:
+Syntax:
 
 ~~~java
 StringBuffer buffer = new StringBuffer();
@@ -41,19 +41,19 @@ buffer.append("World");
 String text = buffer.toString();
 ~~~
 
-`buffer.toString()` trả về một đối tượng `String` biểu diễn **nội dung ký tự hiện tại** của buffer. Đây là cách thông dụng, rõ ràng và dễ đọc nhất.
+`buffer.toString()` returns a `String` object representing the buffer's **current character content**. This is the most idiomatic, clear, and readable approach.
 
-| Thuộc tính | `StringBuffer` | `String` kết quả |
+| Property | `StringBuffer` | Resulting `String` |
 | --- | --- | --- |
-| Có thể sửa nội dung qua API? | Có: `append`, `delete`, `setCharAt`… | Không |
-| Có thể tiếp tục bổ sung ký tự? | Có | Phải tạo kết quả `String` khác hoặc dùng builder/buffer |
-| Độ dài hiện tại | `buffer.length()` | `text.length()` |
-| Đổi sang loại bên kia | `buffer.toString()` | `new StringBuffer(text)` |
-| Giá trị khi buffer bị sửa sau đó | Thay đổi theo phép sửa | **Giữ nguyên nội dung đã lấy** |
+| Can content be modified via API? | Yes: `append`, `delete`, `setCharAt`… | No |
+| Can characters continue to be added? | Yes | Must create another `String` result or use a builder/buffer |
+| Current length | `buffer.length()` | `text.length()` |
+| Convert to the other type | `buffer.toString()` | `new StringBuffer(text)` |
+| Value if buffer is modified afterward | Changes with each edit | **Retains the captured content** |
 
-Điểm mấu chốt: `toString()` **không sửa buffer** và không thay đổi kiểu của biến `buffer`. Biến `buffer` vẫn tham chiếu đến cùng một đối tượng `StringBuffer` mutable sau lời gọi.
+Key point: `toString()` **does not modify the buffer** and does not change the type of the `buffer` variable. The `buffer` variable still references the same mutable `StringBuffer` object after the call.
 
-### Minh họa dòng dữ liệu
+### Data Flow Illustration
 
 ~~~text
 StringBuffer buffer: "Java"
@@ -64,17 +64,17 @@ StringBuffer buffer: "Java Core"
         │
         ├─ toString()
         ▼
-String text: "Java Core"   (bất biến)
+String text: "Java Core"   (immutable)
 
-Sau đó buffer.append(" 17"):
+Afterward buffer.append(" 17"):
 
 buffer = "Java Core 17"
-text   = "Java Core"      (không đổi)
+text   = "Java Core"      (unchanged)
 ~~~
 
-Đừng hình dung `toString()` như một phép "chuyển loại tại chỗ". Hai biến có **kiểu tĩnh khác nhau** và lưu các tham chiếu độc lập theo ý nghĩa dữ liệu.
+Do not picture `toString()` as an "in-place type conversion." Both variables have **different static types** and hold independent references in terms of data semantics.
 
-## 3. Snapshot: String không thay đổi khi buffer bị sửa tiếp
+## 3. Snapshot: String Does Not Change When the Buffer Is Edited Further
 
 ~~~java
 StringBuffer buffer = new StringBuffer("AB");
@@ -87,9 +87,9 @@ System.out.println(buffer);   // XBC
 System.out.println(snapshot); // AB
 ~~~
 
-`snapshot` nắm giữ giá trị `"AB"` tại thời điểm chuyển đổi. Thao tác `append("C")` hay `setCharAt(0, 'X')` thay đổi buffer, **không thay đổi** một đối tượng `String` đã tồn tại.
+`snapshot` holds the value `"AB"` at the time of conversion. Operations like `append("C")` or `setCharAt(0, 'X')` mutate the buffer; they **do not mutate** an existing `String` object.
 
-Nếu muốn cập nhật biến `snapshot` theo nội dung buffer mới, phải **gọi lại `toString()` rồi gán lại**:
+If you want to update the `snapshot` variable to reflect new buffer content, you must **call `toString()` again and reassign**:
 
 ~~~java
 StringBuffer buffer = new StringBuffer("A");
@@ -101,9 +101,9 @@ snapshot = buffer.toString();        // AB
 System.out.println(snapshot);       // AB
 ~~~
 
-Phép `snapshot = ...` chỉ gán lại **tham chiếu biến**; nó không làm cho `String` trở nên mutable.
+The assignment `snapshot = ...` only reassigns the **variable reference**; it does not make `String` mutable.
 
-### Không có liên kết sống giữa hai đối tượng
+### No Live Link Between the Two Objects
 
 ~~~java
 StringBuffer buffer = new StringBuffer("first");
@@ -118,33 +118,33 @@ System.out.println(second); // second
 System.out.println(buffer); // second
 ~~~
 
-`setLength(0)` xóa nội dung **đang lưu trong buffer** bằng cách giảm độ dài logic xuống 0; nó không xóa hay thay đổi `first`. Buffer vẫn được tái sử dụng.
+`setLength(0)` clears the content **stored inside the buffer** by shrinking its logical length to 0; it does not erase or modify `first`. The buffer remains reusable.
 
-Không nên khẳng định mỗi lần gọi `toString()` **luôn cấp phát một đối tượng String mới**. Một triển khai Java có thể dùng bộ đệm hoặc tối ưu nội bộ. Điều được API bảo đảm cho việc học này là **giá trị `String` đã trả về không bị sửa bởi những thao tác tiếp theo trên buffer**.
+Do not assert that every call to `toString()` **always allocates a new String object**. A Java implementation may use internal caching or optimizations. What the API guarantees for this lesson is that **the returned `String` value is not altered by subsequent operations on the buffer**.
 
-## 4. Các cách chuyển đổi và nên chọn cách nào?
+## 4. Conversion Approaches and Which One to Choose?
 
-### 4.1. Cách khuyến nghị: buffer.toString()
+### 4.1. Recommended Way: buffer.toString()
 
 ~~~java
 StringBuffer buffer = new StringBuffer("Java");
 String result = buffer.toString();
 ~~~
 
-Ưu điểm: diễn đạt đúng mục đích, không cần thêm công cụ, dễ nhận ra đang lấy giá trị chuỗi từ buffer. **Đây là cách mặc định nên sử dụng** khi `buffer` khác `null`.
+Advantage: expresses exact intent, needs no extra utilities, and immediately signals retrieving the string value from the buffer. **This is the default approach to use** when `buffer` is non-null.
 
 ### 4.2. Constructor: new String(buffer)
 
-Java cũng hỗ trợ constructor nhận `StringBuffer`:
+Java also supports a constructor taking `StringBuffer`:
 
 ~~~java
 StringBuffer buffer = new StringBuffer("Java");
 String result = new String(buffer);
 ~~~
 
-Kết quả là `String` có cùng nội dung như buffer tại thời điểm tạo. Đối với nhu cầu thông thường, nó không mang lại lợi ích diễn đạt rõ ràng hơn `buffer.toString()`. Khi muốn lấy kết quả từ buffer, đa số code nên dùng `toString()`.
+The result is a `String` with the same content as the buffer at creation time. For normal needs, it offers no expressive benefit over `buffer.toString()`. When retrieving the result from a buffer, most code should use `toString()`.
 
-Chú ý đây là **`new String(StringBuffer)`**, không phải constructor nhận một kiểu byte/char bất kỳ. Nếu chỉ muốn tạo chuỗi từ `char[]`, dùng `new String(chars)` là hợp đồng khác.
+Note this is **`new String(StringBuffer)`**, not a constructor taking an arbitrary byte/char type. To build a string from `char[]`, using `new String(chars)` is a different contract.
 
 ### 4.3. String.valueOf(buffer)
 
@@ -153,7 +153,7 @@ StringBuffer buffer = new StringBuffer("Java");
 String result = String.valueOf(buffer);
 ~~~
 
-`String.valueOf(Object)` dùng biểu diễn `toString()` của đối tượng khác `null`; khi đối số là `null` nó trả về **chuỗi ký tự `"null"`**. Vì `StringBuffer` không có overload `valueOf` đặc biệt, lời gọi với một biến kiểu `StringBuffer` dùng overload dành cho `Object`.
+`String.valueOf(Object)` uses the `toString()` representation of a non-null object; when the argument is `null`, it returns **the four-character string `"null"`**. Because `StringBuffer` has no special `valueOf` overload, calling it with a `StringBuffer` variable invokes the `Object` overload.
 
 ~~~java
 StringBuffer missing = null;
@@ -163,9 +163,9 @@ System.out.println(String.valueOf(missing)); // null
 // new String(missing);      // NullPointerException
 ~~~
 
-Cần phân biệt một đối tượng chuỗi có nội dung bốn ký tự `"null"` với trạng thái thiếu dữ liệu thật sự. **Không dùng `String.valueOf(buffer)` như chính sách xử lý `null` mặc định** nếu nghiệp vụ muốn từ chối, trả `null` hoặc dùng chuỗi rỗng.
+Distinguish a string object containing the four characters `"null"` from an actual missing-data state. **Do not use `String.valueOf(buffer)` as a default `null`-handling policy** if business logic expects to reject it, return `null`, or use an empty string.
 
-### 4.4. Nếu muốn trả null thay vì chuỗi "null"
+### 4.4. Returning null Instead of the String "null"
 
 ~~~java
 static String snapshotOrNull(StringBuffer buffer) {
@@ -173,7 +173,7 @@ static String snapshotOrNull(StringBuffer buffer) {
 }
 ~~~
 
-Hoặc nếu `null` là lỗi lập trình cần phát hiện:
+Or if `null` is a programming error that should be caught:
 
 ~~~java
 static String snapshotRequired(StringBuffer buffer) {
@@ -182,18 +182,18 @@ static String snapshotRequired(StringBuffer buffer) {
 }
 ~~~
 
-Cả hai là **đoạn phương thức minh họa**, không phải chương trình độc lập nếu đứng một mình. Quy tắc trả `null` hay ném ngoại lệ phải được thống nhất với người dùng API.
+Both are **illustrative method snippets**, not standalone programs by themselves. The rule for returning `null` vs. throwing an exception must be agreed upon with API consumers.
 
-## 5. Dùng String sau chuyển đổi
+## 5. Using String After Conversion
 
-Một lý do phổ biến là thư viện hoặc phương thức nghiệp vụ cần đúng kiểu `String`:
+A common reason is that a library or business method requires the exact `String` type:
 
 ~~~java
 static void saveMessage(String message) {
     System.out.println("Saved: " + message);
 }
 
-// Gọi trong một phương thức:
+// Called inside a method:
 StringBuffer buffer = new StringBuffer();
 buffer.append("Order ");
 buffer.append(42);
@@ -201,11 +201,11 @@ buffer.append(42);
 saveMessage(buffer.toString());
 ~~~
 
-Đây là **fragment minh họa**: đặt các câu lệnh vào phương thức như `main`, và `saveMessage` vào thân một lớp để biên dịch. `StringBuffer` không tự động tương thích với mọi tham số kiểu `String`.
+This is an **illustrative fragment**: place the statements inside a method such as `main`, and `saveMessage` inside a class body to compile. `StringBuffer` is not implicitly compatible with every parameter of type `String`.
 
-### Nên kiểm tra kiểu tham số trước khi chuyển đổi
+### Check the Parameter Type Before Converting
 
-Một số API chấp nhận `CharSequence`, giao diện mà cả `String` và `StringBuffer` đều triển khai:
+Some APIs accept `CharSequence`, an interface implemented by both `String` and `StringBuffer`:
 
 ~~~java
 static int textLength(CharSequence text) {
@@ -213,7 +213,7 @@ static int textLength(CharSequence text) {
 }
 ~~~
 
-Nếu chỉ cần đọc độ dài hoặc truy cập theo `CharSequence`, có thể truyền buffer **không cần tạo String trung gian**:
+If you only need to read length or access via `CharSequence`, you can pass the buffer **without creating an intermediate String**:
 
 ~~~java
 StringBuffer buffer = new StringBuffer("ABC");
@@ -221,9 +221,9 @@ System.out.println(textLength(buffer));            // 3
 System.out.println(textLength(buffer.toString())); // 3
 ~~~
 
-Nhưng `CharSequence` không bảo đảm nội dung bất biến; nếu API lưu tham chiếu để dùng về sau, chuyển sang `String` có thể cần thiết để giữ một bản **ổn định**.
+However, `CharSequence` does not guarantee immutable content; if the API retains the reference for later use, converting to `String` may be necessary to keep a **stable** copy.
 
-### Khi chỉ cần in nội dung buffer
+### When You Only Need to Print Buffer Content
 
 ~~~java
 StringBuffer buffer = new StringBuffer("Hello");
@@ -232,11 +232,11 @@ System.out.println(buffer);            // Hello
 System.out.println(buffer.toString()); // Hello
 ~~~
 
-`println(Object)` sử dụng biểu diễn văn bản của đối tượng. Không nhất thiết phải tạo một biến `String` riêng chỉ để in; nhưng nếu thật sự cần giữ kết quả hoặc truyền cho nơi chỉ nhận `String`, hãy gọi `toString()`.
+`println(Object)` uses the object's text representation. You do not necessarily need to create a separate `String` variable just to print; however, if you actually need to retain the result or pass it to something that only accepts `String`, call `toString()`.
 
-## 6. Tạo String ở thời điểm nào?
+## 6. When Should You Create the String?
 
-Trong một pipeline xây văn bản, nên lấy `String` **khi đã hoàn thiện nội dung mong muốn**:
+In a text-building pipeline, obtain the `String` **once the desired content is complete**:
 
 ~~~java
 StringBuffer buffer = new StringBuffer();
@@ -249,9 +249,9 @@ buffer.append("Hanoi");
 String report = buffer.toString();
 ~~~
 
-Nếu chuyển thành `String` quá sớm rồi vẫn liên tục sửa buffer, bản `String` sớm sẽ **không được đồng bộ tự động** với nội dung cuối.
+If you convert to `String` too early and then continue editing the buffer, the early `String` will **not automatically stay synchronized** with the final content.
 
-Ví dụ:
+Example:
 
 ~~~java
 StringBuffer buffer = new StringBuffer("Hello");
@@ -263,9 +263,9 @@ System.out.println(tooEarly);          // Hello
 System.out.println(buffer.toString()); // Hello World
 ~~~
 
-Vì vậy hãy gọi `toString()` tại **ranh giới giữa quá trình xây dựng mutable và kết quả immutable**. Ví dụ ranh giới đó có thể là cuối một hàm dựng thông báo, trước khi gửi kết quả cho API hoặc khi muốn lưu trạng thái hiện tại.
+Therefore, call `toString()` at **the boundary between the mutable building phase and the immutable result**. For example, that boundary may be at the end of a message-building method, right before sending the result to an API, or when saving the current state.
 
-Không phải lúc nào cũng chỉ chuyển một lần. Nếu hệ thống có chủ đích lưu nhiều mốc lịch sử:
+You do not always convert only once. If a system intentionally stores multiple history checkpoints:
 
 ~~~java
 StringBuffer timeline = new StringBuffer("start");
@@ -278,20 +278,20 @@ System.out.println(stage1); // start
 System.out.println(stage2); // start -> process
 ~~~
 
-Đó là hai snapshot có ý nghĩa riêng, không phải thao tác thừa.
+Those are two meaningful snapshots, not redundant calls.
 
-## 7. So sánh StringBuffer, StringBuilder và String
+## 7. Comparing StringBuffer, StringBuilder, and String
 
-| Đặc điểm | `String` | `StringBuffer` | `StringBuilder` |
+| Characteristic | `String` | `StringBuffer` | `StringBuilder` |
 | --- | --- | --- | --- |
-| Nội dung có thể sửa? | Không | Có | Có |
-| Nối dần với `append()`? | Không | Có | Có |
-| Dùng `toString()` để lấy String? | Giá trị vốn đã là String | Có | Có |
-| Phương thức sửa đổi chủ chốt có đồng bộ? | Không có sửa tại chỗ | Có đồng bộ | Không đồng bộ |
-| Thường dùng | Giá trị văn bản ổn định | Xây văn bản với nhu cầu đồng bộ | Xây văn bản trong phạm vi một luồng |
-| Chỉnh sửa buffer/builder sau snapshot có đổi String? | Không áp dụng | Không | Không |
+| Can content be edited? | No | Yes | Yes |
+| Incremental concatenation with `append()`? | No | Yes | Yes |
+| Use `toString()` to get String? | Value is already a String | Yes | Yes |
+| Key mutating methods synchronized? | No in-place mutation | Synchronized | Unsynchronized |
+| Common use | Stable text values | Text building with synchronization needs | Text building within single-thread scope |
+| Editing buffer/builder after snapshot changes String? | Not applicable | No | No |
 
-Ví dụ hai loại builder đều có thể lấy kết quả `String`:
+Example showing both builders can produce a `String` result:
 
 ~~~java
 StringBuffer synchronizedBuilder = new StringBuffer("A");
@@ -303,31 +303,31 @@ String fromBuilder = unsynchronizedBuilder.toString();
 System.out.println(fromBuffer.equals(fromBuilder)); // true
 ~~~
 
-Tuy nhiên, một đối tượng `StringBuffer` đang được dùng bởi nhiều luồng có thể nhận các phép thay đổi giữa những lời gọi; việc `toString()` tạo snapshot **không tự biến cả quy trình nhiều bước thành giao dịch nguyên tử** (xem mục 9).
+However, a `StringBuffer` object used by multiple threads can receive edits between calls; `toString()` taking a snapshot **does not automatically turn a multi-step workflow into an atomic transaction** (see section 9).
 
-## 8. Những lỗi thường gặp khi chuyển đổi
+## 8. Common Conversion Mistakes
 
-### 8.1. Quên gọi toString() khi nơi nhận cần String
-
-~~~java
-StringBuffer buffer = new StringBuffer("Hello");
-// String text = buffer; // Lỗi biên dịch: StringBuffer không phải String
-String text = buffer.toString();
-~~~
-
-`StringBuffer` và `String` là hai lớp khác nhau, dù đều chứa chuỗi ký tự. Java không thực hiện phép ép kiểu ngầm từ một `StringBuffer` sang `String`.
-
-### 8.2. Ép kiểu bằng cast không hợp lệ
+### 8.1. Forgetting to Call toString() When the Receiver Needs String
 
 ~~~java
 StringBuffer buffer = new StringBuffer("Hello");
-// String text = (String) buffer; // Không có quan hệ ép kiểu hợp lệ
+// String text = buffer; // Compile error: StringBuffer is not String
 String text = buffer.toString();
 ~~~
 
-Không thể thay `toString()` bằng ép kiểu. Chúng không cùng đối tượng và không có quan hệ kế thừa cho phép cast như vậy.
+`StringBuffer` and `String` are two distinct classes, even though both hold character sequences. Java performs no implicit cast from `StringBuffer` to `String`.
 
-### 8.3. Lưu String rồi mong nó tự cập nhật
+### 8.2. Invalid Type Casting
+
+~~~java
+StringBuffer buffer = new StringBuffer("Hello");
+// String text = (String) buffer; // No valid cast relationship
+String text = buffer.toString();
+~~~
+
+You cannot replace `toString()` with a cast. They are neither the same object nor related by inheritance to allow such a cast.
+
+### 8.3. Saving a String and Expecting It to Update Automatically
 
 ~~~java
 StringBuffer buffer = new StringBuffer("A");
@@ -337,25 +337,25 @@ buffer.append("B");
 System.out.println(snapshot); // A
 ~~~
 
-Muốn giá trị mới, lấy snapshot mới: `snapshot = buffer.toString();`.
+To get the new value, take a fresh snapshot: `snapshot = buffer.toString();`.
 
-### 8.4. Chuyển đổi làm rỗng hoặc khóa buffer
+### 8.4. Thinking Conversion Empties or Locks the Buffer
 
 ~~~java
 StringBuffer buffer = new StringBuffer("ABC");
 String text = buffer.toString();
 
 System.out.println(buffer.length()); // 3
-buffer.append("D");                 // Vẫn hợp lệ
+buffer.append("D");                 // Still valid
 System.out.println(buffer);          // ABCD
 System.out.println(text);            // ABC
 ~~~
 
-`toString()` **không** đặt lại độ dài, không giải phóng bộ nhớ để người lập trình quản lý, không ngăn các lời gọi `append()` sau đó.
+`toString()` does **not** reset the length, does not free programmer-managed memory, and does not prevent subsequent `append()` calls.
 
-### 8.5. Dùng equals trên StringBuffer để so nội dung
+### 8.5. Using equals on StringBuffer to Compare Content
 
-`StringBuffer` không định nghĩa `equals()` theo nội dung giống `String`. Nếu muốn so văn bản, chuyển sang `String` (hoặc dùng thuật toán so chuỗi phù hợp):
+`StringBuffer` does not define `equals()` by content like `String`. To compare text, convert to `String` (or use an appropriate string-comparison method):
 
 ~~~java
 StringBuffer a = new StringBuffer("Java");
@@ -365,33 +365,33 @@ System.out.println(a.equals(b));                     // false
 System.out.println(a.toString().equals(b.toString())); // true
 ~~~
 
-Đừng trộn khái niệm **tham chiếu bằng nhau** với **dữ liệu văn bản giống nhau**.
+Do not mix up **reference equality** with **equal text data**.
 
-### 8.6. Trả về String rồi tiếp tục thay đổi buffer trong phương thức
+### 8.6. Returning a String and Then Modifying the Buffer Inside a Method
 
-Điều này có thể hoàn toàn hợp lệ nhưng cần biết phương thức đang trả **snapshot**:
+This can be completely valid, provided you know the method is returning a **snapshot**:
 
 ~~~java
 static String makeText() {
     StringBuffer b = new StringBuffer("A");
     String s = b.toString();
     b.append("B");
-    return s; // "A", không phải "AB"
+    return s; // "A", not "AB"
 }
 ~~~
 
-Nếu muốn trả `"AB"`, hãy chuyển ở cuối sau khi hoàn tất `append()`.
+If you want to return `"AB"`, convert at the end after `append()` finishes.
 
-## 9. Đồng bộ và đa luồng: đảm bảo đến đâu?
+## 9. Synchronization and Multi-Threading: How Far Do Guarantees Go?
 
-`StringBuffer` được thiết kế với các phương thức chủ chốt **synchronized**, khác `StringBuilder`. Việc gọi `toString()` tạo giá trị `String` ổn định sau khi nhận được kết quả, nhưng cần phân biệt:
+`StringBuffer` is designed with **synchronized** key methods, unlike `StringBuilder`. Calling `toString()` produces a stable `String` value once the result is obtained, yet you must distinguish:
 
-- Một thao tác đồng bộ riêng lẻ trên `StringBuffer` có tính bảo vệ ở phạm vi của **thao tác đó**.
-- Nhiều thao tác như `append()` → `delete()` → `toString()` không trở thành **một thao tác nguyên tử** chỉ vì từng lời gọi đều được đồng bộ.
-- Một luồng khác có thể thay đổi nội dung buffer giữa hai lời gọi; snapshot có thể chứa nội dung tại một mốc không như người viết dự đoán nếu thiếu phối hợp.
-- `String` đã trả về bất biến, nên bản thân nội dung của nó không tiếp tục thay đổi khi các luồng sửa buffer.
+- A single synchronized operation on `StringBuffer` provides protection within the scope of **that operation**.
+- Multiple operations like `append()` → `delete()` → `toString()` do not become **one atomic operation** just because each individual call is synchronized.
+- Another thread can alter buffer content between two calls; the snapshot may contain content at an unexpected moment without proper coordination.
+- The returned `String` is immutable, so its own content will not continue changing while threads modify the buffer.
 
-Khi cần lấy snapshot của **một chuỗi thay đổi logic** mà không bị xen vào, phải có chiến lược đồng bộ bao toàn bộ chuỗi thao tác và mọi luồng liên quan cùng tuân thủ quy tắc khóa:
+When you need to take a snapshot of **a logical sequence of changes** without interleaving, you must have a synchronization strategy covering the whole sequence of operations with all involved threads obeying the locking rule:
 
 ~~~java
 StringBuffer shared = new StringBuffer();
@@ -406,13 +406,13 @@ synchronized (shared) {
 System.out.println(snapshot); // AB
 ~~~
 
-Đây là một ví dụ đơn luồng cho cú pháp khóa. Trong ứng dụng đa luồng, kết quả được bảo vệ khỏi thay đổi **xen vào bởi những thao tác tuân thủ cùng khóa `shared`**. Không dựa vào việc chỉ có `StringBuffer` để giải quyết mọi vấn đề đồng bộ ở cấp độ nghiệp vụ.
+This is a single-threaded example of the locking syntax. In a multi-threaded application, the result is protected from edits **interleaving from operations that obey the same `shared` lock**. Do not rely solely on `StringBuffer` to solve all business-level concurrency issues.
 
-Lưu ý: có thể thiết kế để mỗi luồng dùng buffer riêng rồi xuất `String`; khi không cần đồng bộ, `StringBuilder` thường là lựa chọn đơn giản hơn.
+Note: you can design each thread to use its own buffer and then emit a `String`; when synchronization is unnecessary, `StringBuilder` is usually the simpler choice.
 
-## 10. Unicode, độ dài và encoding sau chuyển đổi
+## 10. Unicode, Length, and Encoding After Conversion
 
-`StringBuffer` lưu một chuỗi các **UTF-16 code units** về mặt API `char`/chỉ số, cũng như `String`. Chuyển bằng `toString()` giữ nguyên thứ tự ký tự được biểu diễn: không tự đổi chữ hoa/thường, chuẩn hóa Unicode hay mã hóa UTF-8.
+`StringBuffer` stores a sequence of **UTF-16 code units** in terms of its `char`/index API, just like `String`. Converting via `toString()` preserves the represented character order: it performs no case conversion, Unicode normalization, or UTF-8 encoding.
 
 ~~~java
 StringBuffer buffer = new StringBuffer("A😀B");
@@ -423,9 +423,9 @@ System.out.println(text.length());   // 4
 System.out.println(text.codePointCount(0, text.length())); // 3
 ~~~
 
-Emoji `😀` chiếm hai đơn vị UTF-16 nhưng là một Unicode code point. Chuyển đổi sang `String` không làm thay đổi sự khác biệt này.
+The emoji `😀` occupies two UTF-16 units yet is one Unicode code point. Converting to `String` does not change this distinction.
 
-Để có **byte UTF-8** phục vụ lưu file/mạng:
+To obtain **UTF-8 bytes** for file or network storage:
 
 ~~~java
 StringBuffer buffer = new StringBuffer("A");
@@ -435,11 +435,11 @@ byte[] encoded = buffer.toString().getBytes(
 System.out.println(encoded.length); // 1
 ~~~
 
-`toString()` không phải một phương thức encode. Đặc biệt, không nhầm `StringBuffer` với `ByteBuffer`.
+`toString()` is not an encoding method. In particular, do not confuse `StringBuffer` with `ByteBuffer`.
 
-## 11. Chương trình hoàn chỉnh chạy trên Java 17+
+## 11. Complete Runnable Program on Java 17+
 
-Tạo file **`StringBufferToStringDemo.java`**:
+Create the file **`StringBufferToStringDemo.java`**:
 
 ~~~java
 public class StringBufferToStringDemo {
@@ -481,14 +481,14 @@ public class StringBufferToStringDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa file:
+Compile and run in the directory containing the file:
 
 ~~~bash
 javac -encoding UTF-8 StringBufferToStringDemo.java
 java StringBufferToStringDemo
 ~~~
 
-**Stdout chính xác:**
+**Exact Stdout:**
 
 ~~~text
 first=Java Core
@@ -505,86 +505,86 @@ utf16=4
 codePoints=3
 ~~~
 
-**Giải thích theo từng nhóm:**
+**Group-by-group explanation:**
 
-1. `first` chụp nội dung buffer sau `append(" Core")`. Khi buffer được nối thêm `" 17"`, biến `first` vẫn là `"Java Core"`.
-2. `second = new String(buffer)` chụp nội dung mới `"Java Core 17"`. Việc đổi `buffer.setCharAt(0, 'K')` thành `"Kava Core 17"` không sửa `second`.
-3. `setLength(0)` chỉ làm buffer rỗng; `first` vẫn giữ chuỗi đầu tiên.
-4. `String.valueOf(missing)` với tham chiếu null cho ra bốn ký tự văn bản `"null"`.
-5. `first.equals(other.toString())` so sánh nội dung hai `String` và trả `true`.
-6. Khi có emoji, `length()` tính theo UTF-16 code units; `codePointCount()` cho số code points.
+1. `first` captures the buffer content after `append(" Core")`. When `" 17"` is appended to the buffer, `first` stays `"Java Core"`.
+2. `second = new String(buffer)` captures the new content `"Java Core 17"`. Changing `buffer.setCharAt(0, 'K')` to `"Kava Core 17"` does not alter `second`.
+3. `setLength(0)` only empties the buffer; `first` still retains the first string.
+4. `String.valueOf(missing)` with a null reference yields the four-character text `"null"`.
+5. `first.equals(other.toString())` compares the content of two `String`s and returns `true`.
+6. With an emoji, `length()` measures in UTF-16 code units; `codePointCount()` gives the number of code points.
 
-Hãy thử thêm `buffer.append("again")` sau `setLength(0)`: bạn sẽ thấy buffer sử dụng lại được, trong khi `first` và `second` vẫn giữ giá trị của mình.
+Try adding `buffer.append("again")` after `setLength(0)`: you will see the buffer is reusable, while `first` and `second` keep their respective values.
 
-## 12. Chọn phương thức đúng trong từng tình huống
+## 12. Choosing the Right Method in Each Situation
 
-| Tình huống | Cách làm | Lý do |
+| Situation | Approach | Reason |
 | --- | --- | --- |
-| Đã dựng xong nội dung, cần kết quả `String` | `buffer.toString()` | Trực tiếp, rõ nghĩa |
-| Muốn tạo `String` từ buffer tại thời điểm hiện tại | `new String(buffer)` | Hợp lệ nhưng thường không cần thay cho `toString()` |
-| Đối số có thể null và yêu cầu hiển thị chữ "null" | `String.valueOf(buffer)` | Có quy tắc chuyển null thành văn bản |
-| Null cần được bảo toàn thành null | `buffer == null ? null : buffer.toString()` | Hợp đồng xử lý null rõ ràng |
-| Phương thức nhận `CharSequence` và chỉ đọc ngay | Có thể truyền `buffer` | Không cần chuyển đổi nếu không cần snapshot |
-| Trả dữ liệu ổn định cho phần mềm khác giữ lâu | `buffer.toString()` | Không chia sẻ trạng thái mutable |
-| Tiếp tục nối sửa nhiều lần | Giữ `StringBuffer` hoặc chọn `StringBuilder` | Không cần chuyển sớm |
-| Chuyển sang byte UTF-8 | `buffer.toString().getBytes(UTF_8)` | Chuyển loại văn bản và mã hóa là hai việc khác nhau |
+| Content is built, `String` result is needed | `buffer.toString()` | Direct, clear intent |
+| Want to create a `String` from buffer at the current time | `new String(buffer)` | Valid, though usually unnecessary over `toString()` |
+| Argument may be null and must display text "null" | `String.valueOf(buffer)` | Has rule converting null to text |
+| Null must be preserved as null | `buffer == null ? null : buffer.toString()` | Clear null-handling contract |
+| Method takes `CharSequence` and only reads immediately | Can pass `buffer` | No conversion needed if no snapshot is needed |
+| Returning stable data for other components to hold long-term | `buffer.toString()` | Avoids sharing mutable state |
+| Continuing to append/edit repeatedly | Keep `StringBuffer` or choose `StringBuilder` | Avoid converting prematurely |
+| Converting to UTF-8 bytes | `buffer.toString().getBytes(UTF_8)` | Text-type conversion and encoding are two separate tasks |
 
-**Lưu ý hiệu năng:** `toString()` có thể cần xử lý/sao chép dữ liệu và tạo giá trị kết quả, do đó gọi trong một vòng lặp lớn chỉ để nhìn nội dung trung gian có thể tốn chi phí. Mức phân bổ chi tiết tùy JDK và việc tối ưu; đừng giả định có hoặc không có đối tượng mới ở mọi lần gọi. Nên giữ kết quả khi thực sự cần một snapshot, không chuyển qua lại giữa buffer và `String` liên tục chỉ vì thói quen.
+**Performance note:** `toString()` may need to process/copy data and produce a result value, so calling it inside a large loop just to inspect intermediate content can add cost. Exact allocation details depend on the JDK and optimizations; do not assume a new object is or is not created on every call. Retain the result when a snapshot is genuinely needed, instead of converting back and forth between buffer and `String` out of habit.
 
-## 13. Bài tập luyện tập
+## 13. Practice Exercises
 
-### Bài 1 — Tạo hai snapshot
+### Exercise 1 — Create Two Snapshots
 
-Khởi tạo `StringBuffer b = new StringBuffer("A");`. Lấy `String s1 = b.toString();`, sau đó `b.append("B");` và lấy `String s2 = b.toString();`. In cả `s1`, `s2`, `b`. Giải thích vì sao chỉ `b` và `s2` chứa chữ `B`.
+Initialize `StringBuffer b = new StringBuffer("A");`. Capture `String s1 = b.toString();`, then execute `b.append("B");` and capture `String s2 = b.toString();`. Print `s1`, `s2`, and `b`. Explain why only `b` and `s2` contain `B`.
 
-### Bài 2 — new String(buffer)
+### Exercise 2 — new String(buffer)
 
-Chuyển `StringBuffer("Hello")` sang `String` bằng constructor `new String(buffer)`. Sau đó gọi `buffer.delete(0, 1)`. Dự đoán chuỗi đã tạo và buffer hiện tại. Vì sao chúng khác nhau?
+Convert `StringBuffer("Hello")` to `String` using the constructor `new String(buffer)`. Then call `buffer.delete(0, 1)`. Predict the created string and the current buffer. Why do they differ?
 
-### Bài 3 — Null policies
+### Exercise 3 — Null Policies
 
-Viết hàm `asTextOrNull(StringBuffer b)` trả null nếu input null, còn lại dùng `toString()`. So với `String.valueOf((Object) b)` trên null và giải thích sự khác nhau giữa chuỗi `"null"` và tham chiếu null.
+Write a method `asTextOrNull(StringBuffer b)` returning null if the input is null, otherwise using `toString()`. Compare it with `String.valueOf((Object) b)` on null and explain the difference between the string `"null"` and a null reference.
 
-### Bài 4 — Ranh giới của API
+### Exercise 4 — API Boundaries
 
-Viết hai hàm: `printText(String text)` và `readLength(CharSequence text)`. Thử truyền trực tiếp `StringBuffer` cho từng hàm. Hàm nào nhận được mà không cần chuyển? Nếu phương thức giữ tham chiếu để xử lý về sau, vì sao có thể muốn chuyển sang `String`?
+Write two methods: `printText(String text)` and `readLength(CharSequence text)`. Try passing a `StringBuffer` directly to each method. Which method accepts it without conversion? If the method retains the reference for later processing, why might you want to convert to `String`?
 
-### Bài 5 — Tái sử dụng buffer
+### Exercise 5 — Reusing a Buffer
 
-Tạo buffer, append ba phần, chuyển thành `String first`. Gọi `setLength(0)`, append nội dung mới và lấy `String second`. Chứng minh `first` không thay đổi sau khi xóa buffer.
+Create a buffer, append three parts, and convert to `String first`. Call `setLength(0)`, append new content, and capture `String second`. Prove that `first` does not change after clearing the buffer.
 
-### Bài 6 — So sánh nội dung
+### Exercise 6 — Comparing Content
 
-Tạo hai `StringBuffer` có nội dung `"same"`. So `a.equals(b)` với `a.toString().equals(b.toString())`. Kết quả nào kiểm tra **nội dung**? Vì sao không nên dùng `==` để so chuỗi?
+Create two `StringBuffer` objects with content `"same"`. Compare `a.equals(b)` with `a.toString().equals(b.toString())`. Which result checks **content**? Why should `==` not be used to compare strings?
 
-### Bài 7 — Đồng bộ ở cấp nghiệp vụ
+### Exercise 7 — Business-Level Synchronization
 
-Giả sử hai luồng cùng dùng buffer. Một luồng thực hiện `append("A")` rồi `append("B")`, luồng khác có thể append xen vào. Viết cách đồng bộ để lấy snapshot của hai thao tác như một nhóm, và giải thích vì sao mọi bên truy cập phải tuân thủ cùng quy tắc khóa.
+Suppose two threads share a buffer. One thread performs `append("A")` then `append("B")`, while the other thread may append in between. Write a synchronized way to capture a snapshot of the two operations as one group, and explain why all accessing parties must obey the same locking rule.
 
-### Bài 8 — Unicode
+### Exercise 8 — Unicode
 
-Chuyển `StringBuffer("A😀B")` thành `String`, đo `length()` và `codePointCount()`. Vì sao một emoji không được đếm thành một `char`? `toString()` có thực hiện UTF-8 encoding không?
+Convert `StringBuffer("A😀B")` to `String`, measuring `length()` and `codePointCount()`. Why is an emoji not counted as one `char`? Does `toString()` perform UTF-8 encoding?
 
-## 14. Checklist nhận thức và lỗi cần tránh
+## 14. Awareness Checklist and Mistakes to Avoid
 
-- `StringBuffer.toString()` **trả về kiểu `String`**, không phải `StringBuffer`.
-- Một `String` đã lấy ra **không phản ánh** các phép thay đổi trên buffer về sau.
-- `toString()` **không rút nội dung ra khỏi buffer** và không tự xóa hay khóa buffer.
-- `new String(buffer)` hợp lệ; `(String) buffer` không hợp lệ.
-- `String.valueOf(buffer)` với null có thể cho **văn bản `"null"`** ngoài ý muốn.
-- Phương thức yêu cầu `String` cần một `String`; phương thức nhận `CharSequence` có thể nhận buffer trực tiếp.
-- `StringBuffer` mutable nên chia sẻ nó không giống chia sẻ một `String` bất biến.
-- Một chuỗi thao tác nhiều bước chưa an toàn nguyên tử chỉ vì từng phương thức buffer đồng bộ.
-- Nếu chỉ cần dựng văn bản trong phạm vi một luồng, `StringBuilder` thường đơn giản và phù hợp hơn.
-- `toString()` không tự đổi Unicode, không chuẩn hóa và không chuyển sang byte UTF-8.
-- Nếu cần so nội dung, dùng `equals()` trên hai đối tượng `String`.
-- Nếu lấy nhiều snapshots, đặt tên rõ thời điểm: `before`, `after`, `finalText`.
+- `StringBuffer.toString()` **returns type `String`**, not `StringBuffer`.
+- An extracted `String` **does not reflect** later edits made to the buffer.
+- `toString()` **does not drain content out of the buffer** and does not automatically clear or lock the buffer.
+- `new String(buffer)` is valid; `(String) buffer` is invalid.
+- `String.valueOf(buffer)` on null can produce **the text `"null"`** unexpectedly.
+- A method requiring `String` needs a `String`; a method accepting `CharSequence` can receive the buffer directly.
+- `StringBuffer` is mutable, so sharing it is not like sharing an immutable `String`.
+- A multi-step sequence of operations is not atomically safe just because each buffer method is synchronized.
+- If you only need to build text within a single thread's scope, `StringBuilder` is usually simpler and more appropriate.
+- `toString()` does not automatically convert Unicode, normalize, or convert to UTF-8 bytes.
+- To compare content, use `equals()` on two `String` objects.
+- When taking multiple snapshots, name their points in time clearly: `before`, `after`, `finalText`.
 
-**Quy tắc ghi nhớ:** dùng **`String text = buffer.toString();`** để lấy một giá trị văn bản **bất biến** từ trạng thái hiện tại của `StringBuffer`. Có thể tiếp tục sửa buffer, nhưng `text` không thay đổi. Chọn thời điểm tạo snapshot theo mục đích nghiệp vụ, và quyết định rõ chính sách với `null` và dữ liệu nhiều luồng.
+**Rule to remember:** use **`String text = buffer.toString();`** to obtain an **immutable** text value from the current state of `StringBuffer`. You can continue editing the buffer, while `text` remains unchanged. Choose when to take a snapshot according to business intent, and explicitly decide your policy for `null` and multi-threaded data.
 
-## 15. Tài liệu chuẩn
+## 15. Official References
 
-- [Java SE 17 — StringBuffer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuffer.html): `toString()`, `append()`, `setCharAt()`, `setLength()` và các thao tác mutable.
-- [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): constructor `String(StringBuffer)`, `equals()`, `valueOf()`, UTF-16 và tính bất biến.
-- [Java SE 17 — StringBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html): biến thể builder không đồng bộ và chuyển thành String.
-- [Java SE 17 — CharSequence](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/CharSequence.html): hợp đồng cho các đối tượng biểu diễn dãy ký tự.
+- [Java SE 17 — StringBuffer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuffer.html): `toString()`, `append()`, `setCharAt()`, `setLength()`, and mutable operations.
+- [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): `String(StringBuffer)` constructor, `equals()`, `valueOf()`, UTF-16, and immutability.
+- [Java SE 17 — StringBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html): unsynchronized builder variant and conversion to String.
+- [Java SE 17 — CharSequence](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/CharSequence.html): contract for objects representing character sequences.

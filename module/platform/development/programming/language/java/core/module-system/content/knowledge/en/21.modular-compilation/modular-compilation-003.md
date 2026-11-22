@@ -1,43 +1,43 @@
-# javac -d tạo output theo module
+# javac -d Generating Output by Module
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích vai trò của tùy chọn `javac -d` khi biên dịch Java.
-- Đọc cấu trúc source tree của một modular project.
-- Dùng `--module-source-path` và `-m` để biên dịch một hoặc nhiều module.
-- Xác định chính xác vị trí của `module-info.class` và các file `.class` sau khi biên dịch.
-- Phân biệt cách biên dịch theo module source path với cách truyền trực tiếp source file của từng module.
-- Dùng output directory làm module path cho bước chạy ứng dụng.
+- Explain the role of the `javac -d` option when compiling Java.
+- Read the source tree structure of a modular project.
+- Use `--module-source-path` and `-m` to compile one or more modules.
+- Identify the exact locations of `module-info.class` and `.class` files after compilation.
+- Distinguish compiling via module source path from passing individual module source files directly.
+- Use the output directory as the module path for running the application.
 
-## 1. Vai trò của javac -d
+## 1. Role of javac -d
 
-`javac` là Java compiler. Khi biên dịch source code, compiler cần một nơi để ghi các file đầu ra, chủ yếu là bytecode `.class` và descriptor đã biên dịch `module-info.class`.
+`javac` is the Java compiler. When compiling source code, the compiler needs a place to write output files, primarily `.class` bytecode files and the compiled descriptor `module-info.class`.
 
-Tùy chọn:
+Option:
 
 ~~~bash
 javac -d <output-directory> <source-files>
 ~~~
 
-Trong đó:
+Where:
 
-- `-d` là viết tắt của `--directory`.
-- `<output-directory>` là thư mục gốc để compiler ghi kết quả.
-- Compiler tự tạo các thư mục con cần thiết theo cấu trúc package và cách source/module được đưa vào lệnh.
-- Nếu không chỉ định `-d`, javac ghi class file cạnh source file tương ứng.
+- `-d` is short for `--directory`.
+- `<output-directory>` is the root directory where the compiler writes the output.
+- The compiler automatically creates the necessary subdirectories according to the package structure and how sources/modules are passed to the command.
+- If `-d` is omitted, `javac` writes class files alongside their corresponding source files.
 
-Điểm cần nhớ: `-d` xác định thư mục đích. Nó không tự suy ra mọi module trong project rồi luôn tạo thư mục con theo tên module. Cách chia output theo từng module phụ thuộc vào cách bạn cung cấp module source, đặc biệt là `--module-source-path`, hoặc việc bạn chủ động chọn output directory riêng cho từng module.
+Key point: `-d` specifies the destination directory. It does not automatically infer all modules in a project and always create subdirectories by module name. How output is split per module depends on how you supply module sources—especially `--module-source-path`—or whether you explicitly choose a separate output directory for each module.
 
-## 2. Source tree của một modular project
+## 2. Source Tree of a Modular Project
 
-Giả sử ứng dụng có hai module:
+Suppose an application has two modules:
 
-- `com.acme.common`: cung cấp API dùng chung.
-- `com.acme.app`: ứng dụng chính và phụ thuộc vào `com.acme.common`.
+- `com.acme.common`: provides shared APIs.
+- `com.acme.app`: the main application, which depends on `com.acme.common`.
 
-Cấu trúc source:
+Source structure:
 
 ~~~text
 project/
@@ -56,9 +56,9 @@ project/
                     └── Main.java
 ~~~
 
-Mỗi thư mục ngay dưới `src/` là một module source root. Tên thư mục module khớp với tên module khai báo trong `module-info.java`.
+Each directory directly under `src/` is a module source root. The module directory name matches the module name declared in `module-info.java`.
 
-Ví dụ descriptor của module common:
+Example descriptor for the common module:
 
 ~~~java
 module com.acme.common {
@@ -66,7 +66,7 @@ module com.acme.common {
 }
 ~~~
 
-Class được export:
+Exported class:
 
 ~~~java
 package com.acme.common;
@@ -81,7 +81,7 @@ public final class Version {
 }
 ~~~
 
-Descriptor của module ứng dụng:
+Descriptor for the application module:
 
 ~~~java
 module com.acme.app {
@@ -89,7 +89,7 @@ module com.acme.app {
 }
 ~~~
 
-Class main:
+Main class:
 
 ~~~java
 package com.acme.app;
@@ -103,26 +103,26 @@ public class Main {
 }
 ~~~
 
-Mỗi module có descriptor riêng. `module-info.java` là source descriptor; sau khi biên dịch, compiler tạo `module-info.class` trong output của chính module đó.
+Each module has its own descriptor. `module-info.java` is the source descriptor; after compilation, the compiler produces `module-info.class` inside that module's output.
 
-## 3. Biên dịch nhiều module bằng --module-source-path
+## 3. Compiling Multiple Modules with --module-source-path
 
-Khi source tree đã được tổ chức theo module, bạn có thể yêu cầu javac tìm module source bằng `--module-source-path`.
+Once the source tree is organized by module, you can instruct `javac` to locate module sources using `--module-source-path`.
 
 ~~~bash
 javac -d out --module-source-path src -m com.acme.common,com.acme.app
 ~~~
 
-Ý nghĩa từng phần:
+Meaning of each part:
 
-| Thành phần | Vai trò |
+| Component | Role |
 |---|---|
-| `javac` | Khởi chạy Java compiler |
-| `-d out` | Chọn `out/` làm output root |
-| `--module-source-path src` | Cho compiler biết nơi chứa source tree của các module |
-| `-m com.acme.common,com.acme.app` | Chỉ định các module cần biên dịch |
+| `javac` | Launches the Java compiler |
+| `-d out` | Chooses `out/` as the output root |
+| `--module-source-path src` | Tells the compiler where the modules' source trees are located |
+| `-m com.acme.common,com.acme.app` | Specifies the modules to compile |
 
-Trong ví dụ này, `-d out` kết hợp với module source path khiến compiler tạo một thư mục output cho từng module. Kết quả có dạng:
+In this example, `-d out` combined with the module source path causes the compiler to create one output directory per module. The result looks like:
 
 ~~~text
 project/
@@ -144,7 +144,7 @@ project/
             └── Main.class
 ~~~
 
-Có thể đọc cấu trúc output theo quy tắc:
+The output structure can be read by this rule:
 
 ~~~text
 <output-root>/
@@ -154,37 +154,37 @@ Có thể đọc cấu trúc output theo quy tắc:
             <ClassName>.class
 ~~~
 
-Ví dụ:
+For example:
 
-- `out/com.acme.common/module-info.class` là descriptor đã biên dịch của common.
-- `out/com.acme.common/com/acme/common/Version.class` là bytecode của class Version.
-- `out/com.acme.app/module-info.class` là descriptor đã biên dịch của app.
-- `out/com.acme.app/com/acme/app/Main.class` là bytecode của class Main.
+- `out/com.acme.common/module-info.class` is the compiled descriptor of common.
+- `out/com.acme.common/com/acme/common/Version.class` is the bytecode of the `Version` class.
+- `out/com.acme.app/module-info.class` is the compiled descriptor of app.
+- `out/com.acme.app/com/acme/app/Main.class` is the bytecode of the `Main` class.
 
-Như vậy, output root `out/` có thể được dùng như một module path chứa nhiều exploded module. Mỗi thư mục con tương ứng với một module đã biên dịch.
+Thus, the output root `out/` can be used as a module path containing multiple exploded modules. Each subdirectory corresponds to one compiled module.
 
-## 4. Chạy ứng dụng từ output directory
+## 4. Running the Application from the Output Directory
 
-Sau khi biên dịch thành công, có thể dùng output root làm module path:
+After compiling successfully, you can use the output root as the module path:
 
 ~~~bash
 java --module-path out -m com.acme.app/com.acme.app.Main
 ~~~
 
-Trong đó:
+Where:
 
-- `--module-path out` cho JVM biết nơi tìm các module đã biên dịch.
-- `-m com.acme.app/com.acme.app.Main` chọn module `com.acme.app` và main class `com.acme.app.Main`.
+- `--module-path out` tells the JVM where to find compiled modules.
+- `-m com.acme.app/com.acme.app.Main` selects the `com.acme.app` module and the `com.acme.app.Main` main class.
 
-Kết quả:
+Output:
 
 ~~~text
 Common version: 1.0
 ~~~
 
-JVM tìm module app trong `out/`, đọc descriptor để biết app yêu cầu module common, rồi resolve module graph. Cả hai module đều có trong module path nên ứng dụng có thể chạy.
+The JVM finds the app module in `out/`, reads its descriptor to see that app requires the common module, and then resolves the module graph. Both modules are present on the module path, so the application can run.
 
-Luồng làm việc:
+Workflow:
 
 ~~~text
 src/
@@ -205,11 +205,11 @@ out/
      Application
 ~~~
 
-## 5. Biên dịch từng module với output directory riêng
+## 5. Compiling Each Module with Its Own Output Directory
 
-Không bắt buộc phải dùng `--module-source-path`. Bạn cũng có thể truyền trực tiếp source file và chọn output directory riêng cho từng module.
+Using `--module-source-path` is not mandatory. You can also pass source files directly and choose a separate output directory for each module.
 
-Ví dụ, biên dịch common trước:
+For example, compile common first:
 
 ~~~bash
 javac -d mods/com.acme.common ^
@@ -217,7 +217,7 @@ javac -d mods/com.acme.common ^
     src/com.acme.common/com/acme/common/Version.java
 ~~~
 
-Sau đó biên dịch app, sử dụng output root `mods/` làm module path để compiler tìm common:
+Then compile app, using the output root `mods/` as the module path so the compiler can find common:
 
 ~~~bash
 javac --module-path mods ^
@@ -226,9 +226,9 @@ javac --module-path mods ^
     src/com.acme.app/com/acme/app/Main.java
 ~~~
 
-Ví dụ trên dùng ký hiệu xuống dòng của Windows Command Prompt. Trong PowerShell hoặc terminal khác, có thể viết mỗi lệnh trên một dòng hoặc dùng ký hiệu nối dòng phù hợp với shell.
+The example above uses the Windows Command Prompt line-continuation symbol. In PowerShell or other terminals, you can write each command on a single line or use the line-continuation character appropriate for your shell.
 
-Cấu trúc output cuối cùng:
+Final output structure:
 
 ~~~text
 mods/
@@ -240,51 +240,51 @@ mods/
     └── com/acme/app/Main.class
 ~~~
 
-Ở cách này, compiler không cần tự tạo thư mục con theo tên module từ một module source path. Chính lệnh build chọn `mods/com.acme.common` và `mods/com.acme.app` làm output directory tương ứng.
+With this approach, the compiler does not need to create subdirectories by module name from a module source path on its own. The build commands themselves choose `mods/com.acme.common` and `mods/com.acme.app` as the respective output directories.
 
-Có thể chạy ứng dụng bằng cùng module path:
+You can run the application using the same module path:
 
 ~~~bash
 java --module-path mods -m com.acme.app/com.acme.app.Main
 ~~~
 
-Hai cách tổ chức trên có cùng mục tiêu: mỗi exploded module có một thư mục gốc chứa `module-info.class` và package tree của module.
+Both ways of organizing have the same goal: each exploded module has a root directory containing `module-info.class` and the module's package tree.
 
-## 6. Phân biệt -d, --module-source-path và -m
+## 6. Distinguishing -d, --module-source-path, and -m
 
-Ba tùy chọn này có trách nhiệm khác nhau:
+These three options have different responsibilities:
 
-| Tùy chọn | Câu hỏi được trả lời | Ví dụ |
+| Option | Question Answered | Example |
 |---|---|---|
-| `-d` | Ghi output vào đâu? | `-d out` |
-| `--module-source-path` | Tìm source của các module ở đâu và theo cấu trúc nào? | `--module-source-path src` |
-| `-m` / `--module` | Biên dịch module nào? | `-m com.acme.common,com.acme.app` |
+| `-d` | Where to write output? | `-d out` |
+| `--module-source-path` | Where to find module sources and in what structure? | `--module-source-path src` |
+| `-m` / `--module` | Which modules to compile? | `-m com.acme.common,com.acme.app` |
 
-Không nên nhầm `-d` với `--module-source-path`:
+Do not confuse `-d` with `--module-source-path`:
 
-- `-d` điều khiển output.
-- `--module-source-path` mô tả vị trí và cấu trúc source module.
-- `-m` chọn module cần biên dịch trong module source path.
+- `-d` controls output.
+- `--module-source-path` describes the location and structure of module sources.
+- `-m` selects the modules to compile from the module source path.
 
-Ví dụ chỉ có `-d out`:
+Example with only `-d out`:
 
 ~~~bash
 javac -d out src/com/acme/app/Main.java
 ~~~
 
-Đây là lệnh biên dịch source file thông thường. Compiler giữ cấu trúc package dưới output root, chẳng hạn `out/com/acme/app/Main.class`. Không có thông tin module source path để javac tự tổ chức nhiều module thành `out/<module-name>/...`.
+This is a standard source-file compilation command. The compiler preserves the package structure under the output root, such as `out/com/acme/app/Main.class`. There is no module source path information for `javac` to automatically organize multiple modules into `out/<module-name>/...`.
 
-Ví dụ có module source path:
+Example with a module source path:
 
 ~~~bash
 javac -d out --module-source-path src -m com.acme.app
 ~~~
 
-Lệnh này sử dụng cấu trúc source module để tạo output theo module. Khi có nhiều module, mỗi module được đặt trong thư mục con tương ứng dưới output root.
+This command uses the module source structure to generate output by module. When there are multiple modules, each module is placed in its corresponding subdirectory under the output root.
 
-## 7. Output directory và module path
+## 7. Output Directory and Module Path
 
-Một exploded module là một thư mục chứa descriptor đã biên dịch và nội dung module. Ví dụ:
+An exploded module is a directory containing a compiled descriptor and the module's contents. For example:
 
 ~~~text
 mods/
@@ -293,38 +293,38 @@ mods/
     └── com/acme/app/Main.class
 ~~~
 
-Khi dùng `--module-path mods`, module path có thể chứa:
+When using `--module-path mods`, the module path can contain:
 
-- Thư mục trực tiếp của một exploded module.
-- Thư mục gốc chứa nhiều exploded module.
-- Modular JAR.
-- Các vị trí module hợp lệ khác được Java module system hỗ trợ.
+- The direct directory of an exploded module.
+- A parent directory containing multiple exploded modules.
+- A modular JAR.
+- Other valid module locations supported by the Java module system.
 
-Với output root chứa nhiều module như `out/` hoặc `mods/`, JVM quét các module con theo cấu trúc module path. Bạn không cần truyền riêng từng thư mục module trong lệnh chạy.
+With an output root containing multiple modules such as `out/` or `mods/`, the JVM scans the child modules according to the module path structure. You do not need to pass each module directory separately in the run command.
 
-Điều này làm cho output của javac trở thành đầu vào trực tiếp của bước chạy:
+This makes `javac`'s output the direct input for the run step:
 
 ~~~bash
 javac -d out --module-source-path src -m com.acme.common,com.acme.app
 java --module-path out -m com.acme.app/com.acme.app.Main
 ~~~
 
-Trong quy trình phát hành, các exploded module cũng có thể được đóng gói thành modular JAR. Việc đóng gói là bước riêng; `javac -d` chỉ tạo output directory và bytecode.
+In a release workflow, exploded modules can also be packaged into modular JARs. Packaging is a separate step; `javac -d` only creates the output directory and bytecode.
 
-## 8. Những điều cần kiểm tra khi output không đúng
+## 8. What to Check When Output Is Incorrect
 
-### Module output bị đặt sai vị trí
+### Module Output Placed in the Wrong Location
 
-Kiểm tra:
+Check:
 
-- Source tree có theo cấu trúc module source path không?
-- Tên thư mục module có khớp tên khai báo trong `module-info.java` không?
-- Lệnh có `--module-source-path` khi muốn compiler tự tổ chức output theo module không?
-- `-d` có trỏ đến output root dự kiến không?
+- Does the source tree follow the module source path structure?
+- Does the module directory name match the name declared in `module-info.java`?
+- Does the command include `--module-source-path` when you want the compiler to organize output by module automatically?
+- Does `-d` point to the intended output root?
 
-### Không tìm thấy dependency module
+### Dependency Module Not Found
 
-Nếu module app có:
+If the app module has:
 
 ~~~java
 module com.acme.app {
@@ -332,69 +332,69 @@ module com.acme.app {
 }
 ~~~
 
-thì module common phải có trong một finder mà compiler có thể truy cập, chẳng hạn module source path hoặc module path đã biên dịch.
+then the common module must exist in a finder accessible to the compiler, such as the module source path or the compiled module path.
 
-Khi biên dịch app riêng sau khi common đã được biên dịch:
+When compiling app separately after common has already been compiled:
 
 ~~~bash
 javac --module-path mods -d mods/com.acme.app <app-source-files>
 ~~~
 
-Kiểm tra `mods/com.acme.common/module-info.class` tồn tại và module path trỏ đúng đến `mods/`.
+Check that `mods/com.acme.common/module-info.class` exists and that the module path points properly to `mods/`.
 
-### Không tìm thấy main class khi chạy
+### Main Class Not Found at Runtime
 
-Kiểm tra:
+Check:
 
-- Output của module app có `module-info.class` và package tree không?
-- Tên module sau `-m` có đúng với descriptor không?
-- Tên main class có đầy đủ package không?
-- Module path có trỏ đến thư mục cha chứa các module không?
+- Does the app module's output contain `module-info.class` and the package tree?
+- Does the module name after `-m` match the descriptor?
+- Is the main class name fully qualified with its package?
+- Does the module path point to the parent directory containing the modules?
 
-### Class cũ vẫn còn trong output
+### Stale Classes Remain in Output
 
-Javac ghi đè class file tương ứng khi biên dịch lại, nhưng không nên giả định nó sẽ tự xóa mọi class cũ không còn source tương ứng. Nếu xóa hoặc đổi tên class/package, output cũ có thể giữ lại bytecode không còn thuộc source hiện tại.
+`javac` overwrites corresponding class files when recompiling, but you should not assume it automatically deletes stale classes that no longer have matching source files. If classes or packages are deleted or renamed, stale output may retain bytecode that no longer belongs to the current source.
 
-Với build có tính tái lập, hãy để Gradle/Maven hoặc script build xóa output directory trước khi biên dịch lại. Ví dụ:
+For reproducible builds, let Gradle/Maven or a build script clean the output directory before recompiling. For example:
 
 ~~~bash
 rm -rf out
 javac -d out --module-source-path src -m com.acme.common,com.acme.app
 ~~~
 
-Trên Windows PowerShell, có thể dùng `Remove-Item -Recurse -Force out` trước khi chạy lệnh javac. Chỉ xóa đúng thư mục output do build quản lý.
+On Windows PowerShell, you can run `Remove-Item -Recurse -Force out` before executing the `javac` command. Only delete the specific output directory managed by the build.
 
-### Không thấy module-info.class
+### module-info.class Missing
 
-Module source cần có `module-info.java` ở module root. Nếu project được biên dịch như classpath project thông thường hoặc source descriptor không được đưa vào lần biên dịch, output có thể không có `module-info.class` như mong muốn.
+Module sources need `module-info.java` at the module root. If the project is compiled like a traditional classpath project or the source descriptor is omitted from the compilation pass, the output may lack `module-info.class` as expected.
 
-## 9. Quy trình mẫu từ source đến runtime
+## 9. Sample Workflow from Source to Runtime
 
-Với project hai module ở phần trước, quy trình cơ bản là:
+For the two-module project in the earlier section, the basic workflow is:
 
-1. Tạo source root riêng cho từng module.
-2. Viết `module-info.java` để khai báo tên module, dependency và package được export.
-3. Dùng `javac -d out --module-source-path src -m ...` để biên dịch các module.
-4. Kiểm tra output có thư mục riêng cho từng module, mỗi thư mục có `module-info.class`.
-5. Dùng `java --module-path out -m module/main-class` để chạy.
-6. Khi source thay đổi cấu trúc, làm sạch output directory rồi biên dịch lại.
+1. Create a separate source root for each module.
+2. Write `module-info.java` to declare the module name, dependencies, and exported packages.
+3. Use `javac -d out --module-source-path src -m ...` to compile the modules.
+4. Verify that the output has a separate directory for each module, each containing `module-info.class`.
+5. Use `java --module-path out -m module/main-class` to run.
+6. When the source structure changes, clean the output directory and recompile.
 
-Bộ lệnh minh họa:
+Illustrative command set:
 
 ~~~bash
 javac -d out --module-source-path src -m com.acme.common,com.acme.app
 java --module-path out -m com.acme.app/com.acme.app.Main
 ~~~
 
-Khi đã hiểu cấu trúc output, bạn có thể kiểm tra nhanh một bản build bằng cách mở thư mục output và xác nhận:
+Once you understand the output structure, you can quickly verify a build by opening the output directory and confirming:
 
-- Có đúng một thư mục cho mỗi module được biên dịch.
-- Mỗi module có `module-info.class`.
-- Package path trong output khớp package khai báo trong source.
-- Các dependency module có mặt trên module path khi compile và runtime.
+- There is exactly one directory per compiled module.
+- Each module contains `module-info.class`.
+- The package paths in the output match the packages declared in the source.
+- Dependency modules are present on the module path at compile time and runtime.
 
-## Kết luận
+## Conclusion
 
-`javac -d` chỉ định thư mục gốc để ghi kết quả biên dịch. Khi kết hợp với `--module-source-path` và `-m`, javac tổ chức output thành các thư mục riêng theo tên module, bên trong mỗi thư mục có `module-info.class` và cây package chứa bytecode. Nếu truyền source file trực tiếp, bạn có thể chọn một output directory riêng cho từng module.
+`javac -d` specifies the root directory for writing compilation results. When combined with `--module-source-path` and `-m`, `javac` organizes output into separate directories named after each module, with `module-info.class` and the bytecode package tree inside each directory. If you pass source files directly, you can choose a separate output directory for each module.
 
-Hãy ghi nhớ ba vai trò: **`-d` chọn nơi ghi, `--module-source-path` mô tả nơi tìm source module, và `-m` chọn module cần biên dịch.** Output root sau đó có thể được dùng làm module path cho JVM.
+Remember the three roles: **`-d` chooses where to write, `--module-source-path` describes where to find module sources, and `-m` selects the modules to compile.** The output root can then be used as the module path for the JVM.

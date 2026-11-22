@@ -1,61 +1,61 @@
-# Hoàn thiện ví dụ module hóa cùng bộ kiểm thử quyền truy cập trong Java Reflection
+# Building a Complete Modularized Example with Access-Control Tests in Java Reflection
 
-## 1. Mục tiêu thực hành
+## 1. Practice Goals
 
-Trong Java 9+, Java Platform Module System (**JPMS**) không chỉ tổ chức dependency giữa các thư viện mà còn đặt **ranh giới truy cập package tại runtime**. Vì thế, một công cụ Reflection không thể giả định rằng nhìn thấy `Class<?>`, `Field` hoặc `Constructor` đồng nghĩa có thể gọi hoặc đọc mọi thành viên.
+In Java 9+, the Java Platform Module System (**JPMS**) not only organizes dependencies between libraries but also enforces **package access boundaries at runtime**. Therefore, a Reflection tool cannot assume that seeing a `Class<?>`, `Field`, or `Constructor` means it can invoke or read every member.
 
-Bài thực hành xây dựng hai **named modules** chạy trên Java 17+:
+This practice builds two **named modules** running on Java 17+:
 
-- `lab.model`: module chứa dữ liệu/API, với ba package có chính sách khác nhau.
-- `lab.probe`: module đóng vai trò người sử dụng và bộ kiểm thử Reflection; khai báo `requires lab.model`.
+- `lab.model`: a module containing data/APIs, with three packages having distinct policies.
+- `lab.probe`: a module acting as both consumer and Reflection test suite; declares `requires lab.model`.
 
-Bộ kiểm thử chạy thật, có assertion, phân biệt rõ bốn tình huống: public API trong package được `exports`; private field trong package chỉ `exports`; private field trong package `opens ... to ...`; và public constructor trong package không `exports`/`opens`.
+The runnable test suite includes assertions clearly distinguishing four scenarios: public API in an `exports` package; private field in a package that is only `exports`; private field in an `opens ... to ...` package; and public constructor in a package with neither `exports` nor `opens`.
 
-**Kết quả cần đạt:** công cụ chỉ chấp nhận quyền mà module cấp rõ ràng, ghi nhận trường hợp bị từ chối thay vì âm thầm gọi `setAccessible(true)` hoặc thêm `--add-opens` vô điều kiện.
+**Target outcome:** the tool accepts only permissions explicitly granted by the module, recording denied cases rather than silently calling `setAccessible(true)` or adding `--add-opens` unconditionally.
 
-## 2. Ba quy tắc cơ bản của JPMS cần kiểm chứng
+## 2. Three Fundamental JPMS Rules to Verify
 
-### 2.1. `requires`: quan hệ đọc module
+### 2.1. `requires`: module readability
 
-Trong `module-info.java` của `lab.probe`, khai báo `requires lab.model;` giúp module `lab.probe` **đọc được** module `lab.model`. Đây là bước cần thiết cho đoạn mã sử dụng kiểu API public của module kia theo cách thông thường, nhưng **không tự mở toàn bộ package** cho truy cập sâu bằng Reflection.
+In `lab.probe`'s `module-info.java`, declaring `requires lab.model;` lets module `lab.probe` **read** module `lab.model`. This is necessary for code using public API types of the other module normally, yet **does not automatically open all packages** for deep Reflection access.
 
-### 2.2. `exports`: công khai kiểu và thành viên public
+### 2.2. `exports`: exposing public types and members
 
-Trong `lab.model`:
+In `lab.model`:
 
 ~~~java
 exports lab.model.api;
 ~~~
 
-Mã của module đọc `lab.model` có thể biên dịch với public type `lab.model.api.PublicOrder` và gọi phương thức `public number()`, nếu các quy tắc truy cập Java khác cũng đáp ứng. `getMethod("number").invoke(order)` hợp lệ trong demo.
+Code in a module reading `lab.model` can compile against the public type `lab.model.api.PublicOrder` and invoke its `public number()` method, provided other Java access rules are satisfied. `getMethod("number").invoke(order)` is valid in the demo.
 
-Tuy nhiên **`exports` không có nghĩa `private` được phép đọc qua deep reflection**. Với field `private secret`, `getDeclaredField("secret")` tìm được metadata nhưng `trySetAccessible()` từ module khác trả `false`, và `Field.get` không có quyền sẽ ném `IllegalAccessException`.
+However, **`exports` does not mean `private` members can be read via deep reflection**. For the `private secret` field, `getDeclaredField("secret")` finds the metadata, yet `trySetAccessible()` from another module returns `false`, and an unauthorized `Field.get` throws `IllegalAccessException`.
 
-### 2.3. `opens`: cho phép deep reflection, có thể giới hạn theo module đích
+### 2.3. `opens`: enabling deep reflection, optionally restricted by target module
 
-Trong `lab.model`:
+In `lab.model`:
 
 ~~~java
 opens lab.model.view to lab.probe;
 ~~~
 
-Câu lệnh này **mở package `lab.model.view` cho Reflection từ `lab.probe`**, kể cả thành viên `private`; nó **không phải khai báo `exports`** cho mã Java thông thường có thể `import lab.model.view.AuditView`.
+This directive **opens the `lab.model.view` package for Reflection from `lab.probe`**, including `private` members; it **is not an `exports` declaration** allowing ordinary Java code to `import lab.model.view.AuditView`.
 
-Trong demo, `lab.probe` dùng `Class.forName("lab.model.view.AuditView")` để lấy `Class<?>` mà không viết `import`. Sau đó `Constructor.trySetAccessible()` và `Field.trySetAccessible()` thành công vì package được mở đúng module đích.
+In the demo, `lab.probe` uses `Class.forName("lab.model.view.AuditView")` to obtain the `Class<?>` without writing an `import`. Afterward, `Constructor.trySetAccessible()` and `Field.trySetAccessible()` succeed because the package is opened to the exact target module.
 
-Package `lab.model.closed` không được `exports` cũng không `opens`. Việc tìm metadata constructor vẫn có thể thực hiện, nhưng truy cập constructor từ module khác bị chặn.
+The `lab.model.closed` package is neither `exports` nor `opens`. Constructor metadata lookup can still succeed, yet accessing the constructor from another module is blocked.
 
-| Cấu hình package của `lab.model` | Dùng public type qua `import` trong `lab.probe` | Deep reflection tới private member từ `lab.probe` |
+| Package configuration in `lab.model` | Using public type via `import` in `lab.probe` | Deep reflection to private members from `lab.probe` |
 | --- | --- | --- |
-| `exports lab.model.api;` | Có | Không chỉ vì `exports` |
-| `opens lab.model.view to lab.probe;` | Không, vì thiếu `exports` | Có, vì mở cho module `lab.probe` |
-| Không khai báo `exports` / `opens` cho `lab.model.closed` | Không | Không |
+| `exports lab.model.api;` | Yes | No, not from `exports` alone |
+| `opens lab.model.view to lab.probe;` | No, because `exports` is missing | Yes, because it is opened to `lab.probe` |
+| Neither `exports` nor `opens` declared for `lab.model.closed` | No | No |
 
-**Sự tinh tế khi kiểm tra:** `Module.isExported(packageName, targetModule)` phản ánh truy cập ở runtime và có thể trả `true` khi package được mở cho target module. Do đó **không dùng duy nhất** `isExported(packageName, target)` để chứng minh `module-info.java` có khai báo `exports`. Nếu cần kiểm tra **khai báo exports chính thức trong descriptor**, duyệt `module.getDescriptor().exports()`, như bộ kiểm thử bên dưới. Dùng `Module.isOpen(packageName, target)` để kiểm tra việc mở package cho Reflection.
+**Testing subtlety:** `Module.isExported(packageName, targetModule)` reflects runtime accessibility and can return `true` when a package is opened to the target module. Thus **do not rely solely** on `isExported(packageName, target)` to prove `module-info.java` declares `exports`. If you need to verify an **explicit `exports` declaration in the descriptor**, inspect `module.getDescriptor().exports()`, as the test suite below does. Use `Module.isOpen(packageName, target)` to check whether a package is opened for Reflection.
 
-## 3. Cấu trúc project có thể biên dịch trực tiếp
+## 3. Directly Compilable Project Structure
 
-Tạo thư mục chứa đúng các file sau. Tên module **phải khớp** tên thư mục ngay dưới `src` để lệnh `--module-source-path src` hoạt động:
+Create a directory containing these exact files. Module names **must match** the directory names directly under `src` so `--module-source-path src` works:
 
 ~~~text
 reflection-access-lab/
@@ -69,12 +69,12 @@ reflection-access-lab/
 │   └── lab.probe/
 │       ├── module-info.java
 │       └── lab/probe/AccessTest.java
-└── out/                           # javac sinh ra, không tạo thủ công
+└── out/                           # generated by javac, do not create manually
 ~~~
 
-Ví dụ chỉ dùng JDK, không cần Gradle, Maven, JUnit, Spring hay framework. Bộ kiểm thử sử dụng các phương thức `check(...)` tự ném `AssertionError` để có thể chạy mà không phụ thuộc thư viện kiểm thử.
+The example uses only the JDK — no Gradle, Maven, JUnit, Spring, or frameworks. The test suite uses `check(...)` methods that throw `AssertionError` directly so it can run with zero test-library dependencies.
 
-## 4. Module cung cấp dữ liệu: `lab.model`
+## 4. Data-Providing Module: `lab.model`
 
 ### File 1 — `src/lab.model/module-info.java`
 
@@ -85,13 +85,13 @@ module lab.model {
 }
 ~~~
 
-Chính sách module:
+Module policy:
 
-1. `lab.model.api`: exported, không opened.
-2. `lab.model.view`: **chỉ opened tới `lab.probe`**, không khai báo exports.
-3. `lab.model.closed`: không export, không open.
+1. `lab.model.api`: exported, not opened.
+2. `lab.model.view`: **only opened to `lab.probe`**, no exports declaration.
+3. `lab.model.closed`: neither exported nor opened.
 
-Khai báo `opens ... to lab.probe` cho phép **đúng một module đích** được truy cập sâu. Nếu một module `lab.other` cùng thử đọc private field, kết quả vẫn có thể bị từ chối. Đừng thay bằng `open module lab.model` nếu bài toán chỉ cần mở một package cho một công cụ.
+Declaring `opens ... to lab.probe` grants deep access to **one exact target module**. If another module `lab.other` also tries to read private fields, it can still be denied. Do not replace this with `open module lab.model` when the requirement only calls for opening one package to one tool.
 
 ### File 2 — `src/lab.model/lab/model/api/PublicOrder.java`
 
@@ -107,7 +107,7 @@ public final class PublicOrder {
 }
 ~~~
 
-`PublicOrder` là `public`, và package chứa nó được `exports`. Vì vậy `lab.probe` có thể `import lab.model.api.PublicOrder` và gọi `number()`. Nhưng field `secret` vẫn `private`; chỉ `exports` **chưa đủ** để module khác đọc giá trị field qua Reflection.
+`PublicOrder` is `public`, and its containing package is `exports`. Therefore `lab.probe` can `import lab.model.api.PublicOrder` and call `number()`. Yet the `secret` field remains `private`; `exports` alone **is not enough** for another module to read the field's value via Reflection.
 
 ### File 3 — `src/lab.model/lab/model/view/AuditView.java`
 
@@ -121,7 +121,7 @@ public final class AuditView {
 }
 ~~~
 
-`AuditView` và constructor đều `public` nhưng package không khai báo `exports`; do đó mã nguồn `lab.probe` không thể import kiểu này theo cách Java thông thường. Bài kiểm thử lấy `Class` theo tên, bật truy cập Reflection có kiểm soát và đọc field `auditCode`. Quyền đó phát sinh từ `opens lab.model.view to lab.probe`.
+Both `AuditView` and its constructor are `public`, yet the package does not declare `exports`; hence `lab.probe` source code cannot import this type in the usual Java way. The test obtains the `Class` by name, enables controlled Reflection access, and reads the `auditCode` field. That permission comes from `opens lab.model.view to lab.probe`.
 
 ### File 4 — `src/lab.model/lab/model/closed/ClosedService.java`
 
@@ -133,9 +133,9 @@ public final class ClosedService {
 }
 ~~~
 
-`ClosedService` cũng là kiểu `public`, constructor `public`; tuy nhiên module không export hoặc open package này. Điều kiện `public` của class/constructor **không vượt qua được ranh giới module**. Demo vẫn có thể lấy `Class<?>` và metadata constructor theo tên, nhưng không thể thực thi constructor từ module kiểm thử bằng quyền truy cập mặc định.
+`ClosedService` is also a `public` type with a `public` constructor; however, the module neither exports nor opens this package. The `public` modifier on the class/constructor **does not cross the module boundary**. The demo can still obtain `Class<?>` and constructor metadata by name, yet cannot invoke the constructor from the test module with default access permissions.
 
-## 5. Module kiểm thử: `lab.probe`
+## 5. Test Module: `lab.probe`
 
 ### File 5 — `src/lab.probe/module-info.java`
 
@@ -145,7 +145,7 @@ module lab.probe {
 }
 ~~~
 
-Không khai báo `opens` ở phía `lab.probe` để “xin” quyền mở package từ `lab.model`: **module sở hữu package mới quyết định exports/opens của package đó**. `requires` và `opens` phục vụ hai vấn đề khác nhau.
+Do not declare `opens` on `lab.probe`'s side to "request" package opening from `lab.model`: **the module owning the package decides exports/opens for that package**. `requires` and `opens` address two different concerns.
 
 ### File 6 — `src/lab.probe/lab/probe/AccessTest.java`
 
@@ -212,28 +212,28 @@ public final class AccessTest {
 }
 ~~~
 
-**Vì sao đoạn mã này là bộ kiểm thử chứ không chỉ trình diễn?**
+**Why is this code a test suite rather than merely a demo?**
 
-- Mỗi hành vi quan trọng có `check(...)`; nếu sai, chương trình ném `AssertionError` và không in dòng thành công cuối.
-- Kỳ vọng bị từ chối kiểm **cả kết quả của `trySetAccessible()` lẫn exception khi chưa có quyền**.
-- Dữ liệu kiểm thử cố định `ORD-7`, `AUD-42` để xác minh method/field đọc đúng.
-- Kiểm tra tên module và descriptor để giảm khả năng chạy nhầm trên classpath hoặc bị thay đổi `module-info.java` mà vẫn báo pass.
-- Tên package public/opened/closed tách biệt; không phụ thuộc lỗi từ một class không tìm thấy.
+- Every important behavior has a `check(...)`; if wrong, the program throws `AssertionError` and never prints the final success line.
+- Denied expectations verify **both the result of `trySetAccessible()` and the exception thrown when access is lacking**.
+- Fixed test data `ORD-7` and `AUD-42` confirm the method and field are read accurately.
+- Module names and descriptors are checked to reduce the chance of accidentally running on the classpath or modifying `module-info.java` while still passing.
+- Package names for public/opened/closed are distinct; tests do not rely on a missing-class error.
 
-## 6. Biên dịch và chạy đúng ở module path
+## 6. Compiling and Running Properly on the Module Path
 
-Đứng trong thư mục gốc `reflection-access-lab` (cùng cấp với thư mục `src`). Chạy:
+From the root directory `reflection-access-lab` (same level as `src`), run:
 
 ~~~bash
 javac --release 17 -d out --module-source-path src -m lab.model,lab.probe
 java --module-path out --module lab.probe/lab.probe.AccessTest
 ~~~
 
-`javac --release 17` giới hạn ngôn ngữ và API công khai theo Java 17, `-d out` lưu output theo module, `--module-source-path src` cho javac biết hai module nguồn và `-m lab.model,lab.probe` chọn các module biên dịch.
+`javac --release 17` restricts language features and public APIs to Java 17, `-d out` writes modular output, `--module-source-path src` tells `javac` where the two source modules live, and `-m lab.model,lab.probe` selects the modules to compile.
 
-Lệnh `java --module-path out --module lab.probe/lab.probe.AccessTest` chạy **module `lab.probe`** và main class `lab.probe.AccessTest`. Không thay `--module-path` bằng `--class-path`: nếu mọi class chạy trên classpath/unnamed module, ranh giới module cần kiểm thử không còn như mong đợi.
+The command `java --module-path out --module lab.probe/lab.probe.AccessTest` runs **module `lab.probe`** and main class `lab.probe.AccessTest`. Do not replace `--module-path` with `--class-path`: if all classes run on the classpath/unnamed module, the module boundaries under test no longer behave as expected.
 
-**Output kiểm chứng:**
+**Verified output:**
 
 ~~~text
 module rules: PASS
@@ -244,130 +244,130 @@ non-exported non-open constructor: DENIED
 ALL ACCESS TESTS PASSED
 ~~~
 
-Chương trình trên đã được biên dịch thành công với `javac --release 17` và chạy trên JDK 24, chỉ sử dụng API được Java 17 hỗ trợ. Output là chính xác khi cấu trúc file và `module-info.java` giữ như ví dụ.
+The program above compiled cleanly with `javac --release 17` and ran on JDK 24, using only APIs supported in Java 17. The output is exact when the file layout and `module-info.java` files match the example.
 
-### Ý nghĩa từng kết quả
+### Meaning of Each Result
 
-| Dòng output | Quan sát | Kết luận |
+| Output line | Observation | Conclusion |
 | --- | --- | --- |
-| `module rules: PASS` | Hai module đều named; `api` exported; `view` opened cho probe nhưng không có exports declaration; `closed` không mở. | JPMS được cấu hình đúng. |
-| `exported public API: PASS` | Cả gọi Java trực tiếp lẫn `Method.invoke` lên public method đều thành công. | `requires` + `exports` phù hợp public API. |
-| `exported private field: DENIED` | `getDeclaredField` thấy metadata, `trySetAccessible` trả `false`, `Field.get` ném `IllegalAccessException`. | `exports` không cho phép deep reflection vào private member. |
-| `qualified opens + private field: PASS` | `Class.forName` tải kiểu, constructor/field `trySetAccessible` thành công. | `opens ... to lab.probe` cấp quyền Reflection cho đúng target module. |
-| `non-exported non-open constructor: DENIED` | Có metadata constructor, nhưng không thể bật accessible và `newInstance` bị chặn. | `public` không bỏ qua package-level module encapsulation. |
+| `module rules: PASS` | Both modules are named; `api` is exported; `view` is opened to probe without an exports declaration; `closed` is unopened. | JPMS is configured correctly. |
+| `exported public API: PASS` | Both direct Java calls and `Method.invoke` on the public method succeed. | `requires` + `exports` fits public APIs. |
+| `exported private field: DENIED` | `getDeclaredField` sees metadata, `trySetAccessible` returns `false`, `Field.get` throws `IllegalAccessException`. | `exports` does not permit deep reflection on private members. |
+| `qualified opens + private field: PASS` | `Class.forName` loads the type, constructor/field `trySetAccessible` succeeds. | `opens ... to lab.probe` grants Reflection access to the exact target module. |
+| `non-exported non-open constructor: DENIED` | Constructor metadata exists, yet accessible cannot be enabled and `newInstance` is blocked. | `public` does not bypass package-level module encapsulation. |
 
-## 7. Phân biệt tìm metadata, bật quyền và thực thi
+## 7. Distinguishing Metadata Lookup, Enabling Access, and Execution
 
-Với một class không được export/open, các giai đoạn là:
+For a non-exported, non-opened class, the stages are:
 
-1. **Tìm class:** `Class.forName("lab.model.closed.ClosedService")` có thể trả `Class<?>` khi module đã được giải quyết và class loader biết class. **Class loading ≠ Java compile-time access**.
-2. **Tìm thành viên:** `getDeclaredConstructor()` hoặc `getDeclaredField(...)` thu metadata về khai báo; API tìm không tự chạy constructor hoặc lấy giá trị field.
-3. **Kiểm tra quyền:** `trySetAccessible()` hỏi liệu có thể bỏ kiểm tra truy cập với Reflection hay không. Với package không open/export phù hợp, có thể trả `false`.
-4. **Thực thi:** `Constructor.newInstance`, `Method.invoke` hay `Field.get` là những bước thật sự chạy constructor/method hoặc đọc state. Lúc này có thể gặp `IllegalAccessException` hoặc `InvocationTargetException` nếu target code ném lỗi sau khi đã gọi được.
+1. **Finding the class:** `Class.forName("lab.model.closed.ClosedService")` can return a `Class<?>` once the module is resolved and the class loader knows the class. **Class loading ≠ Java compile-time access**.
+2. **Finding the member:** `getDeclaredConstructor()` or `getDeclaredField(...)` retrieves declaration metadata; lookup APIs do not run the constructor or read field values.
+3. **Checking access:** `trySetAccessible()` asks whether Reflection access checks can be suppressed. For packages without appropriate open/export rules, it can return `false`.
+4. **Executing:** `Constructor.newInstance`, `Method.invoke`, or `Field.get` are the steps that actually run constructors/methods or read state. At this point you can hit `IllegalAccessException`, or `InvocationTargetException` if target code throws after being invoked.
 
-`setAccessible(true)` có thể ném `InaccessibleObjectException` khi không thể bật quyền; `trySetAccessible()` thường thuận tiện hơn cho probe vì trả boolean. **Bật accessible không tự tạo quyền truy cập từ module khác nếu JPMS không cho phép.**
+`setAccessible(true)` can throw `InaccessibleObjectException` when access cannot be enabled; `trySetAccessible()` is often handier for probing because it returns a boolean. **Calling accessible does not create access permissions from another module when JPMS forbids it.**
 
-Khi debugging, ghi rõ **giai đoạn thất bại**: không tìm được class, không tìm được member, không bật quyền, hoặc đã gọi vào target code nhưng target ném lỗi. Các lỗi này cần cách sửa khác nhau.
+When debugging, state the exact **failing stage**: class not found, member not found, access denied, or target code was invoked and threw an error. These failures require different fixes.
 
-## 8. Một lỗi kiểm thử quan trọng: `isExported(package, target)` không chứng minh có câu lệnh `exports`
+## 8. A Critical Testing Pitfall: `isExported(package, target)` Does Not Prove an `exports` Statement
 
-Với `opens lab.model.view to lab.probe;`, JDK cho phép deep reflection từ `lab.probe`. Ở runtime, kiểm tra như `Module.isExported("lab.model.view", probe)` **có thể cho kết quả `true` vì package đã được mở cho module đó**, mặc dù descriptor **không** có khai báo `exports lab.model.view`.
+With `opens lab.model.view to lab.probe;`, the JDK allows deep reflection from `lab.probe`. At runtime, checking `Module.isExported("lab.model.view", probe)` **can return `true` because the package is opened to that module**, even though the descriptor has **no** `exports lab.model.view` declaration.
 
-Do đó test phủ định sau là **sai mục tiêu** nếu ta muốn chứng minh không có câu lệnh exports:
+Therefore, the following negative test is **testing the wrong thing** if you want to prove there is no `exports` directive:
 
 ~~~java
-// Sai khi dùng để khẳng định không có khai báo "exports":
+// Wrong when used to assert there is no "exports" declaration:
 check(!model.isExported("lab.model.view", probe), "not exported");
 ~~~
 
-Muốn kiểm tra đặc tả module, hãy đọc `ModuleDescriptor`:
+To inspect the module descriptor, read `ModuleDescriptor`:
 
 ~~~java
-// Mảnh nằm trong main của AccessTest; biến model đã được khai báo.
+// Snippet inside AccessTest.main; the model variable is already declared.
 boolean explicitlyExported = model.getDescriptor().exports().stream()
         .anyMatch(e -> e.source().equals("lab.model.view"));
 check(!explicitlyExported, "view should not declare exports");
 check(model.isOpen("lab.model.view", probe), "view must open to probe");
 ~~~
 
-Đoạn trên kiểm tra **hai sự thật khác nhau**: `lab.model.view` không được khai báo `exports` và được `opens` cho module kiểm thử. Đừng dùng một giá trị boolean runtime để suy ngược nguyên văn `module-info.java`.
+This snippet checks **two distinct facts**: `lab.model.view` does not declare `exports`, and it is `opens` to the test module. Do not infer the exact `module-info.java` text from a single runtime boolean.
 
-Mặt khác, nếu cần phân biệt **exports có điều kiện** với exports cho tất cả module, hãy xem `ModuleDescriptor.Exports.isQualified()` và `targets()` hoặc dùng các overload phù hợp của `Module.isExported` theo yêu cầu bài test. Chỉ nhìn một method không đủ để lập lại toàn bộ module descriptor.
+Moreover, if you need to distinguish **qualified exports** from unconditional exports to all modules, inspect `ModuleDescriptor.Exports.isQualified()` and `targets()`, or use the appropriate `Module.isExported` overloads per your test requirements. Checking a single method is not enough to reconstruct the full module descriptor.
 
-## 9. Bốn biến thể bài kiểm thử nên thực hiện
+## 9. Four Test Variations Worth Running
 
-Các thay đổi dưới đây là **thí nghiệm riêng biệt**: chỉnh `module-info.java` hoặc file được chỉ định, biên dịch lại từ đầu rồi dự đoán kết quả. Không ghép tất cả thay đổi vào một lần kiểm thử.
+The changes below are **separate experiments**: edit `module-info.java` or the specified file, recompile from scratch, and predict the outcome. Do not combine all changes into one test run.
 
-### Biến thể A: Gỡ `opens lab.model.view to lab.probe`
+### Variation A: Remove `opens lab.model.view to lab.probe`
 
-Giữ `AuditView` như cũ nhưng xóa dòng `opens`. Khi chạy, `model.isOpen("lab.model.view", probe)` sẽ sai và test báo fail. Nếu bỏ check về module rule để thử tiếp, `trySetAccessible()` trên constructor/field bên `lab.model.view` không còn được phép. **Đây là minh chứng rằng quyền deep reflection đến từ module owner**.
+Keep `AuditView` unchanged but delete the `opens` line. When run, `model.isOpen("lab.model.view", probe)` becomes false and the test fails. If you remove the module-rule checks to test further, `trySetAccessible()` on the constructor/field in `lab.model.view` is no longer allowed. **This proves that deep reflection permission comes from the owning module**.
 
-### Biến thể B: Đổi `exports lab.model.api` thành `opens lab.model.api to lab.probe`
+### Variation B: Change `exports lab.model.api` to `opens lab.model.api to lab.probe`
 
-`lab.probe.AccessTest` đang có `import lab.model.api.PublicOrder`. Nếu package chỉ `opens` mà không `exports`, quá trình **biên dịch** module probe không còn hợp lệ vì public API không được export tới module đọc. Deep reflection có thể được cho phép ở runtime nhưng không thay thế compile-time public API. Đừng coi lỗi biên dịch và lỗi Reflection là một.
+`lab.probe.AccessTest` has `import lab.model.api.PublicOrder`. If the package is only `opens` and not `exports`, **compiling** the probe module fails because the public API is not exported to the reading module. Deep reflection may be allowed at runtime, yet it does not replace a compile-time public API. Do not conflate compile errors with Reflection errors.
 
-### Biến thể C: Đổi thành `exports lab.model.api; opens lab.model.api to lab.probe;`
+### Variation C: Change to `exports lab.model.api; opens lab.model.api to lab.probe;`
 
-Khi package vừa được export vừa open cho probe, private field `secret` có thể được bật accessible từ `lab.probe`, do đó phép kiểm `!secret.trySetAccessible()` dự kiến thất bại. Điều này minh họa cách `opens` thay đổi chính sách runtime mà không làm method `number()` khác đi.
+When the package is both exported and opened to probe, the private `secret` field can be made accessible from `lab.probe`, so `!secret.trySetAccessible()` fails as expected. This illustrates how `opens` changes runtime policy without altering the `number()` method.
 
-### Biến thể D: Thêm `exports lab.model.closed;`
+### Variation D: Add `exports lab.model.closed;`
 
-Khi đó probe có thể truy cập **public class và public constructor** trong package này bằng Java/Reflection nếu module đọc và các điều kiện khác đáp ứng. Tuy nhiên private member trong package chỉ export vẫn không tự động được mở cho deep reflection. Cần cập nhật assertions từ DENIED sang PASS đúng với chính sách mới.
+Probe can then access the **public class and public constructor** in this package via Java/Reflection, provided module readability and other rules are met. However, private members in an export-only package are still not opened for deep reflection. Update the assertions from DENIED to PASS to match the new policy.
 
-## 10. Khả năng áp dụng vào thư viện Reflection thực tế
+## 10. Applying This to Real Reflection Libraries
 
-Công cụ của production có thể vận hành với nhiều module owner, nhiều lớp và chính sách khác nhau. Một pipeline an toàn:
+Production tools may operate across many owning modules, classes, and policies. A safe pipeline:
 
-1. **Định nghĩa contract:** module nào được đọc, package nào public API, package nào cho Reflection framework cụ thể.
-2. **Ưu tiên public API:** có thể dùng getter, constructor/factory public hoặc DTO thay vì deep reflection khi không cần.
-3. **Quét metadata có giới hạn:** `getDeclaredFields`/`getDeclaredMethods` có thể tìm private member; không tự suy ra quyền gọi.
-4. **Kiểm tra access có kiểm soát:** `trySetAccessible` hoặc các điều kiện module theo `Module.isOpen`; không tự động bật quyền cho mọi member của mọi module.
-5. **Xử lý lỗi theo chính sách:** trường bắt buộc không truy cập được thì trả lỗi rõ; trường tùy chọn có thể bị bỏ có ghi chú; không tự lén trả `null` khiến dữ liệu sai.
-6. **Tạo test module độc lập:** test code chạy ở **module khác** với module được kiểm để thấy đúng boundary. Test đặt cùng module hoặc chạy classpath có thể che giấu vấn đề.
-7. **Dùng quyền tối thiểu:** `opens some.package to specific.framework.module;` thay cho `open module` hoặc `--add-opens` rộng khi có thể.
+1. **Define the contract:** which modules are read, which packages are public API, and which packages are opened to a specific Reflection framework.
+2. **Prefer public APIs:** use public getters, constructors/factories, or DTOs instead of deep reflection when unnecessary.
+3. **Scan metadata within bounds:** `getDeclaredFields`/`getDeclaredMethods` can discover private members; do not infer permission to call them.
+4. **Check access deliberately:** use `trySetAccessible` or module checks via `Module.isOpen`; do not blanket-enable access on every member of every module.
+5. **Handle errors per policy:** inaccessible required fields should fail clearly; optional fields may be skipped with a note; never silently substitute `null` and corrupt data.
+6. **Create an independent test module:** run test code in a **different module** from the inspected module to observe real boundaries. Tests placed in the same module or run on the classpath can mask issues.
+7. **Apply least privilege:** use `opens some.package to specific.framework.module;` instead of `open module` or broad `--add-opens` whenever possible.
 
-Không sử dụng `--add-opens` như cách sửa mặc định chỉ để làm test xanh. Cờ runtime này có thể là công cụ chuyển tiếp/môi trường kiểm thử chủ động, nhưng nếu dùng nó mà quên ghi rõ thì test không còn xác nhận module descriptor thật sự đang bảo vệ package.
+Do not use `--add-opens` as a default fix just to turn tests green. That runtime flag can serve as a migration aid or deliberate test-environment knob, yet if used and forgotten, tests stop verifying that the module descriptor actually protects the package.
 
-### Các exception nên phân biệt
+### Exceptions to Distinguish
 
-| Exception | Giai đoạn thường gặp | Hướng kiểm tra |
+| Exception | Typical stage | What to check |
 | --- | --- | --- |
-| `ClassNotFoundException` | Tìm tên class | Module có được resolve? Tên package/class có đúng? Loader có nhìn thấy? |
-| `NoSuchMethodException` / `NoSuchFieldException` | Truy vấn metadata | Chữ ký tên/kiểu tham số đúng? `getMethod` hay `getDeclaredMethod`? |
-| `IllegalAccessException` | `invoke`, `get`, `newInstance` | Java access rules, `exports`/`opens`, access flag trên member. |
-| `InaccessibleObjectException` | `setAccessible(true)` | Package không open tới module của caller hoặc member bị hạn chế bởi quy tắc truy cập. |
-| `InvocationTargetException` | Target method/constructor được gọi và ném exception | Đọc `getCause()` để phân biệt lỗi từ target code với lỗi Reflection. |
-| `IllegalArgumentException` | Sai receiver, tham số hoặc kiểu argument | Kiểm chữ ký và giá trị truyền vào, không gộp thành lỗi module. |
+| `ClassNotFoundException` | Class lookup by name | Is the module resolved? Are package/class names right? Can the loader see it? |
+| `NoSuchMethodException` / `NoSuchFieldException` | Metadata query | Are name/parameter-type signatures right? `getMethod` vs `getDeclaredMethod`? |
+| `IllegalAccessException` | `invoke`, `get`, `newInstance` | Java access rules, `exports`/`opens`, access flags on the member. |
+| `InaccessibleObjectException` | `setAccessible(true)` | Package is not open to the caller's module or member is restricted by access rules. |
+| `InvocationTargetException` | Target method/constructor ran and threw | Read `getCause()` to separate target-code errors from Reflection errors. |
+| `IllegalArgumentException` | Wrong receiver, arguments, or argument types | Check signature and passed values; do not lump into module errors. |
 
-## 11. Sai lầm thường gặp
+## 11. Common Mistakes
 
-- **“Có `requires` là có thể truy cập private member.”** `requires` tạo quan hệ đọc module, không mở mọi package.
-- **“`public class` luôn gọi được từ module khác.”** Kiểu public trong package không `exports` có thể bị chặn ở biên dịch và Reflection.
-- **“`exports` cũng cho phép `setAccessible(true)` trên private.”** Deep reflection từ module khác thường cần package được `opens` phù hợp.
-- **“`opens` nghĩa là mã khác có thể `import` public class.”** `opens` chủ yếu cho truy cập Reflection ở runtime; source-level API vẫn cần `exports`.
-- **“Tìm thấy `getDeclaredField` nghĩa là đọc được field.”** Metadata lookup khác với `Field.get`.
-- **“Nếu `isExported(package, target)` là true thì descriptor nhất định có `exports`.”** Runtime API và khai báo module không luôn suy ngược được như vậy; đọc `ModuleDescriptor`.
-- **“Chạy test trên classpath cũng kiểm được JPMS.”** Classpath/unnamed module có ngữ nghĩa khác; phải đặt các module trên module path.
-- **“Thêm `--add-opens` là sửa được code.”** Flag có thể che khuất lỗi quyền trong module descriptor và làm kết quả test không đại diện cho runtime thật.
+- **"Having `requires` grants access to private members."** `requires` establishes module readability, not opening all packages.
+- **"A `public class` is always callable from another module."** A public type in a non-exported package can be blocked at compile time and in Reflection.
+- **"`exports` also allows `setAccessible(true)` on private members."** Deep reflection from another module generally requires the package to be appropriately `opens`.
+- **"`opens` means other code can `import` public classes."** `opens` is primarily for runtime Reflection access; source-level APIs still require `exports`.
+- **"Finding a field via `getDeclaredField` means you can read it."** Metadata lookup is distinct from `Field.get`.
+- **"If `isExported(package, target)` is true, the descriptor must have `exports`."** Runtime APIs and module declarations do not always invert cleanly; inspect `ModuleDescriptor`.
+- **"Running tests on the classpath tests JPMS too."** Classpath/unnamed modules have different semantics; place modules on the module path.
+- **"Adding `--add-opens` fixes the code."** Flags can mask missing permissions in the module descriptor and make test results unrepresentative of real runtime behavior.
 
-## 12. Bài tập tự kiểm tra
+## 12. Self-Check Exercises
 
-1. Trong cùng module `lab.model`, gọi `Field.trySetAccessible` tới `PublicOrder.secret` từ code cùng module. So với kết quả trong `lab.probe`, sự khác biệt phát sinh từ điều kiện nào?
-2. Gỡ `opens lab.model.view to lab.probe`. Hãy xác định assertion đầu tiên thất bại, sau đó bỏ assertion đó để kiểm tra trực tiếp constructor/field.
-3. Thử thêm `exports lab.model.view to lab.probe;` thay cho `opens`. Public constructor gọi được không? Private `auditCode` được mở không? Giải thích từng kết quả.
-4. Thêm module thứ ba `lab.other` cùng `requires lab.model`. Nó có đọc private `auditCode` qua Reflection không khi directive vẫn là `opens ... to lab.probe`?
-5. Thay `trySetAccessible()` ở package đóng bằng `setAccessible(true)`. Bắt riêng `InaccessibleObjectException`, so sánh exception này với `IllegalAccessException` của `newInstance`.
-6. Đo `model.isExported("lab.model.view", probe)` và kiểm tra `model.getDescriptor().exports()`; giải thích vì sao hai quan sát có thể khác kỳ vọng nếu chỉ đọc `module-info.java`.
-7. Tạo thêm một package nội bộ chỉ cho serializer `opens ... to specific.serializer.module`. Thiết kế test chứng minh module serializer có quyền mà module ngoài danh sách không có.
+1. Inside the same `lab.model` module, call `Field.trySetAccessible` on `PublicOrder.secret` from code within that module. Compared with `lab.probe`, which rule causes the difference?
+2. Remove `opens lab.model.view to lab.probe`. Identify the first assertion that fails, then remove that assertion to test the constructor/field directly.
+3. Try adding `exports lab.model.view to lab.probe;` instead of `opens`. Can the public constructor be called? Is private `auditCode` opened? Explain each outcome.
+4. Add a third module `lab.other` with `requires lab.model`. Can it read private `auditCode` via Reflection while the directive remains `opens ... to lab.probe`?
+5. Replace `trySetAccessible()` on the closed package with `setAccessible(true)`. Catch `InaccessibleObjectException` specifically and compare it with `IllegalAccessException` from `newInstance`.
+6. Check `model.isExported("lab.model.view", probe)` and inspect `model.getDescriptor().exports()`; explain why the two observations can differ from expectations if you only read `module-info.java`.
+7. Add an internal package opened only to a serializer via `opens ... to specific.serializer.module`. Design a test proving the serializer module has access while an unlisted module does not.
 
-**Tiêu chí đạt bài:** hai module thực sự chạy trên module path; module descriptor thể hiện quyền rõ ràng; các trường hợp được phép và bị từ chối đều có assertion; test không phụ thuộc exact exception message; không dựa vào `setAccessible` như quyền vô điều kiện; output cuối chỉ xuất hiện nếu toàn bộ kiểm thử pass.
+**Completion criteria:** both modules genuinely run on the module path; the module descriptor expresses permissions clearly; both allowed and denied cases have assertions; tests do not depend on exact exception message strings; `setAccessible` is not relied upon as unconditional permission; the final output line appears only if all checks pass.
 
-## 13. Tài liệu chuẩn để đối chiếu
+## 13. Standard Reference Documentation
 
 - [Java SE 17 — Module](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Module.html): `isExported`, `isOpen`, `getDescriptor`.
-- [Java SE 17 — ModuleDescriptor](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/ModuleDescriptor.html): `exports()`, `opens()` và qualified directives.
-- [Java SE 17 — AccessibleObject](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html): `trySetAccessible`, `setAccessible` và các điều kiện module.
-- [Java SE 17 — Field](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html): `getDeclaredField`, `Field.get`, quyền truy cập.
-- [Java SE 17 — Constructor](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html): `newInstance` và exception.
-- [Java Language Specification, Chương 7 — Packages and Modules](https://docs.oracle.com/javase/specs/jls/se17/html/jls-7.html): cú pháp và ý nghĩa `requires`, `exports`, `opens`.
-- [JEP 261 — Module System](https://openjdk.org/jeps/261): cơ chế JPMS và lựa chọn command-line ở runtime.
+- [Java SE 17 — ModuleDescriptor](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/ModuleDescriptor.html): `exports()`, `opens()`, and qualified directives.
+- [Java SE 17 — AccessibleObject](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html): `trySetAccessible`, `setAccessible`, and module conditions.
+- [Java SE 17 — Field](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html): `getDeclaredField`, `Field.get`, access permissions.
+- [Java SE 17 — Constructor](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html): `newInstance` and exceptions.
+- [Java Language Specification, Chapter 7 — Packages and Modules](https://docs.oracle.com/javase/specs/jls/se17/html/jls-7.html): syntax and semantics of `requires`, `exports`, `opens`.
+- [JEP 261 — Module System](https://openjdk.org/jeps/261): JPMS mechanisms and runtime command-line flags.

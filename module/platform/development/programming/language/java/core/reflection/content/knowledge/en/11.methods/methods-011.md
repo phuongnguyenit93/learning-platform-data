@@ -1,43 +1,43 @@
-# `Method.invoke` không tự chờ `Future` hoặc `CompletionStage` trả về
+# `Method.invoke` does not automatically wait for a returned `Future` or `CompletionStage`
 
-## 1. Bản chất của `Method.invoke` khi phương thức trả kết quả bất đồng bộ
+## 1. The nature of `Method.invoke` when a method returns an asynchronous result
 
-`java.lang.reflect.Method.invoke(Object receiver, Object... args)` **gọi phương thức đích và chờ chính lời gọi phương thức đó trả về hoặc ném lỗi**. Nếu phương thức được gọi trả về `Future<T>`, `CompletionStage<T>` hoặc `CompletableFuture<T>`, giá trị trả về của `invoke` là **đối tượng Future/Stage** (dưới kiểu `Object`). `invoke` không tự gọi `get()`, `join()`, chờ completion, hay tự tách giá trị `T` bên trong.
+`java.lang.reflect.Method.invoke(Object receiver, Object... args)` **calls the target method and waits for that method call itself to return or throw an error**. If the called method returns `Future<T>`, `CompletionStage<T>`, or `CompletableFuture<T>`, the return value of `invoke` is the **Future/Stage object** (typed as `Object`). `invoke` does not automatically call `get()`, `join()`, wait for completion, or unwrap the inner value `T`.
 
-Hãy phân biệt ba mốc:
+Distinguish three milestones:
 
-1. **Invocation:** Reflection thực hiện kiểm tra quyền truy cập, nhận tham số, chạy thân phương thức Java.
-2. **Return:** thân phương thức trả về một reference tới `Future`/`CompletionStage`. Lời gọi `Method.invoke` kết thúc ngay khi có giá trị đó, dù tác vụ đại diện bởi nó chưa xong.
-3. **Completion:** tác vụ hoàn tất thành công, thất bại hoặc bị hủy sau đó; người gọi quyết định quan sát hoặc đợi kết quả bằng API async thích hợp.
+1. **Invocation:** Reflection performs access checks, accepts arguments, and runs the Java method body.
+2. **Return:** the method body returns a reference to a `Future`/`CompletionStage`. The `Method.invoke` call finishes as soon as that value is obtained, even if the task it represents is not done yet.
+3. **Completion:** the task completes successfully, fails, or is cancelled later; the caller decides to observe or wait for the result using appropriate async APIs.
 
-Ví dụ minh họa đặt bên trong một method có `service` và `Service` hợp lệ:
+Illustrative example placed inside a method with valid `service` and `Service`:
 
 ```java
 Method m = Service.class.getMethod("loadAsync");
-Object returned = m.invoke(service); // Có thể trả về ngay một CompletionStage chưa xong
+Object returned = m.invoke(service); // May immediately return an incomplete CompletionStage
 CompletionStage<?> stage = (CompletionStage<?>) returned;
-Object value = stage.toCompletableFuture().join(); // Chủ động chờ nếu chưa hoàn tất
+Object value = stage.toCompletableFuture().join(); // Actively wait if not yet completed
 ```
 
-**Lưu ý quan trọng:** Reflection không tự tạo thread và không làm phương thức đồng bộ trở thành async. Nếu **chính thân phương thức đích** thực hiện `Thread.sleep`, truy vấn I/O chặn, hoặc `future.get()` **trước khi return**, thread thực thi `invoke` vẫn phải chờ thân phương thức đó kết thúc. Ngược lại, phương thức có thể trả một `CompletableFuture.completedFuture(value)` đã hoàn tất sẵn, nên đọc kết quả về sau không cần đợi. Việc đối tượng async đã hoàn tất hay chưa phụ thuộc vào logic của phương thức đích, không phụ thuộc Reflection.
+**Important note:** Reflection does not create threads on its own and does not make a synchronous method asynchronous. If **the target method body itself** executes `Thread.sleep`, a blocking I/O query, or `future.get()` **before returning**, the thread executing `invoke` still has to wait for that method body to finish. Conversely, a method may return an already completed `CompletableFuture.completedFuture(value)`, so reading the result afterward requires no waiting. Whether the async object is already completed depends on the target method's logic, not on Reflection.
 
-Giá trị `Method.invoke` luôn có kiểu khai báo `Object`: Java sẽ boxing kết quả primitive; phương thức `void` cho kết quả `null`. Nếu phương thức chỉ khởi động tác vụ nền rồi return `void`, Reflection cũng chỉ nhận `null` và **không có Future nào để chờ** thông qua giá trị trả về.
+The return type of `Method.invoke` is always declared as `Object`: Java boxes primitive results; `void` methods yield `null`. If a method merely starts a background task and returns `void`, Reflection likewise only receives `null` and has **no Future to wait on** through its return value.
 
-## 2. Ba kiểu async thường gặp
+## 2. Three common async types
 
-| Kiểu | Đặc điểm | Nếu cần chờ | Nếu cần nối xử lý |
+| Type | Characteristics | If waiting is needed | If chaining processing is needed |
 | --- | --- | --- | --- |
-| `Future<T>` | Tập trung vào kết quả, `isDone`, `get`, `cancel` | `future.get()` hoặc `get(timeout, unit)` | Giao diện `Future` không định nghĩa callback composition |
-| `CompletionStage<T>` | Biểu diễn giai đoạn và quan hệ phụ thuộc giữa các giai đoạn | `stage.toCompletableFuture().get()` hoặc `join()` | `thenApply`, `thenCompose`, `thenAccept`, `whenComplete`, `exceptionally`... |
-| `CompletableFuture<T>` | Triển khai **cả** `Future<T>` và `CompletionStage<T>` | `get` hoặc `join` | Có đầy đủ các API composition |
+| `Future<T>` | Focuses on the result, `isDone`, `get`, `cancel` | `future.get()` or `get(timeout, unit)` | The `Future` interface does not define callback composition |
+| `CompletionStage<T>` | Represents a stage and dependencies between stages | `stage.toCompletableFuture().get()` or `join()` | `thenApply`, `thenCompose`, `thenAccept`, `whenComplete`, `exceptionally`, ... |
+| `CompletableFuture<T>` | Implements **both** `Future<T>` and `CompletionStage<T>` | `get` or `join` | Has the full suite of composition APIs |
 
-**`Future` và `CompletionStage` không kế thừa lẫn nhau.** Ví dụ, kết quả của `ExecutorService.submit(...)` chỉ được bảo đảm có giao diện `Future`, không nhất thiết là `CompletionStage`. Một triển khai `CompletionStage` tùy chỉnh cũng không nhất thiết triển khai `Future`. `CompletableFuture` là trường hợp hỗ trợ cả hai; không nên ép một `Future<?>` bất kỳ thành `CompletableFuture<?>`.
+**`Future` and `CompletionStage` do not extend each other.** For example, the result of `ExecutorService.submit(...)` is only guaranteed to implement `Future`, not necessarily `CompletionStage`. A custom `CompletionStage` implementation does not necessarily implement `Future` either. `CompletableFuture` is a case that supports both; do not cast an arbitrary `Future<?>` to `CompletableFuture<?>`.
 
-`Future.isDone() == true` **không có nghĩa tác vụ thành công**: nó cũng trả `true` khi bị hủy hoặc hoàn tất thất bại. Phải quan sát kết quả, lỗi hoặc trạng thái hủy theo API cụ thể.
+`Future.isDone() == true` **does not mean the task succeeded**: it also returns `true` when cancelled or completed exceptionally. You must observe the result, error, or cancellation status via the specific API.
 
-## 3. Ví dụ đầy đủ Java 17+: `invoke` không chờ completion
+## 3. Full Java 17+ example: `invoke` does not wait for completion
 
-Lưu toàn bộ chương trình sau trong tệp **`ReflectAsyncDemo.java`**, không khai báo `package`.
+Save the entire program below in **`ReflectAsyncDemo.java`**, without a `package` declaration.
 
 ```java
 import java.lang.reflect.InvocationTargetException;
@@ -113,14 +113,14 @@ public class ReflectAsyncDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac ReflectAsyncDemo.java
 java ReflectAsyncDemo
 ```
 
-Kết quả xác định:
+Deterministic output:
 
 ```text
 Future result: true
@@ -134,22 +134,22 @@ Async cause: IllegalStateException
 Sync cause: IllegalArgumentException
 ```
 
-**Tại sao kết quả này chứng minh `invoke` không tự chờ?** Hai `CompletableFuture` được khởi tạo ở trạng thái **chưa hoàn tất**, và **chỉ có lệnh `complete(...)` ở phần dưới mới hoàn tất chúng**. Sau khi chạy `find.invoke(null)` và `load.invoke(null)`, chương trình vẫn đi tiếp tới `isDone()` và nhận cả hai là `false`. Nếu `Method.invoke` tự chờ completion, chương trình sẽ không thể đi tới những lệnh `complete` nằm ở phía sau trong cùng thread.
+**Why does this result prove `invoke` does not automatically wait?** Both `CompletableFuture`s are initialized in an **incomplete** state, and **only the `complete(...)` calls further down complete them**. After running `find.invoke(null)` and `load.invoke(null)`, the program proceeds to `isDone()` and receives `false` for both. If `Method.invoke` waited for completion, the program could never reach the `complete` calls located later on the same thread.
 
-Hai lời gọi `get`/`join` diễn ra **sau** `complete`, vì vậy chúng đọc kết quả ngay. Nếu chuyển `join` lên trước `complete` cùng thread, chương trình có thể tự chờ vô hạn.
+The two `get`/`join` calls happen **after** `complete`, so they read the results immediately. If you moved `join` before `complete` on the same thread, the program would wait forever.
 
-`find.invoke(null)` và `load.invoke(null)` dùng receiver `null` vì method là `static`. Đối với method instance, phải truyền instance của declaring class hoặc kiểu tương thích.
+`find.invoke(null)` and `load.invoke(null)` use a `null` receiver because the methods are `static`. For instance methods, you must pass an instance of the declaring class or a compatible type.
 
-Chương trình cũng cố ý tách hai tình huống lỗi: method `failedLater` **trả về stage thành công xét về lời gọi trực tiếp**, nhưng stage đã hoàn tất ngoại lệ; method `failBeforeReturn` ném lỗi **trước khi trả giá trị**. Hai tình huống có đường chuyển lỗi khác nhau, được trình bày ở phần tiếp theo.
+The program also intentionally separates two failure cases: `failedLater` **returns a stage successfully as far as the direct call is concerned**, yet the stage completed exceptionally; `failBeforeReturn` throws an error **before returning a value**. The two scenarios have different error-propagation paths, presented in the next section.
 
-## 4. `InvocationTargetException` khác lỗi completion
+## 4. `InvocationTargetException` vs. completion errors
 
-### 4.1. Ngoại lệ ngay lúc gọi method qua reflection
+### 4.1. Exception immediately when calling the method via reflection
 
-Nếu code **bên trong phương thức đích** ném lỗi trước khi return, `Method.invoke` bọc ngoại lệ đó trong `java.lang.reflect.InvocationTargetException`. Đây là cơ chế của Reflection, không phụ thuộc phương thức khai báo trả `Future` hay không.
+If code **inside the target method** throws an error before returning, `Method.invoke` wraps that exception in `java.lang.reflect.InvocationTargetException`. This is Reflection's mechanism, independent of whether the method declares returning a `Future`.
 
 ```java
-// Mảnh minh họa trong method, với method/receiver đã được định nghĩa.
+// Illustrative snippet in a method, with method/receiver already defined.
 try {
     Object result = method.invoke(receiver);
 } catch (InvocationTargetException ex) {
@@ -158,33 +158,33 @@ try {
 }
 ```
 
-Ví dụ, nếu thân method tự gọi `future.get()` và nhận `ExecutionException` **trước khi return**, `Method.invoke` cũng có thể bao bọc `ExecutionException` trong `InvocationTargetException` vì đó là ngoại lệ thoát trực tiếp từ thân method.
+For example, if the method body itself calls `future.get()` and receives `ExecutionException` **before returning**, `Method.invoke` can also wrap `ExecutionException` inside `InvocationTargetException` because that is an exception escaping directly from the method body.
 
-Các lỗi gọi khác gồm `IllegalAccessException` (không đủ quyền truy cập method) hoặc `IllegalArgumentException` (receiver/đối số không phù hợp); không nên nhầm chúng với trạng thái của async result.
+Other invocation errors include `IllegalAccessException` (insufficient permission to access the method) or `IllegalArgumentException` (incompatible receiver/arguments); do not confuse them with the state of an async result.
 
-### 4.2. Ngoại lệ xảy ra khi Future/Stage hoàn tất
+### 4.2. Exception occurring when Future/Stage completes
 
-Nếu method trả về một `Future` hoặc `CompletionStage` bình thường, rồi công việc đại diện bởi đối tượng đó thất bại, **`Method.invoke` đã kết thúc**. Nó không thể bọc một lỗi phát sinh về sau vào một `InvocationTargetException` mới. Khi người gọi lấy completion, các API async phản ánh trạng thái tương ứng:
+If the method returns a `Future` or `CompletionStage` normally, and then the work represented by that object fails, **`Method.invoke` has already finished**. It cannot wrap an error arising later into a new `InvocationTargetException`. When the caller retrieves completion, the async APIs reflect the corresponding state:
 
-| Cách quan sát | Thành công | Thất bại | Bị hủy |
+| Way to observe | Success | Failure | Cancelled |
 | --- | --- | --- | --- |
-| `Future.get()` | Trả giá trị; có thể chờ | `ExecutionException` chứa cause | `CancellationException` |
-| `Future.get(timeout, unit)` | Trả giá trị nếu kịp hạn | `ExecutionException` chứa cause | `CancellationException`; quá thời gian có `TimeoutException` |
-| `CompletableFuture.join()` | Trả giá trị; có thể chờ | Thường ném `CompletionException` có cause | `CancellationException` |
-| `CompletionStage.whenComplete(...)` | Nhận value | Nhận throwable để xử lý | Có thể nhận tình huống bị hủy như exceptional completion tùy stage |
+| `Future.get()` | Returns value; may block | `ExecutionException` containing cause | `CancellationException` |
+| `Future.get(timeout, unit)` | Returns value if within deadline | `ExecutionException` containing cause | `CancellationException`; `TimeoutException` if timed out |
+| `CompletableFuture.join()` | Returns value; may block | Usually throws `CompletionException` with cause | `CancellationException` |
+| `CompletionStage.whenComplete(...)` | Receives value | Receives throwable to handle | May receive cancellation as exceptional completion depending on stage |
 
-`Future.get` khai báo `InterruptedException` và `ExecutionException` (thêm `TimeoutException` ở biến thể timeout). `CompletableFuture.join` không khai báo checked exceptions, thường dùng `CompletionException`/`CancellationException`. Nếu cần phục hồi tốt với việc ngắt thread, `get` phù hợp hơn để xử lý `InterruptedException` có chủ đích. Khi bắt `InterruptedException` mà không ném tiếp, thông thường nên phục hồi interrupt flag bằng `Thread.currentThread().interrupt()`.
+`Future.get` declares `InterruptedException` and `ExecutionException` (plus `TimeoutException` on the timed variant). `CompletableFuture.join` declares no checked exceptions, typically using `CompletionException`/`CancellationException`. If clean recovery from thread interruption is needed, `get` is better suited to handle `InterruptedException` deliberately. When catching `InterruptedException` without rethrowing, normally restore the interrupt flag via `Thread.currentThread().interrupt()`.
 
-**Hai tầng lỗi phải được theo dõi độc lập:** Reflection invocation có thể thành công nhưng Future/Stage thất bại; hoặc invocation thất bại trước cả khi có Future/Stage để theo dõi.
+**Two error layers must be tracked independently:** Reflection invocation can succeed while the Future/Stage fails; or invocation fails before there is even a Future/Stage to track.
 
-## 5. Chọn xử lý bất đồng bộ hay chờ có chủ đích
+## 5. Choosing async handling vs. intentional waiting
 
-### 5.1. Tiếp tục pipeline không chặn bằng `CompletionStage`
+### 5.1. Continuing a non-blocking pipeline with `CompletionStage`
 
-Khi ứng dụng không cần kết quả ngay trong thread hiện tại, có thể giữ đối tượng stage và đăng ký xử lý:
+When the application does not need the result immediately on the current thread, you can keep the stage object and register handlers:
 
 ```java
-// Mảnh minh họa trong method; Service/service do ứng dụng định nghĩa.
+// Illustrative snippet in a method; Service/service defined by the application.
 Method method = Service.class.getMethod("loadAsync");
 Object returned = method.invoke(service);
 
@@ -199,25 +199,25 @@ if (returned instanceof CompletionStage<?> stage) {
 }
 ```
 
-`whenComplete` đăng ký một action thực hiện khi stage hoàn tất. Nếu stage **đã hoàn tất**, callback không có hậu tố `Async` có thể chạy ngay trên thread gọi đăng ký; nếu stage hoàn tất sau, callback có thể chạy trên thread đang hoàn tất stage. Vì vậy “không gọi `get/join`” không có nghĩa mọi callback chắc chắn chạy trên thread khác. Khi cần điều khiển nơi callback chạy, cân nhắc `whenCompleteAsync(..., executor)` hoặc những API `*Async` tương ứng.
+`whenComplete` registers an action to run when the stage completes. If the stage **is already complete**, a callback without the `Async` suffix may run immediately on the thread registering it; if the stage completes later, the callback may run on the thread completing the stage. Thus "not calling `get/join`" does not guarantee every callback runs on a different thread. When you need control over where callbacks execute, consider `whenCompleteAsync(..., executor)` or corresponding `*Async` APIs.
 
-Nếu có nhiều bước phụ thuộc nhau, dùng:
+If there are multiple dependent steps, use:
 
-- `thenApply` để biến đổi `T` thành `U`.
-- `thenCompose` khi hàm biến đổi tự trả `CompletionStage<U>` và cần ghép một pipeline phẳng.
-- `thenAccept` nếu chỉ tiêu thụ kết quả mà không trả giá trị mới.
-- `exceptionally`, `handle` hoặc `whenComplete` để xử lý/quan sát completion bất thường, tùy semantics mong muốn.
+- `thenApply` to transform `T` into `U`.
+- `thenCompose` when the transformation function itself returns `CompletionStage<U>` and a flat pipeline is needed.
+- `thenAccept` when only consuming the result without returning a new value.
+- `exceptionally`, `handle`, or `whenComplete` to handle/observe exceptional completion, depending on desired semantics.
 
-Không vứt bỏ stage nếu caller cần nhận kết quả, xử lý lỗi hoặc thực hiện cancellation. `Method.invoke` không quản lý vòng đời async result hộ ứng dụng.
+Do not discard the stage if the caller needs to receive the result, handle errors, or perform cancellation. `Method.invoke` does not manage the async result's lifecycle on the application's behalf.
 
-### 5.2. Chờ trong thread hiện tại khi nghiệp vụ bắt buộc
+### 5.2. Waiting on the current thread when business logic requires it
 
-Có thể dùng hai nhánh theo **kiểu của đối tượng thực tế**:
+You can branch on the **actual object's runtime type**:
 
 ```java
-// Mảnh minh họa: cần các import java.util.concurrent.*;
-// xử lý ReflectiveOperationException, InterruptedException,
-// ExecutionException và TimeoutException theo hợp đồng method.
+// Illustrative snippet: requires imports java.util.concurrent.*;
+// handle ReflectiveOperationException, InterruptedException,
+// ExecutionException, and TimeoutException per method contract.
 Object returned = method.invoke(receiver);
 
 if (returned instanceof CompletionStage<?> stage) {
@@ -231,17 +231,17 @@ if (returned instanceof CompletionStage<?> stage) {
 }
 ```
 
-Với `CompletionStage`, giao diện không khai báo `get` hay `join`; gọi `toCompletableFuture()` để có một `CompletableFuture` theo hợp đồng completion. Khi cần giới hạn thời gian, `get(timeout, unit)` có thể báo `TimeoutException`. Timeout ở phía **đang chờ** không tự bảo đảm tác vụ nền đã dừng; muốn hủy cần dùng cơ chế cancellation phù hợp và hiểu semantics của implementation.
+For `CompletionStage`, the interface does not declare `get` or `join`; call `toCompletableFuture()` to obtain a `CompletableFuture` per the completion contract. When a time limit is needed, `get(timeout, unit)` can throw `TimeoutException`. A timeout on the **waiting** side does not automatically ensure the background task stopped; to cancel, use appropriate cancellation mechanisms and understand the implementation's semantics.
 
-Kiểm tra `CompletionStage` trước `Future` là cách chọn nhánh rõ ràng vì một `CompletableFuture` triển khai **cả hai**. Việc chờ có thể block thread: tránh `get/join` trực tiếp trên UI thread, event-loop hoặc executor có số thread hạn chế nếu tác vụ cần chính thread đó để hoàn tất.
+Checking `CompletionStage` before `Future` is a clear branching order because a `CompletableFuture` implements **both**. Waiting can block the thread: avoid calling `get/join` directly on a UI thread, event-loop, or bounded executor if the task needs that very thread to complete.
 
-### 5.3. Khi nào `isDone` hữu ích?
+### 5.3. When is `isDone` useful?
 
-`isDone` có thể dùng để **kiểm tra nhanh** trạng thái của `Future` nhưng không chờ. Tuy nhiên, `isDone == false` không nói tác vụ “vẫn đang chạy” hay “chưa được lên lịch”; `isDone == true` không bảo đảm thành công. Nếu ứng dụng cần kết quả có độ tin cậy, vẫn cần lấy completion hoặc đăng ký callback. Tránh kiểm tra `isDone` lặp liên tục trong vòng bận (busy spin) gây lãng phí CPU.
+`isDone` can be used for a **quick status check** of a `Future` without waiting. However, `isDone == false` does not tell whether the task is "still running" or "not yet scheduled"; `isDone == true` does not guarantee success. If the application needs the result reliably, it still must await completion or register callbacks. Avoid checking `isDone` repeatedly in a busy-spin loop that wastes CPU.
 
-## 6. Một adapter rõ chính sách: `invokeRaw` và `invokeAndWait`
+## 6. A policy-explicit adapter: `invokeRaw` and `invokeAndWait`
 
-Khi xây dựng bộ gọi động (plugin dispatcher, test runner, serializer adapter), nên thể hiện rõ hợp đồng chờ của caller. Đoạn sau là **class hợp lệ có thể biên dịch** nếu lưu vào tệp `InvocationAdapter.java`:
+When building a dynamic invoker (plugin dispatcher, test runner, serializer adapter), make the caller's waiting contract explicit. The following is a **valid compilable class** if saved to `InvocationAdapter.java`:
 
 ```java
 import java.lang.reflect.Method;
@@ -273,18 +273,18 @@ public final class InvocationAdapter {
 }
 ```
 
-**Ý nghĩa:**
+**Meaning:**
 
-- `invokeRaw` giữ nguyên semantics của `Method.invoke`: trả thẳng kết quả method, kể cả đối tượng async chưa hoàn tất.
-- `invokeAndWait` là **hành vi do ứng dụng tự cài đặt**, lấy completion nếu kết quả runtime triển khai `CompletionStage` hoặc `Future`. Method thông thường thì trả giá trị như cũ.
-- `method.invoke(...)` có thể ném `InvocationTargetException` (kế thừa `ReflectiveOperationException`) khi phương thức đích ném trực tiếp. `get` có thể ném `ExecutionException`, `InterruptedException`; đây là hai giai đoạn lỗi khác nhau.
-- Đoạn đơn giản không đặt timeout. API production nên quy định **timeout/deadline, interruption, cancellation và nơi thực thi**. Không tự động biến mọi đường gọi Reflection thành thao tác chờ không giới hạn.
+- `invokeRaw` preserves the semantics of `Method.invoke`: returns the method's result directly, including an incomplete async object.
+- `invokeAndWait` is **application-implemented behavior**, awaiting completion if the runtime result implements `CompletionStage` or `Future`. Normal methods return their values as before.
+- `method.invoke(...)` can throw `InvocationTargetException` (subclass of `ReflectiveOperationException`) when the target method throws directly. `get` can throw `ExecutionException` and `InterruptedException`; these are two distinct error phases.
+- This simple snippet sets no timeout. Production APIs should specify **timeout/deadline, interruption, cancellation, and execution context**. Do not automatically turn every Reflection call path into an unbounded wait.
 
-Một điểm thiết kế: method có thể khai báo return type là `Object` nhưng thực tế trả một `CompletionStage`. `instanceof` trên **giá trị runtime** sẽ nhận diện được trường hợp này; không nên chỉ dựa vào metadata chữ ký để quyết định “đợi hay không”.
+A design point: a method may declare its return type as `Object` yet actually return a `CompletionStage`. `instanceof` on the **runtime value** detects this case; do not rely solely on signature metadata to decide "wait or not".
 
-## 7. Vai trò của `Method.getReturnType()` và generic return type
+## 7. Role of `Method.getReturnType()` and generic return type
 
-Reflection cho phép xem **kiểu trả về đã khai báo**, ví dụ:
+Reflection allows inspecting the **declared return type**, for example:
 
 ```java
 Class<?> declared = method.getReturnType();
@@ -294,58 +294,58 @@ boolean returnsFutureType =
         Future.class.isAssignableFrom(declared);
 ```
 
-Đây là mảnh minh họa đặt trong method có biến `method` hợp lệ. Hai kiểm tra này trả lời: chữ ký **có khai báo kiểu thuộc họ Stage/Future hay không?** Chúng không cho biết runtime result đã hoàn tất, thành công hay lỗi. Nếu method khai báo `Object` nhưng trả `CompletableFuture`, `getReturnType()` vẫn là `Object.class`; sau khi gọi nên kiểm tra chính reference bằng `instanceof`.
+This is an illustrative snippet placed in a method with a valid `method` variable. These two checks answer: **does the signature declare a type in the Stage/Future family?** They do not tell whether the runtime result has completed, succeeded, or failed. If a method declares `Object` yet returns `CompletableFuture`, `getReturnType()` is still `Object.class`; after invoking, inspect the returned reference itself with `instanceof`.
 
-`getGenericReturnType()` có thể cung cấp `Type` của chữ ký, ví dụ `CompletionStage<String>` khi metadata generic được giữ lại, nhưng **không biến `invoke` thành lời gọi có khả năng đợi completion**. Generic type không chứa trạng thái runtime của tác vụ.
+`getGenericReturnType()` can supply the signature's `Type`, such as `CompletionStage<String>` when generic metadata is retained, yet **does not turn `invoke` into a call capable of waiting for completion**. Generic types do not hold runtime task state.
 
-Những trường hợp biên cần nhớ:
+Edge cases to remember:
 
-- `void method()` có thể khởi động một tác vụ nền nhưng `invoke` trả `null`; không thể suy ra Future từ giá trị này.
-- `Future<T>` có thể đã completed trước khi `invoke` kết thúc: `get` khi ấy trả ngay.
-- Một method trả `Future<T>` nhưng **chờ Future bên trong rồi mới return** vẫn khiến `invoke` chờ thân method; đó không phải khả năng “tự đợi Future” của Reflection.
-- Method instance cần đúng receiver; static method có thể truyền receiver là `null`. Sai receiver/đối số gây lỗi gọi đồng bộ.
-- Nếu method được gọi ném lỗi trực tiếp trước khi trả Future, caller chỉ có `InvocationTargetException`; không có async result mới từ lần gọi đó.
+- `void method()` may launch a background task while `invoke` returns `null`; no Future can be inferred from this value.
+- `Future<T>` may already be completed before `invoke` finishes: `get` then returns immediately.
+- A method returning `Future<T>` that **waits for an inner Future before returning** still makes `invoke` wait for the method body; that is not an "auto-wait for Future" feature of Reflection.
+- Instance methods require a compatible receiver; static methods can pass `null` as the receiver. Wrong receiver/arguments cause synchronous invocation errors.
+- If the invoked method throws directly before returning a Future, the caller only gets `InvocationTargetException`; there is no new async result from that call.
 
-## 8. Sai lầm phổ biến
+## 8. Common mistakes
 
-| Sai lầm | Vì sao sai | Cách xử lý |
+| Mistake | Why it is wrong | How to handle |
 | --- | --- | --- |
-| `String s = (String) method.invoke(target)` khi method trả `Future<String>` | Giá trị Reflection nhận là **Future**, không phải `String` bên trong | Nhận `Future<?>`/`CompletionStage<?>` rồi giải quyết kết quả theo hợp đồng |
-| Nghĩ `invoke` tự chờ cho đến khi Future xong | `invoke` chỉ chờ **thân method return** | Đợi bằng `get/join` nếu bắt buộc hoặc nối pipeline |
-| Nghĩ `Method.invoke` luôn trả ngay | Method đích có thể tự block trước khi return | Phân tích thân method và nơi xảy ra chờ |
-| Nhầm `InvocationTargetException` với lỗi bất đồng bộ | Lỗi completion xuất hiện sau khi method return và qua đối tượng async | Theo dõi cả hai tầng lỗi |
-| Ép mọi `Future` thành `CompletableFuture` | Hai kiểu không tương đương; implement khác có thể không kế thừa CF | Kiểm tra runtime types, xử lý từng hợp đồng |
-| Gọi `join` trên event-loop rồi cần event-loop đó hoàn tất Future | Có thể deadlock | Dùng composition hoặc executor riêng, tránh blocking cùng luồng |
-| Thấy `isDone() == true` và tin rằng tác vụ thành công | Done gồm cả thất bại/hủy | Dùng `get/join` hoặc error callback để phân loại |
-| Bỏ qua giá trị trả về async | Không còn đường theo dõi lỗi hoặc kết quả | Trả về stage, đăng ký callback, hoặc quản lý task lifecycle rõ ràng |
+| `String s = (String) method.invoke(target)` when method returns `Future<String>` | The value Reflection receives is a **Future**, not the inner `String` | Receive `Future<?>`/`CompletionStage<?>` and resolve the result per contract |
+| Thinking `invoke` automatically waits until the Future finishes | `invoke` only waits for **the method body to return** | Wait via `get/join` if required, or chain a pipeline |
+| Thinking `Method.invoke` always returns immediately | The target method can block itself before returning | Analyze the method body and where waiting happens |
+| Confusing `InvocationTargetException` with async errors | Completion errors appear after the method returns and through the async object | Track both error layers |
+| Casting every `Future` to `CompletableFuture` | The two types are not equivalent; other implementations may not extend CF | Check runtime types and handle each contract |
+| Calling `join` on an event-loop that is needed to complete the Future | Can deadlock | Use composition or a separate executor; avoid blocking the same thread |
+| Seeing `isDone() == true` and assuming the task succeeded | Done includes failure and cancellation | Use `get/join` or error callbacks to classify |
+| Ignoring the async return value | No way left to track errors or results | Return the stage, register callbacks, or manage task lifecycle explicitly |
 
-### Minh họa một deadlock đơn giản
+### Illustration of a simple deadlock
 
 ```java
 CompletableFuture<String> pending = new CompletableFuture<>();
-System.out.println(pending.join()); // Chờ đến khi pending được hoàn tất
-pending.complete("done");          // Không thể tới được trên cùng thread
+System.out.println(pending.join()); // Waits until pending is completed
+pending.complete("done");          // Unreachable on the same thread
 ```
 
-Đây là **mảnh mã minh họa**, không phải chương trình độc lập. Nếu không có thread khác thực hiện `complete`, `join` chờ mãi và dòng bên dưới không được chạy. Nếu một framework đặt `get/join` trong callback trên chính thread/event-loop cần chạy công việc hoàn tất, vấn đề tương tự có thể xuất hiện.
+This is an **illustrative code fragment**, not a standalone program. Without another thread calling `complete`, `join` waits forever and the line below is never reached. If a framework places `get/join` inside a callback on the very thread/event-loop needed to run the completing work, the same problem can occur.
 
-## 9. Câu hỏi tự kiểm tra
+## 9. Self-check questions
 
-1. `Method.invoke` gọi method trả `Future<String>` chưa hoàn tất. Reference trả về có kiểu runtime gì và `(String) invoke(...)` sai ở đâu?
-2. Tại sao `invoke` vẫn có thể block lâu dù method trả `CompletableFuture`?
-3. Method A ném `IllegalStateException` trước `return`. Method B trả stage rồi stage hoàn tất lỗi `IllegalStateException`. Hai đường báo lỗi tới caller khác nhau ra sao?
-4. So sánh `future.get()` với `stage.thenApply(...)` về hành vi chờ và thời điểm callback chạy.
-5. `CompletableFuture` có thể phù hợp với cả nhánh `Future` và `CompletionStage` trong `instanceof` hay không? Nên ưu tiên nhánh nào khi muốn composition?
-6. Method khai báo kiểu trả `Object` nhưng runtime trả `CompletionStage<?>`. Vì sao chỉ xem `getReturnType()` chưa đủ?
-7. Một method trả `void` nhưng bắt đầu tác vụ nền. Làm thế nào thiết kế API để caller có thể chờ hoặc theo dõi kết quả?
-8. Vì sao nên đặt timeout và quy định interruption/cancellation nếu ứng dụng quyết định đợi completion?
+1. `Method.invoke` calls a method returning an incomplete `Future<String>`. What runtime type does the returned reference have, and what is wrong with `(String) invoke(...)`?
+2. Why can `invoke` still block for a long time even though the method returns `CompletableFuture`?
+3. Method A throws `IllegalStateException` before `return`. Method B returns a stage that later completes exceptionally with `IllegalStateException`. How do the two error paths to the caller differ?
+4. Compare `future.get()` with `stage.thenApply(...)` in terms of waiting behavior and when callbacks run.
+5. Can `CompletableFuture` match both `Future` and `CompletionStage` branches in `instanceof`? Which branch should be preferred when composition is desired?
+6. A method declares return type `Object` yet at runtime returns `CompletionStage<?>`. Why is checking `getReturnType()` alone insufficient?
+7. A method returns `void` yet starts a background task. How should the API be designed so callers can wait for or track the result?
+8. Why should timeouts and interruption/cancellation policies be specified if an application decides to await completion?
 
-**Ghi nhớ:** `Method.invoke` đồng bộ hóa **lời gọi method trực tiếp**, còn trạng thái hoàn tất của `Future`/`CompletionStage` là **một hợp đồng độc lập**. Kết quả bất đồng bộ chỉ được chờ/quan sát khi caller chủ động thực hiện `get`, `join` hoặc đăng ký composition phù hợp. Luôn phân biệt lỗi của method khi đang chạy qua Reflection (`InvocationTargetException`) với lỗi của tác vụ trả về (`ExecutionException`, `CompletionException`, `CancellationException`).
+**Takeaway:** `Method.invoke` synchronizes **the direct method call**, whereas the completion state of `Future`/`CompletionStage` is **an independent contract**. Async results are only awaited/observed when the caller explicitly performs `get`, `join`, or registers appropriate composition. Always distinguish errors of the method running via Reflection (`InvocationTargetException`) from errors of the returned task (`ExecutionException`, `CompletionException`, `CancellationException`).
 
-## 10. Tham khảo chính thức
+## 10. Official references
 
-- [Java SE 17 — `Method.invoke`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html#invoke(java.lang.Object,java.lang.Object...)): giá trị trả về và ngoại lệ do method được gọi ném ra.
+- [Java SE 17 — `Method.invoke`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html#invoke(java.lang.Object,java.lang.Object...)): return value and exceptions thrown by the invoked method.
 - [Java SE 17 — `Future`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/Future.html): `get`, timeout, cancellation, `isDone`.
-- [Java SE 17 — `CompletionStage`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletionStage.html): phối hợp các giai đoạn và xử lý completion.
-- [Java SE 17 — `CompletableFuture`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html): `get`, `join`, xử lý lỗi và triển khai cả `Future`/`CompletionStage`.
-- [Java SE 17 — `InvocationTargetException`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/InvocationTargetException.html): lỗi của thân method qua Reflection.
+- [Java SE 17 — `CompletionStage`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletionStage.html): composing stages and handling completion.
+- [Java SE 17 — `CompletableFuture`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html): `get`, `join`, error handling, and implementing both `Future`/`CompletionStage`.
+- [Java SE 17 — `InvocationTargetException`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/InvocationTargetException.html): errors from the method body via Reflection.

@@ -1,42 +1,42 @@
-# WildcardType với upper bound và lower bound trong Java Reflection
+# `WildcardType` with Upper Bounds and Lower Bounds in Java Reflection
 
-Trong Java generics, dấu `?` biểu diễn một **wildcard**: đối số kiểu chưa biết tại một vị trí sử dụng kiểu generic. Ví dụ `List<?>`, `List<? extends Number>` và `List<? super Integer>` đều là những `ParameterizedType` ở cấp `List<...>`, và mỗi dấu `?` bên trong được mô hình hóa bằng `java.lang.reflect.WildcardType`.
+In Java generics, the `?` symbol represents a **wildcard**: an unknown type argument at a generic type usage site. For example, `List<?>`, `List<? extends Number>`, and `List<? super Integer>` are all `ParameterizedType`s at the `List<...>` level, and each `?` inside is modeled by `java.lang.reflect.WildcardType`.
 
-`WildcardType` là một nhánh của `java.lang.reflect.Type`. Nó cung cấp hai phương thức quan trọng:
+`WildcardType` is a branch of `java.lang.reflect.Type`. It provides two important methods:
 
-- `Type[] getUpperBounds()`: lấy giới hạn trên của kiểu chưa biết.
-- `Type[] getLowerBounds()`: lấy giới hạn dưới của kiểu chưa biết.
+- `Type[] getUpperBounds()`: gets the upper bounds of the unknown type.
+- `Type[] getLowerBounds()`: gets the lower bounds of the unknown type.
 
-Bài học tập trung vào cách đọc **chữ ký generic đã khai báo** bằng Reflection, diễn giải hai mảng bound, đi qua các kiểu generic lồng nhau và phân biệt generic metadata với dữ liệu runtime.
+This lesson focuses on reading **declared generic signatures** with Reflection, interpreting the two bound arrays, traversing nested generic types, and distinguishing generic metadata from runtime data.
 
-## 1. Ý nghĩa của ba dạng wildcard
+## 1. Meaning of the Three Wildcard Forms
 
-| Khai báo | Upper bounds qua Reflection | Lower bounds qua Reflection | Ý nghĩa |
+| Declaration | Upper bounds via Reflection | Lower bounds via Reflection | Meaning |
 | --- | --- | --- | --- |
-| `List<?>` | `[Object]` | `[]` | Một đối số kiểu không xác định |
-| `List<? extends Number>` | `[Number]` | `[]` | Đối số kiểu là `Number` hoặc subtype của `Number` |
-| `List<? super Integer>` | `[Object]` | `[Integer]` | Đối số kiểu là `Integer` hoặc supertype của `Integer` |
+| `List<?>` | `[Object]` | `[]` | An unspecified type argument |
+| `List<? extends Number>` | `[Number]` | `[]` | Type argument is `Number` or a subtype of `Number` |
+| `List<? super Integer>` | `[Object]` | `[Integer]` | Type argument is `Integer` or a supertype of `Integer` |
 
-**Upper bound** của `? extends T` là `T`: bất kỳ type argument thực tế nào đều phải thỏa ràng buộc subtype tương ứng. **Lower bound** của `? super T` là `T`: type argument thực tế phải là `T` hoặc supertype của `T`.
+The **upper bound** of `? extends T` is `T`: any actual type argument must satisfy the corresponding subtype constraint. The **lower bound** of `? super T` is `T`: the actual type argument must be `T` or a supertype of `T`.
 
-Với `?`, upper bound mặc định là `Object` và không có lower bound. Với `? super Integer`, upper bound mặc định **vẫn là `Object`**, còn lower bound là `Integer`. Vì vậy đừng kết luận `getUpperBounds()` rỗng khi khai báo dùng `super`.
+For `?`, the default upper bound is `Object` and there is no lower bound. For `? super Integer`, the default upper bound **is still `Object`**, while the lower bound is `Integer`. Therefore, do not conclude `getUpperBounds()` is empty when the declaration uses `super`.
 
-Một điểm rất dễ nhầm: `getLowerBounds().length == 0` **không** chứng minh wildcard là `?`; `? extends Number` cũng có mảng lower rỗng. Ngược lại, upper bound `Object` không đủ để kết luận khai báo chỉ là `?`, vì `? super T` và `? extends Object` cũng có cùng giới hạn trên.
+An easy point to mistake: `getLowerBounds().length == 0` **does not** prove the wildcard is `?`; `? extends Number` also has an empty lower array. Conversely, an upper bound of `Object` is not enough to conclude the declaration is just `?`, because `? super T` and `? extends Object` share that same upper bound.
 
-## 2. WildcardType nằm trong cây Type ở đâu?
+## 2. Where Does `WildcardType` Sit in the `Type` Tree?
 
-Các kiểu mô tả generic thuộc `java.lang.reflect.Type` bao gồm:
+The generic-describing types under `java.lang.reflect.Type` include:
 
 ```text
 Type
-├── Class<?>            ví dụ String.class, Number.class
-├── ParameterizedType   ví dụ List<String>, List<? extends Number>
-├── TypeVariable<?>     ví dụ T trong class Box<T>
-├── WildcardType        ví dụ ?, ? extends Number, ? super Integer
-└── GenericArrayType    ví dụ T[] trong chữ ký generic
+├── Class<?>            e.g. String.class, Number.class
+├── ParameterizedType   e.g. List<String>, List<? extends Number>
+├── TypeVariable<?>     e.g. T in class Box<T>
+├── WildcardType        e.g. ?, ? extends Number, ? super Integer
+└── GenericArrayType    e.g. T[] in a generic signature
 ```
 
-Nếu field khai báo `List<? extends Number> numbers`, lời gọi `Field.getGenericType()` trả một `ParameterizedType` đại diện cho **toàn bộ** `List<? extends Number>`. Để lấy `WildcardType` cần vào `getActualTypeArguments()[0]`:
+If a field is declared as `List<? extends Number> numbers`, calling `Field.getGenericType()` returns a `ParameterizedType` representing **the entire** `List<? extends Number>`. To get `WildcardType`, you must go into `getActualTypeArguments()[0]`:
 
 ```text
 Field: List<? extends Number> numbers
@@ -58,11 +58,11 @@ Field: List<? extends Number> numbers
        [Number]                 []
 ```
 
-Không ép trực tiếp `field.getGenericType()` sang `WildcardType`, vì kiểu field ở đây là `ParameterizedType`. Với `List<String>`, đối số đầu tiên là `String.class`, **không** phải `WildcardType`. Với `List<T>`, đối số đầu tiên có thể là `TypeVariable`.
+Do not cast `field.getGenericType()` directly to `WildcardType`, because the field type here is `ParameterizedType`. For `List<String>`, the first argument is `String.class`, **not** `WildcardType`. For `List<T>`, the first argument can be `TypeVariable`.
 
-## 3. Chương trình Java 17+ đầy đủ và stdout
+## 3. Complete Java 17+ Program and Stdout
 
-Lưu mã vào tệp `WildcardTypeDemo.java`. Chương trình tra cứu field, tham số method, wildcard lồng nhau và bound là generic type; sau đó minh họa thao tác đọc/ghi theo `extends`/`super`.
+Save the code to `WildcardTypeDemo.java`. The program inspects fields, method parameters, nested wildcards, and bounds that are generic types; it then illustrates read/write operations under `extends`/`super`.
 
 ```java
 import java.lang.reflect.Field;
@@ -152,14 +152,14 @@ public class WildcardTypeDemo {
 }
 ```
 
-Tại thư mục chứa tệp, biên dịch và chạy:
+In the directory containing the file, compile and run:
 
 ```bash
 javac WildcardTypeDemo.java
 java WildcardTypeDemo
 ```
 
-Đầu ra dự kiến:
+Expected output:
 
 ```text
 unbounded: upper=[java.lang.Object]; lower=[]
@@ -174,26 +174,26 @@ producerRead=1
 consumerRead=7
 ```
 
-**Diễn giải từng trường hợp:**
+**Explanation of each case:**
 
-1. `anything` là `List<?>`, nên giới hạn trên `Object`, không có giới hạn dưới.
-2. `numbers` là `List<? extends Number>` nên giới hạn trên `Number`.
-3. `integers` là `List<? super Integer>` nên giới hạn dưới `Integer`, giới hạn trên ngầm định là `Object`.
-4. Bound của `? extends Comparable<String>` không phải `Class<?>` đơn giản mà là một `ParameterizedType`; `getTypeName()` cho ra `java.lang.Comparable<java.lang.String>`.
-5. Với `Map<String, ? super List<String>>`, wildcard nằm ở **đối số kiểu thứ hai** của `Map`; lower bound `List<String>` cũng là một `ParameterizedType`.
-6. `List<List<? extends Number>>` có một tầng `List` bên trong. Phải đi qua đối số kiểu là `List<? extends Number>` trước, rồi mới tìm wildcard `? extends Number`.
-7. `accept(List<? super Integer>)` được tra cứu bằng `getDeclaredMethod("accept", List.class)` vì các tham số generic bị erase ở chữ ký method dùng cho lookup. Sau đó `getGenericParameterTypes()` mới cung cấp chữ ký generic chứa wildcard.
-8. `Field.getType()` trả `java.util.List` cho field `List<? extends Number>`; nó không chứa thông tin wildcard. `Field.getGenericType()` mới cho phép lấy `ParameterizedType`.
-9. Hai dòng cuối dùng collection thông thường: `? extends Number` cho phép đọc như `Number`; `? super Integer` cho phép thêm `Integer` và đọc an toàn như `Object`. Đây là các ràng buộc được compiler kiểm tra, không phải Reflection đang kiểm soát collection ở runtime.
+1. `anything` is `List<?>`, so upper bound is `Object` and there is no lower bound.
+2. `numbers` is `List<? extends Number>`, so upper bound is `Number`.
+3. `integers` is `List<? super Integer>`, so lower bound is `Integer` and implicit upper bound is `Object`.
+4. The bound of `? extends Comparable<String>` is not a simple `Class<?>` but a `ParameterizedType`; `getTypeName()` produces `java.lang.Comparable<java.lang.String>`.
+5. For `Map<String, ? super List<String>>`, the wildcard is in the **second type argument** of `Map`; the lower bound `List<String>` is also a `ParameterizedType`.
+6. `List<List<? extends Number>>` has an inner `List` layer. You must first pass through the type argument `List<? extends Number>`, and only then find the wildcard `? extends Number`.
+7. `accept(List<? super Integer>)` is looked up with `getDeclaredMethod("accept", List.class)` because generic parameters are erased in the method signature used for lookup. Then `getGenericParameterTypes()` supplies the generic signature containing the wildcard.
+8. `Field.getType()` returns `java.util.List` for `List<? extends Number>`; it contains no wildcard information. Only `Field.getGenericType()` lets you retrieve `ParameterizedType`.
+9. The last two lines use ordinary collections: `? extends Number` allows reading as `Number`; `? super Integer` allows adding `Integer` and safely reading as `Object`. These constraints are checked by the compiler, not Reflection policing collections at runtime.
 
-Chương trình dùng pattern matching cho `instanceof` có trong Java 17 và định dạng bound qua `Type.getTypeName()`, tránh phụ thuộc vào `toString()` của một implementation cụ thể.
+The program uses Java 17's pattern matching for `instanceof` and formats bounds via `Type.getTypeName()`, avoiding reliance on `toString()` of a specific implementation.
 
-## 4. Đọc bound qua Type[] thay vì ép về Class[]
+## 4. Reading Bounds via `Type[]` Instead of Casting to `Class[]`
 
-Cả `getUpperBounds()` và `getLowerBounds()` đều trả về **`Type[]`**. Các phần tử có thể là `Class<?>` hoặc các biểu diễn generic phức tạp hơn, đặc biệt là `ParameterizedType`. Không viết code giả định mọi bound đều là `Class<?>`:
+Both `getUpperBounds()` and `getLowerBounds()` return **`Type[]`**. Elements can be `Class<?>` or more complex generic representations, especially `ParameterizedType`. Do not write code assuming every bound is `Class<?>`:
 
 ```java
-// Đoạn minh họa khi đã có đối tượng WildcardType wildcard:
+// Illustrative snippet assuming you already have a WildcardType wildcard object:
 for (Type upper : wildcard.getUpperBounds()) {
     System.out.println(upper.getTypeName());
     if (upper instanceof ParameterizedType parameterized) {
@@ -206,23 +206,23 @@ for (Type lower : wildcard.getLowerBounds()) {
 }
 ```
 
-Đoạn này **không phải chương trình độc lập**; nó cần biến `wildcard` và các import `Type`, `ParameterizedType`. Có thể còn gặp `TypeVariable` hoặc những dạng `Type` khác trong metadata phức tạp. Vì thế, khi cần xử lý nghiêm túc, hãy duyệt toàn bộ mảng `Type[]` và phân loại từng phần tử bằng `instanceof`.
+This snippet **is not a standalone program**; it requires a `wildcard` variable and imports `Type`, `ParameterizedType`. You may also encounter `TypeVariable` or other `Type` forms in complex metadata. Therefore, when serious handling is needed, traverse the entire `Type[]` array and classify each element using `instanceof`.
 
-Trong cú pháp Java nguồn thường gặp, `? extends T` cho upper bound `T` còn `? super T` cho lower bound `T`. Không nên viết code suy luận tuyệt đối “có upper bound nghĩa là extends”: cả wildcard không ràng buộc và wildcard `super` đều có upper bound mặc định `Object`. Khi Reflection mô tả các bounds, nó phản ánh ý nghĩa kiểu, không nhất thiết lưu lại mọi chi tiết cú pháp người viết đã dùng.
+In common Java source syntax, `? extends T` produces upper bound `T` and `? super T` produces lower bound `T`. Do not write code that makes the absolute deduction "having an upper bound means `extends`": both unbounded wildcards and `super` wildcards have the default upper bound `Object`. When Reflection describes bounds, it reflects type semantics rather than necessarily preserving every syntactic detail written by the author.
 
-## 5. Tìm wildcard trong field, method và generic superclass/interface
+## 5. Finding Wildcards in Fields, Methods, and Generic Superclasses/Interfaces
 
-Bước đầu tiên luôn là chọn API Reflection **generic**, không dùng API chỉ trả raw class:
+The first step is always choosing **generic** Reflection APIs, not APIs that return only raw classes:
 
-| Vị trí khai báo | API đọc generic metadata | Cách tìm wildcard |
+| Declaration site | API for generic metadata | How to locate the wildcard |
 | --- | --- | --- |
 | Field `List<? extends Number> values` | `Field.getGenericType()` | `ParameterizedType.getActualTypeArguments()` |
-| Parameter `void take(List<? super Integer> values)` | `Method.getGenericParameterTypes()[i]` | Lấy đối số kiểu của `ParameterizedType` |
-| Return type `List<?> load()` | `Method.getGenericReturnType()` | Lấy đối số kiểu của `ParameterizedType` |
-| `class Child extends Parent<? extends Number>` | `Class.getGenericSuperclass()` | Kiểm tra `ParameterizedType` |
-| `class HandlerImpl implements Handler<? super Integer>` | `Class.getGenericInterfaces()` | Kiểm tra từng `Type` trong mảng |
+| Parameter `void take(List<? super Integer> values)` | `Method.getGenericParameterTypes()[i]` | Retrieve the type argument of `ParameterizedType` |
+| Return type `List<?> load()` | `Method.getGenericReturnType()` | Retrieve the type argument of `ParameterizedType` |
+| `class Child extends Parent<? extends Number>` | `Class.getGenericSuperclass()` | Check `ParameterizedType` |
+| `class HandlerImpl implements Handler<? super Integer>` | `Class.getGenericInterfaces()` | Check each `Type` in the array |
 
-Ví dụ khai báo return type:
+Return type declaration example:
 
 ```java
 public List<? extends Number> find() {
@@ -230,7 +230,7 @@ public List<? extends Number> find() {
 }
 ```
 
-Với biến `Method method` trỏ đúng vào `find`, logic đọc là:
+With a `Method method` variable pointing to `find`, the reading logic is:
 
 ```java
 Type result = method.getGenericReturnType();
@@ -243,13 +243,13 @@ if (result instanceof ParameterizedType parameterized) {
 }
 ```
 
-Hai đoạn trên là **minh họa ngữ cảnh**, không phải một chương trình đầy đủ: cần đặt method vào class, lấy `Method` tương ứng và import các loại `Type` cần thiết. Trong trường hợp nêu trên, dòng in là `java.lang.Number`.
+The two snippets above are **contextual illustrations**, not a full program: put the method in a class, obtain the corresponding `Method`, and import the required `Type` interfaces. In the case above, the printed line is `java.lang.Number`.
 
-Lưu ý sự khác biệt giữa `Method.getParameterTypes()` (trả `Class<?>[]` sau erasure) và `getGenericParameterTypes()` (trả `Type[]` giữ metadata generic). Tương tự, `Field.getType()` và `getGenericType()` phục vụ hai mục tiêu khác nhau.
+Note the difference between `Method.getParameterTypes()` (returns `Class<?>[]` after erasure) and `getGenericParameterTypes()` (returns `Type[]` preserving generic metadata). Similarly, `Field.getType()` and `getGenericType()` serve two different purposes.
 
-## 6. WildcardType không phải TypeVariable
+## 6. `WildcardType` Is Not `TypeVariable`
 
-Ví dụ:
+Example:
 
 ```java
 class Box<T extends Number> {
@@ -258,18 +258,18 @@ class Box<T extends Number> {
 }
 ```
 
-- `T` trong khai báo `Box<T extends Number>` là **type variable có tên**, được mô hình hóa bằng `TypeVariable<?>`. Khi đọc `element` qua `getGenericType()`, có thể gọi `TypeVariable.getBounds()` để biết `T` có bound `Number`.
-- `? extends Number` trong `List<? extends Number>` là một **wildcard** được mô hình hóa bằng `WildcardType` khi đi vào đối số kiểu của `ParameterizedType`.
+- `T` in the declaration `Box<T extends Number>` is a **named type variable**, modeled by `TypeVariable<?>`. When reading `element` via `getGenericType()`, you can call `TypeVariable.getBounds()` to see that `T` has bound `Number`.
+- `? extends Number` in `List<? extends Number>` is a **wildcard**, modeled by `WildcardType` when inspecting the type argument of `ParameterizedType`.
 
-Nếu field là `List<T>`, đối số kiểu là `TypeVariable`, không phải wildcard — mặc dù `T` có thể có cùng bound `Number`. Vì thế không ép mọi đối số generic có `extends` thành `WildcardType`. Type variable là tham số có tên được tái sử dụng trong phạm vi generic declaration; wildcard là một đối số kiểu chưa biết ở **vị trí sử dụng**.
+If a field is `List<T>`, the type argument is `TypeVariable`, not a wildcard — even though `T` may have the same `Number` bound. Therefore, do not force every generic argument with `extends` to be `WildcardType`. A type variable is a named parameter reused within a generic declaration's scope; a wildcard is an unknown type argument at a **usage site**.
 
-Điều này ảnh hưởng tới công cụ giải kiểu: để giải `T` theo một subclass cụ thể, có thể phải đọc các tham số generic của superclass/interface và lập ánh xạ type variable. Chỉ gọi `WildcardType.getUpperBounds()` không giải được một `TypeVariable`.
+This affects type resolution tools: to resolve `T` for a specific subclass, you may need to read generic parameters of superclasses/interfaces and build a type-variable mapping. Calling `WildcardType.getUpperBounds()` alone does not resolve a `TypeVariable`.
 
-## 7. PECS: vì sao extends để đọc và super để ghi?
+## 7. PECS: Why `extends` for Reading and `super` for Writing?
 
-Quy tắc **Producer Extends, Consumer Super (PECS)** mô tả một cách chọn wildcard theo vai trò của collection:
+The **Producer Extends, Consumer Super (PECS)** guideline describes choosing a wildcard according to a collection's role:
 
-**`? extends T`** thường phù hợp khi API chỉ cần **đọc** dữ liệu như `T`. Ví dụ:
+**`? extends T`** is usually suitable when an API only needs to **read** data as `T`. For example:
 
 ```java
 static double sum(List<? extends Number> numbers) {
@@ -281,9 +281,9 @@ static double sum(List<? extends Number> numbers) {
 }
 ```
 
-Với `List<? extends Number>`, type argument thực tế có thể là `Integer`, `Double` hoặc `Number`. Không được thêm một giá trị `Number` bất kỳ vì có thể không hợp với type argument chưa biết; trường hợp đặc biệt `null` vẫn có thể được thêm.
+With `List<? extends Number>`, the actual type argument could be `Integer`, `Double`, or `Number`. You cannot add an arbitrary `Number` value because it might not match the unknown type argument; the special case `null` can still be added.
 
-**`? super T`** phù hợp khi API cần **đưa vào** giá trị kiểu `T`:
+**`? super T`** suits when an API needs to **put in** values of type `T`:
 
 ```java
 static void appendOne(List<? super Integer> destination) {
@@ -291,55 +291,55 @@ static void appendOne(List<? super Integer> destination) {
 }
 ```
 
-Collection có thể thực tế là `List<Integer>`, `List<Number>` hoặc `List<Object>`; cả ba đều nhận được `Integer`. Nhưng khi đọc từ `List<? super Integer>`, kiểu chung được bảo đảm là `Object`, không thể tự động gán cho `Integer` nếu không có kiểm tra/ép kiểu.
+The collection could actually be `List<Integer>`, `List<Number>`, or `List<Object>`; all three can accept `Integer`. However, when reading from `List<? super Integer>`, the guaranteed common type is `Object`, which cannot be assigned directly to `Integer` without checking/casting.
 
-**`?`** dùng khi code không cần biết type argument cụ thể. Có thể đọc như `Object`, nhưng không thể thêm tùy ý một giá trị khác `null`.
+**`?`** is used when code does not need to know the specific type argument. You can read as `Object`, but cannot arbitrarily add any value other than `null`.
 
-Hai method trong phần này là **mã minh họa**, cần import `java.util.List` và đặt trong class. `WildcardType` chỉ giúp Reflection **quan sát** chữ ký khai báo; nó không thực thi quy tắc PECS ở runtime. Compiler mới là nơi kiểm tra phần lớn ràng buộc generics trong source Java.
+Both methods in this section are **illustrative code**, requiring `import java.util.List` and placement inside a class. `WildcardType` only lets Reflection **observe** the declared signature; it does not enforce PECS rules at runtime. The compiler is where most generic constraints in Java source are checked.
 
-## 8. Type erasure và giới hạn của generic metadata
+## 8. Type Erasure and Limitations of Generic Metadata
 
-Giả sử code tạo hai object:
+Suppose code creates two objects:
 
 ```java
 List<String> names = new ArrayList<>();
 List<Integer> counts = new ArrayList<>();
 ```
 
-Trong tình huống này, `names.getClass()` và `counts.getClass()` đều là `java.util.ArrayList.class`. Đối số kiểu `String` hay `Integer` của từng biến không tự tồn tại như thuộc tính runtime có thể truy vấn từ object bằng `getClass()`.
+In this situation, `names.getClass()` and `counts.getClass()` are both `java.util.ArrayList.class`. The `String` or `Integer` type argument of each variable does not exist as a runtime property that can be queried from the object via `getClass()`.
 
-Ngược lại, chữ ký của **field được khai báo** là `List<? super Integer>` vẫn có thể được lưu trong bytecode, cho phép `Field.getGenericType()` đọc được wildcard. Phải phân biệt:
+Conversely, the signature of a **declared field** like `List<? super Integer>` can still be stored in bytecode, allowing `Field.getGenericType()` to read the wildcard. You must distinguish:
 
-1. **Runtime class của object** — ví dụ `ArrayList.class`.
-2. **Chữ ký generic được khai báo** — ví dụ `List<? extends Number>`.
-3. **Các phần tử thực tế trong collection** — có thể cần kiểm tra từng giá trị; generic signature không thay thế validation.
+1. **Runtime class of an object** — e.g., `ArrayList.class`.
+2. **Declared generic signature** — e.g., `List<? extends Number>`.
+3. **Actual elements inside the collection** — may require checking each value; a generic signature does not replace validation.
 
-Raw types, unchecked casts hoặc bytecode không tuân thủ generic type safety có thể phá giả định của source-level generics. Đừng xem `getUpperBounds()` là bằng chứng rằng tất cả phần tử runtime trong một collection đều phù hợp với bound.
+Raw types, unchecked casts, or bytecode that violates generic type safety can break source-level generic assumptions. Do not treat `getUpperBounds()` as proof that all runtime elements in a collection conform to the bound.
 
-Khi phân tích class file không nhất quán hoặc có kiểu không còn tồn tại, các API generic có thể phát sinh `TypeNotPresentException`, `MalformedParameterizedTypeException` hoặc `GenericSignatureFormatError` tùy API/ngữ cảnh. Ngoại lệ `ClassCastException` khi bạn ép `ParameterizedType` sang `WildcardType` lại là lỗi logic phân nhánh `Type` của chính ứng dụng.
+When parsing an inconsistent class file or one referencing a type that no longer exists, generic APIs can throw `TypeNotPresentException`, `MalformedParameterizedTypeException`, or `GenericSignatureFormatError` depending on the API/context. A `ClassCastException` when casting `ParameterizedType` to `WildcardType`, by contrast, is a bug in your application's `Type` branching logic.
 
-## 9. Các nhầm lẫn thường gặp
+## 9. Common Mistakes
 
-| Nhầm lẫn | Điều đúng |
+| Mistake | Truth |
 | --- | --- |
-| `getUpperBounds()` của `? super Integer` là mảng rỗng | Upper bound ngầm định là `Object` |
-| `getLowerBounds()` rỗng nghĩa là `?` | `? extends T` cũng có lower bound rỗng |
-| `? extends Number` chỉ tương ứng đúng `Number` | Có thể tương ứng subtype của `Number` |
-| `? super Integer` đọc ra chắc chắn `Integer` | Đọc theo type safety chỉ được bảo đảm là `Object` |
-| `Field.getGenericType()` của `List<?>` là `WildcardType` | Nó là `ParameterizedType`; wildcard là type argument bên trong |
-| Mọi bound đều là `Class<?>` | Bound có thể là `ParameterizedType` như `Comparable<String>` |
-| `T extends Number` và `? extends Number` đều là wildcard | `T` là `TypeVariable`, `?` là `WildcardType` |
-| `Field.getType()` cho biết wildcard | `getType()` trả raw/erased class; dùng `getGenericType()` |
-| Có thể viết `List<?>.class` | Java không có class literal cho parameterized type; đọc từ declaration |
-| Reflection kiểm tra type argument thật của mọi collection object | Reflection đọc metadata khai báo, không thay thế generic type checking ở compile time |
+| `getUpperBounds()` of `? super Integer` is an empty array | The implicit upper bound is `Object` |
+| Empty `getLowerBounds()` means `?` | `? extends T` also has an empty lower bound |
+| `? extends Number` corresponds only to `Number` itself | It can correspond to any subtype of `Number` |
+| Reading from `? super Integer` guarantees `Integer` | Type-safe reading only guarantees `Object` |
+| `Field.getGenericType()` of `List<?>` is `WildcardType` | It is `ParameterizedType`; the wildcard is the type argument inside |
+| Every bound is `Class<?>` | A bound can be a `ParameterizedType` such as `Comparable<String>` |
+| Both `T extends Number` and `? extends Number` are wildcards | `T` is a `TypeVariable`, `?` is a `WildcardType` |
+| `Field.getType()` reveals the wildcard | `getType()` returns the raw/erased class; use `getGenericType()` |
+| You can write `List<?>.class` | Java has no class literal for parameterized types; read from declarations |
+| Reflection checks the real type argument of every collection object | Reflection reads declared metadata; it does not replace compile-time generic type checking |
 
-## 10. Quy trình áp dụng khi xây công cụ đọc generic
+## 10. Workflow When Building a Generic Reader Tool
 
-1. Xác định nơi chứa **chữ ký**: field, parameter, return type, superclass hay interface.
-2. Dùng API `getGeneric...` phù hợp để nhận `Type`.
-3. Phân nhánh bằng `instanceof`: `ParameterizedType` để đi vào type arguments; `WildcardType` để đọc upper/lower; `TypeVariable` để đọc generic parameter bounds.
-4. Với generic lồng nhau như `List<List<? extends Number>>`, đi từng tầng `ParameterizedType`, không giả định wildcard luôn nằm ở chỉ số đầu tiên của tầng ngoài.
-5. Duyệt toàn bộ `Type[]` của upper/lower bounds, giữ thông tin `ParameterizedType` khi bound còn chứa type argument.
-6. Diễn giải theo `extends`/`super` và nhu cầu đọc/ghi thực tế; không dùng Reflection metadata như phép xác thực phần tử runtime.
+1. Identify where the **signature** lives: field, parameter, return type, superclass, or interface.
+2. Use the appropriate `getGeneric...` API to obtain a `Type`.
+3. Branch using `instanceof`: `ParameterizedType` to enter type arguments; `WildcardType` to read upper/lower bounds; `TypeVariable` to read generic parameter bounds.
+4. For nested generics like `List<List<? extends Number>>`, step through each `ParameterizedType` layer rather than assuming the wildcard is always at index 0 of the outer layer.
+5. Traverse the entire `Type[]` of upper/lower bounds, retaining `ParameterizedType` information when a bound itself contains type arguments.
+6. Interpret according to `extends`/`super` and actual read/write requirements; do not use Reflection metadata as runtime element validation.
 
-**Ghi nhớ:** `WildcardType` biểu diễn **`?` bên trong chữ ký generic**. `getUpperBounds()` mô tả giới hạn trên; `getLowerBounds()` mô tả giới hạn dưới. `?` có upper `Object` và lower rỗng; `? extends T` dùng upper `T`; `? super T` dùng lower `T` và upper `Object` ngầm định. Để tìm wildcard trong `List<? ...>`, phải đi qua `ParameterizedType.getActualTypeArguments()` trước.
+**Takeaway:** `WildcardType` represents **`?` inside a generic signature**. `getUpperBounds()` describes upper bounds; `getLowerBounds()` describes lower bounds. `?` has upper `Object` and empty lower; `? extends T` uses upper `T`; `? super T` uses lower `T` and implicit upper `Object`. To find the wildcard in `List<? ...>`, you must go through `ParameterizedType.getActualTypeArguments()` first.

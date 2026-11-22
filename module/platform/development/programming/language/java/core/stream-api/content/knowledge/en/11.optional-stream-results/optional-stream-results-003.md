@@ -1,37 +1,37 @@
-# Chọn giá trị mặc định bằng orElse và orElseGet
+# Choosing Default Values with orElse and orElseGet
 
-## 1. Vì sao kết quả của Stream thường cần giá trị mặc định?
+## 1. Why Do Stream Results Often Need a Default Value?
 
-Trong chương **Optional trong kết quả Stream** của **JAVA_STREAM_API**, các phép toán kết thúc như `findFirst()`, `findAny()`, `min()`, `max()` hoặc `reduce(BinaryOperator)` có thể không tìm được phần tử nào. Vì một Stream có thể rỗng sau `filter`, Java không thể luôn trả về một đối tượng `T` hợp lệ. Những terminal operation này dùng `Optional<T>` để biểu diễn kết quả **có giá trị hoặc không có giá trị**.
+In the **Optional in Stream Results** chapter of **JAVA_STREAM_API**, terminal operations such as `findFirst()`, `findAny()`, `min()`, `max()`, or `reduce(BinaryOperator)` may fail to find any element. Because a Stream can become empty after `filter`, Java cannot always return a valid `T` object. These terminal operations use `Optional<T>` to represent a result **with or without a value**.
 
-Khi nghiệp vụ yêu cầu luôn nhận một giá trị để xử lý tiếp, ta phải quyết định chính sách dự phòng. Hai phương thức quen thuộc là:
+When business logic requires always receiving a value to continue processing, we must decide on a fallback policy. Two familiar methods are:
 
-- `orElse(defaultValue)`: sử dụng giá trị dự phòng **đã được tính** trước khi gọi phương thức.
-- `orElseGet(supplier)`: chỉ **gọi hàm tạo giá trị dự phòng** nếu Optional thực sự rỗng.
+- `orElse(defaultValue)`: uses a fallback value that **has already been evaluated** before calling the method.
+- `orElseGet(supplier)`: **invokes the fallback-producing function** only if the Optional is actually empty.
 
-Đây là một phần của cách lập trình khai báo với pipeline lazy, `filter`, `map`, `reduce` và `collect`: lựa chọn khi nào có thể thiếu kết quả, khi nào được phép thay thế, và khi nào việc tính giá trị thay thế gây chi phí hoặc tác dụng phụ.
+This is part of declarative programming with lazy pipelines, `filter`, `map`, `reduce`, and `collect`: choosing when a result may be missing, when substitution is allowed, and when computing the replacement incurs cost or side effects.
 
 ~~~text
-Nguồn Stream ─► filter / map / ... ─► findFirst / max / reduce ─► Optional<T>
+Stream source ─► filter / map / ... ─► findFirst / max / reduce ─► Optional<T>
                                                                  │
                                     ┌────────────────────────────┴────────────────────────────┐
                                     ▼                                                         ▼
-                             Optional có giá trị                                      Optional.empty()
+                             Optional has value                                        Optional.empty()
                                     │                                                         │
-                           Lấy giá trị hiện có                                   Dùng giá trị dự phòng
+                           Take present value                                          Use fallback value
                                     │                                                         │
                                     └────────────────────────────┬────────────────────────────┘
                                                                  ▼
-                                                           T (không còn Optional)
+                                                           T (no longer Optional)
 ~~~
 
-**Điểm mấu chốt:** Với Optional có giá trị, hai phương thức thường trả về cùng giá trị. Khác biệt đáng chú ý nằm ở **thời điểm biểu thức dự phòng được thực thi**.
+**Key point:** When an Optional has a value, both methods usually return the same value. The notable difference lies in **when the fallback expression is executed**.
 
-Các ví dụ trong bài sử dụng Java 17+, nhưng `Optional.orElse` và `Optional.orElseGet` đã có từ Java 8.
+The examples in this lesson use Java 17+, although `Optional.orElse` and `Optional.orElseGet` have existed since Java 8.
 
-## 2. Tạo Optional từ kết quả Stream
+## 2. Creating an Optional From a Stream Result
 
-Ví dụ tìm tên khách hàng đầu tiên thỏa điều kiện:
+Example finding the first customer name matching a condition:
 
 ~~~java
 import java.util.List;
@@ -55,23 +55,23 @@ public class FindCustomer {
 }
 ~~~
 
-Các trường hợp thường gặp:
+Common cases:
 
-| Terminal operation | Kiểu kết quả | Vì sao có thể rỗng? |
+| Terminal operation | Result type | Why can it be empty? |
 | --- | --- | --- |
-| `findFirst()` | `Optional<T>` | Không có phần tử, hoặc không phần tử nào qua bộ lọc. |
-| `findAny()` | `Optional<T>` | Không có phần tử phù hợp. |
-| `min(comparator)` | `Optional<T>` | Stream không có phần tử. |
-| `max(comparator)` | `Optional<T>` | Stream không có phần tử. |
-| `reduce(BinaryOperator)` | `Optional<T>` | Không có giá trị nào để gộp. |
-| `IntStream.min()`, `IntStream.max()` | `OptionalInt` | Stream nguyên thủy rỗng. |
-| `IntStream.average()` | `OptionalDouble` | Không có số để tính trung bình. |
+| `findFirst()` | `Optional<T>` | No elements, or no element passes the filter. |
+| `findAny()` | `Optional<T>` | No matching element. |
+| `min(comparator)` | `Optional<T>` | Stream has no elements. |
+| `max(comparator)` | `Optional<T>` | Stream has no elements. |
+| `reduce(BinaryOperator)` | `Optional<T>` | No values to combine. |
+| `IntStream.min()`, `IntStream.max()` | `OptionalInt` | Primitive stream is empty. |
+| `IntStream.average()` | `OptionalDouble` | No numbers to compute the average. |
 
-Không phải mọi terminal operation đều trả Optional. Chẳng hạn `count()` trả `long` (bằng 0 nếu rỗng), `IntStream.sum()` trả `int` (bằng 0 nếu rỗng), còn `reduce(identity, accumulator)` trả trực tiếp giá trị tương ứng với identity khi Stream rỗng.
+Not every terminal operation returns an Optional. For instance, `count()` returns `long` (equal to 0 if empty), `IntStream.sum()` returns `int` (equal to 0 if empty), and `reduce(identity, accumulator)` directly returns the value corresponding to `identity` when the Stream is empty.
 
-## 3. Cú pháp và khác biệt chính giữa orElse và orElseGet
+## 3. Syntax and Key Differences Between orElse and orElseGet
 
-Hai chữ ký phương thức trên `Optional<T>`:
+Two method signatures on `Optional<T>`:
 
 ~~~java
 T orElse(T other);
@@ -79,7 +79,7 @@ T orElse(T other);
 T orElseGet(Supplier<? extends T> supplier);
 ~~~
 
-`orElse` nhận **một giá trị `T`**. `orElseGet` nhận **một Supplier** có khả năng tạo ra `T` khi được gọi.
+`orElse` accepts **a value `T`**. `orElseGet` accepts **a Supplier** capable of producing `T` when invoked.
 
 ~~~java
 import java.util.Optional;
@@ -87,36 +87,36 @@ import java.util.Optional;
 Optional<String> found = Optional.of("Bình");
 Optional<String> missing = Optional.empty();
 
-String a = found.orElse("Khách vãng lai");
-String b = missing.orElse("Khách vãng lai");
+String a = found.orElse("Guest");
+String b = missing.orElse("Guest");
 
-String c = found.orElseGet(() -> "Khách vãng lai");
-String d = missing.orElseGet(() -> "Khách vãng lai");
+String c = found.orElseGet(() -> "Guest");
+String d = missing.orElseGet(() -> "Guest");
 
-// a = "Bình", b = "Khách vãng lai"
-// c = "Bình", d = "Khách vãng lai"
+// a = "Bình", b = "Guest"
+// c = "Bình", d = "Guest"
 ~~~
 
-Với literal đơn giản, kết quả không khác nhau. Sự khác biệt xuất hiện khi **giá trị mặc định phải được tính**:
+With simple literals, the result does not differ. The difference appears when **the default value has to be computed**:
 
-| Điều kiện | `optional.orElse(createDefault())` | `optional.orElseGet(() -> createDefault())` |
+| Condition | `optional.orElse(createDefault())` | `optional.orElseGet(() -> createDefault())` |
 | --- | --- | --- |
-| Optional có giá trị | `createDefault()` **vẫn được gọi**; kết quả dự phòng bị bỏ | Supplier **không được gọi** |
-| Optional rỗng | `createDefault()` được gọi, trả kết quả dự phòng | Supplier được gọi để tạo kết quả dự phòng |
-| Fallback là literal/hằng số | Cách viết gọn, dễ hiểu | Có thể dùng nhưng không cần thiết |
-| Fallback tốn CPU, I/O hoặc có tác dụng phụ | Có nguy cơ thực thi thừa | Tránh thực thi dự phòng khi đã có kết quả |
+| Optional has a value | `createDefault()` **is still called**; the fallback result is discarded | Supplier **is not called** |
+| Optional is empty | `createDefault()` is called, returning the fallback result | Supplier is called to produce the fallback result |
+| Fallback is a literal/constant | Concise, easy-to-read syntax | Can be used, though unnecessary |
+| Fallback costs CPU, I/O, or has side effects | Risk of redundant execution | Avoids fallback execution when a result already exists |
 
-Lý do là cơ chế **đánh giá đối số của Java**: trước khi gọi `orElse(...)`, Java tính xong biểu thức được truyền vào. Với `orElseGet(...)`, đối số là một đối tượng Supplier (thường biểu diễn bằng lambda hoặc method reference); **thân hàm Supplier** chỉ được thực thi nếu Optional rỗng.
+The reason is **Java's argument evaluation mechanism**: before calling `orElse(...)`, Java finishes evaluating the passed expression. With `orElseGet(...)`, the argument is a Supplier object (usually expressed as a lambda or method reference); **the Supplier body** only executes if the Optional is empty.
 
-## 4. Chứng minh eager và lazy bằng ví dụ chạy được
+## 4. Demonstrating Eager vs. Lazy With a Runnable Example
 
 ~~~java
 import java.util.Optional;
 
 public class EagerVsLazy {
     static String buildDefault() {
-        System.out.println("Đang tạo giá trị dự phòng");
-        return "Khách vãng lai";
+        System.out.println("Creating fallback value");
+        return "Guest";
     }
 
     public static void main(String[] args) {
@@ -131,17 +131,17 @@ public class EagerVsLazy {
 }
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-Đang tạo giá trị dự phòng
+Creating fallback value
 orElse = An
 orElseGet = An
 ~~~
 
-Mặc dù `found` đã chứa `"An"`, `buildDefault()` vẫn được gọi để chuẩn bị đối số cho `orElse`. Lần gọi `orElseGet` không chạy `buildDefault()` vì Optional có giá trị.
+Even though `found` already contains `"An"`, `buildDefault()` is still called to prepare the argument for `orElse`. The `orElseGet` call does not run `buildDefault()` because the Optional has a value.
 
-Đổi `found` thành `Optional.empty()`:
+Change `found` to `Optional.empty()`:
 
 ~~~java
 Optional<String> missing = Optional.empty();
@@ -149,30 +149,30 @@ Optional<String> missing = Optional.empty();
 String fromElse = missing.orElse(buildDefault());
 String fromGet = missing.orElseGet(EagerVsLazy::buildDefault);
 
-// Cả hai đều nhận "Khách vãng lai".
-// Hàm buildDefault được gọi một lần cho mỗi lời gọi trên Optional rỗng.
+// Both receive "Guest".
+// buildDefault is called once for each invocation on the empty Optional.
 ~~~
 
-Không nên nhầm **việc tạo lambda** với **việc chạy thân lambda**: biểu thức `() -> buildDefault()` được đánh giá thành Supplier trước lời gọi phương thức, nhưng hành động `buildDefault()` chỉ xảy ra khi Optional rỗng.
+Do not confuse **creating the lambda** with **executing the lambda body**: the expression `() -> buildDefault()` is evaluated into a Supplier before the method call, but the `buildDefault()` action only happens when the Optional is empty.
 
-### Cách viết đúng khi fallback là một method
+### Correct Syntax When the Fallback Is a Method
 
 ~~~java
-// Gọi ngay; kể cả Optional có giá trị:
+// Called immediately, even if Optional has a value:
 String eager = found.orElse(buildDefault());
 
-// Chỉ gọi khi Optional rỗng:
+// Only called when Optional is empty:
 String lazyByLambda = found.orElseGet(() -> buildDefault());
 String lazyByReference = found.orElseGet(EagerVsLazy::buildDefault);
 ~~~
 
-`orElseGet(buildDefault())` **không hợp lệ** ở đây vì `buildDefault()` trả về `String`, còn `orElseGet` cần một `Supplier<? extends String>`.
+`orElseGet(buildDefault())` **is invalid** here because `buildDefault()` returns `String`, whereas `orElseGet` requires a `Supplier<? extends String>`.
 
-## 5. Tình huống nghiệp vụ: tạo đối tượng mặc định tốn tài nguyên
+## 5. Business Scenario: Creating an Expensive Default Object
 
-Giả sử hệ thống xử lý một danh sách yêu cầu và cần tìm yêu cầu ưu tiên. Nếu không có yêu cầu phù hợp, hệ thống tạo một đối tượng mặc định. Việc tạo này có thể tốn chi phí khi gắn với tra cứu cấu hình, gọi dịch vụ ngoài hoặc tính toán nhiều bước.
+Suppose a system processes a list of requests and needs to find a priority request. If no matching request exists, the system creates a default object. Creating it can be costly when tied to configuration lookups, external service calls, or multi-step calculations.
 
-Ví dụ độc lập sau dùng việc in log để cho thấy lúc nào hàm dự phòng chạy:
+The standalone example below uses logging to show when the fallback function runs:
 
 ~~~java
 import java.util.List;
@@ -182,7 +182,7 @@ public class RequestFallback {
     record Request(String id, int priority) {}
 
     static Request createDefaultRequest() {
-        System.out.println("Tạo yêu cầu mặc định");
+        System.out.println("Creating default request");
         return new Request("DEFAULT", 0);
     }
 
@@ -202,39 +202,39 @@ public class RequestFallback {
         );
 
         System.out.println(choose(requests)); // Request[id=R-02, priority=9]
-        System.out.println(choose(List.of())); // Có log tạo mặc định, rồi DEFAULT
+        System.out.println(choose(List.of())); // Logs creating default, then DEFAULT
     }
 }
 ~~~
 
-Khi đã tìm thấy `R-02`, hàm tạo yêu cầu mặc định **không chạy**. Khi danh sách trống, Supplier chạy để tạo đối tượng.
+When `R-02` is found, the default request creation function **does not run**. When the list is empty, the Supplier runs to create the object.
 
-Nếu thay bằng:
+If replaced with:
 
 ~~~java
 return selected.orElse(createDefaultRequest());
 ~~~
 
-thì đối tượng dự phòng được tạo **mỗi lần phương thức `choose` chạy**, dù `selected` chứa giá trị. Trong ứng dụng thực, điều này có thể dẫn tới request mạng dư thừa, mở file không cần thiết, hoặc thậm chí ghi thêm bản ghi không mong muốn nếu hàm tạo mặc định có tác dụng phụ.
+then the fallback object is created **every time `choose` runs**, even when `selected` contains a value. In a real application, this can lead to redundant network requests, unnecessary file opens, or even unwanted extra records written if the default-creating function has side effects.
 
-**Nguyên tắc:** Khi fallback cần gọi hàm hoặc tạo object có chi phí, `orElseGet` thường diễn đạt đúng ý định “chỉ tạo khi thiếu”.
+**Rule of thumb:** When the fallback needs to call a function or construct an expensive object, `orElseGet` usually expresses the intent "create only when missing" accurately.
 
-## 6. Nhiều chính sách fallback: từ giá trị có sẵn đến nguồn dự phòng
+## 6. Multiple Fallback Policies: From Ready Values to Fallback Sources
 
-Có nhiều mức độ dự phòng. Cần chọn dựa vào **ý nghĩa nghiệp vụ**, chứ không chỉ kiểu trả về.
+There are multiple levels of fallback. Choose based on **business meaning**, not just return type.
 
-### 6.1. Giá trị cố định, rẻ và bất biến
+### 6.1. Fixed, Cheap, and Immutable Values
 
 ~~~java
 String label = items.stream()
     .filter(text -> !text.isBlank())
     .findFirst()
-    .orElse("Không có dữ liệu");
+    .orElse("No data");
 ~~~
 
-Trong ví dụ này, `items` là `List<String>` của ngữ cảnh gọi. Chuỗi literal đã có sẵn, nên `orElse` là lựa chọn đơn giản.
+In this example, `items` is a `List<String>` from the calling context. The string literal is already available, so `orElse` is the simple choice.
 
-### 6.2. Giá trị dự phòng tính theo dữ liệu hiện tại
+### 6.2. Fallback Value Computed From Current Data
 
 ~~~java
 import java.time.LocalDate;
@@ -245,11 +245,11 @@ Optional<LocalDate> latestDate = dates.stream().max(LocalDate::compareTo);
 LocalDate chosen = latestDate.orElseGet(LocalDate::now);
 ~~~
 
-Ví dụ giả định `dates` là `List<LocalDate>`. `LocalDate.now()` chỉ được gọi khi không có ngày nào. Với ứng dụng cần kiểm thử được hoặc phải xác định múi giờ, có thể truyền `Clock` vào lớp và dùng `LocalDate.now(clock)` trong Supplier.
+The example assumes `dates` is a `List<LocalDate>`. `LocalDate.now()` is only called when there are no dates. For applications that need testability or explicit time zones, you can pass a `Clock` into the class and use `LocalDate.now(clock)` inside the Supplier.
 
-### 6.3. Truy vấn lần lượt cache và cơ sở dữ liệu
+### 6.3. Querying Cache Then Database Sequentially
 
-Đôi khi cả hai nguồn đều có thể **không có giá trị**. `Optional.or(...)` (Java 9+) giữ kiểu Optional cho đến khi quyết định fallback cuối cùng:
+Sometimes both sources can **lack a value**. `Optional.or(...)` (Java 9+) preserves the Optional type until the final fallback decision:
 
 ~~~java
 import java.util.Optional;
@@ -258,24 +258,24 @@ Optional<String> fromCache = Optional.empty();
 
 String displayName = fromCache
     .or(() -> lookupFromDatabase())
-    .orElseGet(() -> "Khách vãng lai");
+    .orElseGet(() -> "Guest");
 ~~~
 
-`lookupFromDatabase()` trong ví dụ là phương thức trả về `Optional<String>` do ứng dụng định nghĩa. `Optional.or` chỉ gọi Supplier khi Optional trước đó rỗng; kết quả của `or(...)` vẫn là **`Optional<String>`**, trong khi `orElseGet(...)` trả thẳng **`String`**.
+`lookupFromDatabase()` in the example is an application-defined method returning `Optional<String>`. `Optional.or` only calls the Supplier when the preceding Optional is empty; the result of `or(...)` is still **`Optional<String>`**, while `orElseGet(...)` directly returns **`String`**.
 
-Không thể dùng `orElseGet(() -> lookupFromDatabase())` trực tiếp khi hàm trả về `Optional<String>`, vì Supplier của `orElseGet` phải trả về **`String`**. Nếu muốn fallback trực tiếp từ truy vấn trả Optional, có thể dùng:
+You cannot use `orElseGet(() -> lookupFromDatabase())` directly when the function returns `Optional<String>`, because the Supplier of `orElseGet` must return **`String`**. If you want to fall back directly from a query returning Optional, you can use:
 
 ~~~java
 String displayName = fromCache.orElseGet(
-    () -> lookupFromDatabase().orElse("Khách vãng lai")
+    () -> lookupFromDatabase().orElse("Guest")
 );
 ~~~
 
-Trong các hệ thống có tác dụng phụ như ghi dữ liệu, gửi request hoặc tính phí, `orElseGet` chỉ quản lý **khi nào chạy fallback**; nó **không tự đảm bảo giao dịch, idempotency hay chỉ thực thi đúng một lần giữa nhiều request khác nhau**.
+In systems with side effects such as writing data, sending requests, or billing, `orElseGet` only manages **when the fallback runs**; it **does not automatically guarantee transactions, idempotency, or single execution across different requests**.
 
-## 7. Kết hợp với `findFirst`, `findAny` và `max`
+## 7. Combining With `findFirst`, `findAny`, and `max`
 
-### 7.1. `findFirst` khi cần phần tử đầu tiên
+### 7.1. `findFirst` When the First Element Is Needed
 
 ~~~java
 import java.util.List;
@@ -290,9 +290,9 @@ int firstHighScore = scores.stream()
 System.out.println(firstHighScore); // 75
 ~~~
 
-Với nguồn có encounter order như `List`, `findFirst` lấy phần tử phù hợp đầu tiên. Nếu không có phần tử phù hợp thì trả `Optional.empty()`; `orElse(-1)` đổi nó thành giá trị sentinel theo quy ước ứng dụng.
+With an ordered source such as `List`, `findFirst` takes the first matching element. If no element matches, it returns `Optional.empty()`; `orElse(-1)` converts it to a sentinel value per application convention.
 
-### 7.2. `findAny` khi chọn một phần tử bất kỳ là đủ
+### 7.2. `findAny` When Picking Any Element Is Enough
 
 ~~~java
 int anyHighScore = scores.parallelStream()
@@ -301,9 +301,9 @@ int anyHighScore = scores.parallelStream()
     .orElse(-1);
 ~~~
 
-`findAny` không cam kết chọn phần tử đầu tiên, đặc biệt khi xử lý song song. Giá trị dự phòng `-1` chỉ được dùng khi **không có phần tử** thỏa điều kiện. Nếu nghiệp vụ yêu cầu chính xác “đầu tiên”, dùng `findFirst` với nguồn có thứ tự xác định.
+`findAny` does not promise to choose the first element, especially during parallel processing. The fallback value `-1` is only used when **no element** satisfies the condition. If business logic strictly requires "the first", use `findFirst` with a deterministically ordered source.
 
-### 7.3. `max` và fallback khi không có dữ liệu
+### 7.3. `max` and Fallback When There Is No Data
 
 ~~~java
 import java.util.Comparator;
@@ -323,11 +323,11 @@ Product mostExpensive = products.stream()
 // Product[sku=BOOK, price=45000]
 ~~~
 
-`max` trả Optional vì nguồn có thể rỗng. Cần cân nhắc kỹ trước khi đưa một sản phẩm giả vào dữ liệu nghiệp vụ: fallback hữu ích khi mô hình cho phép “không có sản phẩm”, nhưng đôi khi kết quả Optional rỗng cần được giữ lại để hệ thống hiển thị trạng thái “chưa có hàng”.
+`max` returns an Optional because the source may be empty. Think carefully before introducing a dummy product into business data: a fallback is useful when the model allows "no product", yet sometimes an empty Optional result should be preserved so the system can display an "out of stock" state.
 
-## 8. `reduce`: nhận Optional khi không có identity
+## 8. `reduce`: Receiving Optional When There Is No Identity
 
-`reduce(BinaryOperator<T>)` trả `Optional<T>`, khác với biến thể có identity.
+`reduce(BinaryOperator<T>)` returns `Optional<T>`, unlike the variant with identity.
 
 ~~~java
 import java.util.List;
@@ -348,7 +348,7 @@ int emptyTotal = List.<Integer>of().stream()
 System.out.println(emptyTotal); // 0
 ~~~
 
-Nếu `0` thật sự là **phần tử đơn vị** thích hợp với phép cộng, có thể dùng biến thể `reduce(identity, accumulator)`:
+If `0` is truly an appropriate **identity element** for addition, you can use the `reduce(identity, accumulator)` variant:
 
 ~~~java
 int total = values.stream().reduce(0, Integer::sum);
@@ -357,21 +357,21 @@ int emptyTotal = List.<Integer>of().stream().reduce(0, Integer::sum);
 // total = 60; emptyTotal = 0
 ~~~
 
-Phép gộp phải tuân thủ các yêu cầu về kết hợp, identity và không can thiệp nếu muốn kết quả đúng trên parallel stream. Không tự ý dùng sentinel như `-1` với phép tính tổng nếu `-1` có thể bị hiểu là dữ liệu thật.
+The combining operation must satisfy associativity, identity, and non-interference requirements if you want correct results on a parallel stream. Do not arbitrarily use a sentinel like `-1` for a sum operation if `-1` could be mistaken for real data.
 
-Trong nhiều trường hợp số học, `mapToInt(...).sum()` trực tiếp hơn `reduce` trên `Stream<Integer>` và tránh boxing.
+In many numeric cases, `mapToInt(...).sum()` is more direct than `reduce` on `Stream<Integer>` and avoids boxing.
 
-## 9. Optional nguyên thủy: orElse và orElseGet có hoạt động không?
+## 9. Primitive Optionals: Do orElse and orElseGet Work?
 
-Có. `OptionalInt`, `OptionalLong` và `OptionalDouble` đều hỗ trợ hai cách lấy giá trị mặc định, nhưng kiểu Supplier tương ứng là **primitive functional interface**.
+Yes. `OptionalInt`, `OptionalLong`, and `OptionalDouble` all support both ways of getting default values, but the corresponding Supplier type is a **primitive functional interface**.
 
-| Kiểu Optional | `orElse` nhận | `orElseGet` nhận | Trả về |
+| Optional type | `orElse` takes | `orElseGet` takes | Returns |
 | --- | --- | --- | --- |
 | `OptionalInt` | `int other` | `IntSupplier` | `int` |
 | `OptionalLong` | `long other` | `LongSupplier` | `long` |
 | `OptionalDouble` | `double other` | `DoubleSupplier` | `double` |
 
-Ví dụ tổng hợp kết quả từ `IntStream`:
+Example aggregating a result from `IntStream`:
 
 ~~~java
 import java.util.OptionalInt;
@@ -389,7 +389,7 @@ int missing = IntStream.empty()
 System.out.println(missing); // -1
 ~~~
 
-Với `OptionalDouble` do `average()` trả về:
+With `OptionalDouble` returned by `average()`:
 
 ~~~java
 import java.util.stream.DoubleStream;
@@ -403,37 +403,37 @@ double defaultAvg = DoubleStream.empty()
     .orElseGet(() -> 0.0); // 0.0
 ~~~
 
-Giá trị `0.0` có thể khiến người đọc nhầm “không có quan sát” với “trung bình bằng 0”. Nếu phân biệt hai trạng thái là quan trọng, **giữ `OptionalDouble`** thay vì biến nó thành một số.
+The value `0.0` can mislead readers into confusing "no observations" with "average equals 0". If distinguishing the two states matters, **keep `OptionalDouble`** instead of turning it into a number.
 
-### Chi phí của fallback với primitive Optional
+### Cost of Fallback With Primitive Optionals
 
 ~~~java
 static int computeDefault() {
-    System.out.println("Tính giá trị int mặc định");
+    System.out.println("Computing default int value");
     return 42;
 }
 
-// Trong phương thức sử dụng:
-int value = OptionalInt.of(5).orElse(computeDefault()); // Vẫn tính 42.
-int lazy = OptionalInt.of(5).orElseGet(() -> computeDefault()); // Không gọi.
+// Inside the calling method:
+int value = OptionalInt.of(5).orElse(computeDefault()); // Still computes 42.
+int lazy = OptionalInt.of(5).orElseGet(() -> computeDefault()); // Not called.
 ~~~
 
-Đây vẫn là quy tắc đánh giá đối số Java, không phụ thuộc kiểu tham chiếu hay primitive.
+This still follows Java's argument evaluation rule, regardless of whether the type is reference or primitive.
 
-## 10. orElse, orElseGet, orElseThrow và ifPresentOrElse
+## 10. orElse, orElseGet, orElseThrow, and ifPresentOrElse
 
-Các phương thức có mục đích khác nhau:
+Each method serves a different purpose:
 
-| API | Khi Optional có giá trị | Khi Optional rỗng | Kiểu kết quả |
+| API | When Optional has a value | When Optional is empty | Return type |
 | --- | --- | --- | --- |
-| `orElse(value)` | Trả giá trị có sẵn | Trả `value` | `T` |
-| `orElseGet(supplier)` | Trả giá trị có sẵn, không gọi Supplier | Gọi Supplier lấy fallback | `T` |
-| `orElseThrow()` | Trả giá trị có sẵn | Ném `NoSuchElementException` | `T` |
-| `orElseThrow(exceptionSupplier)` | Trả giá trị có sẵn | Gọi Supplier tạo exception và ném | `T` |
-| `ifPresentOrElse(action, emptyAction)` | Thực hiện action | Thực hiện emptyAction | `void` |
-| `or(optionalSupplier)` | Giữ Optional hiện tại | Lấy Optional thay thế từ Supplier | `Optional<T>` |
+| `orElse(value)` | Returns the present value | Returns `value` | `T` |
+| `orElseGet(supplier)` | Returns the present value, does not call Supplier | Calls Supplier to get fallback | `T` |
+| `orElseThrow()` | Returns the present value | Throws `NoSuchElementException` | `T` |
+| `orElseThrow(exceptionSupplier)` | Returns the present value | Calls Supplier to create and throw exception | `T` |
+| `ifPresentOrElse(action, emptyAction)` | Executes action | Executes emptyAction | `void` |
+| `or(optionalSupplier)` | Keeps current Optional | Gets replacement Optional from Supplier | `Optional<T>` |
 
-### Thiếu dữ liệu là lỗi: dùng orElseThrow
+### Missing Data Is an Error: Use orElseThrow
 
 ~~~java
 import java.util.List;
@@ -444,15 +444,15 @@ String required = ids.stream()
     .filter(id -> id.equals("B200"))
     .findFirst()
     .orElseThrow(
-        () -> new IllegalStateException("Không tìm thấy mã bắt buộc")
+        () -> new IllegalStateException("Required code not found")
     );
 
 System.out.println(required); // B200
 ~~~
 
-Nếu thay `"B200"` bằng mã không tồn tại, Supplier mới tạo exception. Không nên tạo một dữ liệu giả để che giấu vi phạm ràng buộc quan trọng: khi dữ liệu là bắt buộc, exception hoặc kiểu kết quả biểu diễn lỗi thường đúng hơn.
+If `"B200"` is replaced with a nonexistent ID, the Supplier then creates the exception. Do not fabricate dummy data to mask violations of an important constraint: when data is mandatory, an exception or an error-representing result type is usually more appropriate.
 
-### Chỉ cần hành động, không cần trả về T: dùng ifPresentOrElse
+### Only an Action Needed, No T Return Value: Use ifPresentOrElse
 
 ~~~java
 import java.util.Optional;
@@ -460,41 +460,41 @@ import java.util.Optional;
 Optional<String> matched = Optional.empty();
 
 matched.ifPresentOrElse(
-    value -> System.out.println("Tìm thấy: " + value),
-    () -> System.out.println("Không tìm thấy")
+    value -> System.out.println("Found: " + value),
+    () -> System.out.println("Not found")
 );
 ~~~
 
-`ifPresentOrElse` không trả giá trị thay thế; nó điều phối hai hành động. Nếu mục tiêu là lấy `String` rồi chuyển tiếp vào pipeline hay trả về từ phương thức, `orElse` hoặc `orElseGet` phù hợp hơn.
+`ifPresentOrElse` does not return a replacement value; it dispatches two actions. If the goal is to obtain a `String` and pass it into a pipeline or return it from a method, `orElse` or `orElseGet` is more suitable.
 
-## 11. Các sai lầm thường gặp
+## 11. Common Mistakes
 
-### 11.1. Gọi hàm tốn kém trong orElse vì nghĩ rằng nó chỉ chạy khi rỗng
+### 11.1. Calling an Expensive Function Inside orElse Thinking It Only Runs When Empty
 
 ~~~java
-// Một hàm tạo dự phòng có tác dụng phụ vẫn chạy dù result có giá trị:
+// A fallback-creating function with side effects still runs even if result has a value:
 String selected = result.orElse(loadFromRemoteService());
 
-// Chỉ gọi service khi result rỗng:
+// Only calls the service when result is empty:
 String selectedLazy = result.orElseGet(() -> loadFromRemoteService());
 ~~~
 
-Trong đoạn này, `result` là `Optional<String>`, `loadFromRemoteService()` là hàm trả `String` do ứng dụng định nghĩa. Đây là sai lầm quan trọng nhất cần tránh.
+In this snippet, `result` is `Optional<String>`, and `loadFromRemoteService()` is an application-defined function returning `String`. This is the most important mistake to avoid.
 
-### 11.2. Tính fallback bên ngoài lambda rồi nghĩ rằng orElseGet sẽ trì hoãn nó
+### 11.2. Computing the Fallback Outside the Lambda Thinking orElseGet Delays It
 
 ~~~java
-String fallback = loadFromRemoteService(); // Đã gọi service tại đây.
+String fallback = loadFromRemoteService(); // Service already called here.
 String selected = result.orElseGet(() -> fallback);
 ~~~
 
-Đoạn trên vẫn gọi service mỗi lần thực thi, ngay cả khi `result` có giá trị. Để thật sự trì hoãn, đặt **lời gọi tốn kém** bên trong Supplier:
+The snippet above still calls the service on every execution, even when `result` has a value. To truly defer it, place **the expensive call** inside the Supplier:
 
 ~~~java
 String selected = result.orElseGet(() -> loadFromRemoteService());
 ~~~
 
-### 11.3. Dùng orElse(null) rồi quên xử lý null
+### 11.3. Using orElse(null) and Forgetting to Handle null
 
 ~~~java
 import java.util.Optional;
@@ -504,33 +504,33 @@ Optional<String> missing = Optional.empty();
 String name = missing.orElse(null); // name == null
 ~~~
 
-`Optional.orElse(null)` hợp lệ vì `orElse` có thể trả null, nhưng nó làm mất lợi ích biểu diễn “có/không” bằng Optional và có thể dẫn tới `NullPointerException` về sau.
+`Optional.orElse(null)` is valid because `orElse` can return null, yet it forfeits the benefit of representing "present/absent" with Optional and can lead to `NullPointerException` later.
 
-`orElseGet(() -> null)` cũng có thể trả null. Hai phương thức này **không có nghĩa vụ bảo đảm kết quả khác null**. Nếu cần một giá trị hợp lệ, hãy tạo fallback hợp lệ hoặc dùng `orElseThrow`.
+`orElseGet(() -> null)` can also return null. Neither method **has an obligation to guarantee a non-null result**. If you need a valid value, produce a valid fallback or use `orElseThrow`.
 
-### 11.4. Truyền Supplier null
+### 11.4. Passing a null Supplier
 
 ~~~java
 Optional<String> value = Optional.empty();
 
-// Không làm: Optional rỗng cần gọi Supplier, nên sẽ ném NPE.
+// Do not do this: an empty Optional needs to invoke Supplier, so it throws NPE.
 // String text = value.orElseGet(null);
 ~~~
 
-Dù với Optional có giá trị có thể không cần dereference Supplier, truyền null là cách dùng kém rõ ràng và dễ hỏng khi dữ liệu thay đổi. Luôn truyền Supplier hợp lệ.
+Although an Optional with a value might not dereference the Supplier, passing null is unclear usage and breaks easily when data changes. Always pass a valid Supplier.
 
-### 11.5. Dùng get() mà không biết Optional có giá trị hay không
+### 11.5. Using get() Without Knowing Whether Optional Has a Value
 
 ~~~java
 Optional<String> result = List.<String>of().stream().findFirst();
 
-// result.get(); // Ném NoSuchElementException.
-String display = result.orElse("Chưa có dữ liệu");
+// result.get(); // Throws NoSuchElementException.
+String display = result.orElse("No data yet");
 ~~~
 
-`get()` chỉ an toàn khi chắc chắn có giá trị, nhưng thiết kế thường tốt hơn nếu mô tả trực tiếp chiến lược thiếu dữ liệu bằng `orElse`, `orElseGet` hoặc `orElseThrow`.
+`get()` is only safe when a value is guaranteed, yet the design is usually better if the missing-data strategy is expressed directly via `orElse`, `orElseGet`, or `orElseThrow`.
 
-### 11.6. Mặc định không phù hợp ngữ nghĩa nghiệp vụ
+### 11.6. Defaulting Without Matching Business Semantics
 
 ~~~java
 double average = DoubleStream.empty()
@@ -538,9 +538,9 @@ double average = DoubleStream.empty()
     .orElse(0.0);
 ~~~
 
-Con số `0.0` trong ví dụ không phải một quan sát có trung bình bằng 0; nó là **quy tắc thay thế khi không có quan sát**. Hãy đặt tên và ghi nhận chính sách rõ ràng. Nếu cần phân biệt, giữ lại `OptionalDouble` cho đến bước trình bày hoặc xử lý cuối.
+The number `0.0` in the example is not an observation whose average equals 0; it is **a substitution rule when there are no observations**. Name and document the policy clearly. If distinguishing them is necessary, retain `OptionalDouble` until the presentation or final handling step.
 
-### 11.7. Dựa vào thứ tự của findAny trên parallel stream
+### 11.7. Relying on findAny Order on a Parallel Stream
 
 ~~~java
 String chosen = List.of("A", "B", "C").parallelStream()
@@ -548,11 +548,11 @@ String chosen = List.of("A", "B", "C").parallelStream()
     .orElse("DEFAULT");
 ~~~
 
-`orElse` chỉ xử lý việc Optional rỗng; nó **không làm kết quả của `findAny` trở nên xác định theo thứ tự**. Khi yêu cầu là phần tử đầu tiên, hãy dùng `findFirst` trên một nguồn có encounter order phù hợp.
+`orElse` only handles an empty Optional; it **does not make the result of `findAny` deterministic in order**. When the requirement is the first element, use `findFirst` on a source with an appropriate encounter order.
 
-## 12. Hiểu rõ hai lớp lazy: Stream và Supplier
+## 12. Understanding Two Layers of Laziness: Stream and Supplier
 
-Một điểm quan trọng của vòng đời pipeline: **Stream lazy** và **fallback lazy** là hai việc khác nhau.
+An important point of the pipeline lifecycle: **Stream laziness** and **fallback laziness** are two separate things.
 
 ~~~java
 import java.util.List;
@@ -562,34 +562,34 @@ List<Integer> numbers = List.of(1, 2, 3);
 
 Optional<Integer> match = numbers.stream()
     .filter(n -> n > 1)
-    .findFirst(); // Terminal operation đã chạy.
+    .findFirst(); // Terminal operation has already run.
 
 int selected = match.orElseGet(() -> expensiveFallback());
 ~~~
 
-Trong ví dụ, `expensiveFallback()` là hàm trả về `int` do ứng dụng cung cấp. `findFirst()` là terminal operation: nó đã **thực thi đủ pipeline** để tìm kết quả hoặc xác định không có kết quả. Sau đó, `orElseGet` mới quyết định có gọi fallback hay không.
+In the example, `expensiveFallback()` is a function returning `int` provided by the application. `findFirst()` is a terminal operation: it has **executed enough of the pipeline** to find a result or determine that none exists. Afterward, `orElseGet` decides whether to invoke the fallback.
 
 ~~~text
-Tạo Stream
+Create Stream
     │
-    ├─ filter/map/...        (mô tả pipeline lazy)
+    ├─ filter/map/...        (describe lazy pipeline)
     │
-    └─ findFirst()           (chạy terminal, trả Optional)
+    └─ findFirst()           (run terminal, return Optional)
              │
-             ├─ Có giá trị ──► orElseGet(...) ──► trả giá trị có sẵn
-             │                                     không chạy Supplier
+             ├─ Has value ───► orElseGet(...) ──► return present value
+             │                                    do not run Supplier
              │
-             └─ Rỗng ───────► orElseGet(...) ──► chạy Supplier
-                                                   trả fallback
+             └─ Empty ───────► orElseGet(...) ──► run Supplier
+                                                  return fallback
 ~~~
 
-`orElseGet` **không hoãn** terminal operation đã chạy. Nếu pipeline sử dụng nguồn I/O như `Files.lines`, vẫn cần đóng Stream đúng lúc bằng `try-with-resources`. Tương tự, Supplier có thể chạm tới cơ sở dữ liệu hoặc tài nguyên khác; Stream API không tự quản lý vòng đời các tài nguyên đó.
+`orElseGet` **does not postpone** an already-executed terminal operation. If the pipeline uses an I/O source like `Files.lines`, you still must close the Stream properly with `try-with-resources`. Likewise, the Supplier may touch a database or other resources; the Stream API does not automatically manage the lifecycle of those resources.
 
-Ngoài ra, một terminal như `findFirst` có thể dừng sớm; tránh dựa vào tác dụng phụ của `map`, `peek` hoặc `filter` để đếm chính xác mọi phần tử nguồn. Việc fallback có chạy hay không là câu chuyện riêng sau khi terminal trả Optional.
+Additionally, a terminal operation like `findFirst` can stop early; avoid relying on side effects of `map`, `peek`, or `filter` to count every source element accurately. Whether the fallback runs is a separate matter after the terminal operation returns an Optional.
 
-## 13. Kiểm thử: chứng minh fallback chỉ chạy khi thiếu
+## 13. Testing: Proving the Fallback Runs Only When Missing
 
-Đoạn sau là ví dụ độc lập, không cần thư viện kiểm thử bên ngoài. `AtomicInteger` được dùng như **bộ đếm trong thử nghiệm**, không phải một biến dùng chung trong callback của parallel Stream.
+The following snippet is a standalone example requiring no external testing library. `AtomicInteger` is used as a **counter in the test**, not as a shared variable inside callbacks of a parallel Stream.
 
 ~~~java
 import java.util.Optional;
@@ -606,7 +606,7 @@ public class OptionalFallbackCheck {
             });
 
         if (!present.equals("FOUND") || calls.get() != 0) {
-            throw new AssertionError("Supplier không được chạy khi có giá trị");
+            throw new AssertionError("Supplier must not run when a value is present");
         }
 
         String missing = Optional.<String>empty()
@@ -616,14 +616,14 @@ public class OptionalFallbackCheck {
             });
 
         if (!missing.equals("DEFAULT") || calls.get() != 1) {
-            throw new AssertionError("Supplier phải chạy khi Optional rỗng");
+            throw new AssertionError("Supplier must run when Optional is empty");
         }
 
         String eager = Optional.of("FOUND")
             .orElse(createDefault(calls));
 
         if (!eager.equals("FOUND") || calls.get() != 2) {
-            throw new AssertionError("Đối số orElse phải được tính trước lời gọi");
+            throw new AssertionError("orElse argument must be evaluated before the call");
         }
 
         System.out.println("PASS");
@@ -636,33 +636,33 @@ public class OptionalFallbackCheck {
 }
 ~~~
 
-Bài kiểm tra chứng minh đúng điểm khác nhau về **thực thi fallback**, thay vì chỉ so sánh kết quả cuối. Trong ứng dụng lớn, nên tách chính sách tìm kiếm, dự phòng và side effect thành các hàm có thể kiểm thử độc lập.
+The test proves the exact difference in **fallback execution**, rather than only comparing final outputs. In large applications, search policies, fallbacks, and side effects should be separated into independently testable functions.
 
-## 14. Cách chọn nhanh theo yêu cầu
+## 14. Quick Selection by Requirement
 
-| Nhu cầu | Giải pháp thường phù hợp | Giải thích |
+| Need | Usually suitable solution | Explanation |
 | --- | --- | --- |
-| Có chuỗi mặc định cố định | `orElse("UNKNOWN")` | Rõ ràng và không có chi phí tính dự phòng đáng kể. |
-| Tạo object chỉ khi thiếu | `orElseGet(MyType::new)` | Tránh tạo object không được sử dụng. |
-| Gọi dịch vụ ngoài chỉ khi thiếu | `orElseGet(this::loadFallback)` | Tránh I/O dư thừa khi đã có kết quả. |
-| Nguồn A và B đều trả Optional | `optionalA.or(this::lookupB)` | Giữ kết quả ở dạng Optional để ghép tiếp. |
-| Không cho phép thiếu dữ liệu | `orElseThrow(...)` | Thể hiện ràng buộc, không che giấu lỗi. |
-| Chỉ cần thực thi hai nhánh hành động | `ifPresentOrElse(...)` | Không cần tạo giá trị trả về. |
-| Kết quả từ `IntStream.max` | `OptionalInt.orElse/orElseGet` | Trả `int` trực tiếp. |
-| Không có trung bình và trung bình bằng 0 phải khác nhau | Giữ `OptionalDouble` | Tránh làm mất thông tin nghiệp vụ. |
-| Không chắc nguồn kết quả có thứ tự | Cân nhắc `findFirst` và nguồn ordered | Fallback không thay đổi cách Stream chọn phần tử. |
+| Fixed default string | `orElse("UNKNOWN")` | Clear and has no significant fallback computation cost. |
+| Create object only when missing | `orElseGet(MyType::new)` | Avoids creating unused objects. |
+| Call external service only when missing | `orElseGet(this::loadFallback)` | Avoids redundant I/O when a result already exists. |
+| Sources A and B both return Optional | `optionalA.or(this::lookupB)` | Keeps the result as an Optional for further chaining. |
+| Missing data is not allowed | `orElseThrow(...)` | Expresses the constraint without hiding errors. |
+| Only need to run two action branches | `ifPresentOrElse(...)` | No need to produce a return value. |
+| Result from `IntStream.max` | `OptionalInt.orElse/orElseGet` | Returns `int` directly. |
+| No average and average of 0 must differ | Keep `OptionalDouble` | Avoids losing business information. |
+| Unsure if result source is ordered | Consider `findFirst` and an ordered source | Fallback does not change how the Stream picks elements. |
 
-## 15. Câu hỏi tự kiểm tra
+## 15. Self-Check Questions
 
-1. **`Optional.of("A").orElse(expensive())` có gọi `expensive()` không?** Có. Đối số Java được tính trước khi gọi `orElse`.
-2. **`Optional.of("A").orElseGet(() -> expensive())` có gọi `expensive()` không?** Không. Supplier chỉ chạy nếu Optional rỗng.
-3. **Optional rỗng thì hai cách trả fallback có khác kết quả không?** Nếu hai cách tạo cùng giá trị, kết quả giống nhau; khác biệt là cách cung cấp và thời điểm tính giá trị dự phòng.
-4. **Muốn dùng fallback đã có sẵn dưới dạng hằng số nên chọn cách nào?** Thường dùng `orElse`.
-5. **`orElseGet(() -> database.find(id))` hợp lệ khi `database.find` trả `Optional<Customer>` nhưng Optional hiện tại có kiểu `Optional<Customer>` không?** Không, vì Supplier của `orElseGet` phải trả `Customer`. Nếu truy vấn dự phòng trả Optional, cân nhắc `or(...)`.
-6. **`orElseGet` có khiến phép `findFirst()` chưa chạy cho đến khi cần fallback không?** Không. `findFirst` là terminal operation đã trả Optional trước khi gọi `orElseGet`.
-7. **`OptionalInt` có `orElseGet` không?** Có, nhận `IntSupplier` và trả `int`.
-8. **Khi thiếu bản ghi bắt buộc, có nên tạo bản ghi giả?** Thường không. Sử dụng `orElseThrow` hoặc mô hình lỗi rõ ràng theo hợp đồng nghiệp vụ.
-9. **`orElseGet(() -> null)` có đảm bảo tránh null không?** Không. Supplier có thể trả null; thiết kế fallback nên kiểm soát điều đó.
-10. **`findAny` trên parallel stream có làm `orElse("DEFAULT")` chọn phần tử đầu tiên không?** Không. `findAny` vốn không cam kết trả phần tử đầu tiên.
+1. **Does `Optional.of("A").orElse(expensive())` call `expensive()`?** Yes. Java arguments are evaluated before calling `orElse`.
+2. **Does `Optional.of("A").orElseGet(() -> expensive())` call `expensive()`?** No. The Supplier only runs if the Optional is empty.
+3. **When Optional is empty, do the two fallback approaches return different results?** If both produce the same value, the result is the same; the difference is how and when the fallback value is provided and computed.
+4. **When you want a fallback already available as a constant, which should you choose?** Usually `orElse`.
+5. **Is `orElseGet(() -> database.find(id))` valid when `database.find` returns `Optional<Customer>` and the current Optional has type `Optional<Customer>`?** No, because the Supplier of `orElseGet` must return `Customer`. If the fallback query returns an Optional, consider `or(...)`.
+6. **Does `orElseGet` keep `findFirst()` from running until the fallback is needed?** No. `findFirst` is a terminal operation that already returned the Optional before `orElseGet` was called.
+7. **Does `OptionalInt` have `orElseGet`?** Yes, it takes an `IntSupplier` and returns `int`.
+8. **When a mandatory record is missing, should you create a dummy record?** Usually no. Use `orElseThrow` or an explicit error model per the business contract.
+9. **Does `orElseGet(() -> null)` guarantee avoiding null?** No. The Supplier can return null; fallback design should control that.
+10. **Does `findAny` on a parallel stream cause `orElse("DEFAULT")` to pick the first element?** No. `findAny` makes no guarantee to return the first element.
 
-**Ghi nhớ:** `orElse` phù hợp khi **giá trị mặc định đã có hoặc rất rẻ**, còn `orElseGet` phù hợp khi **cần tính hoặc lấy giá trị mặc định chỉ lúc Optional rỗng**. Sự khác biệt đến từ cách Java đánh giá đối số và Supplier, không phải từ việc Stream có chạy tuần tự hay song song. Luôn chọn fallback phù hợp ý nghĩa nghiệp vụ, giữ lại Optional nếu trạng thái thiếu dữ liệu quan trọng, và dùng `orElseThrow` khi không được phép thiếu kết quả.
+**Takeaway:** `orElse` is suitable when **the default value already exists or is very cheap**, whereas `orElseGet` is suitable when **the default value needs to be computed or fetched only when the Optional is empty**. The difference comes from how Java evaluates arguments versus Suppliers, not from whether the Stream runs sequentially or in parallel. Always choose a fallback matching business semantics, keep the Optional if the missing-data state matters, and use `orElseThrow` when a missing result is unacceptable.

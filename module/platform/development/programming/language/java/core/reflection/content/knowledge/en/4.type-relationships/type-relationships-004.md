@@ -1,22 +1,22 @@
-# Duyệt đồ thị interface và tránh lặp bằng Java Reflection
+# Traversing the Interface Graph and Avoiding Duplicates with Java Reflection
 
-## 1. Mục tiêu và bài toán
+## 1. Objectives and Problem Statement
 
-Khi dùng Reflection, một lớp Java có thể triển khai nhiều interface; mỗi interface lại có thể mở rộng nhiều interface khác. Ngoài ra, lớp còn kế thừa interface gián tiếp qua các lớp cha. Vì thế, gọi `getInterfaces()` một lần thường **chưa đủ** nếu muốn tìm **tất cả interface mà một kiểu có quan hệ kế thừa/triển khai**.
+When using Reflection, a Java class can implement multiple interfaces; each interface in turn can extend multiple other interfaces. Furthermore, a class also inherits interfaces indirectly through its superclasses. Therefore, calling `getInterfaces()` once is usually **not enough** if you want to find **all interfaces with which a type has an inheritance/implementation relationship**.
 
-Sau bài này, bạn có thể:
+After this article, you will be able to:
 
-- Phân biệt interface trực tiếp với interface kế thừa gián tiếp qua `extends` và `implements`.
-- Xây thuật toán duyệt đồ thị interface bằng `Class<?>`, `getInterfaces()` và `getSuperclass()`.
-- Dùng tập `visited` để mỗi interface chỉ xuất hiện một lần, kể cả khi có cấu trúc hình thoi.
-- Chọn thứ tự duyệt phù hợp và hiểu các ngoại lệ: đầu vào là interface, lớp, kiểu mảng hoặc kiểu nguyên thủy.
-- Phân biệt **liệt kê** interface với **kiểm tra** quan hệ kiểu bằng `isAssignableFrom()`.
+- Distinguish direct interfaces from interfaces inherited indirectly via `extends` and `implements`.
+- Build an interface graph traversal algorithm using `Class<?>`, `getInterfaces()`, and `getSuperclass()`.
+- Use a `visited` set so that each interface appears only once, even when there is a diamond structure.
+- Choose an appropriate traversal order and understand the edge cases: input as an interface, class, array type, or primitive type.
+- Distinguish **listing** interfaces from **checking** a type relationship with `isAssignableFrom()`.
 
-Ở đây, “tất cả interface” có nghĩa: **các interface tổ tiên** của kiểu đầu vào; nếu đầu vào chính là một interface, **không tính interface đầu vào vào danh sách kết quả**. Định nghĩa này quyết định cách khởi tạo thuật toán.
+Here, "all interfaces" means: **the ancestor interfaces** of the input type; if the input itself is an interface, **do not include the input interface in the result list**. This definition determines how the algorithm is initialized.
 
-## 2. Mô hình đồ thị: vì sao cần duyệt?
+## 2. Graph Model: Why Is Traversal Needed?
 
-Xem khai báo sau:
+Consider the following declarations:
 
 ```java
 interface Root {}
@@ -28,7 +28,7 @@ class Base implements Left {}
 class Child extends Base implements Diamond, Right {}
 ```
 
-Các quan hệ chính:
+Main relationships:
 
 ```text
                   Child
@@ -42,44 +42,44 @@ Các quan hệ chính:
        Root                    Root
 ```
 
-Sơ đồ biểu diễn nhiều đường có thể dẫn đến cùng một interface; đây là **đồ thị có hướng**, không phải cây. Chẳng hạn, `Root` có thể được tìm thấy qua `Diamond → Left → Root`, `Diamond → Right → Root` hoặc `Base → Left → Root`. Nếu chỉ ghép các kết quả đệ quy mà không ghi nhớ nút đã gặp, `Left`, `Right` và `Root` có thể bị liệt kê nhiều lần.
+The diagram depicts multiple paths that can lead to the same interface; this is a **directed graph**, not a tree. For example, `Root` can be reached via `Diamond → Left → Root`, `Diamond → Right → Root`, or `Base → Left → Root`. If you simply combine recursive results without recording seen nodes, `Left`, `Right`, and `Root` can be listed multiple times.
 
-Trong mã Java hợp lệ, một interface không thể tạo chu trình kế thừa `A extends B` rồi `B extends A`. Dù vậy, `visited` vẫn cần thiết để xử lý **nhiều đường tới cùng một nút**; tính đúng đắn của thuật toán không dựa vào giả định “mọi nút chỉ xuất hiện trên một đường đi”.
+In valid Java code, an interface cannot form an inheritance cycle `A extends B` and then `B extends A`. Even so, `visited` is still necessary to handle **multiple paths to the same node**; the correctness of the algorithm does not rely on the assumption that "every node appears on only one path".
 
-## 3. Những API Reflection cần biết
+## 3. Reflection APIs You Need to Know
 
-| API | Trả về | Vai trò |
+| API | Returns | Role |
 | --- | --- | --- |
-| `type.getInterfaces()` | `Class<?>[]` | Các interface **trực tiếp** được khai báo trong `implements` của lớp hoặc `extends` của interface; với lớp con, không tự kèm mọi interface của lớp cha. |
-| `type.getSuperclass()` | `Class<?>` hoặc `null` | Lớp cha trực tiếp của một lớp; trả `null` với interface, `Object`, primitive và `void`. |
-| `type.isInterface()` | `boolean` | Phân biệt nút interface với nút lớp để chỉ đưa interface vào kết quả. |
-| `iface.isAssignableFrom(type)` | `boolean` | Kiểm tra `type` có thể gán cho biến kiểu `iface` hay không, bao gồm chính cùng một kiểu. |
-| `type.getGenericInterfaces()` | `Type[]` | Đọc dạng generic của interface trực tiếp, ví dụ `Comparable<String>`; đây là bài toán khác với khử trùng lặp theo `Class<?>`. |
+| `type.getInterfaces()` | `Class<?>[]` | **Direct** interfaces declared in a class's `implements` or an interface's `extends`; for a subclass, does not automatically include all interfaces of its superclass. |
+| `type.getSuperclass()` | `Class<?>` or `null` | Direct superclass of a class; returns `null` for interfaces, `Object`, primitives, and `void`. |
+| `type.isInterface()` | `boolean` | Distinguishes an interface node from a class node so only interfaces are added to the result. |
+| `iface.isAssignableFrom(type)` | `boolean` | Checks whether `type` can be assigned to a variable of type `iface`, including the same type itself. |
+| `type.getGenericInterfaces()` | `Type[]` | Reads the generic form of direct interfaces, such as `Comparable<String>`; this is a different problem from deduplicating by `Class<?>`. |
 
-**Phân biệt hai hướng truy vấn:**
+**Distinguishing the two query directions:**
 
-- `Child.class.getInterfaces()` chỉ cho biết `Diamond` và `Right` khai báo trực tiếp trong `Child`.
-- Muốn có `Left` và `Root`, phải đi tiếp qua các interface cha và qua `Base`.
-- `Root.class.isAssignableFrom(Child.class)` trả `true` nếu chỉ muốn biết `Child` có thực thi hợp đồng của `Root`, không cần tự dựng danh sách interface.
+- `Child.class.getInterfaces()` only tells you `Diamond` and `Right` declared directly on `Child`.
+- To get `Left` and `Root`, you must walk further through superinterfaces and through `Base`.
+- `Root.class.isAssignableFrom(Child.class)` returns `true` if you only want to know whether `Child` fulfills the contract of `Root`, without needing to build an interface list yourself.
 
-`Class<?>` đại diện cho danh tính kiểu ở runtime. Hai lớp/interface cùng tên nhị phân nhưng được định nghĩa bởi hai class loader khác nhau có thể là hai đối tượng `Class<?>` khác nhau. Vì vậy hãy lưu **`Class<?>`**, không dùng riêng `getSimpleName()` hoặc `getName()` làm khóa loại trùng.
+`Class<?>` represents runtime type identity. Two classes/interfaces with the same binary name defined by two different class loaders can be two distinct `Class<?>` objects. Therefore store **`Class<?>`**, do not use `getSimpleName()` or `getName()` alone as a deduplication key.
 
-## 4. Thuật toán BFS tránh lặp
+## 4. Duplicate-Avoiding BFS Algorithm
 
-Ta dùng **Breadth-First Search (BFS)** với hàng đợi `ArrayDeque` và tập giữ thứ tự `LinkedHashSet`:
+We use **Breadth-First Search (BFS)** with an `ArrayDeque` queue and an order-preserving `LinkedHashSet`:
 
-1. Nếu đầu vào là **lớp**, đưa lớp đó vào hàng đợi để khám phá interface trực tiếp và lớp cha. Nếu đầu vào là **interface**, chỉ đưa các *interface cha trực tiếp* vào hàng đợi để loại chính đầu vào khỏi kết quả.
-2. Lấy phần tử đầu hàng đợi. Nếu là interface, thử thêm nó vào `visited`. Nếu đã tồn tại, bỏ qua việc mở rộng nút này; nếu mới, thêm các interface cha của nó vào hàng đợi.
-3. Nếu là lớp, thêm các interface trực tiếp vào hàng đợi, sau đó thêm lớp cha khi khác `null`. Không thêm nút lớp vào kết quả.
-4. Dừng khi hàng đợi rỗng. Chuyển `visited` thành danh sách kết quả.
+1. If the input is a **class**, enqueue that class to explore its direct interfaces and superclass. If the input is an **interface**, enqueue only its *direct superinterfaces* to exclude the input itself from the result.
+2. Poll the front element from the queue. If it is an interface, try adding it to `visited`. If it already exists, skip expanding this node; if new, enqueue its superinterfaces.
+3. If it is a class, enqueue its direct interfaces, then enqueue its superclass when non-`null`. Do not add class nodes to the result.
+4. Stop when the queue is empty. Convert `visited` into the result list.
 
-**Bất biến quan trọng:** một interface chỉ được mở rộng khi lần đầu được đưa vào `visited`. Những đường gặp lại interface đó không tạo thêm phần tử kết quả và không duyệt lại toàn bộ tổ tiên của nó.
+**Key invariant:** an interface is expanded only the first time it is added to `visited`. Subsequent encounters with that interface do not produce duplicate result elements and do not re-traverse all of its ancestors.
 
-`LinkedHashSet` giữ thứ tự **lần đầu gặp** theo BFS. Thứ tự trong ví dụ là thứ tự duyệt có chủ đích; nó không phải một thứ tự phân cấp duy nhất mà mọi công cụ Reflection phải trả về. Nếu sản phẩm cần thứ tự hiển thị cố định theo tên, hãy sắp xếp riêng sau khi thu thập, bằng tên đầy đủ cùng thông tin loader khi cần.
+`LinkedHashSet` preserves **first-seen** order under BFS. The order in the example is an intentional traversal order; it is not a single canonical hierarchy order that every Reflection tool must return. If a product needs a fixed alphabetical display order, sort separately after collection, using the full name together with loader information when needed.
 
-## 5. Ví dụ Java 17+ chạy độc lập
+## 5. Standalone Runnable Java 17+ Example
 
-Lưu toàn bộ mã sau vào file **`InterfaceGraphDemo.java`**:
+Save the entire code below into a file named **`InterfaceGraphDemo.java`**:
 
 ```java
 import java.util.ArrayDeque;
@@ -104,8 +104,8 @@ public class InterfaceGraphDemo {
     static class Child extends Base implements Diamond, Right {}
 
     /**
-     * Liệt kê mọi interface tổ tiên của type theo BFS,
-     * không gồm chính type khi type là interface.
+     * Lists all ancestor interfaces of type using BFS,
+     * excluding type itself when type is an interface.
      */
     public static List<Class<?>> allInterfaces(Class<?> type) {
         Objects.requireNonNull(type, "type");
@@ -123,16 +123,16 @@ public class InterfaceGraphDemo {
             Class<?> current = pending.removeFirst();
 
             if (current.isInterface()) {
-                // Đã gặp qua nhánh khác: không thêm và không duyệt lại.
+                // Already seen via another branch: do not add and do not traverse again.
                 if (!visited.add(current)) {
                     continue;
                 }
                 pending.addAll(Arrays.asList(current.getInterfaces()));
             } else {
-                // Interface trực tiếp của lớp hiện tại.
+                // Direct interfaces of the current class.
                 pending.addAll(Arrays.asList(current.getInterfaces()));
 
-                // Lớp con có thể kế thừa interface qua lớp cha.
+                // A subclass can inherit interfaces through its superclass.
                 Class<?> parent = current.getSuperclass();
                 if (parent != null) {
                     pending.addLast(parent);
@@ -163,14 +163,14 @@ public class InterfaceGraphDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or higher:
 
 ```bash
 javac InterfaceGraphDemo.java
 java InterfaceGraphDemo
 ```
 
-Kết quả chuẩn của chương trình:
+Expected output of the program:
 
 ```text
 Direct Child: [Diamond, Right]
@@ -182,76 +182,76 @@ All int: []
 Assignable: true
 ```
 
-**Giải thích kết quả:**
+**Output explanation:**
 
-- `Direct Child` có đúng hai interface khai báo trong `implements` của `Child`.
-- BFS của `Child` gặp `Diamond` rồi `Right`. Sau đó, thuật toán đi vào `Left` (từ `Diamond`) và `Root`. Các lần gặp lại `Right`, `Left`, `Root` qua nhánh khác đều bị bỏ qua.
-- `Base` chỉ khai báo `Left` nhưng cũng có `Root` qua `Left extends Root`.
-- Với đầu vào `Diamond.class`, ta chủ động bắt đầu từ `Left` và `Right` nên **không đưa `Diamond` vào kết quả**.
-- `Root` không có interface cha. `int` không có interface. Cả hai cho danh sách rỗng, nhưng lý do khác nhau.
-- `isAssignableFrom` trả `true` vì `Child` gián tiếp thực thi `Root`.
+- `Direct Child` has the exact two interfaces declared in `Child`'s `implements`.
+- BFS on `Child` visits `Diamond` then `Right`. Next, the algorithm visits `Left` (from `Diamond`) and `Root`. Subsequent encounters with `Right`, `Left`, and `Root` via other branches are all skipped.
+- `Base` only declares `Left`, yet also has `Root` via `Left extends Root`.
+- For the input `Diamond.class`, we intentionally start from `Left` and `Right` so **we do not include `Diamond` in the result**.
+- `Root` has no superinterface. `int` has no interfaces. Both yield an empty list, but for different reasons.
+- `isAssignableFrom` returns `true` because `Child` indirectly implements `Root`.
 
-## 6. Vì sao thuật toán không mất và không lặp interface?
+## 6. Why Does the Algorithm Neither Miss Nor Duplicate Interfaces?
 
-**Đủ:** mọi interface tổ tiên đều có một chuỗi cạnh hợp lệ đi từ kiểu đầu vào qua `getInterfaces()` hoặc qua `getSuperclass()` rồi `getInterfaces()`. Thuật toán lần lượt đưa các nút kề vào hàng đợi, nên sẽ đến mỗi interface tổ tiên có thể tới được.
+**Completeness:** every ancestor interface has a valid edge chain leading from the input type via `getInterfaces()` or via `getSuperclass()` then `getInterfaces()`. The algorithm enqueues adjacent nodes step by step, so it will reach every reachable ancestor interface.
 
-**Không trùng:** chỉ một thao tác `visited.add(current)` trả `true` cho mỗi đối tượng `Class<?>`. Mọi lần gặp tiếp theo đều gặp `false` và bị `continue`, nên kết quả chứa mỗi interface đúng một lần.
+**No duplicates:** only one `visited.add(current)` operation returns `true` for each `Class<?>` object. Every subsequent encounter gets `false` and hits `continue`, so the result contains each interface exactly once.
 
-**Kết thúc:** số lớp trên chuỗi `getSuperclass()` và số interface tổ tiên của một kiểu Java đã nạp là hữu hạn. Một lớp cha chỉ được đưa vào hàng đợi qua lớp con của nó; mỗi interface chỉ mở rộng một lần. Hàng đợi cuối cùng sẽ rỗng.
+**Termination:** the number of classes on the `getSuperclass()` chain and the number of ancestor interfaces of a loaded Java type are finite. A superclass is only enqueued by its subclass; each interface is expanded only once. The queue will eventually become empty.
 
-Nếu gọi `V` là số nút lớp/interface gặp được và `E` là số cạnh kế thừa/triển khai được xét, thời gian là **O(V + E)**. Bộ nhớ dành cho hàng đợi và tập đã thăm tối đa **O(V + E)** trong cách cài đặt này, bởi một interface có thể được đưa vào hàng đợi từ nhiều cạnh trước khi được xử lý. Chuyển `visited` thành `ArrayList` tốn thêm O(V).
+If we let `V` be the number of reachable class/interface nodes and `E` be the number of inheritance/implementation edges examined, time complexity is **O(V + E)**. Space used by the queue and visited set is at most **O(V + E)** in this implementation, because an interface can be enqueued from multiple edges before being processed. Converting `visited` to `ArrayList` takes an additional O(V).
 
-BFS tránh giới hạn độ sâu lời gọi của cách đệ quy thuần. Một bản DFS với `HashSet` hoặc `LinkedHashSet` cũng đúng nếu kiểm tra `visited.add(...)` **trước** khi đi sâu vào các interface cha; điểm khác chủ yếu là thứ tự kết quả và việc dùng call stack.
+BFS avoids the call depth limits of pure recursion. A DFS version with `HashSet` or `LinkedHashSet` is also correct if `visited.add(...)` is checked **before** recursing into superinterfaces; the main differences are result order and call stack usage.
 
-## 7. Những trường hợp dễ nhầm
+## 7. Commonly Confused Cases
 
-### 7.1. Chỉ lấy `getInterfaces()` của lớp con
+### 7.1. Taking Only `getInterfaces()` of the Subclass
 
-Sai với mục tiêu “tất cả interface”: `Child.class.getInterfaces()` không tự trả `Left` qua `Base` và cũng không tự khai triển `Root`. Cần duyệt cả hai loại cạnh: **interface → superinterface** và **class → superclass**.
+Wrong for the goal of "all interfaces": `Child.class.getInterfaces()` does not automatically return `Left` via `Base` and does not expand `Root`. You must traverse both kinds of edges: **interface → superinterface** and **class → superclass**.
 
-### 7.2. Dùng `List` rồi thêm vô điều kiện
+### 7.2. Using a `List` and Adding Unconditionally
 
-Nếu chỉ cộng dồn interface theo các nhánh, cấu trúc hình thoi sinh phần tử lặp. Hãy dùng `Set<Class<?>>` để kiểm tra danh tính trước khi duyệt tiếp. Không chỉ lọc `distinct()` ở cuối: làm vậy không ngăn các nhánh chung bị xử lý nhiều lần trong lúc duyệt.
+If you merely accumulate interfaces along branches, a diamond structure produces duplicate elements. Use `Set<Class<?>>` to check identity before traversing further. Do not merely filter with `distinct()` at the end: doing so does not prevent shared branches from being processed multiple times during traversal.
 
-### 7.3. Dùng tên interface làm khóa
+### 7.3. Using Interface Names as Keys
 
-`getSimpleName()` có thể trùng giữa các package. `getName()` phân biệt package nhưng chưa đủ khi cùng tên được định nghĩa trong các class loader khác nhau. Khóa `Class<?>` bám đúng kiểu runtime; chỉ dùng tên khi **hiển thị**.
+`getSimpleName()` can collide across packages. `getName()` distinguishes packages, yet is insufficient when the same name is defined in different class loaders. Keying by `Class<?>` tracks exact runtime types; only use names for **display**.
 
-### 7.4. Nhầm kiểm tra quan hệ với liệt kê tổ tiên
+### 7.4. Confusing Relationship Checks with Ancestor Enumeration
 
-Nếu chỉ cần hỏi “`Service` có triển khai `Runnable` không?”, dùng:
+If you only need to ask "Does `Service` implement `Runnable`?", use:
 
 ```java
 boolean implementsRunnable = Runnable.class.isAssignableFrom(Service.class);
 ```
 
-Đây là **đoạn minh họa**, giả sử `Service` là lớp đã được định nghĩa. Khi cần danh sách tất cả interface để xây tài liệu, kiểm tra annotation, phân tích kiểu hoặc tạo báo cáo Reflection, mới cần thuật toán duyệt.
+This is an **illustrative snippet**, assuming `Service` is an already-defined class. Only when you need the list of all interfaces to build documentation, inspect annotations, analyze types, or generate Reflection reports do you need the traversal algorithm.
 
-Đặc biệt, `SomeInterface.class.isAssignableFrom(SomeInterface.class)` là `true`, trong khi `allInterfaces(SomeInterface.class)` theo **định nghĩa của bài** không tự chứa `SomeInterface.class`.
+Specifically, `SomeInterface.class.isAssignableFrom(SomeInterface.class)` is `true`, whereas `allInterfaces(SomeInterface.class)` by **the definition in this article** does not contain `SomeInterface.class` itself.
 
-### 7.5. Bỏ qua kiểu mảng và kiểu đặc biệt
+### 7.5. Ignoring Array Types and Special Types
 
-- `String[].class` có interface trực tiếp `Cloneable` và `java.io.Serializable` theo mô hình kiểu mảng của Java, dù không có mệnh đề `implements` trong mã nguồn.
-- Primitive như `int.class` và `void.class` không có interface và không có superclass.
-- Interface có `getSuperclass() == null`, nên phải khám phá interface cha bằng `getInterfaces()`.
-- `Object.class` không có superclass; vòng lặp phải xử lý `null` an toàn.
+- `String[].class` has direct interfaces `Cloneable` and `java.io.Serializable` according to Java's array type model, even without an `implements` clause in source code.
+- Primitives like `int.class` and `void.class` have no interfaces and no superclass.
+- Interfaces have `getSuperclass() == null`, so you must discover superinterfaces using `getInterfaces()`.
+- `Object.class` has no superclass; the loop must handle `null` safely.
 
-### 7.6. Lẫn lộn raw interface và dạng generic
+### 7.6. Mixing Up Raw Interfaces and Generic Forms
 
-Ví dụ `class X implements Comparable<String>`: `getInterfaces()` trả đối tượng `Class` của `Comparable`, còn `getGenericInterfaces()` có thể biểu diễn `Comparable<String>` dưới dạng `ParameterizedType`. Thuật toán ở đây tìm **danh tính interface**, không suy luận hay hợp nhất các tham số kiểu khi đi qua chuỗi generic. Nếu cần mô hình `Type` chính xác, phải giải bài toán ánh xạ type variable riêng, không chỉ đổi `getInterfaces()` thành `getGenericInterfaces()`.
+For example, `class X implements Comparable<String>`: `getInterfaces()` returns the `Class` object of `Comparable`, whereas `getGenericInterfaces()` can represent `Comparable<String>` as a `ParameterizedType`. The algorithm here finds **interface identity**, not inferring or unifying type parameters while walking generic chains. If you need an exact `Type` model, you must solve the type variable mapping problem separately, not merely swap `getInterfaces()` for `getGenericInterfaces()`.
 
-### 7.7. Tưởng thứ tự là hợp đồng nghiệp vụ
+### 7.7. Assuming the Order Is a Business Contract
 
-`LinkedHashSet` giữ thứ tự gặp theo BFS, còn độ ưu tiên nhánh chịu ảnh hưởng thứ tự interface trực tiếp do API cung cấp và thứ tự đưa lớp cha vào hàng đợi. Nếu cần danh sách theo tên, sắp xếp rõ ràng; nếu cần độ sâu gần nhất, tính và lưu độ sâu. Đừng dùng chỉ số trong kết quả làm “thứ bậc kế thừa” mặc định.
+`LinkedHashSet` preserves encounter order under BFS, while branch priority is influenced by the direct interface order provided by the API and the order in which superclasses are enqueued. If you need a list sorted by name, sort explicitly; if you need closest depth, compute and store depth. Do not treat the index in the result as a default "inheritance precedence".
 
-## 8. Checklist khi dùng trong mã thật
+## 8. Checklist for Production Code
 
-- **Chốt định nghĩa đầu ra:** chỉ tổ tiên, hay có bao gồm chính interface đầu vào? Ví dụ này chọn **không bao gồm**.
-- **Đi đủ cạnh:** interface trực tiếp, interface cha của interface và lớp cha của lớp.
-- **Thăm một lần:** chỉ mở rộng interface lần đầu `visited.add` trả `true`.
-- **Đúng danh tính:** dùng `Class<?>` làm khóa, không dùng chuỗi tên.
-- **Xử lý đầu vào:** kiểm tra `null`, kiểu interface, lớp, mảng, primitive; không dựa vào một câu lệnh `implements` trong mã nguồn.
-- **Tách mục đích:** cần kiểm tra một quan hệ kiểu thì ưu tiên `isAssignableFrom()`; cần liệt kê toàn bộ quan hệ mới cần duyệt đồ thị.
-- **Kiểm chứng cấu trúc hình thoi:** ví dụ `Diamond` phải cho `Root` đúng một lần; trường hợp kế thừa qua `Base` cũng không tạo bản sao.
+- **Lock down the output definition:** ancestors only, or include the input interface itself? This example chooses **not to include it**.
+- **Follow all edges:** direct interfaces, superinterfaces of interfaces, and superclasses of classes.
+- **Visit once:** only expand an interface the first time `visited.add` returns `true`.
+- **Right identity:** use `Class<?>` as the key, not name strings.
+- **Handle inputs:** check `null`, interface types, classes, arrays, primitives; do not rely on an `implements` statement in source code.
+- **Separate concerns:** to check a single type relationship, prefer `isAssignableFrom()`; only traverse the graph when you need to list all relationships.
+- **Verify diamond structures:** for example, `Diamond` must yield `Root` exactly once; inheritance through `Base` must not produce duplicates either.
 
-**Ghi nhớ:** mô hình interface của Java được nhìn từ Reflection như một đồ thị có các nhánh hội tụ. Duyệt mọi cạnh cần thiết, nhưng dùng `visited` theo danh tính `Class<?>` để chỉ xử lý mỗi interface đúng một lần.
+**Takeaway:** Java's interface model is viewed from Reflection as a graph with converging branches. Traverse every necessary edge, but use `visited` keyed by `Class<?>` identity to process each interface exactly once.

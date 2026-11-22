@@ -1,68 +1,68 @@
-# java --module-path chạy module
+# Running Modules with `java --module-path`
 
-> Phạm vi: Java Platform Module System (JPMS, từ Java 9). Bài này hướng dẫn chạy một named module bằng Java launcher với **--module-path** và **--module**.
+> Scope: Java Platform Module System (JPMS, since Java 9). This lesson guides you through running a named module using the Java launcher with **--module-path** and **--module**.
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-- Viết đúng cú pháp **java --module-path ... --module ...**.
-- Phân biệt module path với class path.
-- Chạy một module từ thư mục module đã biên dịch hoặc từ modular JAR.
-- Chỉ định main class và truyền đối số cho chương trình.
-- Hiểu cách launcher resolve module chính cùng các dependency được khai báo bằng **requires**.
-- Kiểm tra module path và xử lý các lỗi thường gặp khi chạy ứng dụng modular.
+- Write the correct **java --module-path ... --module ...** syntax.
+- Distinguish between the module path and the class path.
+- Run a module from a compiled module directory or from a modular JAR.
+- Specify a main class and pass arguments to the program.
+- Understand how the launcher resolves the main module along with dependencies declared via **requires**.
+- Inspect the module path and troubleshoot common errors when running modular applications.
 
-## 1. Cú pháp cơ bản
+## 1. Basic Syntax
 
-Cú pháp tổng quát:
+General syntax:
 
 ~~~bash
-java [các-tùy-chọn-JVM] --module-path <module-path> --module <module-name>[/<main-class>] [application-args...]
+java [jvm-options] --module-path <module-path> --module <module-name>[/<main-class>] [application-args...]
 ~~~
 
-Có thể viết bằng các dạng rút gọn:
+You can write it using the short forms:
 
 ~~~bash
 java -p <module-path> -m <module-name>[/<main-class>] [application-args...]
 ~~~
 
-Trong đó:
+Where:
 
 - **java**: Java application launcher.
-- **--module-path** hoặc **-p**: chỉ định nơi launcher tìm các module ứng dụng và thư viện.
-- **--module** hoặc **-m**: chỉ định module chính cần khởi chạy.
-- **module-name**: tên module được khai báo trong **module-info.java** hoặc tên automatic module của JAR.
-- **main-class**: tên đầy đủ của lớp có phương thức **public static void main(String[] args)**.
-- **application-args**: các đối số được truyền cho phương thức **main**.
+- **--module-path** or **-p**: specifies where the launcher looks for application and library modules.
+- **--module** or **-m**: specifies the main module to launch.
+- **module-name**: the module name declared in **module-info.java** or the automatic module name of a JAR.
+- **main-class**: the fully qualified name of the class containing the **public static void main(String[] args)** method.
+- **application-args**: arguments passed to the **main** method.
 
-Ví dụ ngắn:
+Short example:
 
 ~~~bash
 java --module-path mods \
      --module com.acme.app/com.acme.app.Main
 ~~~
 
-Lệnh trên yêu cầu launcher tìm module **com.acme.app** trên module path **mods**, sau đó gọi lớp **com.acme.app.Main** trong module đó.
+The command above instructs the launcher to find the **com.acme.app** module on the **mods** module path, then invoke the **com.acme.app.Main** class in that module.
 
-Có thể viết tương đương:
+Equivalently, you can write:
 
 ~~~bash
 java -p mods -m com.acme.app/com.acme.app.Main
 ~~~
 
-Tên module và tên lớp chính là hai thành phần khác nhau. Phần trước dấu gạch chéo là module name; phần sau là fully qualified class name.
+The module name and the main class name are two separate components. The part before the slash is the module name; the part after is the fully qualified class name.
 
-## 2. Module path chứa những gì?
+## 2. What Does the Module Path Contain?
 
-**Module path** là nơi Java tìm các module có thể quan sát được trong quá trình resolve. Nó có thể chứa:
+The **module path** is where Java looks for observable modules during resolution. It can contain:
 
-- Thư mục chứa các exploded module (module đã biên dịch thành cây thư mục).
-- Modular JAR có **module-info.class**.
-- JAR chưa có module descriptor nhưng được nhận diện như automatic module.
-- Các thư mục chứa modular JAR để launcher tìm module trong đó.
+- Directories containing exploded modules (modules compiled into a directory tree).
+- Modular JARs containing **module-info.class**.
+- JARs without a module descriptor that are recognized as automatic modules.
+- Directories containing modular JARs so the launcher can locate modules within them.
 
-Ví dụ với exploded modules:
+Example with exploded modules:
 
 ~~~text
 project/
@@ -82,9 +82,9 @@ project/
         └── com/acme/app/Main.class
 ~~~
 
-Trong cấu trúc này, **mods** là module path. Mỗi thư mục con là một exploded module có **module-info.class** ở thư mục gốc của module.
+In this structure, **mods** is the module path. Each subdirectory is an exploded module with **module-info.class** at the module root directory.
 
-Ví dụ với modular JAR:
+Example with modular JARs:
 
 ~~~text
 project/
@@ -93,35 +93,35 @@ project/
     └── com.acme.app.jar
 ~~~
 
-Khi đó, **mlib** là thư mục chứa các JAR module và có thể được chỉ định bằng **--module-path mlib**.
+In this case, **mlib** is the directory containing the module JARs and can be specified with **--module-path mlib**.
 
-Bạn cũng có thể liệt kê trực tiếp nhiều JAR:
+You can also list multiple JARs directly:
 
 ~~~bash
 java --module-path "mlib/com.acme.app.jar:mlib/com.acme.lib.jar" \
      --module com.acme.app/com.acme.app.Main
 ~~~
 
-Dấu phân cách các phần tử trong module path phụ thuộc hệ điều hành:
+The separator between elements in the module path depends on the operating system:
 
-| Hệ điều hành | Dấu phân cách |
+| Operating System | Separator |
 |---|---|
-| Windows | Dấu chấm phẩy **;** |
-| Linux, macOS | Dấu hai chấm **:** |
+| Windows | Semicolon **;** |
+| Linux, macOS | Colon **:** |
 
-Ví dụ trên Windows:
+Example on Windows:
 
 ~~~powershell
 java --module-path "mlib/com.acme.app.jar;mlib/com.acme.lib.jar" -m com.acme.app/com.acme.app.Main
 ~~~
 
-Nếu module path chỉ có một thư mục, không cần dùng dấu phân cách.
+If the module path has only one directory, no separator is needed.
 
-## 3. Ví dụ chạy exploded modules
+## 3. Example: Running Exploded Modules
 
-Giả sử ứng dụng có hai module: **com.acme.lib** cung cấp một API đơn giản và **com.acme.app** gọi API đó.
+Suppose an application has two modules: **com.acme.lib** provides a simple API and **com.acme.app** calls that API.
 
-### Module thư viện
+### Library Module
 
 File **src/com.acme.lib/module-info.java**:
 
@@ -143,9 +143,9 @@ public class Message {
 }
 ~~~
 
-Module descriptor export package **com.acme.lib** để module khác có thể sử dụng public API trong package đó.
+The module descriptor exports the **com.acme.lib** package so other modules can use the public API in that package.
 
-### Module ứng dụng
+### Application Module
 
 File **src/com.acme.app/module-info.java**:
 
@@ -170,115 +170,115 @@ public class Main {
 }
 ~~~
 
-Directive **requires com.acme.lib** khai báo dependency của app đối với module thư viện.
+The **requires com.acme.lib** directive declares the app's dependency on the library module.
 
-### Biên dịch
+### Compiling
 
-Đứng tại thư mục gốc **project**, chạy:
+From the root **project** directory, run:
 
 ~~~bash
 javac -d mods --module-source-path src \
       -m com.acme.lib,com.acme.app
 ~~~
 
-Giải thích:
+Explanation:
 
-- **--module-source-path src**: chỉ ra cây thư mục chứa source của các module.
-- **-d mods**: ghi các file đã biên dịch vào thư mục **mods**.
-- **-m com.acme.lib,com.acme.app**: yêu cầu javac biên dịch hai module đã nêu.
+- **--module-source-path src**: indicates the directory tree containing the module sources.
+- **-d mods**: writes the compiled files into the **mods** directory.
+- **-m com.acme.lib,com.acme.app**: instructs `javac` to compile the two specified modules.
 
-Sau khi biên dịch, **mods** chứa các exploded modules tương ứng.
+After compiling, **mods** contains the corresponding exploded modules.
 
-### Chạy module chính
+### Running the Main Module
 
 ~~~bash
 java --module-path mods \
      --module com.acme.app/com.acme.app.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Hello, Java!
 ~~~
 
-Truyền đối số cho chương trình:
+Passing arguments to the program:
 
 ~~~bash
 java --module-path mods \
      --module com.acme.app/com.acme.app.Main Lan
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Hello, Lan!
 ~~~
 
-Các đối số nằm sau phần **module/main-class** được chuyển vào **args** của phương thức **main**. Chúng không phải là tên module hay tùy chọn của launcher.
+Arguments after the **module/main-class** part are passed into the **args** parameter of the **main** method. They are not module names or launcher options.
 
-## 4. Chạy module từ modular JAR
+## 4. Running a Module from a Modular JAR
 
-Trong dự án thực tế, các module thường được đóng gói thành JAR để phân phối.
+In real-world projects, modules are typically packaged into JARs for distribution.
 
-Giả sử đã biên dịch như phần trước và thư mục **mods** có:
+Assuming they have been compiled as in the previous section and the **mods** directory contains:
 
 - **mods/com.acme.lib/module-info.class**
 - **mods/com.acme.app/module-info.class**
 
-Tạo thư mục chứa JAR:
+Create the directory for the JARs:
 
 ~~~bash
 mkdir mlib
 ~~~
 
-Đóng gói module thư viện:
+Package the library module:
 
 ~~~bash
 jar --create --file mlib/com.acme.lib.jar \
     -C mods/com.acme.lib .
 ~~~
 
-Đóng gói module ứng dụng:
+Package the application module:
 
 ~~~bash
 jar --create --file mlib/com.acme.app.jar \
     -C mods/com.acme.app .
 ~~~
 
-Chạy ứng dụng với thư mục JAR làm module path:
+Run the application with the JAR directory as the module path:
 
 ~~~bash
 java --module-path mlib \
      --module com.acme.app/com.acme.app.Main
 ~~~
 
-Launcher tìm module chính trong **mlib**, đọc descriptor của app, thấy **requires com.acme.lib**, rồi resolve dependency từ module path.
+The launcher finds the main module in **mlib**, reads the app's descriptor, sees **requires com.acme.lib**, and resolves the dependency from the module path.
 
-Có thể chỉ định từng file JAR trực tiếp:
+You can specify each JAR file directly:
 
 ~~~bash
 java --module-path "mlib/com.acme.app.jar:mlib/com.acme.lib.jar" \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Nếu module path chứa cả JAR ứng dụng và JAR thư viện, thứ tự file không thay đổi ý nghĩa của directive **requires**. Điều quan trọng là module cần thiết phải có thể được tìm thấy và tên module phải khớp.
+If the module path contains both the application JAR and the library JAR, the file order does not change the meaning of the **requires** directive. What matters is that the required module can be found and the module names match.
 
-## 5. Chạy module mà không ghi main class trong lệnh
+## 5. Running a Module Without Specifying the Main Class in the Command
 
-Cú pháp thường thấy có dạng:
+The typical syntax looks like this:
 
 ~~~bash
 java --module-path mods -m com.acme.app/com.acme.app.Main
 ~~~
 
-Ở đây main class được chỉ định rõ sau dấu gạch chéo. Trong một số trường hợp, có thể chỉ định module name:
+Here the main class is explicitly specified after the slash. In some cases, you can specify only the module name:
 
 ~~~bash
 java --module-path mlib -m com.acme.app
 ~~~
 
-Cách thứ hai yêu cầu module có main class được ghi trong module descriptor (thuộc tính **ModuleMainClass**). Có thể thiết lập thuộc tính này khi tạo modular JAR bằng tùy chọn **--main-class** của công cụ **jar**:
+The second approach requires the module to have its main class recorded in the module descriptor (the **ModuleMainClass** attribute). You can set this attribute when creating a modular JAR using the **--main-class** option of the **jar** tool:
 
 ~~~bash
 jar --create \
@@ -287,33 +287,33 @@ jar --create \
     -C mods/com.acme.app .
 ~~~
 
-Sau đó chạy:
+Then run:
 
 ~~~bash
 java --module-path mlib --module com.acme.app
 ~~~
 
-Nếu module không có main class được ghi trong descriptor và lệnh không chỉ định **/main-class**, launcher không biết lớp nào cần chạy. Khi đó, hãy thêm main class vào lệnh hoặc đóng gói lại JAR với **--main-class**.
+If the module does not have a main class recorded in its descriptor and the command omits **/main-class**, the launcher does not know which class to run. In that case, add the main class to the command or repackage the JAR with **--main-class**.
 
-## 6. Launcher resolve module như thế nào?
+## 6. How Does the Launcher Resolve Modules?
 
-Khi chạy:
+When running:
 
 ~~~bash
 java --module-path mods \
      --module com.acme.app/com.acme.app.Main
 ~~~
 
-launcher thực hiện các bước chính:
+the launcher performs the main steps:
 
-1. Đọc module path để tìm module có tên **com.acme.app**.
-2. Xác định module chính cần khởi chạy.
-3. Đọc module descriptor của module chính.
-4. Resolve các dependency mà module khai báo bằng **requires**, cùng các dependency bắc cầu cần thiết.
-5. Kiểm tra module graph có thể được tạo hợp lệ hay không.
-6. Nạp lớp main class từ module chính và gọi phương thức **main**.
+1. Reads the module path to locate the module named **com.acme.app**.
+2. Identifies the main module to launch.
+3. Reads the module descriptor of the main module.
+4. Resolves the dependencies declared by the module using **requires**, along with any required transitive dependencies.
+5. Checks whether a valid module graph can be constructed.
+6. Loads the main class from the main module and invokes the **main** method.
 
-Ví dụ descriptor:
+Example descriptor:
 
 ~~~java
 module com.acme.app {
@@ -321,64 +321,64 @@ module com.acme.app {
 }
 ~~~
 
-Nếu **com.acme.lib** không nằm trên module path hoặc không thể resolve, ứng dụng sẽ không chạy thành công. Việc chỉ định module chính không tự động làm cho mọi JAR trong dự án trở thành dependency; các quan hệ module phải được khai báo và resolve phù hợp.
+If **com.acme.lib** is not on the module path or cannot be resolved, the application will fail to run. Specifying the main module does not automatically make every JAR in the project a dependency; module relationships must be declared and resolved appropriately.
 
-Một số điểm cần nhớ:
+Key points to remember:
 
-- **requires** xác định dependency module.
-- **exports** xác định package public mà module khác có thể truy cập.
-- Module path xác định nơi tìm module.
-- **--module** xác định module gốc cần chạy.
-- Tên file JAR không nhất thiết là module name. Với explicit module, tên nằm trong descriptor; với automatic module, tên có thể đến từ manifest hoặc được suy ra từ tên file.
+- **requires** specifies a module dependency.
+- **exports** specifies public packages accessible to other modules.
+- The module path specifies where to find modules.
+- **--module** specifies the root module to run.
+- A JAR filename is not necessarily the module name. For an explicit module, the name is in the descriptor; for an automatic module, the name can come from the manifest or be derived from the filename.
 
-Nếu cần thêm một module vào tập module gốc ngoài module chính, launcher có tùy chọn **--add-modules**. Chỉ dùng khi ứng dụng thực sự cần resolve module đó dù nó không được kéo vào từ chuỗi **requires** thông thường.
+If you need to add a module to the root module set beyond the main module, the launcher provides the **--add-modules** option. Use it only when the application genuinely needs to resolve that module even though it is not pulled in through the normal **requires** chain.
 
-## 7. Phân biệt --module-path với --class-path
+## 7. Distinguishing --module-path from --class-path
 
-Hai tùy chọn phục vụ hai cơ chế nạp lớp khác nhau.
+The two options serve two different class-loading mechanisms.
 
-| Tùy chọn | Ý nghĩa | Cách tham chiếu |
+| Option | Meaning | How It Is Referenced |
 |---|---|---|
-| **--module-path** hoặc **-p** | Nơi tìm named module và automatic module | Module name, **requires**, **-m** |
-| **--class-path** hoặc **-cp** | Nơi tìm lớp và JAR theo cơ chế class path | Class name; các lớp thuộc unnamed module |
+| **--module-path** or **-p** | Where to find named modules and automatic modules | Module name, **requires**, **-m** |
+| **--class-path** or **-cp** | Where to find classes and JARs under the class path mechanism | Class name; classes belong to the unnamed module |
 
-Ví dụ chạy ứng dụng class path:
+Example of running a class path application:
 
 ~~~bash
 java -cp libs/*:classes com.acme.app.Main
 ~~~
 
-Ví dụ chạy ứng dụng modular:
+Example of running a modular application:
 
 ~~~bash
 java --module-path mods -m com.acme.app/com.acme.app.Main
 ~~~
 
-Không nên nhầm hai lệnh này. Khi dùng **-m**, launcher tìm một module đã resolve trong module graph. Khi dùng tên lớp sau class path, launcher chạy lớp theo cơ chế class path.
+Do not confuse these two commands. When using **-m**, the launcher looks up a resolved module in the module graph. When passing a class name after the class path, the launcher runs the class using the class path mechanism.
 
-Tùy chọn **-jar** cũng là một chế độ khởi chạy riêng:
+The **-jar** option is also a separate launch mode:
 
 ~~~bash
 java -jar app.jar
 ~~~
 
-Lệnh này chạy JAR theo cơ chế **-jar** dựa trên manifest **Main-Class**; nó không tương đương với việc đặt modular JAR lên module path và chạy bằng **-m**. Khi mục tiêu là chạy ứng dụng như named module, dùng **--module-path** và **--module**.
+This command runs the JAR under the **-jar** mechanism based on the manifest's **Main-Class**; it is not equivalent to placing a modular JAR on the module path and running with **-m**. When the goal is to run an application as a named module, use **--module-path** and **--module**.
 
-## 8. Một số tùy chọn hữu ích khi chạy module
+## 8. Useful Options When Running Modules
 
-| Tùy chọn | Công dụng |
+| Option | Purpose |
 |---|---|
-| **--module-path**, **-p** | Chỉ định module path |
-| **--module**, **-m** | Chỉ định module chính và có thể chỉ định main class |
-| **--add-modules** | Thêm module vào tập module gốc cần resolve |
-| **--show-module-resolution** | In thông tin quá trình resolve module |
-| **--list-modules** | Liệt kê các module mà launcher có thể quan sát |
-| **--describe-module** | Hiển thị thông tin descriptor của module |
-| **--class-path**, **-cp** | Chỉ định class path cho các lớp/JAR theo cơ chế class path |
-| **-Dname=value** | Thiết lập system property |
-| **-Xmx<size>** | Đặt giới hạn heap tối đa cho JVM |
+| **--module-path**, **-p** | Specifies the module path |
+| **--module**, **-m** | Specifies the main module and optionally the main class |
+| **--add-modules** | Adds modules to the set of root modules to resolve |
+| **--show-module-resolution** | Prints information about the module resolution process |
+| **--list-modules** | Lists the modules observable by the launcher |
+| **--describe-module** | Displays the descriptor information of a module |
+| **--class-path**, **-cp** | Specifies the class path for classes/JARs under the class path mechanism |
+| **-Dname=value** | Sets a system property |
+| **-Xmx<size>** | Sets the maximum heap size for the JVM |
 
-Ví dụ xem quá trình resolve:
+Example to inspect the resolution process:
 
 ~~~bash
 java --show-module-resolution \
@@ -386,54 +386,54 @@ java --show-module-resolution \
      --module com.acme.app/com.acme.app.Main
 ~~~
 
-Ví dụ liệt kê module:
+Example to list modules:
 
 ~~~bash
 java --module-path mods --list-modules
 ~~~
 
-Ví dụ mô tả module:
+Example to describe a module:
 
 ~~~bash
 java --module-path mods --describe-module com.acme.app
 ~~~
 
-Có thể dùng **jar --describe-module --file <jar-file>** để kiểm tra descriptor của một JAR cụ thể.
+You can use **jar --describe-module --file <jar-file>** to inspect the descriptor of a specific JAR.
 
-## 9. Lỗi thường gặp và cách xử lý
+## 9. Common Errors and Troubleshooting
 
-| Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
+| Symptom | Common Cause | Resolution |
 |---|---|---|
-| **Module ... not found** | Module chính không có trên module path hoặc tên module sai | Kiểm tra đường dẫn và tên trong **module-info.class**; dùng **jar --describe-module** |
-| **FindException: Module ... not found, required by ...** | Dependency trong **requires** không được tìm thấy | Đưa JAR/thư mục module cần thiết vào module path; kiểm tra tên module |
-| **Error occurred during initialization of boot layer** | Module graph không thể resolve hoặc có xung đột | Chạy với **--show-module-resolution**; kiểm tra module trùng tên, split package và dependency |
-| **Main method not found** hoặc không tìm thấy main class | Sai tên lớp, sai module hoặc module không khai báo main class khi lệnh bỏ phần **/main-class** | Chỉ định đầy đủ **module/main-class** hoặc đóng gói main class bằng **jar --main-class** |
-| **ClassNotFoundException** | Lớp không nằm trong module/JAR được resolve hoặc đường dẫn không đúng | Kiểm tra cấu trúc JAR, package và module path |
-| **NoClassDefFoundError** | Lớp cần lúc chạy không được nạp, thường do thiếu dependency hoặc môi trường chạy khác môi trường biên dịch | Kiểm tra dependency runtime và module graph |
-| Chạy được trên class path nhưng lỗi trên module path | Descriptor thiếu dependency/export cần thiết hoặc ứng dụng phụ thuộc vào hành vi class path | Kiểm tra **requires**, **exports**, package và module graph |
+| **Module ... not found** | The main module is not on the module path or the module name is wrong | Check the path and the name in **module-info.class**; use **jar --describe-module** |
+| **FindException: Module ... not found, required by ...** | A dependency in **requires** cannot be found | Add the required module JAR/directory to the module path; verify the module name |
+| **Error occurred during initialization of boot layer** | The module graph cannot be resolved or has a conflict | Run with **--show-module-resolution**; check for duplicate module names, split packages, and dependencies |
+| **Main method not found** or main class not found | Wrong class name, wrong module, or the module does not declare a main class when omitting **/main-class** | Specify the full **module/main-class** or package the main class with **jar --main-class** |
+| **ClassNotFoundException** | The class is not in a resolved module/JAR or the path is incorrect | Check the JAR structure, package, and module path |
+| **NoClassDefFoundError** | A class needed at runtime cannot be loaded, often due to a missing dependency or differences between runtime and compile-time environments | Check runtime dependencies and the module graph |
+| Works on class path but fails on module path | The descriptor is missing required dependencies/exports or the application relies on class path behavior | Check **requires**, **exports**, packages, and the module graph |
 
-Trình tự debug:
+Debugging sequence:
 
-1. Kiểm tra lệnh có đúng **--module-path** và **--module** hay không.
-2. Kiểm tra module path có trỏ tới đúng thư mục hoặc JAR không.
-3. Dùng **jar --describe-module** để xác nhận module name của từng JAR.
-4. Kiểm tra module chính có nằm trong module path hoặc là module hệ thống có thể quan sát hay không.
-5. Kiểm tra mọi dependency trong **requires** có thể được resolve.
-6. Chạy lại với **--show-module-resolution** để xem launcher chọn và resolve module nào.
-7. Xác nhận main class đúng tên package và nằm trong module chính.
+1. Check whether the command uses the right **--module-path** and **--module**.
+2. Verify that the module path points to the right directory or JAR.
+3. Use **jar --describe-module** to confirm the module name of each JAR.
+4. Check whether the main module is on the module path or is an observable system module.
+5. Verify that every dependency in **requires** can be resolved.
+6. Re-run with **--show-module-resolution** to see which modules the launcher selects and resolves.
+7. Confirm that the main class has the right package name and resides inside the main module.
 
-## 10. Ghi nhớ
+## 10. Takeaways
 
-- **--module-path** (**-p**) là nơi tìm module; **--module** (**-m**) chọn module chính để chạy.
-- Cú pháp đầy đủ thường dùng là **-m module.name/package.MainClass**.
-- Có thể chạy exploded module hoặc modular JAR.
-- Module chính và các module phụ thuộc phải được resolve thành module graph hợp lệ.
-- **requires** khai báo dependency; **exports** công bố package API.
-- Đối số ứng dụng được đặt sau module/main class.
-- Nếu bỏ main class khỏi lệnh, module cần có main class được ghi trong descriptor.
-- Chạy bằng **-m** khác với chạy JAR bằng **-jar** hoặc chạy lớp bằng **-cp**.
+- **--module-path** (**-p**) is where modules are located; **--module** (**-m**) selects the main module to run.
+- The common full syntax is **-m module.name/package.MainClass**.
+- You can run either exploded modules or modular JARs.
+- The main module and its dependent modules must resolve into a valid module graph.
+- **requires** declares dependencies; **exports** exposes API packages.
+- Application arguments are placed after the module/main class.
+- If the main class is omitted from the command, the module must have its main class recorded in its descriptor.
+- Running with **-m** differs from running a JAR with **-jar** or running a class with **-cp**.
 
-## Tài liệu tham khảo
+## References
 
 - [Java Launcher — Java SE 21 Tool Specification](https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html)
 - [The javac Command — Java SE 21 Tool Specification](https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html)

@@ -1,58 +1,58 @@
-# Không ép `int[]` thành `Object[]` trong Java Reflection
+# Do Not Cast `int[]` to `Object[]` in Java Reflection
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể giải thích vì sao mảng số nguyên nguyên thủy `int[]` là một đối tượng Java nhưng không phải `Object[]`; nhận biết lỗi tại thời điểm biên dịch và lỗi `ClassCastException` khi ép kiểu; thao tác với mảng chưa biết kiểu phần tử thông qua `java.lang.reflect.Array`; và chủ động chuyển dữ liệu sang `Integer[]` khi một API thực sự yêu cầu mảng đối tượng.
+After this lesson, you can explain why a primitive integer array `int[]` is a Java object yet is not an `Object[]`; recognize compile-time errors and `ClassCastException` when casting; operate on arrays of unknown element types via `java.lang.reflect.Array`; and deliberately convert data to `Integer[]` when an API truly requires an object array.
 
-## 1. Hiểu đúng kiểu mảng
+## 1. Understanding Array Types Correctly
 
-Trong Java, **mọi mảng đều là đối tượng**: dù chứa phần tử nguyên thủy hay tham chiếu, mỗi mảng đều có kiểu runtime, thuộc tính `length`, kế thừa các hành vi của `Object` và triển khai `Cloneable`, `Serializable`. Tuy nhiên, “là một `Object`” không đồng nghĩa “là một `Object[]`”.
+In Java, **every array is an object**: whether it holds primitive or reference elements, every array has a runtime type, a `length` property, inherits `Object` behaviors, and implements `Cloneable`, `Serializable`. However, "being an `Object`" does not mean "being an `Object[]`".
 
-- `int[]` chứa các giá trị `int` nguyên thủy. Kiểu thành phần (component type) là `int`; các phần tử không phải đối tượng `Integer`.
-- `Integer[]`, `String[]` và `Object[]` là **mảng tham chiếu**: mỗi vị trí giữ một tham chiếu đến đối tượng (hoặc `null`).
-- `Object[]` chỉ đại diện cho mảng có **kiểu thành phần là kiểu tham chiếu** thích hợp. Nó không đại diện chung cho tất cả các loại mảng.
-- `Object` có thể tham chiếu tới cả `int[]`, `long[]`, `String[]`, `Integer[]` và `int[][]`.
+- `int[]` holds primitive `int` values. Its component type is `int`; the elements are not `Integer` objects.
+- `Integer[]`, `String[]`, and `Object[]` are **reference arrays**: each slot holds a reference to an object (or `null`).
+- `Object[]` only represents arrays whose **component type is an appropriate reference type**. It does not generically represent all kinds of arrays.
+- `Object` can refer to `int[]`, `long[]`, `String[]`, `Integer[]`, and `int[][]`.
 
-| Giá trị runtime | Gán vào `Object` | Gán vào `Object[]` | Kiểu phần tử |
+| Runtime Value | Assignable to `Object` | Assignable to `Object[]` | Element Type |
 | --- | --- | --- | --- |
-| `new int[3]` | Có | Không | `int` nguyên thủy |
-| `new Integer[3]` | Có | Có | `Integer` |
-| `new String[3]` | Có | Có | `String` |
-| `new Object[3]` | Có | Có | `Object` |
-| `new int[2][3]` | Có | Có, ở **mảng ngoài** | `int[]` (kiểu tham chiếu) |
+| `new int[3]` | Yes | No | Primitive `int` |
+| `new Integer[3]` | Yes | Yes | `Integer` |
+| `new String[3]` | Yes | Yes | `String` |
+| `new Object[3]` | Yes | Yes | `Object` |
+| `new int[2][3]` | Yes | Yes, at the **outer array** | `int[]` (reference type) |
 
-Điểm cuối dễ gây nhầm: `int[][]` là mảng của các `int[]`; mảng ngoài giữ **tham chiếu** đến các mảng con. Vì vậy `int[][]` có thể xem là `Object[]`, nhưng từng `int[]` bên trong vẫn **không** phải `Object[]`.
+The last point is easy to confuse: `int[][]` is an array of `int[]`; the outer array holds **references** to subarrays. Therefore `int[][]` can be treated as `Object[]`, yet each `int[]` inside is still **not** an `Object[]`.
 
-### Sơ đồ kiểu
+### Type Diagram
 
 ~~~text
 Object
-├── int[]              (mảng phần tử nguyên thủy)
-├── long[]             (mảng phần tử nguyên thủy)
-├── Object[]           (mảng phần tử tham chiếu)
+├── int[]              (primitive-element array)
+├── long[]             (primitive-element array)
+├── Object[]           (reference-element array)
 │   ├── String[]
 │   ├── Integer[]
-│   └── int[][]       (phần tử của mảng ngoài là int[])
+│   └── int[][]       (outer array elements are int[])
 └── ...
 ~~~
 
-Sơ đồ thể hiện quan hệ gán kiểu có ích cho bài này; nó không phải khai báo `extends` viết được trong mã nguồn Java.
+The diagram illustrates useful type-assignment relationships for this lesson; it is not an `extends` declaration you can write in Java source code.
 
-## 2. Hai dạng lỗi ép kiểu cần phân biệt
+## 2. Two Forms of Casting Errors to Distinguish
 
-### 2.1. Lỗi biên dịch khi biết trước kiểu là `int[]`
+### 2.1. Compile-Time Error When the Type Is Known in Advance to Be `int[]`
 
 ~~~java
 int[] numbers = {10, 20, 30};
 
-Object anyArray = numbers;             // Hợp lệ: mọi mảng đều là Object.
-Object[] refs = numbers;               // LỖI BIÊN DỊCH.
-Object[] casted = (Object[]) numbers;   // VẪN LỖI BIÊN DỊCH.
+Object anyArray = numbers;             // Valid: every array is an Object.
+Object[] refs = numbers;               // COMPILE-TIME ERROR.
+Object[] casted = (Object[]) numbers;   // STILL A COMPILE-TIME ERROR.
 ~~~
 
-Đây là **đoạn cố ý chứa lỗi** để nhận diện kiểu; không đưa nguyên đoạn vào chương trình cần biên dịch. Trình biên dịch biết `numbers` có kiểu tĩnh `int[]` và không có phép chuyển kiểu hợp lệ sang `Object[]`. Thêm phép cast tường minh không thể biến giá trị `int` nguyên thủy thành phần tử tham chiếu.
+This is a **snippet intentionally containing errors** to recognize type rules; do not put the entire snippet into a program meant to compile. The compiler knows `numbers` has static type `int[]` and there is no valid conversion to `Object[]`. Adding an explicit cast cannot turn primitive `int` values into reference elements.
 
-### 2.2. Biên dịch được qua `Object`, nhưng lỗi lúc chạy
+### 2.2. Compiles via `Object`, but Fails at Runtime
 
 File `ArrayCastPitfall.java`:
 
@@ -70,7 +70,7 @@ public class ArrayCastPitfall {
 
         try {
             Object[] wrong = (Object[]) unknown;
-            System.out.println(wrong.length); // Không chạy tới đây.
+            System.out.println(wrong.length); // Never reached.
         } catch (ClassCastException ex) {
             System.out.println(ex.getClass().getSimpleName());
         }
@@ -78,14 +78,14 @@ public class ArrayCastPitfall {
 }
 ~~~
 
-Chạy bằng JDK 17 hoặc mới hơn:
+Run with JDK 17 or newer:
 
 ~~~bash
 javac ArrayCastPitfall.java
 java ArrayCastPitfall
 ~~~
 
-Kết quả chuẩn:
+Standard output:
 
 ~~~text
 true
@@ -94,41 +94,41 @@ int
 ClassCastException
 ~~~
 
-Biến `unknown` có **kiểu khai báo** là `Object`, nên trình biên dịch cho phép thử cast xuống `Object[]`. Nhưng đối tượng thật được tạo bằng `new int[]{...}`, có kiểu runtime `int[]`; JVM kiểm tra và từ chối cast bằng `ClassCastException`. Một phép cast chỉ kiểm tra/chuyển cách nhìn về kiểu tương thích; **nó không chuyển đổi hoặc boxing từng phần tử**.
+The `unknown` variable has **declared type** `Object`, so the compiler allows attempting a downcast to `Object[]`. However, the actual object was created with `new int[]{...}`, having runtime type `int[]`; the JVM checks and rejects the cast with `ClassCastException`. A cast only checks/changes the view to a compatible type; **it does not convert or box each element**.
 
-Kiểm tra `instanceof Object[]` trước khi cast chỉ giúp tránh ngoại lệ. Nó không khiến `int[]` trở thành mảng tham chiếu.
+Checking `instanceof Object[]` before casting only avoids the exception. It does not make `int[]` become a reference array.
 
-## 3. Vì sao vấn đề xuất hiện khi dùng Reflection?
+## 3. Why Does This Issue Appear When Using Reflection?
 
-Reflection thường xử lý một đối tượng mảng mà **chưa biết trước kiểu phần tử tại thời điểm biên dịch**. Chẳng hạn `Field.get(instance)` có thể trả về `int[]`, `String[]` hoặc kiểu mảng khác dưới dạng `Object`. Một hàm tiện ích nhận `Object array` rồi ép vô điều kiện thành `Object[]` sẽ hỏng ngay khi gặp mảng nguyên thủy.
+Reflection often handles an array object whose **element type is not known in advance at compile time**. For example, `Field.get(instance)` might return `int[]`, `String[]`, or another array type as `Object`. A utility function taking `Object array` and unconditionally casting it to `Object[]` breaks immediately upon encountering a primitive array.
 
-Không nên viết:
+Do not write:
 
 ~~~java
-// Sai nếu field chứa int[], long[], boolean[] hoặc mảng nguyên thủy khác.
+// Wrong if the field holds int[], long[], boolean[], or another primitive array.
 Object value = field.get(instance);
 Object[] elements = (Object[]) value;
 ~~~
 
-Đây là **đoạn minh họa rời**: `field` và `instance` phải được khai báo trong ngữ cảnh Reflection thực tế. Sai lầm nằm ở phép cast, không ở `Field.get`.
+This is an **isolated illustrative snippet**: `field` and `instance` must be declared in an actual Reflection context. The mistake lies in the cast, not in `Field.get`.
 
-Java cung cấp `java.lang.reflect.Array` để thao tác với **cả mảng nguyên thủy và mảng tham chiếu** khi chỉ có biến `Object`:
+Java provides `java.lang.reflect.Array` to operate on **both primitive arrays and reference arrays** when you only have an `Object` variable:
 
-| Nhu cầu | API thích hợp |
+| Need | Appropriate API |
 | --- | --- |
-| Xác định một đối tượng có phải mảng | `value != null && value.getClass().isArray()` |
-| Lấy kiểu thành phần runtime | `value.getClass().getComponentType()` |
-| Nhận biết kiểu thành phần nguyên thủy | `componentType.isPrimitive()` |
-| Lấy số phần tử | `Array.getLength(value)` |
-| Đọc phần tử tại chỉ số `i` | `Array.get(value, i)` |
-| Ghi phần tử tương thích | `Array.set(value, i, element)` |
-| Tạo mảng theo kiểu phần tử xác định lúc chạy | `Array.newInstance(componentType, length)` |
+| Determine whether an object is an array | `value != null && value.getClass().isArray()` |
+| Get runtime component type | `value.getClass().getComponentType()` |
+| Detect primitive component type | `componentType.isPrimitive()` |
+| Get number of elements | `Array.getLength(value)` |
+| Read element at index `i` | `Array.get(value, i)` |
+| Write compatible element | `Array.set(value, i, element)` |
+| Create array with component type determined at runtime | `Array.newInstance(componentType, length)` |
 
-`Array.get` trả về `Object`; khi đọc phần tử từ `int[]`, giá trị `int` được **boxing thành `Integer`**. Các phương thức chuyên biệt như `Array.getInt` và `Array.setInt` làm việc với giá trị nguyên thủy theo quy tắc tương thích kiểu của chúng, tránh boxing ở vị trí phù hợp. `Array.getLength` và `Array.get` yêu cầu đối số là mảng; truyền `null`, đối tượng thường hoặc chỉ số không hợp lệ sẽ gây ngoại lệ tương ứng.
+`Array.get` returns `Object`; when reading an element from `int[]`, the `int` value is **boxed into `Integer`**. Specialized methods such as `Array.getInt` and `Array.setInt` work with primitive values according to their type-compatibility rules, avoiding boxing where appropriate. `Array.getLength` and `Array.get` require an array argument; passing `null`, an ordinary object, or an invalid index throws the corresponding exception.
 
-## 4. Ví dụ đầy đủ: tạo và duyệt mảng động bằng Reflection
+## 4. Complete Example: Creating and Traversing Dynamic Arrays with Reflection
 
-“Mảng động” ở đây nghĩa là **tạo/kiểm tra mảng khi kiểu thành phần được quyết định lúc chạy** qua Reflection. Mảng Java sau khi tạo có `length` cố định; nó không tự mở rộng kích thước như `ArrayList`.
+"Dynamic array" here means **creating/inspecting an array when the component type is decided at runtime** via Reflection. A Java array after creation has a fixed `length`; it does not expand its size automatically like `ArrayList`.
 
 File `ReflectiveArrayDemo.java`:
 
@@ -138,20 +138,20 @@ import java.util.StringJoiner;
 
 public class ReflectiveArrayDemo {
     public static void main(String[] args) {
-        // Tạo int[3]; Array.newInstance trả về Object.
+        // Create int[3]; Array.newInstance returns Object.
         Object ints = Array.newInstance(int.class, 3);
         Array.setInt(ints, 0, 7);
         Array.setInt(ints, 1, 14);
         Array.setInt(ints, 2, 21);
         printArray(ints);
 
-        // Tạo String[2] bằng kiểu thành phần runtime.
+        // Create String[2] using runtime component type.
         Object words = Array.newInstance(String.class, 2);
         Array.set(words, 0, "Java");
         Array.set(words, 1, "Reflection");
         printArray(words);
 
-        // Chỉ mảng tham chiếu tương thích mới cast sang Object[].
+        // Only compatible reference arrays cast to Object[].
         if (words instanceof Object[] refs) {
             System.out.println(refs[0]);
         }
@@ -177,14 +177,14 @@ public class ReflectiveArrayDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac ReflectiveArrayDemo.java
 java ReflectiveArrayDemo
 ~~~
 
-Kết quả chuẩn:
+Standard output:
 
 ~~~text
 int[3] = [7, 14, 21]
@@ -192,9 +192,9 @@ java.lang.String[2] = [Java, Reflection]
 Java
 ~~~
 
-Giải thích: `Array.newInstance(int.class, 3)` thực sự tạo `int[]`; `Array.newInstance(String.class, 2)` tạo `String[]`. Cả hai được giữ trong biến `Object`, và `printArray` duyệt qua `Array.getLength`/`Array.get` nên không cần ép sang `Object[]`. Với mảng `String[]`, kiểm tra `instanceof Object[]` đúng và cast hợp lệ. Lúc gọi `Array.get` trên `int[]`, các số được boxing phục vụ thao tác generic.
+Explanation: `Array.newInstance(int.class, 3)` actually creates an `int[]`; `Array.newInstance(String.class, 2)` creates a `String[]`. Both are held in `Object` variables, and `printArray` iterates via `Array.getLength`/`Array.get` so no cast to `Object[]` is needed. For the `String[]` array, the `instanceof Object[]` check is true and the cast is valid. When calling `Array.get` on `int[]`, the numbers are boxed for generic handling.
 
-Có thể kiểm tra trước khi tạo hoặc xử lý mảng:
+You can check before creating or processing an array:
 
 ~~~java
 Class<?> arrayClass = ints.getClass();
@@ -202,11 +202,11 @@ System.out.println(arrayClass.isArray());                       // true
 System.out.println(arrayClass.getComponentType().isPrimitive()); // true
 ~~~
 
-Đây là **đoạn bổ sung** dùng biến `ints` đã khai báo trong `main` ở ví dụ trên.
+This is an **additional snippet** using the `ints` variable declared in `main` in the example above.
 
-## 5. Khi API bắt buộc nhận `Object[]`: chuyển đổi thực sự
+## 5. When an API Strictly Requires `Object[]`: Real Conversion
 
-Nếu cần giao tiếp với API có chữ ký `consume(Object[] values)`, chỉ ép kiểu là không đủ. Phải **tạo mảng tham chiếu mới** rồi boxing từng phần tử, hoặc dùng stream để tạo `Integer[]`.
+If you need to interface with an API having signature `consume(Object[] values)`, merely casting is not enough. You must **create a new reference array** and box each element, or use a stream to create `Integer[]`.
 
 File `BoxArrayDemo.java`:
 
@@ -220,13 +220,13 @@ public class BoxArrayDemo {
         Integer[] boxed = Arrays.stream(numbers)
                 .boxed()
                 .toArray(Integer[]::new);
-        Object[] refs = boxed; // Hợp lệ: Integer[] là mảng tham chiếu.
+        Object[] refs = boxed; // Valid: Integer[] is a reference array.
 
         System.out.println(Arrays.toString(refs));
 
         refs[0] = 99;
-        System.out.println(numbers[0]); // Mảng int[] gốc không đổi.
-        System.out.println(boxed[0]);   // Mảng Integer[] mới đã đổi.
+        System.out.println(numbers[0]); // Original int[] array unchanged.
+        System.out.println(boxed[0]);   // New Integer[] array changed.
 
         int[] backToPrimitives = Arrays.stream(boxed)
                 .mapToInt(Integer::intValue)
@@ -236,14 +236,14 @@ public class BoxArrayDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac BoxArrayDemo.java
 java BoxArrayDemo
 ~~~
 
-Kết quả chuẩn:
+Standard output:
 
 ~~~text
 [1, 2, 3]
@@ -252,11 +252,11 @@ Kết quả chuẩn:
 [99, 2, 3]
 ~~~
 
-`boxed()` biến mỗi `int` thành đối tượng `Integer`; `toArray(Integer[]::new)` tạo **mảng mới**. Phép gán `Object[] refs = boxed` hợp lệ, nhưng mảng mới không chia sẻ các ô phần tử với `numbers`. Việc boxing có thêm chi phí bộ nhớ và thao tác đối tượng; khi tính toán số học thuần túy, thường nên tiếp tục dùng `int[]` hoặc `IntStream`.
+`boxed()` turns each `int` into an `Integer` object; `toArray(Integer[]::new)` creates a **new array**. The assignment `Object[] refs = boxed` is valid, yet the new array does not share element slots with `numbers`. Boxing incurs extra memory and object-handling overhead; for pure arithmetic computation, you should usually continue using `int[]` or `IntStream`.
 
-### Chuyển mọi loại mảng thành `Object[]` khi cần
+### Converting Any Array Kind to `Object[]` When Needed
 
-Phương thức dưới đây là **helper đặt bên trong một class**, không phải chương trình độc lập. Nó tạo bản sao một chiều; các phần tử nguyên thủy được boxing:
+The method below is a **helper placed inside a class**, not a standalone program. It creates a one-dimensional copy; primitive elements are boxed:
 
 ~~~java
 import java.lang.reflect.Array;
@@ -275,13 +275,13 @@ static Object[] copyElements(Object source) {
 }
 ~~~
 
-Ví dụ `copyElements(new int[]{4, 5})` trả về `Object[]` chứa hai `Integer`; `copyElements(new String[]{"a"})` trả về `Object[]` chứa `String`. Đây là **chuyển đổi và sao chép dữ liệu**, không phải cast `int[]`. Với mảng nhiều chiều, hàm chỉ sao chép **tầng ngoài**, không sao chép sâu các mảng con.
+For example, `copyElements(new int[]{4, 5})` returns an `Object[]` containing two `Integer`s; `copyElements(new String[]{"a"})` returns an `Object[]` containing `String`. This is **data conversion and copying**, not casting `int[]`. For multidimensional arrays, the function only copies the **outer layer**, without deep-copying subarrays.
 
-Nếu API hỗ trợ `Collection<Integer>`, Java 17 có thể dùng `Arrays.stream(numbers).boxed().toList()`; kết quả là danh sách không thể sửa cấu trúc qua `add`/`set`. Nếu cần tự tăng giảm số phần tử, cân nhắc `ArrayList<Integer>` thay vì trông đợi mảng Java đổi được `length`.
+If the API supports `Collection<Integer>`, Java 17 can use `Arrays.stream(numbers).boxed().toList()`; the result is a list whose structure cannot be modified via `add`/`set`. If you need to dynamically grow or shrink the number of elements, consider `ArrayList<Integer>` instead of expecting a Java array to change its `length`.
 
-## 6. Bẫy liên quan thường gặp
+## 6. Common Related Pitfalls
 
-### 6.1. `Arrays.asList(int[])` không boxing từng số
+### 6.1. `Arrays.asList(int[])` Does Not Box Each Number
 
 ~~~java
 int[] numbers = {1, 2, 3};
@@ -294,44 +294,44 @@ java.util.List<Integer> eachNumber =
 System.out.println(eachNumber.size()); // 3
 ~~~
 
-`Arrays.asList` nhận các phần tử có **kiểu tham chiếu** qua varargs kiểu generic. Với `int[]`, nó xem toàn bộ mảng là **một đối tượng phần tử**, chứ không tách thành ba `Integer`. Đoạn trên là minh họa đặt trong một phương thức, không phải một class hoàn chỉnh.
+`Arrays.asList` accepts elements of **reference type** via generic varargs. For `int[]`, it treats the entire array as **one element object**, rather than splitting it into three `Integer`s. The snippet above is an illustration placed inside a method, not a complete class.
 
-### 6.2. Mảng hai chiều vẫn cần xét từng tầng
+### 6.2. Two-Dimensional Arrays Still Require Inspecting Each Layer
 
 ~~~java
 int[][] matrix = {{1, 2}, {3, 4}};
-Object[] outer = matrix; // Hợp lệ: phần tử ở tầng ngoài là int[].
+Object[] outer = matrix; // Valid: elements at the outer layer are int[].
 
 System.out.println(outer.length);                 // 2
 System.out.println(outer[0] instanceof Object[]); // false
 ~~~
 
-Tầng ngoài là mảng tham chiếu; mỗi phần tử bên trong có runtime type `int[]`. Không thể dùng `(Object[]) outer[0]` để đọc các số trong mảng con. Muốn duyệt an toàn, gọi `Array.getLength(outer[0])` và `Array.get(outer[0], i)`, hoặc cast về đúng `int[]` nếu biết chắc kiểu.
+The outer layer is a reference array; each inner element has runtime type `int[]`. You cannot use `(Object[]) outer[0]` to read numbers in the subarray. To traverse safely, call `Array.getLength(outer[0])` and `Array.get(outer[0], i)`, or cast to the exact `int[]` if the type is known for sure.
 
-### 6.3. Nhầm lẫn giữa covariance và boxing
+### 6.3. Confusing Covariance with Boxing
 
-Trong Java, `String[]` có thể gán cho `Object[]` do **array covariance**. Nhưng nếu gán một đối tượng không phải `String` qua tham chiếu `Object[]` này, JVM ném `ArrayStoreException`. Quy tắc covariance chỉ áp dụng cho **kiểu phần tử tham chiếu**, không biến `int[]` thành `Object[]`; cơ chế này cũng **không tự boxing** nguyên một mảng.
+In Java, `String[]` can be assigned to `Object[]` due to **array covariance**. However, if you assign a non-`String` object through this `Object[]` reference, the JVM throws `ArrayStoreException`. Covariance rules apply only to **reference element types**, and do not turn `int[]` into `Object[]`; this mechanism also **does not auto-box** an entire array.
 
-### 6.4. Dùng mảng nguyên thủy chỉ để in dữ liệu
+### 6.4. Using Primitive Arrays Just to Print Data
 
-Để in `int[]`, dùng trực tiếp `Arrays.toString(numbers)` vì thư viện đã có overload nhận `int[]`. Không cần tạo `Object[]`, không cần Reflection và không cần boxing cả mảng. `System.out.println(numbers)` tự nó không in danh sách giá trị phần tử.
+To print `int[]`, use `Arrays.toString(numbers)` directly because the library already has an overload taking `int[]`. There is no need to create `Object[]`, no need for Reflection, and no need to box the whole array. `System.out.println(numbers)` by itself does not print the list of element values.
 
-## 7. Chọn giải pháp đúng theo ngữ cảnh
+## 7. Choosing the Right Solution for the Context
 
-| Tình huống | Nên dùng | Tránh |
+| Situation | Recommended | Avoid |
 | --- | --- | --- |
-| Truyền/giữ bất kỳ mảng nào mà chưa cần duyệt | `Object` | Tuyên bố mọi mảng là `Object[]` |
-| Duyệt mảng có component type chỉ biết lúc chạy | `Array.getLength`, `Array.get` | Cast thẳng `(Object[]) array` |
-| Biết chắc dữ liệu là mảng số nguyên nguyên thủy | `int[]`, `Arrays.stream(int[])` | Boxing không cần thiết |
-| API buộc nhận mảng tham chiếu | `Integer[]` hoặc `Object[]` tạo từ dữ liệu đã boxing | Cast `int[]` |
-| Cần danh sách có thể thay đổi kích thước | `ArrayList<Integer>` | Mong `int[]` tự tăng `length` |
-| Chỉ cần in nội dung `int[]` | `Arrays.toString(int[])` | Cast để gọi `Arrays.toString(Object[])` |
+| Passing/holding any array without traversing yet | `Object` | Declaring every array as `Object[]` |
+| Traversing an array whose component type is only known at runtime | `Array.getLength`, `Array.get` | Direct cast `(Object[]) array` |
+| Knowing for sure the data is a primitive integer array | `int[]`, `Arrays.stream(int[])` | Unnecessary boxing |
+| API requires a reference array | `Integer[]` or `Object[]` created from boxed data | Casting `int[]` |
+| Needing a resizable list | `ArrayList<Integer>` | Expecting `int[]` to grow `length` automatically |
+| Only needing to print `int[]` contents | `Arrays.toString(int[])` | Casting to call `Arrays.toString(Object[])` |
 
-## 8. Tự kiểm tra
+## 8. Self-Check
 
-1. Tại sao `Object a = new int[4]` hợp lệ nhưng `Object[] a = new int[4]` không hợp lệ? Vì mọi mảng là đối tượng, còn `Object[]` đòi mảng có phần tử thuộc kiểu tham chiếu.
-2. Vì sao `(Object[]) (Object) new int[4]` vẫn thất bại? Kiểu tĩnh trung gian `Object` cho phép thử cast, nhưng kiểu runtime vẫn là `int[]`; JVM ném `ClassCastException`.
-3. Muốn đọc giá trị thứ ba từ một `Object x` được xác định là mảng, cần gì? Dùng `Array.getLength(x)` kiểm tra chỉ số rồi `Array.get(x, 2)`; nếu thật sự là `int[]`, có thể cast sang `int[]` và đọc `[2]`.
-4. Vì sao `Integer[]` tạo từ `int[]` không phản ánh thay đổi của mảng gốc? Vì đã tạo mảng khác và boxing các giá trị, không có các ô dữ liệu dùng chung.
+1. Why is `Object a = new int[4]` valid yet `Object[] a = new int[4]` invalid? Because every array is an object, whereas `Object[]` requires an array whose elements are of a reference type.
+2. Why does `(Object[]) (Object) new int[4]` still fail? The intermediate static type `Object` allows attempting the cast, but the runtime type is still `int[]`; the JVM throws `ClassCastException`.
+3. To read the third value from an `Object x` verified to be an array, what is needed? Use `Array.getLength(x)` to check the index and then `Array.get(x, 2)`; if it is actually an `int[]`, you can cast to `int[]` and read `[2]`.
+4. Why does an `Integer[]` created from `int[]` not reflect changes to the original array? Because a different array was created and the values were boxed, with no shared data slots.
 
-**Ghi nhớ:** `int[]` là một `Object`, **không phải** `Object[]`. Trong Reflection, làm việc trực tiếp với `java.lang.reflect.Array` khi kiểu phần tử chưa biết; chỉ tạo `Integer[]`/`Object[]` mới khi yêu cầu API thực sự cần kiểu mảng tham chiếu.
+**Key takeaway:** `int[]` is an `Object`, **not** an `Object[]`. In Reflection, work directly with `java.lang.reflect.Array` when the element type is unknown; only create a new `Integer[]`/`Object[]` when the API requirement truly calls for a reference array type.

@@ -1,14 +1,14 @@
-# Quan hệ giữa `String`, `char[]`, `CharSequence` và `Object` trong Java
+# Relationships Between `String`, `char[]`, `CharSequence`, and `Object` in Java
 
-## 1. Mục tiêu và bức tranh tổng thể
+## 1. Goals and the Big Picture
 
-Trong Java, cùng một nội dung văn bản có thể xuất hiện dưới nhiều kiểu: đối tượng `String`, mảng `char[]`, một đối tượng triển khai `CharSequence`, hoặc một tham chiếu `Object`. Những kiểu này **không đồng nghĩa**, dù đôi khi cùng biểu diễn các ký tự giống nhau. Để sử dụng đúng cần phân biệt ba câu hỏi:
+In Java, the same text content can appear under several types: a `String` object, a `char[]` array, an object implementing `CharSequence`, or an `Object` reference. These types are **not synonymous**, even when they sometimes represent the exact same characters. To use them properly, you need to distinguish three questions:
 
-1. **Kiểu và quan hệ kế thừa:** gán một giá trị cho biến kiểu nào là hợp lệ?
-2. **Khả năng thay đổi và sở hữu dữ liệu:** sửa đối tượng/mảng ban đầu có làm nội dung đang được quan sát thay đổi không?
-3. **Ngữ nghĩa thao tác:** các phương thức `equals`, `toString`, `charAt`, `length` và chuyển đổi sẽ xử lý dữ liệu như thế nào?
+1. **Types and inheritance relationships:** assigning a value to which variable type is valid?
+2. **Mutability and data ownership:** does modifying the original object/array change the content being observed?
+3. **Operation semantics:** how will `equals`, `toString`, `charAt`, `length`, and conversions process the data?
 
-Sơ đồ kiểu (Java 17+):
+Type diagram (Java 17+):
 
 ```text
 java.lang.Object
@@ -17,26 +17,26 @@ java.lang.Object
   ├── java.lang.StringBuilder (mutable, implements CharSequence)
   ├── java.lang.StringBuffer  (mutable, implements CharSequence)
   ├── java.nio.CharBuffer     (implements CharSequence)
-  └── char[]                  (kiểu mảng; là Object, KHÔNG implements CharSequence)
+  └── char[]                  (array type; is an Object, does NOT implement CharSequence)
 
-java.lang.CharSequence là interface (hợp đồng đọc dãy char),
-không phải lớp cha của Object và không phải kiểu mảng.
+java.lang.CharSequence is an interface (a contract for reading a char sequence),
+not a superclass of Object and not an array type.
 ```
 
-Mọi `String` và mọi mảng `char[]` đều là đối tượng Java, nên có thể được giữ trong một biến `Object`. Nhưng `char[]` **không** phải là `String` hay `CharSequence`; giữa chúng không có quan hệ gán kiểu trực tiếp. `String` vừa là một `Object` vừa là một `CharSequence` vì lớp này triển khai interface đó.
+Every `String` and every `char[]` array is a Java object, so both can be held in an `Object` variable. However, `char[]` is **not** a `String` or a `CharSequence`; there is no direct type-assignment relationship between them. `String` is both an `Object` and a `CharSequence` because the class implements that interface.
 
-| Kiểu | Bản chất | Thay đổi nội dung qua chính giá trị đó? | Quan hệ nổi bật |
+| Type | Nature | Modify content through that value itself? | Key relationships |
 | --- | --- | --- | --- |
-| `String` | Lớp `final` chứa chuỗi ký tự bất biến | Không | `extends Object`; `implements CharSequence` |
-| `char[]` | Mảng phần tử `char` nguyên thủy | Có, bằng cách gán `array[i]` | Là `Object`; không triển khai `CharSequence` |
-| `CharSequence` | Interface để đọc dãy `char` | Interface không có thao tác sửa; đối tượng thực tế *có thể* thay đổi | `String`, `StringBuilder`, `StringBuffer`, `CharBuffer` triển khai |
-| `Object` | Lớp gốc của đối tượng Java | Không quy định nội dung văn bản | Chỉ cung cấp hợp đồng đối tượng chung |
+| `String` | `final` class holding an immutable character sequence | No | `extends Object`; `implements CharSequence` |
+| `char[]` | Array of primitive `char` elements | Yes, by assigning `array[i]` | Is an `Object`; does not implement `CharSequence` |
+| `CharSequence` | Interface for reading a `char` sequence | Interface has no mutation operations; the actual object *may* be mutable | Implemented by `String`, `StringBuilder`, `StringBuffer`, `CharBuffer` |
+| `Object` | Root class of Java objects | Does not define text content | Only provides the general object contract |
 
-**Phân biệt biến với đối tượng:** `String name = "A"; name = "B";` là **gán lại tham chiếu** của biến `name`, không sửa nội dung đối tượng `String("A")`.
+**Distinguishing variable from object:** `String name = "A"; name = "B";` is **reassigning the reference** of the variable `name`, not modifying the content of the `String("A")` object.
 
-## 2. `String` là một `Object` và triển khai `CharSequence`
+## 2. `String` is an `Object` and implements `CharSequence`
 
-Khai báo rút gọn của Java 17 là:
+The abbreviated declaration in Java 17 is:
 
 ```java
 public final class String
@@ -45,24 +45,24 @@ public final class String
                    CharSequence,
                    java.lang.constant.Constable,
                    java.lang.constant.ConstantDesc {
-    // Nội dung phương thức được lược bỏ.
+    // Method bodies omitted.
 }
 ```
 
-Đây chỉ là **chữ ký minh họa**, không phải lớp tự biên dịch: các phương thức/thuộc tính cài đặt đã bị lược bỏ. `String` kế thừa `Object` theo quy tắc của Java ngay cả khi khai báo không ghi `extends Object`.
+This is only an **illustrative signature**, not a self-compiling class: implementation methods and fields have been omitted. `String` inherits from `Object` under Java rules even though the declaration does not explicitly write `extends Object`.
 
-Một đối tượng `String` có thể được nhìn qua nhiều kiểu tham chiếu:
+A `String` object can be viewed through multiple reference types:
 
 ```java
 String text = "Hello";
-CharSequence sequence = text; // upcast: hợp lệ
-Object object = text;         // upcast: hợp lệ
+CharSequence sequence = text; // upcast: valid
+Object object = text;         // upcast: valid
 
 System.out.println(sequence.length());     // 5
 System.out.println(object instanceof String); // true
 ```
 
-Khi kiểu tĩnh là `CharSequence`, chương trình chỉ được gọi các phương thức có trong hợp đồng `CharSequence` (cộng các phương thức của `Object`), dù đối tượng thực tế là `String`. Khi kiểu tĩnh là `Object`, `object.length()` không biên dịch vì `Object` không khai báo `length()`. Cần kiểm tra rồi ép kiểu:
+When the static type is `CharSequence`, the program can only call methods declared in the `CharSequence` contract (plus `Object` methods), even though the actual object is a `String`. When the static type is `Object`, `object.length()` does not compile because `Object` does not declare `length()`. You must check and cast first:
 
 ```java
 if (object instanceof String actual) {
@@ -70,11 +70,11 @@ if (object instanceof String actual) {
 }
 ```
 
-Một phép ép kiểu `(String) object` chỉ đúng khi đối tượng thực tế là `String` (hoặc `null`). Nếu `object` đang chứa `char[]` hay `StringBuilder`, ép sang `String` gây `ClassCastException`. Thao tác ép kiểu không thực hiện chuyển đổi nội dung.
+A cast `(String) object` is valid only when the actual object is a `String` (or `null`). If `object` currently holds a `char[]` or `StringBuilder`, casting to `String` throws `ClassCastException`. Casting does not perform content conversion.
 
-## 3. `char[]`: mảng có thể sửa, không tự trở thành chuỗi
+## 3. `char[]`: a mutable array that does not automatically become a string
 
-`char` là kiểu nguyên thủy 16 bit biểu diễn **đơn vị mã UTF-16**. `char[]` là **đối tượng mảng**, chứa nhiều giá trị `char`, có thuộc tính `length` (không phải phương thức `length()`), và cho phép sửa phần tử.
+`char` is a 16-bit primitive type representing a **UTF-16 code unit**. `char[]` is an **array object** holding multiple `char` values, has a `length` field (not a `length()` method), and allows modifying elements.
 
 ```java
 char[] letters = {'J', 'a', 'v', 'a'};
@@ -82,9 +82,9 @@ letters[0] = 'K';
 System.out.println(letters.length); // 4
 ```
 
-`String` không cung cấp cú pháp gán `text[0] = 'K'` và không có phương thức thay đổi vị trí ký tự tại chỗ. Các thao tác như `replace`, `substring` hoặc `concat` tạo ra kết quả kiểu `String`, không sửa giá trị chuỗi hiện có; việc JVM có thể tái sử dụng đối tượng ở một số tình huống không làm thay đổi tính bất biến.
+`String` does not provide assignment syntax like `text[0] = 'K'` and has no methods to mutate character positions in place. Operations such as `replace`, `substring`, or `concat` produce a `String` result without modifying the existing string value; the fact that the JVM may reuse objects in certain cases does not change its immutability.
 
-Chuyển đổi `char[]` sang `String` tạo nội dung văn bản từ **giá trị phần tử tại thời điểm chuyển đổi**:
+Converting `char[]` to `String` creates text content from the **element values at the time of conversion**:
 
 ```java
 char[] letters = {'J', 'a', 'v', 'a'};
@@ -94,7 +94,7 @@ System.out.println(text);                // Java
 System.out.println(new String(letters)); // Kava
 ```
 
-Constructor `new String(char[])` **sao chép nội dung**. `String.valueOf(char[])` và `String.copyValueOf(char[])` cũng tạo chuỗi từ các ký tự của mảng. Thay đổi mảng nguồn sau đó không làm thay đổi `String` đã tạo. Theo chiều ngược lại, `text.toCharArray()` trả về mảng mới có thể sửa, không làm biến đổi chuỗi gốc:
+The `new String(char[])` constructor **copies the content**. `String.valueOf(char[])` and `String.copyValueOf(char[])` also create a string from the array's characters. Modifying the source array afterward does not change the created `String`. Conversely, `text.toCharArray()` returns a new mutable array without mutating the original string:
 
 ```java
 String text = "Java";
@@ -104,27 +104,27 @@ System.out.println(text);        // Java
 System.out.println(new String(copy)); // Kava
 ```
 
-Để lấy một đoạn ký tự vào mảng có sẵn, dùng `text.getChars(srcBegin, srcEnd, destination, dstBegin)` và bảo đảm đủ chỗ đích. Khi cần xử lý nhiều lần theo kiểu mảng, cân nhắc chi phí tạo bản sao và yêu cầu sở hữu dữ liệu.
+To copy a range of characters into an existing array, use `text.getChars(srcBegin, srcEnd, destination, dstBegin)` and ensure the destination has enough space. When processing repeatedly in array form, weigh the cost of creating copies against data-ownership requirements.
 
-**Lưu ý về bộ nhớ:** mô hình API của `String` diễn đạt một dãy đơn vị mã UTF-16; không suy ra Java bắt buộc lưu `String` bằng một `char[]` bên trong. Các JDK hiện đại có thể dùng cách lưu trữ tối ưu khác, và đó là chi tiết triển khai, không phải quan hệ kiểu Java.
+**Memory note:** `String`'s API model expresses a sequence of UTF-16 code units; do not infer that Java is required to store `String` internally as a `char[]`. Modern JDKs may use other optimized storage representations, and that is an implementation detail, not a Java type relationship.
 
-## 4. `CharSequence`: hợp đồng đọc chuỗi ký tự, không cam kết bất biến
+## 4. `CharSequence`: a read contract for character sequences, with no immutability guarantee
 
-`CharSequence` cung cấp giao diện chung để thư viện có thể nhận văn bản mà không buộc người gọi phải tạo `String` ngay từ đầu. Các thao tác cốt lõi:
+`CharSequence` provides a common interface so libraries can accept text without forcing callers to create a `String` upfront. Core operations:
 
-| API | Ý nghĩa |
+| API | Meaning |
 | --- | --- |
-| `length()` | Số đơn vị `char` (UTF-16) trong dãy |
-| `charAt(index)` | Đọc một đơn vị `char` tại chỉ số từ 0 |
-| `subSequence(start, end)` | Lấy đoạn `[start, end)`; kiểu trả về được khai báo là `CharSequence` |
-| `toString()` | Biểu diễn dãy tại thời điểm gọi dưới dạng `String` |
-| `isEmpty()` | Kiểm tra `length() == 0` |
-| `chars()` | `IntStream` của các đơn vị UTF-16 |
-| `codePoints()` | `IntStream` các Unicode code point, ghép cặp surrogate hợp lệ |
+| `length()` | Number of `char` (UTF-16) units in the sequence |
+| `charAt(index)` | Reads one `char` unit at a 0-based index |
+| `subSequence(start, end)` | Extracts the range `[start, end)`; return type is declared as `CharSequence` |
+| `toString()` | Represents the sequence at call time as a `String` |
+| `isEmpty()` | Checks `length() == 0` |
+| `chars()` | `IntStream` of UTF-16 units |
+| `codePoints()` | `IntStream` of Unicode code points, pairing valid surrogate pairs |
 
-Những phương thức trên hỗ trợ **đọc**, nhưng interface không bảo đảm đối tượng bên dưới là bất biến. `String` bất biến; `StringBuilder` và `StringBuffer` có thể thay đổi; `CharBuffer` có thể phản ánh mảng dữ liệu nền và trạng thái vị trí/giới hạn. `StringBuffer` đồng bộ hóa nhiều phương thức riêng lẻ, nhưng điều đó không khiến hợp đồng chung `CharSequence` trở thành bất biến hoặc bảo đảm an toàn cho mọi chuỗi thao tác đa luồng.
+These methods support **reading**, but the interface does not guarantee that the underlying object is immutable. `String` is immutable; `StringBuilder` and `StringBuffer` are mutable; `CharBuffer` can reflect an underlying data array and position/limit state. `StringBuffer` synchronizes many individual methods, but that does not make the general `CharSequence` contract immutable or guarantee safety for all multi-threaded operation sequences.
 
-Chẳng hạn:
+For example:
 
 ```java
 StringBuilder builder = new StringBuilder("Java");
@@ -133,21 +133,21 @@ builder.append(" 17");
 System.out.println(sequence); // Java 17
 ```
 
-Tham chiếu `sequence` nhìn thấy thay đổi vì cả hai tham chiếu đang trỏ tới **cùng đối tượng `StringBuilder`**. Ngược lại, nếu cần lưu một bản chụp nội dung bất biến, có thể chuyển kiểu sang `String`, ví dụ `String snapshot = builder.toString();`. Phải xác định rõ thời điểm tạo snapshot và tránh thay đổi đồng thời khi đọc một nguồn mutable.
+The `sequence` reference sees the change because both references point to the **same `StringBuilder` object**. Conversely, if you need to store an immutable snapshot of the content, you can convert it to a `String`, such as `String snapshot = builder.toString();`. You must define clearly when the snapshot is taken and avoid concurrent mutation while reading from a mutable source.
 
-`char[]` không triển khai `CharSequence`, nên đoạn dưới là ví dụ **cố ý sai kiểu**:
+`char[]` does not implement `CharSequence`, so the snippet below is an **intentionally invalid type** example:
 
 ```java
 char[] raw = {'H', 'i'};
-// CharSequence cs = raw; // LỖI BIÊN DỊCH: char[] không implements CharSequence
-CharSequence copied = new String(raw); // Bản sao bất biến
+// CharSequence cs = raw; // COMPILE ERROR: char[] does not implement CharSequence
+CharSequence copied = new String(raw); // Immutable copy
 ```
 
-Nếu cần một view có thể thấy thay đổi của mảng, dùng `java.nio.CharBuffer.wrap(raw)`. View này được hỗ trợ bởi chính mảng nguồn: sửa mảng có thể quan sát qua buffer, và vị trí/giới hạn của buffer cũng ảnh hưởng `CharSequence.length()`, `charAt()`, `subSequence()` khi làm việc với `CharBuffer`.
+If you need a view that reflects changes to the array, use `java.nio.CharBuffer.wrap(raw)`. This view is backed by the source array itself: modifying the array can be observed through the buffer, and the buffer's position/limit also affect `CharSequence.length()`, `charAt()`, and `subSequence()` when working with `CharBuffer`.
 
-## 5. Ví dụ hoàn chỉnh: sao chép, upcast và quan sát giá trị
+## 5. Complete example: copying, upcasting, and observing values
 
-Lưu thành `StringRelationsDemo.java`:
+Save as `StringRelationsDemo.java`:
 
 ```java
 public class StringRelationsDemo {
@@ -178,14 +178,14 @@ public class StringRelationsDemo {
 }
 ```
 
-Biên dịch/chạy bằng JDK 17 trở lên:
+Compile/run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 StringRelationsDemo.java
 java StringRelationsDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 Java
@@ -200,15 +200,15 @@ Kava
 true
 ```
 
-Giải thích:
-- Hai dòng đầu cho thấy `new String(source)` đã chụp nội dung ban đầu: thay mảng nguồn thành `Kava` không ảnh hưởng `text`.
-- `sequence` vẫn trỏ đến `String("Java")`, nên `length()` là 4, `charAt(1)` là `a`, `subSequence(1,3)` là `av`.
-- `asObject` chứa một `String` thực, trong khi `arrayAsObject` chứa một đối tượng `char[]`; cả hai là `Object` nhưng kết quả `instanceof String` khác nhau.
-- `String.valueOf(source)` chọn overload nhận `char[]`, nên trả văn bản `Kava`. Ép `source` thành `Object` chọn overload `valueOf(Object)`: mảng dùng `Object.toString()` có dạng bắt đầu bằng `[C@`, sau đó là phần định danh không ổn định. Chỉ kiểm tra tiền tố để tránh phụ thuộc vào mã băm.
+Explanation:
+- The first two lines show that `new String(source)` captured the initial content: changing the source array to `Kava` does not affect `text`.
+- `sequence` still points to `String("Java")`, so `length()` is 4, `charAt(1)` is `a`, and `subSequence(1, 3)` is `av`.
+- `asObject` holds an actual `String`, whereas `arrayAsObject` holds a `char[]` object; both are `Object`, yet the `instanceof String` results differ.
+- `String.valueOf(source)` selects the overload taking `char[]`, so it returns the text `Kava`. Casting `source` to `Object` selects the `valueOf(Object)` overload: arrays use `Object.toString()`, whose format starts with `[C@` followed by an unstable identifier. Only check the prefix to avoid depending on the hash code.
 
-## 6. Viết API tổng quát nhận `CharSequence`
+## 6. Writing general APIs that accept `CharSequence`
 
-Một hàm chỉ cần đọc các ký tự có thể nhận `CharSequence` để làm việc với `String`, `StringBuilder` hoặc `CharBuffer`. Ví dụ sau là **chương trình độc lập**; lưu thành `SequenceApiDemo.java`:
+A method that only needs to read characters can accept `CharSequence` to work with `String`, `StringBuilder`, or `CharBuffer`. The following example is a **standalone program**; save as `SequenceApiDemo.java`:
 
 ```java
 import java.nio.CharBuffer;
@@ -256,44 +256,44 @@ Builder!
 Xhar
 ```
 
-Ở đây `prefix` dùng hợp đồng chung của `CharSequence`; kết quả trả về `String`. `CharBuffer.wrap(raw)` **không tạo bản sao**, nên dòng cuối thấy ký tự `X` vừa sửa. Nếu yêu cầu đóng băng đầu vào tại một thời điểm, hãy tạo một `String` từ nội dung trước khi lưu trữ; nếu cần bảo đảm nhất quán khi nhiều luồng cùng sửa nguồn, phải phối hợp đồng bộ ở bên ngoài.
+Here `prefix` uses the common `CharSequence` contract; the returned result is a `String`. `CharBuffer.wrap(raw)` **does not create a copy**, so the last line sees the newly modified `X` character. If you need to freeze the input at a point in time, create a `String` from the content before storing it; if consistency is required while multiple threads concurrently modify the source, external synchronization must be coordinated.
 
-### Khi nào nên nhận `String`, khi nào nên nhận `CharSequence`?
+### When should you accept `String`, and when should you accept `CharSequence`?
 
-- Dùng `String` khi API cần chuỗi bất biến để lưu lâu dài, làm khóa, so sánh theo quy tắc `String`, hoặc cần các phương thức chỉ có ở `String` như `replace`, `split`, `matches`.
-- Dùng `CharSequence` khi thuật toán chỉ cần đọc `length`, `charAt`, `subSequence` hoặc luồng ký tự và muốn chấp nhận nhiều cách biểu diễn. Tài liệu API nên nêu rõ liệu hàm có giữ tham chiếu đầu vào sau khi trả về hay không.
-- Dùng `char[]` khi thực sự cần thao tác tại chỗ với phần tử `char`, giao tiếp với API chấp nhận mảng hoặc chủ động quản lý bản sao. Không mặc định mảng nhanh hơn: hiệu năng phụ thuộc thao tác và mức cấp phát.
-- Dùng `StringBuilder` để xây dựng văn bản thay đổi nhiều lần trong cùng ngữ cảnh; gọi `toString()` khi cần kết quả bất biến.
+- Use `String` when an API needs an immutable string for long-term storage, as a map key, for comparison by `String` rules, or needs methods only available on `String` such as `replace`, `split`, or `matches`.
+- Use `CharSequence` when an algorithm only needs to read `length`, `charAt`, `subSequence`, or character streams and wants to accept multiple representations. API documentation should clearly state whether the function retains the input reference after returning.
+- Use `char[]` when you genuinely need in-place manipulation of `char` elements, interoperate with an API that accepts arrays, or actively manage copies. Do not assume arrays are faster by default: performance depends on the operations and allocation patterns.
+- Use `StringBuilder` to build text that changes repeatedly within the same context; call `toString()` when an immutable result is needed.
 
-## 7. `Object`, `toString()`, overload và các kiểu so sánh
+## 7. `Object`, `toString()`, overloads, and comparison types
 
-Vì `String` là `Object`, `Object ref = "Java";` là hợp lệ; tuy nhiên **kiểu tĩnh** của tham chiếu quyết định phương thức nào có thể gọi trực tiếp. `Object.toString()` là phương thức đa hình: `String.toString()` trả lại nội dung chuỗi; `StringBuilder.toString()` trả một chuỗi biểu diễn nội dung tại thời điểm gọi. Mảng `char[]` không ghi đè `Object.toString()` để in ký tự người đọc mong đợi.
+Because `String` is an `Object`, `Object ref = "Java";` is valid; however, the **static type** of the reference determines which methods can be called directly. `Object.toString()` is a polymorphic method: `String.toString()` returns the string's content; `StringBuilder.toString()` returns a string representing the content at call time. A `char[]` array does not override `Object.toString()` to print the characters a reader expects.
 
-Các overload dễ gây nhầm:
+Overloads that are easy to confuse:
 
 ```java
 char[] data = {'O', 'K'};
 System.out.println(String.valueOf(data));          // OK
-System.out.println(String.valueOf((Object) data)); // dạng [C@..., không phải "OK"
-System.out.println(data);                          // OK, do println(char[])
-System.out.println((Object) data);                 // dạng [C@..., do println(Object)
+System.out.println(String.valueOf((Object) data)); // format [C@..., not "OK"
+System.out.println(data);                          // OK, due to println(char[])
+System.out.println((Object) data);                 // format [C@..., due to println(Object)
 ```
 
-Đoạn trên là **snippet giải thích overload**, không định nghĩa một lớp `main` riêng. Không so sánh toàn bộ dạng `[C@...` với một chuỗi cố định: phần sau ký tự `@` phụ thuộc đối tượng/chạy chương trình.
+The snippet above is an **overload explanation snippet**, not a separate class with `main`. Do not compare the entire `[C@...` format against a fixed string: the part after `@` depends on the object/program run.
 
-Quan hệ kiểu không quyết định cách so sánh nội dung:
+Type relationships do not determine how content is compared:
 
-| Biểu thức | Kiểm tra | Khuyến nghị |
+| Expression | Checks | Recommendation |
 | --- | --- | --- |
-| `a == b` với hai tham chiếu | Cùng đối tượng hay không | Dùng khi quan tâm identity |
-| `stringA.equals(stringB)` | Nội dung của hai `String` | Dùng cho bình đẳng chuỗi |
-| `Arrays.equals(charArrayA, charArrayB)` | Từng phần tử của hai mảng | Dùng cho bình đẳng mảng |
-| `charArrayA.equals(charArrayB)` | Identity của mảng (kế thừa `Object`) | Không dùng để so nội dung |
-| `string.contentEquals(sequence)` | Nội dung `String` so với một `CharSequence` | Dùng khi cần so khác lớp triển khai |
+| `a == b` with two references | Whether they are the same object | Use when identity matters |
+| `stringA.equals(stringB)` | Content of two `String`s | Use for string equality |
+| `Arrays.equals(charArrayA, charArrayB)` | Each element of two arrays | Use for array equality |
+| `charArrayA.equals(charArrayB)` | Array identity (inherited from `Object`) | Do not use to compare content |
+| `string.contentEquals(sequence)` | `String` content against a `CharSequence` | Use when comparing across different implementation classes |
 
-`CharSequence` **không quy định lại hợp đồng `equals`/`hashCode`** của `Object`. Vì thế không nên cho rằng hai `CharSequence` có nội dung giống nhau sẽ `equals` nhau, đặc biệt khi thuộc các lớp khác nhau. Một tập hợp `HashSet<CharSequence>` hoặc `Map<CharSequence, ...>` chỉ phù hợp khi đã chủ động chọn và kiểm soát quy tắc bình đẳng, bất biến của khóa. Với khóa văn bản, `String` thường an toàn và dễ dự đoán hơn.
+`CharSequence` **does not redefine `Object`'s `equals`/`hashCode` contract**. Therefore, do not assume two `CharSequence` instances with identical content will be `equals` to each other, especially when they belong to different classes. A `HashSet<CharSequence>` or `Map<CharSequence, ...>` is only appropriate when you have deliberately chosen and controlled key equality and immutability rules. For text keys, `String` is usually safer and more predictable.
 
-Ví dụ độc lập, lưu `EqualityDemo.java`:
+Standalone example, save as `EqualityDemo.java`:
 
 ```java
 import java.util.Arrays;
@@ -330,16 +330,16 @@ false
 true
 ```
 
-`a` và `b` có nội dung bằng nhau nhưng là hai đối tượng `String` được tạo riêng. Hai mảng `x`, `y` bằng nhau về phần tử nhưng không trỏ đến cùng một mảng. `a.equals(builder)` là `false` vì đối số không phải `String`, trong khi `contentEquals` so các ký tự nên trả `true`. Với `String` literal, JVM có thể dùng string pool; vì vậy không dùng ví dụ `"hi" == "hi"` để suy ra quy tắc so sánh nội dung chung.
+`a` and `b` have equal content but are two separately created `String` objects. The two arrays `x` and `y` are equal in elements but do not point to the same array. `a.equals(builder)` is `false` because the argument is not a `String`, whereas `contentEquals` compares the characters and returns `true`. For `String` literals, the JVM may use the string pool; thus, do not use `"hi" == "hi"` to infer general content-comparison rules.
 
-## 8. Unicode: `char`, ký tự Unicode và độ dài chuỗi không luôn trùng nhau
+## 8. Unicode: `char`, Unicode characters, and string length do not always match
 
-`char` của Java có kích thước 16 bit, đại diện một **đơn vị mã UTF-16**. Một Unicode code point nằm ngoài Basic Multilingual Plane (BMP) cần **hai** `char` (một cặp surrogate). Do đó:
-- `String.length()`, `CharSequence.length()` và độ dài mảng `char[]` cùng đếm **đơn vị UTF-16** trong dãy tương ứng, không nhất thiết là số Unicode code point hoặc số ký tự người đọc cảm nhận.
-- `charAt(i)` trả một đơn vị UTF-16; nó có thể là nửa của cặp surrogate.
-- `codePointCount`, `codePointAt`, `offsetByCodePoints` và `codePoints()` hữu ích khi cần xử lý theo code point. Một *grapheme cluster* (ký tự hiển thị) vẫn có thể gồm nhiều code point, nên đếm code point không đồng nghĩa đếm ký tự người dùng nhìn thấy.
+Java's `char` is 16 bits wide, representing one **UTF-16 code unit**. A Unicode code point outside the Basic Multilingual Plane (BMP) requires **two** `char` values (a surrogate pair). Consequently:
+- `String.length()`, `CharSequence.length()`, and `char[]` array length all count **UTF-16 units** in their respective sequences, not necessarily the number of Unicode code points or characters perceived by a reader.
+- `charAt(i)` returns one UTF-16 unit; it may be half of a surrogate pair.
+- `codePointCount`, `codePointAt`, `offsetByCodePoints`, and `codePoints()` are useful when processing by code point. A *grapheme cluster* (visible character) can still consist of multiple code points, so counting code points is not synonymous with counting user-perceived characters.
 
-Ví dụ độc lập, lưu `UnicodeDemo.java` (tệp mã hóa UTF-8):
+Standalone example, save as `UnicodeDemo.java` (UTF-8 encoded file):
 
 ```java
 public class UnicodeDemo {
@@ -367,41 +367,41 @@ java UnicodeDemo
 3
 ```
 
-Chuỗi gồm `A` (một `char`), emoji `🙂` (hai `char`), và `B` (một `char`): tổng cộng bốn đơn vị UTF-16 nhưng ba code point. Chỉ số UTF-16 ngay sau hai code point đầu là 3. Nếu cắt bằng `substring`/`subSequence` giữa hai nửa surrogate, bạn có thể tạo dãy UTF-16 không hợp lệ; khi xử lý code point, hãy tính biên bằng `offsetByCodePoints` hoặc API Unicode phù hợp.
+The string consists of `A` (one `char`), the emoji `🙂` (two `char`s), and `B` (one `char`): four UTF-16 units in total, but three code points. The UTF-16 index immediately after the first two code points is 3. If you slice with `substring`/`subSequence` between the two halves of a surrogate pair, you can produce an invalid UTF-16 sequence; when processing code points, compute boundaries using `offsetByCodePoints` or an appropriate Unicode API.
 
-## 9. Lỗi thường gặp và cách xử lý
+## 9. Common mistakes and how to handle them
 
-1. **Cho rằng `char[]` là `CharSequence`:** ép kiểu trực tiếp không tạo adapter; dùng `new String(array)` để sao chép hoặc `CharBuffer.wrap(array)` khi chủ ý chia sẻ mảng.
-2. **Dùng `==` hay `char[].equals` để so nội dung:** chọn `String.equals`, `Arrays.equals` hoặc `String.contentEquals` tùy loại dữ liệu và quy tắc mong muốn.
-3. **Tin rằng mọi `CharSequence` đều bất biến:** cần xem lớp triển khai và việc lưu tham chiếu. `StringBuilder`/`CharBuffer` có thể đổi nội dung trong lúc đọc.
-4. **In mảng qua `Object.toString()` rồi tưởng đó là văn bản:** `String.valueOf((Object) array)` không chọn overload `char[]`; dùng `new String(array)` hoặc `String.valueOf(array)`.
-5. **Nhầm `array.length` với `string.length()`:** mảng dùng thuộc tính, `String`/`CharSequence` dùng phương thức.
-6. **Ép `Object` sang `String` khi thực tế chứa mảng:** kiểm tra bằng `instanceof` rồi xử lý theo loại; ép kiểu khác chuyển đổi.
-7. **Coi `charAt` là một ký tự Unicode hoàn chỉnh:** với ký tự ngoài BMP, phải làm việc theo code point hoặc grapheme cluster tùy yêu cầu.
-8. **Dùng `String` để ráp nhiều đoạn trong vòng lặp lớn:** `String` bất biến nên phép nối lặp có thể tạo nhiều đối tượng trung gian; `StringBuilder` thường phù hợp khi tích lũy văn bản.
-9. **Dùng một `CharSequence` mutable làm khóa map/set:** biến đổi nội dung hay khác biệt `equals`/`hashCode` giữa lớp triển khai có thể gây kết quả khó dự đoán; thường nên chuẩn hóa thành `String` khi chọn khóa văn bản.
-10. **Giả định `char[]` chứa bí mật thì có thể xóa sạch mọi bản sao:** có thể ghi đè mảng mình sở hữu, nhưng Java/JVM/API có thể tạo bản sao ở nơi khác. Không hứa bảo đảm xóa khỏi toàn bộ bộ nhớ chỉ bằng một lần `Arrays.fill`.
+1. **Assuming `char[]` is a `CharSequence`:** direct casting does not create an adapter; use `new String(array)` to copy or `CharBuffer.wrap(array)` when intentionally sharing the array.
+2. **Using `==` or `char[].equals` to compare content:** choose `String.equals`, `Arrays.equals`, or `String.contentEquals` depending on the data types and desired rules.
+3. **Believing every `CharSequence` is immutable:** check the implementing class and reference retention. `StringBuilder`/`CharBuffer` can change content while being read.
+4. **Printing an array via `Object.toString()` and thinking it is text:** `String.valueOf((Object) array)` does not select the `char[]` overload; use `new String(array)` or `String.valueOf(array)`.
+5. **Confusing `array.length` with `string.length()`:** arrays use a field, while `String`/`CharSequence` use a method.
+6. **Casting `Object` to `String` when it actually holds an array:** check with `instanceof` and handle by type; casting is different from converting.
+7. **Treating `charAt` as a complete Unicode character:** for characters outside the BMP, work with code points or grapheme clusters as required.
+8. **Using `String` to assemble many pieces in a large loop:** `String` is immutable, so repeated concatenation can create many intermediate objects; `StringBuilder` is usually appropriate when accumulating text.
+9. **Using a mutable `CharSequence` as a map/set key:** mutating content or differing `equals`/`hashCode` across implementing classes can cause unpredictable results; typically normalize to `String` when choosing text keys.
+10. **Assuming a `char[]` holding secrets can wipe every copy:** you can overwrite an array you own, but Java/JVM/APIs may create copies elsewhere. Do not promise guaranteed erasure from all of memory with a single `Arrays.fill`.
 
-## 10. Quy tắc lựa chọn nhanh và tự kiểm tra
+## 10. Quick selection rules and self-check
 
-Hãy xác định yêu cầu trước khi chọn kiểu:
+Define your requirements before choosing a type:
 
-- **Cần một giá trị văn bản ổn định:** dùng `String`.
-- **Cần tham số chỉ đọc để chấp nhận nhiều nguồn văn bản:** dùng `CharSequence`; quyết định rõ liệu dữ liệu có được chụp thành `String` khi lưu hay không.
-- **Cần sửa từng phần tử dữ liệu UTF-16:** dùng `char[]` hoặc một buffer phù hợp.
-- **Cần xây dựng/nối liên tục:** dùng `StringBuilder`, rồi lấy `String` khi hoàn tất.
-- **Chỉ có tham chiếu `Object`:** kiểm tra kiểu thực tế và chuyển đổi có chủ đích; không kỳ vọng `Object.toString()` của mọi loại đều trả nội dung văn bản.
+- **Need a stable text value:** use `String`.
+- **Need a read-only parameter accepting multiple text sources:** use `CharSequence`; clearly decide whether the data is snapshotted into a `String` when stored.
+- **Need to modify individual UTF-16 elements:** use `char[]` or an appropriate buffer.
+- **Need continuous building/appending:** use `StringBuilder`, then obtain a `String` when finished.
+- **Only have an `Object` reference:** check the actual type and convert intentionally; do not expect every type's `Object.toString()` to return text content.
 
-Câu hỏi ôn tập:
-1. Vì sao thay `charArray[0]` sau `new String(charArray)` không làm đổi `String`, còn với `CharBuffer.wrap(charArray)` thì có thể quan sát thấy thay đổi?
-2. Vì sao `CharSequence s = new StringBuilder("x");` là hợp lệ, còn `CharSequence s = new char[] {'x'};` không hợp lệ?
-3. `String.valueOf(array)` khác `String.valueOf((Object) array)` ở bước chọn overload nào?
-4. Vì sao `string.equals(builder)` và `string.contentEquals(builder)` có thể trả kết quả khác nhau?
-5. Khi `text.length() == 4`, có thể kết luận chuỗi có đúng bốn Unicode code point hay bốn ký tự hiển thị không? Vì sao?
+Review questions:
+1. Why does changing `charArray[0]` after `new String(charArray)` not change the `String`, whereas with `CharBuffer.wrap(charArray)` the change can be observed?
+2. Why is `CharSequence s = new StringBuilder("x");` valid, while `CharSequence s = new char[] {'x'};` is invalid?
+3. At which overload-resolution step does `String.valueOf(array)` differ from `String.valueOf((Object) array)`?
+4. Why can `string.equals(builder)` and `string.contentEquals(builder)` return different results?
+5. When `text.length() == 4`, can you conclude the string has exactly four Unicode code points or four visible characters? Why?
 
-Nắm được **quan hệ kiểu**, **tính bất biến/sao chép**, **hợp đồng `CharSequence`** và **đơn vị UTF-16** sẽ giúp thiết kế API đúng, tránh lỗi ép kiểu/so sánh và chọn cấu trúc dữ liệu phù hợp.
+Mastering **type relationships**, **immutability/copying**, the **`CharSequence` contract**, and **UTF-16 units** will help you design proper APIs, avoid casting/comparison bugs, and choose the right data structures.
 
-## Tài liệu API chính thức (Java SE 17)
+## Official API Documentation (Java SE 17)
 
 - [`String` — Oracle Java 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
 - [`CharSequence` — Oracle Java 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/CharSequence.html)

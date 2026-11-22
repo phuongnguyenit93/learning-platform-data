@@ -1,32 +1,32 @@
-# Phân biệt kiểu nguyên thủy với kiểu tham chiếu trong Java 17+
+# Distinguishing Primitive Types from Reference Types in Java 17+
 
-Java phân biệt hai nhóm kiểu dữ liệu:
+Java distinguishes two groups of data types:
 
-- **Kiểu nguyên thủy (*primitive type*)**: biến chứa trực tiếp một giá trị thuộc một trong tám kiểu `byte`, `short`, `int`, `long`, `float`, `double`, `char`, `boolean`.
-- **Kiểu tham chiếu (*reference type*)**: biến chứa một giá trị tham chiếu tới đối tượng hoặc mảng, hoặc chứa `null`. Ví dụ: `String`, `int[]`, một lớp tự định nghĩa, interface, enum, record và wrapper `Integer`.
+- **Primitive types**: a variable directly holds a value belonging to one of the eight types `byte`, `short`, `int`, `long`, `float`, `double`, `char`, `boolean`.
+- **Reference types**: a variable holds a reference value pointing to an object or array, or holds `null`. Examples: `String`, `int[]`, a user-defined class, interface, enum, record, and the wrapper `Integer`.
 
-Điểm cần nhớ: **gán một biến nguyên thủy sang biến cùng kiểu sao chép giá trị; gán một biến tham chiếu sang biến tham chiếu khác sao chép giá trị tham chiếu**, không tự sao chép đối tượng. Vì vậy, hai tên có thể cùng truy cập *một đối tượng*.
+Point to remember: **assigning a primitive variable to another variable of the same type copies the value; assigning a reference variable to another reference variable copies the reference value**, without automatically copying the object. Therefore, two names can access *the same object*.
 
-## 1. Bảng đối chiếu
+## 1. Comparison Table
 
-| Tiêu chí | Kiểu nguyên thủy | Kiểu tham chiếu |
+| Criterion | Primitive type | Reference type |
 | --- | --- | --- |
-| Ví dụ | `int`, `double`, `char`, `boolean` | `String`, `Integer`, `int[]`, `Counter` |
-| Biến chứa gì? | Giá trị primitive | Tham chiếu đến đối tượng/mảng hoặc `null` |
-| Có thể gán trực tiếp `null`? | **Không** | Có |
-| Gán `b = a` | Sao chép giá trị | Sao chép **tham chiếu**, không nhân bản đối tượng |
-| `==` | So sánh giá trị sau quy tắc chuyển kiểu thích hợp | Với hai tham chiếu tương thích: kiểm tra **cùng đối tượng** (hoặc cùng `null`) |
-| Truy cập thành viên | Không gọi phương thức trên một giá trị primitive | Thường có field/phương thức, tùy kiểu |
-| Giá trị mặc định của **field** | `0`, `0.0`, `false`, `'\u0000'` theo kiểu | `null` |
-| Biến cục bộ chưa khởi tạo | Không thể đọc | Cũng **không thể đọc** |
+| Examples | `int`, `double`, `char`, `boolean` | `String`, `Integer`, `int[]`, `Counter` |
+| What does the variable hold? | Primitive value | Reference to an object/array, or `null` |
+| Can `null` be assigned directly? | **No** | Yes |
+| Assignment `b = a` | Copies the value | Copies the **reference**, does not clone the object |
+| `==` | Compares values after appropriate type conversion rules | For two compatible references: checks **same object** (or both `null`) |
+| Member access | Cannot call methods on a primitive value | Typically has fields/methods, depending on type |
+| Default value of a **field** | `0`, `0.0`, `false`, `'\u0000'` by type | `null` |
+| Uninitialized local variable | Cannot be read | Also **cannot be read** |
 
-Java **không tự gán giá trị mặc định cho biến cục bộ** thuộc bất kỳ nhóm nào. Một biến cục bộ phải được gán chắc chắn trước khi đọc (*definite assignment*). Còn field của lớp/đối tượng được khởi tạo mặc định theo kiểu khi cần.
+Java **does not automatically assign default values to local variables** of either group. A local variable must be definitely assigned before being read (*definite assignment*). Class/object fields, on the other hand, are default-initialized by type when needed.
 
-Không nên diễn giải hai nhóm thành quy tắc tuyệt đối “primitive luôn ở stack, object luôn ở heap”: JVM có thể tối ưu vị trí lưu trữ. Điều cần hiểu là **ngữ nghĩa giá trị và tham chiếu**, không phải một sơ đồ RAM đơn giản.
+Do not interpret the two groups as an absolute rule "primitives are always on the stack, objects are always on the heap": the JVM can optimize storage locations. What matters is understanding **value semantics and reference semantics**, not a simplified RAM diagram.
 
-## 2. Chương trình Java 17+ runnable: sao chép, alias và tham số
+## 2. Runnable Java 17+ Program: Copying, Aliasing, and Parameters
 
-Tạo tệp **`ValueAndReferenceDemo.java`**:
+Create the file **`ValueAndReferenceDemo.java`**:
 
 ~~~java
 public class ValueAndReferenceDemo {
@@ -110,7 +110,7 @@ public class ValueAndReferenceDemo {
 }
 ~~~
 
-Mở Windows PowerShell hoặc Linux/Bash ở thư mục chứa tệp. Cần **JDK 17+**:
+Open Windows PowerShell or Linux/Bash in the directory containing the file. Requires **JDK 17+**:
 
 ~~~bash
 java -version
@@ -119,7 +119,7 @@ javac -encoding UTF-8 ValueAndReferenceDemo.java
 java ValueAndReferenceDemo
 ~~~
 
-**Expected output (đúng thứ tự):**
+**Expected output (in exact order):**
 
 ~~~text
 primitive=5,8
@@ -142,107 +142,107 @@ missingIsNull=true
 unboxing=NullPointerException
 ~~~
 
-### Phân tích những điểm dễ nhầm
+### Analyzing Common Points of Confusion
 
-**Sao chép primitive:** `copied = original` nhận số `5`. Đổi `copied` thành `8` không thay đổi `original`; hai biến giữ các giá trị độc lập.
+**Copying primitives:** `copied = original` receives the number `5`. Changing `copied` to `8` does not alter `original`; the two variables hold independent values.
 
-**Sao chép reference:** `alias = first` không tạo `Counter` mới. Hai biến cùng tham chiếu một đối tượng nên `alias.value = 8` làm `first.value` bằng `8`. Còn `independent = new Counter(8)` tạo đối tượng **khác**; dù hai field bằng 8, `first == independent` vẫn là `false`.
+**Copying references:** `alias = first` does not create a new `Counter`. Both variables reference the same object, so `alias.value = 8` makes `first.value` equal `8`. Meanwhile, `independent = new Counter(8)` creates a **different** object; even though both fields equal 8, `first == independent` is still `false`.
 
-**Java luôn truyền tham số theo giá trị:** Trong `changePrimitive`, tham số nhận bản sao số nguyên nên cộng 10 không đổi biến `original`. Trong `changeObject`, tham số nhận bản sao **giá trị tham chiếu** tới cùng Counter; thay field của đối tượng nên bên gọi nhìn thấy 18. Trong `replaceReference`, chỉ biến tham số `counter` được gán tham chiếu khác: đối tượng mà `first` đang trỏ tới **không bị thay thế**, nên vẫn có giá trị 18.
+**Java always passes parameters by value:** In `changePrimitive`, the parameter receives a copy of the integer, so adding 10 does not change `original`. In `changeObject`, the parameter receives a copy of the **reference value** to the same Counter; modifying the object's field is visible to the caller as 18. In `replaceReference`, only the parameter variable `counter` is assigned a different reference: the object that `first` points to **is not replaced**, so it still has value 18.
 
-**Mảng và chuỗi:** `int[]` là **kiểu tham chiếu** dù các phần tử là `int` nguyên thủy; sửa qua `sameArray` ảnh hưởng tới mảng chung. `String` cũng là kiểu tham chiếu nhưng bản thân đối tượng chuỗi **bất biến**: `text + "17"` tạo nội dung chuỗi mới và gán lại biến `text`, không sửa nội dung chuỗi cũ của `oldText`.
+**Arrays and strings:** `int[]` is a **reference type** even though its elements are primitive `int` values; modifying through `sameArray` affects the shared array. `String` is also a reference type, but the string object itself is **immutable**: `text + "17"` creates new string content and reassigns `text`, without modifying the old string content of `oldText`.
 
-## 3. `==`, `equals` và việc so sánh đúng ý nghĩa
+## 3. `==`, `equals`, and Comparing with the Right Meaning
 
 ~~~java
 int x = 100;
 int y = 100;
-System.out.println(x == y); // true: gia tri int bang nhau.
+System.out.println(x == y); // true: int values are equal.
 
 String left = new String("hi");
 String right = new String("hi");
-System.out.println(left == right);      // false: hai doi tuong khac.
-System.out.println(left.equals(right)); // true: noi dung bang nhau.
+System.out.println(left == right);      // false: two different objects.
+System.out.println(left.equals(right)); // true: contents are equal.
 ~~~
 
-- Với các số nguyên thủy, `==` so sánh giá trị sau các phép chuyển đổi số cần thiết. Với `boolean`, nó so sánh hai giá trị logic.
-- Với hai tham chiếu có kiểu so sánh được, `==` kiểm tra **đồng nhất đối tượng**, không tự so sánh nội dung.
-- `equals` là **phương thức**; cách so sánh do lớp quyết định. `String.equals` so sánh nội dung, nhưng một lớp như `Counter` trong ví dụ **không override `equals`** thì kế thừa hành vi nhận diện đồng nhất của `Object`.
+- For primitive numbers, `==` compares values after necessary numeric conversions. For `boolean`, it compares two logical values.
+- For two references of comparable types, `==` checks **object identity**, not content equality.
+- `equals` is a **method**; how equality is compared is decided by the class. `String.equals` compares contents, whereas a class like `Counter` in the example that **does not override `equals`** inherits `Object`'s identity-checking behavior.
 
-**Đừng dùng `==` để so sánh nội dung hai `String` bất kỳ**, kể cả khi đôi lúc `"a" == "a"` trả true vì Java có cơ chế intern string literal. Để xử lý chuỗi có thể null, dùng `java.util.Objects.equals(left, right)` khi thích hợp.
+**Do not use `==` to compare the contents of two arbitrary `String` objects**, even if `"a" == "a"` sometimes returns true due to Java's string literal interning mechanism. To handle strings that might be null, use `java.util.Objects.equals(left, right)` where appropriate.
 
-## 4. `null`, boxing và unboxing
+## 4. `null`, Boxing, and Unboxing
 
-`null` biểu thị một tham chiếu không trỏ tới đối tượng:
+`null` represents a reference that does not point to any object:
 
 ~~~java
-String missing = null; // Hop le.
-Integer number = null; // Hop le: Integer la reference type.
+String missing = null; // Valid.
+Integer number = null; // Valid: Integer is a reference type.
 
-// int count = null;    // Loi bien dich: int la primitive.
-// boolean ok = null;   // Loi bien dich.
+// int count = null;    // Compile error: int is a primitive.
+// boolean ok = null;   // Compile error.
 ~~~
 
-`Integer` là **wrapper class** cho `int`, không phải một primitive mới. Java có thể tự **boxing** và **unboxing**:
+`Integer` is the **wrapper class** for `int`, not a new primitive. Java can perform automatic **boxing** and **unboxing**:
 
 ~~~java
 Integer boxed = 7;   // boxing: int -> Integer.
 int raw = boxed;     // unboxing: Integer -> int.
 ~~~
 
-Nếu `boxed == null`, việc unboxing sang `int` **ném `NullPointerException` lúc chạy**. Đây là khác biệt giữa lỗi **biên dịch** (`int x = null;` bị từ chối) và lỗi **runtime** (`int x = nullableInteger;` được chấp nhận về kiểu nhưng có thể thất bại).
+If `boxed == null`, unboxing to `int` **throws `NullPointerException` at runtime**. This is the difference between a **compile-time** error (`int x = null;` is rejected) and a **runtime** error (`int x = nullableInteger;` is accepted by the type system but can fail).
 
-Một wrapper còn có thể khiến `==` dễ hiểu nhầm: so sánh các **tham chiếu wrapper với nhau** không phải lựa chọn tốt để kiểm tra giá trị số. Khi mục tiêu là giá trị, hãy dùng `equals` thích hợp hoặc unboxing có kiểm tra null. Không dựa vào chuyện JVM có thể dùng lại một số đối tượng wrapper.
+A wrapper can also make `==` misleading: comparing **wrapper references with each other** is not a good choice for checking numeric values. When the goal is the value, use `equals` appropriately or unbox with a null check. Do not rely on the JVM possibly reusing certain wrapper objects.
 
-## 5. `final` không nhất thiết làm đối tượng bất biến
+## 5. `final` Does Not Necessarily Make an Object Immutable
 
 ~~~java
 final int limit = 3;
-// limit = 4; // Loi: primitive final khong duoc gan lai.
+// limit = 4; // Error: final primitive cannot be reassigned.
 
 final int[] scores = {1, 2};
-scores[0] = 9; // Hop le: sua doi tuong mang.
-// scores = new int[]{3}; // Loi: khong gan lai reference final.
+scores[0] = 9; // Valid: mutates the array object.
+// scores = new int[]{3}; // Error: cannot reassign final reference.
 ~~~
 
-`final` ràng buộc việc **gán lại biến**. Với kiểu tham chiếu, đối tượng được trỏ tới có thể vẫn thay đổi nếu API/kiểu cho phép; với `String`, đối tượng bất biến là do **thiết kế của lớp String**, không phải vì mọi tham chiếu tới nó đều `final`.
+`final` constrains **variable reassignment**. With reference types, the referenced object can still mutate if its API/type allows it; with `String`, object immutability comes from the **design of the String class**, not because every reference to it is `final`.
 
-## 6. Lỗi phổ biến và cách sửa
+## 6. Common Mistakes and Fixes
 
-| Triệu chứng | Vì sao? | Hướng xử lý |
+| Symptom | Why? | How to handle |
 | --- | --- | --- |
-| `int n = null;` không biên dịch | Primitive không chấp nhận `null` | Chọn giá trị hợp lệ hoặc kiểu tham chiếu nếu thật sự cần thiếu giá trị |
-| `String s = null; s.length();` | Dereference tham chiếu null | Kiểm tra `s != null` hoặc quy ước đầu vào không null |
-| `Integer x = null; int n = x;` | Unboxing giá trị null | Kiểm tra null trước khi chuyển |
-| Hai biến thay đổi chung một đối tượng | Cùng trỏ tới một object | Tạo bản sao thực sự khi cần dữ liệu độc lập |
-| `new String("x") == new String("x")` cho false | `==` so sánh hai đối tượng | Dùng `equals` để so sánh chuỗi |
-| Đổi tham số sang `new` nhưng biến bên gọi không đổi | Tham số nhận bản sao reference | Trả về reference mới và gán lại ở phía gọi nếu cần |
-| `int[]` bị xem như primitive | Mảng luôn là reference type | Phân biệt kiểu mảng và kiểu phần tử |
+| `int n = null;` does not compile | Primitives do not accept `null` | Choose a valid value or a reference type if absence of value is truly needed |
+| `String s = null; s.length();` | Dereferencing a null reference | Check `s != null` or enforce non-null input contracts |
+| `Integer x = null; int n = x;` | Unboxing a null value | Check for null before converting |
+| Two variables mutate the same object | Both point to one object | Make an actual copy when independent data is needed |
+| `new String("x") == new String("x")` gives false | `==` compares two objects | Use `equals` to compare strings |
+| Reassigning parameter to `new` does not change caller's variable | Parameter receives a copy of the reference | Return the new reference and reassign on the caller side if needed |
+| `int[]` is treated as primitive | Arrays are always reference types | Distinguish the array type from its element type |
 
-### Quy tắc thực hành
+### Practical Checklist Rules
 
-1. Hỏi **biến chứa giá trị trực tiếp hay tham chiếu?** Đó là bước đầu để dự đoán tác động của phép gán.
-2. Hỏi **hai biến có đang trỏ cùng đối tượng không?** Khi cùng trỏ, sửa trạng thái đối tượng có thể quan sát qua cả hai tên.
-3. Hỏi **đối tượng có mutable không?** Chia sẻ tham chiếu tới `String` khác chia sẻ tham chiếu tới mảng hoặc đối tượng có field thay đổi.
-4. Hỏi **tham chiếu có thể null không?** Kiểm tra trước khi gọi phương thức, truy cập field hoặc unboxing.
+1. Ask **does the variable hold a direct value or a reference?** That is the first step to predicting the effect of assignment.
+2. Ask **do two variables point to the same object?** When they do, mutating the object's state is observable through both names.
+3. Ask **is the object mutable?** Sharing a reference to a `String` differs from sharing a reference to an array or an object with mutable fields.
+4. Ask **can the reference be null?** Check before calling methods, accessing fields, or unboxing.
 
-## 7. Bài tập tự kiểm tra
+## 7. Self-Check Exercises
 
-**Bài 1.** Với `int a = 3; int b = a; b++;`, `a` bằng bao nhiêu?  
-*Đáp án:* 3. `b` nhận bản sao giá trị.
+**Exercise 1.** Given `int a = 3; int b = a; b++;`, what is `a`?  
+*Answer:* 3. `b` receives a copy of the value.
 
-**Bài 2.** Với `int[] a = {1}; int[] b = a; b[0] = 5;`, `a[0]` bằng bao nhiêu?  
-*Đáp án:* 5. Hai biến cùng trỏ một mảng.
+**Exercise 2.** Given `int[] a = {1}; int[] b = a; b[0] = 5;`, what is `a[0]`?  
+*Answer:* 5. Both variables point to the same array.
 
-**Bài 3.** Vì sao `new String("ok") == new String("ok")` là false nhưng `equals` là true?  
-*Đáp án:* Hai `new` tạo hai đối tượng; `==` kiểm tra identity, `String.equals` so sánh nội dung.
+**Exercise 3.** Why is `new String("ok") == new String("ok")` false while `equals` is true?  
+*Answer:* The two `new` expressions create two objects; `==` checks identity, whereas `String.equals` compares contents.
 
-**Bài 4.** Có thể truyền một đối tượng vào phương thức Java rồi gán `param = new Counter(...)` để thay luôn biến của bên gọi không?  
-*Đáp án:* Không. Java truyền **bản sao giá trị tham chiếu**; gán lại tham số không đổi biến gốc.
+**Exercise 4.** Can you pass an object into a Java method and assign `param = new Counter(...)` to replace the caller's variable as well?  
+*Answer:* No. Java passes **a copy of the reference value**; reassigning the parameter does not change the original variable.
 
-**Bài 5.** Tại sao `Integer n = null;` hợp lệ nhưng `int x = n;` có thể gây lỗi?  
-*Đáp án:* `Integer` là reference type chấp nhận null; unboxing null sang `int` gây `NullPointerException`.
+**Exercise 5.** Why is `Integer n = null;` valid while `int x = n;` can fail?  
+*Answer:* `Integer` is a reference type that accepts null; unboxing null to `int` causes a `NullPointerException`.
 
-## Ghi nhớ
+## Key Takeaways
 
-**Primitive variable giữ giá trị; reference variable giữ giá trị tham chiếu.** Java luôn truyền tham số theo giá trị, nên truyền đối tượng nghĩa là sao chép *tham chiếu*, không nhân bản đối tượng. Hãy phân biệt `==` (identity với tham chiếu) và `equals` (theo cách lớp định nghĩa), chú ý `null`/unboxing và kiểm tra liệu trạng thái đối tượng có thể thay đổi. Đây là nền tảng để hiểu mảng, `String`, object, method và cách chia sẻ dữ liệu trong Java.
+**Primitive variables hold values; reference variables hold reference values.** Java always passes parameters by value, so passing an object means copying the *reference*, not cloning the object. Distinguish `==` (identity for references) from `equals` (as defined by the class), watch out for `null`/unboxing, and check whether an object's state is mutable. This is the foundation for understanding arrays, `String`, objects, methods, and data sharing in Java.

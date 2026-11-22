@@ -1,12 +1,12 @@
-# Kết hợp `instanceof` pattern với `&&` hoặc guard clause trong Java 17
+# Combining `instanceof` Patterns with `&&` or Guard Clauses in Java 17
 
-> **Java core — language-basics / Mẫu kiểm tra kiểu**  
-> **Môi trường:** Java 17+, một file tự chứa, chỉ cần JDK; không bật preview.  
-> **Mục tiêu:** Kết hợp phép kiểm tra kiểu với điều kiện phụ bằng `&&`; dùng guard clause thoát sớm để sử dụng biến mẫu phía sau; hiểu *flow scoping*, short-circuit và các lỗi về phạm vi biến.
+> **Java core — language-basics / Type Patterns**  
+> **Environment:** Java 17+, self-contained single file, JDK only; preview disabled.  
+> **Goal:** Combine type checks with additional conditions using `&&`; use early-return guard clauses to use pattern variables afterward; understand *flow scoping*, short-circuiting, and variable scope errors.
 
-## 1. Tình huống thực tế: kiểm tra rồi xử lý dữ liệu nhập
+## 1. Practical Scenario: Validate Then Process Input
 
-Giả sử một hàm nhận `Object` từ API và chỉ chấp nhận chuỗi có nội dung. Type pattern `input instanceof String text` vừa kiểm tra kiểu runtime vừa ràng buộc biến `text`; nếu là `null` hoặc kiểu khác, mẫu không khớp.
+Suppose a function receives an `Object` from an API and only accepts strings with content. The type pattern `input instanceof String text` both checks the runtime type and binds the variable `text`; if it is `null` or another type, the pattern does not match.
 
 ~~~java
 static boolean hasUsableName(Object input) {
@@ -16,38 +16,38 @@ static boolean hasUsableName(Object input) {
 }
 ~~~
 
-Hàm trả `false` với `null`, số nguyên, chuỗi toàn khoảng trắng hoặc chuỗi sau `strip()` dài hơn 20 ký tự. Với tên hợp lệ, các điều kiện sau mới được đánh giá. Chính thứ tự ấy giúp không cần ép kiểu hoặc kiểm tra null riêng.
+The function returns `false` for `null`, integers, whitespace-only strings, or strings whose length after `strip()` exceeds 20 characters. Only for valid names are the later conditions evaluated. That exact order avoids needing a cast or a separate null check.
 
-## 2. Chọn `&&` hay guard clause theo nhiệm vụ
+## 2. Choosing `&&` or a Guard Clause Based on the Task
 
-Nếu chỉ cần một câu trả lời boolean như `hasUsableName`, nối điều kiện bằng `&&` giúp tránh nhánh lồng nhau. Khi cần giải thích **vì sao** từ chối (sai kiểu, chuỗi rỗng, dữ liệu quá dài) hoặc dùng đối tượng đã kiểm tra qua nhiều bước, guard clause thường dễ đọc hơn. Mục 4 so sánh các đường trả về; chương trình hoàn chỉnh ở mục 7 đếm số lần một điều kiện phụ thực sự được gọi.
+If you only need a boolean answer like `hasUsableName`, chaining conditions with `&&` avoids nested branches. When you need to explain **why** an input is rejected (wrong type, empty string, data too long) or use the checked object across multiple steps, a guard clause is usually easier to read. Section 4 compares return paths; the complete program in Section 7 counts how many times an additional condition is actually called.
 
-| Mục tiêu | Cách viết |
+| Goal | Way to Write |
 | --- | --- |
-| Quy tắc kiểm tra ngắn, không cần lý do từ chối | Type pattern kết hợp `&&` |
-| Trả mã lỗi khác nhau và xử lý nhiều bước | Guard `if (!(x instanceof T t)) return ...;` |
-| Trả cùng một lỗi nếu sai kiểu **hoặc** không đạt điều kiện phụ | Guard phủ định kết hợp `||` |
+| Short validation rule, no rejection reason needed | Type pattern combined with `&&` |
+| Return distinct error codes and perform multi-step processing | Guard `if (!(x instanceof T t)) return ...;` |
+| Return one error if wrong type **or** fails additional condition | Negated guard combined with `||` |
 
-Đối với cả hai cách, biến mẫu chỉ được dùng khi luồng đã bảo đảm khớp kiểu.
+For both approaches, the pattern variable can only be used when control flow guarantees a type match.
 
-## 3. Khi thay `&&` bằng `&` hoặc `||`
+## 3. When Replacing `&&` with `&` or `||`
 
-`&&` ngắn mạch: không kiểm tra điều kiện phụ nếu mẫu sai. Toán tử `&` trên `boolean` đánh giá cả hai vế nên `input instanceof String s & !s.isBlank()` không biên dịch: compiler không thể bảo đảm `s` đã được ràng buộc ở vế phải.
+`&&` short-circuits: it does not evaluate the extra condition if the pattern fails. The `&` operator on `boolean` evaluates both sides, so `input instanceof String s & !s.isBlank()` does not compile: the compiler cannot guarantee `s` is bound on the right-hand side.
 
 ~~~java
 Object input = " Java ";
-// Hợp lệ: điều kiện phụ chỉ chạy sau khi String đã khớp.
+// Valid: the additional condition only runs after String has matched.
 boolean ok = input instanceof String s && !s.isBlank();
 
-// Không hợp lệ: OR dương xét vế phải khi mẫu thất bại.
+// Invalid: positive OR evaluates the right-hand side when the pattern fails.
 // boolean bad = input instanceof String s || s.isBlank();
 ~~~
 
-Với yêu cầu “sai kiểu **hoặc** chuỗi blank”, đảo điều kiện mẫu sẽ làm `||` phù hợp: `!(input instanceof String text) || text.isBlank()`. Trong trường hợp đó vế phải chỉ chạy khi mẫu String thật sự khớp. Chương trình ở mục 7 đặt ba cách cạnh nhau để thấy khác biệt về kết quả và số lần gọi hàm.
+For the requirement "wrong type **or** blank string", inverting the pattern condition makes `||` appropriate: `!(input instanceof String text) || text.isBlank()`. In that case, the right-hand side runs only when the String pattern truly matched. The program in Section 7 places all three approaches side by side to show differences in results and call counts.
 
-## 4. Guard clause: trả về sớm khi không đúng kiểu
+## 4. Guard Clause: Returning Early When the Type Is Wrong
 
-Khi phải xử lý nhiều bước sau kiểm tra kiểu, dùng guard clause thường dễ đọc hơn nhiều tầng lồng nhau:
+When multiple steps must run after a type check, using a guard clause is usually more readable than multiple levels of nesting:
 
 ~~~java
 static String normalize(Object input) {
@@ -63,20 +63,20 @@ static String normalize(Object input) {
 }
 ~~~
 
-Nếu không phải String hoặc là null, nhánh đầu **return** ngay. Để đến được dòng `text.isBlank()`, Java biết pattern phải đã khớp, nên biến mẫu `text` có thể sử dụng ở phần còn lại.
+If the input is not a String or is null, the first branch executes **return** immediately. To reach the `text.isBlank()` line, Java knows the pattern must have matched, so the pattern variable `text` can be used for the rest of the method.
 
-Nếu thay `return` trong guard đầu bằng lệnh chỉ in log rồi cho chương trình chạy tiếp, Java **không thể đảm bảo** `text` đã được ràng buộc ở các dòng sau.
+If you replace `return` in the first guard with a statement that only logs and lets the program continue, Java **cannot guarantee** that `text` is bound on the subsequent lines.
 
-| Cần làm | Cách phù hợp |
+| Task | Appropriate Approach |
 | --- | --- |
-| Một điều kiện kiểu và một điều kiện phụ ngắn | `if (x instanceof String s && !s.isBlank())` |
-| Phân biệt lỗi sai kiểu và chuỗi trống | Guard phủ định, rồi kiểm tra blank |
-| Nhiều thao tác liên tiếp trên đối tượng đã kiểm tra | Guard clause để giảm lồng nhánh |
-| Không cần sử dụng biến mẫu | `x instanceof String` là đủ |
+| One type check and one short extra condition | `if (x instanceof String s && !s.isBlank())` |
+| Distinguish wrong-type error from blank-string error | Negated guard, then check blank |
+| Multiple consecutive operations on the checked object | Guard clause to reduce branch nesting |
+| No need to use the pattern variable | `x instanceof String` is enough |
 
-## 5. Guard phủ định kết hợp OR và early return
+## 5. Negated Guard Combined with OR and Early Return
 
-Có thể kết hợp cả hai bước từ chối:
+You can combine both rejection checks:
 
 ~~~java
 static String accept(Object input) {
@@ -87,11 +87,11 @@ static String accept(Object input) {
 }
 ~~~
 
-Ở vế phải của OR, `text` hợp lệ vì khi vế đó được xét, pattern đã khớp. Nếu toàn bộ điều kiện true thì phương thức return. Nếu luồng đi tiếp, Java biết `input` là String và `text` không blank.
+On the right-hand side of OR, `text` is valid because when that side is evaluated, the pattern has already matched. If the entire condition is true, the method returns. If execution continues, Java knows `input` is a String and `text` is not blank.
 
-Dù viết gọn, cách này có thể khó đọc khi nhiều điều kiện; khi cần trả thông báo lỗi riêng từng nguyên nhân, tách thành hai guard như mục 4.
+Although concise, this style can become hard to read with many conditions; when you need to return separate messages for each cause, split it into two guards as in Section 4.
 
-Ví dụ với interface:
+Example with an interface:
 
 ~~~java
 static String longSequence(Object input) {
@@ -102,22 +102,22 @@ static String longSequence(Object input) {
 }
 ~~~
 
-Cả `String` lẫn `StringBuilder` đều triển khai `CharSequence`. Pattern có thể dùng với lớp hoặc interface, không cần chỉ kiểm tra `String`.
+Both `String` and `StringBuilder` implement `CharSequence`. Patterns can be used with classes or interfaces, not only `String`.
 
-## 6. Lỗi thường gặp và giới hạn Java 17
+## 6. Common Mistakes and Java 17 Limitations
 
-- **Tham chiếu `null`:** Với `Object missing = null;`, phép `missing instanceof String s` trả `false`; biến mẫu `s` không được dùng trên đường đi đó. **Literal `null instanceof String s` không biên dịch ở Java 17**, vì pattern này vô điều kiện theo kiểu tĩnh của literal. Dùng một biến tham chiếu có giá trị null như trong ví dụ thay vì viết literal trực tiếp.
-- **Dùng biến mẫu ở sai chỗ:** Sau `if (x instanceof String s)` thông thường, đừng tự giả định `s` có thể dùng ở ngoài nhánh; hãy để một guard có `return` hoặc `throw` loại hết đường không khớp.
-- **Pattern thừa:** `String alreadyString = "x";` rồi `alreadyString instanceof String s` có thể bị từ chối trong Java 17 vì kiểu tĩnh đã là subtype của kiểu mẫu. Không cần kiểm tra kiểu đã biết.
-- **Generic bị xóa:** Không thể kiểm tra trực tiếp `instanceof java.util.List<String>`; dùng kiểu kiểm tra được tại runtime như `List<?>` và kiểm tra các phần tử riêng nếu cần.
-- **Điều kiện có tác dụng phụ:** Vế phải của `&&` không được gọi khi vế trái false. Nếu vế phải cập nhật biến, ghi log hoặc ném ngoại lệ, chuyển sang toán tử khác có thể thay đổi hành vi.
-- **Không thay kiểm tra nghiệp vụ:** Khớp String không có nghĩa chuỗi không rỗng, đúng định dạng hoặc không vượt giới hạn.
+- **`null` references:** With `Object missing = null;`, `missing instanceof String s` returns `false`; the pattern variable `s` is not usable on that path. **The literal `null instanceof String s` does not compile in Java 17**, because the pattern is unconditional with respect to the literal's static type. Use a reference variable holding null as in the example rather than writing the literal directly.
+- **Using the pattern variable in the wrong place:** After a normal `if (x instanceof String s)`, do not assume `s` can be used outside the branch; let a guard with `return` or `throw` eliminate all non-matching paths.
+- **Redundant pattern:** `String alreadyString = "x";` followed by `alreadyString instanceof String s` can be rejected in Java 17 because the static type is already a subtype of the pattern type. There is no need to check an already known type.
+- **Erased generics:** You cannot directly check `instanceof java.util.List<String>`; use a runtime-checkable type like `List<?>` and inspect elements individually if needed.
+- **Conditions with side effects:** The right-hand side of `&&` is not called when the left-hand side is false. If the right-hand side updates variables, logs, or throws an exception, switching to another operator can change behavior.
+- **Not a replacement for business validation:** Matching String does not mean the string is non-empty, properly formatted, or within bounds.
 
-Nguyên tắc: giữ biểu thức ngắn, ưu tiên tên biến rõ nghĩa, và dùng guard clause cho nhiều điều kiện từ chối hoặc nhiều bước xử lý.
+Rule of thumb: keep expressions short, prefer meaningful variable names, and use guard clauses for multiple rejection conditions or multi-step processing.
 
-## 7. Chương trình Java 17+ chạy độc lập
+## 7. Standalone Java 17+ Program
 
-Tạo file **InstanceofAndGuardDemo.java**:
+Create a file named **InstanceofAndGuardDemo.java**:
 
 ~~~java
 import java.util.Locale;
@@ -196,14 +196,14 @@ public final class InstanceofAndGuardDemo {
 }
 ~~~
 
-Biên dịch và chạy ở thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 InstanceofAndGuardDemo.java
 java InstanceofAndGuardDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 input=null;and=NO_TEXT;checks=0;guard=NOT_STRING;or=REJECTED
@@ -216,20 +216,20 @@ sequenceShort=SHORT_OR_OTHER
 sequenceNull=SHORT_OR_OTHER
 ~~~
 
-`checks=0` khi null hoặc Integer cho thấy hàm `nonBlank` **không chạy** khi pattern thất bại. Với chuỗi blank, pattern khớp nên `nonBlank` chạy đúng một lần rồi trả false. Guard clause cho nhãn từ chối cụ thể; guard dùng OR cho một nhãn từ chối chung.
+`checks=0` for null or Integer shows that `nonBlank` **does not run** when the pattern fails. For a blank string, the pattern matches, so `nonBlank` runs exactly once and returns false. Guard clauses give specific rejection labels; the OR guard gives one shared rejection label.
 
-## 8. Bài tập tự luyện
+## 8. Practice Exercises
 
-**Bài 1.** Dự đoán điều kiện `x instanceof String s && s.length() >= 5` với `null`, `Integer`, chuỗi 2 ký tự và chuỗi 6 ký tự; vế phải chạy khi nào?
+**Exercise 1.** Predict the condition `x instanceof String s && s.length() >= 5` for `null`, `Integer`, a 2-character string, and a 6-character string; when does the right-hand side execute?
 
-**Bài 2.** Viết lại bài 1 bằng guard clause, sau đó dùng `s` ngoài nhánh guard khi bảo đảm đã khớp kiểu.
+**Exercise 2.** Rewrite Exercise 1 using a guard clause, then use `s` outside the guard branch once a type match is guaranteed.
 
-**Bài 3.** Giải thích vì sao kiểm tra kiểu rồi nối với OR trực tiếp không thể dùng biến mẫu ở vế phải, nhưng phủ định kiểm tra kiểu rồi OR với `s.isBlank()` lại hợp lệ.
+**Exercise 3.** Explain why checking a type and combining directly with OR does not allow using the pattern variable on the right-hand side, while negating the type check and combining with OR and `s.isBlank()` is valid.
 
-**Bài 4.** Viết một bộ đếm trong hàm điều kiện phụ; thử input null, sai kiểu, String rỗng và String hợp lệ để quan sát số lần gọi.
+**Exercise 4.** Put a counter in the additional condition function; test null, wrong type, empty String, and valid String inputs to observe the call count.
 
-**Bài 5.** Dùng pattern `CharSequence seq` với `StringBuilder("abcd")` và `String("xy")`; xác định đầu ra khi yêu cầu độ dài ít nhất 3.
+**Exercise 5.** Use the pattern `CharSequence seq` with `StringBuilder("abcd")` and `String("xy")`; determine the output when requiring a length of at least 3.
 
-### Ghi nhớ
+### Key Takeaway
 
-**`x instanceof T name && predicate(name)`** an toàn vì vế phải chỉ chạy sau khi pattern khớp. **`if (!(x instanceof T name)) return ...;`** là guard clause giúp sử dụng `name` ở phần còn lại của phương thức. Phạm vi biến mẫu được kiểm tra theo luồng thực thi, không chỉ theo dấu ngoặc.
+**`x instanceof T name && predicate(name)`** is safe because the right-hand side runs only after the pattern matches. **`if (!(x instanceof T name)) return ...;`** is a guard clause that makes `name` usable in the remainder of the method. Pattern variable scope is checked along execution flow, not just by braces.

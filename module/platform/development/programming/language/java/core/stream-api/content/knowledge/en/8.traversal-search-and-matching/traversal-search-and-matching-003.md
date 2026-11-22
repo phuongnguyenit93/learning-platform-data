@@ -1,32 +1,32 @@
-# Tìm phần tử bằng `findFirst` và `findAny`
+# Finding Elements with `findFirst` and `findAny`
 
-Trong **Java Stream API**, các phép toán `filter`, `map`, `distinct`, `sorted` và các phép toán cắt lát giúp mô tả cách chọn, biến đổi và sắp xếp dữ liệu theo một pipeline *lazy*. Khi mục tiêu chỉ là **tìm một phần tử phù hợp**, hai phép toán kết thúc thường dùng là `findFirst()` và `findAny()`. Chúng có vẻ giống nhau vì đều trả về `Optional<T>`, nhưng đưa ra hai hợp đồng khác nhau về **thứ tự gặp phần tử** (*encounter order*).
+In the **Java Stream API**, operations like `filter`, `map`, `distinct`, `sorted`, and slicing operations describe how to select, transform, and order data in a *lazy* pipeline. When the goal is simply **finding a matching element**, the two commonly used terminal operations are `findFirst()` and `findAny()`. They look similar because both return `Optional<T>`, but they offer two different contracts regarding **encounter order**.
 
-Điểm cần nắm là: **`findFirst()` cần phần tử đầu tiên theo encounter order nếu thứ tự ấy tồn tại; `findAny()` có thể chọn bất kỳ phần tử nào**. Sự khác biệt ảnh hưởng đến tính xác định của kết quả, khả năng xử lý song song và đôi khi cả hiệu năng.
+The key point to grasp is: **`findFirst()` requires the first element in encounter order if that order exists; `findAny()` may choose any element**. This difference affects result determinism, parallelization capability, and sometimes performance.
 
-## 1. Hai phép toán kết thúc ngắn mạch
+## 1. Two Short-Circuiting Terminal Operations
 
-Đối với `Stream<T>`, chữ ký đơn giản hóa là:
+For `Stream<T>`, the simplified signatures are:
 
 ```java
 Optional<T> findFirst();
 Optional<T> findAny();
 ```
 
-Đây là hai **terminal operation có khả năng ngắn mạch** (*short-circuiting terminal operations*). Khi tìm được kết quả hợp lệ, chúng có thể kết thúc mà không cần xử lý toàn bộ nguồn dữ liệu.
+These are two **short-circuiting terminal operations**. Once a valid result is found, they can terminate without needing to process the entire data source.
 
-| Tiêu chí | `findFirst()` | `findAny()` |
+| Criterion | `findFirst()` | `findAny()` |
 | --- | --- | --- |
-| Ý nghĩa | Lấy phần tử **đầu tiên theo encounter order**, nếu có. | Lấy **một phần tử bất kỳ**, nếu có. |
-| Nguồn có thứ tự | Phải tôn trọng thứ tự gặp phần tử. | Không bị ràng buộc phải chọn phần tử đầu tiên. |
-| Nguồn không có thứ tự | Có thể trả về một phần tử bất kỳ. | Có thể trả về một phần tử bất kỳ. |
-| Kết quả khi stream rỗng | `Optional.empty()` | `Optional.empty()` |
-| Khả năng ngắn mạch | Có. | Có. |
-| Xử lý song song | Có thể tốn chi phí phối hợp để giữ thứ tự. | Thường có thêm cơ hội tối ưu khi thứ tự không quan trọng. |
+| Meaning | Gets the **first element in encounter order**, if any. | Gets **any element**, if any. |
+| Ordered source | Must respect encounter order. | Not constrained to pick the first element. |
+| Unordered source | May return any element. | May return any element. |
+| Result on empty stream | `Optional.empty()` | `Optional.empty()` |
+| Short-circuiting capability | Yes. | Yes. |
+| Parallel processing | May incur coordination overhead to preserve order. | Often has more optimization opportunities when order does not matter. |
 
-Hai phương thức có từ **Java 8**. Kết quả của cả hai đều là `Optional` vì một stream có thể không chứa phần tử nào sau khi lọc. Với `IntStream`, `LongStream`, `DoubleStream`, API tương ứng trả về `OptionalInt`, `OptionalLong`, `OptionalDouble`.
+Both methods have existed since **Java 8**. Both return `Optional` because a stream may contain no elements after filtering. For `IntStream`, `LongStream`, and `DoubleStream`, the corresponding APIs return `OptionalInt`, `OptionalLong`, and `OptionalDouble`.
 
-### Ví dụ đầu tiên
+### First Example
 
 ```java
 import java.util.Arrays;
@@ -45,30 +45,30 @@ public class FindExample {
             .filter(name -> name.length() >= 4)
             .findAny();
 
-        System.out.println(first.orElse("Không tìm thấy")); // Binh
-        System.out.println(any.orElse("Không tìm thấy"));   // Có thể là Binh hoặc Dung
+        System.out.println(first.orElse("Not found")); // Binh
+        System.out.println(any.orElse("Not found"));   // May be Binh or Dung
     }
 }
 ```
 
-Danh sách có encounter order là `An → Binh → Chi → Dung`. Sau `filter`, các phần tử phù hợp theo thứ tự là `Binh → Dung`, nên `findFirst()` **bắt buộc** trả `Binh`. `findAny()` được phép trả `Binh` hoặc `Dung`; trên một lần chạy tuần tự cụ thể, nó thường cũng trả phần tử đầu nhưng **đó không phải hợp đồng để dựa vào**.
+The list has encounter order `An → Binh → Chi → Dung`. After `filter`, the matching elements in order are `Binh → Dung`, so `findFirst()` **must** return `Binh`. `findAny()` is allowed to return `Binh` or `Dung`; in a given sequential run, it often returns the first element too, but **that is not a contract to rely on**.
 
-## 2. Encounter order được xác định từ nguồn và pipeline
+## 2. Encounter Order Is Determined by Source and Pipeline
 
-**Encounter order** là thứ tự logic mà stream nhận các phần tử từ nguồn và qua các phép toán trung gian. Nó không đồng nghĩa với thứ tự được CPU thực thi, cũng không tự động là thứ tự tăng dần về giá trị.
+**Encounter order** is the logical order in which the stream receives elements from its source and through intermediate operations. It is not synonymous with CPU execution order, nor is it automatically ascending order by value.
 
-Những nguồn thông dụng:
+Common sources:
 
-| Nguồn | Có encounter order xác định? | Ghi chú |
+| Source | Has Defined Encounter Order? | Notes |
 | --- | --- | --- |
-| `List.stream()`, `ArrayList.stream()` | Có. | Theo vị trí trong danh sách. |
-| `Arrays.stream(array)`, `Stream.of(...)` | Có. | Theo thứ tự trong mảng hoặc đối số. |
-| `LinkedHashSet.stream()` | Có. | Theo thứ tự duyệt của `LinkedHashSet`, thường là thứ tự thêm. |
-| `TreeSet.stream()` | Có. | Theo thứ tự của comparator hoặc thứ tự tự nhiên. |
-| `HashSet.stream()` | Không có bảo đảm encounter order. | Không dùng `findFirst` để suy ra phần tử ổn định. |
-| `Stream.generate(supplier)` | Không có bảo đảm encounter order. | Giá trị được sinh khi pipeline yêu cầu. |
+| `List.stream()`, `ArrayList.stream()` | Yes. | Follows position in the list. |
+| `Arrays.stream(array)`, `Stream.of(...)` | Yes. | Follows order in the array or arguments. |
+| `LinkedHashSet.stream()` | Yes. | Follows iteration order of `LinkedHashSet`, typically insertion order. |
+| `TreeSet.stream()` | Yes. | Follows the comparator's ordering or natural order. |
+| `HashSet.stream()` | No guaranteed encounter order. | Do not use `findFirst` to infer a stable element. |
+| `Stream.generate(supplier)` | No guaranteed encounter order. | Values are generated as the pipeline requests them. |
 
-Ví dụ, `findFirst()` không phải phép toán tìm giá trị nhỏ nhất:
+For example, `findFirst()` is not an operation for finding the minimum value:
 
 ```java
 import java.util.Arrays;
@@ -78,7 +78,7 @@ System.out.println(
 ); // 30
 ```
 
-Nếu bài toán cần **giá trị nhỏ nhất**, có thể dùng `min` hoặc sắp xếp trước khi tìm:
+If the problem requires the **smallest value**, you can use `min` or sort before searching:
 
 ```java
 import java.util.Arrays;
@@ -90,9 +90,9 @@ int smallest = Arrays.asList(30, 10, 20).stream()
 System.out.println(smallest); // 10
 ```
 
-`min` thường tiết kiệm công việc hơn `sorted().findFirst()` khi chỉ cần giá trị nhỏ nhất: `min` duyệt để giảm giá trị, còn `sorted` phải xét và tổ chức toàn bộ phần tử để bảo đảm thứ tự tăng dần. `min` **không** là terminal operation ngắn mạch trên dữ liệu thông thường; nó vẫn cần so sánh các phần tử còn lại.
+`min` usually does less work than `sorted().findFirst()` when only the smallest value is needed: `min` traverses to reduce to one value, whereas `sorted` has to inspect and organize all elements to guarantee ascending order. `min` is **not** a short-circuiting terminal operation on normal data; it still needs to compare the remaining elements.
 
-### Phép toán trung gian có thể thay đổi thứ tự logic
+### Intermediate Operations Can Change Logical Order
 
 ```java
 import java.util.Arrays;
@@ -108,9 +108,9 @@ System.out.println(originalFirst); // 30
 System.out.println(sortedFirst);   // 10
 ```
 
-`filter` giữ tương quan thứ tự của các phần tử còn lại đối với stream có thứ tự. `sorted` tạo thứ tự mới dựa trên comparator. `unordered()` **gỡ ràng buộc thứ tự** khỏi pipeline; điều này không nhất thiết đổi ngay thứ tự trong một lần chạy, nhưng từ điểm đó không được trông đợi `findFirst` giữ phần tử đầu của nguồn gốc.
+`filter` preserves the relative order of remaining elements for an ordered stream. `sorted` establishes a new order based on a comparator. `unordered()` **removes the ordering constraint** from the pipeline; this does not necessarily change the order immediately in a single run, but from that point onward you must not expect `findFirst` to retain the first element of the original source.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.Arrays;
@@ -120,14 +120,14 @@ Optional<Integer> result = Arrays.asList(30, 10, 20).parallelStream()
     .unordered()
     .findFirst();
 
-// Có thể là 30, 10 hoặc 20: thứ tự gặp phần tử không còn được bảo đảm.
+// May be 30, 10, or 20: encounter order is no longer guaranteed.
 ```
 
-Khi nghiệp vụ yêu cầu “đầu tiên”, phải định nghĩa **đầu tiên theo thứ tự nào**: thứ tự nhập, thời điểm, độ ưu tiên hay chỉ số. Nếu đầu vào chưa có thứ tự tương ứng, cần sắp xếp hoặc chọn bằng comparator trước.
+When business logic asks for “first”, you must define **first according to what order**: insertion order, timestamp, priority, or index. If the input does not yet have that order, sort or select with a comparator first.
 
-## 3. Kết quả là `Optional<T>`: xử lý cả trường hợp không tìm thấy
+## 3. Result Is `Optional<T>`: Handling the Not-Found Case Too
 
-Cả hai phương thức đều trả về `Optional<T>`. Đây là dấu hiệu ở cấp kiểu rằng kết quả **có thể vắng mặt**:
+Both methods return `Optional<T>`. This is a type-level signal that the result **may be absent**:
 
 ```java
 import java.util.Arrays;
@@ -138,20 +138,20 @@ Optional<String> found = Arrays.asList("A", "BB", "CCC").stream()
     .findFirst();
 
 System.out.println(found.isPresent());       // false
-System.out.println(found.orElse("Không có")); // Không có
+System.out.println(found.orElse("None")); // None
 ```
 
-Cách xử lý thông dụng:
+Common ways to handle it:
 
-| Cách dùng | Ý nghĩa |
+| Usage | Meaning |
 | --- | --- |
-| `ifPresent(action)` | Chỉ thực hiện hành động nếu có phần tử. |
-| `orElse(defaultValue)` | Trả giá trị dự phòng đã tính sẵn khi rỗng. |
-| `orElseGet(supplier)` | Tạo giá trị dự phòng **khi cần** bằng `Supplier`. |
-| `orElseThrow(...)` | Báo lỗi rõ ràng nếu thiếu phần tử bắt buộc. |
-| `map(transform)` | Biến đổi giá trị bên trong `Optional` nếu nó tồn tại. |
+| `ifPresent(action)` | Perform an action only if an element is present. |
+| `orElse(defaultValue)` | Return a precomputed fallback value when empty. |
+| `orElseGet(supplier)` | Compute a fallback value **on demand** via a `Supplier`. |
+| `orElseThrow(...)` | Throw an explicit error if a mandatory element is missing. |
+| `map(transform)` | Transform the value inside `Optional` if it exists. |
 
-Ví dụ xử lý kết quả mà không dùng `get()` một cách mù quáng:
+Example handling the result without blindly calling `get()`:
 
 ```java
 import java.util.Arrays;
@@ -167,9 +167,9 @@ String label = task.map(String::toUpperCase)
 System.out.println(label); // PENDING
 ```
 
-`Optional.get()` ném `NoSuchElementException` nếu rỗng. Chỉ dùng nó khi chắc chắn có giá trị hoặc đã kiểm tra `isPresent()`; trong hầu hết tình huống, `orElse`, `orElseThrow` và `ifPresent` rõ ý nghĩa hơn.
+`Optional.get()` throws `NoSuchElementException` if empty. Only use it when you are certain a value exists or have already checked `isPresent()`; in most situations, `orElse`, `orElseThrow`, and `ifPresent` express intent more clearly.
 
-**Không dùng phần tử `null` làm giá trị kết quả.** Nếu phần tử được hai phép `find*` chọn là `null`, chúng ném `NullPointerException`. Trường hợp nguồn có thể chứa `null`, lọc trước:
+**Do not use a `null` element as the result value.** If the element selected by either `find*` operation is `null`, they throw `NullPointerException`. When a source might contain `null`, filter first:
 
 ```java
 import java.util.Arrays;
@@ -183,7 +183,7 @@ String value = Arrays.asList(null, "A", "B").stream()
 System.out.println(value); // A
 ```
 
-### Phiên bản cho primitive stream
+### Versions for Primitive Streams
 
 ```java
 import java.util.OptionalInt;
@@ -196,11 +196,11 @@ OptionalInt firstLarge = IntStream.of(5, 8, 13, 21)
 System.out.println(firstLarge.orElse(-1)); // 13
 ```
 
-`OptionalInt` giúp giữ giá trị nguyên trong API primitive, tránh boxing sang `Integer`. Với số thực và số nguyên dài, dùng `DoubleStream.findFirst`/`findAny` hoặc `LongStream.findFirst`/`findAny` tương ứng.
+`OptionalInt` keeps the integer value within the primitive API, avoiding boxing to `Integer`. For floating-point and long integers, use `DoubleStream.findFirst`/`findAny` or `LongStream.findFirst`/`findAny` respectively.
 
-## 4. Vì sao nói đây là phép toán kết thúc ngắn mạch?
+## 4. Why Are These Called Short-Circuiting Terminal Operations?
 
-Một pipeline Stream gồm nguồn, các bước trung gian lazy và một phép toán kết thúc. `findFirst` hoặc `findAny` có thể quyết định kết quả **trước khi duyệt hết nguồn**.
+A Stream pipeline consists of a source, lazy intermediate steps, and a terminal operation. `findFirst` or `findAny` can determine the result **before traversing the entire source**.
 
 ```java
 import java.util.Arrays;
@@ -214,13 +214,13 @@ String firstEvenText = Arrays.asList(3, 7, 8, 10, 12).stream()
 System.out.println(firstEvenText); // even-8
 ```
 
-Khi chạy tuần tự trên danh sách có thứ tự, pipeline đơn giản này có thể kết thúc sau khi gặp `8`; không cần kết quả từ `10` hay `12`. Tuy nhiên, **ngắn mạch không hứa số lần lambda chạy cố định**: JVM được phép tối ưu pipeline; trong chế độ song song, một số phần tử phía sau có thể đã được xử lý khi kết quả được chọn.
+When running sequentially on an ordered list, this simple pipeline can finish after encountering `8`; results from `10` or `12` are not needed. However, **short-circuiting does not promise a fixed number of lambda invocations**: the JVM is allowed to optimize the pipeline; in parallel mode, some later elements may already have been processed by the time a result is chosen.
 
-Vì vậy, viết `peek(System.out::println)` để “xác nhận mọi phần tử đều đã được xử lý” là sai. Không dùng `filter`, `map` hoặc `peek` để thực hiện những hiệu ứng phụ bắt buộc với *tất cả* phần tử như gửi yêu cầu thanh toán, ghi sổ hoặc cập nhật biến đếm bên ngoài.
+Therefore, writing `peek(System.out::println)` to “confirm every element was processed” is wrong. Do not use `filter`, `map`, or `peek` to execute mandatory side effects on *all* elements such as sending payment requests, recording ledger entries, or updating external counters.
 
-### Khi nào phải duyệt nhiều phần tử?
+### When Must Many Elements Be Traversed?
 
-`findFirst()` không mặc nhiên có độ phức tạp O(1). Nếu cần phần tử đầu tiên thỏa điều kiện mà nó nằm rất muộn, pipeline phải xét các phần tử trước đó. Nếu không có phần tử nào thỏa điều kiện trong nguồn hữu hạn, pipeline cần xác nhận hết nguồn:
+`findFirst()` does not automatically have O(1) complexity. If you need the first matching element and it lies very late, the pipeline has to inspect preceding elements. If no element matches in a finite source, the pipeline must exhaust the entire source:
 
 ```java
 import java.util.stream.IntStream;
@@ -233,7 +233,7 @@ int number = IntStream.rangeClosed(1, 1_000_000)
 System.out.println(number); // 999999
 ```
 
-`sorted()` còn là phép trung gian **có trạng thái**, thường phải đọc hết nguồn hữu hạn trước khi trả phần tử đầu của kết quả đã sắp xếp. `distinct()`, `skip()`, `limit()` và các thao tác giữ encounter order cũng có thể ảnh hưởng đến số phần tử cần duyệt. Đặt `limit` trước hay sau `filter` còn có thể thay đổi **ý nghĩa**:
+`sorted()` is also a **stateful** intermediate operation, typically having to read the entire finite source before returning the first element of the sorted result. `distinct()`, `skip()`, `limit()`, and operations preserving encounter order can also affect how many elements must be traversed. Placing `limit` before or after `filter` can even change the **meaning**:
 
 ```java
 import java.util.Arrays;
@@ -246,13 +246,13 @@ Integer b = Arrays.asList(1, 3, 8, 10).stream()
     .filter(n -> n % 2 == 0).limit(2)
     .findFirst().orElse(-1);
 
-System.out.println(a); // -1: chỉ xem hai phần tử đầu là 1, 3
-System.out.println(b); // 8: lấy tối đa hai phần tử chẵn
+System.out.println(a); // -1: only inspects the first two elements 1, 3
+System.out.println(b); // 8: takes at most two even elements
 ```
 
-## 5. Stream vô hạn và điều kiện tìm kiếm
+## 5. Infinite Streams and Search Conditions
 
-`Stream.iterate` và `Stream.generate` có thể tạo nguồn không giới hạn. Hai phép `find*` **có khả năng dừng sớm**, nhưng không bảo đảm sẽ tìm được kết quả. Điều kiện quyết định là có thật sự xuất hiện một phần tử phù hợp ở vị trí hữu hạn và các bước phía trước có thể cung cấp phần tử ấy hay không.
+`Stream.iterate` and `Stream.generate` can create unbounded sources. Both `find*` operations **can stop early**, but are not guaranteed to find a result. The deciding factor is whether a matching element actually appears at a finite position and whether preceding steps can supply that element.
 
 ```java
 import java.util.stream.Stream;
@@ -265,16 +265,16 @@ long found = Stream.iterate(1L, n -> n + 1)
 System.out.println(found); // 7
 ```
 
-Ngược lại, đoạn sau **không nên thực thi** vì không có điều kiện kết thúc:
+Conversely, the snippet below **should not be executed** because it has no terminating condition:
 
 ```java
-// KHÔNG CHẠY:
+// DO NOT RUN:
 // Stream.generate(() -> 0)
 //     .filter(n -> n == 1)
 //     .findFirst();
 ```
 
-Nếu cần chặn số phần tử nguồn được xét, đặt `limit(n)` ở vị trí phù hợp trước `filter`:
+If you need to cap the number of source elements inspected, place `limit(n)` in the right position before `filter`:
 
 ```java
 import java.util.stream.IntStream;
@@ -285,14 +285,14 @@ int result = IntStream.iterate(0, n -> n + 2)
     .findFirst()
     .orElse(-1);
 
-System.out.println(result); // -1, vì 100 số đầu là 0, 2, ..., 198
+System.out.println(result); // -1, since the first 100 numbers are 0, 2, ..., 198
 ```
 
-Lưu ý: `filter(...).limit(100)` không tương đương với `limit(100).filter(...)`. Nếu nguồn vô hạn không bao giờ thỏa `filter`, phiên bản đầu có thể **không kết thúc** vì không thể tạo đủ 100 phần tử sau lọc. Với nguồn vô hạn, cũng tránh đặt `sorted` trước `findFirst` nếu không có cách giới hạn đầu vào cần sắp xếp.
+Note: `filter(...).limit(100)` is not equivalent to `limit(100).filter(...)`. If an infinite source never satisfies `filter`, the first version may **never terminate** because it can never produce 100 post-filter elements. With infinite sources, also avoid placing `sorted` before `findFirst` unless the input to be sorted is bounded.
 
-## 6. `findFirst` và `findAny` khi xử lý song song
+## 6. `findFirst` and `findAny` in Parallel Processing
 
-Khác biệt nổi bật nhất xuất hiện với `parallelStream()` hoặc `parallel()`:
+The sharpest difference appears with `parallelStream()` or `parallel()`:
 
 ```java
 import java.util.Arrays;
@@ -309,31 +309,31 @@ Optional<Integer> any = numbers.parallelStream()
     .filter(n -> n >= 20)
     .findAny();
 
-System.out.println(first.orElse(-1)); // Luôn 20
-System.out.println(any.orElse(-1));   // Có thể là 20, 30, 40, 50 hoặc 60
+System.out.println(first.orElse(-1)); // Always 20
+System.out.println(any.orElse(-1));   // May be 20, 30, 40, 50, or 60
 ```
 
-Với nguồn có encounter order, `findFirst` phải trả phần tử phù hợp xuất hiện sớm nhất theo thứ tự đó, kể cả khi một luồng xử lý phần tử phía sau xong trước. Điều này có thể yêu cầu các nhánh phối hợp thêm. `findAny` cho phép chọn một phần tử phù hợp từ bất kỳ nhánh nào và vì thế thường mở ra cơ hội tối ưu.
+With a source that has encounter order, `findFirst` must return the earliest matching element in that order, even if another thread finishes processing a later element sooner. This may require additional coordination among branches. `findAny` permits selecting a matching element from any branch and thus often opens up optimization opportunities.
 
-**Không suy luận từ ví dụ rằng `findAny` sẽ luôn trả kết quả khác nhau hoặc luôn chạy nhanh hơn.** Trong một số môi trường và kích thước dữ liệu, nó có thể trả một phần tử giống nhau qua nhiều lần hoặc chậm hơn do chi phí thiết lập xử lý song song. Chỉ đánh giá lợi ích hiệu năng bằng phép đo trên workload thực tế.
+**Do not infer from this example that `findAny` will always return different results or always run faster.** In some environments and data sizes, it may return the same element across multiple runs or be slower due to parallel setup overhead. Only judge performance gains by measuring on realistic workloads.
 
-| Nhu cầu | Lựa chọn phù hợp | Vì sao |
+| Need | Suitable Choice | Why |
 | --- | --- | --- |
-| Lấy bản ghi hợp lệ sớm nhất theo thứ tự danh sách | `findFirst` | Thứ tự là một phần của yêu cầu. |
-| Lấy bất kỳ bản ghi lỗi nào để điều tra | `findAny` | Chỉ cần một kết quả, không cần thứ tự. |
-| Lấy sự kiện có timestamp sớm nhất | `min(comparator)` nếu nguồn chưa sắp theo thời gian; `findFirst` nếu đã sắp đúng | “Đầu tiên” phải dựa trên thứ tự nghiệp vụ. |
-| Chỉ kiểm tra có bản ghi lỗi hay không | `anyMatch(predicate)` | Trả trực tiếp `boolean` thay vì tạo `Optional`. |
-| Cần tất cả bản ghi phù hợp | `filter(...).collect(...)` | Không nên dùng `find*` khi cần toàn bộ kết quả. |
+| Get the earliest valid record in list order | `findFirst` | Order is part of the requirement. |
+| Get any error record for investigation | `findAny` | Only one result is needed; order does not matter. |
+| Get the event with the earliest timestamp | `min(comparator)` if source is not sorted by time; `findFirst` if already sorted | “First” must be based on business order. |
+| Only check whether an error record exists | `anyMatch(predicate)` | Returns `boolean` directly instead of creating `Optional`. |
+| Need all matching records | `filter(...).collect(...)` | Do not use `find*` when you need the complete result set. |
 
-### `unordered()` có ý nghĩa gì?
+### What Does `unordered()` Mean?
 
-Trên nguồn có thứ tự, `unordered()` cho phép loại bỏ nghĩa vụ bảo toàn encounter order ở các bước sau. Trong pipeline song song với `findAny`, ràng buộc thứ tự vốn đã không cần để chọn kết quả; vì vậy thêm `unordered()` không nhất thiết mang lại cải thiện rõ rệt. Ngược lại, `unordered().findFirst()` làm mất ý nghĩa “đầu tiên” của nguồn ban đầu.
+On an ordered source, `unordered()` allows dropping the obligation to preserve encounter order in subsequent steps. In a parallel pipeline with `findAny`, the ordering constraint is already unnecessary for selecting a result; hence adding `unordered()` does not necessarily bring a noticeable improvement. Conversely, `unordered().findFirst()` destroys the “first” meaning of the original source.
 
-Không dùng `unordered()` chỉ như một mẹo tăng tốc nếu yêu cầu nghiệp vụ cần kết quả ổn định theo thứ tự.
+Do not use `unordered()` merely as a speed trick if business requirements demand an order-stable result.
 
-## 7. Ví dụ nghiệp vụ: chọn một sự kiện cần xử lý
+## 7. Business Example: Selecting an Event to Process
 
-Giả sử danh sách thông báo được đưa vào theo thứ tự tiếp nhận. Khi cần **thông báo lỗi sớm nhất**, dùng `findFirst`:
+Suppose a list of messages arrives in order of receipt. When you need the **earliest error message**, use `findFirst`:
 
 ```java
 import java.util.Arrays;
@@ -359,13 +359,13 @@ public class EventSelection {
 }
 ```
 
-Nếu yêu cầu chỉ là “tìm bất kỳ lỗi nào để hiển thị một mẫu”, có thể đổi terminal operation sang `findAny`. Khi đó **không được dựa vào** việc luôn nhận thông báo `ERROR: timeout`, đặc biệt nếu sau này chuyển sang stream song song.
+If the requirement is merely “find any error to display a sample”, you can switch the terminal operation to `findAny`. In that case, **do not rely on** always receiving `ERROR: timeout`, especially if switching to a parallel stream later.
 
-Với dữ liệu đầu vào từ `HashSet`, việc gọi `findFirst` không tạo ra một thứ tự thời gian đáng tin cậy. Muốn tìm sớm nhất theo timestamp, phải mang thông tin thời gian trong phần tử và dùng `min(comparator)`, hoặc sắp xếp theo thời gian trước khi gọi `findFirst`.
+With input data from a `HashSet`, calling `findFirst` does not establish a reliable chronological order. To find the earliest by timestamp, carry the timestamp on each element and use `min(comparator)`, or sort by timestamp before calling `findFirst`.
 
-### Tìm trong tệp lớn và quản lý tài nguyên
+### Searching Large Files and Managing Resources
 
-Stream lấy từ `Files.lines` có thể giữ tài nguyên I/O. Vì vậy, dù `findFirst` dừng sớm sau khi thấy dòng phù hợp, vẫn cần **đóng stream**:
+Streams obtained from `Files.lines` can hold I/O resources. Therefore, even though `findFirst` stops early upon seeing a matching line, you still must **close the stream**:
 
 ```java
 import java.io.IOException;
@@ -385,23 +385,23 @@ public class FindInLog {
 }
 ```
 
-Terminal operation **không tự động đóng** mọi stream. `try-with-resources` giúp đóng tài nguyên khi có kết quả, khi không tìm thấy và khi phát sinh ngoại lệ.
+Terminal operations **do not automatically close** all streams. `try-with-resources` ensures the resource is closed when a result is found, when nothing matches, and when an exception occurs.
 
-## 8. Những nhầm lẫn thường gặp
+## 8. Common Misconceptions
 
-| Nhầm lẫn | Vấn đề | Cách làm đúng |
+| Misconception | Problem | Correct Practice |
 | --- | --- | --- |
-| “`findFirst` luôn trả phần tử nhỏ nhất.” | Encounter order không đồng nghĩa thứ tự tăng dần. | Dùng `min` hoặc sắp xếp theo tiêu chí mong muốn. |
-| “`findAny` luôn là phần tử đầu khi chạy tuần tự.” | API không bảo đảm cách chọn ấy. | Dùng `findFirst` nếu thứ tự quan trọng. |
-| “`findFirst` trên `HashSet` tạo kết quả ổn định.” | Nguồn không có encounter order được bảo đảm. | Dùng nguồn có thứ tự hoặc sắp theo comparator rõ ràng. |
-| Gọi `optional.get()` ngay sau `find*`. | Có thể ném `NoSuchElementException`. | Dùng `orElse`, `ifPresent`, `orElseThrow`. |
-| Cho rằng `findAny` lúc nào cũng nhanh hơn. | Chi phí phụ thuộc nguồn, dữ liệu, điều kiện lọc, mức song song và thứ tự. | Đo đạc trên workload cụ thể. |
-| Dùng `peek` để xử lý mọi phần tử trước `find*`. | Pipeline ngắn mạch có thể bỏ qua các phần tử còn lại. | Tách xử lý có hiệu ứng phụ bắt buộc khỏi bước tìm kiếm. |
-| Gọi `count()` hoặc `findAny()` tiếp trên cùng stream. | Stream đã bị tiêu thụ sau terminal operation. | Tạo stream mới từ nguồn nếu cần phép toán khác. |
-| Dùng `find*` với phần tử `null`. | Phần tử được chọn là `null` gây `NullPointerException`. | Lọc `Objects::nonNull` khi dữ liệu cho phép `null`. |
-| Giả định `findFirst` luôn dừng nhanh trên stream vô hạn. | Có thể không bao giờ gặp phần tử phù hợp. | Đặt giới hạn và thiết kế điều kiện kết thúc rõ ràng. |
+| “`findFirst` always returns the smallest element.” | Encounter order is not the same as ascending value order. | Use `min` or sort by the desired criterion. |
+| “`findAny` is always the first element when run sequentially.” | The API does not guarantee that selection behavior. | Use `findFirst` if order matters. |
+| “`findFirst` on `HashSet` produces a stable result.” | The source has no guaranteed encounter order. | Use an ordered source or sort with an explicit comparator. |
+| Calling `optional.get()` immediately after `find*`. | May throw `NoSuchElementException`. | Use `orElse`, `ifPresent`, or `orElseThrow`. |
+| Assuming `findAny` is always faster. | Cost depends on source, data, filter condition, parallelism, and ordering. | Benchmark on the actual workload. |
+| Using `peek` to process every element before `find*`. | Short-circuiting pipelines may skip remaining elements. | Separate mandatory side-effect processing from the search step. |
+| Calling `count()` or `findAny()` next on the same stream. | Stream is already consumed after a terminal operation. | Create a new stream from the source if another operation is needed. |
+| Using `find*` with `null` elements. | Selecting a `null` element throws `NullPointerException`. | Filter with `Objects::nonNull` when data allows `null`. |
+| Assuming `findFirst` always stops quickly on infinite streams. | It may never encounter a matching element. | Set bounds and design clear terminating conditions. |
 
-Một `Stream` chỉ được vận hành bằng một terminal operation. Ví dụ:
+A `Stream` can only be operated on by one terminal operation. Example:
 
 ```java
 import java.util.stream.Stream;
@@ -409,33 +409,33 @@ import java.util.stream.Stream;
 Stream<Integer> stream = Stream.of(1, 2, 3);
 stream.findFirst();
 
-// Không hợp lệ: stream đã được vận hành.
+// Invalid: the stream has already been operated upon.
 // stream.findAny(); // IllegalStateException
 
-// Nếu cần tìm lại, tạo pipeline mới từ nguồn:
+// If you need to search again, create a new pipeline from the source:
 System.out.println(Stream.of(1, 2, 3).findAny().orElse(-1));
 ```
 
-## 9. Quy trình chọn và tự kiểm tra
+## 9. Selection Checklist and Self-Check
 
-Khi thiết kế tìm kiếm bằng Java Stream API, có thể rà soát:
+When designing searches with the Java Stream API, review:
 
-1. **Muốn biết có tồn tại hay muốn lấy phần tử?** Chỉ kiểm tra tồn tại thì chọn `anyMatch`; cần phần tử thì cân nhắc `findFirst` hoặc `findAny`.
-2. **“Đầu tiên” được định nghĩa theo thứ tự nào?** Xác định nguồn có encounter order hay chưa; nếu cần giá trị nhỏ nhất hoặc mới nhất, thường dùng comparator/`min`/`max`.
-3. **Có thực sự cần một phần tử ổn định?** Nếu không quan tâm phần tử nào, `findAny` phù hợp; nếu kết quả cần ổn định theo thứ tự, dùng `findFirst`.
-4. **Pipeline có thể dừng không?** Xét độ dài nguồn, vị trí phần tử phù hợp, `sorted`, `filter`, `limit` và các bước trung gian có trạng thái.
-5. **Kết quả rỗng thì xử lý ra sao?** Dùng API `Optional` theo ý nghĩa nghiệp vụ; không gọi `get()` nếu chưa bảo đảm tồn tại.
-6. **Có chạy song song không?** Giữ các lambda không phụ thuộc trạng thái thay đổi bên ngoài, tránh giả định số lần gọi hoặc thứ tự thực thi, và đo hiệu năng khi cần.
-7. **Nguồn có giữ tài nguyên không?** Với file và một số nguồn I/O, dùng `try-with-resources`.
+1. **Do you want to check existence or retrieve an element?** To check existence only, choose `anyMatch`; if you need an element, consider `findFirst` or `findAny`.
+2. **How is “first” defined?** Determine whether the source has encounter order; if you need the smallest or latest value, usually use a comparator/`min`/`max`.
+3. **Do you actually need a deterministic element?** If any match is fine, `findAny` fits; if the result must be order-stable, use `findFirst`.
+4. **Can the pipeline terminate?** Consider source length, position of matching elements, `sorted`, `filter`, `limit`, and stateful intermediate steps.
+5. **How is an empty result handled?** Use `Optional` APIs according to business semantics; do not call `get()` without ensuring presence.
+6. **Will it run in parallel?** Keep lambdas free of mutable external state, avoid assuming call counts or execution order, and measure performance when needed.
+7. **Does the source hold resources?** For files and some I/O sources, use `try-with-resources`.
 
-### Bài tập thực hành
+### Practice Exercises
 
-**Bài 1.** Cho danh sách `[7, 3, 12, 18, 4]`, viết pipeline tìm **số chẵn đầu tiên**. Đáp án đúng theo encounter order là `12`, không phải `4`. Sau đó dùng `min` để tìm **số chẵn nhỏ nhất** và so sánh hai kết quả.
+**Exercise 1.** Given `[7, 3, 12, 18, 4]`, write a pipeline to find the **first even number**. The right answer in encounter order is `12`, not `4`. Then use `min` to find the **smallest even number** and compare the two results.
 
-**Bài 2.** Tạo một `List<String>` chứa nhiều mã lỗi. Viết `findFirst` để lấy lỗi đầu tiên theo thứ tự danh sách và `parallelStream().findAny()` để lấy một lỗi bất kỳ. Kiểm tra rằng phần tử trả về từ `findAny` luôn thỏa điều kiện, nhưng **không viết test yêu cầu nó luôn là cùng một mã**.
+**Exercise 2.** Create a `List<String>` containing several error codes. Write `findFirst` to retrieve the first error in list order and `parallelStream().findAny()` to retrieve any error. Verify that the element returned by `findAny` always matches the condition, but **do not write a test requiring it to always be the exact same code**.
 
-**Bài 3.** Dùng `IntStream.iterate(0, n -> n + 2)` tạo dãy vô hạn số chẵn, đặt `limit(100)`, lọc số lớn hơn `500` rồi gọi `findFirst`. Giải thích vì sao kết quả rỗng. Thử đổi `limit(100)` thành `limit(300)` và dự đoán kết quả.
+**Exercise 3.** Use `IntStream.iterate(0, n -> n + 2)` to create an infinite sequence of even numbers, apply `limit(100)`, filter numbers greater than `500`, and call `findFirst`. Explain why the result is empty. Try changing `limit(100)` to `limit(300)` and predict the result.
 
-**Bài 4.** Với danh sách có thể chứa `null`, viết pipeline bỏ `null`, lọc chuỗi không rỗng và lấy chuỗi đầu tiên hợp lệ. Xử lý kết quả bằng `orElse` thay vì `Optional.get()`.
+**Exercise 4.** Given a list that may contain `null`, write a pipeline that removes `null`, filters non-empty strings, and retrieves the first valid string. Handle the result with `orElse` instead of `Optional.get()`.
 
-**Ghi nhớ:** `findFirst` là lựa chọn khi **thứ tự có ý nghĩa**; `findAny` phù hợp khi **bất kỳ phần tử thỏa điều kiện nào cũng chấp nhận được**. Cả hai đều có khả năng ngắn mạch và trả `Optional`, nhưng khả năng dừng sớm, kết quả ổn định và hiệu năng thực tế còn phụ thuộc nguồn, encounter order, pipeline và chế độ xử lý.
+**Key Takeaway:** `findFirst` is the choice when **order matters**; `findAny` fits when **any matching element is acceptable**. Both can short-circuit and return `Optional`, while early stopping, result determinism, and actual performance depend on the source, encounter order, pipeline, and execution mode.

@@ -1,92 +1,92 @@
-# Lập bảng lựa chọn API và tự đánh giá các tình huống xử lý chuỗi Java
+# Building a Java String API Decision Table and Self-Assessment Scenarios
 
-## 1. Mục tiêu thực hành
+## 1. Practice goal
 
-Trong Java, cùng một tác vụ xử lý văn bản có thể thực hiện bằng nhiều API: `String`, `StringBuilder`, `StringBuffer`, `CharSequence`, `String.split`, `Pattern`/`Matcher`, `String.lines`, `Stream`, `Charset`, `Normalizer`, `Comparator`... Chọn đúng API phụ thuộc vào **yêu cầu thực tế**, không chỉ vào việc viết ít dòng code.
+In Java, the same text-processing task can be performed using multiple APIs: `String`, `StringBuilder`, `StringBuffer`, `CharSequence`, `String.split`, `Pattern`/`Matcher`, `String.lines`, `Stream`, `Charset`, `Normalizer`, `Comparator`, and more. Picking the right API depends on **real requirements**, not just writing fewer lines of code.
 
-Sau bài này, bạn cần có khả năng:
+After this lesson, you should be able to:
 
-1. Chuyển một yêu cầu xử lý chuỗi thành các tiêu chí: có dùng regex không, cần giữ dữ liệu rỗng không, yêu cầu Unicode ở mức nào, có thay đổi/ghép nhiều lần không, có lưu làm khóa không, có lưu lâu hay chia sẻ giữa luồng không.
-2. Dùng **bảng quyết định** để chọn API phù hợp và giải thích vì sao các lựa chọn khác có thể sai.
-3. Tự giải các tình huống về tách chuỗi, tìm/thay, xây dựng văn bản, Unicode, kiểm tra bằng nhau, sắp xếp, đọc dòng và mã hóa.
-4. Chạy chương trình Java 17+ có kiểm tra kết quả thật, sau đó tự chấm bằng đáp án và thang đánh giá.
+1. Turn a string-processing requirement into criteria: whether regex is used, whether empty data must be preserved, which Unicode level is required, whether repeated mutation/concatenation occurs, whether values serve as keys, and whether values are stored long-term or shared across threads.
+2. Use a **decision table** to select the right API and explain why other options could fail.
+3. Independently solve scenarios covering splitting, find/replace, text construction, Unicode, equality checks, sorting, line reading, and encoding.
+4. Run a Java 17+ program with real assertions, then self-grade using the answers and rubric.
 
-Đây là bài thực hành tổng hợp theo ngữ cảnh **Java Core — String**. Các đoạn minh họa ngắn trong bảng là biểu thức hoặc mảnh code đặt trong phương thức Java; chương trình hoàn chỉnh nằm ở phần 5.
+This is a comprehensive synthesis lesson in the **Java Core — String** context. Short snippets inside the tables are expressions or code fragments placed within a Java method; the complete runnable program is in Section 5.
 
-## 2. Trước khi lựa chọn: xác định hợp đồng xử lý
+## 2. Before choosing: define the processing contract
 
-Hãy trả lời các câu hỏi sau trước khi chọn API:
+Answer these questions before picking an API:
 
-- **Tìm nguyên văn hay theo mẫu?** Ví dụ dấu chấm trong dữ liệu là dấu chấm thật hay wildcard trong regex?
-- **Chỉ cần đọc, hay tạo kết quả mới nhiều lần?** Một phép `replace` trả `String` mới có thể đủ; nối nhiều đoạn trong vòng lặp phù hợp với `StringBuilder`.
-- **Đối tượng có mutable không?** `CharSequence` có thể là `StringBuilder` hoặc view của `CharBuffer`; muốn lưu giá trị ổn định phải định nghĩa snapshot.
-- **Thế nào là “một ký tự”?** UTF-16 code unit, Unicode code point hay cụm grapheme hiển thị? `String.length()` không luôn là số ký tự người dùng nhìn thấy.
-- **Chuỗi rỗng, null, khoảng trắng và xuống dòng có ý nghĩa không?** Ví dụ CSV giản lược cần giữ trường rỗng cuối thì dùng `split(delimiter, -1)`.
-- **Bình đẳng và thứ tự có cùng quy tắc không?** `equals` phân biệt hoa/thường, trong khi `CASE_INSENSITIVE_ORDER` có thể coi hai chuỗi khác nhau là cùng khóa trong `TreeSet`.
-- **Tập ký tự và locale là gì?** Mã hóa bytes cần nêu `Charset`; so sánh/định dạng theo ngôn ngữ có thể cần `Locale` và `Collator`.
+- **Literal search or pattern search?** For example, is a dot in the data a literal period or a regex wildcard?
+- **Read-only, or building new results repeatedly?** A single `replace` returning a new `String` may suffice; appending many pieces in a loop suits `StringBuilder`.
+- **Is the object mutable?** A `CharSequence` can be a `StringBuilder` or a `CharBuffer` view; to store a stable value, define a snapshot.
+- **What counts as "one character"?** UTF-16 code unit, Unicode code point, or display grapheme cluster? `String.length()` is not always the user-visible character count.
+- **Are empty strings, `null`, whitespace, and newlines meaningful?** For example, simplified CSV needing trailing empty fields uses `split(delimiter, -1)`.
+- **Do equality and ordering share the same rules?** `equals` is case-sensitive, whereas `CASE_INSENSITIVE_ORDER` can treat two distinct strings as the same key in a `TreeSet`.
+- **What are the charset and locale?** Byte encoding requires specifying a `Charset`; language-specific comparison/formatting may need `Locale` and `Collator`.
 
-Khi đề chưa nói rõ một điều kiện quan trọng, hãy **đặt giả định tường minh** hoặc hỏi người thiết kế yêu cầu. Ví dụ “tách dữ liệu CSV” không đủ để kết luận có thể dùng `split(",")` vì CSV đầy đủ có dấu nháy kép, dấu phẩy bên trong trường và quy tắc escape.
+When a prompt leaves an important condition unspecified, **state explicit assumptions** or ask the requirements author. For instance, "split CSV data" is not enough to conclude `split(",")` works, because full CSV supports double quotes, commas inside fields, and escaping rules.
 
-## 3. Bảng lựa chọn API theo nhiệm vụ
+## 3. Task-based API decision table
 
-| Nhu cầu cụ thể | API nên cân nhắc | Điều kiện và điểm dễ sai |
+| Specific need | API to consider | Conditions and common pitfalls |
 | --- | --- | --- |
-| Giữ một giá trị văn bản ổn định | `String` | Immutable; phù hợp trả về, cache, khóa map; `StringBuilder`/`CharSequence` không tự bất biến |
-| Ghép nhiều mảnh trong **một luồng xử lý** | `StringBuilder.append(...)`, `toString()` | Tránh tạo chuỗi trung gian liên tiếp; builder mutable, không thread-safe |
-| Ghép trên đối tượng có nhiều phương thức đồng bộ hóa | `StringBuffer` | Có đồng bộ hóa từng phương thức; không thay cho giao thức đồng bộ toàn thuật toán nhiều bước |
-| API chỉ đọc văn bản từ nhiều implementation | `CharSequence` | Không bảo đảm immutable hay `equals` theo nội dung; snapshot bằng `toString()` khi cần lưu ổn định |
-| So sánh chính xác hai `String` | `equals`, `Objects.equals` khi có null | Phân biệt hoa/thường; `Objects.equals` không biến mọi `CharSequence` thành so sánh nội dung |
-| So sánh String với một `CharSequence` | `String.contentEquals(...)` | Thích hợp khi muốn so sánh ký tự hiện tại, vẫn phải xét thay đổi đồng thời |
-| Bỏ qua hoa/thường với String | `equalsIgnoreCase`, `compareToIgnoreCase` | Không phải quy tắc collation theo mọi locale; không thay đổi `String.equals` |
-| Sắp xếp bỏ qua hoa/thường | `String.CASE_INSENSITIVE_ORDER` | `compare == 0` có thể xảy ra khi `equals == false`; `TreeSet`/`TreeMap` coi đó là cùng khóa |
-| Sắp xếp bỏ qua hoa/thường **nhưng giữ mọi String khác nhau** | `String.CASE_INSENSITIVE_ORDER.thenComparing(Comparator.naturalOrder())` | Tie-breaker làm comparator nhất quán với `String.equals` |
-| So sánh theo ngôn ngữ cụ thể | `Collator.getInstance(locale)` | Cần cấu hình mức độ nhạy dấu/chữ hoa và kiểm thử ngôn ngữ mục tiêu |
-| Tìm chuỗi con nguyên văn | `contains`, `indexOf`, `startsWith`, `endsWith` | Không diễn giải regex; `indexOf` trả `-1` nếu không tìm thấy |
-| Lấy một đoạn có chỉ số UTF-16 | `substring(start, end)` | `start` bao gồm, `end` không bao gồm; kiểm tra giới hạn |
-| Thay văn bản nguyên văn | `String.replace(target, replacement)` | Không cần escape dấu `.`, `$` hoặc `\` theo regex/replacement |
-| Thay theo regex có chủ đích | `replaceAll(regex, replacement)`, `replaceFirst(...)` | Regex và replacement có **cú pháp khác nhau**; `$1` có thể tham chiếu nhóm |
-| Thay bằng `replaceAll` nhưng dữ liệu hai phía là văn bản nguyên văn | `Pattern.quote(target)` và `Matcher.quoteReplacement(value)` | Quote **cả hai phía**; chỉ quote regex chưa bảo vệ replacement chứa `$` hoặc `\` |
-| Kiểm tra regex nhiều lần trên nhiều đầu vào | `Pattern.compile(regex)`, `pattern.matcher(text)` | `Pattern` tái sử dụng được; `Matcher` có trạng thái, không chia sẻ tùy tiện giữa luồng |
-| Tách đơn giản theo regex | `split(regex)` hoặc `split(regex, limit)` | `limit=0` bỏ token rỗng cuối; `-1` giữ chúng; regex có thể khớp zero-width |
-| Phân tích **CSV đầy đủ** | Thư viện CSV chuyên dụng | `split(",")` không xử lý dấu phẩy trong trường được quote, dấu nháy escape hoặc newline trong trường |
-| Ghép các phần với một separator | `String.join(separator, ...)`, `Collectors.joining(...)` | `joining` thuận tiện khi đã có stream; kiểm tra dữ liệu null theo hợp đồng |
-| Tách các dòng văn bản | `String.lines()` | Nhận `\n`, `\r`, `\r\n`; không tự sinh dòng rỗng cuối chỉ vì có ký tự kết thúc dòng |
-| Bỏ whitespace hai đầu | `strip()`, `stripLeading()`, `stripTrailing()` | Dựa theo `Character.isWhitespace`; khác `trim()` (các code unit ≤ U+0020) |
-| Kiểm tra toàn khoảng trắng | `isBlank()` | Khác `isEmpty()`: chuỗi có space không rỗng nhưng có thể blank |
-| Duyệt UTF-16 code unit | `chars()`, `charAt(...)` | Surrogate pair bị biểu diễn thành hai `char` |
-| Duyệt Unicode code point | `codePoints()`, `codePointAt(...)` | Code point có thể cần hai code unit; dựng lại bằng `StringBuilder.appendCodePoint(...)` |
-| Chuẩn hóa biểu diễn Unicode | `Normalizer.normalize(s, Form.NFC)` | Chuỗi hiển thị giống nhau có thể khác chuỗi code point; không tự thay cho so sánh theo ngôn ngữ |
-| Chuyển bytes và String | `getBytes(StandardCharsets.UTF_8)`, `new String(bytes, StandardCharsets.UTF_8)` | Chỉ rõ charset ở cả hai chiều; đừng dựa vào charset mặc định để trao đổi dữ liệu |
-| Tạo biểu diễn có tham số | `String.format(Locale,...)` hoặc `"..." .formatted(...)` | Cân nhắc locale khi có số/ngày; với text nối đơn giản `StringBuilder`/`join` có thể rõ ràng hơn |
+| Hold a stable text value | `String` | Immutable; suitable for returns, caches, map keys; `StringBuilder`/`CharSequence` are not automatically immutable |
+| Join many fragments on **one thread** | `StringBuilder.append(...)`, `toString()` | Avoids creating repeated intermediate strings; mutable builder, not thread-safe |
+| Concatenate on an object with individually synchronized methods | `StringBuffer` | Synchronizes individual methods; does not replace synchronization across multi-step algorithms |
+| Read-only API accepting text from multiple implementations | `CharSequence` | Does not guarantee immutability or content-based `equals`; snapshot with `toString()` before storing long-term |
+| Exact equality of two `String`s | `equals`, `Objects.equals` when nullable | Case-sensitive; `Objects.equals` does not turn arbitrary `CharSequence`s into content equality |
+| Compare a `String` with a `CharSequence` | `String.contentEquals(...)` | Suitable for comparing current characters, still mind concurrent mutations |
+| Case-insensitive `String` comparison | `equalsIgnoreCase`, `compareToIgnoreCase` | Not locale-aware collation for every language; does not change `String.equals` |
+| Case-insensitive sorting | `String.CASE_INSENSITIVE_ORDER` | `compare == 0` can occur when `equals == false`; `TreeSet`/`TreeMap` treat them as the same key |
+| Case-insensitive sorting **while keeping every distinct `String`** | `String.CASE_INSENSITIVE_ORDER.thenComparing(Comparator.naturalOrder())` | Tie-breaker keeps the comparator consistent with `String.equals` |
+| Language-specific comparison | `Collator.getInstance(locale)` | Must configure sensitivity strength for accents/case and test with the target language |
+| Literal substring lookup | `contains`, `indexOf`, `startsWith`, `endsWith` | Does not interpret regex; `indexOf` returns `-1` when absent |
+| Slice a range using UTF-16 indices | `substring(start, end)` | `start` inclusive, `end` exclusive; verify bounds |
+| Literal text replacement | `String.replace(target, replacement)` | No need to escape `.`, `$`, or `\` for regex/replacement syntax |
+| Intentional regex replacement | `replaceAll(regex, replacement)`, `replaceFirst(...)` | Regex and replacement have **different syntaxes**; `$1` can refer to capture groups |
+| Using `replaceAll` when both sides are literal text | `Pattern.quote(target)` and `Matcher.quoteReplacement(value)` | Quote **both sides**; quoting only the regex does not protect a replacement containing `$` or `\` |
+| Reuse a regex across many inputs | `Pattern.compile(regex)`, `pattern.matcher(text)` | `Pattern` is reusable; `Matcher` is stateful, do not share carelessly across threads |
+| Simple regex splitting | `split(regex)` or `split(regex, limit)` | `limit=0` drops trailing empty tokens; `-1` keeps them; regex can match zero-width |
+| Parse **full CSV** | Dedicated CSV library | `split(",")` cannot handle commas inside quoted fields, escaped quotes, or embedded newlines |
+| Join parts with a separator | `String.join(separator, ...)`, `Collectors.joining(...)` | `joining` is convenient inside an existing stream; verify null handling per contract |
+| Split text into lines | `String.lines()` | Recognizes `\n`, `\r`, `\r\n`; does not emit a trailing empty line merely for a final line terminator |
+| Strip boundary whitespace | `strip()`, `stripLeading()`, `stripTrailing()` | Based on `Character.isWhitespace`; differs from `trim()` (code units ≤ U+0020) |
+| Check whitespace-only text | `isBlank()` | Differs from `isEmpty()`: a string of spaces is not empty yet is blank |
+| Iterate UTF-16 code units | `chars()`, `charAt(...)` | Surrogate pairs appear as two separate `char`s |
+| Iterate Unicode code points | `codePoints()`, `codePointAt(...)` | A code point can take two code units; rebuild via `StringBuilder.appendCodePoint(...)` |
+| Normalize Unicode representations | `Normalizer.normalize(s, Form.NFC)` | Visually identical strings may differ in code points; does not replace linguistic collation |
+| Convert between bytes and `String` | `getBytes(StandardCharsets.UTF_8)`, `new String(bytes, StandardCharsets.UTF_8)` | Specify charset on both sides; never rely on the default charset for data exchange |
+| Parameterized formatting | `String.format(Locale,...)` or `"..." .formatted(...)` | Consider locale for numbers/dates; for simple concatenation `StringBuilder`/`join` can be clearer |
 
-Bảng không có nghĩa mỗi API chỉ phục vụ một loại bài toán; điều cần đánh giá là **hợp đồng đúng với dữ liệu thực tế**. Ví dụ `replaceAll` hoàn toàn dùng được để thay dấu chấm thật nếu regex escape đúng, nhưng khi không cần regex, `replace` ngắn và ít nguy cơ lỗi hơn.
+This table does not mean each API serves only one task; what matters is matching **the contract to real data**. For instance, `replaceAll` works fine for replacing literal dots if the regex is properly escaped, yet when regex is unnecessary, `replace` is shorter and less error-prone.
 
-## 4. Bảng tình huống để tự chọn API
+## 4. Scenario table for choosing APIs yourself
 
-Trước khi xem đáp án ở phần 6, hãy tự điền **API, lý do, rủi ro/kiểm thử** cho mỗi tình huống. Độ khó tăng dần.
+Before checking the answers in Section 6, write down **the API, rationale, and risks/tests** for each scenario. Difficulty increases gradually.
 
-| Mã | Tình huống | Câu hỏi cần tự trả lời |
+| ID | Scenario | Questions to answer yourself |
 | --- | --- | --- |
-| T1 | Bạn có chuỗi `"a.b.c"`, muốn thay mọi **dấu chấm nguyên văn** thành dấu `/`. | Chọn hàm nào? Vì sao `replaceAll(".", "/")` không đúng? |
-| T2 | Người dùng tìm từ khóa có dấu `[` hoặc `$`, thay bằng chuỗi chứa `$1` và backslash, nhưng tất cả đều là văn bản nguyên văn. Hệ thống bắt buộc dùng `replaceAll`. | Phải quote phía tìm kiếm và phía thay thế bằng hàm nào? |
-| T3 | Chuỗi dữ liệu `"a,b,,"` biểu diễn 4 trường, trong đó hai trường cuối rỗng. | Dùng `split` với limit bao nhiêu? Có nên dùng làm parser CSV đầy đủ không? |
-| T4 | Muốn loại emoji 🚀 khỏi `"A🚀B"` mà không làm hỏng surrogate pair. | Dùng `chars()` hay `codePoints()`? Dựng lại String thế nào? |
-| T5 | Cần ghép hàng nghìn mảnh text theo vòng lặp ở một luồng. | Dùng phép `+` tích lũy hay `StringBuilder`? Vì sao? |
-| T6 | API nhận `CharSequence` để lưu làm tiêu đề trong cache. Người gọi có thể truyền `StringBuilder` rồi sửa. | Phải giữ tham chiếu hay tạo `String` snapshot? |
-| T7 | Cần so sánh `"Java"` và `"java"` như cùng một từ khóa, nhưng hệ thống khác cần phân biệt hai khóa theo `equals`. | Khi nào dùng `equalsIgnoreCase`, khi nào dùng `String.equals`? |
-| T8 | Dùng `TreeSet` sắp xếp không phân biệt hoa/thường nhưng vẫn muốn giữ cả `"Java"` và `"java"`. | Cần thêm comparator phụ nào? |
-| T9 | Nhập hai giá trị `"é"` và `"e"` + dấu sắc kết hợp; cần chuẩn hóa dạng lưu trước khi so sánh chính xác. | Chọn công cụ nào? Có nên chỉ gọi `toLowerCase()` không? |
-| T10 | Gửi văn bản tiếng Việt qua mạng, hai phía phải giải mã thống nhất. | Cần khai báo Charset ở API nào? |
-| T11 | Muốn tách nhiều dòng có thể dùng CRLF hoặc LF, loại bỏ ký tự kết thúc dòng. | `lines()` hay `split("\n")` dễ diễn đạt hơn? |
-| T12 | Muốn kiểm tra trường nhập chỉ gồm space/tab/newline là không có dữ liệu hữu ích. | Chọn `isEmpty()` hay `isBlank()`? |
-| T13 | Muốn sắp xếp tên người theo quy tắc tiếng Việt hoặc một locale xác định. | Dùng `CASE_INSENSITIVE_ORDER` đã đủ chưa? |
-| T14 | Dữ liệu nhận từ người dùng thật ra là một biểu thức regex có nhóm bắt, cần thay số `42` bằng `[42]`. | Khi nào phải **giữ** `(\\d+)` và `$1` thay vì quote chúng? |
+| T1 | Given `"a.b.c"`, you want to replace every **literal dot** with `/`. | Which method do you pick? Why is `replaceAll(".", "/")` wrong? |
+| T2 | A user searches for a keyword containing `[` or `$` and replaces it with a string containing `$1` and backslashes, all literal text. The system forces using `replaceAll`. | Which functions must quote the search side and the replacement side? |
+| T3 | Data string `"a,b,,"` represents 4 fields, where the last two are empty. | Which `limit` do you pass to `split`? Should this serve as a full CSV parser? |
+| T4 | Remove the 🚀 emoji from `"A🚀B"` without corrupting surrogate pairs. | Use `chars()` or `codePoints()`? How do you rebuild the `String`? |
+| T5 | Concatenate thousands of text fragments inside a loop on one thread. | Use cumulative `+` or `StringBuilder`? Why? |
+| T6 | An API accepts a `CharSequence` to store as a title in a cache. The caller might pass a `StringBuilder` and mutate it later. | Keep the reference or take a `String` snapshot? |
+| T7 | Compare `"Java"` and `"java"` as the same keyword in one place, while another system distinguishes the two keys via `equals`. | When to use `equalsIgnoreCase`, and when to use `String.equals`? |
+| T8 | Use a `TreeSet` for case-insensitive ordering while keeping both `"Java"` and `"java"`. | What secondary comparator is needed? |
+| T9 | Receive `"é"` and `"e"` + combining acute accent; normalize storage form before exact comparison. | Which tool do you choose? Is calling `toLowerCase()` alone sufficient? |
+| T10 | Send Vietnamese text over the network so both sides decode identically. | Which APIs must specify a `Charset`? |
+| T11 | Split multiple lines that may use CRLF or LF, stripping line terminators. | Is `lines()` or `split("\n")` clearer? |
+| T12 | Check whether an input field containing only spaces/tabs/newlines has no meaningful data. | Choose `isEmpty()` or `isBlank()`? |
+| T13 | Sort personal names according to Vietnamese rules or a specific locale. | Is `CASE_INSENSITIVE_ORDER` enough? |
+| T14 | Input from the user really is a regex with a capturing group to replace `42` with `[42]`. | When must you **preserve** `(\\d+)` and `$1` instead of quoting them? |
 
-**Cách làm:** ghi câu trả lời độc lập trước, rồi đối chiếu phần 6. Với mỗi tình huống cần nói cả lựa chọn **và điều kiện khiến lựa chọn đúng**. Ví dụ T3 phải nêu “giữ trường rỗng cuối” thay vì chỉ viết `split(",")`.
+**How to work through it:** write your answers independently first, then compare with Section 6. For every scenario, state both the choice **and the condition making it right**. For example, T3 must mention "preserving trailing empty fields" rather than only writing `split(",")`.
 
-## 5. Chương trình kiểm thử Java 17+ chạy độc lập
+## 5. Standalone runnable Java 17+ test program
 
-Lưu tệp **StringApiDecisionPractice.java**. Đây là bài kiểm tra các lựa chọn cốt lõi, không cần JUnit hoặc thư viện ngoài. Các hàm `same` và `check` ném `AssertionError` nếu kết quả không đúng; không dựa vào lệnh Java `assert` có thể bị tắt khi thiếu cờ `-ea`.
+Save as **`StringApiDecisionPractice.java`**. This checks core choices without needing JUnit or external libraries. `same` and `check` throw `AssertionError` if results fail; do not rely on Java's `assert` statement, which is disabled unless `-ea` is passed.
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -178,14 +178,14 @@ public class StringApiDecisionPractice {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 StringApiDecisionPractice.java
 java StringApiDecisionPractice
 ~~~
 
-Kết quả stdout chính xác nếu 20 phép kiểm tra thành công:
+Exact stdout when all 20 checks pass:
 
 ~~~text
 splitCount=4
@@ -196,70 +196,70 @@ snapshot=x
 PASS: 20 checks
 ~~~
 
-Những kiểm tra này chứng minh nhiều lựa chọn quan trọng hơn việc chương trình chỉ không gặp lỗi: `split(",", -1)` thật sự giữ 4 trường; `Pattern.quote` kết hợp `Matcher.quoteReplacement` giữ nguyên cả dấu `$` lẫn `\`; `codePoints()` lọc trọn emoji; `UTF-8` round-trip đúng; `TreeSet` xác định khóa tương đương theo comparator, và snapshot `String` giữ giá trị cũ khi builder thay đổi.
+These checks verify key decisions beyond merely running without crashes: `split(",", -1)` actually preserves 4 fields; `Pattern.quote` combined with `Matcher.quoteReplacement` keeps both `$` and `\` literal; `codePoints()` filters the whole emoji; `UTF-8` round-trips cleanly; `TreeSet` identifies equivalent keys via its comparator; and the `String` snapshot preserves the old value when the builder mutates.
 
-## 6. Đáp án và lý giải từng tình huống
+## 6. Answers and explanations for each scenario
 
-| Tình huống | Đáp án/API phù hợp | Giải thích ngắn gọn |
+| Scenario | Recommended answer / API | Brief explanation |
 | --- | --- | --- |
-| **T1** | `"a.b.c".replace(".", "/")` | Dấu `.` trong `replaceAll` là wildcard, còn `replace` tìm đúng văn bản. Kết quả `a/b/c`. |
-| **T2** | `text.replaceAll(Pattern.quote(target), Matcher.quoteReplacement(value))` | Target và replacement có **hai cú pháp độc lập**. Không quote replacement có thể khiến `$1` bị hiểu là group reference. |
-| **T3** | `"a,b,,".split(",", -1)` | Kết quả `["a", "b", "", ""]`. Mặc định `split(",")` bỏ token rỗng cuối. CSV đầy đủ cần parser chuyên dụng. |
-| **T4** | `text.codePoints().filter(cp -> cp != 0x1F680).forEach(builder::appendCodePoint)` | Một emoji bổ sung là một code point nhưng có hai UTF-16 code unit; xử lý theo `chars()` dễ cắt nửa surrogate pair. |
-| **T5** | `StringBuilder.append(...)` rồi `toString()` | Mutable buffer giảm việc tạo String trung gian trong vòng lặp nhiều lần; không đưa cùng builder vào `parallel()` để append đồng thời. |
-| **T6** | `String snapshot = Objects.requireNonNull(input).toString()` | `CharSequence` có thể mutable. Snapshot giúp nội dung ổn định sau khi phương thức trả về; đồng bộ hóa nếu nguồn bị sửa đồng thời. |
-| **T7** | `equalsIgnoreCase` cho tương đương bỏ qua hoa/thường; `equals` để phân biệt khóa chính xác | Hai quy tắc này không thay thế nhau; `HashMap`/`HashSet` sử dụng `equals` và `hashCode`. |
-| **T8** | `String.CASE_INSENSITIVE_ORDER.thenComparing(Comparator.naturalOrder())` | So sánh phụ giải quyết trường hợp compare bỏ qua hoa/thường bằng 0; hai String khác nhau theo `equals` vẫn khác khóa. |
-| **T9** | `Normalizer.normalize(s, Normalizer.Form.NFC)` rồi so sánh theo hợp đồng | Hai cách biểu diễn Unicode có thể khác code point. `toLowerCase` không phải phép chuẩn hóa Unicode NFC. |
-| **T10** | `text.getBytes(StandardCharsets.UTF_8)` và `new String(bytes, StandardCharsets.UTF_8)` | Hai chiều dùng cùng charset; cần thỏa thuận giao thức về UTF-8. |
-| **T11** | `String.lines()` | Nêu trực tiếp ý định duyệt các dòng và xử lý các dấu kết thúc dòng thông dụng; `split("\n")` đơn giản có thể để sót `\r` với CRLF. |
-| **T12** | `isBlank()` | `" \t\n".isEmpty()` là false còn `isBlank()` là true. `isBlank` dựa theo `Character.isWhitespace`, không phải mọi ký tự Unicode trông giống dấu cách đều được coi là whitespace. |
-| **T13** | Xem xét `Collator.getInstance(locale)` và kiểm thử locale thực tế | `CASE_INSENSITIVE_ORDER` là so sánh bỏ qua hoa/thường của String, không đồng nghĩa với sắp xếp theo ngôn ngữ. |
-| **T14** | `"id=42".replaceAll("(\\d+)", "[$1]")` | Đây là regex và tham chiếu nhóm **được dùng có chủ đích**; không được quote regex hay replacement khi cần chức năng nhóm bắt. Kết quả `id=[42]`. |
+| **T1** | `"a.b.c".replace(".", "/")` | `.` in `replaceAll` is a regex wildcard, whereas `replace` matches literal text. Result: `a/b/c`. |
+| **T2** | `text.replaceAll(Pattern.quote(target), Matcher.quoteReplacement(value))` | Target and replacement have **two independent syntaxes**. Omitting replacement quoting lets `$1` be parsed as a group reference. |
+| **T3** | `"a,b,,".split(",", -1)` | Result `["a", "b", "", ""]`. Default `split(",")` discards trailing empty tokens. Full CSV requires a dedicated parser. |
+| **T4** | `text.codePoints().filter(cp -> cp != 0x1F680).forEach(builder::appendCodePoint)` | A supplementary emoji is one code point yet two UTF-16 code units; processing via `chars()` risks splitting surrogate pairs. |
+| **T5** | `StringBuilder.append(...)` then `toString()` | A mutable buffer reduces intermediate `String` creation across many loop iterations; do not pass the same builder into `parallel()` for concurrent appends. |
+| **T6** | `String snapshot = Objects.requireNonNull(input).toString()` | `CharSequence` may be mutable. Taking a snapshot keeps content stable after returning; synchronize if the source can be mutated concurrently. |
+| **T7** | `equalsIgnoreCase` for case-insensitive matching; `equals` for exact keys | These two rules do not substitute for each other; `HashMap`/`HashSet` use `equals` and `hashCode`. |
+| **T8** | `String.CASE_INSENSITIVE_ORDER.thenComparing(Comparator.naturalOrder())` | The secondary comparison breaks ties when case-insensitive comparison returns 0; two strings unequal by `equals` stay distinct keys. |
+| **T9** | `Normalizer.normalize(s, Normalizer.Form.NFC)` then compare per contract | Two Unicode representations can differ in code points. `toLowerCase` is not Unicode NFC normalization. |
+| **T10** | `text.getBytes(StandardCharsets.UTF_8)` and `new String(bytes, StandardCharsets.UTF_8)` | Both sides use the same charset; the protocol must agree on UTF-8. |
+| **T11** | `String.lines()` | Directly expresses line iteration and handles common line terminators; naive `split("\n")` can leave `\r` behind on CRLF. |
+| **T12** | `isBlank()` | `" \t\n".isEmpty()` is false while `isBlank()` is true. `isBlank` relies on `Character.isWhitespace`, so not every visually space-like Unicode character counts as whitespace. |
+| **T13** | Consider `Collator.getInstance(locale)` and test with real locale data | `CASE_INSENSITIVE_ORDER` is case-ignoring `String` comparison, not linguistic sorting. |
+| **T14** | `"id=42".replaceAll("(\\d+)", "[$1]")` | Here regex and group reference are **intentional**; do not quote regex or replacement when capture-group functionality is needed. Result: `id=[42]`. |
 
-Đối với **T4**, ví dụ mã là một mảnh pipeline bên trong phương thức sau khi có biến `text` và một `StringBuilder builder`; thao tác loại emoji và kết quả `AB` đã được kiểm tra trong chương trình hoàn chỉnh.
+For **T4**, the code example is a pipeline fragment inside a method given a `text` variable and a `StringBuilder builder`; the emoji removal and `AB` result are verified in the complete program.
 
-Đối với **T13**, một `Collator` có thể coi các chuỗi khác nhau theo `String.equals` là tương đương theo mức độ nhạy. Nếu dùng làm comparator của `TreeMap`/`TreeSet`, vẫn phải quyết định xem `compare(a,b)==0` có được phép gộp khóa hay không.
+For **T13**, a `Collator` may treat strings that differ under `String.equals` as equal depending on sensitivity strength. If used as the comparator of a `TreeMap`/`TreeSet`, you must still decide whether `compare(a,b)==0` is allowed to merge keys.
 
-## 7. Thang tự đánh giá và cách ôn lại
+## 7. Self-assessment rubric and review guide
 
-Mỗi tình huống từ T1 đến T14 tối đa **2 điểm**:
+Each scenario from T1 to T14 scores up to **2 points**:
 
-- **1 điểm**: chọn đúng API (hoặc phương án tương đương đúng) với ví dụ khớp yêu cầu.
-- **1 điểm**: giải thích được **cơ chế/rủi ro liên quan**, ví dụ zero-width regex, token rỗng cuối, độ rộng UTF-16, mutable snapshot, comparator không nhất quán với equals, hoặc lỗi do không quote replacement.
+- **1 point**: choosing the right API (or an equivalent valid approach) with an example matching the requirement.
+- **1 point**: explaining the **underlying mechanism or risk**, such as zero-width regex, trailing empty tokens, UTF-16 width, mutable snapshots, comparators inconsistent with `equals`, or unquoted replacement errors.
 
-Tổng tối đa **28 điểm**. Đây là thang học tập gợi ý, không phải chứng nhận năng lực:
+Maximum total **28 points**. This is a study self-check rubric, not a formal certification:
 
-| Điểm | Gợi ý diễn giải | Hành động tiếp theo |
+| Score | Suggested interpretation | Next action |
 | --- | --- | --- |
-| 0–13 | Cần củng cố khái niệm và cú pháp API | Thực hành lại các ví dụ đầu, chạy chương trình và dự đoán output trước khi xem |
-| 14–21 | Đã chọn được phần lớn API nhưng còn thiếu giải thích điều kiện biên | Ôn nhóm có câu sai, viết thêm test thay vì học thuộc tên phương thức |
-| 22–26 | Nắm chắc nhiều tình huống phổ biến | Thử biến thể dữ liệu Unicode, null, regex đặc biệt, collection và charset |
-| 27–28 | Tự lý giải đầy đủ bảng lựa chọn này | Tự đề xuất API cho một chức năng nhỏ, nêu hợp đồng và tự thiết kế test |
+| 0–13 | Need to reinforce core concepts and API syntax | Re-practice earlier examples, run the code, and predict output before checking |
+| 14–21 | Picked most APIs correctly but missed edge-condition explanations | Review missed categories and write more tests instead of memorizing method names |
+| 22–26 | Solid grasp of common scenarios | Try variants with Unicode data, `null`, special regexes, collections, and charsets |
+| 27–28 | Fully able to justify this decision table | Propose APIs for a small feature, state the contract, and design tests yourself |
 
-### Tự mở rộng bài tập
+### Self-directed follow-up exercises
 
-1. Thay dữ liệu `"a,b,,"` bằng `",,a,"`. Dự đoán kết quả `split(",", 0)`, `split(",", -1)` và `split(",", 2)`; đối chiếu mảng thực tế.
-2. Thay dấu chấm bằng ký tự `|` hoặc `[` trong target, replacement bằng `$1\log`. Thử lựa chọn `replace` và lựa chọn quote cả hai phía trong `replaceAll`; kiểm tra kết quả `equals`.
-3. Thay `TreeSet` từ `CASE_INSENSITIVE_ORDER` sang comparator có tie-breaker; kiểm tra số phần tử và thứ tự với `"JAVA"`, `"Java"`, `"java"`.
-4. Thay emoji 🚀 bằng emoji khác có code point bổ sung; kiểm tra `length()`, `codePoints().count()` và việc lọc/bổ sung bằng `appendCodePoint`.
-5. Thử đầu vào có `CharSequence` là `StringBuilder` mutable: nhận tham chiếu so với chụp `String` rồi sửa builder; mô tả khác biệt.
-6. Thử text có cả `\r\n`, `\n` và `\r` bằng `lines()`. Tự định nghĩa rõ trường hợp dòng trống ở đầu/cuối.
-7. Đưa một chuỗi tiếng Việt có dấu về NFC; đoán xem `equals` trước và sau chuẩn hóa có thể khác nhau thế nào.
+1. Replace `"a,b,,"` with `",,a,"`. Predict `split(",", 0)`, `split(",", -1)`, and `split(",", 2)`; compare against the actual arrays.
+2. Replace the dot with `|` or `[` in the target, and the replacement with `$1\log`. Try both `replace` and quoting both sides in `replaceAll`; verify equality with `equals`.
+3. Switch the `TreeSet` from `CASE_INSENSITIVE_ORDER` to the tie-breaker comparator; check element count and ordering for `"JAVA"`, `"Java"`, `"java"`.
+4. Replace 🚀 with another supplementary-plane emoji; check `length()`, `codePoints().count()`, and filtering/rebuilding with `appendCodePoint`.
+5. Test an input `CharSequence` backed by a mutable `StringBuilder`: store the reference vs taking a `String` snapshot, then mutate the builder; describe the difference.
+6. Test text mixing `\r\n`, `\n`, and `\r` with `lines()`. Explicitly check leading and trailing blank-line cases.
+7. Normalize an accented Vietnamese string to NFC; predict how `equals` can differ before and after normalization.
 
-Mỗi bài mở rộng nên được ghi thành **input → API được chọn → expected output → actual output → lý do**. Đó là cách xác định lựa chọn API đã đúng với hợp đồng, không chỉ đúng tên hàm.
+Record each extension as **input → chosen API → expected output → actual output → reason**. That confirms the API choice fits the contract, not merely a method name.
 
-## 8. Những bẫy thường khiến chọn API sai
+## 8. Traps that lead to wrong API choices
 
-- **Đồng nhất văn bản và regex:** `replace`/`contains` tìm nguyên văn, còn `replaceAll`/`split` nhận regex. Dấu `.` hoặc `|` có thể đổi hoàn toàn ý nghĩa.
-- **Quên tham số limit của split:** `split(regex)` là `split(regex, 0)`; các trường rỗng ở cuối bị loại. Ngoài ra, khớp regex có độ rộng 0 tại đầu chuỗi không tạo token rỗng đầu, khác với khớp có độ rộng dương.
-- **Coi `String.length()` là số chữ hiển thị:** Java dùng UTF-16; code point khác grapheme cluster. API `codePoints()` vẫn không nhóm các cụm emoji nối hoặc ký tự kết hợp dấu.
-- **Coi tất cả CharSequence có equals theo nội dung:** `StringBuilder` không override `equals` như String, còn CharBuffer có trạng thái view; phải định nghĩa snapshot và so sánh.
-- **Dùng comparator bỏ qua hoa/thường cho TreeSet mà không muốn gộp khóa:** `compare == 0` có thể làm mất các biến thể chữ hoa/thường.
-- **Dùng `toLowerCase()` như một phép chuẩn hóa cho mọi ngôn ngữ:** vấn đề locale, Unicode normalization và case folding là các yêu cầu khác nhau.
-- **Xử lý bytes không nêu charset:** dữ liệu có dấu có thể bị đọc sai nếu hai phía dùng bộ mã khác nhau. Ghi rõ `UTF-8` tại biên chuyển mã.
-- **Chỉ kiểm tra output bằng mắt:** chuỗi rỗng, dấu backslash, dấu kết hợp Unicode và sự tương đương comparator cần phép assert/số phần tử cụ thể.
+- **Conflating literal text with regex:** `replace`/`contains` search literally, while `replaceAll`/`split` take regex. Characters like `.` or `|` can completely change meaning.
+- **Forgetting `split`'s `limit` parameter:** `split(regex)` equals `split(regex, 0)`, dropping trailing empty fields. Furthermore, a zero-width regex match at the start of a string does not emit a leading empty token, unlike a positive-width match.
+- **Treating `String.length()` as visible character count:** Java uses UTF-16; code points differ from grapheme clusters. Even `codePoints()` does not group joined emoji sequences or letters with combining marks.
+- **Assuming every `CharSequence` implements content-based `equals`:** `StringBuilder` does not override `equals` like `String`, and `CharBuffer` has view state; define snapshots and comparisons explicitly.
+- **Using a case-insensitive comparator for `TreeSet` without intending key merging:** `compare == 0` can drop case variants.
+- **Using `toLowerCase()` as universal normalization across languages:** locale effects, Unicode normalization, and case folding are distinct concerns.
+- **Converting bytes without specifying a charset:** accented data can corrupt if two sides use different encodings. Specify `UTF-8` at encoding boundaries.
+- **Checking output only by eye:** empty strings, backslashes, Unicode combining marks, and comparator equivalence need explicit assertions and size checks.
 
-## 9. Kết luận thực hành
+## 9. Practice conclusion
 
-Không có một API String duy nhất tối ưu cho mọi tình huống. Chọn API phải bắt đầu từ **hợp đồng dữ liệu**: văn bản nguyên văn hay regex; mutable hay snapshot; mã UTF-16 hay code point; tương đương theo nội dung hay comparator; có giữ dữ liệu rỗng không; charset/locale nào áp dụng. Sau khi chọn, kiểm thử ít nhất một trường hợp thường và một **trường hợp biên có thể làm sai giả định**. Khi giải thích được cả lựa chọn lẫn rủi ro, bạn đã có thể dùng bảng này để tự đánh giá và thiết kế những đoạn xử lý chuỗi Java dễ kiểm chứng.
+No single `String` API is optimal for every scenario. API selection must begin with the **data contract**: literal text or regex; mutable or snapshot; UTF-16 code units or code points; content equality or comparator ordering; preserving empty values or not; and which charset/locale applies. After choosing, test at least one normal case and one **edge case capable of breaking assumptions**. When you can explain both the choice and its risks, you are ready to use this table to self-review and design verifiable Java string-processing code.

@@ -1,59 +1,59 @@
-# Phân tích cấp phát, GC và nghẽn xử lý của pipeline
+# Analyzing Pipeline Allocations, GC, and Processing Bottlenecks
 
-Trong chương **Hiệu năng và bộ nhớ** của **Java Stream API**, một pipeline sử dụng `filter`, `map`, `flatMap`, `reduce`, `collect` hoặc `parallelStream` có thể chạy đúng nhưng tốn nhiều thời gian, cấp phát quá nhiều đối tượng tạm hoặc gây áp lực lên bộ thu gom rác (*garbage collector*, GC). Khi đó, giải pháp không phải tự động bỏ Stream để viết vòng lặp, cũng không phải bật `parallel()` với hy vọng mọi vấn đề biến mất.
+In the **Performance and Memory** chapter of the **Java Stream API**, a pipeline using `filter`, `map`, `flatMap`, `reduce`, `collect`, or `parallelStream` might produce correct output yet run slowly, allocate excessive temporary objects, or put pressure on the *garbage collector* (GC). When that happens, the answer is neither reflexively abandoning Streams for loops nor flipping on `parallel()` hoping every problem disappears.
 
-Cần trả lời ba câu hỏi **khác nhau**:
+You must answer three **distinct** questions:
 
-1. **Cấp phát (*allocation*):** Những đối tượng nào được tạo trong mỗi lần xử lý, bao nhiêu byte được cấp phát và ở bước nào?
-2. **GC và bộ nhớ còn sống (*live heap*):** Bao nhiêu dữ liệu vẫn còn được tham chiếu, GC diễn ra thường xuyên hay gây pause đáng kể, và bộ nhớ đỉnh có vượt giới hạn không?
-3. **Nghẽn xử lý (*bottleneck*):** Thời gian kết thúc yêu cầu thực sự bị chi phối bởi CPU, GC, chờ I/O, khóa đồng bộ, lượng dữ liệu phải thu thập, hay khả năng chia nguồn khi chạy song song?
+1. **Allocation:** which objects are created per execution, how many bytes are allocated, and at which stage?
+2. **GC and live heap:** how much data remains referenced, does GC run frequently or cause significant pauses, and does peak memory exceed limits?
+3. **Processing bottleneck:** is request completion time actually dominated by CPU, GC, I/O wait, synchronization locks, collected data volume, or parallel splitting limits?
 
-Ba câu hỏi này liên quan nhưng **không đồng nhất**. Một chương trình có thể cấp phát nhiều đối tượng ngắn hạn mà GC vẫn xử lý hiệu quả; hoặc có tốc độ cấp phát thấp nhưng giữ Map khổng lồ khiến heap tăng và phải xử lý nhiều dữ liệu sống. Tương tự, GC có thể xuất hiện nhiều trong log nhưng không phải nguyên nhân chính khiến ứng dụng chậm.
+These three questions are related yet **not identical**. A program can allocate many short-lived objects while GC handles them efficiently; or it can have low allocation rates while retaining a huge Map that grows heap and forces heavy live-data tracing. Likewise, frequent GC lines in logs might not be the primary reason the application is slow.
 
-Bài này hướng dẫn cách xây **giả thuyết có thể kiểm chứng**, chọn phép đo phù hợp (JFR, GC log, JMH và đo end-to-end), xác định những chi phí thường gặp của Stream API, thực hiện tối ưu nhỏ có kiểm soát và so sánh lại kết quả đúng cùng với hiệu năng.
+This lesson explains how to formulate **testable hypotheses**, choose appropriate measurements (JFR, GC logs, JMH, and end-to-end runs), spot common Stream API costs, apply small controlled optimizations, and re-verify both correctness and performance.
 
-> **Môi trường minh họa:** Java 17+. Các API Stream cơ bản có từ Java 8; `Stream.toList()` có từ Java 16. Một số công cụ chẩn đoán và cú pháp ghi log GC trong ví dụ yêu cầu JDK hiện đại. Lệnh đo chỉ để người học thực hành; không có kết quả benchmark thực tế nào được giả định trong bài.
+> **Illustrative environment:** Java 17+. Core Stream APIs exist since Java 8; `Stream.toList()` since Java 16. Some diagnostic tools and GC logging flags in examples require modern JDKs. Measurement commands are for learner practice; no real benchmark numbers are assumed in this lesson.
 
-## 1. Đầu tiên, định nghĩa "chậm" bằng chỉ số
+## 1. First, define “slow” using metrics
 
-Không thể tối ưu đúng nếu chỉ có nhận xét "pipeline này có vẻ chậm". Hãy xác định chỉ số gắn với mục tiêu nghiệp vụ:
+You cannot optimize soundly from a vague observation like “this pipeline seems slow”. Define metrics tied to business goals:
 
-| Chỉ số | Câu hỏi trả lời | Đơn vị minh họa |
+| Metric | Question answered | Example unit |
 | --- | --- | --- |
-| **Latency** | Một lần xử lý mất bao lâu? | ms/request hoặc ms/batch |
-| **Throughput** | Mỗi giây xử lý được bao nhiêu dữ liệu? | requests/s, events/s |
-| **CPU usage/time** | Máy đang thực sự tính toán nhiều không? | %, CPU-time |
-| **Allocation rate** | JVM cấp phát bao nhiêu byte trong một giây? | MB/s |
-| **Allocation per operation** | Mỗi lượt xử lý tạo khoảng bao nhiêu byte? | B/op |
-| **Live heap** | Những đối tượng còn được giữ sau khi thu gom là bao nhiêu? | MB |
-| **Peak memory** | Bộ nhớ đạt đỉnh bao nhiêu trong một đợt xử lý? | MB, GB |
-| **GC frequency/pause** | GC diễn ra ra sao và ảnh hưởng độ trễ thế nào? | lần/s, ms/pause |
-| **I/O wait / blocking** | Thread chờ đĩa, mạng, DB hoặc khóa bao lâu? | ms hoặc tỷ lệ thời gian |
+| **Latency** | How long does one execution take? | ms/request or ms/batch |
+| **Throughput** | How much data is processed per second? | requests/s, events/s |
+| **CPU usage/time** | Is the machine actually doing heavy computation? | %, CPU-time |
+| **Allocation rate** | How many bytes per second does the JVM allocate? | MB/s |
+| **Allocation per operation** | Roughly how many bytes does each execution allocate? | B/op |
+| **Live heap** | How much data remains retained after collection? | MB |
+| **Peak memory** | How high does memory peak during a batch? | MB, GB |
+| **GC frequency/pause** | How often does GC run and how does it affect latency? | times/s, ms/pause |
+| **I/O wait / blocking** | How long do threads wait on disk, network, DB, or locks? | ms or time share |
 
-Các chỉ số này nên được ghi cùng **kích thước dữ liệu, tỉ lệ bản ghi qua filter, số khóa phân biệt, kích thước nhóm, phiên bản JDK, cấu hình heap và mức đồng thời**. Không có những yếu tố đó, rất khó so sánh phép đo giữa hai ngày hoặc hai môi trường.
+Record these metrics alongside **data size, filter pass rate, distinct key count, group sizes, JDK version, heap configuration, and concurrency level**. Without that context, comparing measurements across days or environments is very difficult.
 
-### Thí dụ một báo cáo hiệu năng có thể hành động
+### Example of an actionable performance report
 
 ~~~text
-Workload: 100.000 sự kiện/batch, 2.000 khách hàng phân biệt
-JDK: phiên bản và GC được ghi từ môi trường chạy
-Mode: sequential, cùng input cố định
-Metric A: latency p50/p95 và throughput
-Metric B: allocation B/op và MB/s
+Workload: 100,000 events/batch, 2,000 distinct customers
+JDK: version and GC recorded from runtime environment
+Mode: sequential, fixed identical input
+Metric A: latency p50/p95 and throughput
+Metric B: allocation B/op and MB/s
 Metric C: GC pauses, heap used after collection
-Metric D: CPU hotspots và thời gian chờ I/O
-Hypothesis: pipeline tạo object trung gian ở bước map/collect
+Metric D: CPU hotspots and I/O wait time
+Hypothesis: pipeline allocates intermediate objects in map/collect
 ~~~
 
-**Đừng kết luận nguyên nhân ngay từ triệu chứng.** Cần đo để biết nút thắt thực sự có nằm ở bước đang nghi ngờ hay không.
+**Never jump from a symptom straight to a root cause.** Measure to confirm whether the true bottleneck sits in the suspected stage.
 
-## 2. Phân biệt allocation, live heap và retention
+## 2. Distinguishing allocation, live heap, and retention
 
-Ba khái niệm dễ bị đánh đồng:
+Three concepts often conflated:
 
-### 2.1. Allocation: tốc độ tạo đối tượng
+### 2.1. Allocation: object creation rate
 
-Trong một pipeline:
+In a pipeline:
 
 ~~~java
 List<String> labels = events.stream()
@@ -61,13 +61,13 @@ List<String> labels = events.stream()
         .toList();
 ~~~
 
-Biểu thức ghép chuỗi có thể tạo các chuỗi kết quả mới. `toList()` còn cần giữ các phần tử đầu ra. Tuy nhiên, **không thể đếm chính xác số object được cấp phát chỉ bằng cách đọc source code**: compiler, JIT, escape analysis, tối ưu allocation và chi tiết triển khai JDK có thể thay đổi.
+String concatenation can allocate new result strings, and `toList()` must hold the output elements. Yet **you cannot count exact allocated objects merely by reading source code**: the compiler, JIT, escape analysis, allocation optimizations, and JDK implementation details all affect runtime behavior.
 
-Vì vậy, thay vì nói "mỗi map chắc chắn tạo X object", hãy đo `B/op` hoặc allocation samples trong workload cụ thể.
+So instead of claiming “every `map` definitely allocates X objects”, measure `B/op` or allocation samples on the actual workload.
 
-### 2.2. Live heap: dữ liệu chưa thể thu gom
+### 2.2. Live heap: data that cannot be collected yet
 
-Giả sử:
+Suppose:
 
 ~~~java
 List<String> labels = events.stream()
@@ -75,22 +75,22 @@ List<String> labels = events.stream()
         .toList();
 ~~~
 
-Nếu `labels` còn được một cache hoặc field giữ tham chiếu, danh sách và các phần tử nó tham chiếu vẫn có thể là dữ liệu sống. Nếu chỉ tính một tổng rồi trả `long`, nhiều object tạm có thể trở nên không còn được tham chiếu ngay sau khi pipeline hoàn tất.
+If `labels` stays referenced by a cache or field, the list and its referenced elements remain live data. If you only compute a sum and return `long`, many temporary objects become unreachable right after the pipeline finishes.
 
-**Allocation cao không đồng nghĩa live heap cao.** Ngược lại, một cache giữ hàng triệu mục có thể chiếm heap rất lớn dù mỗi request gần như không cấp phát gì mới.
+**High allocation does not automatically mean high live heap.** Conversely, a cache holding millions of entries can occupy massive heap even when each incoming request allocates almost nothing new.
 
-### 2.3. Retention: giữ đối tượng lâu hơn cần thiết
+### 2.3. Retention: holding objects longer than necessary
 
-Một ví dụ đáng chú ý:
+A notable example:
 
 ~~~java
 Map<String, List<Event>> byCustomer = events.stream()
         .collect(Collectors.groupingBy(Event::customerId));
 ~~~
 
-Kết quả giữ **danh sách mọi sự kiện theo khách hàng**. Nếu `byCustomer` tồn tại lâu, phần lớn đối tượng `Event` vẫn còn được tham chiếu; GC không thể giải phóng chúng chỉ vì pipeline đã kết thúc.
+The result retains **lists of every event per customer**. If `byCustomer` lives long, most `Event` objects stay reachable; GC cannot reclaim them merely because the pipeline ended.
 
-Nếu nghiệp vụ chỉ cần số lượng:
+If business logic only needs counts:
 
 ~~~java
 Map<String, Long> counts = events.stream()
@@ -100,33 +100,33 @@ Map<String, Long> counts = events.stream()
         ));
 ~~~
 
-Mỗi khách chỉ có một số đếm trong kết quả, không còn `List<Event>` giữ toàn bộ bản ghi. Bộ nhớ tích lũy phụ thuộc chủ yếu số **khách hàng phân biệt**, không phải toàn bộ số sự kiện, dù các đối tượng đầu vào có thể vẫn được nơi khác giữ.
+Each customer now keeps one count in the output rather than a `List<Event>` holding all records. Accumulated memory scales mainly with **distinct customers**, not total events, though input objects might still be referenced elsewhere.
 
-**Bài học:** Một phép tổng hợp đúng loại kết quả có thể giảm *retained heap* đáng kể hơn việc tối ưu vài object tạm.
+**Lesson:** Aggregating into the right result shape can cut *retained heap* far more than micro-optimizing a few temporary objects.
 
-## 3. Chi phí bộ nhớ thường gặp trong Stream pipeline
+## 3. Common memory costs in Stream pipelines
 
-| Mẫu pipeline | Chi phí có thể xuất hiện | Câu hỏi cần đo |
+| Pipeline pattern | Potential cost | Question to measure |
 | --- | --- | --- |
-| `map` trả object mới | Object kết quả, chuỗi, boxing | Object nào thực sự được cấp phát? |
-| `map(...).toList()` | Toàn bộ phần tử đầu ra cần được giữ | Có thật sự cần materialize mọi phần tử không? |
-| `filter(...).toList()` | Danh sách kết quả tỷ lệ phần tử được giữ | Có thể dùng `count`/`sum` nếu chỉ cần số liệu không? |
-| `flatMap` | Stream con, object trung gian, làm phẳng | Fan-out có lớn không? Có nguồn con I/O không? |
-| `mapMulti` | Có thể dùng buffer nội bộ theo triển khai | Có tốt hơn `flatMap` trên JDK hiện tại không? |
-| `boxed()` / `Stream<Integer>` | Boxing/unboxing, đối tượng wrapper có thể tồn tại | Có thể giữ primitive stream tới terminal không? |
-| `sorted()` | Cần sắp xếp, thường phải giữ dữ liệu trung gian | Có cần sắp xếp toàn bộ hay chỉ lấy top-K? |
-| `distinct()` | Trạng thái để nhận diện phần tử đã thấy | Số giá trị phân biệt có lớn không? |
-| `groupingBy(..., toList())` | Map và các danh sách chứa toàn bộ phần tử theo nhóm | Chỉ cần count/sum/max hay thật sự cần list? |
-| `toMap` | Map theo số khóa phân biệt, va chạm/merge | Có bao nhiêu khóa, có nhiều bản ghi trùng khóa không? |
-| `parallelStream` | Nhiều phần tác vụ, vùng tích lũy, buffer/merge | Có tăng throughput nhưng lại tăng heap/GC không? |
+| `map` returning new objects | Result objects, strings, boxing | Which objects are actually allocated? |
+| `map(...).toList()` | All output elements retained | Is materializing every element truly needed? |
+| `filter(...).toList()` | Result list proportional to kept elements | Can `count`/`sum` suffice if only metrics are needed? |
+| `flatMap` | Child streams, intermediate objects, flattening | Is fan-out large? Are child sources I/O-backed? |
+| `mapMulti` | May use internal buffers depending on implementation | Does it outperform `flatMap` on the target JDK? |
+| `boxed()` / `Stream<Integer>` | Boxing/unboxing, potential wrapper allocations | Can a primitive stream stay unboxed until the terminal? |
+| `sorted()` | Must sort, often buffers intermediate elements | Is full sorting needed or just top-K? |
+| `distinct()` | Tracks previously seen elements | Is distinct value count large? |
+| `groupingBy(..., toList())` | Map plus lists holding all elements per group | Do you need counts/sums/max or truly full lists? |
+| `toMap` | Map per distinct key, collisions/merges | How many keys exist, and how many key collisions occur? |
+| `parallelStream` | Subtasks, per-branch accumulators, merge buffers | Does it raise throughput at the expense of heap/GC? |
 
-**Lưu ý:** Bảng trên mô tả những **nguồn chi phí cần kiểm tra**, không bảo đảm một số byte hay số object cố định. Tính lazy, khả năng tối ưu của JIT và terminal operation có thể thay đổi những bước thực sự được chạy.
+**Note:** This table lists **cost sources to inspect**, not fixed byte or object guarantees. Laziness, JIT optimization, and terminal operations can alter what actually executes.
 
-## 4. Nhận diện boxing trước khi đụng tới GC tuning
+## 4. Spotting boxing before touching GC tuning
 
-Đối với bài toán thuần số học, dùng `Stream<Long>` và các phép biến đổi sinh wrapper có thể tốn chi phí hơn primitive stream.
+For purely numeric problems, using `Stream<Long>` and wrapper-producing transforms can cost more than primitive streams.
 
-### Phiên bản boxed
+### Boxed version
 
 ~~~java
 long total = events.stream()
@@ -135,9 +135,9 @@ long total = events.stream()
         .reduce(0L, Long::sum);
 ~~~
 
-`map(Event::latencyMs)` trên `Stream<Event>` tạo `Stream<Long>` về mặt kiểu API; primitive `long` được chuyển thành `Long` khi phát qua Stream object. JIT **có thể** tối ưu một phần boxing, nhưng không nên giả định luôn loại bỏ tất cả.
+`map(Event::latencyMs)` on `Stream<Event>` yields `Stream<Long>` at the API type level; primitive `long` is boxed into `Long` to pass through the object Stream. The JIT **may** eliminate some boxing, yet you should not assume it always removes all of it.
 
-### Phiên bản primitive
+### Primitive version
 
 ~~~java
 long total = events.stream()
@@ -146,11 +146,11 @@ long total = events.stream()
         .sum();
 ~~~
 
-`mapToLong` tạo `LongStream` và `sum` xử lý kết quả kiểu `long`. Đây thường là ứng viên tốt để giảm boxing trong pipeline tổng hợp số.
+`mapToLong` produces a `LongStream` and `sum` computes a `long` result. This is usually a strong candidate to reduce boxing in numeric aggregation pipelines.
 
-**Hai đoạn mã trên có cùng ý nghĩa** với nguồn `Event` hợp lệ, khi số tổng nằm trong miền `long` và không có side effect trong mapper. Phép cộng `long` có thể tràn theo quy tắc Java; nếu nghiệp vụ không cho phép tràn, cần một giải pháp kiểm tra giới hạn hoặc dùng kiểu số khác.
+**Both snippets share identical meaning** on valid `Event` inputs when sums stay within `long` and mappers have no side effects. `long` addition can wrap on overflow per Java rules; if business logic forbids overflow, add bounds checks or use a wider numeric type.
 
-### Giữ primitive xuyên suốt pipeline
+### Staying primitive across the pipeline
 
 ~~~java
 long total = events.stream()
@@ -160,29 +160,29 @@ long total = events.stream()
         .sum();
 ~~~
 
-Tránh chuyển qua `boxed()` chỉ để tiếp tục tính toán số, trừ khi một API downstream thật sự yêu cầu object.
+Avoid switching through `boxed()` just to continue numeric arithmetic, unless a downstream API genuinely requires objects.
 
-Ví dụ:
+Example:
 
 ~~~java
-// Có thể không cần boxing nếu chỉ tính tổng:
+// Boxing may be unnecessary when only summing:
 long total = events.stream()
         .mapToLong(Event::latencyMs)
         .boxed()
         .reduce(0L, Long::sum);
 ~~~
 
-Một phép benchmark công bằng cần so **đúng cùng phép tính và cùng input**, không được cho nhánh primitive bỏ lọc trong khi nhánh boxed vẫn lọc.
+A fair benchmark must compare **the exact same computation and input**; never drop a filter from the primitive branch while keeping it in the boxed branch.
 
-## 5. Chương trình hoàn chỉnh: kết quả đúng trước khi đo
+## 5. Complete program: verify correctness before measuring
 
-Ví dụ sau chạy với **Java 17+**, tạo dữ liệu cố định và so ba dạng tổng hợp:
+The example below runs on **Java 17+**, builds deterministic data, and compares three aggregations:
 
-- Tổng độ trễ lỗi dùng `Stream<Long>` với `reduce`.
-- Tổng độ trễ lỗi dùng `LongStream.sum()`.
-- Gom tổng độ trễ lỗi theo khách hàng với `groupingBy(..., summingLong(...))`.
+- Sum of error latencies using `Stream<Long>` with `reduce`.
+- Sum of error latencies using `LongStream.sum()`.
+- Grouped sum of error latencies per customer using `groupingBy(..., summingLong(...))`.
 
-Lưu vào `PipelineDiagnosticsDemo.java`:
+Save as `PipelineDiagnosticsDemo.java`:
 
 ~~~java
 import java.util.List;
@@ -198,7 +198,7 @@ public class PipelineDiagnosticsDemo {
             boolean error
     ) {}
 
-    // Input deterministic, được tạo ngoài đoạn pipeline cần đo.
+    // Deterministic input created outside the pipeline under test.
     static List<Event> createData(int count) {
         return IntStream.range(0, count)
                 .mapToObj(i -> new Event(
@@ -261,31 +261,31 @@ public class PipelineDiagnosticsDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac --release 17 PipelineDiagnosticsDemo.java
 java PipelineDiagnosticsDemo
 ~~~
 
-Trong dữ liệu này có 100.000 bản ghi và tối đa 2.000 mã khách khác nhau. Pipeline `groupedTotal` có **nhiệm vụ nghiệp vụ rộng hơn** hai pipeline chỉ tính tổng: nó phải giữ Map cho từng khách. Do đó, **không** so thời gian của `groupedTotal` với `primitiveTotal` như một phép đo "API nào nhanh hơn" khi đầu ra khác nhau. Mục tiêu của ví dụ là kiểm chứng kết quả chung và tạo bối cảnh phân tích retained heap.
+This dataset has 100,000 records and up to 2,000 distinct customer IDs. `groupedTotal` has a **broader business task** than the two sum-only pipelines: it maintains a Map per customer. Therefore, **do not** compare `groupedTotal`'s runtime against `primitiveTotal` as a “which API is faster” test when their outputs differ. The demo verifies shared correctness and sets up context for retained-heap analysis.
 
-Chương trình **không** dùng `System.nanoTime()` để tuyên bố một cách viết nhanh hơn. Muốn đo có độ tin cậy, ta sẽ dùng JMH ở phần tiếp theo.
+The program **does not** use `System.nanoTime()` to declare one style faster. For reliable timing, we will use JMH next.
 
-## 6. Phân biệt CPU bottleneck với GC bottleneck
+## 6. Separating CPU bottlenecks from GC bottlenecks
 
-Một pipeline chậm có thể nằm ở những nơi rất khác nhau:
+A slow pipeline can be stalled in very different places:
 
-### Nghẽn CPU
+### CPU bottleneck
 
-Dấu hiệu cần tìm:
+Signs to look for:
 
-- CPU bận thực hiện mapper, comparator, phép hash hoặc xử lý chuỗi.
-- JFR hoặc profiler cho thấy nhiều mẫu CPU ở các hàm xử lý dữ liệu.
-- Latency tăng theo số phần tử hoặc độ phức tạp thuật toán.
-- GC pause chiếm phần nhỏ tổng thời gian, dù có allocation.
+- CPU is busy running mappers, comparators, hashing, or string manipulation.
+- JFR or profilers show high CPU samples in data-processing methods.
+- Latency scales with element count or algorithmic complexity.
+- GC pauses represent a tiny slice of total time despite allocations.
 
-Ví dụ một pipeline như:
+For example, in a pipeline like:
 
 ~~~java
 List<String> normalized = names.stream()
@@ -293,44 +293,44 @@ List<String> normalized = names.stream()
         .toList();
 ~~~
 
-Nếu `expensiveNormalize` thật sự đắt, thay `toList` bằng collector khác chưa chắc giải quyết được nút thắt. Phải đo vị trí CPU đang tiêu tốn.
+If `expensiveNormalize` is truly costly, swapping `toList` for another collector will not remove the bottleneck. Measure where CPU time goes.
 
-### Nghẽn GC hoặc áp lực heap
+### GC bottleneck or heap pressure
 
-Dấu hiệu cần tìm:
+Signs to look for:
 
-- Allocation rate cao đi cùng các đợt GC thường xuyên.
-- GC pause hoặc concurrent GC work chiếm tỷ lệ đáng kể thời gian và CPU.
-- Heap sau GC tăng dần vì dữ liệu còn được giữ.
-- Allocation failures, overhead GC hoặc OutOfMemoryError xuất hiện trong workload thật.
-- Độ trễ đuôi (*tail latency*, chẳng hạn p95/p99) có tương quan với hoạt động GC.
+- High allocation rate paired with frequent GC cycles.
+- GC pauses or concurrent GC work consume a large fraction of time and CPU.
+- Post-GC heap climbs steadily because data stays retained.
+- Allocation failures, GC overhead warnings, or `OutOfMemoryError` occur under real load.
+- *Tail latency* (such as p95/p99) correlates with GC activity.
 
-Tuy nhiên, **GC log có nhiều dòng không chứng minh GC là nguyên nhân chính**. Một collector hiệu quả có thể xử lý nhiều object ngắn hạn với pause thấp. Cần so timeline của GC với latency, CPU và heap trước khi kết luận.
+However, **many lines in a GC log do not prove GC is the main cause**. An efficient collector can reclaim lots of short-lived objects with minimal pauses. Correlate GC timelines against latency, CPU, and heap before concluding.
 
-### Nghẽn chờ I/O hoặc khóa
+### I/O or lock wait bottleneck
 
-Dấu hiệu cần tìm:
+Signs to look for:
 
-- CPU có vẻ thấp nhưng request vẫn chậm.
-- Thread bị chặn ở đọc tệp, network, JDBC, lock hoặc chờ hàng đợi.
-- JFR cho thấy thời gian `FileRead`, `SocketRead`, `ThreadPark` hoặc contention đáng kể.
-- Thêm `parallelStream` không tăng throughput, thậm chí tạo thêm contention.
+- CPU looks low while requests remain slow.
+- Threads block on file reads, network sockets, JDBC, locks, or queues.
+- JFR shows substantial `FileRead`, `SocketRead`, `ThreadPark`, or lock contention time.
+- Adding `parallelStream` fails to raise throughput and may worsen contention.
 
-Trong trường hợp này, đổi `map` sang `mapToLong` có thể chỉ tiết kiệm chút overhead mà không giải quyết thời gian chờ chính.
+In such cases, changing `map` to `mapToLong` may shave negligible overhead without touching the main wait time.
 
-## 7. Pipeline lazy: không đo phần chưa thực thi
+## 7. Lazy pipelines: do not measure unexecuted work
 
-Stream chủ yếu dùng **đánh giá lazy**. Đo thời gian chỉ để xây pipeline sau đây dễ gây hiểu lầm:
+Streams primarily use **lazy evaluation**. Timing only pipeline construction like this is misleading:
 
 ~~~java
 var pipeline = events.stream()
         .filter(Event::error)
         .mapToLong(Event::latencyMs);
 
-// Chưa có terminal operation: pipeline có thể chưa duyệt nguồn.
+// No terminal operation yet: the pipeline may not have traversed the source.
 ~~~
 
-Phép đo đáng tin cậy phải có **terminal operation** thực sự tiêu thụ dữ liệu:
+Trustworthy measurements must include a **terminal operation** that actually consumes data:
 
 ~~~java
 long result = events.stream()
@@ -339,9 +339,9 @@ long result = events.stream()
         .sum();
 ~~~
 
-Nhưng cũng không được cho rằng **mọi lambda luôn được gọi** chỉ vì có terminal operation. Stream API cho phép một số tối ưu dựa trên thuộc tính nguồn và pipeline.
+Yet do not assume **every lambda always runs** just because a terminal operation is present. The Stream API permits optimizations based on source and pipeline characteristics.
 
-Ví dụ:
+Example:
 
 ~~~java
 long count = List.of("a", "b", "c").stream()
@@ -349,95 +349,95 @@ long count = List.of("a", "b", "c").stream()
         .count();
 ~~~
 
-Với nguồn `SIZED` có kích thước xác định, một số implementation có thể tính `count()` mà **không thực hiện mọi thao tác không ảnh hưởng tới số lượng**, khiến action của `peek` không được gọi như dự đoán.
+On a `SIZED` source with known size, implementations may compute `count()` **without running operations that cannot affect element count**, so `peek`'s action may not execute as expected.
 
-**Không dùng số lần gọi `peek` làm thước đo công việc được bảo đảm**, và không đặt logic nghiệp vụ bắt buộc trong `peek`. Trong benchmark, phải chọn terminal operation giúp compiler/harness quan sát được kết quả và không đo một pipeline chưa thực thi.
+**Never use `peek` invocation count as a guaranteed work metric**, and never put mandatory business logic in `peek`. In benchmarks, pick terminal operations whose output the compiler/harness observes and never time an unexecuted pipeline.
 
-## 8. Đo GC bằng unified logging
+## 8. Observing GC with unified logging
 
-Trên JDK hiện đại, có thể dùng **unified logging** để quan sát hoạt động GC:
+On modern JDKs, enable **unified logging** to observe GC behavior:
 
 ~~~bash
 java -Xlog:gc*:file=gc.log:time,uptime,level,tags \
      -jar application.jar
 ~~~
 
-Lệnh minh họa theo shell hỗ trợ dấu `\` nối dòng. Trong PowerShell/Windows, nên đặt toàn bộ tùy chọn trên một dòng hoặc dùng quy tắc xuống dòng của PowerShell:
+The snippet uses `\` line continuation for POSIX shells. In Windows/PowerShell, put all options on one line or use PowerShell's line continuation rules:
 
 ~~~text
 java -Xlog:gc*:file=gc.log:time,uptime,level,tags -jar application.jar
 ~~~
 
-File `gc.log` có thể cung cấp thông tin về collector, thời gian GC, heap trước/sau collection và các sự kiện phù hợp với cấu hình JDK. Cần phân tích:
+`gc.log` reports collector choice, GC durations, pre/post-collection heap, and events per JDK configuration. Analyze:
 
-1. **Thời gian GC** theo thời gian chạy ứng dụng; GC pause dài nhất và phân bố pause.
-2. **Tần suất GC** so với lượng request/batch và allocation rate.
-3. **Heap trước/sau GC**: dữ liệu sống có tăng không hay chỉ là object tạm?
-4. **Loại GC**: young collections, concurrent phases, full collections theo collector thực tế.
-5. **Tương quan với latency**: thời điểm request chậm có trùng hoạt động GC đáng kể không?
-6. **Ngữ cảnh máy**: heap size, CPU, tải, JDK, flags, container memory limit.
+1. **GC time** relative to application uptime; longest pauses and pause distribution.
+2. **GC frequency** relative to request/batch rate and allocation rate.
+3. **Heap before/after GC**: is live data growing, or are only temporary objects being collected?
+4. **GC event types**: young collections, concurrent phases, full collections per the active collector.
+5. **Latency correlation**: do slow requests line up with major GC activity?
+6. **Machine context**: heap size, CPU, load, JDK, flags, and container memory limits.
 
-**Không lấy riêng số lượng young GC làm KPI tiêu cực.** Tần suất cao hơn có thể đơn giản là collector thu hồi những đối tượng ngắn hạn đúng thiết kế. Điều cần đánh giá là tác động thật lên latency, throughput và tài nguyên.
+**Do not treat young GC count alone as a negative KPI.** Higher frequency may simply mean the collector is efficiently reclaiming short-lived objects as designed. Judge by actual impact on latency, throughput, and resources.
 
-### GC overhead và retention không giống nhau
+### GC overhead and retention are not the same
 
-Nếu heap sau GC luôn trở về gần cùng mức, có thể workload tạo nhiều object ngắn hạn. Nếu heap sau GC tăng liên tục theo khối dữ liệu/cache, cần điều tra **retained objects** và những tham chiếu giữ chúng sống. Một leak logic có thể là một `List` static, một Map cache không giới hạn, một callback giữ dữ liệu cũ, hoặc quá nhiều khóa trong `groupingBy`.
+If post-GC heap always drops back to roughly the same baseline, the workload is creating short-lived objects. If post-GC heap climbs steadily across batches/caches, investigate **retained objects** and the references keeping them alive. A logical leak might be a static `List`, an unbounded Map cache, a callback holding old data, or unbounded keys in `groupingBy`.
 
-GC không thể "giải phóng" những object vẫn còn được ứng dụng tham chiếu hợp lệ.
+GC cannot “free” objects still validly referenced by the application.
 
-## 9. Sử dụng Java Flight Recorder (JFR)
+## 9. Using Java Flight Recorder (JFR)
 
-**Java Flight Recorder** giúp thu thập các sự kiện runtime trong lúc ứng dụng chạy. Với JDK hỗ trợ JFR, có thể ghi profile:
+**Java Flight Recorder** collects runtime events while an application runs. On JDKs supporting JFR, record a profile:
 
 ~~~bash
 java -XX:StartFlightRecording=filename=pipeline.jfr,settings=profile,dumponexit=true \
      -jar application.jar
 ~~~
 
-Trên môi trường chỉ chạy một dòng:
+In a single-line environment:
 
 ~~~text
 java -XX:StartFlightRecording=filename=pipeline.jfr,settings=profile,dumponexit=true -jar application.jar
 ~~~
 
-Sau khi ứng dụng kết thúc, xem tổng quan bằng CLI:
+After the application exits, inspect a summary via CLI:
 
 ~~~bash
 jfr summary pipeline.jfr
 ~~~
 
-Có thể in một số loại event nếu chúng có mặt trong recording:
+Print specific event types if present in the recording:
 
 ~~~bash
 jfr print --events jdk.ExecutionSample,jdk.ObjectAllocationSample,jdk.GarbageCollection pipeline.jfr
 ~~~
 
-Không phải mọi recording đều bật tất cả event; **các sự kiện cấp phát có thể là lấy mẫu**, không phải một bảng đếm chính xác từng object. Cấu hình `profile` có overhead khác `default`, và các phiên bản JDK có thể khác nhau về event/config. Kiểm tra recording đang dùng trước khi kết luận.
+Not every recording enables every event; **allocation events can be sampled** rather than an exact tally of every object. The `profile` configuration has different overhead from `default`, and JDK versions vary in event names/configs. Check your recording configuration before drawing conclusions.
 
-Các góc nhìn quan trọng:
+Key views to inspect:
 
-| Nhóm JFR | Điều cần tìm |
+| JFR category | What to look for |
 | --- | --- |
-| **Execution samples** | Những phương thức nào chiếm nhiều mẫu CPU? |
-| **Allocation samples** | Loại object và stack nào xuất hiện nhiều trong mẫu cấp phát? |
-| **GC events** | Hoạt động GC và pause có trùng đỉnh latency không? |
-| **File/Socket I/O** | Đọc file, đọc mạng và độ trễ chờ nguồn |
-| **Thread parking/locks** | Thread chờ, tranh chấp khóa, mức song song thực tế |
-| **Heap/threads** | Xu hướng sử dụng tài nguyên trong quá trình chạy |
+| **Execution samples** | Which methods account for most CPU samples? |
+| **Allocation samples** | Which object types and call stacks dominate allocation samples? |
+| **GC events** | Do GC activity and pauses match latency spikes? |
+| **File/Socket I/O** | File reads, network reads, and source wait latency |
+| **Thread parking/locks** | Thread waits, lock contention, effective parallelism |
+| **Heap/threads** | Resource usage trends over the run |
 
-Có thể mở `pipeline.jfr` bằng công cụ phân tích tương thích như **Java Mission Control** để xem timeline và call stack thuận tiện hơn. Dùng các kết quả này để tạo **giả thuyết cụ thể**: ví dụ "bước tạo chuỗi trong mapper chiếm nhiều allocation samples" thay vì "Stream API chậm".
+You can open `pipeline.jfr` in a compatible analyzer like **Java Mission Control** to inspect timelines and call stacks more easily. Use findings to form **concrete hypotheses**: e.g. “string construction in the mapper dominates allocation samples” rather than “Stream API is slow”.
 
-### Thận trọng với profiler
+### Caution with profilers
 
-Profiler không "nhìn thấy" mọi object bị tối ưu hóa, và công cụ thu thập có chi phí riêng. Không nên coi một screenshot JFR hoặc một lần ghi profile ngắn là bằng chứng đủ để thay kiến trúc. Ghi lại môi trường chạy, thời gian đo, tải, mẫu dữ liệu và các chỉ số trước/sau.
+Profilers do not “see” optimized-away allocations, and collection itself carries overhead. Never treat a single JFR screenshot or short capture as sufficient proof to redesign an architecture. Record runtime environment, capture duration, load, data samples, and before/after metrics.
 
-## 10. JMH: đo latency và cấp phát trên mỗi operation
+## 10. JMH: measuring per-operation latency and allocation
 
-**JMH** (*Java Microbenchmark Harness*) được thiết kế để benchmark mã JVM có warm-up, fork và lặp đo. Khi so hai pipeline cùng ngữ nghĩa, JMH giúp tránh nhiều sai lệch của một vòng lặp `System.nanoTime()` tự viết.
+**JMH** (*Java Microbenchmark Harness*) is built for benchmarking JVM code with warmup, forks, and repeated measurements. When comparing two semantically equivalent pipelines, JMH avoids many pitfalls of hand-rolled `System.nanoTime()` loops.
 
-Đây là ví dụ **cần dependency JMH và annotation processor** trong dự án benchmark, không chỉ JDK chuẩn. Nó đo đúng **cùng phép tổng độ trễ lỗi** bằng hai cách: boxed và primitive.
+This example **requires JMH dependencies and annotation processors** in a benchmark project, not just the standard JDK. It measures the **exact same error-latency sum** two ways: boxed and primitive.
 
-Trong một project JMH phù hợp, lưu vào `src/main/java/benchmark/PipelineAllocationBenchmark.java` (một lớp trong package, không phải default package):
+In an appropriate JMH project, save as `src/main/java/benchmark/PipelineAllocationBenchmark.java` (inside a named package, not the default package):
 
 ~~~java
 package benchmark;
@@ -516,63 +516,63 @@ public class PipelineAllocationBenchmark {
 }
 ~~~
 
-Ba nhánh tạo **cùng tổng** theo bộ dữ liệu đã định nghĩa. Nhánh vòng lặp là **baseline để định lượng overhead**, không phải mặc định cách viết cần chọn trong ứng dụng.
+All three branches compute the **exact same sum** over the defined dataset. The loop branch acts as a **baseline to quantify overhead**, not a mandate for how application code must be written.
 
-Lệnh chạy JMH phụ thuộc cấu hình build. Với một artifact benchmark JMH đã được tạo đúng, có thể sử dụng dạng:
+The exact JMH run command depends on build setup. Given a properly packaged JMH benchmark artifact, you can run something like:
 
 ~~~bash
 java -jar benchmarks.jar PipelineAllocationBenchmark -prof gc
 ~~~
 
-`-prof gc` giúp JMH báo những thống kê cấp phát/GC có sẵn tùy profiler/JVM, chẳng hạn lượng byte cấp phát chuẩn hóa theo operation. Không tự mặc định mọi thông số đều có trên mọi JDK.
+`-prof gc` instructs JMH to report available allocation/GC statistics depending on profiler/JVM, such as bytes allocated normalized per operation. Do not assume every metric is available identically on every JDK.
 
-### Đọc kết quả đúng phạm vi
+### Interpreting results within scope
 
-Một bảng **mục tiêu đo**, không phải dữ liệu đã đo:
+A **measurement target** table, not pre-measured data:
 
-| Benchmark | Ngữ nghĩa | Thông số cần so |
+| Benchmark | Semantics | Metrics to compare |
 | --- | --- | --- |
-| `boxedSum` | Tổng độ trễ của event lỗi | µs/op, B/op, GC |
-| `primitiveSum` | Cùng tổng | µs/op, B/op, GC |
-| `imperativeSum` | Cùng tổng | µs/op, B/op, GC |
+| `boxedSum` | Total latency of error events | µs/op, B/op, GC |
+| `primitiveSum` | Same sum | µs/op, B/op, GC |
+| `imperativeSum` | Same sum | µs/op, B/op, GC |
 
-Với từng cấu hình `count`:
+For each `count` configuration:
 
-- Kiểm tra **kết quả đúng** bằng test riêng trước.
-- So **thời gian và cấp phát** cùng trên một lượng dữ liệu.
-- Lặp qua nhiều fork để hạn chế sai lệch JIT và lịch hệ thống.
-- Không tính việc tạo danh sách vào mỗi phép đo, vì việc tạo dữ liệu nằm trong `@Setup(Level.Trial)`.
-- Chỉ kết luận thay đổi khi có chênh lệch đủ ổn định và đáng kể đối với workload thực tế.
+- Verify **exact correctness** in a separate test first.
+- Compare **time and allocations** on the exact same data volume.
+- Repeat across multiple forks to reduce JIT and OS-scheduling skew.
+- Exclude list creation from per-operation timing, since data is built in `@Setup(Level.Trial)`.
+- Adopt changes only when gains are stable and meaningful for the real workload.
 
-JMH trả giá trị `long` của benchmark, giúp harness quan sát kết quả. Với workload khác, có thể dùng `Blackhole` để tiêu thụ kết quả đúng cách. Không cố loại bỏ phép tính chỉ để đo số vòng lặp rỗng.
+Returning `long` from JMH benchmarks lets the harness observe the result. For other workloads, use `Blackhole` to consume results properly. Never strip out real work just to measure empty loops.
 
-## 11. Chỉ số B/op và MB/s: hiểu đúng trước khi tối ưu
+## 11. `B/op` and `MB/s`: understand before optimizing
 
-Hai chỉ số liên quan:
-
-~~~text
-allocation per operation ≈ byte cấp phát / số operation
-allocation rate ≈ byte cấp phát / thời gian
-~~~
-
-Nhưng cách tính thực tế phụ thuộc công cụ đo, đơn vị work/op, profiler và thuật toán lấy mẫu.
-
-Ví dụ **giả định**, không phải kết quả JMH:
+Two related metrics:
 
 ~~~text
-A: 4 KB/op, 1.000 ops/s -> khoảng 4 MB/s
-B: 8 KB/op,   100 ops/s -> khoảng 0,8 MB/s
+allocation per operation ≈ allocated bytes / operation count
+allocation rate ≈ allocated bytes / elapsed time
 ~~~
 
-B có **B/op cao hơn** nhưng allocation rate mỗi giây thấp hơn vì throughput thấp hơn. Do đó không nên so allocation rate mà bỏ qua throughput, kích thước input và latency.
+Exact calculation depends on the measurement tool, work/op definition, profiler, and sampling strategy.
 
-Tương tự, một optimization giảm B/op nhưng làm thời gian tăng gấp đôi có thể không đáng giá nếu ứng dụng đang nghẽn CPU chứ không nghẽn GC.
+**Hypothetical** example, not JMH output:
 
-**Cẩn thận với "allocation = memory leak":** cấp phát những đối tượng ngắn hạn là một phần bình thường của JVM. Leak logic là khi **dữ liệu đáng lẽ hết vòng đời vẫn bị tham chiếu**, khiến live heap hoặc tài nguyên khác tích tụ ngoài dự kiến.
+~~~text
+A: 4 KB/op, 1,000 ops/s -> roughly 4 MB/s
+B: 8 KB/op,   100 ops/s -> roughly 0.8 MB/s
+~~~
 
-## 12. Khi nào nên thay toList bằng một phép tổng hợp?
+B has **higher B/op** yet a lower per-second allocation rate because its throughput is lower. Therefore, never compare allocation rates while ignoring throughput, input size, and latency.
 
-Một pipeline giữ tất cả phần tử đầu ra:
+Likewise, an optimization that cuts B/op while doubling runtime may not pay off if the application is CPU-bound rather than GC-bound.
+
+**Watch out for “allocation = memory leak”:** allocating short-lived objects is normal on the JVM. A logical leak is when **objects past their lifetime stay referenced**, causing live heap or other resources to accumulate unexpectedly.
+
+## 12. When should `toList` be replaced with an aggregation?
+
+A pipeline retaining every output element:
 
 ~~~java
 List<Long> values = events.stream()
@@ -586,7 +586,7 @@ for (Long value : values) {
 }
 ~~~
 
-Đoạn này materialize `List<Long>` và các giá trị trong đó rồi mới tính tổng. Nếu **chỉ cần một tổng số**, có thể tránh giữ danh sách trung gian:
+This materializes a `List<Long>` and its elements just to sum them. If **only a single total is needed**, avoid keeping the intermediate list:
 
 ~~~java
 long total = events.stream()
@@ -595,18 +595,18 @@ long total = events.stream()
         .sum();
 ~~~
 
-Khác biệt trọng tâm không chỉ là boxed/primitive, mà là **dạng kết quả nghiệp vụ**:
+The core difference is not merely boxed vs. primitive, it is the **business result shape**:
 
-- Nếu cần xuất toàn bộ latency cho giao diện, `toList()` có thể là cần thiết.
-- Nếu chỉ cần tổng, đếm, min/max, nên dùng terminal operation tương ứng.
-- Nếu cần thống kê theo khóa, chọn downstream collector chỉ giữ các chỉ số cần dùng.
-- Nếu cần cả danh sách kết quả lẫn tổng, phải cân nhắc có thể tính trong một lượt bằng collector phù hợp hay không.
+- If the UI needs every individual latency, `toList()` may be required.
+- If only sum, count, or min/max is needed, use the matching terminal operation.
+- If per-key stats are needed, choose a downstream collector holding only needed metrics.
+- If both the list and total are needed, check whether a single-pass collector can compute both cleanly.
 
-Một pipeline lazy **không đồng nghĩa không giữ dữ liệu**: `toList`, `sorted` và một số collector vẫn có thể cần giữ rất nhiều phần tử.
+A lazy pipeline **does not mean zero retained data**: `toList`, `sorted`, and certain collectors can still retain very many elements.
 
-## 13. groupingBy: kiểm soát cardinality và downstream collector
+## 13. `groupingBy`: controlling cardinality and downstream collectors
 
-Một điểm nghẽn bộ nhớ điển hình là gom theo khóa có **độ phân biệt cao** (*high cardinality*).
+A classic memory bottleneck is grouping by a **high-cardinality** key:
 
 ~~~java
 Map<Integer, List<Event>> grouped = events.stream()
@@ -615,9 +615,9 @@ Map<Integer, List<Event>> grouped = events.stream()
         ));
 ~~~
 
-Nếu mỗi event có `customerId` khác nhau, Map phải giữ số lượng mục tăng gần bằng số event. Nếu mỗi nhóm là List, số container và tham chiếu cũng tăng.
+If each event has a different `customerId`, the Map grows nearly as large as the event count. With a List per group, container and reference counts grow too.
 
-Trong trường hợp chỉ cần đếm hoặc cộng:
+When only counts or sums are needed:
 
 ~~~java
 Map<Integer, Long> errorCountByCustomer =
@@ -630,21 +630,21 @@ Map<Integer, Long> errorCountByCustomer =
         );
 ~~~
 
-Kết quả giữ một tổng `Long` cho mỗi khóa thay vì các List chứa mọi `Event`. Tuy vậy, **Map vẫn tăng theo số khách hàng phân biệt**. Không thể gọi đây là bộ nhớ O(1) khi số khóa tăng không giới hạn.
+This retains one `Long` total per key instead of Lists of every `Event`. Even so, **the Map still scales with distinct customers**. You cannot call it `O(1)` memory when keys grow unboundedly.
 
-Nếu dữ liệu gốc có một mã khác nhau cho mỗi request, cần đánh giá liệu có thể nhóm theo mã ít phân biệt hơn (chẳng hạn dịch vụ hoặc giờ) mà vẫn đúng nghiệp vụ. Nếu thật sự cần mọi khóa, cân nhắc database, external aggregation hoặc giới hạn/batch rõ ràng.
+If raw data has a unique ID per request, consider whether grouping by a coarser key (such as service or hour) preserves business semantics. If every key is truly required, consider a database, external aggregation, or explicit caps/batching.
 
-### Thận trọng với groupingByConcurrent
+### Be cautious with `groupingByConcurrent`
 
-Trong parallel Stream, `groupingByConcurrent` có thể giảm một số chi phí gộp giữa các Map nhưng đồng thời thay đổi đặc tính về thứ tự; nó không tự bảo đảm tăng tốc hoặc giảm allocation.
+In parallel Streams, `groupingByConcurrent` can reduce Map-merging overhead while altering ordering behavior; it does not automatically guarantee speedups or fewer allocations.
 
-Nếu downstream là `toList()` và thứ tự trong từng nhóm có ý nghĩa, không được thay `groupingBy` bằng `groupingByConcurrent` chỉ để tối ưu mà bỏ qua hợp đồng unordered.
+If the downstream is `toList()` and intra-group order matters, never replace `groupingBy` with `groupingByConcurrent` for speed while overlooking its unordered contract.
 
-## 14. sorted, distinct và tác vụ có trạng thái
+## 14. `sorted`, `distinct`, and stateful stages
 
-Một số thao tác trung gian có thể trở thành nút thắt do cần phối hợp hoặc giữ trạng thái.
+Some intermediate operations become bottlenecks due to coordination or retained state.
 
-### sorted
+### `sorted`
 
 ~~~java
 List<Event> ordered = events.stream()
@@ -653,7 +653,7 @@ List<Event> ordered = events.stream()
         .toList();
 ~~~
 
-Sắp xếp toàn bộ nguồn thường có thời gian **O(N log N)** và có thể cần bộ nhớ trung gian O(N) tùy implementation. Nếu nghiệp vụ chỉ cần **phần tử lớn nhất**, dùng phép tổng hợp:
+Sorting the entire source typically takes **O(N log N)** time and can need `O(N)` intermediate memory depending on implementation. If business logic only wants the **single largest element**, use an aggregating terminal:
 
 ~~~java
 java.util.Optional<Event> slowest = events.stream()
@@ -661,9 +661,9 @@ java.util.Optional<Event> slowest = events.stream()
                 Event::latencyMs));
 ~~~
 
-Cách này không cần tạo danh sách đã sắp xếp toàn bộ chỉ để lấy một phần tử. Nếu cần **top-K** với K nhỏ, có thể cân nhắc heap giới hạn hoặc collector chuyên biệt, nhưng phải thiết kế quy tắc phá hòa và kiểm tra tính đúng.
+This avoids building a full sorted list just to pick one element. For **top-K** with small K, consider a bounded heap or specialized collector, carefully defining tie-breakers and verifying correctness.
 
-### distinct
+### `distinct`
 
 ~~~java
 long uniqueCustomers = events.stream()
@@ -672,34 +672,34 @@ long uniqueCustomers = events.stream()
         .count();
 ~~~
 
-`distinct` cần theo dõi những khóa đã thấy để không đếm trùng; số khóa phân biệt lớn có thể làm trạng thái tăng. Nếu mục tiêu thực là ước lượng cardinality trên nguồn quá lớn, có thể phải dùng thuật toán xấp xỉ theo sai số được công bố; Stream API không tự biến `distinct` thành bộ đếm cardinality bộ nhớ hằng số.
+`distinct` must track seen keys to avoid double-counting; high distinct key counts can grow state substantially. If the real goal is estimating cardinality on massive streams, approximate algorithms with explicit error bounds may be required; the Stream API does not turn `distinct` into a constant-memory cardinality counter.
 
-### Các phép lấy tiền tố
+### Prefix operations
 
-`limit`, `skip`, `takeWhile` và `dropWhile` trên nguồn có encounter order có thể cần phối hợp khi chạy song song, nhất là khi phải giữ ranh giới tiền tố chính xác. Gọi `unordered()` có thể thay đổi ngữ nghĩa; chỉ làm vậy khi ứng dụng không cần thứ tự logic của kết quả.
+`limit`, `skip`, `takeWhile`, and `dropWhile` on sources with encounter order can require coordination under parallelism, especially to preserve exact prefix boundaries. Calling `unordered()` can change semantics; do so only when logical result order is not needed.
 
-## 15. Nghẽn ở nguồn: Spliterator và nguồn I/O
+## 15. Source bottlenecks: `Spliterator` and I/O sources
 
-Pipeline tính toán hiệu quả đến mấy cũng không vượt được một nguồn cấp dữ liệu chậm mà không thay đổi kiến trúc.
+No matter how efficient a pipeline's math is, it cannot outrun a slow data source without changing architecture.
 
-Các trường hợp thường gặp:
+Common cases:
 
-| Nguồn | Giới hạn cần kiểm tra | Gợi ý |
+| Source | Limit to inspect | Suggestion |
 | --- | --- | --- |
-| `ArrayList`, mảng | CPU, cache locality, kích thước dữ liệu | Dễ chia, thích hợp thử CPU-bound workloads |
-| `IntStream.range` | Thao tác trên mỗi phần tử | Nguồn số dễ chia, thường ít overhead |
-| `Iterator` bọc thành Stream | `trySplit` và cách truy cập từng phần tử | Có thể phải lấy lô tuần tự, khó tăng tốc |
-| `Files.lines` | I/O, charset decode, tốc độ ổ đĩa | Không tự nhanh hơn khi gọi `parallel()` |
-| Database cursor | Thời gian DB/network và fetch size | Stream không thay thế tối ưu truy vấn |
-| Nguồn tự viết Spliterator | `estimateSize`, `SIZED`, `ORDERED`, `trySplit` | Khai báo đặc tính trung thực và kiểm thử việc chia |
+| `ArrayList`, arrays | CPU, cache locality, data size | Easy to split, well-suited for CPU-bound tests |
+| `IntStream.range` | Per-element work | Easily splittable numeric source, usually low overhead |
+| `Iterator` wrapped as Stream | `trySplit` and element-by-element access | Often batches sequentially, hard to speed up |
+| `Files.lines` | I/O, charset decoding, disk speed | Does not become faster just by calling `parallel()` |
+| Database cursor | DB/network latency and fetch size | Streams do not replace query optimization |
+| Custom `Spliterator` | `estimateSize`, `SIZED`, `ORDERED`, `trySplit` | Declare characteristics truthfully and test splitting |
 
-Một nguồn có thể bị nghẽn vì `trySplit()` không hiệu quả hoặc vì bước đọc tuần tự. Trong trường hợp này, `parallelStream` có thể tạo thêm các task nhưng không tăng thông lượng nguồn.
+A source can bottleneck due to poor `trySplit()` or sequential reading. Then `parallelStream` spawns tasks without raising source throughput.
 
-**Không khai báo sai `Spliterator.SIZED` hoặc `SUBSIZED` để mong Stream chạy nhanh hơn.** Các characteristic là hợp đồng được runtime dùng để tối ưu; khai báo sai có thể dẫn đến kết quả không đúng hoặc những tối ưu không hợp lệ.
+**Never misdeclare `Spliterator.SIZED` or `SUBSIZED` hoping Streams run faster.** Characteristics are contracts used by the runtime to optimize; false declarations cause wrong results or invalid optimizations.
 
-### Rò rỉ file handle không đồng nghĩa có nhiều object trên heap
+### File handle leaks are not the same as many heap objects
 
-Một pipeline có thể không giữ nhiều object nhưng vẫn khiến hệ thống hết file descriptor/handle nếu bỏ quên đóng nguồn I/O. Với `Files.lines`, hãy dùng `try-with-resources` để quản lý vòng đời, kể cả khi terminal operation dừng sớm:
+A pipeline might hold few heap objects yet exhaust system file descriptors/handles if I/O sources are not closed. With `Files.lines`, use `try-with-resources` to manage lifecycle, even when terminal operations stop early:
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -715,22 +715,22 @@ static long errorLines(Path path) throws java.io.IOException {
 }
 ~~~
 
-`count()` hoàn thành không có nghĩa nó đã tự gọi `close()`. Khi điều tra một ứng dụng chậm hoặc thiếu tài nguyên, ngoài heap/GC hãy kiểm tra cả số lượng file handle, connection, thread và quyền sở hữu nguồn. **GC tuning không sửa được một lỗi quản lý vòng đời nguồn.**
+`count()` finishing does not mean it called `close()`. When investigating a slow or resource-starved application, inspect file handles, connections, threads, and resource ownership alongside heap/GC. **GC tuning cannot fix a resource-lifecycle leak.**
 
-## 16. Parallel stream: phân biệt tăng tốc với contention
+## 16. Parallel streams: separating speedup from contention
 
-Trên công việc CPU-bound độc lập với mỗi phần tử, xử lý song song **có thể** tăng throughput khi nguồn chia được, dữ liệu đủ lớn và chi phí gộp thấp.
+For independent CPU-bound per-element work, parallel execution **can** boost throughput when the source splits well, data is large enough, and merge costs are low.
 
-Nhưng đồng thời có thể xuất hiện:
+At the same time, it can introduce:
 
-- **Cấp phát nhiều hơn** do các vùng tích lũy theo nhánh và dữ liệu gộp tạm.
-- **Contended locks** nếu mapper cập nhật state/collection bên ngoài.
-- **Nhiều cache misses** hoặc chi phí chia task lớn hơn công việc cần tính.
-- **Áp lực CPU** với các request khác đang dùng common pool hoặc tài nguyên hệ thống.
-- **Thao tác ordered** buộc phải phối hợp để giữ thứ tự.
-- **GC pressure** tăng do nhiều task cấp phát cùng lúc.
+- **More allocations** from per-branch accumulators and temporary merge buffers.
+- **Contended locks** if mappers mutate external state/collections.
+- **More cache misses** or task-splitting overhead exceeding actual computation.
+- **CPU pressure** on concurrent requests sharing the common pool or host cores.
+- **Ordered stages** forcing coordination to preserve order.
+- **Higher GC pressure** as multiple tasks allocate simultaneously.
 
-Ví dụ **không an toàn**:
+**Unsafe** example:
 
 ~~~java
 List<Long> output = new java.util.ArrayList<>();
@@ -740,9 +740,9 @@ events.parallelStream()
         .forEach(output::add);
 ~~~
 
-`ArrayList` không được thiết kế để nhiều task cùng ghi mà không đồng bộ. Một lần chạy cho đủ số phần tử không chứng minh chương trình đúng.
+`ArrayList` is not designed for unsynchronized concurrent writes. Seeing one run happen to preserve element count does not prove the code is correct.
 
-Thay bằng terminal operation:
+Replace with a proper terminal operation:
 
 ~~~java
 List<Long> output = events.parallelStream()
@@ -750,145 +750,145 @@ List<Long> output = events.parallelStream()
         .toList();
 ~~~
 
-Với nguồn có encounter order, `toList()` giữ thứ tự kết quả. Nhưng nếu chỉ cần tổng độ trễ, một `mapToLong(...).sum()` còn tránh nhu cầu tạo toàn bộ danh sách.
+On ordered sources, `toList()` preserves result order. Yet if only the latency sum is needed, `mapToLong(...).sum()` avoids building the entire list.
 
-Không suy rằng thêm `synchronized` giải quyết cả vấn đề. Nó có thể đảm bảo một phép cập nhật riêng lẻ, nhưng gây contention và không tự giữ encounter order trong `forEach`.
+Do not assume adding `synchronized` solves everything. It may protect individual writes while causing contention and still failing to guarantee encounter order in `forEach`.
 
-## 17. Tính chính xác số học khi tối ưu giảm allocation
+## 17. Arithmetic accuracy when optimizing allocations
 
-Một tối ưu hiệu năng **không được đổi ngữ nghĩa nghiệp vụ**.
+A performance optimization **must not alter business semantics**.
 
-Nếu đang cộng tiền tệ bằng `BigDecimal`:
+When summing money with `BigDecimal`:
 
 ~~~java
 BigDecimal total = amounts.stream()
         .reduce(BigDecimal.ZERO, BigDecimal::add);
 ~~~
 
-Thay bằng `double` có thể giảm hoặc đổi đặc tính allocation nhưng cũng có thể làm mất tính chính xác thập phân và thay đổi quy tắc làm tròn.
+Switching to `double` may reduce or alter allocation behavior, yet can break decimal precision and change rounding behavior.
 
-Với `BigDecimal`, các phép toán thường trả đối tượng kết quả mới. Điều đó không tự chứng minh `BigDecimal` là lựa chọn cần bỏ. Phải kiểm tra yêu cầu về độ chính xác, throughput và số đo memory thực trước khi đánh đổi.
+`BigDecimal` operations typically return new result objects. That alone does not prove `BigDecimal` should be abandoned. Check precision requirements, throughput, and actual memory numbers before trading anything off.
 
-Nếu nghiệp vụ cho phép lưu **đơn vị nhỏ nhất** của tiền trong `long`, một `LongStream` có thể hiệu quả, nhưng cần kiểm soát overflow và phép đổi đơn vị. Nếu không có hợp đồng chuyển đổi chính xác, **đừng sửa BigDecimal thành long chỉ để benchmark đẹp hơn**.
+If the domain allows storing the **smallest currency unit** in `long`, a `LongStream` can be efficient, provided overflow and unit conversions are controlled. Without an exact conversion contract, **never change `BigDecimal` to `long` just to make a benchmark look prettier**.
 
-Tương tự, chuyển từ collector giữ toàn bộ danh sách sang chỉ lấy tổng sẽ giảm memory nhưng **không tương đương** nếu ứng dụng còn cần từng bản ghi đầu ra.
+Likewise, switching from a collector holding a full list to returning only a sum reduces memory, yet is **not equivalent** if the caller still needs every output record.
 
-## 18. Chẩn đoán vấn đề bằng một quy trình có thể lặp lại
+## 18. Diagnosing issues with a repeatable process
 
-Có thể áp dụng quy trình chín bước:
+You can follow a nine-step workflow:
 
-### Bước 1 — Viết rõ mục tiêu
+### Step 1 — State the goal clearly
 
-Ví dụ: "Giảm p95 thời gian tổng hợp 100.000 sự kiện/batch mà không làm thay đổi tổng và danh sách nhóm."
+Example: “Reduce p95 aggregation time for 100,000 events/batch without changing totals or group lists.”
 
-### Bước 2 — Cố định workload và dữ liệu
+### Step 2 — Fix workload and data
 
-Lưu seed/fixture, kích thước input, tỷ lệ qua filter, số khóa phân biệt, fan-out, JDK, heap và mức song song. Không dùng nguồn network live không ổn định làm bằng chứng duy nhất.
+Record seeds/fixtures, input sizes, filter pass rates, distinct keys, fan-out, JDK, heap, and parallelism. Never use an unstable live network source as your sole benchmark evidence.
 
-### Bước 3 — Đo baseline end-to-end
+### Step 3 — Measure end-to-end baseline
 
-Ghi thời gian, throughput, CPU, heap, allocation, GC pauses và các chỉ số chờ. Xác định thành phần nào đang chi phối.
+Record duration, throughput, CPU, heap, allocations, GC pauses, and wait metrics. Identify which component dominates.
 
-### Bước 4 — Dùng JFR/GC log để khoanh vùng
+### Step 4 — Use JFR/GC logs to narrow the scope
 
-Tìm allocation hotspots, retained heap, thời điểm GC, CPU samples và thread states. Nếu thấy đa phần thời gian ở database/network, đừng bắt đầu bằng thay `map`.
+Locate allocation hotspots, retained heap, GC timing, CPU samples, and thread states. If most time sits in DB/network waits, do not start by tweaking `map`.
 
-### Bước 5 — Tạo giả thuyết cụ thể
+### Step 5 — Form a specific hypothesis
 
-Ví dụ: "Trong hot path, `map(Event::latencyMs).reduce` tạo overhead so với `mapToLong().sum()`." Giả thuyết cần được đo, không kết luận ngay.
+Example: “On the hot path, `map(Event::latencyMs).reduce` adds overhead compared to `mapToLong().sum()`.” A hypothesis must be tested, not assumed true.
 
-### Bước 6 — Đưa ra thay đổi nhỏ
+### Step 6 — Make one small change
 
-Chỉ đổi một yếu tố tại một thời điểm. Không đồng thời thay GC flags, đổi thuật toán, nâng JDK và bật parallel; như vậy không biết điều gì gây cải thiện hay hồi quy.
+Change one variable at a time. Never change GC flags, algorithm, JDK version, and parallel mode simultaneously; otherwise you cannot tell what caused an improvement or regression.
 
-### Bước 7 — Kiểm thử đúng trước khi benchmark
+### Step 7 — Verify correctness before benchmarking
 
-So với oracle hoặc fixture: kết quả từng nhóm, thứ tự nếu cần, behavior null, overflow, exception và nguồn I/O được đóng.
+Compare against an oracle or fixture: group values, required ordering, null behavior, overflow, exceptions, and closed I/O resources.
 
-### Bước 8 — Benchmark cùng điều kiện
+### Step 8 — Benchmark under identical conditions
 
-Dùng JMH cho microbenchmark và phép đo tích hợp cho pipeline thật. So latency/throughput **và** B/op, GC, peak memory. Lặp nhiều lượt, xem độ biến thiên.
+Use JMH for microbenchmarks and integration runs for real pipelines. Compare latency/throughput **and** B/op, GC, and peak memory across multiple runs, inspecting variance.
 
-### Bước 9 — Quyết định và giám sát
+### Step 9 — Decide and monitor
 
-Chỉ nhận tối ưu nếu cải thiện đáng kể trên workload đại diện mà không tăng rủi ro/hạn chế bảo trì vượt lợi ích. Khi triển khai, giám sát metric theo thời gian và có cách quay lại nếu hiệu năng thực không như dự đoán.
+Keep an optimization only if it delivers meaningful improvement on representative workloads without adding disproportionate risk or maintenance burden. After deployment, monitor metrics over time and keep a rollback plan if real behavior diverges from predictions.
 
-Sơ đồ quyết định:
+Decision flowchart:
 
 ~~~text
-Pipeline chậm / heap tăng
+Slow pipeline / rising heap
            |
            v
-Xác định workload + baseline
+Define workload + baseline
            |
            v
   JFR + GC log + metrics
            |
      +-----+------+------------------+
      |            |                  |
-   CPU nóng    GC/heap nóng       I/O/lock chờ
+   Hot CPU     Hot GC/heap       I/O/lock wait
      |            |                  |
- map/hash/      allocation +       nguồn, khóa,
- sort/reduce    retention          truy vấn
+ map/hash/    allocation +       source, locks,
+ sort/reduce  retention          queries
      |            |                  |
      +------------+------------------+
                   |
                   v
-        Chọn một thay đổi nhỏ
+         Pick one small change
                   |
                   v
-       Kiểm thử đúng + Benchmark
+      Correctness test + Benchmark
                   |
           +-------+-------+
           |               |
-      Có cải thiện     Không cải thiện
+       Improved       No gain
           |               |
-      Theo dõi         Giữ/revert và
-      sau triển khai   tìm nút thắt khác
+      Monitor         Keep/revert and
+      post-deploy     hunt next bottleneck
 ~~~
 
-## 19. Bảng tình huống: đọc triệu chứng, không đoán nguyên nhân
+## 19. Symptom table: read symptoms, do not guess causes
 
-| Quan sát | Giả thuyết nên kiểm tra | Phép đo tiếp theo |
+| Observation | Hypothesis to check | Next measurement |
 | --- | --- | --- |
-| B/op cao, GC pause thấp | Nhiều object ngắn hạn nhưng GC hiệu quả | JMH `-prof gc`; có thật ảnh hưởng throughput? |
-| Heap sau GC tăng theo thời gian | Map/cache/List giữ dữ liệu | Heap profile, JFR/heap dump theo quyền vận hành |
-| CPU cao trong mapper | Phép xử lý/parse đắt | CPU samples, so thuật toán hoặc dữ liệu |
-| CPU thấp, latency cao | Chờ I/O, khóa, queue | JFR I/O/ThreadPark, trace hệ thống |
-| `parallelStream` chậm hơn | Chia task/merge/ordered/lock overhead | JMH sequential vs parallel cùng workload |
-| GC pause tương quan p99 | Collector/heap pressure | GC log timeline và p99 theo thời điểm |
-| `groupingBy` dùng heap lớn | Nhiều nhóm hoặc lưu List mỗi nhóm | Đo cardinality, retained heap, đổi downstream nếu hợp đồng cho phép |
-| `sorted` chi phối thời gian | Sắp xếp toàn bộ khi chỉ cần top-K/max | CPU sample, benchmark thuật toán thay thế |
-| `flatMap` sinh nhiều Stream con | Fan-out nhỏ, overhead trung gian | So với `mapMulti` cùng ngữ nghĩa/JDK |
-| JFR ít allocation samples | Mẫu cấp phát chưa đủ, JIT tối ưu hoặc cấu hình sự kiện khác | Kiểm tra recording, JMH allocation profiler |
-| Latency chỉ tăng khi tải cao | Contention, saturation, GC pressure hoặc I/O quota | Load test, theo dõi concurrency và resource usage |
+| High B/op, low GC pauses | Many short-lived objects handled well by GC | JMH `-prof gc`; does it actually hurt throughput? |
+| Post-GC heap climbs over time | Map/cache/List retaining data | Heap profile, JFR/heap dump per ops policy |
+| High CPU inside mapper | Expensive transform/parsing | CPU samples; compare algorithm or inputs |
+| Low CPU, high latency | Waiting on I/O, locks, or queues | JFR I/O/ThreadPark, distributed trace |
+| `parallelStream` is slower | Split/merge/ordered/lock overhead | JMH sequential vs. parallel on identical workload |
+| GC pauses correlate with p99 | Collector/heap pressure | GC log timeline vs. p99 over time |
+| `groupingBy` uses huge heap | Many groups or storing Lists per group | Measure cardinality, retained heap; change downstream if contract allows |
+| `sorted` dominates runtime | Full sort when only top-K/max is needed | CPU samples; benchmark alternative algorithm |
+| `flatMap` spawns many child Streams | Small fan-out, intermediate overhead | Compare against `mapMulti` with same semantics/JDK |
+| Few JFR allocation samples | Sampling threshold, JIT elimination, or event config | Verify recording settings; JMH allocation profiler |
+| Latency spikes only under high load | Contention, saturation, GC pressure, or I/O quota | Load test tracking concurrency and resource usage |
 
-Tránh suy diễn đơn tuyến: một hiện tượng có thể có nhiều nguyên nhân, và hai nguyên nhân có thể cùng xuất hiện.
+Avoid single-cause thinking: one symptom can have multiple causes, and two bottlenecks can occur together.
 
-## 20. Những điều không nên làm khi chưa có phép đo
+## 20. Things to avoid before measuring
 
-1. **Không tối ưu bằng cảm giác:** "Stream chậm", "lambda tạo object", "GC nhiều là xấu" không phải kết luận kỹ thuật đầy đủ.
-2. **Không thay `flatMap` bằng `mapMulti` hàng loạt:** đo theo fan-out, JDK và short-circuit. Một số triển khai `mapMulti` có thể dùng buffer.
-3. **Không chuyển tất cả sang parallel:** đo CPU, chia nguồn, ordered stages, contention và kết quả nghiệp vụ.
-4. **Không dùng `toList` nếu chỉ cần một tổng**, nhưng cũng không bỏ danh sách nếu caller thực sự cần mọi phần tử.
-5. **Không gỡ validation hoặc logic lỗi để tăng tốc:** điều đó biến benchmark thành một bài toán khác.
-6. **Không dùng `peek`/side effect làm thước đo số phần tử chắc chắn đã xử lý.**
-7. **Không coi JFR sampling là đếm tuyệt đối từng allocation**, hoặc một log GC là bằng chứng hoàn chỉnh về memory leak.
-8. **Không thay cấu hình GC theo kết luận từ một microbenchmark** khi chưa đo tác động end-to-end.
-9. **Không cấp heap lớn vô hạn để "chữa" retained objects**: heap lớn có thể che triệu chứng nhưng không sửa mô hình giữ dữ liệu.
-10. **Không công bố tốc độ tăng gấp N lần khi chưa có benchmark thực tế** được tái lập.
+1. **Never optimize by gut feeling:** “Streams are slow”, “lambdas allocate objects”, “lots of GC is bad” are incomplete engineering claims.
+2. **Never mass-replace `flatMap` with `mapMulti`:** measure by fan-out, JDK, and short-circuiting. Some `mapMulti` implementations may buffer.
+3. **Never switch everything to parallel:** measure CPU, source splitting, ordered stages, contention, and business results.
+4. **Never use `toList` when only a sum is needed**, yet never drop the list if callers genuinely need every element.
+5. **Never strip validation or error checks for speed:** that turns the benchmark into a different problem.
+6. **Never use `peek`/side effects as a guaranteed element-count metric.**
+7. **Never treat JFR sampling as an exact count of every allocation**, or one GC log as full proof of a memory leak.
+8. **Never tune GC flags based on a microbenchmark alone** without measuring end-to-end impact.
+9. **Never throw unlimited heap at retained-object bugs:** larger heaps may hide symptoms without fixing retention.
+10. **Never announce an N-times speedup without reproducible real benchmarks.**
 
-Những nguyên tắc này giúp phân biệt **tối ưu có căn cứ** với thay đổi phức tạp làm giảm khả năng bảo trì hoặc phá hợp đồng dữ liệu.
+These rules separate **evidence-based optimization** from complex changes that hurt maintainability or break data contracts.
 
-## 21. Bài tập thực hành
+## 21. Practice exercises
 
-### Bài 1 — Phân biệt cấp phát và giữ bộ nhớ
+### Exercise 1 — Distinguish allocation from retention
 
-Một pipeline tạo 100.000 chuỗi tạm, cuối cùng chỉ trả tổng số phần tử. Một pipeline khác chỉ tạo một Map 50.000 khóa và giữ Map trong cache lâu dài. Pipeline nào có memory pressure lớn hơn?
+One pipeline creates 100,000 temporary strings and returns only the element count. Another creates a 50,000-key Map and caches it long-term. Which pipeline has higher memory pressure?
 
-**Đáp án:** Không đủ dữ liệu để khẳng định. Pipeline đầu có thể có **allocation rate** cao nhưng live heap thấp; pipeline sau có thể giữ nhiều object sống lâu. Phải đo B/op, retained heap và tác động GC/throughput.
+**Answer:** Not enough data to state flatly. The first may have high **allocation rate** with low live heap; the second retains long-lived objects. Measure B/op, retained heap, and GC/throughput impact.
 
-### Bài 2 — Chọn primitive pipeline
+### Exercise 2 — Choosing a primitive pipeline
 
 ~~~java
 long total = events.stream()
@@ -896,9 +896,9 @@ long total = events.stream()
         .reduce(0L, Long::sum);
 ~~~
 
-**Yêu cầu:** Viết phiên bản hạn chế boxing.
+**Task:** Write a version that reduces boxing.
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 long total = events.stream()
@@ -906,27 +906,27 @@ long total = events.stream()
         .sum();
 ~~~
 
-Cả hai phải áp dụng cùng input, filter và miền số trước khi benchmark. Phiên bản primitive là ứng viên, không phải kết luận chắc chắn nhanh hơn trên mọi JDK.
+Both must use the same input, filtering, and numeric range before benchmarking. The primitive version is a candidate, not an automatic guarantee of being faster on every JDK.
 
-### Bài 3 — Khi nào bỏ toList?
+### Exercise 3 — When to drop `toList`?
 
-Một pipeline tính trung bình latency nhưng hiện tại gọi `toList` để giữ mọi latency trước khi cộng. Nên thử thay gì?
+A pipeline computes average latency, currently calling `toList` to keep all latencies before summing. What should you try instead?
 
-**Đáp án:** Dùng `mapToLong(...).average()` nếu chỉ cần trung bình số học và hợp đồng kiểu `OptionalDouble`/dữ liệu rỗng phù hợp. Nếu còn cần danh sách kết quả để hiển thị hoặc điều tra, không thể bỏ `toList` mà vẫn giữ nguyên chức năng.
+**Answer:** Use `mapToLong(...).average()` if only the arithmetic mean is needed and `OptionalDouble`/empty-data semantics fit. If the list is still needed for display or inspection, you cannot drop `toList` while keeping the same functionality.
 
-### Bài 4 — groupingBy và retention
+### Exercise 4 — `groupingBy` and retention
 
-Một báo cáo dùng `groupingBy(key)` rồi chỉ lấy `size()` của từng danh sách. Có thể giảm retained heap bằng cách nào?
+A report calls `groupingBy(key)` and then only reads `size()` on each list. How can retained heap be reduced?
 
-**Đáp án:** Thử `groupingBy(key, counting())` để giữ một số đếm theo khóa, không cần List mọi phần tử. Vẫn phải lưu Map theo số khóa phân biệt.
+**Answer:** Try `groupingBy(key, counting())` to keep one count per key without Lists of all elements. The Map still scales with distinct keys.
 
-### Bài 5 — Dựa vào GC log có đủ không?
+### Exercise 5 — Is a GC log alone enough?
 
-Một batch chạy 100 giây và có 200 lần young GC, nhưng GC pause tổng chỉ 70 ms. Có thể kết luận GC là nguyên nhân batch mất 100 giây không?
+A batch runs for 100 seconds with 200 young GCs, yet total GC pause time is only 70 ms. Can you conclude GC caused the 100-second runtime?
 
-**Đáp án:** Không. Pause time được ghi rất nhỏ so với thời gian chạy; cần kiểm tra CPU, GC concurrent work, allocation, I/O và các yếu tố khác. Số lần collection đơn lẻ không chứng minh GC bottleneck.
+**Answer:** No. Recorded pause time is tiny relative to runtime; inspect CPU, concurrent GC work, allocations, I/O, and other factors. Collection count alone does not prove a GC bottleneck.
 
-### Bài 6 — Mẫu JMH thiếu terminal
+### Exercise 6 — JMH snippet missing a terminal operation
 
 ~~~java
 @Benchmark
@@ -935,15 +935,15 @@ public Object buildOnly() {
 }
 ~~~
 
-**Đáp án:** Chủ yếu đo việc tạo pipeline, không đo công việc duyệt/lọc mọi event. Cần terminal operation thực hiện nhiệm vụ muốn đo, đồng thời dùng input được chuẩn bị bên ngoài phép đo.
+**Answer:** Mainly measures pipeline construction, not traversing/filtering every event. Add a terminal operation performing the target work, and prepare inputs outside measurement.
 
-### Bài 7 — Hai phép đo có công bằng?
+### Exercise 7 — Are two measurements fair?
 
-Benchmark A dùng `flatMapToInt` và `sum`; B dùng `mapMulti` ra `Stream<Integer>` rồi `toList`. Có thể kết luận API B chậm hơn không?
+Benchmark A uses `flatMapToInt` and `sum`; B uses `mapMulti` producing `Stream<Integer>` then `toList`. Can you conclude API B is slower?
 
-**Đáp án:** Không. Hai nhánh khác kiểu dữ liệu, mức boxing, terminal operation và dạng đầu ra. Phải thiết kế phép đo cùng nhiệm vụ, cùng kiểu, cùng dữ liệu và cùng mức song song.
+**Answer:** No. The two branches differ in data type, boxing, terminal operation, and output shape. Design benchmarks with identical task, types, data, and parallelism.
 
-### Bài 8 — Parallel và Map chia sẻ
+### Exercise 8 — Parallelism and shared Maps
 
 ~~~java
 Map<Integer, Long> counts = new HashMap<>();
@@ -953,49 +953,49 @@ events.parallelStream().forEach(e ->
 );
 ~~~
 
-**Đáp án:** `HashMap` bị sửa đồng thời từ nhiều task nên không an toàn. Dùng `collect(groupingBy(..., counting()))` hoặc collector concurrent phù hợp nếu ngữ nghĩa cho phép. Đo lại vì thread-safe không tự đồng nghĩa nhanh hơn.
+**Answer:** `HashMap` is mutated concurrently from multiple tasks and is unsafe. Use `collect(groupingBy(..., counting()))` or an appropriate concurrent collector if semantics allow. Re-measure because thread-safe does not automatically mean faster.
 
-### Bài 9 — Phân tích nghẽn xử lý
+### Exercise 9 — Analyzing a processing bottleneck
 
-Profiler thấy CPU bận ít, phần lớn thread chờ JDBC và GC pause không đáng kể. Bước ưu tiên nên là gì?
+A profiler shows low CPU usage, most threads waiting on JDBC, and negligible GC pauses. What should be the top priority?
 
-**Đáp án:** Điều tra truy vấn, chỉ mục DB, số lần truy vấn, fetch size, connection pool hoặc thiết kế truy cập dữ liệu. Thay `map` thành `mapToLong` không có khả năng giải quyết phần chờ chính nếu tính toán trên JVM chỉ chiếm tỷ lệ nhỏ.
+**Answer:** Investigate queries, DB indexes, query count, fetch size, connection pool, or data-access design. Replacing `map` with `mapToLong` is unlikely to fix primary wait time if JVM computation is only a small fraction.
 
-### Bài 10 — Bảo toàn ngữ nghĩa khi tối ưu
+### Exercise 10 — Preserving semantics during optimization
 
-Một pipeline dùng `BigDecimal` để tính tiền chính xác và làm tròn tổng một lần. Có nên đổi ngay sang `double` vì JMH cho kết quả nhanh hơn?
+A pipeline uses `BigDecimal` for exact monetary sums and rounds the total once. Should you switch immediately to `double` because JMH runs faster?
 
-**Đáp án:** Không nếu nghiệp vụ cần chính xác thập phân. Benchmark nhanh của bài toán số học khác không đủ biện minh cho việc đổi hợp đồng. Chỉ đổi biểu diễn số khi có quy tắc chuyển đổi chính xác và đã kiểm thử đầy đủ.
+**Answer:** Not if business rules require decimal accuracy. A faster benchmark for a different arithmetic problem does not justify breaking the contract. Switch numeric types only with exact conversion rules and thorough testing.
 
-## 22. Checklist nghiệm thu tối ưu
+## 22. Optimization sign-off checklist
 
-Trước khi coi một tối ưu Stream là hoàn tất:
+Before calling a Stream optimization complete:
 
-- [ ] Có **workload đại diện** và mục tiêu latency/throughput cụ thể.
-- [ ] Ghi rõ JDK, GC, heap, kích thước input, số khóa và mức đồng thời.
-- [ ] Đã đo baseline đủ thời gian, không chỉ một lần chạy.
-- [ ] Đã xác định bottleneck qua CPU/GC/I/O/lock, không suy đoán chỉ từ mã.
-- [ ] Có phép đo allocation B/op và live/peak heap nếu vấn đề là bộ nhớ.
-- [ ] Tách số object tạm khỏi những object đang bị giữ tham chiếu.
-- [ ] Nếu đổi thuật toán, đã kiểm tra độ phức tạp, fan-out và số nhóm.
-- [ ] Nếu đổi collector, vẫn giữ đúng dữ liệu kết quả và yêu cầu thứ tự.
-- [ ] Nếu chuyển sang primitive, đã kiểm tra overflow và ý nghĩa kiểu số.
-- [ ] Nếu chuyển sang parallel, không có shared mutable state và đã kiểm tra combiner.
-- [ ] Nếu pipeline dùng I/O, nguồn được đóng đúng vòng đời.
-- [ ] JMH đo **cùng ngữ nghĩa** và có terminal operation thực sự.
-- [ ] Phép đo tích hợp cho thấy cải thiện có ý nghĩa trong hệ thống thật.
-- [ ] Có cơ chế quan sát sau triển khai và phương án quay lại thay đổi nếu cần.
+- [ ] Have a **representative workload** and explicit latency/throughput targets.
+- [ ] Record JDK, GC, heap, input size, key count, and concurrency level.
+- [ ] Measure a baseline over sufficient duration, not a single run.
+- [ ] Identify the bottleneck across CPU/GC/I/O/locks instead of guessing from code.
+- [ ] Measure allocation B/op and live/peak heap when memory is involved.
+- [ ] Separate temporary objects from objects retained by live references.
+- [ ] If changing algorithms, check complexity, fan-out, and group counts.
+- [ ] If changing collectors, preserve exact output data and ordering requirements.
+- [ ] If switching to primitives, check overflow and numeric semantics.
+- [ ] If switching to parallel, eliminate shared mutable state and verify combiners.
+- [ ] If using I/O in the pipeline, ensure sources close within the right lifecycle.
+- [ ] JMH measures **identical semantics** with a real terminal operation.
+- [ ] Integration measurements show meaningful improvement on the real system.
+- [ ] Post-deploy monitoring and a rollback plan are ready if needed.
 
-## 23. Ghi nhớ
+## 23. Key takeaways
 
-- **Allocation rate, live heap và peak memory là ba khái niệm khác nhau.** Nhiều object ngắn hạn không tự bằng memory leak.
-- **GC frequency không đủ xác định bottleneck.** Cần đo pause, CPU work, retained heap và tương quan với latency/throughput.
-- **Tối ưu pipeline bắt đầu từ kết quả nghiệp vụ.** Nếu chỉ cần tổng, không materialize cả danh sách; nếu chỉ cần count theo nhóm, không giữ List của mọi bản ghi.
-- **Primitive streams có thể giảm boxing**, nhưng kết quả thực phụ thuộc JIT và workload; luôn đo.
-- **Các thao tác có trạng thái** như `sorted`, `distinct`, `groupingBy` có chi phí theo kích thước input/số khóa; đừng chỉ nhìn độ ngắn của code.
-- **Parallel Stream không chữa được mọi nghẽn:** nguồn chia kém, I/O, contention hoặc ordered stages có thể làm nó chậm hơn.
-- **JFR xác định nơi đáng điều tra**, GC log cho biết hoạt động thu gom, và JMH đo những thay đổi nhỏ trên cùng workload; benchmark tích hợp xác nhận lợi ích thật.
-- **Không dùng số lần gọi mapper/peek làm KPI đảm bảo** khi pipeline có thể lazy, short-circuit hoặc được tối ưu.
-- **Tính đúng trước hiệu năng.** Một pipeline nhanh nhưng bỏ sót dữ liệu, tràn số hoặc rò rỉ nguồn I/O không phải tối ưu thành công.
+- **Allocation rate, live heap, and peak memory are three distinct concepts.** Many short-lived objects do not automatically equal a memory leak.
+- **GC frequency alone cannot identify a bottleneck.** Measure pauses, CPU work, retained heap, and correlation with latency/throughput.
+- **Pipeline optimization starts from business output.** If only a sum is needed, do not materialize a list; if only per-group counts are needed, do not keep Lists of every record.
+- **Primitive streams can reduce boxing**, yet actual impact depends on JIT and workload; always measure.
+- **Stateful operations** like `sorted`, `distinct`, and `groupingBy` carry costs tied to input size/key count; do not judge solely by code brevity.
+- **Parallel Streams do not cure every bottleneck:** poorly splittable sources, I/O, contention, or ordered stages can make them slower.
+- **JFR shows where to investigate**, GC logs reveal collection activity, JMH measures small changes on identical workloads, and integration benchmarks confirm real gains.
+- **Never treat mapper/peek invocation counts as a guaranteed KPI** when pipelines can be lazy, short-circuit, or optimized.
+- **Correctness before performance.** A fast pipeline that drops data, overflows numbers, or leaks I/O handles is not a successful optimization.
 
-**Ý chính:** Muốn phân tích cấp phát, GC và nghẽn xử lý trong Java Stream API, hãy **đo các hiện tượng riêng biệt**, khoanh vùng nguyên nhân, thay đổi một yếu tố tại một thời điểm và kiểm tra lại cả kết quả lẫn tài nguyên. Tối ưu có giá trị là tối ưu **được chứng minh trên dữ liệu đại diện, đúng hợp đồng nghiệp vụ và không tạo ra rủi ro bộ nhớ hay vận hành mới**.
+**Main point:** To analyze allocations, GC, and bottlenecks in the Java Stream API, **measure phenomena separately**, isolate the cause, change one variable at a time, and re-verify both outputs and resources. Valuable optimizations are those **proven on representative data, faithful to business contracts, and free of new memory or operational risks**.

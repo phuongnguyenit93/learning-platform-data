@@ -1,31 +1,31 @@
-# Kiểu của phép tính được xác định trước khi gán kết quả trong Java
+# Operation Type Is Determined Before Assigning the Result in Java
 
-## 1. Quy tắc quan trọng nhất
+## 1. The Most Important Rule
 
-Trong Java, **kiểu của biểu thức và phép toán được xác định theo các toán hạng và quy tắc ngôn ngữ trước khi kết quả được gán cho biến đích**. Một biến đích có kiểu rộng hơn không thể làm phép tính đã xảy ra ở kiểu hẹp trở nên chính xác trở lại.
+In Java, **the type of an expression and its operations is determined by the operands and language rules before the result is assigned to the target variable**. A wider target variable cannot make an operation that already happened in a narrower type accurate again.
 
-Ví dụ:
+Example:
 
 ```java
 int a = 50_000;
 int b = 50_000;
 
-long wrong = a * b;          // -1794967296, phép nhân được thực hiện bằng int.
-long correct = (long) a * b; // 2500000000, phép nhân được thực hiện bằng long.
+long wrong = a * b;          // -1794967296, multiplication is performed in int.
+long correct = (long) a * b; // 2500000000, multiplication is performed in long.
 ```
 
-Về toán học, `50_000 × 50_000 = 2_500_000_000`. Giá trị này vượt `Integer.MAX_VALUE = 2_147_483_647` nhưng nằm trong miền `long`. Với `wrong`, phép nhân giữa **hai biến `int`** tạo ra kết quả `int` bị tràn rồi kết quả đó mới được chuyển sang `long` để gán. Với `correct`, một toán hạng được chuyển sang `long` **trước** khi nhân nên toàn bộ phép nhân dùng `long`.
+Mathematically, `50_000 × 50_000 = 2_500_000_000`. This value exceeds `Integer.MAX_VALUE = 2_147_483_647` yet fits within the `long` range. In `wrong`, multiplying **two `int` variables** produces an overflowed `int` result, and only then is that result converted to `long` for assignment. In `correct`, one operand is converted to `long` **before** multiplying, so the entire multiplication uses `long`.
 
-Đừng nhầm hai câu hỏi:
+Do not confuse two separate questions:
 
-1. **Phép toán diễn ra bằng kiểu nào?** Phụ thuộc kiểu của các toán hạng, toán tử và các quy tắc *numeric promotion*.
-2. **Kết quả được lưu vào biến kiểu nào?** Phụ thuộc kiểu biến nhận và quy tắc chuyển đổi trong ngữ cảnh gán.
+1. **What type does the operation run in?** Depends on the operand types, the operator, and *numeric promotion* rules.
+2. **What variable type stores the result?** Depends on the receiving variable's type and conversion rules in an assignment context.
 
-Kiểu của biến nhận chỉ được xét sau khi biểu thức bên phải có kết quả; nó **không mặc nhiên truyền ngược vào phép toán nhị phân đã được định kiểu**.
+The type of the receiving variable is considered only after the right-hand expression produces a result; it **does not implicitly propagate backward into a binary operation that has already been typed**.
 
-## 2. Từng bước Java đánh giá một phép gán số
+## 2. Step-by-Step: How Java Evaluates a Numeric Assignment
 
-Xét:
+Consider:
 
 ```java
 int x = 50_000;
@@ -33,35 +33,35 @@ int y = 50_000;
 long result = x * y;
 ```
 
-Có thể hiểu tuần tự:
+You can trace it sequentially:
 
-1. Trình biên dịch thấy `x` và `y` đều có kiểu `int`.
-2. Toán tử `*` áp dụng *binary numeric promotion*: hai toán hạng vẫn là `int`, nên **kiểu biểu thức `x * y` là `int`**.
-3. Khi thực thi, phép nhân `int` vượt giới hạn và giữ kết quả theo số học nguyên 32 bit của Java: `-1_794_967_296`.
-4. Khi gán cho `result`, Java thực hiện chuyển đổi mở rộng `int → long`, giữ nguyên giá trị âm đã có.
-5. Giá trị cuối cùng của `result` là `-1_794_967_296L`.
+1. The compiler sees that `x` and `y` both have type `int`.
+2. The `*` operator applies *binary numeric promotion*: both operands remain `int`, so **the type of the expression `x * y` is `int`**.
+3. At runtime, the `int` multiplication exceeds the limit and keeps the result under Java's 32-bit integer arithmetic: `-1_794_967_296`.
+4. Upon assigning to `result`, Java performs a widening conversion `int → long`, preserving the existing negative value.
+5. The final value of `result` is `-1_794_967_296L`.
 
-Với biểu thức `(long) x * y`, toán hạng trái được chuyển sang `long` ngay từ đầu. *Binary numeric promotion* chuyển toán hạng `y` sang `long`, do đó biểu thức nhân có kiểu `long` và nhận đúng `2_500_000_000L`.
+In the expression `(long) x * y`, the left operand is converted to `long` from the start. *Binary numeric promotion* converts operand `y` to `long`, so the multiplication expression has type `long` and yields the exact `2_500_000_000L`.
 
-**Điều chỉnh kiểu phải xảy ra trước phép toán có nguy cơ mất dữ liệu.**
+**Type adjustment must happen before the operation that risks losing data.**
 
-## 3. Binary numeric promotion: quy tắc chọn kiểu cho phép toán
+## 3. Binary Numeric Promotion: Rules for Choosing the Operation Type
 
-Các toán tử số nhị phân như `+`, `-`, `*`, `/`, `%` áp dụng quy tắc *binary numeric promotion*. Với toán hạng thuộc các kiểu số nguyên và số thực nguyên thủy, có thể đọc theo thứ tự ưu tiên:
+Binary numeric operators such as `+`, `-`, `*`, `/`, and `%` apply *binary numeric promotion*. For operands of primitive integer and floating-point types, you can read it in order of precedence:
 
-| Kiểu xuất hiện trong hai toán hạng | Kiểu thường dùng để thực hiện phép toán |
+| Types Appearing in the Two Operands | Type Normally Used to Execute the Operation |
 | --- | --- |
-| Có `double` | `double` |
-| Không có `double`, có `float` | `float` |
-| Không có `double`/`float`, có `long` | `long` |
-| Còn lại: `byte`, `short`, `char`, `int` | `int` |
+| Has `double` | `double` |
+| No `double`, has `float` | `float` |
+| No `double`/`float`, has `long` | `long` |
+| Remaining: `byte`, `short`, `char`, `int` | `int` |
 
-Ví dụ:
+Examples:
 
 ```java
 byte small = 10;
 short other = 20;
-int sum = small + other;  // int, vì byte và short được nâng lên int.
+int sum = small + other;  // int, because byte and short are promoted to int.
 
 int units = 7;
 long multiplier = 3L;
@@ -76,16 +76,16 @@ float another = 2.0F;
 double wideFloating = d + another; // double.
 ```
 
-**Hai chi tiết cần nhớ:**
+**Two details to remember:**
 
-- `char` cũng thuộc nhóm *integral* và được nâng lên `int` khi tham gia phần lớn phép số học thông thường, dù giá trị của nó không dấu.
-- `boolean` không phải kiểu số, không tham gia *numeric promotion*. Phép `"total=" + 42` là **nối chuỗi** bằng `+`, là ngữ nghĩa khác với cộng hai số.
+- `char` also belongs to the *integral* group and is promoted to `int` when participating in most ordinary arithmetic operations, even though its values are unsigned.
+- `boolean` is not a numeric type and does not participate in *numeric promotion*. `"total=" + 42` is **string concatenation** with `+`, which has different semantics from adding two numbers.
 
-Bảng này mô tả phép toán số học thường gặp. Không nên áp dụng máy móc cho mọi toán tử: phép dịch bit `<<`, `>>`, `>>>` dùng **unary numeric promotion** cho từng toán hạng, và kiểu kết quả phụ thuộc kiểu đã nâng của toán hạng **bên trái**; phép so sánh số trả về `boolean`; toán tử điều kiện `?:` có những quy tắc định kiểu riêng. Điểm chung là từng biểu thức phải được phân tích theo toán tử của chính nó, thay vì dựa vào kiểu biến nhận cuối cùng.
+This table describes common arithmetic operations. Do not apply it mechanically to every operator: bit-shift operators `<<`, `>>`, and `>>>` use **unary numeric promotion** on each operand individually, and the result type depends on the promoted type of the **left** operand; numeric comparison operators return `boolean`; the conditional operator `?:` has its own typing rules. The common principle is that each expression must be analyzed according to its own operator, rather than relying on the final receiving variable's type.
 
-## 4. Tràn số xảy ra trước khi mở rộng kiểu của kết quả
+## 4. Overflow Happens Before Widening the Result Type
 
-### 4.1. Phép cộng `int` vào `long`
+### 4.1. Adding `int` into `long`
 
 ```java
 int max = Integer.MAX_VALUE;
@@ -95,36 +95,36 @@ long onTime = (long) max + 1;  // 2147483648
 long withLongLiteral = max + 1L; // 2147483648
 ```
 
-Bên phải `max + 1` là phép cộng `int + int`; nó tràn tại `2_147_483_647 + 1`. Sau đó, chuyển sang `long` chỉ giữ lại giá trị âm đã tràn. Thêm `(long)` **vào toán hạng** hoặc dùng `1L` làm phép cộng diễn ra ở `long` ngay từ đầu.
+On the right-hand side, `max + 1` is an `int + int` addition; it overflows at `2_147_483_647 + 1`. Afterward, converting to `long` merely keeps the overflowed negative value. Adding `(long)` **to an operand** or using `1L` makes the addition happen in `long` from the start.
 
-### 4.2. Phép nhân với cast đặt sai vị trí
+### 4.2. Multiplication with a misplaced cast
 
-So sánh:
+Compare:
 
 ```java
 int width = 50_000;
 int height = 50_000;
 
-long a = (long) (width * height); // Sai mục đích: int nhân trước, rồi cast.
-long b = ((long) width) * height; // Đúng: long nhân từ đầu.
+long a = (long) (width * height); // Defeats the purpose: int multiplies first, then casts.
+long b = ((long) width) * height; // Correct: long multiplication from the start.
 ```
 
-Dấu ngoặc trong `(long) (width * height)` khiến phép nhân diễn ra trước khi cast. Muốn tăng miền của phép toán, cần cast **một toán hạng**, không phải chỉ cast **kết quả biểu thức đã tính**.
+The parentheses in `(long) (width * height)` cause the multiplication to happen before the cast. To widen the operation's range, cast **an operand**, not just **the already-computed expression result**.
 
-### 4.3. Nâng lên `long` vẫn có giới hạn
+### 4.3. Promoting to `long` still has limits
 
-Nếu kết quả thực sự vượt miền `long`, chỉ dùng `long` vẫn có thể tràn:
+If the result truly exceeds the `long` range, using `long` alone can still overflow:
 
 ```java
 long max = Long.MAX_VALUE;
 long overflowed = max + 1L; // Long.MIN_VALUE.
 ```
 
-Đừng dùng `double` như một bản thay thế mặc định cho số nguyên lớn cần tính chính xác: dù miền độ lớn của `double` lớn hơn `long`, nó có độ chính xác hữu hạn và có thể làm tròn các số nguyên lớn. Khi cần nguyên chính xác vượt 64 bit, dùng `BigInteger` và **chuyển từng toán hạng trước khi thực hiện phép tính lớn**.
+Do not use `double` as a default substitute for large integers that require exact calculation: although `double`'s magnitude range is larger than `long`, it has finite precision and can round large integers. When exact integers beyond 64 bits are needed, use `BigInteger` and **convert each operand before performing the large operation**.
 
-## 5. Kiểu biểu thức còn quyết định phép chia nguyên và mất phần thập phân
+## 5. Expression Type Also Determines Integer Division and Truncation
 
-Không chỉ tràn số: cùng nguyên tắc đánh giá trước khi gán còn gây ra kết quả khác khi chia.
+Not only overflow: the same evaluation-before-assignment principle causes different results in division as well.
 
 ```java
 int numerator = 1;
@@ -135,28 +135,28 @@ double correct = (double) numerator / denominator; // 0.5
 double alsoCorrect = numerator / 2.0;             // 0.5
 ```
 
-Trong `numerator / denominator`, cả hai toán hạng là `int`, nên Java **chia nguyên**, bỏ phần lẻ và nhận `0`; rồi mới mở rộng giá trị đó thành `0.0` khi gán cho `double`.
+In `numerator / denominator`, both operands are `int`, so Java performs **integer division**, discards the fractional part to get `0`, and only then widens that value to `0.0` when assigning to `double`.
 
-Với `(double) numerator / denominator`, phép chia đã chuyển sang kiểu `double` trước khi thực hiện nên kết quả là `0.5`. Điều này khác hẳn việc dùng `(double) (numerator / denominator)`, vì cast sau phép chia chỉ biến `0` thành `0.0`.
+With `(double) numerator / denominator`, the division is promoted to `double` before executing, so the result is `0.5`. This is completely different from writing `(double) (numerator / denominator)`, because casting after dividing merely turns `0` into `0.0`.
 
-Tương tự, nếu bạn viết `float result = 1 / 2;`, kết quả là `0.0F`, không phải `0.5F`.
+Similarly, if you write `float result = 1 / 2;`, the result is `0.0F`, not `0.5F`.
 
-**Lưu ý:** phép chia số nguyên có mẫu bằng 0 gây `ArithmeticException`. Gán kết quả vào `double` không thể đổi ngoại lệ đã xảy ra trong phép chia `int / int` thành `Infinity`.
+**Note:** integer division with a zero divisor causes `ArithmeticException`. Assigning the result to `double` cannot turn an exception that already occurred in `int / int` division into `Infinity`.
 
-## 6. Các kiểu hẹp được nâng lên `int` dù biến nhận là `byte` hoặc `short`
+## 6. Narrow Types Are Promoted to `int` Even When the Target Variable Is `byte` or `short`
 
-Nhiều người nghĩ phép cộng hai `byte` tạo ra `byte`. Thực tế, khi dùng toán tử cộng thông thường, Java nâng chúng lên `int`:
+Many people think adding two `byte` values produces a `byte`. In reality, when using the ordinary addition operator, Java promotes them to `int`:
 
 ```java
 byte x = 10;
 byte y = 20;
-int sum = x + y; // Đúng: kiểu biểu thức là int.
+int sum = x + y; // Valid: expression type is int.
 
-// byte invalid = x + y; // Lỗi biên dịch: int không tự thu hẹp thành byte.
-byte narrowed = (byte) (x + y); // Ép kiểu tường minh.
+// byte invalid = x + y; // Compile error: int does not implicitly narrow to byte.
+byte narrowed = (byte) (x + y); // Explicit cast.
 ```
 
-Cast có thể mất dữ liệu khi giá trị vượt miền `byte` ([-128, 127]):
+Casting can lose data when the value exceeds the `byte` range ([-128, 127]):
 
 ```java
 byte x = 100;
@@ -165,42 +165,42 @@ int exact = x + y;             // 130
 byte narrowed = (byte) (x + y); // -126
 ```
 
-Giá trị `130` không nằm trong miền `byte`; ép kiểu về `byte` giữ các bit thấp và diễn giải kết quả có dấu thành `-126`. Lưu kết quả vào `int` giữ được đúng `130`.
+The value `130` is outside the `byte` range; casting to `byte` keeps the low bits and interprets the signed result as `-126`. Storing the result in `int` preserves the exact `130`.
 
-### Ngoại lệ: gán một biểu thức hằng khi biên dịch
+### Exception: assigning a compile-time constant expression
 
-Java cho phép một số phép gán từ **biểu thức hằng** kiểu `int` (và trong trường hợp quy định, kiểu hằng khác) sang `byte`/`short`/`char` mà không cần cast nếu giá trị hằng biểu diễn được trong kiểu đích:
+Java allows certain assignments from an `int` **constant expression** (and in specified cases, other constant types) to `byte`/`short`/`char` without a cast if the constant value is representable in the target type:
 
 ```java
-byte a = 10 + 20;      // Hợp lệ: biểu thức hằng int có giá trị 30.
-byte b = 127;          // Hợp lệ: giá trị hằng trong miền byte.
-// byte c = 100 + 30; // Lỗi: giá trị hằng 130 vượt miền byte.
+byte a = 10 + 20;      // Valid: constant int expression has value 30.
+byte b = 127;          // Valid: constant value within byte range.
+// byte c = 100 + 30; // Error: constant value 130 exceeds byte range.
 
 int external = 20;
-// byte d = 10 + external; // Lỗi: kết quả int, không phải biểu thức hằng.
+// byte d = 10 + external; // Error: int result, not a constant expression.
 ```
 
-Đây là **quy tắc chuyển đổi gán cho biểu thức hằng nằm trong miền**, không có nghĩa phép cộng `byte` bỗng được thực hiện bằng `byte`. Khi các toán hạng là biến thông thường và kết quả phụ thuộc runtime, đừng dựa vào ngoại lệ này.
+This is an **assignment conversion rule for in-range constant expressions**; it does not mean `byte` addition suddenly executes in `byte`. When operands are ordinary variables and results depend on runtime, do not rely on this exception.
 
-## 7. Toán tử gán ghép và tăng/giảm: trường hợp cần đặc biệt chú ý
+## 7. Compound Assignment and Increment/Decrement Operators: Cases Requiring Special Care
 
-Các toán tử `+=`, `-=`, `*=`, `/=` và `%=` có quy tắc riêng, gồm **chuyển kiểu ngầm về kiểu bên trái**. Chẳng hạn `E1 += E2` về cơ bản tương đương với `E1 = (T) ((E1) + (E2))`, với `T` là kiểu của `E1`; tuy nhiên `E1` chỉ được đánh giá một lần.
+Operators `+=`, `-=`, `*=`, `/=`, and `%=` follow their own rules, including an **implicit cast to the left-hand type**. For example, `E1 += E2` is essentially equivalent to `E1 = (T) ((E1) + (E2))`, where `T` is the type of `E1`; however, `E1` is evaluated only once.
 
 ```java
 byte count = 100;
 
-// count = count + 30; // Lỗi biên dịch: kết quả count + 30 là int.
-count += 30;           // Hợp lệ: cộng dạng int, rồi ép hẹp lại byte.
+// count = count + 30; // Compile error: count + 30 has type int.
+count += 30;           // Valid: adds as int, then narrows back to byte.
 System.out.println(count); // -126
 ```
 
-Do đó, `count += 30` **không an toàn hơn** `count = (byte) (count + 30)` về mặt mất dữ liệu. Cú pháp ngắn hơn có thể che việc ép kiểu hẹp diễn ra âm thầm.
+Therefore, `count += 30` is **no safer than** `count = (byte) (count + 30)` regarding data loss. The shorter syntax can hide a narrowing cast happening silently.
 
-Các toán tử `++`, `--` cũng có quy tắc kiểu riêng và có thể áp dụng trên biến `byte`/`short`/`char`. Ví dụ, khi `byte value = 127; value++;`, biến `value` trở thành `-128` do vượt giới hạn. Đừng suy từ việc `value++` biên dịch được rằng `byte next = value + 1;` cũng phải biên dịch được.
+The `++` and `--` operators also have their own typing rules and can be applied to `byte`/`short`/`char` variables. For example, when `byte value = 127; value++;`, `value` becomes `-128` due to exceeding the limit. Do not infer from the fact that `value++` compiles that `byte next = value + 1;` must also compile.
 
-## 8. Biểu thức con và thứ tự tính: một cast không cứu được toàn bộ biểu thức
+## 8. Subexpressions and Evaluation Order: One Cast Cannot Save an Entire Expression
 
-Java định kiểu và đánh giá các biểu thức con theo cấu trúc cú pháp. Nếu một biểu thức con đã bị tràn ở `int`, chuyển một biểu thức *khác* sang `long` về sau không hồi phục dữ liệu.
+Java types and evaluates subexpressions according to syntactic structure. If one subexpression has already overflowed in `int`, converting *another* expression to `long` later does not restore the data.
 
 ```java
 int a = 50_000, b = 50_000;
@@ -210,24 +210,24 @@ long wrong = (a * b) * factor; // -3589934592
 long correct = ((long) a * b) * factor; // 5000000000
 ```
 
-Trong `(a * b) * factor`, `a * b` đã cho `-1_794_967_296` ở kiểu `int`. Khi nhân tiếp với `factor`, Java mới chuyển kết quả âm này sang `long`. Trong `correct`, phép nhân đầu dùng `long`, nên kết quả được giữ chính xác trước phép nhân tiếp theo.
+In `(a * b) * factor`, `a * b` already yielded `-1_794_967_296` in `int`. Only when multiplying next by `factor` does Java convert this negative result to `long`. In `correct`, the first multiplication uses `long`, so the result is kept accurately before the next multiplication.
 
-Tương tự, `(long) (a * b)` cũng quá muộn; cần `(long) a * b` hoặc `a * (long) b` để mở rộng **trước phép nhân đầu**.
+Similarly, `(long) (a * b)` is also too late; you need `(long) a * b` or `a * (long) b` to widen **before the first multiplication**.
 
-Với biểu thức phức tạp, nên tách các bước thành biến trung gian có kiểu rõ ràng:
+For complex expressions, split steps into intermediate variables with explicit types:
 
 ```java
 long area = (long) width * height;
 long volume = area * depth;
 ```
 
-Hai dòng trên giả định `width`, `height` và `depth` đã được khai báo; đó là đoạn minh họa, không phải chương trình độc lập. Cách tách này giúp xác định phép toán nào có thể vượt `long` và cần kiểm tra thêm.
+The two lines above assume `width`, `height`, and `depth` are already declared; this is an illustrative snippet, not a standalone program. Splitting like this helps identify which operation could exceed `long` and needs extra checks.
 
-## 9. Cách phát hiện tràn và giữ số nguyên chính xác
+## 9. How to Detect Overflow and Preserve Exact Integers
 
-### 9.1. Dùng kiểu rộng phù hợp từ lúc thực hiện phép toán
+### 9.1. Use an appropriately wide type at the time of the operation
 
-Nếu chứng minh được kết quả nằm trong miền `long`, hãy **nâng một toán hạng** hoặc sử dụng literal `long` trước phép cộng/nhân:
+If the result is provably within the `long` range, **widen one operand** or use a `long` literal before addition/multiplication:
 
 ```java
 int quantity = 1_000_000;
@@ -235,11 +235,11 @@ int unitPrice = 25_000;
 long total = (long) quantity * unitPrice; // 25000000000
 ```
 
-Tất cả giá trị `int` đều chuyển chính xác sang `long`, nhưng **mỗi phép toán** vẫn cần kiểm soát phạm vi kết quả. Đặc biệt, `long` không phải kiểu nguyên không giới hạn.
+Every `int` value converts accurately to `long`, yet **each operation** still needs range control on its result. In particular, `long` is not an unbounded integer type.
 
-### 9.2. Dùng phép toán kiểm tra tràn khi tràn là lỗi
+### 9.2. Use overflow-checking operations when overflow is an error
 
-Các hàm `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact`, `Math.negateExact` và `Math.toIntExact` có thể phát hiện những phép toán/chuyển đổi được chúng hỗ trợ không biểu diễn được kết quả. Khi tràn, chúng ném `ArithmeticException`.
+The methods `Math.addExact`, `Math.subtractExact`, `Math.multiplyExact`, `Math.negateExact`, and `Math.toIntExact` detect when the operations/conversions they support cannot represent the result. When overflowing, they throw `ArithmeticException`.
 
 ```java
 int a = 50_000, b = 50_000;
@@ -248,17 +248,17 @@ try {
     int product = Math.multiplyExact(a, b);
     System.out.println(product);
 } catch (ArithmeticException ex) {
-    System.out.println("Phép nhân int vượt miền giá trị");
+    System.out.println("int multiplication exceeded value range");
 }
 ```
 
-Không phải mọi biểu thức nguyên đều tự ném ngoại lệ khi tràn. Chẳng hạn `a * b` thông thường chỉ *wrap around*; muốn phát hiện cần dùng API kiểm tra hoặc kiểm tra biên trước.
+Not every integer expression automatically throws an exception on overflow. For example, ordinary `a * b` merely *wraps around*; to detect it, you must use checked APIs or check bounds beforehand.
 
-Lưu ý `Math.multiplyExact((long) a, b)` trả về `long` và cũng kiểm tra tràn đối với kiểu `long`. Nếu phép tính nằm trong miền `long`, dùng `long` ngay từ đầu là đủ.
+Note that `Math.multiplyExact((long) a, b)` returns `long` and also checks for overflow relative to `long`. If the calculation fits within the `long` range, using `long` from the start is sufficient.
 
-### 9.3. Dùng `BigInteger` khi 64 bit không đủ
+### 9.3. Use `BigInteger` when 64 bits are not enough
 
-`BigInteger` biểu diễn số nguyên độ chính xác tùy ý trong giới hạn bộ nhớ/tài nguyên, với các phép toán qua phương thức:
+`BigInteger` represents arbitrary-precision integers within memory/resource limits, with operations performed via methods:
 
 ```java
 import java.math.BigInteger;
@@ -268,19 +268,19 @@ BigInteger y = x.add(BigInteger.ONE);
 System.out.println(y); // 9223372036854775808
 ```
 
-Quan trọng là chuyển **toán hạng** trước khi tính:
+Importantly, convert the **operands** before computing:
 
 ```java
 long max = Long.MAX_VALUE;
 BigInteger correct = BigInteger.valueOf(max).add(BigInteger.ONE);
-// BigInteger tooLate = BigInteger.valueOf(max + 1); // max + 1 đã tràn long.
+// BigInteger tooLate = BigInteger.valueOf(max + 1); // max + 1 already overflowed long.
 ```
 
-`BigInteger` là lớp bất biến: `add`/`multiply` trả đối tượng kết quả mới. Không dùng các toán tử `+`, `*` để cộng/nhân hai đối tượng `BigInteger`.
+`BigInteger` is an immutable class: `add`/`multiply` return a new result object. Do not use the `+` or `*` operators to add or multiply two `BigInteger` objects.
 
-## 10. Ví dụ Java 17+ chạy độc lập
+## 10. Standalone Runnable Java 17+ Example
 
-Tạo tệp **`ExpressionTypeBeforeAssignment.java`**:
+Create the file **`ExpressionTypeBeforeAssignment.java`**:
 
 ```java
 import java.math.BigInteger;
@@ -326,14 +326,14 @@ public class ExpressionTypeBeforeAssignment {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac ExpressionTypeBeforeAssignment.java
 java ExpressionTypeBeforeAssignment
 ```
 
-Kết quả:
+Output:
 
 ```text
 int product then long = -1794967296
@@ -348,22 +348,22 @@ checked int multiplication overflow
 BigInteger product = 2500000000
 ```
 
-Đây là chương trình đầy đủ, không cần thư viện bên ngoài JDK. Phần `tooLate`/`castAfterMultiply` chỉ khác vị trí chuyển kiểu so với `widenedBeforeMultiply` nhưng kết quả khác hẳn. Hai phép chia cũng chứng minh rõ: kiểu đích `double` không biến phép chia `int / int` thành phép chia số thực.
+This is a complete program requiring no external libraries outside the JDK. `tooLate`/`castAfterMultiply` differ from `widenedBeforeMultiply` only in where the type conversion is placed, yet the results are completely different. The two divisions also clearly prove: a `double` target type does not turn `int / int` division into floating-point division.
 
-## 11. Lỗi thường gặp và cách tự kiểm tra
+## 11. Common Mistakes and How to Self-Check
 
-| Nhận định hay gặp | Vì sao sai | Cách đúng |
+| Common Claim | Why It Is Wrong | Correct Approach |
 | --- | --- | --- |
-| “Gán `int * int` vào `long` sẽ không tràn.” | Phép nhân `int` xảy ra trước khi gán. | `(long) a * b`. |
-| “Cast toàn biểu thức sau cùng vẫn giữ được kết quả.” | Cast không thể hồi phục các bit đã mất. | Cast toán hạng trước phép tính gây tràn. |
-| “Biến đích `double` làm `1 / 2` thành `0.5`.” | `1 / 2` là chia nguyên và cho `0` trước khi đổi sang `double`. | `1.0 / 2` hoặc `(double) 1 / 2`. |
-| “Cộng hai `byte` luôn cho `byte`.” | Phép cộng nâng toán hạng lên `int`. | Nhận vào `int`, hoặc cast có kiểm tra miền. |
-| “Phép `+=` không mất dữ liệu vì không cần cast.” | Gán ghép có ép kiểu hẹp ngầm. | Xét rõ phạm vi giá trị hoặc dùng kiểu rộng hơn. |
-| “Chuyển một phép toán đã tràn sang `BigInteger` sẽ sửa đúng.” | `BigInteger.valueOf(a * b)` nhận giá trị nguyên thủy đã tràn. | `BigInteger.valueOf(a).multiply(BigInteger.valueOf(b))`. |
-| “Bất cứ khi nào thấy toán tử `+` đều áp dụng bảng numeric promotion.” | `+` cũng có thể là nối chuỗi; các toán tử khác có quy tắc riêng. | Xác định toán tử và kiểu từng toán hạng/biểu thức con. |
+| "Assigning `int * int` to `long` won't overflow." | `int` multiplication occurs before assignment. | `(long) a * b`. |
+| "Casting the whole expression at the end still preserves the result." | Casting cannot recover lost bits. | Cast an operand before the overflowing operation. |
+| "A `double` target variable turns `1 / 2` into `0.5`." | `1 / 2` is integer division yielding `0` before converting to `double`. | `1.0 / 2` or `(double) 1 / 2`. |
+| "Adding two `byte`s always yields `byte`." | Addition promotes operands to `int`. | Store in `int`, or cast with range checks. |
+| "The `+=` operator never loses data because it needs no cast." | Compound assignment includes an implicit narrowing cast. | Check the value range explicitly or use a wider type. |
+| "Passing an already-overflowed operation to `BigInteger` fixes it." | `BigInteger.valueOf(a * b)` receives the already-overflowed primitive value. | `BigInteger.valueOf(a).multiply(BigInteger.valueOf(b))`. |
+| "Whenever you see `+`, the numeric promotion table applies." | `+` can also be string concatenation; other operators have their own rules. | Identify the operator and the type of each operand/subexpression. |
 
-Khi đọc một biểu thức dài, hãy xác định **kiểu của từng toán hạng**, **kiểu của từng phép toán**, **vị trí chuyển kiểu**, **giới hạn của kiểu đang tính** rồi mới nhìn tới **kiểu biến nhận kết quả**. Đặc biệt phải xét các cặp `int × int` gán `long`, `int / int` gán `double`, và phép gán ghép trên `byte`/`short`.
+When reading a long expression, determine **the type of each operand**, **the type of each operation**, **where conversions occur**, and **the limits of the active computation type** before looking at **the receiving variable's type**. Pay special attention to `int × int` assigned to `long`, `int / int` assigned to `double`, and compound assignments on `byte`/`short`.
 
-**Ghi nhớ:** *Kiểu biến nhận quyết định cách lưu kết quả đã tính; kiểu của biểu thức quyết định phép tính diễn ra thế nào.* Nếu cần giữ kết quả chính xác, chọn và chuyển kiểu **trước phép toán có nguy cơ tràn hoặc mất phần thập phân**, hoặc dùng phương thức kiểm tra tràn/kiểu số nguyên lớn.
+**Remember:** *The receiving variable's type determines how the computed result is stored; the expression's type determines how the calculation takes place.* If you need to keep exact results, choose and convert types **before an operation that risks overflow or truncation**, or use overflow-checking methods / large integer types.
 
-**Tài liệu tham khảo:** [Java Language Specification §5.6 — Numeric Contexts](https://docs.oracle.com/javase/specs/jls/se21/html/jls-5.html#jls-5.6), [§5.2 — Assignment Contexts](https://docs.oracle.com/javase/specs/jls/se21/html/jls-5.html#jls-5.2), [§15.17 — Multiplicative Operators](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.17), [§15.18 — Additive Operators](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.18), [§15.26.2 — Compound Assignment Operators](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.26.2).
+**References:** [Java Language Specification §5.6 — Numeric Contexts](https://docs.oracle.com/javase/specs/jls/se21/html/jls-5.html#jls-5.6), [§5.2 — Assignment Contexts](https://docs.oracle.com/javase/specs/jls/se21/html/jls-5.html#jls-5.2), [§15.17 — Multiplicative Operators](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.17), [§15.18 — Additive Operators](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.18), [§15.26.2 — Compound Assignment Operators](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.26.2).

@@ -1,79 +1,79 @@
-# String.indent(int): thay đổi lề và chuẩn hóa kết thúc dòng trong Java
+# String.indent(int): Adjusting Indentation and Normalizing Line Endings in Java
 
-## 1. Mục tiêu bài học
+## 1. Lesson Objectives
 
-Khi ghép văn bản nhiều dòng để hiển thị log, sinh nội dung hoặc trình bày dữ liệu, ta thường muốn tăng hoặc giảm số ký tự trắng ở **đầu từng dòng**. Java cung cấp **String.indent(int n)** (từ **Java 12**) để thực hiện thao tác này, đồng thời **chuẩn hóa ký tự kết thúc dòng về LF**.
+When assembling multi-line text for log output, content generation, or data presentation, we often want to increase or decrease the number of whitespace characters at the **beginning of each line**. Java provides **String.indent(int n)** (since **Java 12**) to perform this operation while also **normalizing line terminators to LF**.
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích tác dụng của **n > 0**, **n < 0** và **n = 0**.
-- Dự đoán chính xác kết quả với dấu cách, tab, dòng trống, CR, LF, CRLF và chuỗi không có newline.
-- Phân biệt **indent()** với **lines()**, **stripLeading()**, **stripIndent()** và cách ghép thủ công.
-- Tránh các lỗi thường gặp khi xử lý văn bản từ Windows, Unix, text block và dữ liệu có định dạng cố định.
+- Explain the effects of **n > 0**, **n < 0**, and **n = 0**.
+- Accurately predict results with spaces, tabs, blank lines, CR, LF, CRLF, and strings without a newline.
+- Distinguish **indent()** from **lines()**, **stripLeading()**, **stripIndent()**, and manual concatenation.
+- Avoid common mistakes when processing text from Windows, Unix, text blocks, and fixed-format data.
 
-Điểm quan trọng: **indent() không chỉ thay đổi khoảng trắng ở đầu dòng**. Một lời gọi **indent(0)** cũng có thể thay đổi chuỗi vì ký tự kết thúc dòng được chuẩn hóa và dòng cuối có thể được thêm LF.
+Key point: **indent() does not merely change leading whitespace**. Calling **indent(0)** can still modify a string because line terminators are normalized and an LF may be appended to the final line.
 
-## 2. Chữ ký phương thức và cơ chế tổng quát
+## 2. Method Signature and General Mechanism
 
 ~~~java
 public String indent(int n)
 ~~~
 
-Đây là phương thức của **java.lang.String**. String bất biến: phương thức trả về một String kết quả, không sửa đối tượng nguồn.
+This is a method of **java.lang.String**. Strings are immutable: the method returns a resulting String without modifying the source object.
 
-Về mặt khái niệm, Java thực hiện:
+Conceptually, Java performs the following steps:
 
-1. Tách chuỗi đầu vào thành các dòng theo quy tắc tương tự **String.lines()**.
-2. Điều chỉnh các ký tự trắng **ở đầu mỗi dòng** theo tham số **n**.
-3. Ghép các dòng đã điều chỉnh, **mỗi dòng theo sau bằng LF** (ký tự **\n**, U+000A).
+1. Splits the input string into lines according to rules similar to **String.lines()**.
+2. Adjusts the whitespace characters **at the start of each line** according to the parameter **n**.
+3. Joins the adjusted lines, **each followed by LF** (the **\n** character, U+000A).
 
-Quy tắc theo tham số:
+Rules by parameter:
 
-| Giá trị n | Tác động lên từng dòng | Lưu ý |
+| Value of n | Effect on each line | Notes |
 | --- | --- | --- |
-| **n > 0** | Thêm đúng **n dấu cách ASCII U+0020** ở đầu dòng | Không phải thêm n tab; áp dụng cả dòng rỗng |
-| **n = 0** | Không đổi nội dung của từng dòng | Vẫn chuẩn hóa kết thúc dòng và có thể thêm LF cuối |
-| **n < 0** | Bỏ tối đa **\|n\| ký tự whitespace** ở đầu mỗi dòng | Nếu có ít hơn \|n\| ký tự trắng thì bỏ hết; phần nội dung còn lại được giữ |
-| **Chuỗi rỗng** | Trả về chuỗi rỗng | Không tự tạo một dòng hoặc newline |
+| **n > 0** | Adds exactly **n ASCII spaces U+0020** at the start of the line | Does not add n tabs; applies to blank lines too |
+| **n = 0** | Does not change the content of each line | Still normalizes line endings and may add a trailing LF |
+| **n < 0** | Removes up to **\|n\| whitespace characters** from the start of each line | If there are fewer than \|n\| whitespace characters, removes all of them; remaining content is kept |
+| **Empty string** | Returns an empty string | Does not create a line or newline on its own |
 
-Phương thức xử lý **từng dòng độc lập**. Nó không tìm “lề chung” rồi chỉ bỏ đúng mức lề tối thiểu của toàn khối. Đó là điểm khác biệt quan trọng với **stripIndent()**.
+The method processes **each line independently**. It does not find a “common indentation” and remove only the minimum indentation of the whole block. That is an important difference from **stripIndent()**.
 
-## 3. Thế nào là một dòng và ký tự kết thúc dòng?
+## 3. What Counts as a Line and a Line Terminator?
 
-**String.lines()** nhận diện ba kiểu dấu kết thúc dòng sau:
+**String.lines()** recognizes the following three types of line terminators:
 
-| Ký tự | Ký hiệu | Thường gặp |
+| Character | Symbol | Common Context |
 | --- | --- | --- |
-| Line Feed | **\n** (LF, U+000A) | Linux/Unix và nhiều API |
-| Carriage Return | **\r** (CR, U+000D) | Dữ liệu cũ hoặc một số nguồn |
-| CR rồi LF | **\r\n** (CRLF) | Văn bản Windows |
+| Line Feed | **\n** (LF, U+000A) | Linux/Unix and many APIs |
+| Carriage Return | **\r** (CR, U+000D) | Legacy data or certain sources |
+| CR then LF | **\r\n** (CRLF) | Windows text |
 
-**indent()** chuẩn hóa tất cả những kiểu kết thúc dòng đó thành **\n**.
+**indent()** normalizes all of those line terminators to **\n**.
 
-Một dòng là phần ký tự **không bao gồm dấu kết thúc dòng** của nó. Nếu chuỗi đã kết thúc bằng một dấu xuống dòng, **lines() không tạo thêm một dòng rỗng ảo sau dấu cuối cùng**.
+A line is the sequence of characters **excluding its line terminator**. If the string already ends with a line terminator, **lines() does not create an extra phantom empty line after the final terminator**.
 
-Ví dụ:
+Example:
 
 ~~~text
-Input khái niệm:  A\r\nB\rC\n
-Các dòng:         "A", "B", "C"
-Sau indent(0):    A\nB\nC\n
+Conceptual input: A\r\nB\rC\n
+Lines:            "A", "B", "C"
+After indent(0):  A\nB\nC\n
 ~~~
 
-Hai hệ quả dễ bất ngờ:
+Two potentially surprising consequences:
 
-- Với input **"A"** (không có ký tự xuống dòng), **"A".indent(0)** trả **"A\n"**.
-- Với input **"A\n"**, **"A\n".indent(0)** vẫn là **"A\n"**, không biến thành **"A\n\n"**.
+- For input **"A"** (no newline character), **"A".indent(0)** returns **"A\n"**.
+- For input **"A\n"**, **"A\n".indent(0)** remains **"A\n"**, not turning into **"A\n\n"**.
 
-Chuỗi **""** không có dòng nào nên **"".indent(0)** và **"".indent(2)** đều là **""**.
+The string **""** has no lines, so both **"".indent(0)** and **"".indent(2)** return **""**.
 
-**Phạm vi chuẩn hóa của indent() là ba loại line terminator nói trên.** Không nên suy diễn rằng nó nhận diện và đổi mọi ký tự Unicode có thể trông giống xuống dòng, ví dụ Unicode line separator U+2028. Đừng nhầm với quy tắc rộng hơn của regex **\R**.
+**The normalization scope of indent() is limited to the three line terminators above.** Do not assume it recognizes and converts every Unicode character that looks like a line break, such as Unicode line separator U+2028. Do not confuse it with the broader rules of regex **\R**.
 
-## 4. Ví dụ Java 17+ chạy độc lập, hiển thị rõ khoảng trắng
+## 4. Standalone Java 17+ Example Showing Whitespace Clearly
 
-Khi dùng **System.out.println()**, khoảng trắng ở đầu dòng thường khó nhìn và **println()** còn thêm newline của chính nó. Ví dụ sau chuyển dấu cách thành dấu **_**, tab thành **<TAB>**, LF thành chữ **\n** và CR thành chữ **\r** trước khi in. Dấu gạch dưới chỉ là **ký hiệu hiển thị**, không phải ký tự mà **indent()** chèn vào chuỗi thật.
+When using **System.out.println()**, leading whitespace is hard to see and **println()** adds its own newline. The following example converts spaces to **_**, tabs to **<TAB>**, LF to the literal text **\n**, and CR to the literal text **\r** before printing. The underscore is only a **display symbol**, not a character inserted by **indent()** into the real string.
 
-Tạo tệp **IndentDemo.java**:
+Create the file **IndentDemo.java**:
 
 ~~~java
 public class IndentDemo {
@@ -104,14 +104,14 @@ public class IndentDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac IndentDemo.java
 java IndentDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 origin: [A\r\n__B\rC\n]
@@ -124,19 +124,19 @@ empty: []
 one line: [X\n]
 ~~~
 
-Giải thích cụ thể:
+Detailed explanation:
 
-1. Input **mixed** gồm ba dòng. Dòng **B** vốn đã có hai dấu cách đầu dòng.
-2. **indent(2)** thêm hai dấu cách vào **mọi dòng**, nên B có tổng cộng bốn dấu cách. Đồng thời CRLF và CR đều trở thành LF.
-3. **indent(-2)** bỏ hai dấu cách của B, còn A/C không có dấu cách đầu nên giữ nguyên phần chữ.
-4. **indent(0)** giữ đúng hai dấu cách trước B nhưng vẫn đổi ba loại kết thúc dòng về LF.
-5. Với dòng trống nằm giữa X và Y, **indent(2)** vẫn thêm hai dấu cách vào dòng trống, khiến dòng đó không còn là chuỗi có độ dài 0 nếu xét nội dung ký tự.
-6. **indent(-1)** bỏ một ký tự trắng đầu dòng: từ hai dấu cách của X còn một, còn tab đứng đầu Y bị bỏ hoàn toàn.
-7. Chuỗi rỗng vẫn rỗng; chuỗi **"X"** có một dòng nên được thêm LF ở cuối sau **indent(0)**.
+1. Input **mixed** consists of three lines. Line **B** already has two leading spaces.
+2. **indent(2)** adds two spaces to **every line**, so B ends up with four spaces total. At the same time, both CRLF and CR become LF.
+3. **indent(-2)** removes B's two spaces, while A and C have no leading spaces so their text stays unchanged.
+4. **indent(0)** keeps the exact two spaces before B while still converting all three line-ending types to LF.
+5. For the blank line between X and Y, **indent(2)** still adds two spaces to the blank line, so that line is no longer a length-0 string in terms of character content.
+6. **indent(-1)** removes one leading whitespace character: X goes from two spaces down to one, while the tab leading Y is removed completely.
+7. An empty string remains empty; the string **"X"** has one line, so an LF is appended at the end after **indent(0)**.
 
-## 5. n dương: thêm dấu cách vào đầu mỗi dòng
+## 5. Positive n: Adding Spaces to the Start of Each Line
 
-Khi **n > 0**, Java tạo đúng **n ký tự space U+0020** và đặt ở đầu mỗi dòng.
+When **n > 0**, Java creates exactly **n space characters U+0020** and places them at the start of each line.
 
 ~~~java
 String data = "first\nsecond";
@@ -145,29 +145,29 @@ String result = data.indent(4);
 System.out.println(result.equals("    first\n    second\n")); // true
 ~~~
 
-Không quan trọng dòng đã có lề hay chưa; **indent(4)** không căn chỉnh các dòng về một cột tuyệt đối mà **tăng thêm 4 dấu cách cho mỗi dòng**.
+It does not matter whether a line already has indentation; **indent(4)** does not align lines to an absolute column, but rather **adds 4 more spaces to each line**.
 
-Với chuỗi:
+For the string:
 
 ~~~text
 first
   second
 ~~~
 
-sau **indent(2)**, mức lề tương đối vẫn chênh nhau hai dấu cách:
+after **indent(2)**, the relative indentation difference remains two spaces:
 
 ~~~text
   first
     second
 ~~~
 
-Cần phân biệt:
+Distinguish clearly:
 
-- **indent(2)** tăng mức lề của **từng dòng** lên hai dấu cách.
-- **String.repeat(2)** lặp lại **toàn bộ chuỗi** hai lần; không liên quan đến quy tắc tăng lề.
-- Gọi **indent(2)** hai lần thường thêm tổng cộng bốn dấu cách vào mỗi dòng không rỗng về mặt tách dòng; phương thức không tự nhận biết “đã thụt lề trước đó”.
+- **indent(2)** increases the indentation of **each line** by two spaces.
+- **String.repeat(2)** repeats the **entire string** twice; unrelated to indentation rules.
+- Calling **indent(2)** twice typically adds a total of four spaces to every line (for non-empty inputs); the method does not track whether text was “previously indented”.
 
-**Dòng trống:** nếu đầu vào có dòng trống thật sự giữa hai terminator, **indent(n > 0)** cũng chèn dấu cách vào dòng trống ấy:
+**Blank lines:** if the input contains a real blank line between two terminators, **indent(n > 0)** also inserts spaces into that blank line:
 
 ~~~java
 String input = "A\n\nB";
@@ -175,11 +175,11 @@ String result = input.indent(2);
 System.out.println(result.equals("  A\n  \n  B\n")); // true
 ~~~
 
-Nếu một hệ thống cần dòng trống có độ dài đúng 0 hoặc cấm trailing whitespace, cần cân nhắc bước xử lý khác. **indent() không tự động loại khoảng trắng ở dòng rỗng**.
+If a system requires blank lines to have exact length 0 or forbids trailing whitespace, consider a different processing step. **indent() does not automatically strip whitespace from blank lines**.
 
-## 6. n âm: bỏ tối đa |n| ký tự trắng ở đầu từng dòng
+## 6. Negative n: Removing Up to |n| Leading Whitespace Characters Per Line
 
-Khi **n < 0**, Java loại bỏ từ 0 đến **|n|** ký tự whitespace ở **đầu mỗi dòng**, tùy lượng ký tự có thật.
+When **n < 0**, Java removes between 0 and **|n|** whitespace characters from the **beginning of each line**, depending on how many are actually present.
 
 ~~~java
 String text = "    A\n B\nC";
@@ -188,15 +188,15 @@ String result = text.indent(-3);
 System.out.println(result.equals(" A\nB\nC\n")); // true
 ~~~
 
-- Dòng A có bốn dấu cách: bỏ ba, còn một.
-- Dòng B có một dấu cách: bỏ một, còn không.
-- Dòng C không có dấu cách: không bỏ gì.
+- Line A has four spaces: three removed, one remains.
+- Line B has one space: one removed, none remain.
+- Line C has no spaces: nothing removed.
 
-Nếu đầu dòng có ít hơn **|n|** ký tự trắng, phương thức **không xóa lấn sang ký tự không phải whitespace**. Ví dụ **" A".indent(-5)** vẫn có phần chữ **A**, rồi LF.
+If a line starts with fewer than **|n|** whitespace characters, the method **does not delete into non-whitespace characters**. For example, **" A".indent(-5)** still keeps the letter **A**, followed by LF.
 
-### 6.1. Tab tính là một ký tự, không phải một độ rộng hiển thị
+### 6.1. A Tab Counts as One Character, Not a Visual Width
 
-Java dùng khái niệm whitespace theo **Character.isWhitespace** cho việc bỏ lề âm. Ký tự tab **\t** được tính là **một ký tự trắng**, không tự mở thành 4 hay 8 cột:
+Java uses the **Character.isWhitespace** definition of whitespace when removing negative indentation. The tab character **\t** counts as **one whitespace character**, without expanding to 4 or 8 columns:
 
 ~~~java
 String source = "\t  A";
@@ -204,13 +204,13 @@ System.out.println(source.indent(-1).equals("  A\n")); // true
 System.out.println(source.indent(-2).equals(" A\n"));  // true
 ~~~
 
-Độ rộng hiển thị thực tế của tab còn tùy tab stop trong terminal/editor. Vì vậy, **indent(-2)** nghĩa là bỏ tối đa **hai ký tự whitespace**, không bảo đảm lùi trái hai **cột thị giác**.
+The actual visual width of a tab depends on tab stops in the terminal or editor. Therefore, **indent(-2)** means removing at most **two whitespace characters**, not guaranteeing a shift left by two **visual columns**.
 
-Java không chỉ xem dấu cách ASCII là whitespace. Nhưng cũng không phải **mọi ký tự Unicode trông giống dấu cách** đều thỏa **Character.isWhitespace**. Nếu nhập liệu chứa Unicode đặc biệt, hãy kiểm tra loại ký tự và quy tắc mong muốn.
+Java does not treat only ASCII space as whitespace. Yet not **every Unicode character that looks like a space** satisfies **Character.isWhitespace**. If inputs contain special Unicode characters, verify the character category and desired rules.
 
-### 6.2. indent(-n) khác với bỏ một mức lề chung
+### 6.2. indent(-n) Differs from Removing a Common Indentation
 
-Xét ba dòng:
+Consider three lines:
 
 ~~~text
     A
@@ -218,7 +218,7 @@ Xét ba dòng:
       C
 ~~~
 
-Dùng **indent(-2)** sẽ bỏ hai ký tự trắng ở đầu mỗi dòng, cho:
+Using **indent(-2)** removes two whitespace characters from the start of each line, giving:
 
 ~~~text
   A
@@ -226,11 +226,11 @@ B
     C
 ~~~
 
-Không có bước nào phân tích toàn khối để suy ra “lề chuẩn”. Nếu cần loại **common/incidental indentation**, hãy xem **stripIndent()** thay vì giả định **indent(-n)** hoạt động như nó.
+There is no step that analyzes the entire block to infer a “baseline indentation”. If you need to remove **common/incidental indentation**, look at **stripIndent()** instead of assuming **indent(-n)** behaves like it.
 
-## 7. n bằng 0: tại sao kết quả vẫn thay đổi?
+## 7. n Equals 0: Why Does the Result Still Change?
 
-**indent(0)** không thay đổi ký tự của từng dòng đã được tách, nhưng **nó vẫn xây dựng lại chuỗi với LF kết thúc mỗi dòng**.
+**indent(0)** does not alter the characters of each split line, yet **it still rebuilds the string with LF terminating every line**.
 
 ~~~java
 String input = "red\r\ngreen\rblue";
@@ -240,18 +240,18 @@ System.out.println(output.equals("red\ngreen\nblue\n")); // true
 System.out.println(input.equals(output));               // false
 ~~~
 
-Input có CRLF, CR và không có terminator cuối. Output gồm ba dòng đều kết thúc bằng LF.
+The input has CRLF, CR, and no final terminator. The output consists of three lines, all ending with LF.
 
-Điều này hữu ích khi bạn muốn chuyển văn bản nhiều dòng từ các nền tảng khác nhau về **dạng LF thống nhất** mà giữ nguyên các ký tự đầu mỗi dòng.
+This is useful when you want to convert multi-line text from different platforms into a **uniform LF form** while keeping the leading characters of each line intact.
 
-Tuy nhiên, có hai giới hạn cần nhớ:
+However, there are two caveats to remember:
 
-- **Thêm LF ở cuối:** nếu input không rỗng và dòng cuối chưa có terminator, **indent(0)** thêm LF. Vì vậy đây không phải bộ chuẩn hóa chỉ thay CRLF/CR thành LF rồi giữ nguyên hoàn toàn sự có/mất newline cuối.
-- **Dòng trống có trước:** các dòng trống thật sự vẫn được giữ theo quy tắc **lines()**, với các terminator đầu ra là LF. Không có dòng rỗng ảo mới được sinh ra *sau* terminator cuối của input.
+- **Adds a trailing LF:** if the input is non-empty and the last line has no terminator, **indent(0)** appends LF. Thus it is not a normalizer that merely replaces CRLF/CR with LF while preserving the exact presence or absence of a trailing newline.
+- **Pre-existing blank lines:** real blank lines are still preserved according to **lines()** rules, with LF output terminators. No new phantom blank line is generated *after* the input's final terminator.
 
-Ví dụ về khác biệt dấu kết thúc:
+Examples of terminator differences:
 
-| Input là Java String literal | Kết quả sau **indent(0)** |
+| Input as Java String literal | Result after **indent(0)** |
 | --- | --- |
 | **""** | **""** |
 | **"A"** | **"A\n"** |
@@ -261,13 +261,13 @@ Ví dụ về khác biệt dấu kết thúc:
 | **"A\n\n"** | **"A\n\n"** |
 | **"\n"** | **"\n"** |
 
-Bảng dùng **ký hiệu Java String literal**: chẳng hạn **"A\n"** chứa một ký tự A và một ký tự LF, không chứa hai ký tự dấu gạch chéo ngược và n.
+The table uses **Java String literal notation**: for example, **"A\n"** contains one character A and one LF character, not the two characters backslash and n.
 
-## 8. Dòng rỗng, whitespace cuối dòng và các trường hợp biên
+## 8. Blank Lines, Trailing Whitespace, and Edge Cases
 
-### 8.1. indent() chỉ sửa phần đầu mỗi dòng
+### 8.1. indent() Only Modifies the Start of Each Line
 
-**indent() không cắt whitespace ở cuối nội dung dòng**:
+**indent() does not trim whitespace at the end of a line's content**:
 
 ~~~java
 String input = "A  \n B  ";
@@ -276,18 +276,18 @@ String out = input.indent(-1);
 System.out.println(out.equals("A  \nB  \n")); // true
 ~~~
 
-Hai dấu cách sau A và hai dấu cách sau B vẫn tồn tại. Muốn cắt khoảng trắng cuối dòng, cần xử lý riêng theo nghiệp vụ.
+The two spaces after A and two spaces after B still remain. If you want to trim trailing whitespace on lines, handle that separately according to business requirements.
 
-### 8.2. Chuỗi có nhiều terminator liên tiếp
+### 8.2. Strings with Consecutive Terminators
 
 ~~~java
 String input = "A\r\n\r\nB";
 System.out.println(input.indent(0).equals("A\n\nB\n")); // true
 ~~~
 
-CRLF là một terminator; CRLF tiếp theo biểu diễn một **dòng rỗng thực sự** giữa A và B. Sau chuẩn hóa, vẫn có một dòng rỗng ở giữa.
+The first CRLF is one terminator; the next CRLF represents a **real blank line** between A and B. After normalization, one blank line remains in the middle.
 
-### 8.3. Chuỗi chỉ chứa dấu cách
+### 8.3. Strings Containing Only Spaces
 
 ~~~java
 String spaces = "   ";
@@ -296,27 +296,27 @@ System.out.println(spaces.indent(-5).equals("\n"));   // true
 System.out.println(spaces.indent(2).equals("     \n")); // true
 ~~~
 
-Đây là **một dòng có nội dung chỉ gồm khoảng trắng**, không phải chuỗi rỗng. Kết quả vẫn có LF cuối dòng. Nếu nghiệp vụ muốn xóa bỏ toàn bộ các dòng trắng, cần quyết định quy tắc rõ ràng; **indent() không mặc định lọc dòng**.
+This is **one line whose content consists solely of whitespace**, not an empty string. The result still has a trailing LF. If your application wants to remove all blank lines, define an explicit rule; **indent() does not filter lines by default**.
 
-### 8.4. Giá trị n cực lớn
+### 8.4. Very Large Values of n
 
-Tránh gọi **indent(n)** với giá trị dương khổng lồ lấy trực tiếp từ người dùng: phép thêm ký tự diễn ra **theo mỗi dòng**, có thể làm bộ nhớ cần thiết tăng mạnh hoặc vượt giới hạn String/heap. Số lượng ký tự được thêm xấp xỉ **n × số dòng**.
+Avoid calling **indent(n)** with huge positive values taken directly from user input: character insertion happens **per line**, which can cause memory usage to grow sharply or exceed String/heap limits. The number of added characters is approximately **n × number of lines**.
 
-Với **n âm**, hành vi là bỏ tối đa số ký tự trắng hiện có, không thể xóa ký tự nội dung. Java xử lý được cả trường hợp **Integer.MIN_VALUE** mà không cần bạn tự lấy **Math.abs(n)**; tự tính **Math.abs(Integer.MIN_VALUE)** trong mã phụ trợ có thể tràn số nguyên nên cần tránh.
+For **negative n**, the behavior is to remove at most the existing whitespace characters, and it can never delete content characters. Java even handles **Integer.MIN_VALUE** without requiring you to compute **Math.abs(n)** yourself; computing **Math.abs(Integer.MIN_VALUE)** in helper code can cause integer overflow and should be avoided.
 
-## 9. So sánh với các phương thức String liên quan
+## 9. Comparison with Related String Methods
 
-| API | Mục đích | Điểm khác so với **indent(int)** |
+| API | Purpose | Difference Compared to **indent(int)** |
 | --- | --- | --- |
-| **lines()** (Java 11+) | Trả một Stream các dòng, bỏ terminator | Không tự thêm/bớt lề hay trả String đã ghép |
-| **stripLeading()** (Java 11+) | Bỏ whitespace ở **đầu toàn bộ String** | Không lặp qua mọi dòng |
-| **stripTrailing()** (Java 11+) | Bỏ whitespace ở **cuối toàn bộ String** | Có thể ảnh hưởng newline cuối, không phải đổi lề từng dòng |
-| **strip()** (Java 11+) | Bỏ whitespace hai đầu toàn bộ String | Không giữ nguyên cấu trúc nhiều dòng theo cùng cách |
-| **stripIndent()** (Java 15+) | Loại common/incidental indentation, xử lý dòng trắng và trailing whitespace | Tính lề tối thiểu từ các dòng phù hợp; không đơn giản là bỏ n ký tự từng dòng |
-| **repeat(int)** (Java 11+) | Lặp toàn bộ String n lần | Không thụt lề theo dòng |
-| **indent(int)** (Java 12+) | Thêm hoặc bỏ tối đa số ký tự trắng đầu **mỗi dòng**, chuẩn hóa LF | Có tham số số lượng và luôn tái tạo terminator dạng LF |
+| **lines()** (Java 11+) | Returns a Stream of lines, stripping terminators | Does not add/remove indentation or return a joined String |
+| **stripLeading()** (Java 11+) | Removes whitespace at the **start of the entire String** | Does not iterate over every line |
+| **stripTrailing()** (Java 11+) | Removes whitespace at the **end of the entire String** | Can affect a trailing newline; does not adjust per-line indentation |
+| **strip()** (Java 11+) | Removes whitespace at both ends of the entire String | Does not preserve multi-line structure in the same way |
+| **stripIndent()** (Java 15+) | Removes common/incidental indentation, handles blank lines and trailing whitespace | Computes minimum indentation across eligible lines; not simply removing n characters per line |
+| **repeat(int)** (Java 11+) | Repeats the entire String n times | Does not indent by line |
+| **indent(int)** (Java 12+) | Adds or removes up to a specified number of leading whitespace chars on **each line**, normalizes to LF | Takes a count parameter and always reconstructs terminators as LF |
 
-### 9.1. indent(-2) khác stripLeading()
+### 9.1. indent(-2) Differs from stripLeading()
 
 ~~~java
 String input = "  A\n  B";
@@ -325,13 +325,13 @@ System.out.println(input.indent(-2).equals("A\nB\n"));   // true
 System.out.println(input.stripLeading().equals("A\n  B")); // true
 ~~~
 
-**stripLeading()** chỉ loại dấu cách ở trước A, vì nó xử lý phần đầu của **toàn bộ chuỗi**; dấu cách trước B nằm sau newline nên vẫn tồn tại.
+**stripLeading()** only removes the spaces before A because it operates on the beginning of the **entire string**; the spaces before B follow a newline and remain intact.
 
-### 9.2. indent(-n) khác stripIndent()
+### 9.2. indent(-n) Differs from stripIndent()
 
-**stripIndent()** (Java 15+) nhằm xử lý common/incidental indentation, đặc biệt phù hợp với text block. Nó xác định mức lề tối thiểu theo quy tắc riêng, loại mức lề ấy ở các dòng thích hợp và loại trailing whitespace theo định nghĩa của phương thức.
+**stripIndent()** (Java 15+) is designed to handle common/incidental indentation, making it especially suitable for text blocks. It determines the minimum indentation according to its own rules, removes that indentation from eligible lines, and removes trailing whitespace per the method's specification.
 
-Ví dụ:
+Example:
 
 ~~~java
 String input = "    A\n  B\n      C";
@@ -340,11 +340,11 @@ String fixed = input.indent(-2);
 System.out.println(fixed.equals("  A\nB\n    C\n")); // true
 ~~~
 
-Trong ví dụ này, nếu mục tiêu là dịch toàn khối để dòng ít thụt nhất chạm lề trái, **stripIndent()** diễn đạt mục tiêu đó tự nhiên hơn. Đừng hoán đổi hai phương thức trong code nếu chưa kiểm tra dòng trống, dòng cuối, trailing whitespace và thay đổi line terminator, vì chúng có quy tắc khác nhau.
+In this example, if the goal is to shift the entire block so the least-indented line touches the left margin, **stripIndent()** expresses that goal more naturally. Do not swap the two methods in code without checking blank lines, the last line, trailing whitespace, and line-terminator changes, because their rules differ.
 
-### 9.3. Text block và indent()
+### 9.3. Text Blocks and indent()
 
-Text block (Java 15+) loại incidental indentation theo quy tắc riêng tại thời điểm tạo giá trị String. Sau đó bạn vẫn có thể gọi **indent()** lên giá trị ấy:
+Text blocks (Java 15+) strip incidental indentation according to their own compile-time rules when constructing the String value. Afterward, you can still call **indent()** on that value:
 
 ~~~java
 String message = """
@@ -355,13 +355,13 @@ String message = """
 System.out.println(message.indent(2).equals("  hello\n  world\n")); // true
 ~~~
 
-Trong ví dụ này, text block gốc đã được xử lý lề chung, rồi **indent(2)** tăng thêm đúng hai dấu cách mỗi dòng.
+In this example, the original text block already had its common indentation stripped, and then **indent(2)** adds exactly two spaces to each line.
 
-Đừng đếm lề dựa chỉ vào vị trí dấu ngoặc text block trong source code: giá trị String thực tế sau khi Java áp dụng text block mới là đầu vào của **indent()**.
+Do not count indentation solely by looking at the text block delimiters in source code: the actual String value after Java applies text-block processing is the input to **indent()**.
 
-## 10. Ứng dụng thực tế
+## 10. Practical Applications
 
-### 10.1. Thụt lề văn bản nhiều dòng trong báo cáo
+### 10.1. Indenting Multi-Line Text in Reports
 
 ~~~java
 String detail = "name: Alice\nrole: developer";
@@ -370,7 +370,7 @@ String report = "User:\n" + detail.indent(2);
 System.out.print(report);
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 User:
@@ -378,9 +378,9 @@ User:
   role: developer
 ~~~
 
-Chọn **print()** để không thêm một newline ngoài ý muốn: **indent(2)** đã đặt LF ở cuối mỗi dòng của **detail**.
+**print()** is chosen so as not to add an unintended extra newline: **indent(2)** already placed an LF at the end of every line in **detail**.
 
-### 10.2. Chuẩn hóa kết thúc dòng từ nguồn khác nhau
+### 10.2. Normalizing Line Endings from Different Sources
 
 ~~~java
 String imported = "first\r\nsecond\rthird";
@@ -389,9 +389,9 @@ String normalized = imported.indent(0);
 System.out.println(normalized.equals("first\nsecond\nthird\n")); // true
 ~~~
 
-Dạng LF thống nhất hữu ích khi so sánh nội dung text theo từng dòng hoặc đưa vào pipeline chỉ chấp nhận LF. Tuy nhiên, nếu checksum/file format yêu cầu giữ nguyên byte hay phân biệt rõ có/không có LF cuối, **indent(0)** là phép biến đổi có ý nghĩa, cần lựa chọn có chủ đích.
+A uniform LF representation is useful when comparing text content line by line or feeding a pipeline that only accepts LF. However, if checksums or file formats require exact byte preservation or distinguishing presence/absence of a trailing LF, **indent(0)** is a meaningful transformation that must be chosen deliberately.
 
-### 10.3. Giảm lề trong đoạn đã có lề cố định
+### 10.3. Reducing Indentation in Fixed-Indent Snippets
 
 ~~~java
 String source = "    GET /users\n    Accept: application/json";
@@ -401,24 +401,24 @@ System.out.println(
         compact.equals("GET /users\nAccept: application/json\n")); // true
 ~~~
 
-Nếu mỗi dòng có ít nhất bốn whitespace đầu dòng, **indent(-4)** loại đúng tối đa bốn ký tự. Nếu có dòng không đủ lề, nó chỉ bỏ phần có thể, không ném lỗi vì thiếu khoảng trắng.
+If each line has at least four leading whitespace characters, **indent(-4)** removes up to four characters. If any line has less indentation, it simply removes what is available without throwing an error for missing whitespace.
 
-## 11. Lỗi thường gặp và cách kiểm tra
+## 11. Common Mistakes and How to Check
 
-1. **Nghĩ indent(0) sẽ giữ nguyên String.** Nó chuẩn hóa CR/CRLF thành LF và thêm LF cuối cho chuỗi không rỗng chưa có terminator. Kiểm tra bằng **equals()**, **length()** hoặc biểu diễn escape.
-2. **Cho rằng n âm sẽ xóa đúng n cột hiển thị.** Tab được tính là một ký tự whitespace, không mở rộng theo tab stop; độ rộng thị giác có thể khác.
-3. **Cho rằng indent(-n) tính common indentation của toàn khối.** Nó xóa tối đa |n| ký tự trên từng dòng độc lập. Khi muốn loại incidental indentation, cân nhắc **stripIndent()**.
-4. **Bỏ qua dòng trống khi n dương.** Dòng trống cũng nhận n dấu cách; có thể trở thành dòng chỉ có whitespace.
-5. **Dùng println() rồi tưởng indent() sinh hai newline.** Nếu String kết quả đã kết thúc bằng LF, **println()** có thể thêm một terminator nữa; dùng **print()** hoặc kiểm soát dấu xuống dòng khi ghép.
-6. **Nghĩ indent() xóa dấu cách cuối dòng.** Nó chỉ chỉnh phần đầu; khoảng trắng ở cuối phần chữ vẫn còn.
-7. **Cho rằng indent() xử lý mọi kiểu Unicode line separator.** Quy tắc tách dòng của **String.lines()** tập trung vào CR, LF, CRLF. Với định dạng dữ liệu khác cần phương án phân tích tương ứng.
-8. **Đem indent(0) vào pipeline nhạy cảm byte mà không cân nhắc.** CRLF sang LF và thêm LF cuối là thay đổi nội dung; có thể làm khác checksum hoặc kết quả so sánh byte.
-9. **Đọc text block như đúng số dấu cách trong source.** Text block đã có xử lý incidental indentation; nên xác minh giá trị String thực tế.
-10. **Dùng n dương không giới hạn với input dài.** Có nguy cơ tăng kích thước dữ liệu và chi phí bộ nhớ rất lớn; ràng buộc độ dài và tham số theo bài toán.
+1. **Thinking indent(0) leaves the String unchanged.** It normalizes CR/CRLF to LF and adds a trailing LF for non-empty strings lacking a terminator. Verify with **equals()**, **length()**, or escaped representation.
+2. **Assuming negative n removes n visual columns.** A tab counts as one whitespace character, not expanded to tab stops; visual width may differ.
+3. **Assuming indent(-n) computes common indentation for the whole block.** It removes at most |n| characters per line independently. When removing incidental indentation, consider **stripIndent()**.
+4. **Overlooking blank lines when n is positive.** Blank lines also receive n spaces and may become whitespace-only lines.
+5. **Using println() and thinking indent() generated two newlines.** Because the resulting String already ends with LF, **println()** adds another terminator; use **print()** or control newlines when concatenating.
+6. **Thinking indent() strips trailing spaces on lines.** It only adjusts the start of lines; whitespace at the end of text remains.
+7. **Assuming indent() handles all Unicode line separators.** **String.lines()** line-splitting rules focus on CR, LF, and CRLF. For other data formats, use an appropriate parsing strategy.
+8. **Putting indent(0) into a byte-sensitive pipeline without thought.** Converting CRLF to LF and adding a trailing LF alters content; this can change checksums or byte-level comparisons.
+9. **Reading a text block as having the exact number of spaces shown in source.** Text blocks already undergo incidental indentation removal; verify the actual String value.
+10. **Using unbounded positive n with long inputs.** Risks huge data expansion and high memory cost; constrain input length and parameters according to your problem.
 
-## 12. Tự kiểm tra nhanh
+## 12. Quick Self-Check
 
-Dự đoán kết quả rồi chạy các lệnh sau trong Java 17+:
+Predict the outputs, then run the following statements in Java 17+:
 
 ~~~java
 System.out.println("A".indent(0).equals("A\n"));
@@ -429,26 +429,26 @@ System.out.println("\tX".indent(-1).equals("X\n"));
 System.out.println("".indent(3).equals(""));
 ~~~
 
-**Cả sáu dòng đều in true.** Nếu một kết quả gây bất ngờ, hãy xác định:
+**All six lines print true.** If any result surprises you, trace:
 
-- Chuỗi gồm bao nhiêu dòng theo **lines()**?
-- Mỗi dòng có bao nhiêu ký tự whitespace ở đầu?
-- Phần đó bị **cộng n space** hay **trừ tối đa |n| whitespace**?
-- Sau cùng, từng dòng có được nối bằng LF hay không?
+- How many lines does the string have according to **lines()**?
+- How many leading whitespace characters does each line have?
+- Does that prefix get **n spaces added** or **up to |n| whitespace characters removed**?
+- Finally, is every line terminated with LF?
 
-## 13. Ghi nhớ
+## 13. Key Takeaways
 
-**String.indent(int n)** là thao tác **theo dòng**:
+**String.indent(int n)** is a **line-by-line** operation:
 
-- **n dương:** thêm n dấu cách đầu **mọi dòng**, kể cả dòng trống.
-- **n âm:** xóa tối đa |n| ký tự whitespace đầu từng dòng; tab được tính là một ký tự.
-- **n bằng 0:** không đổi nội dung từng dòng, nhưng vẫn chuẩn hóa **CR/CRLF/LF → LF**.
-- **Input rỗng:** output rỗng; **input không rỗng:** kết quả có LF sau dòng cuối.
-- **Whitespace cuối dòng:** không bị xóa bởi **indent()**.
+- **Positive n:** adds n spaces at the start of **every line**, including blank lines.
+- **Negative n:** removes up to |n| leading whitespace characters per line; a tab counts as one character.
+- **n equals 0:** keeps line content unchanged, but still normalizes **CR/CRLF/LF → LF**.
+- **Empty input:** empty output; **non-empty input:** result ends with LF after the final line.
+- **Trailing whitespace on lines:** is not removed by **indent()**.
 
-Khi lựa chọn API, hãy phân biệt rõ ba nhu cầu: **đổi lề theo số lượng xác định** (**indent**), **loại lề chung của khối** (**stripIndent**) và **chỉ xử lý đầu/cuối toàn bộ String** (**stripLeading/stripTrailing/strip**).
+When choosing an API, clearly distinguish three needs: **changing indentation by a fixed amount** (**indent**), **removing common block indentation** (**stripIndent**), and **trimming only the start/end of the entire String** (**stripLeading/stripTrailing/strip**).
 
-### Tài liệu tham khảo chính thức
+### Official References
 
-- Java SE 17, **String.indent(int)**, **String.lines()** và **String.stripIndent()**: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html
+- Java SE 17, **String.indent(int)**, **String.lines()**, and **String.stripIndent()**: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html
 - Java SE 17, **Character.isWhitespace(int)**: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html

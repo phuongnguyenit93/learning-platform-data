@@ -1,46 +1,46 @@
-# Cân nhắc boxing, mảng varargs và chi phí trên đường chạy thường xuyên khi cài đặt `hashCode()`
+# Considering Boxing, Varargs Arrays, and Hot-Path Costs When Implementing `hashCode()`
 
-## 1. Bối cảnh: `hashCode()` đúng trước, tối ưu sau
+## 1. Context: Correct `hashCode()` First, Optimize Later
 
-Trong Java, `hashCode()` trả về một số nguyên 32 bit đại diện cho đối tượng phục vụ những cấu trúc dữ liệu dựa trên hash, chẳng hạn `HashMap` và `HashSet`. Khi ghi đè `equals()`, thông thường cũng phải ghi đè `hashCode()`. Hợp đồng cốt lõi là:
+In Java, `hashCode()` returns a 32-bit integer representing an object for hash-based data structures such as `HashMap` and `HashSet`. Whenever you override `equals()`, you normally must also override `hashCode()`. The core contract is:
 
-- Nếu `a.equals(b)` trả về `true` thì **bắt buộc** `a.hashCode() == b.hashCode()`.
-- Các lời gọi `hashCode()` lặp lại phải cho cùng giá trị khi các thông tin ảnh hưởng đến phép so sánh bằng nhau không đổi.
-- Hai đối tượng **không bằng nhau** vẫn có thể trùng hash; mã băm không phải ID duy nhất và không phải mã băm mật mã.
-- Việc tràn số nguyên (`int overflow`) trong phép nhân/cộng hash là bình thường trong Java; công thức phổ biến dùng kiểu `int`.
+- If `a.equals(b)` returns `true`, then `a.hashCode() == b.hashCode()` **must** hold.
+- Repeated calls to `hashCode()` must return the same value as long as information affecting equality comparisons has not changed.
+- Two **unequal** objects may still share the same hash; a hash code is neither a unique ID nor a cryptographic hash.
+- Integer overflow (`int overflow`) during hash multiplication/addition is normal in Java; common formulas use `int` arithmetic.
 
-Ở bài này, trọng tâm là **chi phí thực thi** khi tính hash nhiều lần, đặc biệt với phương thức tiện dụng `Objects.hash(Object... values)`. Cần phân biệt **tính đúng** của kết quả với **hiệu suất** của cách tạo ra kết quả. Không được bỏ qua trường dùng trong `equals()` chỉ để tăng tốc nếu điều đó khiến những đối tượng bằng nhau nhận mã băm khác nhau.
+In this lesson, the focus is **execution cost** when computing hashes repeatedly, especially with the convenience method `Objects.hash(Object... values)`. You must distinguish **correctness** of the result from **performance** of how it is produced. Never omit a field used in `equals()` just to speed things up if doing so could cause equal objects to receive different hash codes.
 
-Hai cách phổ biến:
+Two common approaches:
 
 ~~~java
-// Ngắn gọn, tiện khi mã hashCode không nằm trên đường chạy nóng:
+// Concise, convenient when hashCode is not on a hot path:
 return Objects.hash(id, version, name);
 
-// Kết hợp trực tiếp, tránh dựng bộ tham số varargs ở mã nguồn:
+// Direct combination, avoiding building a varargs array in source code:
 int result = Integer.hashCode(id);
 result = 31 * result + Long.hashCode(version);
 result = 31 * result + Objects.hashCode(name);
 return result;
 ~~~
 
-Cả hai đều có thể **đúng hợp đồng** khi dùng các trường phù hợp, nhưng **không bắt buộc tạo cùng con số**: thuật toán khởi tạo và kết hợp khác nhau. Không trộn hai thuật toán trong các đối tượng cần bằng nhau. Nếu lớp đã phát hành hash dùng để lưu trữ bền vững hay truyền qua hệ thống, còn có ràng buộc riêng về khả năng tương thích; hợp đồng `Object.hashCode()` nói chung **không** hứa hẹn ổn định giữa các lần chạy/JVM hay triển khai.
+Both can be **contract-compliant** when using the right fields, though they **are not required to produce the same number**: their initialization and combining algorithms differ. Do not mix the two algorithms across objects that need to be equal. If a class already publishes hashes for persistent storage or cross-system transfer, separate compatibility constraints apply; the general `Object.hashCode()` contract **does not** promise stability across runs, JVMs, or implementations.
 
-## 2. `Objects.hash(...)` thực hiện những gì?
+## 2. What Does `Objects.hash(...)` Actually Do?
 
-Chữ ký:
+Signature:
 
 ~~~java
 public static int hash(Object... values)
 ~~~
 
-Cú pháp `Object...` là **varargs**. Khi gọi với danh sách đối số thông thường, trình biên dịch cần cung cấp một mảng `Object[]` chứa các đối số. Về ý nghĩa, lời gọi:
+The `Object...` syntax is **varargs**. When called with a normal argument list, the compiler must provide an `Object[]` array holding the arguments. Semantically, the call:
 
 ~~~java
 Objects.hash(userId, attempt, region)
 ~~~
 
-tương đương với thao tác tạo tập các tham số:
+is equivalent to constructing the argument array:
 
 ~~~java
 Objects.hash(new Object[] {
@@ -50,9 +50,9 @@ Objects.hash(new Object[] {
 })
 ~~~
 
-Giả sử `userId` là `int`, `attempt` là `long` và `region` là `String`. Các wrapper `Integer` và `Long` xuất hiện do **autoboxing** từ kiểu nguyên thủy sang kiểu tham chiếu; biến `region` đã là tham chiếu nên không cần boxing.
+Assume `userId` is `int`, `attempt` is `long`, and `region` is `String`. The `Integer` and `Long` wrappers appear due to **autoboxing** from primitive types to reference types; `region` is already a reference so it needs no boxing.
 
-Bên trong `Objects.hash`, JDK sử dụng `Arrays.hashCode(Object[])` để duyệt các phần tử và kết hợp hash của chúng. Với mảng đối tượng, công thức kết hợp tương ứng là:
+Inside `Objects.hash`, the JDK uses `Arrays.hashCode(Object[])` to iterate over the elements and combine their hashes. For an object array, the corresponding combining formula is:
 
 ~~~text
 result = 1
@@ -60,34 +60,34 @@ for each element:
     result = 31 * result + (element == null ? 0 : element.hashCode())
 ~~~
 
-Nếu đối số là primitive đã boxing, hash được lấy từ wrapper tương ứng. Một số chi phí tiềm năng:
+If an argument is a boxed primitive, its hash is obtained from the corresponding wrapper. Potential costs include:
 
-1. **Tạo mảng varargs `Object[]`** cho lời gọi ở mã nguồn có các đối số riêng lẻ.
-2. **Boxing primitive** thành đối tượng wrapper/giá trị tham chiếu tương ứng.
-3. **Đọc các phần tử của mảng** và gọi logic `hashCode()` của từng phần tử.
-4. **Chi phí bộ nhớ và GC** nếu JVM không thể loại bỏ các đối tượng tạm; nhiều lời gọi có thể tạo áp lực cấp phát.
+1. **Allocating the varargs `Object[]` array** for source-level calls with individual arguments.
+2. **Boxing primitives** into their corresponding wrapper objects/reference values.
+3. **Reading array elements** and invoking each element's `hashCode()` logic.
+4. **Memory and GC overhead** if the JVM cannot eliminate the temporary objects; frequent calls can create allocation pressure.
 
-Điểm cần hiểu chính xác: **không phải mọi lời gọi `Objects.hash(...)` đều chắc chắn cấp phát trên heap khi chạy thực tế**. JIT (đặc biệt escape analysis, inlining và scalar replacement khi điều kiện cho phép) có thể khử một phần hoặc toàn bộ đối tượng tạm. Boxing cũng có cơ chế cache cho một số giá trị. Khả năng tối ưu phụ thuộc phiên bản JVM, mã thực tế, độ nóng của phương thức, kiểu dữ liệu và ngữ cảnh lời gọi. Vì thế đánh giá chi phí cần dựa vào **profile/benchmark trên ứng dụng đang xét**, không khẳng định một hệ số chậm cố định.
+An important accuracy point: **not every `Objects.hash(...)` call is guaranteed to allocate on the heap at runtime**. The JIT compiler (especially escape analysis, inlining, and scalar replacement when conditions permit) can eliminate some or all temporary objects. Boxing also caches certain value ranges. Optimization capability depends on the JVM version, actual code, method hotness, data types, and call context. Therefore, cost evaluation must rely on **profiling/benchmarking on the target application**, rather than claiming a fixed slowdown factor.
 
-## 3. `Objects.hashCode(Object)` khác `Objects.hash(Object...)`
+## 3. `Objects.hashCode(Object)` vs. `Objects.hash(Object...)`
 
-Hai API có tên gần giống nhưng **không giống nhau**:
+Two similarly named APIs are **not the same**:
 
-| API | Ý nghĩa |
+| API | Meaning |
 | --- | --- |
-| `Objects.hashCode(value)` | Nếu `value == null` thì trả `0`, ngược lại gọi `value.hashCode()`. Một tham chiếu, không cần mảng varargs. |
-| `Objects.hash(values...)` | Kết hợp mã băm của **danh sách đối số** bằng `Arrays.hashCode(Object[])`; áp dụng thuật toán mảng có giá trị bắt đầu bằng `1`. |
-| `Integer.hashCode(int)`, `Long.hashCode(long)`, `Boolean.hashCode(boolean)` | Tính hash từ primitive với API chuyên biệt, không cần tạo wrapper chỉ để gọi hash. |
-| `Arrays.hashCode(int[])` và các overload cho mảng primitive | Tính hash **theo nội dung mảng**, không boxing mỗi phần tử vào `Object[]`. |
-| `Arrays.hashCode(Object[])` | Tính hash lần lượt theo các phần tử object; nếu phần tử là mảng lồng nhau thì không tự đi sâu vào nội dung. |
+| `Objects.hashCode(value)` | Returns `0` if `value == null`, otherwise calls `value.hashCode()`. Single reference, no varargs array. |
+| `Objects.hash(values...)` | Combines hash codes of an **argument list** using `Arrays.hashCode(Object[])`; applies the array algorithm starting at `1`. |
+| `Integer.hashCode(int)`, `Long.hashCode(long)`, `Boolean.hashCode(boolean)` | Computes hashes from primitives via dedicated APIs, without creating wrappers just to hash. |
+| `Arrays.hashCode(int[])` and primitive array overloads | Computes hash **over array contents**, without boxing each element into an `Object[]`. |
+| `Arrays.hashCode(Object[])` | Computes hash sequentially over object elements; if an element is a nested array, it does not recurse into its contents automatically. |
 
-Ví dụ với một đối tượng `String` không null, `Objects.hashCode("a")` trả mã băm trực tiếp của chuỗi, còn `Objects.hash("a")` trả công thức `31 * 1 + "a".hashCode()`. Hai kết quả khác nhau không phải lỗi.
+For example, with a non-null `String` object, `Objects.hashCode("a")` returns the string's hash code directly, while `Objects.hash("a")` returns `31 * 1 + "a".hashCode()`. The two results differing is not a bug.
 
-Ví dụ biểu thức `Objects.hashCode(name)` hữu ích khi kết hợp hash trực tiếp vì xử lý được `name == null` mà không phải gọi varargs.
+An expression like `Objects.hashCode(name)` is useful in direct combinations because it handles `name == null` without a varargs call.
 
-## 4. Ví dụ chạy được: tiện dụng với `Objects.hash` và mã kết hợp trực tiếp
+## 4. Runnable Example: Convenient `Objects.hash` vs. Direct Combination
 
-Tạo tệp `HashCostDemo.java`:
+Create the file `HashCostDemo.java`:
 
 ~~~java
 import java.util.HashMap;
@@ -115,7 +115,7 @@ public class HashCostDemo {
                     && Objects.equals(region, other.region);
         }
 
-        // Không cần tạo Object[] và boxing trong logic nguồn.
+        // No Object[] allocation or boxing in source-level logic.
         @Override
         public int hashCode() {
             int result = Integer.hashCode(id);
@@ -124,7 +124,7 @@ public class HashCostDemo {
             return result;
         }
 
-        // Phương án ngắn gọn: có thể mang chi phí varargs/boxing.
+        // Concise alternative: may incur varargs/boxing overhead.
         int hashWithObjects() {
             return Objects.hash(id, revision, region);
         }
@@ -149,7 +149,7 @@ public class HashCostDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng Java 17+:
+Compile and run with Java 17+:
 
 ~~~bash
 javac -encoding UTF-8 HashCostDemo.java
@@ -166,43 +166,43 @@ Objects.hash hashes match: true
 lookup equal key: present
 ~~~
 
-Giải thích:
+Explanation:
 
-- `equals()` sử dụng các trường `id`, `revision` và `region`; `hashCode()` cũng kết hợp đúng các trường đó.
-- `Integer.hashCode(id)` và `Long.hashCode(revision)` tính trực tiếp trên primitive; `Objects.hashCode(region)` xử lý tham chiếu có thể null.
-- `hashWithObjects()` cho thấy cách viết gọn cũng sinh hash nhất quán cho các giá trị bằng nhau. **Không có yêu cầu** `hashWithObjects()` phải bằng `hashCode()` vì hai công thức có thể khác nhau.
-- `HashMap` tìm lại được giá trị bằng khóa `same` dù `first` và `same` là hai đối tượng riêng biệt, vì `equals` và `hashCode` của lớp tuân hợp đồng.
-- Lớp `UserKey` là `final` và các trường là `final` nên ví dụ tránh thay đổi dữ liệu hash sau khi đưa vào map.
+- `equals()` uses the fields `id`, `revision`, and `region`; `hashCode()` combines those exact same fields.
+- `Integer.hashCode(id)` and `Long.hashCode(revision)` compute directly on primitives; `Objects.hashCode(region)` handles the nullable reference.
+- `hashWithObjects()` shows that the concise form also produces consistent hashes for equal values. There is **no requirement** that `hashWithObjects()` equal `hashCode()`, since two formulas may differ.
+- `HashMap` retrieves the value using key `same` even though `first` and `same` are two distinct objects, because the class's `equals` and `hashCode` obey the contract.
+- The `UserKey` class and its fields are `final`, so the example prevents mutating hash data after insertion into the map.
 
-## 5. Mảng primitive, mảng object và bẫy varargs
+## 5. Primitive Arrays, Object Arrays, and Varargs Pitfalls
 
-### Bẫy A: `Objects.hash(primitiveArray)` không băm theo từng phần tử primitive
+### Pitfall A: `Objects.hash(primitiveArray)` Does Not Hash Each Primitive Element
 
-Mảng `int[]` hay `byte[]` là **một đối tượng duy nhất**, không phải `Object[]`. Vì thế gọi `Objects.hash(bytes)` với `bytes` có kiểu `byte[]` về bản chất đưa **một tham chiếu mảng** vào varargs. `Arrays.hashCode(Object[])` ở bên trong sẽ dùng `bytes.hashCode()` (hash của bản thân đối tượng mảng, không dựa trên nội dung các byte).
+An `int[]` or `byte[]` array is **a single object**, not an `Object[]`. Therefore, calling `Objects.hash(bytes)` where `bytes` has type `byte[]` essentially passes **one array reference** into varargs. Inside, `Arrays.hashCode(Object[])` invokes `bytes.hashCode()` (the hash of the array object itself, not based on the byte contents).
 
-Đặc biệt nguy hiểm khi `equals()` của lớp dùng `Arrays.equals(a, b)` để so **nội dung**, nhưng `hashCode()` lại dùng `Objects.hash(a)`: hai mảng có cùng nội dung có thể có mã băm khác nhau, **vi phạm hợp đồng**.
+This is especially dangerous when a class's `equals()` uses `Arrays.equals(a, b)` to compare **contents**, while `hashCode()` uses `Objects.hash(a)`: two arrays with identical contents can have different hash codes, **violating the contract**.
 
-Đúng: nếu `equals()` so nội dung mảng primitive, hash cũng dùng `Arrays.hashCode(primitiveArray)`. Với mảng nhiều chiều chứa mảng lồng nhau và equals dùng `Arrays.deepEquals`, cân nhắc `Arrays.deepHashCode`.
+Right approach: if `equals()` compares primitive array contents, the hash also uses `Arrays.hashCode(primitiveArray)`. For multidimensional arrays containing nested arrays where `equals` uses `Arrays.deepEquals`, consider `Arrays.deepHashCode`.
 
-### Bẫy B: mảng kiểu tham chiếu có thể được dùng làm chính mảng varargs
+### Pitfall B: A Reference-Typed Array Can Be Treated as the Varargs Array Itself
 
-Với `String[] tags`, lời gọi `Objects.hash(tags)` có thể được Java coi là truyền thẳng `tags` làm **mảng varargs `Object[]`**, tức hash theo **các phần tử của tags**; khác hoàn toàn với `Objects.hash((Object) tags)`, nơi ép kiểu buộc `tags` thành **một đối số đối tượng**. Trong trường hợp gọi mơ hồ, trình biên dịch có thể cảnh báo về lời gọi varargs.
+With `String[] tags`, calling `Objects.hash(tags)` may be interpreted by Java as passing `tags` directly as the **`Object[]` varargs array**, meaning it hashes **the elements of `tags`**; this differs completely from `Objects.hash((Object) tags)`, where the cast forces `tags` to be **a single object argument**. In ambiguous call cases, the compiler may emit a varargs warning.
 
-Do đó:
+Thus:
 
 ~~~java
 String[] tags = {"core", "java"};
 
-int elementsHash = Objects.hash((Object[]) tags); // Các phần tử là đối số.
-int arrayObjectHash = Objects.hash((Object) tags); // Toàn bộ mảng là một đối số.
-int contentHash = java.util.Arrays.hashCode(tags); // Rõ ý định băm nội dung.
+int elementsHash = Objects.hash((Object[]) tags); // Elements are the arguments.
+int arrayObjectHash = Objects.hash((Object) tags); // Whole array is a single argument.
+int contentHash = java.util.Arrays.hashCode(tags); // Clear intent to hash contents.
 ~~~
 
-Ba biểu thức đều hợp lệ nhưng không cùng ý nghĩa. Khi cần hash nội dung mảng, **viết rõ `Arrays.hashCode(tags)`** sẽ dễ đọc, ít nhầm lẫn hơn. Nếu phần tử lại là mảng, kiểm tra thêm nhu cầu băm nông/sâu.
+All three expressions are valid, but they do not mean the same thing. When you need to hash array contents, **explicitly writing `Arrays.hashCode(tags)`** is clearer and less error-prone. If elements themselves are arrays, also check whether shallow or deep hashing is needed.
 
-### Ví dụ chạy được: băm nội dung mảng
+### Runnable Example: Hashing Array Contents
 
-Tạo tệp `ArrayHashDemo.java`:
+Create the file `ArrayHashDemo.java`:
 
 ~~~java
 import java.util.Arrays;
@@ -213,7 +213,7 @@ public class ArrayHashDemo {
         private final byte[] bytes;
 
         PayloadKey(byte[] bytes) {
-            this.bytes = bytes.clone(); // Sao chép phòng vệ, tránh sửa từ bên ngoài.
+            this.bytes = bytes.clone(); // Defensive copy to prevent external mutation.
         }
 
         @Override
@@ -263,11 +263,11 @@ content hashes equal: true
 object array elements: true
 ~~~
 
-Không dùng mã hash theo danh tính mảng để thử sự khác nhau bằng cách in một số hash và suy ra “luôn khác”: các mã hash có thể va chạm. Điều chắc chắn là hash mặc định của đối tượng mảng **không định nghĩa phép băm theo nội dung**.
+Do not use an array's identity-based hash code to test inequality by printing a few hashes and concluding "always different": hash codes can collide. What is certain is that the default `Object` hash on an array object **does not define content-based hashing**.
 
-## 6. Lựa chọn thuật toán hash trực tiếp
+## 6. Choosing a Direct Hashing Formula
 
-Khi `hashCode()` là điểm nóng và dữ liệu gồm các primitive/trường đơn giản, một cách viết rõ ràng là:
+When `hashCode()` is a hot spot and the data consists of primitives/simple fields, a clear way to write it is:
 
 ~~~java
 int result = Integer.hashCode(id);
@@ -278,109 +278,109 @@ result = 31 * result + Arrays.hashCode(payload);
 return result;
 ~~~
 
-Đây là đoạn **minh họa** trong một lớp có các trường `id` (`int`), `sequence` (`long`), `active` (`boolean`), `name` (tham chiếu String) và `payload` (`byte[]`), với import `Objects` và `Arrays` tương ứng. Đoạn này giả định `equals()` cũng so toàn bộ các trường trên và dùng `Arrays.equals` cho `payload`.
+This is an **illustrative** snippet inside a class with fields `id` (`int`), `sequence` (`long`), `active` (`boolean`), `name` (`String` reference), and `payload` (`byte[]`), with corresponding `Objects` and `Arrays` imports. It assumes `equals()` also compares all those fields and uses `Arrays.equals` for `payload`.
 
-Ý nghĩa:
+Meaning:
 
-- `Integer.hashCode(int)` trả về giá trị của `int`.
-- `Long.hashCode(long)` kết hợp hai nửa 32 bit của `long`.
-- `Boolean.hashCode(boolean)` dùng hai giá trị hash xác định cho `true` và `false`.
-- `Objects.hashCode(name)` nhận `null` an toàn và không cần varargs.
-- `Arrays.hashCode(payload)` dùng thuật toán theo nội dung mảng và các overload chuyên biệt cho kiểu primitive.
-- Hệ số `31` là cách kết hợp quen thuộc, cho phép phân biệt phần nào vị trí/trật tự trường; nó không thể đảm bảo tránh va chạm hoàn toàn.
+- `Integer.hashCode(int)` returns the `int` value.
+- `Long.hashCode(long)` combines both 32-bit halves of `long`.
+- `Boolean.hashCode(boolean)` uses two deterministic hash values for `true` and `false`.
+- `Objects.hashCode(name)` handles `null` safely without varargs.
+- `Arrays.hashCode(payload)` uses the content-based array algorithm and specialized primitive overloads.
+- Multiplier `31` is a familiar combining convention that distinguishes field positions/ordering to some degree; it cannot guarantee zero collisions.
 
-**Cân nhắc công thức khi lớp chỉ có một trường:** `return Integer.hashCode(id);` hoặc `return Objects.hashCode(name);` thường rõ ràng và tránh vòng kết hợp thừa. Nếu đối tượng có nhiều trường, thứ tự kết hợp phải nhất quán giữa các đối tượng cùng kiểu; `equals()` vẫn là căn cứ để chọn tập trường phù hợp.
+**Formula consideration when a class has only one field:** `return Integer.hashCode(id);` or `return Objects.hashCode(name);` is usually clear and avoids an unnecessary combining step. If an object has multiple fields, the combining order must remain consistent across instances of the same type; `equals()` remains the basis for choosing the field set.
 
-### So sánh băm số thực
+### Comparing Floating-Point Hashing
 
-Với `float`/`double`, đừng tự ép kiểu về `int` vì có thể làm mất quá nhiều thông tin và tạo hash không tương thích với chính sách `equals()`. Nếu `equals()` dựa vào `Float.compare` hoặc `Double.compare` cho trường tương ứng, dùng `Float.hashCode` hoặc `Double.hashCode` là lựa chọn thường phù hợp. Phải nhất quán về cách xử lý `NaN`, dấu của zero và trường hợp giá trị thay đổi; tuyệt đối không mặc định mọi kiểu so sánh số thực là như nhau.
+For `float`/`double`, do not cast to `int` yourself, as that can drop too much information and produce hashes incompatible with your `equals()` policy. If `equals()` relies on `Float.compare` or `Double.compare` for the corresponding field, `Float.hashCode` or `Double.hashCode` is usually the appropriate choice. You must be consistent regarding `NaN`, the sign of zero, and value mutation; never assume all floating-point comparisons behave identically.
 
-## 7. Quan sát bytecode và hiểu giới hạn của phân tích tĩnh
+## 7. Observing Bytecode and Understanding the Limits of Static Analysis
 
-Trong mã nguồn, lời gọi `Objects.hash(id, sequence, name)` với `int`, `long` và `String` thường khiến trình biên dịch sinh mã để:
+In source code, calling `Objects.hash(id, sequence, name)` with `int`, `long`, and `String` usually causes the compiler to emit instructions to:
 
-1. Tạo một `Object[]` kích thước 3.
-2. Đóng gói `id` qua `Integer.valueOf`, `sequence` qua `Long.valueOf`.
-3. Đưa các phần tử vào mảng.
-4. Gọi `Objects.hash(Object...)`.
+1. Create an `Object[]` of size 3.
+2. Box `id` via `Integer.valueOf` and `sequence` via `Long.valueOf`.
+3. Store the elements into the array.
+4. Invoke `Objects.hash(Object...)`.
 
-Có thể tự quan sát hình dạng bytecode trên Java 17+ với ví dụ `HashCostDemo.java` ở trên:
+You can inspect the bytecode shape yourself on Java 17+ using the `HashCostDemo.java` example above:
 
 ~~~bash
 javac -encoding UTF-8 HashCostDemo.java
 javap -c -p 'HashCostDemo$UserKey'
 ~~~
 
-Lệnh `javap` hiển thị bytecode. Tìm trong phương thức `hashWithObjects` các chỉ dẫn tương ứng với `anewarray`, `Integer.valueOf`, `Long.valueOf` và lời gọi `Objects.hash`. Phương thức `hashCode` thủ công có thể cho thấy các lời gọi `Integer.hashCode`, `Long.hashCode`, `Objects.hashCode` và phép toán `imul/iadd`.
+The `javap` command displays the bytecode. Look inside `hashWithObjects` for instructions corresponding to `anewarray`, `Integer.valueOf`, `Long.valueOf`, and the `Objects.hash` invocation. The manual `hashCode` method may show calls to `Integer.hashCode`, `Long.hashCode`, `Objects.hashCode`, and `imul`/`iadd` instructions.
 
-Cần phân biệt:
+Keep the distinction clear:
 
-- **Bytecode** chứng minh hình dạng công việc mà trình biên dịch phát ra.
-- **Máy ảo khi chạy** có thể inline, loại bỏ cấp phát hoặc tối ưu khác; vì vậy bytecode có lệnh tạo mảng **không chứng minh** có một cấp phát heap cho mỗi lần gọi lúc chương trình đã được JIT tối ưu.
-- Các chỉ dẫn chi tiết có thể thay đổi theo trình biên dịch và JDK. Đừng dựa vào một danh sách opcode cố định làm tiêu chí hiệu năng.
+- **Bytecode** shows the shape of work emitted by the compiler.
+- **The runtime VM** can inline, eliminate allocations, or apply other optimizations; therefore, an array-creation opcode in bytecode **does not prove** a heap allocation occurs on every call once JIT-optimized.
+- Detailed instructions can vary across compilers and JDK versions. Do not rely on a fixed list of opcodes as a performance metric.
 
-Nếu chạy qua PowerShell và dấu nháy của tên lớp lồng gây rắc rối, dùng đúng tên file `HashCostDemo$UserKey.class` với `javap` theo cú pháp phù hợp shell; dấu `$` trong tên lớp lồng cần được bảo vệ khỏi cơ chế nội suy biến của shell.
+If running in PowerShell and quotes around the nested class name cause trouble, pass the exact file `HashCostDemo$UserKey.class` to `javap` using shell-appropriate escaping; the `$` in the nested class name must be protected from shell variable interpolation.
 
-## 8. Khi nào chi phí này thực sự quan trọng?
+## 8. When Does This Cost Actually Matter?
 
-`hashCode()` có thể được gọi nhiều lần trong các thao tác tra cứu, chèn, xóa trên `HashMap`/`HashSet`, các bộ cache, phép đối chiếu khóa và tập dữ liệu lớn. Chi phí của mảng tạm và boxing có thể đáng chú ý khi đồng thời thỏa các điều kiện:
+`hashCode()` can be called repeatedly during lookups, insertions, and removals in `HashMap`/`HashSet`, caches, key matching, and large datasets. The cost of temporary arrays and boxing can become noticeable when all of the following conditions hold simultaneously:
 
-- Lời gọi hash nằm trên **đường chạy thường xuyên** (hot path).
-- Khóa có các trường primitive được truyền qua `Objects.hash(...)` liên tục.
-- Phần tính hash khác tương đối rẻ, làm overhead mảng/boxing chiếm tỷ trọng rõ ràng.
-- JVM không khử hoàn toàn những đối tượng tạm trong môi trường thực.
-- Tốc độ hoặc allocation/GC thực sự là yếu tố giới hạn quan sát được.
+- The hash call lies on a **hot path**.
+- Keys have primitive fields passed continuously through `Objects.hash(...)`.
+- The rest of the hash calculation is relatively cheap, making array/boxing overhead a significant fraction.
+- The JVM does not fully eliminate the temporary objects in the real runtime environment.
+- Speed or allocation/GC is genuinely an observed bottleneck.
 
-Ngược lại, chi phí thường **không đáng ưu tiên** nếu hash rất hiếm khi tính, chương trình chủ yếu chờ I/O, chi phí xử lý trường nặng hơn nhiều, hoặc JIT đã loại bỏ overhead. Trường hợp này, `Objects.hash(...)` thường dễ viết và dễ bảo trì hơn. Tối ưu không có số đo có thể làm mã phức tạp hơn mà không cải thiện thời gian phản hồi thực tế.
+Conversely, the cost is usually **not a priority** if hashing is rarely invoked, the program is mostly I/O-bound, processing the fields themselves is far heavier, or the JIT already eliminates the overhead. In such cases, `Objects.hash(...)` is often easier to write and maintain. Optimizing without measurements can complicate code without improving actual response times.
 
-### Cách đo đáng tin
+### How to Measure Reliably
 
-1. **Xác định đúng phạm vi:** đo riêng cách tính hash nếu muốn so chi phí triển khai; đo cả `Map.get/put` nếu quan tâm trải nghiệm lookup thực tế.
-2. **Dùng JMH** (Java Microbenchmark Harness) khi đo microbenchmark: warmup, đo nhiều lần, dùng nhiều fork, kiểm soát tình huống dữ liệu và trạng thái JIT.
-3. **Tiêu thụ kết quả** bằng JMH `Blackhole` hoặc cơ chế hợp lệ để tránh dead-code elimination; không dùng vòng lặp tính một hằng số rồi suy ra thời gian hash thực.
-4. **So tương đương:** hai cách hash cùng các trường, cùng chính sách `equals()`, cùng dữ liệu null/không null, cùng dạng phân phối, cùng tỷ lệ nóng/lạnh.
-5. **Đo thêm cấp phát/GC** (chẳng hạn profiler hoặc công cụ đo allocation) để phân biệt hiệu ứng boxing/varargs với tốc độ tính toán thuần.
-6. **Kiểm tra môi trường gần thực tế:** cùng JDK, kiến trúc CPU, heap/GC và điều kiện vận hành có ý nghĩa với ứng dụng.
-7. **Đọc thống kê có độ dao động:** nhiều lần thử, so khoảng biến động; một kết quả nanosecond đơn lẻ không đủ để đưa ra kết luận chung.
+1. **Define the right scope:** benchmark the hash computation alone to compare implementation cost; benchmark `Map.get`/`put` as well if you care about real lookup throughput.
+2. **Use JMH** (Java Microbenchmark Harness) for microbenchmarks: warmup, multiple iterations, multiple forks, controlled data scenarios, and JIT state.
+3. **Consume results** with JMH `Blackhole` or another valid mechanism to prevent dead-code elimination; do not loop over a constant input and extrapolate real hash timing.
+4. **Compare equivalents:** both hash approaches must cover the same fields, same `equals()` policy, same null/non-null data, same distribution shape, and same hot/cold ratio.
+5. **Measure allocation/GC as well** (e.g., with a profiler or allocation tracker) to separate boxing/varargs effects from pure compute speed.
+6. **Test in a near-production environment:** same JDK, CPU architecture, heap/GC settings, and operational conditions meaningful to the application.
+7. **Read statistics with variance:** multiple trials, compare dispersion ranges; a single nanosecond reading is not enough to draw general conclusions.
 
-Một vòng lặp tự viết với `System.nanoTime()` mà thiếu warmup, tiêu thụ kết quả và kiểm soát tối ưu JIT **không đủ tin cậy** để tuyên bố `Objects.hash` nhanh/chậm hơn bao nhiêu lần. Không có một con số tốc độ cố định áp dụng cho mọi JDK và mọi chương trình.
+A hand-rolled `System.nanoTime()` loop lacking warmup, result consumption, and JIT optimization controls **is not reliable enough** to claim by what factor `Objects.hash` is faster or slower. No fixed speed ratio applies across every JDK and every program.
 
-## 9. Cache mã hash có phải giải pháp tốt hơn không?
+## 9. Is Caching the Hash Code a Better Solution?
 
-Với **đối tượng bất biến** được truy cập nhiều lần và hash tốn kém (ví dụ chứa mảng lớn), lưu sẵn mã băm có thể là một lựa chọn. Nhưng phải cân nhắc:
+For **immutable objects** accessed repeatedly where hashing is expensive (e.g., containing large arrays), precomputing or caching the hash code can be an option. However, you must consider:
 
-- Tất cả dữ liệu tham gia `equals/hashCode` phải ổn định sau khi cache; nếu dữ liệu thay đổi, hash cache sẽ trở nên sai.
-- Nếu dùng `0` như dấu hiệu “chưa tính”, hãy nhớ **0 là hash hợp lệ**. Trường hợp đó có thể làm tính lại nhiều lần; muốn phân biệt đầy đủ cần cờ trạng thái riêng hoặc thiết kế khác.
-- Với đối tượng chia sẻ giữa các luồng, cơ chế xuất bản và đồng bộ giá trị cache phải được thiết kế an toàn, đặc biệt nếu cần bảo đảm tính đúng đắn trước việc đọc đồng thời.
-- Cache tốn bộ nhớ mỗi đối tượng và làm mã phức tạp; nếu hash rẻ hoặc hiếm dùng thì tính lại có thể tốt hơn.
-- Với khóa mutable, việc cache không khắc phục vấn đề thay đổi trạng thái sau khi cho vào `HashMap`; nên ưu tiên khóa bất biến hoặc chính sách quản lý khóa phù hợp.
+- All data participating in `equals`/`hashCode` must remain stable after caching; if the data changes, the cached hash becomes wrong.
+- If using `0` as the "not yet computed" sentinel, remember **`0` is a valid hash code**. That case can cause repeated recomputation; to distinguish properly, use a separate status flag or a different representation.
+- For objects shared across threads, safe publication and synchronization of the cached value must be designed properly, especially if correctness under concurrent reads is required.
+- Caching adds per-object memory overhead and code complexity; if hashing is cheap or rarely called, recomputing may be better.
+- For mutable keys, caching does not solve state mutation after insertion into a `HashMap`; prefer immutable keys or an appropriate key-management policy.
 
-Đừng tự động cache hash chỉ vì phương thức được gọi thường xuyên. Trước tiên so chi phí tính trực tiếp/`Objects.hash` và độ ổn định của dữ liệu.
+Do not automatically cache hashes just because a method is called often. First compare direct/`Objects.hash` cost against data stability.
 
-## 10. Lỗi thường gặp và cách khắc phục
+## 10. Common Mistakes and How to Fix Them
 
-| Lỗi | Hệ quả và cách xử lý |
+| Mistake | Consequence and fix |
 | --- | --- |
-| Dùng `Objects.hash(intValue, longValue, name)` trong đường chạy nóng mà không quan sát chi phí. | Có thể tạo `Object[]` và wrapper tạm. Dùng profiler/JMH rồi cân nhắc hash trực tiếp với các API primitive. |
-| Cho rằng mỗi lời gọi `Objects.hash` luôn tạo đủ đối tượng heap. | Sai trong ngữ cảnh JIT có thể tối ưu cấp phát. Phải đo allocation thực tế. |
-| Dùng `Objects.hash(payload)` với `payload` là `byte[]` nhưng `equals` so nội dung mảng. | Hash theo tham chiếu mảng, có thể phá hợp đồng. Sử dụng `Arrays.hashCode(payload)`. |
-| Không hiểu `Objects.hash(tags)` khi `tags` là `String[]`. | Có thể truyền mảng làm chính varargs. Viết `Arrays.hashCode(tags)` nếu mục tiêu là nội dung mảng. |
-| Nhầm `Objects.hashCode(value)` với `Objects.hash(value)`. | API đầu hash một đối tượng null-safe, API sau kết hợp danh sách varargs; số trả về có thể khác. |
-| Tối ưu bằng cách bỏ trường đang tham gia `equals()` mà không xét chính sách hash. | Phải bảo đảm mọi cặp bằng nhau vẫn có cùng hash; chất lượng phân phối/collision cũng có thể xấu đi. |
-| Dùng `Objects.hash` hoặc hash thủ công như định danh duy nhất, mã bảo mật. | Mã băm 32 bit dễ va chạm và không có tính chất bảo mật. |
-| Benchmark chỉ dùng một vòng lặp `nanoTime()` với đầu vào không đổi. | Có nguy cơ đo sai vì JIT, constant folding và dead-code elimination; dùng JMH và tải dữ liệu phù hợp. |
-| Cache hash cho đối tượng có trường mutable. | Cache bị stale; khóa hash collection có thể hoạt động sai. Ưu tiên giá trị bất biến. |
+| Using `Objects.hash(intValue, longValue, name)` on a hot path without observing cost. | May create temporary `Object[]` and wrappers. Use a profiler/JMH and consider direct hashing with primitive APIs. |
+| Assuming every `Objects.hash` call always allocates full heap objects. | False when the JIT optimizes allocations away. Measure actual allocation. |
+| Using `Objects.hash(payload)` where `payload` is `byte[]` while `equals` compares array contents. | Hashes by array reference, which can break the contract. Use `Arrays.hashCode(payload)`. |
+| Misunderstanding `Objects.hash(tags)` when `tags` is `String[]`. | May pass the array as the varargs array itself. Write `Arrays.hashCode(tags)` if array contents are intended. |
+| Confusing `Objects.hashCode(value)` with `Objects.hash(value)`. | The first hashes one object null-safely, the second combines a varargs list; returned numbers can differ. |
+| Optimizing by dropping a field used in `equals()` without checking hash policy. | Must ensure every equal pair still shares the same hash; distribution/collision quality may also suffer. |
+| Using `Objects.hash` or manual hashes as unique identifiers or security tokens. | 32-bit hashes collide easily and lack cryptographic properties. |
+| Benchmarking with a single `nanoTime()` loop over constant inputs. | Risks misleading results from JIT, constant folding, and dead-code elimination; use JMH and realistic data. |
+| Caching hashes on objects with mutable fields. | Cache goes stale; hash-collection keys can malfunction. Prefer immutable values. |
 
-## 11. Quy trình quyết định thực tế
+## 11. Practical Decision Process
 
-Khi triển khai một value object hoặc khóa dùng trong map/set:
+When implementing a value object or key used in a map/set:
 
-1. **Định nghĩa `equals()` trước:** xác định chính xác những trường quyết định sự bằng nhau, kể cả nội dung mảng và chính sách với `null`.
-2. **Viết `hashCode()` đúng hợp đồng:** trường primitive dùng hash chuyên biệt, tham chiếu null-safe, mảng dùng `Arrays.hashCode/deepHashCode` tương ứng với phép so sánh.
-3. **Ưu tiên rõ ràng:** với đoạn mã thường, `Objects.hash(...)` có thể phù hợp vì ít mã lặp và khó bỏ sót trường; đừng tối ưu khi chưa có lý do.
-4. **Xác định hot path bằng quan sát:** đo thời gian và allocation của hệ thống hoặc đoạn code liên quan, thay vì phỏng đoán.
-5. **Nếu overhead đáng kể, dùng công thức trực tiếp:** kết hợp theo thứ tự nhất quán bằng hệ số như `31` và các hàm chuyên biệt, sau đó kiểm tra lại hợp đồng `equals/hashCode`.
-6. **Benchmark trước/sau:** so cùng workload, JDK và điều kiện thực tế; không cần thay đổi mọi lớp chỉ vì một lớp xuất hiện vấn đề.
-7. **Duy trì mã dễ kiểm chứng:** nếu phép hash trở nên quá phức tạp, ghi lại tiêu chí bằng nhau và bổ sung kiểm thử giá trị bằng nhau, `null`, mảng, va chạm và thao tác map/set.
+1. **Define `equals()` first:** determine the exact fields governing equality, including array contents and `null` policy.
+2. **Write a contract-compliant `hashCode()`:** use dedicated hashes for primitives, null-safe handling for references, and `Arrays.hashCode`/`deepHashCode` for arrays matching the comparison.
+3. **Prioritize clarity:** for ordinary code, `Objects.hash(...)` can be ideal because it avoids boilerplate and reduces the chance of omitting a field; do not optimize without reason.
+4. **Identify hot paths via observation:** measure latency and allocation of the system or relevant code instead of guessing.
+5. **If overhead is significant, switch to a direct formula:** combine in consistent order with a multiplier like `31` and specialized functions, then re-verify the `equals`/`hashCode` contract.
+6. **Benchmark before and after:** compare under the same workload, JDK, and realistic conditions; there is no need to change every class just because one class showed an issue.
+7. **Keep code verifiable:** if hashing grows complex, document the equality criteria and add tests covering equal values, `null`, arrays, collisions, and map/set operations.
 
-**Kết luận học tập:** `Objects.hash(...)` tiện dụng nhưng dạng `Object...` có thể làm phát sinh mảng varargs, boxing và công việc duyệt mảng; đó là chi phí **tiềm năng**, không phải bảo đảm cấp phát trong mọi lần chạy. Trên đường chạy nóng, biểu thức hash trực tiếp với `Integer.hashCode`, `Long.hashCode`, `Objects.hashCode`, `Arrays.hashCode` có thể giúp giảm công việc trung gian. Chọn cách viết dựa trên **độ đúng của hợp đồng**, **kiểu dữ liệu**, **đường chạy thực tế** và **số đo**, không chỉ dựa vào độ ngắn của mã nguồn.
+**Lesson takeaway:** `Objects.hash(...)` is convenient, yet its `Object...` parameter can introduce varargs array creation, boxing, and array traversal; those are **potential** costs, not a guarantee of allocation on every run. On hot paths, direct hash expressions using `Integer.hashCode`, `Long.hashCode`, `Objects.hashCode`, and `Arrays.hashCode` can reduce intermediate work. Choose your implementation based on **contract correctness**, **data types**, **actual execution paths**, and **measurements**, not merely source-code brevity.

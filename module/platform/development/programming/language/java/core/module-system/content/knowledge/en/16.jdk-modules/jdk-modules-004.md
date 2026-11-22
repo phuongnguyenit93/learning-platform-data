@@ -1,42 +1,42 @@
-# JDK internal module không phải API công khai
+# JDK Internal Modules Are Not Public APIs
 
-Từ Java 9, Java Platform Module System (JPMS) tổ chức JDK thành nhiều named module. Một số module cung cấp API tiêu chuẩn Java SE, một số là API hoặc công cụ riêng của JDK, và nhiều module chứa các package **nội bộ** chỉ phục vụ implementation của JVM hoặc thư viện nền tảng.
+Since Java 9, the Java Platform Module System (JPMS) organizes the JDK into many named modules. Some modules provide standard Java SE APIs, some provide JDK-specific APIs or tools, and many modules contain **internal** packages intended solely for the implementation of the JVM or core libraries.
 
-Điểm quan trọng nhất: **một class có mặt trong JDK không có nghĩa đó là API công khai được hỗ trợ để ứng dụng phụ thuộc trực tiếp**. Tên module hay package có thể được tìm thấy trong runtime image, nhưng module boundary vẫn quyết định package có được export/open cho code khác hay không. Ngay cả khi có thể vượt ranh giới bằng JVM flag, API nội bộ cũng không tự trở thành hợp đồng tương thích ổn định.
+The most important point: **a class existing in the JDK does not mean it is a supported public API for applications to depend on directly**. A module or package name may be discoverable in the runtime image, yet module boundaries still govern whether a package is exported/opened to external code. Even when a boundary can be bypassed using JVM flags, an internal API does not thereby become a stable compatibility contract.
 
-Bài này giải thích cách nhận biết API nội bộ, phân biệt module `java.*` và `jdk.*`, các lỗi compile/runtime khi truy cập, ý nghĩa của `--add-exports` và `--add-opens`, cùng quy trình chuyển sang API được hỗ trợ.
+This lesson explains how to recognize internal APIs, distinguish `java.*` and `jdk.*` modules, understand compile/runtime access errors, clarify the meaning of `--add-exports` and `--add-opens`, and follow a workflow for migrating to supported APIs.
 
-## 1. Ba lớp API cần phân biệt
+## 1. Three Tiers of APIs to Distinguish
 
-Trong JDK hiện đại, nên phân biệt ít nhất ba nhóm:
+In a modern JDK, at least three categories should be distinguished:
 
-| Nhóm | Ví dụ | Cách sử dụng |
+| Category | Examples | Usage |
 | --- | --- | --- |
-| Java SE API công khai | `java.lang`, `java.util`, `java.net.http`, `java.sql` | API chuẩn có hợp đồng và tài liệu Java SE tương ứng |
-| JDK-specific API được công bố | Một số API trong `jdk.jfr`, `com.sun.source.*` của `jdk.compiler` | Chỉ dùng khi chủ động phụ thuộc vào JDK và có tài liệu hỗ trợ phù hợp |
-| JDK internal implementation API | `jdk.internal.*`, nhiều package `com.sun.tools.javac.*` hoặc `com.sun.org.apache.*.internal` | Không xem là API ứng dụng ổn định; tránh import và reflection trực tiếp |
+| Public Java SE API | `java.lang`, `java.util`, `java.net.http`, `java.sql` | Standard APIs with corresponding Java SE contracts and documentation |
+| Documented JDK-specific API | Certain APIs in `jdk.jfr`, `com.sun.source.*` in `jdk.compiler` | Use only when intentionally depending on the JDK and backed by appropriate support docs |
+| JDK internal implementation API | `jdk.internal.*`, many `com.sun.tools.javac.*` or `com.sun.org.apache.*.internal` packages | Do not treat as stable application APIs; avoid direct imports and reflection |
 
-**Không thể đánh giá một package chỉ dựa vào prefix.** Không phải mọi class có tiền tố `com.sun` đều nội bộ và không phải mọi API thuộc module `jdk.*` đều bị cấm sử dụng. Muốn xác định ranh giới thật, hãy xem module descriptor, tài liệu JDK và chính sách hỗ trợ của API đó.
+**You cannot evaluate a package solely by its prefix.** Not every class prefixed with `com.sun` is internal, and not every API inside a `jdk.*` module is off-limits. To determine the real boundary, inspect the module descriptor, JDK documentation, and the API's support policy.
 
-Ví dụ:
+For example:
 
-- `java.base` chứa cả `java.util` — API công khai — và `jdk.internal.misc` — implementation detail.
-- `jdk.compiler` export các package của Compiler Tree API như `com.sun.source.tree`, nhưng không export mọi package implementation của compiler.
-- `jdk.unsupported` chứa một số API được duy trì vì tương thích, như `sun.misc.Unsafe`; chữ “unsupported” là cảnh báo không nên coi chúng là nền tảng thiết kế mới.
+- `java.base` contains both `java.util` — a public API — and `jdk.internal.misc` — an implementation detail.
+- `jdk.compiler` exports Compiler Tree API packages such as `com.sun.source.tree`, yet does not export every compiler implementation package.
+- `jdk.unsupported` contains certain APIs retained for compatibility, such as `sun.misc.Unsafe`; the word "unsupported" serves as a warning not to treat them as a foundation for new designs.
 
-Tên của module và mức độ hỗ trợ của package là **hai câu hỏi riêng**.
+A module's name and a package's support level are **two separate questions**.
 
-## 2. Module có mặt không đồng nghĩa package được công khai
+## 2. A Module Being Present Does Not Mean Its Packages Are Public
 
-Trong JPMS, một named module có thể:
+In JPMS, a named module can:
 
-- Chứa nhiều package.
-- Export một số package ra ngoài.
-- Chỉ export một số package cho những named module được chỉ định.
-- Open package cho reflection sâu.
-- Giữ những package còn lại bị encapsulate.
+- Contain multiple packages.
+- Export certain packages externally.
+- Export certain packages only to designated named modules.
+- Open packages for deep reflection.
+- Keep the remaining packages encapsulated.
 
-Ví dụ khái niệm:
+Conceptual example:
 
 ~~~java
 module com.acme.engine {
@@ -46,46 +46,46 @@ module com.acme.engine {
 }
 ~~~
 
-Một consumer đọc `com.acme.engine` không mặc nhiên được import class trong tất cả các package của module.
+A consumer reading `com.acme.engine` cannot automatically import classes from every package in the module.
 
-Tương tự, `java.base` là module được mọi named module đọc ngầm, nhưng điều đó **không có nghĩa mọi package trong `java.base` đều được export**.
+Similarly, `java.base` is implicitly read by every named module, but that **does not mean every package in `java.base` is exported**.
 
-Quan hệ truy cập có thể tóm tắt:
+Access relationships can be summarized as:
 
 ~~~text
-Module A đọc Module B?
+Does Module A read Module B?
          │
          ▼
-B có exports package P cho A không?
+Does B export package P to A?
          │
-         ├── Có  → A có thể dùng public type/member trong P,
-         │         vẫn tuân thủ Java access modifiers
+         ├── Yes → A can use public types/members in P,
+         │         still obeying Java access modifiers
          │
-         └── Không → Java source ở A không được import P
-                     như API bình thường
+         └── No  → Java source in A cannot import P
+                   as a normal API
 
 Deep reflection?
          │
          ▼
-B có opens package P cho module caller không?
+Does B open package P to the caller module?
          │
-         ├── Có  → Reflection có thể yêu cầu bỏ qua
-         │         access checks trong giới hạn cho phép
+         ├── Yes → Reflection can request bypassing
+         │         access checks within permitted limits
          │
-         └── Không → setAccessible có thể thất bại
+         └── No  → setAccessible may fail
 ~~~
 
-`requires`, `exports` và `opens` giải quyết các vấn đề khác nhau. Thêm `requires java.base` không giúp truy cập package nội bộ chưa được export.
+`requires`, `exports`, and `opens` address different concerns. Adding `requires java.base` does not grant access to an unexported internal package.
 
-## 3. Xem module của JDK bằng Java launcher
+## 3. Viewing JDK Modules with the Java Launcher
 
-Liệt kê các module mà runtime image hiện tại công bố:
+List the modules published by the current runtime image:
 
 ~~~bash
 java --list-modules
 ~~~
 
-Ví dụ output rút gọn:
+Shortened example output:
 
 ~~~text
 java.base@21.0.2
@@ -97,11 +97,11 @@ jdk.unsupported@21.0.2
 ...
 ~~~
 
-Phiên bản thực tế và tập module phụ thuộc vào JDK hoặc runtime image đang sử dụng.
+Actual versions and module sets depend on the JDK or runtime image in use.
 
-Lệnh này cho thấy module có thể quan sát được, **không xác nhận mọi package trong module là public API**. Một runtime image tùy chỉnh từ `jlink` còn có thể không chứa một số module vốn có trong JDK đầy đủ.
+This command shows observable modules, **not confirmation that every package in a module is a public API**. Moreover, a custom runtime image from `jlink` may omit modules present in a full JDK.
 
-Mô tả module cụ thể:
+Describe a specific module:
 
 ~~~bash
 java --describe-module java.base
@@ -109,20 +109,20 @@ java --describe-module jdk.compiler
 java --describe-module jdk.unsupported
 ~~~
 
-Cần phân biệt các dòng trong descriptor:
+Distinguish the lines in the descriptor:
 
-- `exports package.name`: package được export không giới hạn cho các module có readability phù hợp.
-- `exports package.name to module.one,module.two`: qualified export chỉ cho các module được nêu.
-- `opens package.name`: package được mở cho deep reflection.
-- `contains package.name`: package thuộc module, **không phải một lời hứa export**.
+- `exports package.name`: package exported unrestrictedly to modules with appropriate readability.
+- `exports package.name to module.one,module.two`: qualified export only to the listed modules.
+- `opens package.name`: package opened for deep reflection.
+- `contains package.name`: package belongs to the module, **not a promise of export**.
 - `requires other.module`: module dependency.
 - `uses`/`provides`: service consumption/provider metadata.
 
-Khi thấy `contains jdk.internal.misc`, đừng suy ra code ứng dụng được phép import `jdk.internal.misc`. `contains` chỉ phản ánh quyền sở hữu package của module.
+When seeing `contains jdk.internal.misc`, do not infer that application code is allowed to import `jdk.internal.misc`. `contains` merely reflects package ownership by the module.
 
-## 4. Ví dụ compile-time: package nội bộ không visible
+## 4. Compile-Time Example: Internal Package Is Not Visible
 
-Giả sử ứng dụng modular cố dùng API nội bộ:
+Suppose a modular application tries to use an internal API:
 
 ~~~java
 // src/com.acme.app/module-info.java
@@ -143,7 +143,7 @@ public class Main {
 }
 ~~~
 
-Biên dịch:
+Compile:
 
 ~~~bash
 javac --module-source-path src \
@@ -151,7 +151,7 @@ javac --module-source-path src \
       -m com.acme.app
 ~~~
 
-Trên JDK có strong encapsulation, compiler có thể báo lỗi tương tự:
+On a JDK with strong encapsulation, the compiler may report an error like:
 
 ~~~text
 package jdk.internal.misc is not visible
@@ -159,56 +159,56 @@ package jdk.internal.misc is not visible
  which does not export it to module com.acme.app)
 ~~~
 
-Lỗi này có ý nghĩa cụ thể:
+This error has a specific meaning:
 
-1. Class/package có thể **tồn tại** trong JDK.
-2. Module `java.base` sở hữu package đó.
-3. Package **không được export** cho `com.acme.app`.
-4. Code không thể import nó như API bình thường.
+1. The class/package may **exist** in the JDK.
+2. The `java.base` module owns that package.
+3. The package is **not exported** to `com.acme.app`.
+4. Code cannot import it as a normal API.
 
-Không phải lỗi “thiếu dependency Maven”, cũng không phải lỗi chưa khai báo `requires java.base`. Mọi named module đã đọc `java.base` ngầm; thứ bị chặn là **package export**.
+This is neither a "missing Maven dependency" error nor an error from omitting `requires java.base`. Every named module already reads `java.base` implicitly; what is blocked is the **package export**.
 
-Khi một dependency không phải API công khai, cách sửa ưu tiên là đổi sang API được hỗ trợ. Việc thêm flags vượt ranh giới chỉ nên dùng để chẩn đoán hoặc duy trì tương thích trong giai đoạn chuyển đổi.
+When a dependency is not a public API, the preferred fix is switching to a supported API. Adding boundary-relaxing flags should only be used for diagnosis or maintaining compatibility during a transition period.
 
-## 5. Khi chạy trên classpath vẫn có ranh giới JPMS
+## 5. JPMS Boundaries Still Apply When Running on the Classpath
 
-Một ứng dụng chưa có `module-info.java` thường chạy trên classpath:
+An application without `module-info.java` typically runs on the classpath:
 
 ~~~bash
 java -cp app.jar com.acme.app.Main
 ~~~
 
-Code trên classpath thuộc **unnamed module** của class loader tương ứng. Unnamed module có khả năng đọc các module được JPMS cho phép theo quy tắc của nó, nhưng **không được tự bỏ qua package encapsulation**.
+Code on the classpath belongs to the **unnamed module** of the corresponding class loader. The unnamed module can read modules permitted by JPMS rules, but it **does not automatically bypass package encapsulation**.
 
-Vì vậy, việc chuyển ứng dụng từ module path về classpath không bảo đảm các lệnh import `jdk.internal.*` hoặc reflection vào private JDK state hoạt động.
+Consequently, moving an application from the module path back to the classpath does not guarantee that imports of `jdk.internal.*` or reflection into private JDK state will work.
 
-Trong các thông báo lỗi, bạn có thể thấy:
+In error messages, you may see:
 
 ~~~text
 module java.base does not export jdk.internal.misc to unnamed module
 ~~~
 
-hoặc:
+or:
 
 ~~~text
 module java.base does not "opens java.lang" to unnamed module
 ~~~
 
-`unnamed module` trong thông báo chỉ nơi code đang chạy; source module vẫn là named module của JDK.
+`unnamed module` in the message indicates where the calling code resides; the source module remains a named JDK module.
 
-## 6. Phân biệt truy cập public API và deep reflection
+## 6. Distinguishing Public API Access from Deep Reflection
 
-Hai nhóm lỗi thường bị nhầm:
+Two categories of errors are commonly confused:
 
-### 6.1. Public class nhưng package không export
+### 6.1. Public Class Whose Package Is Not Exported
 
-Ví dụ code import `jdk.internal.misc.Unsafe`. Nếu package chưa được export, compiler hoặc JVM có thể từ chối truy cập class dù class có access modifier `public`.
+For example, code importing `jdk.internal.misc.Unsafe`. If the package is not exported, the compiler or JVM may reject access to the class even though the class has the `public` access modifier.
 
-Đây là vấn đề **exports**, không nhất thiết liên quan tới reflection.
+This is an **exports** issue, not necessarily related to reflection.
 
-### 6.2. Class hợp lệ nhưng private member không được mở
+### 6.2. Valid Class Whose Private Members Are Not Opened
 
-Ví dụ reflection vào một field của `java.lang.String`:
+For example, reflecting on a field of `java.lang.String`:
 
 ~~~java
 import java.lang.reflect.Field;
@@ -222,7 +222,7 @@ public class ReflectString {
 }
 ~~~
 
-Trên JDK hiện đại, `setAccessible(true)` có thể ném:
+On modern JDKs, `setAccessible(true)` can throw:
 
 ~~~text
 java.lang.reflect.InaccessibleObjectException:
@@ -230,19 +230,19 @@ Unable to make field ... java.lang.String.value accessible:
 module java.base does not "opens java.lang" to unnamed module
 ~~~
 
-Ở đây `java.lang` là package được export cho API thông thường, nhưng **không có nghĩa private member trong package đã được mở cho deep reflection**.
+Here `java.lang` is an exported package for normal API use, but that **does not mean private members in the package are opened for deep reflection**.
 
-Hãy phân biệt `exports` với `opens`. Sửa sai loại quyền có thể khiến người bảo trì thêm nhiều JVM flags mà ứng dụng vẫn không chạy.
+Distinguish `exports` from `opens`. Fixing the wrong kind of permission can lead maintainers to add multiple JVM flags while the application still fails.
 
-## 7. --add-exports: nới quyền import public API tạm thời
+## 7. --add-exports: Temporarily Relaxing Public API Import Permissions
 
-JPMS cung cấp tùy chọn:
+JPMS provides the option:
 
 ~~~text
 --add-exports SOURCE_MODULE/PACKAGE=TARGET_MODULE
 ~~~
 
-Ví dụ cấp quyền cho module `com.acme.app` sử dụng public type từ package chưa được export:
+Example granting module `com.acme.app` permission to use public types from an unexported package:
 
 ~~~bash
 javac \
@@ -252,7 +252,7 @@ javac \
   -m com.acme.app
 ~~~
 
-Nếu ứng dụng vẫn phụ thuộc vào truy cập đó lúc runtime, có thể cần flag tương ứng:
+If the application still relies on that access at runtime, the corresponding flag may be needed:
 
 ~~~bash
 java \
@@ -261,7 +261,7 @@ java \
   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Nếu caller nằm trên classpath, đích có thể là token launcher `ALL-UNNAMED`:
+If the caller sits on the classpath, the target can be the launcher token `ALL-UNNAMED`:
 
 ~~~bash
 java \
@@ -270,24 +270,24 @@ java \
   com.acme.app.Main
 ~~~
 
-Tuy nhiên:
+However:
 
-- `--add-exports` **không đổi** access modifier `private` thành `public`.
-- Nó **không biến API nội bộ thành API được JDK cam kết hỗ trợ**.
-- Nó có thể cần lặp lại trong cấu hình compile, test và production.
-- Việc internal class hoặc method thay đổi ở JDK tiếp theo vẫn có thể làm code lỗi.
+- `--add-exports` **does not change** `private` access modifiers into `public`.
+- It **does not turn an internal API into an API committed to JDK support**.
+- It may need to be repeated across compile, test, and production configurations.
+- Internal class or method changes in a future JDK can still break the code.
 
-Đây là **biện pháp migration có kiểm soát**, không phải kiến trúc khuyến nghị.
+This is a **controlled migration measure**, not a recommended architecture.
 
-## 8. --add-opens: nới quyền deep reflection tạm thời
+## 8. --add-opens: Temporarily Relaxing Deep Reflection Permissions
 
-Khi framework reflection vào private member, flag tương ứng là:
+When a framework reflects on private members, the corresponding flag is:
 
 ~~~text
 --add-opens SOURCE_MODULE/PACKAGE=TARGET_MODULE
 ~~~
 
-Ví dụ mở `java.lang` của `java.base` cho code chạy trên classpath:
+Example opening `java.lang` of `java.base` for code running on the classpath:
 
 ~~~bash
 java \
@@ -296,7 +296,7 @@ java \
   com.acme.app.Main
 ~~~
 
-Với named module framework, có thể cấp cho đúng module:
+For a named framework module, you can grant permission to that exact module:
 
 ~~~bash
 java \
@@ -305,44 +305,44 @@ java \
   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Quyền được cấp cho **module thực sự thực hiện reflection**, không nhất thiết là module chứa `main` hoặc module gọi một framework API ở tầng cao.
+Permission is granted to **the module actually performing the reflection**, not necessarily the module containing `main` or a module calling a high-level framework API.
 
-Bảng so sánh:
+Comparison table:
 
-| Cần làm gì? | Cơ chế thích hợp | Giới hạn |
+| What do you need? | Appropriate mechanism | Limitations |
 | --- | --- | --- |
-| Dùng public type/member của package chưa export | `--add-exports` | Không cho phép tự do đọc private field |
-| Dùng `setAccessible` hoặc private lookup vào package chưa open | `--add-opens` | Không tự tạo compile-time export |
-| Consumer đọc named module thông thường | `requires` hoặc quan hệ readability đúng | Không bypass package encapsulation |
-| Công bố API từ module do mình quản lý | `exports` trong `module-info.java` | Chỉ API được export |
-| Cho một framework reflection vào package do mình quản lý | `opens package to framework.module` | Quyền chỉ dành cho module đích |
+| Use public types/members of an unexported package | `--add-exports` | Does not allow unrestricted reading of private fields |
+| Use `setAccessible` or private lookup into an unopened package | `--add-opens` | Does not automatically create a compile-time export |
+| Consumer reading a normal named module | `requires` or proper readability relationship | Does not bypass package encapsulation |
+| Expose an API from a module you maintain | `exports` in `module-info.java` | Only exported APIs |
+| Let a framework reflect on a package you maintain | `opens package to framework.module` | Permission applies only to the target module |
 
-Nếu sở hữu module của chính ứng dụng, ưu tiên sửa thiết kế bằng `exports` hoặc qualified `opens` có phạm vi hẹp, thay vì dựa vào JVM flags trải khắp môi trường.
+If you own the application's own modules, prefer fixing the design with `exports` or narrowly scoped qualified `opens` rather than spreading JVM flags across environments.
 
-## 9. Các mốc strong encapsulation khi nâng cấp JDK
+## 9. Strong Encapsulation Milestones When Upgrading the JDK
 
-Từ Java 9, ranh giới module đã thay đổi cách các ứng dụng cũ sử dụng JDK internals.
+Since Java 9, module boundaries have changed how legacy applications use JDK internals.
 
-| Mốc | Ý nghĩa đối với migration |
+| Milestone | Meaning for migration |
 | --- | --- |
-| Trước Java 9 | Một số ứng dụng truy cập trực tiếp internal JDK classes dù API không được hỗ trợ |
-| Java 9 | JPMS ra đời; có giai đoạn nới quyền đối với một số reflective access cũ để hỗ trợ migration |
-| Java 11–15 | Một số truy cập vẫn chạy nhưng phát cảnh báo `illegal reflective access` |
-| Java 16 | Strong encapsulation trở thành mặc định theo JEP 396; vẫn còn cơ chế opt-out tạm trong giai đoạn chuyển đổi |
-| Java 17 trở đi | JEP 403 siết strong encapsulation; `--illegal-access` không còn cấp lại quyền nới lỏng như trước |
+| Pre-Java 9 | Some applications directly accessed internal JDK classes despite the APIs being unsupported |
+| Java 9 | JPMS introduced; a transitional grace period relaxed certain legacy reflective accesses to aid migration |
+| Java 11–15 | Some accesses still ran while emitting `illegal reflective access` warnings |
+| Java 16 | Strong encapsulation became the default under JEP 396; temporary opt-out mechanisms remained during transition |
+| Java 17 onward | JEP 403 tightened strong encapsulation; `--illegal-access` no longer restores broad permissive access as before |
 
-Cần nhớ:
+Remember:
 
-- Cảnh báo trên một bản JDK cũ **không bảo đảm** code sẽ chạy trên JDK mới.
-- `--illegal-access=permit` là lựa chọn migration cũ, không phải giải pháp bền vững trên Java 17+.
-- `--add-exports` và `--add-opens` là cơ chế cụ thể hơn nhưng không bảo đảm internal API vẫn tồn tại trong tương lai.
-- Một số API đặc biệt trong `jdk.unsupported` được giữ vì tương thích; không nên suy rộng ngoại lệ này cho toàn bộ `jdk.internal.*`.
+- A warning on an older JDK **does not guarantee** the code will run on a newer JDK.
+- `--illegal-access=permit` is a legacy migration option, not a durable solution on Java 17+.
+- `--add-exports` and `--add-opens` are more targeted mechanisms, but do not guarantee an internal API will still exist in the future.
+- Certain special APIs in `jdk.unsupported` are kept for compatibility; do not extrapolate this exception to all of `jdk.internal.*`.
 
-Khi xử lý migration, hãy kiểm tra đúng Java version của compiler, unit test, integration test và production runtime.
+When migrating, verify the exact Java version used for the compiler, unit tests, integration tests, and production runtime.
 
-## 10. jdk.compiler: ví dụ phân biệt API được công bố với implementation
+## 10. jdk.compiler: Example Distinguishing Published APIs from Implementation
 
-`jdk.compiler` là một module của JDK. Trong module này có các API được export, chẳng hạn package thuộc Compiler Tree API:
+`jdk.compiler` is a JDK module. Inside it are exported APIs, such as packages belonging to the Compiler Tree API:
 
 ~~~java
 module com.acme.analyzer {
@@ -350,31 +350,31 @@ module com.acme.analyzer {
 }
 ~~~
 
-Code ứng dụng có thể import một type thuộc package được export:
+Application code can import a type from an exported package:
 
 ~~~java
 import com.sun.source.tree.Tree;
 ~~~
 
-Trong khi đó, các package implementation như `com.sun.tools.javac.util` không mặc nhiên được export làm public API cho consumer.
+Meanwhile, implementation packages such as `com.sun.tools.javac.util` are not by default exported as public APIs for consumers.
 
-Ví dụ import:
+For instance, importing:
 
 ~~~java
 import com.sun.tools.javac.util.Context;
 ~~~
 
-có thể bị compiler từ chối vì module `jdk.compiler` không export package đó cho module của ứng dụng.
+may be rejected by the compiler because `jdk.compiler` does not export that package to the application module.
 
-Hai package đều có prefix `com.sun`, nhưng mức độ hỗ trợ và quyền export khác nhau. Câu hỏi đúng là **descriptor có export package đó cho mình hay không, và tài liệu JDK có công bố API đó để dùng hay không?**
+Both packages share the `com.sun` prefix, yet their support levels and export permissions differ. The right question is **does the descriptor export that package to you, and does the JDK documentation publish that API for use?**
 
-Ngoài ra, `jdk.compiler` là API JDK-specific chứ không phải mọi runtime image tùy chỉnh đều có nó. Nếu ứng dụng cần một API thuộc `jdk.compiler`, phải bảo đảm module đó hiện diện trong môi trường chạy.
+Additionally, `jdk.compiler` is a JDK-specific API and not every custom runtime image includes it. If an application needs an API from `jdk.compiler`, ensure that module is present in the runtime environment.
 
-## 11. jdk.unsupported và sun.misc.Unsafe: ngoại lệ không phải tiền lệ
+## 11. jdk.unsupported and sun.misc.Unsafe: An Exception, Not a Precedent
 
-Một số phần mềm hiệu năng cao hoặc framework cũ từng phụ thuộc vào `sun.misc.Unsafe`. Để hỗ trợ khả năng tương thích, JDK có module `jdk.unsupported`, với package `sun.misc` được công bố theo descriptor của module.
+Some high-performance software or older frameworks used to depend on `sun.misc.Unsafe`. To aid compatibility, the JDK includes the `jdk.unsupported` module, with the `sun.misc` package exposed according to the module's descriptor.
 
-Named module có thể cần khai báo:
+A named module may need to declare:
 
 ~~~java
 module com.acme.legacy {
@@ -382,89 +382,89 @@ module com.acme.legacy {
 }
 ~~~
 
-Nhưng điều này không làm `sun.misc.Unsafe` trở thành API Java SE được hỗ trợ ổn định. Những phương thức liên quan tới thao tác bộ nhớ và trạng thái đối tượng có thể thay đổi hoặc bị hạn chế theo thời gian.
+However, this does not make `sun.misc.Unsafe` a stably supported Java SE API. Methods involving memory manipulation and object state may change or become restricted over time.
 
-Phân biệt:
+Distinguish:
 
-- `sun.misc.Unsafe` thuộc module `jdk.unsupported`, được giữ theo chính sách tương thích cụ thể.
-- `jdk.internal.misc.Unsafe` thuộc `java.base` và package của nó bị encapsulate.
-- Hai class không phải lời hứa rằng mọi chức năng của nhau có thể thay thế hoặc sẽ tồn tại lâu dài.
+- `sun.misc.Unsafe` belongs to the `jdk.unsupported` module, retained under a specific compatibility policy.
+- `jdk.internal.misc.Unsafe` belongs to `java.base`, and its package is encapsulated.
+- Neither class is a promise that each other's capabilities are interchangeable or will exist indefinitely.
 
-Khi thấy `Unsafe` trong dependency, nên tìm mục đích sử dụng thật sự trước khi lựa chọn cách thay thế.
+When encountering `Unsafe` in a dependency, investigate the actual use case before choosing a replacement.
 
-## 12. Phát hiện dependency vào internal JDK APIs bằng jdeps
+## 12. Detecting Dependencies on Internal JDK APIs with jdeps
 
-Công cụ `jdeps` của JDK có thể phân tích class/JAR để tìm tham chiếu tĩnh tới JDK internals.
+The JDK's `jdeps` tool can analyze classes/JARs to locate static references to JDK internals.
 
-Ví dụ:
+Example:
 
 ~~~bash
 jdeps --jdk-internals libs/legacy-library.jar
 ~~~
 
-Với application JAR:
+For an application JAR:
 
 ~~~bash
 jdeps --jdk-internals app.jar
 ~~~
 
-Nếu có multi-release JAR, xác định release cần phân tích:
+For a multi-release JAR, specify the release to analyze:
 
 ~~~bash
 jdeps --multi-release 17 --jdk-internals libs/legacy-library.jar
 ~~~
 
-Output có thể nêu class gọi tới API nội bộ, module/package chứa API đó và đôi khi gợi ý replacement phù hợp.
+Output can identify the class calling the internal API, the module/package containing that API, and sometimes suggest an appropriate replacement.
 
-Quy trình sử dụng:
+Usage workflow:
 
-1. Quét application artifact.
-2. Quét dependency quan trọng hoặc dependency bị nêu trong stack trace.
-3. Ghi lại internal API, class gọi nó và artifact/version sở hữu class.
-4. Phân loại sử dụng trực tiếp trong source với sử dụng gián tiếp qua library.
-5. Đề xuất API công khai thay thế hoặc phiên bản dependency mới tương thích JDK mục tiêu.
+1. Scan the application artifact.
+2. Scan key dependencies or dependencies appearing in stack traces.
+3. Record the internal API, the calling class, and the artifact/version owning that class.
+4. Separate direct usage in your source from indirect usage via libraries.
+5. Propose public replacement APIs or newer dependency versions compatible with the target JDK.
 
-Giới hạn của `jdeps`:
+Limitations of `jdeps`:
 
-- Phân tích chủ yếu dựa trên thông tin class file.
-- `Class.forName("...")`, reflection dựa trên chuỗi, dynamic proxy hoặc bytecode sinh động có thể không được phát hiện đầy đủ.
-- Không có cảnh báo từ `jdeps --jdk-internals` **không chứng minh** chương trình hoàn toàn không sử dụng internals.
+- Analysis is primarily based on class file metadata.
+- `Class.forName("...")`, string-based reflection, dynamic proxies, or dynamically generated bytecode may not be fully detected.
+- Having no warnings from `jdeps --jdk-internals` **does not prove** the program uses zero internals.
 
-Cần kết hợp kiểm thử trên JDK mục tiêu, đặc biệt với serialization, ORM, instrumentation và các thư viện tạo bytecode lúc runtime.
+Combine this with testing on the target JDK, especially for serialization, ORMs, instrumentation, and libraries that generate bytecode at runtime.
 
-## 13. Không nhầm JDK internal API với API bị deprecated hoặc module bị loại bỏ
+## 13. Do Not Confuse JDK Internal APIs with Deprecated APIs or Removed Modules
 
-Ba tình huống cần phân loại riêng:
+Three situations must be categorized separately:
 
-**JDK internal API:** package/class là implementation detail, có thể bị encapsulate. Ví dụ một class trong `jdk.internal.*`.
+**JDK internal API:** a package/class that is an implementation detail and may be encapsulated. For example, a class in `jdk.internal.*`.
 
-**Deprecated public API:** API công khai nhưng có cảnh báo nên chuyển sang API mới. Một public API bị deprecated vẫn có thể được export và cho phép sử dụng trong giai đoạn hiện tại. Dùng `jdeprscan` hoặc compiler warning để đánh giá.
+**Deprecated public API:** a public API carrying a warning advising migration to a newer API. A deprecated public API may still be exported and usable for now. Use `jdeprscan` or compiler warnings to evaluate.
 
-**Module hoặc API đã được loại bỏ:** một số thành phần từng thuộc JDK đã không còn trong phiên bản sau. Lỗi `module not found` hoặc `ClassNotFoundException` có thể đến từ việc module không còn hiện diện, chứ không phải bị encapsulate.
+**Removed module or API:** components that were once part of the JDK but no longer exist in later releases. A `module not found` or `ClassNotFoundException` error may stem from the module no longer being present, rather than encapsulation.
 
-Đừng chữa mọi trường hợp bằng `--add-opens`:
+Do not treat every case with `--add-opens`:
 
-- Nếu module không tồn tại, mở package không tạo ra module bị thiếu.
-- Nếu class đã bị loại bỏ, `--add-exports` không tái tạo class.
-- Nếu API public chỉ bị deprecated, cần đọc lộ trình replacement thay vì mặc định nó là JDK internal.
+- If a module does not exist, opening a package will not create the missing module.
+- If a class has been removed, `--add-exports` will not recreate the class.
+- If a public API is merely deprecated, read its replacement roadmap instead of assuming it is a JDK internal.
 
-Phân loại đúng giúp tránh JVM flags vô nghĩa và giảm thời gian chẩn đoán.
+Accurate classification avoids pointless JVM flags and shortens diagnostic time.
 
-## 14. Hướng thay thế các internal APIs thường gặp
+## 14. Replacement Directions for Common Internal APIs
 
-Không có một replacement duy nhất áp dụng cho mọi JDK internal API. Hãy xác định **tính năng ứng dụng thực sự cần**.
+There is no single replacement applicable to every JDK internal API. Identify **the capability the application actually needs**.
 
-| Nhu cầu cũ | Hướng thay thế hoặc kiểm tra |
+| Legacy need | Replacement direction or what to check |
 | --- | --- |
-| Mã hóa/giải mã Base64 qua class cũ của JDK | `java.util.Base64` |
-| Truy cập field với memory semantics đặc biệt bằng `Unsafe` | `VarHandle`, `MethodHandles`, `AtomicInteger` và các API concurrency công khai |
-| Quản lý cleanup tài nguyên qua implementation detail | `java.lang.ref.Cleaner`, `AutoCloseable` hoặc API tài nguyên phù hợp |
-| XML parsing qua `com.sun.org.apache.*.internal` | JAXP, DOM, SAX hoặc thư viện XML có public API |
-| Thao tác khóa, chữ ký, chứng chỉ bằng class an ninh nội bộ | `java.security`, `java.security.cert` hoặc thư viện được hỗ trợ |
-| Khai thác chi tiết implementation của compiler | API compiler/tree được export và có tài liệu, hoặc công cụ/compiler plugin chính thức |
-| Reflection để đọc private field của JDK class | Public accessor, factory, interface hoặc mô hình dữ liệu thay thế |
+| Base64 encoding/decoding via legacy JDK classes | `java.util.Base64` |
+| Field access with special memory semantics via `Unsafe` | `VarHandle`, `MethodHandles`, `AtomicInteger`, and public concurrency APIs |
+| Managing resource cleanup via implementation details | `java.lang.ref.Cleaner`, `AutoCloseable`, or appropriate resource APIs |
+| XML parsing via `com.sun.org.apache.*.internal` | JAXP, DOM, SAX, or XML libraries with public APIs |
+| Handling keys, signatures, or certificates with internal security classes | `java.security`, `java.security.cert`, or supported libraries |
+| Exploiting compiler implementation details | Exported and documented compiler/tree APIs, or official tools/compiler plugins |
+| Reflection to read private fields of JDK classes | Public accessors, factories, interfaces, or alternative data models |
 
-Ví dụ dùng API Base64 chuẩn:
+Example using the standard Base64 API:
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -490,11 +490,11 @@ aGVsbG8=
 hello
 ~~~
 
-Ví dụ không cần import class nội bộ hay nới module boundary. Đây là hướng ưu tiên khi JDK đã có public API đáp ứng nhu cầu.
+This example requires no internal class imports or relaxed module boundaries. This is the preferred direction whenever the JDK already provides a public API that meets the need.
 
-### VarHandle thay cho một số mục đích dùng Unsafe
+### VarHandle Instead of Certain Uses of Unsafe
 
-Nếu ứng dụng cần thao tác nguyên tử với field do chính mình sở hữu, có thể dùng public `VarHandle` API:
+If an application needs atomic operations on a field it owns itself, it can use the public `VarHandle` API:
 
 ~~~java
 import java.lang.invoke.MethodHandles;
@@ -520,15 +520,15 @@ public final class Counter {
 }
 ~~~
 
-Đoạn code sử dụng API chuẩn cho atomic field operation và không cần truy cập `sun.misc.Unsafe`.
+This snippet uses standard APIs for atomic field operations without needing to access `sun.misc.Unsafe`.
 
-Tuy nhiên, `VarHandle` không có nghĩa là có thể thay toàn bộ các tính năng của `Unsafe` bằng một API tương đương 1:1. Các thao tác native memory, object layout hoặc low-level runtime phải được xem xét riêng và chọn public API phù hợp với phiên bản JDK mục tiêu.
+However, `VarHandle` does not mean every `Unsafe` feature has a 1:1 equivalent API. Native memory operations, object layout, or low-level runtime operations must be evaluated individually to choose a public API suited to the target JDK version.
 
-## 15. Khi lỗi đến từ thư viện bên thứ ba
+## 15. When Errors Come from Third-Party Libraries
 
-Ứng dụng có thể không trực tiếp import internal class nhưng vẫn gặp lỗi do dependency thực hiện reflection hoặc truy cập nội bộ.
+An application may not directly import internal classes yet still encounter errors because a dependency performs reflection or internal access.
 
-Một stack trace giả định:
+A hypothetical stack trace:
 
 ~~~text
 java.lang.reflect.InaccessibleObjectException: ...
@@ -537,46 +537,46 @@ java.lang.reflect.InaccessibleObjectException: ...
     at com.acme.app.Main.main(...)
 ~~~
 
-Ở đây, code trong thư viện mapper mới là nơi yêu cầu deep reflection.
+Here, code inside the mapper library is what requests deep reflection.
 
-Các bước nên làm:
+Recommended steps:
 
-1. Xác định artifact thực tế chứa class `third.party.mapper.InternalAccessor`.
-2. Ghi lại version dependency đang được chạy, không chỉ version trong khai báo build.
-3. Kiểm tra thư viện có bản phát hành hỗ trợ JDK mục tiêu không.
-4. Ưu tiên nâng cấp thư viện hoặc đổi cách cấu hình framework.
-5. Chạy test trên đúng runtime image/JDK dùng cho production.
-6. Nếu cần `--add-opens` tạm thời, cấp quyền cho đúng module gọi reflection.
-7. Loại bỏ flag sau khi đã cập nhật dependency.
+1. Identify the actual artifact containing `third.party.mapper.InternalAccessor`.
+2. Record the dependency version actually running, not just the version in build declarations.
+3. Check whether the library has a release supporting the target JDK.
+4. Prefer upgrading the library or changing framework configuration.
+5. Run tests on the exact runtime image/JDK used for production.
+6. If a temporary `--add-opens` is needed, grant permission to the exact module invoking reflection.
+7. Remove the flag after updating the dependency.
 
-Với Maven, có thể xem dependency tree:
+With Maven, you can inspect the dependency tree:
 
 ~~~bash
 mvn dependency:tree
 ~~~
 
-Với Gradle:
+With Gradle:
 
 ~~~bash
 ./gradlew dependencies
 ~~~
 
-Kiểm tra dependency gián tiếp quan trọng vì một bản library cũ có thể được kéo vào qua framework khác dù project đã cập nhật direct dependency.
+Checking transitive dependencies is important because an older library version can be pulled in via another framework even if the project already updated direct dependencies.
 
-## 16. Mẫu báo lỗi và hướng chẩn đoán
+## 16. Error Patterns and Diagnostic Guide
 
-| Triệu chứng | Ý nghĩa thường gặp | Hướng xử lý |
+| Symptom | Common meaning | How to handle |
 | --- | --- | --- |
-| `package ... is not visible` | Package thuộc named module nhưng không export cho consumer | Dùng API được hỗ trợ hoặc xem lại exports |
-| `module X does not export P to Y` | Public type/member trong P bị chặn bởi module boundary | Xác định source module, package và target module |
-| `InaccessibleObjectException` | Deep reflection vào package chưa open | Xác định module gọi reflection, bỏ dependency vào private field nếu có thể |
-| `IllegalAccessError` khi chạy | Runtime không cho phép truy cập đã được bytecode yêu cầu | So sánh compile/runtime flags và API đang bị gọi |
-| `ClassNotFoundException` | Class không được loader tìm thấy; có thể đã bị loại bỏ hoặc dependency thiếu | Kiểm tra module path, phiên bản JDK và artifact |
-| `NoSuchMethodError` | Binary dùng method không tồn tại trong class đã nạp | Kiểm tra binary compatibility, version và sử dụng internal API |
-| `illegal reflective access` warning trên JDK cũ | Code dựa vào cơ chế tương thích đã bị siết ở JDK mới | Nâng cấp library và bỏ reflection không được hỗ trợ |
-| `--illegal-access` không giải quyết lỗi | Trên JDK hiện đại tùy chọn không còn mở quyền như trước | Sửa code hoặc dùng biện pháp có mục tiêu trong giai đoạn migration |
+| `package ... is not visible` | Package belongs to a named module but is not exported to the consumer | Use a supported API or review exports |
+| `module X does not export P to Y` | Public types/members in P are blocked by module boundary | Identify source module, package, and target module |
+| `InaccessibleObjectException` | Deep reflection into an unopened package | Identify the reflecting module, remove dependency on private fields if possible |
+| `IllegalAccessError` at runtime | Runtime disallows access requested by bytecode | Compare compile/runtime flags and the API being called |
+| `ClassNotFoundException` | Class not found by loader; may have been removed or dependency is missing | Check module path, JDK version, and artifacts |
+| `NoSuchMethodError` | Binary calls a method absent in the loaded class | Check binary compatibility, versions, and internal API usage |
+| `illegal reflective access` warning on older JDK | Code relies on a compatibility mechanism tightened in newer JDKs | Upgrade the library and remove unsupported reflection |
+| `--illegal-access` does not resolve the error | On modern JDKs the option no longer opens access as before | Fix the code or apply targeted measures during migration |
 
-Một mẫu ghi nhận sự cố:
+An incident logging template:
 
 ~~~text
 Java version:
@@ -592,7 +592,7 @@ Package:
   jdk.internal.misc
 
 Caller module:
-  com.acme.app (hoặc unnamed module)
+  com.acme.app (or unnamed module)
 
 Access type:
   normal access / deep reflection
@@ -604,51 +604,51 @@ Planned resolution:
   upgrade dependency / use public API / temporary scoped flag
 ~~~
 
-Đừng tự động mở hàng loạt package chỉ vì exception liên tục xuất hiện. Mỗi flag nên gắn với một nguyên nhân và một kế hoạch loại bỏ cụ thể.
+Do not automatically open numerous packages just because exceptions keep appearing. Every flag should be tied to a specific cause and a concrete removal plan.
 
-## 17. Quy trình migration sang JDK mới
+## 17. Workflow for Migrating to a Newer JDK
 
-Đối với ứng dụng có dependency cũ, có thể áp dụng một quy trình có kiểm soát:
+For applications with legacy dependencies, a controlled workflow can be applied:
 
-**Bước 1 — Xác định target JDK.** Đồng bộ compiler, CI, staging và production. Ghi `java --version` và đường dẫn executable thực tế.
+**Step 1 — Define the target JDK.** Align compiler, CI, staging, and production. Record `java --version` and the actual executable path.
 
-**Bước 2 — Quét code và dependency.** Tìm `sun.*`, `jdk.internal.*` hoặc các import không được hỗ trợ; chạy `jdeps --jdk-internals`.
+**Step 2 — Scan code and dependencies.** Search for `sun.*`, `jdk.internal.*`, or unsupported imports; run `jdeps --jdk-internals`.
 
-**Bước 3 — Kiểm thử trên JDK mục tiêu.** Ghi lỗi compile, runtime linkage và reflection riêng biệt.
+**Step 3 — Test on the target JDK.** Record compilation, runtime linkage, and reflection errors separately.
 
-**Bước 4 — Xem module descriptor.** Dùng `java --describe-module` để biết package nào export/open cho ai. Với JAR thư viện có module descriptor, dùng `jar --describe-module --file library.jar`.
+**Step 4 — Inspect module descriptors.** Use `java --describe-module` to see which packages are exported/opened to whom. For library JARs with module descriptors, use `jar --describe-module --file library.jar`.
 
-**Bước 5 — Phân loại dependency.** Tách code của ứng dụng khỏi library bên thứ ba; xác định version cần nâng cấp.
+**Step 5 — Classify dependencies.** Separate application code from third-party libraries; identify versions needing upgrades.
 
-**Bước 6 — Thay bằng public API.** Ưu tiên API Java SE hoặc JDK-specific documented API phù hợp.
+**Step 6 — Replace with public APIs.** Prefer Java SE APIs or suitable documented JDK-specific APIs.
 
-**Bước 7 — Cấp quyền tạm nếu bắt buộc.** Dùng `--add-exports` hoặc `--add-opens` với đúng source/package/target, theo dõi trong cấu hình build/deploy.
+**Step 7 — Grant temporary permissions if unavoidable.** Use `--add-exports` or `--add-opens` with exact source/package/target, tracked in build/deploy configurations.
 
-**Bước 8 — Test trên runtime image thật.** Đặc biệt với image tùy chỉnh từ `jlink`, nơi không phải mọi `jdk.*` module đều được đóng gói.
+**Step 8 — Test on the real runtime image.** Especially with custom images from `jlink`, where not every `jdk.*` module is packaged.
 
-**Bước 9 — Loại dần workaround.** Sau khi nâng cấp dependency, kiểm thử bỏ từng flag để tránh duy trì lối truy cập internals không cần thiết.
+**Step 9 — Gradually remove workarounds.** After upgrading dependencies, test removing each flag to avoid keeping unnecessary access to internals.
 
-Nếu ứng dụng là thư viện được nhiều project khác sử dụng, việc chuyển public signature khỏi JDK internal type càng quan trọng. Public API phụ thuộc một kiểu không được export có thể khiến consumer không thể compile ngay cả khi implementation của thư viện chạy được ở môi trường riêng.
+If the application is a library used by many other projects, removing JDK internal types from public signatures is even more critical. A public API depending on an unexported type can prevent consumers from compiling even if the library's implementation runs in its own environment.
 
-## 18. Checklist thiết kế trước khi phụ thuộc module JDK
+## 18. Design Checklist Before Depending on a JDK Module
 
-Trước khi thêm `requires jdk.some.module` hoặc import một class từ JDK:
+Before adding `requires jdk.some.module` or importing a class from the JDK:
 
-- [ ] Package có được module descriptor export cho module của mình không?
-- [ ] API có tài liệu public và chính sách hỗ trợ phù hợp không?
-- [ ] API thuộc Java SE hay chỉ thuộc JDK-specific module?
-- [ ] Runtime image triển khai có chứa module đó không?
-- [ ] Có API Java SE nào đáp ứng cùng yêu cầu không?
-- [ ] Có đang dựa vào reflection hoặc private field của JDK không?
-- [ ] Có cần JVM flags nới encapsulation để chạy hay biên dịch không?
-- [ ] Nếu cần workaround, đã có lý do và kế hoạch loại bỏ chưa?
-- [ ] Các dependency bên thứ ba có tương thích với JDK mục tiêu không?
-- [ ] Đã test trên cấu hình module path và runtime thật chưa?
+- [ ] Is the package exported to your module by the module descriptor?
+- [ ] Does the API have public documentation and an appropriate support policy?
+- [ ] Does the API belong to Java SE or only to a JDK-specific module?
+- [ ] Does the deployment runtime image contain that module?
+- [ ] Is there a Java SE API that fulfills the same requirement?
+- [ ] Are you relying on reflection or private fields of the JDK?
+- [ ] Are JVM flags relaxing encapsulation needed to run or compile?
+- [ ] If a workaround is needed, is there a documented reason and removal plan?
+- [ ] Are third-party dependencies compatible with the target JDK?
+- [ ] Have you tested on the module path configuration and real runtime?
 
-**Nguyên tắc thực hành:** chỉ dựa vào những package mà module công bố và tài liệu cam kết phù hợp; giữ dependency vào implementation detail ở mức thấp nhất hoặc loại bỏ hoàn toàn.
+**Practical rule:** rely only on packages published by the module and backed by documentation commitments; keep dependencies on implementation details minimal or eliminate them entirely.
 
-## Kết luận
+## Conclusion
 
-JDK được modular hóa không có nghĩa mọi class trong JDK đều là API công khai. `java.base` có cả Java SE API và package nội bộ; `jdk.compiler` có cả API được công bố và implementation package; `jdk.unsupported` duy trì một số API vì tương thích nhưng không cung cấp cam kết ổn định như Java SE.
+A modularized JDK does not mean every class in the JDK is a public API. `java.base` contains both Java SE APIs and internal packages; `jdk.compiler` contains both published APIs and implementation packages; `jdk.unsupported` preserves certain APIs for compatibility without providing Java SE-level stability guarantees.
 
-Muốn quyết định có nên sử dụng một API, hãy xem **module descriptor, exports/opens và tài liệu hỗ trợ**, không chỉ tên class hoặc khả năng tìm thấy JAR/JMOD. Khi migration gặp lỗi `package is not visible`, `IllegalAccessError` hoặc `InaccessibleObjectException`, hãy xác định đúng loại truy cập, quét dependency bằng `jdeps --jdk-internals`, và ưu tiên public API thay thế. `--add-exports`/`--add-opens` có thể hữu ích tạm thời, nhưng **mở được package không biến JDK internal API thành hợp đồng được hỗ trợ lâu dài**.
+To decide whether to use an API, inspect **the module descriptor, exports/opens, and support documentation**, not just class names or whether a JAR/JMOD can be found. When migration hits `package is not visible`, `IllegalAccessError`, or `InaccessibleObjectException`, identify the exact access type, scan dependencies with `jdeps --jdk-internals`, and prefer public API replacements. `--add-exports`/`--add-opens` can help temporarily, but **opening a package does not turn a JDK internal API into a long-term supported contract**.

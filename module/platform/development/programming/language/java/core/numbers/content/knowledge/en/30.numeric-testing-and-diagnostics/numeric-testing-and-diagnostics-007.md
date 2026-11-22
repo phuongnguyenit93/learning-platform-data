@@ -1,93 +1,93 @@
-# Đối chiếu mọi `RoundingMode` tại trường hợp đúng giữa trong Java
+# Comparing All `RoundingMode` Values at Exact Midpoints in Java
 
-## 1. Bài toán: cùng một số ở “đúng giữa”, vì sao kết quả khác nhau?
+## 1. The Problem: Why Do Results Differ for the Same “Halfway” Number?
 
-Khi số thập phân cần giảm số chữ số sau dấu phẩy hoặc giảm số chữ số có nghĩa, **làm tròn** là quyết định phải thực hiện rõ ràng. Một tình huống dễ nhầm nhất là khi giá trị nằm **đúng giữa hai kết quả biểu diễn được** tại độ chính xác đang yêu cầu.
+When a decimal number must reduce its fractional digits or significant digits, **rounding** is a decision that must be made explicitly. One of the easiest situations to get wrong is when the value sits **right between two representable results** at the requested precision.
 
-Chẳng hạn, yêu cầu làm tròn `2.5` thành số nguyên:
+For example, rounding `2.5` to an integer:
 
-- Kết quả gần nhất có thể là `2` hoặc `3`.
-- Khoảng cách từ `2.5` đến `2` bằng khoảng cách đến `3`, đều là `0.5`.
-- Chế độ làm tròn (*rounding mode*) quyết định phải chọn `2`, `3` hay từ chối phép tính.
+- The nearest candidates are `2` and `3`.
+- The distance from `2.5` to `2` equals the distance to `3`, both `0.5`.
+- The *rounding mode* determines whether to pick `2`, `3`, or reject the operation.
 
-Với `-2.5`, hai kết quả nguyên lân cận là `-3` và `-2`; việc “làm tròn lên” có thể gây hiểu lầm nếu không phân biệt **về phía +∞**, **về phía −∞**, **về phía 0** và **ra xa 0**.
+For `-2.5`, the two neighboring integers are `-3` and `-2`; “rounding up” can cause confusion if you do not distinguish **toward +∞**, **toward −∞**, **toward 0**, and **away from 0**.
 
-Trong Java 17+, các chế độ được định nghĩa bằng enum `java.math.RoundingMode` và thường dùng với `BigDecimal.setScale(...)`, `BigDecimal.divide(...)` hoặc `MathContext`.
+In Java 17+, the modes are defined by the enum `java.math.RoundingMode` and commonly used with `BigDecimal.setScale(...)`, `BigDecimal.divide(...)`, or `MathContext`.
 
-**Mục tiêu:** đối chiếu **tất cả tám** giá trị `RoundingMode` ở điểm đúng giữa cho cả số dương và số âm; hiểu quy tắc với trường hợp không đúng giữa; biết khi nào `UNNECESSARY` hợp lệ; tạo bộ test có kết quả xác định và tránh lỗi do đầu vào `double`.
+**Objective:** compare **all eight** `RoundingMode` values at exact midpoints for both positive and negative numbers; understand the rules for non-midpoint cases; know when `UNNECESSARY` is valid; build a deterministic test suite and avoid errors caused by `double` inputs.
 
-## 2. Định nghĩa “đúng giữa” phải gắn với độ chính xác đích
+## 2. Defining “Exact Midpoint” Depends on Target Precision
 
-Một số **đúng giữa** (*exact halfway/tie*) là số có cùng khoảng cách tới hai kết quả lân cận có thể biểu diễn ở **scale hoặc precision được chọn**.
+An **exact midpoint** (*exact halfway/tie*) is a number equidistant from two neighboring representable results at the **chosen scale or precision**.
 
-Ví dụ với `setScale(0, mode)`, đích là các số nguyên:
+Example with `setScale(0, mode)`, targeting integers:
 
-| Số gốc | Hai số nguyên lân cận | Có đúng giữa? |
+| Original number | Two neighboring integers | Exact tie? |
 | --- | --- | --- |
-| `2.5` | `2` và `3` | Có |
-| `-2.5` | `-3` và `-2` | Có |
-| `3.5` | `3` và `4` | Có |
-| `2.5000` | `2` và `3` | Có, các số 0 cuối không đổi giá trị |
-| `2.5001` | `2` và `3` | Không, gần `3` hơn |
-| `2.4999` | `2` và `3` | Không, gần `2` hơn |
+| `2.5` | `2` and `3` | Yes |
+| `-2.5` | `-3` and `-2` | Yes |
+| `3.5` | `3` and `4` | Yes |
+| `2.5000` | `2` and `3` | Yes, trailing zeros do not change value |
+| `2.5001` | `2` and `3` | No, closer to `3` |
+| `2.4999` | `2` and `3` | No, closer to `2` |
 
-Với `setScale(1, mode)`, các bước giữa các kết quả hợp lệ có kích thước `0.1`. Lúc này `2.25` ở đúng giữa `2.2` và `2.3`; `2.35` ở đúng giữa `2.3` và `2.4`. Nhưng `2.5` đã có một chữ số thập phân, nên **không cần làm tròn** ở scale 1.
+With `setScale(1, mode)`, steps between valid results have size `0.1`. Here `2.25` is halfway between `2.2` and `2.3`; `2.35` is halfway between `2.3` and `2.4`. Meanwhile `2.5` already has one decimal digit, so **no rounding is needed** at scale 1.
 
-Do đó không thể nói “giá trị có đuôi `.5` là tie” mà thiếu **scale đích**. Với phép làm tròn theo `MathContext`, tie còn phụ thuộc **số chữ số có nghĩa** được yêu cầu, không đơn giản là số vị trí sau dấu phẩy.
+Therefore, you cannot say “a value ending in `.5` is a tie” without specifying the **target scale**. When rounding with `MathContext`, a tie also depends on the requested **number of significant digits**, not simply decimal places.
 
-Dùng chuỗi thập phân để tạo giá trị test:
+Use decimal strings to construct test values:
 
 ```java
 BigDecimal value = new BigDecimal("2.5000");
 BigDecimal rounded = value.setScale(0, RoundingMode.HALF_EVEN);
-// rounded là 2
+// rounded is 2
 ```
 
-Cách này giữ **chính xác** giá trị thập phân mong muốn. Tránh viết `new BigDecimal(2.675)` cho testcase thập phân “đúng giữa”, vì số `double` đầu vào có thể chỉ là giá trị nhị phân *gần* số thập phân đã gõ.
+This preserves the **exact** desired decimal value. Avoid writing `new BigDecimal(2.675)` for an “exact midpoint” decimal test case, because the input `double` may only be a binary value *near* the typed decimal.
 
-## 3. Tám `RoundingMode`: chính xác ý nghĩa từng chế độ
+## 3. All Eight `RoundingMode` Values: Exact Meaning of Each Mode
 
-`RoundingMode` gồm tám giá trị: `UP`, `DOWN`, `CEILING`, `FLOOR`, `HALF_UP`, `HALF_DOWN`, `HALF_EVEN`, `UNNECESSARY`.
+`RoundingMode` consists of eight values: `UP`, `DOWN`, `CEILING`, `FLOOR`, `HALF_UP`, `HALF_DOWN`, `HALF_EVEN`, `UNNECESSARY`.
 
-| Chế độ | Quy tắc chính | Với tie dương `+2.5` tới scale 0 | Với tie âm `-2.5` tới scale 0 |
+| Mode | Core rule | Positive tie `+2.5` to scale 0 | Negative tie `-2.5` to scale 0 |
 | --- | --- | ---: | ---: |
-| `UP` | Nếu phải bỏ phần khác 0, làm tròn **ra xa 0** | `3` | `-3` |
-| `DOWN` | Nếu phải bỏ phần khác 0, làm tròn **về 0** | `2` | `-2` |
-| `CEILING` | Làm tròn **về +∞** | `3` | `-2` |
-| `FLOOR` | Làm tròn **về −∞** | `2` | `-3` |
-| `HALF_UP` | Chọn gần nhất; **nếu tie**, chọn **ra xa 0** | `3` | `-3` |
-| `HALF_DOWN` | Chọn gần nhất; **nếu tie**, chọn **về 0** | `2` | `-2` |
-| `HALF_EVEN` | Chọn gần nhất; **nếu tie**, chọn kết quả có chữ số cuối giữ lại **chẵn** | `2` | `-2` |
-| `UNNECESSARY` | **Cấm mọi trường hợp phải làm tròn** | Lỗi | Lỗi |
+| `UP` | If nonzero part must be discarded, round **away from 0** | `3` | `-3` |
+| `DOWN` | If nonzero part must be discarded, round **toward 0** | `2` | `-2` |
+| `CEILING` | Round **toward +∞** | `3` | `-2` |
+| `FLOOR` | Round **toward −∞** | `2` | `-3` |
+| `HALF_UP` | Nearest neighbor; **on tie**, **away from 0** | `3` | `-3` |
+| `HALF_DOWN` | Nearest neighbor; **on tie**, **toward 0** | `2` | `-2` |
+| `HALF_EVEN` | Nearest neighbor; **on tie**, choose result whose kept last digit is **even** | `2` | `-2` |
+| `UNNECESSARY` | **Forbid any case requiring rounding** | Error | Error |
 
-Đây là **bảng đối chiếu tại tie**; không nên suy ra `UP` và `HALF_UP` giống nhau cho mọi số, hoặc `DOWN` và `HALF_DOWN` giống nhau cho mọi số. Chúng chỉ có thể cho cùng kết quả ở một số trường hợp.
+This is a **comparison table at ties**; do not infer that `UP` and `HALF_UP` are identical for all numbers, or that `DOWN` and `HALF_DOWN` are identical for all numbers. They only agree on certain cases.
 
-### 3.1. `UP` khác “làm tròn lên theo trục số”
+### 3.1. `UP` Is Not “Rounding Up on the Number Line”
 
-`UP` nghĩa là **ra xa số 0** khi phải bỏ phần khác 0:
+`UP` means **away from 0** whenever nonzero digits must be dropped:
 
 ```java
 new BigDecimal("2.1").setScale(0, RoundingMode.UP);   // 3
 new BigDecimal("-2.1").setScale(0, RoundingMode.UP);  // -3
 ```
 
-Với số âm, kết quả `-3` lại **nhỏ hơn** `-2.1` theo trục số. Vì vậy đừng dịch đơn giản `UP` thành “chọn số lớn hơn”.
+For negative numbers, `-3` is **less than** `-2.1` on the number line. Therefore do not loosely translate `UP` as “choose the larger number”.
 
-`DOWN` nghĩa là **về 0**:
+`DOWN` means **toward 0**:
 
 ```java
 new BigDecimal("2.9").setScale(0, RoundingMode.DOWN);   // 2
 new BigDecimal("-2.9").setScale(0, RoundingMode.DOWN);  // -2
 ```
 
-Đây không phải `Math.floor` với số âm; `FLOOR` của `-2.9` là `-3`, còn `DOWN` là `-2`.
+This is not `Math.floor` for negative numbers; `FLOOR` of `-2.9` is `-3`, while `DOWN` is `-2`.
 
-### 3.2. `CEILING` và `FLOOR` phụ thuộc hướng trên trục số
+### 3.2. `CEILING` and `FLOOR` Depend on Number-Line Direction
 
-- `CEILING`: số biểu diễn được **nhỏ nhất không nhỏ hơn** số gốc.
-- `FLOOR`: số biểu diễn được **lớn nhất không lớn hơn** số gốc.
+- `CEILING`: **smallest** representable number **not less than** the original.
+- `FLOOR`: **largest** representable number **not greater than** the original.
 
-Ở scale 0:
+At scale 0:
 
 ```java
 new BigDecimal("2.5").setScale(0, RoundingMode.CEILING);   // 3
@@ -97,44 +97,44 @@ new BigDecimal("2.5").setScale(0, RoundingMode.FLOOR);     // 2
 new BigDecimal("-2.5").setScale(0, RoundingMode.FLOOR);    // -3
 ```
 
-Với số dương, `CEILING` thường giống `UP` khi cần bỏ chữ số và `FLOOR` giống `DOWN`. Với số âm thì ngược lại. Quy tắc này áp dụng không chỉ tại tie mà với mọi phần cần bỏ khác 0.
+For positive numbers, `CEILING` behaves like `UP` when digits must be dropped, and `FLOOR` behaves like `DOWN`. For negative numbers, it is the reverse. This rule applies not only at ties, but whenever any nonzero part must be discarded.
 
-### 3.3. Ba chế độ `HALF_*`: chọn gần nhất rồi xử lý tie
+### 3.3. The Three `HALF_*` Modes: Nearest Neighbor, Then Tie-Breaking
 
-Cả `HALF_UP`, `HALF_DOWN` và `HALF_EVEN` đều **ưu tiên kết quả gần số gốc nhất**. Chúng chỉ khác nhau khi khoảng cách đến hai kết quả lân cận **bằng nhau tuyệt đối**:
+`HALF_UP`, `HALF_DOWN`, and `HALF_EVEN` all **prefer the result closest to the original number**. They differ only when the distances to the two neighboring candidates are **exactly equal**:
 
-- `HALF_UP`: tie → ra xa 0.
-- `HALF_DOWN`: tie → về 0.
-- `HALF_EVEN`: tie → chữ số cuối cùng **được giữ lại** là chẵn.
+- `HALF_UP`: tie → away from 0.
+- `HALF_DOWN`: tie → toward 0.
+- `HALF_EVEN`: tie → last **retained** digit is even.
 
-`HALF_EVEN` còn được gọi là *round half to even* hoặc *banker's rounding* trong một số tài liệu. Tên gọi không có nghĩa mọi giao dịch ngân hàng đều bắt buộc dùng nó; quy tắc nghiệp vụ, hợp đồng hoặc pháp luật mới xác định chế độ.
+`HALF_EVEN` is also called *round half to even* or *banker's rounding* in some references. The name does not mean every banking transaction mandates it; business rules, contracts, or laws dictate the mode.
 
-Chẳng hạn tại scale 0:
+For example, at scale 0:
 
-- `2.5` → `2` với `HALF_EVEN`, vì `2` chẵn và `3` lẻ.
-- `3.5` → `4` với `HALF_EVEN`, vì `4` chẵn và `3` lẻ.
-- `-2.5` → `-2` với `HALF_EVEN`, vì chữ số đơn vị `2` chẵn.
-- `-3.5` → `-4` với `HALF_EVEN`, vì chữ số đơn vị `4` chẵn.
+- `2.5` → `2` with `HALF_EVEN`, because `2` is even and `3` is odd.
+- `3.5` → `4` with `HALF_EVEN`, because `4` is even and `3` is odd.
+- `-2.5` → `-2` with `HALF_EVEN`, because the units digit `2` is even.
+- `-3.5` → `-4` with `HALF_EVEN`, because the units digit `4` is even.
 
-Chú ý `HALF_EVEN` **không phải luôn làm tròn xuống**: kết quả với `3.5` là `4`.
+Note that `HALF_EVEN` **does not always round down**: the result for `3.5` is `4`.
 
-### 3.4. `UNNECESSARY`: một hợp đồng không được mất thông tin
+### 3.4. `UNNECESSARY`: A No-Information-Loss Contract
 
-`RoundingMode.UNNECESSARY` yêu cầu phép toán chính xác **không cần làm tròn**. Nếu số không thể biểu diễn ở scale/precision yêu cầu mà không bỏ phần có giá trị, API ném `ArithmeticException`.
+`RoundingMode.UNNECESSARY` requires the exact operation to **need no rounding**. If the number cannot be represented at the requested scale/precision without discarding significant digits, the API throws `ArithmeticException`.
 
 ```java
 new BigDecimal("2.00").setScale(0, RoundingMode.UNNECESSARY);
-// 2 — hợp lệ: chỉ bỏ các số 0 không có giá trị.
+// 2 — valid: drops only insignificant zeros.
 
 new BigDecimal("2.50").setScale(0, RoundingMode.UNNECESSARY);
-// ArithmeticException — cần bỏ phần 0.5 có giá trị.
+// ArithmeticException — would require dropping significant 0.5 part.
 ```
 
-`UNNECESSARY` không có ý nghĩa “làm tròn theo mặc định”; đó là **yêu cầu cấm làm tròn**. Hữu ích khi cần validation dữ liệu, đơn vị tiền nhỏ nhất, hoặc yêu cầu kết quả chính xác tuyệt đối. Thay nó bằng `DOWN` để tránh exception sẽ **thay đổi hợp đồng**.
+`UNNECESSARY` does not mean “default rounding”; it is a **prohibition on rounding**. Useful for data validation, smallest currency units, or strict exactness requirements. Replacing it with `DOWN` to avoid an exception **changes the contract**.
 
-## 4. Ma trận kết quả đầy đủ tại `±2.5` và `±3.5`
+## 4. Complete Result Matrix at `±2.5` and `±3.5`
 
-Các giá trị đầu vào đều là chuỗi `BigDecimal` chính xác; mục tiêu là `scale = 0`.
+All inputs are exact `BigDecimal` strings; target is `scale = 0`.
 
 | `RoundingMode` | `+2.5` | `-2.5` | `+3.5` | `-3.5` |
 | --- | ---: | ---: | ---: | ---: |
@@ -145,47 +145,47 @@ Các giá trị đầu vào đều là chuỗi `BigDecimal` chính xác; mục t
 | `HALF_UP` | `3` | `-3` | `4` | `-4` |
 | `HALF_DOWN` | `2` | `-2` | `3` | `-3` |
 | `HALF_EVEN` | `2` | `-2` | `4` | `-4` |
-| `UNNECESSARY` | **lỗi** | **lỗi** | **lỗi** | **lỗi** |
+| `UNNECESSARY` | **error** | **error** | **error** | **error** |
 
-Hai cột `2.5` kiểm tra dấu; hai cột `3.5` kiểm tra **parity của HALF_EVEN**. Nếu chỉ test `2.5`, một implementation sai “HALF_EVEN luôn lấy số nhỏ hơn về độ lớn” có thể không lộ lỗi.
+The two `2.5` columns test sign; the two `3.5` columns test **`HALF_EVEN` parity**. Testing only `2.5` can fail to expose a buggy custom implementation that “always picks the smaller magnitude for `HALF_EVEN`”.
 
-Một điểm khác: `HALF_UP` ở đúng giữa âm `-2.5` cho `-3`, không phải `-2`. “UP” trong tên `HALF_UP` là **ra xa 0 khi tie**, không phải *ceiling*.
+Another point: `HALF_UP` at the negative tie `-2.5` yields `-3`, not `-2`. “UP” in `HALF_UP` means **away from 0 on ties**, not *ceiling*.
 
-## 5. Test đúng giữa tại một chữ số sau dấu phẩy
+## 5. Testing Exact Midpoints at One Decimal Place
 
-Đối với `setScale(1, mode)`:
+For `setScale(1, mode)`:
 
-| Giá trị | Kết quả lân cận | `HALF_UP` | `HALF_DOWN` | `HALF_EVEN` |
+| Value | Neighboring results | `HALF_UP` | `HALF_DOWN` | `HALF_EVEN` |
 | --- | --- | --- | --- | --- |
-| `2.25` | `2.2` hoặc `2.3` | `2.3` | `2.2` | `2.2` |
-| `2.35` | `2.3` hoặc `2.4` | `2.4` | `2.3` | `2.4` |
-| `-2.25` | `-2.2` hoặc `-2.3` | `-2.3` | `-2.2` | `-2.2` |
-| `-2.35` | `-2.3` hoặc `-2.4` | `-2.4` | `-2.3` | `-2.4` |
+| `2.25` | `2.2` or `2.3` | `2.3` | `2.2` | `2.2` |
+| `2.35` | `2.3` or `2.4` | `2.4` | `2.3` | `2.4` |
+| `-2.25` | `-2.2` or `-2.3` | `-2.3` | `-2.2` | `-2.2` |
+| `-2.35` | `-2.3` or `-2.4` | `-2.4` | `-2.3` | `-2.4` |
 
-Với `2.25`, chữ số cuối giữ lại ở hai ứng viên là `2` và `3`; `HALF_EVEN` lấy `2.2`. Với `2.35`, chữ số cuối là `3` và `4`; kết quả là `2.4`. Không phải lấy **toàn bộ số nguyên** hay “chữ số trước dấu phẩy” để xét tính chẵn khi làm tròn scale 1.
+With `2.25`, the last retained digits of the two candidates are `2` and `3`; `HALF_EVEN` picks `2.2`. With `2.35`, the last digits are `3` and `4`; the result is `2.4`. You do not inspect the **whole integer part** or “digit before the decimal point” for parity when rounding to scale 1.
 
-Tương tự cho số âm: tính chẵn/lẻ của chữ số cuối không phụ thuộc dấu. Kết quả được chọn vẫn theo **hai ứng viên gần giá trị gốc nhất**, không tùy tiện bỏ dấu âm.
+Likewise for negative numbers: parity of the last digit does not depend on sign. The chosen result still comes from the **two candidates closest to the original value**, never arbitrarily dropping the negative sign.
 
-### Điểm sát tie nhưng không đúng giữa
+### Points Just Off the Tie (Not Exact Midpoints)
 
-Chỉ sai khác một chữ số nhỏ là có thể làm các `HALF_*` không còn khác nhau:
+A tiny digit difference stops `HALF_*` modes from diverging:
 
-| Giá trị tới scale 0 | `HALF_UP` | `HALF_DOWN` | `HALF_EVEN` | Giải thích |
+| Value to scale 0 | `HALF_UP` | `HALF_DOWN` | `HALF_EVEN` | Explanation |
 | --- | --- | --- | --- | --- |
-| `2.4999` | `2` | `2` | `2` | Gần `2` hơn |
-| `2.5000` | `3` | `2` | `2` | Tie thực sự |
-| `2.5001` | `3` | `3` | `3` | Gần `3` hơn |
-| `-2.4999` | `-2` | `-2` | `-2` | Gần `-2` hơn |
-| `-2.5000` | `-3` | `-2` | `-2` | Tie thực sự |
-| `-2.5001` | `-3` | `-3` | `-3` | Gần `-3` hơn |
+| `2.4999` | `2` | `2` | `2` | Closer to `2` |
+| `2.5000` | `3` | `2` | `2` | True tie |
+| `2.5001` | `3` | `3` | `3` | Closer to `3` |
+| `-2.4999` | `-2` | `-2` | `-2` | Closer to `-2` |
+| `-2.5000` | `-3` | `-2` | `-2` | True tie |
+| `-2.5001` | `-3` | `-3` | `-3` | Closer to `-3` |
 
-`HALF_DOWN` **không phải lúc nào cũng hướng về 0**; nó chỉ chọn hướng đó khi đúng giữa. Ví dụ `2.5001` với `HALF_DOWN` ra `3`, còn `DOWN` ra `2`.
+`HALF_DOWN` **does not always move toward 0**; it chooses that direction only at an exact midpoint. For example, `2.5001` with `HALF_DOWN` gives `3`, while `DOWN` gives `2`.
 
-Đó là lý do bộ test cần cả tie, dưới tie và trên tie, không chỉ một trường hợp `.5`.
+That is why test suites need ties, just below ties, and just above ties—not just `.5`.
 
-## 6. Kiểm chứng chương trình Java 17+ hoàn chỉnh
+## 6. Verifying with a Complete Java 17+ Program
 
-Lưu nội dung sau thành file **`RoundingMidpointDemo.java`**:
+Save the following content as **`RoundingMidpointDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -194,7 +194,7 @@ import java.math.RoundingMode;
 
 public class RoundingMidpointDemo {
 
-    // Trả văn bản ERROR khi làm tròn là điều bị cấm.
+    // Return ERROR text when rounding is forbidden.
     static String roundOrReject(
             String input, int scale, RoundingMode mode) {
         try {
@@ -254,14 +254,14 @@ public class RoundingMidpointDemo {
 }
 ```
 
-Biên dịch và thực thi:
+Compile and execute:
 
 ```bash
 javac RoundingMidpointDemo.java
 java RoundingMidpointDemo
 ```
 
-Stdout xác định trên Java 17+:
+Deterministic stdout on Java 17+:
 
 ```text
 Mode: +2.5, -2.5, +3.5, -3.5 (scale=0)
@@ -286,15 +286,15 @@ Double 2.675 => 2.67
 precision2 9.95 => 10
 ```
 
-Phần `roundOrReject(...)` chỉ in `ERROR` cho **mục đích học và đối chiếu**. Trong ứng dụng sản xuất, nếu `UNNECESSARY` báo lỗi, bạn cần xử lý đúng loại ngoại lệ hoặc trả thông báo validation rõ ràng; không âm thầm thay kết quả bằng 0, không nuốt ngoại lệ rồi tiếp tục tính tiền.
+The `roundOrReject(...)` helper prints `ERROR` only for **learning and comparison purposes**. In production applications, when `UNNECESSARY` fails, handle the proper exception type or return a clear validation message; never silently replace the result with 0 or swallow the exception and continue billing.
 
-Bộ vòng lặp qua `RoundingMode.values()` giúp **không vô ý bỏ sót chế độ thứ tám**. Việc in cả hai dấu và hai parity (`2.5`, `3.5`) giúp phát hiện nhiều loại lỗi trong implementation custom hơn là một ví dụ duy nhất.
+Looping over `RoundingMode.values()` ensures you **do not accidentally omit the eighth mode**. Printing both signs and both parities (`2.5`, `3.5`) catches more classes of bugs in custom implementations than a single example.
 
-## 7. Vì sao dùng `new BigDecimal(2.675)` có thể khiến test midpoint sai?
+## 7. Why Can `new BigDecimal(2.675)` Break Midpoint Tests?
 
-Nhiều số thập phân không biểu diễn chính xác bằng nhị phân hữu hạn. Literal Java `2.675` có kiểu `double` và được lưu dưới dạng một giá trị nhị phân rất gần `2.675` nhưng **không bằng chính xác** số thập phân ấy.
+Many decimal numbers cannot be represented exactly in finite binary. The Java literal `2.675` has type `double` and is stored as a binary value very close to `2.675` yet **not equal to** that exact decimal number.
 
-Vì vậy:
+Therefore:
 
 ```java
 BigDecimal decimalExact = new BigDecimal("2.675");
@@ -306,27 +306,27 @@ System.out.println(
         fromDouble.setScale(2, RoundingMode.HALF_EVEN));   // 2.67
 ```
 
-`decimalExact` nằm đúng giữa `2.67` và `2.68`; chữ số cuối `8` chẵn nên `HALF_EVEN` ra `2.68`. Còn `fromDouble` thể hiện **giá trị nhị phân chính xác đã được lưu từ literal**, hơi nhỏ hơn `2.675`, nên gần `2.67` hơn và ra `2.67`. Kết quả này không chứng minh `HALF_EVEN` hoạt động không nhất quán; **đầu vào đã khác nhau**.
+`decimalExact` lies squarely between `2.67` and `2.68`; the last digit `8` is even, so `HALF_EVEN` yields `2.68`. Meanwhile `fromDouble` represents the **exact binary value stored from the literal**, slightly less than `2.675`, so it is closer to `2.67` and yields `2.67`. This does not mean `HALF_EVEN` behaves inconsistently; **the inputs were already different**.
 
-Nếu bắt buộc bắt đầu từ một `double`, `BigDecimal.valueOf(2.675)` sử dụng biểu diễn thập phân từ `Double.toString` và thường hữu ích hơn `new BigDecimal(double)` cho chuyển đổi thông thường. Tuy nhiên, `valueOf` cũng không thể phục hồi giá trị thập phân gốc nếu bạn đã tính toán xấp xỉ bằng `double` trước đó. Với các testcase tie thập phân, ưu tiên tạo từ **chuỗi** hoặc `BigDecimal.valueOf(long, scale)` khi có giá trị nguyên đã định.
+If you must start from a `double`, `BigDecimal.valueOf(2.675)` uses the decimal representation from `Double.toString` and is usually preferable to `new BigDecimal(double)` for general conversion. Still, `valueOf` cannot recover an original decimal value if prior approximate arithmetic was done in `double`. For decimal tie test cases, prefer constructing from **strings** or `BigDecimal.valueOf(long, scale)` when you have a scaled integer.
 
-### Cách dựng dữ liệu kiểm thử chuẩn
+### How to Construct Standard Test Data
 
 ```java
-// Hai cách chính xác cho 2.675:
+// Two exact ways to construct 2.675:
 BigDecimal a = new BigDecimal("2.675");
 BigDecimal b = BigDecimal.valueOf(2675L, 3);
 
 System.out.println(a.compareTo(b) == 0); // true
 ```
 
-Với các ca đúng giữa cần độ chính xác decimal, không dùng phép toán `double` trung gian để tạo expected value. Đừng dùng `Math.round(double)` như một oracle tổng quát để kiểm tra tám `RoundingMode`: nó có quy tắc riêng và chịu biểu diễn dấu phẩy động.
+For midpoint cases requiring decimal exactness, do not use intermediate `double` arithmetic to compute expected values. Do not use `Math.round(double)` as a general oracle to verify the eight `RoundingMode`s: it has its own rules and is subject to floating-point representation.
 
-## 8. Phân biệt `setScale` với `MathContext`: hai loại bài toán làm tròn
+## 8. Distinguishing `setScale` from `MathContext`: Two Kinds of Rounding Problems
 
-### 8.1. `setScale`: số chữ số sau dấu phẩy
+### 8.1. `setScale`: Digits After the Decimal Point
 
-`setScale(targetScale, mode)` làm tròn theo **scale đích**:
+`setScale(targetScale, mode)` rounds to a **target scale**:
 
 ```java
 BigDecimal value = new BigDecimal("123.45");
@@ -335,24 +335,24 @@ BigDecimal fixed = value.setScale(1, RoundingMode.HALF_UP);
 // fixed = 123.5
 ```
 
-Khi dùng scale 0, giá trị kết quả là số nguyên; khi dùng scale 2, kết quả có hai vị trí thập phân (có thể thêm các số 0 cuối). Giá trị BigDecimal có thể có **scale âm**, nên đây không phải chỉ là tùy chọn định dạng; nó quyết định đơn vị lượng tử hóa thập phân.
+With scale 0, the result is an integer; with scale 2, the result has two decimal places (possibly padding trailing zeros). `BigDecimal` values can have a **negative scale**, so this is not merely a formatting option; it defines the decimal quantization unit.
 
-### 8.2. `MathContext`: tổng số chữ số có nghĩa
+### 8.2. `MathContext`: Total Significant Digits
 
-`new MathContext(precision, mode)` dùng cho **precision** (số chữ số có nghĩa), không phải số chữ số sau dấu phẩy:
+`new MathContext(precision, mode)` controls **precision** (number of significant digits), not digits after the decimal point:
 
 ```java
 BigDecimal input = new BigDecimal("9.95");
 BigDecimal rounded = input.round(
         new MathContext(2, RoundingMode.HALF_UP));
 
-// Kết quả giá trị số là 10, có 2 chữ số có nghĩa.
+// Numerical result is 10, with 2 significant digits.
 System.out.println(rounded.toPlainString()); // 10
 ```
 
-Điểm đúng giữa trong bài toán precision còn phụ thuộc độ lớn đầu vào và vị trí chữ số bị bỏ. Nếu bạn cần tiền có đúng hai chữ số sau dấu phẩy, không nên thay `setScale(2, mode)` bằng `round(new MathContext(2, mode))`.
+Exact midpoints in a precision problem also depend on input magnitude and which digit is dropped. If you need money with two decimal places, do not replace `setScale(2, mode)` with `round(new MathContext(2, mode))`.
 
-### 8.3. Làm tròn ở bước trung gian khác làm tròn một lần ở cuối
+### 8.3. Rounding at Intermediate Steps Differs from Rounding Once at the End
 
 ```java
 BigDecimal a = new BigDecimal("0.005");
@@ -367,31 +367,31 @@ BigDecimal roundEach = a.setScale(2, RoundingMode.HALF_UP)
         .add(c.setScale(2, RoundingMode.HALF_UP)); // 0.03
 ```
 
-Cùng mode nhưng **khác ranh giới làm tròn** nên tổng khác. Đây là quyết định nghiệp vụ (làm tròn từng dòng hay toàn hóa đơn), không phải lựa chọn tùy hứng để giảm chi phí tính toán.
+Same mode yet **different rounding boundaries** yield different totals. This is a business decision (round per line item or per invoice total), not an arbitrary optimization choice.
 
-## 9. Ma trận kiểm thử khuyến nghị cho mọi `RoundingMode`
+## 9. Recommended Test Matrix for All `RoundingMode` Values
 
-Một testcase ở `2.5` là chưa đủ. Nên thiết kế **ma trận theo trục**, đặc biệt nếu đang kiểm chứng hàm rounding tự viết hoặc tích hợp với DB/API.
+A single test case at `2.5` is insufficient. Design an **axis-based matrix**, especially when verifying custom rounding functions or DB/API integrations.
 
-| Nhóm test | Giá trị mẫu | Điều cần xác minh |
+| Test group | Sample values | What to verify |
 | --- | --- | --- |
-| Tie nguyên dương | `2.5`, `3.5` tới scale 0 | Chọn parity ở `HALF_EVEN`, away/toward |
-| Tie nguyên âm | `-2.5`, `-3.5` tới scale 0 | Phân biệt `UP` và `CEILING`; `DOWN` và `FLOOR` |
-| Tie scale 1 | `2.25`, `2.35`, `-2.25`, `-2.35` | Chữ số giữ lại chẵn/lẻ |
-| Ngay dưới tie | `2.4999`, `-2.4999` | `HALF_*` chọn ứng viên gần nhất |
-| Ngay trên tie | `2.5001`, `-2.5001` | Không coi sai là tie |
-| Không cần rounding | `2.00` tới scale 0 | Mọi mode cho `2`; `UNNECESSARY` thành công |
-| Buộc rounding | `2.50` tới scale 0 | `UNNECESSARY` phải ném ngoại lệ |
-| Giá trị 0 | `0`, `0.000`, `-0.000` | Không tạo kết quả sai khác; chú ý BigDecimal không bảo toàn dấu âm của 0 |
-| Giá trị lớn/nhỏ | `999.95`, `0.00005` theo scale thích hợp | Carry sang hàng chữ số mới, miền scale |
-| Precision hữu hạn | `9.95` với precision 2 | Phân biệt `MathContext` với scale |
-| Dữ liệu từ `double` | `2.675` literal và `"2.675"` | Không nhầm sai số đầu vào với bug rounding |
-| Phân số từ phép chia | `1/3`, `1/8` | Cần mode/context phù hợp; `UNNECESSARY` nếu không chính xác |
-| Dữ liệu số âm | `-0.1`, `-9.9` | Hướng +∞, −∞ và 0 đúng |
+| Positive integer tie | `2.5`, `3.5` to scale 0 | Parity choice in `HALF_EVEN`, away/toward |
+| Negative integer tie | `-2.5`, `-3.5` to scale 0 | Distinguish `UP` vs `CEILING`; `DOWN` vs `FLOOR` |
+| Scale-1 tie | `2.25`, `2.35`, `-2.25`, `-2.35` | Even/odd retained digit |
+| Just below tie | `2.4999`, `-2.4999` | `HALF_*` picks nearest candidate |
+| Just above tie | `2.5001`, `-2.5001` | Not misclassified as tie |
+| No rounding needed | `2.00` to scale 0 | All modes give `2`; `UNNECESSARY` succeeds |
+| Rounding forced | `2.50` to scale 0 | `UNNECESSARY` must throw |
+| Zero values | `0`, `0.000`, `-0.000` | No spurious result; note `BigDecimal` does not preserve negative zero |
+| Large/small values | `999.95`, `0.00005` at suitable scales | Carry into new digit place, scale range |
+| Finite precision | `9.95` with precision 2 | Distinguish `MathContext` from scale |
+| Inputs from `double` | `2.675` literal vs `"2.675"` | Do not confuse input error with rounding bug |
+| Fractions from division | `1/3`, `1/8` | Needs appropriate mode/context; `UNNECESSARY` if non-exact |
+| Negative data | `-0.1`, `-9.9` | Correct directions toward +∞, −∞, and 0 |
 
-### 9.1. Kiểm tra trường hợp không cần làm tròn
+### 9.1. Testing Cases Requiring No Rounding
 
-Nếu số đã nằm chính xác trên “lưới” của scale đích, mọi chế độ phải giữ nguyên **giá trị số**:
+If the number already lies exactly on the target scale's “grid”, every mode must preserve the **numerical value**:
 
 ```java
 BigDecimal input = new BigDecimal("5.000");
@@ -399,46 +399,46 @@ BigDecimal input = new BigDecimal("5.000");
 for (RoundingMode mode : RoundingMode.values()) {
     BigDecimal result = input.setScale(0, mode);
     if (result.compareTo(new BigDecimal("5")) != 0) {
-        throw new AssertionError("Sai khi không cần làm tròn: " + mode);
+        throw new AssertionError("Wrong when rounding is unnecessary: " + mode);
     }
 }
 ```
 
-Với `BigDecimal`, `equals` còn kiểm tra scale nên `new BigDecimal("5.000")` không `equals(new BigDecimal("5"))`, dù về số học bằng nhau. Hãy chọn phép so sánh theo hợp đồng testcase.
+With `BigDecimal`, `equals` also checks scale, so `new BigDecimal("5.000")` does not equal `new BigDecimal("5")` via `equals`, even though they are numerically equal. Choose the comparison matching the test case contract.
 
-### 9.2. Một số bất biến hữu ích cho property-based testing
+### 9.2. Useful Invariants for Property-Based Testing
 
-Nếu `x` là giá trị hữu hạn kiểu `BigDecimal`, `r = x.setScale(scale, mode)` thành công và không có vấn đề về miền/tài nguyên:
+If `x` is a finite `BigDecimal` value and `r = x.setScale(scale, mode)` succeeds without range/resource errors:
 
-- **Cố định scale:** `r.scale() == scale`.
-- **Idempotence ở cùng scale:** `r.setScale(scale, mode).equals(r)`; sau lần đầu, không còn phần chữ số cần bỏ.
-- **Không dùng `UP`/`DOWN` sai hướng:** `UP` không cho độ lớn tuyệt đối thấp hơn giá trị gốc khi cần bỏ chữ số; `DOWN` không cho độ lớn tuyệt đối cao hơn giá trị gốc.
-- **Không dùng `CEILING`/`FLOOR` sai thứ tự:** `CEILING` không trả số nhỏ hơn `x`; `FLOOR` không trả số lớn hơn `x`.
-- **Nếu không cần rounding:** mọi mode, kể cả `UNNECESSARY`, cho cùng giá trị số.
-- **Trong nhóm `HALF_*`:** nếu đầu vào không đúng giữa, ba mode phải chọn cùng ứng viên gần nhất (khi cần làm tròn).
-- **Nếu phải bỏ chữ số có giá trị:** `UNNECESSARY` phải ném `ArithmeticException`.
+- **Fixed scale:** `r.scale() == scale`.
+- **Idempotence at the same scale:** `r.setScale(scale, mode).equals(r)`; after the first call, no digits remain to drop.
+- **No wrong-direction `UP`/`DOWN`:** `UP` never produces a smaller absolute magnitude than the original when digits are dropped; `DOWN` never produces a larger absolute magnitude than the original.
+- **No wrong-order `CEILING`/`FLOOR`:** `CEILING` never returns a number smaller than `x`; `FLOOR` never returns a number larger than `x`.
+- **When no rounding is needed:** all modes, including `UNNECESSARY`, produce the same numerical value.
+- **Within `HALF_*`:** if the input is not an exact tie, all three modes pick the same nearest candidate (when rounding is needed).
+- **When significant digits must be dropped:** `UNNECESSARY` must throw `ArithmeticException`.
 
-Các bất biến không thay thế **expected value** cụ thể cho tất cả trường hợp tie. Phải kết hợp oracle (bảng kết quả ở mục 4/5), kiểm tra ngoại lệ và test giá trị dương/âm.
+Invariants do not replace specific **expected values** for all tie cases. Combine them with an oracle (the tables in sections 4/5), exception checks, and positive/negative value tests.
 
-### 9.3. Kiểm tra ngoại lệ chính xác
+### 9.3. Exact Exception Testing
 
-Không nên viết test:
+Do not write tests like:
 
 ```java
-// Không tốt: vô tình nuốt mọi lỗi và coi là thành công.
+// Bad: silently swallows every error and treats it as success.
 try {
     computation();
 } catch (Exception ignored) {
 }
 ```
 
-Nếu quy tắc yêu cầu `UNNECESSARY` ném `ArithmeticException`, hãy kiểm tra **đúng kiểu ngoại lệ**. Trong JUnit 5, có thể dùng `assertThrows(ArithmeticException.class, ...)`; nếu chỉ dùng Java core, dùng một cờ và `try/catch(ArithmeticException)` rõ ràng, rồi ném `AssertionError` khi ngoại lệ không xuất hiện.
+If the rule specifies that `UNNECESSARY` throws `ArithmeticException`, check the **exact exception type**. In JUnit 5, use `assertThrows(ArithmeticException.class, ...)`; using only core Java, use an explicit flag and `try/catch(ArithmeticException)` and throw `AssertionError` if the exception does not occur.
 
-Test “không ném ngoại lệ” với `2.00` cũng quan trọng như test “phải ném” với `2.50`.
+Testing “does not throw” on `2.00` is just as important as testing “must throw” on `2.50`.
 
-## 10. Ví dụ kiểm thử không dùng thư viện ngoài
+## 10. Library-Free Testing Example
 
-Bạn có thể đưa phương thức này vào một lớp thử nghiệm Java, dùng trực tiếp API chuẩn:
+You can place these methods in a Java test class using standard APIs directly:
 
 ```java
 import java.math.BigDecimal;
@@ -450,11 +450,11 @@ static void expectRounded(
 
     BigDecimal actual = new BigDecimal(input).setScale(scale, mode);
 
-    // So cả toPlainString để kiểm tra scale/trình bày của ví dụ.
+    // Also compare toPlainString to verify the example's scale/formatting.
     if (!actual.toPlainString().equals(expected)) {
         throw new AssertionError(
-                input + " với " + mode + " => "
-                + actual.toPlainString() + ", kỳ vọng " + expected);
+                input + " with " + mode + " => "
+                + actual.toPlainString() + ", expected " + expected);
     }
 }
 
@@ -468,11 +468,11 @@ static void expectRoundingRejected(
         return;
     }
     throw new AssertionError(
-            "Phải từ chối rounding cho " + input);
+            "Should reject rounding for " + input);
 }
 ```
 
-Đây là **hai phương thức nhúng**, không phải file Java độc lập. Ví dụ lời gọi trong một hàm test:
+These are **two embedded helper methods**, not a standalone Java file. Example calls inside a test method:
 
 ```java
 expectRounded("2.5", 0, RoundingMode.HALF_UP, "3");
@@ -486,79 +486,79 @@ expectRounded("2.00", 0, RoundingMode.UNNECESSARY, "2");
 expectRoundingRejected("2.50", 0);
 ```
 
-Khuyến nghị tiếp theo là triển khai **data-driven test** để kiểm tra ma trận tám mode cho nhiều đầu vào, thay vì viết từng điều kiện `if` cho mỗi mode. Đừng tính expected bằng cùng hàm production đang test rồi so với chính nó; như vậy không phát hiện lỗi thuật toán.
+A recommended next step is implementing **data-driven tests** to verify the eight-mode matrix across many inputs, rather than writing separate `if` branches per mode. Never compute the expected value using the same production function under test and compare it against itself; that detects no algorithmic bugs.
 
-## 11. Ứng dụng thực tế: tiền, thuế, kiểm thử liên hệ thống
+## 11. Real-World Applications: Money, Taxes, Cross-System Testing
 
-Các API như `BigDecimal.divide(scale, mode)`, `setScale`, `round(MathContext)` đều có thể làm tròn nhưng **thời điểm** và **mục đích** khác nhau.
+APIs such as `BigDecimal.divide(scale, mode)`, `setScale`, and `round(MathContext)` can all perform rounding, yet their **timing** and **purpose** differ.
 
-Với dữ liệu tiền tệ, một chính sách có thể nói: “Lưu số tiền theo hai chữ số thập phân, từ chối đầu vào không biểu diễn chính xác ở scale 2.” Đây là lý do hợp lệ để dùng `setScale(2, UNNECESSARY)` ở ranh giới lưu. Chính sách khác cho phép tính thuế ở precision cao rồi làm tròn `HALF_UP` khi kết toán; đó lại là một lựa chọn khác. Không có mode mặc định “đúng cho mọi tiền tệ”.
+For monetary data, one policy might state: “Store amounts to two decimal places, rejecting inputs not exact at scale 2.” That is a valid reason to use `setScale(2, UNNECESSARY)` at the storage boundary. Another policy might compute tax at high precision and round `HALF_UP` at settlement; that is a different choice. There is no default mode “right for every currency”.
 
-Với tích hợp CSDL `DECIMAL(p,s)`, serializer JSON, phần mềm kế toán hoặc hệ thống khác, kiểm thử không chỉ `BigDecimal` trong JVM mà cả quá trình:
+When integrating with `DECIMAL(p,s)` databases, JSON serializers, accounting software, or external systems, test not only `BigDecimal` inside the JVM, but the entire pipeline:
 
-1. Đọc chuỗi đầu vào thành số thập phân chính xác.
-2. Áp dụng quy tắc rounding, scale hoặc precision tại ranh giới xác định.
-3. Ghi qua JDBC/ORM hoặc xuất JSON theo định dạng đã công bố.
-4. Đọc lại và so sánh cả **giá trị số** lẫn **scale/trình bày**, nếu hợp đồng yêu cầu.
-5. Kiểm thử những tie dương/âm và chính sách xử lý overflow/exception ở cả hai phía.
+1. Parse the input string into an exact decimal number.
+2. Apply rounding, scale, or precision rules at the defined boundary.
+3. Persist via JDBC/ORM or serialize to JSON in the published format.
+4. Read back and compare both **numerical value** and **scale/formatting**, if required by the contract.
+5. Test positive/negative ties and overflow/exception policies on both sides.
 
-Một database/driver có thể có quy tắc làm tròn riêng. Đừng để việc ép kiểu ở DB âm thầm thay thế quyết định trong tầng nghiệp vụ; làm rõ trách nhiệm từng hệ thống và dùng integration test cho các giá trị đúng giữa.
+A database or driver may have its own rounding rules. Do not let database casting silently override decisions in the business layer; clarify each system's responsibility and use integration tests for exact midpoint values.
 
-Nếu giao thức trao đổi bắt buộc giữ nguyên “`2.50`” thay vì “`2.5`”, hãy phân biệt giá trị số với biểu diễn chuỗi và scale. `BigDecimal.toPlainString()` giữ scale hiện có, còn `stripTrailingZeros()` có thể làm mất những số 0 cuối có ý nghĩa đối với định dạng/hợp đồng.
+If an exchange protocol mandates preserving “`2.50`” instead of “`2.5`”, distinguish numeric value from string representation and scale. `BigDecimal.toPlainString()` preserves the current scale, whereas `stripTrailingZeros()` can drop trailing zeros that are meaningful for formatting or the contract.
 
-## 12. Những nhầm lẫn phổ biến
+## 12. Common Misconceptions
 
-| Nhầm lẫn | Hậu quả | Quy tắc sửa |
+| Misconception | Consequence | Corrective rule |
 | --- | --- | --- |
-| “`UP` nghĩa là trục số tăng” | Làm tròn số âm sai | `UP` là **ra xa 0** |
-| “`DOWN` luôn giống `FLOOR`” | Sai cho số âm | `DOWN` về 0; `FLOOR` về −∞ |
-| “`CEILING` luôn tăng độ lớn” | Sai với số âm | `CEILING` về +∞ |
-| “`HALF_UP` là làm tròn lên mọi phần dư” | Sai khi dưới tie | Chọn gần nhất; tie mới ra xa 0 |
-| “`HALF_DOWN` luôn làm tròn xuống” | Sai khi trên tie | Chọn gần nhất; tie mới về 0 |
-| “`HALF_EVEN` luôn xuống” | `3.5` thành `3` sai | Tie chọn chữ số **giữ lại** chẵn |
-| “HALF_EVEN xét chữ số ngay trước dấu phẩy” | Sai khi scale > 0 hoặc âm | Xét chữ số cuối của **kết quả đích** |
-| “`UNNECESSARY` là mode không làm gì” | Nuốt lỗi đáng phải ném | Chỉ hợp lệ khi không phải rounding |
-| Chỉ test `+2.5`, bỏ `-2.5` | Không thấy lỗi hướng với số âm | Test cả hai dấu |
-| Chỉ test `2.5`, bỏ `3.5` | Không thấy lỗi chẵn/lẻ | Test cả parity |
-| Test với `new BigDecimal(2.675)` | Dữ liệu không phải tie thập phân | Tạo bằng chuỗi, dùng giá trị exact |
-| Nhầm `MathContext(2)` với `setScale(2)` | Khác phạm vi precision | Dùng đúng API theo hợp đồng |
-| Làm tròn mỗi dòng thay vì cuối tổng | Có thể đổi tổng tiền | Giữ ranh giới rounding được quy định |
-| Dùng integer `BigDecimal.ROUND_*` cũ | API khó đọc, bị deprecated | Dùng enum `RoundingMode` |
-| So `equals` khi chỉ cần bằng nhau về số | Sai với `2.0` và `2.00` | Dùng `compareTo` nếu scale không quan trọng |
+| “`UP` means increasing on the number line” | Rounds negative numbers wrongly | `UP` means **away from 0** |
+| “`DOWN` is always the same as `FLOOR`” | Wrong for negative numbers | `DOWN` toward 0; `FLOOR` toward −∞ |
+| “`CEILING` always increases magnitude” | Wrong for negative numbers | `CEILING` toward +∞ |
+| “`HALF_UP` rounds every remainder up” | Wrong below the tie | Pick nearest; only ties go away from 0 |
+| “`HALF_DOWN` always rounds down” | Wrong above the tie | Pick nearest; only ties go toward 0 |
+| “`HALF_EVEN` always goes down” | `3.5` wrongly becomes `3` | Tie picks even **retained** digit |
+| “`HALF_EVEN` checks the digit right before the decimal point” | Wrong when scale > 0 or negative | Inspect the last digit of the **target result** |
+| “`UNNECESSARY` is a no-op mode” | Swallows errors that must be thrown | Valid only when no rounding is needed |
+| Testing only `+2.5`, skipping `-2.5` | Misses directional bugs with negative numbers | Test both signs |
+| Testing only `2.5`, skipping `3.5` | Misses even/odd bugs | Test both parities |
+| Testing with `new BigDecimal(2.675)` | Input is not a decimal tie | Construct from string, use exact values |
+| Confusing `MathContext(2)` with `setScale(2)` | Wrong precision scope | Use the API matching the contract |
+| Rounding per line instead of at the total | Can change total amount | Preserve the specified rounding boundary |
+| Using old integer `BigDecimal.ROUND_*` constants | Hard-to-read, deprecated API | Use the `RoundingMode` enum |
+| Using `equals` when only numerical equality matters | Fails for `2.0` vs `2.00` | Use `compareTo` if scale does not matter |
 
-## 13. Bài tập và hướng giải
+## 13. Exercises and Solutions
 
-**Bài 1.** Điền kết quả `setScale(0, ...)` cho `+7.5` và `-7.5` với đủ tám mode. Sau đó giải thích vì sao `HALF_EVEN` chọn `8` và `-8`.
+**Exercise 1.** Fill in the `setScale(0, ...)` results for `+7.5` and `-7.5` across all eight modes. Then explain why `HALF_EVEN` picks `8` and `-8`.
 
-*Gợi ý:* các ứng viên là `7`, `8`, `-7`, `-8`; tại tie, kết quả có chữ số cuối chẵn là ±8. `UNNECESSARY` báo lỗi.
+*Hint:* candidates are `7`, `8`, `-7`, `-8`; at the tie, the results with an even last digit are ±8. `UNNECESSARY` throws an error.
 
-**Bài 2.** Với đầu vào `-2.4999`, `-2.5000`, `-2.5001`, so kết quả `HALF_UP`, `HALF_DOWN`, `HALF_EVEN`, `UP`, `DOWN`, `CEILING`, `FLOOR`. Hai giá trị ngoài điểm giữa có giống nhau giữa các `HALF_*` không?
+**Exercise 2.** For inputs `-2.4999`, `-2.5000`, `-2.5001`, compare `HALF_UP`, `HALF_DOWN`, `HALF_EVEN`, `UP`, `DOWN`, `CEILING`, and `FLOOR`. Do the two off-midpoint values behave identically across the `HALF_*` modes?
 
-*Gợi ý:* `HALF_*` cùng ra `-2` ở `-2.4999`, khác nhau ở `-2.5000`, cùng ra `-3` ở `-2.5001`. Các mode hướng (UP/DOWN/CEILING/FLOOR) không phụ thuộc điều kiện tie.
+*Hint:* `HALF_*` all yield `-2` at `-2.4999`, diverge at `-2.5000`, and all yield `-3` at `-2.5001`. Directional modes (UP/DOWN/CEILING/FLOOR) do not depend on the tie condition.
 
-**Bài 3.** Hệ thống chỉ lưu tối đa hai chữ số thập phân chính xác, không được tự làm tròn. `1.2300`, `1.234` và `1.200` sẽ được xử lý ra sao với `setScale(2, UNNECESSARY)`?
+**Exercise 3.** A system stores at most two exact decimal places and must not auto-round. How are `1.2300`, `1.234`, and `1.200` handled with `setScale(2, UNNECESSARY)`?
 
-*Gợi ý:* `1.2300` → `1.23`; `1.234` bị từ chối; `1.200` → `1.20`. Các số 0 cuối có thể loại bỏ chính xác, nhưng chữ số khác 0 phải giữ nguyên.
+*Hint:* `1.2300` → `1.23`; `1.234` is rejected; `1.200` → `1.20`. Trailing zeros can be dropped exactly, yet nonzero digits must be preserved.
 
-**Bài 4.** Tại sao `new BigDecimal("2.675")` và `new BigDecimal(2.675)` có thể cho kết quả `HALF_EVEN` khác nhau tại scale 2? Cách tạo đầu vào nào nên được dùng cho bài kiểm thử midpoint thập phân?
+**Exercise 4.** Why can `new BigDecimal("2.675")` and `new BigDecimal(2.675)` give different `HALF_EVEN` results at scale 2? Which way of creating inputs should be used for decimal midpoint tests?
 
-*Gợi ý:* thứ nhất là decimal exact; thứ hai chứa giá trị nhị phân thực của `double`, không phải đúng `2.675`. Tạo từ chuỗi hoặc nguyên với scale.
+*Hint:* the first is exact decimal; the second holds the true binary value of `double`, not exact `2.675`. Construct from string or unscaled integer with scale.
 
-**Bài 5.** Một kết quả `9.95` được làm tròn bằng `new MathContext(2, HALF_UP)`. Nó có nghĩa giữ hai chữ số sau dấu phẩy hay hai chữ số có nghĩa? Vì sao kết quả bằng `10`?
+**Exercise 5.** A result `9.95` is rounded using `new MathContext(2, HALF_UP)`. Does that mean keeping two decimal places or two significant digits? Why is the result `10`?
 
-*Gợi ý:* precision 2 là **hai chữ số có nghĩa**, không phải scale 2. Phần cần làm tròn đẩy chữ số cuối lên và tạo carry.
+*Hint:* precision 2 is **two significant digits**, not scale 2. Rounding up propagates a carry into the next digit place.
 
-**Bài 6.** Thiết kế bảng test cho các chế độ `RoundingMode` trên hai chiều **dấu** và **parity**, thêm ít nhất ba ca biên không đúng giữa. Làm thế nào để test `UNNECESSARY` cả đường thành công lẫn thất bại?
+**Exercise 6.** Design a test table for `RoundingMode` across the two dimensions of **sign** and **parity**, adding at least three non-tie boundary cases. How do you test both success and failure paths of `UNNECESSARY`?
 
-*Gợi ý:* dùng ma trận mục 4, 5 và các số `2.4999`, `2.5001`, `-2.4999`; test đúng kiểu `ArithmeticException`.
+*Hint:* use the matrices from sections 4 and 5 plus `2.4999`, `2.5001`, `-2.4999`; check the exact `ArithmeticException` type.
 
-## 14. Kết luận thực hành
+## 14. Practical Conclusions
 
-Để kiểm thử rounding đúng, **luôn bắt đầu bằng hợp đồng về scale/precision và thời điểm làm tròn**. Xây dựng một ma trận với **cả số dương lẫn số âm**, **chữ số cuối chẵn và lẻ**, **đúng giữa, dưới giữa, trên giữa**, cùng trường hợp **không cần làm tròn** và trường hợp `UNNECESSARY` phải từ chối.
+To test rounding properly, **always start from the contract on scale/precision and when rounding occurs**. Build a matrix with **both positive and negative numbers**, **even and odd last digits**, **exact ties, just below ties, and just above ties**, along with cases requiring **no rounding** and cases where `UNNECESSARY` must reject.
 
-Dùng `BigDecimal` từ chuỗi để tạo midpoint thập phân chính xác; không dùng `double` rồi coi kết quả xấp xỉ là một tie thực sự. `UP`, `DOWN`, `CEILING` và `FLOOR` là quy tắc **hướng**; `HALF_UP`, `HALF_DOWN` và `HALF_EVEN` là quy tắc **chọn gần nhất + xử lý tie**; `UNNECESSARY` là quy tắc **không được làm tròn**.
+Use `BigDecimal` from strings to construct exact decimal midpoints; do not use `double` and treat an approximate value as a true tie. `UP`, `DOWN`, `CEILING`, and `FLOOR` are **directional** rules; `HALF_UP`, `HALF_DOWN`, and `HALF_EVEN` are **nearest-neighbor + tie-breaking** rules; `UNNECESSARY` is a **no-rounding-allowed** rule.
 
-Tài liệu chuẩn Java SE 17:
-- [`RoundingMode`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html): mô tả từng chế độ, sơ đồ trường hợp dương và âm.
-- [`BigDecimal`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): `setScale`, `divide`, `round`, precision/scale và xử lý `ArithmeticException`.
-- [`MathContext`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/MathContext.html): precision và rounding mode cho phép tính.
+Standard Java SE 17 documentation:
+- [`RoundingMode`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html): description of each mode and positive/negative case diagrams.
+- [`BigDecimal`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): `setScale`, `divide`, `round`, precision/scale, and `ArithmeticException` handling.
+- [`MathContext`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/MathContext.html): precision and rounding mode for operations.

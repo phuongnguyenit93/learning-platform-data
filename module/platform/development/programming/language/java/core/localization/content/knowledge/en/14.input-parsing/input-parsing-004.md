@@ -1,24 +1,24 @@
-# Kiểm tra toàn bộ đầu vào khi phân tích dữ liệu bản địa hóa trong Java
+# Validating Full Input Consumption When Parsing Localized Data in Java
 
-## 1. Vấn đề: parse thành công không đồng nghĩa cả chuỗi hợp lệ
+## 1. The Problem: Successful Parsing Does Not Mean the Whole String Is Valid
 
-Trong ứng dụng có dữ liệu số/ngày theo `Locale`, một tình huống nguy hiểm là **parser đọc được tiền tố hợp lệ, nhưng bỏ lại phần dư mà ứng dụng không kiểm tra**.
+In applications handling locale-sensitive numbers or dates, a dangerous situation occurs when **the parser reads a valid prefix and leaves behind trailing data that the application never checks**.
 
-Ví dụ với bộ định dạng số kiểu Hoa Kỳ:
+For example, with a US number formatter:
 
 ```text
-Đầu vào:       1,234.50kg
-Phần được đọc: 1,234.50
-Phần dư:             kg
+Input:          1,234.50kg
+Parsed portion: 1,234.50
+Remainder:              kg
 ```
 
-`NumberFormat.parse("1,234.50kg")` có thể trả `1234.5` thay vì ném lỗi, bởi API parse của các lớp `java.text.Format` thường cho phép phân tích từ đầu chuỗi cho đến khi không nhận dạng được thêm. Đây là hành vi tiện lợi khi phân tích một phần nội dung nhưng **không phù hợp nếu ô nhập liệu bắt buộc chỉ chứa một số**.
+`NumberFormat.parse("1,234.50kg")` can return `1234.5` instead of throwing an error, because parse APIs on `java.text.Format` subclasses typically read from the start of the string until they can no longer recognize valid tokens. That behavior is convenient when parsing embedded values, but **unsuitable when an input field must contain only a single number**.
 
-Quy tắc then chốt:
+Key rule:
 
-> **Một đầu vào hợp lệ hoàn toàn cần hai điều kiện:** parser tạo được kết quả và **vị trí kết thúc parse bằng độ dài chuỗi đầu vào được phép chấp nhận**.
+> **A fully valid input requires two conditions:** the parser produces a result and **the ending parse position equals the length of the acceptable input string**.
 
-Đối với các bộ phân tích `java.text` hỗ trợ `ParsePosition`, dùng:
+For `java.text` parsers supporting `ParsePosition`, use:
 
 ```java
 ParsePosition position = new ParsePosition(0);
@@ -27,42 +27,42 @@ boolean fullyParsed =
         number != null && position.getIndex() == input.length();
 ```
 
-Nhưng còn một tầng khác: **tiêu thụ hết chuỗi chỉ là điều kiện cần**, chưa đủ để đảm bảo ngữ pháp nghiêm ngặt, phạm vi giá trị hợp lệ, độ chính xác hoặc chính sách của nghiệp vụ. Ví dụ parser có thể chấp nhận cách phân nhóm chữ số không chuẩn, dù đã đọc hết ký tự.
+There is still another layer: **consuming the entire string is only a necessary condition**, not sufficient to guarantee strict grammar, valid value range, precision, or business policy compliance. For example, a parser might accept non-standard digit grouping even after reading every character.
 
-## 2. Ba kết quả phân tích cần phân biệt
+## 2. Three Parsing Outcomes to Distinguish
 
-Khi gọi `NumberFormat.parse(String, ParsePosition)` hoặc API tương tự, hãy phân loại:
+When calling `NumberFormat.parse(String, ParsePosition)` or a similar API, classify the outcome:
 
-| Trạng thái | Giá trị trả về | `position.getIndex()` | Ý nghĩa |
+| Status | Return Value | `position.getIndex()` | Meaning |
 |---|---|---|---|
-| Thành công toàn bộ | Khác `null` | `input.length()` | Parser tiêu thụ hết chuỗi |
-| Thành công một phần | Khác `null` | Nhỏ hơn `input.length()` | Có phần dư chưa được kiểm tra |
-| Thất bại | `null` | Thường không tiến khỏi vị trí bắt đầu | Không tạo được giá trị |
+| Full success | Non-`null` | `input.length()` | Parser consumed the entire string |
+| Partial success | Non-`null` | Less than `input.length()` | Unchecked remainder exists |
+| Failure | `null` | Usually does not advance past start | Could not produce a value |
 
-Ví dụ trên `NumberFormat` dùng `Locale.US`:
+Examples on `NumberFormat` with `Locale.US`:
 
-| Input | Giá trị parse được | Index kết thúc | Độ dài | Kết luận theo full-consumption |
+| Input | Parsed Value | Ending Index | Length | Full-Consumption Conclusion |
 |---|---:|---:|---:|---|
-| `1,234.50` | `1234.5` | 8 | 8 | Chấp nhận |
-| `1,234.50kg` | `1234.5` | 8 | 10 | Từ chối |
-| `12.5kg` | `12.5` | 4 | 6 | Từ chối |
-| `12.5 ` | `12.5` | 4 | 5 | Từ chối nếu không cho phép khoảng trắng cuối |
-| `abc12` | `null` | 0 | 5 | Từ chối |
-| `1,23` | `123` | 4 | 4 | Tiêu thụ hết nhưng cú pháp grouping có thể không hợp chính sách |
+| `1,234.50` | `1234.5` | 8 | 8 | Accept |
+| `1,234.50kg` | `1234.5` | 8 | 10 | Reject |
+| `12.5kg` | `12.5` | 4 | 6 | Reject |
+| `12.5 ` | `12.5` | 4 | 5 | Reject if trailing whitespace is disallowed |
+| `abc12` | `null` | 0 | 5 | Reject |
+| `1,23` | `123` | 4 | 4 | Fully consumed, but grouping syntax may violate policy |
 
-Hàng cuối cùng nhắc lại giới hạn của cách kiểm tra: một số `NumberFormat` **không validate vị trí grouping theo cách nghiêm ngặt**. Do đó `1,23` có thể thành `123` trong `Locale.US` mà không còn ký tự dư. Nếu sản phẩm bắt buộc grouping ba chữ số chính xác, cần kiểm tra thêm một quy tắc cụ thể.
+The last row reiterates a limitation of this check: some `NumberFormat` implementations **do not validate grouping positions strictly**. Thus `1,23` can become `123` in `Locale.US` with no trailing characters left. If the product requires exact three-digit grouping, add an explicit rule check.
 
-## 3. Vì sao parse(String) không đủ để kiểm tra?
+## 3. Why `parse(String)` Is Not Enough for Validation
 
-`NumberFormat` có overload tiện lợi:
+`NumberFormat` offers a convenient overload:
 
 ```java
 Number value = numberFormat.parse(input);
 ```
 
-Overload này ném `ParseException` khi parser **không thể bắt đầu phân tích thành giá trị**, nhưng nó có thể chấp nhận một **tiền tố hợp lệ** và bỏ phần còn lại. Nó không buộc bạn kiểm tra vị trí kết thúc.
+This overload throws `ParseException` when the parser **cannot begin parsing a value**, yet it can accept a **valid prefix** and ignore the rest. It does not force you to check the ending position.
 
-Ví dụ:
+Example:
 
 ```java
 NumberFormat formatter =
@@ -71,32 +71,32 @@ NumberFormat formatter =
 System.out.println(formatter.parse("12.5kg"));
 ```
 
-In ra:
+Prints:
 
 ```text
 12.5
 ```
 
-Trong khi:
+Whereas:
 
 ```java
 formatter.parse("abc12");
 ```
 
-ném `ParseException` vì không phân tích được số ở ngay vị trí bắt đầu.
+throws `ParseException` because no number can be parsed at the starting position.
 
-Vì vậy, dùng `try/catch(ParseException)` xung quanh `parse(String)` vẫn **chưa phải một phép kiểm tra “đọc hết chuỗi”**.
+Therefore, wrapping `parse(String)` in `try/catch(ParseException)` is **still not a “whole-string parsed” check**.
 
-Mẫu thiết kế thường được chọn là `parse(input, ParsePosition)` cùng kiểm tra vị trí kết thúc, đặc biệt khi dữ liệu đến từ biểu mẫu web, dữ liệu nhập tay, CSV, tin nhắn giao thức hoặc nội dung người dùng chưa được kiểm tra.
+The preferred pattern is `parse(input, ParsePosition)` combined with an ending-index check, especially when data comes from web forms, manual entry, CSVs, protocol messages, or untrusted user content.
 
-## 4. ParsePosition: index và errorIndex có nghĩa gì?
+## 4. `ParsePosition`: What Do `index` and `errorIndex` Mean?
 
-`java.text.ParsePosition` lưu trạng thái của parser qua hai chỉ số chính:
+`java.text.ParsePosition` stores parser state via two main indices:
 
-- `getIndex()`: vị trí **sau ký tự cuối cùng đã phân tích thành công**. Nếu gọi parser từ `new ParsePosition(0)`, index này thể hiện số UTF-16 code units đã tiêu thụ.
-- `getErrorIndex()`: vị trí gặp lỗi nếu parser không thể phân tích; mặc định `-1` nghĩa là **không có chỉ số lỗi được ghi nhận**.
+- `getIndex()`: position **after the last successfully parsed character**. When initialized with `new ParsePosition(0)`, this index reflects the number of UTF-16 code units consumed.
+- `getErrorIndex()`: position where an error occurred if parsing failed; defaults to `-1`, meaning **no error index was recorded**.
 
-Một đoạn phân tích:
+A parse snippet:
 
 ```java
 String input = "12.5kg";
@@ -105,7 +105,7 @@ ParsePosition position = new ParsePosition(0);
 Number value = formatter.parse(input, position);
 ```
 
-Sau đó, kết quả đã kiểm chứng:
+Afterward, observed values are:
 
 ```text
 value      = 12.5
@@ -114,27 +114,27 @@ errorIndex = -1
 length     = 6
 ```
 
-**Đừng kiểm tra chỉ `errorIndex == -1` để kết luận đầu vào hợp lệ.** Đầu vào `12.5kg` đã parse được một phần, không có lỗi được ghi nhận và vẫn có phần dư.
+**Never check only `errorIndex == -1` to conclude the input is valid.** `12.5kg` parsed partially, recorded no error index, and still left trailing data.
 
-Cần xét đồng thời:
+You must evaluate both together:
 
 ```java
 value != null && position.getIndex() == input.length()
 ```
 
-Khi parser thất bại ngay từ đầu, `getErrorIndex()` giúp xác định vị trí lỗi nếu có. Với chuỗi không parse được `"abc12"` trong ví dụ US, giá trị `null`, `getIndex() == 0`, `getErrorIndex() == 0`.
+When the parser fails right at the start, `getErrorIndex()` helps pinpoint the error if recorded. For unparseable `"abc12"` in the US example, the value is `null`, `getIndex() == 0`, and `getErrorIndex() == 0`.
 
-### Chỉ số là UTF-16, không phải số ký tự người dùng nhìn thấy
+### Indices Are UTF-16, Not Perceived Character Counts
 
-`ParsePosition` dùng index của `String` Java. Với Unicode, `input.length()` đếm UTF-16 code units, không phải byte UTF-8 hoặc số grapheme. Điều kiện `position.getIndex() == input.length()` **đúng loại chỉ số cần so sánh**; đừng thay `length()` bằng số code points rồi so trực tiếp.
+`ParsePosition` uses Java `String` indices. Under Unicode, `input.length()` counts UTF-16 code units, not UTF-8 bytes or grapheme clusters. The check `position.getIndex() == input.length()` **uses matching index units**; do not replace `length()` with a code-point count when comparing directly.
 
-### Luôn khởi tạo ParsePosition mới khi kiểm tra
+### Always Create a Fresh `ParsePosition` for Each Check
 
-`ParsePosition` là đối tượng có trạng thái và có thể bắt đầu ở index khác 0. Khi validate toàn bộ chuỗi, thường dùng `new ParsePosition(0)` cho **mỗi lần kiểm tra**. Nếu cố tình phân tích từ giữa chuỗi, các chỉ số phải được diễn giải theo vị trí bắt đầu đó; không coi kết quả từ giữa là “đọc toàn bộ”.
+`ParsePosition` is stateful and can start at a non-zero index. When validating an entire string, create `new ParsePosition(0)` for **each check**. If you intentionally parse from the middle of a string, interpret indices relative to that starting offset; do not treat a mid-string result as “whole-string parsed.”
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: từ chối mọi phần dư
+## 5. Complete Java 17+ Example: Rejecting Any Remainder
 
-Tạo tệp `FullNumberParseDemo.java`:
+Create the file `FullNumberParseDemo.java`:
 
 ```java
 import java.text.NumberFormat;
@@ -194,14 +194,14 @@ public class FullNumberParseDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac FullNumberParseDemo.java
 java FullNumberParseDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 [1,234.50] -> ACCEPT 1234.5
@@ -212,22 +212,22 @@ Kết quả:
 [1,23] -> ACCEPT 123
 ```
 
-Giải thích chính xác từng loại kết quả:
+Exact breakdown of each outcome:
 
-1. `1,234.50` được đọc hết và trả về số `1234.5`.
-2. `1,234.50kg` chỉ đọc phần số ở tám ký tự đầu; hai chữ `kg` còn dư nên phải từ chối.
-3. `12.5` được đọc hết.
-4. `12.5 ` còn **một khoảng trắng cuối**; vì chính sách của hàm là “không dư bất cứ ký tự nào”, nó bị từ chối.
-5. `abc12` không có tiền tố số hợp lệ, parser trả `null` và `getErrorIndex()` là 0.
-6. `1,23` được parser US chấp nhận hết như `123`; điều này chứng minh **full consumption không đồng nghĩa strict grouping**.
+1. `1,234.50` is fully read and returns `1234.5`.
+2. `1,234.50kg` reads only the numeric part in the first eight characters; the remaining `kg` causes rejection.
+3. `12.5` is fully read.
+4. `12.5 ` leaves **one trailing space**; since the function's policy forbids any extra characters, it is rejected.
+5. `abc12` has no valid numeric prefix; the parser returns `null` and `getErrorIndex()` is 0.
+6. `1,23` is fully accepted by the US parser as `123`; this demonstrates that **full consumption does not imply strict grouping**.
 
-Trong ví dụ, `ParseException.getErrorOffset()` với đầu vào chỉ được parse một phần là vị trí dừng parse do chúng ta chủ động truyền vào constructor. Đây là **thông tin do hàm kiểm tra tự tạo**, không phải lỗi mà `NumberFormat` tự động ném cho phần dư.
+In the example, `ParseException.getErrorOffset()` for partially parsed input is the parse stopping position explicitly passed by our helper to the constructor. That is **information constructed by our validation function**, not an error that `NumberFormat` throws automatically for trailing text.
 
-Hàm này dùng `Objects.requireNonNull` để phản hồi rõ ràng khi API bị gọi với tham số `null`; bạn có thể thay bằng chính sách validation khác nếu hợp đồng ứng dụng yêu cầu.
+This function uses `Objects.requireNonNull` to fail fast when invoked with `null` arguments; you can substitute another validation policy if your application contract requires it.
 
-## 6. Phân biệt trường hợp parser không tiến và parser đọc thiếu
+## 6. Distinguishing No Progress from Partial Consumption
 
-Một hàm kiểm tra đầy đủ nên kiểm tra **giá trị không `null`** trước khi chỉ dựa vào chỉ số:
+A complete check should verify a **non-`null` value** before relying on the index:
 
 ```java
 ParsePosition pos = new ParsePosition(0);
@@ -236,109 +236,109 @@ Number number = formatter.parse(input, pos);
 boolean valid = number != null && pos.getIndex() == input.length();
 ```
 
-Đừng chỉ viết:
+Do not write only:
 
 ```java
 boolean valid = pos.getIndex() == input.length();
 ```
 
-Nếu đầu vào rỗng, `input.length() == 0` và `pos.getIndex()` có thể vẫn bằng 0 dù parser không tạo giá trị nào, gây sai validation.
+If the input is empty, `input.length() == 0` and `pos.getIndex()` can remain `0` even though the parser produced no value, breaking validation.
 
-Tương tự, nếu parser không ghi `errorIndex` nhưng trả về một value được phân tích từng phần, vẫn phải kiểm tra vị trí kết thúc. `getErrorIndex()` là **thông tin hỗ trợ debug**, không phải lá cờ khẳng định toàn bộ đầu vào hợp lệ.
+Likewise, if the parser records no `errorIndex` yet returns a partially parsed value, you must still check the ending position. `getErrorIndex()` is **debugging diagnostic data**, not a flag affirming the whole input is valid.
 
-Trong ứng dụng thực tế, thông báo lỗi người dùng thường không nên chứa toàn bộ chuỗi nhạy cảm. Có thể trả kiểu lỗi “Giá trị số không hợp lệ” và ghi chỉ số lỗi ở kênh log nội bộ phù hợp.
+In production applications, user-facing error messages should generally omit raw sensitive input strings. You can return an error type like “Invalid numeric value” and log the error index to an appropriate internal channel.
 
-## 7. Khoảng trắng: từ chối hay chuẩn hóa một cách chủ động?
+## 7. Whitespace: Reject or Intentionally Normalize?
 
-Nhiều form cho phép người dùng nhập `" 12.5 "` rồi tự loại whitespace hai đầu. Một validator **không được tự ý quyết định** thay người dùng; phải có chính sách rõ.
+Many forms allow users to type `" 12.5 "` and strip surrounding whitespace. A validator **must not make arbitrary assumptions** on the user's behalf; the policy must be explicit.
 
-### Chính sách A — Input chính xác
+### Policy A — Exact Input
 
-Dùng nguyên chuỗi:
+Use the original string as-is:
 
 ```java
 Number number = parseFully(formatter, raw);
 ```
 
-`"12.5 "` bị từ chối vì có phần dư. Khoảng trắng ở đầu `" 12.5"` có thể khiến parser không bắt đầu được.
+`"12.5 "` is rejected because of trailing characters. Leading whitespace in `" 12.5"` may prevent parsing from starting.
 
-### Chính sách B — Cho phép khoảng trắng hai đầu
+### Policy B — Allow Leading/Trailing Whitespace
 
-Chuẩn hóa **trước khi parse**:
+Normalize **before parsing**:
 
 ```java
 String normalized = raw.strip();
 Number number = parseFully(formatter, normalized);
 ```
 
-`String.strip()` dựa vào quy tắc whitespace của Java, khác `trim()` theo chi tiết Unicode; không nên giả định mọi loại khoảng trắng Unicode đều được loại bỏ. Sau chuẩn hóa, phải dùng **`normalized.length()`**, không dùng độ dài của `raw` để so với parse index.
+`String.strip()` follows Java's whitespace rules, which differ from `trim()` in Unicode details; do not assume every kind of Unicode space is removed. After normalizing, you must compare the parse index against **`normalized.length()`**, not `raw.length()`.
 
-Nếu dữ liệu có khoảng trắng đặc biệt thuộc định dạng số ở locale đó (ví dụ ký tự khoảng trắng không ngắt dùng làm grouping separator), việc xóa khoảng trắng **bên trong** chuỗi có thể làm hỏng input. Chỉ chuẩn hóa những gì chính sách thật sự cho phép; không xóa mọi dấu cách bằng `replace(" ", "")` rồi coi đó là parse nghiêm ngặt.
+If the input contains special whitespace belonging to that locale's number format (for example, a non-breaking space used as a grouping separator), deleting whitespace **inside** the string can corrupt the input. Normalize only what the policy explicitly permits; never strip all spaces with `replace(" ", "")` and call it strict parsing.
 
-### Chính sách C — Chấp nhận đơn vị nhưng phải xử lý đơn vị
+### Policy C — Accept Units Only If Handled Explicitly
 
-Nếu đầu vào hợp lệ là `"12.5kg"`, không thể dùng `parseFully` trên cả chuỗi để lấy số mà vẫn chấp nhận nó. Thay vào đó, cần **cú pháp có chủ đích**: tách/parse cả phần số lẫn đơn vị, kiểm tra đơn vị có nằm trong danh sách cho phép và chắc chắn không còn dữ liệu dư.
+If valid input is `"12.5kg"`, you cannot call `parseFully` on the entire string just to extract the number and still accept it. Instead, use an **intentional grammar**: separate/parse both the numeric part and the unit, verify the unit is in the allowlist, and ensure no leftover data remains.
 
-Ví dụ chỉ chấp nhận `kg` và `g` sẽ khác hoàn toàn với việc bỏ qua mọi thứ sau con số. Việc bỏ phần dư một cách mù quáng làm mất nghĩa của đơn vị và có thể gây lỗi nghiệp vụ.
+For example, accepting only `kg` and `g` is completely different from ignoring whatever follows a number. Blindly discarding trailing text loses unit semantics and causes business bugs.
 
-## 8. Toàn bộ chuỗi không có nghĩa parser đã kiểm tra đúng hình thức
+## 8. Consuming the Whole String Does Not Mean the Parser Verified Exact Shape
 
-Một câu hỏi quan trọng: vì sao `"1,23"` vẫn được `NumberFormat.getNumberInstance(Locale.US)` parse thành `123` và tiêu thụ hết bốn ký tự?
+An important question: why does `NumberFormat.getNumberInstance(Locale.US)` parse `"1,23"` into `123` while consuming all four characters?
 
-Do `NumberFormat` / `DecimalFormat` có thể có **quy tắc parse tương đối linh hoạt** đối với grouping. Nó giúp chấp nhận một số input trong giao diện người dùng, nhưng không tự thực thi mọi ràng buộc cú pháp bạn mong muốn, chẳng hạn dấu phẩy phải xuất hiện đúng mỗi nhóm ba chữ số.
+Because `NumberFormat` / `DecimalFormat` can have **relatively permissive parsing rules** for grouping. That helps accept varied UI inputs, but it does not enforce every syntactic constraint you might want, such as requiring commas between exact three-digit groups.
 
-Tùy hợp đồng ứng dụng, cần thêm validation:
+Depending on the application contract, add explicit validation:
 
-- Có cho phép dấu nhóm không? Nếu có, vị trí nhóm phải chính xác thế nào?
-- Dấu âm có được phép không? Có chấp nhận dấu cộng?
-- Có cho phép chữ số khác ASCII hay không?
-- Cho phép tối đa bao nhiêu chữ số thập phân?
-- Có cho phép ký hiệu tiền tệ/phần trăm không?
-- Có chấp nhận chữ số `0` đầu, số âm 0, giá trị `NaN` hoặc vô cực không?
-- Sau parse, giá trị có nằm trong miền nghiệp vụ không?
+- Are grouping separators allowed? If so, what exact positions must they occupy?
+- Is a negative sign allowed? Is a plus sign accepted?
+- Are non-ASCII digits allowed?
+- How many fractional digits are permitted at most?
+- Are currency or percent signs allowed?
+- Are leading `0`s, negative zero, `NaN`, or infinity accepted?
+- After parsing, is the value within the business domain range?
 
-**Ví dụ cú pháp thập phân máy/ASCII chủ động, không dùng grouping**:
+**Example of an intentional machine/ASCII decimal syntax without grouping**:
 
 ```java
 boolean validText =
         input.matches("[0-9]+(?:\\.[0-9]{1,2})?");
 ```
 
-Đoạn này chỉ chấp nhận một hoặc nhiều chữ số ASCII, theo sau tùy chọn là dấu chấm và một hoặc hai chữ số thập phân. `String.matches(...)` khớp **toàn bộ** chuỗi theo regex. Nó không cho dấu âm, dấu nhóm hoặc chữ số ở các hệ khác; điều đó là **giới hạn có chủ đích**, không phải grammar của mọi locale.
+This accepts one or more ASCII digits, optionally followed by a dot and one or two fractional digits. `String.matches(...)` matches the **entire** string against the regex. It forbids minus signs, grouping separators, and digits from other numeral systems; those are **intentional constraints**, not a grammar for every locale.
 
-Sau bước kiểm tra grammar trên, nếu đầu vào thực sự là một chuỗi thập phân canonical (không có grouping), có thể chuyển trực tiếp:
+After verifying that grammar, if the input is truly a canonical decimal string (without grouping), you can convert directly:
 
 ```java
 java.math.BigDecimal amount = new java.math.BigDecimal(input);
 ```
 
-Đối với **đầu vào được bản địa hóa** theo `Locale`, không áp regex ASCII như một chuẩn toàn cầu. Hãy kết hợp parser theo locale, kiểm tra tiêu thụ hết và validation grammar/giá trị theo chính sách cụ thể. Không nên khẳng định “đã dùng ParsePosition thì chắc chắn đầu vào đúng chuẩn”.
+For **localized input** according to a `Locale`, do not treat an ASCII regex as a global standard. Combine a locale-aware parser, full-consumption checking, and grammar/value validation per specific policy. Never claim “using `ParsePosition` guarantees the input matches standard formatting.”
 
-## 9. Locale ảnh hưởng cả dấu thập phân và kết quả parse
+## 9. Locale Affects Both Decimal Separators and Parse Outcomes
 
-Cùng một chuỗi có thể mang ý nghĩa khác nhau tùy ngôn ngữ/vùng:
+The same string can mean different things depending on language/region:
 
-- `Locale.US` thường biểu diễn `1234.5` dưới dạng `1,234.5`.
-- `Locale.GERMANY` thường biểu diễn tương ứng là `1.234,5`.
+- `Locale.US` typically formats `1234.5` as `1,234.5`.
+- `Locale.GERMANY` typically formats the corresponding value as `1.234,5`.
 
-Ví dụ đối chiếu:
+Side-by-side comparison:
 
-| Locale parser | Input | Giá trị parse | Kết thúc index | Kết luận |
+| Parser Locale | Input | Parsed Value | Ending Index | Conclusion |
 |---|---|---:|---:|---|
-| `en-US` | `1,234.50` | `1234.5` | 8/8 | Parse hết |
-| `en-US` | `1.234,50` | `1.234` | 5/8 | Còn dư |
-| `de-DE` | `1.234,50` | `1234.5` | 8/8 | Parse hết |
-| `de-DE` | `1,234.50` | `1.234` | 5/8 | Còn dư |
+| `en-US` | `1,234.50` | `1234.5` | 8/8 | Fully parsed |
+| `en-US` | `1.234,50` | `1.234` | 5/8 | Remainder left |
+| `de-DE` | `1.234,50` | `1234.5` | 8/8 | Fully parsed |
+| `de-DE` | `1,234.50` | `1.234` | 5/8 | Remainder left |
 
-Những kết quả này được quan sát với bộ dữ liệu locale/JDK dùng cho ví dụ; các ký hiệu có thể phụ thuộc cấu hình locale, đặc biệt với locale khác hoặc dữ liệu Unicode mới.
+These results were observed with the locale/JDK dataset used for the example; exact symbols can depend on locale configuration, especially for other locales or newer Unicode data.
 
-Vì thế, ứng dụng không nên định dạng bằng một locale rồi parse bằng locale khác. Nếu giao diện cho biết người dùng đang nhập theo `vi-VN`, hãy xây dựng parser theo locale/hợp đồng đầu vào đó. Nếu API máy-máy định nghĩa dấu chấm decimal cố định, hãy dùng grammar canonical cho giao thức thay vì đoán locale theo hệ điều hành của máy chủ.
+Therefore, an application must never format with one locale and parse with another. If the UI indicates the user is entering data in `vi-VN`, construct the parser according to that locale/input contract. If a machine-to-machine API defines a fixed decimal dot, use the protocol's canonical grammar rather than guessing from the server OS locale.
 
-Một câu hỏi hay khi debug: “Đầu vào này có hợp lệ không?” phải đi kèm “**Hợp lệ theo locale và grammar nào?**”.
+A great debugging question: “Is this input valid?” must always be paired with “**Valid under which locale and grammar?**”
 
-## 10. BigDecimal: bảo toàn biểu diễn thập phân không thay thế full consumption
+## 10. `BigDecimal`: Preserving Decimal Representation Does Not Replace Full Consumption
 
-`NumberFormat.parse(...)` thường trả về `Number` có thể là `Long`, `Double` hoặc kiểu khác tùy formatter/input. Với số tiền hoặc dữ liệu decimal cần độ chính xác, có thể cấu hình một `DecimalFormat` chuyên biệt:
+`NumberFormat.parse(...)` returns a `Number`, which may be `Long`, `Double`, or another type depending on the formatter and input. For monetary amounts or decimals needing exactness, configure a `DecimalFormat` explicitly:
 
 ```java
 DecimalFormat formatter = new DecimalFormat(
@@ -347,38 +347,38 @@ DecimalFormat formatter = new DecimalFormat(
 formatter.setParseBigDecimal(true);
 ```
 
-Khi đó, với những số thập phân hữu hạn thông thường, parser có thể trả `BigDecimal`. Ví dụ `1,234.50` được parse thành đối tượng `BigDecimal` có chuỗi `1234.50`, giữ được phần decimal theo mức dữ liệu parser đọc.
+Then, for ordinary finite decimal numbers, the parser can return `BigDecimal`. For example, `1,234.50` is parsed into a `BigDecimal` representing `1234.50`, preserving the fractional part as read by the parser.
 
-**Nhưng `setParseBigDecimal(true)` không buộc parse tiêu thụ hết đầu vào.** `"1,234.50kg"` vẫn có thể trả `BigDecimal("1234.50")` với index 8/10. Nó cũng không khiến grouping tự nhiên trở nên nghiêm ngặt.
+**However, `setParseBigDecimal(true)` does not force the parser to consume the entire input.** `"1,234.50kg"` can still return `BigDecimal("1234.50")` with index 8/10. Nor does it make grouping validation strict.
 
-Ngoài ra, một số giá trị đặc biệt như `NaN` hoặc dấu vô cực có thể được trả dưới dạng `Double` dù bật `setParseBigDecimal(true)`. Nếu nghiệp vụ đòi hỏi duy nhất `BigDecimal` hữu hạn, kiểm tra kiểu đầu ra và miền dữ liệu rõ ràng.
+Additionally, special values such as `NaN` or infinity may still be returned as `Double` even when `setParseBigDecimal(true)` is enabled. If business logic requires strictly finite `BigDecimal` values, check the output type and domain explicitly.
 
-Một cách giải quyết tốt là chia quy trình thành các bước:
+A clean workflow breaks the process into steps:
 
-1. Chọn đúng `Locale` và `DecimalFormatSymbols`.
-2. Định nghĩa grammar được hỗ trợ, precision/scale và dấu nhóm.
-3. Parse với `ParsePosition` từ index 0.
-4. Từ chối nếu parse không tạo giá trị hoặc chưa tiêu thụ hết.
-5. Kiểm tra kiểu, dấu, precision, scale, min/max theo nghiệp vụ.
-6. Chỉ sau đó đưa giá trị vào tính toán.
+1. Select the right `Locale` and `DecimalFormatSymbols`.
+2. Define supported grammar, precision/scale, and grouping rules.
+3. Parse with `ParsePosition` starting at index 0.
+4. Reject if parsing yields no value or fails to consume the full string.
+5. Validate type, sign, precision, scale, and min/max per business rules.
+6. Only then pass the value into calculations.
 
-Hãy giữ phân biệt **kiểu dữ liệu**, **cú pháp văn bản** và **giá trị hợp lệ**: kiểm tra một khía cạnh không thay thế hai khía cạnh còn lại.
+Keep **data type**, **text syntax**, and **valid value domain** distinct: checking one does not replace the other two.
 
-## 11. Ngày tháng: setLenient(false) vẫn có thể bỏ phần dư
+## 11. Dates: `setLenient(false)` Can Still Leave Trailing Data
 
-Vấn đề không chỉ có ở số. Các API legacy `java.text.DateFormat` / `SimpleDateFormat` cũng hỗ trợ `ParsePosition`.
+The issue is not limited to numbers. Legacy `java.text.DateFormat` / `SimpleDateFormat` APIs also support `ParsePosition`.
 
-Ví dụ với pattern `dd/MM/yyyy`:
+For example, with pattern `dd/MM/yyyy`:
 
-- `28/02/2026` là ngày hợp lệ theo pattern.
-- `28/02/2026abc` có **tiền tố ngày hợp lệ**, phần `abc` vẫn còn.
-- `31/02/2026` không phải ngày hợp lệ trong lịch thông thường.
+- `28/02/2026` is a valid date under the pattern.
+- `28/02/2026abc` has a **valid date prefix**, leaving `abc` behind.
+- `31/02/2026` is not a valid calendar date.
 
-`setLenient(false)` giúp từ chối ngày không tồn tại, nhưng **không bảo đảm parser đã tiêu thụ toàn bộ chuỗi**.
+`setLenient(false)` rejects nonexistent dates, but **does not guarantee the parser consumed the entire string**.
 
-### Ví dụ Java 17+ hoàn chỉnh
+### Complete Java 17+ Example
 
-Lưu thành `FullDateParseDemo.java`:
+Save as `FullDateParseDemo.java`:
 
 ```java
 import java.text.ParsePosition;
@@ -410,14 +410,14 @@ public class FullDateParseDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile and run:
 
 ```bash
 javac FullDateParseDemo.java
 java FullDateParseDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 28/02/2026 -> valid=true index=10 error=-1
@@ -425,127 +425,127 @@ java FullDateParseDemo
 31/02/2026 -> valid=false index=0 error=10
 ```
 
-Chúng ta cần **cả hai loại kiểm tra**:
+We need **both checks**:
 
-- `setLenient(false)` giúp kiểm tra tính hợp lệ của giá trị ngày.
-- `pos.getIndex() == raw.length()` giúp kiểm tra không còn văn bản dư.
+- `setLenient(false)` checks calendar date validity.
+- `pos.getIndex() == raw.length()` checks that no trailing text remains.
 
-Mặc dù ví dụ dùng `SimpleDateFormat` để minh họa `ParsePosition`, ứng dụng mới nên cân nhắc `java.time.LocalDate` và `DateTimeFormatter`. `LocalDate.parse(text, formatter)` thông thường yêu cầu parse toàn bộ văn bản, và có thể kết hợp `ResolverStyle.STRICT` cho quy tắc ngày nghiêm ngặt. Khi dùng pattern cho năm trong trường hợp strict, nên hiểu sự khác nhau giữa `yyyy` (year-of-era) và `uuuu` (proleptic year), chẳng hạn `dd/MM/uuuu` là một lựa chọn rõ ràng. Không trộn kết quả parse theo `SimpleDateFormat` và `DateTimeFormatter` mà bỏ qua khác biệt về resolver/style.
+Although this example uses `SimpleDateFormat` to demonstrate `ParsePosition`, new applications should consider `java.time.LocalDate` and `DateTimeFormatter`. `LocalDate.parse(text, formatter)` normally parses the entire string and can be paired with `ResolverStyle.STRICT` for strict date rules. When choosing year pattern letters under strict resolution, understand the difference between `yyyy` (year-of-era) and `uuuu` (proleptic year), making `dd/MM/uuuu` a clear choice. Do not mix parse results from `SimpleDateFormat` and `DateTimeFormatter` while ignoring differences in resolvers/styles.
 
-## 12. Một phương thức tiện ích tái sử dụng: hợp đồng lỗi rõ ràng
+## 12. A Reusable Helper Method: Clear Error Contract
 
-Hàm `parseFully` có thể trả `Number` hoặc ném `ParseException`. Với hệ thống backend, bạn có thể biểu diễn lỗi thành loại có ý nghĩa nghiệp vụ, ví dụ `INVALID_NUMBER` hoặc `TRAILING_CHARACTERS`.
+`parseFully` can return `Number` or throw `ParseException`. In backend systems, you can map errors to business-meaningful categories such as `INVALID_NUMBER` or `TRAILING_CHARACTERS`.
 
-Khi giữ `ParsePosition`, bạn có thể tách lỗi:
+When keeping `ParsePosition`, you can separate failure modes:
 
 ```java
 ParsePosition pos = new ParsePosition(0);
 Number value = formatter.parse(input, pos);
 
 if (value == null) {
-    // Không phân tích được tiền tố tại vị trí bắt đầu.
+    // Could not parse a prefix at the start position.
 } else if (pos.getIndex() < input.length()) {
-    // Có số hợp lệ ở đầu nhưng còn ký tự dư.
+    // Valid number at start, but trailing characters remain.
 } else {
-    // Parse đã tiêu thụ hết; tiếp tục kiểm tra nghiệp vụ.
+    // Parse consumed the entire string; proceed to business validation.
 }
 ```
 
-Đây là **mảnh code**, giả định các biến `formatter` và `input` đã được khai báo. `ParsePosition` cung cấp index để xác định phần dư:
+This is a **code snippet** assuming `formatter` and `input` are already declared. `ParsePosition` supplies the index to inspect the remainder:
 
 ```java
 String remainder = input.substring(pos.getIndex());
 ```
 
-Trong ví dụ `12.5kg`, `remainder` là `kg`. Chỉ dùng dữ liệu này để tạo thông báo hỗ trợ người dùng hoặc debug nếu phù hợp; không tự động bỏ phần dư rồi đưa số vào hệ thống mà không có chính sách.
+In the `12.5kg` example, `remainder` is `kg`. Use this only for helpful user feedback or debugging when appropriate; never automatically drop the remainder and feed the number into the system without an explicit policy.
 
-Nếu parser hỗ trợ token hóa nhiều trường liên tiếp trong một chuỗi, có thể chủ động cập nhật `ParsePosition` và tiếp tục parse; khi đó một lần parse thành công một phần không phải lỗi, **miễn là ứng dụng sau cùng có bước kiểm tra toàn bộ đầu vào đã được xử lý đúng theo grammar**. Với trường nhập **một số duy nhất**, kiểm tra hết chuỗi phải xảy ra ngay sau lần parse đó.
+If a parser tokenizes multiple consecutive fields in a single string, it can advance `ParsePosition` and continue parsing; in that case, a single partial parse is not an error **as long as the application eventually verifies that the entire input was consumed according to the grammar**. For an input field expecting **a single number**, the full-consumption check must happen right after that parse.
 
-## 13. Những bẫy bảo mật và tính toàn vẹn dữ liệu
+## 13. Security and Data Integrity Pitfalls
 
-Chấp nhận tiền tố hợp lệ có thể gây các loại lỗi:
+Accepting a valid prefix can cause several classes of bugs:
 
-- **Bỏ qua đơn vị đo:** `12kg` bị hiểu thành `12` trong trường không quy định đơn vị.
-- **Bỏ qua ký hiệu/ký tự tiền tệ:** chuỗi có ký hiệu bất ngờ bị cắt, gây nhầm cách hiểu.
-- **Còn payload sau số:** `100;DROP...` được chấp nhận như `100` nếu ứng dụng chỉ kiểm tra parse thành công; dù parser không tự thực thi payload, nó có thể che giấu dữ liệu sai ở những bước tiếp theo.
-- **Sai số học do locale:** dấu `,` và `.` có ý nghĩa khác giữa các locale; parse một phần có thể lặng lẽ cho ra giá trị sai.
-- **Mất precision:** số vượt giới hạn miền nghiệp vụ hoặc bị chuyển sang `double` dù dự định dùng decimal chính xác.
-- **Phân tích không nhất quán:** một tầng dùng `Locale.US`, tầng khác dùng default locale của JVM.
+- **Silently dropping measurement units:** `12kg` is interpreted as `12` in a unitless field.
+- **Silently dropping currency symbols/text:** strings with unexpected symbols get truncated, causing misinterpretation.
+- **Trailing payload after a number:** `100;DROP...` gets accepted as `100` if the application only checks that parsing succeeded; even though the parser does not execute the payload, it can mask malformed data entering downstream steps.
+- **Arithmetic errors from locale mismatch:** `,` and `.` have different meanings across locales; partial parsing can silently yield wrong values.
+- **Precision loss:** numbers exceeding domain limits or coerced into `double` despite needing exact decimal arithmetic.
+- **Inconsistent parsing:** one layer uses `Locale.US`, while another uses the JVM default locale.
 
-Một chính sách validation tốt nên xác định **miền đầu vào** và **chuỗi nguồn có thể chấp nhận**, chứ không chỉ dựa vào việc parser “đã trả được một giá trị”.
+A solid validation policy defines the **input domain** and **acceptable source strings**, rather than relying solely on whether the parser “returned a value.”
 
-Bên cạnh full-consumption, cân nhắc giới hạn độ dài input để tránh tải không cần thiết và validation miền giá trị (số âm, precision, scale, range). Đừng gửi nguyên input nhạy cảm vào log lỗi; có thể ghi chỉ số lỗi, loại lỗi và request ID phù hợp.
+Beyond full consumption, consider input length limits to avoid unnecessary load and validate domain constraints (negative numbers, precision, scale, range). Avoid dumping raw sensitive inputs into error logs; log the error index, error category, and an appropriate request ID instead.
 
-## 14. Các lỗi phổ biến cần tránh
+## 14. Common Mistakes to Avoid
 
-1. **Chỉ bắt `ParseException` từ `parse(String)` rồi kết luận toàn bộ đầu vào hợp lệ.** Overload này có thể nhận tiền tố hợp lệ.
-2. **Chỉ kiểm tra `result != null`.** Kết quả khác `null` vẫn có thể còn suffix.
-3. **Chỉ kiểm tra `errorIndex == -1`.** Parser thường không coi phần dư là lỗi nội bộ.
-4. **Chỉ so `index == length` mà quên `result != null`.** Input rỗng có thể khiến index và length đều bằng 0.
-5. **Cắt phần dư để “sửa” đầu vào.** Chỉ được bỏ phần dư nếu nó được grammar định nghĩa rõ và đã xử lý.
-6. **Trim/strip sau parse và so sai độ dài.** Nếu normalize, làm trước và so với độ dài chuỗi sau normalize.
-7. **Coi full consumption là strict grouping.** `1,23` có thể vẫn được chấp nhận như `123` ở US.
-8. **Tin rằng `setParseBigDecimal(true)` buộc parse toàn bộ.** Nó thay kiểu giá trị, không thay chính sách tiêu thụ hết.
-9. **Coi `setLenient(false)` của SimpleDateFormat thay thế kiểm tra phần dư.** Nó chỉ kiểm soát việc diễn giải ngày.
-10. **Dùng locale mặc định tình cờ của JVM.** Parser phải theo locale/hợp đồng input thực tế.
-11. **So index ParsePosition với byte length hoặc code-point count.** Index Java dùng UTF-16.
-12. **Tái sử dụng ParsePosition mà quên trạng thái.** Tạo mới tại index 0 cho mỗi giá trị độc lập.
-13. **Bỏ qua ký hiệu/đơn vị bất ngờ vì “đã đọc được số”.** Dữ liệu nghiệp vụ cần được validate hoàn chỉnh.
-14. **Không kiểm tra kiểu số/precision/range.** Tiêu thụ hết chỉ là điều kiện cú pháp ở tầng parser.
+1. **Catching only `ParseException` from `parse(String)` and concluding the whole input is valid.** That overload can accept a valid prefix.
+2. **Checking only `result != null`.** A non-`null` result can still leave a suffix behind.
+3. **Checking only `errorIndex == -1`.** Parsers usually do not treat trailing text as an internal parse error.
+4. **Comparing `index == length` while forgetting `result != null`.** Empty input can leave both `index` and `length` at 0.
+5. **Truncating the remainder to “fix” input.** Only discard trailing text if the grammar explicitly defines and handles it.
+6. **Trimming/stripping after parsing and comparing against the wrong length.** If normalizing, do it beforehand and compare against the normalized string's length.
+7. **Treating full consumption as strict grouping.** `1,23` may still be accepted as `123` in US locale.
+8. **Believing `setParseBigDecimal(true)` forces full-string parsing.** It changes the value type, not the consumption policy.
+9. **Treating `SimpleDateFormat.setLenient(false)` as a substitute for trailing-text checks.** It only governs date interpretation.
+10. **Relying on an accidental JVM default locale.** Parsers must follow the actual input locale/contract.
+11. **Comparing `ParsePosition` index to byte length or code-point count.** Java string indices use UTF-16 code units.
+12. **Reusing `ParsePosition` and forgetting its state.** Create a fresh instance at index 0 for each independent value.
+13. **Ignoring unexpected symbols/units because “a number was read.”** Business data must be validated completely.
+14. **Skipping numeric type/precision/range checks.** Full consumption is only a parser-level syntactic condition.
 
-## 15. Bộ ca kiểm thử cần có
+## 15. Essential Test Cases
 
-Đối với một trường nhập số theo `Locale.US`:
+For a numeric input field under `Locale.US`:
 
-| Input | Hành vi mong muốn với chính sách “một số và không dư” |
+| Input | Expected Behavior Under “Single Number, No Remainder” Policy |
 |---|---|
-| `123` | Chấp nhận |
-| `123.45` | Chấp nhận |
-| `1,234.50` | Chấp nhận nếu grouping được phép |
-| `1,234.50abc` | Từ chối vì suffix |
-| `123.45 ` | Từ chối nếu không cho khoảng trắng cuối |
-| ` 123.45` | Từ chối nếu không cho khoảng trắng đầu |
-| `abc123` | Từ chối vì không parse được từ đầu |
-| Chuỗi rỗng | Từ chối |
-| `1,23` | Từ chối **nếu** grammar yêu cầu nhóm ba chữ số chuẩn; không chỉ dựa trên ParsePosition |
-| `1.234,50` | Từ chối hoặc xử lý theo locale khác có chủ đích; không đoán |
-| Số quá lớn | Từ chối theo miền nghiệp vụ nếu vượt giới hạn |
-| Số có quá nhiều decimals | Từ chối/round theo chính sách, không tự mất precision |
+| `123` | Accept |
+| `123.45` | Accept |
+| `1,234.50` | Accept if grouping is allowed |
+| `1,234.50abc` | Reject due to suffix |
+| `123.45 ` | Reject if trailing whitespace is disallowed |
+| ` 123.45` | Reject if leading whitespace is disallowed |
+| `abc123` | Reject because unparseable from start |
+| Empty string | Reject |
+| `1,23` | Reject **if** grammar requires standard three-digit groups; do not rely solely on `ParsePosition` |
+| `1.234,50` | Reject or handle explicitly under another locale; never guess |
+| Huge number | Reject per business domain if out of bounds |
+| Too many decimals | Reject/round per policy without silent precision loss |
 
-Đối với date, thử ngày hợp lệ, ngày không tồn tại và ngày hợp lệ kèm suffix. Đối với các hệ thống nhiều locale, thêm ca cho dấu thập phân/grouping, chữ số quốc tế, ký hiệu tiền tệ và whitespace đặc biệt.
+For dates, test valid dates, nonexistent dates, and valid dates followed by a suffix. For multi-locale systems, add test cases for decimal/grouping separators, international digits, currency symbols, and special whitespace characters.
 
-## 16. Tự kiểm tra kiến thức
+## 16. Self-Check Quiz
 
-**Câu 1.** `NumberFormat.parse("12.5kg")` có thể thành công không?
+**Question 1.** Can `NumberFormat.parse("12.5kg")` succeed?
 
-**Đáp án:** Có; nó có thể trả `12.5` vì parse được tiền tố. Phải dùng `ParsePosition` để phát hiện `kg` còn dư.
+**Answer:** Yes; it can return `12.5` by parsing the prefix. You must use `ParsePosition` to detect the remaining `kg`.
 
-**Câu 2.** `getErrorIndex() == -1` có chứng minh toàn bộ input đã được tiêu thụ không?
+**Question 2.** Does `getErrorIndex() == -1` prove the entire input was consumed?
 
-**Đáp án:** Không. Với `12.5kg`, error index có thể là `-1` dù `getIndex()==4` nhỏ hơn `length()==6`.
+**Answer:** No. For `12.5kg`, the error index can be `-1` even though `getIndex()==4` is less than `length()==6`.
 
-**Câu 3.** Điều kiện cốt lõi cho parser trả `Number` là gì?
+**Question 3.** What is the core condition when a parser returns `Number`?
 
-**Đáp án:** `number != null && position.getIndex() == input.length()`, với `ParsePosition` khởi tạo tại 0 và chính sách không cho phép dư ký tự.
+**Answer:** `number != null && position.getIndex() == input.length()`, with `ParsePosition` initialized at 0 and a policy forbidding trailing characters.
 
-**Câu 4.** `1,23` được parser US đọc thành `123`, index bằng length. Có đủ để xác nhận grouping chuẩn US không?
+**Question 4.** `1,23` is parsed by the US parser as `123` with index equal to length. Is that enough to confirm standard US grouping?
 
-**Đáp án:** Không. Cần validation grammar riêng nếu yêu cầu dấu phẩy phải chia đúng nhóm ba chữ số.
+**Answer:** No. Separate grammar validation is needed if commas must separate exact three-digit groups.
 
-**Câu 5.** Có thể `strip()` trước parse không?
+**Question 5.** Can you call `strip()` before parsing?
 
-**Đáp án:** Có, **nếu chính sách cho phép whitespace đầu/cuối**. Khi đó so index với độ dài **chuỗi đã strip**, không phải chuỗi gốc.
+**Answer:** Yes, **if the policy allows leading/trailing whitespace**. In that case, compare the index against the length of the **stripped string**, not the original string.
 
-**Câu 6.** `SimpleDateFormat.setLenient(false)` có từ chối `28/02/2026abc` chỉ vì suffix không?
+**Question 6.** Does `SimpleDateFormat.setLenient(false)` reject `28/02/2026abc` just because of the suffix?
 
-**Đáp án:** Không nhất thiết. Nó có thể đọc ngày hợp lệ và còn `abc`; vẫn phải so `ParsePosition.getIndex()` với độ dài input.
+**Answer:** Not necessarily. It can read the valid date and leave `abc`; you still must compare `ParsePosition.getIndex()` with the input length.
 
-**Câu 7.** Nếu ứng dụng chấp nhận input `12.5kg` như đại lượng có đơn vị thì phải làm gì?
+**Question 7.** If an application accepts input like `12.5kg` as a quantity with a unit, what should it do?
 
-**Đáp án:** Định nghĩa grammar có phần số và đơn vị, parse/validate cả hai thành phần và từ chối ký tự ngoài grammar; không coi đơn vị là phần dư được phép bỏ qua.
+**Answer:** Define a grammar containing both numeric and unit parts, parse/validate both components, and reject out-of-grammar characters; never treat units as an ignored remainder.
 
-## 17. Ghi nhớ
+## 17. Key Takeaways
 
-**Parse thành công một phần không phải validation thành công.** Với các parser `java.text` dùng `ParsePosition`, hãy kiểm tra kết quả khác `null` **và** `getIndex()` bằng `input.length()` (sau chuẩn hóa đã được cho phép). Khi đã xác nhận không còn dữ liệu dư, tiếp tục kiểm tra đúng `Locale`, quy tắc grouping, miền giá trị và độ chính xác. Nguyên tắc “phân tích **toàn bộ** đầu vào theo grammar đã định nghĩa” giúp tránh các lỗi âm thầm khi bản địa hóa số/ngày và xử lý dữ liệu người dùng.
+**Partial parse success is not validation success.** With `java.text` parsers using `ParsePosition`, check that the result is non-`null` **and** `getIndex()` equals `input.length()` (after any allowed normalization). Once you confirm no trailing data remains, continue validating the right `Locale`, grouping rules, value range, and precision. Following the principle “parse the **entire** input against a defined grammar” prevents silent bugs in localized number/date handling and user input processing.
 
-**Tham khảo chính thức:** [Java SE 17 — ParsePosition](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/ParsePosition.html) · [Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html) · [Java SE 17 — DecimalFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormat.html) · [Java SE 17 — SimpleDateFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/SimpleDateFormat.html).
+**Official references:** [Java SE 17 — ParsePosition](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/ParsePosition.html) · [Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html) · [Java SE 17 — DecimalFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormat.html) · [Java SE 17 — SimpleDateFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/SimpleDateFormat.html).

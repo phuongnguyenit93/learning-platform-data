@@ -1,73 +1,73 @@
-# Giảm phụ thuộc vào internal API bằng API công khai
+# Reducing Internal API Dependencies with Public APIs
 
-Internal API là các lớp, interface, phương thức hoặc package thuộc phần triển khai nội bộ của JDK, không được cam kết là API công khai ổn định cho ứng dụng. Việc phụ thuộc vào chúng có thể khiến chương trình biên dịch hoặc chạy được trên một JDK nhưng hỏng khi nâng cấp sang JDK khác.
+Internal APIs are classes, interfaces, methods, or packages belonging to the JDK's internal implementation, not committed as stable public APIs for applications. Depending on them can cause a program to compile or run on one JDK yet break when upgrading to another JDK.
 
-Java Module System tăng cường ranh giới giữa module và package. Từ Java 9, nhiều package nội bộ của JDK không được export cho code bên ngoài. Quá trình đóng gói được siết chặt qua các phiên bản; từ JDK 17, cơ chế mở rộng để truy cập trái phép các package nội bộ đã bị loại bỏ. Cách bền vững là thay thế dependency nội bộ bằng API công khai được hỗ trợ.
+The Java Module System strengthens boundaries between modules and packages. Starting in Java 9, many internal JDK packages are not exported to external code. Encapsulation tightened across releases; starting in JDK 17, the broad mechanism for unauthorized access to internal packages was removed. The sustainable approach is to replace internal dependencies with supported public APIs.
 
-## 1. Vì sao cần tránh internal API?
+## 1. Why Avoid Internal APIs?
 
-Internal API thường có tên package như sun.*, jdk.internal.* hoặc một số package com.sun.*. Tuy nhiên, không thể kết luận chỉ dựa vào tiền tố package: JDK cũng có những API công khai, được tài liệu hóa trong các package com.sun.*. Cần kiểm tra module, tài liệu API và trạng thái hỗ trợ của từng kiểu.
+Internal APIs often have package names such as sun.*, jdk.internal.*, or certain com.sun.* packages. However, you cannot conclude based solely on the package prefix: the JDK also has public, documented APIs in com.sun.* packages. You need to inspect the module, API documentation, and support status of each type.
 
-Rủi ro khi dùng internal API:
+Risks of using internal APIs:
 
-- **Không có cam kết tương thích:** JDK có thể đổi tên, di chuyển hoặc xóa kiểu nội bộ giữa các bản phát hành.
-- **Bị chặn bởi module system:** package không được export hoặc open có thể gây lỗi biên dịch, IllegalAccessError hoặc InaccessibleObjectException.
-- **Phụ thuộc vào chi tiết triển khai:** code có thể dựa trên layout object, field riêng tư, cấu trúc class loader hoặc hành vi không được đặc tả.
-- **Khó nâng cấp và kiểm thử:** mỗi lần đổi JDK có thể phải sửa workaround và thêm tùy chọn mở quyền truy cập.
-- **Tăng rủi ro bảo mật:** truy cập sâu vào trạng thái nội bộ có thể phá vỡ tính đóng gói và giả định an toàn của thư viện.
+- **No compatibility guarantee:** the JDK may rename, move, or delete internal types between releases.
+- **Blocked by the module system:** unexported or unopened packages can cause compilation errors, IllegalAccessError, or InaccessibleObjectException.
+- **Coupling to implementation details:** code may rely on object layout, private fields, class loader structure, or unspecified behavior.
+- **Difficult upgrades and testing:** each JDK change may require updating workarounds and adding access-opening flags.
+- **Increased security risk:** deep access to internal state can break encapsulation and library safety assumptions.
 
-Một ứng dụng chạy thành công trên một JDK không chứng minh dependency đó được hỗ trợ. Hãy xem API có được tài liệu hóa trong Java SE API hay JDK API chính thức, module có export package hay không, và tài liệu có cam kết hỗ trợ cho ứng dụng hay không.
+An application running successfully on one JDK does not prove the dependency is supported. Check whether the API is documented in the official Java SE API or JDK API, whether the module exports the package, and whether the documentation commits to supporting it for applications.
 
-## 2. Phân biệt API công khai, API nội bộ và API deprecated
+## 2. Distinguishing Public APIs, Internal APIs, and Deprecated APIs
 
-| Loại API | Đặc điểm | Cách xử lý |
+| API Type | Characteristics | How to Handle |
 |---|---|---|
-| Java SE API công khai | Được đặc tả và tài liệu hóa; có cam kết tương thích theo chính sách Java SE | Ưu tiên sử dụng |
-| JDK API công khai nhưng không thuộc Java SE | Có tài liệu trong JDK nhưng phạm vi hỗ trợ có thể khác Java SE | Kiểm tra tài liệu và cam kết của API |
-| Internal API | Chi tiết triển khai, không có cam kết ổn định cho ứng dụng | Tìm API công khai thay thế |
-| Deprecated API | API vẫn có thể công khai nhưng được đánh dấu không nên dùng hoặc có lộ trình loại bỏ | Tìm API thay thế và lập kế hoạch chuyển đổi |
+| Public Java SE API | Specified and documented; carries compatibility guarantees under Java SE policy | Prefer using |
+| Public JDK API outside Java SE | Documented in the JDK, though support scope may differ from Java SE | Check API documentation and commitments |
+| Internal API | Implementation detail with no stability guarantee for applications | Find a public replacement API |
+| Deprecated API | API may still be public, but marked as discouraged or scheduled for removal | Find a replacement API and plan migration |
 
-Deprecated không đồng nghĩa với internal. Một API deprecated có thể vẫn là API công khai; ngược lại, internal API có thể chưa được đánh dấu deprecated nhưng vẫn không được hỗ trợ như hợp đồng cho ứng dụng.
+Deprecated does not mean internal. A deprecated API can still be a public API; conversely, an internal API may not yet be marked deprecated yet still not be supported as a contract for applications.
 
-Không nên dùng một package name đơn lẻ làm tiêu chí duy nhất. Kiểm tra tài liệu Javadoc, module descriptor, JEP liên quan và kết quả công cụ phân tích dependency.
+Do not use a package name alone as the sole criterion. Check Javadoc documentation, module descriptors, relevant JEPs, and dependency analysis tool results.
 
-## 3. Tìm dependency vào JDK internals
+## 3. Finding Dependencies on JDK Internals
 
-### Dùng jdeps
+### Using jdeps
 
-jdeps là công cụ phân tích dependency ở cấp class hoặc module. Tùy chọn --jdk-internals giúp tìm tham chiếu tới JDK internal API trong class hoặc JAR đã biên dịch.
+jdeps is a class- or module-level dependency analysis tool. The --jdk-internals option helps find references to JDK internal APIs in compiled classes or JARs.
 
-Ví dụ:
+Example:
 
 ~~~bash
 jdeps --jdk-internals app.jar
 ~~~
 
-Phân tích một tập hợp JAR:
+Analyzing a set of JARs:
 
 ~~~bash
 jdeps --jdk-internals lib/*.jar
 ~~~
 
-Chỉ định phiên bản multi-release JAR cần phân tích:
+Specifying the multi-release JAR version to analyze:
 
 ~~~bash
 jdeps --jdk-internals --multi-release 17 app.jar
 ~~~
 
-Nếu ứng dụng có dependency bên ngoài, cung cấp class path phù hợp để jdeps phân tích đầy đủ:
+If the application has external dependencies, provide the appropriate classpath so jdeps can perform complete analysis:
 
 ~~~bash
 jdeps --jdk-internals --class-path "lib/*" app.jar
 ~~~
 
-Kết quả thường chỉ ra class nào tham chiếu tới API nội bộ, tên API và module/package chứa nó. Dùng kết quả đó để xác định dependency trực tiếp hay dependency đến từ thư viện bên thứ ba.
+The output typically identifies which class references an internal API, the API name, and the module/package containing it. Use that output to determine whether the dependency is direct or comes from a third-party library.
 
-jdeps phân tích bytecode. Nó không thể phát hiện mọi trường hợp truy cập được tạo động bằng reflection, tên class ghép từ chuỗi, JNI hoặc native code. Vì vậy, hãy kết hợp với tìm kiếm source code và kiểm thử runtime.
+jdeps analyzes bytecode. It cannot detect every case of dynamically constructed access via reflection, string-concatenated class names, JNI, or native code. Therefore, combine it with source code searches and runtime testing.
 
-### Tìm trong source code và cấu hình build
+### Searching source code and build configuration
 
-Tìm các import và tên thường gặp:
+Search for common imports and names:
 
 ~~~text
 sun.
@@ -78,60 +78,60 @@ ReflectionFactory
 SharedSecrets
 ~~~
 
-Tìm cả cấu hình compiler, JVM arguments và thư viện phụ thuộc. Một ứng dụng có thể không import internal API trực tiếp nhưng vẫn phụ thuộc vào một thư viện sử dụng chúng.
+Search compiler configurations, JVM arguments, and dependent libraries as well. An application may not import internal APIs directly yet still depend on a library that uses them.
 
-Kiểm tra dependency tree của Maven hoặc Gradle để xác định phiên bản thư viện kéo theo internal API. Nâng cấp thư viện lên phiên bản đã chuyển sang API công khai thường tốt hơn việc tự mở package của JDK cho toàn bộ ứng dụng.
+Inspect Maven or Gradle dependency trees to identify which library version pulls in the internal API. Upgrading a library to a version that has switched to public APIs is usually better than opening JDK packages for the entire application yourself.
 
-### Kiểm tra lỗi lúc chạy
+### Checking runtime errors
 
-Một số dependency chỉ xuất hiện khi code chạy đến nhánh sử dụng reflection hoặc class nội bộ. Tìm các lỗi như:
+Some dependencies only surface when code executes branches using reflection or internal classes. Watch for errors such as:
 
-- IllegalAccessError: code không có quyền truy cập kiểu hoặc thành viên theo quy tắc truy cập.
-- InaccessibleObjectException: reflection sâu không thể mở thành viên của module/package.
-- NoClassDefFoundError hoặc ClassNotFoundException: kiểu nội bộ không còn tồn tại hoặc không thể được tìm thấy.
-- NoSuchMethodError hoặc NoSuchFieldError: API/chi tiết triển khai đã thay đổi.
+- IllegalAccessError: code lacks permission to access a type or member under access rules.
+- InaccessibleObjectException: deep reflection cannot open a member of a module/package.
+- NoClassDefFoundError or ClassNotFoundException: internal type no longer exists or cannot be found.
+- NoSuchMethodError or NoSuchFieldError: API/implementation details have changed.
 
-Không nên xử lý các lỗi này bằng cách thêm hàng loạt tùy chọn mở module trước khi xác định class và package thực sự gây lỗi.
+Do not handle these errors by adding module-opening flags wholesale before identifying the class and package actually causing the error.
 
-## 4. Quy trình thay thế bằng API công khai
+## 4. Process for Replacing with Public APIs
 
-Với mỗi internal API được phát hiện, ghi lại mục đích sử dụng thực tế trước khi chọn API thay thế. Hai API có tên gần giống nhau không nhất thiết có cùng ngữ nghĩa, hiệu năng, vòng đời tài nguyên hoặc mô hình bảo mật.
+For each detected internal API, document its actual purpose before choosing a replacement API. Two APIs with similar names do not necessarily share the same semantics, performance, resource lifecycle, or security model.
 
-Quy trình đề xuất:
+Recommended workflow:
 
-1. **Xác định điểm gọi:** tìm class, phương thức, field hoặc thao tác reflection đang sử dụng internal API.
-2. **Hiểu mục đích:** code cần mã hóa dữ liệu, truy cập bộ nhớ, đọc metadata, thao tác class, theo dõi runtime hay làm việc với file?
-3. **Tìm API được hỗ trợ:** tra Java SE API, JDK API và hướng dẫn migration chính thức.
-4. **So sánh ngữ nghĩa:** kiểm tra cách xử lý lỗi, giới hạn dữ liệu, thread safety, quyền truy cập và vòng đời.
-5. **Thay thế tại abstraction phù hợp:** ưu tiên sửa trong adapter hoặc module tích hợp thay vì để internal API lan khắp ứng dụng.
-6. **Kiểm thử trên JDK mục tiêu:** xác minh cả kết quả, ngoại lệ, hiệu năng cần thiết và hành vi khi module bị đóng gói.
-7. **Xóa workaround:** sau khi migration hoàn tất, bỏ các tùy chọn add-exports/add-opens và dependency không còn cần thiết.
+1. **Identify call sites:** find classes, methods, fields, or reflection operations using the internal API.
+2. **Understand the purpose:** does the code need to encode data, access memory, read metadata, manipulate classes, monitor runtime, or work with files?
+3. **Find supported APIs:** consult the Java SE API, JDK API, and official migration guides.
+4. **Compare semantics:** check error handling, data limits, thread safety, access permissions, and lifecycle.
+5. **Replace at an appropriate abstraction:** prefer fixing within an adapter or integration module rather than letting internal APIs spread throughout the application.
+6. **Test on the target JDK:** verify outputs, exceptions, required performance, and behavior when modules are encapsulated.
+7. **Remove workarounds:** once migration is complete, remove add-exports/add-opens flags and unneeded dependencies.
 
-## 5. Ví dụ các hướng thay thế phổ biến
+## 5. Common Replacement Examples
 
-Các ví dụ dưới đây là hướng migration thường gặp. Hãy xác minh yêu cầu cụ thể của ứng dụng trước khi thay thế.
+The examples below represent common migration paths. Verify your application's specific requirements before replacing.
 
-| Internal API hoặc cách làm cũ | API công khai nên xem xét | Ghi chú |
+| Internal API or Legacy Approach | Public API to Consider | Notes |
 |---|---|---|
-| sun.misc.BASE64Encoder / BASE64Decoder | java.util.Base64 | Có encoder/decoder cho Basic, URL và MIME |
-| com.sun.image.codec.jpeg | javax.imageio.ImageIO | Dùng ImageIO và ImageReader/ImageWriter phù hợp |
-| sun.misc.Unsafe cho truy cập biến có kiểm soát | java.lang.invoke.VarHandle | Hỗ trợ truy cập biến với memory ordering và atomic operation |
-| Unsafe cho cấp phát/truy cập bộ nhớ ngoài heap | java.lang.foreign.MemorySegment và Arena | Foreign Function & Memory API ổn định từ JDK 22; quản lý lifetime rõ ràng |
-| Reflection vào field riêng tư của JDK | API công khai được thiết kế cho thao tác đó | Không có API thay thế chung cho mọi field nội bộ |
-| Đọc cấu trúc class hoặc module bằng cách phân tích implementation | java.lang.classfile (nếu JDK mục tiêu hỗ trợ) hoặc công cụ bytecode có API được hỗ trợ | Chọn theo phiên bản JDK và yêu cầu tương thích |
-| Theo dõi thống kê runtime bằng cấu trúc nội bộ | java.lang.management, JFR hoặc API monitoring được tài liệu hóa | Chọn API đúng loại dữ liệu cần quan sát |
+| sun.misc.BASE64Encoder / BASE64Decoder | java.util.Base64 | Provides encoders/decoders for Basic, URL, and MIME |
+| com.sun.image.codec.jpeg | javax.imageio.ImageIO | Use ImageIO and appropriate ImageReader/ImageWriter |
+| sun.misc.Unsafe for controlled variable access | java.lang.invoke.VarHandle | Supports variable access with memory ordering and atomic operations |
+| Unsafe for off-heap memory allocation/access | java.lang.foreign.MemorySegment and Arena | Foreign Function & Memory API finalized in JDK 22; clear lifetime management |
+| Reflection into private JDK fields | Public API designed for that operation | There is no single general replacement API for all internal fields |
+| Reading class or module structure by parsing implementation | java.lang.classfile (if supported by target JDK) or bytecode tools with supported APIs | Choose based on JDK version and compatibility requirements |
+| Monitoring runtime statistics via internal structures | java.lang.management, JFR, or documented monitoring APIs | Choose the API matching the data you need to observe |
 
 ### Base64
 
-Code cũ có thể dùng lớp sun.misc.BASE64Encoder:
+Legacy code may use the sun.misc.BASE64Encoder class:
 
 ~~~java
-// Cách cũ: phụ thuộc JDK internal API
+// Legacy approach: depends on JDK internal API
 // BASE64Encoder encoder = new BASE64Encoder();
 // String encoded = encoder.encode(bytes);
 ~~~
 
-Thay bằng API chuẩn:
+Replace with the standard API:
 
 ~~~java
 import java.util.Base64;
@@ -140,11 +140,11 @@ String encoded = Base64.getEncoder().encodeToString(bytes);
 byte[] decoded = Base64.getDecoder().decode(encoded);
 ~~~
 
-Nếu dữ liệu dùng trong URL, chọn getUrlEncoder() và getUrlDecoder(). Nếu cần định dạng MIME với line separator, chọn getMimeEncoder() và getMimeDecoder(). Đừng thay decoder một cách máy móc nếu định dạng đầu vào có quy tắc riêng.
+If the data is used in URLs, choose getUrlEncoder() and getUrlDecoder(). If MIME formatting with line separators is needed, choose getMimeEncoder() and getMimeDecoder(). Do not swap decoders mechanically if the input format has specific rules.
 
 ### Image I/O
 
-Thay các lớp JPEG codec cũ bằng javax.imageio:
+Replace legacy JPEG codec classes with javax.imageio:
 
 ~~~java
 import java.awt.image.BufferedImage;
@@ -153,20 +153,20 @@ import javax.imageio.ImageIO;
 
 BufferedImage image = ImageIO.read(new File("input.jpg"));
 if (image == null) {
-    throw new IllegalArgumentException("Không hỗ trợ định dạng ảnh");
+    throw new IllegalArgumentException("Unsupported image format");
 }
 
 boolean written = ImageIO.write(image, "jpg", new File("output.jpg"));
 if (!written) {
-    throw new IllegalStateException("Không có writer phù hợp");
+    throw new IllegalStateException("No suitable writer available");
 }
 ~~~
 
-ImageIO.read() có thể trả về null nếu không tìm được reader phù hợp. ImageIO.write() trả về boolean để biểu thị có writer hỗ trợ định dạng được yêu cầu hay không. Ứng dụng cần kiểm tra các trường hợp này thay vì giả định file luôn đọc/ghi thành công.
+ImageIO.read() can return null if no suitable reader is found. ImageIO.write() returns a boolean indicating whether a writer supports the requested format. Applications must check these cases instead of assuming files always read/write successfully.
 
-### Truy cập biến bằng VarHandle
+### Variable Access with VarHandle
 
-Nếu code dùng Unsafe chỉ để đọc, ghi hoặc cập nhật biến với memory ordering, xem xét VarHandle:
+If code uses Unsafe solely to read, write, or update variables with memory ordering, consider VarHandle:
 
 ~~~java
 import java.lang.invoke.MethodHandles;
@@ -192,11 +192,11 @@ final class Counter {
 }
 ~~~
 
-VarHandle cung cấp các access mode như get, set, getVolatile, compareAndSet và getAndAdd tùy loại biến và kiểu truy cập được hỗ trợ. Hãy chọn đúng memory semantics; không phải mọi thao tác Unsafe đều có phép thay thế một-một bằng VarHandle.
+VarHandle provides access modes such as get, set, getVolatile, compareAndSet, and getAndAdd depending on the variable type and supported access modes. Choose the right memory semantics; not every Unsafe operation has a one-to-one replacement with VarHandle.
 
-### Bộ nhớ ngoài heap
+### Off-Heap Memory
 
-Nếu mục tiêu là làm việc với vùng nhớ native, JDK 22 trở lên có Foreign Function & Memory API ổn định. MemorySegment biểu diễn vùng nhớ với giới hạn và lifetime rõ ràng; Arena quản lý thời gian sống của allocation.
+If the goal is working with native memory, JDK 22 and later have the finalized Foreign Function & Memory API. MemorySegment represents a memory region with clear bounds and lifetime; Arena manages the lifetime of allocations.
 
 ~~~java
 import java.lang.foreign.Arena;
@@ -213,104 +213,104 @@ try (Arena arena = Arena.ofConfined()) {
 }
 ~~~
 
-Khi Arena đóng, các segment thuộc arena đó không còn được sử dụng. Điều này giúp thể hiện quyền sở hữu và vòng đời bộ nhớ rõ hơn. Không chuyển đổi sang MemorySegment nếu code chỉ cần mảng byte hoặc ByteBuffer; dùng abstraction đơn giản nhất đáp ứng yêu cầu.
+When the Arena closes, segments belonging to that arena can no longer be used. This expresses ownership and memory lifetime more clearly. Do not switch to MemorySegment if the code only needs a byte array or ByteBuffer; use the simplest abstraction that meets requirements.
 
-## 6. Khi cần reflection, phân biệt exports và opens
+## 6. When Reflection Is Needed, Distinguish exports and opens
 
-Module system có hai khái niệm thường bị nhầm:
+The module system has two concepts that are often confused:
 
-- **exports** cho phép module khác truy cập các kiểu public trong package theo quy tắc module.
-- **opens** cho phép deep reflection vào thành viên không public của package ở runtime.
+- **exports** allows other modules to access public types in a package under module rules.
+- **opens** allows deep reflection into non-public members of a package at runtime.
 
-Một package được export không đồng nghĩa với việc private field của nó có thể được mở bằng reflection. Ngược lại, opens không làm cho package trở thành API có thể import và gọi trực tiếp lúc biên dịch.
+An exported package does not mean its private fields can be opened with reflection. Conversely, opens does not make a package an API that can be imported and called directly at compile time.
 
-Nếu cần mở package trong giai đoạn migration, có thể dùng:
+If opening a package is needed during migration, you can use:
 
 ~~~bash
 java --add-opens java.base/java.lang=ALL-UNNAMED -jar app.jar
 ~~~
 
-Tùy chọn này mở package java.lang của module java.base cho các class thuộc unnamed module. Nó chỉ ảnh hưởng quyền truy cập reflection sâu ở runtime cho package được chỉ định.
+This option opens package java.lang of module java.base to classes belonging to the unnamed module. It affects only deep reflection access at runtime for the specified package.
 
-Nếu code cần truy cập các kiểu public trong package chưa export, --add-exports là tùy chọn khác:
+If code needs access to public types in an unexported package, --add-exports is a different option:
 
 ~~~bash
 java --add-exports java.base/sun.nio.ch=ALL-UNNAMED -jar app.jar
 ~~~
 
-Với javac, có thể truyền --add-exports tương ứng khi biên dịch:
+With javac, you can pass the corresponding --add-exports when compiling:
 
 ~~~bash
 javac --add-exports java.base/sun.nio.ch=ALL-UNNAMED \
       -d out src/example/Main.java
 ~~~
 
-Các ví dụ trên chỉ minh họa cách tạo cầu nối tương thích. Không nên xem chúng là giải pháp migration cuối cùng. Mở package nội bộ không biến API đó thành API được hỗ trợ và có thể làm ứng dụng tiếp tục phụ thuộc vào chi tiết JDK.
+The examples above only illustrate how to create a compatibility bridge. They should not be viewed as the final migration solution. Opening an internal package does not make that API supported and can keep the application dependent on JDK internals.
 
-Nếu caller là named module, thay ALL-UNNAMED bằng tên module đích phù hợp. Chỉ mở hoặc export đúng package và đúng module cần thiết; tránh cấp quyền rộng cho toàn bộ ứng dụng.
+If the caller is a named module, replace ALL-UNNAMED with the appropriate target module name. Open or export only the exact packages and modules required; avoid granting broad permissions to the entire application.
 
-## 7. Vai trò và giới hạn của --illegal-access
+## 7. Role and Limits of --illegal-access
 
-Trong các JDK đầu tiên sau Java 9, tùy chọn --illegal-access từng hỗ trợ một giai đoạn chuyển tiếp cho một số truy cập reflection từ code cũ vào package nội bộ của JDK.
+In early JDK releases after Java 9, the --illegal-access option previously supported a transition period for some reflective accesses from legacy code into internal JDK packages.
 
-Từ JDK 16, strong encapsulation được áp dụng mặc định rộng hơn. Từ JDK 17, --illegal-access không còn khôi phục cơ chế mở rộng như trước; tùy chọn này chỉ được giữ để tương thích cú pháp và phát cảnh báo, không mở lại các package nội bộ.
+Starting in JDK 16, strong encapsulation was applied more broadly by default. Starting in JDK 17, --illegal-access no longer restores the previous broad opening mechanism; this option is retained only for syntax compatibility and emits warnings without reopening internal packages.
 
-Vì vậy, không nên thêm:
+Therefore, do not add:
 
 ~~~bash
 java --illegal-access=permit -jar app.jar
 ~~~
 
-để sửa ứng dụng trên JDK hiện đại. Hãy xác định package cụ thể và chuyển sang API công khai. Nếu đang cần chạy tạm một ứng dụng cũ, dùng --add-exports hoặc --add-opens có phạm vi hẹp theo lỗi thực tế, sau đó lập kế hoạch loại bỏ chúng.
+to fix applications on modern JDKs. Identify the specific package and move to public APIs. If you need to temporarily run a legacy application, use narrowly scoped --add-exports or --add-opens based on actual errors, then plan their removal.
 
-## 8. Lập kế hoạch migration cho ứng dụng lớn
+## 8. Planning Migration for Large Applications
 
-Với ứng dụng có nhiều module hoặc thư viện bên thứ ba, không nên thay toàn bộ internal API trong một lần mà không có danh sách dependency và test.
+For applications with many modules or third-party libraries, do not replace all internal APIs at once without a dependency inventory and tests.
 
-Có thể phân chia công việc theo các nhóm:
+You can divide the work into groups:
 
-| Nhóm | Việc cần làm |
+| Group | Work Required |
 |---|---|
-| Source code của ứng dụng | Tìm import, reflection, MethodHandles và tên class nội bộ |
-| Dependency trực tiếp | Nâng cấp thư viện hoặc thay thế implementation |
-| Dependency bắc cầu | Xác định thư viện nào kéo theo internal API; trao đổi với nhà cung cấp nếu cần |
-| JVM arguments | Liệt kê --add-exports, --add-opens và tùy chọn legacy |
-| Kiểm thử | Chạy trên JDK thấp nhất và cao nhất được hỗ trợ |
-| Phát hành | Xóa workaround không còn cần thiết, xác minh launch script và tài liệu triển khai |
+| Application source code | Search for imports, reflection, MethodHandles, and internal class names |
+| Direct dependencies | Upgrade libraries or replace implementations |
+| Transitive dependencies | Identify which library pulls in internal APIs; coordinate with vendors if needed |
+| JVM arguments | List --add-exports, --add-opens, and legacy options |
+| Testing | Run on both the lowest and highest supported JDKs |
+| Release | Remove unneeded workarounds, verify launch scripts and deployment docs |
 
-Đưa việc kiểm tra internal API vào CI:
+Integrate internal API checking into CI:
 
 ~~~bash
 jdeps --jdk-internals --class-path "lib/*" build/app.jar
 ~~~
 
-Có thể lưu output và thất bại build khi xuất hiện dependency mới, tùy chính sách của dự án. Nếu chưa thể chặn ngay, ít nhất hãy ghi nhận baseline và theo dõi các dependency tăng thêm.
+You can save the output and fail the build when new dependencies appear, depending on project policy. If you cannot block immediately, at least record a baseline and track newly added dependencies.
 
-Với thư viện bên thứ ba, ưu tiên nâng cấp lên phiên bản có hỗ trợ JDK mục tiêu. Nếu chưa có bản thay thế, cô lập thư viện trong adapter hoặc module riêng để phần còn lại của ứng dụng không phụ thuộc trực tiếp vào internal API.
+For third-party libraries, prioritize upgrading to a version supporting the target JDK. If no replacement exists yet, isolate the library behind an adapter or separate module so the rest of the application does not depend directly on internal APIs.
 
-## 9. Checklist kiểm thử sau migration
+## 9. Post-Migration Testing Checklist
 
-Sau khi thay thế, cần kiểm tra các hành vi mà code cũ từng cung cấp:
+After replacement, verify the behaviors the old code previously provided:
 
-- Kết quả nghiệp vụ có tương đương với yêu cầu ban đầu không?
-- Các trường hợp null, dữ liệu rỗng, dữ liệu lớn và dữ liệu lỗi được xử lý đúng không?
-- Memory ordering, atomicity hoặc thread safety có còn đúng không nếu thay Unsafe?
-- Native memory và resource có được giải phóng đúng lifetime không?
-- Reflection có còn hoạt động trong môi trường module thực tế không?
-- Ứng dụng chạy được trên các JDK đã cam kết hỗ trợ không?
-- Có còn tham chiếu internal API trong output của jdeps không?
-- Có thể bỏ các tùy chọn --add-exports và --add-opens không?
-- Các launch script, container image và môi trường CI có dùng cùng cấu hình JDK không?
+- Are business results equivalent to the original requirements?
+- Are null, empty data, large data, and malformed data cases handled properly?
+- Are memory ordering, atomicity, or thread safety still correct if Unsafe was replaced?
+- Are native memory and resources released with the right lifetime?
+- Does reflection still work in the actual modular environment?
+- Does the application run on all committed supported JDKs?
+- Are there any remaining internal API references in jdeps output?
+- Can --add-exports and --add-opens options be removed?
+- Do launch scripts, container images, and CI environments use the same JDK configuration?
 
-Đặc biệt, hãy chạy test với module path nếu ứng dụng là modular. Một ứng dụng chạy trên classpath có thể che giấu vấn đề readability, exports hoặc opens mà khi chuyển sang module path mới xuất hiện.
+In particular, run tests with the module path if the application is modular. An application running on the classpath can mask readability, exports, or opens issues that only appear when moving to the module path.
 
-## 10. Ghi nhớ
+## 10. Takeaways
 
-Strong encapsulation bảo vệ ranh giới giữa API được hỗ trợ và chi tiết triển khai của JDK. Cách migration bền vững là phát hiện dependency bằng jdeps và tìm kiếm source, xác định mục đích sử dụng, rồi thay bằng API công khai phù hợp như Base64, ImageIO, VarHandle, MemorySegment hoặc API quản lý runtime.
+Strong encapsulation protects the boundary between supported APIs and JDK implementation details. The sustainable migration approach is to detect dependencies with jdeps and source searches, identify the intended use, and replace with appropriate public APIs such as Base64, ImageIO, VarHandle, MemorySegment, or runtime management APIs.
 
---add-exports và --add-opens chỉ nên là cầu nối có phạm vi hẹp trong giai đoạn chuyển đổi. Chúng không tạo cam kết tương thích cho internal API. Sau migration, hãy bỏ workaround, kiểm tra bytecode và chạy test trên các JDK mục tiêu.
+--add-exports and --add-opens should only be narrowly scoped bridges during transition. They do not create compatibility guarantees for internal APIs. After migration, remove workarounds, inspect bytecode, and run tests on the target JDKs.
 
-## Tài liệu tham khảo
+## References
 
 - JEP 403 — Strongly Encapsulate JDK Internals: https://openjdk.org/jeps/403
 - JEP 396 — Strongly Encapsulate JDK Internals by Default: https://openjdk.org/jeps/396

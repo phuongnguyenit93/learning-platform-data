@@ -1,41 +1,41 @@
-# Tái hiện lỗi thay đổi khóa sau khi đưa vào HashMap
+# Reproducing the Bug of Mutating a Key After Putting It into a HashMap
 
-## 1. Mục tiêu thực hành
+## 1. Practice Objective
 
-Khi một đối tượng được dùng làm **khóa** của `HashMap`, các giá trị tham gia vào `equals()` và `hashCode()` phải giữ ổn định trong suốt thời gian đối tượng nằm trong map. Nếu thay đổi một trường dùng để tính khóa sau khi đã gọi `put()`, map có thể **không tìm được entry**, dù entry vẫn còn đó và ngay cả khi ta sử dụng đúng biến tham chiếu ban đầu.
+When an object is used as a **key** in a `HashMap`, the values participating in `equals()` and `hashCode()` must remain stable for the entire time the object resides in the map. If you mutate a field used to compute the key after calling `put()`, the map may **fail to find the entry**, even though the entry is still there and even when using the exact original reference variable.
 
-Trong bài thực hành này, ta sẽ:
+In this practice, we will:
 
-1. Tạo một lớp khóa có trường `id` có thể thay đổi.
-2. Ghi đè `equals()` và `hashCode()` dựa trên `id`, tuân thủ hợp đồng của hai phương thức tại mỗi trạng thái.
-3. Đưa khóa vào `HashMap`, thay đổi `id` rồi quan sát `get()`, `containsKey()`, `remove()` và `size()`.
-4. Giải thích tại sao map mất khả năng tra cứu một entry còn tồn tại.
-5. Thử thao tác `put()` lần nữa để thấy trạng thái bất thường hơn.
-6. Sửa thiết kế bằng khóa bất biến và kiểm chứng kết quả.
+1. Create a key class with a mutable `id` field.
+2. Override `equals()` and `hashCode()` based on `id`, obeying both methods' contracts at every state.
+3. Put the key into a `HashMap`, mutate `id`, and observe `get()`, `containsKey()`, `remove()`, and `size()`.
+4. Explain why the map loses the ability to look up an entry that still exists.
+5. Try calling `put()` again to observe an even more anomalous state.
+6. Fix the design with an immutable key and verify the result.
 
-**Kết luận cần chứng minh:** việc tham chiếu tới khóa vẫn còn và `map.size()` vẫn lớn hơn 0 **không có nghĩa** `map.get(key)` còn tìm được giá trị. `HashMap` dùng mã băm để xác định vị trí tra cứu; nó không duyệt toàn bộ các entry để tìm chính tham chiếu đó.
+**Conclusion to prove:** still holding a reference to the key and seeing `map.size()` greater than 0 **does not mean** `map.get(key)` can still find the value. `HashMap` uses the hash code to determine the lookup slot; it does not scan every entry to match that reference.
 
-## 2. Ôn lại hợp đồng khóa của HashMap
+## 2. Reviewing HashMap's Key Contract
 
-`HashMap<K,V>` triển khai `Map<K,V>` bằng bảng băm. Hai phương thức trên khóa có vai trò chính:
+`HashMap<K,V>` implements `Map<K,V>` using a hash table. Two methods on the key play primary roles:
 
-- `hashCode()`: tạo số nguyên dùng để chọn vùng lưu/tra cứu, sau khi `HashMap` xử lý bit và tính chỉ số bucket.
-- `equals(Object)`: quyết định hai khóa có được coi là cùng một khóa về mặt logic hay không, khi HashMap đã xét các điều kiện mã băm phù hợp.
+- `hashCode()`: produces an integer used to select the storage/lookup region, after `HashMap` processes bits and computes the bucket index.
+- `equals(Object)`: decides whether two keys are considered logically the same key once HashMap has checked the relevant hash conditions.
 
-Hợp đồng cơ bản giữa hai phương thức:
+Core contract between the two methods:
 
-- Nếu `a.equals(b)` trả `true`, `a.hashCode()` và `b.hashCode()` phải bằng nhau.
-- Nếu `a.hashCode() == b.hashCode()`, chưa thể suy ra `a.equals(b)`.
-- Với một đối tượng mà thông tin dùng trong `equals()` không thay đổi, `hashCode()` phải ổn định trong quá trình thực thi tương ứng.
-- Khi `equals()` trả về `false`, hai khóa có thể cùng hash; HashMap vẫn có khả năng lưu chúng thành hai entry khác nhau.
+- If `a.equals(b)` returns `true`, `a.hashCode()` and `b.hashCode()` must be equal.
+- If `a.hashCode() == b.hashCode()`, you cannot yet deduce `a.equals(b)`.
+- For an object whose information used in `equals()` does not change, `hashCode()` must remain stable during the corresponding execution.
+- When `equals()` returns `false`, two keys may share a hash; HashMap can still store them as two separate entries.
 
-**Hợp đồng dùng khóa trong map còn cần một điều kiện thực tế:** đừng thay đổi trạng thái của khóa theo cách ảnh hưởng tới so sánh bằng nhau trong khi khóa nằm trong map. Tài liệu `Map` của Java nêu rằng hành vi không được xác định rõ nếu một đối tượng làm khóa bị thay đổi theo cách ảnh hưởng đến so sánh `equals` khi nó đang nằm trong map.
+**Using a key in a map also requires a practical condition:** do not mutate a key's state in a way that affects equality comparisons while the key is in the map. Java's `Map` documentation states that behavior is not specified if an object used as a map key is mutated in a manner that affects `equals` comparisons while it is in the map.
 
-Điều này không có nghĩa lớp khóa mutable luôn vi phạm ngay hợp đồng `equals/hashCode`. Lớp vẫn có thể tính hai phương thức nhất quán tại từng thời điểm, nhưng **map đã lập chỉ mục theo trạng thái cũ** và không được thông báo để tái lập chỉ mục khi trường khóa thay đổi.
+This does not mean a mutable key class always immediately violates the `equals/hashCode` contract itself. The class can still compute both methods consistently at any single instant, yet **the map indexed the entry under the old state** and is not notified to re-index when the key field changes.
 
-## 3. Ví dụ chạy được: khóa đổi hash sau khi put
+## 3. Runnable Example: A Key Changes Hash After Put
 
-Tạo tệp `MutableHashMapKeyDemo.java` (Java 17+):
+Create the file `MutableHashMapKeyDemo.java` (Java 17+):
 
 ~~~java
 import java.util.HashMap;
@@ -72,130 +72,130 @@ public class MutableHashMapKeyDemo {
         MutableKey key = new MutableKey(1);
 
         map.put(key, "An");
-        System.out.println("hash trước: " + key.hashCode());
-        System.out.println("get trước: " + map.get(key));
-        System.out.println("size trước: " + map.size());
+        System.out.println("hash before: " + key.hashCode());
+        System.out.println("get before: " + map.get(key));
+        System.out.println("size before: " + map.size());
 
-        key.setId(2); // Lỗi thiết kế: sửa trường tham gia equals/hashCode
+        key.setId(2); // Design bug: mutating a field participating in equals/hashCode
 
-        System.out.println("hash sau: " + key.hashCode());
-        System.out.println("get sau: " + map.get(key));
-        System.out.println("containsKey sau: " + map.containsKey(key));
-        System.out.println("remove sau: " + map.remove(key));
-        System.out.println("size sau remove: " + map.size());
+        System.out.println("hash after: " + key.hashCode());
+        System.out.println("get after: " + map.get(key));
+        System.out.println("containsKey after: " + map.containsKey(key));
+        System.out.println("remove after: " + map.remove(key));
+        System.out.println("size after remove: " + map.size());
         System.out.println("containsValue An: " + map.containsValue("An"));
 
         for (Map.Entry<MutableKey, String> entry : map.entrySet()) {
-            System.out.println("entry còn lại: id="
+            System.out.println("remaining entry: id="
                     + entry.getKey().id + ", value=" + entry.getValue());
-            System.out.println("cùng tham chiếu key: "
+            System.out.println("same key reference: "
                     + (entry.getKey() == key));
         }
     }
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac MutableHashMapKeyDemo.java
 java MutableHashMapKeyDemo
 ~~~
 
-Kết quả với triển khai `HashMap` của JDK 17:
+Output with JDK 17's `HashMap` implementation:
 
 ~~~text
-hash trước: 1
-get trước: An
-size trước: 1
-hash sau: 2
-get sau: null
-containsKey sau: false
-remove sau: null
-size sau remove: 1
+hash before: 1
+get before: An
+size before: 1
+hash after: 2
+get after: null
+containsKey after: false
+remove after: null
+size after remove: 1
 containsValue An: true
-entry còn lại: id=2, value=An
-cùng tham chiếu key: true
+remaining entry: id=2, value=An
+same key reference: true
 ~~~
 
-### Giải thích từng kết quả
+### Explaining Each Output Line
 
-1. Khi `put(key, "An")`, `hashCode()` trả `1` và `HashMap` lưu entry tương ứng với hash tại thời điểm chèn.
-2. `map.get(key)` trước khi sửa trả `"An"` vì đối tượng có trạng thái khớp với thông tin lập chỉ mục.
-3. Sau `key.setId(2)`, chính đối tượng `key` thay đổi `hashCode()` từ `1` sang `2`. Entry đã được lưu trước đó **không tự di chuyển**.
-4. `map.get(key)` tra cứu theo hash mới. Nó không tìm entry nằm ở vị trí/hash cũ nên trả `null`.
-5. `containsKey(key)` là `false` và `remove(key)` trả `null` vì chúng cũng phụ thuộc vào tra cứu khóa theo mã băm mới.
-6. `size()` vẫn trả `1` vì lệnh `remove` không xóa được entry; `containsValue("An")` vẫn là `true` vì thao tác này kiểm tra giá trị trên những entry hiện tồn tại.
-7. Vòng lặp `entrySet()` chứng minh map còn giữ **đúng đối tượng khóa ban đầu** (so sánh bằng `==` là `true`), giờ có `id == 2`.
+1. On `put(key, "An")`, `hashCode()` returns `1` and `HashMap` stores the entry under the hash at insertion time.
+2. `map.get(key)` before mutation returns `"An"` because the object's state matches the indexed information.
+3. After `key.setId(2)`, that same `key` object changes its `hashCode()` from `1` to `2`. The previously stored entry **does not move automatically**.
+4. `map.get(key)` looks up using the new hash. It does not find the entry located at the old position/hash, so it returns `null`.
+5. `containsKey(key)` is `false` and `remove(key)` returns `null` because they also depend on looking up the key by its new hash code.
+6. `size()` still returns `1` because `remove` could not delete the entry; `containsValue("An")` remains `true` because that operation checks values across existing entries.
+7. Iterating `entrySet()` proves the map still holds **the exact original key object** (comparison via `==` is `true`), which now has `id == 2`.
 
-Kết quả `null` của `get` chưa tự nó chứng minh không có entry nếu map cho phép lưu giá trị `null`. Trong ví dụ, ta đã biết giá trị được chèn là `"An"` và xác minh bổ sung bằng `containsKey`, `size`, `entrySet`.
+A `null` result from `get` does not by itself prove no entry exists if the map permits `null` values. In this example, we already know the inserted value was `"An"` and additionally verify with `containsKey`, `size`, and `entrySet`.
 
-## 4. Nhìn sâu vào nguyên nhân: hash được ghi nhận lúc chèn
+## 4. Looking Deeper at the Cause: Hash Is Recorded at Insertion
 
-Để hình dung lỗi, xét mô hình đơn giản tương ứng với ví dụ trên (JDK `HashMap` thường khởi tạo bảng có 16 bucket khi chèn lần đầu). Với các hash nhỏ như `1` và `2`, phép trộn hash của cách triển khai phổ biến giữ nguyên giá trị, dẫn tới bucket khác nhau.
+To visualize the bug, consider a simplified model corresponding to the example above (JDK `HashMap` typically initializes a 16-bucket table on first insertion). For small hashes like `1` and `2`, the hash mixing in common implementations preserves the value, leading to different buckets.
 
 ~~~text
-Thời điểm put:
+At put time:
 key.id = 1  ---> hashCode() = 1
                     |
                     v
-           bucket 1: [hash đã lưu = 1, key -> "An"]
+           bucket 1: [stored hash = 1, key -> "An"]
 
-Sau khi key.setId(2):
+After key.setId(2):
 key.id = 2  ---> hashCode() = 2
                     |
                     v
-           tìm ở bucket 2: không có entry
+           search in bucket 2: no entry found
 
-Nhưng bucket 1 vẫn giữ:
-           [hash đã lưu = 1, key (hiện id=2) -> "An"]
+Meanwhile bucket 1 still holds:
+           [stored hash = 1, key (now id=2) -> "An"]
 ~~~
 
-Đây là mô hình giải thích hiện tượng với JDK 17, **không phải cam kết API** về số bucket, công thức phân bucket hoặc cấu trúc nội bộ cho mọi phiên bản Java.
+This is a model explaining the phenomenon in JDK 17, **not an API guarantee** regarding bucket counts, bucket formulas, or internal structures across all Java versions.
 
-Trong triển khai `HashMap` của OpenJDK, mỗi entry/nút lưu hash được tính khi chèn. Khi tra cứu, map tính hash từ đối tượng khóa tại thời điểm gọi và dùng hash đó trong việc xác định entry phù hợp. Thay đổi khóa không kích hoạt `put`/rehash cho entry đã có.
+In OpenJDK's `HashMap` implementation, each entry/node stores the hash computed at insertion time. During lookup, the map computes the hash from the key object at call time and uses that hash when identifying matching entries. Mutating the key does not trigger `put`/rehash for an existing entry.
 
-Một hiểu nhầm phổ biến là: “`key.equals(key)` chắc chắn trả `true` nên `get(key)` phải thành công.” Thực tế, **so sánh `equals` không cứu được entry nếu bước tìm theo hash đã dẫn đến vị trí khác**. Việc dùng lại cùng tham chiếu (`==`) cũng không giúp.
+A common misconception is: "`key.equals(key)` surely returns `true`, so `get(key)` must succeed." In reality, **`equals` comparison cannot rescue the entry if the hash lookup step already led to a different location**. Reusing the exact same reference (`==`) does not help either.
 
-Một hiểu nhầm khác là “nếu hash mới vô tình rơi vào cùng bucket thì tra cứu sẽ an toàn”. Trong triển khai HashMap phổ biến, điều kiện so khớp còn xét **hash đã lưu** của entry, nên cùng bucket không tạo bảo đảm khi mã băm thay đổi. Ngoài ra, sửa trường chỉ tham gia `equals()` mà không thay đổi `hashCode()` cũng có thể phá vỡ ngữ nghĩa tra cứu bằng những đối tượng khóa tương đương khác. Quy tắc thiết kế vẫn là **giữ ổn định cả các trường ảnh hưởng `equals()` lẫn `hashCode()`**.
+Another misconception is "if the new hash happens to fall into the same bucket, lookup will stay safe." In common HashMap implementations, matching conditions also inspect the entry's **stored hash**, so landing in the same bucket provides no guarantee when the hash code changes. Moreover, mutating a field that participates only in `equals()` without changing `hashCode()` can also break lookup semantics with other equivalent key objects. The design rule remains **keep both the fields affecting `equals()` and `hashCode()` stable**.
 
-## 5. Thí nghiệm mở rộng: put lại cùng một biến khóa
+## 5. Extended Experiment: Putting the Same Key Variable Again
 
-**Chỉ thực hiện để quan sát lỗi, tuyệt đối không dùng để “chữa” map trong ứng dụng.**
+**Perform this only to observe the bug; never use it to "fix" a map in an application.**
 
-Chèn các dòng sau sau phần `for` trong `main` của ví dụ ở mục 3:
+Insert the following lines after the `for` loop in `main` of the section 3 example:
 
 ~~~java
-map.put(key, "Bình");
-System.out.println("size sau put lại: " + map.size());
-System.out.println("get sau put lại: " + map.get(key));
+map.put(key, "Binh");
+System.out.println("size after re-put: " + map.size());
+System.out.println("get after re-put: " + map.get(key));
 
 for (Map.Entry<MutableKey, String> entry : map.entrySet()) {
     System.out.println("entry value: " + entry.getValue()
-            + ", cùng tham chiếu: " + (entry.getKey() == key));
+            + ", same reference: " + (entry.getKey() == key));
 }
 ~~~
 
-Với trạng thái map sau ví dụ chính, kết quả của đoạn bổ sung trong JDK 17:
+Given the map state after the main example, the output of this added snippet in JDK 17 is:
 
 ~~~text
-size sau put lại: 2
-get sau put lại: Bình
-entry value: An, cùng tham chiếu: true
-entry value: Bình, cùng tham chiếu: true
+size after re-put: 2
+get after re-put: Binh
+entry value: An, same reference: true
+entry value: Binh, same reference: true
 ~~~
 
-Ở đây, bảng băm có thể chứa **hai entry cùng giữ một tham chiếu khóa**: entry cũ vẫn nằm theo hash `1`, entry mới được chèn theo hash `2`. `size()` thành `2` mặc dù hai khóa là cùng đối tượng.
+Here, the hash table can contain **two entries holding the exact same key reference**: the old entry still sits under hash `1`, and the new entry is inserted under hash `2`. `size()` becomes `2` even though both keys are the same object.
 
-Điều này diễn ra vì `HashMap` không thể tìm entry cũ bằng hash hiện tại của khóa và coi `put` như chèn entry mới. Nó minh họa trạng thái bất thường khi vi phạm giả định ổn định khóa. Bài thực hành chọn mã băm nhỏ `1`/`2` để kết quả bucket trong JDK 17 rõ ràng; **không được dựa vào hành vi lỗi cụ thể này như một đặc tính được API `Map` bảo đảm**.
+This happens because `HashMap` cannot find the old entry using the key's current hash and treats `put` as inserting a new entry. It illustrates the anomalous state created when violating key stability assumptions. This practice chose small hash codes `1`/`2` so bucket behavior in JDK 17 is clear; **never rely on this specific buggy behavior as a feature guaranteed by the `Map` API**.
 
-Không nên gọi thêm `put`, `remove` hoặc `compute` rồi giả định trạng thái đã phục hồi; một map đã bị biến đổi khóa trong lúc lưu có thể khó kiểm soát, nhất là khi có nhiều key và quan hệ bằng nhau thay đổi.
+Do not issue further `put`, `remove`, or `compute` calls assuming the state has recovered; a map whose keys were mutated while stored can become unpredictable, especially when multiple keys and equality relationships change.
 
-## 6. Khắc phục bằng khóa bất biến
+## 6. Fixing with an Immutable Key
 
-Cách khắc phục đáng tin cậy nhất là **dùng khóa có trạng thái nhận diện bất biến**. Với Java 17, `record` chỉ chứa thành phần bất biến như `int`, `long`, `String` là lựa chọn ngắn gọn.
+The most reliable fix is **using a key whose identifying state is immutable**. With Java 17, a `record` containing only immutable components such as `int`, `long`, and `String` is a concise choice.
 
-Tạo tệp `StableHashMapKeyDemo.java`:
+Create the file `StableHashMapKeyDemo.java`:
 
 ~~~java
 import java.util.HashMap;
@@ -210,135 +210,135 @@ public class StableHashMapKeyDemo {
         UserKey oldKey = new UserKey(1);
         map.put(oldKey, "An");
 
-        System.out.println("get bằng key tương đương: "
+        System.out.println("get by equivalent key: "
                 + map.get(new UserKey(1)));
 
         UserKey newKey = new UserKey(2);
-        System.out.println("get với id mới: " + map.get(newKey));
-        System.out.println("get với id cũ: " + map.get(oldKey));
+        System.out.println("get with new id: " + map.get(newKey));
+        System.out.println("get with old id: " + map.get(oldKey));
 
         String oldValue = map.remove(oldKey);
         map.put(newKey, oldValue);
 
-        System.out.println("get sau chuyển key: " + map.get(newKey));
+        System.out.println("get after key migration: " + map.get(newKey));
         System.out.println("size: " + map.size());
-        System.out.println("chứa key cũ: " + map.containsKey(oldKey));
+        System.out.println("contains old key: " + map.containsKey(oldKey));
     }
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac StableHashMapKeyDemo.java
 java StableHashMapKeyDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-get bằng key tương đương: An
-get với id mới: null
-get với id cũ: An
-get sau chuyển key: An
+get by equivalent key: An
+get with new id: null
+get with old id: An
+get after key migration: An
 size: 1
-chứa key cũ: false
+contains old key: false
 ~~~
 
-**Điểm khác biệt:** `UserKey(1)` không bị sửa thành `UserKey(2)`. Khi nghiệp vụ muốn thay đổi định danh, ứng dụng **xóa entry bằng khóa cũ trước**, rồi chèn bằng **đối tượng khóa mới**. Trạng thái bảng băm và quy tắc tra cứu được duy trì.
+**The key difference:** `UserKey(1)` is not mutated into `UserKey(2)`. When business logic needs to change an identifier, the application **removes the entry with the old key first**, then inserts with **a new key object**. The hash table state and lookup rules remain intact.
 
-Trong tình huống tổng quát, `remove(oldKey)` có thể trả `null` vì không tồn tại key *hoặc* vì key có giá trị `null`. Nếu map cho phép giá trị `null`, kiểm tra `containsKey(oldKey)` trước khi chuyển khóa để phân biệt hai tình huống. Đồng thời xác định rõ chính sách khi `newKey` đã tồn tại, vì `put(newKey, value)` có thể ghi đè dữ liệu cũ. Ví dụ trên có dữ liệu đơn giản nên không gặp hai vấn đề này.
+In the general case, `remove(oldKey)` can return `null` either because the key did not exist *or* because the key was mapped to a `null` value. If the map allows `null` values, check `containsKey(oldKey)` before migrating the key to distinguish the two cases. Also clarify the policy when `newKey` already exists, as `put(newKey, value)` can overwrite existing data. The example above uses simple data so neither issue arises.
 
-### 6.1. Record không tự tạo bất biến sâu
+### 6.1. Record Does Not Automatically Provide Deep Immutability
 
-Không nên suy luận rằng mọi `record` đều là khóa an toàn. Ví dụ:
+Do not infer that every `record` is a safe key. For example:
 
 ~~~java
 record ArrayKey(int[] values) {}
 ~~~
 
-Mảng vẫn thay đổi được. Hơn nữa, `equals/hashCode` được sinh tự động cho thành phần kiểu mảng sử dụng cách so sánh/hash của chính tham chiếu mảng, **không phải nội dung mảng**. Nếu nghiệp vụ muốn so sánh theo từng phần tử, cần tự xác định quan hệ bình đẳng và bảo vệ trạng thái theo quan hệ đó. Trường reference dạng collection hoặc bean mutable trong `record` cũng cần xem xét alias và cách tính `equals/hashCode`.
+Arrays are still mutable. Furthermore, the auto-generated `equals/hashCode` for an array component uses the comparison/hash of the array reference itself, **not the array contents**. If business logic needs element-wise comparison, you must define the equality relation explicitly and protect the state behind that relation. Reference fields like collections or mutable beans inside a `record` also require examining aliasing and how `equals/hashCode` are computed.
 
-Với định danh đơn giản, `record UserKey(int id)` là ví dụ tốt vì `int` không có đối tượng mutable lồng bên trong.
+For a simple identifier, `record UserKey(int id)` is a good example because `int` has no nested mutable objects inside.
 
-### 6.2. Giá trị (value) có thể thay đổi; khóa nên ổn định
+### 6.2. Values Can Be Mutable; Keys Should Be Stable
 
-Một cách thiết kế khác là lưu đối tượng nghiệp vụ mutable làm **value**, và dùng ID bất biến làm **key**:
+Another design pattern is storing the mutable business object as the **value**, and using an immutable ID as the **key**:
 
 ~~~java
-// Đoạn minh họa bên trong một phương thức; account là đối tượng nghiệp vụ.
+// Illustrative snippet inside a method; account is a business object.
 Map<Long, Account> byId = new HashMap<>();
 byId.put(account.getId(), account);
-account.setDisplayName("Tên mới"); // Không đổi Long key
+account.setDisplayName("New name"); // Does not change the Long key
 ~~~
 
-`Account` ở đây chỉ là tên lớp nghiệp vụ minh họa, không phải lớp của JDK hay chương trình chạy độc lập. Nếu ID chính nó cần thay đổi, phải xác định cách di chuyển entry trong map theo khóa cũ và khóa mới. Không được đổi đối tượng khóa đang lưu theo cách ảnh hưởng đến `equals/hashCode`.
+`Account` here is merely an illustrative business class name, not a JDK class or standalone runnable program. If the ID itself ever needs to change, you must define how to migrate the entry in the map using the old and new keys. Never mutate a stored key object in a way that affects `equals/hashCode`.
 
-## 7. Nếu bắt buộc dùng lớp khóa có trường mutable?
+## 7. What If You Must Use a Key Class with Mutable Fields?
 
-Có những lớp có setter nhưng vẫn có thể được dùng làm khóa nếu **chỉ những trường không ảnh hưởng đến `equals/hashCode` được phép đổi trong lúc làm key**. Ví dụ một `User` có `final long id` dùng cho `equals/hashCode` và `displayName` mutable *không tham gia* hai phương thức: đổi tên không tự phá vỡ tra cứu theo ID.
+There are classes with setters that can still be used as keys if **only fields that do not affect `equals/hashCode` are allowed to change while serving as a key**. For example, a `User` with a `final long id` used in `equals/hashCode` and a mutable `displayName` *not participating* in those two methods: changing the name does not itself break lookup by ID.
 
-Tuy nhiên, cần thỏa mãn đồng thời:
+However, all of the following must hold simultaneously:
 
-- Quy tắc `equals` và `hashCode` dùng chính xác cùng tiêu chí nhận diện và giữ ổn định trong suốt vòng đời làm khóa.
-- Không tồn tại setter, alias ngoài lớp hoặc reference lồng bên trong có thể âm thầm làm thay đổi những thông tin nhận diện đó.
-- Các trường dùng trong so sánh không phụ thuộc vào trạng thái ngoài đối tượng có thể thay đổi, chẳng hạn cấu hình, thời gian hoặc collection mutable.
-- Các đối tượng được coi là bằng nhau luôn cho cùng hash. Tránh sử dụng dữ liệu thay đổi hoặc các quy tắc không ổn định trong tính hash.
+- The `equals` and `hashCode` rules use the exact same identification criteria and stay stable throughout the key's lifecycle.
+- No setter, external alias, or nested reference exists that can silently alter those identifying details.
+- Fields used in comparison do not depend on mutable external state outside the object, such as configuration, current time, or mutable collections.
+- Objects considered equal always yield the same hash. Avoid using changing data or unstable rules when computing the hash.
 
-**Chú ý:** dùng `final` cho biến giữ khóa, ví dụ `final MutableKey key = ...`, chỉ ngăn gán biến sang đối tượng khác; `key.setId(2)` vẫn hợp lệ. Dùng `final` trên một trường tham chiếu cũng không biến đối tượng được tham chiếu thành bất biến. Với mảng hoặc collection tham gia nhận diện, cần copy phòng vệ và/hoặc dùng cấu trúc thực sự bất biến.
+**Caution:** using `final` on a variable holding a key, such as `final MutableKey key = ...`, only prevents reassigning the variable to another object; `key.setId(2)` is still valid. Using `final` on a reference field also does not make the referenced object immutable. For arrays or collections participating in identification, defensive copying and/or truly immutable structures are required.
 
-### Khi đã lỡ làm hỏng HashMap
+### When a HashMap Has Already Been Corrupted
 
-Không có phương thức “làm mới hash cho tất cả khóa đang bị thay đổi” mà `Map` cam kết xử lý mọi trạng thái hỏng. Có thể:
+There is no `Map`-guaranteed "refresh hashes for all mutated keys" method that handles every corrupted state. You can:
 
-1. Nếu biết chính xác trạng thái nhận diện cũ và chưa phát sinh entry trùng bất thường, phục hồi khóa về trạng thái cũ **chỉ như biện pháp xử lý tình huống được kiểm soát**, xóa entry bằng trạng thái cũ rồi chuyển sang khóa bất biến mới.
-2. Nếu còn dữ liệu nguồn đáng tin cậy (database, danh sách đối tượng có ID ổn định, bản snapshot), **tạo map mới** bằng các khóa bất biến được dựng từ nguồn đó. Xác định chính sách khi nhiều entry quy về cùng khóa logic.
-3. Nếu phải duyệt `entrySet()` của map lỗi để cứu dữ liệu, phải kiểm tra trùng khóa, giá trị xung đột và alias; đây không phải cách phục hồi tự động bảo đảm không mất dữ liệu.
+1. If you know the exact old identifying state and no anomalous duplicate entries have appeared, restore the key to its old state **only as a controlled incident recovery measure**, remove the entry under the old state, and switch to a new immutable key.
+2. If a reliable source of truth remains (database, list of objects with stable IDs, snapshot), **build a new map** using immutable keys constructed from that source. Define a policy if multiple entries map to the same logical key.
+3. If you must iterate `entrySet()` of the corrupted map to salvage data, check for duplicate keys, conflicting values, and aliases; this is not an automatic recovery guaranteed to be lossless.
 
-Ngay cả `new HashMap<>(damagedMap)` cũng **không phải** một bản vá thiết kế: nó không làm khóa thành bất biến và có thể hợp nhất các khóa được xem là bằng nhau ở trạng thái hiện tại hoặc duy trì nguy cơ thay đổi về sau.
+Even `new HashMap<>(damagedMap)` is **not** a design patch: it does not make keys immutable and may merge keys currently seen as equal or preserve the risk of future mutation.
 
-## 8. Quy trình gỡ lỗi trong dự án thật
+## 8. Debugging Workflow in Real Projects
 
-Khi thấy `get(key)` trả `null` bất ngờ, nên kiểm tra theo trình tự:
+When `get(key)` unexpectedly returns `null`, inspect in order:
 
-1. **Kiểm tra đúng instance của map:** biến đang đọc có trỏ tới map mà trước đó đã `put` không? Có ai `clear` hoặc `remove` không?
-2. **Phân biệt không tìm được khóa với giá trị null:** dùng `containsKey(key)` và xác định map có cho lưu null value không.
-3. **Ghi log các thuộc tính nhận diện trước và sau:** nếu có thể, log ID, các trường tham gia `equals/hashCode` và hash tại hai thời điểm; không chỉ log `toString()`.
-4. **Kiểm tra setter và alias:** đối tượng khóa có bị thay đổi từ một chỗ khác sau `put` không? Có collection/mảng lồng bên trong tham gia so sánh không?
-5. **Duyệt `entrySet()` phục vụ chẩn đoán:** xem entry còn tồn tại không, nhận diện khóa hiện tại ra sao. Việc tìm thấy đối tượng trong vòng lặp không chứng minh `get(key)` phải tìm được.
-6. **Kiểm tra hiện thực `equals/hashCode`:** hai đối tượng được xem là bằng nhau phải có cùng hash; kiểm tra tính đối xứng, bắc cầu, ổn định và xử lý `null` đúng hợp đồng.
-7. **Thay đổi thiết kế rồi tái kiểm thử:** dùng key immutable hoặc tách key/value. Đừng vá bằng cách chèn lại cùng khóa mutable để che triệu chứng.
+1. **Check the exact map instance:** does the variable being read point to the map where `put` was previously called? Did anything call `clear` or `remove`?
+2. **Distinguish missing key from null value:** use `containsKey(key)` and check whether the map permits storing null values.
+3. **Log identifying attributes before and after:** if possible, log the ID, fields participating in `equals/hashCode`, and hash at both points in time; do not log only `toString()`.
+4. **Inspect setters and aliases:** was the key object mutated from somewhere else after `put`? Is there a nested collection/array participating in comparison?
+5. **Iterate `entrySet()` for diagnosis:** check whether the entry still exists and what the key's current identity looks like. Finding the object in iteration does not prove `get(key)` ought to find it.
+6. **Check `equals/hashCode` implementations:** two objects considered equal must share the same hash; check symmetry, transitivity, stability, and `null` handling per contract.
+7. **Fix the design and re-test:** use an immutable key or separate key/value. Do not patch by re-inserting the same mutable key to mask the symptom.
 
-Lỗi này không được giải quyết chỉ bằng cách chuyển sang `ConcurrentHashMap` hay khóa đồng bộ: collection concurrent xử lý truy cập đa luồng, nhưng **không biến trạng thái nhận diện của một đối tượng khóa mutable thành bất biến**. Nếu khóa có thể đổi trong khi đang được dùng, vấn đề thiết kế vẫn còn.
+This bug is not solved merely by switching to `ConcurrentHashMap` or synchronization locks: concurrent collections handle multi-threaded access, yet **they do not make a mutable key object's identifying state immutable**. If a key can change while in use, the design flaw remains.
 
-## 9. Bài tập tự kiểm tra
+## 9. Self-Check Exercises
 
-### Câu 1: Cùng object reference có bảo đảm `get` thành công?
+### Question 1: Does having the same object reference guarantee `get` succeeds?
 
-**Không.** Ví dụ ở mục 3 dùng cùng biến `key` cả khi `put` và `get`. HashMap không dựa vào việc duyệt tất cả phần tử và so sánh identity để tìm entry.
+**No.** The example in section 3 uses the exact same `key` variable for both `put` and `get`. HashMap does not rely on scanning all elements and comparing identity to locate an entry.
 
-### Câu 2: Nếu sửa trường không tham gia `equals/hashCode` thì sao?
+### Question 2: What if a field that does not participate in `equals/hashCode` is mutated?
 
-Nếu trường đó thực sự không ảnh hưởng trực tiếp hoặc gián tiếp tới hash và quan hệ bằng nhau, riêng sự thay đổi đó không làm hỏng lập chỉ mục khóa. Tuy nhiên, bản thân chương trình vẫn cần xử lý đúng các yêu cầu khác như thread safety.
+If that field truly has no direct or indirect effect on the hash and equality relation, that change alone does not break key indexing. However, the program must still properly address other requirements such as thread safety.
 
-### Câu 3: Có nên dùng `System.identityHashCode(key)` cho khóa?
+### Question 3: Should `System.identityHashCode(key)` be used for keys?
 
-Không nên xem đây là cách sửa lỗi chung. Identity hash chỉ gắn với nhận diện đối tượng và không phản ánh bình đẳng theo giá trị. Chọn `equals/hashCode` theo hợp đồng nhận diện khóa. Nếu bài toán cần so sánh theo identity thật sự, cân nhắc `IdentityHashMap` với hiểu biết rõ về ngữ nghĩa `==` và các khác biệt so với `HashMap`; nó không phù hợp để thay thế một cách máy móc.
+Do not treat this as a general fix. Identity hash is tied only to object identity and does not reflect value equality. Choose `equals/hashCode` according to the key identification contract. If the problem genuinely requires identity comparison, consider `IdentityHashMap` with a clear understanding of `==` semantics and its differences from `HashMap`; it is not suitable as a mechanical replacement.
 
-### Câu 4: Vì sao `HashSet` cũng có thể gặp lỗi tương tự?
+### Question 4: Why can `HashSet` suffer from the same bug?
 
-Trong triển khai Java thông dụng, `HashSet` dựa trên cấu trúc băm. Nếu thêm một đối tượng rồi thay đổi trạng thái ảnh hưởng tới `hashCode/equals`, `contains` hoặc `remove` có thể thất bại ngay cả khi phần tử vẫn còn trong lần duyệt. Đây là cùng lớp lỗi **thay đổi trạng thái nhận diện khi đang lưu trong collection dựa trên hash**.
+In standard Java implementations, `HashSet` is backed by a hash structure. If you add an object and then mutate state affecting `hashCode/equals`, `contains` or `remove` can fail even while the element remains visible during iteration. This is the same class of bug: **mutating identifying state while stored in a hash-based collection**.
 
-### Câu 5: Có cần bắt buộc mọi đối tượng làm key phải immutable?
+### Question 5: Must every object used as a key be strictly immutable?
 
-Hợp đồng `Map` không bắt buộc kiểu khóa được khai báo `final` hay hoàn toàn immutable. Điều kiện quan trọng là **thông tin ảnh hưởng đến bình đẳng và mã băm phải giữ ổn định** khi khóa đang trong map. Trong thực hành, thiết kế immutable là cách bảo đảm điều này rõ ràng và dễ review nhất.
+The `Map` contract does not strictly require key types to be declared `final` or completely immutable. The essential requirement is that **information affecting equality and hash codes must remain stable** while the key is in the map. In practice, immutable design is the clearest and easiest way to guarantee this during code review.
 
-## 10. Checklist nhớ nhanh
+## 10. Quick Memory Checklist
 
-- Trước `put`: biết những trường nào tham gia `equals/hashCode`.
-- Trong thời gian khóa nằm trong map: **không thay đổi** các trường đó hoặc dữ liệu mutable mà chúng phụ thuộc.
-- Khi muốn thay “ID khóa”: dùng **khóa mới**, xóa bằng **khóa cũ còn nguyên trạng** rồi chèn lại theo chính sách xử lý xung đột.
-- Khi `get` trả `null`: đối chiếu `containsKey`, `size`, `entrySet` và trạng thái khóa; đừng kết luận ngay dữ liệu đã biến mất.
-- Trong thiết kế mới: ưu tiên ID primitive/`String`/kiểu immutable hoặc `record` chỉ chứa thành phần nhận diện bất biến.
+- Before `put`: know which fields participate in `equals/hashCode`.
+- While the key is in the map: **do not mutate** those fields or any mutable data they depend on.
+- When needing to change a "key ID": use a **new key**, remove using the **intact old key**, and re-insert according to your conflict policy.
+- When `get` returns `null`: cross-check `containsKey`, `size`, `entrySet`, and key state; do not immediately conclude the data vanished.
+- In new designs: prefer primitive/`String`/immutable IDs or a `record` containing only immutable identifying components.
 
-**Ghi nhớ:** `HashMap` không theo dõi setter để tự lập chỉ mục lại. Khóa có thể vẫn nằm trong map nhưng bị “thất lạc” khi tra cứu vì **trạng thái dùng để xác định hash/equals đã thay đổi sau lúc chèn**.
+**Remember:** `HashMap` does not watch setters to automatically re-index entries. A key can still sit inside the map yet get "lost" during lookup because **the state used to determine hash/equals changed after insertion**.

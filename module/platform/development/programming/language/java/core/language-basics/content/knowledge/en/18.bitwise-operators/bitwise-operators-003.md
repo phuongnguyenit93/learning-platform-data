@@ -1,45 +1,45 @@
-# Dịch trái `<<` trong Java 17+
+# Left Shift `<<` in Java 17+
 
-Toán tử **dịch trái** (*left shift*) `a << n` dịch các bit của `a` sang trái một số vị trí, bổ sung **bit 0 ở bên phải** và **loại bỏ các bit tràn ra ngoài độ rộng kiểu**.
+The **left shift** operator `a << n` shifts the bits of `a` to the left by a given number of positions, filling **0 bits on the right** and **discarding bits that overflow past the type's width**.
 
 ~~~java
 int value = 3;             // 0000...0011
 int shifted = value << 2;  // 0000...1100 = 12
 ~~~
 
-Với số nguyên nhỏ, không bị tràn, `a << n` thường cho giá trị bằng `a * 2^n`. Nhưng **đây không phải phép nhân có kiểm tra tràn**: khi dịch mất bit cao hoặc làm đổi bit dấu, kết quả có thể âm, bằng 0 hoặc khác kỳ vọng toán học.
+For small integers without overflow, `a << n` typically yields `a * 2^n`. However, **this is not an overflow-checked multiplication**: when shifting discards high bits or changes the sign bit, the result can become negative, zero, or differ from mathematical expectations.
 
-**Trọng tâm bài:** hiểu *bit được dịch*, *kiểu dữ liệu của kết quả*, *độ rộng 32/64 bit*, *khoảng dịch bị giới hạn*, và *tràn số*.
+**Lesson focus:** understanding *which bits are shifted*, *the result's data type*, *32/64-bit width*, *masked shift distances*, and *overflow*.
 
-## 1. Dịch trái một bit diễn ra thế nào?
+## 1. How Does a Bit Left Shift Happen?
 
-Ví dụ minh họa trên **8 bit thấp** (chỉ để dễ nhìn):
+Illustrative example on the **low 8 bits** (purely for readability):
 
 ~~~text
-Trước:  0000 0101   (5)
+Before: 0000 0101   (5)
                 << 1
-Sau:    0000 1010   (10)
-                << 2 từ giá trị 5
-Sau:    0001 0100   (20)
+After:  0000 1010   (10)
+                << 2 from value 5
+After:  0001 0100   (20)
 ~~~
 
-Mỗi bit dịch `n` vị trí sang bên trái, các vị trí thấp mới được điền bằng `0`. Bit vượt qua mép trái **bị mất**.
+Each bit moves `n` positions to the left, and the newly vacated low positions are filled with `0`. Bits that cross past the left edge **are lost**.
 
-Trong Java, toán hạng thực sự dùng cho phép dịch là **`int` 32 bit hoặc `long` 64 bit**, sau khi áp dụng *unary numeric promotion*. Không có phép dịch thực thi trực tiếp trên thanh ghi 8 bit `byte` chỉ vì biến nguồn là `byte`.
+In Java, the operand actually used for the shift is a **32-bit `int` or 64-bit `long`**, after applying *unary numeric promotion*. There is no shift executed directly on an 8-bit `byte` register merely because the source variable is a `byte`.
 
-| Biểu thức | Kết quả `int` | Mẫu bit thấp minh họa |
+| Expression | `int` result | Illustrative low bit pattern |
 | --- | ---: | --- |
 | `3 << 2` | 12 | `0000 0011 → 0000 1100` |
 | `5 << 1` | 10 | `0000 0101 → 0000 1010` |
-| `-3 << 1` | −6 | `1111 1101 → 1111 1010` (8 bit thấp) |
-| `0 << 12` | 0 | Tất cả bit đều bằng 0 |
-| `1 << 0` | 1 | Không dịch |
+| `-3 << 1` | −6 | `1111 1101 → 1111 1010` (low 8 bits) |
+| `0 << 12` | 0 | All bits are 0 |
+| `1 << 0` | 1 | No shift |
 
-Với một số âm, giá trị được biểu diễn theo **bù hai**. `-3 << 1` cho `-6` vì mẫu bù hai khi dịch trái một bit còn mang đúng giá trị đó. Đừng hiểu dấu `<<` là so sánh “nhỏ hơn hai lần”: nó là **một toán tử dịch bit**.
+For a negative number, the value is represented in **two's complement**. `-3 << 1` produces `-6` because the two's complement pattern shifted left by one bit still carries that exact value. Do not mistake `<<` for a "twice less than" comparison: it is **a bit-shift operator**.
 
-## 2. Chương trình Java 17+ chạy độc lập
+## 2. Standalone Runnable Java 17+ Program
 
-Tạo file UTF-8 **`LeftShiftDemo.java`**:
+Create a UTF-8 file **`LeftShiftDemo.java`**:
 
 ~~~java
 import java.math.BigInteger;
@@ -130,7 +130,7 @@ public class LeftShiftDemo {
 }
 ~~~
 
-Mở PowerShell (Windows) hoặc Bash (Linux/macOS) trong thư mục chứa file; dùng **JDK 17 trở lên**:
+Open PowerShell (Windows) or Bash (Linux/macOS) in the directory containing the file; use **JDK 17 or later**:
 
 ~~~bash
 java -version
@@ -139,7 +139,7 @@ javac -encoding UTF-8 LeftShiftDemo.java
 java LeftShiftDemo
 ~~~
 
-**Exact expected stdout** của riêng lệnh `java LeftShiftDemo`:
+**Exact expected stdout** of the `java LeftShiftDemo` command alone:
 
 ~~~text
 == basic shifts ==
@@ -186,99 +186,99 @@ groupedExpression=8
 bigShift=1099511627776
 ~~~
 
-Hai lệnh `-version` không có expected output cố định vì phụ thuộc bản JDK cài đặt. Chương trình không cần thư viện bên thứ ba.
+The two `-version` commands have no fixed expected output because they depend on the installed JDK build. The program requires no third-party libraries.
 
-## 3. Kiểu kết quả: `int` hoặc `long`, không nhất thiết là kiểu biến gốc
+## 3. Result Type: `int` or `long`, Not Necessarily the Original Variable's Type
 
-Java áp dụng **unary numeric promotion** cho từng toán hạng trước khi dịch:
+Java applies **unary numeric promotion** to each operand independently before shifting:
 
-- Toán hạng trái `byte`, `short`, `char` được nâng thành `int`; kết quả `<<` có kiểu **`int`**.
-- Toán hạng trái `int` cho kết quả **`int`**; `long` cho kết quả **`long`**.
-- Toán hạng phải cung cấp **khoảng cách dịch**, không quyết định kiểu kết quả. Nó cũng có thể là `long`.
-- Không có phép `<<` trực tiếp cho `float`, `double`, `boolean` hay `String`.
+- Left operands of type `byte`, `short`, or `char` are promoted to `int`; the result of `<<` has type **`int`**.
+- A left operand of type `int` yields **`int`**; `long` yields **`long`**.
+- The right operand provides the **shift distance** and does not determine the result type. It may also be `long`.
+- There is no direct `<<` operator for `float`, `double`, `boolean`, or `String`.
 
 ~~~java
 byte b = 3;
-int x = b << 2; // 12, kiểu int.
-// byte invalid = b << 2; // Lỗi: không tự gán int vào byte.
+int x = b << 2; // 12, int type.
+// byte invalid = b << 2; // Error: cannot implicitly assign int to byte.
 
-long y = 3L << 2; // 12L, kiểu long.
-int z = 1 << 33L; // 2, không phải long.
+long y = 3L << 2; // 12L, long type.
+int z = 1 << 33L; // 2, not long.
 ~~~
 
-Không áp dụng **binary numeric promotion** giống phép cộng số học để suy ra kiểu của toán tử dịch. Ví dụ `1 << 33L` vẫn trả `int`, vì kiểu toán hạng **trái** là `int`.
+**Binary numeric promotion** (as used in arithmetic addition) is not applied to infer the type of a shift operator. For instance, `1 << 33L` still returns `int`, because the **left** operand has type `int`.
 
-### `<<=` và phép chuyển kiểu về biến vế trái
+### `<<=` and Conversion Back to the Left-Hand Variable's Type
 
-Gán kết hợp `x <<= n` thực hiện dịch trái rồi gán lại kết quả về kiểu của `x`, có thể **thu hẹp** giá trị:
+The compound assignment `x <<= n` performs a left shift and assigns the result back to the type of `x`, potentially **narrowing** the value:
 
 ~~~java
 byte value = 100;
-value <<= 1; // Hợp lệ, kết quả byte là -56.
+value <<= 1; // Valid, byte result is -56.
 ~~~
 
-Phép dịch tạo kết quả `int 200`, sau đó gán về `byte` theo quy tắc compound assignment. `byte` có miền -128..127, nên mẫu bit thấp `11001000` được diễn giải thành **-56**.
+The shift produces `int 200`, which is then cast back to `byte` under compound assignment rules. `byte` has range -128..127, so the low bit pattern `11001000` is interpreted as **-56**.
 
-Ngược lại, `value = value << 1;` không biên dịch nếu thiếu cast tường minh, vì biểu thức dịch có kiểu `int`.
+Conversely, `value = value << 1;` does not compile without an explicit cast because the shift expression has type `int`.
 
-## 4. Khoảng cách dịch phụ thuộc kiểu toán hạng trái
+## 4. Shift Distance Depends on the Left Operand's Type
 
-Java chỉ lấy **5 bit thấp** (`n & 31`) của khoảng dịch khi bên trái là `int`, và **6 bit thấp** (`n & 63`) khi bên trái là `long`. Các toán hạng hẹp `byte`/`short`/`char` được nâng thành `int` trước khi áp dụng quy tắc này.
+Java uses only the **low 5 bits** (`n & 31`) of the shift distance when the left side is `int`, and the **low 6 bits** (`n & 63`) when the left side is `long`. Narrower operands (`byte`/`short`/`char`) are promoted to `int` before this rule applies.
 
 ~~~java
-System.out.println(1 << 32);   // 1, vì khoảng dịch hiệu lực là 0.
-System.out.println(1 << 33);   // 2, vì khoảng dịch hiệu lực là 1.
-System.out.println(1L << 64);  // 1, vì khoảng dịch hiệu lực là 0.
-System.out.println(1 << -1);   // -2147483648, vì -1 & 31 là 31.
+System.out.println(1 << 32);   // 1, because the effective shift distance is 0.
+System.out.println(1 << 33);   // 2, because the effective shift distance is 1.
+System.out.println(1L << 64);  // 1, because the effective shift distance is 0.
+System.out.println(1 << -1);   // -2147483648, because -1 & 31 is 31.
 ~~~
 
-Khoảng dịch âm hoặc vượt độ rộng vẫn được mask, không tự báo lỗi. Nếu `n` đến từ đầu vào và nghiệp vụ chỉ cho phép vị trí bit 0–31 hoặc 0–63, phải kiểm tra miền trước khi dịch. Bài riêng về giới hạn khoảng dịch sẽ đi sâu vào phép mask, kiểu bên trái và việc cast trước hay sau khi dịch.
+Negative or out-of-width shift distances are still masked and do not automatically throw an error. If `n` comes from external input and the domain only allows bit positions 0–31 or 0–63, you must validate the range before shifting. A dedicated lesson on shift distance limits explores masking, left-hand types, and casting before versus after shifting.
 
-## 5. Bit dấu và tràn số: `<<` không luôn là nhân đôi an toàn
+## 5. Sign Bit and Overflow: `<<` Is Not Always Safe Doubling
 
-`int` có 32 bit, `long` có 64 bit và đều là số nguyên **bù hai**. Khi `<<` đẩy bit 1 vào vị trí dấu hoặc làm rơi bit cao, giá trị có dấu có thể thay đổi bất ngờ:
+`int` is 32 bits and `long` is 64 bits, both as **two's complement** integers. When `<<` pushes a 1 bit into the sign position or drops significant high bits, the signed value can change unexpectedly:
 
 ~~~java
 System.out.println(1 << 31); // Integer.MIN_VALUE = -2147483648.
 System.out.println(1L << 63); // Long.MIN_VALUE.
 System.out.println(0x40000000 << 1); // -2147483648.
-System.out.println(0x40000000 << 2); // 0: bit cao đã bị loại.
+System.out.println(0x40000000 << 2); // 0: the high bit has been discarded.
 ~~~
 
-Giải thích `1 << 31`:
+Explaining `1 << 31`:
 
 ~~~text
 int 1:
 00000000000000000000000000000001
 
-Dịch trái 31:
+Left shift 31:
 10000000000000000000000000000000
 ^
-Bit cao nhất = 1; diễn giải theo int có dấu là -2147483648.
+Highest bit = 1; interpreted as signed int it is -2147483648.
 ~~~
 
-Khi kết quả toán học vừa trong miền kiểu và không mất bit có nghĩa, dịch trái `n` vị trí phù hợp với nhân `2^n`. Nhưng với `int`, giá trị vượt miền bị **cắt về 32 bit thấp**; với `long` bị cắt về 64 bit thấp. `<<` **không ném `ArithmeticException` khi tràn**.
+When the mathematical result fits within the type's range without losing significant bits, shifting left by `n` positions matches multiplying by `2^n`. However, for `int`, values exceeding the range are **truncated to the low 32 bits**; for `long`, to the low 64 bits. `<<` **does not throw `ArithmeticException` on overflow**.
 
-Ví dụ:
+Example:
 
 ~~~java
 int x = Integer.MAX_VALUE;
-System.out.println(x << 1); // -2, không phải 4294967294.
+System.out.println(x << 1); // -2, not 4294967294.
 ~~~
 
-Nếu cần phép nhân có kiểm tra tràn số, sử dụng `Math.multiplyExact` với toán hạng/kiểu phù hợp; nếu cần kết quả lớn hơn `int`, nâng kiểu **trước** khi dịch:
+If you need overflow-checked multiplication, use `Math.multiplyExact` with appropriate operands/types; if you need a result larger than `int`, widen the type **before** shifting:
 
 ~~~java
 int x = Integer.MAX_VALUE;
 long correct = ((long) x) << 1; // 4294967294.
-long tooLate = (long) (x << 1); // -2: int đã tràn trước cast.
+long tooLate = (long) (x << 1); // -2: int already overflowed before the cast.
 ~~~
 
-`BigInteger.ONE.shiftLeft(40)` là một lựa chọn khi cần số nguyên rất lớn, không bị giới hạn trong 32 hoặc 64 bit (nhưng vẫn phụ thuộc tài nguyên máy).
+`BigInteger.ONE.shiftLeft(40)` is an option when you need arbitrarily large integers not restricted to 32 or 64 bits (still subject to machine resources).
 
-## 6. Ứng dụng: tạo mặt nạ bit (*bit mask*)
+## 6. Application: Creating Bit Masks
 
-`1 << k` đặt bit thứ `k` (đánh số từ 0, phải sang trái) thành 1; hữu ích cho các cờ trạng thái:
+`1 << k` sets the `k`-th bit (0-indexed, right to left) to 1; this is useful for status flags:
 
 ~~~java
 int READ = 1 << 0;       // 001.
@@ -290,15 +290,15 @@ boolean canRead = (flags & READ) != 0;   // true.
 boolean canWrite = (flags & WRITE) != 0; // false.
 ~~~
 
-Toán tử `|` kết hợp các cờ, `&` kiểm tra bit. `<<` tạo đúng vị trí bit cần dùng.
+The `|` operator combines flags, and `&` checks bits. `<<` produces the exact bit position needed.
 
-**Giới hạn:** với `int`, bit thứ 31 chính là bit dấu (`1 << 31` âm); với `long`, bit thứ 63 là bit dấu. Điều này vẫn hợp lệ với **mẫu bit** và phép `&`, nhưng dễ sai nếu đem mặt nạ đi so bằng `> 0`: giá trị âm có bit được bật vẫn có thể là mặt nạ hợp lệ. Thường hãy kiểm tra `(flags & mask) != 0`.
+**Limitation:** for `int`, bit 31 is the sign bit (`1 << 31` is negative); for `long`, bit 63 is the sign bit. This remains completely valid for **bit patterns** and `&`, but it breaks if you compare masks using `> 0`: a negative value with its bit set is still a valid bit mask. As a rule, test with `(flags & mask) != 0`.
 
-Nếu `k` đến từ đầu vào, xác minh `0 <= k && k < 32` khi dùng `int` hoặc `0 <= k && k < 64` khi dùng `long`, bởi Java **mask** khoảng cách dịch thay vì tự báo lỗi.
+If `k` comes from input, verify `0 <= k && k < 32` when using `int` or `0 <= k && k < 64` when using `long`, because Java **masks** the shift distance rather than reporting an error.
 
-## 7. Độ ưu tiên, dấu ngoặc và so sánh với dịch phải
+## 7. Precedence, Parentheses, and Comparison with Right Shifts
 
-Toán tử `<<` có độ ưu tiên **thấp hơn `+`, `-`** nhưng **cao hơn các phép so sánh quan hệ** như `<` hoặc `>=`.
+The `<<` operator has **lower precedence than `+` and `-`**, but **higher precedence than relational comparisons** such as `<` or `>=`.
 
 ~~~java
 int a = 1 << 2 + 1;     // 1 << (2 + 1) = 8.
@@ -306,61 +306,61 @@ int b = (1 << 2) + 1;   // 4 + 1 = 5.
 boolean check = (1 << 3) > 5; // true.
 ~~~
 
-Dùng dấu ngoặc rõ ràng trong mã cần nhiều phép toán, nhất là với các mặt nạ bit.
+Use explicit parentheses in expressions mixing multiple operators, especially with bit masks.
 
-| Toán tử | Hướng dịch | Các bit mới được chèn |
+| Operator | Shift direction | Newly inserted bits |
 | --- | --- | --- |
-| `x << n` | Sang trái | Điền 0 ở phía phải |
-| `x >> n` | Sang phải, giữ dấu | Điền bit dấu ở phía trái |
-| `x >>> n` | Sang phải, không giữ dấu | Điền 0 ở phía trái |
+| `x << n` | Left | Fills 0 on the right |
+| `x >> n` | Right, sign-preserving | Fills sign bit on the left |
+| `x >>> n` | Right, unsigned | Fills 0 on the left |
 
-`<<` không có biến thể riêng “dịch trái không dấu” `<<<`. Cả số âm và số dương đều được dịch trái bằng cùng quy tắc bit. Việc đọc kết quả theo dấu là do **kiểu `int` hoặc `long`**, không phải do toán tử tự chọn “dịch trái có dấu” hay “không dấu”.
+`<<` has no separate "unsigned left shift" variant `<<<`. Both negative and positive numbers are shifted left by the exact same bit rule. Whether the result is read as signed or unsigned comes from the **`int` or `long` type**, not from the operator choosing a "signed" or "unsigned" left shift.
 
-## 8. Lỗi phổ biến cần tránh
+## 8. Common Mistakes to Avoid
 
-| Nhầm lẫn | Điều đúng |
+| Misconception | Fact |
 | --- | --- |
-| “`x << 1` lúc nào cũng giống `x * 2` theo giá trị toán học.” | Có thể tràn và mất bit |
-| “`byte b; b << 1` cho kết quả `byte`.” | Kết quả có kiểu `int` sau promotion |
-| “`1 << 32` cho 0 vì dịch hết 32 bit.” | Kết quả là **1** vì khoảng dịch mask |
-| “`1L << 64` cho 0.” | Kết quả là **1** vì khoảng dịch mask theo 64 |
-| “Khoảng dịch âm ném exception.” | Các bit thấp của khoảng dịch vẫn được dùng |
-| “`1 << 31` là số dương `2147483648`.” | Trả `Integer.MIN_VALUE` (âm) |
-| “Cast sang `long` sau khi dịch sẽ sửa tràn `int`.” | Phải cast **trước** khi dịch |
-| “`byteValue <<= 1` và `byteValue = byteValue << 1` cùng hợp lệ.” | Dạng thứ hai cần cast |
-| “`<<` ném ngoại lệ nếu bit dấu thay đổi.” | Không; tràn bị cắt theo độ rộng |
-| “`1 << k` có thể dùng tùy ý với `k > 31` để cấp thêm bit.” | Không; dùng `1L`/`BigInteger` theo miền yêu cầu |
+| "`x << 1` is always mathematically identical to `x * 2`." | It can overflow and lose bits |
+| "`byte b; b << 1` returns a `byte`." | The result has type `int` after promotion |
+| "`1 << 32` gives 0 because all 32 bits are shifted out." | The result is **1** due to shift distance masking |
+| "`1L << 64` gives 0." | The result is **1** because the shift distance is masked modulo 64 |
+| "Negative shift distances throw an exception." | The low bits of the shift distance are still used |
+| "`1 << 31` is positive `2147483648`." | Returns `Integer.MIN_VALUE` (negative) |
+| "Casting to `long` after shifting fixes `int` overflow." | You must cast **before** shifting |
+| "`byteValue <<= 1` and `byteValue = byteValue << 1` are equally valid." | The second form requires an explicit cast |
+| "`<<` throws an exception if the sign bit changes." | No; overflow truncates to the type's width |
+| "`1 << k` works arbitrarily with `k > 31` to allocate extra bits." | No; use `1L`/`BigInteger` according to the required range |
 
-## 9. Bài tập tự kiểm tra
+## 9. Self-Check Exercises
 
-1. `3 << 2` bằng bao nhiêu?  
-   *Đáp án:* **12** (`3 × 4`), không bị tràn.
-2. `-3 << 1` cho bao nhiêu?  
-   *Đáp án:* **-6** theo bù hai `int`.
-3. Kiểu của `byte b = 3; var x = b << 2;` là gì?  
-   *Đáp án:* `int`.
-4. `1 << 32`, `1 << 33` và `1 << -1` lần lượt là gì?  
-   *Đáp án:* **1**, **2**, **-2147483648**.
-5. `1L << 64` và `1L << 65` bằng bao nhiêu?  
-   *Đáp án:* **1L**, **2L**.
-6. Tại sao `0x40000000 << 2` bằng 0?  
-   *Đáp án:* Bit 1 cao bị dịch vượt khỏi độ rộng 32 bit.
-7. `int x = Integer.MAX_VALUE; long y = (long) (x << 1);` — `y` bằng bao nhiêu?  
-   *Đáp án:* **-2** vì tràn xảy ra trước cast.
-8. Muốn tạo bit thứ 40 của một `long`, viết gì?  
-   *Đáp án:* `1L << 40` (không phải `1 << 40`).
-9. Vì sao nên kiểm tra mặt nạ bằng `(flags & mask) != 0` thay vì `> 0`?  
-   *Đáp án:* Mặt nạ có thể bật bit dấu, khiến kết quả là số âm nhưng bit vẫn tồn tại.
+1. What is `3 << 2`?  
+   *Answer:* **12** (`3 × 4`), without overflow.
+2. What does `-3 << 1` produce?  
+   *Answer:* **-6** in `int` two's complement.
+3. What is the type of `byte b = 3; var x = b << 2;`?  
+   *Answer:* `int`.
+4. What are `1 << 32`, `1 << 33`, and `1 << -1` respectively?  
+   *Answer:* **1**, **2**, **-2147483648**.
+5. What are `1L << 64` and `1L << 65`?  
+   *Answer:* **1L**, **2L**.
+6. Why does `0x40000000 << 2` equal 0?  
+   *Answer:* The high 1 bit is shifted beyond the 32-bit width.
+7. Given `int x = Integer.MAX_VALUE; long y = (long) (x << 1);` — what is `y`?  
+   *Answer:* **-2** because overflow occurs before the cast.
+8. How do you construct bit 40 of a `long`?  
+   *Answer:* `1L << 40` (not `1 << 40`).
+9. Why should bit masks be tested with `(flags & mask) != 0` instead of `> 0`?  
+   *Answer:* A mask can have the sign bit set, making the result negative even though the bit is present.
 
 ## Checklist
 
-- [ ] Hiểu `<<` dịch bit sang trái, chèn 0 ở bên phải và bỏ bit tràn phía trái.
-- [ ] Nhớ kết quả sau promotion có kiểu `int` hoặc `long` dựa vào toán hạng trái.
-- [ ] Biết giới hạn khoảng dịch: `int` dùng 5 bit thấp, `long` dùng 6 bit thấp.
-- [ ] Nhận diện việc bit dấu thay đổi và tràn số **không tự báo lỗi**.
-- [ ] Nâng kiểu lên `long` **trước** khi dịch nếu cần miền rộng hơn `int`.
-- [ ] Hiểu gán `<<=` có thể thu hẹp kết quả về kiểu biến gốc.
-- [ ] Dùng `1 << k` hoặc `1L << k` làm mặt nạ bit và kiểm tra `k` theo miền yêu cầu.
-- [ ] Dùng dấu ngoặc để làm rõ các biểu thức kết hợp dịch, cộng và so sánh.
+- [ ] Understand that `<<` shifts bits left, inserts 0s on the right, and discards bits overflowing on the left.
+- [ ] Remember that after promotion, the result has type `int` or `long` based on the left operand.
+- [ ] Know the shift distance limits: `int` uses the low 5 bits, `long` uses the low 6 bits.
+- [ ] Recognize that sign-bit changes and overflow **do not throw errors automatically**.
+- [ ] Widen to `long` **before** shifting if you need a range wider than `int`.
+- [ ] Understand that compound assignment `<<=` can narrow the result back to the original variable's type.
+- [ ] Use `1 << k` or `1L << k` as bit masks and validate `k` against the required range.
+- [ ] Use parentheses to clarify expressions combining shifts, addition, and comparisons.
 
-**Kết luận:** `<<` là **toán tử dịch bit**, không phải phép nhân chính xác vô điều kiện. Hãy luôn kiểm tra **kiểu toán hạng trái**, **khoảng dịch hiệu dụng**, **bit có thể bị mất** và **bit dấu** trước khi suy luận kết quả của phép dịch.
+**Conclusion:** `<<` is a **bit-shift operator**, not unconditional exact multiplication. Always check the **left operand's type**, **effective shift distance**, **bits that could be lost**, and **sign bit** before reasoning about a shift's result.

@@ -1,37 +1,37 @@
-# Dùng `this` hoặc tên lớp để chỉ rõ trường bị che khuất trong Java
+# Using `this` or the Class Name to Disambiguate Shadowed Fields in Java
 
-## 1. Vì sao cần chỉ rõ field?
+## 1. Why is it necessary to specify the field?
 
-Trong constructor và method, một local/parameter có thể trùng tên field. Khi đó tên ngắn thường chọn local/parameter. Ví dụ:
+In a constructor or method, a local/parameter can have the same name as a field. In that case, the short name normally selects the local/parameter. For example:
 
 ~~~java
 class Account {
     private int balance;
     Account(int balance) {
-        this.balance = balance; // Field nhận giá trị từ tham số.
+        this.balance = balance; // The field receives the value from the parameter.
     }
 }
 ~~~
 
-Nếu chỉ viết `balance = balance;`, mã hợp lệ nhưng tự gán tham số, bỏ qua field. Đây là một trường hợp *shadowing*; phần giải thích các lỗi constructor/setter đã được thực hành ở bài trước. Bài này tập trung vào **các cú pháp chọn field**, đặc biệt khi có kế thừa hoặc lớp bao ngoài.
+If you only write `balance = balance;`, the code is valid but self-assigns the parameter, ignoring the field. This is a case of *shadowing*; explanations of constructor/setter bugs were practiced in the previous lesson. This lesson focuses on **field selection syntaxes**, especially when inheritance or an enclosing class is involved.
 
-## 2. Phân biệt `this.field`, `ClassName.field` và `super.field`
+## 2. Distinguishing `this.field`, `ClassName.field`, and `super.field`
 
-| Cú pháp | Nên dùng để truy cập | Bối cảnh hợp lệ | Ý nghĩa |
+| Syntax | Should be used to access | Valid context | Meaning |
 | --- | --- | --- | --- |
-| `field` | Biến/tham số gần nhất mang tên đó; nếu không có, có thể là field | Tùy phạm vi | Tên ngắn có thể bị che khuất |
-| `this.field` | Field **instance** của đối tượng hiện tại | Constructor/phương thức/khối instance | Bỏ qua việc tên ngắn bị tham số/local che khuất |
-| `ClassName.field` | Field **static** được khai báo hoặc kế thừa phù hợp trên lớp | Kể cả phương thức `static` | Chỉ rõ field thuộc lớp, không thuộc từng instance |
-| `super.field` | Field instance được tìm từ lớp cha | Ngữ cảnh instance của lớp con | Phân biệt field lớp cha với field cùng tên trong lớp con |
-| `object.field` | Field truy cập được qua một biến tham chiếu đối tượng | Khi có đối tượng và quyền truy cập | Chỉ rõ instance, có kiểm tra quyền truy cập |
+| `field` | Nearest variable/parameter with that name; if none exists, possibly a field | Depends on scope | The short name may be shadowed |
+| `this.field` | **Instance** field of the current object | Instance constructor/method/block | Bypasses shadowing of the short name by a parameter/local |
+| `ClassName.field` | **Static** field declared or suitably inherited on the class | Including `static` methods | Explicitly specifies a class field, not belonging to individual instances |
+| `super.field` | Instance field looked up starting from the superclass | Instance context of a subclass | Distinguishes a superclass field from a field with the same name in the subclass |
+| `object.field` | Field accessible through an object reference variable | When an object and access permission exist | Specifies an instance, subject to access control checks |
 
-**Lưu ý:** `ClassName.instanceField` **không hợp lệ**, vì field instance phải truy cập qua một đối tượng (`this` hoặc tham chiếu cụ thể). Ngược lại, Java cho phép một số cách truy cập field `static` qua tham chiếu đối tượng, nhưng nên sử dụng `ClassName.staticField` để tránh gây hiểu nhầm và cảnh báo từ công cụ phân tích mã.
+**Note:** `ClassName.instanceField` is **invalid**, because an instance field must be accessed through an object (`this` or a specific reference). Conversely, Java allows some ways of accessing a `static` field through an object reference, but you should use `ClassName.staticField` to avoid misunderstandings and warnings from code analysis tools.
 
-Một trường có `private` vẫn có thể truy cập bằng `this.field` từ **bên trong chính lớp**. `this` không bỏ qua quy tắc quyền truy cập: lớp khác không thể đọc field `private` chỉ nhờ viết `someObject.field`.
+A `private` field can still be accessed with `this.field` from **inside the same class**. `this` does not bypass access control rules: another class cannot read a `private` field merely by writing `someObject.field`.
 
-## 3. Chọn đúng field instance bằng `this.field`
+## 3. Selecting the right instance field with `this.field`
 
-`this` chỉ đối tượng hiện tại của constructor/method instance. Nó cho phép chọn field ngay cả khi tên ngắn đang trỏ tới tham số hoặc local:
+`this` refers to the current object of an instance constructor/method. It allows selecting the field even when the short name points to a parameter or local:
 
 ~~~java
 class Student {
@@ -44,11 +44,11 @@ class Student {
 }
 ~~~
 
-Với `new Student("Mai").display()`, kết quả là `LOCAL/Mai`. Trong `static` method không có `this`. Nếu không có local/parameter che khuất, dùng tên field ngắn vẫn có thể hợp lệ; `this.` giúp thể hiện rõ trạng thái instance.
+With `new Student("Mai").display()`, the result is `LOCAL/Mai`. In a `static` method there is no `this`. When no local/parameter shadows the field, using the short field name can still be valid; `this.` helps make instance state explicit.
 
-## 4. Chọn đúng field `static` bằng `ClassName.field`
+## 4. Selecting the right `static` field with `ClassName.field`
 
-Với trạng thái chung của lớp, viết tên lớp trước field để tránh nhầm với local/parameter:
+For shared class state, write the class name before the field to avoid confusing it with a local/parameter:
 
 ~~~java
 class Settings {
@@ -59,11 +59,11 @@ class Settings {
 }
 ~~~
 
-`Settings.timeout` cập nhật field, trong khi `timeout` đơn lẻ ở vế phải là tham số. `ClassName.instanceField` không hợp lệ vì field instance cần đối tượng; truy cập field `static` qua đối tượng tuy có thể hợp lệ trong Java nhưng khiến mã khó hiểu. Kế thừa field cùng tên lại đặt ra câu hỏi khác: nên dùng `this.field` hay `super.field`?
+`Settings.timeout` updates the field, whereas the bare `timeout` on the right-hand side is the parameter. `ClassName.instanceField` is invalid because an instance field requires an object; accessing a `static` field through an object, though legal in Java, makes code harder to understand. Inheriting a field with the same name raises a different question: should you use `this.field` or `super.field`?
 
-## 5. Khi lớp con che khuất trường lớp cha: `this` và `super`
+## 5. When a subclass hides a superclass field: `this` and `super`
 
-Hai lớp trong quan hệ kế thừa có thể khai báo **hai field riêng biệt cùng tên**. Đây là trường hợp *field hiding*. Không giống phương thức instance bị override, **truy cập field không sử dụng dynamic dispatch** theo kiểu runtime của đối tượng; field được chọn dựa trên kiểu tham chiếu và quy tắc tra cứu tại compile time.
+Two classes in an inheritance relationship can declare **two separate fields with the same name**. This is a case of *field hiding*. Unlike overridden instance methods, **field access does not use dynamic dispatch** based on the object's runtime type; the field is chosen based on the reference type and compile-time lookup rules.
 
 ```java
 class Base {
@@ -74,20 +74,20 @@ class Derived extends Base {
     int level = 20;
 
     void inspect(int level) {
-        System.out.println(level);       // Tham số
-        System.out.println(this.level);  // Field Derived
-        System.out.println(super.level); // Field Base
+        System.out.println(level);       // Parameter
+        System.out.println(this.level);  // Derived field
+        System.out.println(super.level); // Base field
     }
 }
 ```
 
-Trong `Derived.inspect(int level)`:
+In `Derived.inspect(int level)`:
 
-- `level` là **tham số**.
-- `this.level` trỏ tới field của `Derived`.
-- `super.level` chọn field kế thừa từ `Base`.
+- `level` is the **parameter**.
+- `this.level` points to `Derived`'s field.
+- `super.level` selects the field inherited from `Base`.
 
-Cả `Base.level` và `Derived.level` đều nằm trong cùng đối tượng `Derived`; không phải JVM tự chuyển chúng thành một trường duy nhất.
+Both `Base.level` and `Derived.level` reside in the same `Derived` object; the JVM does not merge them into a single field.
 
 ```java
 Base baseView = new Derived();
@@ -96,13 +96,13 @@ Derived derivedView = (Derived) baseView;
 // derivedView.level == 20
 ```
 
-Sự khác biệt xảy ra vì kiểu biểu thức `baseView` là `Base` còn `derivedView` là `Derived`. Điều này không phải đa hình động của phương thức. `super.field` chỉ sử dụng trong ngữ cảnh instance phù hợp của lớp con và vẫn chịu giới hạn quyền truy cập của field lớp cha.
+The difference occurs because the expression `baseView` has type `Base` while `derivedView` has type `Derived`. This is not dynamic method polymorphism. `super.field` can only be used in an appropriate instance context of the subclass and remains subject to the superclass field's access restrictions.
 
-Nếu field **static** cùng tên tồn tại ở cả lớp cha và lớp con, ưu tiên viết rõ `Base.field` hoặc `Derived.field` (với quyền truy cập hợp lệ), không dựa vào tên ngắn.
+If a **static** field with the same name exists in both the superclass and subclass, prefer writing `Base.field` or `Derived.field` explicitly (given valid access permissions), rather than relying on the short name.
 
-## 6. Chương trình Java 17+ chạy độc lập
+## 6. Standalone Java 17+ program
 
-Tạo tệp **`FieldShadowDemo.java`**:
+Create the file **`FieldShadowDemo.java`**:
 
 ```java
 public class FieldShadowDemo {
@@ -164,14 +164,14 @@ public class FieldShadowDemo {
 }
 ```
 
-Tại thư mục chứa tệp, dùng JDK 17 trở lên (PowerShell, CMD, bash):
+In the directory containing the file, using JDK 17 or later (PowerShell, CMD, bash):
 
 ```bash
 javac -encoding UTF-8 FieldShadowDemo.java
 java FieldShadowDemo
 ```
 
-Kết quả stdout chính xác (lệnh `javac` thành công không in gì):
+Exact expected stdout (successful `javac` prints nothing):
 
 ```text
 level before: 1
@@ -187,16 +187,16 @@ parent view: 1
 child view: 2
 ```
 
-Giải thích:
+Explanation:
 
-1. Constructor và setter dùng `this.level` để tác động đúng field instance. Biến cục bộ `title` chỉ che khuất tên field trong phương thức, không xóa `this.title`.
-2. Tham số `created` của phương thức `increaseCreated` không phải field `static created`. Câu lệnh `FieldShadowDemo.created += created` cập nhật field từ `1` thành `3`.
-3. `Child.show` có ba cách hiểu khác nhau cho tên `code` như trong ví dụ: tham số `3`, field lớp con `2` và field lớp cha `1`.
-4. `asParent.code` đọc field từ kiểu `Parent`, còn `child.code` đọc field từ kiểu `Child` mặc dù cả hai biến tham chiếu cùng một đối tượng.
+1. The constructor and setter use `this.level` to affect the right instance field. The local variable `title` only shadows the field name inside the method; it does not delete `this.title`.
+2. The parameter `created` of method `increaseCreated` is not the `static` field `created`. The statement `FieldShadowDemo.created += created` updates the field from `1` to `3`.
+3. `Child.show` has three different interpretations for the name `code` as in the example: parameter `3`, subclass field `2`, and superclass field `1`.
+4. `asParent.code` reads the field from type `Parent`, whereas `child.code` reads the field from type `Child` even though both variables reference the same object.
 
-## 7. Trường hợp tên trường ở lớp bao ngoài
+## 7. Fields in an enclosing class
 
-Trong **inner class không `static`**, muốn truy cập field của đối tượng lớp bao ngoài khi tên bị che khuất, dùng `Outer.this.field`:
+In a **non-`static` inner class**, to access a field of the enclosing class object when the name is shadowed, use `Outer.this.field`:
 
 ```java
 class Outer {
@@ -206,26 +206,26 @@ class Outer {
         int size = 20;
 
         void print(int size) {
-            System.out.println(size);            // Tham số
-            System.out.println(this.size);       // Field Inner
-            System.out.println(Outer.this.size); // Field Outer
+            System.out.println(size);            // Parameter
+            System.out.println(this.size);       // Inner field
+            System.out.println(Outer.this.size); // Outer field
         }
     }
 }
 ```
 
-Đoạn này minh họa trong lớp (không phải chương trình độc lập). `Outer.this` là tham chiếu đến instance `Outer` bao quanh instance `Inner`. Nó **không áp dụng tương tự** cho lớp lồng nhau khai báo `static`, vì lớp lồng nhau static không tự mang một tham chiếu instance lớp ngoài.
+This snippet illustrates the syntax inside a class (it is not a standalone program). `Outer.this` is a reference to the `Outer` instance enclosing the `Inner` instance. This **does not apply in the same way** to a nested class declared `static`, because a static nested class does not automatically hold an enclosing outer instance reference.
 
-## 8. Lỗi thường gặp và cách chọn cú pháp
+## 8. Common errors and how to choose the syntax
 
-| Lỗi/nhầm lẫn | Cách hiểu hoặc sửa |
+| Error / misconception | How to understand or fix |
 | --- | --- |
-| Constructor viết `name = name;` và tưởng field được gán | Hai tên thường cùng trỏ vào tham số; dùng `this.name = name;` |
-| Trong `static` method viết `this.field` | Không có `this` trong static context; field static viết `ClassName.field`, instance cần đối tượng |
-| Gọi `ClassName.instanceField` | Field instance không truy cập như field static |
-| Dùng `this.field` để chọn field lớp cha khi lớp con có field trùng tên | Dùng `super.field` nếu field lớp cha có thể truy cập |
-| Tưởng hai field cùng tên trong quan hệ kế thừa là một | Field hiding tạo hai field phân biệt; kiểu biểu thức quyết định field được chọn |
-| Tưởng `this` vượt qua mọi giới hạn truy cập | `this` chỉ là tham chiếu hiện tại, không thay đổi quyền truy cập Java |
-| Dùng `object.staticField` như field instance | Viết `ClassName.staticField` để diễn đạt rõ field thuộc lớp |
+| Constructor writes `name = name;` and assumes the field is assigned | Both names usually point to the parameter; use `this.name = name;` |
+| Writing `this.field` in a `static` method | There is no `this` in a static context; write `ClassName.field` for static fields, and an object is needed for instance fields |
+| Calling `ClassName.instanceField` | Instance fields cannot be accessed like static fields |
+| Using `this.field` to select a superclass field when the subclass has a field of the same name | Use `super.field` if the superclass field is accessible |
+| Thinking two fields with the same name in an inheritance hierarchy are one field | Field hiding creates two distinct fields; the expression type determines which field is selected |
+| Thinking `this` bypasses all access restrictions | `this` is just the current reference; it does not alter Java access permissions |
+| Using `object.staticField` as if it were an instance field | Write `ClassName.staticField` to express clearly that the field belongs to the class |
 
-**Ghi nhớ:** dùng `this.field` để gọi rõ **field instance của đối tượng hiện tại**, dùng `ClassName.field` để gọi rõ **field static của lớp**, và dùng `super.field` khi cần **field của lớp cha** bị field lớp con che khuất. Khi tên không trùng, qualifier vẫn có thể giúp mã dễ đọc hơn, nhưng nên lựa chọn nhất quán với kiểu field.
+**Key Takeaway:** use `this.field` to explicitly refer to an **instance field of the current object**, use `ClassName.field` to explicitly refer to a **static field of the class**, and use `super.field` when you need a **superclass field** hidden by a subclass field. When names do not collide, qualifiers can still make code easier to read, but they should be chosen consistently with the field kind.

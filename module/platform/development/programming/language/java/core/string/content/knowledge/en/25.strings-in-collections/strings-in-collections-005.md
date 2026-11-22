@@ -1,60 +1,60 @@
-# Comparator không phân biệt hoa–thường và quan hệ với equals khi lưu String trong Collection
+# Case-Insensitive Comparator and Its Relationship with equals When Storing Strings in Collections
 
-## 1. Vấn đề và mục tiêu
+## 1. Problem and Goal
 
-Khi đưa các chuỗi Java vào collection, ta thường muốn sắp xếp **không phân biệt chữ hoa và chữ thường**. Java cung cấp sẵn `String.CASE_INSENSITIVE_ORDER`, một `Comparator<String>` cho mục đích đó. Nhưng một bẫy quan trọng xuất hiện khi dùng comparator này làm **quy tắc xác định khóa trùng nhau** trong `TreeSet` và `TreeMap`:
+When putting Java strings into collections, we often want to sort **case-insensitively**. Java provides `String.CASE_INSENSITIVE_ORDER`, a `Comparator<String>` for that purpose. However, an important trap arises when this comparator is used as **the rule for detecting duplicate keys** in `TreeSet` and `TreeMap`:
 
-> **`compare(a, b) == 0` không đồng nghĩa với `a.equals(b)`.**
+> **`compare(a, b) == 0` does not imply `a.equals(b)`.**
 
-Ví dụ với `"Java"` và `"java"`:
+Example with `"Java"` and `"java"`:
 
-- `"Java".equals("java")` là `false` vì `String.equals` so sánh nội dung có phân biệt hoa/thường.
-- `"Java".equalsIgnoreCase("java")` là `true`.
-- `String.CASE_INSENSITIVE_ORDER.compare("Java", "java")` là `0`: hai chuỗi tương đương **theo comparator**.
-- `"Java".compareToIgnoreCase("java")` cũng là `0`.
+- `"Java".equals("java")` is `false` because `String.equals` compares content case-sensitively.
+- `"Java".equalsIgnoreCase("java")` is `true`.
+- `String.CASE_INSENSITIVE_ORDER.compare("Java", "java")` is `0`: the two strings are equivalent **according to the comparator**.
+- `"Java".compareToIgnoreCase("java")` is also `0`.
 
-Nếu chỉ sắp xếp để hiển thị, hành vi trên thường đúng mong muốn. Nếu dùng nó để quyết định **phần tử nào được phép tồn tại** trong tập hợp hoặc **khóa nào được coi là cùng một khóa**, hậu quả có thể là mất một biến thể chữ hoa/thường.
+If you are only sorting for display, that behavior is usually what you want. If you use it to decide **which elements are allowed to exist** in a set or **which keys count as the same key**, the consequence can be losing a casing variant.
 
-Bài học này làm rõ quan hệ giữa `Comparator`, `String.equals`, `equalsIgnoreCase` và cách các collection sử dụng chúng.
+This lesson clarifies the relationship between `Comparator`, `String.equals`, `equalsIgnoreCase`, and how collections use them.
 
-## 2. Các phép so sánh String cần phân biệt
+## 2. String Comparisons to Distinguish
 
-| API | Kết quả/ý nghĩa | Có phân biệt hoa–thường? |
+| API | Result / Meaning | Case-sensitive? |
 | --- | --- | --- |
-| `a.equals(b)` | Hai chuỗi có nội dung giống hệt nhau theo `String.equals` | Có |
-| `a.equalsIgnoreCase(b)` | Kiểm tra tương đương bỏ qua hoa–thường theo quy tắc của `String` | Không |
-| `a.compareTo(b)` | So sánh thứ tự tự nhiên; trả số âm, 0 hoặc số dương | Có |
-| `a.compareToIgnoreCase(b)` | So sánh thứ tự bỏ qua hoa–thường | Không |
-| `String.CASE_INSENSITIVE_ORDER.compare(a,b)` | `Comparator<String>` tương ứng so sánh không phân biệt hoa–thường | Không |
+| `a.equals(b)` | Whether two strings have identical content under `String.equals` | Yes |
+| `a.equalsIgnoreCase(b)` | Checks equivalence ignoring case using `String` rules | No |
+| `a.compareTo(b)` | Natural-order comparison; returns negative, 0, or positive | Yes |
+| `a.compareToIgnoreCase(b)` | Order comparison ignoring case | No |
+| `String.CASE_INSENSITIVE_ORDER.compare(a,b)` | Corresponding `Comparator<String>` performing case-insensitive comparison | No |
 
-`Comparator.compare(a,b)` trả giá trị **âm** nếu `a` đứng trước `b`, **0** nếu tương đương theo comparator, và **dương** nếu `a` đứng sau `b`. Khi kiểm thử, đừng phụ thuộc độ lớn cụ thể của số âm/dương; chỉ phụ thuộc vào **dấu của kết quả**.
+`Comparator.compare(a,b)` returns a **negative** value if `a` precedes `b`, **0** if equivalent under the comparator, and **positive** if `a` follows `b`. When testing, do not depend on the exact magnitude of negative/positive numbers; rely only on the **sign of the result**.
 
-Với `String.CASE_INSENSITIVE_ORDER`, kết quả tương thích với `compareToIgnoreCase`. Hai chuỗi khác nhau về chữ hoa/thường có thể so sánh bằng 0 dù `equals` trả về `false`. Đây gọi là comparator **không nhất quán với equals** (*inconsistent with equals*).
+With `String.CASE_INSENSITIVE_ORDER`, the result aligns with `compareToIgnoreCase`. Two strings differing in case can compare as 0 even though `equals` returns `false`. This is called a comparator **inconsistent with equals**.
 
-Điều quan trọng: `equalsIgnoreCase` là một phép thử riêng dành cho `String`; nó **không thay đổi** cách `String.equals` hay `hashCode` hoạt động. Chỉ vì truyền comparator cho một collection không có nghĩa là các loại collection khác cũng tự dùng quy tắc tương đương ấy.
+Crucial point: `equalsIgnoreCase` is a separate test on `String`; it **does not change** how `String.equals` or `hashCode` behaves. Passing a comparator to one collection does not mean other collection types automatically adopt that equivalence rule.
 
-## 3. Vì sao tính nhất quán với equals quan trọng?
+## 3. Why Does Consistency with equals Matter?
 
-Theo quy ước của Java, comparator được gọi là **nhất quán với equals** nếu, đối với mọi đối tượng thích hợp `a` và `b`:
+By Java convention, a comparator is **consistent with equals** if, for all suitable objects `a` and `b`:
 
 ~~~text
-compare(a, b) == 0   khi và chỉ khi   a.equals(b) == true
+compare(a, b) == 0   if and only if   a.equals(b) == true
 ~~~
 
-Với hai chuỗi khác kiểu chữ `"Java"` và `"java"`, comparator bỏ qua hoa–thường vi phạm điều kiện này:
+For two strings with different casing like `"Java"` and `"java"`, a case-insensitive comparator violates this condition:
 
 ~~~text
 String.equals:                  false
 String.CASE_INSENSITIVE_ORDER:      0
 ~~~
 
-Một comparator không nhất quán với equals **vẫn có thể sắp xếp hợp lệ** và được `TreeSet`/`TreeMap` chấp nhận. Nhưng `SortedSet`/`SortedMap` nói chung cần comparator nhất quán với equals để bảo đảm trọn vẹn kỳ vọng của hợp đồng `Set`/`Map`. Nếu không, tập hợp hoặc ánh xạ có thể cư xử khác `HashSet`/`HashMap` khi người dùng cho rằng mọi collection đều xác định trùng lặp giống `equals`.
+A comparator that is inconsistent with equals **can still sort validly** and is accepted by `TreeSet`/`TreeMap`. However, `SortedSet`/`SortedMap` in general require a comparator consistent with equals to uphold all expectations of the `Set`/`Map` contracts. Otherwise, the set or map can behave differently from `HashSet`/`HashMap` when users assume every collection detects duplicates identically to `equals`.
 
-**Điểm chính cần nhớ:** thuật toán của `TreeSet` và `TreeMap` dựa trên **`compare(...) == 0` để xác định khóa tương đương**. Còn `HashSet` và `HashMap` sử dụng `equals` kết hợp `hashCode` của khóa. Hai nhóm collection có thể chứa số phần tử khác nhau với cùng đầu vào.
+**Main point to remember:** `TreeSet` and `TreeMap` algorithms rely on **`compare(...) == 0` to determine key equivalence**. By contrast, `HashSet` and `HashMap` use `equals` combined with the key's `hashCode`. The two collection families can end up holding different numbers of elements for the same input.
 
-## 4. TreeSet và HashSet khác nhau thế nào?
+## 4. How Do TreeSet and HashSet Differ?
 
-Đoạn sau là **mảnh mã minh họa** có thể đặt trong `main` sau khi import `java.util.*`:
+The following is an **illustrative code snippet** that can be placed inside `main` after importing `java.util.*`:
 
 ~~~java
 Set<String> hash = new HashSet<>();
@@ -71,15 +71,15 @@ tree.add("JAVA");
 // tree.contains("JAVA") == true
 ~~~
 
-Với `HashSet`, ba chuỗi có nội dung khác nhau theo `equals` và được coi là ba phần tử khác nhau; `HashSet` không sắp xếp các phần tử.
+With `HashSet`, the three strings have different content under `equals` and are treated as three distinct elements; `HashSet` does not sort elements.
 
-Với `TreeSet`, ba chuỗi so sánh bằng 0 theo comparator không phân biệt hoa–thường, nên chỉ một phần tử đại diện được lưu. Thông thường phần tử được thêm thành công trước tiên là phần tử được giữ: nếu thêm `"Java"` đầu tiên, việc thêm `"java"` hay `"JAVA"` không thay nội dung chuỗi đang lưu. Phép `contains("JAVA")` trả về `true` vì nó sử dụng quy tắc tương đương của cây; điều này **không chứng minh** chuỗi `"JAVA"` thực sự được lưu như một đối tượng riêng.
+With `TreeSet`, the three strings compare as 0 under the case-insensitive comparator, so only one representative element is stored. Typically the first successfully added element is kept: if `"Java"` is added first, adding `"java"` or `"JAVA"` does not replace the stored string content. Calling `contains("JAVA")` returns `true` because it uses the tree's equivalence rule; this **does not prove** that the string `"JAVA"` itself is stored as a separate object.
 
-Nếu yêu cầu nghiệp vụ là “danh sách từ khóa không phân biệt hoa thường, mỗi từ chỉ tồn tại một lần”, `TreeSet<>(String.CASE_INSENSITIVE_ORDER)` có thể đúng mong muốn. Nếu cần lưu **cả hai biến thể** `"Java"` và `"java"`, comparator đó không phù hợp để làm duy nhất khóa.
+If the business requirement is "a case-insensitive keyword list where each word appears only once," `TreeSet<>(String.CASE_INSENSITIVE_ORDER)` may be exactly what is desired. If you need to store **both variants** `"Java"` and `"java"`, that comparator is unsuitable for key uniqueness.
 
-## 5. TreeMap và HashMap: khóa tương đương có thể ghi đè giá trị
+## 5. TreeMap and HashMap: Equivalent Keys Can Overwrite Values
 
-Tương tự với `TreeMap`:
+Similarly with `TreeMap`:
 
 ~~~java
 TreeMap<String, Integer> map =
@@ -93,15 +93,15 @@ map.put("java", 2);
 // map.firstKey().equals("Java") == true
 ~~~
 
-Lần `put` thứ hai không sinh một khóa độc lập vì comparator nói rằng `"Java"` và `"java"` tương đương. Giá trị gắn với khóa đã có được **thay từ 1 thành 2**. Trong trường hợp này, đối tượng/chuỗi khóa được giữ trong cây vẫn là `"Java"`, tức chính khóa của lần thêm đầu. Phép tra cứu bằng `"JAVA"` vẫn lấy được giá trị vì `TreeMap` cũng dùng comparator để tìm kiếm.
+The second `put` does not create an independent key because the comparator says `"Java"` and `"java"` are equivalent. The value associated with the existing key is **replaced from 1 to 2**. In this case, the key object/string kept in the tree remains `"Java"`, the key from the first insertion. Looking up `"JAVA"` still retrieves the value because `TreeMap` also uses the comparator for lookup.
 
-Ngược lại, với `HashMap<String,Integer>`, các khóa `"Java"` và `"java"` khác nhau theo `equals`; có thể có hai entry và tra cứu `get("JAVA")` sẽ trả `null` nếu không có entry trùng đúng `"JAVA"`.
+Conversely, in `HashMap<String,Integer>`, the keys `"Java"` and `"java"` differ according to `equals`; two entries can coexist, and `get("JAVA")` returns `null` unless an entry matching `"JAVA"` exactly exists.
 
-**Hệ quả thiết kế:** trước khi sử dụng `TreeMap`/`TreeSet`, hãy xác định rõ “trùng khóa” được định nghĩa bằng **`String.equals`** hay **so sánh không phân biệt hoa–thường**. Đây là lựa chọn về **quy tắc định danh**, không chỉ về thứ tự hiển thị.
+**Design implication:** before using `TreeMap`/`TreeSet`, clarify whether "duplicate key" is defined by **`String.equals`** or by **case-insensitive comparison**. This is a choice about **identity rules**, not merely display ordering.
 
-## 6. Code Java 17+ đầy đủ để kiểm chứng
+## 6. Complete Java 17+ Code for Verification
 
-Tạo tệp **CaseInsensitiveComparatorDemo.java**:
+Create the file **CaseInsensitiveComparatorDemo.java**:
 
 ~~~java
 import java.util.*;
@@ -177,14 +177,14 @@ public class CaseInsensitiveComparatorDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 CaseInsensitiveComparatorDemo.java
 java CaseInsensitiveComparatorDemo
 ~~~
 
-Đầu ra chính xác:
+Exact output:
 
 ~~~text
 equals=false
@@ -198,13 +198,13 @@ SortedList=[A, a, b, B]
 PASS: 15 checks
 ~~~
 
-Chương trình kiểm tra 15 giả định bằng `check`; nếu kết quả khác mong đợi, nó ném `AssertionError` và không in dòng cuối `PASS`. Việc kiểm tra `equals`, `compareToIgnoreCase` và comparator cạnh nhau giúp thấy rõ các phép so sánh thực sự khác nhau ở đâu.
+The program verifies 15 assertions via `check`; if any result differs from expectations, it throws `AssertionError` and does not print the final `PASS` line. Inspecting `equals`, `compareToIgnoreCase`, and the comparator side by side makes it clear where the comparisons actually diverge.
 
-`List.sort` ở ví dụ còn kiểm tra **tính ổn định (stable sort)**: chuỗi `"A"` và `"a"` so sánh bằng 0 với comparator nên giữ thứ tự tương đối như trong danh sách đầu. Tương tự, `"b"` và `"B"` giữ thứ tự tương đối. `List.sort` dùng comparator để sắp xếp **nhưng không loại phần tử trùng theo comparator**.
+`List.sort` in the example also checks **stability (stable sort)**: the strings `"A"` and `"a"` compare as 0 with the comparator, so they keep their relative order from the initial list. Similarly, `"b"` and `"B"` preserve their relative order. `List.sort` uses the comparator to sort **without removing duplicate elements according to the comparator**.
 
-## 7. Cách sắp xếp không phân biệt hoa–thường mà vẫn giữ tất cả biến thể
+## 7. How to Sort Case-Insensitively While Retaining All Variants
 
-Nếu cần ưu tiên nhóm các chuỗi theo chữ hoa/thường nhưng vẫn cho phép từng chuỗi **khác nhau theo `equals`** tồn tại trong `TreeSet`, thêm một tiêu chí so sánh phụ (*tie-breaker*):
+If you need to group strings case-insensitively while still allowing each string **that differs by `equals`** to exist in `TreeSet`, add a secondary comparison criterion (*tie-breaker*):
 
 ~~~java
 Comparator<String> byCaseInsensitiveThenExact =
@@ -215,22 +215,22 @@ TreeSet<String> set = new TreeSet<>(byCaseInsensitiveThenExact);
 set.add("Java");
 set.add("java");
 set.add("JAVA");
-// 3 phần tử theo thứ tự: [JAVA, Java, java]
+// 3 elements in order: [JAVA, Java, java]
 ~~~
 
-Quy tắc hoạt động:
+How it works:
 
-1. So sánh **không phân biệt hoa–thường** trước để nhóm các chuỗi cùng cách viết khi bỏ qua hoa/thường.
-2. Khi kết quả bước một bằng 0, so sánh tiếp theo **thứ tự tự nhiên của String** (có phân biệt hoa–thường).
-3. Cuối cùng, kết quả bằng 0 **chỉ khi hai String có cùng nội dung theo equals**. Vì vậy comparator kết hợp này nhất quán với `String.equals`.
+1. Compare **case-insensitively** first to group strings with the same spelling when ignoring case.
+2. When step one returns 0, compare next by **`String`'s natural order** (case-sensitive).
+3. Ultimately, the result is 0 **only when the two Strings have the same content under equals**. Thus this combined comparator is consistent with `String.equals`.
 
-Nhờ tiêu chí thứ hai, `"JAVA"`, `"Java"`, `"java"` đều được giữ trong `TreeSet` dù nằm gần nhau trong thứ tự sắp xếp. Đây là lựa chọn phù hợp nếu **sắp xếp bỏ qua hoa/thường** là nhu cầu hiển thị nhưng **duy nhất khóa theo equals** vẫn phải được duy trì.
+Thanks to the second criterion, `"JAVA"`, `"Java"`, and `"java"` are all kept in `TreeSet` while sitting adjacent in sorted order. This is the right option when **case-insensitive sorting** is a display requirement while **key uniqueness by equals** must still be maintained.
 
-Nếu cần bảo toàn **thứ tự chèn**, hãy dùng collection có tính chất tương ứng (ví dụ `LinkedHashSet`); không nên chọn `TreeSet` chỉ vì nó có thể nhận comparator.
+If **insertion order** needs to be preserved, use a collection with that property (for example `LinkedHashSet`); do not choose `TreeSet` merely because it accepts a comparator.
 
-## 8. Lựa chọn khác: sắp xếp List không làm biến mất chuỗi
+## 8. Another Option: Sorting a List Without Dropping Strings
 
-Với `List`, có thể sắp xếp không phân biệt hoa/thường mà **giữ tất cả phần tử**, kể cả khi comparator trả 0:
+With `List`, you can sort case-insensitively while **keeping all elements**, even when the comparator returns 0:
 
 ~~~java
 List<String> names = new ArrayList<>(
@@ -239,13 +239,13 @@ names.sort(String.CASE_INSENSITIVE_ORDER);
 // [A, a, b, B]
 ~~~
 
-`List.sort` thực hiện sắp xếp ổn định, nên các phần tử bằng nhau theo comparator giữ thứ tự tương đối; không có bước “deduplicate”. Vì thế khi yêu cầu là **chỉ sắp xếp**, một `List` có thể là cấu trúc phù hợp hơn `TreeSet` hoặc `TreeMap`.
+`List.sort` performs a stable sort, so elements tied under the comparator preserve their relative order; there is no "deduplicate" step. Thus when the requirement is **sorting only**, a `List` can be a better structure than `TreeSet` or `TreeMap`.
 
-Khi cần vừa **bỏ trùng** vừa sắp xếp, hãy định nghĩa hai yêu cầu riêng: bỏ trùng theo `equals` hay theo cách bỏ qua hoa/thường? Sắp xếp bằng comparator nào? Có thể cần một cấu trúc lưu khóa và một danh sách hiển thị riêng.
+When you need both **deduplication** and sorting, define the two requirements separately: deduplicate by `equals` or case-insensitively? Sort using which comparator? You may need one structure for storing keys and a separate list for display.
 
-## 9. Unicode, ngôn ngữ và giới hạn của “không phân biệt hoa–thường”
+## 9. Unicode, Language, and the Limits of "Case-Insensitive"
 
-`String.CASE_INSENSITIVE_ORDER` là quy tắc so sánh của `String` và **không sử dụng locale của người dùng** để xác định thứ tự ngôn ngữ tự nhiên. Ví dụ với chữ `I` ASCII và chữ `ı` (Latin small dotless i, U+0131), Java có thể coi chúng là tương đương khi bỏ qua hoa/thường:
+`String.CASE_INSENSITIVE_ORDER` is `String`'s comparison rule and **does not use the user's locale** to determine natural-language ordering. For instance, with ASCII `I` and `ı` (Latin small dotless i, U+0131), Java can treat them as equivalent when ignoring case:
 
 ~~~java
 boolean same =
@@ -253,44 +253,44 @@ boolean same =
 // same == true
 ~~~
 
-Điều này **không có nghĩa** comparator tạo ra thứ tự từ điển đúng cho mọi ngôn ngữ. Với danh sách tên người, tiêu đề hoặc từ vựng cần sắp xếp theo quy tắc ngôn ngữ cụ thể, hãy xem xét `java.text.Collator` được tạo cho một `Locale` phù hợp, và kiểm thử các quy tắc chữ cái/dấu của ngôn ngữ mục tiêu. `Collator` cũng có thể coi nhiều chuỗi khác nhau theo `equals` là tương đương; khi dùng trong `TreeSet`/`TreeMap` vẫn cần quyết định rõ ý nghĩa của `compare == 0`.
+This **does not mean** the comparator produces correct dictionary order for every language. For lists of personal names, titles, or vocabulary that must be sorted according to specific language rules, consider `java.text.Collator` created for an appropriate `Locale`, and test the letter/accent rules of the target language. `Collator` can also treat multiple strings differing by `equals` as equivalent; when used in `TreeSet`/`TreeMap`, you still must decide clearly what `compare == 0` means.
 
-Không nên mặc định thay comparator bằng cách đưa toàn bộ chuỗi qua `toLowerCase()` hoặc `toUpperCase()` mà không chọn locale và không kiểm tra Unicode. Các phép chuyển đổi chữ hoa/thường có thể phụ thuộc ngôn ngữ, có thể làm thay đổi độ dài chuỗi và không nhất thiết tạo đúng cùng quan hệ tương đương với `equalsIgnoreCase`. Nếu mục tiêu chỉ là thứ tự bỏ qua hoa/thường theo Java, dùng comparator sẵn có sẽ trực tiếp và rõ ràng hơn.
+Do not default to replacing a comparator by passing every string through `toLowerCase()` or `toUpperCase()` without choosing a locale and checking Unicode. Case conversions can be locale-dependent, can alter string length, and do not necessarily produce the exact same equivalence relation as `equalsIgnoreCase`. If the goal is simply Java's built-in case-insensitive order, using the provided comparator is more direct and clearer.
 
-## 10. Những lỗi thường gặp
+## 10. Common Mistakes
 
-1. **Nghĩ `compare(...) == 0` luôn tương đương với `equals`:** sai với `String.CASE_INSENSITIVE_ORDER`. Kiểm thử cả hai phép so sánh.
-2. **Chuyển từ `HashSet` sang `TreeSet` nhưng không xét quy tắc trùng:** có thể làm biến mất các biến thể khác nhau chỉ về chữ hoa/thường.
-3. **Cho rằng `TreeMap.put` với khóa khác kiểu chữ luôn thêm entry:** nó có thể ghi đè giá trị của entry cũ.
-4. **Nhìn thấy `TreeSet.contains("JAVA") == true` rồi nghĩ phần tử `"JAVA"` đã được thêm:** cây tra cứu theo comparator; nó có thể chỉ đang chứa `"Java"`.
-5. **Thêm tie-breaker khi nghiệp vụ thật sự muốn bỏ trùng không phân biệt hoa/thường:** tie-breaker sẽ khiến `"Java"` và `"java"` cùng tồn tại, trái với mong muốn loại trùng.
-6. **Cho rằng comparator không phân biệt hoa/thường đồng nghĩa với thứ tự đúng cho mọi locale:** cần kiểm thử Unicode và cân nhắc `Collator` khi yêu cầu về ngôn ngữ quan trọng.
-7. **Dùng `hashCode` làm tie-breaker cho khóa String:** giá trị băm có thể va chạm, không bảo đảm `compare == 0` đúng khi và chỉ khi `equals`; dùng `String.compareTo`/`naturalOrder` làm tiêu chí phụ.
+1. **Thinking `compare(...) == 0` always equals `equals`:** false for `String.CASE_INSENSITIVE_ORDER`. Test both comparisons.
+2. **Switching from `HashSet` to `TreeSet` without checking duplicate rules:** variants differing only by case may disappear.
+3. **Assuming `TreeMap.put` with a differently cased key always adds an entry:** it can overwrite the old entry's value.
+4. **Seeing `TreeSet.contains("JAVA") == true` and assuming `"JAVA"` was added:** the tree looks up by comparator; it might only be holding `"Java"`.
+5. **Adding a tie-breaker when business logic truly wants case-insensitive deduplication:** a tie-breaker will let `"Java"` and `"java"` coexist, defeating the deduplication goal.
+6. **Assuming a case-insensitive comparator gives valid ordering for every locale:** test Unicode and consider `Collator` when language rules matter.
+7. **Using `hashCode` as a tie-breaker for String keys:** hash values can collide and do not guarantee `compare == 0` iff `equals`; use `String.compareTo`/`naturalOrder` as the secondary criterion.
 
-## 11. Bài tập kiểm tra hiểu biết
+## 11. Exercises to Check Understanding
 
-**Bài 1.** `new TreeSet<>(String.CASE_INSENSITIVE_ORDER)` lần lượt nhận `"A"`, `"a"`, `"B"`. Tập có bao nhiêu phần tử?
+**Exercise 1.** `new TreeSet<>(String.CASE_INSENSITIVE_ORDER)` receives `"A"`, `"a"`, `"B"` in turn. How many elements does the set contain?
 
-Đáp án: **2**. `"A"` và `"a"` tương đương theo comparator nên chỉ có một đại diện; `"B"` khác với chúng.
+Answer: **2**. `"A"` and `"a"` are equivalent under the comparator so only one representative is kept; `"B"` differs from them.
 
-**Bài 2.** `new HashSet<String>()` lần lượt nhận `"A"` và `"a"`. Kích thước là bao nhiêu?
+**Exercise 2.** `new HashSet<String>()` receives `"A"` and `"a"` in turn. What is its size?
 
-Đáp án: **2** vì `String.equals` phân biệt hoa/thường.
+Answer: **2** because `String.equals` is case-sensitive.
 
-**Bài 3.** Tại sao comparator `String.CASE_INSENSITIVE_ORDER.thenComparing(Comparator.naturalOrder())` giữ được cả `"A"` và `"a"` trong `TreeSet`?
+**Exercise 3.** Why does the comparator `String.CASE_INSENSITIVE_ORDER.thenComparing(Comparator.naturalOrder())` keep both `"A"` and `"a"` in `TreeSet`?
 
-Đáp án: khi so sánh không phân biệt hoa/thường hòa nhau, tiêu chí thứ hai so sánh có phân biệt hoa/thường và cho kết quả khác 0. Hai chuỗi không bị coi là cùng một khóa.
+Answer: when the case-insensitive comparison ties, the second criterion compares case-sensitively and returns a non-zero result. The two strings are not treated as the same key.
 
-**Bài 4.** Khi nào nên dùng comparator không phân biệt hoa/thường **không có tie-breaker**?
+**Exercise 4.** When should a case-insensitive comparator **without a tie-breaker** be used?
 
-Đáp án: khi **chính nghiệp vụ quy định** mọi biến thể hoa/thường của một chuỗi là **cùng một khóa**. Khi chỉ cần thứ tự hiển thị, nên sắp xếp `List` hoặc thêm tie-breaker tùy cấu trúc dữ liệu.
+Answer: when **business rules explicitly specify** that all casing variants of a string are **the same key**. When only display ordering is needed, sort a `List` or add a tie-breaker depending on the data structure.
 
-## 12. Ghi nhớ
+## 12. Takeaways
 
-- `String.equals` và `String.hashCode` xác định tương đương **phân biệt hoa/thường** cho `HashSet` và `HashMap`.
-- `String.CASE_INSENSITIVE_ORDER` và `compareToIgnoreCase` tạo quan hệ tương đương **không phân biệt hoa/thường**; `compare == 0` có thể xuất hiện với hai chuỗi `equals == false`.
-- `TreeSet`/`TreeMap` dùng comparator để quyết định khóa trùng, nên lựa chọn comparator ảnh hưởng trực tiếp đến **dữ liệu được giữ**.
-- Nếu cần **sắp xếp** không phân biệt hoa/thường và **giữ mọi String khác nhau theo equals**, dùng comparator chính bỏ qua hoa/thường rồi `thenComparing(Comparator.naturalOrder())`.
-- Nếu cần thứ tự theo ngôn ngữ, đánh giá `Collator` theo locale và tiếp tục xem xét tính nhất quán với `equals`.
+- `String.equals` and `String.hashCode` define **case-sensitive** equivalence for `HashSet` and `HashMap`.
+- `String.CASE_INSENSITIVE_ORDER` and `compareToIgnoreCase` establish a **case-insensitive** equivalence relation; `compare == 0` can occur for two strings where `equals == false`.
+- `TreeSet`/`TreeMap` use the comparator to decide duplicate keys, so comparator choice directly affects **which data is retained**.
+- If you need case-insensitive **sorting** while **keeping all Strings that differ by equals**, use a primary case-insensitive comparator followed by `thenComparing(Comparator.naturalOrder())`.
+- If you need language-specific ordering, evaluate a locale-configured `Collator` and continue checking consistency with `equals`.
 
-Hãy quyết định rõ **khái niệm “hai String là cùng một khóa”** trước khi chọn cấu trúc collection và comparator. Đây là yếu tố quyết định tính đúng đắn của chương trình, không đơn thuần là cách sắp xếp chữ.
+Clearly define **what it means for "two Strings to be the same key"** before picking a collection structure and comparator. This determines program correctness, not merely how words are ordered.

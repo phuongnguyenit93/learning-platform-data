@@ -1,33 +1,33 @@
-# Dùng breakpoint và peek để quan sát với giới hạn tối ưu hóa
+# Using Breakpoints and `peek` for Observation Under Optimization Limits
 
-Trong chương **Gỡ lỗi và kiểm thử pipeline** của **Java Stream API**, một khó khăn rất thường gặp là đoạn code nhìn như sẽ thực thi từng bước từ trên xuống dưới, nhưng thực tế chỉ chạy khi có **terminal operation**, có thể dừng sớm, chạy đồng thời hoặc được JVM/Stream implementation **lược bỏ những bước không ảnh hưởng kết quả**.
+In the **Debugging and Testing Pipelines** chapter of **Java Stream API**, a very common difficulty is that code looks like it executes step by step from top to bottom, yet in practice only runs when a **terminal operation** is invoked, can short-circuit early, run concurrently, or have steps that do not affect the result **elided** by the JVM/Stream implementation.
 
-Điều này đặc biệt dễ gây nhầm lẫn khi lập trình viên đặt breakpoint bên trong lambda của `filter`, `map`, `peek`, hoặc thêm `System.out.println` để "xem từng phần tử". Một breakpoint không được kích hoạt **không tự chứng minh có lỗi**; một dòng log không xuất hiện **không tự chứng minh phần tử chưa tồn tại**. Trước khi sửa thuật toán, cần hiểu hợp đồng của pipeline.
+This is especially confusing when developers set a breakpoint inside a `filter`, `map`, or `peek` lambda, or add `System.out.println` to "inspect each element." A breakpoint that never fires **does not prove a bug**; a log line that never appears **does not prove an element doesn't exist**. Before changing the algorithm, you must understand the pipeline's contract.
 
-Bài này hướng dẫn:
+This lesson teaches how to:
 
-- Dùng **breakpoint** để theo dõi giá trị và ngoại lệ ở đúng giai đoạn.
-- Dùng `Stream.peek` như một phép quan sát **phục vụ chẩn đoán**, không làm thay đổi dữ liệu.
-- Hiểu sự khác nhau giữa **lazy evaluation**, **short-circuit**, **encounter order**, **tối ưu hóa Stream** và tác động của **JIT/debugger**.
-- Nhận diện trường hợp `count()` trên nguồn có kích thước biết trước có thể **không chạy lambda** ở các bước trung gian.
-- Chọn phương pháp đúng hơn khi cần xác minh **kết quả nghiệp vụ**, **số phần tử được xử lý** hay **hiệu năng**.
-- Tránh biến `peek` thành nơi sửa dữ liệu, ghi audit, gọi API hoặc cập nhật trạng thái chia sẻ.
+- Use **breakpoints** to inspect values and exceptions at the right stage.
+- Use `Stream.peek` as an **observation tool for diagnostics**, without modifying data.
+- Understand the differences among **lazy evaluation**, **short-circuiting**, **encounter order**, **Stream optimizations**, and **JIT/debugger effects**.
+- Recognize when `count()` on a sized source can **skip executing lambdas** in intermediate stages.
+- Choose better techniques when verifying **business results**, **processed element counts**, or **performance**.
+- Avoid turning `peek` into a place to mutate data, write audit records, call APIs, or update shared state.
 
-> **Phiên bản ví dụ:** Java 17 trở lên. `Stream.peek` có từ Java 8. Hợp đồng tối ưu hóa cho phép bỏ qua việc duyệt khi tính `count()` được nêu rõ trong tài liệu từ Java 9; hành vi cụ thể có thể khác giữa JDK, loại nguồn và pipeline. Không dùng số dòng log như một bảo đảm kiểm thử.
+> **Example version:** Java 17 or higher. `Stream.peek` has existed since Java 8. The optimization contract allowing traversal elision when computing `count()` has been documented explicitly since Java 9; exact behavior may vary across JDKs, source types, and pipelines. Never use log line counts as a test assertion.
 
-## 1. Bản đồ luồng thực thi: mô tả pipeline không phải thực thi pipeline
+## 1. Execution Flow Map: Describing a Pipeline Is Not Executing It
 
-Một pipeline thường có ba phần:
+A pipeline typically has three parts:
 
 ~~~text
-Nguồn                    Intermediate operations           Terminal
------                    -----------------------           --------
+Source                   Intermediate operations           Terminal
+------                   -----------------------           --------
 orders.stream()   --->   filter -> map -> peek      --->   toList()
                            |        |        |
-                        thường lazy, chưa chạy khi được khai báo
+                        generally lazy; do not run on declaration
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~java
 import java.util.List;
@@ -40,7 +40,7 @@ Stream<Integer> pipeline = numbers.stream()
         .map(n -> n * 10)
         .peek(n -> System.out.println("peek=" + n));
 
-// Chưa có terminal operation: không nên trông đợi log peek.
+// No terminal operation yet: do not expect peek logs.
 System.out.println("Pipeline prepared");
 
 List<Integer> result = pipeline.toList();
@@ -48,21 +48,21 @@ List<Integer> result = pipeline.toList();
 System.out.println(result); // [20, 40]
 ~~~
 
-Tại thời điểm gán `pipeline`, Java chỉ tạo **mô tả các bước xử lý**. Các lambda của `filter`, `map`, `peek` nhìn chung chưa xử lý phần tử.
+At the moment `pipeline` is assigned, Java only builds a **description of the processing steps**. The `filter`, `map`, and `peek` lambdas generally have not processed any elements yet.
 
-Khi gọi `toList()`, terminal operation yêu cầu kết quả và pipeline mới được thực thi. Trên một nguồn `List` có thứ tự, pipeline tuần tự như ví dụ thường quan sát các giá trị `20`, `40` ở `peek`; **nhưng không nên biến các lần gọi peek thành điều kiện của chương trình**.
+When `toList()` is called, the terminal operation demands the result and the pipeline executes. On an ordered `List` source, a sequential pipeline like this typically observes `20` and `40` in `peek`; **still, never turn `peek` invocations into a program requirement**.
 
-Đừng nhầm với `List.stream().forEach(...)`: `forEach` là terminal operation, còn `peek` là intermediate operation.
+Do not confuse this with `List.stream().forEach(...)`: `forEach` is a terminal operation, whereas `peek` is an intermediate operation.
 
-## 2. peek làm gì, và không làm gì?
+## 2. What `peek` Does—and What It Does Not Do
 
-Chữ ký cơ bản:
+Basic signature:
 
 ~~~java
 Stream<T> peek(Consumer<? super T> action)
 ~~~
 
-`peek` trả một Stream chứa **cùng các phần tử** về mặt ngữ nghĩa, đồng thời cung cấp một action để quan sát phần tử khi chúng đi qua điểm đó **nếu bước xử lý được thực thi**.
+`peek` returns a Stream containing **semantically the same elements**, while supplying an action to observe elements as they pass through that point **if the processing step is executed**.
 
 ~~~java
 List<String> values = List.of("a", "bb", "ccc");
@@ -74,22 +74,22 @@ List<Integer> lengths = values.stream()
         .toList();
 ~~~
 
-`peek` không thay thế `map`: giá trị trả về từ action không được dùng vì `Consumer.accept` có kiểu `void`. `peek` cũng không thay thế `filter`: nó không quyết định phần tử nào được giữ.
+`peek` does not replace `map`: any return value cannot be used because `Consumer.accept` returns `void`. `peek` also does not replace `filter`: it never decides which elements are kept.
 
-| Phương thức | Vai trò được đặc tả | Đầu ra |
+| Method | Specified role | Output |
 | --- | --- | --- |
-| `map(f)` | Biến đổi từng phần tử theo hàm `f` | Stream kiểu kết quả mới |
-| `filter(p)` | Chỉ giữ phần tử thỏa predicate | Có thể ít phần tử hơn |
-| `peek(action)` | Cho phép action quan sát phần tử khi được thực thi | Giữ nguyên phần tử trong pipeline |
-| `forEach(action)` | Terminal operation thực hiện action trên kết quả | Không trả Stream |
-| `forEachOrdered(action)` | Terminal operation thực hiện action theo encounter order nếu có | Không trả Stream |
-| `count()` | Terminal operation tính số phần tử kết quả | `long` |
+| `map(f)` | Transforms each element via function `f` | Stream of new result type |
+| `filter(p)` | Keeps only elements matching predicate | Potentially fewer elements |
+| `peek(action)` | Allows action to observe elements when executed | Preserves elements in the pipeline |
+| `forEach(action)` | Terminal operation executing action on results | Returns no Stream |
+| `forEachOrdered(action)` | Terminal operation executing action in encounter order if any | Returns no Stream |
+| `count()` | Terminal operation counting result elements | `long` |
 
-**Cảnh báo quan trọng:** Java API cho phép implementation **bỏ qua việc thực thi một số thao tác hoặc không duyệt các phần tử nguồn** nếu có thể tính đúng kết quả. Vì vậy, **không được dùng `peek` làm cơ chế bắt buộc chạy audit, ghi DB, thay đổi trạng thái, đếm lượt callback hoặc thu thập sự kiện giao dịch**.
+**Important warning:** The Java API permits implementations to **skip executing certain operations or avoid traversing source elements** if the exact result can be computed otherwise. Therefore, **never use `peek` as a mandatory mechanism to run audits, write to a DB, mutate state, count callbacks, or record transaction events**.
 
-## 3. Vì sao breakpoint trong peek có thể không dừng: tối ưu count()
+## 3. Why Breakpoints Inside `peek` Might Never Hit: `count()` Optimization
 
-Đây là tình huống kinh điển:
+Here is a classic scenario:
 
 ~~~java
 import java.util.List;
@@ -101,18 +101,18 @@ long count = List.of("A", "B", "C").stream()
 System.out.println("count=" + count); // 3
 ~~~
 
-Người mới học có thể chờ ba dòng `Seen: ...`. Nhưng trên các phiên bản JDK hiện đại, **không được bảo đảm** có bất kỳ dòng nào xuất hiện.
+Beginners often expect three `Seen: ...` lines. Yet on modern JDKs, **there is no guarantee** that any line will be printed.
 
-Vì sao?
+Why?
 
-1. Nguồn là một `List` biết chính xác số phần tử.
-2. `peek` không thay đổi số phần tử trong Stream.
-3. `count()` chỉ cần trả số lượng phần tử kết quả.
-4. Nếu runtime có thể xác định con số từ nguồn và các thuộc tính pipeline, nó có thể **không duyệt** ba phần tử và **không gọi action của peek**.
+1. The source is a `List` whose exact element count is known.
+2. `peek` does not alter the number of elements in the Stream.
+3. `count()` only needs to return the resulting element count.
+4. If the runtime can determine that number from the source and pipeline properties, it can **skip traversing** the three elements and **skip invoking the `peek` action**.
 
-Tài liệu API của `Stream.count()` nêu rõ khả năng tối ưu này: với nguồn biết kích thước và các intermediate operation không làm thay đổi số lượng, việc lược bỏ thực thi vẫn cho **kết quả count đúng**.
+The `Stream.count()` API documentation explicitly describes this optimization: with a sized source and intermediate operations that do not change cardinality, eliding execution still yields **the exact right `count` result**.
 
-Một ví dụ tương tự:
+A similar example:
 
 ~~~java
 long count = List.of(1, 2, 3).stream()
@@ -125,35 +125,35 @@ long count = List.of(1, 2, 3).stream()
 System.out.println(count); // 3
 ~~~
 
-`map` không làm thay đổi cardinality; các lời gọi mapper có thể bị lược bỏ nếu không cần thiết cho kết quả `count()`.
+`map` does not change cardinality; mapper invocations may be elided if unneeded to determine `count()`.
 
-### Điều phải và không phải kết luận
+### What you may and may not conclude
 
-**Được kết luận:**
+**Valid conclusions:**
 
-- `count()` trả đúng `3` cho ví dụ.
-- Action trong `peek`/`map` không phải điểm chốt để đo số phần tử đã được duyệt.
-- Breakpoint trong những lambda đó **có thể không được kích hoạt**.
+- `count()` correctly returns `3` for this example.
+- Actions in `peek`/`map` are not a reliable counter of traversed elements.
+- Breakpoints inside those lambdas **might never trigger**.
 
-**Không được kết luận:**
+**Invalid conclusions:**
 
-- "IDE hoặc debugger bị lỗi".
-- "JVM bỏ sót dữ liệu".
-- "Cứ gọi terminal operation là mọi lambda được chạy".
-- "Mọi pipeline `count()` đều không duyệt dữ liệu".
+- "The IDE or debugger is broken."
+- "The JVM skipped data."
+- "Calling any terminal operation runs every lambda."
+- "Every `count()` pipeline skips traversing data."
 
-Nếu có `filter` mà việc quyết định giữ/loại phụ thuộc dữ liệu, implementation thông thường phải đánh giá predicate để đếm đúng, trừ khi có đủ thông tin khác để tính kết quả. **Đừng lấy số lần gọi `peek` đi kèm làm điều kiện bắt buộc**, bởi hợp đồng vẫn cho phép tối ưu trong những trường hợp phù hợp.
+If there is a `filter` whose keep/drop decision depends on the data, a standard implementation must evaluate the predicate to count accurately unless other information suffices. **Do not make accompanying `peek` invocation counts a mandatory condition**, since the contract still allows optimizations wherever applicable.
 
-## 4. SIZED, đặc tính nguồn và giới hạn suy luận
+## 4. `SIZED`, Source Characteristics, and Limits of Inference
 
-Các nguồn Stream có thể mang thông tin từ `Spliterator`. Hai đặc tính liên quan:
+Stream sources can carry metadata via `Spliterator`. Two relevant characteristics:
 
-- `SIZED`: biết kích thước chính xác của những phần tử còn lại theo hợp đồng nguồn.
-- `SUBSIZED`: các Spliterator thu được sau khi tách cũng có kích thước chính xác, hữu ích khi chia công việc.
+- `SIZED`: the exact count of remaining elements is known per the source contract.
+- `SUBSIZED`: Spliterators produced by splitting also have exact sizes, useful when dividing work.
 
-Một `ArrayList`, mảng hoặc những nguồn có kích thước cố định thường cho runtime thông tin kích thước rõ ràng; nhiều nguồn I/O hoặc nguồn vô hạn không có cùng loại thông tin.
+An `ArrayList`, array, or fixed-size source typically gives the runtime clear size metadata; many I/O or infinite sources do not.
 
-Nhưng việc biết nguồn có 1.000 phần tử **không đồng nghĩa mọi pipeline cho ra 1.000 phần tử**:
+Still, knowing a source has 1,000 elements **does not mean every pipeline produces 1,000 elements**:
 
 ~~~java
 long count = numbers.stream()
@@ -161,32 +161,32 @@ long count = numbers.stream()
         .count();
 ~~~
 
-`filter` có thể loại phần tử; chỉ biết kích thước nguồn chưa đủ để xác định số phần tử thỏa predicate.
+`filter` can drop elements; knowing the source size alone is not enough to determine how many elements satisfy the predicate.
 
-Bảng định hướng:
+Reference table:
 
-| Bước trung gian | Có thể làm thay đổi số lượng kết quả? | Hệ quả đối với suy luận count |
+| Intermediate step | Can it change output cardinality? | Consequence for `count` inference |
 | --- | --- | --- |
-| `map` | Không, một phần tử tạo một phần tử | Thường không cần chạy mapper chỉ để biết số lượng |
-| `peek` | Không | Action có thể không chạy khi count tối ưu |
-| `filter` | Có | Thường phải kiểm tra predicate |
-| `flatMap` | Có, 0..N phần tử từ một input | Không suy ra chỉ từ kích thước nguồn |
-| `mapMulti` | Có, 0..N phần tử từ một input | Tương tự, cần biết số đầu ra thực |
-| `distinct` | Có thể loại trùng | Cần xét dữ liệu/đặc tính nguồn |
-| `limit(n)` | Có thể rút ngắn | Có thể tính số kết quả bằng metadata trong một số trường hợp |
-| `skip(n)` | Có thể bỏ phần tử đầu | Một số nguồn có thể suy ra kích thước kết quả |
+| `map` | No, one element produces one element | Often no need to run mapper just to know count |
+| `peek` | No | Action may be skipped when `count` optimizes |
+| `filter` | Yes | Typically must evaluate predicate |
+| `flatMap` | Yes, 0..N elements per input | Cannot infer from source size alone |
+| `mapMulti` | Yes, 0..N elements per input | Similarly, needs actual emitted counts |
+| `distinct` | May remove duplicates | Must consider data/source characteristics |
+| `limit(n)` | May truncate | Can compute result count from metadata in some cases |
+| `skip(n)` | May drop leading elements | Some sources can deduce remaining size |
 
-**Bảng chỉ là gợi ý về khả năng tối ưu**, không phải danh sách cứng phương thức nào "luôn gọi" hoặc "không bao giờ gọi" lambda. JDK và nguồn cụ thể có thể thay đổi.
+**This table only illustrates optimization possibilities**, not a rigid list of methods that "always call" or "never call" lambdas. Specific JDK versions and sources can vary.
 
-### Không sửa characteristic của Spliterator để ép debugger
+### Do not fake Spliterator characteristics to force the debugger
 
-Tự viết Spliterator rồi cố tình khai báo sai `SIZED`/`SUBSIZED` để khiến `count` có hành vi mong muốn là **vi phạm hợp đồng nguồn**. Các characteristic ảnh hưởng tới cách runtime tính toán, phân chia và tối ưu; khai báo sai có thể phá tính đúng.
+Writing a custom Spliterator and deliberately misreporting `SIZED`/`SUBSIZED` to force `count` into a desired behavior **violates the source contract**. Characteristics govern how the runtime computes, splits, and optimizes; misreporting them can break correctness.
 
-Khi cần quan sát dữ liệu thật, chọn một **đường chạy phù hợp với mục tiêu debug**, không phá metadata của nguồn.
+When you need to observe real data, pick an **execution path suited for debugging**, never corrupt source metadata.
 
-## 5. Đặt peek trước và sau filter/map để khoanh vùng
+## 5. Placing `peek` Before and After `filter`/`map` to Narrow Down Issues
 
-Một cách hữu ích để chẩn đoán pipeline là quan sát dữ liệu tại những **ranh giới được đặt tên rõ**:
+A useful diagnostic technique is observing data at **clearly named boundaries**:
 
 ~~~java
 List<Integer> result = List.of(1, 2, 3, 4, 5, 6).stream()
@@ -200,40 +200,40 @@ List<Integer> result = List.of(1, 2, 3, 4, 5, 6).stream()
 System.out.println(result); // [20, 40, 60]
 ~~~
 
-Với nguồn có thứ tự, pipeline **tuần tự**, terminal cần toàn bộ giá trị, ví dụ trên thường cho thấy đường đi của từng phần tử qua các giai đoạn.
+With an ordered source, a **sequential** pipeline, and a terminal demanding all values, this example typically shows each element's path through the stages.
 
-Cách đọc:
+How to read it:
 
-- `SOURCE`: giá trị đến trước bộ lọc.
-- `AFTER_FILTER`: những giá trị bộ lọc giữ lại.
-- `AFTER_MAP`: giá trị sau biến đổi.
-- `result`: đầu ra thực tế cần kiểm chứng.
+- `SOURCE`: values arriving before the filter.
+- `AFTER_FILTER`: values retained by the filter.
+- `AFTER_MAP`: values after transformation.
+- `result`: actual output to verify.
 
-**Điểm quan trọng:** `peek` được đặt **sau** `filter` chỉ quan sát những phần tử mà filter cho qua ở bước đó. Nếu cần tìm vì sao một phần tử bị loại, breakpoint hoặc log phải nằm **trong predicate** hay **trước filter**.
+**Key point:** a `peek` placed **after** `filter` only sees elements that passed the filter at that step. To investigate why an element was dropped, the breakpoint or log must be **inside the predicate** or **before `filter`**.
 
-### Nhãn quan sát giúp tránh nhầm lẫn
+### Observation labels prevent confusion
 
-Đừng chỉ in `System.out.println(n)` nhiều lần, vì không biết số đó đến từ giai đoạn nào. Khi cần chẩn đoán:
+Don't just print `System.out.println(n)` in multiple places, or you won't know which stage produced the number. When diagnosing:
 
 ~~~java
 .peek(n -> System.out.printf(
         "[stage=after-map] n=%d%n", n))
 ~~~
 
-Nếu có id nghiệp vụ, in id thay vì toàn bộ object:
+If there is a business ID, print the ID instead of the entire object:
 
 ~~~java
 .peek(order -> System.out.printf(
         "[stage=filtered] orderId=%s%n", order.id()))
 ~~~
 
-Không in token, email, bí mật hoặc nội dung nhạy cảm nếu log có thể được lưu/chuyển tiếp. Debug log là một đầu ra có rủi ro dữ liệu, không phải vùng an toàn mặc định.
+Do not print tokens, emails, secrets, or sensitive content when logs may be stored or forwarded. Debug logs are an output channel with data-exposure risk, not a default safe zone.
 
-## 6. Breakpoint trong lambda: nên đặt ở đâu?
+## 6. Breakpoints in Lambdas: Where Should You Put Them?
 
-Một debugger Java trong IDE thường cho phép đặt breakpoint ngay ở dòng lambda. Nhưng một lambda dạng một dòng có thể khó theo dõi khi có nhiều thao tác và cùng dòng source.
+Java IDE debuggers usually let you place a breakpoint right on a lambda line. However, single-line chained lambdas can be hard to step through when multiple operations share or sit near the same lines.
 
-Ví dụ:
+Example:
 
 ~~~java
 List<Integer> result = values.stream()
@@ -242,34 +242,34 @@ List<Integer> result = values.stream()
         .toList();
 ~~~
 
-Để gỡ lỗi predicate hoặc mapper, tách lambda thành block:
+To debug a predicate or mapper, expand the lambda into a block:
 
 ~~~java
 List<Integer> result = values.stream()
         .filter(n -> {
-            boolean accepted = n > 0; // đặt breakpoint tại đây
+            boolean accepted = n > 0; // set breakpoint here
             return accepted;
         })
         .map(n -> {
-            int mapped = n * 2;       // đặt breakpoint tại đây
+            int mapped = n * 2;       // set breakpoint here
             return mapped;
         })
         .toList();
 ~~~
 
-Hoặc tách thành **phương thức được đặt tên**:
+Or extract **named methods**:
 
 ~~~java
 static boolean isPositive(int n) {
-    return n > 0;                    // breakpoint riêng
+    return n > 0;                    // dedicated breakpoint
 }
 
 static int twice(int n) {
-    return Math.multiplyExact(n, 2); // breakpoint riêng
+    return Math.multiplyExact(n, 2); // dedicated breakpoint
 }
 ~~~
 
-Dùng:
+Usage:
 
 ~~~java
 List<Integer> result = values.stream()
@@ -278,35 +278,35 @@ List<Integer> result = values.stream()
         .toList();
 ~~~
 
-Ưu điểm:
+Advantages:
 
-- Breakpoint có vị trí rõ hơn.
-- Có thể đặt **conditional breakpoint** như `n == 42`.
-- Dễ xem biến local, tham số và call stack.
-- Tách logic để viết unit test không cần chạy toàn bộ Stream.
-- Phân biệt lỗi xử lý dữ liệu với việc quan sát pipeline.
+- Breakpoints have unambiguous locations.
+- You can set **conditional breakpoints** such as `n == 42`.
+- Easy to inspect local variables, parameters, and the call stack.
+- Separates logic so you can unit-test it without running the full Stream.
+- Distinguishes data-processing bugs from pipeline observation.
 
-### Quy trình debug một phần tử cụ thể
+### Workflow for debugging a specific element
 
-1. Tạo **dữ liệu hữu hạn và có thể tái lập**.
-2. Nếu cần thứ tự dự đoán, bắt đầu bằng `stream()` tuần tự.
-3. Đặt breakpoint ở predicate/mapper nghi ngờ, không đặt tràn lan.
-4. Dùng điều kiện phù hợp như `order.id().equals("O-42")`.
-5. Gọi terminal operation thực sự cần kết quả, ví dụ `toList()`.
-6. Kiểm tra **giá trị vào**, **kết quả predicate/mapper**, **đầu ra cuối cùng**.
-7. Khi không hit breakpoint, kiểm tra **lazy, short-circuit, metadata nguồn và tối ưu hóa** trước khi nghi ngờ IDE.
+1. Create a **finite, reproducible dataset**.
+2. If predictable ordering helps, start with a sequential `stream()`.
+3. Place a breakpoint in the suspected predicate/mapper rather than everywhere.
+4. Use an appropriate condition like `order.id().equals("O-42")`.
+5. Call a terminal operation that genuinely needs the result, such as `toList()`.
+6. Inspect **input value**, **predicate/mapper result**, and **final output**.
+7. If the breakpoint never hits, check **laziness, short-circuiting, source metadata, and optimizations** before blaming the IDE.
 
-**Đừng sử dụng số lần breakpoint dừng làm bộ đếm nghiệp vụ.** Bước debugger có thể làm chậm đáng kể runtime, và số lần lambda chạy không phải lúc nào cũng được Stream API bảo đảm.
+**Never use breakpoint hit counts as a business counter.** Stepping in a debugger can drastically slow down the runtime, and lambda execution counts are not always guaranteed by the Stream API.
 
-## 7. Chương trình Java 17 hoàn chỉnh: quan sát và kiểm tra kết quả
+## 7. Complete Java 17 Program: Observing and Verifying Results
 
-Chương trình sau tập trung vào một tình huống thực tế: từ đơn hàng, chỉ giữ những đơn đã thanh toán và có số tiền dương, rồi tạo bản ghi tổng hợp. Nó có ba chế độ quan sát:
+The following program focuses on a realistic scenario: from orders, keep only those that are paid with a positive amount, then build summary records. It demonstrates three observation modes:
 
-- Pipeline `toList` để kiểm tra kết quả.
-- `count()` trên nguồn biết kích thước để minh họa **peek có thể không chạy**.
-- Một terminal operation `forEachOrdered` khi muốn thực hiện action trên **mỗi kết quả của Stream có thứ tự**.
+- A `toList` pipeline to verify the result.
+- `count()` on a sized source illustrating **that `peek` might not execute**.
+- A `forEachOrdered` terminal operation when you want to run an action on **each result of an ordered Stream**.
 
-Lưu thành `PipelineDebugDemo.java`:
+Save as `PipelineDebugDemo.java`:
 
 ~~~java
 import java.util.List;
@@ -323,12 +323,12 @@ public class PipelineDebugDemo {
     record Summary(String orderId, long amountCents) {}
 
     static boolean eligible(Order order) {
-        // Breakpoint: xem order.id(), paid, amountCents.
+        // Breakpoint: inspect order.id(), paid, amountCents.
         return order.paid() && order.amountCents() > 0L;
     }
 
     static Summary summarize(Order order) {
-        // Breakpoint: xem giá trị sau lọc, trước khi tạo Summary.
+        // Breakpoint: inspect post-filter value before creating Summary.
         return new Summary(order.id(), order.amountCents());
     }
 
@@ -351,13 +351,13 @@ public class PipelineDebugDemo {
                         "[count-peek] " + n))
                 .count();
 
-        // Luôn là 3; các log count-peek không được bảo đảm.
+        // Always 3; count-peek logs are not guaranteed.
         System.out.println("count=" + count);
     }
 
     static void visitOrderedResults(List<Order> orders) {
-        // Terminal action được dùng để xử lý từng kết quả,
-        // không dùng peek làm cơ chế bắt buộc.
+        // Terminal action used to process each result,
+        // rather than relying on peek as a mandatory mechanism.
         orders.stream()
                 .filter(PipelineDebugDemo::eligible)
                 .map(PipelineDebugDemo::summarize)
@@ -393,14 +393,14 @@ public class PipelineDebugDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 PipelineDebugDemo.java
 java PipelineDebugDemo
 ~~~
 
-Phần kết quả được **bảo đảm theo hợp đồng** của pipeline trên nguồn `List` có thứ tự:
+Output **guaranteed by the pipeline contract** on an ordered `List` source:
 
 ~~~text
 result=[Summary[orderId=O-01, amountCents=10000], Summary[orderId=O-04, amountCents=7100]]
@@ -409,36 +409,36 @@ count=3
 [terminal] O-04
 ~~~
 
-Trong một lần chạy, các dòng `[input]`, `[eligible]` và `[summary]` có thể xuất hiện xen giữa theo cách pipeline xử lý. **Không coi thứ tự dòng peek hoặc số lượng dòng peek là kết quả kiểm thử cần khẳng định**; chỉ dùng chúng làm dấu vết hỗ trợ chẩn đoán. Ở `inspectCountElision`, JDK có thể không in bất kỳ dòng `[count-peek]` nào.
+In a given run, `[input]`, `[eligible]`, and `[summary]` lines may interleave according to how the pipeline executes. **Do not treat `peek` line order or `peek` line count as test results to assert**; use them solely as diagnostic traces. Inside `inspectCountElision`, the JDK may print zero `[count-peek]` lines.
 
-Sự khác biệt quan trọng: chương trình kiểm tra nội dung `summaries` bằng `equals`. Đây mới là **bằng chứng tính đúng** của yêu cầu nghiệp vụ; những dòng peek chỉ giúp người học nhìn vào quá trình thực thi khi runtime có thực hiện action đó.
+The crucial distinction: the program checks `summaries` content with `equals`. That is **the proof of correctness** for the business requirement; `peek` lines only help you observe execution when the runtime actually executes those actions.
 
-## 8. Vì sao không nên bắt debugger "bắt buộc hit" mọi phần tử?
+## 8. Why You Shouldn't Force the Debugger to "Always Hit" Every Element
 
-Ba điều khác nhau cần phân biệt:
+Distinguish three different things:
 
-1. **Logic của pipeline:** những phần tử nào phải có trong kết quả.
-2. **Lịch thực thi:** thread nào chạy lambda, khi nào gọi, có chia nguồn không.
-3. **Quan sát của debugger:** breakpoint có được phát hiện/hit theo code đang được thực thi hay không.
+1. **Pipeline logic:** which elements belong in the result.
+2. **Execution schedule:** which thread runs a lambda, when it is called, and whether the source is split.
+3. **Debugger observation:** whether a breakpoint is detected/hit for the executed code.
 
-Stream API đặc tả chủ yếu **kết quả và ràng buộc hành vi**, không bảo đảm gọi mọi lambda theo đúng thứ tự viết code.
+The Stream API primarily specifies **results and behavioral constraints**, not a promise to invoke every lambda in source-code order.
 
-Ngoài tối ưu của Stream implementation, JIT có thể inline hoặc thay đổi cách mã được thực thi; debugger và JVM thường phối hợp để hỗ trợ breakpoint nhưng việc debug có thể yêu cầu deoptimization và làm thay đổi timing. **Đừng diễn giải khác biệt tốc độ giữa Debug và Run là kết quả benchmark**.
+Beyond Stream implementation optimizations, the JIT can inline or transform how code executes; the debugger and JVM cooperate to support breakpoints, yet debugging can force deoptimization and change timing. **Never interpret speed differences between Debug and Run modes as benchmark results**.
 
-Một workflow hiệu quả:
+An effective workflow:
 
-- Dùng breakpoint khi cần kiểm tra **một giá trị, một nhánh điều kiện hoặc một exception**.
-- Dùng test với input cố định khi cần kiểm tra **đầu ra**.
-- Dùng profiler/JFR khi cần kiểm tra **nút thắt thực thi**.
-- Dùng JMH hoặc load test khi cần đo **hiệu năng**.
+- Use breakpoints to inspect **a single value, a conditional branch, or an exception**.
+- Use tests with fixed inputs to verify **outputs**.
+- Use a profiler/JFR to locate **execution bottlenecks**.
+- Use JMH or load tests to measure **performance**.
 
-Không buộc người đọc tin rằng debugger luôn hiển thị một call stack theo đúng bố cục pipeline trong mã nguồn; một số bước có thể được inline, kết hợp hoặc không thực thi.
+Do not assume the debugger will always show a call stack matching the exact layout of your pipeline in source code; steps may be inlined, fused, or skipped.
 
-## 9. Short-circuit: chỉ một phần đầu vào có thể được quan sát
+## 9. Short-Circuiting: Only Part of the Input May Be Observed
 
-Các terminal operation như `findFirst`, `findAny`, `anyMatch`, `allMatch`, `noneMatch` và intermediate operation `limit` có khả năng **dừng sớm** khi đã có đủ thông tin.
+Terminal operations such as `findFirst`, `findAny`, `anyMatch`, `allMatch`, `noneMatch`, and the intermediate operation `limit` can **stop early** once enough information is available.
 
-Ví dụ:
+Example:
 
 ~~~java
 List<Integer> numbers = List.of(1, 2, 3, 4, 5);
@@ -452,9 +452,9 @@ int firstEven = numbers.stream()
 System.out.println(firstEven); // 2
 ~~~
 
-Trên pipeline **tuần tự** có encounter order và input ở ví dụ, runtime thường chỉ cần xem `1` và `2`. Nhưng không nên viết test yêu cầu `peek` chính xác hai lần. Với pipeline song song, việc đánh giá và phối hợp kết quả có thể khiến nhiều phần tử được kiểm tra trước khi có kết quả.
+On a **sequential** pipeline with encounter order and this input, the runtime typically only needs to inspect `1` and `2`. Still, do not write tests requiring `peek` to fire exactly twice. In a parallel pipeline, speculative evaluation and result coordination may check more elements before yielding the answer.
 
-Tương tự:
+Similarly:
 
 ~~~java
 List<Integer> limited = numbers.stream()
@@ -465,21 +465,21 @@ List<Integer> limited = numbers.stream()
 System.out.println(limited); // [1, 2]
 ~~~
 
-`limited` có đúng hai phần tử; **không được suy ra** rằng mọi action chẩn đoán trước `limit` đều chạy đúng hai lần trong mọi cấu hình nguồn, JDK và mức song song.
+`limited` has exactly two elements; **do not conclude** that every diagnostic action before `limit` runs exactly twice across all sources, JDKs, and parallelism levels.
 
-### findFirst khác findAny
+### `findFirst` vs. `findAny`
 
-- `findFirst` bảo toàn ý nghĩa phần tử đầu theo encounter order nếu nguồn có thứ tự.
-- `findAny` cho phép chọn **một phần tử bất kỳ** phù hợp, đặc biệt hữu ích khi không cần duy trì thứ tự trong xử lý song song.
-- Nếu nguồn unordered, không thể dùng log peek để suy ra một thứ tự nghiệp vụ không hề được đặc tả.
+- `findFirst` preserves the first element in encounter order if the source is ordered.
+- `findAny` may return **any matching element**, especially useful when ordering is unneeded during parallel execution.
+- If the source is unordered, `peek` logs cannot be used to infer an unspecified business ordering.
 
-**Điểm cần kiểm thử là tính đúng của kết quả được API cho phép**, không phải những phần tử tình cờ đã được action log chạm tới.
+**What to test is the correctness of results permitted by the API**, not which elements a log action happened to touch.
 
-## 10. peek trước/ sau sorted, distinct và thao tác có trạng thái
+## 10. `peek` Before/After `sorted`, `distinct`, and Stateful Operations
 
-Những thao tác có trạng thái (*stateful intermediate operations*) như `distinct`, `sorted`, `limit`, `skip` và các phép lấy tiền tố có thể ảnh hưởng thứ tự đánh giá hoặc số phần tử quan sát được.
+Stateful intermediate operations such as `distinct`, `sorted`, `limit`, `skip`, and prefix operations can affect evaluation order or which elements are observed.
 
-### distinct
+### `distinct`
 
 ~~~java
 List<Integer> input = List.of(3, 1, 3, 2, 1);
@@ -493,9 +493,9 @@ List<Integer> unique = input.stream()
 System.out.println(unique); // [3, 1, 2]
 ~~~
 
-Điều được đặc tả: `distinct` giữ giá trị duy nhất; với ordered Stream, tính ổn định giữ lần xuất hiện đầu tiên của từng giá trị. Nếu quan sát được log, `peek` sau `distinct` cho thấy các phần tử **đã qua bước loại trùng**. Không dùng số dòng log để chứng minh có bao nhiêu phép so sánh/hash thực sự đã xảy ra.
+What is specified: `distinct` keeps unique values; on an ordered Stream, stability preserves the first occurrence of each value. When logs appear, `peek` after `distinct` shows elements **that passed deduplication**. Do not use log line counts to prove how many equality or hash comparisons actually occurred.
 
-### sorted
+### `sorted`
 
 ~~~java
 List<Integer> sorted = input.stream()
@@ -507,15 +507,15 @@ List<Integer> sorted = input.stream()
 System.out.println(sorted); // [1, 1, 2, 3, 3]
 ~~~
 
-`sorted` có thể cần thu thập dữ liệu trước khi phát kết quả đã sắp xếp. Vì vậy dấu vết trước/sau `sorted` có thể trông khác pipeline chỉ gồm các bước không trạng thái. **Không suy ra cách cấp phát buffer hay thuật toán sắp xếp nội bộ chỉ từ thứ tự log**.
+`sorted` may need to collect elements before emitting sorted results. Thus traces before/after `sorted` can look different from pipelines with only stateless stages. **Do not deduce buffer allocation or internal sorting algorithms solely from log order**.
 
-### Giới hạn của việc chèn peek để quan sát
+### Limits of inserting `peek` to observe
 
-Khi thêm `peek`, bạn đã **thay đổi pipeline** (thêm action chẩn đoán); việc in console còn tạo I/O và có thể tác động scheduling/hiệu năng. Đây là một công cụ khoanh vùng lỗi, không phải phép đo đặc tính chuẩn của pipeline sản xuất.
+Adding `peek` **modifies the pipeline** (adding a diagnostic action); console printing also performs I/O and can affect scheduling and performance. It is a fault-isolation tool, not a clean measurement of a production pipeline's characteristics.
 
-## 11. Parallel stream: encounter order không phải thứ tự chạy lambda
+## 11. Parallel Streams: Encounter Order Is Not Lambda Execution Order
 
-Ví dụ:
+Example:
 
 ~~~java
 List<Integer> numbers = List.of(1, 2, 3, 4, 5, 6);
@@ -531,20 +531,20 @@ System.out.println(result);
 // [10, 20, 30, 40, 50, 60]
 ~~~
 
-Với nguồn `List` ordered, `toList()` duy trì encounter order của kết quả. Nhưng những dòng `peek` có thể xuất hiện **không theo thứ tự 1,2,3,4,5,6** và có thể chạy trên nhiều thread.
+With an ordered `List` source, `toList()` preserves the encounter order of results. Yet `peek` lines can appear **out of 1,2,3,4,5,6 order** and run across multiple threads.
 
-Phân biệt:
+Distinguish:
 
-| Khái niệm | Ý nghĩa |
+| Concept | Meaning |
 | --- | --- |
-| **Encounter order** | Thứ tự logic được nguồn/pipeline công bố |
-| **Execution order** | Lịch thực thi mapper, filter, peek do runtime quyết định |
-| **Output order** | Thứ tự phần tử đầu ra do terminal operation cam kết |
-| **Print order** | Thứ tự các dòng log đến console khi nhiều thread in |
+| **Encounter order** | Logical order published by the source/pipeline |
+| **Execution order** | Schedule of mapper, filter, and peek chosen by the runtime |
+| **Output order** | Result element order guaranteed by the terminal operation |
+| **Print order** | Order of console log lines when multiple threads print |
 
-Không đồng nhất bốn khái niệm này.
+Do not conflate these four concepts.
 
-### forEach và forEachOrdered
+### `forEach` and `forEachOrdered`
 
 ~~~java
 numbers.parallelStream()
@@ -554,26 +554,26 @@ numbers.parallelStream()
         .forEachOrdered(n -> System.out.println("ordered: " + n));
 ~~~
 
-- `forEach` không bảo đảm hành động thực hiện theo encounter order.
-- `forEachOrdered` thực hiện action trên các phần tử kết quả theo encounter order của nguồn có thứ tự.
-- Nhưng **`forEachOrdered` không ép mọi mapper/peek phía trước chạy tuần tự hoặc đúng thứ tự**; nó điều phối việc thực hiện terminal action.
+- `forEach` does not guarantee actions execute in encounter order.
+- `forEachOrdered` executes the action on result elements in encounter order for ordered sources.
+- However, **`forEachOrdered` does not force preceding mappers or `peek` calls to run sequentially or in order**; it coordinates execution of the terminal action.
 
-Nếu đầu ra nghiệp vụ yêu cầu kết quả có thứ tự, kiểm tra `toList`/`forEachOrdered` và nguồn ordered, không kiểm tra chuỗi log bên trong `peek`.
+If business output requires ordered results, verify `toList`/`forEachOrdered` and an ordered source—never assert on log strings inside `peek`.
 
-### Breakpoint trong parallel pipeline
+### Breakpoints in parallel pipelines
 
-Khi nhiều worker cùng hit một breakpoint:
+When multiple workers hit the same breakpoint simultaneously:
 
-- IDE có thể tạm dừng một thread hoặc tất cả thread tùy chế độ suspend.
-- Việc tạm dừng thay đổi lịch thực thi và có thể che/bộc lộ race condition.
-- Giá trị trong biến local của một task không đại diện cho toàn bộ pipeline.
-- Shared mutable state có thể thay đổi trước khi bạn xem nó.
+- The IDE may pause one thread or all threads depending on suspend mode.
+- Pausing alters execution scheduling and can mask or expose race conditions.
+- Local variables in one task do not represent the entire pipeline.
+- Shared mutable state may change before you inspect it.
 
-Để tìm lỗi logic đơn giản, bắt đầu **tuần tự**. Để tìm lỗi concurrency, dùng test phù hợp cho trạng thái đồng thời, thu thập thread dump/profiler và tránh suy luận kết quả từ một lần debug.
+To debug simple logic bugs, start **sequentially**. To debug concurrency bugs, write targeted tests for concurrent state, collect thread dumps/profiler traces, and avoid generalizing from a single debug session.
 
-## 12. Không biến peek thành bộ đếm hoặc audit có side effect
+## 12. Never Turn `peek` into a Counter or Side-Effecting Audit
 
-Một anti-pattern:
+An anti-pattern:
 
 ~~~java
 int[] countSeen = {0};
@@ -583,12 +583,12 @@ long count = numbers.stream()
         .count();
 
 System.out.println(countSeen[0]);
-// Không được khẳng định luôn bằng numbers.size().
+// Do not assert this always equals numbers.size().
 ~~~
 
-Vấn đề chính: `peek` không cam kết action được thực hiện cho mọi phần tử. Với parallel Stream, cập nhật `int[]` dùng chung còn **không an toàn đồng thời**.
+Main issue: `peek` does not promise the action executes for every element. With a parallel Stream, updating a shared `int[]` is also **not thread-safe**.
 
-Ngay cả khi chuyển sang `AtomicInteger`:
+Even switching to `AtomicInteger`:
 
 ~~~java
 java.util.concurrent.atomic.AtomicInteger seen =
@@ -599,11 +599,11 @@ long count = numbers.stream()
         .count();
 ~~~
 
-Bạn có thể tránh được race của phép tăng, nhưng **vẫn không sửa được ngữ nghĩa**: implementation có thể không gọi `peek` nếu không cần để tính kết quả.
+You eliminate the increment race, yet **you still haven't fixed the semantics**: the implementation can still skip `peek` if unneeded to compute the result.
 
-### Làm gì khi cần đếm thật?
+### What to do when you truly need counts?
 
-Nếu cần số phần tử kết quả, dùng `count()`:
+To count result elements, use `count()`:
 
 ~~~java
 long matched = numbers.stream()
@@ -611,19 +611,19 @@ long matched = numbers.stream()
         .count();
 ~~~
 
-Nếu cần số phần tử từng nhóm, dùng `groupingBy(..., counting())`. Nếu cần tính nhiều chỉ số cùng lúc, dùng collector thích hợp. Nếu cần audit bắt buộc, thiết kế **giao thức xử lý sự kiện riêng** có hợp đồng về giao dịch, retry và lỗi; không phụ thuộc `peek` của Stream.
+To count elements per group, use `groupingBy(..., counting())`. To compute multiple metrics at once, use an appropriate collector. If mandatory auditing is required, design a **dedicated event-processing protocol** with contracts for transactions, retries, and errors; never depend on Stream `peek`.
 
-**Không sử dụng `peek` để:**
+**Never use `peek` to:**
 
-- Ghi bản ghi tài chính bắt buộc.
-- Xóa hoặc sửa dữ liệu nguồn.
-- Gọi HTTP endpoint cần đúng một lần cho mỗi phần tử.
-- Cập nhật Map dùng chung từ parallel Stream.
-- Thay thế kiểm thử nội dung kết quả.
+- Write mandatory financial records.
+- Delete or mutate source data.
+- Call an HTTP endpoint required to fire once per element.
+- Update a shared Map from a parallel Stream.
+- Replace assertions on result contents.
 
-## 13. Dùng debugger để điều tra ngoại lệ trong mapper/filter
+## 13. Using the Debugger to Investigate Exceptions in Mappers/Filters
 
-Trong dữ liệu thực tế, nhiều lỗi xuất hiện ở một phần tử bất thường:
+In real data, many failures arise from a single malformed element:
 
 ~~~java
 List<String> raw = List.of("10", "20", "oops", "30");
@@ -631,16 +631,16 @@ List<String> raw = List.of("10", "20", "oops", "30");
 List<Integer> values = raw.stream()
         .map(Integer::parseInt)
         .toList();
-// NumberFormatException khi gặp "oops".
+// NumberFormatException when encountering "oops".
 ~~~
 
-Có hai cách debug chính.
+There are two main ways to debug this.
 
 ### 13.1. Exception breakpoint
 
-Thiết lập breakpoint cho `NumberFormatException` trong debugger. Khi exception được ném, xem call stack và đối số đang parse. Cách này hữu ích khi không biết trước giá trị nào làm hỏng pipeline.
+Configure a breakpoint for `NumberFormatException` in the debugger. When the exception is thrown, inspect the call stack and the argument being parsed. This helps when you don't know upfront which value breaks the pipeline.
 
-### 13.2. Phương thức có tên và điều kiện
+### 13.2. Named method and condition
 
 ~~~java
 static int parseStrict(String raw) {
@@ -653,7 +653,7 @@ static int parseStrict(String raw) {
 }
 ~~~
 
-Dùng:
+Usage:
 
 ~~~java
 List<Integer> values = raw.stream()
@@ -661,17 +661,17 @@ List<Integer> values = raw.stream()
         .toList();
 ~~~
 
-Đây là **mẫu phương thức bổ sung** cho lớp `PipelineDebugDemo` ở phần 7; để chạy độc lập cần đặt phương thức trong đúng lớp và bảo đảm biến `raw` nằm trong scope.
+This is an **additional helper method sample** for the `PipelineDebugDemo` class in Section 7; to run standalone, place the method inside that class and ensure `raw` is in scope.
 
-### Đừng nuốt lỗi bằng peek
+### Never swallow errors inside `peek`
 
-Không nên đặt `try/catch` trong `peek` để "sửa" dữ liệu rồi tiếp tục pipeline không có chính sách rõ. Nếu parser cho phép dữ liệu lỗi, hãy có một bước parse tạo `ParseResult` biểu diễn thành công/thất bại, rồi tính số bản ghi lỗi và báo cáo rõ.
+Do not put `try/catch` inside `peek` to "fix" data and continue the pipeline without an explicit policy. If the parser allows invalid rows, use a parse step producing a `ParseResult` representing success/failure, then count invalid records and report them explicitly.
 
-Nếu pipeline xử lý một nguồn I/O, lỗi đọc tệp không được chuyển thành "0 bản ghi" chỉ để terminal operation trả kết quả thành công. Kỹ thuật debug không được thay đổi hợp đồng phát hiện lỗi.
+If the pipeline reads an I/O source, file-read errors must never be converted into "0 records" just so a terminal operation returns cleanly. Debugging techniques must never weaken error-detection contracts.
 
-## 14. Dữ liệu null và khó khăn khi đặt breakpoint sau filter
+## 14. Null Data and Breakpoint Pitfalls After `filter`
 
-Giả sử danh sách có thể chứa `null`:
+Suppose a list can contain `null`:
 
 ~~~java
 List<String> raw = new java.util.ArrayList<>();
@@ -687,17 +687,17 @@ List<String> cleaned = raw.stream()
 System.out.println(cleaned); // [A, B]
 ~~~
 
-Nếu đặt breakpoint **trong `String::trim`** hoặc `peek` sau filter, sẽ không thấy phần tử `null` đã bị loại. Đó là hành vi đúng, không phải dữ liệu biến mất bí ẩn.
+If you set a breakpoint **inside `String::trim`** or in a `peek` after the filter, you will not see the `null` element that was dropped. That is expected behavior, not data mysteriously vanishing.
 
-Khi mục tiêu là tìm vì sao null có mặt trong đầu vào, cần xem dữ liệu **trước filter** hoặc kiểm tra nguồn dữ liệu ở điểm sinh record. Nếu `null` là dữ liệu không hợp lệ theo nghiệp vụ, đừng âm thầm loại chỉ để hết `NullPointerException`; hãy xác thực và báo lỗi theo yêu cầu.
+When your goal is finding why `null` appeared in the input, inspect data **before `filter`** or check the upstream data producer. If `null` is invalid business data, do not silently filter it out just to avoid `NullPointerException`; validate and report errors as required.
 
-**Không dùng `List.of("A", null, "B")` làm fixture** vì `List.of` không chấp nhận phần tử `null`; trong ví dụ này ta dùng `ArrayList` có thể chứa null.
+**Do not use `List.of("A", null, "B")` as a fixture** because `List.of` rejects `null` elements; this example uses `ArrayList`, which allows `null`.
 
-## 15. Tài nguyên I/O và peek: short-circuit không tự đóng nguồn
+## 15. I/O Resources and `peek`: Short-Circuiting Does Not Auto-Close the Source
 
-Một nguồn như `Files.lines` sở hữu file handle. Việc thêm `peek` để in log hoặc `limit` để dừng sớm **không thay thế `close()`**.
+A source like `Files.lines` owns a file handle. Adding `peek` to log or `limit` to stop early **does not replace `close()`**.
 
-Ví dụ đúng:
+Correct example:
 
 ~~~java
 import java.io.IOException;
@@ -721,14 +721,14 @@ static List<String> firstWarnings(Path path) throws IOException {
 }
 ~~~
 
-`try-with-resources` đóng Stream khi rời khối, kể cả khi `limit(3)` đã có đủ kết quả hoặc terminal operation ném exception.
+`try-with-resources` closes the Stream upon exiting the block, even if `limit(3)` already gathered enough elements or a terminal operation throws an exception.
 
-Hai điểm cần phân biệt:
+Two points to distinguish:
 
-- `peek` chỉ là phép quan sát và **có thể bị bỏ qua** trong một số đường thực thi.
-- `Files.lines` có thể ném lỗi I/O trong **lúc duyệt lazy**, không chỉ khi mở tệp. Không được nuốt những lỗi đó để trả báo cáo hoàn chỉnh giả.
+- `peek` is solely observational and **may be skipped** on some execution paths.
+- `Files.lines` can throw I/O errors **lazily during traversal**, not only when opening the file. Never swallow those errors to return a fake complete report.
 
-Nếu cần kiểm tra chương trình **thực sự đóng nguồn**, có thể thêm một `onClose` trong test mô phỏng để xem callback được chạy khi đóng:
+If you need to verify that your code **actually closes the stream**, you can attach an `onClose` callback in a mock test to confirm the hook runs on close:
 
 ~~~java
 java.util.concurrent.atomic.AtomicBoolean closed =
@@ -744,11 +744,11 @@ if (!closed.get()) {
 }
 ~~~
 
-Đây là test về cơ chế close của Stream giả lập, **không thay thế** test tích hợp theo dõi tài nguyên tệp thực tế.
+This tests the Stream close mechanism on a synthetic stream; it **does not replace** integration tests tracking real file handles.
 
-## 16. Khi nào dùng forEachOrdered thay vì peek?
+## 16. When to Use `forEachOrdered` Instead of `peek`?
 
-Nếu mục tiêu là thực hiện một action **cho từng phần tử kết quả** khi pipeline hoàn tất bình thường, có thể dùng terminal operation.
+If the goal is executing an action **for each result element** when the pipeline finishes normally, use a terminal operation.
 
 ~~~java
 List<String> names = List.of("Lan", "An", "Minh");
@@ -758,23 +758,23 @@ names.stream()
         .forEachOrdered(System.out::println);
 ~~~
 
-Với nguồn ordered, hành động terminal xuất ra các giá trị theo encounter order. Nhưng trước khi dùng nó cho một hệ thống audit, nhớ rằng:
+On an ordered source, the terminal action outputs values in encounter order. Still, before using it for an audit system, remember:
 
-1. **I/O/DB có thể thất bại** giữa chừng.
-2. Một transaction hoặc message broker có thể yêu cầu retry/idempotency và xử lý kết quả một phần.
-3. Chạy lại pipeline có thể lặp action.
-4. Một exception có thể làm pipeline chưa xử lý hết mọi phần tử.
-5. `forEachOrdered` không tự tạo giao thức *exactly-once*.
+1. **I/O/DB can fail** partway through.
+2. A transaction or message broker may need retries/idempotency and partial-failure handling.
+3. Re-running the pipeline repeats the action.
+4. An exception can halt the pipeline before processing every element.
+5. `forEachOrdered` does not automatically provide *exactly-once* semantics.
 
-Vì vậy `forEachOrdered` phù hợp khi action trên mỗi phần tử là **mục tiêu của terminal operation**, nhưng một quy trình giao dịch đúng cần thêm thiết kế ở tầng ứng dụng.
+Thus `forEachOrdered` fits when per-element action is **the terminal goal itself**, while reliable transactional workflows require application-level design.
 
-Nếu mục tiêu chỉ là debug, `peek` thường tiện khi muốn **giữ pipeline còn một terminal kết quả**; đừng dùng terminal `forEach` giữa pipeline rồi cố tiếp tục Stream cũ.
+If your goal is purely debugging, `peek` is often handy when you want **to keep a single terminal result at the end**; never call a terminal `forEach` mid-pipeline and then try to keep using the old Stream.
 
-## 17. Test kết quả: bằng chứng mạnh hơn log và breakpoint
+## 17. Testing Results: Stronger Evidence Than Logs and Breakpoints
 
-Một test không nên kết luận thành công chỉ vì "đã thấy ba dòng log". Thay vào đó, so kết quả với **oracle** dễ hiểu.
+A test must never declare victory merely because "three log lines appeared." Instead, compare the output against a clear **oracle**.
 
-Ví dụ:
+Example:
 
 ~~~java
 List<Integer> input = List.of(-1, 0, 1, 2, 3, 4);
@@ -792,9 +792,9 @@ if (!expected.equals(actual)) {
 }
 ~~~
 
-Đây là cách kiểm tra tính đúng của `filter` và `map` về **giá trị và thứ tự**. Không cần biết `peek` có chạy bao nhiêu lần.
+This verifies `filter` and `map` correctness on both **values and order**, regardless of how many times `peek` ran.
 
-Có thể dùng một vòng lặp độc lập làm oracle:
+You can use an independent loop as an oracle:
 
 ~~~java
 List<Integer> expected = new java.util.ArrayList<>();
@@ -806,27 +806,27 @@ for (int value : input) {
 }
 ~~~
 
-Khi cần kiểm tra tính chất chung, tạo nhiều input hữu hạn bằng seed cố định; ghi seed và input nếu test thất bại. Đừng tạo ngẫu nhiên ngay trong lambda của một pipeline song song rồi mong debugger sẽ tái hiện cùng thứ tự thực thi.
+When testing general properties, generate finite inputs using a fixed seed; record the seed and failing input on failure. Never generate random values inside a parallel pipeline's lambda expecting a debugger to reproduce the exact same execution order.
 
-### Kiểm tra bằng bất biến
+### Testing with invariants
 
-Với `filter(p)` trên List có thứ tự:
+For `filter(p)` on an ordered List:
 
-- Mọi kết quả đều thỏa `p`.
-- Kết quả giữ thứ tự tương đối của những phần tử được chọn.
-- Kết quả không chứa phần tử không xuất hiện ở nguồn, trừ khi pipeline có phép biến đổi tạo giá trị mới.
-- Số phần tử kết quả không vượt quá số phần tử đầu vào.
+- Every result element satisfies `p`.
+- The result preserves the relative order of selected elements.
+- No element appears in the result that wasn't in the source, unless the pipeline transforms values.
+- Result count never exceeds input count.
 
-Các bất biến này mạnh hơn việc đếm những lần action log trong `peek` được gọi.
+These invariants are far stronger than counting how many times a log action in `peek` executed.
 
-## 18. Debugger không phải profiler và log không phải benchmark
+## 18. A Debugger Is Not a Profiler, and Logs Are Not Benchmarks
 
-Đặt breakpoint làm chương trình dừng, có thể khiến JIT deoptimize hoặc đổi lịch thread. In console trong `peek` thường là I/O chậm và có thể gây tranh chấp khi nhiều thread cùng ghi.
+Setting breakpoints halts the program, can trigger JIT deoptimization, and alters thread scheduling. Console printing inside `peek` is slow I/O and can introduce contention when multiple threads write simultaneously.
 
-Vì vậy, những cách dưới đây **không dùng để kết luận hiệu năng**:
+Consequently, **never use approaches like this to draw performance conclusions**:
 
 ~~~java
-// Không nên benchmark bằng output của peek:
+// Do not benchmark with peek output:
 long start = System.nanoTime();
 
 numbers.stream()
@@ -837,40 +837,40 @@ numbers.stream()
 long elapsed = System.nanoTime() - start;
 ~~~
 
-Phép đo này trộn chi phí tính toán với chi phí in console và trạng thái JIT/GC. Một lần chạy còn dễ bị nhiễu bởi warm-up, scheduler và allocation.
+This measurement mixes computation cost with console I/O cost and JIT/GC state. A single run is also noisy due to warm-up, OS scheduling, and allocation.
 
-Chọn công cụ theo câu hỏi:
+Pick the right tool for the question:
 
-| Câu hỏi | Công cụ phù hợp |
+| Question | Right tool |
 | --- | --- |
-| Tại sao bản ghi O-42 bị loại? | Conditional breakpoint ở predicate; fixture cụ thể |
-| Trường nào có giá trị null? | Breakpoint trước filter hoặc ở parser |
-| Kết quả của nhóm có đúng không? | Unit test/oracle, assertion trên Map/List |
-| Action peek có bị lược bỏ vì count không? | Đọc hợp đồng Stream, ví dụ kiểm chứng nhỏ |
-| Thứ tự song song có thay đổi giá trị không? | Test tuần tự/song song theo contract |
-| CPU đang nóng ở đâu? | CPU profiler hoặc Java Flight Recorder (JFR) |
-| Allocation/GC có làm chậm không? | JFR, GC log, benchmark có profiler |
-| Thay map bằng mapToInt có lợi không? | JMH với cùng workload và terminal operation |
+| Why was record O-42 dropped? | Conditional breakpoint in predicate; minimal fixture |
+| Which field is null? | Breakpoint before filter or in parser |
+| Are group totals accurate? | Unit tests/oracle, assertions on Map/List |
+| Was `peek` elided because of `count`? | Read Stream contract, tiny verification snippet |
+| Does parallel ordering alter values? | Sequential vs. parallel tests per contract |
+| Where is CPU hot? | CPU profiler or Java Flight Recorder (JFR) |
+| Are allocations/GC slowing things down? | JFR, GC logs, profiler-guided benchmarks |
+| Does replacing `map` with `mapToInt` help? | JMH with identical workload and terminal operation |
 
-**Điều cần nhớ:** Logging có thể hỗ trợ nhìn thấy dữ liệu, nhưng kết quả log hiếm khi là phép đo đủ chuẩn cho latency/throughput hoặc số lần gọi lambda.
+**Keep in mind:** Logging helps inspect data, yet log output is rarely a valid measurement of latency, throughput, or lambda invocation counts.
 
-## 19. Logging có kiểm soát khi không thể dừng bằng debugger
+## 19. Controlled Logging When You Cannot Pause With a Debugger
 
-Trong môi trường production, không phải lúc nào cũng được phép tạm dừng tiến trình bằng breakpoint. Có thể cần log có cấu trúc nhưng phải giới hạn:
+In production environments, pausing a process with breakpoints is rarely acceptable. Structured, tightly bounded logging may be needed instead:
 
-- Chỉ bật diagnostic cho **một request/batch** hoặc một tỷ lệ mẫu nhỏ.
-- Gắn `correlationId` hoặc id nghiệp vụ thay vì in toàn bộ đối tượng.
-- Giới hạn số lượng bản ghi log, độ dài trường và thời gian bật.
-- Tránh thông tin nhạy cảm, mật khẩu, token hoặc dữ liệu cá nhân.
-- Nêu rõ log là **best-effort observation**, không phải audit đầy đủ.
-- Tắt diagnostic sau điều tra và đo lại hiệu năng không có logging.
+- Enable diagnostics only for **a single request/batch** or a tiny sample rate.
+- Attach a `correlationId` or business ID instead of dumping full objects.
+- Cap the number of log records, field lengths, and enablement duration.
+- Exclude sensitive information, passwords, tokens, or personal data.
+- Clearly treat logs as **best-effort observation**, not a complete audit.
+- Disable diagnostics after investigation and re-measure performance without logging.
 
-Một predicate chẩn đoán có thể kiểm tra một ID trước khi trả giá trị:
+A diagnostic predicate might check one specific ID before returning:
 
 ~~~java
 static boolean eligible(Order order) {
     if ("O-42".equals(order.id())) {
-        // Đặt conditional breakpoint tại đây thay vì log mọi order.
+        // Set conditional breakpoint here instead of logging every order.
         System.out.println(
                 "Investigating amount=" + order.amountCents());
     }
@@ -878,72 +878,72 @@ static boolean eligible(Order order) {
 }
 ~~~
 
-Đây là **mã tạm phục vụ debug**. Không để lại `println` trong hot path của production nếu không có chính sách observability phù hợp.
+This is **temporary debugging code**. Do not leave `println` on a production hot path without proper observability controls.
 
-Khi cần bảo đảm đầu vào được ghi nhận, hãy thực hiện ở **ranh giới nhận dữ liệu của hệ thống** với cơ chế log/audit có hợp đồng riêng, không dùng `peek` trong pipeline vốn có thể bỏ qua callback.
+When input recording must be guaranteed, perform it at the **system ingestion boundary** using a logging/audit mechanism with its own contract—never inside Stream `peek`, which may skip callbacks.
 
-## 20. Một số tình huống dễ diễn giải sai
+## 20. Commonly Misinterpreted Situations
 
-| Hiện tượng | Khả năng nguyên nhân | Cách kiểm tra đúng |
+| Observation | Likely cause | Right way to verify |
 | --- | --- | --- |
-| `peek` không in gì khi gọi `count()` | Count suy ra từ kích thước nguồn, không cần duyệt | Kiểm tra kết quả count, đặc tính nguồn và API contract |
-| Breakpoint trong `map` không hit | Pipeline chưa có terminal hoặc mapper bị tối ưu bỏ | Kiểm tra đường chạy, terminal, và nếu cần dùng `toList` để xem dữ liệu |
-| `peek` sau `filter` không thấy bản ghi X | X bị filter loại trước đó | Breakpoint trong predicate hoặc quan sát trước filter |
-| `peek` chỉ thấy vài phần tử | Short-circuit `findFirst`/`limit`/`anyMatch` | Kiểm tra loại terminal, không yêu cầu log đủ nguồn |
-| `peek` in lộn xộn | Pipeline song song, print order khác encounter order | Test output với `toList`/`forEachOrdered` |
-| `sorted` làm thứ tự log lạ | Có state và có thể buffer dữ liệu | Xem thứ tự đầu ra, không suy internals từ log |
-| Debug mode chạy chậm | Breakpoint, deoptimization, console I/O | Đo bằng profiler/benchmark không dừng debugger |
-| `AtomicInteger` trong peek vẫn bằng 0 | Action có thể không thực thi | Đếm kết quả bằng terminal, không dựa side effect |
-| Có log nhưng dữ liệu cuối sai | Log không phải oracle, có thể chỉ quan sát một giai đoạn | So với fixture/loop tham chiếu |
-| Nguồn file đã dừng sớm mà còn mở | `limit/findFirst` không tự đóng I/O | Bao `Files.lines` trong `try-with-resources` |
-| Parallel có lỗi thất thường | Shared mutable state hoặc giả định thứ tự | Giảm thành test xác định, kiểm tra races và collector |
-| Exception xuất hiện ở terminal | Pipeline lazy; lỗi mapper xảy ra khi tiêu thụ | Exception breakpoint và call stack |
+| `peek` prints nothing on `count()` | Count inferred from source size without traversal | Check count result, source characteristics, and API contract |
+| Breakpoint in `map` never hits | Missing terminal op, or mapper elided | Verify call path, terminal op, or temporarily use `toList` |
+| `peek` after `filter` misses record X | X was dropped earlier by filter | Breakpoint in predicate or observe before filter |
+| `peek` sees only a few elements | Short-circuit (`findFirst`/`limit`/`anyMatch`) | Check terminal type; do not expect full source logs |
+| `peek` prints out of order | Parallel pipeline; print order differs from encounter order | Test output with `toList`/`forEachOrdered` |
+| `sorted` causes strange log order | Stateful stage may buffer elements | Inspect output order; do not infer internals from logs |
+| Debug mode runs slowly | Breakpoints, deoptimization, console I/O | Measure with profiler/benchmark without debugger pauses |
+| `AtomicInteger` in `peek` stays 0 | Action may not execute | Count results via terminal operation, not side effects |
+| Logs look fine but final output is wrong | Logs aren't an oracle; may observe only one stage | Compare against fixture or reference loop |
+| File source stays open after early stop | `limit/findFirst` does not auto-close I/O | Wrap `Files.lines` in `try-with-resources` |
+| Parallel fails intermittently | Shared mutable state or ordering assumptions | Reduce to deterministic test, check races and collectors |
+| Exception surfaces at terminal call | Lazy pipeline; mapper errors fire on consumption | Exception breakpoint and call stack |
 
-Đừng sửa một hiện tượng "không có log" bằng cách thêm side effect để ép lambda chạy. Điều đó có thể biến một pipeline đúng thành mã phụ thuộc vào hành vi không được đặc tả.
+Never "fix" a missing log by adding a side effect to force a lambda to run. That can turn a valid pipeline into code relying on unspecified behavior.
 
-## 21. Quy trình gỡ lỗi an toàn trong một dự án thật
+## 21. Safe Debugging Workflow in a Real Project
 
-Một quy trình thực dụng:
+A pragmatic workflow:
 
-### Bước 1 — Viết kết quả kỳ vọng
+### Step 1 — Write down the expected output
 
-Ví dụ: "Từ bốn đơn trong fixture, chỉ O-01 và O-04 có `paid=true` và `amountCents>0`."
+For example: "Out of four orders in the fixture, only O-01 and O-04 have `paid=true` and `amountCents>0`."
 
-### Bước 2 — Tạo fixture nhỏ, ổn định
+### Step 2 — Build a small, stable fixture
 
-Dùng `List.of(...)` với vài bản ghi để loại nhiễu từ DB/network. Nếu lỗi xuất hiện trên dữ liệu ngẫu nhiên, ghi lại seed và input.
+Use `List.of(...)` with a few records to remove DB/network noise. If a bug appears on random data, capture the seed and failing input.
 
-### Bước 3 — Kiểm tra có terminal operation
+### Step 3 — Confirm a terminal operation exists
 
-Một Stream mới khai báo sẽ không tự duyệt. Chọn `toList`, `collect`, `sum` hoặc terminal khác theo đúng mục tiêu.
+A freshly declared Stream will not traverse itself. Choose `toList`, `collect`, `sum`, or another terminal operation matching your goal.
 
-### Bước 4 — Debug tuần tự trước
+### Step 4 — Debug sequentially first
 
-Nếu logic không phụ thuộc song song, dùng `stream()` để theo dõi một phần tử qua các bước dễ hơn. Nếu lỗi chỉ có trong parallel, giữ một bài test parallel riêng.
+If logic does not inherently depend on parallelism, use `stream()` to trace one element step by step. If the bug occurs only in parallel, keep a dedicated parallel test.
 
-### Bước 5 — Đặt một breakpoint có điều kiện
+### Step 5 — Set a conditional breakpoint
 
-Đặt trong phương thức predicate/mapper có tên, dựa vào id bản ghi cụ thể; tránh đặt tại mọi phần tử và làm chậm toàn bộ ứng dụng.
+Place it inside a named predicate/mapper keyed on a specific record ID; avoid breaking on every element and stalling the entire application.
 
-### Bước 6 — Dùng peek có nhãn nếu cần
+### Step 6 — Use labeled `peek` if needed
 
-Quan sát trước/sau bước nghi ngờ, nhưng không dùng số lần log làm kết quả bảo đảm.
+Observe before and after the suspected step, without treating log counts as guaranteed assertions.
 
-### Bước 7 — Kiểm tra kết quả với oracle
+### Step 7 — Verify the result against an oracle
 
-So List/Map/Optional theo hợp đồng, không so log/Thread name.
+Compare Lists/Maps/Optionals per contract, not logs or thread names.
 
-### Bước 8 — Bỏ diagnostic và chạy regression test
+### Step 8 — Remove diagnostics and run regression tests
 
-Loại bỏ hoặc tắt `peek` chẩn đoán; đảm bảo sửa lỗi không phụ thuộc side effect. Kiểm tra nguồn rỗng, dữ liệu lỗi, giá trị biên và nguồn có thứ tự/không thứ tự.
+Delete or disable diagnostic `peek` calls; confirm the fix does not rely on side effects. Test empty sources, invalid inputs, boundary values, and ordered vs. unordered sources.
 
-### Bước 9 — Đo hiệu năng nếu cần
+### Step 9 — Measure performance if needed
 
-Dùng profiler/JFR/JMH hoặc load test trên workload đại diện, không đo thời gian trong lúc breakpoint/console logging đang bật.
+Use a profiler/JFR/JMH or load tests on representative workloads, never timing while breakpoints or console logging are active.
 
-## 22. Bài tập thực hành
+## 22. Practice Exercises
 
-### Bài 1 — Vì sao peek không in đủ ba dòng?
+### Exercise 1 — Why didn't `peek` print all three lines?
 
 ~~~java
 long n = List.of(10, 20, 30).stream()
@@ -951,22 +951,22 @@ long n = List.of(10, 20, 30).stream()
         .count();
 ~~~
 
-**Câu hỏi:** `n` là bao nhiêu? Có bắt buộc console phải in ba số không?
+**Question:** What is `n`? Is the console required to print three numbers?
 
-**Đáp án:** `n == 3`. Không có bảo đảm phải in ba dòng: implementation có thể dùng kích thước đã biết của nguồn để trả `count` mà không gọi action `peek`.
+**Answer:** `n == 3`. There is no guarantee three lines are printed: the implementation can use the source's known size to return `count` without invoking the `peek` action.
 
-### Bài 2 — Breakpoint không hit
+### Exercise 2 — Breakpoint never hits
 
 ~~~java
 Stream<String> pipeline = List.of("a", "b").stream()
         .map(String::toUpperCase);
 ~~~
 
-**Câu hỏi:** Vì sao breakpoint trong mapper không dừng?
+**Question:** Why doesn't a breakpoint inside the mapper pause?
 
-**Đáp án:** Chưa có terminal operation. Pipeline chưa yêu cầu xử lý phần tử. Thêm một terminal cần kết quả như `toList()` để kiểm tra đầu ra; cũng không nên dựa vào mọi mapper sẽ được gọi nếu dùng terminal có thể tối ưu dựa trên metadata.
+**Answer:** There is no terminal operation yet. The pipeline has not requested element processing. Add a result-consuming terminal like `toList()` to inspect output; also avoid assuming every mapper runs if using a terminal that can optimize from metadata.
 
-### Bài 3 — Peek trước và sau filter
+### Exercise 3 — `peek` before and after `filter`
 
 ~~~java
 List<Integer> data = List.of(1, 2, 3, 4);
@@ -978,11 +978,11 @@ List<Integer> out = data.stream()
         .toList();
 ~~~
 
-**Câu hỏi:** Kết quả `out` là gì? Ở bước B, có quan sát số lẻ không?
+**Question:** What is `out`? At step B, are odd numbers observed?
 
-**Đáp án:** `out = [2,4]`. Bước `peek` sau filter chỉ nằm trên luồng các phần tử được giữ lại; nó không thấy các số lẻ bị loại trước đó. Không viết test assert số lần log chính xác.
+**Answer:** `out = [2,4]`. The `peek` after `filter` sits only on the stream of retained elements; it never sees odd numbers dropped earlier. Do not write tests asserting exact log counts.
 
-### Bài 4 — findFirst và số lần gọi
+### Exercise 4 — `findFirst` and invocation count
 
 ~~~java
 int first = List.of(5, 7, 8, 10).stream()
@@ -992,15 +992,15 @@ int first = List.of(5, 7, 8, 10).stream()
         .orElseThrow();
 ~~~
 
-**Đáp án:** `first == 8`. Trên một ordered, sequential pipeline, thường chỉ cần quan sát đến 8; song song và tối ưu có thể thay đổi số callback được quan sát. Chỉ assert kết quả 8.
+**Answer:** `first == 8`. On an ordered, sequential pipeline, typically only elements up to 8 need to be observed; parallelism and optimizations can change observed callback counts. Assert only the result `8`.
 
-### Bài 5 — count và filter khác map thế nào?
+### Exercise 5 — How does `count` with `filter` differ from `map`?
 
-**Câu hỏi:** Vì sao `map(...).count()` có thể không chạy mapper, còn `filter(...).count()` thường phải đọc giá trị đầu vào?
+**Question:** Why can `map(...).count()` skip running the mapper, whereas `filter(...).count()` usually must inspect input values?
 
-**Đáp án:** `map` không đổi số phần tử, còn `filter` có thể bỏ phần tử. Nếu nguồn có kích thước biết trước và các bước không đổi cardinality, `count` có thể tính từ metadata. Với `filter` phụ thuộc nội dung, thường phải đánh giá predicate để biết số phần tử còn lại.
+**Answer:** `map` preserves element count, whereas `filter` can drop elements. When the source has a known size and stages do not change cardinality, `count` can be computed from metadata. With a data-dependent `filter`, the predicate usually must be evaluated to know how many elements remain.
 
-### Bài 6 — Thứ tự log trong parallel
+### Exercise 6 — Log order in parallel
 
 ~~~java
 List<Integer> out = List.of(1, 2, 3, 4)
@@ -1009,21 +1009,21 @@ List<Integer> out = List.of(1, 2, 3, 4)
         .toList();
 ~~~
 
-**Đáp án:** `out` giữ thứ tự `[1,2,3,4]` của nguồn `List`; thứ tự in trong `peek` không được bảo đảm là 1,2,3,4. Không dùng log làm oracle cho encounter order.
+**Answer:** `out` preserves the `List` source order `[1,2,3,4]`; `peek` print order is not guaranteed to be 1,2,3,4. Never use logs as an oracle for encounter order.
 
-### Bài 7 — Đếm bằng AtomicInteger trong peek?
+### Exercise 7 — Counting with `AtomicInteger` inside `peek`?
 
-**Câu hỏi:** Có thể dùng `AtomicInteger` tăng trong `peek` để audit đúng một lần cho từng phần tử không?
+**Question:** Can you increment an `AtomicInteger` inside `peek` to audit each element exactly once?
 
-**Đáp án:** Không. Atomicity chỉ xử lý vấn đề cập nhật đồng thời; nó không buộc Stream thực hiện action `peek`. Audit bắt buộc cần thiết kế quy trình riêng và quản lý lỗi, retry, idempotency nếu cần.
+**Answer:** No. Atomicity only handles concurrent updates; it does not force the Stream to execute the `peek` action. Mandatory auditing requires a dedicated workflow managing errors, retries, and idempotency if needed.
 
-### Bài 8 — sorted và breakpoint
+### Exercise 8 — `sorted` and breakpoints
 
-**Câu hỏi:** Khi đặt breakpoint trong `peek` trước và sau `sorted`, vì sao thứ tự các lần dừng có thể không tương ứng với vòng lặp đọc từng phần tử rồi in ngay?
+**Question:** When placing breakpoints in `peek` before and after `sorted`, why might pause order not match a simple read-one-element-then-print-immediately loop?
 
-**Đáp án:** `sorted` có trạng thái, có thể thu thập dữ liệu trước khi phát phần tử đã sắp xếp. Breakpoint chỉ cho thấy những invocation được runtime thực hiện ở thời điểm đó, không cho phép suy chính xác nội bộ buffering.
+**Answer:** `sorted` is stateful and may collect data before emitting sorted elements. Breakpoints only show invocations executed by the runtime at that instant, not an exact guarantee of internal buffering behavior.
 
-### Bài 9 — Debug pipeline đọc file
+### Exercise 9 — Debugging a file-reading pipeline
 
 ~~~java
 List<String> first = Files.lines(path)
@@ -1032,25 +1032,25 @@ List<String> first = Files.lines(path)
         .toList();
 ~~~
 
-**Đáp án:** Nguồn I/O cần được đóng. Đặt tạo và tiêu thụ `Files.lines` trong `try-with-resources`, kể cả khi `limit` dừng sớm. Đừng dựa vào `peek` để xác nhận tài nguyên đã được đóng.
+**Answer:** The I/O source must be closed. Place creation and consumption of `Files.lines` inside `try-with-resources`, even when `limit` stops early. Do not rely on `peek` to verify resource closure.
 
-### Bài 10 — Mục đích nào thuộc test, mục đích nào thuộc debugger?
+### Exercise 10 — What belongs in tests vs. the debugger?
 
-**Câu hỏi:** Cần chứng minh mọi đơn thanh toán có tiền dương được giữ trong kết quả; nên đếm log `peek` hay so List với oracle?
+**Question:** You need to prove every paid order with a positive amount appears in the result; should you count `peek` logs or compare the `List` against an oracle?
 
-**Đáp án:** So List/Map với fixture hoặc oracle độc lập. Breakpoint và peek giúp tìm lỗi ở đâu, nhưng không phải cơ chế kiểm chứng đầy đủ của kết quả.
+**Answer:** Compare the `List`/`Map` against a fixture or independent oracle. Breakpoints and `peek` help locate where a bug is, not prove full correctness of the result.
 
-## 23. Ghi nhớ
+## 23. Key Takeaways
 
-- **Stream lazy:** khai báo pipeline không nhất thiết chạy lambda; cần terminal operation.
-- **`peek` là công cụ quan sát, không phải cam kết callback.** Implementation có thể bỏ qua các stage nếu kết quả vẫn đúng theo hợp đồng.
-- **`count()` trên nguồn `SIZED`** có thể tính trực tiếp mà không duyệt phần tử, vì vậy breakpoint trong `peek`/`map` có thể không hit.
-- **Short-circuit** như `findFirst`, `anyMatch`, `limit` có thể dừng trước khi duyệt hết nguồn; không suy số phần tử đã xử lý từ log.
-- **Encounter order khác execution order.** `toList` hoặc `forEachOrdered` có thể giữ thứ tự kết quả dù log ở `peek` trong parallel Stream xuất hiện không có thứ tự.
-- **Breakpoint hiệu quả nhất** là breakpoint có điều kiện trong predicate/mapper được đặt tên, trên dữ liệu nhỏ và có thể tái lập.
-- **Tác dụng phụ trong peek là rủi ro:** không dùng để audit, cập nhật Map chung, phát sự kiện bắt buộc hoặc đo số lần callback.
-- **Log/debugger không phải benchmark.** Dùng JFR, profiler, JMH hoặc đo end-to-end để kết luận hiệu năng.
-- **Nguồn I/O cần được đóng**, dù pipeline dừng sớm: `Files.lines` phải nằm trong `try-with-resources`.
-- **Chứng minh tính đúng bằng dữ liệu và kết quả**: assertion, oracle, bất biến và regression test; xem `peek` như dấu vết chẩn đoán tạm thời.
+- **Streams are lazy:** declaring a pipeline does not run lambdas; a terminal operation is required.
+- **`peek` is an observation tool, not a callback guarantee.** Implementations may elide stages when the final result still matches the contract.
+- **`count()` on a `SIZED` source** can be computed directly without traversing elements, so breakpoints in `peek`/`map` may never hit.
+- **Short-circuiting operations** like `findFirst`, `anyMatch`, and `limit` can stop before traversing the whole source; never infer processed element counts from logs.
+- **Encounter order differs from execution order.** `toList` or `forEachOrdered` can preserve result order even when `peek` logs in a parallel Stream appear unordered.
+- **The most effective breakpoints** are conditional breakpoints inside named predicates/mappers on small, reproducible datasets.
+- **Side effects in `peek` are risky:** never use them for auditing, updating shared Maps, emitting required events, or counting callback invocations.
+- **Logs and debuggers are not benchmarks.** Use JFR, a profiler, JMH, or end-to-end measurements for performance conclusions.
+- **I/O sources must be closed**, even when short-circuiting: wrap `Files.lines` in `try-with-resources`.
+- **Prove correctness with data and outputs:** assertions, oracles, invariants, and regression tests; treat `peek` purely as a temporary diagnostic trace.
 
-**Ý chính:** Trong Java Stream API, **breakpoint và `peek` chỉ cho thấy những lời gọi mà runtime thực sự thực hiện**, chứ không phải một hợp đồng rằng mọi phần tử phải đi qua tất cả dòng code. Khi hiểu rõ lazy evaluation, tối ưu của `count`, short-circuit và thực thi song song, bạn sẽ biết **lúc nào dấu vết log hữu ích, lúc nào nó có thể vắng mặt hợp lệ, và lúc nào cần chuyển sang kiểm thử kết quả hoặc profiler** để đưa ra kết luận chính xác.
+**Main takeaway:** In the Java Stream API, **breakpoints and `peek` reveal only the invocations the runtime actually performs**, not a contract that every element must pass through every line of code. Once you understand lazy evaluation, `count` optimizations, short-circuiting, and parallel execution, you know **when log traces help, when their absence is completely valid, and when to switch to result tests or a profiler** to reach accurate conclusions.

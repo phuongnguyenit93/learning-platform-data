@@ -1,25 +1,25 @@
-# parseUnsignedInt, parseUnsignedLong và toUnsignedString trong Java
+# `parseUnsignedInt`, `parseUnsignedLong`, and `toUnsignedString` in Java
 
-## 1. Mục tiêu và ngữ cảnh
+## 1. Purpose and Context
 
-Java có kiểu nguyên thủy `byte`, `short`, `int`, `long` mang dấu; không có kiểu nguyên thủy riêng cho số nguyên không dấu 32 bit hoặc 64 bit. Tuy nhiên, 32 hoặc 64 bit của một giá trị vẫn có thể được **diễn giải là không dấu** thông qua các API của `Integer` và `Long`.
+Java has signed primitive types `byte`, `short`, `int`, and `long`; there is no separate primitive type for 32-bit or 64-bit unsigned integers. Nevertheless, the 32 or 64 bits of a value can still be **interpreted as unsigned** through APIs on `Integer` and `Long`.
 
-Bài học này giải thích ba thao tác thường đi cùng nhau:
+This lesson explains three operations that commonly go together:
 
-- `Integer.parseUnsignedInt(...)`: đọc chuỗi biểu diễn số không dấu 32 bit và trả về **mẫu bit** dưới dạng `int`.
-- `Long.parseUnsignedLong(...)`: đọc chuỗi biểu diễn số không dấu 64 bit và trả về **mẫu bit** dưới dạng `long`.
-- `Integer.toUnsignedString(...)` và `Long.toUnsignedString(...)`: diễn giải mẫu bit theo nghĩa không dấu rồi xuất chuỗi.
+- `Integer.parseUnsignedInt(...)`: parses a string representing a 32-bit unsigned integer and returns the **bit pattern** as an `int`.
+- `Long.parseUnsignedLong(...)`: parses a string representing a 64-bit unsigned integer and returns the **bit pattern** as a `long`.
+- `Integer.toUnsignedString(...)` and `Long.toUnsignedString(...)`: interpret the bit pattern as unsigned and format it as a string.
 
-Điểm quan trọng nhất: **giá trị âm khi in theo kiểu có dấu không có nghĩa việc phân tích unsigned bị sai**. Chính cùng một mẫu bit có hai cách diễn giải.
+Most important takeaway: **a negative value when printed as signed does not mean unsigned parsing failed**. The very same bit pattern simply has two interpretations.
 
-## 2. Cùng bit, hai cách hiểu
+## 2. Same Bits, Two Interpretations
 
-| Bề rộng | Cách hiểu có dấu | Cách hiểu không dấu |
+| Width | Signed Interpretation | Unsigned Interpretation |
 | --- | --- | --- |
-| 32 bit (`int`) | −2³¹ đến 2³¹ − 1 | 0 đến 2³² − 1 = 4.294.967.295 |
-| 64 bit (`long`) | −2⁶³ đến 2⁶³ − 1 | 0 đến 2⁶⁴ − 1 = 18.446.744.073.709.551.615 |
+| 32-bit (`int`) | −2³¹ to 2³¹ − 1 | 0 to 2³² − 1 = 4,294,967,295 |
+| 64-bit (`long`) | −2⁶³ to 2⁶³ − 1 | 0 to 2⁶⁴ − 1 = 18,446,744,073,709,551,615 |
 
-Java biểu diễn `int` và `long` bằng bù hai (two's complement). Tất cả bit bằng 1 có giá trị có dấu là `-1`, nhưng nếu xem là không dấu thì tương ứng với 2³² − 1 hoặc 2⁶⁴ − 1.
+Java represents `int` and `long` using two's complement. All 1 bits have a signed value of `-1`, yet when treated as unsigned they correspond to 2³² − 1 or 2⁶⁴ − 1.
 
 ~~~java
 int bits32 = -1;
@@ -31,25 +31,25 @@ System.out.println(bits64);                           // -1
 System.out.println(Long.toUnsignedString(bits64));    // 18446744073709551615
 ~~~
 
-Đây là *đoạn minh họa đặt trong một phương thức*; chương trình Java chạy hoàn chỉnh nằm ở phần 6. `toUnsignedString` không thay đổi bit trong biến. Nó chỉ chọn cách chuyển các bit thành ký tự thập phân.
+This is an *illustrative snippet placed inside a method*; the complete runnable Java program is in section 6. `toUnsignedString` does not modify the bits in the variable. It only chooses how to convert those bits into decimal characters.
 
-Với số có bit dấu bằng 0, ví dụ `42`, chuỗi có dấu và không dấu giống nhau; sự khác biệt thường lộ ra khi bit cao nhất bằng 1.
+For numbers whose sign bit is 0, such as `42`, the signed and unsigned strings are identical; the difference appears when the highest bit is 1.
 
-## 3. Integer.parseUnsignedInt: chuỗi → mẫu bit 32 bit
+## 3. `Integer.parseUnsignedInt`: String → 32-Bit Pattern
 
-Hai chữ ký thường dùng:
+Two commonly used signatures:
 
 ~~~java
 static int Integer.parseUnsignedInt(String s)
 static int Integer.parseUnsignedInt(String s, int radix)
 ~~~
 
-- Nếu không truyền `radix`, hệ cơ số mặc định là **10**.
-- `radix` từ **2 đến 36**. Chữ cái trong hệ 16 có thể viết hoa hoặc thường.
-- Chuỗi phải biểu diễn giá trị thuộc khoảng **0 đến 4294967295**. Ngoài khoảng, sai chữ số theo cơ số, chuỗi rỗng hoặc dấu trừ sẽ gây `NumberFormatException`.
-- Hàm trả về `int`, bởi vậy kết quả có thể âm theo cách hiểu có dấu. Để sử dụng giá trị không dấu chính xác dưới dạng kiểu lớn hơn, gọi `Integer.toUnsignedLong(int)`.
+- If `radix` is omitted, the default base is **10**.
+- `radix` ranges from **2 to 36**. Hexadecimal letters may be uppercase or lowercase.
+- The string must represent a value in **0 to 4294967295**. Out-of-range values, invalid digits for the radix, an empty string, or a minus sign throw `NumberFormatException`.
+- The method returns `int`, so the result can be negative under signed interpretation. To use the exact unsigned value in a larger type, call `Integer.toUnsignedLong(int)`.
 
-Ví dụ theo từng bước:
+Step-by-step example:
 
 ~~~java
 int value = Integer.parseUnsignedInt("4294967295");
@@ -58,9 +58,9 @@ System.out.println(Integer.toUnsignedString(value)); // 4294967295
 System.out.println(Integer.toUnsignedLong(value));   // 4294967295
 ~~~
 
-`Integer.toUnsignedLong(value)` tạo `long` trong khoảng 0..4294967295; đây là cách dễ nhất để thực hiện phép tính 32 bit không dấu khi cần không gian số rộng hơn.
+`Integer.toUnsignedLong(value)` creates a `long` in `0..4294967295`; this is the easiest way to perform unsigned 32-bit arithmetic when you need a wider numeric range.
 
-Với hệ 16:
+With base 16:
 
 ~~~java
 int hexBits = Integer.parseUnsignedInt("FFFFFFFF", 16);
@@ -68,18 +68,18 @@ System.out.println(hexBits);                            // -1
 System.out.println(Integer.toUnsignedString(hexBits, 16)); // ffffffff
 ~~~
 
-Chuỗi `"FFFFFFFF"` không có tiền tố `0x`. Khi chỉ định cơ số 16, truyền `"FF"` chứ không truyền `"0xFF"`; `parseUnsignedInt` không tự phát hiện hoặc loại bỏ tiền tố. Tương tự, chuỗi nhập từ người dùng cần được xử lý phần tiền tố theo quy ước của ứng dụng trước khi parse.
+The string `"FFFFFFFF"` has no `0x` prefix. When specifying radix 16, pass `"FF"` rather than `"0xFF"`; `parseUnsignedInt` does not automatically detect or strip prefixes. Likewise, user-supplied strings must have prefixes handled according to your application's rules before parsing.
 
-## 4. Long.parseUnsignedLong: chuỗi → mẫu bit 64 bit
+## 4. `Long.parseUnsignedLong`: String → 64-Bit Pattern
 
-Hai chữ ký tương ứng:
+Two corresponding signatures:
 
 ~~~java
 static long Long.parseUnsignedLong(String s)
 static long Long.parseUnsignedLong(String s, int radix)
 ~~~
 
-Hàm chấp nhận **0 đến 18446744073709551615** (2⁶⁴ − 1), vượt giới hạn dương của `Long.parseLong` là 9223372036854775807. Kết quả vẫn là kiểu `long` có dấu: nếu bit cao nhất bằng 1 thì khi in trực tiếp sẽ ra số âm.
+This method accepts **0 to 18446744073709551615** (2⁶⁴ − 1), exceeding `Long.parseLong`'s positive limit of 9223372036854775807. The result is still a signed `long`: if the highest bit is 1, printing it directly yields a negative number.
 
 ~~~java
 long bits = Long.parseUnsignedLong("18446744073709551615");
@@ -89,29 +89,29 @@ System.out.println(Long.toUnsignedString(bits));      // 18446744073709551615
 System.out.println(Long.toUnsignedString(bits, 16));  // ffffffffffffffff
 ~~~
 
-Không có kiểu nguyên thủy nào của Java có thể chứa **toàn bộ** giá trị unsigned 64 bit theo nghĩa số dương. Nếu cần biểu diễn như số dương để tính toán vượt 64 bit, dùng `java.math.BigInteger` sau khi chuyển mẫu bit thành chuỗi:
+No Java primitive type can hold **all** unsigned 64-bit values as positive numbers. If you need to represent them as positive numbers for calculations beyond 64 bits, use `java.math.BigInteger` after converting the bit pattern to a string:
 
 ~~~java
 import java.math.BigInteger;
 
-// Đoạn minh họa trong phương thức:
+// Illustrative snippet inside a method:
 long raw = Long.parseUnsignedLong("18446744073709551615");
 BigInteger positiveValue = new BigInteger(Long.toUnsignedString(raw));
 System.out.println(positiveValue.add(BigInteger.ONE)); // 18446744073709551616
 ~~~
 
-Cũng có thể tính `BigInteger.valueOf(raw).add(BigInteger.ONE.shiftLeft(64))` khi `raw < 0`. Tuyệt đối không dùng `BigInteger.valueOf(raw)` một mình cho trường hợp `raw` âm nếu mục đích là lấy **giá trị unsigned**.
+You can also compute `BigInteger.valueOf(raw).add(BigInteger.ONE.shiftLeft(64))` when `raw < 0`. Never use `BigInteger.valueOf(raw)` alone when `raw` is negative if your goal is to obtain the **unsigned value**.
 
-## 5. toUnsignedString: mẫu bit → chuỗi và cơ số
+## 5. `toUnsignedString`: Bit Pattern → String and Radix
 
-| API | Đối số đầu vào | Ý nghĩa |
+| API | Input Arguments | Meaning |
 | --- | --- | --- |
-| `Integer.toUnsignedString(int value)` | Mẫu bit 32 bit | Chuỗi thập phân unsigned 32 bit |
-| `Integer.toUnsignedString(int value, int radix)` | Mẫu bit và cơ số | Chuỗi unsigned 32 bit ở cơ số chỉ định |
-| `Long.toUnsignedString(long value)` | Mẫu bit 64 bit | Chuỗi thập phân unsigned 64 bit |
-| `Long.toUnsignedString(long value, int radix)` | Mẫu bit và cơ số | Chuỗi unsigned 64 bit ở cơ số chỉ định |
+| `Integer.toUnsignedString(int value)` | 32-bit pattern | Unsigned 32-bit decimal string |
+| `Integer.toUnsignedString(int value, int radix)` | Bit pattern and radix | Unsigned 32-bit string in specified radix |
+| `Long.toUnsignedString(long value)` | 64-bit pattern | Unsigned 64-bit decimal string |
+| `Long.toUnsignedString(long value, int radix)` | Bit pattern and radix | Unsigned 64-bit string in specified radix |
 
-Ví dụ cùng một mẫu bit:
+Example with the same bit pattern:
 
 ~~~java
 int n = 0x8000_0000;
@@ -121,13 +121,13 @@ System.out.println(Integer.toUnsignedString(n, 16)); // 80000000
 System.out.println(Integer.toUnsignedString(n, 2));  // 10000000000000000000000000000000
 ~~~
 
-Kết quả `toUnsignedString(value, radix)` **không tự thêm tiền tố** như `0x` hay `0b` và dùng chữ cái thường cho các chữ số lớn hơn 9. Những cơ số không hợp lệ được `toUnsignedString` xử lý theo quy ước của `Integer.toString`/`Long.toString`: dùng hệ 10; khác với hàm parse, vốn báo lỗi khi `radix` nằm ngoài 2..36.
+The output of `toUnsignedString(value, radix)` **does not automatically add prefixes** like `0x` or `0b` and uses lowercase letters for digits greater than 9. Invalid radices are handled by `toUnsignedString` according to the convention of `Integer.toString`/`Long.toString`: falling back to base 10; this differs from the parse methods, which throw an error when `radix` is outside 2..36.
 
-Cặp thao tác lý tưởng khi trao đổi dữ liệu là `parseUnsignedInt` ↔ `Integer.toUnsignedString` hoặc `parseUnsignedLong` ↔ `Long.toUnsignedString` với **cùng cơ số**. Mẫu bit có thể âm nếu quan sát bằng `int`/`long` nhưng vẫn giữ được giá trị unsigned gốc trong phạm vi biểu diễn.
+Ideal round-trip pairs when exchanging data are `parseUnsignedInt` ↔ `Integer.toUnsignedString` or `parseUnsignedLong` ↔ `Long.toUnsignedString` with **the same radix**. The bit pattern may look negative when inspected as `int`/`long`, yet it still preserves the original unsigned value within the representable range.
 
-## 6. Ví dụ chạy độc lập trên Java 17+
+## 6. Standalone Runnable Example on Java 17+
 
-Tạo tệp `UnsignedNumbersDemo.java`:
+Create the file `UnsignedNumbersDemo.java`:
 
 ~~~java
 import java.math.BigInteger;
@@ -161,14 +161,14 @@ public class UnsignedNumbersDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac UnsignedNumbersDemo.java
 java UnsignedNumbersDemo
 ~~~
 
-Kết quả chuẩn:
+Expected output:
 
 ~~~text
 u32 as int: -1
@@ -186,75 +186,75 @@ u64 % 10: 5
 u64 plus one: 18446744073709551616
 ~~~
 
-Giải thích:
+Explanation:
 
-1. Hai lời gọi `parseUnsigned...` trả về mẫu bit toàn 1, được in trực tiếp thành `-1` theo kiểu có dấu.
-2. Hai lời gọi `toUnsignedString` giải mã chính xác mẫu bit theo miền không dấu; lời gọi với `radix = 16` trả chữ `f` thường.
-3. `Integer.toUnsignedLong` mở rộng mẫu 32 bit ra số dương `long`, tránh *sign extension* của phép chuyển kiểu `(long) maxU32`.
-4. `compareUnsigned`, `divideUnsigned` và `remainderUnsigned` dùng cách hiểu unsigned, nên số lớn nhất 32/64 bit lớn hơn 1 và chia 10 có số dư 5.
-5. `BigInteger` cho phép cộng vượt giới hạn unsigned 64 bit mà không tràn.
+1. Both `parseUnsigned...` calls return all-1 bit patterns, which print directly as `-1` under signed formatting.
+2. Both `toUnsignedString` calls decode the bit patterns accurately into the unsigned range; the call with `radix = 16` outputs lowercase `f`.
+3. `Integer.toUnsignedLong` widens the 32-bit pattern to a positive `long`, avoiding the *sign extension* of `(long) maxU32`.
+4. `compareUnsigned`, `divideUnsigned`, and `remainderUnsigned` apply unsigned semantics, so the largest 32/64-bit unsigned value is greater than 1 and dividing by 10 leaves remainder 5.
+5. `BigInteger` allows adding past the unsigned 64-bit limit without overflow.
 
-## 7. Kiểm tra biên, dữ liệu lỗi và radix
+## 7. Boundary Checks, Invalid Data, and Radix
 
-Thử các tình huống tiêu biểu:
+Test representative cases:
 
-| Lời gọi | Kết quả |
+| Call | Result |
 | --- | --- |
 | `Integer.parseUnsignedInt("0")` | `0` |
-| `Integer.parseUnsignedInt("2147483648")` | `-2147483648` (bit của 2³¹) |
+| `Integer.parseUnsignedInt("2147483648")` | `-2147483648` (bits of 2³¹) |
 | `Integer.parseUnsignedInt("4294967295")` | `-1` |
-| `Integer.parseUnsignedInt("4294967296")` | `NumberFormatException`: vượt 32 bit unsigned |
+| `Integer.parseUnsignedInt("4294967296")` | `NumberFormatException`: exceeds 32-bit unsigned |
 | `Long.parseUnsignedLong("9223372036854775808")` | `Long.MIN_VALUE` |
 | `Long.parseUnsignedLong("18446744073709551615")` | `-1L` |
-| `Long.parseUnsignedLong("18446744073709551616")` | `NumberFormatException`: vượt 64 bit unsigned |
+| `Long.parseUnsignedLong("18446744073709551616")` | `NumberFormatException`: exceeds 64-bit unsigned |
 | `Integer.parseUnsignedInt("1010", 2)` | `10` |
 | `Long.parseUnsignedLong("ff", 16)` | `255L` |
-| `Integer.parseUnsignedInt("-1")` | `NumberFormatException`: dấu âm không hợp lệ |
-| `Integer.parseUnsignedInt("0xFF", 16)` | `NumberFormatException`: `0x` không phải chữ số của hệ 16 |
-| `Integer.parseUnsignedInt("12 3")` | `NumberFormatException`: có khoảng trắng bên trong |
+| `Integer.parseUnsignedInt("-1")` | `NumberFormatException`: minus sign not allowed |
+| `Integer.parseUnsignedInt("0xFF", 16)` | `NumberFormatException`: `0x` is not a base-16 digit |
+| `Integer.parseUnsignedInt("12 3")` | `NumberFormatException`: internal whitespace |
 
-Chuỗi có thể có dấu cộng ở đầu (`"+42"`) và các số 0 dẫn đầu (`"00042"`); chúng không làm thay đổi giá trị. Tuy nhiên, các hàm parse không tự `trim()` khoảng trắng, không nhận dấu phân cách `_` của cú pháp literal Java, và không chấp nhận dấu trừ ngay cả khi số âm đó có mẫu bit hợp lệ. Chỉ chuẩn hóa dữ liệu đầu vào (ví dụ `trim()` hoặc bỏ tiền tố) khi quy định định dạng đầu vào cho phép.
+Strings may have a leading plus sign (`"+42"`) and leading zeros (`"00042"`); they do not change the value. However, the parse methods do not automatically `trim()` whitespace, do not accept Java literal `_` separators, and do not accept a minus sign even if that negative number has a valid bit pattern. Normalize input (such as calling `trim()` or stripping a prefix) only when your input format rules allow it.
 
-Phân biệt lỗi của parser và giá trị âm hợp lệ trong kết quả:
+Distinguish parser errors from valid negative values in the result:
 
 ~~~java
 try {
     int bits = Integer.parseUnsignedInt("4294967296");
     System.out.println(Integer.toUnsignedString(bits));
 } catch (NumberFormatException ex) {
-    System.out.println("Giá trị không thuộc miền unsigned 32 bit");
+    System.out.println("Value is outside the unsigned 32-bit range");
 }
 ~~~
 
-Đoạn trên in duy nhất:
+The snippet above prints only:
 
 ~~~text
-Giá trị không thuộc miền unsigned 32 bit
+Value is outside the unsigned 32-bit range
 ~~~
 
-Không nên bắt `NumberFormatException` rồi chuyển mặc định về `0` nếu `0` là một giá trị có ý nghĩa nghiệp vụ; hãy thông báo lỗi nhập hoặc trả kết quả xác thực rõ ràng.
+Do not catch `NumberFormatException` and silently default to `0` if `0` is a meaningful business value; report the input error or return an explicit validation result.
 
-## 8. So sánh và tính toán đúng ngữ nghĩa không dấu
+## 8. Comparing and Computing with Correct Unsigned Semantics
 
-Chỉ parse và xuất chuỗi là chưa đủ nếu ứng dụng còn phải so sánh, chia, chia lấy dư.
+Parsing and formatting strings are not enough if the application also needs to compare, divide, or take remainders.
 
 ~~~java
 int a = Integer.parseUnsignedInt("4294967295");
 int b = 1;
 
-System.out.println(a < b);                           // true: so sánh signed (-1 < 1)
-System.out.println(Integer.compareUnsigned(a, b) > 0); // true: so sánh unsigned
+System.out.println(a < b);                           // true: signed comparison (-1 < 1)
+System.out.println(Integer.compareUnsigned(a, b) > 0); // true: unsigned comparison
 System.out.println(Integer.divideUnsigned(a, 2));     // 2147483647
 System.out.println(Integer.remainderUnsigned(a, 2));  // 1
 ~~~
 
-Đây là đoạn minh họa trong phương thức. `Long` có API tương ứng: `Long.compareUnsigned`, `Long.divideUnsigned`, `Long.remainderUnsigned`. Phép `+`, `-`, `*` trên `int`/`long` giữ các bit thấp và có thể tràn (wrap modulo 2³²/2⁶⁴); Java không tự báo tràn cho các phép này. Nếu nghiệp vụ yêu cầu phát hiện tràn **trong miền unsigned**, cần kiểm tra riêng hoặc dùng `BigInteger` để tính rồi kiểm tra giới hạn.
+This is an illustrative snippet inside a method. `Long` has corresponding APIs: `Long.compareUnsigned`, `Long.divideUnsigned`, `Long.remainderUnsigned`. `+`, `-`, and `*` on `int`/`long` keep the low bits and can wrap (modulo 2³²/2⁶⁴); Java does not report overflow for these operators automatically. If business logic requires detecting overflow **within the unsigned range**, check separately or compute with `BigInteger` and validate bounds.
 
-Với **unsigned 32 bit**, cũng có thể mở rộng cả hai toán hạng bằng `Integer.toUnsignedLong` rồi dùng các phép so sánh/chia có dấu trên `long`, vì mọi unsigned 32 bit đều nằm trong miền dương của `long`. Mẹo tương tự không áp dụng trọn vẹn cho unsigned 64 bit: cần API unsigned của `Long` hoặc `BigInteger`.
+For **unsigned 32-bit values**, you can also widen both operands with `Integer.toUnsignedLong` and use signed comparisons/divisions on `long`, because every unsigned 32-bit value fits in the positive range of `long`. The same trick does not cover all of unsigned 64-bit: use `Long`'s unsigned APIs or `BigInteger` instead.
 
-## 9. Áp dụng: mã nhận diện 32 bit từ giao thức hoặc tệp nhị phân
+## 9. Application: 32-Bit Identifiers from a Protocol or Binary File
 
-Một giao thức có thể quy định trường `requestId` là số không dấu 32 bit. Giá trị `4026531841` có mẫu bit `0xF0000001`; nếu lưu bằng `int`, Java nhìn nó thành số âm. Ta vẫn có thể truyền và ghi lại chính xác chuỗi thập phân unsigned:
+A protocol may specify a `requestId` field as a 32-bit unsigned integer. The value `4026531841` has bit pattern `0xF0000001`; if stored in an `int`, Java displays it as a negative number. Yet we can still pass and serialize the exact unsigned decimal string:
 
 ~~~java
 int requestIdBits = Integer.parseUnsignedInt("4026531841");
@@ -264,29 +264,29 @@ System.out.println(requestIdBits); // -268435455
 System.out.println(wireText);      // 4026531841
 ~~~
 
-Đây là đoạn minh họa trong phương thức. Khi nhận dữ liệu từ luồng byte, thứ tự byte (*endianness*) và việc ghép bit là vấn đề riêng; `parseUnsignedInt` nhận **chuỗi chữ số**, không giải mã trực tiếp mảng byte hay xử lý byte order. Nếu cần đọc một byte như 0..255, dùng `Byte.toUnsignedInt(byteValue)` để tránh ảnh hưởng của sign extension.
+This is an illustrative snippet inside a method. When reading data from a byte stream, byte order (*endianness*) and bit assembly are separate concerns; `parseUnsignedInt` accepts a **digit string**, and does not decode a byte array directly or handle byte order. If you need to read a single byte as 0..255, use `Byte.toUnsignedInt(byteValue)` to avoid sign extension effects.
 
-## 10. Lỗi thường gặp và cách sửa
+## 10. Common Mistakes and How to Fix Them
 
-| Sai lầm | Hệ quả | Cách đúng |
+| Mistake | Consequence | Correct Approach |
 | --- | --- | --- |
-| Dùng `Integer.parseInt("4294967295")` | Vượt `Integer.MAX_VALUE` | `Integer.parseUnsignedInt` |
-| Dùng `Long.parseLong` cho 2⁶⁴ − 1 | Vượt `Long.MAX_VALUE` | `Long.parseUnsignedLong` |
-| In `System.out.println(bits)` rồi cho rằng dữ liệu sai | Thấy số âm | `Integer.toUnsignedString` hoặc `Long.toUnsignedString` |
-| Ép `(long) intBits` để lấy unsigned 32 bit | Âm do sign extension | `Integer.toUnsignedLong(intBits)` |
-| So sánh `a < b` với các bit unsigned | Dùng thứ tự signed | `compareUnsigned(a, b)` |
-| Chia `a / b` khi toán hạng có bit dấu bằng 1 | Dùng phép chia signed | `divideUnsigned` và `remainderUnsigned` |
-| Truyền `"0xFF"` cùng radix 16 | Parse thất bại | Bỏ tiền tố, truyền `"FF"` |
-| Để số nguyên lớn thành literal `18446744073709551615L` | Không biên dịch | Parse từ chuỗi; dùng `BigInteger` khi cần số dương |
-| Mong parse tự loại bỏ khoảng trắng hoặc `_` | `NumberFormatException` | Chuẩn hóa đầu vào có kiểm soát |
+| Using `Integer.parseInt("4294967295")` | Exceeds `Integer.MAX_VALUE` | `Integer.parseUnsignedInt` |
+| Using `Long.parseLong` for 2⁶⁴ − 1 | Exceeds `Long.MAX_VALUE` | `Long.parseUnsignedLong` |
+| Printing `System.out.println(bits)` and thinking data is wrong | Shows a negative number | `Integer.toUnsignedString` or `Long.toUnsignedString` |
+| Casting `(long) intBits` for unsigned 32-bit | Negative due to sign extension | `Integer.toUnsignedLong(intBits)` |
+| Comparing `a < b` on unsigned bits | Uses signed ordering | `compareUnsigned(a, b)` |
+| Dividing `a / b` when an operand has sign bit 1 | Uses signed division | `divideUnsigned` and `remainderUnsigned` |
+| Passing `"0xFF"` with radix 16 | Parsing fails | Strip prefix, pass `"FF"` |
+| Writing large literal `18446744073709551615L` | Fails to compile | Parse from string; use `BigInteger` when positive value is needed |
+| Expecting parse to strip whitespace or `_` | `NumberFormatException` | Normalize input in a controlled way |
 
-## 11. Tự kiểm tra
+## 11. Self-Check
 
-**Câu 1.** Vì sao `Integer.parseUnsignedInt("4294967295")` trả `-1` nhưng không ném lỗi?
+**Question 1.** Why does `Integer.parseUnsignedInt("4294967295")` return `-1` without throwing an exception?
 
-Vì chuỗi hợp lệ với số không dấu 32 bit; hàm trả lại đúng 32 bit toàn 1 dưới kiểu `int` có dấu. `Integer.toUnsignedString` sẽ chuyển chính 32 bit ấy thành `"4294967295"`.
+Because the string is valid for a 32-bit unsigned integer; the method returns the exact 32 all-1 bits as a signed `int`. `Integer.toUnsignedString` converts those same 32 bits back to `"4294967295"`.
 
-**Câu 2.** Làm cách nào nhận unsigned 32 bit lớn nhất thành số dương để cộng với 1 mà không mất dữ liệu?
+**Question 2.** How do you obtain the largest 32-bit unsigned value as a positive number so you can add 1 without losing data?
 
 ~~~java
 int raw = Integer.parseUnsignedInt("4294967295");
@@ -294,19 +294,19 @@ long sum = Integer.toUnsignedLong(raw) + 1L;
 System.out.println(sum); // 4294967296
 ~~~
 
-Đây là đoạn minh họa trong phương thức; `long` có đủ miền dương cho kết quả này.
+This is an illustrative snippet inside a method; `long` has a wide enough positive range for this result.
 
-**Câu 3.** Có thể làm phép cộng `+1` trên unsigned 64 bit lớn nhất và nhận số dương 18446744073709551616 dưới kiểu `long` không?
+**Question 3.** Can you add `+1` to the largest 64-bit unsigned value and store the positive number 18446744073709551616 in a `long`?
 
-Không. Kiểu `long` không chứa được số dương đó. Chuyển sang `BigInteger` theo cách ở phần 4 trước khi cộng.
+No. `long` cannot hold that positive number. Convert to `BigInteger` as shown in section 4 before adding.
 
-**Câu 4.** Nếu input là `"ffffffffffffffff"` theo hệ 16, nên dùng API nào để giữ đủ mẫu bit?
+**Question 4.** If the input is `"ffffffffffffffff"` in base 16, which APIs should be used to preserve the full bit pattern?
 
-`Long.parseUnsignedLong("ffffffffffffffff", 16)`, rồi `Long.toUnsignedString(result, 16)` để xuất lại. Kết quả xuất là `"ffffffffffffffff"`.
+`Long.parseUnsignedLong("ffffffffffffffff", 16)`, and then `Long.toUnsignedString(result, 16)` to format it back. The output is `"ffffffffffffffff"`.
 
-## 12. Ghi nhớ
+## 12. Remember
 
-- `parseUnsignedInt` và `parseUnsignedLong` **kiểm tra miền giá trị unsigned**, trả về mẫu bit trong kiểu có dấu tương ứng.
-- `toUnsignedString` **xuất các bit theo miền unsigned**, không thay đổi mẫu bit đã lưu.
-- Với 32 bit, `Integer.toUnsignedLong` giúp chuyển thành số dương `long`; với 64 bit cần `BigInteger` nếu muốn số dương vượt `Long.MAX_VALUE`.
-- Cơ số khi parse và khi xuất phải phù hợp với định dạng dữ liệu. Chú ý các điều kiện lỗi, phép so sánh/chia unsigned và tràn số khi tính toán.
+- `parseUnsignedInt` and `parseUnsignedLong` **validate the unsigned range** and return the bit pattern in the corresponding signed type.
+- `toUnsignedString` **formats the bits in the unsigned range**, without altering the stored bit pattern.
+- For 32 bits, `Integer.toUnsignedLong` converts to a positive `long`; for 64 bits you need `BigInteger` if you need positive values exceeding `Long.MAX_VALUE`.
+- The radix when parsing and formatting must match the data format. Pay attention to error conditions, unsigned comparison/division, and overflow during arithmetic.

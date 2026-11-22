@@ -1,12 +1,12 @@
-# Mẫu tích lũy tổng, đếm và tìm giá trị lớn nhất trong Java
+# Sum, count, and maximum accumulator patterns in Java
 
-> **Java core — language-basics / Vòng lặp**  
-> **Môi trường:** JDK 17+, chương trình một file, không dùng thư viện bên ngoài.  
-> **Mục tiêu:** Dùng một vòng lặp để tính tổng, đếm phần tử/đếm theo điều kiện và tìm giá trị lớn nhất; chọn giá trị khởi tạo chính xác, xử lý mảng rỗng và tránh tràn tổng kiểu `int`.
+> **Java core — language-basics / Loops**  
+> **Environment:** JDK 17+, single-file program, no external libraries.  
+> **Goal:** Use a single loop to compute a sum, count elements / count conditionally, and find the maximum value; choose correct initial values, handle empty arrays, and avoid `int` sum overflow.
 
-## 1. Mẫu tích lũy (*accumulator*) là gì?
+## 1. What is the accumulator (*accumulator*) pattern?
 
-Khi duyệt một dãy số, ta có thể giữ các biến **trạng thái tóm tắt**. Mỗi lượt xử lý một phần tử và cập nhật trạng thái:
+When traversing a sequence of numbers, you can maintain **summary state** variables. Each iteration processes one element and updates the state:
 
 ~~~java
 int[] numbers = {3, -2, 7, 0, -5};
@@ -22,15 +22,15 @@ System.out.println(sum);   // 3
 System.out.println(count); // 5
 ~~~
 
-- **Tổng**: khởi tạo `sum = 0`, cập nhật bằng `sum += number`.
-- **Đếm**: khởi tạo `count = 0`, tăng đúng một lần cho mỗi phần tử được tính.
-- **Giá trị lớn nhất**: sau khi gặp phần tử đầu tiên, giữ `max` bằng phần tử lớn nhất đã thấy; mỗi lượt so sánh rồi cập nhật nếu cần.
+- **Sum**: initialize `sum = 0`, update via `sum += number`.
+- **Count**: initialize `count = 0`, increment exactly once for each counted element.
+- **Maximum value**: after encountering the first element, keep `max` equal to the largest element seen so far; on each pass compare and update if needed.
 
-Cả ba phép tính có thể được thực hiện trong **cùng một lần duyệt**, không nhất thiết tạo ba vòng lặp. Với `n` phần tử, thời gian là **O(n)** và bộ nhớ phụ cho các bộ tích lũy là **O(1)**.
+All three calculations can be performed in **the same single traversal**, without needing three separate loops. For `n` elements, time is **O(n)** and auxiliary memory for the accumulators is **O(1)**.
 
-## 2. Khởi tạo và cập nhật: tổng, đếm, đếm có điều kiện
+## 2. Initialization and updates: sum, count, conditional count
 
-Tổng của dãy rỗng được định nghĩa là `0`. Đếm phần tử của dãy rỗng cũng là `0`. Ta có thể đếm thêm các phần tử thỏa điều kiện:
+The sum of an empty sequence is defined as `0`. The element count of an empty sequence is also `0`. You can also count elements that satisfy a condition:
 
 ~~~java
 int[] numbers = {3, -2, 7, 0, -5};
@@ -49,27 +49,27 @@ for (int number : numbers) {
 // sum = 3; count = 5; positiveCount = 2.
 ~~~
 
-Ở đây `0` **không** được tính là số dương vì điều kiện là `number > 0`. Nếu yêu cầu đếm số không âm, thay bằng `number >= 0` và cập nhật cả bảng test.
+Here `0` is **not** counted as positive because the condition is `number > 0`. If non-negative numbers need to be counted, change it to `number >= 0` and update the test table accordingly.
 
-Không nhầm `count` (tổng số phần tử) với `positiveCount` (số phần tử thỏa điều kiện). Nếu chỉ cộng số dương, điều kiện lọc phải bao quanh **cả phép cộng lẫn phép đếm cùng miền**, thay vì dùng tổng tất cả chia cho số lượng số dương.
+Do not confuse `count` (total number of elements) with `positiveCount` (number of elements satisfying the condition). If summing only positive numbers, the filter condition must wrap **both the addition and the count over the same domain**, rather than dividing the total sum by the count of positive numbers.
 
-## 3. Tìm `max` đúng cả khi toàn số âm hoặc mảng rỗng
+## 3. Finding `max` correctly even for all-negative numbers or empty arrays
 
-Một lỗi phổ biến là khởi tạo `max = 0` rồi chỉ cập nhật nếu phần tử lớn hơn:
+A common mistake is initializing `max = 0` and only updating if an element is larger:
 
 ~~~java
-// SAI với dãy {-8, -3, -12}:
+// WRONG for {-8, -3, -12}:
 // int max = 0;
 // for (int x : numbers) {
 //     if (x > max) max = x;
 // }
-// Kết quả sai là 0; lớn nhất thực sự là -3.
+// Wrong result is 0; actual maximum is -3.
 ~~~
 
-Có hai cách an toàn:
+There are two safe approaches:
 
-1. Nếu biết mảng **không rỗng**, đặt `max = numbers[0]` và bắt đầu duyệt từ phần tử thứ hai.
-2. Nếu mảng **có thể rỗng**, dùng cờ `hasAny` để ghi nhận đã thấy phần tử nào, rồi xuất kết quả tùy chọn (`OptionalInt`).
+1. If the array is known to be **non-empty**, set `max = numbers[0]` and start traversing from the second element.
+2. If the array **could be empty**, use a `hasAny` flag to record whether any element has been seen, and return an optional result (`OptionalInt`).
 
 ~~~java
 int max = 0;
@@ -87,30 +87,30 @@ java.util.OptionalInt maximum =
                : java.util.OptionalInt.empty();
 ~~~
 
-Trong cách thứ hai, giá trị ban đầu `max = 0` **không được coi là kết quả** khi chưa gặp phần tử: lượt đầu sẽ gán `max = number` bất kể âm hay dương. Với mảng rỗng, `maximum.isPresent()` là false. Không tự kết luận max của mảng rỗng bằng 0 vì 0 không phải phần tử của mảng.
+In the second approach, the initial value `max = 0` is **not treated as a result** before seeing any element: the first iteration assigns `max = number` regardless of whether it is negative or positive. For an empty array, `maximum.isPresent()` is false. Do not assume the max of an empty array is 0, since 0 is not an element of the array.
 
-## 4. Bảng diễn tiến và bất biến vòng lặp
+## 4. Progress table and loop invariant
 
-Với dãy `{3, -2, 7, 0, -5}`, sau mỗi lượt, trạng thái biến đổi như sau:
+For the sequence `{3, -2, 7, 0, -5}`, after each iteration, the state changes as follows:
 
-| Phần tử vừa xử lý | `sum` | `count` | `positiveCount` | `max` |
+| Element just processed | `sum` | `count` | `positiveCount` | `max` |
 | ---: | ---: | ---: | ---: | ---: |
-| Chưa xử lý | 0 | 0 | 0 | Chưa có |
+| Not yet processed | 0 | 0 | 0 | None yet |
 | 3 | 3 | 1 | 1 | 3 |
 | -2 | 1 | 2 | 1 | 3 |
 | 7 | 8 | 3 | 2 | 7 |
 | 0 | 8 | 4 | 2 | 7 |
 | -5 | 3 | 5 | 2 | 7 |
 
-**Bất biến vòng lặp** sau `k` phần tử là: `sum` bằng tổng `k` phần tử đầu; `count = k`; `positiveCount` bằng số phần tử dương trong `k` phần tử; nếu `k > 0` thì `max` bằng phần tử lớn nhất trong đoạn đã duyệt.
+The **loop invariant** after `k` elements is: `sum` equals the sum of the first `k` elements; `count = k`; `positiveCount` equals the number of positive elements among the `k` elements; if `k > 0`, `max` equals the largest element in the traversed segment.
 
-Lập luận: trạng thái ban đầu đúng với `k = 0`; mỗi lượt cập nhật tổng, các bộ đếm và max theo phần tử mới nên vẫn đúng với `k + 1`. Khi duyệt hết `n` phần tử, các biến mô tả chính xác toàn bộ dãy.
+Reasoning: the initial state is valid for `k = 0`; each iteration updates the sum, counters, and max with the new element so it remains valid for `k + 1`. Once all `n` elements are traversed, the variables accurately describe the entire sequence.
 
-Việc viết bất biến giúp phát hiện lỗi đặt `count++` sai chỗ, bỏ qua phần tử đầu, hoặc cập nhật `max` bằng điều kiện ngược `number < max`.
+Writing the invariant helps catch bugs like placing `count++` in the wrong spot, skipping the first element, or updating `max` with the reversed condition `number < max`.
 
-## 5. Trung bình, kiểu dữ liệu và tràn số
+## 5. Average, data types, and numeric overflow
 
-Sau khi có tổng và số lượng, có thể tính trung bình:
+Once you have the sum and count, you can compute the average:
 
 ~~~java
 double average = count == 0
@@ -118,38 +118,38 @@ double average = count == 0
         : (double) sum / count;
 ~~~
 
-Phải kiểm tra `count == 0` vì trung bình của dãy rỗng **không xác định**. Trong ví dụ runnable bên dưới, ta in `"N/A"` thay cho trung bình rỗng. Ép kiểu `(double) sum` **trước phép chia** để tránh phép chia nguyên làm mất phần thập phân.
+You must check `count == 0` because the average of an empty sequence is **undefined**. In the runnable example below, we print `"N/A"` instead of an empty average. Cast `(double) sum` **before division** to avoid integer division losing the fractional part.
 
-**Dùng `long` cho tổng số nguyên `int`:**
+**Use `long` for sums of `int` integers:**
 
 ~~~java
 int large = Integer.MAX_VALUE;
-int wrong = large + large;       // Tràn int: -2.
+int wrong = large + large;       // int overflow: -2.
 long correct = (long) large + large; // 4_294_967_294.
 ~~~
 
-Nếu dùng `long sum = 0; sum += number;` với từng `int` thì phép cộng được thực hiện dưới kiểu `long`, tránh tràn `int` trước khi cộng. Nhưng `long` **không bảo đảm vô hạn**: nếu cộng rất nhiều số trong luồng dữ liệu lớn, vẫn có thể tràn `long`; khi cần phát hiện tràn có thể dùng `Math.addExact` hoặc `BigInteger` tùy bài toán.
+If you use `long sum = 0; sum += number;` with each `int`, the addition is performed in `long`, avoiding `int` overflow before adding. However, `long` **does not guarantee infinite range**: summing very many numbers in a huge data stream can still overflow `long`; when overflow detection is needed, use `Math.addExact` or `BigInteger` depending on the problem.
 
-Khi mảng chứa số âm, trung bình vẫn có thể âm. Không lấy số lượng số dương làm mẫu số nếu tổng đang tính trên **toàn bộ** phần tử.
+When an array contains negative numbers, the average can also be negative. Do not use the count of positive numbers as the denominator if the sum is computed over **all** elements.
 
-## 6. Chọn vòng lặp và kiểm tra trường hợp biên
+## 6. Choosing a loop and testing edge cases
 
-| Trường hợp | Kết quả cần kiểm tra |
+| Case | Result to check |
 | --- | --- |
-| Mảng rỗng `{}` | Tổng 0, đếm 0, không có max, trung bình `N/A` |
-| Chỉ số âm `{-8, -3, -12}` | Max `-3`, không phải 0 |
-| Có số 0 | 0 được đếm là phần tử, nhưng không phải số dương |
-| Một phần tử | Tổng và max bằng chính phần tử; đếm 1 |
-| Hai `Integer.MAX_VALUE` | Tổng `4_294_967_294` bằng `long` |
-| Mảng null | Không thể duyệt bằng for-each; phải kiểm tra null theo hợp đồng |
+| Empty array `{}` | Sum 0, count 0, no max, average `N/A` |
+| All negative `{-8, -3, -12}` | Max `-3`, not 0 |
+| Contains 0 | 0 is counted as an element, but not as a positive number |
+| Single element | Sum and max equal the element itself; count 1 |
+| Two `Integer.MAX_VALUE`s | Sum `4_294_967_294` as `long` |
+| Null array | Cannot traverse with for-each; must check null per contract |
 
-Dùng `for (int x : numbers)` khi chỉ cần **giá trị** mỗi phần tử. Dùng `for (int i = 0; i < numbers.length; i++)` nếu cần chỉ số hoặc bắt đầu từ vị trí 1 sau khi gán max bằng phần tử đầu.
+Use `for (int x : numbers)` when only the **value** of each element is needed. Use `for (int i = 0; i < numbers.length; i++)` if you need indices or start at index 1 after assigning max to the first element.
 
-Với đầu vào null, có thể chủ động báo lỗi bằng `IllegalArgumentException` thay vì để vòng lặp gây `NullPointerException` không rõ mục đích; ví dụ runnable lựa chọn báo lỗi tường minh.
+For null inputs, you can proactively throw `IllegalArgumentException` rather than letting the loop cause an unclear `NullPointerException`; the runnable example chooses explicit error reporting.
 
-## 7. Chương trình Java 17+ chạy độc lập
+## 7. Standalone runnable Java 17+ program
 
-Tạo file **LoopAccumulatorDemo.java**:
+Create the file **LoopAccumulatorDemo.java**:
 
 ~~~java
 import java.util.Locale;
@@ -224,14 +224,14 @@ public final class LoopAccumulatorDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 LoopAccumulatorDemo.java
 java LoopAccumulatorDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 mixed:sum=3,count=5,positive=2,max=7,average=0.60
@@ -243,29 +243,29 @@ large:sum=4294967294,count=2,positive=2,max=2147483647,average=2147483647.00
 nullInput=IllegalArgumentException
 ~~~
 
-Bốn kết quả quan trọng: `negative` phát hiện khởi tạo max sai; `empty` minh họa không có giá trị lớn nhất; `large` chứng minh tổng vượt miền `int` vẫn được giữ trong `long`; và `mixed` thể hiện tổng, các bộ đếm và max được tính từ **cùng một lượt duyệt**.
+Four key observations: `negative` catches faulty max initialization; `empty` demonstrates having no maximum; `large` proves sums exceeding `int` range are preserved in `long`; and `mixed` shows sum, counters, and max are all computed from **a single traversal**.
 
-## 8. Lỗi thường gặp và bài tập
+## 8. Common mistakes and exercises
 
-| Lỗi | Hệ quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Khởi tạo `max = 0` rồi dùng luôn làm giá trị lớn nhất | Sai với toàn số âm hoặc mảng rỗng | Khởi tạo từ phần tử đầu hợp lệ hoặc dùng `hasAny` |
-| Dùng `int sum` cho tổng lớn | Có thể tràn số | Dùng `long` và tránh tràn trước khi ép kiểu |
-| `count++` chỉ chạy khi số dương | Đếm sai tổng phần tử | Tách `count` và `positiveCount` |
-| Tính trung bình `sum / count` bằng số nguyên | Mất phần lẻ, sai với dãy rỗng | Kiểm tra count, ép kiểu trước phép chia |
-| Truy cập `numbers[0]` khi mảng rỗng | `ArrayIndexOutOfBoundsException` | Kiểm tra rỗng hoặc dùng cờ lần đầu |
-| Nhầm `> 0` với `>= 0` | Đếm khác ở phần tử 0 | Bám đúng định nghĩa số dương/không âm |
+| Initializing `max = 0` and using it directly as the maximum | Wrong for all-negative arrays or empty arrays | Initialize from a valid first element or use `hasAny` |
+| Using `int sum` for large sums | Can overflow | Use `long` and avoid overflow before casting |
+| Only running `count++` on positive numbers | Wrong total element count | Separate `count` and `positiveCount` |
+| Computing average `sum / count` with integer division | Loses fractional part, breaks on empty sequence | Check count, cast before dividing |
+| Accessing `numbers[0]` on an empty array | `ArrayIndexOutOfBoundsException` | Check for empty or use a first-element flag |
+| Confusing `> 0` with `>= 0` | Counts 0 differently | Stick strictly to the definition of positive/non-negative |
 
-**Bài 1.** Tự tính `sum`, `count`, `positiveCount`, `max` cho dãy `{4, -1, 0, 10}`, sau đó kiểm chứng bằng chương trình.
+**Exercise 1.** Compute `sum`, `count`, `positiveCount`, and `max` by hand for `{4, -1, 0, 10}`, then verify with the program.
 
-**Bài 2.** Thay điều kiện đếm số dương thành đếm số chẵn; chú ý cách xử lý số âm chẵn và số 0.
+**Exercise 2.** Change the positive-number counting condition to count even numbers; pay attention to how negative even numbers and 0 are handled.
 
-**Bài 3.** Sửa mẫu để chỉ lấy tổng và max của **các phần tử dương**. Nếu không có số dương thì trả kết quả gì để không nhầm với max=0?
+**Exercise 3.** Modify the pattern to take only the sum and max of **positive elements**. If there are no positive numbers, what result should be returned so it is not confused with max=0?
 
-**Bài 4.** Viết biến thể sử dụng `for (int i = 1; i < values.length; i++)` với `max = values[0]`, đồng thời xử lý đầu vào rỗng trước.
+**Exercise 4.** Write a variant using `for (int i = 1; i < values.length; i++)` with `max = values[0]`, while handling empty input beforehand.
 
-**Bài 5.** Dùng dãy `{Integer.MAX_VALUE, Integer.MAX_VALUE}` để so sánh tổng lưu vào `int` và `long`; giải thích tại sao chỉ ép kiểu **sau khi** đã cộng theo `int` là quá muộn.
+**Exercise 5.** Use `{Integer.MAX_VALUE, Integer.MAX_VALUE}` to compare storing the sum in `int` vs `long`; explain why casting only **after** adding as `int` is too late.
 
-### Ghi nhớ
+### Key takeaway
 
-**Tích lũy tổng bắt đầu từ 0, đếm bắt đầu từ 0, còn max cần phần tử đầu tiên thực sự tồn tại.** Mỗi lượt duyệt cập nhật đúng các bộ tích lũy và giữ bất biến. Với mảng rỗng, không có max; với toàn số âm, max vẫn âm. Sử dụng `long` cho tổng `int` có thể lớn và kiểm tra `count == 0` trước khi tính trung bình.
+**Accumulating a sum starts at 0, counting starts at 0, while max requires an actually existing first element.** Each pass updates the accumulators accurately and preserves the invariant. For an empty array, there is no max; for all-negative numbers, max remains negative. Use `long` for potentially large `int` sums and check `count == 0` before computing an average.

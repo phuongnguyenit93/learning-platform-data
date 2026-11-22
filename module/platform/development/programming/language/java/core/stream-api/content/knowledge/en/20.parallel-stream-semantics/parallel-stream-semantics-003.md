@@ -1,29 +1,29 @@
-# Hiểu mô hình chia nguồn, xử lý và ghép kết quả
+# Understanding the Split, Process, and Combine Model
 
-## 1. Mục tiêu bài học
+## 1. Lesson objectives
 
-Trong module **`JAVA_STREAM_API`**, Stream API cho phép mô tả pipeline khai báo: tạo nguồn, ghép các bước trung gian lazy như `filter`, `map`, `flatMap` và kết thúc bằng `reduce`, `collect` hoặc phép tổng hợp. Với dữ liệu đủ lớn và các thao tác thích hợp, có thể yêu cầu Java xử lý pipeline theo chế độ **song song**.
+In the **`JAVA_STREAM_API`** module, the Stream API lets you describe declarative pipelines: creating a source, chaining lazy intermediate steps such as `filter`, `map`, and `flatMap`, and finishing with `reduce`, `collect`, or an aggregation operation. With sufficiently large data and suitable operations, you can ask Java to process the pipeline in **parallel** mode.
 
-Tuy nhiên, `parallel()` **không có nghĩa một phần tử được giao cho một thread riêng**, và `parallelStream()` cũng **không bảo đảm nhanh hơn** stream tuần tự. Muốn hiểu ngữ nghĩa và hiệu năng, cần nắm ba giai đoạn khái niệm:
+However, `parallel()` **does not mean one element is assigned to a dedicated thread**, and `parallelStream()` **does not guarantee faster execution** than a sequential stream. To understand both semantics and performance, you need to grasp three conceptual stages:
 
-1. **Chia nguồn (split):** phân nguồn thành các phần công việc có thể được xử lý độc lập.
-2. **Xử lý (process):** cho mỗi phần tử đi qua những thao tác trong pipeline.
-3. **Ghép kết quả (combine):** kết hợp các kết quả cục bộ để hoàn thành terminal operation.
+1. **Split:** partition the source into work chunks that can be processed independently.
+2. **Process:** pass each element through the operations in the pipeline.
+3. **Combine:** merge local results to complete the terminal operation.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích vai trò của `Spliterator.trySplit()` trong quá trình chia dữ liệu.
-- Phân biệt phần công việc, thread thực thi và thứ tự gặp (*encounter order*).
-- Đọc cơ chế giảm dữ liệu bằng `reduce`, tích lũy bằng `collect` và ghép kết quả.
-- Hiểu tại sao `identity`, tính kết hợp (*associativity*) và `combiner` quyết định tính đúng khi chạy song song.
-- Nhận diện lỗi do tác dụng phụ, trạng thái chia sẻ hoặc giả định sai về thứ tự.
-- Kiểm tra kết quả trước, sau đó mới cân nhắc đo hiệu năng.
+- Explain the role of `Spliterator.trySplit()` in partitioning data.
+- Distinguish work chunks, execution threads, and *encounter order*.
+- Read how data is reduced with `reduce`, accumulated with `collect`, and combined.
+- Understand why `identity`, *associativity*, and `combiner` determine correctness in parallel execution.
+- Identify bugs caused by side effects, shared state, or false ordering assumptions.
+- Verify result correctness first, and only then consider performance measurement.
 
-Bài thuộc chương **Ngữ nghĩa xử lý song song**, làm nền tảng cho nội dung về `Spliterator`, collector tùy chỉnh, grouping, tính trạng thái và giới hạn tài nguyên.
+This lesson belongs to the **Parallel Processing Semantics** chapter, serving as a foundation for `Spliterator`, custom collectors, grouping, statefulness, and resource limits.
 
-## 2. Hình dung ba giai đoạn trên một pipeline
+## 2. Visualizing the three stages on a pipeline
 
-Xét phép tính tổng bình phương của tám số:
+Consider computing the sum of squares of eight numbers:
 
 ```java
 import java.util.stream.LongStream;
@@ -40,18 +40,18 @@ public class ViDuTongBinhPhuong {
 }
 ```
 
-Về mặt toán học:
+Mathematically:
 
 ```text
 1² + 2² + 3² + 4² + 5² + 6² + 7² + 8² = 204
 ```
 
-Một cách phân chia **có thể hình dung**:
+One **possible way to visualize** the split:
 
 ```text
-                Nguồn: 1 2 3 4 5 6 7 8
+                Source: 1 2 3 4 5 6 7 8
                            |
-                        SPLIT
+                         SPLIT
                 ___________|___________
                /                       \
            1 2 3 4                   5 6 7 8
@@ -64,18 +64,18 @@ Một cách phân chia **có thể hình dung**:
            \      /                \       /
               30                      174
                 \                    /
-                 COMBINE (phép cộng)
+                 COMBINE (addition)
                          |
                         204
 ```
 
-**Sơ đồ không cam kết** JVM luôn chia đúng bốn nhánh, theo ranh giới đó hoặc chỉ dùng bốn thread. Nguồn và runtime quyết định khả năng chia, kích thước công việc, lịch xử lý và cách ghép. Ngữ nghĩa của phép tính vẫn phải đúng khi các hàm trong pipeline thỏa hợp đồng Stream.
+**This diagram does not promise** that the JVM always splits into exactly four branches, along those boundaries, or using only four threads. The source and runtime decide splittability, task size, execution schedule, and combining strategy. The semantics of the computation must still hold whenever the pipeline functions obey the Stream contract.
 
-Không phải mọi phần tử đều có một tác vụ riêng. Việc tạo quá nhiều tác vụ nhỏ có thể tốn chi phí hơn tính toán thực tế, nên parallel stream thường xử lý **lô phần tử** trong từng phần công việc.
+Not every element gets its own task. Creating too many tiny tasks can cost more than the actual computation, so parallel streams typically process **batches of elements** within each work chunk.
 
-## 3. Bật chế độ song song và khi nào pipeline thực sự chạy
+## 3. Enabling parallel mode and when the pipeline actually runs
 
-Có hai cách thường gặp:
+There are two common approaches:
 
 ```java
 import java.util.Arrays;
@@ -91,7 +91,7 @@ System.out.println(a.isParallel()); // true
 System.out.println(b.isParallel()); // true
 ```
 
-`parallel()` là một thao tác **trung gian** cấu hình chế độ chạy. Nó không tự tiêu thụ dữ liệu: quá trình xử lý chỉ bắt đầu khi terminal operation như `sum`, `reduce`, `count`, `collect` hay `forEach` cần kết quả.
+`parallel()` is an **intermediate** operation that configures the execution mode. It does not consume data by itself: processing only starts when a terminal operation such as `sum`, `reduce`, `count`, `collect`, or `forEach` requires a result.
 
 ```java
 long tong = so.stream()
@@ -102,7 +102,7 @@ long tong = so.stream()
 System.out.println(tong); // 15
 ```
 
-`sequential()` đưa pipeline trở lại chế độ tuần tự:
+`sequential()` returns the pipeline to sequential mode:
 
 ```java
 long tongTuanTu = so.stream()
@@ -114,47 +114,47 @@ long tongTuanTu = so.stream()
 System.out.println(tongTuanTu); // 15
 ```
 
-Không nên hiểu đoạn trên như "phần trước `sequential()` chạy song song, phần sau chạy tuần tự". Với pipeline Stream thông thường, chế độ tuần tự/song song được thiết lập cho **toàn pipeline khi terminal operation thực thi**, không phải cho từng stage độc lập.
+Do not read the snippet above as "everything before `sequential()` runs in parallel, and everything after runs sequentially." For ordinary Stream pipelines, sequential/parallel mode is set for the **entire pipeline when the terminal operation executes**, not per individual stage.
 
-Một stream **chỉ được tiêu thụ một lần**. Muốn so sánh kết quả tuần tự và song song, tạo hai stream mới từ cùng nguồn; không gọi terminal operation lần thứ hai trên stream đã được sử dụng.
+A stream **can only be consumed once**. To compare sequential and parallel results, create two new streams from the same source; do not call a second terminal operation on an already consumed stream.
 
-## 4. Giai đoạn chia nguồn: `Spliterator`
+## 4. The split stage: `Spliterator`
 
-### 4.1. Vai trò của `Spliterator`
+### 4.1. Role of `Spliterator`
 
-`Spliterator<T>` cung cấp cơ chế tiêu thụ và **thử chia** nguồn. Những phương thức quan trọng:
+`Spliterator<T>` provides the mechanism to consume and **attempt to split** a source. Key methods:
 
-| Phương thức | Ý nghĩa |
+| Method | Meaning |
 | --- | --- |
-| `tryAdvance(Consumer<? super T>)` | Cấp một phần tử tiếp theo cho consumer nếu còn. |
-| `forEachRemaining(Consumer<? super T>)` | Tiêu thụ toàn bộ phần còn lại. |
-| `trySplit()` | Thử tách một phần dữ liệu ra spliterator khác; có thể trả `null`. |
-| `estimateSize()` | Cho biết số phần tử ước tính còn lại. |
-| `characteristics()` | Mô tả các thuộc tính như `ORDERED`, `SIZED`, `SUBSIZED`. |
+| `tryAdvance(Consumer<? super T>)` | Supplies the next element to the consumer if available. |
+| `forEachRemaining(Consumer<? super T>)` | Consumes all remaining elements. |
+| `trySplit()` | Attempts to partition a portion of data into another spliterator; may return `null`. |
+| `estimateSize()` | Reports the estimated number of remaining elements. |
+| `characteristics()` | Describes attributes such as `ORDERED`, `SIZED`, `SUBSIZED`. |
 
-Ví dụ mô hình:
+Model example:
 
 ```text
-Spliterator ban đầu: [A, B, C, D, E, F]
+Initial Spliterator: [A, B, C, D, E, F]
                       trySplit()
                       /        \
-   Spliterator mới [A,B,C]    Phần còn lại [D,E,F]
+   New Spliterator [A,B,C]    Remaining [D,E,F]
 ```
 
-Với một nguồn có thứ tự, phần tách ra của `trySplit` phải tương ứng một **tiền tố** của những phần tử chưa duyệt, nhưng cách chia và kích thước từng phần phụ thuộc nguồn. Không phải mọi nguồn đều chia đều; có nguồn trả `null` vì không thể chia hoặc chia không có lợi.
+For an ordered source, the split-off part from `trySplit` must correspond to a **prefix** of the unvisited elements, although the split strategy and chunk sizes depend on the source. Not every source splits evenly; some return `null` because they cannot split or splitting is not worthwhile.
 
-Đặc tính thường gặp:
+Common characteristics:
 
-- **`ORDERED`:** nguồn có encounter order xác định.
-- **`SIZED`:** biết chính xác kích thước phần dữ liệu còn lại theo hợp đồng.
-- **`SUBSIZED`:** những spliterator con tạo khi tách cũng có kích thước chính xác.
-- **`SORTED` / `DISTINCT`:** nguồn đã thỏa các tính chất có thể giúp tối ưu một số bước.
+- **`ORDERED`:** the source has a defined encounter order.
+- **`SIZED`:** the exact remaining element count is known per contract.
+- **`SUBSIZED`:** child spliterators produced by splitting also have exact sizes.
+- **`SORTED` / `DISTINCT`:** the source already satisfies these properties, which can help optimize certain steps.
 
-Những đặc tính này là **hợp đồng**, không phải gợi ý tùy tiện. Khi viết spliterator riêng, khai báo sai `SIZED`, `SUBSIZED` hoặc `ORDERED` có thể dẫn đến lỗi nghiêm trọng khi pipeline dùng tối ưu hóa.
+These characteristics are **contracts**, not casual hints. When writing a custom spliterator, misdeclaring `SIZED`, `SUBSIZED`, or `ORDERED` can cause serious bugs when the pipeline applies optimizations.
 
-### 4.2. Quan sát một lần gọi `trySplit`
+### 4.2. Observing a single `trySplit` call
 
-Ví dụ Java 8+ tự chứa:
+Self-contained Java 8+ example:
 
 ```java
 import java.util.ArrayList;
@@ -187,28 +187,28 @@ public class ThuTrySplit {
 }
 ```
 
-Với nguồn `List` có thứ tự như trên, phần tách ra là tiền tố và phần còn lại là hậu tố. Chương trình không bắt buộc giả định kích thước `a` và `b` bằng nhau. **Gọi trực tiếp `trySplit` không tạo thread**: nó chỉ chia đối tượng đại diện dữ liệu.
+With an ordered `List` source like above, the split-off part is a prefix and the remaining part is a suffix. The program does not have to assume `a` and `b` have equal sizes. **Calling `trySplit` directly does not spawn threads**: it only divides the object representing the data.
 
-### 4.3. Không phải nguồn nào cũng chia hiệu quả
+### 4.3. Not every source splits efficiently
 
-| Nguồn | Đặc điểm chia nguồn | Hệ quả |
+| Source | Splitting characteristic | Consequence |
 | --- | --- | --- |
-| Mảng, `ArrayList`, `IntStream.range` | Thường chia thành các đoạn nhanh, cân bằng | Thường thuận lợi nếu xử lý CPU-bound đủ lớn. |
-| `LinkedList` | Không có truy cập chỉ số nhanh như mảng | Việc chia có thể đòi hỏi gom theo lô; cần đo. |
-| `Stream.iterate` | Phần tử kế tiếp có thể phụ thuộc phần tử trước | Khó tận dụng chia độc lập trong một số trường hợp. |
-| `BufferedReader.lines()` | Nguồn I/O đọc tuần tự | Song song không tự làm việc đọc tệp hiệu quả. |
-| `Files.walk` / `Files.find` | Duyệt cây và truy cập I/O, có trạng thái | Giới hạn tài nguyên và cách chia khác nguồn trong bộ nhớ. |
-| Spliterator tùy chỉnh | Phụ thuộc trực tiếp vào `trySplit` | Phải bảo đảm không mất hoặc lặp phần tử. |
+| Array, `ArrayList`, `IntStream.range` | Usually splits into fast, balanced segments | Generally favorable if CPU-bound work is large enough. |
+| `LinkedList` | Lacks fast index access like arrays | Splitting may require batching; needs measurement. |
+| `Stream.iterate` | Next element may depend on the previous element | Hard to exploit independent splitting in some cases. |
+| `BufferedReader.lines()` | Sequential I/O reading source | Parallelism does not automatically make file reading efficient. |
+| `Files.walk` / `Files.find` | Tree traversal and I/O access, stateful | Resource limits and splitting differ from in-memory sources. |
+| Custom Spliterator | Depends directly on `trySplit` | Must ensure no elements are dropped or duplicated. |
 
-Nguồn có thể chia thành hai vùng có số phần tử gần bằng nhau nhưng **chi phí mỗi phần tử khác nhau**. Do đó "chia đều số lượng" chưa đủ để bảo đảm cân bằng tải.
+A source may split into two regions with nearly equal element counts yet **different per-element costs**. Hence "splitting element counts evenly" is not enough to guarantee load balance.
 
-## 5. Giai đoạn xử lý: tác vụ, thread và fork/join
+## 5. The process stage: tasks, threads, and fork/join
 
-Parallel stream trong những triển khai JDK thông dụng thường dùng cơ chế **fork/join**, với nhiều tác vụ có thể chạy trong `ForkJoinPool.commonPool()`. Đây là mô tả triển khai thường gặp, **không phải lời hứa API** rằng mỗi pipeline luôn dùng một pool, một số thread hoặc tên thread cố định.
+Parallel streams in common JDK implementations typically use the **fork/join** mechanism, with many tasks able to run in `ForkJoinPool.commonPool()`. This is a description of a common implementation, **not an API promise** that every pipeline always uses a specific pool, thread count, or thread name.
 
-Trong fork/join, một tác vụ có thể tiếp tục chia công việc thành các tác vụ con; những worker khác có thể lấy việc còn lại (*work stealing*). Không có bảo đảm mỗi phần tử hoặc mỗi nhánh sơ đồ được xử lý bởi một thread riêng.
+In fork/join, a task can further split work into subtasks; other workers can pick up remaining work (*work stealing*). There is no guarantee that each element or each diagram branch is processed by a separate thread.
 
-### 5.1. `map` và `filter` giữ ngữ nghĩa dữ liệu
+### 5.1. `map` and `filter` preserve data semantics
 
 ```java
 import java.util.Arrays;
@@ -225,9 +225,9 @@ List<Integer> ketQua = nguon.parallelStream()
 System.out.println(ketQua); // [4, 16, 36]
 ```
 
-Trên một `List` có thứ tự, `filter` giữ thứ tự tương đối các phần tử còn lại, `map` biến đổi từng giá trị và collector `toList` thu theo encounter order. **Các callback có thể chạy ở thứ tự thời gian khác**, nhưng list kết quả vẫn có thứ tự logic như trên.
+On an ordered `List`, `filter` preserves the relative order of surviving elements, `map` transforms each value, and the `toList` collector gathers elements in encounter order. **Callbacks may run in a different wall-clock order**, yet the resulting list retains the logical order shown above.
 
-Một hàm xử lý phù hợp:
+A well-behaved processing function:
 
 ```java
 List<Integer> binhPhuong = nguon.parallelStream()
@@ -235,22 +235,22 @@ List<Integer> binhPhuong = nguon.parallelStream()
     .collect(Collectors.toList());
 ```
 
-Nó không sửa nguồn, không cập nhật biến bên ngoài và không dựa vào lần gọi trước. Những hàm **stateless** và **non-interfering** như vậy dễ lý luận khi chia các phần tử cho nhiều tác vụ.
+It does not modify the source, does not update external variables, and does not depend on prior invocations. Such **stateless** and **non-interfering** functions are easy to reason about when distributing elements across tasks.
 
-### 5.2. Tải mỗi phần tử có thể khác nhau
+### 5.2. Cost per element can vary
 
-Giả sử 100 phần tử đầu rất nhẹ còn 100 phần tử sau cần tính toán nặng. Nếu nguồn chia thành hai nửa bằng số lượng, **thời gian hai nhánh vẫn không cân bằng**. Runtime có thể chia thêm các phần, nhưng không có bảo đảm tự động xóa hết mất cân bằng.
+Suppose the first 100 elements are very cheap while the next 100 require heavy computation. If the source splits into two halves by count, **the execution time of the two branches remains unbalanced**. The runtime may split parts further, but there is no guarantee it automatically eliminates all imbalance.
 
-Vì vậy khi đánh giá một nguồn, cần hỏi:
+Therefore, when evaluating a source, ask:
 
-- `trySplit` có tạo phần công việc đủ cân bằng và không quá tốn chi phí không?
-- Các phần tử có chi phí xử lý gần nhau không?
-- Có lock hoặc tài nguyên chia sẻ làm các tác vụ phải chờ nhau không?
-- Công việc chủ yếu giới hạn bởi CPU, bộ nhớ hay I/O?
+- Does `trySplit` produce reasonably balanced chunks without excessive overhead?
+- Do elements have roughly similar processing costs?
+- Are there locks or shared resources forcing tasks to wait on each other?
+- Is the work primarily CPU-bound, memory-bound, or I/O-bound?
 
-## 6. Giai đoạn ghép: `reduce`
+## 6. The combine stage: `reduce`
 
-Song song hóa đúng nghĩa là kết quả từ nhiều nhánh có thể **ghép lại mà không phụ thuộc cách chia**. Ví dụ phép cộng trên những số trong miền an toàn:
+True parallelization means results from multiple branches can be **combined regardless of how the source was split**. For example, addition on numbers within a safe range:
 
 ```java
 import java.util.stream.LongStream;
@@ -262,7 +262,7 @@ long tong = LongStream.rangeClosed(1, 1000)
 System.out.println(tong); // 500500
 ```
 
-`0L` là **identity** của phép cộng, `Long::sum` là phép kết hợp. Một phép toán `op` với identity `e` cần thỏa:
+`0L` is the **identity** of addition, and `Long::sum` is the combining operation. An operation `op` with identity `e` must satisfy:
 
 ```text
 op(e, x) == x
@@ -270,16 +270,16 @@ op(x, e) == x
 op(op(a, b), c) == op(a, op(b, c))
 ```
 
-Tính chất thứ ba gọi là **associativity** (tính kết hợp). Nó cho phép đổi cách đặt ngoặc khi ghép tổng cục bộ.
+The third property is called **associativity**. It permits regrouping parentheses when merging local sums.
 
-### 6.1. Vì sao phép trừ không phù hợp?
+### 6.1. Why is subtraction unsuitable?
 
 ```text
 (10 - 3) - 2 = 5
 10 - (3 - 2) = 9
 ```
 
-Phép trừ không kết hợp, nên ví dụ sau không bảo đảm cùng kết quả logic giữa tuần tự và song song:
+Subtraction is not associative, so the following example is not guaranteed to produce the same logical result between sequential and parallel runs:
 
 ```java
 List<Integer> so = Arrays.asList(1, 2, 3, 4);
@@ -291,28 +291,28 @@ int songSong = so.parallelStream()
     .reduce(0, (a, b) -> a - b);
 
 System.out.println(tuanTu);  // -10
-System.out.println(songSong); // Không bảo đảm bằng -10
+System.out.println(songSong); // Not guaranteed to equal -10
 ```
 
-Một lần chạy tình cờ cho giá trị mong muốn không chứng minh phép toán hợp lệ. Lỗi nằm ở **quy tắc đại số**, không nằm ở số lõi CPU.
+Getting the expected value by chance in one run does not prove the operation is valid. The flaw lies in the **algebraic law**, not in the number of CPU cores.
 
-### 6.2. Identity sai có thể bị áp dụng nhiều lần
+### 6.2. A wrong identity can be applied multiple times
 
 ```java
-// SAI: 10 không phải identity của phép cộng.
+// WRONG: 10 is not an identity for addition.
 int sai = so.parallelStream().reduce(10, Integer::sum);
 
-// ĐÚNG:
+// RIGHT:
 int dung = so.parallelStream().reduce(0, Integer::sum);
 
 System.out.println(dung); // 10
 ```
 
-Trong chế độ tuần tự, thêm identity `10` khiến tổng sai một lần. Trong chế độ song song, giá trị khởi đầu có thể được đưa vào **nhiều phần cục bộ**, nên sai số không có một lượng cố định mà chương trình được phép dựa vào.
+In sequential mode, adding identity `10` makes the sum wrong once. In parallel mode, the initial value can be introduced into **multiple local partitions**, so the error is not a fixed offset that the program can rely on.
 
-### 6.3. Overload ba tham số có accumulator và combiner
+### 6.3. Three-argument overload with accumulator and combiner
 
-Chữ ký:
+Signature:
 
 ```java
 <U> U reduce(
@@ -322,7 +322,7 @@ Chữ ký:
 );
 ```
 
-Ví dụ tính tổng độ dài các chuỗi:
+Example summing string lengths:
 
 ```java
 List<String> ten = Arrays.asList("Java", "Go", "Kotlin");
@@ -335,15 +335,15 @@ int tong = ten.parallelStream()
 System.out.println(tong); // 12
 ```
 
-Ngoài identity đúng và combiner có tính kết hợp, còn có yêu cầu **tương thích** giữa accumulator và combiner:
+In addition to a valid identity and an associative combiner, there is a **compatibility** requirement between accumulator and combiner:
 
 ```text
 combiner(u, accumulator(identity, t)) == accumulator(u, t)
 ```
 
-Trong ví dụ: `u + (0 + s.length()) == u + s.length()`. Nếu combiner bị thay thành phép trừ, kết quả ở chế độ song song có thể sai dù phiên bản tuần tự dường như hoạt động.
+In the example: `u + (0 + s.length()) == u + s.length()`. If the combiner were replaced with subtraction, parallel execution could produce the wrong result even though the sequential version appears to work.
 
-Chỉ để tính tổng độ dài chuỗi, API chuyên biệt thường gọn hơn:
+Just to sum string lengths, specialized APIs are usually more concise:
 
 ```java
 int tong = ten.parallelStream()
@@ -351,17 +351,17 @@ int tong = ten.parallelStream()
     .sum();
 ```
 
-### 6.4. Số thực và tràn số
+### 6.4. Floating-point numbers and integer overflow
 
-`double` có sai số dấu phẩy động: `(a + b) + c` có thể khác `a + (b + c)` về bit. Vì vậy, các kết quả `DoubleStream.reduce` có thể khác những chữ số cuối khi thay đổi cách nhóm; khi kiểm thử dữ liệu số thực, hãy xác định dung sai phù hợp. `DoubleStream.sum()` có thể áp dụng thuật toán cộng bù để giảm sai số, nên không nhất thiết có cách đánh giá giống `reduce(0.0, Double::sum)`.
+`double` has floating-point error: `(a + b) + c` can differ bitwise from `a + (b + c)`. Therefore, `DoubleStream.reduce` results may differ in the least significant digits when grouping changes; when testing floating-point data, specify an appropriate tolerance. `DoubleStream.sum()` may apply compensated summation to reduce error, so it does not necessarily evaluate identically to `reduce(0.0, Double::sum)`.
 
-Tổng kiểu `int` hoặc `long` cũng có giới hạn. Dùng kiểu phù hợp và ca kiểm tra chống tràn khi nghiệp vụ yêu cầu chính xác lớn; không dùng kết quả song song "giống tuần tự" làm bằng chứng rằng phép tính không tràn.
+Sums of `int` or `long` also have bounds. Use an appropriate type and overflow checks when business logic requires high precision; do not treat "parallel matches sequential" as proof that the calculation did not overflow.
 
-## 7. `collect`: vùng tích lũy cục bộ và combiner
+## 7. `collect`: local accumulation containers and combiner
 
-`reduce` thường kết hợp **giá trị mới**; `collect` hỗ trợ **mutable reduction** như list, set, map và thống kê theo nhóm.
+`reduce` typically combines into a **new value**; `collect` supports **mutable reduction** such as lists, sets, maps, and grouped statistics.
 
-Ví dụ:
+Example:
 
 ```java
 List<String> ten = Arrays.asList("Java", "Go", "Kotlin");
@@ -373,12 +373,12 @@ List<String> ketQua = ten.parallelStream()
 System.out.println(ketQua); // [JAVA, GO, KOTLIN]
 ```
 
-Một collector có các thành phần khái niệm:
+A collector has conceptual components:
 
-1. **Supplier:** tạo đối tượng tích lũy ban đầu.
-2. **Accumulator:** ghi một phần tử vào đối tượng tích lũy.
-3. **Combiner:** ghép các đối tượng tích lũy từ nhiều phần việc.
-4. **Finisher:** biến đối tượng tích lũy thành kết quả cuối, khi cần.
+1. **Supplier:** creates an initial accumulation container.
+2. **Accumulator:** records one element into an accumulation container.
+3. **Combiner:** merges accumulation containers from multiple work chunks.
+4. **Finisher:** transforms the accumulation container into the final result, when needed.
 
 ```text
              [Java, Go]        [Kotlin]
@@ -396,33 +396,33 @@ Một collector có các thành phần khái niệm:
                [Java, Go, Kotlin]
 ```
 
-Sơ đồ minh họa, không khẳng định collector luôn tạo đúng hai list. Runtime có thể phân chia và ghép theo nhiều cách phù hợp hợp đồng.
+This diagram is illustrative and does not claim that a collector always creates two lists. The runtime may partition and combine in various ways consistent with the contract.
 
-### 7.1. Đừng tự sửa một `ArrayList` dùng chung
+### 7.1. Do not manually mutate a shared `ArrayList`
 
 ```java
 List<Integer> nguon = Arrays.asList(1, 2, 3, 4);
 List<Integer> ketQua = new ArrayList<>();
 
-// KHÔNG AN TOÀN: nhiều thread có thể cùng thêm vào ArrayList.
+// UNSAFE: multiple threads may concurrently add to the ArrayList.
 nguon.parallelStream().forEach(ketQua::add);
 ```
 
-Thay bằng:
+Replace with:
 
 ```java
 List<Integer> ketQua = nguon.parallelStream()
     .collect(Collectors.toList());
 ```
 
-Collector có thể tổ chức các vùng tích lũy độc lập và ghép chúng. `Collectors.toList()` không cam kết loại list hay khả năng sửa cụ thể. Nếu cần `ArrayList` rõ ràng:
+A collector can organize independent accumulation regions and merge them. `Collectors.toList()` does not guarantee a specific list type or mutability. If an `ArrayList` is explicitly needed:
 
 ```java
 ArrayList<Integer> ketQua = nguon.parallelStream()
     .collect(Collectors.toCollection(ArrayList::new));
 ```
 
-### 7.2. Nhìn cách hoạt động qua overload của `collect`
+### 7.2. Seeing how it works via the three-argument `collect` overload
 
 ```java
 long[] tongTrongMang = Arrays.asList(1, 2, 3, 4)
@@ -436,11 +436,11 @@ long[] tongTrongMang = Arrays.asList(1, 2, 3, 4)
 System.out.println(tongTrongMang[0]); // 10
 ```
 
-Supplier tạo một mảng `long[1]` riêng mỗi lần được gọi; accumulator cập nhật mảng của phần việc; combiner ghép tổng từ mảng khác. **Không được** dùng một mảng toàn cục làm supplier cho mọi phần việc. Đây là ví dụ để hiểu cơ chế; khi chỉ cần tính tổng, `mapToLong(Integer::longValue).sum()` đơn giản hơn.
+The supplier creates a separate `long[1]` array each time it is called; the accumulator updates the chunk's array; the combiner merges the sum from another array. **You must not** return a single global array from the supplier for all chunks. This example illustrates the mechanism; when you only need a sum, `mapToLong(Integer::longValue).sum()` is simpler.
 
-## 8. Ghép nhóm với `groupingBy`
+## 8. Grouping and combining with `groupingBy`
 
-`groupingBy` có thể tạo các bản đồ nhóm cục bộ rồi ghép theo khóa. Khi có nhiều nhóm, chi phí ghép các map và danh sách có thể đáng kể.
+`groupingBy` can build local group maps and then merge them by key. When there are many groups, the cost of merging maps and lists can be substantial.
 
 ```java
 List<String> tu = Arrays.asList(
@@ -453,7 +453,7 @@ Map<Integer, List<String>> theoDoDai = tu.parallelStream()
 System.out.println(theoDoDai.get(4)); // [Java, Ruby]
 ```
 
-Nếu chỉ cần đếm:
+If you only need counts:
 
 ```java
 Map<Integer, Long> dem = tu.parallelStream()
@@ -463,7 +463,7 @@ Map<Integer, Long> dem = tu.parallelStream()
 System.out.println(dem.get(4)); // 2
 ```
 
-`groupingByConcurrent` có thể cho phép các tác vụ tích lũy vào một `ConcurrentMap` phù hợp trong những điều kiện nhất định. Collector này có đặc tính **concurrent** và **unordered**, nên không được kỳ vọng giữ encounter order của các phần tử trong mỗi nhóm:
+`groupingByConcurrent` can allow tasks to accumulate into a `ConcurrentMap` under suitable conditions. This collector has **concurrent** and **unordered** characteristics, so you must not expect it to preserve the encounter order of elements within each group:
 
 ```java
 import java.util.concurrent.ConcurrentMap;
@@ -473,17 +473,17 @@ ConcurrentMap<Integer, Long> demConcurrent = tu.parallelStream()
         String::length, Collectors.counting()));
 ```
 
-Không chọn `groupingByConcurrent` chỉ vì tên có chữ "Concurrent". Cần xét yêu cầu thứ tự, độ lệch phân phối nhóm, chi phí tranh chấp, bộ nhớ và đo hiệu năng thật.
+Do not choose `groupingByConcurrent` solely because its name contains "Concurrent." Consider ordering requirements, group distribution skew, contention overhead, memory, and real performance measurements.
 
-## 9. Encounter order không phải thứ tự thực thi
+## 9. Encounter order is not execution order
 
-| Loại thứ tự | Nghĩa | Điều được bảo đảm |
+| Order type | Meaning | What is guaranteed |
 | --- | --- | --- |
-| **Encounter order** | Thứ tự logic do nguồn và pipeline xác định | Có với ordered stream như `List.stream()`, `IntStream.range` nếu chưa bỏ ràng buộc. |
-| **Execution order** | Khi nào, trên thread nào callback được gọi | Không cam kết trên parallel stream. |
-| **Result order** | Thứ tự do terminal operation/collector trả ra | Phụ thuộc nguồn và ngữ nghĩa phép kết thúc. |
+| **Encounter order** | Logical order defined by source and pipeline | Preserved on ordered streams like `List.stream()`, `IntStream.range` unless relaxed. |
+| **Execution order** | When and on which thread callbacks are invoked | Not guaranteed on a parallel stream. |
+| **Result order** | Order returned by a terminal operation/collector | Depends on the source and the terminal operation's semantics. |
 
-Ví dụ:
+Example:
 
 ```java
 List<Integer> so = Arrays.asList(1, 2, 3, 4, 5);
@@ -495,23 +495,23 @@ List<Integer> ketQua = so.parallelStream()
 System.out.println(ketQua); // [10, 20, 30, 40, 50]
 ```
 
-List kết quả theo encounter order, nhưng các lệnh `map` không nhất thiết được gọi đúng 1, 2, 3, 4, 5 theo thời gian.
+The resulting List follows encounter order, even though the `map` calls do not necessarily execute in the chronological order 1, 2, 3, 4, 5.
 
-### `forEach` khác `forEachOrdered`
+### `forEach` vs. `forEachOrdered`
 
 ```java
 so.parallelStream().forEach(System.out::println);
 ```
 
-Không bảo đảm in 1 đến 5 theo thứ tự. Khi thật sự cần thực hiện hành động cuối theo thứ tự gặp:
+This does not guarantee printing 1 through 5 in order. When you genuinely need the final action to run in encounter order:
 
 ```java
 so.parallelStream().forEachOrdered(System.out::println);
 ```
 
-Trên nguồn `List`, `forEachOrdered` in 1, 2, 3, 4, 5; yêu cầu này có thể hạn chế lợi ích song song. Khi mục tiêu là thu danh sách, `collect` rõ hơn việc tự ghi vào list bên ngoài.
+On a `List` source, `forEachOrdered` prints 1, 2, 3, 4, 5; this requirement can limit parallel gains. When the goal is collecting a list, `collect` is clearer than writing manually to an external list.
 
-### `findFirst` khác `findAny`
+### `findFirst` vs. `findAny`
 
 ```java
 int first = so.parallelStream()
@@ -522,30 +522,30 @@ int first = so.parallelStream()
 int any = so.parallelStream()
     .filter(n -> n > 2)
     .findAny()
-    .orElse(-1); // Có thể là 3, 4 hoặc 5
+    .orElse(-1); // Could be 3, 4, or 5
 ```
 
-`findFirst` tôn trọng vị trí đầu tiên trong encounter order. `findAny` chấp nhận bất kỳ phần tử phù hợp, nên không viết test cứng rằng nó luôn trả 3.
+`findFirst` respects the first position in encounter order. `findAny` accepts any matching element, so do not hardcode tests assuming it always returns 3.
 
-`unordered()` không bắt buộc xáo trộn; nó chỉ **bỏ yêu cầu bảo toàn thứ tự** cho những bước có thể tận dụng điều đó. Khi cần đúng N phần tử đầu hoặc phần tử đầu tiên, không tự ý thêm `unordered()`.
+`unordered()` does not force shuffling; it only **relaxes the order-preservation requirement** for steps that can take advantage of it. When you need the exact first N elements or the very first element, do not casually add `unordered()`.
 
 
-## 10. Stateful operations và short-circuit trong song song
+## 10. Stateful operations and short-circuiting in parallel
 
-Không phải mọi bước trung gian đều độc lập từng phần tử:
+Not every intermediate step is element-by-element independent:
 
-| Phép toán | Đặc điểm | Ảnh hưởng có thể gặp khi chạy song song |
+| Operation | Characteristic | Potential impact when run in parallel |
 | --- | --- | --- |
-| `map` | Thường stateless nếu mapper thuần | Dễ xử lý riêng từng phần. |
-| `filter` | Thường stateless nếu predicate thuần | Dễ xử lý riêng, nhưng số lượng kết quả chưa chắc biết trước. |
-| `sorted` | Stateful, cần thông tin của nhiều phần tử | Có thể phải giữ dữ liệu và phối hợp để sắp xếp. |
-| `distinct` | Stateful vì cần loại trùng | Giữ phần tử xuất hiện đầu trên ordered stream có thể tốn phối hợp. |
-| `limit(n)` / `skip(n)` | Phụ thuộc vị trí phần tử nếu nguồn ordered | Có thể cần phối hợp để xác định đoạn đầu/bỏ qua. |
-| `takeWhile` / `dropWhile` (Java 9+) | Phụ thuộc đoạn đầu liên tục thỏa điều kiện | Ràng buộc thứ tự có thể giảm hiệu quả song song. |
-| `findFirst` | Short-circuit và tôn trọng phần tử đầu nếu ordered | Có thể phải đồng bộ thông tin giữa các nhánh. |
-| `findAny` / `anyMatch` | Short-circuit | Có thể dừng sớm mà không cần xét toàn bộ nguồn. |
+| `map` | Usually stateless if mapper is pure | Easy to process independently per chunk. |
+| `filter` | Usually stateless if predicate is pure | Easy to process independently, though output count may be unknown upfront. |
+| `sorted` | Stateful, needs information across many elements | May need to buffer data and coordinate to sort. |
+| `distinct` | Stateful because deduplication is required | Keeping the first occurrence on an ordered stream can incur coordination cost. |
+| `limit(n)` / `skip(n)` | Depends on element position if source is ordered | May need coordination to identify the leading/skipped segment. |
+| `takeWhile` / `dropWhile` (Java 9+) | Depends on a contiguous prefix matching a condition | Ordering constraints can reduce parallel efficiency. |
+| `findFirst` | Short-circuiting and respects first element if ordered | May need to synchronize information across branches. |
+| `findAny` / `anyMatch` | Short-circuiting | Can stop early without examining the entire source. |
 
-### 10.1. `limit` trên nguồn ordered
+### 10.1. `limit` on an ordered source
 
 ```java
 import java.util.stream.IntStream;
@@ -559,11 +559,11 @@ List<Integer> dauTien = IntStream.range(0, 1000)
 System.out.println(dauTien); // [0, 1, 2, 3, 4]
 ```
 
-Với nguồn `IntStream.range` có thứ tự, `limit(5)` phải chọn năm phần tử **đầu tiên theo thứ tự logic**, không phải năm phần tử mà thread nào đó hoàn thành sớm. Việc duy trì yêu cầu này có thể phát sinh chi phí phối hợp.
+With an ordered `IntStream.range` source, `limit(5)` must select the **first five elements in logical order**, not whichever five elements some thread finishes first. Maintaining this requirement can incur coordination overhead.
 
-`sorted().limit(5)` và `limit(5).sorted()` cũng có ngữ nghĩa khác nhau: cách thứ nhất tìm năm giá trị nhỏ nhất của toàn nguồn; cách thứ hai chỉ sắp xếp năm phần tử gặp đầu.
+`sorted().limit(5)` and `limit(5).sorted()` also have different semantics: the first finds the five smallest values in the entire source; the second only sorts the first five encountered elements.
 
-### 10.2. Short-circuit không hứa số lần gọi lambda
+### 10.2. Short-circuiting does not promise how many times a lambda runs
 
 ```java
 boolean coSoChan = IntStream.range(1, 1000)
@@ -573,21 +573,21 @@ boolean coSoChan = IntStream.range(1, 1000)
 System.out.println(coSoChan); // true
 ```
 
-`anyMatch` có thể xác định kết quả trước khi duyệt toàn bộ nguồn. Nhưng một số phần việc khác có thể đã bắt đầu, đang chạy hoặc đang ngừng; **không thể suy ra predicate được gọi đúng hai lần** chỉ vì phần tử chẵn đầu tiên theo encounter order là 2.
+`anyMatch` can determine its result before traversing the entire source. However, other work chunks may already have started, be running, or be stopping; **you cannot deduce that the predicate was called exactly twice** just because the first even element in encounter order is 2.
 
-Do đó không dùng lambda kiểm tra để kích hoạt các hành động nghiệp vụ cần chạy đủ một lần cho từng phần tử.
+Therefore, do not use a test predicate to trigger business actions that must execute once per element.
 
-## 11. Tác dụng phụ và trạng thái dùng chung
+## 11. Side effects and shared state
 
-Các hàm hành vi trong pipeline nên **non-interfering** (không sửa nguồn đang xử lý) và trong phần lớn trường hợp **stateless** (kết quả không phụ thuộc một biến đang thay đổi qua các lần gọi).
+Behavioral functions in a pipeline should be **non-interfering** (not modifying the source being processed) and in most cases **stateless** (their result does not depend on a variable changing across calls).
 
-Ví dụ **không an toàn**:
+**Unsafe** example:
 
 ```java
 List<Integer> nguon = Arrays.asList(1, 2, 3, 4, 5);
 List<Integer> dich = new ArrayList<>();
 
-// KHÔNG NÊN: nhiều thread có thể cùng sửa dich.
+// DO NOT DO THIS: multiple threads may concurrently modify dich.
 nguon.parallelStream()
     .map(n -> {
         dich.add(n);
@@ -596,12 +596,12 @@ nguon.parallelStream()
     .count();
 ```
 
-Có hai vấn đề:
+There are two issues:
 
-1. `ArrayList` dùng chung không an toàn trước các thao tác ghi đồng thời.
-2. `count()` có thể trả ngay kích thước nguồn mà **không đánh giá `map`**, vì `map` không làm thay đổi số lượng phần tử. Vì vậy `dich.add(n)` thậm chí có thể **không chạy**.
+1. A shared `ArrayList` is unsafe under concurrent writes.
+2. `count()` can return the source size directly **without evaluating `map`**, because `map` does not change element count. Thus `dich.add(n)` might not even **run**.
 
-Cách đúng nếu muốn danh sách bình phương:
+The right way if you want a list of squares:
 
 ```java
 List<Integer> binhPhuong = nguon.parallelStream()
@@ -611,7 +611,7 @@ List<Integer> binhPhuong = nguon.parallelStream()
 System.out.println(binhPhuong); // [1, 4, 9, 16, 25]
 ```
 
-### 11.1. `AtomicInteger` không tự bảo đảm đúng ngữ nghĩa
+### 11.1. `AtomicInteger` does not automatically guarantee semantic correctness
 
 ```java
 import java.util.concurrent.atomic.AtomicInteger;
@@ -623,7 +623,7 @@ List<Integer> ketQua = nguon.parallelStream()
     .collect(Collectors.toList());
 ```
 
-`AtomicInteger` giúp cập nhật bộ đếm một cách nguyên tử. Nhưng số thứ tự được gán cho từng phần tử vẫn phụ thuộc **lịch thực thi của các thread**, không còn là hàm thuần của `n`. Khi yêu cầu là xử lý theo **vị trí trong List**, có thể dùng chỉ số rõ ràng:
+`AtomicInteger` makes incrementing the counter atomic. Yet the sequence number assigned to each element still depends on **thread execution scheduling**, so it is no longer a pure function of `n`. When the requirement is processing by **position in a List**, use an explicit index:
 
 ```java
 List<Integer> theoViTri = IntStream.range(0, nguon.size())
@@ -632,12 +632,12 @@ List<Integer> theoViTri = IntStream.range(0, nguon.size())
     .collect(Collectors.toList());
 ```
 
-Mẫu này giả định nguồn `List` không bị sửa và truy cập chỉ số phù hợp, ví dụ `ArrayList`. Với `LinkedList`, truy cập theo chỉ số nhiều lần có thể tốn kém.
+This pattern assumes the source `List` is not modified and supports fast indexed access, such as `ArrayList`. For a `LinkedList`, repeated indexed access can be expensive.
 
-### 11.2. Không dùng một mutable identity trong `reduce`
+### 11.2. Do not use a mutable identity in `reduce`
 
 ```java
-// KHÔNG NÊN: identity là đối tượng ArrayList có thể sửa tại chỗ.
+// DO NOT DO THIS: identity is an ArrayList object mutated in place.
 List<Integer> sai = nguon.parallelStream()
     .reduce(
         new ArrayList<Integer>(),
@@ -652,19 +652,19 @@ List<Integer> sai = nguon.parallelStream()
     );
 ```
 
-`reduce` đòi hỏi identity và phép gộp thỏa các luật đại số; việc thay đổi tại chỗ một đối tượng identity có thể khiến nhiều phần việc chia sẻ tham chiếu, nhân đôi kết quả hoặc tạo race condition. Nếu mục tiêu là tạo một collection, dùng `collect` với supplier thích hợp.
+`reduce` requires the identity and combining operation to obey algebraic laws; mutating an identity object in place can cause multiple chunks to share references, duplicate results, or create race conditions. If the goal is building a collection, use `collect` with an appropriate supplier.
 
-### 11.3. Không sửa nguồn khi đang duyệt
+### 11.3. Do not mutate the source while traversing
 
 ```java
 List<Integer> so = new ArrayList<>(
     Arrays.asList(1, 2, 3, 4));
 
-// KHÔNG NÊN:
+// DO NOT DO THIS:
 // so.parallelStream().forEach(so::remove);
 ```
 
-Duyệt và thay đổi nguồn cùng lúc vi phạm giả định không can thiệp (*non-interference*), có thể gây lỗi hoặc kết quả sai. Thay vào đó, tạo collection mới:
+Traversing and mutating the source simultaneously violates the *non-interference* assumption and can cause errors or wrong results. Instead, create a new collection:
 
 ```java
 List<Integer> soLe = so.parallelStream()
@@ -674,34 +674,34 @@ List<Integer> soLe = so.parallelStream()
 System.out.println(soLe); // [1, 3]
 ```
 
-## 12. Chi phí và giới hạn của parallel stream
+## 12. Costs and limitations of parallel streams
 
-Parallel stream phải trả chi phí cho:
+Parallel streams pay overhead for:
 
-1. Chia nguồn và tổ chức các phần công việc.
-2. Lập lịch, chuyển việc và phối hợp các worker.
-3. Thu hoặc ghép kết quả từ các phần.
-4. Duy trì encounter order nếu phép toán yêu cầu.
-5. Cấp phát bộ nhớ trung gian và sử dụng cache/băng thông bộ nhớ.
+1. Splitting the source and organizing work chunks.
+2. Scheduling, stealing work, and coordinating workers.
+3. Collecting or merging results from parts.
+4. Maintaining encounter order when operations require it.
+5. Allocating intermediate containers and consuming memory cache/bandwidth.
 
-Song song đáng cân nhắc khi:
+Parallelism is worth considering when:
 
-- **Nguồn đủ lớn**, có khả năng chia tốt như mảng, `ArrayList` hoặc `IntStream.range`.
-- **Mỗi phần tử cần lượng tính toán CPU tương đối đáng kể**.
-- Các hàm xử lý độc lập, stateless và không tranh chấp trạng thái dùng chung.
-- Terminal operation có `combiner` hợp lệ, chi phí ghép không quá lớn.
-- CPU có tài nguyên khả dụng, không bận xử lý tác vụ khác.
+- **The source is large enough** and splits well, such as arrays, `ArrayList`, or `IntStream.range`.
+- **Each element requires a relatively substantial amount of CPU computation**.
+- Processing functions are independent, stateless, and do not contend on shared state.
+- The terminal operation has a valid `combiner` with reasonable merge cost.
+- CPU resources are available and not busy handling other tasks.
 
-Song song có thể **chậm hơn** khi:
+Parallelism can be **slower** when:
 
-- Dữ liệu chỉ vài chục hoặc vài trăm phần tử đơn giản.
-- Nguồn khó chia hoặc các phần việc chênh lệch đáng kể.
-- Nhiều bước có trạng thái như `sorted` hoặc `distinct`.
-- Các tác vụ tranh chấp một lock, map hoặc vùng nhớ.
-- Công việc chặn I/O như đọc đĩa, gọi HTTP hay chờ cơ sở dữ liệu.
-- Giới hạn chính là băng thông bộ nhớ chứ không phải sức tính CPU.
+- Data has only a few dozen or a few hundred simple elements.
+- The source splits poorly or work chunks are heavily skewed.
+- There are multiple stateful steps such as `sorted` or `distinct`.
+- Tasks contend on a lock, map, or memory region.
+- Work blocks on I/O such as disk reads, HTTP calls, or database waits.
+- The primary bottleneck is memory bandwidth rather than CPU compute power.
 
-### 12.1. So sánh kết quả không phải benchmark
+### 12.1. Comparing results is not a benchmark
 
 ```java
 long tuanTu = java.util.stream.LongStream.rangeClosed(1, 100000)
@@ -716,40 +716,40 @@ long songSong = java.util.stream.LongStream.rangeClosed(1, 100000)
 System.out.println(tuanTu == songSong); // true
 ```
 
-Trong ví dụ này, tổng bình phương vẫn nằm trong miền `long`. Nhưng phép so sánh chỉ cho biết **kết quả giống nhau**, không chứng minh song song nhanh hơn. Một phép đo thời gian đơn lẻ có thể bị ảnh hưởng bởi JIT, GC, hệ điều hành và nhiệt độ CPU.
+In this example, the sum of squares stays within `long` range. However, comparing outputs only shows **the results match**, not that parallel is faster. A single timing measurement can be skewed by JIT, GC, OS scheduling, and CPU thermal throttling.
 
-Khi đo hiệu năng thực tế, nên thiết lập workload đại diện, warm-up phù hợp, tránh tối ưu hóa loại bỏ tính toán và dùng công cụ benchmark như JMH. Không dùng `System.nanoTime()` quanh một lần chạy đơn để quyết định chuyển cả hệ thống sang parallel stream.
+For real performance measurement, set up a representative workload, warm up properly, prevent dead-code elimination, and use a benchmark tool like JMH. Do not wrap `System.nanoTime()` around a single run to decide on switching an entire system to parallel streams.
 
-### 12.2. Tác vụ chặn I/O và common pool
+### 12.2. Blocking I/O tasks and the common pool
 
-Với phép toán CPU-bound độc lập, phân chia trên nhiều lõi có thể hữu ích. Nhưng các lambda chờ mạng, chờ đĩa hoặc database có thể khiến worker trong pool bị giữ lâu và ảnh hưởng các tác vụ khác. Không giả định `Files.walk(...).parallel()` tự động làm đọc I/O nhanh hơn.
+For independent CPU-bound computations, distributing across cores can help. But lambdas waiting on network, disk, or database can tie up pool workers for long periods and affect other tasks. Do not assume `Files.walk(...).parallel()` automatically makes I/O reads faster.
 
-Trong ứng dụng dịch vụ, cần cân nhắc giới hạn kết nối, timeout, backpressure, khả năng chia nguồn và cơ chế quản lý luồng riêng khi tác vụ blocking chiếm ưu thế. Mô hình điều phối dùng chung không thay thế thiết kế tài nguyên cụ thể.
+In service applications, consider connection limits, timeouts, backpressure, source splittability, and dedicated thread management when blocking tasks dominate. A shared orchestration pool is no substitute for explicit resource design.
 
-## 13. Viết `Spliterator` và `Collector` riêng: hai hợp đồng khác nhau
+## 13. Writing custom `Spliterator` and `Collector`: two distinct contracts
 
-Khi tự viết **Spliterator**, cần trả lời:
+When writing a custom **Spliterator**, ask:
 
-- `trySplit` có tạo hai vùng **không trùng, không bỏ sót** không?
-- Với `ORDERED`, phần tách ra có giữ vai trò tiền tố không?
-- `estimateSize`, `SIZED` và `SUBSIZED` có phản ánh kích thước đúng không?
-- Có trạng thái hoặc I/O nào không thể dùng an toàn ở nhiều phần việc không?
+- Does `trySplit` produce two **non-overlapping, exhaustive** regions?
+- With `ORDERED`, does the split-off part serve as a prefix?
+- Do `estimateSize`, `SIZED`, and `SUBSIZED` accurately reflect sizes?
+- Is there any state or I/O that cannot be safely shared across work chunks?
 
-Khi viết **Collector**, cần kiểm tra:
+When writing a **Collector**, verify:
 
-- `supplier` có tạo vùng tích lũy mới khi được gọi không?
-- `accumulator` có chấp nhận mỗi phần tử và cập nhật đúng vùng tích lũy không?
-- `combiner` có ghép hai vùng mà không mất hoặc nhân đôi dữ liệu không?
-- `finisher` có trả đúng kết quả cuối không?
-- `characteristics` như `CONCURRENT`, `UNORDERED`, `IDENTITY_FINISH` có phản ánh chính xác khả năng của collector không?
+- Does `supplier` create a fresh accumulation container each time it is called?
+- Does `accumulator` accept each element and update the target container properly?
+- Does `combiner` merge two containers without losing or duplicating data?
+- Does `finisher` return the correct final result?
+- Do `characteristics` such as `CONCURRENT`, `UNORDERED`, and `IDENTITY_FINISH` accurately reflect the collector's capabilities?
 
-`CONCURRENT` không có nghĩa "được phép đánh dấu để chạy nhanh". Nó đòi hỏi accumulator đủ an toàn khi có thể được gọi đồng thời trên cùng container tích lũy trong những điều kiện phù hợp. `UNORDERED` cũng chỉ nên khai báo khi thứ tự gặp không ảnh hưởng kết quả.
+`CONCURRENT` does not mean "a flag you can add to go faster." It requires the accumulator to be safe when called concurrently on the same accumulation container under suitable conditions. `UNORDERED` should also be declared only when encounter order does not affect the result.
 
-Với nhu cầu phổ biến, ưu tiên collector đã được Java cung cấp (`toList`, `toSet`, `summingLong`, `groupingBy`) hơn là tự viết, trừ khi hợp đồng nghiệp vụ thực sự đòi hỏi.
+For common needs, prefer Java's built-in collectors (`toList`, `toSet`, `summingLong`, `groupingBy`) over writing custom ones, unless business contracts truly require it.
 
-## 14. Chương trình kiểm chứng ngữ nghĩa hoàn chỉnh (Java 8+)
+## 14. Complete semantic verification program (Java 8+)
 
-Đây là chương trình độc lập kiểm chứng kết quả tuần tự và song song trên dữ liệu rỗng, một phần tử và nhiều phần tử; đồng thời xác minh thứ tự và grouping. Nó **không dựa vào tên thread** hay hình thức chia cụ thể, nên dùng để học tính đúng chứ không phải benchmark.
+This standalone program verifies sequential and parallel results on empty, single-element, and multi-element data, while also validating ordering and grouping. It **does not rely on thread names** or specific split shapes, making it suitable for verifying correctness rather than benchmarking.
 
 ```java
 import java.util.ArrayList;
@@ -843,40 +843,40 @@ public class KiemChungParallelStream {
 }
 ```
 
-Khi mọi kiểm tra qua, chương trình in:
+When all checks pass, the program prints:
 
 ```text
 PASS: chia, xử lý, ghép kết quả
 ```
 
-Kiểm thử giúp phát hiện những lỗi phổ biến, **không chứng minh mọi accumulator/combiner tùy chỉnh luôn đúng**. Hãy kiểm tra bằng đại số các thuộc tính identity, associativity và tính tương thích trên miền dữ liệu thực tế.
+Tests help catch common bugs, but **they do not prove every custom accumulator/combiner is always correct**. Algebraically verify identity, associativity, and compatibility across the actual data domain.
 
-## 15. Những lỗi và hiểu nhầm thường gặp
+## 15. Common errors and misconceptions
 
-| Lỗi / hiểu nhầm | Nguyên nhân | Cách xử lý |
+| Error / misconception | Cause | How to address |
 | --- | --- | --- |
-| Nghĩ `parallel()` tạo một thread cho mỗi phần tử | Runtime thường chia thành phần việc và dùng cơ chế điều phối | Tách khái niệm phần việc, thread, dữ liệu. |
-| Nghĩ chỉ các stage sau `parallel()` chạy song song | Chế độ thực thi áp dụng cho pipeline ở terminal | Dùng `isParallel()` để quan sát chế độ; không tách theo vị trí stage. |
-| `forEach` in thứ tự khác list | Execution order không phải encounter order | Dùng `forEachOrdered` nếu phải in theo thứ tự. |
-| `findAny` không trả phần tử đầu | Được phép chọn bất kỳ phần tử phù hợp | Dùng `findFirst` nếu yêu cầu phần tử đầu. |
-| `reduce(10, Integer::sum)` cho sai kết quả | Identity không trung hòa phép cộng | Dùng `0`. |
-| Phép trừ cho kết quả khác giữa tuần tự/song song | Phép trừ không có tính kết hợp | Chọn phép gộp associative. |
-| Tự `ArrayList.add` trong `parallel().forEach` mất phần tử | Nhiều thread sửa list không an toàn | Dùng `collect(toList())`. |
-| Dùng `AtomicInteger` làm thứ tự gặp | Bộ đếm phụ thuộc lịch thread | Dùng chỉ số từ nguồn có thứ tự. |
-| `map` chứa log không chạy khi kết thúc bằng `count` | Runtime có thể bỏ bước không ảnh hưởng số lượng | Không dựa vào tác dụng phụ. |
-| `groupingByConcurrent` đảo thứ tự nhóm | Collector unordered | Chọn collector giữ order hoặc sắp xếp đầu ra. |
-| Nguồn không chia được nhưng gọi `parallel()` | `trySplit` có thể kém hiệu quả/trả null | Chọn nguồn thích hợp, đo hiệu năng. |
-| `sorted` và `limit` trên ordered stream chậm | Phối hợp và trạng thái làm tăng chi phí | Xem lại thứ tự thao tác, nhu cầu order. |
-| `parallel()` trên tác vụ I/O chậm hơn | Worker chặn, tranh chấp tài nguyên | Chọn mô hình I/O thích hợp. |
-| Chỉ thử một lần rồi kết luận đúng | Chưa kiểm tra rỗng, dữ liệu biên, combiner | Đối chiếu độc lập, kiểm chứng tính chất đại số. |
+| Thinking `parallel()` spawns one thread per element | The runtime usually splits into chunks and uses a scheduler | Separate the concepts of work chunk, thread, and data. |
+| Thinking only stages after `parallel()` run in parallel | Execution mode applies to the pipeline at the terminal operation | Use `isParallel()` to inspect mode; do not split by stage position. |
+| `forEach` prints in a different order than the list | Execution order is not encounter order | Use `forEachOrdered` if output must follow order. |
+| `findAny` does not return the first element | Allowed to select any matching element | Use `findFirst` if the first element is required. |
+| `reduce(10, Integer::sum)` produces wrong results | Identity is not neutral for addition | Use `0`. |
+| Subtraction gives different results between sequential and parallel | Subtraction is not associative | Choose an associative combining operation. |
+| Manually calling `ArrayList.add` inside `parallel().forEach` loses elements | Multiple threads mutate the list unsafely | Use `collect(toList())`. |
+| Using `AtomicInteger` for encounter order | Counter reflects thread scheduling | Use indices from an ordered source. |
+| `map` containing logging does not run when ending with `count` | Runtime may elide steps that do not affect count | Do not rely on side effects. |
+| `groupingByConcurrent` scrambles group order | Unordered collector | Choose an order-preserving collector or sort output. |
+| Unsplittable source with `parallel()` called | `trySplit` may be ineffective or return null | Choose a suitable source and measure performance. |
+| `sorted` and `limit` on an ordered stream are slow | Coordination and state increase overhead | Review operation order and ordering needs. |
+| `parallel()` on I/O tasks is slower | Blocked workers and resource contention | Choose an appropriate I/O concurrency model. |
+| Testing once and concluding correctness | Failed to check empty, boundary cases, or combiner | Cross-check independently and verify algebraic properties. |
 
-## 16. Bài tập thực hành
+## 16. Practice exercises
 
-### Bài 1 — Mô hình chia–xử lý–ghép
+### Exercise 1 — Split–process–combine model
 
-Cho `IntStream.rangeClosed(1, 8).parallel().map(n -> n * 2).sum()`. Kết quả là bao nhiêu? Giải thích ba giai đoạn và vì sao không thể khẳng định stream sẽ tạo đúng bốn nhánh, mỗi nhánh hai phần tử.
+Given `IntStream.rangeClosed(1, 8).parallel().map(n -> n * 2).sum()`. What is the result? Explain the three stages and why you cannot claim the stream will create exactly four branches with two elements each.
 
-### Bài 2 — Identity và phép kết hợp
+### Exercise 2 — Identity and associativity
 
 ```java
 List<Integer> so = Arrays.asList(2, 4, 6, 8);
@@ -886,9 +886,9 @@ int b = so.parallelStream().reduce(0, Integer::sum);
 int c = so.parallelStream().reduce(10, Integer::sum);
 ```
 
-`a` và `b` có giống nhau không? `c` có thể được coi là tổng đúng của nguồn không? Giải thích.
+Are `a` and `b` identical? Can `c` be considered the valid sum of the source? Explain.
 
-### Bài 3 — Thứ tự kết quả
+### Exercise 3 — Result order
 
 ```java
 List<Integer> so = Arrays.asList(5, 2, 4, 1, 3);
@@ -900,30 +900,30 @@ List<Integer> kq = so.parallelStream()
 so.parallelStream().forEach(System.out::println);
 ```
 
-Dự đoán `kq`. Có thể dự đoán thứ tự các dòng in bởi `forEach` không? Nếu cần in đúng thứ tự gặp, dùng gì?
+Predict `kq`. Can you predict the order of lines printed by `forEach`? If you need to print in exact encounter order, what should you use?
 
-### Bài 4 — Trạng thái dùng chung
+### Exercise 4 — Shared state
 
 ```java
 List<Integer> output = new ArrayList<>();
 so.parallelStream().forEach(n -> output.add(n * n));
 ```
 
-Đoạn trên có an toàn không? Viết lại bằng collector. Vì sao chỉ bọc list bằng `Collections.synchronizedList` chưa đủ để bảo đảm thứ tự kết quả theo encounter order?
+Is the snippet above safe? Rewrite it using a collector. Why is merely wrapping the list with `Collections.synchronizedList` still insufficient to guarantee result order matches encounter order?
 
-### Bài 5 — Khi nào đáng đo hiệu năng?
+### Exercise 5 — When is performance worth measuring?
 
-Hai pipeline cùng xử lý 100.000 bản ghi: (A) tính phép toán CPU-bound độc lập trên mỗi phần tử và (B) đọc metadata/tệp hoặc gọi mạng cho mỗi phần tử. Có nên mặc định gọi `parallel()` cho cả hai không? Những yếu tố nào cần đo?
+Two pipelines each process 100,000 records: (A) performs an independent CPU-bound calculation per element, and (B) reads file metadata/files or makes a network call per element. Should you call `parallel()` by default for both? Which factors should you measure?
 
-### Đáp án tham khảo
+### Reference solutions
 
-**Bài 1:** Kết quả là `72`, vì `2 × (1 + 2 + ... + 8) = 72`. Nguồn có thể chia theo nhiều cách; các phần xử lý tạo tổng cục bộ rồi ghép bằng phép cộng. Không có hợp đồng đúng bốn nhánh.
+**Exercise 1:** The result is `72`, because `2 × (1 + 2 + ... + 8) = 72`. The source can be split in multiple ways; partitions compute local sums and combine them via addition. There is no contract guaranteeing four branches.
 
-**Bài 2:** `a == 20`, `b == 20`. `c` không phải phép tổng hợp đúng vì `10` không là identity; số lần giá trị 10 xuất hiện ở các nhánh có thể khác tùy cách chia. Identity của phép cộng là 0.
+**Exercise 2:** `a == 20`, `b == 20`. `c` is not a valid aggregation because `10` is not an identity; the number of times `10` appears across branches can vary by split. The identity for addition is 0.
 
-**Bài 3:** `kq = [50, 20, 40, 10, 30]`. Thứ tự các dòng `forEach` không được bảo đảm. `forEachOrdered` thực hiện hành động theo encounter order của ordered stream.
+**Exercise 3:** `kq = [50, 20, 40, 10, 30]`. The line order of `forEach` is not guaranteed. `forEachOrdered` executes the action according to the encounter order of an ordered stream.
 
-**Bài 4:** Không, `ArrayList` không an toàn khi được nhiều thread sửa. Dùng:
+**Exercise 4:** No, `ArrayList` is unsafe when modified by multiple threads. Use:
 
 ```java
 List<Integer> output = so.parallelStream()
@@ -931,35 +931,35 @@ List<Integer> output = so.parallelStream()
     .collect(Collectors.toList());
 ```
 
-`synchronizedList` có thể tránh một số race khi thêm phần tử nhưng không khiến `forEach` chạy theo encounter order; vì thế thứ tự các lần `add` vẫn có thể khác nguồn.
+`synchronizedList` can prevent certain races when adding elements, yet it does not make `forEach` run in encounter order; thus the order of `add` calls can still differ from the source.
 
-**Bài 5:** Không mặc định. Pipeline CPU-bound độc lập với nguồn dễ chia có thể đáng thử song song; I/O blocking có thể bị giới hạn bởi số kết nối, ổ đĩa, timeout và tài nguyên worker dùng chung. Cần đo thời gian thực thi, throughput, latency, CPU, bộ nhớ, tranh chấp và áp lực I/O trên workload đại diện.
+**Exercise 5:** Not by default. An independent CPU-bound pipeline with a splittable source may be worth testing in parallel; blocking I/O can be constrained by connection limits, disk, timeouts, and shared worker resources. Measure execution time, throughput, latency, CPU, memory, contention, and I/O pressure on a representative workload.
 
-## 17. Tổng kết
+## 17. Summary
 
-Mô hình của parallel stream có thể ghi nhớ:
+The parallel stream model can be remembered as:
 
 ```text
-Nguồn có Spliterator
+Source with Spliterator
           |
       trySplit()
           |
-  Các phần việc cục bộ
+   Local work chunks
           |
- map / filter / process
+  map / filter / process
           |
-   Kết quả trung gian
+   Intermediate results
           |
   reduce / collect / sum
           |
-      Kết quả cuối
+      Final result
 ```
 
-- **Chia nguồn:** `Spliterator.trySplit` quyết định khả năng chia; `SIZED` / `SUBSIZED` / `ORDERED` giúp runtime hiểu đặc tính nguồn.
-- **Xử lý:** hàm hành vi phải non-interfering và thường cần stateless; không phụ thuộc thread hay bộ đếm bên ngoài.
-- **Ghép kết quả:** `reduce` đòi hỏi identity, associativity và combiner đúng; `collect` đòi hỏi supplier, accumulator và combiner tuân thủ hợp đồng.
-- **Thứ tự:** encounter order khác thứ tự thực thi; `Collectors.toList()` có thể giữ thứ tự đầu ra trong ordered stream ngay cả khi `forEach` song song không giữ thứ tự in.
-- **Hiệu năng:** thao tác stateful, yêu cầu order, nguồn khó chia và chi phí ghép có thể khiến song song chậm hơn.
-- **Kiểm chứng:** so sánh kết quả trên ca rỗng, một phần tử, nhiều phần tử và dữ liệu biên; chứng minh hợp đồng phép gộp trước khi đo hiệu năng.
+- **Split:** `Spliterator.trySplit` governs splittability; `SIZED` / `SUBSIZED` / `ORDERED` help the runtime understand source characteristics.
+- **Process:** behavioral functions must be non-interfering and usually stateless; do not depend on threads or external counters.
+- **Combine:** `reduce` requires a proper identity, associativity, and combiner; `collect` requires supplier, accumulator, and combiner to obey the contract.
+- **Order:** encounter order differs from execution order; `Collectors.toList()` preserves output order on an ordered stream even when parallel `forEach` does not preserve print order.
+- **Performance:** stateful operations, ordering requirements, poorly splittable sources, and merge overhead can make parallel slower.
+- **Verification:** compare results on empty, single-element, multi-element, and boundary cases; verify combining contracts before measuring performance.
 
-Hiểu rõ **chia nguồn – xử lý – ghép kết quả** giúp bạn dùng Stream API song song có cơ sở, tránh những lỗi âm thầm về trạng thái, thứ tự và tính đúng, đồng thời biết khi nào `parallel()` thực sự đáng cân nhắc.
+Understanding **split – process – combine** lets you use parallel Stream APIs on solid ground, avoiding subtle state, ordering, and correctness bugs while knowing when `parallel()` is genuinely worth considering.

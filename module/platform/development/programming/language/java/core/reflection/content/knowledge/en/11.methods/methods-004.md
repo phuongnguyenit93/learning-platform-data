@@ -1,8 +1,8 @@
-# Overload và chữ ký cần dùng để tìm phương thức bằng Java Reflection
+# Overloads and signatures required to look up methods with Java Reflection
 
-## 1. Vấn đề: một tên có thể chỉ nhiều phương thức
+## 1. Problem: one name can refer to multiple methods
 
-Trong Java, **method overloading (nạp chồng phương thức)** cho phép nhiều phương thức có cùng tên trong một lớp nếu **danh sách kiểu tham số khác nhau**. Khác nhau có thể ở số lượng, kiểu hoặc thứ tự tham số.
+In Java, **method overloading** allows multiple methods with the same name in a class if **their parameter type lists differ**. Differences can be in the number, types, or order of parameters.
 
 ```java
 class Example {
@@ -13,55 +13,55 @@ class Example {
 }
 ```
 
-Đây là bốn phương thức khác nhau. Cả bốn cùng tên `send` nhưng có các danh sách kiểu tham số lần lượt là:
+These are four different methods. All four share the name `send` but have parameter type lists respectively:
 
 - `(String)`
 - `(int)`
 - `(String, int)`
 - `(int, String)`
 
-Với Reflection, **chỉ biết tên `send` là chưa đủ** để xác định một overload. Ta cần chính xác tên phương thức và **danh sách `Class<?>[]` mô tả kiểu tham số đã khai báo, đúng thứ tự**.
+With Reflection, **knowing only the name `send` is not enough** to identify an overload. You need the exact method name and **a `Class<?>[]` list describing the declared parameter types, in exact order**.
 
-Khái niệm **method signature** trong Java Language Specification (§8.4.2) chủ yếu gồm tên phương thức và các tham số kiểu theo quy tắc ngôn ngữ; **kiểu trả về không dùng để overload**. Khi nói tới *khóa tra cứu* của `Class.getMethod`/`getDeclaredMethod`, điều cần truyền trực tiếp là **tên** và **`Class<?>...` của các tham số sau erasure**.
+The **method signature** concept in the Java Language Specification (§8.4.2) mainly comprises the method name and parameter types per language rules; **the return type is not used for overloading**. When referring to the *lookup key* of `Class.getMethod`/`getDeclaredMethod`, what must be passed directly is the **name** and **`Class<?>...` of the parameters after erasure**.
 
-## 2. Tra cứu phương thức bằng API nào?
+## 2. Which API is used to look up methods?
 
-Hai lời gọi phổ biến:
+Two common calls:
 
 ```java
 Class<?> type = Example.class;
 
-// Tìm method public, kể cả method public được kế thừa.
+// Find a public method, including inherited public methods.
 java.lang.reflect.Method method1 =
         type.getMethod("send", String.class, int.class);
 
-// Tìm method khai báo trực tiếp trong Example, không phụ thuộc modifier.
+// Find a method declared directly in Example, regardless of modifiers.
 java.lang.reflect.Method method2 =
         type.getDeclaredMethod("send", String.class, int.class);
 ```
 
-| API | Phạm vi | Cần truyền | Nếu không tìm thấy |
+| API | Scope | Arguments required | If not found |
 | --- | --- | --- | --- |
-| `getMethod(String name, Class<?>... parameterTypes)` | Phương thức `public` trên lớp, interface liên quan và phương thức `public` kế thừa theo quy tắc API | Tên và danh sách kiểu tham số chính xác | `NoSuchMethodException` |
-| `getDeclaredMethod(String name, Class<?>... parameterTypes)` | Phương thức khai báo trực tiếp trong lớp/interface đang xét, gồm `private`, `protected`, package-private và `public` | Tên và danh sách kiểu tham số chính xác | `NoSuchMethodException` |
-| `getMethods()` | Mảng các `Method` `public` trong phạm vi tìm kiếm của API | Không nhận tên/chữ ký | Mảng có thể rỗng |
-| `getDeclaredMethods()` | Mảng phương thức khai báo trực tiếp, không lọc modifier | Không nhận tên/chữ ký | Mảng có thể rỗng |
+| `getMethod(String name, Class<?>... parameterTypes)` | `public` methods on the class, related interfaces, and inherited `public` methods per API rules | Exact name and parameter type list | `NoSuchMethodException` |
+| `getDeclaredMethod(String name, Class<?>... parameterTypes)` | Methods declared directly in the inspected class/interface, including `private`, `protected`, package-private, and `public` | Exact name and parameter type list | `NoSuchMethodException` |
+| `getMethods()` | Array of `public` `Method`s within the API's search scope | Takes no name/signature | Array may be empty |
+| `getDeclaredMethods()` | Array of directly declared methods, unfiltered by modifier | Takes no name/signature | Array may be empty |
 
-**Ví dụ:** Với `void send(String, int)`, tra cứu `getDeclaredMethod("send", String.class, int.class)` sẽ khớp; đảo thứ tự thành `(int.class, String.class)` là overload khác. Java **không tìm phương thức “gần giống nhất”** nếu danh sách `Class` không khớp.
+**Example:** For `void send(String, int)`, looking up `getDeclaredMethod("send", String.class, int.class)` will match; reversing the order to `(int.class, String.class)` is a different overload. Java **does not look for the "closest matching" method** if the `Class` list does not match.
 
-Phương thức **không có tham số** được tra cứu bằng `getMethod("ping")` hoặc `getMethod("ping", new Class<?>[0])`. Không tự thêm `Object.class` để thay thế danh sách rỗng.
+A method with **no parameters** is looked up via `getMethod("ping")` or `getMethod("ping", new Class<?>[0])`. Do not add `Object.class` to substitute for an empty list.
 
-### `getMethod` khác `getDeclaredMethod` cả ở phạm vi kế thừa
+### `getMethod` also differs from `getDeclaredMethod` in inheritance scope
 
-Nếu `Child extends Parent` và chỉ `Parent` khai báo `public void action(Number value)`:
+If `Child extends Parent` and only `Parent` declares `public void action(Number value)`:
 
-- `Child.class.getMethod("action", Number.class)` tìm được phương thức `public` kế thừa.
-- `Child.class.getDeclaredMethod("action", Number.class)` ném `NoSuchMethodException` nếu `Child` không tự khai báo hoặc override phương thức đó.
-- Nếu một overload là `private`, `getMethod` sẽ không tìm thấy overload đó, dù tên/phần tham số đúng. `getDeclaredMethod` trên **lớp khai báo** có thể tìm ra metadata của nó.
+- `Child.class.getMethod("action", Number.class)` finds the inherited `public` method.
+- `Child.class.getDeclaredMethod("action", Number.class)` throws `NoSuchMethodException` if `Child` does not declare or override that method itself.
+- If an overload is `private`, `getMethod` will not find that overload, even with the right name/parameters. `getDeclaredMethod` on the **declaring class** can find its metadata.
 
-## 3. Tra cứu dùng kiểu khai báo chính xác: không tự đổi kiểu
+## 3. Lookup uses exact declared types: no automatic type conversion
 
-Giả sử lớp có:
+Suppose a class has:
 
 ```java
 void calculate(int value) { }
@@ -70,25 +70,25 @@ void calculate(Number value) { }
 void calculate(Object value) { }
 ```
 
-Các tham số `int`, `Integer`, `Number` và `Object` là bốn chữ ký khác nhau.
+Parameters `int`, `Integer`, `Number`, and `Object` form four distinct signatures.
 
-| Tra cứu | Có khớp overload tương ứng? | Lý do |
+| Lookup | Matches corresponding overload? | Reason |
 | --- | --- | --- |
-| `getDeclaredMethod("calculate", int.class)` | Có | Kiểu khai báo `int` |
-| `getDeclaredMethod("calculate", Integer.class)` | Có | Kiểu khai báo `Integer` |
-| `getDeclaredMethod("calculate", Number.class)` | Có | Kiểu khai báo `Number` |
-| `getDeclaredMethod("calculate", Object.class)` | Có | Kiểu khai báo `Object` |
-| `getDeclaredMethod("calculate", short.class)` | Không | Không có overload `short`; không widening thành `int` |
-| `getDeclaredMethod("calculate", Long.class)` | Không | Không có overload `Long`; không tự chọn `Number` |
-| `getDeclaredMethod("calculate", String.class)` | Không | Không có overload `String`; không tự chọn `Object` |
+| `getDeclaredMethod("calculate", int.class)` | Yes | Declared type `int` |
+| `getDeclaredMethod("calculate", Integer.class)` | Yes | Declared type `Integer` |
+| `getDeclaredMethod("calculate", Number.class)` | Yes | Declared type `Number` |
+| `getDeclaredMethod("calculate", Object.class)` | Yes | Declared type `Object` |
+| `getDeclaredMethod("calculate", short.class)` | No | No `short` overload; does not widen to `int` |
+| `getDeclaredMethod("calculate", Long.class)` | No | No `Long` overload; does not automatically select `Number` |
+| `getDeclaredMethod("calculate", String.class)` | No | No `String` overload; does not automatically select `Object` |
 
-Ở **bước tìm Method**, Reflection không áp dụng boxing/unboxing, widening primitive, chọn superclass/interface có thể gán được hay thuật toán overload resolution của trình biên dịch Java. Nói cách khác, `int.class != Integer.class`, và `String.class != Object.class`.
+At the **Method lookup step**, Reflection does not apply boxing/unboxing, primitive widening, selecting an assignable superclass/interface, or the Java compiler's overload resolution algorithm. In other words, `int.class != Integer.class`, and `String.class != Object.class`.
 
-Ở **bước gọi Method đã tìm được** qua `Method.invoke`, cơ chế kiểm tra/chuyển đổi đối số lại khác. Ví dụ: đối tượng `Method` đại diện cho overload `calculate(int)` có thể nhận `Integer.valueOf(5)` rồi unbox khi gọi. Tuy nhiên, nó **vẫn gọi chính overload `(int)`**, không chuyển sang `(Integer)`.
+At the **step of invoking the found Method** via `Method.invoke`, the argument checking/conversion mechanism differs. For example, a `Method` object representing the `calculate(int)` overload can accept `Integer.valueOf(5)` and unbox it when invoked. However, it **still invokes the `(int)` overload**, without switching to `(Integer)`.
 
-## 4. Ví dụ hoàn chỉnh Java 17+: overload, kế thừa, varargs và generic
+## 4. Complete Java 17+ example: overloads, inheritance, varargs, and generics
 
-Lưu toàn bộ chương trình dưới tên `MethodOverloadLookupDemo.java`:
+Save the entire program as `MethodOverloadLookupDemo.java`:
 
 ```java
 import java.lang.reflect.Method;
@@ -212,7 +212,7 @@ public class MethodOverloadLookupDemo {
 }
 ```
 
-Biên dịch/chạy từ thư mục chứa tệp với JDK 17 trở lên:
+Compile/run from the file's directory with JDK 17 or later:
 
 ```bash
 javac MethodOverloadLookupDemo.java
@@ -240,123 +240,123 @@ accept(Integer): NoSuchMethodException
 hidden private: true
 ```
 
-Ý nghĩa từng phần:
+Meaning of each part:
 
-1. `getMethod("choose", Object.class)` và `getMethod("choose", String.class)` lấy **hai đối tượng Method cho hai overload khác nhau**. Cùng truyền chuỗi `"abc"` lúc `invoke`, kết quả vẫn lần lượt là `Object` và `String`. **Không có chọn lại overload theo kiểu runtime của đối số**.
-2. `int.class` và `Integer.class` tạo hai chữ ký độc lập. `Integer.valueOf(5)` có thể được unbox khi invoke overload `(int)`, nhưng không làm bước tra cứu nhập hai chữ ký thành một.
-3. `getMethod("inherited", Number.class)` tìm phương thức công khai của `Base`; `getDeclaringClass()` xác định lớp **khai báo**.
-4. Đảo `(String.class, int.class)` thành `(int.class, String.class)` gây `NoSuchMethodException` vì thứ tự tham số là một phần khóa tra cứu.
-5. `StringBuilder.class` không được tự chuyển lên `Object.class`; `short.class` cũng không được tự chuyển sang `int.class`.
-6. Varargs `String...` được lưu dưới dạng tham số mảng `String[]`, nên tìm bằng `String[].class`.
-7. Generic `<T extends Number>` được **type erasure** thành `Number` trong kiểu tham số runtime. `getGenericParameterTypes()` vẫn có thể cung cấp thông tin biến kiểu `T`.
-8. `getDeclaredMethod` cho phép tìm metadata của `private hidden(double)` trực tiếp, không có nghĩa mọi caller đều tự động được phép gọi phương thức `private`.
+1. `getMethod("choose", Object.class)` and `getMethod("choose", String.class)` retrieve **two Method objects for two different overloads**. Passing the same string `"abc"` at `invoke` still produces `Object` and `String` respectively. **There is no re-selection of overloads based on the runtime type of the argument**.
+2. `int.class` and `Integer.class` create two independent signatures. `Integer.valueOf(5)` can be unboxed when invoking the `(int)` overload, but does not merge the two signatures during lookup.
+3. `getMethod("inherited", Number.class)` finds the public method of `Base`; `getDeclaringClass()` identifies the **declaring** class.
+4. Reversing `(String.class, int.class)` to `(int.class, String.class)` causes `NoSuchMethodException` because parameter order is part of the lookup key.
+5. `StringBuilder.class` is not automatically converted up to `Object.class`; `short.class` is likewise not automatically converted to `int.class`.
+6. Varargs `String...` is stored as a `String[]` array parameter, so look it up with `String[].class`.
+7. Generic `<T extends Number>` undergoes **type erasure** to `Number` in the runtime parameter type. `getGenericParameterTypes()` can still provide information on type variable `T`.
+8. `getDeclaredMethod` allows finding metadata of `private hidden(double)` directly, which does not mean every caller is automatically allowed to invoke a `private` method.
 
-## 5. Varargs: biểu diễn trong chữ ký là kiểu mảng
+## 5. Varargs: represented in signature as an array type
 
-Phương thức:
+The method:
 
 ```java
 public void log(String... messages) { }
 ```
 
-về danh sách kiểu tham số trên `Method` tương đương khai báo `log(String[] messages)`. Hai cách khai báo không thể dùng làm hai overload riêng biệt trong một lớp.
+in terms of the parameter type list on `Method` is equivalent to declaring `log(String[] messages)`. Both declarations cannot be used as two separate overloads in one class.
 
 ```java
-// Trong ngữ cảnh lớp có method public void log(String... messages).
+// In the context of a class with method public void log(String... messages).
 Method logMethod = Example.class.getMethod("log", String[].class);
 boolean isVarargs = logMethod.isVarArgs(); // true
 ```
 
-Không tra bằng `getMethod("log", String.class)` chỉ vì lời gọi Java `log("a")` hợp lệ. Cũng không tra bằng `getMethod("log", String.class, String.class)` chỉ vì có thể gọi `log("a", "b")`. Tại bước Reflection lookup, số tham số của method varargs này vẫn là **một**.
+Do not look it up using `getMethod("log", String.class)` just because the Java call `log("a")` is valid. Likewise, do not look it up using `getMethod("log", String.class, String.class)` just because `log("a", "b")` can be called. At the Reflection lookup step, the parameter count of this varargs method is still **one**.
 
-Khi dùng `Method.invoke(Object receiver, Object... args)` trong Java, đối số cuối là varargs **của chính API invoke**. Muốn truyền một mảng `String[]` thành **một tham số** của target method, dùng:
+When using `Method.invoke(Object receiver, Object... args)` in Java, the last parameter is varargs **of the `invoke` API itself**. To pass a `String[]` array as **one argument** of the target method, use:
 
 ```java
 logMethod.invoke(instance, (Object) new String[] {"a", "b"});
 ```
 
-Đoạn trên là mã minh họa trong ngữ cảnh đã có `logMethod` và `instance`. Cast `(Object)` khiến Java không trải mảng làm danh sách đối số của `Method.invoke`. Bản thân `Method.invoke` không tự đóng gói các chuỗi rời thành mảng cho target method varargs.
+The snippet above is illustrative code in a context where `logMethod` and `instance` already exist. Casting `(Object)` prevents Java from spreading the array as the argument list of `Method.invoke`. `Method.invoke` itself does not automatically pack loose strings into an array for a varargs target method.
 
-## 6. Generic: tra cứu dựa trên kiểu **sau erasure**
+## 6. Generics: lookup is based on types **after erasure**
 
-Ví dụ:
+Example:
 
 ```java
 public <T extends Number> void process(T value) { }
 ```
 
-Đối với Reflection:
+For Reflection:
 
 ```java
-// Ví dụ nằm trong phạm vi lớp có phương thức process như trên.
+// Example within scope of a class having the process method above.
 Method method = Example.class.getMethod("process", Number.class);
 System.out.println(method.getParameterTypes()[0]); // class java.lang.Number
 ```
 
-`T` có bound là `Number` nên kiểu tham số sau erasure là `Number`. Nếu `T` không có bound thì erasure thường là `Object` (có quy tắc riêng khi nhiều bound). Truyền `Integer.class` **không** thay thế `Number.class` để tra cứu phương thức generic đó.
+`T` has bound `Number`, so the parameter type after erasure is `Number`. If `T` has no bound, erasure is usually `Object` (with specific rules when there are multiple bounds). Passing `Integer.class` **does not** substitute for `Number.class` to look up that generic method.
 
-Tương tự, tham số `List<String>` và `List<Integer>` đều có raw type runtime là `java.util.List`. Khi tra cứu:
+Similarly, `List<String>` and `List<Integer>` parameters both have the runtime raw type `java.util.List`. When looking up:
 
 ```java
-// Ví dụ nằm trong ngữ cảnh lớp có phương thức:
+// Example within scope of a class having the method:
 // public void consume(java.util.List<String> values) { ... }
 Method method = Example.class.getMethod("consume", java.util.List.class);
 ```
 
-Trong cùng một lớp, **không thể overload** chỉ dựa trên `List<String>` so với `List<Integer>`, vì hai khai báo xung đột do cùng erasure. `getGenericParameterTypes()` và `getTypeParameters()` có thể giúp khám phá metadata generic sau khi tra cứu được `Method`, nhưng tham số truyền vào `getMethod` vẫn là `Class<?>...`, không phải `ParameterizedType`.
+Within the same class, **you cannot overload** based solely on `List<String>` vs. `List<Integer>`, because both declarations clash due to having the same erasure. `getGenericParameterTypes()` and `getTypeParameters()` can help explore generic metadata after finding the `Method`, but the arguments passed to `getMethod` are still `Class<?>...`, not `ParameterizedType`.
 
-## 7. Kiểu trả về có giúp chọn overload không?
+## 7. Does return type help select an overload?
 
-Không. Hai khai báo trong **cùng một lớp Java** như sau không hợp lệ:
+No. Two declarations in **the same Java class** like the following are invalid:
 
 ```java
-// MINH HỌA MÃ KHÔNG BIÊN DỊCH ĐƯỢC: chỉ khác return type.
+// ILLUSTRATION OF NON-COMPILABLE CODE: differing only in return type.
 int parse(String source) { return 1; }
 long parse(String source) { return 2L; }
 ```
 
-Mỗi method trên cùng tên và cùng tham số `(String)`; kiểu trả về `int` hay `long` không tạo overload hợp lệ. Vì vậy không có API `getMethod(name, returnType, parameterTypes)`.
+Each method above shares the same name and the same `(String)` parameter; return type `int` or `long` does not create a valid overload. Therefore, there is no `getMethod(name, returnType, parameterTypes)` API.
 
-Cần phân biệt với phương thức tổng hợp (*synthetic*), phương thức cầu nối (*bridge method*) và quy tắc covariant return: compiler/JVM có thể lưu nhiều method có **cùng tên và cùng parameter types** nhưng **khác return type** trong bytecode. Khi đó, `Class.getMethod`/`getDeclaredMethod` áp dụng quy tắc lựa chọn của API (ưu tiên kiểu trả về đặc thù hơn khi các kiểu cho phép so sánh; một số trường hợp còn phụ thuộc quy tắc của API), chứ không nhận return type từ người gọi. Nếu đang kiểm tra bytecode tạo tự động, có thể duyệt `getDeclaredMethods()`, rồi xem `isBridge()`, `isSynthetic()`, `getReturnType()` và `getDeclaringClass()` để phân biệt các `Method`.
+This must be distinguished from synthetic methods, bridge methods, and covariant return rules: the compiler/JVM may store multiple methods with the **same name and same parameter types** but **different return types** in bytecode. In that case, `Class.getMethod`/`getDeclaredMethod` applies the API's selection rule (preferring a more specific return type when types are comparable; some cases also depend on API rules), rather than accepting a return type from the caller. If inspecting auto-generated bytecode, you can iterate over `getDeclaredMethods()`, then check `isBridge()`, `isSynthetic()`, `getReturnType()`, and `getDeclaringClass()` to distinguish the `Method` objects.
 
-Trong lập trình ứng dụng thông thường, nên xác định đúng **tên + danh sách kiểu tham số** trước; chỉ kiểm tra kiểu trả về và metadata sau khi có đối tượng `Method`.
+In normal application programming, identify the **name + parameter type list** first; only inspect the return type and metadata after obtaining the `Method` object.
 
-## 8. Tra cứu overload động: vì sao không thể chỉ dùng `arg.getClass()`?
+## 8. Dynamic overload lookup: why can't you just use `arg.getClass()`?
 
-Một lỗi phổ biến:
+A common mistake:
 
 ```java
-// Mã minh họa có chủ đích: không phải bộ phân giải overload tổng quát.
+// Intentionally illustrative code: not a general overload resolver.
 Object arg = Integer.valueOf(7);
 Method selected = Handler.class.getMethod("choose", arg.getClass());
 ```
 
-Lệnh trên chọn `choose(Integer)` nếu có. Nhưng nếu API cần gọi `choose(int)`, `arg.getClass()` trả `Integer.class` nên **không tìm đúng chữ ký**. Với `arg == null` thì `arg.getClass()` còn gây `NullPointerException`. Nếu lớp chỉ có `choose(Number)`, `getMethod("choose", Integer.class)` vẫn thất bại mặc dù một `Integer` có thể gán cho tham số `Number` khi gọi.
+The statement above selects `choose(Integer)` if present. However, if the API needs to call `choose(int)`, `arg.getClass()` returns `Integer.class` and therefore **fails to find the right signature**. When `arg == null`, `arg.getClass()` also causes `NullPointerException`. If the class only has `choose(Number)`, `getMethod("choose", Integer.class)` still fails even though an `Integer` is assignable to a `Number` parameter when invoked.
 
-Khi cần gọi một method có chữ ký đã được thiết kế, cách đúng và đơn giản nhất là lấy thông tin chữ ký từ **hợp đồng API**:
+When you need to invoke a method whose signature is already designed, the right and simplest way is to get the signature information from the **API contract**:
 
 ```java
-// Ví dụ ngắn; Handler và instance xuất hiện trong chương trình đầy đủ ở trên.
+// Short example; Handler and instance appear in the full program above.
 Method method = Handler.class.getMethod("choose", int.class);
 Object result = method.invoke(instance, Integer.valueOf(7));
 ```
 
-Đoạn này không độc lập; `instance` là đối tượng `Handler` đã tạo và caller cần xử lý checked exceptions. `invoke` chạy đúng overload `(int)`; đối số `Integer` có thể được unbox tại bước gọi.
+This snippet is not standalone; `instance` is an already-created `Handler` object and the caller needs to handle checked exceptions. `invoke` runs the `(int)` overload; the `Integer` argument can be unboxed at the invocation step.
 
-Nếu thật sự cần **lựa chọn overload từ dữ liệu runtime chưa biết trước chữ ký**, phải định nghĩa riêng chiến lược: thu thập các candidate theo tên/số lượng tham số; đánh giá assignability, boxing/unboxing, primitive widening, null, varargs và mức độ đặc hiệu; phát hiện trường hợp mơ hồ. Đó là **bài toán resolution riêng**, không phải tính năng của `getMethod`. Ưu tiên tránh tự mô phỏng overload resolution của `javac` nếu có thể xác định chữ ký từ interface hoặc giao ước từ trước.
+If you truly need **overload selection from runtime data with unknown signatures beforehand**, you must define a dedicated strategy: collect candidates by name/parameter count; evaluate assignability, boxing/unboxing, primitive widening, null, varargs, and specificity; and detect ambiguous cases. That is a **separate resolution problem**, not a feature of `getMethod`. Prefer avoiding reimplementing `javac` overload resolution if signatures can be determined upfront from an interface or convention.
 
-## 9. Quy trình truy vấn Method an toàn trong dự án
+## 9. Safe Method query workflow in projects
 
-1. **Xác định tên và danh sách kiểu khai báo** từ interface, tài liệu, annotation, schema hoặc contract; đừng phỏng đoán từ một tập đối số runtime.
-2. **Chọn phạm vi tìm kiếm:** `getMethod` cho `public` kể cả kế thừa; `getDeclaredMethod` cho member khai báo trực tiếp, gồm không công khai.
-3. **Truyền chính xác từng `Class` theo thứ tự:** primitive dùng `int.class`, wrapper dùng `Integer.class`, array dùng `String[].class`, generic dùng erasure như `List.class`.
-4. **Kiểm tra metadata nhận được** bằng `getParameterTypes()`, `getDeclaringClass()`, `getReturnType()`, `isVarArgs()`, `isBridge()` khi cần.
-5. **Tách giai đoạn gọi thực thi:** `Method.invoke` còn kiểm tra receiver/đối số/quyền truy cập; checked exception hoặc exception bọc nguyên nhân target xảy ra ở bước này.
+1. **Determine the name and declared type list** from interfaces, documentation, annotations, schemas, or contracts; do not guess from a set of runtime arguments.
+2. **Choose the search scope:** `getMethod` for `public` including inherited; `getDeclaredMethod` for directly declared members, including non-public ones.
+3. **Pass each `Class` accurately in order:** primitives use `int.class`, wrappers use `Integer.class`, arrays use `String[].class`, generics use erased types like `List.class`.
+4. **Verify received metadata** using `getParameterTypes()`, `getDeclaringClass()`, `getReturnType()`, `isVarArgs()`, `isBridge()` when needed.
+5. **Separate the execution phase:** `Method.invoke` also checks receiver/arguments/access rights; checked exceptions or target-cause wrapper exceptions occur at this step.
 
-Ví dụ logic để đối chiếu signature sau khi liệt kê:
+Example logic to match a signature after listing:
 
 ```java
-// Mã minh họa trong phương thức đã import java.lang.reflect.Method và java.util.Arrays.
+// Illustrative code in a method importing java.lang.reflect.Method and java.util.Arrays.
 Class<?>[] expected = {String.class, int.class};
 for (Method method : Handler.class.getDeclaredMethods()) {
     if (method.getName().equals("combine")
@@ -366,41 +366,41 @@ for (Method method : Handler.class.getDeclaredMethods()) {
 }
 ```
 
-Lưu ý: `getDeclaredMethods()` **không đảm bảo thứ tự**, và mảng có thể chứa bridge/synthetic method. Không chọn `methods[0]` theo giả định overload đầu tiên là overload cần dùng.
+Note: `getDeclaredMethods()` **does not guarantee order**, and the array may contain bridge/synthetic methods. Do not pick `methods[0]` assuming the first overload is the one needed.
 
-## 10. Lỗi thường gặp
+## 10. Common errors
 
-| Hiện tượng | Nguyên nhân chính | Cách sửa |
+| Symptom | Main cause | How to fix |
 | --- | --- | --- |
-| `NoSuchMethodException: choose(java.lang.Integer)` dù có `choose(int)` | Tra cứu dùng wrapper thay primitive | Dùng `int.class` |
-| Có `choose(Object)` nhưng tra `choose(StringBuilder)` thất bại | Lookup yêu cầu đúng kiểu khai báo | Dùng `Object.class` nếu đó là chữ ký contract |
-| Có `combine(String,int)` nhưng không tìm được | Đảo thứ tự `Class` | Giữ đúng `String.class, int.class` |
-| Có `log(String...)` nhưng tra bằng `String.class` | Varargs khai báo thành `String[]` | Dùng `String[].class` |
-| Có `accept(T extends Number)` nhưng tra bằng `Integer.class` | Sau erasure, `T` là `Number` | Dùng `Number.class` |
-| `getDeclaredMethod` không thấy phương thức `public` của cha | Phương thức không được khai báo trực tiếp trên lớp con | Dùng `getMethod` hoặc chuyển sang lớp khai báo |
-| `getMethod` không thấy phương thức `private` | API chỉ tra `public` | Dùng `getDeclaredMethod` đúng lớp, rồi kiểm tra quyền |
-| `Method.invoke` lỗi `IllegalArgumentException` | Sai receiver, số lượng hoặc kiểu đối số khi gọi | Kiểm tra `getParameterTypes()` và cách truyền varargs |
-| `Method.invoke` ném `InvocationTargetException` | Chính target method ném exception khi chạy | Xem `getCause()` để biết lỗi do phương thức đích |
-| Kết quả overload khác lời gọi Java thông thường | `invoke` dùng Method đã chọn, không chọn lại theo argument runtime | Chọn đúng chữ ký trước khi gọi |
+| `NoSuchMethodException: choose(java.lang.Integer)` even though `choose(int)` exists | Lookup used wrapper instead of primitive | Use `int.class` |
+| `choose(Object)` exists but looking up `choose(StringBuilder)` fails | Lookup requires exact declared type | Use `Object.class` if that is the contract signature |
+| `combine(String,int)` exists but cannot be found | `Class` order reversed | Keep exact `String.class, int.class` |
+| `log(String...)` exists but looked up with `String.class` | Varargs is declared as `String[]` | Use `String[].class` |
+| `accept(T extends Number)` exists but looked up with `Integer.class` | After erasure, `T` is `Number` | Use `Number.class` |
+| `getDeclaredMethod` does not see parent's `public` method | Method is not declared directly on subclass | Use `getMethod` or switch to the declaring class |
+| `getMethod` does not see `private` method | API only searches `public` | Use `getDeclaredMethod` on the right class, then check access |
+| `Method.invoke` fails with `IllegalArgumentException` | Wrong receiver, argument count, or argument type during call | Check `getParameterTypes()` and how varargs are passed |
+| `Method.invoke` throws `InvocationTargetException` | Target method itself threw an exception while running | Inspect `getCause()` for the error from the target method |
+| Overload result differs from normal Java call | `invoke` uses the already-selected Method, does not re-select by runtime argument | Pick the right signature before invoking |
 
-## 11. Tự kiểm tra
+## 11. Self-check
 
-**Câu 1:** Lớp khai báo `void send(int count)` và `void send(Integer count)`. Hai lời gọi `getDeclaredMethod("send", int.class)` và `getDeclaredMethod("send", Integer.class)` có trả cùng một overload không?
+**Question 1:** A class declares `void send(int count)` and `void send(Integer count)`. Do the two calls `getDeclaredMethod("send", int.class)` and `getDeclaredMethod("send", Integer.class)` return the same overload?
 
-**Đáp án:** Không. Đây là hai đối tượng `Method` cho hai khai báo có chữ ký tham số khác nhau.
+**Answer:** No. These are two `Method` objects for two declarations with different parameter signatures.
 
-**Câu 2:** Lớp có `void send(String[] values)`. Có thể tra bằng `getMethod("send", String.class, String.class)` để gọi với hai chuỗi không?
+**Question 2:** A class has `void send(String[] values)`. Can you look it up using `getMethod("send", String.class, String.class)` to invoke with two strings?
 
-**Đáp án:** Không. Kiểu tham số đã khai báo là `String[]`, phải dùng `String[].class`. `send(String[])` có thể tương ứng với cú pháp Java `String...` nếu khai báo varargs.
+**Answer:** No. The declared parameter type is `String[]`, so `String[].class` must be used. `send(String[])` can correspond to Java `String...` syntax if declared as varargs.
 
-**Câu 3:** Lớp có `void test(Number value)`. `getMethod("test", Integer.class)` có tìm thấy chỉ vì `Integer extends Number` không?
+**Question 3:** A class has `void test(Number value)`. Will `getMethod("test", Integer.class)` find it just because `Integer extends Number`?
 
-**Đáp án:** Không. Phải truyền `Number.class` để tra cứu chính xác.
+**Answer:** No. You must pass `Number.class` for an exact lookup.
 
-**Câu 4:** Một phương thức `public` khai báo ở superclass có thể tìm qua `Child.class.getMethod(...)` không?
+**Question 4:** Can a `public` method declared in a superclass be found via `Child.class.getMethod(...)`?
 
-**Đáp án:** Có, khi phương thức đó thuộc tập member công khai được kế thừa/tra cứu theo quy tắc của `getMethod`. `getDeclaredMethod` trên con chỉ thấy phương thức con khai báo trực tiếp.
+**Answer:** Yes, when that method belongs to the public members inherited/searched under `getMethod` rules. `getDeclaredMethod` on the child only sees methods directly declared by the child.
 
-**Ghi nhớ:** Khi dùng Reflection tìm overload, truyền **đúng tên + đúng số lượng, thứ tự, kiểu `Class` của các tham số đã khai báo**. Kiểu trả về không dùng chọn overload, Java conversions không diễn ra trong bước lookup, và `Method.invoke` chỉ thực thi phương thức đã được chọn.
+**Takeaway:** When using Reflection to look up overloads, pass the **exact name + exact count, order, and `Class` types of the declared parameters**. Return type is not used to select overloads, Java conversions do not happen during lookup, and `Method.invoke` simply executes the already-selected method.
 
-Tài liệu tham khảo: [Java SE 17 `Class.getMethod` / `getDeclaredMethod`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html), [Java SE 17 `Method`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html), [JLS §8.4.2 — Method Signature](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.4.2).
+References: [Java SE 17 `Class.getMethod` / `getDeclaredMethod`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html), [Java SE 17 `Method`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html), [JLS §8.4.2 — Method Signature](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.4.2).

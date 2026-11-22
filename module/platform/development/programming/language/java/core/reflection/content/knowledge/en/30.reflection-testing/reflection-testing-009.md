@@ -1,49 +1,49 @@
-# Kiểm thử metadata có và không có `-parameters` trong Java Reflection
+# Testing Metadata With and Without `-parameters` in Java Reflection
 
-## 1. Vì sao cần kiểm thử hai kiểu build?
+## 1. Why Must Both Build Variants Be Tested?
 
-Khi biên dịch Java, tên tham số trong mã nguồn như `firstName` và `repeat` **không bắt buộc** phải tồn tại trong class file ở dạng mà Java Reflection đọc được. Tùy chọn `javac -parameters` yêu cầu compiler lưu tên và modifiers của tham số cho **method và constructor** vào thuộc tính `MethodParameters` trong bytecode. Nếu bỏ tùy chọn này, chương trình vẫn gọi method bình thường và reflection vẫn biết **số lượng, thứ tự, kiểu tham số**; thứ thường không còn là **tên tham số gốc**.
+When compiling Java, parameter names in source code such as `firstName` and `repeat` are **not required** to exist in the class file in a form readable by Java Reflection. The `javac -parameters` option instructs the compiler to store parameter names and modifiers for **methods and constructors** in the `MethodParameters` bytecode attribute. If this option is omitted, the program still invokes methods normally and reflection still knows the **parameter count, order, and types**; what is typically missing are the **original parameter names**.
 
-Điều đó có ảnh hưởng tới các framework dùng reflection để map query/path/body parameters, bind constructor arguments, đọc tên tham số trong validation, dependency injection, CLI command mapping hoặc sinh tài liệu API. Một test chỉ chạy với build có `-parameters` có thể che giấu lỗi cấu hình build ở môi trường khác.
+This affects frameworks that use reflection to map query/path/body parameters, bind constructor arguments, read parameter names in validation, dependency injection, CLI command mapping, or API doc generation. A test run only on builds with `-parameters` can hide build-configuration bugs in other environments.
 
-**Mục tiêu bài học:** tạo hai artifact từ **cùng source** (một có `-parameters`, một không), đọc bằng `Executable.getParameters()`, xác nhận cả `getName()` và `isNamePresent()`, dùng `javap -v` đối chiếu class file và thiết kế test bắt lỗi phụ thuộc ngầm vào tên tham số.
+**Lesson goal:** produce two artifacts from the **same source** (one with `-parameters`, one without), inspect them with `Executable.getParameters()`, verify both `getName()` and `isNamePresent()`, compare class files using `javap -v`, and design tests that catch hidden dependencies on parameter names.
 
-## 2. Metadata nào được giữ, metadata nào thay đổi?
+## 2. Which Metadata Is Preserved and Which Changes?
 
-Xét phương thức Java:
+Consider the Java method:
 
 ~~~java
-// Trích đoạn từ class Sample; không phải chương trình độc lập.
+// Excerpt from class Sample; not a standalone program.
 public String greet(String firstName, int repeat) {
     return firstName.repeat(repeat);
 }
 ~~~
 
-Với JDK hỗ trợ tham số chuẩn Java 8+:
+On a JDK supporting Java 8+ parameter metadata:
 
-| Truy vấn reflection | Có `-parameters` | Không có `-parameters` (class javac thông thường) |
+| Reflection query | With `-parameters` | Without `-parameters` (standard javac class) |
 | --- | --- | --- |
 | `method.getParameterCount()` | `2` | `2` |
-| `method.getParameterTypes()` | `String.class`, `int.class` | Y hệt |
-| `method.getParameters()[0].getName()` | `"firstName"` | Tên thay thế thường là `"arg0"` |
-| `method.getParameters()[1].getName()` | `"repeat"` | Tên thay thế thường là `"arg1"` |
+| `method.getParameterTypes()` | `String.class`, `int.class` | Identical |
+| `method.getParameters()[0].getName()` | `"firstName"` | Synthetic placeholder name, typically `"arg0"` |
+| `method.getParameters()[1].getName()` | `"repeat"` | Synthetic placeholder name, typically `"arg1"` |
 | `Parameter.isNamePresent()` | `true` | `false` |
-| `method.invoke(target, "Hi", 2)` | Chạy theo kiểu và thứ tự đối số | Hoạt động tương tự |
-| Annotation/thông tin kiểu có nguồn metadata riêng | Không do `-parameters` quyết định | Không do `-parameters` quyết định |
+| `method.invoke(target, "Hi", 2)` | Executes by argument types and order | Works identically |
+| Annotations/type info with separate metadata sources | Not controlled by `-parameters` | Not controlled by `-parameters` |
 
-Điểm quan trọng: **`getName()` luôn có thể trả một String**, kể cả khi tên nguồn không được ghi vào bytecode. Vì vậy:
+Crucial point: **`getName()` can always return a `String`**, even when source names were not recorded in bytecode. Therefore:
 
-- `getName() != null` **không chứng minh** có tên tham số thật.
-- `getName().equals("arg0")` **không phải** phép xác định metadata vắng mặt: `arg0` cũng có thể là tên do lập trình viên đặt trong source.
-- Phép kiểm tra đúng mục đích là `parameter.isNamePresent()` trước khi phụ thuộc vào `parameter.getName()` để bind dữ liệu.
+- `getName() != null` **does not prove** real parameter names exist.
+- `getName().equals("arg0")` **is not** a valid check for missing metadata: `arg0` could also be a name chosen by a developer in source code.
+- The proper check is `parameter.isNamePresent()` before relying on `parameter.getName()` for data binding.
 
-`Executable` là lớp cha chung của `Method` và `Constructor`; cả hai hỗ trợ `getParameters()`. Tùy chọn `-parameters` không chỉ liên quan đến method.
+`Executable` is the common superclass of `Method` and `Constructor`; both support `getParameters()`. The `-parameters` option does not apply only to methods.
 
-## 3. Thí nghiệm Java 17+: biên dịch hai biến thể từ một source
+## 3. Java 17+ Experiment: Compiling Two Variants from One Source
 
-### 3.1. Cấu trúc thư mục
+### 3.1. Directory Structure
 
-Tạo một thư mục thử nghiệm mới với hai file mã nguồn và ba thư mục output:
+Create a new test directory with two source files and three output directories:
 
 ~~~text
 parameter-lab/
@@ -57,7 +57,7 @@ parameter-lab/
 └── probe/
 ~~~
 
-Hai thư mục `without` và `with` chứa **hai bản khác nhau của cùng class `demo.Sample`**. Thư mục `probe` chứa chương trình đọc metadata. Không cần đặt các file `.class` lên cùng classpath cùng lúc: làm vậy khiến classpath order quyết định bản được load và làm kết quả test khó tin.
+The two directories `without` and `with` hold **two different builds of the same class `demo.Sample`**. Directory `probe` holds the metadata-reading program. Do not place both `.class` versions onto the same classpath simultaneously: doing so lets classpath order decide which build is loaded and makes test results unreliable.
 
 **File `src/demo/Sample.java`:**
 
@@ -77,7 +77,7 @@ public final class Sample {
 }
 ~~~
 
-Ở đây có **constructor** với một tham số `label` và **instance method** `greet` với hai tham số `firstName`, `repeat`. Class sử dụng `String.repeat(int)` có từ Java 11; biên dịch target Java 17 sẽ hợp lệ.
+Here we have a **constructor** with one parameter `label` and an **instance method** `greet` with two parameters `firstName` and `repeat`. The class uses `String.repeat(int)` available since Java 11; compiling targeting Java 17 is valid.
 
 **File `src/probe/ParameterMetadataProbe.java`:**
 
@@ -115,22 +115,22 @@ public final class ParameterMetadataProbe {
 }
 ~~~
 
-Chương trình `ParameterMetadataProbe` tìm **đúng một constructor và một method**, rồi in tên, trạng thái metadata tên tham số và kiểu tham số. Cả hai file Java trên là chương trình/lớp biên dịch được, không dựa vào thư viện ngoài JDK.
+`ParameterMetadataProbe` looks up **one exact constructor and one method**, then prints the name, parameter-name metadata status, and parameter type. Both Java files above are compilable programs/classes with no dependencies outside the JDK.
 
-### 3.2. Biên dịch với và không với `-parameters`
+### 3.2. Compiling With and Without `-parameters`
 
-Đứng tại `parameter-lab/`, tạo trước `without`, `with`, `probe` nếu chúng chưa tồn tại. Trên Linux/macOS (bash):
+From `parameter-lab/`, first create `without`, `with`, and `probe` if they do not yet exist. On Linux/macOS (bash):
 
 ~~~bash
 mkdir -p without with probe
 
-# Build A: có debug local variable info (-g) nhưng KHÔNG có -parameters.
+# Build A: has local variable debug info (-g) but WITHOUT -parameters.
 javac --release 17 -g -d without src/demo/Sample.java
 
-# Build B: có -parameters nhưng KHÔNG có debug info (-g:none).
+# Build B: has -parameters but WITHOUT debug info (-g:none).
 javac --release 17 -parameters -g:none -d with src/demo/Sample.java
 
-# Probe được biên dịch độc lập, không cần import demo.Sample.
+# Probe is compiled independently, without needing to import demo.Sample.
 javac --release 17 -d probe src/probe/ParameterMetadataProbe.java
 
 echo '=== WITHOUT -parameters (with -g) ==='
@@ -140,18 +140,18 @@ echo '=== WITH -parameters (without -g) ==='
 java -cp probe:with probe.ParameterMetadataProbe
 ~~~
 
-**Trên Windows PowerShell:** tạo thư mục bằng `New-Item -ItemType Directory -Force without,with,probe` (hoặc tạo sẵn trong Explorer); dấu phân tách classpath của Java trên Windows là **dấu chấm phẩy**, nên hai lệnh chạy tương ứng:
+**On Windows PowerShell:** create the directories using `New-Item -ItemType Directory -Force without,with,probe` (or create them in Explorer); Java's classpath separator on Windows is a **semicolon**, so the two run commands are:
 
 ~~~powershell
 java -cp 'probe;without' probe.ParameterMetadataProbe
 java -cp 'probe;with' probe.ParameterMetadataProbe
 ~~~
 
-Các lệnh `javac --release 17 ...` giống nhau trên Windows và Unix. Không biên dịch `Sample.java` đè vào cùng output directory rồi kiểm tra vì rất dễ chạy nhầm biến thể. Mỗi lệnh `java` tạo một JVM mới, tránh việc `demo.Sample` đã được class loader tải từ biến thể trước.
+The `javac --release 17 ...` commands are identical on Windows and Unix. Do not overwrite `Sample.java` into the same output directory and test, as it is very easy to run the wrong variant. Each `java` command launches a fresh JVM, avoiding `demo.Sample` already loaded by a class loader from the previous variant.
 
-### 3.3. Output chính xác
+### 3.3. Exact Output
 
-Khi chạy hai lệnh `java` như trên:
+When running the two `java` commands above:
 
 ~~~text
 === WITHOUT -parameters (with -g) ===
@@ -164,40 +164,40 @@ greet[0]: name=firstName, present=true, type=String
 greet[1]: name=repeat, present=true, type=int
 ~~~
 
-Output sử dụng các dòng `echo` để ngăn cách hai run. Nếu chỉ chạy `java`, mỗi run in ba dòng của constructor/method mà không in tiêu đề phân cách.
+The output uses `echo` lines to separate the two runs. Running only `java` prints the three constructor/method lines per run without separator headers.
 
-**Giải thích:** `getDeclaredConstructor(String.class)` và `getDeclaredMethod("greet", String.class, int.class)` tìm được thành viên trong cả hai build. Khác biệt xuất hiện khi `getParameters()` cung cấp `Parameter` và `getName()`/ `isNamePresent()` kiểm tra thông tin tên. Cả hai build giữ nguyên thứ tự và kiểu `String, int`. Đó chính là ranh giới: **metadata về tên khác metadata về signature và invocation**.
+**Explanation:** `getDeclaredConstructor(String.class)` and `getDeclaredMethod("greet", String.class, int.class)` find the members in both builds. The difference appears when `getParameters()` returns `Parameter` and `getName()`/`isNamePresent()` inspect name metadata. Both builds preserve parameter order and types `String, int`. That is the exact boundary: **name metadata differs from signature and invocation metadata**.
 
-## 4. `-parameters` khác `-g` như thế nào?
+## 4. How Does `-parameters` Differ from `-g`?
 
-Hai cờ phục vụ mục đích khác nhau:
+The two flags serve different purposes:
 
-| Cờ `javac` | Class file chủ yếu nhận được | Reflection chuẩn quan sát thế nào? |
+| `javac` flag | What the class file mainly receives | What standard Reflection observes |
 | --- | --- | --- |
-| `-parameters` | Thuộc tính **`MethodParameters`** cho thông tin tham số method/constructor | `Parameter.getName()`, `isNamePresent()`, và một số metadata modifiers |
-| `-g` | Thông tin debug gồm line number, source file, local variables | **Không tự tạo** tên thật cho `Parameter.getName()` |
-| `-g:none` | Không tạo debug information thông thường | **Không xóa `MethodParameters`** nếu build có `-parameters` |
-| Không chỉ định `-parameters` | `javac` thông thường không lưu tên tham số nguồn qua `MethodParameters` | Tên giả định `arg0`, `arg1`, ... và `isNamePresent() == false` trong ví dụ |
+| `-parameters` | **`MethodParameters`** attribute for method/constructor parameter info | `Parameter.getName()`, `isNamePresent()`, and certain metadata modifiers |
+| `-g` | Debug info including line numbers, source file, local variables | **Does not automatically populate** real names for `Parameter.getName()` |
+| `-g:none` | Does not emit standard debug information | **Does not strip `MethodParameters`** if built with `-parameters` |
+| Omitting `-parameters` | Standard `javac` does not store source parameter names via `MethodParameters` | Placeholder names `arg0`, `arg1`, ... and `isNamePresent() == false` in the example |
 
-Thông tin debug `LocalVariableTable`, khi có, nằm trong thuộc tính của `Code` và phục vụ công cụ debug/bytecode. Nó **không phải** cùng thuộc tính với `MethodParameters`; core reflection **không dùng LocalVariableTable như đường fallback công khai** để khôi phục tên tham số cho `Parameter.getName()`. Một thư viện ngoài có thể chủ động đọc debug bytecode để khôi phục thông tin trong vài trường hợp, nhưng không được đồng nhất hành vi đó với core Java Reflection.
+`LocalVariableTable` debug info, when present, lives inside the `Code` attribute and serves debuggers/bytecode tools. It is **not** the same attribute as `MethodParameters`; core reflection **does not use `LocalVariableTable` as a public fallback** to recover parameter names for `Parameter.getName()`. An external library may explicitly parse debug bytecode to recover information in some cases, but that behavior must not be equated with core Java Reflection.
 
-**Thí nghiệm cố ý kiểm soát hai biến:**
+**Experiment intentionally controlling two variables:**
 
-- Build **without**: `-g` có debug info, **không có `-parameters`** → `isNamePresent() = false`.
-- Build **with**: `-parameters -g:none` **không có debug info**, nhưng có `MethodParameters` → `isNamePresent() = true`.
+- **Without** build: `-g` has debug info, **no `-parameters`** → `isNamePresent() = false`.
+- **With** build: `-parameters -g:none` **has no debug info**, yet has `MethodParameters` → `isNamePresent() = true`.
 
-Như vậy, kết quả kiểm thử không thể bị giải thích nhầm rằng tên tham số đến từ cờ debug.
+Thus, test results cannot be mistakenly explained as parameter names coming from debug flags.
 
-### 4.1. Kiểm tra trực tiếp bytecode với javap
+### 4.1. Inspecting Bytecode Directly with `javap`
 
-Chạy:
+Run:
 
 ~~~bash
 javap -v -p -classpath without demo.Sample
 javap -v -p -classpath with demo.Sample
 ~~~
 
-Trong output của bản **with**, tìm thuộc tính dạng:
+In the output of the **with** build, look for an attribute shaped like:
 
 ~~~text
 MethodParameters:
@@ -206,15 +206,15 @@ MethodParameters:
   repeat
 ~~~
 
-Đây là **trích đoạn minh họa từ phần method greet** (cách căn cột của `javap` có thể khác theo JDK), không phải toàn bộ output của chương trình. Constructor cũng có một `MethodParameters` chứa `label`.
+This is an **illustrative excerpt from the `greet` method section** (`javap` column alignment may vary by JDK), not the entire program output. The constructor also has a `MethodParameters` attribute containing `label`.
 
-Bản **without** có thể có `LocalVariableTable` vì được build với `-g`, nhưng **không có khối `MethodParameters` cho các method tương ứng**. Với bản **with**, có `MethodParameters` dù biên dịch `-g:none`. Có thể dùng `javap -l` để xem line/local-variable debug info riêng.
+The **without** build may have `LocalVariableTable` because it was compiled with `-g`, yet **has no `MethodParameters` block for those methods**. The **with** build has `MethodParameters` despite being compiled with `-g:none`. You can use `javap -l` to inspect line/local-variable debug info separately.
 
-**Lưu ý:** `javap` hiển thị cả constant pool và nhiều thuộc tính; đừng chỉ search một chuỗi `firstName` trong toàn output rồi kết luận tên parameter đã sẵn cho reflection. Hãy kiểm tra **đúng thuộc tính `MethodParameters`** của method/constructor tương ứng.
+**Note:** `javap` prints the constant pool and many attributes; do not just search for the string `firstName` across the whole output and conclude parameter names are available to reflection. Check the **exact `MethodParameters` attribute** of the respective method/constructor.
 
-## 5. Viết test tự động để phát hiện build thiếu metadata
+## 5. Writing Automated Tests to Catch Missing Metadata in Builds
 
-Thay vì chỉ nhìn stdout, hãy thêm assert vào test chuyên biệt cho **artifact thật sự dùng khi deploy**. Ví dụ utility JUnit không được dùng ở đây để tránh phải thêm dependency; sau đây là một class Java 17 độc lập có `main` và assert bằng `AssertionError`:
+Instead of only reading stdout, add assertions in dedicated tests targeting the **actual artifact used in deployment**. JUnit is omitted here to avoid adding dependencies; below is a standalone Java 17 class with `main` asserting via `AssertionError`:
 
 **File `src/probe/ParameterMetadataAssertions.java`:**
 
@@ -256,61 +256,61 @@ public final class ParameterMetadataAssertions {
 }
 ~~~
 
-Biên dịch class kiểm tra này vào `probe` (vẫn cùng thư mục project):
+Compile this test class into `probe` (in the same project directory):
 
 ~~~bash
 javac --release 17 -d probe src/probe/ParameterMetadataAssertions.java
 java -cp probe:with probe.ParameterMetadataAssertions
 ~~~
 
-Lệnh cuối dự kiến in:
+The last command is expected to print:
 
 ~~~text
 parameter metadata present: [firstName, repeat]
 ~~~
 
-Nếu thay `with` bằng `without`, chương trình phải **thất bại** bằng `AssertionError` với thông báo chứa `Missing -parameters at index 0`. Không nên ghi cả stack trace vào golden output vì số dòng/source line thay đổi khi chỉnh mã.
+If you replace `with` with `without`, the program must **fail** with `AssertionError` containing `Missing -parameters at index 0`. Do not include full stack traces in golden output because line numbers change when editing code.
 
-Với dự án thật, hãy kiểm tra **JAR hoặc class output do pipeline CI/deploy tạo**, không chỉ một bản bạn biên dịch thủ công. Test có thể chạy ở CI để chặn lỗi cờ biên dịch bị mất khi cập nhật Maven/Gradle/IDE.
+In real projects, test the **JAR or compiled classes produced by the CI/deploy pipeline**, not just a manually compiled build. The test can run in CI to catch lost compiler flags when updating Maven/Gradle/IDE settings.
 
-### 5.1. Tại sao cần kiểm tra cả tên và `isNamePresent()`?
+### 5.1. Why Check Both the Name and `isNamePresent()`?
 
-Test chỉ so `getName()` với `"firstName"` có thể bắt lỗi trong ví dụ này, nhưng không phân biệt tốt các trường hợp tên `arg0` là tên nguồn thực tế. Test chỉ so `isNamePresent()` cũng chưa bảo đảm tên mong muốn được giữ sau refactor. Vì vậy:
+A test checking only `getName()` against `"firstName"` catches the bug in this example, but does not distinguish cases where `arg0` is an actual source name. A test checking only `isNamePresent()` does not guarantee expected names survived refactoring. Therefore:
 
-1. Nếu yêu cầu “có tên nguồn”, assert `isNamePresent()`.
-2. Nếu contract binding bắt buộc tên cụ thể, assert thêm `getName()` có giá trị đã định.
-3. Nếu thực tế chỉ cần signature/annotation định danh rõ, **không nên** đặt thêm dependency không cần thiết vào tên tham số nguồn.
+1. If "source names exist" is required, assert `isNamePresent()`.
+2. If a binding contract mandates specific names, also assert `getName()` has the defined value.
+3. If only signatures/identifying annotations are actually needed, **do not** introduce an unnecessary dependency on source parameter names.
 
-### 5.2. Ma trận test thiết thực
+### 5.2. Practical Test Matrix
 
-| Ca kiểm thử | Điều cần xác minh | Ý nghĩa |
+| Test case | What to verify | Significance |
 | --- | --- | --- |
-| Build thiếu `-parameters` | `isNamePresent() == false` trong class javac thông thường | Hiểu hành vi degrade/fail rõ ràng |
-| Build có `-parameters` | `true` và tên như source | Pipeline lưu đúng metadata |
-| `-g` nhưng thiếu `-parameters` | Core reflection vẫn không đọc được tên nguồn | Không nhầm debug info với MethodParameters |
-| `-parameters -g:none` | Tên vẫn đọc được | Độc lập với debug info |
-| Constructor | `Constructor.getParameters()` tương tự method | Framework constructor injection/binding hoạt động |
-| Method overload | Lookup đúng bằng cả tên + danh sách `Class<?>[]` | Không kiểm nhầm overload |
-| Artifact đóng gói cuối | Kiểm tra class trong JAR/container thực | Không bị lệch giữa IDE, test và production |
-| Class do tool sinh | Kiểm tra `isImplicit()`, `isSynthetic()`, names | Không suy luận tên tham số nguồn cho tham số ẩn/sinh |
+| Build without `-parameters` | `isNamePresent() == false` in standard javac classes | Understand clear degrade/fail behavior |
+| Build with `-parameters` | `true` and names match source | Pipeline preserves metadata accurately |
+| `-g` without `-parameters` | Core reflection still cannot read source names | Do not confuse debug info with `MethodParameters` |
+| `-parameters -g:none` | Names remain readable | Independent of debug info |
+| Constructor | `Constructor.getParameters()` matches method behavior | Framework constructor injection/binding works |
+| Method overloads | Look up using both name + `Class<?>[]` list | Avoid inspecting the wrong overload |
+| Final packaged artifact | Inspect classes inside actual JAR/container | No drift between IDE, tests, and production |
+| Tool-generated classes | Check `isImplicit()`, `isSynthetic()`, names | Do not assume source parameter names for implicit/synthetic parameters |
 
-## 6. Cấu hình project và nguồn phát sinh khác biệt
+## 6. Project Configuration and Sources of Divergence
 
 ### 6.1. Maven
 
-Với dự án Maven dùng `maven-compiler-plugin`, có thể cấu hình thuộc tính compiler parameters:
+For Maven projects using `maven-compiler-plugin`, you can configure the compiler parameters property:
 
 ~~~xml
-<!-- Trích đoạn trong pom.xml, không phải một pom.xml độc lập. -->
+<!-- Snippet inside pom.xml, not a standalone pom.xml. -->
 <properties>
     <maven.compiler.parameters>true</maven.compiler.parameters>
 </properties>
 ~~~
 
-Hoặc cấu hình plugin cụ thể:
+Or configure the plugin explicitly:
 
 ~~~xml
-<!-- Trích đoạn cấu hình bên trong <plugins>, không phải pom.xml độc lập. -->
+<!-- Configuration snippet inside <plugins>, not a standalone pom.xml. -->
 <plugin>
   <groupId>org.apache.maven.plugins</groupId>
   <artifactId>maven-compiler-plugin</artifactId>
@@ -320,11 +320,11 @@ Hoặc cấu hình plugin cụ thể:
 </plugin>
 ~~~
 
-Phiên bản plugin/JDK và các profile build cần được đồng bộ trong dự án. Sau khi thay cờ, thực hiện **clean compilation** và kiểm thử artifact thực, vì file `.class` cũ có thể còn trong thư mục output.
+Plugin/JDK versions and build profiles must be aligned across the project. After changing flags, run a **clean compilation** and test the real artifact, because stale `.class` files can remain in the output directory.
 
 ### 6.2. Gradle
 
-Với Gradle Java plugin, cấu hình tasks kiểu `JavaCompile` trong **Groovy DSL**:
+With the Gradle Java plugin, configure `JavaCompile` tasks in **Groovy DSL**:
 
 ~~~groovy
 tasks.withType(JavaCompile).configureEach {
@@ -332,65 +332,65 @@ tasks.withType(JavaCompile).configureEach {
 }
 ~~~
 
-Đây là một đoạn cấu hình trong `build.gradle`, không phải file Java chạy được. Trong multi-module build, kiểm tra module thực sự tạo các class cần reflection, kể cả module chứa DTO hoặc constructor được framework sử dụng. Với build Kotlin/Scala hoặc code generator, cờ của `javac` không đủ để suy ra metadata của các class do compiler khác tạo; kiểm tra **class file cuối** mới là bằng chứng.
+This is a configuration snippet in `build.gradle`, not a runnable Java file. In multi-module builds, check every module that produces classes needing reflection, including modules holding DTOs or constructors used by frameworks. For Kotlin/Scala builds or code generators, `javac` flags are not enough to infer metadata of classes emitted by other compilers; inspecting the **final class file** is the only proof.
 
-### 6.3. IDE, annotation processor, generator và tối ưu bytecode
+### 6.3. IDEs, Annotation Processors, Generators, and Bytecode Optimizers
 
-- Compile trong IDE có thể dùng cấu hình khác với CI, kể cả khi cùng source.
-- Annotation processor/code generator tạo class riêng; cách compiler/generator ghi `MethodParameters` cần được xác minh riêng.
-- Obfuscator/shrinker/bytecode transformer có thể thay hoặc loại bỏ thông tin tên; thêm `-parameters` lúc javac chưa đủ nếu pipeline sau đó biến đổi class file.
-- Constructor của **inner class, enum, record** và method **synthetic/bridge** có thể có tham số compiler tạo ra hoặc quy tắc metadata riêng. Không áp dụng máy móc kết luận `arg0`/tên nguồn từ fixture đơn giản cho mọi thành viên; kiểm tra `Parameter.isImplicit()`, `isSynthetic()`, `getModifiers()`, và method `isSynthetic()`/`isBridge()` khi có liên quan.
+- Compiling in an IDE can use different flags from CI, even for the same source code.
+- Annotation processors/code generators produce their own classes; how those compilers/generators emit `MethodParameters` must be verified separately.
+- Obfuscators/shrinkers/bytecode transformers can rename or strip name metadata; passing `-parameters` to `javac` is insufficient if a later pipeline stage transforms class files.
+- Constructors of **inner classes, enums, records**, and **synthetic/bridge** methods can have compiler-generated parameters or special metadata rules. Do not mechanically apply conclusions about `arg0`/source names from a simple fixture to all members; check `Parameter.isImplicit()`, `isSynthetic()`, `getModifiers()`, and `isSynthetic()`/`isBridge()` on methods when relevant.
 
-## 7. Các giới hạn của tên tham số trong runtime
+## 7. Limitations of Parameter Names at Runtime
 
-### 7.1. `-parameters` không bảo đảm API binding luôn đúng
+### 7.1. `-parameters` Does Not Guarantee API Binding Always Works
 
-Tên tham số có thể bị đổi khi refactor source trong khi signature JVM vẫn giống hệt. Nếu ứng dụng dựa vào tên `firstName` để bind request field, việc đổi thành `name` mà không cập nhật contract có thể làm hỏng API ở runtime dù Java compile thành công.
+Parameter names can change during source refactoring while the JVM signature stays identical. If an application relies on `firstName` to bind a request field, renaming it to `name` without updating the contract can break the API at runtime even though Java compiles cleanly.
 
-Một số framework hỗ trợ annotation ghi tên tường minh (ví dụ annotation của framework định nghĩa tên path/query field). Khi hệ thống yêu cầu API contract ổn định, **tên explicit đã được review** thường bền hơn suy đoán tên nguồn. Nhưng đừng tự giả định framework luôn bỏ qua `-parameters` khi có annotation: đọc contract của phiên bản framework đang dùng.
+Some frameworks support annotations specifying explicit names (e.g., framework annotations defining path/query field names). When a system needs stable API contracts, **reviewed explicit names** are usually more durable than inferring source names. Still, do not assume a framework always ignores `-parameters` when an annotation is present: read the contract of the framework version in use.
 
-### 7.2. Method có annotation và generics
+### 7.2. Methods with Annotations and Generics
 
-- `Method.getParameterAnnotations()` và `Parameter.getAnnotations()` dựa trên metadata annotation, **không phải chỉ dựa vào `MethodParameters`**.
-- `Executable.getGenericParameterTypes()` dựa vào generic Signature metadata (nếu có) và có thể bị chi phối bởi type erasure và quá trình phân giải Type riêng.
-- `getParameterTypes()` đọc kiểu tham số runtime từ method descriptor, nên vẫn biết `String, int` dù tên nguồn không hiện diện.
-- Tên biến cục bộ bên trong thân method không được bổ sung bởi `-parameters`: nó không phải tùy chọn “giữ tất cả tên biến” cho reflection.
+- `Method.getParameterAnnotations()` and `Parameter.getAnnotations()` rely on annotation metadata, **not solely on `MethodParameters`**.
+- `Executable.getGenericParameterTypes()` relies on generic `Signature` metadata (when present) and can be governed by type erasure and separate `Type` resolution.
+- `getParameterTypes()` reads runtime parameter types from the method descriptor, so it still knows `String, int` even when source names are absent.
+- Local variable names inside a method body are not added by `-parameters`: it is not a "keep all variable names" option for reflection.
 
-### 7.3. Trường hợp dữ liệu metadata không hợp lệ
+### 7.3. Invalid Metadata Cases
 
-`Executable.getParameters()` có thể ném `java.lang.reflect.MalformedParametersException` khi thuộc tính `MethodParameters` trong class file không hợp lệ. Trường hợp này khác với **không có** tên tham số: với class javac thông thường không có `-parameters`, reflection tạo tên giả định và đặt `isNamePresent() = false`, chứ không coi việc thiếu thuộc tính là bytecode hỏng.
+`Executable.getParameters()` can throw `java.lang.reflect.MalformedParametersException` when the `MethodParameters` attribute in a class file is invalid. This differs from **missing** parameter names: for standard `javac` classes without `-parameters`, reflection synthesizes placeholder names and sets `isNamePresent() = false`, rather than treating the missing attribute as malformed bytecode.
 
-Trên hệ thống có plugin hoặc class do công cụ ngoài sinh ra, phân biệt:
+In systems with plugins or classes generated by external tools, distinguish:
 
-1. **Không có MethodParameters:** thông thường trả tên giả định; nghiệp vụ cần tên thật phải từ chối hoặc có fallback tường minh.
-2. **Có MethodParameters hợp lệ:** kiểm tra tên/thứ tự/kind theo yêu cầu.
-3. **MethodParameters hỏng:** xử lý như lỗi artifact/build pipeline; không cố sửa bằng việc đoán tên từ `arg0`.
+1. **No `MethodParameters`:** normally returns placeholder names; business logic requiring real names must reject or apply an explicit fallback.
+2. **Valid `MethodParameters`:** verify names/order/kind per requirements.
+3. **Corrupt `MethodParameters`:** treat as an artifact/build pipeline error; do not try to recover by guessing names from `arg0`.
 
-## 8. Checklist kiểm thử và lỗi thường gặp
+## 8. Testing Checklist and Common Mistakes
 
-**Checklist cho test hoặc CI:**
+**Checklist for tests or CI:**
 
-1. Lấy **cùng một source**; build ra hai thư mục/JAR hoàn toàn riêng.
-2. Tạo build A có `-g` nhưng **không có `-parameters`**, build B có `-parameters -g:none`.
-3. Không đưa cả hai bản của **cùng fully-qualified class name** vào một classpath ở cùng JVM; dùng hai lần chạy hoặc class loader cách ly có kiểm soát.
-4. Đọc ít nhất một method và một constructor với `getParameters()`.
-5. Assert **`isNamePresent()` và `getName()`**; vẫn kiểm tra `getParameterTypes()` và `getParameterCount()` để thấy signature không bị mất.
-6. Xem `javap -v -p`: so sánh đúng `MethodParameters` với debug `LocalVariableTable`.
-7. Trên CI, test artifact cuối cùng với flags/plugin và JDK version dùng ở deploy; sau khi thay flags thì clean build.
-8. Với framework binding, test cả request theo tên contract và case thiếu metadata, thay vì chỉ kiểm tra một method mẫu.
-9. Tránh dựa vào tên fake `arg0` như API contract; đối với record/inner/synthetic constructors cần kiểm tra hành vi riêng.
-10. Khi thay đổi tên tham số, test hồi quy contract dữ liệu và documentation, không chỉ test compile.
+1. Take **the exact same source**; build into two completely separate directories/JARs.
+2. Create build A with `-g` but **without `-parameters`**, and build B with `-parameters -g:none`.
+3. Do not place both versions of the **same fully-qualified class name** onto one classpath in the same JVM; use two runs or controlled isolated class loaders.
+4. Inspect at least one method and one constructor with `getParameters()`.
+5. Assert **`isNamePresent()` and `getName()`**; also verify `getParameterTypes()` and `getParameterCount()` to confirm signatures are intact.
+6. Inspect with `javap -v -p`: compare `MethodParameters` directly against debug `LocalVariableTable`.
+7. On CI, test the final artifact with the deployment flags/plugins and JDK version; after changing flags, run a clean build.
+8. For framework binding, test both requests using contract names and cases missing metadata, rather than testing only a single sample method.
+9. Avoid relying on fake `arg0` names as an API contract; for record/inner/synthetic constructors, verify their specific behavior.
+10. When renaming parameters, regression-test data contracts and documentation, not only compilation.
 
-**Tự kiểm tra:**
+**Self-check:**
 
-- Vì sao `-g` không đủ để `Parameter.isNamePresent()` trả true?
-- Vì sao `Parameter.getName()` có kết quả `arg0` không chứng minh tên này có trong source?
-- Tại sao hai class `demo.Sample` giống tên nhưng khác flag biên dịch không nên nằm chung một classpath để chạy test?
-- Điều gì khác nhau giữa `LocalVariableTable` và `MethodParameters`?
-- Vì sao một framework bind theo tên có thể hỏng sau khi đổi tên tham số mà chữ ký method vẫn không đổi?
-- Nếu thấy `MalformedParametersException`, cần điều tra điều gì thay vì chỉ thêm `-parameters`?
+- Why is `-g` not enough for `Parameter.isNamePresent()` to return true?
+- Why does `Parameter.getName()` returning `arg0` not prove that name existed in source?
+- Why should two `demo.Sample` classes with the same name but different compiler flags not share one classpath when running tests?
+- What is the difference between `LocalVariableTable` and `MethodParameters`?
+- Why can a name-binding framework break after renaming a parameter while the method signature remains unchanged?
+- If `MalformedParametersException` appears, what should you investigate instead of merely adding `-parameters`?
 
-### Tài liệu tham khảo
+### References
 
 - Oracle JDK 21 — `javac` options, `-parameters`: https://docs.oracle.com/en/java/javase/21/docs/specs/man/javac.html
 - Oracle Java SE 21 — `Parameter`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Parameter.html

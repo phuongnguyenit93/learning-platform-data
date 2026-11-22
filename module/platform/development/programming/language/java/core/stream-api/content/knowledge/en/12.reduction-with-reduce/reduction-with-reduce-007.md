@@ -1,28 +1,28 @@
-# Vì sao không dùng bộ chứa mutable làm identity của `reduce`?
+# Why Should You Not Use a Mutable Container as the identity of `reduce`?
 
-Trong **Java Stream API**, `reduce` dùng để rút gọn nhiều phần tử thành **một giá trị** theo phép kết hợp. Ví dụ, tính tổng, tìm giá trị lớn nhất hoặc ghép các kết quả bất biến. Khi muốn gom phần tử thành `ArrayList`, `HashMap` hay `StringBuilder`, nhiều người cũng thử truyền một container rỗng vào tham số `identity` rồi sửa nó ngay trong accumulator.
+In the **Java Stream API**, `reduce` is used to combine multiple elements into **a single value** according to a combining operation. For instance, computing a sum, finding a maximum value, or merging immutable results. When wanting to gather elements into an `ArrayList`, `HashMap`, or `StringBuilder`, many developers try passing an empty container as the `identity` parameter and mutating it directly inside the accumulator.
 
-Đó là một bẫy quan trọng trong chương **Phép rút gọn với reduce**: `identity` là **một giá trị khởi đầu tham gia hợp đồng toán học của phép rút gọn**, không phải một factory được gọi để tạo container mới. Nếu accumulator thay đổi đối tượng ấy, pipeline có thể tình cờ cho kết quả đúng khi chạy tuần tự nhưng tạo phần tử trùng, mất dữ liệu hoặc gặp tranh chấp khi chuyển sang song song.
+That is a major trap in the **Reduction with reduce** chapter: `identity` is **an initial value participating in the mathematical contract of reduction**, not a factory called to create a new container. If the accumulator mutates that object, the pipeline may accidentally produce the expected result sequentially, yet create duplicate elements, lose data, or suffer contention when switched to parallel execution.
 
-Giải pháp thông thường là **`reduce` cho phép kết hợp giá trị bất biến; `collect` cho phép tích lũy vào container mutable**. Cần hiểu lý do này từ hợp đồng API, thay vì chỉ thay tên một phương thức.
+The standard solution is: **`reduce` is for combining immutable values; `collect` is for accumulating into mutable containers**. You should understand the reason from the API contract rather than merely swapping method names.
 
-## 1. Phân biệt giá trị rút gọn và bộ chứa tích lũy
+## 1. Distinguishing a reduced value from an accumulation container
 
-Một pipeline Stream có thể gồm nguồn, các phép toán trung gian lazy (`filter`, `map`, ...) và terminal operation (`reduce`, `collect`, ...). Terminal operation kích hoạt xử lý; sau đó cùng đối tượng `Stream` không thể được sử dụng lại.
+A Stream pipeline can consist of a source, lazy intermediate operations (`filter`, `map`, ...), and a terminal operation (`reduce`, `collect`, ...). The terminal operation triggers processing; afterward, the same `Stream` object cannot be reused.
 
-| Tiêu chí | `reduce` | `collect` |
+| Criterion | `reduce` | `collect` |
 | --- | --- | --- |
-| Mục đích chính | Kết hợp các phần tử hoặc kết quả tạm thành một **giá trị**. | Tích lũy phần tử vào một **container có thể thay đổi**. |
-| Khởi tạo | Nhận `identity` là **giá trị** thuộc kiểu kết quả. | Nhận `supplier` **tạo container** mới khi cần. |
-| Phép tích lũy | Trả kết quả tích lũy mới về mặt ngữ nghĩa. | Thường sửa container của lượt tích lũy và trả `void`. |
-| Kết hợp các nhánh | `BinaryOperator` trả một giá trị kết hợp. | `Stream.collect` ba tham số dùng `BiConsumer`; `Collector.of` dùng `BinaryOperator` trả container gộp. |
-| Ví dụ điển hình | Tổng, tích, phép chọn min/max, `BigDecimal::add`. | `List`, `Set`, `Map`, `groupingBy`, collector tùy chỉnh. |
+| Primary purpose | Combines elements or partial results into a single **value**. | Accumulates elements into a **mutable container**. |
+| Initialization | Takes `identity` as a **value** of the result type. | Takes a `supplier` that **creates a new container** when needed. |
+| Accumulation operation | Semantically returns a new accumulated result. | Typically mutates the accumulation segment's container and returns `void`. |
+| Merging branches | `BinaryOperator` returning a combined value. | Three-parameter `Stream.collect` uses `BiConsumer`; `Collector.of` uses `BinaryOperator` returning the merged container. |
+| Typical examples | Sums, products, min/max selection, `BigDecimal::add`. | `List`, `Set`, `Map`, `groupingBy`, custom collectors. |
 
-**Mutable** nghĩa là trạng thái bên trong đối tượng có thể thay đổi sau khi tạo. `ArrayList.add`, `HashMap.put` và `StringBuilder.append` là những thao tác thay đổi đối tượng. Trái lại, `Integer`, `String` và `BigDecimal` là các kiểu bất biến: phép tính thường tạo giá trị kết quả mới.
+**Mutable** means the internal state of an object can change after creation. `ArrayList.add`, `HashMap.put`, and `StringBuilder.append` are operations that mutate the object. In contrast, `Integer`, `String`, and `BigDecimal` are immutable types: operations typically create a new result value.
 
-## 2. Ba overload của `reduce` và ý nghĩa của `identity`
+## 2. Three overloads of `reduce` and the meaning of `identity`
 
-Các chữ ký khái quát trên `Stream<T>`:
+Conceptual signatures on `Stream<T>`:
 
 ```java
 Optional<T> reduce(BinaryOperator<T> accumulator);
@@ -36,11 +36,11 @@ T reduce(T identity, BinaryOperator<T> accumulator);
 );
 ```
 
-- **Không có identity:** `reduce(BinaryOperator<T>)` trả `Optional<T>`, vì stream rỗng không có phần tử để trả về.
-- **Có identity và cùng kiểu:** `reduce(T, BinaryOperator<T>)` trả `T`; identity là kết quả khi nguồn rỗng và là phần tử đơn vị của phép kết hợp.
-- **Có identity và kết quả khác kiểu:** `reduce(U, BiFunction<U,T,U>, BinaryOperator<U>)` cho phép phần tử kiểu `T` được tích lũy thành giá trị kiểu `U`. Combiner gộp **hai** giá trị `U`.
+- **Without identity:** `reduce(BinaryOperator<T>)` returns `Optional<T>`, because an empty stream has no elements to return.
+- **With identity and same type:** `reduce(T, BinaryOperator<T>)` returns `T`; `identity` is the result when the source is empty and serves as the identity element of the combining operation.
+- **With identity and different result type:** `reduce(U, BiFunction<U,T,U>, BinaryOperator<U>)` allows elements of type `T` to be accumulated into a value of type `U`. The combiner merges **two** `U` values.
 
-Ví dụ đúng với giá trị bất biến:
+Valid example with immutable values:
 
 ```java
 import java.util.stream.Stream;
@@ -52,38 +52,38 @@ System.out.println(sum);      // 12
 System.out.println(emptySum); // 0
 ```
 
-`0` là phần tử đơn vị của phép cộng: `0 + x = x + 0 = x`. `Integer::sum` không thay đổi bất kỳ `Integer` nào; nó trả một giá trị `int` mới. Dữ liệu có thể được chia thành các nhóm để tính tổng từng phần rồi kết hợp mà không phụ thuộc ranh giới chia nhóm, miễn là tổng không vượt quá phạm vi kiểu số.
+`0` is the identity element of addition: `0 + x = x + 0 = x`. `Integer::sum` does not mutate any `Integer`; it returns a new `int` value. Data can be split into groups to compute partial sums and then combined regardless of split boundaries, provided the sum does not exceed the numeric type's range.
 
-### `identity` khác `Supplier` như thế nào?
+### How does `identity` differ from `Supplier`?
 
 ```text
 reduce(identity, accumulator, combiner)
        |
-       +-- identity là một GIÁ TRỊ được truyền vào lời gọi reduce
+       +-- identity is a VALUE passed into the reduce call
 
 collect(supplier, accumulator, combiner)
         |
-        +-- supplier.get() có thể được gọi nhiều lần
-            để tạo những CONTAINER RIÊNG cho các phần tích lũy
+        +-- supplier.get() can be called multiple times
+            to create SEPARATE CONTAINERS for accumulation segments
 ```
 
-Khi `identity` là số 0 hoặc chuỗi rỗng, chia sẻ giá trị ấy không gây vấn đề vì ta không sửa nó. Nhưng khi `identity` là **một tham chiếu đến danh sách mutable**, các nhánh song song có thể nhận **cùng tham chiếu đó** làm điểm khởi đầu. Không có cơ chế tự động sao chép danh sách mỗi khi một nhánh bắt đầu.
+When `identity` is the number 0 or an empty string, sharing that value causes no issue because we do not mutate it. However, when `identity` is **a reference to a mutable list**, parallel branches can receive **that exact same reference** as their starting point. There is no mechanism that automatically copies the list whenever a branch starts.
 
-## 3. Ví dụ sai: dùng `ArrayList` làm identity rồi gọi `add`
+## 3. Wrong example: using `ArrayList` as identity and calling `add`
 
-Đoạn mã sau **biên dịch được nhưng vi phạm hợp đồng reduction**:
+The following code **compiles but violates the reduction contract**:
 
 ```java
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-// VÍ DỤ SAI: không dùng trong ứng dụng.
+// WRONG EXAMPLE: do not use in applications.
 List<String> result = Stream.of("A", "B", "C")
     .reduce(
         new ArrayList<String>(),
         (acc, item) -> {
-            acc.add(item);  // Sửa chính identity hoặc kết quả tạm
+            acc.add(item);  // Mutates the identity itself or the partial result
             return acc;
         },
         (left, right) -> {
@@ -93,22 +93,22 @@ List<String> result = Stream.of("A", "B", "C")
     );
 ```
 
-Khi chạy tuần tự, đoạn mã có thể in ra `[A, B, C]`. Kết quả ấy dễ tạo ấn tượng rằng cách làm là đúng. Nhưng cả accumulator lẫn combiner đều **thay đổi đối tượng đầu vào** rồi trả lại chính nó.
+When run sequentially, this code may print `[A, B, C]`. That output easily creates the impression that the approach is valid. Yet both the accumulator and the combiner **mutate the input object** and return it back.
 
-Khi chạy song song, một cách thực thi có thể chia nguồn thành các phần `[A]`, `[B]`, `[C]` và bắt đầu tích lũy từ cùng đối tượng danh sách được truyền làm `identity`. Các tình huống có thể xảy ra:
+When run in parallel, an execution may split the source into `[A]`, `[B]`, `[C]` and start accumulating from the exact same list object passed as `identity`. Possible outcomes:
 
-1. Hai nhánh cùng gọi `add` trên một `ArrayList` không an toàn luồng, gây tranh chấp và kết quả không tin cậy.
-2. Khi combiner nhận hai kết quả đều trỏ đến **chính danh sách ấy**, thao tác `left.addAll(right)` có thể sao chép danh sách vào chính nó, tạo bản ghi trùng.
-3. Trong một số lần chạy, kết quả có vẻ đúng; trong lần khác, thứ tự, số lượng hoặc nội dung có thể sai. Không có bảo đảm được phép dựa vào.
+1. Two branches call `add` concurrently on a non-thread-safe `ArrayList`, causing contention and unreliable results.
+2. When the combiner receives two results pointing to **that very same list**, `left.addAll(right)` can copy the list into itself, creating duplicate entries.
+3. On some runs, the result may look right; on others, the order, count, or contents may be wrong. No guarantee can be relied upon.
 
-Không cần chạy thử để coi đây là lỗi: mã **đã sai hợp đồng** dù một ví dụ nhỏ tình cờ cho đầu ra như mong muốn.
+You do not need to run a test to consider this a bug: the code **already violates the contract** even if a small example happens to produce the expected output.
 
-### Cùng lỗi với `StringBuilder`
+### The same mistake with `StringBuilder`
 
 ```java
 import java.util.stream.Stream;
 
-// VÍ DỤ SAI: StringBuilder::append sửa đối tượng bên trái.
+// WRONG EXAMPLE: StringBuilder::append mutates the left-hand object.
 StringBuilder text = Stream.of("a", "b", "c")
     .parallel()
     .reduce(
@@ -118,30 +118,30 @@ StringBuilder text = Stream.of("a", "b", "c")
     );
 ```
 
-`StringBuilder` rất phù hợp làm bộ đệm mutable **trong collector**, nhưng không phù hợp với kiểu `reduce` sửa trực tiếp identity như trên. Việc đồng bộ hóa thủ công hoặc đổi sang `StringBuffer` không tự sửa hợp đồng identity và combiner: hai biến kết quả tạm vẫn có thể tham chiếu cùng một đối tượng và bị gộp lặp.
+`StringBuilder` is great as a mutable buffer **inside a collector**, but unsuitable for a `reduce` that mutates the identity directly as above. Adding manual synchronization or switching to `StringBuffer` does not fix the identity and combiner contract: two intermediate result variables can still refer to the same object and be merged repeatedly.
 
-## 4. Tại sao sai: các luật của phép rút gọn
+## 4. Why it is wrong: the laws of reduction
 
-Để `reduce` đúng với cách Stream được phép phân chia và kết hợp, các hàm cần thỏa những điều kiện về **phần tử đơn vị, tính kết hợp và tương thích accumulator/combiner**.
+For `reduce` to work properly with how Streams are permitted to split and merge, the functions must satisfy conditions on **identity, associativity, and accumulator/combiner compatibility**.
 
-Gọi:
+Let:
 
-- `e`: identity kiểu `U`;
-- `A(u, t)`: accumulator đưa phần tử nguồn `t` kiểu `T` vào kết quả tạm `u` kiểu `U`;
-- `C(u1, u2)`: combiner gộp hai kết quả tạm kiểu `U`.
+- `e`: identity of type `U`;
+- `A(u, t)`: accumulator folding source element `t` of type `T` into partial result `u` of type `U`;
+- `C(u1, u2)`: combiner merging two partial results of type `U`.
 
-Về mặt giá trị, cần bảo đảm:
+In terms of values, the following must hold:
 
-| Điều kiện | Ý nghĩa |
+| Condition | Meaning |
 | --- | --- |
-| `C(e, u) = u` | Identity là phần tử đơn vị ở bên trái. |
-| `C(u, e) = u` | Identity là phần tử đơn vị ở bên phải. |
-| `C(C(a, b), c) = C(a, C(b, c))` | Combiner có tính kết hợp (*associative*). |
-| `C(u, A(e, t)) = A(u, t)` | Accumulator tương thích với combiner. |
+| `C(e, u) = u` | Identity is a left identity element. |
+| `C(u, e) = u` | Identity is a right identity element. |
+| `C(C(a, b), c) = C(a, C(b, c))` | Combiner is *associative*. |
+| `C(u, A(e, t)) = A(u, t)` | Accumulator is compatible with combiner. |
 
-Các đẳng thức ở đây là **tương đương theo giá trị kết quả**, không nhất thiết hai đối tượng phải cùng địa chỉ bộ nhớ. Với `reduce`, các hàm hành vi còn phải **không can thiệp vào nguồn** (*non-interfering*) và **không dựa vào trạng thái dùng chung có thể thay đổi** (*stateless*) theo yêu cầu của Stream API.
+Equality here means **equivalence in result value**, not necessarily that two objects share the same memory address. For `reduce`, the behavioral functions must also be **non-interfering** with the source and **stateless** (not relying on shared mutable state) per Stream API requirements.
 
-Ví dụ tính tổng độ dài chuỗi thành `int`:
+Example summing string lengths into an `int`:
 
 ```java
 import java.util.stream.Stream;
@@ -157,15 +157,15 @@ int totalLength = Stream.of("Java", "Stream", "API")
 System.out.println(totalLength); // 13
 ```
 
-Ở đây, `T = String`, `U = Integer`, `e = 0`. Accumulator lấy độ dài một chuỗi và cộng vào tổng; combiner cộng hai tổng. Với các giá trị trong ví dụ, mọi cách chia và gộp đều cho 13.
+Here, `T = String`, `U = Integer`, `e = 0`. The accumulator takes a string's length and adds it to the total; the combiner adds two totals. For the values in the example, every split and merge yields 13.
 
-### Bộ chứa mutable phá vỡ hợp đồng ra sao?
+### How does a mutable container break the contract?
 
-Nếu `e` là một `ArrayList` và `A(e, t)` gọi `e.add(t)`, **bản thân `e` không còn rỗng sau lời gọi**. Identity đã đổi trạng thái, nên không còn là phần tử đơn vị ổn định của việc gộp các kết quả tạm. Việc combiner có thể được gọi trên hai tham chiếu trỏ cùng một danh sách càng làm phép gộp thiếu tính độc lập.
+If `e` is an `ArrayList` and `A(e, t)` calls `e.add(t)`, **`e` itself is no longer empty after the call**. The identity has changed state, so it is no longer a stable identity element for merging partial results. The fact that the combiner can be invoked on two references pointing to the same list further destroys the independence of merging.
 
-Vấn đề chính không chỉ là “`ArrayList` không thread-safe”. Ngay cả trong pipeline tuần tự, việc sửa identity do bên gọi cung cấp khiến kết quả phụ thuộc vào lịch sử thay đổi của chính đối tượng ấy; nếu chạy lại với cùng một identity đã bị sửa, kết quả tích lũy còn có thể mang dữ liệu của lần trước.
+The core issue is not merely that “`ArrayList` is not thread-safe”. Even in a sequential pipeline, mutating the caller-supplied identity makes the result depend on the mutation history of that object; if reused with the same mutated identity, accumulated results can carry over data from the previous run.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.ArrayList;
@@ -174,22 +174,22 @@ import java.util.stream.Stream;
 
 List<String> seed = new ArrayList<>();
 
-// VÍ DỤ SAI: sau lần giảm thứ nhất, seed đã bị sửa.
+// WRONG EXAMPLE: after the first reduction, seed has been mutated.
 List<String> one = Stream.of("A").reduce(
     seed,
     (acc, item) -> { acc.add(item); return acc; },
     (left, right) -> { left.addAll(right); return left; }
 );
 
-System.out.println(seed); // [A] trong thực thi tuần tự này
-// Dùng lại seed trong lần reduce khác sẽ mang theo dữ liệu cũ.
+System.out.println(seed); // [A] in this sequential execution
+// Reusing seed in another reduce will carry over old data.
 ```
 
-Đừng sửa lỗi bằng `synchronizedList`, `CopyOnWriteArrayList` hay `AtomicReference` rồi vẫn giữ cùng cấu trúc `reduce`. Đồng bộ có thể giảm tranh chấp trên trạng thái dùng chung, nhưng **không thay thế quy tắc identity và kết hợp** mà reduction yêu cầu.
+Do not patch the bug with `synchronizedList`, `CopyOnWriteArrayList`, or `AtomicReference` while keeping the same `reduce` structure. Synchronization may reduce contention on shared state, but it **does not replace the identity and combining rules** that reduction requires.
 
-## 5. Cách đúng: `collect` với supplier tạo container độc lập
+## 5. Right approach: `collect` with a supplier creating independent containers
 
-Nếu mục tiêu là thu các phần tử vào danh sách mutable, hãy dùng `collect`:
+If the goal is collecting elements into a mutable list, use `collect`:
 
 ```java
 import java.util.ArrayList;
@@ -199,23 +199,23 @@ import java.util.stream.Stream;
 List<String> result = Stream.of("A", "B", "C")
     .parallel()
     .collect(
-        ArrayList::new,             // Supplier: tạo danh sách mới
-        List::add,                  // BiConsumer: thêm phần tử
-        List::addAll                // BiConsumer: gộp danh sách
+        ArrayList::new,             // Supplier: creates a new list
+        List::add,                  // BiConsumer: adds an element
+        List::addAll                // BiConsumer: merges lists
     );
 
 System.out.println(result); // [A, B, C]
 ```
 
-Trong overload `Stream.collect(supplier, accumulator, combiner)`:
+In the `Stream.collect(supplier, accumulator, combiner)` overload:
 
-1. **Supplier** có kiểu `Supplier<R>`, được gọi để tạo bộ chứa mới. Khi chia pipeline thành các phần, các bộ chứa có thể được khởi tạo độc lập.
-2. **Accumulator** có kiểu `BiConsumer<R, T>`, cập nhật bộ chứa của phần tích lũy với một phần tử nguồn.
-3. **Combiner** có kiểu `BiConsumer<R, R>`, chuyển dữ liệu từ bộ chứa này vào bộ chứa khác khi gộp kết quả. Không cần trả về giá trị.
+1. **Supplier** has type `Supplier<R>`, called to create a new container. When the pipeline is split into parts, containers can be initialized independently.
+2. **Accumulator** has type `BiConsumer<R, T>`, updating the segment's container with a source element.
+3. **Combiner** has type `BiConsumer<R, R>`, transferring data from one container into another when merging results. No return value is needed.
 
-`List::add` và `List::addAll` có giá trị trả về kiểu `boolean`, nhưng ở ngữ cảnh `BiConsumer` giá trị trả về đó được bỏ qua. Kết quả của collector này vẫn giữ encounter order của nguồn có thứ tự theo hợp đồng tích lũy phù hợp; đừng áp dụng suy luận đó cho collector tùy chỉnh khai báo `UNORDERED` hoặc cho nguồn không có thứ tự.
+`List::add` and `List::addAll` have `boolean` return values, which are ignored in a `BiConsumer` context. The result of this collector preserves the encounter order of an ordered source under the appropriate accumulation contract; do not apply that assumption to a custom collector declaring `UNORDERED` or to an unordered source.
 
-### Cách ngắn gọn hơn với `Collectors`
+### Shorter approach with `Collectors`
 
 ```java
 import java.util.ArrayList;
@@ -231,13 +231,13 @@ ArrayList<String> editable = Stream.of("A", "B", "C")
     .collect(Collectors.toCollection(ArrayList::new));
 ```
 
-`Collectors.toList()` **không bảo đảm** kiểu cài đặt hoặc khả năng sửa đổi của danh sách kết quả. Khi cần chắc chắn một `ArrayList` có thể thay đổi, dùng `toCollection(ArrayList::new)`. Từ Java 16, `Stream.toList()` cung cấp danh sách không thể sửa đổi; không chọn nó nếu phần sau bắt buộc phải `add` hoặc `remove`.
+`Collectors.toList()` **does not guarantee** the implementation type or mutability of the resulting list. When you need a guaranteed mutable `ArrayList`, use `toCollection(ArrayList::new)`. Since Java 16, `Stream.toList()` provides an unmodifiable list; do not choose it if subsequent code must `add` or `remove`.
 
-Điểm khác biệt cốt lõi: trong `collect`, **mutation là một phần được thiết kế trong hợp đồng**, với supplier và combiner phối hợp để việc tích lũy đúng ngay cả khi stream được chia nhỏ.
+The core difference: in `collect`, **mutation is a designed part of the contract**, with supplier and combiner coordinating so accumulation remains correct even when the stream is split.
 
-## 6. Trường hợp `Collector.of`: combiner trả container
+## 6. The `Collector.of` case: combiner returns the container
 
-Khi xây **collector tùy chỉnh**, chữ ký `Collector.of` khác với overload `Stream.collect` ở trên. Accumulator vẫn là `BiConsumer`, nhưng combiner là `BinaryOperator<A>` và phải **trả lại** bộ chứa đã kết hợp:
+When building a **custom collector**, the `Collector.of` signature differs from the `Stream.collect` overload above. The accumulator is still a `BiConsumer`, but the combiner is a `BinaryOperator<A>` and must **return** the merged container:
 
 ```java
 import java.util.ArrayList;
@@ -261,9 +261,9 @@ ArrayList<String> values = Stream.of("A", "B", "C")
 System.out.println(values); // [A, B, C]
 ```
 
-Phép `left.addAll(right)` ở đây **được phép** vì collector dùng **những container tích lũy độc lập** mà supplier tạo. Combiner gộp các container bộ phận, còn identity của `reduce` không tham gia vào quy trình này.
+Here `left.addAll(right)` **is allowed** because the collector uses **independent accumulation containers** created by the supplier. The combiner merges partial containers, and `reduce`'s identity plays no role in this process.
 
-Một collector do người dùng viết cũng phải thỏa hợp đồng đồng nhất và kết hợp của **collector**. Không được để `supplier` trả **cùng một danh sách dùng chung** cho mọi lần gọi:
+A user-written collector must also satisfy the **collector's** identity and associativity contracts. The `supplier` must never return **the same shared list** across calls:
 
 ```java
 import java.util.ArrayList;
@@ -272,7 +272,7 @@ import java.util.stream.Stream;
 
 List<String> shared = new ArrayList<>();
 
-// VÍ DỤ SAI: mỗi lần gọi supplier đều trả cùng một container.
+// WRONG EXAMPLE: every supplier call returns the exact same container.
 List<String> broken = Stream.of("A", "B", "C").parallel()
     .collect(
         () -> shared,
@@ -281,13 +281,13 @@ List<String> broken = Stream.of("A", "B", "C").parallel()
     );
 ```
 
-Đổi tên `reduce` thành `collect` **chưa đủ** nếu vẫn dùng một bộ chứa chia sẻ. Supplier trong collector phải đáp ứng yêu cầu tạo kết quả tích lũy thích hợp cho các lời gọi độc lập.
+Renaming `reduce` to `collect` **is not enough** if a shared container is still used. The supplier in a collector must satisfy the requirement of creating an appropriate accumulation container for independent calls.
 
-## 7. Khi nào `reduce` vẫn là lựa chọn đúng?
+## 7. When is `reduce` still the right choice?
 
-`reduce` rất phù hợp khi giá trị kết quả được **kết hợp mà không sửa đối tượng đầu vào**.
+`reduce` fits well when result values are **combined without mutating the input objects**.
 
-### Tính tổng với `BigDecimal`
+### Summing with `BigDecimal`
 
 ```java
 import java.math.BigDecimal;
@@ -303,9 +303,9 @@ BigDecimal amount = Stream.of(
 System.out.println(amount); // 18.25
 ```
 
-`BigDecimal.add` trả về một `BigDecimal` kết quả và không sửa hai toán hạng. Với `BigDecimal.ZERO` là identity, quy tắc tích lũy và combiner dùng cùng phép cộng có ý nghĩa rõ ràng. Với bài toán có `MathContext` và quy tắc làm tròn đặc biệt, tính kết hợp theo giá trị số sau mỗi lần làm tròn vẫn cần được cân nhắc khi chạy song song.
+`BigDecimal.add` returns a result `BigDecimal` without mutating either operand. With `BigDecimal.ZERO` as the identity, having the accumulation rule and combiner use the same addition has clear semantics. For problems involving a `MathContext` and specific rounding rules, numerical associativity after each rounding step still needs to be evaluated when running in parallel.
 
-### Ghép chuỗi bất biến
+### Immutable string concatenation
 
 ```java
 import java.util.stream.Stream;
@@ -316,7 +316,7 @@ String joined = Stream.of("Java", "-", "Stream")
 System.out.println(joined); // Java-Stream
 ```
 
-`String` bất biến và chuỗi rỗng là identity của phép nối. Tuy nhiên, `reduce` bằng `String::concat` có thể tạo nhiều chuỗi trung gian, nhất là khi dữ liệu lớn. Để nối nhiều chuỗi hiệu quả, dùng `Collectors.joining`, vốn sử dụng bộ tích lũy mutable một cách hợp lệ:
+`String` is immutable and the empty string is the identity of concatenation. However, `reduce` with `String::concat` can create many intermediate strings, especially on large data. To join many strings efficiently, use `Collectors.joining`, which legitimately uses a mutable accumulator inside the collector:
 
 ```java
 import java.util.stream.Collectors;
@@ -328,9 +328,9 @@ String joined = Stream.of("Java", "Stream", "API")
 System.out.println(joined); // Java, Stream, API
 ```
 
-### Nếu kiểu kết quả là mutable nhưng accumulator không sửa nó?
+### What if the result type is mutable, yet the accumulator does not mutate it?
 
-Về lý thuyết, một đối tượng thuộc **kiểu mutable** vẫn có thể được dùng trong reduction **nếu mọi bước đối xử với nó như một giá trị bất biến**: không thay đổi identity hoặc các đối tượng tạm, tạo một đối tượng mới ở mỗi phép kết hợp và giữ đúng những luật ở mục 4. Ví dụ:
+In theory, an object of a **mutable type** can still be used in a reduction **if every step treats it as an immutable value**: never mutating the identity or intermediate objects, creating a new object on each combine step, and upholding all laws in section 4. For example:
 
 ```java
 import java.util.ArrayList;
@@ -354,62 +354,62 @@ List<String> values = Stream.of("A", "B", "C").reduce(
 System.out.println(values); // [A, B, C]
 ```
 
-Đoạn này **không sửa** danh sách đầu vào trong accumulator và combiner, nên tránh bẫy chia sẻ identity. Tuy nhiên, mỗi lần thêm phần tử lại sao chép nội dung đã có: chi phí cấp phát và sao chép có thể tăng mạnh theo độ dài dãy. Vì vậy, **`collect` vẫn là lựa chọn tự nhiên và hiệu quả hơn khi mục tiêu là xây danh sách mutable**.
+This snippet **does not mutate** the input lists inside the accumulator and combiner, so it avoids the shared-identity trap. However, every added element copies the existing contents: allocation and copying costs can grow sharply with sequence length. Therefore, **`collect` remains the more natural and efficient choice when the goal is building a mutable list**.
 
-## 8. Song song làm lộ lỗi, nhưng lỗi có từ trước
+## 8. Parallelism exposes the bug, but the bug existed beforehand
 
-Với pipeline song song, Stream API được phép chia nguồn và gộp kết quả theo cây:
+In a parallel pipeline, the Stream API is permitted to split the source and merge results in a tree:
 
 ```text
-Nguồn dữ liệu:        A   B   C   D
+Data source:          A   B   C   D
                        \ /     \ /
-Nhánh độc lập:         R1       R2
+Independent branches:  R1       R2
                         \      /
-Kết quả cuối:          combine(R1, R2)
+Final result:          combine(R1, R2)
 ```
 
-Không có bảo đảm sẽ có đúng hai nhánh, hay rằng các nhánh chạy theo thứ tự cố định. Vì vậy, reduction phải đúng với cách phân chia và cách gộp hợp lệ. Khi accumulator sửa identity dùng chung, hai `R1` và `R2` có thể thực chất là **cùng một đối tượng**, làm mất tính độc lập cần thiết.
+There is no guarantee that there will be exactly two branches, or that branches run in a fixed order. Hence, the reduction must be valid under arbitrary splitting and merging. When the accumulator mutates a shared identity, `R1` and `R2` can actually be **the very same object**, destroying the required independence.
 
-Ngược lại, `collect` tạo container qua supplier, nên mỗi phần tích lũy có thể giữ trạng thái **riêng**, rồi kết hợp có kiểm soát. Đó là lý do API tách `reduce` và `collect`.
+Conversely, `collect` creates containers via a supplier, so each accumulation segment can keep its **own** state and then merge in a controlled way. That is why the API separates `reduce` and `collect`.
 
-Một số giới hạn khác cần nhớ:
+Other limitations to keep in mind:
 
-- `parallel()` không tự bảo đảm nhanh hơn. Hiệu quả phụ thuộc Spliterator của nguồn, lượng dữ liệu, chi phí kết hợp và tải của hệ thống.
-- Các phép toán trung gian `map`, `filter` đều lazy; không nên dùng hiệu ứng phụ của chúng để ghi nhận mọi phần tử, vì có thể xuất hiện tối ưu hóa hoặc ngắn mạch.
-- Dấu phẩy động `double` không có tính kết hợp tuyệt đối do làm tròn; phép cộng song song có thể chênh lệch một vài bit cuối so với tuần tự.
-- Một terminal operation tiêu thụ stream. Muốn `reduce` và `collect` cùng một nguồn collection để so sánh, hãy tạo **hai stream mới**.
-- Với nguồn I/O như `Files.lines`, dùng `try-with-resources`; terminal operation không tự đóng tài nguyên.
+- `parallel()` does not automatically guarantee faster execution. Effectiveness depends on the source's `Spliterator`, data volume, combining cost, and system load.
+- Intermediate operations `map` and `filter` are lazy; do not use their side effects to record every element, as optimizations or short-circuiting may occur.
+- Floating-point `double` does not have strict associativity due to rounding; parallel addition can differ in the last few bits from sequential execution.
+- A terminal operation consumes the stream. To run both `reduce` and `collect` on the same collection source for comparison, create **two fresh streams**.
+- With I/O sources such as `Files.lines`, use `try-with-resources`; terminal operations do not automatically close resources.
 
-## 9. Bảng chọn cách làm theo mục đích
+## 9. Table for choosing an approach by goal
 
-| Cần làm | Phương án đề xuất | Lý do |
+| Goal | Recommended approach | Reason |
 | --- | --- | --- |
-| Cộng các giá trị `int`, `long` | `IntStream.sum()`, `LongStream.sum()` hoặc `reduce` phù hợp | Tạo một kết quả số, không cần container mutable. |
-| Cộng `BigDecimal` | `reduce(BigDecimal.ZERO, BigDecimal::add)` | `BigDecimal` là giá trị bất biến. |
-| Tìm phần tử nhỏ nhất/lớn nhất | `min`/`max` hoặc `reduce(BinaryOperator.minBy/maxBy(...))` | Phép chọn giữa các giá trị. |
-| Thu phần tử thành `List` | `collect(Collectors.toList())` | Collector quản lý tích lũy và kết hợp. |
-| Cần `ArrayList` có thể sửa | `collect(Collectors.toCollection(ArrayList::new))` | Chỉ rõ factory và loại container. |
-| Thu phần tử thành `Set` | `collect(Collectors.toSet())` | Thực hiện loại trùng theo ngữ nghĩa của tập hợp. |
-| Gom phần tử theo khóa | `collect(Collectors.groupingBy(...))` | Tích lũy nhiều bộ chứa theo nhóm. |
-| Nối nhiều chuỗi | `collect(Collectors.joining(...))` | Tránh nối chuỗi bất biến lặp đi lặp lại. |
-| Tạo collector tùy chỉnh | `Collector.of(supplier, accumulator, combiner, ...)` | Kiểm soát container mới và cách gộp kết quả. |
+| Sum `int`, `long` values | `IntStream.sum()`, `LongStream.sum()`, or an appropriate `reduce` | Produces a single numeric result; no mutable container needed. |
+| Sum `BigDecimal` | `reduce(BigDecimal.ZERO, BigDecimal::add)` | `BigDecimal` is an immutable value. |
+| Find minimum/maximum element | `min`/`max` or `reduce(BinaryOperator.minBy/maxBy(...))` | Selection between values. |
+| Collect elements into a `List` | `collect(Collectors.toList())` | Collector manages accumulation and merging. |
+| Need a mutable `ArrayList` | `collect(Collectors.toCollection(ArrayList::new))` | Explicitly specifies the factory and container type. |
+| Collect elements into a `Set` | `collect(Collectors.toSet())` | Performs deduplication under set semantics. |
+| Group elements by key | `collect(Collectors.groupingBy(...))` | Accumulates multiple containers per group. |
+| Join many strings | `collect(Collectors.joining(...))` | Avoids repeated immutable string concatenation. |
+| Create a custom collector | `Collector.of(supplier, accumulator, combiner, ...)` | Controls new container creation and result merging. |
 
-## 10. Các dấu hiệu cho thấy một `reduce` đang sai
+## 10. Signs that a `reduce` is wrong
 
-Khi đọc một pipeline có `reduce`, cần xem kỹ những đoạn như:
+When reviewing a pipeline with `reduce`, examine patterns such as:
 
-1. **Identity là `new ArrayList<>()`, `new HashMap<>()`, `new StringBuilder()`** và accumulator gọi `add`, `put` hoặc `append` trên nó.
-2. Accumulator **trả chính đối tượng vừa sửa**, thay vì biểu diễn một phép kết hợp theo giá trị.
-3. Combiner gọi `left.addAll(right)`/`left.putAll(right)` trong khi `left` và `right` có thể cùng tham chiếu identity.
-4. Một đối tượng mutable đặt ngoài pipeline được lambda ghi vào, ví dụ một danh sách hoặc bộ đếm dùng chung.
-5. Kết quả tuần tự đúng nhưng sau khi thêm `parallel()` xuất hiện phần tử trùng, số lượng biến động hoặc ngoại lệ.
-6. Có đề xuất dùng `synchronized` chỉ để giữ nguyên cấu trúc reduction đang sai.
+1. **Identity is `new ArrayList<>()`, `new HashMap<>()`, `new StringBuilder()`** and the accumulator calls `add`, `put`, or `append` on it.
+2. Accumulator **returns the very object it just mutated**, instead of representing a value-based combining operation.
+3. Combiner calls `left.addAll(right)`/`left.putAll(right)` while `left` and `right` could both refer to the identity.
+4. A mutable object declared outside the pipeline is written to by the lambda, such as a shared list or counter.
+5. Sequential execution produces the right output, but adding `parallel()` causes duplicate elements, fluctuating counts, or exceptions.
+6. Someone suggests adding `synchronized` just to keep the broken reduction structure intact.
 
-Những dấu hiệu trên không có nghĩa mọi trường hợp dùng kiểu mutable trong `reduce` đều bị cấm. Cần xét **hành vi thay đổi trạng thái** và các luật của reduction; nếu cần đổ dữ liệu vào bộ chứa, thiết kế của `collect` phù hợp hơn.
+These signs do not mean every use of a mutable type in `reduce` is forbidden. You must evaluate **state-mutation behavior** and the laws of reduction; if you need to pour data into a container, `collect`'s design is more suitable.
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-check exercises
 
-**Bài 1 — Phát hiện lỗi.** Cho:
+**Exercise 1 — Spot the bug.** Given:
 
 ```java
 List<Integer> result = numbers.parallelStream().reduce(
@@ -419,12 +419,12 @@ List<Integer> result = numbers.parallelStream().reduce(
 );
 ```
 
-Hãy chỉ ra accumulator và combiner thay đổi trạng thái ở đâu, vì sao identity có thể bị dùng chung, và vì sao chỉ đồng bộ `list.add` chưa đủ. Viết lại bằng `collect(ArrayList::new, List::add, List::addAll)`.
+Point out where the accumulator and combiner mutate state, why the identity can be shared, and why merely synchronizing `list.add` is insufficient. Rewrite it using `collect(ArrayList::new, List::add, List::addAll)`.
 
-**Bài 2 — Chọn đúng overload.** Tính tổng độ dài của `Stream.of("a", "bb", "ccc")` bằng `reduce(0, (sum, s) -> sum + s.length(), Integer::sum)`. Giải thích vì sao accumulator là `BiFunction<Integer, String, Integer>` và combiner là `BinaryOperator<Integer>`. Dự đoán kết quả bằng **6**.
+**Exercise 2 — Pick the right overload.** Compute the total length of `Stream.of("a", "bb", "ccc")` using `reduce(0, (sum, s) -> sum + s.length(), Integer::sum)`. Explain why the accumulator is `BiFunction<Integer, String, Integer>` and the combiner is `BinaryOperator<Integer>`. Predict the result as **6**.
 
-**Bài 3 — Lựa chọn collector.** Thu các tên sản phẩm từ stream vào danh sách được bảo đảm có thể thay đổi. Vì sao `Collectors.toCollection(ArrayList::new)` phù hợp hơn việc sửa một `ArrayList` trong `reduce`? Phân biệt nó với `Stream.toList()` (Java 16+).
+**Exercise 3 — Choose a collector.** Collect product names from a stream into a list guaranteed to be mutable. Why is `Collectors.toCollection(ArrayList::new)` more suitable than mutating an `ArrayList` inside `reduce`? Distinguish it from `Stream.toList()` (Java 16+).
 
-**Bài 4 — Chi phí.** So sánh reduction trả về bản sao mới của `List` sau mỗi phần tử với `collect` tích lũy vào danh sách riêng rồi gộp. Phương án nào tạo nhiều đối tượng hơn khi số phần tử rất lớn? Khi nào một giá trị kết quả bất biến như `BigDecimal` vẫn nên được dùng với `reduce`?
+**Exercise 4 — Cost.** Compare a reduction returning a fresh copy of a `List` after each element against `collect` accumulating into separate lists and merging. Which approach allocates more objects when the element count is very large? When should an immutable result value such as `BigDecimal` still be used with `reduce`?
 
-**Ghi nhớ:** `reduce` nhận **một giá trị identity** và đòi hỏi các phép kết hợp tuân thủ luật toán học, kể cả khi Stream được chia và gộp song song. Sửa trực tiếp một `ArrayList`, `HashMap` hoặc `StringBuilder` dùng làm identity phá vỡ tính độc lập và có thể gây kết quả sai. Khi muốn tạo container mutable, hãy dùng `collect` với supplier tạo container riêng và combiner hợp lệ.
+**Key takeaway:** `reduce` takes **an identity value** and requires combining operations to obey mathematical laws, even when the Stream is split and merged in parallel. Directly mutating an `ArrayList`, `HashMap`, or `StringBuilder` used as the identity breaks independence and can produce wrong results. When you want to build a mutable container, use `collect` with a supplier creating distinct containers and a valid combiner.

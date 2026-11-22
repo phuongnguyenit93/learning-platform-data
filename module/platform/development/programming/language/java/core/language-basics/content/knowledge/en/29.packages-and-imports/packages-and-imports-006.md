@@ -1,10 +1,10 @@
-# `java.lang` được import ngầm định trong Java
+# Implicit Import of `java.lang` in Java
 
-## 1. Ý nghĩa của import ngầm định
+## 1. Meaning of implicit import
 
-Trong Java, mỗi đơn vị biên dịch (*compilation unit*, thông thường là một tệp `.java`) được ngôn ngữ cung cấp cơ chế **import theo yêu cầu** (*on-demand import*) các kiểu truy cập được từ package **`java.lang`**. Vì vậy, lập trình viên thường dùng các tên lớp quen thuộc như `String`, `Object`, `System`, `Math`, `Integer`, `Thread` mà **không cần tự viết** `import java.lang.String;` hay `import java.lang.*;`.
+In Java, every compilation unit (typically a `.java` file) is automatically given an **on-demand import** of accessible types from the **`java.lang`** package by the language. As a result, developers routinely use familiar class names such as `String`, `Object`, `System`, `Math`, `Integer`, and `Thread` **without having to write** `import java.lang.String;` or `import java.lang.*;`.
 
-Ví dụ, chương trình sau không có khai báo `import` nào:
+For example, the following program has no `import` declarations at all:
 
 ```java
 public class Hello {
@@ -16,41 +16,41 @@ public class Hello {
 }
 ```
 
-Lưu mã vào tệp **`Hello.java`** rồi chạy với JDK 17 trở lên:
+Save the code in **`Hello.java`** and run it with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 Hello.java
 java Hello
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 Hello, Java!
 12
 ```
 
-Cả `String`, `System`, `Math` đều thuộc `java.lang`. `javac` phân giải những tên đơn giản này thành các kiểu tương ứng khi không có tên nào khác che khuất hoặc gây xung đột theo quy tắc tra cứu tên của Java.
+`String`, `System`, and `Math` all belong to `java.lang`. `javac` resolves these simple names to their corresponding types when no other name shadows or conflicts with them under Java's name-lookup rules.
 
-**Quan trọng:** "import ngầm định" là **quy tắc phân giải tên lúc biên dịch**, không có nghĩa JVM sẽ khởi tạo hoặc tải tất cả lớp trong `java.lang` ngay khi chương trình bắt đầu. Nó cũng không thêm bất kỳ thư viện bên ngoài nào vào classpath.
+**Important:** "implicit import" is a **compile-time name-resolution rule**; it does not mean the JVM initializes or loads every class in `java.lang` as soon as the program starts. Nor does it add any external libraries to the classpath.
 
-## 2. `java.lang` chứa những kiểu nào thường gặp?
+## 2. What common types are in `java.lang`?
 
-Package này cung cấp nhiều kiểu cơ bản của ngôn ngữ và runtime Java.
+This package provides many fundamental types of the Java language and runtime.
 
-| Kiểu (viết tên đơn giản) | Tên đầy đủ | Vai trò điển hình |
+| Type (written as simple name) | Fully qualified name | Typical role |
 | --- | --- | --- |
-| `Object` | `java.lang.Object` | Lớp gốc của các lớp thông thường; cung cấp `toString()`, `equals()`, `hashCode()` |
-| `String` | `java.lang.String` | Chuỗi ký tự bất biến |
-| `StringBuilder` | `java.lang.StringBuilder` | Xây dựng/chỉnh sửa nội dung chuỗi tuần tự |
-| `System` | `java.lang.System` | `System.out`, `System.err`, `System.currentTimeMillis()` và các tiện ích hệ thống |
-| `Math` | `java.lang.Math` | Các phép toán tĩnh như `max`, `abs`, `sqrt`, hằng `PI` |
-| `Integer`, `Long`, `Double`, `Boolean`, ... | `java.lang.Integer`, ... | Lớp bao (*wrapper*) cho giá trị nguyên thủy; hỗ trợ chuyển đổi/boxing |
-| `Throwable`, `Exception`, `RuntimeException`, `Error` | `java.lang.*` tương ứng | Cấu trúc cơ bản của exception và error |
-| `Thread`, `Runnable` | `java.lang.Thread`, `java.lang.Runnable` | Khả năng chạy tác vụ/concurrent cơ bản |
-| `Enum`, `Record` | `java.lang.Enum`, `java.lang.Record` | Các lớp nền trong hệ thống kiểu của enum và record |
+| `Object` | `java.lang.Object` | Root class of ordinary classes; provides `toString()`, `equals()`, `hashCode()` |
+| `String` | `java.lang.String` | Immutable character strings |
+| `StringBuilder` | `java.lang.StringBuilder` | Builds/modifies character sequence content sequentially |
+| `System` | `java.lang.System` | `System.out`, `System.err`, `System.currentTimeMillis()`, and system utilities |
+| `Math` | `java.lang.Math` | Static math operations like `max`, `abs`, `sqrt`, constant `PI` |
+| `Integer`, `Long`, `Double`, `Boolean`, ... | `java.lang.Integer`, ... | Wrapper classes for primitive values; supports conversion/boxing |
+| `Throwable`, `Exception`, `RuntimeException`, `Error` | Corresponding `java.lang.*` | Core hierarchy of exceptions and errors |
+| `Thread`, `Runnable` | `java.lang.Thread`, `java.lang.Runnable` | Basic task execution and concurrency support |
+| `Enum`, `Record` | `java.lang.Enum`, `java.lang.Record` | Base classes in the type system for enums and records |
 
-Một số ví dụ cú pháp ngắn, đặt trong phương thức:
+Some short syntax examples placed inside a method:
 
 ```java
 String text = "java";
@@ -64,55 +64,55 @@ StringBuilder builder = new StringBuilder("Java");
 builder.append(" 17"); // "Java 17"
 ```
 
-Tất cả tên kiểu ở trên đều có thể dùng trực tiếp. Tuy nhiên **phương thức và trường static** vẫn thường cần tên lớp phía trước, ví dụ `Math.sqrt(81)` hoặc `System.out.println(...)`. Import ngầm định của **kiểu `Math`** không tự đưa tên phương thức `sqrt` vào scope để gọi chỉ bằng `sqrt(81)`.
+All the type names above can be used directly. However, **static methods and fields** still generally require the class name in front, such as `Math.sqrt(81)` or `System.out.println(...)`. The implicit import of the **type `Math`** does not automatically put the method name `sqrt` into scope so that you can call `sqrt(81)` alone.
 
-## 3. Phân biệt `java.lang` với các package khác
+## 3. Distinguishing `java.lang` from other packages
 
-Các package khác trong thư viện tiêu chuẩn **không được import ngầm định chỉ vì thuộc JDK**. Ví dụ:
+Other packages in the standard library are **not implicitly imported merely because they belong to the JDK**. For example:
 
 ```java
-// java.util.List: phải import khi cần dùng tên đơn giản List.
+// java.util.List: must import when you want to use the simple name List.
 import java.util.List;
 import java.util.ArrayList;
 ```
 
-Sau khi import:
+After importing:
 
 ```java
 List<String> names = new ArrayList<>();
 names.add("An");
 ```
 
-Hai dòng sau có cùng ý nghĩa kiểu mà không cần lệnh import:
+The following two lines have the exact same type meaning without any import statements:
 
 ```java
 java.util.List<String> names = new java.util.ArrayList<>();
 names.add("An");
 ```
 
-| Tên kiểu | Tự dùng tên đơn giản thông thường? | Cách xử lý |
+| Type name | Usable directly as a simple name normally? | How to handle |
 | --- | --- | --- |
-| `String` | Có, qua `java.lang` ngầm định | `String text = "hi";` |
-| `Math` | Có, qua `java.lang` ngầm định | `Math.max(1, 2)` |
-| `List`, `ArrayList` | Không do `java.lang` | `import java.util.List;`, `import java.util.ArrayList;` |
-| `LocalDate` | Không do `java.lang` | `import java.time.LocalDate;` |
-| `Files`, `Path` | Không do `java.lang` | `import java.nio.file.Files;`, `import java.nio.file.Path;` |
-| `Method` (reflection) | Không do `java.lang` | `import java.lang.reflect.Method;` |
-| `MethodHandles` | Không do `java.lang` | `import java.lang.invoke.MethodHandles;` |
+| `String` | Yes, via implicit `java.lang` | `String text = "hi";` |
+| `Math` | Yes, via implicit `java.lang` | `Math.max(1, 2)` |
+| `List`, `ArrayList` | Not via `java.lang` | `import java.util.List;`, `import java.util.ArrayList;` |
+| `LocalDate` | Not via `java.lang` | `import java.time.LocalDate;` |
+| `Files`, `Path` | Not via `java.lang` | `import java.nio.file.Files;`, `import java.nio.file.Path;` |
+| `Method` (reflection) | Not via `java.lang` | `import java.lang.reflect.Method;` |
+| `MethodHandles` | Not via `java.lang` | `import java.lang.invoke.MethodHandles;` |
 
-**Package con không được import theo package cha.** `java.lang.reflect`, `java.lang.invoke`, `java.lang.management` là các package khác `java.lang`, mặc dù tên bắt đầu bằng `java.lang.`. Do đó:
+**Subpackages are not imported along with a parent package.** `java.lang.reflect`, `java.lang.invoke`, and `java.lang.management` are different packages from `java.lang`, even though their names start with `java.lang.`. Therefore:
 
 ```java
-// Không tự có tên Method từ import ngầm java.lang:
+// Method is not automatically available from implicit java.lang import:
 java.lang.reflect.Method[] methods = String.class.getMethods();
 System.out.println(methods.length > 0); // true
 ```
 
-Nếu muốn gọi tên ngắn `Method`, cần `import java.lang.reflect.Method;`. Đoạn trên là ví dụ đặt bên trong một phương thức, không phải tệp chạy độc lập.
+If you want to refer to `Method` by its short name, you need `import java.lang.reflect.Method;`. The snippet above is an example meant inside a method, not a standalone runnable file.
 
-## 4. Viết tên đơn giản và tên đầy đủ cho cùng một kiểu
+## 4. Writing the simple name and fully qualified name for the same type
 
-Do import ngầm định, hai khai báo sau thường cùng một kiểu:
+Because of the implicit import, the following two declarations normally refer to the same type:
 
 ```java
 String left = "Java";
@@ -120,75 +120,75 @@ java.lang.String right = "Java";
 System.out.println(left.equals(right)); // true
 ```
 
-- `String` là **tên đơn giản** của `java.lang.String`.
-- `java.lang.String` là **tên đầy đủ** (*fully qualified name*) của kiểu.
-- Không có hai loại `String` khác nhau trong đoạn trên; import chỉ giúp tên ngắn được phân giải.
-- Viết `import java.lang.String;` là hợp lệ trong tình huống thông thường nhưng **thừa**, vì Java đã cung cấp import theo yêu cầu cho package này.
+- `String` is the **simple name** of `java.lang.String`.
+- `java.lang.String` is the **fully qualified name** of the type.
+- There are not two different `String` types in the snippet above; the import only helps resolve the short name.
+- Writing `import java.lang.String;` is valid in normal situations, though **redundant**, because Java already provides an on-demand import for this package.
 
-**Phân giải tên không chỉ phụ thuộc import.** Kiểu được khai báo trong cùng package, kiểu lồng nhau trong scope, hoặc khai báo import cụ thể có thể ảnh hưởng đến ý nghĩa của một tên ngắn. Vì vậy, nếu một dự án tự định nghĩa kiểu `String` hoặc `System`, việc đọc tên không đủ để kết luận chúng là kiểu `java.lang`.
+**Name resolution does not depend solely on imports.** Types declared in the same package, nested types in scope, or explicit import declarations can affect what a short name means. Therefore, if a project defines its own `String` or `System` type, simply reading the name is not enough to conclude it is the `java.lang` type.
 
-Ví dụ này minh họa một trường hợp **kiểu tự định nghĩa cùng tên** nằm trong package hiện tại:
+This example illustrates a case of a **custom type with the same name** in the current package:
 
 ```java
 package demo;
 
 class String {
-    // Chỉ để minh họa xung đột tên; không nên dùng tên này trong dự án thực.
+    // Only to illustrate name collision; do not use this name in real projects.
 }
 
 class Example {
-    java.lang.String message = "Hello"; // Chỉ rõ String tiêu chuẩn
+    java.lang.String message = "Hello"; // Explicitly specify standard String
 }
 ```
 
-Đây là **một tệp minh họa riêng**, không ghép vào các chương trình bên dưới. Với tên cùng package, `String` không còn có thể mặc nhiên hiểu là `java.lang.String` tại những vị trí bị che khuất. Trong chương trình thực tế, đặt tên kiểu tự định nghĩa sao cho rõ nghĩa và tránh đụng tên các kiểu nền tảng.
+This is **a separate illustrative file**, not combined into the programs below. With the same-package name, `String` can no longer be assumed to mean `java.lang.String` where it is shadowed. In real programs, name custom types clearly and avoid colliding with fundamental platform types.
 
-Nếu cố import hai kiểu top-level cùng tên đơn giản bằng hai lệnh single-type import khác nhau, trình biên dịch có thể báo xung đột. Khi phải dùng cả hai kiểu cùng tên, dùng tên đầy đủ để làm rõ.
+If you try to import two top-level types with the same simple name using two different single-type import statements, the compiler may report a conflict. When you must use both types with the same name, use the fully qualified name to make it clear.
 
-## 5. `import java.lang.*` không đồng nghĩa `import static java.lang.Math.*`
+## 5. `import java.lang.*` does not mean `import static java.lang.Math.*`
 
-Đây là hai cơ chế khác nhau:
+These are two different mechanisms:
 
 ```java
-import java.lang.*; // Thừa trong mã thông thường; import các kiểu từ package.
+import java.lang.*; // Redundant in normal code; imports types from the package.
 ```
 
 ```java
-import static java.lang.Math.max; // Cho phép gọi max(...) trực tiếp
+import static java.lang.Math.max; // Allows calling max(...) directly
 ```
 
-Ví dụ tệp độc lập:
+Standalone file example:
 
 ```java
 import static java.lang.Math.max;
 
 public class StaticImportDemo {
     public static void main(String[] args) {
-        System.out.println(max(5, 9));      // Từ static import
-        System.out.println(Math.min(5, 9)); // Math có sẵn qua java.lang
+        System.out.println(max(5, 9));      // From static import
+        System.out.println(Math.min(5, 9)); // Math is available via java.lang
     }
 }
 ```
 
-Lưu thành **`StaticImportDemo.java`**, chạy:
+Save as **`StaticImportDemo.java`** and run:
 
 ```bash
 javac -encoding UTF-8 StaticImportDemo.java
 java StaticImportDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 9
 5
 ```
 
-`import java.lang.*` **không phải** lệnh import mọi phương thức hay field của mọi lớp trong `java.lang`. `import static` làm cho các thành viên static đáp ứng điều kiện truy cập có thể được nhắc tên trực tiếp, nhưng vẫn phải tránh xung đột tên và lạm dụng làm giảm tính rõ ràng.
+`import java.lang.*` is **not** a command that imports every method or field of every class in `java.lang`. `import static` makes static members that satisfy accessibility rules directly referable by name, though you must still avoid name collisions and overuse that reduces clarity.
 
-## 6. Chương trình Java 17+ trong package có tên
+## 6. Java 17+ program in a named package
 
-Tạo tệp **`src/lesson/LangAutoImportDemo.java`**:
+Create **`src/lesson/LangAutoImportDemo.java`**:
 
 ```java
 package lesson;
@@ -198,7 +198,7 @@ import java.util.List;
 
 public class LangAutoImportDemo {
     public static void main(String[] args) {
-        // java.lang: không cần import.
+        // java.lang: no import needed.
         String text = "Java";
         StringBuilder builder = new StringBuilder(text);
         builder.append(" 17");
@@ -214,13 +214,13 @@ public class LangAutoImportDemo {
         Object marker = new Object();
         System.out.println("Object: " + marker.getClass().getSimpleName());
 
-        // java.util: phải import để dùng tên ngắn trong file này.
+        // java.util: must import to use short names in this file.
         List<String> items = new ArrayList<>();
         items.add("One");
         items.add("Two");
         System.out.println("List: " + items);
 
-        // Tên đầy đủ hoạt động mà không cần import kiểu.
+        // Fully qualified name works without importing the type.
         java.lang.String fullName = "ready";
         System.out.println("Full-name String: " + fullName);
         System.out.println("Runtime String: " + String.class.getName());
@@ -228,16 +228,16 @@ public class LangAutoImportDemo {
 }
 ```
 
-Đứng tại thư mục gốc chứa `src`, dùng JDK 17 trở lên. **Tạo thư mục `out` nếu chưa tồn tại** trước khi dùng `-d out`: Bash/Linux/macOS chạy `mkdir -p out`; Windows PowerShell chạy `New-Item -ItemType Directory -Force out | Out-Null` (CMD: `if not exist out mkdir out`). Sau đó dùng lệnh biên dịch/chạy sau trên cả Windows và Linux/macOS:
+From the root directory containing `src`, using JDK 17 or later. **Create the `out` directory if it does not exist** before using `-d out`: on Bash/Linux/macOS run `mkdir -p out`; on Windows PowerShell run `New-Item -ItemType Directory -Force out | Out-Null` (CMD: `if not exist out mkdir out`). Then run the following compile/run commands on both Windows and Linux/macOS:
 
 ```bash
 javac -encoding UTF-8 -d out src/lesson/LangAutoImportDemo.java
 java -cp out lesson.LangAutoImportDemo
 ```
 
-`-d out` cho phép `javac` tạo cây thư mục theo tên package trong thư mục `out`. `lesson.LangAutoImportDemo` là tên đầy đủ của lớp có `main` khi gọi lệnh `java`.
+`-d out` lets `javac` create the directory tree matching the package name inside `out`. `lesson.LangAutoImportDemo` is the fully qualified name of the class containing `main` when invoking `java`.
 
-**Stdout chính xác** (biên dịch thành công không in thông báo):
+**Exact stdout** (successful compilation prints no messages):
 
 ```text
 Text: Java 17
@@ -251,30 +251,30 @@ Full-name String: ready
 Runtime String: java.lang.String
 ```
 
-Đoạn mã dùng tên đơn giản `String`, `StringBuilder`, `System`, `Math`, `Integer`, `Object` mà không có import riêng. Ngược lại, `List` và `ArrayList` thuộc `java.util`, nên tệp chủ động import các kiểu này.
+The code uses the simple names `String`, `StringBuilder`, `System`, `Math`, `Integer`, and `Object` without explicit imports. Conversely, `List` and `ArrayList` belong to `java.util`, so the file explicitly imports those types.
 
-## 7. Quan hệ với module `java.base`, classpath và biên dịch
+## 7. Relationship with the `java.base` module, classpath, and compilation
 
-Trong Java 9+ (bao gồm Java 17), package `java.lang` thuộc module nền tảng **`java.base`**. Mỗi module Java đều đọc `java.base` theo cơ chế **ngầm định** của hệ thống module. Đây là một cơ chế **khác** với việc import tên kiểu trong source:
+In Java 9+ (including Java 17), package `java.lang` belongs to the foundational module **`java.base`**. Every Java module reads `java.base` **implicitly** under the module system. This is a **different** mechanism from importing type names in source code:
 
-- **Package import ngầm định:** cho phép viết `String` thay vì `java.lang.String`.
-- **Khả năng đọc module `java.base`:** giúp mã module có thể sử dụng các API công khai được export từ module nền tảng mà không cần viết `requires java.base;` trong `module-info.java`.
-- **Classpath/module path:** quyết định khả năng tìm thấy các lớp và module ngoài phạm vi nền tảng. `import` tự nó không tải về dependency hay chỉ đường cho trình biên dịch.
-- **Runtime:** kiểu được nạp/khởi tạo theo các quy tắc runtime, không do một dòng import tự thực hiện sẵn.
+- **Implicit package import:** allows writing `String` instead of `java.lang.String`.
+- **Readability of module `java.base`:** allows module code to use public APIs exported from the base module without writing `requires java.base;` in `module-info.java`.
+- **Classpath/module path:** determines whether classes and modules outside the base platform can be found. `import` by itself does not download dependencies or tell the compiler where to look.
+- **Runtime:** types are loaded/initialized according to runtime rules, not automatically executed by an import line.
 
-Những chi tiết module không cần đưa vào mọi bài Java cơ bản, nhưng hữu ích để tránh nhầm `java.lang` tự động có mặt với các cơ chế tìm lớp/thực thi.
+These module details do not need to be covered in every basic Java lesson, but they help avoid confusing the automatic availability of `java.lang` with class-lookup and execution mechanisms.
 
-## 8. Những lỗi và ngộ nhận thường gặp
+## 8. Common errors and misconceptions
 
-| Nhận định/lỗi | Giải thích đúng |
+| Statement/error | Correct explanation |
 | --- | --- |
-| “Phải viết `import java.lang.String;` trước khi dùng `String`.” | Không cần, `java.lang` được import theo yêu cầu ngầm định. |
-| “Không cần import bất cứ kiểu nào vì chúng đều nằm trong JDK.” | Sai; `java.util.List`, `java.time.LocalDate`... cần import nếu dùng tên đơn giản (trừ ngữ cảnh đã có sẵn tên phù hợp). |
-| “`java.lang.reflect.Method` tự thành `Method`.” | Sai; package con khác package cha, phải import riêng hoặc dùng tên đầy đủ. |
-| “Nhờ import `Math`, gọi thẳng `sqrt(9)` được.” | Sai; thường dùng `Math.sqrt(9)` hoặc static import. |
-| “`import java.lang.*;` làm JVM nạp hết các lớp.” | Sai; import chỉ ảnh hưởng cách phân giải tên lúc biên dịch. |
-| “Tên `String` trong mọi file đều bắt buộc chỉ `java.lang.String`.” | Sai; tên đơn giản còn chịu quy tắc scope và xung đột/che khuất. |
-| “`int` và `boolean` là lớp trong `java.lang`.” | Sai; chúng là **kiểu nguyên thủy** của ngôn ngữ, không phải lớp được import. |
-| “`java.lang` được import vì chương trình luôn ở package mặc định.” | Sai; import ngầm định vẫn áp dụng cho tệp có `package lesson;` và cho các package được đặt tên khác. |
+| "You must write `import java.lang.String;` before using `String`." | Not needed; `java.lang` is implicitly imported on demand. |
+| "You don't need to import any types because they are all in the JDK." | False; `java.util.List`, `java.time.LocalDate`, etc. require imports to use simple names (unless an appropriate name is already in scope). |
+| "`java.lang.reflect.Method` automatically becomes `Method`." | False; a subpackage is distinct from its parent package and must be imported separately or written with its fully qualified name. |
+| "Because `Math` is imported, you can call `sqrt(9)` directly." | False; normally use `Math.sqrt(9)` or a static import. |
+| "`import java.lang.*;` makes the JVM load all classes." | False; imports only affect compile-time name resolution. |
+| "The name `String` in every file must refer to `java.lang.String`." | False; simple names are still subject to scope rules and collisions/shadowing. |
+| "`int` and `boolean` are classes in `java.lang`." | False; they are **primitive types** of the language, not imported classes. |
+| "`java.lang` is imported because the program is always in the default package." | False; the implicit import also applies to files with `package lesson;` and to any other named packages. |
 
-**Ghi nhớ:** Java tự cho phép dùng tên ngắn của các kiểu phù hợp trong **`java.lang`**, nhưng không import ngầm các package khác hoặc package con. `import` giải quyết **tên trong mã nguồn**; để hiểu chính xác lớp đang dùng, cần xét package, scope và kiểu được phân giải khi biên dịch.
+**Key takeaway:** Java automatically allows using short names for eligible types in **`java.lang`**, but does not implicitly import other packages or subpackages. `import` resolves **names in source code**; to know the exact class being used, examine the package, scope, and type resolved at compile time.

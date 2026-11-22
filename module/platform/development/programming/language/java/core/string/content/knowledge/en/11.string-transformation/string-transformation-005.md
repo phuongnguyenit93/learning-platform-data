@@ -1,37 +1,37 @@
-# String.transform() và xây dựng chuỗi bước xử lý trong Java
+# `String.transform()` and Building Processing Pipelines in Java
 
-Khi xử lý dữ liệu văn bản, một chương trình thường phải thực hiện nhiều thao tác liên tiếp: **cắt khoảng trắng ở hai đầu → chuẩn hóa khoảng trắng → đổi chữ hoa/thường → tách, kiểm tra hoặc chuyển kiểu**. Nếu viết tất cả trong một biểu thức lồng nhiều lời gọi, mã dễ khó đọc; nếu tạo hàng loạt biến trung gian, ý đồ luồng xử lý có thể bị phân tán.
+When processing text data, a program often has to perform multiple consecutive operations: **trimming whitespace at both ends → normalizing whitespace → changing case → splitting, validating, or converting types**. Writing everything inside one nested expression makes code hard to read; creating a series of intermediate variables can scatter the intent of the processing flow.
 
-Từ **Java 12**, `java.lang.String` cung cấp phương thức `transform(Function)`. Nó cho phép truyền **toàn bộ chuỗi hiện tại** cho một hàm biến đổi rồi nhận kết quả của hàm đó. Ghép nhiều lời gọi `transform(...)` tạo thành một *pipeline* xử lý mạch lạc, được thực thi **theo thứ tự từ trái sang phải**.
+Since **Java 12**, `java.lang.String` has provided the `transform(Function)` method. It lets you pass **the entire current string** to a transformation function and receive that function's result. Chaining multiple `transform(...)` calls forms a clean processing *pipeline* executed **in left-to-right order**.
 
-Điểm quan trọng: `transform` **không tự sửa nội dung, không tự chuẩn hóa chuỗi và không tự kích hoạt xử lý bất đồng bộ**. Nó chỉ gọi hàm do người lập trình cung cấp. Hàm có thể trả một `String` khác, cũng có thể trả **kiểu dữ liệu hoàn toàn khác** như `Integer`, `String[]` hoặc một đối tượng miền nghiệp vụ.
+Important point: `transform` **does not modify content on its own, does not normalize strings on its own, and does not trigger asynchronous execution**. It simply invokes the function provided by the programmer. The function can return another `String`, or it can return a **completely different data type** such as `Integer`, `String[]`, or a domain object.
 
-## 1. API của String.transform()
+## 1. The `String.transform()` API
 
-Chữ ký khái niệm từ `java.lang.String`:
+Conceptual signature from `java.lang.String`:
 
 ```java
 public <R> R transform(
         java.util.function.Function<? super String, ? extends R> f)
 ```
 
-Trong đó:
+Where:
 
-- **`f`** là hàm nhận một `String` (hoặc kiểu cha phù hợp như `Object`) và trả một kết quả kiểu `R`.
-- **`R`** là kiểu kết quả do trình biên dịch suy luận hoặc do ngữ cảnh gán xác định; nó **không bị giới hạn** ở `String`.
-- **`? super String`** cho phép một hàm có kiểu đầu vào phù hợp với `String`; **`? extends R`** cho phép kết quả là kiểu `R` hoặc subtype của `R`.
-- Phương thức là **phương thức instance**: gọi trên một đối tượng `String`, không phải phương thức static.
-- Có từ **Java 12**; chạy bằng **Java 17+** không cần thêm thư viện.
+- **`f`** is a function taking a `String` (or a compatible supertype such as `Object`) and returning a result of type `R`.
+- **`R`** is the result type inferred by the compiler or determined by the assignment context; it is **not restricted** to `String`.
+- **`? super String`** allows a function whose input type is compatible with `String`; **`? extends R`** allows the result to be type `R` or a subtype of `R`.
+- The method is an **instance method**: called on a `String` object, not a static method.
+- Available since **Java 12**; runs on **Java 17+** without additional libraries.
 
-Về ngữ nghĩa, một lời gọi thông thường tương đương với việc áp dụng hàm trực tiếp:
+Semantically, a typical call is equivalent to applying the function directly:
 
 ```java
 String input = "  Hello  ";
 String result1 = input.transform(String::strip);
-String result2 = String::strip.apply(input); // Không hợp lệ: method reference không có apply trực tiếp
+String result2 = String::strip.apply(input); // Invalid: method reference does not have apply directly
 ```
 
-Dòng thứ hai chỉ nhằm minh họa **một lỗi cú pháp thường gặp**; nó không biên dịch được. Muốn viết tương đương chính xác, hãy tạo đối tượng `Function`:
+The second line merely illustrates **a common syntax error**; it does not compile. To write the exact equivalent, create a `Function` object:
 
 ```java
 java.util.function.Function<String, String> cleanup = String::strip;
@@ -40,31 +40,31 @@ String result2 = cleanup.apply(input);
 System.out.println(result1.equals(result2)); // true
 ```
 
-Ba dòng trong khối hợp lệ khi `input` được khai báo như bên trên. Mỗi lần gọi `transform` sẽ thực thi tương tự `f.apply(input)` ngay lúc được gọi; không có cơ chế trì hoãn như một số thao tác trung gian của `Stream`.
+All three lines in this block are valid when `input` is declared as above. Each `transform` call executes equivalently to `f.apply(input)` immediately when invoked; there is no lazy deferral like some intermediate operations on `Stream`.
 
-> **Giữ sự đơn giản:** Nếu chỉ muốn gọi `strip()` thì viết `input.strip()` thường dễ hiểu hơn `input.transform(String::strip)`. `transform` đặc biệt hữu ích khi cần đưa chuỗi qua một hàm tùy biến, chuyển sang kiểu khác hoặc ghép nhiều bước mà cách gọi trực tiếp không có dạng chuỗi phương thức thuận tiện.
+> **Keep it simple:** If you only want to call `strip()`, writing `input.strip()` is usually easier to understand than `input.transform(String::strip)`. `transform` is especially useful when passing a string through a custom function, converting to another type, or chaining multiple steps where direct calls lack a convenient fluent method-chaining form.
 
-## 2. Pipeline transform hoạt động thế nào?
+## 2. How Does a `transform` Pipeline Work?
 
-Một pipeline thường đọc theo luồng:
+A pipeline is typically read along its flow:
 
 ```text
-String đầu vào
+Input String
    |
    v
-Bước 1: strip()             -> String
+Step 1: strip()             -> String
    |
    v
-Bước 2: normalizeSpaces()   -> String
+Step 2: normalizeSpaces()   -> String
    |
    v
-Bước 3: toUpperCase(ROOT)   -> String
+Step 3: toUpperCase(ROOT)   -> String
    |
    v
-Kết quả: "JAVA CORE"
+Result: "JAVA CORE"
 ```
 
-Java cho phép nối lời gọi vì **kết quả của một bước còn là `String`**, nên có thể gọi tiếp `.transform(...)`:
+Java allows chaining calls because **the result of a step is still a `String`**, so `.transform(...)` can be called on it next:
 
 ```java
 String result = raw
@@ -73,24 +73,24 @@ String result = raw
         .transform(s -> s.toUpperCase(Locale.ROOT));
 ```
 
-Đây là đoạn **minh họa bên trong lớp `StringTransformDemo`** ở mục 5, nơi `raw` và `normalizeSpaces` được định nghĩa. Nó thể hiện:
+This snippet **illustrates code inside the `StringTransformDemo` class** in section 5, where `raw` and `normalizeSpaces` are defined. It shows:
 
-1. `raw` là chuỗi ban đầu.
-2. `String::strip` bỏ khoảng trắng theo `Character.isWhitespace` ở hai mép.
-3. `normalizeSpaces` (do ta định nghĩa) gộp các nhóm dấu cách ASCII và tab liên tiếp thành một dấu cách.
-4. Lambda `s -> s.toUpperCase(Locale.ROOT)` chuyển chữ hoa theo locale xác định.
+1. `raw` is the initial string.
+2. `String::strip` removes whitespace per `Character.isWhitespace` at both edges.
+3. `normalizeSpaces` (defined by us) collapses consecutive groups of ASCII spaces and tabs into a single space.
+4. The lambda `s -> s.toUpperCase(Locale.ROOT)` converts letters to uppercase using an explicit locale.
 
-Các bước chạy **eager**, từng bước hoàn tất rồi mới tới bước tiếp. Nếu bước 2 ném exception, bước 3 không chạy. Nếu một bước trả `null`, lời gọi `.transform(...)` tiếp theo trên giá trị đó gây `NullPointerException`. Chương trình không tự bỏ qua lỗi hay hoàn tác các side effect trong hàm.
+Steps run **eagerly**, each step completing before the next begins. If step 2 throws an exception, step 3 does not run. If a step returns `null`, calling `.transform(...)` next on that value causes `NullPointerException`. The program does not automatically ignore errors or roll back side effects inside functions.
 
-### Vì sao thứ tự bước quan trọng?
+### Why Does Step Order Matter?
 
-`strip` trước rồi gộp khoảng trắng giúp đầu ra sạch hai mép. Với ví dụ chỉ sử dụng dấu cách và tab, một số thứ tự có thể cho cùng giá trị; **không nên vì thế kết luận mọi phép biến đổi đều giao hoán**.
+Calling `strip` first and then collapsing spaces produces clean outer edges. In an example using only spaces and tabs, some orderings might yield the same value; **do not conclude from that that all transformations commute**.
 
-Chẳng hạn, “kiểm tra độ dài rồi cắt” không giống “cắt rồi kiểm tra độ dài”; “parse số rồi định dạng” cũng khác “định dạng rồi parse”. Nếu bước chuyển kiểu kết quả không còn là `String`, bạn chỉ có thể tiếp tục gọi các phương thức được hỗ trợ bởi **kiểu kết quả mới**.
+For example, "check length then trim" is not the same as "trim then check length"; "parse number then format" also differs from "format then parse." If a step changes the result type to something other than `String`, you can only continue calling methods supported by the **new result type**.
 
-## 3. transform không giới hạn kết quả ở String
+## 3. `transform` Does Not Restrict Results to `String`
 
-### Chuỗi sang số nguyên
+### String to Integer
 
 ```java
 int count = " 42 "
@@ -100,9 +100,9 @@ int count = " 42 "
 System.out.println(count); // 42
 ```
 
-`String::strip` trả về `String`, nên bước tiếp theo được phép gọi `String.transform`. `Integer::parseInt` trả về `int`, được Java tự động boxing thành `Integer` khi thích hợp để đáp ứng `Function`; biến `count` nhận giá trị `int` nhờ unboxing. Nếu chuỗi sau khi cắt không phải số nguyên thập phân hợp lệ, `Integer.parseInt` ném `NumberFormatException`: `transform` không tự bắt lỗi này.
+`String::strip` returns `String`, so the next step is allowed to call `String.transform`. `Integer::parseInt` returns `int`, which Java automatically boxes into `Integer` as needed to satisfy `Function`; the `count` variable receives an `int` value via unboxing. If the trimmed string is not a valid decimal integer, `Integer.parseInt` throws `NumberFormatException`: `transform` does not catch this error automatically.
 
-### Chuỗi sang mảng
+### String to Array
 
 ```java
 String[] items = " red,green,blue "
@@ -110,9 +110,9 @@ String[] items = " red,green,blue "
         .transform(s -> s.split(","));
 ```
 
-Sau bước thứ hai, kiểu trả về là `String[]`. Bạn có thể gọi phương thức của mảng hoặc các API làm việc với mảng, nhưng **không thể** gọi `.transform(...)` tiếp trên mảng, vì mảng không có phương thức instance `String.transform`.
+After the second step, the return type is `String[]`. You can call array operations or APIs that work with arrays, but you **cannot** call `.transform(...)` next on the array, because arrays do not have the `String.transform` instance method.
 
-### Chuỗi sang số lượng ký tự
+### String to Character Count
 
 ```java
 Integer length = "  hello  "
@@ -122,30 +122,30 @@ Integer length = "  hello  "
 System.out.println(length); // 5
 ```
 
-`String::length` trả số **đơn vị mã UTF-16** sau khi strip. Nếu yêu cầu số **code point**, hãy dùng:
+`String::length` returns the number of **UTF-16 code units** after stripping. If the requirement is the number of **code points**, use:
 
 ```java
 int codePoints = "A\u0301"
         .transform(s -> s.codePointCount(0, s.length()));
 ```
 
-Đoạn này trả 2 code point (chữ A và dấu kết hợp), không nhất thiết là 2 ký tự người dùng cảm nhận. Phương thức `transform` không làm thay đổi các quy tắc Unicode của `length` hoặc `codePointCount`.
+This snippet returns 2 code points (letter A and the combining mark), not necessarily 2 user-perceived characters. The `transform` method does not alter the Unicode rules of `length` or `codePointCount`.
 
-## 4. Method reference, lambda và các hàm tùy biến
+## 4. Method References, Lambdas, and Custom Functions
 
-Tham số của `transform` là một đối tượng thực thi giao diện hàm `Function`, vì vậy có thể cung cấp nhiều cách viết:
+The parameter of `transform` is an object implementing the `Function` functional interface, so it can be supplied in several ways:
 
-| Cách truyền hàm | Ví dụ | Khi hữu ích |
+| How the function is passed | Example | When it is useful |
 |---|---|---|
-| Method reference của instance method | `.transform(String::strip)` | Phương thức có sẵn nhận chính chuỗi hiện tại |
-| Lambda một biểu thức | `.transform(s -> s.replace("-", "_"))` | Có tham số bổ sung hoặc logic ngắn |
-| Method reference của static method | `.transform(Integer::parseInt)` | Chuyển String sang kiểu khác |
-| Method reference đến hàm tự định nghĩa | `.transform(MyCleaner::clean)` | Tái sử dụng một bước nghiệp vụ |
-| Biến `Function` | `.transform(cleanupPipeline)` | Cấu hình, kiểm thử, kết hợp và tái sử dụng nhiều bước |
+| Instance method reference | `.transform(String::strip)` | An existing method takes the current string itself |
+| Single-expression lambda | `.transform(s -> s.replace("-", "_"))` | Extra arguments or short inline logic |
+| Static method reference | `.transform(Integer::parseInt)` | Converting `String` to another type |
+| Method reference to a custom helper | `.transform(MyCleaner::clean)` | Reusing a business step |
+| `Function` variable | `.transform(cleanupPipeline)` | Configuring, testing, composing, and reusing multiple steps |
 
-Không phải cứ có dấu `::` là có thể thay lambda trong mọi hoàn cảnh. Method reference phải tương thích với kiểu hàm mong đợi; ví dụ `String::strip` tương thích với `Function<String, String>`, còn các phương thức cần nhiều tham số có thể không phù hợp nếu chưa được đóng gói bằng lambda.
+Not every `::` expression can replace a lambda in all circumstances. A method reference must be compatible with the expected functional type; for instance, `String::strip` matches `Function<String, String>`, whereas methods requiring multiple parameters may not fit without wrapping them in a lambda.
 
-Ví dụ một phương thức tùy biến:
+Example of a custom method:
 
 ```java
 static String normalizeSpaces(String input) {
@@ -153,13 +153,13 @@ static String normalizeSpaces(String input) {
 }
 ```
 
-Đây là **phương thức đặt bên trong một lớp**. Regex `[\\t ]+` tìm một hoặc nhiều dấu tab hoặc dấu cách ASCII và thay bằng đúng một dấu cách. Nó **không được định nghĩa để xử lý mọi loại Unicode whitespace**. Đây là lựa chọn cố ý để ví dụ có quy tắc đơn giản và kiểm thử rõ ràng.
+This is a **method placed inside a class**. The regex `[\\t ]+` matches one or more tabs or ASCII spaces and replaces them with exactly one space. It is **not defined to handle every kind of Unicode whitespace**. This is a deliberate choice so the example has simple rules and clear testing.
 
-Lưu ý **hai lớp escape**: mã Java `"[\\t ]+"` tạo regex `[\t ]+`; ký tự `\` trong Java literal phải được escape thành `\\` để gửi dấu backslash tới regex engine. Với dữ liệu Unicode phức tạp, chọn regex/`Pattern` và chính sách chuẩn hóa phù hợp với yêu cầu thực tế.
+Note the **two layers of escaping**: the Java code `"[\\t ]+"` produces the regex `[\t ]+`; the `\` character inside a Java literal must be escaped as `\\` to send a backslash to the regex engine. For complex Unicode data, choose a regex/`Pattern` and normalization policy suited to real requirements.
 
-## 5. Chương trình Java 17+ hoàn chỉnh
+## 5. Complete Java 17+ Program
 
-Lưu vào tệp **`StringTransformDemo.java`**:
+Save into **`StringTransformDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -167,12 +167,12 @@ import java.util.Locale;
 import java.util.function.Function;
 
 public class StringTransformDemo {
-    // Chuẩn hóa các nhóm dấu cách ASCII và TAB liên tiếp.
+    // Normalize consecutive ASCII space and TAB groups.
     static String normalizeSpaces(String input) {
         return input.replaceAll("[\\t ]+", " ");
     }
 
-    // Chỉ dùng để in rõ TAB và dấu cách; không đổi dữ liệu nguồn.
+    // Used only to visibly print TAB and spaces; does not modify source data.
     static String visible(String input) {
         return input.replace("\t", "<TAB>").replace(" ", "_");
     }
@@ -219,14 +219,14 @@ public class StringTransformDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac -encoding UTF-8 StringTransformDemo.java
 java StringTransformDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 raw: [_<TAB>java___core<TAB>_]
@@ -239,21 +239,21 @@ may return null: true
 function pipeline: a b
 ```
 
-Đầu ra được viết bằng ASCII nên không phụ thuộc cách terminal hiển thị dấu tab. Trong hàm `visible`, `<TAB>` biểu thị **một tab thật** và ký tự `_` biểu thị **một dấu cách** trong chuỗi đầu vào. Hàm chỉ giúp nhìn thấy nội dung; `raw` vẫn giữ nguyên.
+The output is written in ASCII so it does not depend on how a terminal renders tabs. In `visible`, `<TAB>` denotes **one real tab** and `_` denotes **one space** in the input string. The helper only makes content visible; `raw` stays unchanged.
 
-**Giải thích các dòng đáng chú ý:**
+**Explanation of notable lines:**
 
-- Chuỗi gốc chứa một dấu cách, một tab, `java`, ba dấu cách, `core`, một tab và dấu cách cuối. `strip` bỏ whitespace ở mép; bước tiếp theo gộp các dấu cách giữa `java` và `core`; cuối cùng đổi thành `JAVA CORE`.
-- Hai biến `raw` và `normalized` độc lập về giá trị xử lý. `String` bất biến; một lời gọi `transform` không sửa `raw`.
-- `split(",")` tạo mảng ba chuỗi, nên `transform` có thể kết thúc với kiểu `String[]`.
-- `String::length` tạo kết quả kiểu số (qua `Integer` trong giao diện `Function`).
-- `Integer::parseInt` thể hiện một phép chuyển kiểu có thể thất bại đối với input không hợp lệ.
-- Hàm `s -> null` minh họa `transform` **không áp đặt rằng kết quả phải khác null**.
-- `Function.andThen` tạo một **hàm tổng hợp** rồi được áp dụng bằng một lần `"   A   B  ".transform(cleanup)`.
+- The original string contains one space, one tab, `java`, three spaces, `core`, one tab, and a trailing space. `strip` removes edge whitespace; the next step collapses the spaces between `java` and `core`; finally it converts to `JAVA CORE`.
+- `raw` and `normalized` are independent values. `String` is immutable; a `transform` call does not modify `raw`.
+- `split(",")` produces a three-string array, so `transform` can end with type `String[]`.
+- `String::length` produces a numeric result (via `Integer` in the `Function` interface).
+- `Integer::parseInt` demonstrates a type conversion that can fail on invalid input.
+- The function `s -> null` illustrates that `transform` **does not enforce that the result must be non-null**.
+- `Function.andThen` creates a **composite function** that is then applied in a single call `"   A   B  ".transform(cleanup)`.
 
-## 6. Kết hợp nhiều bước bằng Function.andThen() và compose()
+## 6. Composing Multiple Steps with `Function.andThen()` and `compose()`
 
-Nếu cần tái sử dụng pipeline ở nhiều nơi, có thể lưu nó dưới dạng một `Function<String, String>`:
+If you need to reuse a pipeline in multiple places, you can store it as a `Function<String, String>`:
 
 ```java
 Function<String, String> trimSides = String::strip;
@@ -267,33 +267,33 @@ Function<String, String> pipeline =
 String value = " \tjava   core  ".transform(pipeline);
 ```
 
-Các dòng trên là **đoạn minh họa bổ sung** (đặt trong lớp có thể truy cập `StringTransformDemo.normalizeSpaces` và import `java.util.function.Function`, `java.util.Locale`). Khi dùng `andThen`, hàm trước chạy rồi đến hàm sau, tương đương:
+The lines above are an **additional illustrative snippet** (placed in a class with access to `StringTransformDemo.normalizeSpaces` and importing `java.util.function.Function`, `java.util.Locale`). With `andThen`, the earlier function runs first followed by the later one, equivalent to:
 
 ```text
 pipeline.apply(text)
 = uppercase.apply(collapse.apply(trimSides.apply(text)))
 ```
 
-`Function.compose(before)` có thứ tự đọc **ngược** với `andThen(after)`:
+`Function.compose(before)` reads in the **opposite** order to `andThen(after)`:
 
 ```java
 Function<String, String> pipeline2 =
         uppercase.compose(collapse).compose(trimSides);
 ```
 
-Biểu thức `pipeline2.apply(text)` vẫn chạy **trimSides → collapse → uppercase**. Khi người đọc cần thấy rõ luồng xử lý, `andThen` thường thuận tiện hơn vì các bước được liệt kê từ trái sang phải theo thứ tự thực thi.
+The expression `pipeline2.apply(text)` still runs **trimSides → collapse → uppercase**. When readers need to see the processing flow clearly, `andThen` is usually more convenient because steps are listed left to right in execution order.
 
-Phân biệt:
+Distinguish:
 
-- `source.transform(pipeline)` **áp dụng** pipeline cho **một chuỗi cụ thể** và trả kết quả.
-- `f.andThen(g)` **tạo một đối tượng Function kết hợp** có thể tái sử dụng.
-- `source.transform(f).transform(g)` **áp dụng ngay** từng function lên kết quả của bước trước.
+- `source.transform(pipeline)` **applies** the pipeline to **one specific string** and returns the result.
+- `f.andThen(g)` **creates a reusable composed `Function` object**.
+- `source.transform(f).transform(g)` **immediately applies** each function to the previous step's result.
 
-Chúng gần nhau về ý nghĩa với các hàm thuần, nhưng có khác biệt thiết kế quan trọng: nếu function có **side effect**, ném exception, dùng trạng thái mutable hoặc trả `null`, hành vi của pipeline phụ thuộc chính những function đó. Không nên coi `transform` như cơ chế đảm bảo transaction hoặc xử lý lỗi tự động.
+They are close in meaning for pure functions, yet have an important design difference: if a function has **side effects**, throws exceptions, relies on mutable state, or returns `null`, the pipeline's behavior depends on those very functions. Do not treat `transform` as an automatic transaction or error-handling mechanism.
 
-## 7. Pipeline đổi kiểu: khi nào nên dừng chuỗi transform?
+## 7. Type-Changing Pipelines: When Should You Stop Chaining `transform`?
 
-Một ví dụ hữu ích là tiền xử lý chuỗi xong rồi **chuyển kết quả sang một kiểu miền nghiệp vụ**:
+A useful pattern is preprocessing a string and then **converting the result into a domain type**:
 
 ```java
 record ProductCode(String value) {}
@@ -304,9 +304,9 @@ ProductCode code = "  prd-042  "
         .transform(ProductCode::new);
 ```
 
-Đây là đoạn mã **cần đặt trong môi trường có khai báo `record ProductCode`** (Java 17 hỗ trợ record). Kết quả là `ProductCode` có `value()` bằng `"PRD-042"`; sau bước cuối, kiểu static là `ProductCode` nên không thể gọi tiếp `String.transform` trên nó.
+This snippet **must be placed in an environment where `record ProductCode` is declared** (Java 17 supports records). The result is a `ProductCode` whose `value()` equals `"PRD-042"`; after the final step, the static type is `ProductCode`, so you cannot chain `String.transform` further on it.
 
-Một cách khác là dùng `Optional` để thể hiện rằng kết quả có thể vắng mặt:
+Another approach is using `Optional` to express that a result may be absent:
 
 ```java
 import java.util.Optional;
@@ -322,58 +322,58 @@ Optional<Integer> maybeNumber = " 12 "
         });
 ```
 
-Đây là **đoạn mã minh họa**: `Optional` được trả về **do lambda tự tạo**, không phải vì `transform` hiểu hoặc tự bắt lỗi phân tích số. Với đầu vào `" 12 "`, kết quả là `Optional.of(12)`. Nếu muốn trả thông tin lỗi chi tiết thay vì chỉ trả rỗng, hãy thiết kế kiểu kết quả hoặc exception phù hợp.
+This is an **illustrative snippet**: `Optional` is returned **because the lambda explicitly constructs it**, not because `transform` understands or catches number-parsing errors automatically. With input `" 12 "`, the result is `Optional.of(12)`. If you want to return detailed error information instead of just empty, design an appropriate result type or exception.
 
-**Giữ bước xử lý có trách nhiệm rõ ràng:** Một pipeline dễ đọc thường gồm những hàm tên đủ rõ, nhận một giá trị và tạo một kết quả xác định. Không nên gộp xác thực, lưu database, gửi HTTP, format giao diện và logging vào một chuỗi dài chỉ vì tất cả có thể được đóng gói bằng `Function`.
+**Keep each processing step focused on a clear responsibility:** A readable pipeline usually consists of well-named functions that take one value and produce one deterministic result. Avoid cramming validation, database persistence, HTTP calls, UI formatting, and logging into one long chain just because all of them can be wrapped as a `Function`.
 
-## 8. Null, exception và dữ liệu không hợp lệ
+## 8. Null, Exceptions, and Invalid Data
 
-`String.transform` có các điểm cần chú ý:
+`String.transform` has several points to watch out for:
 
-| Tình huống | Điều xảy ra | Hướng xử lý |
+| Situation | What happens | How to handle |
 |---|---|---|
-| Tham chiếu receiver `source` là `null` | Gọi `source.transform(...)` gây `NullPointerException` | Xác thực `source` trước khi gọi |
-| Tham số `f` là `null` | Không thể áp dụng hàm; ném `NullPointerException` | Truyền function hợp lệ |
-| Hàm trả `null` | `transform` có thể trả `null` | Quy định null-contract trước khi nối thêm bước |
-| Hàm ném `NumberFormatException`, `IllegalArgumentException`, v.v. | Exception lan ra cho caller theo quy tắc Java | Bắt ở ranh giới nghiệp vụ hoặc để caller xử lý |
-| Một bước biến đổi làm mất thông tin | Không có hoàn tác tự động | Kiểm chứng yêu cầu về bảo toàn dữ liệu |
-| Một hàm có side effect | Side effect xảy ra khi hàm được gọi | Ưu tiên hàm thuần, kiểm thử rõ ràng |
-| Kết quả đổi kiểu khỏi `String` | Không còn gọi được `String.transform` trên kết quả | Tiếp tục bằng API của kiểu mới hoặc dùng function cho toàn pipeline |
+| Receiver reference `source` is `null` | Calling `source.transform(...)` throws `NullPointerException` | Validate `source` before calling |
+| Parameter `f` is `null` | Cannot apply function; throws `NullPointerException` | Pass a valid function |
+| Function returns `null` | `transform` can return `null` | Define the null-contract before chaining further steps |
+| Function throws `NumberFormatException`, `IllegalArgumentException`, etc. | Exception propagates to caller per Java rules | Catch at a business boundary or let the caller handle |
+| A transformation step discards information | No automatic undo | Verify data preservation requirements |
+| A function has side effects | Side effects happen when the function is invoked | Prefer pure functions and explicit tests |
+| Result changes type away from `String` | Can no longer call `String.transform` on the result | Continue with the new type's API or compose a function for the whole pipeline |
 
-Ví dụ null receiver:
+Null receiver example:
 
 ```java
 String raw = null;
-// raw.transform(String::strip); // Nếu chạy, gây NullPointerException.
+// raw.transform(String::strip); // If run, throws NullPointerException.
 String safe = raw == null ? "" : raw.strip();
 ```
 
-Dòng bị chú thích chỉ để minh họa lỗi; ba dòng tạo `raw` và `safe` có thể biên dịch. Việc thay `null` thành chuỗi rỗng là **quyết định nghiệp vụ**, không nên luôn áp dụng mặc định: đôi khi cần báo lỗi đầu vào còn thiếu.
+The commented line only illustrates the error; the three lines defining `raw` and `safe` compile cleanly. Turning `null` into an empty string is a **business decision**, not something to apply blindly by default: sometimes you need to report missing input as an error.
 
-Cũng cần lưu ý một function có thể trả `null` dù đầu vào hoàn toàn hợp lệ:
+Also note that a function can return `null` even when the input is completely valid:
 
 ```java
 String result = "hello".transform(s -> null);
 System.out.println(result == null); // true
 ```
 
-Sau đó gọi `result.transform(...)` sẽ ném `NullPointerException`. Nếu yêu cầu không được phép null, có thể chốt điều kiện hậu kiểm (ví dụ `Objects.requireNonNull`) hoặc chọn kiểu kết quả thể hiện rõ khả năng thiếu giá trị.
+Subsequently calling `result.transform(...)` will throw `NullPointerException`. If null is disallowed, enforce a postcondition (for example `Objects.requireNonNull`) or choose a result type that explicitly models missing values.
 
-## 9. transform khác gì Stream.map(), replace() và các API String khác?
+## 9. How Does `transform` Differ from `Stream.map()`, `replace()`, and Other `String` APIs?
 
-| API | Điểm khác biệt |
+| API | Key difference |
 |---|---|
-| `String.transform(f)` | Áp dụng **một Function cho toàn bộ String** và trả một giá trị kiểu `R` bất kỳ |
-| `String.replace(...)` | Thay thế ký tự hoặc chuỗi con theo quy tắc của API; kết quả luôn là `String` |
-| `String.replaceAll(regex, replacement)` | Thay theo regular expression; chú ý regex/escape và hiệu năng |
-| `String.strip()` | Loại bỏ whitespace theo quy tắc Java ở hai mép; là một phép biến đổi cụ thể |
-| `Stream.map(f)` | Áp dụng function **cho từng phần tử của Stream**, mang tính lazy ở giai đoạn trung gian |
-| `Function.andThen(...)` | Kết hợp các function để **sử dụng về sau**; bản thân việc kết hợp chưa áp dụng chúng vào một String |
-| `String.formatted(...)` | Định dạng chuỗi mẫu theo đối số được truyền; mục đích khác với function pipeline |
+| `String.transform(f)` | Applies **one `Function` to the entire `String`** and returns a value of any type `R` |
+| `String.replace(...)` | Replaces characters or substrings per API rules; the result is always a `String` |
+| `String.replaceAll(regex, replacement)` | Replaces by regular expression; watch regex/escaping and performance |
+| `String.strip()` | Removes whitespace per Java rules at both ends; a single specific transformation |
+| `Stream.map(f)` | Applies a function **to each element of a `Stream`**, lazy at intermediate stages |
+| `Function.andThen(...)` | Composes functions for **later use**; composition itself does not yet apply them to a `String` |
+| `String.formatted(...)` | Formats a template string with passed arguments; different purpose from a function pipeline |
 
-Ví dụ `"java".transform(String::toUpperCase)` là một bước biến đổi cho **toàn bộ chuỗi**. Trong khi đó, `Stream.of("java", "core").map(String::toUpperCase)` là phép biến đổi **từng chuỗi trong Stream** khi pipeline của Stream được thực thi bởi terminal operation.
+For example, `"java".transform(String::toUpperCase)` is a single transformation step on the **entire string**. Meanwhile, `Stream.of("java", "core").map(String::toUpperCase)` transforms **each string in the `Stream`** when the Stream pipeline is executed by a terminal operation.
 
-Một ứng dụng cần đọc **nhiều dòng** có thể phối hợp cả hai cơ chế:
+An application reading **multiple lines** can combine both mechanisms:
 
 ```java
 List<String> lines = " a \n\n b "
@@ -383,32 +383,32 @@ List<String> lines = " a \n\n b "
         .toList();
 ```
 
-Đây là đoạn minh họa, cần import `java.util.List`. `String::lines` trả `Stream<String>`, nên **sau lời gọi `transform`, chúng ta đang gọi `Stream.map/filter/toList`**, không còn gọi `String.transform`. Với Java 17+, kết quả của ví dụ là danh sách `["a", "b"]`. Lệnh `toList()` là terminal operation của Stream.
+This is an illustrative snippet requiring `import java.util.List`. `String::lines` returns `Stream<String>`, so **after the `transform` call, we are calling `Stream.map/filter/toList`**, no longer `String.transform`. On Java 17+, the result of this example is the list `["a", "b"]`. `toList()` is the Stream terminal operation.
 
-## 10. Thiết kế một pipeline dễ bảo trì
+## 10. Designing a Maintainable Pipeline
 
-Khi xây dựng chuỗi xử lý văn bản, nên phân định các bước rõ ràng:
+When building a text-processing pipeline, keep stages clearly separated:
 
-1. **Chuẩn hóa cú pháp đầu vào:** cắt whitespace không mong muốn, gộp dấu phân tách, chuyển encoding khi thật sự cần.
-2. **Chuẩn hóa nội dung theo quy tắc nghiệp vụ:** chuyển chữ hoa/thường với `Locale` rõ ràng, chuẩn hóa định danh, xử lý ký tự đặc biệt.
-3. **Kiểm tra:** xác thực rỗng, độ dài, pattern, phạm vi ký tự được phép; báo lỗi với ngữ cảnh cụ thể.
-4. **Chuyển kiểu cuối cùng:** từ `String` thành `Integer`, `record`, `List`, cấu trúc phân tích cú pháp hoặc một kiểu kết quả miền nghiệp vụ.
+1. **Input syntax cleanup:** strip unwanted edge whitespace, collapse separators, convert encoding only when truly needed.
+2. **Business content normalization:** convert case with an explicit `Locale`, normalize identifiers, handle special characters.
+3. **Validation:** check emptiness, length, patterns, allowed character ranges; report errors with specific context.
+4. **Final type conversion:** from `String` to `Integer`, `record`, `List`, a parsed structure, or a domain result type.
 
-Đây là gợi ý **thiết kế**, không phải yêu cầu bắt buộc có bốn giai đoạn trong mọi chương trình. Một bước xử lý không hữu ích thì không cần thêm vào để tạo pipeline dài.
+This is a **design suggestion**, not a mandatory requirement to have four stages in every program. A step that adds no value should not be added just to build a long pipeline.
 
-Các nguyên tắc áp dụng:
+Guiding principles:
 
-- **Hàm nhỏ, đặt tên rõ:** `normalizeSpaces`, `parseProductCode` và `validateInput` dễ hiểu hơn lambda nhiều lệnh, lồng điều kiện dày đặc.
-- **Đơn vị kiểm thử ổn định:** có thể kiểm tra từng `Function` độc lập và sau đó kiểm tra pipeline tổng thể.
-- **Không biến đổi âm thầm dữ liệu quan trọng:** Unicode normalization, thay đổi dấu tiếng Việt, xử lý không phân biệt hoa/thường và loại bỏ ký tự vô hình đều có thể thay đổi ý nghĩa dữ liệu. Chỉ áp dụng khi quy tắc nghiệp vụ yêu cầu.
-- **Locale rõ ràng:** `toUpperCase(Locale.ROOT)`/`toLowerCase(Locale.ROOT)` cho kết quả không phụ thuộc default locale; nhưng ngôn ngữ cụ thể có thể cần locale cụ thể (như xử lý chữ cái tiếng Thổ Nhĩ Kỳ).
-- **Giữ quy tắc regex được mô tả:** biểu thức `[\\t ]+` của bài chỉ gộp tab/space ASCII; để xử lý nhóm Unicode whitespace, cần xác định chính xác tập ký tự nào được phép và kiểm thử.
-- **Không lạm dụng transformation có side effect:** `transform` chạy ngay và không đảm bảo rollback; các thao tác ngoại vi hoặc cập nhật shared state cần kiểm soát riêng.
-- **Tối ưu sau khi có đo đạc:** nhiều bước biến đổi có thể tạo các đối tượng `String` trung gian; trong đường xử lý hiệu năng cao, xem xét việc gộp bước hoặc dùng `StringBuilder`/`Pattern` được tái sử dụng. Đừng đổi thiết kế chỉ vì giả định mọi lần gọi `transform` chắc chắn tạo một object mới.
+- **Small, clearly named functions:** `normalizeSpaces`, `parseProductCode`, and `validateInput` are easier to understand than multi-statement lambdas with dense nested conditionals.
+- **Stable test units:** you can test each `Function` independently and then test the overall pipeline.
+- **Do not silently alter critical data:** Unicode normalization, changing Vietnamese diacritics, case-insensitive folding, and stripping invisible characters can all change data meaning. Apply them only when business rules require it.
+- **Explicit `Locale`:** `toUpperCase(Locale.ROOT)`/`toLowerCase(Locale.ROOT)` produce results independent of the default locale; however, specific languages may require a specific locale (such as handling Turkish letters).
+- **Keep regex rules accurate to their description:** the `[\\t ]+` pattern in this lesson only collapses ASCII tabs/spaces; to handle Unicode whitespace classes, define exactly which characters are permitted and test them.
+- **Do not overuse transformations with side effects:** `transform` runs eagerly and provides no rollback; external I/O or shared-state updates need separate control.
+- **Optimize after measuring:** many transformation steps can allocate intermediate `String` objects; on hot paths, consider combining steps or reusing `StringBuilder`/`Pattern`. Do not redesign solely on the assumption that every `transform` call must allocate a new object.
 
-### Có cần luôn dùng transform thay biến trung gian?
+### Should You Always Use `transform` Instead of Intermediate Variables?
 
-Không. Cả hai cách đều hợp lệ:
+No. Both approaches are valid:
 
 ```java
 String stripped = raw.strip();
@@ -416,7 +416,7 @@ String compact = normalizeSpaces(stripped);
 String upper = compact.toUpperCase(Locale.ROOT);
 ```
 
-Cách này thuận tiện nếu cần debug từng kết quả hoặc dùng lại kết quả trung gian. Dạng pipeline:
+This style is convenient when you need to debug each step or reuse intermediate results. The pipeline style:
 
 ```java
 String upper = raw
@@ -425,26 +425,26 @@ String upper = raw
         .transform(s -> s.toUpperCase(Locale.ROOT));
 ```
 
-là đoạn minh họa cần lớp `MyTextUtils` có static method tương ứng, và phù hợp khi muốn nhìn ngay **trình tự xử lý** trong một biểu thức. Chọn cách nào giúp nhóm đọc, kiểm thử và bảo trì rõ nhất.
+is an illustrative snippet requiring a `MyTextUtils` class with the corresponding static method, and fits well when you want to see the **processing sequence** immediately in a single expression. Choose whichever makes the code clearest for your team to read, test, and maintain.
 
-## 11. Những lỗi thường gặp
+## 11. Common Mistakes
 
-| Lỗi/hiểu nhầm | Vì sao sai | Cách sửa |
+| Mistake / misconception | Why it is wrong | How to fix |
 |---|---|---|
-| Nghĩ `transform` chỉ trả về `String` | Chữ ký dùng generic `<R>` | Có thể trả `Integer`, `String[]`, `List`, `Optional` hoặc kiểu riêng |
-| Nghĩ `transform` mặc nhiên là lazy | `Function.apply` chạy ngay | Đừng suy luận theo `Stream.map` |
-| Gọi `.transform(...)` tiếp khi bước trước đã trả `Integer` | `Integer` không có `String.transform` | Sử dụng API của `Integer` hoặc viết lại hàm |
-| Bỏ kết quả của `source.transform(...)` mà chờ `source` đổi | `String` bất biến | Gán kết quả vào biến hoặc trả từ phương thức |
-| Đầu vào `null` | Không có receiver hợp lệ | Xử lý null ở ranh giới |
-| Hàm có thể trả `null` nhưng pipeline tiếp tục | Dẫn đến `NullPointerException` | Xác định hợp đồng null hoặc dùng `Optional` |
-| Mong `transform` tự bắt lỗi `parseInt` | Exception do function phát ra vẫn lan ra | Thiết kế cơ chế báo lỗi phù hợp |
-| Lạm dụng regex `\\s+` để “xóa mọi Unicode whitespace” | Tập ký tự mà regex nhận phụ thuộc cờ và quy tắc cụ thể | Chọn regex với định nghĩa ký tự đúng theo yêu cầu |
-| Dùng `==` để kiểm tra chuỗi sau chuyển đổi | `==` so identity, không so nội dung | Dùng `equals` |
-| Viết function vừa sửa dữ liệu vừa gửi HTTP/log nhiều nơi | Tạo side effect khó kiểm soát và khó test | Tách side effect khỏi bước chuẩn hóa khi có thể |
+| Thinking `transform` only returns `String` | Signature uses generic `<R>` | Can return `Integer`, `String[]`, `List`, `Optional`, or a custom type |
+| Thinking `transform` is lazy by default | `Function.apply` executes immediately | Do not reason about it like `Stream.map` |
+| Chaining `.transform(...)` after a step returned `Integer` | `Integer` has no `String.transform` | Use `Integer`'s API or rewrite the function |
+| Discarding `source.transform(...)` expecting `source` to change | `String` is immutable | Assign the result to a variable or return it from a method |
+| `null` input | No valid receiver | Handle `null` at the boundary |
+| Function can return `null` while pipeline continues | Leads to `NullPointerException` | Define a null contract or use `Optional` |
+| Expecting `transform` to catch `parseInt` errors automatically | Exceptions thrown by the function propagate out | Design an appropriate error-reporting mechanism |
+| Overusing regex `\\s+` to "strip all Unicode whitespace" | Which characters regex matches depends on flags and specific rules | Choose a regex with character definitions matching requirements |
+| Using `==` to compare strings after transformation | `==` compares identity, not content | Use `equals` |
+| Writing a function that both transforms data and sends HTTP/logs everywhere | Creates hard-to-control, hard-to-test side effects | Separate side effects from normalization steps when possible |
 
-## 12. Tự kiểm tra
+## 12. Self-Check
 
-Cho:
+Given:
 
 ```java
 String original = "  blue,green  ";
@@ -462,26 +462,26 @@ String upper = original
         .transform(s -> s.toUpperCase(Locale.ROOT));
 ```
 
-Hãy trả lời:
+Answer the following:
 
-1. `colors.length` bằng bao nhiêu và các phần tử chứa gì?
-2. `number` bằng bao nhiêu? Có còn giữ dạng chuỗi `"007"` sau bước `parseInt` không?
-3. `upper` chứa nội dung nào và `original` có bị thay đổi không?
-4. Nếu nối thêm `.transform(String::strip)` sau `Integer::parseInt` thì có biên dịch không?
-5. Nếu đổi input của số thành `"  seven  "` thì `transform` có trả về 0, `null` hay ném lỗi?
+1. What is `colors.length` and what do its elements contain?
+2. What is `number`? Does it still preserve the `"007"` string format after `parseInt`?
+3. What content does `upper` hold and is `original` modified?
+4. If you chain `.transform(String::strip)` after `Integer::parseInt`, will it compile?
+5. If the number input is changed to `"  seven  "`, does `transform` return `0`, `null`, or throw an error?
 
-**Đáp án:**
+**Answers:**
 
-1. `colors.length == 2` với các phần tử `"blue"` và `"green"`.
-2. `number == 7`; kiểu kết quả là số nguyên, không còn định dạng chuỗi có các số 0 đứng trước.
-3. `upper` là `"BLUE,GREEN"`; `original` vẫn là `"  blue,green  "`.
-4. Không, vì sau `parseInt` không còn receiver kiểu `String`.
-5. `Integer.parseInt("seven")` ném `NumberFormatException`; `transform` để exception đi ra ngoài trừ khi lambda tự xử lý nó.
+1. `colors.length == 2` with elements `"blue"` and `"green"`.
+2. `number == 7`; the result type is an integer, no longer keeping leading-zero string formatting.
+3. `upper` is `"BLUE,GREEN"`; `original` remains `"  blue,green  "`.
+4. No, because after `parseInt` there is no `String` receiver.
+5. `Integer.parseInt("seven")` throws `NumberFormatException`; `transform` lets the exception propagate unless the lambda handles it itself.
 
-## 13. Tài liệu chính thức
+## 13. Official Documentation
 
-- [Java SE 17 — `String.transform(Function)`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#transform(java.util.function.Function)): chữ ký, kiểu kết quả và hợp đồng áp dụng function.
-- [Java SE 17 — `Function`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/function/Function.html): `apply`, `andThen`, `compose` và `identity`.
-- [Java SE 17 — `String`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): các API `strip`, `replaceAll`, `split`, `lines` và `length`.
+- [Java SE 17 — `String.transform(Function)`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#transform(java.util.function.Function)): signature, return type, and function application contract.
+- [Java SE 17 — `Function`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/function/Function.html): `apply`, `andThen`, `compose`, and `identity`.
+- [Java SE 17 — `String`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): `strip`, `replaceAll`, `split`, `lines`, and `length` APIs.
 
-**Ghi nhớ:** `String.transform(f)` truyền **chuỗi hiện tại** cho `f` và trả **chính kết quả của hàm**, có thể là kiểu bất kỳ. Muốn viết pipeline rõ ràng, nối các bước trả lại `String` hoặc dùng `Function.andThen`; khi đã chuyển sang kiểu khác, tiếp tục bằng API của kiểu mới. `transform` không sửa chuỗi gốc, không tự bỏ null/exception và không thay người lập trình quyết định quy tắc chuẩn hóa dữ liệu.
+**Key takeaway:** `String.transform(f)` passes the **current string** to `f` and returns **the function's exact result**, which can be any type. To write clear pipelines, chain steps that return `String` or use `Function.andThen`; once converted to another type, continue with the new type's API. `transform` does not mutate the original string, does not swallow nulls/exceptions, and does not decide data normalization rules for you.

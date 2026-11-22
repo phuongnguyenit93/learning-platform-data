@@ -1,60 +1,60 @@
-# Khai báo nhiều biến và những cách viết dễ gây nhầm — Java 17+
+# Declaring Multiple Variables and Confusing Syntaxes — Java 17+
 
-Java cho phép **khai báo nhiều biến trong cùng một câu lệnh** nếu chúng có kiểu phù hợp. Cách viết này ngắn nhưng dễ gây hiểu nhầm: dấu `=` chỉ khởi tạo **biến được gắn với nó**, dấu `[]` có thể chỉ áp dụng cho **một tên**, và `var` không hỗ trợ danh sách nhiều biến trong một khai báo.
+Java allows **declaring multiple variables in the same statement** if they have compatible types. This syntax is concise but easily misunderstood: the `=` sign only initializes **the variable it is attached to**, `[]` can apply to **only one name**, and `var` does not support a list of multiple variables in one declaration.
 
-Mục tiêu: đọc đúng từng biến được khai báo, dự đoán kiểu và giá trị của chúng, hiểu lỗi *definite assignment*, rồi chọn cách viết dễ bảo trì.
+Objective: correctly read each declared variable, predict their types and values, understand *definite assignment* errors, and choose maintainable syntax.
 
-## 1. Đọc đúng từng tên và biểu thức khởi tạo
+## 1. Reading Each Name and Initializer Expression Correctly
 
 ~~~java
-int width = 3, height = 5; // Hai biến int, đều đã khởi tạo.
-int x, y = 10;             // x CHƯA được gán; chỉ y bằng 10.
-int start = 2, end = start + 4; // end bằng 6.
+int width = 3, height = 5; // Two int variables, both initialized.
+int x, y = 10;             // x is NOT assigned yet; only y equals 10.
+int start = 2, end = start + 4; // end equals 6.
 ~~~
 
-Hình thức chung là:
+The general form is:
 
 ~~~text
-kiểu tên1 [= biểu_thức1], tên2 [= biểu_thức2], ... ;
+type name1 [= expression1], name2 [= expression2], ... ;
 ~~~
 
-Mỗi tên có thể có hoặc không có biểu thức khởi tạo riêng. **Dấu phẩy không sao chép giá trị** từ biến này sang biến khác. Các initializer được đánh giá theo thứ tự khai báo từ trái sang phải khi câu lệnh được thực thi; một tên đã được khởi tạo trước đó có thể được dùng trong initializer phía sau.
+Each name may or may not have its own initializer expression. **The comma does not copy values** from one variable to another. Initializers are evaluated in declaration order from left to right when the statement executes; a name initialized earlier can be used in a later initializer.
 
-| Câu lệnh | Hiểu đúng |
+| Statement | Correct understanding |
 | --- | --- |
 | `int a = 1, b = 2;` | `a = 1`, `b = 2` |
-| `int a, b = 2;` | `a` chưa gán; chỉ `b = 2` |
-| `int a = 2, b;` | `a = 2`; `b` chưa gán |
+| `int a, b = 2;` | `a` is unassigned; only `b = 2` |
+| `int a = 2, b;` | `a = 2`; `b` is unassigned |
 | `int a = 2, b = a + 3;` | `a = 2`; `b = 5` |
-| `double x = 1.5, y = 2;` | Hai biến `double`; `y` được chuyển thành `2.0` |
-| `final int a = 1, b = 2;` | Cả hai đều `final`; không thể gán lại |
-| `int a = 1; double b = 2.0;` | Hai kiểu khác nhau, cần khai báo riêng |
+| `double x = 1.5, y = 2;` | Two `double` variables; `y` is converted to `2.0` |
+| `final int a = 1, b = 2;` | Both are `final`; cannot be reassigned |
+| `int a = 1; double b = 2.0;` | Two different types, need separate declarations |
 
-### Khai báo khác với gán giá trị
+### Declaration vs. Assignment
 
-Ở biến cục bộ:
+For local variables:
 
 ~~~java
 int a, b = 5;
-// System.out.println(a); // Sai: a chưa được gán chắc chắn.
+// System.out.println(a); // Invalid: a is not definitely assigned.
 a = b + 1;
 System.out.println(a); // 6
 ~~~
 
-Java kiểm tra **definite assignment**: biến cục bộ phải được gán chắc chắn trước khi đọc. Đừng suy luận rằng `int a, b = 5;` sẽ gán `5` cho cả hai.
+Java enforces **definite assignment**: a local variable must be definitely assigned before it is read. Do not assume that `int a, b = 5;` assigns `5` to both.
 
-Nếu muốn gán cùng một giá trị, có thể viết:
+If you want to assign the same value, you can write:
 
 ~~~java
 int a, b;
-a = b = 5; // Gán cho b trước, rồi gán kết quả cho a.
+a = b = 5; // Assigns to b first, then assigns the result to a.
 ~~~
 
-Tuy nhiên, khi khởi tạo biến trong mã sản phẩm, `int a = 5, b = 5;` hoặc hai khai báo riêng thường dễ hiểu hơn một phép gán nối chuỗi.
+However, when initializing variables in production code, `int a = 5, b = 5;` or two separate declarations are usually clearer than a chained assignment.
 
-## 2. Chương trình Java 17+ chạy được
+## 2. Runnable Java 17+ Program
 
-Tạo tệp **`MultipleVariablesDemo.java`**:
+Create the file **`MultipleVariablesDemo.java`**:
 
 ~~~java
 public class MultipleVariablesDemo {
@@ -66,13 +66,13 @@ public class MultipleVariablesDemo {
 
         int[] left = {4, 5}, right = {6, 7};
 
-        // Cú pháp hợp lệ nhưng dễ nhầm:
+        // Valid syntax, but easy to misread:
         int legacyArray[] = {8, 9}, scalar = 10;
 
         int x, y;
         x = y = 3;
 
-        var inferred = "OK"; // Một biến trong một khai báo var.
+        var inferred = "OK"; // One variable in a var declaration.
 
         System.out.println("first=" + first + ", second=" + second);
         System.out.println("later=" + later + ", ready=" + ready);
@@ -90,7 +90,7 @@ public class MultipleVariablesDemo {
 }
 ~~~
 
-Mở PowerShell (Windows) hoặc Bash (Linux/macOS) tại thư mục chứa tệp. Sử dụng JDK 17 trở lên:
+Open PowerShell (Windows) or Bash (Linux/macOS) in the directory containing the file. Use JDK 17 or later:
 
 ~~~bash
 java -version
@@ -112,33 +112,33 @@ pair=0:3
 pair=1:2
 ~~~
 
-Giải thích điểm quan trọng:
+Key explanations:
 
-1. `second` đọc `first` sau khi `first` đã khởi tạo, nên nhận `5`.
-2. `later` chỉ có giá trị sau câu lệnh `later = 9;`; `ready` nhận `7` ngay lúc khai báo.
-3. `left` và `right` đều là mảng `int[]`, mỗi mảng dài 2.
-4. `legacyArray` là mảng, nhưng `scalar` là **một `int` duy nhất**, dù chúng cùng đứng trong một câu lệnh khai báo.
-5. `x = y = 3` đặt cả `x` và `y` bằng 3. Không nên hiểu đó là phép so sánh.
-6. Trong vòng `for`, `i` và `j` có cùng kiểu `int`; hai biến được cập nhật sau mỗi lượt. Khi `i == 2` và `j == 1`, điều kiện `i < j` sai nên dừng.
+1. `second` reads `first` after `first` is initialized, so it gets `5`.
+2. `later` only gets a value after `later = 9;`; `ready` gets `7` at declaration.
+3. `left` and `right` are both `int[]` arrays, each of length `2`.
+4. `legacyArray` is an array, whereas `scalar` is **a single `int`**, even though they appear in the same declaration statement.
+5. `x = y = 3` sets both `x` and `y` to `3`. Do not mistake it for a comparison.
+6. In the `for` loop, `i` and `j` share the same type `int`; both variables are updated after each iteration. When `i == 2` and `j == 1`, the condition `i < j` is false so the loop stops.
 
-## 3. Bẫy đặc biệt: dấu `[]` có thể chỉ áp dụng cho một tên
+## 3. Special Pitfall: `[]` Can Apply to Only One Name
 
-Hai cách viết sau **khác nhau**:
+The following two forms **differ**:
 
 ~~~java
-int[] a = {1}, b = {2}; // a và b đều là int[].
-int c[] = {3}, d = 4;   // c là int[], d là int.
+int[] a = {1}, b = {2}; // Both a and b are int[].
+int c[] = {3}, d = 4;   // c is int[], d is int.
 ~~~
 
-Trong Java, dấu `[]` có thể viết gần **kiểu** hoặc ngay **sau tên biến**. Khi đứng sau tên, chúng chỉ gắn với biến đó. Thậm chí:
+In Java, `[]` can be written next to the **type** or right **after the variable name**. When placed after the name, they apply only to that variable. Even:
 
 ~~~java
 int[] one = {1}, two[] = {{2, 3}};
 ~~~
 
-Ở đây `one` có kiểu `int[]`, còn `two` có kiểu `int[][]`. Cú pháp hợp lệ nhưng không dễ quan sát kiểu nếu chỉ đọc phần đầu câu lệnh.
+Here `one` has type `int[]`, while `two` has type `int[][]`. The syntax is valid, but it is not easy to see the types if you only read the beginning of the statement.
 
-**Khuyến nghị:** viết ngoặc vuông cạnh kiểu và khai báo từng biến mảng riêng biệt:
+**Recommendation:** place square brackets next to the type and declare each array variable separately:
 
 ~~~java
 int[] numbers = {1, 2};
@@ -146,63 +146,63 @@ int[] others = {3, 4};
 int[][] grid = {{1, 2}, {3, 4}};
 ~~~
 
-Cách này giảm nguy cơ đọc nhầm chiều mảng, đặc biệt khi người khác chỉnh sửa mã.
+This reduces the risk of misreading array dimensions, especially when others edit the code.
 
-## 4. `var` không khai báo nhiều biến cùng lúc
+## 4. `var` Cannot Declare Multiple Variables at Once
 
-Từ Java 10 (vẫn áp dụng trên Java 17), `var` cho phép compiler suy luận **kiểu của một biến cục bộ** từ initializer:
+Since Java 10 (still applicable in Java 17), `var` lets the compiler infer **the type of a single local variable** from its initializer:
 
 ~~~java
 var count = 3;     // int
 var title = "Java"; // String
 ~~~
 
-Nhưng các cách viết sau **không hợp lệ**:
+However, the following forms are **invalid**:
 
 ~~~java
-// var a = 1, b = 2; // Sai: không cho nhiều declarator với var.
-// var value;        // Sai: thiếu initializer để suy luận kiểu.
-// var unknown = null; // Sai: không suy luận kiểu từ null đơn lẻ.
+// var a = 1, b = 2; // Invalid: multiple declarators are not allowed with var.
+// var value;        // Invalid: missing initializer to infer type.
+// var unknown = null; // Invalid: cannot infer type from null alone.
 ~~~
 
-Nếu muốn nhiều biến cùng kiểu trong một câu lệnh, hãy viết kiểu tường minh:
+If you want multiple variables of the same type in one statement, write the explicit type:
 
 ~~~java
 int a = 1, b = 2;
 ~~~
 
-Nếu các biến có ý nghĩa khác nhau, ưu tiên tách:
+If the variables have distinct meanings, prefer separating them:
 
 ~~~java
 int retryCount = 1;
 int maxRetries = 3;
 ~~~
 
-`var` **không làm biến có kiểu động**: kiểu được compiler xác định ngay khi biên dịch. Đổi `count` thành chuỗi sau khi khai báo `var count = 3;` vẫn gây lỗi kiểu.
+`var` **does not make a variable dynamically typed**: its type is determined by the compiler at compile time. Reassigning `count` to a string after `var count = 3;` still produces a type error.
 
-## 5. Các cách viết dễ gây lỗi
+## 5. Error-Prone Patterns
 
-| Viết như sau | Vấn đề | Sửa hoặc giải thích |
+| Written like this | Issue | Fix or explanation |
 | --- | --- | --- |
-| `int a, b = 5; System.out.println(a);` | Lỗi biên dịch: `a` chưa được gán | Gán `a` trước khi đọc |
-| `int a = 1, b = a + 1;` | **Hợp lệ**, `b = 2` | Thứ tự initializer từ trái sang phải |
-| `int a = b + 1, b = 2;` | Lỗi: dùng `b` trước phần khai báo/khởi tạo phù hợp | Khai báo và gán `b` trước |
-| `int a = 1, b = 2.5;` | Lỗi kiểu: `b` là `int` | Tách kiểu: `int a = 1; double b = 2.5;` |
-| `int[] a, b;` | **Cả hai là mảng** | Dùng `int[]` cạnh kiểu |
-| `int a[], b;` | `a` là mảng, `b` là số nguyên | Tránh ngoặc vuông sau tên |
-| `var a = 1, b = 2;` | Lỗi: `var` không cho nhiều declarator | Tách hai khai báo |
-| `int a = 1; int a = 2;` trong cùng phạm vi | Lỗi khai báo trùng tên | Dùng tên khác hoặc gán lại `a = 2;` |
-| `for (int i = 0, j = 5; ... )` | **Hợp lệ** nếu dùng cùng kiểu | Cả `i` và `j` là `int` |
+| `int a, b = 5; System.out.println(a);` | Compile error: `a` is unassigned | Assign `a` before reading |
+| `int a = 1, b = a + 1;` | **Valid**, `b = 2` | Initializers execute left to right |
+| `int a = b + 1, b = 2;` | Error: uses `b` before its declaration/initialization | Declare and assign `b` first |
+| `int a = 1, b = 2.5;` | Type error: `b` is `int` | Separate types: `int a = 1; double b = 2.5;` |
+| `int[] a, b;` | **Both are arrays** | Put `int[]` next to the type |
+| `int a[], b;` | `a` is an array, `b` is an integer | Avoid brackets after the name |
+| `var a = 1, b = 2;` | Error: `var` disallows multiple declarators | Split into two declarations |
+| `int a = 1; int a = 2;` in the same scope | Duplicate name declaration error | Use another name or reassign `a = 2;` |
+| `for (int i = 0, j = 5; ... )` | **Valid** when using the same type | Both `i` and `j` are `int` |
 
-**Lưu ý về dấu phẩy:** trong phần *khởi tạo* của vòng `for`, bạn thường gặp nhiều biến cùng kiểu (`int i = 0, j = 5`). Trong phần **cập nhật** của `for`, `i++, j--` là một danh sách biểu thức cập nhật, **không phải khai báo biến**.
+**Note on commas:** in the *initialization* section of a `for` loop, you often see multiple variables of the same type (`int i = 0, j = 5`). In the **update** section of `for`, `i++, j--` is a list of update expressions, **not a variable declaration**.
 
-### Side effect làm một dòng ngắn trở nên khó đọc
+### Side Effects Make a Short Line Hard to Read
 
 ~~~java
 int x = 1, y = ++x; // x = 2, y = 2.
 ~~~
 
-Cú pháp hợp lệ, nhưng `++x` thay đổi giá trị x ngay trong lúc khởi tạo y. Với logic phức tạp, nên tách ra:
+The syntax is valid, but `++x` mutates `x` right while initializing `y`. For complex logic, split it up:
 
 ~~~java
 int x = 1;
@@ -210,38 +210,38 @@ x++;
 int y = x;
 ~~~
 
-Code dài thêm một chút nhưng dễ kiểm tra, đặt breakpoint và tránh sai ý định hơn.
+The code is slightly longer, but easier to inspect, place breakpoints on, and avoid unintended behavior.
 
-## 6. Bài tập tự luyện
+## 6. Self-Practice Exercises
 
-**Bài 1 — Dự đoán:** Với `int a = 3, b = a * 2, c;`, biến nào đã có giá trị ngay sau dòng khai báo? Có thể in `c` ngay không?
+**Exercise 1 — Prediction:** Given `int a = 3, b = a * 2, c;`, which variables have values right after the declaration line? Can `c` be printed immediately?
 
-*Đáp án:* `a = 3`, `b = 6`; `c` chưa được gán nên chưa thể đọc.
+*Answer:* `a = 3`, `b = 6`; `c` is not assigned yet so it cannot be read yet.
 
-**Bài 2 — Kiểu mảng:** Cho `int[] first = {1}, second[] = {{2}};`. Hai biến có kiểu gì?
+**Exercise 2 — Array Types:** Given `int[] first = {1}, second[] = {{2}};`. What are the types of the two variables?
 
-*Đáp án:* `first` là `int[]`, `second` là `int[][]`.
+*Answer:* `first` is `int[]`, `second` is `int[][]`.
 
-**Bài 3 — Sửa `var`:** Viết lại `var width = 2, height = 3;` thành hai câu khai báo dùng `var` và một câu khai báo dùng kiểu tường minh.
+**Exercise 3 — Fixing `var`:** Rewrite `var width = 2, height = 3;` as two declarations using `var` and one declaration using an explicit type.
 
-*Đáp án:* `var width = 2; var height = 3;` hoặc `int width = 2, height = 3;`.
+*Answer:* `var width = 2; var height = 3;` or `int width = 2, height = 3;`.
 
-**Bài 4 — Vòng `for`:** Với `for (int i = 1, j = 4; i < j; i++, j--)`, có bao nhiêu lượt chạy thân?
+**Exercise 4 — `for` Loop:** With `for (int i = 1, j = 4; i < j; i++, j--)`, how many times does the loop body execute?
 
-*Đáp án:* Hai lượt: lúc `(i,j) = (1,4)` và `(2,3)`, rồi dừng khi `(3,2)`.
+*Answer:* Two iterations: at `(i,j) = (1,4)` and `(2,3)`, then stops at `(3,2)`.
 
-**Bài 5 — Ưu tiên tính rõ ràng:** Trong mã nghiệp vụ, nên chọn `int[] scores = ...; int[] bonuses = ...;` hay `int scores[], bonuses[];`?
+**Exercise 5 — Preferring Clarity:** In business code, should you choose `int[] scores = ...; int[] bonuses = ...;` or `int scores[], bonuses[];`?
 
-*Gợi ý đáp án:* Cách đầu dễ đọc và giảm bẫy thay đổi kiểu từng biến. Cách thứ hai có thể hợp lệ nhưng khó bảo trì hơn.
+*Suggested answer:* The first is easier to read and avoids the trap of changing each variable's type. The second may compile, but is harder to maintain.
 
 ## Checklist
 
-- [ ] Biết `int a, b = 5;` chỉ gán `5` cho `b`.
-- [ ] Phân biệt khai báo biến với câu lệnh gán và lỗi đọc local chưa khởi tạo.
-- [ ] Hiểu các initializer được đánh giá theo thứ tự từ trái sang phải.
-- [ ] Nhận diện `int[] a, b` khác `int a[], b`.
-- [ ] Biết `var` không hỗ trợ nhiều declarator trong một khai báo.
-- [ ] Đọc đúng nhiều biến trong vòng `for`.
-- [ ] Ưu tiên những khai báo ngắn, rõ kiểu, ít side effect.
+- [ ] Know that `int a, b = 5;` only assigns `5` to `b`.
+- [ ] Distinguish variable declaration from assignment statements and unassigned local read errors.
+- [ ] Understand that initializers are evaluated from left to right.
+- [ ] Recognize that `int[] a, b` differs from `int a[], b`.
+- [ ] Know that `var` does not support multiple declarators in one declaration.
+- [ ] Correctly read multiple variables in a `for` loop.
+- [ ] Prefer short, clear-typed declarations with minimal side effects.
 
-**Ghi nhớ:** Khai báo nhiều biến hợp lệ không đồng nghĩa **mọi biến đều đã được gán**, và cùng một đầu câu lệnh không luôn đồng nghĩa mọi tên có đúng cùng kiểu mảng. Khi mỗi biến mang ý nghĩa riêng, **tách khai báo thành từng dòng** thường là cách rõ ràng và an toàn nhất.
+**Takeaway:** A valid multiple-variable declaration does not mean **every variable is assigned**, and sharing the same statement prefix does not always mean every name has the exact same array type. When each variable has a distinct meaning, **splitting declarations onto separate lines** is usually the clearest and safest choice.

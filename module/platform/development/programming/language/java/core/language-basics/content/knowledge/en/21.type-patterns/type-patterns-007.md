@@ -1,24 +1,24 @@
-# Mẫu bao phủ, nhãn không thể được chọn và yêu cầu đầy đủ trong Java
+# Pattern Coverage, Unreachable Labels, and Exhaustiveness Requirements in Java
 
-> **Java core — language-basics / Mẫu kiểm tra kiểu**  
-> **Mục tiêu:** Hiểu quan hệ giữa các type pattern, vì sao nhãn `case` phía sau có thể bị che khuất (*dominated*), và cách một `switch` sử dụng pattern bao phủ mọi giá trị có thể có (*exhaustive*).  
-> **Phiên bản:** `instanceof T x` là tính năng chính thức ở Java 17. **Pattern matching for `switch` còn là preview ở JDK 17 (JEP 406)**; ví dụ chương trình bên dưới sử dụng đúng cờ preview. Từ Java 21, pattern matching for switch đã thành tính năng chính thức.
+> **Java core — language-basics / Type Patterns**  
+> **Goal:** Understand relationships between type patterns, why a later `case` label can be shadowed (*dominated*), and how a `switch` using patterns covers all possible values (*exhaustive*).  
+> **Version:** `instanceof T x` is a final feature in Java 17. **Pattern matching for `switch` is still preview in JDK 17 (JEP 406)**; the example program below uses the proper preview flags. Since Java 21, pattern matching for switch has become a final feature.
 
-## 1. Phân biệt ba khái niệm
+## 1. Distinguishing Three Concepts
 
-| Khái niệm | Câu hỏi cần trả lời | Minh họa |
+| Concept | Question to Answer | Illustration |
 | --- | --- | --- |
-| Pattern khớp | Giá trị runtime có thuộc kiểu được thử không? | Một `String` khớp `String` và `CharSequence` |
-| Nhãn bị che khuất (*dominated*) | Nhãn trước có bắt hết các giá trị mà nhãn sau định bắt không? | `case CharSequence` trước `case String` |
-| Tính đầy đủ (*exhaustiveness*) | Mọi giá trị selector hợp lệ có đường xử lý không? | `case String` và `default` trên `Object` |
+| Pattern match | Does the runtime value belong to the tested type? | A `String` matches `String` and `CharSequence` |
+| Shadowed label (*dominated*) | Does an earlier label catch every value the later label intends to catch? | `case CharSequence` before `case String` |
+| Exhaustiveness | Does every valid selector value have a handling path? | `case String` and `default` on `Object` |
 
-Với nhiều nhãn `case`, thứ tự **có thể rất quan trọng**. Không giống một chuỗi `if` tự do để kiểm tra cùng giá trị nhiều lần, pattern switch được trình biên dịch kiểm tra để tránh nhãn không thể được chọn.
+With multiple `case` labels, order **can be very important**. Unlike a free-form `if` chain that can test the same value multiple times, pattern switch is checked by the compiler to prevent unreachable labels.
 
-Một `switch expression` phải có nhánh phù hợp cho tất cả các giá trị selector mà Java yêu cầu bao phủ. Nếu thiếu, chương trình lỗi ở **thời điểm biên dịch**, không phải đợi người dùng nhập một giá trị chưa xử lý.
+A `switch expression` must have a matching branch for all selector values that Java requires to be covered. If any are missing, the program fails at **compile time**, rather than waiting for a user to pass an unhandled value.
 
-## 2. Nhãn bị che khuất: kiểu rộng đặt trước kiểu hẹp
+## 2. Dominated Labels: A Broad Type Placed Before a Narrow Type
 
-`String` thực thi giao diện `CharSequence`. Vì vậy mọi đối tượng `String` đều khớp `CharSequence`, nhưng một `StringBuilder` cũng khớp `CharSequence` mà không phải `String`.
+`String` implements the `CharSequence` interface. Therefore, every `String` object matches `CharSequence`, whereas a `StringBuilder` also matches `CharSequence` without being a `String`.
 
 ~~~java
 Object value = "Java";
@@ -26,20 +26,20 @@ System.out.println(value instanceof CharSequence); // true
 System.out.println(value instanceof String);       // true
 ~~~
 
-Trong một pattern switch, cách sắp xếp sau **không hợp lệ**:
+In a pattern switch, the following arrangement is **invalid**:
 
 ~~~java
-// KHÔNG BIÊN DỊCH (Java 17 preview / Java 21+):
+// DOES NOT COMPILE (Java 17 preview / Java 21+):
 // return switch (value) {
 //     case CharSequence seq -> "SEQUENCE";
-//     case String text -> "TEXT"; // Bị case CharSequence che khuất.
+//     case String text -> "TEXT"; // Shadowed by case CharSequence.
 //     default -> "OTHER";
 // };
 ~~~
 
-Khi đầu vào là `String`, nhánh `CharSequence` ở trước đã bắt được nó. Vì thế `case String` phía sau **không thể được chọn** (*dominated case label*).
+When the input is a `String`, the earlier `CharSequence` branch already catches it. Thus, the later `case String` **can never be selected** (*dominated case label*).
 
-**Sửa bằng thứ tự cụ thể → tổng quát:**
+**Fix using specific → general order:**
 
 ~~~java
 static String label(Object value) {
@@ -51,13 +51,13 @@ static String label(Object value) {
 }
 ~~~
 
-Với đầu vào `"Java"`, kết quả `"STRING:4"`; với `new StringBuilder("abc")`, kết quả `"SEQUENCE:3"`; với `Integer.valueOf(7)`, kết quả `"OTHER"`.
+With input `"Java"`, the result is `"STRING:4"`; with `new StringBuilder("abc")`, the result is `"SEQUENCE:3"`; with `Integer.valueOf(7)`, the result is `"OTHER"`.
 
-Thứ tự từ kiểu con tới kiểu cha chỉ là cách nhớ thường dùng. Điều kiện cốt lõi là **một nhãn trước không được bao phủ hoàn toàn một nhãn sau**. Nếu cần kết hợp điều kiện phức tạp, phải xét cả kiểu lẫn điều kiện của pattern theo phiên bản Java được sử dụng.
+Subtype-before-supertype order is simply the usual mnemonic. The core rule is that **an earlier label must not completely dominate a later label**. If complex conditions need to be combined, both the type and the pattern guard must be evaluated according to the Java version in use.
 
-## 3. Nhãn bao phủ toàn bộ và `default`
+## 3. Catch-All Pattern Labels and `default`
 
-Trên selector kiểu `Object`, nhãn `case Object any` là một *total type pattern*: nó bao phủ mọi kiểu đối tượng có thể dùng làm giá trị của selector này.
+On a selector of type `Object`, the label `case Object any` is a *total type pattern*: it covers every object type that can serve as a value of this selector.
 
 ~~~java
 static String broad(Object value) {
@@ -68,19 +68,19 @@ static String broad(Object value) {
 }
 ~~~
 
-Không cần thêm `default` vì nhãn `Object` ở cuối đã bao phủ những loại còn lại. Không đặt `case Object any` **trước** `case String s`: như vậy String bị che khuất.
+There is no need to add `default` because the `Object` label at the end already covers the remaining types. Do not put `case Object any` **before** `case String s`: doing so dominates String.
 
-Đồng thời, **không** đặt cả một total pattern và `default` trong cùng switch: chúng là hai nhãn bắt phần còn lại (*match-all*) và xung đột trong quy tắc switch.
+At the same time, **do not** place both a total pattern and `default` in the same switch: they are two catch-all (*match-all*) labels and conflict under switch rules.
 
 ~~~java
-// KHÔNG BIÊN DỊCH:
+// DOES NOT COMPILE:
 // return switch (value) {
 //     case Object any -> "ANY";
-//     default -> "OTHER"; // Hai nhãn match-all.
+//     default -> "OTHER"; // Two match-all labels.
 // };
 ~~~
 
-Cách dễ hiểu hơn cho người mới là dùng `default` khi không cần ràng buộc biến:
+A more intuitive approach for beginners is using `default` when no variable binding is needed:
 
 ~~~java
 static String fallback(Object value) {
@@ -92,21 +92,21 @@ static String fallback(Object value) {
 }
 ~~~
 
-**Chú ý null và phiên bản:** Pattern switch thay đổi chi tiết xử lý `null` qua các bản preview. Để chương trình rõ nghĩa trên Java 17 và 21, nếu muốn phân loại null thành một kết quả riêng, hãy viết `case null -> ...` tường minh (xem mục 6). `default` thông thường **không nên được hiểu** là nhãn riêng cho null.
+**Note on null and versions:** Pattern switch changed details of `null` handling across preview releases. To keep programs unambiguous on Java 17 and 21, if you want to classify null as its own result, write `case null -> ...` explicitly (see Section 6). A regular `default` **should not be understood** as a dedicated label for null.
 
-## 4. Tính đầy đủ của `switch expression`
+## 4. Exhaustiveness of `switch expression`
 
-Ví dụ không bao phủ toàn bộ selector `Object`:
+Example that fails to cover the full `Object` selector:
 
 ~~~java
-// KHÔNG BIÊN DỊCH: thiếu đường cho Integer, Double, v.v.
+// DOES NOT COMPILE: missing path for Integer, Double, etc.
 // String result = switch (value) {
 //     case String s -> "TEXT";
 //     case Integer i -> "INTEGER";
 // };
 ~~~
 
-Dù code chỉ dự kiến truyền String và Integer, kiểu tĩnh của `value` vẫn là `Object`. Trình biên dịch phải xét các loại có thể xuất hiện khác nữa. Có thể sửa bằng `default` hoặc một total pattern phù hợp:
+Even if the code is only expected to pass String and Integer, the static type of `value` is still `Object`. The compiler must account for other possible types. This can be fixed with `default` or an appropriate total pattern:
 
 ~~~java
 String result = switch (value) {
@@ -116,13 +116,13 @@ String result = switch (value) {
 };
 ~~~
 
-Bao phủ đầy đủ **không có nghĩa tất cả nhánh đều thực thi**: tại một lần đánh giá, switch chọn một nhánh phù hợp. Cũng không có nghĩa nhánh nào cũng trả giá trị thành công — một nhánh có thể chủ động `throw`.
+Exhaustive coverage **does not mean every branch executes**: during a single evaluation, the switch chooses one matching branch. Nor does it mean every branch must return a value normally—a branch can intentionally `throw`.
 
-Với switch expression dạng `case ... ->`, các nhánh block cần `yield expression;` để cung cấp kết quả khi hoàn thành bình thường; dùng `throw` khi trường hợp đó phải bị từ chối.
+With `case ... ->` switch expressions, block branches require `yield expression;` to supply a result upon normal completion; use `throw` when that case must be rejected.
 
-## 5. Bao phủ toàn bộ phân cấp `sealed` mà không cần `default`
+## 5. Exhaustively Covering a `sealed` Hierarchy Without `default`
 
-Java 17 đã hỗ trợ `sealed class/interface` chính thức. Khi kiểu selector là sealed interface, compiler biết các kiểu triển khai trực tiếp được phép và có thể kiểm tra các pattern đã bao phủ hết hay chưa.
+Java 17 already supports `sealed class/interface` as a final feature. When the selector type is a sealed interface, the compiler knows the permitted direct implementations and can check whether the patterns cover all of them.
 
 ~~~java
 sealed interface Job permits PrintJob, SaveJob {}
@@ -137,29 +137,29 @@ static String describe(Job job) {
 }
 ~~~
 
-`Job` chỉ có hai kiểu triển khai trực tiếp được cho phép trong ví dụ; cả hai nhãn `case` đã có nên switch expression **exhaustive mà không cần `default`**.
+`Job` has only two permitted direct implementations in this example; both `case` labels are present, so the switch expression is **exhaustive without `default`**.
 
-Nếu thêm một kiểu triển khai được phép, chẳng hạn `SendJob`, rồi biên dịch lại, trình biên dịch sẽ yêu cầu cập nhật phần bao phủ hoặc bổ sung nhãn phù hợp. Đây là lợi ích bảo trì đáng kể so với việc đặt một `default` che giấu mọi trường hợp mới.
+If you add a new permitted implementation, such as `SendJob`, and recompile, the compiler will require updating coverage or adding the corresponding label. This is a major maintainability benefit compared to placing a `default` that silently hides every new case.
 
-| Kiểu selector | Ví dụ bao phủ đầy đủ |
+| Selector Type | Example of Exhaustive Coverage |
 | --- | --- |
-| `Object` | Các nhãn cụ thể rồi `default` hoặc total pattern phù hợp |
-| `String` | Các nhãn chuỗi phù hợp, cùng `default` |
-| `enum` | Liệt kê đủ mọi hằng enum, hoặc dùng `default` |
-| Sealed interface | Pattern cho đủ các nhánh thuộc phân cấp sealed, hoặc dùng nhãn bao phủ thích hợp |
+| `Object` | Specific labels followed by `default` or an appropriate total pattern |
+| `String` | Appropriate string labels along with `default` |
+| `enum` | Listing all enum constants, or using `default` |
+| Sealed interface | Patterns covering all branches in the sealed hierarchy, or an appropriate covering label |
 
-Đừng nhầm **bao phủ kiểu** với **kiểm tra toàn vẹn dữ liệu**: trường `message` vẫn có thể rỗng/null dù đối tượng là `PrintJob`. Các quy tắc nội dung phải kiểm tra thêm.
+Do not confuse **type coverage** with **data integrity validation**: the `message` field can still be empty/null even though the object is a `PrintJob`. Content rules must be validated separately.
 
-## 6. `null` là trường hợp phải thiết kế rõ
+## 6. `null` Is a Case That Must Be Designed Explicitly
 
-Với `instanceof` thông thường, null cho false:
+With ordinary `instanceof`, null produces false:
 
 ~~~java
 Object value = null;
 boolean result = value instanceof String; // false
 ~~~
 
-Nhưng `switch` với pattern không nên được xem như một chuỗi `instanceof` độc lập. Trong Java 17 preview, có thể đưa `null` thành một nhãn tường minh:
+However, a pattern `switch` should not be viewed as a standalone `instanceof` chain. In Java 17 preview, `null` can be given an explicit label:
 
 ~~~java
 static String nullable(Object value) {
@@ -171,13 +171,13 @@ static String nullable(Object value) {
 }
 ~~~
 
-`nullable(null)` cho `"NULL"`; `nullable("ok")` cho `"STRING:OK"`; một `Integer` rơi vào `"OTHER"`. Trên Java 17 với switch pattern preview, **không có nhãn null hoặc nhãn tổng quát xử lý null**, selector null thường dẫn đến `NullPointerException`. Do đó hãy kiểm thử null riêng, không giả định default là cách diễn đạt chính xác yêu cầu xử lý null.
+`nullable(null)` returns `"NULL"`; `nullable("ok")` returns `"STRING:OK"`; an `Integer` falls into `"OTHER"`. In Java 17 with preview pattern switch, **without a null label or a general pattern handling null**, a null selector typically results in `NullPointerException`. Therefore, test null explicitly instead of assuming `default` accurately expresses null-handling requirements.
 
-Nên viết `case null` rõ ràng nếu null là giá trị đầu vào được hỗ trợ; nếu null là lỗi nghiệp vụ, có thể kiểm tra và ném ngoại lệ có thông báo ở trước switch.
+Write `case null` explicitly if null is a supported input; if null is a business error, you can check for it and throw a descriptive exception before the switch.
 
-## 7. Chương trình Java 17+ chạy độc lập
+## 7. Standalone Java 17+ Program
 
-Tạo file **PatternCoverageDemo.java**:
+Create a file **PatternCoverageDemo.java**:
 
 ~~~java
 import java.util.Locale;
@@ -253,21 +253,21 @@ public final class PatternCoverageDemo {
 }
 ~~~
 
-**Biên dịch/chạy trên JDK 17** (preview bắt buộc):
+**Compile/run on JDK 17** (preview required):
 
 ~~~bash
 javac --enable-preview --release 17 -encoding UTF-8 PatternCoverageDemo.java
 java --enable-preview PatternCoverageDemo
 ~~~
 
-Trình biên dịch JDK 17 có thể in thông báo về preview ra **stderr**, không thuộc stdout của chương trình. Nếu dùng **JDK 21+**, cú pháp trong file này là tính năng chính thức, có thể chạy bằng lệnh thông thường:
+The JDK 17 compiler may print preview notices to **stderr**, which is not part of the program's stdout. If using **JDK 21+**, the syntax in this file is a final feature and can be run with standard commands:
 
 ~~~bash
 javac -encoding UTF-8 PatternCoverageDemo.java
 java PatternCoverageDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 labelText=STRING:4
@@ -286,30 +286,30 @@ nullableOther=OTHER
 instanceofNull=false
 ~~~
 
-Chương trình minh họa ba ý: nhãn cụ thể phải đặt trước nhãn rộng hơn; tổng pattern hoặc nhãn mặc định bao phủ trường hợp còn lại; sealed interface được xử lý đủ hai nhánh mà không cần default. Với `null`, chương trình có nhãn tường minh thay vì phụ thuộc vào mặc định.
+The program illustrates three ideas: specific labels must precede broader ones; a total pattern or `default` label covers remaining cases; and a sealed interface is handled across both branches without needing `default`. For `null`, the program has an explicit label instead of relying on a fallback.
 
-## 8. Lỗi thường gặp và bài tập
+## 8. Common Mistakes and Exercises
 
-| Hiện tượng | Nguyên nhân / cách sửa |
+| Symptom | Cause / Fix |
 | --- | --- |
-| `case CharSequence` trước `case String` | `case String` bị che khuất; chuyển nhãn String lên trước |
-| `case Object` trước mọi nhãn hẹp | Các nhãn hẹp phía sau bị che khuất; đặt total pattern cuối |
-| Cả total pattern và `default` | Hai nhãn match-all; chỉ giữ một |
-| Switch expression thiếu xử lý đầu vào | Không exhaustive; thêm `default` hoặc pattern bao phủ hợp lệ |
-| Sealed type có subtype mới mà switch chưa cập nhật | Mở rộng nhánh tương ứng và biên dịch lại |
-| Cho rằng null tự vào `default` như các giá trị khác | Xử lý `case null` hoặc kiểm tra trước switch |
-| Viết pattern switch trên JDK 17 không bật preview | Dùng `javac --enable-preview --release 17` và `java --enable-preview` |
+| `case CharSequence` before `case String` | `case String` is shadowed; move the String label earlier |
+| `case Object` before all narrow labels | Later narrow labels are shadowed; place the total pattern last |
+| Both a total pattern and `default` | Two match-all labels; keep only one |
+| Switch expression lacks handling for inputs | Not exhaustive; add `default` or a valid covering pattern |
+| Sealed type gains a new subtype and switch is not updated | Expand the corresponding branch and recompile |
+| Assuming null automatically goes into `default` like other values | Handle `case null` or check before the switch |
+| Writing pattern switch on JDK 17 without preview enabled | Use `javac --enable-preview --release 17` and `java --enable-preview` |
 
-**Bài 1.** Đổi thứ tự `case String` và `case CharSequence` trong `label`; dự đoán lỗi biên dịch và giải thích bằng quan hệ kiểu.
+**Exercise 1.** Swap the order of `case String` and `case CharSequence` in `label`; predict the compile error and explain it using type relationships.
 
-**Bài 2.** Bỏ `default` khỏi `fallback`. Trình biên dịch báo lỗi vì giá trị thuộc kiểu nào chưa được bao phủ?
+**Exercise 2.** Remove `default` from `fallback`. Which type values does the compiler report as uncovered?
 
-**Bài 3.** Trong `broad`, đưa `case Object` lên trước `case String`. Nhãn nào bị che khuất? Có thể sửa chỉ bằng thêm `break` không?
+**Exercise 3.** In `broad`, move `case Object` before `case String`. Which label is shadowed? Can it be fixed merely by adding `break`?
 
-**Bài 4.** Thêm kiểu mới được phép vào sealed interface `Job` và cập nhật switch expression `describe` cho exhaustive.
+**Exercise 4.** Add a new permitted type to the sealed interface `Job` and update the `describe` switch expression so it remains exhaustive.
 
-**Bài 5.** Kiểm thử `null` với `instanceof String` và `nullable(null)`; giải thích vì sao một phép cho false còn phép còn lại vào nhánh `case null`.
+**Exercise 5.** Test `null` with `instanceof String` and `nullable(null)`; explain why one evaluates to false while the other enters the `case null` branch.
 
-### Ghi nhớ
+### Key Takeaway
 
-**Dominance**: pattern rộng đặt trước có thể làm nhãn hẹp không thể chọn, gây lỗi biên dịch. **Exhaustiveness**: switch expression phải bao phủ tất cả khả năng; có thể dùng `default`, total pattern hoặc đủ các nhánh của phân cấp `sealed`. **Null** phải được thiết kế rõ. Khi học với **JDK 17**, pattern switch cần bật **preview**; từ Java 21 đây là tính năng chính thức.
+**Dominance**: placing a broad pattern first can make a narrower label unreachable, causing a compile error. **Exhaustiveness**: a switch expression must cover all possibilities; you can use `default`, a total pattern, or all branches of a `sealed` hierarchy. **Null** must be designed explicitly. When studying with **JDK 17**, pattern switch requires enabling **preview**; starting in Java 21, this is a final feature.

@@ -1,110 +1,110 @@
-# Chuẩn hóa dữ liệu trước khi so sánh trong Java
+# Normalizing Data Before Comparison in Java
 
-## 1. Vì sao cần chuẩn hóa?
+## 1. Why Is Normalization Needed?
 
-Khi xác định **quan hệ bằng nhau** giữa hai đối tượng Java, ta cần trả lời trước: “Hai cách biểu diễn khác nhau này có được xem là cùng một giá trị theo nghiệp vụ không?”. Câu trả lời phụ thuộc vào loại dữ liệu và mục đích so sánh.
+When defining **equality semantics** between two Java objects, we first need to answer: “Should these two different representations be considered the same value under business rules?”. The answer depends on the data type and the purpose of the comparison.
 
-Ví dụ:
+For example:
 
-- `"  Alice "` và `"alice"` có thể là cùng một **tên đăng nhập** nếu hệ thống quy định bỏ khoảng trắng đầu/cuối và không phân biệt chữ hoa/thường; nhưng với một mật khẩu, hai chuỗi đó **không** nên bị tự động xem là như nhau.
-- `new BigDecimal("1.0")` và `new BigDecimal("1.00")` có cùng giá trị số, nhưng `BigDecimal.equals()` trả `false` vì khác `scale`.
-- Hai cách mã hóa Unicode như `"é"` (ký tự dựng sẵn) và `"e\u0301"` (chữ e cộng dấu kết hợp) có thể trông giống nhau, nhưng `String.equals()` trực tiếp sẽ trả `false` nếu chuỗi mã điểm khác nhau.
-- `2026-01-01T00:00:00Z` và `2026-01-01T07:00:00+07:00` biểu diễn cùng một thời điểm tuyệt đối; nếu bài toán quan tâm “cùng thời điểm”, nên so biểu diễn đã chuyển thành `Instant` thay vì so chuỗi gốc.
+- `"  Alice "` and `"alice"` may be the same **username** if the system specifies trimming leading/trailing whitespace and ignoring case; however, for a password, those two strings should **not** be automatically treated as identical.
+- `new BigDecimal("1.0")` and `new BigDecimal("1.00")` have the same numeric value, yet `BigDecimal.equals()` returns `false` because their `scale` differs.
+- Two Unicode encodings such as `"é"` (precomposed character) and `"e\u0301"` (letter e plus combining accent) may look identical, yet direct `String.equals()` returns `false` because the code point sequences differ.
+- `2026-01-01T00:00:00Z` and `2026-01-01T07:00:00+07:00` represent the exact same absolute instant; if the problem cares about “the same point in time”, compare representations converted to `Instant` instead of comparing raw strings.
 
-**Chuẩn hóa (normalization/canonicalization)** là biến đổi biểu diễn đầu vào theo **quy tắc đã chọn**, tạo ra một dạng chuẩn (canonical form) để những biểu diễn được phép xem là tương đương trở thành cùng một giá trị so sánh.
+**Normalization (normalization/canonicalization)** is transforming an input representation according to a **chosen rule**, producing a canonical form so that representations permitted to be equivalent become the same comparable value.
 
-Một mô hình thường gặp:
+A common model:
 
 ```text
-Dữ liệu gốc A ──chuẩn hóa N──► N(A) ─┐
-                                   ├── so sánh theo giá trị ──► bằng/khác
-Dữ liệu gốc B ──chuẩn hóa N──► N(B) ─┘
+Raw data A ──normalize N──► N(A) ─┐
+                                  ├── compare by value ──► equal/different
+Raw data B ──normalize N──► N(B) ─┘
 ```
 
-Ở đây `N` phải là quy tắc của chính miền dữ liệu. Không có một hàm chuẩn hóa chung áp dụng đúng cho mọi chuỗi, số, tiền tệ, thời gian hay định danh.
+Here `N` must be a rule belonging to the data domain itself. There is no universal normalization function that applies correctly to all strings, numbers, currencies, times, or identifiers.
 
-## 2. Chọn quan hệ bằng nhau trước khi chọn phép biến đổi
+## 2. Choose Equality Semantics Before Choosing Transformations
 
-Phải xác định điều gì **có ý nghĩa về mặt nghiệp vụ**:
+Determine what is **meaningful in the business domain**:
 
-| Miền dữ liệu | Ví dụ quan hệ bằng nhau | Cần cẩn trọng |
+| Data domain | Example equality relation | Caveat |
 | --- | --- | --- |
-| Username cho phép không phân biệt hoa/thường | `" ALICE "` và `"alice"` có thể coi là một, nếu chính sách cho phép bỏ khoảng trắng và không phân biệt hoa/thường | Quy tắc Unicode và ký tự hợp lệ phải được công bố, ổn định. |
-| Mật khẩu/bí mật | Chỉ bằng nhau theo cơ chế xác minh mật khẩu đã thiết kế | Không tự `trim()`, hạ chữ hay bỏ dấu làm mất thông tin người dùng. |
-| Mã sản phẩm, mã kho | Tùy đặc tả: có thể cần giữ nguyên hoa/thường và số 0 đầu | `"00012"` không mặc nhiên là `"12"`. |
-| Số thập phân mang ý nghĩa giá trị số | `1.0` và `1.00` bằng nhau nếu chỉ xét trị số | `BigDecimal.equals()` phân biệt `scale`; trị số và độ chính xác biểu diễn có thể khác ý nghĩa. |
-| Số tiền | Cùng giá trị **và** cùng đơn vị tiền tệ | `100 VND` khác `100 USD`; không chỉ so phần số. |
-| Thời gian sự kiện | Hai đầu vào cùng `Instant` | Không đánh đồng “cùng giờ địa phương” với “cùng thời điểm”. |
-| Định danh đã cấp phát | Thường phải trùng định danh theo hệ thống phát hành | Không tùy tiện bỏ dấu phân cách, số 0 đầu, tiền tố. |
+| Case-insensitive username | `" ALICE "` and `"alice"` may be treated as one, if policy allows stripping whitespace and ignoring case | Unicode rules and allowed characters must be published and stable. |
+| Password/secret | Equal only under the designed password verification mechanism | Do not arbitrarily `trim()`, lowercase, or strip accents and lose user input information. |
+| Product code, warehouse code | Depends on specification: may need to preserve case and leading zeros | `"00012"` is not by default equal to `"12"`. |
+| Decimal number representing numeric value | `1.0` and `1.00` are equal if only numeric value matters | `BigDecimal.equals()` distinguishes `scale`; numeric value and representation precision may carry different meanings. |
+| Monetary amount | Same value **and** same currency unit | `100 VND` differs from `100 USD`; do not compare only the numeric part. |
+| Event timestamp | Two inputs representing the same `Instant` | Do not equate “same local wall-clock time” with “same instant”. |
+| Issued identifier | Usually must match identifier as issued by the issuing system | Do not arbitrarily strip separators, leading zeros, or prefixes. |
 
-Trong Java, chuẩn hóa **không tự động** xảy ra khi dùng `==` hay `equals()`:
+In Java, normalization **does not happen automatically** when using `==` or `equals()`:
 
-- `==` giữa hai tham chiếu kiểm tra **danh tính đối tượng**, hoàn toàn không chuẩn hóa nội dung.
-- `String.equals()` so chuỗi theo đơn vị ký tự UTF-16 một cách phân biệt hoa/thường và không tự chuẩn hóa Unicode.
-- `Objects.equals(a, b)` chỉ giúp so an toàn với `null`; khi cả hai không null, nó gọi `a.equals(b)`.
-- Lớp tự định nghĩa `equals()` có thể so theo dạng chuẩn nếu đó là một phần hợp đồng bằng nhau của lớp.
+- `==` between two references checks **object identity**, never normalizing contents.
+- `String.equals()` compares strings by UTF-16 code units in a case-sensitive manner and does not automatically normalize Unicode.
+- `Objects.equals(a, b)` only provides `null`-safe comparison; when both are non-null, it calls `a.equals(b)`.
+- A class with a custom `equals()` can compare by canonical form if that is part of the class's equality contract.
 
-Kết luận thiết kế cần rõ ràng: **chuẩn hóa chỉ được áp dụng khi đó là ý nghĩa đã chọn của quan hệ bằng nhau**.
+The design conclusion must be clear: **normalization should only be applied when it matches the chosen meaning of the equality relation**.
 
-## 3. Một dạng chuẩn tốt cần những tính chất nào?
+## 3. What Properties Does a Good Canonical Form Need?
 
-### 3.1. Nhất quán và xác định
+### 3.1. Consistent and Deterministic
 
-Cùng đầu vào, cùng chính sách phải cho cùng dạng chuẩn. Không nên để `equals()` phụ thuộc vào ngôn ngữ mặc định của máy, thời điểm hiện tại, cấu hình thay đổi ngẫu nhiên hay dữ liệu có thể biến đổi từ bên ngoài.
+The same input under the same policy must yield the same canonical form. Avoid letting `equals()` depend on the machine's default locale, current time, randomly changing configuration, or externally mutable data.
 
-### 3.2. Có tính ổn định khi áp dụng lại
+### 3.2. Stable Under Re-application
 
-Thông thường mong muốn tính **idempotent**:
+Usually **idempotence** is desired:
 
 ```text
 N(N(x)) = N(x)
 ```
 
-Ví dụ, một tên đăng nhập đã được loại khoảng trắng hai đầu, chuyển chữ thường và chuẩn hóa NFC thì xử lý lại theo cùng quy tắc không nên tiếp tục thay đổi kết quả. Quy tắc phải được kiểm chứng với tập đầu vào mà hệ thống chấp nhận.
+For example, a username that has already had leading/trailing whitespace stripped, been lowercased, and NFC-normalized should not continue changing when processed again by the same rule. The rule must be verified against the set of inputs accepted by the system.
 
-### 3.3. Không hợp nhất những giá trị phải phân biệt
+### 3.3. Do Not Merge Values That Must Stay Distinct
 
-Nếu `N(a) == N(b)` thì hệ thống sẽ có xu hướng coi `a` và `b` bằng nhau. Điều đó chỉ đúng khi nghiệp vụ thực sự cho phép. Ví dụ, tự bỏ mọi dấu tiếng Việt có thể đánh đồng những tên hoặc mã khác nhau; tự xóa mọi khoảng trắng có thể biến `"A B"` thành `"AB"` dù đó là hai định danh độc lập.
+If `N(a) == N(b)`, the system will tend to treat `a` and `b` as equal. That is valid only when the business domain truly permits it. For instance, stripping all Vietnamese diacritics can conflate distinct names or codes; deleting all spaces can turn `"A B"` into `"AB"` even when those are two independent identifiers.
 
-Đây là thay đổi **ngữ nghĩa**, không phải công việc làm đẹp chuỗi.
+This is a **semantic** change, not cosmetic string cleanup.
 
-### 3.4. Xử lý dữ liệu không hợp lệ và null rõ ràng
+### 3.4. Handle Invalid Data and `null` Explicitly
 
-Xác định trước liệu đầu vào `null`, chuỗi rỗng hoặc chỉ chứa khoảng trắng có được chấp nhận. Có thể từ chối ngay trong constructor bằng `Objects.requireNonNull` và `IllegalArgumentException`. Nếu đầu vào có thể `null`, cần quy định null là thiếu dữ liệu hay một giá trị đặc biệt; không lặng lẽ chuyển `null` thành `""` nếu hai trạng thái mang ý nghĩa khác nhau.
+Determine in advance whether `null`, empty strings, or whitespace-only strings are accepted. They can be rejected right in the constructor using `Objects.requireNonNull` and `IllegalArgumentException`. If input can be `null`, specify whether `null` means missing data or a special value; do not silently convert `null` to `""` if the two states have different meanings.
 
-### 3.5. Bảo toàn hợp đồng `equals` và `hashCode`
+### 3.5. Preserve the `equals` and `hashCode` Contract
 
-Nếu một lớp so sánh theo `canonicalValue` thì phải tính `hashCode()` theo **cùng các thành phần chuẩn hóa**.
+If a class compares by `canonicalValue`, it must compute `hashCode()` from **the exact same normalized components**.
 
 ```text
 a.equals(b) == true  ⇒  a.hashCode() == b.hashCode()
 ```
 
-Chiều ngược lại không bắt buộc vì mã hash có thể trùng nhau. Đồng thời, các thành phần dùng để so sánh và tạo hash nên **bất biến trong thời gian đối tượng được sử dụng làm khóa** trong `HashMap` hoặc phần tử của `HashSet`.
+The converse is not required because hash codes may collide. At the same time, the components used for comparison and hashing should be **immutable while the object is used as a key** in a `HashMap` or an element of a `HashSet`.
 
-## 4. Chuẩn hóa chuỗi: phải quyết định từng bước
+## 4. String Normalization: Decide Each Step Explicitly
 
-### 4.1. Bỏ khoảng trắng ở biên
+### 4.1. Trimming Boundary Whitespace
 
-- `String.trim()` chỉ loại các ký tự đầu/cuối có mã không vượt quá U+0020.
-- `String.strip()` (Java 11+) xét khoảng trắng theo `Character.isWhitespace`, thường thích hợp hơn cho nhiều loại văn bản Unicode; tuy vậy **không xử lý tất cả ký tự trông giống dấu cách**, ví dụ một số ký tự no-break space.
-- Không tự xóa hoặc gộp khoảng trắng **ở giữa** chuỗi nếu nghiệp vụ chưa quy định. `"Van An"` khác `"VanAn"` trong nhiều hệ thống.
+- `String.trim()` only removes leading/trailing characters with code points less than or equal to U+0020.
+- `String.strip()` (Java 11+) considers whitespace according to `Character.isWhitespace`, which is usually more appropriate for many Unicode texts; however, it **does not handle every space-like character**, such as certain no-break spaces.
+- Do not automatically remove or collapse whitespace **inside** a string unless business rules specify it. `"Van An"` differs from `"VanAn"` in many systems.
 
-### 4.2. Chữ hoa và chữ thường
+### 4.2. Uppercase and Lowercase
 
-`toLowerCase(Locale.ROOT)` hữu ích khi quy tắc định danh cần hạ chữ **không phụ thuộc locale mặc định** của môi trường. Dùng `toLowerCase()` không đối số có thể dẫn tới thay đổi theo locale máy chạy, đặc biệt với những trường hợp như chữ I trong tiếng Thổ Nhĩ Kỳ.
+`toLowerCase(Locale.ROOT)` is useful when an identifier rule needs lowercasing **independent of the environment's default locale**. Calling `toLowerCase()` with no arguments can produce varying results depending on the host locale, especially for cases like the letter I in Turkish.
 
-Tuy nhiên, hạ chữ bằng `Locale.ROOT` **không phải full Unicode case folding** cho mọi ngôn ngữ; việc so khớp tên người, chuỗi tìm kiếm theo ngôn ngữ tự nhiên hay chuẩn giao thức có thể cần quy tắc riêng (`Collator`, chuẩn Unicode tương ứng hoặc thư viện chuyên dụng).
+However, lowercasing with `Locale.ROOT` **is not full Unicode case folding** for every language; matching personal names, natural-language search strings, or protocol standards may require dedicated rules (`Collator`, the relevant Unicode standard, or a specialized library).
 
-### 4.3. Unicode normalization
+### 4.3. Unicode Normalization
 
-`java.text.Normalizer` hỗ trợ:
+`java.text.Normalizer` supports:
 
-- **NFC:** dạng canonical composition; thường hữu ích khi muốn các cách biểu diễn Unicode tương đương về chuẩn tắc so bằng nhau.
-- **NFD:** dạng canonical decomposition.
-- **NFKC/NFKD:** dạng compatibility normalization, có thể gộp thêm những ký tự chỉ khác về cách biểu diễn tương thích; đây là thay đổi mạnh hơn, có thể làm mất phân biệt có ý nghĩa.
+- **NFC:** canonical composition form; often useful when canonically equivalent Unicode representations should compare equal.
+- **NFD:** canonical decomposition form.
+- **NFKC/NFKD:** compatibility normalization forms, which can merge additional characters that differ only in compatibility representation; this is a stronger transformation that can erase meaningful distinctions.
 
-Ví dụ với username cho phép không phân biệt hoa/thường và chấp nhận các biểu diễn Unicode canonical-equivalent:
+Example for a username allowing case-insensitivity and accepting canonically equivalent Unicode representations:
 
 ```java
 static String normalizeHandle(String input) {
@@ -115,40 +115,40 @@ static String normalizeHandle(String input) {
 }
 ```
 
-Đoạn trên là **hàm minh họa**, được lồng vào chương trình đầy đủ ở phần 6. Thứ tự các phép biến đổi là một phần chính sách và cần giữ nhất quán ở mọi đường nhập, truy vấn và cập nhật dữ liệu. Chỉ áp dụng khi ứng dụng đã chọn chính sách username này; nó không phải thuật toán chuẩn hóa toàn diện cho email, URL hay tên người.
+The snippet above is an **illustrative helper**, embedded into the complete program in section 6. The order of transformations is part of the policy and must stay consistent across all input, query, and update paths. Apply this only when the application has chosen this username policy; it is not a universal normalization algorithm for emails, URLs, or personal names.
 
-**Lưu ý bảo mật:** NFC không loại bỏ các ký tự nhìn giống nhau nhưng khác mã Unicode (confusables), và cũng không tự bảo vệ trước mọi trường hợp giả mạo tên. Hệ thống danh tính cần chính sách ký tự được phép và kiểm tra uniqueness phù hợp.
+**Security note:** NFC does not eliminate visually similar characters with different Unicode code points (confusables), nor does it automatically protect against all name-spoofing cases. Identity systems need an allowed-character policy and proper uniqueness checks.
 
-## 5. Chuẩn hóa các kiểu dữ liệu khác
+## 5. Normalizing Other Data Types
 
-### 5.1. `BigDecimal`: trị số và scale
+### 5.1. `BigDecimal`: Numeric Value and Scale
 
-`BigDecimal` lưu trị số thập phân cùng `scale`:
+`BigDecimal` stores a decimal value together with a `scale`:
 
 ```java
 BigDecimal a = new BigDecimal("1.0");
 BigDecimal b = new BigDecimal("1.00");
 
-// a.equals(b) => false: khác scale
-// a.compareTo(b) == 0 => true: cùng trị số
+// a.equals(b) => false: different scale
+// a.compareTo(b) == 0 => true: same numeric value
 ```
 
-Đây là đoạn minh họa cần `import java.math.BigDecimal;`. Nếu quan hệ bằng nhau mong muốn **chỉ so trị số**, có thể:
+This illustrative snippet requires `import java.math.BigDecimal;`. If the desired equality relation **compares only numeric value**, you can:
 
-1. So trực tiếp bằng `a.compareTo(b) == 0` tại nơi cần quan hệ bằng nhau về số.
-2. Tạo canonical value bằng `stripTrailingZeros()` rồi dùng `equals()/hashCode()` trên dạng chuẩn trong một value object.
+1. Compare directly using `a.compareTo(b) == 0` wherever numeric equality is needed.
+2. Produce a canonical value with `stripTrailingZeros()` and then use `equals()/hashCode()` on the canonical form inside a value object.
 
-`stripTrailingZeros()` có thể tạo dạng biểu diễn theo lũy thừa của 10, ví dụ từ `600.0` thành dạng có scale âm; đừng dựa vào chuỗi in ra để đánh giá. Với số không, có thể quy về `BigDecimal.ZERO`. Không tự làm tròn trước so sánh nếu quy tắc miền dữ liệu không cho phép; làm tròn có thể gộp những giá trị vốn phải khác nhau.
+`stripTrailingZeros()` can produce a power-of-10 representation, such as turning `600.0` into a form with a negative scale; do not rely on the printed string to judge it. For zero, you can normalize to `BigDecimal.ZERO`. Do not round before comparing unless domain rules permit it; rounding can merge values that must stay distinct.
 
-### 5.2. Số thực `double` và sai số
+### 5.2. Floating-Point `double` and Tolerance
 
-Không đưa mặc định quy tắc “`Math.abs(a-b) < epsilon`” vào `equals()` của value object: kiểu gần bằng nhau này có thể **không bắc cầu**. Chẳng hạn với `epsilon = 0.1`, `a = 0.00` gần `b = 0.06` và `b` gần `c = 0.12`, nhưng `a` không gần `c`. Điều đó vi phạm hợp đồng `equals`.
+Do not put a rule like “`Math.abs(a-b) < epsilon`” into a value object's `equals()` by default: this kind of approximate closeness can be **non-transitive**. For example, with `epsilon = 0.1`, `a = 0.00` is close to `b = 0.06` and `b` is close to `c = 0.12`, yet `a` is not close to `c`. That violates the `equals` contract.
 
-Nếu bài toán yêu cầu dung sai, hãy dùng một phương thức mang tên riêng như `approximatelyEqual(a, b, tolerance)` cho thuật toán số; hoặc thiết kế phép lượng tử hóa theo ranh giới cố định nếu **thực sự** muốn quan hệ bằng nhau dạng nhóm. Khi so số thực, cũng cần xác định quy tắc cho `NaN` và `-0.0` vì `Double.equals()` có ngữ nghĩa riêng so với `==` trên primitive.
+If the problem requires tolerance, use a separately named method such as `approximatelyEqual(a, b, tolerance)` for numerical algorithms; or design a quantization step on fixed boundaries if you **genuinely** want bucketed equality. When comparing floating-point numbers, also define rules for `NaN` and `-0.0`, since `Double.equals()` has different semantics from primitive `==`.
 
-### 5.3. Ngày và giờ
+### 5.3. Dates and Times
 
-Nếu yêu cầu là “cùng thời điểm trên dòng thời gian”, chuyển thông tin có offset/zone sang `Instant`:
+If the requirement is “same instant on the timeline”, convert values carrying an offset/zone to `Instant`:
 
 ```java
 Instant a = OffsetDateTime.parse(
@@ -159,22 +159,22 @@ Instant b = OffsetDateTime.parse(
 // a.equals(b) => true
 ```
 
-Đoạn minh họa trên cần `import java.time.Instant;` và `import java.time.OffsetDateTime;`. Trái lại, lịch hẹn “9 giờ sáng tại Hà Nội” hay một `LocalDate` có thể cần so theo ngày/giờ địa phương, không nhất thiết theo `Instant`. Không tự áp timezone khi chưa hiểu dữ liệu gốc.
+The illustrative snippet above requires `import java.time.Instant;` and `import java.time.OffsetDateTime;`. Conversely, an appointment “9 AM in Hanoi” or a `LocalDate` may need to be compared by local date/time, not necessarily by `Instant`. Do not arbitrarily apply a timezone without understanding the source data.
 
-### 5.4. Định danh và dữ liệu có định dạng riêng
+### 5.4. Identifiers and Structured Formats
 
-Với số điện thoại, email, URL, đường dẫn tệp, mã khách hàng hoặc mã quốc tế, các biến đổi “trông hợp lý” có thể tạo sai:
+For phone numbers, emails, URLs, file paths, customer codes, or international codes, “reasonable-looking” transformations can introduce errors:
 
-- Email: phần local part và chính sách của nhà cung cấp có những ràng buộc khác nhau; không mặc nhiên xóa dấu chấm hay phần “+tag” cho mọi địa chỉ.
-- Số điện thoại: muốn quy về định dạng quốc tế phải biết quốc gia và quy tắc đánh số; xóa hết ký tự không phải chữ số không đủ để xác định số.
-- URL/đường dẫn: chữ hoa/thường, dấu slash, percent-encoding, tham số truy vấn hay đường dẫn tương đối có thể thay đổi định danh tài nguyên.
-- Mã sản phẩm: dấu gạch, tiền tố, số 0 ở đầu có thể là một phần mã.
+- Email: the local part and provider policies have varying constraints; do not blindly remove dots or “+tag” suffixes for every address.
+- Phone number: normalizing to international format requires knowing the country and numbering rules; stripping non-digits is not enough to identify the number.
+- URL/path: case sensitivity, slashes, percent-encoding, query parameters, or relative paths can change the resource identifier.
+- Product code: hyphens, prefixes, and leading zeros may be part of the code itself.
 
-Chỉ dùng chuẩn hóa được xác định bởi đặc tả/miền dữ liệu và các thư viện thích hợp.
+Only use normalizations defined by the specification/data domain and appropriate libraries.
 
-## 6. Ví dụ Java 17+ chạy độc lập: canonical username và số thập phân
+## 6. Standalone Runnable Java 17+ Example: Canonical Username and Decimal Numbers
 
-Tạo tệp **`NormalizationEqualityDemo.java`**:
+Create the file **`NormalizationEqualityDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -268,14 +268,14 @@ public class NormalizationEqualityDemo {
 }
 ```
 
-Biên dịch, chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac NormalizationEqualityDemo.java
 java NormalizationEqualityDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 raw text equal: false
@@ -289,65 +289,65 @@ canonical BigDecimal equals: true
 null safe equal: true
 ```
 
-**Vì sao đúng?**
+**Why is this right?**
 
-1. `"  CAFE\u0301  "` và `"café"` không giống nhau theo `String.equals()` vì khác khoảng trắng, hoa/thường và cách biểu diễn dấu Unicode.
-2. Constructor `UserHandle` chuẩn hóa một lần, lưu `canonical` dưới dạng `final`. Sau `strip()`, hạ chữ với `Locale.ROOT` rồi NFC, cả hai nhận dạng chuẩn `"café"`.
-3. Hai lần `new UserHandle(...)` tạo hai đối tượng khác nhau (`==` là `false`), nhưng `equals()` của lớp so `canonical` nên trả `true`.
-4. `hashCode()` cũng dựa trên `canonical` nên bằng nhau. Vì vậy `HashSet.contains(second)` trả `true` sau khi thêm `first`.
-5. Hai `BigDecimal` cùng trị số nhưng khác scale nên `equals()` trực tiếp trả `false`; `compareTo` và hàm chuẩn hóa `stripTrailingZeros()` thể hiện quy tắc “cùng trị số”.
-6. `Objects.equals(null, null)` trả `true`; đây là tiện ích xử lý null chứ không tự chuẩn hóa giá trị.
+1. `"  CAFE\u0301  "` and `"café"` do not match under `String.equals()` because they differ in whitespace, case, and Unicode accent representation.
+2. The `UserHandle` constructor normalizes once and stores `canonical` as `final`. After `strip()`, lowercasing with `Locale.ROOT`, and NFC, both obtain the canonical form `"café"`.
+3. Two `new UserHandle(...)` calls create two distinct objects (`==` is `false`), yet the class's `equals()` compares `canonical` and therefore returns `true`.
+4. `hashCode()` is also based on `canonical`, so the hashes match. Thus `HashSet.contains(second)` returns `true` after adding `first`.
+5. Two `BigDecimal` instances have the same numeric value but different scales, so direct `equals()` returns `false`; `compareTo` and the `stripTrailingZeros()` normalization function express the “same numeric value” rule.
+6. `Objects.equals(null, null)` returns `true`; this is a null-handling utility, not automatic value normalization.
 
-Trong chương trình, `displayValue()` cho phép giữ dữ liệu người dùng nhập để hiển thị; trong hệ thống thật, có thể lưu cả giá trị gốc và dạng chuẩn cho tìm kiếm/uniqueness. Không nên hiển thị mã chuẩn thay cho bản gốc nếu việc đó làm mất định dạng mà người dùng muốn giữ.
+In the program, `displayValue()` preserves the user's input for display; in a real system, both the raw value and the canonical form can be stored for lookup/uniqueness. Avoid displaying the canonical key instead of the original if doing so strips formatting the user wishes to keep.
 
-## 7. Nên chuẩn hóa ở đâu trong ứng dụng?
+## 7. Where Should Normalization Happen in an Application?
 
-**Tại biên nhập dữ liệu:** đọc, kiểm tra tính hợp lệ và chuyển về dạng chuẩn trước khi tạo value object hay lưu cơ sở dữ liệu. Dạng chuẩn nên bất biến trong đối tượng; `equals()` và `hashCode()` trở nên ngắn gọn, nhanh và nhất quán.
+**At the input boundary:** read, validate, and transform to the canonical form before constructing a value object or persisting to the database. The canonical form should be immutable inside the object; `equals()` and `hashCode()` become concise, fast, and consistent.
 
-**Tại điểm tra cứu:** chuyển truy vấn bằng **chính cùng quy tắc** đã dùng khi lưu. Nếu lưu username theo dạng NFC + chữ thường nhưng truy vấn theo cách khác, một giá trị hợp lệ có thể không tìm thấy.
+**At lookup points:** transform queries using **the exact same rule** used when storing. If usernames are stored in NFC + lowercase form but queried differently, a valid value may not be found.
 
-**Tại tầng dữ liệu:** đồng bộ quy tắc ứng dụng với unique index, collation hoặc canonical key trong database. `String.equals()` của Java và phép so chuỗi của database có thể có ngữ nghĩa khác; chỉ kiểm tra trùng ở Java mà không có cơ chế nhất quán tại database có thể phát sinh trùng dữ liệu khi có truy cập đồng thời.
+**At the data layer:** align application rules with unique indexes, collations, or canonical keys in the database. Java's `String.equals()` and database string comparisons may have different semantics; checking duplicates only in Java without a consistent database mechanism can produce duplicate data under concurrent access.
 
-**Khi chính sách thay đổi:** phiên bản của phép chuẩn hóa có thể ảnh hưởng dữ liệu cũ, trùng khóa hoặc khả năng đăng nhập. Nếu thay đổi quy tắc Unicode, phân biệt chữ hoa/thường hay cách xử lý khoảng trắng, cần lập kế hoạch chuyển đổi và phát hiện xung đột, thay vì âm thầm thay đổi `equals()`.
+**When policies change:** versioning of the normalization transformation can affect legacy data, key collisions, or login behavior. If Unicode rules, case sensitivity, or whitespace handling change, plan a migration and conflict detection instead of silently altering `equals()`.
 
-### Vì sao không chuẩn hóa lại tùy ý bên trong mỗi lần gọi `equals()`?
+### Why Not Re-normalize Arbitrarily Inside Every `equals()` Call?
 
-Về lý thuyết có thể chuẩn hóa trong `equals()`, nhưng cách đó dễ tốn chi phí, lặp logic và quên đồng bộ `hashCode()`. Nếu phép biến đổi dựa vào locale/config thay đổi theo môi trường hoặc dữ liệu mutable, kết quả bằng nhau và mã hash còn có thể không ổn định. Với đối tượng dùng làm khóa trong collection, nên tính `canonical` một lần theo chính sách cố định trong constructor/nhà máy tạo đối tượng.
+In theory you could normalize inside `equals()`, yet doing so easily incurs extra cost, duplicates logic, and risks forgetting to keep `hashCode()` in sync. If the transformation depends on environment-varying locale/config or mutable data, equality results and hash codes can even become unstable. For objects used as keys in collections, compute `canonical` once under a fixed policy in the constructor/factory.
 
-## 8. Lỗi thường gặp và cách sửa
+## 8. Common Mistakes and Fixes
 
-| Lỗi | Hậu quả | Cách làm |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Chỉ `trim()/lowercase` một phía | Hai dữ liệu tương đương có thể vẫn khác | Chuẩn hóa nhất quán cả hai đầu vào hoặc lưu dạng chuẩn. |
-| `equals()` so canonical, `hashCode()` dùng chuỗi gốc | Phá hợp đồng hash; `HashSet`/`HashMap` hành xử sai kỳ vọng | Cả hai dùng cùng canonical fields. |
-| Dùng `toLowerCase()` không tham số | Kết quả có thể đổi theo locale mặc định | Dùng `Locale.ROOT` nếu nghiệp vụ cần so không phụ thuộc locale. |
-| Chọn NFKC hay xóa dấu để “so cho dễ” | Vô tình hợp nhất các giá trị cần phân biệt | Chỉ áp dụng phép biến đổi mà đặc tả cho phép; thử các trường hợp biên. |
-| Gộp null và chuỗi rỗng | Mất ý nghĩa “chưa cung cấp” khác với “có cung cấp nhưng rỗng” | Định nghĩa rõ chính sách validation/null. |
-| So `BigDecimal.equals()` khi nghiệp vụ chỉ xét trị số | `1.0` và `1.00` bị coi khác nhau | Dùng `compareTo` hoặc canonical amount theo chính sách. |
-| Dùng epsilon trong `equals()` | Có thể vi phạm tính bắc cầu | Dùng hàm so gần bằng nhau riêng hoặc lượng tử hóa đã thiết kế. |
-| Chỉ kiểm tra unique trên ứng dụng | Hai request đồng thời có thể tạo dữ liệu trùng về ngữ nghĩa | Dùng unique constraint/index phù hợp với canonical key. |
-| Sửa giá trị canonical sau khi đưa vào `HashMap` | Không tìm lại được khóa trong bucket dự kiến | Thiết kế immutable value object hoặc khóa bất biến. |
+| `trim()/lowercase` on only one side | Two equivalent inputs may still differ | Normalize both inputs consistently or store the canonical form. |
+| `equals()` compares canonical, `hashCode()` uses raw string | Breaks hash contract; `HashSet`/`HashMap` misbehave | Both use the same canonical fields. |
+| Calling `toLowerCase()` with no arguments | Result can vary with default locale | Use `Locale.ROOT` if business rules require locale-independent comparison. |
+| Choosing NFKC or stripping accents “to match easily” | Accidentally merges values that must remain distinct | Apply only transformations permitted by specification; test edge cases. |
+| Conflating null and empty string | Loses the distinction between “not provided” and “provided as empty” | Define an explicit validation/null policy. |
+| Comparing `BigDecimal.equals()` when domain cares only about numeric value | `1.0` and `1.00` are treated as different | Use `compareTo` or canonical amount per policy. |
+| Using epsilon in `equals()` | Can violate transitivity | Use a dedicated approximate comparison function or a designed quantization. |
+| Checking uniqueness only in the application | Two concurrent requests can create semantically duplicate data | Use a unique constraint/index aligned with the canonical key. |
+| Mutating the canonical value after inserting into `HashMap` | Cannot find the key again in the expected bucket | Design an immutable value object or immutable key. |
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-**Câu 1.** Nếu hệ thống coi username không phân biệt hoa/thường nhưng mật khẩu phân biệt mọi ký tự, có được áp dụng cùng phép `strip().toLowerCase(Locale.ROOT)` cho cả hai không?
+**Question 1.** If a system treats usernames as case-insensitive while passwords are sensitive to every character, may the same `strip().toLowerCase(Locale.ROOT)` be applied to both?
 
-**Đáp án:** Không. Quan hệ bằng nhau do miền dữ liệu quyết định; chuẩn hóa mật khẩu theo quy tắc username có thể đổi ý nghĩa và làm mất thông tin.
+**Answer:** No. Equality semantics are decided by the data domain; normalizing a password by username rules can change its meaning and lose information.
 
-**Câu 2.** Vì sao hai đối tượng có `canonical` bằng nhau cần `hashCode()` dựa trên canonical?
+**Question 2.** Why do two objects with equal `canonical` values need a `hashCode()` based on canonical?
 
-**Đáp án:** Vì hợp đồng Java bắt buộc hai đối tượng `equals()` bằng nhau phải có cùng `hashCode()`. Hash collection dựa vào điều này để tra cứu chính xác.
+**Answer:** Because Java's contract requires two objects equal under `equals()` to have the same `hashCode()`. Hash collections rely on this for accurate lookups.
 
-**Câu 3.** `new BigDecimal("10.0").equals(new BigDecimal("10.00"))` trả gì? Nếu chỉ quan tâm trị số, cần so thế nào?
+**Question 3.** What does `new BigDecimal("10.0").equals(new BigDecimal("10.00"))` return? If only numeric value matters, how should they be compared?
 
-**Đáp án:** `false` vì khác `scale`. Có thể dùng `a.compareTo(b) == 0` hoặc so canonical BigDecimal theo quy tắc đã chọn.
+**Answer:** `false` because of differing `scale`. You can use `a.compareTo(b) == 0` or compare canonical `BigDecimal` values according to the chosen rule.
 
-**Câu 4.** Chuẩn hóa Unicode NFC có làm mọi cặp ký tự trông giống nhau trở thành bằng nhau không?
+**Question 4.** Does Unicode NFC normalization make every pair of visually similar characters equal?
 
-**Đáp án:** Không. NFC xử lý tương đương Unicode theo chuẩn tắc, không xử lý mọi ký tự nhìn giống nhau hay mọi yêu cầu so khớp ngôn ngữ.
+**Answer:** No. NFC handles canonical Unicode equivalence; it does not handle all lookalike characters or every language-specific matching requirement.
 
-**Câu 5.** Có thể sử dụng `Math.abs(a - b) < 0.1` làm triển khai chung của `Object.equals()` cho mọi số thực không?
+**Question 5.** Can `Math.abs(a - b) < 0.1` be used as a general `Object.equals()` implementation for all floating-point numbers?
 
-**Đáp án:** Không. Quan hệ gần bằng nhau có thể không bắc cầu, vi phạm hợp đồng `equals()`.
+**Answer:** No. Approximate closeness may not be transitive, violating the `equals()` contract.
 
-**Ghi nhớ:** **Xác định ngữ nghĩa bằng nhau trước; chuẩn hóa theo đúng ngữ nghĩa ấy; bảo đảm `equals()` và `hashCode()` sử dụng cùng dạng chuẩn bất biến.**
+**Takeaway:** **Define equality semantics first; normalize strictly according to those semantics; ensure `equals()` and `hashCode()` use the same immutable canonical form.**

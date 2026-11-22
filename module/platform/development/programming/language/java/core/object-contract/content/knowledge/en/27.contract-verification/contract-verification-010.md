@@ -1,75 +1,75 @@
-# Phân biệt kiểm thử tính đúng với đánh giá phân bố hoặc hiệu năng băm
+# Distinguishing Correctness Testing From Hash Distribution or Performance Evaluation
 
-Khi viết `equals()` và `hashCode()` trong Java, có hai câu hỏi khác nhau:
+When writing `equals()` and `hashCode()` in Java, there are two distinct questions:
 
-1. **Tính đúng:** hai đối tượng được coi là bằng nhau có tuân thủ hợp đồng của `equals()` và `hashCode()` không? `HashSet`/`HashMap` có tra cứu được key tương đương đúng cách không?
-2. **Phân bố và hiệu năng:** mã băm có trải các key của một tập dữ liệu thực tế tương đối đều không? Số va chạm, thời gian tra cứu/chèn/xóa, chi phí tính hash và bộ nhớ ra sao?
+1. **Correctness:** do two objects considered equal obey the `equals()` and `hashCode()` contract? Do `HashSet`/`HashMap` look up equivalent keys properly?
+2. **Distribution and performance:** do hash codes spread keys of a realistic dataset relatively evenly? What are the collision counts, lookup/insert/remove times, hash computation cost, and memory footprint?
 
-**Một hàm băm hợp lệ chưa chắc phân bố tốt; một hàm băm có phân bố trông đẹp chưa chắc đúng hợp đồng.** Kiểm thử tính đúng là điều kiện bắt buộc trước khi tối ưu hiệu năng.
+**A valid hash function does not necessarily distribute well; a hash function with a nice-looking distribution is not necessarily contract-compliant.** Correctness testing is a prerequisite before performance optimization.
 
-## 1. Hai loại đánh giá đo những thứ khác nhau
+## 1. Two Evaluation Types Measure Different Things
 
-| Khía cạnh | Kiểm thử tính đúng (correctness) | Đánh giá phân bố/hiệu năng |
+| Aspect | Correctness testing | Distribution/performance evaluation |
 | --- | --- | --- |
-| Câu hỏi | Quan hệ bằng nhau và hash có tuân thủ hợp đồng Java? | Hash trải key ra sao; các thao tác trên collection có nhanh không? |
-| Đơn vị kiểm tra | Đối tượng, cặp/nhóm đối tượng, hành vi tra cứu theo key | Tập dữ liệu đủ lớn, nhóm bucket mô phỏng, workload đo thời gian |
-| Kết quả | PASS/FAIL, có phản ví dụ rõ ràng | Số liệu định lượng phụ thuộc dữ liệu, kích thước và môi trường |
-| Tiêu chí cốt lõi | `a.equals(b) ⇒ a.hashCode() == b.hashCode()` | Tỷ lệ bucket trống, tải mỗi bucket, va chạm, throughput, độ trễ |
-| Va chạm hash | **Được phép** với hai đối tượng không bằng nhau | Nhiều va chạm có thể làm giảm hiệu năng |
-| Công cụ | Unit/property-based tests, assertion, `HashSet`/`HashMap` | Phân tích histogram; benchmark có warmup và kiểm soát workload, thường bằng JMH |
-| Lỗi điển hình | Key bằng nhau nhưng có hash khác nhau; `equals()` bất đối xứng | Tất cả key vào một bucket; tạo hash quá tốn CPU |
+| Question | Do the equality relation and hash obey the Java contract? | How does the hash spread keys; are collection operations fast? |
+| Unit of inspection | Objects, pairs/groups of objects, key-based lookup behavior | Sufficiently large datasets, simulated bucket groups, timed workloads |
+| Result | PASS/FAIL, with clear counterexamples | Quantitative metrics depending on data, size, and environment |
+| Core criterion | `a.equals(b) ⇒ a.hashCode() == b.hashCode()` | Empty bucket ratio, load per bucket, collisions, throughput, latency |
+| Hash collisions | **Permitted** for two unequal objects | Many collisions can degrade performance |
+| Tools | Unit/property-based tests, assertions, `HashSet`/`HashMap` | Histogram analysis; benchmarks with warmup and workload control, typically via JMH |
+| Typical bug | Equal keys with different hashes; asymmetric `equals()` | All keys landing in one bucket; hash computation too CPU-expensive |
 
-Một giá trị `hashCode()` là `int` 32 bit nên không thể có mã riêng cho mọi đối tượng có thể tồn tại. Va chạm là bình thường. Hợp đồng không yêu cầu hai key khác nhau phải sinh hai mã băm khác nhau.
+A `hashCode()` value is a 32-bit `int`, so it cannot assign a distinct code to every possible object that could exist. Collisions are normal. The contract does not require two unequal keys to produce two different hash codes.
 
-## 2. Hợp đồng nào phải được kiểm thử?
+## 2. Which Contracts Must Be Tested?
 
-### 2.1. Hợp đồng `equals()`
+### 2.1. The `equals()` Contract
 
-Với những tham chiếu không `null`, `equals()` phải thể hiện quan hệ tương đương:
+For non-`null` references, `equals()` must implement an equivalence relation:
 
-- **Phản xạ:** `x.equals(x)` là `true`.
-- **Đối xứng:** `x.equals(y)` và `y.equals(x)` có cùng kết quả.
-- **Bắc cầu:** nếu `x.equals(y)` và `y.equals(z)` đều đúng thì `x.equals(z)` phải đúng.
-- **Nhất quán:** các lời gọi lặp lại cho cùng hai đối tượng phải cho cùng kết quả khi thông tin dùng để so sánh không thay đổi.
-- **Với null:** `x.equals(null)` là `false`.
+- **Reflexive:** `x.equals(x)` is `true`.
+- **Symmetric:** `x.equals(y)` and `y.equals(x)` return the same result.
+- **Transitive:** if `x.equals(y)` and `y.equals(z)` are both true, then `x.equals(z)` must be true.
+- **Consistent:** repeated calls for the same two objects must yield the same result when information used for comparison has not changed.
+- **Against null:** `x.equals(null)` is `false`.
 
-Đối với một kiểu dữ liệu theo giá trị, cần quyết định rõ **trường nào xác định bằng nhau**. Ví dụ, với `UserKey(tenantId, userId)`, nếu cả hai trường cùng tham gia `equals()`, thì `hashCode()` phải tương thích với chính tiêu chí đó.
+For a value-based data type, clearly decide **which fields define equality**. For example, with `UserKey(tenantId, userId)`, if both fields participate in `equals()`, then `hashCode()` must be compatible with that exact criterion.
 
-### 2.2. Hợp đồng `hashCode()`
+### 2.2. The `hashCode()` Contract
 
-- **Điều kiện bắt buộc:** nếu `x.equals(y)` thì `x.hashCode() == y.hashCode()`.
-- **Nhất quán theo trạng thái:** khi các thuộc tính dùng trong `equals()` chưa thay đổi, các lần gọi `hashCode()` trong một lần chạy Java phải cho cùng giá trị.
-- **Không yêu cầu chiều ngược lại:** `x.hashCode() == y.hashCode()` **không** suy ra `x.equals(y)`. Hai đối tượng không bằng nhau được phép va chạm.
+- **Mandatory condition:** if `x.equals(y)`, then `x.hashCode() == y.hashCode()`.
+- **State-based consistency:** when properties used in `equals()` have not changed, calls to `hashCode()` within a single Java run must yield the same value.
+- **No converse requirement:** `x.hashCode() == y.hashCode()` does **not** imply `x.equals(y)`. Two unequal objects are allowed to collide.
 
-Viết gọn quan hệ cần kiểm tra:
+Summarized relations to verify:
 
 ```text
-equals(x, y) == true  =>  hash(x) == hash(y)      BẮT BUỘC
-hash(x) == hash(y)    =>  equals(x, y) == true    KHÔNG ĐÚNG TỔNG QUÁT
-equals(x, y) == false =>  hash(x) != hash(y)      KHÔNG BẮT BUỘC
+equals(x, y) == true  =>  hash(x) == hash(y)      REQUIRED
+hash(x) == hash(y)    =>  equals(x, y) == true    NOT GENERALLY TRUE
+equals(x, y) == false =>  hash(x) != hash(y)      NOT REQUIRED
 ```
 
-Nếu override `equals()` để thay đổi khái niệm bằng nhau thì thông thường cũng phải override `hashCode()` tương ứng. Không viết một bài test sai như `assertNotEquals(a.hashCode(), b.hashCode())` chỉ vì `a` và `b` khác nhau: phép kiểm này không nằm trong hợp đồng.
+If you override `equals()` to change the notion of equality, you must normally override `hashCode()` to match. Do not write a broken test such as `assertNotEquals(a.hashCode(), b.hashCode())` merely because `a` and `b` differ: that check is not part of the contract.
 
-### 2.3. Kiểm chứng ngữ nghĩa trong collection
+### 2.3. Verifying Collection Semantics
 
-Đối với hai instance khác nhau nhưng bằng nhau theo `equals()`, cần thử ít nhất:
+For two distinct instances that are equal under `equals()`, test at least:
 
-- Thêm `a` vào `HashSet`, sau đó `contains(b)` phải đúng, và `add(b)` không làm số phần tử tăng.
-- Gán `map.put(a, value)` thì `map.get(b)` phải trả đúng value; gán tiếp một key tương đương phải cập nhật entry tương ứng.
-- Một key không tương đương không được bị coi nhầm là cùng key do `equals()` quá rộng. **Va chạm hash tự nó không làm `HashMap` gộp hai key không bằng nhau**: collection còn đối chiếu bằng `equals()`.
+- Add `a` to a `HashSet`, then `contains(b)` must be true, and `add(b)` must not increase the element count.
+- Calling `map.put(a, value)` requires `map.get(b)` to return the right value; subsequently putting an equivalent key must update the corresponding entry.
+- A non-equivalent key must not be mistakenly treated as the same key due to an overly broad `equals()`. **A hash collision alone does not make `HashMap` merge two unequal keys**: the collection still compares with `equals()`.
 
-Những kiểm thử này bổ sung cho kiểm tra hợp đồng trực tiếp. Chúng không thay thế việc xét đối xứng, bắc cầu và các biên kiểu dữ liệu.
+These tests complement direct contract checks. They do not replace checking symmetry, transitivity, and type boundaries.
 
-## 3. Ví dụ Java 17+ chạy được: đúng hợp đồng nhưng phân bố rất kém
+## 3. Runnable Java 17+ Example: Contract-Compliant Yet Very Poorly Distributed
 
-Chương trình bên dưới có ba kiểu key:
+The program below has three key types:
 
-- `GoodKey`: so sánh theo `id`; hash theo `id`. Tập ID liên tiếp trong ví dụ trải đều trên mô hình 16 bucket.
-- `ConstantHashKey`: cũng so sánh theo `id`, nhưng mọi instance đều có hash bằng 7. **Hợp đồng vẫn đúng**, song tất cả phần tử va chạm.
-- `BrokenKey`: so sánh chỉ theo `id`, trong khi hash trả về `salt`; hai key bằng nhau có thể mang hash khác nhau. **Vi phạm hợp đồng**, bất kể phân bố có vẻ tốt đến đâu.
+- `GoodKey`: compares by `id`; hashes by `id`. Consecutive IDs in the example spread evenly across a 16-bucket model.
+- `ConstantHashKey`: also compares by `id`, yet every instance has hash 7. **The contract remains valid**, though all elements collide.
+- `BrokenKey`: compares only by `id`, whereas hash returns `salt`; two equal keys can carry different hashes. **Violates the contract**, regardless of how good its distribution looks.
 
-Lưu thành tệp **`HashCorrectnessVsDistribution.java`**:
+Save as **`HashCorrectnessVsDistribution.java`**:
 
 ```java
 import java.util.HashMap;
@@ -108,7 +108,7 @@ public class HashCorrectnessVsDistribution {
 
         @Override
         public int hashCode() {
-            return salt; // SAI: salt không tham gia equals().
+            return salt; // WRONG: salt does not participate in equals().
         }
     }
 
@@ -214,14 +214,14 @@ public class HashCorrectnessVsDistribution {
 }
 ```
 
-Lệnh chạy:
+Run commands:
 
 ```bash
 javac HashCorrectnessVsDistribution.java
 java HashCorrectnessVsDistribution
 ```
 
-Kết quả:
+Output:
 
 ```text
 GoodKey contract: PASS
@@ -232,163 +232,163 @@ GoodKey used=16, max=4
 ConstantHashKey used=1, max=64
 ```
 
-**Vì sao đây là ví dụ đáng chú ý?**
+**Why is this example noteworthy?**
 
-1. `ConstantHashKey` cho kết quả PASS: 64 key khác nhau vẫn được lưu riêng trong `HashSet`, và có thể tìm theo một instance key tương đương vừa tạo mới. Collisions làm collection phải phân biệt key bằng `equals()`, nên không tự gây sai kết quả.
-2. Trên **mô hình minh họa** 16 bucket, `GoodKey` với id 0–63 lấp 16 bucket, mỗi bucket 4 phần tử. `ConstantHashKey` dồn cả 64 phần tử vào một bucket. Đây là sự khác biệt về phân bố, không phải hợp đồng.
-3. `BrokenKey(42,1)` và `BrokenKey(42,2)` bằng nhau theo `equals()` nhưng có hash lần lượt bằng 1 và 2, nên sai điều kiện bắt buộc. Không cần đo thời gian hoặc dựa vào hành vi ngẫu nhiên của `HashMap` để chứng minh vi phạm.
-4. Phép `Math.floorMod(hash,16)` ở đây là một **mô hình chia bucket đơn giản**, **không phải mô tả chính xác cách `HashMap` Java 17 trộn bit, tính chỉ số bucket, resize hoặc xử lý collision**. Không dùng các con số của mô hình làm benchmark `HashMap`.
+1. `ConstantHashKey` reports PASS: 64 distinct keys are still stored separately in `HashSet`, and can be found via a newly created equivalent key instance. Collisions force the collection to distinguish keys using `equals()`, so they do not by themselves produce wrong results.
+2. On the 16-bucket **illustrative model**, `GoodKey` with IDs 0–63 fills all 16 buckets, 4 elements per bucket. `ConstantHashKey` piles all 64 elements into a single bucket. This is a difference in distribution, not contract.
+3. `BrokenKey(42,1)` and `BrokenKey(42,2)` are equal under `equals()` yet have hashes 1 and 2 respectively, failing the mandatory condition. You do not need timing measurements or reliance on incidental `HashMap` behavior to prove the violation.
+4. The `Math.floorMod(hash,16)` expression here is a **simplified bucket-partitioning model**, **not an exact description of how Java 17 `HashMap` mixes bits, computes bucket indices, resizes, or handles collisions**. Do not use the numbers from this model as a `HashMap` benchmark.
 
-Bởi vậy, một báo cáo kiểm thử có thể ghi đồng thời: “hợp đồng PASS, chất lượng phân bố trên workload này kém”. Hai kết luận không mâu thuẫn.
+Therefore, a test report can state simultaneously: "contract PASS, distribution quality on this workload is poor." The two conclusions do not contradict each other.
 
-## 4. Thiết kế bộ kiểm thử correctness có sức phát hiện lỗi
+## 4. Designing Correctness Tests With Bug-Finding Power
 
-### 4.1. Chọn dữ liệu có chủ đích
+### 4.1. Choosing Data Intentionally
 
-Đừng chỉ tạo 100 đối tượng ngẫu nhiên rồi xác nhận không có exception. Hãy chuẩn bị nhóm đối tượng đúng theo **ngữ nghĩa bình đẳng** mà lớp khai báo:
+Do not just create 100 random objects and confirm no exceptions are thrown. Prepare object groups matching the **equality semantics** declared by the class:
 
-| Tình huống | Kết quả mong đợi |
+| Situation | Expected result |
 | --- | --- |
-| Cùng một reference `a` | `a.equals(a)` đúng |
-| Hai instance độc lập nhưng cùng tập trường định danh | `equals()` đúng và hash giống nhau |
-| Khác đúng một trường **có** tham gia `equals()` | Thường `equals()` sai theo quy tắc lớp |
-| Khác trường **không** tham gia `equals()` | `equals()` không được thay đổi chỉ vì trường này |
-| Đối tượng khác kiểu, lớp cha/con nếu có kế thừa | Không phá đối xứng hoặc bắc cầu |
-| Giá trị `null`, rỗng, Unicode, số âm, biên số nguyên | Không sai hành vi hoặc ném lỗi ngoài dự kiến |
-| Tạo nhiều instance có cùng dữ liệu, rồi sử dụng làm key | Set/map vẫn tìm được key tương đương |
-| Các key khác nhau nhưng hash trùng | Set/map vẫn giữ chúng là các key riêng nếu không `equals()` |
+| Same reference `a` | `a.equals(a)` is true |
+| Two independent instances with the same identity field set | `equals()` is true and hashes match |
+| Differing in exactly one field that **does** participate in `equals()` | Normally `equals()` is false per class rules |
+| Differing in a field that **does not** participate in `equals()` | `equals()` must not change solely due to this field |
+| Different-type object, parent/subclass if inheritance exists | Does not break symmetry or transitivity |
+| `null`, empty, Unicode, negative numbers, integer boundary values | No incorrect behavior or unexpected exceptions |
+| Create multiple instances with equal data, then use as keys | Set/map still finds the equivalent key |
+| Different keys that share the same hash | Set/map still keeps them as separate keys if not `equals()` |
 
-Nếu `equals()` phụ thuộc mảng, chú ý `array.equals(otherArray)` mặc định dùng danh tính mảng, còn `Arrays.equals`/`Arrays.deepEquals` so sánh nội dung theo cách riêng. Quy tắc so sánh và băm phải tương thích, ví dụ `Arrays.equals` đi cùng `Arrays.hashCode` với mảng một chiều thích hợp.
+If `equals()` depends on arrays, note that `array.equals(otherArray)` defaults to array identity, whereas `Arrays.equals`/`Arrays.deepEquals` compare contents in their own ways. Comparison and hashing rules must be compatible, for example pairing `Arrays.equals` with `Arrays.hashCode` for appropriate 1D arrays.
 
-Nếu key sử dụng `double`, `BigDecimal`, hoặc lớp có quy tắc bằng nhau đặc biệt, hãy thử NaN, giá trị `-0.0`/`0.0`, hay scale khác nhau khi chúng có liên quan đến tiêu chí equals của kiểu cụ thể. Không giả định tất cả kiểu số có chung một định nghĩa “bằng nhau”.
+If a key uses `double`, `BigDecimal`, or a class with special equality rules, test NaN, `-0.0`/`0.0` values, or differing scales when relevant to that type's equality criteria. Do not assume all numeric types share one definition of "equal".
 
-### 4.2. Property-based test và quy tắc khi sinh dữ liệu
+### 4.2. Property-Based Tests and Data Generation Rules
 
-Với một bộ sinh đối tượng, có thể kiểm tra nhiều bộ ba `(a,b,c)` để tìm phản ví dụ về đối xứng/bắc cầu. Tuy nhiên, random thuần thường hiếm khi tạo ra hai instance bằng nhau. Cần **chủ động sao chép cùng khóa ngữ nghĩa**, sinh biến thể khác một trường định danh, và sinh biến thể khác trường không tham gia `equals()`.
+With an object generator, you can check many triples `(a,b,c)` to find symmetry/transitivity counterexamples. However, pure randomness rarely produces two equal instances. You must **intentionally clone the same semantic key**, generate variants differing in one identity field, and generate variants differing in fields that do not participate in `equals()`.
 
-Pseudo-code kiểm tra cặp:
+Pseudocode for checking pairs:
 
 ```text
 for each pair (a, b):
     assert a.equals(b) == b.equals(a)
     if a.equals(b):
         assert a.hashCode() == b.hashCode()
-    // Không assert hash khác nhau khi equals false.
+    // Do not assert differing hashes when equals is false.
 
 for each triple (a, b, c):
     if a.equals(b) and b.equals(c):
         assert a.equals(c)
 ```
 
-Thêm kiểm tra `equals(null)`, phản xạ, việc gọi lặp lại khi trạng thái không đổi, và hành vi thực tế của map/set. Nếu sinh nhiều dữ liệu, hãy lưu seed và phản ví dụ tối giản để lỗi tái hiện được.
+Add checks for `equals(null)`, reflexivity, repeated calls when state does not change, and real map/set behavior. When generating large datasets, save the seed and the minimal counterexample so bugs are reproducible.
 
-**Giới hạn bằng chứng:** test chạy hết các trường hợp đã chọn chỉ chứng minh hành vi trong miền kiểm thử. Nó không chứng minh tuyệt đối mọi quan hệ bằng nhau hợp lệ với mọi giá trị có thể có. Sự chính xác của định nghĩa `equals()` vẫn cần được xem xét ở mức thiết kế.
+**Limits of evidence:** tests passing all selected cases only prove behavior within the tested domain. They do not mathematically prove every equality relationship holds for all possible values. The soundness of the `equals()` definition still needs design-level review.
 
-### 4.3. Bẫy key mutable
+### 4.3. Mutable Key Trap
 
-Ngay cả khi `equals()`/`hashCode()` được viết nhất quán ở từng thời điểm, thay đổi trường tham gia phép bằng nhau sau khi đưa instance vào `HashSet` hay làm key `HashMap` có thể khiến việc tìm kiếm thất bại: key đã nằm ở vị trí dựa vào hash cũ. Bài test nên bảo đảm một trong hai quy tắc thiết kế:
+Even when `equals()`/`hashCode()` are written consistently at any single moment, mutating fields participating in equality after placing an instance into a `HashSet` or using it as a `HashMap` key can cause lookups to fail: the key sits at a bucket based on its old hash. Tests should enforce one of two design rules:
 
-- Ưu tiên key bất biến, chẳng hạn `record` với các thành phần phù hợp và không để lộ trạng thái mutable ảnh hưởng tới phép so sánh.
-- Hoặc bảo đảm ứng dụng không sửa trạng thái tham gia equality/hash trong suốt thời gian key đang nằm trong cấu trúc băm; muốn đổi key thì xóa rồi thêm lại một cách có kiểm soát.
+- Prefer immutable keys, such as a `record` with suitable components and no exposed mutable state affecting comparison.
+- Or ensure the application never mutates state participating in equality/hashing while the key resides in a hash structure; to change a key, remove and reinsert it in a controlled manner.
 
-Với một `record`, các thành phần reference tới danh sách/mảng có thể vẫn trỏ tới dữ liệu mutable. `record` không tự động làm toàn bộ đồ thị đối tượng bên trong trở nên bất biến.
+With a `record`, components referencing lists/arrays can still point to mutable data. A `record` does not automatically make the entire inner object graph immutable.
 
-## 5. Đánh giá phân bố băm: đo đúng đối tượng và dữ liệu
+## 5. Evaluating Hash Distribution: Measuring the Right Object and Data
 
-Sau khi correctness PASS, đánh giá chất lượng hash trên **tập key thực sự dự kiến sử dụng**. Một hàm hash có phân bố tốt trên các ID liên tiếp có thể không tốt trên các ID có cấu trúc đặc biệt, chẳng hạn phần thấp luôn bằng 0; tương tự một benchmark trên vài chục key không đại diện cho hệ thống hàng triệu key.
+Once correctness passes, evaluate hash quality on the **actual key set expected in production**. A hash function with good distribution on consecutive IDs may perform poorly on structured IDs, such as ones whose low bits are always 0; likewise, a benchmark over a few dozen keys does not represent a system with millions of keys.
 
-Có thể làm một thí nghiệm bucket mô phỏng theo các bước:
+You can run a simulated bucket experiment following these steps:
 
-1. Tạo dữ liệu đầu vào có ý nghĩa: ID liên tiếp, ID tăng theo bước cố định, chuỗi với tiền tố chung, dữ liệu ngẫu nhiên được lưu seed, và phân bố key gần giống thực tế.
-2. Chọn số bucket cho mô hình và quy tắc ánh xạ `hash → bucket`, công bố rõ quy tắc ấy. Phân biệt mô hình với nội bộ `HashMap`.
-3. Đếm số phần tử trong mỗi bucket; tính số bucket có ít nhất một key, tải trung bình `N / B`, tải lớn nhất và histogram tải bucket.
-4. Tính số va chạm **theo định nghĩa đang dùng**, chẳng hạn số phần tử vượt phần tử đầu trong mỗi bucket `sum(max(0, bucketSize - 1))`. Không đánh đồng “mã hash trùng nhau” với “rơi cùng bucket sau ánh xạ”.
-5. Lặp lại ở nhiều kích thước và kiểu dữ liệu; so sánh với cùng một tập key, cùng cách ánh xạ và cùng số bucket.
+1. Construct meaningful input data: consecutive IDs, fixed-step IDs, strings with common prefixes, random data with saved seeds, and key distributions resembling real workloads.
+2. Choose a bucket count for the model and a `hash → bucket` mapping rule, stating that rule explicitly. Distinguish the model from `HashMap` internals.
+3. Count elements in each bucket; compute occupied buckets, average load `N / B`, maximum load, and a bucket load histogram.
+4. Count collisions **according to the chosen definition**, such as elements beyond the first in each bucket `sum(max(0, bucketSize - 1))`. Do not equate "identical hash codes" with "landing in the same bucket after mapping".
+5. Repeat across multiple sizes and data patterns; compare using the exact same key set, mapping rule, and bucket count.
 
-Ví dụ khi có 64 key, 16 bucket:
+For example, with 64 keys and 16 buckets:
 
-- `GoodKey` trong chương trình: 16 bucket có dữ liệu, tải trung bình 4, tải lớn nhất 4; số phần tử vượt vị trí đầu theo định nghĩa trên là `64 - 16 = 48`.
-- `ConstantHashKey`: 1 bucket có dữ liệu, tải trung bình trên toàn bộ 16 bucket vẫn là 4 nhưng tải lớn nhất 64; số phần tử vượt vị trí đầu là `64 - 1 = 63`.
+- `GoodKey` in the program: 16 occupied buckets, average load 4, maximum load 4; elements beyond the first slot per the definition above equal `64 - 16 = 48`.
+- `ConstantHashKey`: 1 occupied bucket, average load across all 16 buckets is still 4, yet maximum load is 64; elements beyond the first slot equal `64 - 1 = 63`.
 
-**Tải trung bình giống nhau không đồng nghĩa phân bố giống nhau.** Cần xem histogram/độ lệch/tải cực đại. Một mã hash `int` phân bố khá đều vẫn có collision bucket vì số bucket nhỏ hơn không gian hash và số phần tử.
+**Identical average load does not mean identical distribution.** You must examine the histogram/variance/max load. Even a fairly uniform `int` hash still produces bucket collisions because the bucket count is smaller than the hash space and element count.
 
-Nếu muốn kiểm tra `HashMap`/ `HashSet` thực tế, chỉ số bucket đơn giản không đủ. Cấu trúc bảng, dung lượng, hệ số tải, phép trộn bit và xử lý va chạm phụ thuộc triển khai và phiên bản JDK. Không truy cập các chi tiết nội bộ chưa được bảo đảm rồi coi đó là hợp đồng API Java.
+To examine actual `HashMap`/`HashSet` behavior, simple bucket metrics are insufficient. Table layout, capacity, load factor, bit mixing, and collision handling depend on implementation and JDK version. Do not rely on unguaranteed internal details and treat them as the Java API contract.
 
-## 6. Đo hiệu năng collection: bài toán khác với phân bố
+## 6. Measuring Collection Performance: A Different Problem From Distribution
 
-Một histogram tốt có thể **gợi ý** tốc độ tra cứu tốt hơn, nhưng không tự chứng minh nó. Chi phí thực tế còn có tính toán `hashCode()`, `equals()`, cấp phát, locality của bộ nhớ, kích thước bảng, thao tác insert/get/remove, GC, JIT và đặc tính dữ liệu.
+A good histogram may **suggest** better lookup speed, yet does not prove it on its own. Real cost also includes computing `hashCode()`, `equals()`, allocations, memory locality, table size, insert/get/remove operations, GC, JIT, and data characteristics.
 
-Đối với `HashMap` hoặc `HashSet`, hãy xác định:
+For `HashMap` or `HashSet`, specify:
 
-- **Workload:** chèn bao nhiêu key, tỷ lệ đọc/ghi, tỷ lệ tra cứu thành công/thất bại, số phần tử đồng thời và sự phân bố các key truy cập.
-- **Đại lượng:** throughput (thao tác/giây), độ trễ mỗi thao tác, phân vị như p50/p95/p99 nếu có ý nghĩa, cùng cấp phát/GC khi cần.
-- **Thiết lập:** JDK và cấu hình JVM, máy, kích thước heap, khả năng chạy cạnh các tiến trình khác, chế độ warmup, nhiều lượt/fork và khoảng biến thiên kết quả.
-- **So sánh công bằng:** giữ cùng tập key, cùng semantics của `equals()`, cùng số lượng phần tử và trình tự thao tác. Nếu một phương án cho kết quả sai hợp đồng, loại phương án đó khỏi so sánh tối ưu.
-- **Benchmark đáng tin:** ưu tiên JMH, thiết kế `@State`, `@Setup`, `@Benchmark` và các chế độ đo thích hợp. Tránh kết luận bằng một phép `System.nanoTime()` bao quanh một vòng lặp duy nhất.
+- **Workload:** how many keys inserted, read/write ratio, hit/miss lookup ratio, concurrent size, and access key distribution.
+- **Metrics:** throughput (ops/sec), per-operation latency, percentiles such as p50/p95/p99 when meaningful, plus allocation/GC when relevant.
+- **Setup:** JDK and JVM flags, machine, heap size, co-running processes, warmup strategy, multiple iterations/forks, and result variance.
+- **Fair comparison:** keep the exact same key set, `equals()` semantics, element count, and operation sequence. If a candidate breaks the contract, exclude it from optimization comparisons.
+- **Reliable benchmarking:** prefer JMH, designing `@State`, `@Setup`, `@Benchmark`, and suitable measurement modes. Avoid drawing conclusions from a single `System.nanoTime()` wrapping one loop.
 
-Ví dụ một phép đo bị nhiễu là tạo `new HashMap<>()`, cấp phát hàng nghìn key, chèn key và đo tổng thời gian rồi gọi đó là “thời gian hashCode”. Nó đang trộn cả cấp phát, resize, duyệt collection và chạy bytecode/JIT; kết quả không trả lời đúng câu hỏi.
+For example, a noisy measurement is creating `new HashMap<>()`, allocating thousands of keys, inserting them, measuring total time, and calling that "`hashCode` time". That mixes allocation, resizing, collection traversal, and bytecode/JIT execution; the result does not answer the question accurately.
 
-Với Java `HashMap`, trong điều kiện băm và tải phù hợp, get/put thường có thời gian kỳ vọng gần hằng số trên mỗi thao tác; va chạm nghiêm trọng có thể làm chậm đáng kể. Hành vi cụ thể của một bucket va chạm còn tùy key, thứ tự chèn, kích thước và chi tiết triển khai, nên không khẳng định một hệ số hoặc thời gian cụ thể khi chưa đo.
+With Java `HashMap`, under suitable hashing and load, get/put typically has expected near-constant time per operation; severe collisions can slow it down markedly. The exact behavior of a colliding bucket also depends on keys, insertion order, size, and implementation details, so do not claim a specific factor or timing without measuring.
 
-Một hàm hash tốn nhiều phép toán hơn nhưng phân bố tốt hơn có thể nhanh hơn hoặc chậm hơn tổng thể, tùy tần suất tra cứu và kích thước collection. **Chỉ số phân bố và benchmark phải được đọc cùng với nhau**, chứ không dùng một chỉ số thay tất cả.
+A hash function with more arithmetic operations yet better distribution may be faster or slower overall, depending on lookup frequency and collection size. **Distribution metrics and benchmarks must be read together**, rather than letting one metric replace everything.
 
-## 7. Thứ tự kiểm chứng được khuyến nghị
+## 7. Recommended Verification Order
 
 ```text
-Định nghĩa semantics của key
+Define key semantics
              |
              v
-Kiểm thử equals + hashCode contract
+Test equals + hashCode contract
              |
-       FAIL? +-- Có --> Sửa định nghĩa/triển khai rồi kiểm lại
+       FAIL? +-- Yes --> Fix definition/implementation and re-test
              |
-            Không
+            No
              v
-Kiểm thử hành vi HashSet / HashMap
-             |
-             v
-Phân tích phân bố trên dữ liệu đại diện
+Test HashSet / HashMap behavior
              |
              v
-Đo JMH trên workload quan trọng
+Analyze distribution on representative data
              |
              v
-Đánh giá trade-off: độ đúng, tốc độ, bộ nhớ, độ phức tạp
+Run JMH on critical workloads
+             |
+             v
+Evaluate trade-offs: correctness, speed, memory, complexity
 ```
 
-Khi xem kết quả, diễn giải từng tình huống:
+When reviewing results, interpret each scenario:
 
-| Correctness | Phân bố/hiệu năng | Hành động |
+| Correctness | Distribution/performance | Action |
 | --- | --- | --- |
-| FAIL | Bất kỳ | Sửa hợp đồng trước. Benchmark không thể hợp thức hóa key sai. |
-| PASS | Tốt với workload mục tiêu | Giữ thiết kế, theo dõi khi workload thay đổi. |
-| PASS | Kém trên workload thực tế | Thử hash khác nhưng phải giữ cùng semantics `equals()` và chạy lại toàn bộ correctness tests. |
-| PASS | Chưa đo | Chưa đủ bằng chứng để tuyên bố hash nhanh/chậm; chỉ kết luận đúng hợp đồng trên dữ liệu kiểm thử. |
+| FAIL | Any | Fix the contract first. Benchmarks cannot legitimize broken keys. |
+| PASS | Good for target workload | Keep design, monitor as workload changes. |
+| PASS | Poor on realistic workload | Try a different hash while preserving the same `equals()` semantics and re-running all correctness tests. |
+| PASS | Not yet measured | Insufficient evidence to claim the hash is fast/slow; only conclude contract correctness on tested data. |
 
-Không tối ưu để “mọi đối tượng đều có hash khác nhau”: điều này không phải yêu cầu của Java, và không khả thi cho miền key lớn hơn số lượng giá trị `int`. Mục tiêu có ý nghĩa là **đảm bảo đúng hợp đồng** và sau đó đạt hiệu năng phù hợp với dữ liệu, workload thực tế.
+Do not optimize so that "every object has a unique hash": this is not required by Java, and is impossible for key domains larger than the number of `int` values. The meaningful goal is **guaranteeing contract correctness** and then achieving performance suited to real data and workloads.
 
-## 8. Những sai lầm thường gặp
+## 8. Common Mistakes
 
-| Sai lầm | Vì sao sai | Cách làm đúng |
+| Mistake | Why it is wrong | Right approach |
 | --- | --- | --- |
-| Assert hai key không bằng nhau phải có hash khác nhau | Hash collision là hợp lệ | Chỉ bắt buộc hai key bằng nhau có hash bằng nhau |
-| Kiểm tra histogram đẹp rồi kết luận `equals()` đúng | Phân bố không xác thực phản xạ/đối xứng/bắc cầu | Viết test hợp đồng độc lập |
-| `hashCode()` luôn trả cùng hằng số nên gọi là bug chức năng | Nó có thể hoàn toàn đúng hợp đồng | Gắn nhãn rủi ro hiệu năng, kiểm tra workload |
-| Mỗi lần `hashCode()` trả random để có vẻ “đều” | Không ổn định, phá hợp đồng và lookup | Hash phải ổn định khi trạng thái bằng nhau không đổi |
-| Dùng key mutable rồi sửa trường định danh khi ở trong map | Tra cứu có thể thất bại dù code có vẻ đúng trước đó | Key bất biến hoặc remove/reinsert đúng quy trình |
-| Benchmark một lần không warmup | JIT, GC, cấp phát và nhiễu hệ thống chi phối | Dùng JMH, thiết lập và lặp lại hợp lý |
-| Đo bucket modulo rồi khẳng định số liệu nội bộ `HashMap` | Mô hình không phản ánh đầy đủ implementation | Ghi rõ đó là histogram minh họa |
-| Tối ưu hash rồi bỏ qua test equality | Có thể làm mất tương thích giữa `equals` và hash | Chạy lại correctness suite sau mỗi thay đổi |
-| Xem throughput một mình là mọi thứ | Có thể che độ trễ xấu, bộ nhớ hoặc GC | Đo chỉ số phù hợp mục tiêu sử dụng |
+| Asserting unequal keys must have different hashes | Hash collisions are valid | Only require equal keys to share equal hashes |
+| Seeing a nice histogram and concluding `equals()` is right | Distribution does not verify reflexivity/symmetry/transitivity | Write independent contract tests |
+| Calling a constant `hashCode()` a functional bug | It can be completely contract-compliant | Label as a performance risk, check workload |
+| Returning random values from `hashCode()` to look "uniform" | Unstable, breaks the contract and lookups | Hashes must remain stable while equality state is unchanged |
+| Using mutable keys and mutating identity fields while in a map | Lookups can fail even if code looked fine earlier | Use immutable keys or remove/reinsert properly |
+| Benchmarking once without warmup | JIT, GC, allocation, and system noise dominate | Use JMH with proper setup and iterations |
+| Measuring modulo buckets and claiming internal `HashMap` numbers | The model does not fully reflect the implementation | State clearly that it is an illustrative histogram |
+| Optimizing hash and skipping equality tests | Can break compatibility between `equals` and hashing | Re-run correctness suite after every change |
+| Treating throughput alone as everything | Can hide tail latency, memory, or GC issues | Measure metrics suited to usage goals |
 
-## 9. Checklist trước khi kết luận
+## 9. Pre-Conclusion Checklist
 
-1. Đã viết rõ **khóa nghiệp vụ** và trường nào thuộc `equals()`?
-2. Đã kiểm tra phản xạ, đối xứng, bắc cầu, null, consistency, các trường hợp biên và cặp key bằng nhau theo giá trị nhưng là hai instance khác nhau?
-3. Đã kiểm tra `equals ⇒ same hash`, đồng thời **không bắt** các key khác nhau phải có hash khác nhau?
-4. Đã xác nhận `HashSet`/`HashMap` nhận diện và truy xuất đúng một key tương đương, kể cả khi có collision?
-5. Đã xử lý nguy cơ sửa key sau khi đưa vào collection?
-6. Nếu nói về chất lượng phân bố: đã xác định rõ dataset, mô hình bucket, metric và sự khác biệt với nội bộ `HashMap`?
-7. Nếu nói về hiệu năng: đã có benchmark đáng tin, workload đại diện, số lần đo, môi trường, warmup và kết quả so sánh công bằng?
+1. Have you explicitly stated the **business key** and which fields belong to `equals()`?
+2. Have you tested reflexivity, symmetry, transitivity, null, consistency, boundary cases, and value-equal key pairs that are two distinct instances?
+3. Have you tested `equals ⇒ same hash`, while **not forcing** unequal keys to have different hashes?
+4. Have you confirmed `HashSet`/`HashMap` recognize and retrieve an equivalent key accurately, even under collisions?
+5. Have you addressed the risk of mutating keys after insertion into collections?
+6. If making claims about distribution quality: have you clearly specified the dataset, bucket model, metrics, and differences from `HashMap` internals?
+7. If making claims about performance: do you have reliable benchmarks, representative workloads, iteration counts, environment, warmup, and fair comparison results?
 
-**Ghi nhớ:** kiểm thử `equals()`/`hashCode()` trả lời **“có đúng hay không?”**; phân tích phân bố và benchmark trả lời **“tốt đến mức nào trên dữ liệu và môi trường này?”**. Việc một hàm băm có nhiều va chạm chưa tự làm sai hợp đồng, còn một hàm băm nhìn có vẻ phân bố tốt không thể bù đắp quan hệ bằng nhau bị định nghĩa sai.
+**Remember:** `equals()`/`hashCode()` tests answer **"is it correct?"**; distribution analysis and benchmarks answer **"how well does it perform on this data and environment?"**. Having many collisions in a hash function does not by itself break the contract, and a seemingly well-distributed hash function cannot compensate for a wrongly defined equality relation.

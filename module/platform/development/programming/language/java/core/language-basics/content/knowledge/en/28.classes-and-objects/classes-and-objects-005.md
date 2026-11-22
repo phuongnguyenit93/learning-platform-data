@@ -1,8 +1,8 @@
-# `this` biểu thị đối tượng hiện tại — Java 17+
+# `this` Represents the Current Object — Java 17+
 
-## 1. `this` là gì?
+## 1. What Is `this`?
 
-Trong **constructor, phương thức instance và ngữ cảnh instance** của một lớp Java, `this` là biểu thức tham chiếu tới **chính đối tượng hiện tại**. Đó là đối tượng được khởi tạo hoặc đối tượng nhận lời gọi phương thức.
+In a **constructor, instance method, and instance context** of a Java class, `this` is an expression referencing the **current object itself**. That is the object being initialized or the object receiving the method call.
 
 ~~~java
 class Box {
@@ -22,11 +22,11 @@ class Box {
 }
 ~~~
 
-Nếu tạo hai hộp riêng bằng `new Box(1)` và `new Box(10)`, rồi gọi `increase()` trên hộp đầu, `this` trong lượt gọi ấy chỉ **hộp đầu**. Trong lượt gọi `increase()` trên hộp thứ hai, `this` lại chỉ **hộp thứ hai**.
+If you create two separate boxes with `new Box(1)` and `new Box(10)`, and call `increase()` on the first box, `this` during that call refers to the **first box**. During the `increase()` call on the second box, `this` refers to the **second box**.
 
-**Nhớ:** `this` không phải tên lớp, không tạo object, và không phải biến có thể gán lại; nó biểu thị **instance hiện tại**. `this` không được dùng trực tiếp trong ngữ cảnh `static`.
+**Remember:** `this` is not a class name, does not create an object, and is not a variable that can be reassigned; it denotes the **current instance**. `this` cannot be used directly in a `static` context.
 
-## 2. `this.field`: phân biệt field với tham số hoặc local
+## 2. `this.field`: Distinguishing a Field from a Parameter or Local
 
 ~~~java
 class Student {
@@ -38,24 +38,24 @@ class Student {
 }
 ~~~
 
-Trong `Student(String name)`:
+In `Student(String name)`:
 
-- `name` ở vế phải là **tham số constructor**.
-- `this.name` ở vế trái là **field của đối tượng đang tạo**.
-- Không có `this`, lệnh `name = name;` chỉ gán tham số cho chính nó; field chưa được cập nhật như mong muốn.
+- `name` on the right-hand side is the **constructor parameter**.
+- `this.name` on the left-hand side is the **field of the object being created**.
+- Without `this`, `name = name;` only assigns the parameter to itself; the field is not updated as intended.
 
-| Biểu thức | Ý nghĩa |
+| Expression | Meaning |
 |---|---|
-| `name` | Tên đơn; nếu có tham số/local cùng tên, Java dùng tham số/local đó |
-| `this.name` | Field `name` của instance hiện tại |
-| `this.score` | Field `score` của instance hiện tại |
-| `this.getScore()` | Gọi phương thức instance trên instance hiện tại |
+| `name` | Simple name; if a parameter/local shares the name, Java uses that parameter/local |
+| `this.name` | The `name` field of the current instance |
+| `this.score` | The `score` field of the current instance |
+| `this.getScore()` | Calls an instance method on the current instance |
 
-Nếu không có biến local/tham số nào che tên field, `score` và `this.score` thường cùng chỉ field của đối tượng đó. Dùng `this` khi cần phân biệt, hoặc khi muốn thể hiện rõ đây là thành viên instance.
+If no local variable or parameter shadows the field name, `score` and `this.score` normally refer to the same object's field. Use `this` when disambiguation is needed, or when you want to make clear that it is an instance member.
 
-## 3. `this.method()` và lời gọi ngầm
+## 3. `this.method()` and Implicit Calls
 
-Trong một instance method:
+Inside an instance method:
 
 ~~~java
 void addPoints(int amount) {
@@ -68,18 +68,18 @@ void addAndPrint(int amount) {
 }
 ~~~
 
-Nếu `addPoints` là instance method cùng lớp, có thể viết ngắn `addPoints(amount);`; lời gọi không định danh đối tượng vẫn được thực hiện trên instance hiện tại (trong các trường hợp thông thường).
+If `addPoints` is an instance method in the same class, you can write the shorter `addPoints(amount);`; an unqualified call is still executed on the current instance (in normal cases).
 
-`this.addPoints(amount)` **không gọi phương thức của một instance mới**. Nó gọi phương thức với cùng receiver `this` hiện có. Khi gọi `an.addAndPrint(5)`, các lần truy cập `this.points` ở hai phương thức đều thuộc object mà `an` trỏ tới.
+`this.addPoints(amount)` **does not call a method on a new instance**. It invokes the method with the same existing `this` receiver. When calling `an.addAndPrint(5)`, all accesses to `this.points` in both methods belong to the object `an` points to.
 
-Không dùng `this` làm cách thay thế cho việc chọn object khác. Muốn thay đổi `binh`, phải gọi trên object `binh` hoặc có tham chiếu rõ ràng tới nó.
+Do not use `this` as a substitute for selecting another object. To modify `binh`, call the method on the `binh` object or hold an explicit reference to it.
 
-## 4. `this(...)` là lời gọi constructor khác
+## 4. `this(...)` Is a Call to Another Constructor
 
-Phân biệt hai cú pháp:
+Distinguish the two syntaxes:
 
-- `this.field`, `this.method()`: dùng **đối tượng hiện tại**.
-- `this(arguments);`: gọi **constructor khác trong cùng lớp** để dùng lại logic khởi tạo.
+- `this.field`, `this.method()`: use the **current object**.
+- `this(arguments);`: calls **another constructor in the same class** to reuse initialization logic.
 
 ~~~java
 class Student {
@@ -97,11 +97,11 @@ class Student {
 }
 ~~~
 
-Trên Java 17, một lời gọi constructor tường minh `this(...)` phải là **câu lệnh đầu tiên trong thân constructor**. Không đặt lệnh in, phép gán field hoặc `this.field` trước lời gọi ấy. Một constructor không thể vừa gọi `this(...)` vừa gọi `super(...)` tường minh; chuỗi gọi constructor cũng không được tạo vòng lặp vô hạn giữa các constructor.
+On Java 17, an explicit constructor call `this(...)` must be the **first statement in the constructor body**. Do not place print statements, field assignments, or `this.field` before that call. A constructor cannot call both `this(...)` and `super(...)` explicitly; nor can the constructor call chain form an infinite cycle among constructors.
 
-`this(name, 0)` **không tạo thêm một Student thứ hai**. Nó thực hiện constructor hai tham số để khởi tạo **cùng object đang được tạo**. Việc tạo object xuất phát từ `new Student(...)`.
+`this(name, 0)` **does not create a second Student**. It executes the two-parameter constructor to initialize **the same object being created**. Object creation comes from `new Student(...)`.
 
-## 5. `return this`: trả tham chiếu của chính object
+## 5. `return this`: Returning a Reference to the Object Itself
 
 ~~~java
 class Counter {
@@ -118,7 +118,7 @@ class Counter {
 }
 ~~~
 
-Có thể viết:
+You can write:
 
 ~~~java
 Counter counter = new Counter();
@@ -134,10 +134,10 @@ System.out.println(counter == returned);
 true
 ~~~
 
-`return this;` trả **tham chiếu tới chính object đang nhận lời gọi**, không tạo bản sao. Kiểu trả về ở ví dụ là `Counter`, không phải `void`; vì thế mới trả được `this`. Cách trả về này thường dùng trong *fluent API* hoặc *method chaining*, nhưng chỉ nên áp dụng khi làm API rõ ràng.
+`return this;` returns a **reference to the same object receiving the call**, without creating a copy. The return type in the example is `Counter`, not `void`; that is why `this` can be returned. This return pattern is often used in *fluent APIs* or *method chaining*, though it should only be applied when it makes the API clearer.
 
 
-## 6. Cùng instance thì `this` cũng là cùng receiver
+## 6. Same Instance Means `this` Is the Same Receiver
 
 ~~~java
 Counter first = new Counter();
@@ -148,11 +148,11 @@ System.out.println(first.getCount()); // 3
 System.out.println(first == alias);    // true
 ~~~
 
-Hai biến `first` và `alias` cùng tham chiếu một object. Vì thế trong cả hai lần gọi `add`, `this` vẫn chỉ **object Counter ấy**. Khi `alias = new Counter()`, lời gọi tiếp theo qua `alias` sẽ có receiver khác. `this` không phải biến có thể gán lại, và `return this` không sao chép đối tượng. Trường hợp nhiều object và alias được minh họa đầy đủ ở bài đầu chương.
+Both `first` and `alias` reference the same object. Therefore, in both `add` calls, `this` refers to **that same Counter object**. When `alias = new Counter()`, subsequent calls through `alias` will have a different receiver. `this` is not a reassignable variable, and `return this` does not copy the object. Multiple objects and aliases are fully illustrated in the first lesson of the chapter.
 
-## 7. Khi nào `this` không hợp lệ?
+## 7. When Is `this` Invalid?
 
-`this` chỉ có ý nghĩa khi có **instance hiện tại**. Phương thức `static` gắn với lớp, không có một receiver instance mặc định:
+`this` is meaningful only when there is a **current instance**. A `static` method is attached to the class and has no default instance receiver:
 
 ~~~java
 class Student {
@@ -160,28 +160,28 @@ class Student {
 
     static void invalid() {
         // System.out.println(this.score);
-        // LỖI BIÊN DỊCH: không dùng this trong static context.
+        // COMPILE ERROR: cannot use this in a static context.
     }
 }
 ~~~
 
-Cách đúng là nhận hoặc tạo một object rồi truy cập qua tham chiếu đó (tuân thủ phạm vi và quyền truy cập):
+The right approach is to receive or create an object and access through that reference (respecting scope and access permissions):
 
 ~~~java
 static int readScore(Student student) {
-    return student.score;  // Đọc qua tham chiếu student, không phải this.
+    return student.score;  // Reads through the student reference, not this.
 }
 ~~~
 
-Ngoài ra:
+In addition:
 
-- Không thể `this = anotherObject;` vì `this` không phải biến gán được.
-- Trong `main` là phương thức static, dùng `student.method()` hoặc `new Student(...)`, không dùng `this.method()`.
-- `this` trong một instance method luôn tham chiếu **receiver hiện tại**. Khi có kế thừa, receiver thực tế có thể thuộc lớp con; `super` là cách chọn phiên bản thành viên của lớp cha trong ngữ cảnh thích hợp, khác với `this`.
+- You cannot write `this = anotherObject;` because `this` is not an assignable variable.
+- Inside `main`, which is a static method, use `student.method()` or `new Student(...)`, not `this.method()`.
+- `this` inside an instance method always references the **current receiver**. With inheritance, the actual receiver may belong to a subclass; `super` is the way to select the superclass's version of a member in an appropriate context, distinct from `this`.
 
-## 8. Chương trình Java 17+ tự chạy bằng CLI
+## 8. Standalone CLI Java 17+ Program
 
-Lưu file **`ThisCurrentObjectDemo.java`**:
+Save file **`ThisCurrentObjectDemo.java`**:
 
 ~~~java
 public final class ThisCurrentObjectDemo {
@@ -192,7 +192,7 @@ public final class ThisCurrentObjectDemo {
         private int points;
 
         Student(String name) {
-            this(name, 0); // Phải đứng đầu constructor trong Java 17.
+            this(name, 0); // Must be first in constructor in Java 17.
         }
 
         Student(String name, int points) {
@@ -302,39 +302,39 @@ invalid add=points out of range
 an final=An:90
 ~~~
 
-**Lưu ý tràn số:** Vì `this.points` được giữ trong `0..100`, dùng `delta > 100 - this.points` thay vì cộng trước khi so sánh; nhờ đó `Integer.MAX_VALUE` không thể làm `int` tràn rồi vượt qua kiểm tra.
+**Overflow note:** Because `this.points` is kept in `0..100`, using `delta > 100 - this.points` avoids adding before comparing; thus `Integer.MAX_VALUE` cannot overflow `int` and slip past the check.
 
-**Đọc kết quả:** `this` trong `an.addPoints` là object của `an`, không phải `binh`; qua biến `alias` vẫn là object ấy. `this(...)` trong constructor một tham số thiết lập điểm mặc định bằng 0 trên cùng instance `binh`. `return this` trả đúng tham chiếu `an`, không cấp phát object mới.
+**Reading the output:** `this` in `an.addPoints` is `an`'s object, not `binh`; through `alias` it is still that same object. `this(...)` in the one-argument constructor sets default points to 0 on the same `binh` instance. `return this` returns the exact `an` reference, without allocating a new object.
 
-## 9. Bài tập, lỗi hay gặp và checklist
+## 9. Exercises, Common Mistakes, and Checklist
 
-| Sai lầm | Vì sao sai? | Cách sửa |
+| Mistake | Why is it wrong? | How to fix |
 |---|---|---|
-| `name = name;` khi tham số trùng tên field | Chỉ tác động tham số | `this.name = name;` |
-| Nghĩ `this` tạo thêm instance | `this` chỉ instance sẵn có | `new` mới tạo object |
-| Dùng `this.field` trong `static` | Không có receiver instance | Dùng object cụ thể |
-| Viết lệnh trước `this(...)` trong constructor Java 17 | Vi phạm quy tắc lời gọi constructor đầu tiên | Đặt `this(...)` đầu thân constructor |
-| Cho rằng `return this` tạo bản sao | Trả chính tham chiếu object | Tạo bản sao rõ ràng nếu cần |
-| Cho rằng `alias = a` tạo object mới | Chỉ sao chép tham chiếu | Phân biệt alias với `new` |
+| `name = name;` when parameter matches field name | Only affects the parameter | `this.name = name;` |
+| Thinking `this` creates another instance | `this` refers to the existing instance | `new` is what creates an object |
+| Using `this.field` inside `static` | No instance receiver exists | Use a specific object |
+| Writing a statement before `this(...)` in a Java 17 constructor | Violates first-statement constructor call rule | Place `this(...)` first in the constructor body |
+| Assuming `return this` creates a copy | Returns the exact object reference | Create an explicit copy if needed |
+| Assuming `alias = a` creates a new object | Only copies the reference | Distinguish alias from `new` |
 
-**Bài A:** Với `Student a = new Student("An", 10);` và `Student b = a;`, lời gọi `b.addPoints(5)` làm `a.describe()` trả gì? **`An:15`**: `this` của lời gọi trỏ cùng object.
+**Exercise A:** Given `Student a = new Student("An", 10);` and `Student b = a;`, what does `a.describe()` return after calling `b.addPoints(5)`? **`An:15`**: `this` in the call points to the same object.
 
-**Bài B:** Có thể dùng `this` trong `public static void main` không? **Không**. Phải có một object, ví dụ `Student a = new Student("An"); a.describe();`.
+**Exercise B:** Can `this` be used in `public static void main`? **No**. There must be an object, e.g., `Student a = new Student("An"); a.describe();`.
 
-**Bài C:** `Student(String name) { this(name, 0); }` tạo mấy Student khi gọi `new Student("An")`? **Một**. Nó gọi constructor khác cho cùng object, không gọi `new` lần thứ hai.
+**Exercise C:** How many `Student` objects does `Student(String name) { this(name, 0); }` create when calling `new Student("An")`? **One**. It invokes another constructor for the same object, not a second `new`.
 
-**Bài D:** `return this;` có giống `return new Student(...);` không? **Không**. Một bên trả object đang có; bên còn lại tạo object khác.
+**Exercise D:** Is `return this;` the same as `return new Student(...);`? **No**. One returns the existing object; the other creates a different object.
 
 ### Checklist
 
-- [ ] Hiểu `this` là object hiện tại trong ngữ cảnh instance.
-- [ ] Biết `this.field` phân biệt field với tham số/local cùng tên.
-- [ ] Biết `this.method()` gọi method trên chính instance ấy.
-- [ ] Phân biệt `this(...)` (constructor chaining) với `this.field`.
-- [ ] Nhớ trong Java 17, `this(...)` phải là lệnh đầu tiên của constructor.
-- [ ] Hiểu `return this` trả cùng tham chiếu, không copy object.
-- [ ] Hiểu hai biến alias có thể có cùng receiver `this`.
-- [ ] Không dùng `this` trong static context.
-- [ ] Biên dịch và chạy `ThisCurrentObjectDemo.java`, đối chiếu exact stdout.
+- [ ] Understand that `this` is the current object in an instance context.
+- [ ] Know that `this.field` distinguishes a field from a same-named parameter/local.
+- [ ] Know that `this.method()` calls a method on that same instance.
+- [ ] Distinguish `this(...)` (constructor chaining) from `this.field`.
+- [ ] Remember that in Java 17, `this(...)` must be the first statement of a constructor.
+- [ ] Understand that `return this` returns the same reference, without copying the object.
+- [ ] Understand that two alias variables can have the same `this` receiver.
+- [ ] Do not use `this` in a static context.
+- [ ] Compile and run `ThisCurrentObjectDemo.java`, verifying exact stdout.
 
-**Kết luận:** `this` luôn giúp xác định **đối tượng hiện tại** trong code instance. Dùng `this.field` để truy cập field, `this.method()` để gọi hành vi trên receiver, `this(...)` để tái sử dụng constructor và `return this` để trả chính instance ấy.
+**Conclusion:** `this` always helps identify the **current object** in instance code. Use `this.field` to access fields, `this.method()` to invoke behaviors on the receiver, `this(...)` to reuse constructors, and `return this` to return the instance itself.

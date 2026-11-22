@@ -1,54 +1,54 @@
-# Phân biệt `getDeclaringClass()` và `getEnclosingClass()` trong Java Reflection
+# Distinguishing `getDeclaringClass()` and `getEnclosingClass()` in Java Reflection
 
-## 1. Vấn đề cần hiểu
+## 1. The problem to understand
 
-Khi phản chiếu một kiểu Java bằng `Class<?>`, hai phương thức sau đều trả về một đối tượng `Class<?>` hoặc `null`:
+When reflecting on a Java type with `Class<?>`, both of the following methods return a `Class<?>` object or `null`:
 
-- `getDeclaringClass()`: trả về **kiểu khai báo trực tiếp kiểu thành viên (member type) đang xét**. Nếu kiểu đang xét không phải thành viên của một class/interface khác, kết quả là `null`.
-- `getEnclosingClass()`: trả về **class bao quanh trực tiếp** kiểu đang xét. Với member class, đó chính là declaring class; với local class và anonymous class, đó là class chứa vị trí khai báo biểu thức/lớp cục bộ.
+- `getDeclaringClass()`: returns **the type that directly declares the member type under inspection**. If the type under inspection is not a member of another class/interface, the result is `null`.
+- `getEnclosingClass()`: returns **the immediately enclosing class** of the type under inspection. For a member class, that is the declaring class; for a local class and an anonymous class, it is the class containing the declaration site of the local class/expression.
 
-Khác biệt quan trọng: **một local class hoặc anonymous class có lớp bao quanh nhưng không phải member class**. Vì vậy nó có thể nhận `getDeclaringClass() == null` và `getEnclosingClass() != null`.
+Key difference: **a local class or anonymous class has an enclosing class, but is not a member class**. Therefore, it can have `getDeclaringClass() == null` and `getEnclosingClass() != null`.
 
-Đây là quan hệ **cấu trúc khai báo trong mã nguồn**, không phải quan hệ kế thừa qua `extends`, không phải kiểu của đối tượng ở runtime và cũng không khẳng định class con đang giữ tham chiếu đến một instance của outer class.
+This is a **source-code declaration structure** relationship, not an inheritance relationship via `extends`, not the runtime type of an object, and it also does not assert that a child class holds a reference to an instance of the outer class.
 
-## 2. Member type, local class và anonymous class
+## 2. Member type, local class, and anonymous class
 
-Xét cấu trúc khái niệm:
+Consider the conceptual structure:
 
 ~~~text
 Outer (top-level class)
 ├── StaticMember              // static nested member class
 ├── InnerMember               // non-static member (inner) class
 └── method()
-    ├── Local                 // local class trong thân method
-    └── new Runnable() {...}  // anonymous class trong method
+    ├── Local                 // local class in method body
+    └── new Runnable() {...}  // anonymous class in method
 ~~~
 
-`StaticMember` và `InnerMember` là **member class** được khai báo ở mức thân `Outer`; còn `Local` và anonymous class nằm bên trong một khối lệnh/biểu thức. Cả bốn đều có `Outer` là enclosing class trong ví dụ này, nhưng **chỉ hai member class có declaring class là `Outer`**.
+`StaticMember` and `InnerMember` are **member classes** declared at the body level of `Outer`; whereas `Local` and the anonymous class reside inside a statement block or expression. All four have `Outer` as their enclosing class in this example, but **only the two member classes have `Outer` as their declaring class**.
 
-Một local class cũng có thể nằm trong constructor hoặc initializer. Anonymous class có thể xuất hiện tại chỗ khởi tạo field. Vị trí khác nhau ảnh hưởng đến `getEnclosingMethod()` / `getEnclosingConstructor()`, nhưng không biến chúng thành member class.
+A local class can also be placed inside a constructor or an initializer. An anonymous class can appear in a field initializer. Different locations affect `getEnclosingMethod()` / `getEnclosingConstructor()`, but do not turn them into member classes.
 
-## 3. Bảng so sánh kết quả
+## 3. Comparison table of results
 
-Giả sử `Outer` là top-level class và các kiểu bên dưới được khai báo trực tiếp trong `Outer`:
+Assume `Outer` is a top-level class and the types below are declared directly inside `Outer`:
 
-| Kiểu đang kiểm tra | `getDeclaringClass()` | `getEnclosingClass()` | Giải thích |
+| Type under inspection | `getDeclaringClass()` | `getEnclosingClass()` | Explanation |
 | --- | --- | --- | --- |
-| `Outer.class` | `null` | `null` | Top-level class không nằm trong class khác |
+| `Outer.class` | `null` | `null` | Top-level class is not inside another class |
 | `Outer.StaticMember.class` | `Outer.class` | `Outer.class` | Static nested member class |
 | `Outer.InnerMember.class` | `Outer.class` | `Outer.class` | Non-static member class (inner class) |
-| Một member interface bên trong `Outer` | `Outer.class` | `Outer.class` | Interface thành viên cũng có declaring/enclosing type |
-| Local class khai báo trực tiếp trong method của `Outer` | `null` | `Outer.class` | Local class không là member class |
-| Anonymous class tạo trực tiếp trong method của `Outer` | `null` | `Outer.class` | Anonymous class không là member class |
-| Local class khai báo trực tiếp trong constructor của `Outer` | `null` | `Outer.class` | Nằm trong constructor nhưng vẫn có enclosing class |
-| `Outer.StaticMember[].class` | `null` | `null` | Bản thân array class không là nested/member class |
-| `int.class` hoặc `void.class` | `null` | `null` | Primitive/void không có quan hệ bao quanh |
+| A member interface inside `Outer` | `Outer.class` | `Outer.class` | A member interface also has a declaring/enclosing type |
+| Local class declared directly in a method of `Outer` | `null` | `Outer.class` | A local class is not a member class |
+| Anonymous class created directly in a method of `Outer` | `null` | `Outer.class` | An anonymous class is not a member class |
+| Local class declared directly in a constructor of `Outer` | `null` | `Outer.class` | Located in a constructor, yet still has an enclosing class |
+| `Outer.StaticMember[].class` | `null` | `null` | An array class itself is not a nested/member class |
+| `int.class` or `void.class` | `null` | `null` | Primitive/void has no enclosing relationship |
 
-**Lưu ý về độ sâu:** nếu `Nested` được khai báo là member class trong `Outer.InnerMember` thì cả hai phương thức của `Nested.class` đều trả về `Outer.InnerMember.class`, tức **kiểu bao quanh trực tiếp**, không nhảy thẳng về `Outer.class`.
+**Note on depth:** if `Nested` is declared as a member class inside `Outer.InnerMember`, both methods on `Nested.class` return `Outer.InnerMember.class`, i.e., **the immediately enclosing type**, rather than jumping straight to `Outer.class`.
 
-## 4. Ví dụ Java 17+ có thể chạy độc lập
+## 4. Standalone runnable Java 17+ example
 
-Lưu toàn bộ chương trình sau vào tệp **`DeclaringVsEnclosingDemo.java`**:
+Save the entire following program to a file named **`DeclaringVsEnclosingDemo.java`**:
 
 ~~~java
 public class DeclaringVsEnclosingDemo {
@@ -109,14 +109,14 @@ public class DeclaringVsEnclosingDemo {
 }
 ~~~
 
-Từ thư mục chứa tệp, biên dịch và chạy bằng JDK 17 trở lên:
+From the directory containing the file, compile and run with JDK 17 or later:
 
 ~~~bash
 javac DeclaringVsEnclosingDemo.java
 java DeclaringVsEnclosingDemo
 ~~~
 
-**Kết quả stdout (đã kiểm tra với JDK 21):**
+**Stdout output (verified on JDK 21):**
 
 ~~~text
 top-level: declaring=null, enclosing=null, member=false, local=false, anonymous=false
@@ -133,35 +133,35 @@ anonymous simple name: ''
 local canonical name: null
 ~~~
 
-### Đọc kết quả và lý do
+### Reading the output and why
 
-1. **Hai member class:** `StaticMember` có từ khóa `static`, còn `InnerMember` không có; tuy vậy cả hai đều là member class. Hai API đang xét đều trả về `DeclaringVsEnclosingDemo.class`. **Không** dựa vào hai API này để suy ra thành viên có `static` hay không.
-2. **Local class trong method:** `MethodLocal` được khai báo trong thân `localFromMethod()`. Nó có `isLocalClass() == true`, declaring class là `null`, enclosing class là `DeclaringVsEnclosingDemo.class`. `getEnclosingMethod()` xác định method `localFromMethod`.
-3. **Anonymous class trong method:** biểu thức `new Runnable() { ... }` tạo anonymous class thực sự. Nó có `isAnonymousClass() == true`, declaring class `null`, enclosing class là `DeclaringVsEnclosingDemo.class`. Tên đơn giản của nó là chuỗi rỗng; đây không phải local class có tên.
-4. **Local class trong constructor:** `ConstructorLocal` có enclosing class như hai trường hợp trên, nhưng `getEnclosingConstructor()` trả về constructor của `DeclaringVsEnclosingDemo` và `getEnclosingMethod()` trả về `null`.
-5. **Array và primitive:** dù kiểu phần tử của `StaticMember[].class` là member class, **bản thân kiểu mảng** không nhận declaring/enclosing class. Muốn phân tích kiểu phần tử, dùng `getComponentType()` rồi kiểm tra lớp phần tử.
+1. **Two member classes:** `StaticMember` has the `static` keyword, while `InnerMember` does not; yet both are member classes. Both APIs under discussion return `DeclaringVsEnclosingDemo.class`. **Do not** rely on these two APIs to infer whether a member is `static` or not.
+2. **Local class in method:** `MethodLocal` is declared inside the body of `localFromMethod()`. It has `isLocalClass() == true`, declaring class `null`, and enclosing class `DeclaringVsEnclosingDemo.class`. `getEnclosingMethod()` identifies the method `localFromMethod`.
+3. **Anonymous class in method:** the expression `new Runnable() { ... }` creates a true anonymous class. It has `isAnonymousClass() == true`, declaring class `null`, and enclosing class `DeclaringVsEnclosingDemo.class`. Its simple name is an empty string; this is not a named local class.
+4. **Local class in constructor:** `ConstructorLocal` has an enclosing class like the two cases above, but `getEnclosingConstructor()` returns the constructor of `DeclaringVsEnclosingDemo` and `getEnclosingMethod()` returns `null`.
+5. **Array and primitive:** even though the element type of `StaticMember[].class` is a member class, **the array type itself** does not get a declaring/enclosing class. To analyze the element type, use `getComponentType()` and then inspect the component class.
 
-## 5. Các API liên quan: dùng đúng mục đích
+## 5. Related APIs: use each for its intended purpose
 
-| API | Dùng để biết điều gì? |
+| API | What is it used to find out? |
 | --- | --- |
-| `Class.isMemberClass()` | Kiểu có phải member class hay không |
-| `Class.isLocalClass()` | Kiểu có phải local class hay không |
-| `Class.isAnonymousClass()` | Kiểu có phải anonymous class hay không |
-| `Class.getEnclosingMethod()` | Method trực tiếp chứa local/anonymous class, nếu có |
-| `Class.getEnclosingConstructor()` | Constructor trực tiếp chứa local/anonymous class, nếu có |
-| `Class.getSuperclass()` | Lớp cha trong quan hệ kế thừa, độc lập với enclosing class |
-| `Class.getDeclaredClasses()` | Các member class/interface khai báo trong class đang xét; không dùng để liệt kê local/anonymous class |
-| `Class.getComponentType()` | Kiểu phần tử của một array class |
-| `Class.getCanonicalName()` | Tên chuẩn, thường `null` với local/anonymous class |
+| `Class.isMemberClass()` | Whether the type is a member class |
+| `Class.isLocalClass()` | Whether the type is a local class |
+| `Class.isAnonymousClass()` | Whether the type is an anonymous class |
+| `Class.getEnclosingMethod()` | The method directly containing a local/anonymous class, if any |
+| `Class.getEnclosingConstructor()` | The constructor directly containing a local/anonymous class, if any |
+| `Class.getSuperclass()` | The superclass in the inheritance relationship, independent of the enclosing class |
+| `Class.getDeclaredClasses()` | The member classes/interfaces declared in the class under inspection; not for listing local/anonymous classes |
+| `Class.getComponentType()` | The element type of an array class |
+| `Class.getCanonicalName()` | The canonical name, typically `null` for local/anonymous classes |
 
-Nếu local/anonymous class được khai báo trong **instance initializer, static initializer hoặc phần khởi tạo field**, nó vẫn có thể có `getEnclosingClass() != null` trong khi **cả `getEnclosingMethod()` lẫn `getEnclosingConstructor()` đều trả về `null`**. Vì vậy, không được kết luận “không có enclosing class” chỉ từ hai phương thức sau.
+If a local/anonymous class is declared in an **instance initializer, static initializer, or field initializer**, it can still have `getEnclosingClass() != null` while **both `getEnclosingMethod()` and `getEnclosingConstructor()` return `null`**. Therefore, you must not conclude “there is no enclosing class” solely from those two methods.
 
-Tên lấy bằng `getName()` cho local/anonymous class thường có ký hiệu `$` và số thứ tự phụ thuộc vào cách compiler tạo bytecode. Không phân loại bằng cách tách chuỗi tên đó: dùng những API phân loại của `Class`.
+The name obtained via `getName()` for local/anonymous classes usually contains `$` symbols and sequential numbers depending on how the compiler generates bytecode. Do not classify by splitting that name string: use the classification APIs on `Class`.
 
-## 6. Cách áp dụng khi viết công cụ Reflection
+## 6. How to apply this when writing Reflection tools
 
-Khi cần phân loại kiểu theo **vị trí khai báo**, nên kiểm tra loại trước rồi mới lấy ngữ cảnh:
+When classifying a type by **declaration site**, check the kind first and then retrieve the context:
 
 ~~~java
 static String origin(Class<?> type) {
@@ -178,44 +178,44 @@ static String origin(Class<?> type) {
 }
 ~~~
 
-Đây là **đoạn phương thức minh họa** để đặt vào một class Java khác; nó không phải chương trình độc lập và không tự in ra stdout. Nó thể hiện cách phân loại thông thường cho các kiểu do mã nguồn Java biên dịch. Nếu đang xử lý class được sinh bằng bytecode tooling, hidden class hoặc metadata không chuẩn, cần kiểm tra riêng hợp đồng của công cụ sinh class.
+This is an **illustrative method snippet** meant to be placed inside another Java class; it is not a standalone program and does not print to stdout by itself. It demonstrates the typical classification approach for types compiled from Java source code. If you are handling classes generated by bytecode tooling, hidden classes, or non-standard metadata, you need to check the specific contract of the class-generating tool.
 
-Để tìm **outer instance** của một inner class, cũng không thể lấy từ kết quả của hai API này: chúng trả về **đối tượng mô tả kiểu `Class<?>`**, không trả về object của outer instance. Việc class là member cũng không đồng nghĩa có outer instance; static nested class là ví dụ rõ nhất.
+To find the **outer instance** of an inner class, you also cannot obtain it from the results of these two APIs: they return **`Class<?>` type descriptor objects**, not the outer instance object. Being a member class also does not imply having an outer instance; a static nested class is the clearest example.
 
-## 7. Đừng nhầm với quan hệ “nest” của JVM
+## 7. Do not confuse with the JVM “nest” relationship
 
-Trong JVM, `getNestHost()` và `getNestMembers()` phản ánh **nest membership** phục vụ mô hình truy cập thành viên private giữa các nestmate (Java 11+). Đây là quan hệ metadata/runtime khác với “class được khai báo bên trong class nào”.
+In the JVM, `getNestHost()` and `getNestMembers()` reflect **nest membership** serving the private member access model between nestmates (Java 11+). This is a different metadata/runtime relationship from “which class a class is declared inside”.
 
-Ví dụ, với chuỗi khai báo `Outer → Inner → Deep`, enclosing/declaring class trực tiếp của `Deep` là `Inner`; còn nest host của các kiểu được Java compiler tạo trong nest đó thông thường là `Outer`. Do vậy, **`getNestHost()` không thay thế `getEnclosingClass()`** khi bạn cần biết lớp bao quanh gần nhất.
+For example, with the declaration chain `Outer → Inner → Deep`, the immediate enclosing/declaring class of `Deep` is `Inner`; whereas the nest host of the types generated by the Java compiler in that nest is normally `Outer`. Therefore, **`getNestHost()` does not replace `getEnclosingClass()`** when you need to find the nearest enclosing class.
 
-## 8. Lỗi thường gặp và cách tránh
+## 8. Common mistakes and how to avoid them
 
-- **Cho rằng hai API luôn tương đương:** chỉ đúng với các member type thông thường. Local và anonymous class là các phản ví dụ quan trọng.
-- **Thấy `getDeclaringClass() == null` rồi coi là top-level:** sai; local, anonymous, array, primitive và `void` cũng có thể cho kết quả đó. Hãy kiểm tra `isLocalClass()`, `isAnonymousClass()`, `isArray()`, `isPrimitive()` khi cần.
-- **Suy ra có outer object vì `getEnclosingClass() != null`:** sai. Static nested member class, local class trong static method vẫn có enclosing class nhưng không bắt buộc có một outer instance.
-- **Dùng `getSuperclass()` để suy ra enclosing class:** lớp cha và lớp bao quanh là hai quan hệ khác nhau. Một local class có thể `extends` class bất kỳ nhưng vẫn được khai báo bên trong một class khác.
-- **Dùng `getDeclaredClasses()` để tìm local class:** phương thức này liệt kê member types, không duyệt các khai báo local trong mọi method/constructor.
-- **Cho rằng `getEnclosingMethod() == null` nghĩa là không có enclosing class:** local/anonymous class trong constructor hoặc initializer là các phản ví dụ.
+- **Assuming the two APIs are always equivalent:** only true for regular member types. Local and anonymous classes are important counterexamples.
+- **Seeing `getDeclaringClass() == null` and treating it as top-level:** wrong; local, anonymous, array, primitive, and `void` can also produce that result. Check `isLocalClass()`, `isAnonymousClass()`, `isArray()`, and `isPrimitive()` when needed.
+- **Inferring there is an outer object because `getEnclosingClass() != null`:** wrong. A static nested member class or a local class inside a static method still has an enclosing class, yet does not necessarily have an outer instance.
+- **Using `getSuperclass()` to infer the enclosing class:** superclass and enclosing class are two different relationships. A local class can `extends` any class while still being declared inside another class.
+- **Using `getDeclaredClasses()` to find local classes:** this method lists member types; it does not scan local declarations inside every method/constructor.
+- **Assuming `getEnclosingMethod() == null` means there is no enclosing class:** local/anonymous classes in constructors or initializers are counterexamples.
 
-## 9. Tự kiểm tra
+## 9. Self-check
 
-**Câu 1.** Với `class Host { static class Item {} }`, `Item.class.getDeclaringClass()` và `Item.class.getEnclosingClass()` trả về gì?
+**Question 1.** With `class Host { static class Item {} }`, what do `Item.class.getDeclaringClass()` and `Item.class.getEnclosingClass()` return?
 
-**Đáp án:** cả hai đều trả về `Host.class`. `static` không loại bỏ quan hệ khai báo thành viên.
+**Answer:** both return `Host.class`. `static` does not remove the member declaration relationship.
 
-**Câu 2.** Trong method của `Host` có `class Local {}`. Có thể dùng `Local.class.getDeclaringClass() == null` để khẳng định `Local` là top-level class không?
+**Question 2.** Inside a method of `Host`, there is `class Local {}`. Can you use `Local.class.getDeclaringClass() == null` to assert that `Local` is a top-level class?
 
-**Đáp án:** không. `Local` là local class; declaring class bằng `null`, enclosing class bằng `Host.class` và `isLocalClass()` là `true`.
+**Answer:** no. `Local` is a local class; its declaring class is `null`, its enclosing class is `Host.class`, and `isLocalClass()` is `true`.
 
-**Câu 3.** `getEnclosingClass()` trả về `Host.class` có chứng minh một object `Host` đang bao quanh object hiện tại không?
+**Question 3.** Does `getEnclosingClass()` returning `Host.class` prove that a `Host` object is enclosing the current object?
 
-**Đáp án:** không. Kết quả mô tả vị trí khai báo của **kiểu**, không cung cấp outer instance.
+**Answer:** no. The result describes the declaration site of the **type**, not an outer instance.
 
-## 10. Ghi nhớ
+## 10. Takeaways
 
-- **Declaring = ai khai báo mình như một member?** `getDeclaringClass()` có giá trị khi kiểu là member của một kiểu khác.
-- **Enclosing = mình nằm trực tiếp trong class nào?** `getEnclosingClass()` còn hữu ích cho local và anonymous class.
-- **Member:** thường cả hai bằng nhau. **Local/anonymous:** declaring `null`, enclosing thường là class chứa khai báo. **Top-level:** cả hai `null`.
-- Khi cần biết “member/local/anonymous”, hỏi trực tiếp `isMemberClass()`, `isLocalClass()` và `isAnonymousClass()`, đừng suy diễn từ tên class.
+- **Declaring = who declares me as a member?** `getDeclaringClass()` is non-null when the type is a member of another type.
+- **Enclosing = which class am I directly inside?** `getEnclosingClass()` is also useful for local and anonymous classes.
+- **Member:** both are usually equal. **Local/anonymous:** declaring is `null`, enclosing is usually the class containing the declaration. **Top-level:** both are `null`.
+- When you need to know “member/local/anonymous”, ask `isMemberClass()`, `isLocalClass()`, and `isAnonymousClass()` directly; do not infer from the class name.
 
-**Tài liệu tham khảo chính thức:** [Java SE 17 — `java.lang.Class`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html), đặc biệt các phương thức `getDeclaringClass()`, `getEnclosingClass()`, `getEnclosingMethod()`, `getEnclosingConstructor()` và các hàm kiểm tra loại class.
+**Official reference:** [Java SE 17 — `java.lang.Class`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html), especially `getDeclaringClass()`, `getEnclosingClass()`, `getEnclosingMethod()`, `getEnclosingConstructor()`, and the class-kind inspection methods.

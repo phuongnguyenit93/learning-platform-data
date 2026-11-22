@@ -1,61 +1,61 @@
-# Thiết kế lớp chứa mảng và kiểm tra sao chép phòng vệ
+# Designing a Class Containing Arrays and Testing Defensive Copying
 
-## 1. Bài toán: lớp chứa mảng có thực sự bất biến?
+## 1. The Problem: Is a Class Containing an Array Truly Immutable?
 
-Ta cần xây dựng một lớp **SensorSnapshot** chứa mã thiết bị **String** và dãy số đo **int[]**. Sau khi tạo snapshot, việc caller thay đổi mảng nguồn hoặc mảng nhận từ getter không được làm thay đổi dữ liệu của snapshot. Đây là bài thực hành tổng hợp về **hợp đồng đối tượng (object contract)**: thiết kế dữ liệu có quyền sở hữu rõ ràng, kiểm thử **equals**, **hashCode**, **toString** và tránh phá vỡ tính ổn định khi đối tượng nằm trong **HashSet/HashMap**.
+We need to build a **SensorSnapshot** class containing a **String** device code and an **int[]** sequence of measurements. After creating a snapshot, mutating the source array or an array obtained from a getter must not alter the snapshot's data. This is a comprehensive practice on the **object contract**: designing data with clear ownership, testing **equals**, **hashCode**, and **toString**, and avoiding breaking stability when the object resides in a **HashSet/HashMap**.
 
-Kết quả cần đạt:
-- Giải thích **aliasing**: nhiều tham chiếu cùng trỏ tới một mảng mutable.
-- Sao chép phòng vệ ở cả chiều **constructor nhận vào** và **getter trả ra**.
-- So sánh/cấp hash cho mảng theo **giá trị phần tử**, không theo danh tính tham chiếu.
-- Xử lý đúng **int[][]** bằng sao chép từng hàng; biết vì sao **Object[]** chứa phần tử mutable khó hơn.
-- Dùng phép thử chủ động sửa dữ liệu nguồn và dữ liệu getter để chứng minh các cam kết trên.
+Target outcomes:
+- Explain **aliasing**: multiple references pointing to the same mutable array.
+- Perform defensive copying at both boundaries: **constructor input** and **getter return**.
+- Compare/hash arrays by **element values**, not by reference identity.
+- Properly handle **int[][]** by copying each row; understand why **Object[]** containing mutable elements is harder.
+- Use tests that actively mutate source data and getter data to prove these guarantees.
 
-Mảng là đối tượng mutable. **private** ngăn code ngoài truy cập trực tiếp tới trường, còn **final** chỉ ngăn gán lại tham chiếu trường; cả hai **không cấm sửa phần tử mảng**. Lớp có thể dùng trường **private final int[]** mà vẫn bị thay đổi từ ngoài.
+Arrays are mutable objects. **private** prevents external code from accessing the field directly, while **final** only prevents reassigning the field reference; neither **forbids mutating array elements**. A class can use a **private final int[]** field and still be mutated from outside.
 
-## 2. Xem lỗi trước khi thiết kế bản đúng
+## 2. Inspecting the Bug Before Designing the Correct Version
 
 ~~~java
-// Ví dụ cố ý sai, không phải phần của chương trình chính.
+// Intentionally buggy example, not part of the main program.
 final class UnsafeSnapshot {
     private final int[] values;
 
     UnsafeSnapshot(int[] input) {
-        this.values = input;   // Lỗi: giữ alias của caller.
+        this.values = input;   // Bug: retains caller's alias.
     }
 
     int[] values() {
-        return values;         // Lỗi: làm lộ mảng nội bộ.
+        return values;         // Bug: exposes internal array.
     }
 }
 
-// Caller có thể thực hiện:
+// Caller can do:
 int[] original = {10, 20};
 UnsafeSnapshot unsafe = new UnsafeSnapshot(original);
-original[0] = 999;         // Dữ liệu bên trong unsafe cũng đổi.
-unsafe.values()[1] = 888;  // Getter tạo đường sửa trực tiếp.
+original[0] = 999;         // Data inside unsafe also changes.
+unsafe.values()[1] = 888;  // Getter creates a direct mutation path.
 ~~~
 
-Hai lỗi độc lập:
-1. **Đầu vào:** constructor giữ tham chiếu nguồn; caller vẫn sở hữu mảng và có thể thay đổi nó về sau.
-2. **Đầu ra:** getter trả tham chiếu nội bộ; code nhận được getter có thể sửa trạng thái đối tượng.
+Two independent bugs:
+1. **Input:** the constructor keeps the source reference; the caller still owns the array and can mutate it later.
+2. **Output:** the getter returns the internal reference; code receiving the getter's result can mutate the object's state.
 
-Mẫu đúng với mảng primitive một chiều:
+Correct pattern for a one-dimensional primitive array:
 
 ~~~java
 this.values = Objects.requireNonNull(input, "input").clone();
 
-// Getter của lớp:
+// Getter of the class:
 return values.clone();
 ~~~
 
-Mỗi lần clone tạo một mảng mới. Vì phần tử **int** là primitive, các giá trị được sao chép độc lập; không còn phần tử tham chiếu tới đối tượng mutable cần xử lý tiếp. **Arrays.copyOf** và **System.arraycopy** cũng là lựa chọn hợp lệ khi dùng đúng độ dài/kiểu, nhưng không tự deep copy các phần tử là object.
+Each clone call creates a new array. Because **int** elements are primitives, values are copied independently; there are no element references to mutable objects requiring further copying. **Arrays.copyOf** and **System.arraycopy** are also valid options when used with the right length/type, though they do not automatically deep-copy object elements.
 
-Hợp đồng của **SensorSnapshot** được xác định rõ: **sensorId** không null/không blank; **readings** không null nhưng có thể rỗng; thứ tự số đo có ý nghĩa; tất cả thao tác đọc theo giá trị phải nhìn thấy cùng dữ liệu từ lúc tạo; caller được tự do sửa các bản sao getter trả về.
+The contract of **SensorSnapshot** is explicitly defined: **sensorId** is non-null and non-blank; **readings** is non-null but may be empty; measurement order is significant; all value-reading operations must see the same data from creation time; callers are free to mutate copies returned by getters.
 
-## 3. Chương trình Java 17+ hoàn chỉnh
+## 3. Complete Java 17+ Program
 
-Tạo tệp đúng tên **DefensiveCopyDemo.java**. Hai lớp lồng **SensorSnapshot** và **MatrixSnapshot** mô tả hai mức sao chép. Hàm **check** ném **AssertionError** nếu hợp đồng không đúng, không phụ thuộc việc có bật **-ea** hay không.
+Create a file named exactly **DefensiveCopyDemo.java**. The two nested classes **SensorSnapshot** and **MatrixSnapshot** demonstrate two levels of copying. The **check** helper throws **AssertionError** if a contract fails, independent of whether **-ea** is enabled.
 
 ~~~java
 import java.util.Arrays;
@@ -222,14 +222,14 @@ public class DefensiveCopyDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng Java 17 trở lên:
+Compile and run with Java 17 or higher:
 
 ~~~text
 javac DefensiveCopyDemo.java
 java DefensiveCopyDemo
 ~~~
 
-Stdout mong đợi:
+Expected stdout:
 
 ~~~text
 PASS: constructor copy
@@ -244,43 +244,43 @@ PASS: deep value equality and hashCode
 All 9 checks passed.
 ~~~
 
-### Vì sao 9 phép kiểm có ý nghĩa?
+### Why are the 9 checks meaningful?
 
-- **constructor copy:** giá trị **input[0] = 999** chỉ sửa dữ liệu do caller còn giữ; snapshot vẫn có số đo 4.
-- **getter copy:** sửa **getterResult[1]** không thay đổi mảng bên trong; đọc lại được 8. Nếu bỏ copy tại getter, phép kiểm sẽ thất bại.
-- **value equality:** hai mảng khác tham chiếu nhưng cùng chuỗi **4, 8, 15** phải tạo ra hai snapshot bằng nhau khi **sensorId** cũng giống nhau. **Arrays.equals** so phần tử, còn **==** trên mảng so tham chiếu.
-- **equal objects share hashCode:** hợp đồng Java yêu cầu **a.equals(b)** đúng thì **a.hashCode() == b.hashCode()**. Ngược lại không bắt buộc: hash collision được phép.
-- **stable HashSet lookup:** sau khi thêm snapshot vào HashSet, sửa đầu vào và mảng lấy từ getter không được làm thay đổi các trường góp phần vào equals/hashCode. Nếu hashCode của đối tượng trong set thay đổi, tra cứu có thể thất bại.
-- **content-based toString:** **Arrays.toString(int[])** hiển thị phần tử như **[4, 8, 15]**; **readings.toString()** chỉ hiển thị mô tả danh tính mảng kiểu **[I@...**.
-- **deep constructor copy:** sửa **source[0][0]** hoặc thay toàn bộ hàng **source[1]** không ảnh hưởng ma trận đã lưu.
-- **deep getter copy:** sửa ô của mảng xuất ra hay gán lại một hàng ở kết quả getter cũng không ảnh hưởng ma trận bên trong.
-- **deep value equality and hashCode:** cùng dữ liệu ma trận tạo ra equals đúng và hashCode tương ứng nhờ **Arrays.deepEquals/deepHashCode**.
+- **constructor copy:** setting **input[0] = 999** only modifies data still held by the caller; the snapshot still holds measurement 4.
+- **getter copy:** mutating **getterResult[1]** does not change the internal array; reading again yields 8. If the copy in the getter is removed, this check fails.
+- **value equality:** two arrays with different references yet the same sequence **4, 8, 15** must produce equal snapshots when **sensorId** also matches. **Arrays.equals** compares elements, whereas **==** on arrays compares references.
+- **equal objects share hashCode:** the Java contract requires that when **a.equals(b)** is true, **a.hashCode() == b.hashCode()**. The converse is not required: hash collisions are permitted.
+- **stable HashSet lookup:** after adding the snapshot to a HashSet, mutating the input and getter-returned arrays must not change the fields contributing to equals/hashCode. If the hashCode of an object in a set changes, lookups can fail.
+- **content-based toString:** **Arrays.toString(int[])** displays elements such as **[4, 8, 15]**; **readings.toString()** only prints an array identity descriptor like **[I@...**.
+- **deep constructor copy:** mutating **source[0][0]** or replacing the entire row **source[1]** does not affect the stored matrix.
+- **deep getter copy:** mutating a cell of the exported array or reassigning a row in the getter result also does not affect the internal matrix.
+- **deep value equality and hashCode:** identical matrix data yields true for equals and matching hashCode thanks to **Arrays.deepEquals/deepHashCode**.
 
-## 4. Vì sao cần phân biệt shallow copy và deep copy?
+## 4. Why Distinguish Shallow Copy and Deep Copy?
 
-**int[]** chỉ có giá trị primitive nên **clone()** đủ để tạo bản sao độc lập. Nhưng **int[][]** thực chất là *mảng các tham chiếu tới những mảng int[]*. Chỉ clone mảng ngoài sẽ giữ nguyên tham chiếu tới các hàng.
+**int[]** only holds primitive values, so **clone()** suffices to create an independent copy. However, **int[][]** is actually *an array of references to int[] arrays*. Cloning only the outer array preserves the references to the rows.
 
 ~~~java
 int[][] original = {{1, 2}, {3, 4}};
 int[][] shallow = original.clone();
 shallow[0][0] = 99;
-// original[0][0] cũng là 99: cùng tham chiếu tới hàng 0.
+// original[0][0] is also 99: same reference to row 0.
 
 int[][] copied = new int[original.length][];
 for (int row = 0; row < original.length; row++) {
     copied[row] = original[row].clone();
 }
 copied[1][0] = 77;
-// original[1][0] vẫn là 3.
+// original[1][0] is still 3.
 ~~~
 
-**MatrixSnapshot.copyRows** kiểm tra mảng ngoài và từng hàng không null, tạo mảng ngoài mới, rồi clone từng hàng. Hợp đồng của ví dụ chấp nhận hàng rỗng và mảng không đều (*jagged array*), từ chối hàng **null**. Vì từng hàng chứa primitive, độ sâu hai cấp này đã tách hết dữ liệu mutable liên quan.
+**MatrixSnapshot.copyRows** checks that the outer array and every row are non-null, allocates a new outer array, and clones each row. This example's contract accepts empty rows and *jagged arrays*, while rejecting **null** rows. Because each row holds primitives, this two-level depth isolates all mutable data involved.
 
-Với **MutablePoint[]** thì khác: clone mảng chỉ sao chép tham chiếu tới từng Point; caller có thể sửa **points[0].x**. Phải chụp lại dữ liệu từng Point trong đối tượng độc lập, đồng thời sao chép khi getter trả ra; có thể thay Point mutable bằng một record/snapshot chứa các primitive bất biến. Nếu Point lại chứa mảng hay object mutable khác, copy constructor của Point phải xử lý đến các trường đó.
+With **MutablePoint[]**, things differ: cloning the array only copies references to each Point; the caller can still mutate **points[0].x**. You must capture each Point's data in an independent object and also copy when the getter returns; you can replace mutable Points with an immutable record/snapshot holding primitives. If Point itself contains an array or another mutable object, Point's copy constructor must handle those fields as well.
 
 ~~~java
-// Minh họa, chưa phải chương trình độc lập:
-// MutablePoint phải khai báo constructor MutablePoint(MutablePoint).
+// Illustration, not yet a standalone program:
+// MutablePoint must declare a MutablePoint(MutablePoint) constructor.
 static MutablePoint[] copyPoints(MutablePoint[] source) {
     Objects.requireNonNull(source, "source");
     MutablePoint[] result = new MutablePoint[source.length];
@@ -292,44 +292,44 @@ static MutablePoint[] copyPoints(MutablePoint[] source) {
 }
 ~~~
 
-Không nên gọi một phương thức là “deep copy” khi chưa biết hợp đồng mutable của từng đối tượng con. Một **List.copyOf(...)** hoặc **Collections.unmodifiableList(...)** cũng không tự tạo deep copy cho các phần tử là object mutable.
+Do not call a method "deep copy" without knowing the mutability contract of each child object. Even **List.copyOf(...)** or **Collections.unmodifiableList(...)** does not automatically deep-copy elements that are mutable objects.
 
-| Dữ liệu nội bộ | Sao chép phù hợp | Rủi ro nếu làm thiếu |
+| Internal data | Appropriate copy | Risk if incomplete |
 | --- | --- | --- |
-| **int[]** | Clone một lần cho từng biên nhận/trả | Alias mảng nguồn hoặc getter |
-| **String[]** | Clone mảng, vì String immutable | Alias mảng khi không clone |
-| **int[][]** | Clone mảng ngoài và từng hàng | Alias hàng bên trong |
-| **MutablePoint[]** | Clone mảng và tạo bản sao từng Point mutable | Alias tới đối tượng phần tử |
-| Record chứa **int[]** | Copy mảng trong constructor và accessor, điều chỉnh equals/hashCode | Record component vẫn có mảng mutable; equality mặc định không so giá trị phần tử |
+| **int[]** | Clone once at each input/output boundary | Source or getter array aliasing |
+| **String[]** | Clone the array, since String is immutable | Array aliasing if not cloned |
+| **int[][]** | Clone outer array and each row | Inner row aliasing |
+| **MutablePoint[]** | Clone array and create copies of each mutable Point | Alias to element objects |
+| Record containing **int[]** | Copy array in constructor and accessor, customize equals/hashCode | Record component still holds a mutable array; default equality does not compare element values |
 
-## 5. Object contract: equals, hashCode, toString và tính bất biến
+## 5. Object Contract: equals, hashCode, toString, and Immutability
 
-Hợp đồng **equals** của **SensorSnapshot** dùng **sensorId.equals** và **Arrays.equals(readings, that.readings)**. Nếu đổi thứ tự số đo thì hai snapshot không bằng nhau; đây là quyết định nghiệp vụ đã công bố. Nếu thực sự muốn ngữ nghĩa tập không thứ tự, phải đổi mô hình và hợp đồng, không chỉ thay code so sánh tùy tiện.
+The **equals** contract of **SensorSnapshot** uses **sensorId.equals** and **Arrays.equals(readings, that.readings)**. If the order of measurements changes, two snapshots are not equal; this is the declared business decision. If unordered set semantics were actually desired, you would change the model and contract rather than arbitrarily altering comparison code.
 
-**hashCode** dùng chính các thông tin trong equals: **31 * sensorId.hashCode() + Arrays.hashCode(readings)**. Không dùng **readings.hashCode()** vì đó là băm theo danh tính mảng và có thể khác giữa hai mảng cùng giá trị. **MatrixSnapshot** sử dụng cặp tương ứng **Arrays.deepEquals** và **Arrays.deepHashCode**.
+**hashCode** uses the exact same information as equals: **31 * sensorId.hashCode() + Arrays.hashCode(readings)**. Do not use **readings.hashCode()** because that hashes by array identity and can differ between two arrays with identical values. **MatrixSnapshot** uses the corresponding pair **Arrays.deepEquals** and **Arrays.deepHashCode**.
 
-**toString** chỉ là biểu diễn dễ đọc và kiểm tra, không phải định dạng lưu trữ ổn định. Với mảng một chiều dùng **Arrays.toString**, với mảng lồng nhau dùng **Arrays.deepToString**. Không tự động đưa dữ liệu nhạy cảm vào log nếu snapshot thực tế chứa thông tin bí mật.
+**toString** is only a human-readable and inspection representation, not a stable storage format. For 1D arrays use **Arrays.toString**, and for nested arrays use **Arrays.deepToString**. Do not automatically log sensitive data if real snapshots contain confidential information.
 
-**Object.clone()** không phải giải pháp mặc định để tạo immutable object: clone mảng tạo mảng ngoài mới, nhưng với mảng tham chiếu vẫn dùng chung đối tượng con. Bài thực hành dùng constructor có validate và sao chép rõ ràng để hợp đồng dễ đọc.
+**Object.clone()** is not the default solution for creating immutable objects: cloning an array creates a new outer array, yet for reference arrays it still shares child objects. This practice uses constructors with explicit validation and copying so the contract is easy to read.
 
-**final** trên class ngăn subclass thay đổi hành vi theo hướng phá giả định về tính bất biến. **final** trên trường bảo vệ danh tính tham chiếu bên trong lớp nhưng không tự freeze đối tượng được trỏ tới. Mọi cách để state mutable thoát ra ngoài đều phải được xem xét.
+**final** on a class prevents subclasses from altering behavior in ways that break immutability assumptions. **final** on a field protects reference identity inside the class but does not freeze the referenced object. Every path by which mutable state could escape must be examined.
 
-**record** không tự giải quyết vấn đề: record có component là **int[]** vẫn nhận/trả một mảng mutable theo accessor mặc định, và equality/hashCode sinh sẵn cho component mảng không tự chuyển thành so sánh nội dung. Muốn dùng record, phải bảo vệ constructor/accessor và override hợp đồng so sánh phù hợp.
+**record** does not solve this automatically: a record with an **int[]** component still accepts/returns a mutable array in its default accessor, and the auto-generated equality/hashCode for an array component does not switch to content comparison. To use a record, you must guard the constructor/accessor and override the comparison contract appropriately.
 
-## 6. Kiểm thử phòng vệ thực sự cần làm gì?
+## 6. What Should Defensive Testing Actually Do?
 
-Khi kiểm tra lớp chứa mảng, chỉ test **assertEquals** trên dữ liệu ngay sau constructor là chưa đủ. Cần tấn công cả hai phía và cả các phần tử nested:
+When testing a class containing arrays, testing **assertEquals** on data right after the constructor is not enough. You must attack from both sides as well as nested elements:
 
-1. Tạo snapshot từ mảng nguồn, **sửa nguồn sau khi đã tạo**, rồi kiểm tra snapshot giữ giá trị cũ.
-2. Gọi getter, sửa mảng trả về, đọc lại snapshot và xác minh dữ liệu không đổi.
-3. Gọi getter hai lần, kiểm tra **first != second** khi hợp đồng quy định mỗi lần đều trả bản sao mới, đồng thời nội dung bằng nhau.
-4. Tạo hai snapshot từ hai mảng **khác danh tính nhưng cùng nội dung**, kiểm tra equals hai chiều và hashCode bằng nhau.
-5. Thêm snapshot vào HashSet, sửa dữ liệu nguồn/getter, kiểm tra còn tìm được theo snapshot tương đương.
-6. Với matrix, sửa **source[0][0]**, gán lại **source[1]**, và thực hiện các thao tác tương tự trên mảng lấy từ getter.
-7. Thử **null**, mảng rỗng, mảng không đều, hàng null, chỉ số sai theo quy tắc API đã chọn.
-8. Nếu dùng phần tử là object mutable, thay đổi *bên trong phần tử* chứ không chỉ gán phần tử mới vào mảng.
+1. Create a snapshot from a source array, **mutate the source after creation**, and verify the snapshot retains old values.
+2. Call the getter, mutate the returned array, read the snapshot again, and verify data did not change.
+3. Call the getter twice, verifying **first != second** when the contract specifies returning a fresh copy each time, while contents match.
+4. Create two snapshots from two arrays **with different identities but equal contents**, testing bidirectional equals and matching hashCode.
+5. Add the snapshot to a HashSet, mutate source/getter data, and verify it is still found using an equivalent snapshot.
+6. For matrices, mutate **source[0][0]**, reassign **source[1]**, and perform the same actions on the array returned by the getter.
+7. Test **null**, empty arrays, jagged arrays, null rows, and out-of-bounds indices per the chosen API rules.
+8. If using mutable object elements, mutate *inside the element* rather than merely assigning a new element into the array.
 
-Có thể bổ sung các phép thử sau **bên trong main** của chương trình mục 3 (chúng dùng các lớp và biến đã khai báo ở đó):
+You can add the following checks **inside main** of the section 3 program (they use the classes and variables already declared there):
 
 ~~~java
 SensorSnapshot empty = new SensorSnapshot("S-0", new int[0]);
@@ -346,34 +346,34 @@ jagged[1][0] = 100;
 check(jaggedCopy.get(1, 0) == 2, "jagged rows copied");
 ~~~
 
-Đây là phần mở rộng **không độc lập**; khi thêm ba lệnh **check**, kết quả số phép thử in cuối chương trình phải được cập nhật từ 9 lên 12.
+This is a **non-standalone** extension; when adding these three **check** calls, the count printed at the end of the program must be updated from 9 to 12.
 
-## 7. Thiết kế API có trách nhiệm về sở hữu dữ liệu
+## 7. Designing APIs with Responsible Data Ownership
 
-Sao chép mảng dài có chi phí thời gian và bộ nhớ **O(n)**; sao chép ma trận có chi phí tỷ lệ tổng số phần tử. Không phải API nào cũng cần trả toàn bộ bản sao ở mỗi lần đọc: có thể cung cấp **size()**, **readingAt(i)** hoặc một phép tính tổng hợp để caller không phải copy mảng lớn. Nếu nhất định cần trao quyền sở hữu mảng mà không sao chép, phải công bố hợp đồng ownership/transfer thật rõ và chấp nhận rằng không còn đảm bảo “snapshot bất biến” theo nghĩa của bài này.
+Copying long arrays incurs **O(n)** time and memory cost; copying matrices costs proportional to total element count. Not every API needs to return an entire copy on every read: you can provide **size()**, **readingAt(i)**, or an aggregate computation so callers avoid copying large arrays. If you genuinely must hand over array ownership without copying, publish an explicit ownership/transfer contract and accept that "immutable snapshot" in this lesson's sense no longer holds.
 
-Cũng cần nêu chính xác miền dữ liệu chấp nhận. Bài mẫu chủ ý từ chối **sensorId null/blank**, **readings null**, matrix null hoặc hàng null; cho phép **int[]** rỗng và matrix không đều. Các quy tắc khác có thể hợp lý trong sản phẩm khác nhưng phải được viết thành contract và test tương ứng.
+Also state the exact accepted data domain. This sample intentionally rejects **null/blank sensorId**, **null readings**, null matrices, or null rows; it permits empty **int[]** and jagged matrices. Other rules may make sense in other products, but they must be written into the contract and matching tests.
 
-Với dữ liệu của nhiều thread, defensive copy bảo vệ **sự sở hữu sau khi sao chép hoàn tất**; nó không làm cho việc đọc đồng thời một mảng nguồn đang bị thread khác sửa trở thành snapshot nguyên tử. Caller phải bảo đảm nguồn ổn định trong lúc copy hoặc phối hợp đồng bộ phù hợp trước khi bàn giao.
+For multi-threaded data, defensive copying protects **ownership after copying finishes**; it does not make concurrently reading a source array being modified by another thread an atomic snapshot. The caller must ensure the source is stable during the copy or coordinate synchronization before handing it over.
 
-## 8. Bài tập tự thực hiện và câu hỏi
+## 8. Hands-On Exercises and Questions
 
-**Bài A — phá ranh giới:** tạm xóa clone ở constructor của **SensorSnapshot**, dự đoán phép kiểm nào thất bại. Khôi phục constructor, rồi xóa clone ở getter và giải thích vì sao phép kiểm khác thất bại. Kết thúc với toàn bộ 9 kiểm thử qua.
+**Exercise A — breaking boundaries:** temporarily remove clone from **SensorSnapshot**'s constructor and predict which check fails. Restore the constructor, then remove clone from the getter and explain why a different check fails. Finish with all 9 checks passing.
 
-**Bài B — shallow matrix:** thay **MatrixSnapshot.copyRows** bằng **return source.clone()** (sau khi validate null). Thử sửa **source[0][0]** và gán lại **source[1]**. Hai thao tác có ảnh hưởng khác nhau lên snapshot như thế nào? Sửa lại clone từng hàng.
+**Exercise B — shallow matrix:** replace **MatrixSnapshot.copyRows** with **return source.clone()** (after null validation). Try mutating **source[0][0]** and reassigning **source[1]**. How do the two actions affect the snapshot differently? Restore per-row cloning.
 
-**Bài C — thêm trường vào value object:** bổ sung **String batchId**. Chỉnh constructor, equals, hashCode, toString cho nhất quán; chứng minh khác batchId thì không bằng nhau ngay cả khi mảng giống nhau.
+**Exercise C — adding a field to the value object:** add **String batchId**. Update constructor, equals, hashCode, and toString consistently; prove different batchIds are unequal even when arrays match.
 
-**Bài D — đối tượng phần tử mutable:** tự viết **MutablePoint**, tạo **PointSnapshot** nhận **MutablePoint[]**, rồi cố ý sửa Point trong nguồn và trong getter. Chứng minh phải copy từng Point và phải xem xét field mutable bên trong Point.
+**Exercise D — mutable element objects:** write **MutablePoint**, create **PointSnapshot** taking **MutablePoint[]**, and deliberately mutate a Point in the source and in the getter. Prove you must copy each Point and account for mutable fields inside Point.
 
-Câu hỏi tự kiểm tra:
-1. Vì sao **private final int[] readings** chưa bảo đảm dữ liệu bất biến?
-2. Chỉ clone ở constructor hoặc chỉ clone ở getter thì còn đường alias nào?
-3. **Arrays.equals** khác **==** trên mảng ra sao?
-4. Vì sao **equals** so nội dung thì **hashCode** cũng phải băm theo nội dung?
-5. Vì sao **int[][]** cần copy từng hàng, còn **int[]** chỉ cần clone một lần?
-6. Vì sao một mảng **MutablePoint[]** đòi hỏi thêm quyết định về bản sao của phần tử?
-7. Những phép kiểm nào bảo vệ việc lưu value object trong **HashSet**?
-8. Defensive copy có tự giải quyết vấn đề thread khác đang sửa nguồn ngay lúc sao chép không?
+Self-check questions:
+1. Why does **private final int[] readings** not guarantee immutable data?
+2. If you clone only in the constructor or only in the getter, what aliasing path remains?
+3. How does **Arrays.equals** differ from **==** on arrays?
+4. Why must **hashCode** also hash by content when **equals** compares content?
+5. Why does **int[][]** require per-row copying while **int[]** needs only a single clone?
+6. Why does a **MutablePoint[]** array require an extra decision about copying elements?
+7. Which checks protect storing a value object in a **HashSet**?
+8. Does defensive copying automatically solve another thread mutating the source mid-copy?
 
-**Ghi nhớ:** Lớp chứa mảng chỉ có hợp đồng snapshot an toàn khi bản thân lớp **sở hữu dữ liệu đã được sao chép**, không để lộ alias mutable, copy đủ sâu với cấu trúc lồng nhau, và giữ **equals/hashCode/toString** phù hợp với nội dung có thể quan sát. Các phép thử phải chủ động sửa nguồn và getter rồi xác nhận snapshot vẫn không đổi.
+**Key takeaway:** A class containing arrays has a safe snapshot contract only when the class **owns copied data**, exposes no mutable aliases, copies deeply enough for nested structures, and keeps **equals/hashCode/toString** aligned with observable content. Tests must actively mutate both source and getter results and verify the snapshot remains unchanged.

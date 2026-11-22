@@ -1,40 +1,40 @@
-# `nextUp`, `nextDown`, `nextAfter` và `ulp` trong Java
+# `nextUp`, `nextDown`, `nextAfter`, and `ulp` in Java
 
-Khi làm việc với `float` và `double`, giữa hai số thực gần nhau không phải lúc nào cũng tồn tại một giá trị dấu phẩy động có thể biểu diễn. Java cung cấp bốn phương thức trong `Math` và `StrictMath` để tìm **giá trị biểu diễn liền kề** và **khoảng cách ở độ chính xác máy**:
+When working with `float` and `double`, between two close real numbers there is not always a representable floating-point value. Java provides four methods in `Math` and `StrictMath` to find **adjacent representable values** and **spacing at machine precision**:
 
-- `nextUp(x)`: giá trị biểu diễn kế tiếp theo hướng dương vô cực.
-- `nextDown(x)`: giá trị biểu diễn kế tiếp theo hướng âm vô cực.
-- `nextAfter(start, direction)`: giá trị biểu diễn kế tiếp tính từ `start` theo hướng của `direction`.
-- `ulp(x)`: kích thước một *unit in the last place* (ULP) tại `x`.
+- `nextUp(x)`: the next representable value in the direction of positive infinity.
+- `nextDown(x)`: the next representable value in the direction of negative infinity.
+- `nextAfter(start, direction)`: the next representable value starting from `start` toward `direction`.
+- `ulp(x)`: the size of one *unit in the last place* (ULP) at `x`.
 
-Chúng phục vụ kiểm thử biên, nghiên cứu sai số và thuật toán số; **không** phải các hàm “cộng một chút bất kỳ” hoặc làm tròn số thập phân để hiển thị.
+They serve boundary testing, error analysis, and numerical algorithms; they are **not** functions for "adding an arbitrary tiny amount" or rounding decimals for display.
 
-## 1. Vì sao cần số biểu diễn liền kề?
+## 1. Why Are Adjacent Representable Numbers Needed?
 
-Java sử dụng định dạng nhị phân IEEE 754 cho hai kiểu dấu phẩy động phổ biến:
+Java uses the IEEE 754 binary format for its two standard floating-point types:
 
-| Kiểu | Độ dài | Số bit có nghĩa hữu hiệu | Ví dụ về ULP tại `1.0` |
+| Type | Length | Effective Significand Bits | Example ULP at `1.0` |
 |---|---:|---:|---|
-| `float` | 32 bit | 24 bit | `2^-23` ≈ `1.1920929e-7` |
-| `double` | 64 bit | 53 bit | `2^-52` ≈ `2.220446049250313e-16` |
+| `float` | 32 bits | 24 bits | `2^-23` ≈ `1.1920929e-7` |
+| `double` | 64 bits | 53 bits | `2^-52` ≈ `2.220446049250313e-16` |
 
-Một tập hữu hạn các mẫu bit không thể biểu diễn mọi số thực. Ví dụ: `1.0` là giá trị `double` chính xác, nhưng số `double` lớn hơn nó ngay lập tức là:
+A finite set of bit patterns cannot represent every real number. For example, `1.0` is an exact `double` value, and the immediately greater `double` number is:
 
 ```text
 1.0
-↓ giá trị double kế tiếp
-0x1.0000000000001p0  =  1.0000000000000002 (dạng thập phân được làm ngắn khi in)
+↓ next double value
+0x1.0000000000001p0  =  1.0000000000000002 (decimal form shortened when printed)
 ```
 
-Ở đây `0x...p...` là ký pháp số dấu phẩy động nhị phân dạng thập lục phân của Java: phần sau `p` là lũy thừa của **2**, không phải 10. `Double.toHexString(...)` cho phép quan sát các bước biểu diễn chính xác hơn việc in dạng thập phân thông thường.
+Here `0x...p...` is Java's hexadecimal binary floating-point literal notation: the part after `p` is a power of **2**, not 10. `Double.toHexString(...)` lets you observe exact representation steps more clearly than ordinary decimal printing.
 
-Khoảng cách giữa hai số liền kề **không cố định** trên toàn miền: quanh số có độ lớn lớn hơn, các bước thường lớn hơn; quanh số nhỏ, các bước nhỏ hơn, xuống tới **subnormal**. Bởi vậy, giả định rằng luôn có thể dùng `x + 1e-15` để tới số tiếp theo là sai: phép cộng có thể không đổi `x`, nhảy qua nhiều giá trị, hoặc tạo kết quả không phù hợp với kiểu dữ liệu.
+The spacing between two adjacent numbers is **not constant** across the entire domain: around numbers of larger magnitude, steps are generally larger; around small numbers, steps are smaller, down to **subnormals**. Therefore, assuming you can always use `x + 1e-15` to reach the next number is wrong: addition may leave `x` unchanged, skip many values, or produce a result unsuitable for the data type.
 
-> Trong bài này, “liền kề” nghĩa là **không có số `float`/`double` có thể biểu diễn ở giữa** theo thứ tự số học. Nó không có nghĩa là hai số nguyên hoặc hai số thập phân liên tiếp.
+> In this lesson, "adjacent" means **there is no representable `float`/`double` strictly between them** in numeric order. It does not mean two consecutive integers or decimals.
 
-## 2. API và nguyên tắc chọn hướng
+## 2. API and Direction Rules
 
-Các overload chính của `java.lang.Math`:
+Main overloads of `java.lang.Math`:
 
 ```java
 public static double nextUp(double d);
@@ -50,36 +50,36 @@ public static double ulp(double d);
 public static float  ulp(float f);
 ```
 
-`StrictMath` cũng cung cấp các phương thức tương ứng với cùng ý nghĩa. Điểm dễ bỏ qua là overload `nextAfter(float, double)` nhận **`direction` kiểu `double`** nhưng **trả `float`**: giá trị *start* quyết định lưới số biểu diễn được bước qua.
+`StrictMath` also provides corresponding methods with the same meaning. An easily overlooked detail is the `nextAfter(float, double)` overload taking **`direction` of type `double`** while **returning `float`**: the *start* value determines the representable grid being stepped across.
 
-Với giá trị bắt đầu hữu hạn và không ở trường hợp biên:
+For a finite starting value not at a boundary case:
 
-| Lời gọi | Cách hiểu |
+| Call | Interpretation |
 |---|---|
-| `Math.nextUp(x)` | Một bước sang phải trên trục số |
-| `Math.nextDown(x)` | Một bước sang trái trên trục số |
-| `Math.nextAfter(x, y)`, với `y > x` | Một bước từ `x` về phía `y`, tương tự `nextUp(x)` |
-| `Math.nextAfter(x, y)`, với `y < x` | Một bước từ `x` về phía `y`, tương tự `nextDown(x)` |
-| `Math.nextAfter(x, y)`, với `x == y` | Trả chính `direction` (chi tiết quan trọng khi hai số 0 khác dấu) |
-| `Math.ulp(x)` | Độ lớn ULP tại `x`, luôn không âm với đầu vào hữu hạn |
+| `Math.nextUp(x)` | One step to the right on the number line |
+| `Math.nextDown(x)` | One step to the left on the number line |
+| `Math.nextAfter(x, y)`, with `y > x` | One step from `x` toward `y`, like `nextUp(x)` |
+| `Math.nextAfter(x, y)`, with `y < x` | One step from `x` toward `y`, like `nextDown(x)` |
+| `Math.nextAfter(x, y)`, with `x == y` | Returns `direction` itself (important detail when two zeros have opposite signs) |
+| `Math.ulp(x)` | Magnitude of ULP at `x`, always non-negative for finite inputs |
 
-`nextAfter(start, direction)` **không nhảy thẳng tới `direction`**; nó di chuyển đúng một bước trên lưới giá trị thuộc kiểu của `start`, trừ khi hai giá trị đã bằng nhau theo phép so sánh số học (hoặc gặp `NaN`/biên đặc biệt).
+`nextAfter(start, direction)` **does not jump straight to `direction`**; it moves exactly one step on the value grid of `start`'s type, unless both values are already equal under numerical comparison (or hit `NaN`/special boundaries).
 
-### Phân biệt `nextAfter` và `nextUp`/`nextDown`
+### Distinguishing `nextAfter` and `nextUp`/`nextDown`
 
 ```java
 double x = 1.0;
 
-Math.nextAfter(x, 2.0); // Cùng kết quả với Math.nextUp(x)
-Math.nextAfter(x, 0.0); // Cùng kết quả với Math.nextDown(x)
-Math.nextAfter(x, x);   // 1.0: đã tới hướng đích
+Math.nextAfter(x, 2.0); // Same result as Math.nextUp(x)
+Math.nextAfter(x, 0.0); // Same result as Math.nextDown(x)
+Math.nextAfter(x, x);   // 1.0: already at the target direction
 ```
 
-Đây là **đoạn minh họa**, không phải lớp Java độc lập. Khi chỉ cần hướng cố định, `nextUp`/`nextDown` thể hiện mục đích trực tiếp hơn; khi hướng phụ thuộc đích, `nextAfter` cho phép biểu đạt thuật toán tổng quát.
+This is an **illustrative snippet**, not a standalone Java class. When only a fixed direction is needed, `nextUp`/`nextDown` express intent more directly; when direction depends on a target, `nextAfter` allows expressing general algorithms.
 
-## 3. Chương trình Java 17+ chạy và kiểm chứng
+## 3. Runnable and Verified Java 17+ Program
 
-Tạo tệp `FloatingNeighborsDemo.java` với nội dung:
+Create file `FloatingNeighborsDemo.java` with contents:
 
 ```java
 public class FloatingNeighborsDemo {
@@ -108,14 +108,14 @@ public class FloatingNeighborsDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac -encoding UTF-8 FloatingNeighborsDemo.java
 java FloatingNeighborsDemo
 ```
 
-Stdout đã được đối chiếu bằng cách biên dịch và chạy chương trình:
+Stdout verified by compiling and running the program:
 
 ```text
 nextUp(1.0): 0x1.0000000000001p0
@@ -137,69 +137,69 @@ NaN: true
 StrictMath agrees: true
 ```
 
-**Điểm quan trọng từ kết quả:**
+**Key points from the output:**
 
-1. Kết quả `nextUp(1.0)` là số `double` liền trên `1.0`; `nextDown(1.0)` là số liền dưới. `nextAfter` đưa ra cùng hai số nếu hướng đích lần lượt ở trên hoặc dưới.
-2. `ulp(1.0)` bằng bước **phía trên** tại `1.0`, nhưng bước **phía dưới** chỉ bằng một nửa (vì `1.0` là lũy thừa chính xác của 2, nằm ở ranh giới hai vùng bước).
-3. `nextUp(-0.0)` và `nextDown(+0.0)` đi tới hai giá trị subnormal nhỏ nhất khác 0, lần lượt dương và âm.
-4. `nextAfter(+0.0, -0.0)` trả `-0.0` dù phép so sánh `+0.0 == -0.0` là `true`; cách ghi bằng hex giúp nhìn thấy dấu.
-5. Ở biên trên hữu hạn, bước kế tiếp của `Double.MAX_VALUE` theo chiều tăng là `+Infinity`.
-6. Overload `float` đi trên lưới 32 bit nên bước quanh `1.0f` lớn hơn bước của `double`.
+1. `nextUp(1.0)` is the `double` immediately above `1.0`; `nextDown(1.0)` is the one immediately below. `nextAfter` yields those same two numbers when the target direction is above or below, respectively.
+2. `ulp(1.0)` equals the step **above** `1.0`, whereas the step **below** is only half as large (because `1.0` is an exact power of 2, sitting on the boundary between two step regions).
+3. `nextUp(-0.0)` and `nextDown(+0.0)` move to the smallest non-zero subnormal values, positive and negative respectively.
+4. `nextAfter(+0.0, -0.0)` returns `-0.0` even though `+0.0 == -0.0` is `true`; hex notation reveals the sign.
+5. At the upper finite boundary, the next step from `Double.MAX_VALUE` upward is `+Infinity`.
+6. The `float` overload steps on the 32-bit grid, so the step around `1.0f` is larger than `double`'s step.
 
-## 4. Hiểu chính xác `ulp(x)`
+## 4. Understanding `ulp(x)` Accurately
 
-ULP là đơn vị có trọng số của chữ số cuối trong biểu diễn dấu phẩy động tại độ lớn đang xét. Trong miền **normal**, bước thường có dạng:
+ULP is the weighted unit of the last digit in floating-point representation at the magnitude under consideration. In the **normal** range, the step generally takes the form:
 
-- `double`, có độ chính xác 53 bit: khoảng `2^(e - 52)`;
-- `float`, có độ chính xác 24 bit: khoảng `2^(e - 23)`,
+- `double`, with 53-bit precision: roughly `2^(e - 52)`;
+- `float`, with 24-bit precision: roughly `2^(e - 23)`,
 
-với `e` là số mũ nhị phân của khoảng giá trị đang xét. Ở vùng số **subnormal**, độ giãn cách cố định ở mức nhỏ nhất của định dạng.
+where `e` is the binary exponent of the value range under consideration. In the **subnormal** region, the spacing is fixed at the format's minimum resolution.
 
-Ví dụ:
+Example:
 
 ```java
 Math.ulp(1.0);     // double: 2^-52
 Math.ulp(2.0);     // double: 2^-51
 Math.ulp(1.0f);    // float: 2^-23
 Math.ulp(2.0f);    // float: 2^-22
-Math.ulp(0.0);     // Double.MIN_VALUE (số double dương nhỏ nhất khác 0)
-Math.ulp(0.0f);    // Float.MIN_VALUE  (số float dương nhỏ nhất khác 0)
+Math.ulp(0.0);     // Double.MIN_VALUE (smallest positive non-zero double)
+Math.ulp(0.0f);    // Float.MIN_VALUE  (smallest positive non-zero float)
 ```
 
-Đây là các biểu thức minh họa; để kiểm tra đầu ra có thể in bằng `Double.toHexString` hoặc `Float.toHexString`.
+These are illustrative expressions; to inspect output, you can print with `Double.toHexString` or `Float.toHexString`.
 
-### `ulp(x)` không luôn bằng `nextUp(x) - x`
+### `ulp(x)` Does Not Always Equal `nextUp(x) - x`
 
-Một ngộ nhận dễ gây lỗi kiểm thử là áp dụng đẳng thức `Math.ulp(x) == Math.nextUp(x) - x` với **mọi** `x`. Ở ranh giới các lũy thừa của 2 hoặc khi đổi dấu, khoảng cách liền kề hai bên có thể khác nhau.
+A misconception that easily causes test bugs is applying the identity `Math.ulp(x) == Math.nextUp(x) - x` for **all** `x`. At power-of-2 boundaries or when flipping sign, adjacent gaps on the two sides can differ.
 
-Ví dụ với `x = 1.0`:
+For example, with `x = 1.0`:
 
-| Đại lượng | Kết quả chính xác |
+| Quantity | Exact Result |
 |---|---|
 | `Math.ulp(1.0)` | `2^-52` |
 | `Math.nextUp(1.0) - 1.0` | `2^-52` |
 | `1.0 - Math.nextDown(1.0)` | `2^-53` |
 
-Với `x = -1.0`, tình huống đảo chiều: đi về phía `+∞` tiến gần 0 hơn và có bước `2^-53`, còn đi về phía `-∞` có bước `2^-52`; trong khi `Math.ulp(-1.0)` vẫn bằng `2^-52`. Do đó nếu thuật toán cần **khoảng cách ở một hướng cụ thể**, dùng hai hàm láng giềng để đo khoảng cách ở hướng đó, kết hợp xử lý các giá trị đặc biệt.
+With `x = -1.0`, the situation reverses: moving toward `+∞` approaches 0 and has step `2^-53`, while moving toward `-∞` has step `2^-52`; meanwhile `Math.ulp(-1.0)` remains `2^-52`. Therefore, if an algorithm needs the **gap in a specific direction**, use the two neighbor functions to measure the gap in that direction, combined with handling special values.
 
-Không lấy `ulp(x)` làm “sai số tuyệt đối bảo đảm” của mọi phép tính. Sai số phụ thuộc phép toán, thuật toán, độ lớn các toán hạng, tình trạng mất chữ số có nghĩa và số bước tính. Một ULP có thể hữu ích cho việc đo sai khác biểu diễn, nhưng quy tắc chấp nhận sai số phải đến từ yêu cầu của bài toán.
+Do not take `ulp(x)` as a "guaranteed absolute error bound" for every computation. Error depends on the operation, algorithm, operand magnitudes, loss of significance, and number of steps. A ULP can be useful for measuring representational differences, but error tolerance rules must come from the problem's requirements.
 
-### Vì sao không có một epsilon cố định?
+### Why Is There No Single Fixed Epsilon?
 
-`Math.ulp(0.0)` bằng `Double.MIN_VALUE`, cực nhỏ; trong khi `Math.ulp(1.0)` lớn hơn nhiều, còn `Math.ulp(1e20)` lại lớn hơn nữa. Ngay cả `Math.ulp(1.0)` cũng không có ý nghĩa là mọi phép tính đều có sai số tối đa đúng từng ấy.
+`Math.ulp(0.0)` equals `Double.MIN_VALUE`, which is tiny; `Math.ulp(1.0)` is much larger, and `Math.ulp(1e20)` is larger still. Even `Math.ulp(1.0)` does not mean every computation has a maximum error of exactly that size.
 
-Trong kiểm thử số học, việc so sánh theo sai số tuyệt đối, sai số tương đối hoặc số ULP phải cân nhắc miền dữ liệu và các trường hợp 0, vô cực, `NaN`, tràn/thiếu độ lớn. Đừng áp dụng một `epsilon` cố định chỉ vì nó có tên quen thuộc.
+In numerical testing, comparing by absolute error, relative error, or ULP count must account for the data domain and cases of 0, infinity, `NaN`, and overflow/underflow. Do not apply a fixed `epsilon` just because it has a familiar name.
 
-## 5. Những biên đặc biệt phải kiểm thử
+## 5. Special Boundaries That Must Be Tested
 
-`float` và `double` có hai số 0 (`+0.0`, `-0.0`), hai vô cực, `NaN` và các giá trị subnormal. Vì vậy không thể suy luận mọi trường hợp chỉ bằng bảng số thực thông thường.
+`float` and `double` have two zeros (`+0.0`, `-0.0`), two infinities, `NaN`, and subnormal values. Thus you cannot infer every case solely from ordinary real-number intuition.
 
-| Đầu vào | Kết quả hoặc hành vi |
+| Input | Result or Behavior |
 |---|---|
-| `Math.nextUp(+0.0)` hoặc `Math.nextUp(-0.0)` | `Double.MIN_VALUE` |
-| `Math.nextDown(+0.0)` hoặc `Math.nextDown(-0.0)` | `-Double.MIN_VALUE` |
-| `Math.nextAfter(+0.0, -0.0)` | `-0.0` (trả đúng `direction`) |
-| `Math.nextAfter(-0.0, +0.0)` | `+0.0` (trả đúng `direction`) |
+| `Math.nextUp(+0.0)` or `Math.nextUp(-0.0)` | `Double.MIN_VALUE` |
+| `Math.nextDown(+0.0)` or `Math.nextDown(-0.0)` | `-Double.MIN_VALUE` |
+| `Math.nextAfter(+0.0, -0.0)` | `-0.0` (returns `direction` itself) |
+| `Math.nextAfter(-0.0, +0.0)` | `+0.0` (returns `direction` itself) |
 | `Math.nextUp(Double.MAX_VALUE)` | `Double.POSITIVE_INFINITY` |
 | `Math.nextDown(-Double.MAX_VALUE)` | `Double.NEGATIVE_INFINITY` |
 | `Math.nextDown(Double.POSITIVE_INFINITY)` | `Double.MAX_VALUE` |
@@ -211,11 +211,11 @@ Trong kiểm thử số học, việc so sánh theo sai số tuyệt đối, sai
 | `Math.ulp(Double.NaN)` | `NaN` |
 | `Math.ulp(Double.POSITIVE_INFINITY)` | `Double.POSITIVE_INFINITY` |
 
-Với overload `float`, thay các hằng tương ứng bằng `Float.MIN_VALUE`/`Float.MAX_VALUE` và dùng kết quả kiểu `float`. Đừng nhầm tên `Double.MIN_VALUE`: đây là **số dương nhỏ nhất khác 0** có thể biểu diễn bằng `double`, **không phải số âm nhỏ nhất**. Số `double` hữu hạn âm có độ lớn lớn nhất là `-Double.MAX_VALUE`.
+For the `float` overload, replace the corresponding constants with `Float.MIN_VALUE`/`Float.MAX_VALUE` and use `float` results. Do not confuse the name `Double.MIN_VALUE`: it is the **smallest positive non-zero number** representable by `double`, **not the most negative number**. The finite negative `double` with the largest magnitude is `-Double.MAX_VALUE`.
 
-### Số 0 có dấu và `nextAfter`
+### Signed Zero and `nextAfter`
 
-`+0.0 == -0.0` là `true` trong phép so sánh số học của Java, nhưng dạng bit và một vài hành vi số học của chúng khác nhau. Khi `start` và `direction` bằng nhau, đặc tả `nextAfter` trả chính tham số `direction`, vì vậy:
+`+0.0 == -0.0` is `true` in Java arithmetic comparisons, but their bit patterns and some numerical behaviors differ. When `start` and `direction` are equal, the `nextAfter` spec returns the `direction` parameter itself, so:
 
 ```java
 double result = Math.nextAfter(+0.0, -0.0);
@@ -224,37 +224,37 @@ boolean negativeZero =
 // negativeZero == true
 ```
 
-Đoạn này là mã minh họa đặt trong phương thức. Nếu dùng `== 0.0` để kiểm tra kết quả, bạn **không thể phân biệt** hai dấu 0. Muốn quan sát bit, dùng `Double.doubleToRawLongBits`, `Float.floatToRawIntBits` hoặc biểu diễn hex thích hợp.
+This snippet is illustrative code placed inside a method. If you use `== 0.0` to check the result, you **cannot distinguish** the two zero signs. To inspect bits, use `Double.doubleToRawLongBits`, `Float.floatToRawIntBits`, or appropriate hex formatting.
 
-### Subnormal và giới hạn nhỏ nhất
+### Subnormals and the Smallest Limit
 
-Với `double`:
+For `double`:
 
-- `Double.MIN_NORMAL` là số **normal dương nhỏ nhất** (xấp xỉ `2.225e-308`).
-- `Double.MIN_VALUE` là số **subnormal dương nhỏ nhất khác 0** (xấp xỉ `4.9e-324`).
+- `Double.MIN_NORMAL` is the **smallest positive normal** number (approx `2.225e-308`).
+- `Double.MIN_VALUE` is the **smallest positive non-zero subnormal** number (approx `4.9e-324`).
 - `Math.nextUp(0.0) == Double.MIN_VALUE`.
-- `Math.nextDown(Double.MIN_VALUE)` trả `+0.0` vì giá trị có thể biểu diễn gần hơn theo hướng giảm là số 0.
-- `Math.ulp(0.0)` và `Math.ulp(Double.MIN_VALUE)` bằng `Double.MIN_VALUE`.
+- `Math.nextDown(Double.MIN_VALUE)` returns `+0.0` because the closest representable value in the downward direction is zero.
+- `Math.ulp(0.0)` and `Math.ulp(Double.MIN_VALUE)` both equal `Double.MIN_VALUE`.
 
-Đây là lý do các giá trị rất nhỏ không có cùng số chữ số có nghĩa hữu hiệu như các giá trị normal. Khi đi qua ranh giới normal/subnormal, phải kiểm thử vì độ chính xác tương đối thay đổi.
+This is why very small values do not have as many significant digits as normal values. When crossing the normal/subnormal boundary, test carefully because relative precision changes.
 
-## 6. `Math` và `StrictMath` khác nhau thế nào trong bài này?
+## 6. How Do `Math` and `StrictMath` Differ in This Lesson?
 
-Các phương thức `nextUp`, `nextDown`, `nextAfter` và `ulp` đều có trên `Math` và `StrictMath` với cùng quy tắc xử lý giá trị lân cận. Bạn có thể viết:
+`nextUp`, `nextDown`, `nextAfter`, and `ulp` all exist on both `Math` and `StrictMath` with identical neighbor-handling rules. You can write:
 
 ```java
 double a = Math.nextAfter(1.0, 2.0);
 double b = StrictMath.nextAfter(1.0, 2.0);
-// a và b cùng là giá trị double liền trên 1.0
+// a and b are both the double value immediately above 1.0
 ```
 
-Đây là mã minh họa dùng trong lớp/phương thức. `StrictMath` thường được nhắc tới khi quan tâm tính tái lập kết quả của các phép toán số học; tuy nhiên với **bốn phép bước trên lưới biểu diễn** đang học, quy tắc biên và kiểu trả về là trọng tâm. Đừng suy rộng từ nhóm hàm này sang mọi hàm lượng giác hoặc hàm siêu việt mà chưa đọc hợp đồng API cụ thể.
+This is illustrative code used inside a class/method. `StrictMath` is commonly mentioned when caring about result reproducibility of math operations; however, for these **four stepping operations on the representable grid**, boundary rules and return types are the focus. Do not generalize from this group of functions to every trigonometric or transcendental function without reading the specific API contract.
 
-## 7. Ứng dụng thực tế
+## 7. Practical Applications
 
-### 7.1. Kiểm thử sát ranh giới của điều kiện
+### 7.1. Testing Tightly Around a Condition Boundary
 
-Giả sử quy tắc yêu cầu một giá trị `double` phải **nhỏ hơn hoặc bằng** `limit`:
+Suppose a rule requires a `double` value to be **less than or equal to** `limit`:
 
 ```java
 static boolean withinLimit(double value, double limit) {
@@ -262,7 +262,7 @@ static boolean withinLimit(double value, double limit) {
 }
 ```
 
-Đây là phương thức minh họa. Với `limit = 1.0`, một bộ kiểm thử biên có thể dùng ba giá trị:
+This is an illustrative method. With `limit = 1.0`, a boundary test suite can use three values:
 
 ```java
 double limit = 1.0;
@@ -271,11 +271,11 @@ boolean exact = withinLimit(limit, limit);                // true
 boolean above = withinLimit(Math.nextUp(limit), limit);  // false
 ```
 
-Từng giá trị kiểm thử là một điểm có thể biểu diễn được; không cần đoán “một số rất nhỏ” để cộng/trừ. Khi `limit` là vô cực, `NaN` hoặc có thể phát sinh overflow, cần định nghĩa thêm kỳ vọng và test riêng.
+Each test value is a representable point; no need to guess "a very small number" to add/subtract. When `limit` is infinite, `NaN`, or could involve overflow, define additional expectations and tests separately.
 
-### 7.2. Bước về một mốc đích
+### 7.2. Stepping Toward a Target Milestone
 
-Nếu cần biết **bước đầu tiên** từ một số `double` về phía mốc:
+If you need the **first step** from a `double` toward a target:
 
 ```java
 double current = 1.0;
@@ -284,11 +284,11 @@ double step = Math.nextAfter(current, target);
 // step == Math.nextUp(current)
 ```
 
-Một bước của `nextAfter` thường rất nhỏ; đừng dùng nó để duyệt tùy ý từ `1.0` đến `2.0`. Giữa hai giá trị này có số lượng cực lớn các số `double`, và thuật toán duyệt từng số có thể quá chậm. Nếu thực sự cần lặp, phải có giới hạn số bước, điều kiện kết thúc và xử lý `NaN`, vô cực, trường hợp không tiến triển.
+One step of `nextAfter` is typically tiny; do not use it to iterate arbitrarily from `1.0` to `2.0`. Between those two values lies a huge number of `double`s, and stepping one by one would be far too slow. If iteration is truly needed, include a step cap, termination condition, and handling for `NaN`, infinity, and lack of progress.
 
-### 7.3. Đo mức chênh trên lưới số
+### 7.3. Measuring Differences on the Number Grid
 
-`ulp(...)` có thể giúp diễn giải mức độ sai khác gần một tham chiếu, ví dụ quan sát sự khác biệt giữa `1.0` với số `double` ngay phía trên:
+`ulp(...)` helps interpret discrepancies near a reference, such as observing the difference between `1.0` and the `double` immediately above it:
 
 ```java
 double baseline = 1.0;
@@ -296,46 +296,46 @@ double observed = Math.nextUp(baseline);
 
 double delta = observed - baseline;
 double oneUlpAtBaseline = Math.ulp(baseline);
-// delta == oneUlpAtBaseline, đúng cho baseline = 1.0
+// delta == oneUlpAtBaseline, true for baseline = 1.0
 ```
 
-Ở ví dụ cụ thể này, sai khác đúng một ULP tại `baseline`; với giá trị ở biên lũy thừa hai hoặc số âm, không mặc định rằng sai khác hai láng giềng theo **mọi hướng** đều bằng `ulp(baseline)`. Muốn đo khoảng cách ULP chính xác cho số ở miền rộng, thường phải so sánh biểu diễn bit đã chuẩn hóa theo thứ tự và xử lý `NaN`, signed zero cũng như vô cực.
+In this specific example, the difference is exactly one ULP at `baseline`; for values at power-of-two boundaries or negative numbers, do not assume the gap between two neighbors in **every direction** equals `ulp(baseline)`. To measure exact ULP distance for numbers over a wide range, you typically need to compare ordered normalized bit representations and handle `NaN`, signed zero, and infinity.
 
-## 8. Các lỗi thường gặp
+## 8. Common Mistakes
 
-**Nhầm 1 — `Math.nextUp(x)` là `x + Math.ulp(x)` trong mọi trường hợp.** Công thức cộng có thể hữu ích cho một số điểm, nhưng thất bại ở các biên như vô cực, `NaN`, và không mô tả nhất quán khoảng cách theo hướng trái/phải. Dùng trực tiếp `nextUp` khi mục tiêu là tìm láng giềng phía trên.
+**Mistake 1 — `Math.nextUp(x)` equals `x + Math.ulp(x)` in all cases.** The addition formula works at some points, but fails at boundaries like infinity, `NaN`, and does not consistently describe left/right directional gaps. Use `nextUp` directly when the goal is finding the upper neighbor.
 
-**Nhầm 2 — `nextAfter(start, direction)` trả luôn `direction`.** Khi hai số khác nhau, nó chỉ tiến **một giá trị biểu diễn**; tham số `direction` quyết định hướng di chuyển.
+**Mistake 2 — `nextAfter(start, direction)` always returns `direction`.** When the two numbers differ, it advances by only **one representable value**; the `direction` parameter determines the direction of movement.
 
-**Nhầm 3 — `Math.nextAfter(1.0f, 2.0)` hoạt động theo bước của `double`.** Overload có `start` kiểu `float` trả về `float`, vì vậy kết quả sát `1.0f` theo bước `float`. Phải kiểm tra kiểu toán hạng đầu tiên và chữ `f` ở literal.
+**Mistake 3 — `Math.nextAfter(1.0f, 2.0)` steps in `double` increments.** The overload with `start` of type `float` returns `float`, so the result is right next to `1.0f` by a `float` step. Always check the first operand's type and the `f` suffix on literals.
 
-**Nhầm 4 — `Float.MIN_VALUE` là số âm nhỏ nhất.** Nó là số dương khác 0 nhỏ nhất; phía âm liền dưới 0 là `-Float.MIN_VALUE`. Số hữu hạn âm có độ lớn lớn nhất là `-Float.MAX_VALUE`.
+**Mistake 4 — `Float.MIN_VALUE` is the smallest negative number.** It is the smallest positive non-zero number; on the negative side immediately below 0 is `-Float.MIN_VALUE`. The finite negative number with the largest magnitude is `-Float.MAX_VALUE`.
 
-**Nhầm 5 — Bỏ qua `+0.0` và `-0.0`.** Phép so sánh `==` coi chúng bằng nhau nhưng `nextAfter(+0.0, -0.0)` trả giá trị đích `-0.0`. Cần kiểm thử bằng raw bits nếu dấu 0 là điều kiện quan trọng.
+**Mistake 5 — Ignoring `+0.0` and `-0.0`.** `==` treats them as equal, yet `nextAfter(+0.0, -0.0)` returns the target `-0.0`. Test using raw bits if the sign of 0 is an important condition.
 
-**Nhầm 6 — Xem `ulp(x)` như ngưỡng chính xác cho mọi phép toán.** `ulp` là thuộc tính của miền số biểu diễn, không phải bảo đảm chất lượng của một thuật toán. Với so sánh gần đúng, cần quy tắc tolerance theo bài toán.
+**Mistake 6 — Treating `ulp(x)` as an accuracy threshold for all operations.** `ulp` is a property of the representable number grid, not a quality guarantee of an algorithm. For approximate comparisons, define tolerance rules per problem.
 
-**Nhầm 7 — Tạo hướng bằng phép tính đã bị làm tròn về `start`.** Ví dụ biểu thức `1.0 + 1e-20` được tính bằng `double` thành `1.0`, nên `Math.nextAfter(1.0, 1.0 + 1e-20)` trả `1.0` thay vì bước lên. Nếu mục tiêu đơn giản là số biểu diễn liền trên `1.0`, gọi `Math.nextUp(1.0)`.
+**Mistake 7 — Computing the direction via an expression that already rounds back to `start`.** For instance, `1.0 + 1e-20` evaluates in `double` to `1.0`, so `Math.nextAfter(1.0, 1.0 + 1e-20)` returns `1.0` instead of stepping up. If the goal is simply the next representable number above `1.0`, call `Math.nextUp(1.0)`.
 
-**Nhầm 8 — Dùng bước biểu diễn để thay thế làm tròn theo quy tắc tài chính.** `ulp` liên quan độ chính xác nhị phân, không phải số chữ số sau dấu thập phân. Khi cần quy tắc thập phân, cân nhắc `BigDecimal`/`RoundingMode` theo đặc tả nghiệp vụ.
+**Mistake 8 — Using representation steps to replace financial rounding rules.** `ulp` relates to binary precision, not decimal places after the decimal point. When decimal rules are needed, consider `BigDecimal`/`RoundingMode` per business specification.
 
-## 9. Câu hỏi tự kiểm tra
+## 9. Self-Check Questions
 
-Hãy tự đoán trước khi chạy trong JShell hoặc một lớp Java:
+Predict the answers before running in JShell or a Java class:
 
-1. `Math.nextUp(-0.0)` là gì?
-2. `Math.nextDown(Double.POSITIVE_INFINITY)` là gì?
-3. `Math.nextAfter(1.0, 1.0)` có di chuyển không?
-4. Tại sao `Math.nextUp(1.0) - 1.0` khác `1.0 - Math.nextDown(1.0)`?
-5. Tại sao `Math.nextAfter(1.0f, 2.0)` có bước lớn hơn `Math.nextAfter(1.0, 2.0)`?
-6. `Math.ulp(Double.NaN)` có phải một số thực hữu hạn dùng làm tolerance không?
+1. What is `Math.nextUp(-0.0)`?
+2. What is `Math.nextDown(Double.POSITIVE_INFINITY)`?
+3. Does `Math.nextAfter(1.0, 1.0)` move?
+4. Why is `Math.nextUp(1.0) - 1.0` different from `1.0 - Math.nextDown(1.0)`?
+5. Why does `Math.nextAfter(1.0f, 2.0)` take a larger step than `Math.nextAfter(1.0, 2.0)`?
+6. Is `Math.ulp(Double.NaN)` a finite real number usable as a tolerance?
 
-**Đáp án:** (1) `Double.MIN_VALUE`; (2) `Double.MAX_VALUE`; (3) không, trả `1.0`; (4) `1.0` nằm đúng ranh giới nhị phân, khoảng cách hai bên là `2^-52` và `2^-53`; (5) `float` có 24 bit chính xác hữu hiệu, `double` có 53 bit; (6) không, kết quả là `NaN`.
+**Answers:** (1) `Double.MIN_VALUE`; (2) `Double.MAX_VALUE`; (3) no, returns `1.0`; (4) `1.0` sits right on a binary boundary, so gaps on the two sides are `2^-52` and `2^-53`; (5) `float` has 24 bits of effective precision while `double` has 53 bits; (6) no, the result is `NaN`.
 
-## Ghi nhớ
+## Key Takeaways
 
-- `nextUp`/`nextDown`: láng giềng theo hướng cố định trên trục số; `nextAfter`: láng giềng về phía mục tiêu.
-- Lưới của **kiểu `float` hoặc `double`** quyết định bước, và overload `float` của `nextAfter` nhận hướng kiểu `double`.
-- `ulp(x)` cho biết đơn vị bước tại độ lớn `x`; không tự đồng nhất với khoảng cách theo **mọi hướng**.
-- Phải kiểm thử signed zero, subnormal, giá trị hữu hạn lớn nhất, vô cực và `NaN`.
-- Để nhìn rõ từng giá trị, dùng `Double.toHexString(...)`, `Float.toHexString(...)` và các hàm raw-bit khi cần phân biệt dấu 0.
+- `nextUp`/`nextDown`: neighbor in a fixed direction on the number line; `nextAfter`: neighbor toward a target.
+- The grid of **type `float` or `double`** determines the step size, and the `float` overload of `nextAfter` takes a `double` direction.
+- `ulp(x)` indicates the step unit at magnitude `x`; do not automatically equate it with the distance in **every direction**.
+- Always test signed zero, subnormals, maximum finite values, infinity, and `NaN`.
+- To inspect individual values clearly, use `Double.toHexString(...)`, `Float.toHexString(...)`, and raw-bit methods when zero sign matters.

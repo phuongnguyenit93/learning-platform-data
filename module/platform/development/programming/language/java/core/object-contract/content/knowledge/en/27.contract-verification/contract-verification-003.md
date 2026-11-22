@@ -1,69 +1,69 @@
-# Kiểm thử `equals()`: nhất quán, `null` và đối tượng khác kiểu
+# Testing `equals()`: Consistency, `null`, and Different-Type Objects
 
-## 1. Mục tiêu và bối cảnh
+## 1. Goal and Context
 
-Trong Java, `Object.equals(Object)` trả lời câu hỏi hai đối tượng có **bằng nhau theo quan hệ equality mà lớp định nghĩa** hay không. Bản triển khai mặc định của `Object` kiểm tra danh tính; các lớp giá trị thường ghi đè để so sánh dữ liệu. Một phương thức `equals()` chạy được với hai đối tượng giống nhau vẫn có thể vi phạm hợp đồng khi gặp `null`, đối tượng khác kiểu hoặc khi được gọi nhiều lần.
+In Java, `Object.equals(Object)` answers whether two objects are **equal according to the equality relation defined by the class**. The default implementation in `Object` checks identity; value classes typically override it to compare data. An `equals()` method that works on two identical-looking objects can still violate the contract when encountering `null`, an object of a different type, or when called repeatedly.
 
-Bài này tập trung vào ba phép kiểm chứng dễ bị bỏ sót:
+This lesson focuses on three checks that are easily overlooked:
 
-1. **Nhất quán (consistency):** cùng một cặp đối tượng, nếu thông tin tham gia so sánh không đổi, các lần gọi `equals()` phải cho cùng kết quả.
-2. **So sánh với `null`:** với mọi đối tượng `x` khác `null`, `x.equals(null)` phải trả về `false`, không ném `NullPointerException`.
-3. **Đối tượng khác kiểu:** thử các giá trị thuộc kiểu không tương thích với mô hình equality của lớp; với lớp giá trị `AccountKey` trong bài, kết quả phải là `false`, không ném `ClassCastException`.
+1. **Consistency:** for the same pair of objects, if the information participating in comparison has not changed, repeated calls to `equals()` must yield the same result.
+2. **Comparison with `null`:** for any non-`null` object `x`, `x.equals(null)` must return `false`, without throwing `NullPointerException`.
+3. **Different-type objects:** test values of types incompatible with the class's equality model; for the `AccountKey` value class in this lesson, the result must be `false`, without throwing `ClassCastException`.
 
-Ba phép kiểm tra thuộc hợp đồng chung của `Object.equals(Object)`. Để thiết kế đáng tin cậy, còn phải kiểm tra **phản xạ** (`x.equals(x)`), **đối xứng** (`x.equals(y) == y.equals(x)`) và **bắc cầu** (nếu `x == y` và `y == z` theo `equals` thì `x == z`). Dấu `==` trong câu diễn giải này là quan hệ logic, không phải thay thế cho việc gọi `equals()` trong mã.
+These three checks belong to the general contract of `Object.equals(Object)`. For a reliable design, you must also test **reflexivity** (`x.equals(x)`), **symmetry** (`x.equals(y) == y.equals(x)`), and **transitivity** (if `x == y` and `y == z` under `equals`, then `x == z`). The `==` symbol in this explanation denotes logical equality, not a replacement for calling `equals()` in code.
 
-Nếu một lớp ghi đè `equals()`, hãy rà soát `hashCode()` cùng lúc: **hai đối tượng bằng nhau phải có cùng hash code**. Hai đối tượng không bằng nhau vẫn được phép có hash code trùng nhau.
+If a class overrides `equals()`, inspect `hashCode()` at the same time: **two equal objects must have the same hash code**. Two unequal objects are still allowed to share the same hash code.
 
-## 2. Hiểu đúng các tình huống cần kiểm thử
+## 2. Understanding the Scenarios to Test
 
-### 2.1. Tính nhất quán có điều kiện
+### 2.1. Conditional Consistency
 
-Hợp đồng Java quy định các lần gọi `x.equals(y)` phải cho cùng kết quả **miễn là thông tin được dùng để so sánh trên `x` và `y` chưa thay đổi**. Vì vậy cần kiểm thử cả cặp bằng nhau lẫn cặp không bằng nhau, lặp lại nhiều lần trong cùng trạng thái.
+The Java contract specifies that repeated calls to `x.equals(y)` must return the same result **provided no information used in `equals` comparisons on `x` and `y` is modified**. Therefore, you need to test both equal pairs and unequal pairs, repeated multiple times under the same state.
 
-Ví dụ, nếu hai khóa tài khoản cùng `username` và `tenantId`, `equals()` không được phụ thuộc thời gian hiện tại, số ngẫu nhiên, trạng thái bên ngoài hoặc thứ tự gọi phương thức. Nếu một trường dùng trong `equals()` bị sửa, kết quả có thể thay đổi hợp lệ; đó không tự động là vi phạm consistency. Tuy nhiên, đặt một đối tượng có trường khóa thay đổi được trong `HashSet` hoặc làm key của `HashMap` rất nguy hiểm vì vị trí hash có thể không còn phù hợp.
+For example, if two account keys share `username` and `tenantId`, `equals()` must not depend on the current time, random numbers, external state, or method call order. If a field used in `equals()` is modified, the result may validly change; that is not automatically a consistency violation. However, placing an object with mutable key fields into a `HashSet` or using it as a `HashMap` key is very dangerous because its hash bucket may no longer match.
 
-Một phép thử lặp 100 lần giúp phát hiện lỗi phổ biến, nhưng **không thể chứng minh tính đúng đắn cho mọi trạng thái và mọi tương tác**. Thiết kế bất biến và kiểm thử nhiều bộ dữ liệu cung cấp bảo đảm thực tế tốt hơn.
+A 100-iteration test helps catch common bugs, but **cannot prove correctness for all states and all interactions**. Immutable design and testing across multiple datasets provide better practical assurance.
 
-### 2.2. `null` là một đối số hợp lệ của phép so sánh
+### 2.2. `null` Is a Valid Comparison Argument
 
-`a.equals(null)` phải là `false` với `a != null`. Điều này khác với gọi `null.equals(a)`: biểu thức thứ hai không thể dispatch phương thức và sẽ gây `NullPointerException`.
+`a.equals(null)` must be `false` for `a != null`. This differs from calling `null.equals(a)`: the latter expression cannot dispatch a method and will throw `NullPointerException`.
 
-`Objects.equals(a, b)` là tiện ích hỗ trợ hai tham chiếu có thể `null`:
+`Objects.equals(a, b)` is a helper supporting two potentially `null` references:
 
-- `Objects.equals(null, null)` trả `true`.
-- `Objects.equals(null, a)` trả `false` nếu `a` khác `null`.
-- Khi `a` khác `null`, `Objects.equals(a, b)` sử dụng `a.equals(b)`.
+- `Objects.equals(null, null)` returns `true`.
+- `Objects.equals(null, a)` returns `false` if `a` is non-`null`.
+- When `a` is non-`null`, `Objects.equals(a, b)` uses `a.equals(b)`.
 
-Để trực tiếp kiểm tra hợp đồng của phương thức được ghi đè, hãy viết `!a.equals(null)`. Chỉ kiểm tra `Objects.equals(null, a)` sẽ **không gọi** `a.equals(...)` và không phát hiện được lỗi trong phương thức đó.
+To directly test the contract of the overridden method, write `!a.equals(null)`. Checking only `Objects.equals(null, a)` will **not invoke** `a.equals(...)` and will not catch bugs in that method.
 
-### 2.3. Đối tượng khác kiểu
+### 2.3. Different-Type Objects
 
-Với một value class chỉ chấp nhận cùng kiểu, các lời gọi như `key.equals("alice")` và `key.equals(new Object())` phải trả `false` một cách an toàn. Bước `instanceof` trước khi ép kiểu tránh `ClassCastException`; biểu thức `null instanceof AccountKey` cũng là `false`.
+For a value class that only accepts the same type, calls such as `key.equals("alice")` and `key.equals(new Object())` must safely return `false`. An `instanceof` check before casting avoids `ClassCastException`; the expression `null instanceof AccountKey` also evaluates to `false`.
 
-**Lưu ý phạm vi:** hợp đồng `Object.equals()` không bắt buộc *mọi* cặp đối tượng khác lớp đều khác nhau. Một thiết kế đa hình có thể cho phép equality giữa hai lớp khác nhau nếu định nghĩa chặt chẽ và vẫn giữ được đối xứng, bắc cầu, nhất quán. Với khóa tài khoản `final` ở dưới, lựa chọn đúng là chỉ bằng đối tượng `AccountKey`. Không sao chép kỳ vọng “khác class luôn false” sang một thiết kế có yêu cầu equality liên kiểu mà chưa phân tích.
+**Scope note:** the `Object.equals()` contract does not require *every* pair of objects of different classes to be unequal. A polymorphic design can allow equality between two different classes if strictly defined while still preserving symmetry, transitivity, and consistency. For the `final` account key below, the right choice is to equal only `AccountKey` objects. Do not copy the expectation "different class is always false" into a design that requires cross-class equality without analyzing it first.
 
-## 3. Ma trận kiểm thử đề xuất
+## 3. Recommended Test Matrix
 
-| Trường hợp | Dữ liệu thử | Kết quả mong đợi |
+| Case | Test data | Expected result |
 | --- | --- | --- |
-| Phản xạ | `a.equals(a)` | `true` |
-| Cùng giá trị | `a.equals(b)` với `a` và `b` được tạo riêng nhưng có cùng trường định danh | `true` |
-| Khác giá trị | `a.equals(d)` với `tenantId` khác | `false` |
-| Nhất quán khi bằng | Lặp `a.equals(b)` khi không đổi trạng thái | Luôn `true` |
-| Nhất quán khi không bằng | Lặp `a.equals(d)` khi không đổi trạng thái | Luôn `false` |
-| `null` | `a.equals(null)` | `false`, không ngoại lệ |
-| Khác kiểu: String | `a.equals("alice")` | `false`, không ngoại lệ |
-| Khác kiểu: Object | `a.equals(new Object())` | `false`, không ngoại lệ |
-| Đối xứng | `a.equals(b)` và `b.equals(a)` | Hai giá trị giống nhau |
-| Bắc cầu | `a.equals(b)`, `b.equals(c)`, `a.equals(c)` | Cả ba là `true` |
-| Hash tương thích | `a.equals(b)` là `true` | `a.hashCode() == b.hashCode()` |
-| Tích hợp collection | Thêm `a` vào `HashSet`, tra cứu `b` | `contains(b)` là `true` |
+| Reflexivity | `a.equals(a)` | `true` |
+| Equal values | `a.equals(b)` where `a` and `b` are created separately with the same identity fields | `true` |
+| Different values | `a.equals(d)` with different `tenantId` | `false` |
+| Consistency when equal | Repeat `a.equals(b)` without changing state | Always `true` |
+| Consistency when unequal | Repeat `a.equals(d)` without changing state | Always `false` |
+| `null` | `a.equals(null)` | `false`, no exception |
+| Different type: String | `a.equals("alice")` | `false`, no exception |
+| Different type: Object | `a.equals(new Object())` | `false`, no exception |
+| Symmetry | `a.equals(b)` and `b.equals(a)` | Both values identical |
+| Transitivity | `a.equals(b)`, `b.equals(c)`, `a.equals(c)` | All three are `true` |
+| Compatible hash | `a.equals(b)` is `true` | `a.hashCode() == b.hashCode()` |
+| Collection integration | Add `a` to `HashSet`, look up `b` | `contains(b)` is `true` |
 
-Các giá trị `a`, `b`, `c`, `d` phải được dựng rõ ràng, có chủ đích. Kiểm tra một đối tượng với chính nó không đủ phát hiện lỗi so sánh giữa **hai instance khác nhau nhưng bằng giá trị**.
+The values `a`, `b`, `c`, `d` must be constructed explicitly and intentionally. Testing an object only against itself is insufficient to detect bugs when comparing **two distinct instances with equal values**.
 
-## 4. Ví dụ Java 17+ hoàn chỉnh, có kiểm tra thực thi
+## 4. Complete, Runnable Java 17+ Verification Example
 
-`AccountKey` biểu diễn khóa theo tên tài khoản và tenant. Lớp được đánh dấu `final` để quy tắc kiểm tra kiểu bằng `instanceof AccountKey` không phát sinh trường hợp lớp con thay đổi định nghĩa equality. Các trường `final` giữ thông tin tham gia so sánh ổn định sau khi tạo.
+`AccountKey` represents a key by username and tenant. The class is marked `final` so type checking via `instanceof AccountKey` cannot encounter subclasses altering the definition of equality. The `final` fields keep the information participating in comparison stable after creation.
 
 ```java
 // File: EqualsContractTest.java
@@ -145,14 +145,14 @@ public final class EqualsContractTest {
 }
 ```
 
-Biên dịch và chạy trên JDK 17 trở lên:
+Compile and run on JDK 17 or later:
 
 ```bash
 javac EqualsContractTest.java
 java EqualsContractTest
 ```
 
-Đầu ra chính xác với mã trên:
+Exact output for the code above:
 
 ```text
 PASS - phan xa
@@ -167,15 +167,15 @@ PASS - hashCode tuong thich
 PASS - HashSet tim thay khoa bang nhau
 ```
 
-Nếu bất cứ điều kiện nào sai, `check(...)` ném `AssertionError` và chương trình kết thúc thất bại, nên kết quả không phụ thuộc việc bật cờ `-ea`. `a`, `b` và `c` là **ba đối tượng riêng**; `equals()` so sánh giá trị, còn `a == b` là `false`. `d` khác tenant nên không bằng `a`.
+If any condition is false, `check(...)` throws `AssertionError` and the program terminates with failure, so the result does not depend on enabling the `-ea` flag. `a`, `b`, and `c` are **three separate objects**; `equals()` compares values, while `a == b` is `false`. `d` has a different tenant and is therefore not equal to `a`.
 
-Trong `equals(Object)`, `this == obj` là tối ưu hợp lệ cho cùng tham chiếu; `instanceof` xử lý cả `null` lẫn kiểu khác; `hashCode()` sử dụng đúng hai trường mà `equals()` sử dụng. Không cần test rằng hai khóa khác nhau bắt buộc cho hash khác nhau: trùng hash là hợp lệ.
+In `equals(Object)`, `this == obj` is a valid optimization for same-reference checks; `instanceof` handles both `null` and other types; `hashCode()` uses the exact two fields used by `equals()`. You do not need to test that two different keys must produce different hashes: hash collisions are valid.
 
-## 5. Các lỗi triển khai mà bộ kiểm thử cần bắt được
+## 5. Implementation Bugs That Tests Should Catch
 
-### Lỗi 1: Ép kiểu trước khi kiểm tra
+### Bug 1: Casting Before Checking
 
-Ví dụ **sai** (chỉ là fragment minh họa, không phải chương trình độc lập):
+**Incorrect** example (illustrative fragment only, not a standalone program):
 
 ```java
 @Override
@@ -186,12 +186,12 @@ public boolean equals(Object obj) {
 }
 ```
 
-Khi `obj` là `null`, truy cập `other.username` ném `NullPointerException`; khi đối tượng khác kiểu, ép kiểu gây `ClassCastException`. Kiểm tra `instanceof` hoặc kiểm tra `null` và class trước khi ép kiểu là cách sửa.
+When `obj` is `null`, accessing `other.username` throws `NullPointerException`; when the object is of a different type, the cast causes `ClassCastException`. Checking `instanceof`, or checking `null` and class before casting, is the fix.
 
-### Lỗi 2: Vô tình overload thay vì override
+### Bug 2: Accidentally Overloading Instead of Overriding
 
 ```java
-// SAI: chữ ký khác equals(Object), không ghi đè Object.equals.
+// WRONG: signature differs from equals(Object), does not override Object.equals.
 public boolean equals(AccountKey other) {
     return other != null
             && username.equals(other.username)
@@ -199,36 +199,36 @@ public boolean equals(AccountKey other) {
 }
 ```
 
-`a.equals(b)` có thể gọi overload `equals(AccountKey)` và có vẻ đúng, nhưng collection hoặc biểu thức tham chiếu `Object` vẫn dùng `Object.equals(Object)`. Luôn dùng chính xác `public boolean equals(Object obj)` và ghi `@Override`; annotation này giúp trình biên dịch phát hiện chữ ký không ghi đè được phương thức dự kiến.
+`a.equals(b)` may invoke the `equals(AccountKey)` overload and appear to work, but collections or `Object`-typed reference expressions still use `Object.equals(Object)`. Always use the exact signature `public boolean equals(Object obj)` and include `@Override`; this annotation helps the compiler catch a signature that fails to override the intended method.
 
-### Lỗi 3: Bỏ qua một trường định danh hoặc dùng trạng thái thay đổi
+### Bug 3: Omitting an Identity Field or Using Mutable State
 
-Nếu `equals()` chỉ so `username` mà nghiệp vụ yêu cầu thêm `tenantId`, hai tài khoản thuộc tenant khác nhau có thể bị xem là bằng nhau. Kiểm thử `a.equals(d)` trong ví dụ sẽ phát hiện lỗi.
+If `equals()` only compares `username` when the business rules also require `tenantId`, two accounts belonging to different tenants could be treated as equal. Testing `a.equals(d)` in the example will catch this bug.
 
-Không tính các trường biến thiên như thời gian hiện tại, lần truy cập gần nhất, bộ đếm hay giá trị ngẫu nhiên vào equality nếu chúng không phải một phần định danh ổn định. Đối tượng dùng làm key trong `HashMap` hoặc phần tử của `HashSet` nên có các trường liên quan equality bất biến trong thời gian lưu trữ.
+Do not include volatile fields such as current time, last access time, counters, or random values in equality if they are not part of a stable identity. Objects used as keys in `HashMap` or elements of `HashSet` should have their equality-related fields immutable while stored.
 
-### Lỗi 4: `equals()` và `hashCode()` bất đồng
+### Bug 4: `equals()` and `hashCode()` Out of Sync
 
-Nếu `equals()` cho hai đối tượng khác instance bằng nhau nhưng `hashCode()` vẫn lấy giá trị mặc định từ `Object`, việc tra cứu bằng đối tượng tương đương trong cấu trúc hash có thể thất bại. Hãy kiểm cả quy tắc hash và hành vi `HashSet.contains`/`HashMap.get`, vì đó là nơi lỗi dễ lộ ra nhất.
+If `equals()` treats two distinct instances as equal while `hashCode()` still uses the default value inherited from `Object`, looking up an equivalent object in a hash structure can fail. Verify both the hash rule and `HashSet.contains`/`HashMap.get` behavior, since that is where the bug surfaces most readily.
 
-### Lỗi 5: Thử nghiệm không đủ đường đi
+### Bug 5: Insufficient Path Coverage in Testing
 
-Chỉ gọi `equals()` một lần hoặc chỉ so sánh `a.equals(a)` là chưa đủ. Khi thiết kế test, hãy có ít nhất một cặp bằng theo giá trị nhưng khác tham chiếu, một cặp không bằng, các đối số `null`, nhiều kiểu không tương thích, và các lần gọi lặp.
+Calling `equals()` only once or only comparing `a.equals(a)` is not enough. When designing tests, include at least one pair equal by value but with distinct references, one unequal pair, `null` arguments, multiple incompatible types, and repeated calls.
 
-Đối với lớp có nhiều nhánh hoặc trường nullable, mở rộng ma trận bằng `null` trong từng trường cho phép, mọi tổ hợp giá trị biên, dữ liệu khác biệt tại từng trường, và chiều so sánh đảo ngược. Có thể chuyển các nhóm kiểm tra thành unit test JUnit riêng hoặc parameterized test để khi thất bại biết rõ tình huống.
+For classes with many branches or nullable fields, expand the matrix with `null` in each allowed field, all combinations of boundary values, differences at each individual field, and reversed comparison order. You can split the check groups into separate JUnit unit tests or parameterized tests so that failures pinpoint the exact case.
 
-## 6. Phân biệt các khái niệm thường nhầm
+## 6. Distinguishing Commonly Confused Concepts
 
-- **`==` với reference:** so danh tính tham chiếu, không tự so giá trị của hai object riêng biệt.
-- **`equals(Object)`:** quan hệ equality do lớp cung cấp; mặc định của `Object` gắn với danh tính.
-- **`Objects.equals(a, b)`:** tiện ích so sánh null-safe; có thể bỏ qua lời gọi `a.equals` khi `a` là `null`.
-- **`hashCode()`:** giá trị phục vụ cấu trúc hash; phải nhất quán với equality, không phải mã định danh duy nhất.
-- **`compareTo()`/`Comparator`:** diễn tả thứ tự; tính tương thích với `equals()` cần xét riêng theo nhu cầu của cấu trúc dữ liệu và nghiệp vụ.
+- **`==` on references:** compares reference identity, does not automatically compare the values of two distinct objects.
+- **`equals(Object)`:** the equality relation provided by the class; `Object`'s default ties it to identity.
+- **`Objects.equals(a, b)`:** null-safe comparison helper; may skip calling `a.equals` when `a` is `null`.
+- **`hashCode()`:** value supporting hash structures; must be consistent with equality, not a unique identifier.
+- **`compareTo()`/`Comparator`:** expresses ordering; compatibility with `equals()` must be evaluated separately according to data structure and business requirements.
 
-**Checklist trước khi chấp nhận một implementation `equals()`:** đúng chữ ký `equals(Object)`; các quy tắc phản xạ–đối xứng–bắc cầu; nhất quán nếu dữ liệu so sánh không đổi; `equals(null) == false`; xử lý an toàn các kiểu không được hỗ trợ; `hashCode` phù hợp; kiểm tra thực tế với collection.
+**Checklist before accepting an `equals()` implementation:** exact `equals(Object)` signature; reflexivity–symmetry–transitivity rules; consistency when compared data does not change; `equals(null) == false`; safe handling of unsupported types; matching `hashCode`; actual testing with collections.
 
-## 7. Tài liệu chuẩn
+## 7. Official Documentation
 
-- [Java SE 26 — `Object.equals(Object)` và `hashCode()`](https://docs.oracle.com/en/java/javase/26/docs/api/java.base/java/lang/Object.html#equals(java.lang.Object))
+- [Java SE 26 — `Object.equals(Object)` and `hashCode()`](https://docs.oracle.com/en/java/javase/26/docs/api/java.base/java/lang/Object.html#equals(java.lang.Object))
 - [Java SE 26 — `Objects.equals(Object,Object)`](https://docs.oracle.com/en/java/javase/26/docs/api/java.base/java/util/Objects.html#equals(java.lang.Object,java.lang.Object))
 - [Java SE 26 — `HashSet`](https://docs.oracle.com/en/java/javase/26/docs/api/java.base/java/util/HashSet.html)

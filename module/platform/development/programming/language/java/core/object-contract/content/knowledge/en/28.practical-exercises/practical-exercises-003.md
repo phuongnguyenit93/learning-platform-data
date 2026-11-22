@@ -1,21 +1,21 @@
-# Thực hành: sửa lớp có `equals(MyType)` nhưng chưa ghi đè `equals(Object)`
+# Practice: Fixing a Class That Has `equals(MyType)` Without Overriding `equals(Object)`
 
-## 1. Bài toán cần sửa
+## 1. The Problem to Fix
 
-Bạn nhận một lớp Java biểu diễn khóa định danh của một bản sách. Hai đối tượng có cùng mã sách và cùng lần hiệu đính phải được xem là bằng nhau về mặt giá trị. Lớp hiện có `equals(BookKey)` và đôi khi thử trực tiếp `a.equals(b)` cho kết quả `true`. Tuy nhiên, khi truyền các đối tượng đó cho API nhận `Object` hoặc đưa vào `List`, `Set`, phép so sánh lại thất bại.
+You receive a Java class representing an identifier key for a book edition. Two objects with the same book code and same revision must be considered equal by value. The class currently has `equals(BookKey)`, and sometimes testing `a.equals(b)` directly returns `true`. However, when passing those objects to an API accepting `Object` or placing them into a `List` or `Set`, the comparison fails.
 
-Mục tiêu là **sửa hợp đồng bình đẳng đối tượng** để các lệnh gọi thông qua kiểu `Object` và các API collection đều nhận được phép so sánh giá trị đúng. Đây là lỗi điển hình ở ranh giới giữa *overloading* (nạp chồng) và *overriding* (ghi đè).
+The goal is to **fix the object equality contract** so that calls through type `Object` and collection APIs all receive proper value comparison. This is a classic bug at the boundary between *overloading* and *overriding*.
 
-Sau khi thực hành, bạn sẽ có thể:
-- Nhìn chữ ký phương thức để nhận ra `equals(MyType)` **không** ghi đè `Object.equals(Object)`.
-- Chỉ ra tại sao phép gọi trực tiếp trông đúng nhưng `List.contains` và `HashSet.contains` có thể sai.
-- Ghi đè chuẩn `public boolean equals(Object obj)` và `public int hashCode()`, dùng `@Override` để trình biên dịch kiểm tra.
-- Kiểm tra các thuộc tính cơ bản của `equals` cùng khả năng dùng khóa giá trị trong hash collection.
-- Nhận diện các lỗi còn lại liên quan đến `null`, tính đối xứng, phân lớp và trường có thể thay đổi.
+After completing this practice, you will be able to:
+- Inspect a method signature and recognize that `equals(MyType)` **does not** override `Object.equals(Object)`.
+- Explain why a direct call looks right while `List.contains` and `HashSet.contains` can fail.
+- Properly override `public boolean equals(Object obj)` and `public int hashCode()`, using `@Override` so the compiler checks them.
+- Verify the basic properties of `equals` along with using a value key in hash collections.
+- Identify remaining bugs related to `null`, symmetry, subclassing, and mutable fields.
 
-## 2. Phân tích mã lỗi: cùng tên chưa đủ để ghi đè
+## 2. Analyzing the Buggy Code: Same Name Is Not Enough to Override
 
-Đây là lớp lỗi, xét riêng các thành phần quyết định phép so sánh:
+Here is the buggy class, looking specifically at the components that govern comparison:
 
 ```java
 import java.util.Objects;
@@ -29,7 +29,7 @@ final class BrokenBookKey {
         this.revision = revision;
     }
 
-    // Nạp chồng! Tham số là BrokenBookKey, không phải Object.
+    // Overload! The parameter is BrokenBookKey, not Object.
     public boolean equals(BrokenBookKey other) {
         return other != null
                 && revision == other.revision
@@ -43,38 +43,38 @@ final class BrokenBookKey {
 }
 ```
 
-Hãy đọc đúng hai chữ ký:
+Read both signatures carefully:
 
 ```java
-public boolean equals(BrokenBookKey other) // Phương thức mới: overload
-public boolean equals(Object obj)          // Chữ ký cần override từ Object
+public boolean equals(BrokenBookKey other) // New method: overload
+public boolean equals(Object obj)          // Signature needed to override from Object
 ```
 
-Phương thức thứ hai ở đây là **chữ ký cần có**, không phải phương thức đang tồn tại trong lớp lỗi. Vì lớp mới chỉ khai báo `equals(BrokenBookKey)`, nó vẫn kế thừa `Object.equals(Object)`, nghĩa là khi lời gọi được ràng buộc với chữ ký `equals(Object)` thì bình đẳng mặc định là **cùng đối tượng (identity)**.
+The second method here is **the required signature**, not a method currently present in the buggy class. Because the class only declares `equals(BrokenBookKey)`, it still inherits `Object.equals(Object)`, meaning that when a call is bound to the `equals(Object)` signature, default equality is **reference identity**.
 
-Việc ghi đè `hashCode()` trong lớp lỗi cố ý làm ví dụ rõ hơn: **chỉ khắc phục hash code không thể thay thế cho việc ghi đè `equals(Object)`**. Hai đối tượng khác tham chiếu có cùng giá trị và cùng mã băm vẫn có thể bị so sánh là không bằng nhau.
+Overriding `hashCode()` in the buggy class deliberately makes the example clearer: **fixing only the hash code cannot substitute for overriding `equals(Object)`**. Two objects with different references that share the same value and hash code can still be compared as unequal.
 
-### Vì sao hai lời gọi chọn phương thức khác nhau?
+### Why do the two calls select different methods?
 
 ```java
 BrokenBookKey a = new BrokenBookKey("JAVA-21", 2);
 BrokenBookKey b = new BrokenBookKey("JAVA-21", 2);
 Object viewedAsObject = b;
 
-boolean direct = a.equals(b);               // Chọn equals(BrokenBookKey)
-boolean viaObject = a.equals(viewedAsObject); // Chọn equals(Object)
+boolean direct = a.equals(b);               // Selects equals(BrokenBookKey)
+boolean viaObject = a.equals(viewedAsObject); // Selects equals(Object)
 ```
 
-- Trong `a.equals(b)`, kiểu tĩnh (*compile-time type*) của `b` là `BrokenBookKey`; trình biên dịch chọn overload nhận `BrokenBookKey` vì cụ thể hơn.
-- Trong `a.equals(viewedAsObject)`, kiểu tĩnh của tham số là `Object`; trình biên dịch chọn chữ ký `equals(Object)` và lúc chạy không có override ở `BrokenBookKey`, nên thực thi `Object.equals(Object)`.
-- Sự lựa chọn giữa **các overload** diễn ra trong lúc biên dịch; việc chọn phần cài đặt **override** phù hợp với đối tượng nhận diễn ra lúc chạy. Hai cơ chế không thay thế nhau.
-- Phép thử chỉ dùng `a.equals(b)` với hai biến đều có kiểu `BrokenBookKey` có thể che giấu lỗi.
+- In `a.equals(b)`, the static (*compile-time*) type of `b` is `BrokenBookKey`; the compiler chooses the overload taking `BrokenBookKey` because it is more specific.
+- In `a.equals(viewedAsObject)`, the static type of the argument is `Object`; the compiler selects the `equals(Object)` signature, and at runtime there is no override on `BrokenBookKey`, so `Object.equals(Object)` executes.
+- Selecting among **overloads** happens at compile time; selecting the **override** implementation matching the receiver object happens at runtime. The two mechanisms do not replace each other.
+- A test that only calls `a.equals(b)` with two variables typed as `BrokenBookKey` can hide the bug.
 
-Một cách dò lỗi nhanh: thử đặt `@Override` trước `equals(BrokenBookKey other)`. Trình biên dịch báo lỗi vì phương thức này không override phương thức nào trong lớp cha. **Không sửa lỗi đó bằng cách xóa `@Override`; phải đổi đúng chữ ký sang `equals(Object)`.**
+A quick way to spot the error: try putting `@Override` in front of `equals(BrokenBookKey other)`. The compiler reports an error because this method does not override any method in the superclass. **Do not fix that error by removing `@Override`; you must change the signature properly to `equals(Object)`.**
 
-## 3. Cách sửa tối thiểu và chính xác
+## 3. Minimal and Correct Fix
 
-Với lớp **final** có ý nghĩa bình đẳng theo hai trường `code` và `revision`, cài đặt chuẩn như sau:
+For a **final** class whose equality semantics depend on the two fields `code` and `revision`, the standard implementation is:
 
 ```java
 import java.util.Objects;
@@ -107,18 +107,18 @@ public final class BookKey {
 }
 ```
 
-Lưu tệp trên thành `BookKey.java` và biên dịch bằng `javac BookKey.java` với JDK 17 trở lên. Đây là một lớp thư viện hoàn chỉnh, **không có `main`** nên bản thân nó không in stdout.
+Save the file above as `BookKey.java` and compile with `javac BookKey.java` on JDK 17 or higher. This is a complete library class **without a `main` method**, so by itself it prints nothing to stdout.
 
-Ý nghĩa từng phần:
+Meaning of each part:
 
-1. `@Override` xác nhận với trình biên dịch rằng chữ ký đúng là `equals(Object)`. Nếu viết sai kiểu tham số hoặc phạm vi truy cập, lỗi được phát hiện sớm.
-2. `this == obj` nhận biết nhanh cùng một tham chiếu; nhánh này luôn trả về `true`, giữ tính *phản xạ*.
-3. `obj instanceof BookKey other` loại `null` và đối tượng khác kiểu; `other` là biến nhận kiểu (pattern variable) của Java 16+, phù hợp Java 17.
-4. Chỉ so sánh **các trường cấu thành danh tính giá trị**: cùng `revision` và cùng `code`. Vì constructor loại `null`, `code.equals(other.code)` an toàn.
-5. `hashCode()` sử dụng **chính các trường được kiểm tra trong `equals`**. Nếu `a.equals(b)` là `true`, bắt buộc `a.hashCode() == b.hashCode()`.
-6. Khai báo lớp `final` giúp không có subclass thêm trường hoặc thay đổi quy tắc bình đẳng, giảm nguy cơ vi phạm tính đối xứng.
+1. `@Override` confirms with the compiler that the signature is truly `equals(Object)`. If the parameter type or visibility is mistyped, the error is caught early.
+2. `this == obj` quickly recognizes the exact same reference; this branch always returns `true`, preserving *reflexivity*.
+3. `obj instanceof BookKey other` rejects `null` and objects of other types; `other` is a Java 16+ pattern variable, compatible with Java 17.
+4. Compare only **the fields constituting value identity**: same `revision` and same `code`. Because the constructor rejects `null`, `code.equals(other.code)` is safe.
+5. `hashCode()` uses **the exact same fields checked in `equals`**. If `a.equals(b)` is `true`, `a.hashCode() == b.hashCode()` must hold.
+6. Declaring the class `final` ensures no subclass adds fields or changes equality rules, reducing the risk of violating symmetry.
 
-Nếu chính bài tập yêu cầu giữ lại `equals(BookKey)` vì tương thích mã nguồn cũ, có thể cho overload đó **ủy quyền** về đường kiểm tra chuẩn:
+If the exercise specifically requires keeping `equals(BookKey)` for legacy source compatibility, that overload can **delegate** to the canonical check path:
 
 ```java
 public boolean equals(BookKey other) {
@@ -126,13 +126,13 @@ public boolean equals(BookKey other) {
 }
 ```
 
-Đoạn trên là phương thức bổ sung tùy chọn **bên trong lớp đã ghi đè `equals(Object)`**. Ép `(Object)` là có chủ đích để chọn đúng overload; không bắt buộc giữ `equals(BookKey)` trong thiết kế mới và tránh lặp logic bình đẳng ở hai nơi.
+The snippet above is an optional supplementary method **inside a class that already overrides `equals(Object)`**. The `(Object)` cast is intentional to select the right overload; keeping `equals(BookKey)` is not required in new designs, and duplicating equality logic in two places should be avoided.
 
-## 4. Chương trình chứng minh lỗi và kết quả sau sửa
+## 4. Program Demonstrating the Bug and the Result After Fixing
 
-Ví dụ dưới đây là **một chương trình độc lập** với hai lớp lồng nhau: một lớp vẫn bị overload và một lớp đã sửa. Nó kiểm tra phép gọi thông qua `Object`, `List.contains`, `HashSet.contains` và mã băm.
+The example below is **a standalone program** with two nested classes: one still suffering from the overload and one fixed. It tests calls via `Object`, `List.contains`, `HashSet.contains`, and hash codes.
 
-Tạo tệp `EqualsOverloadRepairDemo.java`:
+Create the file `EqualsOverloadRepairDemo.java`:
 
 ```java
 import java.util.HashSet;
@@ -150,7 +150,7 @@ public class EqualsOverloadRepairDemo {
             this.revision = revision;
         }
 
-        // Sai mục tiêu: overload, không phải override Object.equals(Object).
+        // Wrong target: overload, not an override of Object.equals(Object).
         public boolean equals(BrokenBookKey other) {
             return other != null
                     && revision == other.revision
@@ -219,14 +219,14 @@ public class EqualsOverloadRepairDemo {
 }
 ```
 
-Chạy trong thư mục chứa tệp:
+Run in the directory containing the file:
 
 ```bash
 javac EqualsOverloadRepairDemo.java
 java EqualsOverloadRepairDemo
 ```
 
-Stdout chính xác (chương trình trên chỉ dùng các giá trị xác định):
+Exact stdout (the program uses only deterministic values):
 
 ```text
 BROKEN
@@ -245,42 +245,42 @@ differentRevision=false
 equalsNull=false
 ```
 
-**Giải thích kết quả trước sửa:** `brokenA.equals(brokenB)` dùng overload nên trả `true`. Ngược lại, `brokenA.equals(brokenAsObject)` gọi chữ ký `equals(Object)` kế thừa nên `false`. Các Collection API kiểm tra bình đẳng qua giao diện `Object.equals(Object)`, vì vậy đối tượng thứ hai dù có cùng giá trị vẫn không được tìm thấy. `sameHash=true` chỉ cho thấy hai mã băm bằng nhau, không tự khiến `equals(Object)` đúng.
+**Explaining the results before the fix:** `brokenA.equals(brokenB)` uses the overload and thus returns `true`. Conversely, `brokenA.equals(brokenAsObject)` calls the inherited `equals(Object)` signature and returns `false`. Collection APIs check equality through the `Object.equals(Object)` interface, so the second object—even with the same value—is not found. `sameHash=true` only shows the two hash codes are equal; it does not make `equals(Object)` true by itself.
 
-**Giải thích kết quả sau sửa:** `FixedBookKey.equals(Object)` được dispatch kể cả khi đối số hoặc biến được nhìn bằng kiểu `Object`. Cả `List.contains` lẫn `HashSet.contains` có thể tìm đối tượng khác tham chiếu nhưng bằng nhau về giá trị. Mã băm thống nhất với phép so sánh; `revision` khác nhau không bằng nhau; `null` không bằng đối tượng hợp lệ.
+**Explaining the results after the fix:** `FixedBookKey.equals(Object)` is dispatched even when the argument or variable is viewed through type `Object`. Both `List.contains` and `HashSet.contains` can find an object with a different reference that is equal by value. Hash codes agree with the comparison; different `revision` values are not equal; `null` is not equal to a valid object.
 
-Trong `HashSet`, mã băm trước tiên giúp xác định nơi tìm kiếm, còn `equals(Object)` xác nhận hai khóa có thực sự bằng nhau hay không. Có cùng mã băm **không đồng nghĩa** hai phần tử bằng nhau; *hash collision* hợp lệ. Có `equals` đúng mà `hashCode` sai cũng có thể gây lỗi lookup vì hai đối tượng bằng nhau bị đặt vào các bucket khác nhau.
+In `HashSet`, the hash code first helps determine where to look, while `equals(Object)` confirms whether two keys are truly equal. Having the same hash code **does not mean** two elements are equal; *hash collisions* are valid. Having a correct `equals` with a broken `hashCode` can also cause lookup failures because two equal objects are placed into different buckets.
 
-## 5. Hợp đồng `equals(Object)` và `hashCode()` cần giữ
+## 5. The `equals(Object)` and `hashCode()` Contract to Preserve
 
-Với các tham chiếu khác `null`, hợp đồng chính của `equals` gồm:
+For non-`null` references, the core contract of `equals` includes:
 
-| Thuộc tính | Điều cần đảm bảo | Kiểm tra gợi ý |
+| Property | Requirement | Suggested check |
 | --- | --- | --- |
-| Phản xạ (*reflexive*) | `x.equals(x)` là `true` | So sánh một instance với chính nó |
-| Đối xứng (*symmetric*) | `x.equals(y)` và `y.equals(x)` cho cùng kết quả | Kiểm tra hai chiều, cả với kiểu con nếu cho phép kế thừa |
-| Bắc cầu (*transitive*) | Nếu `x=y` và `y=z` thì `x=z` về nghĩa `equals` | Tạo ba instance có cùng trường giá trị |
-| Nhất quán (*consistent*) | Kết quả giữ nguyên khi trạng thái dùng cho bình đẳng không đổi | Gọi nhiều lần trước khi sửa dữ liệu |
-| So với null | `x.equals(null)` là `false` | Kiểm tra cụ thể qua chữ ký `Object` |
+| Reflexive | `x.equals(x)` is `true` | Compare an instance with itself |
+| Symmetric | `x.equals(y)` and `y.equals(x)` give the same result | Check both directions, including with subclasses if inheritance is allowed |
+| Transitive | If `x=y` and `y=z`, then `x=z` in `equals` semantics | Create three instances with the same value fields |
+| Consistent | Result stays the same while state used for equality does not change | Call multiple times before modifying data |
+| Against null | `x.equals(null)` is `false` | Check explicitly via the `Object` signature |
 
-Với `hashCode`, quy tắc bắt buộc là **hai đối tượng bằng nhau theo `equals` phải có hash code bằng nhau** trong cùng một lần quan sát trạng thái. Chiều ngược lại **không bắt buộc**. Nếu hai đối tượng không bằng nhau, mã băm của chúng vẫn có thể trùng nhau.
+For `hashCode`, the mandatory rule is **two objects that are equal according to `equals` must have equal hash codes** within the same state observation. The converse **is not required**. If two objects are not equal, their hash codes may still collide.
 
-Trong lớp khóa giá trị, nên ưu tiên các trường `final` và kiểu giá trị bất biến. Khi dùng một đối tượng làm phần tử `HashSet` hoặc khóa `HashMap`, **không thay đổi các trường tham gia `equals/hashCode` trong khi đối tượng đang được lưu**: nếu không, hash bucket cũ và mã băm mới có thể lệch nhau, khiến tìm kiếm thất bại ngay cả với chính tham chiếu đó.
+In value key classes, prefer `final` fields and immutable value types. When using an object as a `HashSet` element or `HashMap` key, **do not mutate fields participating in `equals/hashCode` while the object is stored**: otherwise, the old hash bucket and the new hash code can fall out of sync, causing lookups to fail even with the exact same reference.
 
-## 6. Checklist sửa lớp thật tại dự án
+## 6. Checklist for Fixing Real Classes in a Project
 
-Áp dụng trực tiếp lên lớp hiện đang có `equals(MyType)`:
+Apply directly to a class that currently has `equals(MyType)`:
 
-1. **Xác định ý nghĩa bình đẳng.** Đặt câu hỏi “Hai instance nào được xem là cùng giá trị?” và ghi rõ những trường tham gia. Không mặc định so sánh mọi trường nếu có trường chỉ là cache, timestamp hoặc metadata không liên quan danh tính.
-2. **Thay chữ ký sai.** Viết `@Override public boolean equals(Object obj)`; bảo đảm tên `equals`, chữ `Object` của `java.lang.Object`, kiểu trả về `boolean` và phạm vi `public`.
-3. **Xử lý cùng tham chiếu, null và khác kiểu.** Trả `true` nhanh cho `this == obj`, trả `false` khi không đúng kiểu giá trị.
-4. **So sánh nội dung theo loại trường.** Kiểu nguyên thủy dùng toán tử `==`; đối tượng dùng `Objects.equals(a, b)` khi có thể null hoặc `a.equals(b)` khi được bảo đảm khác null; mảng cần `Arrays.equals` hoặc `Arrays.deepEquals` theo cấu trúc dữ liệu, không dùng so sánh tham chiếu nếu cần giá trị.
-5. **Ghi đè `hashCode()` đồng bộ.** Cùng tập trường và cùng quy tắc so sánh; với mảng cần xét `Arrays.hashCode`/`Arrays.deepHashCode` cho tương ứng.
-6. **Rà soát caller.** Tìm nơi gọi `equals(MyType)`. Khi không cần API overload, bỏ phương thức đó; nếu bắt buộc giữ để tương thích, cho ủy quyền đến `equals(Object)` và tránh cài đặt hai thuật toán khác nhau.
-7. **Thử dưới kiểu `Object` và qua collection.** Kiểm tra `Object ref = b; a.equals(ref)`, `List.contains(b)`, `HashSet.contains(b)`, `HashMap.get(b)` (khi đã thêm khóa bằng giá trị). Đừng chỉ thử `a.equals(b)` với hai biến kiểu cụ thể.
-8. **Kiểm tra hợp đồng hai chiều và biến thể dữ liệu.** Bao gồm chính nó, instance bằng giá trị, instance khác một trường, `null`, đối tượng khác kiểu và trường hợp được phép kế thừa.
+1. **Define equality semantics.** Ask "When are two instances considered to have the same value?" and explicitly list the participating fields. Do not compare every field by default if some fields are only caches, timestamps, or metadata unrelated to identity.
+2. **Replace the wrong signature.** Write `@Override public boolean equals(Object obj)`; verify the name `equals`, `Object` from `java.lang.Object`, return type `boolean`, and `public` visibility.
+3. **Handle same reference, null, and other types.** Return `true` quickly for `this == obj`, and return `false` when the object is not of the value type.
+4. **Compare content according to field type.** Primitive types use `==`; objects use `Objects.equals(a, b)` when nullable or `a.equals(b)` when guaranteed non-null; arrays require `Arrays.equals` or `Arrays.deepEquals` depending on data structure, not reference comparison when value comparison is needed.
+5. **Override `hashCode()` in sync.** Same set of fields and same comparison rules; for arrays, consider `Arrays.hashCode`/`Arrays.deepHashCode` accordingly.
+6. **Audit callers.** Search for call sites of `equals(MyType)`. When the overloaded API is not needed, remove that method; if it must be kept for compatibility, have it delegate to `equals(Object)` and avoid maintaining two separate algorithms.
+7. **Test under type `Object` and through collections.** Test `Object ref = b; a.equals(ref)`, `List.contains(b)`, `HashSet.contains(b)`, and `HashMap.get(b)` (after adding an equal-value key). Do not only test `a.equals(b)` with two concretely typed variables.
+8. **Verify bidirectional contracts and data variants.** Include self, equal-value instance, instance differing in one field, `null`, object of another type, and subclasses if inheritance is allowed.
 
-Ví dụ test thủ công không cần thư viện ngoài, dùng cùng lớp `BookKey` ở mục 3:
+Manual test example requiring no external libraries, using the same `BookKey` class from section 3:
 
 ```java
 BookKey a = new BookKey("JAVA-21", 2);
@@ -302,30 +302,30 @@ if (!java.util.Set.of(a).contains(b)) {
 }
 ```
 
-Đây là **đoạn kiểm chứng cần đặt trong phương thức** (ví dụ `main` hoặc test), không phải chương trình độc lập; các kiểm tra dùng `AssertionError` trực tiếp nên chạy ngay cả khi JVM không được bật tùy chọn `-ea`.
+This is **a verification snippet to place inside a method** (such as `main` or a test), not a standalone program; the checks use `AssertionError` directly so they run even when the JVM does not have the `-ea` flag enabled.
 
-## 7. Các lựa chọn và bẫy đáng chú ý
+## 7. Choices and Notable Pitfalls
 
-### `instanceof`, `getClass()` và kế thừa
+### `instanceof`, `getClass()`, and inheritance
 
-Ví dụ `BookKey` là lớp `final`; kiểm tra `instanceof BookKey` tương ứng với phạm vi các instance của lớp đó. Nếu lớp **không final** và có subclass thêm trường, phép so sánh giữa lớp cha và lớp con dễ phá tính đối xứng hoặc bắc cầu. Cần chọn và kiểm thử một chính sách kế thừa rõ ràng:
+The `BookKey` example is a `final` class; the `instanceof BookKey` check matches the scope of instances of that class. If a class is **not final** and a subclass adds fields, comparisons between superclass and subclass easily break symmetry or transitivity. You must choose and test a clear inheritance policy:
 
-- `getClass() == obj.getClass()` chỉ chấp nhận **cùng runtime class**, thường phù hợp bình đẳng có phân biệt chính xác kiểu, nhưng loại cả subclass hoặc proxy.
-- `instanceof` chấp nhận kiểu con; phải bảo đảm các lớp con không thay đổi cách so sánh theo hướng làm vi phạm hợp đồng.
-- Đánh dấu lớp giá trị `final` hoặc chọn một thiết kế bình đẳng nhất quán thường dễ kiểm soát hơn. Không tự thay `getClass` bằng `instanceof` trong code đang dùng polymorphism mà chưa đánh giá hệ quả.
+- `getClass() == obj.getClass()` only accepts **the exact same runtime class**, often suitable for strict type-distinguishing equality, though it rejects subclasses or proxies.
+- `instanceof` accepts subtypes; you must ensure subclasses do not alter comparison logic in a way that violates the contract.
+- Marking value classes `final` or choosing a consistent equality design is usually easier to control. Do not blindly replace `getClass` with `instanceof` in polymorphic code without evaluating the consequences.
 
-### Sự nhầm lẫn khác với overload
+### Other confusion with overloading
 
-- `equals(MyType)` và `equals(Object)` có thể cùng tồn tại, nhưng overload thường gây bất ngờ vì kết quả khác nhau tùy kiểu tĩnh của biến. Nếu giữ cả hai, bảo đảm chúng cùng quy tắc.
-- `equals(Object)` mà quên `@Override` vẫn có thể hoạt động nếu chữ ký chính xác; `@Override` giúp chặn lỗi chữ ký và nên được dùng.
-- Ghi đè `equals(Object)` nhưng quên `hashCode()` có thể khiến `HashMap`/`HashSet` hoạt động sai với đối tượng bằng giá trị.
-- So sánh `String` bằng `==` kiểm tra cùng tham chiếu, không kiểm tra nội dung. Với khóa bản sách, dùng `String.equals` hoặc `Objects.equals`.
-- `Objects.equals(a,b)` chỉ gọi `equals(Object)` đúng theo hợp đồng, nên không tự chữa được lớp có mỗi `equals(MyType)`.
-- Không sử dụng `System.identityHashCode` để xây `hashCode` cho lớp có equality theo giá trị.
+- `equals(MyType)` and `equals(Object)` can coexist, but overloading often causes surprises because results vary depending on a variable's static type. If both are kept, ensure they share the same rules.
+- `equals(Object)` without `@Override` still works if the signature is exact; `@Override` catches signature mistakes and should always be used.
+- Overriding `equals(Object)` while forgetting `hashCode()` can cause `HashMap`/`HashSet` to malfunction on equal-value objects.
+- Comparing `String` with `==` checks reference identity, not content. For book edition codes, use `String.equals` or `Objects.equals`.
+- `Objects.equals(a,b)` only calls `equals(Object)` per the contract, so it cannot magically fix a class that only has `equals(MyType)`.
+- Do not use `System.identityHashCode` to build `hashCode` for a class with value equality.
 
-### Khi nào dùng `record`?
+### When to use `record`?
 
-Nếu mục tiêu là một lớp mang dữ liệu bất biến, không có quy tắc đặc thù và các thành phần phù hợp làm danh tính, Java 17 có `record`:
+If the goal is an immutable data-carrier class with no special rules and whose components naturally form its identity, Java 17 provides `record`:
 
 ```java
 public record BookKeyRecord(String code, int revision) {
@@ -335,24 +335,24 @@ public record BookKeyRecord(String code, int revision) {
 }
 ```
 
-Record tự sinh `equals(Object)` và `hashCode()` dựa trên thành phần đã khai báo, giúp tránh lỗi bỏ quên override. Đây là lựa chọn thiết kế mới, **không phải sửa chữa bắt buộc cho một lớp hiện hữu** (đặc biệt nếu cần kế thừa từ class khác hoặc có yêu cầu API/serialization riêng).
+A record automatically generates `equals(Object)` and `hashCode()` from the declared components, helping prevent forgotten overrides. This is a new design choice, **not a mandatory fix for an existing class** (especially if inheritance from another class or specific API/serialization requirements exist).
 
-## 8. Câu hỏi tự kiểm tra và bài tập nhỏ
+## 8. Self-Check Questions and Mini Exercise
 
-1. **Tại sao `x.equals(y)` là `true` nhưng `((Object)x).equals(y)` là `false` trước sửa?** Vì lời gọi đầu dùng overload `equals(MyType)`, còn lời gọi sau chỉ nhìn thấy `equals(Object)` và lớp chưa override nó.
-2. **Chỉ đổi `equals(MyType)` thành `equals(Object)` đã đủ chưa?** Chưa; phải bảo đảm logic so sánh giá trị đúng và `hashCode()` tuân theo cùng trường, đồng thời kiểm tra các thuộc tính của hợp đồng.
-3. **Hai đối tượng có hash code bằng nhau thì `equals` phải trả `true`?** Không. Trùng hash là điều được phép với các đối tượng không bằng nhau.
-4. **Vì sao thêm `@Override` là một thao tác debug tốt?** Compiler xác minh phương thức thực sự ghi đè, nhờ đó phát hiện chữ ký `equals(MyType)` sai.
-5. **Nếu thay `revision` từ 2 thành 3, đối tượng trong `HashSet` có thể gặp vấn đề gì?** Hash code và phép bằng nhau thay đổi khi object đã nằm trong một bucket cũ; nên bất biến các trường liên quan equality.
+1. **Why was `x.equals(y)` `true` while `((Object)x).equals(y)` was `false` before the fix?** Because the first call used the `equals(MyType)` overload, whereas the second call only saw `equals(Object)` and the class had not overridden it.
+2. **Is merely changing `equals(MyType)` to `equals(Object)` enough?** No; you must ensure the value comparison logic is correct, `hashCode()` follows the same fields, and the contract properties are verified.
+3. **If two objects have equal hash codes, must `equals` return `true`?** No. Hash collisions are permitted for unequal objects.
+4. **Why is adding `@Override` a good debugging step?** The compiler verifies that the method actually overrides a superclass method, thereby catching the wrong `equals(MyType)` signature.
+5. **If `revision` changes from 2 to 3, what problem can an object inside a `HashSet` encounter?** Its hash code and equality change while the object is already sitting in an old bucket; fields involved in equality should be immutable.
 
-**Bài thực hành mở rộng:** Tự bổ sung một trường `region` vào `BookKey` và quyết định liệu khu vực có cấu thành danh tính bản sách hay không. Cập nhật `equals(Object)` và `hashCode()` cùng một lúc, viết ít nhất hai đối tượng khác `region` để chứng minh quy tắc mà bạn chọn. Kiểm tra qua biến `Object` và `HashSet.contains`, rồi thay đổi cách nhìn về `region` và quan sát sự khác biệt.
+**Extended practice:** Add a `region` field to `BookKey` yourself and decide whether region forms part of a book edition's identity. Update `equals(Object)` and `hashCode()` together, write at least two objects differing in `region` to demonstrate your chosen rule. Test via an `Object` variable and `HashSet.contains`, then reverse your decision on `region` and observe the difference.
 
-**Điểm mấu chốt:** Khi cần so sánh giá trị của đối tượng Java trong mã chung và collection, **chữ ký bắt buộc là `public boolean equals(Object)`**. `equals(MyType)` chỉ là overload; một phép gọi trực tiếp thành công chưa chứng minh hợp đồng của `Object` đã được ghi đè.
+**Key takeaway:** When value comparison of Java objects is needed in generic code and collections, **the mandatory signature is `public boolean equals(Object)`**. `equals(MyType)` is only an overload; a single direct call succeeding does not prove that `Object`'s contract has been overridden.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 21 — `Object.equals(Object)` và `Object.hashCode()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html).
-- [Java SE 21 — `Set` và các điều kiện về phần tử](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Set.html).
+- [Java SE 21 — `Object.equals(Object)` and `Object.hashCode()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Object.html).
+- [Java SE 21 — `Set` and element conditions](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Set.html).
 - [Java SE 21 — `HashSet`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/HashSet.html).
-- [Java Language Specification — Overriding và hiding](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.4.8).
-- [Java Language Specification — Method invocation: tìm và chọn phương thức](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.12).
+- [Java Language Specification — Overriding and hiding](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.4.8).
+- [Java Language Specification — Method invocation: method lookup and selection](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.12).

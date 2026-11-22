@@ -1,77 +1,77 @@
-# Phân biệt yêu cầu tái lập của Math và StrictMath trong Java
+# Distinguishing Reproducibility Requirements of Math and StrictMath in Java
 
-Java có hai lớp tiện ích toán học trong `java.lang`: `Math` và `StrictMath`. Cả hai cung cấp nhiều hàm tương ứng như `sin`, `cos`, `log`, `exp`, `pow`, `sqrt` và `hypot`. Nhưng khi yêu cầu **tái lập kết quả giữa các nền tảng** (*reproducibility*), không thể kết luận rằng hai lớp có hợp đồng giống hệt nhau.
+Java has two math utility classes in `java.lang`: `Math` and `StrictMath`. Both provide corresponding functions such as `sin`, `cos`, `log`, `exp`, `pow`, `sqrt`, and `hypot`. However, when **cross-platform result reproducibility** is required, you cannot conclude that the two classes share an identical contract.
 
-**Điểm khác biệt chính:** Với một số hàm số thực, `Math` cho phép những triển khai khác nhau cho ra các giá trị `double` *khác nhau ở bit thấp* dù vẫn đạt giới hạn sai số và tính chất được đặc tả. Đối với **nhóm hàm `StrictMath` được ràng buộc với thuật toán `fdlibm`**, Java quy định cách tính tham chiếu để giúp tạo **cùng kết quả bit-for-bit cho cùng đầu vào** trên các triển khai Java phù hợp.
+**Key difference:** For certain floating-point functions, `Math` allows different implementations to produce `double` values that *differ in low bits* as long as they satisfy the specified error bounds and properties. For the **group of `StrictMath` functions bound to the `fdlibm` algorithm**, Java specifies a reference calculation method to help produce **the exact same bit-for-bit results for the same inputs** across compliant Java implementations.
 
-Đây là chủ đề thuộc **Math và StrictMath** của Java Core. Bài học tách bạch “cùng công thức”, “đủ gần về số học”, “cùng bit”, “cùng kết quả toàn chương trình”, giải thích bối cảnh Java 17+ và hướng dẫn cách chọn API phù hợp.
+This topic belongs to **Math and StrictMath** in Java Core. The lesson separates "same formula", "numerically close enough", "same bits", and "entire program reproducibility", explains the Java 17+ context, and guides how to choose the appropriate API.
 
-## 1. Ba mức độ “tái lập” cần phân biệt
+## 1. Three Levels of "Reproducibility" to Distinguish
 
-| Mức yêu cầu | Ý nghĩa | Cách đánh giá |
+| Requirement Level | Meaning | How to Evaluate |
 | --- | --- | --- |
-| Tính đúng gần đúng (*numerical accuracy*) | Giá trị tính được ở trong giới hạn sai số cho phép của hàm | So sánh với chuẩn toán học và giới hạn `ulp`/dung sai |
-| Tái lập bit một hàm (*bitwise function reproducibility*) | Cùng **đối số có cùng bit** thì kết quả trả về có cùng biểu diễn bit theo đặc tả | So sánh `Double.doubleToRawLongBits` hoặc `doubleToLongBits` theo mục tiêu |
-| Tái lập toàn chương trình | Cùng dữ liệu và hợp đồng thực thi thì toàn bộ phép tính/chuỗi đầu ra nhất quán | Phải kiểm soát thuật toán, thứ tự phép toán, dữ liệu, luồng, định dạng và phiên bản/phụ thuộc |
+| Numerical accuracy | Computed value lies within the function's allowable error bound | Compare against mathematical reference and `ulp`/tolerance bounds |
+| Bitwise function reproducibility | Same **bit-identical arguments** produce return values with the same bit representation per spec | Compare `Double.doubleToRawLongBits` or `doubleToLongBits` depending on goal |
+| Whole-program reproducibility | Same data and execution contract produce consistent entire calculations/output strings | Must control algorithms, operation order, data, threads, formatting, and versions/dependencies |
 
-Một phương thức **chính xác trong 1 ulp** vẫn có thể có **hai đáp án bit khác nhau** nếu đặc tả cho phép hai giá trị kề nhau quanh kết quả toán học. Vì vậy “chính xác cao” không tự suy ra “tái lập từng bit”.
+A method that is **accurate within 1 ulp** can still have **two different bit answers** if the spec permits either adjacent value around the mathematical result. Thus "high accuracy" does not automatically imply "bit-for-bit reproducible".
 
-Ngược lại, kết quả lặp lại giống hệt bit giữa các lần chạy không tự chứng minh nó đúng về mặt nghiệp vụ. Một thuật toán có thể nhất quán mà vẫn dùng công thức không ổn định, sai kiểu dữ liệu hoặc không phản ánh yêu cầu thực tế.
+Conversely, bit-identical results across runs do not automatically prove business correctness. An algorithm can be consistent while still using an unstable formula, wrong data types, or failing to reflect real requirements.
 
-## 2. `Math`: ưu tiên tính đúng theo đặc tả, cho phép tối ưu triển khai
+## 2. `Math`: Prioritizes Spec-Compliant Accuracy, Allows Implementation Optimizations
 
-Theo tài liệu API, một số hàm tương ứng trong `Math` **không bắt buộc mọi triển khai cho kết quả bit-for-bit như nhau**. Điều này cho phép JVM tận dụng thư viện nền tảng hoặc lệnh CPU hiệu quả hơn, miễn kết quả vẫn tuân thủ hợp đồng của từng hàm.
+According to the API documentation, certain corresponding functions in `Math` **are not required to give bit-for-bit identical results across all implementations**. This allows the JVM to leverage platform libraries or faster CPU instructions, provided results still obey each function's contract.
 
-Ví dụ `Math.sin(double)` yêu cầu kết quả có sai số trong **1 ulp** và thỏa tính *semi-monotonic*. Các hàm khác có thể có giới hạn 1 ulp, 2 ulp, hoặc đòi **làm tròn đúng** tùy phương thức; không được áp một con số cho mọi thành viên của `Math`.
+For example, `Math.sin(double)` requires results accurate within **1 ulp** and satisfying *semi-monotonicity*. Other functions may have limits of 1 ulp, 2 ulp, or require **correct rounding** depending on the method; you must not apply a single number to every member of `Math`.
 
-Khái niệm `ulp` (*unit in the last place*) nói về khoảng cách giữa các giá trị dấu phẩy động có thể biểu diễn gần một giá trị được xét. Chẳng hạn:
+The concept of `ulp` (*unit in the last place*) refers to the spacing between representable floating-point values near a given value. For example:
 
 ~~~java
 System.out.println(Math.ulp(1.0));
 // 2.220446049250313E-16
 ~~~
 
-Khoảng cách này phụ thuộc độ lớn của số; không tương đương một epsilon thập phân cố định cho toàn bộ miền `double`.
+This spacing depends on the magnitude of the number; it is not equivalent to a fixed decimal epsilon across the entire `double` domain.
 
-**Cần hiểu đúng “được phép khác”:**
+**Understanding "allowed to differ" properly:**
 
-- Không có nghĩa `Math` luôn khác `StrictMath`.
-- Không có nghĩa một JVM luôn chọn hàm xấp xỉ “kém chính xác” hơn.
-- Không có nghĩa `Math.sin(x)` được trả giá trị bất kỳ; vẫn có yêu cầu độ chính xác và tính chất của hàm.
-- Không bảo đảm sử dụng `Math` luôn nhanh hơn `StrictMath`: hiệu năng thực phụ thuộc JDK/JIT/CPU, hàm được gọi và workload.
+- It does not mean `Math` always differs from `StrictMath`.
+- It does not mean a JVM always picks a "less accurate" approximation.
+- It does not mean `Math.sin(x)` can return arbitrary values; accuracy requirements and function properties still apply.
+- It does not guarantee using `Math` is always faster than `StrictMath`: actual performance depends on JDK/JIT/CPU, the called function, and the workload.
 
-Nhiều triển khai thực tế có thể gọi trực tiếp `StrictMath` cho một số hàm hoặc tạo kết quả giống nhau tại bộ dữ liệu kiểm thử. **Một thử nghiệm cho ra kết quả bằng nhau trên máy hiện tại không nâng cấp hợp đồng API thành bảo đảm xuyên nền tảng.**
+Many real implementations may delegate directly to `StrictMath` for certain functions or produce identical results on a test dataset. **A test producing equal results on the current machine does not upgrade the API contract into a cross-platform guarantee.**
 
-## 3. `StrictMath`: nhóm hàm được xác định bằng `fdlibm`
+## 3. `StrictMath`: Group of Functions Defined via `fdlibm`
 
-`StrictMath` được thiết kế để hỗ trợ khả năng di động/tái lập. Java quy định các hàm toán học nhất định sử dụng ngữ nghĩa tương ứng với **`fdlibm` (Freely Distributable Math Library) phiên bản 5.3**, hiểu như thuật toán được chuyển sang Java và thực thi theo quy tắc số học Java.
+`StrictMath` was designed to support portability/reproducibility. Java specifies that certain math functions use semantics corresponding to **`fdlibm` (Freely Distributable Math Library) version 5.3**, understood as algorithms ported to Java and executed under Java arithmetic rules.
 
-Theo API Java SE 21, nhóm hàm ràng buộc thuật toán `fdlibm` gồm:
+According to the Java SE 21 API, the group of functions bound to `fdlibm` algorithms includes:
 
-- Lượng giác và nghịch đảo: `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `atan2`.
-- Mũ/logarit: `exp`, `log`, `log10`, `expm1`, `log1p`, `pow`.
+- Trigonometric and inverse: `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `atan2`.
+- Exponential/logarithmic: `exp`, `log`, `log10`, `expm1`, `log1p`, `pow`.
 - Hyperbolic: `sinh`, `cosh`, `tanh`.
-- Các hàm khác trong nhóm: `cbrt`, `hypot`.
+- Other functions in the group: `cbrt`, `hypot`.
 
-Với **cùng bit của đầu vào** và một triển khai tuân thủ đặc tả áp dụng, các hàm này có quy tắc tính toán tham chiếu, nhờ đó thích hợp hơn khi bạn cần kết quả **bit-for-bit ổn định giữa các nền tảng Java**.
+With **identical input bits** and a spec-compliant implementation, these functions have a reference calculation rule, making them more suitable when you need **bit-for-bit stable results across Java platforms**.
 
-**Không nên nói toàn bộ mọi phương thức của `StrictMath` đều sử dụng `fdlibm`**. Những thành viên như `abs`, `min`, `max`, `nextUp`, `copySign`, `sqrt` hoặc các phương thức số nguyên có hợp đồng riêng; một số có tính đúng chính xác/correctly rounded hoặc quy tắc bit rõ ràng mà không cần thuật toán `fdlibm`. Phải đọc tài liệu từng hàm khi yêu cầu tái lập chặt chẽ.
+**Do not state that every single method of `StrictMath` uses `fdlibm`.** Members such as `abs`, `min`, `max`, `nextUp`, `copySign`, `sqrt`, or integer methods have their own contracts; some are exact/correctly rounded or have explicit bit rules without needing `fdlibm` algorithms. Read each function's documentation when strict reproducibility is required.
 
-Cũng không nên nói `StrictMath` trả “giá trị toán học chính xác tuyệt đối” cho `sin` hay `log`. Kết quả vẫn là giá trị `double` xấp xỉ. Điều nó bổ sung là **một quy tắc tính toán được chỉ định**, không biến binary64 thành số thực có độ chính xác vô hạn.
+Nor should you state that `StrictMath` returns "absolutely exact mathematical values" for `sin` or `log`. Results remain approximate `double` values. What it adds is a **specified calculation rule**, not turning binary64 into infinite-precision real numbers.
 
-## 4. So sánh trực tiếp hai lớp
+## 4. Direct Comparison of the Two Classes
 
-| Câu hỏi | `Math` | `StrictMath` |
+| Question | `Math` | `StrictMath` |
 | --- | --- | --- |
-| Có các hàm lượng giác/mũ/log tương ứng? | Có | Có |
-| Hàm trả số thực được biểu diễn bằng `double`? | Có | Có |
-| Phải tuân thủ quy tắc NaN, vô cực, zero có dấu theo từng hàm? | Có | Có |
-| Mọi hàm tương ứng bắt buộc cùng bit trên mọi JVM? | **Không**; một số hàm cho phép tự do triển khai trong giới hạn đặc tả | **Nhóm hàm `fdlibm` có thuật toán tham chiếu** để tái lập |
-| Có thể cho cùng kết quả bit ở JVM đang dùng? | Có thể | Có thể |
-| Luôn chạy nhanh hơn lớp kia? | Không có bảo đảm | Không có bảo đảm |
-| Chỉ cần chọn lớp là đủ bảo đảm tái lập *toàn bộ chương trình*? | Không | Không |
+| Has corresponding trig/exp/log functions? | Yes | Yes |
+| Functions return real numbers represented as `double`? | Yes | Yes |
+| Must obey NaN, infinity, signed zero rules per function? | Yes | Yes |
+| All corresponding functions required bit-identical across all JVMs? | **No**; some functions allow implementation freedom within spec bounds | **`fdlibm` group has reference algorithms** for reproducibility |
+| Can produce the same bit result on the current JVM? | Possibly | Possibly |
+| Always runs faster than the other class? | No guarantee | No guarantee |
+| Choosing the class alone guarantees *entire program* reproducibility? | No | No |
 
-Ví dụ:
+Example:
 
 ~~~java
 double x = 0.7;
@@ -79,25 +79,25 @@ double a = Math.sin(x);
 double b = StrictMath.sin(x);
 ~~~
 
-Trên một số JVM, `a` và `b` có thể bằng nhau ở bit; trên triển khai khác, `Math.sin` có thể trả đáp án trong giới hạn `ulp` của nó nhưng khác bit thấp so với `StrictMath.sin`. **Không nên viết kiểm thử portable buộc `a == b` cho mọi x và mọi JVM** chỉ dựa trên tên hai hàm.
+On some JVMs, `a` and `b` may match bit-for-bit; on other implementations, `Math.sin` may return an answer within its `ulp` bound that differs in low bits from `StrictMath.sin`. **Do not write portable tests asserting `a == b` for all x and all JVMs** based solely on the two method names.
 
-Nếu cần kiểm thử giao thức bitwise dựa trên `sin`, dùng `StrictMath.sin` và cố định các đầu vào (kể cả bit của `double`), không suy luận từ một tập benchmark có kết quả trùng hợp.
+If you need bitwise protocol tests based on `sin`, use `StrictMath.sin` and pin the inputs (including `double` bits), rather than generalizing from a benchmark set that happened to match.
 
-## 5. Java 17+ và JEP 306: `strictfp` không đồng nghĩa `StrictMath`
+## 5. Java 17+ and JEP 306: `strictfp` Is Not Synonymous with `StrictMath`
 
-Từ **Java 17**, **JEP 306 — Restore Always-Strict Floating-Point Semantics** đưa ngôn ngữ và JVM về ngữ nghĩa dấu phẩy động luôn nghiêm ngặt (*always-strict*). Các phép toán primitive như cộng, trừ, nhân, chia trên `float`/`double` đều sử dụng ngữ nghĩa dấu phẩy động nghiêm ngặt; từ khóa `strictfp` không còn thay đổi cách đánh giá các biểu thức này trên Java 17+.
+Since **Java 17**, **JEP 306 — Restore Always-Strict Floating-Point Semantics** brought the language and JVM back to *always-strict* floating-point semantics. Primitive operations like addition, subtraction, multiplication, and division on `float`/`double` all use strict floating-point semantics; the `strictfp` keyword no longer alters how these expressions are evaluated on Java 17+.
 
-Điều này **không xóa khác biệt về hợp đồng thư viện**:
+This **does not erase library contract differences**:
 
-- `strictfp` (keyword) liên quan đến ngữ nghĩa thực thi biểu thức dấu phẩy động của mã Java; trên Java 17+ ngữ nghĩa ấy luôn strict.
-- `StrictMath` là một **lớp API** với những hàm có yêu cầu thuật toán `fdlibm` đặc thù.
-- `Math` vẫn có một số hàm được phép tối ưu theo nền tảng trong giới hạn sai số cho phép.
+- `strictfp` (keyword) relates to execution semantics of floating-point expressions in Java code; on Java 17+, those semantics are always strict.
+- `StrictMath` is an **API class** with functions having specific `fdlibm` algorithmic requirements.
+- `Math` still has certain functions permitted to use platform-specific optimizations within allowable error bounds.
 
-Nói cách khác, mã chạy trên Java 17+ **không tự biến lời gọi `Math.sin` thành lời gọi `StrictMath.sin`** chỉ vì phép toán dấu phẩy động đã always-strict. Đừng dùng từ khóa `strictfp` như giải pháp thay thế cho việc chọn đúng API hoặc thiết kế pipeline tái lập.
+In other words, code running on Java 17+ **does not automatically turn a `Math.sin` call into a `StrictMath.sin` call** just because floating-point arithmetic is always-strict. Do not treat the `strictfp` keyword as a substitute for choosing the right API or designing a reproducible pipeline.
 
-## 6. “Cùng đầu vào” là cùng *bit*, không chỉ chuỗi trông giống nhau
+## 6. "Same Input" Means Same *Bits*, Not Just Strings That Look Alike
 
-Kết quả phụ thuộc chính xác vào các bit của đối số. `0.7` trong source Java được làm tròn thành một giá trị binary64. Khi kiểm thử tái lập, nếu một hệ thống nhập chuỗi theo cách khác, ép từ `float` lên `double` hoặc làm tròn trước khi gọi hàm, **bit đầu vào** có thể khác nhau.
+Results depend on the exact bits of the argument. `0.7` in Java source code is rounded to a binary64 value. When testing reproducibility, if one system parses a string differently, casts from `float` to `double`, or rounds before calling the function, the **input bits** can differ.
 
 ~~~java
 double fromDouble = 0.7;
@@ -106,20 +106,20 @@ boolean equalBits = Double.doubleToLongBits(fromDouble)
         == Double.doubleToLongBits(fromFloat); // false
 ~~~
 
-Mặc dù khi hiển thị với `%.1f` cả hai có thể đều trông là `0.7`, hai giá trị biểu diễn bit khác nhau. `StrictMath.sin` không có trách nhiệm khiến **hai đối số khác bit** tạo cùng kết quả.
+Even though when displayed with `%.1f` both may look like `0.7`, their bit representations differ. `StrictMath.sin` is not responsible for making **two arguments with different bits** produce the same result.
 
-Khi cần lưu dữ liệu để tái lập một phép tính, hãy xác định:
+When storing data to reproduce a calculation, determine:
 
-1. Đầu vào được lưu như `double` binary64, `float` binary32 hay decimal.
-2. Format trao đổi có đảm bảo round-trip hay không, ví dụ `Double.toString` + `Double.parseDouble`.
-3. Có chuyển kiểu, thay đổi đơn vị, chuẩn hóa hay làm tròn trước phép tính không.
-4. Có trạng thái NaN/vô cực/số 0 có dấu và chính sách xử lý bit đặc biệt không.
+1. Whether inputs are stored as `double` binary64, `float` binary32, or decimal.
+2. Whether the interchange format guarantees round-tripping, e.g., `Double.toString` + `Double.parseDouble`.
+3. Whether any type conversions, unit changes, normalization, or rounding happen before the calculation.
+4. Whether NaN/infinity/signed zero states and special bit-handling policies exist.
 
-`Double.doubleToRawLongBits` giữ raw bit của giá trị để chẩn đoán. `Double.doubleToLongBits` chuẩn hóa các NaN thành một biểu diễn canonical khi cần so sánh số thực theo quy ước Java; lựa chọn API kiểm bit phụ thuộc mục tiêu. Với zero có dấu, cả hai có thể phân biệt `+0.0` và `-0.0`.
+`Double.doubleToRawLongBits` preserves the raw bits of a value for diagnostics. `Double.doubleToLongBits` normalizes NaNs to a canonical representation when comparing floating-point numbers per Java conventions; choosing the bit-inspection API depends on the goal. For signed zeros, both can distinguish `+0.0` and `-0.0`.
 
-## 7. Ví dụ Java 17+ hoàn chỉnh: kết quả cố định và kiểm tra bit
+## 7. Complete Java 17+ Example: Fixed Results and Bit Inspection
 
-Tạo tệp `ReproducibleMathDemo.java`:
+Create file `ReproducibleMathDemo.java`:
 
 ~~~java
 public class ReproducibleMathDemo {
@@ -166,14 +166,14 @@ public class ReproducibleMathDemo {
 }
 ~~~
 
-Biên dịch/chạy:
+Compile/run:
 
 ~~~bash
 javac ReproducibleMathDemo.java
 java ReproducibleMathDemo
 ~~~
 
-Stdout đã xác minh với Java:
+Stdout verified with Java:
 
 ~~~text
 strict sin hex = 0x1.49d6e694619b8p-1
@@ -192,22 +192,22 @@ strict abs(minInt) = -2147483648
 addExact overflow caught
 ~~~
 
-Đọc kết quả theo đúng mục tiêu:
+Reading the output with the right focus:
 
-- Hai dòng `strict sin` cho phép quan sát cả biểu diễn hexadecimal của `double` và **bit thô** của kết quả `StrictMath.sin(0.7)` theo ngữ nghĩa `fdlibm`.
-- `repeat strict identical = true` xác nhận hai lời gọi cùng đầu vào trong chương trình cho cùng bit; **chỉ test một máy không chứng minh mọi triển khai đều như vậy**, bảo đảm portable đến từ đặc tả `StrictMath`.
-- `sin(-0.0)` giữ dấu âm của 0, thể hiện ở bit dấu của binary64.
-- `log(-1.0)` trả NaN và `sqrt(4.0)` trả 2.0 theo hợp đồng hàm; hai kết quả dễ quan sát không có nghĩa mọi đầu vào `Math` và `StrictMath` sẽ cho cùng bit.
-- Hai dòng `left grouped` và `right grouped` minh họa **thứ tự phép cộng khác nhau có thể cho kết quả khác nhau**, dù cùng dùng phép toán Java 17+ strict.
-- `abs(Integer.MIN_VALUE)` vẫn ra `Integer.MIN_VALUE` vì miền `int` không chứa giá trị dương tương ứng. `addExact` ném khi cộng tràn miền, không liên quan “tái lập” của hàm lượng giác.
+- The two `strict sin` lines let you observe both the hexadecimal representation of `double` and the **raw bits** of `StrictMath.sin(0.7)` under `fdlibm` semantics.
+- `repeat strict identical = true` confirms two calls with the same input in the program yield identical bits; **testing on one machine alone does not prove every implementation does so**, the portability guarantee comes from the `StrictMath` specification.
+- `sin(-0.0)` preserves the negative sign of 0, visible in the sign bit of binary64.
+- `log(-1.0)` returns NaN and `sqrt(4.0)` returns 2.0 per function contracts; two easily observed results do not mean every input to `Math` and `StrictMath` will give identical bits.
+- The two `left grouped` and `right grouped` lines illustrate that **different addition orders can give different results**, even using Java 17+ strict operations.
+- `abs(Integer.MIN_VALUE)` still produces `Integer.MIN_VALUE` because the `int` range lacks the corresponding positive value. `addExact` throws when addition overflows, unrelated to trigonometric "reproducibility".
 
-**Lưu ý:** các hàm được bảo đảm tái lập là những hàm mà hợp đồng API ràng buộc như `fdlibm`. Không lấy vài dòng output đơn giản của các hàm khác làm bằng chứng rằng toàn bộ API đều được quy định bằng cùng thuật toán.
+**Note:** the functions guaranteed reproducible are those whose API contract binds them like `fdlibm`. Do not take a few simple output lines of other functions as proof that the entire API is specified by the same algorithm.
 
-## 8. Thứ tự phép tính vẫn có thể phá tái lập toàn chương trình
+## 8. Operation Order Can Still Break Whole-Program Reproducibility
 
-Ngay cả khi **từng lời gọi `StrictMath.sin`** cho cùng bit với cùng đầu vào, kết quả chương trình còn phụ thuộc cách các phép tính kết hợp.
+Even when **each call to `StrictMath.sin`** gives identical bits for identical inputs, the program's output still depends on how operations are combined.
 
-Ví dụ:
+Example:
 
 ~~~java
 double x = 1.0e16;
@@ -218,17 +218,17 @@ double left = (x + y) + z;  // 1.0
 double right = x + (y + z); // 0.0
 ~~~
 
-Phép cộng dấu phẩy động **không có tính kết hợp** theo cách số thực toán học lý tưởng: thay ngoặc đã đổi chỗ làm tròn. Java 17 always-strict quy định cách tính biểu thức, nhưng **không khiến hai biểu thức có thứ tự khác nhau tương đương**.
+Floating-point addition is **not associative** the way ideal mathematical real numbers are: moving parentheses changes where rounding occurs. Java 17 always-strict specifies how expressions are evaluated, but **does not make two expressions with different evaluation orders equivalent**.
 
-Đối với pipeline song song, kết quả `reduce`/`sum` có thể chịu ảnh hưởng nếu thứ tự cộng thay đổi do chia partition hoặc thứ tự duyệt. Với thuật toán cần tái lập bitwise, cần kiểm soát thứ tự giảm, cách phân nhóm và chiến lược tích lũy, hoặc sử dụng một thuật toán tổng ổn định phù hợp.
+For parallel pipelines, `reduce`/`sum` results can be affected if addition order changes due to partitioning or traversal order. For algorithms requiring bitwise reproducibility, control reduction order, grouping, and accumulation strategy, or use an appropriate stable summation algorithm.
 
-Tương tự, thay `a * b + c` bằng `Math.fma(a,b,c)` thay đổi quy tắc làm tròn: `fma` thực hiện nhân rồi cộng với một lần làm tròn ở kết quả cuối theo đặc tả, có thể khác việc làm hai phép riêng. Đừng coi việc refactor sang một công thức “tương đương toán học” là bảo đảm **cùng bit**.
+Similarly, replacing `a * b + c` with `Math.fma(a,b,c)` changes the rounding rule: `fma` multiplies and adds with a single rounding at the final result per spec, which can differ from doing two separate operations. Do not assume refactoring to a "mathematically equivalent" formula guarantees the **same bits**.
 
-**Yêu cầu tái lập toàn bộ** còn bao gồm nguồn random, seed, dữ liệu sắp xếp, xử lý null/NaN, chuyển đổi kiểu, locale khi xuất chuỗi, phụ thuộc phiên bản và khả năng thay đổi thuật toán.
+**Whole-program reproducibility requirements** also encompass random sources, seeds, data sorting, null/NaN handling, type conversions, locale during string formatting, version dependencies, and potential algorithm changes.
 
-## 9. NaN, ±Infinity, ±0 và phép kiểm bit
+## 9. NaN, ±Infinity, ±0, and Bitwise Checks
 
-Các giá trị dấu phẩy động đặc biệt làm nổi bật sự khác nhau giữa so sánh toán học và so sánh bit:
+Special floating-point values highlight the difference between mathematical comparison and bitwise comparison:
 
 ~~~java
 double negativeZero = -0.0;
@@ -241,30 +241,30 @@ boolean nanEquality = (Double.NaN == Double.NaN); // false
 boolean nanDetected = Double.isNaN(Double.NaN);  // true
 ~~~
 
-Khi đối số âm 0, một số hàm giữ dấu theo hợp đồng, ví dụ `StrictMath.sin(-0.0)` trả âm 0. Với phép xử lý NaN, raw payload có thể khác, và `Double.doubleToLongBits` chuẩn hóa NaN; cần quyết định “bitwise identity” có bao gồm payload NaN hay không.
+When the argument is negative 0, some functions preserve the sign per contract, e.g., `StrictMath.sin(-0.0)` returns negative 0. With NaN handling, raw payloads can differ, and `Double.doubleToLongBits` normalizes NaNs; decide whether "bitwise identity" includes NaN payloads.
 
-Kết quả `StrictMath` cũng có thể là NaN hoặc vô cực theo miền của hàm; strict reproducibility **không bảo đảm mọi phép tính cho số hữu hạn**. Dữ liệu không hữu hạn cần được validation theo ngữ nghĩa ứng dụng. Có thể dùng `Double.isFinite` khi ràng buộc cần số hữu hạn.
+`StrictMath` results can also be NaN or infinity according to the function's domain; strict reproducibility **does not guarantee every computation yields a finite number**. Non-finite data must be validated per application semantics. You can use `Double.isFinite` when constraints require finite numbers.
 
-Nếu kết quả được serialize sang JSON hoặc hệ thống khác không hỗ trợ NaN/vô cực ở dạng số thông thường, phải chọn quy ước truyền tải riêng. Đây là vấn đề hợp đồng dữ liệu, không được `StrictMath` tự giải quyết.
+If results are serialized to JSON or another system that does not support NaN/infinity as ordinary numbers, choose an explicit transport convention. That is a data-contract issue, not solved automatically by `StrictMath`.
 
-## 10. Khi nào nên chọn `Math`, khi nào chọn `StrictMath`?
+## 10. When Should You Choose `Math`, and When `StrictMath`?
 
-**Ưu tiên `Math`** khi cần hàm toán học đúng theo yêu cầu API, chú trọng hiệu năng/thông lượng nhưng **không đòi bit-for-bit reproducibility** với nhóm hàm lượng giác/mũ/log giữa các nền tảng. Tính toán UI, đồ họa, nhiều bài toán mô phỏng hay thống kê chấp nhận sai số được xác định thường phù hợp, sau khi đánh giá yêu cầu riêng.
+**Prefer `Math`** when you need math functions accurate per API requirements, care about performance/throughput, and **do not demand bit-for-bit reproducibility** for trig/exp/log functions across platforms. UI calculations, graphics, and many simulations or statistical tasks that accept specified error tolerances are usually a good fit after evaluating specific requirements.
 
-**Cân nhắc `StrictMath`** khi bài toán cần so khớp bitwise đối với những hàm được ràng buộc theo `fdlibm`: tái lập kết quả trong kiểm thử liên nền tảng, trao đổi kết quả số học giữa các JVM tuân thủ cùng đặc tả, hoặc một thành phần thuật toán mà bit kết quả đóng vai trò dữ liệu đầu ra.
+**Consider `StrictMath`** when the problem requires bitwise matching for functions bound to `fdlibm`: reproducing results in cross-platform testing, exchanging numerical results between JVMs complying with the same specification, or an algorithmic component where result bits serve as output data.
 
-Tuy vậy, không tự đồng nhất `StrictMath` với:
+Still, do not equate `StrictMath` with:
 
-- **“Luôn chậm hơn.”** Tốc độ phụ thuộc hàm và triển khai; hãy benchmark workload thực tế.
-- **“Chính xác tuyệt đối hơn `Math`.”** Nó đảm bảo thuật toán tham chiếu cho một tập hàm, không biến `double` thành phép toán vô hạn precision.
-- **“Tất cả method StrictMath đều fdlibm.”** Chỉ có tập hàm được liệt kê/định nghĩa trong tài liệu là ràng buộc tương ứng.
-- **“Cùng source code ở hai máy chắc chắn cho toàn bộ ứng dụng cùng bit.”** Dữ liệu, thứ tự phép tính, thuật toán song song và các thành phần khác vẫn có thể khác.
+- **"Always slower."** Speed depends on the function and implementation; benchmark actual workloads.
+- **"More mathematically accurate than `Math`."** It guarantees a reference algorithm for a set of functions, without turning `double` into infinite-precision arithmetic.
+- **"All StrictMath methods use fdlibm."** Only the set of functions listed/defined in the documentation is bound accordingly.
+- **"The same source code on two machines guarantees bit-identical output for the whole app."** Data, operation order, parallel algorithms, and other components can still differ.
 
-Một lựa chọn hợp lý là dùng `Math` cho nhu cầu thông thường, xác định **điểm nào thực sự có yêu cầu tái lập chặt chẽ**, và chọn `StrictMath` cho các lời gọi phù hợp tại những điểm đó. Việc chọn phải dựa trên hợp đồng thực tế của hàm, không trên tên “Strict” một cách tuyệt đối.
+A sensible approach is using `Math` for general needs, identifying **which exact points genuinely require strict reproducibility**, and choosing `StrictMath` for the appropriate calls at those points. Selection must rest on each function's actual contract, not unconditionally on the name "Strict".
 
-## 11. Kiểm thử và chẩn đoán khi cần bit-for-bit
+## 11. Testing and Diagnostics When Bit-for-Bit Is Needed
 
-### Kiểm thử hai giá trị số thực
+### Testing Two Floating-Point Values
 
 ~~~java
 static boolean sameCanonicalBits(double a, double b) {
@@ -272,67 +272,67 @@ static boolean sameCanonicalBits(double a, double b) {
 }
 ~~~
 
-Đây là **phương thức minh họa**, cần đặt trong class; nó dùng biểu diễn **canonical** với NaN. Nếu yêu cầu phân biệt payload, sử dụng `Double.doubleToRawLongBits`. Nếu chỉ kiểm tra giá trị **gần đúng** theo sai số, bitwise comparison là không phù hợp: hai số cách nhau 1 ulp sẽ bị coi là khác nhau.
+This is an **illustrative method** and must be placed in a class; it uses the **canonical** representation for NaNs. If distinguishing payloads is required, use `Double.doubleToRawLongBits`. If only checking whether values are **approximately equal** within an error bound, bitwise comparison is inappropriate: two numbers 1 ulp apart will be treated as different.
 
-### Kiểm thử “đúng gần đủ”
+### Testing "Close Enough"
 
-Nếu kết quả không đòi tái lập tuyệt đối mà chỉ cần sai số trong một mức cho phép, hãy xác định tolerance dựa trên miền giá trị, độ lớn và tính chất của hàm. Đối với những hàm `Math` có quy định sai số tính bằng `ulp`, thiết kế kiểm tra phù hợp với hợp đồng từng hàm, không áp một epsilon cố định cho mọi hàm và mọi giá trị.
+If results do not require absolute reproducibility and only need error within an allowable bound, define tolerance based on value domain, magnitude, and function properties. For `Math` functions specifying error in `ulp`, design tests matching each function's contract rather than applying one fixed epsilon to every function and value.
 
-### Lưu dấu vết kiểm thử tái lập
+### Recording Reproducibility Test Traces
 
-Nên lưu rõ phiên bản Java/API áp dụng, kiến trúc, bit hoặc hexadecimal của đầu vào/đầu ra, thuật toán và seed nếu có ngẫu nhiên. Nếu kiểm chứng xuyên các môi trường, chạy cùng bộ vector đầu vào và so sánh theo yêu cầu bài toán:
+Record the applicable Java/API version, architecture, input/output bits or hexadecimal representations, algorithms, and seeds if randomness is involved. When verifying across environments, run the same input vector suite and compare according to problem requirements:
 
-1. **Bitwise:** so sánh hex/bit, xử lý NaN và zero có dấu có chủ đích.
-2. **Numerical tolerance:** so sánh theo sai số với NaN/vô cực được xử lý riêng.
-3. **Nghiệp vụ:** kiểm tra kết quả được phép/không được phép (ví dụ ngưỡng, đơn vị, mô hình dữ liệu).
+1. **Bitwise:** compare hex/bits, handling NaNs and signed zeros intentionally.
+2. **Numerical tolerance:** compare within error bounds with NaN/infinity handled separately.
+3. **Business logic:** verify allowed/disallowed outcomes (e.g., thresholds, units, data models).
 
-Đừng trộn ba kiểu assertion vào một bài test mà không ghi rõ tiêu chí thành công.
+Do not mix all three assertion styles into a single test without clearly documenting success criteria.
 
-## 12. Các sai lầm hay gặp
+## 12. Common Mistakes
 
-1. **Nghĩ Java 17 always-strict khiến mọi `Math.sin`, `Math.log` bắt buộc cùng bit trên mọi nền tảng.** Sai: ngữ nghĩa biểu thức primitive và hợp đồng các hàm thư viện là hai tầng khác nhau.
-2. **Nghĩ `strictfp` và `StrictMath` là cùng cơ chế.** Sai: một cái là modifier ngôn ngữ, một cái là class API.
-3. **Nghĩ tất cả phương thức `StrictMath` được hiện thực trực tiếp bằng `fdlibm`.** Sai: tài liệu xác định danh sách cụ thể.
-4. **Coi kết quả `Math.sin(x) == StrictMath.sin(x)` trên một JVM là bằng chứng portable.** Sai: kết quả thực tế trùng không thay thế bảo đảm trong tài liệu.
-5. **Cho rằng `StrictMath` luôn chính xác hơn `Math`.** Mục tiêu quan trọng là tái lập thuật toán cho tập hàm tương ứng, không phải lời hứa “vô hạn độ chính xác”.
-6. **Áp giới hạn 1 ulp cho mọi hàm của `Math`.** Mỗi method có yêu cầu riêng, có thể 0.5, 1, 2 ulp hoặc chính xác theo bit.
-7. **Chỉ kiểm soát một hàm mà quên thứ tự cộng/reduction.** Nhóm phép tính khác nhau có thể dẫn tới kết quả bit khác nhau.
-8. **Bỏ qua bit đầu vào, signed zero và NaN.** Hai chuỗi in giống nhau không nhất thiết tạo cùng binary64; hai zero bằng nhau theo `==` nhưng khác bit.
-9. **Sửa biểu thức sang `Math.fma`, đổi cách tính hoặc thay cấu trúc pipeline mà không kiểm tra tính tái lập.** Số lần và vị trí làm tròn có thể đổi.
-10. **Không đo hiệu năng trước khi khẳng định lớp nào nhanh.** JIT, CPU, thuật toán và phân bố đầu vào quyết định hiệu năng thực.
-11. **Dùng `Double.toString`/format ít chữ số để chứng minh bitwise equality.** Một bản in có thể che sai lệch; dùng bit hoặc hex khi cần.
-12. **Tái lập bitwise mà quên dữ liệu nghiệp vụ phải hợp lý.** Kết quả ổn định nhưng sai công thức/đơn vị vẫn là lỗi.
+1. **Thinking Java 17 always-strict forces all `Math.sin`, `Math.log` to be bit-identical across all platforms.** False: primitive expression semantics and library function contracts are two separate layers.
+2. **Thinking `strictfp` and `StrictMath` are the same mechanism.** False: one is a language modifier, the other is an API class.
+3. **Thinking every `StrictMath` method is implemented directly via `fdlibm`.** False: documentation specifies an explicit list.
+4. **Treating `Math.sin(x) == StrictMath.sin(x)` on one JVM as portable proof.** False: coincidental match in practice does not replace documentation guarantees.
+5. **Assuming `StrictMath` is always more accurate than `Math`.** The primary goal is algorithmic reproducibility for the corresponding function set, not a promise of "infinite precision".
+6. **Applying a 1 ulp bound to every function in `Math`.** Each method has its own requirement, which may be 0.5, 1, 2 ulp, or exact to the bit.
+7. **Controlling only one function while forgetting addition/reduction order.** Different operation groupings can lead to different bit results.
+8. **Ignoring input bits, signed zero, and NaN.** Two strings that print similarly do not necessarily produce the same binary64; two zeros are equal under `==` yet differ in bits.
+9. **Refactoring expressions to `Math.fma`, changing calculation methods, or altering pipeline structure without checking reproducibility.** The number and locations of roundings can change.
+10. **Failing to benchmark before asserting which class is faster.** JIT, CPU, algorithm, and input distribution determine actual performance.
+11. **Using `Double.toString`/low-precision formatting to prove bitwise equality.** Formatted output can hide discrepancies; use bits or hex when needed.
+12. **Achieving bitwise reproducibility while forgetting business logic validity.** A stable result with the wrong formula or unit is still a bug.
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-Check Questions
 
-**1.** Vì sao `Math.sin(x)` có thể khác `StrictMath.sin(x)` ở bit thấp?
+**1.** Why can `Math.sin(x)` differ from `StrictMath.sin(x)` in low bits?
 
-**Đáp án:** `Math.sin` có hợp đồng sai số/tính chất cho phép lựa chọn triển khai trong giới hạn; `StrictMath.sin` dùng ngữ nghĩa thuật toán `fdlibm` được chỉ định nhằm tái lập.
+**Answer:** `Math.sin` has an error/property contract that allows implementation choices within bounds; `StrictMath.sin` uses the specified `fdlibm` algorithmic semantics for reproducibility.
 
-**2.** Java 17 always-strict có đồng nghĩa mọi method trong `Math` phải trả cùng bit trên mọi CPU?
+**2.** Does Java 17 always-strict mean every method in `Math` must return the same bits on every CPU?
 
-**Đáp án:** Không. JEP 306 điều chỉnh ngữ nghĩa biểu thức dấu phẩy động của ngôn ngữ/JVM; không xóa các khoảng tự do triển khai được mô tả trong API `Math`.
+**Answer:** No. JEP 306 governs floating-point expression semantics of the language/JVM; it does not remove the implementation freedom described in the `Math` API.
 
-**3.** `StrictMath.sin` có chính xác toán học tuyệt đối vì tên “Strict” không?
+**3.** Is `StrictMath.sin` mathematically exact simply because of the name "Strict"?
 
-**Đáp án:** Không. Kết quả vẫn là `double` xấp xỉ; tính nổi bật là tuân theo thuật toán tham chiếu nhằm tái lập giữa nền tảng.
+**Answer:** No. Results remain `double` approximations; its key feature is adhering to a reference algorithm for cross-platform reproducibility.
 
-**4.** Vì sao `(1e16 + -1e16) + 1` khác `1e16 + (-1e16 + 1)`?
+**4.** Why does `(1e16 + -1e16) + 1` differ from `1e16 + (-1e16 + 1)`?
 
-**Đáp án:** Phép cộng binary64 có thể làm tròn ở từng bước và không có tính kết hợp; hai cách nhóm phép toán cho `1.0` và `0.0`.
+**Answer:** Binary64 addition can round at each step and is not associative; the two groupings produce `1.0` and `0.0`.
 
-**5.** Khi nào dùng `Double.doubleToRawLongBits` thay cho so sánh `==`?
+**5.** When should `Double.doubleToRawLongBits` be used instead of `==`?
 
-**Đáp án:** Khi tiêu chí là mẫu bit, kể cả phân biệt `-0.0` với `+0.0` và các NaN payload nếu còn được giữ. `==` thể hiện equality số học, không phải đồng nhất bit.
+**Answer:** When the criterion is bit patterns, including distinguishing `-0.0` from `+0.0` and NaN payloads if preserved. `==` expresses numeric equality, not bit identity.
 
-**6.** Một chương trình dùng `StrictMath.log` và `StrictMath.sin` đã đủ để có kết quả toàn bộ tái lập chưa?
+**6.** Is a program using `StrictMath.log` and `StrictMath.sin` sufficient to guarantee whole-program reproducibility?
 
-**Đáp án:** Chưa. Vẫn cần kiểm soát bit đầu vào, thứ tự tính, các phép chuyển kiểu, dữ liệu đầu ra, ngẫu nhiên, song song và các bộ phận khác của pipeline.
+**Answer:** Not yet. You must still control input bits, calculation order, type conversions, output data, randomness, parallelism, and other pipeline components.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 21 — StrictMath](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/StrictMath.html): danh sách phương thức ràng buộc `fdlibm` và quy tắc đặc biệt từng phương thức.
-- [Java SE 21 — Math](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Math.html): độ chính xác tính theo `ulp`, semi-monotonic và quyền lựa chọn triển khai.
-- [JEP 306 — Restore Always-Strict Floating-Point Semantics](https://openjdk.org/jeps/306): thay đổi ngữ nghĩa strict của Java 17+.
-- [Java SE 21 — Double](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Double.html): `toHexString`, `doubleToRawLongBits`, `doubleToLongBits` và xử lý NaN/zero.
-- [Java Language Specification `15.4 và `4.2.3](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.4): biểu thức dấu phẩy động và quy tắc đánh giá.
+- [Java SE 21 — StrictMath](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/StrictMath.html): list of `fdlibm`-bound methods and per-method special rules.
+- [Java SE 21 — Math](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Math.html): accuracy in `ulp`, semi-monotonicity, and implementation flexibility.
+- [JEP 306 — Restore Always-Strict Floating-Point Semantics](https://openjdk.org/jeps/306): strict semantics changes in Java 17+.
+- [Java SE 21 — Double](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Double.html): `toHexString`, `doubleToRawLongBits`, `doubleToLongBits`, and NaN/zero handling.
+- [Java Language Specification `15.4 and `4.2.3](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.4): floating-point expressions and evaluation rules.

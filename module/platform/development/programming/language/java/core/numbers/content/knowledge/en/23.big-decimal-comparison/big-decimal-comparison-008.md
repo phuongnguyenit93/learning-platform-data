@@ -1,31 +1,31 @@
-# Kiểm tra số 0 bằng signum() hoặc compareTo() trong Java BigDecimal
+# Checking for zero using signum() or compareTo() in Java BigDecimal
 
-## 1. Mục tiêu: kiểm tra giá trị số, không nhầm với cách biểu diễn
+## 1. Goal: check the numeric value, without confusing it with representation
 
-Khi làm việc với `java.math.BigDecimal`, ta thường cần xác định một số có bằng 0 hay không: số dư tài khoản có hết không, kết quả phép trừ đã về 0 chưa, một lượng thay đổi có âm/dương/không đổi không, hoặc có nên thực hiện phép chia cho một mẫu số hay không.
+When working with `java.math.BigDecimal`, we often need to determine whether a number equals 0: whether an account balance is exhausted, whether a subtraction result has reached 0, whether a delta is negative/positive/unchanged, or whether division by a denominator should proceed.
 
-Hai cách diễn đạt trực tiếp, chính xác là:
+Two direct, accurate expressions are:
 
 ~~~java
 value.signum() == 0
 value.compareTo(BigDecimal.ZERO) == 0
 ~~~
 
-Cả hai đều kiểm tra **giá trị số bằng 0**, bất kể đối tượng `BigDecimal` đang có scale nào. Đây là điều khác với `value.equals(BigDecimal.ZERO)`: `equals` còn kiểm tra **scale**, vì vậy có thể trả về `false` dù giá trị số đúng bằng 0.
+Both check **whether the numeric value is 0**, regardless of what scale the `BigDecimal` object currently has. This differs from `value.equals(BigDecimal.ZERO)`: `equals` also checks **scale**, so it can return `false` even when the numeric value is exactly 0.
 
-Bài học tập trung vào cách chọn giữa `signum()` và `compareTo(BigDecimal.ZERO)`, phân biệt `equals`, xử lý số 0 có nhiều dạng thập phân, và các trường hợp thực tế có thể gây lỗi.
+This lesson focuses on choosing between `signum()` and `compareTo(BigDecimal.ZERO)`, distinguishing `equals`, handling zero across multiple decimal forms, and real-world cases that can cause bugs.
 
-## 2. Cách 1: BigDecimal.signum()
+## 2. Approach 1: BigDecimal.signum()
 
-`public int signum()` trả về **dấu của giá trị số**:
+`public int signum()` returns **the sign of the numeric value**:
 
-| `value.signum()` | Giá trị của `value` | Có bằng 0? |
+| `value.signum()` | Value of `value` | Equal to 0? |
 | ---: | --- | --- |
-| `-1` | Nhỏ hơn 0 | Không |
-| `0` | Bằng 0 | **Có** |
-| `1` | Lớn hơn 0 | Không |
+| `-1` | Less than 0 | No |
+| `0` | Equal to 0 | **Yes** |
+| `1` | Greater than 0 | No |
 
-Vì thế:
+Therefore:
 
 ~~~java
 boolean isZero = value.signum() == 0;
@@ -33,24 +33,24 @@ boolean isNegative = value.signum() < 0;
 boolean isPositive = value.signum() > 0;
 ~~~
 
-Ở đây, `value` là một `BigDecimal` đã được khai báo và không phải `null`. Không có phép làm tròn, đổi sang `double`, hay thay đổi scale. `signum()` trả kết quả đúng `-1`, `0`, hoặc `1`.
+Here, `value` is a declared, non-null `BigDecimal`. There is no rounding, conversion to `double`, or scale change. `signum()` returns exactly `-1`, `0`, or `1`.
 
-Các ví dụ:
+Examples:
 
-| Giá trị được tạo | `signum()` | Giải thích |
+| Created value | `signum()` | Explanation |
 | --- | ---: | --- |
-| `new BigDecimal("0")` | `0` | Số 0 |
-| `new BigDecimal("0.000")` | `0` | Nhiều chữ số 0 vẫn là 0 |
-| `new BigDecimal("-0.00")` | `0` | Không có giá trị số âm 0 riêng biệt trong BigDecimal |
-| `new BigDecimal("0.0000000001")` | `1` | Rất nhỏ nhưng vẫn lớn hơn 0 |
-| `new BigDecimal("-0.0000000001")` | `-1` | Rất nhỏ nhưng vẫn âm |
-| `new BigDecimal("100.0")` | `1` | Dương |
+| `new BigDecimal("0")` | `0` | Zero |
+| `new BigDecimal("0.000")` | `0` | Multiple zero digits is still 0 |
+| `new BigDecimal("-0.00")` | `0` | There is no separate negative zero numeric value in BigDecimal |
+| `new BigDecimal("0.0000000001")` | `1` | Very small, yet still greater than 0 |
+| `new BigDecimal("-0.0000000001")` | `-1` | Very small, yet still negative |
+| `new BigDecimal("100.0")` | `1` | Positive |
 
-Ưu điểm của `signum()`: diễn đạt ngắn gọn câu hỏi “giá trị đang âm, dương hay bằng 0?” và không cần tạo hay truyền một đối tượng mốc để so sánh.
+Advantage of `signum()`: it concisely expresses the question "is the value negative, positive, or zero?" without needing to reference or pass a comparison baseline object.
 
-## 3. Cách 2: BigDecimal.compareTo(BigDecimal.ZERO)
+## 3. Approach 2: BigDecimal.compareTo(BigDecimal.ZERO)
 
-`compareTo(BigDecimal other)` so sánh **giá trị số** của hai `BigDecimal`. Khi `other` là `BigDecimal.ZERO`, ý nghĩa của kết quả là:
+`compareTo(BigDecimal other)` compares the **numeric values** of two `BigDecimal` objects. When `other` is `BigDecimal.ZERO`, the meaning of the result is:
 
 ~~~java
 boolean isZero = value.compareTo(BigDecimal.ZERO) == 0;
@@ -58,26 +58,26 @@ boolean isNegative = value.compareTo(BigDecimal.ZERO) < 0;
 boolean isPositive = value.compareTo(BigDecimal.ZERO) > 0;
 ~~~
 
-`BigDecimal.ZERO` là hằng số số 0 có sẵn trong thư viện, vì vậy không cần lặp lại `new BigDecimal("0")` mỗi lần kiểm tra. Nếu kết quả `compareTo` là âm, giá trị đứng trước nhỏ hơn số 0; nếu là 0, hai số bằng nhau về mặt số học; nếu là dương, giá trị đứng trước lớn hơn số 0.
+`BigDecimal.ZERO` is a built-in constant for 0 in the standard library, so there is no need to repeatedly write `new BigDecimal("0")` on every check. If `compareTo` returns negative, the left value is less than 0; if 0, the two numbers are numerically equal; if positive, the left value is greater than 0.
 
-Với mọi `BigDecimal value` không null:
+For any non-null `BigDecimal value`:
 
 ~~~java
 (value.signum() == 0)
         == (value.compareTo(BigDecimal.ZERO) == 0)
 ~~~
 
-Hai biểu thức có cùng kết quả boolean. Tương tự, `value.signum() < 0` tương đương `value.compareTo(BigDecimal.ZERO) < 0`, và `> 0` cũng tương đương.
+Both expressions evaluate to the same boolean result. Likewise, `value.signum() < 0` is equivalent to `value.compareTo(BigDecimal.ZERO) < 0`, and `> 0` is also equivalent.
 
-**Đừng so kết quả `compareTo` bằng `1` hoặc `-1` để biểu thị lớn hơn/nhỏ hơn.** Theo hợp đồng `Comparable`, chỉ cần kiểm tra kết quả **dương** hoặc **âm**. Riêng `signum()` có hợp đồng trả đúng ba giá trị `-1`, `0`, `1`, nhưng dùng `< 0` và `> 0` vẫn dễ đọc và nhất quán.
+**Do not compare the `compareTo` result to `1` or `-1` to test greater-than/less-than.** Under the `Comparable` contract, only check whether the result is **positive** or **negative**. `signum()` specifically guarantees returning `-1`, `0`, or `1`, though using `< 0` and `> 0` remains readable and consistent.
 
-## 4. Vì sao equals(BigDecimal.ZERO) có thể trả false?
+## 4. Why can equals(BigDecimal.ZERO) return false?
 
-`BigDecimal` lưu số thông qua một giá trị nguyên không có scale (`unscaledValue`) và một `scale`. Giá trị toán học tương ứng là `unscaledValue × 10^(-scale)`.
+`BigDecimal` stores a number using an unscaled integer value (`unscaledValue`) and a `scale`. The corresponding mathematical value is `unscaledValue × 10^(-scale)`.
 
-Ví dụ:
+Examples:
 
-| Chuỗi tạo BigDecimal | Giá trị số | `scale()` | `signum()` | `compareTo(ZERO) == 0` | `equals(ZERO)` |
+| String creating BigDecimal | Numeric value | `scale()` | `signum()` | `compareTo(ZERO) == 0` | `equals(ZERO)` |
 | --- | ---: | ---: | ---: | --- | --- |
 | `"0"` | 0 | 0 | 0 | `true` | `true` |
 | `"0.0"` | 0 | 1 | 0 | `true` | `false` |
@@ -85,9 +85,9 @@ Ví dụ:
 | `"-0.00"` | 0 | 2 | 0 | `true` | `false` |
 | `"0E+3"` | 0 | -3 | 0 | `true` | `false` |
 
-Các số trên **đều bằng 0 về mặt số học**. Nhưng `BigDecimal.ZERO` có scale 0; với `equals`, số 0 có scale 1, 2 hoặc -3 khác biểu diễn của số 0 có scale 0.
+All of the numbers above **are numerically equal to 0**. However, `BigDecimal.ZERO` has scale 0; for `equals`, a zero with scale 1, 2, or -3 differs from the representation of zero with scale 0.
 
-Do đó, đoạn sau dễ tạo lỗi nghiệp vụ:
+Consequently, the snippet below easily causes business bugs:
 
 ~~~java
 BigDecimal amount = new BigDecimal("0.00");
@@ -97,13 +97,13 @@ System.out.println(amount.signum() == 0);               // true
 System.out.println(amount.compareTo(BigDecimal.ZERO) == 0); // true
 ~~~
 
-Khi yêu cầu là “**số tiền này có bằng 0 hay không?**”, sử dụng `signum()` hoặc `compareTo`. Chỉ dùng `equals` nếu yêu cầu thực sự bao gồm cả sự giống nhau về **scale**, chẳng hạn kiểm tra một dạng biểu diễn thập phân cố định.
+When the requirement is "**does this amount equal 0?**", use `signum()` or `compareTo`. Only use `equals` if the requirement genuinely includes matching **scale**, such as validating a fixed decimal representation.
 
-Cũng không dùng `value == BigDecimal.ZERO`: toán tử `==` giữa hai tham chiếu đối tượng kiểm tra **có phải cùng đối tượng** chứ không kiểm tra giá trị số.
+Also do not use `value == BigDecimal.ZERO`: the `==` operator between two object references checks **whether they are the same object**, not numeric value.
 
-## 5. Ví dụ Java 17+ đầy đủ, chạy được
+## 5. Complete, runnable Java 17+ example
 
-Lưu chương trình sau thành `BigDecimalZeroDemo.java`.
+Save the following program as `BigDecimalZeroDemo.java`.
 
 ~~~java
 import java.math.BigDecimal;
@@ -147,14 +147,14 @@ public class BigDecimalZeroDemo {
 }
 ~~~
 
-Mở terminal trong thư mục chứa file, dùng JDK 17 trở lên:
+Open a terminal in the folder containing the file, using JDK 17 or later:
 
 ~~~bash
 javac BigDecimalZeroDemo.java
 java BigDecimalZeroDemo
 ~~~
 
-Kết quả chuẩn:
+Expected output:
 
 ~~~text
 0: signum=0, compareToZeroSign=0, equalsZero=true
@@ -169,36 +169,36 @@ sum = 0.00
 sum compared to zero = 0
 ~~~
 
-Các điểm cần chú ý:
+Points to note:
 
-1. `Integer.signum(value.compareTo(BigDecimal.ZERO))` biến kết quả so sánh thành `-1`, `0`, hoặc `1` để tiện in minh họa; khi chỉ cần kiểm tra bằng 0, hãy viết trực tiếp `compareTo(...) == 0`.
-2. `"0.00"` và `"-0.00"` đều có `signum() == 0`, nhưng `equals(BigDecimal.ZERO)` là `false` vì scale bằng 2 thay vì 0.
-3. `0.0001` không phải là 0 dù rất gần 0. Kiểm tra đúng giá trị số không sử dụng sai số ngầm định.
-4. Khi làm tròn `0.004` bằng `RoundingMode.DOWN` về hai chữ số sau dấu thập phân, kết quả là `0.00`. **Giá trị gốc khác 0; giá trị sau làm tròn bằng 0.**
-5. Phép cộng `0.1 + (-0.10)` cho số 0 có scale 2 (`0.00`). `compareTo(BigDecimal.ZERO)` nhận diện giá trị bằng 0 chính xác, không phụ thuộc scale.
+1. `Integer.signum(value.compareTo(BigDecimal.ZERO))` normalizes the comparison result to `-1`, `0`, or `1` for clean printing; when you only need to check for zero, write `compareTo(...) == 0` directly.
+2. `"0.00"` and `"-0.00"` both have `signum() == 0`, yet `equals(BigDecimal.ZERO)` is `false` because the scale is 2 instead of 0.
+3. `0.0001` is not 0 even though it is very close to 0. Exact numeric checks do not apply an implicit tolerance.
+4. When rounding `0.004` with `RoundingMode.DOWN` to two decimal places, the result is `0.00`. **The original value is non-zero; the rounded value is zero.**
+5. Adding `0.1 + (-0.10)` yields zero with scale 2 (`0.00`). `compareTo(BigDecimal.ZERO)` recognizes the zero value accurately regardless of scale.
 
-## 6. Kiểm tra số 0 trước và sau phép tính
+## 6. Checking for zero before and after calculations
 
-Điểm dễ bị bỏ sót: thời điểm kiểm tra có thể thay đổi ý nghĩa.
+An easy point to overlook: *when* you check can change the meaning.
 
-### Kiểm tra mẫu số khác 0 trước phép chia
+### Checking for a non-zero denominator before division
 
-Nếu mẫu số là `new BigDecimal("0.000")`, `equals(BigDecimal.ZERO)` là false dù phép chia cho mẫu số đó vẫn là chia cho số 0. Kiểm tra theo giá trị số:
+If the denominator is `new BigDecimal("0.000")`, `equals(BigDecimal.ZERO)` is false even though dividing by that denominator is still division by zero. Check by numeric value:
 
 ~~~java
 static BigDecimal safeDivide(BigDecimal numerator,
                              BigDecimal denominator) {
     if (denominator.signum() == 0) {
-        throw new IllegalArgumentException("Mẫu số phải khác 0");
+        throw new IllegalArgumentException("Denominator must be non-zero");
     }
     return numerator.divide(
             denominator, 6, java.math.RoundingMode.HALF_EVEN);
 }
 ~~~
 
-Đây là **mảnh phương thức** đặt bên trong một lớp Java có import `BigDecimal`; giả định hai đối số không null. Scale 6 và `HALF_EVEN` chỉ minh họa một chính sách tính toán, phải thay theo yêu cầu cụ thể. Dùng `compareTo(BigDecimal.ZERO) == 0` trong điều kiện `if` cũng cho cùng hành vi.
+This is a **method snippet** placed inside a Java class that imports `BigDecimal`; both arguments are assumed non-null. Scale 6 and `HALF_EVEN` merely illustrate a calculation policy and must be adjusted to specific requirements. Using `compareTo(BigDecimal.ZERO) == 0` in the `if` condition yields the exact same behavior.
 
-### Kiểm tra kết quả phép trừ
+### Checking subtraction results
 
 ~~~java
 BigDecimal debit = new BigDecimal("10.00");
@@ -208,9 +208,9 @@ BigDecimal balance = debit.subtract(credit);
 boolean fullyOffset = balance.signum() == 0; // true
 ~~~
 
-Hai đầu vào có scale khác nhau nhưng kết quả bằng 0 về số học. Không cần `setScale(0)` hay `stripTrailingZeros()` để kiểm tra.
+The two inputs have different scales, yet the result is numerically 0. There is no need to call `setScale(0)` or `stripTrailingZeros()` to check.
 
-### Kiểm tra giá trị đã làm tròn
+### Checking rounded values
 
 ~~~java
 BigDecimal original = new BigDecimal("-0.004");
@@ -220,16 +220,16 @@ boolean rawZero = original.signum() == 0;        // false
 boolean displayedZero = displayed.signum() == 0; // true
 ~~~
 
-Cần phân biệt hai câu hỏi:
+Distinguish the two questions:
 
-- “**Dữ liệu thật sự bằng 0?**” → kiểm tra `original`.
-- “**Kết quả sau quy tắc làm tròn có bằng 0?**” → kiểm tra `displayed`.
+- "**Is the actual data equal to 0?**" → check `original`.
+- "**Is the result after rounding equal to 0?**" → check `displayed`.
 
-Đừng làm tròn tùy ý để biến số nhỏ thành 0 trước khi kiểm tra, vì điều đó có thể làm mất sự khác biệt cần thiết cho nghiệp vụ.
+Do not round arbitrarily to turn small numbers into 0 before checking, as that can erase a distinction required by the business logic.
 
-## 7. Số 0 âm: BigDecimal không giữ dấu âm riêng cho zero
+## 7. Negative zero: BigDecimal does not keep a separate negative sign for zero
 
-Nhiều người từng gặp `-0.0` với `double` và `float` theo chuẩn IEEE 754. Một giá trị `double` có thể mang bit dấu âm dù bằng zero khi so sánh số học. `BigDecimal` vận hành khác: số 0 có giá trị nguyên không có scale bằng 0, và `signum()` trả **0** cho cả chuỗi nhập `"0.00"` và `"-0.00"`.
+Many developers have encountered `-0.0` with `double` and `float` under IEEE 754. A `double` value can carry a negative sign bit while comparing equal to zero numerically. `BigDecimal` works differently: zero has an unscaled integer value of 0, and `signum()` returns **0** for both input strings `"0.00"` and `"-0.00"`.
 
 ~~~java
 BigDecimal minusZero = new BigDecimal("-0.00");
@@ -238,27 +238,27 @@ System.out.println(minusZero.signum());       // 0
 System.out.println(minusZero.toPlainString()); // 0.00
 ~~~
 
-Không có cách xác định người dùng **đã gõ dấu trừ** chỉ từ dấu của đối tượng `BigDecimal` sau khi parse. Nếu việc lưu dấu âm của chuỗi gốc là một yêu cầu (ví dụ biểu mẫu cần bảo toàn chính xác nội dung nhập), phải lưu chuỗi gốc hoặc thông tin dấu như một trường riêng **trước khi chuyển đổi**.
+There is no way to determine whether a user **typed a minus sign** solely from the sign of the `BigDecimal` object after parsing. If preserving the minus sign of the raw string is a requirement (for instance a form needing exact input preservation), store the raw string or sign information as a separate field **before conversion**.
 
-`BigDecimal` cũng không có `NaN` hoặc vô cực như `double`. Không cần thêm trường hợp `NaN` vào quy tắc `signum() == 0`; nếu dữ liệu không phải số thập phân hợp lệ, quá trình khởi tạo từ chuỗi sẽ báo lỗi thay vì tạo `NaN`.
+`BigDecimal` also has no `NaN` or infinity like `double`. There is no need to add a `NaN` check to `signum() == 0`; if input is not a valid decimal number, constructing from a string throws an error rather than producing `NaN`.
 
-## 8. Giá trị cực nhỏ và “gần bằng 0” là hai yêu cầu khác nhau
+## 8. Tiny values and "near zero" are two different requirements
 
-`BigDecimal` có thể biểu diễn số thập phân rất nhỏ với độ chính xác cao. Ví dụ:
+`BigDecimal` can represent very small decimal numbers with high precision. For example:
 
 ~~~java
 BigDecimal x = new BigDecimal("0.000000000000000000000000000001");
 System.out.println(x.signum() == 0); // false
 ~~~
 
-Số này khác 0, nên cả hai phương pháp kiểm tra chính xác đều trả false:
+This number is non-zero, so both exact checks return false:
 
 ~~~java
 x.signum() == 0                        // false
 x.compareTo(BigDecimal.ZERO) == 0      // false
 ~~~
 
-Nếu bài toán thật sự yêu cầu chấp nhận **sai số cho phép** (`tolerance`), cần đặc tả một khoảng rõ ràng, chẳng hạn `-0.001 <= x <= 0.001`. Khi `tolerance` đã được xác minh **không âm**:
+If a problem genuinely requires accepting an **allowed tolerance**, explicitly specify a range such as `-0.001 <= x <= 0.001`. Once `tolerance` is verified to be **non-negative**:
 
 ~~~java
 BigDecimal tolerance = new BigDecimal("0.001");
@@ -266,68 +266,68 @@ BigDecimal measurement = new BigDecimal("-0.0005");
 
 boolean nearZero =
         measurement.abs().compareTo(tolerance) <= 0;
-// true: trị tuyệt đối của -0.0005 không vượt 0.001
+// true: absolute value of -0.0005 does not exceed 0.001
 ~~~
 
-Đây là phép kiểm tra **gần 0**, không phải **bằng 0**. Nó phụ thuộc vào đơn vị đo, độ phân giải cảm biến, quy tắc thống kê hoặc hợp đồng nghiệp vụ. Không mặc định áp dụng một epsilon tùy tiện trong các phép tính BigDecimal, đặc biệt khi xử lý tiền hoặc số dư.
+This is a **near-zero** check, not an **exact-zero** check. It depends on measurement units, sensor resolution, statistical rules, or business contracts. Do not apply an arbitrary epsilon by default in `BigDecimal` calculations, especially when handling money or balances.
 
-Nếu `tolerance = 0`, biểu thức `abs().compareTo(tolerance) <= 0` tương đương kiểm tra bằng 0. Nếu `tolerance` âm, khoảng được định nghĩa không hợp lệ và phải từ chối hoặc xử lý theo quy tắc ứng dụng.
+If `tolerance = 0`, `abs().compareTo(tolerance) <= 0` is equivalent to checking for exact zero. If `tolerance` is negative, the defined interval is invalid and must be rejected or handled according to application rules.
 
-## 9. Chọn signum hay compareTo?
+## 9. Choosing signum or compareTo?
 
-Cả hai đúng khi kiểm tra BigDecimal bằng 0, nhưng mức độ diễn đạt hơi khác:
+Both are correct for checking whether a `BigDecimal` is 0, though their expressiveness differs slightly:
 
-| Mục đích | Cách viết | Gợi ý |
+| Goal | Expression | Suggestion |
 | --- | --- | --- |
-| Chỉ kiểm tra bằng 0 | `x.signum() == 0` | Ngắn, thể hiện trực tiếp phép kiểm tra dấu |
-| Kiểm tra dương, âm, bằng 0 | `x.signum() > 0`, `< 0`, `== 0` | Phù hợp khi phân nhánh theo dấu |
-| Kiểm tra bằng 0 trong các biểu thức so sánh | `x.compareTo(BigDecimal.ZERO) == 0` | Đồng nhất với các so sánh ngưỡng `compareTo` khác |
-| So với một ngưỡng khác 0 | `x.compareTo(threshold) >= 0` | Đây là điểm mạnh tổng quát của `compareTo` |
-| So sánh giá trị và scale của đối tượng | `x.equals(other)` | Dùng khi biểu diễn là một phần của điều kiện |
+| Only check for zero | `x.signum() == 0` | Concise, directly expresses a sign check |
+| Check positive, negative, zero | `x.signum() > 0`, `< 0`, `== 0` | Clean when branching on sign |
+| Check zero alongside other comparisons | `x.compareTo(BigDecimal.ZERO) == 0` | Consistent with other `compareTo` threshold checks |
+| Compare against a non-zero threshold | `x.compareTo(threshold) >= 0` | This is the general strength of `compareTo` |
+| Compare object value and scale | `x.equals(other)` | Use when representation is part of the condition |
 
-Một cách viết phân nhánh dễ hiểu:
+A readable branching pattern:
 
 ~~~java
 int sign = amount.signum();
 
 if (sign < 0) {
-    System.out.println("Âm");
+    System.out.println("Negative");
 } else if (sign == 0) {
-    System.out.println("Bằng 0");
+    System.out.println("Zero");
 } else {
-    System.out.println("Dương");
+    System.out.println("Positive");
 }
 ~~~
 
-Đây là mảnh code giả định `amount` đã được khởi tạo với `BigDecimal` không null. Nó tránh gọi nhiều lần khi ta cần dùng cùng kết quả dấu.
+This code snippet assumes `amount` has already been initialized to a non-null `BigDecimal`. It avoids calling `signum()` multiple times when reusing the same sign result.
 
-Về hiệu năng, không nên giả định một lựa chọn luôn nhanh hơn đáng kể trong mọi phiên bản JDK và mọi dạng số. Hãy chọn cách diễn đạt phản ánh chính xác ý định và chỉ tối ưu dựa trên phép đo phù hợp khi cần.
+Regarding performance, do not assume one option is always significantly faster across all JDK versions and number shapes. Choose the expression that clearly reflects your intent, and optimize only based on proper measurements when needed.
 
-## 10. Null, đối tượng bất biến và những lỗi dễ mắc
+## 10. Nulls, immutability, and common mistakes
 
-**1. Đối tượng null.** `null` không phải giá trị số 0. Nếu `value == null`, cả `value.signum()` và `value.compareTo(BigDecimal.ZERO)` đều gây `NullPointerException`. Hãy kiểm tra đầu vào hoặc sử dụng `Objects.requireNonNull(value)` theo hợp đồng API. Không mặc định biến null thành zero khi chưa được quy định.
+**1. Null objects.** `null` is not the numeric value 0. If `value == null`, both `value.signum()` and `value.compareTo(BigDecimal.ZERO)` throw `NullPointerException`. Validate inputs or use `Objects.requireNonNull(value)` per your API contract. Do not default a null variable to zero unless specified.
 
-**2. Dùng equals để kiểm tra số 0.** `new BigDecimal("0.00").equals(BigDecimal.ZERO)` là false do scale khác. Chuyển sang `signum() == 0` hoặc `compareTo(ZERO) == 0` khi so giá trị số.
+**2. Using equals to check for zero.** `new BigDecimal("0.00").equals(BigDecimal.ZERO)` is false due to differing scales. Switch to `signum() == 0` or `compareTo(ZERO) == 0` when comparing numeric value.
 
-**3. Dùng toán tử == với BigDecimal.** `value == BigDecimal.ZERO` là so tham chiếu đối tượng, không so giá trị. Một đối tượng `BigDecimal` mới biểu diễn số 0 sẽ không được nhận diện đáng tin theo cách này.
+**3. Using the == operator with BigDecimal.** `value == BigDecimal.ZERO` checks object reference identity, not value. A newly constructed `BigDecimal` representing 0 will not be reliably recognized this way.
 
-**4. Cắt xuống int rồi kiểm tra.** `new BigDecimal("0.5").intValue() == 0` là true nhưng giá trị gốc không phải 0. `intValue()` có thể bỏ phần thập phân hoặc gây mất thông tin; không dùng để kiểm tra zero.
+**4. Truncating to int before checking.** `new BigDecimal("0.5").intValue() == 0` is true even though the original value is not 0. `intValue()` discards the fractional part or loses information; never use it to check for zero.
 
-**5. Chuyển sang double.** Không cần `value.doubleValue() == 0.0`. Những số `BigDecimal` có độ lớn cực nhỏ có thể **underflow thành 0.0** khi chuyển sang `double`, dù giá trị gốc khác 0. Kiểm tra trực tiếp bằng `signum`/`compareTo`.
+**5. Converting to double.** Do not use `value.doubleValue() == 0.0`. Extremely small `BigDecimal` values can **underflow to 0.0** when converted to `double`, even though the original value is non-zero. Check directly with `signum`/`compareTo`.
 
-**6. Làm tròn trước khi kiểm tra mà không chủ đích.** `0.004` làm tròn về scale 2 với `DOWN` thành `0.00`; phải xác định yêu cầu nói về số gốc hay số sau làm tròn.
+**6. Rounding before checking unintentionally.** `0.004` rounded to scale 2 with `DOWN` becomes `0.00`; clarify whether the requirement refers to the raw number or the rounded number.
 
-**7. Tưởng số 0 âm có `signum() == -1`.** `BigDecimal("-0.00")` có `signum() == 0`. Không thể suy ra dấu trừ từ dữ liệu đã parse.
+**7. Assuming negative zero has `signum() == -1`.** `BigDecimal("-0.00")` has `signum() == 0`. You cannot infer a minus sign from parsed data.
 
-**8. Chuẩn hóa để giải quyết một phép kiểm tra đơn giản.** `value.stripTrailingZeros().equals(BigDecimal.ZERO)` có thể nhận diện số 0, nhưng tạo ra bước xử lý biểu diễn không cần thiết. Khi chỉ hỏi giá trị bằng 0, dùng `signum() == 0` cho rõ nghĩa.
+**8. Normalizing just to perform a simple check.** `value.stripTrailingZeros().equals(BigDecimal.ZERO)` can detect zero, but introduces unnecessary representation processing. When simply asking whether the value is zero, use `signum() == 0` for clarity.
 
-**9. Nhầm điều kiện bằng 0 với “số đủ nhỏ”.** `0.0001` vẫn khác 0. Nếu cần ngưỡng gần 0, đưa ngưỡng thành dữ liệu nghiệp vụ và so `abs()` với ngưỡng rõ ràng.
+**9. Confusing equal-to-zero with "small enough".** `0.0001` is still non-zero. If you need a near-zero threshold, represent the threshold explicitly in domain data and compare `abs()` against it.
 
-## 11. Bài luyện tập có đáp án
+## 11. Practice exercises with answers
 
-Với từng giá trị dưới đây, dự đoán `signum()`, `compareTo(BigDecimal.ZERO) == 0` và `equals(BigDecimal.ZERO)`:
+For each value below, predict `signum()`, `compareTo(BigDecimal.ZERO) == 0`, and `equals(BigDecimal.ZERO)`:
 
-| Giá trị | signum | compareTo zero == 0 | equals ZERO |
+| Value | signum | compareTo zero == 0 | equals ZERO |
 | --- | ---: | --- | --- |
 | `new BigDecimal("0")` | 0 | true | true |
 | `new BigDecimal("0.000")` | 0 | true | false |
@@ -336,14 +336,14 @@ Với từng giá trị dưới đây, dự đoán `signum()`, `compareTo(BigDec
 | `new BigDecimal("-0.00000001")` | -1 | false | false |
 | `new BigDecimal("10").subtract(new BigDecimal("10.00"))` | 0 | true | false |
 
-Bài tập ứng dụng:
+Applied exercises:
 
-1. Viết `boolean isZero(BigDecimal amount)` trả true cho `0`, `0.000`, `-0.00`, nhưng false cho `0.000001`. Nêu rõ hành vi khi `amount == null`.
-2. Viết điều kiện chỉ cho phép chia khi `denominator.signum() != 0`. Thử với mẫu số `"0.000"` và `"-0.00"`.
-3. Tính `new BigDecimal("0.009").setScale(2, RoundingMode.DOWN)`. Giá trị ban đầu có bằng 0 không? Giá trị kết quả có bằng 0 không?
-4. Viết kiểm tra “gần 0” với `tolerance = 0.01`, phân biệt rõ với kiểm tra bằng 0 chính xác.
+1. Write `boolean isZero(BigDecimal amount)` returning true for `0`, `0.000`, `-0.00`, and false for `0.000001`. Specify the behavior when `amount == null`.
+2. Write a condition allowing division only when `denominator.signum() != 0`. Test with denominators `"0.000"` and `"-0.00"`.
+3. Evaluate `new BigDecimal("0.009").setScale(2, RoundingMode.DOWN)`. Is the initial value equal to 0? Is the resulting value equal to 0?
+4. Write a "near zero" check with `tolerance = 0.01`, clearly distinguished from an exact zero check.
 
-Một cách triển khai bài 1 khi null không hợp lệ:
+One implementation of exercise 1 when null is invalid:
 
 ~~~java
 static boolean isZero(BigDecimal amount) {
@@ -351,6 +351,6 @@ static boolean isZero(BigDecimal amount) {
 }
 ~~~
 
-Đây là **mảnh phương thức** cần đặt trong một lớp Java, có import `java.math.BigDecimal`. Với bài 3, `0.009` sử dụng `DOWN` ở scale 2 trở thành `0.00`, nên giá trị gốc không bằng 0, còn giá trị sau làm tròn bằng 0.
+This is a **method snippet** that belongs inside a Java class importing `java.math.BigDecimal`. For exercise 3, `0.009` with `DOWN` at scale 2 becomes `0.00`, so the original value is non-zero while the rounded value is zero.
 
-**Ghi nhớ:** Với `BigDecimal`, `value.signum() == 0` và `value.compareTo(BigDecimal.ZERO) == 0` đều xác định **bằng 0 theo giá trị số**. `equals(BigDecimal.ZERO)` kiểm tra thêm scale và có thể sai mục đích. Luôn xác định giá trị cần so sánh là số gốc hay số sau biến đổi/làm tròn, và phân biệt rõ bằng 0 chính xác với gần 0 theo ngưỡng.
+**Key takeaway:** For `BigDecimal`, `value.signum() == 0` and `value.compareTo(BigDecimal.ZERO) == 0` both determine **numeric equality to 0**. `equals(BigDecimal.ZERO)` also checks scale and can be wrong for your intent. Always clarify whether the value being compared is the original number or a transformed/rounded number, and clearly distinguish exact zero from threshold-based near-zero.

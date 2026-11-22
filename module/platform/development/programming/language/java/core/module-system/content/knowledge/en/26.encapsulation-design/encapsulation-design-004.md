@@ -1,24 +1,24 @@
-# Qualified export cho integration đặc thù
+# Qualified Exports for Specialized Integration
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Java Platform Module System (JPMS) cho phép một module công khai package của nó thông qua directive **exports** trong file **module-info.java**. Export không nhất thiết phải dành cho mọi module. Khi một package chỉ phục vụ một số hệ thống tích hợp cụ thể, module nguồn có thể dùng **qualified export** để chỉ định chính xác các module được phép truy cập.
+The Java Platform Module System (JPMS) allows a module to expose its packages through the **exports** directive in the **module-info.java** file. An export does not have to be open to every module. When a package only serves specific integration systems, the source module can use a **qualified export** to specify the exact modules allowed to access it.
 
-Ví dụ, một module nền tảng có thể cung cấp package tích hợp cho module adapter của đối tác, module báo cáo và module kiểm thử nội bộ. Các module khác vẫn không được truy cập package đó qua quy tắc module thông thường.
+For example, a platform module can provide an integration package for a partner adapter module, a reporting module, and an internal testing module. Other modules remain unable to access that package via standard module rules.
 
-Sau bài học, bạn có thể:
-- Viết directive **exports package.name to module.one, module.two;**.
-- Phân biệt qualified export với unqualified export.
-- Thiết kế package API dành cho một nhóm module tích hợp xác định.
-- Hiểu vì sao consumer vẫn cần **requires** để đọc module cung cấp.
-- Phân biệt qualified export với **opens**, **--add-exports** và **--add-opens**.
-- Chẩn đoán lỗi module access và kiểm thử phạm vi tích hợp.
+After this lesson, you will be able to:
+- Write the **exports package.name to module.one, module.two;** directive.
+- Distinguish a qualified export from an unqualified export.
+- Design an API package meant for a defined group of integration modules.
+- Understand why consumers still need **requires** to read the providing module.
+- Distinguish qualified exports from **opens**, **--add-exports**, and **--add-opens**.
+- Diagnose module access errors and test integration scope.
 
-## 2. Qualified export là gì?
+## 2. What Is a Qualified Export?
 
-Một module có thể export package theo hai cách.
+A module can export a package in two ways.
 
-**Unqualified export** công khai package cho mọi module đọc module nguồn:
+An **unqualified export** exposes the package to every module that reads the source module:
 
 ~~~java
 module com.example.platform {
@@ -26,9 +26,9 @@ module com.example.platform {
 }
 ~~~
 
-Mọi module đọc được **com.example.platform** đều có thể truy cập các public type trong package **com.example.platform.api**, theo các quy tắc truy cập Java thông thường.
+Every module that reads **com.example.platform** can access public types in the **com.example.platform.api** package, according to standard Java access rules.
 
-**Qualified export** chỉ công khai package cho các module được liệt kê:
+A **qualified export** exposes the package only to the listed modules:
 
 ~~~java
 module com.example.platform {
@@ -38,30 +38,30 @@ module com.example.platform {
 }
 ~~~
 
-Trong ví dụ này, package **com.example.platform.partner** được export cho hai module đích:
+In this example, the **com.example.platform.partner** package is exported to two target modules:
 - **com.example.crm.adapter**
 - **com.example.audit.integration**
 
-Các module khác không nằm trong danh sách vẫn không được truy cập package này thông qua module system, kể cả khi chúng đọc được module **com.example.platform**.
+Other modules not on the list still cannot access this package through the module system, even if they read **com.example.platform**.
 
-Qualified export là một directive ở cấp package. Nó không chọn riêng từng class hoặc method trong package. Nếu package được export cho một module đích, các public type trong package đó có thể được module đích truy cập theo quy tắc Java. Vì vậy, hãy thiết kế package sao cho chỉ chứa những kiểu thực sự thuộc API tích hợp.
+A qualified export is a package-level directive. It does not select individual classes or methods within the package. If a package is exported to a target module, the public types in that package can be accessed by that target module under Java rules. Therefore, design the package so it only contains types that genuinely belong to the integration API.
 
-## 3. Cú pháp trong module-info.java
+## 3. Syntax in module-info.java
 
-Cú pháp:
+Syntax:
 
 ~~~java
 exports package.name to module.name.one, module.name.two;
 ~~~
 
-Các thành phần:
+Components:
 
-- **exports**: khai báo package được công khai qua ranh giới module.
-- **package.name**: tên package đầy đủ, không phải tên class hoặc đường dẫn thư mục.
-- **to**: đánh dấu đây là qualified export.
-- **module.name.one** và **module.name.two**: tên module đích, phân tách bằng dấu phẩy.
+- **exports**: declares the package exposed across the module boundary.
+- **package.name**: full package name, not a class name or directory path.
+- **to**: marks this as a qualified export.
+- **module.name.one** and **module.name.two**: target module names, separated by commas.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.example.orders {
@@ -72,12 +72,12 @@ module com.example.orders {
 }
 ~~~
 
-Ở đây:
-- **com.example.orders.api** là API công khai cho mọi module đọc module **com.example.orders**.
-- **com.example.orders.partner** chỉ được export cho hai module tích hợp đã nêu.
-- Package khác không được export sẽ tiếp tục được đóng đối với truy cập thông thường từ module khác.
+Here:
+- **com.example.orders.api** is a public API for every module reading **com.example.orders**.
+- **com.example.orders.partner** is exported only to the two named integration modules.
+- Other unexported packages remain closed to normal access from other modules.
 
-Tên trong danh sách **to** là tên module, không phải tên package của ứng dụng. Ví dụ, nếu module consumer khai báo:
+Names in the **to** list are module names, not application package names. For example, if the consumer module declares:
 
 ~~~java
 module com.example.crm.adapter {
@@ -85,15 +85,15 @@ module com.example.crm.adapter {
 }
 ~~~
 
-thì tên module đích chính xác là **com.example.crm.adapter**.
+then the exact target module name is **com.example.crm.adapter**.
 
-Qualified export chỉ có ý nghĩa khi source module là named module và các module đích cũng được nhận diện bằng tên module. Không ghi **ALL-UNNAMED** trong danh sách **to**. ALL-UNNAMED là target đặc biệt của các tùy chọn launcher như **--add-exports**, không phải tên module hợp lệ để dùng trong directive module-info.java.
+A qualified export only makes sense when the source module is a named module and the target modules are also identified by module names. Do not write **ALL-UNNAMED** in the **to** list. ALL-UNNAMED is a special target for launcher options such as **--add-exports**, not a valid module name to use in a module-info.java directive.
 
-## 4. Ví dụ producer và consumer hoàn chỉnh
+## 4. Complete Producer and Consumer Example
 
-Giả sử module **com.example.platform** cung cấp một API dành riêng cho hai integration module.
+Suppose the **com.example.platform** module provides an API reserved for two integration modules.
 
-Cấu trúc thư mục minh họa:
+Illustrative directory structure:
 
 ~~~text
 src/
@@ -112,7 +112,7 @@ src/
     com/example/external/app/Main.java
 ~~~
 
-Module nguồn:
+Source module:
 
 ~~~java
 module com.example.platform {
@@ -124,7 +124,7 @@ module com.example.platform {
 }
 ~~~
 
-API chung:
+General API:
 
 ~~~java
 package com.example.platform.api;
@@ -134,7 +134,7 @@ public interface PlatformService {
 }
 ~~~
 
-API tích hợp riêng:
+Dedicated integration API:
 
 ~~~java
 package com.example.platform.partner;
@@ -146,7 +146,7 @@ public final class PartnerGateway {
 }
 ~~~
 
-Module CRM consumer:
+CRM consumer module:
 
 ~~~java
 module com.example.crm.adapter {
@@ -154,7 +154,7 @@ module com.example.crm.adapter {
 }
 ~~~
 
-Mã consumer:
+Consumer code:
 
 ~~~java
 package com.example.crm.adapter;
@@ -169,7 +169,7 @@ public final class CrmSync {
 }
 ~~~
 
-Module audit cũng được phép đọc package tích hợp vì đã nằm trong danh sách qualified export:
+The audit module is also allowed to read the integration package because it is in the qualified export list:
 
 ~~~java
 module com.example.audit.integration {
@@ -177,7 +177,7 @@ module com.example.audit.integration {
 }
 ~~~
 
-Trong khi đó, module không được liệt kê:
+Meanwhile, an unlisted module:
 
 ~~~java
 module com.example.external.app {
@@ -185,16 +185,16 @@ module com.example.external.app {
 }
 ~~~
 
-Nếu module này cố import **com.example.platform.partner.PartnerGateway**, compiler sẽ báo package không được export cho module **com.example.external.app**. Việc có **requires com.example.platform** chỉ làm module nguồn trở nên readable; nó không tự cấp quyền truy cập mọi package bên trong module đó.
+If this module tries to import **com.example.platform.partner.PartnerGateway**, the compiler will report that the package is not exported to **com.example.external.app**. Having **requires com.example.platform** only makes the source module readable; it does not automatically grant access to every package inside that module.
 
-## 5. Qualified export không thay thế requires
+## 5. Qualified Exports Do Not Replace requires
 
-Để module consumer dùng được một public type trong package được export, hai điều kiện cần được thỏa mãn:
+For a consumer module to use a public type in an exported package, two conditions must be satisfied:
 
-1. Consumer phải đọc được module nguồn.
-2. Package chứa public type phải được export cho consumer.
+1. The consumer must read the source module.
+2. The package containing the public type must be exported to the consumer.
 
-Thông thường, consumer khai báo **requires** trong module descriptor:
+Usually, the consumer declares **requires** in its module descriptor:
 
 ~~~java
 module com.example.crm.adapter {
@@ -202,7 +202,7 @@ module com.example.crm.adapter {
 }
 ~~~
 
-Module nguồn khai báo qualified export:
+The source module declares a qualified export:
 
 ~~~java
 module com.example.platform {
@@ -211,35 +211,35 @@ module com.example.platform {
 }
 ~~~
 
-Hai directive này phối hợp với nhau:
-- **requires** nằm ở consumer và tạo quan hệ readability tới module nguồn.
-- **exports ... to ...** nằm ở source module và cho phép module đích truy cập package được chỉ định.
+These two directives work together:
+- **requires** lives in the consumer and establishes a readability relationship to the source module.
+- **exports ... to ...** lives in the source module and allows the target module to access the specified package.
 
-Nếu thiếu **requires**, consumer có thể không đọc được module nguồn dù package đã được export cho nó. Nếu thiếu tên consumer trong danh sách **to**, consumer có thể đọc module nguồn nhưng vẫn không truy cập được package.
+If **requires** is missing, the consumer cannot read the source module even though the package is exported to it. If the consumer name is missing from the **to** list, the consumer can read the source module but still cannot access the package.
 
-Trong trường hợp phải cấu hình module graph từ dòng lệnh mà không sửa được descriptor, có thể cân nhắc **--add-reads** để bổ sung readability. Đây là workaround cho cấu hình runtime; với một integration ổn định, nên thể hiện dependency bằng **requires** trong module-info.java.
+When you have to configure the module graph from the command line without editing the descriptor, you can consider **--add-reads** to add readability. This is a workaround for runtime configuration; for a stable integration, express the dependency using **requires** in module-info.java.
 
-## 6. Khi nào nên dùng qualified export?
+## 6. When Should You Use Qualified Exports?
 
-Qualified export phù hợp khi một package là API tích hợp có chủ đích nhưng không phải API chung của toàn bộ hệ sinh thái module.
+A qualified export fits when a package is an intentional integration API rather than a general API for the entire module ecosystem.
 
-Một số trường hợp:
+Some scenarios:
 
-- **Adapter đối tác:** chỉ module adapter do đối tác cung cấp được dùng API tích hợp.
-- **Bridge giữa hai hệ thống:** module bridge cần một số type để chuyển đổi dữ liệu hoặc giao thức.
-- **Plugin được kiểm soát:** một số module plugin đã biết cần dùng extension API riêng.
-- **API nội bộ giữa các module trong cùng sản phẩm:** nhóm phát triển muốn tách public API ổn định khỏi package dành cho một số thành phần phối hợp.
-- **Tích hợp migration:** một module cũ cần truy cập package chuyển tiếp trong khi các module mới đã dùng API công khai khác.
+- **Partner adapters:** only partner-provided adapter modules are allowed to use the integration API.
+- **Bridge between two systems:** a bridge module needs certain types to convert data or protocols.
+- **Controlled plugins:** a known set of plugin modules need to use a dedicated extension API.
+- **Internal API between modules in the same product:** the development team wants to separate the stable public API from a package meant for specific collaborating components.
+- **Migration integration:** a legacy module needs access to a transitional package while newer modules already use a different public API.
 
-Không nên dùng qualified export chỉ vì muốn "ẩn" một class khỏi người dùng trong cùng module. Nếu class không phải API, hãy đặt nó trong package không export. Qualified export là công cụ kiểm soát module nào được truy cập package, không phải công cụ chọn class bên trong package.
+Do not use a qualified export just because you want to "hide" a class from users within the same module. If a class is not an API, put it in an unexported package. A qualified export is a tool to control which modules can access a package, not a tool to select classes inside a package.
 
-Nếu nhiều module bên ngoài cần package như một hợp đồng công khai lâu dài, unqualified export có thể đơn giản và phù hợp hơn. Nếu chỉ một vài module tích hợp được quản lý cần package đó, qualified export giúp thể hiện chính xác phạm vi phụ thuộc.
+If many external modules need the package as a long-term public contract, an unqualified export may be simpler and more appropriate. If only a few managed integration modules need that package, a qualified export accurately expresses the dependency scope.
 
-## 7. Thiết kế package dành riêng cho integration
+## 7. Designing a Package Dedicated to Integration
 
-Vì qualified export áp dụng cho toàn package, cách tổ chức package quyết định phạm vi API được lộ ra.
+Because a qualified export applies to an entire package, how packages are organized determines the exposed API scope.
 
-Ví dụ nên tách API công khai, API tích hợp và implementation:
+For example, separate the public API, integration API, and implementation:
 
 ~~~text
 com.example.platform.api
@@ -260,27 +260,27 @@ module com.example.platform {
 }
 ~~~
 
-Trong cách tổ chức này:
-- **api** chứa các type mà mọi consumer hợp lệ có thể dùng.
-- **partner** chứa các type được chia sẻ với module tích hợp đã chọn.
-- **internal** và **impl** không được export nên vẫn nằm trong ranh giới module.
+In this organization:
+- **api** contains types that any valid consumer can use.
+- **partner** contains types shared with selected integration modules.
+- **internal** and **impl** are not exported and thus stay within the module boundary.
 
-Tránh đặt implementation class public trong package đã qualified-export nếu consumer không cần chúng. Dù consumer không được khuyến khích sử dụng, public class trong package được export vẫn có thể trở thành một phần bề mặt API mà module nguồn phải cân nhắc duy trì.
+Avoid placing public implementation classes in a qualified-exported package if consumers do not need them. Even if consumers are discouraged from using them, public classes in an exported package can still become part of the API surface that the source module must consider maintaining.
 
-Một thiết kế tốt thường cung cấp interface hoặc facade nhỏ thay vì để integration truy cập nhiều class triển khai. Ví dụ, chỉ export **PartnerGateway** và các kiểu dữ liệu request/response cần thiết; giữ cache, repository, internal factory và implementation trong package không export.
+A good design usually provides a small interface or facade instead of letting integrations access many implementation classes. For example, export only **PartnerGateway** and the necessary request/response data types; keep caches, repositories, internal factories, and implementations in unexported packages.
 
-## 8. Qualified export khác với opens
+## 8. How Qualified Exports Differ from opens
 
-**exports** và **opens** giải quyết hai kiểu truy cập khác nhau.
+**exports** and **opens** address two different kinds of access.
 
-| Directive | Tác dụng | Trường hợp thường dùng |
+| Directive | Effect | Common Use Case |
 |---|---|---|
-| **exports p** | Cho phép module đọc nguồn truy cập public type/member trong package p theo quy tắc Java | API được gọi trực tiếp qua code |
-| **exports p to m** | Chỉ cho module m truy cập public API của package p | API tích hợp dành cho module cụ thể |
-| **opens p** | Cho phép deep reflection vào package p ở runtime | Framework cần truy cập reflective vào thành viên không public |
-| **opens p to m** | Chỉ mở package p cho deep reflection từ module m | Framework hoặc adapter reflection được kiểm soát |
+| **exports p** | Allows modules reading the source to access public types/members in package p under Java rules | API called directly via code |
+| **exports p to m** | Allows only module m to access the public API of package p | Integration API meant for specific modules |
+| **opens p** | Allows deep reflection into package p at runtime | Frameworks needing reflective access to non-public members |
+| **opens p to m** | Opens package p only for deep reflection from module m | Controlled reflection by a framework or adapter |
 
-Ví dụ qualified open:
+Example of a qualified open:
 
 ~~~java
 module com.example.persistence {
@@ -289,125 +289,125 @@ module com.example.persistence {
 }
 ~~~
 
-Ví dụ này cho phép module **com.example.orm** thực hiện deep reflection vào package entity theo quy tắc reflection. Nó không tương đương với qualified export.
+This example allows the **com.example.orm** module to perform deep reflection on the entity package under reflection rules. It is not equivalent to a qualified export.
 
-Nếu integration gọi trực tiếp một public method của **PartnerGateway**, hãy dùng qualified export. Nếu framework cần truy cập private field hoặc private constructor qua reflection, hãy đánh giá qualified open. Không thêm cả **exports** và **opens** nếu chỉ một quyền là đủ.
+If the integration directly calls a public method on **PartnerGateway**, use a qualified export. If a framework needs to access private fields or private constructors via reflection, evaluate a qualified open. Do not add both **exports** and **opens** when only one permission is enough.
 
-Một package đã export không tự động mở cho deep reflection vào các thành viên private. Ngược lại, package được mở cho reflection không đồng nghĩa mã consumer có thể import mọi public type trong package theo cách thông thường.
+An exported package is not automatically open for deep reflection into private members. Conversely, a package opened for reflection does not mean consumer code can import all public types in the package in the standard way.
 
-## 9. Qualified export khác với --add-exports
+## 9. How Qualified Exports Differ from --add-exports
 
-Có thể bổ sung export bằng tùy chọn launcher:
+Exports can be added via a launcher option:
 
 ~~~bash
 java --add-exports com.example.platform/com.example.platform.partner=com.example.crm.adapter --module-path mods --module com.example.crm.adapter/com.example.crm.adapter.Main
 ~~~
 
-Tùy chọn này thêm export vào module configuration của tiến trình JVM. Nó không sửa **module-info.java** và không thay đổi module descriptor trong JAR.
+This option adds an export to the JVM process's module configuration. It does not edit **module-info.java** and does not alter the module descriptor inside the JAR.
 
-So sánh:
+Comparison:
 
-- **Qualified export trong module-info.java:** là thiết kế của source module, được đóng gói trong descriptor và áp dụng khi module được phân giải.
-- **--add-exports:** là override từ dòng lệnh, thường dùng cho migration, kiểm thử hoặc môi trường triển khai đặc biệt.
-- **--add-opens:** mở package cho deep reflection ở runtime, không thay thế qualified export.
+- **Qualified export in module-info.java:** part of the source module's design, packaged into the descriptor, and applied when the module is resolved.
+- **--add-exports:** a command-line override, typically used for migration, testing, or special deployment environments.
+- **--add-opens:** opens a package for deep reflection at runtime; does not replace a qualified export.
 
-Nếu sở hữu source module, hãy ưu tiên thể hiện quan hệ tích hợp lâu dài trong **module-info.java**. Dùng cờ dòng lệnh khi cần một điều chỉnh vận hành có chủ đích hoặc khi không thể sửa module descriptor.
+If you own the source module, prefer expressing long-term integration relationships in **module-info.java**. Use command-line flags when you need an intentional operational adjustment or when you cannot modify the module descriptor.
 
-Tùy chọn **--add-exports** cũng không tự tạo readability. Nếu consumer không đọc source module, cần **requires** hoặc một cấu hình **--add-reads** thích hợp.
+The **--add-exports** option also does not automatically create readability. If the consumer does not read the source module, **requires** or an appropriate **--add-reads** configuration is needed.
 
-## 10. Giới hạn và điều cần cân nhắc
+## 10. Limitations and Considerations
 
-Qualified export thu hẹp tập module được phép truy cập package, nhưng không phải một cơ chế bảo mật thay thế cho xác thực hay phân quyền ứng dụng.
+A qualified export narrows the set of modules allowed to access a package, but it is not a security mechanism replacing application authentication or authorization.
 
-Một số điểm cần nhớ:
+Some points to keep in mind:
 
-1. **Phạm vi là package:** tất cả public type trong package đều có thể trở thành bề mặt API đối với các module đích.
-2. **Module name là hợp đồng:** đổi tên module consumer có thể khiến qualified export không còn khớp.
-3. **Readability vẫn cần thiết:** qualified export không thêm **requires** cho consumer.
-4. **Reflection là vấn đề riêng:** truy cập private qua reflection có thể cần **opens**, không phải **exports**.
-5. **Không phải sandbox:** module system giúp đóng gói và kiểm soát khả năng truy cập theo module; không thay thế kiểm soát bảo mật, xác thực danh tính plugin hay phân quyền dữ liệu.
-6. **API vẫn cần quản lý phiên bản:** các module được export cho có thể phụ thuộc vào kiểu public; thay đổi chữ ký hoặc xóa type có thể phá vỡ integration.
-7. **Tránh split package:** không phân tán các class cùng package qua nhiều named module. Thiết kế package ownership rõ ràng giúp module resolution dễ dự đoán.
+1. **Scope is the package:** all public types in the package can become API surface for the target modules.
+2. **The module name is a contract:** renaming a consumer module can cause the qualified export to stop matching.
+3. **Readability is still needed:** a qualified export does not add **requires** to the consumer.
+4. **Reflection is a separate concern:** accessing private members via reflection may require **opens**, not **exports**.
+5. **Not a sandbox:** the module system aids encapsulation and controls accessibility per module; it does not replace security controls, plugin identity verification, or data authorization.
+6. **The API still needs versioning:** modules exported to can depend on public types; changing signatures or removing types can break the integration.
+7. **Avoid split packages:** do not scatter classes of the same package across multiple named modules. Clear package ownership makes module resolution predictable.
 
-Nếu target module không có mặt trong module graph, qualified export vẫn được ghi trong descriptor nhưng không tạo ra quyền truy cập cho một consumer đang không tồn tại. Khi module đích được đưa vào graph ở lần chạy khác, quan hệ export mới có ý nghĩa đối với module đó.
+If a target module is absent from the module graph, the qualified export is still recorded in the descriptor but creates no access for a consumer that is not present. When the target module is included in the graph in another run, the export relationship takes effect for that module.
 
-## 11. Biên dịch và chạy ví dụ
+## 11. Compiling and Running the Example
 
-Giả sử các module được đặt trong thư mục **src** theo cấu trúc ở phần ví dụ. Có thể biên dịch các module cùng lúc bằng module source path:
+Suppose the modules are placed in the **src** directory following the structure in the example section. You can compile the modules together using the module source path:
 
 ~~~bash
 javac --module-source-path src -d mods -m com.example.platform,com.example.crm.adapter,com.example.audit.integration
 ~~~
 
-Nếu muốn kiểm tra module graph, dùng:
+If you want to inspect the module graph, use:
 
 ~~~bash
 java --module-path mods --describe-module com.example.platform
 ~~~
 
-Chạy module consumer:
+Run the consumer module:
 
 ~~~bash
 java --module-path mods --module com.example.crm.adapter/com.example.crm.adapter.Main
 ~~~
 
-Nếu consumer được phép truy cập package partner, module graph sẽ phân giải và mã có thể dùng public type trong package đó. Nếu một module khác không nằm trong danh sách qualified export cố import cùng type, lỗi có thể xuất hiện khi biên dịch hoặc khi liên kết/truy cập runtime, tùy thời điểm kiểm tra.
+If the consumer is allowed to access the partner package, the module graph resolves and the code can use public types in that package. If another module not in the qualified export list tries to import the same type, an error can occur at compile time or at runtime linking/access, depending on when it is checked.
 
-Đối với artifact JAR đã đóng gói, có thể kiểm tra descriptor bằng:
+For a packaged JAR artifact, you can inspect the descriptor with:
 
 ~~~bash
 jar --describe-module --file platform.jar
 ~~~
 
-Kết quả mô tả module giúp xác nhận tên module và các package được export. Dùng **jdeps** hoặc công cụ phân tích module để kiểm tra dependency nếu cần.
+The module description helps confirm the module name and exported packages. Use **jdeps** or module analysis tools to inspect dependencies if needed.
 
-## 12. Chẩn đoán lỗi qualified export
+## 12. Diagnosing Qualified Export Errors
 
-| Triệu chứng | Nguyên nhân có thể | Hướng xử lý |
+| Symptom | Possible Cause | Resolution |
 |---|---|---|
-| Consumer báo package không được export | Module đích chưa được liệt kê trong qualified export | Thêm đúng tên module consumer vào danh sách **to** |
-| Consumer báo module không đọc được source module | Thiếu **requires** hoặc readability | Khai báo requires hoặc kiểm tra module graph |
-| Directive **to** báo module không tìm thấy | Tên module đích sai hoặc module chưa có trên module path lúc biên dịch | Kiểm tra tên trong module-info.java và cấu hình compile |
-| Consumer trên classpath không truy cập được | Unnamed module không thể được liệt kê như target trong module descriptor | Dùng named module cho integration hoặc cấu hình --add-exports tạm thời |
-| Framework không truy cập private field | Chỉ export package, chưa mở cho deep reflection | Xem xét **opens p to m** hoặc --add-opens |
-| Module khác vẫn truy cập được package | Package cũng được unqualified export hoặc có override từ dòng lệnh | Kiểm tra module-info.java và JVM arguments |
-| Integration lỗi sau khi đổi tên module | Qualified export vẫn nhắm tới tên module cũ | Đồng bộ module name trong descriptor và dependency |
+| Consumer reports package is not exported | Target module is not listed in the qualified export | Add the exact consumer module name to the **to** list |
+| Consumer reports module does not read source module | Missing **requires** or readability | Declare requires or check the module graph |
+| **to** directive reports module not found | Target module name is wrong or module is not on the module path at compile time | Check the name in module-info.java and the compile configuration |
+| Consumer on classpath cannot access | Unnamed module cannot be listed as a target in a module descriptor | Use a named module for integration or temporarily configure --add-exports |
+| Framework cannot access private fields | Package is only exported, not opened for deep reflection | Consider **opens p to m** or --add-opens |
+| Another module can still access the package | Package also has an unqualified export or a command-line override | Check module-info.java and JVM arguments |
+| Integration fails after renaming a module | Qualified export still targets the old module name | Synchronize the module name in the descriptor and dependencies |
 
-Khi điều tra, kiểm tra cả hai phía: descriptor của source module và descriptor của consumer. Xác định chính xác package, module name, **requires**, **exports ... to ...**, và các cờ JVM được truyền vào tiến trình. Đừng chỉ nhìn source code của consumer rồi kết luận lỗi nằm ở modifier public.
+When investigating, check both sides: the source module's descriptor and the consumer's descriptor. Identify the exact package, module name, **requires**, **exports ... to ...**, and JVM flags passed to the process. Do not just look at the consumer's source code and assume the problem lies in the public modifier.
 
-## 13. Tự kiểm tra
+## 13. Self-Check
 
-**1. Directive exports com.example.partner to com.example.crm; cho phép những module nào truy cập package?**
+**1. Which modules are allowed to access the package by the directive exports com.example.partner to com.example.crm;?**
 
-Chỉ module có tên **com.example.crm** được export package đó, với điều kiện consumer đọc được source module và tuân theo các quy tắc truy cập Java thông thường.
+Only the module named **com.example.crm** is exported that package, provided the consumer reads the source module and follows standard Java access rules.
 
-**2. Qualified export có tự động thêm requires cho module consumer không?**
+**2. Does a qualified export automatically add requires to the consumer module?**
 
-Không. Consumer vẫn phải đọc source module, thường bằng directive **requires** trong module-info.java.
+No. The consumer must still read the source module, usually via a **requires** directive in module-info.java.
 
-**3. Có thể ghi ALL-UNNAMED trong danh sách module sau từ khóa to không?**
+**3. Can ALL-UNNAMED be listed in the module list after the to keyword?**
 
-Không. **ALL-UNNAMED** là target đặc biệt của tùy chọn dòng lệnh như **--add-exports**, không phải tên module dùng trong qualified export của module descriptor.
+No. **ALL-UNNAMED** is a special target for command-line options such as **--add-exports**, not a module name used in a qualified export in a module descriptor.
 
-**4. Nếu framework cần đọc private field qua reflection thì qualified export có đủ không?**
+**4. If a framework needs to read private fields via reflection, is a qualified export enough?**
 
-Không. Deep reflection cần package được mở bằng **opens** hoặc một cơ chế runtime tương ứng như **--add-opens**.
+No. Deep reflection requires the package to be opened with **opens** or an equivalent runtime mechanism such as **--add-opens**.
 
-**5. Qualified export có phải cơ chế bảo mật để giới hạn plugin độc hại không?**
+**5. Is a qualified export a security mechanism to restrict malicious plugins?**
 
-Không. Nó kiểm soát khả năng truy cập package giữa module; không thay thế xác thực plugin, sandbox hay kiểm soát quyền ở tầng ứng dụng.
+No. It controls package accessibility across modules; it does not replace plugin verification, sandboxing, or application-layer authorization.
 
-**6. Vì sao nên tách package partner khỏi package implementation?**
+**6. Why should the partner package be separated from the implementation package?**
 
-Vì qualified export áp dụng cho cả package. Tách package giúp chỉ công khai các type tích hợp cần thiết và giữ implementation ở bên trong module.
+Because a qualified export applies to the entire package. Separating packages ensures only the necessary integration types are exposed while keeping the implementation inside the module.
 
-## 14. Ghi nhớ
+## 14. Key Takeaways
 
-Qualified export là cách module nguồn công khai một package cho một danh sách module đích xác định. Nó hữu ích cho integration đặc thù khi một số adapter hoặc bridge cần API riêng, còn các module khác không cần truy cập package đó.
+A qualified export is how a source module exposes a package to a specific list of target modules. It is useful for specialized integration when certain adapters or bridges need a dedicated API while other modules do not need access to that package.
 
-Hãy đặt directive **exports ... to ...** trong module-info.java của source module, khai báo **requires** ở consumer, và tổ chức package theo đúng bề mặt API cần chia sẻ. Dùng **opens** cho deep reflection và xem **--add-exports** là override runtime/compile-time có chủ đích. Qualified export cải thiện encapsulation, nhưng không thay thế xác thực hay phân quyền bảo mật của ứng dụng.
+Place the **exports ... to ...** directive in the source module's module-info.java, declare **requires** in the consumer, and organize packages to match the API surface to be shared. Use **opens** for deep reflection and treat **--add-exports** as an intentional runtime/compile-time override. Qualified exports improve encapsulation, but do not replace application authentication or security authorization.
 
-## Tài liệu tham khảo
+## References
 
 - [Java Language Specification — Module Declarations, Exports](https://docs.oracle.com/javase/specs/jls/se21/html/jls-7.html#jls-7.7.2)
 - [The Java Module System — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Module.html)

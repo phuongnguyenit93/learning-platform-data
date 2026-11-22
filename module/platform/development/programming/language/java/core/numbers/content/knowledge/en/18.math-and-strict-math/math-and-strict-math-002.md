@@ -1,8 +1,8 @@
-# Math.pow, Math.sqrt, Math.cbrt và cách chọn phép tính phù hợp trong Java
+# Math.pow, Math.sqrt, Math.cbrt, and Choosing the Right Calculation in Java
 
-Trong Java Core, ba phương thức **`Math.pow`**, **`Math.sqrt`** và **`Math.cbrt`** có vẻ gần nhau vì đều liên quan đến lũy thừa hoặc khai căn. Tuy nhiên, chúng **không hoàn toàn thay thế cho nhau**. Sự khác nhau nằm ở **ngữ nghĩa toán học**, **miền giá trị hợp lệ**, **hành vi với số âm và zero có dấu**, **giới hạn `double`**, **độ chính xác** và khả năng chọn một thuật toán chuyên dụng tốt hơn.
+In Java Core, the three methods **`Math.pow`**, **`Math.sqrt`**, and **`Math.cbrt`** look similar because they all involve exponentiation or roots. However, they are **not completely interchangeable**. The differences lie in **mathematical semantics**, **valid input domains**, **behavior with negative numbers and signed zero**, **`double` limits**, **accuracy**, and the ability to choose a better specialized algorithm.
 
-Ví dụ:
+Example:
 
 ```java
 double square = Math.pow(3.0, 2.0); // 9.0
@@ -10,66 +10,66 @@ double root2 = Math.sqrt(9.0);      // 3.0
 double root3 = Math.cbrt(-8.0);     // -2.0
 
 double surprise = Math.pow(-8.0, 1.0 / 3.0);
-// surprise là NaN, không phải -2.0.
+// surprise is NaN, not -2.0.
 ```
 
-Đoạn mã trên là **mảnh ví dụ** có thể đặt trong một phương thức. Với căn bậc ba âm, `Math.cbrt` biết rõ đó là **căn thực bậc ba**; `Math.pow` chỉ nhìn thấy cơ số âm và một số mũ `double` không nguyên.
+The snippet above is an **example fragment** that can be placed inside a method. For a negative cube root, `Math.cbrt` clearly knows it is a **real cube root**; `Math.pow` only sees a negative base and a non-integer `double` exponent.
 
-Bài học thuộc nhóm **Math và StrictMath**: hiểu cách API được thiết kế và chọn đúng công cụ trước khi tối ưu hiệu năng hoặc sửa những sai số dấu phẩy động.
+This lesson belongs to the **Math and StrictMath** group: understand how the APIs are designed and choose the right tool before optimizing performance or fixing floating-point inaccuracies.
 
-## 1. Tổng quan API và giá trị trả về
+## 1. API Overview and Return Values
 
-| Phép tính | Phương thức | Kiểu nhận/trả | Ý nghĩa |
+| Operation | Method | Input/Return Types | Meaning |
 | --- | --- | --- | --- |
-| Lũy thừa bất kỳ | `Math.pow(double a, double b)` | Hai `double` → `double` | Tính `a^b` theo quy tắc dấu phẩy động |
-| Căn bậc hai | `Math.sqrt(double a)` | `double` → `double` | Căn bậc hai thực không âm của `a` |
-| Căn bậc ba | `Math.cbrt(double a)` | `double` → `double` | Căn bậc ba thực, kể cả `a` âm |
-| Khoảng cách hai chiều | `Math.hypot(double x, double y)` | Hai `double` → `double` | Tính `sqrt(x*x+y*y)` theo cách tránh overflow/underflow trung gian |
-| Các hàm tương ứng | `StrictMath.pow/sqrt/cbrt` | Cũng là `double` | Có hợp đồng về khả năng tái lập kết quả theo quy định `StrictMath` |
+| Arbitrary power | `Math.pow(double a, double b)` | Two `double`s → `double` | Computes `a^b` per floating-point rules |
+| Square root | `Math.sqrt(double a)` | `double` → `double` | Non-negative real square root of `a` |
+| Cube root | `Math.cbrt(double a)` | `double` → `double` | Real cube root, even for negative `a` |
+| 2D distance | `Math.hypot(double x, double y)` | Two `double`s → `double` | Computes `sqrt(x*x+y*y)` while avoiding intermediate overflow/underflow |
+| Corresponding functions | `StrictMath.pow/sqrt/cbrt` | Also `double` | Has contracts for result reproducibility as specified by `StrictMath` |
 
-Tất cả đều là **phương thức static** của lớp `java.lang.Math` hoặc `java.lang.StrictMath`; không cần import riêng nếu gọi bằng tên lớp. Với ba hàm đầu, **không có overload trả `int` hoặc `long`** cho kết quả lũy thừa hoặc căn. Ví dụ:
+All are **static methods** of the `java.lang.Math` or `java.lang.StrictMath` class; no separate import is needed when called via the class name. For the first three functions, **there are no overloads returning `int` or `long`** for the power or root result. Example:
 
 ```java
-double answer = Math.sqrt(25);   // 5.0, dù đối số viết bằng literal int.
-double power = Math.pow(2, 10);  // 1024.0, không phải kiểu long.
+double answer = Math.sqrt(25);   // 5.0, even though the argument is written as an int literal.
+double power = Math.pow(2, 10);  // 1024.0, not type long.
 ```
 
-Hai lời gọi này nhận literal `int` và tự **widen** thành `double` trước khi gọi hàm. Đừng dựa vào cách viết `Math.pow(2, 10)` để suy ra kết quả là số nguyên chính xác tùy ý: kiểu trả về luôn là `double`.
+These two calls receive `int` literals and automatically **widen** them to `double` before calling the method. Do not rely on writing `Math.pow(2, 10)` to assume the result is an arbitrary exact integer: the return type is always `double`.
 
-## 2. `Math.pow(base, exponent)`: phép lũy thừa tổng quát
+## 2. `Math.pow(base, exponent)`: General Exponentiation
 
-`Math.pow(a,b)` biểu diễn phép `a` mũ `b`, trong đó cả cơ số và số mũ là `double`. Với các trường hợp thông dụng:
+`Math.pow(a,b)` represents `a` raised to the power of `b`, where both base and exponent are `double`. For common cases:
 
 ```java
 double a = Math.pow(2.0, 10.0);  // 1024.0
-double b = Math.pow(10.0, -2.0); // 0.01 (xấp xỉ nhị phân)
-double c = Math.pow(9.0, 0.5);   // 3.0 với ví dụ này
+double b = Math.pow(10.0, -2.0); // 0.01 (binary approximation)
+double c = Math.pow(9.0, 0.5);   // 3.0 for this example
 double d = Math.pow(-2.0, 3.0);  // -8.0
 double e = Math.pow(-2.0, 4.0);  // 16.0
 ```
 
-Các dòng ở trên là mảnh mã dùng trong phương thức. Điểm đáng chú ý là số mũ được **truyền và xử lý như `double`**, chứ không phải “số nguyên tổng quát”: `Math.pow` không hứa rằng mọi phép lũy thừa số nguyên sẽ tạo ra một số nguyên **chính xác**.
+The lines above are code fragments used inside a method. Notably, the exponent is **passed and processed as a `double`**, not a "general integer": `Math.pow` does not promise that every integer exponentiation will produce an **exact** integer.
 
-Với số mũ nguyên và cơ số nguyên nhỏ, kết quả có thể được biểu diễn chính xác; với số rất lớn, số mũ không nguyên hoặc kết quả gần biên của `double`, phép tính sẽ chịu quy tắc làm tròn và giới hạn của dấu phẩy động.
+With integer exponents and small integer bases, the result can be represented exactly; with very large numbers, non-integer exponents, or results near the boundary of `double`, the calculation is subject to floating-point rounding rules and limits.
 
-**Không dùng dấu `^` làm toán tử lũy thừa trong Java.** `2 ^ 3` là phép **XOR theo bit** trên hai số nguyên và cho kết quả 1, không phải 8. Muốn mũ 3, dùng `Math.pow(2,3)`, nhân liên tiếp khi phù hợp hoặc một hàm lũy thừa số nguyên được thiết kế riêng.
+**Do not use `^` as an exponentiation operator in Java.** `2 ^ 3` is a **bitwise XOR** on two integers and gives 1, not 8. To raise to the power of 3, use `Math.pow(2,3)`, repeated multiplication when appropriate, or a custom-designed integer exponentiation method.
 
-## 3. `Math.sqrt(x)`: căn bậc hai và miền xác định
+## 3. `Math.sqrt(x)`: Square Root and Domain
 
-`Math.sqrt(x)` tìm **căn bậc hai không âm** của `x` khi `x` hữu hạn và không âm.
+`Math.sqrt(x)` finds the **non-negative square root** of `x` when `x` is finite and non-negative.
 
 ```java
 double a = Math.sqrt(9.0);    // 3.0
-double b = Math.sqrt(2.0);    // Số double gần căn 2.
+double b = Math.sqrt(2.0);    // Double closest to square root of 2.
 double c = Math.sqrt(0.0);    // +0.0
 double d = Math.sqrt(-4.0);   // NaN.
 ```
 
-Với số âm khác zero, **không tồn tại căn bậc hai thực**, do đó `Math.sqrt(-4.0)` trả **`Double.NaN`**. Java không tự chuyển sang miền **số phức** và cũng không tự ném `ArithmeticException`. Nếu ứng dụng cần căn bậc hai phức, phải dùng thư viện số phức và kiểu dữ liệu có thể chứa phần thực/ảo.
+For negative numbers other than zero, **no real square root exists**, so `Math.sqrt(-4.0)` returns **`Double.NaN`**. Java does not automatically switch to **complex numbers** nor throw `ArithmeticException`. If an application needs complex square roots, you must use a complex number library and a data type capable of holding real/imaginary parts.
 
-`Math.sqrt` có hợp đồng **correctly rounded**: kết quả là số `double` gần nhất với căn toán học chính xác theo quy tắc làm tròn được quy định. Đây là một điểm mạnh của hàm chuyên dụng; không nên giả định `Math.pow(x,0.5)` luôn có toàn bộ cùng hợp đồng độ chính xác và mọi trường hợp biên.
+`Math.sqrt` has a **correctly rounded** contract: the result is the `double` value closest to the exact mathematical root under the specified rounding rule. This is a strength of the specialized function; you should not assume `Math.pow(x,0.5)` always has the exact same accuracy guarantees and edge-case behavior.
 
-Chú ý zero có dấu:
+Pay attention to signed zero:
 
 ```java
 double negZero = -0.0;
@@ -78,11 +78,11 @@ boolean sameBits = Double.doubleToRawLongBits(root)
         == Double.doubleToRawLongBits(negZero); // true
 ```
 
-Theo IEEE 754, `-0.0` và `+0.0` có mẫu bit khác nhau mặc dù `-0.0 == +0.0` là `true`. `Math.sqrt(-0.0)` **giữ nguyên âm zero**, không trả NaN như khi đầu vào là `-4.0`.
+Under IEEE 754, `-0.0` and `+0.0` have different bit patterns even though `-0.0 == +0.0` is `true`. `Math.sqrt(-0.0)` **preserves negative zero**, rather than returning NaN as when the input is `-4.0`.
 
-## 4. `Math.cbrt(x)`: căn bậc ba thực, kể cả số âm
+## 4. `Math.cbrt(x)`: Real Cube Root, Even for Negative Numbers
 
-`Math.cbrt(x)` tính **căn bậc ba thực** của `x`. Khác căn bậc hai, một số âm hữu hạn vẫn có căn bậc ba thực:
+`Math.cbrt(x)` computes the **real cube root** of `x`. Unlike square roots, a finite negative number still has a real cube root:
 
 ```java
 double a = Math.cbrt(27.0);  // 3.0
@@ -91,13 +91,13 @@ double c = Math.cbrt(0.0);   // +0.0
 double d = Math.cbrt(-0.0);  // -0.0
 ```
 
-Ví dụ `(-2)^3 = -8`, nên căn bậc ba thực của `-8` là `-2`. `Math.cbrt` cũng **giữ dấu của zero** và có hành vi với Infinity/NaN theo quy tắc API. Nó có hợp đồng độ chính xác **trong vòng 1 ULP** với yêu cầu liên quan về tính đơn điệu gần đúng, khác với phát biểu `Math.sqrt` được làm tròn đúng.
+For example, `(-2)^3 = -8`, so the real cube root of `-8` is `-2`. `Math.cbrt` also **preserves the sign of zero** and behaves with Infinity/NaN according to API rules. It has an accuracy contract **within 1 ULP** along with related semi-monotonicity requirements, unlike `Math.sqrt`'s correctly rounded specification.
 
-Chính vì có miền âm, hàm chuyên biệt `cbrt` thường là lựa chọn đúng hơn `pow(x, 1.0/3.0)` để tìm căn bậc ba thực, kể cả khi `x` dương: nó thể hiện chính xác **ý định toán học** và được thiết kế cho phép toán ấy.
+Precisely because it supports the negative domain, the specialized `cbrt` function is usually the right choice over `pow(x, 1.0/3.0)` for finding a real cube root, even when `x` is positive: it expresses the exact **mathematical intent** and was designed for that operation.
 
-## 5. Vì sao `Math.pow(-8.0, 1.0 / 3.0)` là NaN?
+## 5. Why Is `Math.pow(-8.0, 1.0 / 3.0)` NaN?
 
-Trong toán học thực, căn bậc ba của -8 là -2. Nhưng ở Java:
+In real mathematics, the cube root of -8 is -2. But in Java:
 
 ```java
 double exponent = 1.0 / 3.0;
@@ -105,18 +105,18 @@ double viaPow = Math.pow(-8.0, exponent); // NaN.
 double viaCbrt = Math.cbrt(-8.0);        // -2.0.
 ```
 
-Nguyên nhân gồm hai ý:
+The reason consists of two parts:
 
-1. `1.0 / 3.0` là một số `double` **xấp xỉ 1/3**, không phải phân số chính xác với tử số/mẫu số tách biệt.
-2. Với **cơ số âm hữu hạn** và **số mũ hữu hạn không nguyên**, `Math.pow` theo định nghĩa `double` của Java trả **NaN**. Nó không suy luận rằng một số mũ gần `1/3` có nghĩa “lấy căn bậc ba thực rồi giữ dấu”.
+1. `1.0 / 3.0` is a `double` **approximation of 1/3**, not an exact fraction with a separate numerator and denominator.
+2. With a **finite negative base** and a **finite non-integer exponent**, `Math.pow` by Java's `double` specification returns **NaN**. It does not infer that an exponent close to `1/3` means "take the real cube root and preserve the sign".
 
-Nếu chỉ thay cách viết thành `Math.pow(-8.0, 0.3333333333333333)`, kết quả vẫn là NaN vì số mũ đó không phải số nguyên. Đây là sai **lựa chọn API**, không phải sai số nhỏ do in thập phân.
+Even if you change the code to `Math.pow(-8.0, 0.3333333333333333)`, the result is still NaN because that exponent is not an integer. This is a wrong **API choice**, not a minor decimal printing error.
 
-Không nên tự sửa bằng `Math.abs(x)` rồi luôn gắn lại dấu âm cho **mọi** số mũ thực: quy tắc đúng còn phụ thuộc bản chất toán học của số mũ (ví dụ phân số có tử/mẫu chẵn/lẻ), miền giá trị và khả năng biểu diễn. Nếu muốn căn bậc ba thực thì `Math.cbrt` chính là API phù hợp.
+You should not try to fix it by taking `Math.abs(x)` and always re-attaching a negative sign for **every** real exponent: the right rule also depends on the mathematical nature of the exponent (for example, fractions with even/odd numerators/denominators), domain, and representability. If you want the real cube root, `Math.cbrt` is the appropriate API.
 
-## 6. Tính bình phương, lập phương và lựa chọn `pow` hay nhân trực tiếp
+## 6. Squaring, Cubing, and Choosing `pow` vs. Direct Multiplication
 
-Với các mũ cố định nhỏ, phép nhân tường minh dễ đọc và có thể tránh chi phí gọi một phép lũy thừa tổng quát:
+For small fixed exponents, explicit multiplication is easy to read and can avoid the cost of calling a general exponentiation method:
 
 ```java
 double x = 2.5;
@@ -125,33 +125,33 @@ double cube = x * x * x;
 double generic = Math.pow(x, 7.0);
 ```
 
-Tuy nhiên, **đừng mặc định phép nhân trực tiếp và `Math.pow(x,2.0)` cho mẫu bit giống nhau ở mọi input**. Chúng có thể có các quy tắc đặc biệt hoặc sai khác làm tròn/thuật toán; trong các bài toán yêu cầu kết quả bit-for-bit hay một tiêu chuẩn số học cụ thể, hãy kiểm thử trên miền dữ liệu thực tế.
+However, **do not assume direct multiplication and `Math.pow(x,2.0)` produce identical bit patterns for all inputs**. They can have different special-case rules or rounding/algorithmic differences; in problems requiring bit-for-bit results or a specific numerical standard, test on the actual data domain.
 
-Về hiệu năng, không nên suy luận “`x*x` luôn nhanh hơn” hay “`Math.pow` luôn được CPU tối ưu” mà không đo. JVM có thể tối ưu mã khác nhau theo môi trường; khi hiệu năng quan trọng, benchmark với JMH và dữ liệu đại diện.
+Regarding performance, do not assume "`x*x` is always faster" or "`Math.pow` is always optimized by the CPU" without measuring. The JVM can optimize code differently depending on the environment; when performance matters, benchmark with JMH and representative data.
 
-**Quan trọng hơn:** với **số nguyên**, dùng `int * int` vẫn có thể tràn. Chuyển qua `Math.pow` không phải giải pháp chính xác; kết quả `double` chỉ hữu hạn độ chính xác.
+**More importantly:** with **integers**, using `int * int` can still overflow. Switching to `Math.pow` is not an exact solution; a `double` result only has finite precision.
 
-## 7. Chọn `pow` cho mũ số nguyên có thể làm mất độ chính xác
+## 7. Choosing `pow` for Integer Exponents Can Lose Precision
 
-`double` có 53 bit significand hiệu dụng, nên **không biểu diễn chính xác mọi số nguyên lớn hơn `2^53`**. Ví dụ:
+`double` has 53 effective bits of significand, so it **cannot accurately represent every integer larger than `2^53`**. Example:
 
 ```java
 double n = Math.pow(2.0, 53.0);     // 9007199254740992.0
 boolean lost = (n + 1.0 == n);     // true.
 ```
 
-Số toán học `2^53 + 1` không có biểu diễn `double` chính xác. Khi `n + 1.0`, kết quả làm tròn về chính `n`. Do đó **không nên** dùng `(long) Math.pow(base, exponent)` như giải pháp luôn chính xác cho lũy thừa số nguyên:
+The mathematical number `2^53 + 1` has no exact `double` representation. When computing `n + 1.0`, the result rounds back to `n` itself. Therefore, you **should not** use `(long) Math.pow(base, exponent)` as an always-exact solution for integer exponentiation:
 
-- Nếu phép lũy thừa tạo ra số nguyên không lưu chính xác trong `double`, ép về `long` **không thể khôi phục bit đã mất**.
-- Nếu kết quả `double` vượt miền `long`, phép chuyển từ số thực sang số nguyên theo quy tắc Java không giống phép tính nguyên chính xác; với Infinity và giá trị rất lớn, kết quả chuyển kiểu có thể bị bão hòa.
-- Nếu số mũ âm, giá trị lũy thừa thường không phải số nguyên, nên ép kiểu dễ **cắt phần thập phân**.
-- Nếu cơ số âm với số mũ thực không nguyên, phép `pow` có thể trả NaN.
+- If exponentiation produces an integer that cannot be stored accurately in `double`, casting to `long` **cannot recover the lost bits**.
+- If the `double` result exceeds the `long` range, conversion from floating-point to integer under Java rules does not behave like exact integer arithmetic; with Infinity and very large values, the cast result can saturate.
+- If the exponent is negative, the power value is usually not an integer, so casting easily **truncates the fractional part**.
+- If the base is negative with a non-integer real exponent, `pow` may return NaN.
 
-Dùng `Math.pow` khi dữ liệu và đầu ra có ngữ nghĩa **dấu phẩy động**. Khi cần số nguyên tuyệt đối chính xác, hãy chọn phép toán nguyên với kiểm tra tràn hoặc `BigInteger.pow`.
+Use `Math.pow` when the data and output have **floating-point** semantics. When you need an absolutely exact integer, choose integer operations with overflow checking or `BigInteger.pow`.
 
-## 8. Lũy thừa số nguyên chính xác: `Math.multiplyExact` và `BigInteger.pow`
+## 8. Exact Integer Exponentiation: `Math.multiplyExact` and `BigInteger.pow`
 
-Một phương pháp cho `long` là dùng **exponentiation by squaring** (bình phương liên tiếp), kiểm tra tràn ở mỗi phép nhân:
+One approach for `long` is **exponentiation by squaring**, checking for overflow at every multiplication:
 
 ```java
 static long powExact(long base, int exponent) {
@@ -174,75 +174,75 @@ static long powExact(long base, int exponent) {
 }
 ```
 
-Đây là **phương thức nằm trong lớp Java**, cũng xuất hiện trong chương trình hoàn chỉnh bên dưới. Thuật toán chạy trong `O(log exponent)` phép bình phương/nhân, không phải nhân một cách tuyến tính theo số mũ. `Math.multiplyExact` ném `ArithmeticException` khi tích nằm ngoài miền `long`.
+This is a **method residing in a Java class**, which also appears in the complete program below. The algorithm runs in `O(log exponent)` squaring/multiplication steps, rather than multiplying linearly by the exponent. `Math.multiplyExact` throws `ArithmeticException` when the product falls outside the `long` range.
 
 ```java
 long valid = powExact(3L, 10); // 59049.
-// powExact(2L, 63) ném ArithmeticException vì 2^63 > Long.MAX_VALUE.
+// powExact(2L, 63) throws ArithmeticException because 2^63 > Long.MAX_VALUE.
 ```
 
-Lưu ý phương thức chủ động **không hỗ trợ số mũ âm** vì kết quả có thể là phân số. Việc thêm `if (remaining > 0)` trước phép bình phương tiếp theo tránh một phép nhân không còn cần thiết khi thuật toán đã xử lý bit cao nhất; điều này quan trọng với API kiểm tra tràn vì phép trung gian vô ích cũng có thể gây exception.
+Note that the method intentionally **does not support negative exponents** because the result may be a fraction. Adding `if (remaining > 0)` before the next squaring step avoids an unnecessary multiplication once the algorithm has processed the highest bit; this is important with overflow-checking APIs because an unnecessary intermediate operation could also trigger an exception.
 
-Nếu đầu ra cần vượt quá `long`, dùng:
+If the output needs to exceed `long`, use:
 
 ```java
 java.math.BigInteger a = java.math.BigInteger.valueOf(2);
-java.math.BigInteger result = a.pow(100); // Số nguyên 2^100 chính xác.
+java.math.BigInteger result = a.pow(100); // Exact integer 2^100.
 ```
 
-`BigInteger.pow(int exponent)` hỗ trợ số mũ **không âm**, trả giá trị nguyên chính xác trong giới hạn tài nguyên; nó không dùng `double` trung gian. Số mũ âm không phải kết quả `BigInteger` nói chung.
+`BigInteger.pow(int exponent)` supports **non-negative** exponents, returning an exact integer value within resource limits; it uses no intermediate `double`. Negative exponents are not a `BigInteger` result in general.
 
-## 9. `sqrt` cho việc kiểm tra số chính phương
+## 9. `sqrt` for Checking Perfect Squares
 
-Với một `int` hoặc `long`, gọi `Math.sqrt(n)` trả `double`. Nếu mục đích là **hiển thị căn bậc hai xấp xỉ**, cách này rất hợp lý.
+With an `int` or `long`, calling `Math.sqrt(n)` returns a `double`. If the goal is to **display an approximate square root**, this approach makes complete sense.
 
-Nếu mục đích là kiểm tra **`n` có phải số chính phương chính xác không**, cần cẩn thận:
+If the goal is to check whether **`n` is an exact perfect square**, be careful:
 
 ```java
 long n = 81L;
-long root = (long) Math.sqrt(n); // 9 với ví dụ này.
-boolean square = (root * root == n); // true với n=81.
+long root = (long) Math.sqrt(n); // 9 for this example.
+boolean square = (root * root == n); // true for n=81.
 ```
 
-Với `long` rất lớn, vấn đề phức tạp hơn. Một `long` dương có thể không biểu diễn chính xác bằng `double`, phép ép căn sang `long` có thể cần hiệu chỉnh, và `root*root` có thể **tràn** nếu chưa kiểm tra giới hạn. Nếu thực sự cần kiểm tra chính phương cho dữ liệu ở mọi biên `long`, hãy dùng thuật toán căn nguyên có kiểm soát hoặc phép chia an toàn để so sánh.
+With very large `long` values, the issue gets trickier. A positive `long` might not be exactly representable by `double`, casting the root to `long` might require adjustment, and `root*root` could **overflow** if bounds are not checked. If you truly need to check perfect squares across all `long` boundaries, use a controlled integer square root algorithm or safe division for comparison.
 
-Với Java có API `Math.sqrt`, **không mặc định** `(long)Math.sqrt(n)` là kết quả căn nguyên chính xác trên mọi `long`. Nếu nghiệp vụ là số nguyên và không chấp nhận sai một đơn vị, hãy định nghĩa rõ quy trình kiểm tra và test các biên gần `Long.MAX_VALUE`.
+With Java's `Math.sqrt` API, **do not assume** `(long)Math.sqrt(n)` is an exact integer root for every `long`. If the business logic deals with integers and cannot tolerate being off by one unit, define the verification process clearly and test boundaries near `Long.MAX_VALUE`.
 
-## 10. `Math.sqrt` và `Math.pow(x,0.5)` khác nhau ở ý định
+## 10. `Math.sqrt` and `Math.pow(x,0.5)` Differ in Intent
 
-Về ý nghĩa toán học, với `x >= 0`, `x^0.5` là căn bậc hai. Tuy nhiên, trong Java:
+Mathematically, for `x >= 0`, `x^0.5` is the square root. However, in Java:
 
 ```java
 double a = Math.sqrt(9.0);     // 3.0.
-double b = Math.pow(9.0, 0.5); // 3.0 trong ví dụ này.
+double b = Math.pow(9.0, 0.5); // 3.0 in this example.
 ```
 
-Hai cách không nhất thiết có cùng **bảo đảm sai số hay quy tắc các giá trị đặc biệt** cho mọi tổ hợp. `sqrt` được thiết kế cho một phép toán cụ thể và có bảo đảm correctly rounded, nên là lựa chọn mặc định khi bạn thật sự muốn **căn bậc hai**.
+The two approaches do not necessarily have the same **error guarantees or special-value rules** across all combinations. `sqrt` is designed for a specific operation and has a correctly rounded guarantee, so it is the default choice when you actually want a **square root**.
 
-Với `Math.pow(x,0.5)`, bạn đang đi qua một hàm lũy thừa tổng quát. Mỗi hàm có tập quy tắc riêng đối với `-0.0`, NaN, Infinity, số mũ đặc biệt, và độ chính xác; cần dựa vào **contract của hàm được gọi**, không dùng biến đổi đại số vô điều kiện để đoán mọi output.
+With `Math.pow(x,0.5)`, you are going through a general exponentiation function. Each function has its own rule set for `-0.0`, NaN, Infinity, special exponents, and accuracy; you must rely on **the contract of the called function**, rather than using unconditional algebraic transformations to guess every output.
 
-Đối với `x < 0`, cả căn bậc hai thực và `pow` với số mũ `0.5` đều không cho một số thực hữu hạn; Java trả NaN theo trường hợp tương ứng, chứ không tự tạo số phức.
+For `x < 0`, neither real square root nor `pow` with exponent `0.5` produces a finite real number; Java returns NaN in each respective case, rather than creating complex numbers.
 
-## 11. Trường hợp biên: số âm, zero, Infinity, NaN
+## 11. Edge Cases: Negative Numbers, Zero, Infinity, NaN
 
-| Đầu vào/phép tính | Kết quả minh họa | Giải thích |
+| Input/Calculation | Illustrative Result | Explanation |
 | --- | --- | --- |
-| `Math.sqrt(-4.0)` | `NaN` | Không có căn bậc hai thực của -4 |
-| `Math.sqrt(-0.0)` | `-0.0` | Giữ dấu zero |
-| `Math.cbrt(-8.0)` | `-2.0` | Căn bậc ba thực tồn tại |
-| `Math.cbrt(-0.0)` | `-0.0` | Giữ dấu zero |
-| `Math.pow(-2.0, 3.0)` | `-8.0` | Mũ nguyên lẻ |
-| `Math.pow(-2.0, 4.0)` | `16.0` | Mũ nguyên chẵn |
-| `Math.pow(-8.0, 1.0/3.0)` | `NaN` | Cơ số âm, mũ hữu hạn không nguyên |
-| `Math.pow(Double.NaN, 0.0)` | `1.0` | Quy tắc đặc biệt của `pow`: số mũ 0 |
-| `Math.sqrt(Double.POSITIVE_INFINITY)` | `+Infinity` | Căn vô cực dương |
-| `Math.cbrt(Double.POSITIVE_INFINITY)` | `+Infinity` | Căn bậc ba vô cực dương |
-| `Math.pow(1e200, 2)` | `+Infinity` | Kết quả toán học vượt dải hữu hạn `double` |
-| `Math.pow(1e-200, 2)` | `+0.0` | Kết quả quá nhỏ, underflow về zero |
+| `Math.sqrt(-4.0)` | `NaN` | No real square root of -4 |
+| `Math.sqrt(-0.0)` | `-0.0` | Preserves zero sign |
+| `Math.cbrt(-8.0)` | `-2.0` | Real cube root exists |
+| `Math.cbrt(-0.0)` | `-0.0` | Preserves zero sign |
+| `Math.pow(-2.0, 3.0)` | `-8.0` | Odd integer exponent |
+| `Math.pow(-2.0, 4.0)` | `16.0` | Even integer exponent |
+| `Math.pow(-8.0, 1.0/3.0)` | `NaN` | Negative base, finite non-integer exponent |
+| `Math.pow(Double.NaN, 0.0)` | `1.0` | Special rule of `pow`: exponent 0 |
+| `Math.sqrt(Double.POSITIVE_INFINITY)` | `+Infinity` | Root of positive infinity |
+| `Math.cbrt(Double.POSITIVE_INFINITY)` | `+Infinity` | Cube root of positive infinity |
+| `Math.pow(1e200, 2)` | `+Infinity` | Mathematical result exceeds finite `double` range |
+| `Math.pow(1e-200, 2)` | `+0.0` | Result too small, underflows to zero |
 
-**Lưu ý:** `NaN` không bằng chính nó dưới phép `==`. Để nhận biết NaN, dùng `Double.isNaN(value)` hoặc `Double.isFinite(value)` khi bạn muốn bảo đảm kết quả hữu hạn. Muốn phân biệt `+0.0` và `-0.0` chính xác từng bit, dùng `Double.doubleToRawLongBits` thay vì `==`.
+**Note:** `NaN` is not equal to itself under `==`. To detect NaN, use `Double.isNaN(value)` or `Double.isFinite(value)` when you want to ensure a finite result. To distinguish `+0.0` and `-0.0` bit-for-bit, use `Double.doubleToRawLongBits` instead of `==`.
 
-Trong một số nghiệp vụ, đầu vào âm cho `sqrt` cần được **từ chối tường minh** trước khi gọi hàm, thay vì âm thầm tạo NaN rồi truyền qua các bước sau:
+In some business logic, negative input to `sqrt` should be **explicitly rejected** before calling the function, instead of silently producing NaN and propagating it through later steps:
 
 ```java
 static double positiveRoot(double x) {
@@ -253,17 +253,17 @@ static double positiveRoot(double x) {
 }
 ```
 
-Đây là **phương thức minh họa**, không phải API mặc định của JDK. Việc `x < 0.0` vẫn chấp nhận `-0.0` vì so sánh đó là false; nếu nghiệp vụ cần cấm âm zero, hãy kiểm tra bit dấu riêng. Định nghĩa domain theo yêu cầu ứng dụng, không suy rằng Java sẽ ném exception thay bạn.
+This is an **illustrative method**, not a default JDK API. Note that `x < 0.0` still accepts `-0.0` because that comparison is false; if business rules require forbidding negative zero, check the sign bit separately. Define the domain according to application requirements, without assuming Java will throw an exception for you.
 
-## 12. Overflow, underflow và vì sao `Math.hypot` có thể thích hợp hơn `sqrt(x*x+y*y)`
+## 12. Overflow, Underflow, and Why `Math.hypot` Can Be Better Than `sqrt(x*x+y*y)`
 
-Một công thức toán học phổ biến để tính độ dài vector hai chiều là:
+A common mathematical formula for computing 2D vector length is:
 
 ```text
 length = sqrt(x^2 + y^2)
 ```
 
-Nhưng trong `double`:
+But in `double`:
 
 ```java
 double x = 1.0e200;
@@ -273,41 +273,41 @@ double naive = Math.sqrt(x * x + y * y);
 double robust = Math.hypot(x, y);
 ```
 
-Ở công thức `naive`, phép nhân `x*x` đã vượt phạm vi hữu hạn `double` (vì `1e400` quá lớn), nên kết quả trung gian là Infinity. `sqrt(Infinity)` vẫn Infinity, mặc dù độ dài vector toán học khoảng `1.414e200` và **vẫn nằm trong dải double**.
+In the `naive` formula, the multiplication `x*x` already exceeds the finite `double` range (since `1e400` is too large), so the intermediate result is Infinity. `sqrt(Infinity)` remains Infinity, even though the mathematical vector length is about `1.414e200` and **still fits within the double range**.
 
-`Math.hypot(x,y)` được thiết kế để giảm nguy cơ **overflow/underflow trung gian** trong bài toán tính độ dài. Trường hợp này nó trả kết quả hữu hạn. Tương tự, với dữ liệu rất nhỏ, phép tính bình phương trực tiếp có thể underflow về 0, trong khi `hypot` có cách tính ổn định hơn.
+`Math.hypot(x,y)` is designed to reduce the risk of **intermediate overflow/underflow** in length calculations. In this case, it returns a finite result. Similarly, with very small data, direct squaring might underflow to 0, whereas `hypot` uses a more stable computation.
 
-Do đó, **lựa chọn đúng không phải lúc nào cũng là pow hoặc sqrt**: đôi khi một API chuyên dụng như `Math.hypot` là phù hợp hơn cả chuỗi `Math.sqrt(Math.pow(x,2)+Math.pow(y,2))`.
+Thus, **the right choice is not always pow or sqrt**: sometimes a specialized API like `Math.hypot` is more suitable than chaining `Math.sqrt(Math.pow(x,2)+Math.pow(y,2))`.
 
-## 13. Đừng tạo phép nhân số nguyên lớn chỉ vì căn trả double
+## 13. Do Not Create Large Integer Multiplication Just Because Root Returns double
 
-Đối với `int`, phép nhân có thể tràn **trước** khi kết quả được truyền sang `Math.sqrt`:
+For `int`, multiplication can overflow **before** the result is passed to `Math.sqrt`:
 
 ```java
 int x = 50_000;
-int y = x * x;  // -1794967296: overflow int.
-double wrong = Math.sqrt(y); // NaN vì y âm.
+int y = x * x;  // -1794967296: int overflow.
+double wrong = Math.sqrt(y); // NaN because y is negative.
 ```
 
-Trong ví dụ, `50_000^2 = 2_500_000_000` vượt `Integer.MAX_VALUE`. Các bit thấp còn lại được Java diễn giải thành một số `int` âm. Khi đưa số âm đó vào `Math.sqrt`, kết quả NaN; nguyên nhân **đầu tiên** là phép nhân nguyên bị tràn, không phải `sqrt` “sai”.
+In the example, `50_000^2 = 2_500_000_000` exceeds `Integer.MAX_VALUE`. The remaining low bits are interpreted by Java as a negative `int`. When passing that negative number into `Math.sqrt`, the result is NaN; the **root cause** is the overflowing integer multiplication, not `sqrt` being "wrong".
 
-Nếu cần tính bình phương trước dưới dạng `long`:
+If you need to square first as a `long`:
 
 ```java
 int x = 50_000;
 long exactSquare = (long) x * x;  // 2_500_000_000L.
-double root = Math.sqrt(exactSquare); // 50000.0 trong ví dụ.
+double root = Math.sqrt(exactSquare); // 50000.0 in the example.
 ```
 
-Dấu `(long)` phải có **trước phép nhân**, không phải `(long)(x*x)`; cast sau khi tràn không thể khôi phục kết quả. Nếu phạm vi có thể vượt `long`, dùng `BigInteger` hoặc kiểm tra phạm vi tường minh.
+The `(long)` cast must appear **before the multiplication**, not `(long)(x*x)`; casting after overflow cannot recover the result. If the range can exceed `long`, use `BigInteger` or explicit range checks.
 
-## 14. `Math` hay `StrictMath`?
+## 14. `Math` or `StrictMath`?
 
-Cả `Math` và `StrictMath` đều có các phép tính `pow`, `sqrt`, `cbrt` và nhiều phép toán khác. Chúng cung cấp API gần như tương đương về mục đích, nhưng **hợp đồng cài đặt và khả năng tái lập bit** có những điểm khác biệt:
+Both `Math` and `StrictMath` provide `pow`, `sqrt`, `cbrt`, and many other operations. They provide nearly equivalent APIs in purpose, but their **implementation contracts and bit reproducibility** have differences:
 
-- **`Math`** có thể được triển khai tối ưu theo nền tảng, miễn đáp ứng yêu cầu về độ chính xác và ngữ nghĩa của API.
-- **`StrictMath`** hướng tới kết quả tái lập theo cách tính được chuẩn hóa cho nhiều hàm, với các quy định nghiêm ngặt hơn về thuật toán tham chiếu. Một số hàm như `sqrt` có bảo đảm làm tròn chính xác.
-- Hai lớp **có thể trả cùng kết quả cho nhiều input**, như `Math.sqrt(9.0)` và `StrictMath.sqrt(9.0)`, nhưng không nên phát biểu mọi lời gọi luôn giống nhau tới từng bit nếu đặc tả không đòi hỏi.
+- **`Math`** can be implemented with platform-specific optimizations, as long as it meets the API's accuracy and semantic requirements.
+- **`StrictMath`** aims for reproducible results based on standardized calculation methods for many functions, with stricter rules on reference algorithms. Some functions like `sqrt` guarantee exact rounding.
+- Both classes **can return identical results for many inputs**, such as `Math.sqrt(9.0)` and `StrictMath.sqrt(9.0)`, but you should not claim every call is always bit-for-bit identical unless the specification requires it.
 
 ```java
 double a = StrictMath.pow(2.0, 10.0); // 1024.0.
@@ -315,23 +315,23 @@ double b = StrictMath.sqrt(9.0);      // 3.0.
 double c = StrictMath.cbrt(27.0);     // 3.0.
 ```
 
-Trong ứng dụng thường ngày, `Math` là lựa chọn trực tiếp. Nếu một hệ thống yêu cầu **tính tái lập numerical results qua nhiều môi trường**, cần xem kỹ yêu cầu so sánh bit, JVM và hợp đồng `StrictMath` của từng phép toán; dùng đúng kiểu, thứ tự tính và bộ test tham chiếu. Chỉ thay tên lớp không làm mọi phép tính khác trong ứng dụng tự trở nên deterministic.
+In everyday applications, `Math` is the straightforward choice. If a system requires **reproducibility of numerical results across multiple environments**, carefully review bit-comparison requirements, the JVM, and the `StrictMath` contract for each operation; use the right types, calculation order, and reference test suites. Simply swapping the class name does not make every other calculation in an application deterministic.
 
-Với Java 17, các biểu thức dấu phẩy động có các ràng buộc nhất quán từ nền tảng ngôn ngữ, nhưng điều đó không loại bỏ các sai số làm tròn, những trường hợp đặc biệt hoặc sự khác nhau giữa các thuật toán tính gần đúng.
+With Java 17, floating-point expressions have consistent language-level constraints, but that does not eliminate rounding errors, special cases, or differences between approximation algorithms.
 
-## 15. Kiểm tra `double` trước và sau khi tính
+## 15. Checking `double` Before and After Calculation
 
-Một API tính khoảng cách, căn hoặc lũy thừa cho người dùng có thể cần chính sách đầu vào như:
+A distance, root, or power API exposed to users may need input policies such as:
 
-- Cho phép âm hay không? `cbrt` nhận số âm hữu hạn; `sqrt` không có căn thực cho số âm khác zero.
-- Cho phép NaN/Infinity hay không? `Double.isFinite` kiểm tra số hữu hạn.
-- Có chấp nhận kết quả Infinity nếu phép toán overflow hay không? Nếu không, kiểm tra **đầu ra** sau khi gọi.
-- Có chấp nhận underflow thành zero hay không? Với số rất nhỏ, kết quả khác 0 về toán học vẫn có thể thành 0 trong `double`.
-- Kết quả có cần chính xác từng đơn vị nguyên hoặc decimal không? Nếu có, tránh lạm dụng `double`/`Math.pow`.
-- Có yêu cầu dấu zero hay không? `-0.0` và `+0.0` so sánh `==` nhưng khác bit.
-- Có đòi hỏi số thực dương do **nghiệp vụ** không, ngay cả khi toán học cho giá trị âm hợp lệ?
+- Are negative numbers allowed? `cbrt` accepts finite negative numbers; `sqrt` has no real root for negative numbers other than zero.
+- Are NaN/Infinity allowed? `Double.isFinite` checks for finite numbers.
+- Is an Infinity result acceptable if the operation overflows? If not, check the **output** after the call.
+- Is underflow to zero acceptable? With very small numbers, a mathematically non-zero result can still become 0 in `double`.
+- Does the result need to be exact to the integer or decimal unit? If so, avoid misusing `double`/`Math.pow`.
+- Is the sign of zero required? `-0.0` and `+0.0` compare `==` but have different bits.
+- Is a strictly positive number required by **business logic**, even when mathematics allows negative values?
 
-Một ví dụ bảo vệ kết quả:
+An example guarding the result:
 
 ```java
 static double finiteSquareRoot(double value) {
@@ -346,11 +346,11 @@ static double finiteSquareRoot(double value) {
 }
 ```
 
-Đây là phương thức dùng trong lớp ứng dụng, không phải phương thức có sẵn trong `Math`. Hãy chọn loại ngoại lệ và thông báo theo contract API thực tế; không nhất thiết mọi hệ thống phải cấm Infinity hay NaN.
+This is a method used in an application class, not a built-in method in `Math`. Choose exception types and messages according to the actual API contract; not every system needs to forbid Infinity or NaN.
 
-## 16. Chương trình Java 17+ hoàn chỉnh
+## 16. Complete Java 17+ Program
 
-Lưu mã sau với tên **`PowerRootDemo.java`**:
+Save the following code as **`PowerRootDemo.java`**:
 
 ```java
 public class PowerRootDemo {
@@ -428,14 +428,14 @@ public class PowerRootDemo {
 }
 ```
 
-Biên dịch/chạy tại thư mục chứa tệp:
+Compile/run in the directory containing the file:
 
 ```bash
 javac --release 17 -encoding UTF-8 PowerRootDemo.java
 java PowerRootDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 pow2_10=1024.0
@@ -466,67 +466,67 @@ strictSqrt9=3.0
 strictCbrt27=3.0
 ```
 
-Một số điểm nổi bật từ chương trình:
+Some highlights from the program:
 
-1. `pow2_10=1024.0` chứng minh kết quả của `Math.pow` là **`double`**, dù phép toán tương ứng là lũy thừa số nguyên.
-2. `sqrt9`, `cbrt27` minh họa hai căn chuyên dụng; `cbrtNegative=-2.0` nhưng `powNegativeFractionNaN=true` phân biệt ngữ nghĩa căn thực âm.
-3. `sqrtNegativeNaN=true` và hai dòng `...MinusZeroBits=true` cho thấy **âm khác zero** không giống **âm zero**.
-4. `powNaNExponentZero=1.0` nhắc rằng `pow` có các quy tắc đặc biệt; không thể suy hết bằng quy tắc toán học thực đơn giản.
-5. `powOverflowInfinite` và `powUnderflowZero` minh họa giới hạn biểu diễn `double`.
-6. `naiveHypotInfinite=true` nhưng `hypotFinite=true` giải thích vì sao nên dùng `Math.hypot` để tính độ dài vector lớn.
-7. `intMultiplyOverflow=-1794967296` cho thấy phép nhân `int` có thể tràn; `powExact3_10=59049` và `powExact2_63=ArithmeticException` minh họa phép lũy thừa nguyên **có kiểm tra phạm vi**.
-8. `pow2_53PlusOneLost=true` chứng tỏ miền `double` không biểu diễn chính xác mọi số nguyên lớn.
-9. Hai dòng `strictSqrt9`, `strictCbrt27` minh họa cú pháp `StrictMath`.
+1. `pow2_10=1024.0` proves that the result of `Math.pow` is **`double`**, even when the corresponding operation is integer exponentiation.
+2. `sqrt9`, `cbrt27` illustrate the two specialized roots; `cbrtNegative=-2.0` while `powNegativeFractionNaN=true` distinguishes negative real-root semantics.
+3. `sqrtNegativeNaN=true` and the two `...MinusZeroBits=true` lines show that **non-zero negative** is not the same as **negative zero**.
+4. `powNaNExponentZero=1.0` serves as a reminder that `pow` has special rules; not everything can be deduced from simple real-number algebra.
+5. `powOverflowInfinite` and `powUnderflowZero` illustrate `double` representation limits.
+6. `naiveHypotInfinite=true` while `hypotFinite=true` explains why `Math.hypot` should be used to compute large vector lengths.
+7. `intMultiplyOverflow=-1794967296` shows that `int` multiplication can overflow; `powExact3_10=59049` and `powExact2_63=ArithmeticException` illustrate **range-checked** integer exponentiation.
+8. `pow2_53PlusOneLost=true` demonstrates that the `double` range cannot accurately represent every large integer.
+9. The two lines `strictSqrt9`, `strictCbrt27` illustrate `StrictMath` syntax.
 
-Bằng việc dùng các phương thức `Double.isNaN`/`Double.isInfinite`, chương trình tránh giả định mọi kết quả đều là số hữu hạn thông thường.
+By using `Double.isNaN`/`Double.isInfinite` methods, the program avoids assuming every result is an ordinary finite number.
 
-## 17. Bảng quyết định: nên dùng phương thức nào?
+## 17. Decision Table: Which Method Should You Use?
 
-| Yêu cầu thực tế | Chọn | Lý do |
+| Practical Requirement | Choice | Reason |
 | --- | --- | --- |
-| Tính `a^b` với `double` và mũ bất kỳ trong miền hợp lệ | `Math.pow(a,b)` | Cú pháp tổng quát cho dấu phẩy động |
-| Tính căn bậc hai của `x >= 0` | `Math.sqrt(x)` | Hàm chuyên dụng với bảo đảm correctly rounded |
-| Tính căn bậc ba thực, kể cả `x < 0` | `Math.cbrt(x)` | Hỗ trợ cơ số âm theo ngữ nghĩa căn bậc ba |
-| Tính `x*x` hoặc `x*x*x` trên `double` | Nhân tường minh khi phù hợp | Rõ mũ nhỏ; kiểm chứng sai số/hiệu năng nếu quan trọng |
-| Tính độ dài `sqrt(x*x+y*y)` với `double` có độ lớn cực đoan | `Math.hypot(x,y)` | Tránh overflow/underflow trung gian không cần thiết |
-| Tính `3^10` dưới dạng `long` và báo lỗi nếu vượt `long` | Nhân có `Math.multiplyExact` | Không chuyển qua `double` làm mất đơn vị |
-| Tính `2^100` thành số nguyên chính xác | `BigInteger.pow(100)` | Số nguyên lớn tùy ý, không giới hạn ở 64 bit |
-| Cần tái lập `pow`/`cbrt` theo contract `StrictMath` | `StrictMath` và QA tương ứng | Lựa chọn ngữ nghĩa kết quả tái lập |
-| Cần căn số âm trong miền số phức | Thư viện số phức | `Math.sqrt` chỉ trả `double`, không biểu diễn số phức |
-| Cần kiểm tra số nguyên có phải chính phương chính xác | Thuật toán nguyên có kiểm tra biên | `double` có thể làm tròn dữ liệu `long` lớn |
+| Compute `a^b` with `double` and arbitrary exponent in valid domain | `Math.pow(a,b)` | General syntax for floating-point |
+| Compute square root of `x >= 0` | `Math.sqrt(x)` | Specialized function with correctly rounded guarantee |
+| Compute real cube root, even for `x < 0` | `Math.cbrt(x)` | Supports negative bases under cube-root semantics |
+| Compute `x*x` or `x*x*x` on `double` | Explicit multiplication when appropriate | Clear for small powers; verify accuracy/performance if critical |
+| Compute length `sqrt(x*x+y*y)` with `double` of extreme magnitude | `Math.hypot(x,y)` | Avoids unnecessary intermediate overflow/underflow |
+| Compute `3^10` as `long` and fail if exceeding `long` | Multiplication with `Math.multiplyExact` | Does not go through `double` and lose units |
+| Compute `2^100` as an exact integer | `BigInteger.pow(100)` | Arbitrary-precision integer, not limited to 64 bits |
+| Need `pow`/`cbrt` reproducibility per `StrictMath` contract | `StrictMath` and corresponding QA | Chooses reproducible result semantics |
+| Need root of a negative number in complex domain | Complex number library | `Math.sqrt` only returns `double`, does not represent complex numbers |
+| Need to check if an integer is an exact perfect square | Integer algorithm with boundary checks | `double` can round large `long` data |
 
-Một lựa chọn đúng không chỉ cho ra “con số gần mong muốn”, mà còn phải phù hợp **miền đầu vào, kiểu kết quả, chính sách sai số và trường hợp lỗi**.
+A right choice does not just produce "a number close to what is expected", it must also fit the **input domain, result type, error policy, and failure cases**.
 
-## 18. Lỗi phổ biến khi dùng `pow`, `sqrt`, `cbrt`
+## 18. Common Mistakes When Using `pow`, `sqrt`, `cbrt`
 
-| Lỗi/nhầm lẫn | Hậu quả | Cách đúng |
+| Mistake/Misconception | Consequence | Correct Approach |
 | --- | --- | --- |
-| Viết `2 ^ 3` để lấy 2 mũ 3 | Java dùng XOR theo bit → 1 | Dùng `Math.pow(2,3)` hoặc nhân phù hợp |
-| Tính căn bậc ba âm bằng `Math.pow(x,1.0/3.0)` | Có thể trả NaN | Dùng `Math.cbrt(x)` |
-| Dùng `Math.sqrt(-4)` rồi mong exception | Hàm trả NaN, không ném `ArithmeticException` | Kiểm tra domain hoặc `Double.isNaN` |
-| Giả định `sqrt(-0.0)` là NaN | Kết quả giữ `-0.0` | Kiểm tra signed zero khi có yêu cầu |
-| Dùng `(long)Math.pow(large, n)` để có số nguyên chính xác | Sai số biểu diễn, overflow/saturation khi chuyển | Dùng `BigInteger.pow` hoặc `multiplyExact` |
-| Viết `Math.sqrt(x*x+y*y)` với số rất lớn | Bình phương trung gian thành Infinity | Dùng `Math.hypot` |
-| Cast kết quả sau khi `int * int` tràn | Không cứu được kết quả đã sai | Widen trước khi nhân hoặc `Math.multiplyExact` |
-| Nghĩ `Math.pow` luôn giữ nguyên từng bit so với nhân trực tiếp | Đường tính/rounding có thể khác | Chọn phép toán có ngữ nghĩa rõ và QA biên |
-| Nghĩ `Math.sqrt` luôn trả số nguyên khi input chính phương lớn | Kết quả là `double` | Dùng thuật toán số nguyên khi cần exact |
-| Dùng `== Double.NaN` để phát hiện lỗi | NaN không bằng bất kỳ số nào, kể cả chính nó | `Double.isNaN` hoặc `Double.isFinite` |
-| Nghĩ mọi `Math` và `StrictMath` đều bit-exact như nhau trên mọi input | Contract về tái lập khác nhau theo hàm | Dựa vào API contract và test mục tiêu |
-| Tối ưu trước bằng các mẹo biến đổi đại số | Có thể đổi sai số, zero, Infinity, NaN | Kiểm thử cả miền đặc biệt và yêu cầu chính xác |
+| Writing `2 ^ 3` to get 2 to the power of 3 | Java performs bitwise XOR → 1 | Use `Math.pow(2,3)` or appropriate multiplication |
+| Computing negative cube root with `Math.pow(x,1.0/3.0)` | Can return NaN | Use `Math.cbrt(x)` |
+| Using `Math.sqrt(-4)` expecting an exception | Returns NaN, does not throw `ArithmeticException` | Check domain or `Double.isNaN` |
+| Assuming `sqrt(-0.0)` is NaN | Result preserves `-0.0` | Check signed zero when required |
+| Using `(long)Math.pow(large, n)` to get an exact integer | Representation error, overflow/saturation on cast | Use `BigInteger.pow` or `multiplyExact` |
+| Writing `Math.sqrt(x*x+y*y)` with very large numbers | Intermediate square becomes Infinity | Use `Math.hypot` |
+| Casting result after `int * int` overflows | Cannot salvage an already wrong result | Widen before multiplying or use `Math.multiplyExact` |
+| Thinking `Math.pow` is always bit-for-bit identical to direct multiplication | Calculation/rounding paths may differ | Choose operations with clear semantics and boundary QA |
+| Thinking `Math.sqrt` always returns an integer for large square inputs | Return type is `double` | Use an integer algorithm when exactness is needed |
+| Using `== Double.NaN` to detect errors | NaN is not equal to any number, including itself | `Double.isNaN` or `Double.isFinite` |
+| Thinking all `Math` and `StrictMath` calls are bit-exact across all inputs | Reproducibility contracts differ by function | Rely on API contract and target tests |
+| Prematurely optimizing via algebraic transformations | Can change rounding error, zero, Infinity, NaN | Test special domains and accuracy requirements |
 
-## 19. Câu hỏi tự kiểm tra
+## 19. Self-Check Questions
 
-1. **`Math.pow(2,10)` trả về kiểu nào?** `double`, giá trị `1024.0`. Java nâng các đối số `int` thành `double`.
-2. **Có thể dùng `^` để lũy thừa trong Java không?** Không. `^` là XOR.
-3. **`Math.sqrt(9)` và `Math.pow(9,0.5)` đều cho 3.0 trong ví dụ, vậy chúng tương đương trong mọi trường hợp không?** Không nên giả định đồng nhất toàn bộ contract về rounding và trường hợp biên.
-4. **`Math.sqrt(-4.0)` cho gì?** `NaN`, không phải exception.
-5. **Vì sao `Math.cbrt(-8.0)` hợp lệ?** Vì căn bậc ba thực của số âm tồn tại; kết quả là `-2.0`.
-6. **Vì sao `Math.pow(-8.0,1.0/3.0)` không trả `-2.0`?** Số mũ `double` hữu hạn nhưng không nguyên; với cơ số âm, `Math.pow` trả NaN theo đặc tả.
-7. **`Math.sqrt(-0.0)` có mất bit dấu không?** Không; kết quả vẫn là `-0.0`.
-8. **Tính `sqrt(x*x+y*y)` với `x=y=1e200` nên dùng gì?** `Math.hypot(x,y)`, vì bình phương riêng lẻ sẽ overflow.
-9. **Dùng `Math.pow(2.0,53)+1.0` có giữ được đơn vị `+1` không?** Không; ở `2^53`, ULP đã là 2.
-10. **Nếu muốn lũy thừa số nguyên không chấp nhận tràn, nên dùng gì?** `Math.multiplyExact` trong thuật toán nhân nguyên hoặc `BigInteger.pow`.
-11. **`Math.sqrt` và `Math.cbrt` đều xử lý NaN như số thường không?** Không; phải kiểm tra giá trị đặc biệt theo contract dấu phẩy động.
-12. **Nên chọn `Math` hay `StrictMath` khi cần tái lập bit?** Xem hợp đồng của từng hàm và kiểm chứng theo môi trường; `StrictMath` hướng tới kết quả tái lập chặt chẽ hơn cho nhiều hàm.
+1. **What type does `Math.pow(2,10)` return?** `double`, value `1024.0`. Java widens `int` arguments to `double`.
+2. **Can `^` be used for exponentiation in Java?** No. `^` is XOR.
+3. **`Math.sqrt(9)` and `Math.pow(9,0.5)` both yield 3.0 in the example, so are they equivalent in all cases?** Do not assume identical contracts across all rounding and edge cases.
+4. **What does `Math.sqrt(-4.0)` produce?** `NaN`, not an exception.
+5. **Why is `Math.cbrt(-8.0)` valid?** Because the real cube root of a negative number exists; the result is `-2.0`.
+6. **Why does `Math.pow(-8.0,1.0/3.0)` not return `-2.0`?** The `double` exponent is finite but non-integer; with a negative base, `Math.pow` returns NaN per specification.
+7. **Does `Math.sqrt(-0.0)` lose the sign bit?** No; the result remains `-0.0`.
+8. **What should be used to compute `sqrt(x*x+y*y)` with `x=y=1e200`?** `Math.hypot(x,y)`, because individual squares will overflow.
+9. **Does `Math.pow(2.0,53)+1.0` preserve the `+1` unit?** No; at `2^53`, the ULP is already 2.
+10. **If you want integer exponentiation without allowing overflow, what should you use?** `Math.multiplyExact` inside an integer multiplication algorithm or `BigInteger.pow`.
+11. **Do `Math.sqrt` and `Math.cbrt` treat NaN like ordinary numbers?** No; special values must be checked per floating-point contracts.
+12. **Should you choose `Math` or `StrictMath` when bit reproducibility is required?** Check the contract of each function and verify per environment; `StrictMath` aims for stricter reproducible results for many functions.
 
-**Ghi nhớ:** `Math.pow` là **lũy thừa `double` tổng quát**, `Math.sqrt` là **căn bậc hai chuyên dụng** và `Math.cbrt` là **căn bậc ba thực kể cả với số âm**. Chọn chúng theo **bản chất bài toán**, không chỉ theo biến đổi đại số. Khi tính độ dài vector dùng `Math.hypot` để hạn chế tràn trung gian; khi tính lũy thừa **số nguyên chính xác**, dùng phép nhân có kiểm tra hoặc `BigInteger.pow`, không đặt niềm tin sai vào `double`.
+**Key takeaway:** `Math.pow` is **general `double` exponentiation**, `Math.sqrt` is **specialized square root**, and `Math.cbrt` is **real cube root including negative numbers**. Choose them based on **the nature of the problem**, not just algebraic transformations. When computing vector lengths, use `Math.hypot` to mitigate intermediate overflow; when computing **exact integer** powers, use checked multiplication or `BigInteger.pow`, rather than placing misplaced trust in `double`.

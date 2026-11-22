@@ -1,87 +1,87 @@
-# Phân biệt Properties.load(InputStream) với PropertyResourceBundle
+# Distinguishing Properties.load(InputStream) from PropertyResourceBundle
 
-## 1. Hai API cùng đọc .properties nhưng phục vụ hai mục đích
+## 1. Two APIs that both read .properties but serve two different purposes
 
-Giả sử ứng dụng lưu thông điệp trong tệp `messages_vi.properties`:
+Suppose an application stores messages in `messages_vi.properties`:
 
 ```properties
 title=Tiếng Việt
 button.save=Lưu
 ```
 
-Có thể đọc tệp này bằng `java.util.Properties.load(InputStream)`, hoặc để hệ thống đa ngôn ngữ tìm tệp thông qua `ResourceBundle.getBundle(...)` và `PropertyResourceBundle`. Cả hai đều hiểu cú pháp key/value của định dạng `.properties`, nhưng **không phải cùng một cơ chế tải tài nguyên**.
+You can read this file with `java.util.Properties.load(InputStream)`, or let the localization system locate the file via `ResourceBundle.getBundle(...)` and `PropertyResourceBundle`. Both understand the key/value syntax of the `.properties` format, yet **they are not the same resource-loading mechanism**.
 
-Sự khác biệt dễ gây lỗi nhất với tiếng Việt: **`Properties.load(InputStream)` luôn giải mã byte theo ISO-8859-1**, còn **`PropertyResourceBundle(InputStream)` trên Java 9+ mặc định giải mã UTF-8, có khả năng đọc lại theo ISO-8859-1 nếu gặp chuỗi byte UTF-8 không hợp lệ**. Dù file nằm trên cùng classpath và mang đuôi `.properties`, dùng nhầm API sẽ khiến văn bản có dấu bị lỗi (mojibake).
+The difference most likely to cause bugs with Vietnamese: **`Properties.load(InputStream)` always decodes bytes as ISO-8859-1**, whereas **`PropertyResourceBundle(InputStream)` on Java 9+ defaults to decoding as UTF-8, with the ability to re-read as ISO-8859-1 if an invalid UTF-8 byte sequence is encountered**. Even when the file sits on the same classpath with a `.properties` extension, using the wrong API will turn accented text into garbled characters (mojibake).
 
-Bài này giúp bạn phân biệt rõ mục đích, cách giải mã, cách chọn locale, fallback, vòng đời và những tình huống cần chọn `Reader` để xử lý dữ liệu ổn định trên Java 17+.
+This lesson helps you clearly distinguish their purpose, decoding behavior, locale selection, fallback, lifecycle, and when to choose a `Reader` for reliable data handling on Java 17+.
 
-## 2. Nhìn nhanh: Properties và PropertyResourceBundle
+## 2. Quick overview: Properties and PropertyResourceBundle
 
-| Tiêu chí | `Properties` với `load(InputStream)` | `PropertyResourceBundle` |
+| Criterion | `Properties` with `load(InputStream)` | `PropertyResourceBundle` |
 | --- | --- | --- |
-| Lớp Java | `java.util.Properties` | `java.util.PropertyResourceBundle extends ResourceBundle` |
-| Mục đích chính | Nạp tập cấu hình key/value từ stream | Biểu diễn một bộ tài nguyên bản địa hóa từ nội dung properties |
-| API đọc | `getProperty(key)`, `getProperty(key, default)` | `getString(key)`, `getObject(key)`, các API `ResourceBundle` |
-| Kiểu giá trị của file | Chuỗi `String` | Chuỗi `String`; không tự tạo `String[]` hay số |
-| `InputStream` giải mã | **ISO-8859-1** theo hợp đồng API | **UTF-8 từ Java 9+**; mặc định fallback ISO-8859-1 nếu UTF-8 lỗi |
-| `Reader` | `load(Reader)` dùng ký tự đã được Reader giải mã | Constructor `PropertyResourceBundle(Reader)` dùng ký tự Reader đưa vào |
-| Locale | Không có cơ chế chọn theo locale tích hợp | Có thể dùng trong `ResourceBundle.getBundle(baseName, locale)` |
-| Parent/fallback | Có thể khai báo `Properties defaults`, không tự tìm file theo locale | Hệ thống `ResourceBundle` có chuỗi candidate locale/parent khi dùng `getBundle` |
-| Vòng đời | Đối tượng do code tạo và quản lý, `load` nạp thêm vào đối tượng hiện có | Bundle được tạo khi load, `ResourceBundle.getBundle` có cơ chế cache |
-| Khi phù hợp | Cấu hình ứng dụng, properties chung, đọc tệp tùy ý | Thông điệp, nhãn và tài nguyên bản địa hóa theo ngôn ngữ/vùng |
+| Java class | `java.util.Properties` | `java.util.PropertyResourceBundle extends ResourceBundle` |
+| Primary purpose | Load a key/value configuration map from a stream | Represent a localized resource bundle from properties content |
+| Reading API | `getProperty(key)`, `getProperty(key, default)` | `getString(key)`, `getObject(key)`, `ResourceBundle` APIs |
+| File value type | `String` | `String`; does not automatically create `String[]` or numbers |
+| `InputStream` decoding | **ISO-8859-1** per API contract | **UTF-8 since Java 9+**; defaults to ISO-8859-1 fallback if UTF-8 fails |
+| `Reader` | `load(Reader)` uses characters already decoded by the Reader | Constructor `PropertyResourceBundle(Reader)` uses characters supplied by the Reader |
+| Locale | No built-in locale selection mechanism | Can be used inside `ResourceBundle.getBundle(baseName, locale)` |
+| Parent/fallback | Can specify `Properties defaults`; does not automatically look up files by locale | `ResourceBundle` system provides candidate locale/parent chains when using `getBundle` |
+| Lifecycle | Object created and managed by code; `load` merges into the existing object | Bundle created on load; `ResourceBundle.getBundle` provides caching |
+| When appropriate | Application configuration, general properties, reading arbitrary files | Messages, labels, and localized resources by language/region |
 
-**Phân biệt hai tầng:** `PropertyResourceBundle` là một *kiểu triển khai* của `ResourceBundle`. `ResourceBundle.getBundle(...)` là *cơ chế tìm và lựa chọn* bundle theo locale, có thể tạo `PropertyResourceBundle` từ `.properties` hoặc chọn bundle định nghĩa bằng lớp Java. Nếu bạn gọi trực tiếp `new PropertyResourceBundle(inputStream)`, Java **không tự suy ra locale và parent chỉ từ tên file**.
+**Distinguishing two layers:** `PropertyResourceBundle` is an *implementation* of `ResourceBundle`. `ResourceBundle.getBundle(...)` is the *lookup and selection mechanism* for bundles by locale, which can create a `PropertyResourceBundle` from `.properties` or select a Java class-based bundle. If you call `new PropertyResourceBundle(inputStream)` directly, Java **does not infer locale or parent bundles from the filename alone**.
 
-## 3. Cùng định dạng .properties nhưng cách giải mã khác nhau
+## 3. Same .properties format, different decoding rules
 
-### 3.1. Cách hoạt động của Properties.load(InputStream)
+### 3.1. How Properties.load(InputStream) works
 
-`InputStream` cung cấp **byte**. Phương thức `Properties.load(InputStream)` diễn giải mỗi byte theo mã hóa **ISO-8859-1 (Latin-1)**; nó không tự nhìn file và đoán UTF-8, và không thay đổi hành vi này trên Java 17/21 chỉ vì `Charset.defaultCharset()` của JVM là UTF-8.
+An `InputStream` supplies **bytes**. `Properties.load(InputStream)` interprets each byte using **ISO-8859-1 (Latin-1)** encoding; it does not inspect the file and guess UTF-8, nor does it change this behavior on Java 17/21 just because the JVM's `Charset.defaultCharset()` is UTF-8.
 
-Điều đó có nghĩa:
+This means:
 
-- Các ký tự ASCII thông thường, ví dụ `id=123` hoặc `enabled=true`, đọc giống nhau trong UTF-8 và ISO-8859-1.
-- Một ký tự ngoài ASCII được mã hóa UTF-8 có thể biến thành **nhiều ký tự Latin-1 sai** khi nạp bằng `load(InputStream)`.
-- Ký tự không thể mã hóa trực tiếp trong ISO-8859-1 phải biểu diễn dưới dạng `\uXXXX` trong tệp muốn sử dụng với overload này.
-- `Properties.load(InputStream)` **không hỗ trợ đối số charset**; muốn đọc byte UTF-8 trực tiếp, dùng `Properties.load(Reader)` với `InputStreamReader(..., StandardCharsets.UTF_8)`.
+- Ordinary ASCII characters, such as `id=123` or `enabled=true`, read identically in UTF-8 and ISO-8859-1.
+- A non-ASCII character encoded in UTF-8 can turn into **multiple wrong Latin-1 characters** when loaded with `load(InputStream)`.
+- Characters that cannot be directly encoded in ISO-8859-1 must be represented as `\uXXXX` in files meant for this overload.
+- `Properties.load(InputStream)` **does not accept a charset argument**; to read UTF-8 bytes directly, use `Properties.load(Reader)` with `InputStreamReader(..., StandardCharsets.UTF_8)`.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ```java
 Properties properties = new Properties();
 
 try (InputStream input = Files.newInputStream(Path.of("config.properties"))) {
-    properties.load(input); // Byte được hiểu là ISO-8859-1.
+    properties.load(input); // Bytes are interpreted as ISO-8859-1.
 }
 ```
 
-Đây là **snippet**, cần các import từ `java.io`, `java.nio.file`, `java.util`; tên file chỉ là ví dụ đường dẫn. Nếu `config.properties` được lưu UTF-8 có tiếng Việt trực tiếp, kết quả có thể sai.
+This is a **snippet**, requiring imports from `java.io`, `java.nio.file`, and `java.util`; the filename is just an example path. If `config.properties` is saved as UTF-8 with literal Vietnamese text, the result can be wrong.
 
-### 3.2. Cách hoạt động của PropertyResourceBundle(InputStream)
+### 3.2. How PropertyResourceBundle(InputStream) works
 
-Với **Java 9 trở lên**, constructor:
+On **Java 9 and later**, the constructor:
 
 ```java
 new PropertyResourceBundle(inputStream);
 ```
 
-thử giải mã byte theo **UTF-8**. Mặc định, nếu xảy ra `MalformedInputException` hoặc `UnmappableCharacterException` trong quá trình giải mã UTF-8, nó đọc lại dữ liệu theo **ISO-8859-1** để tương thích các resource file kiểu cũ. Đây là thay đổi liên quan JEP 226, không phải hành vi của `Properties.load(InputStream)`.
+attempts to decode bytes as **UTF-8**. By default, if `MalformedInputException` or `UnmappableCharacterException` occurs during UTF-8 decoding, it re-reads the data as **ISO-8859-1** for compatibility with legacy resource files. This is the JEP 226 behavior, not the behavior of `Properties.load(InputStream)`.
 
-Khi tệp thực sự là UTF-8 hợp lệ, chữ tiếng Việt được giữ đúng. Nếu file hỏng hoặc có byte không hợp lệ, mặc định có thể phát sinh kết quả đọc theo Latin-1 thay vì báo lỗi như bạn mong đợi. Vì thế cần thống nhất mã hóa file trong pipeline build.
+When the file is genuinely valid UTF-8, Vietnamese accents are preserved accurately. If a file is corrupted or has invalid bytes, the default mode can silently produce Latin-1 decoded results instead of throwing the error you expected. Therefore, standardize file encodings in your build pipeline.
 
-Có thể buộc `PropertyResourceBundle` chỉ sử dụng một mã hóa bằng **system property chính xác**:
+You can force `PropertyResourceBundle` to use only one encoding with the **exact system property**:
 
 ```bash
 java -Djava.util.PropertyResourceBundle.encoding=UTF-8 Main
 ```
 
-Các giá trị được công nhận là `UTF-8` hoặc `ISO-8859-1`. Tùy chọn được đọc khi **khởi tạo lớp `PropertyResourceBundle`**, nên không nên mong việc thay đổi `System.setProperty(...)` giữa các request sẽ thay đổi cách giải mã. Khi đặt là `UTF-8`, byte không hợp lệ có thể gây ngoại lệ giải mã thay vì fallback; khi đặt là `ISO-8859-1`, file phải mã hóa phù hợp hoặc dùng `\uXXXX`.
+Recognized values are `UTF-8` or `ISO-8859-1`. The option is read when **the `PropertyResourceBundle` class initializes**, so do not expect changing `System.setProperty(...)` between requests to alter decoding behavior. When set to `UTF-8`, invalid bytes can cause a decoding exception instead of fallback; when set to `ISO-8859-1`, files must be encoded accordingly or use `\uXXXX`.
 
-**Không nhầm tên property:** là `java.util.PropertyResourceBundle.encoding`; không có tác dụng khi đưa cờ này cho `Properties.load(InputStream)`.
+**Do not confuse the property name:** it is `java.util.PropertyResourceBundle.encoding`; passing this flag has no effect on `Properties.load(InputStream)`.
 
-### 3.3. Hai phiên bản Reader: kiểm soát mã hóa tường minh
+### 3.3. The two Reader overloads: explicit encoding control
 
-Cả hai API đều có đường đọc qua `Reader`:
+Both APIs have a `Reader` path:
 
 ```java
 try (Reader reader = Files.newBufferedReader(
@@ -98,15 +98,15 @@ try (Reader reader = Files.newBufferedReader(
 }
 ```
 
-`Reader` cung cấp **ký tự đã giải mã** thay vì byte. Việc chọn UTF-8 diễn ra ở `Files.newBufferedReader(...)`; các API nạp properties không tự giải mã lần thứ hai. Đây là cách rõ ràng khi bạn kiểm soát file và muốn **quy định UTF-8 tại điểm đọc**.
+A `Reader` provides **already-decoded characters** instead of bytes. Selecting UTF-8 happens in `Files.newBufferedReader(...)`; the properties-loading APIs do not decode a second time. This is the explicit choice when you control the file and want to **specify UTF-8 at the read site**.
 
-Các đoạn trên là **snippet độc lập trong phương thức**, cần import `java.io.Reader`, `java.nio.charset.StandardCharsets`, `java.nio.file.Files`, `java.nio.file.Path`, `java.util.Properties` và `java.util.ResourceBundle` hoặc `java.util.PropertyResourceBundle`. Phần demo đầy đủ bên dưới sẽ cung cấp một chương trình biên dịch/chạy được.
+The snippets above are **standalone fragments inside a method**, requiring imports for `java.io.Reader`, `java.nio.charset.StandardCharsets`, `java.nio.file.Files`, `java.nio.file.Path`, `java.util.Properties`, and `java.util.ResourceBundle` or `java.util.PropertyResourceBundle`. The complete demo below provides a compilable and runnable program.
 
-## 4. Thử nghiệm Java 17+ tái hiện lỗi mã hóa không cần file bên ngoài
+## 4. Java 17+ experiment reproducing the encoding bug without external files
 
-Dùng chuỗi có ký tự ngoài tập Latin-1 như `ế` và `ệ` để phân biệt rõ cách giải mã. Chuỗi `"Xin chào"` có ký tự tiếng Việt nhưng riêng `à` và `ò` đã nằm trong Latin-1; nếu viết một phép thử sai cách chỉ với những ký tự này, có thể không làm lộ lỗi như dự kiến khi mã hóa đầu vào bị biến đổi. Vì vậy, ví dụ sau kiểm tra **giá trị cuối cùng so với chuỗi gốc** thay vì in trực tiếp các ký tự lỗi.
+Use a string containing characters outside Latin-1 such as `ế` and `ệ` to clearly distinguish decoding behavior. The string `"Xin chào"` has Vietnamese characters, yet `à` and `ò` alone fall inside Latin-1; if you write a poorly chosen test using only such characters, it might not expose the bug as expected when the input encoding is altered. Thus, the following example checks **the final value against the original string** rather than just printing garbled characters directly.
 
-Tạo tệp **`PropertyEncodingDemo.java`** bằng UTF-8:
+Create **`PropertyEncodingDemo.java`** saved as UTF-8:
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -151,7 +151,7 @@ public class PropertyEncodingDemo {
 }
 ```
 
-Biên dịch và chạy với **JDK 17 hoặc 21**, và không truyền system property thay đổi encoding:
+Compile and run with **JDK 17 or 21**, without passing any system property that changes encoding:
 
 ```bash
 javac -encoding UTF-8 PropertyEncodingDemo.java
@@ -168,22 +168,22 @@ Bundle/Reader OK: true
 Bundle count type: String
 ```
 
-Giải thích:
+Explanation:
 
-1. `utf8` được tạo từ văn bản `"Tiếng Việt"` theo UTF-8, chứa các byte đa byte.
-2. `Properties.load(InputStream)` giải mã chúng như ISO-8859-1 nên chuỗi không còn bằng `expected`.
-3. `Properties.load(Reader)` nhận ký tự đúng vì `InputStreamReader` chỉ rõ UTF-8.
-4. `PropertyResourceBundle(InputStream)` trên Java 17+ nhận UTF-8 hợp lệ và trả nguyên văn.
-5. `PropertyResourceBundle(Reader)` cũng đúng vì Reader đã sử dụng UTF-8.
-6. Giá trị `count=3` được cả các kiểu bundle dựa trên `.properties` coi là **String**, không tự thành `Integer`.
+1. `utf8` is created from `"Tiếng Việt"` in UTF-8, containing multi-byte sequences.
+2. `Properties.load(InputStream)` decodes them as ISO-8859-1, so the string no longer equals `expected`.
+3. `Properties.load(Reader)` receives the right characters because `InputStreamReader` specifies UTF-8.
+4. `PropertyResourceBundle(InputStream)` on Java 17+ recognizes valid UTF-8 and returns the text verbatim.
+5. `PropertyResourceBundle(Reader)` is also correct because the Reader already used UTF-8.
+6. The value `count=3` is treated as a **String** by `.properties`-based bundles, not automatically converted into an `Integer`.
 
-Ví dụ dùng dữ liệu ở bộ nhớ để không phụ thuộc đường dẫn, encoding mặc định của hệ điều hành hay file được đóng gói trong classpath. `ByteArrayInputStream` không giữ tài nguyên hệ điều hành; với file thực tế, hãy dùng `try-with-resources` để đóng stream/reader.
+The example uses in-memory data so it does not depend on file paths, OS default encodings, or classpath packaging. `ByteArrayInputStream` holds no OS resources; for real files, use `try-with-resources` to close streams and readers.
 
-**Thử nghiệm ngược:** nếu thay `java PropertyEncodingDemo` bằng chạy có cờ `-Djava.util.PropertyResourceBundle.encoding=ISO-8859-1`, kết quả `Bundle/InputStream OK` sẽ là `false` trong khi hai đường `Reader` vẫn đúng. Cờ này không thay đổi hành vi của `Properties.load`.
+**Reverse test:** if you replace `java PropertyEncodingDemo` with `-Djava.util.PropertyResourceBundle.encoding=ISO-8859-1`, `Bundle/InputStream OK` becomes `false` while both `Reader` paths remain `true`. This flag does not alter `Properties.load`'s behavior.
 
-## 5. Properties: đọc tệp cấu hình, không tự chọn ngôn ngữ
+## 5. Properties: reading configuration files without automatic language selection
 
-`Properties` phù hợp với cấu hình key/value:
+`Properties` is well suited for key/value configuration:
 
 ```properties
 server.port=8080
@@ -191,7 +191,7 @@ feature.enabled=true
 display.name=Demo
 ```
 
-Ví dụ:
+Example:
 
 ```java
 Properties settings = new Properties();
@@ -206,22 +206,22 @@ boolean enabled = Boolean.parseBoolean(
         settings.getProperty("feature.enabled", "false"));
 ```
 
-Các giá trị vẫn là `String`. Việc chuyển kiểu sang `int`, `boolean` hoặc loại khác là bước riêng; có thể xảy ra `NumberFormatException` khi parse số không hợp lệ.
+All values remain `String`. Converting types to `int`, `boolean`, or other types is a separate step; `NumberFormatException` can occur when parsing an invalid number.
 
-**Điểm khác biệt về trạng thái:**
+**State differences:**
 
-- `new Properties()` tạo bảng trống. Gọi `load(...)` **nạp/ghi đè các key được tìm thấy** vào bảng hiện có; nó **không tự xóa những key cũ không được liệt kê** trong dữ liệu mới.
-- `setProperty(...)` và `getProperty(...)` cho phép cập nhật/đọc key bằng String. Không nên lạm dụng `put(...)` với value kiểu không phải String dù `Properties` kế thừa `Hashtable<Object,Object>`.
-- `Properties` có thể dùng một đối tượng **defaults** qua constructor `Properties(defaults)`, nhưng đây là fallback do lập trình viên tự thiết lập, **không tự dò `messages_vi.properties` và `messages.properties`**.
-- `load(InputStream)` và `load(Reader)` không tự đóng stream/reader được truyền vào; người gọi nên quản lý vòng đời bằng `try-with-resources`.
+- `new Properties()` creates an empty table. Calling `load(...)` **adds/overwrites the keys found** into the existing table; it **does not automatically remove older keys not listed** in the new data.
+- `setProperty(...)` and `getProperty(...)` update and read keys as `String`. Avoid misusing `put(...)` with non-String values even though `Properties` extends `Hashtable<Object,Object>`.
+- `Properties` can take a **defaults** object via the `Properties(defaults)` constructor, but that is a developer-configured fallback and **does not automatically probe `messages_vi.properties` and `messages.properties`**.
+- `load(InputStream)` and `load(Reader)` do not close the passed stream or reader; callers should manage their lifecycle with `try-with-resources`.
 
-Các lựa chọn trong `Properties` phù hợp với cấu hình thông thường. Nếu cần các bản dịch phụ thuộc `Locale`, hãy cân nhắc `ResourceBundle` thay vì tự viết hàng loạt logic chọn file.
+`Properties` options fit regular configuration. If you need `Locale`-dependent translations, consider `ResourceBundle` instead of hand-rolling file-selection logic.
 
-## 6. PropertyResourceBundle: một phần của cơ chế ResourceBundle
+## 6. PropertyResourceBundle: part of the ResourceBundle mechanism
 
-### 6.1. ResourceBundle.getBundle tìm file theo locale
+### 6.1. ResourceBundle.getBundle locates files by locale
 
-Một ứng dụng có thể tổ chức:
+An application might organize files as:
 
 ```text
 resources/
@@ -230,22 +230,22 @@ resources/
   messages_en.properties
 ```
 
-Nếu các file nằm trên **classpath root**, thì `ResourceBundle.getBundle("messages", Locale.forLanguageTag("vi-VN"))` có thể chọn `messages_vi.properties` khi `messages_vi_VN.properties` không tồn tại.
+If the files reside on the **classpath root**, `ResourceBundle.getBundle("messages", Locale.forLanguageTag("vi-VN"))` can select `messages_vi.properties` when `messages_vi_VN.properties` does not exist.
 
-**Tệp `messages.properties`**:
+**File `messages.properties`**:
 
 ```properties
 title=Default title
 footer=Powered by Java
 ```
 
-**Tệp `messages_vi.properties`**:
+**File `messages_vi.properties`**:
 
 ```properties
 title=Tiếng Việt
 ```
 
-Tạo **`BundleLookupDemo.java`** trong cùng thư mục với hai file properties để có thể chạy classpath đơn giản:
+Create **`BundleLookupDemo.java`** in the same directory as the two properties files for a simple classpath run:
 
 ```java
 import java.util.Locale;
@@ -266,7 +266,7 @@ public class BundleLookupDemo {
 }
 ```
 
-Biên dịch/chạy bằng JDK 17+ trong thư mục chứa **cả ba file**:
+Compile and run with JDK 17+ in the directory containing **all three files**:
 
 ```bash
 javac -encoding UTF-8 BundleLookupDemo.java
@@ -282,13 +282,13 @@ Footer: Powered by Java
 Title type: String
 ```
 
-Vì `messages_vi.properties` có key `title`, bundle lấy bản tiếng Việt; key `footer` không được khai báo ở bản tiếng Việt nên được tìm từ **parent** `messages.properties`. Bundle được chọn có `getLocale()` tương ứng `vi` (khác locale được yêu cầu `vi-VN`). File được lưu UTF-8, và trên Java 17+ đường tải mặc định của `PropertyResourceBundle` hiểu UTF-8.
+Because `messages_vi.properties` defines `title`, the bundle returns the Vietnamese text; `footer` is not declared in the Vietnamese file, so it is resolved from **the parent** `messages.properties`. The selected bundle has `getLocale()` equal to `vi` (different from the requested locale `vi-VN`). The files are saved in UTF-8, and on Java 17+ `PropertyResourceBundle`'s default loading path understands UTF-8.
 
-Cần nhớ `getBundle(...)` **không phải overload của `Properties.load(...)`**: nó có chiến lược chọn candidate locales, fallback và cache. Nếu trong classpath còn có lớp Java `messages_vi` tương ứng `ListResourceBundle`, chiến lược chọn định dạng bundle có thể ảnh hưởng kết quả; không đặt các resource trùng base name một cách tình cờ. Nếu chạy trong module được đóng gói bằng JPMS hoặc framework riêng, đường dẫn/khả năng cung cấp resource còn phụ thuộc cấu hình module/provider.
+Remember that `getBundle(...)` **is not an overload of `Properties.load(...)`**: it has candidate locale selection, fallback, and caching strategies. If a Java class `messages_vi` implementing `ListResourceBundle` is also on the classpath, the bundle-format selection strategy can affect the outcome; do not accidentally place resources with colliding base names. When running inside a JPMS-packaged module or a custom framework, resource paths and availability also depend on module/provider configuration.
 
-### 6.2. Constructor trực tiếp không tự tạo fallback
+### 6.2. Direct constructor does not create fallback automatically
 
-Mặt khác:
+On the other hand:
 
 ```java
 try (InputStream in = Files.newInputStream(
@@ -298,29 +298,29 @@ try (InputStream in = Files.newInputStream(
 }
 ```
 
-Đây là **snippet**. Nó nạp đúng file được truyền vào; không tự tìm `messages.properties` bên cạnh để làm cha. Khi gọi `direct.getString("footer")` mà file chỉ có `title`, sẽ phát sinh `MissingResourceException`. Ngược lại, phiên bản `getBundle("messages", vi-VN)` ở ví dụ trước có parent vì loader của `ResourceBundle` tạo chuỗi bundle tương ứng.
+This is a **snippet**. It loads only the exact file passed in; it does not look for `messages.properties` next to it as a parent. Calling `direct.getString("footer")` when the file only has `title` throws `MissingResourceException`. By contrast, the `getBundle("messages", vi-VN)` version in the earlier example has a parent because `ResourceBundle`'s loader builds the corresponding bundle chain.
 
-Đừng ghi `new PropertyResourceBundle(...)` rồi tin rằng tên file có hậu tố `_vi` sẽ tự kích hoạt cơ chế chọn bản dịch/parent. Muốn hành vi đó, dùng `ResourceBundle.getBundle`, hoặc cài đặt chính sách parent một cách có chủ đích trong cơ chế tài nguyên được hỗ trợ.
+Do not write `new PropertyResourceBundle(...)` expecting a `_vi` filename suffix to trigger translation selection or parent lookup automatically. To get that behavior, use `ResourceBundle.getBundle`, or configure parent policies intentionally in a supported resource mechanism.
 
-### 6.3. Kiểu trả về và lỗi truy cập
+### 6.3. Return types and access errors
 
-Với resource từ `.properties`:
+With a `.properties` resource:
 
 ```properties
 retry.count=3
 tags=red,green,blue
 ```
 
-- `bundle.getString("retry.count")` trả `"3"`.
-- `bundle.getObject("retry.count")` trả đối tượng `String`, không phải `Integer`.
-- `bundle.getStringArray("tags")` ném `ClassCastException`, vì `"red,green,blue"` chỉ là một chuỗi, không phải `String[]`.
-- `bundle.getString("not.existing")` ném `MissingResourceException` nếu key vắng mặt trong bundle và toàn bộ parent.
+- `bundle.getString("retry.count")` returns `"3"`.
+- `bundle.getObject("retry.count")` returns a `String` object, not an `Integer`.
+- `bundle.getStringArray("tags")` throws `ClassCastException`, because `"red,green,blue"` is just a single string, not a `String[]`.
+- `bundle.getString("not.existing")` throws `MissingResourceException` if the key is absent from the bundle and all of its parents.
 
-Nếu cần `String[]` hoặc giá trị object không phải String, hãy sử dụng nguồn bundle có hỗ trợ kiểu đó, chẳng hạn `ListResourceBundle`, hoặc tự phân tích định dạng dữ liệu đã được định nghĩa rõ. `Properties.load` cũng không tự biến `retry.count=3` thành số nguyên.
+If you need `String[]` or non-String object values, use a bundle source that supports those types, such as `ListResourceBundle`, or parse a clearly defined data format yourself. `Properties.load` does not turn `retry.count=3` into an integer either.
 
-## 7. Cú pháp properties và Unicode escape
+## 7. Properties syntax and Unicode escapes
 
-Hai API đều làm việc với cú pháp cơ bản của file properties:
+Both APIs work with basic properties file syntax:
 
 ```properties
 # Comment
@@ -332,114 +332,114 @@ escaped=Line 1\nLine 2
 unicode=\u1ebf
 ```
 
-Các quy tắc cần hiểu:
+Rules to understand:
 
-1. `=` hoặc `:` có thể ngăn cách key/value; trong một số trường hợp khoảng trắng cũng là dấu phân cách. Dùng một kiểu nhất quán để dễ đọc.
-2. Dòng bắt đầu bằng `#` hoặc `!` (sau khoảng trắng đầu dòng phù hợp) là comment.
-3. Dấu backslash ở cuối dòng logic có thể nối dòng với dòng tiếp theo. Không nên dùng trực tiếp multiline messages phức tạp khi định dạng trình bày cần bảo toàn xuống dòng.
-4. Escape `\n` trong giá trị là ký tự xuống dòng khi đọc; `\\` là backslash; một số ký tự đặc biệt ở key/value cần escape.
-5. `\uXXXX` là Unicode escape gồm **chính xác bốn chữ số hex**, ví dụ `\u1ebf` biểu diễn chữ `ế`. Với ký tự ngoài BMP, cần cặp surrogate theo cú pháp escape tương ứng. Không viết escape sai dạng, vì parser có thể ném `IllegalArgumentException`.
-6. File ISO-8859-1 chứa `unicode=\u1ebf` vẫn có thể được nạp đúng bằng `Properties.load(InputStream)`, vì chuỗi escape là các byte ASCII trước khi parser chuyển thành Unicode.
+1. `=` or `:` can separate keys and values; in some cases whitespace also acts as a separator. Use one consistent style for readability.
+2. Lines starting with `#` or `!` (after optional leading whitespace) are comments.
+3. A trailing backslash on a logical line continues it onto the next line. Avoid complex multi-line messages directly when presentation formatting needs explicit line breaks preserved.
+4. The `\n` escape inside a value becomes a newline character when read; `\\` is a backslash; certain special characters in keys or values require escaping.
+5. `\uXXXX` is a Unicode escape consisting of **exactly four hex digits**; for example, `\u1ebf` represents `ế`. Characters outside the BMP require a surrogate pair using the appropriate escape syntax. Do not write malformed escapes, as the parser can throw `IllegalArgumentException`.
+6. An ISO-8859-1 file containing `unicode=\u1ebf` can still be loaded accurately by `Properties.load(InputStream)`, because the escape sequence consists of ASCII bytes before the parser converts it to Unicode.
 
-**Phân biệt hai bước:** charset (UTF-8/Latin-1) giải mã **byte thành ký tự**; parser properties mới chuyển `\uXXXX`, `\n` và dấu phân cách thành cặp key/value. Unicode escape không có nghĩa `Properties.load(InputStream)` đã hỗ trợ giải mã UTF-8 trực tiếp.
+**Distinguish two steps:** the charset (UTF-8/Latin-1) decodes **bytes into characters**; the properties parser then turns `\uXXXX`, `\n`, and separators into key/value pairs. Unicode escapes do not mean `Properties.load(InputStream)` supports direct UTF-8 decoding.
 
-Đối với nội dung chứa ký tự tiếng Việt thông thường, dùng UTF-8 cùng với `Properties.load(Reader)` hoặc `PropertyResourceBundle` trên Java 9+ sẽ dễ soạn và review hơn việc biến mọi chữ có dấu thành escape.
+For ordinary Vietnamese content, using UTF-8 together with `Properties.load(Reader)` or `PropertyResourceBundle` on Java 9+ is much easier to author and review than escaping every accented character.
 
-## 8. Tương thích phiên bản Java và tính nhất quán khi deploy
+## 8. Java version compatibility and deployment consistency
 
-| Môi trường | `Properties.load(InputStream)` | `PropertyResourceBundle(InputStream)` |
+| Environment | `Properties.load(InputStream)` | `PropertyResourceBundle(InputStream)` |
 | --- | --- | --- |
-| Java 8 | ISO-8859-1 | ISO-8859-1 (đối với đường nạp InputStream thông thường) |
-| Java 9+ | ISO-8859-1 | Mặc định UTF-8, nếu chuỗi UTF-8 lỗi thì thử lại ISO-8859-1 |
-| Java 17/21 | ISO-8859-1 | Mặc định UTF-8 với cơ chế tương thích như trên |
-| Java 17/21 với cờ `java.util.PropertyResourceBundle.encoding=ISO-8859-1` | Vẫn ISO-8859-1 | Chỉ dùng ISO-8859-1 |
-| Java 17/21 với cờ `java.util.PropertyResourceBundle.encoding=UTF-8` | Vẫn ISO-8859-1 | Chỉ dùng UTF-8 |
+| Java 8 | ISO-8859-1 | ISO-8859-1 (for standard InputStream loading) |
+| Java 9+ | ISO-8859-1 | UTF-8 default; retries ISO-8859-1 if UTF-8 sequence is invalid |
+| Java 17/21 | ISO-8859-1 | UTF-8 default with the compatibility mechanism above |
+| Java 17/21 with `-Djava.util.PropertyResourceBundle.encoding=ISO-8859-1` | Still ISO-8859-1 | Uses ISO-8859-1 only |
+| Java 17/21 with `-Djava.util.PropertyResourceBundle.encoding=UTF-8` | Still ISO-8859-1 | Uses UTF-8 only |
 
-**Vì sao fallback cần được quan tâm?** Một file ISO-8859-1 chứa ký tự non-ASCII có thể chứa byte không hợp lệ trong UTF-8 và kích hoạt chế độ đọc lại Latin-1. Tuy nhiên, một chuỗi byte thực chất theo Latin-1 **có thể ngẫu nhiên cũng hợp lệ UTF-8**, nên việc đọc tự động vẫn có thể cho ra kết quả sai mà không báo lỗi. Do đó, một dự án nên thống nhất và xác nhận encoding tại build/test thay vì dựa vào khả năng đoán.
+**Why does fallback matter?** An ISO-8859-1 file containing non-ASCII characters may contain bytes that are invalid in UTF-8 and trigger Latin-1 re-reading. However, a byte sequence that is genuinely Latin-1 **can coincidentally be valid UTF-8**, so automatic reading can still produce wrong output without throwing any error. Hence, a project should standardize and validate encoding during build/test rather than relying on guesswork.
 
-Đừng nhầm cờ này với `-Dfile.encoding=UTF-8`. `Properties.load(InputStream)` có hợp đồng ISO-8859-1 cố định, và `PropertyResourceBundle` có chính sách riêng. Thay đổi encoding mặc định của máy không sửa được một parser được đặc tả mã hóa rõ ràng.
+Do not confuse this flag with `-Dfile.encoding=UTF-8`. `Properties.load(InputStream)` has a fixed ISO-8859-1 contract, and `PropertyResourceBundle` has its own policy. Changing the machine's default encoding does not override a parser with an explicitly specified encoding.
 
-Đối với kho dự án còn hỗ trợ Java 8, phương án dùng `Reader` với UTF-8 có thể giúp kiểm soát việc đọc properties thủ công. Nếu lựa chọn tải `ResourceBundle.getBundle` mặc định trên Java 8, cần bảo đảm file và encoding theo quy tắc của JDK đó hoặc cấu hình cơ chế nạp phù hợp; không bê nguyên giả định UTF-8 từ Java 17 trở về Java 8.
+For repositories that still support Java 8, using a `Reader` with UTF-8 can give you manual control over reading properties. If relying on default `ResourceBundle.getBundle` loading on Java 8, ensure files and encodings follow that JDK's rules or configure an appropriate loading mechanism; do not copy Java 17's UTF-8 assumption back to Java 8.
 
-## 9. Khi nào nên dùng API nào?
+## 9. When should you use which API?
 
-**Tình huống A — cấu hình runtime không phụ thuộc ngôn ngữ người dùng.**
+**Scenario A — runtime configuration independent of user language.**
 
-Ví dụ `app.properties` chứa port, timeout, feature flag, endpoint. Nên dùng `Properties` (hoặc cơ chế cấu hình của framework), đọc theo charset của tệp bằng `Reader` khi bạn muốn UTF-8. Không cần tạo `ResourceBundle` chỉ để đọc `server.port`.
+For example, `app.properties` holding port, timeout, feature flags, and endpoints. Use `Properties` (or your framework's configuration mechanism), reading with a `Reader` in the file's charset when you want UTF-8. There is no need to create a `ResourceBundle` just to read `server.port`.
 
-**Tình huống B — thông điệp giao diện có nhiều phiên bản theo ngôn ngữ.**
+**Scenario B — UI messages with multiple language versions.**
 
-Ví dụ `messages.properties`, `messages_vi.properties`, `messages_en.properties`. Nên dùng `ResourceBundle.getBundle("messages", userLocale)`. Với các file .properties, bundle được sử dụng thường là `PropertyResourceBundle`; dự án có thể chuyển hướng provider tùy cấu hình. Cần kiểm tra key thiếu, locale không có bản dịch, fallback và ngữ pháp của từng thông điệp.
+For example, `messages.properties`, `messages_vi.properties`, `messages_en.properties`. Use `ResourceBundle.getBundle("messages", userLocale)`. For `.properties` files, the bundle used is typically `PropertyResourceBundle`; a project may route through a provider depending on configuration. Check for missing keys, untranslated locales, fallback behavior, and the grammar of each message.
 
-**Tình huống C — đọc một tệp properties cụ thể bằng đường dẫn và muốn API bundle.**
+**Scenario C — reading one specific properties file by path while wanting the bundle API.**
 
-Có thể dùng `new PropertyResourceBundle(Reader)` nếu bạn muốn `getString`/`keySet` của `ResourceBundle` và chủ động cung cấp nội dung. Nhưng không có khả năng chọn nhiều file theo locale chỉ vì tệp có hậu tố `_vi`.
+You can use `new PropertyResourceBundle(Reader)` if you want `ResourceBundle`'s `getString`/`keySet` and supply the content yourself. However, it will not automatically select across multiple locale files just because the file has a `_vi` suffix.
 
-**Tình huống D — dữ liệu nhiều kiểu và cấu trúc phức tạp.**
+**Scenario D — multi-typed data and complex structures.**
 
-Cả file properties đọc theo các API trên đều lưu value như `String`. Cấu trúc phức tạp nên dùng schema rõ nghĩa, parser/validator phù hợp hoặc `ListResourceBundle` khi mục đích thật sự là tài nguyên kiểu object. Không lấy dấu phẩy trong chuỗi làm bằng chứng đó là `String[]`.
+Both properties file APIs store values as `String`. Complex structures should use a well-defined schema, an appropriate parser/validator, or `ListResourceBundle` when object-typed resources are genuinely needed. Do not treat commas in a string as proof that it is a `String[]`.
 
-## 10. Lỗi phổ biến và cách chẩn đoán
+## 10. Common bugs and how to diagnose them
 
-| Triệu chứng | Nguyên nhân có thể | Hướng xử lý |
+| Symptom | Possible cause | Resolution |
 | --- | --- | --- |
-| `Properties.load(InputStream)` trả chữ Việt sai | File UTF-8 bị giải mã như ISO-8859-1 | Đổi sang `load(Reader)` và chỉ định UTF-8 |
-| `PropertyResourceBundle` đọc file Latin-1 nhưng có ký tự sai | Byte tình cờ hợp lệ UTF-8, hoặc file trộn encoding | Chuẩn hóa toàn bộ file; cân nhắc cờ mã hóa cố định và kiểm thử |
-| Chạy Java 8 ổn, lên Java 17 chữ thay đổi | Thay đổi mặc định của `PropertyResourceBundle` từ Java 9 | Kiểm tra encoding nguồn và đường nạp, không đổi bừa parser |
-| `getString("unknown")` ném ngoại lệ | Key thiếu ở bundle và parent | Kiểm tra tên key, base name, parent/fallback |
-| `getProperty("unknown")` trả `null` | Không có key trong `Properties`/defaults | Dùng overload default hoặc xử lý thiếu key |
-| `getStringArray("menu")` với `menu=A,B` | File properties tạo `String`, không tạo mảng | Dùng key riêng hoặc parser có quy tắc rõ |
-| `ResourceBundle.getBundle` tìm nhầm ngôn ngữ | Default locale/fallback hoặc cấu hình ứng viên chưa được hiểu | Truyền locale tường minh, kiểm tra `getLocale()` và catalog hỗ trợ |
-| `new PropertyResourceBundle(file)` không fallback | Constructor trực tiếp không tạo chuỗi parent | Dùng `ResourceBundle.getBundle` khi cần chiến lược locale |
-| Sau `Properties.load`, key cũ vẫn còn | `load` không xóa bảng trước khi thêm dữ liệu | Tạo đối tượng `Properties` mới nếu muốn thay toàn bộ |
-| Đặt `-Dfile.encoding=UTF-8` nhưng lỗi không hết | Overload InputStream vẫn có encoding cố định | Chọn API/Reader tương ứng, không phụ thuộc default charset |
-| `Integer.parseInt(getString(...))` lỗi | Value ở file là chuỗi không đúng dạng số | Xác thực và báo lỗi cấu hình, không coi bundle là bộ ép kiểu tự động |
-| Unicode escape `\uXXXX` bị sai | Escape không đủ bốn hex hoặc nội dung được escape nhầm | Kiểm tra cú pháp và dùng UTF-8 rõ ràng |
+| `Properties.load(InputStream)` returns garbled Vietnamese | UTF-8 file decoded as ISO-8859-1 | Switch to `load(Reader)` and specify UTF-8 |
+| `PropertyResourceBundle` reads a Latin-1 file with wrong characters | Bytes happen to be valid UTF-8, or mixed encodings | Standardize all files; consider a fixed encoding flag and tests |
+| Works on Java 8, characters change on Java 17 | Default behavior change in `PropertyResourceBundle` since Java 9 | Inspect source encoding and loading path instead of blindly swapping parsers |
+| `getString("unknown")` throws an exception | Key missing from bundle and parents | Check key name, base name, parent/fallback |
+| `getProperty("unknown")` returns `null` | Key absent from `Properties`/defaults | Use the default-value overload or handle missing keys |
+| `getStringArray("menu")` with `menu=A,B` | Properties files create `String`, not arrays | Use separate keys or a parser with explicit rules |
+| `ResourceBundle.getBundle` picks the wrong language | Default locale, fallback, or candidate configuration misunderstood | Pass an explicit locale, inspect `getLocale()` and supported catalog |
+| `new PropertyResourceBundle(file)` does not fall back | Direct constructor builds no parent chain | Use `ResourceBundle.getBundle` when a locale strategy is needed |
+| After `Properties.load`, old keys remain | `load` does not clear the table before adding entries | Create a new `Properties` object if you want a full replacement |
+| `-Dfile.encoding=UTF-8` set, yet the bug persists | `InputStream` overloads have fixed encoding rules | Pick the matching API/Reader instead of relying on default charset |
+| `Integer.parseInt(getString(...))` fails | File value is a string not formatted as a number | Validate and report config errors; do not treat bundles as automatic type converters |
+| Malformed `\uXXXX` Unicode escape | Fewer than four hex digits or mis-escaped text | Verify syntax and use explicit UTF-8 |
 
-### Lưu ý về tài nguyên, bảo mật và kiểm thử
+### Notes on resources, security, and testing
 
-- **Đóng stream/reader** do mình mở bằng `try-with-resources`. Không bỏ qua `IOException` khi đọc file; nếu file là bắt buộc, thông báo đường dẫn/nguồn và nguyên nhân.
-- **Không ghi trực tiếp secret** vào resource dịch hoặc properties đóng gói trong ứng dụng public. Bản chất resource chứa các cặp key/value, không phải kho lưu bí mật.
-- **Không gọi `Locale.setDefault(...)` cho mỗi request** để đổi ngôn ngữ: default locale là trạng thái JVM, có thể gây ảnh hưởng nhiều luồng. Truyền locale của người dùng cho `getBundle`.
-- **Phân biệt mã hóa tệp với mã hóa console.** Nếu chuỗi trong Java đúng nhưng terminal in sai, kiểm tra encoding của console riêng. Thử so sánh `String.equals` hoặc code points để xác định lỗi từ lúc nạp hay lúc xuất.
-- **Kiểm thử ở ít nhất hai môi trường** khi nâng JDK hoặc chuyển file legacy: một nội dung tiếng Việt có ký tự ngoài ASCII/Latin-1, một file có Unicode escape, key thiếu, bundle fallback, file trộn encoding và trường hợp dữ liệu không hợp lệ.
-- **Kiểm thử caching** nếu có nhu cầu thay đổi bản dịch trong lúc ứng dụng đang chạy: `ResourceBundle.getBundle` có cache; thay file trên đĩa không đồng nghĩa mọi lần đọc sẽ tự dùng bản mới. Cần thiết kế chính sách reload riêng, thận trọng với phiên bản cũ đang được sử dụng.
+- **Close streams and readers** that you open using `try-with-resources`. Do not swallow `IOException` when reading files; if a file is required, report the path/source and cause.
+- **Never store secrets directly** in translation resources or properties packaged in public applications. Resources are plain key/value maps, not secret stores.
+- **Do not call `Locale.setDefault(...)` per request** to switch languages: the default locale is JVM-wide state and can affect multiple threads. Pass the user's locale to `getBundle`.
+- **Separate file encoding from console encoding.** If the Java string is right while the terminal prints wrongly, check console encoding separately. Compare with `String.equals` or code points to determine whether the error happens at load time or output time.
+- **Test in at least two environments** when upgrading the JDK or migrating legacy files: Vietnamese text with characters outside ASCII/Latin-1, a file with Unicode escapes, missing keys, bundle fallback, mixed-encoding files, and invalid input cases.
+- **Test caching** if translations need to change while the application is running: `ResourceBundle.getBundle` caches bundles; updating a file on disk does not mean every lookup automatically picks up the new version. Design an explicit reload policy carefully with respect to versions already in use.
 
-## 11. Tự kiểm tra kiến thức
+## 11. Self-check
 
-**Câu 1.** File `messages_vi.properties` được lưu UTF-8, chứa `title=Tiếng Việt`. Vì sao `new Properties().load(InputStream)` có thể trả chữ sai trên Java 21?
+**Question 1.** `messages_vi.properties` is saved as UTF-8 and contains `title=Tiếng Việt`. Why can `new Properties().load(InputStream)` return garbled text on Java 21?
 
-**Đáp án:** Vì `Properties.load(InputStream)` diễn giải byte theo **ISO-8859-1**, kể cả trên Java 21. Dùng `Properties.load(Reader)` với `InputStreamReader`/`Files.newBufferedReader` chỉ định UTF-8.
+**Answer:** Because `Properties.load(InputStream)` interprets bytes as **ISO-8859-1**, even on Java 21. Use `Properties.load(Reader)` with `InputStreamReader` or `Files.newBufferedReader` specifying UTF-8.
 
-**Câu 2.** Cùng file đó, `new PropertyResourceBundle(InputStream)` trên Java 17 mặc định đọc theo encoding nào?
+**Question 2.** With the same file, what encoding does `new PropertyResourceBundle(InputStream)` use by default on Java 17?
 
-**Đáp án:** Thử **UTF-8** trước. Nếu gặp lỗi giải mã cụ thể, mặc định có cơ chế đọc lại theo ISO-8859-1 để tương thích, trừ khi system property `java.util.PropertyResourceBundle.encoding` buộc một encoding được hỗ trợ.
+**Answer:** It tries **UTF-8** first. If specific decoding errors occur, by default it has a mechanism to re-read as ISO-8859-1 for compatibility, unless the `java.util.PropertyResourceBundle.encoding` system property forces a supported encoding.
 
-**Câu 3.** Gọi `new PropertyResourceBundle(input)` với nội dung của `messages_vi.properties`, rồi đọc key chỉ có trong `messages.properties`. Nó có tự lấy từ file gốc không?
+**Question 3.** You call `new PropertyResourceBundle(input)` with the contents of `messages_vi.properties`, then look up a key present only in `messages.properties`. Will it automatically fetch it from the root file?
 
-**Đáp án:** Không. Constructor trực tiếp không dò file cha bằng hậu tố tên. Chuỗi fallback theo locale được thiết lập thông qua cơ chế chọn bundle như `ResourceBundle.getBundle`.
+**Answer:** No. The direct constructor does not probe parent files by filename suffix. Locale-based fallback chains are established through a bundle selection mechanism such as `ResourceBundle.getBundle`.
 
-**Câu 4.** Hai API có nạp `quantity=3` trực tiếp thành `int` hoặc `Integer` không?
+**Question 4.** Do either of the two APIs load `quantity=3` directly as an `int` or `Integer`?
 
-**Đáp án:** Không. Value của file properties vẫn là `String`. Chuyển kiểu là bước khác của ứng dụng.
+**Answer:** No. Values in properties files remain `String`. Type conversion is a separate application step.
 
-**Câu 5.** Thay `Properties.load(InputStream)` bằng `load(Reader)` nhưng Reader dùng charset mặc định không được kiểm soát có đảm bảo chữ đúng không?
+**Question 5.** If you replace `Properties.load(InputStream)` with `load(Reader)` where the Reader uses an uncontrolled default charset, is accurate text guaranteed?
 
-**Đáp án:** Không. Reader phải giải mã đúng charset của file. Chỉ định rõ `StandardCharsets.UTF_8` (hoặc charset nguồn đã xác định) để kết quả ổn định.
+**Answer:** No. The Reader must decode using the file's actual charset. Explicitly specify `StandardCharsets.UTF_8` (or the confirmed source charset) for consistent results.
 
-**Câu 6.** Nếu file cấu hình chỉ có ASCII, tại sao hai phương thức thường cho kết quả giống nhau?
+**Question 6.** If a configuration file contains only ASCII, why do both approaches usually give the same result?
 
-**Đáp án:** Byte ASCII thông thường có cùng giá trị ký tự trong UTF-8 và ISO-8859-1; sự khác biệt lộ rõ với dữ liệu Unicode ngoài ASCII.
+**Answer:** Standard ASCII bytes map to the same character values in both UTF-8 and ISO-8859-1; differences emerge with non-ASCII Unicode data.
 
-## 12. Ghi nhớ và tài liệu chính thức
+## 12. Summary and official documentation
 
-- **`Properties.load(InputStream)` = ISO-8859-1**, luôn theo hợp đồng Java. Muốn đọc file UTF-8 bằng `Properties`, dùng `load(Reader)` với charset tường minh.
-- **`PropertyResourceBundle(InputStream)` trên Java 9+** mặc định giải mã UTF-8 rồi có thể fallback Latin-1. Có thể kiểm soát bằng `java.util.PropertyResourceBundle.encoding`.
-- **`Reader` giải quyết bước giải mã byte**, trong khi parser properties giải thích key/value và escape; đừng nhầm hai tầng này.
-- `Properties` phù hợp cấu hình và có thể nạp thêm vào bảng hiện có. `PropertyResourceBundle` phục vụ tài nguyên i18n, và `ResourceBundle.getBundle` mới điều phối việc chọn file theo locale/parent/caching.
-- Dù dùng cách nào, giá trị trong file `.properties` vẫn là **chuỗi**, không tự biến thành số hoặc mảng.
+- **`Properties.load(InputStream)` = ISO-8859-1**, always per the Java contract. To read a UTF-8 file with `Properties`, use `load(Reader)` with an explicit charset.
+- **`PropertyResourceBundle(InputStream)` on Java 9+** defaults to UTF-8 decoding with possible Latin-1 fallback. You can control it via `java.util.PropertyResourceBundle.encoding`.
+- **`Reader` handles the byte-decoding step**, while the properties parser interprets keys, values, and escapes; do not confuse these two layers.
+- `Properties` suits configuration and merges into an existing table. `PropertyResourceBundle` serves i18n resources, and `ResourceBundle.getBundle` orchestrates file selection by locale, parent chain, and caching.
+- Either way, values in `.properties` files remain **strings**, never automatically turning into numbers or arrays.
 
-Tài liệu tham khảo:
+References:
 
 - [Java SE 21 — Properties](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Properties.html)
 - [Java SE 21 — PropertyResourceBundle](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/PropertyResourceBundle.html)

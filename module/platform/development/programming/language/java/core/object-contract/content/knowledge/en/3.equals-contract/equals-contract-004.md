@@ -1,48 +1,48 @@
-# Tính bắc cầu giữa ba đối tượng trong `equals()`
+# Transitivity Across Three Objects in `equals()`
 
-## 1. Tính bắc cầu là gì?
+## 1. What Is Transitivity?
 
-Trong Java, `Object.equals(Object)` xác định hai đối tượng có được xem là **bằng nhau về mặt logic** hay không. Một yêu cầu bắt buộc của hợp đồng `equals()` là **tính bắc cầu (transitivity)**:
+In Java, `Object.equals(Object)` determines whether two objects are considered **logically equal**. A mandatory requirement of the `equals()` contract is **transitivity**:
 
-> Với ba tham chiếu khác `null` là `a`, `b`, `c`: nếu `a.equals(b)` là `true` và `b.equals(c)` là `true` thì `a.equals(c)` cũng phải là `true`.
+> For any three non-`null` references `a`, `b`, and `c`: if `a.equals(b)` is `true` and `b.equals(c)` is `true`, then `a.equals(c)` must also be `true`.
 
-Có thể viết:
+This can be written as:
 
 ```text
-a ==(equals)== b  và  b ==(equals)== c
+a ==(equals)== b  and  b ==(equals)== c
                     => a ==(equals)== c
 ```
 
-Ở đây, “bằng nhau” là kết quả của `equals()`, **không nhất thiết là cùng một đối tượng trong bộ nhớ** (`a == b`). Ba đối tượng khác nhau vẫn có thể mang cùng giá trị và `equals()` trả về `true` cho cả ba cặp.
+Here, "equal" refers to the result of `equals()`, **not necessarily the same object in memory** (`a == b`). Three distinct objects can still hold the same value, with `equals()` returning `true` for all three pairs.
 
-Ví dụ đúng: ba đối tượng đại diện cùng mã định danh bất biến `"A-101"`. Khi `a` bằng `b` theo mã này và `b` bằng `c` theo cùng mã, `a` bắt buộc bằng `c`. Quy tắc phải áp dụng nhất quán cho **mọi bộ ba** thuộc kiểu đối tượng đó, chứ không chỉ bộ ba được chọn để kiểm thử.
+Valid example: three objects representing the same immutable identifier `"A-101"`. When `a` equals `b` by this identifier and `b` equals `c` by the same identifier, `a` must equal `c`. The rule must hold consistently for **every triple** of that object type, not just the triple chosen for testing.
 
-Tính bắc cầu là một thành phần trong hợp đồng đầy đủ của `equals()`: phản xạ, đối xứng, bắc cầu, nhất quán và trả về `false` khi so sánh với `null`. Bài này tập trung vào tính bắc cầu; các tính chất còn lại vẫn phải được đảm bảo khi triển khai thực tế.
+Transitivity is one component of the full `equals()` contract: reflexivity, symmetry, transitivity, consistency, and returning `false` when compared with `null`. This lesson focuses on transitivity; the remaining properties must still be upheld in real implementations.
 
-## 2. Phản ví dụ: coi hai số “đủ gần” là bằng nhau
+## 2. Counterexample: Treating Two "Close Enough" Numbers as Equal
 
-Giả sử một lớp đo khoảng cách quyết định hai giá trị bằng nhau khi chênh lệch không quá **10 mm**. Với ba đối tượng lưu lần lượt `0 mm`, `8 mm` và `16 mm`:
+Suppose a distance-measuring class decides two values are equal when their difference is at most **10 mm**. With three objects storing `0 mm`, `8 mm`, and `16 mm` respectively:
 
-| Cặp đối tượng | Độ lệch | Kết quả “chênh ≤ 10 mm” |
+| Object Pair | Difference | Result of "difference ≤ 10 mm" |
 | --- | ---: | --- |
-| `a(0)` và `b(8)` | `8 mm` | `true` |
-| `b(8)` và `c(16)` | `8 mm` | `true` |
-| `a(0)` và `c(16)` | `16 mm` | `false` |
+| `a(0)` and `b(8)` | `8 mm` | `true` |
+| `b(8)` and `c(16)` | `8 mm` | `true` |
+| `a(0)` and `c(16)` | `16 mm` | `false` |
 
-Ta có `a.equals(b) && b.equals(c)` là `true` nhưng `a.equals(c)` là `false`. Đây là **vi phạm trực tiếp tính bắc cầu**.
+We have `a.equals(b) && b.equals(c)` as `true`, yet `a.equals(c)` is `false`. This is a **direct violation of transitivity**.
 
-Nguyên nhân không nằm ở sai số số thực: ví dụ sử dụng số nguyên. Quan hệ “cách nhau tối đa 10 đơn vị” cho phép chuỗi các bước nhỏ tích lũy thành khoảng cách lớn hơn 10; vì thế nó không tạo thành quan hệ bằng nhau đúng nghĩa. Thay `10` bằng bất kỳ dung sai dương cố định nào vẫn có nguy cơ tương tự.
+The cause is not floating-point precision error: the example uses integers. The relation "within 10 units of each other" allows a chain of small steps to accumulate into a distance greater than 10; therefore it does not form a true equality relation. Replacing `10` with any fixed positive tolerance carries the exact same risk.
 
-## 3. Chương trình Java 17 chạy được: lỗi và hai cách thiết kế đúng
+## 3. Runnable Java 17 Program: The Bug and Two Valid Designs
 
-Lưu toàn bộ mã sau vào tệp `EqualsTransitivityDemo.java`. Lớp `NearReading` **cố ý sai về tính bắc cầu** để minh họa; đừng dùng cách định nghĩa `equals()` này trong ứng dụng. Hai kiểu `ExactReading` và `BucketReading` bên dưới minh họa các quan hệ bằng nhau hợp lệ.
+Save all the following code into the file `EqualsTransitivityDemo.java`. The `NearReading` class is **intentionally broken with respect to transitivity** for demonstration; do not use this `equals()` definition in an application. The two types `ExactReading` and `BucketReading` below demonstrate valid equality relations.
 
 ```java
 import java.util.List;
 
 public class EqualsTransitivityDemo {
 
-    // PHẢN VÍ DỤ: equals() dựa trên khoảng cách tối đa 10 mm.
+    // COUNTEREXAMPLE: equals() based on a maximum distance of 10 mm.
     static final class NearReading {
         private final int millimeters;
 
@@ -63,21 +63,21 @@ public class EqualsTransitivityDemo {
 
         @Override
         public int hashCode() {
-            return 0; // Chỉ để cô lập lỗi bắc cầu; hash kém hiệu quả.
+            return 0; // Only to isolate the transitivity bug; poor hash efficiency.
         }
     }
 
-    // CÁCH ĐÚNG 1: giá trị mm phải bằng chính xác.
+    // VALID APPROACH 1: mm values must match exactly.
     record ExactReading(int millimeters) {}
 
-    // CÁCH ĐÚNG 2: so sánh một khóa phân nhóm đã định nghĩa rõ.
+    // VALID APPROACH 2: compare a clearly defined grouping key.
     record BucketReading(int bucket) {
         static BucketReading fromMillimeters(int millimeters) {
             return new BucketReading(Math.floorDiv(millimeters, 10));
         }
     }
 
-    // Kiểm tra TẤT CẢ bộ ba trong một tập mẫu hữu hạn.
+    // Check ALL triples in a finite sample set.
     static <T> boolean isTransitiveOn(List<T> values) {
         for (T a : values) {
             for (T b : values) {
@@ -121,14 +121,14 @@ public class EqualsTransitivityDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ```bash
 javac EqualsTransitivityDemo.java
 java EqualsTransitivityDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 near a=b: true
@@ -144,95 +144,95 @@ bucket v=w: false
 bucket transitive: true
 ```
 
-Giải thích:
+Explanation:
 
-- `NearReading` dùng `Math.abs((long) millimeters - that.millimeters)` để tránh tràn số khi trừ hai giá trị `int` cực trị. Dù phép tính khoảng cách an toàn, **quy tắc bằng nhau vẫn sai** vì không bắc cầu.
-- `ExactReading` là `record`; Java tự cung cấp `equals()` và `hashCode()` dựa trên thành phần `millimeters`. Ba bản ghi cùng giá trị `8` bằng nhau theo mọi cặp.
-- `BucketReading` chuyển dữ liệu thành **khóa phân nhóm cố định**: `Math.floorDiv(value, 10)`. Hai bản ghi bằng nhau khi có cùng `bucket`. `0` và `8` cùng nhóm `0`; `16` ở nhóm `1`. Khi `bucket(a) = bucket(b)` và `bucket(b) = bucket(c)` thì chắc chắn `bucket(a) = bucket(c)`.
-- Phép kiểm `isTransitiveOn` xét mọi bộ ba của **tập mẫu truyền vào**, có chi phí `O(n³)` nên phù hợp với bài kiểm thử nhỏ. Kết quả `true` trên một tập mẫu **không chứng minh** lớp đúng với mọi giá trị có thể có; cần kết hợp lý luận về quy tắc so sánh.
+- `NearReading` uses `Math.abs((long) millimeters - that.millimeters)` to avoid integer overflow when subtracting extreme `int` values. Even though the distance calculation is safe, **the equality rule is still wrong** because it is not transitive.
+- `ExactReading` is a `record`; Java automatically provides `equals()` and `hashCode()` based on the `millimeters` component. Three records with the same value `8` are equal in every pair.
+- `BucketReading` converts the data into a **fixed grouping key**: `Math.floorDiv(value, 10)`. Two records are equal when they share the same `bucket`. `0` and `8` are in bucket `0`; `16` is in bucket `1`. Whenever `bucket(a) = bucket(b)` and `bucket(b) = bucket(c)`, it is guaranteed that `bucket(a) = bucket(c)`.
+- The `isTransitiveOn` check inspects every triple of the **given sample set**, with `O(n³)` cost, making it suitable for small tests. Returning `true` on one sample set **does not prove** the class is correct for all possible values; it must be combined with reasoning about the comparison rule.
 
-Chú ý: phân nhóm có biên cứng. Ví dụ `9 mm` và `10 mm` rất gần nhưng thuộc hai nhóm khác nhau. Chỉ chọn mô hình này khi ý nghĩa nghiệp vụ thực sự là “cùng nhóm”; không dùng nó để giả vờ tái tạo quy tắc “cách nhau tối đa 10 mm”.
+Note: bucketing has hard boundaries. For example, `9 mm` and `10 mm` are very close yet fall into different buckets. Choose this model only when the business meaning is genuinely "in the same bucket"; do not use it to pretend to recreate a "within 10 mm" rule.
 
-## 4. Thiết kế `equals()` thế nào để giữ tính bắc cầu?
+## 4. How to Design `equals()` to Preserve Transitivity
 
-### Cách A — so sánh khóa hoặc trạng thái bất biến, nhất quán
+### Approach A — Compare Immutable, Consistent Keys or State
 
-Nếu hai đối tượng biểu diễn cùng thực thể khi có cùng mã định danh bất biến, hãy so sánh **chính mã đó**. Với value object, so sánh đầy đủ tập thuộc tính được định nghĩa là bản sắc logic. Dùng `record` khi dữ liệu phù hợp với ngữ nghĩa giá trị; Java sẽ tạo các phương thức bằng nhau theo thành phần.
+If two objects represent the same entity when they share an immutable identifier, compare **that exact identifier**. For value objects, compare the full set of fields defined as the logical identity. Use `record` when data fits value semantics; Java will generate component-based equality methods.
 
-Ví dụ một value object đơn giản:
+Example of a simple value object:
 
 ```java
 record DocumentKey(String namespace, long id) {}
 ```
 
-`new DocumentKey("docs", 7)` bằng một `DocumentKey` khác có cùng `namespace` và `id`. Nếu `a`, `b` và `c` có cùng cặp thuộc tính đó thì tính bắc cầu suy ra từ tính bắc cầu của phép so sánh thành phần. Mã trên là **đoạn minh họa**, không phải chương trình độc lập.
+`new DocumentKey("docs", 7)` equals another `DocumentKey` with the same `namespace` and `id`. If `a`, `b`, and `c` share that pair of properties, transitivity follows from the transitivity of the component comparisons. The code above is an **illustrative snippet**, not a standalone program.
 
-Nếu tự viết `equals()`, cần kiểm tra kiểu đối tượng và so sánh **cùng một bộ tiêu chí** ở mọi lần gọi. Tránh thay đổi chính sách dựa vào phía nào của phép so sánh, trạng thái toàn cục, thời điểm, hoặc nhánh kiểu lớp khác nhau.
+If writing `equals()` manually, check the object type and compare **the exact same set of criteria** on every call. Avoid changing the policy based on which side of the comparison is called, global state, time, or differing class branches.
 
-### Cách B — chuẩn hóa thành dạng đại diện (canonical form)
+### Approach B — Normalize into a Canonical Form
 
-Nếu nghiệp vụ xem các cách biểu diễn là giống nhau (ví dụ mã không phân biệt chữ hoa/thường), chuẩn hóa **một lần theo quy tắc ổn định**, rồi so sánh các giá trị chuẩn hóa. Một hàm chuẩn hóa xác định `f` tạo quan hệ `a ~ b` khi `f(a).equals(f(b))`. Vì phép bằng nhau trên giá trị chuẩn hóa là bắc cầu, quan hệ này cũng bắc cầu nếu `f` ổn định và có ngữ nghĩa đúng.
+If the domain considers different representations equivalent (for example, case-insensitive codes), normalize **once using a stable rule**, then compare the normalized values. A deterministic normalization function `f` induces the relation `a ~ b` when `f(a).equals(f(b))`. Because equality on normalized values is transitive, this relation is also transitive if `f` is stable and semantically sound.
 
-Các quy tắc chuẩn hóa phải được quy định rõ: chuẩn hóa Unicode, khoảng trắng, chữ hoa/thường theo locale phù hợp, đơn vị đo hoặc mức làm tròn cố định. Không nên tùy tiện cắt chữ, làm tròn hay đổi locale vì có thể vô tình gộp những giá trị cần phân biệt.
+Normalization rules must be explicitly specified: Unicode normalization, whitespace, casing with an appropriate locale, measurement units, or fixed rounding precision. Do not arbitrarily trim text, round numbers, or switch locales, as doing so can accidentally merge values that must remain distinct.
 
-### Cách C — tách “gần nhau” khỏi “bằng nhau”
+### Approach C — Separate "Near" from "Equal"
 
-Nếu cần hỏi hai phép đo có gần nhau trong một sai số cho phép, hãy tạo một phương thức riêng như `withinTolerance(other, tolerance)`. Đây là **quan hệ xấp xỉ**, không có nghĩa vụ bắc cầu, và không nên được sử dụng làm `equals()`.
+If you need to ask whether two measurements are close within an allowable tolerance, create a dedicated method such as `withinTolerance(other, tolerance)`. This is an **approximation relation**, has no obligation to be transitive, and should not be used as `equals()`.
 
 ```java
 static boolean withinTolerance(long a, long b, long tolerance) {
     if (tolerance < 0) {
         throw new IllegalArgumentException("tolerance must be nonnegative");
     }
-    // Ví dụ giới hạn đầu vào để tránh tràn khi trừ:
+    // Example limiting input range to avoid subtraction overflow:
     return Math.abs((double) a - (double) b) <= tolerance;
 }
 ```
 
-Đoạn minh họa trên dùng `double` cho hiệu để tránh tràn số nguyên nhưng **có thể mất độ chính xác với số `long` rất lớn**. Trong code cần chính xác tuyệt đối cho mọi `long`, hãy dùng `BigInteger` hoặc phép so sánh trừ có kiểm soát. Với dữ liệu đo lường thực tế, còn phải xác định sai số tuyệt đối, tương đối, đơn vị và cách xử lý `NaN`/vô cực nếu dùng số thực. Việc dùng API xấp xỉ độc lập giúp không làm sai hợp đồng `equals()`.
+The illustrative snippet above casts to `double` for the difference to avoid integer overflow, but **can lose precision for very large `long` values**. In code requiring exact precision for every `long`, use `BigInteger` or guarded subtraction comparisons. For real-world measurement data, also define absolute vs. relative tolerance, units, and handling of `NaN`/infinity when using floating-point numbers. Using a standalone approximation API keeps the `equals()` contract intact.
 
-## 5. Vì sao lỗi này ảnh hưởng đến Java Collections?
+## 5. Why Does This Bug Affect Java Collections?
 
-`HashSet`, `HashMap` và nhiều thao tác tìm kiếm/deduplicate dựa trên việc `equals()` biểu diễn **một quan hệ bằng nhau ổn định**. Nếu `a` bằng `b`, `b` bằng `c` nhưng `a` khác `c`, ý nghĩa “một phần tử tương đương” trở nên mâu thuẫn: thao tác thêm, tìm, loại trùng có thể cho kết quả khó dự đoán theo dữ liệu và thứ tự thao tác. Vì thế lỗi không chỉ làm hỏng một biểu thức `if`.
+`HashSet`, `HashMap`, and many lookup/deduplication operations rely on `equals()` representing **a stable equality relation**. If `a` equals `b` and `b` equals `c`, yet `a` does not equal `c`, the notion of "one equivalent element" becomes contradictory: insertions, lookups, and deduplication can produce unpredictable results depending on the data and operation order. Thus, the bug breaks far more than a single `if` expression.
 
-Bắc cầu và `hashCode()` là hai yêu cầu liên quan nhưng **khác nhau**:
+Transitivity and `hashCode()` are related yet **distinct** requirements:
 
-1. Nếu `x.equals(y)` là `true` thì `x.hashCode() == y.hashCode()` phải đúng.
-2. Mã băm giống nhau **không bắt buộc** đồng nghĩa hai đối tượng bằng nhau.
-3. Sửa `hashCode()` không thể chữa một quan hệ `equals()` không bắc cầu.
+1. If `x.equals(y)` is `true`, then `x.hashCode() == y.hashCode()` must hold.
+2. Equal hash codes **do not necessarily** mean two objects are equal.
+3. Fixing `hashCode()` cannot cure a non-transitive `equals()` relation.
 
-Trong `NearReading` ở ví dụ, `hashCode()` cố ý trả về `0` cho mọi đối tượng để **không vi phạm quy tắc “equals ⇒ hash bằng nhau”** trong khi phơi bày lỗi bắc cầu. Cách dùng hằng số này làm tất cả phần tử rơi vào cùng nhóm băm và có thể giảm hiệu suất nghiêm trọng; không phải cách cài đặt nên áp dụng. Với kiểu hợp lệ, hãy tính hash từ đúng các thuộc tính góp phần xác định `equals()`, hoặc để `record` sinh hộ.
+In `NearReading` in the example, `hashCode()` intentionally returns `0` for all objects so as **not to violate the "equals ⇒ equal hash" rule** while exposing the transitivity bug. Using a constant hash puts all elements into the same hash bucket and can severely degrade performance; it is not an implementation to use in practice. For valid types, compute the hash from the exact properties contributing to `equals()`, or let `record` generate it.
 
-Một lưu ý khác: những thuộc tính được dùng làm khóa trong `HashMap`/`HashSet` nên ổn định khi đối tượng đang nằm trong collection. Thay đổi các trường tham gia `equals()`/`hashCode()` sau khi chèn có thể khiến việc tìm kiếm thất bại, ngay cả khi quy tắc so sánh về mặt toán học vẫn bắc cầu.
+Another note: properties used as keys in `HashMap`/`HashSet` should remain stable while the object is inside the collection. Mutating fields involved in `equals()`/`hashCode()` after insertion can cause lookups to fail, even when the comparison rule itself is mathematically transitive.
 
-## 6. Những trường hợp dễ nhầm với lỗi bắc cầu
+## 6. Cases Easily Confused with Transitivity Bugs
 
-- **Tính đối xứng khác tính bắc cầu.** Nếu `a.equals(b)` khác `b.equals(a)`, đó là lỗi đối xứng. Các kiểu cha/con tự viết `equals()` theo những trường khác nhau có thể mắc lỗi đối xứng, bắc cầu hoặc cả hai; phải kiểm tra từng tính chất riêng.
-- **`==` khác `equals()`.** `==` so sánh hai tham chiếu có cùng chỉ đến một đối tượng hay không; nó không phải định nghĩa bản sắc logic của value object.
-- **`BigDecimal.compareTo()` và `BigDecimal.equals()` có tiêu chí khác nhau.** Ví dụ `new BigDecimal("1.0").compareTo(new BigDecimal("1.00")) == 0`, trong khi hai đối tượng đó không `equals()` vì khác scale. Đây **không phải bằng chứng vi phạm tính bắc cầu**: chỉ là hai quan hệ có ngữ nghĩa khác nhau. Đừng trộn tiêu chí của hai phương thức trong một lập luận.
-- **`Objects.equals(a, b)` chỉ hỗ trợ null-safe.** Nó gọi `a.equals(b)` khi `a` không null; không tự sửa logic bất bắc cầu của lớp.
-- **Tính nhất quán theo thời gian cũng quan trọng.** Nếu `equals()` phụ thuộc dữ liệu biến đổi, đồng hồ hoặc ngữ cảnh không ổn định, cùng cặp đối tượng có thể cho kết quả khác nhau ở các lần gọi; đó là vấn đề cần xử lý bên cạnh bắc cầu.
+- **Symmetry differs from transitivity.** If `a.equals(b)` differs from `b.equals(a)`, that is a symmetry bug. Superclass/subclass types writing custom `equals()` on different fields can exhibit symmetry bugs, transitivity bugs, or both; each property must be tested separately.
+- **`==` differs from `equals()`.** `==` compares whether two references point to the exact same object; it is not the definition of logical identity for value objects.
+- **`BigDecimal.compareTo()` and `BigDecimal.equals()` have different criteria.** For example, `new BigDecimal("1.0").compareTo(new BigDecimal("1.00")) == 0`, whereas those two objects are not `equals()` because their scales differ. This is **not evidence of a transitivity violation**: they are simply two relations with different semantics. Do not mix the criteria of both methods in one argument.
+- **`Objects.equals(a, b)` only provides null-safety.** It calls `a.equals(b)` when `a` is non-null; it does not fix a class's non-transitive logic.
+- **Consistency over time also matters.** If `equals()` depends on mutable data, clocks, or unstable context, the same pair of objects may return different results across calls; that issue must be addressed alongside transitivity.
 
-## 7. Cách kiểm tra khi review hoặc viết test
+## 7. How to Check During Code Review or Testing
 
-Với một lớp có `equals()` tự viết, hãy lần lượt:
+For a class with a custom `equals()`, proceed step by step:
 
-1. **Xác định bản sắc logic:** cụ thể thuộc tính/khóa nào làm hai đối tượng bằng nhau? Định nghĩa đó có nhất quán cho tất cả đối tượng, lớp con và dữ liệu biên không?
-2. **Tạo bộ ba có chủ đích:** chọn `a`, `b`, `c` sao cho `a.equals(b)` và `b.equals(c)` đều `true`; khẳng định `a.equals(c)` cũng `true`. Đặc biệt thử các điểm sát ngưỡng, khác kiểu lớp, trạng thái rỗng và giá trị cực trị nếu liên quan.
-3. **Kiểm tra cả hợp đồng:** `a.equals(a)` đúng; `a.equals(b) == b.equals(a)`; lặp lại kết quả với trạng thái không đổi; `a.equals(null)` sai; `equals` đúng thì hash phải bằng nhau.
-4. **Kiểm tra với collection:** thử các tình huống thêm/tìm/xóa với các đối tượng tương đương, đồng thời giữ khóa bất biến. Test collection bổ sung bằng chứng nhưng không thay thế phép kiểm bộ ba.
-5. **Lý giải tổng quát:** đối chiếu thuật toán với định nghĩa quan hệ tương đương. Ví dụ “cùng mã bất biến” hoặc “cùng khóa chuẩn hóa” có lập luận bắc cầu rõ ràng; “chênh không quá epsilon” thì không.
+1. **Define logical identity:** specifically which properties/keys make two objects equal? Is that definition consistent across all objects, subclasses, and boundary data?
+2. **Construct intentional triples:** choose `a`, `b`, and `c` such that both `a.equals(b)` and `b.equals(c)` are `true`; assert that `a.equals(c)` is also `true`. Specifically test values near thresholds, different class types, empty states, and extreme values where relevant.
+3. **Check the full contract:** `a.equals(a)` is true; `a.equals(b) == b.equals(a)`; results repeat under unchanged state; `a.equals(null)` is false; when `equals` is true, hashes must match.
+4. **Test with collections:** verify add/lookup/remove scenarios with equivalent objects while keeping keys immutable. Collection tests provide supporting evidence but do not replace triple checks.
+5. **General reasoning:** compare the algorithm against the definition of an equivalence relation. For instance, "same immutable identifier" or "same canonical key" has a clear transitivity proof; "differs by at most epsilon" does not.
 
-Một mẫu assertion để dùng trong test (giả sử đã tạo sẵn ba đối tượng `a`, `b`, `c`):
+An assertion template for use in tests (assuming three objects `a`, `b`, and `c` have already been created):
 
 ```java
 if (a.equals(b) && b.equals(c) && !a.equals(c)) {
-    throw new AssertionError("equals() vi phạm tính bắc cầu");
+    throw new AssertionError("equals() violates transitivity");
 }
 ```
 
-Đây là **fragment cho test**, không phải một file Java độc lập. Khi `a`, `b`, `c` là ba `NearReading(0)`, `NearReading(8)`, `NearReading(16)` trong chương trình phía trên, assertion sẽ ném lỗi như mong đợi; khi dùng định nghĩa bằng nhau đúng, không được có bộ ba phản ví dụ.
+This is a **test fragment**, not a standalone Java file. When `a`, `b`, and `c` are the three `NearReading(0)`, `NearReading(8)`, and `NearReading(16)` objects in the program above, the assertion throws an error as expected; with a valid equality definition, no counterexample triple can exist.
 
-## 8. Ghi nhớ
+## 8. Key Takeaways
 
-Tính bắc cầu nói rằng **`a.equals(b)` và `b.equals(c)` cùng đúng thì `a.equals(c)` bắt buộc đúng**. Nó bảo đảm các đối tượng được xem là “cùng giá trị” tạo thành những nhóm tương đương nhất quán. Không dùng khoảng sai số, quy tắc “gần giống”, hoặc tiêu chí so sánh thay đổi theo đối tượng để định nghĩa `equals()`. Hãy định nghĩa khóa/trạng thái bằng nhau rõ ràng; nếu cần xấp xỉ, tách nó thành một thao tác riêng.
+Transitivity states that **when `a.equals(b)` and `b.equals(c)` are both true, `a.equals(c)` must be true**. It ensures objects considered "the same value" form consistent equivalence classes. Do not use tolerance ranges, "similar" rules, or comparison criteria that vary by object to define `equals()`. Define explicit equality keys or state; if approximation is needed, extract it into a separate operation.

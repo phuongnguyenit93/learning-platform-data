@@ -1,41 +1,41 @@
-# Khai báo biến, khởi tạo và phép gán trong Java
+# Variable Declaration, Initialization, and Assignment in Java
 
-## 1. Ba thao tác khác nhau
+## 1. Three Distinct Operations
 
-**Biến (variable)** là một vị trí lưu trữ có tên và có kiểu. Trong Java 17+, kiểu của biến được kiểm tra lúc biên dịch. Học cách sử dụng biến bắt đầu từ ba thao tác:
+A **variable** is a named, typed storage location. In Java 17+, a variable's type is checked at compile time. Learning how to use variables starts with three operations:
 
 ~~~java
-int quantity;       // (1) Khai báo: tên quantity có kiểu int
-quantity = 3;       // (2) Gán giá trị đầu tiên cho biến
-quantity = 4;       // (3) Gán lại: thay giá trị đang lưu
+int quantity;       // (1) Declaration: the name quantity has type int
+quantity = 3;       // (2) Assigning the first value to the variable
+quantity = 4;       // (3) Reassignment: replacing the currently stored value
 ~~~
 
-Bạn cũng có thể **khai báo và khởi tạo trong cùng một câu lệnh**:
+You can also **declare and initialize in the same statement**:
 
 ~~~java
 int quantity = 3;
 ~~~
 
-| Thao tác | Ví dụ | Điều xảy ra |
+| Operation | Example | What happens |
 |---|---|---|
-| Khai báo (*declaration*) | `int count;` | Giới thiệu biến `count` với kiểu `int` |
-| Khởi tạo cùng khai báo (*initialization*) | `int count = 3;` | Tạo biến và cấp ngay giá trị đầu |
-| Gán sau khai báo (*assignment*) | `count = 3;` | Đưa giá trị vào biến đã khai báo |
-| Gán lại (*reassignment*) | `count = 4;` | Thay giá trị cũ bằng giá trị mới |
-| Đọc biến | `System.out.println(count);` | Sử dụng giá trị biến đang giữ |
+| Declaration | `int count;` | Introduces the variable `count` with type `int` |
+| Initialization | `int count = 3;` | Creates the variable and immediately gives it an initial value |
+| Assignment after declaration | `count = 3;` | Puts a value into an already declared variable |
+| Reassignment | `count = 4;` | Replaces the old value with a new value |
+| Reading a variable | `System.out.println(count);` | Uses the value currently held by the variable |
 
-**Điểm cốt lõi:** dấu `=` ở đây là **phép gán**, không phải dấu “bằng nhau” của toán học. `count = 4` yêu cầu Java lưu giá trị mới; còn `count == 4` là biểu thức **so sánh** trả về `boolean`.
+**Key point:** the `=` sign here is the **assignment operator**, not the mathematical "equals" sign. `count = 4` tells Java to store a new value; whereas `count == 4` is a **comparison** expression that returns a `boolean`.
 
-## 2. Cú pháp khai báo và quy tắc kiểu
+## 2. Declaration Syntax and Type Rules
 
-Khai báo biến cục bộ thông thường có dạng:
+A typical local variable declaration has the form:
 
 ~~~java
 Type variableName;
 Type otherName = expression;
 ~~~
 
-Ví dụ:
+Examples:
 
 ~~~java
 int age = 20;
@@ -46,18 +46,18 @@ char grade = 'A';
 String city = "Ha Noi";
 ~~~
 
-Ở đây `int`, `long`, `double`, `boolean`, `char` là các kiểu primitive; `String` là kiểu tham chiếu. Biểu thức ở vế phải phải có kiểu **có thể gán** cho biến theo quy tắc chuyển kiểu của Java.
+Here `int`, `long`, `double`, `boolean`, `char` are primitive types; `String` is a reference type. The expression on the right-hand side must have a type **assignable** to the variable according to Java's type conversion rules.
 
-Một khai báo cũng có thể khai báo nhiều biến cùng kiểu:
+A single declaration can also declare multiple variables of the same type:
 
 ~~~java
 int width = 3, height = 4;
 int area = width * height;
 ~~~
 
-Tuy hợp lệ, trong mã nghiệp vụ nên tách khai báo nếu nhiều biến có ý nghĩa khác nhau hoặc initializer phức tạp. Không thể dùng chung một khai báo để trộn kiểu tùy ý như `int a = 1, b = "hai";`.
+Although valid, in business code you should separate declarations if multiple variables have different meanings or complex initializers. You cannot use a single declaration to mix arbitrary types like `int a = 1, b = "hai";`.
 
-### Tên và phạm vi biến
+### Variable Names and Scope
 
 ~~~java
 int subtotal = 100;
@@ -65,34 +65,34 @@ if (subtotal > 0) {
     int discount = 10;
     System.out.println(subtotal - discount); // 90
 }
-// System.out.println(discount); // Lỗi: discount ngoài phạm vi
+// System.out.println(discount); // Error: discount is out of scope
 ~~~
 
-Biến cục bộ thường có phạm vi trong block chứa khai báo, tính từ nơi khai báo theo quy tắc của Java. **Khai báo một lần** rồi gán lại khi cần; không khai báo lại một biến cục bộ cùng tên ở vị trí bị cấm:
+A local variable is typically scoped to the block containing its declaration, starting from the point of declaration according to Java's rules. **Declare once** and reassign when needed; do not redeclare a local variable with the same name where it is prohibited:
 
 ~~~java
 int count = 1;
-count = 2;       // Đúng: gán lại
-// int count = 3; // Lỗi: trùng khai báo trong cùng block
+count = 2;       // Valid: reassignment
+// int count = 3; // Error: duplicate declaration in the same block
 ~~~
 
 
-## 3. Điều kiện để một phép đọc hợp lệ
+## 3. Conditions for a Valid Read
 
-Với **biến cục bộ**, khai báo xong chưa đủ để đọc: Java yêu cầu nó đã được gán chắc chắn trước lần đọc ấy (*definite assignment*).
+For a **local variable**, simply declaring it is not enough to read it: Java requires that it has been definitely assigned before that read (*definite assignment*).
 
 ~~~java
 int score;
-// System.out.println(score); // Lỗi: có thể chưa được gán
+// System.out.println(score); // Error: might not have been initialized
 score = 80;
 System.out.println(score); // 80
 ~~~
 
-**Tham số** nhận giá trị từ lời gọi; **field và phần tử mảng** có giá trị mặc định theo kiểu. Những cơ chế này khác nhau, nên đừng suy rằng `int score;` trong phương thức tự nhận 0. Phần phân tích đường đi `if`, vòng lặp và `final` thuộc bài chuyên sâu về *definite assignment*.
+**Parameters** receive values from the call; **fields and array elements** have default values based on their type. These mechanisms differ, so do not assume `int score;` inside a method automatically gets `0`. Analyzing `if` paths, loops, and `final` belongs to the in-depth lesson on *definite assignment*.
 
-## 4. Gán giá trị và đánh giá vế phải
+## 4. Assigning Values and Evaluating the Right-Hand Side
 
-Trong một phép gán đơn giản:
+In a simple assignment:
 
 ~~~java
 int unitPrice = 120;
@@ -100,9 +100,9 @@ int quantity = 3;
 int subtotal = unitPrice * quantity;
 ~~~
 
-Java đánh giá biểu thức `unitPrice * quantity` rồi gán kết quả `360` vào `subtotal`.
+Java evaluates the expression `unitPrice * quantity` and assigns the result `360` to `subtotal`.
 
-Nếu sau đó:
+If afterward:
 
 ~~~java
 quantity = 4;
@@ -111,83 +111,83 @@ subtotal = unitPrice * quantity;
 System.out.println(subtotal); // 480
 ~~~
 
-Thì `subtotal` **không tự cập nhật** khi `quantity` đổi. Biến Java giữ giá trị đã được tính ở thời điểm gán; nó không phải ô công thức của bảng tính.
+Then `subtotal` **does not update automatically** when `quantity` changes. A Java variable holds the value computed at the time of assignment; it is not a spreadsheet formula cell.
 
-Phép gán cũng là một **biểu thức có kết quả**, nên có thể dùng gán nối tiếp:
+Assignment is also an **expression with a result**, so chained assignment can be used:
 
 ~~~java
 int first, second;
-first = second = 9; // Tương đương first = (second = 9)
+first = second = 9; // Equivalent to first = (second = 9)
 System.out.println(first + ", " + second); // 9, 9
 ~~~
 
-Phép gán có tính kết hợp từ phải sang trái. Tuy nhiên, đừng lạm dụng các phép gán lồng nhau làm cho code khó theo dõi; câu lệnh riêng thường dễ kiểm thử hơn.
+Assignment is right-to-left associative. However, do not overuse nested assignments that make code hard to follow; separate statements are usually easier to test.
 
-### `=` khác `==`
+### `=` vs `==`
 
 ~~~java
 int points = 10;
-points = 20;                      // Gán lại
-boolean matches = points == 20;  // So sánh, true
+points = 20;                      // Reassignment
+boolean matches = points == 20;  // Comparison, true
 ~~~
 
-Trong một điều kiện boolean, viết nhầm phép gán có thể **vẫn biên dịch và gây bug**:
+Inside a boolean condition, accidentally writing an assignment can **still compile and cause a bug**:
 
 ~~~java
 boolean approved = false;
-if (approved = true) { // Hợp lệ, nhưng đang thay đổi approved!
+if (approved = true) { // Valid, but mutates approved!
     System.out.println("APPROVED");
 }
 ~~~
 
-Nếu mục tiêu là kiểm tra, viết `if (approved)`. Với số nguyên, `if (points = 20)` không biên dịch vì biểu thức gán kiểu `int`, không phải `boolean`.
+If the goal is to check the value, write `if (approved)`. For integers, `if (points = 20)` does not compile because the assignment expression has type `int`, not `boolean`.
 
 
-## 5. Giới hạn cần biết trước khi gán
+## 5. Limits to Know Before Assigning
 
-Một phép gán hợp lệ phải **tương thích với kiểu khai báo**; ví dụ `int amount = 10; long total = amount;` hợp lệ, còn `int amount = "10";` là lỗi kiểu. Với `var`, compiler suy ra kiểu **tĩnh** từ initializer; với `final`, việc gán lại biến bị giới hạn. Các chi tiết về miền kiểu, chuyển hẹp, `final` và tính thay đổi của object có bài riêng trong chương.
+A valid assignment must be **compatible with the declared type**; for example, `int amount = 10; long total = amount;` is valid, while `int amount = "10";` is a type error. With `var`, the compiler infers a **static** type from the initializer; with `final`, reassigning the variable is restricted. Details on type ranges, narrowing conversions, `final`, and object mutability have dedicated lessons in this chapter.
 
-Ở đây hãy luôn hỏi: biến nào đang được gán, biểu thức nào phải được đánh giá trước, và giá trị đã gán có cần tính lại khi đầu vào thay đổi không?
+Here, always ask: which variable is being assigned, which expression must be evaluated first, and does the assigned value need to be recomputed when inputs change?
 
-## 6. Ví dụ Java 17: lần theo từng phép gán
+## 6. Java 17 Example: Tracing Each Assignment
 
-Lưu tệp `AssignmentWalkthrough.java`:
+Save the file `AssignmentWalkthrough.java`:
 
 ~~~java
 public final class AssignmentWalkthrough {
     public static void main(String[] args) {
-        int quantity;                 // Khai báo
-        quantity = 3;                 // Gán lần đầu
-        int unitPrice = 120;          // Khai báo và khởi tạo
+        int quantity;                 // Declaration
+        quantity = 3;                 // First assignment
+        int unitPrice = 120;          // Declaration and initialization
         int total = unitPrice * quantity;
         System.out.println("start=" + total);
 
-        quantity = 4;                 // Gán lại một đầu vào
+        quantity = 4;                 // Reassigning an input
         System.out.println("stored=" + total);
-        total = unitPrice * quantity; // Tính lại có chủ đích
+        total = unitPrice * quantity; // Deliberate recomputation
         System.out.println("recomputed=" + total);
 
         int left, right;
-        left = right = 9;             // Gán nối tiếp từ phải qua trái
+        left = right = 9;             // Chained assignment right to left
         System.out.println("chain=" + left + "," + right);
-        boolean same = total == 480;  // So sánh, không gán
+        boolean same = total == 480;  // Comparison, not assignment
         System.out.println("same=" + same);
 
-        int earlier = quantity;       // Sao chép giá trị int
+        int earlier = quantity;       // Copies the int value
         quantity = 5;
         System.out.println("copy=" + earlier + ", now=" + quantity);
     }
 }
 ~~~
 
-Dùng JDK 17 trở lên trong thư mục chứa tệp:
+Using JDK 17 or later in the directory containing the file:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 AssignmentWalkthrough.java
 java -cp . AssignmentWalkthrough
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 start=360
@@ -198,26 +198,26 @@ same=true
 copy=4, now=5
 ~~~
 
-`stored=360` không tự chuyển thành 480 sau khi `quantity` đổi, vì biến `total` đã nhận giá trị của lần tính trước. `recomputed=480` chỉ xuất hiện sau một **phép gán mới**. `chain=9,9` là kết quả của `left = (right = 9)`; `same=true` đến từ phép so sánh `==`. Cuối cùng, `earlier` vẫn bằng 4 vì phép gán từ biến `int` sao chép giá trị, không tạo liên kết tự cập nhật.
+`stored=360` does not automatically turn into `480` after `quantity` changes, because the variable `total` already received the result of the previous computation. `recomputed=480` only appears after a **new assignment**. `chain=9,9` is the result of `left = (right = 9)`; `same=true` comes from the `==` comparison. Finally, `earlier` remains `4` because assigning from an `int` variable copies the value, without creating an auto-updating link.
 
-## 7. Những nhầm lẫn thường gặp
+## 7. Common Confusions
 
-| Cách viết | Vấn đề | Cách nhìn đúng |
+| Code pattern | Issue | Correct perspective |
 |---|---|---|
-| `int n; System.out.println(n);` trong method | Biến cục bộ chưa được gán | Gán chắc chắn trước khi đọc |
-| `int n = 1; int n = 2;` trong cùng block | Khai báo trùng | Viết `n = 2;` nếu muốn gán lại |
-| `int a, b = 5;` | Chỉ `b` được khởi tạo | Mỗi tên có initializer riêng |
-| `if (approved = true)` | Thay đổi `approved` trong lúc kiểm tra | Viết `if (approved)` nếu chỉ kiểm tra |
-| Đổi `quantity` rồi tưởng `total` đổi theo | Phép gán không tạo công thức sống | Tính và gán lại `total` khi cần |
+| `int n; System.out.println(n);` in a method | Unassigned local variable | Definitely assign before reading |
+| `int n = 1; int n = 2;` in the same block | Duplicate declaration | Write `n = 2;` if you want to reassign |
+| `int a, b = 5;` | Only `b` is initialized | Each name has its own initializer |
+| `if (approved = true)` | Changes `approved` while checking | Write `if (approved)` if only checking |
+| Changing `quantity` and expecting `total` to change | Assignment does not create a live formula | Recompute and reassign `total` when needed |
 
-Khi debug, hãy đánh dấu **điểm đọc** và **điểm ghi** của từng biến. Kiểm tra từng RHS theo thứ tự thực thi; đừng đọc một dòng gán như phương trình toán học.
+When debugging, mark the **read points** and **write points** of each variable. Inspect each RHS in execution order; do not read an assignment line as a mathematical equation.
 
-## 8. Luyện tập kèm giải thích
+## 8. Practice with Explanations
 
-**Bài 1.** Viết riêng hai phiên bản: `int score; score = 90;` và `int score = 90;`. Cả hai in ra bao nhiêu?  
-*Đáp án:* Cùng in `90`; khác nhau ở thời điểm thực hiện khai báo/khởi tạo.
+**Exercise 1.** Write two separate versions: `int score; score = 90;` and `int score = 90;`. What do both print?  
+*Answer:* Both print `90`; they differ in when declaration/initialization occurs.
 
-**Bài 2.** Dự đoán:
+**Exercise 2.** Predict:
 
 ~~~java
 int price = 25;
@@ -227,21 +227,21 @@ count = 3;
 System.out.println(total + "," + (price * count));
 ~~~
 
-*Đáp án:* `50,75`; `total` giữ kết quả đã gán, biểu thức mới dùng `count = 3`.
+*Answer:* `50,75`; `total` keeps the assigned result, while the new expression uses `count = 3`.
 
-**Bài 3.** `int first, second; first = second = 7;` khác gì `first == second`?  
-*Đáp án:* Câu đầu gán cả hai biến; biểu thức thứ hai so sánh giá trị và trả về `boolean`.
+**Exercise 3.** How does `int first, second; first = second = 7;` differ from `first == second`?  
+*Answer:* The first assigns both variables; the second expression compares their values and returns a `boolean`.
 
-**Bài 4.** Với `int a = 2; int b = a; a = 9;`, `b` có tự đổi không?  
-*Đáp án:* Không, `b` vẫn bằng 2 vì là bản sao của giá trị tại thời điểm gán.
+**Exercise 4.** Given `int a = 2; int b = a; a = 9;`, does `b` change automatically?  
+*Answer:* No, `b` stays `2` because it holds a copy of the value at the time of assignment.
 
-### Tự kiểm tra
+### Self-Check
 
-- [ ] Phân biệt khai báo, khởi tạo, gán đầu, gán lại và đọc biến.
-- [ ] Dự đoán đúng thứ tự đánh giá RHS và tác dụng của phép gán.
-- [ ] Biết `=` gán giá trị còn `==` so sánh.
-- [ ] Không nhầm biến Java với công thức tự cập nhật.
-- [ ] Biết ranh giới cơ bản về kiểu, phạm vi và gán trước khi đọc.
-- [ ] Chạy `AssignmentWalkthrough.java` và giải thích từng dòng kết quả.
+- [ ] Distinguish declaration, initialization, first assignment, reassignment, and reading a variable.
+- [ ] Correctly predict RHS evaluation order and the effect of assignment.
+- [ ] Know that `=` assigns a value while `==` compares.
+- [ ] Do not confuse Java variables with self-updating formulas.
+- [ ] Know basic boundaries regarding types, scope, and assigning before reading.
+- [ ] Run `AssignmentWalkthrough.java` and explain each line of output.
 
-**Kết luận:** Phép gán thay **giá trị được giữ trong biến tại một thời điểm**. Muốn thay kết quả tính toán, chương trình phải thực hiện phép gán khác. Học được điều này trước sẽ giúp bạn hiểu sâu hơn về kiểu, phạm vi, `final` và giá trị mặc định ở các bài kế tiếp.
+**Conclusion:** Assignment changes the **value held in a variable at a point in time**. To change a computed result, the program must perform another assignment. Learning this first will help you deeply understand types, scope, `final`, and default values in the upcoming lessons.

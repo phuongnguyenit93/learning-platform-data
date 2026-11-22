@@ -1,21 +1,21 @@
-# Vai trò của `Class` và `java.lang.reflect` trong Java
+# Roles of `Class` and `java.lang.reflect` in Java
 
-## 1. Reflection là gì, và hai thành phần này làm việc cùng nhau như thế nào?
+## 1. What Is Reflection, and How Do These Two Components Work Together?
 
-Trong Java, mã thông thường đã biết kiểu và phương thức lúc biên dịch: `user.greet("Chào")`. **Reflection** cung cấp cách **khám phá cấu trúc của kiểu tại runtime**, sau đó (nếu được phép) tạo đối tượng, đọc/ghi field hoặc gọi method thông qua metadata. Tình huống điển hình là một framework chỉ biết tên lớp hoặc annotation từ cấu hình nhưng phải tìm constructor, khởi tạo đối tượng và gọi method khi chương trình chạy.
+In Java, regular code already knows types and methods at compile time: `user.greet("Hello")`. **Reflection** provides a way to **discover the structure of a type at runtime**, and then (if permitted) create objects, read/write fields, or invoke methods through metadata. A typical scenario is a framework that only knows a class name or annotation from configuration, yet must locate a constructor, instantiate an object, and invoke a method when the program runs.
 
-Hai lớp khái niệm có trách nhiệm riêng:
+Two conceptual layers have distinct responsibilities:
 
-- **`java.lang.Class<T>`**: đối tượng mô tả **kiểu runtime**; là điểm vào để tìm thông tin tên, kế thừa, interface, annotation, field, method và constructor.
-- **`java.lang.reflect`**: gói API cung cấp các đối tượng mô tả **thành viên và chữ ký kiểu** (`Field`, `Method`, `Constructor`, `Type`...) và thao tác phản chiếu lên chúng.
+- **`java.lang.Class<T>`**: an object describing a **runtime type**; it is the entry point for finding information about names, inheritance, interfaces, annotations, fields, methods, and constructors.
+- **`java.lang.reflect`**: the API package providing objects that describe **members and type signatures** (`Field`, `Method`, `Constructor`, `Type`...) and reflective operations on them.
 
-`Class` **thuộc `java.lang`**, không thuộc `java.lang.reflect`. Luồng chung là: **lấy `Class<?>` → tìm `Method`/`Field`/`Constructor` → kiểm tra quyền truy cập và kiểu → thao tác → xử lý ngoại lệ**. Tìm thấy một thành viên qua metadata không có nghĩa chương trình tự động có quyền sử dụng thành viên ấy.
+`Class` **belongs to `java.lang`**, not `java.lang.reflect`. The general flow is: **obtain `Class<?>` → look up `Method`/`Field`/`Constructor` → check access permissions and types → perform operation → handle exceptions**. Finding a member via metadata does not mean the program automatically has permission to use that member.
 
-## 2. `Class<T>`: định danh và thông tin của kiểu runtime
+## 2. `Class<T>`: Identity and Information of a Runtime Type
 
-Đối tượng `Class` không phải là instance của kiểu được mô tả. `String.class` là đối tượng metadata kiểu `Class<String>`; còn `"abc"` mới là instance `String`. Mỗi kiểu mà JVM biết đến đều có biểu diễn `Class`, kể cả class, interface, enum, record, array, kiểu primitive và `void`.
+A `Class` object is not an instance of the described type. `String.class` is the metadata object of type `Class<String>`; whereas `"abc"` is a `String` instance. Every type known to the JVM has a `Class` representation, including classes, interfaces, enums, records, arrays, primitive types, and `void`.
 
-Các cách lấy `Class`:
+Ways to obtain `Class`:
 
 ```java
 Class<String> byLiteral = String.class;
@@ -29,55 +29,55 @@ Class<?> primitiveType = int.class;
 Class<?> arrayType = String[].class;
 ```
 
-Đoạn trên chỉ là **minh họa trong phạm vi method**; lệnh `Class.forName(...)` phải xử lý `ClassNotFoundException`. `obj.getClass()` phản ánh kiểu runtime thực và gây `NullPointerException` nếu `obj` là `null`. `Class.forName(String)` mặc định có thể kích hoạt việc khởi tạo lớp; overload `Class.forName(name, false, loader)` yêu cầu nạp mà chưa khởi tạo ngay.
+The snippet above is only an **illustration within method scope**; the `Class.forName(...)` call must handle `ClassNotFoundException`. `obj.getClass()` reflects the actual runtime type and throws `NullPointerException` if `obj` is `null`. `Class.forName(String)` may trigger class initialization by default; the overload `Class.forName(name, false, loader)` requests loading without immediate initialization.
 
-| Phương thức của `Class` | Câu hỏi trả lời |
+| `Class` Method | Question Answered |
 | --- | --- |
-| `getName()`, `getSimpleName()`, `getCanonicalName()` | Kiểu tên tương ứng; lớp lồng có dấu `$` trong tên nhị phân |
-| `getSuperclass()`, `getInterfaces()` | Superclass và các interface trực tiếp |
-| `isInterface()`, `isEnum()`, `isRecord()`, `isArray()`, `isPrimitive()` | Đây là loại kiểu nào? |
-| `getComponentType()` | Kiểu phần tử của array hay `null` nếu không phải array |
-| `getModifiers()` | Modifier của lớp, giải mã với `Modifier` |
-| `getAnnotations()`, `getDeclaredAnnotations()` | Annotation có thể quan sát được tại runtime |
-| `isInstance(obj)`, `cast(obj)`, `asSubclass(Base.class)` | Kiểm tra/biểu diễn quan hệ kiểu an toàn |
-| `getClassLoader()`, `getModule()` | Bối cảnh nạp lớp và module |
+| `getName()`, `getSimpleName()`, `getCanonicalName()` | Corresponding name forms; nested classes have `$` in their binary name |
+| `getSuperclass()`, `getInterfaces()` | Direct superclass and direct interfaces |
+| `isInterface()`, `isEnum()`, `isRecord()`, `isArray()`, `isPrimitive()` | What kind of type is this? |
+| `getComponentType()` | Element type of an array, or `null` if not an array |
+| `getModifiers()` | Class modifiers, decoded with `Modifier` |
+| `getAnnotations()`, `getDeclaredAnnotations()` | Annotations observable at runtime |
+| `isInstance(obj)`, `cast(obj)`, `asSubclass(Base.class)` | Safely checking/expressing type relationships |
+| `getClassLoader()`, `getModule()` | Class-loading and module context |
 
-Generic của `Class<T>` cung cấp kiểm tra kiểu ở compile time: khi biết chính xác lớp, ưu tiên `Class<User>`; khi nhận kiểu động, dùng `Class<?>` thay vì raw type `Class`. Lưu ý **danh tính JVM của class phụ thuộc cả class loader**: hai loader có thể định nghĩa cùng một tên lớp nhưng tạo hai kiểu không tương thích. Vì vậy so sánh mỗi chuỗi `getName()` chưa đủ để khẳng định hai class có cùng danh tính.
+The generic parameter of `Class<T>` provides compile-time type checking: when the exact class is known, prefer `Class<User>`; when accepting a dynamic type, use `Class<?>` instead of the raw type `Class`. Note that **a class's JVM identity also depends on its class loader**: two loaders can define the same class name yet produce two incompatible types. Therefore, comparing only the `getName()` string is not enough to confirm two classes share the same identity.
 
-## 3. `java.lang.reflect`: từ metadata tới thao tác
+## 3. `java.lang.reflect`: From Metadata to Operations
 
-| API | Vai trò |
+| API | Role |
 | --- | --- |
-| `Constructor<T>` | Mô tả constructor; `newInstance(args...)` tạo object |
-| `Method` | Mô tả method; `invoke(receiver, args...)` gọi method |
-| `Field` | Mô tả field; `get(receiver)` / `set(receiver, value)` khi có quyền |
-| `Modifier` | Giải mã bit modifier, ví dụ `Modifier.isPublic(...)` |
-| `Executable`, `Parameter` | Metadata chung của method/constructor và tham số |
-| `Type`, `ParameterizedType`, `TypeVariable`, `WildcardType` | Chữ ký kiểu generic được khai báo |
-| `Array` | Tạo hoặc truy cập mảng động qua reflection |
-| `Proxy`, `InvocationHandler` | Proxy động dựa trên interface |
-| `RecordComponent` | Metadata từng thành phần record |
+| `Constructor<T>` | Describes a constructor; `newInstance(args...)` creates an object |
+| `Method` | Describes a method; `invoke(receiver, args...)` calls the method |
+| `Field` | Describes a field; `get(receiver)` / `set(receiver, value)` when permitted |
+| `Modifier` | Decodes modifier bits, e.g., `Modifier.isPublic(...)` |
+| `Executable`, `Parameter` | Shared metadata for methods/constructors and parameters |
+| `Type`, `ParameterizedType`, `TypeVariable`, `WildcardType` | Declared generic type signatures |
+| `Array` | Dynamically creates or accesses arrays via reflection |
+| `Proxy`, `InvocationHandler` | Interface-based dynamic proxies |
+| `RecordComponent` | Metadata of each record component |
 
-`Class` trả về những metadata này, chẳng hạn `User.class.getDeclaredFields()` trả về một mảng `Field[]`. Các đối tượng phản chiếu có thể chứa tên, kiểu, modifier và annotation; một số còn có khả năng tác động tới instance khi các kiểm tra access cho phép.
+`Class` returns these metadata objects—for example, `User.class.getDeclaredFields()` returns a `Field[]` array. Reflective objects can hold names, types, modifiers, and annotations; some can also act on instances when access checks permit.
 
-### `get...` và `getDeclared...` khác nhau ra sao?
+### How Do `get...` and `getDeclared...` Differ?
 
-| Tra cứu | Chỉ public hay mọi visibility? | Có tìm phần kế thừa? |
+| Lookup | Public only or all visibilities? | Searches inherited members? |
 | --- | --- | --- |
-| `getMethod(name, parameterTypes...)` / `getMethods()` | Public | Có, method public kế thừa |
-| `getDeclaredMethod(...)` / `getDeclaredMethods()` | Mọi visibility | Không: chỉ khai báo trực tiếp |
-| `getField(name)` / `getFields()` | Public | Có, field public kế thừa |
-| `getDeclaredField(name)` / `getDeclaredFields()` | Mọi visibility | Không: chỉ khai báo trực tiếp |
-| `getConstructor(...)` / `getConstructors()` | Public | Không: constructor không kế thừa |
-| `getDeclaredConstructor(...)` / `getDeclaredConstructors()` | Mọi visibility | Không: constructor không kế thừa |
+| `getMethod(name, parameterTypes...)` / `getMethods()` | Public | Yes, inherited public methods |
+| `getDeclaredMethod(...)` / `getDeclaredMethods()` | All visibilities | No: direct declarations only |
+| `getField(name)` / `getFields()` | Public | Yes, inherited public fields |
+| `getDeclaredField(name)` / `getDeclaredFields()` | All visibilities | No: direct declarations only |
+| `getConstructor(...)` / `getConstructors()` | Public | No: constructors are not inherited |
+| `getDeclaredConstructor(...)` / `getDeclaredConstructors()` | All visibilities | No: constructors are not inherited |
 
-**Chữ ký tra cứu phải chính xác.** Nếu có `setAge(int)`, phải dùng `getMethod("setAge", int.class)`; `Integer.class` là kiểu khác. Việc tìm method không đoán overload từ giá trị truyền vào; method lookup dùng tên và các kiểu tham số khai báo. Thứ tự các mảng trả về bởi `getDeclaredMethods()`, `getMethods()`... **không được bảo đảm**, nên nếu cần đầu ra xác định, hãy sắp xếp chúng theo tiêu chí rõ ràng.
+**Lookup signatures must be exact.** If there is `setAge(int)`, you must use `getMethod("setAge", int.class)`; `Integer.class` is a different type. Method lookup does not guess overloads from passed-in values; method lookup uses the method name and declared parameter types. The order of arrays returned by `getDeclaredMethods()`, `getMethods()`, etc. **is not guaranteed**, so if deterministic output is needed, sort them by a clear criterion.
 
-## 4. Ví dụ Java 17+ đầy đủ, chạy được
+## 4. Complete, Runnable Java 17+ Example
 
-Chương trình minh họa chuỗi điển hình: `Class` → tìm constructor → khởi tạo → tìm method → gọi động → khảo sát field private qua metadata. Để giữ tính di động, ví dụ **không truy cập dữ liệu private**, chỉ xem tên và kiểu của field.
+This program demonstrates the typical sequence: `Class` → find constructor → instantiate → find method → invoke dynamically → inspect a private field via metadata. To remain portable, the example **does not access private data**, only inspecting the field's name and type.
 
-Tạo tệp `ReflectionDemo.java`:
+Create the file `ReflectionDemo.java`:
 
 ```java
 import java.lang.reflect.Constructor;
@@ -108,7 +108,7 @@ public class ReflectionDemo {
         User user = constructor.newInstance("Lan");
 
         Method greet = type.getMethod("greet", String.class);
-        Object result = greet.invoke(user, "Xin chào");
+        Object result = greet.invoke(user, "Hello");
         System.out.println(result);
 
         Field field = type.getDeclaredField("name");
@@ -120,7 +120,7 @@ public class ReflectionDemo {
 }
 ```
 
-Biên dịch/chạy bằng JDK 17 trở lên:
+Compile/run with JDK 17 or later:
 
 ```bash
 javac ReflectionDemo.java
@@ -132,72 +132,72 @@ Stdout:
 ```text
 ReflectionDemo$User
 Object
-Xin chào, Lan
+Hello, Lan
 name: String
 true
 ```
 
-Giải thích chính xác từng phần:
+Exact breakdown of each part:
 
-1. `User.class` trả về `Class<User>`; do đây là lớp lồng static, tên nhị phân là `ReflectionDemo$User`. Superclass trực tiếp là `Object`.
-2. `getDeclaredConstructor(String.class)` tìm constructor nhận đúng một `String`. `newInstance("Lan")` thực sự chạy constructor để tạo `User`.
-3. `getMethod("greet", String.class)` tra cứu method public nhận `String`. `invoke(user, "Xin chào")` gọi method trên instance `user`, trả về `Object` chứa chuỗi kết quả.
-4. `getDeclaredField("name")` trả về metadata của field private, dù không có getter. `getName()` và `getType()` không cần đọc giá trị field.
-5. `isInstance(user)` kiểm tra tương thích kiểu thực của đối tượng.
+1. `User.class` returns `Class<User>`; because this is a static nested class, its binary name is `ReflectionDemo$User`. Its direct superclass is `Object`.
+2. `getDeclaredConstructor(String.class)` finds the constructor taking exactly one `String`. `newInstance("Lan")` actually runs the constructor to create `User`.
+3. `getMethod("greet", String.class)` looks up the public method taking `String`. `invoke(user, "Hello")` calls the method on the `user` instance, returning an `Object` containing the resulting string.
+4. `getDeclaredField("name")` returns metadata for the private field even without a getter. `getName()` and `getType()` do not need to read the field's value.
+5. `isInstance(user)` checks actual type compatibility of the object.
 
-Ở đây kiểu `User` đã biết từ compile time, nên mã trực tiếp `new User("Lan")` và `user.greet("Xin chào")` vẫn đơn giản, dễ refactor và có type checking tốt hơn. Reflection có giá trị khi kiểu hoặc method chỉ được xác định **lúc runtime**.
+Here the `User` type is already known at compile time, so direct code `new User("Lan")` and `user.greet("Hello")` remains simpler, easier to refactor, and better type-checked. Reflection is valuable when the type or method is only determined **at runtime**.
 
-## 5. Ranh giới truy cập, module và ngoại lệ
+## 5. Access Boundaries, Modules, and Exceptions
 
-Reflection vẫn chịu quy tắc access của Java:
+Reflection is still subject to Java's access rules:
 
-- `getDeclaredField("name")` có thể tìm metadata của field private, nhưng `field.get(user)` thường ném `IllegalAccessException` khi caller không có quyền truy cập.
-- `AccessibleObject.trySetAccessible()` hoặc `setAccessible(true)` cho phép **thử** truy cập sâu trong những trường hợp được JVM/module cho phép. `trySetAccessible()` có thể trả `false`, còn `setAccessible(true)` có thể ném `InaccessibleObjectException`; không phải cơ chế vượt mọi ranh giới module.
-- Theo **JPMS**, `exports` cho phép code ngoài module truy cập public API của package theo quy tắc module; `opens` cho phép deep reflection đến các thành viên không public cho module được chỉ định. Framework có thể cần package `opens` phù hợp thay vì tăng quyền toàn ứng dụng.
-- Với static method, `method.invoke(null, args...)` dùng receiver `null`; static field cũng dùng `field.get(null)`. Instance member đòi hỏi receiver đúng kiểu.
-- Không nên dùng reflection để sửa các field `final` như một cơ chế cập nhật trạng thái: việc ghi có những hạn chế riêng, và không bảo đảm hành vi như setter thông thường.
+- `getDeclaredField("name")` can locate metadata for a private field, but `field.get(user)` normally throws `IllegalAccessException` when the caller lacks access permission.
+- `AccessibleObject.trySetAccessible()` or `setAccessible(true)` lets you **attempt** deep access in cases permitted by the JVM/module. `trySetAccessible()` may return `false`, and `setAccessible(true)` may throw `InaccessibleObjectException`; it is not a mechanism to bypass all module boundaries.
+- Under **JPMS**, `exports` allows code outside a module to access a package's public API according to module rules; `opens` allows deep reflection into non-public members for designated modules. Frameworks may need appropriate `opens` packages rather than elevating permissions application-wide.
+- For static methods, `method.invoke(null, args...)` uses a `null` receiver; static fields also use `field.get(null)`. Instance members require a receiver of the proper type.
+- Do not use reflection to modify `final` fields as a state-update mechanism: writing has its own restrictions, and behavior like a normal setter is not guaranteed.
 
-Các lỗi cần nhận diện:
+Errors to recognize:
 
-| Vấn đề | Exception / nguyên nhân |
+| Issue | Exception / Cause |
 | --- | --- |
-| Sai tên class trong `Class.forName` | `ClassNotFoundException`; kiểm tra tên nhị phân và class loader |
-| Sai tên/chữ ký method hoặc field | `NoSuchMethodException` / `NoSuchFieldException` |
-| Caller không được phép sử dụng thành viên | `IllegalAccessException` |
-| Yêu cầu deep reflection bị từ chối | `InaccessibleObjectException` (runtime) |
-| Receiver, số lượng hoặc kiểu argument không hợp lệ | `IllegalArgumentException` |
-| Constructor/method đích tự ném exception | `InvocationTargetException` bọc lỗi thật; xem `getCause()` |
+| Wrong class name in `Class.forName` | `ClassNotFoundException`; check binary name and class loader |
+| Wrong method or field name/signature | `NoSuchMethodException` / `NoSuchFieldException` |
+| Caller is not permitted to use the member | `IllegalAccessException` |
+| Deep reflection request is rejected | `InaccessibleObjectException` (runtime) |
+| Invalid receiver, argument count, or argument types | `IllegalArgumentException` |
+| Target constructor/method itself threw an exception | `InvocationTargetException` wraps the real error; inspect `getCause()` |
 
-`ReflectiveOperationException` là superclass chung cho nhiều lỗi checked ở reflection nhưng **không bao gồm mọi lỗi runtime** như `IllegalArgumentException` hoặc `InaccessibleObjectException`. Ở boundary reflection, log/chuyển tiếp lỗi gốc có ngữ cảnh; không được im lặng nuốt `InvocationTargetException`. `Class.newInstance()` đã deprecated: thay bằng `type.getDeclaredConstructor(...).newInstance(...)` để chọn constructor rõ ràng và xử lý lỗi tốt hơn.
+`ReflectiveOperationException` is a common superclass for many checked exceptions in reflection, but **does not include all runtime errors** such as `IllegalArgumentException` or `InaccessibleObjectException`. At the reflection boundary, log/propagate the original error with context; never silently swallow `InvocationTargetException`. `Class.newInstance()` is deprecated: replace it with `type.getDeclaredConstructor(...).newInstance(...)` to select the constructor explicitly and handle errors better.
 
-## 6. Reflection, generic và annotation
+## 6. Reflection, Generics, and Annotations
 
-**Type erasure** khiến thông tin tham số generic không tạo ra class runtime riêng cho mỗi kiểu tham số: chẳng hạn `ArrayList<String>` và `ArrayList<Integer>` có cùng runtime class `ArrayList`; `obj instanceof List<String>` không hợp lệ khi `obj` có kiểu tĩnh `Object`, vì cần chuyển đổi unchecked. Từ Java 16, phép kiểm tra với kiểu tham số hóa có thể hợp lệ nếu kiểu tĩnh của biểu thức đã đủ thông tin, chẳng hạn `List<String> values` được kiểm tra bằng `values instanceof ArrayList<String>`; điều này vẫn không kiểm tra kiểu từng phần tử tại runtime. Nhưng metadata **chữ ký khai báo** vẫn có thể truy xuất qua `Type`: `Field.getType()` thường trả kiểu thô `List.class`, còn `Field.getGenericType()` có thể trả `ParameterizedType` diễn tả `List<String>` nếu field được khai báo đúng như vậy. Điều đó không xác nhận từng phần tử runtime thực sự là `String`.
+**Type erasure** causes generic type parameter information not to produce a separate runtime class per type argument: for instance, `ArrayList<String>` and `ArrayList<Integer>` share the same runtime class `ArrayList`; `obj instanceof List<String>` is invalid when `obj` has static type `Object` because an unchecked conversion would be needed. Since Java 16, checking against a parameterized type can be valid if the expression's static type already carries enough information, such as checking `List<String> values` with `values instanceof ArrayList<String>`; this still does not check each element's type at runtime. However, **declared signature** metadata can still be retrieved via `Type`: `Field.getType()` typically returns the raw type `List.class`, while `Field.getGenericType()` can return a `ParameterizedType` describing `List<String>` if the field is declared that way. That does not confirm each runtime element is actually a `String`.
 
-**Annotation** là một lý do reflection phổ biến trong framework. `getAnnotation(MyAnnotation.class)` và `isAnnotationPresent(MyAnnotation.class)` tra cứu metadata annotation khi annotation có `@Retention(RetentionPolicy.RUNTIME)`. Với retention `SOURCE` hoặc `CLASS`, không thể giả định reflection thấy annotation đó ở runtime. `@Inherited` chỉ ảnh hưởng cách kế thừa annotation trên lớp theo quy tắc riêng; không làm annotation trên method/field tự động kế thừa tương tự.
+**Annotations** are a common reason for reflection in frameworks. `getAnnotation(MyAnnotation.class)` and `isAnnotationPresent(MyAnnotation.class)` look up annotation metadata when the annotation has `@Retention(RetentionPolicy.RUNTIME)`. With `SOURCE` or `CLASS` retention, you cannot assume reflection sees that annotation at runtime. `@Inherited` only affects how class annotations are inherited under specific rules; it does not make method/field annotations automatically inherit in the same way.
 
-**Dynamic proxy:** `java.lang.reflect.Proxy` và `InvocationHandler` có thể tạo implementation cho một hoặc nhiều interface ở runtime, để chặn hoặc định tuyến lời gọi (ví dụ RPC, mock, interceptor). JDK dynamic proxy không phải cơ chế tự động subclass mọi concrete class.
+**Dynamic proxies:** `java.lang.reflect.Proxy` and `InvocationHandler` can create an implementation for one or more interfaces at runtime to intercept or route calls (for example, RPC, mocks, interceptors). JDK dynamic proxies are not a mechanism to automatically subclass arbitrary concrete classes.
 
-## 7. Ứng dụng thực tế và lựa chọn thay thế
+## 7. Practical Applications and Alternatives
 
-Reflection thường hiện diện trong:
+Reflection is commonly found in:
 
-- **Dependency injection:** đọc constructor, annotation, kiểu parameter để tạo và nối dependency.
-- **ORM, serializer/deserializer:** ánh xạ field hoặc property dựa vào metadata, dưới những quyền truy cập cho phép.
-- **Test framework:** phát hiện method có annotation runtime và gọi chúng theo quy ước.
-- **Plugin, trình khám phá metadata và công cụ chẩn đoán:** nạp, kiểm tra hoặc tương tác với những kiểu chưa biết ở thời điểm biên dịch.
+- **Dependency injection:** reading constructors, annotations, and parameter types to create and wire dependencies.
+- **ORMs, serializers/deserializers:** mapping fields or properties based on metadata under permitted access rights.
+- **Test frameworks:** discovering methods with runtime annotations and invoking them by convention.
+- **Plugins, metadata explorers, and diagnostic tools:** loading, inspecting, or interacting with types unknown at compile time.
 
-Cần đánh đổi: reflection làm yếu khả năng phát hiện lỗi lúc compile time, nhạy với rename/chữ ký và ranh giới module, có thêm exception runtime và có thể tốn chi phí tra cứu/gọi động. Không có một hệ số hiệu năng cố định cho mọi JVM; tránh tra cứu metadata lặp lại trên đường nóng, cache có kiểm soát và đo hiệu năng khi cần. Nếu mục tiêu chính là gọi động với hiệu năng hoặc kiểm soát access rõ hơn, nghiên cứu `MethodHandle` và `MethodHandles.Lookup` của gói **`java.lang.invoke`** (gói này khác `java.lang.reflect`).
+Trade-offs to weigh: reflection weakens compile-time error detection, is fragile to renames/signatures and module boundaries, introduces runtime exceptions, and can incur dynamic lookup/invocation costs. There is no single fixed performance multiplier across all JVMs; avoid repeated metadata lookups on hot paths, cache in a controlled way, and measure performance when needed. If the main goal is dynamic invocation with better performance or clearer access control, look into `MethodHandle` and `MethodHandles.Lookup` in **`java.lang.invoke`** (this package is separate from `java.lang.reflect`).
 
-**Quy tắc thực hành:** nếu biết kiểu và method từ compile time, ưu tiên lời gọi Java trực tiếp; nếu chỉ có metadata tại runtime, bắt đầu với `Class<?>`, tìm đúng thành viên phản chiếu, kiểm tra accessibility, gọi có chủ đích và xử lý nguyên nhân lỗi.
+**Practical rule:** if the type and method are known at compile time, prefer direct Java calls; if only metadata is available at runtime, start with `Class<?>`, locate the right reflective member, check accessibility, invoke deliberately, and handle the underlying error cause.
 
-## 8. Câu hỏi tự kiểm tra
+## 8. Self-Check Questions
 
-1. `Class` mô tả điều gì; tại sao nó không thuộc gói `java.lang.reflect`?
-2. Vì sao `getDeclaredField("secret")` tìm được field private nhưng `Field.get(obj)` vẫn có thể thất bại?
-3. `getMethod` và `getDeclaredMethod` khác nhau như thế nào khi method khai báo ở superclass?
-4. Tra cứu `f(int)` với `getMethod` phải truyền `int.class` hay `Integer.class`?
-5. Vì sao `exports` trong JPMS chưa đủ cho framework truy cập private field của một package?
-6. `getGenericType()` có bảo đảm dữ liệu thực trong một `List<String>` đều là `String` không?
+1. What does `Class` describe; why does it not belong to the `java.lang.reflect` package?
+2. Why can `getDeclaredField("secret")` find a private field while `Field.get(obj)` may still fail?
+3. How do `getMethod` and `getDeclaredMethod` differ when a method is declared in a superclass?
+4. When looking up `f(int)` with `getMethod`, must you pass `int.class` or `Integer.class`?
+5. Why is `exports` in JPMS not enough for a framework to access a package's private fields?
+6. Does `getGenericType()` guarantee that the actual data inside a `List<String>` are all `String`?
 
-Nếu trả lời được, bạn đã nắm vai trò hai tầng: **`Class` định danh/khám phá kiểu; `java.lang.reflect` diễn tả và thao tác lên thành viên; JVM vẫn quản lý kiểu và quyền truy cập.**
+If you can answer these, you have grasped the two-layer role: **`Class` identifies/discovers types; `java.lang.reflect` describes and operates on members; the JVM still enforces types and access permissions.**

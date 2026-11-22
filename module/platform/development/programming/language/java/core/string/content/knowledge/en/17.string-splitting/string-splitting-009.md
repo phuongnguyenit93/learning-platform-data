@@ -1,41 +1,41 @@
-# Vì sao `String.split()` đơn giản không đủ để phân tích CSV có dấu nháy
+# Why simple `String.split()` is not enough to parse quoted CSV
 
-## 1. Vấn đề cốt lõi
+## 1. The core problem
 
-CSV (Comma-Separated Values) thường dùng dấu phẩy để ngăn cách các trường, nhưng **dấu phẩy không phải lúc nào cũng là dấu phân cách**. Một trường được bao bởi dấu nháy kép (`"..."`) có thể chứa dấu phẩy, dấu xuống dòng và dấu nháy kép được mã hóa bằng hai dấu nháy liên tiếp (`""`). Vì vậy, không thể coi mọi dấu phẩy trong chuỗi là ranh giới trường.
+CSV (Comma-Separated Values) typically uses commas to separate fields, but **a comma is not always a delimiter**. A field enclosed in double quotes (`"..."`) can contain commas, newlines, and double quotes escaped as two consecutive double quotes (`""`). Therefore, you cannot treat every comma in a string as a field boundary.
 
-Ví dụ, bản ghi:
+For example, the record:
 
 ~~~csv
 101,"Nguyễn, An","Nói ""xin chào""",active
 ~~~
 
-có đúng **4 trường**, lần lượt là:
+has exactly **4 fields**, namely:
 
 1. `101`
 2. `Nguyễn, An`
 3. `Nói "xin chào"`
 4. `active`
 
-Nếu dùng `line.split(",")`, Java sẽ tách cả dấu phẩy nằm **bên trong** `"Nguyễn, An"`, khiến số trường và vị trí dữ liệu sai. `split` chỉ tìm vị trí khớp biểu thức chính quy; nó không theo dõi ngữ cảnh “đang ở trong hay ngoài dấu nháy”.
+If you use `line.split(",")`, Java also splits on the comma **inside** `"Nguyễn, An"`, producing the wrong field count and misaligned data. `split` only finds positions matching a regular expression; it does not track the context of "inside or outside quotes".
 
-CSV không phải một định dạng có duy nhất một biến thể: RFC 4180 mô tả một quy ước phổ biến, còn dữ liệu thực tế có thể dùng dấu chấm phẩy, quy tắc khoảng trắng hoặc cách escape khác. Khi xử lý CSV cần biết **dialect** (quy ước định dạng) của nguồn dữ liệu.
+CSV is not a single format with one variant: RFC 4180 describes one common convention, whereas real-world data may use semicolons, different whitespace rules, or different escaping. When processing CSV, you need to know the **dialect** (formatting convention) of the data source.
 
-## 2. Những tình huống `split` dễ xử lý sai
+## 2. Situations where `split` gets it wrong
 
-| Dòng CSV đầu vào | Các trường cần thu được | Vấn đề khi tách bằng dấu phẩy |
+| Input CSV line | Fields expected | Problem when splitting on comma |
 | --- | --- | --- |
-| `a,b,c` | `a`, `b`, `c` | Trường hợp đơn giản: `split` hoạt động |
-| `1,"Lan, An",3` | `1`, `Lan, An`, `3` | Dấu phẩy trong trường được nháy bị tách nhầm |
-| `1,"a""b",3` | `1`, `a"b`, `3` | `split` không giải mã `""` thành `"` |
-| `a,b,` | `a`, `b`, trường rỗng | `split(",")` mặc định bỏ trường rỗng ở cuối |
-| `"Dòng 1\nDòng 2",ok` | Trường đầu chứa ký tự xuống dòng thật; trường sau là `ok` | Đọc từng dòng vật lý có thể cắt đôi một bản ghi |
+| `a,b,c` | `a`, `b`, `c` | Simple case: `split` works |
+| `1,"Lan, An",3` | `1`, `Lan, An`, `3` | Comma inside quoted field is wrongly split |
+| `1,"a""b",3` | `1`, `a"b`, `3` | `split` does not unescape `""` into `"` |
+| `a,b,` | `a`, `b`, empty field | `split(",")` drops trailing empty fields by default |
+| `"Dòng 1\nDòng 2",ok` | First field contains a real newline character; next field is `ok` | Reading one physical line at a time can split a single record in half |
 
-Ở hàng cuối của bảng, `\n` dùng để **biểu diễn** một ký tự xuống dòng nằm trong cặp nháy; một tệp CSV thực có thể chứa dòng vật lý kế tiếp ngay giữa trường này.
+In the last row of the table, `\n` is used to **represent** a newline character inside quotes; an actual CSV file may contain the next physical line right in the middle of this field.
 
-### `split(",")` và `split(",", -1)` khác nhau thế nào?
+### How do `split(",")` and `split(",", -1)` differ?
 
-Trong Java, `String.split(regex)` tương đương `String.split(regex, 0)`: các trường rỗng ở **cuối** kết quả bị loại bỏ. Dùng `limit = -1` giúp giữ chúng, nhưng **không** giải quyết dấu phẩy trong nháy hoặc giải mã dấu nháy kép.
+In Java, `String.split(regex)` is equivalent to `String.split(regex, 0)`: empty fields at the **end** of the result are discarded. Using `limit = -1` keeps them, but it **does not** solve commas inside quotes or unescaping double quotes.
 
 ~~~java
 import java.util.Arrays;
@@ -54,14 +54,14 @@ public class SplitLimitDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 SplitLimitDemo.java
 java SplitLimitDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 [a, b]
@@ -71,35 +71,35 @@ Kết quả chính xác:
  An"
 ~~~
 
-Giữ trường rỗng ở cuối là một phần của xử lý CSV, nhưng dùng `-1` vẫn tạo ra **4 mảnh** thay vì **3 trường** đối với `1,"Lan, An",3`. Cũng cần nhớ rằng đối số đầu tiên của `split` là **regex** chứ không phải chuỗi phân cách theo nghĩa đen; kể cả dùng `Pattern.quote(delimiter)` đúng cách cũng không khiến nó hiểu quy tắc nháy CSV.
+Preserving trailing empty fields is part of CSV handling, yet using `-1` still produces **4 pieces** instead of **3 fields** for `1,"Lan, An",3`. Also remember that the first argument to `split` is a **regex**, not a literal delimiter string; even using `Pattern.quote(delimiter)` properly does not make it understand CSV quoting rules.
 
-## 3. Quy tắc nhận diện một trường CSV
+## 3. Rules for recognizing a CSV field
 
-Với biến thể phổ biến dùng dấu phẩy và dấu nháy kép:
+For the common variant using commas and double quotes:
 
-- **Ngoài cặp nháy:** dấu phẩy kết thúc trường; dấu xuống dòng kết thúc bản ghi.
-- **Bên trong cặp nháy:** dấu phẩy và dấu xuống dòng là **dữ liệu** thuộc cùng một trường.
-- **Hai dấu nháy liền nhau** `""` ở bên trong trường được nháy biểu thị **một** dấu `"` trong giá trị.
-- **Sau dấu nháy đóng:** với parser nghiêm ngặt, ký tự hợp lệ tiếp theo chỉ là dấu phẩy, ký tự kết thúc bản ghi hoặc hết dữ liệu. Dữ liệu như `"abc"x` là không hợp lệ.
-- **Trường rỗng:** `a,,b` có trường thứ hai rỗng; `a,b,` có trường cuối rỗng; `""` là một trường được nháy nhưng có giá trị rỗng.
-- **Kết thúc bản ghi:** `\r\n` thường dùng trong CSV kiểu RFC 4180; một số nguồn dùng `\n` hoặc `\r`. Parser phải phân biệt dấu xuống dòng bên ngoài nháy và bên trong nháy.
+- **Outside quotes:** a comma ends the field; a newline ends the record.
+- **Inside quotes:** commas and newlines are **data** belonging to the same field.
+- **Two consecutive quotes** `""` inside a quoted field represent **one** `"` character in the value.
+- **After a closing quote:** under a strict parser, the only valid next characters are a comma, a record terminator, or end-of-input. Input such as `"abc"x` is invalid.
+- **Empty fields:** `a,,b` has an empty second field; `a,b,` has an empty trailing field; `""` is a quoted field whose value is empty.
+- **Record terminators:** `\r\n` is common in RFC 4180-style CSV; some sources use `\n` or `\r`. The parser must distinguish newlines outside quotes from newlines inside quotes.
 
-Một bộ phân tích hợp lệ phải **giữ trạng thái** theo từng ký tự hoặc dùng thư viện đã hiện thực các quy tắc đó; không thể quyết định chỉ từ chính ký tự dấu phẩy.
+A valid parser must **maintain state** character by character or use a library that implements those rules; you cannot decide based on the comma character alone.
 
-Có thể hình dung bốn trạng thái:
+You can picture four states:
 
-| Trạng thái | Ý nghĩa | Xử lý chính |
+| State | Meaning | Main handling |
 | --- | --- | --- |
-| `START` | Đầu trường, chưa có nội dung | `"` mở trường có nháy; dấu phẩy tạo trường rỗng |
-| `UNQUOTED` | Đang đọc trường không có nháy | Dấu phẩy hoặc hết bản ghi kết thúc trường; dấu `"` giữa trường là lỗi theo quy tắc nghiêm ngặt |
-| `QUOTED` | Đang đọc trường trong nháy | Chấp nhận dấu phẩy, `\r` và `\n` như dữ liệu; `""` thêm một dấu `"` |
-| `AFTER_QUOTE` | Đã đọc dấu nháy đóng | Chỉ cho phép dấu phẩy, hết bản ghi hoặc EOF |
+| `START` | Start of field, no content yet | `"` opens a quoted field; a comma creates an empty field |
+| `UNQUOTED` | Reading an unquoted field | A comma or end-of-record ends the field; `"` mid-field is an error under strict rules |
+| `QUOTED` | Reading a quoted field | Accepts commas, `\r`, and `\n` as data; `""` appends one `"` |
+| `AFTER_QUOTE` | Closing quote has been read | Only allows a comma, end-of-record, or EOF |
 
-## 4. Ví dụ Java 17+: phân tích đúng dấu nháy, xuống dòng và trường rỗng
+## 4. Java 17+ example: correctly parsing quotes, newlines, and empty fields
 
-Ví dụ dưới đây là **chương trình đầy đủ**, dùng bộ quét trạng thái cho một biến thể CSV cụ thể: dấu phân cách là `,`, dấu bao trường là `"`, escape dấu nháy bằng `""`, cho phép `CRLF`/`LF`/`CR` làm ranh giới bản ghi, và không bỏ qua khoảng trắng sau dấu nháy đóng. Mục đích là thấy rõ cơ chế; với tệp lớn hoặc dữ liệu không đáng tin cậy, nên dùng thư viện CSV đã được kiểm thử kỹ.
+The example below is a **complete program** using a state scanner for a specific CSV variant: `,` delimiter, `"` quote character, `""` quote escaping, `CRLF`/`LF`/`CR` allowed as record boundaries, and no whitespace allowed after a closing quote. The goal is to show the mechanism clearly; for large files or untrusted data, use a well-tested CSV library.
 
-Lưu dưới tên `CsvExample.java`:
+Save as `CsvExample.java`:
 
 ~~~java
 import java.util.ArrayList;
@@ -123,12 +123,12 @@ public final class CsvExample {
                     if (i + 1 < input.length()
                             && input.charAt(i + 1) == '"') {
                         field.append('"');
-                        i++; // Hai dấu nháy trong CSV tạo một dấu nháy.
+                        i++; // Two quotes in CSV produce one quote.
                     } else {
                         state = State.AFTER_QUOTE;
                     }
                 } else {
-                    field.append(ch); // Bao gồm dấu phẩy và xuống dòng.
+                    field.append(ch); // Includes commas and newlines.
                 }
                 lastWasRecordSeparator = false;
                 continue;
@@ -147,20 +147,20 @@ public final class CsvExample {
                 state = State.START;
                 lastWasRecordSeparator = true;
 
-                // Ngoài nháy, CRLF chỉ kết thúc một bản ghi.
+                // Outside quotes, CRLF ends only one record.
                 if (ch == '\r' && i + 1 < input.length()
                         && input.charAt(i + 1) == '\n') {
                     i++;
                 }
             } else if (state == State.AFTER_QUOTE) {
                 throw new IllegalArgumentException(
-                        "Ký tự sau dấu nháy đóng tại vị trí " + i);
+                        "Character after closing quote at position " + i);
             } else if (state == State.START && ch == '"') {
                 state = State.QUOTED;
                 lastWasRecordSeparator = false;
             } else if (ch == '"') {
                 throw new IllegalArgumentException(
-                        "Dấu nháy không hợp lệ tại vị trí " + i);
+                        "Invalid quote at position " + i);
             } else {
                 field.append(ch);
                 state = State.UNQUOTED;
@@ -169,11 +169,11 @@ public final class CsvExample {
         }
 
         if (state == State.QUOTED) {
-            throw new IllegalArgumentException("Thiếu dấu nháy đóng");
+            throw new IllegalArgumentException("Missing closing quote");
         }
 
-        // Không tạo bản ghi giả sau dấu xuống dòng kết thúc tệp.
-        // Nhưng vẫn giữ trường rỗng cuối cùng nếu tệp kết thúc bằng ','.
+        // Do not create a spurious record after a file-ending newline.
+        // Still keep the final empty field if the file ends with ','.
         if (!input.isEmpty() && !lastWasRecordSeparator) {
             record.add(field.toString());
             records.add(record);
@@ -201,7 +201,7 @@ public final class CsvExample {
 }
 ~~~
 
-Biên dịch và chạy (terminal có JDK 17 trở lên):
+Compile and run (terminal with JDK 17 or later):
 
 ~~~bash
 javac -encoding UTF-8 CsvExample.java
@@ -219,60 +219,60 @@ Dòng 1\nDòng 2
 true
 ~~~
 
-Giải thích kết quả:
+Explanation:
 
-1. Có **3 bản ghi logic**: một header và hai bản ghi dữ liệu. Trường `note` của bản ghi đầu chứa `\n` thật nhưng không tạo thêm bản ghi.
-2. Trường `name` giữ nguyên dấu phẩy `Nguyễn, An`.
-3. Hai dấu nháy kép `""` của CSV được giải mã thành một dấu nháy trong `Nói "xin chào"`.
-4. Bản ghi thứ hai vẫn có **4 trường**, kể cả hai trường rỗng ở cuối.
+1. There are **3 logical records**: one header and two data records. The `note` field of the first record contains a real `\n` without creating an extra record.
+2. The `name` field keeps its comma intact: `Nguyễn, An`.
+3. CSV's two double quotes `""` are unescaped into a single quote in `Nói "xin chào"`.
+4. The second record still has **4 fields**, including the two trailing empty fields.
 
-Parser trên cố ý **nghiêm ngặt**: nó báo lỗi với nháy chưa đóng, nháy xuất hiện giữa trường không có nháy, hoặc ký tự bất hợp lệ ngay sau nháy đóng. Nó đọc toàn bộ `String` vào bộ nhớ, không phát hiện lỗi số cột không đồng nhất, không xử lý BOM, không cho tùy biến delimiter hay cách escape; đó là giới hạn rõ ràng của **ví dụ học cơ chế**, không phải một CSV parser sản xuất tổng quát.
+The parser above is intentionally **strict**: it reports errors for unclosed quotes, quotes appearing inside an unquoted field, or invalid characters immediately after a closing quote. It reads the entire `String` into memory, does not flag inconsistent column counts, does not handle BOMs, and does not allow customizing the delimiter or escape style; those are explicit limitations of a **teaching example for the mechanism**, not a general production CSV parser.
 
-## 5. Vì sao đọc từng dòng rồi `split` cũng sai?
+## 5. Why reading line-by-line then calling `split` is also wrong
 
-Một **bản ghi CSV logic** có thể chiếm nhiều **dòng vật lý**:
+A **logical CSV record** can span multiple **physical lines**:
 
 ~~~csv
 id,comment,status
-1,"Bắt đầu ở đây
-và tiếp tục ở dòng tiếp theo",done
-2,"Một dòng",pending
+1,"Starts here
+and continues on the next line",done
+2,"Single line",pending
 ~~~
 
-Ở đây chỉ có ba bản ghi (gồm header). Nếu gọi `BufferedReader.readLine()` rồi phân tích mỗi dòng như một bản ghi độc lập, giá trị `comment` của id `1` bị chặt đôi. `readLine()` bỏ ký tự xuống dòng, nên còn có nguy cơ làm mất ký tự gốc của trường nhiều dòng.
+There are only three records here (including the header). If you call `BufferedReader.readLine()` and parse each line as an independent record, the `comment` value for id `1` gets cut in half. `readLine()` strips line terminators, so it also risks losing the original newline characters of multi-line fields.
 
-Để xử lý luồng lớn, parser phải đọc từ `Reader` và theo dõi trạng thái nháy **xuyên qua các lần đọc và các dòng vật lý**. Nếu dùng thư viện, ưu tiên API đọc từng bản ghi CSV logic. Cách “gom dòng cho đến khi đếm được số dấu nháy chẵn” cũng dễ sai nếu không xét quy tắc `""` và đầu vào lỗi.
+To process large streams, a parser must read from a `Reader` and track quote state **across reads and physical lines**. When using a library, prefer an API that reads one logical CSV record at a time. The "accumulate lines until an even number of quotes is counted" trick also breaks easily if `""` escaping and malformed inputs are not handled properly.
 
-## 6. Khi nào `split` đủ dùng và khi nào nên dùng thư viện?
+## 6. When is `split` enough and when should you use a library?
 
-`split` phù hợp nếu **đầu vào đã được bảo đảm** là văn bản phân tách đơn giản, không bao giờ chứa dấu phân cách trong giá trị, không dùng cú pháp nháy/escape CSV, không có bản ghi nhiều dòng, và cách xử lý trường rỗng đã được xác định. Đó là giả định về **định dạng đầu vào**, không thể suy ra chỉ vì tệp có đuôi `.csv`.
+`split` is suitable if **the input is guaranteed** to be simple delimited text that never contains delimiters in values, does not use CSV quoting/escaping syntax, has no multi-line records, and has a well-defined empty-field policy. That is an assumption about the **input format**, which cannot be inferred merely from a `.csv` file extension.
 
-Với CSV do người dùng tải lên, CSV xuất từ Excel hoặc hệ thống khác, tệp có trường tự do như tên/địa chỉ/mô tả, hoặc dữ liệu cần độ tin cậy cao, hãy dùng thư viện chuyên dụng như **Apache Commons CSV** hoặc **uniVocity Parsers**. Cấu hình rõ delimiter, quote, escape, kiểu kết thúc bản ghi, header và chính sách báo lỗi theo nguồn dữ liệu; không mặc định mọi CSV đều giống nhau.
+For user-uploaded CSVs, CSVs exported from Excel or other systems, files with free-form fields such as names/addresses/descriptions, or data requiring high reliability, use a dedicated library such as **Apache Commons CSV** or **uniVocity Parsers**. Explicitly configure the delimiter, quote character, escape character, record separator, header handling, and error policy for the data source; do not assume all CSV files are identical.
 
-Khi đưa CSV vào ứng dụng thực tế, còn phải cân nhắc:
+When integrating CSV into a real application, also consider:
 
-- **Encoding và BOM:** giải mã đúng charset (thường UTF-8); nếu có BOM ở đầu tệp, quyết định cách loại bỏ trước khi so khớp tên cột.
-- **Header và số cột:** kiểm tra số cột dự kiến, tên header trùng/thiếu, bản ghi có số trường bất thường; parser đúng cú pháp chưa chắc bảo đảm dữ liệu đúng nghiệp vụ.
-- **Rỗng và thiếu:** `,,`, `""` và trường vắng mặt do bản ghi thiếu cột có thể mang ý nghĩa khác nhau; phải quy định khi ánh xạ sang đối tượng Java.
-- **Khoảng trắng:** `" abc "` giữ khoảng trắng bên trong nháy; tự động `trim()` có thể làm thay đổi dữ liệu. Một số dialect cho phép khoảng trắng sau nháy đóng, nhưng ví dụ Java ở trên không cho phép.
-- **Dòng lỗi và kích thước:** chọn chính sách dừng/bỏ qua bản ghi lỗi, giới hạn độ dài trường và kích thước tệp để tránh dùng quá nhiều bộ nhớ.
-- **Xuất CSV:** khi tạo CSV để mở bằng ứng dụng bảng tính, dữ liệu bắt đầu bằng `=`, `+`, `-`, `@` có thể bị hiểu là công thức. Đây là vấn đề an toàn ở **khâu xuất/nhập bảng tính**, ngoài việc parse CSV cho đúng.
+- **Encoding and BOM:** decode with the right charset (usually UTF-8); if a BOM is present at the start of the file, decide how to strip it before matching column names.
+- **Headers and column counts:** check expected column counts, duplicate/missing header names, and records with unusual field counts; a syntactically valid parse does not guarantee business-valid data.
+- **Empty vs. missing:** `,,`, `""`, and an absent field in a short record may carry different meanings; define how they map to Java objects.
+- **Whitespace:** `" abc "` preserves spaces inside quotes; automatic `trim()` can alter data. Some dialects allow spaces after a closing quote, though the Java example above does not.
+- **Malformed lines and size limits:** choose a policy to fail or skip bad records, and cap field lengths and file sizes to prevent excessive memory usage.
+- **Exporting CSV:** when generating CSV to be opened in spreadsheet applications, values starting with `=`, `+`, `-`, or `@` may be interpreted as formulas. This is a security concern at **spreadsheet import/export time**, separate from parsing CSV correctly.
 
-## 7. Checklist tự kiểm tra
+## 7. Self-check checklist
 
-Một parser CSV cần được kiểm thử tối thiểu với các đầu vào:
+At a minimum, a CSV parser should be tested against these inputs:
 
-| Đầu vào | Kết quả mong đợi |
+| Input | Expected result |
 | --- | --- |
-| `a,b,c` | Một bản ghi, 3 trường |
-| `a,,c` | Trường giữa rỗng |
-| `a,b,` | Giữ trường cuối rỗng |
-| `"a,b",c` | Trường đầu là `a,b` |
-| `"a""b",c` | Trường đầu là `a"b` |
-| `"a\nb",c` (xuống dòng thật trong nháy) | Một bản ghi; trường đầu chứa xuống dòng |
-| `a,b\r\nc,d` | Hai bản ghi với CRLF |
-| `"abc` | Báo lỗi nháy chưa đóng |
-| `"abc"x,y` | Báo lỗi ký tự sau nháy đóng |
-| `a"b,c` | Báo lỗi nháy giữa trường không nháy |
+| `a,b,c` | One record, 3 fields |
+| `a,,c` | Middle field is empty |
+| `a,b,` | Trailing empty field preserved |
+| `"a,b",c` | First field is `a,b` |
+| `"a""b",c` | First field is `a"b` |
+| `"a\nb",c` (actual newline inside quotes) | One record; first field contains newline |
+| `a,b\r\nc,d` | Two records with CRLF |
+| `"abc` | Error for unclosed quote |
+| `"abc"x,y` | Error for character after closing quote |
+| `a"b,c` | Error for quote inside unquoted field |
 
-**Kết luận:** `String.split(",")` nhìn thấy dấu phẩy; CSV parser phải hiểu **ngữ cảnh của dấu phẩy** và **trạng thái nháy**. `split(",", -1)` chỉ sửa việc mất các trường rỗng cuối dòng, không thay thế được phân tích CSV có nháy, escape và bản ghi nhiều dòng.
+**Conclusion:** `String.split(",")` sees commas; a CSV parser must understand **comma context** and **quote state**. `split(",", -1)` only fixes losing trailing empty fields on a line; it cannot replace parsing CSV with quotes, escapes, and multi-line records.

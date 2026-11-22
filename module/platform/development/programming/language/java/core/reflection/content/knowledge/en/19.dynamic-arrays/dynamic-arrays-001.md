@@ -1,56 +1,56 @@
-# Array.newInstance với kiểu thành phần xác định lúc chạy
+# Array.newInstance with Component Type Determined at Runtime
 
-## 1. Từ một đối tượng Class đến một mảng thật
+## 1. From a Class Object to a Real Array
 
-Khi viết `new String[3]`, ta đã chỉ rõ kiểu `String` trong mã nguồn. Nhưng một bộ chuyển đổi dữ liệu, công cụ kiểm thử hoặc thư viện xử lý nhiều loại đối tượng có thể chỉ nhận được một `Class<?>` lúc chương trình đang chạy. Khi đó, `java.lang.reflect.Array.newInstance` tạo mảng dựa trên đối tượng `Class` ấy.
+When writing `new String[3]`, we explicitly specify the `String` type in the source code. However, a data converter, testing tool, or library handling multiple object types might only receive a `Class<?>` while the program is running. In that case, `java.lang.reflect.Array.newInstance` creates an array based on that `Class` object.
 
-Ở đây, **kiểu thành phần (component type)** là kiểu của mỗi ô trực tiếp trong mảng. Với `String[]`, đó là `String`; với `String[][]`, đó là `String[]`. Bài học tập trung vào việc chọn đúng kiểu và cấp phát đúng hình dạng mảng.
+Here, the **component type** is the type of each direct slot in the array. For `String[]`, it is `String`; for `String[][]`, it is `String[]`. This lesson focuses on choosing the right type and allocating the right array shape.
 
-“Mảng động” trong ngữ cảnh này nghĩa là **quyết định kiểu hoặc kích thước khi chạy**. Mảng được tạo vẫn có độ dài cố định. Muốn thêm phần tử vượt độ dài cũ, ta phải tạo mảng khác và sao chép dữ liệu, hoặc dùng cấu trúc như `ArrayList`.
+"Dynamic array" in this context means **determining the type or size at runtime**. The created array still has a fixed length. To add elements beyond the old length, you must create another array and copy the data, or use a structure like `ArrayList`.
 
-Ví dụ minh họa trong một phương thức, với import `java.lang.reflect.Array`:
+An illustrative example inside a method, with `java.lang.reflect.Array` imported:
 
 ~~~java
 Class<?> componentType = String.class;
 Object result = Array.newInstance(componentType, 3);
 ~~~
 
-Kết quả là một đối tượng có kiểu thực tế `String[]`, dù biến `result` được khai báo là `Object`. Đây là **cấp phát mảng**, không chỉ là truy vấn thông tin về một kiểu.
+The result is an object whose runtime type is `String[]`, even though the `result` variable is declared as `Object`. This is **array allocation**, not merely querying information about a type.
 
-## 2. Hợp đồng của hai overload
+## 2. Contract of the Two Overloads
 
-Hai dạng sử dụng chính:
+Two primary usage forms:
 
 ~~~java
 Array.newInstance(Class<?> componentType, int length)
 Array.newInstance(Class<?> componentType, int... dimensions)
 ~~~
 
-Đoạn trên biểu diễn cách gọi API, không phải khai báo phương thức đầy đủ để biên dịch.
+The snippet above represents how the API is called, not a complete compilable method declaration.
 
-- `componentType` mô tả kiểu dùng để tạo mảng.
-- `length` là độ dài của một chiều mới.
-- `dimensions` cho biết độ dài của các chiều mới.
-- Giá trị trả về có kiểu khai báo `Object`, còn kiểu mảng thực tế được quyết định bởi đầu vào.
+- `componentType` describes the type used to create the array.
+- `length` is the length of a single new dimension.
+- `dimensions` specifies the lengths of the new dimensions.
+- The return value has declared type `Object`, while the actual array type is determined by the input.
 
-Bảng đọc nhanh:
+Quick-reference table:
 
-| Lời gọi | Kiểu thực tế | Nội dung ngay sau khi tạo |
+| Call | Actual Type | Contents Immediately After Creation |
 | --- | --- | --- |
-| `Array.newInstance(String.class, 3)` | `String[]` | Ba ô chứa `null` |
-| `Array.newInstance(int.class, 3)` | `int[]` | Ba ô chứa `0` |
-| `Array.newInstance(Integer.class, 3)` | `Integer[]` | Ba ô chứa `null` |
-| `Array.newInstance(Runnable.class, 2)` | `Runnable[]` | Hai ô chứa `null` |
-| `Array.newInstance(String.class, 2, 3)` | `String[][]` | Hai mảng con, mỗi mảng có ba ô `null` |
-| `Array.newInstance(String[].class, 2)` | `String[][]` | Hai ô ngoài chứa `null`; chưa tạo mảng con |
+| `Array.newInstance(String.class, 3)` | `String[]` | Three slots containing `null` |
+| `Array.newInstance(int.class, 3)` | `int[]` | Three slots containing `0` |
+| `Array.newInstance(Integer.class, 3)` | `Integer[]` | Three slots containing `null` |
+| `Array.newInstance(Runnable.class, 2)` | `Runnable[]` | Two slots containing `null` |
+| `Array.newInstance(String.class, 2, 3)` | `String[][]` | Two subarrays, each with three `null` slots |
+| `Array.newInstance(String[].class, 2)` | `String[][]` | Two outer slots containing `null`; subarrays not yet created |
 
-Lời gọi với một số nguyên, chẳng hạn `newInstance(String.class, 3)`, dùng overload `int length`. Muốn truyền các kích thước như một giá trị, có thể dùng `newInstance(String.class, new int[] {2, 3})`.
+A call with a single integer, such as `newInstance(String.class, 3)`, uses the `int length` overload. To pass the sizes as a single value, you can use `newInstance(String.class, new int[] {2, 3})`.
 
-Không viết `new componentType[3]`: một biến kiểu `Class<?>` không thể thay thế tên kiểu trong cú pháp `new T[n]`.
+Do not write `new componentType[3]`: a variable of type `Class<?>` cannot replace a type name in the `new T[n]` syntax.
 
-## 3. Ví dụ chạy được: cùng một luồng xử lý, hai kiểu mảng
+## 3. Runnable Example: One Processing Flow, Two Array Types
 
-Lưu thành `DynamicArrayCreationDemo.java`. Chương trình dùng một tham số dòng lệnh để chọn kiểu thành phần khi chạy:
+Save as `DynamicArrayCreationDemo.java`. The program uses a command-line argument to select the component type at runtime:
 
 ~~~java
 import java.lang.reflect.Array;
@@ -88,14 +88,14 @@ public class DynamicArrayCreationDemo {
 }
 ~~~
 
-Biên dịch bằng JDK 17 trở lên:
+Compile with JDK 17 or later:
 
 ~~~bash
 javac --release 17 DynamicArrayCreationDemo.java
 java DynamicArrayCreationDemo text
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 type=java.lang.String[]
@@ -106,13 +106,13 @@ value[0]=Lan
 is Object[]=true
 ~~~
 
-Chạy lại với lựa chọn còn lại:
+Run again with the remaining option:
 
 ~~~bash
 java DynamicArrayCreationDemo count
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 type=int[]
@@ -123,66 +123,66 @@ value[0]=7
 is Object[]=false
 ~~~
 
-Hãy đọc ví dụ theo ba bước:
+Read the example in three steps:
 
-1. `selectComponentType` quyết định đối tượng `Class` từ dữ liệu đầu vào.
-2. `Array.newInstance` dùng kiểu đó để tạo mảng có ba ô, với giá trị mặc định tương ứng.
-3. `Array.getLength`, `Array.get` và `Array.setInt`/`Array.set` thao tác trên mảng qua biến `Object`.
+1. `selectComponentType` determines the `Class` object from the input data.
+2. `Array.newInstance` uses that type to create an array with three slots, with the corresponding default values.
+3. `Array.getLength`, `Array.get`, and `Array.setInt`/`Array.set` operate on the array through the `Object` variable.
 
-Phần ghi và đọc phần tử chỉ nhằm chứng minh mảng đã được tạo đúng kiểu. Việc tạo mảng không tự điền các giá trị nghiệp vụ như `"Lan"` hoặc `7`.
+Writing and reading an element is only meant to prove that the array was created with the right type. Creating the array does not automatically populate business values like `"Lan"` or `7`.
 
-Cách chọn kiểu trong ví dụ là một danh sách lựa chọn nhỏ, dễ kiểm soát. Trong ứng dụng thật, `Class<?>` còn có thể đến từ tham số phương thức, metadata của một field hoặc kiểu thực tế của một mảng có sẵn. Cần xác định rõ nguồn nào là hợp đồng đúng cho dữ liệu đang xử lý.
+The way the type is chosen in the example is a small, easy-to-control list of choices. In a real application, `Class<?>` can also come from a method parameter, metadata of a field, or the actual type of an existing array. You must clearly determine which source is the right contract for the data being processed.
 
-## 4. Vì sao kết quả là Object, và khi nào ép kiểu được?
+## 4. Why Is the Result Object, and When Can You Cast?
 
-Mảng nguyên thủy như `int[]` cũng là một đối tượng, nên có thể gán cho biến `Object`. Nhưng `int[]` **không phải** là `Object[]`. Các phần tử của nó là giá trị `int`, không phải các tham chiếu đối tượng.
+Primitive arrays like `int[]` are also objects, so they can be assigned to an `Object` variable. However, `int[]` is **not** an `Object[]`. Its elements are `int` values, not object references.
 
-Các đoạn sau là minh họa trong một phương thức có import `java.lang.reflect.Array`:
+The following snippets are illustrations inside a method with `java.lang.reflect.Array` imported:
 
 ~~~java
 Object raw = Array.newInstance(int.class, 2);
-int[] numbers = (int[]) raw;       // Hop le: kieu thuc te la int[].
-// Object[] wrong = (Object[]) raw; // Neu chay: ClassCastException.
+int[] numbers = (int[]) raw;       // Valid: actual type is int[].
+// Object[] wrong = (Object[]) raw; // If run: ClassCastException.
 ~~~
 
-Ngược lại:
+Conversely:
 
 ~~~java
 Object raw = Array.newInstance(String.class, 2);
-String[] names = (String[]) raw;  // Hop le: kieu thuc te la String[].
-Object[] references = names;     // String[] la mot loai Object[].
+String[] names = (String[]) raw;  // Valid: actual type is String[].
+Object[] references = names;     // String[] is a kind of Object[].
 ~~~
 
-Phép ép kiểu không chuyển đổi mảng này thành mảng khác. Nó chỉ kiểm tra xem đối tượng hiện có có phù hợp với kiểu đích hay không. Vì thế:
+A cast does not convert one array into another. It only checks whether the existing object matches the target type. Therefore:
 
-- Nếu mã gọi biết chắc hợp đồng trả về là `String[]`, có thể ép về `String[]`.
-- Nếu mã gọi phải hỗ trợ cả `String[]`, `int[]`, `boolean[]` và các kiểu khác, nên giữ biến `Object` rồi dùng API `Array`.
-- Muốn biến `int[]` thành `Integer[]`, phải tạo mảng đích và chuyển từng giá trị; ép kiểu không làm việc đóng hộp cho toàn bộ mảng.
+- If the caller knows for sure the return contract is `String[]`, it can cast to `String[]`.
+- If the caller must support `String[]`, `int[]`, `boolean[]`, and other types, it should keep the `Object` variable and use the `Array` API.
+- To turn an `int[]` into an `Integer[]`, you must create the target array and transfer each value; casting does not box the entire array.
 
-`Array.get` trả về `Object`; khi đọc từ mảng nguyên thủy, giá trị được đóng hộp. Điều đó giải thích vì sao lệnh in trong ví dụ có thể xử lý cả hai loại mảng, nhưng **không biến `int[]` thành mảng tham chiếu**.
+`Array.get` returns `Object`; when reading from a primitive array, the value is boxed. That explains why the print statement in the example can handle both kinds of arrays, yet **does not turn `int[]` into a reference array**.
 
-Kiểu `int.class` và `Integer.class` là hai đầu vào khác nhau. Chọn nhầm chúng sẽ tạo sai loại mảng ngay từ bước cấp phát.
+The types `int.class` and `Integer.class` are two different inputs. Choosing the wrong one between them creates the wrong kind of array right from the allocation step.
 
-## 5. Mảng nhiều chiều: phân biệt kiểu và các mảng con đã được tạo
+## 5. Multidimensional Arrays: Distinguishing the Type from the Already-Created Subarrays
 
-Java biểu diễn mảng nhiều chiều bằng mảng chứa các tham chiếu đến mảng con. Vì vậy, cần trả lời riêng hai câu hỏi:
+Java represents multidimensional arrays as arrays containing references to subarrays. Therefore, two separate questions must be answered:
 
-1. Đối tượng ngoài cùng có kiểu gì?
-2. Những mảng con nào đã được cấp phát, với độ dài bao nhiêu?
+1. What type does the outermost object have?
+2. Which subarrays have been allocated, and with what lengths?
 
-Nếu kiểu đầu vào đã có `k` chiều và lời gọi bổ sung `d` kích thước, kiểu kết quả có `k + d` chiều. Các chiều đã có trong kiểu đầu vào không tự được cấp phát thành mảng con.
+If the input type already has `k` dimensions and the call adds `d` sizes, the resulting type has `k + d` dimensions. The dimensions already present in the input type are not automatically allocated into subarrays.
 
-Ví dụ:
+Examples:
 
-| Đầu vào | Kiểu kết quả | Phần được cấp phát |
+| Input | Result Type | Allocated Part |
 | --- | --- | --- |
-| `String.class, 2, 3` | `String[][]` | Mảng ngoài dài 2 và hai mảng `String[]` dài 3 |
-| `String[].class, 2` | `String[][]` | Mảng ngoài dài 2; mỗi ô đang là `null` |
-| `String[].class, 2, 3` | `String[][][]` | Mảng ngoài dài 2, các mảng tầng tiếp theo dài 3; các ô chứa `String[]` ở tầng ấy vẫn là `null` |
+| `String.class, 2, 3` | `String[][]` | Outer array of length 2 and two `String[]` arrays of length 3 |
+| `String[].class, 2` | `String[][]` | Outer array of length 2; each slot is currently `null` |
+| `String[].class, 2, 3` | `String[][][]` | Outer array of length 2, next-level arrays of length 3; the slots holding `String[]` at that level remain `null` |
 
-Đừng truyền `String[].class` khi ý định là tạo một `String[]`. Đầu vào đó đã là một kiểu mảng; thêm một chiều sẽ tạo `String[][]`.
+Do not pass `String[].class` when the intention is to create a `String[]`. That input is already an array type; adding one dimension creates `String[][]`.
 
-Lưu chương trình sau thành `ArrayDimensionsDemo.java`:
+Save the following program as `ArrayDimensionsDemo.java`:
 
 ~~~java
 import java.lang.reflect.Array;
@@ -214,14 +214,14 @@ public class ArrayDimensionsDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 ArrayDimensionsDemo.java
 java ArrayDimensionsDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 rect.type=java.lang.String[][]
@@ -234,15 +234,15 @@ outer.row0=null
 outer.values=[[A], null]
 ~~~
 
-Hai mảng có cùng kiểu thực tế `String[][]`, nhưng hình dạng dữ liệu khác nhau. Mảng thứ nhất được tạo đầy đủ theo hai kích thước. Mảng thứ hai mới có tầng ngoài; mã phải gán từng mảng con khi cần.
+Both arrays have the same actual type `String[][]`, but their data shapes differ. The first array is fully created across two dimensions. The second array only has the outer layer; the code must assign each subarray when needed.
 
-`getComponentType()` bóc đúng **một tầng**. Với `String[][]`, nó trả về `String[].class`, không trả ngay `String.class`. Muốn biết kiểu phần tử ở tầng sâu nhất, cần tiếp tục bóc khi `Class.isArray()` còn trả về `true`.
+`getComponentType()` peels off exactly **one layer**. For `String[][]`, it returns `String[].class`, not `String.class` directly. To find the element type at the deepest level, you need to keep peeling while `Class.isArray()` still returns `true`.
 
-Độ dài bằng 0 vẫn hợp lệ: `Array.newInstance(int.class, 2, 0)` tạo một `int[][]` có hai mảng con rỗng. Độ dài và số chiều là hai thông tin khác nhau.
+A length of 0 is still valid: `Array.newInstance(int.class, 2, 0)` creates an `int[][]` with two empty subarrays. Length and number of dimensions are two different pieces of information.
 
-## 6. Lấy component type từ một mảng có sẵn
+## 6. Getting the Component Type from an Existing Array
 
-Một nhu cầu thực tế là tạo mảng mới cùng kiểu với mảng nguồn, nhưng có độ dài khác. Đoạn sau là một phương thức tiện ích; đặt trong một lớp có import `java.lang.reflect.Array` và `java.util.Objects`:
+A practical need is creating a new array of the same type as a source array, but with a different length. The snippet below is a utility method; place it in a class with `java.lang.reflect.Array` and `java.util.Objects` imported:
 
 ~~~java
 static Object emptyLike(Object sourceArray, int newLength) {
@@ -255,92 +255,92 @@ static Object emptyLike(Object sourceArray, int newLength) {
 }
 ~~~
 
-Ví dụ gọi trong cùng lớp:
+Example calls in the same class:
 
 ~~~java
 Object first = emptyLike(new long[] {10L, 20L}, 4);
-// first la long[4], tat ca gia tri ban dau bang 0L.
+// first is long[4], all initial values equal 0L.
 
 Object second = emptyLike(new String[][] {{"A"}}, 3);
-// second la String[3][], ba tham chieu mang con deu null.
+// second is String[3][], all three subarray references are null.
 ~~~
 
-Hàm này **chỉ tạo mảng rỗng cùng kiểu**, không sao chép phần tử. Với mảng nhiều chiều, nó cấp phát tầng ngoài và giữ kiểu của các ô bên trong; không nhân bản các mảng con.
+This function **only creates an empty array of the same type**, without copying elements. For multidimensional arrays, it allocates the outer layer and preserves the type of the inner slots; it does not clone the subarrays.
 
-Phải kiểm tra `isArray()` trước khi lấy component type. Với một lớp không phải mảng, `getComponentType()` trả về `null`; đưa giá trị đó cho `Array.newInstance` không thể tạo mảng mong muốn.
+You must check `isArray()` before getting the component type. For a non-array class, `getComponentType()` returns `null`; passing that value to `Array.newInstance` cannot create the desired array.
 
-Cũng cần phân biệt **kiểu khai báo** và **kiểu thực tế**. Nếu biến khai báo `Number[]` đang trỏ đến một `Integer[]`, lấy từ `sourceArray.getClass()` sẽ giữ kiểu `Integer[]`. Nếu yêu cầu nghiệp vụ là tạo `Number[]`, cần truyền `Number.class` rõ ràng thay vì suy ra từ đối tượng nguồn.
+You also need to distinguish between **declared type** and **actual type**. If a variable declared as `Number[]` is pointing to an `Integer[]`, obtaining the type from `sourceArray.getClass()` preserves `Integer[]`. If the business requirement is to create a `Number[]`, you must pass `Number.class` explicitly instead of inferring it from the source object.
 
-## 7. Tạo mảng không phải tạo từng phần tử
+## 7. Creating an Array Does Not Create Each Element
 
-Với kiểu tham chiếu, bước cấp phát tạo các ô chứa `null`. Ví dụ `Array.newInstance(Runnable.class, 2)` hợp lệ dù `Runnable` là interface. Không có đối tượng thực thi `Runnable` nào được sinh ra bởi lời gọi ấy.
+For reference types, the allocation step creates slots containing `null`. For example, `Array.newInstance(Runnable.class, 2)` is valid even though `Runnable` is an interface. No object implementing `Runnable` is produced by that call.
 
-Tương tự, có thể tạo mảng của một lớp trừu tượng hoặc một lớp không có constructor không tham số. Không cần gọi constructor của lớp thành phần để tạo mảng tham chiếu. Việc tạo hoặc tìm từng đối tượng để điền vào các ô là một bước riêng.
+Similarly, you can create an array of an abstract class or a class without a no-argument constructor. There is no need to invoke the component class's constructor to create a reference array. Creating or finding individual objects to fill the slots is a separate step.
 
-Với kiểu nguyên thủy, các ô nhận giá trị mặc định: kiểu số nhận 0 tương ứng, `boolean` nhận `false`, `char` nhận ký tự `'\u0000'`. Ký tự này không phải chữ số `'0'` và thường không nhìn thấy khi in trực tiếp.
+For primitive types, slots receive default values: numeric types receive the corresponding 0, `boolean` receives `false`, and `char` receives the character `'\u0000'`. This character is not the digit `'0'` and is usually invisible when printed directly.
 
-Vì vậy, khi thiết kế một bộ chuyển đổi dữ liệu, hãy tách rõ:
+Therefore, when designing a data converter, clearly separate:
 
-1. Chọn đúng kiểu mảng đích.
-2. Cấp phát đúng độ dài/hình dạng.
-3. Chuyển đổi và gán từng giá trị tương thích.
+1. Choosing the right target array type.
+2. Allocating the right length/shape.
+3. Converting and assigning each compatible value.
 
-Thành công ở bước 2 chưa chứng minh dữ liệu đầu vào chuyển đổi được ở bước 3.
+Success in step 2 does not prove that the input data can be converted in step 3.
 
-## 8. Giới hạn đầu vào và lỗi thường gặp
+## 8. Input Limits and Common Errors
 
-| Tình huống | Kết quả cần dự kiến |
+| Situation | Expected Result |
 | --- | --- |
-| `Array.newInstance(null, 3)` | `NullPointerException`: thiếu kiểu thành phần |
+| `Array.newInstance(null, 3)` | `NullPointerException`: missing component type |
 | `Array.newInstance(String.class, -1)` | `NegativeArraySizeException` |
-| `Array.newInstance(String.class, 0)` | Hợp lệ: tạo mảng rỗng |
-| `Array.newInstance(void.class, 1)` | `IllegalArgumentException`: không có mảng `void[]` |
-| `Array.newInstance(String.class, new int[0])` | `IllegalArgumentException`: không cung cấp chiều nào |
-| Tổng số chiều yêu cầu vượt 255 | `IllegalArgumentException` |
-| Độ dài hợp lệ nhưng không đủ bộ nhớ để cấp phát | Có thể gặp `OutOfMemoryError` |
+| `Array.newInstance(String.class, 0)` | Valid: creates an empty array |
+| `Array.newInstance(void.class, 1)` | `IllegalArgumentException`: there is no `void[]` array |
+| `Array.newInstance(String.class, new int[0])` | `IllegalArgumentException`: no dimensions provided |
+| Total requested dimensions exceed 255 | `IllegalArgumentException` |
+| Valid length but insufficient memory to allocate | May encounter `OutOfMemoryError` |
 
-`new int[0]` trong bảng là **một danh sách kích thước rỗng**, không phải một chiều có độ dài 0. Một chiều rỗng phải được diễn tả bằng `new int[] {0}` hoặc overload nhận `length = 0`.
+`new int[0]` in the table is **an empty list of sizes**, not a single dimension of length 0. An empty dimension must be expressed using `new int[] {0}` or the overload taking `length = 0`.
 
-Kiểm tra độ dài không âm chưa đủ cho dữ liệu bên ngoài. Một kích thước rất lớn vẫn có thể làm ứng dụng tiêu thụ quá nhiều bộ nhớ; nên áp dụng giới hạn theo yêu cầu của ứng dụng trước khi cấp phát. Với nhiều chiều, cần xét toàn bộ hình dạng, không chỉ độ dài mảng ngoài.
+Checking for non-negative length is not enough for external data. A very large size can still cause the application to consume too much memory; you should enforce an application-specific limit before allocating. For multiple dimensions, you must inspect the entire shape, not just the outer array length.
 
-Đừng bắt mọi lỗi rồi trả về `new Object[0]` như một cách “dự phòng” âm thầm. Cách đó làm mất kiểu đích và che giấu đầu vào sai; mã sử dụng sau đó sẽ khó xác định nguyên nhân.
+Do not catch every error and silently return `new Object[0]` as a "fallback". That loses the target type and hides invalid input; downstream calling code will have a hard time identifying the cause.
 
-## 9. Liên hệ với generic và lựa chọn API
+## 9. Connection to Generics and API Choice
 
-Java không cho viết `new T[n]` với một biến kiểu generic thông thường, vì kiểu `T` không cung cấp đủ thông tin cụ thể để cấp phát mảng trong mã ấy. Truyền thêm một đối tượng `Class` là một cách cung cấp kiểu lúc chạy cho `Array.newInstance`.
+Java does not allow writing `new T[n]` with an ordinary generic type parameter, because the type `T` does not provide enough concrete information to allocate the array in that code. Passing an extra `Class` object is one way to supply the runtime type to `Array.newInstance`.
 
-Tuy nhiên, Reflection không khôi phục mọi thông tin generic đã bị xóa:
+However, Reflection does not recover all erased generic information:
 
-- Không có cú pháp `List<String>.class`.
-- `Array.newInstance(List.class, n)` tạo mảng có kiểu thực tế `List[]`; JVM không vì thế kiểm chứng rằng mọi danh sách bên trong chỉ chứa `String`.
-- Không được hứa rằng một hàm trả `T[]` hỗ trợ mọi đầu vào `Class`, bao gồm kiểu nguyên thủy, chỉ bằng một phép ép kiểu không kiểm tra.
+- There is no `List<String>.class` syntax.
+- `Array.newInstance(List.class, n)` creates an array whose actual type is `List[]`; the JVM does not thereby verify that every list inside contains only `String`.
+- Do not promise that a function returning `T[]` supports every `Class` input, including primitive types, merely by an unchecked cast.
 
-Trong bài này, kiểu trả về `Object` giúp giữ đúng khả năng hỗ trợ cả mảng nguyên thủy và mảng tham chiếu. Khi thiết kế một hàm generic riêng, phải xác định hợp đồng kiểu tham chiếu và kiểm soát chỗ ép kiểu; không sao chép phép ép `(T[])` mà bỏ qua điều kiện hợp lệ.
+In this lesson, the `Object` return type preserves the ability to support both primitive arrays and reference arrays. When designing your own generic function, you must define the reference-type contract and control the cast site; do not copy a `(T[])` cast while omitting validity conditions.
 
-Nên dùng `new String[n]` khi đã biết kiểu trong mã nguồn: cách này trực tiếp và được trình biên dịch kiểm tra rõ ràng. Dùng `Array.newInstance` khi việc chọn kiểu là dữ liệu của quá trình chạy. Nếu nhu cầu chính là tăng/giảm số phần tử liên tục, cân nhắc collection thay vì dùng Reflection cho mọi thao tác.
+Use `new String[n]` when the type is already known in source code: this approach is direct and clearly checked by the compiler. Use `Array.newInstance` when choosing the type is runtime data. If the primary need is continuously growing/shrinking the number of elements, consider a collection instead of using Reflection for every operation.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-1. `Array.newInstance(Integer.class, 2)` tạo `Integer[]` hay `int[]`? Giá trị mặc định là gì?
-2. Vì sao một `int[]` có thể gán vào `Object` nhưng không thể ép thành `Object[]`?
-3. `Array.newInstance(String[].class, 4)` có tạo bốn chuỗi hay bốn mảng con hay không?
-4. Muốn tạo đầy đủ một bảng `String[4][2]`, nên truyền kiểu nào và các kích thước nào?
-5. Hàm `emptyLike` có sao chép giá trị từ mảng nguồn không?
+1. Does `Array.newInstance(Integer.class, 2)` create `Integer[]` or `int[]`? What are the default values?
+2. Why can an `int[]` be assigned to `Object` yet cannot be cast to `Object[]`?
+3. Does `Array.newInstance(String[].class, 4)` create four strings or four subarrays?
+4. To fully create a `String[4][2]` table, what type and sizes should be passed?
+5. Does the `emptyLike` function copy values from the source array?
 
-Đáp án:
+Answers:
 
-1. `Integer[]`, hai ô `null`; `int.class` mới tạo mảng nguyên thủy `int[]`.
-2. Bản thân mảng là một đối tượng, nhưng các ô `int` không phải tham chiếu đối tượng để tạo thành `Object[]`.
-3. Nó tạo `String[4][]`; cả bốn ô ngoài đều `null`, chưa có mảng con hoặc chuỗi nào được tạo.
+1. `Integer[]`, two `null` slots; `int.class` is what creates the primitive array `int[]`.
+2. The array itself is an object, but the `int` slots are not object references to form an `Object[]`.
+3. It creates `String[4][]`; all four outer slots are `null`, and no subarrays or strings have been created yet.
 4. `Array.newInstance(String.class, 4, 2)`.
-5. Không. Hàm chỉ giữ kiểu thực tế của mảng và cấp phát một mảng mới với giá trị mặc định.
+5. No. The function only preserves the array's actual type and allocates a new array with default values.
 
-Điểm cần nhớ: đối tượng `Class` là thông tin đầu vào để chọn kiểu; `Array.newInstance` dùng thông tin ấy để cấp phát một mảng thật. Kiểu mảng, số chiều, độ dài và giá trị các ô là những khía cạnh phải kiểm tra riêng.
+Key takeaway: the `Class` object is the input information for selecting the type; `Array.newInstance` uses that information to allocate a real array. The array type, number of dimensions, lengths, and slot values are aspects that must be checked separately.
 
-## Tài liệu đối chiếu
+## Reference Materials
 
-- [Java 17 — Array.newInstance và API thao tác mảng](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Array.html).
+- [Java 17 — Array.newInstance and Array Manipulation API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Array.html).
 - [Java 17 — Class.getComponentType](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getComponentType()).
-- [JLS 17 — Chương 10: kiểu mảng và mảng nhiều chiều](https://docs.oracle.com/javase/specs/jls/se17/html/jls-10.html).
-- [JLS 17 — Tạo mảng](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.10.1).
-- [JLS 17 — Kiểu có thông tin đầy đủ lúc chạy](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.7).
+- [JLS 17 — Chapter 10: Array Types and Multidimensional Arrays](https://docs.oracle.com/javase/specs/jls/se17/html/jls-10.html).
+- [JLS 17 — Array Creation](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.10.1).
+- [JLS 17 — Reifiable Types (Types with Complete Runtime Information)](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.7).

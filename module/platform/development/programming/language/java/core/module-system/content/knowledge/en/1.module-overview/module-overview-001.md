@@ -1,42 +1,42 @@
-# Java Platform Module System (JPMS) là gì?
+# What is the Java Platform Module System (JPMS)?
 
-Java Platform Module System (JPMS) là hệ thống mô-đun được đưa vào Java 9. Nó cho phép chia một ứng dụng hoặc thư viện thành các mô-đun có tên, khai báo rõ mô-đun nào phụ thuộc vào mô-đun nào và gói nào được phép cung cấp ra bên ngoài.
+The Java Platform Module System (JPMS) is the module system introduced in Java 9. It allows splitting an application or library into named modules, explicitly declaring which module depends on which module and which packages are allowed to be exposed externally.
 
-Trước JPMS, Java chủ yếu tổ chức mã nguồn bằng package và quản lý phụ thuộc lúc chạy qua classpath. Package giúp nhóm lớp theo namespace, nhưng bản thân package không nói rõ ứng dụng cần những thư viện nào hoặc package nào là API công khai. JPMS bổ sung một ranh giới ở cấp mô-đun để giải quyết hai vấn đề đó.
+Before JPMS, Java primarily organized source code using packages and managed runtime dependencies through the classpath. Packages help group classes by namespace, but a package by itself does not specify which libraries an application needs or which packages form the public API. JPMS adds a module-level boundary to solve both of those problems.
 
-## 1. Vì sao Java cần hệ thống mô-đun?
+## 1. Why does Java need a module system?
 
-Khi ứng dụng lớn dần, việc đặt tất cả JAR lên classpath tạo ra một số khó khăn:
+As an application grows, placing all JARs on the classpath creates several difficulties:
 
-- **Phụ thuộc khó nhìn thấy:** một thư viện có thể sử dụng lớp từ thư viện khác mà cấu hình build không thể hiện rõ quan hệ đó.
-- **Ranh giới API không rõ:** nhiều package nội bộ vẫn có thể bị ứng dụng khác truy cập nếu lớp và thành viên của chúng là public.
-- **Lỗi cấu hình xuất hiện muộn:** thiếu hoặc xung đột thư viện thường chỉ lộ ra khi chạy ứng dụng.
-- **JDK quá lớn so với nhu cầu:** ứng dụng nhỏ vẫn thường chạy trên một JRE chứa nhiều thành phần không dùng đến.
+- **Hidden dependencies:** one library can use classes from another library without the build configuration clearly expressing that relationship.
+- **Unclear API boundaries:** many internal packages can still be accessed by other applications if their classes and members are public.
+- **Late configuration errors:** missing or conflicting libraries often only surface at application runtime.
+- **Oversized JDK for actual needs:** small applications still typically run on a JRE containing many unused components.
 
-JPMS cung cấp các cơ chế để:
+JPMS provides mechanisms to:
 
-1. Khai báo phụ thuộc ngay trong mô-đun.
-2. Chỉ công khai những package được chọn.
-3. Hỗ trợ kiểm tra và phân giải đồ thị mô-đun khi biên dịch hoặc khởi chạy.
-4. Chia JDK thành các mô-đun nhỏ và tạo runtime image gọn hơn bằng công cụ như jlink.
+1. Declare dependencies directly within the module.
+2. Expose only selected packages.
+3. Support checking and resolving the module graph at compile time or launch time.
+4. Split the JDK into smaller modules and create leaner runtime images with tools such as jlink.
 
-JPMS không thay thế package. Package vẫn tổ chức lớp theo namespace; mô-đun gom một hoặc nhiều package và định nghĩa ranh giới phụ thuộc, truy cập của chúng.
+JPMS does not replace packages. Packages still organize classes by namespace; a module groups one or more packages and defines their dependency and access boundaries.
 
-## 2. Mô-đun là gì?
+## 2. What is a module?
 
-Một **named module** là một đơn vị có tên, chứa các package và tài nguyên, đồng thời có một module descriptor mô tả cách mô-đun hoạt động. Descriptor thường được viết trong file **module-info.java** ở thư mục gốc của source set.
+A **named module** is a named unit that contains packages and resources, along with a module descriptor that describes how the module works. The descriptor is typically written in a **module-info.java** file at the root directory of the source set.
 
-Một mô-đun thường có:
+A module typically has:
 
-- Tên ổn định, thường theo quy ước tên miền đảo ngược như **com.example.orders**.
-- Một hoặc nhiều package.
-- Danh sách mô-đun mà nó cần đọc.
-- Danh sách package được export để mô-đun khác sử dụng.
-- Các khai báo mở package cho reflection hoặc cung cấp dịch vụ, nếu cần.
+- A stable name, usually following reverse domain name conventions such as **com.example.orders**.
+- One or more packages.
+- A list of modules that it needs to read.
+- A list of packages exported for other modules to use.
+- Declarations opening packages for reflection or providing services, if needed.
 
-Sau khi biên dịch, descriptor trở thành **module-info.class**. Khi đóng gói thành modular JAR, file này nằm ở gốc JAR.
+After compilation, the descriptor becomes **module-info.class**. When packaged as a modular JAR, this file resides at the root of the JAR.
 
-Ví dụ cấu trúc đơn giản:
+Example of a simple structure:
 
 ~~~text
 project/
@@ -46,7 +46,7 @@ project/
         └── com/example/greetings/api/GreetingService.java
 ~~~
 
-Nội dung descriptor:
+Descriptor content:
 
 ~~~java
 module com.example.greetings {
@@ -54,16 +54,16 @@ module com.example.greetings {
 }
 ~~~
 
-Khai báo trên đặt tên mô-đun là **com.example.greetings** và công khai package **com.example.greetings.api**. Các package khác trong mô-đun vẫn được giữ kín với những mô-đun bên ngoài, trừ khi được export hoặc open riêng.
+The declaration above names the module **com.example.greetings** and exposes the **com.example.greetings.api** package. Other packages in the module remain hidden from external modules unless explicitly exported or opened.
 
-## 3. Hai khai báo quan trọng nhất: requires và exports
+## 3. The two most important declarations: requires and exports
 
-JPMS tách hai câu hỏi khác nhau:
+JPMS separates two different questions:
 
-- **requires:** mô-đun hiện tại cần đọc mô-đun nào?
-- **exports:** mô-đun hiện tại cho phép mô-đun khác truy cập package nào?
+- **requires:** which modules does the current module need to read?
+- **exports:** which packages does the current module allow other modules to access?
 
-Ví dụ có hai mô-đun:
+Suppose there are two modules:
 
 ~~~text
 src/
@@ -75,7 +75,7 @@ src/
     └── com/example/app/Main.java
 ~~~
 
-Mô-đun thư viện công khai API:
+The library module exposes its API:
 
 ~~~java
 module com.example.greetings {
@@ -83,7 +83,7 @@ module com.example.greetings {
 }
 ~~~
 
-Mô-đun ứng dụng khai báo phụ thuộc vào thư viện:
+The application module declares its dependency on the library:
 
 ~~~java
 module com.example.app {
@@ -91,19 +91,19 @@ module com.example.app {
 }
 ~~~
 
-Lớp API trong thư viện:
+The API class in the library:
 
 ~~~java
 package com.example.greetings.api;
 
 public class GreetingService {
     public String greet(String name) {
-        return "Xin chào, " + name + "!";
+        return "Hello, " + name + "!";
     }
 }
 ~~~
 
-Lớp sử dụng API:
+The class using the API:
 
 ~~~java
 package com.example.app;
@@ -118,27 +118,27 @@ public class Main {
 }
 ~~~
 
-**requires** làm cho mô-đun ứng dụng đọc được mô-đun thư viện. **exports** cho phép ứng dụng truy cập các kiểu public thuộc package API. Chỉ có **public** trên lớp là chưa đủ: package chứa lớp cũng phải được export tới mô-đun đang sử dụng.
+**requires** enables the application module to read the library module. **exports** allows the application to access the public types in the API package. Having **public** on the class alone is not enough: the package containing the class must also be exported to the consuming module.
 
-Một package không được export vẫn có thể chứa các lớp public, nhưng những mô-đun khác không thể sử dụng chúng như API thông thường. Đây là điểm tạo nên tính đóng gói mạnh của JPMS.
+An unexported package can still contain public classes, but other modules cannot use them as ordinary API. This is what gives JPMS its strong encapsulation.
 
-## 4. Những chỉ thị thường gặp trong module-info.java
+## 4. Common directives in module-info.java
 
-| Chỉ thị | Ý nghĩa |
+| Directive | Meaning |
 | --- | --- |
-| **requires module.name;** | Khai báo phụ thuộc và khả năng đọc mô-đun được chỉ định. |
-| **requires transitive module.name;** | Mô-đun phụ thuộc được truyền tiếp cho các mô-đun đọc mô-đun hiện tại. |
-| **requires static module.name;** | Phụ thuộc cần khi biên dịch nhưng có thể không hiện diện lúc chạy. |
-| **exports package.name;** | Công khai package cho các mô-đun đọc mô-đun hiện tại. |
-| **exports package.name to a, b;** | Chỉ công khai package cho các mô-đun được nêu tên. |
-| **opens package.name;** | Cho phép deep reflection trên package ở runtime. |
-| **opens package.name to a, b;** | Chỉ cho các mô-đun được nêu tên deep reflection trên package. |
-| **uses service.Type;** | Khai báo mô-đun sử dụng một service. |
-| **provides service.Type with impl.Type;** | Khai báo mô-đun cung cấp implementation cho một service. |
+| **requires module.name;** | Declares a dependency and readability of the specified module. |
+| **requires transitive module.name;** | The dependency module is propagated to modules that read the current module. |
+| **requires static module.name;** | A dependency required at compile time that may be absent at runtime. |
+| **exports package.name;** | Exposes the package to modules that read the current module. |
+| **exports package.name to a, b;** | Exposes the package only to the named modules. |
+| **opens package.name;** | Allows deep reflection on the package at runtime. |
+| **opens package.name to a, b;** | Allows deep reflection on the package only for the named modules. |
+| **uses service.Type;** | Declares that the module uses a service. |
+| **provides service.Type with impl.Type;** | Declares that the module provides an implementation for a service. |
 
 ### requires transitive
 
-Giả sử mô-đun **com.example.facade** dùng kiểu dữ liệu của **com.example.library** trong API public. Nếu mô-đun ứng dụng chỉ phụ thuộc vào facade, nó có thể cần đọc cả library để biên dịch và sử dụng API đó.
+Suppose the **com.example.facade** module uses types from **com.example.library** in its public API. If an application module only depends on the facade, it may need to read the library as well to compile and use that API.
 
 ~~~java
 module com.example.facade {
@@ -146,7 +146,7 @@ module com.example.facade {
 }
 ~~~
 
-**transitive** truyền khả năng đọc phụ thuộc tới các mô-đun đọc facade. Chỉ dùng khi phụ thuộc thực sự là một phần của hợp đồng API mà facade đưa ra.
+**transitive** propagates readability of the dependency to modules that read the facade. Only use it when the dependency is genuinely part of the API contract exposed by the facade.
 
 ### requires static
 
@@ -156,9 +156,9 @@ module com.example.app {
 }
 ~~~
 
-Chỉ thị này hữu ích cho annotation hoặc tích hợp tùy chọn chỉ cần ở thời điểm biên dịch. Nó không tự bảo đảm ứng dụng có thể chạy mọi nhánh mã nếu mô-đun bị thiếu; mã thực sự cần lớp từ dependency vẫn phải xử lý đúng việc dependency có mặt hay không.
+This directive is useful for annotations or optional integrations that are only needed at compile time. It does not by itself guarantee that the application can execute every code branch if the module is missing; code that actually needs classes from the dependency must still handle whether the dependency is present or not.
 
-### exports có giới hạn
+### Qualified exports
 
 ~~~java
 module com.example.internal.api {
@@ -166,15 +166,15 @@ module com.example.internal.api {
 }
 ~~~
 
-Package chỉ được công khai cho mô-đun **com.example.app**. Cách này phù hợp khi một package cần chia sẻ giữa một số mô-đun nội bộ nhưng không nên trở thành API chung cho tất cả người dùng.
+The package is exposed only to the **com.example.app** module. This approach is appropriate when a package needs to be shared among certain internal modules but should not become a general API for all consumers.
 
-## 5. exports khác opens như thế nào?
+## 5. How does exports differ from opens?
 
-**exports** phục vụ truy cập API thông thường từ mã Java. Nó cho phép mô-đun khác tham chiếu các kiểu public trong package đã export, tuân theo quy tắc truy cập của Java.
+**exports** serves ordinary API access from Java code. It allows other modules to reference public types in the exported package, following Java's access rules.
 
-**opens** phục vụ reflection ở runtime, đặc biệt là **deep reflection** — truy cập các thành viên không public khi framework cần đọc hoặc thay đổi trạng thái bên trong đối tượng.
+**opens** serves runtime reflection, especially **deep reflection** — accessing non-public members when a framework needs to read or modify an object's internal state.
 
-Ví dụ một framework cần đọc field private để ánh xạ dữ liệu:
+For example, a framework needs to read private fields to map data:
 
 ~~~java
 module com.example.domain {
@@ -182,23 +182,23 @@ module com.example.domain {
 }
 ~~~
 
-Mô-đun mapper được phép thực hiện deep reflection trên package model. Khai báo **opens** không biến package thành API public để mã nguồn khác import tùy ý.
+The mapper module is allowed to perform deep reflection on the model package. The **opens** declaration does not turn the package into a public API for other source code to import at will.
 
-Có thể mở toàn bộ package của một mô-đun cho reflection bằng:
+All packages of a module can be opened for reflection using:
 
 ~~~java
 open module com.example.domain {
-    // Các requires và khai báo khác nếu cần.
+    // Other requires and declarations if needed.
 }
 ~~~
 
-Chỉ nên mở phạm vi cần thiết. Mở toàn bộ mô-đun làm giảm lợi ích đóng gói mà JPMS cung cấp. Với ứng dụng dùng framework, hãy xác định chính xác package nào framework cần truy cập qua reflection và mở package đó.
+You should only open the scope that is needed. Opening an entire module reduces the encapsulation benefits that JPMS provides. For applications using frameworks, identify the exact packages the framework needs to access via reflection and open those packages.
 
-## 6. JPMS và cơ chế Service Provider
+## 6. JPMS and the Service Provider mechanism
 
-JPMS hỗ trợ mô hình service để mô-đun sử dụng phụ thuộc qua một interface thay vì phụ thuộc trực tiếp vào implementation.
+JPMS supports the service model so that a module consumes a dependency through an interface instead of depending directly on an implementation.
 
-Mô-đun khai báo service:
+The module declaring the service:
 
 ~~~java
 module com.example.payment.api {
@@ -206,7 +206,7 @@ module com.example.payment.api {
 }
 ~~~
 
-Mô-đun ứng dụng khai báo sử dụng service:
+The application module declaring service usage:
 
 ~~~java
 module com.example.checkout {
@@ -215,7 +215,7 @@ module com.example.checkout {
 }
 ~~~
 
-Mô-đun triển khai khai báo provider:
+The implementation module declaring the provider:
 
 ~~~java
 module com.example.payment.stripe {
@@ -225,7 +225,7 @@ module com.example.payment.stripe {
 }
 ~~~
 
-Ứng dụng có thể tìm implementation bằng **ServiceLoader**:
+The application can discover implementations using **ServiceLoader**:
 
 ~~~java
 ServiceLoader<PaymentProcessor> processors =
@@ -236,101 +236,101 @@ for (PaymentProcessor processor : processors) {
 }
 ~~~
 
-Cách này tách hợp đồng service khỏi implementation và cho phép bổ sung provider mà không buộc mô-đun sử dụng phải biết lớp triển khai cụ thể.
+This approach decouples the service contract from the implementation and allows adding providers without forcing the consuming module to know concrete implementation classes.
 
-## 7. Named module, automatic module và unnamed module
+## 7. Named module, automatic module, and unnamed module
 
-Trong một ứng dụng Java có thể gặp ba loại mô-đun:
+Three kinds of modules can be encountered in a Java application:
 
-| Loại | Nguồn hình thành | Đặc điểm |
+| Kind | Origin | Characteristics |
 | --- | --- | --- |
-| Named module | Có **module-info.java** | Có tên và khai báo rõ dependency, exports, opens, service. |
-| Automatic module | JAR không có descriptor nhưng được đặt trên module path | Tên thường lấy từ manifest **Automatic-Module-Name** hoặc suy ra từ tên file; tự động export các package và đọc các named module khác. |
-| Unnamed module | Các lớp/JAR trên classpath | Không có tên mô-đun; thường dùng để duy trì khả năng tương thích với ứng dụng chưa modular hóa. |
+| Named module | Has **module-info.java** | Has a name and explicitly declares dependencies, exports, opens, and services. |
+| Automatic module | A JAR without a descriptor placed on the module path | Name is usually taken from the **Automatic-Module-Name** manifest attribute or derived from the file name; automatically exports its packages and reads other named modules. |
+| Unnamed module | Classes/JARs on the classpath | Has no module name; typically used to maintain compatibility with unmodularized applications. |
 
-Automatic module là cầu nối hữu ích khi chuyển thư viện cũ sang module path. Tuy nhiên, vì các package của nó được export rộng và khả năng đọc dependency rất rộng, nó không tạo ra ranh giới rõ như một named module có descriptor được thiết kế cẩn thận.
+An automatic module is a useful bridge when migrating legacy libraries to the module path. However, because its packages are broadly exported and its dependency readability is very broad, it does not establish boundaries as clear as a named module with a carefully designed descriptor.
 
-Các lớp trên classpath thuộc unnamed module của class loader tương ứng. Unnamed module có thể đọc các named module quan sát được và export các package của nó. Một named module không thể khai báo **requires** tới unnamed module, vì unnamed module không có tên để tham chiếu.
+Classes on the classpath belong to the unnamed module of the corresponding class loader. The unnamed module can read observable named modules and exports its own packages. A named module cannot declare **requires** on an unnamed module, because an unnamed module has no name to reference.
 
-## 8. Module path khác classpath ra sao?
+## 8. How does the module path differ from the classpath?
 
-Classpath là cơ chế tìm lớp truyền thống. Khi chạy với classpath, JVM không dùng module descriptor để xây dựng đồ thị dependency cho các JAR trên classpath.
+The classpath is the traditional class-lookup mechanism. When running with the classpath, the JVM does not use module descriptors to build a dependency graph for JARs on the classpath.
 
-Module path chứa các mô-đun mà JPMS có thể nhận diện và phân giải. Khi khởi chạy một ứng dụng modular, JVM tìm mô-đun gốc, giải quyết các chỉ thị **requires**, rồi tạo module layer phù hợp.
+The module path holds modules that JPMS can recognize and resolve. When launching a modular application, the JVM locates the root modules, resolves **requires** directives, and creates the appropriate module layer.
 
-Ví dụ biên dịch hai mô-đun theo cấu trúc ở phần trên:
+Example compiling the two modules using the structure above:
 
 ~~~bash
 javac --module-source-path src -d out -m com.example.greetings,com.example.app
 ~~~
 
-Chạy lớp main trong mô-đun ứng dụng:
+Running the main class in the application module:
 
 ~~~bash
 java --module-path out -m com.example.app/com.example.app.Main
 ~~~
 
-Trong lệnh chạy:
+In the run command:
 
-- **--module-path out** chỉ ra nơi chứa các mô-đun đã biên dịch.
-- **-m** hoặc **--module** chỉ định mô-đun và lớp main theo dạng **module.name/main.class**.
+- **--module-path out** specifies where the compiled modules are located.
+- **-m** or **--module** specifies the module and main class in the form **module.name/main.class**.
 
-Với một ứng dụng chưa modular hóa, vẫn có thể chạy theo cách truyền thống:
+For an unmodularized application, it can still be run in the traditional way:
 
 ~~~bash
 java -cp "lib/*:classes" com.example.app.Main
 ~~~
 
-Dấu phân cách classpath tùy hệ điều hành: **:** trên Unix-like và **;** trên Windows. Dự án có thể chuyển đổi từng bước, nhưng cần kiểm tra tương thích của thư viện và framework khi đưa dependency từ classpath sang module path.
+The classpath separator depends on the operating system: **:** on Unix-like systems and **;** on Windows. Projects can migrate step by step, but library and framework compatibility should be verified when moving dependencies from the classpath to the module path.
 
-## 9. JPMS trong chính JDK
+## 9. JPMS in the JDK itself
 
-JDK cũng được chia thành các mô-đun. Một số mô-đun thường gặp:
+The JDK itself is also divided into modules. Some commonly encountered modules:
 
-- **java.base:** các API nền tảng như java.lang, java.util, java.io; mọi mô-đun đều phụ thuộc ngầm vào mô-đun này.
-- **java.sql:** JDBC và API truy cập cơ sở dữ liệu.
-- **java.xml:** API xử lý XML.
-- **java.logging:** API logging chuẩn.
-- **jdk.compiler:** các công cụ và API liên quan đến trình biên dịch Java.
+- **java.base:** foundational APIs such as java.lang, java.util, and java.io; every module implicitly depends on this module.
+- **java.sql:** JDBC and database access APIs.
+- **java.xml:** XML processing APIs.
+- **java.logging:** standard logging API.
+- **jdk.compiler:** tools and APIs related to the Java compiler.
 
-Việc chia JDK thành mô-đun giúp runtime chỉ cần những thành phần mà ứng dụng yêu cầu. Công cụ **jlink** có thể ghép các mô-đun cần thiết thành một runtime image tùy chỉnh. Đây là nền tảng để phân phối ứng dụng với môi trường chạy gọn hơn so với việc mang theo toàn bộ JDK.
+Splitting the JDK into modules allows the runtime to include only the components the application requires. The **jlink** tool can assemble the necessary modules into a custom runtime image. This serves as the foundation for distributing applications with a leaner runtime environment compared to shipping the entire JDK.
 
-## 10. JPMS không có nghĩa là mọi dự án đều phải modular hóa
+## 10. JPMS does not mean every project must be modularized
 
-JPMS hữu ích khi cần quản lý ranh giới giữa các phần của hệ thống, phát triển thư viện có API rõ ràng, kiểm soát reflection hoặc tạo runtime image riêng.
+JPMS is useful when you need to manage boundaries between parts of a system, develop libraries with clear APIs, control reflection, or create custom runtime images.
 
-Với một ứng dụng nhỏ, thêm **module-info.java** có thể làm tăng công sức cấu hình mà chưa đem lại lợi ích tương xứng. Với ứng dụng dùng nhiều framework cũ, việc chuyển sang module path còn có thể cần mở package cho reflection hoặc xử lý các dependency chưa có module descriptor.
+For a small application, adding **module-info.java** may increase configuration effort without delivering commensurate benefits. For applications using many legacy frameworks, moving to the module path may also require opening packages for reflection or dealing with dependencies that lack module descriptors.
 
-Có thể cân nhắc JPMS khi:
+Consider JPMS when:
 
-- Dự án có nhiều thư viện hoặc nhiều nhóm phát triển cần ranh giới API rõ ràng.
-- Muốn ngăn việc sử dụng package nội bộ ngoài dự kiến.
-- Xây dựng thư viện cần công bố API ổn định.
-- Muốn phân tích dependency và tạo runtime image tối giản.
-- Cần thiết kế plugin hoặc service provider theo hợp đồng rõ ràng.
+- The project has multiple libraries or multiple development teams needing clear API boundaries.
+- You want to prevent unintended use of internal packages.
+- You are building a library that needs to publish a stable API.
+- You want to analyze dependencies and create a minimal runtime image.
+- You need to design plugins or service providers around explicit contracts.
 
-Nếu ứng dụng hiện tại đang chạy ổn trên classpath, việc áp dụng JPMS nên xuất phát từ một mục tiêu cụ thể như kiểm soát API, giảm phụ thuộc hoặc tối ưu runtime.
+If an existing application is already running stably on the classpath, adopting JPMS should be driven by a specific goal such as API control, dependency reduction, or runtime optimization.
 
-## 11. Những nhầm lẫn thường gặp
+## 11. Common misconceptions
 
-**Package và module là một thứ:** Không đúng. Package là namespace chứa lớp; module là đơn vị lớn hơn, gom nhiều package và quản lý dependency cũng như quyền truy cập.
+**Packages and modules are the same thing:** False. A package is a namespace containing classes; a module is a larger unit that groups multiple packages and manages dependencies as well as access permissions.
 
-**Lớp public luôn dùng được từ mô-đun khác:** Không đúng. Package chứa lớp phải được export cho mô-đun sử dụng.
+**A public class is always usable from other modules:** False. The package containing the class must be exported to the consuming module.
 
-**exports và opens giống nhau:** Không đúng. **exports** công khai API cho truy cập Java thông thường; **opens** cho phép deep reflection ở runtime.
+**exports and opens are the same:** False. **exports** exposes API for ordinary Java access; **opens** allows deep reflection at runtime.
 
-**requires tự động làm package của dependency trở thành API công khai:** Không đúng. **requires** thiết lập quan hệ đọc mô-đun. Package vẫn cần được mô-đun sở hữu export.
+**requires automatically turns a dependency's packages into public API:** False. **requires** establishes a module readability relationship. Packages still need to be exported by the owning module.
 
-**Có module-info.java là không thể dùng thư viện cũ:** Không đúng. JPMS hỗ trợ automatic module và unnamed module để tương thích trong giai đoạn chuyển đổi, dù các cơ chế này có ranh giới yếu hơn named module tường minh.
+**Having module-info.java makes it impossible to use legacy libraries:** False. JPMS supports automatic modules and the unnamed module for compatibility during transition, although these mechanisms have weaker boundaries than explicit named modules.
 
-**JPMS chỉ là cách đóng gói JAR:** Không đúng. JAR là định dạng đóng gói; JPMS còn định nghĩa cách phân giải mô-đun, khả năng đọc, export, reflection và service.
+**JPMS is just a way to package JARs:** False. JAR is a packaging format; JPMS also defines how modules are resolved, readability, exports, reflection, and services.
 
-## 12. Cách ghi nhớ
+## 12. How to remember it
 
-Có thể hiểu JPMS qua ba câu hỏi:
+JPMS can be understood through three questions:
 
-1. **Mô-đun này cần gì?** Dùng **requires** để khai báo dependency.
-2. **Mô-đun này công khai gì?** Dùng **exports** để công khai package API.
-3. **Framework cần truy cập nội bộ bằng reflection ở đâu?** Dùng **opens** cho đúng package và đúng mô-đun.
+1. **What does this module need?** Use **requires** to declare dependencies.
+2. **What does this module expose?** Use **exports** to expose API packages.
+3. **Where does a framework need internal access via reflection?** Use **opens** for the exact package and exact module.
 
-Khi ba câu hỏi này được trả lời rõ ràng, module descriptor trở thành bản mô tả ngắn gọn về ranh giới và hợp đồng của mô-đun. Đó là giá trị cốt lõi của Java Platform Module System.
+When these three questions are answered clearly, the module descriptor becomes a concise description of the module's boundaries and contract. That is the core value of the Java Platform Module System.

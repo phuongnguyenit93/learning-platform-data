@@ -1,12 +1,12 @@
-# Thay đổi trạng thái khác với gán lại biến tham chiếu trong Java
+# Mutating State Differs from Reassigning a Reference Variable in Java
 
-> **Java core — language-basics / Tham chiếu và null**  
-> **Yêu cầu:** JDK 17 trở lên; chỉ sử dụng Java standard library.  
-> **Mục tiêu:** Phân biệt **sửa trạng thái đối tượng** (*mutation*) với **gán lại một biến tham chiếu** (*reassignment*); dự đoán chính xác tác động qua alias, tham số phương thức, `final`, mảng và `String`.
+> **Java core — language-basics / References and null**  
+> **Requirements:** JDK 17 or higher; uses only the Java standard library.  
+> **Goal:** Distinguish **modifying an object's state** (*mutation*) from **reassigning a reference variable** (*reassignment*); accurately predict effects across aliases, method parameters, `final`, arrays, and `String`.
 
-## 1. Hai thao tác, hai đối tượng tác động khác nhau
+## 1. Two Operations, Two Different Targets Affected
 
-Xét một lớp có trạng thái thay đổi được:
+Consider a class with mutable state:
 
 ~~~java
 class Meter {
@@ -15,21 +15,21 @@ class Meter {
 }
 ~~~
 
-Sau đó:
+Then:
 
 ~~~java
 Meter first = new Meter(10);
 Meter second = first;
 
-second.value = 15;       // Mutation: sửa object đang được cả hai biến tham chiếu.
-second = new Meter(7);   // Reassignment: chỉ đổi tham chiếu lưu trong second.
+second.value = 15;       // Mutation: modifies the object referenced by both variables.
+second = new Meter(7);   // Reassignment: only changes the reference stored in second.
 ~~~
 
-- **Mutation:** `second.value = 15` thay đổi trường `value` của **object Meter hiện có**. Khi `first` và `second` còn trỏ cùng object, đọc `first.value` thấy **15**.
-- **Reassignment:** `second = new Meter(7)` tạo object mới rồi thay **giá trị tham chiếu của biến `second`**. Biến `first` vẫn trỏ object cũ có `value = 15`.
-- **Phép gán `second = first`** tự nó chỉ sao chép giá trị tham chiếu, **không tạo bản sao object**.
+- **Mutation:** `second.value = 15` changes the `value` field of the **existing Meter object**. While `first` and `second` still point to the same object, reading `first.value` yields **15**.
+- **Reassignment:** `second = new Meter(7)` creates a new object and then replaces **the reference value of the `second` variable**. The `first` variable still points to the old object with `value = 15`.
+- **The assignment `second = first`** by itself only copies the reference value, **without creating an object copy**.
 
-Trước thao tác gán lại:
+Before the reassignment operation:
 
 ~~~text
 first  ─┐
@@ -37,34 +37,34 @@ first  ─┐
 second ─┘
 ~~~
 
-Sau `second = new Meter(7)`:
+After `second = new Meter(7)`:
 
 ~~~text
 first  ────> Meter(value = 15)
 second ────> Meter(value = 7)
 ~~~
 
-**Điểm mấu chốt:** Mutation đổi **dữ liệu bên trong object**; reassignment đổi **object mà một biến tham chiếu đang trỏ tới**. Một thao tác không tự động làm thao tác còn lại xảy ra.
+**Key takeaway:** Mutation changes the **data inside an object**; reassignment changes **which object a reference variable points to**. One operation does not automatically trigger the other.
 
-## 2. Bảng dự đoán hành vi
+## 2. Behavior Prediction Table
 
-Giả sử khởi đầu với `Meter a = new Meter(10); Meter b = a;`:
+Suppose we start with `Meter a = new Meter(10); Meter b = a;`:
 
-| Câu lệnh tiếp theo | `a.value` | `b.value` / liên hệ | Giải thích |
+| Next statement | `a.value` | `b.value` / relationship | Explanation |
 | --- | ---: | --- | --- |
-| `b.value = 12;` | 12 | 12; `a == b` là true | Cùng object bị sửa |
-| `b = new Meter(20);` | 12 | 20; `a == b` là false | Chỉ b nhận tham chiếu mới |
-| `b.value = 25;` | 12 | 25 | Sửa object mới của b |
-| `b = a;` | 12 | 12; `a == b` là true | b trỏ lại object cũ |
-| `b = null;` | 12 | b là null | Chỉ b không còn trỏ tới object |
+| `b.value = 12;` | 12 | 12; `a == b` is true | Same object modified |
+| `b = new Meter(20);` | 12 | 20; `a == b` is false | Only b receives a new reference |
+| `b.value = 25;` | 12 | 25 | Modifies b's new object |
+| `b = a;` | 12 | 12; `a == b` is true | b points back to the old object |
+| `b = null;` | 12 | b is null | Only b no longer points to an object |
 
-Các hàng này được thực hiện **theo thứ tự** từ trên xuống. `a == b` là phép so sánh **identity tham chiếu**, không phải kiểm tra hai object có dữ liệu giống nhau hay không.
+These rows are executed **in order** from top to bottom. `a == b` is a **reference identity** comparison, not a check for whether two objects have identical data.
 
-Gán `b = null` cũng **không hủy object**: nếu `a` còn tham chiếu, object vẫn có thể được dùng. Đừng coi `null` là lệnh giải phóng bộ nhớ ngay lập tức.
+Assigning `b = null` also **does not destroy the object**: if `a` still holds a reference, the object can still be used. Do not treat `null` as an immediate memory-freeing command.
 
-## 3. Chương trình Java 17+ chạy độc lập
+## 3. Standalone Runnable Java 17+ Program
 
-Tạo tệp **MutationVsReassignmentDemo.java**:
+Create the file **`MutationVsReassignmentDemo.java`**:
 
 ~~~java
 public final class MutationVsReassignmentDemo {
@@ -136,14 +136,14 @@ public final class MutationVsReassignmentDemo {
 }
 ~~~
 
-Biên dịch/chạy tại thư mục chứa tệp (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 MutationVsReassignmentDemo.java
 java MutationVsReassignmentDemo
 ~~~
 
-**Expected output chính xác:**
+**Exact expected output:**
 
 ~~~text
 initialSame=true
@@ -162,56 +162,56 @@ afterArrayReassign=9,4
 strings=Hi,Hi!
 ~~~
 
-Đọc từng mốc:
+Reading each milestone:
 
-1. `alias = original` cho hai biến cùng trỏ Meter 10, nên `initialSame=true`.
-2. `alias.increase(5)` sửa object chung thành 15; `mutate(original)` sửa tiếp thành 18. Cả hai biến đều nhìn thấy.
-3. `redirect(original)` nhận **bản sao giá trị tham chiếu** qua tham số. Dòng `meter = new Meter(99)` chỉ thay biến **meter** bên trong phương thức; khi quay về, `original.value()` vẫn là 18.
-4. `alias = new Meter(7)` đổi object mà alias trỏ đến. `original` không đổi, nên `sameAfterReassign=false`.
-5. `alias = null` chỉ bỏ tham chiếu của alias; `original` vẫn đọc được 18.
-6. `fixed` là tham chiếu `final` trỏ tới cùng object của `original`. Phép `fixed.increase(2)` được phép nên giá trị object tăng thành 20.
-7. Mảng cũng là object: sửa `secondArray[0]` làm `firstArray[0]` thành 9. Nhưng gán `secondArray = new int[] {...}` chỉ đổi biến secondArray; phần tử của firstArray vẫn 9.
-8. `String` là immutable: `concat` không sửa chuỗi `"Hi"`. Biến `text2` được gán tham chiếu tới chuỗi kết quả `"Hi!"`; `text1` vẫn cho `"Hi"`.
-
-
-## 4. Ranh giới giữa method sửa tại chỗ và trả object mới
-
-Một method nhận `Meter` nhận **bản sao giá trị tham chiếu**. Gọi `meter.increase(3)` trong method sẽ sửa object được chia sẻ; gán `meter = new Meter(99)` chỉ đổi biến tham số. Nếu cần tạo một phiên bản độc lập, method có thể trả về `new Meter(old.value() + 1)` và bên gọi tự quyết định `original = nextMeter(original)`. Giao diện method nên làm rõ nó **mutate** đầu vào hay **trả object mới**.
+1. `alias = original` makes both variables point to Meter 10, so `initialSame=true`.
+2. `alias.increase(5)` modifies the shared object to 15; `mutate(original)` modifies it further to 18. Both variables see it.
+3. `redirect(original)` receives a **copy of the reference value** through its parameter. The line `meter = new Meter(99)` only changes the **`meter`** variable inside the method; upon returning, `original.value()` is still 18.
+4. `alias = new Meter(7)` changes the object that alias points to. `original` does not change, so `sameAfterReassign=false`.
+5. `alias = null` only drops alias's reference; `original` still reads 18.
+6. `fixed` is a `final` reference pointing to the same object as `original`. Calling `fixed.increase(2)` is allowed, so the object's value increases to 20.
+7. Arrays are objects too: modifying `secondArray[0]` turns `firstArray[0]` into 9. However, assigning `secondArray = new int[] {...}` only changes the variable secondArray; firstArray's element remains 9.
+8. `String` is immutable: `concat` does not modify the string `"Hi"`. The variable `text2` is assigned a reference to the resulting string `"Hi!"`; `text1` still yields `"Hi"`.
 
 
-## 5. `final` khóa biến, không khóa object
+## 4. Boundary Between In-Place Mutating Methods and Returning a New Object
 
-`final Meter meter = new Meter(1);` cho phép `meter.increase(1)` nếu API hỗ trợ, nhưng không cho phép `meter = new Meter(2)`. Cùng logic, `final int[] numbers = {1, 2};` vẫn cho phép `numbers[0] = 9`. Muốn dữ liệu không bị sửa bởi alias khác, phải dựa vào thiết kế bất biến, quyền truy cập và cách API công bố trạng thái; chỉ viết `final` ở biến là chưa đủ.
+A method receiving a `Meter` receives a **copy of the reference value**. Calling `meter.increase(3)` inside the method mutates the shared object; assigning `meter = new Meter(99)` only changes the parameter variable. If an independent version is needed, the method can return `new Meter(old.value() + 1)` and the caller decides whether to write `original = nextMeter(original)`. The method signature/interface should make clear whether it **mutates** the input or **returns a new object**.
 
 
-## 6. Thiết kế API theo chủ đích thay đổi trạng thái
+## 5. `final` Locks the Variable, Not the Object
 
-Một API kiểu `void increase(Meter meter)` thể hiện thao tác sửa trạng thái đang chia sẻ; API kiểu `Meter increased(Meter old)` có thể tạo và trả về giá trị mới để caller chọn có gán lại biến hay không. Với đối tượng mutable, tài liệu API nên nói rõ liệu đầu vào có bị sửa và kết quả có chia sẻ tham chiếu với dữ liệu cũ.
+`final Meter meter = new Meter(1);` allows `meter.increase(1)` if the API supports it, but does not allow `meter = new Meter(2)`. By the same logic, `final int[] numbers = {1, 2};` still allows `numbers[0] = 9`. To prevent data from being modified through another alias, you must rely on immutable design, access control, and how the API exposes state; simply putting `final` on a variable is not enough.
 
-Nếu không muốn người ngoài sửa trạng thái nội bộ, cân nhắc bản sao bảo vệ (*defensive copy*) hoặc kiểu bất biến. Sao chép một mảng tham chiếu bằng `clone()` tạo mảng mới nhưng vẫn có thể chia sẻ các phần tử object mutable, vì vậy phải xét cấu trúc dữ liệu trước khi chọn cách copy.
 
-## 7. Lỗi hay gặp và bài tập
+## 6. Designing APIs Around Intended State Changes
 
-| Ngộ nhận | Cách hiểu đúng |
+An API like `void increase(Meter meter)` expresses an operation that modifies shared state; an API like `Meter increased(Meter old)` can create and return a new value so the caller chooses whether to reassign the variable. For mutable objects, API documentation should clearly state whether inputs are modified and whether the result shares references with the old data.
+
+If you do not want outsiders to modify internal state, consider a *defensive copy* or an immutable type. Copying a reference array with `clone()` creates a new array but can still share mutable object elements, so examine the data structure before choosing how to copy.
+
+## 7. Common Mistakes and Exercises
+
+| Misconception | Correct understanding |
 | --- | --- |
-| “`b = a` sao chép cả object.” | Sai: chỉ sao chép **giá trị tham chiếu** |
-| “Sửa qua b chỉ ảnh hưởng b.” | Sai nếu a và b cùng tham chiếu object mutable |
-| “`b = new Meter(...)` làm a đổi luôn.” | Sai: chỉ biến b nhận tham chiếu mới |
-| “Method gán `param = new ...` sẽ đổi biến bên gọi.” | Sai: Java truyền tham số theo giá trị |
-| “`b = null` xóa object.” | Sai: chỉ đổi biến b; alias khác còn dùng object |
-| “`final` cấm mọi thay đổi object.” | Sai: `final` cấm gán lại biến, không cấm mutation |
-| “`String.concat` sửa String cũ.” | Sai: `String` bất biến; kết quả là giá trị chuỗi mới/có thể được tái dùng tùy API |
+| "`b = a` copies the entire object." | False: it only copies the **reference value** |
+| "Modifying via b only affects b." | False if a and b reference the same mutable object |
+| "`b = new Meter(...)` changes a too." | False: only variable b receives a new reference |
+| "A method assigning `param = new ...` changes the caller's variable." | False: Java passes parameters by value |
+| "`b = null` deletes the object." | False: only changes variable b; other aliases still use the object |
+| "`final` forbids all changes to the object." | False: `final` forbids reassigning the variable, not mutation |
+| "`String.concat` modifies the old String." | False: `String` is immutable; the result is a string value that may be new/reused depending on the API |
 
-**Bài tập 1.** Khởi tạo `Meter a = new Meter(3); Meter b = a;`, rồi gọi `b.increase(2)`. Dự đoán `a.value()` và `a == b`.
+**Exercise 1.** Initialize `Meter a = new Meter(3); Meter b = a;`, then call `b.increase(2)`. Predict `a.value()` and `a == b`.
 
-**Bài tập 2.** Sau bài 1, thực hiện `b = new Meter(10);` và `b.increase(1)`. Những thao tác nào ảnh hưởng a, những thao tác nào chỉ ảnh hưởng b?
+**Exercise 2.** After Exercise 1, execute `b = new Meter(10);` and `b.increase(1)`. Which operations affect a, and which affect only b?
 
-**Bài tập 3.** Truyền a vào `changeValue` và `changeVariable`. Thử dự đoán trước khi chạy: object của a có đổi không? Biến a có trỏ object khác không?
+**Exercise 3.** Pass a into `changeValue` and `changeVariable`. Predict before running: does a's object change? Does variable a point to a different object?
 
-**Bài tập 4.** Với `final int[] nums = {1, 2};`, hãy thử `nums[1] = 7;` và `nums = new int[]{3, 4};`. Dòng nào hợp lệ, vì sao?
+**Exercise 4.** Given `final int[] nums = {1, 2};`, try `nums[1] = 7;` and `nums = new int[]{3, 4};`. Which line is valid, and why?
 
-**Bài tập 5.** Viết `String a = "X"; String b = a; b += "Y";` rồi in a và b. Tại sao đây là **gán lại tham chiếu tới kết quả** chứ không phải sửa object String?
+**Exercise 5.** Write `String a = "X"; String b = a; b += "Y";` and print a and b. Why is this **reassigning a reference to the result** rather than mutating a String object?
 
-### Tổng kết
+### Summary
 
-**Mutation** đổi trạng thái của object đang tồn tại và có thể quan sát qua **mọi alias** tới object ấy. **Reassignment** đổi tham chiếu được lưu trong **một biến**, không tự sửa object cũ hoặc gán lại các biến khác. Khi đọc mã Java, luôn hỏi: **“Dòng này sửa object hay đổi biến đang trỏ object?”** — đó là chìa khóa để dự đoán đúng hành vi.
+**Mutation** changes the state of an existing object and is observable through **every alias** to that object. **Reassignment** changes the reference stored in **a single variable**, without modifying the old object or reassigning other variables. When reading Java code, always ask: **"Does this line modify an object or change which object a variable points to?"** — that is the key to accurately predicting behavior.

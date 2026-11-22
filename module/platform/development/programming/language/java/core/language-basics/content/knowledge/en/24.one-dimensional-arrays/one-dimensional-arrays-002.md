@@ -1,34 +1,34 @@
-# Khai báo biến mảng và tạo mảng bằng `new` — Java 17+
+# Declaring Array Variables and Creating Arrays with `new` — Java 17+
 
-## 1. Phân biệt khai báo biến và tạo đối tượng mảng
+## 1. Distinguishing variable declaration from array object creation
 
-Trong Java, **mảng (array)** là một đối tượng có độ dài cố định, chứa các phần tử cùng kiểu thành phần. Biến kiểu mảng giữ **tham chiếu** đến đối tượng mảng, chứ không tự chứa các phần tử chỉ vì đã được khai báo.
+In Java, an **array** is a fixed-length object containing elements of the same component type. An array-typed variable holds a **reference** to the array object, rather than containing the elements itself just because it was declared.
 
 ~~~java
-int[] scores;           // Chỉ khai báo biến tham chiếu mảng.
-scores = new int[3];    // Tạo đối tượng mảng ba phần tử và gán tham chiếu.
-scores[0] = 10;         // Truy cập phần tử đầu tiên.
+int[] scores;           // Only declares the array reference variable.
+scores = new int[3];    // Creates a three-element array object and assigns its reference.
+scores[0] = 10;         // Accesses the first element.
 ~~~
 
-Có thể gộp khai báo và cấp phát:
+You can combine declaration and allocation:
 
 ~~~java
 int[] scores = new int[3];
 ~~~
 
-| Cú pháp | Điều gì xảy ra? |
+| Syntax | What happens? |
 |---|---|
-| `int[] scores;` | Khai báo biến cục bộ có kiểu `int[]`; **chưa có mảng được tạo** |
-| `new int[3]` | Cấp phát đối tượng mảng `int` có **3 phần tử**; trả tham chiếu |
-| `scores = new int[3];` | Gán tham chiếu tới mảng mới cho biến `scores` |
-| `scores[0] = 10;` | Thay giá trị ở chỉ số 0 trong mảng mà `scores` trỏ tới |
-| `scores.length` | Đọc độ dài mảng, ở đây là `3` |
+| `int[] scores;` | Declares a local variable of type `int[]`; **no array has been created yet** |
+| `new int[3]` | Allocates an `int` array object with **3 elements**; returns a reference |
+| `scores = new int[3];` | Assigns the reference to the new array to the variable `scores` |
+| `scores[0] = 10;` | Updates the value at index 0 in the array that `scores` points to |
+| `scores.length` | Reads the array length, which is `3` here |
 
-**Ghi nhớ:** *khai báo biến* và *tạo mảng* là hai thao tác khác nhau. Từ khóa `new` thực hiện việc tạo đối tượng mảng khi chạy.
+**Key takeaway:** *variable declaration* and *array creation* are two distinct operations. The `new` keyword performs array object creation at runtime.
 
-## 2. Cú pháp khai báo được khuyến nghị
+## 2. Recommended declaration syntax
 
-Java ưu tiên cách viết **ngoặc vuông ở kiểu**:
+Java prefers placing **brackets on the type**:
 
 ~~~java
 int[] numbers;
@@ -37,32 +37,32 @@ double[] temperatures;
 boolean[] flags;
 ~~~
 
-Java cũng chấp nhận phong cách cũ:
+Java also accepts the older style:
 
 ~~~java
 int numbers[];
 ~~~
 
-Tuy nhiên, `int[] numbers` dễ đọc hơn vì thể hiện rõ kiểu biến là **mảng của int**.
+However, `int[] numbers` is easier to read because it clearly shows that the variable's type is **an array of int**.
 
-Một bẫy khi khai báo nhiều biến:
-
-~~~java
-int[] first, second; // Cả first lẫn second đều là int[].
-
-int third[], count;  // third là int[]; count là int.
-~~~
-
-Vì vậy, thường nên dùng **một khai báo trên một dòng** để tránh hiểu nhầm kiểu.
-
-Dấu `[]` biểu thị **kiểu mảng**, không phải kích thước. Độ dài được chỉ định ở biểu thức cấp phát `new int[3]`, không phải trong kiểu khai báo:
+A trap when declaring multiple variables:
 
 ~~~java
-int[] data = new int[3]; // Đúng.
-// int[3] data;           // Sai cú pháp Java.
+int[] first, second; // Both first and second are int[].
+
+int third[], count;  // third is int[]; count is int.
 ~~~
 
-## 3. Tạo mảng bằng `new ElementType[size]`
+Therefore, it is usually best to use **one declaration per line** to avoid type confusion.
+
+The `[]` denotes **an array type**, not a size. The length is specified in the allocation expression `new int[3]`, not in the declared type:
+
+~~~java
+int[] data = new int[3]; // Valid.
+// int[3] data;           // Invalid Java syntax.
+~~~
+
+## 3. Creating an array with `new ElementType[size]`
 
 ~~~java
 int[] scores = new int[3];
@@ -71,21 +71,21 @@ boolean[] enabled = new boolean[2];
 double[] prices = new double[2];
 ~~~
 
-`size` là biểu thức kiểu số nguyên phù hợp và được đánh giá **khi chạy**. Giá trị phải không âm:
+`size` is an appropriate integer expression evaluated **at runtime**. The value must be non-negative:
 
 ~~~java
 int size = 2 + 1;
 int[] values = new int[size];   // length = 3.
-int[] empty = new int[0];       // Hợp lệ: mảng rỗng.
+int[] empty = new int[0];       // Valid: empty array.
 ~~~
 
-`new int[-1]` là biểu thức có thể biên dịch, nhưng khi thực thi sẽ ném `NegativeArraySizeException`. Kích thước không âm vẫn không bảo đảm đủ bộ nhớ; yêu cầu cấp phát quá lớn có thể gặp `OutOfMemoryError`.
+`new int[-1]` is an expression that compiles, but throws `NegativeArraySizeException` at runtime. A non-negative size still does not guarantee enough memory; requesting an excessively large allocation can hit `OutOfMemoryError`.
 
-Mảng có **độ dài cố định sau khi tạo**. Không gán được `values.length = 5`; muốn độ dài khác, phải tạo một mảng mới (chẳng hạn qua `Arrays.copyOf`) rồi dùng tham chiếu tới mảng mới.
+An array has a **fixed length after creation**. You cannot assign `values.length = 5`; to get a different length, you must create a new array (for example via `Arrays.copyOf`) and use a reference to the new array.
 
-## 4. Sau `new`, phần tử đã có giá trị mặc định
+## 4. After `new`, elements already have default values
 
-`new int[3]` tạo **một mảng** có ba vị trí; giá trị ở từng vị trí ban đầu là `0`. Với `boolean[]`, mặc định là `false`; với `char[]`, là NUL (mã 0); với `String[]`, `Student[]` hoặc các mảng tham chiếu khác, mặc định là **`null`**, không tự gọi constructor từng đối tượng.
+`new int[3]` creates **an array** with three slots; the initial value in each slot is `0`. For `boolean[]`, the default is `false`; for `char[]`, it is NUL (code 0); for `String[]`, `Student[]`, or other reference arrays, the default is **`null`**, without automatically calling each object's constructor.
 
 ~~~java
 int[] numbers = new int[2];         // [0, 0]
@@ -94,27 +94,27 @@ System.out.println(java.util.Arrays.toString(numbers));
 System.out.println(java.util.Arrays.toString(names));
 ~~~
 
-Biến cục bộ `int[] ref;` **chưa được gán** nên không được đọc ngay; khác với phần tử của mảng đã cấp phát. Quy tắc chi tiết của cả tám kiểu nguyên thủy và các kiểu tham chiếu được giải thích riêng ở bài về giá trị mặc định.
+A local variable `int[] ref;` **has not been assigned** so it cannot be read immediately; this differs from elements of an allocated array. The detailed rules for all eight primitive types and reference types are explained separately in the lesson on default values.
 
-## 5. Chỉ số và `length` của đối tượng vừa tạo
+## 5. Indices and `length` of a newly created object
 
-Với `new int[3]`, `length == 3` nhưng chỉ số hợp lệ là `0`, `1`, `2`. `length` là **trường**, không có dấu `()`; không thể sửa để nới dài chính mảng ấy.
+With `new int[3]`, `length == 3` but the valid indices are `0`, `1`, `2`. `length` is a **field**, without parentheses `()`; it cannot be modified to extend that same array.
 
 ~~~java
 int[] scores = new int[3];
 scores[0] = 10;
 scores[2] = 30;
 System.out.println(scores.length); // 3
-// scores[3] = 40; // Nếu thực thi: ArrayIndexOutOfBoundsException.
+// scores[3] = 40; // At runtime: ArrayIndexOutOfBoundsException.
 ~~~
 
-Kiểm tra `0 <= i && i < scores.length` trước khi đọc/ghi theo chỉ số do người dùng cung cấp. Đây là giới hạn của mảng đã tồn tại, khác với lỗi `NegativeArraySizeException` khi **tạo** mảng với kích thước âm.
+Check `0 <= i && i < scores.length` before reading or writing with a user-supplied index. This is a bound of an existing array, different from `NegativeArraySizeException` when **creating** an array with a negative size.
 
-Sau khi phân biệt khai báo và cấp phát, chương trình sau áp dụng thêm các tình huống liên quan để bạn tự quan sát trạng thái của mảng đã tạo.
+After distinguishing declaration and allocation, the following program applies additional related scenarios so you can observe the state of created arrays directly.
 
-## 6. Chương trình Java 17+ chạy độc lập
+## 6. Standalone Java 17+ program
 
-Lưu file tên **`ArrayDeclarationNewDemo.java`**:
+Save the file as **`ArrayDeclarationNewDemo.java`**:
 
 ~~~java
 import java.util.Arrays;
@@ -128,8 +128,8 @@ public final class ArrayDeclarationNewDemo {
     }
 
     public static void main(String[] args) {
-        int[] numbers;             // Khai báo, chưa tạo mảng.
-        numbers = new int[3];      // Tạo ba phần tử mặc định bằng 0.
+        int[] numbers;             // Declared, no array created yet.
+        numbers = new int[3];      // Creates three elements defaulting to 0.
         show("new", numbers);
 
         numbers[0] = 10;
@@ -195,14 +195,14 @@ public final class ArrayDeclarationNewDemo {
 }
 ~~~
 
-**Bash (Linux/macOS), yêu cầu JDK 17+:**
+**Bash (Linux/macOS), requires JDK 17+:**
 
 ~~~bash
 javac --release 17 -encoding UTF-8 ArrayDeclarationNewDemo.java
 java -cp . ArrayDeclarationNewDemo
 ~~~
 
-**PowerShell (Windows), yêu cầu JDK 17+:**
+**PowerShell (Windows), requires JDK 17+:**
 
 ~~~powershell
 javac --release 17 -encoding UTF-8 .\ArrayDeclarationNewDemo.java
@@ -234,42 +234,42 @@ negative size=NegativeArraySizeException
 empty index=ArrayIndexOutOfBoundsException
 ~~~
 
-**Đối chiếu:** `new int[3]` tạo các số 0; gán giá trị cập nhật phần tử nhưng không đổi `length`. Alias tác động cùng mảng; clone tạo mảng `int[]` khác; `copyOf` tạo mảng dài 5, để mảng gốc dài 3. Ba lỗi/trường hợp biên `null`, kích thước âm, đọc mảng rỗng được bắt riêng và in nhãn ổn định, không dựa vào thông điệp ngoại lệ của JDK.
+**Verification:** `new int[3]` produces zeros; assigning values updates elements without changing `length`. An alias affects the same array; `clone` creates a different `int[]` array; `copyOf` creates an array of length 5 while leaving the original array at length 3. The three edge/error cases—`null`, negative size, and reading an empty array—are caught separately and print stable labels without relying on JDK exception messages.
 
-## 7. Lỗi phổ biến khi mới học mảng
+## 7. Common mistakes when first learning arrays
 
-| Sai lầm | Vấn đề | Cách đúng |
+| Mistake | Problem | Correct approach |
 |---|---|---|
-| `int[] a;` rồi đọc `a.length` | Local chưa gán | `a = new int[3];` trước khi đọc |
-| Cho rằng `int[] a = null;` tạo mảng rỗng | `null` không có object | `new int[0]` để tạo mảng rỗng |
-| Viết `int[3] a;` | Sai vị trí kích thước | `int[] a = new int[3];` |
-| `a.length()` | `length` không phải method | `a.length` |
-| Truy cập `a[a.length]` | Chỉ số cuối là `length-1` | Kiểm tra `0 <= i && i < a.length` |
-| Tạo `new int[-1]` | `NegativeArraySizeException` | Kiểm tra kích thước không âm |
-| `new int[2]{1, 2}` | Không được ghi kích thước với initializer | `new int[]{1, 2}` |
-| `a = {1,2};` sau khi khai báo | Initializer rút gọn không dùng ở đây | `a = new int[]{1,2};` |
-| Nghĩ `int[] b = a;` sao chép phần tử | Hai biến chia sẻ cùng mảng | `a.clone()` hoặc `Arrays.copyOf` |
-| Nghĩ `new Student[2]` tạo hai Student | Chỉ tạo mảng hai tham chiếu null | Tạo riêng từng object `Student` |
-| Nghĩ có thể đổi `a.length` | Mảng có độ dài cố định | Tạo mảng mới độ dài mong muốn |
+| `int[] a;` then reading `a.length` | Unassigned local variable | `a = new int[3];` before reading |
+| Thinking `int[] a = null;` creates an empty array | `null` has no object | `new int[0]` to create an empty array |
+| Writing `int[3] a;` | Size in the wrong place | `int[] a = new int[3];` |
+| `a.length()` | `length` is not a method | `a.length` |
+| Accessing `a[a.length]` | Last index is `length-1` | Check `0 <= i && i < a.length` |
+| Creating `new int[-1]` | `NegativeArraySizeException` | Validate that size is non-negative |
+| `new int[2]{1, 2}` | Cannot specify size together with an initializer | `new int[]{1, 2}` |
+| `a = {1,2};` after declaration | Shorthand initializer cannot be used here | `a = new int[]{1,2};` |
+| Thinking `int[] b = a;` copies elements | Both variables share the same array | `a.clone()` or `Arrays.copyOf` |
+| Thinking `new Student[2]` creates two Students | Only creates an array of two null references | Create each `Student` object individually |
+| Thinking `a.length` can be changed | Arrays have a fixed length | Create a new array with the desired length |
 
-## 8. Bài tập có đáp án
+## 8. Exercises with answers
 
-**A.** Khai báo một biến kiểu mảng `double[]` và cấp phát 4 phần tử.  
-**Đáp án:**
+**A.** Declare a variable of type `double[]` and allocate 4 elements.  
+**Answer:**
 
 ~~~java
 double[] temperatures = new double[4];
 ~~~
 
-Giá trị mặc định mỗi phần tử là `0.0`.
+The default value of each element is `0.0`.
 
-**B.** Vì sao `int[] a;` không thể gọi ngay `a.length`?  
-**Đáp án:** mới chỉ khai báo biến cục bộ, chưa được gán tham chiếu tới mảng; compiler áp dụng quy tắc *definite assignment*.
+**B.** Why can `int[] a;` not immediately call `a.length`?  
+**Answer:** Only the local variable has been declared, and it has not been assigned a reference to an array; the compiler enforces *definite assignment*.
 
-**C.** `int[] a = new int[0];` có hợp lệ không và `a.length` bằng bao nhiêu?  
-**Đáp án:** hợp lệ, `a.length == 0`; nhưng không có phần tử `a[0]`.
+**C.** Is `int[] a = new int[0];` valid, and what is `a.length`?  
+**Answer:** Valid, `a.length == 0`; however, there is no element `a[0]`.
 
-**D.** Sau đoạn mã dưới, `a[1]` là bao nhiêu?
+**D.** After the snippet below, what is `a[1]`?
 
 ~~~java
 int[] a = {3, 4};
@@ -277,32 +277,32 @@ int[] b = a;
 b[1] = 8;
 ~~~
 
-**Đáp án:** `8`, vì `a` và `b` cùng trỏ một mảng.
+**Answer:** `8`, because `a` and `b` point to the same array.
 
-**E.** Viết lại cho đúng phép gán mảng có sẵn biến:
+**E.** Rewrite properly for assigning an array to an existing variable:
 
 ~~~java
 int[] a;
 a = new int[]{5, 6};
 ~~~
 
-**Đáp án:** đoạn trên đã đúng. `a = {5,6};` mới là cú pháp sai.
+**Answer:** The snippet above is already valid. `a = {5,6};` is the invalid syntax.
 
-**F.** Với `String[] names = new String[2];`, có hai đối tượng String mới được tạo sẵn không?  
-**Đáp án:** không. Mảng có hai phần tử tham chiếu, mỗi phần tử mặc định `null`.
+**F.** With `String[] names = new String[2];`, are two new String objects created automatically?  
+**Answer:** No. The array has two reference elements, each defaulting to `null`.
 
-## 9. Checklist và kết luận
+## 9. Checklist and conclusion
 
-- [ ] Biết `int[] x;` **chỉ khai báo tham chiếu mảng**, không tạo object.
-- [ ] Biết `new int[n]` tạo một đối tượng mảng dài `n`.
-- [ ] Dùng `int[]` thay cho cú pháp gây hiểu nhầm `int a[]`.
-- [ ] Hiểu giá trị mặc định của phần tử mảng mới.
-- [ ] Phân biệt biến local chưa gán, tham chiếu `null` và mảng rỗng.
-- [ ] Đọc `length` và truy cập chỉ số hợp lệ từ 0 đến `length-1`.
-- [ ] Tạo mảng bằng initializer `{...}` và `new int[]{...}` đúng ngữ cảnh.
-- [ ] Biết việc gán `b = a` chia sẻ tham chiếu, không sao chép phần tử.
-- [ ] Biết mảng cố định độ dài, muốn đổi độ dài phải tạo mảng mới.
-- [ ] Phân biệt lỗi kích thước âm với lỗi truy cập chỉ số.
-- [ ] Chạy `ArrayDeclarationNewDemo.java` trên JDK 17+ và đối chiếu exact stdout.
+- [ ] Know that `int[] x;` **only declares an array reference**, without creating an object.
+- [ ] Know that `new int[n]` creates an array object of length `n`.
+- [ ] Use `int[]` instead of the misleading syntax `int a[]`.
+- [ ] Understand the default values of newly created array elements.
+- [ ] Distinguish an unassigned local variable, a `null` reference, and an empty array.
+- [ ] Read `length` and access valid indices from 0 to `length-1`.
+- [ ] Create arrays using the `{...}` initializer and `new int[]{...}` in the right contexts.
+- [ ] Know that assigning `b = a` shares a reference rather than copying elements.
+- [ ] Know that an array has a fixed length, and changing length requires creating a new array.
+- [ ] Distinguish a negative-size error from an out-of-bounds index access error.
+- [ ] Run `ArrayDeclarationNewDemo.java` on JDK 17+ and verify the exact stdout.
 
-**Kết luận:** **Khai báo mảng** tạo một biến kiểu tham chiếu; **`new ElementType[size]`** mới tạo đối tượng mảng với độ dài cố định và các phần tử có giá trị mặc định. Hiểu rõ hai bước này là nền tảng để xử lý `null`, mảng rỗng, chỉ số và sao chép mảng trong Java.
+**Conclusion:** **Array declaration** creates a reference-typed variable; **`new ElementType[size]`** actually creates the array object with a fixed length and elements holding default values. Clearly understanding these two steps is the foundation for handling `null`, empty arrays, indices, and array copying in Java.

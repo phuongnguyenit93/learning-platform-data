@@ -1,23 +1,23 @@
-# Kết hợp Predicate và Function để biểu diễn quy tắc xử lý
+# Combining Predicate and Function to Express Processing Rules
 
-Trong Java Stream API, một yêu cầu nghiệp vụ thường có hai phần: **quyết định dữ liệu nào được chấp nhận** và **biến dữ liệu được chấp nhận thành kết quả mong muốn**. `Predicate<T>` diễn đạt điều kiện có/không; `Function<T, R>` diễn đạt phép biến đổi từ kiểu `T` sang kiểu `R`. Khi kết hợp, chúng tạo thành các quy tắc nhỏ, có tên, dễ tái sử dụng và dễ kiểm tra.
+In the Java Stream API, a business requirement often has two parts: **deciding which data is accepted** and **transforming the accepted data into the desired output**. `Predicate<T>` expresses a yes/no condition; `Function<T, R>` expresses a transformation from type `T` to type `R`. When combined, they form small, named, reusable, and easily testable rules.
 
-Bài này thuộc phần **Hàm hành vi và kiểu dữ liệu** của mô-đun **JAVA_STREAM_API**. Kiến thức ở đây là nền tảng để xây dựng pipeline `filter`, `map`, `reduce` và `collect`; về sau có thể áp dụng vào `groupingBy`, collector tùy chỉnh và những phương thức xử lý Stream nâng cao. Trọng tâm của bài là **viết và kết hợp quy tắc xử lý có kiểu rõ ràng**, đồng thời hiểu thứ tự đánh giá, tính lazy và giới hạn của trạng thái.
+This lesson belongs to the **Behavioral Functions and Types** section of the **JAVA_STREAM_API** module. The knowledge here is foundational for building `filter`, `map`, `reduce`, and `collect` pipelines; later it can be applied to `groupingBy`, custom collectors, and advanced Stream operations. The focus of this lesson is **writing and combining processing rules with clear types**, while understanding evaluation order, laziness, and state boundaries.
 
-## 1. Phân biệt vai trò của Predicate và Function
+## 1. Distinguishing the Roles of Predicate and Function
 
-Cả hai đều là *functional interface* trong `java.util.function`: giao diện có một phương thức trừu tượng và có thể biểu diễn bằng lambda hoặc method reference.
+Both are *functional interfaces* in `java.util.function`: interfaces with a single abstract method that can be represented with lambdas or method references.
 
-| Đặc điểm | `Predicate<T>` | `Function<T, R>` |
+| Aspect | `Predicate<T>` | `Function<T, R>` |
 | --- | --- | --- |
-| Câu hỏi được trả lời | “Phần tử này có đáp ứng điều kiện không?” | “Phần tử này biến thành giá trị nào?” |
-| Phương thức trừu tượng | `boolean test(T value)` | `R apply(T value)` |
-| Kết quả | `boolean` | Một giá trị kiểu `R` |
-| Cách dùng phổ biến | `Stream.filter(predicate)` | `Stream.map(function)` |
-| Phép kết hợp sẵn có | `and`, `or`, `negate` | `andThen`, `compose`, `identity` |
-| Mục đích | Lựa chọn/xác nhận dữ liệu | Chuyển đổi/chuẩn hóa dữ liệu |
+| Question answered | "Does this element satisfy the condition?" | "What value does this element transform into?" |
+| Abstract method | `boolean test(T value)` | `R apply(T value)` |
+| Result | `boolean` | A value of type `R` |
+| Common usage | `Stream.filter(predicate)` | `Stream.map(function)` |
+| Built-in combinators | `and`, `or`, `negate` | `andThen`, `compose`, `identity` |
+| Purpose | Selecting/validating data | Transforming/normalizing data |
 
-Ví dụ với chuỗi:
+String example:
 
 ```java
 import java.util.function.Function;
@@ -31,9 +31,9 @@ System.out.println(notBlank.test("   "));            // false
 System.out.println(countCharacters.apply("Java"));  // 4
 ```
 
-`Predicate<String>` không trả lại chuỗi đã sửa, và `Function<String, Integer>` không phải phép kiểm tra điều kiện. Hai vai trò này khác nhau ngay cả khi một `Function` được khai báo với kiểu trả về `Boolean`; cách biểu diễn quy tắc điều kiện tự nhiên vẫn là `Predicate`.
+`Predicate<String>` does not return a modified string, and `Function<String, Integer>` is not a condition check. These two roles differ even if a `Function` is declared with a `Boolean` return type; the natural way to express a conditional rule remains `Predicate`.
 
-Trong Stream:
+In a Stream:
 
 ```java
 List<String> lengthsAsText = List.of(" Java ", "", "Stream")
@@ -47,19 +47,19 @@ List<String> lengthsAsText = List.of(" Java ", "", "Stream")
 System.out.println(lengthsAsText); // [4, 6]
 ```
 
-Lưu ý: đoạn ví dụ này cần `import java.util.List;` và các snippet ở những mục sau có thể dùng chung import nếu đặt trong một lớp Java.
+Note: this snippet requires `import java.util.List;`, and snippets in subsequent sections can share imports if placed inside one Java class.
 
-## 2. Kết hợp nhiều Predicate thành một quy tắc nghiệp vụ
+## 2. Combining Multiple Predicates into One Business Rule
 
-Một quy tắc thực tế thường gồm nhiều điều kiện. Thay vì nhét tất cả vào một lambda dài, hãy đặt tên từng điều kiện rồi kết hợp chúng.
+A real-world rule often consists of multiple conditions. Instead of cramming everything into one long lambda, name each condition and compose them.
 
-Ba phương thức quan trọng:
+Three key methods:
 
-- `p.and(q)`: đúng khi **cả** `p` và `q` đúng.
-- `p.or(q)`: đúng khi **ít nhất một** trong `p` và `q` đúng.
-- `p.negate()`: đảo giá trị đúng/sai của `p`.
+- `p.and(q)`: true when **both** `p` and `q` are true.
+- `p.or(q)`: true when **at least one** of `p` and `q` is true.
+- `p.negate()`: inverts the boolean value of `p`.
 
-Cú pháp tương đương về ý nghĩa:
+Equivalent syntax in meaning:
 
 ```java
 Predicate<Integer> positive = n -> n > 0;
@@ -74,15 +74,15 @@ System.out.println(positiveAndEven.test(3)); // false
 System.out.println(notPositive.test(-2));    // true
 ```
 
-### 2.1. Nhóm điều kiện đúng theo ý nghĩa nghiệp vụ
+### 2.1. Grouping Conditions According to Business Semantics
 
-Giả sử yêu cầu: **Chỉ nhận đơn đã thanh toán**, và đơn đó **có số tiền từ 1.000.000 VND trở lên hoặc thuộc khách hàng VIP**. Quy tắc logic phải là:
+Suppose the requirement is: **Accept only paid orders**, and the order **must have an amount of at least 1,000,000 VND or belong to a VIP customer**. The logical rule must be:
 
 ```text
-đủ điều kiện = đã thanh toán AND (đạt số tiền tối thiểu OR là khách VIP)
+eligible = paid AND (meets minimum amount OR is VIP customer)
 ```
 
-Java biểu diễn trực tiếp:
+Java expresses this directly:
 
 ```java
 Predicate<Order> paid = Order::paid;
@@ -92,18 +92,18 @@ Predicate<Order> vipCustomer = order -> order.customerId().startsWith("VIP-");
 Predicate<Order> eligible = paid.and(minimumAmount.or(vipCustomer));
 ```
 
-Dấu ngoặc trong yêu cầu rất quan trọng. `paid.and(minimumAmount).or(vipCustomer)` mang ý nghĩa khác: khách VIP **chưa thanh toán** vẫn có thể được chọn. Việc đặt tên và nhóm biểu thức giúp rà soát chính sách dễ hơn.
+Parentheses in the requirement matter greatly. `paid.and(minimumAmount).or(vipCustomer)` carries a different meaning: an **unpaid** VIP customer could still be selected. Naming and grouping expressions makes policy reviews much easier.
 
-### 2.2. Hiểu short-circuit và thứ tự kiểm tra
+### 2.2. Understanding Short-Circuiting and Evaluation Order
 
-`Predicate.and` và `Predicate.or` đánh giá ngắn mạch (*short-circuit*), theo thứ tự từ trái sang phải:
+`Predicate.and` and `Predicate.or` evaluate with *short-circuiting*, from left to right:
 
-| Biểu thức | Khi nào bỏ qua `q.test(value)`? | Lý do |
+| Expression | When is `q.test(value)` skipped? | Reason |
 | --- | --- | --- |
-| `p.and(q)` | Khi `p` trả về `false` | Kết quả cuối chắc chắn là `false` |
-| `p.or(q)` | Khi `p` trả về `true` | Kết quả cuối chắc chắn là `true` |
+| `p.and(q)` | When `p` returns `false` | The final result is guaranteed to be `false` |
+| `p.or(q)` | When `p` returns `true` | The final result is guaranteed to be `true` |
 
-Do đó, có thể đặt kiểm tra an toàn trước kiểm tra cần dữ liệu hợp lệ:
+Consequently, you can place a safety check before a check that assumes valid data:
 
 ```java
 Predicate<String> nonNull = java.util.Objects::nonNull;
@@ -111,21 +111,21 @@ Predicate<String> hasContent = text -> !text.isBlank();
 
 Predicate<String> usableText = nonNull.and(hasContent);
 
-System.out.println(usableText.test(null));   // false; không gọi isBlank()
+System.out.println(usableText.test(null));   // false; does not call isBlank()
 System.out.println(usableText.test("  "));    // false
 System.out.println(usableText.test("Java"));  // true
 ```
 
-Mặc dù có thể giảm số lần kiểm tra đắt tiền bằng short-circuit, **không nên dựa vào tác dụng phụ** bên trong `Predicate`. Đừng đặt việc tăng bộ đếm, ghi log bắt buộc hoặc cập nhật cơ sở dữ liệu trong biểu thức điều kiện rồi giả định mọi điều kiện đều chạy.
+Although short-circuiting can reduce expensive checks, **do not rely on side effects** inside a `Predicate`. Do not put counter increments, mandatory logging, or database updates inside conditional expressions assuming every condition will run.
 
-## 3. Kết hợp Function để tạo một phép biến đổi có nghĩa
+## 3. Composing Functions to Build a Meaningful Transformation
 
-`Function<T, R>` hỗ trợ ghép phép biến đổi theo hai cách:
+`Function<T, R>` supports composing transformations in two ways:
 
-- `f.andThen(g)`: áp dụng `f` **trước**, rồi áp dụng `g`.
-- `g.compose(f)`: áp dụng `f` **trước**, rồi áp dụng `g`.
+- `f.andThen(g)`: applies `f` **first**, then applies `g`.
+- `g.compose(f)`: applies `f` **first**, then applies `g`.
 
-Hai cách sau cho cùng kết quả:
+Both approaches produce the same result:
 
 ```java
 import java.util.Locale;
@@ -144,9 +144,9 @@ System.out.println(normalizedB.apply("  JAVA@EXAMPLE.ORG  "));
 // java@example.org
 ```
 
-Có thể đọc `removeEdgeSpaces.andThen(toLower)` từ trái sang phải: **xóa khoảng trắng đầu/cuối → chuyển chữ thường**. Trong khi đó, `toLower.compose(removeEdgeSpaces)` đọc theo nghĩa “thực hiện bước xóa khoảng trắng trước khi gọi bước chuyển chữ thường”.
+You can read `removeEdgeSpaces.andThen(toLower)` from left to right: **strip leading/trailing spaces → convert to lowercase**. Meanwhile, `toLower.compose(removeEdgeSpaces)` reads as "perform the space-stripping step before calling the lowercase step".
 
-Để ghép hai `Function`, kiểu đầu ra của bước trước phải tương thích với kiểu đầu vào của bước sau:
+To compose two `Function`s, the output type of the preceding step must be compatible with the input type of the following step:
 
 ```java
 Function<String, Integer> length = String::length;
@@ -158,35 +158,35 @@ Function<String, Integer> normalizedLength =
 System.out.println(normalizedLength.apply("  ABC  ")); // 3
 ```
 
-Nếu `Function<T, R>` làm thay đổi kiểu từ `T` sang `R`, cần xây dựng các bước tiếp theo nhận đầu vào `R`. Không thể nối hai hàm chỉ vì chúng cùng tên ý nghĩa; Java phải kiểm tra được kiểu ở thời điểm biên dịch.
+If `Function<T, R>` changes the type from `T` to `R`, subsequent steps must be built to accept input `R`. You cannot chain two functions just because they share a conceptual name; Java must be able to verify types at compile time.
 
-### 3.1. Khi nào dùng `Function.identity()`?
+### 3.1. When to Use `Function.identity()`?
 
-`Function.identity()` trả về hàm giữ nguyên đầu vào:
+`Function.identity()` returns a function that keeps its input unchanged:
 
 ```java
 Function<String, String> unchanged = Function.identity();
 System.out.println(unchanged.apply("A-01")); // A-01
 ```
 
-Hàm này hữu ích trong collector hoặc khi một API yêu cầu truyền `Function` nhưng giá trị không cần biến đổi. Ví dụ khi gom các chuỗi vào map theo chính nội dung của chúng, `Function.identity()` có thể làm key mapper hoặc value mapper, tùy yêu cầu và quy tắc xử lý khóa trùng.
+This method is useful in collectors or when an API requires a `Function` parameter yet the value needs no transformation. For example, when grouping strings into a map by their own content, `Function.identity()` can serve as the key mapper or value mapper, depending on the requirements and duplicate-key rules.
 
-## 4. Kết hợp Predicate và Function đúng cách
+## 4. Combining Predicate and Function Properly
 
-Hai kiểu giao diện có thể phối hợp theo nhiều tầng:
+The two interface types can work together across multiple stages:
 
 ```text
                     Predicate<Order>          Function<Order, OrderView>
-Nguồn Order ── filter(eligible) ── Order ── map(toView) ── OrderView
+Order Source ── filter(eligible) ── Order ── map(toView) ── OrderView
                          │                            │
-                   giữ hoặc loại                 biến đổi cấu trúc
+                   keep or discard             transform structure
 ```
 
-Với `Stream<T>`, `filter` nhận `Predicate<? super T>` và giữ nguyên kiểu phần tử là `T`. `map` nhận hàm chuyển từ `T` sang `R` và đổi kiểu của luồng thành `Stream<R>`.
+With `Stream<T>`, `filter` accepts `Predicate<? super T>` and keeps the element type as `T`. `map` accepts a function converting from `T` to `R` and changes the stream's type to `Stream<R>`.
 
-### 4.1. Ví dụ chạy hoàn chỉnh: áp dụng quy tắc chọn đơn và tạo dữ liệu đầu ra
+### 4.1. Complete Runnable Example: Applying Order Selection Rules and Producing Output
 
-Ví dụ sau biên dịch với **Java 17 trở lên** (sử dụng `record` và `Stream.toList()`):
+The following example compiles on **Java 17 and later** (using `record` and `Stream.toList()`):
 
 ```java
 import java.util.List;
@@ -217,7 +217,7 @@ public class OrderRuleDemo {
         Predicate<Order> vipCustomer =
             order -> order.customerId().startsWith("VIP-");
 
-        // Đã thanh toán VÀ (đạt mức tối thiểu HOẶC là khách VIP).
+        // Paid AND (meets minimum OR is VIP customer).
         Predicate<Order> eligible =
             paid.and(minimumAmount.or(vipCustomer));
 
@@ -237,27 +237,27 @@ public class OrderRuleDemo {
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
 OrderView[id=O-01, amountVnd=1500000, tier=STANDARD]
 OrderView[id=O-02, amountVnd=300000, tier=VIP]
 ```
 
-Phân tích từng đơn:
+Breakdown of each order:
 
-| Đơn | Đã thanh toán | Số tiền ≥ 1 triệu | Khách VIP | Kết quả |
+| Order | Paid | Amount ≥ 1 million | VIP customer | Result |
 | --- | --- | --- | --- | --- |
-| O-01 | Có | Có | Không | Giữ lại |
-| O-02 | Có | Không | Có | Giữ lại |
-| O-03 | Không | Có | Có | Loại vì chưa thanh toán |
-| O-04 | Có | Không | Không | Loại vì không đạt điều kiện |
+| O-01 | Yes | Yes | No | Kept |
+| O-02 | Yes | No | Yes | Kept |
+| O-03 | No | Yes | Yes | Rejected because unpaid |
+| O-04 | Yes | No | No | Rejected because criteria not met |
 
-Vì quy tắc được đặt trong biến `eligible` và phép biến đổi được đặt trong `toView`, chúng có thể dùng lại tại nhiều nơi mà không cần sao chép toàn bộ biểu thức lambda.
+Because the rule is stored in the `eligible` variable and the transformation in `toView`, they can be reused in multiple places without copying the entire lambda expressions.
 
-### 4.2. Biến đổi trước rồi mới kiểm tra
+### 4.2. Transforming First, Then Checking
 
-Không phải lúc nào `filter` cũng đứng trước `map`. Nếu muốn kiểm tra **giá trị sau khi chuẩn hóa**, hãy biến đổi trước rồi lọc sau:
+`filter` does not always come before `map`. If you want to check the **normalized value**, transform first and filter afterward:
 
 ```java
 import java.util.List;
@@ -290,47 +290,47 @@ System.out.println(acceptedEmails);
 // [mai@example.org, an@example.org]
 ```
 
-Việc kiểm tra `null` được đặt **trước** `String::strip` để tránh `NullPointerException`. Ví dụ chỉ minh họa kiểm tra hậu tố miền; nó **không** phải bộ xác thực đầy đủ định dạng địa chỉ email. Với dữ liệu thực tế cần kiểm tra định dạng, chuẩn hóa và quy tắc an ninh phù hợp với nghiệp vụ.
+The `null` check is placed **before** `String::strip` to prevent `NullPointerException`. This example only illustrates checking a domain suffix; it is **not** a complete email address format validator. Production data requires format validation, normalization, and security rules suitable for the domain.
 
-Điểm mấu chốt là: nếu đầu vào chưa chuẩn hóa, áp dụng `belongsToExample` ngay trước `map(normalizeEmail)` sẽ loại sai chuỗi chứa chữ hoa và khoảng trắng như `"  MAI@EXAMPLE.ORG "`.
+The key takeaway is: when inputs are unnormalized, applying `belongsToExample` before `map(normalizeEmail)` would wrongly reject strings containing uppercase letters and whitespace such as `"  MAI@EXAMPLE.ORG "`.
 
-### 4.3. Tạo Predicate trên kiểu nguồn từ Function và Predicate trên kiểu đích
+### 4.3. Creating a Predicate on the Source Type from a Function and a Predicate on the Target Type
 
-Đôi khi một phép kiểm tra chỉ biết làm việc với kiểu `R`, nhưng dữ liệu đầu vào thuộc kiểu `T`. Khi đó, lấy `R` bằng `Function<T, R>` rồi truyền vào `Predicate<R>`:
+Sometimes a check only knows how to work with type `R`, while the input data has type `T`. In that case, obtain `R` via `Function<T, R>` and pass it to `Predicate<R>`:
 
 ```java
-// Giả sử Order là record đã định nghĩa trong ví dụ 4.1.
+// Assume Order is the record defined in example 4.1.
 Function<Order, String> getCustomerId = Order::customerId;
 Predicate<String> isVipId = id -> id.startsWith("VIP-");
 
-// Adapter: Predicate<Order> được xây từ Function<Order, String>
-// và Predicate<String>.
+// Adapter: Predicate<Order> built from Function<Order, String>
+// and Predicate<String>.
 Predicate<Order> orderFromVipCustomer =
     order -> isVipId.test(getCustomerId.apply(order));
 ```
 
-Có thể diễn đạt mối liên hệ này bằng công thức:
+You can express this relationship as a formula:
 
 ```text
 Predicate<T> onSource =
     value -> predicateOnResult.test(function.apply(value))
 ```
 
-`Predicate` **không có** phương thức `compose` hay `andThen` như `Function`. Adapter lambda ở trên là cách phổ biến để nối hai kiểu giao diện.
+`Predicate` does **not** have `compose` or `andThen` methods like `Function`. The adapter lambda above is a common way to bridge the two interface types.
 
-Nếu mục đích là **xuất ra giá trị đã biến đổi**, cách rõ ràng thường là `stream.map(function).filter(predicateOnResult)`. Nếu phải chạy `function.apply` trong `Predicate` rồi lại chạy cùng hàm ở `map`, phép biến đổi có thể bị thực hiện hai lần. Với hàm tốn kém, nên thiết kế pipeline để tính kết quả một lần, miễn là thứ tự xử lý và kiểu dữ liệu vẫn đúng yêu cầu.
+If your goal is to **output the transformed value**, the clearer approach is usually `stream.map(function).filter(predicateOnResult)`. If you run `function.apply` inside `Predicate` and then run the same function again in `map`, the transformation may be executed twice. For expensive functions, design the pipeline to compute the result once, provided the processing order and data types still meet requirements.
 
-## 5. Thiết kế quy tắc có thể tái sử dụng và kiểm thử
+## 5. Designing Reusable and Testable Rules
 
-Một bộ quy tắc dễ bảo trì nên có các đặc điểm:
+A maintainable rule set should have these traits:
 
-1. **Có tên mô tả nghiệp vụ.** Ví dụ `paid`, `minimumAmount`, `eligible`, `toView` dễ hiểu hơn `p1`, `p2`, `f`.
-2. **Chỉ làm một việc.** `Predicate` kiểm tra; `Function` chuyển đổi. Tránh đưa thao tác ghi cơ sở dữ liệu hay cập nhật biến ngoài vào biểu thức lọc và ánh xạ.
-3. **Biểu diễn yêu cầu null rõ ràng.** Dùng `Objects::nonNull` hoặc thiết kế domain không chấp nhận null từ đầu. Không tự suy rằng mọi lambda đều xử lý null.
-4. **Giữ quy tắc độc lập với cách thu thập kết quả.** `Predicate` và `Function` có thể dùng ngoài Stream, ví dụ trong `if`, trong kiểm tra dữ liệu đầu vào hoặc khi chuyển đổi một đối tượng đơn lẻ.
-5. **Kiểm thử tổ hợp và ranh giới.** Ít nhất cần kiểm tra ngưỡng tiền, điều kiện ngoại lệ VIP, đơn chưa thanh toán và danh sách rỗng.
+1. **Business-descriptive names.** For instance, `paid`, `minimumAmount`, `eligible`, and `toView` are clearer than `p1`, `p2`, and `f`.
+2. **Do one thing only.** `Predicate` tests; `Function` transforms. Avoid putting database writes or external variable updates inside filter and map expressions.
+3. **Express null requirements explicitly.** Use `Objects::nonNull` or design the domain not to accept nulls in the first place. Do not assume every lambda handles null.
+4. **Keep rules independent of how results are collected.** `Predicate` and `Function` can be used outside Streams—for example, in `if` statements, input validation, or transforming a single object.
+5. **Test combinations and boundaries.** At a minimum, test amount thresholds, VIP exceptions, unpaid orders, and empty lists.
 
-Ví dụ tái sử dụng quy tắc trên một đối tượng đơn lẻ:
+Example of reusing rules on a single object:
 
 ```java
 Order oneOrder = new Order("O-05", "VIP-10", 200_000L, true);
@@ -341,51 +341,51 @@ if (eligible.test(oneOrder)) {
 }
 ```
 
-Trong mã này, `eligible` và `toView` là hai biến ở phạm vi có thể truy cập được từ ví dụ 4.1. Điều đó minh họa rằng **quy tắc không phụ thuộc vào Stream**; Stream chỉ cung cấp một cách thực thi quy tắc trên nhiều phần tử.
+In this code, `eligible` and `toView` are accessible variables from example 4.1. This illustrates that **rules do not depend on Streams**; Streams merely provide one way to apply rules across multiple elements.
 
-### Bảng kiểm thử theo kịch bản
+### Scenario Test Table
 
-| Kịch bản | Điều kiện đầu vào | Kỳ vọng |
+| Scenario | Input conditions | Expected |
 | --- | --- | --- |
-| Vừa đạt ngưỡng | Đã thanh toán, 1.000.000 VND, không VIP | `eligible.test` trả về `true` |
-| Dưới ngưỡng nhưng VIP | Đã thanh toán, 200.000 VND, VIP | `true` |
-| Không thanh toán nhưng VIP | Chưa thanh toán, 2.000.000 VND, VIP | `false` |
-| Dưới ngưỡng và không VIP | Đã thanh toán, 999.999 VND, không VIP | `false` |
-| Danh sách nguồn rỗng | Không có đơn | `stream().filter(...).map(...).toList()` cho danh sách rỗng |
+| Right at threshold | Paid, 1,000,000 VND, non-VIP | `eligible.test` returns `true` |
+| Below threshold but VIP | Paid, 200,000 VND, VIP | `true` |
+| Unpaid but VIP | Unpaid, 2,000,000 VND, VIP | `false` |
+| Below threshold and non-VIP | Paid, 999,999 VND, non-VIP | `false` |
+| Empty source list | No orders | `stream().filter(...).map(...).toList()` yields an empty list |
 
-Nếu điều kiện nghiệp vụ thay đổi, ví dụ “khách VIP phải thanh toán tối thiểu 100.000 VND”, hãy sửa biểu thức tạo `Predicate` và bổ sung các ca kiểm thử liên quan, giữ nguyên phép `Function` tạo `OrderView` nếu định dạng đầu ra không đổi.
+If a business rule changes—for example, "VIP customers must pay at least 100,000 VND"—update the expression creating the `Predicate` and add relevant test cases, leaving the `Function` creating `OrderView` untouched if the output format has not changed.
 
-## 6. Lazy pipeline, short-circuit và trạng thái
+## 6. Lazy Pipelines, Short-Circuiting, and State
 
-Trong Java Stream API, `filter` và `map` là các **thao tác trung gian**. Việc khai báo pipeline chưa khiến `Predicate.test` hoặc `Function.apply` chạy ngay:
+In the Java Stream API, `filter` and `map` are **intermediate operations**. Declaring the pipeline does not immediately run `Predicate.test` or `Function.apply`:
 
 ```java
 var selected = orders.stream()
     .filter(eligible)
-    .map(toView); // Chưa duyệt dữ liệu tại thời điểm khai báo.
+    .map(toView); // Does not traverse data at declaration time.
 
-List<OrderView> views = selected.toList(); // Terminal operation tiêu thụ Stream.
+List<OrderView> views = selected.toList(); // Terminal operation consumes the Stream.
 ```
 
-Stream chỉ có thể được tiêu thụ một lần; nếu cần kết quả khác, tạo pipeline mới từ nguồn. Các terminal operation có thể **dừng sớm** hoặc được tối ưu theo đặc điểm nguồn. Không được giả định mỗi `Predicate` hay `Function` luôn được gọi đúng một lần cho mọi phần tử: ví dụ `anyMatch` có thể dừng ngay khi đã có phần tử thỏa mãn, còn một số pipeline với `count` có thể được tối ưu để không cần thực hiện những bước trung gian không ảnh hưởng kết quả.
+A Stream can only be consumed once; if you need another result, create a new pipeline from the source. Terminal operations can **short-circuit** or be optimized based on source characteristics. Never assume each `Predicate` or `Function` is always called exactly once per element: for example, `anyMatch` can stop as soon as a matching element is found, while some pipelines with `count` may be optimized to skip intermediate steps that do not affect the count.
 
-### Vì sao cần tránh trạng thái chia sẻ?
+### Why Avoid Shared State?
 
-Đoạn mã sau là một ví dụ **không nên dùng**:
+The following code is an example of **what not to do**:
 
 ```java
 int[] counter = {0};
 
 List<OrderView> views = orders.stream()
     .filter(order -> {
-        counter[0]++; // Tác dụng phụ trong Predicate.
+        counter[0]++; // Side effect inside Predicate.
         return eligible.test(order);
     })
     .map(toView)
     .toList();
 ```
 
-Cách này trộn việc đếm với kiểm tra điều kiện. Kết quả đếm phụ thuộc cách pipeline được thực thi; nếu chuyển sang parallel Stream, cập nhật phần tử của mảng này còn có thể xảy ra *data race*. Nếu cần số lượng kết quả, có thể dùng một terminal operation phù hợp:
+This mixes counting with condition checking. The count depends on how the pipeline is executed; if switched to a parallel Stream, updating this array element can also cause a *data race*. If you need the count of results, use an appropriate terminal operation:
 
 ```java
 long eligibleCount = orders.stream()
@@ -393,51 +393,51 @@ long eligibleCount = orders.stream()
     .count();
 ```
 
-Với pipeline song song, ưu tiên các hàm **stateless** và **non-interfering**: không sửa nguồn Stream và không cập nhật trạng thái chung khi xử lý từng phần tử. `Predicate`/`Function` thuần thường thuận tiện hơn cho song song hóa, nhưng điều đó không khiến `parallelStream()` tự động nhanh hơn. Hiệu năng phụ thuộc chi phí xử lý, chia dữ liệu, bộ nhớ, thứ tự và overhead; cần đo trên dữ liệu thực tế.
+For parallel pipelines, prefer **stateless** and **non-interfering** functions: do not modify the Stream source and do not update shared state while processing each element. Pure `Predicate`/`Function` implementations are usually friendlier to parallelization, though that does not automatically make `parallelStream()` faster. Performance depends on processing cost, data splitting, memory, ordering, and overhead; benchmark on real data.
 
-Khi phải xử lý phép quét phụ thuộc phần tử trước, hoặc bộ quy tắc phức tạp có trạng thái, vòng lặp có thể rõ hơn. Các kỹ thuật nâng cao như collector tùy chỉnh, `Spliterator` hay Stream Gatherers phục vụ những bài toán riêng; không cần dùng chúng chỉ để kết hợp các điều kiện `Predicate` và phép biến đổi `Function` đơn giản.
+When you need scans that depend on previous elements, or complex stateful rule sets, a loop may be clearer. Advanced techniques like custom collectors, `Spliterator`, or Stream Gatherers serve specific problems; you do not need them just to combine simple `Predicate` conditions and `Function` transformations.
 
-## 7. Các sai lầm thường gặp
+## 7. Common Mistakes
 
-| Sai lầm | Hệ quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Viết `paid.and(minimumAmount).or(vipCustomer)` khi nghiệp vụ yêu cầu thanh toán bắt buộc | Khách VIP chưa thanh toán vẫn lọt | Dùng `paid.and(minimumAmount.or(vipCustomer))` |
-| Gọi `function.andThen(predicate)` | Lỗi kiểu: `Predicate` không phải `Function` | Dùng `stream.map(function).filter(predicate)` hoặc lambda adapter |
-| Lọc theo dữ liệu thô rồi mới chuẩn hóa dù yêu cầu kiểm tra dữ liệu chuẩn hóa | Loại nhầm giá trị | Đặt `map(normalize)` trước `filter(predicate)` |
-| Truy cập thuộc tính của giá trị có thể `null` | `NullPointerException` | Kiểm tra null trước hoặc thiết kế đầu vào không nhận null |
-| Đếm hoặc cập nhật danh sách bên ngoài trong `filter`/`map` | Tác dụng phụ khó dự đoán, dễ lỗi song song | Dùng terminal operation như `count`, `toList` hoặc collector phù hợp |
-| Dùng chung một Stream cho hai terminal operation | `IllegalStateException` khi tiêu thụ lại | Tạo Stream mới từ nguồn |
-| Cho rằng `map` luôn chạy với mọi phần tử | Hiểu sai lazy, short-circuit và tối ưu hóa | Không phụ thuộc vào tác dụng phụ của hàm |
-| Biến đổi trong `Predicate` rồi biến đổi lặp lại ở `map` | Dễ tính trùng công việc | Cân nhắc `map` trước `filter` khi chỉ cần giá trị đã biến đổi |
+| Writing `paid.and(minimumAmount).or(vipCustomer)` when payment is mandatory | Unpaid VIP customers still slip through | Use `paid.and(minimumAmount.or(vipCustomer))` |
+| Calling `function.andThen(predicate)` | Type error: `Predicate` is not a `Function` | Use `stream.map(function).filter(predicate)` or an adapter lambda |
+| Filtering on raw data before normalizing even though normalized data must be checked | Wrongly drops valid values | Place `map(normalize)` before `filter(predicate)` |
+| Accessing properties of a potentially `null` value | `NullPointerException` | Check for null first or design inputs not to accept null |
+| Counting or updating an external list inside `filter`/`map` | Unpredictable side effects, prone to parallel bugs | Use terminal operations like `count`, `toList`, or an appropriate collector |
+| Reusing one Stream for two terminal operations | `IllegalStateException` when re-consumed | Create a new Stream from the source |
+| Assuming `map` always runs for every element | Misunderstands laziness, short-circuiting, and optimizations | Do not rely on function side effects |
+| Transforming in `Predicate` and transforming again in `map` | Duplicates work unnecessarily | Consider `map` before `filter` when only the transformed value is needed |
 
-## 8. Bài tập thực hành
+## 8. Practice Exercises
 
-### Bài 1: Bộ lọc ứng viên
+### Exercise 1: Candidate Filter
 
-Cho danh sách ứng viên có `yearsOfExperience`, `javaSkill` và `available`. Quy tắc: ứng viên phải sẵn sàng làm việc và có ít nhất 3 năm kinh nghiệm **hoặc** đạt mức kỹ năng Java yêu cầu. Hãy viết ba `Predicate` riêng, ghép bằng `and`/`or` đúng dấu ngoặc, rồi `map` thành một bản tóm tắt chứa tên và số năm kinh nghiệm. Kiểm thử trường hợp ứng viên chưa sẵn sàng nhưng kỹ năng rất cao.
+Given a list of candidates with `yearsOfExperience`, `javaSkill`, and `available`. Rule: a candidate must be available to work and have at least 3 years of experience **or** meet the required Java skill level. Write three separate `Predicate`s, combine them with `and`/`or` using proper parentheses, then `map` into a summary containing name and years of experience. Test the case of an unavailable candidate with very high skill.
 
-### Bài 2: Chuẩn hóa mã sản phẩm
+### Exercise 2: Normalize Product Codes
 
-Nhận `List<String>` có thể chứa `null`, khoảng trắng và chữ hoa/chữ thường lẫn lộn. Chuẩn hóa mã bằng cách `strip` và `toUpperCase(Locale.ROOT)`; chỉ giữ mã bắt đầu bằng `"PRD-"`. Viết hai `Function`, ghép bằng `andThen`, sau đó kết hợp với `Predicate` trong Stream. Giải thích vì sao phải lọc null trước khi gọi `strip`.
+Receive a `List<String>` that may contain `null`, whitespace, and mixed uppercase/lowercase letters. Normalize codes by calling `strip` and `toUpperCase(Locale.ROOT)`; keep only codes starting with `"PRD-"`. Write two `Function`s, compose them with `andThen`, then combine with a `Predicate` in a Stream. Explain why nulls must be filtered out before calling `strip`.
 
-### Bài 3: Phân biệt thứ tự ghép
+### Exercise 3: Distinguish Composition Order
 
-Với `Function<String, String> trim`, `Function<String, Integer> length` và `Predicate<Integer> atLeastFive`, hãy tạo pipeline chỉ giữ các chuỗi có **độ dài sau trim ít nhất 5**. So sánh `trim.andThen(length)` với `length.compose(trim)`. Viết adapter `Predicate<String>` từ hai thành phần tương ứng và giải thích nguy cơ tính lặp nếu vẫn `map` lại các bước đó.
+Given `Function<String, String> trim`, `Function<String, Integer> length`, and `Predicate<Integer> atLeastFive`, build a pipeline keeping only strings whose **trimmed length is at least 5**. Compare `trim.andThen(length)` with `length.compose(trim)`. Write a `Predicate<String>` adapter from the corresponding two components and explain the risk of duplicate computation if you also `map` those same steps afterward.
 
-### Bài 4: Phân tích quy tắc thanh toán
+### Exercise 4: Analyze Payment Rules
 
-Thay quy tắc ở ví dụ 4.1 bằng: “Đã thanh toán, và **không thuộc** nhóm khách bị chặn, và (đủ ngưỡng hoặc VIP)”. Xây thêm `Predicate<Order> blockedCustomer` và dùng `negate`. Tạo dữ liệu thử cho mọi nhánh điều kiện, nhất là khách VIP nhưng bị chặn.
+Replace the rule in example 4.1 with: "Paid, and **not in** the blocked customer group, and (meets threshold or VIP)". Add `Predicate<Order> blockedCustomer` and use `negate`. Create test data covering every branch, especially a VIP customer who is blocked.
 
-### Bài 5: Đánh giá khả năng song song
+### Exercise 5: Assess Parallelizability
 
-Giả sử `Predicate` lấy dữ liệu cấu hình từ một biến có thể thay đổi khi pipeline chạy. Hãy nêu rủi ro về kết quả và đồng bộ khi sử dụng `parallelStream()`. Đề xuất cách đóng băng cấu hình thành dữ liệu bất biến trước khi chạy pipeline, và giải thích vì sao vẫn cần đo hiệu năng trước khi bật xử lý song song.
+Suppose a `Predicate` reads configuration data from a variable that can change while the pipeline runs. State the risks to results and synchronization when using `parallelStream()`. Propose a way to freeze the configuration into immutable data before running the pipeline, and explain why performance still needs to be measured before enabling parallel execution.
 
-## 9. Tự kiểm tra kiến thức
+## 9. Knowledge Self-Check
 
-- `Predicate<T>` trả về gì, và khác `Function<T,R>` ở điểm nào?
-- Tại sao `and`/`or` có thể bỏ qua một số lần gọi điều kiện?
-- `f.andThen(g)` và `g.compose(f)` khác nhau về cách viết nhưng cùng thứ tự thực hiện như thế nào?
-- Nếu cần kiểm tra kết quả **sau** chuẩn hóa, nên đặt `filter` ở đâu so với `map`?
-- Vì sao không nên dùng tác dụng phụ trong `Predicate`/`Function` để đếm phần tử của Stream?
+- What does `Predicate<T>` return, and how does it differ from `Function<T,R>`?
+- Why can `and`/`or` skip some condition evaluations?
+- How do `f.andThen(g)` and `g.compose(f)` differ in how they are written yet share the same execution order?
+- If you need to check a result **after** normalization, where should `filter` be placed relative to `map`?
+- Why should you not use side effects inside `Predicate`/`Function` to count Stream elements?
 
-**Ghi nhớ:** Chia một quy tắc lớn thành **Predicate kiểm tra điều kiện** và **Function chuyển đổi dữ liệu** giúp mô tả nghiệp vụ rõ, tái sử dụng và kiểm thử dễ hơn. Để kết quả đúng, luôn kiểm tra **phạm vi của điều kiện logic, thứ tự biến đổi, xử lý null** và đặc tính **lazy/short-circuit** của Stream.
+**Takeaway:** Splitting a large rule into a **Predicate that checks conditions** and a **Function that transforms data** makes business logic clearer, easier to reuse, and easier to test. For correct results, always check **the scope of logical conditions, transformation order, null handling**, and the **lazy/short-circuit** nature of Streams.

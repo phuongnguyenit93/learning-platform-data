@@ -1,92 +1,92 @@
-# Benchmark Reflection với warmup, lời gọi trực tiếp và workload thực tế
+# Benchmarking Reflection with Warmup, Direct Calls, and Realistic Workloads
 
-## 1. Mục tiêu
+## 1. Objective
 
-Khi xây dựng công cụ dùng Java Reflection, một câu hỏi thường gặp là: **gọi phương thức qua `Method.invoke` có thực sự ảnh hưởng đến hiệu năng ứng dụng không?** Muốn trả lời chính xác, cần so sánh với lời gọi trực tiếp trong những điều kiện tương đương, tách chi phí lookup metadata khỏi chi phí invocation, làm nóng JVM và chạy công việc đủ giống production.
+When building tools that use Java Reflection, a common question is: **does calling methods via `Method.invoke` actually hurt application performance?** To answer accurately, you must compare against direct calls under equivalent conditions, separate metadata lookup cost from invocation cost, warm up the JVM, and run work sufficiently representative of production.
 
-Sau bài này, bạn sẽ biết cách:
+After this lesson, you will know how to:
 
-- Thiết kế baseline **direct invocation** và phép đo **cached reflective invocation** có cùng đầu vào, cùng logic và đầu ra.
-- Giải thích vai trò của warmup, JIT, inlining, dead-code elimination, GC và tiered compilation.
-- Phân biệt bài toán đo overhead thuần của lời gọi với bài toán đo thời gian của một workload thực tế.
-- Viết benchmark minh họa độc lập bằng Java 17+, rồi chuyển sang **JMH** để lấy số đo dùng cho quyết định kỹ thuật.
-- Đọc `ns/op`, throughput, độ biến động, fork và kết quả benchmark mà không rút ra kết luận quá mức.
-- Quyết định khi nào việc cache `Method` có giá trị; khi nào cần profile và benchmark cả pipeline.
+- Design a **direct invocation** baseline and a **cached reflective invocation** measurement with the same inputs, logic, and outputs.
+- Explain the roles of warmup, JIT, inlining, dead-code elimination, GC, and tiered compilation.
+- Distinguish measuring pure invocation overhead from measuring the runtime of a realistic workload.
+- Write a standalone illustrative benchmark in Java 17+, then move to **JMH** to obtain numbers suitable for engineering decisions.
+- Interpret `ns/op`, throughput, variance, forks, and benchmark results without over-claiming.
+- Decide when caching `Method` is worthwhile, and when you need to profile and benchmark the entire pipeline.
 
-Bài học chỉ tập trung vào benchmark và thiết kế đo hiệu năng. Các API reflection để tìm method và gọi method được sử dụng làm công cụ trong ví dụ.
+This lesson focuses solely on benchmarking and performance-measurement design. Reflection APIs for finding and invoking methods are used as tools in the examples.
 
-## 2. Trước tiên phải xác định chính xác đang đo gì
+## 2. First Identify Exactly What You Are Measuring
 
-Một request trong công cụ reflection có thể đi theo quy trình:
+A request in a reflection-based tool might follow this flow:
 
 ```text
-Nhận input -> parse -> xác định class/method -> chuyển đổi đối số
-           -> gọi method -> xử lý kết quả -> trả response
+Receive input -> parse -> resolve class/method -> convert arguments
+              -> invoke method -> process result -> return response
 ```
 
-Các phép đo khác nhau trả lời **các câu hỏi khác nhau**:
+Different measurements answer **different questions**:
 
-| Kịch bản | Nội dung đo | Khi nào hữu ích |
+| Scenario | What Is Measured | When Useful |
 | --- | --- | --- |
-| **Direct** | `Target.operation(input)` | Baseline của cùng thao tác nghiệp vụ |
-| **Cached reflection** | `cachedMethod.invoke(target, input)` | Đo đường gọi reflective khi `Method` đã được tìm trước |
-| **Lookup + invocation** | `getMethod(...); invoke(...)` trong mỗi lần gọi | Đo tổng chi phí tra cứu và gọi khi không cache |
-| **End-to-end** | Parse, validation, dispatch, method invocation, output | Đo tác động đến trải nghiệm thực tế hoặc throughput |
+| **Direct** | `Target.operation(input)` | Baseline for the same business operation |
+| **Cached reflection** | `cachedMethod.invoke(target, input)` | Measuring the reflective call path when `Method` is already resolved |
+| **Lookup + invocation** | `getMethod(...); invoke(...)` on every call | Measuring total lookup and invocation cost without caching |
+| **End-to-end** | Parsing, validation, dispatch, method invocation, output | Measuring impact on real user experience or throughput |
 
-Nếu so sánh direct với `getMethod(...).invoke(...)` trong cùng vòng lặp, số đo phản ánh **cả lookup lẫn invoke**. Không được diễn giải toàn bộ chênh lệch thành chi phí riêng của `Method.invoke`.
+If you compare direct calls against `getMethod(...).invoke(...)` inside the same loop, the measurement reflects **both lookup and invoke**. Never interpret the entire difference as the isolated cost of `Method.invoke`.
 
-`Method.invoke` dùng kiểu `Object` cho đầu vào/đầu ra, có thể kéo theo boxing, unboxing, kiểm tra hoặc chuyển đổi primitive hợp lệ. JIT có thể tối ưu khác nhau giữa các đường gọi. Vì vậy không thể khẳng định “Reflection luôn chậm X lần” nếu chưa chỉ rõ workload, JVM và cấu hình.
+`Method.invoke` uses `Object` for inputs and outputs, which can involve boxing, unboxing, checks, or valid primitive conversions. The JIT may optimize different call paths differently. Therefore, you cannot claim “Reflection is always X times slower” without specifying the workload, JVM, and configuration.
 
-Một cách nhìn hữu ích:
-
-```text
-Tổng chi phí công cụ ≈ parse + lookup/cache + convert + dispatch + target + response
-```
-
-Đây là mô hình phân tích chứ không phải phương trình chính xác trong hệ thống nhiều luồng. Các phần có thể tương tác qua GC, CPU cache, contention và scheduler.
-
-## 3. Warmup: lý do số đo ban đầu dễ sai
-
-JVM có thể bắt đầu thực thi bytecode bằng interpreter hoặc mã biên dịch ít tối ưu, sau đó thu thập profile và dùng JIT để biên dịch những đường code nóng. JIT có thể inline, loại bỏ phép tính thừa, chuyên biệt hóa kiểu tại call site, hoặc deoptimize khi giả định trước đó không còn đúng.
-
-Do vậy, thời gian ở vài lời gọi đầu thường khác so với trạng thái ổn định (*steady state*).
-
-Quy trình minh họa:
+A useful mental model:
 
 ```text
-Khởi tạo dữ liệu và cache Method
-    |
-    v
-Warmup direct và reflection (cùng phân bố input)
-    |
-    v
-Đo nhiều lượt, cân bằng thứ tự chạy
-    |
-    v
-Kiểm tra checksum / kết quả đúng
-    |
-    v
-Phân tích kết quả, độ biến động và giới hạn phép đo
+Total tool cost ≈ parse + lookup/cache + convert + dispatch + target + response
 ```
 
-Các nguyên tắc:
+This is an analytical model rather than an exact equation in a multi-threaded system. Components can interact through GC, CPU caches, contention, and the scheduler.
 
-1. **Warmup cả hai đường gọi.** Không làm nóng direct 100.000 lượt nhưng đo reflection ngay từ lần đầu.
-2. **Dùng input đại diện.** Warmup bằng đối tượng/method khác có thể không làm nóng đúng đường code cần đo.
-3. **Không xem số vòng warmup cố định là bảo đảm.** JVM có thể tiếp tục JIT/GC sau warmup; cần xem tính ổn định qua nhiều lần đo.
-4. **Tách cold start khỏi steady state.** Ứng dụng CLI ngắn hạn có thể quan tâm thời gian khởi động, lookup lần đầu; server chạy lâu có thể quan tâm throughput đã warm.
-5. **Không đo riêng một lượt rồi kết luận.** Sự khác biệt nhỏ có thể chìm trong nhiễu hệ điều hành, lịch CPU hoặc GC.
+## 3. Warmup: Why Initial Measurements Mislead
 
-## 4. Benchmark minh họa Java 17+: direct và cached Method.invoke
+The JVM may start executing bytecode in the interpreter or lightly optimized code, then gather profiles and use the JIT compiler to compile hot paths. The JIT can inline, eliminate redundant computations, specialize types at call sites, or deoptimize when prior assumptions no longer hold.
 
-Ví dụ độc lập sử dụng hai workload:
+Consequently, timings from the first few invocations usually differ from **steady state**.
 
-- **TINY:** `plusOne(int)` chỉ cộng 1, để thấy chi phí đường gọi có thể nổi bật khi target quá nhỏ.
-- **REALISTIC:** `parseOrder(String)` tách bản ghi, trim/uppercase vùng, parse số lượng và giá, rồi tính kết quả. Đây là workload CPU/chuỗi đơn giản mang tính đại diện hơn, dù vẫn chưa thay thế tác vụ production.
+Illustrative workflow:
 
-Cả hai dùng cùng dữ liệu cho direct/reflection. `getMethod` được gọi **trước** khi đo. Có checksum để xác nhận hai đường cho cùng kết quả. Benchmark chạy warmup mỗi đường, lấy nhiều mẫu và đảo thứ tự chạy giữa các mẫu.
+```text
+Initialize data and cache Method
+    |
+    v
+Warm up direct and reflection (same input distribution)
+    |
+    v
+Measure multiple runs, balancing execution order
+    |
+    v
+Verify checksum / correctness
+    |
+    v
+Analyze results, variance, and measurement limits
+```
 
-Tạo tệp `ReflectionBenchmarkDemo.java`:
+Principles:
+
+1. **Warm up both call paths.** Do not warm up direct calls 100,000 times and measure reflection cold on its first call.
+2. **Use representative inputs.** Warming up with different objects/methods may fail to warm the actual code paths under test.
+3. **Do not treat a fixed warmup iteration count as a guarantee.** The JVM may continue JIT compiling or running GC after warmup; inspect stability across multiple measurements.
+4. **Separate cold start from steady state.** A short-lived CLI app may care about startup and first lookup time; a long-running server may care about warmed throughput.
+5. **Never measure a single run and conclude.** Small differences can be drowned out by OS noise, CPU scheduling, or GC.
+
+## 4. Standalone Java 17+ Benchmark Demo: Direct vs. Cached `Method.invoke`
+
+The standalone example uses two workloads:
+
+- **TINY:** `plusOne(int)` merely adds 1, making call-path overhead stand out when the target does almost nothing.
+- **REALISTIC:** `parseOrder(String)` splits a record, trims/uppercases a region code, parses quantity and price, and computes a result. This is a more representative simple CPU/string workload, though still no substitute for production tasks.
+
+Both use identical data for direct and reflection paths. `getMethod` is called **before** timing. A checksum verifies both paths produce identical results. The benchmark warms up each path, collects multiple samples, and alternates execution order between samples.
+
+Create the file `ReflectionBenchmarkDemo.java`:
 
 ```java
 import java.lang.reflect.Method;
@@ -183,74 +183,74 @@ public final class ReflectionBenchmarkDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac ReflectionBenchmarkDemo.java
 java ReflectionBenchmarkDemo
 ```
 
-Chương trình đã được chạy thực tế với JDK. Output có hai dòng xác thực kết quả:
+The program was actually run on the JDK. Output includes two lines validating results:
 
 ```text
 TINY: same checksum = true
 REALISTIC: same checksum = true
 ```
 
-Hai dòng đó **không liền nhau trong stdout**: sau dòng `TINY` có năm dòng `sample ...` rồi mới đến dòng `REALISTIC` và năm dòng `sample ...` tiếp theo. Mỗi dòng mẫu chứa `direct ... ns/op` và `reflection ... ns/op`. Các con số đo **không có stdout cố định**, phụ thuộc CPU, phiên bản JVM, tải máy và tối ưu JIT.
+Those two lines **do not appear consecutively in stdout**: after `TINY` come five `sample ...` lines, followed by `REALISTIC` and the next five `sample ...` lines. Each sample line shows `direct ... ns/op` and `reflection ... ns/op`. Measured numbers **have no fixed stdout**, depending on CPU, JVM version, machine load, and JIT optimizations.
 
-Trong một lần chạy thử, direct TINY có thể được báo thấp hơn 1 ns/op. Đó là tín hiệu phải đánh giá **mức độ tối ưu của JIT đối với benchmark**, không thể khẳng định một lần gọi ứng dụng thực tế nhất định chỉ tốn từng ấy thời gian.
+In one test run, direct TINY can report below 1 ns/op. That is a signal to evaluate **how aggressively the JIT optimized the benchmark**, not a claim that a real application call definitely takes that little time.
 
-### Giải thích code
+### Code Explanation
 
-- Hai `Method` được lấy trước `compare`, nên đây là **cached invocation**.
-- `run` dùng cùng đối số cho mỗi cặp direct/reflection. Phương thức static sử dụng `method.invoke(null, ...)` vì không có receiver instance.
-- Reflection trả `Object`; phép ép `(Integer)`/`(Long)` unbox kết quả đúng primitive.
-- Kiểm tra checksum trước đo xác nhận hai đường cho cùng kết quả. Đo nhanh hơn nhưng tính sai là vô nghĩa.
-- Warmup lặp lại cả hai đường, trước khi vào năm mẫu đo.
-- Thứ tự direct/reflection thay đổi giữa mẫu chẵn và lẻ để giảm một phần thiên lệch thứ tự.
-- `System.nanoTime()` đo **elapsed time**, rồi chia cho số lần gọi để ước lượng `ns/op`.
-- `volatile sink` làm kết quả có thể quan sát được, nhưng vẫn không bảo đảm loại bỏ mọi vấn đề tối ưu.
+- Both `Method` instances are obtained before `compare`, so this is **cached invocation**.
+- `run` uses the same arguments for each direct/reflection pair. Static methods use `method.invoke(null, ...)` because there is no receiver instance.
+- Reflection returns `Object`; `(Integer)`/`(Long)` casts unbox the result to the matching primitive.
+- Checking the checksum before measuring confirms both paths produce the same result. Measuring faster code that computes the wrong answer is meaningless.
+- Warmup repeats both paths before the five measurement samples.
+- Direct/reflection order alternates between even and odd samples to partially reduce order bias.
+- `System.nanoTime()` measures **elapsed time**, which is divided by call count to estimate `ns/op`.
+- `volatile sink` makes results observable, though it still does not guarantee eliminating all optimization issues.
 
-**Giới hạn:** chương trình dùng một JVM process, vòng lặp riêng và số lượng input nhỏ; không tạo fork độc lập hay có công cụ kiểm soát JIT đầy đủ. Nó là ví dụ có thể chạy để học, **không phải số benchmark đủ tin cậy cho quyết định tối ưu sản phẩm**.
+**Limitations:** the program uses a single JVM process, custom loops, and a small input set; it lacks independent forks and full JIT control tooling. It is a runnable learning example, **not benchmark data reliable enough for production optimization decisions**.
 
-## 5. Những điều dễ làm sai phép đo
+## 5. Common Pitfalls That Skew Measurements
 
-### 5.1. Inlining, constant folding và dead-code elimination
+### 5.1. Inlining, Constant Folding, and Dead-Code Elimination
 
-Phép cộng đơn giản `plusOne(x)` có thể bị JIT inline, đơn giản hóa hoặc tối ưu toàn vòng lặp. Nếu kết quả không được sử dụng, JVM có thể loại bỏ nhiều công việc. Dù có `volatile sink` sau vòng lặp, trình biên dịch vẫn có quyền thực hiện nhiều biến đổi bảo toàn kết quả quan sát được.
+A simple addition `plusOne(x)` can be inlined, simplified, or loop-optimized by the JIT. If the result is unused, the JVM can eliminate much of the work. Even with a `volatile sink` after the loop, the compiler may perform many transformations that preserve observable output.
 
-Đặc biệt, so sánh direct với reflection trên target cực nhỏ dễ phóng đại chênh lệch bởi đường direct tối ưu vượt xa mã nguồn tưởng tượng ban đầu. Điều đó không có nghĩa số đo “lỗi” theo nghĩa công cụ đo sai thời gian; nó có nghĩa **mã máy đang được đo không nhất thiết đại diện cho production**.
+In particular, comparing direct vs. reflection on a tiny target easily exaggerates the gap because the direct path optimizes far beyond what the source code suggests. That does not mean the measurement is “broken” in the sense of timer inaccuracy; it means **the machine code being timed does not necessarily represent production**.
 
-JMH cho phép trả về giá trị của `@Benchmark` hoặc dùng `Blackhole` để tiêu thụ output; đây là một trong nhiều biện pháp chống dead-code elimination. Tuy nhiên, chính input và cấu trúc workload vẫn phải được thiết kế đúng.
+JMH lets `@Benchmark` methods return values or use `Blackhole` to consume outputs; that is one of several defenses against dead-code elimination. Even then, the inputs and workload structure themselves must be designed properly.
 
-### 5.2. GC, allocation và boxing
+### 5.2. GC, Allocation, and Boxing
 
-`Method.invoke` dùng API nhận/trả `Object` nên trường hợp primitive có thể liên quan boxing/unboxing. Một số phân bổ có thể bị JVM tối ưu, nhưng vẫn cần phân biệt trường hợp tham số primitive với đối tượng.
+`Method.invoke` uses an API taking/returning `Object`, so primitive cases can involve boxing/unboxing. Some allocations may be eliminated by the JVM, yet you still need to distinguish primitive arguments from object arguments.
 
-Workload chuỗi có thể tạo mảng từ `split` và đối tượng parse/normalize; khi target làm nhiều việc như thế, chi phí gọi reflective có thể trở thành tỷ lệ nhỏ. GC có thể làm một mẫu bị chậm đột biến. Nếu đối tượng được cấp phát nhiều, nên theo dõi lượng allocation/GC song song với `ns/op`.
+String workloads can allocate arrays from `split` and objects during parsing/normalization; when the target performs that much work, reflective call overhead can become a small fraction. GC can also cause sudden latency spikes in a sample. When many objects are allocated, monitor allocation/GC rates alongside `ns/op`.
 
-### 5.3. Nhiễu hệ thống và số lượng mẫu
+### 5.3. System Noise and Sample Size
 
-Một phép đo microbenchmark quá ngắn dễ bị ảnh hưởng bởi chi phí gọi đồng hồ và scheduling. Một lần chạy dễ bị lệch do JIT hoặc nhiệt độ CPU. Vì vậy:
+An overly short microbenchmark is easily distorted by timer call overhead and scheduling. A single run is easily skewed by JIT timing or CPU thermals. Therefore:
 
-- Thu thập **nhiều iteration và nhiều fork**.
-- Đo trong môi trường tương đối ổn định, ghi JDK vendor/version, flags, CPU, OS, heap.
-- Không đặt logging/format output vào vùng đo trừ khi mục tiêu đo chính chúng.
-- Giữ đầu vào tương đương giữa đường direct và reflection.
-- Xem phân bố, độ lệch và error thay vì chỉ lấy một con số đẹp.
+- Collect **multiple iterations and multiple forks**.
+- Measure in a relatively quiet environment, recording JDK vendor/version, flags, CPU, OS, and heap settings.
+- Keep logging/output formatting out of the timed region unless logging itself is what you are measuring.
+- Keep inputs equivalent between direct and reflection paths.
+- Inspect distributions, variance, and error bounds rather than cherry-picking one pretty number.
 
-## 6. Benchmark nghiêm túc bằng JMH
+## 6. Serious Benchmarking with JMH
 
-[JMH (Java Microbenchmark Harness)](https://openjdk.org/projects/code-tools/jmh/) của OpenJDK có cơ chế warmup, measurement, JVM fork, benchmark mode và quản lý tiêu thụ kết quả phù hợp hơn phép đo thủ công. JMH không tự làm workload trở nên đại diện; nó là hạ tầng đo.
+OpenJDK's [JMH (Java Microbenchmark Harness)](https://openjdk.org/projects/code-tools/jmh/) provides warmup, measurement, JVM forks, benchmark modes, and result consumption far superior to manual timing loops. JMH does not automatically make a workload representative; it is the measurement harness.
 
-Một cách bắt đầu là tạo dự án Maven bằng JMH archetype với **phiên bản ví dụ 1.37** (cần Maven và khả năng tải dependencies):
+One way to start is generating a Maven project using the JMH archetype with **example version 1.37** (requires Maven and dependency download access):
 
 ```bash
 mvn archetype:generate -DinteractiveMode=false -DarchetypeGroupId=org.openjdk.jmh -DarchetypeArtifactId=jmh-java-benchmark-archetype -DarchetypeVersion=1.37 -DgroupId=demo -DartifactId=reflection-bench -Dversion=1.0
 ```
 
-Lưu class sau thành `reflection-bench/src/main/java/demo/ReflectionJmh.java`. Cấu hình project build với JDK 17 trở lên.
+Save the following class as `reflection-bench/src/main/java/demo/ReflectionJmh.java`. Configure the project build with JDK 17 or newer.
 
 ```java
 package demo;
@@ -319,7 +319,7 @@ public class ReflectionJmh {
 }
 ```
 
-Sau khi tạo class và có Maven/JMH dependencies từ archetype:
+Once the class is created and Maven/JMH dependencies from the archetype are ready:
 
 ```bash
 cd reflection-bench
@@ -327,139 +327,139 @@ mvn clean verify
 java -jar target/benchmarks.jar ".*ReflectionJmh.*" -rf json -rff results.json
 ```
 
-Lệnh ghi kết quả vào `results.json`; không có bảng số cố định vì chạy trên JVM/máy khác nhau cho kết quả khác nhau.
+This writes results to `results.json`; there is no fixed table of numbers because running on different JVMs/machines produces different results.
 
-**Ý nghĩa thiết kế:**
+**Design rationale:**
 
-- `@Setup(Level.Trial)` cache `Method` ngoài phần đo; đây là phép đo **cached reflection**, không tính chi phí lookup.
-- `@State(Scope.Thread)` cung cấp state riêng theo thread; `index` thay đổi theo lần gọi để tránh dùng một literal bất biến làm input duy nhất.
-- `@Warmup`, `@Measurement` và `@Fork` cấu hình warmup, số lượt đo và số JVM fork. Có thể tăng khi độ biến động lớn.
-- JMH sử dụng kết quả trả về của `@Benchmark` để hạn chế những tối ưu làm phép đo biến mất.
-- Hai benchmark tiny so sánh lời gọi xử lý primitive; hai benchmark realistic cùng chạy `parseOrder` trên bộ input tương đương.
-- `@BenchmarkMode(Mode.AverageTime)` kết hợp `@OutputTimeUnit(TimeUnit.NANOSECONDS)` cho score kiểu `ns/op`.
+- `@Setup(Level.Trial)` caches `Method` outside the timed region; this measures **cached reflection**, excluding lookup cost.
+- `@State(Scope.Thread)` provides per-thread state; `index` changes per call to avoid using a constant literal as the sole input.
+- `@Warmup`, `@Measurement`, and `@Fork` configure warmup, measurement iterations, and JVM forks. Increase them if variance is high.
+- JMH consumes the return value of `@Benchmark` to curb optimizations that eliminate the work.
+- Two tiny benchmarks compare primitive-handling calls; two realistic benchmarks run `parseOrder` over equivalent inputs.
+- `@BenchmarkMode(Mode.AverageTime)` combined with `@OutputTimeUnit(TimeUnit.NANOSECONDS)` reports scores in `ns/op`.
 
-Ví dụ JMH này minh họa cách chuẩn bị một phép so sánh độc lập. Trước khi dùng cho quyết định thật, cần xác minh phân bố input gần production, không có thay đổi state ngoài dự kiến, và các target không bị JIT đơn giản hóa tới mức vô nghĩa. Có thể thiết kế benchmark thứ ba cho lookup hoặc cache miss, thay vì đưa lookup vào phép đo cached invocation.
+This JMH example illustrates setting up an isolated comparison. Before using it for real decisions, verify that input distributions resemble production, there are no unintended state mutations, and targets are not simplified away by the JIT. You can add a third benchmark for lookup or cache misses instead of mixing lookup into the cached invocation measurement.
 
-## 7. Workload thực tế quan trọng hơn một phép cộng
+## 7. Realistic Workloads Matter More Than Adding One
 
-Một benchmark tiny có thể làm overhead gọi nổi bật. Nhưng phần lớn sản phẩm phải parse request, validate, thao tác dữ liệu, gọi I/O hoặc giao tiếp database. Các tác vụ đó có thể tốn nhiều hơn cơ chế gọi phương thức.
+A tiny benchmark can make invocation overhead stand out. Yet most production code parses requests, validates inputs, manipulates data, performs I/O, or talks to databases. Those tasks can easily cost far more than the method-invocation mechanism.
 
-Cần chọn workload đại diện theo ít nhất các chiều:
+Select a representative workload across at least these dimensions:
 
-| Chiều cần mô phỏng | Ví dụ |
+| Dimension to Model | Examples |
 | --- | --- |
-| Độ phức tạp target | Trả primitive; parse chuỗi; xử lý object; truy vấn dữ liệu |
-| Loại tham số | Primitive, wrapper, String, DTO, mảng, nhiều tham số |
-| Kết quả | Primitive, đối tượng, void, exception |
-| Cache pattern | Một method nóng, nhiều method hiếm gọi, cache hit/miss |
-| Tải | Một thread, nhiều thread, request bị contention |
-| Input | Độ dài, tỷ lệ lỗi, số loại request, phân bố thực tế |
-| Cấu hình runtime | Cold start, warmup lâu, kích thước heap, GC và JDK |
+| Target complexity | Returning a primitive; string parsing; object processing; data queries |
+| Parameter types | Primitives, wrappers, String, DTOs, arrays, multiple parameters |
+| Return/outcome | Primitive, object, void, exception |
+| Cache pattern | One hot method, many rarely called methods, cache hits/misses |
+| Load | Single thread, multiple threads, contended requests |
+| Inputs | Length, error rate, request variety, realistic distribution |
+| Runtime configuration | Cold start, long warmup, heap size, GC, and JDK |
 
-Không đánh đồng benchmark `parseOrder` với workload có I/O; nó vẫn là tác vụ CPU/chuỗi. Với DB/network hoặc service thực tế, nên **profile và load test end-to-end**, lấy p50/p95/p99 latency, throughput, allocation và CPU. Microbenchmark không thay thế kiểm chứng hệ thống dưới tải.
+Do not equate a `parseOrder` benchmark with an I/O-bound workload; it is still a CPU/string task. For databases, networks, or real services, **profile and load-test end-to-end**, collecting p50/p95/p99 latency, throughput, allocations, and CPU. Microbenchmarks do not replace testing the system under load.
 
-### Tỷ trọng overhead
+### Overhead Share
 
-Giả sử **chỉ để minh họa phép tính**, chi phí tăng thêm do cơ chế gọi là 100 ns:
+Suppose **purely to illustrate the arithmetic**, extra invocation overhead is 100 ns:
 
-| Chi phí target | Overhead thêm | Tỷ lệ tăng tương đối |
+| Target Cost | Added Overhead | Relative Increase |
 | ---: | ---: | ---: |
 | 100 ns | 100 ns | 100% |
-| 1.000.000 ns (1 ms) | 100 ns | 0,01% |
+| 1,000,000 ns (1 ms) | 100 ns | 0.01% |
 
-Công thức minh họa: `overhead / target time × 100%`. Đây **không phải số đo thật** về `Method.invoke`. Bài học là cùng một chi phí cố định có thể rất quan trọng ở target cực nhỏ và gần như không đáng kể khi target nặng; phải đo production workload mới kết luận được.
+Illustrative formula: `overhead / target time × 100%`. These are **not real measurements** of `Method.invoke`. The lesson is that the same fixed overhead can be huge on a tiny target and negligible on a heavy target; only measuring the production workload can tell.
 
-## 8. Cache Method: quyết định dựa trên dữ liệu
+## 8. Caching `Method`: Data-Driven Decisions
 
-Cache `Method` giúp tránh lặp lại tra cứu metadata nếu cùng chữ ký được dùng thường xuyên. Nhưng caching có chi phí bộ nhớ, khởi tạo, lookup key và vòng đời.
+Caching `Method` avoids repeating metadata lookups when the same signature is used frequently. Yet caching has costs in memory, initialization, key lookup, and lifecycle management.
 
-Khi quyết định cache, hãy kiểm tra:
+When deciding whether to cache, check:
 
-1. **Cache hit ratio**: nếu đa số request gọi lại một số ít method, lợi ích lookup có thể đáng kể.
-2. **Key đầy đủ**: phải phân biệt class, method name, danh sách kiểu tham số (overload), và ngữ cảnh class loader nếu liên quan. Chỉ key theo tên method là không đủ.
-3. **Scope cache**: instance, class loader hay toàn application? Tham chiếu mạnh tới `Class`/`Method` có thể cản trở class unloading khi ứng dụng nạp module động.
-4. **Thread safety**: việc đọc/ghi cache có tạo contention không?
-5. **Kích thước và eviction**: cache vô hạn cho nhiều class/method có thể gây tăng heap.
-6. **Profile thực tế**: có chắc lookup đang chiếm thời gian đáng kể, hay toàn request bị chi phối bởi parse/network/DB?
-7. **Đo tách biệt**: benchmark direct, cached invoke, lookup+invoke và full pipeline trước/sau cache.
+1. **Cache hit ratio**: if most requests repeatedly call a few methods, lookup savings can be significant.
+2. **Complete keys**: must distinguish class, method name, parameter type list (overloads), and classloader context where relevant. Keying by method name alone is insufficient.
+3. **Cache scope**: instance, classloader, or whole application? Strong references to `Class`/`Method` can block class unloading when dynamically loading modules.
+4. **Thread safety**: do cache reads/writes introduce contention?
+5. **Size and eviction**: unbounded caches over many classes/methods can grow heap usage.
+6. **Real profile**: is lookup actually taking significant time, or are requests dominated by parsing/network/DB?
+7. **Separate measurements**: benchmark direct, cached invoke, lookup+invoke, and full pipeline before/after caching.
 
-`ClassValue` có thể hữu ích khi dữ liệu cache gắn với vòng đời của từng `Class`. Với class loader động, tránh xây cache toàn cục giữ mãi strong reference mà không có chính sách vòng đời.
+`ClassValue` can help when cached data aligns with each `Class`'s lifetime. With dynamic classloaders, avoid building global caches that hold strong references forever without a lifecycle policy.
 
-Nếu muốn so sánh thêm `MethodHandle`, hãy chuẩn bị handle và adapter trước phép đo khi thí nghiệm chỉ quan tâm invocation. Không kết luận `MethodHandle` luôn nhanh hơn từ tên API; chữ ký, call-site type, inlining và cách xây adapter đều ảnh hưởng kết quả.
+If you also want to compare `MethodHandle`, prepare the handle and any adapters before measurement when the experiment focuses solely on invocation. Never assume `MethodHandle` is always faster from the API name; signatures, call-site types, inlining, and adapter construction all affect results.
 
-## 9. Cách đọc kết quả và báo cáo
+## 9. How to Read Results and Report Findings
 
-Một báo cáo kỹ thuật nên chứa:
+A technical report should include:
 
-- **Câu hỏi**: cached `Method.invoke` so với direct trong workload nào?
-- **Môi trường**: JDK vendor/version, flags, CPU, OS, cấu hình GC/heap.
-- **Dữ liệu**: số lượng và phân bố input, phương thức được benchmark, kiểu tham số/return.
-- **Thiết lập đo**: warmup, measurement iterations, số fork, số thread, benchmark mode.
-- **Kết quả**: score, đơn vị, sai số/độ phân tán, các mẫu bất thường, checksum hoặc kiểm tra chức năng.
-- **Giới hạn**: thiếu I/O, dataset không đại diện, case cold start, cache miss hoặc mô hình concurrency chưa được đo.
+- **Question**: cached `Method.invoke` vs. direct call on which workload?
+- **Environment**: JDK vendor/version, flags, CPU, OS, GC/heap configuration.
+- **Data**: input counts and distributions, benchmarked methods, parameter/return types.
+- **Measurement setup**: warmup, measurement iterations, fork count, thread count, benchmark mode.
+- **Results**: scores, units, error/spread, outlier samples, checksum or functional verification.
+- **Limitations**: missing I/O, non-representative datasets, unmeasured cold starts, cache misses, or concurrency patterns.
 
-Các đại lượng không nên nhầm:
+Metrics not to confuse:
 
-| Đại lượng | Cách hiểu |
+| Metric | How to Interpret |
 | --- | --- |
-| `ns/op` | Số nanosecond trung bình cho một operation; thấp hơn thường tốt |
-| `ops/s` | Throughput; cao hơn thường tốt |
-| Error/độ lệch | Độ bất định của kết quả; chênh lệch nhỏ có thể không đáng tin |
-| `p50/p95/p99` | Phân vị độ trễ request; quan trọng khi đánh giá tail latency |
-| Allocation/GC | Thông tin về cấp phát và dừng GC có thể làm thay đổi độ trễ |
+| `ns/op` | Average nanoseconds per operation; lower is usually better |
+| `ops/s` | Throughput; higher is usually better |
+| Error/deviation | Uncertainty of the result; small differences may be unreliable |
+| `p50/p95/p99` | Request latency percentiles; critical when evaluating tail latency |
+| Allocation/GC | Allocation rates and GC pauses that can shift latency |
 
-Đừng lấy một mẫu nhanh nhất rồi công bố thành tốc độ “chuẩn”. Nếu confidence/error giữa direct và reflection chồng lấn đáng kể, cần tăng số phép đo hoặc kết luận rằng khác biệt chưa được xác định chắc chắn.
+Do not pick a single fastest sample and report it as the “standard” speed. If confidence/error intervals between direct and reflection overlap substantially, collect more measurements or conclude that a difference has not been reliably established.
 
-## 10. Lỗi phổ biến
+## 10. Common Mistakes
 
-1. **Đo không warmup**, nhưng báo số liệu như steady-state.
-2. **Đo lookup + invoke** rồi gán chênh lệch cho riêng `Method.invoke`.
-3. **Direct làm ít việc hơn reflection**, ví dụ một bên parse dữ liệu, bên kia đã có tham số kiểu đúng.
-4. **Không dùng kết quả**, khiến JIT có thể loại bỏ công việc.
-5. **Input quá đơn điệu**, làm compiler đơn giản hóa vòng lặp hơn ứng dụng thật.
-6. **Bỏ qua boxing/unboxing hoặc allocation** khi giải thích khác biệt.
-7. **Đưa in kết quả hoặc logging vào vòng đo** nhưng không có ý định đo chính logging.
-8. **Chạy chỉ một lần, trên một JVM**, rồi kết luận tỉ lệ cố định cho mọi môi trường.
-9. **Nhìn mỗi ns/op tiny**, bỏ qua latency/throughput của request có target thật.
-10. **Cache mọi metadata vô hạn**, gây tăng memory hoặc giữ class loader không cần thiết.
-11. **So sánh JMH modes khác nhau** mà không kiểm tra đơn vị, số thread và kết quả.
-12. **Benchmark chỉ đường thành công**, không kiểm tra input bất hợp lệ, exception hoặc tỷ lệ cache miss khi chúng xuất hiện nhiều trong production.
+1. **Measuring without warmup**, then reporting the numbers as steady-state.
+2. **Measuring lookup + invoke** and attributing the entire difference solely to `Method.invoke`.
+3. **Direct doing less work than reflection**, e.g., one side parses inputs while the other already has typed arguments.
+4. **Ignoring return values**, allowing the JIT to eliminate the work.
+5. **Overly uniform inputs**, letting the compiler simplify the loop far more than in a real application.
+6. **Ignoring boxing/unboxing or allocations** when explaining differences.
+7. **Putting printing or logging inside the timed loop** without intending to measure logging itself.
+8. **Running once on a single JVM**, then claiming a fixed ratio across all environments.
+9. **Focusing only on tiny `ns/op`**, ignoring latency/throughput of requests with real targets.
+10. **Caching all metadata unboundedly**, growing memory or retaining classloaders unnecessarily.
+11. **Comparing different JMH modes** without checking units, thread counts, and outputs.
+12. **Benchmarking only the happy path**, omitting invalid inputs, exceptions, or cache-miss rates when common in production.
 
-## 11. Tự kiểm tra
+## 11. Self-Check
 
-**Câu 1.** `service.getClass().getMethod("work").invoke(service)` trong vòng lặp có là phép đo overhead thuần của `Method.invoke` không?
+**Question 1.** Is `service.getClass().getMethod("work").invoke(service)` inside a loop a pure measurement of `Method.invoke` overhead?
 
-Không. Mỗi lượt bao gồm tra cứu method. Nếu cần cached invocation, hãy tạo `Method` trước vòng đo.
+No. Every iteration includes a method lookup. If you want cached invocation, obtain the `Method` before the timed loop.
 
-**Câu 2.** Tại sao warmup cả direct và reflection?
+**Question 2.** Why warm up both direct and reflection?
 
-Mỗi đường có JIT profile khác nhau; warmup một phía có thể làm sai so sánh trạng thái ổn định.
+Each path has its own JIT profile; warming up only one side skews the steady-state comparison.
 
-**Câu 3.** Nếu thấy direct tiny chỉ khoảng 0,2 ns/op, có nên tuyên bố đây là chi phí mọi lời gọi Java trực tiếp?
+**Question 3.** If direct tiny reports around 0.2 ns/op, should you claim that is the cost of every direct Java call?
 
-Không. JIT có thể inline, tối ưu loop hoặc constant folding. Con số mô tả mã benchmark được tối ưu dưới điều kiện cụ thể, không mặc nhiên đại diện mọi request.
+No. The JIT can inline, optimize loops, or constant-fold. That number describes the optimized benchmark code under specific conditions, not every real request by default.
 
-**Câu 4.** Vì sao checksum cần khớp?
+**Question 4.** Why must checksums match?
 
-Nếu hai đường cho kết quả khác nhau, có thể chúng đang thực hiện lượng công việc hoặc logic khác nhau, khiến kết quả tốc độ không có ý nghĩa.
+If the two paths produce different results, they may be doing different amounts of work or different logic, rendering the speed comparison meaningless.
 
-**Câu 5.** Workload mục tiêu chạy 5 ms do I/O, benchmark một method trả `int` có đủ để quyết định thay reflection không?
+**Question 5.** If the target workload takes 5 ms due to I/O, is benchmarking a method returning `int` enough to decide to replace reflection?
 
-Không. Phải đo overhead trong pipeline thực tế; network, DB, GC và queueing có thể chi phối độ trễ.
+No. Measure overhead in the actual pipeline; network, DB, GC, and queueing may dominate latency.
 
-**Câu 6.** JMH có thay thế profiling và load test không?
+**Question 6.** Does JMH replace profiling and load testing?
 
-Không. JMH đo một phép microbenchmark đã định nghĩa tốt; profiling tìm điểm nghẽn, còn load test đánh giá end-to-end latency/throughput và contention.
+No. JMH measures a well-defined microbenchmark; profiling locates bottlenecks, while load testing evaluates end-to-end latency/throughput and contention.
 
-**Bài tập:** thêm phép đo lookup riêng, thay số lượng method nóng và tỷ lệ cache hit; sau đó chạy JMH trên các JDK mục tiêu. Chỉ đề xuất cache hoặc thay API khi số liệu mới phản ánh workload thực tế.
+**Exercise:** add a separate lookup measurement, vary the number of hot methods and cache hit rates, and run JMH across your target JDKs. Only propose caching or API changes once the numbers reflect a realistic workload.
 
-## 12. Điểm cần nhớ
+## 12. Key Takeaways
 
-Một benchmark Reflection đáng tin phải có **baseline trực tiếp**, **cùng input/cùng kết quả**, **warmup**, **cache metadata khi đo cached invocation**, **nhiều mẫu/fork** và **workload đại diện**. Benchmark phép tính nhỏ giúp nhận ra overhead của lời gọi; benchmark nghiệp vụ thật mới giúp quyết định tối ưu có đáng hay không. Với kết luận quan trọng, dùng JMH và ghi rõ toàn bộ ngữ cảnh phép đo.
+A credible Reflection benchmark needs a **direct baseline**, **identical inputs and outputs**, **warmup**, **cached metadata when measuring cached invocation**, **multiple samples/forks**, and a **representative workload**. Tiny arithmetic benchmarks reveal invocation overhead; real business workloads determine whether optimization is worth it. For important conclusions, use JMH and document the entire measurement context.
 
-Tài liệu chính thức:
+Official documentation:
 
 - [OpenJDK JMH](https://openjdk.org/projects/code-tools/jmh/)
-- [Mã nguồn JMH](https://github.com/openjdk/jmh)
+- [JMH Source Code](https://github.com/openjdk/jmh)
 - [Method.invoke — Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html#invoke(java.lang.Object,java.lang.Object...))
 - [System.nanoTime — Java 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/System.html#nanoTime())

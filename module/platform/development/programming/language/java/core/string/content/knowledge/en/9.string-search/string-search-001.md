@@ -1,8 +1,8 @@
-# `String.contains()` để kiểm tra chuỗi con trong Java
+# `String.contains()` for Checking Substrings in Java
 
-Trong Java, **`String.contains(CharSequence s)`** trả về `true` nếu chuỗi đang xét **có chứa một dãy ký tự liên tiếp đúng bằng** đối số `s`, ngược lại trả về `false`. Đây là công cụ đơn giản để kiểm tra sự xuất hiện của một **chuỗi con** (*substring*) mà không cần biết vị trí bắt đầu.
+In Java, **`String.contains(CharSequence s)`** returns `true` if the target string **contains a contiguous sequence of characters equal to** the argument `s`, and `false` otherwise. This is a simple tool for checking whether a **substring** occurs without needing to know its starting position.
 
-Ví dụ:
+Example:
 
 ```java
 String text = "Java Core - String";
@@ -11,38 +11,38 @@ System.out.println(text.contains("Core")); // true
 System.out.println(text.contains("core")); // false
 ```
 
-Từ khóa quan trọng là **liên tiếp** và **đúng nguyên văn**: `contains()` phân biệt chữ hoa/chữ thường, không bỏ khoảng trắng, không tự chuẩn hóa Unicode, không tách từ và **không dùng biểu thức chính quy (regex)**.
+The key terms are **contiguous** and **literal**: `contains()` is case-sensitive, does not ignore whitespace, does not automatically normalize Unicode, does not split words, and **does not use regular expressions (regex)**.
 
-## 1. Cú pháp, tham số và giá trị trả về
+## 1. Syntax, Parameters, and Return Value
 
-Khai báo trong lớp `java.lang.String`:
+Declaration in class `java.lang.String`:
 
 ```java
 public boolean contains(CharSequence s)
 ```
 
-- **Đối tượng nhận:** một `String` cần tìm bên trong, chẳng hạn `text`.
-- **Tham số `s`:** một `CharSequence` làm chuỗi con cần tìm. Thông thường truyền một `String` như `"Java"`; đối số có thể là một triển khai `CharSequence` khác như `StringBuilder`.
-- **Kết quả:** `boolean`, bằng `true` nếu tìm được dãy ký tự liên tiếp, bằng `false` nếu không.
-- **Vị trí:** `contains()` **không trả về vị trí**. Nếu muốn vị trí xuất hiện đầu tiên, dùng `indexOf()`.
-- **`null`:** gọi phương thức trên `null` hoặc truyền tham số `null` đều gây `NullPointerException` (chi tiết trong phần xử lý null).
+- **Target object:** a `String` to search inside, such as `text`.
+- **Parameter `s`:** a `CharSequence` serving as the substring to search for. Typically a `String` such as `"Java"` is passed; the argument can also be another `CharSequence` implementation such as `StringBuilder`.
+- **Result:** `boolean`, `true` if the contiguous character sequence is found, `false` otherwise.
+- **Position:** `contains()` **does not return an index**. If you need the first occurrence index, use `indexOf()`.
+- **`null`:** calling the method on `null` or passing a `null` argument causes a `NullPointerException` (details in the null-handling section).
 
-Ví dụ so sánh:
+Comparison examples:
 
-| Đầu vào | Lời gọi | Kết quả | Giải thích |
+| Input | Call | Result | Explanation |
 | --- | --- | --- | --- |
-| `"Java Core"` | `contains("Java")` | `true` | Tìm thấy ở đầu |
-| `"Java Core"` | `contains("Core")` | `true` | Tìm thấy ở cuối |
-| `"Java Core"` | `contains("va Co")` | `true` | Tồn tại dãy liên tiếp xuyên qua dấu cách |
-| `"Java Core"` | `contains("java")` | `false` | `J` và `j` khác nhau |
-| `"Java Core"` | `contains("JavaCore")` | `false` | Thiếu dấu cách so với dữ liệu gốc |
-| `"Java Core"` | `contains("Python")` | `false` | Không xuất hiện |
+| `"Java Core"` | `contains("Java")` | `true` | Found at the beginning |
+| `"Java Core"` | `contains("Core")` | `true` | Found at the end |
+| `"Java Core"` | `contains("va Co")` | `true` | Contiguous sequence exists across the space |
+| `"Java Core"` | `contains("java")` | `false` | `J` and `j` differ |
+| `"Java Core"` | `contains("JavaCore")` | `false` | Missing space compared to source data |
+| `"Java Core"` | `contains("Python")` | `false` | Does not appear |
 
-**`contains()` không yêu cầu khớp toàn bộ chuỗi**. `"Java Core".contains("Java")` là `true` dù đối tượng có thêm `" Core"`, còn `"Java Core".equals("Java")` là `false`.
+**`contains()` does not require a full-string match**. `"Java Core".contains("Java")` is `true` even though the target has `" Core"` after it, whereas `"Java Core".equals("Java")` is `false`.
 
-## 2. Ví dụ Java 17+ hoàn chỉnh
+## 2. Complete Java 17+ Example
 
-Lưu mã dưới tên `ContainsBasics.java`:
+Save the code as `ContainsBasics.java`:
 
 ```java
 public class ContainsBasics {
@@ -63,14 +63,14 @@ public class ContainsBasics {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 ContainsBasics.java
 java ContainsBasics
 ```
 
-Kết quả:
+Output:
 
 ```text
 true
@@ -82,34 +82,34 @@ false
 true
 ```
 
-Giải thích:
+Explanation:
 
-1. Chuỗi `"Core"` xuất hiện liên tiếp nên trả `true`.
-2. `"core"` khác `"Core"` do phân biệt chữ hoa/thường nên `false`.
-3. `"Java Core"` xuất hiện ở đầu chuỗi, khớp đúng dấu cách.
-4. **Chuỗi rỗng `""` được coi là chuỗi con của mọi `String`**, kể cả chuỗi rỗng; vì thế cả `text.contains("")` và `"".contains("")` đều trả `true`.
-5. Chuỗi rỗng không chứa dãy ký tự `"Java"` nên `"".contains("Java")` trả `false`.
-6. `StringBuilder` triển khai `CharSequence`, vì vậy `contains(new StringBuilder("String"))` hợp lệ và tìm được dãy ký tự.
+1. The string `"Core"` appears contiguously, so it returns `true`.
+2. `"core"` differs from `"Core"` due to case sensitivity, so `false`.
+3. `"Java Core"` appears at the beginning of the string, matching the space as well.
+4. **The empty string `""` is considered a substring of every `String`**, including the empty string itself; therefore both `text.contains("")` and `"".contains("")` return `true`.
+5. An empty string does not contain the character sequence `"Java"`, so `"".contains("Java")` returns `false`.
+6. `StringBuilder` implements `CharSequence`, so `contains(new StringBuilder("String"))` is valid and finds the character sequence.
 
-Về mặt ngữ nghĩa, Java kiểm tra sự hiện diện của **một chuỗi con chính xác**. Không cần gọi `toString()` trước khi truyền một `StringBuilder`, nhưng nếu nội dung của đối tượng thay đổi trong khi một luồng khác đang sử dụng nó, cần đồng bộ phù hợp; các `CharSequence` có thể thay đổi không có bảo đảm thread-safe mặc định.
+Semantically, Java checks for the presence of **an exact substring**. There is no need to call `toString()` before passing a `StringBuilder`, though if the object's content changes while another thread is using it, appropriate synchronization is required; mutable `CharSequence` implementations do not have thread-safety guarantees by default.
 
-## 3. Phân biệt `contains`, `indexOf`, `startsWith`, `endsWith`, `equals` và `matches`
+## 3. Distinguishing `contains`, `indexOf`, `startsWith`, `endsWith`, `equals`, and `matches`
 
-Các API đều xử lý chuỗi, nhưng hỏi các câu khác nhau:
+These APIs all work with strings, but ask different questions:
 
-| API | Mục đích | Ví dụ |
+| API | Purpose | Example |
 | --- | --- | --- |
-| `text.contains(part)` | Có chứa đoạn nguyên văn ở **bất kỳ đâu** không? | `"file.txt".contains("le.")` → `true` |
-| `text.indexOf(part)` | Đoạn nguyên văn xuất hiện **đầu tiên ở vị trí nào**? | `"banana".indexOf("ana")` → `1` |
-| `text.lastIndexOf(part)` | Đoạn nguyên văn xuất hiện **cuối cùng ở vị trí nào**? | `"banana".lastIndexOf("ana")` → `3` |
-| `text.startsWith(part)` | Chuỗi có **bắt đầu** bằng đoạn này không? | `"file.txt".startsWith("file")` → `true` |
-| `text.endsWith(part)` | Chuỗi có **kết thúc** bằng đoạn này không? | `"file.txt".endsWith(".txt")` → `true` |
-| `text.equals(other)` | Hai chuỗi có **toàn bộ nội dung** bằng nhau không? | `"java".equals("java")` → `true` |
-| `text.matches(regex)` | **Toàn bộ** chuỗi có khớp biểu thức chính quy không? | `"abc123".matches(".*\\d+.*")` → `true` |
+| `text.contains(part)` | Does it contain the literal segment **anywhere**? | `"file.txt".contains("le.")` → `true` |
+| `text.indexOf(part)` | Where does the literal segment **first appear**? | `"banana".indexOf("ana")` → `1` |
+| `text.lastIndexOf(part)` | Where does the literal segment **last appear**? | `"banana".lastIndexOf("ana")` → `3` |
+| `text.startsWith(part)` | Does the string **start** with this segment? | `"file.txt".startsWith("file")` → `true` |
+| `text.endsWith(part)` | Does the string **end** with this segment? | `"file.txt".endsWith(".txt")` → `true` |
+| `text.equals(other)` | Do both strings have **identical full content**? | `"java".equals("java")` → `true` |
+| `text.matches(regex)` | Does the **entire** string match a regular expression? | `"abc123".matches(".*\\d+.*")` → `true` |
 
-Đặc biệt, `String.contains()` không diễn giải dấu `.`, `*`, `+`, `?` hay `\d` theo ngôn ngữ regex. Khi tìm dấu chấm bằng `contains(".")`, nó tìm **ký tự dấu chấm thật**; khi tìm `contains("\\d+")`, nó tìm **ba ký tự** dấu gạch chéo ngược, `d` và `+` trong văn bản, chứ không có nghĩa “một hoặc nhiều chữ số”.
+In particular, `String.contains()` does not interpret `.`, `*`, `+`, `?`, or `\d` as regex syntax. Searching for a dot with `contains(".")` searches for a **literal period character**; searching with `contains("\\d+")` searches for the **three characters** backslash, `d`, and `+` in the text, rather than meaning "one or more digits".
 
-Ví dụ thực thi độc lập `ContainsCompare.java`:
+Standalone runnable example `ContainsCompare.java`:
 
 ```java
 public class ContainsCompare {
@@ -128,14 +128,14 @@ public class ContainsCompare {
 }
 ```
 
-Lệnh:
+Command:
 
 ```bash
 javac -encoding UTF-8 ContainsCompare.java
 java ContainsCompare
 ```
 
-Kết quả:
+Output:
 
 ```text
 true
@@ -147,18 +147,18 @@ false
 true
 ```
 
-Ở đây `"file"` bắt đầu ở vị trí UTF-16 **7**. Khi chỉ cần một giá trị đúng/sai, `contains()` diễn đạt ý định rõ; khi cần cắt đoạn hoặc báo vị trí, `indexOf()` cung cấp chỉ số. `indexOf(part) >= 0` thường có cùng ý nghĩa về sự tồn tại của đoạn ký tự với `contains(part)` khi tham số là một `String` không null.
+Here `"file"` starts at UTF-16 index **7**. When you only need a true/false value, `contains()` expresses intent clearly; when you need to slice a segment or report a position, `indexOf()` provides the index. `indexOf(part) >= 0` generally has the same meaning regarding the presence of a character segment as `contains(part)` when the argument is a non-null `String`.
 
-### `contains()` không kiểm tra ranh giới từ
+### `contains()` Does Not Check Word Boundaries
 
-`"supervisor".contains("admin")` là `false` vì không có chuỗi `"admin"`; trong khi `"superadministrator".contains("admin")` và `"superadmin".contains("admin")` đều là `true`. Phép tìm không biết đâu là **từ**, **quyền hạn** hay **mã sản phẩm**. Nếu hệ thống cần kiểm tra một vai trò bằng `"admin"`, hãy kiểm tra đúng token/giá trị đã phân tách và chuẩn hóa theo hợp đồng; không dùng `contains("admin")` để quyết định cấp quyền.
+`"supervisor".contains("admin")` is `false` because `"admin"` does not appear; meanwhile `"superadministrator".contains("admin")` and `"superadmin".contains("admin")` are both `true`. The search has no concept of **words**, **permissions**, or **product codes**. If a system needs to check whether a role equals `"admin"`, check the exact tokenized and normalized value according to the contract; do not use `contains("admin")` to make authorization decisions.
 
-## 4. Chuỗi rỗng và giá trị `null`
+## 4. Empty Strings and `null` Values
 
-Hai trường hợp cần phân biệt:
+Two cases need to be distinguished:
 
-- **`""` là chuỗi rỗng hợp lệ.** Mọi chuỗi đều chứa chuỗi rỗng theo định nghĩa API.
-- **`null` nghĩa là không có tham chiếu tới đối tượng `String`.** Không thể gọi phương thức instance trên `null`.
+- **`""` is a valid empty string.** Every string contains the empty string by API definition.
+- **`null` means there is no reference to a `String` object.** You cannot call an instance method on `null`.
 
 ```java
 String text = "hello";
@@ -169,7 +169,7 @@ String missing = null;
 // text.contains(null);   // NullPointerException
 ```
 
-Đoạn trên là mã minh họa trong thân phương thức (hai dòng có thể ném ngoại lệ đã được comment). Khi nhận dữ liệu có thể vắng mặt, chọn chính sách nghiệp vụ:
+The snippet above is illustrative code inside a method body (the two lines that would throw an exception are commented out). When receiving potentially absent data, choose an explicit business policy:
 
 ```java
 public static boolean containsSafely(
@@ -180,22 +180,22 @@ public static boolean containsSafely(
 }
 ```
 
-Đây là **phương thức minh họa để đặt trong class**. Nó trả `false` khi `text` hoặc `query` là `null`; nhưng với `query.equals("")`, nếu `text` không null, nó vẫn trả `true`. Chính sách này thích hợp khi null có nghĩa “không kiểm tra được”; ứng dụng khác có thể muốn báo lỗi đầu vào.
+This is an **illustrative method to place inside a class**. It returns `false` when `text` or `query` is `null`; however, for `query.equals("")`, if `text` is non-null, it still returns `true`. This policy fits when `null` means "cannot be checked"; another application may prefer reporting an input error.
 
-**Điểm dễ bỏ sót:** Nếu giao diện tìm kiếm không muốn từ khóa trống khớp mọi bản ghi, kiểm tra rõ `query.isEmpty()` hoặc `query.isBlank()` trước khi gọi `contains()`. Hai phương thức này khác nhau: `isBlank()` còn nhận các chuỗi chỉ gồm khoảng trắng theo khái niệm whitespace của Java, không có nghĩa tất cả ký tự trống Unicode đều nhất thiết được nhận diện như nhau.
+**Easy-to-miss detail:** If a search UI should not let a blank keyword match every record, explicitly check `query.isEmpty()` or `query.isBlank()` before calling `contains()`. These two methods differ: `isBlank()` also accepts strings consisting solely of whitespace according to Java's definition of whitespace, which does not mean all Unicode blank characters are necessarily recognized the same way.
 
-## 5. Phân biệt chữ hoa/thường và tìm kiếm không phân biệt hoa/thường
+## 5. Case Sensitivity and Case-Insensitive Search
 
-`contains()` là phép so khớp **phân biệt hoa/thường**:
+`contains()` is a **case-sensitive** match:
 
 ```java
 System.out.println("Introduction to Java".contains("java"));
 // false
 ```
 
-Nếu bài toán tìm kiếm cơ bản muốn bỏ qua khác biệt hoa/thường, có thể đưa **cả hai chuỗi** về chữ thường bằng cùng một `Locale` rồi tìm:
+If a basic search problem wants to ignore case differences, you can convert **both strings** to lowercase using the same `Locale` before searching:
 
-Lưu `ContainsIgnoreCaseDemo.java`:
+Save `ContainsIgnoreCaseDemo.java`:
 
 ```java
 import java.util.Locale;
@@ -214,36 +214,36 @@ public class ContainsIgnoreCaseDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 ContainsIgnoreCaseDemo.java
 java ContainsIgnoreCaseDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 true
 false
 ```
 
-`Locale.ROOT` là lựa chọn nhất quán cho nhiều tình huống so khớp **không phụ thuộc ngôn ngữ người dùng**. Tuy nhiên, biến đổi chữ hoa/thường có những quy tắc Unicode phức tạp, có thể thay đổi số code point và phụ thuộc ngôn ngữ; cách hạ chữ rồi `contains()` **không tương đương đầy đủ với Unicode case folding, tìm kiếm theo collation, phân tách từ hoặc tìm kiếm không dấu**. Với văn bản đa ngôn ngữ và yêu cầu so khớp ngôn ngữ cụ thể, cần chọn thuật toán/thư viện phù hợp và kiểm thử các trường hợp như `I/i/İ/ı` trong tiếng Thổ Nhĩ Kỳ.
+`Locale.ROOT` is a consistent choice for many matching scenarios **independent of the user's language**. However, case conversion follows complex Unicode rules, can change code point counts, and depends on locale; lowercasing and then calling `contains()` **is not fully equivalent to Unicode case folding, collation-based search, word segmentation, or accent-insensitive search**. For multilingual text and language-specific matching requirements, choose an appropriate algorithm/library and test cases like `I/i/İ/ı` in Turkish.
 
-Không tự động dùng cùng phép hạ chữ trong các vị trí yêu cầu **so khớp chính xác theo giao thức**, chẳng hạn khóa định danh phân biệt chữ hoa, chữ ký số hoặc token bảo mật.
+Do not automatically apply the same lowercasing where **exact protocol-level matching** is required, such as case-sensitive identifier keys, digital signatures, or security tokens.
 
-## 6. Unicode: cùng cách nhìn nhưng chuỗi con vẫn có thể không khớp
+## 6. Unicode: Visually Identical Strings Can Still Fail Substring Matching
 
-`String.contains()` tìm dãy **UTF-16 code unit** khớp liên tiếp. Nó **không** thực hiện Unicode normalization, không xét grapheme cluster hay chữ có dấu tương đương về mặt hiển thị.
+`String.contains()` searches for a contiguous matching sequence of **UTF-16 code units**. It does **not** perform Unicode normalization, nor does it consider grapheme clusters or visually equivalent accented characters.
 
-Ví dụ “é” có thể được biểu diễn theo hai cách:
+For example, “é” can be represented in two ways:
 
-- `"\u00E9"`: một code point dựng sẵn U+00E9.
-- `"e\u0301"`: chữ `e` (U+0065) theo sau bởi dấu sắc kết hợp U+0301.
+- `"\u00E9"`: a single precomposed code point U+00E9.
+- `"e\u0301"`: the letter `e` (U+0065) followed by combining acute accent U+0301.
 
-Hai cách thường trông giống nhau, nhưng chuỗi UTF-16 khác nhau. Muốn so khớp theo dạng chuẩn tương đương, có thể chủ động chuẩn hóa **cả nguồn và từ khóa** về cùng Unicode normalization form.
+The two forms usually look identical, but their UTF-16 sequences differ. To match canonically equivalent forms, you can proactively normalize **both source and query** to the same Unicode normalization form.
 
-Ví dụ độc lập `ContainsUnicodeDemo.java`:
+Standalone example `ContainsUnicodeDemo.java`:
 
 ```java
 import java.text.Normalizer;
@@ -268,14 +268,14 @@ public class ContainsUnicodeDemo {
 }
 ```
 
-Lệnh:
+Command:
 
 ```bash
 javac -encoding UTF-8 ContainsUnicodeDemo.java
 java ContainsUnicodeDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 false
@@ -284,15 +284,15 @@ true
 true
 ```
 
-Hai dòng cuối cho thấy một sự khác biệt quan trọng: chuỗi `"A😀B"` chứa cả hai code unit tạo thành emoji, nhưng cũng **chứa riêng high surrogate `\uD83D`** ở mức code unit, nên phép tìm trả `true`. Điều đó không có nghĩa high surrogate là một ký tự Unicode hoàn chỉnh. Nếu cần tìm “ký tự người dùng cảm nhận”, hãy kết hợp xử lý grapheme cluster (ví dụ `\X` trong `java.util.regex.Pattern` trên Java 9+) và các quy tắc nghiệp vụ tương ứng; `contains()` không bảo đảm ranh giới cụm ký tự.
+The last two lines illustrate an important distinction: the string `"A😀B"` contains both code units that form the emoji, yet also **contains the lone high surrogate `\uD83D`** at the code-unit level, so the search returns `true`. That does not mean a high surrogate is a complete Unicode character. If you need to search for "user-perceived characters", combine grapheme cluster handling (for example `\X` in `java.util.regex.Pattern` on Java 9+) with the relevant business rules; `contains()` does not enforce character cluster boundaries.
 
-**Không nhầm normalize với bỏ dấu:** `Normalizer.Form.NFC`/`NFD` đưa biểu diễn về dạng chuẩn, không tự biến `"é"` thành `"e"`. Chức năng tìm kiếm không dấu còn cần một chính sách riêng, đặc biệt đối với tiếng Việt.
+**Do not confuse normalization with accent stripping:** `Normalizer.Form.NFC`/`NFD` converts representations to a canonical form; it does not turn `"é"` into `"e"`. Accent-insensitive search requires its own separate policy, especially for Vietnamese.
 
-## 7. Các tình huống áp dụng thực tế
+## 7. Practical Use Cases
 
-### 7.1. Lọc danh sách theo một đoạn văn bản
+### 7.1. Filtering a List by a Text Segment
 
-Giả sử danh sách tiêu đề đã có trong bộ nhớ và người dùng nhập một từ khóa. Trong ví dụ này, tìm kiếm phân biệt hoa/thường theo `contains()`:
+Suppose a list of titles is already in memory and the user enters a keyword. In this example, searching is case-sensitive using `contains()`:
 
 ```java
 import java.util.List;
@@ -316,68 +316,68 @@ public class FilterBySubstringDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 FilterBySubstringDemo.java
 java FilterBySubstringDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 [Java String, Java Collection, Modern Java]
 ```
 
-`contains()` hợp lý với danh sách nhỏ trong bộ nhớ và khi nghiệp vụ cần một phép tìm nguyên văn. Với dữ liệu lớn, hệ thống tìm kiếm toàn văn, phân tích từ, xếp hạng kết quả hoặc truy vấn cơ sở dữ liệu, cần chọn cơ chế phù hợp (index, full-text search, collation…). Tránh lặp lại việc chuyển hoa/thường hoặc chuẩn hóa cùng nội dung hàng nghìn lần nếu có thể tính trước một lần trong pipeline.
+`contains()` is reasonable for small in-memory lists when business requirements call for literal matching. For large datasets, full-text search systems, word analysis, result ranking, or database queries, choose an appropriate mechanism (indexes, full-text search, collation…). Avoid repeatedly lowercasing or normalizing the same content thousands of times when it can be precomputed once in a pipeline.
 
-### 7.2. Kiểm tra một đoạn thông báo đã xuất hiện
+### 7.2. Checking Whether a Message Fragment Appears
 
 ```java
 String message = "WARN: connection timeout";
 boolean hasTimeout = message.contains("timeout"); // true
 ```
 
-Cách này thuận tiện để phát hiện đoạn văn bản trong tình huống đơn giản. Nếu cần phân tích log đúng định dạng, đếm tần suất hoặc kiểm tra mã sự kiện, nên parse trường riêng hoặc dùng định dạng log có cấu trúc; lời nhắn người dùng có thể chứa một cụm từ tương tự mà không tương ứng với cùng sự kiện.
+This is convenient for detecting a text fragment in simple situations. If you need to parse logs in a structured format, count frequencies, or verify event codes, parse individual fields or use a structured log format; user messages can contain a similar phrase without corresponding to the same event.
 
-### 7.3. Quyết định dùng công cụ nào
+### 7.3. Deciding Which Tool to Use
 
-- Chỉ cần **có/không** một đoạn nguyên văn → `contains()`.
-- Cần **vị trí bắt đầu** của đoạn → `indexOf()`, trả `-1` nếu không tìm thấy.
-- Cần **lấy phần trước/sau** một dấu phân cách → `indexOf()` rồi `substring()`, nhớ kiểm tra `-1`.
-- Cần **khớp tiền tố/hậu tố** → `startsWith()`/`endsWith()`.
-- Cần **quy tắc regex** → `Pattern`/`Matcher` hoặc `matches()` theo yêu cầu khớp toàn bộ; không đưa regex vào `contains()`.
-- Cần **khớp từ, bỏ dấu, không phân biệt locale hoặc phân đoạn Unicode** → làm rõ đặc tả tìm kiếm rồi chọn công cụ thích hợp; `contains()` không tự cung cấp các đặc tính đó.
+- Need only **presence/absence** of a literal segment → `contains()`.
+- Need the **starting position** of a segment → `indexOf()`, which returns `-1` if not found.
+- Need to **extract before/after** a delimiter → `indexOf()` then `substring()`, remembering to check `-1`.
+- Need **prefix/suffix matching** → `startsWith()`/`endsWith()`.
+- Need **regex rules** → `Pattern`/`Matcher` or `matches()` when full-string matching is required; do not pass regex into `contains()`.
+- Need **word matching, accent stripping, locale-insensitive matching, or Unicode segmentation** → clarify the search specification first and pick the right tool; `contains()` does not provide those properties automatically.
 
-## 8. Lỗi thường gặp
+## 8. Common Mistakes
 
-1. **Đọc `contains()` như “tìm gần đúng”:** thực ra là tìm đoạn liên tiếp chính xác, không hỗ trợ lỗi chính tả, khoảng trắng tùy ý hoặc khoảng cách chỉnh sửa.
-2. **Quên phân biệt chữ hoa/thường:** `"Java".contains("java")` là `false`.
-3. **Truyền regex với kỳ vọng mẫu sẽ được diễn giải:** `contains("\\d+")` tìm chuỗi nguyên văn `\d+` chứ không tìm chữ số.
-4. **Dùng `contains("")` để kiểm tra có dữ liệu:** luôn `true` với chuỗi nhận không null. Muốn kiểm tra chuỗi trống dùng `isEmpty()`; muốn kiểm tra khoảng trắng có thể dùng `isBlank()`.
-5. **Không xử lý null:** cả đối tượng nhận null và query null đều dẫn tới `NullPointerException`.
-6. **Dùng `contains()` thay kiểm tra token:** tìm `"admin"` trong chuỗi không đồng nghĩa xác minh quyền `admin`; tìm `"cat"` trong `"catalog"` vẫn `true`.
-7. **Lấy kết quả boolean làm vị trí:** `contains()` chỉ trả `boolean`; `indexOf()` mới trả index.
-8. **Không chuẩn hóa Unicode khi yêu cầu tương đương chuẩn:** hai biểu diễn chữ có dấu có thể nhìn giống nhau nhưng trả `false`.
-9. **Coi chuỗi con của UTF-16 là ký tự Unicode đầy đủ:** có thể tìm trúng nửa surrogate pair; `contains()` không xét ranh giới code point/grapheme.
-10. **Gọi `toLowerCase()` theo default locale không kiểm soát:** kết quả có thể đổi theo môi trường; chọn locale và chính sách so khớp theo nghiệp vụ.
-11. **Quá lạm dụng kiểm tra văn bản tự do cho logic nghiệp vụ:** với mã trạng thái, quyền, định danh và định dạng có cấu trúc, parse hoặc so sánh trường chính xác thường đáng tin hơn.
+1. **Treating `contains()` as "fuzzy search":** it actually performs exact contiguous substring matching and does not tolerate typos, arbitrary whitespace, or edit distance.
+2. **Forgetting case sensitivity:** `"Java".contains("java")` is `false`.
+3. **Passing regex expecting the pattern to be interpreted:** `contains("\\d+")` searches for the literal string `\d+`, not digits.
+4. **Using `contains("")` to check whether data is non-empty:** always `true` for a non-null receiver. To check for an empty string use `isEmpty()`; to check for whitespace you can use `isBlank()`.
+5. **Not handling `null`:** both a `null` receiver and a `null` query cause `NullPointerException`.
+6. **Using `contains()` instead of token checks:** finding `"admin"` in a string does not verify an `admin` role; searching for `"cat"` in `"catalog"` still yields `true`.
+7. **Treating the boolean result as a position:** `contains()` only returns `boolean`; `indexOf()` returns the index.
+8. **Not normalizing Unicode when canonical equivalence is required:** two representations of an accented letter may look identical yet return `false`.
+9. **Assuming UTF-16 substrings represent complete Unicode characters:** a match can hit half of a surrogate pair; `contains()` ignores code point/grapheme boundaries.
+10. **Calling `toLowerCase()` with an uncontrolled default locale:** results can vary across environments; choose locale and matching policy based on business rules.
+11. **Overusing free-text checks for business logic:** for status codes, permissions, identifiers, and structured formats, parsing or exact field comparison is usually far more reliable.
 
-## 9. Câu hỏi tự kiểm tra
+## 9. Self-Check Questions
 
-Với `String s = "Java Core"`, hãy dự đoán:
+Given `String s = "Java Core"`, predict the results:
 
-| Biểu thức | Kết quả | Vì sao |
+| Expression | Result | Why |
 | --- | --- | --- |
-| `s.contains("Java")` | `true` | Tiền tố cũng là chuỗi con |
-| `s.contains("a C")` | `true` | Đoạn liên tiếp trải qua dấu cách |
-| `s.contains("Core")` | `true` | Hậu tố cũng là chuỗi con |
-| `s.contains("core")` | `false` | Sai khác chữ hoa/thường |
-| `s.contains("JavaCore")` | `false` | Thiếu dấu cách |
-| `s.contains("")` | `true` | Chuỗi rỗng khớp tại mọi chuỗi |
-| `s.contains("Java Core!")` | `false` | Đối số dài và khác nội dung |
-| `s.indexOf("Core")` | `5` | `indexOf` trả vị trí, không phải boolean |
+| `s.contains("Java")` | `true` | A prefix is also a substring |
+| `s.contains("a C")` | `true` | Contiguous segment spanning the space |
+| `s.contains("Core")` | `true` | A suffix is also a substring |
+| `s.contains("core")` | `false` | Case mismatch |
+| `s.contains("JavaCore")` | `false` | Missing space |
+| `s.contains("")` | `true` | Empty string matches in every string |
+| `s.contains("Java Core!")` | `false` | Argument is longer and has different content |
+| `s.indexOf("Core")` | `5` | `indexOf` returns position, not boolean |
 
-Tự đặt thêm câu hỏi: nếu `s` là `null` thì `s.contains("Java")` sẽ thế nào? Câu trả lời là **`NullPointerException`**, vì không có đối tượng để gọi phương thức.
+Ask yourself one more question: if `s` is `null`, what happens with `s.contains("Java")`? The answer is **`NullPointerException`**, because there is no object on which to invoke the method.
 
-**Ghi nhớ:** `contains(CharSequence)` là phép kiểm tra **có hay không một dãy ký tự liên tiếp chính xác** trong `String`. Nó trả `boolean`, **phân biệt hoa/thường**, **không dùng regex**, **không tự chuẩn hóa Unicode**, và **`contains("")` luôn đúng với chuỗi nhận không null**. Khi cần vị trí, quy tắc tìm theo từ/ngôn ngữ hoặc so khớp gần đúng, hãy dùng API/thuật toán chuyên biệt.
+**Takeaway:** `contains(CharSequence)` checks **whether an exact contiguous sequence of characters exists** in a `String`. It returns `boolean`, is **case-sensitive**, **does not use regex**, **does not normalize Unicode automatically**, and **`contains("")` is always true for a non-null receiver**. When you need positions, word/locale-aware rules, or approximate matching, use specialized APIs/algorithms.

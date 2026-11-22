@@ -1,35 +1,35 @@
-# Chẩn đoán sai working directory, charset và đường dẫn resource trong Java IO
+# Diagnosing Wrong Working Directory, Charset, and Resource Paths in Java I/O
 
-## 1. Ba nguyên nhân gây lỗi dễ bị đánh đồng
+## 1. Three Distinct Causes That Are Easily Conflated
 
-Một chương trình Java đọc được dữ liệu trong IDE nhưng thất bại khi chạy từ terminal, JAR, container hoặc server thường gặp một trong ba nhóm vấn đề:
+A Java program that reads data inside an IDE yet fails when run from a terminal, JAR, container, or server typically hits one of three problem categories:
 
-1. **Sai working directory (CWD)**: đường dẫn tệp tương đối được giải quyết tại thư mục làm việc của tiến trình, không phải nơi chứa file source `.java`, file `.class` hay JAR.
-2. **Sai charset**: đã mở đúng file/resource nhưng biến các byte thành ký tự theo encoding khác, gây mất dấu tiếng Việt, ký tự lạ hoặc ngoại lệ giải mã.
-3. **Sai đường dẫn resource**: nhầm file system path với resource trong classpath/module hoặc nhầm đường dẫn tính từ package của class với đường dẫn tính từ classpath root.
+1. **Wrong working directory (CWD)**: relative file paths resolve against the process's working directory, not the directory containing `.java` source files, `.class` files, or the JAR.
+2. **Wrong charset**: the right file/resource was opened, yet bytes are decoded into characters using the wrong encoding, causing garbled Vietnamese diacritics, strange symbols, or decoding exceptions.
+3. **Wrong resource path**: confusing a filesystem path with a classpath/module resource, or confusing a path relative to a class's package with a path from the classpath root.
 
-Chẩn đoán đúng phải tách **vị trí tìm tệp**, **cơ chế tra cứu** và **cách diễn giải bytes**. Sửa một nhóm vấn đề không tự giải quyết nhóm còn lại.
+Accurate diagnosis must separate **where the file is searched**, **the lookup mechanism**, and **how bytes are interpreted**. Fixing one category does not automatically fix the others.
 
-Bài hướng dẫn kiến thức Java 17+ trong module IO: nhận biết CWD và `user.dir`, dùng `Path`/`Files` với base directory tường minh, tra classpath resources trong IDE/JAR, chọn charset chính xác, tái hiện lỗi bằng chương trình độc lập và xây kiểm thử chịu được thay đổi môi trường.
+Java 17+ guide in the I/O module: recognize CWD and `user.dir`, use `Path`/`Files` with an explicit base directory, resolve classpath resources across IDEs and JARs, choose the right charset, reproduce errors with a standalone program, and write environment-independent tests.
 
-## 2. Working directory không phải thư mục source hay thư mục JAR
+## 2. The Working Directory Is Neither the Source Directory Nor the JAR Directory
 
-Một ví dụ:
+Example:
 
 ~~~java
 Path path = Path.of("data/customers.csv");
 String csv = Files.readString(path, StandardCharsets.UTF_8);
 ~~~
 
-Đây là đoạn minh họa cần được đặt trong method với imports và xử lý `IOException`. Chuỗi `data/customers.csv` là **relative filesystem path**. Trên default filesystem, nó được diễn giải theo working directory mà runtime đang sử dụng. Java không tự động dò tìm:
+This is an illustrative snippet meant to sit inside a method with imports and `IOException` handling. The string `data/customers.csv` is a **relative filesystem path**. On the default filesystem, it resolves relative to the runtime's current working directory. Java does not automatically search:
 
-- Thư mục hiện đang chứa file `.java`.
-- Thư mục build có file `.class`.
-- Thư mục cài đặt JAR.
-- `src/main/resources` trong source tree.
-- Những JAR/dependency nằm trên classpath.
+- The directory currently holding `.java` source files.
+- The build output directory holding `.class` files.
+- The directory where the JAR is installed.
+- `src/main/resources` inside the source tree.
+- JARs or dependencies on the classpath.
 
-Ví dụ cấu trúc:
+Example layout:
 
 ~~~text
 /work/app/
@@ -38,11 +38,11 @@ Ví dụ cấu trúc:
   app.jar
 ~~~
 
-Nếu command chạy từ `/work/app`, path tương đối có thể chỉ tới `/work/app/data/customers.csv`. Nếu chạy cùng JAR khi CWD là `/srv/service`, Java có thể tìm `/srv/service/data/customers.csv`, nơi file không tồn tại.
+If the command runs from `/work/app`, the relative path resolves to `/work/app/data/customers.csv`. If the same JAR runs when the CWD is `/srv/service`, Java looks for `/srv/service/data/customers.csv`, where the file does not exist.
 
-Việc dùng `java -jar /work/app/app.jar` **không làm CWD tự chuyển sang thư mục chứa JAR**. Launcher, shell, IDE, service manager hoặc container xác định CWD.
+Running `java -jar /work/app/app.jar` **does not automatically switch CWD to the JAR's directory**. The launcher, shell, IDE, service manager, or container determines the CWD.
 
-### Cách kiểm tra CWD trong Java
+### How to inspect CWD in Java
 
 ~~~java
 System.out.println(System.getProperty("user.dir"));
@@ -50,26 +50,26 @@ System.out.println(Path.of("").toAbsolutePath().normalize());
 System.out.println(Path.of("data/customers.csv").toAbsolutePath().normalize());
 ~~~
 
-Đoạn trên là minh họa, chưa phải chương trình độc lập. In các giá trị đó tại thời điểm gặp lỗi giúp xác nhận Java **đang tra file ở đâu**.
+This snippet is illustrative, not a standalone program. Printing these values at failure time confirms **where Java is actually looking for the file**.
 
-`System.getProperty("user.dir")` thường phản ánh working directory được runtime thiết lập lúc khởi chạy. Không dùng `System.setProperty("user.dir", "...")` như một giải pháp portable để đổi OS CWD giữa chương trình: thay đổi một Java property không có nghĩa mọi API/file system provider sẽ lập tức coi process đã đổi directory. Nếu muốn đổi nơi đọc dữ liệu, **truyền một base `Path` tường minh** hoặc khởi động tiến trình con với working directory mong muốn.
+`System.getProperty("user.dir")` typically reflects the working directory set by the runtime at startup. Never call `System.setProperty("user.dir", "...")` as a portable way to change the OS CWD mid-program: mutating a Java property does not mean every API or filesystem provider will treat the process as having changed directories. To change where data is read, **pass an explicit base `Path`** or launch a child process with the desired working directory.
 
-### Absolute path, normalize và toRealPath
+### Absolute path, `normalize`, and `toRealPath`
 
-| Phương thức | Chức năng | Lưu ý |
+| Method | Purpose | Notes |
 | --- | --- | --- |
-| `Path.of("x/y")` | Tạo path theo provider mặc định | Thường relative nếu không có root |
-| `path.isAbsolute()` | Kiểm tra path tuyệt đối theo provider | Cú pháp Unix và Windows khác nhau |
-| `path.toAbsolutePath()` | Tạo absolute representation từ ngữ cảnh hiện tại | Không chứng minh file tồn tại |
-| `path.normalize()` | Xử lý thành phần `.` và `..` theo cú pháp | Không tự resolve symbolic links |
-| `path.toRealPath()` | Resolve sang real path và kiểm tra tồn tại theo options | Có thể ném `IOException`; symlink semantics tùy options |
-| `base.resolve(relative)` | Ghép path theo rules của `Path` | Nếu `relative` là absolute, behavior cần được xác thực |
+| `Path.of("x/y")` | Creates a path via the default provider | Usually relative if lacking a root |
+| `path.isAbsolute()` | Checks if path is absolute per provider | Unix and Windows syntaxes differ |
+| `path.toAbsolutePath()` | Produces an absolute representation from current context | Does not prove the file exists |
+| `path.normalize()` | Resolves `.` and `..` segments syntactically | Does not resolve symbolic links |
+| `path.toRealPath()` | Resolves to the real path and checks existence per options | Can throw `IOException`; symlink semantics depend on options |
+| `base.resolve(relative)` | Joins paths according to `Path` rules | If `relative` is absolute, behavior must be validated |
 
-Nếu path đến từ user input, chỉ `normalize()` và `startsWith(base)` không đủ cho mọi yêu cầu bảo mật: symbolic links có thể dẫn ra ngoài base; còn race giữa lúc kiểm tra và mở file.
+If paths come from user input, `normalize()` and `startsWith(base)` alone are insufficient for all security requirements: symbolic links can point outside `base`, and a race can occur between check and open.
 
-## 3. Chỉ định base directory để tránh phụ thuộc ngữ cảnh chạy
+## 3. Specify an Explicit Base Directory to Avoid Execution-Context Coupling
 
-Nếu tài nguyên là **dữ liệu bên ngoài ứng dụng** như file khách hàng, logs, output directory hoặc config thay đổi theo deployment, hãy nhận location qua args/config/env và tạo path từ base đó.
+When resources are **external application data** such as customer files, logs, output directories, or deployment-specific configs, accept the location via args/config/env and build paths from that base.
 
 ~~~java
 static Path resolveUnderBase(Path baseDirectory, String relativeName)
@@ -83,21 +83,21 @@ static Path resolveUnderBase(Path baseDirectory, String relativeName)
 }
 ~~~
 
-Đây là method minh họa; phải import `Path` và `IOException`. Với untrusted paths, ví dụ chỉ kiểm tra lexical traversal, không xử lý đầy đủ symlink và TOCTOU race. Cần chính sách quyền và filesystem isolation cụ thể.
+This is an illustrative method; import `Path` and `IOException`. For untrusted paths, this example checks only lexical traversal and does not address symlinks or TOCTOU races. Apply explicit permissions and filesystem isolation.
 
-Ưu tiên những lựa chọn có hợp đồng rõ:
+Prefer options with clear contracts:
 
-- `--data-dir=/var/lib/example` được truyền khi khởi động.
-- Environment variable/config chứa đường dẫn tuyệt đối đã được validate.
-- `Files.createTempDirectory(...)` cho dữ liệu dùng trong test/job tạm.
-- User home khi dữ liệu thật sự thuộc một tài khoản người dùng.
-- Data volume được mount vào một vị trí có tài liệu hóa trong container.
+- `--data-dir=/var/lib/example` passed at startup.
+- An environment variable/config entry holding a validated absolute path.
+- `Files.createTempDirectory(...)` for temporary test/job data.
+- User home when data truly belongs to a user account.
+- A data volume mounted at a documented container path.
 
-Không liên tục thử `../data`, `../../data` rồi chọn cái chạy được ở IDE: cách đó trở nên mong manh khi cấu trúc build hoặc service CWD thay đổi.
+Do not keep trying `../data`, `../../data` until one happens to work in your IDE: that breaks as soon as build layouts or service CWDs change.
 
-## 4. Classpath resource là cơ chế khác filesystem
+## 4. Classpath Resources Are a Different Mechanism from the Filesystem
 
-Tài nguyên đóng gói như template, ảnh tĩnh, schema hoặc file mặc định có thể nằm ở:
+Packaged assets such as templates, static images, schemas, or default files might live in:
 
 ~~~text
 src/main/java/example/App.java
@@ -105,7 +105,7 @@ src/main/resources/config/defaults.properties
 src/main/resources/templates/message.txt
 ~~~
 
-Build tool thường sao chép chúng vào classpath root hoặc JAR:
+Build tools typically copy them into the classpath root or JAR:
 
 ~~~text
 classes/
@@ -114,9 +114,9 @@ classes/
   templates/message.txt
 ~~~
 
-**Không mặc định dùng path `src/main/resources/config/defaults.properties` khi chạy production.** Source tree không nhất thiết tồn tại trong container hay sau khi đóng gói JAR.
+**Never hardcode `src/main/resources/config/defaults.properties` in production.** The source tree might not exist inside a container or after packaging into a JAR.
 
-Đọc resource đúng:
+Reading a resource properly:
 
 ~~~java
 try (InputStream in = App.class
@@ -126,29 +126,29 @@ try (InputStream in = App.class
 }
 ~~~
 
-Đây là mảnh mã cần import `InputStream`, `FileNotFoundException` và `StandardCharsets`, có `App` trong classpath và được đặt trong method. `getResourceAsStream` trả `null` nếu không tìm được resource theo cơ chế lookup; phải kiểm tra null trước khi đọc.
+This snippet requires imports for `InputStream`, `FileNotFoundException`, and `StandardCharsets`, with `App` on the classpath inside a method. `getResourceAsStream` returns `null` if the lookup finds no resource; always check for `null` before reading.
 
-Resource thường nên được coi là **read-only asset**. Đừng cố ghi state vào `src/main/resources` hoặc vào JAR runtime. Muốn cho user chỉnh template mặc định, hãy copy resource vào thư mục dữ liệu do user/application sở hữu rồi sửa bản copy.
+Resources should generally be treated as **read-only assets**. Do not try to write runtime state into `src/main/resources` or into a runtime JAR. To let users customize a default template, copy the resource to a user/application-owned data directory and edit the copy.
 
-## 5. Quy tắc dấu slash và package khi tra resource
+## 5. Slash and Package Rules When Resolving Resources
 
-Giả sử class `com.example.io.Demo` và resource `config/defaults.properties` ở classpath root:
+Assume class `com.example.io.Demo` and resource `config/defaults.properties` at the classpath root:
 
-| Biểu thức | Vị trí được tìm |
+| Expression | Location Searched |
 | --- | --- |
-| `Demo.class.getResourceAsStream("/config/defaults.properties")` | Từ resource root |
-| `Demo.class.getResourceAsStream("defaults.properties")` | Tương đối package `com/example/io/` |
+| `Demo.class.getResourceAsStream("/config/defaults.properties")` | From resource root |
+| `Demo.class.getResourceAsStream("defaults.properties")` | Relative to package `com/example/io/` |
 | `Demo.class.getResourceAsStream("config/defaults.properties")` | `com/example/io/config/defaults.properties` |
-| `Demo.class.getClassLoader().getResourceAsStream("config/defaults.properties")` | Root của classloader |
-| `Demo.class.getClassLoader().getResourceAsStream("/config/defaults.properties")` | Thường sai do leading slash |
+| `Demo.class.getClassLoader().getResourceAsStream("config/defaults.properties")` | Root of the classloader |
+| `Demo.class.getClassLoader().getResourceAsStream("/config/defaults.properties")` | Usually fails due to leading slash |
 
-`Class.getResourceAsStream` hỗ trợ cú pháp có leading slash để nói rõ root. `ClassLoader.getResourceAsStream` nhận resource name theo quy tắc classloader, thường không dùng slash đầu.
+`Class.getResourceAsStream` supports a leading slash to indicate the root. `ClassLoader.getResourceAsStream` takes a resource name per classloader rules, normally without a leading slash.
 
-Không phải mọi class loader là cùng một instance: app server, plugin, module hoặc test runner có thể sử dụng classloader riêng. Bootstrap-loaded classes có thể có `getClassLoader()==null`. Nếu resource còn tồn tại nhưng lookup sai, hãy xác định class nào/classloader nào thực hiện truy cập.
+Not every classloader is the same instance: app servers, plugins, modules, or test runners may use distinct classloaders. Bootstrap-loaded classes can have `getClassLoader() == null`. If a resource exists yet lookup fails, check which class/classloader performs the lookup.
 
-### Khi nhiều JAR có resource cùng tên
+### When multiple JARs contain resources with the same name
 
-Hai dependency cùng chứa `config/defaults.properties` có thể khiến một resource “đúng tên nhưng sai nội dung” được chọn. Nếu cần chẩn đoán:
+Two dependencies both shipping `config/defaults.properties` can cause a "right name, wrong content" resource to load. To diagnose:
 
 ~~~java
 Enumeration<URL> found =
@@ -158,42 +158,42 @@ while (found.hasMoreElements()) {
 }
 ~~~
 
-Đây là mảnh mã với imports `Enumeration`, `URL` và xử lý `IOException`; không phải chương trình hoàn chỉnh. Thứ tự classloader lookup có thể khác theo môi trường. Cân nhắc namespace resource path theo module/library, hoặc định nghĩa cơ chế override config rõ.
+This is a snippet importing `Enumeration`, `URL`, and handling `IOException`; not a complete program. Classloader lookup order can vary by environment. Consider namespacing resource paths by module/library or defining an explicit config override mechanism.
 
-## 6. Resource bên trong JAR không phải một file path thông thường
+## 6. Resources Inside a JAR Are Not Ordinary File Paths
 
-Sau khi đóng gói, resource có thể có URL:
+Once packaged, a resource can have a URL like:
 
 ~~~text
 jar:file:/opt/app/app.jar!/config/defaults.properties
 ~~~
 
-Đừng coi nó là local file ở path `/opt/app/app.jar!/config/defaults.properties`. Code có thể chạy được trong IDE khi URL là `file:/.../classes/config/defaults.properties` nhưng thất bại khi URL là `jar:...`.
+Do not treat it as a local file at path `/opt/app/app.jar!/config/defaults.properties`. Code may pass in an IDE where the URL is `file:/.../classes/config/defaults.properties`, yet fail when the URL becomes `jar:...`.
 
-Ví dụ **không nên dùng như giải pháp tổng quát**:
+Example **not to use as a general solution**:
 
 ~~~java
 URL url = Demo.class.getResource("/config/defaults.properties");
 Path path = Path.of(url.toURI());
 ~~~
 
-Đây là mã minh họa thiếu imports và exception handling; trên JAR URI, chuyển sang `Path` có thể thất bại nếu filesystem provider tương ứng chưa được tạo hoặc không hỗ trợ. Để chỉ **đọc** resource, dùng `getResourceAsStream` và `try-with-resources`.
+This is illustrative code missing imports and exception handling; on a JAR URI, converting to `Path` can fail if the corresponding filesystem provider has not been created or is unsupported. To simply **read** a resource, use `getResourceAsStream` and `try-with-resources`.
 
-Nếu thư viện thật sự bắt buộc nhận `Path`, có thể copy resource ra temp file với giới hạn kích thước rồi quản lý cleanup, hoặc dùng ZIP FileSystem được mở/đóng có chủ đích trong trường hợp phù hợp. Không tự ép mọi URL thành file local.
+If a library strictly requires a `Path`, copy the resource to a size-bounded temp file and manage cleanup, or explicitly open/close a ZIP `FileSystem` when appropriate. Never force every URL into a local file.
 
-Với named modules (JPMS), còn có phạm vi truy cập resource theo module và các quy tắc encapsulation. Nếu ứng dụng chạy module path thay vì classpath truyền thống, phải kiểm tra `Module.getResourceAsStream` và quyền `opens` nơi áp dụng.
+With named modules (JPMS), module-level resource visibility and encapsulation rules also apply. If an application runs on the module path instead of the traditional classpath, verify `Module.getResourceAsStream` and `opens` directives where applicable.
 
-## 7. Sai charset: đọc đúng byte nhưng tạo sai String
+## 7. Wrong Charset: Reading the Right Bytes Yet Producing the Wrong `String`
 
-`Charset` là quy tắc mã hóa ký tự sang bytes và giải mã bytes thành ký tự. Nếu file được ghi bằng UTF-8 nhưng application đọc theo charset khác, dấu tiếng Việt có thể biến thành mojibake.
+A `Charset` defines how characters map to bytes and bytes decode back to characters. If a file was written as UTF-8 but the app reads it with another charset, Vietnamese diacritics turn into mojibake.
 
-Ví dụ chữ `Café` được mã hóa UTF-8 thành:
+For example, `Café` encoded in UTF-8 is:
 
 ~~~text
 43 61 66 C3 A9
 ~~~
 
-Trong đó `C3 A9` là hai byte biểu diễn `é`. Đọc cùng bytes theo ISO-8859-1 tạo hai ký tự khác với `é`.
+Here `C3 A9` are the two bytes representing `é`. Decoding the same bytes as ISO-8859-1 produces two different characters instead of `é`.
 
 ~~~java
 String text = "Caf\u00e9";
@@ -204,28 +204,28 @@ System.out.println(text.equals(good));  // true
 System.out.println(text.equals(wrong)); // false
 ~~~
 
-Đây là mảnh minh họa trong method có import `StandardCharsets`. Unicode escape trong source giúp một test cụ thể không phụ thuộc khả năng terminal/source editor hiển thị chữ `é`.
+This is an illustrative snippet inside a method importing `StandardCharsets`. Using a Unicode escape in source keeps the test independent of whether a terminal or source editor displays `é`.
 
-### Mặc định không thống nhất giữa mọi API
+### Defaults are inconsistent across APIs
 
-Một số API nhận charset rõ, một số overload sử dụng default charset của JVM:
+Some APIs take an explicit charset, while some overloads use the JVM default charset:
 
 - `Files.readString(path, StandardCharsets.UTF_8)`: explicit UTF-8.
-- `Files.readString(path)` từ Java 11: overload không đối số charset **được đặc tả dùng UTF-8**.
-- `Files.newBufferedReader(path)`: overload không charset dùng UTF-8.
-- `new InputStreamReader(input)`: dùng default charset của JVM.
-- `new FileReader(file)` không có charset: dùng default charset.
-- `new OutputStreamWriter(output)` không có charset: dùng default charset.
-- `text.getBytes()` không có charset: dùng default charset.
-- `text.getBytes(StandardCharsets.UTF_8)`: không phụ thuộc default.
+- `Files.readString(path)` since Java 11: the no-charset overload **is specified to use UTF-8**.
+- `Files.newBufferedReader(path)`: the no-charset overload uses UTF-8.
+- `new InputStreamReader(input)`: uses the JVM default charset.
+- `new FileReader(file)` without charset: uses the default charset.
+- `new OutputStreamWriter(output)` without charset: uses the default charset.
+- `text.getBytes()` without charset: uses the default charset.
+- `text.getBytes(StandardCharsets.UTF_8)`: independent of the default.
 
-Với Java 17, default charset có thể tùy môi trường/locale/cấu hình hệ thống. JEP 400 đưa UTF-8 thành default từ JDK 18 theo cấu hình chuẩn, nhưng không biến mọi byte encoding/console behavior thành giống nhau.
+In Java 17, the default charset varies with environment, locale, and system configuration. JEP 400 makes UTF-8 the default starting in JDK 18 under standard configurations, yet does not make every byte encoding or console behavior identical.
 
-**Không khắc phục bằng cách chỉ gọi `System.setProperty("file.encoding", "UTF-8")` giữa chương trình.** Việc đổi property runtime không được bảo đảm làm mọi decoder đã khởi tạo hoặc I/O API đổi encoding. Hãy chỉ định charset tại boundary dữ liệu.
+**Do not try to fix this mid-program by calling `System.setProperty("file.encoding", "UTF-8")`.** Changing the property at runtime is not guaranteed to change already-initialized decoders or I/O APIs. Always specify the charset at the data boundary.
 
-## 8. File charset khác console charset
+## 8. File Charset vs Console Charset
 
-Luồng hiển thị trên terminal gồm ít nhất ba tầng:
+Terminal rendering involves at least three layers:
 
 ~~~text
 File bytes
@@ -233,40 +233,40 @@ File bytes
               └── Java String (Unicode text)
                           └── stdout/console encoder
                                     └── terminal decoder / font
-                                               └── ký tự hiển thị
+                                               └── displayed characters
 ~~~
 
-Nếu Java String đã đúng nhưng terminal hiện sai, sửa charset của file reader có thể làm dữ liệu thành sai. Ngược lại, nếu String đã sai ngay khi decode, thay font terminal không sửa được dữ liệu.
+If the Java `String` is already correct while the terminal renders garbage, changing the file reader's charset will corrupt the data. Conversely, if the `String` was decoded wrongly, changing the terminal font cannot fix the data.
 
-Cách kiểm tra:
+How to check:
 
-1. So sánh String đã decode với expected literal bằng `equals`.
-2. In hex bytes nguồn của một đoạn nhỏ, nếu dữ liệu được phép log.
-3. In code points của String khi cần, không chỉ nhìn giao diện terminal.
-4. Kiểm tra charset của writer phía trước; có thể file đã được encode sai từ nguồn.
-5. Phân biệt default charset JVM, encoding do API quy định, encoding của console và hệ điều hành.
-6. Với dữ liệu nhạy cảm, log kích thước/hash hoặc mẫu giả lập, không ghi toàn bộ nội dung.
+1. Compare the decoded `String` against an expected literal using `equals`.
+2. Print hex of a small slice of source bytes, if logging the data is permitted.
+3. Print `String` code points when needed instead of trusting terminal output alone.
+4. Check the upstream writer's charset; the file may have been encoded wrongly at the source.
+5. Distinguish JVM default charset, API-specified encoding, console encoding, and OS encoding.
+6. For sensitive data, log size/hash or synthetic samples instead of full contents.
 
-Một lỗi giải mã có thể ném `MalformedInputException` hoặc hiển thị ký tự thay thế, tùy API/decoder policy. `NoSuchFileException` lại là vấn đề tra path; không thể chữa bằng đổi UTF-8.
+A decoding failure may throw `MalformedInputException` or emit replacement characters, depending on the API/decoder policy. `NoSuchFileException` is a path-lookup problem; switching to UTF-8 will not cure it.
 
-### UTF-8 BOM và newline
+### UTF-8 BOM and newlines
 
-Một số file UTF-8 bắt đầu bằng BOM `EF BB BF`, có thể xuất hiện trong Java String thành `U+FEFF` ở đầu nội dung. Không mặc định mọi parser đều loại bỏ BOM; ứng dụng nên có hợp đồng chấp nhận/bỏ BOM rõ ràng.
+Some UTF-8 files begin with BOM `EF BB BF`, which can appear in a Java `String` as a leading `U+FEFF`. Do not assume every parser strips BOMs automatically; applications need an explicit accept/strip BOM contract.
 
-CRLF/LF khác nhau giữa môi trường hoặc công cụ tạo file. Nếu parser yêu cầu byte-for-byte reproduction, thao tác `BufferedReader.readLine()` sẽ bỏ newline, nên cần lựa chọn API lưu/đọc bytes phù hợp.
+CRLF/LF differs across environments and authoring tools. If a parser needs byte-for-byte reproduction, `BufferedReader.readLine()` strips newline characters, so choose byte-preserving APIs instead.
 
-Nếu cần từ chối bytes UTF-8 sai thay vì tự thay bằng ký tự replacement, dùng `CharsetDecoder` với `CodingErrorAction.REPORT` và bắt `CharacterCodingException`.
+When you need to reject invalid UTF-8 bytes instead of silently substituting replacement characters, use `CharsetDecoder` with `CodingErrorAction.REPORT` and catch `CharacterCodingException`.
 
-## 9. Ví dụ Java 17+ độc lập: chạy từ CWD khác
+## 9. Standalone Java 17+ Example: Running from a Different CWD
 
-Chương trình sau kiểm tra ba đường tìm dữ liệu và một tình huống sai charset:
+This program tests three data-lookup paths plus a wrong-charset scenario:
 
-1. File tương đối `input.txt` **không có trong CWD runtime**.
-2. File input được truyền bằng **đường dẫn tuyệt đối** nên đọc được.
-3. Resource `/sample/message.txt` nằm trong classpath root nên đọc được.
-4. Dữ liệu `Café` được encode/decode UTF-8 đúng, nhưng decode ISO-8859-1 cho String khác.
+1. Relative file `input.txt` **is absent from the runtime CWD**.
+2. Input file passed by **absolute path** succeeds.
+3. Resource `/sample/message.txt` on the classpath root succeeds.
+4. `Café` encodes/decodes accurately in UTF-8, while decoding as ISO-8859-1 yields a different `String`.
 
-Cấu trúc test:
+Test layout:
 
 ~~~text
 demo/
@@ -275,10 +275,10 @@ demo/
     ResourcePathsDemo.class
     sample/message.txt           (RESOURCE_OK)
   input/input.txt                (FILE_OK)
-  runtime/                       (thư mục chạy chương trình, không có input.txt)
+  runtime/                       (working directory for running, no input.txt)
 ~~~
 
-Lưu thành **`ResourcePathsDemo.java`**:
+Save as **`ResourcePathsDemo.java`**:
 
 ~~~java
 import java.io.IOException;
@@ -322,9 +322,9 @@ public class ResourcePathsDemo {
 }
 ~~~
 
-### Chuẩn bị và chạy từ terminal Linux/macOS
+### Prepare and run from a Linux/macOS terminal
 
-Từ thư mục `demo/`:
+From `demo/`:
 
 ~~~bash
 mkdir -p classes/sample input runtime
@@ -338,9 +338,9 @@ cd runtime
 java -cp "$CLASSES" ResourcePathsDemo "$INPUT"
 ~~~
 
-### Chuẩn bị trên Windows PowerShell
+### Prepare on Windows PowerShell
 
-Từ thư mục `demo/`:
+From `demo/`:
 
 ~~~powershell
 New-Item -ItemType Directory -Force classes/sample, input, runtime | Out-Null
@@ -358,9 +358,9 @@ try {
 }
 ~~~
 
-File mẫu chỉ có ASCII để script tạo dữ liệu không phụ thuộc cách PowerShell mặc định encode. Các file thực có tiếng Việt nên được lưu/đọc bằng UTF-8 theo contract; chương trình test ký tự `é` bằng Unicode escape của Java.
+Sample files use ASCII only so the data-creation scripts do not depend on PowerShell's default encoding. Real files containing Vietnamese should be saved/read as UTF-8 per contract; the program tests `é` via a Java Unicode escape.
 
-**Stdout đã kiểm chứng bằng biên dịch/chạy JDK 17 từ một runtime directory tách biệt:**
+**Stdout verified by compiling and running on JDK 17 from an isolated runtime directory:**
 
 ~~~text
 Relative input found: false
@@ -372,48 +372,48 @@ Wrong decoding changes value: true
 Default charset inspected: true
 ~~~
 
-**Diễn giải kết quả:**
+**Interpreting the results:**
 
-- `Path.of("input.txt")` được kiểm tra theo CWD là `runtime/`, nơi không có file, nên false trong test này.
-- `args[0]` trỏ tới `input/input.txt` bằng absolute path và `Files.readString(..., UTF_8)` trả `FILE_OK`.
-- `ResourcePathsDemo.class.getResourceAsStream("/sample/message.txt")` tìm tại root của classpath chứa `classes/`, không cần file tồn tại ở CWD.
-- `String.getBytes(UTF_8)` của `Café` tạo bytes `43 61 66 C3 A9`; giải mã đúng UTF-8 khôi phục String, giải mã sai ISO-8859-1 tạo giá trị khác.
-- Dòng kiểm tra default charset không phụ thuộc việc runtime default là Windows-1252 hay UTF-8. Code có thể quan sát tên bằng `Charset.defaultCharset().name()` khi chẩn đoán thật.
-- Resource stream được đóng qua `try-with-resources`; data input đọc được vì location và charset đều tường minh.
+- `Path.of("input.txt")` checks the CWD `runtime/`, where no file exists, returning `false` in this test.
+- `args[0]` points to `input/input.txt` by absolute path and `Files.readString(..., UTF_8)` returns `FILE_OK`.
+- `ResourcePathsDemo.class.getResourceAsStream("/sample/message.txt")` searches from the root of the classpath containing `classes/`, without needing the file in CWD.
+- `String.getBytes(UTF_8)` of `Café` produces bytes `43 61 66 C3 A9`; decoding with UTF-8 restores the `String`, while decoding with ISO-8859-1 produces a different value.
+- The default-charset check does not depend on whether the runtime default is Windows-1252 or UTF-8. Code can inspect the name via `Charset.defaultCharset().name()` during real diagnostics.
+- The resource stream closes via `try-with-resources`; the data input succeeds because both location and charset are explicit.
 
-**Lưu ý:** `Files.exists` có thể trả false trong những trường hợp không xác định được tồn tại do lỗi I/O/quyền, nên không dùng nó làm bằng chứng tuyệt đối rằng path chưa từng tồn tại. Trong test dựng riêng, `runtime/input.txt` cố tình không được tạo.
+**Note:** `Files.exists` can return `false` when existence cannot be determined due to I/O or permission errors, so never use it as absolute proof a path never existed. In this setup, `runtime/input.txt` was deliberately omitted.
 
-## 10. Kiểm thử sau khi package JAR
+## 10. Testing After Packaging a JAR
 
-Nếu đã compile và copy `classes/sample/message.txt` như trên, có thể đóng JAR:
+Once compiled with `classes/sample/message.txt` copied as above, package a JAR:
 
 ~~~bash
 jar --create --file demo.jar --main-class ResourcePathsDemo -C classes .
 jar --list --file demo.jar
 ~~~
 
-Danh sách entries phải có `ResourcePathsDemo.class` và `sample/message.txt`. Đường dẫn resource trong archive không được vô tình thêm tiền tố `classes/` hoặc `src/main/resources/`.
+The entry list must contain `ResourcePathsDemo.class` and `sample/message.txt`. Resource paths inside the archive must not accidentally carry a `classes/` or `src/main/resources/` prefix.
 
-Sau đó chạy JAR từ một working directory khác:
+Then run the JAR from a different working directory:
 
 ~~~bash
 java -jar /absolute/path/to/demo.jar /absolute/path/to/input/input.txt
 ~~~
 
-Hai đường dẫn trong ví dụ phải được thay bằng absolute paths thật. Nếu JAR resource đúng, `getResourceAsStream("/sample/message.txt")` vẫn đọc được dù CWD là thư mục khác.
+Replace both paths in the example with real absolute paths. If the JAR resource is packaged correctly, `getResourceAsStream("/sample/message.txt")` still reads it even when CWD is another directory.
 
-Nếu code đã chạy được bằng `java -cp classes ...` nhưng không chạy khi `java -jar ...`, kiểm tra:
+If code runs under `java -cp classes ...` yet fails under `java -jar ...`, check:
 
-- File resource có được package vào JAR không?
-- Tên entry có phân biệt hoa/thường khác so với code không?
-- Có package/resource filtering làm đổi đường dẫn hoặc bytes không?
-- Có phụ thuộc `src/test/resources` chỉ hiện trong test classpath không?
-- Có dùng `new File(getResource(...).toURI())` khiến resource trong JAR không còn là file thông thường không?
-- Classloader/module của bản chạy đã thay đổi không?
+- Was the resource packaged inside the JAR?
+- Does entry name casing differ from the code?
+- Did packaging/resource filtering alter paths or bytes?
+- Did it rely on `src/test/resources`, which exists only on the test classpath?
+- Did code call `new File(getResource(...).toURI())`, failing because a JAR resource is not an ordinary file?
+- Did the runtime classloader/module configuration change?
 
-## 11. Maven/Gradle: resources có vòng đời riêng
+## 11. Maven/Gradle: Resources Have Separate Lifecycles
 
-Trong dự án Maven/Gradle tiêu chuẩn:
+In a standard Maven/Gradle project:
 
 ~~~text
 src/main/java/...
@@ -422,17 +422,17 @@ src/test/java/...
 src/test/resources/fixtures/data.txt
 ~~~
 
-`src/main/resources` được copy vào output dành cho runtime/JAR theo build configuration thông thường. `src/test/resources` thuộc test runtime; nó **không mặc định được package vào production JAR**.
+`src/main/resources` is copied into runtime/JAR outputs under standard build configs. `src/test/resources` belongs to the test runtime; it is **not packaged into production JARs by default**.
 
-Nếu một feature chỉ dùng test fixture và sau đó gọi classpath lookup trong production, có thể trả `null` vì resource không hiện diện.
+If a feature relies only on a test fixture and later runs a classpath lookup in production, it will get `null` because the resource is absent.
 
-Resource filtering có thể thay đổi contents (ví dụ biểu thức placeholder, charset và line endings). Với binary assets như ảnh, JKS/PKCS12, ZIP, chứng chỉ, không tùy tiện bật text filtering. Nếu cần content chính xác, kiểm tra checksums trước/sau package.
+Resource filtering can modify contents (such as placeholder expressions, charsets, and line endings). For binary assets like images, JKS/PKCS12 keystores, ZIPs, or certificates, never enable text filtering blindly. When exact content matters, verify checksums before and after packaging.
 
-Trong Gradle/Maven IDE, working directory của Run Configuration thường là project root, nhưng **không nên lấy điều đó làm hợp đồng production**. Dùng path tuyệt đối được truyền vào hoặc resource lookup độc lập CWD.
+In Gradle/Maven IDEs, a Run Configuration's working directory defaults to the project root, yet **you must never treat that as a production contract**. Pass explicit absolute paths or use CWD-independent resource lookups.
 
-## 12. Làm test không phụ thuộc một CWD cố định
+## 12. Making Tests Independent of a Fixed CWD
 
-Với dữ liệu file, dùng thư mục tạm và explicit UTF-8:
+For file data, use a temporary directory and explicit UTF-8:
 
 ~~~java
 Path temp = Files.createTempDirectory("io-test-");
@@ -448,13 +448,13 @@ try {
 }
 ~~~
 
-Đây là đoạn minh họa trong method có imports và throws/exception handling. Test thực tế có thể dùng JUnit `@TempDir` và kiểm tra cleanup tự động.
+This is an illustrative snippet inside a method with imports and `throws`/exception handling. Real tests can use JUnit `@TempDir` and verify automatic cleanup.
 
-Với resource, đặt fixture trong test resources và đọc bằng `TestClass.class.getResourceAsStream("/fixtures/data.txt")`. Để bắt lỗi packaging, cần integration test chạy JAR thật, không chỉ chạy tests trên class directory.
+For resources, place fixtures in test resources and read via `TestClass.class.getResourceAsStream("/fixtures/data.txt")`. To catch packaging bugs, run integration tests against the actual built JAR, not solely against the compiled classes directory.
 
-### Tái hiện CWD khác trong một test harness
+### Reproducing a different CWD in a test harness
 
-Java không cung cấp một API portable để đổi OS working directory của JVM đang chạy theo thread. Thay vì sửa `user.dir`, có thể khởi chạy **tiến trình Java con** qua `ProcessBuilder.directory(...)`:
+Java offers no portable API to change a running JVM's OS working directory per thread. Instead of mutating `user.dir`, launch a **child Java process** via `ProcessBuilder.directory(...)`:
 
 ~~~java
 ProcessBuilder pb = new ProcessBuilder(
@@ -464,32 +464,32 @@ Process child = pb.start();
 int exitCode = child.waitFor();
 ~~~
 
-Đây là snippet minh họa chưa độc lập: `absoluteClasspath`, `absoluteInput`, `otherWorkingDir` cần được khai báo và xử lý `IOException`/`InterruptedException`. Với integration test thực tế, cần đọc stdout/stderr (tránh pipe bị tắc), timeout, và kiểm tra exit code/expected output. Có thể dùng Java executable từ toolchain thay vì giả định luôn có `java` trên PATH.
+This is a non-standalone illustrative snippet: `absoluteClasspath`, `absoluteInput`, and `otherWorkingDir` must be declared, and `IOException`/`InterruptedException` handled. In real integration tests, drain stdout/stderr (to prevent pipe deadlocks), enforce timeouts, and verify exit code and expected output. Prefer the toolchain's Java executable rather than assuming `java` is on `PATH`.
 
-**Mục tiêu của test:** buộc các path sai dựa vào project root bị lộ rõ và xác nhận resource lookup/explicit input hoạt động khi CWD khác.
+**Test goal:** expose broken paths that silently depend on the project root and confirm resource lookup and explicit inputs work under any CWD.
 
-## 13. Lỗi thường gặp và cách phân loại
+## 13. Common Errors and How to Classify Them
 
-| Hiện tượng | Nhóm lỗi | Kiểm tra / xử lý |
+| Symptom | Error Category | Check / Resolution |
 | --- | --- | --- |
-| `NoSuchFileException` | Path không tồn tại ở vị trí được mở | Log absolute target và CWD |
-| `FileNotFoundException` | File stream không mở được path | Kiểm tra path, file type, quyền |
-| `AccessDeniedException` | Thiếu quyền truy cập | Kiểm tra account, ACL, mount mode |
-| `InvalidPathException` | Syntax path không hợp lệ | Kiểm tra input path theo OS/provider |
-| `getResourceAsStream()==null` | Resource lookup thất bại | Kiểm tra leading slash, package, JAR/classloader |
-| `FileSystemNotFoundException` khi đổi resource URI thành Path | Sai cơ chế filesystem provider | Đọc qua `InputStream` hoặc mở filesystem provider đúng |
-| `MalformedInputException` | Bytes không hợp lệ với decoder | Kiểm tra original bytes và charset |
-| `UnmappableCharacterException` | Encoding/decoding không biểu diễn được theo policy | Chọn charset và error strategy rõ |
-| Có text lỗi dấu nhưng không exception | Mojibake hoặc decoder replacement | So sánh Unicode/code points và hex |
-| Resource đúng tên nhưng nội dung sai | Trùng resource trong dependencies | Enumerate resource URLs và kiểm soát classloader |
+| `NoSuchFileException` | Path does not exist at opened location | Log normalized absolute target and CWD |
+| `FileNotFoundException` | File stream could not open path | Check path, entry type, permissions |
+| `AccessDeniedException` | Missing access permissions | Check account, ACL, mount mode |
+| `InvalidPathException` | Invalid path syntax | Validate input path against OS/provider |
+| `getResourceAsStream()==null` | Resource lookup failed | Check leading slash, package, JAR/classloader |
+| `FileSystemNotFoundException` when converting resource URI to `Path` | Wrong filesystem provider mechanism | Read via `InputStream` or open proper filesystem provider |
+| `MalformedInputException` | Bytes invalid for decoder | Inspect original bytes and charset |
+| `UnmappableCharacterException` | Character unrepresentable under policy | Choose explicit charset and error strategy |
+| Garbled accents with no exception | Mojibake or decoder replacement | Compare Unicode code points and hex bytes |
+| Right resource name, wrong content | Duplicate resource in dependencies | Enumerate resource URLs and control classloader |
 
-Không bắt rộng `IOException` rồi báo tất cả trường hợp là “Không tìm thấy file”. Làm vậy che lỗi quyền, ổ đĩa, encoding, provider hoặc kết nối mạng.
+Never catch broad `IOException` and report every case as "File not found". Doing so masks permission, disk, encoding, provider, and network errors.
 
-## 14. Tệp lớn, resource stream và những giới hạn khác
+## 14. Large Files, Resource Streams, and Other Limits
 
-`Files.readString` và `InputStream.readAllBytes()` đọc toàn bộ dữ liệu vào bộ nhớ; phù hợp với cấu hình hoặc resource nhỏ, nhưng không phải mặc định tốt cho log nhiều GB.
+`Files.readString` and `InputStream.readAllBytes()` load all data into memory; suitable for small configs or resources, poor defaults for multi-GB logs.
 
-Với file văn bản lớn, đọc theo streaming:
+For large text files, stream line by line:
 
 ~~~java
 try (BufferedReader reader =
@@ -501,98 +501,98 @@ try (BufferedReader reader =
 }
 ~~~
 
-Đây là snippet minh họa; `handle` do ứng dụng cung cấp, imports/exception handling cần đầy đủ. `readLine()` không giữ newline terminators, nên nếu cần bảo toàn byte-exact file để xác thực checksum/chữ ký, hãy thao tác bytes thay vì khôi phục text.
+This is an illustrative snippet; `handle` is application-provided, with full imports/exception handling needed. `readLine()` strips newline terminators, so if byte-exact preservation is needed for checksums or signatures, work with raw bytes rather than reconstructing text.
 
-Với binary file như ZIP, hình ảnh, key store hoặc compressed resource, tránh decode thành String rồi encode lại; điều đó có thể phá bytes. Dùng `InputStream` và đúng binary parser.
+For binary files such as ZIPs, images, keystores, or compressed resources, avoid decoding to a `String` and re-encoding; that corrupts bytes. Use `InputStream` and an appropriate binary parser.
 
-Khi xử lý cấu hình đầu vào không tin cậy, giới hạn kích thước, đường dẫn được phép, độ sâu cấu trúc và thời gian I/O. Resource path được normalize không đồng nghĩa an toàn trước symlink/race; phải chọn chiến lược bảo vệ theo threat model.
+When processing untrusted input configurations, bound size, allowed paths, nesting depth, and I/O timeouts. Normalizing a resource path does not protect against symlinks/races; choose defenses suited to the threat model.
 
-## 15. Checklist chẩn đoán theo nhóm lỗi
+## 15. Diagnostic Checklists by Error Category
 
-### A. Relative file path không hoạt động
+### A. Relative file path does not work
 
-1. In/log `Path.of("").toAbsolutePath()`, `user.dir` và `path.toAbsolutePath().normalize()`.
-2. Kiểm tra file tồn tại ở vị trí thực, quyền và loại file.
-3. So sánh CWD của IDE, terminal, service manager, Docker `WORKDIR` hoặc container process.
-4. Truyền một base directory qua args/config thay vì giả định project root.
-5. Thử chạy từ CWD khác bằng process con.
+1. Print/log `Path.of("").toAbsolutePath()`, `user.dir`, and `path.toAbsolutePath().normalize()`.
+2. Verify the file exists at the real location, plus permissions and file type.
+3. Compare CWDs of the IDE, terminal, service manager, Docker `WORKDIR`, or container process.
+4. Pass a base directory via args/config instead of assuming project root.
+5. Run from a different CWD using a child process.
 
-### B. Classpath resource trả null
+### B. Classpath resource returns `null`
 
-1. Kiểm tra path của resource **trong build output/JAR**, không chỉ trong source tree.
-2. Kiểm tra leading slash của `Class.getResourceAsStream` và không dùng slash đầu trong `ClassLoader.getResourceAsStream`.
-3. Kiểm tra package-relative path, case sensitivity và classloader/module boundary.
-4. Xác nhận main resources thay vì test-only resources.
-5. Nếu có nhiều resources trùng tên, enumerate URL matches.
-6. Với resource trong JAR, dùng `InputStream`, không tự biến nó thành filesystem `File`.
+1. Check the resource path **inside build output/JAR**, not just in the source tree.
+2. Check the leading slash on `Class.getResourceAsStream` and omit it on `ClassLoader.getResourceAsStream`.
+3. Check package-relative paths, case sensitivity, and classloader/module boundaries.
+4. Confirm main resources rather than test-only resources.
+5. If duplicate resources exist, enumerate URL matches.
+6. For JAR resources, use `InputStream`—never force them into filesystem `File` objects.
 
-### C. Chữ Việt bị lỗi
+### C. Garbled Vietnamese characters
 
-1. Xác nhận đã mở đúng file/resource.
-2. Xem bytes gốc, charset do producer dùng và charset decoder hiện tại.
-3. Dùng explicit `StandardCharsets.UTF_8` khi hợp đồng là UTF-8.
-4. Kiểm tra BOM, malformed sequences, decoder replacement policy.
-5. Phân biệt Java String sai với console hiển thị sai.
-6. Tạo regression test kiểm tra String equality/code points/expected bytes.
+1. Confirm the right file/resource was opened.
+2. Inspect original bytes, the producer's charset, and the current decoder charset.
+3. Pass explicit `StandardCharsets.UTF_8` when the contract specifies UTF-8.
+4. Check BOMs, malformed sequences, and decoder replacement policies.
+5. Distinguish a corrupted Java `String` from a terminal display issue.
+6. Add a regression test checking `String` equality, code points, and expected bytes.
 
-### D. IDE chạy tốt nhưng production sai
+### D. Works in IDE, fails in production
 
-1. So sánh CWD, JVM version, default charset, locale, classpath, module path.
-2. Kiểm tra JAR contents và tài nguyên đã đóng gói.
-3. Kiểm tra environment variables, system properties, quyền service account.
-4. Xác minh case-sensitive filenames trên OS đích.
-5. Chạy integration test từ CWD khác và với build artifact thật.
-6. Log đầy đủ các thông số đường dẫn/charset cần thiết nhưng không lộ bí mật.
+1. Compare CWD, JVM version, default charset, locale, classpath, and module path.
+2. Inspect JAR contents and packaged resources.
+3. Check environment variables, system properties, and service-account permissions.
+4. Verify case-sensitive filenames on the target OS.
+5. Run integration tests from a different CWD and against the actual build artifact.
+6. Log necessary path/charset diagnostics without exposing secrets.
 
-## 16. Các anti-pattern đặc trưng
+## 16. Characteristic Anti-Patterns
 
-| Cách làm sai | Vì sao lỗi | Thay bằng |
+| Wrong Approach | Why It Fails | Use Instead |
 | --- | --- | --- |
-| `Path.of("src/main/resources/template.txt")` trong production | Source tree có thể không tồn tại | `getResourceAsStream("/template.txt")` |
-| Giả định `java -jar` thay CWD | JAR location khác process CWD | Base dir tường minh |
-| Gọi `getResourceAsStream("config/x.txt")` từ class ở package khác | Tên relative tính từ package | Dùng slash root nếu cần |
-| Dùng `ClassLoader.getResourceAsStream("/config/x.txt")` | Sai quy tắc tên resource classloader | Bỏ leading slash |
-| Ép `jar:` URL thành file địa phương | Resource JAR không phải file local độc lập | Đọc bằng stream |
-| Lưu dữ liệu runtime vào JAR/classpath | Thường read-only/không writable | Data directory tách biệt |
-| `InputStreamReader(in)` không charset với file UTF-8 | Default charset có thể khác | `InputStreamReader(in, UTF_8)` |
-| `String.getBytes()` cho format cố định | Phụ thuộc default charset | `getBytes(UTF_8)` |
-| Đổi `user.dir` để “sửa” CWD | Không portable cho OS/process | Truyền base Path hoặc ProcessBuilder.directory |
-| Chỉ kiểm tra `Files.exists` rồi giả định chắc chắn | Race/permission errors | Mở/đọc thật và xử lý exception |
-| Mọi `IOException` đều báo file missing | Che mất nguyên nhân cụ thể | Phân loại theo exception và operation |
-| Đổi file decoder vì terminal in sai dấu | Console có thể sai, String đã đúng | So sánh String và terminal riêng |
-| Đọc binary bytes như text | Có thể phá dữ liệu không phục hồi | Dùng byte streams |
-| Dùng `readAllBytes` cho file rất lớn | Có thể tăng heap/OOME | Streaming và bounded memory |
+| `Path.of("src/main/resources/template.txt")` in production | Source tree may not exist | `getResourceAsStream("/template.txt")` |
+| Assuming `java -jar` changes CWD | JAR location differs from process CWD | Explicit base directory |
+| Calling `getResourceAsStream("config/x.txt")` from a packaged class | Relative to class's package | Use leading root slash when needed |
+| Calling `ClassLoader.getResourceAsStream("/config/x.txt")` | Violates classloader resource naming | Drop leading slash |
+| Forcing a `jar:` URL into a local `File` | JAR resource is not a standalone local file | Read via stream |
+| Saving runtime data into JAR/classpath | Usually read-only / non-writable | Separate data directory |
+| `InputStreamReader(in)` without charset on UTF-8 files | Default charset may differ | `InputStreamReader(in, UTF_8)` |
+| `String.getBytes()` for fixed formats | Depends on default charset | `getBytes(UTF_8)` |
+| Mutating `user.dir` to "fix" CWD | Not portable across OS/process | Pass base `Path` or `ProcessBuilder.directory` |
+| Checking only `Files.exists` and assuming safety | Races / permission failures | Open/read directly and handle exceptions |
+| Reporting every `IOException` as file missing | Hides the actual root cause | Classify by exception and operation |
+| Changing file decoder because terminal prints wrong accents | Console may be wrong while `String` is right | Verify `String` and terminal separately |
+| Reading binary bytes as text | Irreversibly corrupts bytes | Use byte streams |
+| Using `readAllBytes` on huge files | Heap exhaustion / `OutOfMemoryError` | Streaming and bounded memory |
 
-## 17. Câu hỏi tự kiểm tra
+## 17. Self-Check Questions
 
-1. `Path.of("data.txt")` tìm cạnh class file hay ở CWD? **Ở CWD của tiến trình**, không phải thư mục class.
-2. `java -jar /opt/app/app.jar` có tự đổi CWD sang `/opt/app` không? **Không**.
-3. Cách kiểm tra absolute path mà ứng dụng đang tìm? `path.toAbsolutePath().normalize()`.
-4. Có nên dùng `System.setProperty("user.dir", ...)` để đổi OS working directory ở runtime không? **Không**, không portable.
-5. `src/main/resources` có luôn tồn tại trên server sau build không? **Không**.
-6. Với `Class.getResourceAsStream("/config/x.txt")`, leading slash nghĩa gì? **Tìm từ resource root**.
-7. `Class.getResourceAsStream("x.txt")` không slash tìm ở đâu? **Relative với package của class**.
-8. Với `ClassLoader.getResourceAsStream` có nên bắt đầu bằng slash không? **Thông thường không**.
-9. Resource trong JAR có luôn chuyển thẳng thành `File` được không? **Không**; ưu tiên stream.
-10. `Files.readString(path)` trong JDK 17 có dùng default charset không? **Không**, overload đó dùng UTF-8.
-11. `new InputStreamReader(in)` không đối số charset thì sao? **Dùng default charset JVM**.
-12. UTF-8 bytes của `Café` là gì? **43 61 66 C3 A9**.
-13. Decode bytes UTF-8 bằng ISO-8859-1 có thể sai chữ dù không exception? **Có**.
-14. Java String đúng nhưng terminal sai dấu có chứng minh file bị lỗi không? **Không**; có thể là console encoding/font.
-15. BOM UTF-8 có bytes nào? **EF BB BF**.
-16. `Files.exists(path)==false` chứng minh chắc file không tồn tại không? **Không tuyệt đối**, có race và lỗi quyền/I/O.
-17. Làm sao phát hiện app phụ thuộc ngầm vào IDE working directory? **Khởi chạy từ một CWD khác trong integration test**.
-18. File chỉ có trong `src/test/resources` có tự vào production JAR không? **Thông thường không**.
-19. Nếu classpath có hai resources cùng tên, có nguy cơ đọc nhầm không? **Có**, cần namespace/kiểm soát classloader.
-20. Dữ liệu runtime có nên ghi vào `src/main/resources`/JAR không? **Không**, hãy dùng data directory writable rõ ràng.
+1. Does `Path.of("data.txt")` search next to the `.class` file or in CWD? **In the process's CWD**, not the class directory.
+2. Does `java -jar /opt/app/app.jar` automatically change CWD to `/opt/app`? **No**.
+3. How do you check the absolute path an application is actually resolving? `path.toAbsolutePath().normalize()`.
+4. Should `System.setProperty("user.dir", ...)` be used to change OS working directory at runtime? **No**, it is not portable.
+5. Does `src/main/resources` always exist on the server after building? **No**.
+6. In `Class.getResourceAsStream("/config/x.txt")`, what does the leading slash mean? **Search from the resource root**.
+7. Where does `Class.getResourceAsStream("x.txt")` without a slash search? **Relative to the class's package**.
+8. Should `ClassLoader.getResourceAsStream` normally start with a slash? **Usually no**.
+9. Can a JAR resource always be converted directly to a `File`? **No**; prefer streams.
+10. Does `Files.readString(path)` in JDK 17 use the default charset? **No**, that overload uses UTF-8.
+11. What about `new InputStreamReader(in)` with no charset argument? **It uses the JVM default charset**.
+12. What are the UTF-8 bytes of `Café`? **43 61 66 C3 A9**.
+13. Can decoding UTF-8 bytes as ISO-8859-1 corrupt characters without throwing an exception? **Yes**.
+14. If a Java `String` is right yet the terminal displays wrong accents, does that prove the file is corrupted? **No**; it may be console encoding/font.
+15. Which bytes form the UTF-8 BOM? **EF BB BF**.
+16. Does `Files.exists(path) == false` prove with certainty the file does not exist? **Not absolutely**, due to races and permission/I/O errors.
+17. How do you catch an app implicitly relying on the IDE working directory? **Launch from a different CWD in an integration test**.
+18. Are files only in `src/test/resources` packaged into production JARs automatically? **Normally no**.
+19. If the classpath holds two resources with the same name, is there a risk of reading the wrong one? **Yes**, namespace them and control the classloader.
+20. Should runtime data be written into `src/main/resources` or the JAR? **No**, use an explicit writable data directory.
 
-## Tài liệu API tham khảo
+## API Reference Documentation
 
-- [Java SE 17 — Path](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html): relative/absolute path, normalize, toRealPath.
-- [Java SE 17 — Files](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html): readString, newBufferedReader, newInputStream và I/O errors.
-- [Java SE 17 — Class](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): getResource/getResourceAsStream và package-relative lookup.
-- [Java SE 17 — ClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html): tra cứu và enumerate resources.
-- [Java SE 17 — Charset](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/Charset.html) và [StandardCharsets](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/StandardCharsets.html): charset mặc định, UTF-8 và các charset chuẩn.
-- [Java SE 17 — CharsetDecoder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/CharsetDecoder.html): malformed bytes và decoder policy.
-- [Java SE 17 — ProcessBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ProcessBuilder.html): chạy process con với working directory đã chỉ định.
-- [JEP 400 — UTF-8 by Default](https://openjdk.org/jeps/400): sự thay đổi từ JDK 18 và vấn đề tương thích.
+- [Java SE 17 — Path](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Path.html): relative/absolute paths, normalize, toRealPath.
+- [Java SE 17 — Files](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html): readString, newBufferedReader, newInputStream, and I/O errors.
+- [Java SE 17 — Class](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): getResource/getResourceAsStream and package-relative lookup.
+- [Java SE 17 — ClassLoader](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html): looking up and enumerating resources.
+- [Java SE 17 — Charset](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/Charset.html) and [StandardCharsets](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/StandardCharsets.html): default charset, UTF-8, and standard charsets.
+- [Java SE 17 — CharsetDecoder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/CharsetDecoder.html): malformed bytes and decoder policies.
+- [Java SE 17 — ProcessBuilder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ProcessBuilder.html): running a child process with a specified working directory.
+- [JEP 400 — UTF-8 by Default](https://openjdk.org/jeps/400): JDK 18 change and compatibility considerations.

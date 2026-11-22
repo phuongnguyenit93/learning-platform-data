@@ -1,68 +1,68 @@
-# Không đưa mật khẩu, token hoặc dữ liệu nhạy cảm vào biểu diễn `toString()`
+# Never Include Passwords, Tokens, or Sensitive Data in `toString()` Representations
 
-## 1. Vì sao `toString()` là điểm dễ rò rỉ thông tin?
+## 1. Why Is `toString()` an Easy Point of Information Leakage?
 
-`Object.toString()` trả về một chuỗi biểu diễn đối tượng. Các lớp thường ghi đè `toString()` để giúp lập trình viên đọc log, thông báo lỗi hoặc kết quả gỡ lỗi nhanh hơn. Tuy nhiên **chuỗi biểu diễn có thể rời khỏi phạm vi đang kiểm soát**: nó có thể được ghi vào log, chuyển tới dịch vụ quan sát hệ thống, lưu trong báo cáo lỗi, xuất hiện trong màn hình hỗ trợ hoặc được chia sẻ khi xử lý sự cố.
+`Object.toString()` returns a string representation of an object. Classes often override `toString()` to help developers read logs, error messages, or debugging output more quickly. However, **the representation string can leave the controlled scope**: it can be written to logs, forwarded to observability services, stored in error reports, displayed on support screens, or shared during incident handling.
 
-Ví dụ, đối tượng đăng nhập có thể có các trường `accountId`, `password` và `accessToken`. Một `toString()` liệt kê mọi trường sẽ vô tình tiết lộ thông tin xác thực khi ai đó chỉ định in đối tượng để theo dõi luồng xử lý. Mật khẩu và token có thể cho phép truy cập tài khoản hoặc hệ thống khi bị lộ; ngay cả log có giới hạn quyền cũng có thể bị sao chép, lưu lâu hoặc truy cập bởi nhiều thành phần hơn phạm vi xử lý bí mật ban đầu.
+For example, a login object might have `accountId`, `password`, and `accessToken` fields. A `toString()` that lists every field will accidentally disclose credentials when someone prints the object to trace an execution flow. Passwords and tokens can grant access to an account or system once leaked; even access-restricted logs may be copied, retained for a long time, or accessed by more components than the original secret-handling scope.
 
-**Nguyên tắc mặc định:** `toString()` phục vụ **chẩn đoán** chứ không phải xuất toàn bộ trạng thái. Chỉ đưa vào những thuộc tính **đã được xác định là an toàn để ghi log**. Không bao giờ đưa mật khẩu, secret, khóa riêng hoặc giá trị token truy cập vào chuỗi biểu diễn.
+**Default principle:** `toString()` serves **diagnosis**, not dumping the entire state. Only include attributes **determined to be safe for logging**. Never put passwords, secrets, private keys, or access token values into the representation string.
 
-Cách định nghĩa một biểu diễn tốt:
+How to define a good representation:
 
-- Người đọc nhận ra **loại đối tượng** và **ngữ cảnh đủ để chẩn đoán**.
-- Chuỗi không chứa thông tin xác thực hoặc dữ liệu cá nhân vượt quá mục đích được phép.
-- Nếu lớp được bổ sung trường nhạy cảm về sau, biểu diễn không tự động lộ trường mới.
-- Biểu diễn có định dạng ổn định, gọn, dễ hiểu và không chứa dữ liệu đầu vào chưa kiểm soát có thể phá cấu trúc log.
+- Readers can recognize the **object type** and **sufficient context for diagnosis**.
+- The string does not contain credentials or personal data beyond the permitted purpose.
+- If sensitive fields are added to the class later, the representation does not automatically expose the new fields.
+- The representation has a stable, concise, understandable format and does not contain uncontrolled input data that could break log structure.
 
-## 2. Những loại dữ liệu không nên in trong `toString()`
+## 2. Types of Data That Should Not Be Printed in `toString()`
 
-Tùy ứng dụng và phân loại dữ liệu, các nhóm sau thường cần được loại khỏi biểu diễn:
+Depending on the application and data classification, the following categories typically need to be excluded from the representation:
 
-| Nhóm dữ liệu | Ví dụ | Rủi ro khi xuất vào biểu diễn |
+| Data Category | Examples | Risk When Exposed in the Representation |
 | --- | --- | --- |
-| Mật khẩu, PIN, OTP và mã khôi phục | `password`, `pin`, `oneTimeCode` | Có thể dùng để xác thực hoặc chiếm quyền truy cập |
-| Token xác thực và phiên | Access token, refresh token, session cookie, bearer token | Có thể bị tái sử dụng để truy cập phiên hoặc API |
-| Khóa và bí mật kỹ thuật | API key, client secret, private key, connection-string chứa mật khẩu | Cho phép truy cập dịch vụ, ký/giải mã hoặc kết nối trái phép |
-| Header/query nhạy cảm | `Authorization`, `Cookie`, URL có token trong query string | Giá trị bí mật có thể lọt qua log HTTP hoặc exception |
-| Thông tin cá nhân | Email, điện thoại, địa chỉ, giấy tờ, dữ liệu tài chính hoặc sức khỏe | Có thể xâm phạm riêng tư hoặc vượt quyền sử dụng dữ liệu |
-| Nội dung yêu cầu/phản hồi | JSON chứa thông tin tài khoản, hồ sơ, thông tin thanh toán | Có thể vô tình kéo theo hàng loạt trường nhạy cảm |
+| Passwords, PINs, OTPs, and recovery codes | `password`, `pin`, `oneTimeCode` | Can be used to authenticate or take over access |
+| Authentication and session tokens | Access token, refresh token, session cookie, bearer token | Can be reused to access sessions or APIs |
+| Technical keys and secrets | API key, client secret, private key, connection strings containing passwords | Grants access to services, signing/decryption, or unauthorized connections |
+| Sensitive headers/queries | `Authorization`, `Cookie`, URLs with tokens in query strings | Secret values can leak through HTTP logs or exceptions |
+| Personal information | Email, phone number, address, identity documents, financial or health data | Can violate privacy or exceed permitted data usage |
+| Request/response bodies | JSON containing account details, profiles, payment information | Can accidentally pull in a whole set of sensitive fields |
 
-Không phải mọi `id`, email hay số tham chiếu đều được phép xuất. Một mã định danh có thể là thông tin cá nhân hoặc bí mật trong ngữ cảnh cụ thể. Nếu cần kết nối các sự kiện, ưu tiên **correlation ID được thiết kế riêng cho việc quan sát hệ thống**, không mang khả năng truy cập và đã được duyệt để ghi log.
+Not every `id`, email, or reference number is permitted for output. An identifier can be personal information or a secret in a specific context. If you need to correlate events, prefer a **correlation ID specifically designed for system observability**, carrying no access capability and approved for logging.
 
-Đừng cho rằng chỉ mật khẩu thô mới là bí mật. Hash mật khẩu, mã xác minh, token đã hết hạn, khóa thử nghiệm, các giá trị “một phần” hoặc tài liệu nhận dạng có thể vẫn nhạy cảm. Quyết định chính sách phải dựa trên mục đích sử dụng và mức độ rủi ro, không dựa đơn thuần vào tên trường.
+Do not assume only raw passwords are secrets. Password hashes, verification codes, expired tokens, test keys, "partial" values, or identifying documents can still be sensitive. Policy decisions must be based on intended use and risk level, not solely on field names.
 
-## 3. `toString()` có thể bị gọi gián tiếp
+## 3. `toString()` Can Be Called Indirectly
 
-Một lập trình viên có thể không viết `object.toString()` nhưng vẫn làm biểu diễn được sử dụng:
+A developer may never write `object.toString()` yet still cause the representation to be used:
 
 ~~~java
-System.out.println(object);              // Gọi biểu diễn chuỗi đối tượng.
-String message = "Request: " + object;    // Nối chuỗi sẽ dùng biểu diễn.
+System.out.println(object);              // Calls the object's string representation.
+String message = "Request: " + object;    // String concatenation uses the representation.
 String text = String.format("%s", object);
 String display = String.valueOf(object);
 ~~~
 
-Đây là những **đoạn minh họa**, giả định biến `object` đã được khai báo. Với một số API logging có tham số, ví dụ lời gọi kiểu `logger.info("request={}", request)` của các thư viện phổ biến, formatter có thể chuyển đối số thành chuỗi khi ghi log. Việc trì hoãn định dạng hoặc kiểm tra mức log có thể ảnh hưởng thời điểm đánh giá, nhưng **không biến `request.toString()` thành an toàn** khi thông điệp thực sự được ghi.
+These are **illustrative snippets**, assuming the `object` variable is already declared. With some parameterized logging APIs, such as calls like `logger.info("request={}", request)` in popular libraries, the formatter may convert arguments to strings when logging. Deferring formatting or checking log levels can affect evaluation timing, but **it does not make `request.toString()` safe** when the message is actually written.
 
-Các luồng khác cũng có thể gián tiếp gọi biểu diễn: tạo chuỗi của exception, ghi giá trị vào thông báo assert, xuất một đối tượng trong trang quản trị hoặc thu thập snapshot phục vụ điều tra sự cố.
+Other paths can also invoke the representation indirectly: building an exception string, recording values in assertion messages, rendering an object on an admin page, or capturing snapshots for incident investigation.
 
-**Điều cần tránh là đưa cả đối tượng chứa bí mật vào thông điệp**, nhất là khi không kiểm soát được cách nó được chuyển sang chuỗi. Thay vì ghi `request`, hãy ghi các trường cho phép như loại hành động, kết quả xử lý và correlation ID đã được phân loại.
+**What to avoid is putting the entire secret-bearing object into messages**, especially when you do not control how it is converted to a string. Instead of logging `request`, log permitted fields such as action type, processing outcome, and a classified correlation ID.
 
-## 4. Bẫy của `record`: `toString()` được sinh sẵn và chứa mọi component
+## 4. The `record` Trap: Auto-Generated `toString()` Includes Every Component
 
-Từ Java 16, `record` có các phương thức tổng hợp `equals()`, `hashCode()` và `toString()` nếu bạn không tự khai báo. Phương thức `toString()` được sinh biểu diễn tên record cùng các **component** và giá trị tương ứng. Vì thế dùng record cho dữ liệu chứa bí mật vẫn có nguy cơ rò rỉ, dù bạn không viết một dòng `toString()` thủ công nào.
+Since Java 16, a `record` has synthesized `equals()`, `hashCode()`, and `toString()` methods if you do not declare them yourself. The generated `toString()` displays the record name along with its **components** and corresponding values. Thus using a record for data containing secrets still carries a leakage risk, even if you never write a single line of `toString()` manually.
 
-### Ví dụ chạy được: phát hiện nguy cơ nhưng không in giá trị bí mật
+### Runnable Example: Detecting the Risk Without Printing Secret Values
 
-Tạo tệp `UnsafeRecordToStringDemo.java`:
+Create the file `UnsafeRecordToStringDemo.java`:
 
 ~~~java
 public class UnsafeRecordToStringDemo {
     record LoginData(String accountId, String password, String accessToken) {}
 
     public static void main(String[] args) {
-        // Chỉ sử dụng chuỗi giả để kiểm tra hành vi, không đưa secret thật vào mã.
+        // Use synthetic strings only to test behavior; never put real secrets in code.
         LoginData login = new LoginData(
                 "account-demo",
                 "example-password",
@@ -71,7 +71,7 @@ public class UnsafeRecordToStringDemo {
 
         String rendered = login.toString();
 
-        // Chỉ in kết quả kiểm tra, KHÔNG in rendered hoặc các secret.
+        // Print only check results; DO NOT print rendered or the secrets.
         System.out.println("contains account: "
                 + rendered.contains(login.accountId()));
         System.out.println("contains password: "
@@ -82,7 +82,7 @@ public class UnsafeRecordToStringDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng Java 17+:
+Compile and run with Java 17+:
 
 ~~~bash
 javac -encoding UTF-8 UnsafeRecordToStringDemo.java
@@ -97,17 +97,17 @@ contains password: true
 contains token: true
 ~~~
 
-Ví dụ cố ý để record giữ `toString()` mặc định **nhằm phát hiện vấn đề**, nhưng không in ra các giá trị mật khẩu/token. Kết quả `true` cho thấy nếu có mã ghi `System.out.println(login)` hoặc ghép `"login=" + login`, chuỗi biểu diễn sẽ mang các giá trị đó vào đầu ra.
+The example intentionally leaves the record with its default `toString()` **in order to detect the issue**, while not printing the password/token values. The `true` results show that if any code calls `System.out.println(login)` or concatenates `"login=" + login`, the representation string will carry those values into the output.
 
-Ngoài `record`, IDE hoặc công cụ sinh mã có thể tạo `toString()` dựa trên toàn bộ field hoặc component. Khi thêm field, chạy lại generator hoặc bật chế độ sinh tự động, cần kiểm tra chính sách loại trừ trường nhạy cảm.
+Besides `record`, IDEs or code generators can create `toString()` based on all fields or components. When adding fields, re-running a generator, or enabling auto-generation, you must verify the policy for excluding sensitive fields.
 
-## 5. Chiến lược an toàn hơn: chọn rõ những trường được phép xuất
+## 5. A Safer Strategy: Explicitly Choose Permitted Fields for Output
 
-Cách an toàn khi viết `toString()` cho đối tượng có secret là **allowlist**: chỉ liệt kê thuộc tính được phép hiện ra, thay vì nối tất cả trường rồi cố lọc đi những trường bị cấm.
+The safe way to write `toString()` for an object with secrets is an **allowlist**: list only the attributes permitted to appear, instead of concatenating all fields and trying to filter out forbidden ones.
 
-Ví dụ một phiên xử lý chứa request ID và hai secret. Nếu request ID đã được thiết kế là mã chẩn đoán không nhạy cảm, ta có thể in mã đó và một nhãn cố định mà không sử dụng giá trị secret.
+For example, a processing session contains a request ID and two secrets. If the request ID has been designed as a non-sensitive diagnostic code, we can print that code and a fixed label without touching the secret values.
 
-Tạo tệp `SafeSessionToStringDemo.java`:
+Create the file `SafeSessionToStringDemo.java`:
 
 ~~~java
 public class SafeSessionToStringDemo {
@@ -152,58 +152,58 @@ contains token: false
 same object identity: true
 ~~~
 
-Đây là ví dụ hoàn chỉnh với dữ liệu giả, dùng nhãn `<redacted>` **cố định** để diễn đạt bí mật đã bị loại khỏi biểu diễn. Không xây dựng nhãn bằng cách nối hoặc lấy một phần thực tế của token rồi hiển thị.
+This is a complete example with synthetic data, using a **fixed** `<redacted>` label to indicate that secrets were excluded from the representation. Do not build the label by concatenating or slicing an actual part of the token for display.
 
-Lợi ích của allowlist:
+Benefits of an allowlist:
 
-1. Người đọc biết chính xác những trường nào được đưa ra.
-2. Các trường nhạy cảm `password` và `accessToken` không được truy cập trong thân `toString()`.
-3. Khi thêm một secret mới vào record, `toString()` tùy chỉnh **không tự động xuất secret đó**.
-4. Kết quả ngắn, có nghĩa và thuận tiện cho log, nếu `requestId` thực sự đã được phân loại là an toàn.
+1. Readers know exactly which fields are exposed.
+2. Sensitive fields `password` and `accessToken` are never accessed in the `toString()` body.
+3. When a new secret is added to the record, the custom `toString()` **does not automatically output that secret**.
+4. The output is short, meaningful, and convenient for logs, provided `requestId` has genuinely been classified as safe.
 
-Trong môi trường thực tế, hãy kiểm tra rằng giá trị `requestId` cũng không chứa thông tin bí mật hoặc chuỗi do người dùng tự đưa vào. Nếu không chắc, hãy loại luôn trường đó hoặc dùng một correlation ID do hệ thống tạo.
+In a real environment, verify that the `requestId` value also does not contain secrets or user-supplied strings. If unsure, exclude that field too or use a system-generated correlation ID.
 
-**Lưu ý:** Override `toString()` chỉ thay đổi biểu diễn chuỗi. Nó không xóa password/token khỏi đối tượng, không ngăn accessor truy cập, không bảo vệ việc serialize JSON/XML và không tự giải quyết các quy tắc lưu trữ secret. Record mặc định vẫn sinh `equals/hashCode` dựa trên component, trừ khi các phương thức đó được tự cài đặt; chúng có mục đích khác với chính sách log.
+**Note:** Overriding `toString()` only changes the string representation. It does not remove the password/token from the object, does not block accessor methods, does not protect JSON/XML serialization, and does not solve secret-storage rules on its own. Default records still generate `equals/hashCode` based on components unless those methods are implemented manually; they serve a different purpose from logging policies.
 
-## 6. Vì sao che bằng dấu sao chưa đủ nếu bí mật vẫn đi qua log?
+## 6. Why Asterisk Masking Is Not Enough if Secrets Still Flow Through Logs
 
-Một số cách xử lý “mask” thông thường có thể vẫn để lộ dữ liệu:
+Some common "masking" approaches can still leak data:
 
 ~~~java
-// Các đoạn sau là phản ví dụ về thiết kế; không nên dùng để ghi secret.
+// The following snippets are design anti-patterns; do not use them to log secrets.
 String partiallyVisible = token.substring(0, 6) + "***";
 String suffix = "***" + token.substring(token.length() - 4);
 String encoded = java.util.Base64.getEncoder()
         .encodeToString(token.getBytes(java.nio.charset.StandardCharsets.UTF_8));
 ~~~
 
-Các đoạn là **fragment minh họa**, giả định `token` là chuỗi khác null, đủ dài ở hai cách cắt. Trong chương trình thật, các phép `substring` còn có thể ném lỗi với token quá ngắn; điều đáng chú ý là:
+These snippets are **illustrative fragments**, assuming `token` is a non-null string long enough for both slices. In real programs, `substring` calls can also throw errors on overly short tokens; what is notable is:
 
-- Đầu/cuối token có thể vẫn nhạy cảm hoặc có thể hỗ trợ khớp một token cụ thể với hoạt động người dùng.
-- Base64 là **mã hóa biểu diễn**, không phải mã hóa bảo mật hay xóa thông tin; có thể đảo ngược.
-- Việc băm trực tiếp secret rồi đưa hash vào log vẫn tạo một giá trị tương quan cố định, có thể lộ mối liên hệ giữa sự kiện hoặc hỗ trợ suy đoán nếu không có mô hình đe dọa phù hợp.
-- Thay thế mẫu chuỗi toàn cục sau khi secret đã bị ghép vào log rất dễ bỏ sót đường đi, định dạng mới hoặc giá trị nhạy cảm nằm sâu trong đối tượng.
+- Token prefixes/suffixes can still be sensitive or help correlate a specific token with user activity.
+- Base64 is **representation encoding**, not cryptographic encryption or data erasure; it is reversible.
+- Directly hashing a secret and writing the hash to logs still creates a fixed correlation value that can reveal relationships across events or aid guessing without a proper threat model.
+- Global string-pattern replacement after a secret has already been concatenated into a log easily misses paths, new formats, or sensitive values nested deep inside objects.
 
-Trong `toString()`, tốt nhất **không tham chiếu đến giá trị secret**. Nếu có yêu cầu rất cụ thể về cách hiển thị trạng thái (ví dụ `configured`/`absent`) thì chỉ làm khi đã được đánh giá là an toàn, bởi ngay cả sự có mặt của thông tin xác thực đôi khi cũng là thông tin nhạy cảm.
+In `toString()`, it is best **not to reference secret values at all**. If there is a very specific requirement to display status (such as `configured`/`absent`), do so only after it is assessed as safe, because even the presence of credentials can sometimes be sensitive information.
 
-Không cần in prefix, suffix, chiều dài token hay trạng thái xác thực nếu mục tiêu chỉ là xác định đã xử lý request nào. Dùng mã chẩn đoán độc lập thay thế.
+There is no need to print a prefix, suffix, token length, or authentication state if the goal is only to identify which request was processed. Use an independent diagnostic identifier instead.
 
-## 7. Rò rỉ qua object lồng nhau, collection và `Map.toString()`
+## 7. Leakage Through Nested Objects, Collections, and `Map.toString()`
 
-Bỏ trường secret trực tiếp chưa đủ nếu `toString()` của lớp ngoài **gọi `toString()` của đối tượng con** mà đối tượng đó chứa secret.
+Omitting a direct secret field is not enough if the outer class's `toString()` **calls `toString()` on a child object** that holds a secret.
 
-Ví dụ:
+Example:
 
 ~~~java
 record Credential(String token) {}
 record Request(String requestId, Credential credential) {}
 ~~~
 
-Nếu cả hai giữ `toString()` mặc định, biểu diễn của `Request` chứa biểu diễn của `Credential`, và `Credential` chứa giá trị token. Tương tự, cách viết `return "Request{headers=" + headers + "}";` có thể gọi `Map.toString()` và in những entry như `Authorization` hoặc `Cookie`. `List.toString()` cũng có thể dẫn đến `toString()` của từng phần tử.
+If both keep the default `toString()`, `Request`'s representation contains `Credential`'s representation, and `Credential` contains the token value. Similarly, writing `return "Request{headers=" + headers + "}";` can invoke `Map.toString()` and print entries like `Authorization` or `Cookie`. `List.toString()` can also trigger each element's `toString()`.
 
-### Ví dụ chạy được: chứng minh rò rỉ gián tiếp
+### Runnable Example: Demonstrating Indirect Leakage
 
-Tạo tệp `NestedToStringDemo.java`:
+Create the file `NestedToStringDemo.java`:
 
 ~~~java
 public class NestedToStringDemo {
@@ -222,7 +222,7 @@ public class NestedToStringDemo {
         UnsafeRequest unsafe = new UnsafeRequest("req-9", credential);
         SafeRequest safe = new SafeRequest("req-9", credential);
 
-        // Chỉ in boolean kiểm tra, không xuất chuỗi unsafe.
+        // Print only check booleans; do not output the unsafe string.
         System.out.println("nested leak: "
                 + unsafe.toString().contains(credential.token()));
         System.out.println("safe excludes nested token: "
@@ -245,15 +245,15 @@ safe excludes nested token: true
 safe representation: SafeRequest[requestId=req-9]
 ~~~
 
-Khi thiết kế đối tượng lồng nhau, hãy kiểm tra mọi vị trí mà biểu diễn lớp ngoài **đưa cả object, collection, header map, URL hoặc payload** vào chuỗi. Một `toString()` an toàn không nên phụ thuộc vào việc mọi đối tượng con đều tự biết ẩn secret.
+When designing nested objects, check every place where the outer class's representation **includes an entire object, collection, header map, URL, or payload** in the string. A safe `toString()` should not rely on every child object knowing how to hide its own secrets.
 
-Nếu cần mô tả collection, có thể chỉ xuất số phần tử hoặc một thống kê được phép, chẳng hạn `itemsCount=3`, thay vì nối `items`. Nếu cần mô tả HTTP request, hãy dùng những metadata đã được chọn như phương thức, route chuẩn hóa hoặc correlation ID; tránh xuất nguyên header, query string và body khi chưa phân loại.
+If you need to describe a collection, you can output just the element count or a permitted statistic, such as `itemsCount=3`, rather than concatenating `items`. If you need to describe an HTTP request, use selected metadata such as method, normalized route, or correlation ID; avoid outputting raw headers, query strings, and bodies without classification.
 
-## 8. Ví dụ kiểu class thông thường: chỉ xuất metadata có kiểm soát
+## 8. Regular Class Example: Outputting Only Controlled Metadata
 
-Record không phải trường hợp duy nhất. Một lớp POJO cũng nên override `toString()` thủ công nếu nó chứa dữ liệu nhạy cảm và có khả năng xuất hiện trong log.
+Records are not the only case. A POJO class should also manually override `toString()` if it contains sensitive data and may appear in logs.
 
-Tạo tệp `SafeAccountToStringDemo.java`:
+Create the file `SafeAccountToStringDemo.java`:
 
 ~~~java
 public class SafeAccountToStringDemo {
@@ -305,17 +305,17 @@ Account{correlationId='trace-100'}
 contains secret: false
 ~~~
 
-Lưu ý `passwordHash` vẫn có thể là dữ liệu nhạy cảm và không được xem là an toàn chỉ vì đã được băm. Trong ví dụ này, chuỗi đầu ra chứa **duy nhất** correlation ID giả đã được cho phép. Tên trường bí mật có thể xuất hiện trong mã nguồn để minh họa nhưng **không có mặt trong kết quả `toString()`**.
+Note that `passwordHash` can still be sensitive data and must not be considered safe just because it is hashed. In this example, the output string contains **only** the permitted synthetic correlation ID. Secret field names may appear in source code for illustration, yet are **absent from the `toString()` result**.
 
-Cũng không nên dùng tên/ID do người dùng nhập một cách tùy tiện. Nếu dữ liệu đầu vào có thể mang xuống dòng hoặc ký tự điều khiển, hãy chuẩn hóa/escape hoặc thay bằng mã chẩn đoán do hệ thống sinh; xem phần tiếp theo.
+You should also avoid using user-supplied names/IDs indiscriminately. If input data can carry newlines or control characters, normalize/escape it or replace it with a system-generated diagnostic ID; see the next section.
 
-## 9. Tránh đưa dữ liệu không tin cậy làm hỏng cấu trúc log
+## 9. Preventing Untrusted Data from Breaking Log Structure
 
-Ngay cả trường không chứa secret cũng có thể là dữ liệu **không tin cậy**. Nếu `toString()` nối thẳng chuỗi có ký tự xuống dòng, ký tự điều khiển hoặc văn bản rất dài, log có thể bị làm nhiễu, giả mạo dòng hoặc tăng chi phí lưu trữ.
+Even a field without secrets can be **untrusted** data. If `toString()` directly concatenates strings containing newlines, control characters, or very long text, logs can be polluted, spoofed with forged lines, or incur increased storage costs.
 
-Một cách giảm rủi ro khi thực sự cần in giá trị đầu vào đã được cho phép là giới hạn chiều dài và escape các ký tự đặc biệt. Chỉ thực hiện điều này **sau khi** đã xác định trường được phép ghi log; escape không biến secret thành dữ liệu an toàn.
+One way to reduce risk when you genuinely need to print a permitted input value is to bound its length and escape special characters. Do this **only after** confirming the field is allowed to be logged; escaping does not make a secret safe.
 
-Đoạn minh họa (không phải chương trình độc lập):
+Illustrative snippet (not a standalone program):
 
 ~~~java
 static String safeShortText(String value) {
@@ -331,37 +331,37 @@ static String safeShortText(String value) {
 }
 ~~~
 
-Hàm trên minh họa cách hiển thị chuỗi ngắn với các ký tự CR/LF/tab đã được escape. Nó **không xử lý mọi ký tự điều khiển, Unicode hoặc chính sách giới hạn byte**, nên cần quy tắc phù hợp với định dạng log thực tế khi xây dựng thư viện dùng trong production. Trong trường hợp có thể, **không in giá trị đầu vào** vẫn dễ bảo đảm hơn.
+The function above illustrates displaying a short string with CR/LF/tab characters escaped. It **does not handle every control character, Unicode sequence, or byte-limit policy**, so rules matching the actual log format are needed when building a production library. Whenever possible, **not printing raw input values** remains easier to guarantee.
 
-## 10. Khi dùng logging, exception và công cụ sinh mã
+## 10. When Using Logging, Exceptions, and Code Generators
 
 ### Logging
 
-- Tránh `logger.info("login={}", login)` hoặc `logger.debug("request=" + request)` nếu `login`/`request` có thể chứa secret.
-- Ghi sự kiện nghiệp vụ và metadata có mục đích rõ ràng, như tên thao tác, trạng thái, correlation ID được duyệt.
-- Kiểm tra cấu hình log và chính sách retention/quyền truy cập, nhưng **đừng dựa vào việc log chỉ dành cho người quản trị để cho phép ghi secret**.
-- Dùng logging có cấu trúc và field allowlist khi phù hợp. Cũng cần cấu hình serializer/mapper an toàn: bảo vệ `toString()` không tự động bảo vệ mọi cách serialize đối tượng.
+- Avoid `logger.info("login={}", login)` or `logger.debug("request=" + request)` if `login`/`request` may contain secrets.
+- Log business events and metadata with clear purpose, such as operation name, status, and an approved correlation ID.
+- Check log configuration and retention/access policies, but **do not rely on logs being admin-only to justify writing secrets**.
+- Use structured logging and field allowlists where appropriate. Also configure serializers/mappers safely: protecting `toString()` does not automatically protect every way an object is serialized.
 
-### Exception và debug
+### Exceptions and Debugging
 
-Mẫu như `throw new IllegalArgumentException("Bad request: " + request)` có thể kéo theo `request.toString()` vào exception message. Exception sau đó có thể được log hoặc gửi qua API. Nên dùng thông báo mô tả lỗi, mã lỗi, hoặc correlation ID không nhạy cảm thay vì nguyên đối tượng.
+Patterns like `throw new IllegalArgumentException("Bad request: " + request)` can pull `request.toString()` into the exception message. The exception may then be logged or sent over an API. Use descriptive error messages, error codes, or non-sensitive correlation IDs instead of the entire object.
 
-Debugger, heap dump và tracing có thể quan sát giá trị theo cách khác `toString()`. Một `toString()` an toàn là **một lớp bảo vệ phạm vi đầu ra chuỗi**, không phải cam kết rằng secret không tồn tại hoặc không thể bị đọc ở nơi khác.
+Debuggers, heap dumps, and tracing can observe values differently from `toString()`. A safe `toString()` is **one layer of defense for string output scope**, not a promise that secrets do not exist or cannot be read elsewhere.
 
-### IDE, record và công cụ sinh mã
+### IDEs, Records, and Code Generators
 
-- Record tự tạo `toString()` từ các component nếu không override. Rà soát record/DTO chứa dữ liệu xác thực trước khi log.
-- IDE có tính năng sinh `toString()` từ các field. Không chấp nhận mặc định “chọn tất cả”.
-- Thư viện sinh mã có thể có tùy chọn bỏ qua hoặc chỉ chọn field được phép; kiểm tra cấu hình thực tế và mã được sinh. Một annotation bỏ qua trường khi serialize JSON **không mặc nhiên thay đổi `toString()`**, và ngược lại.
-- Với các kiểu mô hình có thể thêm trường mới, ưu tiên allowlist để phần biểu diễn không tự đổi theo cấu trúc nội bộ.
+- Records auto-generate `toString()` from their components if not overridden. Audit records/DTOs containing credentials before logging.
+- IDEs have features to generate `toString()` from fields. Do not accept "select all" by default.
+- Code-generation libraries may have options to exclude or include only permitted fields; verify the actual configuration and generated code. An annotation that ignores a field during JSON serialization **does not automatically change `toString()`**, and vice versa.
+- For model types that may gain new fields, prefer an allowlist so the representation does not automatically change with internal structure.
 
-Nếu cần dùng object để hiển thị trong UI hoặc truyền qua mạng, nên có **DTO/response model riêng** đã được thiết kế để loại secret. Không dùng `toString()` làm giao thức trao đổi dữ liệu hoặc định dạng API.
+If an object needs to be displayed in a UI or sent over the network, use a **dedicated DTO/response model** designed to exclude secrets. Do not use `toString()` as a data-exchange protocol or API format.
 
-## 11. Tự kiểm tra `toString()` bằng một bài test đơn giản
+## 11. Self-Testing `toString()` with a Simple Test
 
-Không nên chỉ đọc bằng mắt đầu ra một lần. Khi thay đổi lớp hoặc thêm component, hãy kiểm tra rằng biểu diễn vẫn không chứa những dấu hiệu bí mật đã đặt trong đối tượng thử nghiệm.
+Do not rely on eyeballing the output once. When changing a class or adding components, check that the representation still contains none of the secret markers placed in a test object.
 
-Tạo tệp `ToStringSafetyCheck.java`:
+Create the file `ToStringSafetyCheck.java`:
 
 ~~~java
 public class ToStringSafetyCheck {
@@ -413,38 +413,38 @@ Stdout:
 toString safety check: PASS
 ~~~
 
-Các giá trị trên đều là **dữ liệu giả**, tuyệt đối không đặt token thật vào mã thử nghiệm hoặc thông báo thất bại. Đây là kiểm tra tối thiểu, không thể chứng minh rằng tất cả kiểu secret chưa biết hoặc mọi đường serialize đều an toàn. Để mạnh hơn, bổ sung test khi thêm trường, thay đổi kiểu component lồng nhau hoặc thay cơ chế sinh `toString()`.
+All values above are **synthetic data**; never put real tokens into test code or failure messages. This is a minimal check and cannot prove that all unknown secret types or all serialization paths are safe. To strengthen it, add tests when adding fields, changing nested component types, or changing the `toString()` generation mechanism.
 
-Khi viết test thất bại, đừng nhét chính secret vào thông báo assert hay log test. Mục đích là phát hiện rò rỉ, không tạo thêm một kênh lộ bí mật.
+When a test fails, never embed the secret itself into the assertion message or test log. The goal is to detect leaks, not create another secret-exposure channel.
 
-## 12. Những hiểu lầm thường gặp
+## 12. Common Misconceptions
 
-| Hiểu lầm | Điều đúng |
+| Misconception | What Is True |
 | --- | --- |
-| `toString()` chỉ dùng trong debugger nên có thể in toàn bộ field. | Nó còn có thể xuất hiện trong log, exception, công cụ giám sát và chuỗi nối. |
-| Record không có `toString()` tự viết thì an toàn. | Record mặc định sinh biểu diễn gồm các component, có thể chứa mật khẩu/token. |
-| Đổi token sang Base64 hoặc chỉ in vài ký tự là đã an toàn. | Không bảo đảm; vẫn có khả năng lộ thông tin và mối liên hệ về token. |
-| Chỉ cần sửa `toString()` của lớp ngoài. | Nếu lớp ngoài nối nguyên đối tượng con/Map/List, biểu diễn con có thể chứa secret. |
-| Hash mật khẩu luôn được phép xuất log. | Hash cũng có thể là dữ liệu nhạy cảm; nên loại khỏi biểu diễn. |
-| Dùng `logger.debug` nghĩa là secret không bao giờ bị ghi. | Khi mức log được bật hoặc thông điệp được thu thập, dữ liệu vẫn có thể xuất hiện. |
-| Có `@JsonIgnore` là `toString()` cũng tự bỏ trường. | Chính sách JSON serialization và `toString()` là hai cơ chế khác nhau. |
-| Chuỗi `toString()` không lộ bí mật thì cả đối tượng an toàn khi serialize. | JSON/XML, debugger hoặc heap dump có đường lấy dữ liệu riêng. |
-| Che hết secret bằng replace sau khi nối chuỗi là đủ. | Dễ bỏ sót trường mới, định dạng khác và object lồng nhau; allowlist vững hơn. |
-| Mã định danh nào cũng là dữ liệu công khai. | ID có thể mang ý nghĩa nhạy cảm; cần phân loại trước khi đưa vào log. |
+| `toString()` is only used in debuggers so it can print every field. | It can also appear in logs, exceptions, monitoring tools, and string concatenation. |
+| A record without a hand-written `toString()` is safe. | A default record generates a representation containing all components, which may include passwords/tokens. |
+| Encoding a token in Base64 or printing only a few characters is safe. | Not guaranteed; it can still leak information and correlate tokens. |
+| Only the outer class's `toString()` needs fixing. | If the outer class concatenates whole child objects/Maps/Lists, child representations can contain secrets. |
+| Password hashes are always permitted in logs. | Hashes can also be sensitive data; they should be excluded from representations. |
+| Using `logger.debug` means secrets are never written. | Once that log level is enabled or messages are collected, data can still appear. |
+| Having `@JsonIgnore` automatically excludes the field from `toString()`. | JSON serialization policy and `toString()` are two separate mechanisms. |
+| If `toString()` does not leak secrets, the whole object is safe to serialize. | JSON/XML, debuggers, or heap dumps have separate paths to read data. |
+| Replacing secrets after string concatenation is enough. | It easily misses new fields, different formats, and nested objects; an allowlist is stronger. |
+| Every identifier is public data. | IDs can carry sensitive meaning; classify them before putting them in logs. |
 
-## 13. Checklist thiết kế biểu diễn an toàn
+## 13. Checklist for Designing Safe Representations
 
-Trước khi hoàn thành `toString()` cho một lớp Java:
+Before finalizing `toString()` for a Java class:
 
-1. **Phân loại toàn bộ dữ liệu**: nhận diện mật khẩu, token, khóa, cookie, thông tin cá nhân và dữ liệu quan trọng trong cả field trực tiếp lẫn object lồng.
-2. **Xác định mục tiêu chẩn đoán**: thật sự cần biết gì để xử lý sự cố? Thường chỉ cần loại đối tượng, trạng thái và correlation ID được thiết kế an toàn.
-3. **Dùng allowlist**: chỉ nối các trường đã được duyệt, thay vì in hết rồi cố gắng xóa.
-4. **Không dùng token làm mã tương quan**: không ghi token nguyên văn, prefix/suffix, Base64 hoặc hash token tùy tiện vào log.
-5. **Kiểm tra object lồng**: không nối nguyên header map, DTO request, collection hoặc payload chứa dữ liệu chưa phân loại.
-6. **Rà soát record và code generator**: `toString()` tự động sinh có thể hiển thị các trường được thêm sau này.
-7. **Kiểm soát dữ liệu đầu vào được phép in**: escape ký tự xuống dòng/điều khiển, giới hạn kích thước hoặc chỉ log mã do hệ thống tạo.
-8. **Giữ exception và logging nhất quán**: sử dụng những giá trị đã được cho phép, kể cả khi thông điệp chỉ dành cho debug.
-9. **Kiểm thử với dữ liệu giả có dấu hiệu nhận diện**: xác nhận chuỗi không chứa bất kỳ secret thử nghiệm nào; không in các giá trị đó trong kết quả kiểm thử.
-10. **Đánh giá riêng các kênh khác**: serialize JSON, tracing, event, heap dump và màn hình hỗ trợ phải có chính sách bảo vệ của chính chúng.
+1. **Classify all data**: identify passwords, tokens, keys, cookies, personal information, and sensitive data in both direct fields and nested objects.
+2. **Define the diagnostic goal**: what actually needs to be known to handle an incident? Usually only the object type, status, and a safely designed correlation ID.
+3. **Use an allowlist**: concatenate only approved fields, rather than printing everything and trying to scrub afterward.
+4. **Never use tokens as correlation codes**: do not log raw tokens, prefixes/suffixes, Base64, or arbitrary token hashes.
+5. **Check nested objects**: do not concatenate whole header maps, request DTOs, collections, or payloads containing unclassified data.
+6. **Review records and code generators**: auto-generated `toString()` may expose fields added later.
+7. **Control printable input data**: escape newlines/control characters, limit size, or log only system-generated IDs.
+8. **Keep exceptions and logging consistent**: use permitted values, even when messages are meant only for debugging.
+9. **Test with synthetic data bearing recognizable markers**: verify the string contains none of the test secrets; do not print those values in test output.
+10. **Evaluate other channels separately**: JSON serialization, tracing, events, heap dumps, and support screens must have their own protection policies.
 
-**Ghi nhớ:** `toString()` là bề mặt **quan sát** của đối tượng và có thể bị gọi gián tiếp rất nhiều lần. Một biểu diễn tốt cho debug phải **tối thiểu, có chủ đích và không mang thông tin xác thực**. Với lớp chứa mật khẩu, token hoặc dữ liệu nhạy cảm, ưu tiên allowlist và không bao giờ để secret đi vào chuỗi `toString()`, dù thông qua field trực tiếp, record sinh tự động hay object lồng nhau.
+**Key takeaway:** `toString()` is an object's **observation** surface and can be invoked indirectly many times. A good debugging representation must be **minimal, intentional, and free of credentials**. For classes holding passwords, tokens, or sensitive data, prefer an allowlist and never let secrets enter the `toString()` string, whether through direct fields, auto-generated records, or nested objects.

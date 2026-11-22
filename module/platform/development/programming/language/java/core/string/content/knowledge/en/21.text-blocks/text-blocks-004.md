@@ -1,59 +1,59 @@
-# Khoảng trắng thụt lề ngẫu nhiên và vị trí dấu đóng trong Java text block
+# Incidental Indentation Whitespace and Closing Delimiter Position in Java Text Blocks
 
-## 1. Vì sao cùng một text block có thể cho ra chuỗi khác nhau?
+## 1. Why can the same text block produce different strings?
 
-**Text block** là cú pháp chuỗi nhiều dòng của Java (chuẩn từ Java 15). Nó bắt đầu bằng ba dấu nháy kép `"""`, theo sau bắt buộc là một dấu kết thúc dòng, và kết thúc bằng ba dấu nháy kép `"""`. Mục tiêu là giúp nhúng văn bản nhiều dòng (SQL, JSON, HTML, thông báo...) dễ đọc mà không phải ghép nhiều string literal.
+A **text block** is Java's multiline string syntax (standardized in Java 15). It starts with three double quotes `"""`, necessarily followed by a line terminator, and ends with three double quotes `"""`. The goal is to make embedding multiline text (SQL, JSON, HTML, messages, etc.) easy to read without concatenating multiple string literals.
 
-Tuy nhiên, có hai loại khoảng trắng rất dễ nhầm:
+However, there are two kinds of whitespace that are very easy to confuse:
 
-- **Khoảng trắng thụt lề ngẫu nhiên** (*incidental whitespace*): phần thụt vào chỉ nhằm làm mã nguồn Java đẹp, thường sẽ được tự động bỏ khỏi giá trị `String`.
-- **Khoảng trắng mang ý nghĩa nội dung** (*essential whitespace*): phần thụt lề cần được giữ lại vì thuộc chính văn bản, ví dụ hai khoảng trắng trước một dòng YAML hoặc bốn khoảng trắng trước một khối code.
+- **Incidental indentation whitespace** (*incidental whitespace*): indentation meant only to make Java source code look neat, which is normally stripped automatically from the `String` value.
+- **Content-meaningful whitespace** (*essential whitespace*): indentation that must be kept because it belongs to the text itself, such as two spaces before a YAML line or four spaces before a code block.
 
-Vị trí của **dấu đóng `"""`** tham gia trực tiếp vào cách Java xác định cần loại bỏ bao nhiêu khoảng trắng ở đầu mỗi dòng. Thay đổi vị trí dấu đóng, ngay cả khi không sửa nội dung chữ, có thể làm **thay đổi giá trị chuỗi runtime**. Đây là một phần ngữ nghĩa Java, không đơn thuần là chuyện định dạng trình soạn thảo.
+The position of the **closing delimiter `"""`** directly participates in how Java determines how much whitespace to strip from the beginning of each line. Changing the position of the closing delimiter, even without editing any text characters, can **change the runtime string value**. This is part of Java's semantics, not merely an editor formatting detail.
 
-## 2. Cú pháp và quy tắc dòng đầu tiên
+## 2. Syntax and the first-line rule
 
 ```java
 String message = """
-        Xin chào,
-        Đây là Java text block.
+        Hello,
+        This is a Java text block.
         """;
 ```
 
-Đây là đoạn mã minh họa bên trong một phương thức hoặc initializer. Sau dấu mở `"""`, Java yêu cầu một line terminator: không được đặt ngay phần nội dung lên cùng dòng với dấu mở. Dấu xuống dòng **ngay sau dấu mở** là thành phần cú pháp, không tự trở thành một dòng trống ở đầu giá trị.
+This is an illustrative snippet inside a method or initializer. After the opening `"""`, Java requires a line terminator: you cannot put content directly on the same line as the opening delimiter. The newline **immediately after the opening delimiter** is a syntactic element, not an automatic blank line at the start of the value.
 
-Với bố cục trên, nội dung runtime tương đương:
+With the layout above, the runtime content is equivalent to:
 
 ```text
-Xin chào,\n
-Đây là Java text block.\n
+Hello,\n
+This is a Java text block.\n
 ```
 
-Trong khối `text` này, ký hiệu `\n` biểu thị một ký tự LF ở cuối mỗi dòng; nó không có nghĩa hai ký tự nguyên văn `\` và `n`. Text block thông thường **có ký tự xuống dòng cuối** khi dấu đóng nằm trên dòng riêng sau dòng nội dung cuối.
+In this `text` block, the `\n` notation represents a single LF character at the end of each line; it does not mean the two literal characters `\` and `n`. A typical text block **has a trailing newline** when the closing delimiter is on its own line after the final content line.
 
-Viết như sau là không hợp lệ vì thiếu line terminator sau dấu mở:
+Writing the following is invalid because a line terminator is missing after the opening delimiter:
 
 ```java
-// Không hợp lệ: nội dung xuất hiện ngay sau dấu mở.
+// Invalid: content appears immediately after the opening delimiter.
 // String bad = """hello""";
 ```
 
-Mặc dù dùng ba dấu nháy, kết quả vẫn là một đối tượng `String` bình thường: có thể gọi `length()`, `equals()`, `lines()`, `formatted()`, v.v. Text block không tự thêm indentation cho mục đích hiển thị; nó tạo đúng các ký tự theo quy tắc Java.
+Even though triple quotes are used, the result is still a normal `String` object: you can call `length()`, `equals()`, `lines()`, `formatted()`, and so on. Text blocks do not automatically add indentation for display purposes; they produce the exact characters specified by Java's rules.
 
-## 3. Java xác định và loại bỏ indentation ngẫu nhiên như thế nào?
+## 3. How does Java determine and remove incidental indentation?
 
-Trước khi xử lý escape sequence, Java chuẩn hóa các dấu kết thúc dòng của text block thành LF, rồi loại bỏ indentation ngẫu nhiên. Có thể hình dung thuật toán quan trọng nhất như sau:
+Before processing escape sequences, Java normalizes the text block's line terminators to LF, and then removes incidental indentation. You can picture the core algorithm as follows:
 
-1. Xét lượng whitespace đầu dòng của **các dòng nội dung không trống**.
-2. Nếu dấu đóng `"""` nằm trên **dòng riêng**, khoảng trắng trước dấu đóng cũng là một mốc để xác định indentation.
-3. Lấy mức thụt đầu dòng **nhỏ nhất** trong các mốc kể trên; loại bỏ tối đa lượng whitespace chung đó ở đầu mỗi dòng.
-4. Whitespace vô nghĩa ở cuối dòng bị loại bỏ trong bước xử lý indentation; xử lý escape sequence được thực hiện sau đó.
+1. Examine the leading whitespace of **every non-blank content line**.
+2. If the closing `"""` sits on **its own line**, the whitespace before the closing delimiter is also a reference line for determining indentation.
+3. Take the **minimum** indentation among the lines considered above; strip up to that common amount of whitespace from the start of each line.
+4. Meaningless trailing whitespace on each line is removed during indentation processing; escape sequence processing happens afterward.
 
-Dòng trống không nên dùng làm mốc để đo indentation đầu dòng; ý nghĩa của dòng trống và khoảng trắng ở cuối dòng cần được xét riêng. Khi dùng tab, mỗi ký tự whitespace có ý nghĩa theo nội dung chuỗi; không nên dựa vào độ rộng hiển thị tab của IDE để dự đoán chính xác số ký tự bị loại bỏ.
+Blank lines should not be used as references for measuring leading indentation; the meaning of blank lines and trailing whitespace must be considered separately. When tabs are used, each whitespace character counts toward string content; do not rely on your IDE's visual tab width to predict the exact number of characters stripped.
 
-**Lưu ý quan trọng:** Java không “xóa hết tất cả dấu cách đầu dòng”. Nó bỏ **phần thụt chung nhỏ nhất**, nên phần thụt lề chênh lệch giữa các dòng được giữ lại.
+**Important note:** Java does not "delete all leading spaces on every line." It removes **the smallest common indentation**, so relative indentation differences between lines are preserved.
 
-Ví dụ:
+Example:
 
 ```java
 String block = """
@@ -63,7 +63,7 @@ String block = """
         """;
 ```
 
-Các dòng `first` và `third` cùng có tám dấu cách trong mã nguồn, còn `second` nhiều hơn hai dấu. Dấu đóng cũng thụt tám dấu cách. Sau khi bỏ phần thụt chung, giá trị tương đương:
+The `first` and `third` lines both have eight spaces in the source code, while `second` has two more. The closing delimiter is also indented by eight spaces. After stripping the common indentation, the equivalent value is:
 
 ```text
 first\n
@@ -71,13 +71,13 @@ first\n
 third\n
 ```
 
-Trong minh họa kết quả này, `·` dùng để **nhìn thấy một dấu cách**: `second` vẫn giữ đúng hai dấu cách có ý nghĩa so với các dòng còn lại.
+In this output illustration, `·` is used to **make a single space visible**: `second` still keeps its two meaningful spaces relative to the remaining lines.
 
-## 4. Vị trí dấu đóng thay đổi indentation thực tế
+## 4. Closing delimiter position changes actual indentation
 
-Hãy so sánh ba text block chứa đúng hai dòng nội dung `red` và `blue`.
+Compare three text blocks containing the exact same two content lines `red` and `blue`.
 
-### Trường hợp A: Dấu đóng thẳng hàng với nội dung
+### Case A: Closing delimiter aligned with content
 
 ```java
 String aligned = """
@@ -86,14 +86,14 @@ String aligned = """
         """;
 ```
 
-Cả các dòng nội dung và dòng dấu đóng đều có tám dấu cách đầu dòng trong mã nguồn. Mức thụt chung là tám; tất cả được gỡ bỏ:
+Both the content lines and the closing delimiter line have eight leading spaces in the source code. The common indentation is eight; all eight are removed:
 
 ```text
 red\n
 blue\n
 ```
 
-### Trường hợp B: Dấu đóng lùi sang trái
+### Case B: Closing delimiter shifted to the left
 
 ```java
 String closingLeft = """
@@ -102,16 +102,16 @@ String closingLeft = """
     """;
 ```
 
-Dấu đóng chỉ có bốn dấu cách đầu dòng. Mức thụt chung nhỏ nhất giờ là **bốn**. Do đó mỗi dòng nội dung còn **bốn dấu cách ở đầu**:
+The closing delimiter has only four leading spaces. The minimum common indentation is now **four**. Consequently, each content line retains **four leading spaces**:
 
 ```text
 ····red\n
 ····blue\n
 ```
 
-Đây là nguồn gốc phổ biến của indentation ngoài ý muốn khi người viết di chuyển dấu đóng về bên trái để “căn cho đẹp”. Cùng một phần nội dung chữ, nhưng kết quả chuỗi có thêm khoảng trắng ở đầu mỗi dòng.
+This is a common source of unintended indentation when someone moves the closing delimiter to the left to "make it look nicer." The text characters are identical, yet the resulting string gains extra spaces at the start of every line.
 
-### Trường hợp C: Dấu đóng tiến sang phải
+### Case C: Closing delimiter shifted to the right
 
 ```java
 String closingRight = """
@@ -120,18 +120,18 @@ String closingRight = """
             """;
 ```
 
-Dấu đóng có mười hai dấu cách đầu dòng, nhưng hai dòng nội dung chỉ có tám. Mức nhỏ nhất vẫn là **tám**, nên kết quả giống trường hợp A:
+The closing delimiter has twelve leading spaces, whereas the two content lines have only eight. The minimum remains **eight**, so the result matches Case A:
 
 ```text
 red\n
 blue\n
 ```
 
-Dịch dấu đóng sang phải **không thể tự động loại bỏ quá phần indentation chung của các dòng nội dung**. Các con số trên được tính từ đúng số dấu cách thể hiện trong ví dụ, không phải độ rộng tab hoặc tuỳ chọn format của IDE.
+Shifting the closing delimiter to the right **cannot automatically strip more than the common indentation of the content lines**. The counts above are based on the exact number of spaces shown in the examples, not tab widths or IDE formatting settings.
 
-## 5. Dấu đóng cùng dòng với nội dung cuối: ký tự xuống dòng cuối
+## 5. Closing delimiter on the same line as the last content: trailing newline
 
-Hai cách đặt dấu đóng sau đây khác nhau:
+These two ways of placing the closing delimiter differ:
 
 ```java
 String withFinalLF = """
@@ -144,16 +144,16 @@ String withoutFinalLF = """
         blue""";
 ```
 
-- `withFinalLF` có giá trị tương đương `"red\nblue\n"`: sau `blue` còn một LF.
-- `withoutFinalLF` có giá trị tương đương `"red\nblue"`: không có LF cuối vì dấu đóng đứng **ngay sau chữ `blue`** trên cùng dòng.
+- `withFinalLF` has a value equivalent to `"red\nblue\n"`: there is an LF after `blue`.
+- `withoutFinalLF` has a value equivalent to `"red\nblue"`: there is no trailing LF because the closing delimiter stands **immediately after the word `blue`** on the same line.
 
-Việc đặt dấu đóng chung dòng với nội dung cuối là cách hợp lệ để chủ động bỏ LF cuối. Không nên nhầm với việc bỏ line terminator sau dấu **mở**: dấu mở luôn cần theo sau bởi line terminator theo cú pháp text block.
+Placing the closing delimiter on the same line as the final content is a valid way to intentionally omit the trailing LF. Do not confuse this with omitting the line terminator after the **opening** delimiter: the opening delimiter must always be followed by a line terminator in text block syntax.
 
-Nếu chèn thêm dấu cách trước dấu đóng ở cùng dòng, các dấu cách đó có thể ảnh hưởng đến nội dung; muốn giữ/bỏ dấu cách một cách có chủ đích, hãy kiểm tra giá trị thực bằng phép so sánh hoặc bằng một hàm in ký tự hữu hình, không dựa vào mắt thường.
+If you insert spaces before a same-line closing delimiter, those spaces can affect the content; to preserve or omit spaces intentionally, verify the actual value using comparison or a visible-character helper instead of relying on your eyes.
 
-## 6. Chương trình Java 17+ kiểm chứng từng trường hợp
+## 6. Java 17+ program to verify each case
 
-Tạo file `TextBlockIndentDemo.java` với nội dung sau. Đây là một chương trình độc lập có thể biên dịch và chạy:
+Create `TextBlockIndentDemo.java` with the following content. This is a standalone program that can be compiled and run:
 
 ```java
 public class TextBlockIndentDemo {
@@ -203,14 +203,14 @@ public class TextBlockIndentDemo {
 }
 ```
 
-Lệnh chạy:
+Commands to run:
 
 ```bash
 javac --release 17 -encoding UTF-8 TextBlockIndentDemo.java
 java TextBlockIndentDemo
 ```
 
-Kết quả đã kiểm chứng bằng JDK ở chế độ `--release 17`:
+Verified output using JDK in `--release 17` mode:
 
 ```text
 aligned: [red\nblue\n] len=9
@@ -221,23 +221,23 @@ uneven: [red\n··blue\n] len=11
 preservedSpace: [hi··\n] len=5
 ```
 
-Quy ước đọc output: mỗi ký tự `·` là **một dấu cách U+0020**; `\n` trong output là hai ký tự hiển thị biểu diễn **một LF thực** trong chuỗi. `len` là độ dài `String` tính theo đơn vị UTF-16; trong những ví dụ chỉ dùng chữ ASCII, khoảng trắng và LF này, mỗi ký tự tương ứng một đơn vị độ dài.
+Convention for reading the output: each `·` character is **one space U+0020**; `\n` in the output is two visible characters representing **one actual LF** in the string. `len` is the `String` length measured in UTF-16 code units; in these examples using only ASCII letters, spaces, and LF, each character corresponds to one length unit.
 
-Quan sát:
+Observations:
 
-- `aligned` và `closingRight` đều cho `red\nblue\n`, độ dài 9.
-- `closingLeft` giữ bốn dấu cách trước **mỗi** dòng nội dung; độ dài tăng từ 9 lên 17.
-- `noFinalNewline` ngắn hơn `aligned` đúng một ký tự LF.
-- `uneven` giữ hai dấu cách trước `blue` vì đó là phần thụt lề chênh lệch.
-- `preservedSpace` giữ **hai dấu cách ở cuối chữ `hi`** nhờ `\s\s`; cách xử lý này được giải thích ở phần tiếp theo.
+- `aligned` and `closingRight` both yield `red\nblue\n`, length 9.
+- `closingLeft` keeps four spaces before **each** content line; length increases from 9 to 17.
+- `noFinalNewline` is shorter than `aligned` by exactly one LF character.
+- `uneven` preserves two spaces before `blue` because that is the relative indentation difference.
+- `preservedSpace` keeps **two spaces at the end of `hi`** thanks to `\s\s`; this behavior is explained in the next section.
 
-Dùng `String.equals` khi muốn kiểm tra nội dung thực tế. Ví dụ `aligned.equals("red\nblue\n")` bằng `true`, nhưng `aligned.equals("red\nblue")` bằng `false` vì khác LF cuối.
+Use `String.equals` when you want to verify actual content. For example, `aligned.equals("red\nblue\n")` is `true`, whereas `aligned.equals("red\nblue")` is `false` because the trailing LF differs.
 
-## 7. Khoảng trắng cuối dòng, dòng trống và escape `\s`
+## 7. Trailing whitespace, blank lines, and the `\s` escape
 
-Text block tự động loại bỏ whitespace thừa **ở cuối dòng** trong quá trình xử lý indentation. Nếu chủ động gõ một vài dấu cách sau chữ cuối dòng trong source, các dấu cách đó có thể bị loại bỏ và rất khó nhận ra trong review.
+Text blocks automatically strip extra whitespace **at the end of a line** during indentation processing. If you intentionally type a few spaces after the last word on a line in source code, those spaces can be stripped and are very hard to spot in a code review.
 
-Trong Java text block, viết escape `\s` để bảo toàn **một dấu cách thường** ở một vị trí mong muốn, nhất là cuối dòng:
+In a Java text block, write the `\s` escape to preserve **a single regular space** at a desired position, especially at the end of a line:
 
 ```java
 String preserved = """
@@ -245,21 +245,21 @@ String preserved = """
         """;
 ```
 
-Sau khi xử lý, `preserved` tương đương `"hi  \n"`, gồm hai dấu cách sau `hi` rồi mới đến LF. Điều này hoạt động vì Java thực hiện xử lý escape sequence **sau bước loại bỏ indentation và whitespace cuối dòng**.
+After processing, `preserved` is equivalent to `"hi  \n"`, containing two spaces after `hi` followed by LF. This works because Java processes escape sequences **after removing incidental indentation and trailing whitespace on lines**.
 
-Các dòng trống thực sự cũng là một phần nội dung:
+Actual blank lines are also part of the content:
 
 ```java
 String paragraph = """
-        Đoạn một.
+        Paragraph one.
 
-        Đoạn hai.
+        Paragraph two.
         """;
 ```
 
-Kết quả có **một dòng trống** giữa hai đoạn: sau `Đoạn một.` là hai LF liên tiếp (một để kết thúc dòng và một đại diện cho dòng trống). Dòng trống không mang văn bản để dự đoán mức thụt chung; khi dữ liệu yêu cầu giữ space trên dòng trống, nên dùng escape rõ ràng thay vì khoảng trắng vô hình.
+The result has **one blank line** between the two paragraphs: after `Paragraph one.` there are two consecutive LFs (one ending the line and one representing the blank line). Blank lines contain no text for predicting common indentation; when data requires keeping spaces on a blank line, use explicit escapes rather than invisible whitespace.
 
-Một escape đặc biệt khác trong text block là dấu backslash `\` ngay trước line terminator: nó có thể **nối hai dòng mà không đưa LF vào chuỗi**. Ví dụ:
+Another special escape in text blocks is the backslash `\` immediately before a line terminator: it can **join two lines without introducing an LF into the string**. Example:
 
 ```java
 String joined = """
@@ -268,34 +268,34 @@ String joined = """
         """;
 ```
 
-Nội dung tương đương `"microservice\n"`. Đây là hành vi có chủ đích, **khác** với đặt dấu đóng cùng dòng cuối để bỏ riêng LF cuối của toàn bộ chuỗi.
+The content is equivalent to `"microservice\n"`. This is intentional behavior, **different** from placing the closing delimiter on the last line solely to omit the trailing LF of the entire string.
 
-## 8. Liên hệ với `stripIndent()` và `indent()`
+## 8. Relationship to `stripIndent()` and `indent()`
 
-Java còn cung cấp các phương thức thao tác indentation trên `String`:
+Java also provides indentation manipulation methods on `String`:
 
-- `stripIndent()` loại bỏ indentation chung và whitespace cuối dòng theo các quy tắc của API. Text block dùng ý tưởng này để chuẩn hóa indentation; tuy nhiên khi viết text block, **vị trí của dòng dấu đóng** cũng tham gia quyết định mức thụt của nội dung nguồn.
-- `indent(int n)` điều chỉnh indentation của các dòng trong một chuỗi đã có; với `n > 0`, nó thêm khoảng trắng đầu mỗi dòng, còn `n < 0` thì giảm mức thụt có thể bỏ. Phương thức này còn chuẩn hóa line terminator và bảo đảm kết quả theo quy ước dòng của API, nên cần kiểm thử nếu giữ nguyên newline cuối là yêu cầu.
+- `stripIndent()` strips common indentation and trailing line whitespace according to the API rules. Text blocks use this idea to normalize indentation; however, when writing a text block, **the position of the closing delimiter line** also helps determine the source content's indentation level. Therefore, do not assume calling `stripIndent()` on a `String` always matches what the compiler did on a text block.
+- `indent(int n)` adjusts the indentation of lines in an existing string; when `n > 0`, it adds spaces to the start of each line, and when `n < 0`, it removes up to that amount of removable leading indentation. This method also normalizes line terminators and ensures the result follows the API's line-ending convention, so test carefully if preserving the exact trailing newline is required.
 
-Đừng mặc định có thể thay đổi vị trí dấu đóng rồi “bù” bằng một lệnh format mà chuỗi vẫn giữ nguyên. Nếu chuỗi mang nội dung nhạy cảm với khoảng trắng (YAML, Python, Markdown, chữ ký/hash, template hoặc output snapshot), mỗi khoảng trắng và ký tự xuống dòng đều có thể ảnh hưởng đến kết quả.
+Never assume you can move the closing delimiter and "compensate" with a formatting call while keeping the string identical. If a string holds whitespace-sensitive content (YAML, Python, Markdown, signatures/hashes, templates, or snapshot output), every space and newline can affect the result.
 
-## 9. Những lỗi thường gặp khi format text block
+## 9. Common mistakes when formatting text blocks
 
-1. **Đưa dấu đóng về quá trái:** làm mức thụt nhỏ nhất giảm và vô tình giữ thêm dấu cách ở mỗi dòng nội dung.
-2. **Nghĩ dấu đóng càng sang phải càng xóa thêm indentation:** thực tế phần thụt chung còn bị giới hạn bởi các dòng nội dung ít thụt nhất.
-3. **Quên LF cuối:** dấu đóng trên dòng riêng thường tạo LF cuối; đặt dấu đóng ngay sau nội dung cuối để bỏ nó một cách chủ đích.
-4. **Tưởng thụt lề ở mọi dòng đều bị xóa hoàn toàn:** Java chỉ bỏ phần indentation chung. Các dòng thụt sâu hơn giữ phần chênh lệch.
-5. **Cố lưu space cuối dòng bằng cách gõ space trần:** whitespace cuối dòng thường bị xóa; dùng `\s` khi thật sự phải giữ.
-6. **Trộn tab và space:** độ rộng hiển thị tab trong editor không phải thước đo đáng tin cho ký tự trong `String`. Chọn một quy ước indentation thống nhất và kiểm tra kết quả nếu dữ liệu nhạy cảm.
-7. **Nhầm ký hiệu hiển thị với ký tự runtime:** chuỗi hiển thị `\n` trong công cụ debug có thể đại diện cho một LF; cần phân biệt chữ escape được in ra với newline thật.
-8. **Chỉ xem code mà không kiểm tra giá trị:** đặt test `equals` hoặc in độ dài cùng marker ký tự trắng cho template mà whitespace quyết định ý nghĩa.
+1. **Moving the closing delimiter too far left:** lowers the minimum indentation and accidentally keeps extra spaces on every content line.
+2. **Thinking moving the closing delimiter further right strips more indentation:** in reality, common indentation is also bounded by the least-indented content lines.
+3. **Forgetting the trailing LF:** a closing delimiter on its own line normally produces a trailing LF; place the closing delimiter right after the last content character to omit it intentionally.
+4. **Assuming indentation on all lines is completely stripped:** Java only removes the common indentation. More deeply indented lines retain the difference.
+5. **Trying to preserve trailing spaces by typing raw spaces:** trailing whitespace on lines is normally stripped; use `\s` when you genuinely need to keep it.
+6. **Mixing tabs and spaces:** visual tab width in an editor is not a reliable measure of characters in a `String`. Choose a consistent indentation convention and verify the result if data is sensitive.
+7. **Confusing display markers with runtime characters:** a displayed `\n` string in a debug tool may represent a single LF; distinguish printed escape text from an actual newline.
+8. **Reading code without checking values:** write `equals` tests or print length alongside whitespace markers for templates where whitespace determines meaning.
 
-### Checklist trước khi sửa hoặc review
+### Checklist before editing or reviewing
 
-- Xác định **dấu đóng `"""`** đang nằm trên dòng riêng hay cùng dòng cuối.
-- Đếm indentation của các dòng **không trống** và của dòng dấu đóng (nếu riêng).
-- Xác định phần thụt chung được loại bỏ và phần chênh lệch sẽ giữ lại.
-- Kiểm tra có LF cuối, dòng trống và whitespace cuối dòng hay không.
-- Với nội dung có ý nghĩa về whitespace, kiểm tra `length()`, `equals()` hoặc chương trình in dấu cách thành marker, thay vì chỉ nhìn vào IDE.
+- Identify whether the **closing `"""`** sits on its own line or on the last content line.
+- Count the indentation of **non-blank** lines and of the closing delimiter line (if on its own line).
+- Determine the common indentation that will be removed and the relative difference that will be kept.
+- Check whether there is a trailing LF, blank lines, and trailing whitespace on lines.
+- For whitespace-significant content, check `length()`, `equals()`, or a program printing spaces as markers instead of relying only on the IDE view.
 
-**Ghi nhớ:** text block làm mã nguồn gọn hơn nhưng vẫn phải tạo ra `String` chính xác. Khi dấu đóng trên dòng riêng, **indentation của nó có thể quyết định lượng khoảng trắng bị loại bỏ**; khi dấu đóng nằm sát chữ cuối, **LF cuối có thể biến mất**. Java chỉ bỏ phần thụt chung, nên phần thụt lề chênh lệch và các escape có chủ đích vẫn ảnh hưởng đến nội dung.
+**Remember:** text blocks make source code cleaner, yet they still must produce the exact `String`. When the closing delimiter is on its own line, **its indentation can determine how much whitespace is stripped**; when the closing delimiter sits flush against the final text, **the trailing LF can disappear**. Java strips only the common indentation, so relative indentation and intentional escapes still affect the content.

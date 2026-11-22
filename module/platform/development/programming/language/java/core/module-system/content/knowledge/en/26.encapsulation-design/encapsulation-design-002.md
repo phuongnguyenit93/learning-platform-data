@@ -1,14 +1,14 @@
-# Export tối thiểu cho public surface
+# Minimal Exports for the Public Surface
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể thiết kế ranh giới API của một named module bằng cách export đúng những package cần công khai, phân biệt public Java access với module-level access, dùng qualified export khi cần giới hạn consumer, chọn `requires transitive` khi API công khai phụ thuộc kiểu từ module khác và kiểm tra module descriptor trước khi phát hành.
+After this lesson, you will be able to design the API boundary of a named module by exporting only the packages that need to be public, distinguish Java public access from module-level access, use qualified exports when restricting consumers is needed, choose `requires transitive` when the public API depends on types from another module, and inspect the module descriptor before release.
 
-## 1. Public trong Java chưa chắc đã public giữa các module
+## 1. Public in Java Does Not Automatically Mean Public Across Modules
 
-Trong Java, từ khóa `public` điều khiển quyền truy cập ở cấp class/member. Với JPMS, một named module còn kiểm soát package nào được đưa ra cho module khác thông qua directive `exports`.
+In Java, the `public` keyword controls access at the class/member level. With JPMS, a named module also controls which packages are exposed to other modules via the `exports` directive.
 
-Ví dụ một class có thể được khai báo `public`:
+For example, a class can be declared `public`:
 
 ~~~java
 package com.acme.billing.internal;
@@ -21,20 +21,20 @@ public final class PricingEngine {
 }
 ~~~
 
-Nhưng nếu package `com.acme.billing.internal` không được export trong `module-info.java`, module khác không thể sử dụng class này chỉ vì class có modifier `public`.
+However, if the package `com.acme.billing.internal` is not exported in `module-info.java`, other modules cannot use this class merely because the class has the `public` modifier.
 
-Có hai lớp kiểm soát khác nhau:
+There are two distinct layers of control:
 
-- **Java access control**: `public`, `protected`, package-private và `private` quyết định ai có thể truy cập class/member theo quy tắc ngôn ngữ.
-- **Module access control**: `exports` quyết định package nào được module khác truy cập thông qua module graph và readability.
+- **Java access control**: `public`, `protected`, package-private, and `private` determine who can access classes/members according to language rules.
+- **Module access control**: `exports` determines which packages can be accessed by other modules through the module graph and readability.
 
-Để một module khác dùng public type trong package được export, thông thường cần cả hai điều kiện: module consumer đọc được module sở hữu package và package được export cho consumer đó.
+For another module to use a public type in an exported package, both conditions are generally required: the consumer module reads the module owning the package, and the package is exported to that consumer.
 
-Vì vậy, public surface của một module được hình thành từ các package mà module chủ động export, cùng các public/protected API bên trong những package đó. Đánh dấu class là `public` không tự động đưa nó vào public surface của module.
+Therefore, a module's public surface is formed from the packages that the module actively exports, together with the public/protected APIs inside those packages. Marking a class as `public` does not automatically place it in the module's public surface.
 
-## 2. `exports` hoạt động ở cấp package
+## 2. `exports` Operates at the Package Level
 
-Cú pháp:
+Syntax:
 
 ~~~java
 module com.acme.billing {
@@ -42,9 +42,9 @@ module com.acme.billing {
 }
 ~~~
 
-Directive này export toàn bộ package `com.acme.billing.api` cho các module khác có readability tới `com.acme.billing`. JPMS không có cú pháp export riêng từng class. Vì vậy, khi một package được export, tất cả public type trong package đó đều có thể trở thành một phần API được consumer sử dụng.
+This directive exports the entire `com.acme.billing.api` package to other modules that have readability to `com.acme.billing`. JPMS does not have syntax to export individual classes separately. Therefore, when a package is exported, all public types in that package can become part of the API used by consumers.
 
-Ví dụ cấu trúc module:
+Example module structure:
 
 ~~~text
 com.acme.billing/
@@ -68,13 +68,13 @@ module com.acme.billing {
 }
 ~~~
 
-Các class public trong `com.acme.billing.api` có thể được module khác sử dụng nếu consumer đọc module `com.acme.billing`. Các package `internal` và `adapter` không được export nên vẫn được đóng gói ở cấp module.
+Public classes in `com.acme.billing.api` can be used by other modules if the consumer reads module `com.acme.billing`. The `internal` and `adapter` packages are not exported and thus remain encapsulated at the module level.
 
-Đây là lý do nên phân chia package theo ranh giới API và implementation. Nếu API và implementation cùng nằm trong một package được export, các public implementation class cũng sẽ có thể được consumer truy cập.
+This is why packages should be split along API and implementation boundaries. If the API and implementation sit in the same exported package, public implementation classes will also be accessible to consumers.
 
-## 3. Thiết kế package API nhỏ và ổn định
+## 3. Designing a Small and Stable API Package
 
-Hãy tạo một package chuyên chứa những kiểu mà consumer thực sự cần:
+Create a package dedicated to the types that consumers actually need:
 
 ~~~java
 package com.acme.billing.api;
@@ -106,7 +106,7 @@ module com.acme.billing {
 }
 ~~~
 
-Implementation nằm trong package không export:
+The implementation resides in an unexported package:
 
 ~~~java
 package com.acme.billing.internal;
@@ -124,9 +124,9 @@ public final class DefaultBillingService implements BillingService {
 }
 ~~~
 
-Nếu module khác cần tạo service, hãy cung cấp factory hoặc composition root công khai thay vì export toàn bộ package implementation chỉ để consumer có thể gọi constructor nội bộ.
+If other modules need to create the service, provide a public factory or composition root instead of exporting the entire implementation package just so consumers can call an internal constructor.
 
-Ví dụ factory API:
+Example factory API:
 
 ~~~java
 package com.acme.billing.api;
@@ -141,13 +141,13 @@ public final class BillingServices {
 }
 ~~~
 
-Trong thực tế, việc API package tham chiếu trực tiếp implementation package có thể khiến code API phụ thuộc vào chi tiết nội bộ. Có thể đặt factory trong module implementation, dùng service provider hoặc dependency injection nội bộ để giữ package API độc lập hơn. Điều quan trọng là consumer chỉ cần biết hợp đồng ổn định.
+In practice, having the API package directly reference an implementation package can make API code depend on internal details. You can place the factory in an implementation module, use a service provider, or use internal dependency injection to keep the API package more independent. What matters is that consumers only need to know the stable contract.
 
-## 4. Không export package chỉ vì có class public
+## 4. Do Not Export a Package Just Because It Has Public Classes
 
-Trước khi thêm `exports`, hãy xác định consumer cần kiểu nào và vì sao cần dùng nó.
+Before adding `exports`, determine which types consumers need and why they need them.
 
-Ví dụ không nên export cả ba package chỉ vì chúng có public class:
+For example, do not export all three packages just because they contain public classes:
 
 ~~~java
 module com.acme.billing {
@@ -157,21 +157,21 @@ module com.acme.billing {
 }
 ~~~
 
-Nếu consumer chỉ cần `BillingService`, `Invoice` và `OrderRequest`, hai package implementation không nên nằm trong public surface. Export chúng sẽ cho phép consumer phụ thuộc vào class triển khai, repository hoặc adapter cụ thể.
+If consumers only need `BillingService`, `Invoice`, and `OrderRequest`, the two implementation packages should not be in the public surface. Exporting them allows consumers to depend on concrete implementation classes, repositories, or adapters.
 
-Điều đó tạo ra các ràng buộc khó thay đổi:
+That creates hard-to-change constraints:
 
-- Consumer có thể khởi tạo implementation trực tiếp.
-- Consumer có thể gọi method vốn chỉ được dự định dùng nội bộ.
-- Việc đổi tên package hoặc thay class triển khai có thể phá vỡ code consumer.
-- Các dependency của implementation có thể rò rỉ vào API.
-- Module khó thay thế adapter hoặc thay đổi kiến trúc bên trong.
+- Consumers can instantiate the implementation directly.
+- Consumers can call methods intended only for internal use.
+- Renaming packages or replacing implementation classes can break consumer code.
+- Implementation dependencies can leak into the API.
+- The module becomes harder to swap adapters in or refactor internally.
 
-Một package chỉ nên được export khi module muốn cam kết rằng các public type của package đó là điểm tích hợp được hỗ trợ.
+A package should only be exported when the module is willing to commit that its public types are supported integration points.
 
-## 5. Qualified exports để giới hạn consumer
+## 5. Qualified Exports to Restrict Consumers
 
-Nếu một package chỉ dành cho một hoặc vài module cụ thể, dùng qualified export:
+If a package is intended only for one or a few specific modules, use a qualified export:
 
 ~~~java
 module com.acme.billing {
@@ -180,12 +180,12 @@ module com.acme.billing {
 }
 ~~~
 
-Trong ví dụ:
+In the example:
 
-- `com.acme.billing.api` được export không giới hạn target module.
-- `com.acme.billing.spi` chỉ được export cho module `com.acme.reporting`.
+- `com.acme.billing.api` is exported without restricting target modules.
+- `com.acme.billing.spi` is exported only to the `com.acme.reporting` module.
 
-Module đích vẫn phải có readability tới module nguồn, thường thông qua:
+The target module must still have readability to the source module, usually via:
 
 ~~~java
 module com.acme.reporting {
@@ -193,17 +193,17 @@ module com.acme.reporting {
 }
 ~~~
 
-Qualified export hữu ích khi có một SPI hoặc integration package chỉ dành cho module đồng hành. Nó giúp tránh biến package đó thành API công khai cho mọi consumer.
+Qualified exports are useful when there is an SPI or integration package meant only for a companion module. They help avoid turning that package into public API for every consumer.
 
-Nếu package được export cho một target module cụ thể, các module khác không được quyền truy cập public type của package đó chỉ bằng cách thêm `requires`. Cả readability và export target đều phải phù hợp.
+If a package is exported to a specific target module, other modules do not gain access to public types in that package simply by adding `requires`. Both readability and the export target must match.
 
-Qualified export không phải cơ chế bảo mật thay thế cho việc xác thực hoặc kiểm soát dữ liệu ở runtime. Nó là ranh giới truy cập ở cấp module.
+Qualified exports are not a security mechanism replacing runtime authentication or data access control. They are a module-level access boundary.
 
-## 6. Public API có tham chiếu kiểu từ module khác
+## 6. Public API Referencing Types from Another Module
 
-Một quyết định quan trọng là dependency nào xuất hiện trong chữ ký public của API.
+An important decision is which dependencies appear in the public signature of the API.
 
-Giả sử module `com.acme.money` cung cấp kiểu `Money`:
+Suppose module `com.acme.money` provides the `Money` type:
 
 ~~~java
 module com.acme.money {
@@ -218,7 +218,7 @@ public record Money(long cents) {
 }
 ~~~
 
-Module billing dùng kiểu đó trong API:
+The billing module uses that type in its API:
 
 ~~~java
 package com.acme.billing.api;
@@ -230,7 +230,7 @@ public interface BillingService {
 }
 ~~~
 
-Descriptor của billing:
+Billing's descriptor:
 
 ~~~java
 module com.acme.billing {
@@ -239,7 +239,7 @@ module com.acme.billing {
 }
 ~~~
 
-Consumer chỉ cần khai báo:
+The consumer only needs to declare:
 
 ~~~java
 module com.acme.client {
@@ -247,28 +247,28 @@ module com.acme.client {
 }
 ~~~
 
-Nhờ `requires transitive com.acme.money`, module đọc `com.acme.billing` cũng có readability tới `com.acme.money`. Consumer có thể sử dụng `Money` trong chữ ký và code của mình mà không phải khai báo thêm `requires com.acme.money`.
+Thanks to `requires transitive com.acme.money`, a module reading `com.acme.billing` also gains readability to `com.acme.money`. The consumer can use `Money` in its signatures and code without declaring an extra `requires com.acme.money`.
 
-Nếu billing chỉ khai báo:
+If billing only declares:
 
 ~~~java
 requires com.acme.money;
 ~~~
 
-thì dependency này không được truyền tiếp cho module đọc billing. Consumer có thể cần khai báo `requires com.acme.money` trực tiếp để sử dụng kiểu `Money` trong API.
+then this dependency is not propagated to modules reading billing. Consumers may need to declare `requires com.acme.money` directly to use the `Money` type in the API.
 
-Quy tắc thực tế: dùng `requires transitive` khi module của bạn công khai kiểu từ dependency đó trong API mà consumer cần đọc. Không dùng `transitive` cho mọi dependency một cách mặc định, vì điều đó làm tăng readability graph của các module phụ thuộc và có thể vô tình mở rộng dependency công khai.
+Practical rule: use `requires transitive` when your module exposes types from that dependency in an API that consumers need to read. Do not use `transitive` for every dependency by default, because that increases the readability graph of dependent modules and can unintentionally widen public dependencies.
 
-## 7. Phân biệt `exports` với `opens`
+## 7. Distinguishing `exports` from `opens`
 
-Hai directive này phục vụ hai loại truy cập khác nhau:
+These two directives serve two different types of access:
 
-| Directive | Mục đích | Ví dụ sử dụng |
+| Directive | Purpose | Usage Example |
 | --- | --- | --- |
-| `exports` | Cho phép module khác truy cập public API trong package | Consumer gọi public service và DTO |
-| `opens` | Cho phép deep reflection vào package ở runtime | ORM hoặc serializer truy cập private field |
+| `exports` | Allows other modules to access public APIs in the package | Consumer calls public services and DTOs |
+| `opens` | Allows deep reflection into the package at runtime | ORM or serializer accesses private fields |
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.billing {
@@ -277,31 +277,31 @@ module com.acme.billing {
 }
 ~~~
 
-Package API được export cho truy cập Java thông thường. Package persistence được mở cho ORM named module để thực hiện deep reflection.
+The API package is exported for normal Java access. The persistence package is opened to the named ORM module to perform deep reflection.
 
-Mở package không làm package trở thành API public để consumer biên dịch phụ thuộc. Export package cũng không tự động cho phép framework truy cập private member bằng reflection sâu. Nếu cần cả hai quyền, phải khai báo cả `exports` và `opens` theo đúng mục đích.
+Opening a package does not make the package a public API for consumers to compile against. Exporting a package also does not automatically allow frameworks to access private members via deep reflection. If both permissions are needed, both `exports` and `opens` must be declared for their respective purposes.
 
-## 8. Public surface ảnh hưởng đến khả năng thay đổi module
+## 8. How the Public Surface Affects Module Evolvability
 
-Một package được export là cam kết thiết kế. Khi consumer bắt đầu biên dịch và chạy dựa trên public type trong package đó, thay đổi API có thể ảnh hưởng tới các module khác.
+An exported package is a design commitment. Once consumers start compiling and running against public types in that package, API changes can affect other modules.
 
-Một số nguyên tắc để giảm chi phí bảo trì:
+Some principles to reduce maintenance costs:
 
-- Giữ public API nhỏ, đặt trong package riêng.
-- Ưu tiên interface và kiểu dữ liệu có ý nghĩa nghiệp vụ thay vì expose class triển khai.
-- Không để API trả về hoặc nhận tham số là kiểu nằm trong package implementation không export.
-- Không expose framework-specific type nếu module không muốn phụ thuộc công khai vào framework đó.
-- Dùng qualified export cho SPI nội bộ cần chia sẻ với một nhóm module xác định.
-- Dùng `requires transitive` có chủ đích khi kiểu của dependency xuất hiện trong API.
-- Xem việc xóa hoặc đổi tên package export là thay đổi có thể phá vỡ consumer.
+- Keep the public API small, placed in a dedicated package.
+- Prefer interfaces and business-meaningful data types over exposing implementation classes.
+- Do not let the API return or accept parameters whose types reside in unexported implementation packages.
+- Do not expose framework-specific types if the module does not want to publicly depend on that framework.
+- Use qualified exports for internal SPIs that need to be shared with a defined group of modules.
+- Use `requires transitive` intentionally when types from a dependency appear in the API.
+- Treat removing or renaming an exported package as a change that can break consumers.
 
-Nếu cần thay đổi implementation, hãy giữ hợp đồng API ổn định và thay đổi class bên trong module. Đây là một lợi ích lớn của module encapsulation.
+If you need to change the implementation, keep the API contract stable and change classes inside the module. This is a major benefit of module encapsulation.
 
-## 9. Tránh split package và ranh giới mơ hồ
+## 9. Avoiding Split Packages and Ambiguous Boundaries
 
-Một package nên thuộc về một module rõ ràng trong module graph. Tránh đặt các class cùng package name vào nhiều module khác nhau, vì split package làm cho việc phân giải và nạp class trở nên khó dự đoán và thường bị module system từ chối trong cùng configuration.
+A package should belong to one clear module in the module graph. Avoid placing classes with the same package name in multiple different modules, because split packages make class resolution and loading unpredictable and are generally rejected by the module system within the same configuration.
 
-Ví dụ thiết kế không nên dùng:
+Example of a design to avoid:
 
 ~~~text
 com.acme.billing.api/
@@ -309,7 +309,7 @@ com.acme.billing.api/
   Invoice.class            (module com.acme.billing.model)
 ~~~
 
-Hãy gom các kiểu thuộc cùng package vào một module, hoặc đổi package để phản ánh ranh giới thực sự:
+Group types belonging to the same package into one module, or rename packages to reflect real boundaries:
 
 ~~~text
 com.acme.billing.api/
@@ -317,47 +317,47 @@ com.acme.billing.api/
   Invoice.class
 ~~~
 
-Ngoài ra, đừng tạo package `com.acme.billing.internal` trong module khác chỉ để đặt implementation gần tên package API. Hãy chọn package name riêng cho module sở hữu implementation.
+Also, do not create a `com.acme.billing.internal` package in another module just to place implementations close to the API package name. Choose a distinct package name for the module that owns the implementation.
 
-## 10. Kiểm tra public surface và dependency
+## 10. Inspecting the Public Surface and Dependencies
 
-Có thể đọc descriptor của modular JAR:
+You can read the descriptor of a modular JAR:
 
 ~~~bash
 jar --describe-module --file mods/com.acme.billing.jar
 ~~~
 
-Kết quả sẽ cho biết module name, các `requires`, `exports`, `opens`, `uses` và `provides` nếu có. Hãy xác nhận chỉ các package dự kiến mới xuất hiện trong phần exports.
+The output shows the module name, along with any `requires`, `exports`, `opens`, `uses`, and `provides`. Confirm that only the intended packages appear in the exports section.
 
-Dùng `jdeps` để phân tích dependency của module và API:
+Use `jdeps` to analyze module and API dependencies:
 
 ~~~bash
 jdeps --module-path mods --api-only --module com.acme.billing
 ~~~
 
-`--api-only` tập trung phân tích các dependency xuất hiện trong public API. Đây là cách hữu ích để phát hiện dependency có thể cần `requires transitive` hoặc dependency implementation đang rò rỉ vào public surface.
+`--api-only` focuses on analyzing dependencies that appear in the public API. This is a useful way to detect dependencies that may need `requires transitive` or implementation dependencies leaking into the public surface.
 
-Có thể kiểm tra module descriptor và dependency graph bằng:
+You can check the module descriptor and dependency graph with:
 
 ~~~bash
 jdeps --module-path mods --check com.acme.billing
 ~~~
 
-Các lệnh phân tích giúp tìm dependency và descriptor cần xem lại; quyết định export package vẫn phải dựa trên hợp đồng API mà module muốn hỗ trợ.
+Analysis commands help find dependencies and descriptors to review; the decision to export a package must still be based on the API contract the module intends to support.
 
-## 11. Checklist khi thiết kế exports
+## 11. Checklist When Designing Exports
 
-1. Liệt kê các package mà consumer thực sự cần dùng.
-2. Tách API ổn định khỏi package implementation, adapter và persistence.
-3. Export package API bằng `exports`.
-4. Dùng qualified export cho package chỉ dành cho module đích cụ thể.
-5. Kiểm tra public/protected signature có tham chiếu kiểu từ module khác hay không.
-6. Dùng `requires transitive` khi consumer của module cần readability tới dependency xuất hiện trong public API.
-7. Dùng `opens` riêng cho deep reflection; không thay thế exports bằng opens.
-8. Kiểm tra descriptor bằng `jar --describe-module` và dependency bằng `jdeps`.
-9. Biên dịch một consumer module độc lập để xác nhận public surface đủ dùng nhưng không phụ thuộc implementation.
-10. Xem mỗi package export là một cam kết API cần quản lý tương thích.
+1. List the packages that consumers genuinely need to use.
+2. Separate stable API from implementation, adapter, and persistence packages.
+3. Export API packages using `exports`.
+4. Use qualified exports for packages intended only for specific target modules.
+5. Check whether public/protected signatures reference types from other modules.
+6. Use `requires transitive` when consumers of the module need readability to dependencies appearing in the public API.
+7. Use `opens` separately for deep reflection; do not replace exports with opens.
+8. Inspect the descriptor with `jar --describe-module` and dependencies with `jdeps`.
+9. Compile an independent consumer module to confirm the public surface is sufficient without depending on implementation.
+10. Treat every exported package as an API commitment requiring compatibility management.
 
-## Ghi nhớ
+## Key Takeaways
 
-`exports` là ranh giới public API ở cấp package của named module. Chỉ export package mà consumer cần dùng và module sẵn sàng hỗ trợ lâu dài. Dùng qualified export để giới hạn SPI cho module đích; dùng `requires transitive` khi public API làm lộ kiểu từ dependency mà consumer cần đọc. Giữ implementation trong package không export, và dùng `opens` riêng cho framework cần deep reflection. Public surface nhỏ giúp module giữ quyền thay đổi implementation mà ít ảnh hưởng đến consumer.
+`exports` is the package-level public API boundary of a named module. Only export packages that consumers need to use and that the module is ready to support long-term. Use qualified exports to restrict an SPI to target modules; use `requires transitive` when the public API exposes types from a dependency that consumers need to read. Keep implementations in unexported packages, and use `opens` separately for frameworks needing deep reflection. A small public surface lets a module retain the freedom to change its implementation with minimal impact on consumers.

@@ -1,24 +1,24 @@
-# Nối lặp bằng += và tổng lượng dữ liệu phải sao chép trong Java
+# Repeated Concatenation with += and Total Data Copied in Java
 
-Toán tử **+=** thường được dùng để nối thêm nội dung vào một biến String. Ví dụ, sau mỗi lượt đọc dữ liệu, chương trình viết **result += part** để bổ sung một đoạn mới. Cách viết ngắn gọn này có thể gây ra lượng công việc rất lớn khi vòng lặp chạy nhiều lần, vì String trong Java **bất biến (immutable)**: không thể mở rộng trực tiếp nội dung String cũ.
+The **+=** operator is often used to append content to a String variable. For example, after each read iteration, a program writes **result += part** to add a new segment. This concise syntax can cause a huge amount of work when the loop runs many times, because String in Java is **immutable**: you cannot directly extend the contents of an existing String.
 
-Điểm cần phân tích không chỉ là **số lần nối** mà là **tổng độ dài của tất cả các kết quả trung gian được tạo**. Trong mô hình nối tuần tự phải tạo lại tiền tố cũ, chi phí có thể tăng **bậc hai theo số lượt**; StringBuilder giúp xây dựng kết quả dài dần bằng một vùng đệm có thể thay đổi. Bài này trình bày công thức, ví dụ Java 17, các lựa chọn thay thế và giới hạn của mô hình chi phí khi xét JVM thực tế.
+The key point to analyze is not just the **number of concatenations**, but the **total length of all intermediate results created**. In a sequential concatenation model that must recreate the old prefix, cost can grow **quadratically with the number of iterations**; StringBuilder helps build a growing result using a mutable buffer. This lesson presents the formulas, Java 17 examples, alternatives, and the limits of the cost model when considering a real JVM.
 
-## 1. String bất biến và ý nghĩa của phép +=
+## 1. Immutable String and the Meaning of +=
 
-Trong Java, câu lệnh:
+In Java, the statement:
 
 ~~~java
 result += part;
 ~~~
 
-về mặt giá trị tương đương với:
+is value-equivalent to:
 
 ~~~java
 result = result + part;
 ~~~
 
-Khi result là String, phép nối tạo giá trị String kết quả, còn String cũ không bị sửa nội dung. Nếu biến khác vẫn giữ tham chiếu đến chuỗi cũ, nó tiếp tục thấy nội dung cũ. Ví dụ sau minh họa trong một phương thức:
+When result is a String, concatenation creates a resulting String value, while the old String's contents remain unmodified. If another variable still holds a reference to the old string, it continues to see the old content. The following example illustrates this inside a method:
 
 ~~~java
 String original = "Java";
@@ -29,7 +29,7 @@ System.out.println(original); // Java
 System.out.println(result);   // Java 17
 ~~~
 
-Phép nối một lần hay trong một biểu thức ngắn thường không có vấn đề nghiêm trọng; vấn đề xuất hiện khi **kết quả của lượt trước tiếp tục được đưa vào phép nối ở lượt sau**:
+A single concatenation or one in a short expression usually poses no serious issue; the problem arises when **the result from the previous iteration is fed back into the concatenation in the next iteration**:
 
 ~~~java
 String result = "";
@@ -38,13 +38,13 @@ for (int i = 0; i < n; i++) {
 }
 ~~~
 
-Vòng lặp có n lượt; nhưng khi chuỗi dài dần, lượng dữ liệu cần tạo cho mỗi kết quả cũng dài dần. Không thể chỉ nhìn n lượt rồi suy ra toàn bộ công việc là O(n).
+The loop has n iterations; however, as the string grows longer, the amount of data that must be created for each result also grows longer. You cannot simply look at n iterations and conclude the entire work is O(n).
 
-## 2. Mô hình sao chép tiền tố khi nối lặp
+## 2. Prefix-Copying Model for Repeated Concatenation
 
-Giả sử mỗi lượt thêm đúng một ký tự x, bắt đầu từ chuỗi rỗng. Xét **mô hình triển khai đơn giản**: mỗi lượt nối tạo ra một chuỗi mới chứa toàn bộ tiền tố cũ và ký tự mới.
+Assume each iteration appends exactly one character x, starting from the empty string. Consider a **simple implementation model**: each concatenation creates a new string containing the entire old prefix plus the new character.
 
-| Lượt | Chuỗi kết quả | Độ dài chuỗi mới | Tổng độ dài đã tạo |
+| Iteration | Resulting string | New string length | Total length created |
 | ---: | --- | ---: | ---: |
 | 1 | x | 1 | 1 |
 | 2 | xx | 2 | 3 |
@@ -52,33 +52,33 @@ Giả sử mỗi lượt thêm đúng một ký tự x, bắt đầu từ chuỗ
 | 4 | xxxx | 4 | 10 |
 | 5 | xxxxx | 5 | 15 |
 
-Sau n lượt, độ dài chuỗi cuối cùng chỉ là n, nhưng tổng độ dài của các giá trị kết quả sau từng phép nối là:
+After n iterations, the final string length is only n, but the total length of the result values across each concatenation is:
 
 \[
 T(n)=1+2+3+\cdots+n=\frac{n(n+1)}{2}.
 \]
 
-Vì vậy **T(n) = Θ(n²)** nếu mỗi lượt phải tái tạo toàn bộ String kết quả. Ví dụ **10.000 lượt** thì String cuối dài 10.000 ký tự, còn tổng độ dài các kết quả trung gian theo mô hình là:
+Therefore **T(n) = Θ(n²)** if each iteration must recreate the entire resulting String. For example, with **10,000 iterations**, the final String is 10,000 characters long, while the total length of intermediate results under the model is:
 
 \[
 T(10\,000)=\frac{10\,000 \times 10\,001}{2}=50\,005\,000.
 \]
 
-Con số **50.005.000 đơn vị ký tự** là kết quả **phân tích toán học**, không phải số byte đã đo được trên máy. Java không quy định số byte vật lý phải copy trong từng phép nối; compiler và JVM có thể tối ưu quá trình này. Công thức cho thấy tại sao việc tạo lại tiền tố dài dần có nguy cơ kém hiệu quả ở quy mô lớn.
+The figure **50,005,000 character units** is the result of **mathematical analysis**, not a measured byte count on a machine. Java does not mandate the physical number of bytes copied in each concatenation; the compiler and JVM may optimize this process. The formula shows why recreating a growing prefix risks becoming inefficient at large scale.
 
-### Chỉ tính phần chuỗi cũ
+### Counting Only the Old String Portion
 
-Nếu chỉ tính lượng **tiền tố cũ** cần giữ lại khi nối, lần lượt có 0, 1, 2, ..., n - 1 đơn vị ký tự:
+If we count only the amount of **old prefix** that must be retained during concatenation, the successive sizes are 0, 1, 2, ..., n - 1 character units:
 
 \[
 P(n)=0+1+2+\cdots+(n-1)=\frac{n(n-1)}{2}.
 \]
 
-Thêm một ký tự mới ở mỗi lượt cho tổng cộng n đơn vị, ta được P(n) + n = T(n). Hai công thức mô tả hai cách đếm khác nhau: **chỉ tiền tố cũ** so với **toàn bộ kết quả mới**.
+Adding one new character per iteration contributes n units in total, giving P(n) + n = T(n). The two formulas describe two ways of counting: **only the old prefix** versus **the entire new result**.
 
-## 3. Ví dụ Java 17 kiểm chứng phép tính
+## 3. Java 17 Example Verifying the Calculation
 
-Tạo tệp **RepeatedConcatDemo.java**:
+Create the file **RepeatedConcatDemo.java**:
 
 ~~~java
 public class RepeatedConcatDemo {
@@ -107,14 +107,14 @@ public class RepeatedConcatDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 RepeatedConcatDemo.java
 java RepeatedConcatDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 += result: xxxxx
@@ -124,48 +124,48 @@ sum lengths: 15
 formula: 15
 ~~~
 
-Biến **sumLengths** cộng độ dài chuỗi sau mỗi lượt. Nó chỉ kiểm tra công thức 1 + 2 + ... + n; **đây không phải phép đo số byte JVM đã cấp phát/copy**. Hai cách xây dựng cho kết quả cùng nội dung, nhưng có chiến lược sử dụng vùng nhớ khác nhau. Ép n thành long trước phép nhân giúp tránh tràn int trong những ví dụ n vừa phải; với n sát giới hạn int nên ép cả n + 1 sang long.
+The variable **sumLengths** sums the string length after each iteration. It only checks the formula 1 + 2 + ... + n; **this is not a measurement of how many bytes the JVM allocated or copied**. Both ways of building produce the same content, but use different memory strategies. Casting n to long before multiplication avoids int overflow in moderate-n examples; for n near the int limit, cast n + 1 to long as well.
 
-## 4. Nếu mỗi lượt thêm một phần có độ dài khác nhau
+## 4. When Each Iteration Appends a Part of Different Length
 
-Thực tế, một vòng lặp có thể ghép từng dòng, từng trường JSON hay những phần văn bản có kích thước không đều. Gọi **a_i** là độ dài phần thêm ở lượt i, **S_i** là độ dài toàn bộ kết quả sau lượt đó.
+In practice, a loop might join lines, JSON fields, or text fragments of uneven sizes. Let **a_i** be the length of the part added in iteration i, and **S_i** be the length of the entire result after that iteration.
 
 \[
 S_i=a_1+a_2+\cdots+a_i.
 \]
 
-Khi mô hình đòi tái tạo String kết quả trong mỗi lượt, tổng độ dài các kết quả trung gian là:
+When the model requires recreating the resulting String on each iteration, the total length of intermediate results is:
 
 \[
 T=\sum_{i=1}^{n}S_i
  = n a_1 +(n-1)a_2+\cdots+1a_n.
 \]
 
-Hay tương đương:
+Or equivalently:
 
 \[
 T=\sum_{j=1}^{n}(n-j+1)a_j.
 \]
 
-Đây là cách nhìn **theo từng phần dữ liệu**: phần thêm vào sớm xuất hiện trong nhiều kết quả trung gian về sau hơn phần thêm ở cuối. Nếu mỗi phần dài k ký tự, tổng độ dài là:
+This is the **per-data-part view**: a part added early appears in more subsequent intermediate results than a part added at the end. If every part is k characters long, the total length is:
 
 \[
 T=k\frac{n(n+1)}{2}.
 \]
 
-Khi k là hằng số, đây vẫn là **Θ(n²) theo số lượt n**. Nếu phần có độ dài thay đổi, phải chỉ rõ biến nào đang được dùng để phân tích độ phức tạp.
+When k is a constant, this is still **Θ(n²) in the number of iterations n**. If parts have varying lengths, you must state clearly which variables are used for complexity analysis.
 
-Ví dụ ba phần **A**, **BB**, **CCC** có độ dài 1, 2, 3. Các kết quả lũy tiến dài 1, 3, 6, nên T = 1 + 3 + 6 = **10**, dù String cuối chỉ dài **6**.
+For example, three parts **A**, **BB**, **CCC** have lengths 1, 2, 3. The cumulative results have lengths 1, 3, 6, so T = 1 + 3 + 6 = **10**, even though the final String is only **6** long.
 
-### Mô hình và số byte thực tế có giống nhau?
+### Do the Model and Actual Bytes Match?
 
-Không nhất thiết. T(n) đếm các **đơn vị ký tự** trong kết quả trung gian theo mô hình. Java String có thể dùng biểu diễn **Latin-1 hoặc UTF-16** tùy dữ liệu và JVM, JIT có thể tránh một số thao tác trung gian, và chi phí có cả quản lý đối tượng lẫn garbage collection.
+Not necessarily. T(n) counts **character units** in the intermediate results according to the model. Java String can use **Latin-1 or UTF-16** representation depending on the data and JVM, the JIT can eliminate some intermediate operations, and total cost includes object management and garbage collection.
 
-Do đó không nên khẳng định mỗi phép **+=** luôn copy đúng một số byte bằng công thức trên. Kết luận hợp lý là: **nối lặp mà thực sự phải tạo lại String dài dần có nguy cơ tăng chi phí bậc hai**. Chi phí máy thật cần được đo trên JDK, máy và workload cụ thể.
+Therefore, you should not claim that every **+=** always copies the exact number of bytes given by the formula above. The sound conclusion is: **repeated concatenation that genuinely has to recreate a growing String risks quadratic cost growth**. Actual machine cost must be measured on the specific JDK, hardware, and workload.
 
-## 5. StringBuilder xử lý chuỗi dài dần như thế nào?
+## 5. How Does StringBuilder Handle Growing Strings?
 
-**StringBuilder** là một bộ dựng chuỗi có nội dung thay đổi được. Khi gọi **append(part)**, nó cố gắng thêm dữ liệu vào vùng lưu trữ đang có, thay vì tạo một String bất biến chứa toàn bộ tiền tố ở mỗi lượt:
+**StringBuilder** is a mutable string builder. When calling **append(part)**, it tries to add data into an existing storage region rather than creating an immutable String containing the entire prefix on each iteration:
 
 ~~~java
 StringBuilder builder = new StringBuilder();
@@ -175,28 +175,28 @@ for (String part : parts) {
 String result = builder.toString();
 ~~~
 
-Đây là đoạn mã minh họa; biến parts phải được khai báo ở chương trình thực tế.
+This is an illustrative snippet; the variable parts must be declared in a real program.
 
-StringBuilder có hai khái niệm:
+StringBuilder has two concepts:
 
-- **length():** số đơn vị char trong nội dung hiện có.
-- **capacity():** sức chứa hiện tại trước khi cần mở rộng vùng lưu trữ.
+- **length():** the number of char units currently in the content.
+- **capacity():** the current capacity before the storage needs to expand.
 
-Nếu vùng chứa đủ, append có thể thêm vào mà không cần tạo lại toàn bộ tiền tố. Khi thiếu dung lượng, builder có thể phải cấp vùng mới và copy nội dung cũ. Với chiến lược mở rộng theo tỷ lệ, chi phí mở rộng có thể được phân bổ (**amortized**), làm tổng công việc xây chuỗi thường gần tuyến tính theo tổng dữ liệu được thêm vào. Không cần giả định append là O(1) trong mọi trường hợp: thêm một chuỗi có độ dài m vẫn phải xử lý m đơn vị dữ liệu.
+If the buffer has enough space, append can add data without recreating the entire prefix. When capacity is insufficient, the builder may allocate a larger buffer and copy the old content. With a proportional growth strategy, the resizing cost can be **amortized**, making the total string-building work typically near-linear in the total data appended. You do not need to assume append is O(1) in every case: appending a string of length m still has to process m units of data.
 
-Khi ước lượng trước kích thước đầu ra, có thể khởi tạo:
+When you can estimate the output size in advance, you can initialize:
 
 ~~~java
 StringBuilder builder = new StringBuilder(estimatedLength);
 ~~~
 
-Tham số ở đây là **capacity**, không phải nội dung/length. Một builder mới với capacity 1000 vẫn có length() == 0. Ước lượng vừa phải giúp hạn chế việc mở rộng; ước lượng quá lớn có thể gây lãng phí bộ nhớ.
+The parameter here is **capacity**, not content/length. A new builder with capacity 1000 still has length() == 0. A reasonable estimate helps reduce expansions; an overly large estimate can waste memory.
 
-Quan trọng: thông thường hãy **gọi builder.toString() một lần sau vòng lặp**. Nếu gọi toString() ở mỗi lượt để lấy snapshot, chi phí tạo những chuỗi tiền tố dài dần vẫn có thể đạt mức bậc hai vì yêu cầu đầu ra của chính bài toán đã lớn.
+Important: normally, **call builder.toString() once after the loop**. If you call toString() on every iteration to take a snapshot, the cost of creating growing prefix strings can still reach quadratic levels because the problem's own output requirement is already large.
 
-## 6. Ví dụ StringBuilder hoàn chỉnh với dấu phân cách
+## 6. Complete StringBuilder Example with a Separator
 
-Tạo tệp **BuilderJoinDemo.java**:
+Create the file **BuilderJoinDemo.java**:
 
 ~~~java
 public class BuilderJoinDemo {
@@ -231,21 +231,21 @@ length: 12
 capacity >= length: true
 ~~~
 
-Ba phần chứa 1 + 2 + 3 = 6 ký tự; hai dấu phân cách ** | ** chứa 3 ký tự mỗi dấu, nên độ dài tổng cộng là 12. Builder được cấp capacity 12 phù hợp với ví dụ. Dòng cuối kiểm tra quan hệ capacity >= length, không phụ thuộc công thức tăng capacity nội bộ của một phiên bản JDK.
+The three parts contain 1 + 2 + 3 = 6 characters; the two separators ** | ** contain 3 characters each, so the total length is 12. The builder is given a capacity of 12, matching the example. The last line checks the relationship capacity >= length, without depending on the internal capacity-growth formula of a particular JDK version.
 
-Khi chỉ cần nối các chuỗi với một dấu phân cách, **String.join(" | ", parts)** thường ngắn và rõ nghĩa hơn vòng lặp thủ công. Với stream có thể dùng **Collectors.joining(" | ")**; chọn phương thức thể hiện rõ ý định thay vì viết nhiều thao tác append nếu không cần thiết.
+When you only need to join strings with a separator, **String.join(" | ", parts)** is often shorter and clearer than a manual loop. With streams you can use **Collectors.joining(" | ")**; choose a method that expresses intent clearly rather than writing multiple append calls unnecessarily.
 
-## 7. Khi nào Java tối ưu toán tử +?
+## 7. When Does Java Optimize the + Operator?
 
-Trong Java 9+, trình biên dịch Java có thể triển khai các biểu thức nối chuỗi qua **invokedynamic** và **StringConcatFactory**; JVM có thể tối ưu thêm ở runtime. Một biểu thức nối một số phần cố định, ví dụ:
+In Java 9+, the Java compiler can implement string concatenation expressions via **invokedynamic** and **StringConcatFactory**; the JVM can optimize further at runtime. An expression joining a fixed number of parts, for example:
 
 ~~~java
 String label = "ID=" + id + "; status=" + status;
 ~~~
 
-không nên bị mặc định xem là chuỗi các phép cấp phát vô ích. Java hiện đại có thể xây kết quả rất hiệu quả. Với phần nhỏ và biểu thức đơn giản, toán tử **+** thường là lựa chọn dễ đọc, hợp lý.
+should not be assumed by default to be a chain of wasteful allocations. Modern Java can build the result very efficiently. For small parts and simple expressions, the **+** operator is usually the readable, sensible choice.
 
-Nhưng vòng lặp:
+However, the loop:
 
 ~~~java
 String result = "";
@@ -254,71 +254,71 @@ for (String part : parts) {
 }
 ~~~
 
-đưa **giá trị từ lượt trước** vào lượt sau. Nếu ở mỗi lượt chuỗi tăng dần phải được tái tạo, tổng lượng kết quả trung gian tuân theo công thức ở phần đầu. JVM có thể tối ưu một số trường hợp cụ thể, nhưng **ngôn ngữ không bảo đảm việc nối lặp này luôn được chuyển thành một bộ đệm tái sử dụng**. Vì vậy, với lượng dữ liệu lớn hoặc số vòng lặp phụ thuộc đầu vào, StringBuilder là giải pháp rõ ràng và ổn định hơn.
+feeds **the value from the previous iteration** into the next iteration. If on each iteration the growing string must be recreated, the total amount of intermediate results follows the formula at the start of this lesson. The JVM may optimize certain specific cases, but **the language does not guarantee that this repeated concatenation is always converted into a reusable buffer**. Therefore, for large data or input-dependent loop counts, StringBuilder is the clearer and more predictable solution.
 
-**Đừng thay mọi phép + bằng StringBuilder thủ công:** tiêu chí đúng là có bao nhiêu lượt, độ dài kết quả tăng ra sao, biểu thức có thật sự nằm trên đường thực thi nóng hay không, và người đọc mã có hiểu rõ ý định không.
+**Do not replace every + with a manual StringBuilder:** the right criteria are how many iterations occur, how the result length grows, whether the expression is genuinely on a hot execution path, and whether readers can clearly understand the intent.
 
-## 8. Đo thời gian và bộ nhớ đúng cách
+## 8. Measuring Time and Memory Properly
 
-Không nên dựng hai đoạn code nhỏ, đo mỗi đoạn một lần bằng **System.nanoTime()**, rồi coi đó là kết luận tuyệt đối. Thời gian chạy phụ thuộc JIT warm-up, garbage collector, trạng thái CPU, số liệu đầu vào và việc compiler có thể loại bỏ công việc nếu kết quả không được dùng.
+You should not write two small code snippets, time each once with **System.nanoTime()**, and treat that as an absolute conclusion. Runtime depends on JIT warm-up, garbage collector, CPU state, input data, and whether the compiler eliminates unused work.
 
-Khi phải xác minh hiệu năng thực tế:
+When you must verify real-world performance:
 
-1. Dùng **cùng dữ liệu đầu vào** và kiểm tra **đầu ra giống nhau**.
-2. Warm-up mã được đo, chạy nhiều lần.
-3. Không tính thời gian **println**, đọc tệp hay tạo dữ liệu vào phép đo nối chuỗi.
-4. Thử nhiều giá trị **n** và kích thước mỗi part, thay vì một con số đơn lẻ.
-5. Dùng **JMH** khi cần benchmark tin cậy; quan sát throughput, allocations và GC.
-6. Phân biệt **thời gian thực**, **số byte cấp phát** và **tổng độ dài tiền tố theo công thức**.
+1. Use the **same input data** and verify **identical output**.
+2. Warm up the measured code and run many iterations.
+3. Exclude **println**, file reads, or data generation from the string-concatenation measurement.
+4. Test multiple values of **n** and part sizes, rather than a single number.
+5. Use **JMH** when reliable benchmarks are needed; observe throughput, allocations, and GC.
+6. Distinguish **wall-clock time**, **allocated bytes**, and **total prefix length from the formula**.
 
-Ví dụ đoạn văn bản chứa Unicode: String.length() đếm **đơn vị UTF-16**, không nhất thiết bằng số ký tự người dùng nhìn thấy. Điều đó càng cho thấy không thể lấy phép đếm ký tự làm số byte copy vật lý mà không kiểm tra thêm.
+For example, with text containing Unicode: String.length() counts **UTF-16 units**, which does not necessarily equal the number of user-perceived characters. That further shows why you cannot treat character counts as physical copied bytes without additional verification.
 
-## 9. Tình huống áp dụng
+## 9. Applicable Scenarios
 
-| Nhu cầu | Lựa chọn thường phù hợp | Vì sao |
+| Need | Usually appropriate choice | Why |
 | --- | --- | --- |
-| Nối vài phần cố định trong một biểu thức | Dùng + | Cú pháp gọn, JVM tối ưu biểu thức hiệu quả. |
-| Xây một String dài qua nhiều vòng | Dùng StringBuilder | Tái sử dụng vùng đệm, hạn chế tạo lại tiền tố dài dần. |
-| Ghép danh sách có delimiter | String.join hoặc StringBuilder | Thể hiện rõ quy tắc dấu phân cách. |
-| Ghép stream thành một chuỗi | Collectors.joining | Diễn đạt phép gom các phần tử. |
-| Các luồng độc lập đều xây chuỗi | Mỗi tác vụ một StringBuilder | StringBuilder không đồng bộ, tránh chia sẻ mutable state. |
-| Thật sự cần bộ đệm đồng bộ hóa | Cân nhắc StringBuffer hoặc giải pháp đồng bộ phù hợp | StringBuffer đồng bộ hóa phương thức nhưng không thay cho thiết kế đồng bộ toàn bộ quy trình. |
-| Cần String kết quả ở mỗi lượt | Chấp nhận chi phí snapshot | Tổng độ dài **mọi đầu ra bắt buộc** vốn có thể rất lớn. |
+| Joining a few fixed parts in one expression | Use + | Concise syntax; JVM optimizes the expression effectively. |
+| Building a long String across many iterations | Use StringBuilder | Reuses buffer, avoiding recreating growing prefixes. |
+| Joining a list with a delimiter | String.join or StringBuilder | Clearly expresses the separator rule. |
+| Joining a stream into one string | Collectors.joining | Expresses element reduction cleanly. |
+| Independent threads each building strings | One StringBuilder per task | StringBuilder is unsynchronized; avoids sharing mutable state. |
+| Genuinely needing a synchronized buffer | Consider StringBuffer or appropriate synchronization | StringBuffer synchronizes methods, though it does not replace synchronizing the whole workflow. |
+| Needing a resulting String on every iteration | Accept snapshot cost | The total length of **all required outputs** is inherently large. |
 
-## 10. Những lỗi thường gặp
+## 10. Common Mistakes
 
-| Nhầm lẫn | Giải thích và cách sửa |
+| Mistake | Explanation and fix |
 | --- | --- |
-| N phép nối luôn là O(n). | Mỗi lượt có thể phải xử lý tiền tố dài dần; hãy tính **tổng độ dài kết quả**. |
-| Mọi phép + với String đều là O(n²). | Độ phức tạp phụ thuộc dạng code; biểu thức cố định có thể được tối ưu. |
-| Công thức T(n) là số byte cấp phát chính xác. | Đây là mô hình tổng độ dài kết quả, không phải phép đo vật lý. |
-| StringBuilder không bao giờ copy dữ liệu cũ. | Khi mở rộng capacity, nó có thể phải copy vùng chứa. |
-| new StringBuilder(1000) tạo 1000 ký tự. | Số 1000 là capacity ban đầu, length vẫn bằng 0. |
-| Gọi builder.toString() ở mọi vòng vẫn rẻ. | Mỗi snapshot là kết quả String; tổng kích thước các snapshot có thể bậc hai. |
-| Dùng StringBuffer luôn nhanh hơn vì có đồng bộ. | Đồng bộ có chi phí; bộ đệm cục bộ thường dùng StringBuilder. |
-| Đo một lần với nanoTime là đủ. | JIT/GC/CPU gây nhiễu; dùng phép đo có warm-up, nhiều mẫu hoặc JMH. |
-| Nối String từ nhiều luồng bằng một StringBuilder chung là an toàn. | StringBuilder không bảo đảm thread safety; tách theo tác vụ hoặc đồng bộ đúng cách. |
+| N concatenations are always O(n). | Each iteration may process a growing prefix; calculate the **total result length**. |
+| Every + on String is O(n²). | Complexity depends on code shape; fixed expressions can be optimized. |
+| The formula T(n) is the exact allocated byte count. | It is a model of total result length, not a physical measurement. |
+| StringBuilder never copies old data. | When expanding capacity, it may need to copy its backing buffer. |
+| new StringBuilder(1000) creates 1000 characters. | 1000 is initial capacity; length is still 0. |
+| Calling builder.toString() on every iteration is still cheap. | Each snapshot is a String result; the total size of snapshots can be quadratic. |
+| Using StringBuffer is always faster because it is synchronized. | Synchronization has overhead; local buffers normally use StringBuilder. |
+| Measuring once with nanoTime is enough. | JIT/GC/CPU add noise; use measurements with warm-up, multiple samples, or JMH. |
+| Concatenating Strings from multiple threads using one shared StringBuilder is safe. | StringBuilder does not guarantee thread safety; isolate per task or synchronize properly. |
 
-## 11. Bài tự kiểm tra
+## 11. Self-Check Exercises
 
-**Câu 1.** Với 8 lần thêm một ký tự, theo mô hình tái tạo toàn bộ String, tổng độ dài các kết quả trung gian là bao nhiêu?
+**Question 1.** With 8 additions of one character, under the model that recreates the full String, what is the total length of intermediate results?
 
-Đáp án: **8 × 9 / 2 = 36**. Chuỗi cuối chỉ dài 8; tổng độ dài **tiền tố cũ** là 7 × 8 / 2 = **28**.
+Answer: **8 × 9 / 2 = 36**. The final string is only 8 long; the total length of **old prefixes** is 7 × 8 / 2 = **28**.
 
-**Câu 2.** Nối ba phần có độ dài 2, 1, 3 theo thứ tự. Tổng độ dài các kết quả sau mỗi lượt là bao nhiêu?
+**Question 2.** Concatenate three parts of lengths 2, 1, and 3 in order. What is the total length of the results after each iteration?
 
-Đáp án: ba độ dài lũy tiến là 2, 3, 6; tổng **11**. Theo công thức trọng số: 3 × 2 + 2 × 1 + 1 × 3 = 11.
+Answer: the three cumulative lengths are 2, 3, 6; total **11**. By the weighted formula: 3 × 2 + 2 × 1 + 1 × 3 = 11.
 
-**Câu 3.** Nếu dùng StringBuilder để tạo kết quả cuối một lần nhưng trong từng lượt vẫn phải xuất ra bản sao toàn bộ tiền tố, có còn tránh được mọi chi phí bậc hai không?
+**Question 3.** If you use StringBuilder to build the final result once, yet on every iteration you still have to output a copy of the entire prefix, can you still avoid all quadratic cost?
 
-Đáp án: **không**. Yêu cầu tạo ra n snapshot với độ dài tăng dần đã có tổng kích thước đầu ra theo mô hình là Θ(n²).
+Answer: **no**. Requiring n snapshots of growing length already has a modeled total output size of Θ(n²).
 
-**Câu 4.** Với một biểu thức ghép họ, tên và lời chào, nên ưu tiên toán tử + hay StringBuilder?
+**Question 4.** For an expression combining first name, last name, and a greeting, should you prefer the + operator or StringBuilder?
 
-Đáp án: **toán tử +** thường đủ rõ ràng và hiệu quả trong biểu thức ngắn; không cần tối ưu thủ công khi chưa có bằng chứng về nút thắt.
+Answer: **the + operator** is usually clear and efficient enough in a short expression; there is no need to optimize manually without evidence of a bottleneck.
 
-## 12. Kết luận
+## 12. Conclusion
 
-Khi thấy **result += part bên trong vòng lặp**, hãy hỏi không chỉ “lặp bao nhiêu lần?” mà còn “**String kết quả tăng dài như thế nào?**”. Với n phần một ký tự và mô hình tái tạo chuỗi mới ở mọi lượt, tổng độ dài các kết quả trung gian bằng **n(n + 1) / 2**, tức tăng bậc hai theo n, trong khi kết quả cuối chỉ dài n. Với phần dài không đều, tổng chi phí mô hình là tổng độ dài các tiền tố.
+When you see **result += part inside a loop**, ask not only “how many times does it loop?” but also “**how does the resulting String grow in length?**”. With n single-character parts and a model that recreates a new string on every iteration, the total length of intermediate results equals **n(n + 1) / 2**, growing quadratically with n while the final result is only n long. With uneven part lengths, the total modeled cost is the sum of the prefix lengths.
 
-**StringBuilder** cho phép ghi thêm vào vùng đệm thay đổi được, mở rộng khi cần và tạo String kết quả khi hoàn tất; đây là lựa chọn phổ biến để nối dài trong vòng lặp. **Dấu +** vẫn phù hợp với biểu thức nối ngắn. Mô hình chi phí giúp lựa chọn thiết kế hợp lý, còn hiệu năng thật của chương trình cần được đánh giá bằng công cụ đo trên dữ liệu thực tế.
+**StringBuilder** lets you append into a mutable buffer, expanding when needed and creating the resulting String upon completion; it is the standard choice for building long strings in loops. **The + operator** remains suitable for short concatenation expressions. Cost models guide sound design choices, while real program performance should be evaluated with measurement tools on realistic data.

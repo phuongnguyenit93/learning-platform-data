@@ -1,14 +1,14 @@
-# Tránh đệ quy vô hạn trong quan hệ tham chiếu hai chiều khi viết `toString()`
+# Avoiding Infinite Recursion in Bidirectional References When Writing `toString()`
 
-## 1. Vấn đề: hai đối tượng cùng tham chiếu ngược về nhau
+## 1. The Problem: Two Objects Referencing Back to Each Other
 
-Trong Java, quan hệ **hai chiều** xuất hiện khi một đối tượng giữ tham chiếu tới đối tượng khác và đối tượng kia cũng giữ tham chiếu quay lại. Ví dụ:
+In Java, a **bidirectional** relationship occurs when one object holds a reference to another object and that other object also holds a reference back. For example:
 
-- `Department` có danh sách `Employee`;
-- mỗi `Employee` lại có tham chiếu `department`;
-- cả hai lớp đều override `toString()` để in toàn bộ những trường tham chiếu đó.
+- `Department` has a list of `Employee`s;
+- each `Employee` has a `department` reference;
+- both classes override `toString()` to print all of those reference fields.
 
-Một đối tượng `Department` có thể được xem là gốc của đồ thị:
+A `Department` object can be viewed as the root of the graph:
 
 ```text
 Department(ENG)
@@ -18,10 +18,10 @@ Department(ENG)
 Employee(An)
     |
     | department
-    +-------------------> Department(ENG)  (chính đối tượng ban đầu)
+    +-------------------> Department(ENG)  (the original object itself)
 ```
 
-Nếu `Department.toString()` in danh sách nhân viên bằng `employees.toString()`, danh sách lại in từng `Employee.toString()`, rồi `Employee.toString()` tiếp tục in cả `Department`, chương trình quay lại điểm xuất phát. Không có điều kiện dừng, chuỗi gọi sẽ lặp:
+If `Department.toString()` prints the employee list using `employees.toString()`, the list prints each `Employee.toString()`, and then `Employee.toString()` keeps printing the entire `Department`, returning to the starting point. Without a stopping condition, the call chain loops:
 
 ```text
 Department.toString()
@@ -33,97 +33,97 @@ Department.toString()
                  -> ...
 ```
 
-Vấn đề xảy ra **dù dữ liệu mô hình hoàn toàn hợp lệ**. Quan hệ hai chiều không sai; việc duyệt tất cả tham chiếu trong `toString()` mà thiếu quy tắc dừng mới là nguyên nhân.
+The issue happens **even when the model data is completely valid**. Bidirectional relationships are not wrong; traversing every reference in `toString()` without a stopping rule is the cause.
 
-Khi độ sâu lời gọi tăng quá khả năng của stack, JVM thường ném `StackOverflowError`. Không nên dùng `catch (StackOverflowError)` như một chiến lược bình thường: vào lúc đó stack đã cạn và việc phục hồi/in tiếp có thể không đáng tin cậy.
+When call depth exceeds stack capacity, the JVM typically throws `StackOverflowError`. You should not use `catch (StackOverflowError)` as a normal strategy: by then the stack is exhausted and recovery or further printing may be unreliable.
 
-## 2. Vì sao phép nối chuỗi cũng có thể kích hoạt lỗi?
+## 2. Why String Concatenation Can Also Trigger the Error
 
-Không nhất thiết phải gọi `obj.toString()` tường minh. Những cách thông dụng sau có thể dẫn tới lời gọi `toString()` trên đối tượng khác `null`:
+You do not necessarily have to call `obj.toString()` explicitly. The following common patterns can lead to a `toString()` call on a non-`null` object:
 
-- `System.out.println(obj)` và `String.valueOf(obj)`;
-- `"data=" + obj` hoặc `StringBuilder.append(obj)`;
-- phép định dạng chuỗi có đối số đối tượng, chẳng hạn `String.format("%s", obj)`;
-- `Collection.toString()` hoặc `Map.toString()` khi chúng trình bày các phần tử, khóa hay giá trị;
-- log/debugger/IDE khi chúng chọn hiển thị đối tượng thông qua `toString()`.
+- `System.out.println(obj)` and `String.valueOf(obj)`;
+- `"data=" + obj` or `StringBuilder.append(obj)`;
+- string formatting with object arguments, such as `String.format("%s", obj)`;
+- `Collection.toString()` or `Map.toString()` when they render elements, keys, or values;
+- loggers/debuggers/IDEs when they choose to display an object via `toString()`.
 
-Việc log thông qua framework có thể đánh giá đối số theo nhiều thời điểm khác nhau, nhưng khi cuối cùng nó định dạng đối tượng bằng `toString()` thì vẫn tồn tại rủi ro. Không nên giả định một câu lệnh log vô hại chỉ vì người lập trình không gõ tên phương thức.
+Logging through a framework may evaluate arguments at different times, yet when it ultimately formats the object via `toString()`, the risk remains. Do not assume a log statement is harmless just because the programmer did not type the method name.
 
-Đặc biệt, gọi `employees.toString()` không làm Java tự biết rằng trường `employee.department` cần bị bỏ qua. Một số cấu trúc chuẩn có cơ chế bảo vệ **tự chứa trực tiếp** trong cách in của riêng chúng, nhưng không thể suy rộng điều đó thành khả năng nhận biết mọi vòng tham chiếu qua nhiều đối tượng ứng dụng.
+In particular, calling `employees.toString()` does not make Java automatically know that `employee.department` should be skipped. Some standard structures have protection for **direct self-containment** in their own printing, but you cannot generalize that into an ability to detect all reference cycles across multiple application objects.
 
-## 3. Mẫu cài đặt dẫn đến đệ quy vô hạn
+## 3. Implementation Pattern That Leads to Infinite Recursion
 
-Giả sử `Department` và `Employee` có các trường `employees` và `department`. Đây là **hai phương thức lỗi minh họa**, không phải chương trình Java độc lập:
+Suppose `Department` and `Employee` have fields `employees` and `department`. These are **two illustrative buggy methods**, not a standalone Java program:
 
 ```java
-// Bên trong Department:
+// Inside Department:
 @Override
 public String toString() {
     return "Department{employees=" + employees + "}";
 }
 
-// Bên trong Employee:
+// Inside Employee:
 @Override
 public String toString() {
     return "Employee{department=" + department + "}";
 }
 ```
 
-Diễn biến với một department có nhân viên thuộc chính department đó:
+What happens with a department that has an employee belonging to that very department:
 
-1. In `Department` làm `employees` được chuyển thành chuỗi.
-2. Danh sách chuyển các phần tử thành chuỗi, gọi `Employee.toString()`.
-3. `Employee.toString()` chuyển `department` thành chuỗi.
-4. Đây chính là `Department` ở bước 1. Chuỗi gọi quay lại đầu và tiếp tục vô hạn.
+1. Printing `Department` causes `employees` to be converted to a string.
+2. The list converts its elements to strings, calling `Employee.toString()`.
+3. `Employee.toString()` converts `department` to a string.
+4. That is the exact `Department` from step 1. The call chain loops back to the start and continues infinitely.
 
-Sự có mặt của `final` trên tham chiếu không loại bỏ vòng. Một đồ thị có thể bất biến về cấu trúc nhưng vẫn chứa chu trình; `toString()` duyệt toàn bộ các cạnh của chu trình sẽ tiếp tục lặp.
+Having `final` on references does not eliminate cycles. A graph can be structurally immutable yet still contain cycles; a `toString()` that traverses every edge of the cycle will keep looping.
 
-Cũng không thể giải quyết gốc rễ bằng cách “tăng stack size” để in thêm nhiều tầng: nó chỉ có thể trì hoãn thời điểm tràn, không đưa vào điều kiện dừng.
+Nor can you solve the root cause by "increasing stack size" to print more levels: it can only delay the overflow, without introducing a stopping condition.
 
-## 4. Cách đơn giản và thường nên dùng: chỉ in thuộc tính cần thiết
+## 4. The Simple and Usually Preferred Approach: Print Only Essential Attributes
 
-Phần lớn `toString()` dùng để hỗ trợ quan sát nhanh, debug hoặc log. Nó **không cần trình bày đầy đủ đồ thị đối tượng**.
+Most `toString()` methods exist to support quick observation, debugging, or logging. They **do not need to present the complete object graph**.
 
-Với ví dụ Department ↔ Employee, thiết kế gọn và dễ kiểm soát là:
+For the Department ↔ Employee example, a concise and easy-to-control design is:
 
-- `Department.toString()` hiển thị `code` và số lượng nhân viên, thay vì in mỗi nhân viên.
-- `Employee.toString()` hiển thị `name` và `department.code`, thay vì gọi `department.toString()`.
-- Chọn giá trị hiển thị ổn định, ngắn và hữu ích; tránh vô tình kéo theo nhiều đối tượng hoặc dữ liệu nhạy cảm.
+- `Department.toString()` displays `code` and the employee count, instead of printing every employee.
+- `Employee.toString()` displays `name` and `department.code`, instead of calling `department.toString()`.
+- Choose stable, short, useful display values; avoid accidentally pulling in many objects or sensitive data.
 
-Quy tắc thực hành: ở quan hệ hai chiều, ít nhất **một hướng trình bày phải dừng ở thông tin nhận diện**, ví dụ ID, mã, số lượng, hoặc ký hiệu `<omitted>`.
+Rule of thumb: in a bidirectional relationship, at least **one display direction must stop at identifying information**, such as an ID, code, count, or an `<omitted>` marker.
 
-Có thể chọn `departmentId` thay cho đối tượng `department` khi hiển thị nhân viên. Đây là lựa chọn biểu diễn trong `toString()`; không nhất thiết phải bỏ quan hệ hai chiều khỏi mô hình nghiệp vụ.
+You can choose `departmentId` instead of the `department` object when displaying an employee. This is a representation choice inside `toString()`; you do not necessarily have to remove the bidirectional relationship from the domain model.
 
-Nếu cần xuất cả cấu trúc sang JSON hoặc một định dạng trao đổi, hãy thiết kế **serialization/DTO** với chiến lược riêng cho tham chiếu ngược, danh tính, độ sâu và chu trình. `toString()` không nên được xem là serializer tổng quát.
+If you need to export the entire structure to JSON or an interchange format, design **serialization/DTOs** with dedicated strategies for back-references, identity, depth, and cycles. `toString()` should not be treated as a general-purpose serializer.
 
-## 5. Nếu bắt buộc in đồ thị: nhận diện đối tượng đã đi qua
+## 5. If You Must Print a Graph: Track Already-Visited Objects
 
-Có tình huống chẩn đoán cần hiển thị nhiều tầng tham chiếu. Khi đó, `toString()` hoặc hàm hỗ trợ phải quản lý những đối tượng **đang nằm trên đường đệ quy hiện tại**.
+There are diagnostic situations that need to display multiple levels of references. In those cases, `toString()` or a helper function must track the objects **currently on the active recursion path**.
 
-Một cách hữu ích là `IdentityHashMap<Node, Boolean>`:
+A useful approach is `IdentityHashMap<Node, Boolean>`:
 
-- `IdentityHashMap` so sánh khóa theo **danh tính tham chiếu** (`==`), không dựa vào `equals()`.
-- Nếu đang duyệt một đối tượng rồi gặp lại **chính đối tượng ấy trên cùng đường gọi**, đã phát hiện chu trình.
-- Thay vì gọi `toString()` lần nữa, hiển thị một ký hiệu ngắn như `Node(A, cycle)`.
-- Gỡ đối tượng khỏi tập đường đi trong `finally` khi duyệt xong, kể cả nếu việc duyệt kết thúc bằng exception.
+- `IdentityHashMap` compares keys by **reference identity** (`==`), not relying on `equals()`.
+- If you are traversing an object and encounter **that exact object again on the same call path**, a cycle is detected.
+- Instead of calling `toString()` again, display a short marker such as `Node(A, cycle)`.
+- Remove the object from the path set in a `finally` block when finished traversing, even if traversal ends with an exception.
 
-Tại sao cần so theo identity? Hai đối tượng khác nhau có thể `equals()` là `true` mà không tạo chu trình. Ngược lại, chính `equals()` hoặc `hashCode()` của đối tượng cũng có thể duyệt quan hệ hai chiều hoặc phụ thuộc dữ liệu mutable. Dùng `HashSet` làm tập phát hiện chu trình sẽ gọi các phương thức đó và có thể phát sinh lỗi khác.
+Why compare by identity? Two different objects can have `equals()` return `true` without forming a cycle. Conversely, an object's `equals()` or `hashCode()` itself might traverse bidirectional relationships or depend on mutable data. Using a `HashSet` as the cycle-detection set would call those methods and could cause other errors.
 
-Phân biệt hai chiến lược:
+Distinguish two strategies:
 
-- **Active path (đường đệ quy hiện tại):** thêm khi đi vào, gỡ khi quay lui. Chỉ đánh dấu `cycle` khi gặp lại node trên đường đang duyệt. Một node được chia sẻ bởi hai nhánh khác nhau vẫn có thể xuất hiện ở cả hai nhánh.
-- **Global visited (đã từng gặp ở bất kỳ nhánh nào):** đánh dấu lâu dài; thích hợp khi muốn không in lặp node, nhưng lần xuất hiện thứ hai của node chia sẻ chưa chắc tạo **chu trình**. Nếu dùng chiến lược này, hãy ghi rõ `already shown` thay vì tự động gọi đó là `cycle`.
+- **Active path (current recursion path):** add upon entry, remove upon backtracking. Only mark `cycle` when encountering a node again on the path currently being traversed. A node shared by two different branches can still appear in both branches.
+- **Global visited (seen anywhere across any branch):** mark persistently; suitable when you want to avoid printing duplicate nodes, though the second occurrence of a shared node does not necessarily form a **cycle**. If using this strategy, clearly label it `already shown` instead of automatically calling it `cycle`.
 
-Mỗi lần gọi `toString()` nên dùng một ngữ cảnh duyệt riêng; tránh một set dùng chung ở biến `static` cho mọi lời gọi, vì điều đó gây nhiễu giữa các lần in và giữa các thread.
+Each `toString()` call should use its own traversal context; avoid a shared `static` set across all calls, as that causes interference across prints and across threads.
 
-## 6. Ví dụ Java 17 hoàn chỉnh: quan hệ hai chiều và đồ thị có chu trình
+## 6. Complete Java 17 Example: Bidirectional Relationships and Cyclic Graphs
 
-Chương trình dưới đây minh họa hai chiến lược an toàn:
+The program below illustrates two safe strategies:
 
-1. `Department` và `Employee` chỉ trình bày ID/tóm tắt, nên không gọi `toString()` của nhau liên tục.
-2. `Node` cho phép duyệt nhiều tầng liên kết; `IdentityHashMap` phát hiện node đang nằm trên đường duyệt để ngắt chu trình.
+1. `Department` and `Employee` only display IDs/summaries, so they do not continuously call each other's `toString()`.
+2. `Node` allows multi-level link traversal; `IdentityHashMap` detects nodes currently on the traversal path to break cycles.
 
-Tạo tệp **`ToStringCycleDemo.java`**:
+Create the file **`ToStringCycleDemo.java`**:
 
 ```java
 import java.util.ArrayList;
@@ -228,14 +228,14 @@ public class ToStringCycleDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac --release 17 ToStringCycleDemo.java
 java ToStringCycleDemo
 ```
 
-Stdout đã kiểm chứng bằng Java 17:
+Stdout verified with Java 17:
 
 ```text
 Department{code='ENG', employeeCount=2}
@@ -244,53 +244,53 @@ Node(A -> [Node(B -> [Node(A, cycle)])])
 Node(R -> [Node(S -> []), Node(S -> [])])
 ```
 
-**Giải thích kết quả:**
+**Explanation of output:**
 
-1. `Department` biết hai nhân viên và mỗi nhân viên biết department; mặc dù tham chiếu là hai chiều, `Department.toString()` **chỉ in số lượng** và `Employee.toString()` **chỉ in mã**. Không có chuỗi gọi vòng.
-2. Ở đồ thị `A → B → A`, khi `render` gặp A lần hai, A vẫn nằm trong `activePath`. Hàm trả `Node(A, cycle)` thay vì đệ quy thêm.
-3. `R` liên kết tới **cùng một S hai lần**, nhưng S không trỏ về R và không nằm trên đường hiện tại sau khi kết thúc nhánh đầu. Vì mã dùng active path và gỡ node trong `finally`, S được in ở cả hai nhánh. Đây là **tham chiếu chia sẻ**, không phải chu trình.
-4. `Node.toString()` khởi tạo bản đồ mới cho mỗi lần gọi, nên trạng thái theo dõi đường đi không rò sang một lần gọi độc lập khác.
+1. `Department` knows two employees and each employee knows the department; even though references are bidirectional, `Department.toString()` **only prints the count** and `Employee.toString()` **only prints the code**. There is no circular call chain.
+2. In the graph `A → B → A`, when `render` encounters A a second time, A is still in `activePath`. The function returns `Node(A, cycle)` instead of recursing further.
+3. `R` links to **the same S twice**, yet S does not point back to R and is not on the current path after the first branch finishes. Because the code uses an active path and removes the node in `finally`, S is printed in both branches. This is a **shared reference**, not a cycle.
+4. `Node.toString()` initializes a new map for each call, so path-tracking state does not leak into another independent call.
 
-Ví dụ này duyệt tuần tự một đồ thị không bị sửa đồng thời. Nếu có thread khác thêm/xóa liên kết khi đang in, cần chính sách snapshot hoặc đồng bộ phù hợp; `IdentityHashMap` riêng cho mỗi lời gọi không tự làm danh sách liên kết an toàn trước cập nhật đồng thời.
+This example sequentially traverses a graph that is not concurrently modified. If another thread adds/removes links during printing, an appropriate snapshot or synchronization policy is needed; a per-call `IdentityHashMap` does not by itself make link lists safe against concurrent updates.
 
-## 7. Giới hạn của giải pháp phát hiện chu trình
+## 7. Limitations of Cycle-Detection Solutions
 
-Phát hiện chu trình **không đồng nghĩa với loại bỏ mọi rủi ro đệ quy sâu**.
+Detecting cycles **does not mean eliminating all deep-recursion risks**.
 
-### 7.1. Đồ thị không có chu trình vẫn có thể rất sâu
+### 7.1. Acyclic Graphs Can Still Be Very Deep
 
-Một chuỗi dài `A → B → C → ...` với hàng trăm nghìn node có thể làm stack tràn dù không hề gặp lại node nào. Nếu in đồ thị lớn hoặc do bên ngoài cung cấp, nên giới hạn:
+A long chain `A → B → C → ...` with hundreds of thousands of nodes can overflow the stack even without ever revisiting a node. If printing large or externally supplied graphs, you should bound:
 
-- **Độ sâu tối đa**, ví dụ chỉ in 3–5 cấp liên kết;
-- **số node/cạnh tối đa** được phép trình bày;
-- **độ dài chuỗi tối đa**, tránh log quá lớn;
-- hoặc dùng **thuật toán duyệt lặp** (stack/queue tường minh) khi thực sự cần biểu diễn đồ thị lớn.
+- **maximum depth**, e.g., printing only 3–5 link levels;
+- **maximum number of nodes/edges** allowed to be rendered;
+- **maximum string length**, avoiding oversized logs;
+- or use an **iterative traversal algorithm** (explicit stack/queue) when a large graph representation is genuinely needed.
 
-Khi chạm giới hạn, đưa ký hiệu ngắn như `<max-depth>` hoặc `<truncated>` để người đọc hiểu rằng output đã được giới hạn. Không nên cắt chuỗi một cách âm thầm khiến nó trông như dữ liệu đầy đủ.
+When hitting a limit, insert a short marker such as `<max-depth>` or `<truncated>` so readers know output was bounded. Do not silently cut the string so that it looks like complete data.
 
-### 7.2. Tham chiếu được in bởi formatter khác
+### 7.2. References Printed by Another Formatter
 
-Bộ theo dõi `activePath` chỉ giúp các node được duyệt **thông qua cùng hàm `render`**. Nếu trong quá trình render bạn tự nối `+ someOtherObject`, Java có thể gọi `someOtherObject.toString()` bên ngoài cơ chế theo dõi hiện tại và tái tạo vòng lặp.
+The `activePath` tracker only helps nodes traversed **through the same `render` function**. If during rendering you concatenate `+ someOtherObject`, Java may call `someOtherObject.toString()` outside the current tracking mechanism and recreate the loop.
 
-Nếu cần hiển thị nhiều kiểu đối tượng trong cùng đồ thị, nên dùng **một formatter có ngữ cảnh duyệt chung** truyền vào các hàm hỗ trợ, hoặc chọn biểu diễn nhận diện rút gọn cho những cạnh không duyệt tiếp. Một biến toàn cục duy nhất không phải lối tắt an toàn cho thiết kế này.
+If multiple object types need to be displayed within the same graph, use **a formatter with a shared traversal context** passed to helper functions, or choose a compact identifying representation for edges you do not traverse further. A single global variable is not a safe shortcut for this design.
 
-### 7.3. Hiệu năng và dữ liệu nhạy cảm
+### 7.3. Performance and Sensitive Data
 
-Một `toString()` quá sâu hoặc in toàn bộ collection lớn có thể tốn CPU, bộ nhớ và tạo log kích thước rất lớn. In cả đối tượng liên quan còn có nguy cơ vô tình đưa password, token, email hoặc thông tin cá nhân vào log. Thiết kế output nên **ngắn, có chủ đích và tránh trường nhạy cảm**, dù dữ liệu không chứa chu trình.
+A `toString()` that goes too deep or prints entire large collections can consume CPU, memory, and produce huge logs. Printing entire related objects also risks accidentally putting passwords, tokens, emails, or personal information into logs. Output design should be **short, intentional, and free of sensitive fields**, even when data contains no cycles.
 
-Với framework ORM, việc `toString()` đọc quan hệ lazy có thể kích hoạt tải dữ liệu ngoài dự kiến hoặc không truy cập được quan hệ nếu persistence context đã đóng. Giữ `toString()` theo ID và trường scalar thường vừa tránh vòng, vừa tránh tải thêm đồ thị quan hệ.
+With ORM frameworks, having `toString()` read lazy relationships can trigger unintended data loads or fail to access relationships if the persistence context is already closed. Keeping `toString()` to IDs and scalar fields usually avoids both cycles and extra relationship graph loading.
 
-## 8. Các công cụ sinh `toString()` có tự tránh vòng không?
+## 8. Do `toString()` Generation Tools Automatically Avoid Cycles?
 
-### 8.1. IDE sinh `toString()`
+### 8.1. IDE `toString()` Generators
 
-IDE có thể tự đưa các trường vào output theo lựa chọn của người dùng. Nếu chọn cả `department.employees` và `employee.department`, mã được sinh vẫn có thể đệ quy vô hạn. Hãy kiểm tra nội dung được sinh, nhất là các trường quan hệ object và collection.
+IDEs can include fields in the output based on user selection. If both `department.employees` and `employee.department` are selected, the generated code can still recurse infinitely. Inspect generated content, especially object-relationship and collection fields.
 
 ### 8.2. Lombok `@ToString`
 
-Nếu dùng Lombok, tính năng `@ToString` có thể đưa các field vào chuỗi; có thể sử dụng `@ToString.Exclude` để loại trừ phía tham chiếu ngược, hoặc `@ToString(onlyExplicitlyIncluded = true)` cùng `@ToString.Include` để chỉ cho phép những thuộc tính định danh cần thiết.
+When using Lombok, `@ToString` can include fields in the string; you can use `@ToString.Exclude` to exclude the back-reference side, or `@ToString(onlyExplicitlyIncluded = true)` with `@ToString.Include` to allow only necessary identifying attributes.
 
-Ví dụ **đoạn cấu hình minh họa** (cần dependency Lombok, không thuộc tệp demo Java thuần ở trên):
+Example **illustrative configuration snippet** (requires Lombok dependency, not part of the pure Java demo file above):
 
 ```java
 @ToString
@@ -301,72 +301,72 @@ class Employee {
 }
 ```
 
-Phần này minh họa hướng loại trừ, không phải chương trình chạy độc lập. Nếu nhiều lớp cùng dùng Lombok, cần rà soát **mọi cạnh quan hệ hai chiều**, đặc biệt khi thay đổi field sau này.
+This illustrates the exclusion approach, not a standalone runnable program. If multiple classes use Lombok together, you must audit **every bidirectional relationship edge**, especially when changing fields later.
 
-### 8.3. Java record
+### 8.3. Java Records
 
-Record tạo `toString()` tự động từ các component. Điều đó tiện cho record chứa giá trị đơn giản như `String` hoặc `int`; nhưng record không làm các đối tượng tham chiếu bên trong trở nên bất biến sâu hay không có chu trình.
+Records generate `toString()` automatically from their components. That is convenient for records holding simple values like `String` or `int`; however, records do not make referenced objects inside deeply immutable or cycle-free.
 
-Nếu component là một graph object mà `toString()` của nó quay về record hoặc một nhánh tham chiếu cũ, vẫn có rủi ro. Có thể override `toString()` của record để chỉ in thông tin định danh phù hợp.
+If a component is a graph object whose `toString()` points back to the record or an earlier reference branch, risk still exists. You can override the record's `toString()` to print only appropriate identifying information.
 
-### 8.4. Array và collection helper
+### 8.4. Array and Collection Helpers
 
-`Arrays.deepToString` có cơ chế xử lý một số tình huống mảng chứa tham chiếu vòng tới chính mảng/nhánh mảng đang duyệt, nhưng **không phải trình in chu trình tổng quát cho mọi object graph**. Một phần tử là POJO với `toString()` đi vòng qua quan hệ riêng vẫn có thể gây đệ quy.
+`Arrays.deepToString` has a mechanism to handle certain cases where an array holds circular references back to the array/branch currently being traversed, yet **it is not a general cycle printer for arbitrary object graphs**. An element that is a POJO whose `toString()` loops through its own relationships can still cause recursion.
 
-Vì vậy đừng dùng một helper có chữ `deep` rồi suy luận rằng mọi tham chiếu hai chiều đều an toàn. Phải xác định rõ kiểu dữ liệu và ranh giới traversal.
+Therefore, do not see a helper with `deep` in its name and infer that all bidirectional references are safe. You must clearly determine data types and traversal boundaries.
 
-## 9. Cách kiểm tra một `toString()` an toàn
+## 9. How to Test a Safe `toString()`
 
-Với một mô hình có quan hệ hai chiều, nên thử ít nhất các trường hợp:
+For a model with bidirectional relationships, test at least these cases:
 
-1. **Đối tượng đơn lẻ:** object không có liên kết; kết quả ngắn và dễ hiểu.
-2. **Quan hệ hai chiều đơn giản:** `Department → Employee → Department`; không xảy ra đệ quy vô hạn.
-3. **Chu trình dài:** `A → B → C → A`; bộ phát hiện chu trình cắt đúng chỗ.
-4. **Tự tham chiếu:** `A → A`; điều kiện dừng vẫn hoạt động.
-5. **Tham chiếu chia sẻ nhưng không có vòng:** `R → S` qua hai cạnh; nếu dùng active path, không đánh dấu nhầm S là cycle.
-6. **Đồ thị rỗng, phần tử null nếu mô hình cho phép:** không ném ngoại lệ do thiếu tham chiếu.
-7. **Đồ thị rất sâu/rộng:** có giới hạn độ sâu và độ dài khi cần; không vô tình sinh log khổng lồ.
-8. **Không lộ dữ liệu nhạy cảm:** kiểm tra output dự kiến và các field mới thêm.
-9. **Tác động ORM:** nếu dùng quan hệ lazy, việc gọi `toString()` không bất ngờ làm tăng số truy vấn hoặc phụ thuộc phiên làm việc.
+1. **Single object:** object with no links; short and readable output.
+2. **Simple bidirectional relationship:** `Department → Employee → Department`; no infinite recursion occurs.
+3. **Long cycle:** `A → B → C → A`; cycle detector cuts off at the right place.
+4. **Self-reference:** `A → A`; stopping condition still works.
+5. **Shared non-cyclic reference:** `R → S` via two edges; if using active path, S is not mislabeled as a cycle.
+6. **Empty graph, null elements if permitted by the model:** does not throw exceptions due to missing references.
+7. **Very deep/wide graph:** has depth and length limits when needed; does not accidentally generate massive logs.
+8. **No sensitive data leaked:** check expected output and newly added fields.
+9. **ORM impact:** if using lazy relationships, calling `toString()` does not unexpectedly increase query count or depend on an active session.
 
-Ví dụ một phép kiểm tra hồi quy đặt trong code test Java sau khi tạo đồ thị `A → B → A`:
+Example of a regression check placed in Java test code after building graph `A → B → A`:
 
 ```java
 String output = a.toString();
 if (!output.contains("cycle")) {
-    throw new AssertionError("Chu trinh chua duoc ngan");
+    throw new AssertionError("Cycle was not prevented");
 }
 ```
 
-Đây là **mảnh kiểm thử minh họa**, giả định biến `a` đã được tạo trong test. Kiểm tra còn nên xác nhận output thực tế khớp cấu trúc kỳ vọng. Không cố ý kích hoạt `StackOverflowError` trong test để chứng minh mã sai; thay bằng test các thiết kế an toàn và review đường gọi.
+This is an **illustrative test fragment**, assuming variable `a` has already been created in the test. Checks should also verify that actual output matches expected structure. Do not intentionally trigger `StackOverflowError` in tests to prove code is broken; instead, test safe designs and review call paths.
 
-## 10. Câu hỏi thường gặp
+## 10. Frequently Asked Questions
 
-### “Tôi chỉ cần in đối tượng cha, không gọi `child.toString()`, sao vẫn lỗi?”
+### "I only printed the parent object, without calling `child.toString()`, so why did it still fail?"
 
-Vì nối một collection vào chuỗi có thể khiến collection gọi `toString()` của từng phần tử. Đường gọi gián tiếp vẫn quay lại cha.
+Because concatenating a collection into a string can cause the collection to call `toString()` on each element. The indirect call path still loops back to the parent.
 
-### “Bỏ `toString()` ở một phía có đủ không?”
+### "Is omitting `toString()` on one side enough?"
 
-Thường **đủ để cắt một vòng cụ thể** nếu phía còn lại chỉ in dữ liệu an toàn. Nhưng một đồ thị có nhiều đường liên kết có thể còn chu trình khác. Xem toàn bộ các cạnh mà formatter sẽ đi qua.
+Usually **enough to break one specific cycle** if the remaining side only prints safe data. However, a graph with multiple link paths may still contain other cycles. Inspect all edges the formatter will traverse.
 
-### “Dùng `HashSet` để ghi các object đã thăm được không?”
+### "Can I use `HashSet` to record visited objects?"
 
-Có thể rủi ro khi `equals/hashCode` của chúng đệ quy theo quan hệ hoặc thay đổi. Với mục tiêu nhận biết **cùng instance đã nằm trên đường duyệt**, `IdentityHashMap` cho ngữ nghĩa phù hợp và rõ ràng hơn.
+It can be risky if their `equals/hashCode` recurses along relationships or mutates. For the goal of recognizing **the same instance already on the traversal path**, `IdentityHashMap` provides more appropriate and clearer semantics.
 
-### “Nếu `toString()` gặp `null` thì sao?”
+### "What if `toString()` encounters `null`?"
 
-`String.valueOf(null)` tạo chuỗi `"null"`; nhưng gọi trực tiếp `null.toString()` là không hợp lệ. Trong formatter, kiểm tra `null` trước khi truy cập field hoặc đi tiếp qua liên kết.
+`String.valueOf(null)` produces the string `"null"`; however, calling `null.toString()` directly is invalid. In the formatter, check for `null` before accessing fields or following links.
 
-### “Có nên trả về JSON từ `toString()`?”
+### "Should `toString()` return JSON?"
 
-Không bắt buộc và thường không phù hợp. `toString()` dành cho biểu diễn dễ đọc, chẩn đoán; trao đổi dữ liệu có schema và graph cycles cần serializer/DTO và cấu hình rõ ràng. Hãy chọn công cụ theo mục đích thay vì dựa vào một phương thức in đồ thị vô hạn.
+Not required and usually inappropriate. `toString()` is for readable, diagnostic representation; data exchange with schemas and graph cycles requires serializers/DTOs and explicit configuration. Choose tools by purpose rather than relying on one method to print unbounded graphs.
 
-## 11. Ghi nhớ
+## 11. Takeaways
 
-- Quan hệ hai chiều `A → B → A` là bình thường trong mô hình; **in cả hai phía trong `toString()`** có thể tạo vòng gọi vô hạn.
-- Giải pháp đơn giản nhất là **in ID, scalar hoặc số lượng** ở một hay cả hai phía, thay vì in toàn bộ object liên kết.
-- Nếu phải in nhiều tầng, theo dõi đường duyệt bằng **identity**, dừng khi gặp lại node đang active; phân biệt chu trình thật với node được chia sẻ.
-- Tạo ngữ cảnh duyệt riêng cho mỗi lần gọi, dọn trong `finally`, và giới hạn độ sâu/kích thước đối với đồ thị lớn.
-- Rà soát `toString()` do IDE, Lombok, record hoặc framework sinh ra; đừng mặc định chúng tự xử lý mọi vòng tham chiếu.
-- Không dùng `StackOverflowError`, tăng stack hay log suppression như giải pháp gốc. Thiết kế đường duyệt và điều kiện dừng rõ ràng mới làm `toString()` an toàn.
+- Bidirectional relationships `A → B → A` are normal in models; **printing both sides in `toString()`** can create an infinite call loop.
+- The simplest solution is to **print IDs, scalars, or counts** on one or both sides, instead of printing the entire linked object.
+- If multiple levels must be printed, track the traversal path by **identity**, stopping when encountering an active node again; distinguish real cycles from shared nodes.
+- Create a dedicated traversal context per call, clean up in `finally`, and bound depth/size for large graphs.
+- Review `toString()` generated by IDEs, Lombok, records, or frameworks; do not assume they handle all reference cycles automatically.
+- Do not rely on `StackOverflowError`, increasing stack size, or log suppression as a root fix. Designing clear traversal paths and stopping conditions is what makes `toString()` safe.

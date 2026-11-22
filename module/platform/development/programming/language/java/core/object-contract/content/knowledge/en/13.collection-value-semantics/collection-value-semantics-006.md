@@ -1,30 +1,30 @@
-# Tập hợp lồng nhau phụ thuộc `equals()` của từng phần tử
+# Nested Collections Depend on Each Element's `equals()`
 
-Trong Java, hai collection có cùng **nội dung logic** hay không phụ thuộc trước hết vào quy tắc `equals(Object)` của loại collection ở **từng tầng lồng nhau**, sau đó đến `equals()` của các phần tử cuối cùng. Collection **không tự suy đoán** rằng hai đối tượng cùng một vài thuộc tính, hai mảng có cùng nội dung, hoặc hai danh sách giống nhau nhưng đảo thứ tự phải được coi là bằng nhau.
+In Java, whether two collections have the same **logical content** depends first on the `equals(Object)` rule of the collection type at **each nesting level**, and then on the `equals()` of the innermost leaf elements. A collection **does not automatically guess** that two objects sharing a few fields, two arrays with identical contents, or two lists with identical elements in reverse order should be considered equal.
 
-Ví dụ với kiểu `List<Set<Product>>`:
+For example, with the type `List<Set<Product>>`:
 
-- Tầng ngoài là `List`: thứ tự **các tập hợp con** có ý nghĩa.
-- Mỗi tầng trong là `Set`: thứ tự liệt kê **sản phẩm trong một tập hợp** không có ý nghĩa.
-- Mỗi phần tử là `Product`: một cặp sản phẩm có bằng nhau hay không tùy cách lớp `Product` ghi đè `equals(Object)`.
-- Nếu các tầng dùng hash (`HashSet` hoặc `HashMap`), cách tính `hashCode()` của phần tử cũng phải nhất quán với `equals()`.
+- The outer level is `List`: the order of **the nested sets** matters.
+- Each inner level is `Set`: the listing order of **products within a set** does not matter.
+- Each element is `Product`: whether a pair of products is equal depends on how the `Product` class overrides `equals(Object)`.
+- If any levels use hashing (`HashSet` or `HashMap`), the element's `hashCode()` computation must also be consistent with `equals()`.
 
-**Ý chính:** `equals()` của collection không thay thế việc thiết kế đúng phép bằng nhau của kiểu phần tử; nó sử dụng phép bằng nhau đã được các kiểu bên trong cung cấp.
+**Main idea:** collection `equals()` does not replace designing proper equality on the element type; it uses the equality already provided by the inner types.
 
-## 1. Quy tắc bằng nhau của các collection phổ biến
+## 1. Equality Rules of Common Collections
 
-| Kiểu | Điều kiện hai collection bằng nhau | Thứ tự có ý nghĩa? | Điều quan trọng ở tầng con |
+| Type | Condition for Two Collections to Be Equal | Does Order Matter? | What Matters at the Child Level |
 | --- | --- | --- | --- |
-| `List<E>` | Cùng số phần tử và từng vị trí tương ứng bằng nhau | **Có** | So sánh phần tử theo `equals()` |
-| `Set<E>` | Cùng số phần tử và mỗi phần tử của một set có phần tử bằng nó trong set kia | **Không** | `equals()` định nghĩa trùng phần tử; `hashCode()` phải tương thích với hash set |
-| `Map<K,V>` | Cùng tập ánh xạ khóa → giá trị | **Không** phụ thuộc thứ tự chèn | Khóa dùng `equals()/hashCode()` phù hợp; giá trị được so sánh theo `equals()` |
-| `Collection<E>` nói chung | Không có một quy tắc `equals()` chung cho mọi implementation | Tùy loại cụ thể | Không tự giả định mọi collection được so theo cùng tiêu chí |
+| `List<E>` | Same number of elements and each corresponding position is equal | **Yes** | Elements are compared using `equals()` |
+| `Set<E>` | Same number of elements and each element in one set has an equal element in the other set | **No** | `equals()` defines duplicate elements; `hashCode()` must be compatible with hash sets |
+| `Map<K,V>` | Same set of key → value mappings | **No** dependency on insertion order | Keys use appropriate `equals()/hashCode()`; values are compared using `equals()` |
+| `Collection<E>` in general | No single universal `equals()` rule for all implementations | Depends on concrete type | Do not assume all collections are compared by the same criteria |
 
-Các hợp đồng của `List`, `Set` và `Map` được định nghĩa trên interface tương ứng; ví dụ một `ArrayList` và một `List.of(...)` có thể bằng nhau nếu thứ tự, kích thước và phần tử tương ứng bằng nhau. Ngược lại, một `List` không trở thành bằng một `Set` chỉ vì chứa các giá trị nhìn giống nhau. `Collection` chỉ là giao diện chung, không áp một phép so giá trị thống nhất lên mọi implementation.
+The contracts of `List`, `Set`, and `Map` are defined on their respective interfaces; for example, an `ArrayList` and a `List.of(...)` can be equal if their order, size, and corresponding elements match. Conversely, a `List` does not become equal to a `Set` merely by containing values that look similar. `Collection` is only a common superinterface and does not impose a uniform value-comparison rule on every implementation.
 
-### Ví dụ suy luận từng tầng
+### Level-by-Level Reasoning Example
 
-Giả sử:
+Suppose:
 
 ~~~java
 List<Set<String>> left = List.of(
@@ -37,11 +37,11 @@ List<Set<String>> right = List.of(
 );
 ~~~
 
-`left.equals(right)` là `true`: hai `List` có hai vị trí tương ứng, trong đó `Set.of("A", "B")` bằng `Set.of("B", "A")` vì set không tính thứ tự.
+`left.equals(right)` is `true`: the two `List` instances have two matching positions, where `Set.of("A", "B")` equals `Set.of("B", "A")` because sets ignore order.
 
-Nếu hoán đổi **vị trí hai set** của `right` thành `List.of(Set.of("C"), Set.of("A", "B"))`, kết quả sẽ là `false` vì list ngoài có thứ tự.
+If you swap **the positions of the two sets** in `right` to `List.of(Set.of("C"), Set.of("A", "B"))`, the result will be `false` because the outer list is ordered.
 
-Nếu tầng ngoài là `Set<List<String>>`, thứ tự của các **list thành viên** không quan trọng, nhưng thứ tự các chuỗi **bên trong mỗi list** vẫn quan trọng:
+If the outer level is `Set<List<String>>`, the order of the **member lists** does not matter, yet the order of strings **inside each list** still matters:
 
 ~~~java
 Set<List<String>> a = Set.of(List.of("A", "B"), List.of("C"));
@@ -51,24 +51,24 @@ Set<List<String>> c = Set.of(List.of("C"), List.of("B", "A"));
 // a.equals(b) == true; a.equals(c) == false.
 ~~~
 
-Những kết luận trên xuất phát từ hợp đồng của từng tầng, chứ không phải từ việc Java sử dụng một cơ chế “so sánh sâu” riêng biệt.
+These conclusions follow from the contract at each level, not from Java using a separate "deep comparison" mechanism.
 
-## 2. Tầng cuối phụ thuộc vào `equals()` của đối tượng
+## 2. The Leaf Level Depends on Object `equals()`
 
-Giả sử `Product` có hai trường:
+Suppose `Product` has two fields:
 
-- `sku`: mã sản phẩm duy nhất theo nghiệp vụ, cố định trong vòng đời đối tượng.
-- `displayName`: tên trình bày; hai bản ghi cùng `sku` có thể dùng tên khác nhau nhưng vẫn biểu diễn **cùng sản phẩm**.
+- `sku`: unique product code per business rules, fixed over the object's lifetime.
+- `displayName`: presentation name; two records with the same `sku` may use different names while still representing **the same product**.
 
-Nếu định nghĩa bằng nhau của sản phẩm là “cùng SKU” thì hai bản thể hiện `new Product("P-1", "Bút")` và `new Product("P-1", "Pen")` phải được `Product.equals()` coi là bằng nhau. Khi chúng xuất hiện trong hai list hoặc set tương ứng, collection cũng phải tính chúng như những phần tử bằng nhau.
+If product equality is defined as "same SKU", then the two instances `new Product("P-1", "Bút")` and `new Product("P-1", "Pen")` must be treated as equal by `Product.equals()`. When they appear in two corresponding lists or sets, the collection must also treat them as equal elements.
 
-Đây là cách cài đặt **một quy tắc nghiệp vụ cụ thể**, không phải mặc định cho mọi lớp: với kiểu giá trị khác, tên hoặc những thuộc tính khác có thể là một phần của định nghĩa bằng nhau. Nếu `Product` **không ghi đè `equals()`**, nó sẽ thừa kế `Object.equals()`, vốn so đồng nhất tham chiếu; hai instance được tạo bằng hai lệnh `new` khác nhau thường không bằng nhau dù trường `sku` giống hệt.
+This implements **a specific business rule**, not a default for all classes: for another value type, the name or other attributes might be part of the equality definition. If `Product` **does not override `equals()`**, it inherits `Object.equals()`, which compares reference identity; two instances created by two separate `new` calls are normally unequal even if their `sku` fields are identical.
 
-Một lớp tự định nghĩa `equals()` cần đồng thời ghi đè `hashCode()`: nếu `a.equals(b)` đúng, `a.hashCode() == b.hashCode()` phải đúng. Điều này đặc biệt quan trọng vì tầng `Set` hoặc khóa `Map` có thể dùng hash ngay cả khi tầng ngoài là `List`.
+A class defining a custom `equals()` must also override `hashCode()`: if `a.equals(b)` is true, `a.hashCode() == b.hashCode()` must be true. This is especially important because a `Set` level or `Map` key may use hashing even when the outer level is a `List`.
 
-## 3. Ví dụ Java 17 chạy được: `List<Set<T>>`, `Set<List<T>>` và `Map<String,List<T>>`
+## 3. Runnable Java 17 Example: `List<Set<T>>`, `Set<List<T>>`, and `Map<String,List<T>>`
 
-Tạo tệp **`NestedCollectionEqualityDemo.java`**:
+Create the file **`NestedCollectionEqualityDemo.java`**:
 
 ~~~java
 import java.util.ArrayList;
@@ -187,14 +187,14 @@ public class NestedCollectionEqualityDemo {
 }
 ~~~
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ~~~bash
 javac NestedCollectionEqualityDemo.java
 java NestedCollectionEqualityDemo
 ~~~
 
-**Đầu ra chuẩn:**
+**Standard output:**
 
 ~~~text
 list of sets equal: true
@@ -209,115 +209,115 @@ nested value lists equal: true
 nested hash changed after mutation: true
 ~~~
 
-Giải thích từng nhóm kết quả:
+Explanation of each output group:
 
-1. Hai `groupsA` và `groupsB` bằng nhau vì từng set ở cùng vị trí chứa các SKU tương đương; thứ tự khai báo bên trong set và `displayName` khác nhau không làm thay đổi kết quả.
-2. Khi toàn bộ hai list bằng nhau theo hợp đồng, hash của chúng cũng phải bằng nhau. `List.hashCode()` dựa vào hash của các phần tử, trong ví dụ là các `Set<Product>`.
-3. `reversedGroups` đổi thứ tự **hai set trong list ngoài** nên không bằng `groupsA`.
-4. `listsA` và `listsB` đều là set chứa hai list bằng nhau; đảo thứ tự liệt kê **hai list trong set ngoài** không ảnh hưởng. Nhưng đổi vị trí `A` và `B` **bên trong một list** làm kết quả thành `false`.
-5. Hai `LinkedHashMap` có các entry cùng khóa và các list giá trị tương đương nên bằng nhau, dù được chèn theo thứ tự khác nhau. `mapC` khác `mapA` vì giá trị list của khóa `"front"` đã đảo thứ tự.
-6. Hai `int[]` chứa `1, 2` là hai đối tượng mảng khác nhau. Mảng Java không ghi đè `Object.equals()` theo nội dung; `List<int[]>` gọi `equals()` của mảng và cho `false`. Thay mỗi mảng bằng `List<Integer>` cho kết quả bằng nhau theo từng số nguyên.
-7. `outer` là một list **không cho sửa cấu trúc trực tiếp**, nhưng nó chứa tham chiếu tới `inner` có thể thay đổi. Khi thêm `"B"` vào `inner`, hash tính qua các tầng của `outer` thay đổi. Việc chèn `outer` vào `HashSet` trước đó tạo ra tình huống nguy hiểm: đường tra cứu theo hash hiện tại có thể không khớp vị trí đã chèn. Ví dụ chỉ in việc hash thay đổi, **không dựa vào một kết quả `contains()` sau khi cấu trúc đã bị làm mất ổn định**.
+1. `groupsA` and `groupsB` are equal because each set at the same position contains equivalent SKUs; declaration order inside the sets and differing `displayName` values do not change the result.
+2. When both outer lists are equal under the contract, their hashes must also be equal. `List.hashCode()` relies on the hashes of its elements, which in this example are `Set<Product>` instances.
+3. `reversedGroups` swaps the order of **the two sets in the outer list**, so it does not equal `groupsA`.
+4. `listsA` and `listsB` are both sets containing two equal lists; swapping the listing order of **the two lists in the outer set** has no effect. However, swapping `A` and `B` **inside a list** makes the result `false`.
+5. The two `LinkedHashMap` instances have entries with the same keys and equivalent value lists, so they are equal even though inserted in different orders. `mapC` differs from `mapA` because the list value for key `"front"` has reversed order.
+6. The two `int[]` arrays containing `1, 2` are two distinct array objects. Java arrays do not override `Object.equals()` by content; `List<int[]>` calls the array's `equals()` and yields `false`. Replacing each array with `List<Integer>` yields equality by each integer value.
+7. `outer` is a list **whose direct structure cannot be modified**, yet it holds a reference to the mutable `inner`. When `"B"` is added to `inner`, the hash computed across the levels of `outer` changes. Having inserted `outer` into `HashSet` beforehand creates a dangerous situation: the current hash lookup path may no longer match the inserted slot. The example only prints that the hash changed, **not relying on a `contains()` result after the structure has been destabilized**.
 
-`displayName` trong `Product` được giữ để làm rõ rằng việc một trường **không thuộc định nghĩa bằng nhau** khác nhau giữa hai instance không làm thay đổi equality của collection.
+`displayName` in `Product` is kept to make clear that differing values in a field **outside the equality definition** between two instances do not alter collection equality.
 
-## 4. `equals()` lan qua các tầng thế nào?
+## 4. How Does `equals()` Propagate Through Levels?
 
-Có thể đọc `List<Set<Product>>` theo sơ đồ:
+You can read `List<Set<Product>>` as a diagram:
 
 ~~~text
 List.equals(otherList)
-  ├─ kiểm tra kích thước và vị trí thứ nhất
+  ├─ check size and first position
   │    └─ Set.equals(otherSet)
-  │         └─ tìm phần tử tương đương
+  │         └─ find equivalent element
   │              └─ Product.equals(otherProduct)
-  └─ kiểm tra vị trí thứ hai
+  └─ check second position
        └─ Set.equals(otherSet)
             └─ Product.equals(otherProduct)
 ~~~
 
-Mỗi lớp gọi phương thức bình đẳng theo **hợp đồng của kiểu đối tượng tại tầng đó**. Với `List<List<Product>>`, cả hai tầng list yêu cầu thứ tự. Với `Set<Set<Product>>`, cả hai tầng set bỏ qua thứ tự của các phần tử. Với `Map<Key,List<Set<Product>>>`, map bỏ qua thứ tự entry; value là list nên giữ thứ tự các set; từng set lại không xét thứ tự sản phẩm bên trong.
+Each layer invokes the equality method according to **the contract of the object type at that layer**. For `List<List<Product>>`, both list layers require order. For `Set<Set<Product>>`, both set layers ignore element order. For `Map<Key,List<Set<Product>>>`, the map ignores entry order; the value is a list so it preserves the order of the sets; each set ignores the order of products inside it.
 
-Điều này dẫn đến hai hệ quả quan trọng:
+This leads to two important consequences:
 
-- **Kiểu chứa khác thì ngữ nghĩa khác:** thay tầng ngoài từ `List` sang `Set` có thể làm mất phân biệt thứ tự, thay một tầng từ `Set` sang `List` có thể khiến thứ tự trở thành một phần của bằng nhau.
-- **Kiểu phần tử khác thì ngữ nghĩa khác:** thay `Product` có equality theo SKU bằng một lớp không override `equals()` khiến hai bản thể hiện cùng SKU có thể không còn bằng nhau; đổi cách triển khai `Product.equals()` cũng ảnh hưởng toàn bộ cấu trúc chứa nó.
+- **Different container types mean different semantics:** changing an outer layer from `List` to `Set` can discard order distinction; changing a layer from `Set` to `List` can make order part of equality.
+- **Different element types mean different semantics:** replacing `Product` (which has SKU-based equality) with a class that does not override `equals()` causes two instances with the same SKU to stop being equal; changing the implementation of `Product.equals()` also affects every structure containing it.
 
-Không phải mọi đối tượng lồng nhau đều là collection. Nếu phần tử là `LocalDate`, `String`, `BigDecimal`, mảng, một record hay lớp miền, tầng ngoài sử dụng đúng `equals()` do kiểu phần tử đó định nghĩa. Chẳng hạn `BigDecimal("1.0")` và `BigDecimal("1.00")` không bằng nhau theo `BigDecimal.equals()` dù có thể so giá trị số học tương đương bằng `compareTo() == 0`; đặt chúng vào hai list tương ứng **không tự chuyển** sang phép so số học. Hãy chọn và chuẩn hóa kiểu giá trị theo yêu cầu nghiệp vụ trước khi dùng làm phần tử.
+Not every nested object is a collection. If an element is a `LocalDate`, `String`, `BigDecimal`, array, record, or domain class, the outer layer uses the exact `equals()` defined by that element type. For example, `BigDecimal("1.0")` and `BigDecimal("1.00")` are not equal under `BigDecimal.equals()` even though they compare numerically equal via `compareTo() == 0`; placing them into two corresponding lists **does not automatically switch** to numeric comparison. Choose and normalize value types according to business requirements before using them as elements.
 
-## 5. `hashCode()` của cấu trúc lồng nhau phải nhất quán
+## 5. `hashCode()` of Nested Structures Must Be Consistent
 
-`List`, `Set` và `Map` đều có quy tắc mã băm gắn với hợp đồng bằng nhau của chúng:
+`List`, `Set`, and `Map` all have hash code rules tied to their equality contracts:
 
-- `List.hashCode()` kết hợp mã băm từng phần tử **theo thứ tự**.
-- `Set.hashCode()` lấy tổng mã băm của các phần tử; về bản chất **không phụ thuộc thứ tự**.
-- `Map.hashCode()` lấy tổng mã băm của các entry; mỗi entry kết hợp hash của key và value, **không phụ thuộc thứ tự entry**.
+- `List.hashCode()` combines each element's hash code **in order**.
+- `Set.hashCode()` sums the hash codes of its elements; by nature, it is **order-independent**.
+- `Map.hashCode()` sums the hash codes of its entries; each entry combines key and value hashes, **independent of entry order**.
 
-Vì thế, một thay đổi ở `hashCode()` của phần tử trong cùng có thể lan ra hash của set, rồi tới list, rồi tới object khác đang chứa list đó.
+Therefore, a change in the `hashCode()` of the innermost element can propagate to the set's hash, then to the list's hash, and then to another object containing that list.
 
-Giả sử `Product.equals()` chỉ so `sku` nhưng `Product.hashCode()` lại đưa thêm `displayName` vào phép băm. Khi đó, hai `Product` cùng SKU khác tên có thể **bằng nhau nhưng hash khác nhau**. Một `Set<Product>` có thể tra cứu, kiểm tra phần tử trùng và so bằng nhau không còn đúng hợp đồng; hai `List<Set<Product>>` tưởng như cùng giá trị cũng có thể nhận hash khác nhau. Vấn đề bắt nguồn từ `Product` và lan lên collection lồng ngoài.
+Suppose `Product.equals()` compares only `sku`, yet `Product.hashCode()` includes `displayName` in the hash calculation. Then two `Product` instances with the same SKU and different names could be **equal yet have different hashes**. A `Set<Product>` may no longer obey the contract for lookup, deduplication, and equality comparison; two `List<Set<Product>>` instances that appear equal could also receive different hashes. The problem originates in `Product` and propagates up to the outer nested collections.
 
-Cần nhớ điều kiện **một chiều**:
+Remember the **one-way** condition:
 
 ~~~text
 a.equals(b) == true  =>  a.hashCode() == b.hashCode()
 ~~~
 
-Chiều ngược lại không bắt buộc: hai phần tử khác nhau được phép trùng hash. Không được dùng `hashCode() == hashCode()` làm bằng chứng rằng hai object hoặc hai collection bằng nhau. Muốn so bằng nhau phải gọi `equals()`.
+The converse is not required: two unequal elements are permitted to share the same hash. Never use `hashCode() == hashCode()` as proof that two objects or two collections are equal. To test equality, you must call `equals()`.
 
-Với `Map<K,V>`, hash và equality không chỉ phụ thuộc vào key mà còn phụ thuộc vào **value**. Nếu value là collection có thể bị sửa, map nhìn tổng thể có thể đổi `equals()/hashCode()` theo value ngay cả khi các key không đổi. Đây là rủi ro đặc biệt khi chính map (hoặc một collection chứa map) được dùng làm khóa/phần tử trong một cấu trúc hash khác.
+For `Map<K,V>`, hash and equality depend not only on keys but also on **values**. If a value is a mutable collection, the map as a whole can change its `equals()/hashCode()` along with the value even when keys remain unchanged. This is a particular risk when the map itself (or a collection containing the map) is used as a key or element in another hash structure.
 
-## 6. Mảng và null ở tầng phần tử cuối
+## 6. Arrays and Null at the Leaf Element Level
 
-Một tầng `List` không tự so sâu phần tử `int[]`:
+A `List` layer does not automatically deep-compare `int[]` elements:
 
 ~~~java
 List<int[]> a = List.of(new int[] {1, 2});
 List<int[]> b = List.of(new int[] {1, 2});
-// a.equals(b) == false: hai phần tử là hai mảng riêng.
+// a.equals(b) == false: the two elements are two separate arrays.
 ~~~
 
-Để coi mảng là giá trị, phải chọn cách so sánh theo nội dung (`Arrays.equals`/`Arrays.deepEquals` phù hợp) và một kiểu bọc có `equals/hashCode` tương ứng nếu dùng làm phần tử hoặc khóa băm. Bài về **phần tử mảng trong Collection** có chương trình và kỹ thuật sao chép phòng vệ đầy đủ.
+To treat arrays as values, you must choose content-based comparison (`Arrays.equals`/`Arrays.deepEquals` as appropriate) and a wrapper type with matching `equals/hashCode` if used as an element or hash key. The lesson on **array elements in Collections** provides a full program and defensive copying techniques.
 
-`null` được một số kiểu như `ArrayList`, `HashSet`, `HashMap` chấp nhận và xử lý theo hợp đồng bằng nhau của từng tầng; `List.of`, `Set.of`, `Map.of` từ chối phần tử/khóa/giá trị `null`. Không dùng thứ tự duyệt của `Set` để suy đoán bình đẳng của collection lồng nhau.
+`null` is accepted by some types such as `ArrayList`, `HashSet`, and `HashMap` and handled according to each layer's equality contract; `List.of`, `Set.of`, and `Map.of` reject `null` elements, keys, and values. Do not use `Set` iteration order to infer equality of nested collections.
 
-## 7. Phần tử mutable có thể đổi cả hash của cấu trúc ngoài
+## 7. Mutable Elements Can Change Even the Outer Structure's Hash
 
-Một collection bên ngoài không cho sửa cấu trúc vẫn có thể giữ tham chiếu đến một collection con sửa được:
+An outer collection that forbids structural modification can still hold a reference to a mutable inner collection:
 
 ~~~java
 List<String> inner = new ArrayList<>(List.of("A"));
 List<List<String>> outer = List.of(inner);
-inner.add("B"); // outer vẫn có một phần tử, nhưng giá trị phần tử đã đổi.
+inner.add("B"); // outer still has one element, but the element's value has changed.
 ~~~
 
-Nếu `outer` đang là phần tử của `HashSet`, `outer.hashCode()` có thể đổi sau khi chèn, khiến `contains` hoặc `remove` không còn tìm đúng dữ liệu. Với các phần tử `String` bất biến, `List.copyOf(inner)` trước khi lồng giúp tách **cấu trúc** của list con khỏi `inner`; với đối tượng mutable, cần sao chép hoặc chuyển đổi trạng thái phần tử riêng.
+If `outer` is currently an element of a `HashSet`, `outer.hashCode()` can change after insertion, causing `contains` or `remove` to fail to find the data properly. With immutable `String` elements, calling `List.copyOf(inner)` before nesting isolates the **structure** of the inner list from `inner`; with mutable objects, you must copy or transform element state separately.
 
-Chọn dữ liệu tham gia `equals/hashCode` ổn định trong suốt thời gian làm khóa hoặc phần tử của cấu trúc băm. Bài cuối chương phân biệt kỹ `Collections.unmodifiableXxx`, bản sao nông và bất biến sâu.
+Choose data participating in `equals/hashCode` that stays stable throughout its time as a key or element in a hash structure. The final lesson of the chapter carefully distinguishes `Collections.unmodifiableXxx`, shallow copies, and deep immutability.
 
-## 8. Những lỗi nhận thức thường gặp
+## 8. Common Cognitive Mistakes
 
-| Nhận định dễ nhầm | Điều đúng cần nhớ |
+| Common Misconception | What to Remember |
 | --- | --- |
-| “Hai collection có cùng số phần tử và cùng dữ liệu nhìn thấy thì bằng nhau.” | Còn phụ thuộc loại collection, thứ tự và `equals()` từng phần tử |
-| “Set bỏ qua thứ tự nên Set<List<T>> cũng bỏ qua thứ tự trong mỗi list.” | Sai: set ngoài bỏ qua thứ tự các list, **list con vẫn có thứ tự** |
-| “Map được chèn theo thứ tự khác sẽ không bằng nhau.” | `Map.equals()` không dựa vào thứ tự chèn; so ánh xạ khóa–giá trị |
-| “Các Product có cùng SKU đương nhiên bằng nhau.” | Phải cài đặt `Product.equals()` theo SKU nếu đó là hợp đồng nghiệp vụ |
-| “Cứ dùng `equals()`, không cần quan tâm `hashCode()`.” | Sai với hash collections và hash của collection lồng nhau |
-| “Mảng có cùng nội dung nên bằng nhau trong List.” | Mảng dùng identity equality nếu không có lớp bọc hoặc chuyển đổi |
-| “`List.of(...)` làm mọi thứ bên trong bất biến.” | Chỉ cấu trúc list ngoài không cho sửa; phần tử mutable vẫn có thể đổi |
-| “Hai hash giống nhau nghĩa là hai collection bằng nhau.” | Hash trùng có thể do collision; phải kiểm tra `equals()` |
+| "Two collections with the same number of elements and the same visible data are equal." | Still depends on collection type, order, and each element's `equals()` |
+| "Set ignores order, so Set<List<T>> also ignores order inside each list." | Wrong: the outer set ignores the order of lists, **the inner lists remain ordered** |
+| "Maps inserted in different orders will not be equal." | `Map.equals()` does not rely on insertion order; it compares key–value mappings |
+| "Products with the same SKU are naturally equal." | You must implement `Product.equals()` by SKU if that is the business contract |
+| "Just use `equals()`, no need to care about `hashCode()`." | Wrong for hash collections and hashes of nested collections |
+| "Arrays with the same contents are equal inside a List." | Arrays use identity equality unless wrapped or converted |
+| "`List.of(...)` makes everything inside immutable." | Only the outer list structure cannot be modified; mutable elements can still change |
+| "Two identical hashes mean the two collections are equal." | Matching hashes can result from collisions; you must check `equals()` |
 
-## 9. Checklist thiết kế và kiểm thử
+## 9. Design and Testing Checklist
 
-Khi xử lý một kiểu như `List<Set<T>>`, `Set<List<T>>` hoặc `Map<K,List<V>>`:
+When working with a type like `List<Set<T>>`, `Set<List<T>>`, or `Map<K,List<V>>`:
 
-1. Vẽ ra **từng tầng** và ghi rõ tầng nào giữ thứ tự (list), tầng nào không (set/map).
-2. Xác định `equals()` và `hashCode()` của kiểu phần tử/khóa cuối cùng; nếu dùng class tự viết, kiểm tra bằng nhau có đúng nhu cầu nghiệp vụ.
-3. Tạo **hai cấu trúc riêng biệt** với cùng dữ liệu logic, không chỉ so object với chính nó.
-4. Đổi thứ tự ở tầng `Set` và xác nhận equality không đổi; đổi thứ tự ở tầng `List` và xác nhận equality đổi **khi vị trí các phần tử thực sự khác nhau**.
-5. Cho hai object phần tử cùng khóa bằng nhau nhưng khác trường hiển thị; xác nhận collection vẫn bằng nhau và hash cũng bằng nhau.
-6. Kiểm tra mảng, `null`, kiểu số có quy tắc `equals()` đặc thù, và các tình huống phần tử mutable theo nhu cầu.
-7. Với cấu trúc được lưu làm key trong hash collection, bảo đảm không thay đổi ngầm bất kỳ giá trị lồng sâu nào ảnh hưởng equality hoặc hash.
+1. Sketch out **each layer** and mark clearly which layers preserve order (lists) and which do not (sets/maps).
+2. Define `equals()` and `hashCode()` for the leaf element/key type; if using a custom class, verify equality matches business requirements.
+3. Construct **two separate structures** with the same logical data, rather than only comparing an object with itself.
+4. Change order at a `Set` layer and confirm equality stays unchanged; change order at a `List` layer and confirm equality changes **when element positions actually differ**.
+5. Provide two element objects with equal keys but different display fields; confirm the collections are still equal and their hashes are also equal.
+6. Test arrays, `null`, numeric types with special `equals()` rules, and mutable element cases as needed.
+7. For structures stored as keys in hash collections, ensure no deeply nested value affecting equality or hash is silently mutated.
 
-**Ghi nhớ:** Bằng nhau của collection lồng nhau là kết quả của **nhiều hợp đồng `equals()` được áp dụng nối tiếp**. `List` so theo vị trí, `Set` so theo thành viên, `Map` so theo entry; mỗi tầng sử dụng equality của những object nó chứa. Thiết kế đúng `equals()/hashCode()` của phần tử và giữ giá trị khóa ổn định là điều kiện để cả cấu trúc lồng nhau hoạt động đúng.
+**Takeaway:** Equality of nested collections is the result of **multiple `equals()` contracts applied in sequence**. `List` compares by position, `Set` compares by membership, and `Map` compares by entry; each layer uses the equality of the objects it contains. Properly designing element `equals()/hashCode()` and keeping key values stable are prerequisites for the entire nested structure to behave correctly.

@@ -1,36 +1,36 @@
-# ServiceLoader.load với ModuleLayer
+# ServiceLoader.load with ModuleLayer
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể giải thích cách Java tìm service provider trong một module layer, cấu hình ba vai trò API, consumer và provider bằng JPMS, rồi nạp provider từ một thư mục plugin lúc chạy bằng ServiceLoader.
+After this lesson, you will be able to explain how Java locates service providers within a module layer, configure the three roles of API, consumer, and provider with JPMS, and load providers from a plugin directory at runtime using ServiceLoader.
 
-## 1. Vì sao kết hợp ServiceLoader với ModuleLayer?
+## 1. Why combine ServiceLoader with ModuleLayer?
 
-ServiceLoader là cơ chế Service Provider Interface (SPI) của Java. Ứng dụng phụ thuộc vào một interface dịch vụ, còn các module khác cung cấp những lớp triển khai interface đó. Consumer chỉ biết kiểu dịch vụ; nó không cần phụ thuộc trực tiếp vào từng provider.
+ServiceLoader is Java's Service Provider Interface (SPI) mechanism. An application depends on a service interface, while other modules provide classes implementing that interface. The consumer knows only the service type; it does not need to depend directly on each provider.
 
-Java Platform Module System (JPMS) mô tả quan hệ này trong module descriptor:
+The Java Platform Module System (JPMS) describes these relationships in module descriptors:
 
-- Module định nghĩa API xuất package chứa interface bằng exports.
-- Module sử dụng dịch vụ khai báo uses.
-- Module cung cấp triển khai khai báo provides ... with ....
+- The module defining the API exports the package containing the interface using exports.
+- The module using the service declares uses.
+- The module providing an implementation declares provides ... with ....
 
-Khi tất cả module đã có mặt lúc khởi động, các provider có thể được phân giải vào boot layer. Nhưng với ứng dụng plugin, ta thường muốn phát hiện và nạp module provider từ một thư mục sau khi ứng dụng đã chạy. ModuleLayer cho phép tạo một lớp module mới dựa trên một Configuration và một hoặc nhiều layer cha.
+When all modules are present at startup, providers can be resolved into the boot layer. However, in plugin-based applications, we often want to discover and load provider modules from a directory after the application has already started. ModuleLayer allows creating a new layer of modules based on a Configuration and one or more parent layers.
 
-Overload ServiceLoader.load(ModuleLayer, Class) kết nối hai cơ chế này: nó tìm provider của kiểu dịch vụ trong layer được chỉ định và các layer cha của layer đó. Vì vậy, ứng dụng có thể nạp plugin theo từng layer mà không cần thêm các module plugin vào module path của tiến trình ngay từ đầu.
+The ServiceLoader.load(ModuleLayer, Class) overload connects these two mechanisms: it searches for providers of the service type in the specified layer and its parent layers. Therefore, an application can load plugins layer by layer without adding the plugin modules to the process's module path upfront.
 
-## 2. Ba thành phần của ví dụ
+## 2. Three components of the example
 
-Ta xây dựng một dịch vụ chào hỏi với ba module:
+We will build a greeting service with three modules:
 
-| Module | Vai trò | Trách nhiệm |
+| Module | Role | Responsibility |
 |---|---|---|
-| com.acme.greeting.api | Service API | Khai báo và export GreetingService |
-| com.acme.greeting.app | Consumer | Khai báo uses, tạo layer và gọi ServiceLoader |
-| com.acme.greeting.vi | Provider | Cài đặt GreetingService và khai báo provides |
+| com.acme.greeting.api | Service API | Declare and export GreetingService |
+| com.acme.greeting.app | Consumer | Declare uses, create the layer, and call ServiceLoader |
+| com.acme.greeting.vi | Provider | Implement GreetingService and declare provides |
 
-Khi chạy, API và ứng dụng nằm trong boot layer. Provider được đóng gói thành modular JAR trong thư mục plugins và được nạp vào một layer con.
+At runtime, the API and application reside in the boot layer. The provider is packaged as a modular JAR in the plugins directory and loaded into a child layer.
 
-Cấu trúc mã nguồn có thể tổ chức như sau:
+The source structure can be organized as follows:
 
 ~~~text
 src/
@@ -52,11 +52,11 @@ plugins/
   com.acme.greeting.vi.jar
 ~~~
 
-Điểm quan trọng là JAR provider nằm trong plugins, không nằm trong mods khi khởi động ứng dụng. Nhờ vậy, provider được phân giải vào layer mới thay vì boot layer.
+The key point is that the provider JAR is in plugins, not in mods when launching the application. Because of this, the provider is resolved into the new layer instead of the boot layer.
 
-## 3. Khai báo module API
+## 3. Declaring the API module
 
-File module-info.java của module API:
+The module-info.java file for the API module:
 
 ~~~java
 module com.acme.greeting.api {
@@ -64,7 +64,7 @@ module com.acme.greeting.api {
 }
 ~~~
 
-Interface dịch vụ:
+The service interface:
 
 ~~~java
 package com.acme.greeting.api;
@@ -74,11 +74,11 @@ public interface GreetingService {
 }
 ~~~
 
-Package chứa interface phải được export để consumer và provider có thể tham chiếu kiểu GreetingService. Đây là kiểu hợp đồng chung giữa các module; consumer không cần biết tên lớp triển khai cụ thể.
+The package containing the interface must be exported so that the consumer and provider can reference the GreetingService type. This is the shared contract type across modules; the consumer does not need to know the concrete implementation class name.
 
-## 4. Khai báo module provider
+## 4. Declaring the provider module
 
-File module-info.java của provider:
+The module-info.java file for the provider:
 
 ~~~java
 module com.acme.greeting.vi {
@@ -89,7 +89,7 @@ module com.acme.greeting.vi {
 }
 ~~~
 
-Lớp triển khai:
+The implementation class:
 
 ~~~java
 package com.acme.greeting.vi;
@@ -103,18 +103,18 @@ public final class VietnameseGreetingService implements GreetingService {
 
     @Override
     public String greet(String name) {
-        return "Xin chào, " + name + "!";
+        return "Hello, " + name + "!";
     }
 }
 ~~~
 
-Provider yêu cầu module API vì nó triển khai interface được khai báo ở đó. Chỉ thị provides đăng ký lớp triển khai cho service type. Với cách đăng ký này, package chứa lớp provider không cần export cho consumer chỉ để ServiceLoader tìm và tạo provider.
+The provider requires the API module because it implements the interface declared there. The provides directive registers the implementation class for the service type. With this registration, the package containing the provider class does not need to be exported to the consumer just for ServiceLoader to locate and instantiate the provider.
 
-Module provider phải được đóng gói thành một module mà ModuleFinder có thể tìm thấy, thường là một modular JAR có module-info.class. Thư mục plugin không nên chứa một bản sao khác của module API nếu API đã nằm trong layer cha.
+The provider module must be packaged as a module that ModuleFinder can discover, typically a modular JAR containing module-info.class. The plugin directory should not contain a duplicate copy of the API module if the API already resides in a parent layer.
 
-## 5. Khai báo module consumer
+## 5. Declaring the consumer module
 
-File module-info.java của ứng dụng:
+The module-info.java file for the application:
 
 ~~~java
 module com.acme.greeting.app {
@@ -124,13 +124,13 @@ module com.acme.greeting.app {
 }
 ~~~
 
-Chỉ thị uses là phần khai báo quan trọng ở phía consumer. Module chứa mã gọi ServiceLoader phải khai báo rằng nó sử dụng service type đó. Nếu thiếu uses trong một named module, lời gọi nạp dịch vụ có thể thất bại với IllegalCallerException.
+The uses directive is the essential declaration on the consumer side. The module containing the code that calls ServiceLoader must declare that it uses that service type. If uses is missing in a named module, the service loading call may fail with IllegalCallerException.
 
-Consumer chỉ phụ thuộc vào API. Nó không cần khai báo requires com.acme.greeting.vi, bởi provider sẽ được tìm thấy động khi tạo layer.
+The consumer depends only on the API. It does not need to declare requires com.acme.greeting.vi, because the provider will be discovered dynamically when creating the layer.
 
-## 6. Tạo layer mới và nạp provider
+## 6. Creating a new layer and loading the provider
 
-Trong Main.java, ta tìm module plugin, phân giải cấu hình dựa trên boot layer, tạo layer con rồi truyền layer đó cho ServiceLoader:
+In Main.java, we locate the plugin module, resolve a configuration based on the boot layer, create a child layer, and then pass that layer to ServiceLoader:
 
 ~~~java
 package com.acme.greeting.app;
@@ -152,30 +152,30 @@ public class Main {
             args.length == 0 ? "plugins" : args[0]
         );
 
-        // Tìm các module có trong thư mục plugin.
+        // Find modules located in the plugin directory.
         ModuleFinder pluginFinder = ModuleFinder.of(pluginDirectory);
 
-        // Nêu rõ module provider cần được đưa vào layer mới.
+        // Specify the provider module to include in the new layer.
         Set<String> roots = Set.of("com.acme.greeting.vi");
 
-        // Phân giải provider và các dependency của nó.
-        // Dependency đã có trong boot layer sẽ được lấy từ layer cha.
+        // Resolve the provider and its dependencies.
+        // Dependencies already present in the boot layer are taken from the parent layer.
         Configuration configuration = ModuleLayer.boot()
             .configuration()
             .resolve(pluginFinder, ModuleFinder.of(), roots);
 
-        // Tạo layer con. Các module mới dùng chung một class loader.
+        // Create a child layer. New modules share a single class loader.
         ModuleLayer pluginLayer = ModuleLayer.defineModulesWithOneLoader(
             configuration,
             List.of(ModuleLayer.boot()),
             ClassLoader.getSystemClassLoader()
         ).layer();
 
-        // Tìm service provider trong pluginLayer và các layer cha.
+        // Find service providers in pluginLayer and its parent layers.
         ServiceLoader<GreetingService> services =
             ServiceLoader.load(pluginLayer, GreetingService.class);
 
-        // Provider được khởi tạo khi ta duyệt kết quả.
+        // Providers are instantiated as we iterate through the results.
         services.forEach(service ->
             System.out.println(service.greet("Java"))
         );
@@ -183,21 +183,21 @@ public class Main {
 }
 ~~~
 
-Các bước có ý nghĩa như sau:
+The steps mean the following:
 
-1. ModuleFinder.of(pluginDirectory) tìm module trong thư mục plugin. Với ví dụ này, thư mục chứa JAR của com.acme.greeting.vi.
-2. roots chỉ định module gốc cần phân giải. ModuleFinder tìm thấy một JAR chưa có nghĩa module đó tự động được đưa vào layer; module phải thuộc đồ thị được phân giải từ các root.
-3. Configuration.resolve(...) giải quyết đồ thị module. Cấu hình boot layer là cấu hình cha; pluginFinder cung cấp các module mới, còn ModuleFinder.of() ở tham số thứ hai là nơi tìm module bổ sung sau finder thứ nhất.
-4. ModuleLayer.defineModulesWithOneLoader(...) định nghĩa các module đã phân giải trong layer con. Layer mới có boot layer làm cha và dùng một class loader chung cho các module mới.
-5. ServiceLoader.load(pluginLayer, GreetingService.class) tìm provider trong pluginLayer và các layer cha. Việc duyệt ServiceLoader sẽ kích hoạt quá trình tạo các provider được tìm thấy.
+1. ModuleFinder.of(pluginDirectory) searches for modules in the plugin directory. In this example, the directory contains the JAR for com.acme.greeting.vi.
+2. roots specifies the root module to resolve. The fact that ModuleFinder finds a JAR does not mean the module is automatically added to the layer; the module must belong to the graph resolved from the roots.
+3. Configuration.resolve(...) resolves the module graph. The boot layer's configuration is the parent configuration; pluginFinder supplies new modules, while ModuleFinder.of() as the second argument is an additional finder searched after the first finder.
+4. ModuleLayer.defineModulesWithOneLoader(...) defines the resolved modules in the child layer. The new layer has the boot layer as its parent and uses a single shared class loader for the new modules.
+5. ServiceLoader.load(pluginLayer, GreetingService.class) looks for providers in pluginLayer and its parent layers. Iterating over the ServiceLoader triggers the instantiation of the discovered providers.
 
-Nếu có nhiều module plugin độc lập, hãy thêm tên từng module vào roots. Nếu provider phụ thuộc vào module khác nằm trong thư mục plugin, các dependency đó sẽ được đưa vào đồ thị khi phân giải.
+If there are multiple independent plugin modules, add each module's name to roots. If a provider depends on another module located in the plugin directory, those dependencies will be pulled into the graph during resolution.
 
-## 7. Chạy ví dụ
+## 7. Running the example
 
-Đóng gói module API và module ứng dụng vào thư mục mods. Đóng gói module provider thành JAR riêng trong thư mục plugins. Khi biên dịch provider, module path phải chứa JAR của API để javac phân giải được chỉ thị requires.
+Package the API module and the application module into the mods directory. Package the provider module into a separate JAR in the plugins directory. When compiling the provider, the module path must contain the API JAR so javac can resolve the requires directive.
 
-Khởi chạy ứng dụng bằng lệnh:
+Launch the application with the command:
 
 ~~~bash
 java --module-path mods \
@@ -205,28 +205,28 @@ java --module-path mods \
      plugins
 ~~~
 
-Tham số plugins được truyền vào Main và dùng làm đường dẫn tìm module provider. Kết quả dự kiến:
+The plugins argument is passed to Main and used as the path to search for provider modules. Expected output:
 
 ~~~text
-Xin chào, Java!
+Hello, Java!
 ~~~
 
-Trong lần khởi chạy này, module API và consumer thuộc boot layer. Module provider được tìm từ thư mục plugins, phân giải và định nghĩa trong layer con. Không cần đưa JAR provider vào module path khởi động của ứng dụng.
+In this run, the API and consumer modules belong to the boot layer. The provider module is found from the plugins directory, resolved, and defined in the child layer. There is no need to place the provider JAR on the application's startup module path.
 
-## 8. Khác biệt giữa hai overload load thường gặp
+## 8. Differences between the two common load overloads
 
-ServiceLoader có hai cách nạp thường được dùng trong ứng dụng modular:
+ServiceLoader has two loading approaches commonly used in modular applications:
 
-- ServiceLoader.load(GreetingService.class) sử dụng thread context class loader để tìm provider. Cách này phù hợp với nhiều ứng dụng classpath và các tình huống discovery dựa trên class loader.
-- ServiceLoader.load(pluginLayer, GreetingService.class) chỉ rõ module layer làm phạm vi tìm kiếm. Provider được tìm trong layer đó và các layer cha, phù hợp khi ứng dụng tự tạo layer cho plugin.
+- ServiceLoader.load(GreetingService.class) uses the thread context class loader to locate providers. This approach fits many classpath applications and class-loader-based discovery scenarios.
+- ServiceLoader.load(pluginLayer, GreetingService.class) explicitly specifies a module layer as the search scope. Providers are searched within that layer and its parent layers, which is suitable when the application creates its own layers for plugins.
 
-Nếu ứng dụng quản lý plugin bằng ModuleLayer, truyền layer rõ ràng giúp phạm vi tìm provider dễ hiểu và ít phụ thuộc vào trạng thái thread context class loader hơn. Dù dùng overload nào, named module gọi ServiceLoader vẫn cần khai báo uses cho service type tương ứng.
+If an application manages plugins with ModuleLayer, passing the layer explicitly makes the provider search scope clear and less dependent on the state of the thread context class loader. Regardless of which overload is used, a named module calling ServiceLoader still needs to declare uses for the corresponding service type.
 
-## 9. Vòng đời và cách duyệt ServiceLoader
+## 9. Lifecycle and iterating over ServiceLoader
 
-ServiceLoader có tính lazy: việc tạo đối tượng ServiceLoader chưa có nghĩa mọi provider đã được khởi tạo. Provider được tạo khi ứng dụng duyệt iterator, gọi forEach hoặc lấy provider từ stream.
+ServiceLoader is lazy: creating a ServiceLoader object does not mean all providers have been instantiated. Providers are created when the application iterates the iterator, calls forEach, or retrieves providers from a stream.
 
-Có thể duyệt trực tiếp:
+You can iterate directly:
 
 ~~~java
 for (GreetingService service : services) {
@@ -234,7 +234,7 @@ for (GreetingService service : services) {
 }
 ~~~
 
-Hoặc dùng stream để xem thông tin provider trước khi lấy instance:
+Or use a stream to inspect provider information before obtaining an instance:
 
 ~~~java
 services.stream()
@@ -244,39 +244,39 @@ services.stream()
     );
 ~~~
 
-ServiceLoader lưu cache các provider đã được tìm và tạo trong vòng đời của loader đó. Gọi reload() sẽ xóa cache để lần duyệt tiếp theo tìm lại provider. reload() không tạo lại ModuleLayer và cũng không thay đổi đồ thị module đã phân giải.
+ServiceLoader caches providers that have been discovered and created during that loader's lifetime. Calling reload() clears the cache so the next iteration discovers providers again. reload() does not recreate the ModuleLayer and does not modify the resolved module graph.
 
-## 10. Những lỗi thường gặp
+## 10. Common errors
 
-| Hiện tượng | Nguyên nhân thường gặp | Cách kiểm tra |
+| Symptom | Common cause | What to check |
 |---|---|---|
-| IllegalCallerException khi gọi load(layer, service) | Named module gọi API chưa khai báo uses cho service type | Kiểm tra module-info.java của đúng module chứa lời gọi |
-| Không tìm thấy provider | JAR không nằm trong thư mục được ModuleFinder quét, module provider không nằm trong roots hoặc thiếu provides | Kiểm tra đường dẫn plugin, tên module và module descriptor |
-| FindException hoặc ResolutionException | Không tìm thấy module gốc hoặc dependency không thể phân giải | Kiểm tra tên module, module path và các requires |
-| ServiceConfigurationError khi duyệt | Provider khai báo sai hoặc không thể được khởi tạo | Kiểm tra lớp provider, constructor và chỉ thị provides |
-| ClassCastException hoặc provider không được nhận diện như service type | API bị nạp thành hai kiểu Class khác nhau bởi các class loader/layer khác nhau | Đặt module API ở layer cha và tránh đóng gói bản sao API trong plugin |
+| IllegalCallerException when calling load(layer, service) | Named module calling the API has not declared uses for the service type | Check module-info.java of the exact module containing the call |
+| No provider found | JAR is not in the directory scanned by ModuleFinder, provider module is not in roots, or missing provides | Check plugin path, module name, and module descriptor |
+| FindException or ResolutionException | Root module not found or dependency cannot be resolved | Check module name, module path, and requires directives |
+| ServiceConfigurationError when iterating | Provider is misdeclared or cannot be instantiated | Check provider class, constructor, and provides directive |
+| ClassCastException or provider not recognized as service type | API was loaded as two different Class types by different class loaders/layers | Place the API module in a parent layer and avoid packaging a copy of the API in the plugin |
 
-Khi không có provider nào được tìm thấy, hãy kiểm tra cả hai phía: module provider có khai báo provides đúng service type hay chưa, và module đó đã thực sự được đưa vào layer hay chưa. Chỉ đặt JAR vào thư mục plugin chưa đủ nếu tên module của nó không nằm trong tập roots và cũng không phải dependency của một root khác.
+When no providers are found, check both sides: whether the provider module declares provides for the correct service type, and whether that module was actually brought into the layer. Simply placing a JAR in the plugin directory is not enough if its module name is neither in the roots set nor a dependency of another root.
 
-## 11. Chọn cách tạo class loader
+## 11. Choosing how to create class loaders
 
-Ví dụ dùng defineModulesWithOneLoader vì cấu hình này tạo một class loader cho các module mới trong layer. Nó phù hợp với nhiều hệ thống plugin đơn giản, nơi các module plugin có thể dùng chung một loader.
+The example uses defineModulesWithOneLoader because this configuration creates a single class loader for the new modules in the layer. It suits many simple plugin systems where plugin modules can share one loader.
 
-defineModulesWithManyLoaders tạo class loader riêng cho từng module trong layer. Cách này có thể hữu ích khi cần ranh giới class loader rõ hơn giữa các module. Dù chọn cách nào, quyền đọc module vẫn do đồ thị JPMS quyết định; class loader riêng không biến ModuleLayer thành sandbox bảo mật.
+defineModulesWithManyLoaders creates a separate class loader for each module in the layer. This can be useful when clearer class loader boundaries between modules are needed. Whichever approach is chosen, module readability is still governed by the JPMS graph; separate class loaders do not turn ModuleLayer into a security sandbox.
 
-Một ModuleLayer cũng không phải tiến trình riêng. Mã plugin vẫn chạy trong cùng JVM và có thể sử dụng các quyền mà tiến trình đang có. Nếu cần cô lập mã không đáng tin cậy, phải thiết kế biên an toàn ở cấp tiến trình hoặc môi trường thực thi khác.
+A ModuleLayer is also not a separate process. Plugin code still runs inside the same JVM and can use the permissions the process holds. If untrusted code needs to be isolated, security boundaries must be designed at the process level or in another execution environment.
 
-## 12. Khi nào nên dùng ServiceLoader.load với ModuleLayer?
+## 12. When should you use ServiceLoader.load with ModuleLayer?
 
-Cách này phù hợp khi ứng dụng cần:
+This approach is suitable when an application needs to:
 
-- Nạp plugin sau khi ứng dụng đã khởi động.
-- Giữ API dịch vụ ổn định trong layer cha, còn provider thay đổi theo thư mục plugin.
-- Phân giải một nhóm module plugin và dependency của chúng thành một layer riêng.
-- Tìm provider theo đồ thị module cụ thể thay vì dựa vào thread context class loader.
+- Load plugins after the application has already started.
+- Keep the service API stable in a parent layer while providers vary by plugin directory.
+- Resolve a group of plugin modules and their dependencies into a separate layer.
+- Search for providers against a specific module graph instead of relying on the thread context class loader.
 
-Nếu ứng dụng chỉ dùng classpath và không tạo module layer riêng, ServiceLoader.load(service) thường đơn giản hơn. Khi ứng dụng đã quản lý plugin bằng JPMS và ModuleLayer, ServiceLoader.load(layer, service) thể hiện rõ nơi cần tìm provider.
+If an application uses only the classpath and does not create custom module layers, ServiceLoader.load(service) is usually simpler. When an application already manages plugins using JPMS and ModuleLayer, ServiceLoader.load(layer, service) explicitly expresses where providers should be searched.
 
-## Ghi nhớ
+## Key takeaways
 
-ServiceLoader định nghĩa cách consumer tìm và sử dụng provider; JPMS khai báo quan hệ uses/provides; ModuleLayer gom các module đã phân giải thành một lớp runtime có quan hệ cha-con. Luồng nạp plugin điển hình là tìm module bằng ModuleFinder, phân giải bằng Configuration, tạo ModuleLayer rồi gọi ServiceLoader.load(layer, service).
+ServiceLoader defines how a consumer discovers and uses providers; JPMS declares the uses/provides relationship; ModuleLayer groups resolved modules into a runtime layer with parent-child relationships. The typical plugin loading flow is to find modules with ModuleFinder, resolve with Configuration, create a ModuleLayer, and then call ServiceLoader.load(layer, service).

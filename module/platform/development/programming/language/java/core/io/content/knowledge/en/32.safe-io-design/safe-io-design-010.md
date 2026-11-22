@@ -1,22 +1,22 @@
-# Phân biệt quyền hệ điều hành với các cơ chế bảo mật Java lịch sử
+# Distinguishing Operating System Permissions From Historical Java Security Mechanisms
 
-## 1. Vì sao phải phân biệt hai lớp bảo vệ?
+## 1. Why Distinguish Two Layers of Protection?
 
-Trong Java Core I/O, một ứng dụng đọc file, ghi log, tạo thư mục hay mở socket không chỉ chịu quy tắc của ngôn ngữ Java. Nó chạy **bên trong một tiến trình do hệ điều hành quản lý**, với tài khoản, quyền truy cập, mount, sandbox hoặc chính sách hệ thống cụ thể.
+In Java Core I/O, an application reading a file, writing logs, creating a directory, or opening a socket is not governed solely by Java language rules. It runs **inside an operating-system-managed process**, with a concrete account, access permissions, mounts, sandboxes, or system policies.
 
-Ngày trước, Java còn có cơ chế **`SecurityManager` + `Policy` + `Permission` + `AccessController`** để hạn chế **code chạy trong cùng JVM** theo các quyền do Java xét. Cơ chế đó khác với quyền filesystem do hệ điều hành thực thi, và hiện không còn là hướng xây dựng sandbox mới:
+Historically, Java also had **`SecurityManager` + `Policy` + `Permission` + `AccessController`** to restrict **code running inside the same JVM** according to Java-evaluated permissions. That mechanism differs from filesystem permissions enforced by the OS, and is no longer the path for building new sandboxes:
 
-- Trong **JDK 17**, `SecurityManager` và API liên quan được **deprecated for removal** theo **JEP 411**. Ở các JDK còn hỗ trợ, nếu không có Security Manager đang được bật, cơ chế policy kiểm tra quyền kiểu lịch sử không cung cấp lớp sandbox như nhiều ví dụ Java cũ mô tả.
-- Từ **JDK 24**, `SecurityManager` bị **vô hiệu hóa vĩnh viễn** theo **JEP 486**: không thể bật bằng tùy chọn khởi động và không thể cài Security Manager mới lúc runtime; API cũ còn tồn tại trong một số phiên bản cho tương thích nhưng hành vi đã thay đổi.
-- **Quyền của hệ điều hành vẫn hoạt động bình thường** trong cả hai trường hợp: nếu tiến trình không có quyền mở file, hệ điều hành/filesystem có thể từ chối dù JVM không có Security Manager.
+- In **JDK 17**, `SecurityManager` and related APIs were **deprecated for removal** under **JEP 411**. In JDKs that still support it, when no Security Manager is enabled, the historical policy permission-checking mechanism provides no sandbox layer as many older Java examples describe.
+- Starting in **JDK 24**, `SecurityManager` is **permanently disabled** under **JEP 486**: it cannot be enabled via startup flags and no new Security Manager can be installed at runtime; legacy APIs may remain in some versions for compatibility, yet their behavior has changed.
+- **Operating system permissions continue to operate normally** in both cases: if the process lacks permission to open a file, the OS/filesystem can deny it even though the JVM has no Security Manager.
 
-Bài tập trung vào **thiết kế I/O an toàn**: hiểu ai thực sự cấp/từ chối quyền, xử lý lỗi đúng, quản lý danh tính tiến trình, giới hạn path và cách thay thế những kỳ vọng sai về Java sandbox lịch sử.
+This lesson focuses on **safe I/O design**: understanding who actually grants or denies permissions, handling errors properly, managing process identity, constraining paths, and replacing flawed expectations about the historical Java sandbox.
 
-> **Quy tắc nhớ ngay:** “Không có `SecurityManager`” **không** có nghĩa Java có thể đọc mọi file. “Có `FilePermission`” **không** có nghĩa bạn đã cấp quyền ở hệ điều hành.
+> **Quick rule:** "No `SecurityManager`" does **not** mean Java can read any file. "Having a `FilePermission`" does **not** mean you granted OS-level permission.
 
-## 2. Hai lớp quyền: hình dung đường đi của một lệnh đọc
+## 2. Two Permission Layers: Tracing the Path of a Read Call
 
-Một chương trình gọi:
+A program calls:
 
 ```java
 String text = Files.readString(
@@ -24,7 +24,7 @@ String text = Files.readString(
         StandardCharsets.UTF_8);
 ```
 
-Đây là đoạn minh họa, dùng import `java.nio.file.Files`, `Path` và `StandardCharsets`, cần xử lý `IOException`. Trên một JVM hiện đại, đường đi khái quát:
+This is an illustrative snippet using `java.nio.file.Files`, `Path`, and `StandardCharsets`, requiring `IOException` handling. On a modern JVM, the conceptual path is:
 
 ```text
 Java application
@@ -34,37 +34,37 @@ Java application
 Java NIO provider / native filesystem API
    |
    v
-Hệ điều hành + filesystem + mount
+Operating system + filesystem + mount
    |
-   +-- Danh tính tiến trình: UID/GID, token/privileges...
-   +-- Quyền file và thư mục: mode/ACL/ownership
-   +-- Mount read-only, sandbox, container, security policy...
+   +-- Process identity: UID/GID, token/privileges...
+   +-- File and directory permissions: mode/ACL/ownership
+   +-- Read-only mount, sandbox, container, security policy...
    |
-   +-- Cho phép -> đọc được bytes
+   +-- Allow -> reads bytes
    |
-   +-- Từ chối  -> lỗi I/O hoặc lỗi phù hợp provider
+   +-- Deny  -> I/O error or provider-appropriate error
 ```
 
-Trong một JVM **cũ có Security Manager đang hoạt động**, còn có thể có lớp kiểm tra `Permission` của Java trước khi tới hệ điều hành. Nhưng ngay cả khi Java cho phép, **OS vẫn có quyền từ chối**. Java permission là một lớp kiểm soát bổ sung, không phải “vé thông hành” để bỏ qua ACL của OS.
+In an **older JVM with an active Security Manager**, a Java `Permission` check layer could also run before reaching the OS. Yet even when Java permits it, **the OS can still deny access**. Java permissions were an additional control layer, not a "pass" to bypass OS ACLs.
 
-### Bảng đối chiếu
+### Comparison Table
 
-| Câu hỏi | Quyền hệ điều hành | Java Security Manager lịch sử |
+| Question | Operating system permissions | Historical Java Security Manager |
 |---|---|---|
-| Ai áp đặt? | Kernel/filesystem/OS security subsystem | Cơ chế kiểm tra permission bên trong Java runtime khi được bật |
-| Danh tính chính | User/group/token/process và quyền liên quan | ProtectionDomain, CodeSource, policy và ngữ cảnh stack |
-| Đối tượng thường bảo vệ | File, directory, socket, process, device, syscall, mount | Thao tác Java được instrument để kiểm tra `Permission` |
-| Ví dụ | POSIX mode, ACL, Windows access token + DACL | `FilePermission`, `SocketPermission`, `RuntimePermission` |
-| Khi Java gọi Files.readString | OS kiểm tra khả năng mở/đọc | JDK cũ **có thể** xét Java permission nếu Security Manager đang bật |
-| Có thể vượt OS ACL? | Không: OS là nguồn quyết định cuối cùng về tài nguyên | Không |
-| Tình trạng trong JDK 24+ | Vẫn có hiệu lực | Security Manager không thể được bật |
-| Phạm vi bảo vệ | Tiến trình, user, namespace, OS-level enforcement | Chủ yếu intended sandbox/kiểm soát code trong JVM theo mô hình lịch sử |
+| Who enforces it? | Kernel/filesystem/OS security subsystem | Permission-checking mechanism inside the Java runtime when enabled |
+| Primary identity | User/group/token/process and associated privileges | ProtectionDomain, CodeSource, policy, and stack context |
+| Commonly protected objects | Files, directories, sockets, processes, devices, syscalls, mounts | Java operations instrumented to check `Permission` |
+| Examples | POSIX mode, ACL, Windows access token + DACL | `FilePermission`, `SocketPermission`, `RuntimePermission` |
+| When Java calls `Files.readString` | OS checks open/read capability | Older JDKs **might** check Java permission if Security Manager was enabled |
+| Can it bypass OS ACLs? | No: the OS is the final authority on system resources | No |
+| Status in JDK 24+ | Still enforced | Security Manager cannot be enabled |
+| Protection scope | Processes, users, namespaces, OS-level enforcement | Primarily historical in-JVM sandboxing/code control |
 
-Một ứng dụng có thể có **thêm** xác thực, phân quyền nghiệp vụ, giới hạn tên file, kiểm soát tenant hoặc cơ chế trong thư viện. Những lớp đó **khác** cả quyền OS lẫn Security Manager cũ.
+An application may also have **additional** authentication, business authorization, filename constraints, tenant isolation, or library controls. Those layers are **distinct** from both OS permissions and the legacy Security Manager.
 
-## 3. Quyền filesystem ở Linux/Unix: owner, group, others
+## 3. Linux/Unix Filesystem Permissions: Owner, Group, Others
 
-Với filesystem hỗ trợ mô hình POSIX, file thường có owner, group và các bit quyền:
+On filesystems supporting the POSIX model, files typically have an owner, group, and permission bits:
 
 ```text
 -rw-r-----  1 appuser appgroup ... config.txt
@@ -74,23 +74,23 @@ Với filesystem hỗ trợ mô hình POSIX, file thường có owner, group và
  +++---------- owner: rw-
 ```
 
-Ba quyền cơ bản:
+Three basic permissions:
 
-- `r` (read): được đọc nội dung file nếu việc truy cập đường dẫn đến được file và không bị lớp kiểm soát khác cấm.
-- `w` (write): được sửa nội dung file khi cách mở và các điều kiện filesystem cho phép.
-- `x` (execute): với file thực thi có ý nghĩa chạy file; với **thư mục**, có ý nghĩa **traverse/search** mục bên trong.
+- `r` (read): allows reading file contents if path traversal reaches the file and no other control layer forbids it.
+- `w` (write): allows modifying file contents when open mode and filesystem conditions allow.
+- `x` (execute): on executable files, means running the file; on **directories**, means **traverse/search** entries inside.
 
-Quyền của **thư mục** đặc biệt quan trọng:
+**Directory** permissions are especially important:
 
-| Quyền thư mục | Ý nghĩa thường gặp trên POSIX |
+| Directory permission | Common meaning on POSIX |
 |---|---|
-| `r` | Liệt kê tên các mục khi điều kiện khác phù hợp |
-| `w` | Thay đổi directory entries: tạo/xóa/đổi tên khi kết hợp các quyền cần thiết |
-| `x` | Truy cập/traverse tên mục, cần để đi qua thư mục khi resolve path |
+| `r` | List entry names when other conditions allow |
+| `w` | Modify directory entries: create/delete/rename when combined with required permissions |
+| `x` | Access/traverse entry names, needed to pass through a directory when resolving paths |
 
-Vì thế một file có `r--` chưa chắc đọc được nếu tiến trình không có quyền đi qua thư mục cha. Tương tự, **xóa/rename một file** chủ yếu liên quan quyền trên thư mục chứa nó, không phải cứ file có bit `w` mới xóa được. Quy tắc cụ thể còn liên quan sticky bit, ACL, mount options, ownership và hệ thống bảo vệ khác.
+Consequently, a file with `r--` might still be unreadable if the process lacks traverse permission on a parent directory. Likewise, **deleting or renaming a file** primarily depends on permissions of its containing directory, not simply whether the file itself has the `w` bit. Exact rules also involve sticky bits, ACLs, mount options, ownership, and other protection systems.
 
-### Các công cụ hệ điều hành (minh họa)
+### Operating System Tools (Illustrative)
 
 ```bash
 id
@@ -100,44 +100,44 @@ stat /srv/app/data/config.txt
 getfacl /srv/app/data/config.txt
 ```
 
-Các lệnh là **ví dụ trên Linux/Unix**, có thể không được cài đầy đủ hoặc có output khác tùy hệ thống. `getfacl` có thể không có sẵn và filesystem có thể không hỗ trợ cùng kiểu ACL. Không chạy `chmod -R 777` hay cấp quyền rộng chỉ để “chữa lỗi Java”.
+These commands are **Linux/Unix examples**; some may not be installed or may produce varying output across systems. `getfacl` may be unavailable and filesystems may not support identical ACL models. Never run `chmod -R 777` or grant broad permissions just to "fix a Java error."
 
-## 4. Quyền Windows: access token và ACL
+## 4. Windows Permissions: Access Tokens and ACLs
 
-Trên Windows, access check thường dựa vào **access token** của tiến trình/luồng và **security descriptor/DACL** của đối tượng file/folder; danh tính có thể bao gồm user, groups, integrity level và privilege đặc thù.
+On Windows, access checks typically evaluate the process/thread's **access token** against the file/folder object's **security descriptor/DACL**; identity can encompass user, groups, integrity level, and specific privileges.
 
-Một số khái niệm cần phân biệt:
+Key concepts to distinguish:
 
-- **Owner**: danh tính sở hữu đối tượng, có tác động tới quản trị quyền nhưng không đồng nghĩa được phép mọi thao tác trong mọi điều kiện.
-- **DACL/ACE**: các entry allow/deny quyền với các principal; inheritance từ thư mục cha có thể ảnh hưởng.
-- **Access token**: danh tính và privileges mà tiến trình thực sự đang dùng; “đang đăng nhập bằng tài khoản admin” không đồng nghĩa tiến trình luôn chạy với đầy đủ quyền elevated.
-- **UAC, integrity levels, policy**: có thể bổ sung hạn chế; không quy tất cả lỗi `AccessDeniedException` về một ACE đơn giản.
-- **File sharing/locking**: cách mở và handle của tiến trình khác có thể khiến rename/delete/open thất bại ngay cả khi ACL có vẻ cho phép.
+- **Owner:** the identity owning the object, influencing permission administration, though not automatically implying permission for every operation in all cases.
+- **DACL/ACE:** allow/deny permission entries for principals; inheritance from parent folders can take effect.
+- **Access token:** the identity and privileges the process actually runs with; "logged in with an admin account" does not mean every process runs elevated.
+- **UAC, integrity levels, policies:** can impose extra restrictions; do not reduce every `AccessDeniedException` to a single simple ACE.
+- **File sharing/locking:** open modes and handles held by other processes can cause rename/delete/open failures even when ACLs appear permissive.
 
-`DosFileAttributeView` của Java NIO (read-only, hidden, system, archive) **không phải** bộ ACL đầy đủ của Windows. Đánh dấu read-only không thay thế cấu hình DACL. Muốn làm việc với ACL khi provider hỗ trợ, xem `AclFileAttributeView`, `AclEntry` và `UserPrincipalLookupService`.
+Java NIO's `DosFileAttributeView` (read-only, hidden, system, archive) **is not** Windows' full ACL system. Setting read-only does not replace DACL configuration. To inspect or manage ACLs where supported by the provider, see `AclFileAttributeView`, `AclEntry`, and `UserPrincipalLookupService`.
 
-Cách kiểm tra quyền Windows thường dùng công cụ quản trị hệ điều hành như `icacls`, PowerShell và giao diện Security của file/folder, với tài khoản chạy ứng dụng thực tế. Không dùng kết quả trên máy developer để suy luận quyền trên production server.
+Checking Windows permissions typically uses OS administrative tools such as `icacls`, PowerShell, and the file/folder Security tab, under the actual service account running the application. Do not infer production server permissions from results on a developer machine.
 
-## 5. Java NIO kiểm tra/đọc metadata quyền như thế nào?
+## 5. How Does Java NIO Inspect/Read Permission Metadata?
 
-Java `java.nio.file.Files` cho phép tương tác với thuộc tính filesystem **khi provider hỗ trợ**:
+Java's `java.nio.file.Files` allows interacting with filesystem attributes **when supported by the provider**:
 
-| API | Mục đích |
+| API | Purpose |
 |---|---|
-| `Files.getOwner(path)` | Đọc owner của file |
-| `Files.setOwner(path, principal)` | Yêu cầu đổi owner, cần OS cho phép |
-| `Files.getPosixFilePermissions(path)` | Đọc bộ POSIX permissions nếu có view hỗ trợ |
-| `Files.setPosixFilePermissions(path, perms)` | Yêu cầu sửa POSIX mode khi có quyền |
-| `Files.getFileAttributeView(path, PosixFileAttributeView.class)` | Lấy view quản lý thuộc tính POSIX nếu provider hỗ trợ |
-| `Files.getFileAttributeView(path, AclFileAttributeView.class)` | Lấy view ACL nếu được hỗ trợ |
-| `Files.isReadable(path)` | Kiểm tra sơ bộ xem JVM có thể đọc file hay không |
-| `Files.isWritable(path)` | Kiểm tra sơ bộ khả năng ghi |
-| `Files.readAttributes(path, ...)` | Đọc các thuộc tính chỉ định qua provider |
-| `Files.createTempFile(..., attrs)` | Có thể tạo file với attributes khởi tạo thích hợp và được hỗ trợ |
+| `Files.getOwner(path)` | Reads the file's owner |
+| `Files.setOwner(path, principal)` | Requests changing the owner; requires OS permission |
+| `Files.getPosixFilePermissions(path)` | Reads POSIX permission set if a supporting view exists |
+| `Files.setPosixFilePermissions(path, perms)` | Requests updating POSIX mode when permitted |
+| `Files.getFileAttributeView(path, PosixFileAttributeView.class)` | Obtains the POSIX attribute management view if supported by provider |
+| `Files.getFileAttributeView(path, AclFileAttributeView.class)` | Obtains the ACL view if supported |
+| `Files.isReadable(path)` | Preliminary check of whether the JVM can read the file |
+| `Files.isWritable(path)` | Preliminary check of writability |
+| `Files.readAttributes(path, ...)` | Reads specified attributes through the provider |
+| `Files.createTempFile(..., attrs)` | Can create a file with appropriate supported initial attributes |
 
-**Sử dụng API để xem/sửa quyền không làm JVM có quyền quản trị file vô hạn.** Lời gọi `setOwner` hay `setPosixFilePermissions` cũng bị OS kiểm tra. Khi không hỗ trợ, API có thể ném `UnsupportedOperationException` hoặc ngoại lệ khác theo hợp đồng.
+**Using APIs to view or edit permissions does not give the JVM unlimited file-administration powers.** Calls to `setOwner` or `setPosixFilePermissions` are still checked by the OS. When unsupported, APIs may throw `UnsupportedOperationException` or another exception per contract.
 
-### POSIX permissions trong Java (mã minh họa)
+### POSIX Permissions in Java (Illustrative Code)
 
 ```java
 import java.nio.file.Files;
@@ -148,17 +148,17 @@ import java.nio.file.attribute.PosixFilePermission;
 
 Path path = Path.of("/srv/app/secrets.txt");
 
-// Chỉ chạy trên filesystem/provider hỗ trợ POSIX attributes
-// và khi tiến trình có quyền thay đổi permissions.
+// Only runs on filesystems/providers supporting POSIX attributes
+// and when the process has permission to change permissions.
 Set<PosixFilePermission> ownerOnly =
         PosixFilePermissions.fromString("rw-------");
 
 Files.setPosixFilePermissions(path, ownerOnly);
 ```
 
-Đây là **đoạn mã minh họa**, yêu cầu đặt trong method xử lý `IOException` và phải áp dụng với đối tượng được phép quản trị. Không áp dụng `setPosixFilePermissions` bừa lên file hệ thống hoặc nhầm `"rw-------"` với một “role” độc lập của ứng dụng.
+This is an **illustrative snippet** that must be inside a method handling `IOException` and applied only to files authorized for management. Never blindly call `setPosixFilePermissions` on system files or mistake `"rw-------"` for an independent application "role."
 
-### Kiểm tra provider
+### Checking the Provider
 
 ```java
 var view = Files.getFileAttributeView(
@@ -171,13 +171,13 @@ if (view != null) {
 }
 ```
 
-Đây là snippet cần import `PosixFileAttributeView`, `PosixFilePermission`, `PosixFilePermissions` và xử lý lỗi. `view != null` chỉ nói provider có API tương ứng cho path; không hứa việc thay đổi permission sau đó sẽ luôn thành công.
+This snippet requires importing `PosixFileAttributeView`, `PosixFilePermission`, `PosixFilePermissions`, and error handling. `view != null` only means the provider exposes that API for the path; it does not promise subsequent permission changes will succeed.
 
-## 6. isReadable/isWritable không phải cơ chế cấp quyền
+## 6. `isReadable`/`isWritable` Are Not Authorization Mechanisms
 
-`Files.isReadable(path)` và `Files.isWritable(path)` thường tiện cho UX hoặc quan sát, nhưng **không phải quyết định an ninh bất biến**.
+`Files.isReadable(path)` and `Files.isWritable(path)` are often handy for UX or diagnostics, but **they are not immutable security decisions**.
 
-Phản ví dụ:
+Counter-example:
 
 ```java
 if (Files.isWritable(target)) {
@@ -185,53 +185,53 @@ if (Files.isWritable(target)) {
 }
 ```
 
-Trong khoảng giữa `isWritable` và `writeString`:
+Between `isWritable` and `writeString`:
 
-- ACL có thể thay đổi.
-- File có thể bị xóa/đổi tên.
-- Symlink có thể trỏ sang mục khác.
-- Mount có thể chuyển sang read-only.
-- Handle khác hoặc policy có thể thay đổi điều kiện thao tác.
+- ACLs can change.
+- The file can be deleted or renamed.
+- A symlink can redirect to another target.
+- A mount can switch to read-only.
+- Another handle or policy can alter operation conditions.
 
-Đây là **TOCTOU** (time-of-check to time-of-use). Check trả true không đảm bảo operation sau thành công. Check trả false cũng không nói chính xác vì sao: không tồn tại, không thể xác định, điều kiện truy cập không đủ, hoặc provider không trả lời đáng tin cậy.
+This is **TOCTOU** (time-of-check to time-of-use). A check returning `true` does not guarantee the subsequent operation succeeds. A check returning `false` does not explain why: non-existence, indeterminable state, insufficient access, or an unreliable provider response.
 
-Mẫu tốt hơn trong nhiều trường hợp là **thực hiện thao tác được phép trong ranh giới kiểm soát và xử lý ngoại lệ thực tế**:
+A better pattern in many cases is **performing the permitted operation within controlled boundaries and handling actual exceptions**:
 
 ```java
 try {
     String text = Files.readString(target, StandardCharsets.UTF_8);
-    // Xử lý text theo schema nghiệp vụ.
+    // Process text per business schema.
 } catch (NoSuchFileException ex) {
-    // File không còn tồn tại ở thời điểm mở/đọc.
+    // File no longer exists at open/read time.
 } catch (AccessDeniedException ex) {
-    // Filesystem/provider báo từ chối truy cập.
+    // Filesystem/provider reported access denied.
 } catch (IOException ex) {
-    // Các lỗi I/O khác.
+    // Other I/O errors.
 }
 ```
 
-Đây là đoạn code minh họa, cần imports/biến `target`. Không phải mọi provider trả đúng subclass `AccessDeniedException` khi bị từ chối; `IOException` tổng quát cũng cần được xử lý. Ở JDK 17 với Security Manager lịch sử được bật, một số API còn có thể ném `SecurityException` cho Java permission; không nên nhầm nó với OS ACL.
+This is an illustrative snippet requiring imports and a `target` variable. Not every provider throws the exact `AccessDeniedException` subclass when denied; general `IOException` must be handled too. On JDK 17 with a historical Security Manager enabled, some APIs can also throw `SecurityException` for Java permissions; do not confuse that with OS ACLs.
 
-## 7. Java SecurityManager trong lịch sử hoạt động thế nào?
+## 7. How Did Java's Historical `SecurityManager` Work?
 
-Trong các Java đời cũ, `SecurityManager` được thiết kế để kiểm soát một số hành động nhạy cảm của code Java theo **permission check**.
+In older Java releases, `SecurityManager` was designed to govern certain sensitive actions of Java code via **permission checks**.
 
-Ví dụ các khái niệm:
+Example concepts:
 
-- `java.io.FilePermission`: biểu diễn quyền như `read`, `write`, `execute`, `delete` đối với file/path theo policy Java.
-- `java.net.SocketPermission`: đại diện một số quyền network như connect/accept/listen/resolve trong cơ chế cũ.
-- `java.lang.RuntimePermission`: quyền với một số khả năng runtime.
-- `java.security.Policy`: nguồn chính sách map nguồn code/protection domain tới permissions.
-- `java.security.AccessController` và `AccessControlContext`: liên quan tới stack-based access checks trong mô hình lịch sử.
-- `ProtectionDomain`/`CodeSource`: mô tả code và miền quyền trong policy model.
+- `java.io.FilePermission`: represented permissions such as `read`, `write`, `execute`, and `delete` on files/paths under Java policy.
+- `java.net.SocketPermission`: represented certain network permissions such as connect/accept/listen/resolve in the legacy mechanism.
+- `java.lang.RuntimePermission`: permissions for certain runtime capabilities.
+- `java.security.Policy`: policy source mapping code origins/protection domains to permissions.
+- `java.security.AccessController` and `AccessControlContext`: related to stack-based access checks in the historical model.
+- `ProtectionDomain`/`CodeSource`: described code and permission domains in the policy model.
 
-Với Security Manager hoạt động, lời gọi Java I/O có thể đi qua `checkRead`/`checkWrite` hoặc `checkPermission` trước khi tới OS. Nếu policy Java từ chối, code có thể nhận `SecurityException` hoặc subclass. Nếu policy Java cho phép nhưng OS từ chối, I/O vẫn thất bại.
+With an active Security Manager, Java I/O calls could pass through `checkRead`/`checkWrite` or `checkPermission` before reaching the OS. If Java policy denied it, code could receive `SecurityException` or a subclass. If Java policy allowed it while the OS denied it, I/O still failed.
 
-**Đừng lấy mã Java 8 với `System.setSecurityManager(new SecurityManager())` làm công thức cấu hình bảo mật ứng dụng mới.** Ở JDK 17 các API này đã bị deprecated for removal; từ JDK 24 không thể bật cơ chế ấy.
+**Do not copy Java 8 code with `System.setSecurityManager(new SecurityManager())` as a security recipe for modern applications.** In JDK 17 these APIs are deprecated for removal; from JDK 24 onward the mechanism cannot be enabled.
 
-## 8. FilePermission của Java không phải chmod hay ACL
+## 8. Java's `FilePermission` Is Not `chmod` or an ACL
 
-Đây là một lỗi diễn giải phổ biến. Với `java.io.FilePermission` (API lịch sử):
+This is a widespread misconception. With `java.io.FilePermission` (historical API):
 
 ```java
 import java.io.FilePermission;
@@ -240,140 +240,140 @@ FilePermission permission =
         new FilePermission("/srv/app/data/report.csv", "read");
 ```
 
-Đoạn trên **chỉ tạo một đối tượng `Permission` trong JVM** để dùng trong mô hình Java security cũ. Nó **không**:
+The code above **only constructs a `Permission` object inside the JVM** for use in the legacy Java security model. It **does not**:
 
-- Gọi `chmod`.
-- Đặt POSIX mode `r--------` hay `rw-------`.
-- Thêm một ACE vào Windows ACL.
-- Cấp quyền truy cập cho process account.
-- Làm OS bỏ qua mount read-only hoặc policy.
-- Tự kích hoạt `SecurityManager`.
-- Đảm bảo tệp tồn tại hoặc đọc được.
+- Invoke `chmod`.
+- Set POSIX mode `r--------` or `rw-------`.
+- Add an ACE to a Windows ACL.
+- Grant filesystem access to the process account.
+- Make the OS ignore read-only mounts or policies.
+- Automatically enable `SecurityManager`.
+- Guarantee the file exists or is readable.
 
-Ngược lại, `Files.setPosixFilePermissions(path, perms)` yêu cầu thay đổi **metadata quyền của filesystem**, nếu provider hỗ trợ và hệ điều hành cho phép.
+Conversely, `Files.setPosixFilePermissions(path, perms)` requests altering **filesystem permission metadata**, if supported by the provider and allowed by the OS.
 
-Bảng minh họa:
+Illustrative table:
 
-| Code/khái niệm | Kết quả liên quan quyền |
+| Code / concept | Permission-related effect |
 |---|---|
-| `new FilePermission(path, "read")` | Tạo Java permission object, không sửa OS |
-| `Policy` cấp FilePermission (JDK cũ có Security Manager) | Có thể cho phép qua lớp Java policy nếu check liên quan được thực thi |
-| `chmod 600 secret.txt` trên POSIX | Thay mode của file khi OS cho phép |
-| `Files.setPosixFilePermissions(...)` | Thay POSIX permission qua NIO nếu provider hỗ trợ/quyền đủ |
-| Windows `icacls` | Xem/sửa ACL theo khả năng và quyền hệ thống |
-| Chạy service bằng user ít quyền | OS giới hạn tài nguyên mà process có thể sử dụng |
-| Docker/container mount file read-only | Áp ràng buộc từ môi trường chạy theo cơ chế container/host |
+| `new FilePermission(path, "read")` | Creates a Java permission object; does not alter OS |
+| `Policy` granting `FilePermission` (older JDK with Security Manager) | Can pass the Java policy layer if relevant checks run |
+| `chmod 600 secret.txt` on POSIX | Changes file mode when permitted by OS |
+| `Files.setPosixFilePermissions(...)` | Changes POSIX permissions via NIO if provider supports it and privileges suffice |
+| Windows `icacls` | Inspects/modifies ACLs according to system capabilities and privileges |
+| Running service as a low-privilege user | OS restricts which resources the process can access |
+| Docker/container mounting a file read-only | Enforces runtime constraints via container/host mechanisms |
 
-Tên `Permission` trong Java rất dễ gây nhầm vì nó giống “permission” của OS. Cần luôn hỏi: **quyền thuộc lớp policy JVM lịch sử hay metadata/enforcement của OS?**
+The name `Permission` in Java is easily confused with OS "permissions." Always ask: **does this permission belong to the legacy JVM policy layer or to OS metadata/enforcement?**
 
-## 9. JDK 17, JDK 24 và hướng phát triển
+## 9. JDK 17, JDK 24, and the Direction Forward
 
-Sự thay đổi của Security Manager có ý nghĩa trực tiếp khi đọc code, README, khóa học hoặc tutorial Java cũ.
+The evolution of `SecurityManager` directly affects reading legacy code, READMEs, courses, or older Java tutorials.
 
-| Dòng thời gian | Trạng thái cần biết |
+| Timeline | Status to know |
 |---|---|
-| Các Java đời cũ | Có cơ chế Security Manager và policy được sử dụng trong một số môi trường sandbox/plugin |
-| JDK 17 — JEP 411 | Security Manager cùng API liên quan **deprecated for removal**; không nên dùng cho thiết kế mới |
-| JDK 18–23 | Tiếp tục quá trình chuyển dịch với các thay đổi/cảnh báo theo từng release; tham khảo docs phiên bản chính xác |
-| JDK 24 — JEP 486 | **Permanently disable Security Manager**; không thể bật lúc startup hoặc runtime |
-| JDK sau 24 | Theo hướng dẫn migration, Java native Security Manager không phải giải pháp sandbox cho ứng dụng hiện đại; API legacy có thể còn để chuyển tiếp nhưng không có cơ chế quản lý policy như trước |
+| Older Java versions | Included Security Manager and policy mechanisms used in some sandbox/plugin setups |
+| JDK 17 — JEP 411 | Security Manager and related APIs **deprecated for removal**; do not use for new designs |
+| JDK 18–23 | Continued transition with release-specific changes/warnings; consult exact release docs |
+| JDK 24 — JEP 486 | **Permanently disables the Security Manager**; cannot be enabled at startup or runtime |
+| Post-JDK 24 | Per migration guidance, native Java Security Manager is not a modern app sandboxing solution; legacy APIs may remain for transition without active policy enforcement |
 
-Khi kiểm tra JVM thực tế:
+When checking the actual JVM:
 
 ```bash
 java -version
 ```
 
-Đừng viết một phần mềm mới yêu cầu `-Djava.security.manager=allow` để bảo vệ plugin rồi chạy nó trên JDK 24+: cơ chế này **không thể được bật**. Trên JDK 17, những cách bật/cấu hình còn tồn tại chủ yếu phục vụ tương thích/migration, không phải lời khuyên kiến trúc dài hạn.
+Do not build new software requiring `-Djava.security.manager=allow` to isolate plugins and expect to run it on JDK 24+: the mechanism **cannot be enabled**. On JDK 17, remaining flags/configurations exist primarily for compatibility and migration, not as long-term architectural advice.
 
-### JEP 411 vs JEP 486
+### JEP 411 vs. JEP 486
 
-- **JEP 411 — Deprecate the Security Manager for Removal**: từ JDK 17, cảnh báo và định hướng loại bỏ.
-- **JEP 486 — Permanently Disable the Security Manager**: JDK 24 chặn việc kích hoạt; các API liên quan có hành vi degraded để hỗ trợ quá trình chuyển tiếp.
+- **JEP 411 — Deprecate the Security Manager for Removal:** starting in JDK 17, signals warning and planned removal.
+- **JEP 486 — Permanently Disable the Security Manager:** JDK 24 blocks activation; related APIs operate in degraded compatibility modes to aid transition.
 
-**Permanently disabled không nhất thiết nghĩa mọi class API đã bị xóa khỏi bytecode ngay trong JDK 24.** Phải phân biệt “vô hiệu hóa chức năng” với “xóa class khỏi JDK”. Khi migration, kiểm tra release notes theo phiên bản đang sử dụng.
+**"Permanently disabled" does not necessarily mean every API class was immediately deleted from bytecode in JDK 24.** Distinguish "disabling the feature" from "removing classes from the JDK." During migration, check release notes for your target version.
 
-## 10. AccessController.doPrivileged từng dùng để làm gì?
+## 10. What Was `AccessController.doPrivileged` Used For?
 
-Trong kiến trúc Security Manager lịch sử, stack-based checks có thể xem xét các protection domains trong call stack. `AccessController.doPrivileged` dùng để thực hiện đoạn code với ngữ nghĩa truy cập đặc biệt trong bối cảnh Java policy.
+In the historical Security Manager architecture, stack-based checks inspected protection domains along the call stack. `AccessController.doPrivileged` executed a code block with special access semantics in Java policy evaluation.
 
-Ví dụ kiểu tài liệu cũ:
+Legacy documentation style example:
 
 ```java
 String value = AccessController.doPrivileged(
         (PrivilegedAction<String>) () -> System.getProperty("user.home"));
 ```
 
-**Đây là snippet lịch sử, không khuyến nghị cho code mới.** Cần import `AccessController` và `PrivilegedAction`, compiler JDK 17 có thể cảnh báo deprecated.
+**This is a historical snippet, not recommended for new code.** It requires importing `AccessController` and `PrivilegedAction`, and the JDK 17 compiler may emit deprecation warnings.
 
-Điểm cần phân biệt:
+Key distinctions:
 
-- `doPrivileged` không cấp quyền đọc tệp theo OS cho process.
-- Nó không giúp thoát khỏi UID/GID, Windows DACL, read-only mount hoặc sandbox của container.
-- Từ JDK 24, khi Security Manager không còn hoạt động, các overload phổ biến của `doPrivileged` chỉ chạy action ngay theo hành vi không có Security Manager, không còn là ranh giới đặc quyền JVM như thiết kế ban đầu.
-- Đừng dùng `doPrivileged` để “bọc” thao tác file bị `AccessDeniedException`; đó không phải cách sửa quyền hệ thống.
+- `doPrivileged` does not grant OS file-read privileges to the process.
+- It does not bypass UID/GID, Windows DACLs, read-only mounts, or container sandboxes.
+- From JDK 24 onward, with Security Manager inactive, common `doPrivileged` overloads simply invoke the action directly as without a Security Manager, no longer acting as an original JVM privilege boundary.
+- Do not use `doPrivileged` to "wrap" a file operation throwing `AccessDeniedException`; that is not how system permissions are fixed.
 
-Khi thấy code legacy lạm dụng `doPrivileged`, hãy xem xét **loại bỏ phụ thuộc vào Security Manager**, rồi thiết kế quyền tiến trình/kiểm soát nghiệp vụ tương ứng thay vì chỉ xóa cảnh báo compiler.
+When legacy code overuses `doPrivileged`, plan to **remove dependencies on Security Manager** and design proper process privileges and business authorization rather than merely suppressing compiler warnings.
 
-## 11. Không có SecurityManager không đồng nghĩa JVM an toàn hoặc không an toàn tuyệt đối
+## 11. No `SecurityManager` Does Not Mean the JVM Is Completely Safe or Completely Unsafe
 
-Java runtime có những cơ chế an toàn khác với Security Manager:
+The Java runtime has safety mechanisms distinct from `SecurityManager`:
 
-- **Type safety, bytecode verification, access modifiers, module boundaries**: bảo vệ tính đúng đắn/giới hạn một số tương tác ở mức ngôn ngữ và runtime.
-- **Quyền OS, process account, filesystem permissions, networking controls**: kiểm soát thực tế việc truy cập tài nguyên hệ thống.
-- **Xác thực và phân quyền ứng dụng**: quyết định user/tenant nào được thực hiện thao tác nghiệp vụ.
-- **Crypto, TLS, key management**: bảo vệ tính bí mật/toàn vẹn và xác thực theo giao thức.
-- **Process isolation/container/VM**: tạo ranh giới độc lập hơn với các chương trình ít tin cậy.
+- **Type safety, bytecode verification, access modifiers, module boundaries:** protect language/runtime integrity and limit certain interactions.
+- **OS permissions, process accounts, filesystem permissions, networking controls:** actually enforce access to system resources.
+- **Application authentication and authorization:** decide which user/tenant may perform business actions.
+- **Cryptography, TLS, key management:** protect confidentiality, integrity, and protocol authentication.
+- **Process isolation / containers / VMs:** create stronger boundaries around less-trusted programs.
 
-Các cơ chế này giải quyết **những loại rủi ro khác nhau**, không thay thế tất cả lẫn nhau.
+These mechanisms address **different classes of risk** and do not all substitute for one another.
 
-Một class `private` không ngăn cùng tiến trình có quyền OS đọc file mật khẩu nếu code có khả năng I/O và được gọi không đúng chỗ. Ngược lại, bảo vệ file bằng mode `600` cũng không ngăn chính ứng dụng có quyền đọc file ấy vô tình log secret ra ngoài hoặc gửi tới user sai tenant.
+A `private` class does not prevent code inside the same OS-privileged process from reading a password file if I/O capability exists and is invoked improperly. Conversely, protecting a file with mode `600` does not stop the authorized application itself from accidentally logging secrets or returning them to the wrong tenant.
 
-Đây là hai lớp kiểm tra cần độc lập: **authorization nghiệp vụ** và **authority của process**.
+These are two independent verification layers: **business authorization** and **process authority**.
 
-## 12. Chọn danh tính tiến trình theo nguyên tắc least privilege
+## 12. Choosing Process Identity by Least Privilege
 
-Thay vì trông chờ Java policy để cấm từng thư viện, ứng dụng nên được chạy với **ít quyền hệ điều hành nhất đủ thực hiện công việc**.
+Rather than relying on Java policy to forbid individual libraries, run applications with the **minimum operating system privileges required to do their job**.
 
-Ví dụ service chỉ cần đọc file cấu hình và ghi log:
+Example service that only needs to read configuration files and write logs:
 
 ```text
 Process identity: app-service
 
 Allowed:
   /etc/my-app/config.yaml       read
-  /var/lib/my-app/data/         read/write theo nghiệp vụ
-  /var/log/my-app/              append/write theo chính sách
-  outbound network             chỉ các đích được cho phép nếu có egress control
+  /var/lib/my-app/data/         read/write per business logic
+  /var/log/my-app/              append/write per policy
+  outbound network              only permitted destinations if egress-controlled
 
 Not necessary:
-  /root/, user home khác, /etc/shadow
+  /root/, other user homes, /etc/shadow
   /var/run/docker.sock
   host device nodes
-  quyền thay owner/chmod rộng
+  broad chown/chmod privileges
 ```
 
-Một triển khai production có thể dùng:
+A production deployment can use:
 
-- Dedicated service user, không chạy root/Administrator trừ khi có lý do bắt buộc.
-- POSIX mode + ACL hoặc Windows DACL theo thư mục/file thực tế.
-- Container run-as non-root; tránh mount thư mục host nhạy cảm và container privileged.
-- Read-only root filesystem khi ứng dụng chỉ cần một vài writable directories.
-- Giới hạn network egress/ingress, capabilities và namespace theo nền tảng.
-- Secret injection và quyền đọc file secret hẹp; không đóng gói secret trực tiếp trong artifact.
-- Audit logs và monitoring các lỗi `AccessDeniedException` mà không in nội dung bí mật.
+- A dedicated service user, avoiding root/Administrator unless strictly required.
+- POSIX modes + ACLs or Windows DACLs tailored to actual directories/files.
+- Containers running as non-root; avoiding sensitive host directory mounts and privileged containers.
+- Read-only root filesystems when the application only needs a few writable directories.
+- Restricted network egress/ingress, capabilities, and namespaces per platform.
+- Secret injection with narrow secret-file read permissions; never bake secrets directly into artifacts.
+- Audit logs and monitoring for `AccessDeniedException` without logging secret contents.
 
-**Process user trong container không tự động có cùng ý nghĩa với user trên host.** UID mapping, volume mounts, Kubernetes securityContext, SELinux/AppArmor và cấu hình platform cần được kiểm tra theo môi trường.
+**A process user inside a container does not automatically match a user on the host.** UID mapping, volume mounts, Kubernetes `securityContext`, SELinux/AppArmor, and platform configurations must be verified per environment.
 
-### Nguy hiểm của “chạy admin để hết AccessDenied”
+### The Danger of "Running as Admin to Silence `AccessDenied`"
 
-Việc tăng quyền cho toàn bộ JVM có thể làm lỗi tạm biến mất nhưng **mở rộng blast radius** khi ứng dụng có path traversal, deserialization vulnerability hoặc dependency bị tấn công. Sửa quyền chính xác vào thư mục cần dùng, hoặc thay đổi vị trí lưu file theo cấu trúc phù hợp thay vì nâng đặc quyền toàn tiến trình.
+Elevating privileges for the entire JVM may make an error disappear temporarily, yet **expands the blast radius** if the application suffers path traversal, deserialization vulnerabilities, or a compromised dependency. Fix permissions specifically on the required directory or relocate storage appropriately rather than elevating the whole process.
 
-## 13. Ví dụ Java 17+ hoàn chỉnh: thao tác file và giải thích ranh giới quyền
+## 13. Complete Java 17+ Example: File Operations and Explaining Permission Boundaries
 
-Chương trình sau chạy **không dùng SecurityManager**. Nó tạo file tạm dưới thư mục mà OS cho phép, viết và đọc bằng NIO, rồi minh họa một phép kiểm tra path **chỉ ở mức từ vựng (lexical)**. Ví dụ **không** cố tạo lỗi permission bằng cách thay quyền OS, vì kết quả phụ thuộc hệ điều hành/user/ACL.
+The following program runs **without `SecurityManager`**. It creates a temporary file in an OS-permitted directory, writes and reads using NIO, and then illustrates a **purely lexical** path check. The example does **not** force a permission error by altering OS permissions, since behavior varies across OSes, users, and ACLs.
 
-Lưu tên **`OsVsJavaPermissionsDemo.java`**:
+Save as **`OsVsJavaPermissionsDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -414,14 +414,14 @@ public class OsVsJavaPermissionsDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile and run:
 
 ```bash
 javac OsVsJavaPermissionsDemo.java
 java OsVsJavaPermissionsDemo
 ```
 
-**Stdout chính xác nếu OS cho phép tạo/đọc/ghi/xóa trong temp directory:**
+**Exact stdout if the OS allows creating, reading, writing, and deleting in the temp directory:**
 
 ```text
 Read: approved-data
@@ -429,20 +429,20 @@ Lexically within directory: true
 Same normalized target: true
 ```
 
-Giải thích:
+Explanation:
 
-1. `Files.createTempDirectory` yêu cầu OS cấp phép tạo một thư mục tạm mới. Nếu temp dir không writable, chương trình có thể ném `IOException` trước khi in.
-2. `CREATE_NEW` tạo file chưa tồn tại, tránh vô tình truncate một file có sẵn tại tên `record.txt`. Nó không tự cung cấp một sandbox chống các tấn công bằng đường dẫn ngoài thư mục tin cậy.
-3. `Files.readString` đọc qua provider theo quyền thực của process. Không có Java `FilePermission` nào được sử dụng để “cấp” quyền OS.
-4. `normalize()` bỏ phần `reports/..` ở mức cấu trúc chuỗi path; `startsWith(directory)` trả true cho ví dụ đơn giản này.
-5. **Kiểm tra lexical trên không phải chứng minh chống symlink/TOCTOU**. Nó chỉ cho thấy một kỹ thuật lọc sơ bộ, tuyệt đối không dùng riêng cặp `normalize()+startsWith()` như ranh giới bảo mật hoàn chỉnh với path do attacker kiểm soát.
-6. Mọi temp resources được xóa ở `finally` khi chương trình chạy bình thường. Khi kill đột ngột/crash, `finally` có thể không chạy; ứng dụng production cần chiến lược cleanup khác.
+1. `Files.createTempDirectory` asks the OS for permission to create a new temporary directory. If the temp directory is not writable, the program can throw `IOException` before printing anything.
+2. `CREATE_NEW` creates a non-existent file, avoiding accidentally truncating an existing `record.txt`. It does not by itself provide a sandbox against path attacks outside trusted directories.
+3. `Files.readString` reads through the provider under the process's actual permissions. No Java `FilePermission` is used to "grant" OS permission.
+4. `normalize()` collapses `reports/..` at the path-string level; `startsWith(directory)` returns `true` for this simple example.
+5. **The lexical check above is not proof against symlinks/TOCTOU.** It demonstrates only a preliminary filtering technique; never use `normalize()+startsWith()` alone as a complete security boundary against attacker-controlled paths.
+6. All temp resources are deleted in `finally` during normal execution. On abrupt kill/crash, `finally` may not run; production apps need additional cleanup strategies.
 
-Mã này độc lập, dùng Java 17+ và không có thao tác admin; không đưa `SecurityManager` vào vì nó không phải nền tảng xây ứng dụng mới.
+This code is standalone, targets Java 17+ with no admin actions, and excludes `SecurityManager` because it is not a foundation for new applications.
 
-## 14. POSIX FileAttributeView: tạo file riêng tư từ đầu
+## 14. POSIX `FileAttributeView`: Creating Private Files From the Start
 
-Nếu file lưu secret trên provider hỗ trợ POSIX, có thể yêu cầu attributes khi **tạo file** thay vì tạo file với quyền rộng rồi sửa lại:
+If a secret-storing file runs on a provider supporting POSIX, request attributes **when creating the file** rather than creating it with broad permissions and restricting them afterward:
 
 ```java
 import java.nio.file.Files;
@@ -462,72 +462,72 @@ Path secret = Files.createTempFile(
         ownerOnly);
 ```
 
-Đây là **đoạn minh họa**, không chạy độc lập; thư mục phải tồn tại, có quyền tạo, và provider hỗ trợ POSIX attributes. Trên Windows filesystem/view không hỗ trợ, yêu cầu attributes có thể ném `UnsupportedOperationException`. Cần chọn biện pháp Windows ACL phù hợp chứ không bắt IOException rồi tự động tạo một file secret với quyền mặc định rộng.
+This is an **illustrative snippet**, not standalone runnable; the directory must exist with creation permissions, and the provider must support POSIX attributes. On Windows filesystems/views without POSIX support, requesting those attributes can throw `UnsupportedOperationException`. Choose appropriate Windows ACL measures rather than catching `IOException` and falling back to creating a secret file with broad default permissions.
 
-**Lợi ích:** đặt permission trong thao tác tạo file (nếu provider hỗ trợ) giúp tránh khoảng thời gian file nhạy cảm tồn tại với permission không phù hợp trước lúc gọi `setPosixFilePermissions`.
+**Benefit:** setting permissions inside the file-creation operation (when supported by the provider) avoids a window during which a sensitive file exists with overly broad permissions before `setPosixFilePermissions` runs.
 
-Tuy nhiên, chế độ đọc/ghi thực tế vẫn có thể bị hạn chế bởi ACL/mount/SELinux, và root/elevated principal có thể có những quyền khác. `rw-------` không phải bảo đảm “không user nào khác trên thế giới có thể truy cập dưới mọi cơ chế”.
+Still, effective read/write access can be constrained by ACLs/mounts/SELinux, and root/elevated principals may have additional rights. `rw-------` does not guarantee "no other user on earth can access it by any mechanism."
 
-### Khi filesystem không hỗ trợ POSIX view
+### When the Filesystem Lacks a POSIX View
 
-Đừng gắn chặt ứng dụng đa nền tảng vào `PosixFilePermissions` mà không kiểm tra môi trường. Có thể:
+Do not hardwire cross-platform apps to `PosixFilePermissions` without checking the environment. You can:
 
-1. Xác định yêu cầu bảo mật của file.
-2. Kiểm tra view/provider hỗ trợ.
-3. Nếu yêu cầu “owner only” là bắt buộc nhưng không thể cấu hình, **fail closed** thay vì tạo file nhạy cảm với quyền không kiểm soát.
-4. Dùng nền tảng lưu secret/ACL đúng OS hoặc chuyển sang môi trường có isolation phù hợp.
+1. Define the file's security requirements.
+2. Check supported views/providers.
+3. If "owner-only" is mandatory yet unconfigurable, **fail closed** instead of creating a sensitive file with uncontrolled permissions.
+4. Use the OS's native secret-storage/ACL mechanisms or deploy in an environment with suitable isolation.
 
-## 15. AccessDeniedException, SecurityException và các lỗi khác
+## 15. `AccessDeniedException`, `SecurityException`, and Other Errors
 
-Các lỗi Java I/O dễ bị hiểu nhầm:
+Commonly misunderstood Java I/O errors:
 
-| Loại lỗi | Thường thể hiện | Có luôn do Java SecurityManager? |
+| Error type | Typical meaning | Always from Java SecurityManager? |
 |---|---|---|
-| `AccessDeniedException` | Filesystem/provider báo không được phép truy cập path | Không |
-| `FileSystemException` | Vấn đề filesystem, có thể chứa reason/otherFile | Không |
-| `NoSuchFileException` | Mục không tồn tại khi thao tác | Không |
-| `FileAlreadyExistsException` | Tạo mới với tên đã tồn tại | Không |
-| `SecurityException` | Lỗi quyền/kiểm soát đặc thù API/runtime, trong các JDK cũ có thể từ security manager | Không được mặc định suy ra OS ACL |
-| `UnsupportedOperationException` | Provider/API không hỗ trợ thao tác/attribute view | Không |
-| `IOException` | Nhóm lỗi I/O rộng hơn | Không |
+| `AccessDeniedException` | Filesystem/provider reports access to path is not permitted | No |
+| `FileSystemException` | Filesystem problem; may carry `reason`/`otherFile` | No |
+| `NoSuchFileException` | Entry does not exist during operation | No |
+| `FileAlreadyExistsException` | Creating a new entry with an already-existing name | No |
+| `SecurityException` | API/runtime-specific permission/control error; in older JDKs could come from security manager | Must not be assumed to mean OS ACL |
+| `UnsupportedOperationException` | Provider/API does not support the requested operation/attribute view | No |
+| `IOException` | Broader I/O error family | No |
 
-Những phương thức `Files.*` thường nêu `SecurityException` trong tài liệu lịch sử khi có Security Manager đang bật. Ở JDK 24+ bạn không được dùng sự tồn tại của khai báo ấy để kết luận một Java policy đang bảo vệ file. Ngược lại, khi OS từ chối, mã thường nhận exception loại I/O; xử lý theo provider và message thực tế.
+`Files.*` methods often mention `SecurityException` in historical docs for when a Security Manager was active. On JDK 24+, do not use the presence of that documentation clause to conclude a Java policy is protecting files. Conversely, when the OS denies access, code typically receives an I/O exception subclass; handle according to provider and actual message.
 
-**Không viết logic kiểu: “Bắt SecurityException rồi cấp FilePermission là hết lỗi”.** Việc cấp quyền thực phải giải quyết qua OS/admin hoặc policy ứng dụng, không được thực hiện ngầm bởi mã không đủ đặc quyền.
+**Never write logic like: "Catch `SecurityException` and grant `FilePermission` to fix it."** Real access provisioning must be resolved via OS/admins or application policy, never silently escalated by unprivileged code.
 
-### Logging an toàn
+### Safe Logging
 
-Log thông tin có ích: operation, mã lỗi, path đã redacted khi cần, principal của service theo quy trình quan sát phù hợp và correlation ID. Không log toàn bộ nội dung file bí mật, password hay access token để chẩn đoán permission failure.
+Log useful context: operation, error code, redacted path where needed, service principal per observability policies, and correlation ID. Never dump secret file contents, passwords, or access tokens to diagnose permission failures.
 
-## 16. Path traversal là lỗi ứng dụng, không phải lỗi OS permissions
+## 16. Path Traversal Is an Application Bug, Not an OS Permissions Bug
 
-Giả sử web endpoint nhận tên file từ người dùng:
+Suppose a web endpoint accepts a filename from a user:
 
 ```text
 GET /download?file=invoice.pdf
 ```
 
-Nếu dùng trực tiếp:
+If used directly:
 
 ```java
 Path target = root.resolve(userInput);
 byte[] bytes = Files.readAllBytes(target);
 ```
 
-attacker có thể thử `../secret.txt` hoặc dạng tương đương trên OS đích.
+an attacker can try `../secret.txt` or its equivalent on the target OS.
 
-Nếu tiến trình **có quyền OS** đọc file secret đó, OS sẽ không từ chối chỉ vì người gọi HTTP không được phép xem nó. Kernel nhìn thấy **một request từ process account**, không biết user HTTP nào đang yêu cầu.
+If the process **has OS permission** to read that secret file, the OS will not deny it just because the HTTP caller lacks authorization. The kernel sees **a request from the process account**, unaware of which HTTP user asked for it.
 
-Ứng dụng cần kiểm soát:
+The application must enforce:
 
-1. Xác thực danh tính user/request.
-2. Phân quyền theo tenant/document ID và trạng thái nghiệp vụ.
-3. Không sử dụng path tùy ý như đối tượng authority; tốt hơn map ID đã được xác thực tới file do ứng dụng quản lý.
-4. Giới hạn file root cố định, phân biệt file và thư mục, tránh symlink escape.
-5. Xử lý race giữa check và open, đặc biệt ở thư mục attacker có thể ghi.
-6. Vẫn chạy process dưới account ít quyền, để OS chặn phần lớn đường dẫn không thuộc phạm vi service.
+1. Authenticating user/request identity.
+2. Authorizing by tenant/document ID and business state.
+3. Avoiding arbitrary paths as authority objects; preferably map authenticated IDs to application-managed files.
+4. Constraining to a fixed root, distinguishing files from directories, and preventing symlink escapes.
+5. Addressing check-to-open races, especially in attacker-writable directories.
+6. Still running the process under a least-privilege account so the OS blocks paths outside the service's scope.
 
-### Kiểm tra lexical: cần nhưng chưa đủ
+### Lexical Checks: Necessary but Insufficient
 
 ```java
 Path base = root.toAbsolutePath().normalize();
@@ -538,77 +538,77 @@ if (!candidate.startsWith(base)) {
 }
 ```
 
-Đây là snippet minh họa. Nó chặn một số trường hợp `..` sau khi normalize nhưng **không chứng minh đường dẫn thực nằm trong root** nếu attacker có thể tạo/thay đổi symlink hoặc file trong thư mục. Ngoài ra, phải xử lý absolute input policy, case/volume semantics và encoding/canonicalization nhất quán.
+This is an illustrative snippet. It catches certain `..` cases after normalization, but **does not prove the real path lies within the root** if an attacker can create or modify symlinks or files in the directory. You must also enforce absolute-input policies, case/volume semantics, and consistent encoding/canonicalization.
 
-Nếu provider hỗ trợ `SecureDirectoryStream`, có thể thực hiện một số thao tác tương đối so với directory handle để giảm race do thay tên/symlink. Không phải mọi provider hỗ trợ; thiết kế chặt hơn thường gồm quyền thư mục hạn chế, không để attacker sửa namespace, kiểm tra theo file descriptor/handle và isolation OS. Không dùng `toRealPath()` một lần rồi tin path bất biến cho mọi I/O về sau.
+If the provider supports `SecureDirectoryStream`, certain operations can be executed relative to a directory handle to reduce rename/symlink races. Not every provider supports it; stronger designs generally combine restricted directory permissions, preventing attackers from altering namespaces, file-descriptor/handle checks, and OS isolation. Never call `toRealPath()` once and assume the path stays immutable for all later I/O.
 
-## 17. Thư mục tạm, file nhạy cảm và symlink
+## 17. Temporary Directories, Sensitive Files, and Symlinks
 
-`Files.createTempFile` là API tốt hơn cách tự ghép tên như `secret-<timestamp>.tmp` vì API tạo một file mới với tên duy nhất theo semantics provider, giảm khả năng collision.
+`Files.createTempFile` is a better API than manually composing names like `secret-<timestamp>.tmp` because it creates a new file with a unique name under provider semantics, reducing collisions.
 
-Nhưng thiết kế an toàn còn cần:
+Safe design also requires:
 
-- Chọn **thư mục tin cậy**, có quyền phù hợp với tài khoản chạy service.
-- Nếu tạo file secret, bảo đảm permission/ACL thích hợp **ngay khi tạo** nếu provider hỗ trợ.
-- Không dùng tên cố định trong thư mục world-writable mà không có chiến lược chống race.
-- Không lấy `/tmp` làm chỗ để lưu secret lâu dài mặc định; hiểu sticky bit, policy cleanup và quyền hệ điều hành.
-- Không truyền path tạm cho tiến trình khác rồi giả định nó không thể thay nội dung trước khi file được đọc lại.
-- Kiểm soát symlink/hardlink và file thay thế ở những đường dẫn attacker có thể tác động.
-- Đóng file handle, bảo đảm dữ liệu không bị công bố trước khi validate.
-- Nếu cần thay thế file quan trọng, cân nhắc write-temp-then-rename, atomic move khi hỗ trợ, và yêu cầu durability riêng.
+- Choosing a **trusted directory** with permissions suited to the service account.
+- When creating secret files, ensuring appropriate permissions/ACLs **at creation time** if supported by the provider.
+- Avoiding fixed names in world-writable directories without race-mitigation strategies.
+- Not defaulting to `/tmp` for long-lived secret storage; understand sticky bits, cleanup policies, and OS permissions.
+- Not passing a temp path to another process while assuming it cannot modify contents before the file is read back.
+- Controlling symlinks/hardlinks and file replacements along paths an attacker can influence.
+- Closing file handles and ensuring data is not published before validation.
+- When replacing critical files, considering write-temp-then-rename, atomic move where supported, and separate durability requirements.
 
-Lưu ý: **atomic rename, file permission và quyền truy cập ứng dụng là ba vấn đề độc lập**. Một file được đổi tên nguyên tử vẫn có thể mang ACL sai; một file có ACL đúng vẫn có thể chứa dữ liệu nghiệp vụ sai; một app xác thực user đúng vẫn cần chống race trên filesystem.
+Note: **atomic rename, file permissions, and application access control are three independent concerns**. An atomically renamed file can still carry wrong ACLs; a file with right ACLs can still hold invalid business data; an app authenticating users properly still needs filesystem race protection.
 
-## 18. Không dựa vào “sandbox Java” để chạy plugin không tin cậy
+## 18. Do Not Rely on a "Java Sandbox" to Run Untrusted Plugins
 
-Một yêu cầu thường gặp là “chạy đoạn Java do người dùng gửi nhưng không cho đọc file”. Trong Java đời cũ từng có mô hình sandbox cùng JVM dựa trên Security Manager. Với Java hiện đại:
+A frequent request is "run user-submitted Java code without letting it read files." Older Java versions had an in-JVM sandbox model built on `SecurityManager`. In modern Java:
 
-- Không dùng `SecurityManager` làm ranh giới bảo mật mới; từ JDK 24 không thể bật.
-- Cùng một JVM thường không phải security boundary phù hợp để thực thi mã tùy ý có thể dùng các API mạnh.
-- ClassLoader, module access, Java visibility, bytecode verification không cung cấp cách thay thế tương đương để ngăn code không tin cậy truy cập OS resources.
-- Cần **cô lập ở mức tiến trình/OS** với account ít quyền, filesystem namespaces/mounts, sandbox/container/VM, network policy, CPU/memory/time quotas và giám sát.
-- Với code thật sự không tin cậy, container bản thân nó không tự động tạo isolation mạnh nếu chạy privileged, mount socket host, cho quyền cao hoặc tắt security restrictions.
-- Không để secret production nằm trong cùng filesystem namespace hoặc môi trường của tiến trình chạy code không tin cậy khi không có lý do bắt buộc.
-- Quản lý cleanup của child process, timeout, stdout/stderr, quota và tránh cho phép child truy cập runtime/host control sockets.
+- Do not use `SecurityManager` as a new security boundary; from JDK 24 onward it cannot be enabled.
+- A single JVM is generally not a suitable security boundary for executing arbitrary code with access to powerful APIs.
+- `ClassLoader`, module access, Java visibility, and bytecode verification do not provide an equivalent barrier preventing untrusted code from reaching OS resources.
+- You need **process/OS-level isolation** with least-privilege accounts, filesystem namespaces/mounts, sandboxes/containers/VMs, network policies, CPU/memory/time quotas, and monitoring.
+- For genuinely untrusted code, a container alone does not automatically create strong isolation if run privileged, mounting host sockets, granting high capabilities, or disabling security restrictions.
+- Never keep production secrets inside the same filesystem namespace or environment as a process running untrusted code without compelling necessity.
+- Manage child process cleanup, timeouts, stdout/stderr, quotas, and prevent children from accessing runtime/host control sockets.
 
-Thành phần lập trình có thể hạn chế “API nào được phép gọi” vẫn hữu ích để thực thi **business rules**, nhưng không nên quảng cáo nó là sandbox vững chắc trước attacker có thể chạy bytecode tùy ý cùng quyền OS của tiến trình.
+Programmatic mechanisms restricting "which APIs may be called" can still help enforce **business rules**, but must never be advertised as a hardened sandbox against an attacker able to run arbitrary bytecode under the process's OS privileges.
 
-## 19. Xác thực/authorization của người dùng ứng dụng là lớp thứ ba
+## 19. Application User Authentication and Authorization Is the Third Layer
 
-Một server chạy bằng user `app-service` có thể đọc toàn bộ thư mục `/var/lib/app/orders`. Nhưng khi Alice gọi `GET /orders/123`, việc Alice có quyền xem order 123 phải do ứng dụng xác định:
+A server running as `app-service` might be able to read the entire `/var/lib/app/orders` directory. Yet when Alice calls `GET /orders/123`, whether Alice is permitted to view order 123 must be decided by the application:
 
 ```text
-HTTP request từ Alice
+HTTP request from Alice
    |
    v
-Authentication: Alice là ai?
+Authentication: Who is Alice?
    |
    v
-Authorization: Alice có quyền xem order 123?
+Authorization: Is Alice allowed to view order 123?
    |
    v
-Lấy path từ ID đã được kiểm tra theo domain model
+Obtain path from ID verified against domain model
    |
    v
-Filesystem open/read dưới quyền OS của app-service
+Filesystem open/read under OS permissions of app-service
    |
    v
-Response chỉ chứa dữ liệu đã được phép tiết lộ
+Response contains only permitted disclosure data
 ```
 
-OS không tự biết “order 123 thuộc Alice”. Nếu ứng dụng bỏ qua bước authorization, lệnh đọc file vẫn có thể thành công vì process service được phép. Đây là lỗi **IDOR/broken object-level authorization**, không thể giải quyết chỉ bằng chmod cho một user service chung.
+The OS does not know "order 123 belongs to Alice." If the application skips the authorization step, the file read still succeeds because the service process is permitted. That is an **IDOR / broken object-level authorization** vulnerability, which cannot be solved simply via `chmod` for a shared service user.
 
-Với hệ thống multi-tenant:
+In multi-tenant systems:
 
-- Map tenant + resource ID ở server side.
-- Kiểm tra quyền trên từng thao tác read/write/delete.
-- Tránh dùng raw filename hoặc đường dẫn làm object ID có thể chỉnh tùy ý.
-- Giới hạn worker/service account tới thư mục chứa dữ liệu cần thiết, hoặc cô lập theo tenant khi yêu cầu cao.
-- Audit truy cập dữ liệu với actor ứng dụng **và** process/service identity, không trộn hai danh tính.
+- Map tenant + resource ID on the server side.
+- Enforce authorization on every read/write/delete operation.
+- Avoid using raw filenames or paths as client-editable object IDs.
+- Scope worker/service accounts to required data directories, or isolate per tenant when requirements are high.
+- Audit data access with both the application actor **and** process/service identity without conflating the two identities.
 
-## 20. ACL trong Java NIO: khác gì với POSIX mode?
+## 20. ACLs in Java NIO: How Do They Differ From POSIX Modes?
 
-`AclFileAttributeView` cung cấp cách làm việc với danh sách `AclEntry` khi filesystem hỗ trợ:
+`AclFileAttributeView` lets you work with a list of `AclEntry` objects when supported by the filesystem:
 
 ```java
 AclFileAttributeView view = Files.getFileAttributeView(
@@ -623,45 +623,45 @@ if (view != null) {
 }
 ```
 
-Đây là đoạn minh họa, cần import `AclFileAttributeView`, `AclEntry`, `List`, `Files`, `Path` và xử lý `IOException`; biến `path` giả định được khai báo.
+This is an illustrative snippet requiring `AclFileAttributeView`, `AclEntry`, `List`, `Files`, `Path`, and `IOException` handling; `path` is assumed declared.
 
-Không kết luận:
+Do not conclude:
 
-- `getAcl()` trả một list nghĩa là Windows ACL được mô phỏng y hệt POSIX `rwx`.
-- Thứ tự/loại ACE không ảnh hưởng việc đánh giá quyền; ACL có các quy tắc phức tạp.
-- Mọi provider đều cho phép `setAcl`.
-- Có thể sử dụng `AclEntryPermission.READ_DATA` để “trao quyền” bằng cách tự tạo một đối tượng enum mà không sửa metadata.
-- Chuyển nguyên xi ACL từ hệ điều hành này sang hệ khác luôn giữ semantics.
+- `getAcl()` returning a list means Windows ACLs are modeled identically to POSIX `rwx`.
+- ACE order/type does not affect permission evaluation; ACLs have complex evaluation rules.
+- Every provider permits `setAcl`.
+- You can "grant permissions" simply by constructing `AclEntryPermission.READ_DATA` in an enum set without updating metadata.
+- Copying an ACL verbatim from one OS to another always preserves semantics.
 
-Để sửa ACL, cần có hiểu biết về principals, ACE allow/deny, inheritance và quyền thay đổi security descriptor trên nền tảng thực. Không tự động thêm entry `ALLOW ALL` để giải quyết lỗi ghi file trong production.
+Modifying ACLs requires understanding principals, allow/deny ACEs, inheritance, and rights to modify security descriptors on the target platform. Never automatically add an `ALLOW ALL` entry to work around write errors in production.
 
-## 21. Quyền thư mục và atomic file updates
+## 21. Directory Permissions and Atomic File Updates
 
-Giả sử ứng dụng ghi file cấu hình một cách an toàn:
+Suppose an application updates a configuration file safely:
 
-1. Tạo file tạm trong thư mục đích.
-2. Ghi dữ liệu mới và validate.
-3. Đồng bộ temp file nếu yêu cầu durability.
-4. Di chuyển temp để thay tên đích theo atomic rename khi được hỗ trợ.
-5. Kiểm tra/giữ quyền file mới phù hợp; dọn temp khi lỗi.
+1. Create a temporary file in the destination directory.
+2. Write new data and validate it.
+3. Sync the temporary file if durability is required.
+4. Move the temporary file to replace the destination via atomic rename when supported.
+5. Verify/preserve appropriate permissions on the new file; clean up temp on failure.
 
-OS có thể kiểm tra nhiều khả năng khác nhau:
+The OS checks multiple distinct capabilities:
 
-- Tạo temp yêu cầu quyền thích hợp trên **thư mục**.
-- Ghi nội dung yêu cầu được phép mở/ghi **file**.
-- Rename/replace yêu cầu quyền trên directory entries và có thể phụ thuộc ACL/handle.
-- Đồng bộ dữ liệu có thể bị hạn chế bởi provider/filesystem.
-- Đổi owner hoặc ACL của file mới không mặc định được phép cho process.
+- Creating the temp file requires appropriate permissions on the **directory**.
+- Writing contents requires permission to open/write the **file**.
+- Renaming/replacing requires permissions on directory entries and may depend on ACLs/handles.
+- Syncing data may be constrained by the provider/filesystem.
+- Changing owner or ACL of the new file is not granted to a process by default.
 
-Một chi tiết đáng chú ý: khi tạo **file tạm mới rồi thay thế file đích**, metadata owner/ACL của temp có thể trở thành metadata của file đang ở tên đích. Không nên tưởng atomic replace tự giữ nguyên ACL cũ. Cần đặt metadata phù hợp **trước** khi công bố nếu bài toán yêu cầu.
+One notable detail: when creating a **new temporary file and replacing the destination**, the temp file's owner/ACL metadata can become the metadata of the file at the destination name. Do not assume an atomic replace automatically preserves old ACLs. Set the appropriate metadata **before** publishing if required by the problem.
 
-**Không nên để Java tự xóa file đích rồi rename temp** để “vượt lỗi permissions”. Cách đó vừa có thể làm mất bản cũ vừa tạo khoảng trống reader nhìn thấy, và nếu OS không cho phép thì thao tác vẫn thất bại.
+**Do not have Java manually delete the destination and then rename the temp file** to "bypass permission errors." That risks losing the old version, creates a gap visible to readers, and still fails if the OS denies it.
 
-## 22. Sự khác nhau giữa Java module/security và OS access control
+## 22. Differences Between Java Modules/Security and OS Access Control
 
-Java Platform Module System (`module-info.java`) cho phép khai báo `requires`, `exports`, `opens`... để kiểm soát khả năng truy cập code/package qua module boundaries. Đây **không phải** hệ thống cấp phép đọc file.
+The Java Platform Module System (`module-info.java`) lets you declare `requires`, `exports`, `opens`, etc., to control code/package accessibility across module boundaries. It **is not** a file-read authorization system.
 
-Ví dụ:
+Example:
 
 ```java
 module com.example.viewer {
@@ -669,110 +669,110 @@ module com.example.viewer {
 }
 ```
 
-Đây là ví dụ `module-info.java`, không phải chương trình runnable độc lập. Module `java.base` vốn được đọc mặc định; khai báo chỉ nhằm minh họa cú pháp.
+This is a `module-info.java` example, not a standalone runnable program. Module `java.base` is implicitly read by default; the declaration merely illustrates syntax.
 
-Không suy ra rằng vì module không `requires java.io`, code không thể đọc filesystem: `java.io` là một **package** trong `java.base`, không phải một module riêng. Cũng không suy ra `exports` hay `opens` là quyền OS. Java module boundaries hướng tới encapsulation, readability và reflective access constraints; ranh giới quyền I/O cần OS/process/application policy.
+Do not infer that omitting `requires java.io` prevents code from reading the filesystem: `java.io` is a **package** inside `java.base`, not a separate module. Nor do `exports` or `opens` represent OS permissions. Java module boundaries target encapsulation, readability, and reflective access constraints; I/O permission boundaries require OS/process/application policies.
 
-Tương tự, `private`, `protected`, classpath isolation hay package visibility không tạo một filesystem sandbox trước code có khả năng chạy trong cùng JVM và cùng OS principal.
+Similarly, `private`, `protected`, classpath isolation, and package visibility do not create a filesystem sandbox against code executing inside the same JVM and OS principal.
 
-## 23. So sánh lỗi thực tế bằng bảng chẩn đoán
+## 23. Diagnosing Real Errors With a Troubleshooting Table
 
-| Triệu chứng | Khả năng cần kiểm tra | Không nên làm |
+| Symptom | Possibilities to check | What not to do |
 |---|---|---|
-| `AccessDeniedException` khi đọc tệp | Process user, ACL/owner, parent dir traverse, mount, sandbox, lock/provider | Tạo `new FilePermission` rồi tưởng OS cấp quyền |
-| Ghi file bị từ chối trên Linux | Mode/ACL file, dir permissions, read-only mount, SELinux/AppArmor | Chạy toàn app bằng root ngay |
-| File có `rw-------` nhưng process khác vẫn đọc được | Owner thực, elevated privileges, namespace, ACL, shared hardlinks, data đã bị sao chép | Xem mode bits là biện pháp mã hóa |
-| `SecurityException` trong code Java 8/17 với manager | Java policy/permission check, cấu hình Security Manager, classpath | Nhầm ngay thành thiếu chmod |
-| `System.setSecurityManager` không hoạt động JDK 24+ | JEP 486 đã vô hiệu hóa tính năng | Cố tìm flag “bật lại” |
-| `Files.isReadable` true nhưng đọc vẫn lỗi | TOCTOU, mount/provider, race, share/lock, path đã đổi | Coi probe là authorization quyết định |
-| Một user HTTP xem được file user khác | Application authorization/tenant isolation/path traversal | Chỉ đổi Java SecurityManager policy |
-| Plugin tùy ý đọc được secrets | Cùng process account/namespace, thiếu OS isolation | Chỉ dùng ClassLoader để sandbox |
-| POSIX permission API unsupported | Filesystem/provider không có view | Bỏ qua yêu cầu file private rồi vẫn công bố |
-| Container vẫn thấy host secret | Volume mounts, root/capabilities, securityContext | Tin “đã dùng Docker” là đủ |
+| `AccessDeniedException` reading a file | Process user, ACL/owner, parent dir traverse, mount, sandbox, lock/provider | Create `new FilePermission` thinking the OS grants access |
+| File write denied on Linux | File mode/ACL, dir permissions, read-only mount, SELinux/AppArmor | Immediately run the whole app as root |
+| File has `rw-------` yet another process reads it | Actual owner, elevated privileges, namespace, ACL, shared hardlinks, copied data | Treat mode bits as encryption |
+| `SecurityException` in Java 8/17 code with manager | Java policy/permission check, Security Manager config, classpath | Immediately assume missing `chmod` |
+| `System.setSecurityManager` fails on JDK 24+ | JEP 486 permanently disabled the feature | Hunt for a flag to "turn it back on" |
+| `Files.isReadable` true yet read fails | TOCTOU, mount/provider, race, share/lock, path swapped | Treat the probe as authoritative authorization |
+| One HTTP user views another user's file | Application authorization, tenant isolation, path traversal | Only tweak Java SecurityManager policy |
+| Arbitrary plugin reads secrets | Same process account/namespace, missing OS isolation | Rely solely on `ClassLoader` for sandboxing |
+| POSIX permission API unsupported | Filesystem/provider lacks the view | Ignore private-file requirements and still publish |
+| Container still sees host secrets | Volume mounts, root/capabilities, `securityContext` | Assume "using Docker" is enough |
 
-## 24. Thực hành: thiết kế các phép thử kiểm soát
+## 24. Practice: Designing Controlled Verification Tests
 
-Các bài kiểm tra nên tách riêng hành vi hệ điều hành và cơ chế Java:
+Tests should separate OS behavior from Java mechanisms:
 
-**Bài 1 — Khác nhau giữa user process.** Tạo file dữ liệu trong môi trường thực hành, đặt mode/ACL chỉ cho service A đọc. Chạy **hai tiến trình thật sự** bằng hai tài khoản/nhóm phù hợp và thử `Files.readString`. Đừng thay đổi file hệ thống hoặc secrets thực.
+**Exercise 1 — Different process users.** Create a data file in a lab environment and set mode/ACL readable only by service A. Run **two real processes** under two appropriate accounts/groups and test `Files.readString`. Do not alter real system files or production secrets.
 
-**Bài 2 — Directory traverse.** Cấp quyền đọc cho file nhưng bỏ quyền traverse từ một thư mục cha trong môi trường test POSIX, quan sát khả năng mở file. Khôi phục permission sau test để không khóa đường truy cập của chính mình.
+**Exercise 2 — Directory traversal permission.** Grant read permission on a file while removing traverse permission on a parent directory in a POSIX test environment; observe file-opening behavior. Restore permissions afterward so you do not lock yourself out.
 
-**Bài 3 — Probe vs operation.** Kiểm tra `Files.isReadable` và sau đó thử đọc; thảo luận vì sao hai thời điểm có thể khác nhau. Không tạo điều kiện race bằng cách thay symlink ngoài thư mục test.
+**Exercise 3 — Probe vs. operation.** Check `Files.isReadable` and then attempt reading; discuss why the two moments can differ. Do not introduce real races by swapping symlinks outside a test directory.
 
-**Bài 4 — Giới hạn Java policy lịch sử.** Đọc tài liệu JDK 17/JEP 411 và JDK 24/JEP 486; ghi rõ `FilePermission` từng có vai trò nào và vì sao không còn dùng nó làm sandbox trong Java mới. Không cài Security Manager vào hệ thống đang hoạt động chỉ để thử.
+**Exercise 4 — Historical Java policy limits.** Read the JDK 17/JEP 411 and JDK 24/JEP 486 documentation; note what role `FilePermission` used to play and why it is no longer used for sandboxing in modern Java. Do not install a Security Manager on a production system just to experiment.
 
-**Bài 5 — Path traversal.** Viết hàm resolve tên file trong thư mục staging do ứng dụng kiểm soát. Thử các input `file.txt`, `../file.txt`, absolute path và symlink. Nhận diện điểm lexical check giúp lọc nhưng không thay thế chống symlink race.
+**Exercise 5 — Path traversal.** Write a function resolving filenames inside an application-controlled staging directory. Test `file.txt`, `../file.txt`, absolute paths, and symlinks. Identify where lexical checks filter inputs without replacing symlink-race protection.
 
-**Bài 6 — Container.** Chạy service ở môi trường test với root filesystem read-only và một writable volume được cấp đúng quyền. Liệt kê các đường dẫn cần ghi: temp, logs, cache, uploads. Xử lý lỗi bằng cách sửa mount/ACL có chủ đích, không bật privileged container.
+**Exercise 6 — Containers.** Run a test service with a read-only root filesystem and a properly permissioned writable volume. List every path needing writes: temp, logs, cache, uploads. Resolve errors by intentionally fixing mounts/ACLs rather than enabling privileged containers.
 
-**Bài 7 — Kiểm tra file secret mới.** Trên POSIX view phù hợp, tạo file ngay với attributes owner-only; trên Windows dùng ACL policy tương ứng. Xác nhận không có khoảng thời gian file nằm trên shared folder với quyền mặc định quá rộng.
+**Exercise 7 — Testing new secret files.** On a suitable POSIX view, create files immediately with owner-only attributes; on Windows use an equivalent ACL policy. Verify there is no window in which the file sits in a shared folder with overly broad default permissions.
 
-## 25. Câu hỏi tự kiểm tra
+## 25. Self-Check Questions
 
-**1.** Không có Security Manager, `Files.readString` có luôn đọc được bất kỳ file nào không?  
-**Không.** OS/filesystem/mount tiếp tục thực thi quyền của process.
+**1.** Without a Security Manager, can `Files.readString` always read any file?  
+**No.** The OS/filesystem/mount continues enforcing the process's permissions.
 
-**2.** `new FilePermission(path,"read")` có tương đương `chmod u+r path` không?  
-**Không.** Nó chỉ là Java Permission object trong mô hình cũ; không sửa POSIX mode.
+**2.** Is `new FilePermission(path,"read")` equivalent to `chmod u+r path`?  
+**No.** It is merely a Java `Permission` object from the legacy model; it does not modify POSIX modes.
 
-**3.** Từ JDK nào Security Manager permanently disabled?  
-**JDK 24**, theo JEP 486. JDK 17 đã deprecated for removal theo JEP 411.
+**3.** From which JDK onward is Security Manager permanently disabled?  
+**JDK 24**, under JEP 486. JDK 17 deprecated it for removal under JEP 411.
 
-**4.** `AccessController.doPrivileged` có giúp một process không đủ quyền OS đọc `/etc/shadow` không?  
-**Không.** Nó không thay OS identity/ACL.
+**4.** Does `AccessController.doPrivileged` allow an OS-unprivileged process to read `/etc/shadow`?  
+**No.** It does not change OS identity or ACLs.
 
-**5.** Trên POSIX, vì sao một file có bit read vẫn không mở được?  
-**Có thể** thiếu quyền traverse trên thư mục cha, ACL/mount/OS policy khác, hoặc identity của process không tương ứng với quyền đó.
+**5.** On POSIX, why can a file with the read bit set still fail to open?  
+**Possibly** missing traverse permission on a parent directory, ACL/mount/OS policy restrictions, or the process identity does not match that permission bit.
 
-**6.** `Files.isReadable(path) == true` có bảo đảm lệnh mở file sau một giây thành công?  
-**Không.** Có race/TOCTOU và điều kiện hệ thống có thể đổi.
+**6.** Does `Files.isReadable(path) == true` guarantee a file-open call one second later will succeed?  
+**No.** Races/TOCTOU and system conditions can change.
 
-**7.** Một process service được OS cho đọc mọi file tenant. Nếu API không kiểm tra tenant, OS có tự từ chối Alice đọc file của Bob không?  
-**Không theo logic tenant ứng dụng.** OS thấy process service; ứng dụng phải tự enforce authorization.
+**7.** A service process is allowed by the OS to read all tenant files. If the API skips tenant checks, will the OS automatically stop Alice from reading Bob's file?  
+**Not by application tenant logic.** The OS sees the service process; the application must enforce authorization itself.
 
-**8.** Có thể dùng ClassLoader hoặc JPMS thay Security Manager để sandbox bytecode không tin cậy không?  
-**Không như một ranh giới OS security đầy đủ.** Cần isolation ở mức process/OS/container/VM phù hợp.
+**8.** Can `ClassLoader` or JPMS replace `SecurityManager` to sandbox untrusted bytecode?  
+**Not as a full OS security boundary.** Appropriate process/OS/container/VM isolation is required.
 
-**9.** File quyền `rw-------` có bảo đảm không ai có thể lấy dữ liệu nếu chạy app bằng root và log toàn bộ nội dung?  
-**Không.** OS mode không bảo vệ khỏi ứng dụng/privileged process đã có authority và việc rò rỉ dữ liệu ở tầng ứng dụng.
+**9.** Does a `rw-------` file guarantee nobody can obtain the data if the app runs as root and logs all contents?  
+**No.** OS modes do not protect against privileged/authorized processes or application-layer data leaks.
 
-**10.** Khi dùng temp file rồi atomic rename thay đích, file mới có chắc giữ ACL cũ không?  
-**Không.** Đối tượng được công bố là file mới và có thể mang metadata của temp; cần policy bảo toàn quyền.
+**10.** When using a temp file and atomic rename to replace a target, is the new file guaranteed to keep the old ACL?  
+**No.** The published object is the new file and may carry the temp file's metadata; a permission-preservation policy is needed.
 
-## 26. Checklist thiết kế Java I/O an toàn
+## 26. Secure Java I/O Design Checklist
 
-Trước khi triển khai hoặc review hệ thống đọc/ghi:
+Before deploying or reviewing read/write systems:
 
-- [ ] Xác định **process account** đang chạy JVM thực tế.
-- [ ] Xác định tài nguyên nào cần đọc, ghi, tạo, xóa, rename; cấp quyền tối thiểu.
-- [ ] Kiểm tra quyền **thư mục cha**, không chỉ file.
-- [ ] Hiểu filesystem/provider và OS: POSIX mode/ACL, Windows DACL, mount và sandbox.
-- [ ] Không dựa vào `FilePermission` hoặc `SecurityManager` lịch sử để cấp/quản lý OS access.
-- [ ] Hiểu JDK 17 deprecated và JDK 24 permanently disabled đối với Security Manager.
-- [ ] Xác thực và phân quyền **người dùng nghiệp vụ** trước khi map ID sang path.
-- [ ] Hạn chế path traversal và symlink; không dựa riêng vào `normalize()+startsWith()` chống attacker.
-- [ ] Không dùng `isReadable/isWritable` như bảo đảm thành công hay security check cuối cùng.
-- [ ] Thực hiện I/O thật trong try/catch và xử lý `IOException` theo ngữ cảnh.
-- [ ] Tạo file nhạy cảm với permission/ACL thích hợp từ đầu khi có hỗ trợ.
-- [ ] Tách namespace/process nếu phải thực thi plugin hoặc code không tin cậy.
-- [ ] Không chạy JVM với quyền root/Administrator chỉ để tránh kiểm soát ACL.
-- [ ] Khi dùng container, kiểm tra mount, user, capabilities và secret exposure.
-- [ ] Khi xuất bản file tạm, xét atomicity, metadata ACL và durability **độc lập**.
-- [ ] Có test thật trên OS/filesystem triển khai, không suy ra từ máy developer.
-- [ ] Không log secret trong lỗi quyền hoặc ngoại lệ I/O.
-- [ ] Có security review khi thay đổi quyền file, token, sandbox hoặc service principal.
+- [ ] Identify the actual **process account** running the JVM.
+- [ ] Identify which resources require read, write, create, delete, or rename, and grant least privilege.
+- [ ] Check **parent directory** permissions, not just file permissions.
+- [ ] Understand the filesystem/provider and OS: POSIX mode/ACL, Windows DACL, mounts, and sandboxes.
+- [ ] Do not rely on `FilePermission` or historical `SecurityManager` to grant or manage OS access.
+- [ ] Understand JDK 17 deprecation and JDK 24 permanent disabling of `SecurityManager`.
+- [ ] Authenticate and authorize **business users** before mapping IDs to paths.
+- [ ] Mitigate path traversal and symlinks; never rely solely on `normalize()+startsWith()` against attackers.
+- [ ] Never use `isReadable`/`isWritable` as a guarantee of success or final security check.
+- [ ] Perform actual I/O inside `try/catch` and handle `IOException` contextually.
+- [ ] Create sensitive files with appropriate permissions/ACLs from the start when supported.
+- [ ] Isolate namespaces/processes if executing plugins or untrusted code.
+- [ ] Never run the JVM as root/Administrator solely to bypass ACL checks.
+- [ ] When using containers, audit mounts, users, capabilities, and secret exposure.
+- [ ] When publishing temp files, address atomicity, ACL metadata, and durability **independently**.
+- [ ] Test on the actual deployment OS/filesystem rather than extrapolating from a developer machine.
+- [ ] Never log secrets inside permission errors or I/O exceptions.
+- [ ] Conduct security reviews whenever changing file permissions, tokens, sandboxes, or service principals.
 
-## 27. Tổng kết
+## 27. Summary
 
-- **Quyền hệ điều hành** do kernel/filesystem/access token/ACL/mount kiểm soát, quyết định tiến trình có thể sử dụng tài nguyên hệ thống hay không.
-- **Java Security Manager lịch sử** là lớp kiểm tra permission bên trong JVM, **không bao giờ thay quyền OS**; `FilePermission` chỉ là biểu diễn policy Java chứ không phải thao tác chmod/ACL.
-- **JDK 17**: Security Manager deprecated for removal (JEP 411). **JDK 24+**: Security Manager permanently disabled (JEP 486); đừng xây sandbox mới dựa vào nó.
-- **Ứng dụng phải tự authorization theo user/tenant**; OS process account không tự biết quyền nghiệp vụ của từng request.
-- **`Files.isReadable/isWritable` là probe, không phải authority**; filesystem race, symlink và path traversal cần thiết kế xử lý riêng.
-- **Least privilege + OS/process isolation + kiểm tra dữ liệu/đường dẫn + quản lý lifecycle I/O** là nền tảng thực tế cho Java I/O an toàn.
+- **Operating system permissions** are enforced by the kernel, filesystem, access tokens, ACLs, and mounts, determining whether a process can access system resources.
+- **Historical Java Security Manager** was an in-JVM permission-checking layer that **never replaced OS permissions**; `FilePermission` was a Java policy representation, not a `chmod`/ACL operation.
+- **JDK 17:** Security Manager deprecated for removal (JEP 411). **JDK 24+:** Security Manager permanently disabled (JEP 486); never build new sandboxes on it.
+- **Applications must enforce per-user/per-tenant authorization themselves**; the OS process account has no awareness of per-request business authorization.
+- **`Files.isReadable`/`isWritable` are probes, not authority**; filesystem races, symlinks, and path traversal require dedicated design mitigations.
+- **Least privilege + OS/process isolation + data/path validation + I/O lifecycle management** form the practical foundation for safe Java I/O.
 
-### Tài liệu tham khảo chính thức
+### Official References
 
 - [JEP 411 — Deprecate the Security Manager for Removal](https://openjdk.org/jeps/411)
 - [JEP 486 — Permanently Disable the Security Manager](https://openjdk.org/jeps/486)

@@ -1,10 +1,10 @@
-# `equals()` của `Float`, `Double` với `NaN` và signed zero trong Java
+# `equals()` on `Float` and `Double` with `NaN` and Signed Zero in Java
 
-## 1. Vì sao cùng là so sánh số thực mà cho kết quả khác nhau?
+## 1. Why Does Comparing Floating-Point Numbers Give Different Results?
 
-Trong Java, `float` và `double` là **kiểu nguyên thủy** (*primitive*), còn `Float` và `Double` là **lớp bao** (*wrapper*) tương ứng. Toán tử `==` trên các giá trị nguyên thủy tuân theo quy tắc so sánh số thực IEEE 754; phương thức `Float.equals(Object)` và `Double.equals(Object)` lại có một hợp đồng riêng, phù hợp với `Object.equals` và các collection của Java.
+In Java, `float` and `double` are **primitive types**, whereas `Float` and `Double` are the corresponding **wrapper classes**. The `==` operator on primitive values follows IEEE 754 floating-point comparison rules; the `Float.equals(Object)` and `Double.equals(Object)` methods have a separate contract suited to `Object.equals` and Java's collections.
 
-Hai trường hợp dễ nhầm nhất là **NaN** (*Not a Number*) và **signed zero** (số không có dấu: `+0.0`, `-0.0`):
+The two most confusing cases are **NaN** (*Not a Number*) and **signed zero** (`+0.0`, `-0.0`):
 
 ```java
 double positiveZero = +0.0;
@@ -19,18 +19,18 @@ System.out.println(Double.valueOf(Double.NaN)
         .equals(Double.valueOf(Double.NaN))); // true
 ```
 
-**Đây không phải mâu thuẫn hay lỗi Java**. Hai cơ chế định nghĩa khái niệm “bằng nhau” phục vụ những mục đích khác nhau:
+**This is neither a contradiction nor a Java bug**. The two mechanisms define "equality" for different purposes:
 
-- **So sánh số học bằng `==`:** `NaN` không bằng bất kỳ giá trị nào, kể cả chính nó; `+0.0` và `-0.0` bằng nhau về mặt số học.
-- **So sánh `equals` của lớp bao:** tất cả các giá trị `NaN` của cùng kiểu lớp bao được coi là bằng nhau; `+0.0` và `-0.0` **không** bằng nhau.
+- **Arithmetic comparison with `==`:** `NaN` is not equal to any value, including itself; `+0.0` and `-0.0` are equal arithmetically.
+- **Wrapper `equals` comparison:** all `NaN` values of the same wrapper type are treated as equal; `+0.0` and `-0.0` are **not** equal.
 
-Các quy tắc trên áp dụng đối xứng cho `Float`/`float` và `Double`/`double` với đúng độ rộng của từng kiểu.
+These rules apply symmetrically to `Float`/`float` and `Double`/`double` at each type's respective precision width.
 
-## 2. Hiểu `NaN` và hai mẫu bit của số không
+## 2. Understanding `NaN` and the Two Bit Patterns of Zero
 
-### `NaN` là gì?
+### What Is `NaN`?
 
-`NaN` biểu thị kết quả không phải một số thực hợp lệ trong số học dấu phẩy động, ví dụ:
+`NaN` represents a result that is not a valid real number in floating-point arithmetic, for example:
 
 ```java
 double invalid = 0.0 / 0.0;
@@ -40,24 +40,24 @@ System.out.println(Double.isNaN(invalid)); // true
 System.out.println(Float.isNaN(invalidFloat)); // true
 ```
 
-Theo quy tắc so sánh số thực nguyên thủy, nếu một toán hạng là `NaN`:
+Under primitive floating-point comparison rules, if one operand is `NaN`:
 
-- `x == y` cho `false`, kể cả `NaN == NaN`.
-- `x != y` cho `true`.
-- `x < y`, `x <= y`, `x > y`, `x >= y` đều cho `false`.
+- `x == y` evaluates to `false`, including `NaN == NaN`.
+- `x != y` evaluates to `true`.
+- `x < y`, `x <= y`, `x > y`, and `x >= y` all evaluate to `false`.
 
-Đừng kiểm tra `NaN` bằng biểu thức `value == Double.NaN` hoặc `value == Float.NaN`; phép so sánh đó **luôn false**. Dùng `Double.isNaN(value)` hoặc `Float.isNaN(value)`.
+Do not check for `NaN` using `value == Double.NaN` or `value == Float.NaN`; that comparison is **always false**. Use `Double.isNaN(value)` or `Float.isNaN(value)`.
 
-`NaN` có nhiều mẫu bit IEEE 754 khả dĩ (*NaN payload*). Chúng không tương ứng với các giá trị số thực thông thường. Java cung cấp các hàm đổi bit cho phép phân biệt giữa **cách nhìn canonical** và **cách nhìn raw**; đó là cơ sở để wrapper `equals` cho mọi `NaN` cùng kiểu có thể bằng nhau.
+`NaN` has many possible IEEE 754 bit patterns (*NaN payloads*). They do not correspond to normal real numeric values. Java provides bit-conversion functions that distinguish between a **canonical view** and a **raw view**; that is the basis on which wrapper `equals` considers all `NaN`s of the same type equal.
 
-### Signed zero là gì?
+### What Is Signed Zero?
 
-IEEE 754 có **hai biểu diễn zero**:
+IEEE 754 has **two representations of zero**:
 
-- `+0.0`: bit dấu là `0`.
-- `-0.0`: bit dấu là `1`.
+- `+0.0`: sign bit is `0`.
+- `-0.0`: sign bit is `1`.
 
-Chúng đều có phần trị và số mũ bằng `0`, chỉ khác bit dấu. Java coi chúng bằng nhau khi so sánh số học `==`. Tuy nhiên, dấu của zero có thể ảnh hưởng phép toán khác:
+Both have significand and exponent equal to `0`, differing only in the sign bit. Java treats them as equal under arithmetic `==`. However, the sign of zero can affect other operations:
 
 ```java
 System.out.println(+0.0 == -0.0); // true
@@ -65,29 +65,29 @@ System.out.println(1.0 / +0.0);    // Infinity
 System.out.println(1.0 / -0.0);    // -Infinity
 ```
 
-Như vậy hai mẫu zero có cùng giá trị dưới phép `==` nhưng **không phải mọi phép toán đều xử lý chúng giống hệt nhau**. Wrapper `equals` chủ đích phân biệt hai mẫu bit zero này.
+Thus, the two zero patterns have the same value under `==`, yet **not every operation treats them identically**. Wrapper `equals` intentionally distinguishes these two zero bit patterns.
 
-## 3. Bảng đối chiếu: primitive `==` và wrapper `equals`
+## 3. Comparison Table: Primitive `==` vs. Wrapper `equals`
 
-| Tình huống (cùng kiểu `double`/`Double`) | So sánh primitive `==` | `Double.equals` |
+| Scenario (same `double`/`Double` type) | Primitive `==` comparison | `Double.equals` |
 | --- | --- | --- |
-| `1.0` với `1.0` | `true` | `true` |
-| `1.0` với `2.0` | `false` | `false` |
-| `+0.0` với `-0.0` | `true` | `false` |
-| `Double.NaN` với `Double.NaN` | `false` | `true` |
-| Hai `NaN` có payload khác nhau | `false` | `true` |
-| `Double.POSITIVE_INFINITY` với chính nó | `true` | `true` |
-| `Double.NEGATIVE_INFINITY` với dương vô cực | `false` | `false` |
+| `1.0` vs. `1.0` | `true` | `true` |
+| `1.0` vs. `2.0` | `false` | `false` |
+| `+0.0` vs. `-0.0` | `true` | `false` |
+| `Double.NaN` vs. `Double.NaN` | `false` | `true` |
+| Two `NaN`s with different payloads | `false` | `true` |
+| `Double.POSITIVE_INFINITY` vs. itself | `true` | `true` |
+| `Double.NEGATIVE_INFINITY` vs. positive infinity | `false` | `false` |
 
-Với `Float`, thay `Double` bằng `Float` cho các trường hợp tương ứng. Chú ý `Float.valueOf(1.0f).equals(Double.valueOf(1.0))` vẫn là **`false`**, dù chúng mô tả cùng giá trị toán học, vì `equals` của wrapper yêu cầu **đúng loại lớp bao**.
+For `Float`, replace `Double` with `Float` in the corresponding cases. Note that `Float.valueOf(1.0f).equals(Double.valueOf(1.0))` is still **`false`**, even though they represent the same mathematical value, because wrapper `equals` requires **the exact same wrapper class**.
 
-Các hành vi đặc biệt của `NaN` và signed zero cũng là lý do không nên viết một hàm so sánh số thực chung bằng cách thay `a == b` thành `Double.valueOf(a).equals(Double.valueOf(b))` mà không xem xét hợp đồng nghiệp vụ.
+The special behaviors of `NaN` and signed zero are also why you should not write a general floating-point comparison function by replacing `a == b` with `Double.valueOf(a).equals(Double.valueOf(b))` without considering the business contract.
 
-## 4. `Double.equals` và `Float.equals` thực sự so sánh theo gì?
+## 4. What Do `Double.equals` and `Float.equals` Actually Compare?
 
-Theo tài liệu JDK, `Double.equals(Object obj)` cho `true` khi đối tượng kia cũng là `Double` và kết quả từ phép **`Double.doubleToLongBits`** trên hai giá trị bằng nhau. Tương tự, `Float.equals` sử dụng **`Float.floatToIntBits`**.
+According to JDK documentation, `Double.equals(Object obj)` returns `true` when the other object is also a `Double` and the results of **`Double.doubleToLongBits`** on both values are equal. Similarly, `Float.equals` uses **`Float.floatToIntBits`**.
 
-Có thể hiểu khái niệm như sau (mã **minh họa cơ chế**, không sao chép toàn bộ triển khai JDK):
+Conceptually, you can think of it like this (**illustrative mechanism** code, not a copy of the full JDK implementation):
 
 ```java
 static boolean sameDoubleWrapperValue(double a, double b) {
@@ -99,12 +99,12 @@ static boolean sameFloatWrapperValue(float a, float b) {
 }
 ```
 
-Hai đặc tính của phép đổi bit này giải thích các trường hợp ngoại lệ:
+Two properties of these bit-conversion functions explain the edge cases:
 
-1. **NaN được chuẩn hóa (*canonicalized*):** `Double.doubleToLongBits` trả về cùng **mẫu bit NaN chuẩn** cho mọi giá trị `double` là `NaN`. `Float.floatToIntBits` làm tương tự trên 32 bit. Vì vậy các `NaN` cùng lớp bao có `equals == true`.
-2. **Bit dấu zero được giữ:** `+0.0` và `-0.0` chuyển thành hai chuỗi bit khác nhau; vì thế wrapper `equals` trả `false`.
+1. **`NaN` is *canonicalized*:** `Double.doubleToLongBits` returns the same **canonical NaN bit pattern** for every `double` value that is `NaN`. `Float.floatToIntBits` does the same in 32 bits. Therefore, `NaN`s of the same wrapper class have `equals == true`.
+2. **Zero's sign bit is preserved:** `+0.0` and `-0.0` convert to two different bit sequences; hence wrapper `equals` returns `false`.
 
-Ví dụ:
+Examples:
 
 ```java
 System.out.println(Double.doubleToLongBits(+0.0)
@@ -117,21 +117,21 @@ System.out.println(Double.doubleToLongBits(Double.NaN)
         == Double.doubleToLongBits(0.0 / 0.0)); // true
 ```
 
-**Không nhầm** `doubleToLongBits` với `doubleToRawLongBits` hoặc `floatToIntBits` với `floatToRawIntBits`:
+**Do not confuse** `doubleToLongBits` with `doubleToRawLongBits`, or `floatToIntBits` with `floatToRawIntBits`:
 
-- `doubleToLongBits` / `floatToIntBits` **canonicalize NaN**, phù hợp với `equals`.
-- `doubleToRawLongBits` / `floatToRawIntBits` **không cố ý canonicalize NaN** khi trả về bit, nên có thể quan sát các payload NaN khác nhau, tùy giá trị bit còn được giữ sau các phép xử lý trước đó.
+- `doubleToLongBits` / `floatToIntBits` **canonicalize NaN**, matching `equals`.
+- `doubleToRawLongBits` / `floatToRawIntBits` **do not intentionally canonicalize NaN** when returning bits, so different NaN payloads can be observed depending on which bits were preserved by prior operations.
 
-Nếu mục tiêu là kiểm tra/ghi lại chính xác payload nhị phân của dữ liệu theo một giao thức, phải chọn công cụ raw-bit có chủ đích. Nếu mục tiêu là khóa `Float`/`Double` trong collection, cần tôn trọng ngữ nghĩa canonical mà wrapper định nghĩa.
+If the goal is to inspect or record exact binary payloads according to a protocol, deliberately choose raw-bit tools. If the goal is using `Float`/`Double` keys in collections, respect the canonical semantics defined by the wrappers.
 
-## 5. `Double.compare`, `Float.compare` và `compareTo` liên quan gì tới `equals`?
+## 5. How Do `Double.compare`, `Float.compare`, and `compareTo` Relate to `equals`?
 
-Java cần một **thứ tự tổng** (*total order*) để sắp xếp và lưu số thực trong các cấu trúc có thứ tự. Với kiểu wrapper, `Double.compare(double x, double y)` và `Float.compare(float x, float y)` định nghĩa thêm hai quy tắc đặc biệt:
+Java needs a **total order** to sort and store floating-point numbers in ordered structures. For wrapper types, `Double.compare(double x, double y)` and `Float.compare(float x, float y)` define two extra special rules:
 
-- `-0.0` được xếp **nhỏ hơn** `+0.0`.
-- `NaN` được xem là **lớn hơn mọi số thực**, kể cả `+Infinity`; các giá trị `NaN` được xem là bằng nhau khi so sánh qua `compare`.
+- `-0.0` is ordered **less than** `+0.0`.
+- `NaN` is considered **greater than all floating-point numbers**, including `+Infinity`; `NaN` values are considered equal when compared via `compare`.
 
-`Double.compareTo(Double)` và `Float.compareTo(Float)` theo quy tắc cùng lớp bao. Khi so sánh hai giá trị đã được định kiểu, `compare(x,y) == 0` nhất quán với wrapper `equals` tương ứng.
+`Double.compareTo(Double)` and `Float.compareTo(Float)` follow the rules of the same wrapper class. When comparing two values of the same typed wrapper, `compare(x,y) == 0` is consistent with the corresponding wrapper `equals`.
 
 ```java
 System.out.println(Double.compare(-0.0, +0.0) < 0); // true
@@ -140,28 +140,28 @@ System.out.println(Double.compare(Double.NaN,
 System.out.println(Double.compare(Double.NaN, 0.0 / 0.0) == 0); // true
 ```
 
-Trong khi đó, các phép toán thứ tự nguyên thủy:
+Meanwhile, primitive ordering operators:
 
 ```java
 System.out.println(-0.0 < +0.0); // false
 System.out.println(Double.NaN > Double.POSITIVE_INFINITY); // false
 ```
 
-Không dùng phép `<`/`>` trên primitive để giả lập một comparator có thứ tự tổng. Với sắp xếp `List<Double>`, dùng `Double::compare` hoặc `Double::compareTo` khi chính sách mong muốn là **NaN cuối, -0.0 đứng trước +0.0**.
+Do not use `<`/`>` on primitives to simulate a total-order comparator. For sorting `List<Double>`, use `Double::compare` or `Double::compareTo` when the desired policy is **NaN last, -0.0 before +0.0**.
 
-Cần phân biệt **thứ tự tổng phục vụ collection** với **thứ tự số học của IEEE 754 khi gặp NaN**. Các quy tắc khác nhau là cố ý và đã được mô tả trong JDK.
+Distinguish **total order for collections** from **IEEE 754 arithmetic ordering when encountering NaN**. The differing rules are intentional and documented in the JDK.
 
-## 6. Vì sao các collection cần hợp đồng `equals` như vậy?
+## 6. Why Do Collections Need This `equals` Contract?
 
-`HashSet`, `HashMap` và những collection dựa trên khóa thường sử dụng hợp đồng `equals` và `hashCode` của đối tượng, không dùng toán tử số học `==` để quyết định khóa trùng nhau.
+`HashSet`, `HashMap`, and key-based collections use an object's `equals` and `hashCode` contract—not the arithmetic `==` operator—to determine duplicate keys.
 
-Với `Double`:
+For `Double`:
 
-- Hai đối tượng chứa `NaN` được xem là **bằng nhau theo `equals`**, nên chúng đại diện cho **cùng khóa**.
-- `Double.valueOf(+0.0)` và `Double.valueOf(-0.0)` là **hai khóa khác nhau**.
-- Quy tắc `hashCode` được thiết kế nhất quán với `equals`: hai giá trị bằng nhau phải có cùng hash code. Các NaN cùng lớp bao được chuẩn hóa tương ứng; hai zero khác dấu giữ thông tin phân biệt.
+- Two objects holding `NaN` are considered **equal by `equals`**, so they represent the **same key**.
+- `Double.valueOf(+0.0)` and `Double.valueOf(-0.0)` are **two distinct keys**.
+- The `hashCode` rule is designed to be consistent with `equals`: two equal values must have the same hash code. NaNs of the same wrapper class are normalized accordingly; two zeros with opposite signs retain their distinction.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.HashSet;
@@ -176,9 +176,9 @@ values.add(0.0 / 0.0);
 System.out.println(values.size()); // 3
 ```
 
-Tập chứa ba giá trị theo `Double.equals`: zero dương, zero âm và một khóa NaN. Không dựa vào thứ tự lặp của `HashSet` để minh họa vì `HashSet` **không đảm bảo thứ tự**.
+The set holds three values under `Double.equals`: positive zero, negative zero, and one NaN key. Do not rely on `HashSet` iteration order in illustrations because `HashSet` **does not guarantee order**.
 
-Còn với `HashMap`:
+And for `HashMap`:
 
 ```java
 import java.util.HashMap;
@@ -196,17 +196,17 @@ System.out.println(descriptions.get(-0.0)); // negative zero
 System.out.println(descriptions.get(Double.NaN)); // second
 ```
 
-Lần ghi `NaN` sau **thay thế value** của cùng khóa NaN; hai zero vẫn là hai khóa độc lập.
+The later `NaN` write **replaces the value** for the same NaN key; the two zeros remain two independent keys.
 
-### Với `TreeSet`, `TreeMap` thì sao?
+### What About `TreeSet` and `TreeMap`?
 
-Cấu trúc có thứ tự như `TreeSet<Double>` thường dựa trên `Double.compareTo`. Bộ so sánh đó nhất quán với `Double.equals`, vì thế vẫn có ba giá trị riêng biệt trong ví dụ zero dương, zero âm và NaN; khi sắp xếp theo thứ tự tự nhiên, `-0.0` đứng trước `+0.0`, còn `NaN` đứng sau vô cực dương.
+Ordered structures like `TreeSet<Double>` typically rely on `Double.compareTo`. That comparator is consistent with `Double.equals`, so there are still three distinct values in the positive zero, negative zero, and NaN example; when sorted in natural order, `-0.0` comes before `+0.0`, and `NaN` comes after positive infinity.
 
-**Quan trọng:** Nếu bạn tự đưa một comparator khác vào `TreeSet` hoặc `TreeMap`, chính comparator đó quyết định hai khóa có được xem là tương đương về thứ tự hay không. Comparator không nhất quán với `equals` có thể làm hành vi “trùng phần tử” khác với `HashSet`. Cần thiết kế tiêu chí so sánh một cách nhất quán với mục đích nghiệp vụ.
+**Important:** If you supply your own custom comparator to `TreeSet` or `TreeMap`, that comparator decides whether two keys are considered order-equivalent. A comparator inconsistent with `equals` can make "duplicate element" behavior differ from `HashSet`. Design comparison criteria consistently with your business purpose.
 
-## 7. Không nhầm `equals`, `==` đối tượng và autounboxing
+## 7. Do Not Confuse `equals`, Object `==`, and Autounboxing
 
-### `equals` so sánh giá trị theo hợp đồng lớp bao
+### `equals` Compares Values Under the Wrapper Contract
 
 ```java
 Double a = Double.valueOf(1.0);
@@ -215,21 +215,21 @@ Double b = Double.valueOf(1.0);
 System.out.println(a.equals(b)); // true
 ```
 
-### `==` giữa hai tham chiếu wrapper có thể là so sánh danh tính đối tượng
+### `==` Between Two Wrapper References Can Be Object Identity Comparison
 
-Khi **cả hai toán hạng đều có kiểu tham chiếu**, phép `==` kiểm tra chúng có trỏ đến **cùng đối tượng** hay không, không dùng `Double.equals`.
+When **both operands have reference types**, `==` checks whether they point to **the same object**, without calling `Double.equals`.
 
 ```java
 Double a = Double.valueOf(1.0);
 Double b = Double.valueOf(1.0);
 
-boolean sameReference = a == b; // Không dùng để so sánh giá trị.
+boolean sameReference = a == b; // Do not use to compare values.
 boolean sameValue = a.equals(b); // true.
 ```
 
-Không dự đoán `sameReference` luôn `true` hoặc `false`: cách tạo/tái sử dụng đối tượng có thể thay đổi, và không phải hợp đồng so sánh số thực.
+Do not assume `sameReference` is always `true` or `false`: object creation/reuse can vary, and it is not the floating-point comparison contract.
 
-### Khi một toán hạng primitive, phép so sánh có thể unbox wrapper
+### When One Operand Is Primitive, Comparison Can Unbox the Wrapper
 
 ```java
 Double boxed = Double.valueOf(Double.NaN);
@@ -238,13 +238,13 @@ double primitive = Double.NaN;
 System.out.println(boxed == primitive); // false
 ```
 
-Ở đây `boxed` được unbox thành `double` để so sánh số học, nên quay lại quy tắc `NaN != NaN` của primitive.
+Here `boxed` is unboxed to `double` for arithmetic comparison, returning to the primitive `NaN != NaN` rule.
 
-Nếu wrapper là `null`, phép unboxing có thể ném `NullPointerException`. Ví dụ `Double d = null; boolean eq = d == 0.0;` **không** cho `false` an toàn mà lỗi khi đánh giá `d`.
+If the wrapper is `null`, unboxing can throw `NullPointerException`. For example, `Double d = null; boolean eq = d == 0.0;` does **not** safely return `false`—it fails when evaluating `d`.
 
-Khi so sánh nullable wrapper theo nghĩa đối tượng, `java.util.Objects.equals(a, b)` có thể tránh lỗi `NullPointerException`, nhưng vẫn sử dụng chính `equals` của wrapper cho hai đối tượng không null, nên vẫn giữ ngữ nghĩa NaN/signed zero ở trên.
+When comparing nullable wrappers with object semantics, `java.util.Objects.equals(a, b)` avoids `NullPointerException`, while still using the wrapper's `equals` for two non-null objects, thereby preserving the NaN/signed-zero semantics above.
 
-## 8. Khác lớp bao: `Float` và `Double` không bằng nhau qua `equals`
+## 8. Different Wrapper Classes: `Float` and `Double` Are Not Equal via `equals`
 
 ```java
 Float f = Float.valueOf(1.0f);
@@ -255,24 +255,24 @@ System.out.println(d.equals(f)); // false
 System.out.println(f.floatValue() == d.doubleValue()); // true
 ```
 
-Hai wrapper chứa cùng giá trị số học `1`, nhưng `equals` yêu cầu đối tượng cùng loại. Trong biểu thức primitive cuối, binary numeric promotion nâng `float` lên `double` rồi so sánh giá trị, nên trả `true`.
+Both wrappers hold the same numeric value `1`, but `equals` requires objects of the same class. In the last primitive expression, binary numeric promotion widens `float` to `double` and compares values, returning `true`.
 
-Đừng vì ví dụ `1.0` mà kết luận mọi `float` so với `double` có thể so sánh chính xác: `float` chỉ có 24 bit chính xác và nhiều số thập phân đã được làm tròn khi lưu. Khi nghiệp vụ cần so sánh qua hai kiểu, phải xác định rõ **giá trị mong muốn** và phép chuyển đổi được chấp nhận.
+Do not conclude from the `1.0` example that every `float` vs. `double` can be compared accurately: `float` only has 24 bits of precision and many decimals are already rounded when stored. When business logic requires comparing across both types, clearly define the **intended value** and acceptable conversions.
 
-## 9. Khi nào nên dùng cách so sánh nào?
+## 9. When to Use Which Comparison Method?
 
-| Mục tiêu | Cách làm phù hợp | Lưu ý |
+| Goal | Appropriate approach | Notes |
 | --- | --- | --- |
-| Xử lý giá trị primitive theo số học IEEE 754 | `a == b`, `a < b` | `NaN` luôn làm so sánh bằng false; zero hai dấu bằng nhau |
-| Phát hiện NaN | `Double.isNaN(a)`, `Float.isNaN(a)` | Không dùng `a == NaN` |
-| So sánh đối tượng `Double`/`Float` | `a.equals(b)` | NaN bằng NaN; zero hai dấu khác nhau |
-| So sánh nullable wrapper | `Objects.equals(a, b)` | Tránh NPE do gọi `equals` trên null; giữ ngữ nghĩa wrapper |
-| Sắp xếp số thực với NaN và signed zero | `Double.compare(a, b)` hoặc `Float.compare(a, b)` | NaN cuối, `-0.0 < +0.0` theo comparator |
-| Dùng số thực làm khóa `HashMap`/`HashSet` | Định nghĩa dữ liệu theo `equals`/`hashCode` | NaN gộp khóa; signed zero tách khóa |
-| So sánh hai kết quả tính toán gần nhau | Một chính sách sai số phù hợp miền nghiệp vụ | Không mặc định dùng `equals` hay epsilon cố định tùy ý |
-| So sánh chính xác thập phân tiền tệ | `BigDecimal` hoặc số nguyên đơn vị nhỏ nhất | `BigDecimal.equals` xét cả scale; `compareTo` chỉ so giá trị |
+| Handling primitive values per IEEE 754 arithmetic | `a == b`, `a < b` | `NaN` always makes equality false; both signed zeros are equal |
+| Detecting NaN | `Double.isNaN(a)`, `Float.isNaN(a)` | Do not use `a == NaN` |
+| Comparing `Double`/`Float` objects | `a.equals(b)` | NaN equals NaN; both signed zeros differ |
+| Comparing nullable wrappers | `Objects.equals(a, b)` | Avoids NPE from calling `equals` on null; preserves wrapper semantics |
+| Sorting floating-point numbers with NaN and signed zero | `Double.compare(a, b)` or `Float.compare(a, b)` | NaN last, `-0.0 < +0.0` under comparator |
+| Using floating-point numbers as `HashMap`/`HashSet` keys | Define data per `equals`/`hashCode` | NaN merges keys; signed zero separates keys |
+| Comparing two nearby computation results | An error policy suited to the business domain | Do not default to `equals` or an arbitrary fixed epsilon |
+| Exact decimal monetary comparisons | `BigDecimal` or smallest-unit integers | `BigDecimal.equals` checks scale too; `compareTo` compares value only |
 
-Một ví dụ *so sánh gần đúng* với kết quả phép tính:
+An example of *approximate comparison* of calculation results:
 
 ```java
 double computed = 0.1 + 0.2;
@@ -285,11 +285,11 @@ boolean close = Double.isFinite(computed)
 System.out.println(close); // true
 ```
 
-Đây là quy tắc ứng dụng riêng, **không thay thế** hợp đồng `Double.equals`. Ngưỡng `1e-12` chỉ có ý nghĩa với bài toán và thang đo thích hợp, không phải hằng số chuẩn cho mọi số thực. Nếu xử lý vô cực, NaN, số rất lớn, rất nhỏ hoặc yêu cầu chính xác bit, cần xác định cách xử lý chi tiết riêng.
+This is a custom application rule, **not a replacement** for the `Double.equals` contract. The threshold `1e-12` is only meaningful for a suitable problem and scale, not a universal constant for all floating-point numbers. When handling infinity, NaN, very large or very small numbers, or bit-exact requirements, define detailed handling rules separately.
 
-## 10. Ví dụ Java 17+ chạy độc lập
+## 10. Standalone Runnable Java 17+ Example
 
-Tạo tệp **`FloatingEqualityDemo.java`**:
+Create the file **`FloatingEqualityDemo.java`**:
 
 ```java
 import java.util.HashMap;
@@ -360,14 +360,14 @@ public class FloatingEqualityDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac FloatingEqualityDemo.java
 java FloatingEqualityDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 primitive NaN == NaN = false
@@ -390,32 +390,32 @@ unboxed NaN comparison = false
 NaN detected = true
 ```
 
-Ví dụ tập trung vào hành vi **được hợp đồng Java đảm bảo**, không dựa vào thứ tự lặp của `HashMap`/`HashSet`, cache của wrapper hay payload NaN raw cụ thể. Có thể kiểm chứng những dòng `HashSet`/`HashMap` để hiểu ngay vì sao cùng là “zero” nhưng có hai khóa, còn nhiều nguồn tạo NaN lại gộp thành một khóa.
+The example focuses on behaviors **guaranteed by the Java contract**, without relying on `HashMap`/`HashSet` iteration order, wrapper caching, or specific raw NaN payloads. You can verify the `HashSet`/`HashMap` lines to immediately see why two "zeros" produce two keys while multiple NaN sources collapse into a single key.
 
-## 11. Những lỗi dễ mắc khi xử lý `Float`/`Double`
+## 11. Common Pitfalls When Handling `Float`/`Double`
 
-1. **Cho rằng `Double.equals` tương đương `==` trên `double`.** Sai ở hai trường hợp cốt lõi: `NaN` và signed zero.
-2. **Dùng `x == Double.NaN` để kiểm tra lỗi tính toán.** Kết quả luôn `false`; dùng `Double.isNaN(x)`.
-3. **Cho rằng `NaN` không bao giờ “bằng chính nó” trong mọi API.** Primitive `==` trả `false`, nhưng wrapper `equals` trả `true` và `Double.compare(NaN,NaN)` trả 0.
-4. **Cho rằng `+0.0` và `-0.0` là một khóa duy nhất của `HashMap<Double,...>`.** Wrapper phân biệt chúng, nên thường có hai khóa.
-5. **Dùng `Double.compare(a,b)==0` rồi suy ra `a==b` đối với mọi giá trị.** Không đúng với NaN và signed zero. Kết quả `compare == 0` nhất quán với wrapper `equals`, không phải toàn bộ phép so sánh primitive.
-6. **Dùng `==` giữa hai wrapper để so sánh nội dung.** Khi cả hai là tham chiếu, phép toán xét danh tính đối tượng; muốn theo ngữ nghĩa wrapper hãy dùng `equals`.
-7. **Dùng `equals` trên `Float` và `Double` khác lớp và mong `true` vì cùng là số 1.** Wrapper yêu cầu cùng loại đối tượng.
-8. **Giả sử mọi NaN có cùng raw-bit payload.** `equals` dựa trên các phép đổi bit có canonicalization; khi làm việc với giao thức nhị phân cần hiểu sự khác biệt với `doubleToRawLongBits`/`floatToRawIntBits`.
-9. **Dùng `equals` để kiểm tra kết quả gần đúng** của những phép tính như `0.1+0.2`. `equals` không phải so sánh theo sai số; chọn một chính sách khác nếu bài toán cho phép sai lệch nhỏ.
-10. **Không xét tới `null` khi so sánh wrapper.** `a.equals(b)` có thể ném NPE khi `a` null; phép `==` có unboxing cũng có thể ném NPE. Dùng quy tắc nullable phù hợp.
+1. **Assuming `Double.equals` is equivalent to `==` on `double`.** Wrong in two core cases: `NaN` and signed zero.
+2. **Using `x == Double.NaN` to check for calculation errors.** The result is always `false`; use `Double.isNaN(x)`.
+3. **Assuming `NaN` is never "equal to itself" in any API.** Primitive `==` returns `false`, but wrapper `equals` returns `true` and `Double.compare(NaN,NaN)` returns 0.
+4. **Assuming `+0.0` and `-0.0` are a single key in `HashMap<Double,...>`.** Wrappers distinguish them, so they normally form two keys.
+5. **Using `Double.compare(a,b)==0` and inferring `a==b` for all values.** Untrue for NaN and signed zero. `compare == 0` is consistent with wrapper `equals`, not all primitive comparisons.
+6. **Using `==` between two wrappers to compare contents.** When both are references, the operation checks object identity; for wrapper semantics, use `equals`.
+7. **Calling `equals` across different `Float` and `Double` classes and expecting `true` because both represent 1.** Wrappers require the same object type.
+8. **Assuming all NaNs have the same raw-bit payload.** `equals` relies on bit conversions with canonicalization; when working with binary protocols, understand the difference from `doubleToRawLongBits`/`floatToRawIntBits`.
+9. **Using `equals` to check approximate results** of calculations like `0.1+0.2`. `equals` is not tolerance-based comparison; choose a different policy if the problem permits small deviations.
+10. **Failing to account for `null` when comparing wrappers.** `a.equals(b)` can throw NPE when `a` is null; `==` with unboxing can also throw NPE. Use an appropriate nullable policy.
 
-## 12. Checklist thiết kế so sánh số thực
+## 12. Floating-Point Comparison Design Checklist
 
-Trước khi chọn toán tử hay API, xác định rõ:
+Before choosing an operator or API, determine clearly:
 
-- **Dữ liệu là primitive hay wrapper?** Cùng ký hiệu `==` có thể biểu thị so sánh số học hoặc so sánh danh tính tham chiếu, tùy kiểu toán hạng.
-- **NaN có được phép xuất hiện không?** Nếu là tín hiệu dữ liệu lỗi, kiểm tra sớm bằng `isNaN`; nếu là giá trị hợp lệ trong khóa collection, hiểu quy tắc wrapper canonicalization.
-- **Hai zero có phải phân biệt không?** Nếu không, cân nhắc chuẩn hóa zero trước khi lưu khóa; nếu có, `Double.equals`/`Float.equals` giữ được sự khác nhau.
-- **Có cần thứ tự sắp xếp toàn phần không?** Chọn `Double.compare`/`Float.compare` cho thứ tự có quy tắc rõ ràng với NaN và signed zero.
-- **Độ chính xác thực sự yêu cầu là gì?** Nếu so sánh số liệu đo/ước lượng, xác định ngưỡng từ bài toán; nếu cần chính xác theo thập phân, cân nhắc `BigDecimal` và quy tắc `equals`/`compareTo` riêng của lớp đó.
-- **Có dùng làm khóa dữ liệu hay collection không?** Một khi chọn định nghĩa bằng nhau, đảm bảo bộ so sánh, mã băm và chuẩn hóa dữ liệu nhất quán với mục đích đó.
+- **Is the data primitive or wrapper?** The same `==` symbol can mean arithmetic comparison or reference identity comparison depending on operand types.
+- **Is NaN allowed to appear?** If it signals invalid data, check early with `isNaN`; if it is a valid value in collection keys, understand wrapper canonicalization rules.
+- **Must the two zeros be distinguished?** If not, consider normalizing zero before storing keys; if so, `Double.equals`/`Float.equals` preserve the difference.
+- **Is a total sort order needed?** Choose `Double.compare`/`Float.compare` for a well-defined ordering with NaN and signed zero.
+- **What accuracy is actually required?** If comparing measured/estimated quantities, determine thresholds from the problem; if decimal exactness is needed, consider `BigDecimal` and its own `equals`/`compareTo` rules.
+- **Is it used as a data or collection key?** Once an equality definition is chosen, ensure the comparator, hash code, and data normalization are consistent with that goal.
 
-**Kết luận:** `==` trên `float`/`double` tuân thủ so sánh số học IEEE 754 (**NaN không bằng NaN, hai zero bằng nhau**). `Float.equals` và `Double.equals` lại dựa trên các mẫu bit đã canonicalize NaN (**NaN bằng NaN, hai zero khác nhau**), giúp xây dựng ngữ nghĩa khóa và thứ tự nhất quán trong các collection. Đừng thay thế hai quy tắc một cách vô thức; hãy lựa chọn theo yêu cầu thực sự của chương trình.
+**Conclusion:** `==` on `float`/`double` follows IEEE 754 arithmetic comparison (**NaN does not equal NaN, both zeros are equal**). `Float.equals` and `Double.equals` rely on NaN-canonicalized bit patterns (**NaN equals NaN, both zeros differ**), establishing consistent key and ordering semantics in collections. Do not substitute one rule for the other unconsciously; choose based on the program's actual requirements.
 
-**Tài liệu tham khảo:** [Java SE 21 — Double.equals](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Double.html#equals(java.lang.Object)), [Double.compare](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Double.html#compare(double,double)), [Double.doubleToLongBits](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Double.html#doubleToLongBits(double)), [Float.equals](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Float.html#equals(java.lang.Object)), [JLS §15.21.1 — Numerical Equality Operators](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.21.1).
+**References:** [Java SE 21 — Double.equals](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Double.html#equals(java.lang.Object)), [Double.compare](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Double.html#compare(double,double)), [Double.doubleToLongBits](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Double.html#doubleToLongBits(double)), [Float.equals](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Float.html#equals(java.lang.Object)), [JLS §15.21.1 — Numerical Equality Operators](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.21.1).

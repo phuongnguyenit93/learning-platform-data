@@ -1,20 +1,20 @@
-# IllegalAccessError do thiếu exports hoặc reads
+# IllegalAccessError Due to Missing Exports or Reads
 
-Trong Java Platform Module System (JPMS), mã Java có thể biên dịch thành công nhưng thất bại lúc chạy với **java.lang.IllegalAccessError**. Một nguyên nhân quan trọng là quan hệ truy cập giữa các named module không còn hợp lệ ở runtime: module gọi **không đọc được** module chứa kiểu cần dùng, hoặc package chứa kiểu đó **không được export** cho module gọi.
+In the Java Platform Module System (JPMS), Java code may compile successfully yet fail at runtime with **java.lang.IllegalAccessError**. One major cause is that access relationships between named modules are no longer valid at runtime: the calling module **cannot read** the module containing the target type, or the package containing that type **is not exported** to the calling module.
 
-IllegalAccessError thuộc nhóm **LinkageError**. JVM có thể phát hiện lỗi khi phân giải tham chiếu đến class, method hoặc field trong bytecode. Vì thế, lỗi thường xuất hiện khi lớp được nạp hoặc khi một đường thực thi lần đầu dùng thành viên, chứ không nhất thiết ngay lúc khởi động ứng dụng.
+IllegalAccessError belongs to the **LinkageError** family. The JVM may detect the error when resolving references to a class, method, or field in bytecode. Therefore, the error often surfaces when a class is loaded or when an execution path uses the member for the first time, rather than necessarily at application startup.
 
-Bài này tập trung vào lỗi do **readability** và **exports**, cách tái hiện, cách đọc thông báo JVM, cách dùng requires, exports, --add-reads và --add-exports, cùng quy trình xử lý mà không mở rộng quyền truy cập quá mức.
+This lesson focuses on errors caused by **readability** and **exports**, how to reproduce them, how to read JVM messages, how to use requires, exports, --add-reads, and --add-exports, and a workflow to fix them without widening access excessively.
 
-## 1. Đọc module và truy cập package là hai điều kiện khác nhau
+## 1. Reading a module and accessing a package are two distinct conditions
 
-Để mã trong named module com.example.app sử dụng một public class nằm trong com.example.library, cần xem ít nhất ba tầng:
+For code in the named module com.example.app to use a public class in com.example.library, at least three layers must be checked:
 
-1. **Readability:** com.example.app có đọc com.example.library không? Thông thường điều này được khai báo bằng requires trong module-info.java.
-2. **Package export:** com.example.library có export package chứa class đó cho com.example.app không?
-3. **Java language access:** class, constructor, method hoặc field có mức truy cập phù hợp không?
+1. **Readability:** Does com.example.app read com.example.library? Normally this is declared using requires in module-info.java.
+2. **Package export:** Does com.example.library export the package containing that class to com.example.app?
+3. **Java language access:** Do the class, constructor, method, or field have appropriate access modifiers?
 
-Ví dụ module thư viện:
+Example library module:
 
 ~~~java
 module com.example.library {
@@ -22,7 +22,7 @@ module com.example.library {
 }
 ~~~
 
-Module ứng dụng:
+Application module:
 
 ~~~java
 module com.example.app {
@@ -30,47 +30,47 @@ module com.example.app {
 }
 ~~~
 
-Với cấu hình này, com.example.app đọc com.example.library và có thể sử dụng các kiểu public của package com.example.library.api.
+With this configuration, com.example.app reads com.example.library and can use the public types of package com.example.library.api.
 
-Nhưng nếu com.example.library cũng có package com.example.library.internal mà không export, ứng dụng không được dùng public class trong internal như API thông thường.
+However, if com.example.library also has a package com.example.library.internal that is not exported, the application cannot use public classes in internal as ordinary API.
 
-**requires cho phép đọc module; exports cho phép truy cập package.** Một điều kiện không thay thế điều kiện kia.
+**requires allows reading a module; exports allows accessing a package.** One condition does not substitute for the other.
 
-## 2. Vì sao lỗi có thể chỉ xuất hiện ở runtime?
+## 2. Why can the error appear only at runtime?
 
-Compiler javac thường phát hiện trước việc thiếu requires hoặc exports. Tuy nhiên vẫn có những tình huống compile-time và runtime sử dụng cấu hình khác nhau:
+The javac compiler normally catches missing requires or exports up front. Yet situations still exist where compile-time and runtime use different configurations:
 
-- Khi biên dịch có --add-exports nhưng khi chạy lại thiếu cờ tương ứng.
-- Khi biên dịch có --add-reads nhưng runtime không có quan hệ đọc đó.
-- Các JAR/module descriptor đã thay đổi giữa thời điểm build và triển khai.
-- Bytecode được tạo hoặc biến đổi bởi công cụ instrumentation, proxy hoặc compiler khác.
-- Một thư viện được biên dịch dựa trên API public nhưng runtime cung cấp phiên bản đã thay đổi visibility hoặc exports.
-- Các module được nạp trong ModuleLayer tùy chỉnh với cấu hình không giống môi trường build.
+- Compiling with --add-exports while running without the corresponding flag.
+- Compiling with --add-reads while runtime lacks that read relationship.
+- JARs/module descriptors changed between build time and deployment.
+- Bytecode was generated or transformed by instrumentation tools, proxies, or a different compiler.
+- A library was compiled against a public API, while runtime provides a version whose visibility or exports changed.
+- Modules are loaded in a custom ModuleLayer with a configuration differing from the build environment.
 
-Khi JVM liên kết một tham chiếu bytecode, nó kiểm tra quyền truy cập hiệu lực tại runtime. Nếu quyền không đáp ứng, có thể phát sinh IllegalAccessError.
+When the JVM links a bytecode reference, it checks effective access permissions at runtime. If permissions are not satisfied, IllegalAccessError can occur.
 
-Điều quan trọng là không kết luận “đã compile thì runtime chắc chắn có quyền”. JPMS còn phụ thuộc vào module graph và runtime configuration thực tế.
+It is important not to conclude "since it compiled, runtime surely has access". JPMS also depends on the actual module graph and runtime configuration.
 
-## 3. Phân biệt các lỗi dễ nhầm
+## 3. Distinguishing easily confused errors
 
-| Lỗi | Thời điểm thường gặp | Nguyên nhân cần xem |
+| Error | When it typically occurs | Cause to examine |
 | --- | --- | --- |
-| error: package ... is not visible | Biên dịch | Thiếu requires/readability hoặc package không export. |
-| java.lang.module.FindException: Module ... not found | Resolve module khi khởi chạy | Module chưa tìm thấy trong nguồn mô-đun. |
-| java.lang.module.ResolutionException | Resolve module graph | Xung đột cấu hình hoặc ràng buộc mô-đun không thể resolve. |
-| IllegalAccessError | Runtime linking | JVM không cho phép tham chiếu class/member; có thể do reads, exports hoặc visibility. |
-| IllegalAccessException | Reflective operation hoặc MethodHandles | Caller không đủ quyền truy cập khi thao tác reflection. |
-| InaccessibleObjectException | Khi cố bật deep reflection | Package chưa open cho caller, thường tại setAccessible(true). |
-| ClassNotFoundException | Tìm/nạp lớp theo tên | Class loader không tìm thấy class. |
-| NoClassDefFoundError | Định nghĩa hoặc liên kết lớp ở runtime | Thiếu class hoặc một lỗi nền tảng liên quan đến class initialization/loading. |
+| error: package ... is not visible | Compilation | Missing requires/readability or package not exported. |
+| java.lang.module.FindException: Module ... not found | Module resolution on launch | Module not found in module sources. |
+| java.lang.module.ResolutionException | Module graph resolution | Configuration conflict or unresolvable module constraints. |
+| IllegalAccessError | Runtime linking | JVM disallows class/member reference; may be due to reads, exports, or visibility. |
+| IllegalAccessException | Reflective operation or MethodHandles | Caller lacks sufficient access permission during reflection. |
+| InaccessibleObjectException | When attempting to enable deep reflection | Package is not open to caller, typically at setAccessible(true). |
+| ClassNotFoundException | Looking up/loading a class by name | Class loader cannot find the class. |
+| NoClassDefFoundError | Defining or linking a class at runtime | Missing class or an underlying error in class initialization/loading. |
 
-IllegalAccessError không chỉ do JPMS: các thay đổi private/public, class hierarchy hoặc binary incompatibility cũng có thể gây lỗi này. Hãy đọc **toàn bộ thông báo** để xác định lỗi đang nói về package/module hay về member visibility.
+IllegalAccessError is not exclusively caused by JPMS: private/public changes, class hierarchy changes, or binary incompatibility can also cause it. Read the **entire message** to determine whether the error refers to a package/module or to member visibility.
 
-## 4. Ví dụ tái hiện lỗi thiếu exports
+## 4. Example reproducing a missing exports error
 
-Giả sử thư viện có một class public nằm trong package internal. Nó có thể được dùng trong cùng module, nhưng không phải public API cho module khác.
+Suppose the library has a public class inside an internal package. It can be used within the same module, yet it is not public API for other modules.
 
-Cấu trúc:
+Structure:
 
 ~~~text
 src/
@@ -82,15 +82,15 @@ src/
     └── com/example/app/Main.java
 ~~~
 
-Descriptor của library:
+Library descriptor:
 
 ~~~java
 module com.example.library {
-    // Không exports com.example.library.internal.
+    // Does not export com.example.library.internal.
 }
 ~~~
 
-Lớp internal:
+Internal class:
 
 ~~~java
 package com.example.library.internal;
@@ -105,7 +105,7 @@ public final class InternalFormatter {
 }
 ~~~
 
-Descriptor của app:
+App descriptor:
 
 ~~~java
 module com.example.app {
@@ -113,7 +113,7 @@ module com.example.app {
 }
 ~~~
 
-Mã app:
+App code:
 
 ~~~java
 package com.example.app;
@@ -127,13 +127,13 @@ public final class Main {
 }
 ~~~
 
-Nếu biên dịch bình thường, javac sẽ từ chối import vì package internal không được export cho com.example.app. Đó là kết quả đúng của JPMS.
+Under normal compilation, javac rejects the import because the internal package is not exported to com.example.app. That is the intended result of JPMS.
 
-Tuy nhiên, ta có thể cố ý cấp quyền chỉ tại compile-time để tái hiện sự khác biệt với runtime.
+However, we can intentionally grant permission only at compile time to reproduce the divergence from runtime.
 
-## 5. Compile có --add-exports nhưng chạy không có
+## 5. Compiling with --add-exports while running without it
 
-Giả sử thư mục src như ví dụ và đang sử dụng JDK có hỗ trợ JPMS, có thể biên dịch bằng:
+Assuming the src directory matches the example and a JPMS-capable JDK is used, it can be compiled with:
 
 ~~~bash
 javac --module-source-path src \
@@ -142,16 +142,16 @@ javac --module-source-path src \
     -m com.example.library,com.example.app
 ~~~
 
-Tùy chọn --add-exports cho compiler biết com.example.library.internal có thể được dùng từ com.example.app trong lần biên dịch này.
+The --add-exports option tells the compiler that com.example.library.internal may be used from com.example.app during this compilation.
 
-Sau đó chạy **không có** quyền export bổ sung:
+Then run **without** the extra export permission:
 
 ~~~bash
 java --module-path out \
     -m com.example.app/com.example.app.Main
 ~~~
 
-JVM có thể ném IllegalAccessError, với thông báo tương tự:
+The JVM may throw IllegalAccessError, with a message similar to:
 
 ~~~text
 java.lang.IllegalAccessError:
@@ -162,11 +162,11 @@ because module com.example.library does not export
 com.example.library.internal to module com.example.app
 ~~~
 
-Thông báo chỉ rõ module nguồn, module đích và package thiếu exports. Đây là lỗi runtime linking, không phải lỗi thiếu file JAR.
+The message clearly identifies the source module, target module, and package lacking exports. This is a runtime linking error, not a missing JAR file error.
 
-## 6. Sửa ví dụ bằng --add-exports ở runtime
+## 6. Fixing the example with --add-exports at runtime
 
-Để cấp cùng quyền trong JVM runtime, truyền:
+To grant the same permission in the JVM runtime, pass:
 
 ~~~bash
 java --module-path out \
@@ -174,29 +174,29 @@ java --module-path out \
     -m com.example.app/com.example.app.Main
 ~~~
 
-Đầu ra mong đợi:
+Expected output:
 
 ~~~text
 [JPMS]
 ~~~
 
-Cú pháp:
+Syntax:
 
 ~~~text
 --add-exports SOURCE_MODULE/PACKAGE=TARGET_MODULE
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-- SOURCE_MODULE là module sở hữu package.
-- PACKAGE là package cần export.
-- TARGET_MODULE là module muốn truy cập public API trong package đó.
+- SOURCE_MODULE is the module that owns the package.
+- PACKAGE is the package to export.
+- TARGET_MODULE is the module that wants to access public API in that package.
 
-Tùy chọn này giúp xử lý tương thích, nhưng không biến internal package thành hợp đồng API ổn định. Nếu bạn quản lý thư viện và muốn consumer chính thức dùng lớp đó, nên thiết kế lại package API và descriptor thay vì yêu cầu mọi consumer truyền cờ.
+This option helps handle compatibility, yet it does not turn an internal package into a stable API contract. If you maintain the library and want consumers to use that class officially, redesign the API package and descriptor rather than requiring every consumer to pass flags.
 
-## 7. Sửa bền vững bằng module-info.java
+## 7. Durable fix via module-info.java
 
-Nếu package thực sự chứa API công khai, module sở hữu có thể export nó:
+If the package genuinely contains public API, the owning module can export it:
 
 ~~~java
 module com.example.library {
@@ -204,7 +204,7 @@ module com.example.library {
 }
 ~~~
 
-Giả sử định nghĩa lại lớp thành:
+Suppose the class is redefined as:
 
 ~~~java
 package com.example.library.api;
@@ -219,9 +219,9 @@ public final class Formatter {
 }
 ~~~
 
-Consumer import Formatter từ package api, khai báo requires và không cần --add-exports.
+The consumer imports Formatter from the api package, declares requires, and needs no --add-exports.
 
-Nếu chỉ một module tích hợp được phép dùng package đặc thù, có thể sử dụng qualified exports:
+If only one integration module should be allowed to use a specialized package, qualified exports can be used:
 
 ~~~java
 module com.example.library {
@@ -231,15 +231,15 @@ module com.example.library {
 }
 ~~~
 
-Cách này chỉ cấp export cho com.example.app. Nhưng nó vẫn là một phần hợp đồng của module library, nên cần cân nhắc compatibility nếu đổi hoặc xóa về sau.
+This grants the export only to com.example.app. Still, it remains part of the library module's contract, so compatibility must be considered before renaming or removing it later.
 
-Không nên export toàn bộ package internal chỉ để sửa một lỗi khi chưa xác định ý nghĩa của API.
+Do not export an entire internal package just to silence one error without determining the intended meaning of the API.
 
-## 8. Trường hợp thiếu readability: module không reads module khác
+## 8. Missing readability: a module does not read another module
 
-Module graph sử dụng quan hệ **reads** có hướng. Nếu com.example.app đọc com.example.library, điều đó không có nghĩa com.example.library cũng đọc com.example.app.
+The module graph uses a directed **reads** relationship. If com.example.app reads com.example.library, that does not mean com.example.library also reads com.example.app.
 
-Descriptor thông thường:
+Normal descriptor:
 
 ~~~java
 module com.example.app {
@@ -247,9 +247,9 @@ module com.example.app {
 }
 ~~~
 
-Khai báo requires tạo readability từ app tới library. Khi một class của app tham chiếu class public thuộc package đã export của library, JVM vẫn cần thấy quan hệ đọc phù hợp tại runtime.
+Declaring requires establishes readability from app to library. When a class in app references a public class in an exported package of library, the JVM still needs to see the appropriate read relationship at runtime.
 
-Có thể quan sát bằng API:
+This can be observed via the API:
 
 ~~~java
 Module appModule = Main.class.getModule();
@@ -259,21 +259,21 @@ System.out.println(
         appModule.canRead(libraryModule));
 ~~~
 
-Trong ví dụ, SomePublicApi là một class public thuộc package đã export của library mà chương trình có thể tham chiếu hợp lệ.
+In the example, SomePublicApi is a public class in an exported package of library that the program can validly reference.
 
-Nếu canRead trả về false, quan hệ đọc từ module app tới module library chưa tồn tại trong cấu hình hiện tại.
+If canRead returns false, the read relationship from the app module to the library module does not exist in the current configuration.
 
-Lưu ý: Java tự cung cấp readability tới java.base cho mọi named module. Với các module khác, cần quan hệ được tạo qua requires, requires transitive hoặc các cơ chế hợp lệ tương ứng.
+Note: Java automatically provides readability to java.base for every named module. For other modules, the relationship must be established via requires, requires transitive, or corresponding valid mechanisms.
 
-## 9. Cú pháp --add-reads và tính có hướng
+## 9. --add-reads syntax and directionality
 
-Khi cần bổ sung readability mà không thể chỉnh descriptor, có thể dùng:
+When you need to add readability without being able to edit the descriptor, you can use:
 
 ~~~text
 --add-reads SOURCE_MODULE=TARGET_MODULE
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --module-path out \
@@ -281,29 +281,29 @@ java --module-path out \
     -m com.example.app/com.example.app.Main
 ~~~
 
-Câu lệnh có nghĩa com.example.app đọc com.example.library. Nó không có nghĩa library đọc app.
+The flag means com.example.app reads com.example.library. It does not mean library reads app.
 
-Tuy nhiên, đây chỉ là quan hệ readability. Nếu library không export package cho app, thêm --add-reads đơn thuần vẫn không đủ.
+However, this is only the readability relationship. If library does not export the package to app, adding --add-reads alone is still insufficient.
 
-Vì vậy, khi chẩn đoán:
+Therefore, when diagnosing:
 
-- Nếu thông báo nói module A does not read module B: kiểm tra requires và, khi có lý do chuyển tiếp, --add-reads.
-- Nếu thông báo nói module B does not export package p to module A: kiểm tra exports hoặc --add-exports.
-- Nếu cả hai điều kiện không tồn tại, cần xử lý riêng cả hai.
+- If the message says module A does not read module B: check requires and, when there is a transitional reason, --add-reads.
+- If the message says module B does not export package p to module A: check exports or --add-exports.
+- If neither condition holds, address both separately.
 
-Việc đặt --add-reads không tự tải một module chưa có trong module graph. Module đích cần được tìm thấy và resolve thích hợp trước khi quan hệ đọc bổ sung có ý nghĩa.
+Setting --add-reads does not automatically load a module that is absent from the module graph. The target module must be found and properly resolved before the added read relationship is meaningful.
 
-## 10. Reproducer cho readability: tách compile-time và runtime
+## 10. Reproducer for readability: separating compile-time and runtime
 
-Một tình huống để nghiên cứu:
+A scenario to examine:
 
-- Module thư viện com.example.library export package com.example.library.api.
-- Module com.example.app sử dụng public class trong package này.
-- Module descriptor của app không khai báo requires com.example.library.
-- Trong lần biên dịch, công cụ được cấp thêm readability tới library.
-- Khi chạy, quan hệ đọc bổ sung không còn.
+- Library module com.example.library exports package com.example.library.api.
+- Module com.example.app uses a public class in this package.
+- App's module descriptor does not declare requires com.example.library.
+- During compilation, the tool is granted extra readability to library.
+- At runtime, that extra read relationship is gone.
 
-Descriptor của library:
+Library descriptor:
 
 ~~~java
 module com.example.library {
@@ -311,15 +311,15 @@ module com.example.library {
 }
 ~~~
 
-Descriptor của app:
+App descriptor:
 
 ~~~java
 module com.example.app {
-    // Cố ý thiếu requires com.example.library.
+    // Intentionally missing requires com.example.library.
 }
 ~~~
 
-Để javac có đủ dữ liệu trong một môi trường minh họa, có thể dùng:
+To give javac enough information in an illustrative environment, one can use:
 
 ~~~bash
 javac --module-source-path src \
@@ -328,7 +328,7 @@ javac --module-source-path src \
     -m com.example.library,com.example.app
 ~~~
 
-Với runtime, library có thể cần được resolve như một root bổ sung vì app không requires library:
+At runtime, library may need to be resolved as an extra root because app does not require library:
 
 ~~~bash
 java --module-path out \
@@ -336,9 +336,9 @@ java --module-path out \
     -m com.example.app/com.example.app.Main
 ~~~
 
-Nếu bytecode của app được biên dịch để tham chiếu public class từ library, nhưng runtime không có readability, JVM có thể từ chối liên kết bằng IllegalAccessError.
+If app's bytecode was compiled to reference a public class from library, yet runtime lacks readability, the JVM can reject linking with IllegalAccessError.
 
-Cách sửa bền vững là khai báo:
+The durable fix is declaring:
 
 ~~~java
 module com.example.app {
@@ -346,29 +346,29 @@ module com.example.app {
 }
 ~~~
 
-Nếu đặc thù môi trường buộc phải giữ dependency ở ngoài descriptor, phải giải thích lý do và cung cấp --add-reads ở đúng giai đoạn cần thiết. Không biến sự thiếu nhất quán compile/run thành thiết kế mặc định.
+If environmental specifics require keeping the dependency outside the descriptor, document why and supply --add-reads at the necessary stages. Do not turn compile/run inconsistency into the default design.
 
-## 11. --add-reads tới ALL-UNNAMED
+## 11. --add-reads to ALL-UNNAMED
 
-Một trường hợp phổ biến là named module phải tham chiếu tới thư viện legacy trên classpath.
+A common situation is a named module needing to reference a legacy library on the classpath.
 
-Thư viện nằm trên classpath thuộc unnamed module; không thể viết requires với một tên module cụ thể cho nó. Với một số cấu hình kiểm thử hoặc migration, có thể dùng:
+A library on the classpath belongs to the unnamed module; you cannot write requires with a specific module name for it. For certain test or migration configurations, you can use:
 
 ~~~text
 --add-reads com.example.app=ALL-UNNAMED
 ~~~
 
-Tùy chọn này cho phép com.example.app đọc unnamed modules trong runtime phù hợp.
+This option allows com.example.app to read unnamed modules in an appropriate runtime.
 
-Nhưng nó không chuyển JAR legacy thành named module và không thêm JAR đó vào classpath. Thư viện vẫn phải có mặt ở đúng đường dẫn và được class loader tìm thấy.
+However, it does not turn the legacy JAR into a named module and does not add that JAR to the classpath. The library must still be present at the right path and findable by the class loader.
 
-Nếu thư viện hỗ trợ automatic module hoặc có descriptor, một hướng thiết kế khác là đặt JAR trên module path và dùng module name đã xác minh bằng jar --describe-module.
+If the library supports automatic modules or has a descriptor, another design direction is placing the JAR on the module path and using the module name verified by jar --describe-module.
 
-Khi chọn ALL-UNNAMED, hãy ghi rõ vì sao cần quan hệ rộng này và phạm vi sử dụng là test, migration hay production.
+When choosing ALL-UNNAMED, document why this broad relationship is needed and whether its scope is test, migration, or production.
 
-## 12. exports có thể là qualified
+## 12. exports can be qualified
 
-Module library có thể export package chỉ cho một số module:
+A library module can export a package only to specific modules:
 
 ~~~java
 module com.example.library {
@@ -377,33 +377,33 @@ module com.example.library {
 }
 ~~~
 
-Trong trường hợp này:
+In this case:
 
-- com.example.app có thể truy cập các kiểu public của api nếu có readability phù hợp.
-- com.example.another không tự có quyền truy cập api chỉ vì module library được resolve.
-- Những module khác cần một thiết kế hợp đồng hoặc qualified export phù hợp.
+- com.example.app can access public types of api if it has proper readability.
+- com.example.another does not automatically gain access to api just because the library module is resolved.
+- Other modules need an appropriate contract design or qualified export.
 
-Ở runtime, một class nằm trong module khác với tên dự kiến có thể gặp IllegalAccessError dù import giống nhau, vì qualified export nhắm tới module name cụ thể.
+At runtime, a class residing in a module with a different name than expected can hit IllegalAccessError despite identical imports, because qualified exports target specific module names.
 
-Chẩn đoán nên kiểm tra module name thực tế của caller. Tên file JAR, Maven artifactId và module name không nhất thiết trùng nhau.
+Diagnostics should verify the caller's actual module name. JAR filename, Maven artifactId, and module name do not necessarily match.
 
-Để kiểm tra thông tin module:
+To inspect module details:
 
 ~~~bash
 jar --describe-module --file libs/library.jar
 ~~~
 
-Và:
+And:
 
 ~~~bash
 java --describe-module com.example.library
 ~~~
 
-Lệnh thứ hai cần module tương ứng được tìm thấy trong cấu hình lệnh chạy; với module trên đường dẫn bổ sung, cung cấp --module-path khi cần.
+The second command requires the corresponding module to be found in the launch command configuration; for modules on an additional path, supply --module-path as needed.
 
-## 13. Dùng Module API để kiểm tra reads và exports
+## 13. Using the Module API to check reads and exports
 
-Một công cụ diagnostic có thể hỏi trực tiếp trạng thái runtime:
+A diagnostic utility can query runtime state directly:
 
 ~~~java
 public final class AccessReport {
@@ -427,36 +427,36 @@ public final class AccessReport {
 }
 ~~~
 
-Đây là API quan sát trạng thái, không sửa module graph.
+This is an observation API; it does not mutate the module graph.
 
-Chiều gọi đúng là:
+The right call direction is:
 
 ~~~java
 caller.canRead(owner)
 ~~~
 
-để hỏi caller có đọc owner không.
+to ask whether caller reads owner.
 
-Và:
+And:
 
 ~~~java
 owner.isExported(packageName, caller)
 ~~~
 
-để hỏi package của owner có export cho caller không.
+to ask whether owner's package is exported to caller.
 
-Nếu class mục tiêu không thể tham chiếu trực tiếp, bạn cần một con đường hợp lệ để lấy Class<?> trước khi kiểm tra, hoặc dùng descriptor/module tooling để quan sát cấu hình mà không cố liên kết kiểu không được phép.
+If the target class cannot be referenced directly, you need a valid way to obtain Class<?> before checking, or use descriptor/module tooling to observe the configuration without trying to link a disallowed type.
 
-## 14. Phân biệt ModuleDescriptor và trạng thái runtime
+## 14. Distinguishing ModuleDescriptor and runtime state
 
-ModuleDescriptor lưu các chỉ thị mô-đun được công bố trong artifact:
+ModuleDescriptor stores the module directives published in the artifact:
 
 ~~~java
 ModuleDescriptor descriptor =
         SomePublicApi.class.getModule().getDescriptor();
 ~~~
 
-Có thể đọc:
+You can read:
 
 ~~~java
 descriptor.requires();
@@ -464,30 +464,30 @@ descriptor.exports();
 descriptor.opens();
 ~~~
 
-Nhưng module graph runtime có thể chịu ảnh hưởng của các tùy chọn --add-reads/--add-exports và các API được phép thêm quan hệ.
+However, the runtime module graph can be affected by --add-reads/--add-exports options and APIs permitted to add relationships.
 
-Vì vậy:
+Therefore:
 
-- Descriptor cho biết hợp đồng và cấu hình tĩnh đã được khai báo.
-- Module.canRead và Module.isExported phản ánh quan hệ hiệu lực của hai Module tại runtime.
+- The descriptor shows the statically declared contract and configuration.
+- Module.canRead and Module.isExported reflect the effective relationship between two Modules at runtime.
 
-Một báo cáo kỹ thuật có thể sử dụng cả hai. Nếu descriptor không có requires nhưng canRead trả true, có thể tồn tại quyền đọc được bổ sung hoặc quan hệ ngầm định phù hợp. Đừng xem đây là mâu thuẫn chắc chắn trước khi kiểm tra cách JVM khởi chạy.
+A technical report can use both. If the descriptor lacks requires yet canRead returns true, there may be added read permissions or an appropriate implicit relationship. Do not assume this is a contradiction before checking how the JVM was launched.
 
-## 15. Kiểm tra module graph khi khởi chạy
+## 15. Inspecting the module graph at launch
 
-Một số lệnh JDK hữu ích:
+Several useful JDK commands:
 
 ~~~bash
 java --list-modules
 ~~~
 
-Liệt kê những module có thể quan sát trong cấu hình launcher.
+Lists the modules observable in the launcher configuration.
 
 ~~~bash
 java --module-path mods --list-modules
 ~~~
 
-Cho biết những module được nhận diện trong module path hiện tại và các module hệ thống thích hợp.
+Shows the modules recognized in the current module path and applicable system modules.
 
 ~~~bash
 java --show-module-resolution \
@@ -495,28 +495,28 @@ java --show-module-resolution \
     -m com.example.app/com.example.app.Main
 ~~~
 
-Hiển thị quá trình resolve các module trước khi ứng dụng chạy. Đây là cách quan sát root module và dependency của module graph.
+Displays module resolution before the application runs. This is how to observe the root modules and dependencies of the module graph.
 
-Để đọc module descriptor của JAR:
+To read a JAR's module descriptor:
 
 ~~~bash
 jar --describe-module --file libs/example.jar
 ~~~
 
-Với named module có trong runtime configuration, có thể dùng:
+For a named module present in a runtime configuration, you can use:
 
 ~~~bash
 java --module-path mods \
     --describe-module com.example.library
 ~~~
 
-Những lệnh này giúp xác định module thực tế và quan hệ khai báo. Chúng không tự cấp quyền truy cập một package chưa export.
+These commands help identify actual modules and declared relationships. They do not themselves grant access to an unexported package.
 
-## 16. Khi build và runtime dùng module path khác nhau
+## 16. When build and runtime use different module paths
 
-Một dự án có thể compile với các JAR trong thư mục libs nhưng deploy một bộ artifact khác. Khi đó module name, descriptor hoặc version có thể không đồng nhất.
+A project may compile against JARs in a libs directory yet deploy a different set of artifacts. Then module names, descriptors, or versions may diverge.
 
-Ví dụ tình huống:
+Example scenario:
 
 ~~~text
 Compile:
@@ -525,31 +525,31 @@ Compile:
 
 Runtime:
   com.example.library-2.0.jar
-  - chỉ exports package khác
+  - exports only a different package
 ~~~
 
-Consumer có thể được biên dịch dựa trên API của version cũ, nhưng JVM runtime kiểm tra module descriptor của version mới.
+The consumer may have been compiled against the old version's API, while the runtime JVM checks the new version's module descriptor.
 
-Cách xử lý:
+How to handle:
 
-1. Xác định chính xác version của JAR ở compile-time.
-2. Ghi lại JAR được JVM tìm thấy trên module path runtime.
-3. Đọc descriptor của cả hai artifact bằng jar --describe-module.
-4. Kiểm tra API đã đổi package, đổi visibility hoặc bỏ export không.
-5. Đồng bộ dependency management và artifact triển khai.
-6. Chạy lại test modular với đúng cấu hình production.
+1. Determine the exact JAR version at compile time.
+2. Record the JAR found by the JVM on the runtime module path.
+3. Read the descriptors of both artifacts with jar --describe-module.
+4. Check whether the API changed packages, changed visibility, or removed an export.
+5. Synchronize dependency management and deployment artifacts.
+6. Re-run modular tests with the exact production configuration.
 
-Không sửa bằng một loạt --add-exports nếu nguyên nhân thật sự là một bản JAR không tương thích. Hãy đồng bộ dependency trước.
+Do not patch over it with a string of --add-exports if the true cause is an incompatible JAR version. Synchronize dependencies first.
 
-## 17. Lỗi do thay đổi quyền Java member cũng có thể là IllegalAccessError
+## 17. Errors from Java member access changes can also be IllegalAccessError
 
-IllegalAccessError không riêng JPMS. Ví dụ:
+IllegalAccessError is not unique to JPMS. For example:
 
-- Một public method ở version cũ bị đổi thành private ở version mới.
-- Một public class bị giảm visibility.
-- Một superclass/interface hoặc field bị thay đổi làm bytecode cũ tham chiếu không còn hợp lệ.
+- A public method in an older version was changed to private in a newer version.
+- A public class had its visibility reduced.
+- A superclass/interface or field changed so older bytecode references are no longer valid.
 
-Giả sử consumer đã compile với:
+Suppose the consumer compiled against:
 
 ~~~java
 public class Feature {
@@ -558,7 +558,7 @@ public class Feature {
 }
 ~~~
 
-Nhưng runtime cung cấp một version khác:
+Yet runtime supplies another version:
 
 ~~~java
 public class Feature {
@@ -567,62 +567,62 @@ public class Feature {
 }
 ~~~
 
-Bytecode consumer vẫn gọi run() theo giả định method public. JVM có thể phát sinh IllegalAccessError hoặc một linkage error liên quan khi xác minh/liên kết lời gọi.
+The consumer bytecode still calls run() assuming the method is public. The JVM may raise IllegalAccessError or a related linkage error when verifying/linking the call.
 
-Trong trường hợp này, thêm --add-reads hoặc --add-exports có thể không sửa được, vì vấn đề là mức truy cập của thành viên Java chứ không phải module graph.
+In this case, adding --add-reads or --add-exports will not fix it, because the issue is Java member access level rather than the module graph.
 
-Do đó, luôn đọc tên class/member và mô tả lỗi trong stacktrace trước khi chọn giải pháp.
+Therefore, always read the class/member name and error description in the stack trace before choosing a solution.
 
-## 18. Không nhầm với deep reflection
+## 18. Do not confuse with deep reflection
 
-Với mã reflection:
+With reflection code:
 
 ~~~java
 Field field = SomeType.class.getDeclaredField("secret");
 field.setAccessible(true);
 ~~~
 
-Nếu SomeType nằm trong named module khác và package chưa open cho caller, lỗi thường là InaccessibleObjectException.
+If SomeType resides in another named module and the package is not open to the caller, the error is typically InaccessibleObjectException.
 
-Trường hợp này cần xem xét opens hoặc --add-opens, không phải --add-exports đơn thuần.
+This case calls for reviewing opens or --add-opens, not simply --add-exports.
 
-| Nhu cầu | Cơ chế thường liên quan |
+| Need | Mechanism typically involved |
 | --- | --- |
-| Gọi public method của class trong package export | requires/readability và exports. |
-| Import class public từ package không export | exports hoặc --add-exports; kèm readability. |
-| Gọi private method bằng reflection sâu | opens hoặc --add-opens cho caller. |
-| Module chưa đọc module khác | requires hoặc --add-reads. |
-| Class không có trong runtime | Kiểm tra module path/classpath và class loader. |
+| Call public method of class in exported package | requires/readability and exports. |
+| Import public class from unexported package | exports or --add-exports; along with readability. |
+| Call private method via deep reflection | opens or --add-opens to caller. |
+| Module does not read another module | requires or --add-reads. |
+| Class absent at runtime | Check module path/classpath and class loader. |
 
-Đừng thêm --add-opens để sửa một IllegalAccessError chỉ rõ module không export package ở thao tác liên kết bình thường. Đọc loại truy cập thực tế trước khi chọn cờ.
+Do not add --add-opens to fix an IllegalAccessError that explicitly states a module does not export a package during normal linking. Read the actual access type before picking a flag.
 
-## 19. Các module tự tạo trong ModuleLayer
+## 19. Dynamically created modules in a ModuleLayer
 
-Ứng dụng plugin có thể tạo ModuleLayer mới từ Configuration và ModuleFinder. Ở đây, module graph không nhất thiết giống boot layer của ứng dụng.
+A plugin application may create a new ModuleLayer from Configuration and ModuleFinder. Here, the module graph does not necessarily resemble the application's boot layer.
 
-Một plugin có thể:
+A plugin might:
 
-- Được resolve trong layer con nhưng thiếu readability tới module mà nó tham chiếu.
-- Đọc module phù hợp nhưng package của module kia không export cho nó.
-- Sử dụng bytecode được build trên cấu hình khác.
-- Bị nạp bởi class loader khác, dẫn đến lỗi class identity hoặc lỗi liên kết.
+- Be resolved in a child layer yet lack readability to a module it references.
+- Read the appropriate module, yet that module's package is not exported to it.
+- Use bytecode built against a different configuration.
+- Be loaded by a different class loader, leading to class identity errors or linkage errors.
 
-Khi gặp IllegalAccessError trong plugin:
+When encountering IllegalAccessError in a plugin:
 
-1. Xác định Class.getModule() của caller và target nếu có thể lấy được hợp lệ.
-2. Kiểm tra Module.getLayer() và Module.getClassLoader().
-3. Dùng caller.canRead(owner) để xem readability thực tế.
-4. Dùng owner.isExported(packageName, caller) để xem export thực tế.
-5. Xem ModuleDescriptor của hai module.
-6. So sánh module graph của layer con và các layer cha.
+1. Determine Class.getModule() of caller and target if obtainable validly.
+2. Check Module.getLayer() and Module.getClassLoader().
+3. Use caller.canRead(owner) to inspect actual readability.
+4. Use owner.isExported(packageName, caller) to inspect actual exports.
+5. Inspect the ModuleDescriptor of both modules.
+6. Compare the module graph of the child layer and parent layers.
 
-Một class loader tìm thấy bytecode không có nghĩa JPMS cho phép liên kết mọi kiểu trong package chưa export.
+A class loader finding bytecode does not mean JPMS permits linking all types in an unexported package.
 
-## 20. Vai trò của --add-modules
+## 20. Role of --add-modules
 
-Module trên module path có thể **observable** nhưng chưa **resolved** vào module graph. Nếu module mục tiêu chưa được đưa vào cấu hình, một --add-reads trỏ tới nó có thể không giải quyết được vấn đề.
+A module on the module path can be **observable** yet not **resolved** into the module graph. If the target module has not been brought into the configuration, an --add-reads pointing to it may not solve the problem.
 
-Khi cần đưa module thành root bổ sung:
+When you need to add a module as an extra root:
 
 ~~~bash
 java --module-path mods \
@@ -630,15 +630,15 @@ java --module-path mods \
     -m com.example.app/com.example.app.Main
 ~~~
 
-Trong ứng dụng modular bình thường, module app có requires com.example.library thì dependency này đã là một phần của quá trình phân giải theo chỉ thị requires.
+In a normal modular application, if the app module has requires com.example.library, this dependency is already part of resolution via the requires directive.
 
---add-modules cần được dùng theo nhu cầu, chẳng hạn plugin/service provider hoặc dependency được chọn động. Nó không thay thế requires cho mọi tình huống và không tự export package.
+--add-modules should be used as needed, such as for plugins/service providers or dynamically selected dependencies. It does not replace requires in all situations and does not automatically export packages.
 
-Nếu lỗi gốc là java.lang.module.FindException, ưu tiên sửa module path hoặc tên module trước khi kiểm tra IllegalAccessError.
+If the root error is java.lang.module.FindException, prioritize fixing the module path or module name before checking IllegalAccessError.
 
-## 21. --add-exports cho ALL-UNNAMED
+## 21. --add-exports for ALL-UNNAMED
 
-Khi ứng dụng chạy trên classpath, mã thuộc unnamed module. Nếu nó cần truy cập một package từ named module không được export thông thường, có thể dùng đích đặc biệt:
+When an application runs on the classpath, code belongs to the unnamed module. If it needs to access a package from a named module that is not normally exported, a special target can be used:
 
 ~~~bash
 java --add-exports \
@@ -647,30 +647,30 @@ java --add-exports \
     com.example.Main
 ~~~
 
-Ví dụ giả định module library được resolve vào cấu hình runtime và app.jar chứa main class trong classpath. Khi cần, thêm --module-path và --add-modules để đảm bảo library hiện diện trong graph.
+This example assumes the library module is resolved into the runtime configuration and app.jar holds the main class on the classpath. When necessary, add --module-path and --add-modules to ensure library is present in the graph.
 
-ALL-UNNAMED có nghĩa export package cho các unnamed module thích hợp, phạm vi rộng hơn một named module cụ thể.
+ALL-UNNAMED means exporting the package to eligible unnamed modules, a broader scope than a specific named module.
 
-Nếu consumer có module name ổn định, ưu tiên:
+If the consumer has a stable module name, prefer:
 
 ~~~text
 --add-exports com.example.library/com.example.library.internal=com.example.app
 ~~~
 
-để không mở quyền cho nhiều unnamed module không liên quan.
+so as not to open access to unrelated unnamed modules.
 
-## 22. Maven và Gradle: tách compiler arguments và JVM arguments
+## 22. Maven and Gradle: separating compiler arguments and JVM arguments
 
-Một lỗi dễ gặp là thêm --add-exports vào compiler arguments rồi nghĩ rằng JVM runtime tự kế thừa.
+An easy mistake is adding --add-exports to compiler arguments and assuming the JVM runtime inherits it automatically.
 
-Trong thực tế:
+In reality:
 
-- javac nhận các tùy chọn khi biên dịch.
-- java launcher nhận các tùy chọn lúc chạy.
-- Test runner có thể khởi chạy một JVM khác với JVM của ứng dụng.
-- IDE có thể bổ sung module flags riêng mà CLI không có.
+- javac receives options during compilation.
+- the java launcher receives options at runtime.
+- the test runner may launch a different JVM from the application JVM.
+- the IDE may add its own module flags that the CLI does not have.
 
-Với Gradle Groovy DSL, cách cấu hình minh họa:
+With Gradle Groovy DSL, an illustrative configuration:
 
 ~~~groovy
 tasks.withType(JavaCompile).configureEach {
@@ -688,15 +688,15 @@ tasks.withType(Test).configureEach {
 }
 ~~~
 
-Đây chỉ là ví dụ vị trí tham số. Nếu test runner chạy trong unnamed module, đích flag thực tế có thể khác; hãy xác định module caller của tiến trình test trước khi áp dụng.
+This only illustrates where arguments go. If the test runner runs in the unnamed module, the actual flag target may differ; identify the caller module of the test process before applying.
 
-Với Maven, compiler plugin và Surefire/Failsafe/runtime launcher dùng cấu hình riêng. Tránh đưa cờ chỉ phục vụ test vào production nếu production không cần.
+With Maven, the compiler plugin and Surefire/Failsafe/runtime launcher use separate configurations. Avoid placing test-only flags into production if production does not need them.
 
-Nếu có thể sửa source và descriptor, ưu tiên requires/exports hợp lý hơn các cờ tạm thời.
+If source and descriptors can be edited, prefer clean requires/exports over temporary flags.
 
-## 23. Cách đọc một stacktrace IllegalAccessError
+## 23. How to read an IllegalAccessError stack trace
 
-Ví dụ:
+Example:
 
 ~~~text
 Exception in thread "main" java.lang.IllegalAccessError:
@@ -708,49 +708,49 @@ com.example.library.internal to module com.example.app
     at com.example.app/com.example.app.Main.main(Main.java:8)
 ~~~
 
-Trích các thành phần:
+Extract the parts:
 
-| Dữ liệu | Ý nghĩa |
+| Data | Meaning |
 | --- | --- |
-| com.example.app.Main | Class trong bytecode đang cố truy cập. |
-| com.example.app | Module caller. |
-| InternalFormatter | Class mục tiêu. |
-| com.example.library | Module owner. |
-| com.example.library.internal | Package cần export nhưng đang đóng. |
-| Main.java:8 | Vị trí gọi trong mã nguồn để điều tra. |
+| com.example.app.Main | Class in bytecode attempting the access. |
+| com.example.app | Caller module. |
+| InternalFormatter | Target class. |
+| com.example.library | Owner module. |
+| com.example.library.internal | Package needing export but currently closed. |
+| Main.java:8 | Call site in source code to investigate. |
 
-Khi thông báo có cụm does not export, cần kiểm tra export thay vì thử opens.
+When the message contains the phrase does not export, check exports instead of trying opens.
 
-Nếu thông báo có cụm does not read, cần kiểm tra readability và module graph. Nếu nói về private member hoặc protected member, cần kiểm tra Java visibility, chứ không phải mặc định giả định lỗi module.
+If the message contains the phrase does not read, check readability and the module graph. If it mentions a private member or protected member, check Java visibility rather than automatically assuming a module error.
 
-## 24. Quy trình chẩn đoán ngắn và có thứ tự
+## 24. Short, ordered diagnostic workflow
 
-Khi ứng dụng báo IllegalAccessError:
+When the application reports IllegalAccessError:
 
-1. **Giữ nguyên thông báo gốc.** Ghi stacktrace đầy đủ, đặc biệt dòng class/module caller và owner.
-2. **Phân loại.** Lỗi do does not export, does not read hay không liên quan module?
-3. **Xác nhận module name.** Dùng jar --describe-module hoặc java --describe-module.
-4. **Xác nhận runtime graph.** Kiểm tra lệnh java, --module-path, -m, --add-modules và --show-module-resolution.
-5. **Kiểm tra descriptor.** Xem requires của caller, exports của owner, qualified exports và version artifact.
-6. **Kiểm tra quyền hiệu lực.** Khi có Class<?> hợp lệ, gọi caller.canRead(owner) và owner.isExported(packageName, caller).
-7. **Đối chiếu compile và runtime.** So sánh các cờ --add-reads, --add-exports và đường dẫn artifact của hai giai đoạn.
-8. **Sửa đúng tầng.** Sử dụng requires, exports hoặc cờ bổ sung phù hợp với nguyên nhân.
-9. **Giới hạn phạm vi.** Không mở package internal cho mọi module chỉ vì một consumer cần.
-10. **Chạy lại trên môi trường triển khai thật.** Xác nhận lỗi liên kết biến mất mà không phát sinh dependency mismatch mới.
+1. **Preserve the original message.** Capture the full stack trace, especially the caller and owner class/module lines.
+2. **Classify.** Is the error due to does not export, does not read, or unrelated to modules?
+3. **Verify module names.** Use jar --describe-module or java --describe-module.
+4. **Verify the runtime graph.** Check the java command, --module-path, -m, --add-modules, and --show-module-resolution.
+5. **Inspect descriptors.** Check the caller's requires, owner's exports, qualified exports, and artifact versions.
+6. **Check effective permissions.** When a valid Class<?> is available, call caller.canRead(owner) and owner.isExported(packageName, caller).
+7. **Compare compile and runtime.** Compare --add-reads, --add-exports flags, and artifact paths between both stages.
+8. **Fix at the right layer.** Use requires, exports, or supplementary flags matching the cause.
+9. **Limit scope.** Do not open an internal package to all modules just because one consumer needs it.
+10. **Re-run in the real deployment environment.** Confirm the linkage error disappears without introducing a new dependency mismatch.
 
-Không nên sửa hàng loạt cờ rồi thử lại ngẫu nhiên. Một thay đổi có mục tiêu và readback/log rõ ràng giúp phát hiện nguyên nhân thực sự.
+Do not change a bunch of flags and retry at random. Targeted changes with clear readback/logging reveal the true cause.
 
-## 25. Giải pháp thiết kế thay vì phụ thuộc flag
+## 25. Design solutions instead of relying on flags
 
-Nếu consumer phải dùng một class internal của library, hãy tự hỏi:
+If a consumer has to use an internal class of a library, ask yourself:
 
-- Class đó có phải API chính thức dành cho consumer không?
-- Có thể công khai một interface/factory trong package api thay thế không?
-- Có thể trả về DTO hoặc record công khai thay vì kiểu internal không?
-- Có thể thêm requires transitive khi public API cần type của một module dependency khác không?
-- Có thể tách integration API ra package riêng với qualified exports không?
+- Is that class meant to be an official API for consumers?
+- Can a public interface/factory be exposed in an api package instead?
+- Can a public DTO or record be returned instead of an internal type?
+- Can requires transitive be added when a public API needs types from another dependency module?
+- Can an integration API be separated into its own package with qualified exports?
 
-Ví dụ kiến trúc ổn định:
+Example of a stable architecture:
 
 ~~~text
 com.example.library.api
@@ -772,73 +772,73 @@ module com.example.library {
 }
 ~~~
 
-Consumer dùng API package thay vì import DefaultFormatter trong internal. Điều này giảm phụ thuộc vào implementation và tránh phải giữ --add-exports qua nhiều phiên bản.
+The consumer uses the API package instead of importing DefaultFormatter in internal. This reduces coupling to the implementation and avoids having to keep --add-exports across multiple releases.
 
-Nếu gặp lỗi thiếu reads do module descriptor thiếu requires, hãy thêm requires rõ ràng thay vì dùng --add-reads như cấu hình bắt buộc vĩnh viễn, trừ khi kiến trúc có lý do đặc biệt.
+If you encounter a missing reads error because a module descriptor lacks requires, add an explicit requires rather than using --add-reads as a permanent mandatory setting, unless the architecture has a specific reason.
 
-## 26. Những sai lầm phổ biến
+## 26. Common mistakes
 
-**Chỉ thêm requires khi lỗi là thiếu exports:** readability không làm package nội bộ thành public API.
+**Adding only requires when the error is missing exports:** readability does not turn an internal package into public API.
 
-**Chỉ thêm exports khi module caller không reads owner:** export không thay thế quan hệ đọc.
+**Adding only exports when the caller module does not read the owner:** an export does not substitute for a read relationship.
 
-**Dùng --add-opens để sửa lỗi liên kết class public:** opens phục vụ deep reflection, không phải quyền import/bytecode access thông thường.
+**Using --add-opens to fix a public class linking error:** opens serves deep reflection, not normal import/bytecode access.
 
-**Cho rằng public class trong internal package luôn truy cập được:** modifier public không vượt qua JPMS exports.
+**Assuming a public class in an internal package is always accessible:** the public modifier does not bypass JPMS exports.
 
-**Đổi classpath/module path mà không xem module name:** cùng artifact có thể chuyển giữa unnamed, automatic và explicit module tùy vị trí và descriptor.
+**Swapping classpath/module path without checking module names:** the same artifact can switch between unnamed, automatic, and explicit module depending on placement and descriptor.
 
-**Thêm cờ ở compile rồi quên runtime:** đây là nguồn rất phổ biến của lỗi chỉ xuất hiện khi chạy.
+**Adding flags at compile time and forgetting runtime:** this is a very common source of runtime-only errors.
 
-**Bỏ qua binary incompatibility:** IllegalAccessError có thể do class/member thay đổi visibility, không chỉ do module graph.
+**Ignoring binary incompatibility:** IllegalAccessError can stem from class/member visibility changes, not only the module graph.
 
-**Đặt tất cả dependency ở --add-modules:** nó chỉ giải quyết một phần của resolution, không tự cấp mọi quan hệ reads và exports.
+**Putting every dependency in --add-modules:** it only addresses part of resolution and does not automatically grant all reads and exports relationships.
 
-## 27. Nguyên tắc duy trì cấu hình rõ ràng
+## 27. Principles for maintaining clear configurations
 
-- Giữ module-info.java là nơi thể hiện dependency và API thực sự.
-- Chỉ export package chứa những kiểu public được phép dùng lâu dài.
-- Dùng qualified exports khi quyền chỉ dành cho một số module rõ ràng.
-- Chỉ dùng --add-reads hoặc --add-exports khi cần tương thích, migration hoặc cấu hình test có kiểm soát.
-- Ghi rõ mục đích, caller, owner, package và phiên bản JDK cho từng flag.
-- Đảm bảo lệnh compile, test, IDE và runtime dùng cùng tập dependency thích hợp.
-- Không nhầm exports với opens.
-- Dùng Module API và công cụ JDK để quan sát thay vì đoán từ tên JAR.
-- Luôn xét khả năng binary incompatibility khi thay dependency.
-- Kiểm thử trên đúng module path/runtime sẽ được triển khai.
+- Keep module-info.java as the place expressing real dependencies and APIs.
+- Only export packages containing public types intended for long-term use.
+- Use qualified exports when permission is meant only for specific modules.
+- Only use --add-reads or --add-exports when needed for compatibility, migration, or controlled test configurations.
+- Document the purpose, caller, owner, package, and JDK version for every flag.
+- Ensure compile, test, IDE, and runtime commands use the same appropriate set of dependencies.
+- Do not confuse exports with opens.
+- Use the Module API and JDK tools to observe rather than guessing from JAR names.
+- Always consider the possibility of binary incompatibility when swapping dependencies.
+- Test on the exact module path/runtime that will be deployed.
 
-IllegalAccessError do thiếu exports hoặc reads là dấu hiệu rằng **bytecode đang yêu cầu một quan hệ truy cập mà module graph runtime không cho phép**. Phân biệt rõ quan hệ đọc module và quyền export package giúp sửa đúng nguyên nhân, giữ strong encapsulation và tránh tạo những đường phụ thuộc khó bảo trì.
+IllegalAccessError due to missing exports or reads signals that **bytecode is requesting an access relationship that the runtime module graph does not allow**. Clearly distinguishing module readability from package export permissions helps fix the true cause, preserve strong encapsulation, and avoid creating hard-to-maintain dependency paths.
 
-## 28. Tự kiểm tra
+## 28. Self-check
 
-**Tình huống 1:** App khai báo requires library nhưng gọi public class trong package internal không export. Có đủ quyền truy cập không?
+**Scenario 1:** App declares requires library yet calls a public class in an unexported internal package. Does it have sufficient access?
 
-Không. requires chỉ cấp readability; library còn phải export package cho app nếu đây là truy cập thông thường.
+No. requires only grants readability; library must also export the package to app if this is normal access.
 
-**Tình huống 2:** Javac được truyền --add-exports, nhưng JVM runtime không được truyền cờ. Điều gì có thể xảy ra?
+**Scenario 2:** Javac was passed --add-exports, but the runtime JVM was not passed the flag. What can happen?
 
-Ứng dụng có thể biên dịch thành công nhưng JVM ném IllegalAccessError khi liên kết tham chiếu class trong package không được export ở runtime.
+The application can compile successfully, yet the JVM throws IllegalAccessError when linking the class reference in the unexported package at runtime.
 
-**Tình huống 3:** JVM báo module app does not read module library. Dùng --add-exports có tự khắc phục không?
+**Scenario 3:** The JVM reports module app does not read module library. Will using --add-exports automatically fix it?
 
-Không. Cần readability qua requires, requires transitive hoặc --add-reads phù hợp. Nếu package cũng chưa export thì phải xử lý điều kiện đó riêng.
+No. Readability is needed via requires, requires transitive, or an appropriate --add-reads. If the package is also unexported, that condition must be addressed separately.
 
-**Tình huống 4:** Qualified exports khai báo exports p to app, nhưng module tool khác cần sử dụng p. Tool có tự truy cập được không?
+**Scenario 4:** Qualified exports declare exports p to app, yet another module tool needs to use p. Will tool automatically gain access?
 
-Không. Export có đích chỉ cấp cho các module được chỉ định; tool cần một hợp đồng export riêng hoặc một API công khai thích hợp.
+No. A targeted export grants access only to the named modules; tool needs its own export contract or an appropriate public API.
 
-**Tình huống 5:** Khi reflection vào private field bị InaccessibleObjectException, có nên thêm --add-reads thay vì --add-opens?
+**Scenario 5:** When reflection on a private field hits InaccessibleObjectException, should --add-reads be added instead of --add-opens?
 
-Không. Đây thường là lỗi deep reflection; cần xem xét opens cho đúng package/caller nếu nhu cầu chức năng chính đáng.
+No. This is typically a deep reflection error; inspect opens for the right package/caller if the functional need is legitimate.
 
-**Tình huống 6:** Nếu chạy ứng dụng với JAR library khác version so với compile, nên kiểm tra gì trước khi thêm cờ?
+**Scenario 6:** If running the application with a library JAR of a different version than compile time, what should be checked before adding flags?
 
-Đối chiếu module descriptor, exports, visibility, version của API và artifact thật sự nằm trên module path. Có thể vấn đề là binary incompatibility.
+Compare the module descriptors, exports, visibility, API versions, and the artifact actually sitting on the module path. The issue may be binary incompatibility.
 
-**Tình huống 7:** Class thuộc unnamed module của classpath; named module cần đọc nó. Dạng đích nào của --add-reads có thể hữu ích trong một số cấu hình migration?
+**Scenario 7:** A class belongs to the classpath's unnamed module; a named module needs to read it. Which target form of --add-reads can help in some migration setups?
 
-Có thể dùng --add-reads named.module=ALL-UNNAMED, đồng thời bảo đảm classpath chứa thư viện và class loader có thể tìm thấy lớp.
+You can use --add-reads named.module=ALL-UNNAMED, while ensuring the classpath contains the library and the class loader can find the class.
 
-**Tình huống 8:** Một lớp được class loader nạp thành công có bảo đảm mọi module có thể sử dụng nó không?
+**Scenario 8:** Does a class being successfully loaded by a class loader guarantee that every module can use it?
 
-Không. Khả năng nạp bytecode và quyền liên kết/truy cập class theo JPMS là hai điều khác nhau. JVM vẫn kiểm tra readability, exports và Java visibility.
+No. The ability to load bytecode and JPMS permission to link/access a class are two different things. The JVM still checks readability, exports, and Java visibility.

@@ -1,35 +1,35 @@
-# Kiểm tra truy cập Java khi `get`, `set`, `invoke` hoặc `newInstance`
+# Java access checks on `get`, `set`, `invoke`, or `newInstance`
 
-## 1. Tìm thấy member khác với có quyền sử dụng member
+## 1. Finding a member differs from having permission to use it
 
-Reflection có hai công đoạn riêng:
+Reflection has two separate stages:
 
-1. **Tra cứu metadata**: `Class.getField`, `getMethod`, `getConstructor` lấy các public member thích hợp; `getDeclaredField`, `getDeclaredMethod`, `getDeclaredConstructor` lấy member khai báo trực tiếp tại kiểu đang xét, bất kể modifier.
-2. **Thực hiện thao tác**: `Field.get`/`set`, `Method.invoke` và `Constructor.newInstance` phải thỏa điều kiện truy cập của caller theo Java và, nếu có, hệ thống module JPMS.
+1. **Metadata lookup**: `Class.getField`, `getMethod`, and `getConstructor` retrieve appropriate public members; `getDeclaredField`, `getDeclaredMethod`, and `getDeclaredConstructor` retrieve members declared directly on the type under consideration, regardless of modifier.
+2. **Performing the operation**: `Field.get`/`set`, `Method.invoke`, and `Constructor.newInstance` must satisfy the caller's access conditions under Java rules and, if applicable, the JPMS module system.
 
-Vì vậy `SomeType.class.getDeclaredField("secret")` có thể trả về đối tượng `Field` cho một field private, nhưng `field.get(target)` hoặc `field.set(target, value)` vẫn có thể ném `IllegalAccessException`. Tương tự, lấy được metadata của method/constructor private không tự mở quyền thực thi chúng.
+Therefore `SomeType.class.getDeclaredField("secret")` can return a `Field` object for a private field, yet `field.get(target)` or `field.set(target, value)` can still throw `IllegalAccessException`. Similarly, obtaining metadata for a private method/constructor does not automatically grant permission to execute it.
 
-Cần phân biệt thêm:
+It is also important to distinguish:
 
-- **Member được khai báo ở đâu**: `getDeclaringClass()` cho biết kiểu khai báo thực sự. Member public được thừa kế có thể xuất hiện qua `getMethods()` dù không hiện diện trong `getDeclaredMethods()` của lớp con.
-- **Member có modifier gì**: `getModifiers()` kết hợp `Modifier.isPublic`, `isPrivate`… mô tả modifier nhưng không trả lời đầy đủ caller hiện tại có được dùng hay không.
-- **Caller có thể truy cập lúc này không**: `canAccess(receiver)` kiểm tra quyền hiện tại trên reflection object (bao gồm trạng thái override); thao tác thực tế vẫn có thể có lỗi bổ sung.
+- **Where the member is declared**: `getDeclaringClass()` indicates the actual declaring type. An inherited public member can appear via `getMethods()` even though it is not present in the subclass's `getDeclaredMethods()`.
+- **Which modifiers the member has**: `getModifiers()` combined with `Modifier.isPublic`, `isPrivate`, ... describes modifiers but does not fully answer whether the current caller may use it.
+- **Whether the caller can access it right now**: `canAccess(receiver)` checks current permission on the reflection object (including override state); the actual operation can still fail with additional errors.
 
-## 2. Các thao tác áp dụng kiểm tra truy cập
+## 2. Operations that enforce access checks
 
-| Reflection object | Thao tác | Điều kiện receiver | Nếu bị chặn truy cập |
+| Reflection object | Operation | Receiver requirement | If access is blocked |
 | --- | --- | --- | --- |
-| `Field` | `get`, `set`, cùng biến thể `getInt`, `setInt`, … | Instance thích hợp với field thường; `null` với field static | `IllegalAccessException` |
-| `Method` | `invoke` | Instance thích hợp với method thường; `null` với method static | `IllegalAccessException` |
-| `Constructor<T>` | `newInstance` | Không nhận receiver; constructor tạo object mới | `IllegalAccessException` |
+| `Field` | `get`, `set`, plus `getInt`, `setInt`, ... variants | Suitable instance for instance fields; `null` for static fields | `IllegalAccessException` |
+| `Method` | `invoke` | Suitable instance for instance methods; `null` for static methods | `IllegalAccessException` |
+| `Constructor<T>` | `newInstance` | Takes no receiver; constructor creates a new object | `IllegalAccessException` |
 
-Khi access-check override chưa được bật, Java sử dụng các quy tắc quyền truy cập ngôn ngữ (bao gồm khả năng truy cập **lớp khai báo** và bản thân member): `public`, `protected`, package-private, `private`, ngữ cảnh package, superclass/subclass và vị trí của caller. Với named module, còn phải xét package được `exports`/`opens` cho ai.
+When access-check override has not been enabled, Java applies language access rules (including accessibility of the **declaring class** and the member itself): `public`, `protected`, package-private, `private`, package context, superclass/subclass, and the caller's location. For named modules, whether the package is `exports`/`opens` to whom must also be considered.
 
-**Lưu ý:** API tra cứu metadata có thể ném `NoSuchFieldException` hoặc `NoSuchMethodException` nếu tên/signature không khớp; đó khác lỗi `IllegalAccessException` xảy ra khi dùng member đã tìm thấy. Các thao tác `get`/`set`/`invoke`/`newInstance` còn kiểm tra kiểu receiver, kiểu đối số, ràng buộc gán và các điều kiện chạy khác. Không gom tất cả lỗi vào “không có quyền”.
+**Note:** Metadata lookup APIs can throw `NoSuchFieldException` or `NoSuchMethodException` if the name/signature does not match; that differs from `IllegalAccessException`, which occurs when using a member that was already found. The operations `get`/`set`/`invoke`/`newInstance` also check receiver type, argument types, assignment constraints, and other runtime conditions. Do not lump all errors under "no permission".
 
-## 3. Ví dụ Java 17+ đầy đủ, kết quả xác định
+## 3. Complete Java 17+ example with deterministic output
 
-Tạo một file `AccessCheckDemo.java`:
+Create a file `AccessCheckDemo.java`:
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -112,16 +112,16 @@ class AccessTarget {
 }
 ~~~
 
-Hai lớp là hai **top-level class** trong cùng package mặc định. Cách sắp xếp này có chủ đích: nếu đặt `AccessTarget` là nested class bên trong `AccessCheckDemo` thì quan hệ *nestmate* có thể làm phép truy cập private thành hợp lệ và không còn minh họa đúng tình huống bị chặn quyền.
+The two classes are two **top-level classes** in the same default package. This layout is intentional: if `AccessTarget` were placed as a nested class inside `AccessCheckDemo`, the *nestmate* relationship could make private access valid and would no longer accurately illustrate the blocked-access case.
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 AccessCheckDemo.java
 java AccessCheckDemo
 ~~~
 
-Output trên classpath/unnamed module thông thường:
+Output on a typical classpath/unnamed module:
 
 ~~~text
 public canAccess: true
@@ -139,41 +139,41 @@ private invoke after enable: changed
 ctor after enable: from private ctor
 ~~~
 
-### Đọc kết quả
+### Reading the output
 
-- `label` là field `public`; code gọi nằm trong cùng package với top-level class `AccessTarget`. `canAccess(target)` trả `true` và `get(target)` đọc được giá trị.
-- `secret` là field `private` của một top-level class khác. Dù `getDeclaredField` tìm được metadata, cả `get` và `set` đều ném `IllegalAccessException` trước khi thao tác.
-- Method `reveal` và constructor nhận `String` cũng private. `getDeclaredMethod` và `getDeclaredConstructor` tìm được member, nhưng `invoke` và `newInstance` ban đầu bị chặn.
-- Trong môi trường classpath của ví dụ, `trySetAccessible` bật override thành công cho từng reflection object. Sau đó `privateField.set`, `privateField.get`, `privateMethod.invoke` và `privateConstructor.newInstance` chạy được.
-- Constructor private gán tham số cho `label`, nên đối tượng mới in ra `from private ctor`. Đối tượng `target` trước đó vẫn được dùng để đọc method `reveal()` sau khi field `secret` được đặt thành `changed`.
+- `label` is a `public` field; the calling code is in the same package as the top-level class `AccessTarget`. `canAccess(target)` returns `true` and `get(target)` reads the value.
+- `secret` is a `private` field of another top-level class. Even though `getDeclaredField` finds the metadata, both `get` and `set` throw `IllegalAccessException` before performing the operation.
+- The `reveal` method and the constructor taking `String` are also private. `getDeclaredMethod` and `getDeclaredConstructor` find the members, but `invoke` and `newInstance` are initially blocked.
+- In the classpath environment of the example, `trySetAccessible` enables the override for each reflection object. Afterwards, `privateField.set`, `privateField.get`, `privateMethod.invoke`, and `privateConstructor.newInstance` run successfully.
+- The private constructor assigns the parameter to `label`, so the new object prints `from private ctor`. The earlier `target` object is still used to read the `reveal()` method after the `secret` field is set to `changed`.
 
-Lệnh `javac --release 17` trong ví dụ dùng cú pháp và API có từ Java 17. Kết quả bật override có thể khác ở ứng dụng named module vì ranh giới module.
+The `javac --release 17` command in the example uses syntax and APIs available since Java 17. Override enablement results may differ in a named module application because of module boundaries.
 
-## 4. Ngoại lệ: chặn truy cập hay lỗi thực thi?
+## 4. Exceptions: access blocked or execution error?
 
-| Exception / kết quả | Khi nào có thể xảy ra | Ý nghĩa thực tế |
+| Exception / result | When it can occur | Practical meaning |
 | --- | --- | --- |
-| `IllegalAccessException` | `get`, `set`, `invoke`, `Constructor.newInstance` khi caller không có quyền | Chưa được phép truy cập member; xem access modifier, declaring class, package và JPMS |
-| `InaccessibleObjectException` | `setAccessible(true)` khi không thể bật override | Deep reflection bị ranh giới module ngăn |
-| `trySetAccessible() == false` | Override không được cấp | Phải xử lý nhánh thất bại trước khi thao tác private member |
-| `NoSuchFieldException` / `NoSuchMethodException` | Tra cứu sai tên, chữ ký hoặc phạm vi `getX`/`getDeclaredX` | Member không được tìm thấy; chưa phải kết quả access check tại thao tác |
-| `IllegalArgumentException` | Receiver sai, kiểu/số đối số sai, giá trị gán không tương thích | Sửa receiver, parameter types và giá trị |
-| `InvocationTargetException` | `Method.invoke` hoặc `Constructor.newInstance` gọi code đích và code đích ném exception | Lấy `getCause()` để phân biệt lỗi logic của method/constructor |
-| `InstantiationException` | Constructor reflection yêu cầu tạo đối tượng của class không thể instantiate (ví dụ abstract class) | Loại class không thể tạo instance theo contract |
-| Vấn đề `final field` | Field final có các ràng buộc ghi riêng, kể cả khi override được bật | Không dựa vào reflective write để thay đổi trạng thái bất biến |
+| `IllegalAccessException` | `get`, `set`, `invoke`, `Constructor.newInstance` when the caller lacks permission | Not yet allowed to access the member; check access modifiers, declaring class, package, and JPMS |
+| `InaccessibleObjectException` | `setAccessible(true)` when the override cannot be enabled | Deep reflection is prevented by module boundaries |
+| `trySetAccessible() == false` | Override is not granted | Must handle the failure branch before operating on the private member |
+| `NoSuchFieldException` / `NoSuchMethodException` | Lookup with wrong name, signature, or `getX`/`getDeclaredX` scope | Member was not found; not yet an access check result at operation time |
+| `IllegalArgumentException` | Wrong receiver, wrong argument types/count, incompatible assignment value | Fix the receiver, parameter types, and value |
+| `InvocationTargetException` | `Method.invoke` or `Constructor.newInstance` invokes target code and target code throws an exception | Inspect `getCause()` to distinguish logic errors in the method/constructor |
+| `InstantiationException` | Constructor reflection tries to instantiate a non-instantiable class (e.g., abstract class) | Class type cannot be instantiated per contract |
+| `final field` issues | Final fields have dedicated write restrictions, even when override is enabled | Do not rely on reflective writes to mutate immutable state |
 
-`InvocationTargetException` không phải dấu hiệu thiếu quyền truy cập: thường method hoặc constructor **đã được gọi** và exception xuất phát từ thân code đích. Nếu gọi `Method.invoke` trên instance method, dispatch động vẫn có thể xảy ra theo quy tắc Java; dùng `getDeclaringClass()` không có nghĩa ép gọi implementation của lớp cha.
+`InvocationTargetException` is not a sign of missing access permission: usually the method or constructor **was already invoked** and the exception originated from the target code body. When calling `Method.invoke` on an instance method, dynamic dispatch can still happen according to Java rules; using `getDeclaringClass()` does not mean forcing invocation of a superclass implementation.
 
-Với final field, cần phân biệt quyền đọc với quyền ghi. Một số final field như `static final`, field final của record và field final trong hidden class là **non-modifiable final fields**; `setAccessible(true)` có thể cho phép đọc nhưng không làm field thành writable. Ngay cả khi có cơ chế ghi các final field khác, việc phụ thuộc vào đó gây sai lệch bất biến/optimization và không nên dùng cho business logic.
+For final fields, distinguish read access from write access. Certain final fields such as `static final`, final fields of records, and final fields in hidden classes are **non-modifiable final fields**; `setAccessible(true)` may allow reading them but does not make the field writable. Even when mechanisms exist to write other final fields, relying on them breaks invariants/optimizations and should not be used for business logic.
 
-## 5. Bài tự kiểm tra
+## 5. Self-check exercises
 
-**Câu 1.** Vì sao `getDeclaredField("secret")` trả object `Field` nhưng `get` bị `IllegalAccessException`? Vì `getDeclaredField` chỉ tra cứu metadata của field khai báo trực tiếp; `get` là thao tác sử dụng member và cần quyền truy cập.
+**Question 1.** Why does `getDeclaredField("secret")` return a `Field` object while `get` fails with `IllegalAccessException`? Because `getDeclaredField` only looks up metadata of a directly declared field; `get` is an operation that uses the member and requires access permission.
 
-**Câu 2.** `trySetAccessible()` trả `true` trong ví dụ nhưng `false` tại ứng dụng khác, có mâu thuẫn không? Không. Điều kiện package/module và caller khác nhau; unnamed module trên classpath và named module đóng gói có ranh giới khác nhau.
+**Question 2.** `trySetAccessible()` returns `true` in the example but `false` in another application—is there a contradiction? No. Package/module and caller conditions differ; an unnamed module on the classpath and an encapsulated named module have different boundaries.
 
-**Câu 3.** `Method.invoke` ném `InvocationTargetException`, có phải thiếu quyền không? Không nên kết luận như vậy. Kiểm tra `getCause()` để hiểu lỗi do method được gọi ném ra; thiếu quyền truy cập phản chiếu được biểu diễn bằng `IllegalAccessException`.
+**Question 3.** `Method.invoke` throws `InvocationTargetException`—does that mean missing permission? You should not conclude that. Inspect `getCause()` to understand the error thrown by the invoked method; missing reflective access permission is represented by `IllegalAccessException`.
 
-**Câu 4.** Vì sao bật `setAccessible(true)` chưa chắc cho phép sửa `static final`? Vì override chỉ tác động lên access check; `final` còn có ràng buộc riêng về quyền ghi và một số final field hoàn toàn không thể sửa qua Reflection.
+**Question 4.** Why does enabling `setAccessible(true)` not necessarily allow modifying `static final`? Because the override only affects the access check; `final` also carries its own restrictions on write permission, and some final fields cannot be modified via Reflection at all.
 
-Khi làm việc với Reflection, hãy xét độc lập **tìm member → kiểm tra quyền thực tế → thực hiện thao tác → xử lý lỗi của thao tác và code đích**; điều này tránh nhầm lỗi tra cứu, lỗi quyền truy cập, lỗi đối số và lỗi nghiệp vụ.
+When working with Reflection, evaluate independently: **find member → check actual permission → perform operation → handle operation and target-code errors**; this prevents confusing lookup errors, access permission errors, argument errors, and business-logic errors.

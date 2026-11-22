@@ -1,31 +1,31 @@
-# `try-catch` để xử lý tình huống có thể thất bại trong Java
+# Using `try-catch` to Handle Operations That Can Fail in Java
 
-## 1. Vì sao cần `try-catch`?
+## 1. Why Do We Need `try-catch`?
 
-Khi chạy một chương trình Java, có những thao tác có thể thất bại: chuyển chuỗi không hợp lệ thành số, đọc tệp, sử dụng một chỉ số mảng không đúng hoặc gọi dịch vụ bên ngoài. Java biểu diễn nhiều tình huống như vậy bằng **ngoại lệ** (*exception*). Thay vì để ngoại lệ không được xử lý làm luồng thực thi hiện tại kết thúc bất thường, ta có thể dùng `try-catch` để **phản ứng có chủ đích**.
+When running a Java program, certain operations can fail: converting an invalid string to a number, reading a file, using an invalid array index, or calling an external service. Java represents many such situations with **exceptions**. Instead of letting an unhandled exception abnormally terminate the current execution thread, we can use `try-catch` to **respond intentionally**.
 
-Cấu trúc cơ bản:
+Basic structure:
 
 ```java
 try {
-    // Những lệnh có thể ném ngoại lệ.
+    // Statements that may throw an exception.
 } catch (SomeException ex) {
-    // Xử lý đúng loại ngoại lệ đã bắt được.
+    // Handle the exact caught exception type.
 }
 ```
 
-- Khối **`try`** chứa thao tác cần bảo vệ.
-- Khi một câu lệnh ném ngoại lệ, các câu lệnh còn lại trong phần `try` **không tiếp tục thực hiện theo đường thông thường**.
-- Java tìm một `catch` có kiểu phù hợp với đối tượng ngoại lệ, xét theo thứ tự các `catch`.
-- **`ex`** là tham số tham chiếu đến đối tượng ngoại lệ, cho phép truy cập thông tin như `getMessage()` hoặc dùng `printStackTrace()`.
-- Sau một `catch` xử lý xong và không ném tiếp/return, chương trình tiếp tục ở câu lệnh phía sau cấu trúc `try-catch`.
-- Nếu **không có `catch` phù hợp**, ngoại lệ lan tới nơi gọi. Nếu không ai xử lý, nó có thể kết thúc luồng với stack trace.
+- The **`try`** block contains the operations to guard.
+- When a statement throws an exception, the remaining statements in the `try` block **do not continue along the normal path**.
+- Java looks for a `catch` whose type matches the exception object, checking `catch` blocks in order.
+- **`ex`** is the parameter referencing the exception object, allowing access to details such as `getMessage()` or calling `printStackTrace()`.
+- After a `catch` finishes handling without rethrowing or returning, execution continues at the statement after the `try-catch` structure.
+- If **there is no matching `catch`**, the exception propagates to the caller. If nothing handles it, it may terminate the thread with a stack trace.
 
-`try-catch` không tự sửa phép tính sai hay làm dữ liệu đầu vào trở nên hợp lệ; nó chỉ xác định **cách ứng xử khi xảy ra thất bại**.
+`try-catch` does not automatically fix a wrong calculation or make invalid input data valid; it only defines **how to behave when a failure occurs**.
 
-## 2. Ví dụ tối thiểu: chuyển chuỗi thành số
+## 2. Minimal Example: Converting a String to a Number
 
-`Integer.parseInt(String)` chuyển văn bản thành `int`, nhưng chuỗi không biểu diễn số nguyên hợp lệ gây `NumberFormatException`.
+`Integer.parseInt(String)` converts text to an `int`, but a string that does not represent a valid integer causes `NumberFormatException`.
 
 ```java
 String input = "abc";
@@ -40,19 +40,19 @@ try {
 System.out.println("Tiep tuc chuong trinh");
 ```
 
-Đây là **đoạn minh họa đặt trong một phương thức**, không phải tệp chạy độc lập. Khi `input = "abc"`, dòng in giá trị không chạy, nhánh `catch` in thông báo, rồi lệnh bên ngoài `try-catch` được thực hiện.
+This is an **illustrative snippet placed inside a method**, not a standalone runnable file. When `input = "abc"`, the line printing the value does not run, the `catch` branch prints the message, and then the statement outside `try-catch` executes.
 
-Với `input = "123"`, nhánh `catch` không chạy, biến `value` bằng `123`. Biến `value` khai báo **bên trong `try`** không nằm trong scope của câu lệnh sau khối, nên nếu cần dùng kết quả về sau, có thể trả về từ một phương thức hoặc thiết kế trạng thái phù hợp.
+With `input = "123"`, the `catch` branch does not run, and `value` equals `123`. A variable `value` declared **inside `try`** is not in scope for statements after the block, so if you need to use the result later, you can return it from a method or design appropriate state.
 
-Đừng coi mọi lỗi chuyển đổi thành số đều có thể sửa bằng cách thay giá trị tùy ý. Tùy yêu cầu, lựa chọn đúng có thể là báo cho người dùng nhập lại, từ chối dữ liệu, ghi log rồi chuyển tiếp ngoại lệ hoặc trả về một kết quả thể hiện thất bại.
+Do not assume every numeric conversion failure can be fixed by substituting an arbitrary value. Depending on requirements, the right choice might be prompting the user to re-enter, rejecting the data, logging and propagating the exception, or returning a result that represents failure.
 
-## 3. Bắt loại ngoại lệ cụ thể trước
+## 3. Catch Specific Exception Types First
 
-Mỗi `catch` bắt một loại ngoại lệ được khai báo hoặc các kiểu con của nó. Vì thế, nên **bắt loại cụ thể trước**, loại tổng quát sau:
+Each `catch` catches the declared exception type or any of its subtypes. Therefore, you should **catch specific types first** and more general types later:
 
 ```java
 try {
-    // Xử lý đầu vào, tính toán.
+    // Process input, compute.
 } catch (NumberFormatException ex) {
     System.out.println("Sai dinh dang so");
 } catch (IllegalArgumentException ex) {
@@ -60,16 +60,16 @@ try {
 }
 ```
 
-`NumberFormatException` là kiểu con của `IllegalArgumentException`. Nếu đặt `catch (IllegalArgumentException ...)` **lên trước**, khối bắt `NumberFormatException` sau đó sẽ trở nên không thể tới được, gây **lỗi biên dịch**. Trong ví dụ trên, thứ tự được viết đúng.
+`NumberFormatException` is a subtype of `IllegalArgumentException`. If you place `catch (IllegalArgumentException ...)` **first**, the subsequent `NumberFormatException` catch block becomes unreachable, causing a **compile-time error**. In the example above, the order is written correctly.
 
-Đừng bắt `Exception` hoặc `Throwable` thật rộng ở mọi tầng của chương trình:
+Do not catch `Exception` or `Throwable` overly broadly at every layer of a program:
 
-- Bắt quá rộng khiến lỗi lập trình không mong đợi bị xử lý như lỗi dữ liệu thông thường.
-- `Throwable` còn bao gồm nhánh `Error` như `OutOfMemoryError` mà chương trình ứng dụng thông thường không nên cố “nuốt”.
-- `catch` rỗng làm mất tín hiệu thất bại, khiến việc gỡ lỗi khó khăn.
-- Khi không thể khôi phục tại chỗ, có thể **để ngoại lệ lan lên**, hoặc bọc nguyên nhân vào ngoại lệ mang ý nghĩa cấp cao hơn.
+- Catching too broadly causes unexpected programming bugs to be treated like ordinary data errors.
+- `Throwable` also includes the `Error` branch, such as `OutOfMemoryError`, which ordinary application code should not attempt to "swallow."
+- An empty `catch` discards the failure signal, making debugging difficult.
+- When you cannot recover locally, you can **let the exception propagate**, or wrap the cause in an exception with higher-level meaning.
 
-Ví dụ một cách chuyển tiếp có nguyên nhân rõ ràng:
+Example of forwarding with a clear cause:
 
 ```java
 static int parseAge(String text) {
@@ -81,11 +81,11 @@ static int parseAge(String text) {
 }
 ```
 
-Đây là **phương thức minh họa đặt trong lớp**. Constructor `IllegalArgumentException(String, Throwable)` giữ lại ngoại lệ gốc ở `getCause()`; hữu ích khi xử lý lỗi ở tầng có đủ ngữ cảnh. Không nên bọc ngoại lệ một cách máy móc khi nó không bổ sung ý nghĩa.
+This is an **illustrative method placed inside a class**. The `IllegalArgumentException(String, Throwable)` constructor preserves the original exception in `getCause()`, which is useful when handling errors at a layer with sufficient context. Do not wrap exceptions mechanically when doing so adds no meaning.
 
-## 4. Nhiều `catch` và multi-catch
+## 4. Multiple `catch` Blocks and Multi-Catch
 
-Nếu các loại ngoại lệ cần cách xử lý riêng, dùng nhiều `catch`. Nếu chúng cần **cùng cách xử lý**, có thể dùng multi-catch (Java 7+):
+If different exception types need separate handling, use multiple `catch` blocks. If they need **the same handling**, you can use multi-catch (Java 7+):
 
 ```java
 try {
@@ -97,15 +97,15 @@ try {
 }
 ```
 
-Đây là đoạn minh họa bên trong phương thức có biến `args` thích hợp. Hai ngoại lệ cùng cần phản hồi “không có đầu vào hợp lệ”. Các kiểu trong cùng một multi-catch **không được có quan hệ kiểu con/kiểu cha trực tiếp**; ví dụ `catch (NumberFormatException | IllegalArgumentException ex)` là lỗi biên dịch do một nhánh đã bao hàm nhánh kia.
+This is an illustrative snippet inside a method that has an appropriate `args` variable. Both exceptions require the same response: "a valid integer argument is needed." Types in the same multi-catch **must not have a direct subtype/supertype relationship**; for example, `catch (NumberFormatException | IllegalArgumentException ex)` is a compile-time error because one branch already subsumes the other.
 
-Khi thiết kế chương trình thật, tốt hơn nên kiểm tra `args.length` để nhận diện thiếu đối số, rồi dùng `catch (NumberFormatException)` cho lỗi chuyển đổi. Không nên dùng ngoại lệ để thay cho mọi nhánh điều kiện thông thường.
+When designing real programs, it is better to check `args.length` to detect a missing argument, and then use `catch (NumberFormatException)` for the conversion failure. Do not use exceptions to replace ordinary conditional branches.
 
-**Khi ngoại lệ đã được bắt**, chỉ đúng một `catch` phù hợp đầu tiên được chạy, không tự “rơi tiếp” sang `catch` bên dưới. Một `catch` có thể ném ngoại lệ mới; ngoại lệ mới đó không được các `catch` khác của **cùng cấu trúc `try`** xử lý, mà phải được xử lý ở phạm vi bao ngoài phù hợp.
+**Once an exception is caught**, only the first matching `catch` runs; execution does not "fall through" to lower `catch` blocks. A `catch` block can throw a new exception; that new exception is not handled by other `catch` blocks of the **same `try` structure**, and must instead be handled by an appropriate enclosing scope.
 
-## 5. Xử lý checked/unchecked theo hợp đồng của thao tác
+## 5. Handling Checked/Unchecked Exceptions According to the Operation's Contract
 
-Nếu một API có thể ném checked `IOException`, như `Files.readString`, caller phải **catch** hoặc khai báo `throws` theo luật Java. Ngược lại, `Integer.parseInt("abc")` ném unchecked `NumberFormatException`, không bắt buộc khai báo nhưng vẫn có thể `catch` khi dữ liệu không hợp lệ là tình huống dự kiến.
+If an API can throw checked `IOException`, such as `Files.readString`, the caller must **catch** it or declare `throws` per Java rules. Conversely, `Integer.parseInt("abc")` throws unchecked `NumberFormatException`, which is not required to be declared, though it can still be caught when invalid data is an expected scenario.
 
 ~~~java
 static String readText(java.nio.file.Path file)
@@ -114,9 +114,9 @@ static String readText(java.nio.file.Path file)
 }
 ~~~
 
-`throws` chỉ cho phép ngoại lệ checked thoát khỏi phương thức; nó không phải handler. `Error` như `OutOfMemoryError` cũng unchecked nhưng thường không phù hợp để bắt và tiếp tục nghiệp vụ. Cây phân loại `Throwable`, quy tắc compiler và việc tự ném được giải thích sâu ở hai bài tiếp theo.
+`throws` only allows a checked exception to exit the method; it is not a handler. `Error` types like `OutOfMemoryError` are also unchecked, though generally unsuitable to catch and continue business logic. The `Throwable` hierarchy, compiler rules, and throwing exceptions yourself are explained in depth in the next two lessons.
 
-## 6. `finally` vẫn thực hiện phần dọn dẹp thông thường
+## 6. `finally` Still Performs Normal Cleanup
 
 ~~~java
 try {
@@ -129,9 +129,9 @@ try {
 }
 ~~~
 
-Ba dòng trên in lần lượt `start`, `caught`, `cleanup`. `finally` thông thường chạy khi có exception hoặc `return` làm rời khối, nhưng **không cam kết khi JVM/process bị chấm dứt đột ngột**. Tránh `return` hay ném lỗi mới trong `finally` nếu có thể che kết quả/ngoại lệ trước đó.
+These three print statements output `start`, `caught`, and `cleanup` in order. `finally` normally runs when an exception or `return` exits the block, though **it is not guaranteed when the JVM/process is terminated abruptly**. Avoid `return` or throwing new exceptions in `finally` if doing so could mask the previous result or exception.
 
-## 7. Đóng tài nguyên bằng `try-with-resources`
+## 7. Closing Resources with `try-with-resources`
 
 ~~~java
 static String firstLine(java.nio.file.Path file)
@@ -143,14 +143,14 @@ static String firstLine(java.nio.file.Path file)
 }
 ~~~
 
-Tài nguyên phải hỗ trợ `AutoCloseable`; Java tự đóng khi rời khối theo đường bình thường hoặc ngoại lệ. Nếu nhiều tài nguyên, chúng được **đóng ngược thứ tự khởi tạo**. Khi thân và thao tác đóng cùng thất bại, ngoại lệ đóng có thể nằm trong `getSuppressed()`; I/O checked exception **vẫn phải bắt/khai báo**, không tự biến thành thành công.
+Resources must support `AutoCloseable`; Java closes them automatically when leaving the block via normal completion or an exception. If there are multiple resources, they are **closed in reverse order of initialization**. When both the body and closing fail, the close exception may appear in `getSuppressed()`; checked I/O exceptions **must still be caught or declared**, and do not automatically turn into success.
 
-Ở bài `try-catch`, phần cần nắm là **xử lý thất bại hợp lý**. Bài riêng về `finally`/try-with-resources giải thích chuyên sâu return, masking, thứ tự đóng và suppressed exception.
+In this `try-catch` lesson, the key takeaway is **handling failures appropriately**. A dedicated lesson on `finally` and `try-with-resources` covers return behavior, masking, close order, and suppressed exceptions in depth.
 
 
-## 8. Chương trình Java 17+ độc lập với kết quả xác định
+## 8. Standalone Java 17+ Program with Deterministic Output
 
-Tạo tệp **`TryCatchDemo.java`**:
+Create a file named **`TryCatchDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -215,14 +215,14 @@ public class TryCatchDemo {
 }
 ```
 
-Dùng JDK 17 trở lên. Trong thư mục chứa `TryCatchDemo.java`, chạy giống nhau trên Windows PowerShell/CMD hoặc Linux/macOS:
+Use JDK 17 or later. In the directory containing `TryCatchDemo.java`, run the same commands on Windows PowerShell/CMD or Linux/macOS:
 
 ```bash
 javac -encoding UTF-8 TryCatchDemo.java
 java TryCatchDemo
 ```
 
-**Stdout chính xác** (khi biên dịch thành công, `javac` không in gì):
+**Exact stdout** (when compilation succeeds, `javac` prints nothing):
 
 ```text
 Sai dinh dang: NumberFormatException
@@ -235,54 +235,54 @@ Chi so vuot gioi han
 Chuong trinh van tiep tuc
 ```
 
-Giải thích theo trình tự:
+Step-by-step explanation:
 
-1. `Integer.parseInt("abc")` ném `NumberFormatException`; dòng `So:` bị bỏ qua và `catch` phù hợp in tên ngoại lệ.
-2. `12 / divisor` với `divisor == 0` gây `ArithmeticException`; `catch` in thông báo và `finally` luôn chạy trong đường thực thi bình thường này.
-3. `checkValue(-1)` chủ động ném `IOException` (checked exception), được `catch` xử lý với thông điệp `Gia tri am`.
-4. `TrackedResource` được tạo trong try-with-resources; `resource.use()` in một dòng rồi `close()` in dòng kế tiếp khi ra khỏi khối.
-5. Truy cập `numbers[2]` trên mảng có hai phần tử gây `ArrayIndexOutOfBoundsException`, được xử lý; chương trình tiếp tục tới dòng in cuối.
+1. `Integer.parseInt("abc")` throws `NumberFormatException`; the `So:` line is skipped and the matching `catch` prints the exception name.
+2. `12 / divisor` with `divisor == 0` causes `ArithmeticException`; `catch` prints the message and `finally` always runs along this normal execution path.
+3. `checkValue(-1)` explicitly throws `IOException` (a checked exception), which is handled by `catch` with message `Gia tri am`.
+4. `TrackedResource` is created in try-with-resources; `resource.use()` prints one line, then `close()` prints the next line upon exiting the block.
+5. Accessing `numbers[2]` on a two-element array causes `ArrayIndexOutOfBoundsException`, which is handled; execution continues to the final print statement.
 
-Việc bắt các ngoại lệ ở đây nhằm **minh họa**, không có nghĩa trong ứng dụng thật nên bắt lỗi chỉ số mảng để che đi việc dùng chỉ số sai. Hãy sửa điều kiện truy cập mảng và dùng `catch` cho thất bại mà ứng dụng có cách xử lý hợp lý.
+Catching these exceptions here is for **demonstration**; it does not mean real applications should catch array index errors to hide invalid indexing. Fix array access conditions and use `catch` for failures that the application has a sensible way to handle.
 
-## 9. Chọn cách xử lý thay vì “nuốt” ngoại lệ
+## 9. Choosing a Strategy Instead of "Swallowing" Exceptions
 
-Có vài chiến lược tùy yêu cầu nghiệp vụ.
+There are several strategies depending on business requirements.
 
-| Tình huống | Chiến lược thường phù hợp |
+| Situation | Typically Appropriate Strategy |
 | --- | --- |
-| Người dùng nhập chuỗi không phải số | Bắt `NumberFormatException`, thông báo rõ và yêu cầu nhập lại |
-| Tệp đầu vào không tồn tại hoặc không đọc được | Bắt `IOException` tại tầng biết nên thử lại, báo lỗi hay hủy thao tác |
-| Đối số vi phạm điều kiện trước khi xử lý | Kiểm tra trước và ném `IllegalArgumentException` khi đó là lỗi sử dụng API |
-| Thành phần tầng thấp thất bại nhưng tầng trên cần ngữ cảnh | Ném một exception thích hợp có **cause** gốc |
-| Không có cách khôi phục ở tầng hiện tại | Để ngoại lệ lan lên hoặc khai báo `throws` phù hợp |
-| Tài nguyên phải được đóng | `try-with-resources` nếu tài nguyên hỗ trợ |
+| User enters a non-numeric string | Catch `NumberFormatException`, show a clear message, and ask for re-entry |
+| Input file does not exist or cannot be read | Catch `IOException` at a layer that knows whether to retry, report an error, or cancel the operation |
+| Argument violates a precondition before processing | Check upfront and throw `IllegalArgumentException` when it is an API misuse |
+| Low-level component fails and upper layer needs context | Throw an appropriate exception preserving the original **cause** |
+| No way to recover at the current layer | Let the exception propagate or declare an appropriate `throws` |
+| Resource must be closed | Use `try-with-resources` if the resource supports it |
 
-Ví dụ **không nên viết**:
+Example of what **not to write**:
 
 ```java
 try {
     doWork();
 } catch (Exception ex) {
-    // Bo qua tat ca loi
+    // Ignore all errors
 }
 ```
 
-Đây chỉ là minh họa với phương thức `doWork()` chưa định nghĩa. Cách bắt quá rộng và im lặng như vậy có thể khiến chương trình tưởng rằng công việc đã thành công dù dữ liệu chưa được lưu hoặc tài nguyên chưa được xử lý đúng.
+This is just an illustration with an undefined `doWork()` method. Broad, silent catching like this can trick the program into acting as though work succeeded even when data was not saved or resources were not handled properly.
 
-Thay vào đó, hãy lựa chọn rõ **hậu điều kiện**: nếu chuyển đổi thất bại thì không trả giá trị sai như thể hợp lệ; nếu ghi tệp thất bại thì không thông báo “đã lưu”; nếu một request thất bại thì phản hồi trạng thái tương ứng thay vì tiếp tục với dữ liệu thiếu.
+Instead, define clear **postconditions**: if conversion fails, do not return a wrong value as if valid; if writing a file fails, do not report "saved"; if a request fails, respond with the corresponding failure status rather than continuing with missing data.
 
-## 10. Lỗi thường gặp khi dùng `try-catch`
+## 10. Common Mistakes When Using `try-catch`
 
-1. **Đặt `try` quanh quá nhiều mã:** khó biết dòng nào có thể thất bại và vô tình bắt lỗi không mong muốn. Đặt phạm vi `try` đủ nhỏ để xử lý rõ ràng.
-2. **Bắt lớp cha trước lớp con:** có thể gây unreachable catch và lỗi biên dịch; bắt cụ thể trước, tổng quát sau.
-3. **Dùng multi-catch cho kiểu có quan hệ kế thừa:** `catch (NumberFormatException | IllegalArgumentException ex)` không hợp lệ.
-4. **Bắt `Exception` rồi bỏ qua:** che lỗi, phá khả năng chẩn đoán, có thể để chương trình trong trạng thái không hợp lệ.
-5. **Nhầm `throws` với `catch`:** `throws` khai báo khả năng lan ngoại lệ; `catch` thực hiện xử lý tại chỗ.
-6. **Cho rằng `finally` bảo đảm chạy cả khi JVM chết/tiến trình bị giết:** không có bảo đảm như vậy.
-7. **Đóng tài nguyên thủ công thiếu an toàn:** dùng try-with-resources khi có thể.
-8. **Bắt `Error` hoặc `Throwable` tùy tiện:** thường không thể khôi phục tình trạng lỗi hệ thống như ứng dụng mong muốn.
-9. **Tạo ngoại lệ mới mà không giữ cause:** làm mất nguồn gốc lỗi; khi bọc cần cân nhắc `new SomeException(message, cause)`.
-10. **Dùng ngoại lệ thay cho kiểm tra điều kiện thông thường:** kiểm tra `args.length`, chỉ số mảng, tiền điều kiện trước; chỉ dùng `catch` khi thao tác thực sự có thể thất bại.
+1. **Wrapping too much code in `try`:** makes it hard to tell which line can fail and risks catching unintended errors. Keep `try` scopes small enough for clear handling.
+2. **Catching a superclass before a subclass:** can cause an unreachable catch block and a compile-time error; catch specific types before general ones.
+3. **Using multi-catch for types with an inheritance relationship:** `catch (NumberFormatException | IllegalArgumentException ex)` is invalid.
+4. **Catching `Exception` and ignoring it:** hides bugs, breaks diagnosability, and can leave the program in an invalid state.
+5. **Confusing `throws` with `catch`:** `throws` declares that an exception may propagate; `catch` handles it on the spot.
+6. **Assuming `finally` is guaranteed even when the JVM crashes or the process is killed:** no such guarantee exists.
+7. **Closing resources manually in an unsafe way:** use try-with-resources whenever possible.
+8. **Arbitrarily catching `Error` or `Throwable`:** system-level error conditions usually cannot be recovered from as application code wishes.
+9. **Creating a new exception without keeping the cause:** loses the root source of the error; when wrapping, consider `new SomeException(message, cause)`.
+10. **Using exceptions instead of ordinary condition checks:** check `args.length`, array bounds, and preconditions first; only use `catch` when an operation can genuinely fail.
 
-**Ghi nhớ:** `try` xác định thao tác có thể thất bại; `catch` xử lý đúng **loại ngoại lệ** khi có cách ứng xử thích hợp; `finally` cho các bước cần thực hiện khi rời khối, còn `try-with-resources` giúp đóng tài nguyên. Mục tiêu là giữ hành vi chương trình **rõ ràng, đúng yêu cầu và dễ chẩn đoán**, không phải loại bỏ mọi thông báo lỗi bằng mọi giá.
+**Remember:** `try` identifies operations that may fail; `catch` handles the right **exception type** when an appropriate response exists; `finally` covers steps needed upon leaving the block, and `try-with-resources` closes resources. The goal is to keep program behavior **clear, compliant with requirements, and diagnosable**—not to suppress every error message at any cost.

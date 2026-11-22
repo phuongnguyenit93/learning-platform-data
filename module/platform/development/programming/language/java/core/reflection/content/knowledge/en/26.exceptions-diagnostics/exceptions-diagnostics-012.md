@@ -1,109 +1,109 @@
-# Ghi ngữ cảnh lớp, class loader, module và chữ ký khi điều tra lỗi reflection
+# Logging Class, Class Loader, Module, and Signature Context When Investigating Reflection Errors
 
-## 1. Vì sao thông báo ngoại lệ đơn lẻ chưa đủ?
+## 1. Why Is a Standalone Exception Message Not Enough?
 
-Khi một thao tác reflection thất bại, chỉ ghi `exception.getMessage()` thường chưa giải thích được nguyên nhân. Cùng tên lớp có thể được nạp bởi hai `ClassLoader` khác nhau; cùng tên phương thức nhưng khác tham số là hai chữ ký khác nhau; một thành viên tồn tại nhưng bị giới hạn truy cập bởi Java Platform Module System (JPMS). Vì vậy, điều tra hiệu quả phải đặt ngoại lệ trong **ngữ cảnh chính xác của đối tượng `Class`, loader, module, thành viên và hành động đã thử**.
+When a reflection operation fails, logging only `exception.getMessage()` rarely explains the cause. The same class name can be loaded by two different `ClassLoader`s; the same method name with different parameters represents two distinct signatures; a member may exist yet be access-restricted by the Java Platform Module System (JPMS). Therefore, effective investigation must place the exception inside **the exact context of the `Class` object, loader, module, member, and attempted action**.
 
-Các tình huống điển hình:
+Typical scenarios:
 
-- `ClassNotFoundException` khi tải lớp bằng tên nhưng loader được chọn không nhìn thấy lớp.
-- `NoSuchMethodException` vì tra sai kiểu tham số, nhầm primitive với wrapper, chỉ tìm declared method hay quên class cha.
-- `IllegalAccessException` hoặc `InaccessibleObjectException` vì quyền truy cập Java/module không đáp ứng thao tác reflection.
-- `IllegalArgumentException` khi gọi `Method.invoke` với receiver/đối số không phù hợp.
-- `InvocationTargetException`: chính phương thức đích ném ngoại lệ; cần xem `getCause()` hoặc `getTargetException()`.
-- `ClassCastException` có thể xuất hiện dù hai lớp được hiển thị **cùng tên**, nếu chúng khác danh tính do class loader.
-- `NoSuchMethodError` hoặc các lỗi linkage khác xảy ra ở giai đoạn liên kết mã đã biên dịch với runtime, **khác** `NoSuchMethodException` khi tra reflection.
+- `ClassNotFoundException` when loading a class by name and the selected loader cannot see the class.
+- `NoSuchMethodException` due to querying the wrong parameter types, confusing primitives with wrappers, searching only declared methods, or forgetting a parent class.
+- `IllegalAccessException` or `InaccessibleObjectException` because Java/module access rules do not permit the reflection operation.
+- `IllegalArgumentException` when calling `Method.invoke` with an unsuitable receiver/arguments.
+- `InvocationTargetException`: the target method itself threw an exception; inspect `getCause()` or `getTargetException()`.
+- `ClassCastException` can appear even when two classes display **the same name**, if they have different identities due to class loaders.
+- `NoSuchMethodError` or other linkage errors occur when linking compiled code at runtime, **different** from `NoSuchMethodException` during reflection lookup.
 
-Mục tiêu của log điều tra là trả lời: *đang kiểm tra lớp nào, do loader nào định nghĩa, nằm trong module nào, cần chữ ký nào, thực tế tìm thấy gì, thất bại ở bước nào và nguyên nhân gốc là gì?*
+The goal of diagnostic logs is to answer: *which class was being inspected, which loader defined it, which module it lives in, which signature was requested, what was actually found, which step failed, and what is the root cause?*
 
-## 2. Bộ thông tin nên ghi cho mỗi lần điều tra
+## 2. Information Set to Record for Every Investigation
 
-| Nhóm | Dữ liệu nên thu thập | Công dụng |
+| Category | Data to collect | Purpose |
 | --- | --- | --- |
-| Hoạt động | `operation`: `loadClass`, `getDeclaredMethod`, `invoke`, `trySetAccessible`… | Phân biệt lỗi tra cứu, quyền truy cập và lỗi trong phần thân |
-| Định danh lớp | `Class.getName()`, `getTypeName()`, `getPackageName()` | Phát hiện nhầm package, tên binary, kiểu mảng, lớp lồng |
-| Loader | `Class.getClassLoader()`; loại loader và ID tạm trong tiến trình | Phát hiện cùng tên nhưng khác defining loader |
-| Module | `Class.getModule()`, `getName()`, `isNamed()`; package của thành viên | Phân tích module/class path và JPMS |
-| Thành viên | `getDeclaringClass()`, tên, kiểu tham số, kiểu trả về, modifiers | Xác minh chữ ký và quyền truy cập |
-| Chữ ký | `Method.toGenericString()`, `getParameterTypes()`, kiểu trả về; khi cần JVM descriptor | Phân biệt overload, erasure, bridge method |
-| Chủ thể gọi | Class/module của code đang reflection; receiver class thực tế | Truy cập phụ thuộc cả caller lẫn target |
-| Ngoại lệ | Loại lỗi, thông báo, cause chain, stack trace, target exception | Truy đến bước và nguyên nhân gốc |
-| Môi trường | Runtime Java, cơ chế triển khai, phiên bản artifact/class path/module path | Tái hiện khác biệt giữa máy/phiên bản |
+| Operation | `operation`: `loadClass`, `getDeclaredMethod`, `invoke`, `trySetAccessible`… | Distinguish lookup errors, access errors, and body errors |
+| Class identity | `Class.getName()`, `getTypeName()`, `getPackageName()` | Spot wrong packages, binary names, array types, nested classes |
+| Loader | `Class.getClassLoader()`; loader type and temporary in-process ID | Detect same name under different defining loaders |
+| Module | `Class.getModule()`, `getName()`, `isNamed()`; member's package | Analyze module/class path and JPMS |
+| Member | `getDeclaringClass()`, name, parameter types, return type, modifiers | Verify signature and access rights |
+| Signature | `Method.toGenericString()`, `getParameterTypes()`, return type; JVM descriptor when needed | Distinguish overloads, erasure, bridge methods |
+| Caller | Class/module of code performing reflection; actual receiver class | Access depends on both caller and target |
+| Exception | Error type, message, cause chain, stack trace, target exception | Trace to the failing step and root cause |
+| Environment | Java runtime, deployment mechanism, artifact versions / class path / module path | Reproduce differences across machines/versions |
 
-**Ghi cả *expected* và *actual*.** Ví dụ: lookup cần `format(int)` nhưng hệ thống truyền `Integer.class`; chỉ log tên `format` sẽ bỏ lỡ sự khác biệt. Trong hệ thống nhiều plugin, so sánh thêm đối tượng `Class` và class loader, không chỉ so tên.
+**Log both *expected* and *actual*.** For example: lookup needed `format(int)` while the system passed `Integer.class`; logging only the name `format` misses the mismatch. In multi-plugin systems, compare `Class` objects and class loaders as well, not only names.
 
-## 3. Phân biệt tên lớp và danh tính lớp
+## 3. Distinguishing Class Name from Class Identity
 
-`Class.getName()` trả tên nhị phân, nên lớp lồng thường có ký tự `$` (ví dụ `Outer$Inner`). Với mảng, `getName()` sử dụng dạng JVM như `[Ljava.lang.String;`; `getTypeName()` dễ đọc hơn như `java.lang.String[]`. `getCanonicalName()` có thể trả `null` với kiểu local hoặc anonymous: không nên dựa vào nó làm khóa bắt buộc.
+`Class.getName()` returns the binary name, so nested classes typically contain `$` (e.g., `Outer$Inner`). For arrays, `getName()` uses JVM notation like `[Ljava.lang.String;`; `getTypeName()` is more readable, such as `java.lang.String[]`. `getCanonicalName()` can return `null` for local or anonymous types: do not rely on it as a required key.
 
-Đối với một class Java thông thường, danh tính runtime gắn với **tên nhị phân và class loader định nghĩa**. Hai loader khác nhau có thể định nghĩa hai lớp cùng tên mà JVM vẫn xem là hai kiểu khác nhau.
+For an ordinary Java class, runtime identity is bound to **its binary name and defining class loader**. Two different loaders can define two classes with the same name that the JVM still treats as two distinct types.
 
 ```java
-// Giả sử first và second đã được lấy từ hai hệ thống plugin:
+// Suppose first and second were obtained from two plugin systems:
 boolean sameName = first.getName().equals(second.getName());
 boolean sameClass = first == second;
 boolean sameDefiningLoader =
         first.getClassLoader() == second.getClassLoader();
 ```
 
-Đây là **đoạn minh họa**, không phải chương trình độc lập. Nếu `sameName == true` nhưng `sameClass == false`, cần kiểm tra loader, module, đường nạp class và bản build/JAR.
+This is an **illustrative snippet**, not a standalone program. If `sameName == true` yet `sameClass == false`, inspect loaders, modules, class-loading paths, and build/JAR artifacts.
 
-`Class.getClassLoader() == null` thường đại diện lớp do **bootstrap class loader** định nghĩa; đây không có nghĩa là thông tin lỗi bị thiếu. `ClassLoader.getClass().getName()` chỉ cho biết *loại loader*, chưa đủ phân biệt hai instance cùng loại. Khi cần liên hệ sự kiện **trong một JVM**, có thể ghi thêm `System.identityHashCode(loader)` cùng tên loại loader, nhưng giá trị này không phải mã định danh toàn cục, không bảo đảm duy nhất và không ổn định qua lần khởi động.
+`Class.getClassLoader() == null` normally represents a class defined by the **bootstrap class loader**; this does not mean error information is missing. `ClassLoader.getClass().getName()` tells you only the *loader type*, not enough to distinguish two instances of the same type. When correlating events **within one JVM**, you can also log `System.identityHashCode(loader)` alongside the loader type name, though this value is not a global identifier, is not guaranteed unique, and is not stable across restarts.
 
-Không suy ra rằng loader mà code **yêu cầu** nạp lớp luôn là loader **định nghĩa** lớp cuối cùng: cơ chế parent delegation có thể chuyển việc nạp cho parent. Ghi `targetClass.getClassLoader()` để biết loader định nghĩa; có thể ghi riêng loader được sử dụng ở lệnh tra cứu.
+Do not assume that the loader code **asks** to load a class is always the loader that ultimately **defines** it: parent delegation can delegate loading to a parent. Log `targetClass.getClassLoader()` to know the defining loader; you may separately log the loader used in the lookup call.
 
-## 4. Module và quyền truy cập reflection (Java 9+)
+## 4. Modules and Reflection Access Permissions (Java 9+)
 
-Mỗi `Class` thuộc một `Module`: `type.getModule()`. Nếu `module.isNamed() == false`, module đó là **unnamed module**, thường gặp khi chạy Java bằng class path. `module.getName()` khi đó trả `null`; nên hiển thị nhãn rõ ràng như `<unnamed>`.
+Every `Class` belongs to a `Module`: `type.getModule()`. If `module.isNamed() == false`, that module is the **unnamed module**, commonly seen when running Java on the classpath. `module.getName()` then returns `null`; display a clear label such as `<unnamed>`.
 
-Với **named module**:
+For a **named module**:
 
-- `exports p` công khai các **public** type/member trong package `p` cho module được phép đọc và truy cập.
-- `opens p` cho phép **deep reflection** vào package `p` đối với module nhận quyền (bên cạnh các điều kiện truy cập khác).
-- `Module.isExported(p, callerModule)` và `Module.isOpen(p, callerModule)` giúp xem một package có được export/open đến module gọi hay không.
-- `setAccessible(true)` không thể tùy ý vượt qua giới hạn JPMS; có thể ném `InaccessibleObjectException`.
-- `trySetAccessible()` trả `false` nếu không thể mở quyền truy cập (nhưng có thể ném `SecurityException` nếu bị từ chối bởi kiểm tra bảo mật). **Lưu ý: thao tác này có thể thay đổi accessible flag khi thành công**, nên không dùng chỉ để đọc trạng thái trên đối tượng `Method` đang được chia sẻ.
+- `exports p` exposes **public** types/members in package `p` to modules allowed to read and access them.
+- `opens p` permits **deep reflection** into package `p` for authorized modules (subject to other access conditions).
+- `Module.isExported(p, callerModule)` and `Module.isOpen(p, callerModule)` check whether a package is exported/opened to the calling module.
+- `setAccessible(true)` cannot arbitrarily bypass JPMS boundaries; it may throw `InaccessibleObjectException`.
+- `trySetAccessible()` returns `false` if access cannot be enabled (though it may throw `SecurityException` if denied by a security check). **Note: this operation mutates the accessible flag when it succeeds**, so do not use it merely to read status on a shared `Method` object.
 
-Muốn kiểm tra *khả năng truy cập theo caller* với một `Method`/`Field` mà không đổi flag, dùng `canAccess(receiver)` khi cung cấp receiver hợp lệ: instance method/field dùng instance thích hợp, static member hoặc constructor dùng `null`. Không dùng `canAccess(null)` với instance member.
+To check *accessibility for the caller* on a `Method`/`Field` without mutating the flag, use `canAccess(receiver)` with a valid receiver: instance methods/fields take an appropriate instance, while static members or constructors take `null`. Do not call `canAccess(null)` on an instance member.
 
-Khi có `InaccessibleObjectException`, log **module đích + package + module gọi + thao tác đang thử**, sau đó xem cấu hình `module-info.java` và quan hệ `exports`/`opens`. Chỉ dùng cấu hình `--add-opens module/package=targetModule` như giải pháp có kiểm soát khi hiểu rõ ranh giới quyền; không áp dụng mở rộng bừa bãi trên môi trường sản xuất.
+When `InaccessibleObjectException` occurs, log **target module + package + calling module + attempted operation**, then inspect `module-info.java` and `exports`/`opens` relationships. Only use `--add-opens module/package=targetModule` as a controlled measure when you clearly understand the permission boundary; do not apply broad openings indiscriminately in production.
 
-Xem đặc biệt sự khác nhau giữa **tìm thấy metadata** và **được phép truy cập**: `getDeclaredMethod` có thể tìm thấy phương thức private, nhưng `invoke` vẫn có thể bị từ chối nếu chưa có quyền hợp lệ.
+Pay special attention to the difference between **finding metadata** and **being allowed access**: `getDeclaredMethod` can find a private method, yet `invoke` can still be denied without valid permissions.
 
-## 5. Ghi chính xác chữ ký, kể cả overload và generics
+## 5. Recording Exact Signatures, Including Overloads and Generics
 
-Với `java.lang.reflect.Method`:
+For `java.lang.reflect.Method`:
 
-- `getName()`: tên phương thức.
-- `getDeclaringClass()`: class/interface **khai báo** thành viên; có thể khác runtime class của receiver.
-- `getParameterTypes()` và `getReturnType()`: chữ ký sau erasure ở runtime.
-- `getGenericParameterTypes()`, `getGenericReturnType()` và `toGenericString()`: thông tin generic còn được lưu ở metadata.
-- `getModifiers()` với `Modifier.toString(...)`; `isBridge()`, `isSynthetic()`, `isVarArgs()`: hữu ích khi compiler sinh bridge/synthetic method hoặc thao tác biến tham số.
-- `getExceptionTypes()`: danh sách các exception được khai báo, khác với exception thực tế đã ném.
+- `getName()`: method name.
+- `getDeclaringClass()`: class/interface **declaring** the member; may differ from the receiver's runtime class.
+- `getParameterTypes()` and `getReturnType()`: runtime signature after erasure.
+- `getGenericParameterTypes()`, `getGenericReturnType()`, and `toGenericString()`: generic info retained in metadata.
+- `getModifiers()` with `Modifier.toString(...)`; `isBridge()`, `isSynthetic()`, `isVarArgs()`: useful when the compiler generates bridge/synthetic methods or varargs handling.
+- `getExceptionTypes()`: list of declared exceptions, distinct from exceptions actually thrown.
 
-`Class.getDeclaredMethod(name, parameterTypes...)` tra phương thức **khai báo trực tiếp** trong class; `Class.getMethod(...)` tra phương thức **public** có thể truy cập qua quy tắc kế thừa/public members. Khi truyền tham số tra cứu, dùng **chính xác** `Class` của từng tham số: `int.class != Integer.class`. Thứ tự cũng phải trùng; return type không nằm trong danh sách tham số của `getDeclaredMethod`, mặc dù một `Method` có thể báo return type.
+`Class.getDeclaredMethod(name, parameterTypes...)` looks up a method **declared directly** on the class; `Class.getMethod(...)` looks up a **public** method accessible under inheritance/public-member rules. When passing lookup parameters, use the **exact** `Class` of each parameter: `int.class != Integer.class`. Order must match too; return type is not part of `getDeclaredMethod`'s parameter list, even though a `Method` reports a return type.
 
-Một generic method khai báo `<T extends Number> T echo(T item)` có kiểu tham số runtime là `Number.class`, vì erasure. Việc tra `echo(Integer.class)` sẽ không tìm thấy nó. Nếu cần phân tích generic arguments và type variables, đọc `getGenericParameterTypes()` song song với kiểu runtime.
+A generic method declared as `<T extends Number> T echo(T item)` has runtime parameter type `Number.class` due to erasure. Looking up `echo(Integer.class)` will not find it. If you need to inspect generic arguments and type variables, read `getGenericParameterTypes()` alongside runtime types.
 
-Với `MethodHandle`, chữ ký lời gọi có thể bao gồm receiver đứng đầu, ngay cả khi chữ ký phương thức Java không biểu diễn receiver thành một tham số rõ ràng. Khi điều tra handle, ghi `handle.type()`; với `VarHandle`, ghi `accessModeType(mode)`. Không đánh đồng `MethodHandle.type()` với kết quả chỉ lấy từ `Method.getParameterTypes()`.
+For `MethodHandle`, the invocation signature may include a leading receiver even when the Java method signature does not list the receiver as an explicit parameter. When investigating a handle, log `handle.type()`; for `VarHandle`, log `accessModeType(mode)`. Do not equate `MethodHandle.type()` with the result of `Method.getParameterTypes()` alone.
 
-Một biểu diễn JVM descriptor có thể được tạo từ kiểu trả về và tham số (sau erasure):
+A JVM descriptor representation can be built from the return type and erased parameters:
 
 ```java
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 
-// Đoạn minh họa; giả sử đã có Method method:
+// Illustrative snippet; assumes Method method already exists:
 String descriptor = MethodType.methodType(
         method.getReturnType(), method.getParameterTypes())
         .toMethodDescriptorString();
 ```
 
-Ví dụ `String format(int)` cho descriptor `(I)Ljava/lang/String;`. Descriptor thuận tiện để đối chiếu bytecode, nhưng **không thay thế** tên phương thức, declaring class và loader/module.
+For example, `String format(int)` yields descriptor `(I)Ljava/lang/String;`. Descriptors are handy for cross-checking bytecode, yet **do not replace** method name, declaring class, and loader/module.
 
-## 6. Ví dụ Java 17+ chạy độc lập: chụp ngữ cảnh và khoanh vùng lỗi
+## 6. Standalone Java 17+ Example: Capturing Context and Isolating Errors
 
-Lưu file `ReflectionInvestigationDemo.java`:
+Save the file `ReflectionInvestigationDemo.java`:
 
 ```java
 import java.lang.invoke.MethodType;
@@ -190,14 +190,14 @@ public class ReflectionInvestigationDemo {
 }
 ```
 
-Biên dịch và chạy trên class path từ thư mục chứa file:
+Compile and run on the classpath from the directory containing the file:
 
 ```bash
 javac --release 17 -encoding UTF-8 ReflectionInvestigationDemo.java
 java ReflectionInvestigationDemo
 ```
 
-Stdout mong đợi:
+Expected stdout:
 
 ```text
 target.class=ReflectionInvestigationDemo$Sample
@@ -223,30 +223,30 @@ invoke.failure=IllegalArgumentException
 result=A-2
 ```
 
-Điểm học được:
+Lessons learned:
 
-1. `Sample.class` là class do application (hoặc loader khác không phải bootstrap) nạp và ở unnamed module khi chạy bằng class path; `String.class` ở `java.base` và do bootstrap loader định nghĩa.
-2. Tên nhị phân của nested class chứa `$`; việc chỉ dùng tên hiển thị đơn giản `Sample` sẽ đánh mất ngữ cảnh.
-3. Tra `format(int.class)` thành công, tra `format(Integer.class)` thất bại vì primitive `int` khác wrapper `Integer`.
-4. Generic `echo(T)` có tham số runtime `Number` trong khi `getGenericParameterTypes()` còn trả type variable `T`.
-5. `Method.invoke(instance, "2")` thất bại vì tham số `String` không thể chuyển thành `int` theo quy tắc cho phép của invocation; sử dụng đối số kiểu `int` mới thành công.
-6. Chữ ký và descriptor xác nhận chính xác phương thức đang gọi. Ví dụ chỉ ghi loại lỗi tại các nhánh đã biết nên không đưa thông tin nhạy cảm vào stdout.
+1. `Sample.class` is loaded by the application (or another non-bootstrap loader) and sits in the unnamed module when run on the classpath; `String.class` is in `java.base` and defined by the bootstrap loader.
+2. The binary name of a nested class contains `$`; using only the simple display name `Sample` loses context.
+3. Looking up `format(int.class)` succeeds, whereas `format(Integer.class)` fails because primitive `int` differs from wrapper `Integer`.
+4. Generic `echo(T)` has runtime parameter `Number` while `getGenericParameterTypes()` still returns type variable `T`.
+5. `Method.invoke(instance, "2")` fails because a `String` argument cannot be converted to `int` under invocation rules; passing an `int` argument succeeds.
+6. The signature and descriptor confirm the exact method being invoked. Because the example logs only the error type on known branches, it avoids exposing sensitive data in stdout.
 
-Trong môi trường module path hoặc loader tùy biến, vài dòng module/loader có thể khác; ví dụ dùng class path để có đầu ra xác định.
+In a module-path environment or custom loader setup, some module/loader lines may differ; the example uses the classpath for deterministic output.
 
-## 7. Khi ngoại lệ phát sinh: chụp cả cause chain và điểm thất bại
+## 7. When an Exception Occurs: Capture Both the Cause Chain and the Failure Point
 
-Với `Method.invoke`, lỗi *bên trong thân phương thức đích* thường bị gói vào `InvocationTargetException`. Lỗi **trước khi thực thi thân** như receiver/arguments sai hoặc thiếu quyền truy cập lại thuộc nhóm khác. Tách hai nhánh khi điều tra:
+With `Method.invoke`, errors *inside the target method body* are typically wrapped in `InvocationTargetException`. Errors **before executing the body**, such as wrong receiver/arguments or missing access permissions, belong to a different group. Separate the two branches when investigating:
 
 ```java
-// Đoạn minh họa đặt trong phương thức có Method method,
-// Object receiver và Object[] arguments hợp lệ:
+// Illustrative snippet placed in a method with valid Method method,
+// Object receiver, and Object[] arguments:
 try {
     method.invoke(receiver, arguments);
 } catch (java.lang.reflect.InvocationTargetException e) {
     Throwable root = e.getTargetException();
-    // Ghi loại lỗi + stack/cause chain theo chính sách ứng dụng.
-    // Không vô tình bỏ qua ngoại lệ gốc.
+    // Log error type + stack/cause chain per application policy.
+    // Do not accidentally drop the original exception.
     System.err.println("target threw: " +
             root.getClass().getName());
 } catch (IllegalAccessException e) {
@@ -258,37 +258,37 @@ try {
 }
 ```
 
-Đây **không phải chương trình độc lập**. Khi viết helper phục vụ production, nên log structured fields (`operation`, `targetClass`, `loader`, `module`, `methodSignature`, `exceptionType`, `causeType`) và giữ stack trace gốc thông qua logger. Tránh chỉ gọi `getCause().getCause()` không kiểm tra null vì cause chain có thể ngắn hơn dự kiến. Cũng cần tránh vòng lặp khi tự duyệt chain với Throwable bất thường; ưu tiên logging framework đã quản lý stack trace.
+This is **not a standalone program**. When writing production helpers, log structured fields (`operation`, `targetClass`, `loader`, `module`, `methodSignature`, `exceptionType`, `causeType`) and preserve the original stack trace through your logger. Avoid blindly chaining `getCause().getCause()` without null checks because the cause chain may be shorter than expected. Also avoid infinite loops when manually walking unusual `Throwable` chains; prefer a logging framework that already handles stack traces.
 
-### Nhận diện nhanh theo ngoại lệ
+### Quick Identification by Exception
 
-| Ngoại lệ/lỗi | Câu hỏi ưu tiên |
+| Exception/Error | Priority questions |
 | --- | --- |
-| `ClassNotFoundException` | Tên binary đúng chưa? Loader yêu cầu nạp là gì? Class path/module path có dependency đó không? |
-| `NoSuchMethodException` | Đúng overload, kiểu tham số, thứ tự, primitive/wrapper, erasure và `getDeclaredMethod`/`getMethod` chưa? |
-| `IllegalAccessException` | Caller, visibility, module readability/exports hoặc điều kiện access checks có phù hợp không? |
-| `InaccessibleObjectException` | Có đang cố bật deep reflection mà package/module không mở quyền không? |
-| `IllegalArgumentException` khi `Method.invoke` | Receiver có đúng declaring class? Đối số có đúng số lượng/kiểu và varargs chưa? |
-| `InvocationTargetException` | Exception gốc của thân phương thức là gì? Dòng stack phía ứng dụng nào gây ra? |
-| `ClassCastException` | Hai class thật sự bằng nhau qua `==` không? Defining loader và module khác nhau không? |
-| `NoSuchMethodError` / `LinkageError` | Có sự khác biệt bytecode/binary giữa bản compile và runtime, xung đột dependency hoặc loader constraint không? |
+| `ClassNotFoundException` | Is the binary name right? Which loader requested loading? Does the classpath/module path contain that dependency? |
+| `NoSuchMethodException` | Are overload, parameter types, order, primitive/wrapper, erasure, and `getDeclaredMethod`/`getMethod` right? |
+| `IllegalAccessException` | Are caller, visibility, module readability/exports, or access-check conditions satisfied? |
+| `InaccessibleObjectException` | Are you attempting deep reflection when the package/module is not opened? |
+| `IllegalArgumentException` on `Method.invoke` | Does receiver match declaring class? Are argument count/types and varargs right? |
+| `InvocationTargetException` | What is the original exception from the method body? Which application stack line triggered it? |
+| `ClassCastException` | Are the two classes actually equal via `==`? Do defining loader and module differ? |
+| `NoSuchMethodError` / `LinkageError` | Is there a bytecode/binary mismatch between compile time and runtime, dependency conflict, or loader constraint? |
 
-**Phân biệt:** `NoSuchMethodException` là checked exception của API tra cứu reflection; `NoSuchMethodError` thuộc `LinkageError`, thường phản ánh mismatch liên kết binary. Cách điều tra không thể chỉ dựa vào cùng cụm chữ "NoSuchMethod".
+**Distinction:** `NoSuchMethodException` is a checked exception of reflection lookup APIs; `NoSuchMethodError` is a `LinkageError`, usually reflecting a binary linkage mismatch. Investigations cannot rely merely on sharing the substring "NoSuchMethod".
 
-## 8. Ghi log đủ dùng nhưng không làm phát sinh lỗi mới
+## 8. Logging Enough Without Introducing New Errors
 
-Để có log chẩn đoán đáng tin:
+For reliable diagnostic logs:
 
-- **Không gọi `toString()` tùy ý trên receiver/argument của người dùng**: phương thức có thể tốn thời gian, truy cập dữ liệu riêng tư, ném ngoại lệ hoặc có tác dụng phụ. Ghi loại của giá trị khi cần (`obj == null ? "<null>" : obj.getClass().getName()`).
-- Không log token, mật khẩu, payload request, object graph, stack của dữ liệu nhạy cảm hoặc đường dẫn nội bộ quá chi tiết ở kênh công khai. Phân mức log và giới hạn quyền truy cập.
-- Lấy **định danh loader tương đối trong một tiến trình**, cùng module và package để so sánh; không coi identity hash là ID ổn định qua restart.
-- Ghi rõ **chữ ký đã yêu cầu** và **chữ ký thực tế** nếu tìm được. Đối với overload, thiếu một tham số hoặc sai thứ tự đều có ý nghĩa.
-- Xác định vị trí lỗi: tra lớp → tra thành viên → kiểm tra quyền → chuyển đổi đối số → thực thi phương thức → chuyển kiểu kết quả. Bước khác nhau cho cùng tên ngoại lệ sẽ cần cách xử lý khác nhau.
-- Nếu dùng `Thread.currentThread().getContextClassLoader()` để tìm plugin/resource, ghi cả context loader và loader định nghĩa class được trả về. Hai loader không bắt buộc giống nhau.
-- Với lỗi xảy ra trong luồng đa tiến trình, đính kèm trace/correlation ID từ ứng dụng để kết nối các sự kiện; log một lần tại ranh giới được quản lý, tránh đổ trùng stack trace nhiều tầng.
-- Không mặc định thêm `--add-opens` hoặc bật `setAccessible(true)` chỉ để làm biến mất lỗi; trước tiên xác định module/package và vì sao thao tác cần quyền truy cập đó.
+- **Do not call `toString()` arbitrarily on user receivers/arguments**: the method may be expensive, access private data, throw exceptions, or have side effects. Log the value's type when needed (`obj == null ? "<null>" : obj.getClass().getName()`).
+- Do not log tokens, passwords, request payloads, object graphs, sensitive data stacks, or overly detailed internal paths to public channels. Separate log levels and restrict access.
+- Capture a **process-relative loader identifier** alongside module and package for comparison; do not treat identity hash codes as stable IDs across restarts.
+- Log both **requested signature** and **actual signature** if found. For overloads, missing one parameter or swapping order both matter.
+- Pinpoint the failing step: class lookup → member lookup → access check → argument conversion → method execution → result conversion. Different steps producing the same exception name require different fixes.
+- If using `Thread.currentThread().getContextClassLoader()` to look up plugins/resources, log both the context loader and the defining loader of the returned class. The two loaders are not required to be the same.
+- For errors in multi-threaded flows, attach an application trace/correlation ID to link events; log once at a managed boundary, avoiding duplicate stack traces across multiple layers.
+- Do not add `--add-opens` or enable `setAccessible(true)` by default just to make errors vanish; first determine the module/package and why the operation needs that access.
 
-### Mẫu dữ liệu log có cấu trúc (minh họa)
+### Structured Log Sample (Illustrative)
 
 ```text
 event=reflection_lookup_failed
@@ -298,43 +298,43 @@ targetModule=<unnamed>
 targetLoaderKind=PluginClassLoader
 requestedMethod=calculate(java.math.BigDecimal,int):java.math.BigDecimal
 exceptionType=java.lang.NoSuchMethodException
-correlationId=<id-cua-ung-dung>
+correlationId=<application-id>
 ```
 
-Đây là **mẫu minh họa cấu trúc**, không phải output của chương trình Java phía trên; `PluginClassLoader`/`PaymentAdapter`/`correlationId` chỉ là giá trị ví dụ. Không tự giả định chi tiết loader, module hay chữ ký như các sự kiện đã đo được.
+This is an **illustrative structured example**, not output from the Java program above; `PluginClassLoader`/`PaymentAdapter`/`correlationId` are merely example values. Do not assume loader, module, or signature details as if they were measured events.
 
-## 9. Quy trình kiểm tra nhanh trong thực tế
+## 9. Quick Practical Investigation Workflow
 
-1. Ghi `operation`, loại exception và cause/stack trace gốc.
-2. Xác định tên binary và `Class<?>` **thực tế** của target/receiver/argument.
-3. Ghi defining loader (xử lý giá trị `null` của bootstrap) và module/package cho cả target lẫn caller khi cần.
-4. Đối chiếu chữ ký yêu cầu và metadata trả về: overload, runtime erasure, primitive/wrapper, receiver, bridge/synthetic.
-5. Phân biệt *không tìm thấy*, *không được phép*, *đối số sai* và *thân phương thức ném ngoại lệ*.
-6. So artifact/JAR, dependency, class path/module path và cấu hình opens/exports khi lỗi chỉ xuất hiện ở một môi trường.
-7. Sửa đúng nguyên nhân, tái hiện bằng test hoặc đoạn Java nhỏ cùng phiên bản JDK và loader/module setup tương ứng.
+1. Log `operation`, exception type, and original cause/stack trace.
+2. Identify the **actual** binary name and `Class<?>` of the target/receiver/arguments.
+3. Log the defining loader (handling bootstrap's `null` value) and module/package for both target and caller when needed.
+4. Compare the requested signature against returned metadata: overloads, runtime erasure, primitive/wrapper, receiver, bridge/synthetic.
+5. Distinguish *not found*, *not permitted*, *wrong arguments*, and *method body threw an exception*.
+6. Compare artifacts/JARs, dependencies, classpath/module path, and `opens`/`exports` configuration when the failure occurs in only one environment.
+7. Fix the root cause and reproduce via a test or small Java snippet with the matching JDK version and loader/module setup.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-**Câu 1.** Hai `Class` có cùng `getName()` luôn là cùng một kiểu không?
+**Question 1.** Are two `Class` objects with the same `getName()` always the same type?
 
-**Đáp án:** Không. Nếu chúng do hai defining class loader khác nhau định nghĩa, có thể là hai kiểu khác nhau; so trực tiếp `first == second` và kiểm tra loader.
+**Answer:** No. If they were defined by two different defining class loaders, they can be two distinct types; compare directly with `first == second` and inspect loaders.
 
-**Câu 2.** Vì sao `getDeclaredMethod("run", Integer.class)` có thể thất bại khi source khai báo `run(int)`?
+**Question 2.** Why can `getDeclaredMethod("run", Integer.class)` fail when source declares `run(int)`?
 
-**Đáp án:** Reflection so kiểu tham số chính xác ở runtime; `Integer.class` khác `int.class`.
+**Answer:** Reflection matches exact runtime parameter types; `Integer.class` differs from `int.class`.
 
-**Câu 3.** `getDeclaredMethod` trả về `Method` nhưng `invoke` vẫn ném `IllegalAccessException`. Mâu thuẫn không?
+**Question 3.** `getDeclaredMethod` returns a `Method`, yet `invoke` still throws `IllegalAccessException`. Is that a contradiction?
 
-**Đáp án:** Không. Tra được metadata chưa đồng nghĩa với được phép gọi; cần kiểm tra visibility, caller và quy tắc module.
+**Answer:** No. Finding metadata does not mean you are permitted to invoke; check visibility, caller, and module rules.
 
-**Câu 4.** Trong `InvocationTargetException` cần xem ngoại lệ nào để biết code đích hỏng?
+**Question 4.** In `InvocationTargetException`, which exception should you inspect to see why target code failed?
 
-**Đáp án:** Xem `getTargetException()` (hoặc `getCause()`) cùng stack trace của ngoại lệ gốc.
+**Answer:** Inspect `getTargetException()` (or `getCause()`) along with the original exception's stack trace.
 
-**Câu 5.** Khi class ở unnamed module, `getModule().getName()` có giá trị gì?
+**Question 5.** When a class is in the unnamed module, what is the value of `getModule().getName()`?
 
-**Đáp án:** `null`. Ghi nhãn `<unnamed>` hoặc `isNamed() == false` để tránh hiểu sai.
+**Answer:** `null`. Log a label such as `<unnamed>` or `isNamed() == false` to avoid misinterpretation.
 
-**Ghi nhớ:** Lỗi reflection cần được điều tra theo bộ **class + defining loader + module/package + declaring member + chữ ký runtime + caller/receiver + exception/cause**. Thiếu một trong các yếu tố đó có thể khiến hai trường hợp khác nguyên nhân trông giống nhau trong log.
+**Takeaway:** Reflection errors should be investigated using the full tuple **class + defining loader + module/package + declaring member + runtime signature + caller/receiver + exception/cause**. Missing any one of those elements can make two cases with different root causes look identical in logs.
 
-Tham khảo API Java 17: [`Class`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html), [`Method`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html), [`AccessibleObject`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html), [`Module`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Module.html).
+Java 17 API references: [`Class`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html), [`Method`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html), [`AccessibleObject`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html), [`Module`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Module.html).

@@ -1,82 +1,82 @@
-# Tách khám phá metadata khỏi thực thi thao tác trong Java Reflection
+# Separating Metadata Discovery from Operation Execution in Java Reflection
 
-Trong các công cụ dựa trên Java Reflection (plugin registry, command runner, hệ thống đăng ký tool, framework kiểm thử), có hai nhiệm vụ riêng:
+In tools built on Java Reflection (plugin registries, command runners, tool registration systems, testing frameworks), there are two distinct responsibilities:
 
-- **Discovery / khám phá metadata:** tìm các thao tác *có thể* được cung cấp, đọc tên, annotation, tham số, kiểu trả về, quyền truy cập, rồi xây danh mục.
-- **Execution / thực thi:** nhận yêu cầu gọi một thao tác cụ thể, kiểm tra quyền và đầu vào, chuẩn bị receiver, rồi mới chạy code thật.
+- **Discovery / metadata inspection:** finding operations that *can* be provided, reading their names, annotations, parameters, return types, access permissions, and then building a catalog.
+- **Execution:** receiving a request to invoke a specific operation, checking permissions and inputs, preparing the receiver, and only then running the actual code.
 
-Hai việc thường cùng dùng đối tượng `Class<?>` và `Method`, nhưng không có cùng mức tác động. Việc người dùng bấm “Xem danh sách công cụ” phải không tự trở thành lời gọi xóa dữ liệu, gửi email hoặc cập nhật trạng thái. Tách hai giai đoạn giúp kiểm soát side effect, kiểm thử dễ hơn và ghi dấu việc ai đã thực thi thao tác nào.
+Both tasks often use `Class<?>` and `Method` objects, but they do not have the same level of impact. A user clicking "View tool list" must not automatically become a call that deletes data, sends emails, or updates state. Separating the two phases helps control side effects, makes testing easier, and records who executed which operation.
 
-## 1. Phân biệt lấy metadata với kích hoạt hành vi
+## 1. Distinguishing metadata retrieval from behavior invocation
 
-| Hoạt động | API minh họa | Kết quả | Có yêu cầu chạy method nghiệp vụ? |
+| Activity | Illustrative API | Result | Requires running business method? |
 |---|---|---|---|
-| Tham chiếu kiểu | `SomeType.class` | `Class<?>` | Không |
-| Tải mà chưa yêu cầu khởi tạo | `Class.forName(name, false, loader)` | `Class<?>` | Không |
-| Liệt kê method | `type.getDeclaredMethods()` | `Method[]` | Không |
-| Đọc signature/annotation | `getName()`, `getParameterTypes()`, `getAnnotation(...)` | Metadata | Không |
-| Đăng ký action | Kiểm tra annotation/chữ ký, tạo descriptor | Catalog | Không |
-| Gọi method | `method.invoke(receiver, args...)` | Kết quả/exception/side effect | **Có** |
-| Gọi constructor | `constructor.newInstance(...)` | Đối tượng mới | **Có** |
-| Đọc/ghi field | `field.get(...)` / `field.set(...)` | Giá trị/thay đổi | Có thao tác thật trên trạng thái |
+| Type reference | `SomeType.class` | `Class<?>` | No |
+| Load without requiring initialization | `Class.forName(name, false, loader)` | `Class<?>` | No |
+| List methods | `type.getDeclaredMethods()` | `Method[]` | No |
+| Read signature/annotation | `getName()`, `getParameterTypes()`, `getAnnotation(...)` | Metadata | No |
+| Register action | Check annotation/signature, create descriptor | Catalog | No |
+| Invoke method | `method.invoke(receiver, args...)` | Result/exception/side effect | **Yes** |
+| Invoke constructor | `constructor.newInstance(...)` | New object | **Yes** |
+| Read/write field | `field.get(...)` / `field.set(...)` | Value/mutation | Performs real operation on state |
 
-Ví dụ:
+Example:
 
 ```java
 Method action = Service.class.getDeclaredMethod("process", String.class);
-// Mới tìm thấy thông tin về method.
+// Only found information about the method so far.
 
 Object result = action.invoke(service, "payload");
-// Đã thực thi process(...) trên đối tượng service.
+// Executed process(...) on the service object.
 ```
 
-Đây là đoạn minh họa, giả định `Service`, `service`, kiểu trả về, method và quyền truy cập đều phù hợp. Với static method, receiver cho `Method.invoke` có thể là `null`.
+This is an illustrative snippet assuming `Service`, `service`, return type, method, and access permissions are all appropriate. For a static method, the receiver for `Method.invoke` can be `null`.
 
-**Lưu ý chính xác:** discovery không đồng nghĩa tuyệt đối “JVM không làm gì”. Nạp lớp hoặc đọc signature có thể khiến JVM tải/resolve class phụ thuộc hay phát sinh `LinkageError`; custom class loader có thể chạy logic của nó. Tuy nhiên, những API metadata trên **không tự gọi các method nghiệp vụ đang được liệt kê**. Nếu muốn tránh yêu cầu class initialization chỉ để đọc metadata, xem xét `Class.forName(name, false, loader)` thay vì `Class.forName(name)`.
+**Precision note:** discovery does not strictly mean "the JVM does nothing". Loading a class or reading signatures can cause the JVM to load/resolve dependent classes or throw `LinkageError`; a custom class loader can execute its own logic. However, those metadata APIs **do not automatically invoke the business methods being listed**. If you want to avoid triggering class initialization just to read metadata, consider `Class.forName(name, false, loader)` instead of `Class.forName(name)`.
 
-## 2. Một kiến trúc tách biệt rõ ràng
+## 2. A clearly separated architecture
 
 ```text
-Đăng ký các kiểu / plugin được cho phép
+Register allowed types / plugins
                  |
                  v
-            DISCOVER
+             DISCOVER
    - Class<?> / getDeclaredMethods()
-   - đọc annotation, tên, chữ ký
-   - không invoke, không tạo instance để "thử"
+   - read annotations, names, signatures
+   - no invoke, no instance creation to "test"
                  |
                  v
              VALIDATE
-   - allowlist, ID duy nhất, visibility
-   - signature, mô tả, mức tác động
+   - allowlist, unique ID, visibility
+   - signature, description, impact level
                  |
                  v
        IMMUTABLE REGISTRY
       /                  \
      v                    v
 LIST/DESCRIBE           EXECUTE
-Trả metadata       1. Resolve action ID
-Không chạy code    2. Xác thực và phân quyền
-                   3. Kiểm tra input / policy
-                   4. Chuẩn bị receiver nếu cần
-                   5. Invoke, audit, trả kết quả
+Return metadata    1. Resolve action ID
+Do not run code    2. Authenticate and authorize
+                   3. Validate input / policy
+                   4. Prepare receiver if needed
+                   5. Invoke, audit, return result
 ```
 
-**Registry** là ranh giới giữa danh mục và thực thi. Mỗi entry nên có ID ổn định, mô tả, input schema, output schema, yêu cầu quyền, mức ảnh hưởng (đọc/ghi/gửi ngoài), và một handle hoặc executor **nội bộ**.
+**Registry** is the boundary between the catalog and execution. Each entry should have a stable ID, description, input schema, output schema, permission requirements, impact level (read/write/external send), and an **internal** handle or executor.
 
-Phía client chỉ nên nhận các trường mô tả an toàn, không nhận đối tượng `Method`, receiver hoặc quyền tự gọi Reflection. Khi request gửi `actionId="publish"`, máy chủ tìm entry đã đăng ký, kiểm tra quyền tại **thời điểm thực thi**, rồi mới dispatch.
+The client side should only receive safe descriptive fields, not `Method` objects, receivers, or the ability to invoke Reflection directly. When a request sends `actionId="publish"`, the server looks up the registered entry, checks permissions at **execution time**, and only then dispatches.
 
-Những điều cần tách ra:
+Things that must be separated:
 
-1. **Discovery không phải authorization:** nhìn thấy action không có nghĩa được quyền chạy.
-2. **Annotation không phải sự thật bảo mật:** `mutates=false` là khai báo do lập trình viên cung cấp; code implementation vẫn phải được đánh giá.
-3. **Approval của thao tác có tác động** là trạng thái đáng tin cậy do server quản lý, không phải boolean mà caller tùy ý tự chọn.
+1. **Discovery is not authorization:** seeing an action does not mean being permitted to run it.
+2. **Annotations are not security truth:** `mutates=false` is a declaration provided by the developer; the implementation code must still be evaluated.
+3. **Approval of impactful operations** is trusted state managed by the server, not a boolean arbitrarily chosen by the caller.
 
-## 3. Ví dụ Java 17+: xem metadata không kích hoạt static initializer
+## 3. Java 17+ example: inspecting metadata without triggering static initializer
 
-Chương trình sau giới thiệu một annotation `@ToolAction`, tìm các method hợp lệ trong một lớp, lưu registry và chỉ thực thi khi có lời gọi tường minh. `Actions` có static initializer để quan sát chính xác **lúc nào class được khởi tạo**.
+The following program introduces a `@ToolAction` annotation, finds valid methods in a class, stores them in a registry, and only executes them on an explicit call. `Actions` has a static initializer to observe **exactly when the class is initialized**.
 
-Lưu thành tệp **`ReflectionToolBoundaryDemo.java`**:
+Save as **`ReflectionToolBoundaryDemo.java`**:
 
 ```java
 import java.lang.annotation.ElementType;
@@ -189,14 +189,14 @@ public class ReflectionToolBoundaryDemo {
 }
 ```
 
-Lệnh biên dịch và chạy:
+Compile and run commands:
 
 ```bash
 javac --release 17 -encoding UTF-8 ReflectionToolBoundaryDemo.java
 java ReflectionToolBoundaryDemo
 ```
 
-**Stdout thực tế đã kiểm tra với mã này:**
+**Actual stdout verified with this code:**
 
 ```text
 1. Discovery
@@ -212,121 +212,121 @@ Published: Ada
 OK
 ```
 
-**Giải thích từng mốc:**
+**Step-by-step explanation:**
 
-1. `Actions.class` tạo tham chiếu kiểu, `getDeclaredMethods()` cùng `getAnnotation(...)` đọc mô tả, nên chưa có dòng `Actions initialized`.
-2. Chỉ hai method có `@ToolAction` được đăng ký. `hidden(String)` dù public vẫn **không** trở thành action. `TreeMap` và lệnh `sorted()` làm thứ tự output ổn định vì thứ tự `getDeclaredMethods()` không được bảo đảm.
-3. `publish` chưa được cho phép bị chặn **trước** `Method.invoke`. Class `Actions` vẫn chưa khởi tạo.
-4. `preview` được gọi thật bằng `invoke(null, "Ada")`. Vì đây là static method, JVM khởi tạo `Actions` nếu chưa khởi tạo, in `Actions initialized` đúng một lần.
-5. `publish` sau khi được cho phép in `Published: Ada`. Lần gọi này không chạy lại static initializer.
-6. `Map.copyOf` làm registry trả về không thể bị sửa cấu trúc qua các API `Map` bình thường; việc kiểm soát quyền invoke vẫn thuộc executor. `ActionDescriptor` giữ `Method` để sử dụng nội bộ, không xuất ra phía client.
+1. `Actions.class` creates a type reference, and `getDeclaredMethods()` along with `getAnnotation(...)` read metadata, so the `Actions initialized` line does not appear yet.
+2. Only the two methods annotated with `@ToolAction` are registered. `hidden(String)`, even though public, does **not** become an action. `TreeMap` and `.sorted()` make the output order deterministic because the order returned by `getDeclaredMethods()` is not guaranteed.
+3. Unauthorized `publish` is blocked **before** `Method.invoke`. The `Actions` class is still not initialized.
+4. `preview` is actually invoked via `invoke(null, "Ada")`. Because it is a static method, the JVM initializes `Actions` if it has not been initialized yet, printing `Actions initialized` exactly once.
+5. `publish`, once permitted, prints `Published: Ada`. This call does not re-run the static initializer.
+6. `Map.copyOf` prevents the returned registry from being structurally modified through normal `Map` APIs; controlling invoke permissions remains the responsibility of the executor. `ActionDescriptor` retains `Method` for internal use and does not expose it to the client.
 
-**Giới hạn chủ đích:** mã mẫu chỉ chấp nhận public static method `String f(String)`, nên không cần tạo receiver. Với instance method, executor phải xác định lifecycle target và dùng receiver đúng kiểu, không tạo instance ngay trong discovery. `permitMutation` ở đây chỉ dùng để chứng minh điểm chặn, **không phải mô hình xác thực**: hệ thống thật phải suy quyền từ context đã xác thực ở server, tuyệt đối không tin cờ do client gửi.
+**Intentional limitations:** the sample code only accepts `public static` methods with signature `String f(String)`, so no receiver needs to be created. For instance methods, the executor must determine the target lifecycle and use a receiver of the proper type rather than instantiating objects during discovery. `permitMutation` here is only used to demonstrate the blocking point, **not an authentication model**: a real system must derive permissions from server-side authenticated context and must never trust a flag sent by the client.
 
-## 4. API nào nên gọi trong mỗi giai đoạn?
+## 4. Which APIs should be called in each phase?
 
-### Discovery: chỉ cần tra cứu và kiểm tra
+### Discovery: lookup and inspection only
 
-- `Class.getDeclaredMethods()`: lấy cả method khai báo private/package-private/protected/public, nhưng không tự cấp quyền gọi chúng.
-- `Class.getMethods()`: lấy các method public, gồm method kế thừa theo ngữ nghĩa API. Chọn một trong hai theo nhu cầu và điều kiện discovery.
-- `Method.getName()`, `getModifiers()`, `getParameterTypes()`, `getReturnType()`: đọc chữ ký.
-- `AnnotatedElement.getAnnotation(...)`: đọc annotation có thể truy cập tại runtime; annotation cần `@Retention(RUNTIME)` nếu muốn phát hiện ở runtime.
-- `Class.getDeclaredConstructors()` / `getDeclaredFields()`: lấy mô tả constructor/field, chưa chạy chúng.
+- `Class.getDeclaredMethods()`: retrieves methods declared as private/package-private/protected/public, but does not grant permission to invoke them.
+- `Class.getMethods()`: retrieves public methods, including inherited ones according to API semantics. Choose one of the two based on your needs and discovery constraints.
+- `Method.getName()`, `getModifiers()`, `getParameterTypes()`, `getReturnType()`: read the signature.
+- `AnnotatedElement.getAnnotation(...)`: reads annotations accessible at runtime; annotations need `@Retention(RUNTIME)` to be discoverable at runtime.
+- `Class.getDeclaredConstructors()` / `getDeclaredFields()`: retrieve constructor/field descriptors without executing them.
 
-Không biến `getDeclaredMethods()` thành danh sách công cụ tự động. Một class có thể có method nội bộ, callback, getter gây tác động, method quản trị và method `Object`. Discovery cần **allowlist** và bộ kiểm tra kiểu/annotation.
+Do not turn `getDeclaredMethods()` into an automatic tool list. A class may contain internal methods, callbacks, getters with side effects, administrative methods, and `Object` methods. Discovery requires an **allowlist** and type/annotation checks.
 
-### Execution: hành động có thể có side effect
+### Execution: actions that may have side effects
 
-- `Method.invoke(...)` chạy method; invocation của static method có thể yêu cầu initialization của lớp khai báo.
-- `Constructor.newInstance(...)` thực thi constructor, tạo đối tượng và có thể chạy initialization trước đó.
-- `Field.get(...)` / `Field.set(...)` truy cập **giá trị**, khác hẳn `getDeclaredField(...)` chỉ tìm metadata. Với static field, có thể kích hoạt initialization.
-- `MethodHandle.invoke(...)` / `invokeExact(...)` gọi handle đã tìm, khác với lúc lookup handle.
+- `Method.invoke(...)` runs a method; invoking a static method can trigger initialization of the declaring class.
+- `Constructor.newInstance(...)` executes a constructor, creates an object, and may run initialization beforehand.
+- `Field.get(...)` / `Field.set(...)` access **values**, unlike `getDeclaredField(...)` which only looks up metadata. For static fields, they can trigger initialization.
+- `MethodHandle.invoke(...)` / `invokeExact(...)` invoke an already looked-up handle, distinct from looking up the handle.
 
-Nếu muốn tải lớp chỉ để kiểm kê, `Class.forName(binaryName, false, loader)` tránh yêu cầu class initialization của kiểu đích trong lời gọi đó. Tuy nhiên, việc nạp lớp vẫn có thể thất bại vì classpath, class loader, modules hoặc dependency bị thiếu.
+If you want to load a class solely for inventorying, `Class.forName(binaryName, false, loader)` avoids requiring class initialization of the target type during that call. However, class loading can still fail due to classpath, class loader, modules, or missing dependencies.
 
-## 5. Đăng ký công cụ đúng cách
+## 5. Registering tools properly
 
-Một entry registry hữu ích thường có các trường:
+A useful registry entry typically has these fields:
 
-| Trường | Mục đích |
+| Field | Purpose |
 |---|---|
-| `actionId` | Tên/ID ổn định, không trùng |
-| `description` | Giải thích hành động để người gọi hiểu |
-| `inputSchema` | Kiểu dữ liệu, ràng buộc, giới hạn kích thước |
-| `outputSchema` | Định dạng kết quả được công bố |
-| `effect` | Đọc dữ liệu, ghi/sửa, xóa hoặc gửi ra ngoài |
-| `requiredPermissions` | Quyền executor phải kiểm tra |
-| `method/handler` nội bộ | Điểm thực thi sau khi được cho phép |
+| `actionId` | Stable, non-duplicate name/ID |
+| `description` | Explains the action so callers understand it |
+| `inputSchema` | Data types, constraints, size limits |
+| `outputSchema` | Published result format |
+| `effect` | Read data, write/modify, delete, or send externally |
+| `requiredPermissions` | Permissions the executor must check |
+| `method/handler` (internal) | Execution entry point once authorized |
 
-Nên:
+Best practices:
 
-1. Chỉ đọc những class/package/plugin đã đăng ký hoặc được phép. Nếu plugin đến từ nguồn không đáng tin cậy, việc chỉ dùng Reflection **không tạo sandbox**; cần cơ chế cô lập tương ứng.
-2. Dùng annotation marker và kiểm tra schema/signature **trước khi** đưa vào registry. Không công bố method chỉ vì nó có `public`.
-3. Từ chối `actionId` trùng thay vì âm thầm ghi đè method; sắp xếp danh mục theo ID để có kết quả ổn định.
-4. Không dùng `setAccessible(true)` vô điều kiện để vượt encapsulation; Java module system có thể giới hạn truy cập. Ưu tiên entrypoint public có chủ đích.
-5. Tạo snapshot registry bất biến sau khi validate. Nếu hỗ trợ hot reload, xuất bản registry mới bằng một bước thay thế có kiểm soát để request không nhìn thấy danh mục nửa chừng.
-6. Khi xuất metadata thành JSON, không serialize raw `Method`, receiver, ClassLoader, secret hay thông tin nội bộ không cần thiết.
+1. Only inspect registered or allowed classes/packages/plugins. If plugins come from untrusted sources, using Reflection alone **does not create a sandbox**; appropriate isolation mechanisms are needed.
+2. Use marker annotations and validate schemas/signatures **before** adding to the registry. Do not expose a method just because it is `public`.
+3. Reject duplicate `actionId` values instead of silently overwriting methods; sort the catalog by ID for deterministic output.
+4. Do not unconditionally use `setAccessible(true)` to bypass encapsulation; the Java module system can restrict access. Prefer intentional public entry points.
+5. Create an immutable registry snapshot after validation. If hot reload is supported, publish the new registry in a controlled swap step so requests never observe a half-built catalog.
+6. When exporting metadata as JSON, do not serialize raw `Method`, receiver, `ClassLoader`, secrets, or unnecessary internal details.
 
-## 6. Thực thi đúng cách và xử lý lỗi
+## 6. Executing properly and handling errors
 
-Một executor đáng tin cậy nên xử lý theo thứ tự:
+A reliable executor should process in order:
 
-1. **Resolve** action ID từ registry đã validate. Không lấy trực tiếp tên class/method từ input của client rồi gọi Reflection tùy ý.
-2. **Authenticate và authorize** theo danh tính, vai trò, tenant, đối tượng, phạm vi dữ liệu và trạng thái hiện tại. Quyền phải được kiểm tra **mỗi lần gọi**.
-3. **Validate/bind** input theo schema. Phân biệt input không hợp lệ với lỗi thực thi.
-4. **Kiểm tra tác động:** thao tác ghi, xóa, gửi ra ngoài cần policy hoặc xác nhận thích hợp; thực thi có retry cần cơ chế idempotency phù hợp. Không coi method tên `preview` hay annotation `readOnly` là bảo đảm vô hại.
-5. **Chuẩn bị receiver** cho instance method theo lifecycle service/container; không tạo đối tượng chỉ để xem metadata.
-6. **Invoke** và bắt/log lỗi có kiểm soát; audit action ID, caller, quyết định cấp quyền, kết quả và correlation ID, tránh ghi secret trong log.
+1. **Resolve** the action ID from the validated registry. Do not take class/method names directly from client input and invoke Reflection arbitrarily.
+2. **Authenticate and authorize** based on identity, role, tenant, target object, data scope, and current state. Permissions must be checked on **every call**.
+3. **Validate/bind** input against the schema. Distinguish invalid input from execution errors.
+4. **Check impact:** write, delete, and external-send operations require appropriate policy or confirmation; executions with retries need appropriate idempotency mechanisms. Do not treat a method named `preview` or a `readOnly` annotation as a guarantee of harmlessness.
+5. **Prepare the receiver** for instance methods according to service/container lifecycle; do not instantiate objects just to inspect metadata.
+6. **Invoke** and catch/log errors in a controlled manner; audit action ID, caller, authorization decision, outcome, and correlation ID, while avoiding logging secrets.
 
-| Exception/vấn đề | Thường phát sinh ở đâu | Cách xử lý |
+| Exception/issue | Where it typically arises | How to handle |
 |---|---|---|
-| `NoSuchMethodException` | Tìm sai tên hoặc signature trong discovery | Báo lỗi cấu hình/đăng ký |
-| `ClassNotFoundException`, `LinkageError` | Nạp/resolve lớp hay dependency | Kiểm tra class loader, module path, dependency |
-| `IllegalAccessException`, `InaccessibleObjectException` | Truy cập method bị giới hạn | Sửa visibility hoặc module boundary theo thiết kế |
-| `IllegalArgumentException` | Bind receiver/tham số sai hoặc validate input | Kiểm tra schema và loại đối số |
-| `InvocationTargetException` | Method được gọi ném exception | Đọc `getCause()`, phân loại lỗi nghiệp vụ |
-| `ExceptionInInitializerError` | Static initialization bị lỗi | Xác định code khởi tạo, trạng thái class và lỗi gốc |
-| Timeout, lặp lại request | Thực thi, đặc biệt thao tác có side effect | Giới hạn tài nguyên, audit, idempotency; cân nhắc cô lập |
+| `NoSuchMethodException` | Wrong name or signature lookup during discovery | Report configuration/registration error |
+| `ClassNotFoundException`, `LinkageError` | Loading/resolving a class or dependency | Check class loader, module path, dependencies |
+| `IllegalAccessException`, `InaccessibleObjectException` | Method access is restricted | Fix visibility or module boundary by design |
+| `IllegalArgumentException` | Wrong receiver/parameter binding or input validation | Check schema and argument types |
+| `InvocationTargetException` | Invoked method throws an exception | Inspect `getCause()`, classify business error |
+| `ExceptionInInitializerError` | Static initialization failed | Identify initialization code, class state, and root cause |
+| Timeout, repeated requests | Execution, especially operations with side effects | Resource limits, audit, idempotency; consider isolation |
 
-**Chú ý:** deadline hoặc timeout không tự bảo đảm một method đang chạy sẽ dừng ngay hay rollback side effect. Không tự retry hành động có tác động nếu không có bảo đảm an toàn phù hợp.
+**Note:** a deadline or timeout does not automatically guarantee that a running method will stop immediately or roll back side effects. Do not automatically retry impactful actions without appropriate safety guarantees.
 
-## 7. Các tình huống thực tế
+## 7. Real-world scenarios
 
-**CLI/command runner:** lệnh `list` và `help` chỉ dùng registry; lệnh `run <action>` mới đi qua executor. Người dùng có thể xem khả năng hệ thống mà chưa thay đổi trạng thái.
+**CLI/command runner:** `list` and `help` commands only use the registry; only `run <action>` goes through the executor. Users can inspect system capabilities without modifying state.
 
-**Plugin host:** lúc khởi động đăng ký handler và kiểm tra metadata; lúc người dùng chọn plugin mới tạo instance/gọi method theo lifecycle. Constructor, đăng ký callback hoặc DI có thể có side effect, nên phải được quản lý ở đúng phase.
+**Plugin host:** at startup, register handlers and validate metadata; only when the user selects a plugin are instances created or methods invoked according to lifecycle. Constructors, callback registration, or DI can have side effects, so they must be managed in the right phase.
 
-**Hệ thống tool-calling:** bước “describe tools” chỉ trả tên, mô tả, input schema và ràng buộc. Khi caller yêu cầu gọi một tool, backend xác thực, phân quyền và dispatch thông qua registry; bản thân việc gửi danh mục cho caller **không cấp quyền Reflection**.
+**Tool-calling system:** the "describe tools" step only returns names, descriptions, input schemas, and constraints. When a caller requests to run a tool, the backend authenticates, authorizes, and dispatches through the registry; sending the catalog to the caller **does not grant Reflection privileges**.
 
-**Framework kiểm thử:** discovery liệt kê method được đánh dấu `@Test`; execution mới xây fixture, chạy before-hook, gọi test và thu kết quả. Nếu khởi tạo test class trong discovery, ranh giới hai bước bị mờ và khó kiểm soát side effect.
+**Testing framework:** discovery lists methods annotated with `@Test`; execution builds fixtures, runs before-hooks, invokes tests, and collects results. Initializing test classes during discovery blurs the boundary between the two phases and makes side effects hard to control.
 
-## 8. Sai lầm cần tránh và câu hỏi tự kiểm tra
+## 8. Common pitfalls and self-check questions
 
-- **“Có `Method` là method đã chạy.”** Sai: `Method` chỉ chứa metadata; `invoke` là một đường thực thi.
-- **“`getDeclaredMethods()` tự sắp xếp theo thứ tự mã nguồn.”** Sai: không nên phụ thuộc thứ tự này.
-- **“Có annotation nghĩa là được phép gọi.”** Sai: annotation giúp đăng ký hoặc mô tả, còn phân quyền thuộc executor.
-- **“Chỉ đọc tên class bằng `Class.forName(name)` thì static block chắc chưa chạy.”** Sai: overload một tham số yêu cầu class initialization.
-- **“Không gọi nghiệp vụ trong discovery nghĩa là mọi thao tác bên dưới đều tuyệt đối không có tác động.”** Sai: class loading/linkage hay custom loader vẫn có hành vi riêng, nên cần xác định trust boundary.
-- **“Tool chỉ đọc luôn vô hại.”** Chưa chắc: getter có thể thay state hoặc gọi I/O; phải xem implementation và policy.
-- **“Báo `InvocationTargetException` cho người dùng là đủ.”** Chưa đủ: nên phân loại cause để biết lỗi thực tế từ code được gọi.
+- **"Having a `Method` means the method has already run."** False: `Method` only holds metadata; `invoke` is an execution path.
+- **"`getDeclaredMethods()` automatically sorts in source order."** False: do not rely on this order.
+- **"Having an annotation means it is allowed to be called."** False: annotations help with registration or description, while authorization belongs to the executor.
+- **"Just reading a class name with `Class.forName(name)` ensures the static block hasn't run."** False: the single-argument overload triggers class initialization.
+- **"Not calling business logic during discovery means nothing underneath has any effect."** False: class loading/linkage or custom loaders still have their own behavior, so trust boundaries must be defined.
+- **"Read-only tools are always harmless."** Not necessarily: getters can mutate state or perform I/O; you must inspect implementation and policy.
+- **"Reporting `InvocationTargetException` to the user is enough."** Not enough: classify the cause to reveal the actual error from the invoked code.
 
-**Câu hỏi 1:** Vì sao code mẫu không in `Actions initialized` ngay trong discovery?
+**Question 1:** Why didn't the sample code print `Actions initialized` during discovery?
 
-Vì thao tác `Actions.class` và đọc các `Method`/annotation không yêu cầu initialization của `Actions`. Static method `preview` được gọi bằng `invoke` mới kích hoạt lần khởi tạo đầu tiên.
+Because using `Actions.class` and reading `Method` objects/annotations do not require initialization of `Actions`. Invoking the static method `preview` via `invoke` triggers the first initialization.
 
-**Câu hỏi 2:** Có cần gọi `Constructor.newInstance` để lấy tên các method instance không?
+**Question 2:** Do we need to call `Constructor.newInstance` to get the names of instance methods?
 
-**Không.** Có thể đọc method metadata từ `Class<?>` mà chưa tạo instance. Việc tạo receiver là công việc khi thực thi.
+**No.** Method metadata can be read from `Class<?>` without creating an instance. Creating the receiver is execution-time work.
 
-**Câu hỏi 3:** Vì sao vẫn kiểm tra quyền sau khi đã xây registry an toàn?
+**Question 3:** Why still check permissions after building a safe registry?
 
-Vì registry trả lời **“những gì có thể được cung cấp”**, còn quyền thực thi phụ thuộc caller, tài nguyên và thời điểm. Điều kiện đó có thể thay đổi giữa các lần gọi.
+Because the registry answers **"what can be offered"**, whereas execution permission depends on the caller, resource, and timing. Those conditions can change between calls.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 — Class](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): tra cứu class, method, field, constructor và `forName`.
-- [Java SE 17 — Method](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html): metadata và `invoke`.
-- [Java SE 17 — AccessibleObject](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html): quyền truy cập Reflection.
-- Java Language Specification §12.4.1 và JVM Specification §5: quy tắc loading/linking/initialization.
+- [Java SE 17 — Class](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): looking up classes, methods, fields, constructors, and `forName`.
+- [Java SE 17 — Method](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html): metadata and `invoke`.
+- [Java SE 17 — AccessibleObject](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html): Reflection access control.
+- Java Language Specification §12.4.1 and JVM Specification §5: loading/linking/initialization rules.
 
-**Ghi nhớ:** Discovery mô tả **có những thao tác nào**; execution quyết định **ai được phép gọi thao tác nào với input nào** và thực hiện nó có kiểm soát. Không biến việc quét metadata thành việc chạy code nghiệp vụ.
+**Key takeaway:** Discovery describes **what operations exist**; execution decides **who is permitted to call which operation with which input** and performs it under control. Do not turn metadata scanning into running business code.

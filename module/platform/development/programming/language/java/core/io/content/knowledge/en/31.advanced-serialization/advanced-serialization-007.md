@@ -1,20 +1,20 @@
-# Serializable với enum và record trong Java 17+: quy tắc tuần tự hóa, khôi phục và tương thích
+# Serializable with Enum and Record in Java 17+: Serialization, Restoration, and Compatibility Rules
 
-## 1. Vì sao enum và record cần được học riêng?
+## 1. Why Should Enum and Record Be Studied Separately?
 
-Java Object Serialization cho phép ghi đối tượng thành chuỗi byte bằng `ObjectOutputStream` và khôi phục bằng `ObjectInputStream`. Giao diện đánh dấu `java.io.Serializable` là cơ sở để hầu hết đối tượng Java được xử lý theo cơ chế này.
+Java Object Serialization lets you write objects into a byte stream using `ObjectOutputStream` and restore them using `ObjectInputStream`. The marker interface `java.io.Serializable` is the foundation enabling most Java objects to be processed by this mechanism.
 
-Tuy nhiên, **`enum` và `record` không có cùng quy tắc tuần tự hóa như class thông thường**:
+However, **`enum` and `record` do not follow the same serialization rules as ordinary classes**:
 
-- `enum` **đã serializable một cách mặc định**. Định dạng đặc biệt lưu **tên hằng enum**, không lưu bộ trạng thái instance như một class thường. Khi đọc, Java tìm lại **chính hằng enum đã tồn tại**.
-- `record` **không tự động implements Serializable**. Khi record có `implements Serializable`, dữ liệu serial form được xác định bởi **record components**, và lúc đọc Java gọi **canonical constructor** để tạo đối tượng, thay vì khôi phục field bằng cơ chế class thường.
-- Cả hai có những giới hạn về `writeObject`/`readObject`, `serialVersionUID`, xử lý thay đổi định nghĩa lớp và bảo mật khi giải tuần tự hóa.
+- `enum` is **already serializable by default**. Its special format stores the **enum constant name**, not an instance state block like an ordinary class. When reading, Java looks up **the existing enum constant**.
+- `record` **does not automatically implement Serializable**. When a record declares `implements Serializable`, its serial form is determined by its **record components**, and on read Java invokes its **canonical constructor** to create the object instead of restoring fields via the ordinary class mechanism.
+- Both have specific limitations regarding `writeObject`/`readObject`, `serialVersionUID`, handling class definition changes, and deserialization security.
 
-Bài học tập trung vào Java 17+ và **Java built-in Object Serialization**, không phải JSON, Jackson, protobuf hay mapping cơ sở dữ liệu. Mục tiêu: hiểu nội dung được lưu, điều gì xảy ra khi đọc lại, cách validate và cách tránh nhầm lẫn khi phát triển phiên bản mới.
+This lesson focuses on Java 17+ and **Java built-in Object Serialization**, not JSON, Jackson, protobuf, or database mapping. Objective: understand what gets stored, what happens on read, how to validate, and how to avoid mistakes when evolving to new versions.
 
-## 2. Nhắc nhanh: Serializable, stream và object graph
+## 2. Quick Recap: Serializable, Streams, and Object Graphs
 
-Một class bình thường có thể khai báo:
+An ordinary class can declare:
 
 ~~~java
 import java.io.Serializable;
@@ -25,34 +25,34 @@ class Note implements Serializable {
 }
 ~~~
 
-Đoạn trên **chỉ minh họa khai báo**, chưa phải chương trình hoàn chỉnh. Interface `Serializable` là **marker interface**: không yêu cầu cài đặt phương thức nào. `ObjectOutputStream.writeObject(value)` ghi thông tin lớp và trạng thái cần thiết; `ObjectInputStream.readObject()` dựng lại các đối tượng trong object graph.
+The snippet above **only illustrates a declaration**, not a complete program. The `Serializable` interface is a **marker interface**: it requires implementing no methods. `ObjectOutputStream.writeObject(value)` writes class information and necessary state; `ObjectInputStream.readObject()` reconstructs the objects in the object graph.
 
-Hợp đồng thường gặp:
+Common contract rules:
 
-- Một object là `Serializable` **không đảm bảo toàn bộ object graph serializable**. Nếu một field/component tham chiếu tới đối tượng không thể ghi, quá trình có thể ném `NotSerializableException`.
-- `static` không thuộc trạng thái riêng của từng instance để được tuần tự hóa; với class thường, `transient` đánh dấu field không lưu theo default serialization.
-- Java Object Serialization dùng định dạng nhị phân dành cho Java và cần lớp tương thích khi đọc lại, **không tự biến thành giao thức trao đổi liên ngôn ngữ ổn định**.
-- Stream nên được đóng bằng `try-with-resources`. Không giải tuần tự hóa byte từ nguồn không đáng tin chỉ vì chúng có extension `.ser`.
-- Cơ chế duy trì tham chiếu và chu trình đối tượng trong Java Serialization có các trường hợp đặc biệt với record; phần sau sẽ giải thích.
+- An object being `Serializable` **does not guarantee the entire object graph is serializable**. If a field/component references an object that cannot be written, the process can throw `NotSerializableException`.
+- `static` variables do not belong to per-instance state to be serialized; for ordinary classes, `transient` marks a field not to be saved by default serialization.
+- Java Object Serialization uses a Java-specific binary format and requires compatible classes when reading back; it **does not automatically become a stable cross-language interchange protocol**.
+- Streams should be closed with `try-with-resources`. Do not deserialize bytes from untrusted sources merely because they carry a `.ser` extension.
+- The reference-tracking and object-cycle mechanism in Java Serialization has special cases for records; a later section explains this.
 
-Bảng so sánh:
+Comparison table:
 
-| Đặc điểm | Class `implements Serializable` thông thường | `enum` | `record implements Serializable` |
+| Feature | Ordinary `implements Serializable` Class | `enum` | `record implements Serializable` |
 | --- | --- | --- | --- |
-| Có cần khai báo marker? | Có (hoặc kế thừa một kiểu serializable) | **Không**, enum vốn đã serializable | **Có**, record không tự động serializable |
-| Nội dung chính trên stream | Các field serializable theo cơ chế class | **Tên của hằng enum** | **Giá trị record components** |
-| Khi deserialize | Khôi phục instance và field theo cơ chế class | Tra lại hằng bằng `Enum.valueOf` | **Gọi canonical constructor** |
-| Danh tính object | Thường nhận instance được dựng lại | Giữ đúng enum singleton constant (`==`) | Instance mới, so sánh nội dung bằng `equals` |
-| `writeObject/readObject` riêng | Có thể dùng khi tuân hợp đồng | **Bị bỏ qua** | **Bị bỏ qua** |
-| `writeReplace/readResolve` | Có thể áp dụng theo quy định | **Bị bỏ qua** | **Có thể áp dụng** |
-| `serialVersionUID` | Rất quan trọng với compatibility | Cố định `0L`; khai báo bị bỏ qua | Mặc định `0L` hoặc khai báo riêng; kiểm tra UID khớp được miễn |
-| Chu trình trỏ ngược về chính đối tượng | Có thể được giữ với cơ chế object handles | Enum là hằng có sẵn | Chu trình xuyên qua components trỏ lại record **không được giữ nguyên** |
+| Need to declare marker? | Yes (or inherit from a serializable type) | **No**, enums are inherently serializable | **Yes**, records are not automatically serializable |
+| Primary stream content | Serializable fields per class mechanism | **Name of the enum constant** | **Record component values** |
+| On deserialization | Restores instance and fields per class mechanism | Looks up constant via `Enum.valueOf` | **Invokes canonical constructor** |
+| Object identity | Typically receives a newly constructed instance | Preserves exact enum singleton constant (`==`) | New instance, compare content with `equals` |
+| Custom `writeObject/readObject` | Can be used when following the contract | **Ignored** | **Ignored** |
+| `writeReplace/readResolve` | Applicable per rules | **Ignored** | **Applicable** |
+| `serialVersionUID` | Very important for compatibility | Fixed at `0L`; declarations are ignored | Defaults to `0L` or explicitly declared; UID matching check is waived |
+| Cycles pointing back to the object itself | Can be preserved via object handles | Enums are pre-existing constants | Cycles through components pointing back to the record **are not preserved** |
 
-## 3. Enum: lưu tên hằng, không lưu trạng thái instance
+## 3. Enum: Stores Constant Name, Not Instance State
 
-### 3.1. Tại sao không cần `implements Serializable`?
+### 3.1. Why Is `implements Serializable` Unnecessary?
 
-Mọi kiểu `enum` Java kế thừa `java.lang.Enum`, vốn thực thi `Serializable`. Ví dụ:
+Every Java `enum` type extends `java.lang.Enum`, which implements `Serializable`. For example:
 
 ~~~java
 enum Status {
@@ -60,28 +60,28 @@ enum Status {
 }
 ~~~
 
-Đoạn này đủ để những giá trị như `Status.DONE` được truyền cho `ObjectOutputStream.writeObject(...)`; không cần thêm marker hoặc một constructor đặc biệt.
+This snippet is sufficient for values like `Status.DONE` to be passed to `ObjectOutputStream.writeObject(...)`; no extra marker or special constructor is required.
 
-**Khi ghi:** stream lưu định danh kiểu enum và tên hằng được trả bởi `name()`, chẳng hạn `"DONE"`. Giá trị ordinals hoặc các field instance do bạn khai báo trong hằng không phải phần trạng thái được lưu theo cơ chế enum đặc biệt.
+**On write:** the stream records the enum type identifier and the constant name returned by `name()`, such as `"DONE"`. Ordinals or instance fields you declare on constants are not state stored by the special enum mechanism.
 
-**Khi đọc:** Java giải tên hằng bằng cơ chế tương đương `Enum.valueOf(Status.class, "DONE")`. Vì thế, kết quả là **chính `Status.DONE` hiện có trong JVM**, không tạo một instance enum thứ hai.
+**On read:** Java resolves the constant name via a mechanism equivalent to `Enum.valueOf(Status.class, "DONE")`. Consequently, the result is **the exact `Status.DONE` already present in the JVM**, without creating a second enum instance.
 
 ~~~java
 Status original = Status.DONE;
-// Sau khi writeObject rồi readObject thành công:
-Status restored = Status.DONE; // Ví dụ giá trị được khôi phục.
+// After successful writeObject then readObject:
+Status restored = Status.DONE; // Example of the restored value.
 System.out.println(original == restored); // true
 ~~~
 
-Đoạn trên chỉ mô tả kết quả. Chương trình chạy hoàn chỉnh nằm ở mục 7.
+The snippet above only illustrates the outcome. A complete runnable program is in Section 7.
 
-### 3.2. `name()` khác `toString()` và `ordinal()`
+### 3.2. `name()` Differs from `toString()` and `ordinal()`
 
-Một enum có thể định nghĩa tên hiển thị:
+An enum can define a display label:
 
 ~~~java
 enum Level {
-    LOW("Thấp"), HIGH("Cao");
+    LOW("Low"), HIGH("High");
 
     private final String label;
 
@@ -96,17 +96,17 @@ enum Level {
 }
 ~~~
 
-Nếu serialize `Level.HIGH`, Java lưu **tên `HIGH`**, chứ không lấy chuỗi `"Cao"` từ `toString()`. Cũng không lưu `ordinal()` làm định danh của hằng.
+If you serialize `Level.HIGH`, Java stores **the name `HIGH`**, rather than taking the string `"High"` from `toString()`. Nor does it store `ordinal()` as the constant's identifier.
 
-Hệ quả:
+Consequences:
 
-- Thay `toString()` hoặc tên hiển thị có thể không phá deserialization của giá trị enum cũ.
-- Sắp xếp lại thứ tự khai báo các hằng không tự làm thay đổi tên `HIGH` được lưu.
-- **Đổi tên/xóa hằng** đã từng xuất hiện trên stream cũ có thể làm quá trình khôi phục thất bại vì tên không còn tồn tại. Đây là khác biệt quan trọng khi nâng version.
+- Changing `toString()` or display labels will not break deserialization of old enum values.
+- Reordering constant declarations does not change the stored name `HIGH`.
+- **Renaming/removing a constant** that appeared in older streams can cause restoration to fail because the name no longer exists. This is an important distinction when upgrading versions.
 
-### 3.3. Các field trong enum không được khôi phục từ stream
+### 3.3. Fields Inside an Enum Are Not Restored from the Stream
 
-Xét enum có state:
+Consider an enum with state:
 
 ~~~java
 enum Mode {
@@ -124,30 +124,30 @@ enum Mode {
 }
 ~~~
 
-Nếu gọi `Mode.SAFE.markUsed()` trước khi serialize, byte stream của `Mode.SAFE` vẫn chỉ đại diện cho **hằng SAFE**, không chứa bản sao `visits`.
+If you call `Mode.SAFE.markUsed()` before serializing, the byte stream for `Mode.SAFE` still represents only **the SAFE constant**, containing no copy of `visits`.
 
-Khi đọc enum trong **cùng JVM**, bạn nhận lại `Mode.SAFE` với state hiện tại của singleton trong JVM đó. Nếu deserialize ở một JVM khác, state do runtime đó khởi tạo/quản lý, **không phải số lượt visits từng có trên JVM nguồn**. Không dùng enum serialization để đồng bộ dữ liệu mutable gắn trong enum.
+When reading the enum in **the same JVM**, you get back `Mode.SAFE` with that singleton's current state in that JVM. If deserialized in another JVM, the state is initialized/managed by that runtime, **not the visit count that existed on the source JVM**. Do not use enum serialization to synchronize mutable data attached to an enum.
 
-### 3.4. Custom hooks của enum không có tác dụng
+### 3.4. Custom Hooks on an Enum Have No Effect
 
-Với enum, Java Object Serialization bỏ qua các phương thức tùy biến do enum định nghĩa như `writeObject`, `readObject`, `readObjectNoData`, `writeReplace` và `readResolve`. Nó cũng bỏ qua `serialPersistentFields` và bất kỳ field `serialVersionUID` nào tự khai báo; UID của enum luôn là `0L`.
+For enums, Java Object Serialization ignores custom methods defined by the enum such as `writeObject`, `readObject`, `readObjectNoData`, `writeReplace`, and `readResolve`. It also ignores `serialPersistentFields` and any declared `serialVersionUID` field; an enum's UID is always `0L`.
 
-Vì vậy **đừng viết `readResolve()` trong enum để bảo vệ tính duy nhất**: quy tắc khôi phục bằng tên vốn đã đảm bảo không tạo enum constant mới. Đừng nghĩ viết `writeObject` để lưu thêm field động sẽ có tác dụng. Nếu cần lưu dữ liệu thay đổi theo từng request, hãy đặt nó vào **class hoặc record serializable riêng**, còn enum chỉ mô tả loại/trạng thái có số lựa chọn hữu hạn.
+Therefore, **do not write `readResolve()` inside an enum to protect uniqueness**: name-based restoration already guarantees no new enum constant is created. Do not expect writing `writeObject` to save extra dynamic fields to have any effect. If you need to store per-request varying data, put it in a **separate serializable class or record**, and use the enum only to represent a finite set of types/states.
 
-## 4. Record: bất biến về cấu trúc không đồng nghĩa Serializable
+## 4. Record: Structural Immutability Does Not Mean Serializable
 
-### 4.1. Phải khai báo `implements Serializable`
+### 4.1. Must Declare `implements Serializable`
 
-Record có mặt chính thức từ Java 16 (sử dụng ổn định trong Java 17), giúp biểu diễn dữ liệu qua các **record components**:
+Records became official in Java 16 (and are stable in Java 17), representing data through **record components**:
 
 ~~~java
 record Point(int x, int y) {
 }
 ~~~
 
-Record trên **chưa serializable**, dù có constructor, accessor, `equals`, `hashCode` và `toString` do compiler tạo. Nếu truyền một instance vào `ObjectOutputStream.writeObject`, có thể nhận `NotSerializableException`.
+The record above is **not yet serializable**, even though it has compiler-generated constructors, accessors, `equals`, `hashCode`, and `toString`. Passing an instance to `ObjectOutputStream.writeObject` can throw `NotSerializableException`.
 
-Bản hỗ trợ Java Object Serialization cần khai báo:
+A version supporting Java Object Serialization must declare:
 
 ~~~java
 import java.io.Serializable;
@@ -156,37 +156,37 @@ record Point(int x, int y) implements Serializable {
 }
 ~~~
 
-Chỉ thêm marker chưa đủ nếu component có kiểu tham chiếu chứa dữ liệu không serializable. Ví dụ:
+Adding the marker alone is insufficient if a component has a reference type holding non-serializable data. For example:
 
 ~~~java
 record Holder(Object value) implements Serializable {
 }
 
 Holder invalid = new Holder(new Object());
-// writeObject(invalid) có thể ném NotSerializableException
-// vì java.lang.Object không implements Serializable.
+// writeObject(invalid) may throw NotSerializableException
+// because java.lang.Object does not implement Serializable.
 ~~~
 
-Hai đoạn trên là **minh họa**. Kiểu component `Object` không tự khiến mọi giá trị bên trong đều được hỗ trợ, cũng như `List` không đảm bảo mọi implementation và mọi element đều serializable.
+The two snippets above are **illustrative**. A component type of `Object` does not automatically support every value inside, just as `List` does not guarantee every implementation and element is serializable.
 
-### 4.2. Java ghi gì cho record?
+### 4.2. What Does Java Write for a Record?
 
-Với:
+Given:
 
 ~~~java
 record Product(String sku, int quantity) implements Serializable {
 }
 ~~~
 
-Dạng serial của record dựa vào **giá trị hai component** `sku` và `quantity`. Một record không thể khai báo instance field tùy ý ngoài các field được tạo cho record components. Những biến `static` không thuộc trạng thái mỗi instance và không phải component serial form.
+The serial form of the record is based on **the values of the two components** `sku` and `quantity`. A record cannot declare arbitrary instance fields beyond those generated for its record components. `static` variables do not belong to per-instance state and are not part of the component serial form.
 
-Khác với class thông thường, quá trình serialize record không dùng `serialPersistentFields` để chọn field tùy ý và không gọi `writeObject` do record định nghĩa. Vì thế **tập component là hợp đồng dữ liệu trực tiếp** cần xem xét khi versioning.
+Unlike ordinary classes, record serialization does not use `serialPersistentFields` to pick custom fields and does not invoke a record-defined `writeObject`. Thus **the set of components is the direct data contract** to consider when versioning.
 
-Điều này không phải “record serialize thành JSON”. Byte stream Java vẫn chứa metadata kiểu/class và thông tin field theo giao thức Java Object Serialization.
+This does not mean "records serialize to JSON." The Java byte stream still contains type/class metadata and field information per the Java Object Serialization protocol.
 
-### 4.3. Canonical constructor chạy khi deserialize
+### 4.3. The Canonical Constructor Runs on Deserialization
 
-Record được khôi phục thông qua **canonical constructor**: Java dựng các giá trị component từ stream rồi gọi constructor này.
+Records are restored through their **canonical constructor**: Java reconstructs the component values from the stream and then invokes this constructor.
 
 ~~~java
 import java.io.Serializable;
@@ -202,49 +202,49 @@ record Account(String id, int balance) implements Serializable {
 }
 ~~~
 
-Đây là khai báo minh họa. `public` trong compact canonical constructor phù hợp cho record public; nếu record package-private, quyền truy cập constructor có thể không cần `public`. Nhờ việc canonical constructor được gọi lúc deserialize, các kiểm tra `id` không trống và `balance >= 0` có cơ hội được áp dụng cả khi dữ liệu đến từ một serialized stream.
+This is an illustrative declaration. `public` on the compact canonical constructor suits a public record; if the record is package-private, the constructor's access does not need to be `public`. Because the canonical constructor runs during deserialization, checks for non-blank `id` and `balance >= 0` get a chance to apply even when data comes from a serialized stream.
 
-Nếu constructor từ chối giá trị được khôi phục, Java có thể báo `InvalidObjectException` (nguyên nhân gốc là exception từ constructor). **Không nên dựa vào setter sau khi đọc để vá invariant**: record được xây dựng với giá trị đã đọc qua constructor.
+If the constructor rejects the restored values, Java can report `InvalidObjectException` (whose root cause is the exception from the constructor). **Do not rely on post-read setters to patch invariants**: records are constructed with the read values via the constructor.
 
-Quan trọng: validation của record **không có nghĩa nguồn dữ liệu được tin cậy**. Byte stream có thể kích hoạt việc tạo, parse hoặc khôi phục các object component khác trước khi canonical constructor của record được gọi. Phải áp dụng chính sách an toàn cho deserialization ở phạm vi toàn bộ stream.
+Important: record validation **does not mean the data source is trusted**. The byte stream can trigger creation, parsing, or restoration of other component objects before the record's canonical constructor is called. You must apply deserialization security policies across the entire stream.
 
-### 4.4. Phương thức serializer hook nào có hiệu lực?
+### 4.4. Which Serializer Hooks Take Effect?
 
-Với record serializable, các hook tương tự class thường có sự khác biệt:
+For a serializable record, hooks that work on ordinary classes behave differently:
 
-| Thành phần | Record trong Java Serialization |
+| Member | Record in Java Serialization |
 | --- | --- |
-| `private void writeObject(ObjectOutputStream)` | Bị bỏ qua |
-| `private void readObject(ObjectInputStream)` | Bị bỏ qua |
-| `readObjectNoData` | Bị bỏ qua |
-| `writeExternal/readExternal` | Bị bỏ qua đối với serial form của record |
-| `serialPersistentFields` | Bị bỏ qua |
-| `writeReplace` | Có thể dùng cơ chế thay thế object |
-| `readResolve` | Có thể dùng để chọn object thay thế sau khi khôi phục |
-| Canonical constructor | **Được gọi** khi tạo record từ stream |
-| `serialVersionUID` | Mặc định `0L`; có thể khai báo nhưng đối chiếu UID khớp được miễn đối với record |
+| `private void writeObject(ObjectOutputStream)` | Ignored |
+| `private void readObject(ObjectInputStream)` | Ignored |
+| `readObjectNoData` | Ignored |
+| `writeExternal/readExternal` | Ignored for the record's serial form |
+| `serialPersistentFields` | Ignored |
+| `writeReplace` | Can be used for object replacement |
+| `readResolve` | Can be used to choose a replacement object after restoration |
+| Canonical constructor | **Invoked** when constructing the record from the stream |
+| `serialVersionUID` | Defaults to `0L`; can be declared, though UID matching is waived for records |
 
-Nếu cần xác thực component, ưu tiên đặt invariant trong canonical constructor. Nếu cần **định dạng tuần tự hóa riêng hoàn toàn**, record mặc định không cho tùy biến `writeObject/readObject` như class thường; hãy cân nhắc một **serialization proxy** dùng `writeReplace/readResolve` hoặc dùng định dạng tường minh như JSON/CBOR/protobuf với schema rõ ràng.
+If you need to validate components, prefer placing invariants in the canonical constructor. If you need a **completely custom serialized form**, records do not allow ordinary `writeObject/readObject` customization; consider a **serialization proxy** using `writeReplace/readResolve` or an explicit format such as JSON/CBOR/protobuf with a clear schema.
 
-Không nên bắt đầu bằng hook để xử lý vấn đề vốn chỉ là validation; càng ít hành vi tùy biến trên stream, khả năng kiểm soát và review càng tốt.
+Do not start with hooks to solve what is purely a validation issue; the less custom stream behavior you have, the easier it is to control and review.
 
-## 5. SerialVersionUID: enum, record và class khác nhau
+## 5. SerialVersionUID: Enum, Record, and Ordinary Classes Differ
 
-`serialVersionUID` là định danh phiên bản lớp trong Java Serialization. Với class thường, việc không khớp UID có thể gây `InvalidClassException` khi deserialize.
+`serialVersionUID` is the class version identifier in Java Serialization. For ordinary classes, a UID mismatch can cause `InvalidClassException` on deserialization.
 
 **Enum:**
 
-- UID luôn cố định là `0L`.
-- Nếu viết một field cùng tên `serialVersionUID` trong enum, serialization **bỏ qua** field đó.
-- Không dùng UID để đánh số version cho tên hằng enum.
+- UID is always fixed at `0L`.
+- If you write a field named `serialVersionUID` in an enum, serialization **ignores** it.
+- Do not use UID to version enum constant names.
 
 **Record:**
 
-- UID mặc định là `0L`, trừ khi record khai báo một giá trị tường minh.
-- Java **miễn yêu cầu hai UID phải khớp** trong quá trình giải tuần tự hóa record.
-- Điều này **không bảo đảm mọi thay đổi cấu trúc record đều tương thích**: việc thêm/xóa/đổi tên/đổi kiểu component vẫn có thể thay đổi dữ liệu được khôi phục hoặc làm constructor từ chối.
+- UID defaults to `0L`, unless the record explicitly declares a value.
+- Java **waives the requirement that the two UIDs must match** during record deserialization.
+- This **does not guarantee all record structural changes are compatible**: adding/removing/renaming/changing component types can still alter restored data or cause the constructor to reject it.
 
-Ví dụ:
+Example:
 
 ~~~java
 import java.io.Serial;
@@ -256,13 +256,13 @@ record Invoice(String code, long cents) implements Serializable {
 }
 ~~~
 
-`@Serial` (có từ Java 14) giúp biểu đạt ý định khai báo field/method dành cho serialization và hỗ trợ compiler phát hiện một số khai báo sai ngữ nghĩa. UID ở đây là một thuộc tính serial version của record, nhưng đừng diễn giải nó thành cơ chế bắt buộc kiểm tra khớp như class bình thường.
+`@Serial` (available since Java 14) expresses the intent of declaring a field/method for serialization and helps the compiler detect certain semantically invalid declarations. The UID here is a serial version attribute of the record, but do not interpret it as a strict matching check like in ordinary classes.
 
-## 6. Thay đổi định nghĩa lớp và khả năng đọc dữ liệu cũ
+## 6. Changing Class Definitions and Reading Old Data
 
-### 6.1. Khi enum thay đổi
+### 6.1. When an Enum Changes
 
-Giả sử bản cũ:
+Suppose the old version is:
 
 ~~~java
 enum Phase {
@@ -270,7 +270,7 @@ enum Phase {
 }
 ~~~
 
-và bản mới:
+and the new version is:
 
 ~~~java
 enum Phase {
@@ -278,20 +278,20 @@ enum Phase {
 }
 ~~~
 
-Thêm `ACTIVE` thường không ngăn stream cũ có giá trị `NEW` hoặc `DONE` được giải lại, miễn những tên đã lưu còn tồn tại. Ngược lại, đổi `DONE` thành `FINISHED` sẽ khiến stream cũ chứa tên `DONE` không tìm thấy hằng tương ứng.
+Adding `ACTIVE` usually does not prevent old streams containing `NEW` or `DONE` from decoding, provided the stored names still exist. Conversely, renaming `DONE` to `FINISHED` will cause old streams containing the name `DONE` to fail to find a matching constant.
 
-**Hướng xử lý nếu cần hỗ trợ lâu dài:** tránh đổi tên enum constant đã công bố trong Java serialized data; cân nhắc lưu **mã nghiệp vụ ổn định riêng** nếu giao thức cần tiến hóa qua nhiều version. Đừng giả định một enum name là mã liên hệ ngoài Java bền vững mãi mãi.
+**Approach if long-term support is needed:** avoid renaming enum constants already published in Java serialized data; consider storing a **separate stable business code** if the protocol must evolve across many versions. Do not assume a Java enum name is an eternally stable external identifier outside Java.
 
-### 6.2. Khi record thay đổi
+### 6.2. When a Record Changes
 
-Bản đầu:
+Initial version:
 
 ~~~java
 record User(String name, int age) implements Serializable {
 }
 ~~~
 
-Sau đó thêm component:
+Later adding a component:
 
 ~~~java
 record User(String name, int age, String region)
@@ -299,9 +299,9 @@ record User(String name, int age, String region)
 }
 ~~~
 
-Khi local record có component không xuất hiện trong stream cũ, giá trị được truyền cho canonical constructor là **giá trị mặc định của kiểu**: `0` cho `int`, `false` cho `boolean`, `null` cho reference. Nếu component mới `region` không có trong stream, constructor nhận `null` cho `region`.
+When the local record has a component absent from an old stream, the value passed to the canonical constructor is the **type's default value**: `0` for `int`, `false` for `boolean`, `null` for references. If the new component `region` is absent in the stream, the constructor receives `null` for `region`.
 
-Nếu constructor mới từ chối `null`:
+If the new constructor rejects `null`:
 
 ~~~java
 record User(String name, int age, String region)
@@ -314,31 +314,31 @@ record User(String name, int age, String region)
 }
 ~~~
 
-thì dữ liệu cũ có thể không deserialize được. Nếu điều khoản nghiệp vụ cho phép, có thể chuẩn hóa thiếu thông tin trong constructor, chẳng hạn đặt `region = "UNKNOWN"`; điều đó phải là quyết định schema có chủ đích, không tự đặt mặc định cho trường nhạy cảm.
+then old data may fail to deserialize. If business rules permit, missing info can be normalized in the constructor, such as setting `region = "UNKNOWN"`; that must be an intentional schema decision, never silently defaulting sensitive fields.
 
-Cơ chế còn có đặc điểm:
+The mechanism also has these characteristics:
 
-- Dữ liệu field trong stream được khớp với component theo **tên** và được kiểm tra kiểu thích hợp; không giả định đơn giản rằng chỉ thứ tự khai báo quyết định mapping.
-- Field tồn tại trong stream nhưng không còn là component của record local có thể bị bỏ qua.
-- Nếu đổi kiểu component hoặc thay cấu trúc không tương thích, kết quả có thể là exception thay vì giá trị chuyển kiểu tự động.
-- **Validation chạy lại** trong canonical constructor, nên việc nâng version phải tính cả invariant mới.
-- Việc UID không yêu cầu khớp không phải “giấy phép” thay schema tùy ý mà vẫn đọc được mọi dữ liệu cũ.
+- Field data in the stream is matched to components by **name** and type-checked appropriately; do not naively assume declaration order alone drives mapping.
+- Fields present in the stream that are no longer components of the local record may be ignored.
+- Changing a component's type or making incompatible structural changes can result in an exception rather than automatic type conversion.
+- **Validation runs again** in the canonical constructor, so version upgrades must account for new invariants.
+- Waiving UID matching is not a "license" to change schemas arbitrarily and still read all legacy data.
 
-Với dữ liệu lưu dài hạn, lưu thêm version ở **định dạng nghiệp vụ** hoặc xây cơ chế migration có kiểm thử riêng. Dùng Java Object Serialization cho cache tạm nội bộ khác về yêu cầu với dùng nó làm format lưu trữ 10 năm.
+For long-lived persisted data, store an explicit version in the **business format** or build separately tested migration logic. Using Java Object Serialization for internal temporary caches has very different requirements from using it as a 10-year storage format.
 
-### 6.3. Vòng đời class và tên kiểu
+### 6.3. Class Lifecycle and Type Names
 
-Cả enum và record vẫn phụ thuộc việc JVM đọc stream có thể tìm được class tương ứng. Đổi package, đổi tên class, thay classpath/module visibility hoặc thiếu class có thể dẫn tới `ClassNotFoundException` hay lỗi tương thích khác, dù tên hằng hoặc component không đổi.
+Both enums and records still depend on the reading JVM being able to locate the corresponding class. Changing packages, renaming classes, altering classpath/module visibility, or missing classes can lead to `ClassNotFoundException` or other compatibility errors, even if constant or component names are unchanged.
 
-Đừng nhầm “tương thích dữ liệu record” với “không cần bảo trì tên class”. Byte stream Java chứa thông tin kiểu của hệ sinh thái Java.
+Do not confuse "record data compatibility" with "no need to maintain class names." Java byte streams carry Java-ecosystem type information.
 
-## 7. Ví dụ Java 17+ hoàn chỉnh: round-trip enum và record
+## 7. Complete Java 17+ Example: Enum and Record Round-Trip
 
-Chương trình sau không dùng tệp trên đĩa: nó ghi Java serialized bytes vào `ByteArrayOutputStream` rồi đọc lại bằng `ByteArrayInputStream`. Trong demo, mọi byte đều **do chính chương trình tạo**; đây là ví dụ học cách hoạt động, **không phải hướng dẫn chấp nhận byte deserialization không tin cậy từ mạng**.
+The following program uses no disk files: it writes Java serialized bytes to a `ByteArrayOutputStream` and reads them back with a `ByteArrayInputStream`. In this demo, all bytes are **generated by the program itself**; it is a learning example of how it works, **not a guide to accepting untrusted deserialization bytes from the network**.
 
-Mã minh họa rằng enum giữ identity, record có value equality nhưng không giữ identity, và canonical constructor được gọi khi khôi phục.
+The code demonstrates that enums preserve identity, records have value equality without preserving identity, and the canonical constructor is called during restoration.
 
-Lưu tệp **`EnumRecordSerializationDemo.java`**:
+Save the file **`EnumRecordSerializationDemo.java`**:
 
 ~~~java
 import java.io.*;
@@ -400,14 +400,14 @@ public class EnumRecordSerializationDemo {
 }
 ~~~
 
-Biên dịch/chạy với JDK 17+:
+Compile/run with JDK 17+:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 EnumRecordSerializationDemo.java
 java EnumRecordSerializationDemo
 ~~~
 
-**Stdout đã được kiểm tra bằng biên dịch `--release 17` và thực thi JVM:**
+**Stdout verified by `--release 17` compilation and JVM execution:**
 
 ~~~text
 Enum identity preserved: true
@@ -418,25 +418,25 @@ Canonical constructor calls: 2
 Restored: WorkItem[id=task-42, phase=DONE, retries=2]
 ~~~
 
-### Phân tích chính xác từng kết quả
+### Exact Breakdown of Each Output
 
-1. `Phase` là enum, nên không cần `implements Serializable`. Giá trị `DONE` từ stream được tra về singleton `Phase.DONE`, vì vậy `state == restoredState` là `true`.
-2. `WorkItem` khai báo `implements Serializable`; nếu bỏ marker, `writeObject(original)` sẽ không serialize được record này theo cơ chế Java Object Serialization thông thường.
-3. `original.equals(restored)` là `true` vì record equality so sánh theo component (trong ví dụ `String`, enum và `int` có semantics phù hợp).
-4. `original == restored` là `false`: record được dựng lại thành một object riêng. Không suy ra mọi record sau round-trip đều giữ identity.
-5. Component `phase` vẫn là enum singleton nên `restored.phase() == Phase.DONE` là `true`.
-6. Biến `constructed` là static, **không** được lưu vào byte stream. Nó tăng một lần khi gọi `new WorkItem(...)` và một lần khi canonical constructor được gọi bởi deserialization; vì vậy kết quả là 2 trong tiến trình demo này.
-7. `@Serial private static final long serialVersionUID = 17L` là UID tường minh của record. Với record, việc khớp UID không được bắt buộc theo quy tắc dành riêng.
-8. `ObjectOutputStream` được đóng sau khi ghi để flush và giải phóng tài nguyên; `ObjectInputStream` được đóng sau khi đọc. `ByteArrayOutputStream.toByteArray()` cung cấp bản sao byte.
-9. Vì `ObjectInputStream.readObject()` trả về `Object`, mã demo cast sang kiểu mong đợi. Với dữ liệu không tin cậy, **cast sau deserialize không phải cơ chế an toàn**, do quá trình tạo object đã có thể xảy ra trước đó.
+1. `Phase` is an enum, so it does not need `implements Serializable`. The `DONE` value from the stream is resolved to the `Phase.DONE` singleton, so `state == restoredState` is `true`.
+2. `WorkItem` declares `implements Serializable`; removing the marker would prevent `writeObject(original)` from serializing this record via standard Java Object Serialization.
+3. `original.equals(restored)` is `true` because record equality compares by component (in this example `String`, enum, and `int` have appropriate semantics).
+4. `original == restored` is `false`: the record is reconstructed as a distinct object. Do not assume every record retains identity across a round-trip.
+5. The `phase` component remains the enum singleton, so `restored.phase() == Phase.DONE` is `true`.
+6. The `constructed` variable is static and **not** saved in the byte stream. It increments once when `new WorkItem(...)` is called and once when the canonical constructor is invoked by deserialization; hence the result is 2 in this demo process.
+7. `@Serial private static final long serialVersionUID = 17L` is the record's explicit UID. For records, UID matching is not enforced under the dedicated rule.
+8. `ObjectOutputStream` is closed after writing to flush and release resources; `ObjectInputStream` is closed after reading. `ByteArrayOutputStream.toByteArray()` provides a copy of the bytes.
+9. Because `ObjectInputStream.readObject()` returns `Object`, the demo casts to the expected type. With untrusted data, **casting after deserialization is not a safety mechanism**, because object creation may already have happened beforehand.
 
-## 8. Vì sao validation trong canonical constructor có giá trị?
+## 8. Why Is Validation in the Canonical Constructor Valuable?
 
-Một class `Serializable` thông thường có thể được dựng lại mà constructor dành cho instance serializable thông thường không chạy theo cách tạo mới. Điều này khiến invariant cần các cơ chế đặc thù như `readObject` hoặc serialization proxy.
+An ordinary `Serializable` class can be reconstructed without the regular serializable class's constructor running like a fresh instantiation. That forces invariants to rely on specialized mechanisms like `readObject` or serialization proxies.
 
-Record khác ở chỗ **canonical constructor thực sự được gọi** khi deserialize. Bởi vậy, những invariant như số lượng không âm, mã định danh hợp lệ hoặc enum component không `null` có thể được kiểm tra tập trung tại nơi tạo object.
+Records differ because **the canonical constructor is actually called** during deserialization. Thus invariants such as non-negative quantities, valid identifiers, or non-`null` enum components can be checked centrally where the object is constructed.
 
-Ví dụ:
+Example:
 
 ~~~java
 record Reservation(String code, int seats)
@@ -452,34 +452,34 @@ record Reservation(String code, int seats)
 }
 ~~~
 
-Mã minh họa này có lợi vì object sai quy tắc không được khôi phục thành record hợp lệ một cách âm thầm. Tuy nhiên:
+This illustrative code is beneficial because rule-violating objects are not silently restored as valid records. However:
 
-- Constructor được gọi **sau khi đọc các component values**, do đó các object tham chiếu trong graph có thể đã được deserialized.
-- Mọi object component cần validate riêng; record không tự biến mutable list/map thành immutable.
-- Tránh side effect trong constructor, vì đọc một byte stream có thể khiến constructor chạy. Constructor nên ưu tiên kiểm tra giá trị, chuẩn hóa dữ liệu thuần và không tự thực hiện lệnh gửi tiền, gọi mạng hoặc thay đổi tài nguyên.
+- The constructor is called **after reading component values**, so referenced objects in the graph may already have been deserialized.
+- Any object component needs its own validation; records do not automatically turn mutable lists/maps into immutable ones.
+- Avoid side effects in constructors, because reading a byte stream can cause the constructor to execute. Constructors should focus on checking values and pure data normalization, never transferring funds, making network calls, or mutating external resources.
 
-### Record là shallowly immutable
+### Records Are Shallowly Immutable
 
-Với:
+Given:
 
 ~~~java
 record Batch(int[] numbers) implements Serializable {
 }
 ~~~
 
-Field tham chiếu `numbers` là final, nhưng **phần tử của mảng vẫn có thể sửa**. Một người giữ tham chiếu tới array có thể thay đổi giá trị sau khi tạo record; hoặc dùng accessor để lấy mảng rồi sửa.
+The `numbers` reference field is final, but **the array elements are still mutable**. Someone holding a reference to the array can modify its values after creating the record, or use the accessor to obtain the array and mutate it.
 
-Nếu hợp đồng cần bất biến sâu hơn, sao chép defensively trong canonical constructor và khi trả về (đối với array), hoặc dùng cấu trúc immutable thích hợp. Điều này là **vấn đề thiết kế dữ liệu**, không được cơ chế serialization tự động giải quyết.
+If the contract requires deeper immutability, defensively copy inside the canonical constructor and on return (for arrays), or use an appropriate immutable structure. This is a **data design concern**, not automatically solved by serialization.
 
-## 9. Chu trình đối tượng và giới hạn riêng của record
+## 9. Object Cycles and Record-Specific Limitations
 
-Object Serialization thường dùng handles/back references để giữ quan hệ tham chiếu và nhiều chu trình trong graph. Tuy nhiên, với record, **các component được deserialize trước khi record object được dựng qua canonical constructor**.
+Object Serialization ordinarily uses handles/back-references to preserve reference relationships and many cycles in a graph. However, for records, **components are deserialized before the record object is constructed via its canonical constructor**.
 
-Giả sử một `Node` thông thường có field trỏ ngược về một record đang chứa chính Node đó. Nếu graph gốc có chu trình từ record → Node → record, khi đọc, tham chiếu trỏ ngược đến record có thể thành `null`. Đây là hạn chế được đặc tả Java Serialization nêu rõ; không nên dựa vào record để biểu diễn graph phức tạp có các back-reference trở lại chính record.
+Suppose an ordinary `Node` has a field pointing back to a record that contains that very Node. If the original graph had a cycle record → Node → record, on read the back-reference to the record can become `null`. This is a limitation explicitly documented in the Java Serialization specification; do not rely on records to represent complex graphs with back-references pointing back to the record itself.
 
-**Mẫu thiết kế phù hợp hơn:** serial form dạng acyclic DTO/record, lưu ID thay vì tham chiếu chu trình, rồi xây lại các quan hệ sau khi validate theo một bước dựng graph tường minh.
+**Better design pattern:** use an acyclic DTO/record serial form, storing IDs instead of cyclic references, then rebuild relationships after validation in an explicit graph-construction step.
 
-Ví dụ dùng ID:
+Example using IDs:
 
 ~~~java
 record Edge(String fromId, String toId)
@@ -487,23 +487,23 @@ record Edge(String fromId, String toId)
 }
 ~~~
 
-Trường `fromId/toId` là dữ liệu ổn định để tái liên kết trong graph sau khi deserialize, không phải reference vòng về record đang được tái dựng.
+The `fromId/toId` fields are stable data used to relink inside the graph after deserialization, rather than a circular reference back to the record being reconstructed.
 
-## 10. Bảo mật: enum và record không làm deserialization trở nên an toàn
+## 10. Security: Enum and Record Do Not Make Deserialization Safe
 
-**Không deserialize byte không tin cậy chỉ vì kiểu kết quả mong đợi là enum hoặc record.** Luồng Java Serialization có thể chứa object graph với nhiều lớp khác, và quá trình đọc có thể kích hoạt hành vi trong lớp trước khi kết quả được cast hoặc validate cuối cùng.
+**Do not deserialize untrusted bytes simply because the expected result type is an enum or record.** A Java Serialization stream can contain an object graph with many other classes, and reading can trigger behavior in classes before the result is cast or finally validated.
 
-Các quy tắc an toàn thực hành:
+Practical security rules:
 
-1. **Ưu tiên tránh Java native deserialization cho dữ liệu từ bên ngoài.** Nếu cần giao thức công khai, dùng dữ liệu có schema rõ ràng như JSON/protobuf/CBOR và bộ parser có kiểm soát.
-2. Nếu bắt buộc dùng Java Serialization, **chỉ chấp nhận nguồn đáng tin cậy** và giới hạn lớp được phép deserialize. Dùng `ObjectInputFilter` (JDK 9+, sẵn trong Java 17) theo mô hình allowlist/threat model.
-3. Giới hạn độ sâu graph, số references, số byte stream, độ dài array và ngân sách tài nguyên; **lọc không thay thế xác thực nguồn**.
-4. Kiểm soát toàn bộ thư viện/classpath: những lớp serializable trong object graph có thể có hook đọc đặc biệt.
-5. Canonical constructor của record thực hiện validation sau khi component values đã đọc, do đó **không thay thế kiểm tra deserialization input**.
-6. Có chính sách lỗi rõ ràng cho `InvalidClassException`, `ClassNotFoundException`, `StreamCorruptedException`, `InvalidObjectException` và `NotSerializableException`.
-7. Không log toàn bộ serialized payload hoặc dữ liệu nhạy cảm; chú ý size/quota cả khi ghi vào `ByteArrayOutputStream` trong ví dụ học tập.
+1. **Prefer avoiding Java native deserialization for external data.** If a public protocol is needed, use explicitly schema-defined data like JSON/protobuf/CBOR with a controlled parser.
+2. If Java Serialization is mandatory, **only accept trusted sources** and restrict allowed classes. Use `ObjectInputFilter` (JDK 9+, built into Java 17) following an allowlist/threat-model approach.
+3. Limit graph depth, reference count, stream bytes, array lengths, and resource budgets; **filtering does not replace source authentication**.
+4. Audit all libraries/classpath dependencies: serializable classes in the object graph may have special read hooks.
+5. A record's canonical constructor validates after component values have been read, so **it does not replace deserialization input checks**.
+6. Have a clear error policy for `InvalidClassException`, `ClassNotFoundException`, `StreamCorruptedException`, `InvalidObjectException`, and `NotSerializableException`.
+7. Do not log entire serialized payloads or sensitive data; mind size/quotas even when writing to `ByteArrayOutputStream` in learning examples.
 
-Một đoạn minh họa về giới hạn dạng đồ thị bằng `ObjectInputFilter`:
+Illustrative snippet for graph bounds using `ObjectInputFilter`:
 
 ~~~java
 ObjectInputFilter limit = info -> {
@@ -521,15 +521,15 @@ try (ObjectInputStream in = new ObjectInputStream(source)) {
 }
 ~~~
 
-Đây **không phải chương trình độc lập**; cần import `ObjectInputFilter` và `ObjectInputStream`, `source` là `InputStream` đã có. Đoạn minh họa **chỉ đặt giới hạn resource**, chưa allowlist lớp, nên **chưa đủ** để deserialize input không tin cậy một cách an toàn. Trong production, ưu tiên filter kết hợp allowlist các class thực sự cần đọc cùng giới hạn byte/depth/array; kiểm thử filter với toàn bộ object graph hợp lệ.
+This **is not a standalone program**; it requires importing `ObjectInputFilter` and `ObjectInputStream`, where `source` is an existing `InputStream`. The snippet **only sets resource limits** without a class allowlist, so it **is not sufficient** to safely deserialize untrusted input. In production, prefer a filter combining an allowlist of truly needed classes with byte/depth/array limits; test the filter against the entire valid object graph.
 
-**Lưu ý:** dữ liệu từ chính chương trình của bạn cũng có thể hết hạn/không tương thích sau một lần nâng phiên bản; “trusted source” không đồng nghĩa “đọc được ở mọi version”.
+**Note:** data produced by your own program can also expire or become incompatible after a version upgrade; "trusted source" does not mean "readable across all versions."
 
-## 11. Enum và record trong hệ thống thực tế
+## 11. Enum and Record in Real-World Systems
 
-### 11.1. Record DTO nội bộ hoặc cache tạm
+### 11.1. Internal Record DTOs or Temporary Caches
 
-Ví dụ:
+Example:
 
 ~~~java
 enum TaskStatus { QUEUED, DONE }
@@ -539,103 +539,103 @@ record TaskSnapshot(String id, TaskStatus status, long updatedAt)
 }
 ~~~
 
-Một `TaskSnapshot` chỉ chứa primitive, `String` và enum có thể được round-trip tương đối đơn giản. Nếu sử dụng như cache tạm trong nội bộ JVM/Java ecosystem và luôn kiểm soát version tương thích, Java Serialization có thể khả thi.
+A `TaskSnapshot` containing only primitives, `String`, and enums can be round-tripped relatively simply. When used as a temporary cache internal to a JVM/Java ecosystem with controlled version compatibility, Java Serialization can be viable.
 
-Nhưng nếu lưu trong database lâu dài, gửi liên dịch vụ nhiều ngôn ngữ hay chia sẻ giữa phiên bản ứng dụng phát triển độc lập, định dạng có schema tường minh thường dễ migration, audit và kiểm soát bảo mật hơn.
+However, if stored long-term in a database, sent across polyglot services, or shared between independently evolving application versions, an explicit-schema format is generally easier to migrate, audit, and secure.
 
-### 11.2. Enum như domain code, record như payload
+### 11.2. Enum as Domain Code, Record as Payload
 
-Một thiết kế dễ hiểu:
+A clear design:
 
-- Enum biểu thị tập trạng thái trong Java code.
-- Record biểu thị dữ liệu của một snapshot/request.
-- Khi xuất ra định dạng lâu dài, ánh xạ enum sang mã nghiệp vụ ổn định, ví dụ `"completed"`, và khai báo schema payload. Không buộc dữ liệu bên ngoài phụ thuộc mãi vào tên hằng Java.
+- Enums represent the set of states in Java code.
+- Records represent the data of a snapshot/request.
+- When exporting to a long-term format, map the enum to a stable business code, such as `"completed"`, and declare a payload schema. Avoid forcing external data to depend forever on Java constant names.
 
-Cách này cho phép dùng enum/record trong miền Java nhưng vẫn quản lý migration tường minh nếu đổi tên package, record type hoặc enum constant.
+This lets you use enums/records within the Java domain while still managing migrations explicitly if package names, record types, or enum constants change.
 
-### 11.3. Khi cần custom serial form
+### 11.3. When a Custom Serial Form Is Needed
 
-Nếu cần custom hook `writeObject/readObject`, record không có đường tùy biến giống class `Serializable` thường. Một số phương án:
+If you need custom `writeObject/readObject` hooks, records do not provide the same customization path as ordinary `Serializable` classes. Options include:
 
-- Dùng class serializable thông thường với các hook theo đặc tả (và review chặt).
-- Dùng **serialization proxy** tường minh qua `writeReplace` trên record và `readResolve` trên proxy; lưu payload dạng dễ versioning. Đây là kỹ thuật nâng cao cần test nhiều phiên bản và đảm bảo loại thay thế tương thích.
-- Dùng codec/schema độc lập Object Serialization nếu mục tiêu là lưu/trao đổi dữ liệu ổn định.
+- Use an ordinary serializable class with hooks per specification (and strict review).
+- Use an explicit **serialization proxy** via `writeReplace` on the record and `readResolve` on the proxy; store the payload in an easily versionable form. This is an advanced technique requiring multi-version tests and ensuring compatible replacement types.
+- Use a codec/schema independent of Object Serialization if the goal is stable storage or interchange.
 
-Không dùng `readResolve` của enum làm proxy hoặc để kiểm tra rename: hook enum bị bỏ qua.
+Do not use `readResolve` on an enum as a proxy or to handle renames: enum hooks are ignored.
 
-## 12. Lỗi thường gặp và cách sửa
+## 12. Common Mistakes and How to Fix Them
 
-| Hiểu nhầm | Hậu quả | Cách hiểu đúng |
+| Misconception | Consequence | Correct Understanding |
 | --- | --- | --- |
-| “Record tự Serializable vì là data carrier” | `NotSerializableException` | Phải `implements Serializable` rõ ràng |
-| “Enum cần implements Serializable” | Khai báo thừa, hiểu sai cơ chế | Enum đã serializable qua `java.lang.Enum` |
-| “Enum serialize ordinal” | Thiết kế versioning sai | Enum lưu **tên hằng** |
-| “Enum serialize mọi field instance” | Mong đợi mutable state được đồng bộ | Chỉ tên hằng được dùng để khôi phục constant |
-| “Đổi tên enum constant vẫn đọc stream cũ” | Không tìm được tên đã lưu | Giữ tên cũ hoặc làm migration tường minh |
-| “Enum readResolve chống tạo nhiều singleton” | Hook không được dùng | Enum vốn giữ singleton identity |
-| “Record readObject sẽ chạy” | Validation bị đặt sai chỗ | Đặt invariant trong canonical constructor |
-| “Record deserialization bỏ qua constructor” | Bỏ sót việc constructor có thể ném lỗi | Canonical constructor được gọi |
-| “Record == giữ nguyên sau round-trip” | So sánh identity sai | So sánh value qua `equals` khi phù hợp |
-| “UID record luôn phải khớp” | Hiểu sai tương thích | UID matching được miễn riêng cho record |
-| “UID record không quan trọng tức mọi schema tương thích” | Lỗi khi thay component/invariant | Kiểm tra tên/kiểu/default/constructor |
-| “Record field final nên toàn bộ dữ liệu immutable sâu” | Component mutable vẫn bị sửa | Defensive copy/schema immutable |
-| “Mọi vòng tham chiếu record đều được giữ” | Back-reference có thể thành `null` | Tránh cycle trỏ ngược đến record |
-| “Record/enum loại bỏ rủi ro deserialize untrusted stream” | Nguy cơ từ object graph khác | Tránh untrusted Java Serialization; filter/allowlist |
-| “Cast sau readObject xác thực trước khi tạo object” | Quá muộn để chặn side effect khi deserialize | Dùng cấu trúc/định dạng/filter an toàn từ đầu |
+| "Records are automatically Serializable because they are data carriers" | `NotSerializableException` | Must explicitly `implements Serializable` |
+| "Enums need implements Serializable" | Redundant declaration, misunderstanding mechanism | Enums are already serializable via `java.lang.Enum` |
+| "Enums serialize ordinals" | Broken versioning design | Enums store the **constant name** |
+| "Enums serialize all instance fields" | Expecting mutable state to sync | Only the constant name is used to restore the constant |
+| "Renaming an enum constant still reads old streams" | Cannot find the stored name | Keep old names or do explicit migration |
+| "Enum readResolve prevents duplicate singletons" | Hook is not used | Enums inherently preserve singleton identity |
+| "Record readObject will run" | Validation placed in the wrong spot | Put invariants in the canonical constructor |
+| "Record deserialization skips constructors" | Missing that constructors can throw | The canonical constructor is invoked |
+| "Record == stays true after round-trip" | Wrong identity comparison | Compare value via `equals` when appropriate |
+| "Record UID must always match" | Misunderstanding compatibility | UID matching is specifically waived for records |
+| "Record UID doesn't matter so any schema change is compatible" | Errors when changing components/invariants | Check names/types/defaults/constructor |
+| "Record fields are final so all data is deeply immutable" | Mutable components still get mutated | Defensive copying/immutable schemas |
+| "All record reference cycles are preserved" | Back-references can become `null` | Avoid cycles pointing back to records |
+| "Records/enums eliminate untrusted stream deserialization risk" | Risk from other object graphs | Avoid untrusted Java Serialization; filter/allowlist |
+| "Casting after readObject validates before object creation" | Too late to block deserialization side effects | Use safe structures/formats/filters from the start |
 
-## 13. Câu hỏi tự kiểm tra
+## 13. Self-Check Questions
 
-**Câu 1.** `enum Color { RED, BLUE }` có cần `implements Serializable` mới ghi bằng `ObjectOutputStream` được không?
+**Question 1.** Does `enum Color { RED, BLUE }` need `implements Serializable` to be written with `ObjectOutputStream`?
 
-**Đáp án:** Không. Enum vốn đã serializable.
+**Answer:** No. Enums are already serializable.
 
-**Câu 2.** Java lưu `Color.RED` dưới dạng ordinal hay tên?
+**Question 2.** Does Java store `Color.RED` by ordinal or by name?
 
-**Đáp án:** Tên `RED`, cùng thông tin kiểu cần thiết của stream; không dùng ordinal để xác định hằng.
+**Answer:** By the name `RED`, along with the necessary stream type info; ordinals are not used to identify constants.
 
-**Câu 3.** Có thể thay `toString()` của enum mà không đổi định danh serialized constant không?
+**Question 3.** Can you change an enum's `toString()` without changing the serialized constant identifier?
 
-**Đáp án:** Có. Định danh dựa trên `name()`; cần thận trọng nếu thay chính tên constant.
+**Answer:** Yes. Identification is based on `name()`; be careful when changing the constant's own name.
 
-**Câu 4.** `record User(String name) {}` có được serialize bằng `writeObject(new User("Lan"))` không?
+**Question 4.** Can `record User(String name) {}` be serialized with `writeObject(new User("Lan"))`?
 
-**Đáp án:** Không theo Java Object Serialization mặc định vì chưa khai báo `implements Serializable`.
+**Answer:** Not under default Java Object Serialization because it does not declare `implements Serializable`.
 
-**Câu 5.** Record đọc lại từ stream có gọi canonical constructor không?
+**Question 5.** Does reading a record back from a stream invoke its canonical constructor?
 
-**Đáp án:** Có. Constructor có thể xác thực invariant và từ chối dữ liệu không hợp lệ.
+**Answer:** Yes. The constructor can validate invariants and reject invalid data.
 
-**Câu 6.** `private void readObject(...)` do record khai báo có tùy biến quá trình khôi phục không?
+**Question 6.** Does a `private void readObject(...)` declared on a record customize restoration?
 
-**Đáp án:** Không. Hook đó bị bỏ qua khi serialize/deserialize record; dùng canonical constructor hoặc cách thiết kế serial form khác phù hợp.
+**Answer:** No. That hook is ignored when serializing/deserializing records; use the canonical constructor or an appropriate alternative serial form design.
 
-**Câu 7.** Thêm component `String region` vào record sẽ nhận gì khi đọc stream cũ không có region?
+**Question 7.** Adding a `String region` component to a record gives what value when reading an old stream without region?
 
-**Đáp án:** Giá trị mặc định `null` được truyền cho canonical constructor; nếu constructor từ chối null thì dữ liệu cũ có thể không được khôi phục.
+**Answer:** The default value `null` is passed to the canonical constructor; if the constructor rejects null, the old data may fail to restore.
 
-**Câu 8.** Có thể dựa vào UID record được miễn kiểm tra khớp để khẳng định việc đổi kiểu component luôn an toàn?
+**Question 8.** Can you rely on record UID matching being waived to claim changing component types is always safe?
 
-**Đáp án:** Không. Tên/kiểu/default và validation vẫn quyết định khả năng khôi phục.
+**Answer:** No. Names/types/defaults and validation still govern restoration capability.
 
-**Câu 9.** Deserialization của một record chứa object graph có vòng trỏ ngược về record có luôn giữ nguyên reference identity?
+**Question 9.** Does deserializing a record containing an object graph with a cycle pointing back to the record always preserve reference identity?
 
-**Đáp án:** Không. Chu trình từ components trỏ lại record có hạn chế đặc thù; tham chiếu ngược có thể thành `null`.
+**Answer:** No. Cycles from components back to the record have specific limitations; back-references may become `null`.
 
-**Câu 10.** Với byte nhận từ HTTP request, chỉ nhận kiểu kết quả `MyRecord` là đã an toàn để gọi `readObject()`?
+**Question 10.** For bytes received from an HTTP request, is expecting only `MyRecord` as the result type enough to make `readObject()` safe?
 
-**Đáp án:** Không. Các object trong stream có thể được xử lý trước khi kết quả được cast. Tránh native deserialization không tin cậy hoặc áp filter/allowlist và nhiều lớp bảo vệ phù hợp.
+**Answer:** No. Objects in the stream can be processed before the result is cast. Avoid untrusted native deserialization or apply filters/allowlists and multiple layers of defense.
 
-## 14. Ghi nhớ
+## 14. Key Takeaways
 
-- **Enum:** đã `Serializable`; lưu tên hằng, đọc lại đúng enum constant, giữ `==`; không lưu state instance và không dùng custom serialization hooks.
-- **Record:** phải `implements Serializable`; lưu record components; **gọi canonical constructor** khi deserialize; thông thường có value equality nhưng là object mới.
-- **Tương thích:** enum phụ thuộc tên constant; record phụ thuộc tên/kiểu component, default cho component thiếu và invariant của constructor; UID matching record được miễn nhưng không đảm bảo mọi migration.
-- **Giới hạn:** record không tùy biến `writeObject/readObject` kiểu class thường; có ngoại lệ `writeReplace/readResolve`; chu trình trỏ ngược về record không được bảo toàn như ordinary class.
-- **Bảo mật:** Java Object Serialization không dành cho đầu vào tùy ý chưa tin cậy; enum và record không thay thế kiểm soát object graph, giới hạn tài nguyên hay schema.
+- **Enum:** already `Serializable`; stores constant name, restores the exact enum constant, preserves `==`; does not store instance state and ignores custom serialization hooks.
+- **Record:** must `implements Serializable`; stores record components; **invokes canonical constructor** on deserialization; typically has value equality while being a new object.
+- **Compatibility:** enums depend on constant names; records depend on component names/types, defaults for missing components, and constructor invariants; record UID matching is waived but does not guarantee every migration.
+- **Limitations:** records do not customize ordinary `writeObject/readObject`; `writeReplace/readResolve` are exceptions; cycles pointing back to a record are not preserved like in ordinary classes.
+- **Security:** Java Object Serialization is not meant for arbitrary untrusted input; enums and records do not replace object graph controls, resource limits, or schemas.
 
-### Tài liệu chính thức
+### Official Documentation
 
-- [Java SE 17 — Object Serialization Specification, System Architecture](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/serial-arch.html) — mục 1.12 (enum), 1.13 (record), 1.14 (circular references).
-- [Java SE 17 — ObjectInputStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputStream.html) — API deserialize và các lưu ý bảo mật.
-- [Java SE 17 — ObjectInputFilter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputFilter.html) — filtering khi deserialization.
-- [Java SE 17 — Serializable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/Serializable.html) — marker interface và cơ chế class serializable.
+- [Java SE 17 — Object Serialization Specification, System Architecture](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/serial-arch.html) — Sections 1.12 (enum), 1.13 (record), 1.14 (circular references).
+- [Java SE 17 — ObjectInputStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputStream.html) — deserialization API and security warnings.
+- [Java SE 17 — ObjectInputFilter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputFilter.html) — filtering during deserialization.
+- [Java SE 17 — Serializable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/Serializable.html) — marker interface and serializable class mechanism.

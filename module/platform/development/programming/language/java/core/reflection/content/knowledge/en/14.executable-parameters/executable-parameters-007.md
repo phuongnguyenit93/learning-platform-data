@@ -1,53 +1,53 @@
-# Modifier của tham số và giới hạn metadata có sẵn trong Java Reflection
+# Parameter Modifiers and Limitations of Available Metadata in Java Reflection
 
-## 1. Vấn đề cần giải quyết
+## 1. The Problem to Solve
 
-Java Reflection không chỉ cho phép tìm lớp, phương thức và constructor. Một `Method` hoặc `Constructor` còn có thể được khảo sát ở mức **tham số hình thức** (formal parameter) qua `java.lang.reflect.Parameter`. Điều này hữu ích khi viết framework ánh xạ request, dependency injection, serializer, trình tạo tài liệu API hoặc công cụ kiểm tra chữ ký.
+Java Reflection does not only allow finding classes, methods, and constructors. A `Method` or `Constructor` can also be inspected at the **formal parameter** level via `java.lang.reflect.Parameter`. This is useful when building request-mapping frameworks, dependency injection, serializers, API documentation generators, or signature-checking tools.
 
-Tuy nhiên, không phải mọi thông tin từng xuất hiện trong tệp nguồn `.java` đều được giữ lại trong tệp `.class`. Đặc biệt, cần tách ba loại dữ liệu:
+However, not all information that once appeared in the `.java` source file is retained in the `.class` file. In particular, three kinds of data must be separated:
 
-1. **Cấu trúc chữ ký**: số lượng, thứ tự, kiểu runtime của tham số. JVM lưu chúng trong *method descriptor*; thông tin này không phụ thuộc tùy chọn `javac -parameters`.
-2. **Modifier/cờ và metadata của tham số**: `final`, `synthetic`, `mandated/implicit` và tên tham số có thể được phản ánh từ attribute `MethodParameters`, nếu class file cung cấp thông tin tương ứng.
-3. **Cú pháp nguồn**: cách viết từ khóa, tên biến cục bộ, chú thích và formatting ban đầu không thể được tái tạo đầy đủ chỉ từ `Parameter`.
+1. **Signature structure**: parameter count, order, and runtime types. The JVM stores these in the *method descriptor*; this information does not depend on the `javac -parameters` option.
+2. **Parameter modifiers/flags and metadata**: `final`, `synthetic`, `mandated/implicit`, and parameter names can be reflected from the `MethodParameters` attribute, if the class file provides the corresponding information.
+3. **Source syntax**: keyword placement, local variable names, comments, and original formatting cannot be fully reconstructed from `Parameter` alone.
 
-Ví dụ nguồn:
+Source example:
 
 ```java
 public void send(final String topic, int retries) {
 }
 ```
 
-Reflection luôn có thể tìm chữ ký tham số theo kiểu `String` và `int` trong một class file hợp lệ. Nhưng nó **không bảo đảm** biết tên `topic`, `retries` hoặc biết `topic` được khai báo `final` nếu metadata cần thiết đã bị loại bỏ.
+Reflection can always look up the parameter signature by types `String` and `int` in a valid class file. However, it **does not guarantee** knowing the names `topic`, `retries`, or knowing that `topic` was declared `final` if the necessary metadata has been stripped.
 
-**Mục tiêu bài học:** đọc đúng `Parameter.getModifiers()` và các API liên quan; hiểu `MethodParameters`, `-parameters`, những tham số implicit/synthetic và giới hạn khi metadata không tồn tại.
+**Lesson goal:** read `Parameter.getModifiers()` and related APIs properly; understand `MethodParameters`, `-parameters`, implicit/synthetic parameters, and limitations when metadata does not exist.
 
-## 2. Cách lấy `Parameter` từ một executable
+## 2. How to Retrieve `Parameter` from an Executable
 
-`java.lang.reflect.Executable` là superclass chung của `Method` và `Constructor<?>`. Cả hai đều có:
+`java.lang.reflect.Executable` is the shared superclass of `Method` and `Constructor<?>`. Both provide:
 
-- `getParameterCount()`: số lượng tham số trong chữ ký phản ánh.
-- `getParameterTypes()`: mảng `Class<?>[]` biểu diễn kiểu runtime đã erasure.
-- `getGenericParameterTypes()`: các `Type` biểu diễn kiểu generic nếu còn metadata phù hợp.
-- `getParameters()`: mảng `Parameter[]` theo thứ tự tham số.
-- `getParameterAnnotations()`: annotation trên các parameter theo khả năng hiển thị ở runtime.
-- `isVarArgs()`: executable được đánh dấu varargs hay không.
+- `getParameterCount()`: number of parameters in the reflected signature.
+- `getParameterTypes()`: `Class<?>[]` array representing erased runtime types.
+- `getGenericParameterTypes()`: `Type` objects representing generic types when appropriate metadata remains.
+- `getParameters()`: `Parameter[]` array in parameter order.
+- `getParameterAnnotations()`: annotations on parameters according to runtime visibility.
+- `isVarArgs()`: whether the executable is marked as varargs.
 
-Mỗi `Parameter` có thể cung cấp:
+Each `Parameter` can provide:
 
-| API | Ý nghĩa |
+| API | Meaning |
 | --- | --- |
-| `getDeclaringExecutable()` | `Method` hoặc `Constructor` sở hữu tham số |
-| `getType()` | Kiểu runtime dạng `Class<?>`, ví dụ `String[].class` |
-| `getParameterizedType()` | Kiểu generic dạng `Type` nếu thông tin tồn tại |
-| `getName()` | Tên từ metadata hoặc tên thay thế như `arg0` |
-| `isNamePresent()` | Có tên tham số được cung cấp theo class file hay không |
-| `getModifiers()` | Bit modifier Java của tham số |
-| `isImplicit()` | Tham số được khai báo ngầm định theo ngôn ngữ? |
-| `isSynthetic()` | Tham số là cấu trúc sinh bởi compiler, không khai báo tường minh hay ngầm định trong nguồn? |
-| `isVarArgs()` | Tham số biểu diễn danh sách đối số biến độ dài? |
-| `getAnnotations()` / `getAnnotatedType()` | Metadata annotation và type-use annotation nếu được lưu, giữ retention phù hợp |
+| `getDeclaringExecutable()` | `Method` or `Constructor` owning the parameter |
+| `getType()` | Runtime type as `Class<?>`, e.g., `String[].class` |
+| `getParameterizedType()` | Generic type as `Type` if information exists |
+| `getName()` | Name from metadata or placeholder such as `arg0` |
+| `isNamePresent()` | Whether a parameter name is provided by the class file |
+| `getModifiers()` | Java modifier bits of the parameter |
+| `isImplicit()` | Is the parameter implicitly declared per the language? |
+| `isSynthetic()` | Is the parameter compiler-generated, neither explicitly nor implicitly declared in source? |
+| `isVarArgs()` | Does the parameter represent a variable-length argument list? |
+| `getAnnotations()` / `getAnnotatedType()` | Annotation and type-use annotation metadata if stored with appropriate retention |
 
-Ví dụ minh họa cách lấy `Parameter[]`:
+Illustrative example of retrieving `Parameter[]`:
 
 ```java
 Method m = Service.class.getDeclaredMethod(
@@ -60,90 +60,90 @@ for (int i = 0; i < parameters.length; i++) {
 }
 ```
 
-Đây là **đoạn code minh họa**: cần import `java.lang.reflect.Method`, `java.lang.reflect.Parameter`, định nghĩa `Service.send(String,int)` và xử lý `NoSuchMethodException`. Ví dụ độc lập đầy đủ nằm ở mục 5.
+This is an **illustrative code snippet**: it requires importing `java.lang.reflect.Method`, `java.lang.reflect.Parameter`, defining `Service.send(String,int)`, and handling `NoSuchMethodException`. The full standalone example is in section 5.
 
-## 3. `Parameter.getModifiers()` thực sự biểu diễn gì?
+## 3. What Does `Parameter.getModifiers()` Actually Represent?
 
-`Parameter.getModifiers()` trả về một `int` chứa các bit modifier của tham số theo mô hình Reflection. Với tham số Java được **khai báo tường minh**, modifier Java nguồn thông dụng và hợp lệ tại vị trí này là `final`. Các từ khóa `public`, `private`, `protected`, `static`, `abstract` không phải modifier hợp lệ của một formal parameter.
+`Parameter.getModifiers()` returns an `int` containing the parameter's modifier bits under the Reflection model. For an **explicitly declared** Java parameter, the common and valid Java source modifier in this position is `final`. Keywords like `public`, `private`, `protected`, `static`, and `abstract` are not valid modifiers on a formal parameter.
 
-Kiểm tra tham số có modifier `final`:
+Checking whether a parameter has the `final` modifier:
 
 ```java
 boolean isFinal = Modifier.isFinal(parameter.getModifiers());
 ```
 
-`Modifier.isFinal(int)` kiểm tra bit `final`. Tránh gọi `Modifier.isPublic(parameter.getModifiers())` rồi từ đó suy luận về quyền truy cập của tham số; bản thân formal parameter không có access level giống field hay method.
+`Modifier.isFinal(int)` tests the `final` bit. Avoid calling `Modifier.isPublic(parameter.getModifiers())` and inferring parameter access permissions from it; formal parameters themselves do not have access levels like fields or methods.
 
-Ví dụ:
+Example:
 
 ```java
 void save(final String name, int count) {
 }
 ```
 
-Nếu compiler đã lưu metadata tương ứng, Reflection có thể phát hiện `final` ở tham số `name`, còn `count` không có `final`. Nhưng **kết quả `getModifiers() == 0` không chứng minh trong tệp nguồn tham số không có modifier nào**: có thể `MethodParameters` đã bị bỏ hoặc thông tin bị mất qua công cụ sinh/chỉnh bytecode.
+If the compiler stored the corresponding metadata, Reflection can detect `final` on parameter `name`, while `count` lacks `final`. However, **a result of `getModifiers() == 0` does not prove the parameter had no modifiers in the source file**: `MethodParameters` may have been omitted or information may have been lost via bytecode generators/transformers.
 
-### Modifier khác với tên và kiểu
+### Modifiers Differ from Names and Types
 
-- `getType()` thường vẫn trả về kiểu runtime có thể sử dụng dù tên/modifier bị mất; kiểu nằm trong descriptor.
-- `getName()` có thể trả `arg0` khi thiếu tên; nó **không đồng nghĩa tên nguồn là `arg0`**.
-- `getModifiers()` không thay thế `isImplicit()`, `isSynthetic()` hay `isVarArgs()` khi cần phân loại tham số.
-- `Modifier.toString(parameter.getModifiers())` chỉ diễn giải các modifier mà tiện ích `Modifier` biết hiển thị; đừng dùng nó để kết luận toàn bộ loại cờ trong `MethodParameters`.
+- `getType()` still generally returns usable runtime types even if names/modifiers are lost; types reside in the descriptor.
+- `getName()` may return `arg0` when names are missing; it **does not mean the source name was `arg0`**.
+- `getModifiers()` does not replace `isImplicit()`, `isSynthetic()`, or `isVarArgs()` when classifying parameters.
+- `Modifier.toString(parameter.getModifiers())` only formats modifiers that the `Modifier` utility knows how to display; do not use it to conclude all flag kinds in `MethodParameters`.
 
-Với Java 20+, `Parameter.accessFlags()` cung cấp một tập `AccessFlag` được phản ánh cho tham số. Khi viết chương trình tương thích **Java 17**, hãy dùng các API `getModifiers()`, `isImplicit()` và `isSynthetic()`; không đưa `accessFlags()` vào chương trình Java 17 vì API đó chỉ xuất hiện sau.
+On Java 20+, `Parameter.accessFlags()` provides a reflected set of `AccessFlag` values for the parameter. When writing programs compatible with **Java 17**, use `getModifiers()`, `isImplicit()`, and `isSynthetic()`; do not put `accessFlags()` into a Java 17 program because that API appeared later.
 
-## 4. Class file lưu những gì trong `MethodParameters`?
+## 4. What Does the Class File Store in `MethodParameters`?
 
-JVM lưu chữ ký của method/constructor qua descriptor. `MethodParameters` là **attribute tùy chọn**, được định nghĩa trong Java Virtual Machine Specification. Khi có mặt, attribute này chứa dữ liệu từng tham số theo thứ tự tương ứng với descriptor:
+The JVM stores the signature of a method/constructor via a descriptor. `MethodParameters` is an **optional attribute**, defined in the Java Virtual Machine Specification. When present, this attribute contains per-parameter data in the order matching the descriptor:
 
-- `name_index`: chỉ mục tên tham số trong constant pool, hoặc `0` nếu không có tên.
-- `access_flags`: tập bit mô tả một số đặc tính của tham số.
+- `name_index`: constant pool index of the parameter name, or `0` if unnamed.
+- `access_flags`: bitmask describing certain properties of the parameter.
 
-Ba cờ quan trọng:
+Three important flags:
 
-| Cờ trong `MethodParameters` | Giá trị | Ý nghĩa |
+| Flag in `MethodParameters` | Value | Meaning |
 | --- | --- | --- |
-| `ACC_FINAL` | `0x0010` | Tham số được khai báo `final` |
-| `ACC_SYNTHETIC` | `0x1000` | Tham số được sinh như chi tiết triển khai compiler; không khai báo trực tiếp hoặc ngầm định trong nguồn theo quy tắc ngôn ngữ |
-| `ACC_MANDATED` | `0x8000` | Tham số được ngôn ngữ quy định ngầm định; compiler cần tạo tham số đó |
+| `ACC_FINAL` | `0x0010` | Parameter was declared `final` |
+| `ACC_SYNTHETIC` | `0x1000` | Parameter was generated as a compiler implementation detail; neither directly nor implicitly declared in source per language rules |
+| `ACC_MANDATED` | `0x8000` | Parameter is implicitly mandated by the language; the compiler must generate it |
 
-`ACC_MANDATED` và `ACC_SYNTHETIC` mang ý nghĩa **khác nhau**: một tham số do đặc tả ngôn ngữ bắt buộc có thể là *implicit*, còn tham số synthetic có thể chỉ phục vụ triển khai của compiler. Không ghép chúng thành một nhãn “tham số tự sinh” rồi mất sự phân biệt.
+`ACC_MANDATED` and `ACC_SYNTHETIC` have **different** meanings: a parameter required by the language specification may be *implicit*, whereas a synthetic parameter may merely serve the compiler's implementation. Do not lump them under a single "auto-generated parameter" label and lose the distinction.
 
-Ánh xạ API thường dùng:
+Common API mapping:
 
 ```java
-parameter.isImplicit();   // Liên quan trạng thái implicit / mandated
-parameter.isSynthetic();  // Liên quan trạng thái synthetic
-parameter.getModifiers(); // Các bit modifier của tham số
+parameter.isImplicit();   // Related to implicit / mandated status
+parameter.isSynthetic();  // Related to synthetic status
+parameter.getModifiers(); // Parameter modifier bits
 ```
 
-Đây chỉ là lời gọi minh họa (chưa khai báo biến `parameter`). Với file class thiếu `MethodParameters`, các cờ này **không có đủ dữ liệu** để thuật lại chính xác tất cả đặc điểm khi viết mã nguồn. Đặc biệt, `false` ở `isImplicit()` hoặc `isSynthetic()` không nên được coi là bằng chứng tuyệt đối rằng compiler không tạo tham số.
+These are illustrative calls only (`parameter` variable not declared). On class files lacking `MethodParameters`, these flags **lack sufficient data** to accurately recount all source-time characteristics. In particular, `false` from `isImplicit()` or `isSynthetic()` should not be treated as absolute proof that the compiler did not generate the parameter.
 
-**Không nhầm vị trí các cờ:** `ACC_VARARGS` ở `method_info.access_flags` mô tả đặc tính varargs của *phương thức*, không phải một cờ `ACC_VARARGS` trong `MethodParameters`. `Parameter.isVarArgs()` nhận diện tham số cuối thích hợp qua metadata executable.
+**Do not confuse flag locations:** `ACC_VARARGS` in `method_info.access_flags` describes the varargs property of the *method*, not an `ACC_VARARGS` flag inside `MethodParameters`. `Parameter.isVarArgs()` identifies the applicable last parameter via executable metadata.
 
-### Vì sao `javac -parameters` quan trọng?
+### Why Is `javac -parameters` Important?
 
-Lệnh:
+The command:
 
 ```bash
 javac -parameters Example.java
 ```
 
-yêu cầu `javac` ghi metadata về **tên formal parameter** của constructor và method để Reflection có thể lấy bằng `Executable.getParameters()`. Trên bytecode được `javac` sinh, tùy chọn này cũng giúp công cụ thấy `MethodParameters` cùng các cờ parameter hiện diện.
+instructs `javac` to record metadata about **formal parameter names** of constructors and methods so Reflection can retrieve them with `Executable.getParameters()`. On bytecode emitted by `javac`, this option also makes `MethodParameters` and parameter flags visible to tools.
 
-Nếu biên dịch không có `-parameters`, nhiều parameter tường minh sẽ không còn tên thật và các cờ gắn với `MethodParameters` có thể không quan sát được. JVM vẫn cần descriptor kiểu tham số để xác minh và gọi method, nên `getParameterTypes()`/`getParameterCount()` tiếp tục hoạt động.
+If compiled without `-parameters`, many explicit parameters lose their real names and flags tied to `MethodParameters` may not be observable. The JVM still needs parameter type descriptors to verify and invoke methods, so `getParameterTypes()`/`getParameterCount()` continue to work.
 
-Lưu ý sự khác biệt:
+Note the differences:
 
-- `-parameters`: tạo metadata tham số dành cho Java Reflection.
-- `-g`: tạo debug information, ví dụ `LocalVariableTable`/`LineNumberTable`. Có thể giúp debugger hoặc công cụ bytecode, nhưng **không thay thế bảo đảm của `-parameters` cho `Parameter.isNamePresent()`**.
-- `-g:none`: bỏ debug information, không có nghĩa bắt buộc loại bỏ `MethodParameters` nếu đã sử dụng `-parameters`.
+- `-parameters`: emits parameter metadata for Java Reflection.
+- `-g`: emits debug information, such as `LocalVariableTable`/`LineNumberTable`. It can aid debuggers or bytecode tools, but **does not replace `-parameters`'s guarantee for `Parameter.isNamePresent()`**.
+- `-g:none`: omits debug information, which does not necessarily strip `MethodParameters` if `-parameters` was used.
 
-Không giả định mọi compiler, obfuscator hoặc bytecode transformer đều giữ các attribute như `javac`. Nếu framework cần tên tham số đáng tin, hãy quy định rõ build config hoặc cung cấp annotation tên tường minh làm phương án thay thế.
+Do not assume every compiler, obfuscator, or bytecode transformer preserves attributes the way `javac` does. If a framework needs reliable parameter names, explicitly specify build configuration or provide explicit naming annotations as a fallback.
 
-## 5. Ví dụ Java 17+ runnable: modifier và metadata
+## 5. Runnable Java 17+ Example: Modifiers and Metadata
 
-Tạo tệp **`ParameterFlagsDemo.java`**:
+Create the file **`ParameterFlagsDemo.java`**:
 
 ```java
 import java.lang.reflect.Constructor;
@@ -154,7 +154,7 @@ import java.lang.reflect.Parameter;
 public class ParameterFlagsDemo {
     public static void send(
             final String topic, int count, String... tags) {
-        // Ví dụ chỉ dùng để quan sát chữ ký.
+        // Example used only to observe the signature.
     }
 
     static class Host {
@@ -194,14 +194,14 @@ public class ParameterFlagsDemo {
 }
 ```
 
-Biên dịch với metadata tên tham số:
+Compile with parameter name metadata:
 
 ```bash
 javac -parameters ParameterFlagsDemo.java
 java ParameterFlagsDemo
 ```
 
-**Stdout mong đợi với `javac` JDK 17+ và class file do chính lệnh trên biên dịch:**
+**Expected stdout with JDK 17+ `javac` and class files compiled by the command above:**
 
 ```text
 method params: 3
@@ -213,43 +213,43 @@ member constructor params: 2
 first parameter is Host: true
 ```
 
-Giải thích:
+Explanation:
 
-1. `send` có ba tham số, lấy `Class<?>` và thứ tự từ descriptor; kiểu thứ ba là `String[]` ở runtime dù nguồn viết `String...`.
-2. `-parameters` làm `isNamePresent()` là `true` cho những tham số có tên trong class file. `getName()` trả đúng `topic`, `count`, `tags`.
-3. `Modifier.isFinal(...)` là `true` cho tham số `topic`; hai tham số sau không `final`.
-4. Ba tham số `send` đều được khai báo tường minh nên `isImplicit()` và `isSynthetic()` là `false`.
-5. `isVarArgs()` chỉ đúng với tham số cuối `tags`; `Method.isVarArgs()` đúng cho method `send`.
-6. `Host.Member` là non-static member inner class, vì vậy constructor mà Reflection thấy có thêm tham số đầu kiểu `Host` và tổng cộng hai tham số, dù nguồn chỉ ghi `Member(int)`. Chương trình **không giả định** tên hay cờ implicit của tham số ẩn là cố định trên mọi compiler.
+1. `send` has three parameters, taking `Class<?>` and order from the descriptor; the third type is `String[]` at runtime even though source writes `String...`.
+2. `-parameters` makes `isNamePresent()` return `true` for parameters whose names are in the class file. `getName()` returns `topic`, `count`, `tags`.
+3. `Modifier.isFinal(...)` is `true` for parameter `topic`; the other two parameters are not `final`.
+4. All three parameters of `send` are explicitly declared, so `isImplicit()` and `isSynthetic()` are `false`.
+5. `isVarArgs()` is true only for the last parameter `tags`; `Method.isVarArgs()` is true for method `send`.
+6. `Host.Member` is a non-static member inner class, so the constructor seen by Reflection has an extra leading parameter of type `Host` and two parameters in total, even though source only writes `Member(int)`. The program **does not assume** the name or implicit flag of the hidden parameter is fixed across all compilers.
 
-### Kiểm chứng khi không có `-parameters`
+### Checking Without `-parameters`
 
-Để thấy sự khác biệt, biên dịch lại (đè các tệp `.class` được tạo từ chính ví dụ này):
+To see the difference, recompile (overwriting the `.class` files generated from this same example):
 
 ```bash
 javac ParameterFlagsDemo.java
 java ParameterFlagsDemo
 ```
 
-Điều quan trọng cần kiểm tra là `getParameterCount()` và các kiểu của `send` vẫn giữ nguyên, trong khi ba tên tham số tường minh có thể không còn được lưu. Với `javac` thông thường, `isNamePresent()` ở các tham số ấy là `false` và `getName()` thường trả `arg0`, `arg1`, `arg2`. Những cờ phụ thuộc `MethodParameters` cũng có thể không còn được phản ánh.
+The important check is that `getParameterCount()` and the types of `send` remain unchanged, while the three explicit parameter names may no longer be stored. With standard `javac`, `isNamePresent()` on those parameters is `false` and `getName()` usually returns `arg0`, `arg1`, `arg2`. Flags depending on `MethodParameters` may also no longer be reflected.
 
-Không trình bày một mẫu stdout thứ hai như thể mọi compiler/bytecode transformer đều đưa ra cùng cờ: phần nào trong metadata bị giữ lại là đặc tính của class file thực tế.
+We do not present a second stdout sample as if every compiler/bytecode transformer emits identical flags: what parts of metadata are preserved is a property of the actual class file.
 
-### Xem bytecode bằng `javap`
+### Viewing Bytecode with `javap`
 
 ```bash
 javap -v -p ParameterFlagsDemo
 ```
 
-Tìm các mục `MethodParameters`, `descriptor` và `flags` của method `send`. Khi có `-parameters`, bạn có thể tìm tên và cờ `final` trong dữ liệu tham số. Descriptor của `send` thể hiện `String`, `int` và `String[]`; không cần tên để mô tả các kiểu này.
+Look for `MethodParameters`, `descriptor`, and `flags` of the `send` method. With `-parameters`, you can find the names and `final` flag in the parameter data. The descriptor of `send` shows `String`, `int`, and `String[]`; names are not required to describe these types.
 
-Nếu không có `MethodParameters`, đó là giới hạn dữ liệu ở **class file**; Reflection không thể đoán lại chính xác tên hay modifier nguồn chỉ dựa vào số lượng và kiểu tham số.
+If `MethodParameters` is absent, that is a data limitation in the **class file**; Reflection cannot accurately guess original names or source modifiers solely from parameter count and types.
 
-## 6. `isImplicit`, `isSynthetic` và tham số do compiler tạo
+## 6. `isImplicit`, `isSynthetic`, and Compiler-Generated Parameters
 
-### 6.1. Inner class và enclosing instance
+### 6.1. Inner Classes and Enclosing Instances
 
-Non-static inner member class gắn với một instance của lớp bao ngoài. Constructor của nó thường có một tham số runtime đứng đầu để nhận đối tượng bao ngoài.
+A non-static inner member class is bound to an instance of its enclosing class. Its constructor usually has a leading runtime parameter to receive the enclosing object.
 
 ```java
 class House {
@@ -260,7 +260,7 @@ class House {
 }
 ```
 
-Từ Reflection:
+From Reflection:
 
 ```java
 Constructor<?> ctor =
@@ -268,13 +268,13 @@ Constructor<?> ctor =
 Class<?>[] runtimeTypes = ctor.getParameterTypes();
 ```
 
-Đây là đoạn minh họa cần import `java.lang.reflect.Constructor` và xử lý checked exception. `runtimeTypes[0]` là `House.class`; `runtimeTypes[1]` là `int.class`.
+This is an illustrative snippet requiring `java.lang.reflect.Constructor` import and checked exception handling. `runtimeTypes[0]` is `House.class`; `runtimeTypes[1]` is `int.class`.
 
-Tham số cho enclosing instance được sinh để thể hiện ngữ nghĩa của inner class. Khi có metadata cần thiết, compiler có thể ghi cờ mô tả nó là implicit/mandated. Nhưng việc `getParameters()` có trả đúng danh sách kiểu **không đồng nghĩa** `isImplicit()` hay `isSynthetic()` luôn báo đúng ý nghĩa nguồn khi metadata bị loại bỏ. Bài toán gọi constructor phải dựa vào signature và một enclosing instance thật, không chỉ vào một flag.
+The enclosing instance parameter is generated to express inner class semantics. When required metadata is present, the compiler may emit a flag describing it as implicit/mandated. However, `getParameters()` returning the right type list **does not mean** `isImplicit()` or `isSynthetic()` always reports the exact source meaning if metadata was stripped. Invoking the constructor must rely on the signature and an actual enclosing instance, not solely on a flag.
 
-### 6.2. Enum constructor
+### 6.2. Enum Constructors
 
-Constructor của enum nhận các tham số hỗ trợ tên và ordinal ở mức bytecode, ngoài các tham số được viết trong nguồn. Đây là dữ liệu liên quan tới cách JVM biểu diễn enum và có thể được phản ánh ở chữ ký constructor.
+An enum's constructor receives parameters supporting name and ordinal at the bytecode level, in addition to parameters written in source. This is data related to how the JVM represents enums and may be reflected in the constructor signature.
 
 ```java
 enum Mode {
@@ -288,82 +288,82 @@ enum Mode {
 }
 ```
 
-Không được kết luận rằng chỉ có duy nhất một tham số runtime vì nguồn viết `Mode(int)`. Tuy nhiên, **không cố gọi enum constructor bằng Reflection**: `Constructor.newInstance(...)` không cho tạo enum object theo cách này và có thể ném `IllegalArgumentException`.
+Do not conclude there is only a single runtime parameter because source writes `Mode(int)`. However, **do not try to invoke an enum constructor via Reflection**: `Constructor.newInstance(...)` forbids creating enum objects this way and can throw `IllegalArgumentException`.
 
-Khi phân tích `Parameter[]` của enum, cần tách các tham số ngầm định hoặc do compiler thêm với những tham số người viết khai báo. Với metadata không đầy đủ, đừng xây công cụ chỉ bằng bộ lọc `!p.isSynthetic() && !p.isImplicit()` rồi tin rằng nó tái tạo chữ ký nguồn hoàn hảo.
+When analyzing `Parameter[]` of an enum, separate implicit or compiler-added parameters from programmer-declared parameters. With incomplete metadata, do not build a tool using only the filter `!p.isSynthetic() && !p.isImplicit()` and trust it reconstructs the source signature perfectly.
 
-### 6.3. Local/anonymous class và biến captured
+### 6.3. Local/Anonymous Classes and Captured Variables
 
-Các local/anonymous classes có thể capture biến local effectively final hoặc cần truyền ngữ cảnh bao ngoài vào constructor. Compiler có thể thêm các tham số kỹ thuật, chẳng hạn để chuyển những giá trị captured.
+Local/anonymous classes can capture effectively final local variables or need the enclosing context passed into the constructor. The compiler may add technical parameters, for instance to transfer captured values.
 
-Vì dạng chữ ký phụ thuộc context và compiler, hãy kiểm tra `getDeclaredConstructors()`, `getParameterTypes()` và metadata thực tế. Không áp đặt “tham số đầu luôn là outer class” cho mọi local/anonymous class; quy tắc về enclosing instance của **non-static member inner class** không bao phủ toàn bộ trường hợp.
+Because signature shape depends on context and compiler, inspect `getDeclaredConstructors()`, `getParameterTypes()`, and actual metadata. Do not impose "first parameter is always outer class" on every local/anonymous class; the rule about the enclosing instance of a **non-static member inner class** does not cover all cases.
 
-### 6.4. Không đồng nhất implicit, synthetic với `final`
+### 6.4. Do Not Conflate Implicit, Synthetic, and `final`
 
-Một tham số có thể:
+A parameter can be:
 
-- Được viết tường minh và có `final`.
-- Được viết tường minh mà không có `final`.
-- Được ngôn ngữ quy định ngầm định (implicit/mandated).
-- Do compiler tạo như một chi tiết triển khai (synthetic).
+- Explicitly written and `final`.
+- Explicitly written without `final`.
+- Implicitly mandated by the language (implicit/mandated).
+- Generated by the compiler as an implementation detail (synthetic).
 
-Những khía cạnh này **không cùng một trục phân loại**. `Modifier.isFinal(p.getModifiers())` nói về cờ `final`; `p.isImplicit()` và `p.isSynthetic()` nói về nguồn gốc parameter theo thông tin phản ánh. Không suy ra `final` chỉ vì tham số được compiler sinh, và cũng không cho rằng `final` nghĩa là synthetic.
+These aspects **do not lie on the same classification axis**. `Modifier.isFinal(p.getModifiers())` speaks to the `final` flag; `p.isImplicit()` and `p.isSynthetic()` speak to parameter origin per reflection metadata. Do not infer `final` just because a parameter is compiler-generated, and do not assume `final` means synthetic.
 
-## 7. Tên tham số: `getName` khác `isNamePresent`
+## 7. Parameter Names: `getName` vs. `isNamePresent`
 
-Ví dụ:
+Example:
 
 ```java
 public void register(String username, int attempts) {
 }
 ```
 
-Nếu thiếu metadata tên:
+If name metadata is missing:
 
 ```java
 Parameter[] ps = method.getParameters();
-System.out.println(ps[0].getName());        // Có thể là arg0
-System.out.println(ps[0].isNamePresent());   // false nếu không có tên
+System.out.println(ps[0].getName());        // May be arg0
+System.out.println(ps[0].isNamePresent());   // false if unnamed
 ```
 
-Đây là đoạn minh họa cần `method` đại diện cho đúng method. `getName()` không trả `null` chỉ vì metadata tên thiếu; nó cung cấp một tên thay thế để lập trình viên vẫn có thể sử dụng `Parameter` API.
+This is an illustrative snippet requiring `method` to represent the right method. `getName()` does not return `null` just because name metadata is missing; it provides a placeholder name so programmers can still use the `Parameter` API.
 
-**Quy tắc cho framework:** muốn dùng tên parameter làm khóa dependency injection hoặc tên query argument, hãy kiểm tra `isNamePresent()`. Nếu false, không tự ý dùng `arg0` làm tên API thật của người sử dụng. Có thể yêu cầu build bật `-parameters` hoặc sử dụng annotation chứa tên đã khai báo tường minh.
+**Rule for frameworks:** if you want to use parameter names as dependency injection keys or query argument names, check `isNamePresent()`. If false, do not blindly use `arg0` as the user's real API name. Require builds to enable `-parameters` or use annotations holding explicitly declared names.
 
-Kể cả `isNamePresent() == true`, metadata có thể đã bị **obfuscate** hoặc sửa bởi bytecode transformer. Điều đó chứng minh class file hiện tại cung cấp một tên, không chứng minh đó chắc chắn là token trong source trước khi biến đổi.
+Even when `isNamePresent() == true`, metadata may have been **obfuscated** or altered by bytecode transformers. That proves the current class file provides a name, not that it is definitely the pre-transformation source token.
 
-## 8. `getType`, `getParameterizedType` và varargs không phải modifier thông thường
+## 8. `getType`, `getParameterizedType`, and Varargs Are Not Ordinary Modifiers
 
-### 8.1. Generic erasure
+### 8.1. Generic Erasure
 
-Cho method:
+Given the method:
 
 ```java
 void consume(java.util.List<String> names) {
 }
 ```
 
-- `Parameter.getType()` trả `java.util.List.class`: kiểu runtime sau type erasure.
-- `Parameter.getParameterizedType()` có thể cho thấy `List<String>` khi `Signature` attribute được lưu phù hợp.
-- `getModifiers()` không có nhiệm vụ chứa thông tin `<String>`.
-- Nếu mất `Signature`, metadata class file không đủ để khôi phục một cách chắc chắn type argument `String`.
+- `Parameter.getType()` returns `java.util.List.class`: the runtime type after type erasure.
+- `Parameter.getParameterizedType()` can show `List<String>` when the `Signature` attribute is stored appropriately.
+- `getModifiers()` is not responsible for holding `<String>` information.
+- If `Signature` is lost, class file metadata is insufficient to reliably recover the type argument `String`.
 
-Điều tương tự áp dụng cho generic type variable, wildcard và kiểu parameterized trên constructor/method.
+The same applies to generic type variables, wildcards, and parameterized types on constructors/methods.
 
-### 8.2. Varargs và tham số mảng
+### 8.2. Varargs and Array Parameters
 
-`String... values` được biểu diễn như `String[]` trong descriptor JVM. Không thể chỉ nhìn `getType() == String[].class` rồi khẳng định nguồn viết `String...` thay vì `String[]`.
+`String... values` is represented as `String[]` in the JVM descriptor. You cannot look solely at `getType() == String[].class` and assert the source wrote `String...` instead of `String[]`.
 
 ```java
 void accept(String[] values) {}
 void collect(String... values) {}
 ```
 
-`accept` không được đánh dấu varargs; `collect` được đánh dấu varargs. `Executable.isVarArgs()` và `Parameter.isVarArgs()` trên tham số cuối giúp phân biệt thuộc tính runtime. **Varargs không phải một bit modifier thông thường của từng parameter trong `MethodParameters`**.
+`accept` is not marked varargs; `collect` is marked varargs. `Executable.isVarArgs()` and `Parameter.isVarArgs()` on the last parameter help distinguish this runtime property. **Varargs is not an ordinary modifier bit of individual parameters in `MethodParameters`**.
 
-### 8.3. Receiver parameter trong cú pháp nguồn
+### 8.3. Receiver Parameter in Source Syntax
 
-Java còn hỗ trợ cú pháp **receiver parameter** tường minh ở một số khai báo method/constructor, ví dụ:
+Java also supports explicit **receiver parameter** syntax on some method/constructor declarations, for example:
 
 ```java
 class Point {
@@ -372,13 +372,13 @@ class Point {
 }
 ```
 
-Receiver parameter là cách biểu đạt về receiver/các annotation liên quan ở ngôn ngữ, **không phải** một formal parameter bình thường trong danh sách đối số runtime. `Executable.getParameters()` không sinh thêm một `Parameter` chỉ vì nguồn ghi `Point this`. Nếu cần metadata annotation trên receiver, xem `Executable.getAnnotatedReceiverType()` khi class file cung cấp.
+A receiver parameter is a language construct for expressing the receiver and its annotations, **not** an ordinary formal parameter in the runtime argument list. `Executable.getParameters()` does not emit an extra `Parameter` just because source writes `Point this`. If you need annotation metadata on the receiver, check `Executable.getAnnotatedReceiverType()` when provided by the class file.
 
-Do đó, không đồng nhất cụm từ **receiver parameter** với tham số enclosing instance do compiler đưa vào constructor của non-static member inner class.
+Therefore, do not equate the term **receiver parameter** with the enclosing-instance parameter inserted by the compiler into a non-static member inner class constructor.
 
-## 9. Annotation trên parameter và giới hạn retention
+## 9. Annotations on Parameters and Retention Limits
 
-Annotation không phải modifier bit:
+Annotations are not modifier bits:
 
 ```java
 import java.lang.annotation.Retention;
@@ -395,24 +395,24 @@ class Example {
 }
 ```
 
-Dùng Reflection có thể đọc annotation từ `Parameter.getAnnotation(Label.class)`, nhưng chỉ khi retention phù hợp và metadata có mặt trong class file. Nếu annotation có `RetentionPolicy.SOURCE`, nó không có mặt trong class file chuẩn; nếu retention là `CLASS`, thông thường không được expose qua core Reflection runtime.
+Using Reflection, you can read the annotation via `Parameter.getAnnotation(Label.class)`, but only if retention is appropriate and metadata is present in the class file. If an annotation has `RetentionPolicy.SOURCE`, it is absent from standard class files; if retention is `CLASS`, it is normally not exposed via runtime core Reflection.
 
-Chú ý sự khác biệt giữa **declaration annotation** trên formal parameter và **type-use annotation** trên kiểu của parameter. `Parameter.getAnnotations()` và `Parameter.getAnnotatedType()` trả các góc nhìn khác nhau. Cả hai đều không biến `getModifiers()` thành nơi lưu mọi annotation.
+Pay attention to the difference between **declaration annotations** on the formal parameter and **type-use annotations** on the parameter's type. `Parameter.getAnnotations()` and `Parameter.getAnnotatedType()` return different views. Neither turns `getModifiers()` into storage for annotations.
 
-## 10. Quy trình phân tích có khả năng chịu thiếu metadata
+## 10. Metadata-Resilient Analysis Workflow
 
-Khi một framework muốn liệt kê tham số executable, có thể dùng quy trình sau:
+When a framework wants to list executable parameters, it can follow this workflow:
 
-1. Xác định đúng `Method` hoặc `Constructor<?>`. Không suy đoán constructor của inner class chỉ từ số tham số nguồn.
-2. Dùng `getParameterCount()`/`getParameterTypes()` làm nền tảng vì chúng phản ánh descriptor.
-3. Lấy `getParameters()` để đọc tên và modifier. Kiểm tra `isNamePresent()` **trước khi** phụ thuộc `getName()`.
-4. Đọc `getModifiers()` và kiểm tra `final` bằng `Modifier.isFinal()`. Nếu chỉ nhận bit 0, chưa thể biết nguồn có `final` hay không khi metadata thiếu.
-5. Đọc `isImplicit()`/`isSynthetic()` để nhận diện các trường hợp compiler/language thêm tham số **nếu metadata hỗ trợ**. Đừng mặc định false đồng nghĩa “được người viết khai báo”.
-6. Với varargs, hỏi `Executable.isVarArgs()` và `Parameter.isVarArgs()`; với generics, dùng `getParameterizedType()`.
-7. Nếu tên/cờ không đáng tin, kiểm tra quy trình build và class file với `javap -v -p`, đặc biệt `MethodParameters`, `Signature`, `RuntimeVisibleParameterAnnotations` và descriptor.
-8. Nếu không tìm đủ metadata, báo dữ liệu **không xác định** hoặc dùng hợp đồng đặt tên khác đã thiết kế trước. Không đoán lại nguyên văn mã nguồn.
+1. Identify the exact `Method` or `Constructor<?>`. Do not guess inner-class constructors solely from source parameter counts.
+2. Use `getParameterCount()`/`getParameterTypes()` as the foundation because they reflect the descriptor.
+3. Retrieve `getParameters()` to read names and modifiers. Check `isNamePresent()` **before** relying on `getName()`.
+4. Read `getModifiers()` and check `final` with `Modifier.isFinal()`. If you only receive 0 bits, you cannot yet know whether source had `final` when metadata is missing.
+5. Read `isImplicit()`/`isSynthetic()` to recognize cases where the compiler/language added parameters **if metadata supports it**. Do not assume false means "written by the programmer".
+6. For varargs, query `Executable.isVarArgs()` and `Parameter.isVarArgs()`; for generics, use `getParameterizedType()`.
+7. If names/flags are untrustworthy, inspect the build pipeline and class file with `javap -v -p`, especially `MethodParameters`, `Signature`, `RuntimeVisibleParameterAnnotations`, and the descriptor.
+8. If sufficient metadata cannot be found, report data as **unknown** or use another pre-designed naming contract. Do not guess exact source text.
 
-### Ví dụ quyết định trong code
+### Decision Example in Code
 
 ```java
 for (Parameter p : executable.getParameters()) {
@@ -420,60 +420,60 @@ for (Parameter p : executable.getParameters()) {
             ? p.getName()
             : "<unknown>";
     boolean declaredFinal = Modifier.isFinal(p.getModifiers());
-    // Các cờ phản ánh class file hiện có; đừng coi false
-    // là bằng chứng không thể sai về cú pháp nguồn.
+    // Flags reflect the available class file; do not treat false
+    // as infallible proof of source syntax.
     System.out.println(name + " / final-flag=" + declaredFinal);
 }
 ```
 
-Đây là đoạn minh họa, trong đó `executable` là một `Executable` đã được xác định và cần import `Executable`, `Parameter`, `Modifier`. Ý tưởng là bộc lộ ranh giới giữa thông tin đã biết và metadata thiếu, thay vì âm thầm suy diễn.
+This is an illustrative snippet in which `executable` is a resolved `Executable` and requires importing `Executable`, `Parameter`, `Modifier`. The idea is to expose the boundary between known information and missing metadata instead of silently guessing.
 
-## 11. Các lỗi thường gặp
+## 11. Common Mistakes
 
-| Nhầm lẫn | Vì sao sai | Cách xử lý |
+| Misconception | Why It Is Wrong | How to Handle |
 | --- | --- | --- |
-| Không dùng `-parameters` nhưng vẫn coi `getName()` là tên nguồn | `getName()` có thể trả `arg0`/`arg1` do thiếu metadata | Kiểm tra `isNamePresent()` |
-| `getModifiers() == 0` nghĩa là chắc chắn nguồn không ghi `final` | Có thể không có `MethodParameters` | Xem build flags/class file; báo thiếu dữ liệu |
-| Mọi tham số do compiler sinh đều `isSynthetic()` | Có nhóm `implicit/mandated` khác `synthetic`, và metadata có thể thiếu | Kiểm tra phân loại và hợp đồng API |
-| `-g` tương đương `-parameters` | Debug attribute và MethodParameters có mục đích khác nhau | Dùng `-parameters` khi cần tên qua Reflection |
-| `getParameterTypes()` cần `-parameters` | Descriptor lưu kiểu runtime riêng | Dùng API này kể cả khi tên bị mất |
-| Mảng `String[]` chứng minh parameter nguồn là varargs | Cả tham số mảng thường lẫn varargs có thể có kiểu `String[]` | Dùng `isVarArgs()` |
-| `List<String>` luôn dựng lại được từ `getType()` | Type erasure làm `getType()` là `List.class` | Xem `getParameterizedType()` và `Signature` |
-| `getParameters()` tương ứng 1-1 với các tham số viết tường minh | Constructor inner/enum, local/anonymous có thể thêm tham số | Phân tích executable và metadata thực tế |
-| `getModifiers()` chứa annotation parameter | Annotation lưu theo attributes/retention khác | Dùng API annotation |
-| Thấy `isImplicit() == false` thì suy ra nguồn chắc chắn khai báo tham số | Flag có thể không tồn tại trong class file | Không suy luận chắc chắn khi thiếu metadata |
+| Not using `-parameters` yet treating `getName()` as the source name | `getName()` may return `arg0`/`arg1` due to missing metadata | Check `isNamePresent()` |
+| `getModifiers() == 0` means source definitely lacked `final` | `MethodParameters` may be absent | Check build flags/class file; report missing data |
+| Every compiler-generated parameter has `isSynthetic()` | `implicit/mandated` is distinct from `synthetic`, and metadata may be missing | Check classification and API contract |
+| `-g` is equivalent to `-parameters` | Debug attributes and MethodParameters serve different purposes | Use `-parameters` when names are needed via Reflection |
+| `getParameterTypes()` requires `-parameters` | Descriptors store runtime types separately | Use this API even when names are lost |
+| A `String[]` array proves the source parameter was varargs | Both regular array parameters and varargs can have type `String[]` | Use `isVarArgs()` |
+| `List<String>` can always be reconstructed from `getType()` | Type erasure makes `getType()` return `List.class` | Check `getParameterizedType()` and `Signature` |
+| `getParameters()` maps 1-to-1 with explicitly written parameters | Inner/enum, local/anonymous constructors may add parameters | Inspect the actual executable and metadata |
+| `getModifiers()` holds parameter annotations | Annotations are stored in separate attributes/retention | Use annotation APIs |
+| Seeing `isImplicit() == false` implies source definitely declared the parameter | Flags may be absent in the class file | Do not draw definite conclusions when metadata is missing |
 
-## 12. Bài tự kiểm tra
+## 12. Self-Check Questions
 
-**Câu 1.** Một method được khai báo `process(final String item, int retries)`. Nếu Reflection trả `Modifier.isFinal(first.getModifiers()) == false`, có được kết luận nguồn không ghi `final` không?
+**Question 1.** A method is declared `process(final String item, int retries)`. If Reflection returns `Modifier.isFinal(first.getModifiers()) == false`, can you conclude source omitted `final`?
 
-**Đáp án:** Không. Cần xác định `MethodParameters` có ghi cờ tương ứng và liệu class file bị biến đổi hay không. Giá trị false đơn lẻ chỉ mô tả metadata Reflection hiện quan sát được.
+**Answer:** No. You must determine whether `MethodParameters` recorded the corresponding flag and whether the class file was transformed. A standalone false value only describes currently observable Reflection metadata.
 
-**Câu 2.** `getParameterTypes()` có thể hoạt động khi không bật `javac -parameters` không?
+**Question 2.** Can `getParameterTypes()` work when `javac -parameters` is not enabled?
 
-**Đáp án:** Có. Method descriptor giữ kiểu runtime; `-parameters` chủ yếu phục vụ metadata tên/parameter flags.
+**Answer:** Yes. Method descriptors retain runtime types; `-parameters` mainly serves parameter name/flag metadata.
 
-**Câu 3.** `p.getName()` trả `arg0` và `p.isNamePresent()` trả `false`. `arg0` có phải chắc chắn là tên đã viết trong `.java` không?
+**Question 3.** `p.getName()` returns `arg0` and `p.isNamePresent()` returns `false`. Was `arg0` definitely the name written in `.java`?
 
-**Đáp án:** Không. Đây là tên thay thế do Reflection cung cấp khi class file không chứa tên formal parameter.
+**Answer:** No. That is a placeholder name provided by Reflection when the class file lacks formal parameter names.
 
-**Câu 4.** `ACC_MANDATED` và `ACC_SYNTHETIC` có đồng nghĩa không?
+**Question 4.** Are `ACC_MANDATED` and `ACC_SYNTHETIC` synonymous?
 
-**Đáp án:** Không. `mandated` liên quan tham số ngầm định theo yêu cầu ngôn ngữ; `synthetic` liên quan chi tiết triển khai compiler.
+**Answer:** No. `mandated` relates to implicit parameters required by the language; `synthetic` relates to compiler implementation details.
 
-**Câu 5.** Vì sao `Parameter.isVarArgs()` có thể trả true dù `getModifiers()` không có cờ varargs?
+**Question 5.** Why can `Parameter.isVarArgs()` return true even though `getModifiers()` has no varargs flag?
 
-**Đáp án:** Varargs thuộc metadata method-level `ACC_VARARGS` và vị trí tham số cuối; không phải một flag thuộc danh sách ba cờ của `MethodParameters`.
+**Answer:** Varargs belongs to method-level `ACC_VARARGS` metadata and the last parameter position; it is not a flag in the three-flag set of `MethodParameters`.
 
-**Câu 6.** Một constructor non-static inner class có hai `Parameter` trong khi nguồn khai báo một tham số. Có phải Reflection sai không?
+**Question 6.** A non-static inner class constructor has two `Parameter` objects while source declares one parameter. Is Reflection wrong?
 
-**Đáp án:** Không. Chữ ký runtime có thể thêm tham số đầu để truyền enclosing instance.
+**Answer:** No. The runtime signature may add a leading parameter to pass the enclosing instance.
 
-## 13. Ghi nhớ và nguồn chuẩn
+## 13. Key Takeaways and Official Sources
 
-**Không đồng nhất chữ ký runtime với toàn bộ cú pháp nguồn.** `Executable.getParameters()` luôn mô tả tham số hiện có ở executable; kiểu tham số lấy từ descriptor, còn tên, modifier `final` và cờ implicit/synthetic có thể phụ thuộc `MethodParameters`. Sử dụng `-parameters` khi cần tên, kiểm tra `isNamePresent()` trước khi tin `getName()`, và phân biệt `ACC_FINAL`, `ACC_SYNTHETIC`, `ACC_MANDATED`.
+**Do not equate the runtime signature with full source syntax.** `Executable.getParameters()` always describes parameters present on the executable; parameter types come from the descriptor, while names, the `final` modifier, and implicit/synthetic flags can depend on `MethodParameters`. Use `-parameters` when names are needed, check `isNamePresent()` before trusting `getName()`, and distinguish `ACC_FINAL`, `ACC_SYNTHETIC`, and `ACC_MANDATED`.
 
-Tài liệu chuẩn:
+Official sources:
 
 - [Java SE 21 — `java.lang.reflect.Parameter`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Parameter.html)
 - [Java SE 21 — `java.lang.reflect.Executable`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Executable.html)

@@ -1,12 +1,12 @@
-# Thiết kế chính sách cho khóa `null` và giá trị `null`
+# Designing Policies for `null` Keys and `null` Values
 
-Khi chuyển dữ liệu thành `Map` bằng Java Stream API, chương trình phải trả lời hai câu hỏi khác nhau: **nếu khóa là `null` thì làm gì**, và **nếu giá trị là `null` thì làm gì**? Một `HashMap` thông thường có thể chứa các giá trị đó, nhưng điều này không có nghĩa mọi collector hoặc mọi kiểu `Map` đều chấp nhận chúng. Bỏ qua khác biệt này dễ dẫn đến `NullPointerException` khi `collect` chạy, mất bản ghi âm thầm hoặc một `Map` có ý nghĩa không rõ ràng.
+When transforming data into a `Map` using the Java Stream API, the program must answer two distinct questions: **what to do if a key is `null`**, and **what to do if a value is `null`**? An ordinary `HashMap` can hold such values, but that does not mean every collector or every `Map` implementation accepts them. Ignoring this difference easily leads to a `NullPointerException` when `collect` runs, silent record loss, or a `Map` with ambiguous semantics.
 
-Bài thuộc chương **Thu thập thành Map** của module **JAVA_STREAM_API**. Ta sẽ thiết kế chính sách `null` rõ ràng cho `Collectors.toMap`, `groupingBy`, `toUnmodifiableMap`, các cấu trúc `Map` khác nhau và pipeline tuần tự/song song. Nội dung liên hệ trực tiếp đến `filter`, `map`, `collect`, xử lý trùng khóa, đặc tính collector, tính lazy, trạng thái dùng chung và chi phí của việc xử lý dữ liệu.
+This lesson belongs to the **Collecting to Maps** chapter of the **JAVA_STREAM_API** module. We will design explicit `null` policies for `Collectors.toMap`, `groupingBy`, `toUnmodifiableMap`, various `Map` structures, and sequential/parallel pipelines. The content connects directly to `filter`, `map`, `collect`, duplicate-key handling, collector characteristics, laziness, shared state, and data-processing costs.
 
-## 1. Phải phân biệt ba trạng thái dữ liệu
+## 1. Three Data States Must Be Distinguished
 
-Xét một danh bạ `Map<String, String>` ánh xạ mã người dùng sang email:
+Consider a directory `Map<String, String>` mapping user IDs to emails:
 
 ```java
 import java.util.HashMap;
@@ -23,39 +23,39 @@ System.out.println(emails.containsKey("u2"));  // true
 System.out.println(emails.containsKey("u3"));  // false
 ```
 
-Ở đây có ba trạng thái nghiệp vụ khác nhau:
+There are three distinct business states here:
 
-1. **Có khóa và có giá trị**: người dùng `u1` có email.
-2. **Có khóa nhưng giá trị `null`**: người dùng `u2` có bản ghi nhưng chưa có email.
-3. **Không có khóa**: người dùng `u3` không có bản ghi trong danh bạ.
+1. **Key present with value**: user `u1` has an email.
+2. **Key present with `null` value**: user `u2` has a record but no email yet.
+3. **Key absent**: user `u3` has no record in the directory.
 
-`get(key) == null` **không phân biệt được trạng thái 2 và 3**. Nếu ứng dụng cần phân biệt, dùng `containsKey` kết hợp `get`, hoặc chọn mô hình giá trị biểu diễn sự thiếu dữ liệu một cách tường minh.
+`get(key) == null` **cannot distinguish between states 2 and 3**. If the application needs to tell them apart, use `containsKey` together with `get`, or choose a value model that represents absence explicitly.
 
-Khóa `null` lại là vấn đề riêng: một bản ghi được đưa vào nhóm nào khi thuộc tính dùng làm khóa vắng mặt? Nếu nhiều bản ghi cùng có khóa `null`, chúng sẽ cùng tranh một mục trong `Map`, nên còn phải xác định **chính sách khi khóa trùng**.
+A `null` key is a separate problem: which group should a record go into when the attribute used as the key is absent? If multiple records have a `null` key, they compete for a single entry in the `Map`, so you must also define a **duplicate-key policy**.
 
-## 2. Không phải mọi `Map` đều có cùng hợp đồng về `null`
+## 2. Not Every `Map` Shares the Same `null` Contract
 
-Trước khi chọn collector, hãy xác định cấu trúc kết quả:
+Before choosing a collector, determine the result structure:
 
-| Cấu trúc hoặc API | Khóa `null` | Giá trị `null` | Ghi chú |
+| Structure or API | `null` Key | `null` Value | Notes |
 |---|---|---|---|
-| `HashMap` | Cho phép một khóa `null` | Cho phép | Không bảo đảm thứ tự duyệt |
-| `LinkedHashMap` | Cho phép một khóa `null` | Cho phép | Giữ thứ tự chèn theo mặc định |
-| `TreeMap` với natural ordering | Không cho phép | Cho phép | Có thể dùng comparator hỗ trợ `null` để xác định thứ tự khóa khác |
-| `ConcurrentHashMap` | Không cho phép | Không cho phép | Cấu trúc đồng thời |
-| `Map.of(...)`, `Map.ofEntries(...)` | Không cho phép | Không cho phép | Không thể chỉnh sửa; `null` gây lỗi |
-| `Map.copyOf(map)` | Không cho phép | Không cho phép | Tạo kết quả không thể chỉnh sửa |
-| `Collectors.toUnmodifiableMap(...)` | Không cho phép | Không cho phép | Collector Java 10+ |
-| `Collectors.toMap(...)` | Không nên phụ thuộc vào việc chấp nhận `null` | Không dùng để lưu giá trị `null` | Không cam kết kiểu `Map` trả về |
-| `Collectors.groupingBy(classifier)` | Từ chối khóa phân nhóm `null` | Phụ thuộc downstream collector | Không suy từ việc map kết quả có thể là `HashMap` |
+| `HashMap` | Allows one `null` key | Allowed | No iteration order guaranteed |
+| `LinkedHashMap` | Allows one `null` key | Allowed | Preserves insertion order by default |
+| `TreeMap` with natural ordering | Not allowed | Allowed | Can use a `null`-supporting comparator to define custom key order |
+| `ConcurrentHashMap` | Not allowed | Not allowed | Concurrent structure |
+| `Map.of(...)`, `Map.ofEntries(...)` | Not allowed | Not allowed | Unmodifiable; `null` throws an error |
+| `Map.copyOf(map)` | Not allowed | Not allowed | Produces an unmodifiable result |
+| `Collectors.toUnmodifiableMap(...)` | Not allowed | Not allowed | Java 10+ collector |
+| `Collectors.toMap(...)` | Do not rely on accepting `null` | Do not use to store `null` values | Returned `Map` type is not guaranteed |
+| `Collectors.groupingBy(classifier)` | Rejects `null` grouping keys | Depends on downstream collector | Do not infer from the result map possibly being a `HashMap` |
 
-`Collectors.toMap` mặc định thường tạo `HashMap` trên các JDK thông dụng, và một số phiên bản có thể chấp nhận khóa `null`; **hợp đồng collector không bảo đảm kiểu map hay quyền dùng khóa `null`**. Mặt khác, `valueMapper` trả `null` có thể gây `NullPointerException` ngay trong lúc tích lũy. Vì thế, phải xử lý chính sách `null` trước khi dựa vào collector.
+Default `Collectors.toMap` commonly creates a `HashMap` on standard JDKs, and some versions may accept a `null` key; **the collector contract guarantees neither the map type nor support for `null` keys**. Meanwhile, a `valueMapper` returning `null` can trigger `NullPointerException` right during accumulation. Therefore, resolve the `null` policy before relying on the collector.
 
-Các đoạn mã tiếp theo sử dụng Java 17. Các factory `Map.of` xuất hiện từ Java 9; `Collectors.toUnmodifiableMap` và `Map.copyOf` có từ Java 10; `record` là tính năng chính thức từ Java 16.
+The following snippets use Java 17. The `Map.of` factories appeared in Java 9; `Collectors.toUnmodifiableMap` and `Map.copyOf` arrived in Java 10; `record` became standard in Java 16.
 
-## 3. Hiểu `Collectors.toMap` trước khi xây chính sách
+## 3. Understanding `Collectors.toMap` Before Building a Policy
 
-Overload đơn giản nhất:
+The simplest overload:
 
 ```java
 import java.util.List;
@@ -75,17 +75,17 @@ Map<String, String> emailById = users.stream()
 System.out.println(emailById.get("u1")); // an@example.com
 ```
 
-Hai hàm `User::id` và `User::email` lần lượt là **key mapper** và **value mapper**. Collector cần một giá trị đưa vào map cho mỗi phần tử nguồn. Khi dữ liệu đầy đủ và khóa duy nhất, mẫu này ngắn gọn.
+The two functions `User::id` and `User::email` are the **key mapper** and **value mapper**, respectively. The collector expects a value to place into the map for each source element. When data is complete and keys are unique, this pattern is concise.
 
-Các overload quan trọng:
+Important overloads:
 
-| Overload | Tác dụng |
+| Overload | Effect |
 |---|---|
-| `toMap(keyMapper, valueMapper)` | Tạo map, ném `IllegalStateException` khi khóa trùng |
-| `toMap(keyMapper, valueMapper, mergeFunction)` | Cho phép giải quyết khóa trùng |
-| `toMap(keyMapper, valueMapper, mergeFunction, mapFactory)` | Thêm quyền chọn cấu trúc `Map` kết quả |
+| `toMap(keyMapper, valueMapper)` | Creates a map, throws `IllegalStateException` on duplicate keys |
+| `toMap(keyMapper, valueMapper, mergeFunction)` | Allows resolving duplicate keys |
+| `toMap(keyMapper, valueMapper, mergeFunction, mapFactory)` | Also lets you choose the result `Map` structure |
 
-Một lỗi cần phân biệt:
+An error to distinguish:
 
 ```java
 List<User> duplicateIds = List.of(
@@ -93,32 +93,32 @@ List<User> duplicateIds = List.of(
         new User("u1", "new@example.com")
 );
 
-// Không chạy: trùng khóa "u1" sẽ gây IllegalStateException.
+// Do not run: duplicate key "u1" will throw IllegalStateException.
 // duplicateIds.stream()
 //         .collect(Collectors.toMap(User::id, User::email));
 ```
 
-`IllegalStateException` do **khóa trùng** và `NullPointerException` do **giá trị `null`** là hai vấn đề khác nhau. Bổ sung `mergeFunction` xử lý trùng khóa nhưng **không biến giá trị `null` thành giá trị hợp lệ** cho `toMap`.
+`IllegalStateException` from **duplicate keys** and `NullPointerException` from **`null` values** are two separate issues. Adding a `mergeFunction` handles duplicate keys, yet **does not make `null` a valid value** for `toMap`.
 
-## 4. Bốn chính sách thực tế dành cho khóa `null`
+## 4. Four Practical Policies for `null` Keys
 
-Với đầu vào:
+Given input:
 
 ```java
 record Ticket(String id, String team, String description) {}
 
 List<Ticket> tickets = List.of(
         new Ticket("T1", "backend", "API"),
-        new Ticket("T2", null, "Chưa phân nhóm"),
+        new Ticket("T2", null, "Uncategorized"),
         new Ticket("T3", "frontend", "UI")
 );
 ```
 
-Thuộc tính `team` có thể thiếu, nên phải chọn một trong các chính sách phù hợp với hợp đồng nghiệp vụ.
+The `team` attribute may be missing, so you must pick one of the policies matching the business contract.
 
-### 4.1. Từ chối dữ liệu thiếu khóa
+### 4.1. Reject records missing a key
 
-Nếu `team` là trường bắt buộc, lỗi nên xuất hiện rõ ràng ở ranh giới xử lý:
+If `team` is a required field, the error should surface clearly at the processing boundary:
 
 ```java
 import java.util.Objects;
@@ -129,18 +129,18 @@ Map<String, String> descriptionsByTeam = tickets.stream()
         .collect(Collectors.toMap(
                 ticket -> Objects.requireNonNull(
                         ticket.team(),
-                        "Thiếu team cho ticket " + ticket.id()
+                        "Missing team for ticket " + ticket.id()
                 ),
                 Ticket::description,
                 (oldValue, newValue) -> newValue
         ));
 ```
 
-Với `T2`, `Objects.requireNonNull` ném `NullPointerException` kèm ngữ cảnh dễ truy vết. Trong hệ thống thật, có thể kiểm tra và báo lỗi nghiệp vụ `IllegalArgumentException` hoặc trả kết quả validation trước khi tạo stream. **Điều quan trọng là từ chối có chủ đích**, thay vì trông đợi lỗi ngẫu nhiên từ collector.
+For `T2`, `Objects.requireNonNull` throws `NullPointerException` with traceable context. In a real system, you can validate and throw a domain `IllegalArgumentException` or return a validation result before constructing the stream. **What matters is rejecting intentionally**, rather than waiting for an incidental collector failure.
 
-### 4.2. Bỏ qua bản ghi thiếu khóa
+### 4.2. Skip records missing a key
 
-Nếu dữ liệu thiếu khóa không nằm trong phạm vi báo cáo:
+If records lacking a key fall outside the report scope:
 
 ```java
 Map<String, String> descriptionsByTeam = tickets.stream()
@@ -152,32 +152,32 @@ Map<String, String> descriptionsByTeam = tickets.stream()
         ));
 
 System.out.println(descriptionsByTeam.keySet());
-// Chứa "backend" và "frontend", không có ticket T2.
+// Contains "backend" and "frontend", without ticket T2.
 ```
 
-Lọc làm giảm số bản ghi được tổng hợp. Đây là quyết định có tác động dữ liệu: cần theo dõi số bản ghi bị bỏ nếu nghiệp vụ yêu cầu giải trình hoặc kiểm toán.
+Filtering reduces the number of aggregated records. This decision affects data totals: track dropped records if the business requires accountability or auditing.
 
-### 4.3. Ánh xạ sang một khóa thay thế được quy định
+### 4.3. Map to a designated fallback key
 
-Nếu báo cáo muốn một nhóm “Chưa phân loại”:
+If the report wants an "Uncategorized" group:
 
 ```java
 Map<String, Long> countsByTeam = tickets.stream()
         .collect(Collectors.groupingBy(
                 ticket -> ticket.team() == null
-                        ? "(chưa phân loại)"
+                        ? "(uncategorized)"
                         : ticket.team(),
                 Collectors.counting()
         ));
 
-System.out.println(countsByTeam.get("(chưa phân loại)")); // 1
+System.out.println(countsByTeam.get("(uncategorized)")); // 1
 ```
 
-Khóa thay thế phải thuộc miền dữ liệu và **không được vô tình trùng với khóa hợp lệ thật**. Nếu một team thật tên là `"(chưa phân loại)"`, hai trường hợp bị gộp với nhau. Có thể dùng kiểu khóa riêng để phân biệt hoặc chính sách validation nhằm ngăn sự va chạm đó.
+The fallback key must belong to the data domain and **must not accidentally collide with a real valid key**. If a real team is named `"(uncategorized)"`, the two cases merge together. Use a dedicated key type to distinguish them or a validation policy to prevent that collision.
 
-### 4.4. Biểu diễn khóa vắng mặt như một trạng thái riêng
+### 4.4. Represent an absent key as a distinct state
 
-`Optional` làm khóa `Map` có thể biểu diễn sự thiếu dữ liệu mà không dùng khóa `null`:
+Using `Optional` as a `Map` key can represent missing data without using a `null` key:
 
 ```java
 import java.util.Optional;
@@ -192,11 +192,11 @@ System.out.println(counts.get(Optional.of("backend"))); // 1
 System.out.println(counts.get(Optional.empty()));       // 1
 ```
 
-`Optional.empty()` là **một đối tượng khóa không null**, biểu thị nhóm thiếu team. Khi cần API dữ liệu lâu dài, có thể định nghĩa một kiểu khóa riêng, ví dụ `TeamKey` có trường phân biệt “đã biết/chưa biết”, thay vì dùng một chuỗi đặc biệt dễ va chạm.
+`Optional.empty()` is **a non-null key object** representing the group without a team. For long-lived APIs, consider defining a custom key type, such as `TeamKey` with a field distinguishing known vs. unknown, instead of a collision-prone sentinel string.
 
-### 4.5. Khi thực sự cần giữ khóa `null`
+### 4.5. When you genuinely need to keep a `null` key
 
-Nếu phải tương thích với định dạng cũ vốn quy định **một khóa `null`**, hãy dùng cấu trúc hỗ trợ điều đó và thao tác rõ ràng:
+If you must remain compatible with a legacy format that prescribes **a `null` key**, use a structure that supports it and operate explicitly:
 
 ```java
 import java.util.LinkedHashMap;
@@ -208,14 +208,14 @@ for (Ticket ticket : tickets) {
 }
 
 System.out.println(legacy.containsKey(null)); // true
-System.out.println(legacy.get(null));         // Chưa phân nhóm
+System.out.println(legacy.get(null));         // Uncategorized
 ```
 
-`LinkedHashMap` cho phép khóa `null`; với nhiều bản ghi cùng khóa, `put` sẽ **ghi đè giá trị trước bằng giá trị sau**. Đây là chính sách *last wins* trong vòng lặp tuần tự. Không suy rằng `Collectors.toMap` hoặc `groupingBy` sẽ bảo toàn khóa `null` giống cách này trên mọi JDK.
+`LinkedHashMap` permits a `null` key; with multiple records sharing a key, `put` **overwrites the earlier value with the later one**. That is a *last wins* policy in a sequential loop. Do not assume `Collectors.toMap` or `groupingBy` will preserve `null` keys the same way across all JDKs.
 
-## 5. Bốn chính sách dành cho giá trị `null`
+## 5. Four Policies for `null` Values
 
-Giả sử `email` là thuộc tính tùy chọn:
+Suppose `email` is an optional attribute:
 
 ```java
 List<User> users = List.of(
@@ -225,17 +225,17 @@ List<User> users = List.of(
 );
 ```
 
-Không nên gọi trực tiếp:
+Do not call directly:
 
 ```java
-// Có thể ném NullPointerException khi gặp giá trị null:
+// Can throw NullPointerException when encountering a null value:
 // Map<String, String> byId = users.stream()
 //         .collect(Collectors.toMap(User::id, User::email));
 ```
 
-Ngay cả overload có merge function cũng không biến `null` thành giá trị hợp lệ trong `toMap`.
+Even the overload with a merge function does not make `null` a valid value in `toMap`.
 
-### 5.1. Từ chối giá trị thiếu
+### 5.1. Reject missing values
 
 ```java
 Map<String, String> requiredEmails = users.stream()
@@ -243,14 +243,14 @@ Map<String, String> requiredEmails = users.stream()
                 User::id,
                 user -> Objects.requireNonNull(
                         user.email(),
-                        "Thiếu email của " + user.id()
+                        "Missing email for " + user.id()
                 )
         ));
 ```
 
-Giải pháp này phù hợp khi email bắt buộc; lỗi sẽ được bộc lộ khi terminal `collect` tiêu thụ phần tử.
+This solution fits when email is mandatory; the error surfaces as the terminal `collect` consumes elements.
 
-### 5.2. Loại bản ghi chưa có giá trị
+### 5.2. Exclude records without a value
 
 ```java
 Map<String, String> knownEmails = users.stream()
@@ -260,27 +260,27 @@ Map<String, String> knownEmails = users.stream()
 System.out.println(knownEmails.containsKey("u2")); // false
 ```
 
-Chính sách này **không giữ bản ghi `u2` trong map kết quả**. Nếu ý nghĩa nghiệp vụ là “người dùng tồn tại nhưng email chưa xác định”, nên dùng cách khác.
+This policy **does not retain record `u2` in the resulting map**. If the business meaning is "the user exists, but their email is not yet known", use another approach.
 
-### 5.3. Thay `null` bằng giá trị mặc định
+### 5.3. Replace `null` with a default value
 
 ```java
 Map<String, String> emailsWithFallback = users.stream()
         .collect(Collectors.toMap(
                 User::id,
                 user -> user.email() == null
-                        ? "(chưa có email)"
+                        ? "(no email)"
                         : user.email()
         ));
 
-System.out.println(emailsWithFallback.get("u2")); // (chưa có email)
+System.out.println(emailsWithFallback.get("u2")); // (no email)
 ```
 
-Giá trị mặc định phải được định nghĩa rõ để không bị hiểu nhầm là email thật. Việc thay thế đồng nghĩa đã **biến đổi thông tin**, nên các bước tiếp theo cần biết đó là placeholder.
+The default value must be clearly defined so it is not mistaken for a real email. Substituting a fallback **transforms the information**, so downstream consumers must know it is a placeholder.
 
-### 5.4. Giữ ý nghĩa “có khóa nhưng chưa có giá trị”
+### 5.4. Preserve the meaning "key present, value not yet set"
 
-Một cách tương thích với `toMap` là dùng `Optional` làm giá trị:
+One `toMap`-compatible approach is using `Optional` as the value:
 
 ```java
 import java.util.Optional;
@@ -296,13 +296,13 @@ System.out.println(optionalEmails.get("u2").isEmpty());    // true
 System.out.println(optionalEmails.containsKey("u4"));      // false
 ```
 
-Trong map này, **mọi giá trị `Optional` đều không null**; `Optional.empty()` biểu thị email chưa có. Phân biệt một `Optional.empty()` ở khóa hiện hữu với khóa không tồn tại vẫn cần `containsKey` hoặc truy xuất có kiểm soát, vì `Map.get` trả `null` khi không có mapping.
+In this map, **every `Optional` value is non-null**; `Optional.empty()` indicates the email is absent. Distinguishing an `Optional.empty()` on an existing key from a missing key still requires `containsKey` or guarded access, because `Map.get` returns `null` when no mapping exists.
 
-Đây là một lựa chọn mô hình hóa khi cần phân biệt ba trạng thái rõ ràng, dù có thêm đối tượng bao và chi phí đọc kiểu dữ liệu. Trong API lớn, một record diễn đạt các trạng thái nghiệp vụ có thể phù hợp hơn việc lồng nhiều `Optional`.
+This is a valid modeling option when three states must be distinguished cleanly, despite the extra wrapper object and type-reading overhead. In large APIs, a record representing domain states can be cleaner than nesting `Optional` everywhere.
 
-### 5.5. Nếu cần giữ giá trị `null` thực sự
+### 5.5. When real `null` values must be stored
 
-`HashMap` và `LinkedHashMap` cho phép giá trị `null`:
+`HashMap` and `LinkedHashMap` allow `null` values:
 
 ```java
 Map<String, String> rawEmails = new LinkedHashMap<>();
@@ -314,11 +314,11 @@ System.out.println(rawEmails.containsKey("u2")); // true
 System.out.println(rawEmails.get("u2"));         // null
 ```
 
-Đây là chính sách lưu `null` thực sự, thích hợp khi phải tương thích dữ liệu cũ. Nó đòi người tiêu thụ map luôn phân biệt `containsKey` với `get`. Không chọn `Collectors.toMap` để thực hiện việc này chỉ vì `HashMap` hỗ trợ `null`.
+This policy stores actual `null`s, suitable when legacy data compatibility is required. It demands that map consumers always distinguish `containsKey` from `get`. Do not pick `Collectors.toMap` for this task solely because `HashMap` supports `null`.
 
-## 6. Trùng khóa và `null` tương tác ra sao?
+## 6. How Do Duplicate Keys and `null` Interact?
 
-Mỗi khóa trong `Map` chỉ có một mapping tại một thời điểm. Nếu đầu vào có nhiều bản ghi cùng khóa, phải chỉ rõ cách chọn hoặc kết hợp giá trị:
+Each key in a `Map` has only one mapping at a time. If the input has multiple records sharing a key, you must specify how values are selected or combined:
 
 ```java
 List<User> updates = List.of(
@@ -336,11 +336,11 @@ Map<String, String> latest = updates.stream()
 System.out.println(latest.get("u1")); // new@example.com
 ```
 
-Ở đây merge function **chọn giá trị mới hơn theo encounter order** của danh sách được xử lý theo cách có thứ tự. Với nguồn không có encounter order hoặc khi yêu cầu “mới nhất” dựa trên thời gian nghiệp vụ, không dùng thứ tự tình cờ của pipeline: hãy so sánh timestamp hoặc version rõ ràng.
+Here the merge function **picks the later value according to the encounter order** of an ordered list processed sequentially. For sources without an encounter order or when "latest" means business time, do not rely on incidental pipeline order: compare timestamps or versions explicitly.
 
-Nếu một bản ghi cập nhật có `email == null`, merge function trên **không cứu được** lỗi do value mapper trả `null`. Trước tiên phải chọn chính sách trong mục 5: từ chối, bỏ, thay thế hay dùng `Optional`.
+If an update record has `email == null`, the merge function above **cannot rescue** the failure caused by the value mapper returning `null`. First choose a policy from Section 5: reject, skip, substitute, or use `Optional`.
 
-Ví dụ “bản cập nhật mới nhất kể cả khi email thiếu”:
+Example of "latest update even when email is missing":
 
 ```java
 Map<String, Optional<String>> latestUpdates = List.of(
@@ -355,7 +355,7 @@ Map<String, Optional<String>> latestUpdates = List.of(
 System.out.println(latestUpdates.get("u1").isEmpty()); // true
 ```
 
-Đây là **quy tắc ghi đè bằng bản cập nhật cuối cùng**, trong đó `Optional.empty()` có nghĩa cập nhật đã chủ động đặt email thành thiếu. Nếu `null` có nghĩa “không thay đổi trường hiện tại”, merge function phải được thiết kế khác:
+This is a **last-update-overwrites rule**, where `Optional.empty()` means the update explicitly cleared the email. If `null` means "leave the current field unchanged", the merge function must be written differently:
 
 ```java
 Map<String, Optional<String>> keepOldWhenMissing = List.of(
@@ -371,27 +371,27 @@ System.out.println(keepOldWhenMissing.get("u1").orElseThrow());
 // old@example.com
 ```
 
-Hai kết quả này **đều hợp lệ về kỹ thuật** nhưng mang ý nghĩa nghiệp vụ khác nhau. Phải đưa chính sách vào code thay vì đoán `null` là “xóa” hay “bỏ qua”.
+Both outcomes are **technically valid** yet carry different business meanings. Encode the policy explicitly instead of guessing whether `null` means "delete" or "ignore".
 
-## 7. Tại sao `groupingBy` không tự gom khóa `null`?
+## 7. Why Does `groupingBy` Not Automatically Group `null` Keys?
 
-`Collectors.groupingBy(classifier)` dùng khóa do classifier tạo ra. Trong các triển khai JDK thông dụng, khi classifier trả `null`, collector ném `NullPointerException` với thông báo gần như “element cannot be mapped to a null key”. Kể cả `HashMap` có thể chứa khóa `null`, **`groupingBy` không cung cấp hợp đồng cho khóa nhóm `null`**.
+`Collectors.groupingBy(classifier)` uses keys produced by the classifier. In standard JDK implementations, when the classifier returns `null`, the collector throws `NullPointerException` with a message along the lines of "element cannot be mapped to a null key". Even though `HashMap` can hold a `null` key, **`groupingBy` does not provide a contract for `null` group keys**.
 
 ```java
-// Không chạy: có ticket với team == null.
+// Do not run: there is a ticket with team == null.
 // Map<String, List<Ticket>> groups = tickets.stream()
 //         .collect(Collectors.groupingBy(Ticket::team));
 ```
 
-Thay vào đó, hãy biến quyết định thành code:
+Instead, encode the decision in code:
 
 ```java
-// Phương án 1: bỏ bản ghi thiếu khóa.
+// Option 1: drop records missing a key.
 Map<String, List<Ticket>> knownGroups = tickets.stream()
         .filter(ticket -> ticket.team() != null)
         .collect(Collectors.groupingBy(Ticket::team));
 
-// Phương án 2: tách hẳn một nhóm khóa Optional.empty().
+// Option 2: separate into an Optional.empty() key group.
 Map<Optional<String>, List<Ticket>> allGroups = tickets.stream()
         .collect(Collectors.groupingBy(
                 ticket -> Optional.ofNullable(ticket.team())
@@ -400,11 +400,11 @@ Map<Optional<String>, List<Ticket>> allGroups = tickets.stream()
 System.out.println(allGroups.get(Optional.empty()).size()); // 1
 ```
 
-`groupingByConcurrent` cũng không phải cách né kiểm tra khóa `null`: kết quả thường là `ConcurrentMap`, và khóa phân nhóm `null` không được hỗ trợ. Muốn hỗ trợ một nhóm thiếu thông tin, dùng khóa không null như `Optional.empty()` hoặc giá trị miền dữ liệu đã quy định.
+`groupingByConcurrent` is also not a workaround to bypass `null` key checks: its result is typically a `ConcurrentMap`, and `null` grouping keys are unsupported. To support a group for missing information, use a non-null key such as `Optional.empty()` or a defined domain value.
 
-### 7.1. Dùng `partitioningBy` khi chỉ có hai trường hợp
+### 7.1. Using `partitioningBy` when there are only two cases
 
-Nếu chỉ cần chia “có team” và “thiếu team”, có thể dùng `partitioningBy`, vì khóa là `Boolean` không null:
+If you only need to split "has team" and "missing team", you can use `partitioningBy`, because the key is a non-null `Boolean`:
 
 ```java
 Map<Boolean, List<Ticket>> byMissingTeam = tickets.stream()
@@ -412,15 +412,15 @@ Map<Boolean, List<Ticket>> byMissingTeam = tickets.stream()
                 ticket -> ticket.team() == null
         ));
 
-System.out.println(byMissingTeam.get(true).size());  // 1: thiếu team
-System.out.println(byMissingTeam.get(false).size()); // 2: có team
+System.out.println(byMissingTeam.get(true).size());  // 1: missing team
+System.out.println(byMissingTeam.get(false).size()); // 2: has team
 ```
 
-Cách này giữ cả hai nhóm và không cần một chuỗi placeholder. Nhưng nó chỉ biểu diễn hai trạng thái; khi muốn phân nhóm theo giá trị team cụ thể, sử dụng `groupingBy` với classifier không null.
+This keeps both groups without needing a placeholder string. However, it only represents two states; when grouping by specific team values, use `groupingBy` with a non-null classifier.
 
-## 8. `Map.merge` và `computeIfAbsent`: `null` còn có ý nghĩa đặc biệt
+## 8. `Map.merge` and `computeIfAbsent`: `null` Has Special Semantics Too
 
-Nhiều collector và chương trình cập nhật map dựa trên cơ chế `Map.merge`. Phải hiểu luật của chính `Map`:
+Many collectors and map-updating routines rely on `Map.merge`. You must understand the rules of `Map` itself:
 
 ```java
 Map<String, Integer> counts = new HashMap<>();
@@ -429,12 +429,12 @@ counts.merge("java", 1, Integer::sum);
 System.out.println(counts.get("java")); // 2
 ```
 
-Với `merge(key, value, remappingFunction)`:
+With `merge(key, value, remappingFunction)`:
 
-- Đối số `value` được đưa vào **phải khác `null`**.
-- Nếu khóa chưa có mapping hoặc đang có giá trị `null`, `merge` đặt giá trị mới mà không cần gọi hàm gộp.
-- Nếu khóa đã có giá trị không null, hàm gộp nhận giá trị cũ và mới.
-- Nếu hàm gộp **trả `null`**, mapping cho khóa đó bị **xóa**.
+- The supplied `value` argument **must be non-`null`**.
+- If the key has no mapping or currently maps to `null`, `merge` sets the new value without invoking the merge function.
+- If the key already has a non-null value, the merge function receives the old and new values.
+- If the merge function **returns `null`**, the mapping for that key is **removed**.
 
 ```java
 Map<String, String> map = new HashMap<>();
@@ -443,14 +443,14 @@ map.merge("k", "A", String::concat);
 System.out.println(map.get("k")); // A
 
 map.merge("k", "B", (oldValue, newValue) -> null);
-System.out.println(map.containsKey("k")); // false: merge đã xóa mapping
+System.out.println(map.containsKey("k")); // false: merge removed the mapping
 
 // map.merge("k", null, (a, b) -> a); // NullPointerException
 ```
 
-Vì `null` là tín hiệu đặc biệt của `merge`, không dùng hàm merge trả `null` để biểu thị “giữ bản ghi với giá trị `null`”. Nó sẽ loại bỏ mapping.
+Because `null` is a special signal in `merge`, do not return `null` from a merge function to mean "keep the entry with a `null` value". It deletes the mapping.
 
-`computeIfAbsent` cũng có quy tắc riêng: nếu khóa chưa có mapping hoặc đang ánh xạ tới `null`, nó gọi hàm tạo giá trị; nếu hàm trả `null`, phương thức không ghi giá trị mới:
+`computeIfAbsent` also has its own rule: if the key has no mapping or maps to `null`, it invokes the mapping function; if that function returns `null`, the method does not record a new mapping:
 
 ```java
 Map<String, String> cache = new HashMap<>();
@@ -458,11 +458,11 @@ cache.computeIfAbsent("u1", key -> null);
 System.out.println(cache.containsKey("u1")); // false
 ```
 
-Đừng đồng nhất “không tìm thấy mapping” với “mapping có giá trị null” khi chọn API cập nhật.
+Do not equate "no mapping found" with "mapping with a null value" when choosing update APIs.
 
-## 9. Kết quả không thể chỉnh sửa và chính sách `null`
+## 9. Unmodifiable Results and `null` Policies
 
-Các cách tạo map không thể chỉnh sửa thường có hợp đồng **cấm khóa và giá trị null**:
+Unmodifiable map factories generally have contracts that **forbid `null` keys and values**:
 
 ```java
 import java.util.Map;
@@ -481,15 +481,15 @@ Map<String, String> result = users.stream()
         ));
 ```
 
-`toUnmodifiableMap` từ Java 10 từ chối cả khóa và giá trị `null`; nếu khóa trùng mà không cung cấp merge function, nó cũng ném `IllegalStateException`. `Map.copyOf` (Java 10+) tương tự từ chối `null` trong map nguồn. `Map.of` (Java 9+) từ chối `null` và khóa trùng ngay khi tạo.
+`toUnmodifiableMap` (since Java 10) rejects both `null` keys and `null` values; if keys collide without a merge function, it also throws `IllegalStateException`. `Map.copyOf` (Java 10+) likewise rejects `null` in the source map. `Map.of` (Java 9+) rejects `null` and duplicate keys at creation time.
 
-Nếu **bắt buộc** có map không cho chỉnh sửa nhưng vẫn chứa `null`, có thể tạo bản sao `HashMap` rồi bọc bằng `Collections.unmodifiableMap`:
+If you **must** have an unmodifiable map that still contains `null`, you can copy into a `HashMap` and wrap it with `Collections.unmodifiableMap`:
 
 ```java
 import java.util.Collections;
 
 Map<String, String> legacy = new HashMap<>();
-legacy.put(null, "không có mã");
+legacy.put(null, "no code");
 legacy.put("u1", null);
 
 Map<String, String> readOnly =
@@ -500,11 +500,11 @@ System.out.println(readOnly.containsKey("u1")); // true
 // readOnly.put("u2", "x"); // UnsupportedOperationException
 ```
 
-Bản sao làm cho việc sửa `legacy` sau đó không ảnh hưởng trực tiếp đến `readOnly`. Tuy nhiên, đây là **bất biến nông**: nếu giá trị là object mutable, bên gọi vẫn có thể thay đổi trạng thái bên trong object đó. Bản wrapper không tự biến dữ liệu thành deep immutable.
+Copying ensures subsequent edits to `legacy` do not directly affect `readOnly`. However, this is **shallow immutability**: if values are mutable objects, callers can still mutate internal state of those objects. The wrapper does not automatically make data deeply immutable.
 
-## 10. Xử lý song song: tính đúng đắn trước, hiệu năng sau
+## 10. Parallel Execution: Correctness First, Performance Second
 
-Một pipeline `parallelStream()` có thể chia nguồn và tích lũy vào nhiều map trung gian rồi kết hợp chúng. Đối với `toMap`, việc gộp các map có thể tốn chi phí, đặc biệt nếu nhiều khóa trùng:
+A `parallelStream()` pipeline can split the source, accumulate into multiple intermediate maps, and combine them. For `toMap`, merging maps can be costly, especially when many keys collide:
 
 ```java
 Map<String, Long> eventCounts = List.of(
@@ -517,39 +517,39 @@ Map<String, Long> eventCounts = List.of(
 System.out.println(eventCounts.get("open")); // 2
 ```
 
-Không cập nhật một `HashMap` bên ngoài bằng nhiều thread qua `forEach`:
+Do not update an external `HashMap` from multiple threads via `forEach`:
 
 ```java
 Map<String, String> shared = new HashMap<>();
 
-// Sai: HashMap dùng chung không an toàn trước cập nhật đồng thời.
+// Wrong: shared HashMap is unsafe under concurrent updates.
 // users.parallelStream().forEach(user ->
 //         shared.put(user.id(), user.email()));
 ```
 
-Một số lưu ý:
+Several reminders:
 
-1. `Collectors.toMap` không cam kết `Map` trả về là thread-safe. `collect` quản lý các map trung gian theo hợp đồng collector; không có nghĩa bên ngoài có thể đồng thời sửa map kết quả tùy ý.
-2. `Collectors.toConcurrentMap` và `groupingByConcurrent` hướng đến kết quả đồng thời, nhưng các cấu trúc concurrent thường **không cho phép khóa hoặc giá trị `null`**. Không chuyển sang collector concurrent chỉ để xử lý dữ liệu có `null`.
-3. Nếu merge function chọn “bản đầu” hoặc “bản cuối”, phải xét encounter order và ngữ nghĩa kết hợp. Với dữ liệu không có thứ tự, dùng khóa thời gian/phiên bản rõ ràng nếu muốn chọn “mới nhất”.
-4. Nếu nguồn có bản ghi thiếu dữ liệu, hãy chuẩn hóa/lọc/kiểm tra theo chính sách trước khi tích lũy song song. Một lỗi từ mapper có thể xuất hiện trong worker thread và được lan về terminal operation.
-5. Không mặc định `parallel()` nhanh hơn. Bảo trì các map trung gian, ghép kết quả và đồng bộ có thể khiến pipeline nhỏ chậm hơn; chỉ chọn song song sau khi đo trên dữ liệu phù hợp.
+1. `Collectors.toMap` does not guarantee that the returned `Map` is thread-safe. `collect` manages intermediate maps per the collector contract; it does not mean external code can mutate the result map concurrently at will.
+2. `Collectors.toConcurrentMap` and `groupingByConcurrent` target concurrent results, yet concurrent structures generally **forbid `null` keys and values**. Do not switch to a concurrent collector just to process data with `null`.
+3. If the merge function picks the "first" or "last" item, consider encounter order and associativity semantics. For unordered data, use an explicit timestamp/version key when picking "latest".
+4. If the source has records with missing data, normalize/filter/validate according to policy before parallel accumulation. A mapper failure may occur on a worker thread and propagate to the terminal operation.
+5. Do not assume `parallel()` is faster. Maintaining intermediate maps, merging results, and synchronization can slow down small pipelines; choose parallel execution only after measuring on suitable data.
 
-## 11. Vòng đời stream và nguồn dữ liệu lớn
+## 11. Stream Lifecycle and Large Data Sources
 
-`filter`, `map` và các thao tác trung gian là lazy: chúng mô tả quy tắc xử lý, còn `collect` thực sự tiêu thụ stream. Một lỗi do mapper trả `null` thường chỉ xuất hiện khi terminal operation chạy.
+`filter`, `map`, and intermediate operations are lazy: they describe processing rules, while `collect` actually consumes the stream. An error from a mapper returning `null` usually surfaces only when the terminal operation runs.
 
 ```java
 var pipeline = users.stream()
         .map(User::email);
-// Chưa tiêu thụ pipeline.
+// Pipeline not yet consumed.
 
-// Khi terminal operation yêu cầu dữ liệu mới phát sinh xử lý thực tế.
+// Actual processing occurs only when a terminal operation requests data.
 long missing = pipeline.filter(Objects::isNull).count();
 System.out.println(missing); // 1
 ```
 
-Không dùng lại chính `pipeline` sau `count()`; Stream chỉ dành cho một lần tiêu thụ. Với nguồn mở tài nguyên như `Files.lines(path)`, dùng `try-with-resources` để đóng tài nguyên:
+Do not reuse `pipeline` after `count()`; a Stream is for single-use consumption only. For resource-backed sources like `Files.lines(path)`, use `try-with-resources` to close the resource:
 
 ```java
 import java.io.IOException;
@@ -572,11 +572,11 @@ static Map<String, String> readPairs(Path path) throws IOException {
 }
 ```
 
-Ví dụ quy ước không chấp nhận khóa trống, cho phép giá trị chuỗi rỗng `""` và chọn bản sau cùng khi khóa xuất hiện lại. Trong ứng dụng thực, định dạng dữ liệu cần quy định rõ cách escape dấu `=`, encoding, dòng lỗi và thông tin nhạy cảm. `Collectors.toMap` phải giữ toàn bộ các cặp khóa/giá trị trong bộ nhớ; không áp dụng trực tiếp trên nguồn vô hạn nếu không có giới hạn kết thúc.
+This example forbids blank keys, permits empty string values `""`, and picks the last occurrence when a key repeats. In production applications, the data format must clearly define escaping for `=`, character encoding, malformed lines, and sensitive data handling. `Collectors.toMap` must retain all key/value pairs in memory; do not apply it directly to an infinite source without a terminating limit.
 
-## 12. Ví dụ tổng hợp có thể chạy (Java 17+)
+## 12. Runnable Consolidated Example (Java 17+)
 
-Chương trình độc lập dưới đây minh họa ba chính sách khác nhau: loại `null`, giữ dấu hiệu thiếu bằng `Optional`, và thực sự giữ khóa/giá trị `null` trong `LinkedHashMap`.
+The standalone program below demonstrates three different policies: dropping `null`, preserving absence markers with `Optional`, and genuinely storing `null` keys/values in a `LinkedHashMap`.
 
 ```java
 import java.util.LinkedHashMap;
@@ -596,13 +596,13 @@ public class NullMapPolicyDemo {
                 new User("u3", "frontend", "chi@example.com")
         );
 
-        // 1. Bỏ giá trị null: u2 không được đưa vào map email.
+        // 1. Drop null values: u2 is excluded from the email map.
         Map<String, String> knownEmails = users.stream()
                 .filter(user -> user.email() != null)
                 .collect(Collectors.toMap(User::id, User::email));
         System.out.println(knownEmails.containsKey("u2")); // false
 
-        // 2. Giữ thông tin "có user nhưng chưa có email".
+        // 2. Preserve the "user exists without email" state.
         Map<String, Optional<String>> emailStates = users.stream()
                 .collect(Collectors.toMap(
                         User::id,
@@ -611,7 +611,7 @@ public class NullMapPolicyDemo {
         System.out.println(emailStates.containsKey("u2"));   // true
         System.out.println(emailStates.get("u2").isEmpty()); // true
 
-        // 3. Phân nhóm theo team, coi thiếu team là một nhóm riêng.
+        // 3. Group by team, treating missing team as its own group.
         Map<Optional<String>, Long> teamCounts = users.stream()
                 .collect(Collectors.groupingBy(
                         user -> Optional.ofNullable(user.team()),
@@ -619,7 +619,7 @@ public class NullMapPolicyDemo {
                 ));
         System.out.println(teamCounts.get(Optional.empty())); // 1
 
-        // 4. Nếu bắt buộc tương thích Map legacy có null thật.
+        // 4. When legacy Map compatibility with real nulls is required.
         Map<String, String> legacy = new LinkedHashMap<>();
         for (User user : users) {
             legacy.put(user.team(), user.email());
@@ -627,7 +627,7 @@ public class NullMapPolicyDemo {
         System.out.println(legacy.containsKey(null)); // true
         System.out.println(legacy.get(null));         // null
 
-        // 5. Chính sách không null và không cho chỉnh sửa.
+        // 5. Non-null and unmodifiable policy.
         Map<String, String> immutableEmails = users.stream()
                 .filter(user -> user.email() != null)
                 .collect(Collectors.toUnmodifiableMap(
@@ -639,52 +639,52 @@ public class NullMapPolicyDemo {
 }
 ```
 
-Chương trình tránh phụ thuộc vào thứ tự duyệt của map do `toMap`, `groupingBy` hoặc `toUnmodifiableMap` tạo ra. Nó kiểm tra nội dung bằng `containsKey`, `get` và `size`, là những hợp đồng phù hợp với mục đích minh họa.
+The program avoids depending on iteration order of maps produced by `toMap`, `groupingBy`, or `toUnmodifiableMap`. It verifies contents using `containsKey`, `get`, and `size`, which are the contracts suited to the demonstration's purpose.
 
-## 13. Bảng chọn chính sách
+## 13. Policy Selection Table
 
-| Yêu cầu nghiệp vụ | Chính sách gợi ý |
+| Business Requirement | Suggested Policy |
 |---|---|
-| Khóa bắt buộc, thiếu khóa là dữ liệu lỗi | Kiểm tra `Objects.requireNonNull` hoặc validation rõ ràng |
-| Chỉ tổng hợp bản ghi có khóa | `filter(row -> row.key() != null)` |
-| Cần nhóm riêng cho khóa thiếu | Khóa thay thế không va chạm, `Optional.empty()` hoặc kiểu khóa miền dữ liệu |
-| Phải lưu khóa `null` vì giao thức cũ | Dùng `HashMap`/`LinkedHashMap` trực tiếp và kiểm soát chính sách ghi đè |
-| Giá trị bắt buộc, `null` là lỗi | Validate trước `toMap` hoặc reject trong value mapper |
-| Giá trị thiếu thì bỏ bản ghi | `filter(row -> row.value() != null)` |
-| Giá trị thiếu phải được phân biệt với khóa không có | `Map<K, Optional<V>>` hoặc kiểu trạng thái miền dữ liệu |
-| Phải lưu giá trị `null` thực sự | Dùng map hỗ trợ `null` và phân biệt `containsKey` với `get` |
-| Khóa trùng nhưng chỉ lấy bản mới nhất | Merge theo timestamp/version rõ ràng; không đoán từ thứ tự không được bảo đảm |
-| Kết quả không thể chỉnh sửa và không cho `null` | `Collectors.toUnmodifiableMap` hoặc `Map.copyOf` |
-| Kết quả không thể sửa nhưng vẫn cần `null` | Bọc bản sao bằng `Collections.unmodifiableMap` và hiểu giới hạn bất biến nông |
+| Key mandatory; missing key is invalid data | Check with `Objects.requireNonNull` or explicit validation |
+| Aggregate only records that have a key | `filter(row -> row.key() != null)` |
+| Need a separate group for missing keys | Non-colliding fallback key, `Optional.empty()`, or domain key type |
+| Must store `null` keys for a legacy protocol | Use `HashMap`/`LinkedHashMap` directly and control overwrite policy |
+| Value mandatory; `null` is an error | Validate before `toMap` or reject inside the value mapper |
+| Drop records when value is missing | `filter(row -> row.value() != null)` |
+| Missing value must be distinct from absent key | `Map<K, Optional<V>>` or domain status type |
+| Must store real `null` values | Use a `null`-supporting map and distinguish `containsKey` from `get` |
+| Duplicate keys where only the latest matters | Merge by explicit timestamp/version; do not guess from unguaranteed order |
+| Unmodifiable result forbidding `null` | `Collectors.toUnmodifiableMap` or `Map.copyOf` |
+| Unmodifiable result that still needs `null` | Wrap a copy with `Collections.unmodifiableMap` and note shallow immutability |
 
-## 14. Sai lầm thường gặp
+## 14. Common Mistakes
 
-| Ngộ nhận | Hậu quả | Cách sửa |
+| Misconception | Consequence | Fix |
 |---|---|---|
-| “`HashMap` nhận `null`, vậy `toMap` cũng nhận mọi `null`” | `toMap` có hợp đồng riêng; value mapper `null` có thể ném lỗi | Chọn chính sách `null` trước collector |
-| “`groupingBy` có thể nhóm bằng khóa `null`” | Classifier trả `null` thường gây `NullPointerException` | Dùng `Optional.empty()` hoặc khóa thay thế |
-| “Có merge function thì `toMap` sẽ cho phép value mapper trả `null`” | Merge không xử lý trường hợp giá trị đầu vào `null` | Biến `null` thành giá trị không null trước |
-| “`get(k) == null` nghĩa là khóa không tồn tại” | Không phân biệt missing key và stored null | Kiểm tra `containsKey` |
-| “`Map.merge(k, v, fn)` có thể nhận `v == null`” | Ném `NullPointerException` | Chỉ truyền giá trị không null |
-| “Remapping function trả `null` sẽ lưu `null`” | `Map.merge` xóa mapping | Dùng chính sách lưu `null` riêng |
-| “`Map.copyOf` giúp đóng băng cả map chứa `null`” | `null` không được chấp nhận | Bỏ/chuẩn hóa `null` hoặc dùng wrapper phù hợp |
-| “`parallelStream().forEach(map::put)` là cách tạo map nhanh” | Map dùng chung không thread-safe | Dùng collector hoặc cấu trúc đồng thời được thiết kế đúng |
-| “Thay khóa `null` bằng chuỗi bất kỳ là luôn an toàn” | Có thể trùng với khóa thật và gộp nhầm | Chọn kiểu khóa biểu diễn missing rõ ràng |
-| “Không có email nghĩa là không có user” | Mất phân biệt giữa bản ghi tồn tại và thuộc tính thiếu | Dùng `Optional`/trạng thái rõ ràng hoặc giữ mapping có null |
+| "`HashMap` accepts `null`, so `toMap` accepts all `null`s too" | `toMap` has its own contract; a `null` value mapper can throw | Choose a `null` policy before the collector |
+| "`groupingBy` can group using `null` keys" | A classifier returning `null` usually throws `NullPointerException` | Use `Optional.empty()` or a fallback key |
+| "Adding a merge function lets `toMap`'s value mapper return `null`" | Merge does not handle `null` incoming values | Convert `null` to a non-null value beforehand |
+| "`get(k) == null` means the key does not exist" | Confuses a missing key with a stored `null` | Check `containsKey` |
+| "`Map.merge(k, v, fn)` can accept `v == null`" | Throws `NullPointerException` | Only pass non-null values |
+| "Returning `null` from a remapping function stores `null`" | `Map.merge` deletes the mapping | Use an explicit `null`-storing policy |
+| "`Map.copyOf` freezes even maps containing `null`" | `null` is rejected | Remove/normalize `null` or use an appropriate wrapper |
+| "`parallelStream().forEach(map::put)` is a fast way to build a map" | Shared map is not thread-safe | Use a collector or properly designed concurrent structure |
+| "Replacing a `null` key with any string is always safe" | May collide with a real key and merge wrongly | Use a key type that cleanly represents missingness |
+| "No email means no user" | Loses distinction between existing record and missing attribute | Use `Optional`/explicit state or keep a null-valued mapping |
 
-## 15. Tự kiểm tra
+## 15. Self-Check
 
-1. **`HashMap` có thể chứa khóa `null` không?** Có, nhưng điều đó không bảo đảm `Collectors.toMap` hoặc `groupingBy` chấp nhận khóa `null`.
-2. **Vì sao `map.get("u2") == null` chưa đủ để kết luận `u2` không tồn tại?** Vì `u2` có thể đã được ánh xạ đến giá trị `null`; cần thêm `containsKey`.
-3. **`Collectors.toMap(User::id, User::email)` có an toàn khi email `null` không?** Không. Cần chọn chính sách xử lý trước khi collect.
-4. **Muốn bỏ các bản ghi có team `null`, đặt bước nào trước `toMap`?** `filter(user -> user.team() != null)`.
-5. **Muốn vẫn nhóm các bản ghi có team `null` với `groupingBy`, làm thế nào?** Dùng classifier trả `Optional.ofNullable(team)` hoặc khóa thay thế không null.
-6. **`toUnmodifiableMap` có cho phép khóa hoặc giá trị `null` không?** Không; nó từ chối cả hai.
-7. **`Map.merge` có tác dụng gì khi remapping function trả `null`?** Xóa mapping cho khóa đó.
-8. **Khi `computeIfAbsent` nhận kết quả `null` từ mapping function, điều gì xảy ra?** Không tạo mapping mới nếu khóa đang vắng hoặc ánh xạ `null`.
-9. **Vì sao placeholder `"(chưa phân loại)"` có thể nguy hiểm?** Vì có thể trùng với tên nhóm thật, làm gộp hai loại dữ liệu khác nghĩa.
-10. **Muốn giữ trạng thái có người dùng nhưng chưa có email mà vẫn dùng `toMap`, chọn kiểu giá trị nào?** Có thể dùng `Optional<String>`, với `Optional.empty()` biểu thị email thiếu.
-11. **Với khóa trùng và bản ghi cập nhật có giá trị `null`, cần quyết định gì?** `null` là “xóa giá trị”, “bỏ qua cập nhật”, “thay mặc định”, hay lỗi; merge function phải thực hiện đúng chính sách.
-12. **Làm sao tạo map chỉ đọc vẫn có `null` để tương thích giao thức cũ?** Sao chép vào `HashMap` rồi bọc bằng `Collections.unmodifiableMap`; lưu ý đây là bất biến nông.
+1. **Can `HashMap` contain a `null` key?** Yes, but that does not guarantee `Collectors.toMap` or `groupingBy` accepts `null` keys.
+2. **Why is `map.get("u2") == null` insufficient to conclude `u2` does not exist?** Because `u2` may be mapped to `null`; you also need `containsKey`.
+3. **Is `Collectors.toMap(User::id, User::email)` safe when email can be `null`?** No. You must choose a handling policy before collecting.
+4. **To drop records with `team == null`, what step goes before `toMap`?** `filter(user -> user.team() != null)`.
+5. **To still group records with `team == null` using `groupingBy`, how do you do it?** Use a classifier returning `Optional.ofNullable(team)` or a non-null fallback key.
+6. **Does `toUnmodifiableMap` allow `null` keys or values?** No; it rejects both.
+7. **What does `Map.merge` do when the remapping function returns `null`?** Removes the mapping for that key.
+8. **When `computeIfAbsent` gets `null` from the mapping function, what happens?** It does not create a new mapping if the key is absent or mapped to `null`.
+9. **Why can a placeholder like `"(uncategorized)"` be dangerous?** Because it may collide with a real group name, merging two semantically different datasets.
+10. **To preserve the state "user exists without email" while still using `toMap`, what value type should you choose?** You can use `Optional<String>`, with `Optional.empty()` representing a missing email.
+11. **With duplicate keys and an update record having a `null` value, what must you decide?** Whether `null` means "delete value", "ignore update", "use default", or error; the merge function must implement that exact policy.
+12. **How do you create a read-only map that still contains `null` for legacy protocol compatibility?** Copy into a `HashMap` and wrap with `Collections.unmodifiableMap`; note this is shallow immutability.
 
-**Ghi nhớ:** `null` ở **khóa** và `null` ở **giá trị** biểu thị những vấn đề khác nhau. Trước khi `collect` thành `Map`, phải xác định ứng dụng sẽ **từ chối, bỏ qua, thay thế, biểu diễn trạng thái thiếu hay giữ nguyên `null`** cho từng trường hợp. Sau đó chọn đúng collector và loại map, quy tắc xử lý khóa trùng và hợp đồng về thứ tự/khả năng chỉnh sửa. Cách làm này giúp pipeline khai báo có kết quả dự đoán được cả khi dữ liệu không đầy đủ và khi thực thi song song.
+**Takeaway:** `null` in **keys** and `null` in **values** represent different problems. Before calling `collect` into a `Map`, decide whether the application will **reject, skip, substitute, explicitly model absence, or store `null` directly** in each case. Then choose the right collector and map type, duplicate-key handling rules, and ordering/mutability contracts. Doing so ensures declarative pipelines produce predictable results even with incomplete data and parallel execution.

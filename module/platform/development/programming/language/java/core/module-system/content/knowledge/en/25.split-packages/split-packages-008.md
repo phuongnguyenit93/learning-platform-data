@@ -1,10 +1,10 @@
-# Không dùng open hoặc export để che lỗi split package
+# Do Not Use open or export to Mask Split Package Errors
 
-## 1. Split package là gì?
+## 1. What Is a Split Package?
 
-Trong Java, package là một phần của tên đầy đủ của class. Ví dụ, class \`com.acme.shared.Strings\` thuộc package \`com.acme.shared\`.
+In Java, a package is part of a class's fully qualified name. For example, the class \`com.acme.shared.Strings\` belongs to the package \`com.acme.shared\`.
 
-**Split package** xảy ra khi cùng một package name được chứa trong nhiều module hoặc nhiều artifact. Ví dụ:
+A **split package** occurs when the same package name is contained in multiple modules or multiple artifacts. For example:
 
 ~~~text
 library-a.jar
@@ -14,70 +14,70 @@ library-b.jar
   com/acme/shared/DateFormats.class
 ~~~
 
-Cả hai JAR đều chứa package \`com.acme.shared\`. Khi hai thư viện được dùng chung trên classpath, tình trạng này có thể tồn tại trong các hệ thống class loader truyền thống. Tuy nhiên, khi chuyển sang JPMS, package có ranh giới module rõ ràng và việc cùng một package xuất hiện ở nhiều named module có thể gây xung đột trong module graph hoặc khi tạo module layer.
+Both JARs contain the package \`com.acme.shared\`. When two libraries are used together on the classpath, this situation can exist in traditional class loader systems. However, when migrating to JPMS, packages have clear module boundaries, and having the same package appear in multiple named modules can cause conflicts in the module graph or when creating a module layer.
 
-Ví dụ hai module:
+Example of two modules:
 
 ~~~java
-// module-info.java của com.acme.library.a
+// module-info.java of com.acme.library.a
 module com.acme.library.a {
     exports com.acme.shared;
 }
 ~~~
 
 ~~~java
-// module-info.java của com.acme.library.b
+// module-info.java of com.acme.library.b
 module com.acme.library.b {
     exports com.acme.shared;
 }
 ~~~
 
-Nếu một module ứng dụng đọc cả hai module và cả hai cùng export \`com.acme.shared\`, module graph có thể bị từ chối vì consumer nhìn thấy cùng package từ nhiều module. Tùy cấu hình và giai đoạn phát hiện, lỗi có thể xuất hiện khi resolve configuration, tạo ModuleLayer hoặc compile source tham chiếu package.
+If an application module reads both modules and both export \`com.acme.shared\`, the module graph can be rejected because the consumer sees the same package from multiple modules. Depending on configuration and detection stage, the error can appear when resolving the configuration, creating a ModuleLayer, or compiling source referencing the package.
 
-Đây là vấn đề về **quyền sở hữu package và cấu trúc module**, không phải vấn đề thiếu quyền truy cập reflection.
+This is an issue of **package ownership and module structure**, not an issue of missing reflection permissions.
 
-## 2. Vì sao open hoặc export không sửa được split package?
+## 2. Why Do open or export Not Fix Split Packages?
 
-Các chỉ thị \`exports\` và \`opens\` điều khiển quyền truy cập vào package thuộc một module. Chúng không di chuyển class, hợp nhất package hoặc thay đổi module sở hữu class.
+The \`exports\` and \`opens\` directives control access permissions to packages belonging to a module. They do not move classes, merge packages, or change which module owns a class.
 
-- \`exports p\`: cho phép module khác truy cập public API trong package \`p\` theo quy tắc Java thông thường.
-- \`exports p to m\`: chỉ export package cho module đích được chỉ định.
-- \`opens p\`: cho phép deep reflection vào package.
-- \`opens p to m\`: mở package cho reflection từ module đích.
-- \`open module\`: mở tất cả package của module cho deep reflection.
+- \`exports p\`: allows other modules to access public APIs in package \`p\` under normal Java rules.
+- \`exports p to m\`: exports the package only to the specified target module(s).
+- \`opens p\`: allows deep reflection into the package.
+- \`opens p to m\`: opens the package for reflection from the target module(s).
+- \`open module\`: opens all packages of the module for deep reflection.
 
-Nếu hai module cùng chứa package \`com.acme.shared\`, thêm \`exports com.acme.shared\` vào cả hai chỉ làm package đó được công khai từ cả hai module. Thêm \`opens com.acme.shared\` cũng không giải quyết xung đột ownership; nó chỉ thay đổi quyền reflection.
+If two modules both contain the package \`com.acme.shared\`, adding \`exports com.acme.shared\` to both only exposes that package from both modules. Adding \`opens com.acme.shared\` also does not resolve the ownership conflict; it only changes reflection permissions.
 
-Tùy chọn runtime như \`--add-exports\` và \`--add-opens\` cũng không hợp nhất package. Chúng có thể làm thay đổi quyền truy cập và thậm chí khiến package xung đột trở nên quan sát được bởi nhiều module hơn.
+Runtime options such as \`--add-exports\` and \`--add-opens\` do not merge packages either. They can alter access permissions and even make the conflicting package observable by more modules.
 
-Vì vậy, không nên thêm \`open\`, \`opens\`, \`exports\`, \`--add-exports\` hoặc \`--add-opens\` chỉ để làm biến mất lỗi split package. Trước hết phải xử lý nơi package và class thực sự được đóng gói.
+Therefore, do not add \`open\`, \`opens\`, \`exports\`, \`--add-exports\`, or \`--add-opens\` merely to make a split package error disappear. First, you must address where the packages and classes are actually packaged.
 
-## 3. Phân biệt split package trên classpath và module path
+## 3. Distinguishing Split Packages on the Classpath and Module Path
 
-### 3.1. Trên classpath
+### 3.1. On the classpath
 
-Trên classpath, nhiều JAR có thể chứa class thuộc cùng package name. Các class được nạp bởi cùng class loader có thể thuộc cùng runtime package, vì runtime package được xác định bởi tên package và class loader.
+On the classpath, multiple JARs can contain classes belonging to the same package name. Classes loaded by the same class loader can belong to the same runtime package, because a runtime package is defined by the package name and class loader.
 
-Điều này giải thích vì sao một ứng dụng cũ có thể chạy dù package bị chia giữa nhiều JAR. Tuy nhiên, nó cũng tạo ra các rủi ro:
+This explains why a legacy application can run even though a package is split across multiple JARs. However, it also creates risks:
 
-- Class có cùng fully qualified name có thể bị chọn theo thứ tự classpath.
-- Package-private access có thể vô tình phụ thuộc vào việc các class dùng cùng class loader.
-- Khi thay đổi thứ tự JAR, class được nạp hoặc resource được tìm thấy có thể thay đổi.
-- Khi chuyển các JAR thành named module, các giả định về package ownership không còn phù hợp.
+- Classes with the same fully qualified name can be selected based on classpath order.
+- Package-private access may inadvertently rely on classes using the same class loader.
+- When changing JAR order, the loaded class or found resource can change.
+- When converting JARs into named modules, assumptions about package ownership no longer hold.
 
-Classpath chạy được không chứng minh cấu trúc package đã tốt hoặc có thể chuyển nguyên trạng sang JPMS.
+The fact that the classpath runs does not prove the package structure is sound or can be migrated as-is to JPMS.
 
-### 3.2. Trên module path
+### 3.2. On the module path
 
-Trên module path, mỗi named module có module descriptor và tập package thuộc module. JPMS kiểm tra các package trong module graph. Xung đột thường xuất hiện khi nhiều module trong cùng configuration cùng chứa package có thể được một module khác đọc hoặc cùng tham gia một module layer theo cách không hợp lệ.
+On the module path, each named module has a module descriptor and a set of packages belonging to the module. JPMS checks packages in the module graph. Conflicts typically arise when multiple modules in the same configuration contain a package that can be read by another module or participate in a module layer in an invalid way.
 
-Không nên dựa vào việc một graph cụ thể tình cờ không phát hiện xung đột. Khi thiết kế module, hãy hướng tới một module owner rõ ràng cho mỗi package được chia sẻ.
+You should not rely on a specific graph accidentally failing to trigger a conflict. When designing modules, aim for one clear module owner for each shared package.
 
-Automatic module cũng cần được kiểm tra. Một JAR không có \`module-info.class\` khi được đặt trên module path có thể trở thành automatic module; việc chuyển từ classpath sang module path không tự loại bỏ package trùng giữa các dependency.
+Automatic modules also need checking. A JAR without \`module-info.class\` when placed on the module path can become an automatic module; moving from the classpath to the module path does not automatically eliminate overlapping packages across dependencies.
 
-## 4. Ví dụ một dependency graph có split package
+## 4. Example of a Dependency Graph with a Split Package
 
-Giả sử hai thư viện được phát triển độc lập:
+Suppose two libraries are developed independently:
 
 ~~~text
 com.acme.legacy-a
@@ -89,7 +89,7 @@ com.acme.legacy-b
   com/acme/common/LocaleNames.class
 ~~~
 
-Khi modularize từng thư viện, descriptor có thể được viết như sau:
+When modularizing each library, descriptors might be written as follows:
 
 ~~~java
 module com.acme.legacy.a {
@@ -103,7 +103,7 @@ module com.acme.legacy.b {
 }
 ~~~
 
-Module ứng dụng:
+Application module:
 
 ~~~java
 module com.acme.app {
@@ -112,9 +112,9 @@ module com.acme.app {
 }
 ~~~
 
-Ứng dụng đọc cả hai module, trong khi cả hai module đều cung cấp package \`com.acme.common\`. Đây là dấu hiệu cần sửa dependency/package layout.
+The application reads both modules, while both modules provide the package \`com.acme.common\`. This is a sign that the dependency/package layout needs to be fixed.
 
-Không nên cố xử lý bằng cách thêm:
+You should not try to work around it by adding:
 
 ~~~java
 module com.acme.legacy.a {
@@ -123,97 +123,97 @@ module com.acme.legacy.a {
 }
 ~~~
 
-hoặc thêm các flag:
+or adding flags:
 
 ~~~bash
 --add-exports=com.acme.legacy.a/com.acme.common=com.acme.app
 --add-opens=com.acme.legacy.b/com.acme.common=com.acme.app
 ~~~
 
-Những khai báo này không thay đổi việc hai JAR đều chứa class trong package đó. Chúng cũng không quyết định class nào là owner hợp lệ của package.
+These declarations do not change the fact that both JARs contain classes in that package. Nor do they decide which one is the valid owner of the package.
 
-## 5. Cách tìm package bị trùng
+## 5. How to Find Overlapping Packages
 
-Hãy kiểm tra artifact thực tế được đưa vào module path, không chỉ nhìn source tree. Package trùng có thể đến từ dependency bắc cầu, shaded JAR, JAR cũ còn sót trong thư mục distribution hoặc một module nội bộ được đóng gói hai lần.
+Inspect the actual artifacts placed on the module path, not just the source tree. Overlapping packages can come from transitive dependencies, shaded JARs, old JARs leftover in the distribution directory, or an internal module packaged twice.
 
-### 5.1. Xem module descriptor của từng JAR
+### 5.1. Inspect each JAR's module descriptor
 
-Dùng:
+Use:
 
 ~~~bash
 jar --describe-module --file libs/library-a.jar
 jar --describe-module --file libs/library-b.jar
 ~~~
 
-Lệnh này cho biết tên module, dependency và các package mà JAR export hoặc chứa trong descriptor. Với JAR không có descriptor, output có thể cho biết module name được suy ra theo quy tắc automatic module.
+This command shows the module name, dependencies, and packages that the JAR exports or contains in its descriptor. For a JAR without a descriptor, the output can show the module name derived under automatic module rules.
 
-Lưu ý: danh sách \`exports\` không phải danh sách đầy đủ package bên trong JAR. Package nội bộ có thể tồn tại mà không được export.
+Note: the \`exports\` list is not the complete list of packages inside a JAR. Internal packages can exist without being exported.
 
-### 5.2. Liệt kê class trong JAR
+### 5.2. List classes in JARs
 
-Dùng:
+Use:
 
 ~~~bash
 jar --list --file libs/library-a.jar
 jar --list --file libs/library-b.jar
 ~~~
 
-Tìm các đường dẫn package giống nhau, chẳng hạn:
+Look for identical package paths, such as:
 
 ~~~text
 com/acme/common/Strings.class
 com/acme/common/Checks.class
 ~~~
 
-Có thể dùng công cụ archive hoặc script để trích xuất danh sách entry \`.class\` từ tất cả JAR trên module path, chuyển đường dẫn thành package name rồi so sánh. Khi làm việc này, bỏ qua \`module-info.class\` và các entry không đại diện cho class thông thường.
+You can use an archive tool or script to extract the list of \`.class\` entries from all JARs on the module path, convert paths to package names, and compare them. When doing this, ignore \`module-info.class\` and entries that do not represent normal classes.
 
-### 5.3. Dùng jdeps
+### 5.3. Use jdeps
 
-\`jdeps\` có chế độ kiểm tra module và split package:
+\`jdeps\` has a mode to check modules and split packages:
 
 ~~~bash
 jdeps --check com.acme.app --module-path mods
 ~~~
 
-Lệnh kiểm tra dependency/module graph của module được chỉ định và có thể báo package bị split hoặc qualified export không được sử dụng. Đọc toàn bộ output để xác định module và package liên quan.
+The command checks dependencies/module graph of the specified module and can report split packages or unused qualified exports. Read the entire output to identify the involved modules and packages.
 
-Có thể xem dependency của một JAR:
+You can inspect dependencies of a JAR:
 
 ~~~bash
 jdeps --list-deps --module-path mods app.jar
 ~~~
 
-Nếu cần phân tích JDK internal API hoặc dependency sâu hơn, chọn các tùy chọn \`jdeps\` phù hợp với phiên bản JDK đang dùng. Kết quả của \`jdeps\` hỗ trợ điều tra dependency; vẫn cần đối chiếu danh sách class trong artifact thực tế.
+If you need to analyze JDK internal APIs or deeper dependencies, choose \`jdeps\` options matching your JDK version. \`jdeps\` results assist dependency investigation; you still need to cross-check the class list in the actual artifacts.
 
-### 5.4. Kiểm tra dependency tree của build tool
+### 5.4. Inspect the build tool's dependency tree
 
-Với Gradle:
+With Gradle:
 
 ~~~bash
 ./gradlew :app:dependencies --configuration runtimeClasspath
 ~~~
 
-Để biết vì sao một dependency xuất hiện:
+To see why a dependency appears:
 
 ~~~bash
 ./gradlew :app:dependencyInsight --dependency library-a --configuration runtimeClasspath
 ~~~
 
-Với Maven:
+With Maven:
 
 ~~~bash
 mvn -pl app dependency:tree
 ~~~
 
-Dependency tree giúp tìm phiên bản hoặc dependency bắc cầu bị kéo vào nhiều lần. Tuy nhiên, hai artifact có tọa độ khác nhau vẫn có thể chứa package giống nhau; dependency tree không thay thế việc kiểm tra nội dung JAR.
+The dependency tree helps find versions or transitive dependencies pulled in multiple times. However, two artifacts with different coordinates can still contain the same package; the dependency tree does not replace inspecting JAR contents.
 
-## 6. Các cách sửa đúng
+## 6. Proper Ways to Fix It
 
-### 6.1. Hợp nhất package vào một module sở hữu
+### 6.1. Merge the package into one owning module
 
-Nếu hai thư viện là các phần của cùng một subsystem và cùng một nhóm có thể thay đổi source, hãy chuyển các class cùng package vào một module owner duy nhất.
+If two libraries are parts of the same subsystem and the same team can modify the source, move classes of the same package into a single owning module.
 
-Ví dụ:
+For example:
 
 ~~~text
 com.acme.common
@@ -223,7 +223,7 @@ com.acme.common
   LocaleNames
 ~~~
 
-được đóng gói trong một module:
+packaged in one module:
 
 ~~~java
 module com.acme.common {
@@ -231,11 +231,11 @@ module com.acme.common {
 }
 ~~~
 
-Các module cũ có thể trở thành facade hoặc được loại bỏ sau khi cập nhật caller. Cách này giữ nguyên package API và tạo một nơi quản lý ownership.
+The old modules can become facades or be removed after updating callers. This preserves the API package and establishes one place to manage ownership.
 
-### 6.2. Đổi tên package để tách ranh giới
+### 6.2. Rename packages to separate boundaries
 
-Nếu hai thư viện có trách nhiệm khác nhau, hãy chuyển class sang package phản ánh đúng module:
+If two libraries have different responsibilities, move classes to packages reflecting the right module:
 
 ~~~text
 com.acme.legacy.a
@@ -247,7 +247,7 @@ com.acme.legacy.b
   com/acme/legacy/b/common/LocaleNames.class
 ~~~
 
-Descriptor:
+Descriptors:
 
 ~~~java
 module com.acme.legacy.a {
@@ -261,38 +261,38 @@ module com.acme.legacy.b {
 }
 ~~~
 
-Đây là thay đổi API nếu package cũ đã được consumer sử dụng. Cần cập nhật import, module descriptor, cấu hình reflection, tên class lưu trong cấu hình và các tích hợp dựa trên tên đầy đủ.
+This is an API change if the old package was already used by consumers. You must update imports, module descriptors, reflection configurations, class names stored in configs, and integrations relying on fully qualified names.
 
-### 6.3. Loại bỏ dependency trùng hoặc dependency không cần thiết
+### 6.3. Remove duplicate or unnecessary dependencies
 
-Nếu cùng một thư viện bị kéo vào qua nhiều phiên bản hoặc qua dependency bắc cầu, chọn một phiên bản phù hợp và loại bỏ artifact không cần thiết.
+If the same library is pulled in across multiple versions or via transitive dependencies, select one appropriate version and exclude the unnecessary artifact.
 
-Trong Gradle, có thể dùng dependency constraints, version catalog, resolution strategy hoặc exclude có chủ đích. Trong Maven, dùng dependency management và exclusions.
+In Gradle, you can use dependency constraints, version catalogs, resolution strategies, or intentional excludes. In Maven, use dependency management and exclusions.
 
-Không nên loại bỏ một JAR chỉ vì tên artifact giống nhau. Hãy xác nhận class và API mà module đang sử dụng, sau đó chạy lại compile/test và kiểm tra module graph.
+Do not remove a JAR solely because artifact names look similar. Confirm the classes and APIs that modules actually use, then rerun compile/test and inspect the module graph.
 
-### 6.4. Relocate package khi shading thư viện bên thứ ba
+### 6.4. Relocate packages when shading third-party libraries
 
-Nếu không thể sửa source của thư viện bên thứ ba và cần đưa hai thư viện vào cùng một ứng dụng, có thể relocate một package khi tạo shaded JAR.
+If you cannot modify the source of third-party libraries and need to include both libraries in the same application, you can relocate one package when creating a shaded JAR.
 
-Ví dụ về ý tưởng:
+Conceptual example:
 
 ~~~text
 com.vendor.common
     -> com.acme.shaded.vendor.common
 ~~~
 
-Sau relocation, class của thư viện được đổi sang package riêng và không còn xung đột với package gốc.
+After relocation, the library's classes are renamed to a separate package and no longer collide with the original package.
 
-Cần kiểm tra thêm các dữ liệu chứa tên class/package dưới dạng chuỗi, service provider file, resource, serialization metadata, reflection configuration và module descriptor. Công cụ shading phải cập nhật những metadata liên quan; chỉ đổi tên file \`.class\` mà bỏ sót nội dung tham chiếu sẽ tạo lỗi runtime khó tìm.
+You must also check data containing class/package names as strings, service provider files, resources, serialization metadata, reflection configurations, and module descriptors. The shading tool must update those related metadata files; merely renaming \`.class\` files while missing referenced contents will create hard-to-find runtime errors.
 
-Relocation nên được cấu hình trong build, có thể tái lập và được kiểm tra trên artifact cuối.
+Relocation should be configured in the build, reproducible, and verified on the final artifact.
 
-### 6.5. Tạo một adapter hoặc facade module
+### 6.5. Create an adapter or facade module
 
-Nếu cần giữ API công khai cũ trong khi di chuyển implementation, tạo một module facade có package API duy nhất và chuyển implementation vào các package/module nội bộ riêng.
+If you need to preserve the legacy public API while moving implementations, create a facade module with a single API package and move implementations into separate internal packages/modules.
 
-Ví dụ:
+For example:
 
 ~~~text
 com.acme.common.api
@@ -300,34 +300,34 @@ com.acme.common.impl.strings
 com.acme.common.impl.dates
 ~~~
 
-Facade có thể cung cấp các interface hoặc class public cần thiết, còn implementation được đặt trong package không trùng. Cách này giúp chuyển đổi dần mà vẫn có một module owner rõ ràng cho mỗi package.
+The facade can provide the necessary public interfaces or classes, while implementations reside in non-overlapping packages. This enables gradual migration while still maintaining one clear owning module for each package.
 
-## 7. Những cách không nên dùng để che lỗi
+## 7. Approaches That Should Not Be Used to Mask Errors
 
-| Cách thử | Vì sao không giải quyết split package |
+| Attempted approach | Why it does not solve a split package |
 | --- | --- |
-| Thêm \`exports\` vào cả hai module | Làm public package từ nhiều module; không hợp nhất class hoặc xác định một owner. |
-| Thêm \`opens\` hoặc dùng \`open module\` | Chỉ cấp quyền deep reflection, không thay đổi package ownership. |
-| Thêm \`--add-exports\` | Bổ sung quyền truy cập public types, không loại bỏ package trùng. |
-| Thêm \`--add-opens\` | Bổ sung quyền reflection, không sửa module graph. |
-| Đổi thứ tự JAR trên classpath | Có thể làm thay đổi class được nạp, nhưng không loại bỏ class trùng hoặc cấu trúc package không ổn định. |
-| Đưa mọi dependency về classpath | Có thể né một số kiểm tra JPMS trong ngắn hạn nhưng bỏ qua lợi ích và ranh giới module; không phải phương án modularization. |
-| Chỉ đổi tên module trong \`module-info.java\` | Tên module thay đổi, còn package bên trong vẫn trùng. |
+| Adding \`exports\` to both modules | Exposes the package from multiple modules; does not merge classes or establish one owner. |
+| Adding \`opens\` or using \`open module\` | Only grants deep reflection permissions; does not change package ownership. |
+| Adding \`--add-exports\` | Adds access permissions to public types; does not remove duplicate packages. |
+| Adding \`--add-opens\` | Adds reflection permissions; does not fix the module graph. |
+| Changing JAR order on the classpath | May change which class is loaded, but does not eliminate duplicate classes or an unstable package structure. |
+| Moving all dependencies back to the classpath | May bypass some JPMS checks short-term, but forfeits module benefits and boundaries; not a modularization approach. |
+| Only renaming the module in \`module-info.java\` | The module name changes, while the packages inside still overlap. |
 
-## 8. Quy trình xử lý split package trong dự án modular
+## 8. Workflow for Handling Split Packages in a Modular Project
 
-1. Ghi lại lỗi đầy đủ và xác định module/package xuất hiện trong thông báo.
-2. Xác định chính xác module path và tập artifact được đưa vào lần compile hoặc runtime bị lỗi.
-3. Dùng \`jar --describe-module\` và \`jar --list\` để xác định module nào chứa package đó.
-4. Dùng \`jdeps --check\` và dependency tree để tìm dependency trực tiếp hoặc bắc cầu đưa các module xung đột vào graph.
-5. Chọn một owner cho package, hoặc đổi package/relocate artifact để tách ownership.
-6. Cập nhật dependency, source import, descriptor và metadata liên quan.
-7. Build lại từ trạng thái sạch để tránh JAR cũ còn sót trong output.
-8. Chạy lại \`jdeps --check\`, compile module và ứng dụng bằng đúng module path triển khai.
-9. Kiểm tra artifact cuối cùng và chạy integration test trong đúng runtime/module layer.
+1. Record the full error and identify the modules/packages appearing in the message.
+2. Determine the exact module path and set of artifacts passed into the failing compile or runtime run.
+3. Use \`jar --describe-module\` and \`jar --list\` to determine which modules contain that package.
+4. Use \`jdeps --check\` and the dependency tree to find direct or transitive dependencies bringing the conflicting modules into the graph.
+5. Choose one owner for the package, or rename packages/relocate artifacts to separate ownership.
+6. Update dependencies, source imports, descriptors, and related metadata.
+7. Rebuild from a clean state to avoid stale JARs left in the output.
+8. Rerun \`jdeps --check\`, compile modules and the application using the exact deployment module path.
+9. Inspect the final artifacts and run integration tests in the exact runtime/module layer.
 
-## 9. Kết luận về package ownership
+## 9. Conclusion on Package Ownership
 
-Một package nên có một module owner rõ ràng trong thiết kế JPMS. \`exports\` quyết định module nào có thể dùng public API của package; \`opens\` quyết định module nào có thể deep reflection vào package. Hai cơ chế này không giải quyết việc cùng package bị chia giữa nhiều module.
+A package should have one clear module owner in JPMS design. \`exports\` determines which modules can use the package's public API; \`opens\` determines which modules can perform deep reflection into the package. These two mechanisms do not resolve a package being split across multiple modules.
 
-Khi gặp split package, hãy truy ngược từ module graph tới các JAR chứa class, sau đó hợp nhất, đổi tên, loại bỏ dependency trùng hoặc relocate package. Giải quyết ownership ở artifact/source level giúp module graph ổn định và tránh tạo thêm quyền truy cập rộng chỉ để che một lỗi cấu trúc.
+When encountering a split package, trace back from the module graph to the JARs containing the classes, then merge, rename, remove duplicate dependencies, or relocate packages. Resolving ownership at the artifact/source level keeps the module graph stable and avoids granting broad access permissions just to mask a structural flaw.

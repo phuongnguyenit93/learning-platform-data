@@ -1,50 +1,50 @@
-# Đối chiếu hành vi Reflection trên JVM tiêu chuẩn, runtime bị hạn chế và môi trường AOT
+# Comparing Reflection Behavior Across Standard JVM, Restricted Runtimes, and AOT Environments
 
-## 1. Mục tiêu và phạm vi
+## 1. Purpose and Scope
 
-Java Reflection cho phép tìm lớp theo tên, đọc annotation, tìm constructor/method/field và gọi chúng ở **thời điểm chạy**. Trên JVM thông thường, thao tác này thường dựa vào các class file có sẵn trên classpath hoặc module path. Nhưng cùng một chương trình có thể hoạt động khác khi:
+Java Reflection enables looking up classes by name, reading annotations, locating constructors/methods/fields, and invoking them at **runtime**. On a standard JVM, this typically relies on class files available on the classpath or module path. However, the exact same program can behave differently when:
 
-- chạy trong **named module** của JPMS, chịu quy tắc `exports`, `opens` và quyền truy cập thành viên;
-- chạy trong **GraalVM Native Image**, nơi phần lớn cấu trúc ứng dụng được phân tích và đưa vào binary trước khi chạy;
-- dùng **Spring AOT** hoặc framework tối ưu trước các quyết định vốn được suy ra bằng quét classpath/Reflection;
-- chạy trong một sandbox, runtime tùy biến hoặc nền tảng có quy tắc riêng với nạp lớp, tạo bytecode và quyền Reflection.
+- running inside a JPMS **named module**, subject to `exports`, `opens`, and member access rules;
+- running inside **GraalVM Native Image**, where most application structure is analyzed and compiled into a binary ahead of time;
+- using **Spring AOT** or frameworks that precompute decisions normally inferred via classpath scanning/Reflection;
+- running inside a sandbox, custom runtime, or platform with special rules on class loading, bytecode generation, and Reflection permissions.
 
-Bài học giúp đối chiếu **nguyên nhân, triệu chứng, cách kiểm tra và lựa chọn thay thế**. Một nguyên tắc quan trọng: **“biên dịch trước” không tự động có nghĩa “không hỗ trợ Reflection”**. Phải xác định chính xác công nghệ, phiên bản, chính sách module và loại thao tác động đang dùng.
+This lesson compares **causes, symptoms, verification methods, and alternatives**. One key principle: **"ahead-of-time compilation" does not automatically mean "Reflection is unsupported"**. You must identify the exact technology, version, module policies, and kinds of dynamic operations in use.
 
-## 2. Hai câu hỏi độc lập cần hỏi trước khi gọi Reflection
+## 2. Two Independent Questions to Ask Before Calling Reflection
 
-Mọi lời gọi Reflection phụ thuộc ít nhất vào hai yếu tố:
+Every Reflection call depends on at least two factors:
 
-1. **Có gì hiện diện ở runtime?** Class, constructor, method, field, annotation metadata, resource hay proxy class có tồn tại/được giữ lại trong môi trường chạy không? Đây là vấn đề *reachability* hoặc *availability*.
-2. **Ai được phép truy cập?** Lookup/caller có quyền đọc module, dùng thành viên public, hay thực hiện *deep reflection* vào thành viên private không? Đây là vấn đề *accessibility*.
+1. **What is present at runtime?** Are the class, constructor, method, field, annotation metadata, resource, or proxy class retained and present in the execution environment? This is a question of *reachability* or *availability*.
+2. **Who is permitted to access it?** Does the lookup/caller have permission to read the module, use public members, or perform *deep reflection* on private members? This is a question of *accessibility*.
 
-Trên HotSpot JVM, có thể có `Class.forName("demo.Plugin")` thành công nhưng `getDeclaredConstructor().newInstance()` thất bại vì constructor không accessible. Trên Native Image, chính `Class.forName(...)` hoặc truy vấn constructor có thể thiếu metadata cần thiết **ngay cả khi source Java và JAR build đều chứa class ấy**.
+On the HotSpot JVM, `Class.forName("demo.Plugin")` might succeed while `getDeclaredConstructor().newInstance()` fails because the constructor is not accessible. On Native Image, `Class.forName(...)` itself or querying the constructor may lack required metadata **even though both the Java source and build JAR contain that class**.
 
-**Đăng ký reachability metadata không phải cơ chế vượt rào `private` của JPMS.** Ngược lại, mở package bằng `--add-opens` không tự làm Native Image giữ mọi thành viên được gọi động. Hai nhóm điều kiện phải được xét riêng.
+**Registering reachability metadata is not a mechanism to bypass JPMS `private` encapsulation.** Conversely, opening a package with `--add-opens` does not automatically cause Native Image to retain every dynamically invoked member. Both sets of conditions must be evaluated separately.
 
-## 3. Bảng đối chiếu các môi trường phổ biến
+## 3. Comparison Table of Common Environments
 
-| Môi trường/cấu hình | Khám phá lớp/thành viên ở runtime | Ràng buộc chính | Hướng xử lý |
+| Environment / Configuration | Runtime class/member discovery | Main constraints | Practical approach |
 | --- | --- | --- | --- |
-| JVM thông thường, classpath | Có thể nạp class còn sẵn trong đường dẫn và tra cứu bằng Reflection | Classpath, class loader, Java language access | Kiểm tra classloader, tên binary, visibility |
-| JVM với JPMS named modules | Có Reflection nhưng phụ thuộc module graph | `reads`, `exports`/`opens` và quyền member | API public, `opens` có chọn lọc, `MethodHandles.Lookup` hợp lệ |
-| JVM với `jlink` custom runtime | Reflection vẫn hoạt động cho các lớp được đưa vào | Không có module cần thiết trong runtime image; vẫn có JPMS | Bao gồm module cần thiết lúc tạo runtime |
-| JVM với CDS/AppCDS | Reflection vẫn theo quy tắc JVM/JPMS | Archive chủ yếu tối ưu tải và chia sẻ metadata | Không tự suy ra bị hạn chế Reflection |
-| GraalVM Native Image | Hỗ trợ Reflection trên các thành phần được phân tích/đăng ký | Phân tích *closed world*, reachability metadata, ranh giới runtime native | Đăng ký đúng class/member hoặc tái cấu trúc static |
-| Spring AOT / native | Tạo cấu hình và mã cần thiết ở build time | Quyết định bean/profile/scan thường đã cố định trước khi chạy | `RuntimeHints`, AOT processor, static bean registration |
-| Runtime sandbox/tùy biến | Tùy nền tảng/chính sách cụ thể | Có thể hạn chế nạp bytecode, dynamic proxies, quyền truy cập | Đọc contract nền tảng, viết integration test đúng đích |
+| Standard JVM, classpath | Can load classes on the path and inspect via Reflection | Classpath, class loader, Java language access | Check classloader, binary names, visibility |
+| JVM with JPMS named modules | Reflection works but depends on the module graph | `reads`, `exports`/`opens`, and member permissions | Public APIs, selective `opens`, valid `MethodHandles.Lookup` |
+| JVM with `jlink` custom runtime | Reflection works for included classes | Missing required modules in runtime image; JPMS still applies | Include needed modules when building the runtime |
+| JVM with CDS/AppCDS | Reflection follows JVM/JPMS rules | Archive primarily optimizes loading and shared metadata | Do not assume Reflection is restricted |
+| GraalVM Native Image | Supports Reflection on analyzed/registered elements | *Closed-world* analysis, reachability metadata, native runtime boundaries | Register exact classes/members or refactor statically |
+| Spring AOT / native | Generates needed configuration and code at build time | Bean/profile/scan decisions are usually fixed before running | `RuntimeHints`, AOT processors, static bean registration |
+| Restricted / custom runtime sandbox | Depends on specific platform/policy | May restrict bytecode loading, dynamic proxies, access rights | Read platform contracts, write integration tests on actual target |
 
-`javac` dịch `.java` thành `.class` **không làm Reflection biến mất**. `jlink` dựng một runtime gồm các module được chọn; CDS lưu trữ một phần trạng thái lớp để khởi động nhanh hơn. Cả hai khác với *closed-world native compilation*.
+`javac` compiling `.java` into `.class` **does not make Reflection disappear**. `jlink` builds a runtime image of selected modules; CDS caches part of class state for faster startup. Both differ from *closed-world native compilation*.
 
-## 4. Vì sao Native Image cần biết Reflection từ trước?
+## 4. Why Does Native Image Need to Know Reflection Ahead of Time?
 
-GraalVM Native Image phân tích ứng dụng tại **thời điểm build** để xác định thành phần có thể được sử dụng và đưa thành phần cần thiết vào executable. Một lệnh trực tiếp như:
+GraalVM Native Image analyzes the application at **build time** to determine which elements can be used and includes only needed components in the executable. A direct call like:
 
 ~~~java
 new java.util.ArrayList<String>();
 ~~~
 
-cho phép công cụ nhìn thấy loại cần dùng. Một lệnh động lại khó dự đoán hơn:
+lets the tool see the needed type. A dynamic call is harder to predict:
 
 ~~~java
 String className = args[0];
@@ -52,15 +52,15 @@ Class<?> type = Class.forName(className);
 Object value = type.getDeclaredConstructor().newInstance();
 ~~~
 
-Khi build, `args[0]` có thể chưa được biết. Công cụ không thể mặc nhiên giữ **mọi class và constructor** của ứng dụng cùng mọi dependency; làm vậy vừa tốn tài nguyên vừa trái mục tiêu tối ưu kích thước.
+At build time, `args[0]` may be unknown. The tool cannot by default retain **every class and constructor** of the application and all dependencies; doing so wastes resources and defeats binary-size optimization goals.
 
-Đối với các lời gọi Reflection có đối số **hằng hoặc có thể suy luận**, Native Image có thể tính được phần tử cần thiết lúc build. Những phần không suy ra được cần **reachability metadata**. GraalVM hiện đại có thể cho phép cung cấp metadata qua file `reachability-metadata.json`, qua phân tích mã, cấu hình thư viện, tracing agent hoặc API hỗ trợ.
+For Reflection calls with **constant or inferable** arguments, Native Image can compute needed elements at build time. Uninferable parts require **reachability metadata**. Modern GraalVM supports providing metadata via `reachability-metadata.json`, static analysis, library configs, the tracing agent, or helper APIs.
 
-**Không nên khẳng định “hễ dùng `Class.forName` thì Native Image sẽ lỗi”.** Với tên hằng, hoặc khi framework đã cung cấp metadata, lời gọi có thể chạy tốt. Ngược lại, không nên dựa vào kết quả thành công của **một input** để kết luận các tên lớp động khác cũng được đóng gói đầy đủ.
+**You should not assert "whenever you use `Class.forName`, Native Image will fail".** With constant names, or when frameworks supply metadata, calls can work fine. Conversely, never rely on **one input** succeeding to conclude all other dynamic class names were packaged completely.
 
-## 5. Ví dụ Java 17 chạy trên JVM: chọn implementation bằng tên lớp
+## 5. Java 17 Example Running on JVM: Selecting Implementations by Class Name
 
-Tạo file `ReflectionModesDemo.java`:
+Create file `ReflectionModesDemo.java`:
 
 ~~~java
 public class ReflectionModesDemo {
@@ -103,9 +103,9 @@ public class ReflectionModesDemo {
 }
 ~~~
 
-Đây là chương trình **độc lập**, gồm `Task` và hai implementation là member class bên trong `ReflectionModesDemo`. Tên nhị phân của member class dùng dấu `$`, không dùng tên canonical dấu chấm.
+This is a **standalone** program containing `Task` and two implementations as member classes inside `ReflectionModesDemo`. Binary names of member classes use `$`, not dotted canonical names.
 
-Trên hệ thống có JDK 17+, chạy trong thư mục chứa source:
+On a system with JDK 17+, run inside the directory containing the source:
 
 ~~~bash
 javac --release 17 ReflectionModesDemo.java
@@ -113,29 +113,29 @@ java ReflectionModesDemo 'ReflectionModesDemo$Alpha'
 java ReflectionModesDemo 'ReflectionModesDemo$Beta'
 ~~~
 
-Với **PowerShell**, dùng dấu nháy đơn cho đối số có `$` như ví dụ để tránh việc shell mở rộng tên biến.
+On **PowerShell**, use single quotes for arguments containing `$` as shown to prevent the shell from expanding variable names.
 
-Kết quả lệnh gọi Alpha:
+Output for Alpha:
 
 ~~~text
 type=ReflectionModesDemo$Alpha
 result=alpha
 ~~~
 
-Kết quả lệnh gọi Beta:
+Output for Beta:
 
 ~~~text
 type=ReflectionModesDemo$Beta
 result=beta
 ~~~
 
-**Đã kiểm chứng:** chương trình trên được biên dịch bằng `javac --release 17` và chạy hai trường hợp trên OpenJDK 21, kết quả khớp chính xác. `Class.forName` tìm lớp, `asSubclass(Task.class)` kiểm tra contract, `getDeclaredConstructor().newInstance()` tạo đối tượng, và lời gọi cuối cùng là **dispatch interface thông thường**. Kiểm tra bằng `asSubclass` không thể thay thế quyền truy cập constructor hoặc cơ chế đăng ký member của Native Image.
+**Verified:** the program above was compiled with `javac --release 17` and run for both cases on OpenJDK 21, matching the output exactly. `Class.forName` finds the class, `asSubclass(Task.class)` checks the contract, `getDeclaredConstructor().newInstance()` instantiates the object, and the final call is **ordinary interface dispatch**. Checking with `asSubclass` cannot replace constructor accessibility or Native Image member registration.
 
-## 6. Xây dựng Native Image: cần metadata gì?
+## 6. Building a Native Image: What Metadata Is Needed?
 
-Chương trình ví dụ nhận tên class từ tham số runtime, nên khi biên dịch native cần bảo đảm hai kiểu `Alpha` và `Beta` cùng các constructor mà Reflection gọi được ghi nhận.
+The example program receives the class name from a runtime argument, so native compilation must ensure both `Alpha` and `Beta` along with the constructors invoked by Reflection are recorded.
 
-Với **định dạng metadata hiện đại** của GraalVM, tạo file:
+With GraalVM's **modern metadata format**, create file:
 
 `out/META-INF/native-image/demo/reflection/reachability-metadata.json`
 
@@ -154,29 +154,29 @@ Với **định dạng metadata hiện đại** của GraalVM, tạo file:
 }
 ~~~
 
-`allDeclaredConstructors` cấp khả năng tìm và gọi các constructor được khai báo của class tương ứng trong native binary. Nó **không nâng quyền Java** cho constructor private. Trong chương trình, cả hai constructor đều public và không cần `setAccessible(true)`. Gói metadata này không cần khai báo reflective invocation cho `run()` vì lời gọi `task.run()` đi qua interface được compiler biết trước.
+`allDeclaredConstructors` grants the ability to look up and invoke declared constructors of the corresponding class in the native binary. It **does not elevate Java permissions** for private constructors. In this program, both constructors are public and do not need `setAccessible(true)`. This metadata package does not need to declare reflective invocation for `run()` because `task.run()` goes through an interface known to the compiler ahead of time.
 
-Metadata trên khá rộng đối với constructor; nếu dự án lớn, nên chọn chính xác member thực sự cần dùng theo schema và công cụ của phiên bản GraalVM đang chạy. Tên class trong JSON phải là **binary name đầy đủ**: member class dùng `$`; class có package thì thêm tiền tố package.
+The metadata above is fairly broad regarding constructors; for larger projects, select the exact members actually needed according to the schema and tooling of your GraalVM version. Class names in JSON must be **full binary names**: member classes use `$`; packaged classes include the package prefix.
 
-Để build demo, cần một **GraalVM có công cụ `native-image`**, toolchain native phù hợp hệ điều hành và Java version tương thích. Trong thư mục chứa source, có thể làm:
+To build the demo, you need a **GraalVM installation with the `native-image` tool**, an OS-appropriate native toolchain, and a compatible Java version. Inside the source directory, you can run:
 
 ~~~bash
 mkdir -p out/META-INF/native-image/demo/reflection
 javac --release 17 -d out ReflectionModesDemo.java
-# Ghi JSON bên trên vào:
+# Write the JSON above to:
 # out/META-INF/native-image/demo/reflection/reachability-metadata.json
 native-image -cp out ReflectionModesDemo reflection-modes-demo
 ./reflection-modes-demo 'ReflectionModesDemo$Alpha'
 ./reflection-modes-demo 'ReflectionModesDemo$Beta'
 ~~~
 
-Lệnh `mkdir -p` dùng shell Unix. Trên PowerShell, tạo thư mục bằng:
+`mkdir -p` is for Unix shells. On PowerShell, create the directory with:
 
 ~~~powershell
 New-Item -ItemType Directory -Force out\META-INF\native-image\demo\reflection | Out-Null
 ~~~
 
-Sau khi ghi JSON và biên dịch Java theo cùng các tham số, lệnh build native có thể dùng:
+After writing the JSON and compiling Java with the same flags, native build commands can use:
 
 ~~~powershell
 native-image -cp out ReflectionModesDemo reflection-modes-demo
@@ -184,75 +184,75 @@ native-image -cp out ReflectionModesDemo reflection-modes-demo
 .\reflection-modes-demo.exe 'ReflectionModesDemo$Beta'
 ~~~
 
-**Kết quả mong muốn** của hai native run là giống JVM `type=...` và `result=...` ở mục 5. Đây là **kịch bản kiểm chứng đề xuất, chưa thực thi native build trong bài này**. Bản GraalVM hoặc cách đóng gói hiện hữu có thể dùng schema metadata khác: bản cũ thường dùng `reflect-config.json` với cấu trúc một mảng có trường `name`; **không thay lẫn hai định dạng một cách tùy ý**. Luôn xác minh tài liệu đúng phiên bản công cụ và metadata thực sự được đưa vào classpath tại thời điểm build.
+**Expected results** of both native runs match the JVM `type=...` and `result=...` output in Section 5. This is a **proposed verification scenario; the native build was not executed in this lesson**. Existing GraalVM versions or packaging setups may use a different metadata schema: older versions commonly used `reflect-config.json` structured as an array with a `name` field; **do not mix the two formats arbitrarily**. Always verify documentation for your exact tool version and ensure metadata is actually included on the classpath at build time.
 
-## 7. Khi thiếu metadata thì lỗi có thể biểu hiện ra sao?
+## 7. How Do Failures Manifest When Metadata Is Missing?
 
-Nếu không có thông tin cần thiết và Native Image cũng không thể suy ra access từ mã:
+If required information is absent and Native Image cannot infer the access from code:
 
-- `Class.forName(runtimeName)` có thể thất bại do lớp không được giữ lại hoặc không được đăng ký cho dạng truy cập ấy.
-- `getDeclaredConstructor`, `getDeclaredMethod`, `getDeclaredField` hoặc `newInstance` có thể thất bại vì member không được cho phép truy vấn/gọi qua Reflection.
-- Tùy phiên bản và chế độ kiểm tra, có thể thấy `ClassNotFoundException`, `NoSuchMethodException`, `MissingReflectionRegistrationError` hoặc chẩn đoán khác. **Không có một loại exception duy nhất được bảo đảm cho mọi thiếu sót metadata.**
-- Mã có `catch (Exception)` có thể che mất một phần triệu chứng. Một số lỗi về thiếu đăng ký là `Error` chứ không phải `Exception`; đừng bắt `Throwable` đại trà rồi im lặng tiếp tục.
+- `Class.forName(runtimeName)` may fail because the class was not retained or not registered for that kind of access.
+- `getDeclaredConstructor`, `getDeclaredMethod`, `getDeclaredField`, or `newInstance` may fail because the member is not allowed to be queried/invoked via Reflection.
+- Depending on version and checking mode, you may see `ClassNotFoundException`, `NoSuchMethodException`, `MissingReflectionRegistrationError`, or other diagnostics. **No single exception type is guaranteed for every missing-metadata case.**
+- Code with `catch (Exception)` can hide part of the symptoms. Some missing-registration errors are `Error` rather than `Exception`; do not catch `Throwable` broadly and silently continue.
 
-Cũng cần kiểm tra **nguyên nhân không liên quan metadata**: sai binary name, thiếu dependency khi build native, API private không accessible, lệch version thư viện, hoặc class khởi tạo static không thành công.
+Also check **non-metadata causes**: wrong binary name, missing dependencies during native build, inaccessible private APIs, library version mismatches, or failed static class initialization.
 
-Trên các bản GraalVM hỗ trợ, `--exact-reachability-metadata` bật chế độ báo thiếu registration rõ hơn. Khi chạy native binary, `-XX:MissingRegistrationReportingMode=Warn` hoặc `Exit` có thể giúp tìm truy cập chưa được đăng ký. Các flag này **phụ thuộc phiên bản**; kiểm tra tài liệu của runtime thực tế trước khi đưa vào CI.
+On supported GraalVM versions, `--exact-reachability-metadata` enables stricter reporting of missing registrations. When running the native binary, `-XX:MissingRegistrationReportingMode=Warn` or `Exit` can help locate unregistered accesses. These flags are **version-dependent**; check the actual runtime documentation before adding them to CI.
 
-## 8. Tracing agent: thu thập Reflection thực sự phát sinh
+## 8. Tracing Agent: Collecting Reflection That Actually Occurs
 
-Trong hệ sinh thái GraalVM, tracing agent có thể theo dõi một lần chạy **trên JVM** và ghi metadata cho Reflection, resources, proxy, JNI và các tính năng động liên quan. Một dạng lệnh điển hình (cần GraalVM/JDK có agent tương thích):
+In the GraalVM ecosystem, the tracing agent can observe a run **on the JVM** and record metadata for Reflection, resources, proxies, JNI, and related dynamic features. A typical command form (requiring a GraalVM/JDK with a compatible agent):
 
 ~~~bash
 java -agentlib:native-image-agent=config-output-dir=generated-config \
   ReflectionModesDemo 'ReflectionModesDemo$Alpha'
 ~~~
 
-Agent ghi cấu hình cho các thao tác nó **quan sát được**. Nhưng nếu chỉ chạy Alpha, không có gì bảo đảm metadata cho Beta cũng được thu thập. Hãy thiết kế **test matrix bao phủ tất cả đường đi động**, gồm các plugin tùy cấu hình, kiểu dữ liệu, nhánh lỗi và biến thể môi trường.
+The agent records configuration for operations it **observes**. If you run only Alpha, there is no guarantee metadata for Beta is also collected. Design a **test matrix covering every dynamic path**, including configurable plugins, data types, error branches, and environment variants.
 
-Quy trình tốt hơn là:
+A better workflow is:
 
-1. Thu thập metadata qua các ca chạy đại diện.
-2. Review file đã sinh; loại bỏ đăng ký thừa và bổ sung nhánh chưa chạy.
-3. Gộp metadata thành đầu vào build có kiểm soát phiên bản.
-4. Build native và chạy test với chính binary đó.
-5. Tái chạy mỗi khi cập nhật framework, thư viện hoặc phiên bản GraalVM.
+1. Collect metadata across representative test runs.
+2. Review generated files; prune redundant entries and add uncovered branches.
+3. Merge metadata into version-controlled build inputs.
+4. Build the native binary and run tests against that binary itself.
+5. Re-run whenever upgrading frameworks, libraries, or GraalVM versions.
 
-Agent là **công cụ khám phá**, không tự chứng minh đã bao phủ mọi cấu hình runtime mà hệ thống có thể gặp.
+The agent is a **discovery tool**, not automatic proof that every runtime configuration the system might encounter has been covered.
 
-## 9. Reflection không phải loại dynamic feature duy nhất
+## 9. Reflection Is Not the Only Dynamic Feature
 
-Một hệ thống có thể qua được bước đọc annotation nhưng vẫn lỗi khi làm việc với thứ khác. Đối chiếu nhu cầu:
+A system may get past reading annotations yet still fail when using something else. Compare needs:
 
-| Tính năng động | JVM bình thường | Native Image / AOT cần xem xét |
+| Dynamic feature | Standard JVM | Native Image / AOT considerations |
 | --- | --- | --- |
-| `Class.forName` theo input | Tìm class còn trên classpath và được loader thấy | Class có được giữ lại/đăng ký không? |
-| `Method.invoke`/constructor Reflection | Tra cứu và kiểm tra Java access | Member có metadata cho query/invoke không? |
-| `getDeclaredAnnotations` và đọc giá trị | Metadata annotation nếu `RetentionPolicy.RUNTIME` | Annotation metadata/kiểu liên quan còn được giữ không? |
-| `Proxy.newProxyInstance` | Sinh JDK proxy theo interface runtime | Interface/proxy combination có được hỗ trợ/đăng ký không? |
-| Sinh bytecode mới bằng thư viện | JVM có thể nạp class mới khi công cụ và quyền cho phép | Native Image không tương đương classloading JVM mở; cần phương án sinh sẵn hoặc hỗ trợ riêng |
-| Tải resource theo tên | Đọc resource có mặt trong classpath | Resource có được đóng gói/đăng ký không? |
-| Serialization dựa trên Reflection | Thường truy cập nhiều constructor/field ẩn | Metadata serialization và reflection tương ứng |
-| JNI hoặc truy cập native | Nhiều class/member được tra cứu từ native code | Metadata JNI và khả năng liên kết native code |
+| `Class.forName` from input | Finds classes on classpath visible to loader | Is the class retained/registered? |
+| `Method.invoke` / constructor Reflection | Looks up and checks Java access | Does the member have query/invoke metadata? |
+| `getDeclaredAnnotations` and reading values | Annotation metadata if `RetentionPolicy.RUNTIME` | Are annotation metadata and related types retained? |
+| `Proxy.newProxyInstance` | Generates JDK proxy per runtime interfaces | Is the interface/proxy combination supported/registered? |
+| Generating new bytecode via libraries | JVM can load new classes when tools/permissions allow | Native Image lacks open JVM classloading; needs pre-generation or special support |
+| Loading resources by name | Reads resources present on classpath | Is the resource packaged/registered? |
+| Reflection-based serialization | Often accesses hidden constructors/fields | Serialization and corresponding reflection metadata |
+| JNI or native access | Many classes/members looked up from native code | JNI metadata and native linking capability |
 
-Với **dynamic proxy**, không chỉ quan tâm class của handler: **danh sách interface và thứ tự** cũng mang ý nghĩa. Với resource, Reflection metadata **không tự thay thế** resource metadata. Với `ServiceLoader`, cần kiểm tra provider được phát hiện và đóng gói đúng trên native target. Mỗi cơ chế có vùng đăng ký riêng; đừng cấu hình `allDeclaredMethods` cho toàn bộ ứng dụng như một cách giải quyết chung.
+For **dynamic proxies**, do not focus only on the handler class: **the interface list and order** also matter. For resources, Reflection metadata **does not substitute** for resource metadata. For `ServiceLoader`, verify providers are properly discovered and packaged on the native target. Each mechanism has its own registration domain; do not configure `allDeclaredMethods` across the entire application as a blanket workaround.
 
-## 10. Một giới hạn khác: JPMS và deep reflection
+## 10. Another Boundary: JPMS and Deep Reflection
 
-Ngay cả khi chạy trên **HotSpot JVM đầy đủ**, named module vẫn có ranh giới đóng gói.
+Even when running on the **full HotSpot JVM**, named modules enforce encapsulation boundaries.
 
-Giả sử:
+Suppose:
 
 ~~~java
-// module-info.java của thư viện
+// module-info.java of the library
 module data.core {
     exports demo.api;
 }
 ~~~
 
-`exports demo.api;` cho phép code ở module đọc được `data.core` sử dụng **API public** ở package đó. Nó **không cấp quyền** cho một module khác gọi private field/method bằng `setAccessible(true)`.
+`exports demo.api;` allows code in modules reading `data.core` to use **public APIs** in that package. It **does not grant permission** for another module to access private fields/methods via `setAccessible(true)`.
 
-Nếu một framework ở module `data.client` cần deep reflection vào `demo.api`, module sở hữu có thể mở có chọn lọc:
+If a framework in module `data.client` needs deep reflection into `demo.api`, the owning module can open selectively:
 
 ~~~java
 module data.core {
@@ -261,41 +261,41 @@ module data.core {
 }
 ~~~
 
-Hoặc khi chạy JVM, nếu có cơ sở bảo mật và vận hành phù hợp:
+Or at JVM launch, when there is a valid security and operational rationale:
 
 ~~~bash
 java --add-opens data.core/demo.api=data.client \
   --module-path mods -m data.client/demo.client.Main
 ~~~
 
-Trong PowerShell, viết cùng lệnh một dòng:
+In PowerShell, write the same command on one line:
 
 ~~~powershell
 java --add-opens data.core/demo.api=data.client --module-path mods -m data.client/demo.client.Main
 ~~~
 
-Lưu ý:
+Notes:
 
-- `exports` cho dùng public API; `opens` cho phép deep reflection vào package được mở.
-- Việc module gọi **đọc được module đích** vẫn quan trọng để làm việc với kiểu/API tương ứng.
-- `--add-opens` là flag mở package, không phải cơ chế đăng ký reachability cho Native Image.
-- `trySetAccessible()` cho biết việc bật quyền có thành công hay không; `setAccessible(true)` có thể ném `InaccessibleObjectException`.
-- `MethodHandles.privateLookupIn(...)` có yêu cầu lookup mode và quyền module riêng, không phải cách bỏ qua hoàn toàn `opens`.
+- `exports` grants public API usage; `opens` allows deep reflection into the opened package.
+- Whether the calling module **reads the target module** still matters for working with the corresponding types/APIs.
+- `--add-opens` is a package-opening flag, not a Native Image reachability registration mechanism.
+- `trySetAccessible()` reports whether enabling access succeeded; `setAccessible(true)` can throw `InaccessibleObjectException`.
+- `MethodHandles.privateLookupIn(...)` has its own lookup-mode and module-permission requirements, not a way to ignore `opens` entirely.
 
-**Chẩn đoán dựa vào lỗi:** `InaccessibleObjectException` thường gợi ý bị giới hạn truy cập JPMS; lỗi thiếu metadata trên native binary thường gợi ý cấu hình reachability; `ClassNotFoundException` còn có thể do đường dẫn lớp/sai tên và cần truy nguyên.
+**Diagnosing by error:** `InaccessibleObjectException` usually hints at JPMS access restriction; missing-metadata errors on native binaries usually hint at reachability configuration; `ClassNotFoundException` can also come from class paths/wrong names and needs tracing.
 
-## 11. Spring AOT: cấu hình được quyết định trước thời điểm chạy
+## 11. Spring AOT: Configuration Decided Before Runtime
 
-Spring có khả năng **Ahead-of-Time processing** để phân tích `ApplicationContext`, tạo mã khởi tạo bean và sinh `RuntimeHints` cho những thao tác động cần thiết. Một số thứ trước đây do classpath scanning hoặc runtime introspection quyết định nay cần **biết đủ thông tin khi build**.
+Spring offers **Ahead-of-Time processing** to analyze `ApplicationContext`, generate bean instantiation code, and emit `RuntimeHints` for required dynamic operations. Things previously decided by classpath scanning or runtime introspection now need **sufficient information at build time**.
 
-Chẳng hạn, trong Spring AOT:
+For example, under Spring AOT:
 
-- classpath và tập bean được phân tích từ build-time environment; thêm JAR mới vào runtime không nhất thiết làm AOT context khám phá ra bean mới;
-- các điều kiện như `@Profile` và `@Conditional` có thể được xác định trong AOT processing; đổi cấu hình runtime không luôn thay đổi tập bean như cách chạy JVM thông thường;
-- mã AOT có thể dùng lời gọi constructor/factory trực tiếp thay cho Reflection;
-- nếu thư viện tùy biến vẫn phải truy cập member bằng Reflection, hãy đóng góp **`RuntimeHints`** cho đúng type/member.
+- the classpath and bean set are analyzed from the build-time environment; adding a new JAR at runtime does not necessarily make the AOT context discover new beans;
+- conditions such as `@Profile` and `@Conditional` may be resolved during AOT processing; changing runtime config does not always alter the bean set the way a standard JVM run does;
+- AOT code can use direct constructor/factory calls instead of Reflection;
+- if custom libraries still must access members via Reflection, contribute **`RuntimeHints`** for the exact types/members.
 
-Một ví dụ lớp registrar trong dự án Spring Framework hỗ trợ AOT:
+Example registrar class in a Spring Framework project supporting AOT:
 
 ~~~java
 import org.springframework.aot.hint.MemberCategory;
@@ -316,48 +316,48 @@ public class TaskHints implements RuntimeHintsRegistrar {
 }
 ~~~
 
-Đây là **một file Java dùng Spring Framework**, không thuộc ví dụ JDK thuần ở mục 5; cần dependency Spring AOT trên classpath. Để engine biết registrar, có thể gắn `@ImportRuntimeHints(TaskHints.class)` lên một bean/cấu hình phù hợp hoặc đăng ký theo cơ chế `META-INF/spring/aot.factories` được tài liệu Spring hỗ trợ. Mục đích là nói rõ constructor nào sẽ được gọi động.
+This is **a Java file using Spring Framework**, not part of the pure JDK example in Section 5; it requires Spring AOT dependencies on the classpath. To inform the engine about the registrar, annotate an appropriate bean/config with `@ImportRuntimeHints(TaskHints.class)` or register via `META-INF/spring/aot.factories` as supported by Spring documentation. The goal is to declare which constructor will be invoked dynamically.
 
-Spring thường tự sinh nhiều hints cho các thành phần framework mà engine phân tích được; **không đăng ký thủ công trùng lặp mọi bean**. Tập trung vào plugin, conversion, library reflection hoặc loại dữ liệu không được engine suy ra từ bean graph. `RuntimeHintsPredicates` và các công cụ test Runtime Hints của Spring giúp kiểm tra phần đăng ký.
+Spring automatically generates many hints for framework components the engine can analyze; **do not manually duplicate registrations for every bean**. Focus on plugins, conversions, library reflection, or data types not inferred by the engine from the bean graph. `RuntimeHintsPredicates` and Spring's Runtime Hints test utilities help verify registrations.
 
-## 12. Kịch bản so sánh hành vi cần chạy trong CI
+## 12. Behavioral Comparison Scenarios to Run in CI
 
-Hãy giữ **cùng một contract đầu vào/đầu ra** rồi kiểm tra trên từng môi trường; không chỉ đo xem ứng dụng có khởi động thành công.
+Keep **the same input/output contract** and test across each environment; do not merely verify whether the application starts up.
 
-| Ca kiểm thử | JVM classpath | JVM JPMS hạn chế | Native Image có metadata |
+| Test case | JVM classpath | Restricted JVM JPMS | Native Image with metadata |
 | --- | --- | --- | --- |
-| Chọn `Alpha` bằng tên nhị phân | Mong đợi `alpha` | Mong đợi nếu class/module accessible | Mong đợi `alpha` nếu đã đăng ký |
-| Chọn `Beta` (nhánh khác) | Mong đợi `beta` | Phụ thuộc module | Phải có metadata cho Beta |
-| Tìm public constructor | Thường thành công nếu class tồn tại và accessible | Cần đúng module access | Cần member được giữ/đăng ký |
-| Truy cập private field từ module khác | Có thể bị từ chối | Dễ bị `InaccessibleObjectException` khi không `opens` | Vừa cần đăng ký metadata, vừa cần quyền phù hợp |
-| Tải class/JAR mới sau khi tiến trình chạy | Có thể qua class loader | Có thêm giới hạn module/loader | Không giả định có thể nạp bytecode hoàn toàn mới |
-| Đọc resource động | Nếu resource có mặt | Nếu resource có mặt và cho phép | Phải được đóng gói/đăng ký |
-| Dynamic proxy theo cấu hình | JVM có thể tạo lớp proxy | Có thể cần xét quyền module của interface | Cần cấu hình/hỗ trợ proxy phù hợp |
+| Select `Alpha` by binary name | Expect `alpha` | Expected if class/module accessible | Expect `alpha` if registered |
+| Select `Beta` (other branch) | Expect `beta` | Depends on module | Must have metadata for Beta |
+| Look up public constructor | Usually succeeds if class exists and accessible | Needs proper module access | Member must be retained/registered |
+| Access private field from another module | May be denied | Likely `InaccessibleObjectException` without `opens` | Needs both metadata registration and appropriate permissions |
+| Load new class/JAR after process startup | Possible via class loader | Additional module/loader limits apply | Do not assume brand-new bytecode can be loaded |
+| Read dynamic resource | If resource is present | If present and permitted | Must be packaged/registered |
+| Dynamic proxy from config | JVM can generate proxy class | May need interface module permissions | Needs matching proxy config/support |
 
-**Bộ kiểm thử tối thiểu:**
+**Minimum test suite:**
 
-1. Chạy trên JVM classpath thông thường với toàn bộ tên lớp có thể chọn.
-2. Nếu dự án có JPMS, chạy trên module path và thử quyền `opens`, cả tình huống thành công và bị từ chối.
-3. Build Native Image **từ đúng commit, dependency và metadata** sẽ phát hành; chạy binary với ít nhất hai nhánh dynamic input độc lập.
-4. Nếu dùng Spring AOT, kiểm tra build-time profile/condition, những bean động và custom Runtime Hints.
-5. So sánh loại lỗi, cause, stdout/return value và side effect; lưu log có tên binary, classloader/module và version native-image.
+1. Run on a standard JVM classpath across all selectable class names.
+2. If the project uses JPMS, run on the module path and test `opens` permissions, both allowed and denied cases.
+3. Build the Native Image **from the exact commit, dependencies, and metadata** to be released; run the binary with at least two independent dynamic-input branches.
+4. If using Spring AOT, verify build-time profiles/conditions, dynamic beans, and custom Runtime Hints.
+5. Compare error types, causes, stdout/return values, and side effects; save logs containing binary names, classloaders/modules, and `native-image` version.
 
-Điểm cốt lõi: **JVM test pass chưa chứng minh Native Image tương thích**. Trái lại, lỗi trên native không mặc nhiên là bug của Java Reflection: có thể do thiếu metadata hoặc giả định sai về những quyết định được đưa lên build time.
+Core point: **passing JVM tests does not prove Native Image compatibility**. Conversely, failures on native are not automatically Java Reflection bugs: they may stem from missing metadata or wrong assumptions about decisions shifted to build time.
 
-## 13. Khi nên thay Reflection bằng thiết kế tĩnh?
+## 13. When Should You Replace Reflection with Static Design?
 
-Reflection đem lại khả năng mở rộng, nhưng hệ thống AOT càng dễ phân tích khi loại thực thi/metadata được chỉ định rõ ràng.
+Reflection brings extensibility, yet AOT systems analyze code much more easily when execution types/metadata are explicitly specified.
 
-Các lựa chọn nên cân nhắc:
+Options worth considering:
 
-- **Interface + factory tường minh:** chọn các implementation đã biết, khởi tạo bằng code; compiler/AOT dễ theo dõi call graph.
-- **Constructor injection:** cung cấp dependency qua constructor thay vì quét và sửa private field.
-- **ServiceLoader với providers xác định trước:** phù hợp khi quy tắc provider của target runtime và build plugin được kiểm chứng; không xem nó là bảo đảm tự động cho JAR nạp sau build.
-- **Generated registry tại build time:** annotation processor hoặc AOT step sinh map tên → factory thay cho runtime classpath scan.
-- **MethodHandle/VarHandle:** hữu ích để tối ưu đường gọi khi đã có quyền và handle; nhưng **không bảo đảm vượt rào Native Image metadata hoặc JPMS**.
-- **Reflection + hints** khi sự linh hoạt thực sự cần: đăng ký đúng lớp/member và kiểm tra native binary trong CI.
+- **Interface + explicit factory:** select known implementations and instantiate in code; compilers/AOT easily trace the call graph.
+- **Constructor injection:** supply dependencies via constructors instead of scanning and mutating private fields.
+- **`ServiceLoader` with predetermined providers:** fits when provider rules of the target runtime and build plugins are verified; do not treat it as an automatic guarantee for JARs loaded post-build.
+- **Build-time generated registry:** an annotation processor or AOT step emits a name → factory map instead of runtime classpath scanning.
+- **`MethodHandle`/`VarHandle`:** useful for optimizing call paths once permissions and handles are obtained; **does not guarantee bypassing Native Image metadata or JPMS**.
+- **Reflection + hints** when flexibility is genuinely required: register exact classes/members and test the native binary in CI.
 
-Ví dụ thay tìm lớp động bằng factory rõ ràng:
+Example replacing dynamic class lookup with an explicit factory:
 
 ~~~java
 import java.util.Map;
@@ -386,7 +386,7 @@ public class StaticTaskFactoryDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac --release 17 StaticTaskFactoryDemo.java
@@ -394,7 +394,7 @@ java StaticTaskFactoryDemo alpha
 java StaticTaskFactoryDemo beta
 ~~~
 
-Kết quả mỗi lần gọi lần lượt là:
+Output for each invocation respectively:
 
 ~~~text
 alpha
@@ -404,54 +404,54 @@ alpha
 beta
 ~~~
 
-Ở đây compiler thấy trực tiếp `Alpha::new`, `Beta::new` và không cần `Class.forName` hay reflective constructor invocation. Đánh đổi là không thể tự thêm implementation hoàn toàn mới chỉ bằng thay đổi chuỗi cấu hình; muốn hỗ trợ loại mới, cần sinh lại registry hoặc build lại binary.
+Here the compiler sees `Alpha::new` and `Beta::new` directly and needs neither `Class.forName` nor reflective constructor invocation. The trade-off is that brand-new implementations cannot be added simply by changing a config string; supporting a new type requires regenerating the registry or rebuilding the binary.
 
-## 14. Lỗi chẩn đoán thường gặp
+## 14. Common Diagnostic Errors
 
-| Dấu hiệu | Điều cần phân biệt | Cách xử lý thực tế |
+| Symptom | What to distinguish | Practical resolution |
 | --- | --- | --- |
-| `ClassNotFoundException` | Sai tên, thiếu classpath/module, hoặc class không có trong Native Image | Xác minh tên binary, classpath khi build, metadata |
-| `NoSuchMethodException` | Sai signature, member bị lược bỏ trong native, hoặc API đổi version | Kiểm tra descriptor, method/constructor registration |
-| `InaccessibleObjectException` | JPMS đóng package với deep reflection | API public hoặc `opens` đúng package/module |
-| `IllegalAccessException` | Access check không qua | Kiểm tra visibility/module/lookup context |
-| `MissingReflectionRegistrationError` | Native Image thiếu phần tử được yêu cầu | Thêm hints/metadata phù hợp và chạy native test |
-| Proxy phát sinh lỗi | Interface combination hoặc AOT proxy metadata chưa được suy ra | Đối chiếu interface list/order và đăng ký proxy |
-| Resource có trên JVM, mất trong native | Resource chưa vào image | Resource metadata hoặc build plugin phù hợp |
-| Bean có trên JVM, vắng trên Spring AOT | Build-time graph/conditions khác runtime assumption | Kiểm tra AOT logs, profile/conditions, explicit bean definition |
-| Biên dịch native thành công nhưng runtime lỗi | Build pass không bao phủ mọi đường đi động | Test đủ input/configuration và exact registration diagnostics |
+| `ClassNotFoundException` | Wrong name, missing classpath/module, or class absent from Native Image | Verify binary name, build classpath, metadata |
+| `NoSuchMethodException` | Wrong signature, member stripped in native, or API version change | Check descriptor, method/constructor registration |
+| `InaccessibleObjectException` | JPMS closes package to deep reflection | Public API or `opens` on the right package/module |
+| `IllegalAccessException` | Access check failed | Check visibility/module/lookup context |
+| `MissingReflectionRegistrationError` | Native Image lacks requested element | Add appropriate hints/metadata and run native tests |
+| Proxy throws errors | Interface combination or AOT proxy metadata not inferred | Check interface list/order and proxy registration |
+| Resource present on JVM, missing in native | Resource not included in image | Resource metadata or appropriate build plugin |
+| Bean present on JVM, absent in Spring AOT | Build-time graph/conditions differ from runtime assumptions | Check AOT logs, profiles/conditions, explicit bean definitions |
+| Native compile succeeds yet fails at runtime | Build pass did not cover all dynamic paths | Test full inputs/configs and exact registration diagnostics |
 
-Bắt ngoại lệ đúng phạm vi, log nguyên nhân gốc. Không xử lý bằng cách mở toàn bộ JDK package, giữ mọi class/method, hay nuốt mọi exception; các cách đó có thể che lỗi và làm tăng kích thước/tấn công bề mặt của ứng dụng.
+Catch exceptions at the right scope and log root causes. Do not fix issues by opening all JDK packages, retaining every class/method, or swallowing every exception; those approaches mask bugs and enlarge the application's size and attack surface.
 
-## 15. Lưu ý về hiệu năng và an toàn
+## 15. Notes on Performance and Safety
 
-Native Image thường hướng tới **thời gian khởi động nhanh và footprint nhỏ hơn**, đổi lại có giới hạn nhất định về tính linh hoạt của những thành phần được phép xuất hiện lúc chạy. Tuy nhiên, tốc độ gọi `Method.invoke` không tự động nhanh hơn chỉ vì đã build native; muốn so sánh phải đo cả warmup, throughput, peak RSS, startup và workload thực tế.
+Native Image typically targets **faster startup and smaller footprint**, trading off some flexibility in which elements may appear at runtime. However, `Method.invoke` call speed is not automatically faster simply from compiling natively; fair comparisons must measure warmup, throughput, peak RSS, startup, and real workloads.
 
-- Đăng ký Reflection càng rộng (ví dụ `allDeclaredMethods` cho số lượng class lớn) càng có thể tăng kích thước binary và giữ metadata thừa.
-- Đừng coi metadata như một permission check. Nếu một đoạn code được phép truy cập private bằng Java access và metadata đã cho phép, nó có thể trở thành kênh thao tác nhạy cảm.
-- Khi dùng tên class nhận từ input không tin cậy, giới hạn danh sách implementation được phép. Cả JVM lẫn Native Image không làm `Class.forName(userInput)` tự trở thành an toàn.
-- Một ứng dụng cấu hình plugin động cần đánh giá **khả năng thêm logic mới sau build**. Native binary có *closed-world assumption* khác JVM đầy đủ.
-- Nếu quyền truy cập không cần dynamic dispatch, ưu tiên code tường minh giúp dễ audit và dễ tối ưu.
+- Broad Reflection registrations (such as `allDeclaredMethods` across large numbers of classes) can bloat binary size and retain unneeded metadata.
+- Do not treat metadata as a permission check. If code is permitted private access by Java access rules and metadata allows it, it can become a sensitive manipulation channel.
+- When using class names from untrusted input, constrain allowed implementations. Neither the JVM nor Native Image makes `Class.forName(userInput)` automatically safe.
+- Applications configuring dynamic plugins must evaluate **the ability to add new logic post-build**. Native binaries have a *closed-world assumption* unlike the full JVM.
+- If access does not require dynamic dispatch, favoring explicit code makes auditing and optimization easier.
 
-## 16. Câu hỏi tự kiểm tra
+## 16. Self-Check Questions
 
-1. `javac` biên dịch `.java` trước khi chạy có khiến `Class.forName` không hoạt động? **Không.** JVM còn classpath/module path và cơ chế nạp lớp khi chạy.
-2. Vì sao Native Image thường cần reachability metadata? Vì phân tích build-time không thể biết đầy đủ những class/member sẽ được chọn từ input runtime tùy ý.
-3. `Class.forName("java.lang.String")` luôn đòi JSON metadata riêng? **Không.** Nhiều lời gọi với input hằng có thể được Native Image suy ra.
-4. Có `--add-opens` thì không cần khai báo reflection metadata nữa? **Sai.** `opens` xử lý quyền module, metadata xử lý tính hiện diện/khả năng reflection trong image.
-5. Nếu tracing agent chỉ chạy Alpha, nó có tự chứng minh Beta đã được bao phủ? **Không.** Cần chạy mọi nhánh hoặc khai báo bổ sung.
-6. `new Alpha()` khác `Class.forName(name).getDeclaredConstructor().newInstance()` ở điểm nào với AOT? Lựa chọn class/constructor ở biểu thức đầu là **tĩnh**; biểu thức thứ hai có thể phụ thuộc dữ liệu runtime.
-7. Khi Spring AOT không suy ra việc truy cập Reflection từ custom code, dùng gì? **`RuntimeHintsRegistrar` và `RuntimeHints`** (hoặc tích hợp hints/AOT processor phù hợp).
-8. Nếu JVM test pass nhưng native binary báo thiếu member, bước tiếp theo? Xác nhận class/member/đường đi thực tế, metadata đúng phiên bản, rồi build và thử lại chính binary.
-9. Named module có `exports` public API nhưng không `opens`, dùng `setAccessible(true)` với private field từ module khác được không? **Không được bảo đảm**; thông thường phải mở package cho module caller.
-10. Cách nào phù hợp hơn nếu chỉ có hai task Alpha/Beta và không có yêu cầu thêm plugin tùy ý? **Interface + static factory/registry** có thể đơn giản, an toàn và dễ AOT hơn.
+1. Does `javac` compiling `.java` before execution prevent `Class.forName` from working? **No.** The JVM still has the classpath/module path and runtime class loading.
+2. Why does Native Image often need reachability metadata? Because build-time analysis cannot fully know which classes/members will be chosen from arbitrary runtime inputs.
+3. Does `Class.forName("java.lang.String")` always require separate JSON metadata? **No.** Many calls with constant inputs can be inferred by Native Image.
+4. If you have `--add-opens`, do you no longer need to declare reflection metadata? **False.** `opens` governs module permissions; metadata governs presence/reflectability in the image.
+5. If the tracing agent runs only Alpha, does that prove Beta is covered? **No.** You must run every branch or declare additions.
+6. How does `new Alpha()` differ from `Class.forName(name).getDeclaredConstructor().newInstance()` for AOT? Class/constructor selection in the first expression is **static**; the second can depend on runtime data.
+7. When Spring AOT cannot infer Reflection access in custom code, what do you use? **`RuntimeHintsRegistrar` and `RuntimeHints`** (or appropriate hints/AOT processor integration).
+8. If JVM tests pass while the native binary reports a missing member, what is the next step? Confirm the actual class/member/path, version-matched metadata, then rebuild and retest the binary itself.
+9. A named module `exports` a public API without `opens`; can `setAccessible(true)` access a private field from another module? **Not guaranteed**; normally the package must be opened to the calling module.
+10. Which approach fits better if there are only two tasks Alpha/Beta and no requirement to add arbitrary plugins? **Interface + static factory/registry** can be simpler, safer, and more AOT-friendly.
 
-## 17. Tài liệu chính thức để đối chiếu phiên bản
+## 17. Official References for Version Cross-Checking
 
-- [GraalVM Native Image — Reachability Metadata](https://www.graalvm.org/latest/reference-manual/native-image/metadata/) (cấu trúc `reachability-metadata.json`, reflection và tùy chọn chẩn đoán).
-- [GraalVM Native Image — Tracing Agent](https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/) (thu thập metadata theo ca chạy; đối chiếu đường dẫn tài liệu với bản phát hành thực tế).
-- [Spring Framework — Ahead-of-Time Optimizations](https://docs.spring.io/spring-framework/reference/core/aot.html) (hạn chế build-time graph, `RuntimeHints`, `@ImportRuntimeHints`, test).
-- [Java SE 17 — Class.forName và Reflection](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html).
+- [GraalVM Native Image — Reachability Metadata](https://www.graalvm.org/latest/reference-manual/native-image/metadata/) (structure of `reachability-metadata.json`, reflection, and diagnostic options).
+- [GraalVM Native Image — Tracing Agent](https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/) (collecting metadata per run; match documentation paths to your actual release).
+- [Spring Framework — Ahead-of-Time Optimizations](https://docs.spring.io/spring-framework/reference/core/aot.html) (build-time graph limits, `RuntimeHints`, `@ImportRuntimeHints`, testing).
+- [Java SE 17 — Class.forName and Reflection](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html).
 - [Java SE 17 — AccessibleObject](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html).
 - [OpenJDK JEP 403 — Strongly Encapsulate JDK Internals](https://openjdk.org/jeps/403).
 
-**Ghi nhớ:** Để so sánh Reflection trên các môi trường, kiểm tra riêng **class/member có trong runtime hay không**, **quyền truy cập có đủ hay không**, và **hành vi có bị cố định ở build time hay không**. Trên Native Image, bổ sung metadata chính xác và test chính binary; trên JPMS, làm rõ `reads`/`exports`/`opens`; còn khi có thể, dùng registry/factory tĩnh để tránh những nhu cầu reflection không cần thiết.
+**Key takeaway:** To compare Reflection across environments, check separately **whether the class/member exists at runtime**, **whether access permissions suffice**, and **whether behavior is fixed at build time**. On Native Image, add exact metadata and test the binary itself; on JPMS, clarify `reads`/`exports`/`opens`; and whenever possible, use static registries/factories to avoid unnecessary reflection needs.

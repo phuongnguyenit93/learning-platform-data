@@ -1,23 +1,23 @@
-# Mẫu `canEqual()` trong kế thừa: mục đích, điều kiện phối hợp và giới hạn
+# The `canEqual()` Pattern in Inheritance: Purpose, Cooperation Requirements, and Limitations
 
-## 1. Vì sao cần `canEqual()` khi ghi đè `equals()`?
+## 1. Why Is `canEqual()` Needed When Overriding `equals()`?
 
-Trong Java, `Object.equals(Object)` phải tuân thủ các tính chất **phản xạ**, **đối xứng**, **bắc cầu**, **nhất quán**, và `x.equals(null)` luôn là `false` với `x` khác `null`. Khi hai đối tượng được xem là bằng nhau, chúng còn phải có cùng `hashCode()`.
+In Java, `Object.equals(Object)` must obey **reflexivity**, **symmetry**, **transitivity**, **consistency**, and `x.equals(null)` must always be `false` for non-`null` `x`. Whenever two objects are considered equal, they must also share the same `hashCode()`.
 
-Kế thừa làm việc xây dựng quan hệ bằng nhau khó hơn vì lớp cha và lớp con có thể **khác nhau về các trường quyết định danh tính logic**. Một lớp `Point` chỉ có tọa độ (`x`, `y`); lớp `ColoredPoint` kế thừa `Point` nhưng bổ sung `color`. Nếu lớp cha dùng `instanceof Point` để so sánh tọa độ, còn lớp con chỉ nhận `ColoredPoint` và kiểm tra thêm màu, cùng một cặp đối tượng có thể cho hai câu trả lời trái ngược:
+Inheritance makes building an equality relation harder because parent class and subclass can **differ in the fields that determine logical identity**. A `Point` class has only coordinates (`x`, `y`); a `ColoredPoint` class inherits from `Point` and adds `color`. If the parent class uses `instanceof Point` to compare coordinates while the subclass accepts only `ColoredPoint` and also checks color, the same pair of objects can yield two opposite answers:
 
-| Phép so sánh | Kết quả theo cách triển khai sai | Nguyên nhân |
+| Comparison | Result Under Wrong Implementation | Cause |
 | --- | --- | --- |
-| `point.equals(coloredPoint)` | `true` | Lớp cha nhìn thấy đối tượng con là một `Point` và chỉ xét tọa độ |
-| `coloredPoint.equals(point)` | `false` | Lớp con từ chối đối tượng không phải `ColoredPoint` |
+| `point.equals(coloredPoint)` | `true` | Parent sees the child object as a `Point` and checks only coordinates |
+| `coloredPoint.equals(point)` | `false` | Subclass rejects an object that is not a `ColoredPoint` |
 
-Đó là vi phạm **tính đối xứng**: với hai tham chiếu không null `a` và `b`, `a.equals(b)` phải bằng `b.equals(a)`. Chỉ sửa ở lớp con chưa đủ nếu phương thức `equals` của lớp cha vẫn tự ý chấp nhận đối tượng lớp con.
+That is a **symmetry** violation: for two non-null references `a` and `b`, `a.equals(b)` must equal `b.equals(a)`. Fixing only the subclass is not enough if the parent class's `equals` method still unilaterally accepts subclass objects.
 
-**`canEqual()` là một mẫu thiết kế bổ trợ**, do người lập trình tự định nghĩa, cho phép đối tượng bên phải trả lời câu hỏi: *“Tôi có chấp nhận được so sánh bằng nhau theo kiểu của đối tượng bên trái không?”* Đây **không phải** phương thức có sẵn của `java.lang.Object` và Java **không** tự sinh nó cho các lớp thường.
+**`canEqual()` is a supporting design pattern**, defined by the programmer, that allows the right-hand object to answer the question: *“Do I agree to be compared for equality with the type of the left-hand object?”* It is **not** a built-in method on `java.lang.Object` and Java does **not** automatically generate it for regular classes.
 
-## 2. Cơ chế: hai đối tượng phải đồng thuận
+## 2. Mechanism: Both Objects Must Agree
 
-Trong một phiên bản đơn giản của mẫu, lớp cha triển khai:
+In a simple version of the pattern, the parent class implements:
 
 ```java
 protected boolean canEqual(Object other) {
@@ -32,20 +32,20 @@ public boolean equals(Object other) {
 }
 ```
 
-Đây là **đoạn minh họa nằm trong lớp `Point`**, giả sử lớp đã khai báo trường `x`, `y` và phương thức `canEqual` như trên; chưa phải một tệp Java độc lập.
+This is an **illustrative snippet inside the `Point` class**, assuming the class already declared fields `x`, `y` and the `canEqual` method as shown; it is not yet a standalone Java file.
 
-Điểm then chốt là lời gọi **`that.canEqual(this)`**:
+The key point is the call **`that.canEqual(this)`**:
 
-1. `this` là đối tượng đang được gọi `equals` (bên trái).
-2. `that` là đối tượng bên phải đã được xác nhận là một `Point` hoặc lớp con.
-3. Lời gọi `that.canEqual(this)` dùng **dynamic dispatch**: JVM chọn cách triển khai `canEqual` của **kiểu runtime của `that`**, không nhất thiết là cách triển khai tại `Point`.
-4. Nếu `that` là `ColoredPoint`, nó có thể từ chối `this` chỉ thuộc `Point`. Lớp cha lúc này trả về `false` trước khi so sánh tọa độ.
+1. `this` is the object on which `equals` is invoked (the left-hand side).
+2. `that` is the right-hand object already confirmed to be a `Point` or a subclass.
+3. The call `that.canEqual(this)` uses **dynamic dispatch**: the JVM selects the `canEqual` implementation of **`that`'s runtime type**, not necessarily the implementation in `Point`.
+4. If `that` is a `ColoredPoint`, it can reject `this` when `this` is only a `Point`. The parent class then returns `false` before comparing coordinates.
 
-Mẫu này cho phép một lớp con có thêm tiêu chí bằng nhau ngăn lớp cha xem nó là cùng giá trị với lớp cha. Đổi lại, **mọi lớp tham gia phải cùng tuân thủ quy ước**. Nếu lớp con bổ sung trạng thái vào `equals` nhưng không điều chỉnh `canEqual`, lớp cha vẫn có thể chấp nhận nó theo một chiều và làm hỏng đối xứng.
+This pattern lets a subclass with additional equality criteria prevent the parent class from treating it as the same value as the parent class. In return, **every participating class must follow the convention together**. If a subclass adds state to `equals` without adjusting `canEqual`, the parent class can still accept it in one direction and break symmetry.
 
-## 3. Chương trình Java 17+ hoàn chỉnh
+## 3. Complete Java 17+ Program
 
-Lưu mã sau vào **`CanEqualDemo.java`**. `Point` có tọa độ; `ColoredPoint` thêm màu sắc và ghi đè đồng bộ `canEqual`, `equals`, `hashCode`. Chương trình kiểm tra các cặp theo cả hai chiều.
+Save the following code into **`CanEqualDemo.java`**. `Point` has coordinates; `ColoredPoint` adds color and overrides `canEqual`, `equals`, and `hashCode` in sync. The program checks pairs in both directions.
 
 ```java
 import java.util.Objects;
@@ -138,14 +138,14 @@ public class CanEqualDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac CanEqualDemo.java
 java CanEqualDemo
 ```
 
-Kết quả chuẩn:
+Standard output:
 
 ```text
 Point vs ColoredPoint: forward=false, reverse=false
@@ -156,106 +156,106 @@ Point vs null: forward=false, reverse=false
 equal red objects share hash: true
 ```
 
-**Vì sao các dòng đó xuất hiện?**
+**Why do those lines appear?**
 
-- **`base.equals(red)`**: `red` thỏa `instanceof Point`, nhưng `red.canEqual(base)` gọi bản ghi đè tại `ColoredPoint`. Vì `base` không phải `ColoredPoint`, lời gọi trả `false`. Lớp cha từ chối so sánh chéo kiểu dù tọa độ trùng.
-- **`red.equals(base)`**: điều kiện `base instanceof ColoredPoint` là `false`, nên lớp con cũng trả `false`. Hai chiều thống nhất.
-- **`red.equals(redCopy)`**: cả hai đều là `ColoredPoint`; `that.canEqual(this)` chấp nhận, `super.equals(that)` xác nhận tọa độ, và `color.equals(that.color)` xác nhận màu giống nhau. Chiều đảo cũng `true`.
-- **`red.equals(blue)`**: tọa độ giống nhưng màu khác, hai chiều đều `false`.
-- **`base.equals(baseCopy)`**: cả hai đều là `Point` cùng tọa độ, hai chiều `true`.
-- `Objects.equals(base, null)` và `Objects.equals(null, base)` đều `false`, giúp kiểm thử hướng đảo an toàn với `null`.
-- Hai `ColoredPoint` bằng nhau phải cùng `hashCode`; ví dụ kiểm chứng điều đó. Hai đối tượng **không** bằng nhau vẫn được phép trùng hash.
+- **`base.equals(red)`**: `red` satisfies `instanceof Point`, yet `red.canEqual(base)` invokes the override in `ColoredPoint`. Since `base` is not a `ColoredPoint`, that call returns `false`. The parent rejects cross-type comparison even though coordinates match.
+- **`red.equals(base)`**: the `base instanceof ColoredPoint` condition is `false`, so the subclass also returns `false`. Both directions agree.
+- **`red.equals(redCopy)`**: both are `ColoredPoint`; `that.canEqual(this)` accepts, `super.equals(that)` confirms coordinates, and `color.equals(that.color)` confirms matching colors. The reverse direction is also `true`.
+- **`red.equals(blue)`**: coordinates match but colors differ; both directions are `false`.
+- **`base.equals(baseCopy)`**: both are `Point` with matching coordinates; both directions are `true`.
+- `Objects.equals(base, null)` and `Objects.equals(null, base)` are both `false`, helping test the reversed direction safely against `null`.
+- Two equal `ColoredPoint` instances must share the same `hashCode`; the example verifies that. Two **unequal** objects are still allowed to have matching hashes.
 
-Trong `ColoredPoint.equals`, điều kiện `that.canEqual(this)` thể hiện rõ sự đồng thuận của đối tượng bên phải. Lời gọi `super.equals(that)` còn kiểm tra `that.canEqual(this)` tại lớp cha, sau đó kiểm tra các tọa độ; ở ví dụ một cấp này, việc hỏi lại là thừa về mặt tính toán nhưng giúp lớp cha luôn tự duy trì hợp đồng của mình.
+In `ColoredPoint.equals`, the `that.canEqual(this)` condition explicitly expresses the right-hand object's consent. Calling `super.equals(that)` also checks `that.canEqual(this)` in the parent class and then checks coordinates; in this single-level example, asking again is computationally redundant, yet it keeps the parent class always maintaining its own contract.
 
-## 4. Những điều kiện cần phối hợp giữa lớp cha và lớp con
+## 4. Requirements for Cooperation Between Parent Class and Subclass
 
-### 4.1. Lớp cha phải hỏi ý kiến đối tượng bên phải
+### 4.1. The Parent Class Must Consult the Right-Hand Object
 
-`Point.equals` cần kiểm tra `other.canEqual(this)` **trước khi kết luận** bằng nhau theo các trường của lớp cha. Nếu lớp cha chỉ viết `other instanceof Point` rồi so sánh tọa độ, phương thức `canEqual` ở lớp con sẽ không được dùng và mẫu không giải quyết được tình huống ban đầu.
+`Point.equals` must check `other.canEqual(this)` **before concluding** equality based on parent fields. If the parent simply writes `other instanceof Point` and compares coordinates, the `canEqual` method on the subclass will never be used and the pattern fails to resolve the original issue.
 
-### 4.2. Lớp con có thêm trạng thái bình đẳng phải ghi đè `canEqual`
+### 4.2. A Subclass Adding Equality State Must Override `canEqual`
 
-Nếu màu sắc tham gia quyết định `equals`, `ColoredPoint.canEqual` nên chấp nhận đúng nhóm đối tượng mà nó sẵn sàng so sánh theo định nghĩa ấy. Trong ví dụ, nó chỉ chấp nhận `ColoredPoint`.
+If color participates in deciding `equals`, `ColoredPoint.canEqual` should accept exactly the group of objects it is prepared to compare under that definition. In the example, it accepts only `ColoredPoint`.
 
-Nếu lớp con chỉ thêm dữ liệu trình bày, **không** thêm trường tham gia vào định nghĩa bằng nhau, có thể không cần mở rộng quy tắc của lớp cha; tuy nhiên quyết định này phải được ghi nhận rõ trong mô hình. Không có nguyên tắc “mọi lớp con đều phải khác lớp cha” áp dụng cho mọi bài toán.
+If a subclass only adds presentation data and does **not** add fields participating in the equality definition, it may not need to alter the parent's rule; however, that decision must be clearly documented in the model. There is no rule that “every subclass must differ from its parent” for every problem.
 
-### 4.3. Lớp con phải phối hợp `equals` với phần bằng nhau được kế thừa
+### 4.3. The Subclass Must Coordinate `equals` with Inherited Equality
 
-Lớp con cần kết hợp các phép kiểm tra: kiểu đối tượng phù hợp, đối tượng bên phải chấp nhận, phần dữ liệu của lớp cha bằng nhau (ví dụ `super.equals(that)`), và phần dữ liệu mới bằng nhau. Nếu bỏ `super.equals`, hai điểm khác tọa độ có thể bị coi là bằng nhau chỉ vì cùng màu.
+The subclass must combine the checks: matching type, acceptance by the right-hand object, equality of the parent's data (for example `super.equals(that)`), and equality of the new data. Omitting `super.equals` could cause two points with different coordinates to be considered equal merely because they share the same color.
 
-Không đủ nếu chỉ ghi đè `canEqual`: **chính `equals` vẫn phải thực hiện đầy đủ so sánh thuộc tính**. Ngược lại, chỉ ghi đè `equals` mà không ghi đè `canEqual` trong lớp con có thêm trạng thái bình đẳng dễ tái tạo lỗi đối xứng.
+Overriding only `canEqual` is not enough: **`equals` itself must still perform the full attribute comparison**. Conversely, overriding `equals` without overriding `canEqual` in a subclass that adds equality state easily reintroduces the symmetry bug.
 
-### 4.4. `hashCode` phải theo cùng quan hệ bằng nhau
+### 4.4. `hashCode` Must Follow the Same Equality Relation
 
-Khi `a.equals(b)` là `true` thì bắt buộc `a.hashCode() == b.hashCode()`. Trong ví dụ, `Point` dùng tọa độ, `ColoredPoint` kết hợp hash của phần cha với màu. Cả hai đối tượng `ColoredPoint` bằng nhau có hash bằng nhau.
+Whenever `a.equals(b)` is `true`, `a.hashCode() == b.hashCode()` is mandatory. In the example, `Point` uses coordinates and `ColoredPoint` combines the parent's hash with color. Both equal `ColoredPoint` objects have equal hashes.
 
-Không suy luận chiều ngược: hai hash bằng nhau **không** kéo theo hai đối tượng bằng nhau. Nếu cho phép các kiểu khác nhau bằng nhau, cần bảo đảm cách tính hash của **mọi kiểu tương thích** thống nhất, không chỉ tính hash hợp lệ trong từng lớp.
+Do not reason in reverse: two equal hashes do **not** imply two objects are equal. If different types are allowed to be equal, you must ensure the hash calculation across **all compatible types** is consistent, not merely valid within each individual class.
 
-### 4.5. Quy ước cần áp dụng xuyên suốt hệ phân cấp
+### 4.5. The Convention Must Apply Across the Entire Hierarchy
 
-Đối với hệ phân cấp nhiều tầng (`Point → ColoredPoint → LabeledColoredPoint`), mỗi tầng bổ sung thuộc tính tham gia bình đẳng phải cân nhắc cập nhật `canEqual`, `equals` và `hashCode`. Lớp ở tầng giữa cũng phải duy trì phép kiểm tra đồng thuận; nếu một lớp bỏ qua, bất đối xứng có thể trở lại.
+For a multi-level hierarchy (`Point → ColoredPoint → LabeledColoredPoint`), every level adding attributes that participate in equality must consider updating `canEqual`, `equals`, and `hashCode`. Intermediate classes must also maintain the consent check; if one class skips it, asymmetry can return.
 
-Trong ví dụ, `ColoredPoint` được đánh dấu `final` để không phát sinh một tầng kế thừa mới tự ý thay đổi quy tắc. Đó là biện pháp thiết kế hữu ích, không phải điều kiện bắt buộc của mọi cách dùng `canEqual`.
+In the example, `ColoredPoint` is marked `final` so that no new inheritance level can arise and arbitrarily alter the rule. That is a helpful design safeguard, not a strict requirement for every use of `canEqual`.
 
-## 5. `canEqual()` giải quyết được gì và **không** giải quyết được gì?
+## 5. What `canEqual()` Solves and What It Does **Not** Solve
 
-| Nội dung | Vai trò thực tế của `canEqual` |
+| Topic | Practical Role of `canEqual` |
 | --- | --- |
-| Đối xứng khi cha/con khác quy tắc giá trị | **Có thể hỗ trợ**: lớp con từ chối quan hệ với lớp cha; lớp cha tôn trọng quyết định đó |
-| Phản xạ | Không tự bảo đảm; `equals` vẫn phải trả `true` khi cùng đối tượng |
-| Bắc cầu | Không tự bảo đảm; nếu `a=b` và `b=c` thì thiết kế phải làm cho `a=c` |
-| Nhất quán | Không tự bảo đảm nếu các trường tham gia so sánh thay đổi mà không có quy tắc rõ |
-| So sánh với `null` | Không tự bảo đảm; `equals(null)` phải là `false` |
-| Hợp đồng `hashCode` | Không tự bảo đảm; phải triển khai và kiểm tra riêng |
-| Tính đúng đắn của mô hình miền | Không thay thế quyết định nghiệp vụ: đối tượng nào có thể đại diện cho cùng giá trị |
+| Symmetry when parent/child have different value rules | **Can support**: subclass rejects comparison with parent; parent respects that decision |
+| Reflexivity | Not automatically guaranteed; `equals` must still return `true` for the same object |
+| Transitivity | Not automatically guaranteed; if `a=b` and `b=c`, the design must ensure `a=c` |
+| Consistency | Not automatically guaranteed if fields used in comparison mutate without clear rules |
+| Comparison with `null` | Not automatically guaranteed; `equals(null)` must return `false` |
+| `hashCode` contract | Not automatically guaranteed; must be implemented and tested separately |
+| Correctness of the domain model | Does not replace business decisions on which objects can represent the same value |
 
-**Giới hạn lớn nhất:** `canEqual` là một *quy ước hợp tác*. Nó không có quyền ép mọi lớp con thực hiện đúng, không chứng minh được quan hệ bằng nhau là bắc cầu, và không ngăn mã khác ghi đè `equals` một cách không phù hợp. Nếu bên trái kết luận bằng nhau theo bộ trường A, bên phải dựa trên bộ trường B không tương thích, chỉ có một phương thức kiểm tra ý định không thể tự hòa giải hai định nghĩa.
+**Biggest limitation:** `canEqual` is a *cooperative convention*. It has no power to force every subclass to implement it properly, cannot prove the equality relation is transitive, and cannot prevent other code from overriding `equals` improperly. If the left side concludes equality using field set A while the right side relies on an incompatible field set B, a single intent-checking method cannot reconcile the two definitions on its own.
 
-**Đối tượng có thể thay đổi:** Nếu `x`, `y` hoặc `color` có thể bị sửa sau khi đưa đối tượng vào `HashSet` hay dùng làm khóa `HashMap`, giá trị hash có thể thay đổi và làm việc tìm kiếm sai mong đợi. Ví dụ dùng trường `final` nhằm loại trừ rủi ro này trong chính chương trình, nhưng thiết kế bất biến cũng cần áp dụng cho các đối tượng thành phần khi liên quan.
+**Mutable objects:** If `x`, `y`, or `color` can be modified after inserting the object into a `HashSet` or using it as a `HashMap` key, its hash value can change and break lookups unexpectedly. The example uses `final` fields to eliminate this risk within the program itself, yet immutable design should also apply to component objects where relevant.
 
-**Các kiểu lạ hoặc proxy:** Kiểm tra bằng `instanceof`, `getClass()` và `canEqual` biểu thị các chính sách tương thích kiểu khác nhau. Nếu framework tạo lớp con ở runtime, chính sách bằng nhau cần tính đến kiểu runtime và dữ liệu đại diện; không có một lựa chọn đúng cho mọi loại proxy hoặc entity.
+**Unfamiliar types or proxies:** Checking via `instanceof`, `getClass()`, and `canEqual` expresses different type-compatibility policies. If a framework generates subclasses at runtime, the equality policy must account for runtime types and representative data; there is no single right choice for every proxy or entity kind.
 
-## 6. So sánh với các phương án thiết kế khác
+## 6. Comparison with Other Design Options
 
-| Cách tiếp cận | Khi nào phù hợp | Đánh đổi |
+| Approach | When Suitable | Trade-Offs |
 | --- | --- | --- |
-| `getClass() == other.getClass()` | Chỉ các đối tượng **cùng lớp runtime** mới có thể bằng nhau | Dễ hiểu, nhưng luôn bác bỏ bình đẳng giữa cha/con dù cùng tiêu chí |
-| `instanceof` đơn thuần | Hệ phân cấp có định nghĩa bình đẳng thống nhất, lớp con không tự thêm trạng thái quyết định bình đẳng | Dễ bị vi phạm đối xứng/bắc cầu khi lớp con bổ sung tiêu chí |
-| `instanceof` kết hợp `canEqual` | Cần cho phép từng kiểu kiểm soát khả năng bình đẳng xuyên hệ phân cấp | Linh hoạt hơn, nhưng mọi lớp liên quan phải hợp tác và kiểm thử cẩn thận |
-| `final class` hoặc `record` | Đối tượng giá trị có danh tính logic rõ và không cần biến thể qua kế thừa | Ít rủi ro hợp đồng hơn; `record` tự sinh `equals`/`hashCode` theo thành phần |
-| Composition | Kiểu mới **chứa** giá trị cũ và bổ sung thành phần như màu | Tách được các miền bình đẳng, tránh phải điều phối quan hệ cha–con |
+| `getClass() == other.getClass()` | Only objects of the **exact same runtime class** may be equal | Easy to understand, but always rejects parent/child equality even under shared criteria |
+| Plain `instanceof` | Hierarchy has a unified equality definition; subclasses do not add equality-determining state | Easily breaks symmetry/transitivity when subclasses add criteria |
+| `instanceof` combined with `canEqual` | Need to let each type control comparability across the hierarchy | More flexible, but every involved class must cooperate and be carefully tested |
+| `final class` or `record` | Value object has clear logical identity and needs no inheritance variants | Lower contract risk; `record` auto-generates `equals`/`hashCode` by components |
+| Composition | New type **contains** the old value and adds components such as color | Separates equality domains, avoiding parent–child coordination |
 
-Ví dụ, thay vì thiết kế `ColoredPoint extends Point`, có thể tạo hai `record` riêng:
+For example, instead of designing `ColoredPoint extends Point`, you can create two separate `record` types:
 
 ```java
 record PointValue(int x, int y) {}
 record ColoredPointValue(PointValue point, String color) {}
 ```
 
-Đây là **đoạn khai báo kiểu độc lập**, không phải toàn bộ chương trình chạy. Kiểu có màu chứa kiểu tọa độ và Java sinh phép so sánh theo thành phần. Một `PointValue` không bằng một `ColoredPointValue` theo mặc định ở cả hai chiều; trong trường hợp không cần bình đẳng xuyên kiểu, đó thường là thiết kế đơn giản hơn.
+This is a **standalone type declaration snippet**, not a full runnable program. The colored type holds the coordinate type, and Java generates component-based comparison. A `PointValue` is not equal to a `ColoredPointValue` by default in either direction; when cross-type equality is unnecessary, that is usually a simpler design.
 
-`canEqual` hữu ích khi kế thừa thật sự là yêu cầu của mô hình và không muốn áp dụng chính sách cứng “chỉ đúng cùng lớp”. Nó không phải một nghi thức buộc mọi lớp Java đều phải dùng.
+`canEqual` is useful when inheritance is genuinely required by the model and you do not want a rigid “exact same class only” policy. It is not a ceremony that every Java class must adopt.
 
-## 7. Kiểm thử đầy đủ và các lỗi thường gặp
+## 7. Thorough Testing and Common Mistakes
 
-Khi có kế thừa, đừng chỉ viết assertion cho `a.equals(b)`. Kiểm tra **đảo chiều** và so sánh tất cả nhóm lớp có khả năng liên quan:
+When inheritance is present, do not write assertions only for `a.equals(b)`. Test **the reverse direction** and compare all potentially related class groups:
 
-- Cùng tham chiếu; hai đối tượng khác tham chiếu nhưng cùng giá trị; cùng kiểu khác giá trị.
-- Cha–con theo cả hai hướng; hai lớp con cùng kiểu; hai lớp con khác kiểu.
-- `null` và đối tượng không liên quan; thứ tự gọi đảo.
-- Ba đối tượng để kiểm tra tính **bắc cầu**; lặp phép so sánh khi không đổi trạng thái để kiểm tra **nhất quán**.
-- Hai đối tượng được xác định bằng nhau phải có cùng `hashCode()`; thử dùng làm khóa trong `HashMap`/`HashSet` nếu đó là trường hợp sử dụng thật.
+- Same reference; two distinct references with equal values; same type with different values.
+- Parent–child in both directions; two subclasses of the same type; two subclasses of different types.
+- `null` and unrelated objects; reversed call orders.
+- Triples of objects to check **transitivity**; repeated comparisons without state mutation to check **consistency**.
+- Two objects determined equal must share the same `hashCode()`; test as keys in `HashMap`/`HashSet` if that is a real use case.
 
-Những sai sót đáng chú ý:
+Notable mistakes:
 
-1. **Quên `other.canEqual(this)` trong lớp cha:** lớp con có ghi đè `canEqual` vẫn không thể từ chối khi lớp cha chủ động so sánh.
-2. **Lớp con thêm trường vào `equals` nhưng không ghi đè `canEqual`:** có thể khôi phục tình trạng lớp cha chấp nhận lớp con theo một chiều, lớp con từ chối lớp cha theo chiều kia.
-3. **Không gọi `super.equals` khi cần so sánh trường kế thừa:** hai đối tượng có phần dữ liệu cha khác nhau vẫn có thể được đánh giá bằng nhau.
-4. **Không đồng bộ `hashCode`:** các đối tượng bằng nhau có thể rơi vào những bucket khác nhau trong cấu trúc hash, vi phạm hợp đồng.
-5. **Tưởng rằng `canEqual` tự kiểm tra mọi tính chất của `equals`:** nó chỉ hỗ trợ kiểm soát kiểu tương thích; cần kiểm thử cả bắc cầu, phản xạ và nhất quán.
-6. **Viết `equals(Point)` thay vì `equals(Object)`:** đó là overload, không ghi đè đúng hợp đồng `Object.equals`. Dùng `@Override` giúp phát hiện nhầm chữ ký khi biên dịch.
+1. **Forgetting `other.canEqual(this)` in the parent class:** even a subclass that overrides `canEqual` cannot refuse when the parent initiates the comparison.
+2. **Subclass adds fields to `equals` without overriding `canEqual`:** can restore the bug where the parent accepts the subclass in one direction while the subclass rejects the parent in the other.
+3. **Not calling `super.equals` when inherited fields must be compared:** two objects with different parent data could still be evaluated as equal.
+4. **Not synchronizing `hashCode`:** equal objects can land in different buckets in hash structures, violating the contract.
+5. **Assuming `canEqual` checks every `equals` property by itself:** it only helps control type compatibility; transitivity, reflexivity, and consistency still need testing.
+6. **Writing `equals(Point)` instead of `equals(Object)`:** that is an overload, not a proper override of the `Object.equals` contract. Using `@Override` helps catch signature mistakes at compile time.
 
-**Bài tự kiểm tra:** Giả sử `Point.equals` chỉ so tọa độ và có gọi `other.canEqual(this)`, nhưng `ColoredPoint` ghi đè `equals` để so thêm màu mà **quên ghi đè `canEqual`**. Khi `point` và `coloredPoint` có cùng tọa độ, hãy tính hai chiều: `point.equals(coloredPoint)` có thể là `true` vì `ColoredPoint` kế thừa `Point.canEqual`; `coloredPoint.equals(point)` là `false` vì đối tượng cha không phải `ColoredPoint`. Đây là lý do **lớp cha và lớp con phải cùng phối hợp** thì mẫu mới giúp bảo toàn đối xứng.
+**Self-check exercise:** Suppose `Point.equals` compares only coordinates and calls `other.canEqual(this)`, yet `ColoredPoint` overrides `equals` to also compare color while **forgetting to override `canEqual`**. When `point` and `coloredPoint` share the same coordinates, evaluate both directions: `point.equals(coloredPoint)` can be `true` because `ColoredPoint` inherits `Point.canEqual`; `coloredPoint.equals(point)` is `false` because the parent object is not a `ColoredPoint`. This is why **parent class and subclass must cooperate** for the pattern to preserve symmetry.
 
-Tóm lại, `canEqual()` là cách đưa quyền chấp nhận quan hệ bằng nhau về phía đối tượng được so sánh. Hãy dùng nó khi cần quản lý bình đẳng trong hệ phân cấp mở; bảo đảm mỗi tầng kết hợp `canEqual`, `equals` và `hashCode` nhất quán, rồi kiểm thử toàn bộ hợp đồng. Nếu không thật sự cần bình đẳng xuyên kiểu, các lớp giá trị `final`, `record` và composition thường giúp đơn giản hóa thiết kế.
+In summary, `canEqual()` delegates acceptance of the equality relation to the compared object. Use it when managing equality in an open hierarchy; ensure every layer combines `canEqual`, `equals`, and `hashCode` consistently, then test the full contract. If cross-type equality is not genuinely needed, `final` value classes, `record`s, and composition generally simplify the design.

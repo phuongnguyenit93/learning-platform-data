@@ -1,33 +1,33 @@
-# Điều kiện bảo vệ `when` và thứ tự nhãn mẫu — Java 17+
+# Guard Conditions `when` and Pattern Label Order — Java 17+
 
-## 1. Bản chất bài học và lưu ý phiên bản
+## 1. Nature of This Lesson and Version Notes
 
-Khi dùng **pattern matching trong `switch`**, ta có thể chọn nhánh dựa trên **kiểu dữ liệu** và thêm **điều kiện bảo vệ** (*guard*) để chỉ chấp nhận mẫu thỏa ràng buộc bổ sung. Cú pháp phổ biến:
+When using **pattern matching in `switch`**, you can select a branch based on **data type** and add a **guard condition** (*guard*) to accept a pattern only when it satisfies an additional constraint. Common syntax:
 
 ~~~java
-// Java 21 trở lên: switch pattern matching ổn định.
+// Java 21 or later: stable switch pattern matching.
 case String text when text.length() >= 5 -> ...
 ~~~
 
-Ý nghĩa: trước hết selector phải khớp mẫu `String text`; **chỉ khi đó** Java mới đánh giá `text.length() >= 5`. Nếu guard false, tiếp tục tìm nhãn case sau.
+Meaning: first the selector must match the pattern `String text`; **only then** does Java evaluate `text.length() >= 5`. If the guard is false, Java continues searching subsequent case labels.
 
-**Phân biệt phiên bản rất quan trọng:**
+**Distinguishing versions is crucial:**
 
-| JDK | Trạng thái và cú pháp |
+| JDK | Status and Syntax |
 |---|---|
-| Java 17 | Pattern matching cho `instanceof` **ổn định**; pattern matching cho `switch` là **preview** (JEP 406), guard preview dùng dạng `case String s && condition`, **không có cú pháp `when`** |
-| Java 21+ | Pattern matching cho `switch` **ổn định** (JEP 441); viết `case String s when condition -> ...`, không cần preview |
+| Java 17 | Pattern matching for `instanceof` is **stable**; pattern matching for `switch` is **preview** (JEP 406), and the preview guard uses `case String s && condition`, **with no `when` syntax** |
+| Java 21+ | Pattern matching for `switch` is **stable** (JEP 441); write `case String s when condition -> ...`, no preview needed |
 
-Vì vậy **không thể biên dịch `case ... when ...` bằng `javac --release 17`**. Bài này có hai chương trình hoàn chỉnh:
+Therefore, **`case ... when ...` cannot be compiled with `javac --release 17`**. This lesson includes two complete programs:
 
-1. **JDK 17+**: dùng `instanceof` pattern kết hợp `if/else` và `&&`, biểu diễn cùng logic và kiểm chứng được trên Java 17.
-2. **JDK 21+**: dùng trực tiếp `switch` với `when`, đúng cú pháp mà đề bài hỏi.
+1. **JDK 17+**: uses `instanceof` patterns combined with `if/else` and `&&`, expressing the same logic and verifiable on Java 17.
+2. **JDK 21+**: directly uses `switch` with `when`, matching the exact syntax asked about.
 
-Không sử dụng cú pháp Java 21 trong đoạn mã được ghi là chạy trên JDK 17.
+Do not use Java 21 syntax in snippets marked as running on JDK 17.
 
-## 2. `when` kiểm tra điều kiện sau khi mẫu khớp
+## 2. `when` Checks a Condition After the Pattern Matches
 
-Ví dụ Java 21:
+Java 21 example:
 
 ~~~java
 static String classify(Object value) {
@@ -41,60 +41,60 @@ static String classify(Object value) {
 }
 ~~~
 
-Luồng đối với `value = "example"`:
+Flow for `value = "example"`:
 
-1. Không khớp `case null`.
-2. Khớp kiểu `String` ở nhãn có `s.isBlank()`, nhưng guard false.
-3. Tiếp tục nhãn kế tiếp: khớp `String` và `s.length() >= 5` true.
-4. Chọn `"LONG_TEXT"`; **không xét** các nhãn phía dưới.
+1. Does not match `case null`.
+2. Matches type `String` on the label with `s.isBlank()`, but the guard is false.
+3. Moves to the next label: matches `String` and `s.length() >= 5` is true.
+4. Selects `"LONG_TEXT"`; **does not evaluate** the labels below.
 
-Nếu `value = 42`, Java không gọi `s.isBlank()` hay `s.length()`, vì mẫu `String s` không khớp. Biến mẫu `s` thuộc phạm vi của **guard** và **thân nhánh được chọn**, không tồn tại vô điều kiện cho mọi case.
+If `value = 42`, Java does not call `s.isBlank()` or `s.length()`, because the pattern `String s` does not match. The pattern variable `s` is in scope for the **guard** and the **body of the selected branch**, and does not exist unconditionally across all cases.
 
 ~~~mermaid
 flowchart TD
-    A["Đánh giá selector một lần"] --> B{"Mẫu nhãn đầu khớp?"}
-    B -- "Không" --> F["Thử nhãn tiếp theo"]
-    B -- "Có" --> C{"Có when và guard true?"}
-    C -- "Không" --> F
-    C -- "Có / không có guard" --> D["Chọn nhánh và chạy thân nhánh"]
+    A["Evaluate selector once"] --> B{"First label pattern matches?"}
+    B -- "No" --> F["Try next label"]
+    B -- "Yes" --> C{"Has when and guard is true?"}
+    C -- "No" --> F
+    C -- "Yes / no guard" --> D["Select branch and execute branch body"]
     F --> B
-    D --> E["Rời switch rule/expression"]
+    D --> E["Exit switch rule/expression"]
 ~~~
 
-Sơ đồ nêu nguyên tắc chung; với guard false, Java **không thực hiện thân nhánh** dù kiểu mẫu đã khớp.
+The diagram illustrates the general principle; when a guard is false, Java **does not execute the branch body** even though the pattern type matched.
 
-## 3. `when` phải đi kèm nhãn mẫu phù hợp
+## 3. `when` Must Accompany an Appropriate Pattern Label
 
-Ví dụ đúng trong Java 21:
+Valid examples in Java 21:
 
 ~~~java
 case String text when !text.isBlank() -> "TEXT"
 case Integer number when number > 0 -> "POSITIVE_INTEGER"
 ~~~
 
-Các biểu thức sau `when` phải là điều kiện **`boolean`** (hoặc giá trị `Boolean` có thể được unbox), và được kiểm tra theo luật ngôn ngữ như một biểu thức điều kiện thông thường.
+Expressions after `when` must be **`boolean`** conditions (or a `Boolean` value that can be unboxed), and are checked by language rules like an ordinary conditional expression.
 
-**Không đặt `when` lên một nhãn hằng theo cùng cách:**
+**Do not attach `when` to a constant label in the same way:**
 
 ~~~java
-// Không phải cú pháp guarded pattern Java 21:
+// Not valid Java 21 guarded pattern syntax:
 // case 10 when someBoolean -> "TEN";
 ~~~
 
-Nếu cần kiểm tra thêm điều kiện trên giá trị 10, có thể dùng mẫu kiểu kèm guard (khi hợp ngữ cảnh), hoặc tốt hơn là dùng `if` nếu nghiệp vụ chỉ là phép so sánh một số và điều kiện phụ.
+If you need an extra check on the value 10, you can use a type pattern with a guard (when contextually appropriate), or better yet use `if` if the logic is just comparing a number and an extra condition.
 
-Một guard có thể kết hợp nhiều điều kiện:
+A guard can combine multiple conditions:
 
 ~~~java
 case String text when !text.isBlank()
         && text.length() <= 20 -> "VALID_TEXT"
 ~~~
 
-Bên trong guard, `text` đã được biết là String **khác null**, nhưng các method trong guard vẫn có thể tạo tác dụng phụ hoặc ném ngoại lệ nếu chúng làm việc khác. Hãy ưu tiên guard ngắn, thuần túy và dễ kiểm thử.
+Inside the guard, `text` is already known to be a **non-null** String, though methods called in the guard can still have side effects or throw exceptions if they do other work. Prefer short, pure, and easily testable guards.
 
-## 4. Thứ tự nhãn mẫu ảnh hưởng đến kết quả
+## 4. Pattern Label Order Affects the Result
 
-Hai guard có thể **cùng true** cho một giá trị. Nhánh khớp đầu tiên theo thứ tự nhãn được chọn.
+Two guards can **both be true** for a single value. The first matching branch in label order is selected.
 
 ~~~java
 return switch (value) {
@@ -105,36 +105,36 @@ return switch (value) {
 };
 ~~~
 
-Với `"AppleTree"`, hai guard đầu đều true, nhưng kết quả là `"STARTS_A"` vì nhãn ấy đứng trước. Với `"Mexico"`, guard đầu false, guard thứ hai true, kết quả `"LONG"`.
+For `"AppleTree"`, both of the first two guards are true, yet the result is `"STARTS_A"` because that label comes first. For `"Mexico"`, the first guard is false and the second is true, yielding `"LONG"`.
 
-**Lời khuyên:** sắp các điều kiện **ưu tiên cao hoặc đặc thù hơn** lên trước. Viết bảng quy tắc khi có nhiều guard giao nhau:
+**Advice:** place **higher-priority or more specific** conditions first. Write a rule table when multiple guards overlap:
 
-| Đầu vào | `startsWith("A")` | `length >= 5` | Nhãn được chọn |
+| Input | `startsWith("A")` | `length >= 5` | Selected Label |
 |---|---|---|---|
-| `"AppleTree"` | true | true | `STARTS_A` (đầu tiên) |
+| `"AppleTree"` | true | true | `STARTS_A` (first) |
 | `"Alex"` | true | false | `STARTS_A` |
 | `"Mexico"` | false | true | `LONG` |
 | `"Go"` | false | false | `OTHER_STRING` |
-| `42` | Không xét guard String | Không xét | `NOT_STRING` |
+| `42` | String guard not evaluated | Not evaluated | `NOT_STRING` |
 
-Đổi thứ tự hai nhãn có guard có thể **đổi kết quả**, ngay cả khi chương trình vẫn biên dịch hợp lệ.
+Changing the order of two guarded labels can **change the result**, even when the program still compiles cleanly.
 
-## 5. Dominance: compiler phát hiện nhãn bị che khuất
+## 5. Dominance: The Compiler Detects Shadowed Labels
 
-Một nhãn kiểu rộng không có guard có thể bao phủ hết nhãn kiểu hẹp đứng sau. Ví dụ `CharSequence` bao gồm `String`, nên thứ tự sau không biên dịch trên Java 21:
+An unguarded broad-type label can cover all values of a narrower label placed after it. For example, `CharSequence` includes `String`, so the following order does not compile on Java 21:
 
 ~~~java
 // case CharSequence cs -> "SEQUENCE";
-// case String s -> "STRING"; // Bị dominated.
+// case String s -> "STRING"; // Dominated.
 ~~~
 
-Đảo thứ tự thành `case String s` rồi `case CharSequence cs` để giữ cả hai đường. Cùng kiểu mẫu, `case String s -> ...` đặt trước `case String s when s.length() >= 5 -> ...` cũng làm nhãn guarded bị che; hãy đặt nhãn có guard trước nhãn chung.
+Swap the order to `case String s` and then `case CharSequence cs` to keep both paths. For the same pattern type, placing `case String s -> ...` before `case String s when s.length() >= 5 -> ...` also shadows the guarded label; put guarded labels before the general label.
 
-Giữa **hai guard tùy ý**, compiler thường không thể suy luận mọi quan hệ bao hàm của điều kiện. Hai guard cùng true vẫn biên dịch được và **thứ tự quyết định kết quả** như ở mục 4. Phần về coverage/exhaustiveness của chương phân tích sâu hơn nhãn bị che và trường hợp cần `default`.
+Between **two arbitrary guards**, the compiler usually cannot deduce every implication relationship between conditions. Two guards that can both be true still compile, and **order determines the result** as shown in Section 4. The section on coverage/exhaustiveness in this chapter analyzes dominated labels and when `default` is needed in greater depth.
 
-## 6. Phân biệt guard false với type mismatch
+## 6. Distinguishing a False Guard from a Type Mismatch
 
-Giả sử:
+Suppose:
 
 ~~~java
 return switch (value) {
@@ -145,18 +145,18 @@ return switch (value) {
 };
 ~~~
 
-- `Integer.valueOf(-2)`: khớp Integer, guard `n < 0` true → `NEGATIVE_INT`.
-- `Integer.valueOf(0)`: khớp Integer nhưng guard false → thử nhãn Integer kế tiếp → `OTHER_INT`.
-- `Double.valueOf(2.5)`: **không khớp** mẫu Integer → khớp `Number` → `OTHER_NUMBER`.
-- `"Go"`: không khớp Integer/Number → `OTHER`.
+- `Integer.valueOf(-2)`: matches Integer, guard `n < 0` is true → `NEGATIVE_INT`.
+- `Integer.valueOf(0)`: matches Integer but guard is false → tries the next Integer label → `OTHER_INT`.
+- `Double.valueOf(2.5)`: **does not match** the Integer pattern → matches `Number` → `OTHER_NUMBER`.
+- `"Go"`: matches neither Integer nor Number → `OTHER`.
 
-Mẫu `Integer n` đã bảo đảm `n` không null và là `Integer` khi guard được xét, nên `n < 0` có thể unbox để so sánh an toàn trong trường hợp này.
+The `Integer n` pattern guarantees `n` is non-null and an `Integer` when the guard is evaluated, so `n < 0` can safely unbox for comparison in this case.
 
-**Đừng nhầm** “guard false” với “selector không đúng kiểu”: cả hai đều dẫn tới việc thử nhãn sau, nhưng việc guard có được đánh giá hay không thì khác.
+**Do not confuse** "guard false" with "selector has the wrong type": both lead to trying subsequent labels, but whether the guard is evaluated differs.
 
-## 7. `null` cần nhãn riêng hoặc guard trước switch
+## 7. `null` Requires Its Own Label or a Guard Before the Switch
 
-Với switch pattern matching Java 21, có thể dùng:
+With Java 21 switch pattern matching, you can write:
 
 ~~~java
 return switch (value) {
@@ -167,15 +167,15 @@ return switch (value) {
 };
 ~~~
 
-Đừng giả định `default` tự xử lý `null` theo mọi hình thức switch. Nếu switch không có nhãn xử lý null phù hợp, selector null có thể gây `NullPointerException`.
+Do not assume `default` automatically handles `null` in every form of switch. If a switch has no label handling null appropriately, a null selector can cause a `NullPointerException`.
 
-Trong Java 17 ổn định, pattern matching cho `switch` chưa là tính năng ổn định; cách dễ hiểu là kiểm tra trước bằng `if (value == null)` rồi mới dùng `instanceof`.
+In stable Java 17, pattern matching for `switch` is not yet a stable feature; a clear approach is to check `if (value == null)` first and then use `instanceof`.
 
-**Chú ý:** một mẫu kiểu `String s` thông thường không khớp null, vì vậy `s.isBlank()` không chạy cho null. Tránh đặt logic xử lý null trong thân nhánh String rồi mong nó được gọi khi selector null.
+**Note:** an ordinary `String s` pattern does not match null, so `s.isBlank()` does not run for null. Avoid placing null-handling logic inside the String branch body expecting it to run when the selector is null.
 
-## 8. Mối liên hệ với flow scoping và `instanceof` của Java 17
+## 8. Connection to Java 17 Flow Scoping and `instanceof`
 
-Trong Java 17, pattern matching ổn định cho `instanceof` có thể biểu đạt điều kiện tương đương:
+In Java 17, stable pattern matching for `instanceof` can express the equivalent conditions:
 
 ~~~java
 static String classify17(Object value) {
@@ -187,26 +187,26 @@ static String classify17(Object value) {
 }
 ~~~
 
-Tại `value instanceof String s && s.length() >= 5`, vế phải `&&` chỉ chạy khi mẫu đã khớp. Đây là **flow scoping**, tức compiler chỉ cho dùng `s` tại nơi có thể chứng minh mẫu đã khớp.
+In `value instanceof String s && s.length() >= 5`, the right-hand side of `&&` runs only when the pattern matches. This is **flow scoping**, meaning the compiler allows using `s` only where it can prove the pattern matched.
 
-Java 17 **không cần** `when` để dạy quy tắc đặt guard sau bước kiểm tra kiểu.
+Java 17 **does not need** `when` to teach the rule of placing guards after a type check.
 
-**Hai điểm khác nhau:**
+**Two differences:**
 
-- Chuỗi `if` có thể lặp lại phép `instanceof`; switch Java 21 diễn đạt nhiều nhãn mẫu trên cùng selector.
-- Java 21 áp dụng **dominance** cho thứ tự nhãn mẫu trong switch; nếu một pattern không guard rộng đứng trước mẫu con, lỗi có thể được phát hiện ngay lúc biên dịch. Với `if`, điều kiện rộng đứng trước thường là lỗi logic không được compiler cảnh báo.
+- An `if` chain may repeat the `instanceof` check; Java 21 switch expresses multiple pattern labels over the same selector.
+- Java 21 enforces **dominance** on pattern label order in switch; if an unguarded broad pattern precedes a subpattern, the error can be caught at compile time. With `if`, a broad condition placed first is usually a logic bug without a compiler warning.
 
-## 9. `when` khác `if` đặt bên trong case
+## 9. `when` Differs from an `if` Placed Inside a Case
 
-Một nhãn có guard:
+A guarded label:
 
 ~~~java
 case String s when s.length() >= 5 -> "LONG_TEXT"
 ~~~
 
-chỉ được chọn khi **cả kiểu String và guard** cùng đạt.
+is selected only when **both the String type and the guard** succeed.
 
-Nhưng nếu viết:
+Whereas if you write:
 
 ~~~java
 case String s -> {
@@ -217,15 +217,15 @@ case String s -> {
 }
 ~~~
 
-thì **mọi String** đều chọn nhãn `case String s`; các nhãn case phía sau sẽ không có cơ hội xử lý String đó. Guard `when` vì vậy không đơn thuần là cách làm gọn một `if` nằm trong case: guard false có nghĩa là **tiếp tục thử nhãn khác**.
+then **every String** selects the `case String s` label; later case labels will have no chance to handle that String. A `when` guard is therefore not merely shorthand for an `if` inside a case: a false guard means **continue trying other labels**.
 
-Dùng `when` khi việc không thỏa điều kiện cần chuyển quyền lựa chọn sang case khác. Dùng `if` trong thân case khi bạn đã chủ định chọn nhãn đó và xử lý thêm **bên trong**.
+Use `when` when failing the condition should hand selection off to another case. Use `if` inside the case body when you intentionally chose that label and want further processing **inside**.
 
-## 10. `switch` expression, statement và tính đầy đủ
+## 10. `switch` Expressions, Statements, and Completeness
 
-Guarded patterns sử dụng được khi viết switch **expression** trả một giá trị hoặc switch **statement** thực hiện hành động, theo cú pháp phù hợp.
+Guarded patterns work both when writing a switch **expression** that returns a value and a switch **statement** that performs actions, using the appropriate syntax.
 
-Switch expression Java 21 cần có nhánh để bao phủ mọi selector. Với `Object`, cách dễ hiểu là cung cấp `default` và xử lý null theo chính sách:
+A Java 21 switch expression needs branches covering all selectors. For `Object`, a clear approach is providing `default` and handling null according to policy:
 
 ~~~java
 String kind = switch (value) {
@@ -236,15 +236,15 @@ String kind = switch (value) {
 };
 ~~~
 
-Một guard tùy ý không thể được xem là luôn true để thay cho nhánh bao quát, vì `when` có thể false.
+An arbitrary guard cannot be assumed to always be true to replace a catch-all branch, because `when` can evaluate to false.
 
-**Không viết `case String s when ...` sau `case String s`**, vì nhãn tổng quát không guard sẽ che nhãn có guard.
+**Do not write `case String s when ...` after `case String s`**, because the unguarded general label shadows the guarded label.
 
-Nếu nhánh cần nhiều câu lệnh, dùng khối `-> { ... yield result; }` trong switch expression; `yield` cung cấp **giá trị của switch expression**, không thay thế `when`.
+If a branch needs multiple statements, use a block `-> { ... yield result; }` in a switch expression; `yield` provides the **value of the switch expression**, and does not replace `when`.
 
-## 11. Guard có side effect: thứ tự quan sát được
+## 11. Guards with Side Effects: Observable Order
 
-Với Java 21:
+In Java 21:
 
 ~~~java
 static boolean trace(String text) {
@@ -261,17 +261,17 @@ static String choose(Object value) {
 }
 ~~~
 
-- `choose(42)`: **không gọi** `trace`, vì mẫu String không khớp.
-- `choose("Go")`: có gọi `trace("Go")`, guard false và đi tới default.
-- `choose("Java")`: có gọi `trace("Java")`, guard true và trả MATCH.
+- `choose(42)`: **does not call** `trace`, because the String pattern does not match.
+- `choose("Go")`: calls `trace("Go")`, guard is false and falls through to default.
+- `choose("Java")`: calls `trace("Java")`, guard is true and returns MATCH.
 
-Nếu nhiều nhãn có guard đều có side effect, **đổi thứ tự nhãn có thể đổi side effect và kết quả**. Vì vậy, hạn chế gọi method thay đổi trạng thái trong guard; chỉ để lại điều kiện boolean cần thiết.
+If multiple guarded labels have side effects, **reordering labels can change both side effects and results**. Therefore, avoid calling state-mutating methods inside guards; keep only the necessary boolean condition.
 
-Nếu guard ném ngoại lệ, đó không phải kết quả false: exception được truyền theo luồng xử lý ngoại lệ. Đừng kỳ vọng switch âm thầm thử nhãn kế tiếp sau một exception.
+If a guard throws an exception, that is not treated as a false result: the exception propagates along the exception-handling path. Do not expect switch to silently try the next label after an exception.
 
-## 12. Chương trình chạy độc lập trên JDK 17+
+## 12. Standalone Program on JDK 17+
 
-File **`PatternGuardOrderDemo17.java`** dùng `instanceof` pattern và `if`; không chứa cú pháp `when`, nên **biên dịch trên Java 17 và các JDK mới hơn**.
+The file **`PatternGuardOrderDemo17.java`** uses `instanceof` patterns and `if`; it contains no `when` syntax, so it **compiles on Java 17 and newer JDKs**.
 
 ~~~java
 public final class PatternGuardOrderDemo17 {
@@ -350,7 +350,7 @@ javac --release 17 -encoding UTF-8 .\PatternGuardOrderDemo17.java
 java -cp . PatternGuardOrderDemo17
 ~~~
 
-### Exact expected stdout trên JDK 17+
+### Exact expected stdout on JDK 17+
 
 ~~~text
 describe=NULL
@@ -373,11 +373,11 @@ guard called:Java
 trace Java=MATCH
 ~~~
 
-**Giải thích:** `trace(7)` không gọi guard; `trace("Go")` gọi guard nhưng trả false; `trace("Java")` gọi guard và trả true. Các nhánh `if` theo thứ tự thể hiện logic tương đương các nhãn có `when` trong Java 21.
+**Explanation:** `trace(7)` does not call the guard; `trace("Go")` calls the guard and returns false; `trace("Java")` calls the guard and returns true. The ordered `if` branches express the same logic as `when`-guarded labels in Java 21.
 
-## 13. Chương trình dùng `when` thật sự trên JDK 21+
+## 13. Program Using Actual `when` on JDK 21+
 
-File **`PatternWhenDemo21.java`** (JDK 21 trở lên, không bật preview):
+File **`PatternWhenDemo21.java`** (JDK 21 or later, preview disabled):
 
 ~~~java
 public final class PatternWhenDemo21 {
@@ -456,30 +456,30 @@ javac --release 21 -encoding UTF-8 .\PatternWhenDemo21.java
 java -cp . PatternWhenDemo21
 ~~~
 
-**Exact expected stdout:** giống **toàn bộ 18 dòng** của ví dụ JDK 17 ở mục 12, từ `describe=NULL` đến `trace Java=MATCH`. Hai ví dụ áp dụng **cùng thứ tự quy tắc**, chỉ khác cách diễn đạt cú pháp.
+**Exact expected stdout:** identical to **all 18 lines** of the JDK 17 example in Section 12, from `describe=NULL` through `trace Java=MATCH`. Both examples apply the **same rule order**, differing only in syntactic expression.
 
-**Không làm điều này:** thử biên dịch file `PatternWhenDemo21.java` với `--release 17`; compiler Java 17 không hiểu cú pháp `when` của switch pattern.
+**Do not do this:** attempt to compile `PatternWhenDemo21.java` with `--release 17`; the Java 17 compiler does not understand the `when` syntax of switch patterns.
 
-## 14. Lỗi thường gặp và cách sửa
+## 14. Common Mistakes and Fixes
 
-| Sai lầm | Hậu quả | Cách phù hợp |
+| Mistake | Consequence | Proper Approach |
 |---|---|---|
-| Viết `case String s when ...` và cho là Java 17 ổn định | Java 17 không hỗ trợ cú pháp đó | JDK 21+ hoặc `if` + `instanceof` Java 17 |
-| Đặt nhãn `String s` không guard trước nhãn `String s when ...` | Nhãn sau bị dominated, lỗi compile | Nhãn guarded trước, nhãn chung sau |
-| Đặt `CharSequence cs` trước `String s` | Nhãn String phía sau bị dominated | Mẫu cụ thể trước, mẫu rộng sau |
-| Hai guard giao nhau nhưng cho rằng thứ tự không quan trọng | Kết quả đổi theo nhãn đầu tiên đúng | Đặt ưu tiên rõ ràng, test vùng giao |
-| Nghĩ guard chạy cả khi mẫu không khớp | Dễ suy sai về NPE/side effect | Guard chỉ chạy sau khi mẫu khớp |
-| Guard false nhưng nghĩ switch kết thúc | Bỏ mất cơ hội xét nhãn sau | Guard false → tiếp tục tìm nhãn phù hợp |
-| Đặt `when` sau nhãn hằng giống guarded pattern | Cú pháp không hợp lệ | Dùng pattern hoặc `if` |
-| Dùng `default` để mong nhận `null` không cần kiểm tra | Có thể NPE với selector null | Thêm `case null` trên JDK 21, hoặc null guard |
-| Chỉ có các case có guard, không có nhãn bao quát | Switch expression có thể thiếu kết quả | Thêm case tổng quát/`default` |
-| Đưa side effect vào guard | Thứ tự nhãn thay đổi hành vi | Dùng điều kiện thuần, tách side effect |
-| Nghĩ `when` tương đương `if` bên trong nhánh đã chọn | Guard false thử case khác; if bên trong không | Chọn đúng ngữ nghĩa |
-| Trộn cú pháp `case:` và `case ->` tùy tiện | Lỗi compile | Chọn một kiểu nhãn nhất quán |
+| Writing `case String s when ...` assuming it is stable in Java 17 | Java 17 does not support that syntax | JDK 21+ or Java 17 `if` + `instanceof` |
+| Placing unguarded `String s` before `String s when ...` | Later label is dominated, compile error | Guarded labels first, general label after |
+| Placing `CharSequence cs` before `String s` | Subsequent String label is dominated | Specific pattern first, broad pattern after |
+| Two guards overlap and assuming order does not matter | Result changes depending on the first matching label | Define clear priority, test overlap regions |
+| Thinking the guard runs even when the pattern does not match | Leads to false assumptions about NPE/side effects | Guard runs only after the pattern matches |
+| Thinking a false guard ends the switch | Misses the fact that later labels are tried | Guard false → continue searching matching labels |
+| Putting `when` after a constant label like a guarded pattern | Invalid syntax | Use a pattern or `if` |
+| Using `default` expecting it to catch `null` without checking | Can throw NPE on a null selector | Add `case null` on JDK 21, or a null guard |
+| Having only guarded cases with no catch-all label | Switch expression may lack coverage | Add a general case/`default` |
+| Putting side effects inside a guard | Label order changes behavior | Use pure conditions, separate side effects |
+| Thinking `when` equals an `if` inside the chosen branch | False guard tries other cases; inner `if` does not | Choose the intended semantics |
+| Mixing `case:` and `case ->` syntax arbitrarily | Compile error | Choose one consistent label style |
 
-## 15. Bài tập có đáp án
+## 15. Exercises with Answers
 
-### Bài A — dự đoán ưu tiên guard
+### Exercise A — Predicting guard priority
 
 ~~~java
 // JDK 21+
@@ -491,12 +491,12 @@ String category = switch ("Apple") {
 System.out.println(category);
 ~~~
 
-**Đáp án:** `A`. `"Apple"` thỏa cả hai điều kiện, nhưng nhãn đứng trước được chọn.
+**Answer:** `A`. `"Apple"` satisfies both conditions, but the label placed first is selected.
 
-### Bài B — tìm lỗi dominance
+### Exercise B — Finding a dominance error
 
 ~~~java
-// JDK 21+, KHÔNG BIÊN DỊCH:
+// JDK 21+, DOES NOT COMPILE:
 // switch (value) {
 //     case Number n -> "NUMBER";
 //     case Integer i -> "INTEGER";
@@ -504,9 +504,9 @@ System.out.println(category);
 // }
 ~~~
 
-**Đáp án:** mẫu `Number n` đứng trước đã bao phủ mọi `Integer`; phải đặt `case Integer i` trước `case Number n`.
+**Answer:** the `Number n` pattern placed first already covers every `Integer`; `case Integer i` must be placed before `case Number n`.
 
-### Bài C — guard false phải làm gì?
+### Exercise C — What happens when a guard is false?
 
 ~~~java
 // JDK 21+
@@ -518,13 +518,13 @@ String result = switch ("Go") {
 System.out.println(result);
 ~~~
 
-**Đáp án:** `SHORT`. Mẫu String khớp ở case đầu nhưng guard false, nên Java xét tiếp case String tổng quát.
+**Answer:** `SHORT`. The String pattern matches in the first case, but the guard is false, so Java evaluates the general String case next.
 
-### Bài D — viết tương đương Java 17
+### Exercise D — Writing a Java 17 equivalent
 
-Muốn: String blank → BLANK; String không blank → TEXT; kiểu khác → OTHER.
+Desired: blank String → BLANK; non-blank String → TEXT; other types → OTHER.
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 static String categorize(Object value) {
@@ -534,9 +534,9 @@ static String categorize(Object value) {
 }
 ~~~
 
-Không cần pattern switch preview trên Java 17.
+No preview pattern switch is needed on Java 17.
 
-### Bài E — null và guard
+### Exercise E — Null and guards
 
 ~~~java
 // Java 21+
@@ -548,21 +548,21 @@ String label = switch ((Object) null) {
 System.out.println(label);
 ~~~
 
-**Đáp án:** `NULL`. Nhãn `case null` xử lý null; guard String không được gọi.
+**Answer:** `NULL`. The `case null` label handles null; the String guard is not called.
 
-## 16. Checklist và kết luận
+## 16. Checklist and Conclusion
 
-- [ ] Biết `when` là guard của nhãn pattern switch ổn định từ JDK 21, **không phải cú pháp Java 17**.
-- [ ] Biết Java 17 có thể dùng `instanceof` pattern kết hợp `&&` và `if` để diễn đạt cùng điều kiện.
-- [ ] Hiểu guard chỉ chạy sau khi mẫu kiểu khớp; biến mẫu dùng được trong guard và nhánh.
-- [ ] Hiểu guard false dẫn đến xét nhãn sau, không chạy thân nhánh hiện tại.
-- [ ] Biết các nhãn có guard có thể giao nhau và nhãn khớp đầu tiên được chọn.
-- [ ] Nhận diện dominance: nhãn rộng không guard trước nhãn hẹp có thể làm code không compile.
-- [ ] Đặt nhãn mẫu cụ thể và guarded trước nhãn bao quát không guard.
-- [ ] Xử lý null theo cách phù hợp phiên bản; không mặc định default nhận null.
-- [ ] Hiểu `when` khác `if` đặt bên trong một case đã được chọn.
-- [ ] Bảo đảm switch expression có nhánh bao phủ dữ liệu và kiểu kết quả phù hợp.
-- [ ] Tránh side effect trong guard, test các giá trị sát ngưỡng và vùng giao nhau của điều kiện.
-- [ ] Chạy `PatternGuardOrderDemo17.java` bằng JDK 17+ và `PatternWhenDemo21.java` bằng JDK 21+ rồi đối chiếu stdout.
+- [ ] Know that `when` is a guard for switch pattern labels stable since JDK 21, **not Java 17 syntax**.
+- [ ] Know that Java 17 can use `instanceof` patterns combined with `&&` and `if` to express the same conditions.
+- [ ] Understand that a guard runs only after the type pattern matches; the pattern variable is usable in the guard and the branch.
+- [ ] Understand that a false guard causes subsequent labels to be evaluated rather than running the current branch body.
+- [ ] Know that guarded labels can overlap and the first matching label is chosen.
+- [ ] Recognize dominance: an unguarded broad label before a narrower label can prevent code from compiling.
+- [ ] Place specific and guarded pattern labels before unguarded catch-all labels.
+- [ ] Handle null appropriately for the Java version; do not assume `default` accepts null.
+- [ ] Understand how `when` differs from an `if` placed inside an already selected case.
+- [ ] Ensure switch expressions have branches covering the data and a matching result type.
+- [ ] Avoid side effects in guards, and test boundary values and overlapping conditions.
+- [ ] Run `PatternGuardOrderDemo17.java` on JDK 17+ and `PatternWhenDemo21.java` on JDK 21+, then compare stdout.
 
-**Kết luận:** Guard `when` cho phép bổ sung điều kiện sau một mẫu kiểu trong switch Java 21+. Khi mẫu khớp nhưng guard false, Java thử các nhãn tiếp theo; bởi vậy **thứ tự nhãn mẫu là một phần của ý nghĩa chương trình**. Mẫu tổng quát không guard có thể *dominate* nhãn hẹp hoặc guarded đặt sau và bị compiler từ chối. Trên Java 17, dùng `instanceof` pattern với `if`/`&&` để có cùng logic mà không cần preview.
+**Conclusion:** The `when` guard allows adding a condition after a type pattern in Java 21+ switches. When the pattern matches but the guard is false, Java tries subsequent labels; thus, **pattern label order is part of the program's semantics**. An unguarded general pattern can *dominate* a narrower or guarded label placed after it and be rejected by the compiler. On Java 17, use `instanceof` patterns with `if`/`&&` to achieve the same logic without preview.

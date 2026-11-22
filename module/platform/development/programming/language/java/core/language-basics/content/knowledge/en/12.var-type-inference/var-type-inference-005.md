@@ -1,12 +1,12 @@
-# Không suy ra kiểu từ `null` hoặc danh sách khởi tạo mảng đứng riêng với `var`
+# Do Not Infer Types from `null` or Standalone Array Initializers with `var`
 
-> **Java core — language-basics / Suy luận với var**  
-> **Phiên bản:** Java 17+ (các ví dụ `var` cục bộ yêu cầu từ Java 10).  
-> **Mục tiêu:** Hiểu vì sao `var x = null` và `var values = {1, 2}` không biên dịch; nắm sự khác biệt giữa **giá trị khởi tạo** và **ngữ cảnh kiểu đích**, từ đó viết khai báo đúng mà vẫn sử dụng `var` khi biểu thức khởi tạo đã có kiểu xác định.
+> **Java core — language-basics / Inference with var**  
+> **Version:** Java 17+ (local `var` examples require Java 10 or later).  
+> **Goal:** Understand why `var x = null` and `var values = {1, 2}` do not compile; grasp the difference between **an initializer value** and **a target type context**, so you can write valid declarations while still using `var` when the initializer expression already has a determinate type.
 
-## 1. `var` cần một kiểu suy ra được tại thời điểm biên dịch
+## 1. `var` Needs a Type That Can Be Inferred at Compile Time
 
-`var` cho phép trình biên dịch suy ra **kiểu tĩnh** của biến cục bộ từ biểu thức khởi tạo. Nó **không** phải kiểu dữ liệu động, không tự chọn `Object`, và không chờ đến runtime để đoán kiểu.
+`var` allows the compiler to infer the **static type** of a local variable from its initializer expression. It is **not** a dynamic data type, does not automatically choose `Object`, and does not wait until runtime to guess the type.
 
 ~~~java
 var count = 10;           // int
@@ -14,27 +14,27 @@ var title = "Java";       // String
 var numbers = new int[3]; // int[]
 ~~~
 
-Sau khai báo, kiểu của biến đã cố định. Ví dụ `count = "ten";` không hợp lệ vì `count` là `int`.
+After the declaration, the variable's type is fixed. For example, `count = "ten";` is invalid because `count` is `int`.
 
-Hai cách viết sau **không hợp lệ** trong Java 17:
+The following two declarations are **invalid** in Java 17:
 
 ~~~java
-// KHÔNG BIÊN DỊCH:
+// DOES NOT COMPILE:
 var unknown = null;
 var scores = {10, 20, 30};
 ~~~
 
-Đây không phải lỗi do nội dung `null` hay số 10, 20, 30 “xấu”, mà vì **không có đủ thông tin để tạo kiểu khai báo hợp lệ** cho `var`.
+This is not because the content `null` or the numbers 10, 20, 30 are “bad”, but because **there is not enough information to produce a valid declared type** for `var`.
 
-## 2. Vì sao `var x = null` không hợp lệ?
+## 2. Why Is `var x = null` Invalid?
 
-`null` là giá trị có thể gán cho nhiều **kiểu tham chiếu** khác nhau như `String`, `Integer`, `int[]`, `Object`. Chỉ nhìn literal `null`, Java không thể suy ra nên khai báo biến với kiểu nào.
+`null` is a value assignable to many different **reference types**, such as `String`, `Integer`, `int[]`, or `Object`. Looking only at the `null` literal, Java cannot infer which type the variable should be declared with.
 
 ~~~java
-// var name = null;  // Lỗi biên dịch: không thể suy ra kiểu từ null.
+// var name = null;  // Compile error: cannot infer type from null.
 ~~~
 
-Khi kiểu đã được chỉ rõ, việc khởi tạo `null` hoàn toàn hợp lệ:
+Once the type is specified, initializing with `null` is completely valid:
 
 ~~~java
 String name = null;
@@ -42,7 +42,7 @@ Integer quantity = null;
 int[] data = null;
 ~~~
 
-Có thể cung cấp kiểu cho **chính biểu thức khởi tạo**, khiến `var` suy ra được:
+You can supply a type to **the initializer expression itself**, allowing `var` to infer it:
 
 ~~~java
 var name = (String) null;     // String
@@ -50,77 +50,77 @@ var quantity = (Integer) null; // Integer
 var data = (int[]) null;      // int[]
 ~~~
 
-Dù đúng cú pháp, viết `String name = null;` **thường rõ ràng hơn** `var name = (String) null;`. Không nên lạm dụng cast chỉ để né yêu cầu khai báo kiểu tường minh.
+Although syntactically valid, writing `String name = null;` is **usually clearer** than `var name = (String) null;`. Do not overuse casts just to bypass the explicit type declaration requirement.
 
-**Phân biệt:** Các cách trên chỉ tạo **tham chiếu bằng null**; chúng không tạo object `String`, `Integer` hay mảng. Gọi `name.length()` khi `name == null` vẫn gây `NullPointerException`.
+**Distinction:** The forms above only create **null references**; they do not create a `String`, `Integer`, or array object. Calling `name.length()` when `name == null` still throws a `NullPointerException`.
 
-## 3. Tại sao `var scores = {1, 2, 3}` không hợp lệ?
+## 3. Why Is `var scores = {1, 2, 3}` Invalid?
 
-Cặp ngoặc nhọn đứng riêng `{1, 2, 3}` trong ngữ cảnh này là **array initializer**, không phải một biểu thức tự mang kiểu mảng hoàn chỉnh. Java cho phép dạng rút gọn này khi **khai báo đã có kiểu mảng rõ ràng**:
-
-~~~java
-int[] scores = {1, 2, 3};        // Hợp lệ: kiểu int[] đã có.
-String[] labels = {"A", "B"};    // Hợp lệ: kiểu String[] đã có.
-~~~
-
-Còn ở câu `var scores = {1, 2, 3};`, không có kiểu mảng đích để quyết định array initializer; cú pháp này không được chấp nhận.
-
-Hãy tạo **biểu thức tạo mảng có kiểu tường minh**:
+Standalone curly braces `{1, 2, 3}` in this context are an **array initializer**, not a self-contained expression carrying a complete array type. Java allows this shorthand form when **the declaration already has a clear array type**:
 
 ~~~java
-var scores = new int[] {1, 2, 3};     // Suy ra int[].
-var labels = new String[] {"A", "B"}; // Suy ra String[].
-var empty = new int[0];              // Suy ra int[].
+int[] scores = {1, 2, 3};        // Valid: int[] type is already present.
+String[] labels = {"A", "B"};    // Valid: String[] type is already present.
 ~~~
 
-`new int[] {1, 2, 3}` đã là **một biểu thức** với kiểu `int[]`, nên `var` có thể suy ra. Trái lại, `{1, 2, 3}` đứng một mình không phải biểu thức khởi tạo hợp lệ để dùng cùng `var`.
+In `var scores = {1, 2, 3};`, however, there is no target array type to determine the array initializer; this syntax is rejected.
 
-## 4. Bảng so sánh cú pháp hợp lệ và không hợp lệ
+Create an **explicitly typed array creation expression** instead:
 
-| Cách viết | Biên dịch? | Lý do hoặc kiểu suy ra |
+~~~java
+var scores = new int[] {1, 2, 3};     // Infers int[].
+var labels = new String[] {"A", "B"}; // Infers String[].
+var empty = new int[0];              // Infers int[].
+~~~
+
+`new int[] {1, 2, 3}` is already **an expression** of type `int[]`, so `var` can infer it. Conversely, `{1, 2, 3}` standing alone is not a valid initializer expression to use with `var`.
+
+## 4. Comparison Table of Valid and Invalid Syntax
+
+| Syntax | Compiles? | Reason or Inferred Type |
 | --- | --- | --- |
-| `var a = null;` | **Không** | Literal `null` không xác định kiểu |
-| `String a = null;` | Có | Kiểu `String` đã khai báo rõ |
-| `var a = (String) null;` | Có | Kiểu suy ra `String` từ cast |
-| `var a = {1, 2};` | **Không** | Array initializer không có kiểu đích |
-| `int[] a = {1, 2};` | Có | Kiểu mảng `int[]` khai báo rõ |
-| `var a = new int[] {1, 2};` | Có | Kiểu suy ra `int[]` từ array creation |
-| `var a = new int[2];` | Có | Biểu thức có kiểu `int[]` |
-| `var a = new String[] {null, "A"};` | Có | Kiểu mảng `String[]` đã xác định |
-| `var grid = new int[][] {{1}, {2, 3}};` | Có | Kiểu suy ra `int[][]` |
-| `var a = valueReturningString();` | Có nếu method khai báo trả `String` | Kiểu `String` suy ra từ **kiểu trả về**, dù giá trị runtime là `null` |
+| `var a = null;` | **No** | The `null` literal does not determine a type |
+| `String a = null;` | Yes | The `String` type is explicitly declared |
+| `var a = (String) null;` | Yes | Infers type `String` from the cast |
+| `var a = {1, 2};` | **No** | The array initializer has no target type |
+| `int[] a = {1, 2};` | Yes | The array type `int[]` is explicitly declared |
+| `var a = new int[] {1, 2};` | Yes | Infers type `int[]` from array creation |
+| `var a = new int[2];` | Yes | The expression has type `int[]` |
+| `var a = new String[] {null, "A"};` | Yes | The array type `String[]` is already determined |
+| `var grid = new int[][] {{1}, {2, 3}};` | Yes | Infers type `int[][]` |
+| `var a = valueReturningString();` | Yes if the method is declared to return `String` | Type `String` is inferred from the **return type**, even if the runtime value is `null` |
 
-**Lưu ý:** Mảng có thể chứa phần tử `null` nếu đó là mảng tham chiếu. Ví dụ `new String[] {null, "A"}` vẫn có kiểu `String[]` rõ ràng; nó khác hoàn toàn với `var a = null;`.
+**Note:** An array can contain `null` elements if it is a reference array. For example, `new String[] {null, "A"}` still has a clear `String[]` type; it is completely different from `var a = null;`.
 
-## 5. Dữ liệu nhận về `null` vẫn có thể dùng `var`
+## 5. Data Returning `null` Can Still Use `var`
 
-Điểm quan trọng là **kiểu tĩnh của biểu thức**, không phải giá trị runtime:
+What matters is the **static type of the expression**, not its runtime value:
 
 ~~~java
 static String lookupName() {
     return null;
 }
 
-// Trong phương thức khác:
-var name = lookupName(); // Hợp lệ: compiler biết kiểu trả về là String.
+// Inside another method:
+var name = lookupName(); // Valid: the compiler knows the return type is String.
 ~~~
 
-`name` có **kiểu `String`**, nhưng giá trị hiện tại bằng `null`. Java không hề phải đoán kiểu từ literal null ở đây; kiểu đã nằm trong **khai báo phương thức** `lookupName()`.
+`name` has **type `String`**, even though its current value is `null`. Java does not have to guess the type from a null literal here; the type is already in the **method declaration** `lookupName()`.
 
-Cũng có thể suy ra kiểu từ biểu thức điều kiện nếu quy tắc kiểu của biểu thức đã xác định được:
+A type can also be inferred from a conditional expression if the expression's typing rules determine one:
 
 ~~~java
-var selected = true ? null : "fallback"; // String, giá trị null.
-var other = false ? null : "fallback";   // String, giá trị "fallback".
+var selected = true ? null : "fallback"; // String, value is null.
+var other = false ? null : "fallback";   // String, value is "fallback".
 ~~~
 
-Ở đây sự hiện diện của nhánh `"fallback"` cung cấp kiểu tham chiếu `String` phù hợp cho biểu thức ba ngôi. Nhưng `var selected = null;` tự nó vẫn không hợp lệ.
+Here the presence of the `"fallback"` branch supplies the appropriate `String` reference type for the ternary expression. Yet `var selected = null;` by itself remains invalid.
 
-Không nên coi cú pháp này là cách né kiểm tra null: nếu `selected == null`, gọi `selected.length()` vẫn gây `NullPointerException`.
+Do not treat this syntax as a way to skip null checks: if `selected == null`, calling `selected.length()` still causes a `NullPointerException`.
 
-## 6. Chương trình Java 17+ runnable
+## 6. Runnable Java 17+ Program
 
-Tạo file **VarNullArrayDemo.java** với toàn bộ nội dung:
+Create a file named **VarNullArrayDemo.java** with the full contents:
 
 ~~~java
 public final class VarNullArrayDemo {
@@ -167,14 +167,14 @@ public final class VarNullArrayDemo {
 }
 ~~~
 
-Biên dịch và chạy tại thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 VarNullArrayDemo.java
 java VarNullArrayDemo
 ~~~
 
-**Expected output chính xác:**
+**Exact expected output:**
 
 ~~~text
 explicitNull=(missing)
@@ -192,69 +192,69 @@ selectedNull=true
 alternate=fallback
 ~~~
 
-Giải thích:
+Explanation:
 
-1. `explicitNull` có kiểu `String` tường minh; `typedNull` suy ra `String` nhờ cast; `fromMethod` suy ra `String` nhờ kiểu trả về của method. Cả ba đều có thể giữ giá trị `null` tại runtime.
-2. `compact` là mảng `int[]` hợp lệ vì khai báo đã nêu kiểu; `inferred` và `empty` cũng là `int[]` vì biểu thức `new int[]`/`new int[0]` cung cấp kiểu.
-3. `labels` có kiểu `String[]` bất kể phần tử đầu bằng `null`. Mảng `grid` có kiểu `int[][]` và giá trị ở `grid[1][0]` là 3.
-4. Hai biểu thức ba ngôi có kiểu `String` nhưng chọn các nhánh khác nhau nên một kết quả bằng `null`, một kết quả là `"fallback"`.
+1. `explicitNull` has an explicit `String` type; `typedNull` infers `String` thanks to the cast; `fromMethod` infers `String` thanks to the method's return type. All three can hold `null` at runtime.
+2. `compact` is a valid `int[]` array because the declaration states the type; `inferred` and `empty` are also `int[]` because the `new int[]`/`new int[0]` expressions supply the type.
+3. `labels` has type `String[]` regardless of its first element being `null`. The `grid` array has type `int[][]` and the value at `grid[1][0]` is 3.
+4. The two ternary expressions have type `String` but take different branches, so one evaluates to `null` and the other evaluates to `"fallback"`.
 
-## 7. Sửa lỗi khai báo một cách có chủ đích
+## 7. Fixing Declaration Errors Intentionally
 
-Khi cần khởi tạo **null**:
+When you need to initialize with **null**:
 
 ~~~java
-// Sai:
+// Invalid:
 // var token = null;
 
-// Đúng và rõ ràng:
+// Valid and clear:
 String token = null;
 
-// Hợp lệ nhưng thường kém rõ hơn:
+// Valid, though usually less clear:
 var castToken = (String) null;
 ~~~
 
-Khi cần khởi tạo **mảng**:
+When you need to initialize an **array**:
 
 ~~~java
-// Sai:
+// Invalid:
 // var points = {4, 8};
 
-// Đúng nếu muốn dùng dạng { ... } rút gọn:
+// Valid if you want the shorthand { ... } form:
 int[] points = {4, 8};
 
-// Đúng nếu muốn dùng var:
+// Valid if you want to use var:
 var otherPoints = new int[] {4, 8};
 ~~~
 
-Đừng nhầm array initializer với *collection literal*: Java 17 không có cú pháp `var numbers = {1, 2};` để tự suy ra `List<Integer>` hay `int[]`. Nếu muốn `List`, dùng API phù hợp như `List.of(1, 2)` (trường hợp cần list bất biến) và hiểu rõ kiểu trả về cùng đặc tính của collection.
+Do not confuse array initializers with *collection literals*: Java 17 does not have a `var numbers = {1, 2};` syntax to automatically infer `List<Integer>` or `int[]`. If you want a `List`, use an appropriate API such as `List.of(1, 2)` (when an immutable list is needed) and understand the return type and characteristics of the collection.
 
-Khi review code, tự hỏi **“Biểu thức khởi tạo này có kiểu tĩnh xác định được không?”**. Nếu không, viết **kiểu khai báo tường minh** hoặc dùng **biểu thức tạo object/mảng đã nêu kiểu** thay vì cố buộc `var` phải đoán.
+During code review, ask yourself **“Does this initializer expression have a determinable static type?”**. If not, write an **explicit type declaration** or use an **explicitly typed object/array creation expression** instead of trying to force `var` to guess.
 
-## 8. Các bẫy cần tránh
+## 8. Pitfalls to Avoid
 
-| Hiểu lầm | Điều đúng trong Java 17 |
+| Misconception | What Is True in Java 17 |
 | --- | --- |
-| “`var` luôn suy ra `Object` khi không biết kiểu.” | Sai: compiler từ chối nếu không suy ra được kiểu hợp lệ |
-| “Giá trị `null` ở runtime khiến `var` lỗi.” | Sai: `var x = lookupName();` hợp lệ nếu return type rõ |
-| “`var x = (String) null;` tạo đối tượng String.” | Sai: tham chiếu vẫn `null` |
-| “`{1, 2}` đứng riêng đã là `int[]`.” | Sai: cần kiểu mảng đích hoặc cú pháp `new int[] {...}` |
-| “`new String[] {null}` không thể suy ra kiểu.” | Sai: `String[]` có sẵn trong biểu thức array creation |
-| “Dùng `var` thì có thể gán lại bất kỳ kiểu nào.” | Sai: kiểu đã cố định ở compile time |
-| “`new int[] {1, 2}` là `List<Integer>`.” | Sai: nó là mảng primitive `int[]` |
+| “`var` always infers `Object` when the type is unknown.” | False: the compiler rejects it if no valid type can be inferred |
+| “A `null` value at runtime makes `var` fail.” | False: `var x = lookupName();` is valid if the return type is clear |
+| “`var x = (String) null;` creates a String object.” | False: the reference is still `null` |
+| “`{1, 2}` standing alone is already `int[]`.” | False: it requires a target array type or `new int[] {...}` syntax |
+| “`new String[] {null}` cannot infer a type.” | False: `String[]` is present in the array creation expression |
+| “Using `var` lets you reassign any type.” | False: the type is fixed at compile time |
+| “`new int[] {1, 2}` is a `List<Integer>`.” | False: it is a primitive `int[]` array |
 
-## 9. Bài tập tự kiểm tra
+## 9. Self-Check Exercises
 
-**Bài 1.** Giải thích riêng nguyên nhân hai dòng `var a = null;` và `var b = {1, 2};` không hợp lệ. Chúng có cùng loại thiếu thông tin kiểu hay không?
+**Exercise 1.** Explain separately why `var a = null;` and `var b = {1, 2};` are invalid. Do they share the exact same kind of missing type information?
 
-**Bài 2.** Sửa `var name = null;` theo hai cách: khai báo kiểu tường minh, hoặc tạo một biểu thức initializer có kiểu `String`. Cách nào rõ hơn khi code thật?
+**Exercise 2.** Fix `var name = null;` in two ways: an explicit type declaration, or creating an initializer expression of type `String`. Which approach is clearer in real code?
 
-**Bài 3.** Sửa `var values = {2, 4, 6};` theo hai cách: dùng `int[]` với array initializer rút gọn, hoặc dùng `var` với `new int[]`.
+**Exercise 3.** Fix `var values = {2, 4, 6};` in two ways: using `int[]` with a shorthand array initializer, or using `var` with `new int[]`.
 
-**Bài 4.** Viết `var names = new String[] {null, "A"};`. Biến `names` có kiểu gì? `names[0] == null` cho kết quả gì? Câu trả lời có liên quan gì tới việc suy ra kiểu từ literal null?
+**Exercise 4.** Write `var names = new String[] {null, "A"};`. What type does `names` have? What does `names[0] == null` evaluate to? How does this answer relate to inferring a type from a null literal?
 
-**Bài 5.** Viết method trả `String` nhưng đôi khi trả `null`, rồi khai báo `var result = method();`. Vì sao dòng này vẫn biên dịch được dù giá trị trả về có thể vắng mặt?
+**Exercise 5.** Write a method that returns `String` but sometimes returns `null`, then declare `var result = method();`. Why does this line still compile even though the return value may be absent?
 
-### Ghi nhớ
+### Takeaway
 
-**`var` cần một biểu thức khởi tạo có kiểu tĩnh suy ra được.** Literal `null` đứng một mình không cung cấp kiểu; array initializer `{...}` đứng một mình cần kiểu mảng đích nên không hợp lệ với `var`. Dùng `String x = null;` hoặc `var x = (String) null;` khi cần tham chiếu null có kiểu, và dùng `int[] x = {...};` hoặc `var x = new int[] {...};` khi cần mảng. `var` chỉ thay cách **viết khai báo**, không làm Java thành ngôn ngữ kiểu động.
+**`var` requires an initializer expression with an inferable static type.** A standalone `null` literal provides no type; a standalone array initializer `{...}` requires a target array type and is therefore invalid with `var`. Use `String x = null;` or `var x = (String) null;` when you need a typed null reference, and use `int[] x = {...};` or `var x = new int[] {...};` when you need an array. `var` only changes how **declarations are written**; it does not make Java a dynamically typed language.

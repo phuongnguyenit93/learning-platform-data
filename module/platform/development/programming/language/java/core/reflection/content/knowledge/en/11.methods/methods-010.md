@@ -1,16 +1,16 @@
-# Phương thức abstract, default và phương thức interface trong Java Reflection
+# Abstract, default, and interface methods in Java Reflection
 
-Trong Java Reflection, một đối tượng `java.lang.reflect.Method` mô tả phương thức được khai báo ở **class hoặc interface**. Không phải mọi `Method` đều có thân mã để chạy trực tiếp: phương thức `abstract` đặt ra hợp đồng, phương thức `default` trong interface cung cấp phần cài đặt mặc định, phương thức `static` thuộc về interface, còn phương thức `private` của interface chỉ phục vụ logic nội bộ. Cách Reflection **phát hiện** một phương thức và cách `Method.invoke(...)` **thực thi** nó là hai vấn đề cần tách bạch.
+In Java Reflection, a `java.lang.reflect.Method` object describes a method declared in a **class or interface**. Not every `Method` has a body that executes directly: `abstract` methods define a contract, `default` methods in interfaces provide a default implementation, `static` methods belong to the interface, and `private` interface methods only serve internal logic. How Reflection **discovers** a method and how `Method.invoke(...)` **executes** it are two separate concerns to keep distinct.
 
-Bài này hướng dẫn xác định loại phương thức bằng `Modifier.isAbstract(...)`, `Method.isDefault()` và `Modifier.isStatic(...)`; phân biệt phạm vi `getDeclaredMethod(s)` và `getMethod(s)`; thực thi phương thức interface bằng Reflection; hiểu kế thừa, override, xung đột default method; và tránh nhầm *default method* với *default value* của annotation.
+This lesson shows how to identify method kinds using `Modifier.isAbstract(...)`, `Method.isDefault()`, and `Modifier.isStatic(...)`; distinguish the scope of `getDeclaredMethod(s)` vs. `getMethod(s)`; invoke interface methods via Reflection; understand inheritance, overriding, and default method conflicts; and avoid confusing a *default method* with an annotation's *default value*.
 
-## 1. Nhận diện đúng các loại phương thức
+## 1. Accurately identifying method kinds
 
-Ví dụ một interface khai báo bốn loại method:
+Example of an interface declaring four kinds of methods:
 
 ~~~java
 interface Named {
-    String name(); // public abstract ngầm định
+    String name(); // implicitly public abstract
 
     default String greeting() {
         return decorate("Hi " + name());
@@ -26,34 +26,34 @@ interface Named {
 }
 ~~~
 
-Đây là **đoạn minh họa**, chưa phải chương trình độc lập. Java 8 giới thiệu `default` và `static` method trong interface; từ Java 9, interface có thể có `private` method (instance hoặc static) để chia sẻ logic nội bộ. Interface method `private` có thân mã, nhưng không phải default method và không được kế thừa như API public.
+This is an **illustrative snippet**, not a standalone program. Java 8 introduced `default` and `static` methods in interfaces; since Java 9, interfaces can have `private` methods (instance or static) to share internal logic. A `private` interface method has a body, yet is not a default method and is not inherited as a public API.
 
-| Khai báo trên interface | Có thân mã? | Modifier/phương thức Reflection cần quan sát | `Method.isDefault()` |
+| Declaration on interface | Has a body? | Reflection modifiers/methods to observe | `Method.isDefault()` |
 | --- | --- | --- | --- |
-| `String name();` | Không | `Modifier.isAbstract(method.getModifiers()) == true` | `false` |
-| `default String greeting() {...}` | Có | Public, không abstract, không static; `method.isDefault() == true` | `true` |
-| `static String source() {...}` | Có | `Modifier.isStatic(...) == true` | `false` |
-| `private String decorate(...) {...}` | Có | `Modifier.isPrivate(...) == true` | `false` |
+| `String name();` | No | `Modifier.isAbstract(method.getModifiers()) == true` | `false` |
+| `default String greeting() {...}` | Yes | Public, non-abstract, non-static; `method.isDefault() == true` | `true` |
+| `static String source() {...}` | Yes | `Modifier.isStatic(...) == true` | `false` |
+| `private String decorate(...) {...}` | Yes | `Modifier.isPrivate(...) == true` | `false` |
 
-Một method ở class thường có thân mã cũng **không** trở thành default method. `isDefault()` dành cho **public instance method có phần cài đặt và được khai báo trong interface**, không chỉ mang nghĩa chung là "có code". Không có `Modifier.isDefault(...)`; hãy gọi `Method.isDefault()`.
+A regular class method with a body does **not** become a default method either. `isDefault()` is reserved for **public instance methods that have an implementation and are declared in an interface**, rather than simply meaning "has code". There is no `Modifier.isDefault(...)`; call `Method.isDefault()`.
 
-### `Method` nào mang thông tin gì?
+### Which `Method` API carries which information?
 
-`Method` cho phép đọc:
+`Method` lets you read:
 
-- `getName()`: tên phương thức.
-- `getDeclaringClass()`: class/interface **thực sự khai báo** method.
-- `getModifiers()`: cờ như `public`, `private`, `abstract`, `static`, `final`. Kiểm tra bằng `java.lang.reflect.Modifier`.
-- `isDefault()`: phân biệt chính xác default method của interface.
-- `getParameterTypes()`, `getReturnType()`: chữ ký runtime; các phiên bản `getGenericParameterTypes()` và `getGenericReturnType()` phục vụ metadata generic.
-- `isBridge()`, `isSynthetic()`: nhận biết một số method do compiler sinh ra, rất hữu ích khi quét toàn bộ danh sách.
-- `invoke(receiver, args...)`: thực thi khi có receiver, đối số và quyền truy cập phù hợp.
+- `getName()`: method name.
+- `getDeclaringClass()`: class/interface **that actually declares** the method.
+- `getModifiers()`: flags such as `public`, `private`, `abstract`, `static`, `final`. Check with `java.lang.reflect.Modifier`.
+- `isDefault()`: accurately identifies interface default methods.
+- `getParameterTypes()`, `getReturnType()`: runtime signature; `getGenericParameterTypes()` and `getGenericReturnType()` serve generic metadata.
+- `isBridge()`, `isSynthetic()`: detects certain compiler-generated methods, very useful when scanning full method lists.
+- `invoke(receiver, args...)`: executes when compatible receiver, arguments, and access permissions are provided.
 
-`getDeclaringClass().isInterface()` giúp biết method **được khai báo trên interface**, nhưng **không đủ** kết luận nó là abstract hay default. Interface vẫn có static/private method.
+`getDeclaringClass().isInterface()` tells you a method **is declared on an interface**, yet is **not sufficient** to conclude it is abstract or default. Interfaces can also have static and private methods.
 
-## 2. Phương thức abstract: nhận biết bằng `Modifier.isAbstract`
+## 2. Abstract methods: identifying with `Modifier.isAbstract`
 
-Một interface có thể khai báo abstract instance method:
+An interface can declare an abstract instance method:
 
 ~~~java
 interface Shape {
@@ -61,31 +61,31 @@ interface Shape {
 }
 ~~~
 
-Với `Method m = Shape.class.getDeclaredMethod("area")`:
+With `Method m = Shape.class.getDeclaredMethod("area")`:
 
 ~~~java
 boolean abstractMethod = Modifier.isAbstract(m.getModifiers());
 boolean defaultMethod = m.isDefault();
 ~~~
 
-Hai kết quả lần lượt là `true` và `false`. Đây là các đoạn minh họa; cần import `java.lang.reflect.Method` và `java.lang.reflect.Modifier` khi đặt trong chương trình độc lập.
+The two results are `true` and `false` respectively. These are illustrative snippets; import `java.lang.reflect.Method` and `java.lang.reflect.Modifier` when placing them in a standalone program.
 
-Lớp `abstract` cũng có thể khai báo abstract method, ví dụ `abstract class Base { abstract void work(); }`. `Modifier.isAbstract` vẫn là API đúng để nhận biết; `isDefault()` tiếp tục trả `false` vì đây không phải interface default method.
+An `abstract` class can also declare abstract methods, such as `abstract class Base { abstract void work(); }`. `Modifier.isAbstract` remains the right API to detect it; `isDefault()` continues returning `false` because it is not an interface default method.
 
-**Quan trọng:** một `Method` phản chiếu abstract method **vẫn có thể được gọi** bằng `Method.invoke(...)` nếu receiver là đối tượng thuộc lớp triển khai cụ thể và quá trình dispatch tìm được implementation. `Method.invoke` trên instance method sử dụng cơ chế tra cứu động dựa trên **kiểu runtime của receiver**. Nó không có nghĩa JVM sẽ cố chạy thân mã của một phương thức abstract vốn không tồn tại.
+**Important:** a `Method` reflecting an abstract method **can still be invoked** using `Method.invoke(...)` if the receiver is an object of a concrete implementing class and dispatch resolves an implementation. `Method.invoke` on an instance method uses dynamic lookup based on the **runtime type of the receiver**. It does not mean the JVM tries to run the body of an abstract method that does not exist.
 
-Ví dụ nếu `Named` khai báo `String name()` và `BasicNamed` triển khai `name()` trả `"An"`, lời gọi sau sẽ trả `"An"`:
+For example, if `Named` declares `String name()` and `BasicNamed` implements `name()` returning `"An"`, the following call returns `"An"`:
 
 ~~~java
 Method method = Named.class.getDeclaredMethod("name");
 Object result = method.invoke(new BasicNamed());
 ~~~
 
-Đoạn trên giả sử `Named`, `BasicNamed` đã có khai báo như ví dụ đầy đủ ở phần tiếp theo. Receiver phải tương thích với interface khai báo method; nếu truyền đối tượng không phù hợp, `invoke` ném `IllegalArgumentException`.
+The snippet above assumes `Named` and `BasicNamed` are declared as in the full example in the next section. The receiver must be compatible with the interface declaring the method; passing an incompatible object causes `invoke` to throw `IllegalArgumentException`.
 
-## 3. Default method: phát hiện bằng `Method.isDefault()`
+## 3. Default methods: detecting with `Method.isDefault()`
 
-Từ Java 8, interface được phép khai báo instance method có thân mã bằng từ khóa `default`:
+Since Java 8, interfaces may declare instance methods with a body using the `default` keyword:
 
 ~~~java
 interface Loggable {
@@ -95,21 +95,21 @@ interface Loggable {
 }
 ~~~
 
-`Loggable.class.getDeclaredMethod("label").isDefault()` là `true`. Phương thức này là `public`, không `abstract` và không `static`. Class triển khai có thể **kế thừa default implementation**, hoặc **override** nó bằng một method riêng.
+`Loggable.class.getDeclaredMethod("label").isDefault()` is `true`. This method is `public`, non-`abstract`, and non-`static`. Implementing classes can **inherit the default implementation**, or **override** it with their own method.
 
-Một override viết trong class triển khai là **class method**, nên `isDefault()` trên đối tượng `Method` phản chiếu override đó là `false` dù nó thay thế hành vi của một default method ở interface.
+An override written in an implementing class is a **class method**, so `isDefault()` on the `Method` object reflecting that override is `false` even though it replaces the behavior of an interface default method.
 
-Vì vậy, cần phân biệt:
+Therefore, distinguish:
 
-1. **Nơi method được khai báo:** `method.getDeclaringClass()`.
-2. **Nó là default method thật sự không:** `method.isDefault()`.
-3. **Lời gọi thực tế chạy implementation nào:** phụ thuộc receiver và dynamic dispatch của `Method.invoke(...)`.
+1. **Where the method is declared:** `method.getDeclaringClass()`.
+2. **Whether it is truly a default method:** `method.isDefault()`.
+3. **Which implementation an actual call runs:** depends on the receiver and dynamic dispatch of `Method.invoke(...)`.
 
-`isDefault()` mô tả **Method object**, không trả lời câu hỏi "đối tượng này có đang sử dụng default implementation hay đã override chưa" chỉ bằng một boolean.
+`isDefault()` describes the **`Method` object**, and does not answer "is this object currently using the default implementation or an override?" with a single boolean.
 
-## 4. Ví dụ đầy đủ Java 17+: abstract, default, static và private interface method
+## 4. Full Java 17+ example: abstract, default, static, and private interface methods
 
-Tạo tệp **`InterfaceMethodReflectionDemo.java`**:
+Create the file **`InterfaceMethodReflectionDemo.java`**:
 
 ~~~java
 import java.lang.reflect.Method;
@@ -200,7 +200,7 @@ public class InterfaceMethodReflectionDemo {
 }
 ~~~
 
-Chạy bằng Java 17+:
+Run with Java 17+:
 
 ~~~bash
 javac --release 17 InterfaceMethodReflectionDemo.java
@@ -225,81 +225,81 @@ private open = true
 private invoke = [OK]
 ~~~
 
-### Phân tích từng phần
+### Part-by-part analysis
 
-- `name()` là `public abstract` ngầm định của interface. `Modifier.isAbstract(...)` trả `true`; `isDefault()` trả `false`.
-- `greeting()` là `default` nên `isDefault()` trả `true`. Nó gọi `decorate(...)` là private helper nội bộ của interface.
-- `source()` là `static`. Có thân mã nhưng không phải default; gọi Reflection bằng receiver `null`.
-- `decorate(String)` là `private` instance method của interface. Nó có thân mã, nhưng không public và không default.
-- `BasicNamed.class.getMethod("greeting")` tìm được public method kế thừa từ interface `Named`; `getDeclaringClass()` là `Named.class`.
-- `BasicNamed.class.getDeclaredMethod("greeting")` ném `NoSuchMethodException` vì `BasicNamed` không **tự khai báo** method này.
-- `fallback.invoke(new BasicNamed())` chạy default implementation, kết hợp tên `An` thành `[Hi An]`.
-- `fallback.invoke(new CustomNamed())` chạy **override** của `CustomNamed` và trả `overridden` dù biến `fallback` vẫn biểu diễn method gốc của interface. Đây là minh chứng cho dynamic dispatch.
-- `requirement.invoke(new BasicNamed())` gọi implementation của abstract interface method và trả `An`.
-- `helper.trySetAccessible()` thành công trong ví dụ vì các lớp chạy trong unnamed module cùng class loader. Quyền deep reflection có thể khác khi thư viện Reflection chạy ở module khác.
+- `name()` is implicitly `public abstract` on the interface. `Modifier.isAbstract(...)` returns `true`; `isDefault()` returns `false`.
+- `greeting()` is `default`, so `isDefault()` returns `true`. It calls `decorate(...)`, an internal private helper of the interface.
+- `source()` is `static`. It has a body yet is not default; invoke via Reflection with a `null` receiver.
+- `decorate(String)` is a `private` instance method of the interface. It has a body, yet is neither public nor default.
+- `BasicNamed.class.getMethod("greeting")` finds the public method inherited from interface `Named`; `getDeclaringClass()` is `Named.class`.
+- `BasicNamed.class.getDeclaredMethod("greeting")` throws `NoSuchMethodException` because `BasicNamed` does not **declare** this method itself.
+- `fallback.invoke(new BasicNamed())` runs the default implementation, combining name `An` into `[Hi An]`.
+- `fallback.invoke(new CustomNamed())` runs `CustomNamed`'s **override** and returns `overridden` even though variable `fallback` still represents the interface's original method. This demonstrates dynamic dispatch.
+- `requirement.invoke(new BasicNamed())` calls the implementation of the abstract interface method and returns `An`.
+- `helper.trySetAccessible()` succeeds in this example because the classes run in the unnamed module on the same class loader. Deep reflection permissions may differ when the Reflection library runs in another module.
 
-**Đừng hiểu nhầm:** `getDeclaredMethod(...)` có thể tìm private interface method, nhưng tìm thấy metadata không đồng nghĩa gọi được ngay. `Method.invoke(...)` còn xét quyền truy cập; nếu `trySetAccessible()` trả `false` ở môi trường khác thì không được giả định việc gọi tiếp sẽ thành công.
+**Do not misunderstand:** `getDeclaredMethod(...)` can locate a private interface method, yet finding metadata does not mean it can be invoked immediately. `Method.invoke(...)` still checks access permissions; if `trySetAccessible()` returns `false` in another environment, do not assume subsequent invocation will succeed.
 
-## 5. `getMethod(s)` và `getDeclaredMethod(s)`: tên giống nhưng phạm vi khác
+## 5. `getMethod(s)` and `getDeclaredMethod(s)`: similar names, different scopes
 
-| API trên `Class<?>` | Phạm vi tìm | Với `BasicNamed.class` và `Named#greeting` |
+| API on `Class<?>` | Search scope | With `BasicNamed.class` and `Named#greeting` |
 | --- | --- | --- |
-| `getDeclaredMethod(name, types...)` | Method **được khai báo trực tiếp** trên class/interface đó, bất kể mức truy cập | Không tìm thấy `greeting()` vì `BasicNamed` không khai báo |
-| `getMethod(name, types...)` | Method **public** khả dụng trên class/interface, gồm method public được kế thừa | Có thể tìm `greeting()` với declaring class `Named` |
-| `getDeclaredMethods()` | Mảng method được khai báo trực tiếp, kể cả private, static, default, abstract | Không chứa default method chỉ được kế thừa |
-| `getMethods()` | Mảng public methods của kiểu, gồm public methods kế thừa | Có thể chứa interface default/abstract methods khả dụng |
+| `getDeclaredMethod(name, types...)` | Methods **declared directly** on that class/interface, regardless of access level | Does not find `greeting()` because `BasicNamed` does not declare it |
+| `getMethod(name, types...)` | **Public** methods available on the class/interface, including inherited public methods | Can find `greeting()` with declaring class `Named` |
+| `getDeclaredMethods()` | Array of directly declared methods, including private, static, default, and abstract | Does not contain default methods that are only inherited |
+| `getMethods()` | Array of public methods of the type, including inherited public methods | Can include available interface default/abstract methods |
 
-Không được giả định thứ tự mảng `getMethods()` hoặc `getDeclaredMethods()` là thứ tự trong file mã nguồn. Phần mềm quét metadata nên lọc theo tên, kiểu tham số, declaring class, modifier, `isBridge()` hoặc `isSynthetic()` khi cần.
+Never assume the array order of `getMethods()` or `getDeclaredMethods()` matches the order in source files. Metadata scanners should filter by name, parameter types, declaring class, modifiers, `isBridge()`, or `isSynthetic()` as needed.
 
-### Method `static` ở interface **không được kế thừa**
+### `static` methods on an interface are **not inherited**
 
-`Named.source()` là lời gọi hợp lệ theo tên interface, nhưng `BasicNamed.source()` không hợp lệ trong Java source. Với Reflection, nên tra `Named.class.getDeclaredMethod("source")` hoặc `Named.class.getMethod("source")`. Không mong đợi `BasicNamed.class.getMethod("source")` tìm thấy vì static method của interface không được kế thừa bởi class triển khai.
+`Named.source()` is a valid call via the interface name, whereas `BasicNamed.source()` is invalid in Java source. With Reflection, look up `Named.class.getDeclaredMethod("source")` or `Named.class.getMethod("source")`. Do not expect `BasicNamed.class.getMethod("source")` to find it, because interface static methods are not inherited by implementing classes.
 
-Ngược lại, một default method `public` có thể được kế thừa, nên `BasicNamed.class.getMethod("greeting")` là trường hợp hợp lệ.
+Conversely, a `public` default method can be inherited, so `BasicNamed.class.getMethod("greeting")` is a valid case.
 
-### Khi xem nhiều superinterface
+### When inspecting multiple superinterfaces
 
-Một interface con có thể kế thừa method của interface cha; `getDeclaredMethods()` trên interface con vẫn chỉ cho thấy method nó **khai báo trực tiếp**. `getMethods()` giúp quan sát public method được kế thừa và độ ưu tiên của các phương thức có cùng chữ ký theo quy tắc API. Nếu cần biết **nguồn gốc**, dùng `method.getDeclaringClass()` thay vì suy luận từ `Class<?>` mà bạn gọi `getMethod` trên đó.
+A subinterface can inherit methods from parent interfaces; `getDeclaredMethods()` on the subinterface still only shows methods it **declares directly**. `getMethods()` helps inspect inherited public methods and the precedence of methods sharing the same signature per API rules. If you need to know the **origin**, use `method.getDeclaringClass()` rather than inferring from the `Class<?>` on which you called `getMethod`.
 
-## 6. Khác biệt giữa loại `Method` và hành vi `invoke(...)`
+## 6. Differences between `Method` kinds and `invoke(...)` behavior
 
-`Method.invoke(Object receiver, Object... args)` có hai tình huống chính:
+`Method.invoke(Object receiver, Object... args)` has two primary scenarios:
 
-1. Với **instance method** (abstract, default hoặc implementation trong class), truyền một receiver tương thích. JVM thực hiện **dynamic method lookup** trên kiểu runtime của receiver; một override có thể được chọn.
-2. Với **static method**, không có receiver instance; dùng `null`. Lời gọi đi tới static method được phản chiếu, không có cơ chế override của instance method.
+1. For **instance methods** (abstract, default, or class implementations), pass a compatible receiver. The JVM performs **dynamic method lookup** on the runtime type of the receiver; an override can be selected.
+2. For **static methods**, there is no receiver instance; pass `null`. The call goes to the reflected static method, with no instance-method override mechanism.
 
-Điều này dẫn tới điểm dễ sai:
+This leads to an easy trap:
 
 ~~~java
 Method m = Named.class.getDeclaredMethod("greeting");
-System.out.println(m.isDefault()); // true: method khai báo tại Named
+System.out.println(m.isDefault()); // true: method declared on Named
 System.out.println(m.invoke(new CustomNamed())); // overridden
 ~~~
 
-`m.isDefault()` vẫn là `true` vì nó mô tả `Named#greeting`; nhưng lời gọi qua `CustomNamed` chạy override của `CustomNamed`. Đừng dùng `Method.invoke` trên default method của interface để cố ép JVM bỏ qua override.
+`m.isDefault()` remains `true` because it describes `Named#greeting`; yet calling it on `CustomNamed` runs `CustomNamed`'s override. Do not use `Method.invoke` on an interface's default method to try forcing the JVM to skip an override.
 
-Nếu bạn thực sự cần gọi **chính phần thân default implementation** của interface như biểu thức `SomeInterface.super.m()`, đó là bài toán *special invocation*. Nó khác cơ chế dispatch thông thường của `Method.invoke` và thường được thực hiện bằng API `java.lang.invoke.MethodHandles` với quyền `Lookup` phù hợp. Đừng xử lý bằng cách đổi tên method hoặc gọi `setAccessible(true)` với hy vọng vô hiệu hóa override.
+If you genuinely need to call **the interface's default implementation body itself** like `SomeInterface.super.m()`, that is a *special invocation* problem. It differs from the normal dispatch mechanism of `Method.invoke` and is typically performed using the `java.lang.invoke.MethodHandles` API with appropriate `Lookup` privileges. Do not try to work around it by renaming methods or calling `setAccessible(true)` hoping to disable overriding.
 
-### Khi gọi method abstract
+### When invoking an abstract method
 
-Một `Method` đại diện abstract declaration vẫn có thể được dùng với receiver có implementation cụ thể:
+A `Method` representing an abstract declaration can still be used with a receiver that has a concrete implementation:
 
 ~~~java
 Method abstractMethod = Named.class.getDeclaredMethod("name");
 Object result = abstractMethod.invoke(new BasicNamed()); // "An"
 ~~~
 
-Nhưng không thể tạo instance trực tiếp của interface hoặc abstract class chỉ để gọi method. Nếu bytecode/runtime không tìm được implementation hợp lệ, việc thực thi có thể gặp lỗi liên kết/phân giải phương thức; chương trình Java biên dịch nhất quán thông thường đảm bảo implementation thích hợp.
+However, you cannot instantiate an interface or abstract class directly just to call a method. If bytecode/runtime cannot find a valid implementation, execution can hit linking/method-resolution errors; ordinarily compiled consistent Java programs ensure an appropriate implementation exists.
 
-### Khi gọi private interface method
+### When invoking a private interface method
 
-Private interface method được định nghĩa để giúp các method **bên trong interface** chia sẻ logic, không tạo API public. `getDeclaredMethod` vẫn có thể phản chiếu nó. Gọi qua `invoke` từ code bên ngoài interface có thể đòi hỏi `trySetAccessible()`, và Java module/package openness có thể giới hạn việc bật quyền. Trong chương trình bình thường, nên gọi public/default API của interface thay vì dựa vào private helper.
+Private interface methods are defined to help methods **inside the interface** share logic, not to create a public API. `getDeclaredMethod` can still reflect them. Calling via `invoke` from code outside the interface may require `trySetAccessible()`, and Java module/package openness can restrict enabling access. In normal programs, prefer calling the interface's public/default API rather than relying on private helpers.
 
-## 7. Khi có nhiều default method cùng chữ ký
+## 7. When multiple default methods share the same signature
 
-Java có cơ chế phát hiện xung đột nếu hai interface cung cấp default implementation cùng chữ ký mà class không có cách kế thừa không mơ hồ. Ví dụ một class triển khai `Left` và `Right`, cả hai có `default String choose()`, thì class phải giải quyết xung đột, thường bằng một override.
+Java has conflict detection if two interfaces provide default implementations with the same signature and a class has no unambiguous inheritance resolution. For instance, if a class implements `Left` and `Right`, both having `default String choose()`, the class must resolve the conflict, usually by overriding.
 
-Tạo tệp **`DefaultConflictDemo.java`**:
+Create the file **`DefaultConflictDemo.java`**:
 
 ~~~java
 import java.lang.reflect.Method;
@@ -351,34 +351,34 @@ Class override default: false
 Interface Method.invoke: L+R
 ~~~
 
-Ở đây `Left.super.choose()` và `Right.super.choose()` là lời gọi **đặc biệt viết trực tiếp trong mã nguồn của `Choice`**. Trái lại, `leftMethod.invoke(new Choice())` không ép chạy riêng thân `Left#choose`: nó thực hiện dynamic dispatch tới `Choice#choose` và nhận `L+R`.
+Here `Left.super.choose()` and `Right.super.choose()` are **special calls written directly in `Choice`'s source code**. By contrast, `leftMethod.invoke(new Choice())` does not force running `Left#choose`'s body alone: it performs dynamic dispatch to `Choice#choose` and yields `L+R`.
 
-Nếu bỏ override trong `Choice`, chương trình nguồn sẽ không biên dịch vì xung đột default method. Reflection không thể "chọn tùy ý" một implementation để sửa lỗi thiết kế này sau khi biên dịch.
+If the override in `Choice` is removed, the source program will not compile due to the default method conflict. Reflection cannot "arbitrarily pick" one implementation to fix this design error after compilation.
 
-## 8. Abstract method trong interface, abstract class và kế thừa
+## 8. Abstract methods in interfaces, abstract classes, and inheritance
 
-Cần phân biệt các cấp:
+Distinguish the levels:
 
-- **Interface abstract method:** thường ngầm định `public abstract`. Class triển khai cụ thể cần cung cấp implementation nếu chưa có cách kế thừa implementation hợp lệ.
-- **Abstract method trong abstract class:** có thể có mức truy cập `protected` hoặc package-private tùy quy tắc Java; `Modifier.isAbstract(...)` là `true`, `Method.isDefault()` luôn `false`.
-- **Concrete method trong abstract class:** dù class chứa nó là `abstract`, bản thân method có thể không `abstract` và không phải default method.
-- **Default method trong interface:** phương thức public có thân mã, được `isDefault()` nhận biết; class triển khai có thể kế thừa hoặc override.
-- **Public concrete method trong class:** không phải interface default method dù class cung cấp implementation cho một chữ ký được khai báo ở interface.
+- **Interface abstract method:** normally implicitly `public abstract`. Concrete implementing classes must provide an implementation if no valid inherited implementation exists.
+- **Abstract method in an abstract class:** can have `protected` or package-private access per Java rules; `Modifier.isAbstract(...)` is `true`, and `Method.isDefault()` is always `false`.
+- **Concrete method in an abstract class:** even though its enclosing class is `abstract`, the method itself can be non-`abstract` and is not a default method.
+- **Default method in an interface:** a public method with a body, recognized by `isDefault()`; implementing classes can inherit or override it.
+- **Public concrete method in a class:** is not an interface default method even if the class provides an implementation for a signature declared in an interface.
 
-Một method của superclass có thể đáp ứng interface abstract declaration của subclass. Vì vậy không nên suy luận rằng "mọi method khai báo trong interface phải có một method tương ứng do class triển khai tự khai báo". Hãy dùng `getDeclaringClass()` và phạm vi tìm của `getMethod/getDeclaredMethod` để trả lời đúng câu hỏi.
+A superclass method can satisfy a subclass's interface abstract declaration. Therefore, do not infer that "every method declared in an interface must have a corresponding method declared by the implementing class itself". Use `getDeclaringClass()` and the lookup scope of `getMethod/getDeclaredMethod` to answer the question accurately.
 
-Ở Java source thông thường, method implementation trong class phải đáp ứng yêu cầu visibility của interface method; ví dụ implementation cho một interface `public` abstract method không được giảm visibility xuống `private`.
+In normal Java source, a class's method implementation must meet the interface method's visibility requirement; for example, an implementation for a `public` abstract interface method cannot reduce visibility to `private`.
 
-## 9. Phân biệt `Method.isDefault()` và `Method.getDefaultValue()`
+## 9. Distinguishing `Method.isDefault()` and `Method.getDefaultValue()`
 
-Hai tên API dễ nhầm nhưng mục đích **hoàn toàn khác nhau**.
+Two easily confused API names with **completely different purposes**.
 
-| API | Tác dụng | Trường hợp dùng |
+| API | Purpose | When to use |
 | --- | --- | --- |
-| `Method.isDefault()` | Kiểm tra method có phải **default method của interface** hay không | Phân tích hành vi interface, tìm phương thức có implementation mặc định |
-| `Method.getDefaultValue()` | Lấy **giá trị mặc định của phần tử annotation** nếu được khai báo | Đọc metadata của `@interface`; có thể trả `null` |
+| `Method.isDefault()` | Checks whether the method is an **interface default method** | Analyzing interface behavior, finding methods with default implementations |
+| `Method.getDefaultValue()` | Retrieves the **default value of an annotation element** if declared | Reading `@interface` metadata; can return `null` |
 
-Ví dụ annotation có default value:
+Example of an annotation with a default value:
 
 ~~~java
 @interface Role {
@@ -386,13 +386,13 @@ Ví dụ annotation có default value:
 }
 ~~~
 
-`Role.class.getDeclaredMethod("level").isDefault()` là `false`. Đây là annotation element method (abstract theo hợp đồng của annotation type), **không** phải interface default method có thân mã. `getDefaultValue()` trên `Method` ấy trả `"viewer"`.
+`Role.class.getDeclaredMethod("level").isDefault()` is `false`. This is an annotation element method (abstract under the annotation type contract), **not** an interface default method with a body. `getDefaultValue()` on that `Method` returns `"viewer"`.
 
-Đừng suy luận `getDefaultValue() != null` thì `isDefault() == true`. Đối với annotation element mặc định, sự thật thường là **ngược lại**: có giá trị mặc định trong metadata annotation nhưng method không có thân cài đặt default của Java interface.
+Do not infer that `getDefaultValue() != null` implies `isDefault() == true`. For a defaulted annotation element, the opposite is normally **true**: it has a default value in annotation metadata, yet the method has no Java interface default implementation body.
 
-## 10. Kiểu tham số, generics và varargs khi tra cứu interface methods
+## 10. Parameter types, generics, and varargs when looking up interface methods
 
-Quy tắc chữ ký của `getDeclaredMethod` hay `getMethod` không thay đổi vì method nằm trong interface:
+Signature rules for `getDeclaredMethod` or `getMethod` do not change just because a method is in an interface:
 
 ~~~java
 interface Processor {
@@ -401,7 +401,7 @@ interface Processor {
 }
 ~~~
 
-Tra cứu chính xác (đoạn minh họa):
+Exact lookup (illustrative snippet):
 
 ~~~java
 Method consume = Processor.class.getDeclaredMethod(
@@ -410,71 +410,71 @@ Method register = Processor.class.getDeclaredMethod(
         "register", java.util.List.class);
 ~~~
 
-- `String...` được biểu diễn bằng `String[]` ở chữ ký bytecode/runtime; `consume.isVarArgs()` cho biết khai báo là varargs.
-- `List<String>` chịu type erasure thành `List.class` khi tra cứu method. Metadata generic có thể đọc từ `getGenericParameterTypes()`.
-- `int.class` khác `Integer.class`; tra cứu không áp dụng autoboxing hoặc widening để tự dò một method gần giống.
-- Các phương thức compiler sinh như bridge method có thể hiện diện trong danh sách `getDeclaredMethods()`. Muốn phân tích khai báo từ mã nguồn, nên lọc và kiểm tra `isBridge()`/`isSynthetic()` thay vì xem mọi `Method` là khai báo thủ công.
+- `String...` is represented by `String[]` in bytecode/runtime signatures; `consume.isVarArgs()` indicates the declaration is varargs.
+- `List<String>` undergoes type erasure to `List.class` during method lookup. Generic metadata can be read via `getGenericParameterTypes()`.
+- `int.class` differs from `Integer.class`; lookup does not apply autoboxing or widening to search for an approximate method.
+- Compiler-generated methods such as bridge methods may appear in `getDeclaredMethods()`. To analyze source-level declarations, filter and check `isBridge()`/`isSynthetic()` rather than treating every `Method` as a handwritten declaration.
 
-## 11. Access control, Java modules và lỗi thường gặp
+## 11. Access control, Java modules, and common mistakes
 
-Reflection lấy được `Method` không đồng nghĩa chắc chắn gọi được `invoke(...)`. Khi phân tích:
+Getting a `Method` via Reflection does not guarantee `invoke(...)` can be called. When analyzing:
 
-1. Tìm đúng `Class<?>` khai báo method hoặc tra cứu public method kế thừa nếu đó là mục tiêu.
-2. So khớp tên và **chữ ký runtime**; `NoSuchMethodException` có nghĩa method không được tìm thấy trong phạm vi API đang xét.
-3. Đọc `getModifiers()`, `isDefault()` và `getDeclaringClass()` để phân loại.
-4. Với `invoke(...)`, chuẩn bị receiver instance hoặc `null` cho method static.
-5. Xem quyền truy cập; `trySetAccessible()` có thể cần thiết cho private method. Java Platform Module System có thể từ chối truy cập sâu vào package chưa mở cho caller ở module khác.
-6. Khi method thực thi và ném ngoại lệ, `Method.invoke` bọc ngoại lệ đó trong `InvocationTargetException`; xem `getCause()` để biết nguyên nhân từ method gốc.
+1. Find the right `Class<?>` declaring the method or look up inherited public methods if that is the goal.
+2. Match the name and **runtime signature**; `NoSuchMethodException` means the method was not found within the inspected API's scope.
+3. Read `getModifiers()`, `isDefault()`, and `getDeclaringClass()` to classify it.
+4. For `invoke(...)`, prepare the receiver instance or `null` for static methods.
+5. Check access permissions; `trySetAccessible()` may be needed for private methods. The Java Platform Module System may deny deep access to packages not open to a caller in another module.
+6. When the method executes and throws an exception, `Method.invoke` wraps that exception in `InvocationTargetException`; inspect `getCause()` for the root cause from the original method.
 
-| Nhầm lẫn | Điều chỉnh |
+| Misconception | Correction |
 | --- | --- |
-| Thấy method có code là `default` | Chỉ interface public non-abstract instance method mới là `Method.isDefault() == true` |
-| Dùng `Modifier.isAbstract` cho mọi method interface | Interface có abstract, default, static và private method |
-| `getDeclaredMethods()` trên class triển khai phải chứa default method kế thừa | Không; đó là phạm vi trực tiếp của class, dùng `getMethods()` cho public method kế thừa |
-| Interface static method được kế thừa như default method | Không; tra trên chính interface khai báo |
-| `Method.invoke` với default method luôn ép chạy thân interface | Không; instance method theo dynamic dispatch và có thể chạy override |
-| Phải dùng `trySetAccessible()` cho mọi method interface | Không; public method có thể được gọi bình thường khi đáp ứng quyền, chỉ deep access khi cần |
-| Annotation element có `default "x"` là Java interface default method | Không; dùng `getDefaultValue()` cho annotation metadata |
-| Thứ tự `getDeclaredMethods()` trùng thứ tự mã nguồn | Không bảo đảm; cần lọc/sắp xếp chủ động nếu muốn hiển thị ổn định |
+| Seeing a method with code means `default` | Only public non-abstract interface instance methods have `Method.isDefault() == true` |
+| Using `Modifier.isAbstract` for every interface method | Interfaces can have abstract, default, static, and private methods |
+| `getDeclaredMethods()` on an implementing class must contain inherited default methods | No; that is the class's direct scope—use `getMethods()` for inherited public methods |
+| Interface static methods are inherited like default methods | No; look them up on the declaring interface itself |
+| `Method.invoke` with a default method always forces running the interface body | No; instance methods follow dynamic dispatch and can run overrides |
+| Must call `trySetAccessible()` for all interface methods | No; public methods can be called normally when access requirements are met; use deep access only when needed |
+| An annotation element with `default "x"` is a Java interface default method | No; use `getDefaultValue()` for annotation metadata |
+| The order of `getDeclaredMethods()` matches source-code order | Not guaranteed; actively filter/sort if stable display order is wanted |
 
-### Lưu ý với dynamic proxy
+### Note on dynamic proxies
 
-Java dynamic proxy có cơ chế riêng: lời gọi interface method trên proxy được chuyển tới `InvocationHandler#invoke`. Từ Java 16, API `InvocationHandler.invokeDefault(proxy, method, args...)` có thể gọi trực tiếp default method của proxy interface trong những điều kiện phù hợp; nó khác với `Method.invoke(...)` thông thường. Chỉ sử dụng cơ chế proxy này khi thật sự đang xây `Proxy`, không xem nó là cách tổng quát để gọi mọi default method trên mọi object.
+Java dynamic proxies have their own mechanism: calls to interface methods on a proxy are routed to `InvocationHandler#invoke`. Since Java 16, the `InvocationHandler.invokeDefault(proxy, method, args...)` API can directly invoke a proxy interface's default method under suitable conditions; it differs from regular `Method.invoke(...)`. Only use this proxy mechanism when actually building a `Proxy`, not as a general way to invoke default methods on arbitrary objects.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-check questions
 
-**Câu 1.** `interface I { void run(); }`. `I.class.getDeclaredMethod("run").isDefault()` có trả `true` không?
+**Question 1.** `interface I { void run(); }`. Does `I.class.getDeclaredMethod("run").isDefault()` return `true`?
 
-**Đáp án:** Không. `run()` là abstract instance method, `Modifier.isAbstract(...) == true` và `isDefault() == false`.
+**Answer:** No. `run()` is an abstract instance method, `Modifier.isAbstract(...) == true` and `isDefault() == false`.
 
-**Câu 2.** `interface I { default void run() {} }`, class `C implements I` không override. `C.class.getDeclaredMethod("run")` có tìm thấy method không?
+**Question 2.** `interface I { default void run() {} }`, class `C implements I` without overriding. Does `C.class.getDeclaredMethod("run")` find the method?
 
-**Đáp án:** Không. `run()` do `I` khai báo. `C.class.getMethod("run")` mới tìm được public method được kế thừa.
+**Answer:** No. `run()` is declared by `I`. `C.class.getMethod("run")` is what finds the inherited public method.
 
-**Câu 3.** `I.class.getDeclaredMethod("run")` cho default method; receiver là object của lớp `C` override `run()`. `Method.invoke(...)` thực thi cái nào?
+**Question 3.** `I.class.getDeclaredMethod("run")` for a default method; the receiver is an object of class `C` overriding `run()`. Which one does `Method.invoke(...)` execute?
 
-**Đáp án:** Override của `C` theo dynamic dispatch. `Method.isDefault()` trên method phản chiếu từ `I` vẫn là `true`.
+**Answer:** `C`'s override via dynamic dispatch. `Method.isDefault()` on the method reflected from `I` remains `true`.
 
-**Câu 4.** Tại sao static method `I.make()` không tìm được bằng `C.class.getMethod("make")`, dù `C implements I`?
+**Question 4.** Why can't static method `I.make()` be found via `C.class.getMethod("make")`, even though `C implements I`?
 
-**Đáp án:** Static method của interface không được class triển khai kế thừa. Tra trên `I.class` và dùng receiver `null` khi `invoke`.
+**Answer:** Static methods of an interface are not inherited by implementing classes. Look it up on `I.class` and use a `null` receiver on `invoke`.
 
-**Câu 5.** Interface có `private String helper()`. `helper.isDefault()` là gì?
+**Question 5.** An interface has `private String helper()`. What is `helper.isDefault()`?
 
-**Đáp án:** `false`. Private method có thể có thân mã nhưng không phải public interface default method; truy cập từ caller khác có thể cần bật quyền Reflection hợp lệ.
+**Answer:** `false`. A private method can have a body yet is not a public interface default method; accessing it from another caller may require enabling valid Reflection access.
 
-**Câu 6.** `@interface Role { String level() default "viewer"; }`. Vì sao `isDefault()` và `getDefaultValue()` khác nhau?
+**Question 6.** `@interface Role { String level() default "viewer"; }`. Why do `isDefault()` and `getDefaultValue()` differ?
 
-**Đáp án:** `isDefault()` là phép thử cho **interface default method có body**; `getDefaultValue()` trả metadata `"viewer"` của annotation element. Hai khái niệm "default" khác nhau.
+**Answer:** `isDefault()` tests for an **interface default method with a body**; `getDefaultValue()` returns the `"viewer"` metadata of an annotation element. They are two different "default" concepts.
 
-**Câu 7.** Làm sao nhận biết một method lấy từ `Class#getMethods()` được khai báo ở interface?
+**Question 7.** How do you tell whether a method obtained from `Class#getMethods()` is declared on an interface?
 
-**Đáp án:** Kiểm tra `method.getDeclaringClass().isInterface()`. Sau đó tiếp tục xem `isDefault()`, `Modifier.isAbstract(...)`, `Modifier.isStatic(...)`; riêng việc khai báo trên interface chưa kết luận được loại method.
+**Answer:** Check `method.getDeclaringClass().isInterface()`. Then inspect `isDefault()`, `Modifier.isAbstract(...)`, `Modifier.isStatic(...)`; being declared on an interface alone does not determine the method kind.
 
-## Tài liệu chuẩn để kiểm tra
+## Standard documentation to verify against
 
-- [JDK 21 — java.lang.reflect.Method](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html): `isDefault()`, `invoke(...)`, `getDefaultValue()` và metadata.
-- [JDK 21 — java.lang.Class](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html): `getMethod(s)`, `getDeclaredMethod(s)` và phạm vi kế thừa.
-- [JDK 21 — InvocationHandler](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/InvocationHandler.html): `invokeDefault(...)` đối với dynamic proxy.
+- [JDK 21 — java.lang.reflect.Method](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html): `isDefault()`, `invoke(...)`, `getDefaultValue()`, and metadata.
+- [JDK 21 — java.lang.Class](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html): `getMethod(s)`, `getDeclaredMethod(s)`, and inheritance scope.
+- [JDK 21 — InvocationHandler](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/InvocationHandler.html): `invokeDefault(...)` for dynamic proxies.
 
-**Ghi nhớ:** `Modifier.isAbstract(method.getModifiers())` kiểm tra method có abstract không; `method.isDefault()` kiểm tra method có phải **public default instance method của interface** không. `getDeclaringClass()` cho biết method được khai báo ở đâu; `getMethod` và `getDeclaredMethod` có phạm vi khác nhau. Cuối cùng, `Method.invoke` trên instance method tuân theo dynamic dispatch, nên Method phản chiếu từ interface **không đảm bảo** sẽ chạy phần thân default của interface khi receiver override method ấy.
+**Takeaway:** `Modifier.isAbstract(method.getModifiers())` checks whether a method is abstract; `method.isDefault()` checks whether a method is a **public default instance method of an interface**. `getDeclaringClass()` tells where a method is declared; `getMethod` and `getDeclaredMethod` have different scopes. Finally, `Method.invoke` on instance methods obeys dynamic dispatch, so a Method reflected from an interface **does not guarantee** running the interface's default body when the receiver overrides that method.

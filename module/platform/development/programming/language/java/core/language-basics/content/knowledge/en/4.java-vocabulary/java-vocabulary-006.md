@@ -1,75 +1,75 @@
-# Khoảng trắng, xuống dòng và phân tách token trong Java
+# Whitespace, Line Breaks, and Token Separation in Java
 
-> **Java core — language-basics / Từ vựng Java**  
-> **Môi trường thực hành:** JDK 17 trở lên, không cần thư viện ngoài.  
-> **Mục tiêu:** Hiểu Java xử lý khoảng trắng, tab, xuống dòng và chú thích ra sao trước khi phân tích cú pháp; biết khi nào hai token cần được tách, khi nào xuống dòng không thay thế dấu chấm phẩy; giải thích quy tắc nhận token dài nhất; phân biệt khoảng trắng ở bên ngoài với nội dung bên trong chuỗi hoặc text block. Có thể tự biên dịch, chạy và dự đoán đầu ra ví dụ.
+> **Java core — language-basics / Java Vocabulary**  
+> **Practice environment:** JDK 17 or later, no external libraries required.  
+> **Objective:** Understand how Java processes spaces, tabs, line breaks, and comments before syntax parsing; know when two tokens must be separated and when a line break does not substitute for a semicolon; explain the longest-token matching rule; distinguish external whitespace from content inside strings or text blocks. Be able to compile, run, and predict example outputs independently.
 
-## 1. Từ ký tự nguồn tới dãy token
+## 1. From source characters to a token sequence
 
-Mã nguồn Java được viết bằng các ký tự. Trước khi kiểm tra xem một dòng có tạo thành biểu thức hoặc câu lệnh hợp lệ hay không, compiler phải nhận ra những **đơn vị từ vựng (token)**.
+Java source code is written as characters. Before checking whether a line forms a valid expression or statement, the compiler must recognize **lexical units (tokens)**.
 
-Ví dụ:
+Example:
 
 ~~~java
 int total = unitPrice * quantity;
 ~~~
 
-Bộ phân tích từ vựng nhận những token: `int`, `total`, `=`, `unitPrice`, `*`, `quantity`, `;`. Khoảng trắng giữa chúng giúp nhận ranh giới, nhưng **không phải token** trong năm nhóm identifier/keyword/literal/operator/separator.
+The lexical analyzer recognizes these tokens: `int`, `total`, `=`, `unitPrice`, `*`, `quantity`, `;`. Spaces between them help mark boundaries, yet **are not tokens** in the five groups: identifier/keyword/literal/operator/separator.
 
 ~~~mermaid
 flowchart LR
-    A["Ký tự trong file .java"] --> B["Xử lý Unicode escape và ký tự dòng"]
-    B --> C["Nhận biết token, whitespace, comment"]
-    C --> D["Dãy token"]
-    D --> E["Phân tích cú pháp Java"]
+    A["Characters in .java file"] --> B["Process Unicode escapes and line terminators"]
+    B --> C["Recognize tokens, whitespace, comments"]
+    C --> D["Token sequence"]
+    D --> E["Java syntax parsing"]
 ~~~
 
-Từ một dãy token hợp lệ, Java **chưa chắc tạo được câu lệnh hợp lệ**. Ví dụ `int = 2;` vẫn gồm các token nhận ra được nhưng sai ngữ pháp khai báo biến.
+From a valid sequence of tokens, Java **does not necessarily form a valid statement**. For example, `int = 2;` consists of recognizable tokens, yet violates variable declaration grammar.
 
-**Điểm chính:** khoảng trắng và xuống dòng chủ yếu điều khiển **ranh giới lexical**, chứ không phải tín hiệu mặc định để chương trình “chạy sang lệnh tiếp theo”.
+**Key point:** whitespace and line breaks primarily control **lexical boundaries**, rather than acting as a default signal to "move to the next statement."
 
-## 2. Java công nhận những loại khoảng trắng nào?
+## 2. What kinds of whitespace does Java recognize?
 
-Ở cấp xử lý từ vựng thông thường, Java nhận diện các loại ký tự khoảng trắng và dấu hết dòng quan trọng sau:
+At the regular lexical processing level, Java recognizes the following important whitespace characters and line terminators:
 
-| Ký tự | Cách gọi | Tình huống thường gặp |
+| Character | Name | Common situation |
 | --- | --- | --- |
-| Space `U+0020` | Dấu cách | Giữa `int` và tên biến |
-| Horizontal tab `U+0009` | Tab ngang | Thụt lề trong trình soạn thảo |
-| Form feed `U+000C` | Ngắt trang | Ít gặp trong mã nguồn hiện đại |
-| LF `U+000A` | Line feed | Xuống dòng trên nhiều hệ thống Unix |
-| CR `U+000D` | Carriage return | Dấu dòng từ các định dạng cũ |
-| CRLF | Cặp carriage return + line feed | Kết thúc dòng phổ biến trong tệp Windows |
+| Space `U+0020` | Space | Between `int` and a variable name |
+| Horizontal tab `U+0009` | Horizontal tab | Indentation in an editor |
+| Form feed `U+000C` | Page break | Rarely seen in modern source code |
+| LF `U+000A` | Line feed | Line break on many Unix systems |
+| CR `U+000D` | Carriage return | Line marker from older formats |
+| CRLF | Carriage return + line feed pair | Common line ending in Windows files |
 
-Với Java, **CRLF được nhận như một dấu kết thúc dòng**, không phải hai lần ngắt dòng độc lập. Sự khác nhau LF/CRLF thường không thay đổi ngữ nghĩa một câu lệnh Java hợp lệ; nhưng có thể ảnh hưởng comment dòng, vị trí báo lỗi và nội dung literal ở những vị trí đặc biệt.
+For Java, **CRLF is recognized as a single line terminator**, not two independent line breaks. The difference between LF and CRLF usually does not change the semantics of a valid Java statement; however, it can affect line comments, error line reporting, and literal contents in special situations.
 
-Không được giả định **mọi ký tự trông giống khoảng trắng Unicode đều được lexer Java xử lý như dấu cách ASCII**. Chẳng hạn, một ký tự khoảng trắng không ngắt (*non-breaking space*) sao chép từ trang web có thể gây kết quả khác thường hoặc lỗi từ vựng. Khi mã nhìn đúng nhưng compiler báo ký tự không hợp lệ, hãy kiểm tra các ký tự vô hình.
+Do not assume **every Unicode character that looks like whitespace is treated by the Java lexer like an ASCII space**. For example, a non-breaking space copied from a webpage can cause unexpected results or a lexical error. When code looks right yet the compiler reports an illegal character, check for invisible characters.
 
-## 3. Khi nào khoảng trắng là bắt buộc?
+## 3. When is whitespace mandatory?
 
-Một số cặp token là chữ/tên sẽ dính thành **một token khác** nếu viết liền.
+Certain pairs of word/name tokens will merge into **one different token** if written together without separation.
 
-| Ý định đúng | Viết liền | Điều xảy ra |
+| Intended code | Written together | What happens |
 | --- | --- | --- |
-| `int count = 1;` | `intcount = 1;` | `intcount` là một identifier, **không** còn keyword `int` cộng tên `count` |
-| `long total = 2L;` | `longtotal = 2L;` | Lexer nhận `longtotal` là identifier |
-| `new Example()` | `newExample()` | Một identifier `newExample`, không còn keyword `new` |
-| `return result;` | `returnresult;` | `returnresult` là tên identifier, không phải câu lệnh `return` |
+| `int count = 1;` | `intcount = 1;` | `intcount` is one identifier, **no longer** keyword `int` plus name `count` |
+| `long total = 2L;` | `longtotal = 2L;` | The lexer recognizes `longtotal` as an identifier |
+| `new Example()` | `newExample()` | One identifier `newExample`, no longer keyword `new` |
+| `return result;` | `returnresult;` | `returnresult` is an identifier name, not a `return` statement |
 
-Để tách token không nhất thiết chỉ dùng dấu cách. Dòng mới và **chú thích block** cũng có thể làm ranh giới:
+Separating tokens does not strictly require a space character. Line breaks and **block comments** can also serve as boundaries:
 
 ~~~java
 int
 count = 1;
 
-int /* chú thích giữa hai token */ total = 2;
+int /* comment between two tokens */ total = 2;
 
 int/**/other = 3;
 ~~~
 
-Ba biến `count`, `total`, `other` được khai báo hợp lệ khi những dòng trên nằm **trong một phương thức hoặc block được phép khai báo biến cục bộ**. Trong dòng `int/**/other`, chú thích được xử lý như khoảng phân cách từ vựng giữa từ khóa và identifier.
+The three variables `count`, `total`, and `other` are validly declared when those lines appear **inside a method or block where local variable declarations are allowed**. In `int/**/other`, the comment acts as a lexical separator between the keyword and the identifier.
 
-Ngược lại, nhiều token có thể chạm nhau mà vẫn phân biệt rõ:
+Conversely, many tokens can touch each other while remaining clearly distinct:
 
 ~~~java
 int x=1;
@@ -77,11 +77,11 @@ x++;
 System.out.println(x);
 ~~~
 
-Dấu `=`, `;`, `(`, `)` và `.` đã tự tạo ranh giới phù hợp. Thêm dấu cách nhằm dễ đọc là tốt, nhưng **không có quy tắc phải đặt dấu cách quanh mọi dấu câu**.
+Symbols such as `=`, `;`, `(`, `)`, and `.` already establish clear boundaries on their own. Adding spaces for readability is good practice, yet **there is no rule requiring spaces around every punctuation mark**.
 
-## 4. Xuống dòng không tự kết thúc câu lệnh Java
+## 4. Line breaks do not automatically terminate Java statements
 
-Java không dùng “xuống dòng là dấu chấm phẩy tự động” cho các statement thông thường. Ví dụ dưới đây hợp lệ bên trong một phương thức:
+Java does not use "a line break acts as an automatic semicolon" for regular statements. The example below is valid inside a method:
 
 ~~~java
 int value
@@ -97,64 +97,64 @@ System.out.println
         ;
 ~~~
 
-Đoạn đó tương đương về ý nghĩa với:
+That snippet is equivalent in meaning to:
 
 ~~~java
 int value = 10 + 5;
 System.out.println(value);
 ~~~
 
-Cả hai in `15`. Compiler quan tâm tới dãy token và ngữ pháp, **không phải cách code được chia thành nhiều dòng**.
+Both print `15`. The compiler cares about the token sequence and grammar, **not how the code is split across lines**.
 
-Những trường hợp cần nhớ:
+Cases to remember:
 
-- `int value = 10` rồi xuống dòng **không** tự hoàn thành một khai báo; thông thường vẫn cần dấu `;`.
-- `if (ready)` rồi xuống dòng trước `{ ... }` là hợp lệ; block vẫn là thân của `if`.
-- Có thể đặt nhiều statement trên cùng dòng, chẳng hạn `int a = 1; int b = 2;`.
-- Với dấu `;` đứng riêng sau `if` hoặc `while`, bạn có thể vô tình tạo một **empty statement**: đây là một token có ý nghĩa cú pháp, không liên quan đến việc xuống dòng.
+- `int value = 10` followed by a line break does **not** automatically complete a declaration; a `;` is still normally required.
+- `if (ready)` followed by a line break before `{ ... }` is valid; the block remains the body of `if`.
+- Multiple statements can be placed on the same line, such as `int a = 1; int b = 2;`.
+- With a standalone `;` after `if` or `while`, you can accidentally create an **empty statement**: this is a grammatically meaningful token, unrelated to line breaks.
 
-**Tách biệt:** Dấu kết thúc dòng vẫn quan trọng để **kết thúc chú thích `//`** và đối với cách viết literal chuỗi; điều đó **không** biến xuống dòng thành token kết thúc statement.
+**Separation:** Line terminators still matter for **ending `//` comments** and for string literal syntax; that does **not** turn a line break into a statement-terminating token.
 
-## 5. Chú thích có thể phân tách token
+## 5. Comments can separate tokens
 
-Java nhận diện `//` tới hết dòng và `/* ... */` tới dấu đóng đầu tiên; `/** ... */` là dạng chú thích tài liệu được công cụ Javadoc xử lý. **Nội dung chú thích không trở thành token chương trình**, nhưng dấu kết thúc của chúng quyết định phần mã nào còn được phân tích.
+Java recognizes `//` through the end of the line and `/* ... */` through the first closing delimiter; `/** ... */` is the documentation comment form processed by the Javadoc tool. **Comment contents do not become program tokens**, yet their delimiters determine which parts of the code continue to be parsed.
 
 ~~~java
-int count // Chú thích dòng kết thúc ở đây.
+int count // Line comment ends here.
         = 3;
 
-int /* Chú thích khối nằm giữa các token */ total = count * 2;
+int /* Block comment placed between tokens */ total = count * 2;
 ~~~
 
-Cả hai khai báo đều hợp lệ trong một phương thức: sau khi bỏ nội dung chú thích, lexer vẫn nhận các token tương ứng với `int count = 3;` và `int total = count * 2;`. Ngược lại, `// int count = 3;` **không tạo biến** vì cả khai báo nằm trong comment.
+Both declarations are valid inside a method: after stripping the comment content, the lexer still sees tokens corresponding to `int count = 3;` and `int total = count * 2;`. Conversely, `// int count = 3;` **does not create a variable** because the entire declaration lies inside the comment.
 
-Bài về các loại chú thích sẽ giải thích riêng việc dùng `//`, `/* ... */`, `/** ... */`, giới hạn không lồng block comment và cách tạo tài liệu Javadoc.
+The lesson on comment types separately covers using `//`, `/* ... */`, `/** ... */`, the non-nesting limit on block comments, and generating Javadoc documentation.
 
-## 6. Quy tắc nhận token dài nhất: khoảng trắng có thể đổi ý nghĩa
+## 6. Longest-token matching rule: whitespace can change meaning
 
-Khi một chuỗi ký tự có thể tạo thành nhiều token, lexer Java ưu tiên token dài nhất có thể nhận hợp lệ ở vị trí đó (*maximal munch*). Đây là lý do các toán tử dài cần được nhận diện nguyên khối.
+When a sequence of characters could form multiple tokens, the Java lexer prefers the longest valid token it can recognize at that position (*maximal munch*). This is why multi-character operators are recognized as single units.
 
-| Chuỗi mã | Phân tích quan trọng | Ý nghĩa hoặc hệ quả |
+| Code sequence | Key tokenization | Meaning or consequence |
 | --- | --- | --- |
-| `count++;` | `count`, `++`, `;` | `++` là một toán tử tăng hậu tố |
-| `total += 2;` | `total`, `+=`, `2`, `;` | `+=` là toán tử gán kết hợp |
-| `x >= 3` | `x`, `>=`, `3` | `>=` là một toán tử so sánh |
-| `x > = 3` | `x`, `>`, `=`, `3` | Không tương đương `x >= 3` và không hợp lệ trong ngữ cảnh này |
-| `x+++y` | `x`, `++`, `+`, `y` | Được phân tích như `x++ + y`, **không** phải `x + ++y` |
-| `x + ++y` | `x`, `+`, `++`, `y` | Tăng `y` trước khi cộng với `x` |
+| `count++;` | `count`, `++`, `;` | `++` is a postfix increment operator |
+| `total += 2;` | `total`, `+=`, `2`, `;` | `+=` is a compound assignment operator |
+| `x >= 3` | `x`, `>=`, `3` | `>=` is a comparison operator |
+| `x > = 3` | `x`, `>`, `=`, `3` | Not equivalent to `x >= 3` and invalid in this context |
+| `x+++y` | `x`, `++`, `+`, `y` | Parsed as `x++ + y`, **not** `x + ++y` |
+| `x + ++y` | `x`, `+`, `++`, `y` | Increments `y` before adding to `x` |
 
-Ví dụ với `int x = 4; int y = 3;`:
+Example with `int x = 4; int y = 3;`:
 
-- `int result = x+++y;` tạo `result = 7` và sau đó `x = 5`, `y = 3`.
-- `int result = x + ++y;` (nếu bắt đầu lại với cùng `x = 4`, `y = 3`) tạo `result = 8` và `y = 4`.
+- `int result = x+++y;` produces `result = 7` and then `x = 5`, `y = 3`.
+- `int result = x + ++y;` (if starting again with `x = 4`, `y = 3`) produces `result = 8` and `y = 4`.
 
-**Khoảng trắng có thể thay đổi token được nhận**, nhưng không phải mọi cách chèn khoảng trắng đều có thể biến thành mã hợp lệ. Ví dụ cố viết `a + + b` là hai toán tử `+` liên tiếp theo ngữ pháp *binary plus* rồi *unary plus*, khác với toán tử `++`.
+**Whitespace can alter which tokens are recognized**, yet not every way of inserting spaces produces valid code. For example, writing `a + + b` yields two consecutive `+` operators parsed as *binary plus* followed by *unary plus*, distinct from the `++` operator.
 
-Quy tắc này xảy ra **trước** khi compiler quyết định phép toán nào được tính trước hoặc sau. Đó là hai tầng khác nhau: nhận token và đánh giá biểu thức.
+This rule operates **before** the compiler decides which operation is evaluated first or second. Those are two separate layers: token recognition and expression evaluation.
 
-## 7. Khoảng trắng trong chuỗi và ký tự thoát
+## 7. Whitespace inside strings and escape characters
 
-Ngoài các chuỗi literal, khoảng trắng thường chỉ phân tách hoặc trình bày mã. **Bên trong một string literal**, dấu cách là dữ liệu và được giữ nguyên:
+Outside string literals, whitespace typically only separates or formats code. **Inside a string literal**, spaces are data and are preserved:
 
 ~~~java
 String one = "A B";
@@ -163,28 +163,28 @@ System.out.println(one.length()); // 3
 System.out.println(two.length()); // 4
 ~~~
 
-Hai giá trị khác nhau vì `two` có **hai dấu cách giữa A và B**.
+The two values differ because `two` has **two spaces between A and B**.
 
-**Xuống dòng thật** không được phép xuất hiện ngay giữa một literal chuỗi thông thường:
+A **raw line break** is not permitted directly inside a regular string literal:
 
 ~~~java
-// Mảnh ví dụ CỐ Ý KHÔNG HỢP LỆ:
+// INTENTIONALLY INVALID snippet:
 // String invalid = "Dong 1
 // Dong 2";
 ~~~
 
-Nếu bỏ dấu comment ở hai dòng để tạo một literal chuỗi vỡ qua dòng theo cách đó, compiler sẽ báo lỗi. Cách hợp lệ để chứa newline trong một chuỗi là dùng escape sequence:
+If you uncomment those two lines to create a string literal broken across lines that way, the compiler will report an error. The valid way to include a newline in a string is to use an escape sequence:
 
 ~~~java
 String valid = "Dong 1\nDong 2";
 System.out.println(valid.lines().count()); // 2
 ~~~
 
-Các ký tự `\` và `n` trong `"Dong 1\nDong 2"` tạo biểu diễn escape của newline trong chuỗi khi chương trình chạy; đó **không** phải việc gõ Enter làm vỡ chuỗi trong file source.
+The characters `\` and `n` in `"Dong 1\nDong 2"` create an escape representation of a newline in the string at runtime; it is **not** pressing Enter to split the string in the source file.
 
-### Text block trong Java 17
+### Text blocks in Java 17
 
-Java 17 hỗ trợ *text block* bằng ba dấu nháy kép. Dòng đầu phải có dấu kết thúc dòng sau `"""` mở:
+Java 17 supports *text blocks* using three double quotes. The first line must have a line terminator after the opening `"""`:
 
 ~~~java
 String text = """
@@ -194,35 +194,35 @@ String text = """
 System.out.println(text.replace("\n", "|")); // First|Second|
 ~~~
 
-Java sẽ xử lý thụt lề chung và nội dung newline của text block theo các quy tắc riêng. Với cấu trúc trên, chuỗi giữ dấu xuống dòng **sau cả dòng `Second`**, nên kết quả có dấu `|` cuối. Đừng suy ra mọi khoảng trắng trong text block được giữ nguyên từng byte: indentation chung thường bị loại bỏ khi dựng giá trị chuỗi.
+Java processes common indentation and newline content of a text block according to specific rules. With the structure above, the string keeps a newline **even after the `Second` line**, so the output ends with a trailing `|`. Do not assume every whitespace character in a text block is preserved byte-for-byte: common indentation is typically stripped when constructing the string value.
 
-## 8. Cẩn thận với Unicode escape và ký tự vô hình
+## 8. Watch out for Unicode escapes and invisible characters
 
-Việc xử lý Unicode escape của Java xảy ra **rất sớm**, trước khi nhận biết comment và các token. Vì vậy các chuỗi escape hợp lệ có thể tác động tới ranh giới dòng hoặc cú pháp ngay cả khi chúng xuất hiện trong phần nguồn trông giống comment.
+Java's Unicode escape processing occurs **very early**, before recognizing comments and tokens. Consequently, valid escape sequences can affect line boundaries or syntax even when they appear inside source text that looks like a comment.
 
-Ví dụ, dạng Unicode escape viết bằng dấu gạch chéo ngược, chữ `u` và bốn chữ số hex để tạo **LF** có thể trở thành một dấu kết thúc dòng trước khi compiler nhận diện một chú thích `//`. Đây là trường hợp biên để hiểu quy trình từ vựng, **không phải kỹ thuật nên sử dụng** để xuống dòng trong code.
+For example, a Unicode escape written with a backslash, lowercase `u`, and four hex digits representing **LF** can become a line terminator before the compiler recognizes a `//` comment. This is an edge case for understanding the lexical pipeline, **not a technique you should use** to break lines in code.
 
-Khi gặp lỗi kỳ lạ:
+When encountering strange errors:
 
-- Kiểm tra dấu tab, dấu cách không ngắt (*NBSP*) và các ký tự vô hình do copy/paste.
-- Kiểm tra rằng file được lưu bằng mã hóa nhất quán; với `javac` có thể truyền `-encoding UTF-8`.
-- Kiểm tra Unicode escape trong source thay vì đoán rằng mọi ký tự trong comment đều hoàn toàn bị bỏ qua ở bước đầu tiên.
-- Không dùng việc xuống dòng hoặc chèn comment để “chữa” một lỗi ngữ pháp chưa được hiểu.
+- Check for tabs, non-breaking spaces (*NBSP*), and invisible characters caused by copy/paste.
+- Verify that the file is saved with a consistent encoding; with `javac`, you can pass `-encoding UTF-8`.
+- Check Unicode escapes in source rather than assuming every character inside a comment is completely ignored in the first step.
+- Do not use line breaks or inserted comments to "patch over" a syntax error you do not yet understand.
 
-## 9. Chương trình Java 17+ tự chạy: WhitespaceDemo.java
+## 9. Runnable Java 17+ program: WhitespaceDemo.java
 
-Tạo file **WhitespaceDemo.java** (đúng tên `public class`) và nhập:
+Create a file **WhitespaceDemo.java** (matching the `public class` name) and enter:
 
 ~~~java
 public final class WhitespaceDemo {
     public static void main(String[] args) {
         int base = 7;
-        int extra // Chú thích kết thúc ở hết dòng.
+        int extra // Comment ends at end of line.
                 = 5;
 
         int sum = base
                 + extra;
-        int/**/factor = 2; // Block comment tách int và factor.
+        int/**/factor = 2; // Block comment separates int and factor.
 
         boolean ready = sum >= 10
                 && factor > 0;
@@ -248,14 +248,14 @@ public final class WhitespaceDemo {
 }
 ~~~
 
-**Biên dịch và chạy** trong terminal tại thư mục chứa file, áp dụng cho Bash, PowerShell và Command Prompt:
+**Compile and run** in a terminal in the file's directory, applicable to Bash, PowerShell, and Command Prompt:
 
 ~~~bash
 javac -encoding UTF-8 WhitespaceDemo.java
 java WhitespaceDemo
 ~~~
 
-**Kết quả mong đợi chính xác:**
+**Exact expected output:**
 
 ~~~text
 sum=12
@@ -266,53 +266,53 @@ escapedLines=2
 textBlock=one|two|
 ~~~
 
-### Giải thích kết quả
+### Output explanation
 
-1. `int extra` bị tách qua một dòng comment, nhưng vẫn là khai báo hợp lệ; `extra = 5`.
-2. `sum` bằng `7 + 5 = 12` dù biểu thức trải qua nhiều dòng; xuống dòng không ngầm chèn `;`.
-3. `int/**/factor` tương đương đặt khoảng phân tách giữa `int` và `factor`; `factor = 2` nên điều kiện `ready` đúng.
-4. `x+++y` được nhận thành `x++ + y`; `glued` nhận `4 + 3 = 7`, `x` sau đó bằng `5`, `y` giữ `3`.
-5. Literal `"A  B"` có hai dấu cách nên độ dài bằng `4`.
-6. Literal `"first\nsecond"` có một newline escape nên `lines().count()` trả `2`.
-7. Text block có hai dòng nội dung và newline ở cuối; sau khi thay newline bằng `|`, kết quả là `one|two|`.
+1. `int extra` is split across a comment line, yet remains a valid declaration; `extra = 5`.
+2. `sum` equals `7 + 5 = 12` even though the expression spans multiple lines; line breaks do not implicitly insert `;`.
+3. `int/**/factor` is equivalent to placing whitespace separation between `int` and `factor`; `factor = 2`, so the `ready` condition is true.
+4. `x+++y` is recognized as `x++ + y`; `glued` gets `4 + 3 = 7`, `x` then becomes `5`, and `y` stays `3`.
+5. The literal `"A  B"` has two spaces, so its length is `4`.
+6. The literal `"first\nsecond"` has one newline escape, so `lines().count()` returns `2`.
+7. The text block has two content lines and a trailing newline; after replacing newlines with `|`, the result is `one|two|`.
 
-**Phạm vi ví dụ:** mã này minh họa lexical rules bằng kết quả quan sát được. Java compiler không in danh sách token ra console; để phân tích token chi tiết cần công cụ/parser chuyên dụng, không phải `javac` thông thường.
+**Example scope:** this code demonstrates lexical rules via observable output. The Java compiler does not print a token list to the console; detailed token inspection requires a dedicated tool/parser, not ordinary `javac`.
 
-## 10. Những lỗi thường gặp và hướng kiểm tra
+## 10. Common errors and what to check
 
-| Hiện tượng | Nguyên nhân có khả năng | Cách giải quyết |
+| Symptom | Likely cause | Solution |
 | --- | --- | --- |
-| `cannot find symbol` với `intcount` | Viết dính keyword và identifier nên thành một tên khác | Tách `int count` |
-| `';' expected` sau khai báo bị chia dòng | Quên dấu `;`, không phải Java “tự hiểu xuống dòng” | Thêm `;` vào đúng vị trí kết thúc |
-| `unclosed string literal` | Chuỗi `"..."` bị ngắt dòng thật hoặc thiếu nháy kép đóng | Dùng `\n` trong chuỗi hoặc text block phù hợp |
-| `illegal character` | Có ký tự Unicode không được phép ở vị trí từ vựng, ví dụ khoảng trắng lạ | Kiểm tra byte/ký tự vô hình, gõ lại ký tự đúng |
-| `x+++y` cho kết quả không như dự kiến | Lexer nhận `x++` trước rồi `+ y` | Thêm khoảng trắng hoặc ngoặc để thể hiện rõ ý định |
-| Đặt `//` nhưng phần sau cùng dòng “mất” | `//` bắt đầu comment tới hết dòng | Đặt phần mã cần chạy trên dòng khác hoặc sửa comment |
-| Chú thích `/* ... */` không đóng | Comment block thiếu `*/` | Đóng comment đúng cặp, không lồng block comment |
-| Text block thụt lề/xuống dòng sai kết quả | Có quy tắc indentation và trailing newline | In ra chuỗi thực tế, xem vị trí dấu `"""` đóng |
+| `cannot find symbol` for `intcount` | Wrote keyword and identifier together, forming a different name | Separate as `int count` |
+| `';' expected` after a multi-line declaration | Forgot `;`; Java does not "infer line breaks" | Add `;` at the proper terminating position |
+| `unclosed string literal` | String `"..."` has a raw line break or missing closing double quote | Use `\n` inside the string or a proper text block |
+| `illegal character` | Disallowed Unicode character in a lexical position, e.g., odd whitespace | Inspect bytes/invisible characters, retype the proper character |
+| `x+++y` gives an unexpected result | Lexer matches `x++` first, then `+ y` | Add spaces or parentheses to make intent clear |
+| Placed `//` and the rest of the same line "disappeared" | `//` starts a comment until end of line | Move runnable code onto another line or fix the comment |
+| Unclosed `/* ... */` comment | Block comment missing `*/` | Close comments properly; do not nest block comments |
+| Text block indentation/newline gives wrong result | Indentation and trailing newline rules apply | Print the actual string and check the closing `"""` position |
 
-**Lưu ý:** Một lỗi trỏ tới dòng sau chỗ sai thường liên quan việc lexer/parser đang chờ một token còn thiếu. Đọc cả dòng trước đó, đặc biệt dấu nháy, dấu `;` và điểm kết thúc comment.
+**Note:** An error pointing to the line after a mistake often relates to the lexer/parser waiting for a missing token. Read the preceding line as well, especially quotes, `;`, and comment endings.
 
-## 11. Bài tập tự luyện
+## 11. Self-practice exercises
 
-**Bài 1 — Phân tách tên.** Giả sử bạn muốn khai báo biến `count` kiểu `int`. Vì sao `intcount=3;` không tương đương `int count=3;`? Hãy thử dạng `int/**/count=3;` trong một phương thức để tự xác nhận.
+**Exercise 1 — Separating names.** Suppose you want to declare an `int` variable `count`. Why is `intcount=3;` not equivalent to `int count=3;`? Try `int/**/count=3;` inside a method to verify it yourself.
 
-**Bài 2 — Dự đoán biểu thức.** Bắt đầu với `int x=4, y=3;`. So sánh `int a=x+++y;` với `int a=x+ ++y;` sau khi **khởi tạo lại x và y** cho từng trường hợp. Ghi lại kết quả `a` và giá trị cuối của từng biến.
+**Exercise 2 — Expression prediction.** Start with `int x=4, y=3;`. Compare `int a=x+++y;` with `int a=x+ ++y;` after **reinitializing x and y** for each case. Record the resulting `a` and final values of each variable.
 
-**Bài 3 — Xuống dòng.** Viết một câu lệnh khai báo số và một lời gọi `println` trải qua ít nhất ba dòng. Xác định token `;` nào thực sự kết thúc statement.
+**Exercise 3 — Line breaks.** Write a numeric declaration statement and a `println` call spanning at least three lines. Identify which `;` token actually terminates each statement.
 
-**Bài 4 — Comment.** Viết `int number // comment` rồi đặt `= 10;` ở dòng tiếp theo; giải thích vì sao compiler vẫn chấp nhận. Thử thay bằng chú thích block.
+**Exercise 4 — Comments.** Write `int number // comment` and then put `= 10;` on the next line; explain why the compiler still accepts it. Try replacing it with a block comment.
 
-**Bài 5 — Chuỗi.** Dự đoán `"a b".length()` và `"a  b".length()`; giải thích vì sao khoảng trắng trong literal có tác dụng khác với khoảng trắng giữa token.
+**Exercise 5 — Strings.** Predict `"a b".length()` and `"a  b".length()`; explain why spaces inside a literal behave differently from spaces between tokens.
 
-**Bài 6 — Text block.** Thay text block trong `WhitespaceDemo` bằng ba dòng. In bằng `replace("\n", "|")` để xác định chỗ nào có newline. Thử thay đổi vị trí dấu `"""` đóng để quan sát cách xử lý indentation.
+**Exercise 6 — Text blocks.** Replace the text block in `WhitespaceDemo` with three lines. Print using `replace("\n", "|")` to identify where newlines exist. Try changing the position of the closing `"""` to observe how indentation is handled.
 
-## 12. Tổng kết
+## 12. Summary
 
-- **Khoảng trắng** có thể cần để tách keyword/identifier; ở nhiều vị trí khác chỉ giúp mã dễ đọc.
-- **Xuống dòng** không phải dấu kết thúc statement chung của Java, nhưng có vai trò rõ ràng với `//` comment và cú pháp literal.
-- **Comment** không sinh ra token cho parser thông thường và có thể nằm giữa hai token.
-- **Token dài nhất** giải thích vì sao `++`, `>=` được nhận nguyên khối và `x+++y` khác `x + ++y`.
-- **Trong literal**, khoảng trắng và escape có thể là dữ liệu; **text block** có quy tắc newline/indentation riêng.
+- **Whitespace** can be required to separate keywords/identifiers; in many other places it simply aids readability.
+- **Line breaks** are not Java's general statement terminator, though they have clear roles for `//` comments and literal syntax.
+- **Comments** produce no tokens for the normal parser and can sit between two tokens.
+- **Longest-token matching** explains why `++` and `>=` are matched as units and why `x+++y` differs from `x + ++y`.
+- **Inside literals**, spaces and escapes can be data; **text blocks** have their own newline/indentation rules.
 
-**Tự kiểm tra:** Bạn có thể giải thích vì sao `intcount` khác `int count`, vì sao `x+++y` được đọc theo cách cụ thể, và vì sao một chuỗi bị ngắt dòng trực tiếp có thể lỗi dù câu lệnh Java thông thường có thể trải nhiều dòng.
+**Self-check:** You can explain why `intcount` differs from `int count`, why `x+++y` is parsed in one specific way, and why a directly line-broken string fails even though regular Java statements can span multiple lines.

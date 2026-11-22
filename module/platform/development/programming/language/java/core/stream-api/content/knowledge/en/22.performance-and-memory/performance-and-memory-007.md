@@ -1,14 +1,14 @@
-# Tránh duyệt nguồn nhiều lần và thiết kế tổng hợp trong một lượt
+# Avoiding Multiple Source Traversals and Designing Single-Pass Aggregation
 
-Trong **Java Stream API**, một báo cáo thường cần nhiều chỉ số cùng lúc: số bản ghi, tổng tiền, giá trị nhỏ nhất/lớn nhất, số giao dịch đạt điều kiện và thống kê theo nhóm. Cách dễ viết nhất đôi khi là tạo một stream riêng cho từng chỉ số. Nhưng nếu nguồn lớn, có bước chuẩn hóa tốn CPU, hoặc chỉ có thể đọc **một lần** như tệp hay dữ liệu nhận qua I/O, cách đó có thể lặp lại công việc không cần thiết hoặc không thể thực hiện.
+In the **Java Stream API**, a report often needs multiple metrics at once: record count, total amount, min/max values, count of transactions matching a condition, and per-group statistics. The easiest code to write is sometimes opening a separate stream for each metric. However, if the source is large, has a CPU-heavy normalization step, or can only be read **once** such as a file or I/O stream, that approach can repeat unnecessary work or be impossible.
 
-Bài học thuộc chương **Hiệu năng và bộ nhớ** của mô-đun `JAVA_STREAM_API`. Chúng ta sẽ phân biệt “duyệt lại dữ liệu” với “dùng lại một `Stream` đã bị tiêu thụ”, thiết kế **một terminal operation tổng hợp nhiều chỉ số**, nhận diện khi `summarizingLong`, `teeing`, `groupingBy` hoặc `Collector.of` phù hợp, rồi cân nhắc độ chính xác, bộ nhớ, lazy evaluation, song song hóa và cách đo hiệu năng.
+This lesson belongs to the **Performance and Memory** chapter of the **JAVA_STREAM_API** module. We will distinguish “re-traversing data” from “reusing an already-consumed `Stream`”, design **a single terminal operation aggregating multiple metrics**, recognize when `summarizingLong`, `teeing`, `groupingBy`, or `Collector.of` is appropriate, and weigh precision, memory, lazy evaluation, parallelization, and performance measurement.
 
-> **Nguyên tắc thực hành:** Nếu các chỉ số dùng chung một nguồn và cùng phạm vi dữ liệu, hãy cân nhắc tính chúng trong **một lần thu thập logic**. Nhưng đừng hy sinh tính đúng đắn hoặc sự rõ ràng chỉ để giảm số lần gọi `stream()`; phải so sánh trên workload thật.
+> **Practical rule:** If metrics share a source and data scope, consider computing them in **one logical collection pass**. However, never sacrifice correctness or clarity solely to reduce `stream()` calls; compare on a real workload.
 
-## 1. Hiểu đúng “nhiều lần duyệt nguồn”
+## 1. Understanding “multiple source traversals” properly
 
-Với một `List<Long>`, đoạn sau chạy hợp lệ vì **mỗi `stream()` tạo một Stream mới**:
+With a `List<Long>`, the following runs validly because **each `stream()` creates a new Stream**:
 
 ```java
 import java.util.List;
@@ -24,9 +24,9 @@ System.out.println(sum);     // 100
 System.out.println(above20); // 2
 ```
 
-Ở đây có ba terminal operation riêng biệt. Trên nguồn có thể duyệt lại, đây **không phải lỗi API**, nhưng các bước `map`, `filter`, đọc dữ liệu hay tính toán đắt tiền có thể bị lặp lại. Đồng thời, kết quả các lần duyệt có thể **không còn dựa trên cùng một ảnh chụp dữ liệu** nếu collection bị sửa giữa những lần tính.
+Here there are three separate terminal operations. On a repeatable source, this is **not an API error**, yet `map`, `filter`, data reading, or expensive computations may be repeated. Moreover, results across passes might **no longer reflect the same data snapshot** if the collection is modified between calculations.
 
-Ngược lại, đoạn sau là **sai** vì cố dùng lại **cùng một đối tượng Stream**:
+Conversely, the following is **wrong** because it tries to reuse **the same Stream object**:
 
 ```java
 import java.util.stream.Stream;
@@ -34,47 +34,47 @@ import java.util.stream.Stream;
 Stream<Integer> numbers = Stream.of(1, 2, 3);
 long count = numbers.count();
 
-// Sai: Stream đã được tiêu thụ bởi terminal operation.
+// Wrong: Stream has already been consumed by a terminal operation.
 // int sum = numbers.mapToInt(Integer::intValue).sum();
-// Thường dẫn đến IllegalStateException.
+// Typically throws IllegalStateException.
 ```
 
-Hai khái niệm cần phân biệt:
+Two scenarios to distinguish:
 
-| Tình huống | Có hợp lệ? | Chi phí/hậu quả |
+| Scenario | Valid? | Cost/consequence |
 | --- | --- | --- |
-| Gọi `list.stream()` nhiều lần | Có, nếu nguồn cho phép duyệt lại | Có thể xử lý lại cùng dữ liệu và bước chuyển đổi. |
-| Gọi nhiều terminal operation trên **cùng Stream** | Không | Stream chỉ được vận hành một lần; có thể ném `IllegalStateException`. |
-| Duyệt lại `Files.lines(path)` bằng cách **mở tệp lại** | Có thể, khi mở được nguồn mới và đóng đúng | I/O và parse lặp lại; tệp có thể đã đổi nội dung. |
-| Gọi `collect` một lần với nhiều downstream collector | Có | Một pipeline nguồn về mặt logic, nhưng mỗi downstream vẫn thực hiện công việc của nó. |
+| Calling `list.stream()` multiple times | Yes, if the source supports re-traversal | May re-process the same data and transformation steps. |
+| Calling multiple terminal operations on the **same Stream** | No | A Stream can only be operated on once; may throw `IllegalStateException`. |
+| Re-reading `Files.lines(path)` by **reopening the file** | Possible, when a new source can be opened and closed properly | Repeated I/O and parsing; file contents may have changed. |
+| Calling `collect` once with multiple downstream collectors | Yes | One logical source pipeline, though each downstream still performs its own work. |
 
-### “Một lượt” không có nghĩa mỗi lambda bắt buộc được gọi đúng một lần
+### “Single pass” does not mean every lambda is guaranteed to run exactly once
 
-Stream có thể tối ưu traversal, chẳng hạn `count()` trên một nguồn `SIZED` không cần thực thi mọi `peek`. Các phép ngắn mạch như `findFirst` có thể dừng sớm. Vì vậy, “một lượt” trong bài này nghĩa là **thiết kế một pipeline và một terminal operation để tính các chỉ số từ cùng luồng phần tử**, không phải cam kết về lịch gọi callback, số thread hoặc số lần chạm tới bộ nhớ ở mức thực thi.
+Streams can optimize traversal, e.g., `count()` on a `SIZED` source may not execute every `peek`. Short-circuiting operations like `findFirst` can stop early. Therefore, “single pass” in this lesson means **designing one pipeline and one terminal operation to compute metrics from the same element stream**, not guaranteeing callback schedules, thread counts, or low-level memory touches.
 
-## 2. Đặt bài toán thực tế trước khi chọn API
+## 2. State the real problem before choosing an API
 
-Giả sử có các giao dịch đã được xác thực, mỗi giao dịch có:
+Suppose we have validated transactions, each with:
 
-- `team`: đội phụ trách, không `null`.
-- `amount`: số tiền nguyên theo **đơn vị nhỏ nhất** (ví dụ xu), không âm.
-- `paid`: đã thanh toán hay chưa.
-- `late`: có xử lý trễ hay không.
+- `team`: responsible team, non-`null`.
+- `amount`: integer amount in the **smallest currency unit** (e.g., cents), non-negative.
+- `paid`: whether paid or not.
+- `late`: whether processed late or not.
 
-Ta muốn xem báo cáo:
+We want a report showing:
 
-| Chỉ số | Phạm vi tính |
+| Metric | Calculation scope |
 | --- | --- |
-| Tổng số giao dịch | **Tất cả** giao dịch. |
-| Số giao dịch đã thanh toán | Chỉ giao dịch có `paid == true`. |
-| Tổng tiền đã thanh toán | Chỉ giao dịch đã thanh toán. |
-| Min/max tiền đã thanh toán | Chỉ giao dịch đã thanh toán; không có dữ liệu thì để trống. |
-| Số giao dịch đã thanh toán bị trễ | Những giao dịch có cả `paid` và `late`. |
-| Các chỉ số trên theo đội | Mỗi đội đã xuất hiện trong nguồn. |
+| Total transaction count | **All** transactions. |
+| Paid transaction count | Only transactions with `paid == true`. |
+| Total paid amount | Only paid transactions. |
+| Min/max paid amount | Only paid transactions; empty if no data. |
+| Late paid transaction count | Transactions that are both `paid` and `late`. |
+| All metrics above per team | Every team appearing in the source. |
 
-Điểm quan trọng: các chỉ số **không nhất thiết cùng predicate**. Nếu lọc `paid` ngay từ đầu, chúng ta sẽ không còn tính được **tổng số giao dịch**, và đội chỉ có giao dịch chưa thanh toán cũng biến mất khỏi báo cáo.
+Key point: metrics **do not necessarily share the same predicate**. If we filter `paid` upfront, we can no longer compute **total transaction count**, and a team with only unpaid transactions vanishes from the report.
 
-### Phác thảo pipeline
+### Pipeline sketch
 
 ```text
 Stream<Sale>
@@ -82,20 +82,20 @@ Stream<Sale>
     +--> classifier: Sale::team
               |
               +--> downstream:
-                       tổng số giao dịch
-                       giao dịch paid: count / sum / min / max
-                       giao dịch paid & late: count
+                       total transaction count
+                       paid transactions: count / sum / min / max
+                       paid & late transactions: count
               |
-              +--> kết quả bất biến theo đội
+              +--> immutable per-team result
     |
     +--> Map<String, TeamReport>
 ```
 
-Để bắt đầu, nên dùng các collector chuẩn khi chúng đã mô tả được yêu cầu; chỉ viết collector tùy chỉnh khi logic thực sự cần thêm kiểm soát.
+To start, use standard collectors whenever they express the requirement; write a custom collector only when logic genuinely demands more control.
 
-## 3. Trường hợp đơn giản: `summaryStatistics` thay cho nhiều terminal operation
+## 3. Simple case: `summaryStatistics` instead of multiple terminal operations
 
-Nếu chỉ cần `count`, `sum`, `min`, `max` và `average` cho một trường số, Stream API đã có phép tổng hợp:
+If you only need `count`, `sum`, `min`, `max`, and `average` for a numeric field, the Stream API already includes a summary operation:
 
 ```java
 import java.util.IntSummaryStatistics;
@@ -114,7 +114,7 @@ System.out.println(stats.getMax());     // 40
 System.out.println(stats.getAverage()); // 25.0
 ```
 
-Đây là **một terminal operation** `summaryStatistics()` của `IntStream`. Trên `Stream<T>`, phiên bản collector tương ứng cho phép kết hợp trong `groupingBy`:
+This is a **single terminal operation** `summaryStatistics()` on `IntStream`. On `Stream<T>`, the matching collector lets you compose inside `groupingBy`:
 
 ```java
 import java.util.List;
@@ -130,26 +130,26 @@ System.out.println(stats.getSum());   // 100
 System.out.println(stats.getCount()); // 4
 ```
 
-| Kiểu nguồn | Phép thống kê | Kết quả |
+| Source type | Statistics operation | Result |
 | --- | --- | --- |
 | `IntStream` | `summaryStatistics()` | `IntSummaryStatistics` |
 | `LongStream` | `summaryStatistics()` | `LongSummaryStatistics` |
 | `DoubleStream` | `summaryStatistics()` | `DoubleSummaryStatistics` |
-| `Stream<T>` | `collect(summarizingInt/Long/Double(mapper))` | Tương ứng theo kiểu mapper |
+| `Stream<T>` | `collect(summarizingInt/Long/Double(mapper))` | Corresponding statistics type |
 
-**Giới hạn:** `LongSummaryStatistics` là một đối tượng **mutable**. Cả `sum` và `getAverage()` đều có giới hạn kiểu số; tổng `long` có thể tràn, còn trung bình trả `double` không phải kết quả tiền tệ thập phân chính xác.
+**Limitations:** `LongSummaryStatistics` is a **mutable** object. Both `sum` and `getAverage()` have numeric type limits; `long` sums can overflow, and average returns `double` rather than exact decimal currency.
 
-Với nguồn rỗng, `getCount() == 0`, `getSum() == 0`, `getAverage() == 0.0`, nhưng `getMin() == Long.MAX_VALUE` và `getMax() == Long.MIN_VALUE`. Hai cực trị đó chỉ là **giá trị khởi tạo**, không phải quan sát. Báo cáo cần biểu diễn **không có min/max** một cách tường minh.
+On an empty source, `getCount() == 0`, `getSum() == 0`, `getAverage() == 0.0`, while `getMin() == Long.MAX_VALUE` and `getMax() == Long.MIN_VALUE`. Those two extrema are only **initial sentinel values**, not observed data. Reports should represent **missing min/max** explicitly.
 
-## 4. `Collectors.teeing`: hai phép tổng hợp trên cùng pipeline
+## 4. `Collectors.teeing`: two aggregations on the same pipeline
 
-`Collectors.teeing` (Java 12+) nhận hai downstream collector và một hàm gộp kết quả:
+`Collectors.teeing` (Java 12+) takes two downstream collectors and a result merger function:
 
 ```java
 Collectors.teeing(downstreamA, downstreamB, merger)
 ```
 
-Mỗi phần tử đi vào collector `teeing` được chuyển cho **cả hai downstream**. Khi kết thúc, `merger` kết hợp hai kết quả. Nó hữu ích khi cần **hai nhánh tổng hợp khác loại** mà không muốn mở lại nguồn.
+Every element entering the `teeing` collector is fed to **both downstreams**. At the end, `merger` combines the two results. It is useful when you need **two different kinds of aggregation** without reopening the source.
 
 ```java
 import java.util.List;
@@ -167,9 +167,9 @@ CountAndSum report = List.of(10L, 20L, 30L).stream()
 System.out.println(report); // CountAndSum[count=3, sum=60]
 ```
 
-Ví dụ này minh họa cú pháp; nếu cùng một trường số, `summarizingLong` đã cho cả count và sum với một bộ thống kê. `teeing` đáng dùng hơn khi hai nhánh mang **ngữ nghĩa khác nhau**, chẳng hạn count toàn bộ và thống kê cho tập con.
+This example shows the syntax; for a single numeric field, `summarizingLong` already gives count and sum in one statistics object. `teeing` shines when the two branches have **different semantics**, such as total count alongside statistics for a subset.
 
-### Hai nhánh có điều kiện lọc khác nhau
+### Two branches with different filter conditions
 
 ```java
 import java.util.List;
@@ -190,13 +190,13 @@ NumberReport report = List.of(1, 2, 3, 4, 5, 6).stream()
 System.out.println(report); // NumberReport[all=6, even=3]
 ```
 
-`Collectors.filtering` (Java 9+) chỉ chuyển phần tử đạt điều kiện cho downstream bên trong. Vì vậy nhánh `all` nhận **mọi phần tử**, còn nhánh `even` chỉ đếm số chẵn. Nếu đưa `.filter(n -> n % 2 == 0)` **trước `collect`**, cả hai nhánh đều mất phần tử lẻ và `all` không còn là tổng số phần tử ban đầu.
+`Collectors.filtering` (Java 9+) forwards only matching elements to its inner downstream. Thus the `all` branch receives **every element**, while `even` counts only even numbers. Moving `.filter(n -> n % 2 == 0)` **before `collect`** drops odd elements from both branches so `all` is no longer the total input count.
 
-**Cần nhớ:** `teeing` có **hai trạng thái tích lũy**, không phải một trạng thái thần kỳ miễn phí. Nó giúp tránh lặp nguồn và các phép biến đổi phía trước, nhưng bản thân mỗi downstream vẫn cần làm công việc riêng.
+**Remember:** `teeing` maintains **two accumulator states**, not one magical free state. It avoids repeating the source and upstream transforms, yet each downstream still performs its own work.
 
-## 5. Phân nhóm và tổng hợp trong một lượt
+## 5. Grouping and aggregating in one pass
 
-`groupingBy(classifier, downstream)` cho phép gộp **phân nhóm** với **thống kê từng nhóm** trong cùng một terminal operation. Không cần gọi `filter` riêng cho từng đội rồi tính count, sum, min, max nhiều lần.
+`groupingBy(classifier, downstream)` combines **grouping** with **per-group statistics** in a single terminal operation. You do not need separate `filter` passes per team to compute count, sum, min, and max repeatedly.
 
 ```java
 import java.util.List;
@@ -223,13 +223,13 @@ System.out.println(byTeam.get("API").getSum());   // 300
 System.out.println(byTeam.get("UI").getMax());    // 300
 ```
 
-Mỗi phần tử được classifier phân vào **một nhóm**, rồi downstream của nhóm cập nhật thống kê. Bộ nhớ tích lũy tỷ lệ với **số nhóm và trạng thái cần giữ**, thay vì buộc phải lưu toàn bộ phần tử trong mỗi nhóm như `groupingBy(team, toList())`.
+Each element is routed by the classifier to **one group**, and that group's downstream updates its statistics. Accumulated memory scales with **group count and retained summary state**, rather than retaining all elements per group like `groupingBy(team, toList())`.
 
-Nhưng `groupingBy` chỉ tạo khóa nhóm **đã xuất hiện**. Nếu hệ thống cần hiển thị cả đội không có giao dịch, phải bổ sung danh mục đội và giá trị rỗng theo yêu cầu báo cáo, không tự giả định map đã có mọi khóa.
+However, `groupingBy` creates keys only for groups **that appeared**. If the system must also display teams with zero transactions, supplement from the team catalog with empty values per report rules instead of assuming the map has every key.
 
-## 6. Ví dụ hoàn chỉnh: báo cáo nhiều chỉ số theo đội trong một terminal operation
+## 6. Complete example: multi-metric team report in one terminal operation
 
-Ví dụ sau dùng **Java 17+** cho `record`, `teeing`, `filtering` và `Map.copyOf`. Dữ liệu đầu vào đã được xác thực `team` khác null và `amount` không âm; ở sản phẩm thật cần chính sách riêng về các bản ghi lỗi.
+The following example uses **Java 17+** for `record`, `teeing`, `filtering`, and `Map.copyOf`. Inputs are assumed validated with non-null `team` and non-negative `amount`; production code needs an explicit policy for invalid records.
 
 ```java
 import java.util.List;
@@ -277,7 +277,7 @@ public class OnePassTeamReport {
                     paidStats,
                     latePaidCount,
                     (stats, lateCount) -> new TeamReport(
-                        0L, // Sẽ thay bằng allCount ở merger ngoài.
+                        0L, // Replaced with allCount in outer merger.
                         stats.getCount(),
                         stats.getSum(),
                         stats.getCount() == 0L
@@ -334,27 +334,27 @@ public class OnePassTeamReport {
 }
 ```
 
-Luồng xử lý:
+Processing flow:
 
-1. **Nguồn chỉ tạo một Stream**: `sales.stream()`.
-2. `groupingBy(Sale::team, ...)` chia phần tử vào nhóm theo `team`.
-3. Nhánh `counting()` đếm **tất cả** giao dịch trong đội.
-4. Nhánh `filtering(Sale::paid, summarizingLong(...))` tính thống kê chỉ cho giao dịch đã thanh toán.
-5. Nhánh `filtering(sale -> sale.paid() && sale.late(), counting())` đếm giao dịch đã thanh toán và trễ.
-6. Các merger của `teeing` ghép kết quả thành `TeamReport` có thành phần bất biến.
-7. `collectingAndThen(..., Map::copyOf)` chốt map kết quả thành không sửa đổi được.
+1. **The source creates only one Stream**: `sales.stream()`.
+2. `groupingBy(Sale::team, ...)` partitions elements into groups by `team`.
+3. The `counting()` branch counts **all** transactions in the team.
+4. The `filtering(Sale::paid, summarizingLong(...))` branch computes statistics only for paid transactions.
+5. The `filtering(sale -> sale.paid() && sale.late(), counting())` branch counts paid and late transactions.
+6. The `teeing` mergers assemble an immutable `TeamReport`.
+7. `collectingAndThen(..., Map::copyOf)` seals the output map as unmodifiable.
 
-**Lưu ý về diễn đạt:** Hai collector `teeing` lồng nhau đúng nhưng có thể dài. Khi yêu cầu tăng lên nhiều chỉ số hoặc có quy tắc nghiệp vụ phức tạp, một `Collector.of` với accumulator riêng thường dễ đọc và kiểm soát chi phí hơn.
+**Note on expression:** Nesting two `teeing` collectors works correctly, yet can get verbose. As requirements add more metrics or complex business rules, a `Collector.of` with a dedicated accumulator is often easier to read and control in cost.
 
-**Trường hợp rỗng:** `OPS` vẫn xuất hiện vì có giao dịch, nhưng không có giao dịch `paid`; do đó `paidCount == 0` và min/max dùng `OptionalLong.empty()`. Nếu danh sách `sales` hoàn toàn rỗng thì map đầu ra cũng rỗng.
+**Empty cases:** `OPS` still appears because it has a transaction, though none are `paid`; hence `paidCount == 0` and min/max use `OptionalLong.empty()`. If `sales` is completely empty, the output map is empty too.
 
-**Tính bất biến:** `Map.copyOf` làm map không sửa đổi được; `TeamReport` chỉ chứa primitive và `OptionalLong` nên không lộ accumulator mutable. Không suy ra `Map.copyOf` bảo toàn thứ tự duyệt khóa.
+**Immutability:** `Map.copyOf` makes the map unmodifiable; `TeamReport` holds only primitives and `OptionalLong`, so no mutable accumulator leaks. Do not assume `Map.copyOf` preserves key iteration order.
 
-## 7. Khi nhiều chỉ số phụ thuộc nhau: `Collector.of`
+## 7. When multiple metrics depend on each other: `Collector.of`
 
-Đối với nhiều chỉ số, custom collector có thể tích lũy trực tiếp vào **một đối tượng trạng thái**: không cần hai hoặc ba nhánh `teeing` riêng. `Collector.of` phù hợp khi muốn mô tả supplier, accumulator, combiner và finisher rõ ràng.
+For many metrics, a custom collector can accumulate directly into **one state object** instead of two or three separate `teeing` branches. `Collector.of` fits when you want explicit supplier, accumulator, combiner, and finisher logic.
 
-Ví dụ Java 17+, dùng cùng record `Sale` và `TeamReport` của mục trước. Các đoạn sau là **thành phần bổ sung** nếu đặt trong lớp `OnePassTeamReport`:
+Java 17+ example reusing `Sale` and `TeamReport` from the previous section. The following are **additional members** placed inside `OnePassTeamReport`:
 
 ```java
 static final class Accumulator {
@@ -410,7 +410,7 @@ static Collector<Sale, Accumulator, TeamReport> metrics() {
 }
 ```
 
-Thay downstream `byTeamCollector` ở ví dụ trước bằng `metrics()`:
+Replace the downstream `byTeamCollector` in the previous example with `metrics()`:
 
 ```java
 Map<String, TeamReport> report = sales.stream()
@@ -420,11 +420,11 @@ Map<String, TeamReport> report = sales.stream()
     ));
 ```
 
-Ở đây, mỗi phần tử của một nhóm chỉ cần đi qua **một accumulator** để cập nhật toàn bộ chỉ số. Điều này giảm độ phức tạp của nested `teeing`, nhưng **tăng trách nhiệm kiểm chứng** của tác giả collector.
+Here each element in a group passes through **one accumulator** to update all metrics. That cuts nested `teeing` complexity, though it **increases verification responsibility** for the collector author.
 
-### Luật đúng đắn của combiner
+### Combiner correctness laws
 
-`Collector.of` không chỉ cần accumulator. Khi chạy song song, Stream có thể tạo **nhiều Accumulator độc lập**, rồi dùng combiner để gộp. Phép gộp cần có **tính kết hợp** và trạng thái rỗng làm **identity**:
+`Collector.of` needs more than just an accumulator. In parallel execution, Stream can create **multiple independent Accumulators** and merge them via combiner. Merging must satisfy **associativity** with the empty state as **identity**:
 
 ```text
 combine(combine(A, B), C)  ≡  combine(A, combine(B, C))
@@ -432,17 +432,17 @@ combine(empty, A)         ≡  A
 combine(A, empty)         ≡  A
 ```
 
-Gộp `count`, `sum`, `min`, `max` như ví dụ phù hợp khi số liệu nằm trong phạm vi kiểu `long` và không có can thiệp ngoài. Nhưng `long` có thể **tràn âm thầm**, vì vậy nếu yêu cầu tổng chính xác ngoài miền `long`, cần kiểm soát giới hạn hoặc dùng `BigInteger`/`BigDecimal`.
+Merging `count`, `sum`, `min`, and `max` as shown works when values stay within `long` range without external interference. However, `long` can **overflow silently**, so if exact sums beyond `long` are required, enforce bounds or use `BigInteger`/`BigDecimal`.
 
-**Không** khai báo `Collector.Characteristics.CONCURRENT` cho `Accumulator` này: các trường `long` được cập nhật không đồng bộ, không hỗ trợ nhiều thread cùng gọi `add` trên **một** accumulator. Các collector thông thường vẫn có thể làm việc trên parallel stream nhờ tạo accumulator riêng và gộp đúng. Cũng không khai báo `IDENTITY_FINISH` vì có bước biến trạng thái mutable thành `TeamReport`.
+**Do not** declare `Collector.Characteristics.CONCURRENT` for this `Accumulator`: its `long` fields are updated without synchronization and do not support concurrent `add` calls on **one** accumulator. Normal collectors still work on parallel streams by allocating per-branch accumulators and merging properly. Also do not declare `IDENTITY_FINISH`, since the mutable state is transformed into `TeamReport`.
 
-### Khi không nên viết collector tùy chỉnh
+### When not to write a custom collector
 
-Nếu chỉ cần min/max/count/sum/average cho một trường, `summarizingLong` có sẵn **đơn giản hơn và ít rủi ro hơn**. Nếu chỉ thêm đúng một chỉ số điều kiện, `teeing` thường dễ hiểu hơn. Chỉ đầu tư viết và kiểm thử custom collector khi nhu cầu đủ phức tạp hoặc phép đo cho thấy có lợi ích thực tế.
+If you only need min/max/count/sum/average of one field, built-in `summarizingLong` is **simpler and less error-prone**. If adding just one conditional metric, `teeing` is usually easier to understand. Only invest in writing and testing a custom collector when requirements are complex enough or measurements show tangible benefits.
 
-## 8. Nguồn chỉ được đọc một lần: `Files.lines`
+## 8. Single-read sources: `Files.lines`
 
-Với dữ liệu tệp, mỗi lần mở/đọc lại có thể tốn I/O và có nguy cơ nhìn thấy **phiên bản nội dung khác nhau**. Giả sử tệp chứa **một số tiền nguyên trên mỗi dòng**, đã được xác thực theo định dạng nguồn.
+For file data, each reopen/reread costs I/O and risks observing **different file contents**. Suppose a file contains **one integer amount per line**, already validated against source format.
 
 ```text
 100
@@ -451,7 +451,7 @@ Với dữ liệu tệp, mỗi lần mở/đọc lại có thể tốn I/O và c
 400
 ```
 
-Có thể tính nhiều chỉ số trong một terminal operation:
+Multiple metrics can be computed in one terminal operation:
 
 ```java
 import java.io.IOException;
@@ -475,77 +475,77 @@ public class FileStatistics {
 }
 ```
 
-Với nội dung ví dụ, count = 4, sum = 1.000, min = 100, max = 400, average = 250.0. `Files.lines` là một stream gắn với tài nguyên I/O, nên phải dùng **`try-with-resources`**. Terminal operation **không tự thay thế `close()`**.
+For the sample content, count = 4, sum = 1,000, min = 100, max = 400, average = 250.0. `Files.lines` is a stream backed by an I/O resource, so use **`try-with-resources`**. Terminal operations **do not replace `close()`**.
 
-Đây là cách xử lý **fail-fast** với dữ liệu sai: `Long.parseLong` ném `NumberFormatException` nếu gặp dòng không hợp lệ. Nếu nghiệp vụ cần tiếp tục nhập các dòng còn lại, phải thiết kế kiểu kết quả `Valid/Rejected` và thu cả dữ liệu bị từ chối trong cùng lượt, thay vì chỉ thêm `filter` che giấu lỗi.
+This is **fail-fast** error handling for bad data: `Long.parseLong` throws `NumberFormatException` on malformed lines. If business rules require continuing past invalid lines, model a `Valid/Rejected` result type and collect rejected records in the same pass, instead of adding a `filter` that hides errors.
 
-**Đừng dùng `Files.lines` như một parser CSV tổng quát**: dấu phẩy trong chuỗi có quote, dòng xuống hàng bên trong trường và encoding phức tạp cần parser chuyên dụng. Tệp có thể bị thay đổi trong khi đọc; một pipeline một lượt **không tự tạo snapshot nguyên tử** của tệp.
+**Do not use `Files.lines` as a general-purpose CSV parser**: quoted commas, embedded newlines, and complex encodings need a proper parser. A file can also change while being read; a single-pass pipeline **does not automatically create an atomic snapshot** of the file.
 
-## 9. Tách “một lượt qua nguồn” khỏi “một lần tính toán”
+## 9. Separating “one source pass” from “one computation”
 
-Những kỹ thuật sau có đặc điểm khác nhau:
+These designs have distinct traits:
 
-| Thiết kế | Số lần đi qua nguồn về mặt logic | Trạng thái/bộ nhớ đáng chú ý |
+| Design | Logical passes over source | Notable state/memory |
 | --- | --- | --- |
-| `list.stream().filter(...).count()` và `list.stream().mapToLong(...).sum()` | Hai pipeline độc lập | Có thể lặp filter/map và traversal. |
-| `list.stream().collect(summarizingLong(...))` | Một pipeline | Một bộ `LongSummaryStatistics`. |
-| `collect(teeing(counting(), filtering(...), merger))` | Một pipeline | Hai bộ trạng thái downstream. |
-| `collect(groupingBy(key, summarizingLong(...)))` | Một pipeline | Map và bộ thống kê cho mỗi khóa. |
-| `collect(groupingBy(key, toList()))`, sau đó thống kê mỗi list | Một pipeline nguồn **nhưng thêm lượt duyệt danh sách nhóm** | Giữ toàn bộ phần tử trong các list. |
-| `sorted().collect(...)` | Một pipeline khai báo | Có thể phải buffer/sắp xếp toàn bộ dữ liệu trước khi phát kết quả. |
-| `distinct().collect(...)` | Một pipeline khai báo | Cần trạng thái để theo dõi phần tử đã gặp. |
+| `list.stream().filter(...).count()` and `list.stream().mapToLong(...).sum()` | Two independent pipelines | May repeat filtering/mapping and traversal. |
+| `list.stream().collect(summarizingLong(...))` | One pipeline | One `LongSummaryStatistics`. |
+| `collect(teeing(counting(), filtering(...), merger))` | One pipeline | Two downstream state objects. |
+| `collect(groupingBy(key, summarizingLong(...)))` | One pipeline | Map and statistics object per key. |
+| `collect(groupingBy(key, toList()))`, then summarizing each list | One source pipeline **plus extra pass over group lists** | Retains all elements inside lists. |
+| `sorted().collect(...)` | One declarative pipeline | May need to buffer/sort all data before emitting results. |
+| `distinct().collect(...)` | One declarative pipeline | Needs state to track seen elements. |
 
-Vì vậy, **một terminal operation chưa đồng nghĩa bộ nhớ O(1)**, và cũng không có nghĩa bên trong pipeline không dùng buffer. `sorted`, `distinct`, `groupingBy(..., toList())` và các collector lưu toàn bộ phần tử có thể tốn nhiều bộ nhớ dù nguồn chỉ được duyệt một lần.
+Thus, **one terminal operation does not guarantee `O(1)` memory**, nor does it guarantee no internal buffering. `sorted`, `distinct`, `groupingBy(..., toList())`, and element-retaining collectors can still consume substantial memory despite reading the source once.
 
-Nếu dữ liệu được lưu thành một collection trung gian để kiểm thử hoặc xử lý lại, điều đó cũng có thể là **một lựa chọn có chủ đích**. Mục tiêu không phải xóa mọi lần duyệt, mà là tránh lặp thao tác **đắt và không cần thiết**.
+If data is stored in an intermediate collection for testing or reprocessing, that can also be an **intentional choice**. The goal is not eliminating every pass, but avoiding **expensive, unnecessary** repetition.
 
-## 10. Tư duy bộ nhớ: trạng thái tổng hợp hay lưu toàn bộ dữ liệu?
+## 10. Memory mindset: summary state or storing all data?
 
-Khi đầu vào có `n` phần tử và `g` nhóm khác nhau:
+When input has `n` elements and `g` distinct groups:
 
-| Kết quả cần giữ | Độ lớn trạng thái điển hình |
+| Result to retain | Typical state magnitude |
 | --- | --- |
-| Count, sum, min, max toàn nguồn | O(1) với số chỉ số cố định. |
-| Count/sum/min/max theo nhóm | O(g) nếu mỗi nhóm chỉ giữ vài số. |
-| Mọi bản ghi theo nhóm `groupingBy(..., toList())` | O(n + g) tham chiếu/bộ chứa, chưa kể đối tượng dữ liệu gốc. |
-| Lọc rồi thu `toList()` | O(k) với `k` phần tử được giữ; có thể gần O(n). |
-| `sorted()` | Có thể cần O(n) bộ đệm phụ thuộc nguồn/triển khai. |
-| `distinct()` | Có thể giữ trạng thái theo số giá trị khác nhau. |
+| Whole-source count, sum, min, max | `O(1)` for a fixed metric count. |
+| Per-group count/sum/min/max | `O(g)` when each group keeps only a few numbers. |
+| All records per group `groupingBy(..., toList())` | `O(n + g)` references/containers, plus original data objects. |
+| Filter then `toList()` | `O(k)` for `k` retained elements; can approach `O(n)`. |
+| `sorted()` | May require `O(n)` buffer depending on source/implementation. |
+| `distinct()` | May retain state proportional to distinct value count. |
 
-Các biểu thức `O(...)` chỉ mô tả xu hướng, không cam kết số byte chính xác. Object header, boxing, map resizing, số phân vùng khi chạy song song và GC khiến mức sử dụng bộ nhớ thực tế thay đổi.
+`O(...)` expressions describe growth trends, not exact byte promises. Object headers, boxing, map resizing, parallel partitions, and GC cause actual memory usage to vary.
 
-Một `HashMap` theo nhóm có thể vẫn lớn nếu số khóa **gần bằng số phần tử**. Vì thế, chuyển từ `toList` sang `summarizingLong` thường giảm bộ nhớ khi số nhóm nhỏ, nhưng không giải quyết hoàn toàn vấn đề cardinality rất cao. Khi nguồn vượt khả năng RAM, cần cân nhắc **chia lô, lưu trạng thái ngoài bộ nhớ hoặc kiến trúc xử lý phân tán**, không chỉ thêm `.parallel()`.
+A grouped `HashMap` can still be huge if key count **approaches element count**. Thus switching from `toList` to `summarizingLong` cuts memory when group count is small, yet does not solve very high cardinality. When data exceeds RAM, consider **batching, off-heap/external state, or distributed processing**, not just adding `.parallel()`.
 
-## 11. Khi cần cả bản ghi hợp lệ và bản ghi lỗi
+## 11. When both valid and invalid records are needed
 
-Nếu pipeline có bước parse/validate, lời khuyên “làm một lượt” có thể áp dụng với kiểu kết quả trung gian **thành công hoặc thất bại**:
+If a pipeline includes parsing/validation, “single pass” can use an intermediate **success-or-failure** result type:
 
 ```text
-Nguồn -> parseAndValidate -> Result<T>
-                              |
-                              +-- Valid<T>
-                              |
-                              +-- Invalid(reason)
-                                    |
-                           teeing(validCollector,
-                                  errorCollector,
-                                  Report::new)
+Source -> parseAndValidate -> Result<T>
+                               |
+                               +-- Valid<T>
+                               |
+                               +-- Invalid(reason)
+                                     |
+                            teeing(validCollector,
+                                   errorCollector,
+                                   Report::new)
 ```
 
-Điểm lợi là **mỗi hàng chỉ parse một lần**, trong khi `teeing` giữ được cả dữ liệu dùng cho báo cáo lẫn nguyên nhân bị từ chối. Nếu thay vào đó dùng:
+The benefit is **each row is parsed once**, while `teeing` keeps both valid report data and rejection reasons. By contrast, using:
 
 ```text
 source.stream().filter(this::isValid).map(this::parse).collect(...)
 source.stream().filter(this::isInvalid).map(this::explain).collect(...)
 ```
 
-thì các bước kiểm tra/parse có thể lặp, và với nguồn chỉ được tiêu thụ một lần có thể không khả thi. Mặc dù vậy, **không nhất thiết phải materialize tất cả `Result<T>`**; có thể đưa chúng trực tiếp vào downstream collector thích hợp.
+may repeat validation/parsing and is impossible on single-use sources. Even so, **you do not need to materialize all `Result<T>` values**: feed them straight into appropriate downstream collectors.
 
-Nếu nghiệp vụ phải lưu mọi bản ghi bị từ chối để đối soát, bộ nhớ của danh sách lỗi vẫn tăng theo số lỗi. Một lượt đọc **không xóa nhu cầu lưu trữ thực tế**: có thể cần xử lý theo batch, ghi lỗi ra vùng cách ly hoặc chuyển xuống hệ thống lưu trữ có kiểm soát.
+If business rules require storing every rejected record for reconciliation, error-list memory still scales with error count. Single-pass reading **does not eliminate real storage needs**: batching, writing errors to a quarantine sink, or bounded storage may be needed.
 
-## 12. Lazy evaluation, short-circuit và hiệu ứng phụ
+## 12. Lazy evaluation, short-circuiting, and side effects
 
-Các intermediate operation như `map`, `filter` và nhiều phép biến đổi khác là **lazy**: chỉ terminal operation mới kích hoạt việc xử lý theo nhu cầu. Nhưng không nên dùng `peek` hay `map` để đếm số phần tử thực sự được gọi:
+Intermediate operations like `map`, `filter`, and many transforms are **lazy**: only a terminal operation triggers on-demand processing. Never use `peek` or `map` to count how many elements were actually visited:
 
 ```java
 import java.util.List;
@@ -556,23 +556,23 @@ long count = List.of(1, 2, 3)
     .count();
 
 System.out.println(count); // 3
-// Không bảo đảm peek in cả ba phần tử.
+// No guarantee peek prints all three elements.
 ```
 
-Với nguồn có kích thước xác định, `count()` có thể được tối ưu mà không chạy từng bước không ảnh hưởng kết quả. `findFirst`, `findAny`, `anyMatch`, `limit` có thể **ngắn mạch**, không duyệt toàn nguồn.
+With a sized source, `count()` can optimize without running stages that cannot affect the count. `findFirst`, `findAny`, `anyMatch`, and `limit` can **short-circuit**, skipping the rest of the source.
 
-Vì thế:
+Therefore:
 
-- Không đặt ghi DB, gửi email hay cập nhật counter nghiệp vụ trong `peek`.
-- Không kỳ vọng `map` được gọi đúng một lần cho mỗi phần tử nếu terminal operation có thể bỏ qua phép xử lý.
-- Không cố sửa nguồn trong `filter` hoặc `forEach` khi pipeline đang hoạt động (*non-interference*).
-- Không dùng một `ArrayList` ngoài `parallel().forEach(list::add)` thay cho `collect`.
+- Never put DB writes, email sends, or business counter updates inside `peek`.
+- Never expect `map` to run once per element if the terminal operation can elide work.
+- Never modify the source inside `filter` or `forEach` while the pipeline runs (*non-interference*).
+- Never use an external `ArrayList` with `parallel().forEach(list::add)` instead of `collect`.
 
-**Một lượt tổng hợp** chỉ đúng về mặt nghiệp vụ nếu collector và mapper không phụ thuộc những side effect ngoài hợp đồng.
+**Single-pass aggregation** is business-correct only if collectors and mappers avoid out-of-contract side effects.
 
-## 13. Parallel stream có thể giúp, nhưng không miễn phí
+## 13. Parallel streams can help, but are not free
 
-Trên `parallelStream()`, một collector thông thường có thể tạo các bộ tích lũy độc lập rồi **gộp** bằng combiner. Các phép toán cộng, min và max có thể gộp đúng khi có identity, tính kết hợp và nằm trong miền kiểu số cho phép.
+With `parallelStream()`, a regular collector can create independent accumulators and **merge** them via its combiner. Addition, min, and max merge accurately when identity, associativity, and numeric range hold.
 
 ```java
 import java.util.LongSummaryStatistics;
@@ -588,92 +588,92 @@ System.out.println(stats.getCount()); // 100000
 System.out.println(stats.getSum());   // 5000050000
 ```
 
-Đoạn code này đúng về tính toán, nhưng không có nghĩa `.parallel()` nên dùng cho mọi dãy số. Thực tế `LongStream.rangeClosed(...).summaryStatistics()` có thể tránh boxing và gọn hơn. Nếu mapper rất rẻ hoặc nguồn nhỏ, chi phí chia nguồn, lập lịch và gộp có thể lớn hơn công việc hữu ích.
+This snippet is arithmetically valid, yet `.parallel()` should not be slapped onto every range. In fact, `LongStream.rangeClosed(...).summaryStatistics()` avoids boxing and is cleaner. When mappers are cheap or sources small, splitting, scheduling, and merging overhead can exceed useful work.
 
-**Không dùng accumulator chung** trong collector tùy chỉnh: supplier phải tạo state mới; combiner gộp đúng. Đừng khai báo `CONCURRENT` nếu accumulator không hỗ trợ nhiều thread ghi đồng thời vào cùng state. Nếu các chỉ số cần giữ encounter order, phải xét lại phép gộp và sự lựa chọn collector `UNORDERED`.
+**Never share a single accumulator** in a custom collector: the supplier must create fresh state, and the combiner must merge properly. Never declare `CONCURRENT` unless the accumulator safely supports concurrent writes from multiple threads to the same state. If metrics depend on encounter order, re-examine combining logic and any `UNORDERED` choice.
 
-Với tổng `double`, thứ tự gộp có thể làm xuất hiện sai khác do làm tròn; một “kết quả hơi khác ở vài bit cuối” không nhất thiết chứng tỏ pipeline sai. Dùng sai số chấp nhận được và chính sách nghiệp vụ khi đánh giá tính đúng.
+For `double` sums, merge order can introduce rounding differences; a “slightly different result in the last few bits” does not necessarily indicate a bug. Use acceptable tolerances and business rules when verifying correctness.
 
-## 14. Đo hiệu năng: một lượt có thật sự nhanh hơn?
+## 14. Performance measurement: is one pass actually faster?
 
-Giảm số lần duyệt nguồn thường có lợi khi pipeline có bước **parse, lọc phức tạp, ánh xạ tốn CPU hoặc I/O**. Nhưng nếu nguồn chỉ là một mảng nhỏ và JVM có thể tối ưu các phép toán rất đơn giản, `teeing` hoặc custom collector có thể có overhead lớn hơn cách viết nhiều pipeline.
+Reducing source traversals usually pays off when pipelines have **parsing, complex filtering, CPU-heavy mapping, or I/O**. Yet if the source is a small array and the JVM optimizes very simple loops well, `teeing` or a custom collector can have more overhead than multiple plain pipelines.
 
-Hãy đo theo một thí nghiệm có thể tái lập:
+Measure with a reproducible experiment:
 
-1. **Phiên bản A — nhiều lượt**: tạo stream mới cho mỗi chỉ số, dùng cùng một danh sách bất biến.
-2. **Phiên bản B — một `summarizingLong`**: khi bộ năm chỉ số đã đáp ứng yêu cầu.
-3. **Phiên bản C — một `teeing` hoặc custom collector**: khi hai/một nhóm nhiều chỉ số có predicate khác nhau.
-4. Giữ **cùng tập dữ liệu, cùng quy tắc lọc/parse và cùng đầu ra nghiệp vụ**. Kiểm tra đúng trước khi so thời gian.
-5. Đo trên dữ liệu nhỏ, vừa, lớn; thử số nhóm ít/nhiều và phân bố khóa đều/lệch.
-6. Dùng **JMH** với warm-up, nhiều measurement/fork, tiêu thụ kết quả, ghi rõ JDK, CPU, số core, heap và GC.
+1. **Variant A — multiple passes**: open a fresh stream per metric on the same immutable list.
+2. **Variant B — single `summarizingLong`**: when the five built-in metrics suffice.
+3. **Variant C — single `teeing` or custom collector**: when two or a group of metrics have different predicates.
+4. Keep **the same dataset, same filter/parse rules, and same business output**. Verify correctness before comparing times.
+5. Test small, medium, and large datasets; try few vs. many groups and uniform vs. skewed key distributions.
+6. Use **JMH** with warmup, multiple measurements/forks, result consumption, and record JDK, CPU, cores, heap, and GC.
 
-Mẫu bảng **chờ điền số đo thực tế**:
+Table template **awaiting real measured numbers**:
 
-| Workload | Multiple streams (ms/op) | One-pass collectors (ms/op) | Allocation (B/op) | Nhận xét |
+| Workload | Multiple streams (ms/op) | One-pass collectors (ms/op) | Allocation (B/op) | Notes |
 | --- | --- | --- | --- | --- |
-| 1.000 bản ghi, mapper nhẹ | Đo thực tế | Đo thực tế | Đo thực tế | Có thể overhead chi phối. |
-| 1.000.000 bản ghi, mapper nhẹ | Đo thực tế | Đo thực tế | Đo thực tế | Xem băng thông bộ nhớ và tối ưu JVM. |
-| 1.000.000 bản ghi, parse nặng | Đo thực tế | Đo thực tế | Đo thực tế | Xem số lần lặp công việc parse. |
-| 100.000 bản ghi, 10 nhóm | Đo thực tế | Đo thực tế | Đo thực tế | Bộ nhớ theo nhóm tương đối nhỏ. |
-| 100.000 bản ghi, 100.000 nhóm | Đo thực tế | Đo thực tế | Đo thực tế | Map và số nhóm có thể chi phối. |
+| 1,000 records, light mapper | Measure in practice | Measure in practice | Measure in practice | Overhead may dominate. |
+| 1,000,000 records, light mapper | Measure in practice | Measure in practice | Measure in practice | Check memory bandwidth and JVM optimization. |
+| 1,000,000 records, heavy parsing | Measure in practice | Measure in practice | Measure in practice | Watch repeated parsing cost. |
+| 100,000 records, 10 groups | Measure in practice | Measure in practice | Measure in practice | Per-group memory is relatively small. |
+| 100,000 records, 100,000 groups | Measure in practice | Measure in practice | Measure in practice | Map and group count may dominate. |
 
-Không tự điền số liệu giả định rồi gọi đó là kết quả benchmark. Khi so sánh, cần phân biệt **time/op** (nhỏ hơn là tốt hơn) và **throughput** (lớn hơn là tốt hơn); đồng thời xem độ biến thiên giữa các lần đo.
+Never fill in made-up numbers and call them benchmark results. When comparing, distinguish **time/op** (lower is better) from **throughput** (higher is better), and inspect variance across runs.
 
-Một lựa chọn có thể nhanh hơn trong microbenchmark nhưng chậm hơn khi nhiều request cùng chạy và tranh chấp CPU/pool. Nếu source có I/O, benchmark CPU thuần không đủ để kết luận về kết nối, timeout và khả năng chịu tải thật.
+One option can win a microbenchmark yet run slower under concurrent requests competing for CPU/pools. If the source involves I/O, CPU-only benchmarks cannot predict connection pools, timeouts, or real load behavior.
 
-## 15. Những sai lầm thường gặp
+## 15. Common mistakes
 
-| Cách làm | Vì sao có vấn đề | Hướng xử lý |
+| Practice | Why it is problematic | Fix |
 | --- | --- | --- |
-| Gọi nhiều terminal operation trên **cùng Stream** | Stream đã tiêu thụ không được dùng lại. | Tạo nguồn mới khi hợp lệ, hoặc gộp chỉ số trong một terminal operation. |
-| Mở lại tệp cho từng count/sum/min/max | I/O và parse lặp; dữ liệu có thể thay đổi giữa lần đọc. | `Files.lines` + `summaryStatistics` hoặc collector nhiều chỉ số, đóng stream đúng cách. |
-| Dùng `groupingBy(key, toList())` chỉ để tính count/sum | Giữ toàn bộ phần tử và duyệt list thêm lần nữa. | `groupingBy(key, counting/summarizingLong)`. |
-| Lọc `paid` trước báo cáo cả `allCount` | Mất giao dịch chưa thanh toán trong chỉ số tổng. | Dùng `teeing` và downstream `filtering` theo đúng phạm vi. |
-| Coi `getMin()` của bộ thống kê rỗng là dữ liệu | Trả sentinel, không phải quan sát. | Kiểm tra count; dùng `OptionalLong`. |
-| Dùng `BigDecimal` không cần thiết cho số đếm, hoặc `double` cho tiền chính xác | Tăng chi phí vô ích hoặc tạo sai số nghiệp vụ. | Chọn kiểu số theo miền dữ liệu và yêu cầu chính xác. |
-| Tin “một lượt = O(1) bộ nhớ” | Stateful operations và `toList` vẫn buffer. | Xét lượng trạng thái, cardinality nhóm và kết quả phải giữ. |
-| Gọi `parallel()` để chữa vấn đề duyệt nhiều lần | Parallel không tự hợp nhất các pipeline khác nhau. | Thiết kế phép tổng hợp đúng trước, rồi mới đo song song. |
-| Dùng mutable identity trong `reduce` để thu list/map | Vi phạm hợp đồng rút gọn và có thể sai khi song song. | Dùng `collect` với supplier/accumulator/combiner hợp lệ. |
-| Gắn `CONCURRENT` tùy tiện vào custom collector | Nhiều worker cập nhật chung state có race. | Chỉ khai báo đặc tính thật, hoặc dùng accumulator riêng. |
-| Đo bằng một lần `System.nanoTime()` | Nhiễu JIT, GC, scheduling và workload. | Dùng JMH và kiểm tra kết quả tương đương. |
+| Calling multiple terminal operations on the **same Stream** | A consumed Stream cannot be reused. | Create a new Stream from a repeatable source, or combine metrics in one terminal operation. |
+| Reopening a file for each count/sum/min/max | Repeats I/O and parsing; file may change between reads. | `Files.lines` + `summaryStatistics` or multi-metric collector, closed properly. |
+| Using `groupingBy(key, toList())` just to compute count/sum | Retains all elements and iterates lists again. | `groupingBy(key, counting/summarizingLong)`. |
+| Filtering `paid` before reporting `allCount` | Drops unpaid transactions from the total metric. | Use `teeing` and downstream `filtering` per scope. |
+| Treating `getMin()` of an empty statistics object as real data | Returns sentinel, not an observation. | Check count; expose `OptionalLong`. |
+| Using `BigDecimal` unnecessarily for counts, or `double` for exact money | Adds needless cost or rounding bugs. | Match numeric type to domain range and precision rules. |
+| Believing “one pass = `O(1)` memory” | Stateful operations and `toList` still buffer. | Check state size, group cardinality, and retained results. |
+| Calling `parallel()` to fix multiple traversals | Parallel does not automatically merge distinct pipelines. | Design proper aggregation first, then benchmark parallelism. |
+| Using a mutable identity in `reduce` to collect into a list/map | Violates reduction contract and breaks under parallelism. | Use `collect` with proper supplier/accumulator/combiner. |
+| Marking a custom collector `CONCURRENT` carelessly | Concurrent updates to shared state cause races. | Declare only true characteristics, or keep separate accumulators. |
+| Timing with a single `System.nanoTime()` | Skewed by JIT, GC, scheduling, and load. | Use JMH and verify equivalent results. |
 
-## 16. Bài tập thực hành
+## 16. Practice exercises
 
-**Bài 1 — Tìm các lượt thừa.** Cho một `List<Order>` được tính `count`, `sum`, `min`, `max` bằng bốn stream mới. Viết lại bằng một `summarizingLong(Order::amount)`. Liệt kê điều kiện khiến hai phiên bản tương đương.
+**Exercise 1 — Spot redundant passes.** Given a `List<Order>` where `count`, `sum`, `min`, and `max` are computed via four fresh streams, rewrite using one `summarizingLong(Order::amount)`. List the conditions making both versions equivalent.
 
-**Bài 2 — Phân biệt lỗi reuse.** Giải thích vì sao `list.stream().count()` rồi `list.stream().findFirst()` có thể hợp lệ nhưng `Stream<T> s = list.stream(); s.count(); s.findFirst();` là không hợp lệ.
+**Exercise 2 — Distinguish reuse errors.** Explain why `list.stream().count()` followed by `list.stream().findFirst()` can be valid whereas `Stream<T> s = list.stream(); s.count(); s.findFirst();` is invalid.
 
-**Bài 3 — Hai phạm vi.** Từ dữ liệu `Sale(team, amount, paid, late)`, dùng `teeing` để thu `allCount` và `paidCount` trong một terminal operation. Thay `filtering` bằng `Stream.filter` trước `collect`, giải thích kết quả sai khác.
+**Exercise 3 — Two scopes.** Given `Sale(team, amount, paid, late)`, use `teeing` to collect `allCount` and `paidCount` in one terminal operation. Replace `filtering` with `Stream.filter` before `collect` and explain the wrong result.
 
-**Bài 4 — Nhiều chỉ số theo nhóm.** Viết `groupingBy(Sale::team, summarizingLong(Sale::amount))`, kiểm tra `API` có count = 2, sum = 300 khi dữ liệu là `API:100`, `API:200`, `UI:50`. Nếu chỉ có một đội chưa từng xuất hiện, map có khóa đó không?
+**Exercise 4 — Multi-metric grouping.** Write `groupingBy(Sale::team, summarizingLong(Sale::amount))` and verify `API` has count = 2, sum = 300 for `API:100`, `API:200`, `UI:50`. If a team never appeared in the input, does the map contain its key?
 
-**Bài 5 — Một nhóm không có phần tử đạt điều kiện.** Dùng downstream `filtering(Sale::paid, summarizingLong(...))` cho đội chỉ có sale chưa thanh toán. Vì sao count = 0 còn min/max trả sentinel? Hãy chuyển sang `OptionalLong`.
+**Exercise 5 — A group with zero matching elements.** Apply downstream `filtering(Sale::paid, summarizingLong(...))` to a team that has only unpaid sales. Why is count = 0 while min/max return sentinels? Convert them to `OptionalLong`.
 
-**Bài 6 — Custom collector.** Viết `Accumulator` giữ count/sum/min/max; chứng minh combiner có identity và tính kết hợp khi không tràn kiểu số. Giải thích tại sao không được trả **một instance accumulator chung** từ supplier.
+**Exercise 6 — Custom collector.** Write an `Accumulator` holding count/sum/min/max; prove the combiner has an identity and associativity when numeric types do not overflow. Explain why the supplier must not return **a single shared accumulator instance**.
 
-**Bài 7 — Bộ nhớ.** So sánh `groupingBy(team, toList())` với `groupingBy(team, summarizingLong(...))` cho 1.000.000 giao dịch nhưng chỉ 10 đội. Điều gì thay đổi nếu có tới 1.000.000 đội khác nhau?
+**Exercise 7 — Memory.** Compare `groupingBy(team, toList())` against `groupingBy(team, summarizingLong(...))` for 1,000,000 transactions across only 10 teams. What changes if there are 1,000,000 distinct teams?
 
-**Bài 8 — Đọc tệp một lần.** Đọc tệp chứa số nguyên, bỏ dòng trống và tính `LongSummaryStatistics` trong một `try-with-resources`. Thử thêm một dòng sai định dạng và quyết định nên dừng cả lô hay lưu bản ghi lỗi.
+**Exercise 8 — Single-pass file read.** Read a file of integers, skip blank lines, and compute `LongSummaryStatistics` inside `try-with-resources`. Try adding one malformed line and decide whether to fail the whole batch or record bad lines.
 
-**Bài 9 — Thử hiệu năng.** Benchmark ba thiết kế A/B/C bằng JMH với mapper nhẹ và mapper nặng. Chỉ kết luận sau khi đầu ra tương đương, có warm-up/fork và ghi rõ time/op, allocation và môi trường.
+**Exercise 9 — Performance test.** Benchmark designs A/B/C with JMH using a light mapper and a heavy mapper. Draw conclusions only after outputs match, warmup/forks finish, and time/op, allocation, and environment are recorded.
 
-## 17. Checklist trước khi tối ưu
+## 17. Pre-optimization checklist
 
-- [ ] Xác định **tất cả chỉ số** cần tính và **phạm vi dữ liệu** của từng chỉ số.
-- [ ] Phân biệt **mở nguồn nhiều lần** với **dùng lại cùng Stream** (không hợp lệ).
-- [ ] Ưu tiên `summaryStatistics`/`summarizingLong` khi các chỉ số số học đã đủ.
-- [ ] Dùng `teeing` khi thật sự có hai downstream khác vai trò; cân nhắc custom collector cho nhiều chỉ số.
-- [ ] Phân nhóm với downstream tổng hợp thay vì giữ mọi bản ghi chỉ để thống kê lại.
-- [ ] Đặt `filter` và `Collectors.filtering` đúng phạm vi nghiệp vụ.
-- [ ] Xử lý nhóm rỗng, min/max thiếu dữ liệu và việc tràn số.
-- [ ] Chọn trạng thái tích lũy phù hợp; không làm lộ object mutable nếu báo cáo cần bất biến.
-- [ ] Với custom collector, supplier tạo state mới, combiner gộp đúng; không khai báo `CONCURRENT` khi chưa an toàn.
-- [ ] Đánh giá **cardinality nhóm, buffering và bộ nhớ** thay vì chỉ đếm số stream.
-- [ ] Không dùng side effect trong `peek` hoặc dựa vào số lần lambda chạy.
-- [ ] Đóng nguồn I/O bằng `try-with-resources`.
-- [ ] Kiểm tra kết quả tuần tự trước khi thử song song.
-- [ ] Đo hiệu năng bằng benchmark có kiểm soát, không kết luận từ số đo giả định.
+- [ ] Identify **all metrics** to compute and **the data scope** of each.
+- [ ] Distinguish **reopening a source** from **reusing the same Stream** (invalid).
+- [ ] Prefer `summaryStatistics`/`summarizingLong` when built-in arithmetic metrics suffice.
+- [ ] Use `teeing` when you genuinely have two distinct downstream roles; consider a custom collector for many metrics.
+- [ ] Group with aggregating downstreams instead of retaining every record only to summarize later.
+- [ ] Place `filter` and `Collectors.filtering` at the right business scope.
+- [ ] Handle empty groups, missing min/max values, and numeric overflow.
+- [ ] Choose an appropriate accumulator state; never leak mutable objects if reports must be immutable.
+- [ ] For custom collectors, ensure supplier creates fresh state, combiner merges cleanly, and never declare `CONCURRENT` unless thread-safe.
+- [ ] Evaluate **group cardinality, buffering, and memory** instead of merely counting streams.
+- [ ] Avoid side effects in `peek` or relying on lambda call counts.
+- [ ] Close I/O sources with `try-with-resources`.
+- [ ] Verify sequential correctness before trying parallelism.
+- [ ] Measure performance with controlled benchmarks; never conclude from hypothetical numbers.
 
-**Ghi nhớ:** Tránh duyệt nguồn nhiều lần không có nghĩa cố nhét mọi phép xử lý vào một lambda lớn. Hãy **thiết kế phép tổng hợp theo đúng phạm vi dữ liệu**, dùng collector sẵn có khi phù hợp, gom các chỉ số bằng `teeing` hoặc accumulator riêng khi cần và trả báo cáo rõ ràng. Một pipeline có một terminal operation vẫn có thể tốn nhiều bộ nhớ; một custom collector vẫn phải đáp ứng hợp đồng khi song song. Lợi ích hiệu năng chỉ đáng tin khi **kết quả đúng, bộ nhớ được kiểm soát và phép đo phản ánh workload thực tế**.
+**Takeaway:** Avoiding multiple source traversals does not mean cramming every computation into one giant lambda. **Design aggregations around the exact data scope**, use built-in collectors when they fit, combine metrics with `teeing` or a dedicated accumulator when needed, and return clean reports. A single-terminal pipeline can still consume lots of memory, and a custom collector must still honor parallel contracts. Performance gains are trustworthy only when **results are correct, memory is controlled, and measurements reflect real workloads**.
 
-**Tài liệu tham khảo:** [Stream — Java SE 24 API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Stream.html), [Collectors — Java SE 24 API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Collectors.html), [LongSummaryStatistics — Java SE 24 API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/LongSummaryStatistics.html), [JMH — OpenJDK](https://github.com/openjdk/jmh).
+**References:** [Stream — Java SE 24 API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Stream.html), [Collectors — Java SE 24 API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Collectors.html), [LongSummaryStatistics — Java SE 24 API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/LongSummaryStatistics.html), [JMH — OpenJDK](https://github.com/openjdk/jmh).

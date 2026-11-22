@@ -1,44 +1,44 @@
-# Phân biệt thông tin kiểu lúc biên dịch và lúc chạy trong Java
+# Distinguishing Compile-Time and Runtime Type Information in Java
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Sau bài học, bạn có thể:
-- Phân biệt **kiểu tĩnh (static/compile-time type)** của một biểu thức với **lớp thực tế (runtime class)** của đối tượng mà biểu thức tham chiếu.
-- Dự đoán chỗ nào Java kiểm tra kiểu khi biên dịch và chỗ nào JVM phải kiểm tra khi chạy.
-- Giải thích vì sao **overload** phụ thuộc kiểu lúc biên dịch, còn **override** phụ thuộc đối tượng lúc chạy.
-- Chọn đúng **Class literal**, **getClass()**, **instanceof** và các API Reflection khi cần quan sát kiểu.
-- Hiểu giới hạn của Reflection do **type erasure**, và các ngoại lệ như metadata khai báo generic hoặc kiểu phần tử của mảng.
+After this lesson, you will be able to:
+- Distinguish the **static/compile-time type** of an expression from the **actual runtime class** of the object the expression references.
+- Predict where Java checks types at compile time and where the JVM must check them at runtime.
+- Explain why **overloading** depends on compile-time types while **overriding** depends on the runtime object.
+- Choose correctly among **Class literals**, **getClass()**, **instanceof**, and Reflection APIs when observing types.
+- Understand Reflection's limitations due to **type erasure**, and exceptions such as generic declaration metadata or array component types.
 
-Bối cảnh: Java là ngôn ngữ kiểm tra kiểu tĩnh. Compiler và JVM có vai trò khác nhau, nhưng cùng góp phần thực thi tính an toàn kiểu. Reflection giúp chương trình truy vấn lớp, phương thức, field hoặc kiểu generic được ghi trong metadata ở thời điểm chạy; Reflection không biến mọi thông tin mà compiler từng biết thành dữ liệu có thể truy xuất từ một đối tượng.
+Context: Java is a statically type-checked language. The compiler and the JVM play different roles, yet both contribute to enforcing type safety. Reflection lets a program query classes, methods, fields, or generic types recorded in metadata at runtime; Reflection does not turn every piece of information the compiler once knew into data retrievable from an object.
 
-## 2. Hai câu hỏi về “kiểu”
+## 2. Two Questions About "Type"
 
-Xét khai báo:
+Consider the declaration:
 
 ~~~java
 Animal pet = new Dog();
 ~~~
 
-Đoạn trên giả định **Dog extends Animal**.
+This snippet assumes **Dog extends Animal**.
 
-- **Kiểu lúc biên dịch của biểu thức pet:** **Animal**, vì đây là kiểu được khai báo của biến. Compiler dùng nó để kiểm tra phương thức nào có thể gọi, phép gán nào hợp lệ và overload nào được chọn.
-- **Lớp thực tế của đối tượng lúc chạy:** **Dog**, vì đối tượng được tạo bằng **new Dog()**. Với tham chiếu khác null, **pet.getClass()** cho đối tượng Class biểu diễn Dog.
-- **Một tham chiếu có thể đổi đối tượng:** nếu sau đó **pet = new Cat()** và Cat cũng extends Animal, kiểu khai báo của pet vẫn là Animal, nhưng lớp thực tế mà pet trỏ tới lúc đó là Cat.
-- **Không có đối tượng khi null:** biến **Animal pet = null** vẫn có kiểu tĩnh Animal, nhưng **pet.getClass()** sẽ gây NullPointerException.
+- **Compile-time type of the expression pet:** **Animal**, because that is the declared type of the variable. The compiler uses it to check which methods can be called, which assignments are valid, and which overload is selected.
+- **Actual runtime class of the object:** **Dog**, because the object was created with **new Dog()**. For a non-null reference, **pet.getClass()** returns the Class object representing Dog.
+- **A reference can change objects:** if later **pet = new Cat()** and Cat also extends Animal, the declared type of pet remains Animal, but the actual class that pet points to at that time is Cat.
+- **No object when null:** the variable **Animal pet = null** still has the static type Animal, but **pet.getClass()** will cause a NullPointerException.
 
-| Khía cạnh | Lúc biên dịch | Lúc chạy |
+| Aspect | Compile Time | Runtime |
 | --- | --- | --- |
-| Câu hỏi chính | Biểu thức này **được phép** dùng như kiểu nào? | Giá trị/đối tượng **thực sự** là gì? |
-| Nơi xử lý | **javac** (hoặc compiler Java khác) | JVM và thư viện runtime |
-| Ví dụ | **pet** có kiểu Animal | Đối tượng trong pet thuộc lớp Dog |
-| Quyết định điển hình | Kiểm tra phép gán, truy cập member, chọn overload | Dispatch phương thức instance được override, kiểm tra cast, instanceof |
-| Công cụ quan sát | Khai báo biến, chữ ký method, kiểu biểu thức | **getClass()**, **instanceof**, Reflection |
+| Primary question | As what type is this expression **allowed** to be used? | What is the **actual** value/object? |
+| Where handled | **javac** (or another Java compiler) | The JVM and runtime libraries |
+| Example | **pet** has type Animal | The object in pet is of class Dog |
+| Typical decisions | Checking assignments, member access, overload selection | Dispatching overridden instance methods, cast checks, instanceof |
+| Observation tools | Variable declarations, method signatures, expression types | **getClass()**, **instanceof**, Reflection |
 
-**Lưu ý về thuật ngữ:** Với primitive như **int**, kiểu tĩnh vẫn tồn tại nhưng không có đối tượng Java tương ứng để gọi **getClass()** trực tiếp. Cũng cần phân biệt “kiểu của biểu thức lúc biên dịch” với “lớp của một đối tượng lúc chạy”: chúng không phải hai phép đo luôn cùng loại.
+**Note on terminology:** For primitives like **int**, a static type still exists, but there is no corresponding Java object on which to call **getClass()** directly. It is also important to distinguish "the compile-time type of an expression" from "the runtime class of an object": they are not always measurements of the same kind.
 
-## 3. Ví dụ chạy được: kiểu tĩnh, override và overload
+## 3. Runnable Example: Static Type, Overriding, and Overloading
 
-Tạo tệp **TypeStagesDemo.java**:
+Create the file **TypeStagesDemo.java**:
 
 ~~~java
 public class TypeStagesDemo {
@@ -85,14 +85,14 @@ public class TypeStagesDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac TypeStagesDemo.java
 java TypeStagesDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Runtime class: Dog
@@ -105,30 +105,30 @@ fetch
 Overload after narrowing: overload Dog
 ~~~
 
-Giải thích từng điểm:
+Point-by-point explanation:
 
-1. **pet.getClass().getSimpleName()** đọc lớp thực tế, nên là Dog.
-2. **pet.voice()** biên dịch được vì Animal khai báo voice(). Khi chạy, JVM thực thi bản override của Dog.
-3. **describe(pet)** chọn overload nhận Animal vì kiểu tĩnh của pet là Animal, dù đối tượng thực tế là Dog. Chọn overload chủ yếu là quyết định lúc biên dịch; **không** tự chọn lại bằng runtime class của argument.
-4. **pet instanceof Dog** kiểm tra lớp thực tế của đối tượng; pattern variable **dog** có kiểu Dog trong nhánh phù hợp.
-5. Sau kiểm tra **instanceof**, **describe(dog)** chọn overload nhận Dog vì kiểu tĩnh của biến mới là Dog.
-6. **pet.fetch()** sẽ **không biên dịch**: Animal không khai báo fetch(). Muốn gọi cần một tham chiếu đã được thu hẹp an toàn hoặc thực hiện cast phù hợp.
+1. **pet.getClass().getSimpleName()** reads the actual class, so it is Dog.
+2. **pet.voice()** compiles because Animal declares voice(). At runtime, the JVM executes Dog's overridden version.
+3. **describe(pet)** selects the overload taking Animal because the static type of pet is Animal, even though the actual object is Dog. Overload selection is primarily a compile-time decision; it is **not** reselected automatically by the argument's runtime class.
+4. **pet instanceof Dog** checks the object's actual class; the pattern variable **dog** has type Dog inside the matching branch.
+5. After the **instanceof** check, **describe(dog)** selects the overload taking Dog because the static type of the new variable is Dog.
+6. **pet.fetch()** will **not compile**: Animal does not declare fetch(). To call it, you need a safely narrowed reference or an appropriate cast.
 
-Đừng nhầm khả năng gọi phương thức với việc lựa chọn phần triển khai: compiler quyết định một lời gọi có hợp lệ theo kiểu tĩnh không; với lời gọi phương thức instance có override, runtime quyết định phần triển khai nào nhận lời gọi.
+Do not confuse the ability to call a method with the selection of an implementation: the compiler decides whether a call is valid according to the static type; for an overridable instance method call, the runtime decides which implementation receives the call.
 
-## 4. Những phép kiểm tra diễn ra ở giai đoạn nào?
+## 4. Which Checks Happen at Which Stage?
 
-### 4.1. Phép gán và member access
+### 4.1. Assignments and Member Access
 
 ~~~java
-Animal a = new Dog();     // Hợp lệ: Dog là subtype của Animal
-// Dog d = a;             // Lỗi biên dịch: Animal chưa chắc là Dog
-Dog d = (Dog) a;          // Hợp lệ khi chạy vì a đang trỏ tới Dog
+Animal a = new Dog();     // Valid: Dog is a subtype of Animal
+// Dog d = a;             // Compile error: Animal is not guaranteed to be a Dog
+Dog d = (Dog) a;          // Valid at runtime because a points to a Dog
 ~~~
 
-Compiler cho phép phép downcast **(Dog) a** vì về mặt quan hệ kiểu phép ép có khả năng thành công; JVM kiểm tra đối tượng lúc chạy. Nếu a trỏ tới một đối tượng Animal không phải Dog, phép ép gây **ClassCastException**. Ép kiểu tham chiếu không thay đổi runtime class của đối tượng.
+The compiler allows the downcast **(Dog) a** because, in terms of type relationships, the cast could potentially succeed; the JVM checks the object at runtime. If a points to an Animal object that is not a Dog, the cast throws **ClassCastException**. Casting a reference does not change the object's runtime class.
 
-### 4.2. instanceof và pattern matching
+### 4.2. instanceof and Pattern Matching
 
 ~~~java
 Object value = "Java";
@@ -137,38 +137,38 @@ if (value instanceof String text) {
 }
 ~~~
 
-**instanceof** kiểm tra giá trị thực lúc chạy. Nếu giá trị là null, kết quả của kiểm tra kiểu là false. Pattern variable text chỉ có hiệu lực ở nhánh mà compiler chứng minh điều kiện khớp.
+**instanceof** checks the actual value at runtime. If the value is null, the result of the type check is false. The pattern variable text is only in scope in branches where the compiler proves the condition matches.
 
-### 4.3. Overloading, overriding, field và static method
+### 4.3. Overloading, Overriding, Fields, and Static Methods
 
-- **Overloading**: quyết định chữ ký phương thức từ các kiểu lúc biên dịch của argument và các quy tắc phân giải overload. Ví dụ **describe(pet)** chọn bản nhận Animal.
-- **Overriding**: đối với phương thức instance có thể override, JVM lựa chọn triển khai dựa trên lớp thực tế của receiver. Ví dụ **pet.voice()** chạy Dog.voice().
-- **Field hiding**: truy cập field qua biểu thức thường phụ thuộc kiểu tĩnh của biểu thức; field không có đa hình như instance method.
-- **Static method hiding**: lời gọi qua kiểu/tham chiếu được phân giải theo các quy tắc tĩnh; static method không bị override. Tránh gọi static method qua instance vì dễ gây hiểu nhầm.
+- **Overloading**: determines the method signature from the compile-time types of the arguments and overload resolution rules. For example, **describe(pet)** selects the version taking Animal.
+- **Overriding**: for overridable instance methods, the JVM selects the implementation based on the actual class of the receiver. For example, **pet.voice()** runs Dog.voice().
+- **Field hiding**: accessing a field through an expression generally depends on the expression's static type; fields do not have polymorphism like instance methods.
+- **Static method hiding**: calls via a type/reference are resolved according to static rules; static methods are not overridden. Avoid calling static methods via an instance because it easily causes confusion.
 
-Một câu ghi nhớ hữu ích: **kiểu tĩnh giới hạn điều được phép gọi; đa hình quyết định bản override được chạy**.
+A useful rule to remember: **static types constrain what is allowed to be called; polymorphism determines which overridden version runs**.
 
-## 5. Reflection nhìn thấy kiểu gì?
+## 5. What Types Does Reflection See?
 
-### 5.1. Class literal và getClass()
+### 5.1. Class Literals and getClass()
 
-Có hai cách nhận đối tượng metadata **Class** với ý nghĩa khác nhau:
+There are two ways to obtain a **Class** metadata object with different meanings:
 
 ~~~java
-Class<?> declared = Animal.class; // Biết lớp Animal từ source code
+Class<?> declared = Animal.class; // Class Animal known from source code
 Animal pet = new Dog();
-Class<?> actual = pet.getClass(); // Lớp Dog của đối tượng lúc chạy
+Class<?> actual = pet.getClass(); // Runtime class Dog of the object
 ~~~
 
-- **Animal.class** là class literal cho Animal, không phụ thuộc giá trị hiện tại của biến.
-- **pet.getClass()** là phương thức trên Object, lấy lớp thực tế của đối tượng và yêu cầu pet khác null.
-- **Class<?>** biểu diễn metadata của một kiểu có Class token; dùng wildcard khi mã không biết tham số kiểu chính xác.
-- **Class.forName("com.example.Dog")** có thể tìm lớp bằng tên đầy đủ khi chạy, thông qua cơ chế class loading; bản một tham số còn khởi tạo lớp nếu chưa được khởi tạo. Nó có thể ném ClassNotFoundException.
-- Class token được định danh bởi **tên lớp cùng defining class loader**. Cùng tên nhị phân nhưng do hai class loader khác nhau định nghĩa có thể là hai kiểu runtime khác nhau.
+- **Animal.class** is a class literal for Animal, independent of a variable's current value.
+- **pet.getClass()** is a method on Object that retrieves the object's actual class and requires pet to be non-null.
+- **Class<?>** represents the metadata of a type that has a Class token; use the wildcard when the code does not know the exact type parameter.
+- **Class.forName("com.example.Dog")** can find a class by fully qualified name at runtime through the class loading mechanism; the single-parameter version also initializes the class if it has not yet been initialized. It can throw ClassNotFoundException.
+- A Class token is identified by **the class name together with its defining class loader**. The same binary name defined by two different class loaders can be two distinct runtime types.
 
-**Không nên suy luận rằng getClass() có thể trả về “kiểu khai báo của biến”.** Đối tượng không mang thông tin riêng rằng nó từng được lưu vào biến Animal, Object hay một biến generic nào đó.
+**Do not infer that getClass() can return "the declared type of the variable."** An object does not carry separate information stating that it was stored in an Animal, Object, or generic variable.
 
-### 5.2. Kiểm tra quan hệ kiểu bằng Class
+### 5.2. Checking Type Relationships with Class
 
 ~~~java
 Class<?> parent = Animal.class;
@@ -181,17 +181,17 @@ Animal pet = new Dog();
 System.out.println(child.isInstance(pet));           // true
 ~~~
 
-Ý nghĩa của **X.isAssignableFrom(Y)**: một giá trị có kiểu Y có thể được gán cho biến kiểu X theo quan hệ chuyển đổi kiểu tham chiếu phù hợp. Vì Dog extends Animal, **Animal.class.isAssignableFrom(Dog.class)** trả true, còn chiều ngược lại false. Với một đối tượng cụ thể, **Dog.class.isInstance(pet)** tương tự kiểm tra **pet instanceof Dog** tại runtime, và trả false khi pet là null.
+Meaning of **X.isAssignableFrom(Y)**: a value of type Y can be assigned to a variable of type X according to the appropriate reference type conversion rules. Because Dog extends Animal, **Animal.class.isAssignableFrom(Dog.class)** returns true, while the reverse returns false. For a specific object, **Dog.class.isInstance(pet)** is analogous to checking **pet instanceof Dog** at runtime, and returns false when pet is null.
 
-Các API bổ sung:
-- **targetClass.cast(object)**: kiểm tra và cast đối tượng theo Class token; có thể ném ClassCastException.
-- **someClass.asSubclass(Base.class)**: xác thực quan hệ subclass trên Class token; có thể ném ClassCastException.
-- **getSuperclass()**, **getInterfaces()**: xem quan hệ kế thừa/interface trực tiếp trong metadata.
-- **getDeclaredMethods()**, **getDeclaredFields()**: xem member khai báo trực tiếp trong lớp; khác với **getMethods()** vốn xét các public method được kế thừa theo quy tắc API.
+Additional APIs:
+- **targetClass.cast(object)**: checks and casts the object against the Class token; may throw ClassCastException.
+- **someClass.asSubclass(Base.class)**: validates a subclass relationship on a Class token; may throw ClassCastException.
+- **getSuperclass()**, **getInterfaces()**: inspects direct inheritance/interface relationships in metadata.
+- **getDeclaredMethods()**, **getDeclaredFields()**: inspects members declared directly in the class; unlike **getMethods()**, which considers inherited public methods according to API rules.
 
-### 5.3. Ví dụ kiểm tra một member đã khai báo
+### 5.3. Example of Inspecting a Declared Member
 
-Tạo tệp **ReflectionInspectDemo.java**:
+Create the file **ReflectionInspectDemo.java**:
 
 ~~~java
 import java.lang.reflect.Method;
@@ -223,7 +223,7 @@ javac ReflectionInspectDemo.java
 java ReflectionInspectDemo
 ~~~
 
-Kết quả xác định:
+Deterministic output:
 
 ~~~text
 Worker
@@ -232,13 +232,13 @@ Base
 Base
 ~~~
 
-Ở đây **getDeclaredMethod("process")** tìm phương thức private khai báo trong Worker. **getMethod("start")** tìm public method được kế thừa từ Base. Việc *tìm metadata* không đồng nghĩa với quyền *truy cập hoặc gọi* member đó; phản chiếu vào private member còn chịu kiểm soát truy cập và giới hạn module của Java Platform Module System. Đừng mặc định **setAccessible(true)** sẽ thành công.
+Here **getDeclaredMethod("process")** finds the private method declared in Worker. **getMethod("start")** finds the public method inherited from Base. *Finding metadata* does not mean having permission to *access or invoke* that member; reflecting into private members is still subject to access control and module restrictions of the Java Platform Module System. Do not assume **setAccessible(true)** will succeed.
 
-## 6. Generics: thông tin nào bị xóa, thông tin nào còn?
+## 6. Generics: Which Information Is Erased and Which Remains?
 
-Java thường biên dịch generic bằng cơ chế **type erasure**. Kiểu tham số hóa như **List\<String>** giúp compiler kiểm tra an toàn kiểu khi viết code, nhưng đối tượng ArrayList lúc chạy không tự mang nhãn phần tử String.
+Java generally compiles generics using **type erasure**. A parameterized type such as **List\<String>** helps the compiler enforce type safety when writing code, but an ArrayList object at runtime does not carry a String element tag of its own.
 
-Ví dụ biên dịch hợp lệ:
+Valid compilable example:
 
 ~~~java
 import java.util.ArrayList;
@@ -251,19 +251,19 @@ System.out.println(names.getClass().equals(numbers.getClass())); // true
 System.out.println(names.getClass().getName()); // java.util.ArrayList
 ~~~
 
-**List\<String>** và **List\<Integer>** khác nhau ở tầng kiểm tra kiểu lúc biên dịch, nhưng hai đối tượng **new ArrayList<>()** có cùng runtime class **java.util.ArrayList**.
+**List\<String>** and **List\<Integer>** differ at the compile-time type-checking layer, but the two **new ArrayList<>()** objects share the same runtime class **java.util.ArrayList**.
 
-Các giới hạn cần nhớ:
-- **List\<String>.class** không hợp lệ; class literal dùng được với **List.class** (raw type) hoặc một Class token thích hợp khác.
-- Với biến `Object value`, `value instanceof List<String>` không hợp lệ vì phép kiểm tra cần một chuyển đổi không an toàn kiểu (unchecked). Từ Java 16, với biến `List<String> value`, `value instanceof List<String>` và `value instanceof ArrayList<String>` có thể hợp lệ vì kiểu tĩnh đã đủ thông tin để kiểm tra mà không cần chuyển đổi unchecked. `value instanceof List<?>` vẫn là cách kiểm tra phù hợp khi chỉ cần biết đối tượng có phải một danh sách; không kiểm tra kiểu từng phần tử tại runtime.
-- **getClass()** của ArrayList không thể tự suy ra rằng một biến bên ngoài khai báo là List\<String>.
-- Không có cam kết rằng một danh sách tại runtime luôn chứa phần tử thuộc kiểu đã ghi trong source: raw type, unchecked conversion hoặc Reflection có thể tạo ra heap pollution; compiler thường phát cảnh báo trong các tình huống như vậy.
+Limitations to remember:
+- **List\<String>.class** is invalid; class literals work with **List.class** (raw type) or another appropriate Class token.
+- For a variable `Object value`, `value instanceof List<String>` is invalid because the check requires an unsafe (unchecked) conversion. Since Java 16, for a variable `List<String> value`, `value instanceof List<String>` and `value instanceof ArrayList<String>` can be valid because the static type already provides enough information to check without an unchecked conversion. `value instanceof List<?>` remains the appropriate check when you only need to know whether an object is a list; it does not check the type of each element at runtime.
+- **getClass()** of an ArrayList cannot infer on its own that an external variable was declared as List\<String>.
+- There is no guarantee that a list at runtime always contains elements of the type written in source code: raw types, unchecked conversions, or Reflection can cause heap pollution; the compiler usually emits warnings in such cases.
 
-**Nhưng “type erasure” không có nghĩa mọi dấu vết generic đều biến mất.** Metadata của *khai báo* field, method, superclass hoặc interface có thể giữ generic signature trong class file và đọc được qua **java.lang.reflect.Type** (ví dụ ParameterizedType, TypeVariable, WildcardType). Điều đó khác với việc mỗi instance có một đối tượng Class riêng cho từng type argument.
+**However, "type erasure" does not mean every trace of generics disappears.** Metadata of *declarations* such as fields, methods, superclasses, or interfaces can retain a generic signature in the class file and be read through **java.lang.reflect.Type** (for example, ParameterizedType, TypeVariable, WildcardType). That is different from each instance having a separate Class object for each type argument.
 
-### Ví dụ getType() so với getGenericType()
+### Example: getType() vs. getGenericType()
 
-Tạo tệp **GenericMetadataDemo.java**:
+Create the file **GenericMetadataDemo.java**:
 
 ~~~java
 import java.lang.reflect.Field;
@@ -286,22 +286,22 @@ javac GenericMetadataDemo.java
 java GenericMetadataDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 java.util.List
 java.util.List<java.lang.String>
 ~~~
 
-**getType()** trả về Class cho kiểu đã erasure của field. **getGenericType()** đọc kiểu khai báo trong generic signature khi metadata có sẵn. Nếu khai báo dùng type variable **T**, Reflection có thể trả về **TypeVariable**; muốn tìm đối số kiểu cụ thể trong một hệ phân cấp generic, thường phải phân tích tiếp cấu trúc Type, và có trường hợp không thể khôi phục kiểu mà caller từng dùng.
+**getType()** returns the Class for the erased type of the field. **getGenericType()** reads the declared type from the generic signature when metadata is available. If a declaration uses a type variable **T**, Reflection may return a **TypeVariable**; finding the concrete type argument across a generic hierarchy often requires further analyzing the Type structure, and in some cases it is impossible to recover the type a caller originally used.
 
-## 7. Mảng và primitive: hai ngoại lệ dễ nhầm
+## 7. Arrays and Primitives: Two Easily Confused Exceptions
 
-### 7.1. Runtime component type của mảng
+### 7.1. Runtime Component Type of Arrays
 
-Mảng là đối tượng có runtime component type. Vì mảng tham chiếu trong Java có tính **covariant**, phép gán sau đây hợp lệ lúc biên dịch nhưng thao tác ghi bị kiểm tra lúc chạy:
+Arrays are objects that have a runtime component type. Because reference arrays in Java are **covariant**, the following assignment is valid at compile time while writes are checked at runtime:
 
-Tạo tệp **ArrayRuntimeTypeDemo.java**:
+Create the file **ArrayRuntimeTypeDemo.java**:
 
 ~~~java
 public class ArrayRuntimeTypeDemo {
@@ -324,16 +324,16 @@ javac ArrayRuntimeTypeDemo.java
 java ArrayRuntimeTypeDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 java.lang.String
 ArrayStoreException
 ~~~
 
-Biến items có kiểu tĩnh **Object[]**, nhưng đối tượng thực tế là **String[]**. JVM không cho lưu Integer vào mảng String, nên ném **ArrayStoreException**. Điều này khác với danh sách generic đã erasure: JVM thực sự biết runtime component type của mảng.
+The variable items has the static type **Object[]**, but the actual object is **String[]**. The JVM does not allow storing an Integer into a String array, so it throws **ArrayStoreException**. This differs from erased generic lists: the JVM genuinely knows the runtime component type of an array.
 
-### 7.2. Primitive và wrapper
+### 7.2. Primitives and Wrappers
 
 ~~~java
 Class<?> primitive = int.class;
@@ -344,58 +344,58 @@ System.out.println(wrapper.isPrimitive());   // false
 System.out.println(primitive.equals(Integer.TYPE)); // true
 ~~~
 
-**int.class** đại diện metadata cho primitive int, nhưng một giá trị **int** không phải đối tượng và không có phương thức **getClass()**. Khi gán int cho Object, Java thực hiện boxing thành Integer; nếu sau đó gọi getClass() trên đối tượng boxed, ta nhận **Integer.class**, không phải **int.class**. Đừng trộn lẫn primitive và wrapper khi tìm constructor hoặc method bằng signature Reflection.
+**int.class** represents metadata for the primitive int, but an **int** value is not an object and has no **getClass()** method. When assigning an int to Object, Java performs boxing into an Integer; if you later call getClass() on the boxed object, you get **Integer.class**, not **int.class**. Do not mix up primitives and wrappers when looking up constructors or methods by Reflection signature.
 
-## 8. Phân biệt khả năng kiểm tra và khả năng truy vấn
+## 8. Distinguishing What Can Be Checked vs. What Can Be Queried
 
-| Câu hỏi thực tế | Dùng gì? | Cần cảnh giác |
+| Practical Question | What to Use? | What to Watch Out For |
 | --- | --- | --- |
-| Biến được phép gọi member nào? | Kiểu khai báo và luật compiler | Đối tượng có thể thuộc subclass giàu member hơn |
-| Đối tượng khác null hiện thuộc lớp nào? | **obj.getClass()** | Không trả kiểu khai báo biến |
-| Giá trị có tương thích với một subtype? | **instanceof**, **Class.isInstance()** | null không khớp |
-| Class A có nhận giá trị kiểu B? | **A.isAssignableFrom(B)** | Dễ đảo chiều |
-| Lấy Class token khi đã biết kiểu trong source? | **SomeType.class** | Không phản ánh đối tượng hiện tại |
-| Tìm chữ ký field generic? | **Field.getGenericType()** | Metadata thuộc khai báo; không chứng minh phần tử instance |
-| Tìm runtime component type của mảng? | **array.getClass().getComponentType()** | Mảng primitive và mảng tham chiếu khác nhau |
-| Tìm method khi chạy? | **getMethod/getDeclaredMethod** | Khác nhau về inherited/public; truy cập còn bị kiểm soát |
+| Which members is a variable allowed to call? | Declared type and compiler rules | The object may belong to a subclass with richer members |
+| Which class does a non-null object currently belong to? | **obj.getClass()** | Does not return the variable's declared type |
+| Is a value compatible with a subtype? | **instanceof**, **Class.isInstance()** | null does not match |
+| Does class A accept values of type B? | **A.isAssignableFrom(B)** | Easy to reverse the order |
+| Obtain a Class token when the type is known in source? | **SomeType.class** | Does not reflect the current object |
+| Find a generic field signature? | **Field.getGenericType()** | Metadata belongs to the declaration; does not prove instance elements |
+| Find the runtime component type of an array? | **array.getClass().getComponentType()** | Primitive arrays and reference arrays differ |
+| Look up a method at runtime? | **getMethod/getDeclaredMethod** | Differ on inherited/public; access is still controlled |
 
-### Gợi ý khi viết API dùng Reflection
+### Guidance When Writing APIs Using Reflection
 
-Nếu logic biết trước kiểu và hành vi cần gọi, ưu tiên interface, generic và đa hình bình thường: compiler sẽ kiểm tra giúp bạn. Reflection phù hợp hơn với việc phải khảo sát schema/metadata hoặc framework cần khám phá class, field, method lúc chạy. Khi dùng Reflection:
+If the logic already knows the types and behaviors to call in advance, prefer normal interfaces, generics, and polymorphism: the compiler will check them for you. Reflection is better suited for inspecting schemas/metadata or frameworks that need to discover classes, fields, and methods at runtime. When using Reflection:
 
-1. Xác định bạn đang xử lý **Class**, **Type**, một **Field/Method** khai báo, hay một **instance** cụ thể.
-2. Phân biệt câu hỏi về **quan hệ assignable** với câu hỏi **lớp thực tế có đúng bằng lớp X không**. **Animal.class.equals(pet.getClass())** có thể false nhưng **pet instanceof Animal** vẫn true.
-3. Chú ý **class loader**, **null**, **erasure**, **access control** và checked exceptions khi tra cứu bằng tên.
-4. Không dựa vào thứ tự kết quả của **getDeclaredMethods()**/**getDeclaredFields()**: API không cam kết một thứ tự cố định.
-5. Kiểm tra chữ ký parameter chính xác khi dùng **getMethod(name, parameterTypes...)**; generic argument trong source thường đã erasure.
+1. Identify whether you are handling a **Class**, a **Type**, a declared **Field/Method**, or a specific **instance**.
+2. Distinguish questions about an **assignable relationship** from questions about **whether the actual class is strictly equal to class X**. **Animal.class.equals(pet.getClass())** may be false while **pet instanceof Animal** is still true.
+3. Pay attention to **class loaders**, **null**, **erasure**, **access control**, and checked exceptions when looking up by name.
+4. Do not rely on the result order of **getDeclaredMethods()**/**getDeclaredFields()**: the API does not guarantee a fixed order.
+5. Check exact parameter signatures when using **getMethod(name, parameterTypes...)**; generic arguments in source code are usually erased.
 
-## 9. Các hiểu lầm thường gặp
+## 9. Common Misconceptions
 
-**“Biến Animal trỏ tới Dog thì compiler cho gọi mọi method Dog.”** Sai. Compiler kiểm tra theo kiểu tĩnh của biến; dùng đa hình qua method đã khai báo ở Animal, hoặc thu hẹp có kiểm tra nếu thực sự cần member của Dog.
+**"If an Animal variable points to a Dog, the compiler allows calling every Dog method."** False. The compiler checks against the variable's static type; use polymorphism through methods declared in Animal, or narrow with a check if you truly need Dog members.
 
-**“Override và overload đều chọn theo runtime class.”** Sai. Overload lựa chọn chữ ký lúc biên dịch; override dispatch theo receiver lúc chạy.
+**"Both overriding and overloading are selected by runtime class."** False. Overloading selects the signature at compile time; overriding dispatches by the receiver at runtime.
 
-**“Ép kiểu đối tượng sang Animal biến đối tượng thành Animal.”** Sai. Cast đổi cách biểu thức được xét kiểu; đối tượng Dog vẫn có runtime class Dog nếu cast hợp lệ.
+**"Casting an object to Animal turns the object into an Animal."** False. A cast changes how the expression is typed; a Dog object still has runtime class Dog if the cast is valid.
 
-**“Reflection luôn khôi phục List\<String> của một ArrayList instance.”** Sai. Generic signature của khai báo đôi khi đọc được, nhưng đó không phải nhãn type argument có trên mọi đối tượng.
+**"Reflection always recovers List\<String> from an ArrayList instance."** False. The generic signature of a declaration can sometimes be read, but that is not a type argument tag present on every object.
 
-**“Class.getName() trùng thì hai Class token chắc chắn cùng kiểu.”** Sai trong tình huống nhiều defining class loader.
+**"If Class.getName() matches, two Class tokens are guaranteed to be the same type."** False in situations with multiple defining class loaders.
 
-**“getDeclaredMethods() trả toàn bộ public method kể cả kế thừa.”** Sai; cần hiểu khác biệt declared so với public/inherited.
+**"getDeclaredMethods() returns all public methods including inherited ones."** False; you must understand the difference between declared vs. public/inherited.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-Cho khai báo **Animal a = new Dog()** với Dog extends Animal, Dog override voice() và bổ sung fetch():
+Given the declaration **Animal a = new Dog()** where Dog extends Animal, Dog overrides voice(), and Dog adds fetch():
 
-1. Kiểu tĩnh của a là gì? Runtime class là gì?
-2. Vì sao **a.voice()** chạy bản Dog nhưng **a.fetch()** không biên dịch?
-3. Hai overload **f(Animal)** và **f(Dog)** thì **f(a)** gọi bản nào?
-4. **Animal.class.isAssignableFrom(Dog.class)** trả gì? **Dog.class.isAssignableFrom(Animal.class)** trả gì?
-5. Nếu **List\<String>** và **List\<Integer>** cùng được tạo bằng ArrayList, getClass() có phân biệt type argument không?
-6. Vì sao phép gán **Object[] values = new String[1]** hợp lệ nhưng ghi Integer vào values có thể ném lỗi?
+1. What is the static type of a? What is the runtime class?
+2. Why does **a.voice()** run Dog's version while **a.fetch()** does not compile?
+3. Given two overloads **f(Animal)** and **f(Dog)**, which version does **f(a)** call?
+4. What does **Animal.class.isAssignableFrom(Dog.class)** return? What does **Dog.class.isAssignableFrom(Animal.class)** return?
+5. If **List\<String>** and **List\<Integer>** are both created with ArrayList, does getClass() distinguish the type arguments?
+6. Why is the assignment **Object[] values = new String[1]** valid while writing an Integer into values can throw an error?
 
-Đáp án: (1) Animal và Dog. (2) Compiler thấy voice ở Animal và JVM dispatch override; fetch không thuộc API của kiểu tĩnh Animal. (3) f(Animal). (4) true rồi false. (5) Không, vì erasure và cùng lớp ArrayList. (6) Mảng covariant nhưng JVM kiểm tra runtime component type, nên ArrayStoreException.
+Answers: (1) Animal and Dog. (2) The compiler sees voice on Animal and the JVM dispatches the override; fetch is not part of the API of static type Animal. (3) f(Animal). (4) true then false. (5) No, because of erasure and the same ArrayList class. (6) Arrays are covariant, but the JVM checks the runtime component type, resulting in ArrayStoreException.
 
-## 11. Tổng kết
+## 11. Summary
 
-Trong Java, **thông tin kiểu lúc biên dịch** dùng để chứng minh code hợp lệ và xác định nhiều lựa chọn tĩnh; **thông tin kiểu lúc chạy** mô tả giá trị/đối tượng thật và phục vụ dispatch đa hình, kiểm tra kiểu động và Reflection. **Class<?>** cung cấp metadata về lớp runtime hoặc kiểu được nêu trực tiếp, còn **Type** biểu diễn thêm một số khai báo generic. Nắm rõ ranh giới này giúp bạn dự đoán lỗi biên dịch, ClassCastException, ArrayStoreException và giới hạn của các thư viện dựa trên Reflection.
+In Java, **compile-time type information** is used to prove code validity and determine many static choices; **runtime type information** describes the actual value/object and supports polymorphic dispatch, dynamic type checks, and Reflection. **Class<?>** provides metadata about a runtime class or a directly named type, while **Type** additionally represents certain generic declarations. Understanding this boundary helps you predict compile errors, ClassCastException, ArrayStoreException, and the limits of Reflection-based libraries.

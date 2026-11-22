@@ -1,8 +1,8 @@
-# So sánh số thực bằng sai số phù hợp yêu cầu — Java 17+
+# Comparing Floating-Point Numbers with Requirement-Appropriate Tolerance — Java 17+
 
-## 1. Mục tiêu
+## 1. Objective
 
-Khi làm việc với `float` và `double`, kết quả phép tính có thể khác giá trị toán học mong đợi một lượng nhỏ do **biểu diễn nhị phân hữu hạn và làm tròn**. Vì thế, việc kiểm tra hai kết quả tính toán “đủ gần nhau” phải sử dụng **sai số chấp nhận được theo yêu cầu thực tế**, không phải một hằng `epsilon` tùy ý.
+When working with `float` and `double`, computed results can differ slightly from the expected mathematical value due to **finite binary representation and rounding**. Therefore, checking whether two computed results are "close enough" must use an **acceptable tolerance derived from real requirements**, not an arbitrary `epsilon` constant.
 
 ~~~java
 double sum = 0.1 + 0.2;
@@ -10,19 +10,19 @@ System.out.println(sum);        // 0.30000000000000004
 System.out.println(sum == 0.3); // false
 ~~~
 
-Mục tiêu của bài:
+Goals of this lesson:
 
-- Phân biệt **so bằng chính xác** với **so gần bằng**.
-- Biết chọn **sai số tuyệt đối**, **sai số tương đối** hoặc cách kết hợp.
-- Hiểu cách xử lý số gần 0, số rất lớn, `NaN`, `Infinity` và `-0.0`.
-- Biết khi nào **không nên dùng tolerance** mà phải chuyển sang số nguyên hoặc `BigDecimal`.
-- Viết và kiểm thử được hàm so sánh gần bằng trong Java 17+.
+- Distinguish **exact equality comparison** from **approximate equality comparison**.
+- Know when to choose **absolute tolerance**, **relative tolerance**, or a combined approach.
+- Understand how to handle values near 0, very large values, `NaN`, `Infinity`, and `-0.0`.
+- Know when **not to use tolerance** and instead switch to integers or `BigDecimal`.
+- Write and test an approximate comparison function in Java 17+.
 
-**Nguyên tắc cốt lõi:** “Gần” chỉ có ý nghĩa khi được định nghĩa bằng **đơn vị đo, độ chính xác thiết bị/dữ liệu và mức chênh lệch mà nghiệp vụ chấp nhận**.
+**Core principle:** "Close" only has meaning when defined in terms of **units of measurement, instrument/data precision, and the margin of difference the business logic accepts**.
 
-## 2. Vì sao `==` thường không diễn tả điều bạn muốn?
+## 2. Why `==` Usually Does Not Express What You Mean
 
-`==` kiểm tra hai giá trị `double` có bằng nhau theo quy tắc dấu phẩy động Java; nó **không tự cho phép dung sai**.
+`==` checks whether two `double` values are equal according to Java floating-point rules; it **does not implicitly allow any tolerance**.
 
 ~~~java
 double actual = 0.1 + 0.2;
@@ -32,30 +32,30 @@ System.out.println(actual == expected); // false
 System.out.println(actual - expected);  // 5.551115123125783E-17
 ~~~
 
-`0.1`, `0.2` và `0.3` không biểu diễn đúng hoàn toàn bằng số nhị phân hữu hạn. Kết quả cộng và literal `0.3` có thể nằm ở **hai giá trị `double` kế cận nhau**.
+`0.1`, `0.2`, and `0.3` cannot be represented exactly in finite binary. The sum and the literal `0.3` can end up as **two adjacent `double` values**.
 
-Tuy nhiên, **`==` không phải luôn sai**. Nó phù hợp khi cần so chính xác một giá trị biểu diễn có chủ đích, chẳng hạn những trạng thái số hữu hạn/giá trị sentinel đã được đặc tả rõ. Khi yêu cầu là “chênh lệch không vượt quá sai số cho phép”, hãy định nghĩa phép so gần bằng riêng.
+However, **`==` is not always wrong**. It is appropriate when you need to compare an exact represented value intentionally, such as clearly specified finite numeric states or sentinel values. When the requirement is "the difference does not exceed an allowed margin of error", define a dedicated approximate comparison.
 
-**Phân biệt:**
+**Distinction:**
 
-| Yêu cầu | Cách tiếp cận |
+| Requirement | Approach |
 |---|---|
-| Hai giá trị primitive phải bằng nhau đúng theo Java | `a == b` |
-| Hai kết quả đo được chấp nhận nếu lệch không quá 0,05 mm | Sai số tuyệt đối **0,05 mm** |
-| Sai số chấp nhận phụ thuộc quy mô đại lượng | Sai số tương đối |
-| Cần chấp nhận chênh lệch cả gần 0 và số rất lớn | Kết hợp tuyệt đối + tương đối |
-| Số tiền thập phân phải chính xác đến cent | Mô hình số nguyên theo cent hoặc `BigDecimal` với rounding rõ |
-| Cần so một ID hoặc bộ đếm nguyên lớn | `int`/`long`/`BigInteger`, không dùng float/double |
+| Two primitive values must be strictly equal per Java | `a == b` |
+| Two measurements are acceptable if within 0.05 mm | Absolute tolerance **0.05 mm** |
+| Acceptable error depends on the magnitude of the quantity | Relative tolerance |
+| Need to accept differences both near 0 and at very large scales | Combined absolute + relative tolerance |
+| Decimal currency must be exact to the cent | Integer model in cents or `BigDecimal` with explicit rounding |
+| Need to compare a large integer ID or counter | `int`/`long`/`BigInteger`, never float/double |
 
-## 3. Sai số tuyệt đối (*absolute tolerance*)
+## 3. Absolute Tolerance
 
-Hai giá trị `a` và `b` được coi là gần nhau theo sai số tuyệt đối `absTol` khi:
+Two values `a` and `b` are considered close under absolute tolerance `absTol` when:
 
 \[
 |a-b| \le \text{absTol}
 \]
 
-Ví dụ một cảm biến đo chiều dài, yêu cầu lệch tối đa **0,05 mm**:
+For example, a sensor measuring length with a maximum allowed deviation of **0.05 mm**:
 
 ~~~java
 double targetMm = 12.0;
@@ -67,23 +67,23 @@ boolean acceptable =
 System.out.println(acceptable); // true
 ~~~
 
-Nếu kết quả đo là `12.08` mm, mức chênh lệch lớn hơn 0,05 mm và không đạt.
+If the measurement is `12.08` mm, the difference exceeds 0.05 mm and fails.
 
-**Ưu điểm:** dễ giải thích theo đơn vị thực (`mm`, `°C`, `s`, `V`). **Hạn chế:** cùng một sai số tuyệt đối có thể quá dễ dãi với số rất nhỏ hoặc quá khắt khe với số rất lớn.
+**Advantage:** easy to explain in real-world units (`mm`, `°C`, `s`, `V`). **Limitation:** the same absolute tolerance can be overly permissive for very small numbers or overly strict for very large numbers.
 
-Ví dụ: sai số 0,05 m phù hợp hay không còn tùy đang đo kích thước linh kiện vài milimét hay chiều dài hàng kilomet.
+For example, whether an error of 0.05 m is appropriate depends on whether you are measuring a component a few millimeters wide or a distance of kilometers.
 
-**Không quên đơn vị:** nếu `a` đo bằng mét và `b` đo bằng milimét, phải **quy đổi về cùng đơn vị trước khi so sánh**. Bản thân hàm tính chênh lệch không nhận biết đơn vị.
+**Never forget units:** if `a` is measured in meters and `b` in millimeters, you must **convert to the same unit before comparing**. The difference function itself has no awareness of units.
 
-## 4. Sai số tương đối (*relative tolerance*)
+## 4. Relative Tolerance
 
-Sai số tương đối đánh giá độ chênh so với **quy mô của giá trị**. Một quy tắc đối xứng thường dùng:
+Relative tolerance evaluates the difference relative to the **scale of the values**. A commonly used symmetric rule is:
 
 \[
 |a-b| \le \text{relTol}\times\max(|a|,|b|)
 \]
 
-Ví dụ:
+Example:
 
 ~~~java
 double a = 1_000_000_000.0;
@@ -97,9 +97,9 @@ boolean close = difference <= relativeTolerance * scale;
 System.out.println(close); // true
 ~~~
 
-Chênh lệch tuyệt đối là 1, nhưng tỷ lệ so với quy mô 1 tỷ chỉ xấp xỉ `1e-9`; mức cho phép `1e-8` chấp nhận được.
+The absolute difference is 1, yet relative to a scale of 1 billion it is only about `1e-9`; an allowance of `1e-8` accepts it.
 
-**Ưu điểm:** tỉ lệ sai số tự thay đổi theo độ lớn. **Hạn chế lớn:** khi một giá trị bằng 0, công thức thuần tương đối rất khắt khe:
+**Advantage:** the error margin automatically scales with magnitude. **Major limitation:** when one value is 0, a purely relative formula is extremely strict:
 
 ~~~java
 double a = 4e-10;
@@ -107,43 +107,43 @@ double b = 0.0;
 double relTol = 1e-5;
 
 // |a-b| = 4e-10; relTol * max(|a|, |b|) = 4e-15
-// Kết quả: không gần nhau theo quy tắc chỉ tương đối này.
+// Result: not close under this relative-only rule.
 ~~~
 
-Nếu nghiệp vụ cho rằng `4e-10` gần 0 đủ để chấp nhận, phải có một **ngưỡng tuyệt đối gần 0**. Đây là lý do nhiều ứng dụng dùng cả hai loại dung sai.
+If the business logic considers `4e-10` close enough to 0 to accept, you need an **absolute threshold near 0**. That is why many applications combine both tolerances.
 
-## 5. Kết hợp tuyệt đối và tương đối
+## 5. Combining Absolute and Relative Tolerance
 
-Một lựa chọn phổ biến khi muốn “đủ gần theo ít nhất một tiêu chí”:
+A common choice when you want "close enough by at least one criterion":
 
 \[
 |a-b| \le \max(\text{absTol},\,\text{relTol}\times\max(|a|,|b|))
 \]
 
-Tương đương kiểm tra:
+Equivalent check:
 
 ~~~java
 difference <= absTol || difference <= relTol * scale
 ~~~
 
-Cách hiểu:
+Interpretation:
 
-- **Gần 0:** `absTol` xử lý chênh lệch nhỏ mang ý nghĩa tuyệt đối.
-- **Ở quy mô lớn:** `relTol` cho phép chênh lệch tăng theo độ lớn đại lượng.
-- **Miền trung gian:** dùng tiêu chí có ngưỡng rộng hơn.
+- **Near 0:** `absTol` handles small differences that have absolute significance.
+- **At large scales:** `relTol` lets the allowed difference grow with the quantity's magnitude.
+- **Intermediate region:** uses whichever criterion gives the wider threshold.
 
-| Trường hợp | absTol | relTol | Điều được kiểm tra |
+| Case | absTol | relTol | What is checked |
 |---|---:|---:|---|
-| `0.1+0.2` so với `0.3` | `1e-12` | `1e-12` | Sai số tính toán rất nhỏ |
-| `4e-10` so với `0` | `1e-9` | `1e-5` | Chấp nhận gần zero bằng ngưỡng tuyệt đối |
-| `1e9` so với `1e9+1` | `0.01` | `1e-8` | Chấp nhận sai lệch theo quy mô lớn |
-| `12.04` so với `12.0` mm | `0.05` | `0` | Dung sai thiết bị cố định 0,05 mm |
+| `0.1+0.2` vs `0.3` | `1e-12` | `1e-12` | Tiny computation error |
+| `4e-10` vs `0` | `1e-9` | `1e-5` | Accepts near-zero via absolute threshold |
+| `1e9` vs `1e9+1` | `0.01` | `1e-8` | Accepts deviation scaled to large magnitude |
+| `12.04` vs `12.0` mm | `0.05` | `0` | Fixed instrument tolerance of 0.05 mm |
 
-**Đây là quy tắc ví dụ, không phải định lý rằng OR luôn đúng cho mọi lĩnh vực.** Có hệ thống yêu cầu phải đạt **đồng thời** hai ràng buộc, hoặc cần kiểm tra giới hạn một chiều (chỉ được cao hơn/thấp hơn một giá trị); khi đó phải viết đúng chính sách nghiệp vụ.
+**This is an example rule, not a theorem that OR is always right for every domain.** Some systems require satisfying **both** constraints simultaneously, or need a one-sided bound check (only allowed above/below a value); in those cases, write the exact business policy.
 
-## 6. Hàm Java 17 minh họa: `nearlyEqualFinite`
+## 6. Illustrative Java 17 Function: `nearlyEqualFinite`
 
-Hàm dưới đây dành cho **hai số hữu hạn** và hai ngưỡng không âm, hữu hạn. Nó **cố ý trả false** nếu đầu vào là `NaN` hoặc `Infinity`.
+The function below is intended for **two finite numbers** and two non-negative, finite thresholds. It **intentionally returns false** if an input is `NaN` or `Infinity`.
 
 ~~~java
 static boolean nearlyEqualFinite(
@@ -158,7 +158,7 @@ static boolean nearlyEqualFinite(
     }
 
     if (a == b) {
-        return true; // Bao gồm +0.0 và -0.0
+        return true; // Includes +0.0 and -0.0
     }
 
     double difference = Math.abs(a - b);
@@ -168,7 +168,7 @@ static boolean nearlyEqualFinite(
 }
 ~~~
 
-Sử dụng:
+Usage:
 
 ~~~java
 System.out.println(
@@ -180,35 +180,35 @@ System.out.println(
 ); // false
 ~~~
 
-**Lựa chọn chính sách trong hàm:**
+**Policy choices in this function:**
 
-1. Ngưỡng âm, `NaN`, Infinity hoặc `relTol > 1` là **tham số không hợp lệ**, nên ném `IllegalArgumentException`.
-2. Hai đầu vào cần **hữu hạn**; cùng Infinity cũng trả `false` vì đây không phải một phép so hai đại lượng đo hữu hạn.
-3. Hai giá trị bằng nhau theo `==` được chấp nhận; `+0.0` và `-0.0` vì thế được xem là gần nhau.
-4. Nếu khác nhau, chênh lệch phải nằm trong **ít nhất một trong hai ngưỡng**.
+1. Negative, `NaN`, or Infinite thresholds, or `relTol > 1`, are **invalid arguments**, so it throws `IllegalArgumentException`.
+2. Both inputs must be **finite**; even two matching Infinities return `false` because this is not a comparison of two finite measured quantities.
+3. Values equal under `==` are accepted; `+0.0` and `-0.0` are therefore considered close.
+4. Otherwise, the difference must fall within **at least one of the two thresholds**.
 
-**Giới hạn số học:** `a-b` vẫn có thể overflow thành Infinity nếu `a` và `b` hữu hạn nhưng cực lớn và trái dấu; các phép nhân và trừ `double` cũng có thể underflow/làm tròn. Hàm được thiết kế để **minh họa và dùng cho các miền đã kiểm soát**, không thay thế thuật toán so sánh chuẩn số học cho toàn bộ cực trị binary64. Với dữ liệu cực trị, cần đặc tả và kiểm thử riêng.
+**Arithmetic limitations:** `a-b` can still overflow to Infinity if `a` and `b` are finite yet extremely large with opposite signs; `double` multiplication and subtraction can also underflow/round. This function is designed to **illustrate and serve controlled domains**, not replace a numerically rigorous comparison algorithm across all binary64 extremes. For extreme values, specify and test separately.
 
-## 7. Chọn tolerance dựa trên yêu cầu, không dựa trên thói quen
+## 7. Choose Tolerance Based on Requirements, Not Habit
 
-Không có con số **`1e-6`**, **`1e-9`** hay **`1e-12`** nào đúng cho mọi bài toán.
+There is no magic number like **`1e-6`**, **`1e-9`**, or **`1e-12`** that is right for every problem.
 
-Hãy trả lời:
+Answer these questions:
 
-1. **Đang đo đại lượng gì?** Độ dài, tiền, xác suất, áp suất, thời gian, tọa độ, nhiệt độ?
-2. **Đơn vị và khoảng giá trị?** Mét hay millimét, giây hay nano giây, quanh 0 hay hàng tỷ?
-3. **Sai số đầu vào là bao nhiêu?** Độ phân giải cảm biến, rounding từ dữ liệu, chất lượng thuật toán?
-4. **Hậu quả khi chấp nhận nhầm?** Lỗi hiển thị đơn giản hay ảnh hưởng tính tiền, cảnh báo an toàn?
-5. **Dùng so sánh để làm gì?** Kiểm tra kết quả tính toán, kiểm thử phần mềm, phân nhóm dữ liệu hay quyết định điều khiển?
-6. **Ngưỡng có cần tính vào biên không?** `<=` cho phép bằng đúng biên, còn `<` thì không.
+1. **What quantity is being measured?** Length, money, probability, pressure, time, coordinates, temperature?
+2. **What are the units and value range?** Meters or millimeters, seconds or nanoseconds, around 0 or in the billions?
+3. **What is the input error?** Sensor resolution, data rounding, algorithm accuracy?
+4. **What is the consequence of a false acceptance?** A minor display glitch, or billing errors and safety alerts?
+5. **What is the comparison used for?** Checking computation results, software testing, clustering data, or control decisions?
+6. **Should the boundary itself be included?** `<=` allows exact boundary equality, whereas `<` does not.
 
-Ví dụ, cảm biến có sai số công bố ±0,05 mm thì một lựa chọn **có cơ sở nghiệp vụ** là `absTol = 0.05` mm sau khi quy đổi đơn vị, không phải mặc định dùng `Double.MIN_VALUE` hay `1e-12`.
+For instance, if a sensor has a rated accuracy of ±0.05 mm, a **domain-grounded** choice is `absTol = 0.05` mm after unit conversion, rather than defaulting to `Double.MIN_VALUE` or `1e-12`.
 
-Đối với kiểm thử thuật toán số, ngưỡng cần xét cả **sai số thuật toán**, độ nhạy bài toán và định dạng số; không nên chỉ nhìn vào số chữ số được hiển thị.
+For testing numerical algorithms, thresholds should consider **algorithmic error**, problem conditioning, and number formatting—not just the number of digits displayed.
 
-## 8. Hiểu `Math.ulp` và độ phân giải
+## 8. Understanding `Math.ulp` and Resolution
 
-`Math.ulp(x)` biểu diễn độ lớn một đơn vị ở vị trí thấp nhất của định dạng số thực tại giá trị `x` theo định nghĩa API. Nó hữu ích khi xem **khoảng cách biểu diễn** gần một số.
+`Math.ulp(x)` represents the size of one unit in the last place of the floating-point format at value `x` as defined by the API. It is useful for inspecting the **representable spacing** near a number.
 
 ~~~java
 double one = 1.0;
@@ -219,13 +219,13 @@ System.out.println(Math.ulp(one)); // 2.220446049250313E-16
 System.out.println(next == one);   // false
 ~~~
 
-`Math.nextUp(1.0)` là giá trị `double` biểu diễn được ngay sau 1.0. Tại 1.0, khoảng cách ấy bằng `Math.ulp(1.0)`.
+`Math.nextUp(1.0)` is the representable `double` value immediately following 1.0. At 1.0, that spacing equals `Math.ulp(1.0)`.
 
-**Không nhầm `Double.MIN_VALUE` với epsilon cho mọi phép so**: `Double.MIN_VALUE` là số dương nhỏ nhất khác 0 biểu diễn được dưới dạng `double`, không phải “sai số máy chung” quanh các giá trị bất kỳ.
+**Do not confuse `Double.MIN_VALUE` with a universal epsilon**: `Double.MIN_VALUE` is the smallest positive non-zero value representable as a `double`, not a "general machine error" around arbitrary values.
 
-So sánh theo số ULP có thể hữu ích trong kiểm thử thuật toán dấu phẩy động, nhưng cần quy tắc riêng cho số âm, zero, subnormal, Infinity, NaN và độ lớn. Nó **không thay thế tự động** dung sai nghiệp vụ như 0,05 mm.
+Comparing by ULP count can be useful when testing floating-point algorithms, but requires separate rules for negative numbers, zero, subnormals, Infinity, NaN, and magnitude. It **does not automatically replace** business tolerances like 0.05 mm.
 
-## 9. `NaN`, Infinity và signed zero
+## 9. `NaN`, Infinity, and Signed Zero
 
 ### `NaN`
 
@@ -235,7 +235,7 @@ System.out.println(nan == nan);       // false
 System.out.println(Double.isNaN(nan)); // true
 ~~~
 
-`NaN` không bằng ngay cả chính nó dưới toán tử `==`. Do đó kiểm tra `Math.abs(a-b) <= tolerance` cũng không cung cấp một quy tắc gần bằng có ý nghĩa khi một toán hạng là NaN. Cần **quy định chính sách rõ ràng**: reject, trả false hoặc báo lỗi.
+`NaN` is not equal even to itself under `==`. Consequently, checking `Math.abs(a-b) <= tolerance` does not provide a meaningful closeness rule when an operand is NaN. You must **establish an explicit policy**: reject, return false, or throw an error.
 
 ### Infinity
 
@@ -244,23 +244,23 @@ System.out.println(Double.POSITIVE_INFINITY
         == Double.POSITIVE_INFINITY); // true
 ~~~
 
-Toán tử `==` cho true với cùng Infinity, nhưng hàm `nearlyEqualFinite` ở trên **trả false có chủ đích** vì chỉ so đại lượng hữu hạn. Không có một lựa chọn đúng chung: tùy hợp đồng phần mềm.
+The `==` operator returns true for matching Infinities, whereas `nearlyEqualFinite` above **intentionally returns false** because it only compares finite quantities. There is no single universal choice: it depends on the software contract.
 
-### Zero có dấu
+### Signed Zero
 
 ~~~java
 System.out.println(+0.0 == -0.0); // true
 ~~~
 
-`+0.0` và `-0.0` có thể khác biểu diễn bit và tạo nghịch đảo Infinity khác dấu, nhưng `==` xem là bằng nhau. Nếu nghiệp vụ cần phân biệt **dấu zero hoặc bit pattern**, dùng API chuyên biệt thay vì phép so gần bằng.
+`+0.0` and `-0.0` can have different bit representations and produce opposite-signed Infinity reciprocals, yet `==` treats them as equal. If business logic must distinguish **zero signs or bit patterns**, use a dedicated API instead of approximate comparison.
 
-**Chốt lại:** nên tách việc **kiểm tra dữ liệu đầu vào** (`Double.isFinite`) khỏi việc **so gần bằng**.
+**Takeaway:** separate **input validation** (`Double.isFinite`) from **approximate comparison**.
 
-## 10. Khi `float`/`double` không phải giải pháp đúng
+## 10. When `float`/`double` Is Not the Right Solution
 
-Dùng dung sai không phải cách hợp thức hóa một mô hình dữ liệu sai.
+Using a tolerance is not a way to legitimize an incorrect data model.
 
-**Tiền tệ:** Nếu phải cộng `0.1 + 0.2` chính xác theo thập phân, cân nhắc:
+**Currency:** If you must add `0.1 + 0.2` with exact decimal precision, consider:
 
 ~~~java
 java.math.BigDecimal amount =
@@ -270,13 +270,13 @@ java.math.BigDecimal amount =
 System.out.println(amount); // 0.3
 ~~~
 
-Tạo `BigDecimal` từ chuỗi decimal giúp giữ đúng giá trị nhập. Dùng `BigDecimal.compareTo` khi muốn so **giá trị số**, và xác định `scale`/`RoundingMode` cho phép chia hoặc nghiệp vụ tiền tệ.
+Constructing `BigDecimal` from a decimal string preserves the exact input value. Use `BigDecimal.compareTo` when comparing **numeric values**, and define `scale`/`RoundingMode` for division or monetary business rules.
 
-**ID / bộ đếm:** Giữ `long` hoặc `BigInteger`, không đổi sang `double` để “so gần bằng”: số nguyên lớn có thể mất độ chính xác khi chuyển thành floating-point.
+**IDs / counters:** Keep `long` or `BigInteger`, and do not convert to `double` for "approximate comparison": large integers can lose precision when converted to floating-point.
 
-**Giới hạn an toàn:** Với ràng buộc “nhiệt độ không được vượt 80 °C”, cần chính sách **so biên** rõ ràng, không tự thay bằng `nearlyEqual(temp, 80)` và coi mọi giá trị gần 80 là an toàn. Tolerance có thể hợp lý với cảm biến, nhưng phải gắn với độ bất định, cơ chế fail-safe và yêu cầu an toàn thực tế.
+**Safety limits:** For a constraint like "temperature must not exceed 80 °C", you need a clear **boundary comparison policy**, rather than replacing it with `nearlyEqual(temp, 80)` and treating every value near 80 as safe. Tolerance can make sense for sensor uncertainty, but must align with measurement uncertainty, fail-safe mechanisms, and real safety requirements.
 
-## 11. Tích lũy sai số và so sánh sau vòng lặp
+## 11. Error Accumulation and Post-Loop Comparison
 
 ~~~java
 double total = 0.0;
@@ -288,7 +288,7 @@ System.out.println(total);        // 0.9999999999999999
 System.out.println(total == 1.0); // false
 ~~~
 
-Mỗi phép cộng có thể làm tròn một lần. Kiểm thử chỉ dựa vào `total == 1.0` có thể thất bại dù thuật toán có sai số nằm trong giới hạn chấp nhận.
+Each addition can round once. Tests relying strictly on `total == 1.0` can fail even when the algorithm's error lies within acceptable bounds.
 
 ~~~java
 System.out.println(
@@ -296,29 +296,29 @@ System.out.println(
 ); // true
 ~~~
 
-Nhưng **không đặt tolerance quá rộng** chỉ để làm test xanh. Nếu thuật toán đáng lẽ trả kết quả chính xác (ví dụ xử lý số tiền theo cent), nên sửa **mô hình tính**. Với thuật toán số học, ngưỡng nên xuất phát từ **error budget** và dữ liệu đại diện.
+However, **do not widen tolerance excessively** just to make tests pass. If an algorithm is supposed to yield an exact result (such as handling monetary amounts in cents), fix the **computational model**. For numerical algorithms, thresholds should come from an **error budget** and representative data.
 
-## 12. Các lỗi thường gặp
+## 12. Common Mistakes
 
-| Lỗi/nhầm lẫn | Vì sao nguy hiểm? | Hướng xử lý |
+| Mistake / misconception | Why is it dangerous? | How to handle it |
 |---|---|---|
-| `0.1 + 0.2 == 0.3` luôn true | Binary64 làm tròn | Dung sai được đặc tả, hoặc decimal exact |
-| Luôn đặt epsilon `1e-9` | Đơn vị/miền số khác nhau | Chọn ngưỡng theo bài toán |
-| Dùng chỉ sai số tương đối gần zero | Ngưỡng tương đối tiến về 0 | Kết hợp ngưỡng tuyệt đối |
-| Dùng chỉ sai số tuyệt đối cho giá trị cực lớn | Có thể quá khắt khe | Xét relative tolerance |
-| Cho rằng `Double.MIN_VALUE` là epsilon phổ dụng | Đây là dương nhỏ nhất khác 0 | Xem `Math.ulp` và sai số được phép |
-| Không validate tolerance âm/NaN/Infinity | Điều kiện so trở nên vô nghĩa | Kiểm tra ngưỡng trước |
-| Coi NaN gần bằng NaN vì cùng trạng thái | Không phải số hữu hạn | Quy định chính sách NaN riêng |
-| Dùng `==` với Infinity và coi là số đo hợp lệ | Infinity không hữu hạn | `Double.isFinite` khi cần |
-| So đại lượng khác đơn vị | Kết luận sai dù code đúng cú pháp | Quy đổi về cùng đơn vị |
-| Chấp nhận lệch quá lớn vì `relTol` rộng | False positive | Dựa vào giới hạn nghiệp vụ |
-| Dùng tolerance cho tiền/ID nguyên | Che sai mô hình số | `long` theo đơn vị cố định hoặc `BigDecimal` |
-| Không test tại biên tolerance | Bug do `<` vs `<=`, rounding | Kiểm thử sát biên và miền cực trị |
-| Xem hàm mẫu là giải pháp tổng quát mọi `double` | Overflow/underflow trong `a-b` và phép nhân | Thuật toán chuyên biệt khi cần |
+| `0.1 + 0.2 == 0.3` is always true | Binary64 rounds | Specified tolerance, or exact decimal |
+| Always set epsilon to `1e-9` | Units and numeric domains vary | Choose threshold per problem |
+| Use only relative tolerance near zero | Relative threshold approaches 0 | Combine with an absolute threshold |
+| Use only absolute tolerance for huge values | Can be overly strict | Consider relative tolerance |
+| Assume `Double.MIN_VALUE` is a universal epsilon | It is the smallest positive non-zero double | Check `Math.ulp` and allowed error |
+| Skip validating negative/NaN/Infinity tolerances | Comparison condition becomes meaningless | Validate thresholds first |
+| Treat NaN as close to NaN because both are the same state | Not a finite number | Define an explicit NaN policy |
+| Use `==` with Infinity and treat as valid measurement | Infinity is not finite | Use `Double.isFinite` when needed |
+| Compare quantities in different units | Wrong conclusion despite valid syntax | Convert to the same unit |
+| Accept overly large deviations due to wide `relTol` | False positives | Ground thresholds in business limits |
+| Use tolerance for money or integer IDs | Masks wrong numeric model | `long` in fixed minor units or `BigDecimal` |
+| Fail to test at the tolerance boundary | Bugs from `<` vs `<=` and rounding | Test right at boundaries and extremes |
+| Treat the sample helper as universal for all `double`s | Overflow/underflow in `a-b` and multiplication | Specialized algorithm when required |
 
-## 13. Ví dụ Java 17 hoàn chỉnh, chạy độc lập
+## 13. Complete Standalone Java 17 Example
 
-Tạo file đúng tên **`FloatingPointToleranceDemo.java`**:
+Create a file named **`FloatingPointToleranceDemo.java`**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -407,7 +407,7 @@ public final class FloatingPointToleranceDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên. Đặt terminal tại thư mục có file. Không cần Maven, Gradle hay thư viện ngoài JDK.
+**Requirements:** JDK 17 or later. Open terminal in the directory containing the file. No Maven, Gradle, or external libraries beyond the JDK needed.
 
 **Bash (Linux/macOS):**
 
@@ -451,22 +451,22 @@ decimal compare=true
 bad tolerance=invalid tolerances
 ~~~
 
-### Cách đọc kết quả
+### How to Read the Output
 
-1. `computed` và `exact equality`: hai biểu thức thập phân gần nhau nhưng không có cùng biểu diễn binary64.
-2. `decimal near=true` nhưng `decimal too strict=false`: **chọn tolerance ảnh hưởng kết luận**; không có một ngưỡng đúng toàn cục.
-3. `near zero absolute=true` / `relative only=false`: ngưỡng tuyệt đối có vai trò đặc biệt quanh zero.
-4. `large relative=true` nhưng `large absolute only=false`: mức chênh 1 có thể nhỏ theo quy mô 1 tỷ.
-5. Hai dòng cảm biến minh họa việc đặt ngưỡng theo **mm**, không theo mặc định của ngôn ngữ.
-6. `Math.nextUp` và `Math.ulp` cho thấy các giá trị double biểu diễn được nằm cách nhau một khoảng hữu hạn.
-7. Cộng 0.1 lặp nhiều lần có thể tích lũy sai số; so gần bằng chấp nhận sai lệch theo quy định.
-8. `NaN` và Infinity không được hàm **finite-only** chấp nhận; signed zero thì được.
-9. `BigDecimal` từ chuỗi cho phép cộng decimal chính xác trong ví dụ.
-10. Tolerance âm bị từ chối để không âm thầm trả kết quả không có ý nghĩa.
+1. `computed` and `exact equality`: two nearby decimal expressions that do not share the same binary64 representation.
+2. `decimal near=true` yet `decimal too strict=false`: **choosing the tolerance affects the conclusion**; there is no single globally correct threshold.
+3. `near zero absolute=true` / `relative only=false`: absolute thresholds play a crucial role around zero.
+4. `large relative=true` yet `large absolute only=false`: a difference of 1 can be small at a scale of 1 billion.
+5. The two sensor lines demonstrate setting thresholds in **mm**, not language defaults.
+6. `Math.nextUp` and `Math.ulp` show that representable `double` values are spaced apart by a finite step.
+7. Repeatedly adding 0.1 can accumulate rounding error; approximate comparison accepts deviation within the defined rule.
+8. `NaN` and Infinity are rejected by the **finite-only** function; signed zeros are accepted.
+9. `BigDecimal` from strings allows exact decimal addition in the example.
+10. Negative tolerance is rejected so it does not silently return meaningless results.
 
-## 14. Bài tập có đáp án
+## 14. Exercises with Answers
 
-### Bài A — so gần bằng
+### Exercise A — Approximate Equality
 
 ~~~java
 double result = 0.1 + 0.2;
@@ -474,33 +474,33 @@ System.out.println(result == 0.3);
 System.out.println(nearlyEqualFinite(result, 0.3, 1e-12, 1e-12));
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 false
 true
 ~~~
 
-Hàm `nearlyEqualFinite` đã được định nghĩa ở trên. `==` so đúng giá trị nhị phân, còn hàm cho phép sai lệch nhỏ được khai báo.
+`nearlyEqualFinite` was defined above. `==` compares exact binary values, while the function allows a small declared deviation.
 
-### Bài B — gần 0
+### Exercise B — Near 0
 
-Hai kết quả `a = 5e-10`, `b = 0`. Nghiệp vụ chấp nhận sai lệch tối đa `1e-9` (cùng đơn vị).
+Two results `a = 5e-10`, `b = 0`. Business logic accepts a maximum deviation of `1e-9` (same units).
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 boolean accepted = nearlyEqualFinite(5e-10, 0.0, 1e-9, 0.0);
 System.out.println(accepted); // true
 ~~~
 
-Trong trường hợp này, sai số tuyệt đối mô tả đúng yêu cầu.
+In this case, absolute tolerance accurately expresses the requirement.
 
-### Bài C — giá trị lớn
+### Exercise C — Large Values
 
-Hai số lần lượt là `1_000_000_000` và `1_000_000_001`. Cho phép mức chênh tương đối `1e-8`.
+Two numbers are `1_000_000_000` and `1_000_000_001`. A relative difference of `1e-8` is allowed.
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 boolean accepted =
@@ -508,7 +508,7 @@ boolean accepted =
 System.out.println(accepted); // true
 ~~~
 
-### Bài D — dữ liệu NaN
+### Exercise D — NaN Data
 
 ~~~java
 double x = Double.NaN;
@@ -516,20 +516,20 @@ System.out.println(x == x);
 System.out.println(nearlyEqualFinite(x, x, 1e-3, 1e-3));
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 false
 false
 ~~~
 
-Hàm ở bài này có chính sách **không chấp nhận số không hữu hạn**.
+The function in this lesson has a policy of **rejecting non-finite numbers**.
 
-### Bài E — khi nào không nên dùng tolerance?
+### Exercise E — When Should Tolerance Not Be Used?
 
-Yêu cầu cộng giá tiền thập phân `0.1` và `0.2`, sau đó so với `0.3` chính xác.
+Requirement: add decimal monetary values `0.1` and `0.2`, then compare with `0.3` exactly.
 
-**Đáp án:** không nên “nới epsilon” để hợp thức hóa tiền; dùng số nguyên theo đơn vị nhỏ nhất khi thích hợp hoặc `BigDecimal` từ chuỗi:
+**Answer:** do not "loosen epsilon" to validate money; use integers in the smallest currency unit when appropriate or `BigDecimal` from strings:
 
 ~~~java
 BigDecimal sum = new BigDecimal("0.1")
@@ -537,26 +537,26 @@ BigDecimal sum = new BigDecimal("0.1")
 boolean exact = sum.compareTo(new BigDecimal("0.3")) == 0;
 ~~~
 
-### Bài F — thiết kế kiểm thử tại biên
+### Exercise F — Designing Boundary Tests
 
-Nếu dung sai cho phép là 0,05 mm, nên thử các giá trị nào?
+If the allowed tolerance is 0.05 mm, which values should be tested?
 
-**Đáp án:** ít nhất nên thử chênh lệch 0, chênh lệch nhỏ hơn ngưỡng, sát ngưỡng dưới/trên và lớn hơn ngưỡng; đồng thời kiểm tra số âm, zero và dữ liệu không hữu hạn theo chính sách. Do chính `0.05` không có biểu diễn nhị phân chính xác, nếu hợp đồng đòi biên decimal tuyệt đối chính xác, có thể cần mô hình decimal thay vì kỳ vọng bit của `double` luôn trùng biên toán học.
+**Answer:** at minimum test a difference of 0, a difference smaller than the threshold, values right below/above the boundary, and a difference larger than the threshold; also test negative numbers, zero, and non-finite data per policy. Since `0.05` itself has no exact binary representation, if the contract demands an exact decimal boundary, a decimal model may be needed instead of expecting `double` bits to align exactly with mathematical boundaries.
 
-## 15. Checklist và kết luận
+## 15. Checklist and Conclusion
 
-- [ ] Phân biệt phép `==` chính xác với so gần bằng theo yêu cầu.
-- [ ] Hiểu nguồn sai lệch của `float`/`double` là biểu diễn nhị phân hữu hạn và rounding.
-- [ ] Biết chọn **absolute tolerance** theo đơn vị/độ phân giải dữ liệu.
-- [ ] Biết chọn **relative tolerance** khi miền giá trị thay đổi theo quy mô.
-- [ ] Hiểu vì sao gần zero cần cân nhắc ngưỡng tuyệt đối.
-- [ ] Định nghĩa rõ **OR/AND** của hai ngưỡng theo chính sách chấp nhận sai số.
-- [ ] Không áp đặt một epsilon cho mọi bài toán.
-- [ ] Kiểm tra tính hữu hạn và tính hợp lệ của ngưỡng.
-- [ ] Phân biệt `Double.MIN_VALUE` với ULP/độ phân giải.
-- [ ] Hiểu `NaN`, Infinity và signed zero cần chính sách tường minh.
-- [ ] Không dùng tolerance để so tiền, ID hoặc dữ liệu đòi tính chính xác tuyệt đối.
-- [ ] Biết phép trừ `a-b` cũng có rủi ro rounding/overflow ở cực trị.
-- [ ] Chạy `FloatingPointToleranceDemo.java` bằng `javac`/`java` trên Java 17+ và đối chiếu exact stdout.
+- [ ] Distinguish exact `==` from requirement-based approximate comparison.
+- [ ] Understand that the source of `float`/`double` discrepancies is finite binary representation and rounding.
+- [ ] Know how to choose **absolute tolerance** based on units/data resolution.
+- [ ] Know how to choose **relative tolerance** when the value range varies in scale.
+- [ ] Understand why near-zero values require an absolute threshold.
+- [ ] Explicitly define **OR/AND** for the two thresholds according to the error-acceptance policy.
+- [ ] Never impose a single epsilon across every problem.
+- [ ] Validate finiteness and validity of thresholds.
+- [ ] Distinguish `Double.MIN_VALUE` from ULP/resolution.
+- [ ] Understand that `NaN`, Infinity, and signed zeros require explicit policies.
+- [ ] Never use tolerance to compare currency, IDs, or data requiring absolute precision.
+- [ ] Know that subtraction `a-b` also carries rounding/overflow risks at extremes.
+- [ ] Run `FloatingPointToleranceDemo.java` with `javac`/`java` on Java 17+ and verify exact stdout.
 
-**Kết luận:** So sánh số thực “đủ gần” không bắt đầu từ `1e-9`, mà bắt đầu từ câu hỏi **“mức lệch nào là chấp nhận được, tính bằng đơn vị gì, ở quy mô nào?”**. Dựa trên câu trả lời, hãy chọn sai số tuyệt đối, tương đối hoặc kết hợp chúng, kiểm soát `NaN`/Infinity và kiểm thử trường hợp biên. Nếu yêu cầu là chính xác thập phân hoặc số nguyên, hãy chọn **mô hình dữ liệu chính xác** thay vì dùng dung sai để che lỗi.
+**Conclusion:** Floating-point "close enough" comparison does not start from `1e-9`; it starts from the question **"what deviation is acceptable, in what units, and at what scale?"**. Based on the answer, choose absolute tolerance, relative tolerance, or a combination of both, handle `NaN`/Infinity explicitly, and test boundary cases. If the requirement is exact decimal or integer precision, choose an **exact data model** instead of using tolerance to mask errors.

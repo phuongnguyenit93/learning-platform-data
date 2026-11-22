@@ -1,62 +1,62 @@
-# Module patching và rủi ro production
+# Module Patching and Production Risks
 
-## 1. Module patching trong JPMS là gì?
+## 1. What Is Module Patching in JPMS?
 
-Java Platform Module System (JPMS) tổ chức class và resource theo module có tên. Khi một named module được resolve và nạp, các class của module đó thuộc về module và class loader tương ứng. Trong một số tình huống cần thay thế hoặc bổ sung class/resource của module mà không sửa trực tiếp JAR gốc, Java cung cấp tùy chọn **--patch-module**.
+The Java Platform Module System (JPMS) organizes classes and resources into named modules. When a named module is resolved and loaded, its classes belong to the corresponding module and class loader. In some situations where you need to replace or add classes/resources of a module without modifying the original JAR directly, Java provides the **--patch-module** option.
 
-\`--patch-module\` cho phép thêm một hoặc nhiều thư mục/JAR vào nội dung của một module đã tồn tại. Khi class hoặc resource cùng đường dẫn xuất hiện cả trong patch path và module gốc, nội dung trên patch path được tìm trước. Vì vậy, patch có thể ghi đè class/resource cùng tên hoặc bổ sung class/resource mới vào module.
+`--patch-module` allows adding one or more directories/JARs to the contents of an existing module. When a class or resource with the same path appears in both the patch path and the original module, the content on the patch path is found first. Therefore, a patch can override a class/resource with the same name or add new classes/resources into a module.
 
-Cú pháp tổng quát:
+General syntax:
 
 ~~~text
 --patch-module module=patch-path
 ~~~
 
-Trong đó:
+Where:
 
-- \`module\` là tên named module cần patch, ví dụ \`com.acme.core\` hoặc \`java.base\`.
-- \`patch-path\` là một hoặc nhiều thư mục/JAR chứa class và resource cần bổ sung.
-- Nhiều entry được nối bằng path separator của hệ điều hành: \`:\` trên Linux/macOS và \`;\` trên Windows.
+- `module` is the name of the named module to patch, e.g., `com.acme.core` or `java.base`.
+- `patch-path` is one or more directories/JARs containing classes and resources to add.
+- Multiple entries are joined using the OS path separator: `:` on Linux/macOS and `;` on Windows.
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --patch-module=com.acme.core=patches/com.acme.core ...
 ~~~
 
-Tùy chọn này có thể xuất hiện trong môi trường compile hoặc lúc khởi chạy JVM. Hai nơi có vai trò khác nhau và cần được cấu hình nhất quán.
+This option can appear in the compile environment or when launching the JVM. The two places serve different roles and must be configured consistently.
 
-## 2. Patch module khác gì thay JAR hoặc sửa module descriptor?
+## 2. How Does Patching a Module Differ from Replacing a JAR or Editing a Module Descriptor?
 
-Module patching tác động tới nội dung class/resource được nạp cho một module trong lần chạy JVM đó. Nó không tự sửa JAR gốc trên đĩa, không tạo một bản phát hành mới và không thay thế module descriptor.
+Module patching affects the class/resource contents loaded for a module during that JVM run. It does not modify the original JAR on disk, does not create a new release, and does not replace the module descriptor.
 
-Một số điểm cần phân biệt:
+Several distinctions to make:
 
-- **Thay JAR:** thay artifact gốc bằng một artifact khác trong module path. Đây thường là cách phát hành phiên bản sửa lỗi chính thức.
-- **--patch-module:** giữ artifact gốc trong module path, đồng thời bổ sung nội dung patch được ưu tiên tìm trước nội dung module.
-- **--add-exports:** bổ sung quyền truy cập public types của package cho module đích.
-- **--add-opens:** mở package cho deep reflection tại runtime.
-- **Java agent/instrumentation:** có cơ chế riêng để biến đổi hoặc redefine class trong JVM đang chạy, với các giới hạn của Instrumentation API.
+- **Replacing the JAR:** replaces the original artifact with another artifact on the module path. This is usually the official way to release a bugfix version.
+- **--patch-module:** keeps the original artifact on the module path while adding patch content that is searched before the module's own content.
+- **--add-exports:** adds access to public types of a package for target modules.
+- **--add-opens:** opens a package for deep reflection at runtime.
+- **Java agent/instrumentation:** has a separate mechanism to transform or redefine classes in a running JVM, within the limits of the Instrumentation API.
 
-\`--patch-module\` không phải cơ chế hot patch một process đang hoạt động. Patch path được áp dụng khi JVM khởi động và module được thiết lập; thay đổi file trên đĩa sau khi class đã được nạp không làm class trong bộ nhớ tự thay đổi.
+`--patch-module` is not a mechanism to hot-patch an already running process. The patch path is applied when the JVM starts up and modules are set up; modifying files on disk after a class has been loaded does not cause the in-memory class to change automatically.
 
-Module descriptor vẫn là descriptor của module gốc. Patch không tự thêm chỉ thị \`requires\`, \`exports\`, \`opens\`, \`uses\` hoặc \`provides\`. Nếu patch bổ sung một package mới, package đó thuộc nội dung module khi được nạp, nhưng không tự động trở thành package được export cho module khác. Nếu cần quyền truy cập module, phải xử lý riêng bằng descriptor phù hợp hoặc tùy chọn access tương ứng.
+The module descriptor remains the original module's descriptor. Patching does not automatically add `requires`, `exports`, `opens`, `uses`, or `provides` directives. If a patch adds a new package, that package becomes part of the module's contents when loaded, yet it does not automatically become exported to other modules. If module access rights are needed, they must be handled separately via an appropriate descriptor or corresponding access options.
 
-## 3. Khi nào nên dùng module patching?
+## 3. When Should Module Patching Be Used?
 
-Một số trường hợp có thể cân nhắc:
+Some scenarios to consider:
 
-1. **Kiểm thử module:** thêm test class vào chính module đang kiểm thử để test có thể truy cập package-private API theo cùng module boundary.
-2. **Kiểm thử JDK hoặc framework:** thay một class/resource trong module để tái hiện lỗi, kiểm tra hành vi hoặc xác minh bản sửa trước khi có artifact chính thức.
-3. **Tương thích tạm thời:** áp dụng một bản sửa nhỏ trong môi trường kiểm soát khi chưa thể phát hành ngay dependency mới.
-4. **Bổ sung resource:** cung cấp resource được module tìm qua module/class loader, ví dụ dữ liệu kiểm thử hoặc cấu hình phục vụ một lần chạy đặc biệt.
-5. **Điều tra sự cố:** thử một implementation thay thế để xác định lỗi có nằm trong một class cụ thể hay không.
+1. **Module testing:** adding test classes to the exact module under test so tests can access package-private APIs within the same module boundary.
+2. **Testing JDK or frameworks:** replacing a class/resource in a module to reproduce a bug, inspect behavior, or verify a fix before an official artifact is available.
+3. **Temporary compatibility:** applying a small fix in a controlled environment when a new dependency cannot be released immediately.
+4. **Adding resources:** supplying resources looked up by a module via module/class loader, such as test data or configuration for a specific run.
+5. **Incident investigation:** trying an alternative implementation to determine whether a bug lies within a specific class.
 
-Với production, patching chỉ nên là ngoại lệ có chủ sở hữu, thời hạn và kế hoạch loại bỏ rõ ràng. Nếu đã xác nhận bản sửa là cần thiết lâu dài, nên cập nhật source và phát hành lại module/JAR chính thức. Việc giữ một patch riêng bên ngoài artifact làm tăng số thành phần phải kiểm soát và có thể khiến môi trường chạy không còn tái lập được từ dependency declaration thông thường.
+For production, patching should only be an exception with a clear owner, deadline, and removal plan. Once a fix is confirmed necessary long-term, update the source and re-release the official module/JAR. Keeping a separate patch outside the artifact increases the number of components to control and can make the runtime environment non-reproducible from normal dependency declarations.
 
-## 4. Patch class và resource
+## 4. Patching Classes and Resources
 
-Giả sử module \`com.acme.core\` chứa:
+Suppose module `com.acme.core` contains:
 
 ~~~text
 com.acme.core.jar
@@ -66,7 +66,7 @@ com.acme.core.jar
   com/acme/core/messages.properties
 ~~~
 
-Ta muốn thay \`Parser.class\` và resource \`messages.properties\`. Patch directory có cấu trúc tương ứng:
+We want to replace `Parser.class` and the `messages.properties` resource. The patch directory has a matching structure:
 
 ~~~text
 patches/com.acme.core/
@@ -74,7 +74,7 @@ patches/com.acme.core/
   com/acme/core/messages.properties
 ~~~
 
-Khi khởi chạy:
+When launching:
 
 ~~~bash
 java \
@@ -83,11 +83,11 @@ java \
   --module com.acme.app/com.acme.app.Main
 ~~~
 
-JVM tìm class/resource trên patch path trước nội dung gốc của module. Nếu patch có \`com/acme/core/Parser.class\`, class đó được dùng thay cho class cùng tên trong module gốc. Nếu patch có resource mới mà module gốc không chứa, module có thể truy cập resource đó qua cơ chế resource lookup thích hợp.
+The JVM looks up classes/resources on the patch path before the original module's contents. If the patch contains `com/acme/core/Parser.class`, that class is used instead of the class of the same name in the original module. If the patch contains a new resource not present in the original module, the module can access that resource via the appropriate resource lookup mechanism.
 
-Cần giữ đúng package path và tên resource. Tên class Java phân biệt chữ hoa/chữ thường trên nhiều filesystem. Patch directory phải là root của cây package; không đặt thêm một tầng thư mục tùy ý khiến đường dẫn entry không còn khớp với tên class/resource.
+Preserve exact package paths and resource names. Java class names are case-sensitive on many filesystems. The patch directory must be the root of the package tree; do not add an arbitrary extra folder level that causes entry paths to no longer match class/resource names.
 
-Một patch JAR cũng có thể được dùng:
+A patch JAR can also be used:
 
 ~~~bash
 java \
@@ -96,13 +96,13 @@ java \
   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Khi có nhiều patch entry, nối chúng bằng path separator của hệ điều hành. Hãy giữ danh sách entry ngắn và rõ thứ tự để người vận hành có thể xác định chính xác nguồn class đang được nạp.
+When there are multiple patch entries, join them with the OS path separator. Keep the entry list short and clearly ordered so operators can determine the exact source of loaded classes.
 
-## 5. Dùng --patch-module khi compile
+## 5. Using `--patch-module` When Compiling
 
-Compiler cũng hỗ trợ \`--patch-module\`. Cách này hữu ích khi biên dịch source cần được xem như một phần của module đã tồn tại, chẳng hạn test code cần truy cập package-private members hoặc source thay thế cho một class trong module.
+The compiler also supports `--patch-module`. This is useful when compiling sources that need to be treated as part of an existing module, such as test code needing access to package-private members or replacement source for a class in the module.
 
-Ví dụ module chính đã được biên dịch nằm trong \`mods\`, còn source patch nằm trong \`src/patches/com.acme.core\`:
+For example, the compiled main module is in `mods`, while patch source is in `src/patches/com.acme.core`:
 
 ~~~bash
 mkdir -p build/patches/com.acme.core
@@ -114,7 +114,7 @@ javac \
   src/patches/com.acme.core/com/acme/core/Parser.java
 ~~~
 
-Kết quả là class đã biên dịch nằm trong patch output. Khi chạy ứng dụng, phải truyền đúng output đó cho JVM:
+The resulting compiled class resides in the patch output. When running the application, pass that exact output to the JVM:
 
 ~~~bash
 java \
@@ -123,15 +123,15 @@ java \
   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Nếu chỉ dùng patch khi compile mà không dùng patch tương ứng khi runtime, compiler và JVM có thể nhìn thấy hai implementation khác nhau. Ngược lại, chỉ patch runtime mà không compile/test với đúng source và API tương ứng có thể dẫn tới lỗi linkage hoặc hành vi không mong đợi.
+If you only use a patch at compile time without the corresponding patch at runtime, the compiler and JVM may see two different implementations. Conversely, patching only at runtime without compiling/testing against the corresponding source and API can cause linkage errors or unexpected behavior.
 
-Khi patch một module JDK hoặc chạy test cần truy cập package nội bộ, có thể cần các tùy chọn access bổ sung tùy mục tiêu compile. \`--patch-module\` không tự export package hoặc mở package cho reflection.
+When patching a JDK module or running tests needing access to internal packages, additional access options may be required depending on the compilation target. `--patch-module` does not automatically export packages or open packages for reflection.
 
-## 6. Module patching trong unit test
+## 6. Module Patching in Unit Tests
 
-Một ứng dụng modular thường muốn test class nằm trong cùng module với code cần kiểm thử. Điều này cho phép test gọi package-private method hoặc truy cập package-private type mà không phải biến implementation thành public API chỉ để phục vụ test.
+A modular application often wants test classes to reside in the same module as the code under test. This allows tests to call package-private methods or access package-private types without turning implementations into public APIs solely for testing.
 
-Ví dụ source tree:
+Example source tree:
 
 ~~~text
 src/main/java/
@@ -142,7 +142,7 @@ src/test/java/
   com/acme/core/ParserTest.java
 ~~~
 
-Nếu test được biên dịch như patch của module \`com.acme.core\`, nó có thể tham gia cùng module boundary với code chính. Một lệnh minh họa:
+If tests are compiled as a patch of module `com.acme.core`, they can participate in the same module boundary as the main code. Illustrative command:
 
 ~~~bash
 javac \
@@ -152,9 +152,9 @@ javac \
   src/test/java/com/acme/core/ParserTest.java
 ~~~
 
-Cấu hình test thực tế còn phụ thuộc framework test, module chứa JUnit và cách build tool tạo test runtime. Có thể cần thêm readability hoặc access options để module được patch đọc module test framework. Không nên thêm \`opens\` hoặc \`--add-opens\` rộng nếu test chỉ cần gọi package-private API trong cùng module.
+Actual test configuration also depends on the test framework, the module containing JUnit, and how the build tool constructs the test runtime. Additional readability or access options may be needed so the patched module can read the test framework module. Do not add broad `opens` or `--add-opens` if tests only need to call package-private APIs within the same module.
 
-Khi chạy test, phải đưa patch output vào JVM:
+When running tests, pass the patch output to the JVM:
 
 ~~~bash
 java \
@@ -163,13 +163,13 @@ java \
   ...
 ~~~
 
-Với Gradle hoặc Maven, kiểm tra command line compiler và test JVM mà build tool thực sự tạo ra. Đừng giả định một cấu hình compiler argument sẽ tự được chuyển sang test runtime.
+With Gradle or Maven, inspect the compiler command line and test JVM that the build tool actually generates. Do not assume a compiler argument configuration is automatically forwarded to the test runtime.
 
-## 7. Patch module JDK
+## 7. Patching JDK Modules
 
-Có thể gặp các ví dụ patch module nền tảng, chẳng hạn \`java.base\`, trong kiểm thử JDK hoặc điều tra một lỗi phụ thuộc vào implementation detail của runtime.
+You may encounter examples of patching platform modules, such as `java.base`, during JDK testing or when investigating a bug dependent on runtime implementation details.
 
-Ví dụ hình thức:
+Formal example:
 
 ~~~bash
 java \
@@ -177,85 +177,85 @@ java \
   -jar diagnostic-tool.jar
 ~~~
 
-Đây là thao tác có rủi ro cao hơn patch một module ứng dụng:
+This carries higher risk than patching an application module:
 
-- Module nền tảng được nhiều thành phần JVM và thư viện dùng chung.
-- Một class thay thế có thể ảnh hưởng tới nhiều subsystem không liên quan trực tiếp đến ứng dụng đang điều tra.
-- Implementation detail có thể thay đổi giữa JDK vendor, bản cập nhật và phiên bản Java.
-- Một class patch không tương thích có thể làm JVM hoặc công cụ nền tảng lỗi trước khi ứng dụng khởi động.
-- Patch có thể làm sai lệch hành vi mà các công cụ giám sát hoặc kiểm tra bảo mật mong đợi.
+- Platform modules are shared by many JVM components and libraries.
+- A replacement class can affect multiple subsystems not directly related to the application being investigated.
+- Implementation details can change across JDK vendors, patch updates, and Java versions.
+- An incompatible patched class can cause the JVM or platform tools to fail before the application starts.
+- Patching can alter behavior expected by monitoring tools or security checks.
 
-Chỉ thử nghiệm với JDK cụ thể, trong môi trường cô lập và có thể dựng lại. Không lấy patch dành cho một bản JDK rồi triển khai sang bản cập nhật hoặc vendor khác mà không build và kiểm thử lại.
+Test only against a specific JDK, in an isolated and reproducible environment. Do not take a patch built for one JDK release and deploy it onto another update or vendor without rebuilding and retesting.
 
-## 8. Rủi ro production khi patch module
+## 8. Production Risks When Patching Modules
 
-### 8.1. Ghi đè implementation ngoài quy trình phát hành
+### 8.1. Overriding Implementations Outside the Release Process
 
-Patch class cùng tên có thể thay implementation trong module gốc. Người vận hành nhìn thấy JAR/version gốc vẫn đúng, nhưng code thực sự chạy đến từ patch path.
+Patching a class with the same name can replace the implementation in the original module. Operators see the original JAR/version looking correct, while the code actually running comes from the patch path.
 
-Nếu patch không được quản lý như artifact phát hành, quá trình điều tra có thể khó xác định vì sao hai instance cùng version lại có hành vi khác nhau.
+If patches are not managed like release artifacts, incident investigations may struggle to determine why two instances on the same version behave differently.
 
-### 8.2. Lỗi tương thích nhị phân
+### 8.2. Binary Compatibility Errors
 
-Class patch có thể được compile dựa trên một API khác với API runtime. Những khác biệt về method, field, constructor, modifier hoặc hierarchy có thể gây:
+A patched class may be compiled against a different API than the runtime API. Differences in methods, fields, constructors, modifiers, or hierarchy can cause:
 
-- \`NoSuchMethodError\`
-- \`NoSuchFieldError\`
-- \`AbstractMethodError\`
-- \`IncompatibleClassChangeError\`
-- \`VerifyError\`
-- \`ClassCastException\`
-- \`NoClassDefFoundError\`
+- `NoSuchMethodError`
+- `NoSuchFieldError`
+- `AbstractMethodError`
+- `IncompatibleClassChangeError`
+- `VerifyError`
+- `ClassCastException`
+- `NoClassDefFoundError`
 
-Không phải mọi lỗi đều xuất hiện ngay lúc startup. Một nhánh code ít dùng có thể chỉ thất bại khi production nhận một request hoặc tải một plugin cụ thể.
+Not every error surfaces immediately at startup. A rarely executed code branch might only fail when production receives a specific request or loads a particular plugin.
 
-### 8.3. Thay đổi hành vi security
+### 8.3. Altering Security Behavior
 
-Một class trong module có thể thực hiện xác thực, kiểm tra quyền, parsing input, kiểm tra certificate hoặc quản lý tài nguyên. Patch sai hoặc không được review có thể bỏ qua validation, làm thay đổi trust boundary hoặc mở rộng khả năng truy cập.
+A class in a module may perform authentication, permission checks, input parsing, certificate validation, or resource management. An incorrect or unreviewed patch can bypass validation, alter trust boundaries, or expand accessibility.
 
-Vì vậy, patch artifact cần cùng quy trình review, kiểm soát nguồn và kiểm tra bảo mật như code chính. Không lấy patch từ một nguồn không xác minh và không cho phép người dùng không tin cậy ghi vào patch directory.
+Therefore, patch artifacts require the same review, source control, and security checks as main code. Do not obtain patches from unverified sources and do not allow untrusted users to write to the patch directory.
 
-### 8.4. Sai lệch module boundary
+### 8.4. Module Boundary Mismatches
 
-Patch không thay thế module descriptor. Nó không tự tạo dependency, export hoặc opens cần thiết. Một patch có thể thêm class vào package nhưng caller ở module khác vẫn không truy cập được nếu package chưa export; reflection vẫn bị chặn nếu package chưa mở.
+A patch does not replace the module descriptor. It does not automatically create necessary dependencies, `exports`, or `opens`. A patch can add a class to a package, yet callers in other modules still cannot access it if the package is not exported; reflection remains blocked if the package is not opened.
 
-Cố thêm nhiều flag \`--add-exports\` hoặc \`--add-opens\` để làm patch chạy được có thể che giấu một thay đổi kiến trúc rộng hơn. Hãy xác định chính xác module/package/target cần quyền và giới hạn quyền ở mức nhỏ nhất.
+Trying to add many `--add-exports` or `--add-opens` flags just to make a patch run can mask a broader architectural change. Identify the exact module/package/target needing access and limit permissions to the minimum.
 
-### 8.5. Khó tái lập và rollback
+### 8.5. Difficulty Reproducing and Rolling Back
 
-Nếu patch được mount từ volume hoặc copy thủ công vào container, hai instance có thể chạy patch khác nhau dù cùng image tag. Nếu patch path được lưu trong biến môi trường hoặc script bên ngoài, cấu hình đó có thể bị bỏ sót trong quy trình phát hành.
+If a patch is mounted from a volume or manually copied into a container, two instances can run different patches despite having the same image tag. If the patch path is stored in an external environment variable or script, that configuration can be missed in the release process.
 
-Rollback cũng cần khôi phục đồng thời:
-- JAR/module gốc.
-- Patch directory/JAR và thứ tự patch path.
+Rollback must also simultaneously restore:
+- The original JAR/module.
+- The patch directory/JAR and patch path order.
 - JVM flags.
-- Cấu hình container hoặc service.
-- Bản ghi version/hash của patch.
+- Container or service configuration.
+- Patch version/hash records.
 
-Chỉ rollback JAR gốc mà quên patch path có thể không khôi phục hành vi ban đầu.
+Rolling back only the original JAR while forgetting the patch path may fail to restore original behavior.
 
-## 9. Kiểm soát patch trước khi triển khai
+## 9. Controlling Patches Before Deployment
 
-Nếu buộc phải dùng patch trong production, hãy coi patch là một artifact độc lập có version và provenance.
+If you must use a patch in production, treat the patch as an independent artifact with versioning and provenance.
 
-Một quy trình kiểm soát nên có:
+A governance process should include:
 
-1. **Lý do rõ ràng:** ghi lại lỗi hoặc yêu cầu tương thích mà patch giải quyết.
-2. **Source có quản lý:** lưu patch source trong repository hoặc hệ thống artifact được kiểm soát.
-3. **Build tái lập:** compile với đúng JDK, module graph và compiler options.
-4. **Hash artifact:** ghi SHA-256 của patch JAR hoặc manifest của patch directory.
-5. **Compatibility check:** xác nhận patch được compile với đúng version module gốc và chạy trên đúng JDK vendor/update.
-6. **Automated tests:** chạy unit, integration và regression tests trên đúng runtime image có patch.
-7. **Security review:** review thay đổi ở authentication, authorization, parsing, serialization, cryptography và các API nhạy cảm.
-8. **Deployment traceability:** ghi nhận patch version/hash và JVM flags trong metadata triển khai.
-9. **Rollback plan:** chuẩn bị image/configuration trước patch và cách khôi phục có thể thực hiện.
-10. **Expiry/removal:** đặt điều kiện hoặc thời hạn để thay patch bằng bản sửa chính thức.
+1. **Clear justification:** document the bug or compatibility requirement the patch resolves.
+2. **Controlled source:** store patch source in a controlled repository or artifact system.
+3. **Reproducible build:** compile with the exact JDK, module graph, and compiler options.
+4. **Artifact hash:** record the SHA-256 of the patch JAR or a manifest of the patch directory.
+5. **Compatibility check:** confirm the patch was compiled against the exact original module version and runs on the exact JDK vendor/update.
+6. **Automated tests:** run unit, integration, and regression tests on the exact runtime image containing the patch.
+7. **Security review:** review changes to authentication, authorization, parsing, serialization, cryptography, and sensitive APIs.
+8. **Deployment traceability:** record patch version/hash and JVM flags in deployment metadata.
+9. **Rollback plan:** prepare the pre-patch image/configuration and a verifiable restoration procedure.
+10. **Expiry/removal:** set conditions or a deadline to replace the patch with an official fix.
 
-Patch path nên nằm trong image bất biến hoặc artifact được version hóa. Tránh mount một thư mục có thể bị thay đổi âm thầm sau khi container đã được triển khai.
+The patch path should reside inside an immutable image or versioned artifact. Avoid mounting a directory that can be silently modified after a container has been deployed.
 
-## 10. Kiểm tra patch đang được áp dụng
+## 10. Inspecting Applied Patches
 
-Khi một process có kết quả khác thường, hãy kiểm tra command line khởi chạy và cấu hình môi trường của đúng JVM process. Tìm các tùy chọn:
+When a process exhibits unusual results, inspect the launch command line and environment configuration of that exact JVM process. Look for options:
 
 ~~~text
 --patch-module
@@ -264,31 +264,31 @@ Khi một process có kết quả khác thường, hãy kiểm tra command line 
 --add-reads
 ~~~
 
-Kiểm tra patch directory/JAR:
+Inspect the patch directory/JAR:
 
 ~~~bash
 jar --list --file patches/core-fix.jar
 sha256sum patches/core-fix.jar
 ~~~
 
-Trên Windows, có thể dùng:
+On Windows, you can use:
 
 ~~~powershell
 jar --list --file patches/core-fix.jar
 Get-FileHash patches/core-fix.jar -Algorithm SHA256
 ~~~
 
-Đối chiếu danh sách class/resource trong patch với module gốc. Nếu patch thay class, xác nhận fully qualified class name và package. Nếu patch thêm resource, kiểm tra đúng đường dẫn và cách code tìm resource.
+Compare the list of classes/resources in the patch with the original module. If the patch replaces a class, verify the fully qualified class name and package. If the patch adds a resource, verify the exact path and how code looks up the resource.
 
-Có thể kiểm tra descriptor của module gốc:
+You can inspect the original module's descriptor:
 
 ~~~bash
 jar --describe-module --file mods/com.acme.core.jar
 ~~~
 
-Descriptor cho biết cấu trúc module gốc; nó không phải danh sách đầy đủ nội dung patch đang được áp dụng tại runtime. Vì vậy, cần kiểm tra cả module artifact, patch artifact và JVM command line.
+The descriptor shows the original module's structure; it is not a complete list of patched contents applied at runtime. Therefore, inspect the module artifact, patch artifact, and JVM command line together.
 
-Nếu cần xác minh class thực tế được nạp từ đâu, có thể bật class loading log:
+If you need to verify where a class is actually loaded from, you can enable class loading logs:
 
 ~~~bash
 java -Xlog:class+load=info \
@@ -297,43 +297,42 @@ java -Xlog:class+load=info \
   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Log class loading giúp xác định class được nạp trong lần chạy đó và nguồn location mà JVM báo cáo. Hãy dùng log trong môi trường kiểm thử hoặc điều tra có kiểm soát; output có thể lớn và có thể chứa đường dẫn filesystem nội bộ.
+Class loading logs help identify which classes were loaded during that run and the source location reported by the JVM. Use logging in a controlled test or investigation environment; output can be large and may contain internal filesystem paths.
 
-## 11. Những cơ chế không nên nhầm với module patching
+## 11. Mechanisms Not to Confuse with Module Patching
 
-| Cơ chế | Tác động | Khi phù hợp |
+| Mechanism | Effect | When Appropriate |
 | --- | --- | --- |
-| \`--patch-module\` | Thêm/ghi đè class và resource của named module khi JVM/compiler thiết lập module | Test hoặc patch module có kiểm soát. |
-| \`--upgrade-module-path\` | Ưu tiên module thay thế để nâng cấp module có cùng tên theo cơ chế module resolution | Phân phối module thay thế hoàn chỉnh theo thiết kế nâng cấp. |
-| \`--add-exports\` | Bổ sung public package access | Caller cần tham chiếu public type trong package chưa export. |
-| \`--add-opens\` | Bổ sung deep reflection access | Framework cần reflection vào package chưa mở. |
-| Java agent | Instrument/redefine class theo Instrumentation API | Giám sát hoặc biến đổi class trong JVM đang chạy, trong giới hạn API. |
-| Thay JAR và phát hành lại | Thay artifact module chính thức | Bản sửa lâu dài, có version và provenance rõ ràng. |
+| `--patch-module` | Adds/overrides classes and resources of a named module when JVM/compiler sets up the module | Testing or controlled module patching. |
+| `--upgrade-module-path` | Prioritizes a replacement module to upgrade a same-named module via module resolution | Distributing a complete replacement module per upgrade design. |
+| `--add-exports` | Adds public package access | Callers need to reference public types in an unexported package. |
+| `--add-opens` | Adds deep reflection access | Frameworks need reflection into an unopened package. |
+| Java agent | Instruments/redefines classes via the Instrumentation API | Monitoring or transforming classes in a running JVM, within API limits. |
+| Replace JAR and re-release | Replaces the official module artifact | Long-term fix with clear version and provenance. |
 
-Nếu mục tiêu là thay thế toàn bộ module bằng phiên bản mới, hãy xem xét \`--upgrade-module-path\` hoặc cập nhật dependency/artifact. \`--patch-module\` thường phù hợp hơn với phần bổ sung/ghi đè có phạm vi hẹp, đặc biệt trong kiểm thử.
+If the goal is to replace an entire module with a new version, consider `--upgrade-module-path` or updating dependencies/artifacts. `--patch-module` is typically better suited for narrowly scoped additions/overrides, especially in testing.
 
-## 12. Quy trình chẩn đoán và quyết định production
+## 12. Diagnostic and Production Decision Workflow
 
-Khi một bản patch được đề xuất cho môi trường production, thực hiện theo thứ tự:
+When a patch is proposed for a production environment, proceed in order:
 
-1. Xác định module và class/resource cần thay đổi; ghi nhận fully qualified name.
-2. Xác nhận lỗi không thể giải quyết bằng nâng cấp dependency hoặc sửa source chính thức.
-3. Kiểm tra patch có thay class đang tồn tại hay chỉ bổ sung class/resource.
-4. Compile patch với đúng JDK và đúng module version; kiểm tra compiler/module options.
-5. Chạy test với cả patch ở compile time và runtime để bảo đảm hai môi trường nhìn cùng nội dung.
-6. Chạy integration test trên đúng runtime image/container dự kiến triển khai.
-7. Kiểm tra module resolution, service provider, reflection và các luồng code liên quan.
-8. Đánh giá rủi ro security, binary compatibility, startup và hiệu năng.
-9. Đóng gói patch cùng image bất biến, ghi hash và JVM flags.
-10. Thử rollback bằng đúng quy trình vận hành trước khi triển khai rộng.
-11. Theo dõi lỗi linkage, startup, request failure và log class loading sau triển khai.
-12. Loại bỏ patch khi bản sửa chính thức đã được phát hành và kiểm thử.
+1. Identify the module and class/resource needing change; record the fully qualified name.
+2. Confirm the issue cannot be resolved by upgrading a dependency or fixing official source.
+3. Check whether the patch replaces an existing class or only adds classes/resources.
+4. Compile the patch with the exact JDK and exact module version; verify compiler/module options.
+5. Run tests with the patch at both compile time and runtime so both environments see identical contents.
+6. Run integration tests on the exact runtime image/container planned for deployment.
+7. Verify module resolution, service providers, reflection, and relevant code paths.
+8. Evaluate security risks, binary compatibility, startup, and performance.
+9. Package the patch with an immutable image, recording hashes and JVM flags.
+10. Test rollback using the exact operational procedure before broad rollout.
+11. Monitor linkage errors, startup, request failures, and class loading logs after deployment.
+12. Remove the patch once the official fix has been released and tested.
 
-Không nên dùng module patching để che lỗi split package, thiếu dependency hoặc module descriptor sai. Patching không phải công cụ sửa mọi lỗi JPMS; nó chỉ thay đổi nội dung class/resource mà module nhận được. Khi vấn đề nằm ở package ownership, readability, exports hoặc opens, hãy sửa đúng phần cấu trúc/access tương ứng.
+Do not use module patching to mask split package errors, missing dependencies, or broken module descriptors. Patching is not a tool to fix every JPMS error; it only alters the classes/resources a module receives. When the issue lies in package ownership, readability, `exports`, or `opens`, fix the corresponding structure/access directly.
 
-## 13. Nguyên tắc sử dụng an toàn
+## 13. Principles for Safe Usage
 
-Module patching rất hữu ích trong kiểm thử và điều tra, nhưng nó tạo ra một lớp nội dung chạy ngoài artifact module chính. Trong production, điều này ảnh hưởng tới khả năng truy vết, bảo mật và tái lập môi trường.
+Module patching is very useful in testing and investigation, yet it introduces a layer of content running outside the main module artifact. In production, this impacts traceability, security, and environment reproducibility.
 
-Hãy chỉ sử dụng khi có lý do cụ thể, giới hạn patch vào class/resource cần thiết, quản lý hash và nguồn patch, kiểm thử trên đúng JDK/runtime image, đồng thời có rollback đã được thử. Với bản sửa lâu dài, đưa thay đổi trở lại module source và phát hành artifact mới có version rõ ràng.
-
+Use it only with a specific reason, limit the patch to necessary classes/resources, manage patch hashes and provenance, test on the exact JDK/runtime image, and keep a tested rollback. For long-term fixes, fold the change back into the module source and release a new clearly versioned artifact.

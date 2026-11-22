@@ -1,47 +1,47 @@
-# Chia số nguyên trong Java: Vì sao phần thập phân bị cắt về phía 0?
+# Integer Division in Java: Why Is the Fractional Part Truncated Toward Zero?
 
-Khi **cả hai toán hạng của `/` đều là số nguyên**, Java thực hiện **phép chia số nguyên**. Kết quả là một số nguyên: phần phân số của thương toán học bị **loại bỏ theo hướng về 0** (*truncation toward zero*). Vì vậy:
+When **both operands of `/` are integers**, Java performs **integer division**. The result is an integer: the fractional part of the mathematical quotient is **discarded toward zero** (*truncation toward zero*). Therefore:
 
-- `7 / 3` → `2`, vì thương toán học là khoảng `2.333...`.
-- `-7 / 3` → `-2`, vì thương toán học là khoảng `-2.333...`.
-- `1 / 2` → `0`, không phải `0.5`.
+- `7 / 3` → `2`, because the mathematical quotient is approximately `2.333...`.
+- `-7 / 3` → `-2`, because the mathematical quotient is approximately `-2.333...`.
+- `1 / 2` → `0`, not `0.5`.
 
-Đây là quy tắc ngữ nghĩa của phép toán, **không phải lỗi thiếu độ chính xác hay lỗi làm tròn ngẫu nhiên**. Để tính thương có phần thập phân, phải làm cho **ít nhất một toán hạng** có kiểu số thực trước lúc thực hiện phép chia.
+This is the semantic rule of the operator, **not a precision bug or random rounding error**. To compute a quotient with a fractional part, you must make **at least one operand** a floating-point type before performing the division.
 
-## 1. Phép `/` làm gì với các kiểu số nguyên?
+## 1. What Does `/` Do with Integer Types?
 
-Các kiểu tích phân nguyên thủy của Java gồm `byte`, `short`, `char`, `int` và `long`. Với biểu thức `a / b` mà cả hai đều thuộc nhóm số nguyên:
+Java's primitive integral types are `byte`, `short`, `char`, `int`, and `long`. For an expression `a / b` where both operands belong to the integer group:
 
-1. Java xác định kiểu tính toán bằng **binary numeric promotion**. `byte` và `short` được nâng lên ít nhất `int`. Nếu có một toán hạng `long` thì kết quả phép chia nguyên theo `long`.
-2. Máy thực hiện phép chia số nguyên trên hai giá trị nguyên.
-3. Thương toán học được **cắt phần phân số về 0**. Giá trị trả về có kiểu nguyên (`int` hoặc `long`); không có phần thập phân để giữ lại.
+1. Java determines the computation type using **binary numeric promotion**. `byte` and `short` are promoted to at least `int`. If one operand is `long`, the integer division result is `long`.
+2. The machine performs integer division on the two integer values.
+3. The mathematical quotient has its **fractional part truncated toward zero**. The returned value has an integer type (`int` or `long`); there is no fractional part left to preserve.
 
-| Biểu thức | Thương toán học | Giá trị Java | Giải thích |
+| Expression | Mathematical quotient | Java value | Explanation |
 | --- | ---: | ---: | --- |
-| `7 / 3` | `2.333...` | `2` | Bỏ phần sau dấu phẩy |
-| `8 / 4` | `2` | `2` | Chia hết |
-| `1 / 2` | `0.5` | `0` | Giá trị dương nhỏ hơn 1 bị cắt thành 0 |
-| `-1 / 2` | `-0.5` | `0` | Phần phân số bị cắt về 0 |
-| `-7 / 3` | `-2.333...` | `-2` | Hướng về 0, không xuống `-3` |
-| `7 / -3` | `-2.333...` | `-2` | Thương âm bị cắt về 0 |
-| `-7 / -3` | `2.333...` | `2` | Hai dấu âm cho thương dương |
-| `10 / 2L` | `5` | `5L` | Có toán hạng `long` nên kiểu kết quả là `long` |
+| `7 / 3` | `2.333...` | `2` | Drops the part after the decimal point |
+| `8 / 4` | `2` | `2` | Divides evenly |
+| `1 / 2` | `0.5` | `0` | Positive value less than 1 is truncated to 0 |
+| `-1 / 2` | `-0.5` | `0` | Fractional part is truncated toward 0 |
+| `-7 / 3` | `-2.333...` | `-2` | Toward 0, not down to `-3` |
+| `7 / -3` | `-2.333...` | `-2` | Negative quotient truncated toward 0 |
+| `-7 / -3` | `2.333...` | `2` | Two negative signs yield a positive quotient |
+| `10 / 2L` | `5` | `5L` | Has a `long` operand, so result type is `long` |
 
-**Dấu của thương:** Nếu thương khác 0, hai toán hạng cùng dấu cho thương dương; trái dấu cho thương âm. Nếu độ lớn thương toán học nhỏ hơn 1, kết quả là `0`, Java không có hai giá trị `+0` và `-0` phân biệt đối với `int` hay `long`.
+**Sign of the quotient:** If the quotient is non-zero, operands with the same sign produce a positive quotient; opposite signs produce a negative quotient. If the magnitude of the mathematical quotient is less than `1`, the result is `0`; Java does not have distinct `+0` and `-0` values for `int` or `long`.
 
-**“Cắt về 0” khác “làm tròn đến số gần nhất”:** `8 / 3` là `2` dù gần `3` hơn về số học; `-8 / 3` là `-2` dù thương toán học gần `-3` hơn. Phép `/` trên hai số nguyên **không thực hiện rounding-to-nearest**.
+**"Truncate toward 0" is different from "round to nearest":** `8 / 3` is `2` even though it is arithmetically closer to `3`; `-8 / 3` is `-2` even though the mathematical quotient is closer to `-3`. The `/` operator on two integers **does not perform rounding-to-nearest**.
 
-## 2. Vì sao `-7 / 3` là `-2` thay vì `-3`?
+## 2. Why Is `-7 / 3` Equal to `-2` Instead of `-3`?
 
-Có ba cách lấy một số nguyên từ `-2.333...`:
+There are three ways to obtain an integer from `-2.333...`:
 
-- **Truncation toward zero:** bỏ phần phân số theo hướng 0 → `-2`.
-- **Floor (làm tròn xuống):** lấy số nguyên lớn nhất không vượt quá giá trị → `-3`.
-- **Ceiling (làm tròn lên):** lấy số nguyên nhỏ nhất không nhỏ hơn giá trị → `-2`.
+- **Truncation toward zero:** drop the fractional part in the direction of 0 → `-2`.
+- **Floor (round down):** take the greatest integer not exceeding the value → `-3`.
+- **Ceiling (round up):** take the smallest integer not less than the value → `-2`.
 
-Với số dương `2.333...`, truncation và floor đều cho `2`, nên khác biệt thường chỉ lộ rõ khi kết quả âm.
+For the positive number `2.333...`, both truncation and floor produce `2`, so the difference usually only shows up when the result is negative.
 
-Java dùng truncation đối với phép `/` số nguyên. Nếu cần phép chia theo **floor**, dùng `Math.floorDiv(a, b)`; ví dụ:
+Java uses truncation for integer `/`. If you need **floor** division, use `Math.floorDiv(a, b)`; for example:
 
 ```java
 int a = -7, b = 3;
@@ -49,79 +49,79 @@ int truncated = a / b;            // -2
 int floored = Math.floorDiv(a, b); // -3
 ```
 
-`Math.floorDiv` có các overload cho `int` và `long`. Hãy chọn quy tắc dựa trên nghiệp vụ: chia một khoản nợ, tính thứ tự các bucket có chỉ số âm và quy đổi khoảng thời gian âm có thể cần floor; tính thương nguyên thông thường có thể cần truncation. Không thay thế `/` bằng `Math.floorDiv` theo thói quen khi chưa xác định quy tắc làm tròn mong muốn.
+`Math.floorDiv` has overloads for `int` and `long`. Choose the rule based on business logic: splitting a debt, computing indices of buckets with negative coordinates, and converting negative time intervals may require floor; computing an ordinary integer quotient may require truncation. Do not replace `/` with `Math.floorDiv` out of habit without determining the desired rounding rule.
 
-## 3. Phép lấy dư `%` đi cùng với phép chia `/`
+## 3. The Remainder Operator `%` Paired with Division `/`
 
-Trong phép chia nguyên, `%` lấy **số dư**, không phải phép toán “phần trăm”. Với số bị chia `a` và số chia `b != 0`, thương `q = a / b` và số dư `r = a % b` tuân theo quan hệ:
+In integer division, `%` computes the **remainder**, not a "percentage" operation. For dividend `a` and divisor `b != 0`, the quotient `q = a / b` and remainder `r = a % b` satisfy the relation:
 
 \[
 a = q \times b + r
 \]
 
-cho các phép chia số nguyên thông thường. Java chọn `q` bằng cách cắt về 0, từ đó số dư `r` có các tính chất:
+for ordinary integer divisions. Java chooses `q` by truncating toward zero, which gives the remainder `r` the following properties:
 
-- `|r| < |b|` về mặt toán học khi `b != 0`.
-- Nếu `r != 0`, **dấu của `r` giống dấu `a`** (số bị chia), không phụ thuộc vào dấu `b`.
-- Nếu chia hết thì `r == 0`.
+- `|r| < |b|` mathematically when `b != 0`.
+- If `r != 0`, **the sign of `r` matches the sign of `a`** (the dividend), regardless of the sign of `b`.
+- If `a` is evenly divisible by `b`, then `r == 0`.
 
-| `a` | `b` | `a / b` | `a % b` | Kiểm tra |
+| `a` | `b` | `a / b` | `a % b` | Check |
 | ---: | ---: | ---: | ---: | --- |
 | 7 | 3 | 2 | 1 | `7 = 2 * 3 + 1` |
 | -7 | 3 | -2 | -1 | `-7 = (-2) * 3 - 1` |
 | 7 | -3 | -2 | 1 | `7 = (-2) * (-3) + 1` |
 | -7 | -3 | 2 | -1 | `-7 = 2 * (-3) - 1` |
 
-Không nhầm `%` với modulo toán học luôn trả số không âm. Chẳng hạn `-7 % 3 == -1` trong Java, trong khi `Math.floorMod(-7, 3) == 2`. Với `b` dương, `Math.floorMod(a, b)` phù hợp khi cần chỉ số vòng lặp hoặc bucket nằm trong `0..b-1` kể cả lúc `a` âm.
+Do not confuse `%` with a mathematical modulo that always returns a non-negative number. For instance, `-7 % 3 == -1` in Java, whereas `Math.floorMod(-7, 3) == 2`. When `b` is positive, `Math.floorMod(a, b)` is suitable when you need a cyclic index or bucket in `0..b-1` even when `a` is negative.
 
-**Ngoại lệ cần hiểu:** `Integer.MIN_VALUE / -1` và `Long.MIN_VALUE / -1L` không có thương toán học biểu diễn được trong chính kiểu đích. Java cho kết quả tràn số, xem mục 7; không được suy diễn mọi quy tắc miền của thương toán học sang trường hợp này mà không xét giới hạn kiểu.
+**Exception to understand:** `Integer.MIN_VALUE / -1` and `Long.MIN_VALUE / -1L` do not have a mathematical quotient representable in the target type itself. Java produces an overflow result (see section 7); do not extrapolate every range property of mathematical quotients to this case without considering type limits.
 
-## 4. Muốn có kết quả thập phân thì phải thay kiểu trước phép chia
+## 4. To Get a Decimal Result, Change the Type Before Division
 
-Viết `double result = 1 / 2;` vẫn cho **`0.0`**, vì Java tính biểu thức `1 / 2` theo `int` trước khi chuyển kết quả sang `double`. Cần dùng literal dấu phẩy động hoặc ép toán hạng:
+Writing `double result = 1 / 2;` still produces **`0.0`**, because Java evaluates `1 / 2` in `int` before converting the result to `double`. You must use a floating-point literal or cast an operand:
 
 ```java
-double wrong = 1 / 2;          // 0.0: đã chia nguyên trước
-double correctA = 1.0 / 2;     // 0.5: 1.0 là double
-double correctB = (double) 1 / 2; // 0.5: đổi trước phép chia
-double correctC = 1 / 2.0;     // 0.5: 2.0 là double
-double tooLate = (double) (1 / 2); // 0.0: cast sau phép chia
+double wrong = 1 / 2;          // 0.0: integer division ran first
+double correctA = 1.0 / 2;     // 0.5: 1.0 is double
+double correctB = (double) 1 / 2; // 0.5: converted before division
+double correctC = 1 / 2.0;     // 0.5: 2.0 is double
+double tooLate = (double) (1 / 2); // 0.0: cast after division
 ```
 
-Khi một toán hạng là `double`, phép chia số thực có thể tạo phần thập phân; nhưng `double` có độ chính xác nhị phân hữu hạn nên **không biểu diễn chính xác mọi phân số thập phân**. Câu “muốn kết quả có phần thập phân” khác với “muốn kết quả số thập phân chính xác tuyệt đối”. Với tiền tệ hoặc quy tắc làm tròn thập phân, cân nhắc `BigDecimal` và chính sách `RoundingMode` cụ thể.
+When one operand is `double`, floating-point division can produce a fractional part; however, `double` has finite binary precision and **cannot represent every decimal fraction exactly**. "Wanting a result with a fractional part" is different from "wanting an exact base-10 decimal result". For currency or decimal rounding rules, consider `BigDecimal` with an explicit `RoundingMode` policy.
 
-Cẩn trọng khi ép `long` cực lớn sang `double`: giá trị nguyên có thể bị làm tròn vì phần trị `double` chỉ giữ 53 bit độ chính xác hiệu dụng. Nếu bài toán đòi thương nguyên và số dư chính xác của số cực lớn, không dùng chuyển sang `double` để giải quyết.
+Be careful when casting a very large `long` to `double`: the integer value may be rounded because the `double` significand holds only 53 bits of effective precision. If the problem demands exact integer quotients and remainders for huge numbers, do not convert to `double` to solve it.
 
-## 5. Kiểu kết quả, biểu thức và thứ tự phép tính
+## 5. Result Types, Expressions, and Order of Operations
 
-### `byte`, `short` vẫn chia theo `int`
+### `byte` and `short` Still Divide as `int`
 
 ```java
 byte numerator = 7, denominator = 3;
-int q = numerator / denominator;  // Đúng, q = 2
-// byte invalid = numerator / denominator; // Lỗi biên dịch: kết quả là int
+int q = numerator / denominator;  // Valid, q = 2
+// byte invalid = numerator / denominator; // Compile error: result is int
 ```
 
-Các toán hạng `byte`/`short` được nâng thành `int`. Còn `long / int` cho kết quả kiểu `long`, nhưng **vẫn cắt về 0**:
+`byte`/`short` operands are promoted to `int`. Meanwhile, `long / int` produces a result of type `long`, but **still truncates toward zero**:
 
 ```java
 long q = 10_000_000_000L / 3;  // 3_333_333_333L
 ```
 
-`long` chỉ mở rộng **miền giá trị**, không tự biến phép chia nguyên thành phép chia có phần thập phân.
+`long` only expands the **value range**; it does not automatically turn integer division into fractional division.
 
-### Các toán tử `*`, `/`, `%` cùng mức ưu tiên
+### `*`, `/`, and `%` Share the Same Precedence Level
 
-Chúng kết hợp từ trái sang phải. Vì phép chia nguyên đã mất phần phân số nên thay đổi vị trí ngoặc có thể thay đổi kết quả:
+They associate from left to right. Because integer division discards the fractional part, changing parentheses can change the result:
 
 ```java
 int a = 20 / 3 * 3;   // (20 / 3) * 3 = 6 * 3 = 18
 int b = 20 * 3 / 3;   // (20 * 3) / 3 = 60 / 3 = 20
 ```
 
-Ví dụ `b` hợp lệ vì `20 * 3` không vượt `int`. Với toán hạng lớn, **nhân trước chia** có thể overflow, nên không thể tự ý đổi công thức để “giữ độ chính xác” nếu chưa kiểm tra miền trung gian.
+Example `b` works because `20 * 3` does not exceed `int`. With large operands, **multiplying before dividing** can overflow, so you cannot arbitrarily rewrite a formula to "preserve precision" without checking the intermediate range.
 
-Trong ví dụ trung bình:
+In an average example:
 
 ```java
 int sum = 7, count = 2;
@@ -129,11 +129,11 @@ int averageTruncated = sum / count;      // 3
 double averageDecimal = (double) sum / count; // 3.5
 ```
 
-Xác định đầu ra mong muốn là thương nguyên hay giá trị thập phân trước khi chọn biểu thức.
+Determine whether the expected output is a truncated integer quotient or a decimal value before choosing the expression.
 
-## 6. Ví dụ chạy độc lập trên Java 17+
+## 6. Standalone Runnable Example on Java 17+
 
-Lưu chương trình sau vào `IntegerDivisionDemo.java`:
+Save the following program to `IntegerDivisionDemo.java`:
 
 ```java
 public class IntegerDivisionDemo {
@@ -167,7 +167,7 @@ public class IntegerDivisionDemo {
 }
 ```
 
-Dùng JDK 17 trở lên để biên dịch và chạy:
+Use JDK 17 or later to compile and run:
 
 ```bash
 javac IntegerDivisionDemo.java
@@ -193,13 +193,13 @@ integer division by zero: ArithmeticException
 long division = 3333333333
 ```
 
-**Điểm quan sát chính:** `/` và `%` nhất quán với dấu của toán hạng; cast **trước** phép chia khác cast **sau** phép chia; `Math.floorDiv`/`Math.floorMod` cho kết quả khác khi chia số âm; trường hợp `MIN_VALUE / -1` bị overflow; mẫu số bằng 0 ném ngoại lệ.
+**Key observations:** `/` and `%` are consistent with the operand signs; casting **before** division differs from casting **after** division; `Math.floorDiv`/`Math.floorMod` give different results when dividing negative numbers; `MIN_VALUE / -1` overflows; a zero divisor throws an exception.
 
-## 7. Hai trường hợp biên cần kiểm soát
+## 7. Two Edge Cases to Control
 
-### Chia nguyên cho 0
+### Integer Division by Zero
 
-`int` và `long` không có giá trị infinity/NaN như các kiểu dấu phẩy động. Do đó `a / 0` hoặc `a % 0` ở thời điểm thực hiện phép toán gây **`ArithmeticException`**. Ví dụ:
+`int` and `long` do not have infinity/NaN values like floating-point types. Therefore, `a / 0` or `a % 0` throws an **`ArithmeticException`** at runtime. For example:
 
 ```java
 int divisor = 0;
@@ -211,21 +211,21 @@ try {
 }
 ```
 
-Khi nhận mẫu số từ đầu vào, **kiểm tra `divisor != 0` trước phép chia** rồi thông báo dữ liệu không hợp lệ hoặc xử lý theo quy định ứng dụng. Một giá trị mẫu số sai không nên bị thay ngầm thành 1 nếu nghiệp vụ không cho phép.
+When receiving a divisor from input, **check `divisor != 0` before dividing**, then report invalid data or handle it per application policy. An invalid divisor should not be silently replaced with `1` unless business rules permit it.
 
-### `MIN_VALUE / -1`: thương không chứa được trong kiểu
+### `MIN_VALUE / -1`: Quotient Cannot Fit in the Type
 
-`int` có miền `-2_147_483_648` đến `2_147_483_647`. Trị tuyệt đối toán học của `Integer.MIN_VALUE` là `2_147_483_648`, **vượt miền int**. Khi chia cho -1:
+`int` has the range `-2_147_483_648` to `2_147_483_647`. The mathematical absolute value of `Integer.MIN_VALUE` is `2_147_483_648`, which **exceeds the `int` range**. When divided by `-1`:
 
 ```java
 int value = Integer.MIN_VALUE;
-int q = value / -1; // -2147483648, do overflow số nguyên
+int q = value / -1; // -2147483648, due to integer overflow
 int r = value % -1; // 0
 ```
 
-Tương tự `Long.MIN_VALUE / -1L` trả về `Long.MIN_VALUE`. Đây là trường hợp đặc biệt **không ném ngoại lệ tự động**. Quy tắc cắt về 0 vẫn là ý tưởng xác định thương, nhưng **miền kiểu nguyên có giới hạn** khiến kết quả được biểu diễn theo quy tắc overflow.
+Similarly, `Long.MIN_VALUE / -1L` returns `Long.MIN_VALUE`. This is a special case that **does not automatically throw an exception**. Truncation toward zero is still the rule for determining the quotient, but **the finite range of the integer type** causes the result to follow overflow semantics.
 
-Nếu không muốn chấp nhận tràn:
+If you do not want to accept overflow:
 
 ```java
 int dividend = Integer.MIN_VALUE;
@@ -236,15 +236,15 @@ if (divisor == -1 && dividend == Integer.MIN_VALUE) {
 int quotient = dividend / divisor;
 ```
 
-Đoạn trên minh họa một nhánh guard, **không phải chương trình độc lập**. Khi dùng trong phương thức thật, kiểm tra mẫu số bằng 0 và giữ cách xử lý ngoại lệ thống nhất.
+The snippet above illustrates a guard branch, **not a standalone program**. When used in a real method, also check for a zero divisor and keep exception handling consistent.
 
-Một cách khác khi phép chia `int` có thể cần kết quả lớn hơn miền `int`: **chuyển số bị chia lên `long` trước phép chia**, ví dụ `(long) Integer.MIN_VALUE / -1 == 2_147_483_648L`. Với trường hợp `long` lớn hơn miền, cần `BigInteger` khi thật sự đòi kết quả nguyên chính xác.
+Another approach when an `int` division might need a result larger than the `int` range is to **promote the dividend to `long` before dividing**, for example `(long) Integer.MIN_VALUE / -1 == 2_147_483_648L`. For `long` cases exceeding the range, use `BigInteger` when an exact integer result is strictly required.
 
-## 8. Dùng `/` trong ứng dụng mà không làm sai nghiệp vụ
+## 8. Using `/` in Applications Without Breaking Business Logic
 
-**Ví dụ 1: chia nhóm cố định.** Có 11 người, mỗi nhóm chứa tối đa 4 người; `11 / 4 == 2` là **hai nhóm đầy đủ**, còn `11 % 4 == 3` người dư. Nếu hỏi tổng nhóm cần chuẩn bị thì cần **3 nhóm**.
+**Example 1: Fixed-size grouping.** Suppose there are 11 people and each group holds at most 4 people; `11 / 4 == 2` is **two full groups**, with `11 % 4 == 3` people remaining. If asked for the total number of groups to prepare, **3 groups** are needed.
 
-Với `total >= 0` và `size > 0`, cách tính tránh overflow trung gian của biểu thức `(total + size - 1) / size` là:
+For `total >= 0` and `size > 0`, a way to avoid intermediate overflow from `(total + size - 1) / size` is:
 
 ```java
 int total = 11;
@@ -252,34 +252,34 @@ int size = 4;
 int groups = total / size + (total % size == 0 ? 0 : 1); // 3
 ```
 
-Công thức này chỉ áp dụng theo giả thiết tổng và kích thước không âm/dương như đã nêu; nếu dữ liệu âm, phải xác định lại ý nghĩa làm tròn và có thể dùng `Math.floorDiv` hoặc quy tắc nghiệp vụ khác.
+This formula only applies under the stated assumptions of non-negative total and positive size; if data can be negative, you must redefine the rounding semantics and possibly use `Math.floorDiv` or another business rule.
 
-**Ví dụ 2: tỷ lệ và phần trăm.** Nếu `completed = 1` và `total = 4`, biểu thức `completed / total * 100` cho **0**, vì `1 / 4` được cắt về 0 trước khi nhân. Nếu chỉ cần phần trăm nguyên và dữ liệu nằm trong miền phù hợp, có thể tính `(long) completed * 100 / total` để tránh tràn `int` trung gian rồi chủ động xử lý việc cắt phần lẻ. Nếu cần tỷ lệ thập phân, dùng `100.0 * completed / total` hoặc loại số thập phân có quy tắc làm tròn đáp ứng nghiệp vụ.
+**Example 2: Ratios and percentages.** If `completed = 1` and `total = 4`, the expression `completed / total * 100` evaluates to **0**, because `1 / 4` is truncated to `0` before multiplying. If only an integer percentage is needed and the data is within a suitable range, you can compute `(long) completed * 100 / total` to avoid intermediate `int` overflow and then explicitly handle truncation of the remainder. If a decimal percentage is needed, use `100.0 * completed / total` or a decimal type with a rounding rule matching business requirements.
 
-**Ví dụ 3: phân loại theo chỉ số âm.** Khi muốn gom các thời điểm hoặc tọa độ âm theo ô có độ rộng dương, `a / width` có thể đưa `-1` vào ô 0 vì cắt về 0. `Math.floorDiv(-1, width)` đưa nó vào ô -1 khi `width > 1`, phù hợp với cách chia trục số thành các khoảng theo floor.
+**Example 3: Bucketing by negative indices.** When grouping negative timestamps or coordinates into bins of positive width, `a / width` can place `-1` into bin `0` because of truncation toward zero. `Math.floorDiv(-1, width)` places it into bin `-1` when `width > 1`, matching how a number line is partitioned into floor-aligned intervals.
 
-Điều chung của ba ví dụ: trước khi chọn biểu thức, phải xác định yêu cầu là **thương nguyên cắt về 0**, **làm tròn xuống**, **làm tròn lên**, **thương số thực**, hay **phân nhóm có số dư**.
+The common thread across all three examples: before choosing an expression, determine whether the requirement calls for **quotient truncated toward zero**, **round down (floor)**, **round up (ceiling)**, **floating-point quotient**, or **grouping with remainder**.
 
-## 9. Sai lầm thường gặp
+## 9. Common Mistakes
 
-1. **“Biến nhận là `double` thì `1 / 2` sẽ ra `0.5`.”** Sai: Java tính `1 / 2` thành `int` bằng 0 rồi mới gán thành `0.0`.
-2. **“`(double) (a / b)` khôi phục phần phân số.”** Sai: phép chia nguyên đã mất phần lẻ; cần `(double) a / b`.
-3. **“Phép chia nguyên luôn làm tròn xuống.”** Sai với thương âm không nguyên: `-7 / 3 == -2`, còn `Math.floorDiv(-7,3) == -3`.
-4. **“Số dư luôn không âm.”** Sai: `-7 % 3 == -1`. Nếu cần số dư không âm với mẫu số dương, cân nhắc `Math.floorMod`.
-5. **“Dùng `long` sẽ giữ phần thập phân.”** Sai: `10L / 4` vẫn bằng `2L`; `long` chỉ mở rộng miền.
-6. **“`byte / byte` trả về `byte`.”** Sai: các toán hạng được nâng lên `int`, kiểu biểu thức là `int`.
-7. **“Đảo thứ tự nhân và chia không thay đổi kết quả.”** Sai khi phép chia nguyên cắt phần lẻ; và nhân trước có thể overflow.
-8. **“Chia số nguyên cho 0 trả infinity.”** Sai: nó ném `ArithmeticException`, khác phép chia dấu phẩy động.
-9. **“Chia `Integer.MIN_VALUE` cho -1 luôn báo lỗi tràn.”** Sai: kết quả là `Integer.MIN_VALUE` do overflow có quy tắc.
-10. **“`a / b` tự cho số nguyên gần thương thật nhất.”** Sai: Java chọn hướng về 0. Nếu cần làm tròn theo miền nghiệp vụ, phải thể hiện quy tắc đó rõ ràng.
+1. **"If the receiving variable is `double`, `1 / 2` will give `0.5`."** False: Java evaluates `1 / 2` to `int` `0` first and then assigns `0.0`.
+2. **"`(double) (a / b)` restores the fractional part."** False: integer division has already discarded the fraction; you need `(double) a / b`.
+3. **"Integer division always rounds down."** False for non-integer negative quotients: `-7 / 3 == -2`, whereas `Math.floorDiv(-7,3) == -3`.
+4. **"The remainder is always non-negative."** False: `-7 % 3 == -1`. If you need a non-negative remainder with a positive divisor, consider `Math.floorMod`.
+5. **"Using `long` keeps the decimal part."** False: `10L / 4` still equals `2L`; `long` only widens the range.
+6. **"`byte / byte` returns `byte`."** False: the operands are promoted to `int`, and the expression type is `int`.
+7. **"Swapping the order of multiplication and division does not change the result."** False when integer division truncates the fraction; and multiplying first can overflow.
+8. **"Dividing an integer by 0 returns infinity."** False: it throws `ArithmeticException`, unlike floating-point division.
+9. **"Dividing `Integer.MIN_VALUE` by -1 always throws an overflow error."** False: the result is `Integer.MIN_VALUE` due to defined overflow behavior.
+10. **"`a / b` automatically gives the integer closest to the true quotient."** False: Java truncates toward zero. If business logic requires a specific rounding mode, express that rule explicitly.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-1. **`9 / 4` và `-9 / 4` cho bao nhiêu?** → `2` và `-2`, vì cắt phần phân số về 0.
-2. **`9 % 4` và `-9 % 4` cho bao nhiêu?** → `1` và `-1`, số dư khác 0 theo dấu số bị chia.
-3. **`double ratio = 3 / 2;` lưu giá trị nào?** → `1.0`. Muốn `1.5`, viết `double ratio = 3.0 / 2;`.
-4. **Tại sao `Math.floorDiv(-9,4) == -3`?** → Floor lấy số nguyên lớn nhất không vượt quá `-2.25`, tức -3.
-5. **`byte a = 8, b = 3;` thì biểu thức `a / b` thuộc kiểu nào?** → `int`.
-6. **Nếu có 13 vật phẩm, mỗi thùng chứa 5, cần bao nhiêu thùng?** → `13 / 5 = 2` thùng đầy và còn `13 % 5 = 3`, nên cần **3** thùng nếu tất cả phải được chứa.
+1. **What do `9 / 4` and `-9 / 4` produce?** → `2` and `-2`, because the fractional part is truncated toward zero.
+2. **What do `9 % 4` and `-9 % 4` produce?** → `1` and `-1`, a non-zero remainder takes the sign of the dividend.
+3. **What value does `double ratio = 3 / 2;` store?** → `1.0`. For `1.5`, write `double ratio = 3.0 / 2;`.
+4. **Why is `Math.floorDiv(-9,4) == -3`?** → Floor takes the greatest integer not exceeding `-2.25`, which is `-3`.
+5. **Given `byte a = 8, b = 3;`, what type is the expression `a / b`?** → `int`.
+6. **If there are 13 items and each box holds 5, how many boxes are needed?** → `13 / 5 = 2` full boxes and `13 % 5 = 3` remaining, so **3** boxes are needed if all items must be packed.
 
-**Ghi nhớ:** `/` giữa hai toán hạng số nguyên cho **thương nguyên cắt về 0**. Hãy phân biệt quy tắc này với *floor* và *rounding to nearest*; nếu cần giá trị có phần thập phân, chuyển ít nhất một toán hạng sang loại số thích hợp **trước phép chia**. Dùng `%` để xử lý số dư, và kiểm tra mẫu số, miền kết quả cùng trường hợp `MIN_VALUE / -1` khi cần tính toán an toàn.
+**Key Takeaway:** `/` between two integer operands produces an **integer quotient truncated toward zero**. Distinguish this rule from *floor* and *rounding to nearest*; if you need a value with a fractional part, convert at least one operand to an appropriate numeric type **before division**. Use `%` to handle remainders, and check the divisor, result range, and the `MIN_VALUE / -1` edge case when safe computation is required.

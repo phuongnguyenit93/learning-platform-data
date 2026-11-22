@@ -1,29 +1,29 @@
-# Chuỗi bất biến không làm mọi biến hoặc cấu trúc chứa nó an toàn đa luồng
+# Immutable Strings Do Not Make Every Variable or Container Holding Them Thread-Safe
 
-## 1. Vấn đề cần hiểu
+## 1. The Problem to Understand
 
-`String` trong Java là **immutable** (bất biến): sau khi một đối tượng `String` được tạo, nội dung của chính đối tượng đó không thể thay đổi thông qua API công khai. Nhiều luồng có thể cùng đọc một đối tượng `String` đã được chia sẻ đúng cách mà không làm hỏng nội dung chuỗi.
+In Java, `String` is **immutable**: once a `String` object is created, the content of that object itself cannot be changed through its public API. Multiple threads can concurrently read a properly shared `String` object without corrupting the string's content.
 
-Tuy nhiên, **`String` bất biến không đồng nghĩa mọi biến tham chiếu đến `String`, mọi thao tác trên biến đó hoặc mọi cấu trúc lưu `String` đều an toàn đa luồng**.
+However, **an immutable `String` does not mean every variable referencing a `String`, every operation on that variable, or every structure storing `String`s is thread-safe**.
 
-Ví dụ:
+For example:
 
 ```java
 String name = "Java";
 name = name + " 17";
 ```
 
-Biểu thức trên tạo giá trị chuỗi mới rồi **gán lại biến `name`**; nó không chỉnh sửa đối tượng `"Java"`. Nếu nhiều luồng cùng đọc và gán lại **một biến dùng chung**, vấn đề tranh chấp (race condition), mất cập nhật (lost update) và khả năng nhìn thấy dữ liệu (visibility) vẫn tồn tại.
+The expression above creates a new string value and **reassigns the variable `name`**; it does not edit the `"Java"` object. If multiple threads concurrently read and reassign **one shared variable**, race conditions, lost updates, and visibility issues still exist.
 
-Mục tiêu bài học:
-- Phân biệt **đối tượng bất biến**, **biến tham chiếu có thể gán lại** và **cấu trúc chứa chuỗi có thể thay đổi**.
-- Giải thích vì sao `shared = shared + text` không phải một phép cập nhật nguyên tử.
-- Hiểu vai trò của `volatile`, `synchronized` và `AtomicReference<String>` theo Java Memory Model.
-- Chọn giải pháp phù hợp khi chia sẻ trạng thái chuỗi giữa các luồng.
+Lesson goals:
+- Distinguish **an immutable object**, **a reassignable reference variable**, and **a mutable container holding strings**.
+- Explain why `shared = shared + text` is not an atomic update.
+- Understand the roles of `volatile`, `synchronized`, and `AtomicReference<String>` under the Java Memory Model.
+- Choose the appropriate solution when sharing string state across threads.
 
-## 2. Đối tượng `String` và biến tham chiếu là hai thứ khác nhau
+## 2. A `String` Object and a Reference Variable Are Two Different Things
 
-Xét:
+Consider:
 
 ```java
 String a = "hello";
@@ -34,21 +34,21 @@ System.out.println(a); // HELLO
 System.out.println(b); // hello
 ```
 
-`a` và `b` ban đầu trỏ đến cùng nội dung `"hello"`. `toUpperCase()` trả một giá trị `String` mới trong ví dụ này, sau đó `a` được gán lại; `b` vẫn trỏ đến chuỗi ban đầu.
+`a` and `b` initially point to the same `"hello"` content. `toUpperCase()` returns a new `String` value in this example, and then `a` is reassigned; `b` still points to the original string.
 
-Cần tách ba mức độ:
+Separate three levels:
 
-| Thành phần | Bất biến không? | Điều gì có thể xảy ra khi đa luồng? |
+| Component | Immutable? | What can happen under multithreading? |
 | --- | --- | --- |
-| Một **đối tượng `String`** | Có; nội dung không thay đổi. | Các luồng đọc chung không tranh chấp vì thao tác sửa nội dung. |
-| Một **biến/field `String` dùng chung**, ví dụ `current` | Không nhất thiết; tham chiếu có thể được gán lại. | Đọc/ghi đồng thời có thể thiếu bảo đảm visibility và xảy ra lost update. |
-| Một **container** như `ArrayList<String>`, `HashMap<String,String>` hoặc `StringBuilder` | Thường là mutable. | Các phép sửa container có thể race hoặc vi phạm hợp đồng thread safety. |
+| A **`String` object** | Yes; content does not change. | Threads reading concurrently do not contend over content-mutation operations. |
+| A **shared `String` variable/field**, e.g. `current` | Not necessarily; the reference can be reassigned. | Concurrent reads/writes can lack visibility guarantees and suffer lost updates. |
+| A **container** such as `ArrayList<String>`, `HashMap<String,String>`, or `StringBuilder` | Usually mutable. | Container mutations can race or violate thread-safety contracts. |
 
-Một biến `final String greeting = "hello";` ngăn **gán lại biến đó** sau khi khởi tạo, nhưng `final` không tự biến một cấu trúc chứa biến thành đối tượng immutable, cũng không làm tất cả các field khác của đối tượng chứa trở nên thread-safe.
+A variable `final String greeting = "hello";` prevents **reassigning that variable** after initialization, but `final` does not automatically turn a structure holding the variable into an immutable object, nor does it make all other fields of the containing object thread-safe.
 
-## 3. Vì sao ghép chuỗi vào biến chung có thể mất cập nhật?
+## 3. Why Can Appending to a Shared Variable Lose Updates?
 
-Xét trạng thái dùng chung:
+Consider shared state:
 
 ```java
 class State {
@@ -56,38 +56,38 @@ class State {
 }
 ```
 
-Nếu hai luồng cùng thực hiện:
+If two threads execute concurrently:
 
 ```java
-state.text = state.text + "A"; // Luồng 1
-state.text = state.text + "B"; // Luồng 2
+state.text = state.text + "A"; // Thread 1
+state.text = state.text + "B"; // Thread 2
 ```
 
-Một phép `+=` hay phép gán kết hợp này phải thực hiện nhiều bước:
+A `+=` or compound assignment like this has to perform multiple steps:
 
-1. **Đọc** tham chiếu hiện tại từ `state.text`.
-2. **Tính** một giá trị `String` mới bằng cách ghép hậu tố.
-3. **Ghi** tham chiếu `String` mới trở lại `state.text`.
+1. **Read** the current reference from `state.text`.
+2. **Compute** a new `String` value by appending the suffix.
+3. **Write** the new `String` reference back to `state.text`.
 
-Trong một lịch thực thi có thể xảy ra:
+In one execution schedule, the following can occur:
 
-| Thời điểm | Luồng 1 | Luồng 2 | Giá trị trong `state.text` |
+| Step | Thread 1 | Thread 2 | Value in `state.text` |
 | --- | --- | --- | --- |
-| Ban đầu | — | — | `"X"` |
-| 1 | Đọc `"X"` | — | `"X"` |
-| 2 | — | Đọc `"X"` | `"X"` |
-| 3 | Tạo và gán `"XA"` | — | `"XA"` |
-| 4 | — | Tạo và gán `"XB"` từ bản đọc cũ | `"XB"` |
+| Initial | — | — | `"X"` |
+| 1 | Reads `"X"` | — | `"X"` |
+| 2 | — | Reads `"X"` | `"X"` |
+| 3 | Creates and assigns `"XA"` | — | `"XA"` |
+| 4 | — | Creates and assigns `"XB"` from stale read | `"XB"` |
 
-Kết quả cuối trong lịch trên là `"XB"`: cập nhật của luồng 1 **bị ghi đè**. Nếu thứ tự ghi đảo ngược, kết quả có thể là `"XA"`. Không có đối tượng `String` nào bị sửa đổi hoặc hỏng; lỗi nằm ở **quá trình cập nhật tham chiếu dùng chung**.
+The final result in the schedule above is `"XB"`: Thread 1's update **was overwritten**. If the write order reverses, the result can be `"XA"`. No `String` object was modified or corrupted; the bug lies in **the process of updating the shared reference**.
 
-Ở đây có **data race** khi các luồng truy cập field không được đồng bộ và có ít nhất một truy cập ghi. Không nên dựa vào việc “chạy vài lần vẫn đúng” để kết luận chương trình an toàn: trình biên dịch, JVM và bộ xử lý được phép tối ưu trong phạm vi Java Memory Model khi thiếu quan hệ *happens-before* cần thiết.
+There is a **data race** here when threads access a field without synchronization and at least one access is a write. You must not rely on "running it a few times worked" to conclude a program is safe: the compiler, JVM, and processor are permitted to optimize within the Java Memory Model when required *happens-before* relationships are missing.
 
-## 4. Java 17+: ví dụ chạy độc lập, có kết quả xác định
+## 4. Java 17+: Standalone Runnable Example with Deterministic Results
 
-Ví dụ cố ý buộc hai luồng cùng đọc giá trị cũ trước khi ghi, để lỗi lost update được tái hiện rõ ràng thay vì phụ thuộc may rủi vào lịch chạy.
+The example intentionally forces both threads to read the old value before writing, so the lost-update bug reproduces clearly instead of depending on scheduling luck.
 
-Lưu thành file `ImmutableStringConcurrencyDemo.java`:
+Save as `ImmutableStringConcurrencyDemo.java`:
 
 ```java
 import java.util.concurrent.CountDownLatch;
@@ -100,7 +100,7 @@ public class ImmutableStringConcurrencyDemo {
 
     static void appendUnsafely(
             Holder shared, CountDownLatch bothRead, String suffix) {
-        // Cả hai luồng đều đọc "X" trước bất kỳ phép ghi nào.
+        // Both threads read "X" before any write.
         String snapshot = shared.value;
         bothRead.countDown();
 
@@ -111,7 +111,7 @@ public class ImmutableStringConcurrencyDemo {
             return;
         }
 
-        // Ghi đè bằng giá trị suy ra từ snapshot riêng.
+        // Overwrite with a value derived from each thread's own snapshot.
         shared.value = snapshot + suffix;
     }
 
@@ -134,7 +134,7 @@ public class ImmutableStringConcurrencyDemo {
         first.join();
         second.join();
 
-        // Giá trị là "XA" hoặc "XB", không chứa đủ hai cập nhật.
+        // Value is "XA" or "XB", not containing both updates.
         System.out.println("unsafe length = " + unsafe.value.length());
 
         AtomicReference<String> safe = new AtomicReference<>("X");
@@ -149,7 +149,7 @@ public class ImmutableStringConcurrencyDemo {
         fourth.join();
 
         String result = safe.get();
-        // "XAB" hoặc "XBA", luôn giữ được cả hai cập nhật.
+        // "XAB" or "XBA", always preserving both updates.
         System.out.println("atomic length = " + result.length());
         System.out.println("contains A = " + result.contains("A"));
         System.out.println("contains B = " + result.contains("B"));
@@ -157,14 +157,14 @@ public class ImmutableStringConcurrencyDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 ImmutableStringConcurrencyDemo.java
 java ImmutableStringConcurrencyDemo
 ```
 
-Đầu ra (độc lập với thứ tự cập nhật giữa các luồng, nếu không bị ngắt bất thường):
+Output (independent of update order between threads, unless abnormally interrupted):
 
 ```text
 original = Hi
@@ -175,18 +175,18 @@ contains A = true
 contains B = true
 ```
 
-**Giải thích kết quả:**
-- Lời gọi `concat("!")` tạo chuỗi `"Hi!"`, còn `original` tiếp tục là `"Hi"`.
-- `CountDownLatch(2)` đảm bảo cả hai luồng đã đọc `"X"` trước khi bất kỳ luồng nào được đi tiếp đến phép gán. Vì mỗi luồng chỉ thêm một hậu tố vào cùng snapshot, giá trị cuối của `unsafe.value` có độ dài **2**, dù đã có hai lần “thêm”.
-- `AtomicReference.updateAndGet` thực hiện một phép cập nhật nguyên tử theo hàm biến đổi. Nếu hai luồng cạnh tranh, một luồng có thể phải thử lại với giá trị vừa được luồng kia cập nhật. Vì vậy chuỗi cuối có độ dài **3** và chứa cả `A` lẫn `B`, tuy thứ tự `XAB` / `XBA` không xác định.
-- `Thread.join()` giúp luồng `main` chờ các công việc kết thúc và nhìn thấy kết quả của chúng. `join()` **không** làm cho thao tác cập nhật dùng chung trong các luồng tự trở thành nguyên tử.
-- Hàm đưa cho `updateAndGet` là `s -> s + suffix`, không có tác dụng phụ. Hàm cập nhật có thể bị gọi nhiều lần khi xảy ra cạnh tranh; đừng đặt thao tác gửi email, ghi file hoặc cập nhật hệ thống khác trong lambda này.
+**Explanation of output:**
+- Calling `concat("!")` creates `"Hi!"`, while `original` continues to be `"Hi"`.
+- `CountDownLatch(2)` ensures both threads have read `"X"` before either thread proceeds to assignment. Because each thread appends only one suffix to the same snapshot, the final value of `unsafe.value` has length **2**, despite two "appends."
+- `AtomicReference.updateAndGet` performs an atomic update according to the transformation function. If two threads contend, one thread may have to retry against the value just updated by the other thread. Thus the final string has length **3** and contains both `A` and `B`, though the order `XAB` / `XBA` is non-deterministic.
+- `Thread.join()` lets the `main` thread wait for the tasks to finish and see their results. `join()` does **not** make shared-variable updates inside the threads atomic on their own.
+- The function passed to `updateAndGet` is `s -> s + suffix`, which has no side effects. The update function may be invoked multiple times under contention; never place operations like sending emails, writing files, or mutating other system state inside this lambda.
 
-Đây là ví dụ minh họa **lost update**, không phải lời khuyên dùng biến chia sẻ không đồng bộ trong ứng dụng thực tế.
+This is an example demonstrating **lost update**, not a recommendation to use unsynchronized shared variables in real applications.
 
-## 5. `volatile` giải quyết visibility, không tự giải quyết lost update
+## 5. `volatile` Solves Visibility, Not Lost Updates on Its Own
 
-Khai báo:
+Declaration:
 
 ```java
 class Status {
@@ -194,9 +194,9 @@ class Status {
 }
 ```
 
-Với `volatile`, lệnh ghi `message` và lần đọc `message` tương ứng có bảo đảm về khả năng nhìn thấy và thứ tự theo Java Memory Model. Các luồng đọc field `volatile` sẽ không bị giữ mãi giá trị cũ do cache/hoist theo cách vi phạm quy tắc này. Việc đọc/ghi **một tham chiếu** là thao tác nguyên tử, kể cả khi không khai báo `volatile`; điểm thêm vào của `volatile` là bảo đảm visibility và ordering.
+With `volatile`, writes to `message` and corresponding reads of `message` have visibility and ordering guarantees under the Java Memory Model. Threads reading the `volatile` field will not hold onto stale cached/hoisted values in ways that violate those rules. Reading/writing **a single reference** is an atomic operation even without `volatile`; what `volatile` adds is visibility and ordering guarantees.
 
-Nếu chỉ có một luồng cập nhật thông báo còn các luồng khác đọc thông báo, mẫu dùng `volatile String` có thể phù hợp:
+If only one thread updates a status message while other threads read it, a `volatile String` pattern can be appropriate:
 
 ```java
 final class Status {
@@ -212,25 +212,25 @@ final class Status {
 }
 ```
 
-Tuy nhiên:
+However:
 
 ```java
-volatile String text = "X"; // Ví dụ một field trong lớp
+volatile String text = "X"; // Example of a field in a class
 
 void append(String suffix) {
     text = text + suffix;
 }
 ```
 
-**Vẫn có thể mất cập nhật.** `volatile` làm các lần đọc/ghi riêng lẻ có visibility, nhưng không gom phép **đọc → ghép → ghi** thành một giao dịch nguyên tử. Cả hai luồng vẫn có thể đọc cùng giá trị cũ rồi lần lượt ghi đè.
+**Updates can still be lost.** `volatile` gives individual reads/writes visibility, but does not combine **read → concatenate → write** into one atomic transaction. Two threads can still read the same old value and overwrite each other in turn.
 
-Ghi nhớ: **immutable** nói về trạng thái **của đối tượng**; **volatile** nói về visibility/ordering khi truy cập **field**; **atomicity** nói về tính không thể bị xen kẽ của **cả thao tác cập nhật**. Ba thuộc tính này khác nhau.
+Remember: **immutability** is about the state **of an object**; **`volatile`** is about visibility/ordering when accessing **a field**; **atomicity** is about the non-interleaving of **an entire update operation**. Those three properties are distinct.
 
-## 6. Giải pháp khi cần cập nhật chuỗi dùng chung
+## 6. Solutions When Shared Strings Must Be Updated
 
-### 6.1. Đồng bộ bằng `synchronized`
+### 6.1. Synchronizing with `synchronized`
 
-Khi thao tác ghép cần bảo toàn mọi cập nhật, có thể bao toàn bộ đoạn đọc–tính–ghi trong cùng một khóa:
+When an append operation must preserve every update, you can enclose the entire read–compute–write section under the same lock:
 
 ```java
 final class SynchronizedText {
@@ -246,13 +246,13 @@ final class SynchronizedText {
 }
 ```
 
-Hai luồng gọi `append("A")` và `append("B")` trên **cùng instance** sẽ không xen kẽ phần thân phương thức đồng bộ; chuỗi cuối chứa cả hai phần. Các phương thức `synchronized` trên cùng một đối tượng dùng chung monitor, đồng thời cung cấp quan hệ *happens-before* cho việc đọc/ghi được bảo vệ bởi monitor đó.
+Two threads calling `append("A")` and `append("B")` on **the same instance** will not interleave their synchronized method bodies; the final string contains both parts. `synchronized` methods on the same object share the same monitor and provide a *happens-before* relationship for reads/writes protected by that monitor.
 
-Nếu có nhiều field cần thay đổi nhất quán trong cùng một thao tác, `synchronized` hoặc một khóa phù hợp thường dễ biểu đạt toàn bộ bất biến hơn việc cập nhật từng field độc lập.
+If multiple fields must change consistently within one operation, `synchronized` or an appropriate lock is usually easier to keep all invariants intact than updating each field independently.
 
 ### 6.2. `AtomicReference<String>`
 
-Khi cần cập nhật nguyên tử **một tham chiếu chuỗi**, không cần khóa ngoài cho toàn bộ thao tác:
+When you need to atomically update **one string reference** without an external lock around the whole operation:
 
 ```java
 import java.util.concurrent.atomic.AtomicReference;
@@ -271,13 +271,13 @@ final class AtomicText {
 }
 ```
 
-`AtomicReference` sử dụng các thao tác nguyên tử như compare-and-set. Mỗi lần `updateAndGet` thành công đều được tính trên giá trị phù hợp với thứ tự cập nhật nguyên tử; khi cạnh tranh, lambda có thể chạy lại. Vì vậy **lambda nên thuần túy, không có tác dụng phụ**, và giá trị `part` nên ổn định trong phạm vi phép gọi.
+`AtomicReference` uses atomic operations such as compare-and-set. Each successful `updateAndGet` is computed on a value consistent with the atomic update order; under contention, the lambda may re-run. Therefore **the lambda should be pure and side-effect-free**, and `part` should remain stable for the duration of the call.
 
-Nếu nhiều tham chiếu cần cập nhật đồng thời theo một ràng buộc chung, một `AtomicReference` cho từng field **không đủ** để biến cả nhóm cập nhật thành nguyên tử. Có thể dùng khóa hoặc gom trạng thái vào một đối tượng giá trị bất biến rồi thay toàn bộ đối tượng qua một `AtomicReference<State>`.
+If multiple references must be updated together under a shared invariant, one `AtomicReference` per field is **not enough** to make the group of updates atomic. You can use a lock or group the state into an immutable value object and swap the entire object through one `AtomicReference<State>`.
 
-### 6.3. Không chia sẻ trạng thái ghi được
+### 6.3. Avoid Sharing Writable State
 
-Trong nhiều ứng dụng, giải pháp đơn giản nhất là mỗi luồng xử lý biến cục bộ riêng:
+In many applications, the simplest solution is for each thread to work on its own local variables:
 
 ```java
 String makeMessage(String name) {
@@ -287,13 +287,13 @@ String makeMessage(String name) {
 }
 ```
 
-`result` là biến cục bộ mỗi lần gọi; nếu không đưa nó vào vùng trạng thái chia sẻ, các luồng không tranh chấp khi gán lại `result`. Việc dùng `String` bất biến giúp không xảy ra chỉnh sửa lén nội dung của một chuỗi đã được chuyển qua phương thức khác.
+`result` is a local variable per call; unless placed into shared state, threads do not contend when reassigning `result`. Using immutable `String`s prevents sneaky edits to the content of a string passed into another method.
 
-Đừng đồng bộ mọi thao tác đọc chuỗi chỉ vì chương trình đa luồng. Đồng bộ cần đặt đúng nơi **trạng thái mutable dùng chung** được đọc và ghi.
+Do not synchronize every string read just because a program is multithreaded. Synchronization belongs specifically where **shared mutable state** is read and written.
 
-## 7. Container chứa `String` không tự trở thành thread-safe
+## 7. Containers Holding `String`s Do Not Automatically Become Thread-Safe
 
-Một tập hợp các phần tử bất biến vẫn có thể là một **đối tượng collection mutable**:
+A collection of immutable elements can still be a **mutable collection object**:
 
 ```java
 import java.util.ArrayList;
@@ -304,47 +304,47 @@ names.add("An");
 names.add("Bình");
 ```
 
-Mỗi phần tử `String` là immutable, nhưng cấu trúc nội bộ của `ArrayList` (kích thước, mảng phần tử, việc thay đổi/duyệt) không được thiết kế cho các phép sửa đồng thời không đồng bộ. Nếu nhiều luồng cùng sửa `names`, tính bất biến của phần tử không bảo vệ cấu trúc danh sách.
+Each `String` element is immutable, yet the internal structure of `ArrayList` (size, backing array, modification/iteration) is not designed for unsynchronized concurrent edits. If multiple threads mutate `names` concurrently, element immutability does not protect the list structure.
 
-Các tình huống tương tự:
+Similar situations:
 
-| Cấu trúc | Tính chất cần nhớ | Khi chia sẻ nhiều luồng |
+| Structure | Property to remember | When shared across threads |
 | --- | --- | --- |
-| `ArrayList<String>` | Danh sách mutable, thao tác sửa không thread-safe theo mặc định. | Dùng khóa khi truy cập/sửa chung, hoặc chọn collection concurrent nếu bài toán phù hợp. |
-| `HashMap<String, String>` | Key/value bất biến không bảo vệ bảng băm mutable. | Không sửa đồng thời mà thiếu đồng bộ; dùng `ConcurrentHashMap` cho truy cập/cập nhật concurrent. |
-| `ConcurrentHashMap<String, String>` | Hỗ trợ các phép thao tác concurrent được tài liệu API bảo đảm. | Dùng `compute` / `merge` khi cần cập nhật một key dựa trên giá trị cũ. |
-| `StringBuilder` | Bộ đệm ký tự mutable, **không** đồng bộ. | Dùng riêng từng luồng hoặc khóa quanh toàn bộ thao tác dùng chung. |
-| `StringBuffer` | Nhiều phương thức có đồng bộ nội tại. | Một chuỗi nhiều lời gọi vẫn có thể cần đồng bộ bổ sung nếu phải nguyên tử ở mức nghiệp vụ. |
-| `List.of("A", "B")` / `List.copyOf(...)` | Collection không cho phép thay đổi cấu trúc qua API collection. | Có thể chia sẻ để đọc sau khi công bố đúng cách; với phần tử mutable, đây không phải deep immutability. |
+| `ArrayList<String>` | Mutable list; mutating operations are not thread-safe by default. | Use locks for shared access/mutation, or choose a concurrent collection if suitable. |
+| `HashMap<String, String>` | Immutable keys/values do not protect the mutable hash table. | Do not mutate concurrently without synchronization; use `ConcurrentHashMap` for concurrent access/updates. |
+| `ConcurrentHashMap<String, String>` | Supports concurrent operations guaranteed by its API docs. | Use `compute` / `merge` when updating a key based on its old value. |
+| `StringBuilder` | Mutable character buffer, **not** synchronized. | Keep per-thread or lock around all shared operations. |
+| `StringBuffer` | Many methods have internal synchronization. | A sequence of multiple calls may still need extra synchronization if it must be business-atomic. |
+| `List.of("A", "B")` / `List.copyOf(...)` | Collection that forbids structural edits through the collection API. | Can be shared for reading after proper publication; for mutable elements, this is not deep immutability. |
 
-Ví dụ sai, vì hai bước `get` và `put` tách rời nhau:
+Wrong example, because `get` and `put` are two separate steps:
 
 ```java
-// map là ConcurrentHashMap<String, String>, key "log" đã tồn tại.
+// map is ConcurrentHashMap<String, String>, key "log" already exists.
 String old = map.get("log");
-map.put("log", old + "A"); // Có thể ghi đè cập nhật của luồng khác.
+map.put("log", old + "A"); // May overwrite another thread's update.
 ```
 
-Cách giữ phép cập nhật **một key** trong thao tác nguyên tử thích hợp:
+How to keep updating **one key** in an appropriate atomic operation:
 
 ```java
 map.compute("log", (key, old) ->
         (old == null ? "" : old) + "A");
 ```
 
-`ConcurrentHashMap.compute` đồng bộ logic cập nhật của key theo hợp đồng API; hãy giữ hàm ánh xạ ngắn gọn, tránh side effect và tránh thao tác đệ quy lên cùng map. Tương tự như `AtomicReference`, an toàn của thao tác collection được quyết định bởi **hợp đồng collection và cách dùng**, không chỉ bởi việc giá trị `String` bất biến.
+`ConcurrentHashMap.compute` synchronizes the key's update logic per the API contract; keep the remapping function short, free of side effects, and avoid recursive operations on the same map. Just like `AtomicReference`, the safety of collection operations is determined by **the collection's contract and usage**, not merely by `String` values being immutable.
 
-### Wrapper và bất biến bề ngoài
+### Wrappers and Surface Immutability
 
-`Collections.unmodifiableList(mutableList)` là **view không cho sửa qua wrapper**, nhưng danh sách gốc vẫn có thể bị sửa từ nơi khác. Wrapper không tự cung cấp đồng bộ hoặc snapshot. Ngược lại, `List.copyOf(source)` tạo một danh sách không thể sửa cấu trúc qua API và không phản ánh việc thêm/xóa ở danh sách nguồn; nó không sao chép sâu phần tử mutable.
+`Collections.unmodifiableList(mutableList)` is a **view that disallows modification through the wrapper**, while the underlying list can still be mutated elsewhere. The wrapper does not automatically provide synchronization or a snapshot. By contrast, `List.copyOf(source)` creates a list that cannot be structurally modified via its API and does not reflect additions/removals on the source list; it does not deep-copy mutable elements.
 
-Vì vậy “danh sách các `String` bất biến” và “danh sách bất biến” là hai nhận định khác nhau.
+Therefore "a list of immutable `String`s" and "an immutable list" are two different claims.
 
-## 8. Công bố tham chiếu và Java Memory Model
+## 8. Publishing References and the Java Memory Model
 
-Một tham chiếu tới `String` có thể được đọc qua nhiều luồng. Không thể từ việc chuỗi bất biến mà suy ra **mọi phép công bố hoặc thay thế tham chiếu** đều có quan hệ *happens-before*.
+A reference to a `String` may be read across multiple threads. You cannot deduce from string immutability that **every reference publication or replacement** has a *happens-before* relationship.
 
-Ví dụ:
+For example:
 
 ```java
 class MessageBox {
@@ -360,42 +360,42 @@ class MessageBox {
 }
 ```
 
-Nếu một luồng gọi `set` trong lúc luồng khác gọi `get` mà không có đồng bộ khác, không có bảo đảm đủ mạnh rằng luồng đọc sẽ thấy **giá trị mới nhất** đúng thời điểm mong đợi. Bản thân nội dung đối tượng `String` vẫn bất biến, nhưng giao thức trao đổi cập nhật qua field `latest` còn thiếu.
+If one thread calls `set` while another calls `get` without further synchronization, there is no strong enough guarantee that the reading thread will observe **the latest value** at the expected time. The content of the `String` object itself remains immutable, yet the protocol for exchanging updates through the `latest` field is missing.
 
-Các cách tạo quan hệ đồng bộ/happens-before thường dùng:
-- Dùng `volatile` khi cần công bố/thay thế **một tham chiếu** và không cần ghép cập nhật.
-- Dùng khóa `synchronized`/`Lock` khi đọc và ghi một nhóm trạng thái theo bất biến chung.
-- Dùng `AtomicReference` cho việc thay tham chiếu nguyên tử hoặc các phép cập nhật read–modify–write.
-- Dùng collection/concurrent queue đúng hợp đồng hoặc cơ chế chuyển thông điệp nếu các luồng phải trao đổi dữ liệu.
+Common ways to establish synchronization/happens-before relationships:
+- Use `volatile` when publishing/replacing **a single reference** without read–modify–write composition.
+- Use `synchronized`/`Lock` when reading and writing a group of states under a shared invariant.
+- Use `AtomicReference` for atomic reference swaps or read–modify–write updates.
+- Use properly contracted concurrent collections/queues or message passing when threads must exchange data.
 
-Field `final` được khởi tạo đúng trong constructor mang lại bảo đảm đặc biệt cho quá trình khởi tạo theo Java Memory Model (giả định `this` không thoát ra trong lúc khởi tạo). Nhưng một đối tượng có field `final String` vẫn có thể chứa nhiều field mutable khác và **không tự nhiên an toàn đa luồng**.
+A `final` field properly initialized in a constructor provides special initialization guarantees under the Java Memory Model (assuming `this` does not escape during construction). Still, an object with a `final String` field can contain other mutable fields and is **not inherently thread-safe**.
 
-## 9. Chọn cách thiết kế theo yêu cầu
+## 9. Choosing a Design by Requirement
 
-| Yêu cầu | Hướng triển khai |
+| Requirement | Implementation direction |
 | --- | --- |
-| Nhiều luồng chỉ đọc cùng một `String` đã được công bố đúng cách | Chia sẻ trực tiếp chuỗi; không cần khóa để bảo vệ nội dung bất biến. |
-| Một luồng thay thông báo, nhiều luồng đọc thông báo mới | `volatile String` hoặc `AtomicReference<String>`, tùy nhu cầu API. |
-| Nhiều luồng cùng “thêm” vào một biến chuỗi | `synchronized` hoặc `AtomicReference.updateAndGet`; tránh `+=` không đồng bộ. |
-| Cập nhật nhiều field phải nhất quán với nhau | Khóa chung hoặc một đối tượng trạng thái bất biến được thay nguyên tử. |
-| Nhiều luồng thao tác trên map chứa các `String` | `ConcurrentHashMap` với API cập nhật phù hợp; `get` rồi `put` có thể chưa đủ. |
-| Ghép chuỗi dài, mỗi luồng có bộ đệm riêng | `StringBuilder` cục bộ; tạo `String` khi cần chia sẻ kết quả. |
-| Cần danh sách chỉ đọc | Dùng bản sao immutable thích hợp và công bố đúng cách; phân biệt snapshot với unmodifiable view. |
+| Multiple threads only read one properly published `String` | Share the string directly; no lock needed to protect immutable content. |
+| One thread replaces a message, many threads read the latest message | `volatile String` or `AtomicReference<String>`, depending on API needs. |
+| Multiple threads concurrently "append" to one string variable | `synchronized` or `AtomicReference.updateAndGet`; avoid unsynchronized `+=`. |
+| Updating multiple fields that must stay consistent with each other | A shared lock or an immutable state object swapped atomically. |
+| Multiple threads operating on a map containing `String`s | `ConcurrentHashMap` with appropriate update APIs; `get` then `put` may not suffice. |
+| Long string concatenation, each thread with its own buffer | Local `StringBuilder`; produce a `String` when ready to share results. |
+| Need a read-only list | Use an appropriate immutable copy and publish it properly; distinguish snapshots from unmodifiable views. |
 
-**Lưu ý hiệu năng:** cập nhật chuỗi bằng `old + suffix` liên tục có thể tạo nhiều chuỗi trung gian do `String` bất biến. Với lượng nối lớn, nếu các luồng tạo dữ liệu độc lập, thường nên dùng `StringBuilder` cục bộ rồi kết hợp kết quả bằng cơ chế đồng bộ hợp lý. Đừng dùng một `StringBuilder` mutable chung mà không có đồng bộ chỉ để tránh tạo đối tượng.
+**Performance note:** repeatedly updating a string via `old + suffix` can create many intermediate strings due to `String` immutability. For heavy concatenation, if threads build data independently, it is usually better to use a local `StringBuilder` and combine results via an appropriate synchronization mechanism. Do not share one mutable `StringBuilder` without synchronization just to avoid allocating objects.
 
-## 10. Những khẳng định dễ nhầm
+## 10. Easily Confused Claims
 
-1. **“`String` immutable nên `shared += "x"` thread-safe.”** Sai: câu lệnh thay biến dùng chung qua nhiều bước.
-2. **“Thêm `volatile` là mọi cập nhật an toàn.”** Sai: visibility không tự đảm bảo atomic read–modify–write.
-3. **“`List<String>` luôn thread-safe vì phần tử là chuỗi.”** Sai: container mutable có trạng thái và quy tắc đồng bộ riêng.
-4. **“`ConcurrentHashMap` khiến bất kỳ chuỗi thao tác `get` rồi `put` thành atomic.”** Sai: dùng `compute`/`merge` khi muốn cập nhật nguyên tử theo key.
-5. **“Dùng `synchronized` khi đọc chuỗi là bắt buộc.”** Sai: đọc đối tượng chuỗi bất biến đã được công bố đúng cách không cần khóa riêng để bảo vệ nội dung; tuy nhiên giao thức trao đổi trạng thái xung quanh có thể cần khóa.
-6. **“Có `final String` nên cả object an toàn đa luồng.”** Sai: field khác vẫn có thể mutable, và sự nhất quán giữa các field cần thiết kế riêng.
+1. **"`String` is immutable, so `shared += "x"` is thread-safe."** False: the statement updates a shared variable across multiple steps.
+2. **"Adding `volatile` makes every update safe."** False: visibility alone does not guarantee atomic read–modify–write.
+3. **"`List<String>` is always thread-safe because its elements are strings."** False: a mutable container has its own state and synchronization rules.
+4. **"`ConcurrentHashMap` makes any sequence of `get` then `put` atomic."** False: use `compute`/`merge` when you want an atomic per-key update.
+5. **"Using `synchronized` when reading a string is mandatory."** False: reading a properly published immutable string object needs no separate lock to protect its content; however, the surrounding state-exchange protocol may require locking.
+6. **"Having a `final String` makes the whole object thread-safe."** False: other fields can still be mutable, and consistency across fields needs separate design.
 
-## 11. Bài tập áp dụng
+## 11. Applied Exercises
 
-**Bài 1.** Có một field dùng chung:
+**Exercise 1.** Given a shared field:
 
 ```java
 volatile String log = "";
@@ -405,23 +405,23 @@ void add(String item) {
 }
 ```
 
-Hai luồng gọi `add("A")` và `add("B")`. Có bảo đảm `log` chứa cả hai phần không?
+Two threads call `add("A")` and `add("B")`. Is `log` guaranteed to contain both parts?
 
-**Đáp án:** Không. Mỗi luồng có thể đọc cùng snapshot cũ trước khi gán; `volatile` không tạo atomicity cho cả phép ghép. Có thể thay bằng `AtomicReference<String>.updateAndGet` hoặc đồng bộ hóa toàn bộ thao tác.
+**Answer:** No. Each thread can read the same old snapshot before assigning; `volatile` does not provide atomicity for the entire concatenation. You can replace it with `AtomicReference<String>.updateAndGet` or synchronize the entire operation.
 
-**Bài 2.** Một dịch vụ công bố chuỗi trạng thái mới mà không cần ghép với trạng thái cũ; một luồng ghi, nhiều luồng đọc. Có cần dùng `AtomicReference.updateAndGet` không?
+**Exercise 2.** A service publishes a new status string without needing to append to the old status; one thread writes, many threads read. Is `AtomicReference.updateAndGet` required?
 
-**Đáp án:** Không nhất thiết. Một field `volatile String status` cùng cách đọc/ghi đơn giản đã phù hợp với nhiều trường hợp công bố trạng thái độc lập. Nếu phải bảo đảm chuyển đổi có điều kiện dựa trên giá trị cũ, nên cân nhắc cơ chế atomic/locking.
+**Answer:** Not necessarily. A `volatile String status` field with simple reads/writes fits many independent status-publication cases. If conditional transitions based on the old value must be guaranteed, consider atomic/locking mechanisms.
 
-**Bài 3.** Một `HashMap<String,String>` có key và value đều là `String`. Có thể vừa thay map từ nhiều luồng vừa duyệt trực tiếp không đồng bộ?
+**Exercise 3.** A `HashMap<String,String>` has `String` keys and values. Can multiple threads mutate the map while iterating directly without synchronization?
 
-**Đáp án:** Không. Chuỗi bất biến không bảo vệ cấu trúc `HashMap` khi sửa đồng thời. Chọn `ConcurrentHashMap` hoặc đồng bộ ngoại vi theo nhu cầu nhất quán của thao tác.
+**Answer:** No. Immutable strings do not protect the `HashMap` structure during concurrent modification. Choose `ConcurrentHashMap` or external synchronization depending on the operation's consistency needs.
 
-**Bài 4.** Khi cần đọc một chuỗi đã tạo và chia sẻ qua thread-safe queue, phải khóa riêng cho `charAt` và `length` của chuỗi đó không?
+**Exercise 4.** When needing to read a created string shared through a thread-safe queue, do you have to lock separately around `charAt` and `length` on that string?
 
-**Đáp án:** Không cần khóa riêng để bảo vệ nội dung immutable của `String`. Việc chuyển chuỗi qua queue có hợp đồng concurrent thích hợp cung cấp cơ chế công bố/chuyển giao; còn các trạng thái mutable khác phải xét riêng.
+**Answer:** No separate lock is needed to protect the immutable content of `String`. Passing the string through a queue with an appropriate concurrent contract provides the publication/handoff mechanism; any other mutable state must be evaluated separately.
 
-## Tài liệu tham khảo
+## References
 
 - [Java SE 17: `String`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
 - [Java SE 17: `AtomicReference`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/AtomicReference.html)

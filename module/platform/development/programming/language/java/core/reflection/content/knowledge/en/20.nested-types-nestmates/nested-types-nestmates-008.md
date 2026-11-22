@@ -1,32 +1,32 @@
-# Tên và cấu trúc do compiler sinh không phải hợp đồng ứng dụng
+# Compiler-Generated Names and Structures Are Not an Application Contract
 
-Trong Java Reflection, chương trình có thể nhìn thấy kiểu lồng, tên lớp, constructor, field và method của bytecode đã nạp. Nhưng **không phải mọi thứ nhìn thấy qua Reflection đều là hợp đồng ứng dụng**. Compiler có thể thêm phương thức cầu nối, accessor, field giữ biến capture hoặc lớp phục vụ biểu thức anonymous. Tên/số lượng/cách bố trí nhiều thành phần này phụ thuộc compiler, target bytecode và cách sửa source.
+In Java Reflection, a program can see nested types, class names, constructors, fields, and methods of loaded bytecode. However, **not everything visible through Reflection is an application contract**. The compiler may add bridge methods, accessors, fields holding captured variables, or classes supporting anonymous expressions. The names, counts, and layouts of many of these elements depend on the compiler, bytecode target, and source edits.
 
-Bài này thuộc chủ đề **Kiểu lồng và nest** của Java Reflection. Ta sẽ phân biệt metadata được đặc tả với chi tiết phát sinh trong quá trình biên dịch, rồi sử dụng `Class<?>` đúng cách để tránh gắn logic nghiệp vụ với tên như `Outer$1`, `access$000` hoặc `this$0`.
+This lesson belongs to the **Nested Types and Nests** topic of Java Reflection. We will distinguish specified metadata from compiler-emitted implementation details, and use `Class<?>` properly to avoid coupling business logic to names like `Outer$1`, `access$000`, or `this$0`.
 
-## 1. Ba tầng cần phân biệt
+## 1. Three layers to distinguish
 
-1. **Ngữ nghĩa source:** member class, local class, anonymous class, lambda, quy tắc truy cập private và tên kiểu Java. Java Language Specification (JLS) định nghĩa ý nghĩa các cấu trúc này.
-2. **Biểu diễn runtime/class file:** binary name, constructor parameter, field, method, cờ `synthetic`/`bridge` và thuộc tính class file như `InnerClasses`, `EnclosingMethod`, `NestHost`/`NestMembers`. Một số chi tiết được đặc tả; một số do compiler lựa chọn.
-3. **Hợp đồng ứng dụng:** kiểu/interface công bố, API ổn định, annotation/schema/registry do ứng dụng thiết kế. Đây mới là lớp mà logic nghiệp vụ, dữ liệu lưu lâu dài và các module khác nên phụ thuộc.
+1. **Source semantics:** member class, local class, anonymous class, lambda, private access rules, and Java type names. The Java Language Specification (JLS) defines the meaning of these constructs.
+2. **Runtime/class-file representation:** binary names, constructor parameters, fields, methods, `synthetic`/`bridge` flags, and class-file attributes such as `InnerClasses`, `EnclosingMethod`, `NestHost`/`NestMembers`. Some details are specified; others are chosen by the compiler.
+3. **Application contract:** published types/interfaces, stable APIs, and application-designed annotations/schemas/registries. This is the layer that business logic, long-term persisted data, and other modules should depend on.
 
-Điểm tinh tế: **binary name của member class có tên được JLS quy định** (ví dụ `pkg.Outer$Inner`), còn **số trong tên của local/anonymous class không phải ID nghiệp vụ ổn định**. Không nên gọi tất cả tên chứa `$` là “ngẫu nhiên”, và cũng không được suy ngược rằng tất cả tên đó có ý nghĩa ứng dụng.
+Subtle point: **the binary name of a named member class is specified by the JLS** (for example `pkg.Outer$Inner`), whereas **numbers in the names of local/anonymous classes are not stable business IDs**. Do not call all names containing `$` “random”, and do not infer in reverse that all such names carry application meaning.
 
-## 2. Nhận diện đúng các loại class
+## 2. Identifying class kinds accurately
 
-| Loại | Khai báo/nguồn tạo | Reflection thích hợp | Không nên giả định |
+| Kind | Declaration/creation source | Appropriate Reflection | What not to assume |
 | --- | --- | --- | --- |
-| Member class hoặc interface | Khai báo trực tiếp bên trong một class/interface | `isMemberClass()`, `getDeclaringClass()` | Mọi class có dấu `$` đều là member |
-| Local class | Khai báo trong block, thường ở phương thức | `isLocalClass()`, `getEnclosingMethod()` | Số xuất hiện trong binary name là thứ tự/ID ổn định |
-| Anonymous class | Biểu thức tạo lớp vô danh | `isAnonymousClass()`, `getEnclosingClass()` | Luôn được phép gọi qua tên `$1` |
-| Lambda | Biểu thức chức năng như `() -> ...` | Functional interface và hành vi của nó | Luôn có file `.class` hoặc tên runtime tái sử dụng được |
-| Synthetic/bridge member | Compiler sinh hỗ trợ bytecode | `Member.isSynthetic()`, `Method.isBridge()` | Tên/số lượng method/field phát sinh là API |
+| Member class or interface | Declared directly inside a class/interface | `isMemberClass()`, `getDeclaringClass()` | Every class with `$` is a member |
+| Local class | Declared inside a block, usually in a method | `isLocalClass()`, `getEnclosingMethod()` | The number in the binary name is a stable order/ID |
+| Anonymous class | Anonymous class creation expression | `isAnonymousClass()`, `getEnclosingClass()` | Always callable via the name `$1` |
+| Lambda | Functional expression such as `() -> ...` | Functional interface and its behavior | Always has a reusable `.class` file or runtime name |
+| Synthetic/bridge member | Compiler-generated bytecode support | `Member.isSynthetic()`, `Method.isBridge()` | Generated method/field names or counts are an API |
 
-`isSynthetic()` không phải phép thử nhận diện mọi local hay anonymous class. `getDeclaredClasses()` chỉ liệt kê member class/interface được khai báo trực tiếp trong một class, **không quét** mọi local/anonymous class từng xuất hiện trong các phương thức của nó.
+`isSynthetic()` is not a test for identifying all local or anonymous classes. `getDeclaredClasses()` only lists member classes/interfaces declared directly inside a class; **it does not scan** every local/anonymous class appearing inside its methods.
 
-### Ví dụ Java 17+: metadata thay cho cắt chuỗi tên
+### Java 17+ example: metadata instead of string splitting
 
-Lưu thành `ReflectionKindsDemo.java`:
+Save as `ReflectionKindsDemo.java`:
 
 ```java
 public class ReflectionKindsDemo {
@@ -69,7 +69,7 @@ javac ReflectionKindsDemo.java
 java ReflectionKindsDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 member: member=true, local=false, anonymous=false, canonical=ReflectionKindsDemo.Member
@@ -77,61 +77,61 @@ local: member=false, local=true, anonymous=false, canonical=null
 anonymous: member=false, local=false, anonymous=true, canonical=null
 ```
 
-Member `Member` có canonical name; local và anonymous class thì `getCanonicalName()` trả `null`. Các phương thức `isMemberClass()`, `isLocalClass()` và `isAnonymousClass()` trả lời chính xác ý nghĩa cần phân loại. Nếu in thêm `type.getName()`, một bản `javac` thường có thể tạo tên kiểu `ReflectionKindsDemo$Member`, `ReflectionKindsDemo$1Local` và `ReflectionKindsDemo$1`. Các số ở đây chỉ là ví dụ quan sát, **không phải output được kiểm thử hay ID bền vững**.
+Member `Member` has a canonical name; for local and anonymous classes, `getCanonicalName()` returns `null`. `isMemberClass()`, `isLocalClass()`, and `isAnonymousClass()` accurately answer the classification question. If you also print `type.getName()`, a `javac` build might produce names like `ReflectionKindsDemo$Member`, `ReflectionKindsDemo$1Local`, and `ReflectionKindsDemo$1`. The numbers here are merely illustrative observations, **not tested output or durable IDs**.
 
-## 3. Binary name, canonical name và simple name
+## 3. Binary name, canonical name, and simple name
 
-- `Class.getName()` phản ánh tên runtime, với class thông thường là binary name. Với member class `pkg.Outer.Inner` có tên, binary name theo JLS là `pkg.Outer$Inner`.
-- `getCanonicalName()` thích hợp cho kiểu có canonical name; local/anonymous class trả `null`.
-- `getSimpleName()` cho simple name; anonymous class có simple name rỗng.
-- `getTypeName()` cho tên dạng dễ đọc hơn trong một số ngữ cảnh nhưng cũng không phải định danh nghiệp vụ.
-- `Class.forName(...)` nhận binary name thích hợp, chịu ảnh hưởng của class loader và khả năng nạp lớp.
+- `Class.getName()` reflects the runtime name, which for ordinary classes is the binary name. For a named member class `pkg.Outer.Inner`, the binary name per the JLS is `pkg.Outer$Inner`.
+- `getCanonicalName()` works for types that have a canonical name; local/anonymous classes return `null`.
+- `getSimpleName()` gives the simple name; anonymous classes have an empty simple name.
+- `getTypeName()` gives a more readable name in some contexts, yet is also not a business identifier.
+- `Class.forName(...)` accepts a suitable binary name, subject to the class loader and loadability.
 
-Ví dụ minh họa (giả sử đã có member type `pkg.Outer.Inner`):
+Illustrative example (assuming member type `pkg.Outer.Inner` exists):
 
 ```java
 Class<?> member = Class.forName("pkg.Outer$Inner");
 ```
 
-Dùng binary name của **một member class có tên đã biết và được công bố** là hợp lệ. Trái lại, đoán `pkg.Outer$1` để gọi một anonymous class là phụ thuộc vào cách compiler đánh số. Cũng đừng suy luận “tách tại dấu `$` cuối cùng” để xác định class bao ngoài: `$` có thể là ký tự hợp lệ trong tên định danh Java; hơn nữa class local, anonymous và synthetic có những ý nghĩa khác member class.
+Using the binary name of **a known, published named member class** is valid. By contrast, guessing `pkg.Outer$1` to load an anonymous class depends on compiler numbering. Also do not infer “split at the last `$`” to find the enclosing class: `$` can be a valid character in Java identifiers; moreover, local, anonymous, and synthetic classes have different semantics from member classes.
 
-Ví dụ dễ vỡ:
+Fragile example:
 
 ```java
 String binaryName = type.getName();
 String guessedRole = binaryName.substring(binaryName.lastIndexOf('$') + 1);
 
-// Không dùng guessedRole làm quyền truy cập, tên plugin hoặc khóa database.
+// Do not use guessedRole as an access right, plugin name, or database key.
 ```
 
-Một định danh được lưu vào database, file cấu hình, sự kiện hoặc JSON nên là **khóa được ứng dụng định nghĩa**, không phải một mảnh tên do compiler gán.
+An identifier stored in a database, configuration file, event, or JSON should be **an application-defined key**, not a compiler-assigned name fragment.
 
-## 4. Quan hệ khai báo, ngữ cảnh bao và tập kiểu lồng
+## 4. Declaration relationships, enclosing context, and nested type sets
 
-Các API này trả lời những câu hỏi khác nhau:
+These APIs answer different questions:
 
-| API | Đúng nghĩa | Giới hạn |
+| API | True meaning | Limitation |
 | --- | --- | --- |
-| `getDeclaringClass()` | Class/interface khai báo kiểu này như **member** | Local/anonymous không có declaring class như member |
-| `getEnclosingClass()` | Class bao gần nhất | Có thể có cho member, local, anonymous |
-| `getEnclosingMethod()` | Phương thức bao trực tiếp local/anonymous class | Có thể `null` nếu nằm trong constructor/initializer |
-| `getEnclosingConstructor()` | Constructor bao trực tiếp local/anonymous class | Không phải constructor được dùng để tạo mọi instance |
-| `getDeclaredClasses()` | Member class/interface khai báo trực tiếp | Không gồm member kế thừa, local hoặc anonymous |
-| `getClasses()` | Member type public, kể cả được kế thừa | Không giống `getDeclaredClasses()` |
+| `getDeclaringClass()` | Class/interface declaring this type as a **member** | Local/anonymous classes have no declaring class as a member |
+| `getEnclosingClass()` | Nearest enclosing class | May exist for member, local, and anonymous classes |
+| `getEnclosingMethod()` | Method directly enclosing a local/anonymous class | May be `null` if inside a constructor/initializer |
+| `getEnclosingConstructor()` | Constructor directly enclosing a local/anonymous class | Not the constructor used to create every instance |
+| `getDeclaredClasses()` | Directly declared member classes/interfaces | Excludes inherited, local, or anonymous members |
+| `getClasses()` | `public` member types, including inherited ones | Not the same as `getDeclaredClasses()` |
 
-Với `ReflectionKindsDemo`, `Member.class.getDeclaringClass() == ReflectionKindsDemo.class`. Với local/anonymous class tạo trong static method, `getDeclaringClass()` trả `null` nhưng `getEnclosingClass()` có thể cho biết `ReflectionKindsDemo.class`.
+For `ReflectionKindsDemo`, `Member.class.getDeclaringClass() == ReflectionKindsDemo.class`. For a local/anonymous class created inside a static method, `getDeclaringClass()` returns `null` while `getEnclosingClass()` can report `ReflectionKindsDemo.class`.
 
-Nếu viết công cụ tạo tài liệu, hãy nêu rõ mục tiêu là **các member type được khai báo**, **các class cùng nest**, hay **mọi class đã nạp trong runtime**. Không API nào ở bảng trên tương đương với truy vấn “toàn bộ kiểu trong một file source”. Tập kết quả Reflection cũng không nên được coi là có thứ tự khai báo đảm bảo; khi cần trình bày ổn định, hãy sắp xếp theo quy tắc riêng và xử lý trường hợp trùng khóa.
+If writing a documentation generator, state clearly whether the goal is **declared member types**, **classes in the same nest**, or **all classes loaded at runtime**. None of the APIs in the table above is equivalent to querying “all types in a source file”. Reflection result sets should also not be assumed to have a guaranteed declaration order; when stable presentation is needed, sort by your own rule and handle key collisions.
 
-## 5. Nestmates của JVM: cùng nest không có nghĩa cùng một cấu trúc tên
+## 5. JVM nestmates: being in the same nest does not mean sharing a name structure
 
-Từ Java 11, JVM hỗ trợ **nest-based access control**. Metadata class file như `NestHost` và `NestMembers` mô tả những lớp cùng nest để JVM kiểm tra quyền truy cập private. Cần phân biệt:
+Since Java 11, the JVM supports **nest-based access control**. Class-file metadata such as `NestHost` and `NestMembers` describes classes in the same nest for JVM private access checks. Distinguish:
 
-- `getNestHost()`: host của nest hiện tại.
-- `isNestmateOf(other)`: kiểm tra hai class có chung nest host.
-- `getNestMembers()`: trả các class mà nest host ghi nhận là thành viên. Thứ tự không được bảo đảm; API này cũng không liệt kê hidden class được thêm vào nest động qua `Lookup.defineHiddenClass`.
+- `getNestHost()`: host of the current nest.
+- `isNestmateOf(other)`: checks whether two classes share the same nest host.
+- `getNestMembers()`: returns the classes recorded as members by the nest host. Order is not guaranteed; this API also does not list hidden classes dynamically added to the nest via `Lookup.defineHiddenClass`.
 
-Lưu ví dụ thành `NestAccessDemo.java`:
+Save example as `NestAccessDemo.java`:
 
 ```java
 public class NestAccessDemo {
@@ -164,17 +164,17 @@ true
 ready
 ```
 
-Kết quả thể hiện quan hệ nest và quyền gọi method `private` thông qua code hợp lệ. **Không kết luận hai lớp là nestmate từ việc cùng tiền tố trước dấu `$`.** JVM kiểm tra theo metadata và quy tắc của nó; `getNestMembers()` cũng không thay thế `getDeclaredClasses()`. Một local/anonymous class có thể là nestmate mà không phải member class khai báo trực tiếp.
+The output demonstrates the nest relationship and permission to call a `private` method via valid code. **Do not conclude two classes are nestmates because they share the same prefix before `$`.** The JVM validates according to its metadata and rules; `getNestMembers()` also does not replace `getDeclaredClasses()`. A local/anonymous class can be a nestmate without being a directly declared member class.
 
-Với target bytecode cũ hơn Java 11, compiler Java từng cần tạo synthetic accessor (thường nhìn thấy tên dạng `access$...`) cho một số truy cập private xuyên qua lớp lồng. Khi dùng nest metadata, nhu cầu sinh accessor kiểu đó thay đổi. Vì vậy, **không có API công khai mang tên `access$000` để logic ứng dụng được quyền phụ thuộc**.
+For bytecode targets older than Java 11, the Java compiler had to generate synthetic accessors (often seen with names like `access$...`) for certain private accesses across nested classes. When nest metadata is used, the need to generate such accessors changes. Therefore, **there is no public API named `access$000` that application logic is allowed to depend on**.
 
-## 6. Các thành phần compiler có thể bổ sung
+## 6. Elements the compiler may add
 
-### 6.1. Bridge method do erasure hoặc covariant return
+### 6.1. Bridge methods due to erasure or covariant return
 
-Generics bị xóa kiểu ở bytecode. Để duy trì dispatch/override đúng, compiler có thể tạo **bridge method**. `Method.isBridge()` chỉ ra cờ bridge, còn `Method.isSynthetic()` chỉ ra cờ synthetic.
+Generics undergo type erasure in bytecode. To preserve proper dispatch/overriding, the compiler may generate a **bridge method**. `Method.isBridge()` indicates the bridge flag, while `Method.isSynthetic()` indicates the synthetic flag.
 
-Lưu thành `MethodMetadataDemo.java`:
+Save as `MethodMetadataDemo.java`:
 
 ```java
 import java.lang.reflect.Method;
@@ -202,29 +202,29 @@ public class MethodMetadataDemo {
 }
 ```
 
-Biên dịch bằng `javac MethodMetadataDemo.java` và chạy `java MethodMetadataDemo`. Trên `javac` JDK 17, thông thường sẽ quan sát được hai method tên `value`: method trả `String` được khai báo ở source (`bridge=false, synthetic=false`) và bridge method trả `Object` (`bridge=true, synthetic=true`). **Thứ tự các dòng không được bảo đảm**, nên bài không cố định output theo thứ tự. Cờ metadata hữu ích cho công cụ quan sát; code nghiệp vụ không nên gọi method theo “vị trí thứ hai” trong mảng Reflection.
+Compile with `javac MethodMetadataDemo.java` and run `java MethodMetadataDemo`. On `javac` JDK 17, you will normally observe two methods named `value`: the source-declared method returning `String` (`bridge=false, synthetic=false`) and the bridge method returning `Object` (`bridge=true, synthetic=true`). **Line order is not guaranteed**, so this lesson does not fix the output in a particular order. Metadata flags are useful for inspection tools; business code should not invoke a method by “the second slot” in a Reflection array.
 
-### 6.2. Field giữ outer instance và biến capture
+### 6.2. Fields holding the outer instance and captured variables
 
-Non-static inner class có mối liên hệ với enclosing instance. Constructor phản chiếu có thể có tham số instance bao ngoài; với non-static inner class được khai báo trong ngữ cảnh như vậy, Java Reflection mô tả tham số này ở đầu danh sách constructor parameter. Local/anonymous class có thể cần giữ biến được capture.
+A non-static inner class has a relationship with an enclosing instance. Its reflected constructor may have an enclosing-instance parameter; for a non-static inner class declared in such a context, Java Reflection describes this parameter at the start of the constructor parameter list. Local/anonymous classes may need to retain captured variables.
 
-Một compiler có thể biểu diễn state trợ giúp bằng field với tên dạng `this$0` hoặc `val$...`. Nhưng **tên field, cách tối ưu và việc field có tồn tại hay không không phải schema**. Đừng dùng `getDeclaredFields()` rồi mặc định serialize toàn bộ field, hay xem `this$0` như property nghiệp vụ.
+A compiler may represent helper state with fields named like `this$0` or `val$...`. However, **field names, optimization choices, and whether a field exists are not a schema**. Do not call `getDeclaredFields()` and blindly serialize every field, or treat `this$0` as a business property.
 
-### 6.3. Constructor, parameter name và synthetic members
+### 6.3. Constructors, parameter names, and synthetic members
 
-`getDeclaredConstructors()` phản chiếu constructor thực có trong class file; constructor của inner/local/anonymous class có thể có tham số không được viết tường minh trong source. Metadata tên tham số còn phụ thuộc cách biên dịch, ví dụ tùy chọn `javac -parameters`. Khi cần, kiểm tra `Parameter.isNamePresent()`, `isImplicit()` và `isSynthetic()` thay vì đoán tên `arg0` hay dùng độ dài signature làm dữ liệu bất biến.
+`getDeclaredConstructors()` reflects the actual constructors present in the class file; constructors of inner/local/anonymous classes may have parameters not written explicitly in source. Parameter-name metadata also depends on compilation options, such as `javac -parameters`. When needed, check `Parameter.isNamePresent()`, `isImplicit()`, and `isSynthetic()` instead of guessing `arg0` or treating signature length as an invariant.
 
-`getDeclaredFields()`, `getDeclaredMethods()`, `getDeclaredConstructors()` không hứa thứ tự source. Các công cụ ánh xạ schema hoặc tạo tài liệu cần chọn rõ member nào thuộc hợp đồng, sau đó tự sắp xếp. Nếu lọc hết `isSynthetic()`/`isBridge()`, phải xác định rằng mục tiêu của mình là API source-level; một công cụ phân tích bytecode hoặc dispatch có thể cần giữ thành phần bridge.
+`getDeclaredFields()`, `getDeclaredMethods()`, and `getDeclaredConstructors()` do not promise source order. Schema mappers or documentation generators need to explicitly select which members belong to the contract, then sort them themselves. If filtering out all `isSynthetic()`/`isBridge()` members, confirm that your goal is a source-level API; a bytecode or dispatch analyzer may need to retain bridge methods.
 
-### 6.4. Lambda và lớp triển khai ẩn
+### 6.4. Lambdas and hidden implementation classes
 
-Lambda nên được nhìn như một cách tạo thực thể thực thi **functional interface**, không phải nguồn sinh class có tên bền vững. JVM/compiler có nhiều chiến lược triển khai, gồm cơ chế hidden class trong các JDK hiện đại. Không cố `Class.forName` bằng tên lấy từ `someLambda.getClass().getName()` để phục hồi chức năng trong lần chạy khác. Hãy lưu cấu hình/loại nghiệp vụ riêng và tái tạo đối tượng qua API đã thiết kế.
+A lambda should be viewed as a way to create an entity implementing a **functional interface**, not as a source of classes with durable names. The JVM/compiler has multiple implementation strategies, including hidden class mechanisms in modern JDKs. Do not attempt `Class.forName` using a name obtained from `someLambda.getClass().getName()` to restore behavior in another run. Store configuration or business types separately and recreate objects through a designed API.
 
-## 7. Thiết kế hợp đồng Reflection chủ đích
+## 7. Designing intentional Reflection contracts
 
-Nếu ứng dụng cần xác định class nào đảm nhận vai trò `parser`, đừng nhận diện bằng hậu tố `$Parser` hoặc số thứ tự anonymous class. Dùng interface + annotation runtime để công bố ý nghĩa.
+If an application needs to identify which class plays the `parser` role, do not identify it by a `$Parser` suffix or anonymous class sequence number. Use an interface + runtime annotation to publish the meaning.
 
-Lưu thành `StableDiscoveryDemo.java`:
+Save as `StableDiscoveryDemo.java`:
 
 ```java
 import java.lang.annotation.ElementType;
@@ -264,40 +264,40 @@ java StableDiscoveryDemo
 parser
 ```
 
-`Runnable` thể hiện hợp đồng hành vi; `@Role("parser")` công bố vai trò có thể truy vấn bằng Reflection. Việc *tìm* tất cả class ứng viên trong classpath là vấn đề discovery/registry khác: `getDeclaredClasses()` không phải chức năng quét package/classpath.
+`Runnable` expresses the behavioral contract; `@Role("parser")` publishes the role queryable via Reflection. *Finding* all candidate classes on the classpath is a separate discovery/registry problem: `getDeclaredClasses()` is not a package/classpath scanner.
 
-Áp dụng vào hệ thống thực tế:
+Applying this to real systems:
 
-1. **Phân loại kiểu:** dùng `isMemberClass()`, `isLocalClass()`, `isAnonymousClass()`; dùng `getDeclaringClass()` và `getEnclosingClass()` theo ý nghĩa tương ứng.
-2. **Kiểm tra cùng nest:** dùng `getNestHost()`/`isNestmateOf()`, không so tiền tố chuỗi tên.
-3. **Lập tài liệu API:** công bố type/member được thiết kế làm API, phân biệt compiler member bằng metadata khi phù hợp, kiểm soát thứ tự hiển thị.
-4. **Định danh qua nhiều phiên bản:** định nghĩa khóa ổn định trong schema/annotation/cấu hình; không dùng số compiler sinh, thứ tự mảng Reflection hoặc tên triển khai lambda.
-5. **Khởi tạo qua Reflection:** dựa vào constructor và kiểu tham số thực được công bố, xử lý ngoại lệ; tránh truy cập field/private accessor nội bộ.
-6. **Kiểm thử tương thích:** kiểm tra hành vi và public contract. Chỉ kiểm tra tên/số lượng synthetic member nếu đang viết công cụ phân tích dành riêng cho compiler/bytecode đó.
+1. **Classifying types:** use `isMemberClass()`, `isLocalClass()`, `isAnonymousClass()`; use `getDeclaringClass()` and `getEnclosingClass()` according to their respective meanings.
+2. **Checking nest membership:** use `getNestHost()`/`isNestmateOf()`, not name-prefix comparisons.
+3. **Documenting APIs:** publish types/members designed as APIs, distinguish compiler members via metadata when appropriate, and control display order.
+4. **Identifying across builds:** define stable keys in schemas/annotations/configs; do not use compiler-generated numbers, Reflection array order, or lambda implementation names.
+5. **Instantiating via Reflection:** rely on published constructors and actual parameter types, handle exceptions, and avoid accessing internal fields/private accessors.
+6. **Compatibility testing:** test behavior and public contracts. Only assert names/counts of synthetic members if you are writing an analyzer specifically targeting that compiler/bytecode.
 
-## 8. Các lỗi thiết kế thường gặp
+## 8. Common design mistakes
 
-| Lỗi | Vấn đề | Cách sửa |
+| Mistake | Problem | Fix |
 | --- | --- | --- |
-| Dùng `getName().contains("$")` làm điều kiện “là inner class” | `$` không đủ nhận diện loại class | Dùng `isMemberClass()` hoặc API phân loại khác |
-| Lưu `Outer$1` để nhận diện callback | Số có thể đổi theo source/compiler | Lưu registry key hoặc metadata tường minh |
-| Dùng `getDeclaredClasses()` để tìm local class | Method chỉ trả member type khai báo trực tiếp | Phân biệt source analysis với member reflection |
-| Dùng `getNestMembers()` làm sơ đồ khai báo class | Quan hệ nest phục vụ JVM access, phạm vi khác | Dùng `getDeclaringClass()`/`getDeclaredClasses()` |
-| Phụ thuộc vào `access$000` hoặc `this$0` | Compiler/target có thể thay đổi thành phần | Thiết kế API và schema ổn định |
-| Serialize toàn bộ `getDeclaredFields()` | Ghi cả state nội bộ, outer ref hoặc field hỗ trợ | Chọn DTO/record/property được chỉ định |
-| Giả định phương thức đầu trong `getDeclaredMethods()` là public API | Thứ tự không được bảo đảm, có thể có bridge | Lọc và sắp xếp theo hợp đồng |
-| Cho rằng tên triển khai lambda load lại được ở tiến trình khác | Kiểu triển khai runtime không có danh tính bền vững | Dựa vào functional interface, factory hoặc cấu hình |
-| Lọc synthetic members một cách tuyệt đối | Có thể bỏ qua bridge cần nghiên cứu | Lọc theo mục đích công cụ, không tùy tiện |
+| Using `getName().contains("$")` as “is inner class” | `$` is insufficient to identify class kind | Use `isMemberClass()` or other classification APIs |
+| Saving `Outer$1` to identify a callback | Numbers can shift with source/compiler changes | Store an explicit registry key or metadata |
+| Using `getDeclaredClasses()` to find local classes | Method only returns directly declared member types | Separate source analysis from member reflection |
+| Using `getNestMembers()` as a class declaration diagram | Nest relationship serves JVM access, different scope | Use `getDeclaringClass()`/`getDeclaredClasses()` |
+| Depending on `access$000` or `this$0` | Compiler/target may change these elements | Design stable APIs and schemas |
+| Serializing all of `getDeclaredFields()` | Writes internal state, outer refs, or helper fields | Select designated DTOs/records/properties |
+| Assuming the first method in `getDeclaredMethods()` is public API | Order is not guaranteed; bridge methods may exist | Filter and sort by contract |
+| Assuming a lambda implementation name can reload in another process | Runtime implementation type has no durable identity | Rely on functional interfaces, factories, or configuration |
+| Filtering synthetic members unconditionally | May omit bridge methods needed for analysis | Filter according to tool purpose, not arbitrarily |
 
-### Tình huống: mapper làm rò rỉ state nội bộ
+### Scenario: mapper leaks internal state
 
-Một mapper tự động lấy mọi field của non-static inner class bằng `getDeclaredFields()` rồi ghi thẳng thành JSON. Nếu bytecode chứa field giữ outer instance hoặc biến capture, mapper có thể vô tình đưa vào JSON state không thuộc domain, gây vòng tham chiếu hoặc tạo output không nhất quán giữa các bản build.
+An automatic mapper retrieves all fields of a non-static inner class with `getDeclaredFields()` and writes them directly to JSON. If the bytecode contains an outer-instance field or captured-variable fields, the mapper can accidentally emit non-domain state into JSON, cause circular references, or produce inconsistent output across builds.
 
-Giải pháp đúng là **định nghĩa schema dữ liệu**: DTO, record hoặc danh sách thuộc tính được chỉ định rõ bằng annotation/cấu hình. `isSynthetic()` chỉ là thông tin hỗ trợ, không thay thế hợp đồng serialize.
+The right solution is to **define a data schema**: DTOs, records, or an explicit property list specified via annotations/configuration. `isSynthetic()` is only supporting information, not a substitute for a serialization contract.
 
-## 9. Quan sát bytecode đúng cách
+## 9. Observing bytecode properly
 
-Sau khi đã tạo `NestAccessDemo.java`, có thể tự khảo sát:
+After creating `NestAccessDemo.java`, you can inspect it yourself:
 
 ```bash
 javac --release 17 NestAccessDemo.java
@@ -305,35 +305,35 @@ javap -p NestAccessDemo
 javap -v NestAccessDemo
 ```
 
-`javap -p` hiển thị các thành viên kể cả private; `javap -v` cung cấp thêm attributes như metadata nest khi class file có chúng. Thử đổi compiler hoặc target để quan sát sự khác biệt, nhưng đừng biến một bản output cụ thể của `javap` thành luật bất biến.
+`javap -p` displays members including private ones; `javap -v` provides additional attributes such as nest metadata when present in the class file. Try switching compilers or targets to observe differences, but do not turn one specific `javap` output into an immutable rule.
 
-Khi đọc kết quả, hãy luôn tự hỏi đó là:
+When reading the output, always ask whether it is:
 
-- **Quy tắc được đặc tả** (chẳng hạn binary name của member type, semantics của nest access);
-- **Hiện tượng ở một bản build** (tên số local/anonymous, accessor, bridge, field capture, thứ tự reflection);
-- Hay **hợp đồng chính thức của ứng dụng** (interface, annotation, API, schema được công bố).
+- **A specified rule** (such as member type binary names, nest access semantics);
+- **A single-build artifact** (numbered local/anonymous names, accessors, bridges, capture fields, reflection ordering);
+- Or **an official application contract** (published interfaces, annotations, APIs, schemas).
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-check questions
 
-**1. Vì sao `Outer.class.getDeclaredClasses()` không thấy local class trong `work()`?** Vì `getDeclaredClasses()` dành cho member type khai báo trực tiếp. Điều đó không có nghĩa compiler không biên dịch local class.
+**1. Why does `Outer.class.getDeclaredClasses()` not see a local class inside `work()`?** Because `getDeclaredClasses()` is for directly declared member types. That does not mean the compiler did not compile the local class.
 
-**2. `Outer$A` và `Outer$B` chắc chắn cùng nest?** Không suy ra được chỉ từ tên. Dùng `isNestmateOf()` khi đã có hai đối tượng `Class<?>`.
+**2. Are `Outer$A` and `Outer$B` guaranteed to be in the same nest?** You cannot infer that from names alone. Use `isNestmateOf()` once you have both `Class<?>` objects.
 
-**3. `Class.forName("pkg.Outer$Inner")` có sai không?** Không, nếu đó thực sự là binary name của member type có tên và có thể được nạp. Cách này khác việc đoán tên anonymous class `Outer$1`.
+**3. Is `Class.forName("pkg.Outer$Inner")` wrong?** No, if that is genuinely the binary name of a named member type that can be loaded. This differs from guessing an anonymous class name `Outer$1`.
 
-**4. Có nên bỏ mọi method synthetic khỏi công cụ phân tích?** Tùy mục đích. Công cụ làm tài liệu source-level có thể ẩn chúng; công cụ phân tích dispatch/bytecode có thể cần bridge methods.
+**4. Should all synthetic methods be ignored by analysis tools?** It depends on the goal. A source-level documentation tool may hide them; a dispatch/bytecode analyzer may need bridge methods.
 
-**5. Có nên dùng `getSimpleName()` của anonymous class để tạo ID?** Không. Nó rỗng, và ngay cả `getName()` cũng không cung cấp một ID ứng dụng ổn định.
+**5. Should an anonymous class's `getSimpleName()` be used to generate an ID?** No. It is empty, and even `getName()` does not provide a stable application ID.
 
-## 11. Tổng kết kiến thức
+## 11. Summary
 
-- Reflection cho biết cấu trúc class file/runtime; không phải toàn bộ cấu trúc đó đều do ứng dụng sở hữu.
-- Member binary name được quy định, nhưng số của local/anonymous class, field/ accessor compiler sinh và tên triển khai lambda không phải hợp đồng nghiệp vụ.
-- Member declaration, enclosing context và nestmate access là ba khái niệm riêng.
-- Để ứng dụng bền vững qua nhiều bản build, hãy dựa vào **API, interface, annotation, schema hoặc registry do mình công bố**.
+- Reflection reveals class-file/runtime structure; not all of that structure is owned by the application.
+- Member binary names are specified, whereas local/anonymous class numbers, compiler-generated fields/accessors, and lambda implementation names are not business contracts.
+- Member declaration, enclosing context, and nestmate access are three distinct concepts.
+- For an application that remains durable across builds, rely on **APIs, interfaces, annotations, schemas, or registries that you publish**.
 
-### Tài liệu chính thức
+### Official references
 
-- [Java SE 17 — `Class` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): đặc tả các phương thức phân loại, enclosing và nest.
-- [JLS 17, §13.1 — Binary compatibility](https://docs.oracle.com/javase/specs/jls/se17/html/jls-13.html#jls-13.1): quy tắc tên nhị phân của member/local/anonymous class.
-- [JVMS 17, §4.7.28–29](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html): class-file attributes `NestHost` và `NestMembers`.
+- [Java SE 17 — `Class` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): specification of classification, enclosing, and nest methods.
+- [JLS 17, §13.1 — Binary compatibility](https://docs.oracle.com/en/java/javase/specs/jls/se17/html/jls-13.html#jls-13.1): binary name rules for member/local/anonymous classes.
+- [JVMS 17, §4.7.28–29](https://docs.oracle.com/en/java/javase/specs/jvms/se17/html/jvms-4.html): class-file attributes `NestHost` and `NestMembers`.

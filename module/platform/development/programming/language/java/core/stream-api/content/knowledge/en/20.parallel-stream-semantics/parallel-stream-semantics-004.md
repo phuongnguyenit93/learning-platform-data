@@ -1,18 +1,18 @@
-# Ảnh hưởng của kích thước nguồn, chi phí phần tử và cách chia
+# Impact of Source Size, Per-Element Cost, and Splitting Strategy
 
-**Parallel Stream** cho phép Java xử lý nhiều phần tử của pipeline trên nhiều tác vụ cùng lúc. Nhưng `parallel()` không phải nút “tăng tốc” cho mọi bài toán. Một pipeline có thể chạy **chậm hơn** khi song song nếu dữ liệu quá ít, xử lý mỗi phần tử quá rẻ, nguồn khó phân chia hoặc kết quả cần nhiều bước phối hợp để bảo đảm thứ tự.
+**Parallel Stream** lets Java process multiple elements of a pipeline across multiple tasks concurrently. However, `parallel()` is not a "speed-up" button for every problem. A pipeline can run **slower** in parallel if the data is too small, per-element work is too cheap, the source is hard to split, or the result requires extensive coordination to preserve order.
 
-Trong module **JAVA_STREAM_API**, ta học xử lý dữ liệu theo lối khai báo bằng pipeline lazy với `filter`, `map`, `reduce` và `collect`; đồng thời cần hiểu giới hạn về trạng thái, tài nguyên và hiệu năng. Bài này thuộc chương **Ngữ nghĩa xử lý song song**, tập trung vào ba biến số quan trọng nhất khi cân nhắc parallel Stream:
+In the **JAVA_STREAM_API** module, we learn declarative data processing via lazy pipelines with `filter`, `map`, `reduce`, and `collect`, while also recognizing limits around state, resources, and performance. This lesson belongs to the **Parallel Processing Semantics** chapter, focusing on the three most important variables when considering a parallel Stream:
 
-1. **Kích thước nguồn:** có bao nhiêu phần tử hoặc khối công việc?
-2. **Chi phí xử lý từng phần tử:** mỗi phần tử làm bao nhiêu việc, và chi phí có đồng đều không?
-3. **Khả năng chia nguồn:** `Spliterator` có thể tạo các phần việc độc lập, cân bằng và ít tốn chi phí không?
+1. **Source size:** how many elements or how much work is there?
+2. **Processing cost per element:** how much work does each element do, and is the cost uniform?
+3. **Source splittability:** can `Spliterator` produce independent, balanced work chunks with low overhead?
 
-Ngoài ba biến số này, ta sẽ xét ảnh hưởng của `ORDERED`, phép toán trung gian có trạng thái, combiner, contention và cách đo hiệu năng đúng. Các nguyên tắc cũng hữu ích khi dùng collector tùy chỉnh, `Spliterator` và những phép biến đổi nâng cao như Stream Gatherers.
+Beyond these three variables, we will examine the impact of `ORDERED`, stateful intermediate operations, combiners, contention, and how to measure performance properly. These principles also apply when using custom collectors, `Spliterator`, and advanced transformations like Stream Gatherers.
 
-## 1. Parallel Stream làm gì?
+## 1. What does a Parallel Stream do?
 
-Một nguồn tuần tự:
+A sequential source:
 
 ~~~java
 long total = java.util.stream.IntStream.range(0, 10_000)
@@ -20,7 +20,7 @@ long total = java.util.stream.IntStream.range(0, 10_000)
     .sum();
 ~~~
 
-Có thể được yêu cầu xử lý song song:
+Can be requested to process in parallel:
 
 ~~~java
 long total = java.util.stream.IntStream.range(0, 10_000)
@@ -29,40 +29,40 @@ long total = java.util.stream.IntStream.range(0, 10_000)
     .sum();
 ~~~
 
-Cả hai đều phải trả kết quả đúng: tổng của các số `2 * n` với `n` từ 0 đến 9.999. Thay `parallel()` bằng `sequential()` lại cho biết pipeline cần thực thi tuần tự.
+Both must return the right result: the sum of `2 * n` for `n` from 0 to 9,999. Replacing `parallel()` with `sequential()` indicates that the pipeline should execute sequentially.
 
-**`parallel()` chỉ chỉ định chế độ thực thi của pipeline.** Nó không có nghĩa:
+**`parallel()` only specifies the pipeline's execution mode.** It does not mean:
 
-- Mỗi phần tử được cấp một thread riêng.
-- Mọi phần tử luôn chạy đồng thời.
-- Số thread luôn bằng số lõi CPU.
-- Các callback chạy theo một thứ tự cụ thể.
-- Bài toán chắc chắn kết thúc sớm hơn.
+- Each element gets its own dedicated thread.
+- All elements always run simultaneously.
+- Thread count always equals CPU core count.
+- Callbacks run in a specific order.
+- The problem is guaranteed to finish sooner.
 
-Thông thường, triển khai Stream trên JDK sử dụng cơ chế fork/join để chia và xử lý công việc. Số tác vụ, cách phân chia và lịch thực thi là chi tiết triển khai, nên không nên viết logic nghiệp vụ phụ thuộc vào các chi tiết đó.
+Typically, JDK Stream implementations use fork/join to split and process work. Task count, split boundaries, and execution schedules are implementation details, so you should not write business logic that depends on those details.
 
-### Sơ đồ tổng quát
+### General diagram
 
 ~~~mermaid
 flowchart TD
-    A["Nguồn N phần tử"] --> B["Spliterator / chia việc"]
-    B --> C1["Phần 1"]
-    B --> C2["Phần 2"]
-    B --> C3["Phần ..."]
-    B --> C4["Phần k"]
-    C1 --> D["Xử lý filter/map"]
+    A["Source N elements"] --> B["Spliterator / split work"]
+    B --> C1["Part 1"]
+    B --> C2["Part 2"]
+    B --> C3["Part ..."]
+    B --> C4["Part k"]
+    C1 --> D["Process filter/map"]
     C2 --> D
     C3 --> D
     C4 --> D
-    D --> E["Gộp reduce/collect"]
-    E --> F["Kết quả cuối"]
+    D --> E["Combine reduce/collect"]
+    E --> F["Final result"]
 ~~~
 
-Sơ đồ mô tả **khả năng** phân chia, không phải cam kết luôn có đúng bốn tác vụ. Một số nguồn rất khó chia; một số terminal operation buộc các nhánh phải đồng bộ hoặc giữ thứ tự.
+This diagram illustrates the **possibility** of partitioning, not a promise that there are always four tasks. Some sources are very difficult to split; some terminal operations force branches to synchronize or preserve order.
 
-## 2. Mô hình chi phí: tổng công việc và phần việc không song song hóa được
+## 2. Cost model: total work and non-parallelizable work
 
-Thời gian chạy song song có thể được hình dung gần đúng:
+Parallel execution time can be approximated conceptually as:
 
 ~~~text
 T_parallel ≈ T_sequential_part
@@ -74,38 +74,38 @@ T_parallel ≈ T_sequential_part
            + T_allocation
 ~~~
 
-Trong đó:
+Where:
 
-- `T_sequential_part` là phần bắt buộc chạy tuần tự hoặc phải chờ bước khác.
-- `T_parallelizable` là thời gian của công việc có thể chia độc lập.
-- `effective_workers` là mức song song thực sự tận dụng được, **không mặc định bằng số lõi**.
-- `T_split` là chi phí chia nguồn thành các phần.
-- `T_schedule` là chi phí điều phối và lấy công việc.
-- `T_merge` là chi phí kết hợp kết quả.
-- `T_contention` là chi phí tranh chấp CPU, bộ nhớ, khóa và tài nguyên khác.
-- `T_allocation` là chi phí tạo các bộ chứa hoặc đối tượng trung gian.
+- `T_sequential_part` is the portion that must run sequentially or wait for another step.
+- `T_parallelizable` is the time of work that can be split independently.
+- `effective_workers` is the actual usable parallelism, **not automatically equal to core count**.
+- `T_split` is the cost of partitioning the source into chunks.
+- `T_schedule` is the cost of coordinating and stealing tasks.
+- `T_merge` is the cost of combining partial results.
+- `T_contention` is the cost of contention on CPU, memory, locks, and other resources.
+- `T_allocation` is the cost of creating intermediate containers or objects.
 
-Đây là **mô hình suy luận**, không phải công thức đo chính xác của một JVM. Nó cho thấy để parallel có lợi, **phần thời gian tiết kiệm được nhờ chia việc phải lớn hơn các chi phí bổ sung**.
+This is a **reasoning model**, not an exact measurement formula for a JVM. It shows that for parallel execution to pay off, **the time saved by splitting work must exceed the added overhead**.
 
-### Định luật Amdahl
+### Amdahl's Law
 
-Nếu một chương trình có tỷ lệ `s` công việc không thể song song hóa, tốc độ tăng lý thuyết khi dùng `p` worker là:
+If a program has a fraction `s` of work that cannot be parallelized, the theoretical speedup using `p` workers is:
 
 \[
 S(p) \leq \frac{1}{s + \frac{1-s}{p}}
 \]
 
-Ví dụ: nếu `s = 0{,}2` (20% công việc phải chạy tuần tự), dù có vô số worker thì tốc độ tăng tối đa theo mô hình này cũng chỉ tiến tới **5 lần**. Với 8 worker, giới hạn lý thuyết là:
+For example: if `s = 0.2` (20% of the work must run sequentially), even with infinitely many workers the maximum theoretical speedup under this model approaches only **5x**. With 8 workers, the theoretical limit is:
 
 \[
 S(8) \leq \frac{1}{0.2 + 0.8/8} \approx 3.33
 \]
 
-Tốc độ thực tế còn thấp hơn vì chi phí chia, lập lịch, gộp, bộ nhớ và tranh chấp. Vì vậy, không thể lấy số lõi nhân với tốc độ chạy tuần tự rồi xem là kết quả chắc chắn.
+Actual speedup is even lower due to splitting, scheduling, merging, memory, and contention overhead. Therefore, you cannot multiply core count by sequential speed and treat it as a guaranteed outcome.
 
-## 3. Kích thước nguồn: số phần tử ít thường khó bù overhead
+## 3. Source size: few elements rarely offset overhead
 
-Xét hai pipeline cùng tính tổng:
+Consider two pipelines computing the same kind of sum:
 
 ~~~java
 long small = java.util.stream.IntStream.range(0, 20)
@@ -119,22 +119,22 @@ long large = java.util.stream.IntStream.range(0, 2_000_000)
     .sum();
 ~~~
 
-Nguồn 20 phần tử có rất ít công việc nếu phép toán là cộng số. Chi phí chia việc và kết hợp có thể cao hơn thời gian tính tổng tuần tự. Nguồn hai triệu phần tử có nhiều công việc hơn, nhưng **nhiều phần tử tự nó chưa bảo đảm parallel nhanh hơn**, vì cộng số vẫn là thao tác rất nhẹ và dữ liệu có thể bị giới hạn bởi băng thông bộ nhớ.
+A 20-element source has very little work when the operation is integer addition. Splitting and combining overhead can exceed sequential summation time. A two-million-element source has more work, yet **many elements alone do not guarantee parallel is faster**, because integer addition is still very light and data can be limited by memory bandwidth.
 
-| Kích thước nguồn | Chi phí mỗi phần tử | Kỳ vọng cần kiểm chứng |
+| Source size | Cost per element | Expectation to verify |
 |---|---|---|
-| Rất nhỏ | Rất nhẹ | Parallel thường khó có lợi |
-| Rất nhỏ | Nặng | Có thể có lợi nếu đủ phần việc độc lập |
-| Rất lớn | Rất nhẹ | Có thể bị overhead hoặc giới hạn bộ nhớ chi phối |
-| Rất lớn | Nặng, độc lập | Là ứng viên hợp lý để thử parallel |
-| Lớn nhưng nguồn khó chia | Bất kỳ | Khó tận dụng nhiều worker |
-| Lớn, phải giữ thứ tự và gộp phức tạp | Bất kỳ | Chi phí phối hợp có thể cao |
+| Very small | Very light | Parallel rarely pays off |
+| Very small | Heavy | May pay off if enough independent work units exist |
+| Very large | Very light | May be dominated by overhead or memory limits |
+| Very large | Heavy, independent | Reasonable candidate to test parallel |
+| Large, hard-to-split source | Any | Difficult to utilize multiple workers |
+| Large, must preserve order and complex merge | Any | Coordination overhead can be high |
 
-Ngưỡng “nhỏ” và “lớn” không có một con số dùng chung cho mọi dự án. Nó thay đổi theo CPU, phiên bản JDK, cấu trúc dữ liệu, thuật toán và tải của máy chủ.
+The thresholds for "small" and "large" have no universal number across projects. They vary with CPU, JDK version, data structure, algorithm, and server load.
 
-### 3.1. Nhiều phần tử không đồng nghĩa với nhiều phép tính
+### 3.1. Many elements do not equate to many computations
 
-`IntStream.range(0, 1_000_000).count()` có thể được tối ưu bằng thông tin kích thước của nguồn. Đây không nhất thiết là một triệu lần gọi callback.
+`IntStream.range(0, 1_000_000).count()` can be optimized using the source's size metadata. It does not necessarily perform one million callback invocations.
 
 ~~~java
 long count = java.util.stream.IntStream.range(0, 1_000_000)
@@ -144,25 +144,25 @@ long count = java.util.stream.IntStream.range(0, 1_000_000)
 System.out.println(count); // 1000000
 ~~~
 
-Nếu chỉ cần đếm nguồn có `SIZED`, `count()` có thể tránh traversal. Trong trường hợp này, tăng số phần tử không tương đương tăng số lượng công việc của pipeline. **Không dùng `peek` hoặc side effect trong `map` để giả định số lần callback bằng số phần tử.**
+When merely counting a `SIZED` source, `count()` can skip traversal. In such cases, increasing the element count does not increase pipeline work. **Do not use `peek` or side effects inside `map` to assume callback count equals element count.**
 
-## 4. Chi phí phần tử: tính toán đủ nặng mới tạo cơ hội tăng tốc
+## 4. Per-element cost: sufficiently heavy computation creates speedup potential
 
-Hai thao tác sau khác nhau rất lớn về lượng công việc:
+The following two operations differ dramatically in workload:
 
 ~~~java
-// Nhẹ: cộng một số.
+// Light: adding a number.
 .map(n -> n + 1)
 
-// Nặng hơn: nhiều vòng biến đổi độc lập trên một giá trị.
+// Heavier: multiple independent transformation rounds on one value.
 .mapToLong(n -> expensiveCalculation(n))
 ~~~
 
-Nếu mỗi phần tử chỉ có một hoặc hai phép toán số học, JVM có thể xử lý tuần tự rất nhanh. Khi đó, chi phí điều phối có thể chiếm tỷ lệ lớn. Nếu mỗi phần tử tốn nhiều phép tính CPU và không cần dùng trạng thái chung, việc chia cho nhiều worker có cơ hội bù overhead.
+If each element only performs one or two arithmetic operations, the JVM can execute sequentially very fast. In that case, orchestration overhead can take a large share of the time. If each element consumes many CPU operations without needing shared state, dividing work across workers has a chance to outweigh overhead.
 
-Tuy nhiên, **chi phí cao chưa đủ**: các phần tử còn phải xử lý được tương đối độc lập, nguồn chia được và phép tổng hợp kết quả không trở thành nút thắt.
+However, **high cost alone is not enough**: elements must still be relatively independent, the source must be splittable, and result aggregation must not become a bottleneck.
 
-### 4.1. Ví dụ minh họa hai loại công việc
+### 4.1. Example illustrating two workload types
 
 ~~~java
 import java.util.stream.IntStream;
@@ -179,7 +179,7 @@ public class CostPerElement {
             x *= 0xBF58476D1CE4E5B9L;
             x ^= x >>> 17;
         }
-        // Giới hạn kết quả mỗi phần tử để tổng không tràn trong ví dụ.
+        // Bound each element's result so the sum does not overflow in the example.
         return x & 1023L;
     }
 
@@ -201,42 +201,42 @@ public class CostPerElement {
 }
 ~~~
 
-Đây là chương trình giải thích **sự khác nhau về lượng công việc**, không phải benchmark so sánh tốc độ hai pipeline: một bên dùng phép tính khác hẳn bên còn lại. Muốn đánh giá parallel, phải so sánh **cùng một thuật toán và cùng đầu vào** ở hai chế độ; mục 12 cung cấp mẫu đo phù hợp hơn.
+This program illustrates **the difference in work per element**, not a speed comparison benchmark between the two pipelines: one side uses a completely different calculation than the other. To evaluate parallelism, you must compare **the same algorithm and the same input** in both modes; section 12 provides a better measurement template.
 
-## 5. Chi phí không đồng đều: cân bằng tải quan trọng hơn đếm phần tử
+## 5. Non-uniform cost: load balance matters more than element count
 
-Hai phần dữ liệu có số phần tử bằng nhau **không nhất thiết có tổng chi phí bằng nhau**.
+Two slices of data with equal element counts **do not necessarily have equal total cost**.
 
-Giả sử một tác vụ xử lý bản ghi `Order`:
+Suppose a job processes `Order` records:
 
-- Đơn thường mất khoảng 1 đơn vị công việc.
-- Đơn có nhiều dòng chi tiết mất khoảng 100 đơn vị công việc.
-- Một nửa dữ liệu đầu chứa toàn đơn nặng, nửa sau toàn đơn nhẹ.
+- Normal orders take about 1 unit of work.
+- Orders with many line items take about 100 units of work.
+- The first half of the dataset contains all heavy orders, and the second half contains all light orders.
 
-Nếu chia nguồn thành hai nửa theo vị trí, một worker có thể phải làm phần lớn công việc trong khi worker còn lại kết thúc sớm. Đây là **load imbalance**.
+If the source is split in half by position, one worker may end up doing most of the work while the other finishes early. This is **load imbalance**.
 
 ~~~text
-Chia theo số phần tử:
-  Nhánh A: 100 phần tử nặng  -> rất lâu
-  Nhánh B: 100 phần tử nhẹ  -> xong sớm
+Split by element count:
+  Branch A: 100 heavy elements -> very slow
+  Branch B: 100 light elements -> finishes early
 
-Thời gian hoàn thành bị chi phối bởi nhánh chậm nhất.
+Completion time is dominated by the slowest branch.
 ~~~
 
-Cơ chế fork/join có thể tiếp tục chia và cân bằng lại công việc trong những điều kiện phù hợp, nhưng **không bảo đảm tải tự cân bằng hoàn hảo**. Việc chọn kích thước tác vụ (*granularity*) và cách chia nguồn ảnh hưởng rất lớn đến thời gian chạy.
+Fork/join can keep splitting and rebalancing work under favorable conditions, but **it does not guarantee perfect automatic load balancing**. Task *granularity* and source splitting heavily influence runtime.
 
-### 5.1. Nguyên tắc xử lý chi phí không đồng đều
+### 5.1. Principles for handling non-uniform cost
 
-1. Nếu có thể chia thành **nhiều phần đủ lớn**, hệ thống có cơ hội phân phối lại việc.
-2. Nếu mỗi phần quá lớn và không chia được, dễ có worker rảnh khi nhánh khác còn bận.
-3. Nếu mỗi phần quá nhỏ, overhead tạo và quản lý tác vụ tăng.
-4. Nếu phần tử rất nặng do I/O hoặc khóa, thêm thread có thể không giúp và còn làm nghẽn tài nguyên.
+1. If you can split into **many sufficiently sized chunks**, the system has a chance to redistribute work.
+2. If each chunk is too large and unsplittable, workers easily sit idle while another branch stays busy.
+3. If each chunk is too small, task creation and management overhead rises.
+4. If elements are heavy due to I/O or locks, adding threads may not help and can saturate resources.
 
-Cần đo cả **độ lệch thời gian giữa các nhánh**, không chỉ số phần tử. Đối với workload biến thiên mạnh, thuật toán phân vùng theo chi phí ước lượng hoặc một cơ chế điều phối phù hợp có thể hiệu quả hơn việc chia đôi theo chỉ số.
+Measure **time skew across branches**, not just element count. For highly variable workloads, partitioning by estimated cost or using an appropriate scheduler can outperform splitting evenly by index.
 
-## 6. Spliterator quyết định nguồn chia dễ đến đâu
+## 6. Spliterator determines how easily a source splits
 
-Parallel Stream dựa nhiều vào `Spliterator` của nguồn. Những phương thức quan trọng:
+Parallel Stream relies heavily on the source's `Spliterator`. Key methods:
 
 ~~~java
 boolean tryAdvance(Consumer<? super T> action);
@@ -245,32 +245,32 @@ long estimateSize();
 int characteristics();
 ~~~
 
-- **`tryAdvance`** duyệt một phần tử nếu còn.
-- **`trySplit`** cố gắng tách một phần dữ liệu chưa duyệt thành Spliterator mới.
-- **`estimateSize`** ước lượng số phần tử còn lại.
-- **`characteristics`** mô tả đặc tính của nguồn để hệ thống có cơ sở tối ưu.
+- **`tryAdvance`** traverses one element if remaining.
+- **`trySplit`** attempts to split off part of the unvisited data into a new Spliterator.
+- **`estimateSize`** estimates the remaining element count.
+- **`characteristics`** describes source traits so the runtime can optimize accordingly.
 
-### 6.1. Một lần chia hợp lệ
+### 6.1. A valid split
 
 ~~~text
-Nguồn có thứ tự [0, 8):
+Ordered source [0, 8):
 
-Trước:
+Before:
   original = [0, 1, 2, 3, 4, 5, 6, 7]
 
-Sau original.trySplit():
-  returned = [0, 1, 2, 3]    (tiền tố)
-  original = [4, 5, 6, 7]    (hậu tố)
+After original.trySplit():
+  returned = [0, 1, 2, 3]    (prefix)
+  original = [4, 5, 6, 7]    (suffix)
 
 estimateSize(returned) = 4
 estimateSize(original) = 4
 ~~~
 
-Với Spliterator có `ORDERED`, Spliterator được trả về từ `trySplit` phải chứa **một tiền tố** của phần chưa duyệt. Không được phát lại cùng phần tử ở hai nhánh hoặc bỏ sót phần tử. Sự đúng đắn này độc lập với việc chạy song song có nhanh hơn hay không.
+For a Spliterator with `ORDERED`, the Spliterator returned by `trySplit` must contain **a prefix** of the unvisited elements. Neither branch may emit the same element twice or drop an element. This correctness holds independently of whether parallel execution is faster.
 
-**Không bắt buộc tách đúng một nửa.** `trySplit()` có thể tách theo lô, trả những tỷ lệ khác hoặc trả `null` nếu không tách được.
+**Splitting exactly in half is not required.** `trySplit()` can split in batches, return different ratios, or return `null` when it cannot split.
 
-### 6.2. Thử quan sát một nguồn Java chuẩn
+### 6.2. Observing a standard Java source
 
 ~~~java
 import java.util.ArrayList;
@@ -295,63 +295,63 @@ public class SplitObservation {
 
             System.out.println(leftSize + rightSize); // 16
 
-            // Chỉ kiểm tra đặc tính, không phụ thuộc số phần tử mỗi nửa.
+            // Check characteristic only, without relying on half sizes.
             System.out.println(
                 rest.hasCharacteristics(Spliterator.ORDERED)
-            ); // true với ArrayList
+            ); // true for ArrayList
         }
     }
 }
 ~~~
 
-Một số triển khai có thể chia 8–8 ở ví dụ này, nhưng **hợp đồng `Spliterator` không bắt buộc mọi nguồn hoặc mọi lần gọi đều chia như thế**. Điều quan trọng là khả năng tiếp tục chia, độ cân bằng và việc các nhánh không trùng nhau.
+Some implementations may split 8–8 in this example, yet **the `Spliterator` contract does not require every source or every call to split that way**. What matters is continued splittability, balance, and disjointness of branches.
 
-## 7. SIZED, SUBSIZED và thông tin kích thước hỗ trợ chia việc
+## 7. SIZED, SUBSIZED, and size metadata assist work splitting
 
-Hai đặc tính liên quan trực tiếp đến kích thước:
+Two characteristics relate directly to size:
 
-- **`SIZED`:** số phần tử còn lại được biết chính xác theo hợp đồng nguồn.
-- **`SUBSIZED`:** Spliterator và những Spliterator tạo ra bởi `trySplit` đều tiếp tục bảo đảm `SIZED` và `SUBSIZED`.
+- **`SIZED`:** the remaining element count is known accurately by source contract.
+- **`SUBSIZED`:** this Spliterator and all Spliterators returned by `trySplit` continue to guarantee `SIZED` and `SUBSIZED`.
 
-`SUBSIZED` là lời hứa mạnh hơn `SIZED`. Không phải nguồn nào biết kích thước ban đầu cũng có thể biết chính xác kích thước của mọi nhánh con.
+`SUBSIZED` is a stronger promise than `SIZED`. Not every source that knows its initial size can know the exact size of every sub-branch.
 
-| Đặc tính | Tác động đến suy luận hiệu năng |
+| Characteristic | Impact on performance reasoning |
 |---|---|
-| `SIZED` | Có thể giúp ước lượng lượng dữ liệu đầu vào và tối ưu một số terminal operation |
-| `SUBSIZED` | Tạo điều kiện thuận lợi để phân vùng có kích thước xác định |
-| `ORDERED` | Giúp xác định encounter order, nhưng có thể làm `limit`/`distinct` cần thêm phối hợp |
-| `SORTED` | Cho phép framework biết dữ liệu có thứ tự, nếu khai báo và comparator đúng |
-| `CONCURRENT` | Nguồn hỗ trợ một số hình thức thay đổi đồng thời theo hợp đồng riêng |
-| `IMMUTABLE` | Nguồn có cam kết cấu trúc không bị biến đổi theo kiểu gây cản trở traversal |
-| `DISTINCT` | Các phần tử khác nhau theo `equals`; có thể giúp tối ưu phép loại trùng |
+| `SIZED` | Helps estimate input size and optimize certain terminal operations |
+| `SUBSIZED` | Facilitates partitioning with known sizes |
+| `ORDERED` | Defines encounter order, though `limit`/`distinct` may need extra coordination |
+| `SORTED` | Informs the framework data is ordered, if declaration and comparator are valid |
+| `CONCURRENT` | Source supports certain forms of concurrent modification under its own contract |
+| `IMMUTABLE` | Source guarantees its structure will not mutate in ways that interfere with traversal |
+| `DISTINCT` | Elements are distinct by `equals`; can help optimize deduplication |
 
-Đừng khai báo đặc tính sai chỉ để tăng tốc. Ví dụ khai báo `SIZED` khi `estimateSize()` không chính xác có thể làm `count()` trả kết quả sai hoặc gây lỗi khi Stream cố phân bổ bộ nhớ. Hiệu năng không thể đánh đổi bằng việc làm sai hợp đồng nguồn.
+Do not declare false characteristics just for speed. For example, declaring `SIZED` when `estimateSize()` is inaccurate can make `count()` return wrong results or cause errors when Stream allocates memory. Performance cannot be bought by breaking the source contract.
 
-### 7.1. Chi phí ước lượng kích thước
+### 7.1. Cost of size estimation
 
-`estimateSize()` trả về `long`, và có thể trả `Long.MAX_VALUE` khi số lượng phần tử chưa biết hoặc không giới hạn. **Đó không phải yêu cầu cấp phát bộ nhớ cho bấy nhiêu phần tử.**
+`estimateSize()` returns a `long`, and may return `Long.MAX_VALUE` when the element count is unknown or unbounded. **That is not a request to allocate memory for that many elements.**
 
-Với nguồn dạng khoảng `[start, end)`, việc tính `end - start` thường rẻ và chính xác nếu xử lý tràn số đúng. Với dữ liệu đến từ I/O hoặc bộ sinh phụ thuộc trạng thái, đếm chính xác trước khi duyệt có thể rất đắt hoặc bất khả thi.
+For a range source `[start, end)`, computing `end - start` is usually cheap and exact if overflow is handled properly. For data coming from I/O or a stateful generator, counting accurately before traversal can be very expensive or impossible.
 
-## 8. So sánh nguồn dễ chia và nguồn khó chia
+## 8. Comparing easy-to-split and hard-to-split sources
 
-Một nguồn tốt cho song song không chỉ có nhiều phần tử mà còn cần chia được với chi phí phù hợp.
+A good parallel source does not only have many elements; it must also split at reasonable cost.
 
-| Nguồn | Đặc điểm chia nguồn | Lưu ý |
+| Source | Splitting characteristic | Notes |
 |---|---|---|
-| Mảng `int[]`, `long[]`, `double[]` | Có vị trí truy cập trực tiếp; thường chia theo khoảng chỉ số hiệu quả | Đừng sửa mảng khi pipeline đang duyệt |
-| `ArrayList` | Truy cập theo chỉ số; Spliterator có khả năng phân vùng thuận lợi | Các phép toán vẫn có thể bị giới hạn bởi băng thông bộ nhớ |
-| `IntStream.range(...)` | Biết ranh giới và kích thước; dễ tách thành các khoảng | Chỉ chia tốt chưa bảo đảm terminal operation nhanh |
-| `HashSet` | Có Spliterator và khả năng chia, nhưng thứ tự không được bảo đảm | Đặc tính khác List; kết quả phụ thuộc yêu cầu thứ tự |
-| `LinkedList` | Duyệt theo liên kết; việc chia thường phức tạp hơn và có thể theo lô | Không kết luận là không thể chia; cần đo |
-| `Iterator` một chiều | Khó nhảy trực tiếp đến giữa; có thể gom batch trước khi chia | Chi phí chia/buffering ảnh hưởng lợi ích |
-| Nguồn I/O / mạng | Có thể bị chờ dữ liệu hoặc giới hạn tài nguyên bên ngoài | Parallel Stream không tự biến I/O chặn thành nonblocking |
-| `Stream.iterate(seed, next)` | Phần tử kế tiếp phụ thuộc phần tử trước; khó chia hiệu quả ở một số trường hợp | Cần xét giới hạn dừng và chi phí truy hồi |
-| `Stream.generate(supplier)` | Giá trị từ supplier, có thể liên quan trạng thái/không có encounter order | Supplier phải tuân thủ hợp đồng khi dùng song song |
+| Primitive arrays `int[]`, `long[]`, `double[]` | Direct positional access; typically splits efficiently by index ranges | Do not mutate the array while the pipeline traverses it |
+| `ArrayList` | Indexed access; Spliterator supports balanced partitioning well | Operations can still be limited by memory bandwidth |
+| `IntStream.range(...)` | Known bounds and size; easy to split into ranges | Splitting well alone does not guarantee fast terminal ops |
+| `HashSet` | Has a Spliterator and splits, but order is not guaranteed | Different traits from List; output depends on ordering needs |
+| `LinkedList` | Linked traversal; splitting is more complex and may batch | Do not conclude it is unsplittable; measure |
+| One-way `Iterator` | Hard to jump directly to the middle; may batch before splitting | Splitting/buffering overhead affects gains |
+| I/O / network sources | May block waiting for data or external resource limits | Parallel Stream does not turn blocking I/O into nonblocking |
+| `Stream.iterate(seed, next)` | Next element depends on the previous one; hard to split efficiently in some cases | Consider termination bounds and recurrence cost |
+| `Stream.generate(supplier)` | Values from supplier, possibly stateful / lacking encounter order | Supplier must satisfy contract when used in parallel |
 
-Bảng mô tả xu hướng thiết kế; khả năng thực tế còn tùy triển khai Spliterator và phiên bản JDK.
+This table reflects design tendencies; actual behavior also depends on the Spliterator implementation and JDK version.
 
-### 8.1. Cùng thuật toán, khác nguồn có thể khác hiệu năng
+### 8.1. Same algorithm, different sources can perform differently
 
 ~~~java
 import java.util.ArrayList;
@@ -377,42 +377,42 @@ long fromLinkedList = linkedList.parallelStream()
 System.out.println(fromArrayList == fromLinkedList); // true
 ~~~
 
-Kết quả đúng phải giống nhau. Nhưng hai nguồn có cấu trúc, chi phí duyệt và chiến lược phân vùng khác nhau, nên thời gian có thể khác. Mục tiêu của ví dụ là **thấy nguồn dữ liệu quan trọng**, không phải khẳng định một nguồn luôn nhanh hơn trong mọi trường hợp.
+The correct results must match. However, the two sources differ in structure, traversal cost, and partitioning strategy, so execution time can differ. The goal of this example is to **see that the data source matters**, not to claim one source is always faster in every case.
 
-## 9. Kích thước các phần việc: granularity và ngưỡng chia
+## 9. Work chunk size: granularity and split threshold
 
-Giả sử có `N` phần tử và mỗi tác vụ được giao khoảng `B` phần tử. Một cách suy luận đơn giản là số tác vụ vào khoảng `N / B`.
+Suppose there are `N` elements and each task receives roughly `B` elements. A simple mental model puts the task count near `N / B`.
 
-- `B` **quá lớn**: ít tác vụ, dễ mất cân bằng khi mỗi phần tử có chi phí khác nhau.
-- `B` **quá nhỏ**: có nhiều tác vụ nhưng chi phí tạo, lập lịch, hợp nhất và đồng bộ tăng.
-- `B` **phù hợp**: đủ nhiều công việc để sử dụng các worker, nhưng không quá nhiều để overhead chi phối.
+- `B` **too large**: few tasks, prone to imbalance when per-element cost varies.
+- `B` **too small**: many tasks, increasing creation, scheduling, merging, and sync overhead.
+- `B` **well-sized**: enough tasks to keep workers busy without letting overhead dominate.
 
 ~~~text
-Tác vụ quá thô:
+Tasks too coarse:
   [████████████████] [████]
-  Worker 1 bận lâu, Worker 2 chờ.
+  Worker 1 busy for long, Worker 2 waits.
 
-Tác vụ quá nhỏ:
+Tasks too fine:
   [█][█][█][█][█][█][█][█][█]...
-  Có thể tốn nhiều chi phí quản lý.
+  Can incur high management overhead.
 
-Tác vụ vừa đủ:
+Tasks well-sized:
   [████][████][████][████]
-  Có thể phân phối linh hoạt hơn.
+  Can be distributed more flexibly.
 ~~~
 
-Không có một ngưỡng chia cố định áp dụng cho mọi tập dữ liệu. Hãy cân nhắc tốc độ xử lý một phần tử, mức độ đồng đều, số worker thực sự có thể sử dụng, chi phí combiner và tài nguyên máy chủ.
+There is no single fixed split threshold that fits every dataset. Consider per-element processing speed, cost uniformity, effective worker count, combiner cost, and host resources.
 
-### 9.1. Một Spliterator tùy chỉnh không nên chia vô hạn thành tác vụ bé
+### 9.1. A custom Spliterator should not split infinitely into tiny tasks
 
-Ví dụ logic của `trySplit` cho một Spliterator quản lý đoạn `[current, fence)`:
+Example `trySplit` logic for a Spliterator managing the interval `[current, fence)`:
 
 ~~~java
 @Override
 public Spliterator.OfInt trySplit() {
     long remaining = (long) fence - current;
 
-    // Ví dụ: không tách tiếp khi còn dưới 2.048 phần tử.
+    // Example: do not split further when fewer than 2,048 elements remain.
     if (remaining < 2_048L) {
         return null;
     }
@@ -427,15 +427,15 @@ public Spliterator.OfInt trySplit() {
 }
 ~~~
 
-Đây là **đoạn minh họa để thay phương thức `trySplit`** của một lớp `RangeSpliterator` quản lý khoảng số, không phải chương trình độc lập. Lớp đó phải triển khai `tryAdvance`, `estimateSize`, `characteristics` và lưu `current`/`fence` đúng hợp đồng. Ngưỡng 2.048 chỉ là ví dụ để thấy ý tưởng “không chia các đoạn quá nhỏ”; không có ý nghĩa tối ưu phổ quát.
+This is an **illustrative snippet to implement `trySplit`** on a `RangeSpliterator` class managing a numeric range, not a standalone program. That class must implement `tryAdvance`, `estimateSize`, `characteristics`, and maintain `current`/`fence` per contract. The threshold 2,048 is only an example showing the idea of "do not split overly tiny ranges"; it has no universal optimality meaning.
 
-Khi `ORDERED`, phần trả về là tiền tố; sau split, đối tượng gốc chỉ giữ hậu tố. Việc tính bằng `long` tránh tràn `int` với khoảng lớn. Một chiến lược chia khác có thể dùng batching, chia không đều hoặc không tách nếu nguồn không cho phép.
+When `ORDERED`, the returned part is a prefix; after splitting, the original object keeps only the suffix. Arithmetic in `long` prevents `int` overflow on wide ranges. Other splitting strategies may use batching, uneven splits, or refuse splitting if the source disallows it.
 
-## 10. ORDERED và các thao tác stateful có thể làm parallel tốn kém
+## 10. ORDERED and stateful operations can make parallel execution costly
 
-Một nguồn `ORDERED` có **encounter order**, chẳng hạn thứ tự phần tử của `List` hoặc dãy `IntStream.range`. Đối với nhiều bài toán, thứ tự rất quan trọng; nhưng giữ thứ tự khi xử lý song song có thể đòi hỏi phối hợp nhiều nhánh.
+An `ORDERED` source has an **encounter order**, such as the element order of a `List` or an `IntStream.range` sequence. For many problems, order is critical; yet preserving order during parallel execution can require coordinating across multiple branches.
 
-### 10.1. forEach và forEachOrdered
+### 10.1. forEach and forEachOrdered
 
 ~~~java
 import java.util.stream.IntStream;
@@ -443,19 +443,19 @@ import java.util.stream.IntStream;
 IntStream.range(1, 6)
     .parallel()
     .forEach(System.out::print);
-// Có thể in các chữ số theo thứ tự không xác định.
+// May print digits in an unspecified order.
 
 System.out.println();
 
 IntStream.range(1, 6)
     .parallel()
     .forEachOrdered(System.out::print);
-// In 12345.
+// Prints 12345.
 ~~~
 
-`forEach` trong Stream song song **không cam kết** thứ tự thực thi action. `forEachOrdered` giữ thứ tự gặp của nguồn, nhưng việc duy trì thứ tự đó có thể làm giảm lợi ích song song, nhất là khi bản thân action chứa I/O hoặc đồng bộ.
+`forEach` on a parallel Stream **does not guarantee** action execution order. `forEachOrdered` preserves the source's encounter order, but maintaining that order can reduce parallel gains, especially when the action itself performs I/O or synchronization.
 
-**Không dùng output console làm benchmark**, vì ghi console có thể rất chậm và bản thân I/O chia sẻ làm sai lệch quan sát hiệu năng.
+**Do not use console output as a benchmark**, because writing to the console can be very slow and shared I/O itself skews performance observations.
 
 ### 10.2. distinct, sorted, limit
 
@@ -469,11 +469,11 @@ List<Integer> firstThreeDistinct = List.of(3, 3, 2, 2, 1, 1)
 System.out.println(firstThreeDistinct); // [3, 2, 1]
 ~~~
 
-Với Stream có encounter order, `distinct` phải giữ đại diện xuất hiện đầu tiên; `limit(3)` cần chọn đúng ba giá trị đầu **sau khi loại trùng**. Các yêu cầu này có thể làm tăng chi phí phối hợp giữa các nhánh song song.
+On a Stream with encounter order, `distinct` must retain the first-appearing representative; `limit(3)` must choose the first three values **after deduplication**. These requirements can increase coordination overhead across parallel branches.
 
-`sorted()` cũng là stateful intermediate operation: trên một nguồn lớn, nó cần xử lý tổ chức dữ liệu trước khi có thứ tự toàn cục. Nếu chỉ cần một giá trị nhỏ nhất, `min(...)` thường diễn đạt mục tiêu trực tiếp hơn `sorted().findFirst()`.
+`sorted()` is also a stateful intermediate operation: on a large source, it must organize data before establishing global order. If you only need a single minimum value, `min(...)` usually expresses the intent more directly than `sorted().findFirst()`.
 
-### 10.3. unordered() chỉ khi nghiệp vụ thật sự không cần thứ tự
+### 10.3. unordered() only when business logic truly does not need order
 
 ~~~java
 long count = List.of(3, 3, 2, 2, 1, 1)
@@ -485,13 +485,13 @@ long count = List.of(3, 3, 2, 2, 1, 1)
 System.out.println(count); // 3
 ~~~
 
-`unordered()` bỏ yêu cầu giữ encounter order, có thể giúp một số pipeline song song chạy linh hoạt hơn. Nó **không tự xáo trộn dữ liệu** và không được dùng nếu báo cáo phải giữ “phần tử đầu tiên” hoặc thứ tự xuất hiện.
+`unordered()` drops the requirement to preserve encounter order, which can allow some parallel pipelines to run more flexibly. It **does not shuffle data** and must not be used if reports must keep the "first element" or appearance order.
 
-## 11. Phép tổng hợp và chi phí gộp nhánh
+## 11. Aggregations and branch-merging overhead
 
-Parallel Stream thường cần **combiner** để hợp nhất các kết quả cục bộ.
+Parallel Streams often require a **combiner** to merge local results.
 
-### 11.1. Reduce với phép cộng associative
+### 11.1. Reduce with associative addition
 
 ~~~java
 long sum = java.util.stream.LongStream.rangeClosed(1, 100_000)
@@ -501,11 +501,11 @@ long sum = java.util.stream.LongStream.rangeClosed(1, 100_000)
 System.out.println(sum); // 5000050000
 ~~~
 
-Phép cộng số nguyên với identity 0 có tính kết hợp trong mô hình số nguyên của Java, nên có thể gộp các tổng từng nhánh theo cách hợp lệ. Chú ý tổng vẫn có thể **tràn `long`** nếu đầu vào cực lớn; Java không tự nâng số nguyên sang độ chính xác vô hạn.
+Integer addition with identity 0 is associative under Java's integer model, so branch sums can be merged validly. Note that the sum can still **overflow `long`** on huge inputs; Java does not automatically promote integers to arbitrary precision.
 
-### 11.2. Combiner đắt làm giảm lợi ích
+### 11.2. Expensive combiners reduce benefits
 
-Ví dụ thu thành danh sách:
+Example collecting into a list:
 
 ~~~java
 List<String> labels = java.util.stream.IntStream.range(0, 20_000)
@@ -514,11 +514,11 @@ List<String> labels = java.util.stream.IntStream.range(0, 20_000)
     .collect(java.util.stream.Collectors.toList());
 ~~~
 
-Mỗi nhánh có thể xây bộ chứa cục bộ rồi hợp nhất. Việc tạo 20.000 chuỗi, cấp phát các bộ chứa và hợp nhất kết quả đều có chi phí. Nếu nhiệm vụ chính chỉ là biến một số thành một chuỗi ngắn, overhead có thể lớn so với tính toán.
+Each branch may build local containers and then merge them. Creating 20,000 strings, allocating containers, and merging results all carry cost. If the main work is just turning an int into a short string, overhead can be large relative to computation.
 
-`collect` vẫn là API đúng cho mutable reduction; ý nghĩa ở đây là **API đúng về mặt ngữ nghĩa không đồng nghĩa nhanh nhất ở chế độ song song**.
+`collect` is still the right API for mutable reduction; the point here is that **semantically right API does not mean fastest in parallel mode**.
 
-### 11.3. groupingBy có thể cần hợp nhất Map
+### 11.3. groupingBy may require merging Maps
 
 ~~~java
 Map<Integer, Long> counts = java.util.stream.IntStream.range(0, 100_000)
@@ -530,22 +530,22 @@ Map<Integer, Long> counts = java.util.stream.IntStream.range(0, 100_000)
     ));
 ~~~
 
-Kết quả có mười nhóm, mỗi nhóm có 10.000 số. Tuy nhiên, bộ chứa Map của nhiều nhánh có thể phải được hợp nhất. Với `groupingByConcurrent`, hợp đồng khác về concurrency và thứ tự; không nên thay thế tùy tiện nếu ứng dụng cần encounter order hay chính sách collector cụ thể.
+The result has ten groups of 10,000 numbers each. However, Map containers across branches may need to be merged. With `groupingByConcurrent`, the contract differs regarding concurrency and ordering; do not substitute it casually if the application needs encounter order or specific collector behavior.
 
-Chi phí gộp và số lượng nhóm cần được xét cùng với kích thước nguồn.
+Merge cost and group cardinality must be evaluated alongside source size.
 
-## 12. Chương trình đo minh họa: cùng thuật toán, hai chế độ
+## 12. Illustrative measurement program: same algorithm, two modes
 
-Để so sánh hiệu năng một cách có ý nghĩa, **phải dùng cùng dữ liệu, cùng phép tính và cùng kết quả**. Chương trình sau so sánh sequential với parallel cho một công việc CPU thuần, không chia sẻ trạng thái mutable.
+To compare performance meaningfully, **you must use the same data, the same computation, and the same result**. The following program compares sequential vs. parallel for pure CPU work without shared mutable state.
 
-Ví dụ chạy trên **Java 17+**; API được dùng có từ Java 8.
+The example runs on **Java 17+**; the APIs used have existed since Java 8.
 
 ~~~java
 import java.util.stream.IntStream;
 
 public class ParallelCostExperiment {
 
-    // Hàm tính toán CPU thuần: không I/O, không sửa trạng thái ngoài.
+    // Pure CPU computation: no I/O, no external state mutation.
     static long cpuWork(int value) {
         long x = value + 0x9E3779B97F4A7C15L;
 
@@ -555,7 +555,7 @@ public class ParallelCostExperiment {
             x ^= x >>> 17;
         }
 
-        return x & 1023L; // Kết quả từng phần tử từ 0 đến 1023.
+        return x & 1023L; // Per-element result from 0 to 1023.
     }
 
     static long calculate(int size, boolean parallel) {
@@ -572,7 +572,7 @@ public class ParallelCostExperiment {
     static long measureNanos(int size, boolean parallel) {
         long started = System.nanoTime();
 
-        // Kết quả dùng để ngăn việc đo một lời gọi không cần thiết.
+        // Result used to prevent measuring a dead call.
         long result = calculate(size, parallel);
 
         long elapsed = System.nanoTime() - started;
@@ -586,7 +586,7 @@ public class ParallelCostExperiment {
     }
 
     public static void main(String[] args) {
-        // Warmup đơn giản; chưa phải benchmark chuyên nghiệp.
+        // Simple warmup; not yet a professional benchmark.
         for (int i = 0; i < 3; i++) {
             calculate(30_000, false);
             calculate(30_000, true);
@@ -606,40 +606,40 @@ public class ParallelCostExperiment {
 }
 ~~~
 
-Chương trình in **kết quả tổng bằng nhau** cho cùng `size`. Thời gian đo **không có một giá trị cố định**, vì phụ thuộc CPU, JDK, mức nóng JIT, điều kiện chạy, GC và tác vụ khác trên máy.
+The program prints **matching total results** for each `size`. Measured timings **have no fixed value**, as they depend on CPU, JDK, JIT warmup, runtime conditions, GC, and other tasks on the machine.
 
-### 12.1. Cách đọc kết quả
+### 12.1. How to read the results
 
-Giả sử một lần chạy cho thấy:
+Suppose a run shows:
 
 ~~~text
-size=1000:   sequential nhanh hơn
-size=30000:  hai cách gần tương đương
-size=300000: parallel nhanh hơn
+size=1000:   sequential is faster
+size=30000:  roughly comparable
+size=300000: parallel is faster
 ~~~
 
-Đây chỉ là **một kịch bản giả định để luyện phân tích**, không phải kết quả thực nghiệm đã đo. Tập dữ liệu, số vòng xử lý trong `cpuWork`, phiên bản JDK và máy khác có thể đảo ngược thứ tự.
+This is only **a hypothetical scenario for practicing analysis**, not an experimentally measured result. Different datasets, iteration counts in `cpuWork`, JDK versions, and hardware can reverse the ranking.
 
-Điều cần rút ra không phải “300.000 phần tử là ngưỡng chuẩn”, mà là: **khi tổng lượng tính toán tăng, cơ hội bù chi phí song song cũng tăng**, miễn nguồn và phép gộp hỗ trợ tốt.
+The takeaway is not "300,000 elements is a standard threshold," but rather: **as total compute volume rises, the chance to amortize parallel overhead also rises**, provided the source and aggregation behave well.
 
-### 12.2. Vì sao đây chưa phải benchmark chuẩn?
+### 12.2. Why is this not yet a proper benchmark?
 
-Việc gọi `System.nanoTime()` một lần cho mỗi trường hợp chịu ảnh hưởng lớn của:
+Calling `System.nanoTime()` once per case is heavily affected by:
 
-- **JIT warmup** và các tối ưu hóa theo lịch thực thi.
-- **GC** và cấp phát bộ nhớ.
-- **CPU turbo, nhiệt độ, tiết kiệm điện**, số lõi thực sự được cấp.
-- **Các tiến trình khác** chạy đồng thời.
-- **Thứ tự chạy mẫu** và kích thước tập dữ liệu.
-- **Tần suất lặp và ngoại lệ thời gian đo**.
+- **JIT warmup** and execution-profile optimizations.
+- **GC** and memory allocation.
+- **CPU turbo, thermals, power saving**, and actually allocated cores.
+- **Other processes** running concurrently.
+- **Sample run order** and dataset size.
+- **Repetition frequency and timing outliers**.
 
-Đối với đánh giá có giá trị quyết định, hãy dùng **JMH** hoặc hệ thống benchmark có warmup, nhiều fork/iteration, kiểm soát đầu vào và thống kê kết quả. Bài học hiện tại chỉ trình bày một thí nghiệm minh họa, không coi các số đo đơn lẻ là bằng chứng hiệu năng.
+For decision-grade evaluation, use **JMH** or a benchmarking harness with warmup, multiple forks/iterations, controlled inputs, and statistical reporting. This lesson only presents an illustrative experiment; do not treat single timings as performance proof.
 
-## 13. Ngữ nghĩa và tính đúng đắn phải đứng trước việc tăng tốc
+## 13. Semantics and correctness must come before speedup
 
-Một pipeline đúng khi tuần tự **có thể sai** khi chuyển sang song song nếu logic phụ thuộc tác dụng phụ, thứ tự callback hoặc trạng thái ngoài.
+A pipeline that is correct sequentially **can become wrong** when switched to parallel if its logic depends on side effects, callback order, or external state.
 
-### 13.1. Không thu vào ArrayList dùng chung bằng forEach
+### 13.1. Do not collect into a shared ArrayList using forEach
 
 ~~~java
 import java.util.ArrayList;
@@ -648,19 +648,19 @@ import java.util.stream.IntStream;
 
 List<Integer> broken = new ArrayList<>();
 
-// Sai: nhiều thread có thể gọi add trên cùng ArrayList.
+// Wrong: multiple threads may call add on the same ArrayList.
 // IntStream.range(0, 10_000).parallel().forEach(broken::add);
 
-// Đúng: dùng collector.
+// Right: use a collector.
 List<Integer> safe = IntStream.range(0, 10_000)
     .parallel()
     .boxed()
     .collect(java.util.stream.Collectors.toList());
 ~~~
 
-`ArrayList` không thread-safe khi nhiều thread cập nhật đồng thời. Đổi sang `Collections.synchronizedList` có thể làm thao tác thêm an toàn hơn về mặt đồng bộ, nhưng không tự bảo đảm thứ tự yêu cầu và có thể tạo contention. `collect` thể hiện đúng ý định thu kết quả.
+`ArrayList` is not thread-safe under concurrent updates from multiple threads. Switching to `Collections.synchronizedList` may make adds thread-safe, yet it does not guarantee the required order and can introduce contention. `collect` expresses the intent of gathering results directly.
 
-### 13.2. Reduce cần identity và tính kết hợp
+### 13.2. Reduce requires an identity and associativity
 
 ~~~java
 int sum = List.of(1, 2, 3, 4)
@@ -668,124 +668,124 @@ int sum = List.of(1, 2, 3, 4)
     .reduce(0, Integer::sum); // 10
 ~~~
 
-Phép cộng với identity 0 phù hợp để chia và gộp. Phép trừ không associative; không nên dùng `reduce(0, (a, b) -> a - b)` rồi kỳ vọng mọi cách phân nhóm đều trả cùng kết quả tuần tự.
+Addition with identity 0 is suitable for splitting and merging. Subtraction is not associative; do not use `reduce(0, (a, b) -> a - b)` expecting every grouping to return the sequential result.
 
-Với `double`, phép cộng có thể cho sai khác nhỏ khi đổi thứ tự gộp do làm tròn dấu phẩy động. Nếu dữ liệu đòi hỏi tính tái lập tuyệt đối và chính xác (chẳng hạn tiền tệ), cần quy tắc số học/kiểu dữ liệu phù hợp.
+With `double`, addition can produce slight differences when merge order changes due to floating-point rounding. When data requires strict reproducibility and exactness (such as currency), choose appropriate arithmetic rules and data types.
 
-### 13.3. Side effect khó dự đoán số lần và thứ tự
+### 13.3. Side effects have unpredictable invocation counts and order
 
 ~~~java
 long count = java.util.stream.IntStream.range(0, 100)
     .parallel()
     .peek(n -> {
-        // Không đặt logic ghi dữ liệu bắt buộc ở đây.
+        // Do not place mandatory data-writing logic here.
     })
     .count();
 ~~~
 
-Một số tối ưu hóa có thể khiến callback trung gian không được gọi cho mọi phần tử nếu terminal operation tính được kết quả mà không cần duyệt. Ngay cả khi callback được gọi, thứ tự và thread thực thi trong parallel Stream không được bảo đảm như tuần tự.
+Some optimizations may skip invoking intermediate callbacks for every element when the terminal operation can compute the result without traversing. Even when callbacks are invoked, order and executing threads in a parallel Stream are not guaranteed as in sequential execution.
 
-Do đó, **đừng dùng `peek`, `map` hay `filter` làm chỗ thực hiện I/O hoặc cập nhật trạng thái nghiệp vụ bắt buộc**. Những hàm trong pipeline nên không can thiệp vào nguồn và không dựa vào trạng thái ngoài có thể thay đổi.
+Therefore, **do not use `peek`, `map`, or `filter` to perform I/O or mandatory business state updates**. Pipeline functions should be non-interfering with the source and not rely on mutable external state.
 
-## 14. CPU-bound, memory-bound và I/O-bound không giống nhau
+## 14. CPU-bound, memory-bound, and I/O-bound are not the same
 
-Không phải công việc nào đắt cũng phù hợp với Parallel Stream.
+Not every expensive task fits a Parallel Stream.
 
 ### CPU-bound
 
-Công việc chủ yếu tính toán, ít cần trạng thái chung:
+Work that is mostly computation with minimal shared state:
 
 ~~~text
-Giải mã dữ liệu độc lập, biến đổi số, tính hàm nặng, kiểm tra quy tắc.
+Independent data decoding, numeric transforms, heavy formulas, rule checks.
 ~~~
 
-Parallel có thể hữu ích nếu có đủ phần tử và nguồn chia tốt.
+Parallelism can be helpful if there are enough elements and the source splits well.
 
 ### Memory-bound
 
-Công việc đọc/ghi dữ liệu rất nhiều nhưng ít phép toán:
+Work that reads/writes large amounts of data with very little computation:
 
 ~~~text
-Duyệt mảng lớn để tính tổng hoặc sao chép dữ liệu.
+Scanning a large array to sum or copy data.
 ~~~
 
-Tốc độ có thể bị giới hạn bởi băng thông bộ nhớ hoặc cache. Thêm worker có thể không mang lại lợi ích tương ứng.
+Speed can be bottlenecked by memory bandwidth or cache. Adding workers may not yield proportional gains.
 
 ### I/O-bound
 
-Công việc chờ đĩa, mạng hoặc hệ thống ngoài:
+Work waiting on disk, network, or external systems:
 
 ~~~text
-Gọi HTTP cho từng phần tử, truy vấn database, đọc file chậm.
+HTTP calls per element, database queries, slow file reads.
 ~~~
 
-Parallel Stream không tự biến các lời gọi blocking thành nonblocking. Mức song song không được điều khiển để phù hợp giới hạn dịch vụ ngoài có thể làm cạn kết nối, nghẽn pool hoặc gây timeout.
+Parallel Stream does not automatically turn blocking calls into nonblocking ones. Unbounded parallelism mismatched to external service limits can exhaust connections, saturate pools, or trigger timeouts.
 
-Trong hệ thống I/O, thường cần một cơ chế quản lý concurrency/backpressure và giới hạn tác vụ rõ ràng hơn thay vì chuyển ngay sang `parallelStream()`.
+In I/O systems, you typically need an explicit concurrency/backpressure and task-limiting mechanism rather than switching immediately to `parallelStream()`.
 
-## 15. Các yếu tố môi trường khiến kết quả đo khác nhau
+## 15. Environmental factors causing measurement differences
 
-Thử nghiệm parallel trên laptop có thể không phản ánh đúng môi trường production:
+Testing parallel execution on a laptop may not reflect production environments:
 
-- **Số processor khả dụng** có thể khác số core vật lý.
-- **Container CPU quota** có thể giới hạn CPU dù máy chủ có nhiều lõi.
-- **Common fork/join pool** thường được dùng trong các triển khai Stream mặc định và có thể cạnh tranh với công việc khác trong cùng JVM.
-- **Máy có tải đồng thời** khiến thêm tác vụ parallel làm tăng latency của toàn ứng dụng dù throughput một tác vụ đơn lẻ có vẻ tăng.
-- **Bộ nhớ và GC** thay đổi khi `collect` tạo nhiều container trung gian.
-- **Các phiên bản JDK khác nhau** có thể chọn chiến lược chia/điều phối khác nhau.
+- **Available processors** may differ from physical core count.
+- **Container CPU quotas** can throttle CPU even on a multi-core host.
+- **The common fork/join pool** is often used by default Stream implementations and can compete with other work in the same JVM.
+- **A concurrently loaded machine** means adding parallel tasks can increase overall application latency even if single-task throughput appears higher.
+- **Memory and GC** change when `collect` creates many intermediate containers.
+- **Different JDK versions** may choose different splitting and scheduling strategies.
 
-Không nên dùng `Runtime.getRuntime().availableProcessors()` để suy luận chắc chắn rằng pipeline sẽ sử dụng đúng bấy nhiêu thread, hoặc rằng tốc độ phải tăng bấy nhiêu lần.
+Do not use `Runtime.getRuntime().availableProcessors()` to conclude with certainty that the pipeline will use exactly that many threads, or scale by that factor.
 
-Nếu tối ưu hóa một API server, hãy đo **throughput và độ trễ của nhiều request đồng thời**, không chỉ thời gian chạy một Stream trong môi trường không tải.
+When optimizing an API server, measure **throughput and latency under multiple concurrent requests**, not just the runtime of one isolated Stream on an idle machine.
 
-## 16. Quy trình quyết định khi nào thử parallel()
+## 16. Decision process for when to try parallel()
 
-Dưới đây là checklist thực hành:
+Here is a practical checklist:
 
-| Câu hỏi | Nếu câu trả lời là “không” |
+| Question | If the answer is "no" |
 |---|---|
-| Kết quả tuần tự đã đúng và có kiểm thử chưa? | Đảm bảo tính đúng trước |
-| Các hàm xử lý từng phần tử có thể chạy độc lập không? | Loại bỏ trạng thái chung/side effect trước |
-| Phép `reduce`/`collect` có combiner đúng hợp đồng không? | Sửa logic tổng hợp |
-| Nguồn có đủ việc để chia không? | Tiếp tục dùng sequential |
-| Spliterator có thể chia nguồn hiệu quả không? | Cân nhắc đổi nguồn hoặc thuật toán |
-| Chi phí phần tử đủ lớn để bù overhead không? | Benchmark; đừng mặc định có lợi |
-| Có phải giữ encounter order khắt khe không? | Đánh giá chi phí `sorted`, `limit`, `forEachOrdered` |
-| Tài nguyên CPU/bộ nhớ có dư không? | Không tranh chấp làm hại các tác vụ khác |
-| Đã đo với dữ liệu và tải đại diện chưa? | Chưa đủ cơ sở quyết định |
+| Is the sequential result already correct and tested? | Ensure correctness first |
+| Can per-element processing functions run independently? | Remove shared state / side effects first |
+| Does `reduce`/`collect` have a contract-compliant combiner? | Fix aggregation logic |
+| Does the source have enough work to split? | Keep using sequential |
+| Can the Spliterator split the source efficiently? | Consider changing the source or algorithm |
+| Is per-element cost high enough to outweigh overhead? | Benchmark; do not assume benefit |
+| Must strict encounter order be preserved? | Evaluate the cost of `sorted`, `limit`, `forEachOrdered` |
+| Are CPU/memory resources available? | Avoid contention harming other tasks |
+| Have you measured with representative data and load? | Not enough basis to decide |
 
-Điểm quyết định là **tổng thời gian, throughput, độ trễ và tính đúng**. Chế độ parallel chỉ là một lựa chọn thực thi; nó không phải yêu cầu bắt buộc của Java Stream API.
+The deciding criteria are **total time, throughput, latency, and correctness**. Parallel mode is just an execution option; it is not a mandatory requirement of the Java Stream API.
 
-## 17. Những hiểu nhầm và lỗi thường gặp
+## 17. Common misconceptions and errors
 
-| Hiểu nhầm / lỗi | Hậu quả | Cách xử lý |
+| Misconception / error | Consequence | How to handle |
 |---|---|---|
-| “Dữ liệu hơn 10.000 phần tử thì luôn bật parallel” | Ngưỡng tùy CPU, thuật toán và nguồn | Đo với dữ liệu thật |
-| “Càng nhiều thread càng nhanh” | Overhead, contention, giảm cache locality | Quan sát effective parallelism |
-| “Các phần tử xử lý giống nhau về chi phí” | Load imbalance nếu có phần tử rất nặng | Đánh giá phân bố chi phí |
-| “`trySplit` bắt buộc chia đều” | Thiết kế giả định sai hợp đồng | Chấp nhận split không đều hoặc null |
-| “`SIZED` chỉ giúp tăng tốc nên khai báo đại” | Có thể làm sai kết quả | Chỉ công bố đặc tính đúng |
-| “`ArrayList` đủ an toàn khi `forEach` song song” | Race condition | Dùng `collect` hoặc kiến trúc đồng bộ thích hợp |
-| “`findAny()` luôn lấy phần tử đầu tiên” | Kết quả không xác định | Dùng `findFirst()` khi có thứ tự và cần đầu tiên |
-| “`forEachOrdered` chạy nhanh như `forEach`” | Chi phí duy trì thứ tự | Chỉ dùng khi cần thứ tự |
-| “`sorted().limit(k)` luôn xử lý ít phần tử” | `sorted` có thể cần toàn bộ nguồn | Chọn thuật toán top-k phù hợp |
-| “Một phép `count()` lớn nghĩa là đã duyệt n phần tử” | Nguồn `SIZED` có thể được tối ưu | Không đo công việc bằng side effect |
-| “Parallel sẽ tăng tốc I/O chặn” | Nghẽn dịch vụ, cạn kết nối, timeout | Giới hạn concurrency và dùng mô hình I/O phù hợp |
-| “Một lần chạy nhanh hơn là đủ để kết luận” | Kết quả nhiễu | Dùng benchmark lặp và nhiều môi trường |
-| “Thứ tự in ra giống nhau nghĩa là parallel ổn định” | Phụ thuộc thứ tự lịch thực thi | Xác định encounter order và terminal contract |
-| “Chia càng nhỏ càng tốt” | Tăng chi phí lập lịch/gộp | Chọn granularity phù hợp |
+| "Above 10,000 elements, always turn on parallel" | Threshold varies by CPU, algorithm, and source | Measure on real data |
+| "More threads always means faster" | Overhead, contention, worse cache locality | Observe effective parallelism |
+| "All elements cost the same to process" | Load imbalance if some elements are very heavy | Inspect cost distribution |
+| "`trySplit` must split evenly in half" | Design relies on a false contract assumption | Expect uneven splits or null |
+| "`SIZED` only speeds things up, so declare it anyway" | Can produce wrong results | Only declare accurate characteristics |
+| "`ArrayList` is safe enough with parallel `forEach`" | Race condition | Use `collect` or proper concurrent design |
+| "`findAny()` always returns the first element" | Non-deterministic result | Use `findFirst()` when ordered and first is needed |
+| "`forEachOrdered` runs as fast as `forEach`" | Order-coordination cost | Use only when order is needed |
+| "`sorted().limit(k)` always processes few elements" | `sorted` may need the entire source | Choose an appropriate top-k algorithm |
+| "A large `count()` means n elements were traversed" | `SIZED` sources can be optimized | Do not measure work using side effects |
+| "Parallel will speed up blocking I/O" | Service congestion, connection exhaustion, timeouts | Limit concurrency and use a suitable I/O model |
+| "One faster run is enough to conclude" | Noisy results | Use repeated benchmarks and varied environments |
+| "Same printed order means parallel is deterministic" | Depends on execution schedule | Define encounter order and terminal contract |
+| "Smaller splits are always better" | Higher scheduling/merging overhead | Choose appropriate granularity |
 
-## 18. Bài tập thực hành: phân tích ba yếu tố trên cùng pipeline
+## 18. Practice exercise: analyzing the three factors on one pipeline
 
-**Bối cảnh:** một hệ thống cần tính tổng kết quả xử lý của nhiều mã công việc, mỗi mã áp dụng một hàm CPU thuần. Có ba thí nghiệm:
+**Context:** a system needs to sum processing results for many job codes, each applying a pure CPU function. There are three experiments:
 
-1. **Kích thước:** giữ nguyên hàm xử lý, thay `size` giữa 1.000 và 200.000.
-2. **Chi phí phần tử:** giữ `size` cố định, thay số vòng tính trong hàm từ 5 thành 200.
-3. **Cách chia:** quan sát Spliterator của nguồn, rồi mô tả ảnh hưởng nếu một custom Spliterator `trySplit` luôn trả `null`.
+1. **Size:** keep the processing function constant, vary `size` between 1,000 and 200,000.
+2. **Per-element cost:** keep `size` constant, vary loop rounds inside the function from 5 to 200.
+3. **Splitting:** inspect the source's Spliterator, then describe the impact if a custom Spliterator's `trySplit` always returns `null`.
 
-Yêu cầu: giải thích trường hợp nào có cơ hội tăng tốc khi parallel, **không dựa vào một ngưỡng số phần tử cố định**.
+Task: explain which cases have a chance to speed up with parallel execution, **without relying on a fixed element-count threshold**.
 
-### Lời giải tham khảo (Java 8+)
+### Reference solution (Java 8+)
 
 ~~~java
 import java.util.Spliterator;
@@ -826,7 +826,7 @@ public class ParallelThreeFactorsPractice {
                     "size=" + size
                     + ", rounds=" + rounds
                     + ", equal=" + (seq == par)
-                ); // equal=true nếu cả hai tính đúng
+                ); // equal=true if both compute accurately
             }
         }
 
@@ -850,39 +850,39 @@ public class ParallelThreeFactorsPractice {
 }
 ~~~
 
-Chương trình này **không in thời gian chạy**; nó kiểm tra điều quan trọng đầu tiên: cùng một thuật toán trên cùng đầu vào phải cho kết quả tương đương ở hai chế độ. Khi tự thực nghiệm thời gian, hãy dùng công cụ benchmark và kiểm soát các biến đã nêu ở mục 12.
+This program **does not print execution time**; it checks the first priority: the same algorithm on the same input must produce equivalent results in both modes. When running timing experiments yourself, use a benchmark tool and control the variables discussed in section 12.
 
-### Diễn giải mong đợi
+### Expected interpretation
 
-- Với `size = 1_000, rounds = 5`: ít công việc, nên overhead parallel dễ chi phối.
-- Với `size = 200_000, rounds = 200`: lượng công việc CPU lớn và các phần tử độc lập, là ứng viên tốt hơn để thử parallel.
-- Với `size = 1_000, rounds = 200`: mỗi phần tử nặng nhưng tổng số tác vụ có thể vẫn đủ lớn để có lợi; **phải đo**, không kết luận trước.
-- Với `size = 200_000, rounds = 5`: rất nhiều phần tử nhưng công việc mỗi phần tử nhẹ, nên có thể bị chi phí gộp/lập lịch hoặc băng thông nhớ giới hạn.
-- Nếu `trySplit()` luôn trả `null`: việc chia nguồn để xử lý song song bị hạn chế nghiêm trọng, dù `parallel` đã được bật.
+- For `size = 1_000, rounds = 5`: little work, so parallel overhead easily dominates.
+- For `size = 200_000, rounds = 200`: high CPU work with independent elements, making it a better candidate to test parallel execution.
+- For `size = 1_000, rounds = 200`: each element is heavy, so total work might still be large enough to benefit; **measure**, do not conclude in advance.
+- For `size = 200_000, rounds = 5`: many elements but light per-element work, so merging/scheduling overhead or memory bandwidth may limit gains.
+- If `trySplit()` always returns `null`: source splitting for parallel execution is severely restricted, even though `parallel` is enabled.
 
-### Câu hỏi tự kiểm tra
+### Self-check questions
 
-1. Ba yếu tố chính của bài là gì? — **Kích thước nguồn, chi phí phần tử và khả năng chia nguồn**.
-2. `parallel()` có bảo đảm nhanh hơn `sequential()` không? — **Không**.
-3. `trySplit()` trả gì khi không thể chia? — **`null`**.
-4. `estimateSize()` có luôn chính xác không? — **Không**, chỉ khi nguồn có hợp đồng phù hợp như `SIZED`.
-5. `SUBSIZED` bổ sung điều gì so với `SIZED`? — **Các nhánh tách ra tiếp tục có kích thước chính xác**.
-6. Một nửa có công việc nặng hơn nhiều làm sao ảnh hưởng parallel? — **Nhánh chậm nhất có thể quyết định thời gian hoàn thành**.
-7. `forEachOrdered` có giữ encounter order không? — **Có**, nhưng có thể tăng chi phí phối hợp.
-8. Có thể dùng `ArrayList::add` vào một danh sách ngoài với `parallelStream().forEach` không? — **Không an toàn khi nhiều thread cập nhật chung**.
-9. Khi một nguồn có `SIZED`, `count()` có thể tránh duyệt không? — **Có** trong những pipeline có thể tối ưu tương ứng.
-10. Vì sao `Collectors.groupingBy` có thể tốn khi song song? — **Phải tạo và hợp nhất các Map trung gian**.
-11. Nếu dữ liệu đến từ HTTP blocking, bật parallel có tự giải quyết I/O không? — **Không**.
-12. Muốn kết luận nhanh hơn cần gì? — **Benchmark có warmup, lặp đủ lần, cùng dữ liệu, theo dõi hiệu năng của hệ thống thực**.
+1. What are the three main factors in this lesson? — **Source size, per-element cost, and source splittability**.
+2. Does `parallel()` guarantee faster execution than `sequential()`? — **No**.
+3. What does `trySplit()` return when it cannot split? — **`null`**.
+4. Is `estimateSize()` always exact? — **No**, only when the source has a matching contract such as `SIZED`.
+5. What does `SUBSIZED` add beyond `SIZED`? — **Split-off branches continue to have exact sizes**.
+6. How does one half having much heavier work affect parallel execution? — **The slowest branch can determine completion time**.
+7. Does `forEachOrdered` preserve encounter order? — **Yes**, though it may increase coordination overhead.
+8. Can you use `ArrayList::add` on an external list with `parallelStream().forEach`? — **Unsafe when multiple threads update concurrently**.
+9. When a source is `SIZED`, can `count()` skip traversal? — **Yes** in pipelines that can optimize accordingly.
+10. Why can `Collectors.groupingBy` be costly in parallel? — **It must create and merge intermediate Maps**.
+11. If data comes from blocking HTTP, does enabling parallel automatically solve I/O? — **No**.
+12. What is needed to conclude something is faster? — **Benchmarks with warmup, sufficient iterations, identical data, and monitoring real system performance**.
 
-## 19. Tổng kết: ba biến số phải được đánh giá cùng nhau
+## 19. Summary: all three variables must be evaluated together
 
-Để đánh giá **parallel Stream**, đừng chỉ nhìn số phần tử hoặc số lõi CPU. Hãy xét ba biến số như một hệ thống:
+To evaluate a **parallel Stream**, do not look only at element count or CPU core count. Evaluate all three variables as a system:
 
-- **Kích thước nguồn** quyết định tổng lượng việc và cơ hội tạo nhiều tác vụ.
-- **Chi phí mỗi phần tử** quyết định khả năng tiết kiệm thời gian nhờ thực thi đồng thời; chi phí **không đồng đều** dẫn đến mất cân bằng tải.
-- **Cách chia nguồn** qua `Spliterator.trySplit()`, `estimateSize()` cùng các đặc tính như `SIZED`/`SUBSIZED` ảnh hưởng trực tiếp đến số lượng, kích thước và độ cân bằng của các phần việc.
+- **Source size** determines total work volume and the opportunity to create multiple tasks.
+- **Cost per element** determines potential time savings from concurrent execution; **non-uniform** cost leads to load imbalance.
+- **Source splitting** via `Spliterator.trySplit()`, `estimateSize()`, and characteristics like `SIZED`/`SUBSIZED` directly shapes task count, size, and balance.
 
-Sau khi nguồn được chia, các yếu tố khác vẫn quan trọng: `ORDERED`, `distinct`, `sorted`, `limit`, chi phí combiner, contention, trạng thái mutable và kiểu công việc CPU/memory/I/O. Vì vậy, **tính đúng phải được kiểm tra trước, hiệu năng phải được đo sau**.
+Once the source is split, other factors remain critical: `ORDERED`, `distinct`, `sorted`, `limit`, combiner cost, contention, mutable state, and CPU/memory/I/O workload type. Therefore, **correctness must be verified first, and performance measured afterward**.
 
-Sử dụng `parallel()` là quyết định **dựa trên workload**, không phải quy tắc áp dụng đồng loạt cho mọi pipeline. Hiểu rõ cách phối hợp giữa kích thước, công việc và khả năng chia giúp bạn thiết kế Stream, custom `Spliterator` và các phép tổng hợp hiệu quả hơn mà không đánh đổi tính đúng đắn hoặc làm cạn tài nguyên hệ thống.
+Using `parallel()` is a **workload-driven** decision, not a blanket rule for every pipeline. Understanding how size, per-element work, and splittability interact helps you design Streams, custom `Spliterator` implementations, and aggregations more effectively without sacrificing correctness or exhausting system resources.

@@ -1,44 +1,44 @@
-# Giá trị -1 và lỗi dùng kết quả tìm kiếm làm chỉ số trong Java String
+# The `-1` Value and Bugs from Using Search Results as Indices in Java String
 
-Khi tìm một ký tự hoặc một đoạn văn bản bằng `String.indexOf(...)` hay `String.lastIndexOf(...)`, kết quả là **vị trí bắt đầu khớp theo chỉ số UTF-16**, hoặc **`-1` nếu không tìm thấy**. Giá trị `-1` là một *giá trị báo hiệu* (*sentinel*), không phải vị trí của ký tự trong chuỗi.
+When searching for a character or text segment with `String.indexOf(...)` or `String.lastIndexOf(...)`, the result is the **starting match position as a UTF-16 index**, or **`-1` if not found**. The value `-1` is a *sentinel value*, not a character position in the string.
 
-Lỗi thường gặp là đưa ngay kết quả tìm kiếm vào `substring(...)`, `charAt(...)` hoặc phép tính chỉ số mà chưa kiểm tra. Có trường hợp Java ném ngoại lệ rõ ràng; có trường hợp phép tính biến `-1` thành `0` và trả về nội dung **sai nhưng hoàn toàn không báo lỗi**. Để xử lý đúng, hãy hiểu hợp đồng của hàm tìm kiếm trước, kiểm tra trạng thái “không tìm thấy”, rồi mới tính ranh giới cần trích xuất.
+A common mistake is passing the search result straight into `substring(...)`, `charAt(...)`, or index arithmetic without checking it first. In some cases Java throws a clear exception; in others, arithmetic turns `-1` into `0` and returns **wrong content with no error at all**. To handle this properly, understand the search method's contract first, check the "not found" state, and only then compute extraction boundaries.
 
-## 1. `indexOf` và `lastIndexOf` trả giá trị gì?
+## 1. What Do `indexOf` and `lastIndexOf` Return?
 
-Những overload quen thuộc của `String` gồm:
+Familiar `String` overloads include:
 
 ```java
-text.indexOf('a');             // tìm ký tự/code point
-text.indexOf("abc");           // tìm chuỗi con
-text.indexOf("abc", fromIndex); // tìm từ vị trí chỉ định
-text.lastIndexOf('a');         // vị trí khớp cuối cùng
-text.lastIndexOf("abc");       // vị trí bắt đầu khớp cuối cùng
+text.indexOf('a');             // search for character/code point
+text.indexOf("abc");           // search for substring
+text.indexOf("abc", fromIndex); // search from specified position
+text.lastIndexOf('a');         // last match position
+text.lastIndexOf("abc");       // starting position of last match
 ```
 
-Đây là **đoạn minh họa các lời gọi**, giả sử biến `text` có kiểu `String` và không null. `indexOf` tìm từ trái sang phải; `lastIndexOf` tìm lần xuất hiện cuối cùng (hoặc ngược về phía đầu đối với overload có `fromIndex`). Cả hai trả về **`int`**, với hai nhóm kết quả:
+This is an **illustrative snippet of calls**, assuming `text` is a non-null `String`. `indexOf` searches from left to right; `lastIndexOf` finds the last occurrence (or searches backward toward the start for the `fromIndex` overloads). Both return an **`int`**, with two outcome groups:
 
-- **Tìm thấy:** trả một offset UTF-16 **không âm**. Giá trị `0` là kết quả hợp lệ, nghĩa là khớp ngay từ đầu chuỗi. Nếu tìm đoạn dài hơn 0, vị trí khớp không thể vượt quá `text.length() - needle.length()`.
-- **Không tìm thấy:** trả **`-1`**, không có vị trí tương ứng trong chuỗi.
+- **Found:** returns a **non-negative** UTF-16 offset. `0` is a valid result, meaning a match right at the beginning of the string. When searching for a segment longer than 0, the match position cannot exceed `text.length() - needle.length()`.
+- **Not found:** returns **`-1`**, with no corresponding position in the string.
 
-Ví dụ với `"bananas"` có độ dài `7`:
+Example with `"bananas"` of length `7`:
 
-| Lời gọi | Kết quả | Giải thích |
+| Call | Result | Explanation |
 |---|---:|---|
-| `"bananas".indexOf('a')` | `1` | Chữ `a` đầu tiên ở vị trí 1 |
-| `"bananas".lastIndexOf('a')` | `5` | Chữ `a` cuối cùng ở vị trí 5 |
-| `"bananas".indexOf("na")` | `2` | Khớp `"na"` đầu tiên bắt đầu ở 2 |
-| `"bananas".lastIndexOf("na")` | `4` | Khớp cuối cùng bắt đầu ở 4 |
-| `"bananas".indexOf("xy")` | `-1` | Không chứa `"xy"` |
-| `"bananas".indexOf("ba")` | `0` | Khớp ở đầu chuỗi; **không phải** thất bại |
-| `"bananas".indexOf("")` | `0` | Chuỗi tìm kiếm rỗng khớp tại ranh giới đầu |
-| `"bananas".lastIndexOf("")` | `7` | Chuỗi tìm kiếm rỗng khớp tại ranh giới cuối |
+| `"bananas".indexOf('a')` | `1` | First letter `a` is at position 1 |
+| `"bananas".lastIndexOf('a')` | `5` | Last letter `a` is at position 5 |
+| `"bananas".indexOf("na")` | `2` | First `"na"` match starts at 2 |
+| `"bananas".lastIndexOf("na")` | `4` | Last match starts at 4 |
+| `"bananas".indexOf("xy")` | `-1` | Does not contain `"xy"` |
+| `"bananas".indexOf("ba")` | `0` | Match at start of string; **not** a failure |
+| `"bananas".indexOf("")` | `0` | Empty search string matches at start boundary |
+| `"bananas".lastIndexOf("")` | `7` | Empty search string matches at end boundary |
 
-**Phân biệt `0` và `-1`:** Điều kiện `if (index > 0)` sẽ bỏ sót khớp ở đầu; điều kiện `if (index == 0)` không có nghĩa là không tìm thấy. Để kiểm tra có khớp, dùng `index >= 0` hoặc `index != -1`; để kiểm tra thất bại, dùng `index == -1` hoặc `index < 0` khi giá trị xuất phát từ các API tìm kiếm này.
+**Distinguishing `0` and `-1`:** The condition `if (index > 0)` misses matches at the start; `if (index == 0)` does not mean "not found". To check for a match, use `index >= 0` or `index != -1`; to check for failure, use `index == -1` or `index < 0` when the value comes from these search APIs.
 
-### Ví dụ chạy được: đọc đúng vị trí và sentinel
+### Runnable Example: Reading Positions and the Sentinel Properly
 
-Lưu thành **`SearchResultDemo.java`**:
+Save as **`SearchResultDemo.java`**:
 
 ```java
 public class SearchResultDemo {
@@ -57,7 +57,7 @@ public class SearchResultDemo {
 }
 ```
 
-Biên dịch và chạy với Java 17+:
+Compile and run with Java 17+:
 
 ```bash
 javac SearchResultDemo.java
@@ -77,40 +77,40 @@ empty indexOf: 0
 empty lastIndexOf: 7
 ```
 
-Chuỗi rỗng là **trường hợp đặc biệt quan trọng**. Tìm `""` không có nghĩa là tìm thất bại: `indexOf("")` cho `0`, `lastIndexOf("")` cho `length()`. Vì vậy, khi thiết kế chức năng “tìm lần xuất hiện của một từ khóa”, hãy quyết định rõ liệu từ khóa rỗng có được chấp nhận hay phải bị từ chối ngay từ đầu.
+The empty string is an **important special case**. Searching for `""` does not mean the search fails: `indexOf("")` gives `0`, and `lastIndexOf("")` gives `length()`. Therefore, when designing a "find occurrences of a keyword" feature, decide explicitly whether an empty keyword is accepted or must be rejected upfront.
 
-## 2. Vì sao `-1` nguy hiểm khi dùng như một chỉ số?
+## 2. Why Is `-1` Dangerous When Used as an Index?
 
-Nhiều API truy cập chuỗi chỉ nhận chỉ số không âm:
+Many string-access APIs only accept non-negative indices:
 
-| API | Miền chỉ số hợp lệ | Nếu đưa trực tiếp `-1` |
+| API | Valid index domain | If `-1` is passed directly |
 |---|---|---|
-| `charAt(index)` | `0 <= index < length()` | Ném `IndexOutOfBoundsException` |
-| `substring(begin)` | `0 <= begin <= length()` | Ném `IndexOutOfBoundsException` |
-| `substring(begin, end)` | `0 <= begin <= end <= length()` | Ném `IndexOutOfBoundsException` nếu begin/end là `-1` |
-| `subSequence(begin, end)` | Tương tự `substring(begin, end)` | Phạm vi sai; ném ngoại lệ |
-| `codePointAt(index)` | `0 <= index < length()` | Ném `IndexOutOfBoundsException` |
-| `substring(position + 1)` | Tùy kết quả phép cộng | **Có thể hợp lệ nhưng sai ý nghĩa** nếu `position == -1` |
+| `charAt(index)` | `0 <= index < length()` | Throws `IndexOutOfBoundsException` |
+| `substring(begin)` | `0 <= begin <= length()` | Throws `IndexOutOfBoundsException` |
+| `substring(begin, end)` | `0 <= begin <= end <= length()` | Throws `IndexOutOfBoundsException` if begin/end is `-1` |
+| `subSequence(begin, end)` | Same as `substring(begin, end)` | Invalid range; throws exception |
+| `codePointAt(index)` | `0 <= index < length()` | Throws `IndexOutOfBoundsException` |
+| `substring(position + 1)` | Depends on addition result | **Can be valid yet semantically wrong** if `position == -1` |
 
-Điểm cuối cùng đặc biệt dễ bỏ qua:
+The last row is especially easy to miss:
 
 ```java
 String input = "name=value";
 int colon = input.indexOf(':'); // -1
 
-// Sai: từ 0 tới -1, gây ngoại lệ.
+// Wrong: from 0 to -1, throws exception.
 String beforeColon = input.substring(0, colon);
 
-// Cũng sai về ý nghĩa: -1 + 1 = 0.
-// Không có ngoại lệ; kết quả lại là toàn chuỗi "name=value".
+// Also semantically wrong: -1 + 1 = 0.
+// No exception; the result becomes the entire string "name=value".
 String afterColon = input.substring(colon + 1);
 ```
 
-Đây là **mã minh họa hai lỗi**, không phải chương trình để chạy nguyên khối. Một lỗi biểu hiện ngay bằng ngoại lệ; lỗi còn lại nguy hiểm vì giá trị trông hợp lệ và dễ lọt qua kiểm thử hời hợt.
+This is **code illustrating two bugs**, not a program meant to run as-is. One bug manifests immediately as an exception; the other is dangerous because the result looks valid and can easily slip past superficial tests.
 
-**Nguyên tắc:** kiểm tra **kết quả tìm kiếm gốc trước khi cộng/trừ**. Đừng dùng `index + 1`, `index - 1`, `substring(index)` hoặc `charAt(index)` trước khi bảo đảm `index >= 0` và ranh giới phát sinh vẫn hợp lệ.
+**Rule:** check the **raw search result before adding or subtracting**. Do not use `index + 1`, `index - 1`, `substring(index)`, or `charAt(index)` before ensuring `index >= 0` and that any derived boundaries remain valid.
 
-## 3. Ví dụ đối chiếu: ngoại lệ và lỗi trả sai âm thầm
+## 3. Contrasting Example: Exception vs. Silent Wrong Output
 
 **`SearchIndexPitfallDemo.java`**
 
@@ -154,19 +154,19 @@ charAt(-1): invalid
 substring(-1 + 1): name=value
 ```
 
-Ví dụ chủ động bắt ngoại lệ để minh họa lỗi. Trong mã nghiệp vụ, không nên dùng bắt ngoại lệ làm bước kiểm tra thông thường cho trường hợp dấu phân cách có thể không tồn tại: `indexOf()` đã trả `-1` để báo rõ tình huống đó.
+The example intentionally catches exceptions to demonstrate the failure modes. In production code, do not use exception catching as routine validation for cases where a delimiter may be absent: `indexOf()` already returns `-1` to signal that clearly.
 
-Một bẫy liên quan: nếu viết `text.substring(found, found + keyword.length())` khi `found == -1`, biểu thức có thể gây ngoại lệ; nếu `keyword.length() == 1` thì `found + keyword.length() == 0` và vẫn sai vì ranh giới bắt đầu `-1`. Không có phép cộng nào khiến `found == -1` trở thành bằng chứng đã tìm thấy.
+A related trap: if you write `text.substring(found, found + keyword.length())` when `found == -1`, the expression can throw; if `keyword.length() == 1`, then `found + keyword.length() == 0`, which is still wrong because the start boundary is `-1`. No arithmetic turns `found == -1` into proof of a match.
 
-## 4. Quy trình chuẩn: kiểm tra trước, tính chỉ số sau
+## 4. Standard Workflow: Check First, Compute Indices Afterward
 
-Để lấy phần trước/sau một dấu phân cách, tách ba bước:
+To extract before/after a delimiter, separate into three steps:
 
-1. **Tìm** dấu phân cách bằng `indexOf()` hoặc `lastIndexOf()`.
-2. **Kiểm tra** kết quả có phải `-1` không.
-3. **Chỉ khi tìm thấy**, sử dụng vị trí để gọi `substring()`.
+1. **Search** for the delimiter with `indexOf()` or `lastIndexOf()`.
+2. **Check** whether the result is `-1`.
+3. **Only when found**, use the position to call `substring()`.
 
-Ví dụ phân tích chuỗi `key=value`:
+Example parsing `key=value` strings:
 
 **`SafeDelimiterDemo.java`**
 
@@ -211,41 +211,41 @@ Missing separator: missing
 key=<a>, value=<b=c>
 ```
 
-Cần hiểu các trường hợp biên:
+Boundary cases to understand:
 
-- Dấu phân cách ở **đầu** có `separator == 0`. Đây là **đã tìm thấy**, nên chuỗi trước dấu là `""`.
-- Dấu phân cách ở **cuối** có `separator == length() - 1`, vì thế `substring(separator + 1)` tương đương `substring(length())`, là phép trích xuất **hợp lệ** trả về `""`.
-- Không có dấu phân cách thì `separator == -1`. Ví dụ xử lý bằng thông báo riêng; không tiếp tục tính ranh giới.
-- Nếu có nhiều dấu `=`, `indexOf('=')` lấy dấu **đầu tiên**, phần bên phải có thể vẫn chứa dấu `=`. Nếu yêu cầu lấy dấu cuối cùng, chuyển sang `lastIndexOf('=')` và giữ nguyên bước kiểm tra `-1`.
-- Bài toán có thể yêu cầu **key không rỗng**, **value không rỗng**, hoặc chỉ chấp nhận đúng một dấu `=`. Đó là các kiểm tra **nghiệp vụ bổ sung**; sự tồn tại của dấu phân cách không tự bảo đảm các điều kiện ấy.
+- A delimiter at the **start** has `separator == 0`. This counts as **found**, so the substring before it is `""`.
+- A delimiter at the **end** has `separator == length() - 1`, so `substring(separator + 1)` equals `substring(length())`, which is a **valid** extraction returning `""`.
+- Without a delimiter, `separator == -1`. The example handles it with a separate message and stops computing boundaries.
+- If multiple `=` signs exist, `indexOf('=')` picks the **first** one, so the right-hand part may still contain `=`. If you want the last one, switch to `lastIndexOf('=')` while keeping the `-1` check.
+- Your problem might require a **non-empty key**, a **non-empty value**, or allow only a single `=`. Those are **additional business validations**; the presence of the delimiter alone does not guarantee them.
 
-### Trường hợp không tìm thấy cần một hợp đồng rõ ràng
+### The Not-Found Case Needs a Clear Contract
 
-Thay vì luôn in thông báo, một hàm thư viện có thể:
+Instead of always printing a message, a library method might:
 
-- Trả về `Optional<String>` hoặc một kiểu kết quả nêu rõ “có/không có”.
-- Ném `IllegalArgumentException` nếu dấu phân cách bắt buộc phải có và thiếu là dữ liệu sai.
-- Trả `null` nếu API quy định như vậy, nhưng người gọi phải biết và kiểm tra `null`.
+- Return `Optional<String>` or a result type explicitly stating "present/absent".
+- Throw `IllegalArgumentException` if the delimiter is mandatory and missing it indicates bad input.
+- Return `null` if the API specifies so, provided callers know and check for `null`.
 
-Không nên trả `""` vô điều kiện để thay cho “không có dấu”: dấu ở cuối chuỗi cũng cho **giá trị rỗng hợp lệ**. Nếu hai trạng thái có ý nghĩa khác nhau, cần biểu diễn chúng khác nhau.
+Do not unconditionally return `""` to represent "delimiter missing": a delimiter at the end of the string also produces a **valid empty value**. If the two states have different meanings, represent them differently.
 
-## 5. Từ vị trí khớp đến phạm vi chuỗi con
+## 5. From Match Position to Substring Range
 
-Với `needle` là từ khóa **không rỗng** và `position = text.indexOf(needle)`:
+For a **non-empty** keyword `needle` and `position = text.indexOf(needle)`:
 
 ```text
-Nếu position == -1:
-    Không có vùng khớp; không được tự tạo chỉ số con.
+If position == -1:
+    No matching region; do not fabricate sub-indices.
 
-Nếu position >= 0:
+If position >= 0:
     begin = position
     end   = position + needle.length()
-    [begin, end) nằm trong text.
+    [begin, end) lies within text.
 ```
 
-`indexOf(String)` trả vị trí bắt đầu của toàn bộ chuỗi con khớp, vì vậy khi tìm thấy, Java bảo đảm đủ code unit để có đoạn `needle`. Độ dài ở đây là `needle.length()` theo UTF-16, cùng đơn vị với chỉ số mà `indexOf` trả về.
+`indexOf(String)` returns the starting position of the entire matched substring, so when found, Java guarantees enough code units exist for `needle`. Here the length is `needle.length()` in UTF-16, the same unit as the index returned by `indexOf`.
 
-Ví dụ:
+Example:
 
 **`MatchRangeDemo.java`**
 
@@ -291,30 +291,30 @@ Not found: Kotlin
 Empty keyword is not supported
 ```
 
-Trường hợp `needle.isEmpty()` được **chủ động từ chối theo hợp đồng ví dụ**, vì nhu cầu là khớp một từ khóa có nội dung. Đây không phải hạn chế của `indexOf("")`; Java cho phép tìm chuỗi rỗng.
+The `needle.isEmpty()` case is **intentionally rejected by the example's contract**, since the goal is matching a non-empty keyword. This is not a limitation of `indexOf("")`; Java allows searching for an empty string.
 
-Khi biến `position` đã được kiểm tra, việc trích xuất cả vùng khớp hữu ích cho tô sáng, thay thế có kiểm soát, ghi nhận offset hoặc phân tích cú pháp. Nhưng nếu muốn so nội dung, `text.contains(needle)` hoặc `text.indexOf(needle) >= 0` có thể đủ, không cần `substring`.
+Once `position` is checked, extracting the entire matched range is useful for highlighting, controlled replacement, logging offsets, or parsing. If you only need to check presence, `text.contains(needle)` or `text.indexOf(needle) >= 0` may suffice without `substring`.
 
-## 6. Lấy phần mở rộng tên tệp bằng `lastIndexOf`
+## 6. Extracting a File Extension with `lastIndexOf`
 
-Một ứng dụng hay tìm dấu chấm cuối cùng rồi lấy phần sau:
+An application often looks for the last dot and takes what follows:
 
 ```java
 int dot = filename.lastIndexOf('.');
 String extension = filename.substring(dot + 1);
 ```
 
-Nếu không có dấu chấm, `dot == -1`, làm `dot + 1 == 0` và biến `extension` nhận **toàn bộ tên tệp** thay vì một phần mở rộng. Không có ngoại lệ, nhưng nghĩa dữ liệu sai.
+If there is no dot, `dot == -1`, making `dot + 1 == 0`, so `extension` receives the **entire file name** instead of an extension. No exception is thrown, yet the data semantics are wrong.
 
-Ngay cả khi có dấu, cần phân biệt:
+Even when a dot is present, distinguish:
 
-- `"report.txt"`: dấu ở giữa, phần mở rộng `"txt"`.
-- `"report"`: không có dấu, không có phần mở rộng.
-- `".env"`: dấu ở đầu; nhiều hệ thống xem đây là tên file ẩn **không có phần mở rộng**.
-- `"report."`: dấu ở cuối; phần sau rỗng, chính sách ứng dụng có thể coi là không có phần mở rộng.
-- `"archive.tar.gz"`: dùng dấu cuối nên phần mở rộng là `"gz"`, không phải `"tar.gz"`.
+- `"report.txt"`: dot in the middle, extension `"txt"`.
+- `"report"`: no dot, no extension.
+- `".env"`: dot at the start; many systems treat this as a hidden file **with no extension**.
+- `"report."`: dot at the end; the trailing part is empty, and application policy may treat it as having no extension.
+- `"archive.tar.gz"`: uses the last dot so the extension is `"gz"`, not `"tar.gz"`.
 
-Ví dụ dưới đây quy định **chỉ trả phần mở rộng nếu dấu chấm nằm giữa tên tệp**.
+The example below specifies **returning an extension only if the dot lies strictly inside the file name**.
 
 **`FileExtensionDemo.java`**
 
@@ -360,46 +360,46 @@ report. -> (none)
 archive.tar.gz -> gz
 ```
 
-Đây chỉ là quy tắc phân tích **chuỗi tên tệp đơn giản**, không phải trình phân tích đường dẫn đầy đủ hoặc quy tắc thống nhất của mọi hệ điều hành. Với đường dẫn có thư mục, dấu chấm trong tên thư mục hay nhiều loại file đặc biệt, cần xử lý tên tệp riêng và thống nhất chính sách ứng dụng.
+This is only a **simple file-name string** parsing rule, not a full path parser or a universal convention across all operating systems. For paths with directories, dots in directory names, or special file types, extract the file name separately and standardize the application policy.
 
-## 7. Các bẫy với `fromIndex`, vị trí đầu và từ khóa rỗng
+## 7. Traps with `fromIndex`, Initial Positions, and Empty Keywords
 
-Overload có `fromIndex` dùng để điều khiển nơi bắt đầu tìm, nhưng không biến `-1` thành một chỉ số hợp lệ để trích chuỗi.
+The `fromIndex` overloads control where searching starts, but they do not turn `-1` into a valid index for slicing a string.
 
-Ví dụ trên `"bananas"`:
+Examples on `"bananas"`:
 
-| Biểu thức | Kết quả | Ý nghĩa |
+| Expression | Result | Meaning |
 |---|---:|---|
-| `indexOf("na", 0)` | `2` | Khớp đầu tiên từ vị trí 0 |
-| `indexOf("na", 3)` | `4` | Bỏ qua khớp bắt đầu ở 2 |
-| `indexOf("na", 5)` | `-1` | Không còn khớp bắt đầu tại/từ 5 |
-| `indexOf("na", -10)` | `2` | Với `indexOf`, `fromIndex` âm được xử lý như 0 |
-| `indexOf("na", 99)` | `-1` | Vị trí bắt đầu tìm đã ở sau mọi khớp |
-| `lastIndexOf("na", 3)` | `2` | Khớp cuối cùng có vị trí bắt đầu không vượt 3 |
-| `lastIndexOf("na", -1)` | `-1` | Không có vị trí bắt đầu không âm <= -1 |
-| `lastIndexOf("na", 99)` | `4` | Vẫn lấy khớp cuối cùng hiện có |
+| `indexOf("na", 0)` | `2` | First match from position 0 |
+| `indexOf("na", 3)` | `4` | Skips match starting at 2 |
+| `indexOf("na", 5)` | `-1` | No match starting at or after 5 |
+| `indexOf("na", -10)` | `2` | For `indexOf`, negative `fromIndex` is treated as 0 |
+| `indexOf("na", 99)` | `-1` | Search starting position is past all matches |
+| `lastIndexOf("na", 3)` | `2` | Last match whose start position does not exceed 3 |
+| `lastIndexOf("na", -1)` | `-1` | No non-negative start position <= -1 |
+| `lastIndexOf("na", 99)` | `4` | Still finds the last existing match |
 
-**Chú ý sự khác nhau:** `indexOf(..., -10)` có thể tìm ra kết quả vì cách nó xử lý offset bắt đầu âm, còn `lastIndexOf(..., -1)` trả `-1`. Đây là hợp đồng của **phương thức tìm kiếm**, không phải giấy phép truyền chỉ số âm vào `substring()` hay `charAt()`.
+**Note the difference:** `indexOf(..., -10)` can find a match because of how it handles negative starting offsets, whereas `lastIndexOf(..., -1)` returns `-1`. That is a **search method** contract, not a license to pass negative indices into `substring()` or `charAt()`.
 
-Ngoài ra:
+In addition:
 
-- `text.indexOf("")` bằng `0` và `text.lastIndexOf("")` bằng `text.length()` đối với dạng **không truyền fromIndex**.
-- Với `indexOf("", fromIndex)`, Java giới hạn ranh giới kết quả vào đoạn `[0, length()]`; tìm chuỗi rỗng thường vẫn có kết quả kể cả khi offset bắt đầu nằm ngoài độ dài.
-- Với `lastIndexOf("", fromIndex)`, ranh giới lớn hơn độ dài được đưa về `length()`; nếu `fromIndex < 0` thì trả `-1`.
-- Nếu thuật toán lặp đang tìm tất cả các khớp, một `needle` rỗng cần xử lý đặc biệt. Nếu không, việc tăng chỉ số qua `length()` nhưng tiếp tục gọi `indexOf("", fromIndex)` có thể dẫn đến **vòng lặp vô hạn** khi kết quả cứ là `length()`.
+- `text.indexOf("")` equals `0` and `text.lastIndexOf("")` equals `text.length()` for the forms **without `fromIndex`**.
+- For `indexOf("", fromIndex)`, Java clamps the result boundary to `[0, length()]`; searching for an empty string still succeeds even when the starting offset is outside the length.
+- For `lastIndexOf("", fromIndex)`, boundaries greater than `length()` are clamped to `length()`; if `fromIndex < 0`, `-1` is returned.
+- If an iterative algorithm searches for all matches, an empty `needle` needs special handling. Otherwise, advancing an index past `length()` while keeping calling `indexOf("", fromIndex)` can cause an **infinite loop** as the result keeps returning `length()`.
 
-Nếu người gọi chỉ cần **biết có hay không có**, dùng `text.contains(needle)` là cách trực tiếp, rõ ý định, nhưng cần biết `contains("")` là `true`. Khi cần offset để trích xuất, `indexOf`/`lastIndexOf` vẫn cần thiết.
+If the caller only needs **to know whether it is present or not**, `text.contains(needle)` is a direct, clear choice, though remember `contains("")` is `true`. When you need offsets for extraction, `indexOf`/`lastIndexOf` remain necessary.
 
-## 8. Tìm tất cả vị trí: kiểm tra `-1` và tiến chỉ số đúng
+## 8. Finding All Positions: Checking `-1` and Advancing Indices Properly
 
-Để tìm nhiều lần xuất hiện, thường dùng vòng lặp gọi lại `indexOf(needle, fromIndex)`. Luôn:
+To find multiple occurrences, you typically use a loop calling `indexOf(needle, fromIndex)` repeatedly. Always:
 
-1. Quy định từ khóa không rỗng hoặc có nhánh xử lý riêng cho chuỗi rỗng.
-2. Kiểm tra `position < 0` **trước khi** sử dụng hoặc cộng vào vị trí khớp.
-3. Tăng vị trí tìm tiếp để thuật toán có tiến triển.
-4. Chọn có cho phép các khớp **chồng lấn** hay không.
+1. Require a non-empty keyword or provide a separate branch for empty strings.
+2. Check `position < 0` **before** using or adding to the match position.
+3. Advance the next search position so the algorithm makes progress.
+4. Decide whether **overlapping** matches are allowed.
 
-Ví dụ với `"aaaa"` và `"aa"`: vị trí khớp chồng lấn là `0, 1, 2`. Nếu tăng `fromIndex` theo `needle.length() == 2` sau mỗi khớp, thuật toán chỉ lấy `0, 2` (không chồng lấn).
+For example, with `"aaaa"` and `"aa"`: overlapping match positions are `0, 1, 2`. If `fromIndex` advances by `needle.length() == 2` after each match, the algorithm only collects `0, 2` (non-overlapping).
 
 **`FindAllMatchesDemo.java`**
 
@@ -441,13 +441,13 @@ match at: 1
 match at: 2
 ```
 
-Ở đây tăng `from = index + 1` để cho phép chồng lấn. Vì `needle` không rỗng, mỗi vị trí khớp nằm trước cuối chuỗi; `from` tăng và vòng lặp dừng khi không còn khớp. Nếu ứng dụng yêu cầu khớp không chồng lấn, đặt `from = index + needle.length()` sau mỗi kết quả và giữ nguyên kiểm tra `-1`.
+Here we advance `from = index + 1` to allow overlaps. Because `needle` is non-empty, each match position precedes the end of the string; `from` increases and the loop terminates when no matches remain. If the application requires non-overlapping matches, set `from = index + needle.length()` after each result while keeping the `-1` check.
 
-## 9. Chỉ số tìm kiếm là offset UTF-16, không phải số “ký tự nhìn thấy”
+## 9. Search Indices Are UTF-16 Offsets, Not "Visible Character" Counts
 
-Các overload tìm kiếm của `String` trả **offset UTF-16**, thống nhất với `substring`. Điều này quan trọng với emoji, ký tự ngoài BMP, dấu kết hợp và một số tổ hợp ký tự.
+`String` search overloads return **UTF-16 offsets**, consistent with `substring`. This matters for emojis, non-BMP characters, combining marks, and certain character sequences.
 
-Ví dụ `"A😊B😊"` có `length() == 6`: `A` chiếm một code unit, mỗi emoji 😊 chiếm hai code unit và `B` chiếm một. Hai emoji lần lượt bắt đầu tại offset `1` và `4`, dù người đọc thấy chúng ở vị trí ký tự thứ hai và thứ tư nếu đếm theo phần tử hiển thị.
+For example, `"A😊B😊"` has `length() == 6`: `A` takes one code unit, each 😊 emoji takes two code units, and `B` takes one. The two emojis start at offsets `1` and `4`, even though a reader perceives them at the second and fourth character positions when counting by display elements.
 
 **`UnicodeSearchIndexDemo.java`**
 
@@ -494,19 +494,19 @@ complete smile: true
 broken high surrogate: true
 ```
 
-**Giải thích:** `indexOf(smile)` trả offset bắt đầu của toàn bộ cặp surrogate; `smile.length() == 2` nên phạm vi `[first, first + 2)` lấy đầy đủ emoji. Nếu chỉ cắt `[first, first + 1)`, kết quả là một high surrogate đứng lẻ dù ranh giới vẫn đúng về mặt số học.
+**Explanation:** `indexOf(smile)` returns the starting offset of the entire surrogate pair; `smile.length() == 2` so the range `[first, first + 2)` captures the full emoji. If you only slice `[first, first + 1)`, the result is a lone high surrogate even though the bounds are arithmetically valid.
 
-Nếu chỉ số dùng để đánh dấu vị trí trong giao diện hay đếm code point, hãy chuyển đổi đơn vị một cách tường minh. Dù trích đúng các code point, một tổ hợp chữ và dấu hoặc emoji ghép có thể gồm nhiều code point; khi yêu cầu giữ nguyên “ký tự người dùng cảm nhận”, cần phân đoạn theo grapheme cluster.
+If indices are used to mark UI positions or count code points, convert units explicitly. Even when extracting whole code points, a base letter plus accent or a composite emoji can span multiple code points; when you need to preserve "user-perceived characters", segment by grapheme clusters.
 
-## 10. Phân biệt kết quả tìm kiếm, chỉ số không hợp lệ và đầu vào null
+## 10. Distinguishing Search Results, Invalid Indices, and `null` Inputs
 
-Ba loại tình huống này cần xử lý khác nhau:
+These three situations require different handling:
 
-- **Không tìm thấy:** `indexOf`/`lastIndexOf` trả `-1`. Đây là **kết quả bình thường** của một phép tìm kiếm, không phải ngoại lệ.
-- **Dùng chỉ số không hợp lệ để truy cập/trích xuất:** `charAt(-1)`, `substring(0, -1)` hoặc `substring(length() + 1)` ném một loại `IndexOutOfBoundsException`.
-- **Không có đối tượng `String` để gọi phương thức:** nếu biến `text == null` mà gọi `text.indexOf("a")`, chương trình ném `NullPointerException`. Không thể coi null là “không tìm thấy” trừ khi API bao ngoài chủ động thiết kế như vậy.
+- **Not found:** `indexOf`/`lastIndexOf` returns `-1`. This is a **normal outcome** of a search, not an exception.
+- **Using an invalid index to access/extract:** `charAt(-1)`, `substring(0, -1)`, or `substring(length() + 1)` throws an `IndexOutOfBoundsException`.
+- **No `String` object on which to invoke the method:** if `text == null` and you call `text.indexOf("a")`, the program throws `NullPointerException`. `null` cannot be treated as "not found" unless an outer wrapper API is explicitly designed to do so.
 
-Nếu chỉ cần kiểm tra chuỗi có chứa đoạn văn bản, `contains()` là một lựa chọn diễn đạt rõ ràng:
+If you only need to check whether a string contains a text segment, `contains()` is an expressive choice:
 
 ```java
 String text = "Java String";
@@ -514,28 +514,28 @@ boolean found = text.contains("String"); // true
 boolean absent = text.contains("Kotlin"); // false
 ```
 
-Đây là ví dụ minh họa, không phải một lớp độc lập. `contains()` trả boolean, không có sentinel `-1`; tuy nhiên nó cũng không cho vị trí để cắt chuỗi. Nếu `text` là null, `text.contains(...)` vẫn ném `NullPointerException`.
+This is an illustrative snippet, not a standalone class. `contains()` returns a `boolean` and has no `-1` sentinel; however, it also gives no position for slicing. If `text` is `null`, `text.contains(...)` still throws `NullPointerException`.
 
-Ngoài ra, **đừng kiểm tra kết quả bằng `if (index)`** như trong vài ngôn ngữ khác: Java không tự chuyển `int` thành `boolean` nên câu đó không biên dịch. Viết rõ `if (index >= 0)` hoặc `if (index == -1)`.
+Also, **never check the result with `if (index)`** as in some other languages: Java does not implicitly convert `int` to `boolean`, so that statement will not compile. Write `if (index >= 0)` or `if (index == -1)` explicitly.
 
-## 11. Sai lầm điển hình và cách phòng tránh
+## 11. Typical Mistakes and How to Prevent Them
 
-| Sai lầm | Hậu quả | Cách xử lý |
+| Mistake | Consequence | Fix |
 |---|---|---|
-| `substring(0, text.indexOf(':'))` | Nếu không có `:`, `end == -1` và ném ngoại lệ | Lưu kết quả vào biến, kiểm tra `>= 0` trước |
-| `substring(text.indexOf(':') + 1)` | Nếu không thấy `:`, trả toàn chuỗi từ offset 0 | Kiểm tra sentinel **trước khi cộng 1** |
-| `if (index > 0)` để kiểm tra tìm thấy | Bỏ sót khớp ở vị trí `0` | Dùng `index >= 0` |
-| `charAt(indexOf(...))` | Có thể nhận chỉ số `-1` và ném ngoại lệ | Chỉ truy cập sau khi chắc chắn có khớp |
-| Lấy phần mở rộng bằng `substring(lastIndexOf('.') + 1)` | Không có dấu chấm thì trả toàn bộ tên | Kiểm tra `dot` và ràng buộc vị trí hợp lệ |
-| Lặp `indexOf("", fromIndex)` không có nhánh riêng | Có thể không tiến triển và lặp mãi ở cuối | Xử lý từ khóa rỗng tường minh |
-| Coi `indexOf(...) == 0` là thất bại | Bỏ qua từ khóa ở đầu | `0` là vị trí hợp lệ |
-| Nghĩ mọi kết quả `-1` đều là ngoại lệ | Nhầm hợp đồng tìm kiếm với hợp đồng trích xuất | Tìm kiếm trả sentinel; dùng sai chỉ số mới gây lỗi |
-| Dùng index tìm kiếm như số thứ tự code point | Sai vị trí khi chuỗi chứa ký tự ngoài BMP | Ghi rõ offset UTF-16 và chuyển đổi khi cần |
-| Xem chuỗi rỗng sau dấu phân cách là “không tìm thấy” | Gộp hai trạng thái nghiệp vụ khác nhau | Phân biệt sentinel `-1` và `substring(length()) == ""` |
+| `substring(0, text.indexOf(':'))` | If `:` is absent, `end == -1` and throws an exception | Store result in a variable and check `>= 0` first |
+| `substring(text.indexOf(':') + 1)` | If `:` is missing, returns whole string from offset 0 | Check the sentinel **before adding 1** |
+| `if (index > 0)` to test for found | Misses matches at position `0` | Use `index >= 0` |
+| `charAt(indexOf(...))` | May receive index `-1` and throw an exception | Access only after confirming a match |
+| Getting extension via `substring(lastIndexOf('.') + 1)` | Without a dot, returns the whole file name | Check `dot` and enforce valid position constraints |
+| Looping `indexOf("", fromIndex)` without a special branch | Can fail to advance and loop forever at the end | Handle empty keywords explicitly |
+| Treating `indexOf(...) == 0` as failure | Ignores keywords at the beginning | `0` is a valid position |
+| Thinking every `-1` result is an exception | Confuses search contract with extraction contract | Search returns a sentinel; misusing the index causes errors |
+| Using search index as code point ordinal | Wrong position when strings contain non-BMP characters | Specify UTF-16 offset and convert when needed |
+| Treating an empty string after a delimiter as "not found" | Conflates two distinct business states | Distinguish sentinel `-1` from `substring(length()) == ""` |
 
-## 12. Tự kiểm tra
+## 12. Self-Check
 
-Với `text = "a:b:c"`, dự đoán kết quả sau:
+Given `text = "a:b:c"`, predict the output of the following:
 
 ```java
 String text = "a:b:c";
@@ -563,8 +563,8 @@ c
 a:b:c
 ```
 
-Ba dòng cuối minh họa điều quan trọng: cả `first + 1` và `last + 1` đều hợp lệ **vì có dấu `:`**, trong khi `absent + 1 == 0` tạo ra chuỗi toàn phần mà không ném ngoại lệ. Nếu kết quả có thể không tìm thấy, không được viết dòng cuối theo mẫu đó trong mã thật.
+The last three lines highlight a crucial point: both `first + 1` and `last + 1` are valid **because `:` exists**, whereas `absent + 1 == 0` produces the entire string without throwing an exception. If a search may fail to match, never write the last line in that pattern in real code.
 
-**Bài luyện tập ngắn:** viết một hàm lấy phần trước dấu `@` của địa chỉ nhập vào. Thử các trường hợp `"a@b"`, `"@b"`, `"a@"`, `"abc"` và `""`. Xác định riêng trường hợp thiếu dấu, trường hợp phần trước rỗng và trường hợp phần sau rỗng; đừng để phép cộng hoặc `substring` tự quyết định chính sách nghiệp vụ.
+**Short practice exercise:** write a method that extracts the part before `@` from an input address. Test `"a@b"`, `"@b"`, `"a@"`, `"abc"`, and `""`. Define separately the missing-sign case, the empty-prefix case, and the empty-suffix case; do not let addition or `substring` silently decide your business policy.
 
-**Quy tắc cần ghi nhớ:** khi một API trả vị trí tìm kiếm, hãy đọc `-1` là **“không có vị trí”**, `0` là **“có khớp tại đầu”**, còn mọi giá trị dương hợp lệ là **offset UTF-16 của khớp**. Kiểm tra sentinel **trước**, sau đó mới tính `begin`, `end` hoặc gọi `substring`. Việc này ngăn được cả ngoại lệ hiển nhiên lẫn lỗi âm thầm khi `-1 + 1` trở thành `0`.
+**Rule to remember:** whenever an API returns a search position, read `-1` as **"no position"**, `0` as **"matched at the start"**, and any valid positive value as the **UTF-16 offset of the match**. Check the sentinel **first**, and only then compute `begin`, `end`, or call `substring`. Doing so prevents both obvious exceptions and silent bugs where `-1 + 1` becomes `0`.

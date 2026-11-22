@@ -1,53 +1,53 @@
-# Hiển thị cùng dữ liệu số, tiền tệ, ngày giờ ở nhiều locale — Thực hành tổng hợp Java 17+
+# Displaying the Same Numeric, Currency, and Date/Time Data Across Multiple Locales — Java 17+ Comprehensive Practice
 
-Một bản ghi kinh doanh có thể được xem đồng thời bởi người dùng Việt Nam, Hoa Kỳ, Đức, Pháp và Nhật Bản. Dữ liệu gốc **không đổi**, nhưng cách viết dấu thập phân, dấu nhóm, ký hiệu tiền, thứ tự ngày–tháng–năm, tên tháng và giờ địa phương có thể khác. Nếu ứng dụng lưu luôn chuỗi “1.234,50 €” hoặc “28/10/2026” thay vì giá trị có kiểu, việc hiển thị trên các vùng khác sẽ dễ sai, thậm chí có thể khiến phần mềm tính toán sai số tiền.
+A single business record may be viewed simultaneously by users in Vietnam, the United States, Germany, France, and Japan. The underlying **data does not change**, yet decimal separators, grouping separators, currency symbols, day–month–year ordering, month names, and local time can all differ. If an application stores formatted strings such as `"1.234,50 €"` or `"28/10/2026"` instead of typed values, displaying across other regions breaks easily and can even cause monetary calculation errors.
 
-Bài thực hành này sử dụng **Java 17+** để hiển thị **cùng một bộ dữ liệu** qua nhiều **Locale**, so sánh **NumberFormat**, **Currency**, **DateTimeFormatter**, **ZoneId** và **ResourceBundle** ở mức tích hợp. Bài phân biệt rõ những giá trị bất biến có thể kiểm tra bằng stdout chính xác với những mẫu chữ/số phụ thuộc dữ liệu địa phương hóa **CLDR/JDK**. Trọng tâm không chỉ là tạo vài chuỗi đẹp mắt, mà là xây quy trình **dữ liệu gốc → ngữ cảnh người xem → formatter → nội dung hiển thị → kiểm thử**.
+This hands-on guide uses **Java 17+** to display **the same dataset** across multiple **Locales**, comparing **NumberFormat**, **Currency**, **DateTimeFormatter**, **ZoneId**, and **ResourceBundle** at an integration level. It clearly distinguishes invariant values verifiable via exact stdout from text/number patterns that depend on **CLDR/JDK** localization data. The focus is not merely producing pretty strings, but building the pipeline: **source data → viewer context → formatter → displayed output → testing**.
 
-## 1. Mục tiêu sau bài học
+## 1. Objectives After This Lesson
 
-Sau khi hoàn thành, bạn có thể:
+Upon completion, you will be able to:
 
-1. Lưu một số thập phân bằng **BigDecimal** và một đơn vị tiền bằng **Currency**, không để chúng phụ thuộc locale.
-2. Tạo một dãy người xem bằng **Locale.forLanguageTag** mà không sửa **Locale.setDefault**.
-3. Hiển thị cùng **BigDecimal** dưới nhiều quy tắc nhóm và thập phân bằng **NumberFormat**.
-4. Hiển thị cùng số tiền EUR dưới nhiều locale bằng **NumberFormat.getCurrencyInstance** và **setCurrency**.
-5. Dùng **LocalDate** cho ngày thuần, **Instant** cho thời điểm tuyệt đối và **ZoneId** cho giờ địa phương.
-6. Dùng **DateTimeFormatter.ofLocalizedDate/DateTime** với **FormatStyle** phù hợp.
-7. Hiểu vì sao cùng một **Instant** có thể rơi vào **hai ngày lịch khác nhau** khi đổi múi giờ.
-8. Nhận biết NBSP/NNBSP, dấu RTL/bidi và chữ số bản địa thay vì so chuỗi bằng mắt.
-9. Kiểm thử kết quả **theo ngữ nghĩa** mà không hardcode mọi dấu/cách viết có thể đổi theo dữ liệu JDK.
-10. Tách **giá trị nghiệp vụ** khỏi **chuỗi trình bày** và tránh các lỗi parse, rounding, currency conversion.
+1. Store a decimal number with **BigDecimal** and a currency unit with **Currency**, keeping them locale-independent.
+2. Construct a set of viewers with **Locale.forLanguageTag** without mutating **Locale.setDefault**.
+3. Format the same **BigDecimal** under multiple grouping and decimal rules using **NumberFormat**.
+4. Format the same EUR amount across multiple locales using **NumberFormat.getCurrencyInstance** and **setCurrency**.
+5. Use **LocalDate** for pure calendar dates, **Instant** for absolute instants, and **ZoneId** for local wall-clock time.
+6. Use **DateTimeFormatter.ofLocalizedDate/DateTime** with an appropriate **FormatStyle**.
+7. Understand why the exact same **Instant** can fall on **two different calendar dates** across time zones.
+8. Recognize NBSP/NNBSP, RTL/bidi markers, and native digits instead of comparing strings by eye.
+9. Test outcomes **semantically** without hardcoding every separator or spelling that may vary across JDK versions.
+10. Separate **business values** from **presentation strings**, avoiding parse, rounding, and currency-conversion bugs.
 
-## 2. Dữ liệu đầu vào dùng chung
+## 2. Shared Input Dataset
 
-Giả sử một đơn hàng lưu:
+Suppose an order stores:
 
-| Trường | Giá trị gốc | Kiểu Java | Ý nghĩa |
+| Field | Raw Value | Java Type | Meaning |
 | --- | --- | --- | --- |
-| orderId | ORD-2026-1028 | String | Định danh kỹ thuật, không dịch |
-| units | 1234567.89 | BigDecimal | Một giá trị số để minh họa nhóm/thập phân |
-| subtotal | 1234.50 | BigDecimal | Số tiền gốc theo EUR |
-| currency | EUR | Currency | Đơn vị tiền thực của đơn |
-| taxRatio | 0.125 | BigDecimal | Tỷ lệ 12,5%, không phải số 12,5 |
-| scheduledDate | 2026-10-28 | LocalDate | Ngày lịch thuần, không có timezone |
-| eventTime | 2026-10-28T02:30:00Z | Instant | Một thời điểm tuyệt đối trên trục UTC |
+| orderId | ORD-2026-1028 | String | Technical identifier, never translated |
+| units | 1234567.89 | BigDecimal | A numeric value to illustrate grouping/decimals |
+| subtotal | 1234.50 | BigDecimal | Original monetary amount in EUR |
+| currency | EUR | Currency | Actual currency unit of the order |
+| taxRatio | 0.125 | BigDecimal | Rate of 12.5%, not the number 12.5 |
+| scheduledDate | 2026-10-28 | LocalDate | Pure calendar date, no timezone |
+| eventTime | 2026-10-28T02:30:00Z | Instant | An absolute point on the UTC timeline |
 
-**Tất cả người xem đọc đúng cùng giá trị này.** Locale chỉ quyết định cách biểu diễn, không tự đổi lượng hàng, số tiền hoặc tỷ lệ thuế. Đơn vị EUR phải giữ nguyên trừ khi nghiệp vụ chủ động thực hiện quy đổi ngoại tệ với tỷ giá được cung cấp.
+**Every viewer reads these exact same values.** Locale controls presentation only—never quantity, monetary amount, or tax rate. The EUR unit must remain intact unless business logic explicitly performs currency conversion using a supplied exchange rate.
 
-Dùng **new BigDecimal("1234.50")** thay vì **new BigDecimal(1234.50)** để tránh đưa xấp xỉ nhị phân của một giá trị double vào số tiền. Dùng **Currency.getInstance("EUR")** để mang mã tiền tệ ISO 4217; ký hiệu EUR hiển thị có thể khác theo locale.
+Use **new BigDecimal("1234.50")** rather than **new BigDecimal(1234.50)** to avoid introducing the binary approximation of a `double` into monetary values. Use **Currency.getInstance("EUR")** to carry the ISO 4217 currency code; the displayed EUR symbol may vary by locale.
 
-**Một LocalDate và một Instant phục vụ hai nhu cầu khác nhau:** ngày hẹn 2026-10-28 là một ngày thuần; eventTime là một thời điểm cố định cần ZoneId để biết ngày/giờ của người xem.
+**A LocalDate and an Instant serve two distinct needs:** the scheduled date 2026-10-28 is a pure date; `eventTime` is a fixed instant requiring a `ZoneId` to determine the viewer's local date and time.
 
-## 3. Quy trình hiển thị đúng
+## 3. Proper Rendering Pipeline
 
 ~~~text
-                   DỮ LIỆU GỐC
+                   SOURCE DATA
         BigDecimal / Currency / LocalDate / Instant
                           |
                           v
-                CHỌN NGỮ CẢNH
-         UI language, format Locale, ZoneId
+                 SELECT CONTEXT
+          UI language, format Locale, ZoneId
                           |
                 +---------+---------+
                 |                   |
@@ -58,33 +58,33 @@ Dùng **new BigDecimal("1234.50")** thay vì **new BigDecimal(1234.50)** để t
                 +---------+---------+
                           |
                           v
-                CÂU HIỂN THỊ
+                 DISPLAY MESSAGE
           ResourceBundle / MessageFormat
                           |
                           v
                  UI / Email / PDF
 ~~~
 
-**Không đảo luồng** bằng cách format ngay trong domain, lưu kết quả rồi buộc các màn hình khác parse ngược. Giá trị có kiểu nên được lưu/truyền nguyên vẹn trong JSON, database hoặc sự kiện; chỉ tới tầng view/presenter mới chuyển sang chữ địa phương.
+**Do not invert the flow** by formatting inside the domain layer, persisting the string, and forcing other screens to parse it back. Typed values must be stored and transmitted intact in JSON, databases, or events; only at the view/presenter layer are they converted into localized text.
 
-Một ứng dụng có thể có **uiLocale** (chọn câu đã dịch), **formatLocale** (chọn cách viết giá trị), **ZoneId** (chọn giờ địa phương) và **Currency** (dữ liệu đơn hàng) khác nhau. Đừng tạo một biến **locale** rồi cố suy ra tất cả các thuộc tính còn lại.
+An application may have distinct **uiLocale** (translated prose), **formatLocale** (value formatting conventions), **ZoneId** (local time), and **Currency** (order data). Do not create a single **locale** variable and try to infer all other attributes from it.
 
-## 4. Chọn các locale để so sánh
+## 4. Choosing Locales to Compare
 
-Trong bài này dùng sáu tag:
+This lesson uses six tags:
 
-| Tag | Mục đích quan sát |
+| Tag | Purpose of Observation |
 | --- | --- |
-| **vi-VN** | Tiếng Việt và quy ước vùng Việt Nam |
-| **en-US** | Tiếng Anh Hoa Kỳ, ví dụ nhóm/thập phân quen thuộc |
-| **de-DE** | Tiếng Đức ở Đức, quy tắc chữ/số khác |
-| **fr-FR** | Tiếng Pháp tại Pháp, chú ý khoảng trắng khi nhóm hoặc viết tiền |
-| **ja-JP** | Tiếng Nhật, đơn vị và thứ tự thành phần theo locale |
-| **ar-EG** | Tiếng Ả Rập tại Ai Cập, chú ý ký tự RTL/chữ số/dấu cách |
+| **vi-VN** | Vietnamese and Vietnam regional conventions |
+| **en-US** | US English, familiar grouping/decimal example |
+| **de-DE** | German in Germany, differing punctuation rules |
+| **fr-FR** | French in France, notable spacing in grouping and currency |
+| **ja-JP** | Japanese, locale-specific units and component ordering |
+| **ar-EG** | Arabic in Egypt, notable RTL/digit/spacing behavior |
 
-Các tag là **đầu vào được chọn cho thực hành**, không phải kết luận rằng tất cả locale có cùng độ phủ dữ liệu ở mọi phiên bản JDK. Runtime có thể dùng CLDR/provider và fallback; ứng dụng thực tế nên chọn những locale đã được đội ngũ sản phẩm hỗ trợ và kiểm thử.
+These tags are **chosen inputs for practice**, not an assertion that every locale has identical data coverage across all JDK versions. The runtime may rely on CLDR/providers and fallback; production applications should select locales officially supported and tested by the product team.
 
-Trong Java:
+In Java:
 
 ~~~java
 Locale[] locales = {
@@ -97,13 +97,13 @@ Locale[] locales = {
 };
 ~~~
 
-Đoạn minh họa cần import **java.util.Locale** và đặt trong phương thức. **Locale.US** tương đương ý định tag en-US, còn **Locale.GERMANY** dùng de-DE. Không dùng **Locale.setDefault(...)** để “đổi ngôn ngữ” mỗi lượt lặp: trạng thái mặc định thuộc JVM và có thể làm request khác bị ảnh hưởng.
+This snippet requires `import java.util.Locale;` and lives inside a method. **Locale.US** corresponds to `en-US`, and **Locale.GERMANY** uses `de-DE`. Never call **Locale.setDefault(...)** to "switch languages" on each iteration: the default state is JVM-wide and can affect concurrent requests.
 
-## 5. Bài chạy chính: một bản ghi, nhiều cách hiển thị
+## 5. Main Runnable Lab: One Record, Many Presentations
 
 **File MultiLocaleDisplayLab.java**
 
-Chương trình dưới đây chỉ dùng Java 17 Standard Library. Nó in dữ liệu gốc một lần, sau đó format cùng dữ liệu theo sáu locale, giữ EUR cố định. Từng dòng đã địa phương hóa có thể khác chút ít giữa các phiên bản JDK/CLDR; vì thế có thêm phần kiểm chứng giá trị bất biến ở cuối.
+The program below uses only the Java 17 Standard Library. It prints formatted outputs for the same data across six locales while keeping EUR fixed, then prints invariant verification lines at the end. Localized lines may vary slightly across JDK/CLDR versions; that is why the invariant verification block is included at the end.
 
 ~~~java
 import java.math.BigDecimal;
@@ -245,16 +245,16 @@ public class MultiLocaleDisplayLab {
 }
 ~~~
 
-Lưu bằng UTF-8 và chạy:
+Save as UTF-8 and run:
 
 ~~~bash
 javac -encoding UTF-8 MultiLocaleDisplayLab.java
 java MultiLocaleDisplayLab
 ~~~
 
-### 5.1. Cách đọc output
+### 5.1. How to Read the Output
 
-Mỗi locale tạo một khối có nhãn:
+Each locale prints a labeled block:
 
 ~~~text
 locale=vi-VN
@@ -272,13 +272,13 @@ locale=en-US
   event@Asia/Ho_Chi_Minh=...
 ~~~
 
-Đây là **sơ đồ cấu trúc**, không phải stdout đầy đủ: dấu ba chấm chỉ đại diện cho kết quả do formatter của JDK thực sự sinh ra. Các khối de-DE, fr-FR, ja-JP và ar-EG có cùng nhãn kỹ thuật, nhưng phần giá trị thay đổi theo locale/runtime.
+This is a **structural outline**, not full stdout: the ellipses represent values actually produced by the JDK formatter. The `de-DE`, `fr-FR`, `ja-JP`, and `ar-EG` blocks share the same technical labels while the formatted values vary by locale and runtime.
 
-Với **vi-VN/en-US/de-DE/fr-FR**, thường quan sát được dấu phân nhóm, dấu thập phân, cách đặt tiền EUR và các khoảng trắng khác nhau; **ja-JP** có thể cho cách viết ngày theo chữ Nhật; **ar-EG** có thể có chữ số địa phương hoặc ký tự bidi. **Không chép các ví dụ trông giống nhau thành một mẫu cứng**: hãy đọc kết quả của JDK mục tiêu.
+Across **vi-VN/en-US/de-DE/fr-FR**, you typically observe different grouping separators, decimal points, EUR placement, and spacing; **ja-JP** may format dates with Japanese characters; **ar-EG** may include localized digits or bidi characters. **Do not copy similar-looking examples into hardcoded templates**: inspect the output of your target JDK.
 
-### 5.2. Phần stdout có thể khẳng định chính xác
+### 5.2. The Portion of Stdout You Can Assert Exactly
 
-Mười dòng cuối của chương trình **không dựa vào NumberFormat/DateTimeFormatter địa phương hóa**. Chúng được tạo từ dữ liệu có kiểu và cách in ổn định:
+The last ten lines of the program **do not depend on localized `NumberFormat`/`DateTimeFormatter` output**. They are produced from typed values with deterministic formatting:
 
 ~~~text
 CHECK
@@ -292,22 +292,22 @@ instant=2026-10-28T02:30:00Z
 localeCount=6
 ~~~
 
-Vì thế, dù các khối localized output trông rất khác nhau, **quantity, subtotal, currency, ratio, ngày lịch và instant không đổi**. Đây là điểm cốt lõi: **presentation changes, business data does not**.
+Thus, even though the localized blocks look quite different, **quantity, subtotal, currency, ratio, calendar date, and instant remain unchanged**. This is the core lesson: **presentation changes, business data does not**.
 
-### 5.3. Vì sao chương trình không gọi toString() trên các formatter?
+### 5.3. Why Doesn't the Program Call toString() on Formatters?
 
-**NumberFormat.format** và **DateTimeFormatter.format** tạo chuỗi theo cấu hình. Việc in **NumberFormat.toString()** chỉ hiển thị thông tin về đối tượng, không phải format số. Trong code, mỗi formatter được tạo với locale cụ thể và format đúng giá trị được truyền.
+**NumberFormat.format** and **DateTimeFormatter.format** build strings according to their configuration. Printing **NumberFormat.toString()** only describes the formatter object, not a formatted number. In code, each formatter is instantiated for a specific locale and formats the supplied value directly.
 
-**OrderData** là một Java 17 record. Record giúp nhóm dữ liệu bất biến về tham chiếu; BigDecimal, Currency, LocalDate và Instant đều có ngữ nghĩa giá trị phù hợp để trình bày. Không cần thay đổi OrderData khi đổi locale hiển thị.
+**OrderData** is a Java 17 record. Records group immutable references cleanly; `BigDecimal`, `Currency`, `LocalDate`, and `Instant` all carry value semantics suited for presentation. `OrderData` never needs modification when switching display locales.
 
-## 6. Khác biệt giữa số và tiền tệ
+## 6. Difference Between Numbers and Currency
 
-Cùng một BigDecimal có thể được dùng trong hai ngữ cảnh:
+The same `BigDecimal` can be used in two contexts:
 
-- **Số lượng/giá trị số:** chỉ cần group separator, decimal separator và chữ số.
-- **Số tiền:** ngoài cách viết số còn có **Currency**, ký hiệu/mã tiền, vị trí ký hiệu, khoảng cách và mặc định fraction digits.
+- **Quantities/numeric values:** require only grouping separators, decimal separators, and digits.
+- **Monetary amounts:** in addition to numeric formatting, involve a **Currency**, currency symbol/code, symbol placement, spacing, and default fraction digits.
 
-**NumberFormat.getNumberInstance(locale)** không tự thêm đơn vị tiền, còn **NumberFormat.getCurrencyInstance(locale)** tạo một currency formatter theo quy tắc locale.
+**NumberFormat.getNumberInstance(locale)** does not attach a currency unit, whereas **NumberFormat.getCurrencyInstance(locale)** builds a currency formatter following locale rules.
 
 ~~~java
 NumberFormat number =
@@ -318,52 +318,52 @@ NumberFormat money =
 money.setCurrency(Currency.getInstance("EUR"));
 ~~~
 
-Đoạn này là minh họa bên trong phương thức, cần imports **NumberFormat**, **Currency**, **Locale**.
+This snippet illustrates usage inside a method and requires importing **NumberFormat**, **Currency**, and **Locale**.
 
-**setCurrency không đổi tiền theo tỷ giá.** Nếu subtotal=1234.50 là **1234,50 EUR**, việc thay Currency thành USD mà không tính toán nghiệp vụ sẽ **đổi nhãn đơn vị**, không hề đổi lượng. Vì vậy mô hình tiền tệ phải đi cùng Currency từ nguồn dữ liệu và formatter chỉ chịu trách nhiệm trình bày.
+**setCurrency does not convert currency by exchange rate.** If `subtotal=1234.50` represents **1234.50 EUR**, changing `Currency` to USD without business conversion **relabels the unit** without altering the amount. Therefore, monetary models must pair the amount with its `Currency` from the data source, leaving the formatter responsible solely for display.
 
-### 6.1. Số chữ số thập phân không phải toàn bộ chính sách tiền
+### 6.1. Fraction Digits Are Not the Whole Monetary Policy
 
-Currency có **getDefaultFractionDigits()**. EUR thường có 2, JPY thường có 0 theo định nghĩa currency của runtime. Dùng mặc định giúp định dạng thông thường, nhưng nghiệp vụ thanh toán có thể yêu cầu:
+`Currency` exposes **getDefaultFractionDigits()**. EUR typically has 2 and JPY typically has 0 according to runtime currency definitions. Using the default helps standard formatting, but payment business rules may separately define:
 
-1. Số chữ số trong hệ thống lưu sổ.
-2. Số chữ số khi tính thuế.
-3. Quy tắc làm tròn cho hóa đơn.
-4. Làm tròn tiền mặt khác với làm tròn điện tử.
-5. Cách hiển thị con số đã được tính chính xác.
+1. Precision in ledger storage.
+2. Precision during tax calculation.
+3. Rounding rules on invoices.
+4. Cash rounding versus electronic rounding.
+5. Display formatting of the already-computed figure.
 
-**Không dùng NumberFormat như nguồn chân lý để quyết định phép tính tiền.** Mức rounding phải được xác định trong domain, còn formatter thể hiện kết quả theo hợp đồng UI.
+**Do not treat NumberFormat as the source of truth for monetary arithmetic.** Rounding rules belong in the domain layer; the formatter renders the result according to the UI contract.
 
-### 6.2. Không dùng double cho phép tính tài chính
+### 6.2. Never Use double for Financial Calculations
 
 ~~~java
 BigDecimal amount = new BigDecimal("1234.50");
 ~~~
 
-Cách này giữ giá trị thập phân mong muốn. Nếu dùng **new BigDecimal(0.1)**, ta nhận giá trị nhị phân xấp xỉ của double dưới dạng BigDecimal, không phải đúng chuỗi thập phân **0.1**. Với những phép tính tiền, dùng BigDecimal từ chuỗi hoặc **BigDecimal.valueOf(double)** khi hợp đồng đầu vào vốn là double và hiểu giới hạn của nó.
+This preserves the intended decimal value. Calling **new BigDecimal(0.1)** captures the binary floating-point approximation of a `double` as a `BigDecimal`, not the exact decimal **0.1**. For monetary calculations, construct `BigDecimal` from strings—or use **BigDecimal.valueOf(double)** only when an upstream contract inherently provides a `double` and its precision limits are understood.
 
-## 7. Dấu thập phân, dấu nhóm và không gian Unicode
+## 7. Decimal Points, Grouping Separators, and Unicode Whitespace
 
-Dữ liệu số có thể hiển thị bằng dấu phân nhóm khác nhau:
+Numeric values can display with different grouping punctuation:
 
-| Dữ liệu gốc | Dạng hiển thị minh họa | Ghi chú |
+| Source Data | Illustrative Display | Notes |
 | --- | --- | --- |
-| BigDecimal("1234567.89") | **1,234,567.89** | Kiểu quen thuộc trong en-US |
-| Cùng giá trị | **1.234.567,89** | Kiểu quen thuộc trong de-DE |
-| Cùng giá trị | **1 234 567,89** | Có thể dùng narrow no-break space cho nhóm |
-| Cùng giá trị | Các glyph chữ số khác | Có thể gặp khi chọn numbering system khác |
+| `BigDecimal("1234567.89")` | **1,234,567.89** | Familiar `en-US` style |
+| Same value | **1.234.567,89** | Familiar `de-DE` style |
+| Same value | **1 234 567,89** | May use narrow no-break space for grouping |
+| Same value | Alternative digit glyphs | Possible when another numbering system is selected |
 
-Đây là **ví dụ về các kiểu thường gặp**, không phải cam kết một chuỗi chính xác cho mọi phiên bản Java/CLDR, đặc biệt với khoảng trắng và digits của từng locale.
+These are **illustrative common styles**, not guarantees of exact strings across every Java/CLDR version, especially regarding whitespace and locale-specific digits.
 
-**Phân biệt các khoảng trắng:**
+**Distinguishing whitespace characters:**
 
-- **U+0020 SPACE**: dấu cách thông thường.
-- **U+00A0 NO-BREAK SPACE (NBSP)**: dấu cách không cho ngắt dòng.
-- **U+202F NARROW NO-BREAK SPACE (NNBSP)**: dấu cách hẹp không cho ngắt dòng.
+- **U+0020 SPACE**: standard space.
+- **U+00A0 NO-BREAK SPACE (NBSP)**: non-breaking space.
+- **U+202F NARROW NO-BREAK SPACE (NNBSP)**: narrow non-breaking space.
 
-Hai đầu ra có thể **trông y hệt** nhưng khác UTF-16 và **String.equals**. Vì vậy test chính xác các dấu nhóm cần kiểm tra code point, không chỉ nhìn kết quả terminal.
+Two outputs can **look visually identical** yet differ in UTF-16 code units and **String.equals**. Exact tests on grouping separators must inspect Unicode code points rather than relying on visual terminal inspection.
 
-### 7.1. Chương trình soi Unicode code point
+### 7.1. Program to Inspect Unicode Code Points
 
 **File InspectFormattedCodePoints.java**
 
@@ -402,20 +402,20 @@ public class InspectFormattedCodePoints {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 InspectFormattedCodePoints.java
 java InspectFormattedCodePoints
 ~~~
 
-Dòng đầu là **locale=fr-FR**; hai dòng còn lại cho độ dài và danh sách code point của formatter thực tế. **Không gắn cứng một danh sách code point** nếu mục tiêu là chạy được trên nhiều JDK/provider. Khi cần một output exact trong hệ thống sản xuất, hãy cố định runtime/locale data, sau đó viết regression test của chính sản phẩm.
+The first line prints **locale=fr-FR**; the remaining two lines report the string length and actual code-point sequence produced by the formatter. **Do not hardcode a fixed list of code points** if your tests must pass across multiple JDKs/providers. When a production system requires exact output snapshots, pin the runtime/locale data version and maintain product-owned regression tests.
 
-**Sử dụng codePoints thay vì chars** để quan sát đầy đủ Unicode. Trong Java, String.length đếm UTF-16 code units, còn codePoints xử lý các surrogate pair hợp lệ như một code point.
+**Use `codePoints()` rather than `chars()`** to observe full Unicode characters. In Java, `String.length` counts UTF-16 code units, whereas `codePoints` treats valid surrogate pairs as single code points.
 
-## 8. Ví dụ xác định hoàn toàn với DecimalFormatSymbols
+## 8. Fully Deterministic Example with DecimalFormatSymbols
 
-Nếu bạn muốn minh họa **cơ chế** mà không phụ thuộc bản dữ liệu locale, hãy tự khai báo dấu và pattern. Ví dụ này **không còn là yêu cầu tự động locale của JDK**, mà là định dạng do chương trình định nghĩa tường minh.
+When you want to demonstrate the **mechanism** without depending on locale data versions, configure separators and patterns explicitly. This example is **no longer requesting the JDK's automatic locale conventions**, but applying programmatic explicit formatting.
 
 **File ExplicitNumberSymbols.java**
 
@@ -455,14 +455,14 @@ public class ExplicitNumberSymbols {
 }
 ~~~
 
-Biên dịch/chạy:
+Compile/run:
 
 ~~~bash
 javac -encoding UTF-8 ExplicitNumberSymbols.java
 java ExplicitNumberSymbols
 ~~~
 
-Stdout dự kiến khi dùng **các dấu và pattern đã cấu hình tường minh**:
+Expected stdout with **explicitly configured symbols and pattern**:
 
 ~~~text
 dotDecimal=1,234,567.89
@@ -470,28 +470,28 @@ commaDecimal=1.234.567,89
 source=1234567.89
 ~~~
 
-**Điểm học:** một giá trị BigDecimal bất biến có thể được format theo nhiều kiểu ký tự. Pattern **#,##0.00** trong DecimalFormat dùng cú pháp pattern chuẩn, rồi DecimalFormatSymbols quyết định dấu được in. Đầu ra có thể có số chữ số nhóm khác nếu pattern/locale được thay đổi, nhưng ví dụ này giữ cấu hình cụ thể để kết quả xác định.
+**Key takeaway:** one immutable `BigDecimal` value can be formatted with different punctuation styles. The **#,##0.00** pattern in `DecimalFormat` uses standard pattern syntax, and `DecimalFormatSymbols` governs the printed separators. Grouping sizes could differ if the pattern or locale changed, while this example pins both for deterministic output.
 
-**Không lấy helper này thay thế hoàn toàn NumberFormat theo locale thực tế.** Một quốc gia có thể có quy tắc đặt dấu âm, ký hiệu tiền, cách nhóm và chữ số phức tạp hơn hai dấu phân cách được minh họa.
+**Do not treat this helper as a full replacement for locale-aware `NumberFormat`.** Countries can have negative-sign placement, currency symbols, grouping sizes, and digit rules far more complex than two separator characters.
 
-## 9. Một Instant, nhiều giờ địa phương
+## 9. One Instant, Multiple Local Times
 
-Thời điểm gốc:
+The source timestamp:
 
 ~~~text
 2026-10-28T02:30:00Z
 ~~~
 
-là một **Instant**. Nó không có “ngôn ngữ” hoặc định dạng ngày của người dùng. Khi chuyển thành **ZonedDateTime** bằng ZoneId, ta biết thời điểm đó được nhìn như ngày và giờ địa phương nào.
+is an **Instant**. It carries no "language" or user date format. Converting it to a **ZonedDateTime** with a `ZoneId` reveals what local calendar date and wall-clock time it represents.
 
-Ví dụ, cùng Instant ở:
+For instance, the same `Instant` in:
 
-- **Asia/Ho_Chi_Minh**: ngày 28/10/2026, giờ địa phương 09:30.
-- **America/Los_Angeles**: ngày 27/10/2026, giờ địa phương 19:30 theo quy tắc vùng giờ áp dụng cho ngày đó.
+- **Asia/Ho_Chi_Minh**: October 28, 2026, local time 09:30.
+- **America/Los_Angeles**: October 27, 2026, local time 19:30 under the time-zone rules active on that date.
 
-**Hãy phân biệt đổi timezone với đổi Locale.** Đổi Locale có thể thay chuỗi “October 28” thành cách viết ngày tiếng Việt, nhưng không tự đổi giờ. Đổi ZoneId có thể thay ngày lịch, dù Locale giữ nguyên.
+**Distinguish switching time zones from switching Locales.** Changing `Locale` may switch "October 28" to Vietnamese phrasing, without shifting the hour. Changing `ZoneId` can shift the calendar date even while `Locale` stays identical.
 
-### 9.1. Chương trình xác minh độc lập locale
+### 9.1. Locale-Independent Verification Program
 
 **File SameInstantDifferentZones.java**
 
@@ -527,14 +527,14 @@ public class SameInstantDifferentZones {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 SameInstantDifferentZones.java
 java SameInstantDifferentZones
 ~~~
 
-Stdout với dữ liệu múi giờ hiện hành cho ngày được dùng:
+Stdout with current time-zone rules for that date:
 
 ~~~text
 instant=2026-10-28T02:30:00Z
@@ -543,17 +543,17 @@ la=2026-10-27T19:30:00
 sameInstant=true
 ~~~
 
-Đây là ví dụ **không dùng định dạng theo Locale** ở ba dòng thời gian; ISO_LOCAL_DATE_TIME tạo chuỗi kỹ thuật dễ so sánh. Dữ liệu timezone thuộc **tzdb** của runtime, nên với hệ thống yêu cầu tái lập tuyệt đối qua nhiều thập kỷ, vẫn cần kiểm soát phiên bản tzdb; đối với ngày ví dụ, các quy tắc hiện hành cho kết quả như trên.
+This example **avoids locale-dependent formatting** on the three time lines; `ISO_LOCAL_DATE_TIME` produces comparable technical strings. Timezone rules come from the runtime's **tzdb**, so systems demanding multi-decade reproducibility must still track tzdb versions; for the example date, current rules yield the output above.
 
-### 9.2. Vì sao không gọi Instant.toString() để hiển thị cho người dùng?
+### 9.2. Why Not Display Instant.toString() to End Users?
 
-**Instant.toString()** là biểu diễn kỹ thuật theo UTC. Nó phù hợp log/API và kiểm thử, nhưng không nên dùng làm cách viết ngày giờ duy nhất trong giao diện người dùng đa ngôn ngữ. Muốn hiển thị, chuyển qua **ZoneId** rồi dùng **DateTimeFormatter** với Locale/pattern được chọn.
+**Instant.toString()** produces a technical UTC representation. It is suited for logs, APIs, and tests, but should not be the sole date-time display in a multilingual user interface. To display to users, convert via **ZoneId** and format with **DateTimeFormatter** using the selected `Locale`/style.
 
-**LocalDate** ngược lại đã là ngày thuần, thường không cần đổi timezone. Nếu lấy ngày đó rồi tùy tiện chuyển sang Instant tại nửa đêm UTC, một người ở múi giờ âm có thể thấy ngày trước đó: đây là lỗi mô hình hóa.
+**LocalDate**, conversely, is already a pure calendar date and normally needs no time-zone shift. Arbitrarily converting it to an `Instant` at UTC midnight can show the previous day to a viewer in a negative UTC offset—a modeling bug.
 
-## 10. DateTimeFormatter: FormatStyle và Locale
+## 10. DateTimeFormatter: FormatStyle and Locale
 
-Với java.time:
+With `java.time`:
 
 ~~~java
 DateTimeFormatter dateFormatter =
@@ -564,7 +564,7 @@ String dateText =
         dateFormatter.format(localDate);
 ~~~
 
-Đoạn này cần import **DateTimeFormatter**, **FormatStyle**, **Locale**, **LocalDate** và biến locale/localDate. Đối với thời điểm có giờ:
+This snippet requires importing **DateTimeFormatter**, **FormatStyle**, **Locale**, and **LocalDate**, plus `locale` and `localDate` variables. For moments with time:
 
 ~~~java
 ZonedDateTime localMoment =
@@ -577,39 +577,39 @@ DateTimeFormatter dateTimeFormatter =
 String shown = dateTimeFormatter.format(localMoment);
 ~~~
 
-Đoạn minh họa cần import **Instant**, **ZonedDateTime**, **ZoneId** và các lớp formatter phù hợp. Dùng **FormatStyle.SHORT/MEDIUM/LONG/FULL** tùy chi tiết và giao diện; không giả định mỗi style cho chuỗi có độ rộng cố định.
+This illustration requires importing **Instant**, **ZonedDateTime**, **ZoneId**, and the formatter classes. Choose **FormatStyle.SHORT/MEDIUM/LONG/FULL** based on detail and UI space; never assume a fixed string width for any style.
 
-**Một số locale có cách viết số/tháng hoặc thứ tự thành phần khác.** Việc DateTimeFormatter dùng localized pattern giúp tận dụng dữ liệu vùng của JDK, nhưng output có thể thay đổi giữa các bản CLDR. Nếu API nhập/xuất máy cần ổn định, hãy dùng ISO formatter chứ không parse ngược chuỗi localized.
+**Some locales use different digit forms, month names, or component orders.** Using localized patterns in `DateTimeFormatter` leverages JDK regional data, though exact output can evolve across CLDR releases. For stable machine-to-machine I/O, use ISO formatters rather than parsing localized strings back.
 
-### 10.1. Giữ ngày nguyên bản thay vì nhét timezone
+### 10.1. Keep Pure Dates Without Inventing a Timezone
 
 ~~~java
 LocalDate scheduled = LocalDate.of(2026, 10, 28);
 ~~~
 
-Ngày đã có ý nghĩa lịch, không cần ZoneId để hiển thị. Dùng FormatStyle để trình bày “ngày 28 tháng 10 năm 2026” hoặc biến thể tương đương theo locale/runtime. Đổi Locale không làm thay đổi LocalDate gốc.
+The date already carries full calendar meaning and needs no `ZoneId` for display. Use `FormatStyle` to render "ngày 28 tháng 10 năm 2026" or its runtime/locale equivalent. Changing `Locale` never alters the underlying `LocalDate`.
 
-Đối với **ngày sinh, ngày hợp đồng hoặc ngày học**, thường nên lưu LocalDate; đối với **thời điểm tạo đơn, thanh toán và sự kiện**, lưu Instant (hoặc một kiểu có thông tin vùng theo hợp đồng), rồi chọn ZoneId khi hiển thị.
+For **birthdays, contract dates, or course dates**, typically store `LocalDate`; for **order creation, payment, and event timestamps**, store `Instant` (or a zoned/offset type per contract) and apply `ZoneId` at display time.
 
-## 11. Múi giờ không đồng nghĩa locale
+## 11. Timezone Does Not Imply Locale
 
-| Thuộc tính | Ví dụ | Câu hỏi |
+| Attribute | Example | Question |
 | --- | --- | --- |
-| Locale | vi-VN | Viết ngày và số theo quy ước nào? |
-| ZoneId | Asia/Ho_Chi_Minh | Người xem đang dùng quy tắc giờ vùng nào? |
-| Currency | EUR | Đơn vị tiền gốc là gì? |
-| Instant | 2026-10-28T02:30:00Z | Sự kiện diễn ra khi nào? |
-| LocalDate | 2026-10-28 | Ngày lịch nào được lưu? |
+| Locale | vi-VN | Which conventions govern date/number phrasing? |
+| ZoneId | Asia/Ho_Chi_Minh | Which wall-clock rules does the viewer use? |
+| Currency | EUR | What is the underlying monetary unit? |
+| Instant | 2026-10-28T02:30:00Z | When did the event occur? |
+| LocalDate | 2026-10-28 | Which calendar date is stored? |
 
-Một người dùng Locale.US có thể ở Nhật Bản; một người Việt Nam có thể đang làm việc tại Canada. Không nên suy ra ZoneId từ mã quốc gia của Locale, và không nên dùng **TimeZone.getDefault()** làm quy tắc ngầm của một giao dịch quan trọng.
+A `Locale.US` user may be in Japan; a Vietnamese speaker may be working in Canada. Do not infer `ZoneId` from a `Locale`'s country code, and do not rely on **TimeZone.getDefault()** implicitly for critical transactions.
 
-Đối với trường giờ mùa hè (DST), chuyển **Instant → ZonedDateTime** bằng ZoneId là xác định khi tzdb đã biết. Nhưng chuyển một **LocalDateTime không có zone** sang instant có thể gặp thời gian không tồn tại hoặc thời gian lặp lại trong chuyển DST; ứng dụng cần một chính sách rõ.
+For Daylight Saving Time (DST), converting **Instant → ZonedDateTime** via `ZoneId` is unambiguous once tzdb is known. Conversely, converting a zoneless **LocalDateTime** to an `Instant` can hit nonexistent or repeated local times during DST transitions; applications need an explicit policy.
 
-## 12. Tỷ lệ phần trăm: giá trị 0.125 khác 12.5
+## 12. Percentages: 0.125 Differs from 12.5
 
-Ví dụ thuế **taxRatio=0.125** có nghĩa **12,5%**. **NumberFormat.getPercentInstance(locale)** thường nhân tỷ lệ lên 100 để trình bày thành phần trăm. Đừng truyền **12.5** rồi mong formatter hiển thị 12,5%: nó có thể hiển thị 1.250%.
+For example, **taxRatio=0.125** means **12.5%**. **NumberFormat.getPercentInstance(locale)** multiplies the ratio by 100 when rendering a percentage. Do not pass **12.5** expecting 12.5%: it will display 1,250%.
 
-Trong chương trình:
+In code:
 
 ~~~java
 NumberFormat percent =
@@ -621,44 +621,44 @@ String tax = percent.format(
         new BigDecimal("0.125"));
 ~~~
 
-Đây là đoạn minh họa, cần import NumberFormat, Locale, BigDecimal và biến locale. Dạng chữ số, vị trí ký hiệu phần trăm và khoảng trắng phụ thuộc locale, nhưng giá trị gốc vẫn là **0.125**.
+This snippet requires importing `NumberFormat`, `Locale`, and `BigDecimal`, along with a `locale` variable. Digit glyphs, percent-sign placement, and spacing depend on the locale, while the underlying value remains **0.125**.
 
-**Không đồng nhất representation với arithmetic.** Nếu cần tính số tiền thuế, dùng BigDecimal và rounding policy trong domain. NumberFormat chỉ giúp hiển thị tỷ lệ.
+**Do not confuse display representation with arithmetic.** To compute tax amounts, use `BigDecimal` and domain rounding rules. `NumberFormat` only renders the ratio.
 
-## 13. Định dạng âm, dấu tiền và ký hiệu Unicode
+## 13. Negative Numbers, Currency Symbols, and Unicode Characters
 
-Khi hiển thị cùng giá trị âm:
+When formatting a negative amount:
 
 ~~~java
 BigDecimal negative =
         new BigDecimal("-1234.50");
 ~~~
 
-các locale có thể thay đổi vị trí dấu âm, vị trí ký hiệu tiền và khoảng trắng. Một số hệ thống kế toán muốn đặt số âm trong ngoặc, nhưng đó thường là **yêu cầu format/accounting policy**, không nên giả định **getCurrencyInstance** mọi locale đều in ngoặc cho âm.
+locales may vary the position of the minus sign, currency symbol, and spaces. Some accounting systems wrap negative numbers in parentheses, which is usually an **explicit formatting/accounting policy**—never assume **getCurrencyInstance** prints parentheses for negative numbers across all locales.
 
-Không tự ghép kiểu:
+Never concatenate manually like:
 
 ~~~java
 String wrong = "-" + currency.getSymbol() + amount;
 ~~~
 
-Đây là đoạn minh họa anti-pattern, cần các biến currency và amount. Nó bỏ qua dấu âm, cách nhóm, dấu thập phân, khoảng trắng no-break và nhiều quy tắc địa phương hóa. Dùng NumberFormat với Currency được chọn và cấu hình thêm khi chính sách kế toán đòi hỏi.
+This anti-pattern assumes `currency` and `amount` variables. It ignores negative-sign placement, grouping, decimal points, non-breaking spaces, and localization rules. Use `NumberFormat` with the chosen `Currency` and configure further when accounting standards require it.
 
-**Các ký tự khó nhìn** như U+00A0, U+202F hoặc bidi marks có thể là phần hợp lệ của localized output. Nếu làm PDF/email, phải đảm bảo font và renderer giữ được chúng.
+**Invisible or subtle characters** such as `U+00A0`, `U+202F`, or bidi marks can be legitimate parts of localized output. When generating PDFs or emails, verify that fonts and renderers preserve them cleanly.
 
-## 14. Locale tiếng Ả Rập và văn bản hai chiều
+## 14. Arabic Locales and Bidirectional Text
 
-Với **ar-EG**, chữ số và ký hiệu có thể chứa các code point hoặc dấu hướng khác với en-US. Nếu bạn đưa **số tiền** vào câu LTR hoặc đưa mã đơn **ORD-2026-1028** vào một câu RTL, quy tắc **Unicode Bidirectional Algorithm** quyết định vị trí dấu câu/nhóm số trên màn hình.
+Under **ar-EG**, digits and symbols may use different code points or directional markers than `en-US`. If you embed a **monetary amount** inside an LTR sentence, or an order ID **ORD-2026-1028** inside an RTL sentence, the **Unicode Bidirectional Algorithm** governs how punctuation and numeric runs appear on screen.
 
-Nguyên tắc:
+Principles:
 
-- **Không đảo String thủ công** bằng reverse vì sẽ làm hỏng chữ số, ID và từ LTR.
-- Giữ dữ liệu ở **logical order** và để renderer hỗ trợ bidi.
-- Với web, dùng **dir** và vùng isolation như **bdi** khi nhúng nội dung người dùng không biết hướng.
-- Không coi chỉ đổi Locale là đã tự đặt text direction cho mọi thành phần UI.
-- Khi kiểm thử các định dạng tiền có dấu cách, xem cả code point và ảnh render ở môi trường thật.
+- **Never reverse Strings manually** with `reverse()`, as that corrupts numbers, IDs, and LTR words.
+- Keep data in **logical order** and let the renderer handle bidi layout.
+- On the web, use **dir** and isolation elements like **bdi** when embedding user content of unknown direction.
+- Never assume changing `Locale` automatically sets UI text direction across every widget.
+- When testing currency formats containing spaces, inspect both code points and rendered screenshots in the real UI.
 
-Ví dụ HTML minh họa nguyên tắc UI (không phải mã Java):
+HTML snippet illustrating the UI principle (not Java code):
 
 ~~~html
 <p dir="rtl">
@@ -666,31 +666,31 @@ Ví dụ HTML minh họa nguyên tắc UI (không phải mã Java):
 </p>
 ~~~
 
-**Bidi isolation không thay thế HTML escaping.** Tham số không tin cậy vẫn phải được render bằng API an toàn theo ngữ cảnh.
+**Bidi isolation does not replace HTML escaping.** Untrusted arguments must still be escaped using context-appropriate APIs.
 
-## 15. Có nên format rồi parse ngược?
+## 15. Should You Format and Then Parse Back?
 
-Dữ liệu ở giao diện thường được trình bày bằng NumberFormat hoặc DateTimeFormatter. Một lỗi là dùng chuỗi đã format để làm dữ liệu nguồn ở nơi khác.
+UI output is typically produced with `NumberFormat` or `DateTimeFormatter`. A common bug is treating that formatted string as raw input data elsewhere.
 
-Ví dụ:
+Example:
 
 ~~~text
-1234567.89  --vi-VN display-->  [chuỗi theo locale]
+1234567.89  --vi-VN display-->  [locale-formatted string]
                                       |
                                       v
-                       cố parse lại bằng Locale.US
+                       attempt to parse back with Locale.US
                                       |
                                       v
-                             có thể sai dữ liệu
+                              can corrupt data
 ~~~
 
-**Khi trao đổi giữa máy**, ưu tiên dữ liệu có kiểu hoặc định dạng kỹ thuật được đặc tả: JSON number/decimal string theo hợp đồng, ISO 8601 cho Instant và LocalDate, mã Currency ISO. Với dữ liệu người dùng nhập từ form theo locale, dùng parser có cấu hình thích hợp và kiểm tra **tiêu thụ hết chuỗi**, phạm vi và rounding.
+**For machine-to-machine exchange**, prefer typed data or documented technical formats: JSON numbers/decimal strings per contract, ISO 8601 for `Instant` and `LocalDate`, and ISO currency codes. For localized form input from users, use an appropriately configured parser and verify **full-string consumption**, bounds, and rounding.
 
-### 15.1. NumberFormat.parse có thể mất độ chính xác thập phân nếu dùng sai
+### 15.1. NumberFormat.parse Can Lose Decimal Precision If Misused
 
-Một số parser NumberFormat có thể trả **Long** hoặc **Double**, tùy kiểu/giá trị; đừng cast hoặc chuyển sang BigDecimal bằng các giả định tùy tiện khi cần tiền chính xác. Với DecimalFormat trong trường hợp cần BigDecimal, có **setParseBigDecimal(true)**.
+Some `NumberFormat` parsers return **Long** or **Double** depending on the input; do not cast or convert to `BigDecimal` casually when exact currency precision matters. On `DecimalFormat`, when `BigDecimal` is required, call **setParseBigDecimal(true)**.
 
-**Code minh họa:**
+**Illustrative code:**
 
 ~~~java
 DecimalFormat format =
@@ -705,13 +705,13 @@ boolean complete =
         parsed != null && pos.getIndex() == text.length();
 ~~~
 
-Đây là đoạn trong phương thức, cần import DecimalFormat, NumberFormat, ParsePosition, Locale, biến locale và text; việc cast cũng cần hiểu implementation thực tế. Có thể tạo DecimalFormat trực tiếp với pattern/symbols rõ để tránh dựa vào loại formatter của một provider khác.
+This snippet lives inside a method and requires importing `DecimalFormat`, `NumberFormat`, `ParsePosition`, and `Locale`, plus `locale` and `text` variables; casting also requires confirming the actual provider implementation. You can construct `DecimalFormat` directly with explicit pattern/symbols to avoid depending on a provider's concrete subclass.
 
-**Cẩn thận:** một parser lenient có thể nhận tiền tố hợp lệ rồi bỏ phần đuôi. Nếu đầu vào phải đúng hoàn toàn, kiểm tra index và cú pháp. Khi có currency symbol, cần parser/format riêng theo hợp đồng giao diện, không dùng một regex ASCII cho mọi locale.
+**Caution:** a lenient parser may accept a valid prefix and ignore trailing garbage. When full-input validity is required, check `ParsePosition.getIndex()` and syntax. When currency symbols are present, use a parser/format aligned with the UI contract rather than one ASCII regex for every locale.
 
-### 15.2. DateTimeFormatter với ResolverStyle
+### 15.2. DateTimeFormatter with ResolverStyle
 
-Với ngày người dùng nhập theo pattern rõ, java.time hỗ trợ:
+For user-entered dates matching an explicit pattern, `java.time` supports:
 
 ~~~java
 DateTimeFormatter inputFormat =
@@ -723,13 +723,13 @@ LocalDate parsed =
         LocalDate.parse("28/10/2026", inputFormat);
 ~~~
 
-Đoạn minh họa cần imports DateTimeFormatter, ResolverStyle, LocalDate, Locale. **uuuu** là proleptic year phù hợp hơn **yyyy** trong nhiều trường hợp dùng ResolverStyle.STRICT; **yyyy** là year-of-era và có quy tắc giải quyết khác.
+This snippet requires importing `DateTimeFormatter`, `ResolverStyle`, `LocalDate`, and `Locale`. **uuuu** represents the proleptic year and is generally preferable to **yyyy** with `ResolverStyle.STRICT`; **yyyy** is year-of-era and follows different resolution rules.
 
-Đừng dùng một localized display string làm API định dạng cố định. **Input format**, **display format** và **machine/API format** cần hợp đồng riêng.
+Never use a localized display string as a fixed API wire format. **Input format**, **display format**, and **machine/API format** require separate contracts.
 
-## 16. Bài tập tích hợp hai người xem
+## 16. Two-Viewer Integration Exercise
 
-Hãy giữ nguyên OrderData của chương trình chính và tạo hai ngữ cảnh:
+Keep the `OrderData` from the main program unchanged and construct two contexts:
 
 ~~~text
 Viewer A:
@@ -743,21 +743,21 @@ Viewer B:
     zoneId=America/Los_Angeles
 ~~~
 
-Trong mỗi lần render:
+On each render:
 
-1. Format quantity và subtotal bằng formatLocale.
-2. Format ratio thành phần trăm.
-3. Format scheduledDate bằng FormatStyle.LONG: **ngày thuần không đổi**.
-4. Chuyển eventTime sang zoneId rồi format ngày giờ: **giờ và có thể cả ngày địa phương khác**.
-5. Dùng ResourceBundle riêng để lấy câu theo uiLocale nếu ứng dụng có bundle.
-6. Đặt cùng ID đơn hàng và Currency EUR vào câu.
-7. So dữ liệu gốc trước/sau để bảo đảm không bị sửa bởi renderer.
+1. Format `quantity` and `subtotal` using `formatLocale`.
+2. Format `ratio` as a percentage.
+3. Format `scheduledDate` using `FormatStyle.LONG`: **the pure calendar date does not shift**.
+4. Convert `eventTime` to `zoneId` and format date-time: **local time and possibly even the calendar date differ**.
+5. Use a separate `ResourceBundle` to fetch prose by `uiLocale` when the app has bundles.
+6. Insert the same order ID and `EUR` currency into the sentence.
+7. Compare source fields before and after to verify the renderer did not mutate them.
 
-**Không gửi chuỗi kết quả của Viewer A để Viewer B parse rồi dùng lại.** Mỗi người xem cần format từ một nguồn dữ liệu có kiểu.
+**Never send Viewer A's formatted string for Viewer B to parse and reformat.** Each viewer must format directly from the typed source data.
 
-## 17. Kết hợp ResourceBundle và MessageFormat
+## 17. Combining ResourceBundle and MessageFormat
 
-Nếu cần cả **bản dịch câu** và **số/ngày địa phương**, tổ chức các bundle:
+When you need both **translated sentences** and **localized numbers/dates**, organize bundles:
 
 ~~~text
 messages_en.properties
@@ -776,7 +776,7 @@ order.summary=Order {0}: total {1}; scheduled {2}.
 order.summary=Đơn {0}: tổng {1}; lịch hẹn {2}.
 ~~~
 
-Sau khi formatter riêng tạo **moneyText** và **dateText**, dùng:
+After separate formatters produce **moneyText** and **dateText**, run:
 
 ~~~java
 ResourceBundle messages =
@@ -792,15 +792,15 @@ String text = template.format(new Object[] {
 });
 ~~~
 
-Đoạn minh họa trong một phương thức cần imports **ResourceBundle**, **MessageFormat**, **Locale**, cùng biến uiLocale/orderId/moneyText/dateText. Người dịch có thể đổi vị trí {0}, {1}, {2} theo ngữ pháp; code không hardcode thứ tự từ.
+This in-method snippet requires importing **ResourceBundle**, **MessageFormat**, and **Locale**, plus `uiLocale`/`orderId`/`moneyText`/`dateText` variables. Translators can reorder `{0}`, `{1}`, and `{2}` to fit grammar; code never hardcodes word order.
 
-**Chú ý dấu nháy đơn:** MessageFormat có cú pháp quote riêng; muốn dấu nháy đơn literal trong pattern thường phải nhân đôi thành **''**. Bản dịch cần được kiểm thử key, placeholder và quote syntax.
+**Watch single quotes:** `MessageFormat` has its own quoting syntax; a literal apostrophe in a pattern generally needs to be doubled as **''**. Test translations for keys, placeholders, and quote syntax.
 
-**ResourceBundle fallback** cũng cần chính sách ứng dụng. Có bundle mặc định không đồng nghĩa đã dịch đầy đủ mọi locale JDK hỗ trợ. **Locale.getAvailableLocales()** không nên dùng thẳng làm danh sách dropdown ngôn ngữ của sản phẩm.
+**ResourceBundle fallback** also requires an application policy. Having a default bundle does not mean every JDK-supported locale is fully translated. **Locale.getAvailableLocales()** should not populate an app's language menu directly.
 
-## 18. Thiết kế định dạng thành một dịch vụ
+## 18. Designing Formatting as a Service
 
-Trong ứng dụng thật, các controller không nên tự lặp logic NumberFormat và DateTimeFormatter. Có thể tạo một **FormattingService**:
+In real applications, controllers should not duplicate `NumberFormat` and `DateTimeFormatter` logic. You can define a **FormattingService**:
 
 ~~~java
 interface FormattingService {
@@ -820,33 +820,33 @@ interface FormattingService {
 }
 ~~~
 
-Đây là mô tả interface cần imports BigDecimal, Currency, Locale, LocalDate, Instant, ZoneId. Nó phân biệt ngày thuần với thời điểm và không đồng nhất Currency với Locale.
+This interface requires importing `BigDecimal`, `Currency`, `Locale`, `LocalDate`, `Instant`, and `ZoneId`. It separates pure calendar dates from instants and keeps `Currency` independent of `Locale`.
 
-Một **LocaleResolver** chọn locale theo preferences/supported locales; một **MessageService** chọn bundle/pattern; một **Presenter** phối hợp các giá trị đã format để tạo câu. Dữ liệu nghiệp vụ không phụ thuộc dịch vụ trình bày.
+A **LocaleResolver** picks the locale from user preferences and supported locales; a **MessageService** resolves bundles/patterns; a **Presenter** combines formatted values into sentences. Business data has no dependency on presentation services.
 
-**Không tạo một mutable static NumberFormat dùng chung** rồi setCurrency theo từng request. NumberFormat và DecimalFormat không thread-safe để dùng đồng thời thiếu bảo vệ. DateTimeFormatter immutable và thread-safe hơn cho việc cache theo Locale/FormatStyle. MessageFormat cũng mutable, nên tạo/cách ly instance khi chèn tham số.
+**Do not share a single mutable `static NumberFormat`** and mutate it via `setCurrency` per request. `NumberFormat` and `DecimalFormat` are not thread-safe for unsynchronized concurrent use. `DateTimeFormatter` is immutable and thread-safe for caching by `Locale`/`FormatStyle`. `MessageFormat` is also mutable, so construct or isolate instances per formatting call.
 
-## 19. Locale mặc định và độc lập môi trường
+## 19. Default Locale and Environment Independence
 
-Một bài test chỉ chạy đúng trên máy dev có thể lỗi khi CI đặt Locale hoặc TimeZone mặc định khác. Để tránh:
+Tests that pass on a developer's laptop can fail in CI if the OS default `Locale` or `TimeZone` differs. To avoid this:
 
-- Gọi **NumberFormat.getNumberInstance(locale)** thay vì bỏ locale.
-- Gọi **DateTimeFormatter.withLocale(locale)** tường minh.
-- Truyền **ZoneId** từ chính sách ứng dụng.
-- Không gọi **Locale.setDefault(...)** hoặc **TimeZone.setDefault(...)** trong mỗi request.
-- Không gọi **Currency.getInstance(locale)** nếu đơn vị tiền của giao dịch đã có riêng.
-- Không dùng **Date.toString()** để snapshot ngày giờ có ý nghĩa với người dùng.
-- Dùng Locale.ROOT/ISO cho log kỹ thuật khi hợp đồng yêu cầu chuỗi ổn định.
+- Call **NumberFormat.getNumberInstance(locale)** rather than omitting the locale.
+- Call **DateTimeFormatter.withLocale(locale)** explicitly.
+- Pass **ZoneId** from application policy.
+- Never call **Locale.setDefault(...)** or **TimeZone.setDefault(...)** per request.
+- Never call **Currency.getInstance(locale)** when the transaction already has its own currency unit.
+- Never rely on **Date.toString()** for user-facing date-time snapshots.
+- Use `Locale.ROOT`/ISO formats for technical logs when contracts demand stable strings.
 
-Không suy rằng **vi-VN** tự đồng nghĩa **Asia/Ho_Chi_Minh** hay VND. Locale, ZoneId và Currency là ba khía cạnh khác nhau.
+Never assume **vi-VN** automatically implies **Asia/Ho_Chi_Minh** or VND. `Locale`, `ZoneId`, and `Currency` are three independent dimensions.
 
-## 20. Kiểm thử đúng: giá trị, hành vi và Unicode
+## 20. Proper Testing: Values, Behavior, and Unicode
 
-Một chiến lược gồm ba lớp.
+Use a three-layer strategy.
 
-### 20.1. Unit tests cho giá trị gốc
+### 20.1. Unit Tests for Source Values
 
-Assert trực tiếp:
+Assert directly:
 
 ~~~text
 BigDecimal quantity: 1234567.89
@@ -857,32 +857,32 @@ LocalDate: 2026-10-28
 Instant: 2026-10-28T02:30:00Z
 ~~~
 
-Các giá trị này **không thay đổi khi format theo Locale**. Test không cần dựa vào dấu thập phân hoặc ký hiệu tiền của CLDR.
+These values **never change when formatted across Locales**. Tests do not need to hardcode CLDR decimal separators or currency symbols.
 
-### 20.2. Integration tests với JDK mục tiêu
+### 20.2. Integration Tests on the Target JDK
 
-Chạy bảng sáu locale trên runtime được sản phẩm hỗ trợ, kiểm tra:
+Run the six-locale matrix on the product's supported runtime and verify:
 
-- Formatter không ném lỗi với dữ liệu và locale bắt buộc.
-- Độ chính xác/fraction digits phù hợp hợp đồng.
-- Currency code gốc vẫn là EUR.
-- Ngày thuần không bị thay.
-- Cùng Instant cho các giờ địa phương phù hợp ZoneId.
-- Không rò rỉ locale hoặc Currency giữa request đồng thời.
-- Giá trị Unicode được giữ khi lưu/render.
-- Output thay đổi khi nâng JDK/CLDR có được xem xét.
+- Formatters do not throw on required data and locales.
+- Precision/fraction digits adhere to the contract.
+- Underlying currency code remains `EUR`.
+- Pure calendar date does not shift.
+- The same `Instant` produces the expected local times per `ZoneId`.
+- No locale or currency leaks across concurrent requests.
+- Unicode values survive storage and rendering intact.
+- Output changes during JDK/CLDR upgrades are reviewed.
 
-Nếu sản phẩm yêu cầu snapshot chuỗi đầy đủ, hãy **kiểm soát phiên bản JDK/provider và dữ liệu locale**. Đừng khẳng định một chuỗi tiền cụ thể giống nhau tuyệt đối trên mọi môi trường.
+If your product requires full string snapshots, **pin the JDK/provider version and locale data**. Never assert that an exact currency string is identical across arbitrary environments.
 
-### 20.3. Visual tests
+### 20.3. Visual Tests
 
-Các ký tự **U+00A0**, **U+202F**, ký hiệu EUR, glyph Ả Rập và dấu RTL có thể hiển thị khác ở terminal, web, email hoặc PDF. Hãy kiểm thử trên renderer thực tế với font và hướng chữ đúng.
+Characters such as **U+00A0**, **U+202F**, EUR symbols, Arabic glyphs, and RTL marks can render differently across terminals, browsers, email clients, and PDFs. Test on real renderers with appropriate fonts and text direction.
 
-**Chỉ so String.equals không thay thế kiểm tra visual layout**; ngược lại, hai chuỗi trông giống nhau không chứng minh code point giống nhau. Kết hợp code-point inspection với ảnh UI khi cần.
+**`String.equals` alone cannot replace visual layout testing**; conversely, visually identical strings do not prove identical code points. Combine code-point inspection with UI screenshots where needed.
 
-## 21. Test mạnh hơn: giữ bất biến dù đổi locale
+## 21. Stronger Testing: Preserving Invariants Across Locales
 
-Một test integration có thể chạy nhiều locale rồi kiểm tra bất biến sau mỗi lượt:
+An integration test can format across multiple locales and assert invariance afterward:
 
 ~~~java
 BigDecimal beforeAmount =
@@ -892,7 +892,7 @@ Currency beforeCurrency =
 Instant beforeInstant =
         order.createdAt();
 
-// Gọi display(order, locale, zone) nhiều lần.
+// Call display(order, locale, zone) multiple times.
 
 boolean unchanged =
         beforeAmount.equals(order.subtotal())
@@ -900,116 +900,116 @@ boolean unchanged =
         && beforeInstant.equals(order.createdAt());
 ~~~
 
-Đoạn minh họa trong class **MultiLocaleDisplayLab** cần có biến **order**, **locale**, **zone** và method **display** như mục 5. Đây là cách kiểm tra rằng tầng trình bày không làm hỏng dữ liệu nghiệp vụ.
+This snippet inside **MultiLocaleDisplayLab** requires `order`, `locale`, `zone`, and `display` from Section 5. It verifies that presentation never corrupts business data.
 
-Bên cạnh đó, kiểm tra **amount.scale()** và các quy tắc làm tròn nếu scale mang ý nghĩa trong hợp đồng của bạn. BigDecimal.equals xét cả scale, trong khi **compareTo** có thể xem 1234.5 và 1234.50 có cùng giá trị số; đừng vô tình dùng một kiểu equality khác với yêu cầu.
+In addition, check **amount.scale()** and rounding rules if scale is significant in your contract. `BigDecimal.equals` compares scale as well as value, whereas **compareTo** treats `1234.5` and `1234.50` as numerically equal; do not accidentally use the wrong equality check for your requirements.
 
-## 22. Lỗi phổ biến khi làm thực hành
+## 22. Common Mistakes During Practice
 
-### Lỗi 1: Tạo formatter theo Locale của server
+### Mistake 1: Creating Formatters Using the Server's Locale
 
-Một app chạy trên server en-US có thể in dấu phẩy thập phân khác user fr-FR. Truyền Locale người xem tường minh.
+An app running on an `en-US` server will print the wrong decimal separator for an `fr-FR` user. Always pass the viewer's `Locale` explicitly.
 
-### Lỗi 2: Dùng một String đã format làm số tiền nguồn
+### Mistake 2: Using a Formatted String as Source Monetary Data
 
-Chuỗi localized có thể chứa dấu nhóm và NBSP. Lưu BigDecimal + Currency, format lại cho mỗi locale.
+Localized strings can include grouping dots and NBSPs. Store `BigDecimal` + `Currency`, and format fresh for each locale.
 
-### Lỗi 3: Đổi Locale rồi nghĩ tự đổi Currency
+### Mistake 3: Thinking Changing Locale Converts Currency
 
-Locale không phải tỷ giá. setCurrency cũng không làm phép quy đổi; chỉ đổi cách gắn đơn vị hiển thị.
+A locale is not an exchange rate. `setCurrency` performs no conversion either; it only changes the displayed currency unit.
 
-### Lỗi 4: Nhầm 0.125 với 12.5 khi dùng PercentInstance
+### Mistake 4: Confusing 0.125 with 12.5 When Using PercentInstance
 
-NumberFormat phần trăm có hệ số 100 khi trình bày. Xác định rõ taxRatio là fraction hay percent value.
+Percentage `NumberFormat` multiplies by 100 during formatting. Be clear whether `taxRatio` is a fraction or already a percentage value.
 
-### Lỗi 5: Dùng double cho số tiền
+### Mistake 5: Using double for Monetary Values
 
-Double có xấp xỉ nhị phân; chọn BigDecimal với nguồn dữ liệu chính xác và rounding policy rõ.
+`double` uses binary approximations; choose `BigDecimal` with exact inputs and an explicit rounding policy.
 
-### Lỗi 6: Dùng Instant như LocalDate
+### Mistake 6: Treating Instant Like LocalDate
 
-Instant cần ZoneId để ra ngày địa phương. Cùng instant có thể là ngày 27 ở Los Angeles và ngày 28 ở Việt Nam.
+`Instant` requires a `ZoneId` to yield a local calendar date. The same instant can be the 27th in Los Angeles and the 28th in Vietnam.
 
-### Lỗi 7: Gắn ZoneId từ Locale
+### Mistake 7: Deriving ZoneId from Locale
 
-Locale là ngôn ngữ/vùng trình bày, không chỉ ra chắc chắn timezone của người dùng.
+`Locale` governs display language/region, not reliably the user's current time zone.
 
-### Lỗi 8: Hardcode dd/MM/yyyy cho tất cả ngôn ngữ
+### Mistake 8: Hardcoding dd/MM/yyyy for All Languages
 
-DateTimeFormatter theo FormatStyle/Locale cho quy ước từng vùng; dữ liệu API máy dùng format cố định riêng.
+`DateTimeFormatter` with `FormatStyle`/`Locale` follows regional conventions; machine APIs use separate fixed formats.
 
-### Lỗi 9: So output tiền bằng mắt
+### Mistake 9: Comparing Currency Outputs by Eye
 
-NNBSP/NBSP và bidi controls có thể vô hình. Khi cần so chính xác, in Unicode code point.
+NNBSP/NBSP and bidi controls can be invisible. When exact comparison is needed, print Unicode code points.
 
-### Lỗi 10: Snapshot mọi chuỗi theo CLDR mà không pin JDK
+### Mistake 10: Snapshotting All CLDR Strings Without Pinning the JDK
 
-Khi runtime nâng cấp, tên tháng hoặc khoảng trắng có thể khác. Phân biệt test logic bất biến với test phiên bản dữ liệu locale.
+When the runtime upgrades, month names or spaces can change. Separate invariant-logic tests from locale-data version tests.
 
-### Lỗi 11: Chia sẻ NumberFormat mutable toàn server
+### Mistake 11: Sharing a Mutable NumberFormat Server-Wide
 
-Các request locale/currency khác nhau có thể gây race và in sai. Tạo formatter theo thao tác hoặc cách ly rõ.
+Concurrent requests with different locales or currencies cause race conditions and garbled output. Create formatters per call or isolate them safely.
 
-### Lỗi 12: Dịch mã đơn hàng hoặc Currency bằng ResourceBundle
+### Mistake 12: Translating Order IDs or Currencies via ResourceBundle
 
-ID và mã tiền là dữ liệu kỹ thuật/miền; message bundle chỉ dịch văn bản UI, trừ khi sản phẩm có tên hiển thị địa phương được khai báo riêng.
+IDs and currency codes are technical/domain data; message bundles translate UI prose, unless the product explicitly defines localized display names.
 
-### Lỗi 13: Tự nối ký hiệu tiền và dấu âm
+### Mistake 13: Concatenating Currency Symbols and Minus Signs Manually
 
-Vị trí ký hiệu, dấu âm, khoảng trắng thuộc quy tắc format. Dùng NumberFormat hoặc pattern rõ theo yêu cầu.
+Symbol placement, minus-sign placement, and spacing belong to formatting rules. Use `NumberFormat` or an explicit contract pattern.
 
-### Lỗi 14: Parse số/ngày localized bằng Locale khác
+### Mistake 14: Parsing Localized Numbers/Dates with a Different Locale
 
-Có thể đọc sai giá trị hoặc bỏ phần đuôi. Dùng parser đúng locale và kiểm tra toàn chuỗi; tốt nhất dùng dữ liệu có kiểu cho trao đổi giữa máy.
+This can misread values or silently ignore trailing text. Use a locale-matched parser checking full-string consumption; better yet, exchange typed values between machines.
 
-### Lỗi 15: Không test giao diện RTL
+### Mistake 15: Failing to Test RTL Interfaces
 
-Locale Ả Rập có thể cần direction và isolation. Formatter không thay text layout engine.
+Arabic locales may require explicit direction and isolation. Formatters do not replace a text layout engine.
 
-### Lỗi 16: Không tách UI language và format locale
+### Mistake 16: Failing to Separate UI Language from Format Locale
 
-Một user cần tiếng Anh nhưng muốn số ngày theo Đức. Thiết kế context có hai locale thay vì buộc một.
+A user may want English UI text with German number/date formats. Model a context with two separate locales instead of forcing one.
 
-## 23. Bài tập mở rộng
+## 23. Extension Exercises
 
-1. Giữ nguyên dữ liệu OrderData, thay **Locale.CANADA_FRENCH** hoặc **fr-CA** vào danh sách. Quan sát số tiền EUR khác gì với fr-FR.
-2. Thêm **Locale.forLanguageTag("hi-IN")**; kiểm tra grouping và hệ số nhóm theo runtime, không giả định luôn giống en-US.
-3. Thêm locale có Unicode extension yêu cầu một numbering system, ví dụ **en-US-u-nu-arab**, rồi kiểm tra chức năng nào hỗ trợ và output của NumberFormat.
-4. Thử hiển thị **-1234.50 EUR** và so vị trí dấu âm/ký hiệu.
-5. Thử một Currency khác như JPY nhưng giữ đúng nghiệp vụ **đã đổi đồng tiền đầu vào**; quan sát số chữ số mặc định.
-6. Thử DateTimeFormatter FormatStyle.SHORT và FULL, so độ dài/tên tháng nhưng không fix output qua mọi JDK.
-7. Thử cùng Instant ở Europe/Berlin và America/Los_Angeles; quan sát ngày, DST và giá trị epoch không đổi.
-8. Dùng ResourceBundle để tạo một câu tiếng Việt và câu tiếng Anh chứa cùng số tiền EUR và ngày có kiểu.
-9. Tạo unit test cho **BigDecimal("1234.50")**, Currency EUR và Instant không đổi qua sáu lượt format.
-10. Tạo một trang web/email nhỏ hiển thị ar-EG, kiểm tra dấu câu, ký hiệu tiền và khả năng copy mã đơn hàng.
-11. Cố tình gửi chuỗi có NBSP tới validator ASCII-only, xem vì sao thiết kế cần biết hợp đồng đầu vào và Unicode.
-12. Giả lập thiếu bản dịch locale mới, thử fallback có được ứng dụng công bố rõ không.
+1. Keeping `OrderData` identical, substitute **Locale.CANADA_FRENCH** or **fr-CA** into the list. Observe how EUR formatting differs from `fr-FR`.
+2. Add **Locale.forLanguageTag("hi-IN")**; inspect grouping and grouping sizes on your runtime rather than assuming `en-US` rules.
+3. Add a locale with a Unicode extension requesting a numbering system, e.g. **en-US-u-nu-arab**, and test which features honor it and what `NumberFormat` outputs.
+4. Format **-1234.50 EUR** and compare minus-sign and symbol placement across locales.
+5. Test another `Currency` such as `JPY` while properly **converting the input amount in business logic**; observe default fraction digits.
+6. Test `DateTimeFormatter` with `FormatStyle.SHORT` and `FULL`, comparing string lengths and month names without hardcoding across JDKs.
+7. Inspect the same `Instant` in `Europe/Berlin` and `America/Los_Angeles`; verify calendar dates, DST behavior, and unchanging epoch value.
+8. Use `ResourceBundle` to produce both a Vietnamese sentence and an English sentence embedding the same formatted EUR amount and typed date.
+9. Write a unit test verifying **BigDecimal("1234.50")**, EUR `Currency`, and `Instant` remain unchanged across six formatting passes.
+10. Render `ar-EG` in a small web page or email; inspect punctuation, currency symbol placement, and copy-paste behavior of the order ID.
+11. Intentionally pass a string containing NBSP into an ASCII-only validator to see why input contracts must account for Unicode.
+12. Simulate a missing translation for a newly added locale and verify whether the application's fallback matches its documented policy.
 
-## 24. Checklist áp dụng trong dự án
+## 24. Project Implementation Checklist
 
-- [ ] Dữ liệu gốc giữ BigDecimal, Currency, LocalDate, Instant riêng biệt.
-- [ ] Đã xác định uiLocale, formatLocale và ZoneId cho từng người xem.
-- [ ] Không suy Currency từ Locale khi giao dịch đã có đơn vị tiền riêng.
-- [ ] Dùng NumberFormat.getNumberInstance(locale) để hiển thị số.
-- [ ] Dùng NumberFormat.getCurrencyInstance(locale) cùng setCurrency để hiển thị tiền.
-- [ ] Dùng NumberFormat.getPercentInstance(locale) khi input là tỷ lệ.
-- [ ] Không dùng double làm nguồn tiền chính xác khi có thể dùng BigDecimal.
-- [ ] Biết fraction digits của Currency không thay thế rounding policy nghiệp vụ.
-- [ ] Dùng DateTimeFormatter với FormatStyle và Locale cho LocalDate.
-- [ ] Chuyển Instant qua ZoneId khi cần ngày/giờ người xem.
-- [ ] Giữ ISO format cho trao đổi kỹ thuật, không parse localized output bằng locale khác.
-- [ ] Không gọi Locale.setDefault trong một request có nhiều người dùng.
-- [ ] Không chia sẻ NumberFormat/DecimalFormat mutable để sửa đồng thời.
-- [ ] Biết ký hiệu tiền/dấu nhóm có thể chứa NBSP hoặc NNBSP.
-- [ ] Khi test chính xác Unicode, dùng codePoints() và kiểm soát JDK/provider.
-- [ ] Kiểm thử hiển thị RTL và font trong renderer mục tiêu.
-- [ ] Dùng ResourceBundle/MessageFormat cho phần văn bản cần dịch.
-- [ ] Không dùng JDK available locales làm menu ngôn ngữ của app nếu chưa có bản dịch.
-- [ ] Có test bất biến dữ liệu gốc và test integration formatting đa locale.
-- [ ] Có hồi quy khi nâng JDK/CLDR hoặc tzdb trong những tính năng quan trọng.
+- [ ] Source data keeps `BigDecimal`, `Currency`, `LocalDate`, and `Instant` separate.
+- [ ] `uiLocale`, `formatLocale`, and `ZoneId` are resolved per viewer.
+- [ ] `Currency` is never inferred from `Locale` when the transaction carries its own unit.
+- [ ] `NumberFormat.getNumberInstance(locale)` is used for numbers.
+- [ ] `NumberFormat.getCurrencyInstance(locale)` with `setCurrency` is used for money.
+- [ ] `NumberFormat.getPercentInstance(locale)` is used when the input is a ratio.
+- [ ] `double` is never used for exact monetary amounts where `BigDecimal` applies.
+- [ ] `Currency.getDefaultFractionDigits()` is understood not to replace business rounding policy.
+- [ ] `DateTimeFormatter` with `FormatStyle` and `Locale` is used for `LocalDate`.
+- [ ] `Instant` is converted via `ZoneId` when viewer local date/time is needed.
+- [ ] ISO formats are preserved for technical exchange; localized output is never parsed back under another locale.
+- [ ] `Locale.setDefault` is never called inside multi-user request handling.
+- [ ] Mutable `NumberFormat`/`DecimalFormat` instances are never shared concurrently.
+- [ ] Currency symbols and grouping separators are known to possibly contain NBSP or NNBSP.
+- [ ] Exact Unicode tests inspect `codePoints()` and pin JDK/provider versions.
+- [ ] RTL rendering and fonts are tested in target renderers.
+- [ ] `ResourceBundle`/`MessageFormat` is used for translatable UI text.
+- [ ] `Locale.getAvailableLocales()` is never used as the app's language dropdown without translations.
+- [ ] Source-data invariance tests and multi-locale formatting integration tests are in place.
+- [ ] Regression checks cover JDK/CLDR or tzdb upgrades on critical features.
 
-## 25. Kết luận
+## 25. Conclusion
 
-**Hiển thị cùng dữ liệu số, tiền tệ, ngày giờ ở nhiều locale** là bài tập về sự khác biệt giữa **giá trị** và **cách biểu diễn**. Java 17+ cung cấp **BigDecimal/Currency** để giữ số tiền, **LocalDate/Instant/ZoneId** để mô hình hóa thời gian, **NumberFormat** và **DateTimeFormatter** để trình bày theo Locale, cùng **ResourceBundle/MessageFormat** để tạo câu đã dịch.
+**Displaying the same numeric, currency, and date/time data across multiple locales** is an exercise in separating **value** from **representation**. Java 17+ provides **BigDecimal/Currency** for money, **LocalDate/Instant/ZoneId** for time modeling, **NumberFormat** and **DateTimeFormatter** for locale-aware presentation, and **ResourceBundle/MessageFormat** for translated sentences.
 
-Đổi **Locale** có thể làm thay ký hiệu tiền, vị trí dấu âm, dấu thập phân, khoảng trắng, thứ tự thành phần và tên tháng; đổi **ZoneId** có thể làm thay ngày/giờ của cùng một Instant; nhưng **không phép đổi cách hiển thị nào được làm đổi dữ liệu nghiệp vụ**. Khi tách ranh giới ấy, kiểm thử bằng dữ liệu bất biến và quan sát Unicode trên runtime thực tế, ứng dụng có thể phục vụ nhiều ngôn ngữ mà vẫn chính xác và nhất quán.
+Changing **Locale** can change currency symbols, negative-sign placement, decimal separators, whitespace, component ordering, and month names; changing **ZoneId** can change the local date/time of the same `Instant`; yet **no presentation change may ever mutate business data**. By enforcing that boundary, testing invariant values, and inspecting Unicode on the real runtime, an application can serve many languages accurately and consistently.

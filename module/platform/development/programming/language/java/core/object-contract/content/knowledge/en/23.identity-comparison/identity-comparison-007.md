@@ -1,70 +1,70 @@
-# Đối tượng value-based và lý do không dựa vào danh tính thể hiện trong Java
+# Value-Based Objects and Why Not to Rely on Instance Identity in Java
 
-Trong Java, hai biến tham chiếu có thể chỉ tới **hai đối tượng khác nhau** nhưng mô tả **cùng một giá trị**. Với các lớp *value-based* (lớp dựa trên giá trị), sự khác biệt về đối tượng nào được cấp phát, tái sử dụng hay chia sẻ không phải là điều chương trình nên dựa vào. Điều quan trọng là **giá trị theo hợp đồng của lớp**.
+In Java, two reference variables can point to **two different objects** yet describe **the same value**. For *value-based* classes, the difference in which object was allocated, reused, or shared is not something a program should rely on. What matters is **the value according to the class's contract**.
 
-Bài này nằm trong chủ đề **so sánh theo danh tính** của Java Core: nhận diện khi nào phải dùng so sánh theo giá trị và vì sao những phép kiểm tra dựa vào danh tính có thể làm hỏng logic, khóa đồng bộ, hoặc cấu trúc dữ liệu.
+This lesson falls under the **identity comparison** topic of Java Core: recognizing when value comparison must be used and why identity-based checks can break logic, synchronization locks, or data structures.
 
-## 1. Phân biệt danh tính tham chiếu và tính bằng nhau về giá trị
+## 1. Distinguishing reference identity and value equality
 
-Xét hai tham chiếu kiểu đối tượng:
+Consider two object-typed references:
 
-- `a == b`, nếu cả hai toán hạng đều là **tham chiếu**, hỏi liệu chúng có trỏ tới **cùng một đối tượng** ở thời điểm đó không. Đây là so sánh theo danh tính (*reference identity*).
-- `a.equals(b)` hỏi liệu chúng có **bằng nhau theo hợp đồng `equals`** của lớp không. Với value-based class, hợp đồng này dựa vào giá trị.
-- `Objects.equals(a, b)` thực hiện so sánh theo `equals` có xử lý `null`: cả hai `null` thì `true`, một bên `null` thì `false`.
-- `System.identityHashCode(a)` cung cấp mã băm liên quan đến danh tính tham chiếu, **không** thay thế cho `a.hashCode()` khi cần nhận diện một giá trị.
+- `a == b`, when both operands are **references**, asks whether they point to **the exact same object** at that moment. This is identity comparison (*reference identity*).
+- `a.equals(b)` asks whether they are **equal under the class's `equals` contract**. For value-based classes, this contract is based on value.
+- `Objects.equals(a, b)` performs `equals` comparison with `null` handling: `true` if both are `null`, `false` if only one is `null`.
+- `System.identityHashCode(a)` provides a hash code tied to reference identity, **not** a substitute for `a.hashCode()` when identifying a value.
 
-Ví dụ, ngày 23/10/2026 là **một giá trị lịch**. Hai lời gọi `LocalDate.of(2026, 10, 23)` mô tả cùng ngày, dù cách JVM thể hiện và quản lý các đối tượng trả về có thể khác nhau. Do đó, câu hỏi nghiệp vụ là *có cùng ngày không?*; kiểm tra đúng là `equals`.
+For example, October 23, 2026 is **a calendar date value**. Two calls to `LocalDate.of(2026, 10, 23)` represent the same date, even though how the JVM represents and manages the returned objects may differ. Hence, the business question is *is it the same date?*; the right check is `equals`.
 
-> Cần phân biệt: trong Java 17, nhiều thể hiện value-based vẫn là các đối tượng tham chiếu bình thường ở cấp JVM. Khái niệm *value-based* không có nghĩa mọi phép `==` đều bị cấm biên dịch hoặc lớp đó chưa từng có danh tính vật lý. Nó có nghĩa **mã ứng dụng không được lấy danh tính đó làm một phần của hợp đồng xử lý giá trị**.
+> Distinction to note: in Java 17, many value-based instances are still normal reference objects at the JVM level. The *value-based* concept does not mean every `==` is a compile error or that the class never had physical identity. It means **application code must not treat that identity as part of its value-handling contract**.
 
-## 2. Thế nào là một value-based class?
+## 2. What is a value-based class?
 
-Theo tài liệu Java SE 17, lớp value-based có các đặc điểm cốt lõi:
+According to Java SE 17 documentation, a value-based class has these core characteristics:
 
-1. Là lớp `final`, không thiết kế để kế thừa tùy ý; các trường thể hiện được khai báo `final`. Trường có thể tham chiếu tới đối tượng mutable, vì vậy phải hiểu tính bất biến theo đúng hợp đồng từng API.
-2. `equals`, `hashCode` và `toString` được tính từ trạng thái giá trị thích hợp, không từ danh tính đối tượng.
-3. Các phương thức của lớp xem hai thể hiện có `equals` bằng nhau là **có thể thay thế cho nhau** (*freely substitutable*) đối với hành vi được lớp bảo đảm.
-4. Bản thân lớp không dùng monitor của thể hiện làm cơ chế đồng bộ.
-5. Không cung cấp constructor công khai mang nghĩa “mỗi lần tạo chắc chắn được một danh tính mới”; constructor truy cập được sẽ không có hoặc đã bị đánh dấu deprecated.
-6. Factory không cam kết luôn trả về đối tượng mới hay luôn trả về đối tượng cũ: với cùng giá trị, các lần tạo độc lập **có thể** nhận lại cùng tham chiếu hoặc tham chiếu khác.
+1. It is a `final` class, not designed for arbitrary subclassing; instance fields are declared `final`. Fields may reference mutable objects, so immutability must be understood according to each API's exact contract.
+2. `equals`, `hashCode`, and `toString` are computed solely from appropriate value state, not from object identity.
+3. The class's methods treat two instances that are equal under `equals` as **freely substitutable** (*freely substitutable*) for the behavior guaranteed by the class.
+4. The class itself does not use an instance's monitor as a synchronization mechanism.
+5. It provides no public constructor implying "each creation is guaranteed a new identity"; accessible constructors are absent or marked deprecated.
+6. Factories do not promise to always return a new object or always return an existing object: for the same value, independent creations **may** receive the same reference or different references.
 
-Ví dụ quen thuộc trong Java 17 gồm `java.time.LocalDate`, `java.time.Instant`, `java.util.Optional` và những lớp bao kiểu nguyên thủy như `java.lang.Integer`. Luôn xem Javadoc của lớp cụ thể để xác nhận nó được tài liệu công bố là *value-based*.
+Familiar examples in Java 17 include `java.time.LocalDate`, `java.time.Instant`, `java.util.Optional`, and primitive wrapper classes such as `java.lang.Integer`. Always consult a specific class's Javadoc to confirm whether it is documented as *value-based*.
 
-**Hệ quả thiết kế:** API cho phép thay thế một thể hiện bằng thể hiện khác có cùng giá trị mà không làm thay đổi hành vi được bảo đảm. Người dùng API không nên đòi hỏi một danh tính ổn định hoặc duy nhất cho mỗi lời gọi factory.
+**Design consequence:** An API is allowed to substitute one instance for another with the same value without changing guaranteed behavior. API consumers should not demand a stable or unique identity per factory call.
 
-## 3. Vì sao `==` không thể là tiêu chí về giá trị?
+## 3. Why can't `==` be the criterion for value?
 
-Giả sử:
+Suppose:
 
 ```java
 LocalDate first  = LocalDate.of(2026, 10, 23);
 LocalDate second = LocalDate.of(2026, 10, 23);
 
-// Đúng: kiểm tra cùng giá trị ngày.
+// Correct: check for the same date value.
 boolean sameDate = first.equals(second);
 
-// Sai về mặt hợp đồng: dựa vào cách hai tham chiếu được thể hiện.
+// Contractually wrong: relies on how the two references are represented.
 boolean sameReference = (first == second);
 ```
 
-Biến `sameDate` phù hợp với bài toán; `sameReference` chỉ là quan sát một chi tiết thể hiện. Không được suy ra rằng với value-based class, `==` *luôn* là `true` hoặc *luôn* là `false` khi hai giá trị bằng nhau.
+The variable `sameDate` fits the problem; `sameReference` merely observes an implementation detail. You must not infer that for a value-based class, `==` is *always* `true` or *always* `false` when two values are equal.
 
-Các lớp bao kiểu nguyên thủy cũng dễ gây ngộ nhận:
+Primitive wrapper classes also easily cause misconceptions:
 
 ```java
 Integer x = Integer.valueOf(1000);
 Integer y = Integer.valueOf(1000);
 boolean equalValue = x.equals(y); // true
-boolean sameObject = (x == y);    // Đừng dùng để suy ra bằng nhau về số.
+boolean sameObject = (x == y);    // Do not use to infer numeric equality.
 ```
 
-Factory có thể cache hoặc dùng lại thể hiện theo giá trị và triển khai. Quan sát `==` ở một môi trường không phải cam kết cho những môi trường hay phiên bản sau.
+Factories may cache or reuse instances depending on value and implementation. Observing `==` in one environment is not a guarantee for future environments or versions.
 
-**Lưu ý về autoboxing:** `Integer a == Integer b` so sánh tham chiếu vì hai bên là đối tượng; `int a == int b` so sánh giá trị số; `int a == Integer b` thường unbox `b` rồi so sánh số, và có thể ném `NullPointerException` nếu `b` là `null`. Vì vậy phải xem **kiểu thực tế của hai toán hạng**, không chỉ nhìn ký hiệu `==`.
+**Note on autoboxing:** `Integer a == Integer b` compares references because both sides are objects; `int a == int b` compares numeric values; `int a == Integer b` typically unboxes `b` and compares numerically, and can throw `NullPointerException` if `b` is `null`. Always examine **the actual types of both operands**, not just the `==` symbol.
 
-## 4. Ví dụ Java 17 chạy được: so sánh, Set và Map
+## 4. Runnable Java 17 example: comparison, Set, and Map
 
-Lưu đoạn sau vào tệp `ValueBasedDemo.java`:
+Save the following to the file `ValueBasedDemo.java`:
 
 ```java
 import java.time.LocalDate;
@@ -88,7 +88,7 @@ public class ValueBasedDemo {
         System.out.println("Distinct day values: " + days.size());
 
         Map<LocalDate, String> descriptions = new HashMap<>();
-        descriptions.put(first, "ngay hoc");
+        descriptions.put(first, "study day");
         System.out.println("Lookup with equal key: " + descriptions.get(second));
 
         Optional<String> one = Optional.of("Java");
@@ -104,82 +104,82 @@ public class ValueBasedDemo {
 }
 ```
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ```bash
 javac ValueBasedDemo.java
 java ValueBasedDemo
 ```
 
-Kết quả chuẩn:
+Standard output:
 
 ```text
 LocalDate.equals: true
 Distinct day values: 1
-Lookup with equal key: ngay hoc
+Lookup with equal key: study day
 Optional.equals: true
 Integer.equals: true
 Null-safe equals: true
 ```
 
-Giải thích:
+Explanation:
 
-- `LocalDate.equals` kiểm tra ngày; cả hai thể hiện mô tả cùng ngày nên bằng nhau.
-- `HashSet` dựa trên `equals` và `hashCode`, nên không giữ hai phần tử tương đương về giá trị ngày.
-- `HashMap` tìm lại được dữ liệu bằng khóa khác tham chiếu nhưng bằng nhau theo `equals` và có `hashCode` tương ứng.
-- Hai `Optional` chứa cùng chuỗi có `equals` bằng nhau; `Optional.empty()` cũng phải được kiểm tra bằng API như `isEmpty()`, không dựa vào `==`.
-- `Integer.equals` biểu đạt bình đẳng của giá trị số đóng hộp. Ví dụ cố ý không in `first == second` hay `x == y` vì chúng không có kết luận giá trị hữu ích.
+- `LocalDate.equals` checks the date; both instances represent the same date so they are equal.
+- `HashSet` relies on `equals` and `hashCode`, so it does not keep two elements equivalent in date value.
+- `HashMap` retrieves data using a key with a different reference that is equal under `equals` and has a matching `hashCode`.
+- Two `Optional` instances containing the same string have equal `equals`; `Optional.empty()` must also be checked via APIs like `isEmpty()`, not by relying on `==`.
+- `Integer.equals` expresses equality of boxed numeric values. The example intentionally avoids printing `first == second` or `x == y` because they yield no useful value conclusion.
 
-## 5. Những thao tác nhạy với danh tính cần tránh
+## 5. Identity-sensitive operations to avoid
 
-| Thao tác | Vấn đề khi dùng với value-based object | Hướng thay thế |
+| Operation | Problem when used with value-based objects | Alternative |
 | --- | --- | --- |
-| `a == b` hoặc `a != b` để so giá trị | Thực chất kiểm tra cùng tham chiếu; factory không hứa cách cấp phát/tái sử dụng | `a.equals(b)`, `Objects.equals(a, b)` hoặc API so sánh theo miền |
-| `System.identityHashCode(a)` làm khóa giá trị | Dựa vào danh tính, không theo hợp đồng giá trị | `a.hashCode()` đi cùng `equals()`; hoặc dùng trực tiếp `a` làm khóa `HashMap` |
-| `IdentityHashMap<ValueType, ...>` | Map dùng `==` cho khóa nên hai giá trị tương đương không nhất thiết được coi là một khóa | `HashMap` / `ConcurrentHashMap` khi khóa là giá trị |
-| `synchronized (value)`, `value.wait()`, `value.notify()` | Monitor thuộc thể hiện cụ thể, dễ bị dùng chung ngoài ý muốn hoặc thay đổi qua các phiên bản Java | Khóa riêng kiểu `Object` hoặc cấu trúc đồng bộ của `java.util.concurrent` |
-| Dùng số lượng object / danh tính cấp phát làm dấu hiệu nghiệp vụ | Tối ưu cache, factory hoặc đặc tính runtime có thể thay đổi cách thể hiện | Lưu một ID miền nghiệp vụ rõ ràng nếu cần định danh thực thể |
+| `a == b` or `a != b` to compare values | Actually checks reference equality; factories do not promise allocation/reuse behavior | `a.equals(b)`, `Objects.equals(a, b)`, or domain comparison APIs |
+| `System.identityHashCode(a)` as a value key | Based on identity, not the value contract | `a.hashCode()` alongside `equals()`; or use `a` directly as a `HashMap` key |
+| `IdentityHashMap<ValueType, ...>` | The map uses `==` for keys so two equivalent values are not necessarily treated as one key | `HashMap` / `ConcurrentHashMap` when keys are values |
+| `synchronized (value)`, `value.wait()`, `value.notify()` | Monitors belong to specific instances, easily shared unintentionally or changed across Java versions | Private `Object` lock or `java.util.concurrent` synchronization utilities |
+| Using object count / allocation identity as a business signal | Cache optimizations, factories, or runtime characteristics can alter representation | Store an explicit business domain ID if entity identification is needed |
 
-Một `IdentityHashMap` có thể hoàn toàn phù hợp khi bạn chủ ý theo dõi **danh tính của các đối tượng thông thường** (ví dụ duyệt đồ thị object). Vấn đề ở đây là dùng nó để biểu diễn **bản đồ theo giá trị** của các lớp value-based.
+An `IdentityHashMap` can be completely appropriate when you intentionally track **the identity of ordinary objects** (for example, object-graph traversal). The problem here is using it to represent **a value-based map** for value-based classes.
 
-Không nên sử dụng `WeakReference` hoặc hình thức lưu/truy vết dựa trên từng thể hiện cụ thể để tự tạo cam kết danh tính cho một giá trị. Vòng đời tham chiếu yếu và vòng đời của giá trị là hai khái niệm khác nhau; hãy chọn dữ liệu khóa/định danh đúng với mục tiêu.
+Do not use `WeakReference` or instance-specific storage/tracking mechanisms to manufacture an identity guarantee for a value. Weak-reference lifecycles and value lifecycles are two different concepts; choose keys/identifiers suited to the goal.
 
-## 6. Đặc biệt nguy hiểm: dùng value-based object làm khóa `synchronized`
+## 6. Especially dangerous: using a value-based object as a `synchronized` lock
 
-Mã dưới là **phản ví dụ minh họa**, không phải lời khuyên sử dụng:
+The code below is an **illustrative anti-pattern**, not a usage recommendation:
 
 ```java
-// Giả sử day là một LocalDate.
+// Suppose day is a LocalDate.
 synchronized (day) {
-    // Tránh đồng bộ theo một value-based object.
+    // Avoid synchronizing on a value-based object.
 }
 ```
 
-Có hai rủi ro đối nghịch nhưng đều thực tế:
+There are two opposite yet very real risks:
 
-1. Nếu hai bên xử lý cùng giá trị ngày nhưng nhận **tham chiếu khác nhau**, chúng sẽ khóa **hai monitor khác nhau**, nên không bảo vệ cùng tài nguyên.
-2. Nếu factory chia sẻ tham chiếu, những phần code **không liên quan** có thể vô tình cùng khóa một monitor, gây tranh chấp hoặc deadlock.
+1. If two parties handle the same date value yet receive **different references**, they will lock **two different monitors**, failing to protect the same resource.
+2. If a factory shares references, **unrelated** code may accidentally lock on the same monitor, causing contention or deadlock.
 
-Từ JDK 16, JEP 390 bổ sung cảnh báo của `javac` cho việc đồng bộ trên các lớp value-based do JDK nhận biết. Có thể dùng `-Xlint:synchronization` để yêu cầu loại chẩn đoán này khi rà soát. Cảnh báo là công cụ tìm lỗi; việc một đoạn mã không phát cảnh báo **không chứng minh** rằng cách khóa của nó đúng (ví dụ nếu đối tượng được giữ dưới biến kiểu `Object`). Một số JDK hỗ trợ tùy chọn chẩn đoán runtime `-XX:DiagnoseSyncOnValueBasedClasses`; đây là tùy chọn phụ thuộc HotSpot/JDK, không phải giải pháp thiết kế.
+Since JDK 16, JEP 390 adds `javac` warnings for synchronizing on JDK-recognized value-based classes. You can use `-Xlint:synchronization` to request this diagnostic during review. Warnings are bug-finding tools; code emitting no warning **does not prove** its locking is correct (for instance, if the object is held in an `Object`-typed variable). Some JDKs support the runtime diagnostic option `-XX:DiagnoseSyncOnValueBasedClasses`; this is a HotSpot/JDK-dependent option, not a design solution.
 
-Khi cần monitor để bảo vệ trạng thái riêng, hãy dùng một đối tượng khóa có chủ sở hữu rõ ràng:
+When you need a monitor to protect private state, use a lock object with clear ownership:
 
 ```java
-// Đoạn minh họa là thành viên trong một lớp quản lý trạng thái.
+// Illustrative snippet as a member inside a state-managing class.
 private final Object lock = new Object();
 
 void updateState() {
     synchronized (lock) {
-        // Đọc/ghi trạng thái cần bảo vệ.
+        // Read/write protected state.
     }
 }
 ```
 
-Nếu cần đồng bộ theo một khóa *nghiệp vụ* dùng chung giữa nhiều luồng, chọn cấu trúc dữ liệu đồng bộ có quản lý khóa/tính nguyên tử theo **giá trị khóa**, chẳng hạn `ConcurrentHashMap.compute(...)`. Không thay thế bằng cách `synchronized (LocalDate.of(...))` rồi kỳ vọng toàn bộ luồng sẽ được tuần tự hóa.
+If you need synchronization around a shared *business* key across multiple threads, choose a concurrent data structure that manages locking/atomicity by **key value**, such as `ConcurrentHashMap.compute(...)`. Do not substitute `synchronized (LocalDate.of(...))` expecting all threads to be serialized.
 
-## 7. Ví dụ áp dụng: đếm tác vụ theo ngày một cách an toàn
+## 7. Applied example: safely counting tasks by date
 
-Kịch bản: các lời gọi có thể tạo những `LocalDate` khác tham chiếu nhưng cùng ngày; toàn bộ tác vụ trong ngày phải tăng cùng bộ đếm. Chương trình sau dùng tính bằng nhau của khóa và cấu trúc concurrent:
+Scenario: callers may create `LocalDate` instances with different references but the same date; all tasks on that date must increment the same counter. The following program uses key equality and a concurrent structure:
 
 ```java
 import java.time.LocalDate;
@@ -203,52 +203,52 @@ public class DailyCountDemo {
 }
 ```
 
-Lưu thành `DailyCountDemo.java` và chạy:
+Save as `DailyCountDemo.java` and run:
 
 ```bash
 javac DailyCountDemo.java
 java DailyCountDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Count: 2
 Distinct date keys: 1
 ```
 
-`computeIfAbsent` chọn/lưu một bộ đếm cho mỗi **giá trị khóa**, còn `AtomicInteger.incrementAndGet()` cập nhật bộ đếm nguyên tử. Đây là hướng phù hợp khi truy cập đồng thời; không có giả định nào về việc hai lời gọi `LocalDate.of` trả về cùng đối tượng. Trong ứng dụng thật, quản lý kích thước/vòng đời map phù hợp với số lượng ngày cần giữ.
+`computeIfAbsent` selects/stores one counter per **key value**, while `AtomicInteger.incrementAndGet()` updates the counter atomically. This is the right approach under concurrent access; there is no assumption about whether two `LocalDate.of` calls return the same object. In real applications, manage map size/lifecycle appropriately for the number of dates retained.
 
-## 8. Khi nào so sánh theo danh tính vẫn đúng?
+## 8. When is identity comparison still right?
 
-Không có quy tắc rằng Java phải loại bỏ hoàn toàn `==` cho đối tượng. Điều quan trọng là **ý định so sánh**:
+There is no rule saying Java must eliminate `==` for objects altogether. What matters is **comparison intent**:
 
-- Với **primitive** `int`, `long`, `boolean`..., `==` là so sánh giá trị theo quy tắc của toán tử.
-- Với **enum**, `==` là cách so sánh hằng enum thường dùng, vì mỗi hằng là thể hiện xác định do ngôn ngữ quản lý.
-- Với **đối tượng thường** có ý nghĩa danh tính (cùng thực thể/một node đồ thị/một instance đang được theo dõi), `==` có thể là lựa chọn chủ đích.
-- Với **value-based class**, so sánh quan hệ giá trị bằng `equals` hoặc API miền chuyên biệt; không dùng danh tính như bằng chứng rằng hai giá trị bằng/khác.
-- Một `record` do người dùng khai báo có `equals/hashCode` dựa trên components, nhưng **không tự động trở thành lớp value-based của Java Platform** theo nghĩa tài liệu JDK. Đừng đồng nhất “immutable”, “record”, “value object” trong thiết kế miền với nhãn kỹ thuật *value-based class*.
+- For **primitives** `int`, `long`, `boolean`..., `==` is value comparison per the operator's rules.
+- For **enums**, `==` is the common way to compare enum constants, because each constant is a fixed instance managed by the language.
+- For **ordinary objects** with identity semantics (same entity / a graph node / a tracked instance), `==` can be a deliberate choice.
+- For **value-based classes**, compare value relationships with `equals` or specialized domain APIs; do not use identity as evidence that two values are equal or unequal.
+- A user-declared `record` has `equals/hashCode` based on its components, yet **does not automatically become a Java Platform value-based class** in the sense of JDK documentation. Do not equate "immutable", "record", or "value object" in domain design with the technical label *value-based class*.
 
-Khi cần phân biệt *hai thực thể nghiệp vụ* tình cờ có cùng thuộc tính (chẳng hạn hai đơn hàng khác nhau cùng tổng tiền), hãy lưu ID thực thể riêng; khi cần so sánh *một giá trị* (ngày, khoảng thời gian, số đóng hộp), dùng hợp đồng giá trị. Không suy ra ID nghiệp vụ từ địa chỉ đối tượng hoặc mã băm danh tính.
+When you need to distinguish *two business entities* that happen to share identical attributes (for example, two separate orders with the same total amount), store a separate entity ID; when you need to compare *a value* (a date, duration, boxed number), use the value contract. Do not derive business IDs from object addresses or identity hash codes.
 
-## 9. Lỗi thường gặp và cách tự kiểm
+## 9. Common mistakes and self-checks
 
-**Lỗi 1: “Tôi thử trên máy và `==` đúng.”** Một lần thực thi chỉ chứng minh hai tham chiếu tình cờ trùng nhau tại thời điểm đó. Kết quả có thể bị tác động bởi cache, factory, môi trường hoặc thay đổi triển khai. Viết kiểm thử theo `equals` và hành vi, không theo `assertSame` / `assertNotSame` cho value-based objects.
+**Mistake 1: "I tested locally and `==` was true."** A single execution only proves two references happened to coincide at that moment. Results can be affected by caches, factories, environments, or implementation changes. Write tests using `equals` and behavior, not `assertSame` / `assertNotSame` for value-based objects.
 
-**Lỗi 2: “Cùng giá trị thì `synchronized(value)` khóa cùng tài nguyên.”** Bằng nhau về giá trị không đảm bảo chung monitor; ngược lại việc chia sẻ đối tượng có thể tạo liên hệ khóa ngoài ý muốn. Chọn khóa riêng hoặc công cụ concurrent.
+**Mistake 2: "Same value means `synchronized(value)` locks the same resource."** Value equality does not guarantee a shared monitor; conversely, object sharing can create unintended lock coupling. Choose private locks or concurrency utilities.
 
-**Lỗi 3: “Có `hashCode()` thì dùng `identityHashCode()` cũng được.”** `hashCode` của lớp value-based phục vụ giao ước `equals/hashCode`; `identityHashCode` theo danh tính. Không trộn hai hệ quy chiếu này khi dùng tập hợp hoặc map.
+**Mistake 3: "If there's `hashCode()`, using `identityHashCode()` works too."** A value-based class's `hashCode` serves the `equals/hashCode` contract; `identityHashCode` follows identity. Do not mix these two frames of reference when using sets or maps.
 
-**Lỗi 4: “Immutable nào cũng được JDK công bố value-based.”** Tính bất biến là một thuộc tính; hợp đồng value-based còn liên quan factory, danh tính và tính thay thế tự do. Kiểm tra Javadoc trước khi áp dụng kết luận cho một lớp.
+**Mistake 4: "Any immutable class is JDK-declared value-based."** Immutability is one property; the value-based contract also involves factories, identity, and free substitutability. Check the Javadoc before applying the conclusion to a class.
 
-**Checklist khi review code:** Nếu logic đang kiểm tra `==`, chọn khóa `IdentityHashMap`, dùng `identityHashCode`, monitor `synchronized` hoặc tham chiếu yếu trên một đối tượng mô tả giá trị, hãy hỏi: *Mình thực sự cần danh tính instance hay cần giá trị?* Nếu cần giá trị, đổi sang `equals/hashCode` hoặc API nghiệp vụ phù hợp; nếu cần danh tính, chọn một thực thể/ID có hợp đồng danh tính rõ ràng.
+**Code review checklist:** If logic checks `==`, chooses `IdentityHashMap` keys, uses `identityHashCode`, `synchronized` monitors, or weak references on an object representing a value, ask: *Do I truly need instance identity or do I need the value?* If you need the value, switch to `equals/hashCode` or the appropriate business API; if you need identity, pick an entity/ID with an explicit identity contract.
 
-## 10. Tóm lược và tài liệu chuẩn
+## 10. Summary and official references
 
-**Nguyên tắc nhớ:** Với value-based class, **hai thể hiện có cùng giá trị phải được đối xử tương đương theo hợp đồng của lớp**. Danh tính mà JVM biểu hiện ở một lần chạy là chi tiết không nên phụ thuộc để quyết định so sánh, phân nhóm, khóa hay nhận diện thực thể.
+**Principle to remember:** For value-based classes, **two instances with the same value must be treated equivalently according to the class's contract**. Whatever identity the JVM exposes in a single run is a detail you should not depend on to decide comparisons, grouping, locking, or entity identification.
 
-Tài liệu tham khảo chính thức:
+Official references:
 
-- [Java SE 17 — Value-based Classes](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/doc-files/ValueBased.html): định nghĩa và những thao tác nhạy với danh tính cần tránh.
-- [Java SE 17 — Optional](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html): nhấn mạnh các thể hiện bằng nhau có thể thay thế và không dùng cho đồng bộ.
-- [OpenJDK JEP 390 — Warnings for Value-Based Classes](https://openjdk.org/jeps/390): cảnh báo liên quan đến đồng bộ và định hướng tránh phụ thuộc danh tính.
+- [Java SE 17 — Value-based Classes](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/doc-files/ValueBased.html): definition and identity-sensitive operations to avoid.
+- [Java SE 17 — Optional](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Optional.html): emphasizes that equal instances are substitutable and not for synchronization.
+- [OpenJDK JEP 390 — Warnings for Value-Based Classes](https://openjdk.org/jeps/390): warnings regarding synchronization and guidance to avoid identity dependence.

@@ -1,10 +1,10 @@
-# Nestmate và quyền truy cập private giữa các lớp liên quan trong Java Reflection
+# Nestmates and private access between related classes in Java Reflection
 
-## 1. Nestmate giải quyết vấn đề gì?
+## 1. What problem do nestmates solve?
 
-Từ **Java 11**, JVM hỗ trợ khái niệm **nest** (nhóm lớp cùng tổ): một *nest host* và các lớp thành viên (*nest members*) có quan hệ được ghi trong class file. Các lớp **nestmate** có thể truy cập trực tiếp thành viên `private` của nhau theo quy tắc kiểm tra quyền truy cập của JVM, miễn là cùng một nest hợp lệ.
+Since **Java 11**, the JVM supports the concept of a **nest** (a group of classes belonging to the same nest): a *nest host* and member classes (*nest members*) whose relationship is recorded in class files. **Nestmate** classes can directly access each other's `private` members under JVM access-control rules, as long as they belong to the same valid nest.
 
-Vấn đề gốc: trong Java, một lớp bên ngoài và những lớp lồng bên trong nó được phép sử dụng thành viên `private` của nhau ngay ở mức ngôn ngữ.
+The original problem: in Java, an outer class and classes nested inside it are allowed to use each other's `private` members right at the language level.
 
 ```java
 class Library {
@@ -12,19 +12,19 @@ class Library {
 
     static class Checker {
         String check(Library library) {
-            return library.code; // Hợp lệ theo luật của Java
+            return library.code; // Valid under Java language rules
         }
     }
 }
 ```
 
-Trước Java 11, bytecode không biểu diễn được trực tiếp toàn bộ quyền riêng tư giữa các lớp này theo cơ chế truy cập `private` cũ. Trình biên dịch thường phải sinh các phương thức cầu nối `synthetic` dạng `access$...` để lớp lồng đọc thành viên `private` của lớp bao. Java 11 đưa ra **nest-based access control** (JEP 181): JVM hiểu quan hệ nest và có thể cho phép truy cập `private` trực tiếp mà không cần cầu nối đó.
+Before Java 11, bytecode could not directly express all of these privacy permissions between classes under the older `private` access mechanism. Compilers typically had to generate `synthetic` bridge methods such as `access$...` so a nested class could read `private` members of its enclosing class. Java 11 introduced **nest-based access control** (JEP 181): the JVM understands nest relationships and can allow direct `private` access without those bridges.
 
-> **Phân biệt quan trọng:** “Cùng nest” là quan hệ được JVM công nhận giữa các `Class`, không đơn thuần là “cùng package”, “cùng superclass”, “có tên lớp giống nhau” hoặc “đang được một framework load cùng lúc”.
+> **Important distinction:** "Same nest" is a JVM-recognized relationship between `Class`es, not merely "same package", "same superclass", "similar class names", or "loaded together by a framework".
 
-## 2. Những lớp nào thuộc một nest?
+## 2. Which classes belong to a nest?
 
-Trong mã Java thông thường, các lớp lồng (*nested classes*), gồm `static nested class`, *inner class*, các lớp local/anonymous được biên dịch tương ứng, có thể cùng nest với lớp bao ngoài cùng. Những lớp lồng cấp sâu vẫn có cùng nest host ngoài cùng. Các lớp **top-level độc lập** dù nằm cùng file nguồn hoặc cùng package vẫn không tự trở thành nestmate.
+In normal Java code, *nested classes*—including `static nested class`, *inner class*, and compiled local/anonymous classes—can share the same nest as the outermost enclosing class. Deeply nested classes still share the same outermost nest host. **Independent top-level classes**, even in the same source file or same package, do not automatically become nestmates.
 
 ```java
 public class House {
@@ -44,29 +44,29 @@ public class House {
 }
 ```
 
-Trong cấu trúc này, các lớp `House`, `House.Room`, `House.Room.Box` và `House.Window` có thể thuộc cùng nest. Không có “nest con” tách riêng chỉ vì `Box` được khai báo sâu hơn.
+In this structure, `House`, `House.Room`, `House.Room.Box`, and `House.Window` can belong to the same nest. There is no separate "sub-nest" just because `Box` is declared deeper.
 
-**Nest host** là lớp đại diện cho tổ. Trong ví dụ trên, khi biên dịch Java 11+ theo cách thông thường, `House.class` là host; `House.Room.class.getNestHost()` và `House.Room.Box.class.getNestHost()` trả về `House.class`. Chính lớp host cũng là một thành viên của nest.
+The **nest host** is the class representing the nest. In the example above, when compiled normally with Java 11+, `House.class` is the host; `House.Room.class.getNestHost()` and `House.Room.Box.class.getNestHost()` return `House.class`. The host class itself is also a member of the nest.
 
-**Được phép truy cập `private`** là quyền giữa các nestmate, theo cả hai chiều:
+**`private` access permission** is a mutual privilege among nestmates, in both directions:
 
-- Lớp lồng có thể đọc field `private` hoặc gọi method `private` của lớp bao.
-- Lớp bao có thể truy cập member `private` của lớp lồng.
-- Hai lớp lồng là “anh em” cùng host có thể truy cập member `private` của nhau, khi có tham chiếu/phương thức phù hợp.
+- A nested class can read a `private` field or call a `private` method of the enclosing class.
+- The enclosing class can access `private` members of a nested class.
+- Two "sibling" nested classes sharing the same host can access each other's `private` members, given an appropriate reference/method.
 
-Sự tồn tại của quan hệ nest **không làm member trở thành `public`**, cũng không khiến tất cả lớp ở cùng package được truy cập.
+Having a nest relationship **does not make members `public`**, nor does it grant access to all classes in the same package.
 
-## 3. Ba API Reflection nhận diện nestmate
+## 3. Three Reflection APIs for identifying nestmates
 
-Các phương thức của `java.lang.Class` có từ Java 11:
+Methods on `java.lang.Class` available since Java 11:
 
-| API | Trả về | Cách hiểu |
+| API | Returns | How to understand it |
 | --- | --- | --- |
-| `clazz.getNestHost()` | `Class<?>` | Lớp host của nest chứa `clazz`; với lớp không tham gia tổ nhiều lớp, thường là chính nó |
-| `clazz.getNestMembers()` | `Class<?>[]` | Các lớp thành viên của nest, gồm cả host; không phụ thuộc thứ tự phần tử |
-| `a.isNestmateOf(b)` | `boolean` | `true` nếu hai đối tượng `Class` được JVM xác định là thuộc cùng nest |
+| `clazz.getNestHost()` | `Class<?>` | The host class of the nest containing `clazz`; for a class not participating in a multi-class nest, typically itself |
+| `clazz.getNestMembers()` | `Class<?>[]` | Member classes of the nest, including the host; element order is unspecified |
+| `a.isNestmateOf(b)` | `boolean` | `true` if the two `Class` objects are determined by the JVM to belong to the same nest |
 
-Ví dụ khi đã có các lớp trong mục 2:
+Example using the classes from section 2:
 
 ```java
 Class<?> host = House.Room.Box.class.getNestHost();
@@ -74,18 +74,18 @@ boolean related = House.Room.class.isNestmateOf(House.Window.class);
 Class<?>[] members = House.class.getNestMembers();
 ```
 
-Các dòng này là đoạn **minh họa nằm trong một phương thức Java**, không phải chương trình độc lập. `host` tương ứng `House.class` và `related` là `true` nếu ví dụ được biên dịch/chạy trên JVM hỗ trợ nestmate.
+These lines are an **illustrative snippet inside a Java method**, not a standalone program. `host` corresponds to `House.class` and `related` is `true` if the example is compiled/run on a JVM supporting nestmates.
 
-Lưu ý sử dụng:
+Usage notes:
 
-1. Không dựa vào thứ tự phần tử từ `getNestMembers()`. Nếu cần hiển thị ổn định, lấy tên rồi sắp xếp.
-2. `getNestMembers()` nói về nest, **không đồng nghĩa** với `getDeclaredClasses()`: phương thức sau dùng để lấy các lớp/interface là thành viên khai báo trực tiếp, không nhằm liệt kê đầy đủ mọi nestmate.
-3. `isNestmateOf` là phép kiểm tra quan hệ giữa **class**, không phải một phép thử toàn bộ các rào cản khi truy cập một field/method cụ thể.
-4. Đừng suy luận quan hệ nest bằng cách cắt chuỗi từ dấu `$` trong tên class; tên binary không đủ xác lập quyền truy cập.
+1. Do not rely on the element order from `getNestMembers()`. If stable display is needed, extract names and sort them.
+2. `getNestMembers()` describes the nest and is **not synonymous** with `getDeclaredClasses()`: the latter retrieves directly declared member classes/interfaces, not intended to list all nestmates.
+3. `isNestmateOf` checks a relationship between **classes**, not an all-encompassing test for every barrier when accessing a specific field/method.
+4. Do not infer nest relationships by splitting strings on `$` in class names; binary names are not sufficient to establish access permission.
 
-## 4. Chương trình Java 17+: kiểm chứng private qua Reflection
+## 4. Java 17+ program: verifying private access via Reflection
 
-Lưu toàn bộ nội dung bên dưới vào **`NestmateDemo.java`** (không tách các lớp ra tệp khác). `NestmateDemo` và hai lớp lồng `MemberReader`, `Peer` thuộc cùng nest; `Outside` là một lớp top-level độc lập, được đặt cùng tệp để chứng minh **cùng package và cùng source file vẫn không đủ**.
+Save the entire contents below into **`NestmateDemo.java`** (do not split the classes into separate files). `NestmateDemo` and the two nested classes `MemberReader`, `Peer` belong to the same nest; `Outside` is an independent top-level class placed in the same file to prove that **same package and same source file are still not enough**.
 
 ```java
 import java.lang.reflect.Field;
@@ -101,15 +101,15 @@ public class NestmateDemo {
 
     private static class MemberReader {
         static void inspect(NestmateDemo obj) throws Exception {
-            // Quyền private được cấp vì MemberReader và NestmateDemo cùng nest.
+            // Private permission is granted because MemberReader and NestmateDemo are in the same nest.
             System.out.println("direct: " + obj.secret);
 
-            // getDeclared* chỉ tìm metadata, không tự tắt access check.
+            // getDeclared* only finds metadata, it does not disable access checks automatically.
             Field field = NestmateDemo.class.getDeclaredField("secret");
             Method method = NestmateDemo.class.getDeclaredMethod(
                     "combine", String.class);
 
-            // Không gọi setAccessible(true).
+            // Not calling setAccessible(true).
             System.out.println("field canAccess: " + field.canAccess(obj));
             System.out.println("field value: " + field.get(obj));
             System.out.println("method canAccess: " + method.canAccess(obj));
@@ -134,7 +134,7 @@ public class NestmateDemo {
     }
 }
 
-// Lớp top-level độc lập: không tự thuộc nest của NestmateDemo.
+// Independent top-level class: does not automatically belong to NestmateDemo's nest.
 class Outside {
     static void inspect(NestmateDemo obj) throws Exception {
         Field field = NestmateDemo.class.getDeclaredField("secret");
@@ -150,14 +150,14 @@ class Outside {
 }
 ```
 
-Biên dịch và chạy bằng **JDK 17+**, với target mặc định của JDK hiện đại:
+Compile and run with **JDK 17+**, using the default target of modern JDKs:
 
 ```bash
 javac NestmateDemo.java
 java NestmateDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 same nest: true
@@ -172,69 +172,69 @@ outside canAccess: false
 outside read: IllegalAccessException
 ```
 
-### Phân tích từng nhóm kết quả
+### Analyzing each group of results
 
-1. `MemberReader.class.isNestmateOf(Peer.class)` là `true` dù hai lớp lồng không nằm trong quan hệ kế thừa: cả hai có chung nest host.
-2. `Outside.class` không thuộc nest chỉ vì cùng package/source file; `isNestmateOf` trả về `false`.
-3. `getNestMembers()` của `NestmateDemo` chứa `Peer.class`. Không dùng vị trí trong mảng để khẳng định thành viên.
-4. Dòng `direct: ALPHA` là truy cập `private` thông qua cú pháp Java thường. Hai dòng `canAccess` và hai kết quả Reflection cho thấy khi **caller là `MemberReader` cùng nest**, kiểm tra truy cập thông thường cũng cho phép Reflection đọc field và gọi method `private` **mà không dùng `setAccessible(true)`**.
-5. `Outside` vẫn lấy được đối tượng `Field` bằng `getDeclaredField`: truy vấn metadata thành công nhưng `canAccess(obj)` là `false`. Khi dùng `Field.get`, JVM/Reflection ném `IllegalAccessException` vì caller không có quyền.
-6. `Method.invoke` trong ví dụ trả về `ALPHA!`. Đây là lúc method được *gọi thực sự*, khác với việc chỉ tra cứu `Method` bằng `getDeclaredMethod`.
+1. `MemberReader.class.isNestmateOf(Peer.class)` is `true` even though the two nested classes have no inheritance relationship: both share the same nest host.
+2. `Outside.class` does not belong to the nest just for being in the same package/source file; `isNestmateOf` returns `false`.
+3. `NestmateDemo`'s `getNestMembers()` contains `Peer.class`. Do not rely on array index to assert membership.
+4. The line `direct: ALPHA` is `private` access via normal Java syntax. The two `canAccess` lines and two Reflection results show that when **the caller is `MemberReader` in the same nest**, normal access checks also allow Reflection to read a `private` field and invoke a `private` method **without calling `setAccessible(true)`**.
+5. `Outside` still obtains the `Field` object with `getDeclaredField`: the metadata query succeeds, but `canAccess(obj)` is `false`. When calling `Field.get`, the JVM/Reflection throws `IllegalAccessException` because the caller lacks permission.
+6. `Method.invoke` in the example returns `ALPHA!`. This is when the method is *actually invoked*, distinct from merely looking up the `Method` with `getDeclaredMethod`.
 
-Chương trình cố ý dùng `throws Exception` ở ví dụ tập trung để dễ đọc. Trong ứng dụng, hãy xử lý các ngoại lệ Reflection đúng ngữ nghĩa: `NoSuchFieldException`, `NoSuchMethodException` cho tra cứu; `IllegalAccessException` cho truy cập; `InvocationTargetException` khi method đích ném lỗi; và các trường hợp không đúng kiểu/đối số.
+The program intentionally uses `throws Exception` in a focused example for readability. In real applications, handle Reflection exceptions semantically: `NoSuchFieldException` and `NoSuchMethodException` for lookup; `IllegalAccessException` for access; `InvocationTargetException` when the target method throws an error; and type/argument mismatch cases.
 
-## 5. Có quyền private qua nestmate khác gì setAccessible?
+## 5. How does private access via nestmates differ from setAccessible?
 
-Có ba thao tác độc lập dễ bị nhầm:
+There are three independent operations that are easily confused:
 
-**(1) Tìm metadata.** `getDeclaredField("secret")` và `getDeclaredMethod("combine", String.class)` trả về đối tượng mô tả thành viên, kể cả `private`. `getField`/`getMethod` dành cho tập member `public` theo quy tắc tra cứu tương ứng.
+**(1) Finding metadata.** `getDeclaredField("secret")` and `getDeclaredMethod("combine", String.class)` return member descriptor objects, including `private` ones. `getField`/`getMethod` are for the `public` member set under their respective lookup rules.
 
-**(2) Kiểm tra quyền truy cập thông thường.** `field.canAccess(obj)` hoặc `method.canAccess(obj)` cho biết caller hiện tại có quyền thực hiện thao tác trên đối tượng cụ thể theo trạng thái truy cập Reflection hiện tại hay không. Caller của phép kiểm tra có ý nghĩa: trong ví dụ, chạy trong `MemberReader` trả `true`, còn chạy trong `Outside` trả `false` đối với field `private` đó. Đối số phải hợp lệ: với instance field/method, truyền đúng receiver; với static member, dùng `null`. Tham số sai có thể gây `IllegalArgumentException`.
+**(2) Checking normal access permission.** `field.canAccess(obj)` or `method.canAccess(obj)` reports whether the current caller has permission to perform the operation on a specific object given the current Reflection access state. The caller performing the check matters: in the example, running inside `MemberReader` returns `true`, while running inside `Outside` returns `false` for that `private` field. The argument must be valid: for instance fields/methods, pass a matching receiver; for static members, pass `null`. An invalid argument can cause `IllegalArgumentException`.
 
-**(3) Yêu cầu bỏ qua kiểm tra truy cập Java thông thường.** `setAccessible(true)` hoặc `trySetAccessible()` là thao tác riêng, chịu ràng buộc module của JPMS. Dùng chúng để bỏ qua access check không phải điều kiện tiên quyết khi caller có quyền truy cập nhờ quan hệ nest.
+**(3) Requesting to bypass normal Java access checks.** `setAccessible(true)` or `trySetAccessible()` is a separate operation, subject to JPMS module constraints. Using them to suppress access checks is not a prerequisite when the caller already has access via a nest relationship.
 
-| Caller và hành động | Tìm metadata `private` bằng `getDeclared...` | Truy cập thực sự khi chưa bật accessible override |
+| Caller and action | Find `private` metadata via `getDeclared...` | Actual access without accessible override enabled |
 | --- | --- | --- |
-| Một lớp nestmate hợp lệ | Có | Có, nếu kiểu thành viên/receiver/điều kiện khác phù hợp |
-| Lớp top-level cùng package nhưng ngoài nest | Có thể | Không có quyền `private` chỉ vì cùng package |
-| Một subclass nhưng ngoài nest | Có thể | Kế thừa **không** cấp quyền `private` |
-| Thư viện ngoài module | Có thể tra cứu metadata tùy API | Truy cập `private` không tự được cấp; `setAccessible` còn chịu quy tắc `opens` |
+| A valid nestmate class | Yes | Yes, if member kind/receiver/other conditions match |
+| Top-level class in same package but outside nest | Can | No `private` access merely from sharing a package |
+| A subclass outside the nest | Can | Inheritance does **not** grant `private` access |
+| Library outside the module | Can look up metadata depending on API | `private` access is not automatically granted; `setAccessible` is also subject to `opens` rules |
 
-**JPMS:** Trên Java 9+, một framework có thể bị chặn khi cố gọi `setAccessible(true)` vào thành viên không public của package trong một module khác chưa `opens` package đó. `trySetAccessible()` có thể trả về `false`; `setAccessible(true)` có thể ném `InaccessibleObjectException`. Đừng mặc định thêm `--add-opens` hoặc bỏ qua lỗi. Thiết kế API public hoặc thiết lập `opens` có chủ đích khi framework thật sự cần deep reflection.
+**JPMS:** On Java 9+, a framework can be blocked when trying to call `setAccessible(true)` on a non-public member of a package in another module that has not `opens` that package. `trySetAccessible()` can return `false`; `setAccessible(true)` can throw `InaccessibleObjectException`. Do not add `--add-opens` or ignore errors by default. Design a public API or configure `opens` intentionally when a framework genuinely needs deep reflection.
 
-Bản thân nest hợp lệ không được trải tùy tiện giữa các module: các member phải thỏa điều kiện lớp/runtime package/class loader theo quy định JVM. Do đó không thể dùng nestmate để tự động vượt qua ranh giới bảo vệ của một module khác.
+A valid nest itself cannot be stretched arbitrarily across modules: members must satisfy class/runtime package/class loader conditions as specified by the JVM. Therefore, nestmates cannot be used to automatically cross another module's protection boundary.
 
-## 6. Cơ chế ở bytecode/JVM
+## 6. Bytecode/JVM mechanism
 
-### Java 8 và trước đó: compiler thường sinh accessor
+### Java 8 and earlier: compilers typically generated accessors
 
-Vì JVM cũ chỉ cho phép truy cập thành viên `private` bên trong **chính class sở hữu** (trong khi mã Java hỗ trợ truy cập qua lớp lồng), compiler phải phát sinh cầu nối `synthetic`, ví dụ tên dạng `access$000` hoặc tương tự. Lớp lồng gọi cầu nối thay cho truy cập `private` trực tiếp. Tên/cách sinh cầu nối là **chi tiết của compiler**, không phải API ổn định.
+Because older JVMs only allowed `private` member access inside **the owning class itself** (while Java source code supported access across nested classes), the compiler had to emit `synthetic` bridges, such as names like `access$000` or similar. Nested classes called the bridge instead of direct `private` access. Bridge naming/generation is a **compiler implementation detail**, not a stable API.
 
-### Java 11+: thông tin nest trong class file
+### Java 11+: nest information in class files
 
-JEP 181 bổ sung thuộc tính class file:
+JEP 181 added class file attributes:
 
-- **`NestHost`:** class member chỉ ra host của mình.
-- **`NestMembers`:** host liệt kê các class member cùng nest.
+- **`NestHost`:** member class points to its host.
+- **`NestMembers`:** host lists member classes in the same nest.
 
-Khi thực hiện kiểm tra quyền truy cập `private`, JVM xét hai class có thuộc cùng nest **được xác minh hợp lệ** hay không. Việc chỉ ghi tên một lớp khác vào class file chưa đủ: JVM còn kiểm tra tính hợp lệ của quan hệ, gồm sự đồng ý từ host và các ràng buộc runtime package/class loader. Dữ liệu class file giả mạo hoặc không nhất quán có thể làm quá trình phân giải/kiểm tra thất bại; không nên tạo quan hệ nest bằng cách sửa tên class thủ công.
+When performing `private` access checks, the JVM checks whether the two classes belong to the same **validly verified** nest. Merely writing another class name into a class file is not enough: the JVM also validates the relationship, including agreement from the host and runtime package/class loader constraints. Spoofed or inconsistent class file data can cause resolution/verification to fail; do not forge nest relationships by manually editing class names.
 
-**Phiên bản biên dịch rất quan trọng.** Chạy chương trình trên JDK mới **không** tự biến bytecode target Java 8 thành bytecode nestmate: compiler tạo và ghi thông tin nest khi target/class-file version cho phép. Nếu cần hỗ trợ JVM cũ, chọn `--release` phù hợp và hiểu rằng compiler có thể dùng synthetic accessors. Java 8 không nhận diện các thuộc tính nest của class file Java 11.
+**Compilation target version matters greatly.** Running a program on a newer JDK does **not** automatically turn Java 8-targeted bytecode into nestmate bytecode: the compiler generates and records nest attributes when the target/class-file version supports them. If older JVMs must be supported, choose the appropriate `--release` and understand the compiler may use synthetic accessors. Java 8 does not recognize Java 11 class-file nest attributes.
 
-Có thể kiểm tra class file **sau khi biên dịch**:
+You can inspect class files **after compilation**:
 
 ```bash
 javap -v NestmateDemo
 javap -v 'NestmateDemo$MemberReader'
 ```
 
-Lệnh trên dùng cú pháp trích dẫn single quote phù hợp với shell Unix. Trong PowerShell cũng có thể đặt tên lớp chứa `$` trong single quotes. Hãy tìm thuộc tính `NestMembers` ở host và `NestHost` ở member. Kết quả của `javap -v` rất dài, khác nhau theo compiler/phiên bản và không được dùng như output cố định của bài.
+The command above uses single-quote syntax suitable for Unix shells. In PowerShell you can also wrap class names containing `$` in single quotes. Look for the `NestMembers` attribute on the host and `NestHost` on the member. `javap -v` output is very long, varies by compiler/version, and should not be treated as fixed article output.
 
-Không nhầm nest metadata với `InnerClasses` hoặc `EnclosingMethod`: những thuộc tính này phục vụ thông tin cấu trúc lớp lồng/ngữ cảnh bao, nhưng không thay thế quy tắc kiểm tra nestmate của JVM.
+Do not confuse nest metadata with `InnerClasses` or `EnclosingMethod`: those attributes provide nested class/enclosing context structure information, but do not replace JVM nestmate checking rules.
 
-## 7. Nestmate không đồng nghĩa với kế thừa, package hay lexical access ở mọi ngữ cảnh
+## 7. Nestmates do not mean inheritance, package, or lexical access in every context
 
-### 7.1. Nestmate so với subclass
+### 7.1. Nestmate vs subclass
 
 ```java
 class Parent {
@@ -242,58 +242,58 @@ class Parent {
 }
 
 class Child extends Parent {
-    // Không thể viết: int n = hidden;
+    // Cannot write: int n = hidden;
 }
 ```
 
-`Child` không có quyền truy cập `private` của `Parent` chỉ vì `extends`. Một subclass bên ngoài nest cũng không thể gọi `getDeclaredField("hidden").get(instance)` mà tự nhiên được phép. Nếu một nested class đồng thời là subclass và nestmate thì quyền `private` bắt nguồn từ **nest**, không phải inheritance.
+`Child` does not gain `private` access to `Parent` merely because of `extends`. A subclass outside the nest also cannot call `getDeclaredField("hidden").get(instance)` and expect automatic permission. If a nested class happens to be both a subclass and a nestmate, `private` access stems from the **nest**, not inheritance.
 
-### 7.2. Cùng package hoặc cùng tệp .java
+### 7.2. Same package or same .java file
 
-Hai top-level class cùng package có thể truy cập các thành viên package-private hợp lệ nhưng không được truy cập `private` của nhau. Lớp `Outside` trong chương trình trên cho thấy **cùng tệp nguồn cũng không tạo nest**. Không dùng `Class.getPackageName()` hay tên binary làm phép thử nestmate; dùng `isNestmateOf`.
+Two top-level classes in the same package can access valid package-private members, but cannot access each other's `private` members. The `Outside` class in the program above shows that **being in the same source file does not create a nest either**. Do not use `Class.getPackageName()` or binary names as a nestmate test; use `isNestmateOf`.
 
-### 7.3. Nested class không luôn là inner class
+### 7.3. A nested class is not always an inner class
 
-- `static nested class` không tự giữ tham chiếu đến instance của lớp ngoài. Nó vẫn có thể là nestmate và truy cập `private` của đối tượng ngoài nếu **đã có tham chiếu**.
-- `inner class` (non-static) thường có ngữ cảnh đối tượng bao ngoài, nhưng việc có tham chiếu đó và việc được JVM cấp quyền `private` là hai vấn đề riêng.
-- Nest membership không cấp quyền đọc field instance khi không có một receiver thích hợp; `private` access permission và sự tồn tại của đối tượng không phải một.
+- A `static nested class` does not automatically hold a reference to an outer class instance. It can still be a nestmate and access `private` members of an outer object if it **already has a reference**.
+- An `inner class` (non-static) usually has an enclosing instance context, yet having that reference and being granted `private` access by the JVM are two separate matters.
+- Nest membership does not grant permission to read an instance field without an appropriate receiver; `private` access permission and object existence are not the same thing.
 
-### 7.4. Reflection metadata và synthetic members
+### 7.4. Reflection metadata and synthetic members
 
-Reflection có thể quan sát những member `synthetic` do compiler sinh. Khi chạy mã biên dịch target cũ, có thể thấy các method `access$...`; khi dùng target Java 11+, chúng thường không còn cần thiết cho truy cập xuyên các nestmate. Đừng dựa vào số lượng hoặc tên synthetic members để kết luận rằng ứng dụng hoạt động giống nhau giữa các compiler.
+Reflection can observe compiler-generated `synthetic` members. When running code compiled for an older target, `access$...` methods may appear; when targeting Java 11+, they are usually no longer needed for access across nestmates. Do not rely on the count or names of synthetic members to assume applications behave identically across compilers.
 
-Các công cụ introspection có thể dùng `Method.isSynthetic()`, `Field.isSynthetic()` và `Method.isBridge()` để phân tích chi tiết. Chỉ lọc chúng nếu quy tắc nghiệp vụ cho phép; đối với chẩn đoán bytecode, thông tin synthetic có thể rất quan trọng.
+Introspection tools can use `Method.isSynthetic()`, `Field.isSynthetic()`, and `Method.isBridge()` for detailed analysis. Only filter them out if business rules allow; for bytecode diagnostics, synthetic information can be very important.
 
-## 8. Lưu ý khi dùng Reflection và xử lý lỗi
+## 8. Notes when using Reflection and handling errors
 
-1. **Không dùng `getFields()` để tìm field `private`.** Cần `getDeclaredField()`; phương thức đó tìm metadata được khai báo ngay trong class, không tự đi qua superclass.
-2. **Không đồng nhất “tìm thấy” với “được phép dùng”.** `getDeclaredMethod()` tìm metadata, `canAccess()` kiểm tra quyền với caller và receiver hiện tại, `invoke()` mới thực thi. Đừng bỏ qua kiểm tra ngoại lệ.
-3. **Không kiểm tra quyền từ sai vị trí.** Kết quả `canAccess` có thể khác giữa code trong nestmate và framework ngoài nest; gọi phép kiểm tra ở nơi khác có thể cho kết luận khác.
-4. **Không cố truy cập sâu chỉ vì quan hệ source code.** Chỉ các quan hệ nest hợp lệ ở runtime mới hỗ trợ quyền đặc biệt. Các class loader/module, target bytecode và công cụ instrument bytecode có thể ảnh hưởng đến metadata thực tế.
-5. **Không dùng quan hệ nest để vượt JPMS.** `setAccessible` vẫn theo module boundary/`opens` và phải được xem xét riêng.
-6. **Không giả định mọi field/method đều là instance member.** `canAccess(null)` thích hợp cho static member, còn instance member cần receiver đúng kiểu.
-7. **Không so sánh thứ tự từ `getNestMembers()`.** Nếu hiển thị tài liệu, sắp xếp theo tên; nếu kiểm tra sự hiện diện, dùng `contains` hoặc so sánh đối tượng `Class`.
-8. **Không dùng `getNestMembers()` thay cho phân tích mọi lớp có quan hệ kế thừa.** Nest mô tả quyền riêng tư giữa các lớp cùng tổ, không mô tả toàn bộ type hierarchy.
+1. **Do not use `getFields()` to look for `private` fields.** You need `getDeclaredField()`; that method searches metadata declared directly on the class without walking superclasses.
+2. **Do not equate "found" with "allowed to use".** `getDeclaredMethod()` finds metadata, `canAccess()` checks permission with the current caller and receiver, and `invoke()` performs the execution. Do not skip exception handling.
+3. **Do not check permission from the wrong location.** `canAccess` results can differ between code inside a nestmate and a framework outside the nest; calling the check elsewhere can yield a different answer.
+4. **Do not assume deep access solely from source-code relationships.** Only valid runtime nest relationships support the special access. Class loaders/modules, bytecode targets, and bytecode instrumentation tools can affect actual metadata.
+5. **Do not use nest relationships to bypass JPMS.** `setAccessible` still follows module boundaries/`opens` and must be evaluated separately.
+6. **Do not assume every field/method is an instance member.** `canAccess(null)` applies to static members, whereas instance members need a receiver of the right type.
+7. **Do not compare element order from `getNestMembers()`.** If displaying in documentation, sort by name; if checking presence, use `contains` or compare `Class` objects.
+8. **Do not use `getNestMembers()` as a substitute for analyzing all classes in an inheritance hierarchy.** A nest describes privacy among nestmates, not the full type hierarchy.
 
-Khi thiết kế framework, bước thực tế thường là: xác định `Class<?>` chủ sở hữu, đọc member qua `getDeclared...`, kiểm tra cần metadata hay cần thực thi, xét quyền truy cập tại điểm thực thi, và chỉ cân nhắc `trySetAccessible()` khi thực sự phải gọi private từ ngoài nest và cấu hình module cho phép.
+When designing a framework, the practical steps are usually: identify the owning `Class<?>`, read members via `getDeclared...`, decide whether only metadata or execution is needed, evaluate access at the execution point, and consider `trySetAccessible()` only when calling `private` from outside the nest is truly required and module configuration permits it.
 
-## 9. Tự kiểm tra và thực hành
+## 9. Self-check and practice
 
-**Câu 1.** Vì sao `MemberReader` đọc được `secret` trực tiếp, trong khi `Outside` không thể?
-**Đáp án:** `MemberReader` thuộc cùng nest với `NestmateDemo`; `Outside` là top-level class độc lập ngoài nest. Cùng tệp nguồn không tạo quyền `private`.
+**Question 1.** Why can `MemberReader` read `secret` directly while `Outside` cannot?
+**Answer:** `MemberReader` belongs to the same nest as `NestmateDemo`; `Outside` is an independent top-level class outside the nest. Sharing a source file does not grant `private` access.
 
-**Câu 2.** `getDeclaredField("secret")` trong `Outside` có trả về `Field` không? Vì sao đọc field vẫn thất bại?
-**Đáp án:** Có, vì tra cứu metadata là bước khác kiểm tra quyền; `Field.get` áp dụng quyền truy cập từ caller ngoài nest và ném `IllegalAccessException`.
+**Question 2.** Does `getDeclaredField("secret")` in `Outside` return a `Field`? Why does reading the field still fail?
+**Answer:** Yes, because metadata lookup is a separate step from access checking; `Field.get` enforces access control from the caller outside the nest and throws `IllegalAccessException`.
 
-**Câu 3.** Có phải mọi subclass đều là nestmate của superclass?
-**Đáp án:** Không. Kế thừa và nest là hai quan hệ độc lập.
+**Question 3.** Is every subclass a nestmate of its superclass?
+**Answer:** No. Inheritance and nest membership are two independent relationships.
 
-**Câu 4.** Cách kiểm tra hai class có cùng nest là gì?
-**Đáp án:** `A.class.isNestmateOf(B.class)`. Dùng `getNestHost()` để biết host; `getNestMembers()` để xem các member.
+**Question 4.** How do you check whether two classes belong to the same nest?
+**Answer:** `A.class.isNestmateOf(B.class)`. Use `getNestHost()` to find the host; `getNestMembers()` to inspect members.
 
-**Câu 5.** Vì sao không thể nhìn thấy `NestHost`/`NestMembers` khi biên dịch class theo target Java 8?
-**Đáp án:** Cơ chế nestmate nằm trong class file Java 11+, còn target Java 8 dùng cơ chế tương thích cũ khi cần truy cập private giữa lớp lồng.
+**Question 5.** Why aren't `NestHost`/`NestMembers` visible when compiling classes targeting Java 8?
+**Answer:** The nestmate mechanism resides in Java 11+ class files, whereas targeting Java 8 uses the older compatibility mechanism when `private` access across nested classes is needed.
 
-**Bài thực hành:** Thêm một field `private int value = 42;` vào `Peer` và một phương thức `private static int read(Peer peer)` vào `MemberReader` để truy cập `peer.value`. Kiểm tra có thể gọi từ `main` và so sánh với việc gọi qua Reflection từ `Outside`. Chỉ sử dụng quyền nestmate, không thêm `setAccessible(true)`; giải thích kết quả dựa trên caller, host và quyền `private`.
+**Practice exercise:** Add a field `private int value = 42;` to `Peer` and a method `private static int read(Peer peer)` to `MemberReader` to access `peer.value`. Verify it can be called from `main` and compare it with calling via Reflection from `Outside`. Use only nestmate privileges without adding `setAccessible(true)`; explain the results based on caller, host, and `private` access.
 
-**Điểm cốt lõi:** Nestmate là quy tắc truy cập `private` ở cấp JVM được hỗ trợ từ Java 11. Reflection giúp **quan sát nest** (`getNestHost`, `getNestMembers`, `isNestmateOf`), **tìm metadata** (`getDeclared...`) và **thực hiện thao tác** (`get`/`invoke`). Ba việc đó có ý nghĩa khác nhau, vì thế hãy kiểm tra đúng quan hệ nest và quyền tại điểm sử dụng member.
+**Core takeaway:** Nestmates are a JVM-level `private` access rule supported since Java 11. Reflection lets you **inspect the nest** (`getNestHost`, `getNestMembers`, `isNestmateOf`), **find metadata** (`getDeclared...`), and **perform operations** (`get`/`invoke`). These three things have distinct meanings, so verify the nest relationship and permissions accurately at the point where the member is used.

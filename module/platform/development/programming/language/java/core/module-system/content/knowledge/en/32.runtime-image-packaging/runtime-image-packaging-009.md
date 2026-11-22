@@ -1,14 +1,14 @@
-# Phân biệt JAR modular với runtime image
+# Distinguishing Modular JARs from Runtime Images
 
-JAR modular và runtime image đều thuộc Java Module System, nhưng giải quyết hai bài toán khác nhau. **JAR modular là artifact ứng dụng hoặc thư viện có module descriptor**. **Runtime image là môi trường chạy Java đã được liên kết từ các module cần thiết**, thường được tạo bằng jlink.
+Modular JARs and runtime images both belong to the Java Module System, but they solve two different problems. **A modular JAR is an application or library artifact with a module descriptor**. **A runtime image is a Java execution environment linked from the required modules**, typically created with jlink.
 
-JAR modular được phân phối như một file archive trong module path và cần một Java runtime phù hợp. Runtime image chứa runtime cần thiết cùng các module ứng dụng đã được liên kết. Vì vậy, runtime image giúp triển khai ứng dụng mà không yêu cầu người dùng cài JDK hoặc JRE riêng.
+A modular JAR is distributed as an archive file on the module path and requires a compatible Java runtime. A runtime image contains the required runtime together with the linked application modules. Therefore, a runtime image enables deploying an application without requiring users to install a separate JDK or JRE.
 
-## 1. JAR modular
+## 1. Modular JAR
 
-JAR modular là file JAR có module descriptor, thường là module-info.class ở thư mục gốc. Descriptor khai báo tên module, dependency, package được export hoặc open, service được sử dụng và provider được cung cấp.
+A modular JAR is a JAR file that has a module descriptor, typically module-info.class at the root directory. The descriptor declares the module name, dependencies, exported or opened packages, services used, and providers supplied.
 
-Ví dụ:
+Example:
 
 ~~~text
 com.example.app.jar
@@ -28,38 +28,38 @@ module com.example.app {
 }
 ~~~
 
-Tạo JAR modular từ thư mục out đã chứa module-info.class và class đã biên dịch:
+Create a modular JAR from the out directory containing module-info.class and compiled classes:
 
 ~~~bash
 jar --create --file mods/com.example.app.jar --main-class com.example.app.Main -C out .
 ~~~
 
-Kiểm tra archive:
+Inspect the archive:
 
 ~~~bash
 jar --describe-module --file mods/com.example.app.jar
 jar --list --file mods/com.example.app.jar
 ~~~
 
-Chạy module từ module path:
+Run the module from the module path:
 
 ~~~bash
 java --module-path mods --module com.example.app
 ~~~
 
-Hoặc chỉ định main class:
+Or specify the main class:
 
 ~~~bash
 java --module-path mods --module com.example.app/com.example.app.Main
 ~~~
 
-JAR modular chỉ đóng gói module ứng dụng hoặc thư viện. Nó không tự mang theo toàn bộ Java runtime. Khi chạy, lệnh java vẫn được lấy từ JDK/JRE cài trên máy hoặc từ runtime image phân phối kèm ứng dụng.
+A modular JAR only packages an application or library module. It does not carry the entire Java runtime with it. At runtime, the java command is still taken from a JDK/JRE installed on the machine or from a runtime image distributed with the application.
 
-## 2. Runtime image
+## 2. Runtime Image
 
-Runtime image là cấu trúc thư mục chứa runtime Java đã được liên kết với tập module được chọn. Công cụ jlink tạo image từ các module có thể resolve, gồm module nền tảng của JDK và module ứng dụng trên module path.
+A runtime image is a directory structure containing a Java runtime linked with a selected set of modules. The jlink tool creates the image from resolvable modules, including JDK platform modules and application modules on the module path.
 
-Cấu trúc thường gặp:
+Typical structure:
 
 ~~~text
 app-image/
@@ -75,33 +75,33 @@ app-image/
 |-- release
 ~~~
 
-Tên file và thư mục chi tiết có thể khác theo hệ điều hành và cấu hình. Điểm quan trọng là image có Java launcher và module image chứa các module đã liên kết. Nó không phải một file JAR duy nhất.
+Exact filenames and directory details may vary by operating system and configuration. The key point is that the image has a Java launcher and a module image containing the linked modules. It is not a single JAR file.
 
-Runtime image có thể bao gồm module Java nền tảng mà ứng dụng cần, module ứng dụng được link, provider module phù hợp với service binding, Java launcher và các thành phần runtime cần thiết.
+A runtime image can include the platform Java modules the application needs, linked application modules, provider modules matched via service binding, the Java launcher, and necessary runtime components.
 
-Runtime image được tạo cho nền tảng mục tiêu. Image tạo trên Windows không chạy trực tiếp trên Linux hoặc macOS. Khi phát hành nhiều nền tảng, cần tạo image tương ứng cho từng hệ điều hành và kiến trúc.
+A runtime image is built for a target platform. An image built on Windows does not run directly on Linux or macOS. When releasing for multiple platforms, you must build a corresponding image for each operating system and architecture.
 
-## 3. So sánh
+## 3. Comparison
 
-| Tiêu chí | JAR modular | Runtime image |
+| Criterion | Modular JAR | Runtime Image |
 |---|---|---|
-| Bản chất | Archive chứa một module | Môi trường Java đã liên kết |
-| Định dạng | Một file JAR | Thư mục image có cấu trúc runtime |
-| Thành phần | Class, resource và module descriptor | Java runtime, module image và launcher |
-| Mục đích | Phân phối module ứng dụng hoặc thư viện | Triển khai runtime tùy chỉnh |
-| Runtime cần có | Cần JDK/JRE tương thích ở nơi chạy | Đã chứa runtime cần thiết |
-| Công cụ tạo | javac và jar | jlink |
-| Số module | Một JAR modular đại diện một module | Một image có thể chứa nhiều module |
-| Nền tảng | JAR thường dùng trên nhiều nền tảng có runtime phù hợp | Image gắn với hệ điều hành và kiến trúc mục tiêu |
-| Cách khởi chạy | java --module-path ... --module ... | Java launcher nằm trong image |
+| Nature | Archive containing one module | Linked Java environment |
+| Format | Single JAR file | Image directory with runtime layout |
+| Contents | Classes, resources, and module descriptor | Java runtime, module image, and launcher |
+| Purpose | Distribute an application or library module | Deploy a custom runtime |
+| Required runtime | Needs a compatible JDK/JRE where it runs | Already contains the needed runtime |
+| Creation tool | javac and jar | jlink |
+| Number of modules | One modular JAR represents one module | One image can contain multiple modules |
+| Platform | JARs generally work across platforms with a matching runtime | Image is tied to the target OS and architecture |
+| How to launch | java --module-path ... --module ... | Java launcher located inside the image |
 
-Không nên xem runtime image là một loại JAR lớn. JAR modular là artifact phân phối module; runtime image là đầu ra triển khai chứa môi trường chạy đã được liên kết.
+Do not think of a runtime image as a big kind of JAR. A modular JAR is a module distribution artifact; a runtime image is a deployment output containing a linked execution environment.
 
-## 4. jlink và module path
+## 4. jlink and the Module Path
 
-jlink đọc module descriptor, resolve dependency graph và liên kết các module được chọn thành runtime image. Module ứng dụng được cung cấp qua module path cùng các module hệ thống của JDK.
+jlink reads module descriptors, resolves the dependency graph, and links selected modules into a runtime image. Application modules are provided via the module path alongside JDK system modules.
 
-Ví dụ thư mục module:
+Example module directory:
 
 ~~~text
 mods/
@@ -110,143 +110,143 @@ mods/
 |-- com.example.logging.jar
 ~~~
 
-Giả sử com.example.app yêu cầu com.example.data, còn com.example.data yêu cầu java.sql. Khi link module gốc com.example.app, jlink resolve dependency cần thiết và đưa module trong graph vào image.
+Suppose com.example.app requires com.example.data, and com.example.data requires java.sql. When linking the root module com.example.app, jlink resolves required dependencies and includes the modules in the graph into the image.
 
-Lệnh trên Linux hoặc macOS:
+Command on Linux or macOS:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" --add-modules com.example.app --output app-image
 ~~~
 
-Trên Windows, dùng dấu chấm phẩy để phân tách module path:
+On Windows, use a semicolon to separate module path entries:
 
 ~~~powershell
 jlink --module-path "$env:JAVA_HOME\jmods;mods" --add-modules com.example.app --output app-image
 ~~~
 
-Module path gồm thư mục jmods của JDK và thư mục chứa JAR modular. add-modules chỉ định root module. jlink resolve dependency requires từ root module và tạo image ở thư mục output.
+The module path includes the JDK's jmods directory and the directory containing modular JARs. add-modules specifies the root module. jlink resolves requires dependencies from the root module and creates the image in the output directory.
 
-Không cần liệt kê thủ công dependency bắc cầu nếu chúng được khai báo đúng trong requires. Mọi module ứng dụng cần link phải có mặt trên module path và là module mà jlink có thể resolve.
+You do not need to manually list transitive dependencies if they are properly declared in requires. Every application module to be linked must be present on the module path and resolvable by jlink.
 
-## 5. Tạo launcher tùy chỉnh
+## 5. Creating a Custom Launcher
 
-Có thể yêu cầu jlink tạo launcher có tên riêng:
+You can instruct jlink to create a custom-named launcher:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" --add-modules com.example.app --launcher app=com.example.app/com.example.app.Main --output app-image
 ~~~
 
-Launcher app được tạo trong thư mục bin của image. Người dùng chạy ứng dụng bằng launcher này mà không cần tự viết lệnh java --module.
+The launcher app is created in the image's bin directory. Users run the application with this launcher without having to type the java --module command themselves.
 
-Nếu không tạo launcher tùy chỉnh, gọi Java launcher trực tiếp:
+If you do not create a custom launcher, call the Java launcher directly:
 
 ~~~bash
 app-image/bin/java --module com.example.app
 ~~~
 
-Trên Windows, executable tương ứng nằm trong thư mục bin và có tên java.exe.
+On Windows, the corresponding executable resides in the bin directory and is named java.exe.
 
-Launcher tùy chỉnh đơn giản hóa script triển khai và cố định entry point. Nó không tự đóng gói tài nguyên ngoài như file cấu hình, dữ liệu hoặc chứng chỉ mà ứng dụng cần.
+A custom launcher simplifies deployment scripts and fixes the entry point. It does not automatically package external resources such as configuration files, data, or certificates that the application needs.
 
-## 6. Chọn module cho image
+## 6. Selecting Modules for the Image
 
-jlink bắt đầu từ một hoặc nhiều root module. Các dependency requires được resolve theo module graph.
+jlink starts from one or more root modules. requires dependencies are resolved according to the module graph.
 
-| Tùy chọn | Ý nghĩa |
+| Option | Meaning |
 |---|---|
-| --module-path | Vị trí tìm module đầu vào |
-| --add-modules | Root module cần link |
-| --bind-services | Resolve thêm provider module cho service được sử dụng |
-| --limit-modules | Giới hạn tập module quan sát được khi resolve |
-| --launcher | Tạo launcher tùy chỉnh cho module và main class |
-| --output | Thư mục runtime image đầu ra |
-| --list-plugins | Liệt kê plugin jlink có sẵn |
+| --module-path | Location to find input modules |
+| --add-modules | Root modules to link |
+| --bind-services | Also resolves provider modules for used services |
+| --limit-modules | Restricts the observable module set during resolution |
+| --launcher | Creates a custom launcher for a module and main class |
+| --output | Output runtime image directory |
+| --list-plugins | Lists available jlink plugins |
 
-Ví dụ ứng dụng dùng ServiceLoader và cần provider module:
+Example application using ServiceLoader and needing provider modules:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" --add-modules com.example.app --bind-services --output app-image
 ~~~
 
---bind-services yêu cầu linker xem xét provider module phù hợp với service được sử dụng trong module graph. Nếu ứng dụng tải plugin động hoặc có cấu hình plugin riêng, cần thiết kế tập module được link phù hợp; không giả định mọi plugin JAR sẽ tự xuất hiện trong image.
+--bind-services instructs the linker to consider provider modules matching services used in the module graph. If the application loads plugins dynamically or has separate plugin configuration, design the linked module set accordingly; do not assume every plugin JAR will automatically appear in the image.
 
-Có thể đưa nhiều root module:
+You can pass multiple root modules:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" --add-modules com.example.app,com.example.monitoring --output app-image
 ~~~
 
-Mỗi root có thể kéo theo dependency riêng. Image chứa tập module cần thiết theo cấu hình resolve và tùy chọn linker.
+Each root can pull in its own dependencies. The image contains the set of modules needed according to resolution configuration and linker options.
 
-## 7. Tối ưu runtime image
+## 7. Optimizing the Runtime Image
 
-jlink có tùy chọn giảm kích thước image hoặc bỏ thành phần không cần thiết:
+jlink has options to reduce image size or omit unnecessary components:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" --add-modules com.example.app --strip-debug --no-header-files --no-man-pages --compress=2 --output app-image
 ~~~
 
-- --strip-debug loại bỏ thông tin debug khỏi module được link.
-- --no-header-files không đưa header native vào image.
-- --no-man-pages không đưa trang hướng dẫn vào image.
-- --compress=2 áp dụng mức nén mà JDK hỗ trợ.
+- --strip-debug removes debug information from linked modules.
+- --no-header-files excludes native headers from the image.
+- --no-man-pages excludes manual pages from the image.
+- --compress=2 applies the compression level supported by the JDK.
 
-Các tùy chọn này có thể giảm dung lượng nhưng cũng loại bỏ nội dung hữu ích cho phát triển hoặc chẩn đoán. Không nên áp dụng máy móc cho image dùng trong debug. Hãy đo kích thước và kiểm tra ứng dụng sau khi link.
+These options can reduce size, but they also remove content useful for development or diagnostics. Do not apply them mechanically to images used for debugging. Measure size and test the application after linking.
 
-Kích thước image không chỉ phụ thuộc số JAR ứng dụng. Module JDK có thể kéo theo module khác, provider có thể được bind, và native runtime component cũng chiếm dung lượng. Kiểm tra danh sách module sau khi tạo để biết image thực sự chứa gì.
+Image size does not depend solely on the number of application JARs. JDK modules can pull in other modules, providers can be bound, and native runtime components also take up space. Inspect the module list after creation to see what the image actually contains.
 
-## 8. Kiểm tra và chạy image
+## 8. Inspecting and Running the Image
 
-Dùng Java launcher trong image để liệt kê module:
+Use the Java launcher inside the image to list modules:
 
 ~~~bash
 app-image/bin/java --list-modules
 ~~~
 
-Mô tả một module:
+Describe a module:
 
 ~~~bash
 app-image/bin/java --describe-module com.example.app
 ~~~
 
-Kiểm tra phiên bản runtime:
+Check the runtime version:
 
 ~~~bash
 app-image/bin/java --version
 ~~~
 
-Chạy ứng dụng:
+Run the application:
 
 ~~~bash
 app-image/bin/java --module com.example.app
 ~~~
 
-Hoặc chạy launcher tùy chỉnh:
+Or run the custom launcher:
 
 ~~~bash
 app-image/bin/app
 ~~~
 
-Nếu ứng dụng không khởi chạy, kiểm tra root module, requires dependency, provider cần thiết, launcher, file cấu hình, resource ngoài JAR, native library, hệ điều hành và kiến trúc mục tiêu.
+If the application fails to start, check root modules, requires dependencies, needed providers, the launcher, configuration files, resources outside JARs, native libraries, and the target OS and architecture.
 
-Một image link thành công không bảo đảm mọi tính năng ứng dụng đều hoạt động. Resource ngoài module, cấu hình, native library và kết nối hệ thống bên ngoài vẫn cần được kiểm thử.
+A successfully linked image does not guarantee every application feature works. Resources outside modules, configurations, native libraries, and external system connections still need testing.
 
-## 9. Giới hạn của jlink và automatic module
+## 9. Limitations of jlink and Automatic Modules
 
-jlink cần module có cấu trúc phù hợp để tạo image. Automatic module không phải đầu vào thay thế trực tiếp cho explicit module trong quy trình link thông thường. Nếu thư viện chỉ có JAR không module descriptor và đang được dùng như automatic module, cần chuyển nó thành explicit module hoặc đóng gói lại phù hợp trước khi link.
+jlink requires modules with an appropriate structure to create an image. Automatic modules are not a direct substitute input for explicit modules in standard linking workflows. If a library only has a JAR without a module descriptor and is being used as an automatic module, it needs to be converted to an explicit module or repackaged appropriately before linking.
 
-Hướng xử lý:
+Remediation approaches:
 
-- Nâng cấp thư viện lên phiên bản cung cấp module-info.class.
-- Tạo module descriptor nếu có thể kiểm soát source và dependency.
-- Đóng gói lại thành modular JAR và kiểm tra package, service metadata, dependency.
-- Thay thế thư viện bằng implementation đã hỗ trợ module system.
+- Upgrade the library to a version that provides module-info.class.
+- Create a module descriptor if you control the source and dependencies.
+- Repackage into a modular JAR and verify packages, service metadata, and dependencies.
+- Replace the library with an implementation that already supports the module system.
 
-Không tạo descriptor giả chỉ để jlink chấp nhận artifact nếu chưa xác định đúng requires, exports, opens, uses và provides. Descriptor sai có thể làm ứng dụng resolve được nhưng lỗi khi chạy.
+Do not create a dummy descriptor just to make jlink accept an artifact without properly determining requires, exports, opens, uses, and provides. An incorrect descriptor can allow the application to resolve yet fail at runtime.
 
-jlink tạo runtime image chứ không tạo installer hoàn chỉnh. Nếu cần bộ cài, shortcut, file association hoặc tích hợp hệ điều hành, có thể kết hợp jpackage với runtime image và tài nguyên triển khai.
+jlink creates a runtime image rather than a complete installer. If you need an installer, shortcuts, file associations, or OS integration, you can combine jpackage with a runtime image and deployment resources.
 
-## 10. JAR modular, runtime image và jpackage
+## 10. Modular JAR, Runtime Image, and jpackage
 
 ~~~text
 Source code
@@ -268,37 +268,37 @@ Custom runtime image
 Application package / installer
 ~~~
 
-| Công cụ | Đầu ra | Vai trò |
+| Tool | Output | Role |
 |---|---|---|
-| javac | Class file và module-info.class | Biên dịch module |
-| jar | Modular JAR | Đóng gói module ứng dụng hoặc thư viện |
-| jlink | Runtime image | Liên kết runtime tùy chỉnh |
-| jpackage | Gói ứng dụng hoặc installer | Đóng gói ứng dụng cho người dùng cuối, có thể kèm runtime image |
+| javac | Class files and module-info.class | Compiles modules |
+| jar | Modular JAR | Packages application or library modules |
+| jlink | Runtime image | Links a custom runtime |
+| jpackage | Application package or installer | Packages applications for end users, optionally including a runtime image |
 
-jpackage có thể dùng runtime image đã tạo hoặc tạo image phù hợp trong quá trình đóng gói tùy cấu hình. JAR modular và runtime image có thể cùng xuất hiện trong pipeline phát hành nhưng phục vụ mục đích khác nhau.
+jpackage can use an already-created runtime image or create a suitable image during packaging depending on configuration. Modular JARs and runtime images can coexist in a release pipeline while serving different purposes.
 
-## 11. Chọn artifact phân phối
+## 11. Choosing a Distribution Artifact
 
-| Nhu cầu | Lựa chọn phù hợp |
+| Need | Suitable Choice |
 |---|---|
-| Phân phối thư viện để ứng dụng khác sử dụng | Modular JAR |
-| Phân phối module ứng dụng cho môi trường đã có Java phù hợp | Modular JAR hoặc nhiều modular JAR |
-| Muốn người dùng không cần cài JDK/JRE riêng | Runtime image |
-| Chỉ muốn chứa module Java ứng dụng cần | Runtime image bằng jlink |
-| Chạy ứng dụng trên nhiều hệ điều hành | Tạo image riêng cho từng nền tảng |
-| Cần installer, shortcut hoặc tích hợp hệ điều hành | jpackage, thường kết hợp runtime image |
-| Cần cập nhật thư viện độc lập | Modular JAR |
-| Cần runtime đã kiểm soát module và phiên bản | Runtime image |
+| Distribute a library for other applications to use | Modular JAR |
+| Distribute application modules for an environment with a suitable Java | Modular JAR or multiple modular JARs |
+| Do not want users to install a separate JDK/JRE | Runtime image |
+| Want to include only the Java modules the application needs | Runtime image via jlink |
+| Run the application on multiple operating systems | Build a separate image for each platform |
+| Need an installer, shortcuts, or OS integration | jpackage, often combined with a runtime image |
+| Need to update libraries independently | Modular JAR |
+| Need a runtime with controlled modules and version | Runtime image |
 
-Nếu môi trường máy chủ đã quản lý Java runtime, modular JAR có thể dễ cập nhật và triển khai hơn. Nếu phát hành ứng dụng desktop hoặc công cụ độc lập cho người dùng cuối, runtime image giúp kiểm soát runtime và tránh phụ thuộc vào Java cài đặt trên máy.
+If a server environment already manages the Java runtime, modular JARs can be easier to update and deploy. If releasing a desktop application or standalone tool to end users, a runtime image helps control the runtime and avoid depending on Java installed on the machine.
 
-## 12. Ghi nhớ
+## 12. Key Takeaways
 
-JAR modular là file archive có module descriptor, dùng để phân phối một module. Runtime image là môi trường Java đã liên kết từ các module được chọn, có Java launcher và runtime component cần thiết. jlink lấy module từ module path, resolve dependency và tạo image; nó không chỉ đóng gói lại JAR.
+A modular JAR is an archive with a module descriptor, used to distribute a single module. A runtime image is a Java environment linked from selected modules, containing a Java launcher and necessary runtime components. jlink takes modules from the module path, resolves dependencies, and builds the image; it does not merely repackage JARs.
 
-Dùng modular JAR khi cần phân phối module độc lập và dùng runtime image khi cần phân phối cả môi trường chạy tùy chỉnh. Kiểm tra module bằng jar --describe-module, kiểm tra nội dung image bằng java --list-modules và chạy ứng dụng bằng launcher nằm trong image. Với phát hành cho người dùng cuối, cân nhắc jpackage để tạo gói cài đặt phù hợp nền tảng.
+Use modular JARs when distributing standalone modules and use runtime images when distributing a complete custom execution environment. Inspect modules with jar --describe-module, inspect image contents with java --list-modules, and run the application using the launcher inside the image. For end-user distribution, consider jpackage to create platform-appropriate installation packages.
 
-## Tài liệu tham khảo
+## References
 
 - Oracle JDK — The jlink Command: https://docs.oracle.com/en/java/javase/26/docs/specs/man/jlink.html
 - Oracle JDK — The jar Command: https://docs.oracle.com/en/java/javase/26/docs/specs/man/jar.html

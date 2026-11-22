@@ -1,29 +1,29 @@
-# Provider stream và lazy instantiation trong ServiceLoader
+# Provider streams and lazy instantiation in ServiceLoader
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Từ Java 9, `ServiceLoader` cung cấp phương thức `stream()` để làm việc với danh sách provider thông qua `ServiceLoader.Provider<S>`. Cách này cho phép ứng dụng xem loại class triển khai service, lọc hoặc chọn provider, rồi mới yêu cầu tạo instance khi thật sự cần.
+Since Java 9, `ServiceLoader` provides the `stream()` method to work with the list of providers via `ServiceLoader.Provider<S>`. This approach allows the application to inspect the service implementation class type, filter or select a provider, and only then request instance creation when truly needed.
 
-Điểm quan trọng là phải phân biệt **khám phá provider**, **nạp class provider** và **khởi tạo service instance**. Ba việc này không nhất thiết xảy ra cùng lúc. Provider stream giúp trì hoãn bước khởi tạo instance, đặc biệt hữu ích khi ứng dụng có nhiều plugin hoặc provider có constructor hay factory method tốn tài nguyên.
+The key point is to distinguish between **provider discovery**, **loading the provider class**, and **instantiating the service instance**. These three things do not necessarily happen at the same time. Provider streams help defer instance creation, which is especially useful when an application has many plugins or providers with resource-intensive constructors or factory methods.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích vai trò của `ServiceLoader`, `ServiceLoader.Provider<S>` và service instance.
-- Dùng `stream()` để xem loại provider trước khi tạo instance.
-- Lọc provider theo class rồi chỉ khởi tạo provider được chọn.
-- Phân biệt lazy evaluation của Java Stream với lazy instantiation của ServiceLoader.
+- Explain the roles of `ServiceLoader`, `ServiceLoader.Provider<S>`, and the service instance.
+- Use `stream()` to inspect a provider's type before creating an instance.
+- Filter providers by class and instantiate only the selected provider.
+- Distinguish between Java Stream lazy evaluation and ServiceLoader lazy instantiation.
 
-## 2. Ba thành phần cần phân biệt
+## 2. Three components to distinguish
 
-Khi dùng ServiceLoader, hãy tách ba khái niệm sau:
+When using ServiceLoader, separate the following three concepts:
 
-| Thành phần | Vai trò |
+| Component | Role |
 | --- | --- |
-| `ServiceLoader<S>` | Tìm và quản lý các provider cho service type `S`. |
-| `ServiceLoader.Provider<S>` | Đại diện cho một provider; cho phép xem type và yêu cầu tạo service instance. |
-| `S` | Instance thực tế mà ứng dụng gọi để sử dụng chức năng. |
+| `ServiceLoader<S>` | Discovers and manages providers for the service type `S`. |
+| `ServiceLoader.Provider<S>` | Represents a provider; allows inspecting the type and requesting a service instance. |
+| `S` | The actual instance the application calls to use the functionality. |
 
-Ví dụ:
+Example:
 
 ```java
 ServiceLoader<Codec> loader = ServiceLoader.load(Codec.class);
@@ -31,22 +31,22 @@ ServiceLoader<Codec> loader = ServiceLoader.load(Codec.class);
 var providers = loader.stream();
 ```
 
-Ở thời điểm tạo `loader` và pipeline `providers`, ứng dụng chưa yêu cầu một instance `Codec` cụ thể. Mỗi phần tử mà `stream()` cung cấp là một đối tượng `Provider<Codec>`, không phải một đối tượng `Codec`.
+At the time `loader` and the `providers` pipeline are created, the application has not yet requested a concrete `Codec` instance. Each element supplied by `stream()` is a `Provider<Codec>` object, not a `Codec` object.
 
-Hai phương thức quan trọng của `Provider<S>` là:
+Two key methods of `Provider<S>` are:
 
-- `type()`: trả về class của provider để ứng dụng có thể xem tên class, annotation hoặc metadata trên class. Việc này có thể khiến class provider được nạp, nhưng không gọi constructor hoặc provider method để tạo service instance.
-- `get()`: yêu cầu một service instance từ provider. Đây là điểm ứng dụng chủ động bước sang giai đoạn khởi tạo.
+- `type()`: returns the provider's class so the application can inspect the class name, annotations, or metadata on the class. This may cause the provider class to be loaded, but does not invoke the constructor or provider method to create a service instance.
+- `get()`: requests a service instance from the provider. This is the point where the application actively moves into the instantiation phase.
 
-Vì vậy, **biết class provider không đồng nghĩa với việc đã tạo service instance**.
+Therefore, **knowing the provider class is not synonymous with having created a service instance**.
 
-## 3. Ví dụ service trong Java Module System
+## 3. Service example in the Java Module System
 
-Giả sử ứng dụng có service `Codec` và một provider là `JsonCodec`.
+Suppose the application has a `Codec` service and a provider `JsonCodec`.
 
-### Module khai báo service API
+### Module declaring the service API
 
-File `module-info.java` của module API:
+The `module-info.java` file of the API module:
 
 ```java
 module com.example.codec.api {
@@ -54,7 +54,7 @@ module com.example.codec.api {
 }
 ```
 
-Interface service:
+Service interface:
 
 ```java
 package com.example.codec.api;
@@ -66,9 +66,9 @@ public interface Codec {
 }
 ```
 
-### Module cung cấp implementation
+### Module supplying the implementation
 
-Module provider khai báo implementation bằng directive `provides ... with ...`:
+The provider module declares the implementation using the `provides ... with ...` directive:
 
 ```java
 module com.example.codec.json {
@@ -79,7 +79,7 @@ module com.example.codec.json {
 }
 ```
 
-Implementation có thể ghi log trong constructor để quan sát thời điểm khởi tạo:
+The implementation can log in its constructor to observe the timing of instantiation:
 
 ```java
 package com.example.codec.json;
@@ -89,7 +89,7 @@ import com.example.codec.api.Codec;
 public final class JsonCodec implements Codec {
 
     public JsonCodec() {
-        System.out.println("JsonCodec được khởi tạo");
+        System.out.println("JsonCodec instantiated");
     }
 
     @Override
@@ -104,9 +104,9 @@ public final class JsonCodec implements Codec {
 }
 ```
 
-### Module tiêu thụ service
+### Module consuming the service
 
-Module sử dụng service khai báo `uses`:
+The module using the service declares `uses`:
 
 ```java
 module com.example.app {
@@ -116,11 +116,11 @@ module com.example.app {
 }
 ```
 
-Ứng dụng chỉ phụ thuộc vào service API. Nó không cần import trực tiếp hoặc khai báo `requires com.example.codec.json` để gọi ServiceLoader theo tên implementation. Provider module phải có mặt trong module path và được đưa vào module layer đang dùng.
+The application depends only on the service API. It does not need to import directly or declare `requires com.example.codec.json` to invoke ServiceLoader by implementation name. The provider module must be present on the module path and included in the module layer being used.
 
-## 4. Xem provider type mà chưa tạo instance
+## 4. Inspecting the provider type without creating an instance
 
-Dùng `stream()` kết hợp `Provider.type()` để lấy danh sách class:
+Use `stream()` combined with `Provider.type()` to obtain the list of classes:
 
 ```java
 ServiceLoader<Codec> loader = ServiceLoader.load(Codec.class);
@@ -134,9 +134,9 @@ providerTypes.forEach(type ->
 );
 ```
 
-Pipeline trên duyệt các provider và lấy class tương ứng. Nó không gọi `Provider.get()`, vì vậy constructor của `JsonCodec` chưa được gọi chỉ bởi thao tác lấy type.
+The pipeline above iterates over the providers and retrieves the corresponding classes. It does not call `Provider.get()`, so `JsonCodec`'s constructor is not called merely by retrieving the type.
 
-Có thể dùng class để kiểm tra metadata trước khi khởi tạo:
+You can use the class to inspect metadata before instantiation:
 
 ```java
 loader.stream()
@@ -145,11 +145,11 @@ loader.stream()
     .forEach(type -> System.out.println("Provider: " + type.getName()));
 ```
 
-Lưu ý: lấy `type()` có thể cần nạp class provider và có thể phát sinh lỗi cấu hình nếu provider không hợp lệ hoặc không thể được nạp. Lazy instantiation không có nghĩa là mọi bước khám phá class đều bị trì hoãn đến sau `get()`.
+Note: retrieving `type()` may require loading the provider class and can raise a configuration error if the provider is invalid or cannot be loaded. Lazy instantiation does not mean all class discovery steps are deferred until after `get()`.
 
-## 5. Chỉ khởi tạo provider được chọn
+## 5. Instantiating only the selected provider
 
-Lợi ích rõ nhất của provider stream xuất hiện khi có nhiều implementation nhưng ứng dụng chỉ cần một implementation phù hợp.
+The clearest benefit of provider streams appears when there are multiple implementations, but the application only needs one suitable implementation.
 
 ```java
 ServiceLoader<Codec> loader = ServiceLoader.load(Codec.class);
@@ -161,24 +161,24 @@ Codec codec = loader.stream()
     .findFirst()
     .map(ServiceLoader.Provider::get)
     .orElseThrow(() ->
-        new IllegalStateException("Không tìm thấy JsonCodec")
+        new IllegalStateException("JsonCodec not found")
     );
 
 System.out.println(codec.format());
 System.out.println(codec.encode("hello"));
 ```
 
-Luồng xử lý:
+Processing flow:
 
-1. `loader.stream()` cung cấp các provider.
-2. `filter(...)` kiểm tra class của từng provider. Việc kiểm tra này không tạo service instance.
-3. `findFirst()` dừng khi tìm được provider phù hợp đầu tiên.
-4. `map(Provider::get)` gọi `get()` trên provider đã chọn.
-5. Constructor hoặc cơ chế factory của provider được thực thi để cung cấp service instance.
+1. `loader.stream()` supplies the providers.
+2. `filter(...)` inspects each provider's class. This check does not create a service instance.
+3. `findFirst()` stops as soon as the first matching provider is found.
+4. `map(Provider::get)` calls `get()` on the selected provider.
+5. The provider's constructor or factory mechanism executes to supply the service instance.
 
-Nếu provider bị loại ở bước lọc, ứng dụng không gọi `get()` cho provider đó. Đây là cách tránh khởi tạo những implementation không được sử dụng.
+If a provider is excluded at the filtering step, the application does not call `get()` for that provider. This is how to avoid instantiating unused implementations.
 
-Bạn cũng có thể chọn theo annotation, interface phụ hoặc quy tắc tên package. Ví dụ:
+You can also select by annotation, marker interface, or package naming convention. For example:
 
 ```java
 Optional<Codec> selected = loader.stream()
@@ -189,17 +189,17 @@ Optional<Codec> selected = loader.stream()
     .map(provider -> provider.get());
 ```
 
-Trong ví dụ này, annotation được đọc từ class provider. Chỉ provider đầu tiên thỏa điều kiện mới được yêu cầu tạo instance.
+In this example, the annotation is read from the provider class. Only the first provider matching the condition is asked to create an instance.
 
-## 6. Lazy evaluation của Stream và lazy instantiation của provider
+## 6. Stream lazy evaluation vs. provider lazy instantiation
 
-Hai cơ chế này liên quan với nhau nhưng không giống nhau:
+These two mechanisms are related but not identical:
 
-**Lazy evaluation của Java Stream** có nghĩa là các intermediate operation như `filter`, `map` và `peek` chưa chạy cho đến khi có terminal operation, chẳng hạn `toList()`, `findFirst()` hoặc `forEach()`.
+**Java Stream lazy evaluation** means that intermediate operations such as `filter`, `map`, and `peek` do not run until there is a terminal operation, such as `toList()`, `findFirst()`, or `forEach()`.
 
-**Lazy instantiation của ServiceLoader.Provider** có nghĩa là ứng dụng có thể duyệt và kiểm tra provider type mà chưa tạo service instance. Instance chỉ được yêu cầu khi gọi `Provider.get()`.
+**ServiceLoader.Provider lazy instantiation** means that the application can traverse and inspect provider types without creating service instances. An instance is requested only when `Provider.get()` is called.
 
-Ví dụ:
+Example:
 
 ```java
 var stream = ServiceLoader.load(Codec.class)
@@ -207,34 +207,34 @@ var stream = ServiceLoader.load(Codec.class)
     .filter(provider -> provider.type().getSimpleName().contains("Codec"));
 ```
 
-Dòng lệnh trên mới xây dựng pipeline. Chưa có terminal operation nên pipeline chưa duyệt provider.
+The statement above only builds the pipeline. There is no terminal operation yet, so the pipeline has not traversed the providers.
 
-Khi gọi:
+When calling:
 
 ```java
 List<ServiceLoader.Provider<Codec>> candidates = stream.toList();
 ```
 
-Stream được thực thi và các provider phù hợp được thu thập. Tuy nhiên, thao tác này vẫn không gọi `get()`, nên chưa yêu cầu tạo các service instance.
+The stream executes and the matching providers are collected. However, this operation still does not call `get()`, so it has not yet requested creating the service instances.
 
-Chỉ khi gọi:
+Only when calling:
 
 ```java
 Codec first = candidates.get(0).get();
 ```
 
-ứng dụng mới yêu cầu instance từ provider đầu tiên.
+does the application request an instance from the first provider.
 
-## 7. So sánh stream() với iterator()
+## 7. Comparing stream() with iterator()
 
-Cả hai cách đều dùng ServiceLoader để duyệt provider, nhưng mức độ kiểm soát khác nhau.
+Both approaches use ServiceLoader to iterate over providers, but the level of control differs.
 
-| Cách duyệt | Giá trị nhận được | Có thể xem provider type trước khi tạo instance? |
+| Traversal method | Value received | Can inspect provider type before creating an instance? |
 | --- | --- | --- |
-| `iterator()` hoặc vòng lặp for-each | Service instance | Không qua API iterator thông thường; gọi `next()` lấy instance. |
-| `stream()` | `Provider<S>` | Có; gọi `type()` trước và chỉ gọi `get()` khi cần. |
+| `iterator()` or for-each loop | Service instance | Not through the standard iterator API; calling `next()` gets an instance. |
+| `stream()` | `Provider<S>` | Yes; call `type()` first and only call `get()` when needed. |
 
-Ví dụ dùng iterator:
+Example using iterator:
 
 ```java
 for (Codec codec : ServiceLoader.load(Codec.class)) {
@@ -242,9 +242,9 @@ for (Codec codec : ServiceLoader.load(Codec.class)) {
 }
 ```
 
-Cách này phù hợp khi ứng dụng chủ ý sử dụng mọi implementation. Khi duyệt bằng iterator, mỗi lần lấy phần tử tiếp theo sẽ cung cấp service instance.
+This approach fits when the application intentionally uses every implementation. When iterating with an iterator, each fetch of the next element supplies a service instance.
 
-Ví dụ dùng provider stream:
+Example using a provider stream:
 
 ```java
 ServiceLoader.load(Codec.class)
@@ -253,35 +253,35 @@ ServiceLoader.load(Codec.class)
     .forEach(System.out::println);
 ```
 
-Cách này phù hợp khi ứng dụng cần kiểm tra hoặc chọn implementation trước khi tạo instance.
+This approach fits when the application needs to inspect or select an implementation before creating an instance.
 
-## 8. Những điểm cần chú ý
+## 8. Points to keep in mind
 
-- **Không gọi `get()` quá sớm:** Nếu mục tiêu chỉ là liệt kê class, tên provider hoặc annotation thì dùng `type()`. Gọi `get()` sẽ yêu cầu tạo instance và có thể kích hoạt công việc tốn tài nguyên.
-- **Không nhầm nạp class với tạo object:** `type()` có thể làm class được nạp. Điều đó vẫn khác với việc chạy constructor hoặc provider method.
-- **Terminal operation quyết định lúc Stream chạy:** Nếu chỉ tạo pipeline rồi giữ lại, các intermediate operation chưa được thực thi.
-- **Không dựa vào thứ tự provider như một chính sách ưu tiên:** Nếu ứng dụng cần chọn provider theo tiêu chí, hãy biểu diễn tiêu chí đó rõ ràng bằng filter hoặc logic lựa chọn.
-- **Xử lý lỗi cấu hình:** ServiceLoader có thể ném `ServiceConfigurationError` khi khai báo provider sai, không tìm thấy class hoặc không thể tạo instance. Hãy xử lý lỗi tại ranh giới nạp plugin phù hợp.
-- **Chú ý khả năng đồng thời:** Một đối tượng `ServiceLoader` không được thiết kế để nhiều thread cùng sửa đổi hoặc duyệt mà không có đồng bộ. Nếu cần dùng đồng thời, hãy quản lý vòng đời loader và việc truy cập theo cách an toàn.
-- **Phân biệt module path và classpath:** Với named module, consumer khai báo `uses` và provider khai báo `provides ... with ...`. Với classpath, provider thường được đăng ký trong file `META-INF/services/<tên-đầy-đủ-của-service>`. Cả hai cách đều cần đúng service type và provider có thể được phát hiện trong môi trường chạy.
+- **Do not call `get()` too early:** If the goal is only to list classes, provider names, or annotations, use `type()`. Calling `get()` requests instance creation and may trigger expensive work.
+- **Do not confuse class loading with object creation:** `type()` may cause a class to be loaded. That is still different from running a constructor or provider method.
+- **Terminal operations determine when the Stream runs:** If you only build a pipeline and hold onto it, intermediate operations have not executed yet.
+- **Do not rely on provider order as a priority policy:** If the application needs to choose a provider based on criteria, express those criteria explicitly with filters or selection logic.
+- **Handle configuration errors:** ServiceLoader can throw `ServiceConfigurationError` when a provider declaration is wrong, a class cannot be found, or an instance cannot be created. Handle errors at an appropriate plugin-loading boundary.
+- **Mind concurrency:** A `ServiceLoader` object is not designed to be modified or iterated concurrently by multiple threads without synchronization. If concurrent use is needed, manage the loader lifecycle and access safely.
+- **Distinguish module path and classpath:** For named modules, the consumer declares `uses` and the provider declares `provides ... with ...`. For the classpath, providers are typically registered in `META-INF/services/<fully-qualified-service-name>`. Both approaches require the correct service type and discoverable providers in the runtime environment.
 
-## 9. Khi nào nên dùng Provider stream?
+## 9. When should you use Provider streams?
 
-Dùng `ServiceLoader.stream()` khi ứng dụng cần một hoặc nhiều việc sau:
+Use `ServiceLoader.stream()` when the application needs one or more of the following:
 
-- Có nhiều plugin nhưng chỉ muốn khởi tạo plugin phù hợp với cấu hình hiện tại.
-- Cần đọc annotation hoặc metadata của implementation trước khi quyết định sử dụng.
-- Muốn hiển thị danh sách provider để chẩn đoán mà không khởi tạo tất cả.
-- Muốn tránh side effect hoặc chi phí trong constructor/provider method của implementation không được chọn.
+- Having many plugins but wanting to instantiate only the plugin matching the current configuration.
+- Needing to read annotations or metadata of an implementation before deciding to use it.
+- Wanting to display the list of providers for diagnostics without instantiating all of them.
+- Wanting to avoid side effects or overhead in constructors/provider methods of unselected implementations.
 
-Nếu ứng dụng chắc chắn cần chạy tất cả implementation, vòng lặp qua ServiceLoader có thể đơn giản và dễ đọc hơn. Nếu cần lựa chọn có điều kiện trước khi khởi tạo, provider stream cung cấp quyền kiểm soát phù hợp.
+If the application definitely needs to run all implementations, looping over ServiceLoader may be simpler and easier to read. If conditional selection before instantiation is needed, provider streams give the appropriate control.
 
-## 10. Ghi nhớ
+## 10. Key takeaways
 
-- `ServiceLoader<S>` quản lý việc khám phá provider cho service.
-- `stream()` trả về các `Provider<S>`, không trả về trực tiếp các service instance.
-- `Provider.type()` cho phép xem class provider mà chưa yêu cầu tạo service instance.
-- `Provider.get()` là thao tác yêu cầu service instance.
-- Java Stream chỉ thực thi pipeline khi có terminal operation; điều này độc lập với việc provider có được khởi tạo hay không.
+- `ServiceLoader<S>` manages provider discovery for a service.
+- `stream()` returns `Provider<S>` elements, not service instances directly.
+- `Provider.type()` allows inspecting the provider class without requesting a service instance.
+- `Provider.get()` is the operation that requests a service instance.
+- Java Stream executes a pipeline only when there is a terminal operation; this is independent of whether providers are instantiated.
 
-Khi đọc code ServiceLoader, hãy tìm vị trí gọi `Provider.get()`. Vị trí đó cho biết lúc nào ứng dụng thực sự yêu cầu tạo implementation, còn các thao tác trên `Provider.type()` thường phục vụ việc khám phá và lựa chọn trước đó.
+When reading ServiceLoader code, look for where `Provider.get()` is called. That location indicates when the application actually requests creating an implementation, while operations on `Provider.type()` generally serve prior discovery and selection.

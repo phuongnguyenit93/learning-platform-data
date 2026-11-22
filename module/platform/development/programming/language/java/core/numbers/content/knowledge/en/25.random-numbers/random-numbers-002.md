@@ -1,40 +1,40 @@
-# Random và chuỗi giá trị theo seed trong Java
+# Random and Seed-Based Value Sequences in Java
 
-## 1. Seed là gì và tại sao cùng seed có thể phát lại cùng chuỗi?
+## 1. What is a seed and why can the same seed replay the same sequence?
 
-`java.util.Random` là bộ sinh **số giả ngẫu nhiên** (pseudorandom number generator, PRNG). Thay vì tạo ra sự ngẫu nhiên tuyệt đối, đối tượng giữ một **trạng thái nội bộ**; mỗi lần chương trình yêu cầu số tiếp theo, thuật toán cập nhật trạng thái và tính ra kết quả. Giá trị khởi tạo trạng thái được gọi là **seed** (hạt giống).
+`java.util.Random` is a **pseudorandom number generator** (PRNG). Instead of producing true randomness, the object maintains an **internal state**; each time the program requests the next number, the algorithm updates the state and computes a result. The value used to initialize the state is called the **seed**.
 
 ~~~java
 Random random = new Random(42L);
 int value = random.nextInt(100);
 ~~~
 
-Trong ví dụ, `42L` là seed; `nextInt(100)` sinh một số nguyên từ **0 (bao gồm) đến 100 (không bao gồm)**, tức từ 0 đến 99.
+In this example, `42L` is the seed; `nextInt(100)` generates an integer from **0 (inclusive) to 100 (exclusive)**, meaning from 0 to 99.
 
-Thuộc tính quan trọng:
+Key property:
 
-> Với **cùng triển khai thuật toán, cùng seed, cùng các lời gọi theo cùng thứ tự và cùng tham số**, ta nhận được cùng một chuỗi kết quả.
+> With **the same algorithm implementation, the same seed, and the same calls in the same order with the same arguments**, we obtain the exact same result sequence.
 
-Đây là nền tảng để phát lại mô phỏng, tái hiện lỗi, tạo dữ liệu kiểm thử và so sánh hai lần chạy thí nghiệm. Một seed cố định giúp **tái lập** (reproducibility); nó không làm giá trị sinh ra trở thành bí mật hoặc an toàn về mật mã.
+This is the foundation for replaying simulations, reproducing bugs, generating test data, and comparing two experiment runs. A fixed seed provides **reproducibility**; it does not make the generated values secret or cryptographically secure.
 
-Cần phân biệt:
+It is important to distinguish:
 
-- **Seed** là dữ liệu dùng để thiết lập trạng thái ban đầu.
-- **Trạng thái hiện tại** thay đổi khi tiêu thụ số ngẫu nhiên. Sau khi gọi phương thức sinh số, đối tượng thường không còn ở trạng thái ban đầu nữa.
-- **Chuỗi giá trị** được xác định bởi seed **và** trình tự sử dụng bộ sinh, không chỉ bởi seed đứng riêng.
+- **Seed** is the input used to set up the initial state.
+- **Current state** changes as random numbers are consumed. After calling a number-generation method, the object is usually no longer in its initial state.
+- **Value sequence** is determined by the seed **and** the sequence of generator usage, not by the seed alone.
 
-## 2. Hai Random cùng seed: giống chuỗi, không chia sẻ trạng thái
+## 2. Two Random instances with the same seed: same sequence, no shared state
 
-Xét hai đối tượng độc lập:
+Consider two independent objects:
 
 ~~~java
 Random first = new Random(42L);
 Random second = new Random(42L);
 ~~~
 
-Nếu cả hai đều lần lượt gọi `nextInt(100)` năm lần, kết quả của từng vị trí trùng nhau:
+If both call `nextInt(100)` five times in a row, the results at each position match:
 
-| Lần gọi | `first.nextInt(100)` | `second.nextInt(100)` |
+| Call | `first.nextInt(100)` | `second.nextInt(100)` |
 | ---: | ---: | ---: |
 | 1 | 30 | 30 |
 | 2 | 63 | 63 |
@@ -42,20 +42,20 @@ Nếu cả hai đều lần lượt gọi `nextInt(100)` năm lần, kết quả
 | 4 | 84 | 84 |
 | 5 | 70 | 70 |
 
-Hai đối tượng **không phải cùng một đối tượng**: tăng trạng thái của `first` không tự làm `second` tăng theo. Chúng chỉ tạo cùng chuỗi khi được khởi tạo từ cùng seed và tiêu thụ lời gọi tương ứng.
+The two objects **are not the same object**: advancing the state of `first` does not automatically advance `second`. They only produce the same sequence when initialized from the same seed and consuming matching calls.
 
-Ngược lại, nếu một đối tượng đã gọi thêm một lần, vị trí đọc kế tiếp của hai đối tượng có thể khác:
+Conversely, if one object has made one extra call, the next read position of the two objects can differ:
 
 ~~~text
-Random A (seed 42): nextInt(100) -> 30, rồi -> 63
-Random B (seed 42): chưa gọi   -> 30 ở lời gọi đầu tiên
+Random A (seed 42): nextInt(100) -> 30, then -> 63
+Random B (seed 42): not called yet -> 30 on the first call
 ~~~
 
-Vì thế, một câu hỏi chính xác hơn “seed giống nhau chưa?” là: **hai bộ sinh có đang ở cùng trạng thái trước lời gọi và sử dụng cùng phương thức/tham số không?**
+Therefore, a more accurate question than “is the seed the same?” is: **are the two generators in the same state before the call and using the same methods/arguments?**
 
-## 3. Ví dụ Java 17 hoàn chỉnh với kết quả xác định
+## 3. Complete Java 17 example with deterministic output
 
-Tạo file `SeededRandomDemo.java`:
+Create the file `SeededRandomDemo.java`:
 
 ~~~java
 import java.util.ArrayList;
@@ -103,14 +103,14 @@ public class SeededRandomDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or newer:
 
 ~~~bash
 javac SeededRandomDemo.java
 java SeededRandomDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Seed 42: [30, 63, 48, 84, 70]
@@ -122,43 +122,43 @@ Two fresh generators: 30, 30
 Seed 123 reproducible: true
 ~~~
 
-Giải thích:
+Explanation:
 
-1. Hai lần `generate(42L, 5)` tạo hai đối tượng `Random` mới nhưng áp dụng **cùng seed và năm lời gọi `nextInt(100)` theo cùng thứ tự**, nên hai danh sách bằng nhau.
-2. Một `Random` được sử dụng liên tục không trả mãi giá trị đầu tiên: lần gọi kế tiếp dùng trạng thái tiếp theo.
-3. `setSeed(42L)` **thiết lập lại chuỗi** của đối tượng đó. Sau khi đặt lại cùng seed, lời gọi đầu tiên lại trả `30`.
-4. Tạo `new Random(42L)` mỗi lần lặp sẽ **khởi động lại từ đầu**, nên dễ lấy lặp đi lặp lại giá trị `30`; đây là lỗi phổ biến khi muốn sinh nhiều số khác nhau.
-5. Với seed 123, hai lời gọi `nextLong()` đầu tiên trên hai đối tượng mới cho cùng kết quả. Ví dụ chỉ kiểm tra tính tái lập, không cần ghi nhớ giá trị `long` thực tế.
+1. Two calls to `generate(42L, 5)` create two new `Random` objects, but apply **the same seed and five `nextInt(100)` calls in the same order**, so the two lists are equal.
+2. A continuously used `Random` does not keep returning the first value: the next call uses the next state.
+3. `setSeed(42L)` **resets the sequence** of that object. After resetting to the same seed, the first call returns `30` again.
+4. Creating `new Random(42L)` on every loop iteration **restarts from the beginning**, which easily yields the value `30` repeatedly; this is a common bug when trying to generate multiple distinct numbers.
+5. With seed 123, the first `nextLong()` calls on two new objects return the same result. The example only checks reproducibility; there is no need to memorize the actual `long` value.
 
-Các giá trị trong ví dụ thuộc `java.util.Random`, không phải cam kết chung cho tất cả bộ sinh ngẫu nhiên khác trong Java.
+The values in the example belong to `java.util.Random`, not a general guarantee for all other random generators in Java.
 
-## 4. Bên trong java.util.Random: seed quyết định chuỗi như thế nào?
+## 4. Inside java.util.Random: how does a seed determine the sequence?
 
-Với lớp `java.util.Random` cổ điển, thuật toán cốt lõi là một **linear congruential generator (LCG)** sử dụng trạng thái **48 bit**. Ở mức khái niệm, nó thực hiện:
+For the classic `java.util.Random` class, the core algorithm is a **linear congruential generator (LCG)** using a **48-bit** state. Conceptually, it performs:
 
 ~~~text
-Trạng thái ban đầu 48 bit = (seed XOR 0x5DEECE66D) AND (2^48 - 1)
+Initial 48-bit state = (seed XOR 0x5DEECE66D) AND (2^48 - 1)
 
-Trạng thái kế tiếp =
-    (trạng thái hiện tại * 0x5DEECE66D + 0xB) mod 2^48
+Next state =
+    (current state * 0x5DEECE66D + 0xB) mod 2^48
 
-Kết quả đọc ra từ các bit cao của trạng thái mới.
+Output is read from the high bits of the new state.
 ~~~
 
-Trong đặc tả `Random`, các chi tiết cập nhật trạng thái và cách phương thức lõi `next(int bits)` lấy bit được quy định, giúp chuỗi với cùng seed và cùng cách gọi có thể tái lập giữa những triển khai Java tương thích của **chính lớp này**.
+In the `Random` specification, the state-update details and how the core `next(int bits)` method extracts bits are specified, allowing sequences with the same seed and call pattern to be reproducible across compatible Java implementations of **this specific class**.
 
-Không nên tự triển khai LCG chỉ để gọi `nextInt`; hãy dùng API chuẩn. Nhưng hiểu cơ chế giúp giải thích một số tính chất:
+You should not implement an LCG yourself just to call `nextInt`; use the standard API. However, understanding the mechanism helps explain several properties:
 
-- Cùng seed thiết lập cùng trạng thái ban đầu, nên cùng đường đi trạng thái nếu cùng cách tiêu thụ.
-- Mỗi phương thức có thể tiêu thụ một hoặc nhiều lần cập nhật trạng thái.
-- Seed đưa vào constructor có kiểu `long`, nhưng trạng thái cốt lõi chỉ có 48 bit. Hai seed chỉ khác ở các bit nằm ngoài 48 bit thấp có thể cho **cùng chuỗi**. Ví dụ `42L` và `42L + (1L << 48)` tạo cùng trạng thái ban đầu của `Random` chuẩn.
-- Vì có không gian trạng thái hữu hạn và thuật toán có thể dự đoán, đây **không phải** bộ sinh thích hợp để tạo token bảo mật.
+- The same seed establishes the same initial state, and thus the same state trajectory given the same consumption pattern.
+- Each method may consume one or more state updates.
+- The seed passed to the constructor has type `long`, yet the core state has only 48 bits. Two seeds that differ only outside the lowest 48 bits can produce **the same sequence**. For example, `42L` and `42L + (1L << 48)` create the same initial state in standard `Random`.
+- Because it has a finite state space and a predictable algorithm, it is **not** a suitable generator for creating security tokens.
 
-Khi nói “chuỗi cố định”, cần hiểu đó là **chuỗi thuật toán của một bộ sinh cụ thể**; cùng số seed đưa vào một thuật toán khác (ví dụ `SplittableRandom`) không có nghĩa cho các con số giống `Random`.
+When speaking of a “fixed sequence”, understand it as **the algorithmic sequence of a specific generator**; passing the same seed into a different algorithm (such as `SplittableRandom`) does not mean it produces the same numbers as `Random`.
 
-## 5. Thứ tự lời gọi quan trọng như seed
+## 5. Call order matters just as much as the seed
 
-Một đối tượng `Random` có trạng thái biến đổi. Cách tiêu thụ nó ảnh hưởng các giá trị xuất hiện về sau.
+A `Random` object has mutable state. How you consume it affects the values that appear later.
 
 ~~~java
 Random a = new Random(42L);
@@ -168,28 +168,28 @@ int aFirst = a.nextInt(100); // 30
 int aSecond = a.nextInt(100); // 63
 
 int bFirst = b.nextInt(100); // 30
-// Nếu b được gọi thêm ở chỗ khác, các phép lấy sau đó sẽ
-// không còn ứng với vị trí aSecond theo cách gọi này.
+// If b is called elsewhere, subsequent draws will
+// no longer correspond to the aSecond position under this call pattern.
 ~~~
 
-Lưu ý về các phương thức khác nhau:
+Notes on different methods:
 
-| Phương thức | Ý nghĩa | Lưu ý về chuỗi |
+| Method | Meaning | Sequence notes |
 | --- | --- | --- |
-| `nextInt()` | Sinh một `int` từ toàn miền int | Tiêu thụ trạng thái |
-| `nextInt(bound)` | Sinh `int` trong `[0, bound)` | Với bound không phải lũy thừa 2 có thể cần lấy lại để tránh độ lệch phân bố |
-| `nextLong()` | Sinh một `long` | Thường kết hợp nhiều lần sinh bit bên trong |
-| `nextDouble()` | Sinh `double` trong `[0.0, 1.0)` | Tiêu thụ các bit để tạo độ chính xác cho double |
-| `nextBoolean()` | Sinh `true` hoặc `false` | Tiêu thụ trạng thái |
-| `nextGaussian()` | Sinh giá trị phân bố chuẩn | Có cơ chế giữ lại một giá trị gaussian cho lần gọi sau, nên lịch sử gọi còn quan trọng hơn |
+| `nextInt()` | Generates an `int` across the full int range | Consumes state |
+| `nextInt(bound)` | Generates an `int` in `[0, bound)` | For a bound that is not a power of 2, it may need to redraw to avoid distribution bias |
+| `nextLong()` | Generates a `long` | Typically combines multiple internal bit generations |
+| `nextDouble()` | Generates a `double` in `[0.0, 1.0)` | Consumes bits to build double precision |
+| `nextBoolean()` | Generates `true` or `false` | Consumes state |
+| `nextGaussian()` | Generates a normally distributed value | Buffers one Gaussian value for the next call, making call history even more important |
 
-`nextInt(bound)` không nên được coi là **luôn** tiêu thụ đúng một bước trạng thái trong mọi trường hợp: thuật toán có thể phải thử lại nếu giá trị ứng viên nằm ngoài miền chấp nhận. `nextDouble()`, `nextLong()` và `nextGaussian()` cũng không được hiểu như cùng một lời gọi `nextInt()`.
+`nextInt(bound)` should not be assumed to **always** consume exactly one state step in every case: the algorithm may have to retry if a candidate value falls outside the accepted range. `nextDouble()`, `nextLong()`, and `nextGaussian()` should also not be treated as equivalent to a single `nextInt()` call.
 
-Do đó, việc thay một `nextInt(100)` bằng `nextDouble()`, thêm một lời gọi debug, hoặc chuyển vị trí lấy số ngẫu nhiên trong chương trình có thể khiến **phần chuỗi tiếp theo khác với bản chạy trước** ngay cả khi seed giữ nguyên.
+Consequently, replacing a `nextInt(100)` with `nextDouble()`, adding a debug call, or moving where a random number is drawn in the program can cause **the rest of the sequence to differ from the previous run** even when the seed stays the same.
 
-## 6. Seed giống nhau nhưng lời gọi khác: minh họa trạng thái
+## 6. Same seed but different calls: illustrating state
 
-Giả sử một trò chơi sử dụng một `Random(42)` cho mọi quyết định. Bản đầu tiên:
+Suppose a game uses one `Random(42)` for every decision. First version:
 
 ~~~java
 Random random = new Random(42L);
@@ -197,7 +197,7 @@ int enemyMove = random.nextInt(100);
 int lootRoll = random.nextInt(100);
 ~~~
 
-Bản sau có thêm thao tác lấy số trước khi tính `lootRoll`:
+A later version adds a number draw before computing `lootRoll`:
 
 ~~~java
 Random random = new Random(42L);
@@ -206,20 +206,20 @@ int weatherRoll = random.nextInt(100);
 int lootRoll = random.nextInt(100);
 ~~~
 
-Với ví dụ cụ thể này, `enemyMove` vẫn là `30`; `lootRoll` trước đó là `63`, còn sau khi thêm `weatherRoll` thì `lootRoll` là `48`. Không có lỗi ở `Random`: hai lần chạy đã **tiêu thụ chuỗi ở các vị trí khác nhau**.
+In this specific example, `enemyMove` is still `30`; `lootRoll` was previously `63`, whereas after adding `weatherRoll`, `lootRoll` becomes `48`. There is no bug in `Random`: the two runs **consumed the sequence at different positions**.
 
-Để mô phỏng nhiều phần tương đối độc lập (ví dụ thời tiết và chiến lợi phẩm), có thể cấp mỗi phần một `Random` riêng với seed được quản lý rõ ràng. Khi đó việc gọi thêm số ở phần thời tiết sẽ không tiến trạng thái của bộ sinh ở phần chiến lợi phẩm.
+To simulate multiple relatively independent parts (such as weather and loot), you can give each part its own `Random` with an explicitly managed seed. Then drawing extra numbers in the weather part will not advance the state of the generator in the loot part.
 
 ~~~java
 Random weatherRandom = new Random(1001L);
 Random lootRandom = new Random(2002L);
 ~~~
 
-Các seed ở đây là ví dụ được chọn trước để dễ tái lập; không phải công thức bảo đảm hai chuỗi hoàn toàn độc lập về thống kê. Với bài toán mô phỏng lớn, hãy chọn chiến lược chia luồng sinh số và thuật toán phù hợp, đồng thời lưu rõ seed mỗi luồng.
+The seeds here are pre-selected examples for easy reproducibility; they are not a formula guaranteeing two completely statistically independent sequences. For large simulations, choose an appropriate stream-splitting strategy and algorithm, and clearly record each stream's seed.
 
-## 7. setSeed(): phát lại từ đầu, không đảo ngược một bước
+## 7. setSeed(): replay from the start, not rewind one step
 
-Một đối tượng đã phát nhiều giá trị có thể được khởi tạo lại:
+An object that has already produced many values can be reinitialized:
 
 ~~~java
 Random random = new Random(42L);
@@ -232,70 +232,70 @@ random.setSeed(42L);
 int replayFirst = random.nextInt(100); // 30
 ~~~
 
-`setSeed(42L)` không “trừ một bước” từ trạng thái hiện tại. Nó **đặt lại trạng thái từ seed được cung cấp**. Điều đó có nghĩa là những lời gọi đã tiêu thụ trước đó không còn quyết định chuỗi sau khi reseed.
+`setSeed(42L)` does not “subtract one step” from the current state. It **resets the state from the provided seed**. That means calls consumed earlier no longer determine the sequence after reseeding.
 
-Riêng `Random.nextGaussian()` sử dụng bộ đệm để lưu một kết quả gaussian chưa trả ra; gọi `setSeed()` cũng xóa trạng thái bộ đệm này theo hợp đồng của lớp. Điều này quan trọng nếu cần replay chuỗi gaussian từ đầu.
+Specifically, `Random.nextGaussian()` uses a buffer to store an unreturned Gaussian result; calling `setSeed()` also clears this buffer state according to the class contract. This matters if you need to replay a Gaussian sequence from the beginning.
 
-Không nên gọi `setSeed` giữa các lần sinh số chỉ để “tăng độ ngẫu nhiên”. Reseed theo cùng giá trị liên tục sẽ làm chuỗi lặp lại từ đầu.
+You should not call `setSeed` between draws just to “increase randomness”. Repeatedly reseeding with the same value makes the sequence repeat from the start.
 
-## 8. Seed do mình chọn và seed mặc định
+## 8. Chosen seeds and default seeds
 
-Hai cách khởi tạo thường gặp:
+Two common ways of initializing:
 
 ~~~java
 Random reproducible = new Random(2026L);
 Random automatic = new Random();
 ~~~
 
-**`new Random(2026L)`** dùng seed công khai, cố định do chương trình chọn. Khi thử nghiệm cần tái lập, hãy ghi lại seed và cách tiêu thụ các số.
+**`new Random(2026L)`** uses a public, fixed seed chosen by the program. When an experiment needs to be reproducible, record the seed and how the numbers are consumed.
 
-**`new Random()`** dùng cơ chế seed khởi tạo tự động của Java. Hai lần tạo đối tượng có thể có seed khác nhau và chuỗi khác nhau, nhưng chương trình không nên dựa vào đó như một bảo đảm về bí mật, tính duy nhất tuyệt đối hoặc chất lượng mật mã. Nếu không ghi lại các điều kiện để tạo lại trạng thái, sẽ khó phát lại đúng một lần chạy.
+**`new Random()`** uses Java's automatic seed initialization mechanism. Two created instances may have different seeds and different sequences, but the program should not rely on that as a guarantee of secrecy, absolute uniqueness, or cryptographic quality. Without recording the conditions to recreate the state, it will be hard to replay an exact run.
 
-Dùng `System.currentTimeMillis()` làm seed có thể tiện khi chạy thí nghiệm nhanh, nhưng nhiều lần tạo bộ sinh trong cùng một mili giây có thể nhận cùng seed. Với kiểm thử tự động, một seed cố định thường dễ điều tra lỗi hơn.
+Using `System.currentTimeMillis()` as a seed can be convenient for quick experiments, yet multiple generators created within the same millisecond can receive the same seed. For automated tests, a fixed seed is usually easier to investigate when failures occur.
 
-Một thực hành hữu ích là **in hoặc lưu seed của lần chạy gây lỗi**, kèm mã phiên bản và các tùy chọn ảnh hưởng số lần gọi. Khi lỗi chỉ xảy ra ở một kịch bản ngẫu nhiên, chạy lại với cùng dữ liệu giúp tái hiện.
+A useful practice is to **print or log the seed of a failing run**, along with the code version and options that affect the number of calls. When a bug only happens in a random scenario, rerunning with the same data helps reproduce it.
 
-## 9. Sinh số trong khoảng và tránh các bẫy
+## 9. Generating numbers in a range and avoiding pitfalls
 
-`random.nextInt(bound)` yêu cầu `bound > 0` và trả số trong khoảng nửa mở `[0, bound)`. Nếu `bound <= 0`, phương thức ném `IllegalArgumentException`.
+`random.nextInt(bound)` requires `bound > 0` and returns a number in the half-open interval `[0, bound)`. If `bound <= 0`, the method throws `IllegalArgumentException`.
 
 ~~~java
 Random random = new Random(42L);
 int die = random.nextInt(6) + 1; // 1..6
 ~~~
 
-Muốn lấy số nguyên từ `min` đến `max` **bao gồm cả hai đầu** và biết chắc phép tính không tràn int:
+To draw an integer from `min` to `max` **inclusive of both ends** when you are sure the calculation will not overflow `int`:
 
 ~~~java
 int value = min + random.nextInt(max - min + 1);
 ~~~
 
-Đây chỉ là **mẫu biểu thức** khi `min`, `max` và độ rộng khoảng hợp lệ, hiệu `max - min + 1` nằm trong miền `int`. Với khoảng rộng, có thể dùng API nhận origin/bound phù hợp trên Java hiện đại hoặc tính bằng `long`, và phải kiểm tra biên trên có tràn hay không.
+This is only an **expression pattern** when `min`, `max`, and the interval width are valid and `max - min + 1` fits in `int`. For wide ranges, you can use an appropriate origin/bound API in modern Java or compute with `long`, and you must check whether the upper bound overflows.
 
-Java 17 cung cấp các API từ `RandomGenerator`, nhưng đừng tự động suy ra rằng một lời gọi API khác sẽ tiêu thụ trạng thái đúng như công thức `nextInt(bound)` cũ. Muốn replay chính xác, nên giữ cố định cách gọi và phiên bản chương trình.
+Java 17 provides APIs from `RandomGenerator`, but do not automatically assume that a different API call will consume state identically to the old `nextInt(bound)` formula. For exact replay, keep the call pattern and program version fixed.
 
-Một điều nữa: seed cố định không biến năm số đầu thành “mẫu đều” trên miền 0..99. Tính tái lập của chuỗi và đánh giá phân bố thống kê là hai bài toán khác nhau. Không đánh giá tính đúng của PRNG bằng cách đòi mỗi số trong một đoạn ngắn xuất hiện đúng một lần.
+Another point: a fixed seed does not turn the first five numbers into a “uniform sample” over 0..99. Sequence reproducibility and statistical distribution evaluation are two different problems. Do not judge PRNG correctness by demanding that every number in a short segment appear exactly once.
 
-## 10. Random, ThreadLocalRandom, SplittableRandom và SecureRandom
+## 10. Random, ThreadLocalRandom, SplittableRandom, and SecureRandom
 
-Các lớp liên quan giải quyết những nhu cầu khác nhau.
+Related classes address different needs.
 
-| Lớp/API | Tình huống thường dùng | Lưu ý với seed |
+| Class/API | Common use case | Seed notes |
 | --- | --- | --- |
-| `java.util.Random` | Ví dụ, kiểm thử và mô phỏng đơn giản cần tái lập | Nhận seed tường minh; chuỗi thuật toán `Random` truyền thống được quy định |
-| `java.util.SplittableRandom` | Sinh số cho tác vụ mô phỏng có thể chia nhỏ | Có constructor nhận seed, nhưng **thuật toán/chuỗi khác `Random`** |
-| `java.util.concurrent.ThreadLocalRandom` | Sinh số thuận tiện trong nhiều luồng | Lấy bằng `current()`; không hỗ trợ `setSeed` bên ngoài để replay như `Random` |
-| `java.security.SecureRandom` | Token, salt, nonce và dữ liệu cần tính khó dự đoán | Dành cho mục đích an toàn mật mã; cách seed/thuật toán phụ thuộc triển khai, không dùng như công cụ replay chuỗi `Random` |
+| `java.util.Random` | Examples, tests, and simple simulations needing reproducibility | Accepts an explicit seed; traditional `Random` algorithm sequence is specified |
+| `java.util.SplittableRandom` | Number generation for splittable simulation tasks | Has a constructor taking a seed, but **algorithm/sequence differs from `Random`** |
+| `java.util.concurrent.ThreadLocalRandom` | Convenient number generation across multiple threads | Obtained via `current()`; does not support external `setSeed` for replay like `Random` |
+| `java.security.SecureRandom` | Tokens, salts, nonces, and data needing unpredictability | Intended for cryptographic security; seeding/algorithm depends on implementation, not used as a `Random` sequence replay tool |
 
-`Random` có thể được dùng bởi nhiều luồng, nhưng **thứ tự thực tế của các lời gọi** từ các luồng có thể thay đổi do lập lịch. Vì vậy **cùng seed không đủ bảo đảm mỗi luồng nhận đúng cùng dãy giá trị** nếu các luồng chia sẻ một bộ sinh và chạy xen kẽ khác nhau.
+`Random` can be used by multiple threads, yet **the actual order of calls** from threads can vary due to scheduling. Therefore, **the same seed is not enough to guarantee each thread receives the exact same sequence** if threads share one generator and interleave differently.
 
-`ThreadLocalRandom.current().setSeed(...)` không phải cách đặt seed hợp lệ cho trình sinh số của luồng: `setSeed` được thiết kế để ném `UnsupportedOperationException`. Với yêu cầu tái lập độc lập từng luồng, thiết kế phân chia seed/bộ sinh cụ thể cho từng nhiệm vụ; cân nhắc `SplittableRandom` hoặc bộ sinh từ `java.util.random` theo hợp đồng dự án.
+`ThreadLocalRandom.current().setSeed(...)` is not a valid way to seed the thread's generator: `setSeed` is designed to throw `UnsupportedOperationException`. For independent per-thread reproducibility, design explicit seed/generator allocation per task; consider `SplittableRandom` or generators from `java.util.random` according to project contracts.
 
-**Tuyệt đối không sử dụng `new Random(fixedSeed)` để tạo token đăng nhập, khóa, OTP hay giá trị bí mật.** Các giá trị đầu ra có thể dự đoán vì thuật toán và seed không được bảo vệ cho nhu cầu này. Dùng `SecureRandom` và áp dụng hướng dẫn bảo mật phù hợp.
+**Never use `new Random(fixedSeed)` to create login tokens, keys, OTPs, or secret values.** The outputs can be predicted because the algorithm and seed are not protected for this purpose. Use `SecureRandom` and follow appropriate security guidelines.
 
-## 11. Streams, số lần tiêu thụ và tái lập
+## 11. Streams, consumption counts, and reproducibility
 
-`Random` còn hỗ trợ tạo stream số nguyên:
+`Random` also supports creating streams of integers:
 
 ~~~java
 Random random = new Random(42L);
@@ -305,15 +305,15 @@ List<Integer> values = random.ints(5, 0, 100)
         .toList();
 ~~~
 
-Trong Java 17, `toList()` của Stream trả danh sách theo encounter order của stream có thứ tự. Ở ví dụ trên, ta tạo năm số nguyên trong `[0, 100)` từ bộ sinh được đặt seed.
+In Java 17, Stream's `toList()` returns a list following the encounter order of an ordered stream. In the example above, we generate five integers in `[0, 100)` from a seeded generator.
 
-Điểm quan trọng: stream tiêu thụ chính đối tượng `random`. Nếu gọi thêm `random.nextInt()` trước khi xử lý stream, kết quả lấy được có thể thay đổi. Nếu cần kết quả kiểm thử dễ đối chiếu, tiêu thụ stream theo thứ tự tuần tự và cố định những lời gọi ngoài stream.
+Important point: the stream consumes the `random` object itself. If you make an extra call to `random.nextInt()` before processing the stream, the retrieved results can change. If you need easily comparable test results, consume the stream sequentially and keep calls outside the stream fixed.
 
-Không nên giả định rằng chia sẻ một bộ sinh giữa các stream song song, các task đa luồng hoặc thay đổi cấu trúc pipeline sẽ giữ nguyên ánh xạ số ngẫu nhiên đến từng phần tử. Kết quả phụ thuộc cách tiêu thụ, và lịch trình thực thi có thể không được xác định.
+Do not assume that sharing one generator across parallel streams, multithreaded tasks, or changing pipeline structure will preserve the mapping of random numbers to elements. Results depend on consumption, and execution scheduling may be nondeterministic.
 
-## 12. Kiểm thử tái lập với một seed cố định
+## 12. Reproducible testing with a fixed seed
 
-Với một thuật toán dùng số ngẫu nhiên, thay vì rải các lời gọi `new Random()` khắp nơi, có thể nhận một `Random` như tham số:
+For an algorithm that uses random numbers, instead of scattering `new Random()` calls everywhere, you can accept a `Random` as a parameter:
 
 ~~~java
 static int rollDie(Random random) {
@@ -321,9 +321,9 @@ static int rollDie(Random random) {
 }
 ~~~
 
-Đây là **mảnh phương thức** trong lớp Java có `import java.util.Random;`.
+This is a **method snippet** inside a Java class with `import java.util.Random;`.
 
-Ưu điểm: mã gọi kiểm soát được seed và trạng thái, giúp kiểm thử tái lập. Ví dụ:
+Advantage: the caller controls the seed and state, making tests reproducible. For example:
 
 ~~~java
 Random experiment = new Random(500L);
@@ -331,33 +331,33 @@ int firstRoll = rollDie(experiment);
 int secondRoll = rollDie(experiment);
 ~~~
 
-Nếu cần phát lại, tạo một `Random(500L)` mới và gọi `rollDie` hai lần cùng thứ tự. Để so sánh hai triển khai, có thể tạo **hai đối tượng riêng** có cùng seed, rồi đảm bảo cả hai triển khai tiêu thụ cùng số lần và kiểu lời gọi. Nếu thuật toán mới có thêm một lần rút số, phải xác định đó là thay đổi có chủ ý trước khi so sánh kết quả từng bước.
+If replay is needed, create a new `Random(500L)` and call `rollDie` twice in the same order. To compare two implementations, you can create **two separate objects** with the same seed, then ensure both implementations consume the same number and types of calls. If a new algorithm adds an extra number draw, verify that it is an intentional change before comparing step-by-step outputs.
 
-Khi ghi log để tái lập lỗi, những thông tin hữu ích thường gồm: **seed**, **lớp/thuật toán PRNG**, **phiên bản mã**, **tham số sinh số (như bound)** và **trình tự các sự kiện tiêu thụ**. Với chạy song song, nên bổ sung cách phân phối seed và thứ tự xử lý công việc.
+When logging to reproduce a bug, useful information usually includes: **seed**, **PRNG class/algorithm**, **code version**, **generation parameters (like bound)**, and **sequence of consumption events**. For parallel runs, also include how seeds are distributed and the work-processing order.
 
-## 13. Lỗi thường gặp
+## 13. Common mistakes
 
-**Lỗi 1 — Tạo `new Random(42L)` trong mỗi vòng lặp.** Mỗi đối tượng khởi đầu tại vị trí đầu chuỗi, nên gọi `nextInt(100)` đầu tiên đều được `30`. Đúng hơn là khởi tạo một đối tượng ngoài vòng lặp rồi sử dụng liên tục.
+**Mistake 1 — Creating `new Random(42L)` inside every loop iteration.** Each object starts at the beginning of the sequence, so the first `nextInt(100)` call always returns `30`. Better practice is to initialize one object outside the loop and use it continuously.
 
-**Lỗi 2 — Nghĩ seed giống nhau là đủ.** Nếu một nhánh code thực hiện thêm `nextInt`, `nextLong`, `nextDouble`, hoặc `nextGaussian`, các vị trí tiêu thụ không còn tương ứng; cùng seed cũng không bảo đảm kết quả ở bước nghiệp vụ tương ứng giống nhau.
+**Mistake 2 — Thinking the same seed is enough.** If one code branch makes an extra `nextInt`, `nextLong`, `nextDouble`, or `nextGaussian` call, consumption positions no longer align; the same seed will not guarantee the same result at the corresponding business step.
 
-**Lỗi 3 — Dùng `nextInt(10)` rồi kỳ vọng có số 10.** Bound là **exclusive**. `nextInt(10)` chỉ trả 0..9. Để sinh xúc xắc 1..6, dùng `nextInt(6) + 1`.
+**Mistake 3 — Using `nextInt(10)` and expecting 10.** The bound is **exclusive**. `nextInt(10)` only returns 0..9. For a 1..6 die, use `nextInt(6) + 1`.
 
-**Lỗi 4 — Cho bound bằng 0 hoặc âm.** `nextInt(0)` và `nextInt(-3)` ném `IllegalArgumentException`; phải kiểm tra điều kiện đầu vào.
+**Mistake 4 — Passing a zero or negative bound.** `nextInt(0)` and `nextInt(-3)` throw `IllegalArgumentException`; you must validate input preconditions.
 
-**Lỗi 5 — Trộn kết quả nhiều luồng và mong replay y nguyên.** Cùng seed cho một đối tượng chia sẻ không cố định thứ tự xen kẽ giữa các luồng. Thiết kế một bộ sinh cho mỗi tác vụ với seed quản lý độc lập khi cần tái lập.
+**Mistake 5 — Mixing results from multiple threads and expecting exact replay.** The same seed on a shared object does not fix thread interleaving order. Design one generator per task with independently managed seeds when reproducibility is required.
 
-**Lỗi 6 — Dùng `Random` cho mã bảo mật.** Seed có thể bị suy đoán và trạng thái LCG chỉ có 48 bit; dùng `SecureRandom` cho giá trị cần khó đoán.
+**Mistake 6 — Using `Random` for security codes.** Seeds can be guessed and the LCG state is only 48 bits; use `SecureRandom` for values that must be hard to predict.
 
-**Lỗi 7 — Chỉ lưu seed nhưng không lưu thuật toán hoặc thứ tự tiêu thụ.** Khi đổi loại PRNG, thay đổi bound hay thêm lần gọi, dãy số có thể khác. Log cần có đủ ngữ cảnh để tái hiện.
+**Mistake 7 — Logging only the seed without the algorithm or consumption order.** When changing PRNG types, changing bounds, or adding calls, the number sequence can change. Logs need enough context to reproduce.
 
-**Lỗi 8 — Giả định mọi seed `long` đều sinh một chuỗi duy nhất.** Đối với `java.util.Random` chuẩn, seed được biến đổi rồi giới hạn về 48 bit; có những seed `long` khác nhau cho cùng chuỗi.
+**Mistake 8 — Assuming every `long` seed produces a unique sequence.** For standard `java.util.Random`, the seed is transformed and truncated to 48 bits; different `long` seeds can produce the same sequence.
 
-**Lỗi 9 — Đồng nhất “giống chuỗi” với “đảm bảo phân bố tốt trong mọi tình huống”.** Tái lập không chứng minh tính đều hay tính độc lập thống kê. Nếu kết quả mô phỏng đòi hỏi chất lượng thống kê cao, lựa chọn thuật toán phải được đánh giá riêng.
+**Mistake 9 — Equating “same sequence” with “guaranteed good distribution in all scenarios”.** Reproducibility does not prove uniformity or statistical independence. If simulation outputs demand high statistical quality, algorithm selection must be evaluated separately.
 
-## 14. Bài luyện tập tự kiểm tra
+## 14. Self-check exercises
 
-**Câu 1.** Chương trình sau in gì?
+**Question 1.** What does the following program print?
 
 ~~~java
 Random a = new Random(42L);
@@ -368,7 +368,7 @@ System.out.println(b.nextInt(100));
 System.out.println(a.nextInt(100));
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 30
@@ -376,22 +376,22 @@ System.out.println(a.nextInt(100));
 63
 ~~~
 
-Mỗi đối tượng giữ trạng thái riêng. Hai lời gọi đầu lấy số đầu tiên của hai chuỗi giống nhau; lời gọi cuối là số thứ hai của `a`.
+Each object maintains its own state. The first two calls take the first number of two identical sequences; the last call gets the second number of `a`.
 
-**Câu 2.** Nếu thêm một lời gọi `nextInt(100)` vào trước phần tính kết quả của một mô phỏng, seed có đổi không? Kết quả về sau có thể đổi không?
+**Question 2.** If a `nextInt(100)` call is added before computing the result of a simulation, does the seed change? Can subsequent results change?
 
-**Đáp án:** Seed ban đầu không đổi, nhưng trạng thái đã tiến thêm. Vì vậy những số mà các bước sau nhận được có thể thay đổi.
+**Answer:** The initial seed does not change, but the state has advanced. Therefore, the numbers received by subsequent steps can change.
 
-**Câu 3.** Hai `Random` được tạo bằng `new Random(42L)` và `new Random(42L + (1L << 48))` có cho cùng chuỗi `nextInt(100)` không?
+**Question 3.** Do two `Random` instances created with `new Random(42L)` and `new Random(42L + (1L << 48))` produce the same `nextInt(100)` sequence?
 
-**Đáp án:** Có, đối với thuật toán 48 bit của `java.util.Random` được mô tả ở trên: phần chênh lệch nằm ngoài 48 bit thấp nên trạng thái ban đầu tương đương.
+**Answer:** Yes, for the 48-bit `java.util.Random` algorithm described above: the difference lies outside the lower 48 bits, so the initial states are equivalent.
 
-**Câu 4.** Muốn tái hiện một bug chỉ xảy ra với dữ liệu giả ngẫu nhiên, tối thiểu cần ghi gì ngoài seed?
+**Question 4.** To reproduce a bug that only occurs with pseudorandom data, what minimum information should be recorded besides the seed?
 
-**Đáp án:** Bộ sinh và phiên bản/hành vi chương trình, cùng những phương thức và tham số tiêu thụ chuỗi theo đúng thứ tự. Nếu có song song, cần kiểm soát việc phân chia chuỗi và lịch trình hoặc ghi thông tin đủ để tái hiện.
+**Answer:** The generator and program version/behavior, along with the methods and parameters consuming the sequence in the exact order. If parallel execution is involved, you must control sequence splitting and scheduling or record enough information to reproduce them.
 
-**Câu 5.** Có nên dùng `Random(42L)` để tạo mã xác thực 6 chữ số cho người dùng không?
+**Question 5.** Should `Random(42L)` be used to generate a 6-digit verification code for users?
 
-**Đáp án:** Không. Seed cố định dẫn đến chuỗi có thể tái lập và `Random` không phải bộ sinh mật mã. Hãy dùng `SecureRandom` cho trường hợp cần khó đoán.
+**Answer:** No. A fixed seed leads to a reproducible sequence, and `Random` is not a cryptographic generator. Use `SecureRandom` when unpredictability is required.
 
-**Ghi nhớ:** Seed là điểm khởi đầu của một **chuỗi giả ngẫu nhiên có trạng thái**. Với `java.util.Random`, cùng seed, cùng cách gọi và cùng thứ tự tiêu thụ cho cùng kết quả; `setSeed` khởi tạo lại chuỗi. Dùng đặc tính này để tái lập kiểm thử/mô phỏng, đồng thời nhớ giới hạn về đa luồng, thay đổi thuật toán và bảo mật.
+**Key takeaway:** The seed is the starting point of a **stateful pseudorandom sequence**. With `java.util.Random`, the same seed, same calls, and same consumption order yield the same results; `setSeed` reinitializes the sequence. Use this property for reproducible tests/simulations while keeping in mind the limits regarding multithreading, algorithm changes, and security.

@@ -1,48 +1,48 @@
-# Dùng unordered để bỏ ràng buộc thứ tự
+# Using `unordered` to Drop Ordering Constraints
 
-## 1. Vì sao Stream cần biết thứ tự?
+## 1. Why Do Streams Care About Order?
 
-Trong **JAVA_STREAM_API**, một pipeline khai báo thường bắt đầu bằng nguồn dữ liệu, đi qua các phép biến đổi như `filter`, `map`, `distinct`, `sorted`, `limit` rồi kết thúc bằng `collect`, `reduce` hoặc terminal operation khác. Cùng một tập phần tử, nhưng **thứ tự phần tử** có thể làm thay đổi ý nghĩa của một số operation.
+In **JAVA_STREAM_API**, a declarative pipeline typically starts from a data source, passes through transformations such as `filter`, `map`, `distinct`, `sorted`, and `limit`, and ends with `collect`, `reduce`, or another terminal operation. Given the same set of elements, **element ordering** can change the meaning of certain operations.
 
-Ví dụ, khi xử lý các giao dịch theo thời gian, “lấy 3 giao dịch đầu tiên” khác với “lấy 3 giao dịch bất kỳ”. Nhưng khi chỉ cần biết có bao nhiêu mã sản phẩm khác nhau, thứ tự thường không còn quan trọng. Java Stream API dùng khái niệm **encounter order** (thứ tự gặp phần tử) để mô tả ràng buộc này.
+For example, when processing chronological transactions, "take the first 3 transactions" differs from "take any 3 transactions". Yet when you only need to know how many distinct product codes exist, ordering usually no longer matters. The Java Stream API uses the concept of **encounter order** to express this constraint.
 
-`unordered()` là một **intermediate operation** cho phép loại bỏ ràng buộc encounter order khỏi pipeline. Nó đặc biệt hữu ích khi những operation phía sau không cần giữ “phần tử nào đến trước” và thư viện có thể tận dụng quyền tự do đó trong quá trình thực thi, nhất là với parallel stream.
+`unordered()` is an **intermediate operation** that removes the encounter-order constraint from the pipeline. It is especially useful when downstream operations do not need to preserve "which element came first" and the library can exploit that freedom during execution, particularly with parallel streams.
 
 ~~~text
-Nguồn có encounter order                 Nguồn/pipeline không có encounter order
+Source with encounter order              Unordered source/pipeline
      [9, 2, 7, 4, 1, 8]                           {9, 2, 7, 4, 1, 8}
                 |                                         |
           stream()                                      stream()
                 |                                         |
-       giữ thứ tự gặp                         unordered() hoặc nguồn vốn unordered
+     preserve encounter order                 unordered() or inherently unordered source
                 |                                         |
           limit(3)                                   limit(3)
                 |                                         |
-           [9, 2, 7]                              3 phần tử bất kỳ
+           [9, 2, 7]                              any 3 elements
                 |                                         |
-      ý nghĩa: 3 đầu tiên                   không bảo đảm là 3 đầu tiên
+      meaning: first 3                       not guaranteed to be the first 3
 ~~~
 
-**Điều quan trọng:** `unordered()` **không xáo trộn danh sách**, **không bảo đảm kết quả sẽ đổi thứ tự** và **không phải cơ chế lấy mẫu ngẫu nhiên**. Nó thay đổi những gì pipeline **phải bảo đảm**, chứ không yêu cầu tạo một phép hoán vị cụ thể.
+**Important:** `unordered()` **does not shuffle a list**, **does not guarantee the output order will change**, and **is not a random sampling mechanism**. It changes what the pipeline **must guarantee**, rather than demanding a specific permutation.
 
-## 2. Nguồn nào có encounter order?
+## 2. Which Sources Have an Encounter Order?
 
-Thứ tự gặp phần tử thường được quy định bởi nguồn và các operation trung gian:
+Encounter order is normally defined by the source and intermediate operations:
 
-| Nguồn hoặc operation | Bảo đảm encounter order? | Minh họa |
+| Source or operation | Guarantees encounter order? | Illustration |
 | --- | --- | --- |
-| `List.stream()`, `ArrayList.stream()` | Có | Theo thứ tự phần tử trong danh sách. |
-| `IntStream.range(1, 5)` | Có | Theo thứ tự 1, 2, 3, 4. |
-| `LinkedHashSet.stream()` | Có | Theo thứ tự lặp được xác định của `LinkedHashSet`. |
-| `HashSet.stream()` | Không | Không có thứ tự gặp được cam kết. |
-| `HashMap.entrySet().stream()` | Không | Không có thứ tự gặp được cam kết. |
-| `Stream.generate(...)` | Không | Nguồn sinh vô hạn, không có encounter order. |
-| `sorted()` | Có trên luồng đầu ra đã sắp xếp | Sắp xếp bằng thứ tự tự nhiên hoặc comparator. |
-| `unordered()` | Bỏ ràng buộc | Các operation phía sau không cần giữ thứ tự nguồn. |
+| `List.stream()`, `ArrayList.stream()` | Yes | Follows element order in the list. |
+| `IntStream.range(1, 5)` | Yes | Follows sequence 1, 2, 3, 4. |
+| `LinkedHashSet.stream()` | Yes | Follows the defined iteration order of `LinkedHashSet`. |
+| `HashSet.stream()` | No | No guaranteed encounter order. |
+| `HashMap.entrySet().stream()` | No | No guaranteed encounter order. |
+| `Stream.generate(...)` | No | Infinite generator source with no encounter order. |
+| `sorted()` | Yes, on the sorted output stream | Sorts by natural order or comparator. |
+| `unordered()` | Drops constraint | Downstream operations need not preserve source order. |
 
-Đừng nhầm **thứ tự xuất hiện khi in ra một lần** với **encounter order được API bảo đảm**. Một `HashSet` có thể thường in các phần tử theo cùng thứ tự trên nhiều lần chạy, nhưng không vì thế mà trở thành nguồn có encounter order.
+Do not confuse **the order observed when printing once** with **API-guaranteed encounter order**. A `HashSet` may often print elements in the same order across multiple runs, yet that does not make it a source with an encounter order.
 
-Ví dụ:
+Example:
 
 ~~~java
 import java.util.LinkedHashSet;
@@ -56,19 +56,19 @@ System.out.println(orderedList.stream().limit(3).toList()); // [9, 2, 7]
 System.out.println(orderedSet.stream().limit(3).toList());  // [9, 2, 7]
 ~~~
 
-Với nguồn có thứ tự, các phép như `map` và `filter` thông thường giữ encounter order của phần tử còn lại. Một số operation có thể **thay đổi** thứ tự (như `sorted`) hoặc **bỏ ràng buộc thứ tự** (như `unordered`).
+For ordered sources, operations like `map` and `filter` normally preserve the encounter order of remaining elements. Some operations can **alter** order (like `sorted`) or **remove the ordering constraint** (like `unordered`).
 
-## 3. Cách dùng `Stream.unordered()`
+## 3. How to Use `Stream.unordered()`
 
-Chữ ký của operation trên `Stream<T>`:
+The signature on `Stream<T>`:
 
 ~~~java
 Stream<T> unordered()
 ~~~
 
-`IntStream`, `LongStream` và `DoubleStream` cũng có `unordered()` tương ứng. Operation này không biến đổi giá trị phần tử và không trực tiếp loại phần tử; nó trả về một Stream tương đương mà **không còn bị ràng buộc encounter order**. Nếu Stream đã unordered, API có thể trả về chính Stream đó.
+`IntStream`, `LongStream`, and `DoubleStream` have corresponding `unordered()` methods as well. This operation neither transforms element values nor directly drops elements; it returns an equivalent Stream that **is no longer bound by encounter order**. If the Stream is already unordered, the API may return the same Stream instance.
 
-Ví dụ Java 17+:
+Java 17+ example:
 
 ~~~java
 import java.util.List;
@@ -82,15 +82,15 @@ public class UnorderedBasics {
             .toList();
 
         System.out.println(result);
-        // Có thể vẫn là [9, 2, 7, 4, 1, 8].
-        // KHÔNG được dựa vào thứ tự này như một bảo đảm.
+        // May still be [9, 2, 7, 4, 1, 8].
+        // DO NOT rely on this order as a guarantee.
     }
 }
 ~~~
 
-Trong nhiều trường hợp chạy tuần tự, kết quả quan sát được vẫn giống danh sách gốc. Điều đó không làm `unordered()` trở thành thao tác vô nghĩa: nó đã **nới hợp đồng** cho toàn bộ các operation về sau. Khi thêm `parallel()`, `distinct()`, `limit()` hoặc thay đổi cách xử lý bên dưới, sự khác biệt có thể trở nên rõ rệt.
+In many sequential runs, the observed result still matches the original list. That does not make `unordered()` a no-op: it has **relaxed the contract** for all subsequent operations. When you add `parallel()`, `distinct()`, `limit()`, or change the underlying execution strategy, the difference can become pronounced.
 
-### `unordered()` là lazy
+### `unordered()` Is Lazy
 
 ~~~java
 import java.util.List;
@@ -100,17 +100,17 @@ Stream<Integer> pipeline = List.of(1, 2, 3, 4).stream()
     .unordered()
     .filter(n -> n % 2 == 0);
 
-// Mới tạo pipeline; chưa cần duyệt phần tử.
+// Pipeline constructed; no elements traversed yet.
 List<Integer> evens = pipeline.toList();
 ~~~
 
-`toList()` là terminal operation kích hoạt tính toán và trả về danh sách không sửa đổi được. Không dùng lại `pipeline` cho terminal operation khác sau khi đã gọi `toList()`.
+`toList()` is the terminal operation that triggers computation and returns an unmodifiable list. Do not reuse `pipeline` for another terminal operation after calling `toList()`.
 
-## 4. Tác động với `limit` và `skip`
+## 4. Impact on `limit` and `skip`
 
-### 4.1. `limit(n)`: “n phần tử đầu tiên” hay “n phần tử bất kỳ”?
+### 4.1. `limit(n)`: "First `n` Elements" vs "Any `n` Elements"?
 
-Với encounter order, `limit(n)` giữ **n phần tử đầu tiên** trong thứ tự gặp. Sau `unordered()`, nó chỉ cần trả một tập con có không quá `n` phần tử, và với nguồn hữu hạn có ít nhất `n` phần tử thường trả đúng `n` phần tử, nhưng **không bảo đảm là những phần tử đầu tiên của nguồn**.
+With encounter order, `limit(n)` keeps the **first `n` elements** in encounter order. After `unordered()`, it only needs to return a subset of at most `n` elements, and on a finite source with at least `n` elements it typically returns `n` elements, though **with no guarantee they are the first elements of the source**.
 
 ~~~java
 import java.util.List;
@@ -127,21 +127,21 @@ List<Integer> anyThree = numbers.parallelStream()
     .toList();
 
 System.out.println(firstThree); // [9, 2, 7]
-System.out.println(anyThree);   // 3 giá trị từ nguồn; thứ tự và giá trị được chọn không được cam kết.
+System.out.println(anyThree);   // 3 values from source; neither order nor selection is guaranteed.
 ~~~
 
-Đừng viết kiểm thử mong đợi `anyThree.equals(List.of(9, 2, 7))`. Kiểm thử phù hợp có thể xác minh số lượng, mọi phần tử đều có trong nguồn và không có phần tử nào nằm ngoài phạm vi mong đợi:
+Do not write tests expecting `anyThree.equals(List.of(9, 2, 7))`. An appropriate test can verify the count, that every element belongs to the source, and that no unexpected elements appear:
 
 ~~~java
 import java.util.HashSet;
 
 if (anyThree.size() != 3
         || !new HashSet<>(numbers).containsAll(anyThree)) {
-    throw new AssertionError("Kết quả không đáp ứng điều kiện chọn 3 phần tử");
+    throw new AssertionError("Result does not satisfy the 3-element selection check");
 }
 ~~~
 
-Với bài toán **top 3 nhỏ nhất**, bỏ thứ tự trước `limit` là sai mục tiêu. Phải sắp xếp theo tiêu chí cần chọn:
+For the **3 smallest elements** problem, dropping order before `limit` misses the goal. You must sort by the selection criterion:
 
 ~~~java
 List<Integer> smallest = numbers.stream()
@@ -153,9 +153,9 @@ List<Integer> smallest = numbers.stream()
 System.out.println(smallest); // [1, 2, 4]
 ~~~
 
-`sorted()` thiết lập thứ tự của Stream đầu ra, vì vậy `limit(3)` sau nó có ý nghĩa là lấy ba giá trị nhỏ nhất.
+`sorted()` establishes the output Stream's order, so `limit(3)` after it meaningfully selects the three smallest values.
 
-### 4.2. `skip(n)`: bỏ phần tử đầu hay bỏ một số phần tử?
+### 4.2. `skip(n)`: Skipping Leading Elements vs Skipping Arbitrary Elements?
 
 ~~~java
 List<Integer> remainingInOrder = numbers.stream()
@@ -169,26 +169,26 @@ List<Integer> remainingWithoutOrder = numbers.parallelStream()
     .skip(2)
     .toList();
 
-// Bỏ 2 phần tử bất kỳ; không được khẳng định đã bỏ 9 và 2.
+// Skips any 2 elements; do not assert that 9 and 2 were skipped.
 ~~~
 
-Nếu mục tiêu là phân trang hoặc xử lý theo mốc thứ tự, **không dùng `unordered` trước `skip` / `limit`**. Phân trang yêu cầu thứ tự xác định, tốt nhất là một khóa sắp xếp rõ ràng và xử lý nhất quán giữa các lần truy vấn.
+If the goal is pagination or ordered slicing, **do not use `unordered` before `skip` / `limit`**. Pagination requires a deterministic order, ideally with an explicit sort key and consistent handling across queries.
 
-### 4.3. Vị trí của `unordered` quan trọng
+### 4.3. Position of `unordered` Matters
 
 ~~~java
-// A: limit thực hiện khi pipeline vẫn có encounter order.
+// A: limit executes while the pipeline still has encounter order.
 var a = numbers.stream().limit(3).unordered().toList();
 
-// B: limit không còn phải chọn 3 phần tử đầu.
+// B: limit is no longer required to choose the first 3 elements.
 var b = numbers.stream().unordered().limit(3).toList();
 ~~~
 
-Ở A, tập giá trị được chọn đã bị ràng buộc bởi `limit(3)` theo thứ tự nguồn; `unordered` phía sau chỉ bỏ yêu cầu về thứ tự **xuất kết quả**. Ở B, `limit(3)` có quyền lựa chọn bất kỳ ba phần tử. Đây là khác biệt về **ngữ nghĩa**, không phải chỉ về hiệu năng.
+In A, the chosen value set is already fixed by `limit(3)` in source order; the trailing `unordered` only drops the **output order** requirement. In B, `limit(3)` is free to select any three elements. This is a difference in **semantics**, not merely performance.
 
-## 5. Tác động với `distinct`: loại trùng khi không cần giữ phần tử đầu
+## 5. Impact on `distinct`: Deduplicating Without Keeping the First Occurrence
 
-`distinct()` loại các phần tử trùng nhau theo `Object.equals`. Trên Stream **có encounter order**, operation này ổn định: đối với các phần tử bằng nhau, phần tử xuất hiện đầu tiên được giữ lại. Trên Stream **unordered**, tính ổn định đó không được bảo đảm.
+`distinct()` removes duplicates according to `Object.equals`. On a Stream **with encounter order**, this operation is stable: among equal elements, the first-appearing element is kept. On an **unordered** Stream, that stability is not guaranteed.
 
 ~~~java
 import java.util.List;
@@ -206,15 +206,15 @@ List<String> unorderedDistinct = labels.parallelStream()
     .distinct()
     .toList();
 
-// Vẫn gồm A, B, C, mỗi giá trị đúng một lần.
-// Thứ tự xuất kết quả không được bảo đảm.
+// Still contains A, B, C, each once.
+// Output order is not guaranteed.
 ~~~
 
-Với chuỗi trong ví dụ, các giá trị trùng nhau không có khác biệt quan sát được ngoài vị trí. Với object có nhiều thuộc tính nhưng được xem là bằng nhau theo một khóa, việc chọn **đại diện nào** mới đáng chú ý. Nếu nghiệp vụ yêu cầu “giữ bản ghi đầu tiên theo thời gian”, hãy giữ encounter order và xác định rõ comparator/chiến lược chọn.
+For the strings in this example, duplicate values have no observable difference besides position. For objects with multiple attributes considered equal by a key, which **representative** gets kept actually matters. If business logic requires "keeping the earliest record chronologically", preserve encounter order and define an explicit comparator/selection strategy.
 
-### Vì sao `unordered` đôi khi cải thiện hiệu năng của `distinct`?
+### Why Can `unordered` Sometimes Improve `distinct` Performance?
 
-Với ordered parallel stream, `distinct` cần bảo toàn tính ổn định và thứ tự phần tử. Điều này có thể kéo theo đồng bộ và lưu trữ đáng kể. Với unordered parallel stream, implementation được phép chọn một phần tử bất kỳ trong mỗi nhóm trùng và có thêm lựa chọn để xử lý đồng thời.
+On an ordered parallel stream, `distinct` must preserve stability and element ordering. That can entail substantial synchronization and buffering. On an unordered parallel stream, the implementation is free to pick any representative from each duplicate group and has more freedom to execute concurrently.
 
 ~~~java
 import java.util.Set;
@@ -229,20 +229,20 @@ Set<Integer> unique = IntStream.range(0, 1_000_000)
     .boxed()
     .collect(Collectors.toSet());
 
-// unique chứa 1000 giá trị: 0 đến 999.
+// unique contains 1000 values: 0 through 999.
 ~~~
 
-Ở ví dụ này, ta chỉ quan tâm tập giá trị, không quan tâm thứ tự. `Collectors.toSet()` tự nó cũng không cam kết encounter order của tập trả về.
+In this example, we care only about the set of values, not their order. `Collectors.toSet()` itself makes no encounter-order guarantee on the returned set anyway.
 
-Không vì vậy mà mọi pipeline `unordered().distinct()` đều nhanh hơn: nếu nguồn nhỏ, xử lý tuần tự, hoặc chi phí chính nằm ở nguồn và hàm ánh xạ, chênh lệch có thể không đáng kể. Hãy benchmark khi tối ưu là mục tiêu.
+That does not mean every `unordered().distinct()` pipeline will be faster: if the source is small, execution is sequential, or the main cost lies in the source or mapping function, the difference may be negligible. Benchmark when optimization is the goal.
 
-## 6. `takeWhile` và `dropWhile` thay đổi ý nghĩa rõ rệt
+## 6. `takeWhile` and `dropWhile` Change Meaning Dramatically
 
-Từ **Java 9**, `takeWhile(predicate)` và `dropWhile(predicate)` có hành vi phụ thuộc encounter order.
+Since **Java 9**, `takeWhile(predicate)` and `dropWhile(predicate)` behave according to encounter order.
 
-Với **ordered stream**:
-- `takeWhile` giữ **tiền tố dài nhất** của các phần tử liên tiếp thỏa predicate.
-- `dropWhile` bỏ **tiền tố dài nhất** đó, giữ phần còn lại.
+On an **ordered stream**:
+- `takeWhile` retains the **longest prefix** of contiguous elements satisfying the predicate.
+- `dropWhile` drops that **longest prefix** and keeps the rest.
 
 ~~~java
 import java.util.List;
@@ -261,14 +261,14 @@ System.out.println(prefix);      // [2, 4]
 System.out.println(afterPrefix); // [1, 6, 8]
 ~~~
 
-Phần tử `1` làm `takeWhile` dừng giữ phần tử theo tiền tố, dù `6` và `8` vẫn thỏa điều kiện.
+The element `1` causes `takeWhile` to stop taking prefix elements, even though `6` and `8` still satisfy the condition.
 
-Với **unordered stream**, khái niệm “tiền tố” không còn có nghĩa. Nếu một số nhưng không phải tất cả phần tử thỏa predicate:
+On an **unordered stream**, the notion of "prefix" no longer makes sense. If some but not all elements satisfy the predicate:
 
-| Operation | Điều được phép khi unordered |
+| Operation | What is permitted when unordered |
 | --- | --- |
-| `takeWhile(p)` | Chọn **bất kỳ tập con nào** của các phần tử thỏa `p`, kể cả tập rỗng. |
-| `dropWhile(p)` | Bỏ **bất kỳ tập con nào** của các phần tử thỏa `p`, kể cả không bỏ phần tử nào; phần tử không thỏa phải được giữ. |
+| `takeWhile(p)` | Selects **any subset** of elements satisfying `p`, including the empty set. |
+| `dropWhile(p)` | Drops **any subset** of elements satisfying `p`, including dropping nothing; non-matching elements must be kept. |
 
 ~~~java
 List<Integer> take = values.parallelStream()
@@ -281,11 +281,11 @@ List<Integer> drop = values.parallelStream()
     .dropWhile(n -> n % 2 == 0)
     .toList();
 
-// take có thể chứa một tập con bất kỳ của {2, 4, 6, 8}.
-// drop luôn chứa 1; các số chẵn còn lại không được cam kết.
+// take may contain any subset of {2, 4, 6, 8}.
+// drop always contains 1; whether other even numbers remain is unspecified.
 ~~~
 
-Không được kỳ vọng `take` bằng `[2, 4]` hay `drop` bằng `[1, 6, 8]`. Cũng không nên dùng `takeWhile` trên Stream unordered để thay thế `filter`:
+Do not expect `take` to equal `[2, 4]` or `drop` to equal `[1, 6, 8]`. Nor should you use `takeWhile` on an unordered Stream as a substitute for `filter`:
 
 ~~~java
 List<Integer> allEven = values.stream()
@@ -297,13 +297,13 @@ List<Integer> allEven = values.stream()
 System.out.println(allEven); // [2, 4, 6, 8]
 ~~~
 
-**Phân biệt:** `filter` giữ *mọi* phần tử thỏa predicate, độc lập với encounter order. `takeWhile` có ngữ nghĩa tiền tố với ordered stream; trên unordered stream, nó được phép chỉ giữ *một tập con*.
+**Distinction:** `filter` keeps *every* element satisfying the predicate, independent of encounter order. `takeWhile` has prefix semantics on ordered streams; on unordered streams, it is allowed to keep only *a subset*.
 
-Tương tự, nếu muốn bỏ *mọi* phần tử thỏa điều kiện `p`, dùng `filter(p.negate())` hoặc `filter(x -> !p.test(x))`, thay vì dựa vào `dropWhile` sau `unordered`.
+Similarly, if you want to drop *every* element satisfying `p`, use `filter(p.negate())` or `filter(x -> !p.test(x))` rather than relying on `dropWhile` after `unordered`.
 
-## 7. `findFirst`, `findAny` và terminal operation có thứ tự
+## 7. `findFirst`, `findAny`, and Ordered Terminal Operations
 
-`findFirst()` trả về phần tử đầu tiên **nếu Stream có encounter order**. Khi Stream đã unordered, nó có thể trả về **bất kỳ phần tử nào**. `findAny()` chủ động cho phép chọn bất kỳ phần tử để tối ưu thực thi, đặc biệt trên parallel stream.
+`findFirst()` returns the first element **if the Stream has an encounter order**. Once the Stream is unordered, it may return **any element**. `findAny()` explicitly allows selecting any element to optimize execution, especially on parallel streams.
 
 ~~~java
 import java.util.List;
@@ -312,31 +312,31 @@ import java.util.Optional;
 List<Integer> queue = List.of(10, 20, 30, 40);
 
 Optional<Integer> first = queue.parallelStream()
-    .findFirst(); // 10 (nguồn ordered)
+    .findFirst(); // 10 (ordered source)
 
 Optional<Integer> any = queue.parallelStream()
     .unordered()
-    .findFirst(); // Có thể là 10, 20, 30 hoặc 40.
+    .findFirst(); // May be 10, 20, 30, or 40.
 
 Optional<Integer> alsoAny = queue.parallelStream()
-    .findAny(); // Không bảo đảm trả phần tử đầu tiên.
+    .findAny(); // Not guaranteed to return the first element.
 ~~~
 
-Nếu cần “yêu cầu sớm nhất”, dùng `findFirst` trên nguồn được xác định thứ tự. Nếu chỉ cần “tìm một yêu cầu phù hợp bất kỳ”, `findAny` diễn đạt đúng yêu cầu và thường không cần gọi `unordered` riêng chỉ để lấy một phần tử.
+If you need the "earliest request", use `findFirst` on an ordered source. If you just need "any matching request", `findAny` expresses that requirement directly and usually removes the need to call `unordered` solely to fetch one element.
 
-### `forEach` và `forEachOrdered`
+### `forEach` and `forEachOrdered`
 
-Ngay cả khi nguồn ordered, `forEach` trên parallel stream **không bảo đảm** thứ tự thực hiện action. Ngược lại, `forEachOrdered` thực hiện action theo encounter order *nếu encounter order tồn tại*:
+Even when the source is ordered, `forEach` on a parallel stream **does not guarantee** action execution order. Conversely, `forEachOrdered` executes actions in encounter order *if an encounter order exists*:
 
 ~~~java
 import java.util.stream.IntStream;
 
 IntStream.rangeClosed(1, 5)
     .parallel()
-    .forEachOrdered(System.out::println); // 1, 2, 3, 4, 5 theo thứ tự.
+    .forEachOrdered(System.out::println); // 1, 2, 3, 4, 5 in order.
 ~~~
 
-Sau `unordered()`, `forEachOrdered` không thể khôi phục thứ tự gốc đã bị bỏ ràng buộc:
+After `unordered()`, `forEachOrdered` cannot restore the original source order whose constraint was dropped:
 
 ~~~java
 IntStream.rangeClosed(1, 5)
@@ -344,16 +344,16 @@ IntStream.rangeClosed(1, 5)
     .unordered()
     .forEachOrdered(System.out::println);
 
-// Không được mong đợi luôn in 1, 2, 3, 4, 5.
+// Do not expect it to always print 1, 2, 3, 4, 5.
 ~~~
 
-Lưu ý: `forEachOrdered` vẫn thực thi các action theo quan hệ *happens-before* giữa phần tử được xử lý trước và phần tử sau trong thứ tự do operation áp dụng; điều đó không biến Stream unordered thành Stream có thứ tự nguồn.
+Note: `forEachOrdered` still executes actions with a *happens-before* relationship between an element processed earlier and the next one in whatever order the operation applies; that does not turn an unordered Stream back into one with source order.
 
-Nếu đầu ra cần hiển thị theo thứ tự, cách dễ kiểm tra hơn là **thu thập thành giá trị, sắp xếp rõ ràng**, rồi in/ghi dữ liệu theo trình tự đã xác định. Tác dụng phụ trong `forEach`, `peek` hoặc các lambda trung gian không phù hợp để chứng minh encounter order.
+If output must be displayed in order, a more testable approach is to **collect into values, sort explicitly**, and then print/write data sequentially. Side effects inside `forEach`, `peek`, or intermediate lambdas are unsuitable for proving encounter order.
 
-## 8. `sorted()` tạo thứ tự mới: bỏ thứ tự cũ không đồng nghĩa với không thể sắp xếp
+## 8. `sorted()` Creates a New Order: Dropping Old Order Does Not Prevent Sorting
 
-`unordered()` cho phép Stream bỏ encounter order hiện tại, nhưng operation `sorted()` ở phía sau sẽ đưa các phần tử vào **thứ tự sắp xếp**.
+`unordered()` lets a Stream drop its current encounter order, yet a downstream `sorted()` puts elements into **sorted order**.
 
 ~~~java
 import java.util.List;
@@ -368,9 +368,9 @@ List<Integer> sortedValues = numbers.parallelStream()
 System.out.println(sortedValues); // [1, 2, 4, 7, 8, 9]
 ~~~
 
-Khi các phần tử có **khóa so sánh bằng nhau**, cần phân biệt “sắp xếp theo khóa” và “thứ tự hoàn toàn xác định”. API cam kết phép sort **ổn định** với ordered stream; với unordered stream không có bảo đảm về tính ổn định.
+When elements have **equal comparison keys**, distinguish between "sorted by key" and "completely deterministic order". The API guarantees **stable** sorting for ordered streams; for unordered streams there is no stability guarantee.
 
-Ví dụ danh sách giao dịch có cùng mức ưu tiên:
+Example of a ticket list with identical priority levels:
 
 ~~~java
 import java.util.Comparator;
@@ -384,13 +384,13 @@ List<Ticket> tickets = List.of(
     new Ticket(2, "C")
 );
 
-// Các ticket có cùng priority không có thứ tự tương đối được cam kết:
+// Tickets with equal priority have no guaranteed relative order:
 List<Ticket> byPriority = tickets.stream()
     .unordered()
     .sorted(Comparator.comparingInt(Ticket::priority))
     .toList();
 
-// Muốn thứ tự xác định, dùng khóa phụ để phá hòa:
+// For deterministic order, use a secondary key to break ties:
 List<Ticket> deterministic = tickets.stream()
     .unordered()
     .sorted(
@@ -403,13 +403,13 @@ List<Ticket> deterministic = tickets.stream()
 //  Ticket[priority=2, code=C]]
 ~~~
 
-Nếu comparator vẫn coi hai phần tử khác nhau là bằng nhau, thứ tự tương đối của chúng có thể tiếp tục không được xác định trên Stream unordered. Khi cần kết quả có thứ tự hoàn toàn, hãy chọn một bộ khóa so sánh đủ phân biệt các phần tử theo yêu cầu.
+If the comparator still treats two distinct elements as equal, their relative order can remain unspecified on an unordered Stream. When completely deterministic ordering is needed, pick a set of comparison keys sufficient to distinguish elements per requirements.
 
-## 9. Dùng `unordered()` trong pipeline song song có chọn lọc
+## 9. Using `unordered()` Selectively in Parallel Pipelines
 
-Bỏ ràng buộc thứ tự thường có ý nghĩa nhất khi **không cần encounter order** và có một operation phải tốn chi phí để giữ nó.
+Dropping ordering constraints makes the most sense when **encounter order is unnecessary** and an operation pays a cost to preserve it.
 
-Ví dụ nghiệp vụ: một triệu mã sản phẩm có thể có mã trùng. Hệ thống chỉ cần **tập mã phân biệt**, không cần mã nào xuất hiện trước:
+Business example: one million product codes may contain duplicates. The system only needs the **set of distinct codes**, not which code appeared first:
 
 ~~~java
 import java.util.Set;
@@ -427,9 +427,9 @@ Set<Integer> uniqueIds = IntStream.range(0, 1_000_000)
 System.out.println(uniqueIds.size()); // 10000
 ~~~
 
-Trong tình huống này, việc giữ thứ tự của các mã sau `distinct` không có ý nghĩa đối với kết quả `Set`. Bỏ ràng buộc có thể giúp triển khai `distinct` trên parallel stream ít bị giới hạn hơn.
+Here, preserving the order of IDs after `distinct` serves no purpose for the `Set` result. Dropping the constraint can give `distinct` on a parallel stream fewer restrictions.
 
-Ví dụ khác: cần **bất kỳ 100 mẫu hợp lệ** trong nguồn lớn để kiểm tra nhanh:
+Another example: needing **any 100 valid samples** from a large source for a quick check:
 
 ~~~java
 import java.util.List;
@@ -443,35 +443,35 @@ List<Integer> samples = IntStream.range(0, 1_000_000)
     .boxed()
     .toList();
 
-// samples có 100 số chia hết cho 100, chọn từ nguồn.
-// Không bảo đảm đây là 100 số nhỏ nhất.
-// Đây cũng không phải mẫu ngẫu nhiên đồng đều.
+// samples holds 100 numbers divisible by 100 chosen from the source.
+// Not guaranteed to be the 100 smallest numbers.
+// Also not a uniformly random sample.
 ~~~
 
-Nếu yêu cầu là “100 bản ghi đầu tiên theo thời gian”, “100 khách có điểm cao nhất”, hoặc “mẫu ngẫu nhiên đúng phân phối”, các yêu cầu ấy cần một **thuật toán riêng với tiêu chí rõ ràng**. `unordered().limit(100)` không đáp ứng chúng.
+If the requirement is "the first 100 records chronologically", "the 100 highest-scoring customers", or "a statistically uniform random sample", those requirements need a **dedicated algorithm with explicit criteria**. `unordered().limit(100)` does not satisfy them.
 
-### Vì sao có thể nhanh hơn?
+### Why Might It Be Faster?
 
-- `distinct` trên ordered parallel stream phải giữ bản ghi đại diện xuất hiện đầu tiên theo encounter order; bỏ ràng buộc có thể giảm đồng bộ và ràng buộc trong quá trình hợp nhất.
-- `limit` / `skip` trên ordered parallel stream phải xác định phần tử đầu theo thứ tự nguồn, có thể đòi hỏi phối hợp giữa nhiều nhánh.
-- `takeWhile` / `dropWhile` trên ordered parallel stream phải xác định tiền tố, nên có thể tốn công phối hợp; với unordered stream, hợp đồng linh hoạt hơn.
-- Nguồn vốn unordered (ví dụ `HashSet`) thường không được hưởng thêm điều gì chỉ bởi gọi `unordered()`.
+- `distinct` on an ordered parallel stream must retain the first-appearing representative in encounter order; dropping the constraint can reduce synchronization and merging restrictions.
+- `limit` / `skip` on an ordered parallel stream must identify leading elements in source order, which can require cross-branch coordination.
+- `takeWhile` / `dropWhile` on an ordered parallel stream must locate the prefix boundary, which can incur coordination overhead; on an unordered stream, the contract is much looser.
+- Inherently unordered sources (such as `HashSet`) usually gain nothing extra solely from calling `unordered()`.
 
-Không có bảo đảm rằng gọi `unordered()` luôn nhanh hơn, dùng ít bộ nhớ hơn hay khiến Stream tự động chạy song song. Nó không thay thế `parallel()` và không giải quyết tranh chấp state, I/O chậm hay thuật toán có độ phức tạp cao.
+There is no guarantee that calling `unordered()` is always faster, uses less memory, or automatically parallelizes a Stream. It does not replace `parallel()` and does not solve state contention, slow I/O, or high-complexity algorithms.
 
-### Đặt phép `unordered()` ở đâu?
+### Where to Place `unordered()`?
 
-Trong pipeline, thứ tự operation ảnh hưởng đến ngữ nghĩa:
+In a pipeline, operation order affects semantics:
 
 ~~~java
-// Nới ràng buộc trước distinct và limit:
+// Relax constraint before distinct and limit:
 var anyDistinct = numbers.parallelStream()
     .unordered()
     .distinct()
     .limit(3)
     .toList();
 
-// Sắp xếp trước khi limit để chọn 3 giá trị nhỏ nhất:
+// Sort before limit to select the 3 smallest values:
 var smallestDistinct = numbers.parallelStream()
     .unordered()
     .distinct()
@@ -480,11 +480,11 @@ var smallestDistinct = numbers.parallelStream()
     .toList();
 ~~~
 
-Với những phần tử phân biệt, `anyDistinct` chỉ cần chọn ba phần tử bất kỳ, còn `smallestDistinct` trả ba phần tử nhỏ nhất. Nếu dữ liệu có nhiều trùng lặp, `distinct` ở cả hai pipeline sẽ loại trùng trước khi cắt.
+With distinct elements, `anyDistinct` simply picks any three elements, while `smallestDistinct` returns the three smallest. If the data has many duplicates, `distinct` in both pipelines deduplicates before slicing.
 
-## 10. Những hiểu nhầm và sai sót dễ gặp
+## 10. Common Misconceptions and Pitfalls
 
-### Hiểu nhầm 1: `unordered()` xáo trộn ngẫu nhiên
+### Misconception 1: `unordered()` Shuffles Randomly
 
 ~~~java
 List<Integer> result = List.of(1, 2, 3, 4).stream()
@@ -492,9 +492,9 @@ List<Integer> result = List.of(1, 2, 3, 4).stream()
     .toList();
 ~~~
 
-Kết quả có thể vẫn là `[1, 2, 3, 4]`. Không được khẳng định thứ tự sẽ đổi và cũng không được coi `unordered` là thuật toán lấy mẫu ngẫu nhiên.
+The result may still be `[1, 2, 3, 4]`. Do not assert that the order will change, and do not treat `unordered` as a random sampling algorithm.
 
-Nếu thật sự muốn trộn một danh sách, hãy dùng thuật toán shuffle phù hợp:
+If you genuinely want to shuffle a list, use a proper shuffle algorithm:
 
 ~~~java
 import java.util.ArrayList;
@@ -503,14 +503,14 @@ import java.util.List;
 import java.util.Random;
 
 List<Integer> shuffled = new ArrayList<>(List.of(1, 2, 3, 4));
-Collections.shuffle(shuffled, new Random(42)); // Seed cố định để tái lập kết quả.
+Collections.shuffle(shuffled, new Random(42)); // Fixed seed for reproducibility.
 ~~~
 
-Shuffle ở đây nhằm tạo một hoán vị. Nó khác hoàn toàn ý nghĩa hợp đồng của `unordered()`.
+Shuffle here is intended to produce a permutation. That is completely different from the contract of `unordered()`.
 
-### Hiểu nhầm 2: cứ thêm `unordered` là parallel stream nhanh hơn
+### Misconception 2: Simply Adding `unordered` Makes Every Parallel Stream Faster
 
-Không phải tất cả operation đều chịu chi phí giữ thứ tự ở mức đáng kể. Với một pipeline chỉ gồm `map` và `sum`, phần lớn phép tính đã có thể thực thi độc lập khi song song, còn việc bỏ ràng buộc có thể không đem lại lợi ích thực tế.
+Not every operation incurs noticeable cost to maintain ordering. For a pipeline consisting solely of `map` and `sum`, most work already runs independently in parallel, so dropping the ordering constraint may yield no practical benefit.
 
 ~~~java
 long sum = IntStream.range(0, 1_000_000)
@@ -520,9 +520,9 @@ long sum = IntStream.range(0, 1_000_000)
     .sum();
 ~~~
 
-`sum` yêu cầu phép cộng phù hợp kiểu dữ liệu. Mặt khác, ví dụ dùng `long` để tránh tràn số `int` trong phép nhân `n * n`; với các phép gộp không kết hợp hoặc số thực dấu chấm động, cách chia nhánh có thể ảnh hưởng kết quả tính toán và độ chính xác.
+`sum` requires addition suited to the data type. On the other hand, the example uses `long` to prevent `int` overflow in `n * n`; for non-associative reductions or floating-point numbers, task splitting can affect calculation results and precision.
 
-### Hiểu nhầm 3: `unordered()` cho phép callback có state không an toàn
+### Misconception 3: `unordered()` Permits Unsafe Stateful Callbacks
 
 ~~~java
 import java.util.ArrayList;
@@ -534,20 +534,20 @@ List<Integer> result = IntStream.range(0, 1000)
     .parallel()
     .unordered()
     .boxed()
-    .peek(shared::add) // Không an toàn: nhiều thread ghi ArrayList.
+    .peek(shared::add) // Unsafe: multiple threads write to ArrayList.
     .toList();
 ~~~
 
-`unordered` chỉ thay đổi yêu cầu về encounter order, **không** làm callback có tác dụng phụ trở nên thread-safe. Đừng dùng `peek` để xây dựng danh sách kết quả; `toList()` hoặc collector phù hợp mới là cách xử lý chính thức. Các behavioral parameters vẫn cần **không can thiệp** và **không trạng thái** theo hợp đồng Stream.
+`unordered` changes only the encounter-order requirement; it **does not** make side-effecting callbacks thread-safe. Do not use `peek` to build a result list; `toList()` or an appropriate collector is the proper mechanism. Behavioral parameters must still remain **non-interfering** and **stateless** under the Stream contract.
 
-### Hiểu nhầm 4: `distinct()` sau `unordered()` sẽ giữ đại diện xuất hiện đầu
+### Misconception 4: `distinct()` After `unordered()` Keeps the First-Appearing Representative
 
-Chỉ có `distinct()` trên Stream ordered mới cam kết tính ổn định theo encounter order. Nếu cần đúng bản ghi đầu tiên cho mỗi khóa, hãy xác định thứ tự, khóa trùng và quy tắc chọn đại diện thay vì tin vào kết quả một lần chạy.
+Only `distinct()` on an ordered Stream guarantees stability by encounter order. If you need the exact first record per key, establish ordering, duplicate keys, and representative selection rules instead of trusting one run's output.
 
-### Hiểu nhầm 5: `unordered()` có thể tạo thứ tự phân trang ổn định
+### Misconception 5: `unordered()` Can Produce Stable Pagination Order
 
 ~~~java
-// Không phù hợp cho phân trang có thứ tự:
+// Unsuitable for ordered pagination:
 var page = numbers.parallelStream()
     .unordered()
     .skip(2)
@@ -555,31 +555,31 @@ var page = numbers.parallelStream()
     .toList();
 ~~~
 
-Hai lần chạy có thể chọn tập phần tử khác nhau khi parallel stream thay đổi cách phân chia. Với phân trang, cần thứ tự xác định bằng khóa và tiêu chí ổn định.
+Two runs can choose different element sets as the parallel stream changes task splitting. For pagination, establish deterministic order via keys and stable criteria.
 
-## 11. Bảng chọn nhanh: có nên bỏ encounter order?
+## 11. Quick Decision Table: Should You Drop Encounter Order?
 
-| Yêu cầu nghiệp vụ | Dùng `unordered()`? | Lý do |
+| Business requirement | Use `unordered()`? | Reason |
 | --- | --- | --- |
-| Lấy 10 giao dịch sớm nhất | Không | “Sớm nhất” là ràng buộc thứ tự. |
-| Tìm một giao dịch bất kỳ phù hợp | Có thể; hoặc dùng `findAny` | Không cần phần tử đầu tiên. |
-| Đếm số giá trị phân biệt | Có thể | Số lượng không phụ thuộc encounter order. |
-| Lấy một tập con bất kỳ từ nguồn lớn | Có thể | Chấp nhận kết quả không xác định về thành phần. |
-| Lấy top N theo giá trị | Có thể trước `sorted`, sau đó `limit` | Thứ tự phải được tái thiết lập bởi comparator. |
-| Cắt chuỗi xử lý khi gặp phần tử lỗi đầu tiên | Không | `takeWhile` / `dropWhile` cần ngữ nghĩa tiền tố. |
-| Lấy mẫu ngẫu nhiên đồng đều | Không dùng làm thuật toán lấy mẫu | `unordered` không có bảo đảm ngẫu nhiên. |
-| Phân trang kết quả cho người dùng | Không | Cần sắp xếp ổn định để tránh trang chồng lặp/thiếu. |
-| Làm phẳng, map và tổng hợp không quan tâm thứ tự | Có thể, sau khi xác minh yêu cầu | Giảm ràng buộc không cần thiết, nhưng phải đo hiệu năng. |
+| Get the 10 earliest transactions | No | "Earliest" is an ordering constraint. |
+| Find any matching transaction | Possible; or use `findAny` | No need for the first element. |
+| Count distinct values | Possible | Count does not depend on encounter order. |
+| Take any subset from a large source | Possible | Non-deterministic membership is acceptable. |
+| Get the top N by value | Possible before `sorted`, then `limit` | Ordering must be re-established by a comparator. |
+| Cut a processing sequence at the first error element | No | `takeWhile` / `dropWhile` require prefix semantics. |
+| Draw a uniform random sample | Do not use as a sampling algorithm | `unordered` provides no randomness guarantee. |
+| Paginate user-facing results | No | Stable sorting is needed to prevent overlapping/missing pages. |
+| Flatten, map, and aggregate regardless of order | Possible, after verifying requirements | Drops unnecessary constraints, though benchmarking is required. |
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-1. **`unordered()` có xáo trộn Stream không?** Không. Nó bỏ ràng buộc encounter order; kết quả thực tế vẫn có thể giống thứ tự ban đầu.
-2. **Tại sao `list.stream().limit(3)` có ý nghĩa khác `list.stream().unordered().limit(3)`?** Trường hợp đầu chọn ba phần tử đầu theo encounter order; trường hợp sau có thể chọn ba phần tử bất kỳ.
-3. **Có thể dùng `unordered()` trước `distinct()` trên parallel stream để cải thiện hiệu năng không?** Có thể, khi không cần giữ phần tử đầu đại diện hoặc thứ tự kết quả; phải đo để xác nhận lợi ích thực tế.
-4. **Trên unordered stream, `takeWhile` có giữ mọi phần tử thỏa predicate không?** Không. Nó có thể giữ bất kỳ tập con nào của các phần tử thỏa điều kiện; nếu cần giữ tất cả, dùng `filter`.
-5. **`findFirst()` trên unordered stream luôn trả phần tử đầu danh sách gốc không?** Không. Khi không có encounter order, nó được phép trả phần tử bất kỳ.
-6. **`unordered().sorted().limit(3)` có trả ba phần tử nhỏ nhất không?** Có, nếu comparator tạo thứ tự tương ứng và Stream có ít nhất ba giá trị; `sorted` thiết lập thứ tự cho đầu ra.
-7. **`forEachOrdered` sau `unordered()` có khôi phục thứ tự ban đầu không?** Không. Nó chỉ tuân thủ encounter order nếu Stream có một thứ tự như vậy.
-8. **Bỏ encounter order có nghĩa là lambda bên trong `map` và `peek` được phép cập nhật trạng thái dùng chung?** Không. Yêu cầu không can thiệp, không trạng thái và an toàn đồng thời vẫn áp dụng.
+1. **Does `unordered()` shuffle a Stream?** No. It removes the encounter-order constraint; actual output may still match the original order.
+2. **Why does `list.stream().limit(3)` mean something different from `list.stream().unordered().limit(3)`?** The first picks the first three elements in encounter order; the second may pick any three elements.
+3. **Can `unordered()` before `distinct()` improve parallel stream performance?** Potentially, when keeping the first representative or output ordering is unnecessary; benchmark to confirm actual gains.
+4. **On an unordered stream, does `takeWhile` keep every element satisfying the predicate?** No. It may keep any subset of matching elements; if you need all of them, use `filter`.
+5. **Does `findFirst()` on an unordered stream always return the first element of the original list?** No. Without an encounter order, it is allowed to return any element.
+6. **Does `unordered().sorted().limit(3)` return the three smallest elements?** Yes, provided the comparator establishes that order and the Stream has at least three values; `sorted` sets the output order.
+7. **Does `forEachOrdered` after `unordered()` restore the original order?** No. It respects encounter order only if the Stream has one.
+8. **Does dropping encounter order allow lambdas in `map` and `peek` to update shared state?** No. Non-interference, statelessness, and thread safety rules still apply.
 
-**Ghi nhớ:** `unordered()` là lời khai báo **“tôi không cần giữ encounter order từ đây về sau”**. Nó hữu ích khi bài toán cho phép chọn phần tử bất kỳ, loại trùng hoặc xử lý theo lô trên parallel stream. Hãy giữ thứ tự khi kết quả phụ thuộc “đầu tiên”, “theo thời gian”, “trang số N” hoặc “tiền tố”; dùng `sorted` để thiết lập thứ tự mới khi cần và kiểm tra hiệu năng bằng dữ liệu thực tế.
+**Key takeaway:** `unordered()` is a declaration stating **"I do not need encounter order preserved from here onward"**. It is helpful when the problem permits picking arbitrary elements, deduplicating, or batch processing in parallel streams. Preserve order whenever results depend on "first", "chronological", "page N", or "prefix"; use `sorted` to establish a new order when needed, and verify performance with realistic data.

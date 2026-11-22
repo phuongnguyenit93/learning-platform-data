@@ -1,67 +1,67 @@
-# Vì sao `Float.MIN_VALUE` và `Double.MIN_VALUE` không phải số âm nhỏ nhất?
+# Why Are `Float.MIN_VALUE` and `Double.MIN_VALUE` Not the Smallest Negative Numbers?
 
-## 1. Sai lầm phổ biến: nhầm “MIN” với số âm lớn nhất về độ lớn
+## 1. Common Mistake: Confusing "MIN" with the Largest-Magnitude Negative Number
 
-Khi lập trình Java, người học thường quen với `Integer.MIN_VALUE` là số nguyên âm nhỏ nhất có thể biểu diễn. Từ đó dễ suy luận nhầm rằng `Float.MIN_VALUE` hay `Double.MIN_VALUE` cũng mang ý nghĩa tương tự.
+When programming in Java, learners are often used to `Integer.MIN_VALUE` being the smallest representable negative integer. From there, it is easy to mistakenly assume that `Float.MIN_VALUE` or `Double.MIN_VALUE` carries the same meaning.
 
-**Thực tế trong Java 17+:**
+**In reality in Java 17+:**
 
-- `Float.MIN_VALUE` là **số `float` dương nhỏ nhất khác 0**, bằng khoảng `1.4E-45`.
-- `Double.MIN_VALUE` là **số `double` dương nhỏ nhất khác 0**, bằng khoảng `4.9E-324`.
-- Số `float` hữu hạn âm nhỏ nhất là **`-Float.MAX_VALUE`**, khoảng `-3.4028235E38`.
-- Số `double` hữu hạn âm nhỏ nhất là **`-Double.MAX_VALUE`**, khoảng `-1.7976931348623157E308`.
-- Nếu tính cả giá trị vô cực đặc biệt, `Float.NEGATIVE_INFINITY` và `Double.NEGATIVE_INFINITY` nhỏ hơn tất cả các số hữu hạn cùng kiểu.
+- `Float.MIN_VALUE` is the **smallest positive nonzero `float`**, approximately `1.4E-45`.
+- `Double.MIN_VALUE` is the **smallest positive nonzero `double`**, approximately `4.9E-324`.
+- The smallest finite negative `float` is **`-Float.MAX_VALUE`**, approximately `-3.4028235E38`.
+- The smallest finite negative `double` is **`-Double.MAX_VALUE`**, approximately `-1.7976931348623157E308`.
+- If special infinity values are included, `Float.NEGATIVE_INFINITY` and `Double.NEGATIVE_INFINITY` are smaller than all finite numbers of the same type.
 
-Một bug điển hình:
+A typical bug:
 
 ```java
-double max = Double.MIN_VALUE;  // SAI nếu dữ liệu có thể toàn số âm.
+double max = Double.MIN_VALUE;  // WRONG if the data can consist entirely of negative numbers.
 
 for (double value : new double[]{-8.0, -3.0, -11.0}) {
     if (value > max) {
         max = value;
     }
 }
-System.out.println(max); // 4.9E-324 — không có trong dữ liệu!
+System.out.println(max); // 4.9E-324 — not even in the data!
 ```
 
-Vì `Double.MIN_VALUE > 0`, cả ba số âm đều nhỏ hơn giá trị khởi tạo nên vòng lặp không bao giờ cập nhật `max`.
+Because `Double.MIN_VALUE > 0`, all three negative numbers are smaller than the initial value, so the loop never updates `max`.
 
-**Mục tiêu của bài:** nắm được chính xác ý nghĩa các hằng số `MIN_VALUE`, `MIN_NORMAL`, `MAX_VALUE`, vô cực và `NaN`; chọn cách khởi tạo min/max đúng; xây dựng cách tổng hợp an toàn trên tập rỗng và các giá trị đặc biệt; tránh dùng `MIN_VALUE` làm ngưỡng sai số.
+**Goal of this article:** accurately understand the meanings of `MIN_VALUE`, `MIN_NORMAL`, `MAX_VALUE`, infinity, and `NaN`; choose the right min/max initialization; build safe aggregation over empty sets and special values; and avoid using `MIN_VALUE` as an error tolerance threshold.
 
-## 2. Bảng đối chiếu với kiểu số nguyên
+## 2. Comparison Table with Integer Types
 
-| Hằng số | Giá trị xấp xỉ | Ý nghĩa |
+| Constant | Approximate Value | Meaning |
 | --- | --- | --- |
-| `Integer.MIN_VALUE` | `-2147483648` | Số `int` nhỏ nhất |
-| `Integer.MAX_VALUE` | `2147483647` | Số `int` lớn nhất |
-| `Long.MIN_VALUE` | `-9223372036854775808` | Số `long` nhỏ nhất |
-| `Float.MIN_VALUE` | `1.4E-45` | Số `float` **dương** nhỏ nhất khác 0 |
-| `Float.MIN_NORMAL` | `1.1754944E-38` | Số `float` dương **normal** nhỏ nhất |
-| `Float.MAX_VALUE` | `3.4028235E38` | Số `float` dương hữu hạn lớn nhất |
-| `-Float.MAX_VALUE` | `-3.4028235E38` | Số `float` âm hữu hạn nhỏ nhất |
-| `Double.MIN_VALUE` | `4.9E-324` | Số `double` **dương** nhỏ nhất khác 0 |
-| `Double.MIN_NORMAL` | `2.2250738585072014E-308` | Số `double` dương **normal** nhỏ nhất |
-| `Double.MAX_VALUE` | `1.7976931348623157E308` | Số `double` dương hữu hạn lớn nhất |
-| `-Double.MAX_VALUE` | `-1.7976931348623157E308` | Số `double` âm hữu hạn nhỏ nhất |
-| `Float.NEGATIVE_INFINITY`, `Double.NEGATIVE_INFINITY` | `-Infinity` | Giá trị đặc biệt nhỏ hơn số hữu hạn |
-| `Float.POSITIVE_INFINITY`, `Double.POSITIVE_INFINITY` | `Infinity` | Giá trị đặc biệt lớn hơn số hữu hạn |
+| `Integer.MIN_VALUE` | `-2147483648` | Smallest `int` |
+| `Integer.MAX_VALUE` | `2147483647` | Largest `int` |
+| `Long.MIN_VALUE` | `-9223372036854775808` | Smallest `long` |
+| `Float.MIN_VALUE` | `1.4E-45` | Smallest nonzero **positive** `float` |
+| `Float.MIN_NORMAL` | `1.1754944E-38` | Smallest positive **normal** `float` |
+| `Float.MAX_VALUE` | `3.4028235E38` | Largest finite positive `float` |
+| `-Float.MAX_VALUE` | `-3.4028235E38` | Smallest finite negative `float` |
+| `Double.MIN_VALUE` | `4.9E-324` | Smallest nonzero **positive** `double` |
+| `Double.MIN_NORMAL` | `2.2250738585072014E-308` | Smallest positive **normal** `double` |
+| `Double.MAX_VALUE` | `1.7976931348623157E308` | Largest finite positive `double` |
+| `-Double.MAX_VALUE` | `-1.7976931348623157E308` | Smallest finite negative `double` |
+| `Float.NEGATIVE_INFINITY`, `Double.NEGATIVE_INFINITY` | `-Infinity` | Special value smaller than any finite number |
+| `Float.POSITIVE_INFINITY`, `Double.POSITIVE_INFINITY` | `Infinity` | Special value larger than any finite number |
 
-Giá trị trên dùng định dạng mà Java thường in ra bằng `Float.toString`/`Double.toString`; các hằng số lưu trữ theo nhị phân IEEE 754 nên không nhất thiết có đúng biểu diễn thập phân ngắn như chuỗi in ra.
+The values above use the format Java typically prints via `Float.toString`/`Double.toString`; these constants are stored in IEEE 754 binary, so they do not necessarily have exact short decimal representations like the printed strings.
 
-**Điểm cần nhớ:** đối với kiểu nguyên, `MIN_VALUE` là cận dưới âm của miền giá trị. Đối với `float` và `double`, `MIN_VALUE` lại là **độ lớn dương nhỏ nhất khác 0** của kiểu dấu phẩy động, bao gồm cả vùng subnormal. Cách đặt tên là đặc điểm API đã được chuẩn hóa; không suy diễn ý nghĩa từ cùng tên hằng số của kiểu số nguyên.
+**Key takeaway:** for integer types, `MIN_VALUE` is the negative lower bound of the value range. For `float` and `double`, `MIN_VALUE` is instead the **smallest nonzero positive magnitude** of the floating-point type, including the subnormal region. The naming is a standardized API characteristic; do not infer its meaning from the identically named constant in integer types.
 
-## 3. Tại sao số dương nhỏ nhất khác 0 lại nhỏ đến như vậy?
+## 3. Why Is the Smallest Nonzero Positive Number So Tiny?
 
-`float` và `double` là kiểu dấu phẩy động nhị phân theo IEEE 754, không lưu số như một đoạn liên tiếp với khoảng cách đều. Biểu diễn có dấu, phần mũ và phần trị, nên độ phân giải phụ thuộc độ lớn số.
+`float` and `double` are IEEE 754 binary floating-point types, which do not store numbers as a contiguous segment with uniform spacing. The representation has a sign, an exponent, and a significand, so resolution depends on the magnitude of the number.
 
-Các giá trị hữu hạn thông thường (**normal**) có phần mũ và các bit hữu hiệu theo quy tắc normal. Khi giá trị tiến rất gần 0, Java còn có các giá trị **subnormal** (*denormalized*) để biểu diễn một số độ lớn nhỏ hơn cận normal; chúng có ít chữ số/bit hữu hiệu hơn.
+Regular finite values (**normal**) have an exponent and significant bits following normal rules. As values approach very close to 0, Java also has **subnormal** (*denormalized*) values to represent magnitudes smaller than the normal lower bound; they have fewer significant digits/bits.
 
-- `Float.MIN_NORMAL` là cận dương nhỏ nhất còn **normal**.
-- `Float.MIN_VALUE` nhỏ hơn `Float.MIN_NORMAL` rất nhiều và là số dương **subnormal** nhỏ nhất khác 0.
-- `Double.MIN_NORMAL` và `Double.MIN_VALUE` có quan hệ tương tự.
+- `Float.MIN_NORMAL` is the smallest positive bound that is still **normal**.
+- `Float.MIN_VALUE` is much smaller than `Float.MIN_NORMAL` and is the smallest nonzero **subnormal** positive number.
+- `Double.MIN_NORMAL` and `Double.MIN_VALUE` share the same relationship.
 
-Ví dụ trên Java:
+Example in Java:
 
 ```java
 System.out.println(Float.MIN_VALUE);       // 1.4E-45
@@ -70,106 +70,106 @@ System.out.println(Double.MIN_VALUE);      // 4.9E-324
 System.out.println(Double.MIN_NORMAL);     // 2.2250738585072014E-308
 ```
 
-Đoạn này là mã **nhúng** trong một phương thức. `Float.MIN_NORMAL` không phải số âm nhỏ nhất; chữ `NORMAL` chỉ phân biệt số normal với subnormal. `MIN_VALUE` **không phải** số dương nhỏ nhất *theo ý nghĩa số thực toán học* (trên trục số thực không tồn tại số dương nhỏ nhất); nó chỉ là giá trị nhỏ nhất khác 0 biểu diễn được bằng kiểu `float`/`double` trong Java.
+This snippet is **embedded** inside a method. `Float.MIN_NORMAL` is not the smallest negative number; the word `NORMAL` simply distinguishes normal numbers from subnormal ones. `MIN_VALUE` is **not** the smallest positive number *in the mathematical real-number sense* (there is no smallest positive number on the real line); it is merely the smallest nonzero value representable by `float`/`double` in Java.
 
-### 3.1. Trục giá trị quan trọng
+### 3.1. The Key Number Line
 
-Sắp xếp theo **thứ tự số học**:
+Ordered by **numerical order**:
 
 ```text
 -Infinity
    <
 -Double.MAX_VALUE
    <
-... các số hữu hạn âm ...
+... negative finite numbers ...
    <
 -Double.MIN_VALUE
    <
--0.0 / +0.0 (cùng giá trị dưới phép so sánh ==)
+-0.0 / +0.0 (equal under == comparison)
    <
 Double.MIN_VALUE
    <
-... các số hữu hạn dương ...
+... positive finite numbers ...
    <
 Double.MAX_VALUE
    <
 +Infinity
 ```
 
-Sơ đồ là một cách mô tả trật tự số học; với `Double.compare`, `-0.0` được xếp trước `+0.0`. `NaN` không nằm trên trục số thực này. Đối với phép `<`, `>`, `==` với `NaN`, hành vi không phải trật tự tuyến tính thông thường (xem mục 6).
+This diagram illustrates numerical ordering; under `Double.compare`, `-0.0` is ordered before `+0.0`. `NaN` does not lie on this real number line. For `<`, `>`, and `==` with `NaN`, behavior does not follow ordinary linear ordering (see Section 6).
 
-`Double.MIN_VALUE` nằm **ngay phía dương của 0** trong các giá trị biểu diễn được, chứ không nằm phía âm sâu nhất.
+`Double.MIN_VALUE` sits **just on the positive side of 0** among representable values, not at the deepest negative end.
 
-### 3.2. `Math.nextUp` và `Math.nextDown` làm rõ giới hạn
+### 3.2. `Math.nextUp` and `Math.nextDown` Clarify the Bounds
 
 ```java
 System.out.println(Math.nextUp(0.0));   // 4.9E-324
 System.out.println(Math.nextDown(0.0)); // -4.9E-324
 ```
 
-`Math.nextUp(0.0)` trả giá trị `double` biểu diễn được kế tiếp lớn hơn 0, chính là `Double.MIN_VALUE`. `Math.nextDown(0.0)` trả giá trị kế tiếp nhỏ hơn 0, tức `-Double.MIN_VALUE`. Giá trị **`-Double.MIN_VALUE` là số âm gần 0 nhất nhưng vẫn khác 0**, không phải số âm nhỏ nhất.
+`Math.nextUp(0.0)` returns the next representable `double` value greater than 0, which is `Double.MIN_VALUE`. `Math.nextDown(0.0)` returns the next value smaller than 0, namely `-Double.MIN_VALUE`. **`-Double.MIN_VALUE` is the negative number closest to 0 while still nonzero**, not the smallest negative number.
 
-Tương tự, `Math.nextDown(-Double.MAX_VALUE)` chuyển sang `Double.NEGATIVE_INFINITY`: không còn số `double` **hữu hạn** nào nhỏ hơn `-Double.MAX_VALUE`.
+Similarly, `Math.nextDown(-Double.MAX_VALUE)` transitions to `Double.NEGATIVE_INFINITY`: there is no **finite** `double` smaller than `-Double.MAX_VALUE`.
 
-## 4. Lỗi khi khởi tạo cực đại bằng `MIN_VALUE`
+## 4. Bugs When Initializing Maximum with `MIN_VALUE`
 
-### 4.1. Bug rõ nhất: toàn bộ dữ liệu âm
+### 4.1. The Most Obvious Bug: All Negative Data
 
 ```java
 double[] temperatures = {-8.0, -3.0, -11.0};
-double maximum = Double.MIN_VALUE; // Sai chính sách khởi tạo.
+double maximum = Double.MIN_VALUE; // Wrong initialization policy.
 
 for (double temperature : temperatures) {
     if (temperature > maximum) {
         maximum = temperature;
     }
 }
-System.out.println(maximum); // 4.9E-324 — sai!
+System.out.println(maximum); // 4.9E-324 — wrong!
 ```
 
-Giá trị đúng phải là **`-3.0`**. Nếu code dùng `Float.MIN_VALUE`, hiện tượng tương tự xảy ra cho `float[]` toàn số âm.
+The correct value must be **`-3.0`**. If the code uses `Float.MIN_VALUE`, the exact same phenomenon occurs for a `float[]` of all negative numbers.
 
-### 4.2. Đối xứng: dùng `MIN_VALUE` làm giá trị khởi tạo của cực tiểu cũng sai
+### 4.2. Symmetric Mistake: Using `MIN_VALUE` to Initialize Minimum Is Also Wrong
 
 ```java
 double[] positives = {8.0, 3.0, 11.0};
-double minimum = Double.MIN_VALUE; // Sai: nhỏ hơn mọi phần tử.
+double minimum = Double.MIN_VALUE; // Wrong: smaller than every element.
 
 for (double value : positives) {
     if (value < minimum) {
         minimum = value;
     }
 }
-System.out.println(minimum); // 4.9E-324 — sai, đúng là 3.0.
+System.out.println(minimum); // 4.9E-324 — wrong, correct is 3.0.
 ```
 
-Tên `MIN_VALUE` nghe như “phần tử nhỏ nhất” nhưng **không có nghĩa** là hằng khởi tạo phù hợp cho thuật toán tìm min. Nếu thuật toán cần tìm min/max của dữ liệu, phải bảo đảm kết quả thuộc dữ liệu và giải quyết đúng trường hợp rỗng.
+The name `MIN_VALUE` sounds like "the smallest element", yet it **does not mean** it is an appropriate initial constant for a min-finding algorithm. If an algorithm needs to find the min/max of data, it must ensure the result belongs to the data and handle the empty case properly.
 
-### 4.3. Chỉ thay bằng `-Double.MAX_VALUE` có đủ chưa?
+### 4.3. Is Switching to `-Double.MAX_VALUE` Enough?
 
-Đối với **dữ liệu được bảo đảm hữu hạn và không rỗng**, khởi tạo:
+For **data guaranteed to be finite and non-empty**, initializing:
 
 ```java
 double maximum = -Double.MAX_VALUE;
 ```
 
-có thể hợp lệ để tìm cực đại. Tuy nhiên, nếu dữ liệu chứa `Double.NEGATIVE_INFINITY` và không có số hữu hạn nào, `-Double.MAX_VALUE` lớn hơn mọi phần tử: bạn vẫn nhận kết quả sai, vì sentinel không thuộc dữ liệu. Nếu mảng rỗng, sentinel còn bị trả như một cực trị dù không có phần tử nào.
+can be valid for finding the maximum. However, if the data contains `Double.NEGATIVE_INFINITY` and no finite numbers, `-Double.MAX_VALUE` is greater than every element: you still get the wrong result because the sentinel does not belong to the data. If the array is empty, the sentinel is also returned as an extremum despite there being no elements.
 
-Tương tự:
+Similarly:
 
 ```java
 double minimum = Double.MAX_VALUE;
 ```
 
-sai nếu mọi phần tử là `Double.POSITIVE_INFINITY`, hoặc mảng rỗng mà kết quả được coi là min thực.
+is wrong if every element is `Double.POSITIVE_INFINITY`, or if the array is empty and the result is treated as a real minimum.
 
-`Double.NEGATIVE_INFINITY` có thể là sentinel khởi tạo max, và `Double.POSITIVE_INFINITY` là sentinel khởi tạo min trong một số thuật toán, nhưng **cần cờ có dữ liệu** để phân biệt tập rỗng với đầu vào thực sự có toàn vô cực. Nếu miền dữ liệu có `NaN`, phải có thêm chính sách xử lý riêng.
+`Double.NEGATIVE_INFINITY` can serve as a max initialization sentinel, and `Double.POSITIVE_INFINITY` as a min initialization sentinel in some algorithms, but **a data-present flag is needed** to distinguish an empty set from an input consisting solely of infinities. If the data domain includes `NaN`, a separate handling policy is also required.
 
-Giải pháp thường dễ bảo trì hơn: **lấy giá trị đầu tiên khi dữ liệu tồn tại**, hoặc dùng stream trả `OptionalDouble` (mục 5).
+A usually more maintainable solution: **take the first value when data exists**, or use a stream returning `OptionalDouble` (Section 5).
 
-## 5. Chọn cách tìm `min`/`max` không dựa vào sentinel sai
+## 5. Choosing Ways to Find `min`/`max` Without Relying on Wrong Sentinels
 
-### 5.1. Dùng `DoubleStream.min()` và `max()`
+### 5.1. Using `DoubleStream.min()` and `max()`
 
 ```java
 import java.util.OptionalDouble;
@@ -182,22 +182,22 @@ System.out.println(min.orElseThrow()); // -11.0
 System.out.println(max.orElseThrow()); // -3.0
 ```
 
-Đây là mã **nhúng**. Các phương thức `min()`/`max()` là terminal operation và trả `OptionalDouble` vì nguồn **có thể rỗng**. Không dùng lại cùng một stream sau một terminal operation: tạo stream mới từ mảng/list hoặc chọn `summaryStatistics()` nếu cần nhiều chỉ số trong một lượt.
+This is **embedded** code. `min()`/`max()` are terminal operations and return `OptionalDouble` because the source **may be empty**. Do not reuse the same stream after a terminal operation: create a new stream from the array/list or choose `summaryStatistics()` if you need multiple statistics in one pass.
 
 ```java
 OptionalDouble none = DoubleStream.empty().max();
 System.out.println(none.isEmpty()); // true
 ```
 
-Trường hợp nguồn rỗng được mô tả rõ bằng Optional thay vì giả một con số làm kết quả. Nếu nghiệp vụ yêu cầu ít nhất một giá trị, có thể dùng `orElseThrow(() -> new IllegalArgumentException("Dữ liệu rỗng"))`. Nếu rỗng là hợp lệ, trả Optional cho caller. `orElse(0.0)` chỉ phù hợp **khi nghiệp vụ thực sự định nghĩa giá trị mặc định bằng 0**, vì 0 cũng là một giá trị dữ liệu hợp lệ.
+An empty source is clearly represented via `Optional` rather than faking a number as the result. If business rules require at least one value, you can use `orElseThrow(() -> new IllegalArgumentException("Empty data"))`. If empty is valid, return the `Optional` to the caller. `orElse(0.0)` is appropriate **only when business logic genuinely defines the default value as 0**, because 0 is also a valid data value.
 
-### 5.2. Dùng giá trị đầu tiên và cờ hiện diện
+### 5.2. Using the First Value and a Presence Flag
 
-Khi bạn cần một vòng lặp chuyên biệt (ví dụ vừa kiểm tra dữ liệu vừa tìm max), nên dùng cờ `found`:
+When you need a custom loop (for example, validating data while finding the max), use a `found` flag:
 
 ```java
 boolean found = false;
-double maximum = 0.0; // Giá trị ban đầu không được sử dụng nếu chưa found.
+double maximum = 0.0; // Initial value is unused while !found.
 
 for (double value : values) {
     if (!found || Double.compare(value, maximum) > 0) {
@@ -210,38 +210,38 @@ OptionalDouble result =
         found ? OptionalDouble.of(maximum) : OptionalDouble.empty();
 ```
 
-Đây là mã **nhúng** với `double[] values` và `import java.util.OptionalDouble;`. Vì `!found` luôn thắng cho phần tử đầu tiên, `0.0` chỉ là chỗ đặt bộ nhớ, không bị hiểu lầm là một kết quả dữ liệu.
+This is **embedded** code assuming `double[] values` and `import java.util.OptionalDouble;`. Since `!found` always wins on the first element, `0.0` is merely a memory placeholder and is never mistaken for a data result.
 
-**Nhưng cần lưu ý:** `Double.compare` định nghĩa trật tự cho cả `NaN` (xếp `NaN` lớn hơn mọi giá trị số) và hai số 0 có dấu. Vì vậy đoạn lặp trên không tự động có cùng chính sách `NaN` như `DoubleStream.min/max`. Khi muốn từ chối `NaN`, hãy kiểm tra trước khi so sánh; khi muốn `NaN` lan truyền, triển khai rõ chính sách đó. Đừng thay thế hai cách mà không đối chiếu hợp đồng.
+**Keep in mind, however:** `Double.compare` defines an order even for `NaN` (placing `NaN` greater than every numeric value) and for the two signed zeros. Therefore, the loop above does not automatically share the same `NaN` policy as `DoubleStream.min/max`. When you want to reject `NaN`, check before comparing; when you want `NaN` to propagate, implement that policy explicitly. Do not swap the two approaches without comparing their contracts.
 
-### 5.3. Khi chỉ nhận dữ liệu hữu hạn
+### 5.3. When Only Finite Data Is Accepted
 
-Nếu miền đầu vào không được có `NaN` hoặc `±Infinity`, hãy xác thực:
+If the input domain must not contain `NaN` or `±Infinity`, validate it:
 
 ```java
 if (!Double.isFinite(value)) {
-    throw new IllegalArgumentException("Chỉ nhận số hữu hạn");
+    throw new IllegalArgumentException("Only finite numbers are accepted");
 }
 ```
 
-Sau kiểm tra, hàm có thể tìm cực trị bằng `Double.compare` hoặc trực tiếp các toán tử `<`/`>`, tùy có cần phân biệt `-0.0` và `+0.0` hay không. Không mặc định loại bỏ giá trị không hữu hạn một cách im lặng nếu chúng báo lỗi upstream (ví dụ chia cho 0 hoặc dữ liệu cảm biến bị hỏng).
+After validation, the function can find extrema using `Double.compare` or directly with `<`/`>`, depending on whether `-0.0` and `+0.0` need to be distinguished. Do not silently drop non-finite values by default if they indicate upstream errors (such as division by zero or corrupted sensor data).
 
-## 6. Ba trường hợp đặc biệt của `double`: vô cực, `NaN` và số 0 có dấu
+## 6. Three Special `double` Cases: Infinity, `NaN`, and Signed Zero
 
-### 6.1. Vô cực và cận hữu hạn
+### 6.1. Infinity and Finite Bounds
 
-`Double.MAX_VALUE` là số **hữu hạn** dương lớn nhất; nó không phải `Double.POSITIVE_INFINITY`. `-Double.MAX_VALUE` là số hữu hạn âm nhỏ nhất; nó không phải `Double.NEGATIVE_INFINITY`.
+`Double.MAX_VALUE` is the largest **finite** positive number; it is not `Double.POSITIVE_INFINITY`. `-Double.MAX_VALUE` is the smallest finite negative number; it is not `Double.NEGATIVE_INFINITY`.
 
 ```java
 System.out.println(Double.NEGATIVE_INFINITY < -Double.MAX_VALUE); // true
 System.out.println(Double.POSITIVE_INFINITY > Double.MAX_VALUE);  // true
 ```
 
-Nếu dữ liệu có thể chứa vô cực, không được trả về `-Double.MAX_VALUE` như max của một nguồn chỉ chứa `-Infinity`. Tương tự, min của nguồn chỉ chứa `+Infinity` phải là `+Infinity` nếu hợp đồng chấp nhận vô cực. `Math.min` và `DoubleStream.min` không tự từ chối vô cực.
+If data can contain infinity, you must not return `-Double.MAX_VALUE` as the max of a source containing only `-Infinity`. Likewise, the min of a source containing only `+Infinity` must be `+Infinity` if the contract permits infinity. `Math.min` and `DoubleStream.min` do not reject infinity automatically.
 
-### 6.2. `NaN` không phải số thực và không so sánh theo `<`/`>`
+### 6.2. `NaN` Is Not a Real Number and Does Not Compare via `<`/`>`
 
-`Double.NaN` (Not a Number) là giá trị đặc biệt:
+`Double.NaN` (Not a Number) is a special value:
 
 ```java
 double invalid = Double.NaN;
@@ -252,9 +252,9 @@ System.out.println(invalid == Double.NaN);  // false
 System.out.println(Double.isNaN(invalid));  // true
 ```
 
-Với các toán tử so sánh primitive, ngay cả `NaN == NaN` cũng là `false`. Một vòng lặp dùng `if (x > current)` có thể **bỏ qua** `NaN`; điều này nguy hiểm nếu `NaN` biểu thị phép đo không hợp lệ và phải gây lỗi.
+With primitive comparison operators, even `NaN == NaN` is `false`. A loop using `if (x > current)` can **skip over** `NaN`; this is dangerous if `NaN` indicates an invalid measurement and ought to fail.
 
-Theo Java 17, `DoubleStream.min/max` **trả `NaN` nếu trong nguồn có bất kỳ giá trị `NaN` nào**, kể cả khi còn giá trị hữu hạn. `Math.min`/`Math.max` trên `double` cũng trả `NaN` nếu một toán hạng là `NaN`.
+In Java 17, `DoubleStream.min/max` **returns `NaN` if the source contains any `NaN` value**, even when finite values are also present. `Math.min`/`Math.max` on `double` also returns `NaN` if either operand is `NaN`.
 
 ```java
 double min = java.util.stream.DoubleStream
@@ -265,11 +265,11 @@ double min = java.util.stream.DoubleStream
 System.out.println(min); // NaN
 ```
 
-`OptionalDouble` ở đây **có giá trị**, chỉ là giá trị đặc biệt `NaN`; `isPresent()` không có nghĩa là “dữ liệu hợp lệ”.
+Here `OptionalDouble` **has a value**, just the special value `NaN`; `isPresent()` does not mean "valid data".
 
-Nếu nghiệp vụ yêu cầu bỏ qua `NaN`, thực hiện `.filter(v -> !Double.isNaN(v))` và quyết định trường hợp sau filter rỗng; nếu nghiệp vụ yêu cầu báo lỗi, ném ngoại lệ ngay khi phát hiện. Không tự chọn một chính sách chỉ vì nó giúp vòng lặp chạy nhanh hơn.
+If business rules require ignoring `NaN`, apply `.filter(v -> !Double.isNaN(v))` and decide what happens if the filtered result is empty; if business rules require reporting an error, throw an exception as soon as it is detected. Do not pick a policy just because it makes the loop faster.
 
-### 6.3. `-0.0` và `+0.0` có biểu diễn khác nhau
+### 6.3. `-0.0` and `+0.0` Have Different Representations
 
 ```java
 System.out.println(-0.0 == +0.0);         // true
@@ -279,46 +279,46 @@ System.out.println(Math.min(-0.0, +0.0)); // -0.0
 System.out.println(Math.max(-0.0, +0.0)); // 0.0
 ```
 
-Hai số 0 cùng bằng nhau theo `==`, nhưng `Double.compare` sắp xếp `-0.0` nhỏ hơn `+0.0`. `Math.min`/`Math.max` và `DoubleStream.min/max` có quy tắc cho số 0 có dấu. Nếu muốn thay các API này bằng vòng lặp, cần kiểm thử trường hợp `-0.0`/`+0.0` để không vô tình đổi nghĩa khi thứ tự phần tử thay đổi.
+Both zeros are equal under `==`, but `Double.compare` orders `-0.0` below `+0.0`. `Math.min`/`Math.max` and `DoubleStream.min/max` define rules for signed zeros. If you replace these APIs with a loop, test `-0.0`/`+0.0` cases so you do not inadvertently change semantics when element order changes.
 
-Các vấn đề trên không xảy ra với `int` theo cách tương tự: `int` không có `NaN`, vô cực hay số 0 mang dấu âm tách biệt.
+None of the issues above occur in `int` in the same way: `int` has no `NaN`, no infinity, and no separate negatively signed zero.
 
-## 7. `Float.MIN_VALUE` và `Double.MIN_VALUE` cũng không phải epsilon để so sánh gần bằng
+## 7. `Float.MIN_VALUE` and `Double.MIN_VALUE` Are Also Not Epsilons for Approximate Equality
 
-Một nhầm lẫn liên quan là dùng:
+A related misconception is writing:
 
 ```java
 boolean approximatelyEqual =
-        Math.abs(a - b) < Double.MIN_VALUE; // Gần như luôn quá nghiêm ngặt.
+        Math.abs(a - b) < Double.MIN_VALUE; // Almost always far too strict.
 ```
 
-Đây là mã minh họa giả định hai biến `double a`, `double b` đã tồn tại. `Double.MIN_VALUE` mô tả **khoảng cách từ 0 đến số dương nhỏ nhất khác 0**, không phải sai số làm tròn tuyệt đối phù hợp cho mọi phép toán và mọi độ lớn.
+This is illustrative code assuming `double a` and `double b` already exist. `Double.MIN_VALUE` describes **the distance from 0 to the smallest nonzero positive number**, not an absolute rounding tolerance suitable for all operations and all magnitudes.
 
-Tại quanh `1.0`, khoảng cách tới số `double` biểu diễn được kế tiếp phía trên là:
+Around `1.0`, the distance to the next representable `double` upward is:
 
 ```java
 System.out.println(Math.ulp(1.0)); // 2.220446049250313E-16
 System.out.println(Math.ulp(1.0f)); // 1.1920929E-7
 ```
 
-Nó lớn hơn `Double.MIN_VALUE` và `Float.MIN_VALUE` rất nhiều. `Math.ulp(x)` mô tả độ lớn của một đơn vị ở chữ số cuối gần `x`, khác với một “epsilon nghiệp vụ” phổ quát.
+It is vastly larger than `Double.MIN_VALUE` and `Float.MIN_VALUE`. `Math.ulp(x)` describes the size of one unit in the last place near `x`, which differs from a universal "business epsilon".
 
-### 7.1. Chính sách so sánh gần bằng phải dựa trên bài toán
+### 7.1. Approximate Equality Policy Must Be Problem-Driven
 
-Một cách **minh họa** cho số hữu hạn trong trường hợp ứng dụng đã xác định ngưỡng:
+An **illustrative** approach for finite numbers when the application has defined tolerances:
 
 ```java
 static boolean approximatelyEqualFinite(
         double a, double b, double absTolerance, double relTolerance) {
 
     if (!Double.isFinite(a) || !Double.isFinite(b)) {
-        throw new IllegalArgumentException("Chỉ so sánh số hữu hạn");
+        throw new IllegalArgumentException("Only finite numbers can be compared");
     }
     if (!Double.isFinite(absTolerance) || absTolerance < 0.0
             || !Double.isFinite(relTolerance) || relTolerance < 0.0) {
-        throw new IllegalArgumentException("Tolerance không hợp lệ");
+        throw new IllegalArgumentException("Invalid tolerance");
     }
-    if (a == b) { // Gồm +0.0 == -0.0 theo chính sách ví dụ.
+    if (a == b) { // Includes +0.0 == -0.0 per the example policy.
         return true;
     }
 
@@ -328,21 +328,21 @@ static boolean approximatelyEqualFinite(
 }
 ```
 
-Đây là phương thức **nhúng** áp dụng cho một miền hữu hạn đã định. Với giá trị cực lớn, phép trừ hoặc nhân ngưỡng có thể tràn thành vô cực, nên một bộ so sánh đòi ràng buộc số học chặt phải xử lý miền và phép tính trung gian kỹ hơn. Công thức chỉ là điểm khởi đầu khi nghiệp vụ cho phép sai số tuyệt đối và tương đối đã được xác định, **không phải phép chữa tổng quát** cho mọi kiểm thử số học.
+This is an **embedded** method for a defined finite domain. For extremely large values, subtraction or tolerance multiplication can overflow to infinity, so a comparator requiring strict arithmetic bounds must handle domains and intermediate calculations more carefully. The formula is only a starting point when business rules permit defined absolute and relative errors—**not a universal band-aid** for every numeric test.
 
-Nếu cần so sánh chính xác tiền tệ hoặc số nguyên, dùng kiểu biểu diễn thích hợp (`BigDecimal`/integer minor units) và quy tắc so sánh tương ứng; không dùng epsilon để che việc đổi kiểu số gây mất dữ liệu.
+If exact comparison of currency or integers is needed, use the appropriate representation (`BigDecimal`/integer minor units) and matching comparison rules; do not use an epsilon to mask data loss from type conversions.
 
-## 8. Chương trình Java 17+ hoàn chỉnh và kết quả chạy
+## 8. Complete Java 17+ Program and Execution Output
 
-Lưu dưới tên **`FloatingMinimumDemo.java`**:
+Save as **`FloatingMinimumDemo.java`**:
 
 ```java
 import java.util.OptionalDouble;
 
 public class FloatingMinimumDemo {
 
-    // Hợp đồng: chấp nhận cả vô cực, nhưng từ chối NaN;
-    // trả Optional.empty() khi không có phần tử.
+    // Contract: accepts infinities, but rejects NaN;
+    // returns Optional.empty() when there are no elements.
     static OptionalDouble maximumRejectNaN(double[] values) {
         boolean found = false;
         double maximum = 0.0;
@@ -401,14 +401,14 @@ public class FloatingMinimumDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac FloatingMinimumDemo.java
 java FloatingMinimumDemo
 ```
 
-Stdout chuẩn trên Java 17+:
+Standard stdout on Java 17+:
 
 ```text
 Float.MIN_VALUE = 1.4E-45
@@ -424,98 +424,98 @@ nextUp zero = 4.9E-324
 NaN policy = rejected
 ```
 
-### Diễn giải kết quả
+### Interpreting the Output
 
-1. Bốn dòng đầu phân biệt rõ **dương nhỏ nhất khác 0** với **âm hữu hạn nhỏ nhất** cho `float` và `double`.
-2. `wrong max` bộc lộ bug phổ biến: sentinel `Double.MIN_VALUE` lớn hơn mọi phần tử âm, nên kết quả sai.
-3. `maximumRejectNaN` chọn phần tử đầu tiên trước khi so sánh những phần tử còn lại, trả `-3.0` cho dữ liệu mẫu.
-4. Mảng rỗng trả `OptionalDouble.empty()` thay vì một sentinel giả.
-5. Dữ liệu chỉ có `-Infinity` vẫn được trả đúng vì hợp đồng cho phép vô cực.
-6. `Double.compare` giữ thứ tự chuẩn giữa `-0.0` và `+0.0`, nên `max` chọn `+0.0`.
-7. `Math.nextUp(0.0)` chứng minh `Double.MIN_VALUE` nằm ngay phía dương của 0.
-8. `NaN` bị từ chối theo chính sách của **hàm minh họa**. Chính sách này khác `DoubleStream.max()` vốn trả `NaN` khi nguồn chứa NaN; cần chọn rõ một trong các chính sách khi thiết kế API.
+1. The first four lines clearly distinguish the **smallest nonzero positive** value from the **smallest finite negative** value for `float` and `double`.
+2. `wrong max` exposes the common bug: the sentinel `Double.MIN_VALUE` is greater than every negative element, yielding the wrong result.
+3. `maximumRejectNaN` picks the first element before comparing remaining elements, returning `-3.0` for the sample data.
+4. An empty array returns `OptionalDouble.empty()` instead of a fake sentinel.
+5. Data containing only `-Infinity` is returned accurately because the contract permits infinity.
+6. `Double.compare` preserves standard ordering between `-0.0` and `+0.0`, so `max` selects `+0.0`.
+7. `Math.nextUp(0.0)` proves `Double.MIN_VALUE` lies directly on the positive side of 0.
+8. `NaN` is rejected according to the **illustrative function's** policy. This differs from `DoubleStream.max()`, which returns `NaN` when the source contains `NaN`; choose one policy explicitly when designing an API.
 
-Không phải lúc nào tự viết vòng lặp cũng tốt hơn `DoubleStream.max()`: ví dụ ở đây nhằm minh họa điều kiện đầu vào và quy tắc chọn kết quả. Đối với nghiệp vụ thông thường, ưu tiên API chuẩn nếu hợp đồng `NaN`/infinity và kết quả rỗng phù hợp.
+Writing a manual loop is not always better than `DoubleStream.max()`: the example here is meant to illustrate input conditions and result-selection rules. For typical business code, prefer standard APIs if their `NaN`/infinity and empty-result contracts match your needs.
 
-## 9. Chọn cách khởi tạo phù hợp theo từng hợp đồng
+## 9. Choosing the Right Initialization for Each Contract
 
-| Yêu cầu dữ liệu và kết quả | Cách triển khai gợi ý | Lưu ý |
+| Data and Result Requirement | Recommended Implementation | Notes |
 | --- | --- | --- |
-| Tìm `max` của mảng không rỗng, **chỉ số hữu hạn** | Bắt đầu bằng phần tử đầu, hoặc `-Double.MAX_VALUE` khi miền đã chứng minh | Chặn mảng rỗng; xác thực finite |
-| Tìm `min` của mảng không rỗng, **chỉ số hữu hạn** | Bắt đầu bằng phần tử đầu, hoặc `Double.MAX_VALUE` khi miền đã chứng minh | Không dùng `Double.MIN_VALUE` |
-| Có thể rỗng và có thể chứa ±infinity | `DoubleStream.min/max()` trả `OptionalDouble` | Dữ liệu NaN được lan truyền theo API |
-| Có thể rỗng; `NaN` là lỗi; ±infinity hợp lệ | Cờ `found` + `Double.compare` + reject NaN | Như chương trình ví dụ |
-| Nguồn chỉ chấp nhận số hữu hạn | Xác thực `Double.isFinite` rồi tính | Không âm thầm loại bỏ phần tử lỗi |
-| Cần giá trị hữu hạn nhỏ nhất theo miền kiểu | `-Double.MAX_VALUE` / `-Float.MAX_VALUE` | Không phải kết quả `min` của một mảng tùy ý |
-| Cần giá trị đặc biệt thấp hơn mọi số hữu hạn | `Double.NEGATIVE_INFINITY` / `Float.NEGATIVE_INFINITY` | Phân biệt với giá trị thực trong nguồn |
-| Cần số dương biểu diễn được kế tiếp 0 | `Double.MIN_VALUE` / `Float.MIN_VALUE` | Đây mới là trường hợp dùng đúng `MIN_VALUE` |
+| Find `max` of non-empty array, **finite numbers only** | Start with first element, or `-Double.MAX_VALUE` when domain is proven | Guard empty array; validate finite |
+| Find `min` of non-empty array, **finite numbers only** | Start with first element, or `Double.MAX_VALUE` when domain is proven | Never use `Double.MIN_VALUE` |
+| May be empty and may contain ±infinity | `DoubleStream.min/max()` returning `OptionalDouble` | `NaN` propagates per the API |
+| May be empty; `NaN` is an error; ±infinity valid | `found` flag + `Double.compare` + reject `NaN` | As in the example program |
+| Source accepts only finite numbers | Validate `Double.isFinite` then compute | Do not silently discard bad elements |
+| Need smallest finite value of the type's range | `-Double.MAX_VALUE` / `-Float.MAX_VALUE` | Not the `min` result of an arbitrary array |
+| Need special value lower than every finite number | `Double.NEGATIVE_INFINITY` / `Float.NEGATIVE_INFINITY` | Distinguish from real values in the source |
+| Need next representable positive number after 0 | `Double.MIN_VALUE` / `Float.MIN_VALUE` | Only this is the right use of `MIN_VALUE` |
 
-### Khi nào sentinel vẫn hợp lý?
+### When Is a Sentinel Still Reasonable?
 
-Sentinel có thể là một **giá trị kỹ thuật** trong thuật toán khi bạn biết chính xác miền đầu vào và có cách đánh dấu tập rỗng. Ví dụ phép reduction cần giá trị identity `-Infinity` cho cực đại có thể hợp lý trên số `double` nếu hợp đồng xử lý `NaN` được công bố. Nhưng identity không phải “phần tử lớn nhất của một dãy rỗng”, và không được nhầm trạng thái rỗng với dữ liệu thực.
+A sentinel can be a **technical value** in an algorithm when you know the exact input domain and have a way to mark an empty set. For instance, a reduction needing an identity value `-Infinity` for max can make sense on `double`s if the `NaN` handling contract is documented. However, an identity is not "the largest element of an empty sequence", and an empty state must not be confused with real data.
 
-Nếu API trả dữ liệu cho tầng gọi, `OptionalDouble` thường truyền đạt trạng thái “không có cực trị” rõ ràng hơn việc phát ra `-Infinity` không có ngữ cảnh.
+If an API returns data to a caller, `OptionalDouble` generally communicates "no extremum" much more clearly than emitting an out-of-context `-Infinity`.
 
-## 10. Những lỗi đi kèm cần nhận diện
+## 10. Related Mistakes to Recognize
 
-**Lỗi 1: `Float.MIN_VALUE` là giới hạn âm.** Sai vì hằng số dương. Số âm hữu hạn thấp nhất là `-Float.MAX_VALUE`.
+**Mistake 1: `Float.MIN_VALUE` is the negative limit.** Wrong because the constant is positive. The lowest finite negative number is `-Float.MAX_VALUE`.
 
-**Lỗi 2: `-Float.MIN_VALUE` là số âm thấp nhất.** Sai vì đây là số âm khác 0 gần 0 nhất; nó có độ lớn rất nhỏ. Không nhầm **âm nhỏ nhất theo thứ tự số học** với **số âm có độ lớn tuyệt đối nhỏ nhất**.
+**Mistake 2: `-Float.MIN_VALUE` is the lowest negative number.** Wrong because this is the nonzero negative number closest to 0; it has a tiny magnitude. Do not confuse **smallest negative by numerical order** with **negative number of smallest absolute magnitude**.
 
-**Lỗi 3: `Double.MIN_NORMAL` là số dương biểu diễn được nhỏ nhất.** Sai: còn các số subnormal dương nhỏ hơn, xuống đến `Double.MIN_VALUE`.
+**Mistake 3: `Double.MIN_NORMAL` is the smallest representable positive number.** Wrong: there are smaller positive subnormal numbers, down to `Double.MIN_VALUE`.
 
-**Lỗi 4: `Double.MAX_VALUE` có nghĩa là vô cực.** Sai: `Double.MAX_VALUE` hữu hạn. Phép toán vượt miền `double` có thể cho `Infinity`, nhưng hằng này không phải vô cực.
+**Mistake 4: `Double.MAX_VALUE` means infinity.** Wrong: `Double.MAX_VALUE` is finite. Operations exceeding `double` range can yield `Infinity`, but this constant is not infinity.
 
-**Lỗi 5: Trả sentinel ngay khi dữ liệu rỗng.** Sai khi hợp đồng yêu cầu “không có dữ liệu”; phải biểu diễn vắng mặt hoặc ném lỗi.
+**Mistake 5: Returning a sentinel when data is empty.** Wrong when the contract requires "no data"; represent absence or throw an error.
 
-**Lỗi 6: Dùng `Double.MIN_VALUE` cho ngưỡng kiểm thử xấp xỉ.** Quá nhỏ so với khoảng cách biểu diễn ở hầu hết các miền; ngưỡng phải dựa trên sai số cho phép của bài toán.
+**Mistake 6: Using `Double.MIN_VALUE` as an approximate-comparison threshold.** Far too small compared to representable spacing in most domains; thresholds must come from the problem's allowable error.
 
-**Lỗi 7: Dùng `Math.abs(Double.MIN_VALUE)` để nhận số âm.** `Math.abs` giữ giá trị không âm, vì thế không tạo cận âm. Muốn đảo dấu cần toán tử `-`, nhưng `-Double.MIN_VALUE` vẫn gần 0 chứ không phải thấp nhất.
+**Mistake 7: Using `Math.abs(Double.MIN_VALUE)` to get a negative number.** `Math.abs` keeps values non-negative, so it cannot create a negative bound. Negation needs the `-` operator, yet `-Double.MIN_VALUE` is still near 0, not the lowest.
 
-**Lỗi 8: So sánh qua `Double.compare` rồi bỏ quên `NaN`.** `Double.compare` cung cấp một thứ tự xác định, nhưng nó coi NaN lớn hơn mọi giá trị số; đó có thể không phải quy tắc dữ liệu cảm biến/nghiệp vụ.
+**Mistake 8: Comparing via `Double.compare` and forgetting `NaN`.** `Double.compare` provides a deterministic ordering, but it treats `NaN` as larger than all numeric values; that may not match sensor/business rules.
 
-**Lỗi 9: Bỏ qua `-0.0` khi thay `Math.min/max` bằng `if (a < b)` hoặc `if (a > b)`.** Các toán tử không phân biệt `-0.0` với `+0.0`; đầu ra có thể đổi dấu số 0 theo thứ tự dữ liệu.
+**Mistake 9: Ignoring `-0.0` when replacing `Math.min/max` with `if (a < b)` or `if (a > b)`.** Those operators do not distinguish `-0.0` from `+0.0`; output sign of zero can depend on data order.
 
-**Lỗi 10: Cắt số `double` sang `float` khi tạo cận.** `-Double.MAX_VALUE` không nằm trong phạm vi hữu hạn của `float`; ép kiểu sang `float` sẽ tạo `-Infinity`, khác với `-Float.MAX_VALUE`.
+**Mistake 10: Truncating `double` to `float` when creating bounds.** `-Double.MAX_VALUE` is outside `float`'s finite range; casting to `float` produces `-Infinity`, unlike `-Float.MAX_VALUE`.
 
-## 11. Kiểm thử đầu vào biên để tránh tái xuất hiện bug
+## 11. Testing Boundary Inputs to Prevent Regression
 
-Khi viết hoặc review hàm tìm min/max, nên kiểm tra tối thiểu:
+When writing or reviewing a min/max function, test at least:
 
-1. **Toàn số âm:** `{-8.0, -3.0, -11.0}` phải cho max `-3.0`, min `-11.0`.
-2. **Toàn số dương:** `{8.0, 3.0, 11.0}` phải cho min `3.0`, max `11.0`.
-3. **Chỉ số 0:** `{0.0}` phải trả 0, không trả `Double.MIN_VALUE`.
-4. **Mảng rỗng:** trả Optional rỗng hoặc lỗi đã định, không trả sentinel tùy ý.
-5. **Subnormal:** `{Double.MIN_VALUE, 0.0}` phải được xử lý theo chính sách dấu/zero phù hợp.
-6. **Dữ liệu vô cực:** `{-Infinity}` và `{+Infinity}` để bảo đảm không trả nhầm cận hữu hạn.
-7. **NaN:** `{1.0, NaN}` phải lan truyền NaN, bị từ chối hoặc bị lọc đúng theo hợp đồng, không do tình cờ của toán tử so sánh.
-8. **Số 0 có dấu:** `{-0.0, +0.0}` kiểm tra lựa chọn và chuỗi/bit biểu diễn nếu dấu quan trọng.
-9. **Cận cực đại hữu hạn:** `{-Double.MAX_VALUE, Double.MAX_VALUE}` và các trường hợp overflow khi tính giá trị khác từ cận.
-10. **Kiểu float riêng:** lặp lại các case với `Float.MIN_VALUE`, `Float.MAX_VALUE`, ±infinity; không giả định mọi phép đổi kiểu giữ nguyên miền.
+1. **All negative:** `{-8.0, -3.0, -11.0}` must yield max `-3.0`, min `-11.0`.
+2. **All positive:** `{8.0, 3.0, 11.0}` must yield min `3.0`, max `11.0`.
+3. **Only zero:** `{0.0}` must return 0, not `Double.MIN_VALUE`.
+4. **Empty array:** return empty `Optional` or the defined error, not an arbitrary sentinel.
+5. **Subnormals:** `{Double.MIN_VALUE, 0.0}` must be handled according to the appropriate sign/zero policy.
+6. **Infinite data:** `{-Infinity}` and `{+Infinity}` to ensure finite bounds are not mistakenly returned.
+7. **NaN:** `{1.0, NaN}` must propagate `NaN`, be rejected, or be filtered strictly per contract, not by accident of comparison operators.
+8. **Signed zeros:** `{-0.0, +0.0}` test selection and string/bit representation if sign matters.
+9. **Finite extreme bounds:** `{-Double.MAX_VALUE, Double.MAX_VALUE}` and overflow cases when computing derived values from bounds.
+10. **Separate `float` type:** repeat cases with `Float.MIN_VALUE`, `Float.MAX_VALUE`, and ±infinity; do not assume every type conversion preserves range.
 
-Kiểm thử nên đối chiếu giá trị kỳ vọng theo **hợp đồng**. Nếu cần phân biệt hai số 0 có dấu, `==` không đủ; kiểm tra `Double.compare` hoặc raw bits. Nếu kiểm tra giá trị NaN, dùng `Double.isNaN`, không viết `actual == Double.NaN`.
+Tests should verify expected values against the **contract**. If signed zeros must be distinguished, `==` is insufficient; check `Double.compare` or raw bits. When checking for `NaN`, use `Double.isNaN`, never `actual == Double.NaN`.
 
-## 12. Bài tập tự đánh giá
+## 12. Self-Assessment Exercises
 
-1. `Float.MIN_VALUE > 0.0f` đúng hay sai? Vậy `Float.MIN_VALUE` có thể là số âm nhỏ nhất không?
-2. Phân biệt `Double.MIN_VALUE`, `Double.MIN_NORMAL`, `-Double.MAX_VALUE` và `Double.NEGATIVE_INFINITY`. Giá trị nào là cận thấp nhất **hữu hạn**?
-3. Với dữ liệu `{-10.0, -20.0, -5.0}`, đoạn vòng lặp dùng `double max = Double.MIN_VALUE` trả giá trị gì? Vì sao?
-4. Nếu phép toán chấp nhận `-Infinity` nhưng không chấp nhận NaN, tại sao `double max = -Double.MAX_VALUE` là sentinel không an toàn cho mọi nguồn?
-5. Với một nguồn rỗng, tại sao `DoubleStream.empty().max()` trả `OptionalDouble.empty()` và không trả `-Infinity`?
-6. `Math.nextUp(0.0)` nhận giá trị gì? `Math.nextDown(0.0)` tương ứng với số âm nào?
-7. Vì sao một hàm so sánh gần bằng dùng `Double.MIN_VALUE` có thể bác bỏ cả hai giá trị trông gần như bằng nhau quanh `1.0`?
-8. Viết phương thức `minimumRejectNaN(double[])` tương tự hàm `maximumRejectNaN` trong bài, dùng `Double.compare` và `OptionalDouble`. Thử `+Infinity`, `-0.0`, nguồn rỗng và NaN.
-9. Giải thích vì sao `DoubleStream.of(2.0, Double.NaN).max().isPresent()` vẫn trả `true` mặc dù max thực tế là `NaN`.
+1. Is `Float.MIN_VALUE > 0.0f` true or false? Can `Float.MIN_VALUE` be the smallest negative number?
+2. Distinguish `Double.MIN_VALUE`, `Double.MIN_NORMAL`, `-Double.MAX_VALUE`, and `Double.NEGATIVE_INFINITY`. Which value is the lowest **finite** bound?
+3. Given `{-10.0, -20.0, -5.0}`, what does a loop using `double max = Double.MIN_VALUE` return? Why?
+4. If an operation accepts `-Infinity` but rejects `NaN`, why is `double max = -Double.MAX_VALUE` an unsafe sentinel for all sources?
+5. For an empty source, why does `DoubleStream.empty().max()` return `OptionalDouble.empty()` instead of `-Infinity`?
+6. What value does `Math.nextUp(0.0)` return? Which negative number corresponds to `Math.nextDown(0.0)`?
+7. Why might an approximate equality function using `Double.MIN_VALUE` reject even two numbers that look nearly equal around `1.0`?
+8. Write a `minimumRejectNaN(double[])` method similar to `maximumRejectNaN` in the article, using `Double.compare` and `OptionalDouble`. Test `+Infinity`, `-0.0`, empty source, and `NaN`.
+9. Explain why `DoubleStream.of(2.0, Double.NaN).max().isPresent()` still returns `true` even though the actual max is `NaN`.
 
-**Đáp án tóm tắt:** (1) Đúng; hằng này dương. (2) `Double.MIN_VALUE` là số dương subnormal nhỏ nhất; `MIN_NORMAL` là số dương normal nhỏ nhất; `-MAX_VALUE` là cận hữu hạn âm thấp nhất; `NEGATIVE_INFINITY` nhỏ hơn các số hữu hạn nhưng không hữu hạn. (3) Trả `4.9E-324` sai vì mọi phần tử đều âm. (4) Với nguồn chỉ có `-Infinity`, sentinel hữu hạn lớn hơn giá trị thật. (5) Cực trị của nguồn rỗng không tồn tại. (6) `+Double.MIN_VALUE`, `-Double.MIN_VALUE`. (7) Khoảng cách representable quanh 1 lớn hơn `Double.MIN_VALUE` rất nhiều. (8) Dùng cờ `found`, kiểm tra NaN rồi đổi phép `> 0` thành `< 0` trong `Double.compare`. (9) Optional có phần tử; NaN là giá trị `double` đặc biệt, khác trạng thái thiếu dữ liệu.
+**Summary Answers:** (1) True; this constant is positive. (2) `Double.MIN_VALUE` is the smallest positive subnormal number; `MIN_NORMAL` is the smallest positive normal number; `-MAX_VALUE` is the lowest finite negative bound; `NEGATIVE_INFINITY` is smaller than finite numbers but is not finite. (3) Returns `4.9E-324` wrongly because all elements are negative. (4) For a source with only `-Infinity`, the finite sentinel is greater than the true value. (5) The extremum of an empty source does not exist. (6) `+Double.MIN_VALUE`, `-Double.MIN_VALUE`. (7) Representable spacing around 1 is vastly larger than `Double.MIN_VALUE`. (8) Use a `found` flag, check for `NaN`, and change `> 0` to `< 0` in `Double.compare`. (9) The `Optional` holds an element; `NaN` is a special `double` value, distinct from missing data.
 
-## 13. Ghi nhớ nhanh
+## 13. Quick Takeaways
 
-`Float.MIN_VALUE` và `Double.MIN_VALUE` đều **dương**, rất nhỏ và khác 0; chúng không phải cận âm của kiểu. Khi cần **số hữu hạn thấp nhất** của `float`/`double`, dùng `-Float.MAX_VALUE` hoặc `-Double.MAX_VALUE`. Khi cần giá trị đặc biệt **nhỏ hơn mọi số hữu hạn**, dùng `NEGATIVE_INFINITY` với hiểu biết về miền giá trị.
+`Float.MIN_VALUE` and `Double.MIN_VALUE` are both **positive**, tiny, and nonzero; they are not negative bounds of the types. When you need the **lowest finite number** of `float`/`double`, use `-Float.MAX_VALUE` or `-Double.MAX_VALUE`. When you need a special value **smaller than every finite number**, use `NEGATIVE_INFINITY` with clear awareness of the value range.
 
-Khi tìm cực trị của dữ liệu thực, cách chắc chắn nhất thường là `DoubleStream.min/max()` trả `OptionalDouble` hoặc vòng lặp khởi tạo bằng **phần tử đầu tiên**, kết hợp chính sách xử lý rỗng, vô cực, NaN và số 0 có dấu. Không dùng một hằng số tên `MIN_VALUE` như sentinel chỉ vì chữ “MIN”.
+When finding extrema of real data, the safest approaches are usually `DoubleStream.min/max()` returning `OptionalDouble` or a loop initialized with **the first element**, combined with explicit policies for emptiness, infinity, `NaN`, and signed zeros. Never use a constant named `MIN_VALUE` as a sentinel just because of the word "MIN".
 
-Tài liệu chuẩn Java SE 17:
-- [`Float`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html), [`Double`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html): ý nghĩa chính xác của `MIN_VALUE`, `MIN_NORMAL`, `MAX_VALUE`, ±infinity và `NaN`.
+Java SE 17 Standard References:
+- [`Float`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html), [`Double`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html): exact meanings of `MIN_VALUE`, `MIN_NORMAL`, `MAX_VALUE`, ±infinity, and `NaN`.
 - [`Math`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html): `min`, `max`, `nextUp`, `nextDown`, `ulp`.
-- [`DoubleStream`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/DoubleStream.html), [`OptionalDouble`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/OptionalDouble.html): cực trị an toàn trên nguồn có thể rỗng.
+- [`DoubleStream`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/DoubleStream.html), [`OptionalDouble`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/OptionalDouble.html): safe extrema on potentially empty sources.

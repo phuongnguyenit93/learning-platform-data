@@ -1,23 +1,23 @@
-# Ước lượng `capacity` của `StringBuilder` trong Java
+# Estimating `StringBuilder` `capacity` in Java
 
-## Mục tiêu
+## Objective
 
-Khi ghép nhiều chuỗi trong vòng lặp, việc tạo `StringBuilder` với dung lượng ban đầu phù hợp có thể giảm số lần mở rộng vùng chứa trung gian. Tuy nhiên, chọn quá lớn sẽ giữ tài nguyên không cần thiết. Bài học này giải thích `capacity` là gì, cách ước lượng từ dữ liệu đầu vào, khi nào dùng `new StringBuilder(capacity)` hoặc `ensureCapacity()` và cách kiểm chứng giả định bằng Java 17+.
+When joining many strings in a loop, creating a `StringBuilder` with an appropriate initial capacity can reduce the number of intermediate buffer expansions. However, choosing too large a value holds unnecessary resources. This lesson explains what `capacity` is, how to estimate it from input data, when to use `new StringBuilder(capacity)` or `ensureCapacity()`, and how to verify assumptions with Java 17+.
 
-## 1. Phân biệt `length` và `capacity`
+## 1. Distinguishing `length` and `capacity`
 
-`StringBuilder` là đối tượng lưu một chuỗi ký tự có thể thay đổi (mutable). Hai thuộc tính dễ nhầm là:
+`StringBuilder` is an object that stores a mutable sequence of characters. Two easily confused properties are:
 
-- `length()`: số **đơn vị mã UTF-16 đang có nội dung** trong builder.
-- `capacity()`: số **đơn vị mã UTF-16 có thể chứa trước khi cần mở rộng**. Dung lượng có thể lớn hơn `length()`.
+- `length()`: the number of **UTF-16 code units currently containing content** in the builder.
+- `capacity()`: the number of **UTF-16 code units that can be held before expansion is needed**. Capacity can be greater than `length()`.
 
-Luôn có `0 <= length() <= capacity()`. Khi `append()` thêm nội dung, `length()` tăng theo lượng văn bản thực sự thêm; nếu cần nhiều chỗ hơn, builder tự tăng `capacity()`. Khi gọi `toString()`, chuỗi được trả về có nội dung theo `length()`, không kèm phần dung lượng chưa sử dụng.
+It is always true that `0 <= length() <= capacity()`. When `append()` adds content, `length()` increases by the amount of text actually added; if more space is needed, the builder automatically increases `capacity()`. When `toString()` is called, the returned string has content matching `length()`, without the unused capacity.
 
-Ví dụ nếu một builder đang có `length() == 5` và `capacity() == 20`, bạn có thể thêm tối đa 15 đơn vị UTF-16 trước khi cần mở rộng vùng chứa. **Capacity không phải số byte**, không nhất thiết là số Unicode code point, và cũng không phải độ dài tối đa vĩnh viễn của `StringBuilder`.
+For example, if a builder currently has `length() == 5` and `capacity() == 20`, you can append up to 15 more UTF-16 units before the storage needs to expand. **Capacity is not a byte count**, is not necessarily a Unicode code point count, and is not a permanent maximum length of the `StringBuilder`.
 
-### Giá trị khởi tạo thường gặp
+### Common Initial Values
 
-| Lời gọi | `length()` ban đầu | `capacity()` ban đầu |
+| Call | Initial `length()` | Initial `capacity()` |
 | --- | ---: | ---: |
 | `new StringBuilder()` | 0 | 16 |
 | `new StringBuilder(100)` | 0 | 100 |
@@ -25,69 +25,69 @@ Ví dụ nếu một builder đang có `length() == 5` và `capacity() == 20`, b
 | `new StringBuilder("abc")` | 3 | 19 |
 | `new StringBuilder(existingSeq)` | `existingSeq.length()` | `existingSeq.length() + 16` |
 
-Bộ dựng từ `String` hoặc `CharSequence` vừa **chép nội dung** vừa dành thêm dung lượng. Ngược lại, bộ dựng với số nguyên chỉ tạo vùng chứa với capacity được yêu cầu, chưa thêm văn bản. `new StringBuilder(-1)` ném `NegativeArraySizeException`. Khi dữ liệu đầu vào là một chuỗi đã biết, `new StringBuilder(existingString)` hợp lý hơn việc tự ghép chuỗi đó thêm lần nữa.
+Constructing from a `String` or `CharSequence` both **copies the content** and reserves extra capacity. Conversely, constructing with an integer only creates a buffer with the requested capacity, without adding any text. `new StringBuilder(-1)` throws `NegativeArraySizeException`. When the input is already a known string, `new StringBuilder(existingString)` makes more sense than appending that string manually again.
 
-## 2. Tại sao cần ước lượng dung lượng?
+## 2. Why Estimate Capacity?
 
-Giả sử bạn tạo một chuỗi kết quả dài hàng chục nghìn đơn vị UTF-16 từ hàng nghìn đoạn nhỏ. Nếu bắt đầu với capacity rất thấp, builder có thể phải cấp phát vùng chứa lớn hơn và sao chép nội dung đã có khi vượt giới hạn. Việc cấp phát trước gần với kích thước cuối cùng thường giúp giảm các lần mở rộng, đặc biệt khi xử lý khối lượng lớn lặp lại thường xuyên.
+Suppose you build a resulting string tens of thousands of UTF-16 units long from thousands of small segments. If you start with a very low capacity, the builder may have to allocate a larger buffer and copy existing content whenever it exceeds the limit. Pre-allocating close to the final size often helps reduce expansions, especially when processing large volumes frequently.
 
-Dẫu vậy, `StringBuilder` **tự mở rộng khi cần**; việc không đoán trước dung lượng không làm chuỗi sai. Mục tiêu là giảm cấp phát và sao chép nếu đây thực sự là phần việc tốn thời gian.
+Even so, `StringBuilder` **expands automatically when needed**; not guessing the capacity upfront does not make the string incorrect. The goal is to reduce allocations and copying if this is genuinely a time-consuming part of the work.
 
-Hai kiểu sử dụng phổ biến:
+Two common usage patterns:
 
 ```java
-// Đơn giản, thường đủ tốt với chuỗi nhỏ hoặc chưa biết độ dài.
+// Simple, usually good enough for small strings or unknown lengths.
 StringBuilder message = new StringBuilder();
 message.append("Hello, ").append("Java");
 
-// Khi đã biết gần đúng kích thước kết quả.
+// When the approximate result size is already known.
 int expectedLength = 1024;
 StringBuilder buffer = new StringBuilder(expectedLength);
 ```
 
-Đây là các đoạn minh họa trong ngữ cảnh của một phương thức. Capacity **không** giới hạn nội dung ở 1024: append thêm vẫn có thể khiến bộ đệm lớn lên.
+These are illustrative snippets within the context of a method. Capacity does **not** cap the content at 1024: further appends can still grow the buffer.
 
-### Cách tăng capacity khi bị đầy
+### How Capacity Grows When Full
 
-Với triển khai OpenJDK được dùng trong Java 17, tăng dung lượng tự động thường chọn ít nhất:
+In the OpenJDK implementation used in Java 17, automatic capacity growth typically chooses at least:
 
 ```text
 newCapacity ≈ max(minimumCapacity, oldCapacity * 2 + 2)
 ```
 
-Trong đó `minimumCapacity` là số đơn vị UTF-16 cần chứa sau thao tác. Công thức có các nhánh xử lý tràn số và giới hạn mảng; vì vậy đây là **mô tả quy tắc tăng thông thường của triển khai**, không phải cam kết rằng mọi JDK hoặc mọi trường hợp đều trả về đúng công thức. Theo API, điều quan trọng là builder đảm bảo có chỗ cho nội dung nếu có thể cấp phát.
+Here `minimumCapacity` is the number of UTF-16 units needed after the operation. The formula includes branches for overflow handling and array limits; therefore this is a **description of the implementation's typical growth rule**, not a guarantee that every JDK or every case returns this exact formula. According to the API, what matters is that the builder ensures enough room for the content if it can allocate it.
 
-Ví dụ: từ capacity 4, `append` làm length vượt 4 sẽ mở rộng. Không nên dựa vào capacity cụ thể sau khi tăng để tính đúng/sai của chương trình.
+For example: starting from capacity 4, an `append` that pushes length past 4 will expand it. You should not rely on the exact capacity after growth for program correctness.
 
-## 3. Công thức ước lượng từ các phần sẽ nối
+## 3. Estimation Formula from the Parts to Be Joined
 
-Nếu các đoạn văn bản và ký tự phân cách đã biết, ta có thể tính **chính xác số đơn vị UTF-16 của kết quả** trước khi tạo builder:
+If the text segments and separators are known, you can compute the **exact number of UTF-16 units of the result** before creating the builder:
 
 ```text
-estimatedCapacity = tổng length() của các phần dữ liệu
-                  + tổng độ dài của các dấu phân cách
-                  + độ dài prefix/suffix/nhãn cố định
-                  + độ dài các ký tự được thêm có điều kiện
+estimatedCapacity = total length() of the data parts
+                  + total length of the separators
+                  + length of fixed prefix/suffix/labels
+                  + length of conditionally added characters
 ```
 
-Ví dụ nối `n` chuỗi với một dấu phẩy giữa hai phần, **không có dấu phẩy cuối**:
+For example, joining `n` strings with a comma between every two parts, **with no trailing comma**:
 
 ```text
 estimatedCapacity = sum(part.length()) + max(0, n - 1)
 ```
 
-Với dấu phân cách là một `String separator` bất kỳ:
+With an arbitrary `String separator`:
 
 ```text
 estimatedCapacity = sum(part.length())
                   + max(0, n - 1) * separator.length()
 ```
 
-Trong công thức trên, `length()` đo **đơn vị UTF-16**; đây chính là đơn vị cần dùng cho capacity. Nếu nối thêm `\n` một lần sau mỗi dòng, cần tính thêm một đơn vị cho mỗi `\n`. Với dấu xuống dòng `\r\n`, cần thêm hai đơn vị mỗi lần. Với `System.lineSeparator()`, lấy `separator.length()` thay vì giả định có đúng một ký tự.
+In the formula above, `length()` measures **UTF-16 units**; this is the exact unit needed for capacity. If appending `\n` once after each line, add one unit per `\n`. For `\r\n` line endings, add two units each time. For `System.lineSeparator()`, use `separator.length()` instead of assuming it is exactly one character.
 
-### Ví dụ đầy đủ: nối dữ liệu với dấu phân cách
+### Complete Example: Joining Data with a Separator
 
-Lưu thành `CapacityEstimateDemo.java`:
+Save as `CapacityEstimateDemo.java`:
 
 ```java
 import java.util.List;
@@ -122,14 +122,14 @@ public class CapacityEstimateDemo {
 }
 ```
 
-Chạy trên Java 17+:
+Run on Java 17+:
 
 ```bash
 javac CapacityEstimateDemo.java
 java CapacityEstimateDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 estimated=21
@@ -138,26 +138,26 @@ capacity=21
 text=Java,17,StringBuilder
 ```
 
-`"Java"` dài 4, `"17"` dài 2 và `"StringBuilder"` dài 13; thêm 2 dấu phẩy = 21. Vì builder được tạo đúng capacity cần thiết, chương trình không cần mở rộng khi nối dữ liệu này. Khi `parts` rỗng, công thức cho 0 và builder có capacity 0; khi chỉ có một phần, không có separator.
+`"Java"` has length 4, `"17"` has length 2, and `"StringBuilder"` has length 13; adding 2 commas = 21. Because the builder was created with the exact capacity needed, the program does not need to expand while joining this data. When `parts` is empty, the formula yields 0 and the builder has capacity 0; when there is only one part, there is no separator.
 
-Hai phương thức `Math.addExact` và `Math.multiplyExact` giúp phát hiện tràn `int` khi tổng hợp kích thước, thay vì âm thầm tạo một số âm hoặc quá nhỏ. Chúng ném `ArithmeticException` khi tràn. Tuy nhiên, một số capacity cực lớn dù còn nằm trong phạm vi `int` vẫn có thể không cấp phát được vì giới hạn của máy ảo hoặc bộ nhớ.
+The two methods `Math.addExact` and `Math.multiplyExact` help detect `int` overflow when summing sizes, instead of silently producing a negative or too-small number. They throw `ArithmeticException` on overflow. However, an extremely large capacity even within `int` range may still fail to allocate due to VM or memory limits.
 
-**Điểm đánh đổi:** tính chính xác toàn bộ độ dài đầu vào tốn thêm một lượt duyệt. Nếu dữ liệu đã được duyệt để xác thực hoặc thống kê thì gần như có sẵn; nếu tất cả đoạn cực ngắn, chi phí đo trước có thể lớn hơn lợi ích tránh vài lần mở rộng. Hãy đo trong tình huống thực tế.
+**Trade-off:** computing the exact total length of all inputs costs an extra traversal pass. If the data is already being traversed for validation or statistics, it is nearly free; if all parts are tiny, the cost of pre-measuring may outweigh the benefit of avoiding a few expansions. Measure in the actual scenario.
 
-## 4. Khi không biết chính xác kích thước kết quả
+## 4. When the Exact Output Size Is Unknown
 
-Một số đoạn văn bản được tạo ra từ số hoặc phép chuyển đổi định dạng. Cần phân biệt **giá trị** với **số ký tự sau chuyển đổi**:
+Some text segments are produced from numbers or formatting conversions. Distinguish the **value** from the **character count after conversion**:
 
-- `builder.append(12345)` thêm 5 đơn vị UTF-16, không phải 12.345 đơn vị.
-- `builder.append(-12)` thêm 3 đơn vị: dấu `-` và hai chữ số.
-- `builder.append(true)` thêm 4 đơn vị, `false` thêm 5.
-- `builder.append((String) null)` thêm chuỗi `"null"` dài 4.
-- `builder.append('\n')` thêm 1 đơn vị; `builder.append("\r\n")` thêm 2.
-- `builder.append("😀")` thêm 2 đơn vị UTF-16 dù người dùng nhìn thấy một emoji.
+- `builder.append(12345)` adds 5 UTF-16 units, not 12,345 units.
+- `builder.append(-12)` adds 3 units: the `-` sign and two digits.
+- `builder.append(true)` adds 4 units, `false` adds 5.
+- `builder.append((String) null)` adds the 4-character string `"null"`.
+- `builder.append('\n')` adds 1 unit; `builder.append("\r\n")` adds 2.
+- `builder.append("😀")` adds 2 UTF-16 units even though the user sees one emoji.
 
-Nếu đối số đến từ `String.valueOf(x)`, `toString()`, `String.format()`, JSON serializer hoặc formatter theo locale, dung lượng phụ thuộc **đầu ra thực tế** (ví dụ dấu nhóm hàng nghìn, số chữ số, escape, khoảng trắng, trường tùy chọn). Không dùng số byte UTF-8 hay số trường dữ liệu làm capacity trực tiếp.
+If arguments come from `String.valueOf(x)`, `toString()`, `String.format()`, a JSON serializer, or a locale-aware formatter, the size depends on the **actual output** (e.g., thousands separators, digit count, escaping, whitespace, optional fields). Do not use UTF-8 byte counts or the number of data fields directly as capacity.
 
-Khi chưa biết chính xác, có thể dùng ước lượng theo số bản ghi:
+When the exact size is unknown, you can estimate by record count:
 
 ```java
 int rowCount = 500;
@@ -166,32 +166,32 @@ int estimate = Math.multiplyExact(rowCount, estimatedUnitsPerRow);
 StringBuilder report = new StringBuilder(estimate);
 ```
 
-Đây là đoạn minh họa, giả định ước lượng trung bình 48 đơn vị UTF-16 cho mỗi dòng **đã bao gồm dấu phân cách hoặc newline**. Với 500 dòng, estimate bằng 24.000. Nếu thực tế dài hơn, builder vẫn tự mở rộng; nếu thực tế ngắn hơn, phần dư không xuất hiện trong chuỗi kết quả nhưng vùng chứa có thể chiếm bộ nhớ.
+This is an illustrative snippet, assuming an average estimate of 48 UTF-16 units per row **already including separators or newlines**. With 500 rows, the estimate equals 24,000. If the actual output is longer, the builder still expands automatically; if the actual output is shorter, the excess does not appear in the resulting string, though the backing buffer may occupy memory.
 
-### Chọn giữa ước lượng chính xác và ước lượng gần đúng
+### Choosing Between Exact and Approximate Estimation
 
-| Dữ liệu | Cách tính phù hợp | Lý do |
+| Data | Appropriate calculation | Reason |
 | --- | --- | --- |
-| Danh sách các `String` có sẵn | Cộng `length()`, prefix, suffix và separator | Có thể tính chính xác |
-| Ghép `char` hoặc newline cố định | Cộng số lần thêm nhân độ dài từng thành phần | Thường tính chính xác |
-| Dòng CSV cần escape dấu ngoặc kép | Tính sau escaping, hoặc ước lượng dựa trên dữ liệu | Dữ liệu nguồn có thể dài ra |
-| Số, ngày, phần trăm định dạng theo locale | Tính độ dài chuỗi đã định dạng nếu cần chính xác | Kích thước phụ thuộc cách biểu diễn |
-| Số lượng bản ghi biết nhưng nội dung biến động | Dung lượng trung bình nhân số bản ghi | Ước lượng đủ dùng |
-| Luồng không biết lúc nào kết thúc | Bắt đầu vừa phải, mở rộng khi cần, có thể `ensureCapacity` | Không có tổng độ dài đáng tin |
+| Existing list of `String`s | Sum `length()`, prefix, suffix, and separator | Can be calculated exactly |
+| Appending fixed `char`s or newlines | Sum insertion count times each element's length | Usually calculable exactly |
+| CSV rows requiring quote escaping | Calculate after escaping, or estimate from data | Source data may grow longer |
+| Locale-formatted numbers, dates, percentages | Measure formatted string length if exactness is needed | Size depends on formatting representation |
+| Known record count with variable content | Average length times record count | Approximation is sufficient |
+| Stream with unknown end | Start modestly, expand as needed, optionally `ensureCapacity` | No reliable total length available |
 
-Một công thức quá phức tạp, trùng lặp logic với chính bước nối chuỗi, có thể dễ sai và gây thêm overhead. Ước lượng nên phục vụ tối ưu hóa, không trở thành nguồn lỗi nghiệp vụ.
+An overly complex formula that duplicates the string-joining logic itself can be error-prone and add overhead. Estimation should serve optimization, not become a source of business-logic bugs.
 
-## 5. `ensureCapacity`, `setLength` và `trimToSize` khác nhau thế nào?
+## 5. How Do `ensureCapacity`, `setLength`, and `trimToSize` Differ?
 
-`StringBuilder` có ba API dễ bị hiểu nhầm:
+`StringBuilder` has three easily misunderstood APIs:
 
-| API | Tác động lên `length()` | Tác động lên `capacity()` |
+| API | Effect on `length()` | Effect on `capacity()` |
 | --- | --- | --- |
-| `ensureCapacity(minimum)` | Không đổi | Bảo đảm tối thiểu số đơn vị UTF-16 được yêu cầu nếu cần tăng; có thể tăng nhiều hơn |
-| `setLength(newLength)` | Đổi đúng thành `newLength` | Có thể phải tăng khi `newLength` vượt capacity; phần được thêm có giá trị `\u0000` |
-| `trimToSize()` | Không đổi | Cố giảm phần dung lượng chưa dùng; API không bảo đảm luôn đạt đúng `length()` |
+| `ensureCapacity(minimum)` | Unchanged | Ensures at least the requested number of UTF-16 units if growth is needed; may grow more |
+| `setLength(newLength)` | Changes to exactly `newLength` | May grow if `newLength` exceeds capacity; added positions have value `\u0000` |
+| `trimToSize()` | Unchanged | Attempts to reduce unused capacity; the API does not guarantee always reaching exact `length()` |
 
-`ensureCapacity` phù hợp khi **đã tạo builder và sau đó mới biết nhu cầu lớn hơn**:
+`ensureCapacity` is appropriate when **the builder has already been created and a larger need becomes known later**:
 
 ```java
 StringBuilder builder = new StringBuilder();
@@ -203,15 +203,15 @@ System.out.println(builder.length());           // 11
 System.out.println(builder.capacity() >= 1000); // true
 ```
 
-Đây là đoạn có thể chạy trong `jshell` hoặc trong phương thức. Lệnh `ensureCapacity(1000)` không thêm 1000 ký tự; nó chỉ yêu cầu chỗ trống. Nếu số được truyền nhỏ hơn hoặc bằng 0, `ensureCapacity` không cần thay đổi dung lượng. Nó không phải lời hứa "capacity đúng bằng 1000": sau tăng, capacity có thể lớn hơn.
+This snippet can be run in `jshell` or inside a method. Calling `ensureCapacity(1000)` does not add 1000 characters; it only requests space. If the passed value is less than or equal to 0, `ensureCapacity` does not need to change capacity. It is not a promise that "capacity equals exactly 1000": after expansion, capacity may be larger.
 
-Đừng dùng `setLength(1000)` để "đặt trước capacity" vì nó làm cho chuỗi thực sự có độ dài 1000 bằng cách thêm các đơn vị `\u0000`. Các đơn vị NUL đó là **nội dung thật**, làm sai dữ liệu nếu gửi đi hoặc ghi tệp. Để dành chỗ, dùng constructor hoặc `ensureCapacity`.
+Do not use `setLength(1000)` to "reserve capacity", because it makes the string genuinely 1000 units long by appending `\u0000` units. Those NUL units are **real content**, corrupting data if sent or written to a file. To reserve space, use the constructor or `ensureCapacity`.
 
-`trimToSize()` có thể giúp giải phóng phần dư lớn sau một giai đoạn nối chuỗi nếu phải giữ builder lâu, nhưng cũng có thể khiến lần nối tiếp theo lại phải mở rộng. Đừng gọi nó sau mỗi `append()`.
+`trimToSize()` can help release large excess space after a string-building phase if the builder must be kept alive long-term, though it may also force the next append to expand again. Do not call it after every `append()`.
 
-## 6. Quan sát mở rộng dung lượng trong Java
+## 6. Observing Capacity Growth in Java
 
-Lưu thành `BuilderGrowthDemo.java`:
+Save as `BuilderGrowthDemo.java`:
 
 ```java
 public class BuilderGrowthDemo {
@@ -237,14 +237,14 @@ public class BuilderGrowthDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac BuilderGrowthDemo.java
 java BuilderGrowthDemo
 ```
 
-Trên OpenJDK thông dụng (đã kiểm chứng với triển khai OpenJDK), kết quả:
+On common OpenJDK builds (verified against the OpenJDK implementation), the output is:
 
 ```text
 initial=0/4
@@ -255,11 +255,11 @@ default=16
 from-text=19
 ```
 
-Ở lần đầu, builder có 4 chỗ. Sau `"abcd"` nó đầy nhưng chưa tăng. Thêm `'e'` làm length lên 5 nên capacity mở rộng thành 10. Thêm 10 ký tự tiếp theo làm length thành 15, capacity lúc đó thành 22. **Các giá trị mở rộng sau append mang tính quan sát triển khai**, không phải điều kiện mà code ứng dụng cần phụ thuộc vào. Giá trị capacity từ bộ dựng được tài liệu Java định nghĩa rõ hơn và có thể dùng trực tiếp để kiểm chứng ước lượng.
+Initially, the builder has 4 slots. After `"abcd"`, it is full but has not grown yet. Appending `'e'` raises length to 5, so capacity expands to 10. Appending the next 10 characters brings length to 15, at which point capacity becomes 22. **The expanded values after append are implementation observations**, not conditions application code should depend on. Constructor capacities are more explicitly specified in Java documentation and can be used directly to verify estimates.
 
-## 7. Unicode: vì sao không dùng byte hoặc số code point làm capacity?
+## 7. Unicode: Why Not Use Bytes or Code Point Count as Capacity?
 
-Với `StringBuilder`, `length()` và `capacity()` đo theo **đơn vị mã UTF-16**, không phải byte UTF-8. Ví dụ:
+For `StringBuilder`, `length()` and `capacity()` are measured in **UTF-16 code units**, not UTF-8 bytes. For example:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -274,7 +274,7 @@ System.out.println(value.codePointCount(0, value.length()));
 System.out.println(value.getBytes(StandardCharsets.UTF_8).length);
 ```
 
-Có thể chạy trong `jshell`; kết quả lần lượt là:
+This can be run in `jshell`; the outputs in order are:
 
 ```text
 3
@@ -283,55 +283,55 @@ Có thể chạy trong `jshell`; kết quả lần lượt là:
 5
 ```
 
-`"A😀"` gồm 3 đơn vị UTF-16, 2 code point và 5 byte UTF-8. Vì vậy capacity cần để append đúng một bản `value` là 3. Nếu dùng 2 (code point count), builder vẫn chạy nhưng phải mở rộng. Nếu dùng 5 (byte UTF-8), builder sẽ cấp dư theo đơn vị capacity.
+`"A😀"` consists of 3 UTF-16 units, 2 code points, and 5 UTF-8 bytes. Therefore, the capacity needed to append exactly one copy of `value` is 3. If you use 2 (code point count), the builder still works but has to expand. If you use 5 (UTF-8 bytes), the builder over-allocates capacity units.
 
-Một dấu kết hợp hoặc cụm emoji phức tạp còn có thể gồm nhiều code point nhưng người đọc cảm nhận như một ký tự. Không dùng số grapheme cluster để đo capacity. Nếu có thao tác thêm mã Unicode bằng `appendCodePoint(int)`, số đơn vị tăng là `Character.charCount(codePoint)`: 1 cho ký tự BMP hợp lệ, 2 cho ký tự bổ sung.
+A combining mark or complex emoji sequence can also contain multiple code points while being perceived by the reader as one character. Do not use grapheme cluster count to size capacity. When adding Unicode code points via `appendCodePoint(int)`, the number of units added is `Character.charCount(codePoint)`: 1 for a valid BMP character, 2 for a supplementary character.
 
-Đừng suy luận bộ nhớ heap thực tế bằng công thức cứng `capacity * 2`. Triển khai Java hiện đại có thể dùng Compact Strings và cơ chế lưu trữ trong JVM; có chi phí đối tượng, mảng, căn chỉnh và mã hóa nội bộ. `capacity()` là chỉ số hữu ích để dự báo **chỗ chứa logic**, không phải đồng hồ đo byte RAM.
+Do not infer actual heap memory using a rigid `capacity * 2` formula. Modern Java implementations may use Compact Strings and internal JVM storage mechanisms; there is also object, array, alignment, and internal encoding overhead. `capacity()` is a useful indicator for predicting **logical storage slots**, not a RAM byte meter.
 
-## 8. Tối ưu hóa đúng chỗ
+## 8. Optimizing in the Right Place
 
-Chỉ định dung lượng là tối ưu hóa đáng cân nhắc khi:
+Specifying capacity is an optimization worth considering when:
 
-1. Nối rất nhiều phần trong vòng lặp và kích thước cuối tương đối đoán được.
-2. Mỗi yêu cầu hoặc mỗi lần xử lý đều tạo ra builder lớn; chi phí cấp phát và copy xuất hiện trong profiler.
-3. Kết quả luôn theo mẫu ổn định: có nhãn, phân cách hoặc số bản ghi đã biết.
-4. Một builder lớn được dùng trong đường chạy nóng và việc chọn capacity đã được benchmark chứng minh có lợi.
+1. Joining very many parts in a loop and the final size is fairly predictable.
+2. Every request or processing step creates a large builder; allocation and copy costs show up in a profiler.
+3. The output always follows a stable template: known labels, separators, or record counts.
+4. A large builder is used on a hot path and choosing capacity has been proven beneficial by benchmarks.
 
-Không nhất thiết chỉ định capacity trong mọi lệnh nối vài từ. `StringBuilder()` mặc định đã có một lượng chỗ nhỏ; compiler cũng có thể tối ưu nhiều biểu thức nối chuỗi bằng `+` theo cách riêng. Đừng thay mọi phép nối chuỗi bằng một builder chỉ vì tin rằng constructor có số capacity luôn nhanh hơn.
+You do not need to specify capacity on every statement joining a few words. Default `StringBuilder()` already provides a small amount of space; the compiler can also optimize many `+` concatenation expressions in its own way. Do not replace every string concatenation with a builder just because you believe a sized constructor is always faster.
 
-Chú ý những trường hợp gây phản tác dụng:
+Watch out for cases that backfire:
 
-- **Ước lượng quá thấp:** vẫn tự tăng nhiều lần, có thể cấp phát/sao chép trung gian.
-- **Ước lượng quá cao:** lãng phí vùng chứa, tăng áp lực bộ nhớ hoặc dẫn đến `OutOfMemoryError`.
-- **Tính toán sai/tràn số:** số âm có thể gây `NegativeArraySizeException`; cộng/nhân bằng `int` không kiểm soát có thể tràn. Dùng `Math.addExact`/`multiplyExact` khi tính từ nhiều phần và đặt giới hạn nghiệp vụ phù hợp.
-- **Lấy `String.length()` của nguồn trước escaping:** dữ liệu sau escaping có thể dài hơn.
-- **Dùng capacity làm số byte network:** độ dài payload UTF-8 phải tính từ `byte[]` thực sự gửi.
-- **Gọi `toString()` liên tục trong vòng lặp:** tạo `String` trung gian không cần thiết; thường nên append xong rồi chuyển sang `String` một lần.
-- **Chia sẻ builder giữa các luồng:** `StringBuilder` không đồng bộ hóa và không bảo đảm an toàn khi nhiều thread sửa đồng thời; dùng sở hữu riêng theo tác vụ hoặc giải pháp đồng bộ phù hợp.
+- **Under-estimating:** still expands multiple times, potentially causing intermediate allocations and copies.
+- **Over-estimating:** wastes buffer space, increases memory pressure, or leads to `OutOfMemoryError`.
+- **Miscalculation/overflow:** negative values cause `NegativeArraySizeException`; unchecked `int` addition/multiplication can overflow. Use `Math.addExact`/`multiplyExact` when summing many parts and enforce appropriate domain bounds.
+- **Using source `String.length()` before escaping:** data after escaping may be longer.
+- **Using capacity as network byte count:** UTF-8 payload length must be calculated from the actual `byte[]` sent.
+- **Calling `toString()` repeatedly in a loop:** creates unnecessary intermediate `String`s; normally finish appending and convert to `String` once.
+- **Sharing a builder across threads:** `StringBuilder` is unsynchronized and does not guarantee safety under concurrent modification by multiple threads; keep ownership local to a task or synchronize appropriately.
 
-### Kiểm tra hiệu năng như thế nào?
+### How Should You Check Performance?
 
-Đo `builder.length()` và `builder.capacity()` sau khi xây dựng giúp kiểm chứng ước lượng có thiếu/thừa nhiều hay không. Nhưng capacity **không tự chứng minh chương trình chạy nhanh hơn**. Khi cần so sánh chiến lược, benchmark bằng JMH với dữ liệu đại diện, có warmup, nhiều lần chạy và tránh để JVM tối ưu bỏ kết quả. Theo dõi tổng thời gian, allocation rate và GC bằng profiler khi thích hợp; nếu phải duyệt dữ liệu một lần nữa để tính capacity, hãy tính cả chi phí duyệt ấy.
+Checking `builder.length()` and `builder.capacity()` after construction verifies whether your estimate is far too small or too large. However, capacity **does not by itself prove the program runs faster**. When you need to compare strategies, benchmark with JMH using representative data, warm-up, multiple runs, and prevent the JVM from optimizing away the result. Monitor total time, allocation rate, and GC with a profiler when appropriate; if you have to traverse the data an extra time to compute capacity, include that traversal cost as well.
 
-Một cách thực dụng là bắt đầu bằng `new StringBuilder()`, chỉ định capacity khi bài toán đã có dự báo hợp lý; điều chỉnh sau khi có đo đạc thay vì dùng công thức nhân cố định cho mọi chuỗi.
+A pragmatic approach is to start with `new StringBuilder()`, specify capacity when the problem provides a reasonable prediction, and tune after measurement rather than applying a fixed multiplier to every string.
 
-## 9. Bài tập tự kiểm tra
+## 9. Self-Check Exercises
 
-**Bài 1.** Cần ghép ba chuỗi `"abc"`, `"Java"`, `"17"`, giữa chúng có chuỗi phân cách `" | "` (3 đơn vị UTF-16). Capacity tối thiểu để không tăng trong quá trình nối là bao nhiêu?
+**Exercise 1.** You need to join three strings `"abc"`, `"Java"`, `"17"` with the separator `" | "` (3 UTF-16 units) between them. What is the minimum capacity to avoid resizing during concatenation?
 
-**Bài 2.** Cần tạo 100 dòng, mỗi dòng có đúng 30 đơn vị UTF-16 và kết thúc bằng `"\r\n"`. Capacity tối thiểu là bao nhiêu? Nếu đổi newline thành `"\n"` thì kết quả ra sao?
+**Exercise 2.** You need to generate 100 lines, each exactly 30 UTF-16 units long and ending with `"\r\n"`. What is the minimum capacity? What is the result if the newline changes to `"\n"`?
 
-**Bài 3.** Vì sao `new StringBuilder(100)` khác hoàn toàn với `new StringBuilder().setLength(100)`? Cả hai có `length()` ban đầu bằng 0 không?
+**Exercise 3.** Why is `new StringBuilder(100)` completely different from `new StringBuilder().setLength(100)`? Do both have an initial `length()` of 0?
 
-**Bài 4.** Với `String text = "A\uD83D\uDE00";`, kết quả của `text.length()` và `text.getBytes(StandardCharsets.UTF_8).length` bằng bao nhiêu? Nên truyền số nào vào constructor khi chỉ append `text` một lần?
+**Exercise 4.** Given `String text = "A\uD83D\uDE00";`, what are the results of `text.length()` and `text.getBytes(StandardCharsets.UTF_8).length`? Which number should you pass to the constructor when appending `text` just once?
 
-**Bài 5.** Ứng dụng luôn nối 10 từ ngắn. Việc tính toán chính xác length trước khi nối có chắc tăng hiệu năng không? Bạn cần đo gì để kết luận?
+**Exercise 5.** An application always joins 10 short words. Is computing the exact length before joining guaranteed to improve performance? What must you measure to conclude?
 
-**Gợi ý đáp án:** (1) 3 + 4 + 2 + 2×3 = **15**; (2) 100×(30+2) = **3200**, dùng LF là **3100**; (3) constructor số nguyên đặt capacity 100, length 0, còn `setLength(100)` thêm đủ nội dung NUL để length 100; (4) length 3, UTF-8 byte 5, capacity **3**; (5) không chắc: phải đo chi phí tính capacity, số lần tăng/cấp phát, thời gian và GC trong workload thực tế.
+**Answer hints:** (1) 3 + 4 + 2 + 2×3 = **15**; (2) 100×(30+2) = **3200**, with LF it is **3100**; (3) the integer constructor sets capacity 100 and length 0, whereas `setLength(100)` appends NUL content so length is 100; (4) length 3, UTF-8 bytes 5, capacity **3**; (5) not guaranteed: you must measure the capacity-calculation cost, number of expansions/allocations, time, and GC under the actual workload.
 
-### Tài liệu tham khảo
+### References
 
 - [`StringBuilder` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html)
-- [`AbstractStringBuilder` — OpenJDK source](https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/lang/AbstractStringBuilder.java) (quy tắc mở rộng ở mức triển khai, có thể thay đổi theo phiên bản).
+- [`AbstractStringBuilder` — OpenJDK source](https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/lang/AbstractStringBuilder.java) (growth rule is at the implementation level and may change across versions).
 - [`Character.charCount` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html#charCount(int)).

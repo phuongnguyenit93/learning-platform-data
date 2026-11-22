@@ -1,57 +1,57 @@
-# `StringBuilder.setCharAt()` và `setLength()` trong Java
+# `StringBuilder.setCharAt()` and `setLength()` in Java
 
-## 1. Mục tiêu bài học
+## 1. Lesson Objectives
 
-`StringBuilder` là đối tượng chứa một dãy đơn vị ký tự UTF-16 **có thể thay đổi**. Khác với `String` bất biến, `StringBuilder` cho phép sửa trực tiếp nội dung đang tích lũy mà không cần gán lại đối tượng mỗi lần biến đổi.
+`StringBuilder` is an object holding a **mutable** sequence of UTF-16 character units. Unlike immutable `String`, `StringBuilder` lets you directly modify accumulated content without reassigning the object on every transformation.
 
-Hai phương thức trong bài phục vụ hai nhiệm vụ khác nhau:
+The two methods in this lesson serve two different tasks:
 
-- `setCharAt(int index, char ch)`: **thay đúng một đơn vị `char`** tại vị trí đã tồn tại. Phương thức không thêm hoặc bớt ký tự nên **`length()` không đổi**.
-- `setLength(int newLength)`: thay đổi **độ dài logic** của dãy. Nếu giảm, các ký tự cuối bị loại khỏi nội dung logic; nếu tăng, các vị trí mới được điền bằng **ký tự NUL `'\u0000'`**. Phương thức không tự điền khoảng trắng và không khôi phục các ký tự đã cắt trước đó.
+- `setCharAt(int index, char ch)`: **replaces exactly one `char` unit** at an existing position. The method neither adds nor removes characters, so **`length()` does not change**.
+- `setLength(int newLength)`: changes the **logical length** of the sequence. If decreased, trailing characters are dropped from the logical content; if increased, new positions are filled with the **NUL character `'\u0000'`**. The method does not fill with spaces and does not restore previously truncated characters.
 
-Cả hai đều thay đổi chính đối tượng `StringBuilder` và có kiểu trả về `void`, không giống nhiều phương thức dạng `append`/`insert` trả lại builder để gọi nối tiếp.
+Both mutate the `StringBuilder` object itself and have return type `void`, unlike methods such as `append`/`insert` that return the builder for chaining.
 
-Ví dụ nhìn nhanh:
+Quick look example:
 
 ```java
 StringBuilder sb = new StringBuilder("Java");
 
-sb.setCharAt(1, 'O'); // Nội dung: "JOva", length = 4.
-sb.setLength(2);      // Nội dung: "JO", length = 2.
-sb.setLength(5);      // Nội dung: "JO\0\0\0", length = 5.
+sb.setCharAt(1, 'O'); // Content: "JOva", length = 4.
+sb.setLength(2);      // Content: "JO", length = 2.
+sb.setLength(5);      // Content: "JO\0\0\0", length = 5.
 ```
 
-Đây là đoạn mã minh họa trong thân một phương thức. `\0` trong phần bình luận và các ví dụ ký hiệu cho **một đơn vị UTF-16 có giá trị bằng 0**, không phải hai ký tự `\` và `0`.
+This is an illustrative snippet inside a method body. `\0` in comments and examples denotes **a single UTF-16 unit with value 0**, not the two characters `\` and `0`.
 
-## 2. Phân biệt `length` với `capacity` và vùng chỉ số hợp lệ
+## 2. Distinguishing `length` from `capacity` and Valid Index Ranges
 
-Một `StringBuilder` có hai đại lượng khác nhau:
+A `StringBuilder` has two distinct quantities:
 
-| Khái niệm | API | Ý nghĩa |
+| Concept | API | Meaning |
 | --- | --- | --- |
-| **Độ dài logic** | `sb.length()` | Số đơn vị `char` đang thuộc nội dung của builder |
-| **Dung lượng lưu trữ** | `sb.capacity()` | Số đơn vị `char` mà builder có thể chứa mà không nhất thiết cần tăng vùng lưu trữ |
-| **Truy cập/sửa nội dung** | `sb.charAt(i)`, `sb.setCharAt(i,ch)` | Chỉ số phải thỏa **`0 <= i < length()`** |
-| **Đổi độ dài logic** | `sb.setLength(n)` | `n >= 0`; có thể ngắn hơn hoặc dài hơn độ dài hiện tại |
+| **Logical length** | `sb.length()` | Number of `char` units currently belonging to the builder's content |
+| **Storage capacity** | `sb.capacity()` | Number of `char` units the builder can hold without necessarily needing to grow storage |
+| **Access/modify content** | `sb.charAt(i)`, `sb.setCharAt(i,ch)` | Index must satisfy **`0 <= i < length()`** |
+| **Change logical length** | `sb.setLength(n)` | `n >= 0`; can be shorter or longer than the current length |
 
-Đừng lấy `capacity()` làm giới hạn hợp lệ của `setCharAt`. Ví dụ builder có `length() == 2` nhưng `capacity() == 18` thì chỉ số `2` **vẫn không hợp lệ** cho `setCharAt`, vì đó là vị trí *sau* nội dung hiện có. Muốn ghi vào chỉ số 2 bằng `setCharAt`, phải tăng `length` lên ít nhất 3 trước, hoặc dùng `append` để thêm dữ liệu như ý định.
+Do not use `capacity()` as the valid bound for `setCharAt`. For example, if a builder has `length() == 2` yet `capacity() == 18`, index `2` is **still invalid** for `setCharAt`, because it is *past* the existing content. To write at index 2 with `setCharAt`, you must first increase `length` to at least 3, or use `append` to add data as intended.
 
-`capacity()` là chi tiết năng lực lưu trữ được công khai bởi API, còn nội dung hợp lệ luôn được xác định theo `length()`. Khi tăng `length` vượt `capacity`, builder có thể phải cấp thêm dung lượng. Giảm `length` không có nghĩa dung lượng cũng bị giảm tương ứng; nếu muốn chủ động yêu cầu thu gọn, xem `trimToSize()`, nhưng đó là quyết định hiệu năng/bộ nhớ khác với ngữ nghĩa hai phương thức đang học.
+`capacity()` is a storage capability detail exposed by the API, whereas valid content is always determined by `length()`. When increasing `length` beyond `capacity`, the builder may need to allocate additional capacity. Decreasing `length` does not mean capacity shrinks correspondingly; if you want to proactively request shrinking, see `trimToSize()`, though that is a performance/memory decision separate from the semantics of these two methods.
 
-## 3. `setCharAt(index, ch)`: sửa một phần tử, không thay đổi độ dài
+## 3. `setCharAt(index, ch)`: Modifying One Element Without Changing Length
 
-Chữ ký:
+Signature:
 
 ```java
 public void setCharAt(int index, char ch)
 ```
 
-- `index`: vị trí của một **đơn vị mã UTF-16** đang nằm trong dãy, đánh số từ 0.
-- `ch`: giá trị `char` mới ghi đè lên đơn vị đó.
-- Kết quả trả về: **`void`**.
-- Điều kiện chỉ số: `0 <= index < length()`. Vi phạm gây `IndexOutOfBoundsException` (một số triển khai dùng lớp con `StringIndexOutOfBoundsException`).
+- `index`: position of an existing **UTF-16 code unit** in the sequence, 0-based.
+- `ch`: the new `char` value overwriting that unit.
+- Return value: **`void`**.
+- Index condition: `0 <= index < length()`. Violations throw `IndexOutOfBoundsException` (some implementations use the subclass `StringIndexOutOfBoundsException`).
 
-Ví dụ:
+Example:
 
 ```java
 StringBuilder name = new StringBuilder("Jovo");
@@ -61,9 +61,9 @@ System.out.println(name);          // Java
 System.out.println(name.length()); // 4
 ```
 
-Đây là snippet đặt trong `main`. Chỉ có các vị trí 1 và 3 bị sửa; độ dài vẫn là 4. Phương thức **không tìm tất cả ký tự khớp**, mà sửa đúng chỉ số được chỉ định. Nếu muốn thay tất cả chữ `'o'`, bạn có thể duyệt các vị trí và gọi `setCharAt` khi `charAt(i) == 'o'`, hoặc dùng một API thay thế phù hợp với nhu cầu.
+This is a snippet placed inside `main`. Only positions 1 and 3 are modified; length remains 4. The method **does not find all matching characters**; it modifies the exact specified index. If you want to replace all `'o'` letters, you can loop through positions and call `setCharAt` when `charAt(i) == 'o'`, or use an alternative API suited to your needs.
 
-Lưu thành `SetCharAtDemo.java`:
+Save as `SetCharAtDemo.java`:
 
 ```java
 public class SetCharAtDemo {
@@ -83,7 +83,7 @@ public class SetCharAtDemo {
 }
 ```
 
-Biên dịch/chạy bằng JDK 17 trở lên:
+Compile/run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 SetCharAtDemo.java
@@ -97,63 +97,63 @@ Java
 JOv!
 ```
 
-`original` là `String` bất biến có nội dung chụp từ builder trước khi sửa; nó vẫn là `Java`. `setCharAt` sửa builder tại chỗ; dòng gán lại chính ký tự đang có không tạo khác biệt nội dung.
+`original` is an immutable `String` capturing the builder's content before modification; it remains `Java`. `setCharAt` mutates the builder in place; reassigning the character already present produces no content difference.
 
-### Không thể gọi nối chuỗi với `setCharAt`
+### `setCharAt` Cannot Be Chained
 
-`append` thường trả builder, nhưng `setCharAt` trả `void`:
+`append` typically returns the builder, whereas `setCharAt` returns `void`:
 
 ```java
 StringBuilder sb = new StringBuilder("abc");
 sb.setCharAt(0, 'A');
-sb.append('!'); // Hợp lệ.
+sb.append('!'); // Valid.
 
-// sb.setCharAt(0, 'Z').append('!'); // KHÔNG biên dịch: setCharAt trả void.
+// sb.setCharAt(0, 'Z').append('!'); // Does NOT compile: setCharAt returns void.
 ```
 
-Đây là snippet minh họa và dòng cuối đã được chú thích để chương trình hợp lệ. Đừng xây dựng API chain dựa trên giả định mọi phương thức `StringBuilder` trả chính builder.
+This is an illustrative snippet and the last line is commented out so the program stays valid. Do not build API chains assuming every `StringBuilder` method returns the builder itself.
 
-## 4. `setLength(newLength)`: ba trường hợp
+## 4. `setLength(newLength)`: Three Cases
 
-Chữ ký:
+Signature:
 
 ```java
 public void setLength(int newLength)
 ```
 
-`newLength` phải **không âm**. Khi gọi, sẽ xảy ra một trong ba tình huống:
+`newLength` must be **non-negative**. When called, one of three situations occurs:
 
-| So với độ dài cũ | Hành vi |
+| Compared to Old Length | Behavior |
 | --- | --- |
-| `newLength < oldLength` | Cắt bỏ phần nội dung logic từ chỉ số `newLength` đến cuối |
-| `newLength == oldLength` | Nội dung không thay đổi |
-| `newLength > oldLength` | Tăng độ dài; mọi vị trí mới nhận `'\u0000'` (NUL), không phải `' '` hoặc `'0'` |
+| `newLength < oldLength` | Drops the logical content from index `newLength` to the end |
+| `newLength == oldLength` | Content does not change |
+| `newLength > oldLength` | Increases length; every new position receives `'\u0000'` (NUL), not `' '` or `'0'` |
 
-Ví dụ:
+Example:
 
 ```java
 StringBuilder sb = new StringBuilder("ABCDE");
 sb.setLength(3); // "ABC"
-sb.setLength(5); // "ABC\0\0", KHÔNG phải "ABCDE"
+sb.setLength(5); // "ABC\0\0", NOT "ABCDE"
 ```
 
-Việc giảm xuống 3 khiến `D` và `E` không còn thuộc nội dung logic. Sau đó tăng lên 5, API điền **hai giá trị NUL mới**, không phục hồi hai chữ cũ. Điều này có thể khó thấy nếu chỉ in bằng `System.out.println`, vì ký tự NUL không hiển thị như chữ bình thường.
+Reducing to 3 removes `D` and `E` from the logical content. Increasing to 5 afterward fills in **two new NUL values**, rather than restoring the two old letters. This can be hard to spot if you only print with `System.out.println`, because NUL characters do not render like normal letters.
 
-### Vì sao cần đặc biệt lưu ý ký tự NUL?
+### Why Pay Special Attention to the NUL Character?
 
-`'\u0000'` là ký tự mã 0; nó **khác**:
-- `'0'`: chữ số zero, mã `U+0030`.
-- `' '`: dấu cách, mã `U+0020`.
-- `'\n'`: xuống dòng, mã `U+000A`.
-- Chuỗi rỗng `""`: không có đơn vị `char` nào.
+`'\u0000'` is the character with code 0; it is **different from**:
+- `'0'`: the digit zero, code `U+0030`.
+- `' '`: a space, code `U+0020`.
+- `'\n'`: a newline, code `U+000A`.
+- The empty string `""`: contains zero `char` units.
 
-Khi `StringBuilder` bị tăng độ dài bằng `setLength`, nội dung logic có chứa các ký tự NUL. Một số công cụ in, hệ thống lưu trữ, giao thức hoặc ứng dụng ngoài JVM có thể xử lý NUL khác nhau; đừng tưởng những vị trí đó là khoảng trắng hoặc không tồn tại.
+When `StringBuilder` is extended by `setLength`, the logical content contains NUL characters. Different printing tools, storage systems, protocols, or non-JVM applications may handle NUL differently; do not assume those positions are spaces or nonexistent.
 
-## 5. Ví dụ độc lập: quan sát NUL mà không in ký tự điều khiển thẳng ra màn hình
+## 5. Standalone Example: Observing NUL Without Printing Raw Control Characters to the Screen
 
-Để output rõ ràng và tái lập, ta tạo hàm `visible` in NUL thành hai ký tự hiển thị `\` và `0`, thay vì ghi mã 0 trực tiếp lên terminal.
+For clear and reproducible output, we create a helper `visible` that prints NUL as the two visible characters `\` and `0`, instead of writing code 0 directly to the terminal.
 
-Lưu thành `SetLengthDemo.java`:
+Save as `SetLengthDemo.java`:
 
 ```java
 public class SetLengthDemo {
@@ -206,38 +206,38 @@ empty=true
 Hi / 2
 ```
 
-Giải thích:
-1. Bắt đầu ở độ dài 5.
-2. `setLength(3)` bỏ phần `DE` khỏi dãy logic.
-3. `setLength(5)` thêm hai vị trí NUL.
-4. `setCharAt(3, 'X')` ghi lên **một** vị trí mới (lúc này chỉ số 3 hợp lệ), vị trí 4 vẫn là NUL.
-5. `setLength(0)` đặt dãy logic về rỗng.
-6. `append("Hi")` bắt đầu thêm từ đầu dãy logic hiện tại, nên builder mới hiển thị `Hi` với length 2.
+Explanation:
+1. Starts at length 5.
+2. `setLength(3)` drops `DE` from the logical sequence.
+3. `setLength(5)` adds two NUL positions.
+4. `setCharAt(3, 'X')` writes to **one** of the new positions (index 3 is now valid), while position 4 remains NUL.
+5. `setLength(0)` sets the logical sequence to empty.
+6. `append("Hi")` starts appending from the beginning of the current logical sequence, so the builder displays `Hi` with length 2.
 
-**Lưu ý bảo mật:** `setLength(0)` thay đổi độ dài logic; nó **không phải API bảo đảm xóa an toàn tất cả bản sao dữ liệu nhạy cảm trong bộ nhớ**. Nếu muốn xử lý bí mật, không dựa vào `StringBuilder.setLength(0)` để kết luận dữ liệu đã được xóa sạch.
+**Security note:** `setLength(0)` changes the logical length; it is **not an API that guarantees securely wiping all copies of sensitive data in memory**. If handling secrets, do not rely on `StringBuilder.setLength(0)` to conclude that data has been erased.
 
-## 6. Ngoại lệ và điều kiện biên
+## 6. Exceptions and Boundary Conditions
 
-### `setCharAt` dùng chỉ số phần tử đang có, không phải vị trí chèn
+### `setCharAt` Uses an Existing Element Index, Not an Insertion Position
 
-Nếu builder có độ dài `n`:
-- `setCharAt(0, ch)` hợp lệ khi `n > 0`.
-- `setCharAt(n - 1, ch)` hợp lệ khi `n > 0`.
-- `setCharAt(n, ch)` **không hợp lệ**: đây là vị trí sau phần tử cuối.
-- `setCharAt(-1, ch)` không hợp lệ.
-- Với builder rỗng, **không có bất kỳ chỉ số nào** hợp lệ cho `setCharAt`.
+If a builder has length `n`:
+- `setCharAt(0, ch)` is valid when `n > 0`.
+- `setCharAt(n - 1, ch)` is valid when `n > 0`.
+- `setCharAt(n, ch)` is **invalid**: this is the position after the last element.
+- `setCharAt(-1, ch)` is invalid.
+- For an empty builder, **no index at all** is valid for `setCharAt`.
 
-Muốn thêm vào cuối hãy dùng `append(ch)` thay vì `setCharAt(length(), ch)`.
+To add at the end, use `append(ch)` instead of `setCharAt(length(), ch)`.
 
-### `setLength` cho phép 0, nhưng không cho phép số âm
+### `setLength` Allows 0, but Not Negative Numbers
 
-- `sb.setLength(0)` hợp lệ, làm nội dung logic rỗng.
-- `sb.setLength(sb.length())` giữ nguyên nội dung.
-- `sb.setLength(sb.length() + 1)` kéo dài thêm một `'\u0000'`, không phải tự thêm một ký tự hữu ích.
-- `sb.setLength(-1)` ném `IndexOutOfBoundsException` (cụ thể có thể là lớp con `StringIndexOutOfBoundsException`).
-- Nếu cố tăng lên kích thước không thể đáp ứng, ứng dụng có thể gặp vấn đề giới hạn bộ nhớ hoặc kích thước mảng; đừng nhận độ dài không giới hạn trực tiếp từ đầu vào không tin cậy.
+- `sb.setLength(0)` is valid and makes the logical content empty.
+- `sb.setLength(sb.length())` keeps the content unchanged.
+- `sb.setLength(sb.length() + 1)` extends by one `'\u0000'`, rather than automatically adding a useful character.
+- `sb.setLength(-1)` throws `IndexOutOfBoundsException` (specifically `StringIndexOutOfBoundsException` in some implementations).
+- Attempting to grow to an unsatisfiable size can trigger memory or array size limit failures; never pass unbounded lengths directly from untrusted input.
 
-Ví dụ độc lập, lưu `BuilderBoundsDemo.java`:
+Standalone example, save as `BuilderBoundsDemo.java`:
 
 ```java
 public class BuilderBoundsDemo {
@@ -277,38 +277,38 @@ ABC
 3
 ```
 
-Đây là ví dụ minh họa cách sử dụng chỉ số đúng, **không phải khuyến nghị dùng ngoại lệ để điều khiển luồng bình thường**. Nếu chỉ số hay độ dài đến từ dữ liệu bên ngoài, nên kiểm tra ranh giới rõ ràng trước khi gọi.
+This example demonstrates proper index usage, **not a recommendation to use exceptions for normal control flow**. If an index or length comes from external data, validate bounds explicitly before calling.
 
-## 7. `setCharAt` và `setLength` không thay thế `append`, `insert`, `delete` hay `replace`
+## 7. `setCharAt` and `setLength` Do Not Replace `append`, `insert`, `delete`, or `replace`
 
-Mỗi API có ngữ nghĩa riêng:
+Each API has its own semantics:
 
-| API | Sửa gì? | Tác động đến `length()` |
+| API | What Does It Modify? | Effect on `length()` |
 | --- | --- | --- |
-| `setCharAt(index,ch)` | Ghi đè đúng một `char` ở chỉ số có sẵn | Không đổi |
-| `setLength(n)` | Cắt phần cuối hoặc tăng nội dung bằng NUL | Đặt lại thành `n` |
-| `append(value)` | Nối biểu diễn của giá trị vào cuối | Thường tăng theo độ dài nội dung nối |
-| `insert(index,value)` | Chèn dữ liệu, đẩy phần phía sau sang phải | Tăng theo độ dài phần chèn |
-| `delete(start,end)` | Xóa đoạn `[start,end)` | Giảm theo số đơn vị bị xóa |
-| `replace(start,end,str)` | Thay **đoạn** bằng một `String` | Có thể tăng, giảm hoặc giữ nguyên |
-| `charAt(index)` | Chỉ đọc một `char` | Không đổi |
+| `setCharAt(index,ch)` | Overwrites exactly one `char` at an existing index | Unchanged |
+| `setLength(n)` | Truncates the end or extends content with NUL | Reset to `n` |
+| `append(value)` | Appends the value's representation at the end | Typically increases by appended content length |
+| `insert(index,value)` | Inserts data, shifting trailing content right | Increases by inserted length |
+| `delete(start,end)` | Deletes range `[start,end)` | Decreases by number of deleted units |
+| `replace(start,end,str)` | Replaces a **range** with a `String` | May increase, decrease, or stay the same |
+| `charAt(index)` | Only reads one `char` | Unchanged |
 
-Ví dụ, nếu muốn biến `abc` thành `abXc`, **`setCharAt(2,'X')` là sai** vì nó cho `abX`, làm mất `c`. Phương thức thích hợp là `insert(2,'X')`. Ngược lại, nếu muốn `abc` thành `abX` mà vẫn giữ độ dài 3, `setCharAt(2,'X')` là đúng.
+For instance, if you want to turn `abc` into `abXc`, **`setCharAt(2,'X')` is wrong** because it yields `abX`, losing `c`. The right method is `insert(2,'X')`. Conversely, if you want `abc` to become `abX` while keeping length 3, `setCharAt(2,'X')` is right.
 
-`setLength` thường hữu ích khi:
-- Muốn cắt phần cuối của buffer sau khi xác định một độ dài hợp lệ.
-- Tái sử dụng builder bằng `setLength(0)` rồi tiếp tục `append`.
-- Cần đặt độ dài cố định và **chủ động** điền/ghi lại mọi vị trí trước khi xem nội dung là văn bản hoàn chỉnh.
+`setLength` is typically useful when:
+- You want to truncate the end of a buffer after determining a valid length.
+- Reusing a builder with `setLength(0)` and continuing to `append`.
+- You need a fixed length and **actively** fill/overwrite every slot before treating the content as finished text.
 
-Nếu nhu cầu là “thêm nội dung”, `append` thể hiện ý định rõ hơn việc `setLength(oldLength + k)` rồi điền từng ô, vì tăng độ dài tự tạo ra NUL trước khi được ghi đè.
+If the goal is "adding content", `append` expresses intent more clearly than `setLength(oldLength + k)` followed by filling each slot, because increasing length automatically creates NULs before they are overwritten.
 
-## 8. Tạo vùng ký tự cố định và ghi vào các vị trí mới
+## 8. Creating a Fixed Character Region and Writing into New Positions
 
-Khi muốn xây dựng một dãy có độ dài xác định rồi gán từng `char`, có thể dùng `setLength` trước để mọi chỉ số đích nằm trong phạm vi hợp lệ:
+When you want to build a sequence of a known length and assign each `char`, you can call `setLength` first so every target index is in bounds:
 
 ```java
 StringBuilder slots = new StringBuilder();
-slots.setLength(3); // Ba vị trí NUL.
+slots.setLength(3); // Three NUL positions.
 
 slots.setCharAt(0, 'A');
 slots.setCharAt(1, 'B');
@@ -317,9 +317,9 @@ slots.setCharAt(2, 'C');
 System.out.println(slots); // ABC
 ```
 
-Đây là snippet hợp lệ bên trong `main`. Nếu quên điền một ô thì vị trí còn trống thực chất chứa NUL, không phải “chưa có phần tử”. Một mô hình có kiểu dữ liệu rõ hơn đôi khi là dùng `char[]`, `Arrays.fill` hoặc một cấu trúc buffer phù hợp; lựa chọn phụ thuộc API và mục đích.
+This is a valid snippet inside `main`. If you forget to fill a slot, the remaining empty position actually holds NUL, not "no element". A clearer data model in some cases is using `char[]`, `Arrays.fill`, or an appropriate buffer structure; the choice depends on the API and purpose.
 
-Ví dụ đầy đủ, lưu `FixedSlotsDemo.java`:
+Complete example, save as `FixedSlotsDemo.java`:
 
 ```java
 public class FixedSlotsDemo {
@@ -352,17 +352,17 @@ ABCD
 AB!
 ```
 
-Ở vòng lặp, phép `(char) ('A' + i)` đổi biểu thức số nguyên thành đơn vị `char`. Với `i` từ 0 đến 3, ta thu `A`, `B`, `C`, `D`. Khi cắt về độ dài 2 và nối `!`, nội dung trở thành `AB!`. Những ký tự `CD` đã bị loại khỏi dãy logic, không tự trở lại khi nối thêm.
+In the loop, `(char) ('A' + i)` converts the integer expression into a `char` unit. With `i` from 0 to 3, we get `A`, `B`, `C`, `D`. When truncated to length 2 and `!` is appended, the content becomes `AB!`. The letters `CD` were removed from the logical sequence and do not come back when appending.
 
-## 9. UTF-16: một `char` không luôn là một ký tự Unicode hiển thị
+## 9. UTF-16: One `char` Is Not Always One Visible Unicode Character
 
-Một điểm quan trọng khi sửa dữ liệu văn bản: `StringBuilder` lưu các đơn vị **UTF-16**. Một Unicode code point ngoài BMP như `🙂` (`U+1F642`) được biểu diễn bởi **hai `char`**: *high surrogate* và *low surrogate*. Vì vậy:
-- `builder.length()` đếm các đơn vị `char`, không nhất thiết bằng số Unicode code point hay số ký tự người dùng nhìn thấy.
-- `setCharAt(i,ch)` chỉ thay **một đơn vị UTF-16**. Nó **không tự xác định** cặp surrogate và không bảo đảm giữ nguyên một code point ngoài BMP.
-- `setLength(n)` có thể cắt chuỗi **giữa** high surrogate và low surrogate nếu `n` đặt vào ranh giới không phù hợp.
-- Một chuỗi `String` hoặc `StringBuilder` có thể chứa surrogate lẻ, nhưng dữ liệu đó không biểu diễn một dãy Unicode scalar value hợp lệ.
+An important point when editing text data: `StringBuilder` stores **UTF-16** units. A non-BMP Unicode code point like `🙂` (`U+1F642`) is represented by **two `char`s**: a *high surrogate* and a *low surrogate*. Therefore:
+- `builder.length()` counts `char` units, which does not necessarily equal the number of Unicode code points or user-perceived characters.
+- `setCharAt(i,ch)` replaces only **one UTF-16 unit**. It **does not automatically detect** surrogate pairs and does not guarantee preserving a non-BMP code point.
+- `setLength(n)` can cut a string **between** a high surrogate and a low surrogate if `n` lands on an improper boundary.
+- A `String` or `StringBuilder` can contain lone surrogates, though such data does not represent a valid Unicode scalar value sequence.
 
-Lưu `SurrogateBuilderDemo.java`:
+Save `SurrogateBuilderDemo.java`:
 
 ```java
 public class SurrogateBuilderDemo {
@@ -376,7 +376,7 @@ public class SurrogateBuilderDemo {
         text.setCharAt(0, 'X');
         System.out.println(text);
 
-        text.setLength(3); // Ranh giới đúng sau emoji.
+        text.setLength(3); // Proper boundary after the emoji.
         System.out.println(text);
         System.out.println(
                 text.codePointCount(0, text.length()));
@@ -397,13 +397,13 @@ X🙂
 2
 ```
 
-Chuỗi đầu có 4 đơn vị UTF-16 nhưng chỉ có 3 code point. Sau khi thay `A` thành `X`, cấu trúc surrogate của emoji vẫn nguyên vẹn. `setLength(3)` cắt chữ `B` ở cuối mà không chia đôi emoji, nên `X🙂` có 3 đơn vị UTF-16 và 2 code point.
+The initial string has 4 UTF-16 units yet only 3 code points. After changing `A` to `X`, the emoji's surrogate structure remains intact. `setLength(3)` drops the trailing `B` without splitting the emoji, so `X🙂` has 3 UTF-16 units and 2 code points.
 
-Ngược lại, nếu gọi `setLength(2)` từ `"A🙂B"`, nội dung giữ `A` và **high surrogate** của emoji nhưng cắt mất low surrogate. Đây không phải cách cắt văn bản Unicode ở ranh giới code point. Nếu muốn di chuyển theo code point, dùng `offsetByCodePoints` hoặc `codePointAt`/`Character.charCount` để tính ranh giới UTF-16 trước khi dùng `setLength`. Nếu cần thay cả emoji bằng một emoji khác, cân nhắc `replace(start,end,replacement)` với hai ranh giới UTF-16 đúng thay vì `setCharAt` một ô.
+Conversely, calling `setLength(2)` on `"A🙂B"` keeps `A` and the emoji's **high surrogate** while cutting off the low surrogate. That is not a valid way to truncate Unicode text on a code point boundary. If you want to move by code points, use `offsetByCodePoints` or `codePointAt`/`Character.charCount` to compute the UTF-16 boundary before calling `setLength`. If you need to replace an entire emoji with another emoji, consider `replace(start,end,replacement)` with proper UTF-16 boundaries instead of `setCharAt` on a single slot.
 
-### Cắt đúng số code point
+### Truncating to an Exact Number of Code Points
 
-Đoạn snippet:
+Snippet:
 
 ```java
 StringBuilder sb = new StringBuilder("A🙂B");
@@ -412,36 +412,36 @@ sb.setLength(endUtf16);
 System.out.println(sb); // A🙂
 ```
 
-`offsetByCodePoints(0,2)` trả chỉ số UTF-16 `3`, vì `A` chiếm một `char` và `🙂` chiếm hai. Nhờ đó `setLength(3)` giữ nguyên cặp surrogate. Các phương thức này tính theo **code point**, vẫn chưa đủ để bảo đảm không cắt *grapheme cluster* (ví dụ dấu kết hợp hoặc emoji nối bằng ZWJ); nếu yêu cầu liên quan đến con trỏ người dùng hay số ký tự hiển thị, cần logic phân đoạn grapheme tương ứng.
+`offsetByCodePoints(0,2)` returns UTF-16 index `3`, because `A` occupies one `char` and `🙂` occupies two. Thus `setLength(3)` keeps the surrogate pair intact. These methods count by **code point**, which is still not enough to guarantee never splitting a *grapheme cluster* (such as combining marks or ZWJ-joined emojis); if requirements involve user cursors or visible character counts, corresponding grapheme segmentation logic is needed.
 
-## 10. Lỗi thường gặp
+## 10. Common Mistakes
 
-| Lỗi | Hậu quả | Cách đúng |
+| Mistake | Consequence | Correct Approach |
 | --- | --- | --- |
-| Gọi `setCharAt(sb.length(),ch)` để nối cuối | Lỗi chỉ số ngoài phạm vi | Dùng `append(ch)` |
-| Dùng `capacity()` để kiểm tra chỉ số của `setCharAt` | Có thể chạm vị trí ngoài **độ dài logic** | Kiểm tra `0 <= index < length()` |
-| Tưởng `setCharAt` thay toàn bộ ký tự giống nhau | Nó chỉ sửa **một vị trí** | Duyệt/đổi từng vị trí nếu cần thay hàng loạt |
-| Viết `sb.setCharAt(...).append(...)` | Không biên dịch vì `setCharAt` trả `void` | Gọi thành hai câu lệnh |
-| Tưởng `setLength` trả builder để chain | Không biên dịch vì `setLength` trả `void` | Gọi riêng |
-| Tăng `setLength` rồi tưởng có dấu cách hoặc chữ 0 | Các vị trí mới là **NUL U+0000** | Chủ động điền đủ dữ liệu |
-| Cắt ngắn rồi tăng lại mong khôi phục ký tự cũ | Ký tự bị cắt không nằm trong kết quả logic | Giữ bản gốc nếu muốn phục hồi |
-| Tưởng `setLength(0)` giải phóng bộ nhớ hoặc xóa sạch bí mật | Nó thay đổi length, không hứa về việc xóa/cấp lại buffer | Chọn kỹ thuật quản lý dữ liệu nhạy cảm phù hợp |
-| Dùng `setLength` cắt giữa surrogate pair | Có thể tạo high/low surrogate lẻ | Tính ranh giới code point trước |
-| Dùng `setCharAt` để thay toàn bộ emoji ngoài BMP | Một `char` không đủ biểu diễn emoji đó | Thay cả đoạn hai code unit hoặc xử lý code point |
-| Cho rằng builder cũng bất biến như `String` | Các alias đều thấy thay đổi của cùng builder | Sao chép hoặc không chia sẻ builder mutable |
-| Dùng chung builder từ nhiều luồng không đồng bộ | Race condition và kết quả không xác định | Dùng ownership riêng hoặc đồng bộ phù hợp |
+| Calling `setCharAt(sb.length(),ch)` to append at the end | Index out of bounds error | Use `append(ch)` |
+| Using `capacity()` to validate an index for `setCharAt` | May touch a position beyond the **logical length** | Check `0 <= index < length()` |
+| Thinking `setCharAt` replaces all identical characters | It edits only **one position** | Loop/replace each position if bulk replacement is needed |
+| Writing `sb.setCharAt(...).append(...)` | Does not compile because `setCharAt` returns `void` | Write as two separate statements |
+| Thinking `setLength` returns the builder for chaining | Does not compile because `setLength` returns `void` | Call separately |
+| Increasing `setLength` and assuming spaces or `'0'` appear | New positions are **NUL U+0000** | Explicitly fill all data |
+| Truncating and then re-extending hoping old characters return | Truncated characters are not in the logical result | Keep the original copy if recovery is needed |
+| Thinking `setLength(0)` frees memory or erases secrets | It changes length; does not promise clearing/reallocating the buffer | Choose appropriate sensitive-data handling techniques |
+| Using `setLength` to cut inside a surrogate pair | Can create lone high/low surrogates | Compute code point boundaries first |
+| Using `setCharAt` to replace an entire non-BMP emoji | One `char` cannot represent that emoji | Replace the full two-code-unit range or use code point handling |
+| Assuming a builder is immutable like `String` | Aliases all observe mutations to the same builder | Copy or avoid sharing a mutable builder |
+| Sharing a builder across threads without synchronization | Race conditions and undefined results | Use exclusive ownership or proper synchronization |
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-Check Exercises
 
-### Bài 1. Thay đúng vị trí
+### Exercise 1. Replacing at the Right Position
 
-Với `StringBuilder sb = new StringBuilder("java");`, hãy viết hai lời gọi `setCharAt` để biến nội dung thành `"Java!"`. Bẫy: độ dài ban đầu là 4, độ dài kết quả là 5. Bạn có thể chỉ dùng `setCharAt` để tạo dấu `!` ở vị trí 4 không?
+Given `StringBuilder sb = new StringBuilder("java");`, write calls to turn the content into `"Java!"`. Catch: initial length is 4, final length is 5. Can you use only `setCharAt` to create the `!` at position 4?
 
-**Đáp án:** `sb.setCharAt(0,'J'); sb.append('!');`. Chỉ `setCharAt` không thể làm tăng độ dài từ 4 lên 5. Cách khác là `setLength(5)` rồi `setCharAt(4,'!')`, nhưng `append` rõ nghĩa hơn.
+**Answer:** `sb.setCharAt(0,'J'); sb.append('!');`. `setCharAt` alone cannot increase the length from 4 to 5. Another way is `setLength(5)` then `setCharAt(4,'!')`, though `append` expresses intent more clearly.
 
-### Bài 2. Cắt ngắn rồi kéo dài
+### Exercise 2. Truncating Then Extending
 
-Dự đoán giá trị số nguyên của hai vị trí cuối sau các lệnh:
+Predict the integer values of the last two positions after these statements:
 
 ```java
 StringBuilder sb = new StringBuilder("HELLO");
@@ -451,54 +451,54 @@ System.out.println((int) sb.charAt(3));
 System.out.println((int) sb.charAt(4));
 ```
 
-**Đáp án:**
+**Answer:**
 
 ```text
 0
 0
 ```
 
-Hai vị trí mới chứa `'\u0000'`, không phải `L`/`O`. Các chữ đã bị cắt không tự trở lại.
+Both new positions contain `'\u0000'`, not `L`/`O`. Truncated letters do not come back automatically.
 
-### Bài 3. Phạm vi hợp lệ
+### Exercise 3. Valid Range
 
-Nếu builder có `length() == 3` và `capacity() == 18`, các chỉ số nào hợp lệ khi gọi `setCharAt`?
+If a builder has `length() == 3` and `capacity() == 18`, which indices are valid when calling `setCharAt`?
 
-**Đáp án:** Chỉ số 0, 1, 2. Chỉ số 3 trở lên không hợp lệ dù capacity đủ lớn.
+**Answer:** Indices 0, 1, 2. Index 3 and above are invalid even though capacity is large enough.
 
-### Bài 4. Kiểm tra Unicode
+### Exercise 4. Unicode Check
 
-Với `StringBuilder sb = new StringBuilder("A🙂B");`:
-- `sb.length()` bằng bao nhiêu?
-- Gọi `sb.setLength(3)` có giữ nguyên emoji không?
-- Gọi `sb.setLength(2)` có còn giữ cặp surrogate đầy đủ không?
+Given `StringBuilder sb = new StringBuilder("A🙂B");`:
+- What is `sb.length()`?
+- Does calling `sb.setLength(3)` keep the emoji intact?
+- Does calling `sb.setLength(2)` still keep the full surrogate pair?
 
-**Đáp án:** Độ dài là 4 `char`; cắt về 3 giữ `A🙂`, nhưng cắt về 2 làm mất low surrogate của emoji và để lại high surrogate lẻ. Muốn cắt đúng theo code point, tính chỉ số UTF-16 bằng `offsetByCodePoints` trước.
+**Answer:** Length is 4 `char`s; truncating to 3 keeps `A🙂`, whereas truncating to 2 drops the emoji's low surrogate and leaves a lone high surrogate. To truncate cleanly by code points, compute the UTF-16 index with `offsetByCodePoints` first.
 
-### Bài 5. Trả về và biến đổi
+### Exercise 5. Return Type and Mutation
 
-Lệnh sau có hợp lệ không?
+Is the following valid?
 
 ```java
 StringBuilder sb = new StringBuilder("abc");
-// sb = sb.setLength(2); // Không biên dịch.
+// sb = sb.setLength(2); // Does not compile.
 sb.setLength(2);
 System.out.println(sb);
 ```
 
-**Đáp án:** `setLength` có kiểu `void` nên không thể gán kết quả cho `sb`. Sau khi gọi riêng, chương trình in `ab`.
+**Answer:** `setLength` has return type `void`, so its result cannot be assigned to `sb`. Called on its own, the program prints `ab`.
 
-## 12. Ghi nhớ
+## 12. Key Takeaways
 
-- `setCharAt(index,ch)` **ghi đè một `char` đã tồn tại**; cần `0 <= index < length()`, độ dài không đổi, kiểu trả về `void`.
-- `setLength(n)` thay đổi **độ dài logic**. Giảm độ dài sẽ cắt bỏ phần cuối; tăng độ dài thêm `'\u0000'` vào mọi vị trí mới; `n` âm không hợp lệ.
-- **`length()` khác `capacity()`.** Có dung lượng lưu trữ chưa đồng nghĩa có phần tử hợp lệ tại chỉ số đó.
-- Cắt ngắn rồi kéo dài **không khôi phục** dữ liệu cũ. `setLength(0)` làm rỗng logic, không hứa xóa bí mật khỏi bộ nhớ.
-- Chỉ số `setCharAt` và `setLength` đếm **đơn vị UTF-16**; cần thận trọng với cặp surrogate và grapheme.
-- `StringBuilder` có thể thay đổi tại chỗ, khác `String` bất biến; khi chia sẻ tham chiếu hoặc làm việc đa luồng phải quản lý quyền sửa và đồng bộ.
+- `setCharAt(index,ch)` **overwrites an existing `char`**; requires `0 <= index < length()`, length does not change, return type is `void`.
+- `setLength(n)` changes the **logical length**. Decreasing length truncates the end; increasing length fills every new position with `'\u0000'`; negative `n` is invalid.
+- **`length()` differs from `capacity()`.** Having storage capacity does not mean a valid element exists at that index.
+- Truncating and then extending **does not restore** old data. `setLength(0)` makes it logically empty and does not promise wiping secrets from memory.
+- `setCharAt` and `setLength` indices count **UTF-16 units**; be careful with surrogate pairs and graphemes.
+- `StringBuilder` mutates in place, unlike immutable `String`; when sharing references or working across threads, manage mutation permissions and synchronization.
 
-## Tài liệu chính thức (Java SE 17)
+## Official Documentation (Java SE 17)
 
 - [`StringBuilder`: `setCharAt`, `setLength`, `length`, `capacity`, `append`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html)
-- [`AbstractStringBuilder` và `CharSequence`: vị trí UTF-16 và các thao tác dãy ký tự](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/CharSequence.html)
-- [`Character`: Unicode code point, `charCount` và surrogate](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html)
+- [`AbstractStringBuilder` and `CharSequence`: UTF-16 positions and character sequence operations](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/CharSequence.html)
+- [`Character`: Unicode code points, `charCount`, and surrogates](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html)

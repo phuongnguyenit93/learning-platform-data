@@ -1,18 +1,18 @@
-# String.toLowerCase và toUpperCase với Locale tường minh trong Java
+# String.toLowerCase and toUpperCase with Explicit Locale in Java
 
-## 1. Tại sao chuyển chữ hoa/chữ thường lại liên quan đến bản địa hóa?
+## 1. Why does case conversion relate to localization?
 
-Một đoạn code có vẻ vô hại:
+A seemingly harmless piece of code:
 
 ```java
 String key = "TITLE".toLowerCase();
 ```
 
-Trong nhiều máy tính, `key` sẽ là `"title"`. Nhưng với **default locale tiếng Thổ Nhĩ Kỳ** (`tr-TR`), kết quả có thể là `"tıtle"`: chữ `ı` (`U+0131`, LATIN SMALL LETTER DOTLESS I) **không phải** `i` (`U+0069`). Nếu chuỗi dùng làm tên trường, mã trạng thái, key cấu hình hoặc đường dẫn đã được quy định theo ASCII, ứng dụng có thể không tìm thấy dữ liệu hoặc hành xử khác nhau khi chạy trên máy chủ khác.
+On many machines, `key` will be `"title"`. However, with a **Turkish default locale** (`tr-TR`), the result can be `"tıtle"`: the letter `ı` (`U+0131`, LATIN SMALL LETTER DOTLESS I) is **not** `i` (`U+0069`). If the string is used as a field name, status code, configuration key, or path specified in ASCII, the application may fail to find data or behave differently when running on another server.
 
-Đối với giao diện người dùng, kết quả tiếng Thổ Nhĩ Kỳ lại **có thể chính là kết quả cần thiết**. Không có một cách đổi chữ hoa/thường phù hợp với mọi mục đích: phải xác định chuỗi đang được xử lý là **văn bản ngôn ngữ tự nhiên** hay **định danh máy**.
+For a user interface, the Turkish result **may actually be the exact result needed**. There is no single case conversion suitable for every purpose: you must determine whether the string being processed is **natural language text** or a **machine identifier**.
 
-Java cung cấp bốn phương thức:
+Java provides four methods:
 
 ```java
 String toLowerCase();
@@ -22,11 +22,11 @@ String toUpperCase();
 String toUpperCase(Locale locale);
 ```
 
-Hai overload **không có tham số** dùng default locale của JVM. Hai overload **có tham số** dùng quy tắc biến đổi chữ theo locale được chỉ định. Bài học này làm rõ việc chọn `Locale`, các trường hợp Unicode đặc biệt, độ dài sau biến đổi, sai lầm khi so sánh không phân biệt hoa/thường và cách viết code Java 17+ dễ kiểm chứng.
+The two **parameterless** overloads use the JVM's default locale. The two **parameterized** overloads use the case transformation rules for the specified locale. This lesson clarifies choosing a `Locale`, special Unicode cases, length changes after conversion, pitfalls of case-insensitive comparison, and how to write easily verifiable Java 17+ code.
 
-## 2. Quy tắc cơ bản của hai phương thức
+## 2. Basic rules of the two methods
 
-`String.toLowerCase(Locale)` biến đổi chữ trong chuỗi thành dạng thường theo quy tắc Unicode áp dụng cho locale. `String.toUpperCase(Locale)` làm điều tương tự sang dạng hoa.
+`String.toLowerCase(Locale)` converts letters in a string to lowercase according to the Unicode rules applicable to the locale. `String.toUpperCase(Locale)` does the same toward uppercase.
 
 ```java
 import java.util.Locale;
@@ -36,33 +36,33 @@ String lower = source.toLowerCase(Locale.ENGLISH);
 String upper = source.toUpperCase(Locale.ENGLISH);
 ```
 
-Ở đây `lower` là `"java localization"` và `upper` là `"JAVA LOCALIZATION"`. Nhưng đó chỉ là trường hợp dễ; đối với văn bản quốc tế, quy tắc không phải luôn “đổi mỗi chữ thành đúng một chữ khác”.
+Here `lower` is `"java localization"` and `upper` is `"JAVA LOCALIZATION"`. But that is only the easy case; for international text, the rule is not always "change each letter to exactly one other letter".
 
-| API | Locale sử dụng | Tình huống |
+| API | Locale used | Situation |
 | --- | --- | --- |
-| `s.toLowerCase()` | `Locale.getDefault()` tại thời điểm gọi | Khi ứng dụng thực sự muốn phụ thuộc default locale, nhưng dễ tạo lỗi ngầm |
-| `s.toUpperCase()` | `Locale.getDefault()` tại thời điểm gọi | Tương tự |
-| `s.toLowerCase(locale)` | Locale truyền vào | Chuyển chữ có chủ đích; dễ test, không lệ thuộc cấu hình máy |
-| `s.toUpperCase(locale)` | Locale truyền vào | Chuyển chữ có chủ đích; dễ test, không lệ thuộc cấu hình máy |
+| `s.toLowerCase()` | `Locale.getDefault()` at call time | When the application genuinely wants to depend on the default locale, though prone to subtle bugs |
+| `s.toUpperCase()` | `Locale.getDefault()` at call time | Same as above |
+| `s.toLowerCase(locale)` | Passed-in locale | Intentional case conversion; easy to test, independent of machine configuration |
+| `s.toUpperCase(locale)` | Passed-in locale | Intentional case conversion; easy to test, independent of machine configuration |
 
-Các phương thức trả về `String`, không chỉnh sửa chuỗi gốc vì `String` là immutable. Đừng giả định chuỗi kết quả luôn có cùng `length()` với chuỗi đầu vào hoặc luôn chỉ thay thế từng `char`: Unicode casing hỗ trợ ánh xạ **một code point thành nhiều code point** và **quy tắc phụ thuộc ngữ cảnh**.
+These methods return a `String` and do not modify the original string because `String` is immutable. Do not assume the resulting string always has the same `length()` as the input string or always replaces one `char` at a time: Unicode casing supports **one-to-many code point** mappings and **context-dependent rules**.
 
-### Locale không đồng nghĩa múi giờ hay encoding
+### Locale does not mean timezone or encoding
 
-- `Locale` ở đây điều khiển **quy tắc chuyển chữ**; nó không chuyển UTF-8 thành UTF-16 và không tự làm bản dịch.
-- Chọn `Locale.forLanguageTag("tr-TR")` không đổi ngôn ngữ của tất cả chuỗi khác trong ứng dụng: chỉ tác động đến lời gọi sử dụng locale đó.
-- `Locale.ROOT` là locale trung lập về ngôn ngữ/vùng để thực hiện các phép chuyển chữ không phụ thuộc default locale; nó **không** phải một bộ quy tắc so sánh/ngữ nghĩa Unicode hoàn chỉnh cho mọi ứng dụng.
+- `Locale` here controls **case conversion rules**; it does not convert UTF-8 to UTF-16 and does not perform translation on its own.
+- Choosing `Locale.forLanguageTag("tr-TR")` does not change the language of all other strings in the application: it only affects the call using that locale.
+- `Locale.ROOT` is a language/region-neutral locale for performing case conversions independent of the default locale; it is **not** a complete Unicode comparison/semantic ruleset for every application.
 
-## 3. Trường hợp kinh điển: I, İ, ı và i trong tiếng Thổ Nhĩ Kỳ
+## 3. The classic case: I, İ, ı, and i in Turkish
 
-Tiếng Thổ Nhĩ Kỳ có hai cặp chữ hoa/thường khác nhau:
+Turkish has two distinct uppercase/lowercase letter pairs:
 
-| Chữ hoa | Unicode | Chữ thường | Unicode | Cách hiểu |
+| Uppercase | Unicode | Lowercase | Unicode | Meaning |
 | --- | --- | --- | --- | --- |
-| `I` | `U+0049` | `ı` | `U+0131` | Chữ i **không chấm** |
-| `İ` | `U+0130` | `i` | `U+0069` | Chữ i **có chấm** |
+| `I` | `U+0049` | `ı` | `U+0131` | **Dotless** letter i |
+| `İ` | `U+0130` | `i` | `U+0069` | **Dotted** letter i |
 
-Trong quy tắc không đặc thù tiếng Thổ Nhĩ Kỳ, `I` thường thành `i` và `i` thành `I`. Nhưng ở `tr-TR`, `I` phải thành `ı`, `i` phải thành `İ`.
+In non-Turkish-specific rules, `I` normally becomes `i` and `i` becomes `I`. But in `tr-TR`, `I` must become `ı`, and `i` must become `İ`.
 
 ```java
 Locale turkish = Locale.forLanguageTag("tr-TR");
@@ -74,17 +74,17 @@ String c = "title".toUpperCase(Locale.ROOT);  // TITLE
 String d = "title".toUpperCase(turkish);      // TİTLE
 ```
 
-Đây là **snippet** cần `import java.util.Locale;`. Sự khác biệt không nằm ở phông chữ: `i` và `ı` là **hai Unicode code point khác nhau**. Một key tên `"title"` sẽ không khớp `"tıtle"` khi dùng so sánh chính xác `String.equals`.
+This is a **snippet** requiring `import java.util.Locale;`. The difference is not in the font: `i` and `ı` are **two different Unicode code points**. A key named `"title"` will not match `"tıtle"` when using exact `String.equals` comparison.
 
-### Không chỉ tiếng Thổ Nhĩ Kỳ
+### Not just Turkish
 
-Ngôn ngữ Azerbaijan có những quy tắc chữ `I`/`İ` tương tự. Tiếng Hy Lạp có sigma cuối từ và cách hạ chữ hoa dựa vào ngữ cảnh. Một số cách chuyển chữ ở tiếng Lithuania liên quan đến dấu kết hợp. Vì thế không nên xây quy tắc Unicode casing bằng cách tự cộng/trừ mã ASCII hoặc đi qua từng `char`.
+Azerbaijani has similar `I`/`İ` letter rules. Greek has final sigma and context-based lowercasing. Some case conversions in Lithuanian involve combining marks. Therefore, you should not build Unicode casing rules by manually adding/subtracting ASCII codes or iterating over each `char`.
 
-**Kết luận:** dữ liệu hiển thị cho người dùng nên chuyển theo locale có ý nghĩa đối với **văn bản đó**. Định danh máy độc lập văn hóa nên dùng quy tắc được **hợp đồng kỹ thuật** quy định, thường là `Locale.ROOT` hoặc chỉ xử lý ASCII nếu protocol giới hạn ASCII.
+**Conclusion:** data displayed to users should be converted according to a locale meaningful for **that text**. Culture-independent machine identifiers should use rules defined by the **technical contract**, typically `Locale.ROOT` or ASCII-only handling if the protocol restricts to ASCII.
 
-## 4. Chương trình Java 17+ độc lập: so sánh Locale.ROOT và tr-TR
+## 4. Standalone Java 17+ program: comparing Locale.ROOT and tr-TR
 
-Tạo tệp **`LocaleCaseDemo.java`** với nội dung sau:
+Create the file **`LocaleCaseDemo.java`** with the following content:
 
 ```java
 import java.util.Locale;
@@ -123,7 +123,7 @@ public class LocaleCaseDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 LocaleCaseDemo.java
@@ -142,18 +142,18 @@ Dotted I ROOT lowercase: U+0069 U+0307
 Dotted I TR lowercase: U+0069
 ```
 
-Chương trình cố tình in code point bằng ký hiệu `U+XXXX` để tránh phụ thuộc terminal có hiển thị chữ `ı`, `İ` và dấu kết hợp đúng hay không. Các dòng đã chỉ ra:
+The program intentionally prints code points using `U+XXXX` notation to avoid depending on whether the terminal renders `ı`, `İ`, and combining marks properly. The lines show:
 
-1. `"TITLE"` có chữ `I` `U+0049` ở vị trí thứ hai.
-2. `Locale.ROOT` biến nó thành `i` `U+0069`, còn `tr-TR` thành `ı` `U+0131`.
-3. `"title"` chuyển sang hoa với `tr-TR` cho `İ` `U+0130`.
-4. `"İ".toLowerCase(Locale.ROOT)` tạo **hai code point** (`i + COMBINING DOT ABOVE`), trong khi với `tr-TR` tạo một `i`. Ngay cả **số ký tự UTF-16** cũng có thể thay đổi sau chuyển chữ.
+1. `"TITLE"` has the letter `I` `U+0049` at the second position.
+2. `Locale.ROOT` turns it into `i` `U+0069`, while `tr-TR` turns it into `ı` `U+0131`.
+3. `"title"` uppercased with `tr-TR` yields `İ` `U+0130`.
+4. `"İ".toLowerCase(Locale.ROOT)` produces **two code points** (`i + COMBINING DOT ABOVE`), whereas with `tr-TR` it produces a single `i`. Even the **number of UTF-16 characters** can change after case conversion.
 
-Không so sánh hai đầu ra bằng mắt hoặc dựa vào font để phán đoán xem chúng có cùng giá trị Unicode hay không.
+Do not compare two outputs visually or rely on fonts to judge whether they have the same Unicode values.
 
-## 5. String.toUpperCase có thể làm chuỗi dài hơn: ß → SS
+## 5. String.toUpperCase can make strings longer: ß → SS
 
-Ví dụ tiếng Đức thường gặp là `ß` (LATIN SMALL LETTER SHARP S). Theo quy tắc chuyển chữ hoa mà `String.toUpperCase(Locale)` áp dụng, một chữ `ß` có thể mở rộng thành **`SS`**:
+A common German example is `ß` (LATIN SMALL LETTER SHARP S). Under the uppercase conversion rules applied by `String.toUpperCase(Locale)`, a single `ß` can expand to **`SS`**:
 
 ```java
 String original = "straße";
@@ -164,32 +164,32 @@ System.out.println(original.length()); // 6
 System.out.println(upper.length());    // 7
 ```
 
-Vì `ß` là một code point còn `SS` là **hai**, không được giả định:
+Because `ß` is one code point while `SS` is **two**, do not assume:
 
 ```text
 input.length() == input.toUpperCase(locale).length()
 ```
 
-Cũng đừng thay `String.toUpperCase(Locale)` bằng cách lặp qua từng `char` rồi gọi `Character.toUpperCase(char)`. Phương thức đơn ký tự không thể trực tiếp tạo hai ký tự để biểu diễn ánh xạ một-nhiều, và có thể bỏ qua các điều kiện theo ngữ cảnh.
+Also do not replace `String.toUpperCase(Locale)` by looping over each `char` and calling `Character.toUpperCase(char)`. The single-character method cannot directly produce two characters to represent one-to-many mappings, and may ignore context conditions.
 
-### Lưu ý về “chuyển hoa rồi chuyển thường để hoàn nguyên”
+### Note on "lowercasing after uppercasing to round-trip"
 
-Nếu `"straße".toUpperCase(Locale.GERMAN)` thành `"STRASSE"`, chuyển ngược:
+If `"straße".toUpperCase(Locale.GERMAN)` becomes `"STRASSE"`, converting back:
 
 ```java
 "STRASSE".toLowerCase(Locale.GERMAN)
 ```
 
-sẽ cho `"strasse"`, **không phải `"straße"`**. Chuyển hoa/thường là thao tác xử lý văn bản, **không phải mã hóa hai chiều có thể đảo ngược**. Không dùng kết quả chuyển chữ để thay thế giá trị định danh gốc khi cần giữ chính xác cách viết ban đầu.
+will give `"strasse"`, **not `"straße"`**. Case conversion is a text processing operation, **not a reversible two-way encoding**. Do not use the converted result to replace the original identifier value when the exact original spelling must be preserved.
 
-## 6. Case mapping phụ thuộc ngữ cảnh: sigma trong tiếng Hy Lạp
+## 6. Context-dependent case mapping: sigma in Greek
 
-Tiếng Hy Lạp có hai dạng chữ sigma thường:
+Greek has two lowercase forms of sigma:
 
-- `σ` (`U+03C3`) khi không ở cuối từ.
-- `ς` (`U+03C2`) khi ở cuối từ theo ngữ cảnh.
+- `σ` (`U+03C3`) when not at the end of a word.
+- `ς` (`U+03C2`) when at the end of a word by context.
 
-Khi chuyển `"ΟΣ"` (chữ omicron hoa + sigma hoa) sang thường, kết quả là `"ος"`, với code point cuối `U+03C2`:
+When converting `"ΟΣ"` (capital omicron + capital sigma) to lowercase, the result is `"ος"`, with the final code point `U+03C2`:
 
 ```java
 String greek = "\u039F\u03A3";
@@ -203,13 +203,13 @@ System.out.println(
 // [U+03BF, U+03C2]
 ```
 
-Đây là **snippet** cần `import java.util.Locale;`. Một phép chuyển từng code point đơn lẻ sẽ không nhất thiết giữ được ngữ cảnh của toàn chuỗi. Vì vậy, dùng API `String.toLowerCase(Locale)` cho cả đoạn văn bản thay vì tự xử lý từng `char` hoặc chỉ từng code point bằng một ánh xạ giản lược.
+This is a **snippet** requiring `import java.util.Locale;`. A per-code-point conversion alone will not necessarily preserve the context of the whole string. Therefore, use the `String.toLowerCase(Locale)` API on the entire piece of text rather than manually processing each `char` or each code point with a simplistic mapping.
 
-Cách viết chữ hoa/thường trong các ngôn ngữ có thể còn phụ thuộc dấu Unicode, ranh giới từ và phiên bản dữ liệu Unicode mà JDK hỗ trợ. Nếu có yêu cầu ngôn ngữ chuyên sâu (ví dụ trường hợp title case hoặc case folding chuẩn), hãy dùng API phù hợp chứ không thay tất cả bằng `toUpperCase`.
+Casing in various languages can also depend on Unicode marks, word boundaries, and the Unicode data version supported by the JDK. If there are specialized linguistic requirements (such as title case or standard case folding), use the appropriate API rather than replacing everything with `toUpperCase`.
 
-## 7. Ví dụ Java 17+ độc lập: độ dài và sigma
+## 7. Standalone Java 17+ example: length and sigma
 
-Tạo tệp **`CaseExpansionDemo.java`**:
+Create the file **`CaseExpansionDemo.java`**:
 
 ```java
 import java.util.Locale;
@@ -236,14 +236,14 @@ public class CaseExpansionDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 CaseExpansionDemo.java
 java CaseExpansionDemo
 ```
 
-Kết quả:
+Result:
 
 ```text
 German upper: STRASSE
@@ -252,11 +252,11 @@ Round trip: false
 Greek lower code points: [U+03BF, U+03C2]
 ```
 
-Bài học không phải “mọi locale đều mở rộng `ß` bằng nhau trong mọi công cụ” mà là: **String casing có thể thay đổi độ dài và phải xem là phép biến đổi Unicode theo hợp đồng Java**, không thể giả định thay thế một-đối-một. Các kết quả trên phản ánh mapping của `String` trên JDK hiện đại.
+The lesson is not "every locale expands `ß` equally in every tool", but rather: **String casing can change length and must be treated as a Unicode transformation per Java's contract**, without assuming one-to-one replacement. The results above reflect `String` mappings on modern JDKs.
 
-## 8. Locale.ROOT, Locale.ENGLISH và default locale khác nhau thế nào?
+## 8. How do Locale.ROOT, Locale.ENGLISH, and default locale differ?
 
-Ba cách dùng thường gặp:
+Three common usages:
 
 ```java
 String a = input.toLowerCase(Locale.ROOT);
@@ -264,38 +264,38 @@ String b = input.toLowerCase(Locale.ENGLISH);
 String c = input.toLowerCase();
 ```
 
-Đây là snippet, với `input` đã được định nghĩa.
+This is a snippet, with `input` already defined.
 
-- **`Locale.ROOT`**: locale ngôn ngữ/vùng trung lập, thích hợp cho **những phép chuyển chuỗi được định nghĩa là không phụ thuộc ngôn ngữ người dùng**. Đây là khuyến nghị rõ ràng trong tài liệu `String.toLowerCase()` khi xử lý định danh của ngôn ngữ lập trình, protocol key, HTML tag, v.v. Tuy nhiên, hợp đồng giao thức vẫn là thẩm quyền cuối cùng: nếu protocol chỉ quy định ASCII, có thể cần chỉ chấp nhận ASCII và dùng thuật toán ASCII cụ thể.
-- **`Locale.ENGLISH`**: mang ngôn ngữ tiếng Anh, phù hợp khi văn bản thực sự là tiếng Anh. Nó không tương đương về **ý nghĩa** với `Locale.ROOT`, dù nhiều chữ ASCII thường cho cùng kết quả.
-- **Không truyền locale**: `toLowerCase()` và `toUpperCase()` dùng **`Locale.getDefault()`**. Điều này dễ tạo lỗi ở server triển khai đa vùng hoặc khi JVM default locale thay đổi.
+- **`Locale.ROOT`**: the language/region-neutral locale, suited for **string conversions defined to be independent of the user's language**. This is the explicit recommendation in the `String.toLowerCase()` documentation when handling programming language identifiers, protocol keys, HTML tags, etc. However, the protocol contract remains the final authority: if the protocol specifies ASCII only, you may need to accept only ASCII and use a specific ASCII algorithm.
+- **`Locale.ENGLISH`**: carries the English language, suitable when the text is actually English. It is not equivalent in **intent** to `Locale.ROOT`, even though many ASCII letters produce the same result.
+- **Not passing a locale**: `toLowerCase()` and `toUpperCase()` use **`Locale.getDefault()`**. This easily causes bugs on multi-region server deployments or when the JVM default locale changes.
 
-### Cách chọn theo mục đích
+### Choosing by purpose
 
-| Dữ liệu | Locale/cách làm thường phù hợp | Ví dụ |
+| Data | Usually appropriate locale/approach | Example |
 | --- | --- | --- |
-| Nhãn giao diện tiếng Thổ Nhĩ Kỳ | `Locale.forLanguageTag("tr-TR")` | Đổi chữ hoa/thường trong câu tiếng Thổ Nhĩ Kỳ |
-| Văn bản tiếng Anh | `Locale.ENGLISH` hoặc locale tiếng Anh vùng phù hợp | Nút hoặc heading tiếng Anh |
-| Key kỹ thuật không phụ thuộc user locale | `Locale.ROOT`, theo hợp đồng của key | `"CONTENT-TYPE"`, định danh nội bộ |
-| Văn bản người dùng đa ngôn ngữ | Locale gắn với văn bản, không dựa tùy tiện vào locale máy | Tìm kiếm/định dạng UI |
-| Dữ liệu cần so khớp không phân biệt hoa/thường theo ngôn ngữ | Bộ so sánh có quy tắc locale như `Collator`, nếu phù hợp | Danh sách tên, tìm kiếm địa phương |
-| Username, ID, token, mã bảo mật | Quy tắc chuẩn hóa/so sánh **được đặc tả riêng**; không tự suy diễn | Hệ thống xác thực |
+| Turkish UI labels | `Locale.forLanguageTag("tr-TR")` | Changing case in a Turkish sentence |
+| English text | `Locale.ENGLISH` or appropriate regional English locale | English button or heading |
+| Technical keys independent of user locale | `Locale.ROOT`, per the key's contract | `"CONTENT-TYPE"`, internal identifiers |
+| Multilingual user text | Locale tied to the text, not arbitrarily relying on machine locale | UI search/formatting |
+| Data requiring linguistically case-insensitive matching | Locale-aware comparator like `Collator`, if appropriate | Name lists, local search |
+| Username, ID, token, security code | Normalization/comparison rules **separately specified**; do not guess | Authentication systems |
 
-**Không dùng `Locale.setDefault(...)` theo từng request.** Default locale là trạng thái có ảnh hưởng rộng trong JVM; thay đổi trong server đa luồng có thể khiến kết quả của request khác thay đổi ngoài ý muốn. Hãy truyền locale riêng trong mọi lời gọi cần bản địa hóa.
+**Do not use `Locale.setDefault(...)` per request.** The default locale is JVM-wide state; changing it in a multi-threaded server can cause other requests' results to change unexpectedly. Pass an explicit locale in every call that needs localization.
 
-## 9. Đừng nhầm chuyển chữ với so sánh không phân biệt hoa/thường
+## 9. Do not confuse case conversion with case-insensitive comparison
 
-### 9.1. equalsIgnoreCase không nhận Locale
+### 9.1. equalsIgnoreCase does not accept a Locale
 
-`String.equalsIgnoreCase(String)` không có tham số `Locale`. Nó so sánh các ký tự theo quy tắc bỏ qua khác biệt chữ hoa/thường của Java, **không tạo một bản so sánh theo mọi quy tắc ngôn ngữ**. Tài liệu Java nêu rằng cách này có thể không cho kết quả phù hợp với một số locale; `Collator` hỗ trợ so sánh phụ thuộc locale.
+`String.equalsIgnoreCase(String)` has no `Locale` parameter. It compares characters using Java's rules that ignore uppercase/lowercase differences, **not creating a comparison following every linguistic rule**. Java documentation notes that this approach may not produce appropriate results for some locales; `Collator` supports locale-dependent comparison.
 
 ```java
 boolean equal = "Hello".equalsIgnoreCase("HELLO");
 ```
 
-Đối với các từ ASCII thông thường, `equal` là `true`. Nhưng không nên suy ra `equalsIgnoreCase` có thể thay `Collator` hoặc Unicode full case folding trong mọi ngôn ngữ.
+For ordinary ASCII words, `equal` is `true`. But one should not infer that `equalsIgnoreCase` can replace `Collator` or Unicode full case folding in all languages.
 
-Đặc biệt, không có bảo đảm:
+In particular, there is no guarantee that:
 
 ```text
 a.equalsIgnoreCase(b)
@@ -303,11 +303,11 @@ a.equalsIgnoreCase(b)
 a.toLowerCase(locale).equals(b.toLowerCase(locale))
 ```
 
-Hai bên có thể khác nhau vì một bên không nhận locale, một bên nhận locale và còn có các ánh xạ Unicode một-nhiều. Nếu nghiệp vụ dựa trên việc so sánh, hãy định nghĩa **hợp đồng so sánh** riêng thay vì coi bất kỳ một phép chuyển chữ nào là giải pháp tổng quát.
+The two sides can differ because one does not take a locale, one takes a locale, and there are also one-to-many Unicode mappings. If business logic relies on comparison, define a separate **comparison contract** rather than treating any single case conversion as a universal solution.
 
-### 9.2. Collator phục vụ thứ tự và so sánh theo ngôn ngữ
+### 9.2. Collator serves language-specific ordering and comparison
 
-`java.text.Collator` cho phép so sánh chuỗi theo quy tắc locale:
+`java.text.Collator` allows comparing strings according to locale rules:
 
 ```java
 import java.text.Collator;
@@ -319,24 +319,24 @@ collator.setStrength(Collator.SECONDARY);
 int result = collator.compare("text1", "text2");
 ```
 
-Đây là **snippet** minh họa việc cấu hình. `Collator.SECONDARY` thường phân biệt dấu khác nhau nhưng không phân biệt chữ hoa/thường ở các quy tắc collation thông dụng; kết quả chi tiết tùy locale/provider. Không nên xem `Collator` là giải pháp cho **so sánh byte chính xác** hoặc xác thực token bảo mật. Với tìm kiếm văn bản đa ngôn ngữ lớn, cân nhắc công cụ tìm kiếm/collation hỗ trợ Unicode và các yêu cầu sản phẩm.
+This is a **snippet** illustrating configuration. `Collator.SECONDARY` typically distinguishes different accents/diacritics while ignoring uppercase/lowercase differences in common collation rules; exact results depend on locale/provider. `Collator` should not be viewed as a solution for **exact byte comparison** or security token validation. For large multilingual text search, consider search/collation engines supporting Unicode and product requirements.
 
-### 9.3. Locale.ROOT không phải Unicode full case folding
+### 9.3. Locale.ROOT is not Unicode full case folding
 
-Unicode **case folding** là khái niệm dùng để tạo dạng so sánh không phân biệt hoa/thường theo quy tắc riêng. `String.toLowerCase(Locale.ROOT)` là một phép đổi sang chữ thường, không được đặc tả là **đầy đủ Unicode case folding**, nhất là khi có mở rộng nhiều code point, cấu trúc kết hợp và quy tắc bảo mật/ID.
+Unicode **case folding** is a concept used to produce a case-insensitive comparison form under specific rules. `String.toLowerCase(Locale.ROOT)` is a lowercasing operation, not specified as **full Unicode case folding**, especially when multi-code-point expansions, combining structures, and security/ID rules are involved.
 
-Nếu yêu cầu so khớp đặc thù như tên người dùng Unicode không phân biệt hoa/thường, cần xác định rõ: normalization form (NFC/NFKC tùy quy chuẩn), Unicode case-folding, chính sách ký tự, phiên bản Unicode, kiểm tra ký tự dễ nhầm lẫn, và tính ổn định giữa các phiên bản. Các API chuẩn `String` không tự cung cấp toàn bộ những chính sách này.
+If specialized matching is required such as case-insensitive Unicode usernames, you must clearly specify: normalization form (NFC/NFKC per standard), Unicode case-folding, character policy, Unicode version, confusable character checks, and stability across versions. Standard `String` APIs do not provide all of these policies by themselves.
 
-## 10. toLowerCase/toUpperCase không giải quyết normalization
+## 10. toLowerCase/toUpperCase do not solve normalization
 
-Hai chuỗi có thể trông giống nhau mà chứa dãy code point khác nhau:
+Two strings can look identical while containing different sequences of code points:
 
 ```java
-String composed = "\u00E9";   // é: một code point
+String composed = "\u00E9";   // é: single code point
 String decomposed = "e\u0301"; // e + combining acute accent
 ```
 
-`equals` thường trả `false` vì chuỗi UTF-16 khác nhau. Chuyển cả hai sang chữ thường không nhất thiết khiến chúng giống nhau. Nếu ứng dụng cần so sánh theo **canonical equivalence**, có thể chuẩn hóa với `java.text.Normalizer`:
+`equals` usually returns `false` because the UTF-16 sequences differ. Lowercasing both does not necessarily make them identical. If the application needs comparison by **canonical equivalence**, you can normalize with `java.text.Normalizer`:
 
 ```java
 import java.text.Normalizer;
@@ -346,18 +346,18 @@ String a = Normalizer.normalize(
         composed.toLowerCase(Locale.ROOT), Normalizer.Form.NFC);
 String b = Normalizer.normalize(
         decomposed.toLowerCase(Locale.ROOT), Normalizer.Form.NFC);
-boolean equivalent = a.equals(b); // true với hai chuỗi minh họa
+boolean equivalent = a.equals(b); // true for the two sample strings
 ```
 
-Đây là snippet cần hai biến `composed` và `decomposed` đã khai báo. Không có một thứ tự chuẩn hóa/chuyển chữ duy nhất phù hợp với mọi giao thức: cần theo yêu cầu miền ứng dụng. Normalization không tự xử lý tất cả khác biệt về viết hoa, cách sắp xếp theo ngôn ngữ, confusable Unicode hoặc ký tự tương đương theo nghĩa người dùng.
+This is a snippet requiring the declared `composed` and `decomposed` variables. There is no single normalization/casing order suitable for all protocols: follow application domain requirements. Normalization does not automatically handle all capitalization differences, linguistic sorting, Unicode confusables, or user-perceived equivalent characters.
 
-Đặc biệt với chuỗi có `İ`, `toLowerCase(Locale.ROOT)` có thể sinh thêm dấu `COMBINING DOT ABOVE`, khiến số lượng code point tăng. Do vậy, sau khi chuyển chữ có thể cần **kiểm tra lại độ dài, normalization và validation** nếu có ràng buộc dữ liệu.
+Especially with strings containing `İ`, `toLowerCase(Locale.ROOT)` can generate an extra `COMBINING DOT ABOVE` mark, increasing the number of code points. Consequently, after case conversion you may need to **recheck length, normalization, and validation** if data constraints exist.
 
-## 11. Ứng dụng thực tế: key cấu hình và nội dung giao diện
+## 11. Practical applications: configuration keys and UI content
 
-### 11.1. Key kỹ thuật ổn định
+### 11.1. Stable technical keys
 
-Giả sử hệ thống cho phép người dùng nhập tên trường theo chuẩn ASCII, và muốn coi chữ hoa/chữ thường như nhau:
+Suppose a system allows users to enter field names in ASCII, and wants to treat uppercase and lowercase letters the same:
 
 ```java
 import java.util.Locale;
@@ -371,14 +371,14 @@ static String normalizeAsciiKey(String key) {
 }
 ```
 
-Đây là **snippet của một phương thức trong lớp**. Nó tách hai bước:
+This is a **snippet of a method inside a class**. It separates two steps:
 
-1. **Validation:** key chỉ chứa ký tự được phép theo hợp đồng `[A-Za-z0-9_.-]+`.
-2. **Canonicalization:** chuyển chữ cái ASCII bằng `Locale.ROOT`, không phụ thuộc locale người dùng/máy.
+1. **Validation:** the key contains only characters allowed by the contract `[A-Za-z0-9_.-]+`.
+2. **Canonicalization:** lowercase ASCII letters using `Locale.ROOT`, independent of user/machine locale.
 
-Cách này phù hợp khi **đặc tả của chính hệ thống thật sự giới hạn ASCII**. Nếu protocol cho phép Unicode, bước validation phải dùng một chính sách khác; không tự dùng regex ASCII cho tên người, nhãn hiển thị hoặc nội dung tiếng Việt.
+This approach fits when **the system's own specification genuinely restricts to ASCII**. If the protocol allows Unicode, the validation step must use a different policy; do not arbitrarily apply an ASCII regex to personal names, display labels, or Vietnamese content.
 
-### 11.2. Hiển thị tên/tiêu đề theo ngôn ngữ
+### 11.2. Displaying names/titles by language
 
 ```java
 Locale displayLocale = Locale.forLanguageTag("tr-TR");
@@ -386,95 +386,95 @@ String heading = "istanbul";
 String upperHeading = heading.toUpperCase(displayLocale);
 ```
 
-Trong `tr-TR`, chữ `i` đầu có thể biến thành `İ`. Đây là điều đúng khi văn bản có ngữ cảnh ngôn ngữ Turkish. Tuy nhiên, `toUpperCase` chỉ chuyển chữ hoa, **không dịch** `heading` sang ngôn ngữ khác và **không làm title case**. Chuyển chữ cái đầu mỗi từ theo ngữ pháp/typography cũng không đơn giản là `toUpperCase` toàn bộ chuỗi.
+In `tr-TR`, the leading `i` can turn into `İ`. This is right when the text has a Turkish linguistic context. However, `toUpperCase` only converts to uppercase; it **does not translate** `heading` into another language and **does not perform title case**. Capitalizing the first letter of each word per grammar/typography is also not simply calling `toUpperCase` on the entire string.
 
-### 11.3. Dữ liệu gốc và dữ liệu hiển thị
+### 11.3. Original data and display data
 
-Không nên ghi đè giá trị gốc bằng phiên bản `toLowerCase` chỉ để hiển thị hoặc tìm kiếm, trừ khi nghiệp vụ đã định nghĩa đó là dạng canonical được lưu. Một chiến lược phổ biến là giữ giá trị gốc, đồng thời tạo một key chuẩn hóa **riêng** cho chỉ mục tìm kiếm theo hợp đồng. Điều này tránh mất thông tin như `ß → SS` và giúp tái thiết lập cách hiển thị của người dùng.
+Do not overwrite the original value with a `toLowerCase` version solely for display or search, unless the business logic defines that as the stored canonical form. A common strategy is keeping the original value while creating a **separate** normalized key for search indexing per contract. This avoids losing information such as `ß → SS` and helps reconstruct the user's display formatting.
 
-## 12. Kiểm thử bắt buộc cho hệ thống quốc tế hóa
+## 12. Required testing for internationalized systems
 
-Ít nhất nên kiểm thử các nhóm sau:
+At a minimum, test the following groups:
 
-| Tình huống | Giá trị kiểm tra | Điều cần xác minh |
+| Scenario | Test values | What to verify |
 | --- | --- | --- |
-| Locale tường minh | `Locale.ROOT`, `tr-TR` | Kết quả ổn định dù default locale của JVM khác |
-| Chữ I | `TITLE`, `title`, `I`, `İ`, `ı` | Ánh xạ có chấm/không chấm đúng |
-| Unicode một-nhiều | `straße` | `toUpperCase` có thể tăng độ dài |
-| Ký tự theo ngữ cảnh | `ΟΣ` | Sigma cuối từ được xử lý theo chuỗi |
-| Độ dài | Trước/sau casing | Không giả định chiều dài giữ nguyên |
-| Kết hợp dấu | `é` và `e + U+0301` | Phân biệt casing với normalization |
-| Key kỹ thuật | `TITLE` trong mọi locale | Canonicalization theo hợp đồng, không dùng default |
-| Văn bản người dùng | Tiếng Việt, Turkish, Greek, German | Chọn locale đúng ngôn ngữ và review trực quan |
-| So sánh | `equalsIgnoreCase`/`Collator` | Không nhầm phép chuyển chữ với collation |
-| Dữ liệu bảo mật | Username/token/ID | Quy tắc mapping, normalization, validation rõ ràng |
-| Chạy nhiều phiên bản JDK | Bộ ký tự Unicode đa dạng | Ghi nhận khác biệt theo phiên bản dữ liệu Unicode nếu có |
+| Explicit locale | `Locale.ROOT`, `tr-TR` | Results stay stable even if JVM default locale differs |
+| Letter I | `TITLE`, `title`, `I`, `İ`, `ı` | Dotted/dotless mappings are accurate |
+| One-to-many Unicode | `straße` | `toUpperCase` can increase length |
+| Context-sensitive characters | `ΟΣ` | Final sigma is handled across the string |
+| Length | Before/after casing | Do not assume length stays unchanged |
+| Combining marks | `é` and `e + U+0301` | Distinguish casing from normalization |
+| Technical keys | `TITLE` across all locales | Canonicalization per contract, not using default |
+| User text | Vietnamese, Turkish, Greek, German | Choose language-appropriate locale and review visually |
+| Comparison | `equalsIgnoreCase`/`Collator` | Do not confuse case conversion with collation |
+| Security data | Username/token/ID | Clear mapping, normalization, and validation rules |
+| Running across JDK versions | Diverse Unicode character sets | Note differences across Unicode data versions if any |
 
-### Tại sao không chỉ kiểm thử tiếng Anh?
+### Why not test English only?
 
-Một test với `"HELLO"` và `"hello"` thường đi qua cả các đường `Locale.ROOT`, `Locale.ENGLISH` và `tr-TR` mà không phát hiện sự khác biệt ở chữ `I`. Ngược lại `"TITLE"` hoặc `"IDENTIFIER"` làm lộ sai lầm ngay ở bước hạ chữ. Test thêm case nhiều-code-point như `İ` và `ß` sẽ phát hiện giả định không hợp lệ rằng kết quả luôn dài bằng đầu vào.
+A test with `"HELLO"` and `"hello"` often passes through `Locale.ROOT`, `Locale.ENGLISH`, and `tr-TR` paths without revealing differences in the letter `I`. Conversely, `"TITLE"` or `"IDENTIFIER"` exposes bugs immediately during lowercasing. Testing multi-code-point cases such as `İ` and `ß` will catch the invalid assumption that the output is always the same length as the input.
 
-### Vì sao không dùng Locale.setDefault trong test đa luồng?
+### Why not use Locale.setDefault in multi-threaded tests?
 
-`Locale.setDefault(...)` thay đổi trạng thái toàn JVM và dễ gây nhiễu các test chạy đồng thời. Khi kiểm thử hành vi sản phẩm, truyền `Locale` tường minh cho mỗi hàm. Nếu bắt buộc kiểm tra overload không tham số, cô lập test, khôi phục default trong `finally` và tránh chạy đồng thời với các test khác dựa vào default locale.
+`Locale.setDefault(...)` mutates JVM-wide state and easily interferes with concurrently running tests. When testing production behavior, pass an explicit `Locale` to each function. If you must test parameterless overloads, isolate the test, restore the default in `finally`, and avoid running concurrently with other tests relying on the default locale.
 
-## 13. Những lỗi thường gặp
+## 13. Common mistakes
 
-| Lỗi | Nguyên nhân | Cách khắc phục |
+| Mistake | Cause | Fix |
 | --- | --- | --- |
-| `"TITLE".toLowerCase()` tạo key khác trên máy Turkish | Overload không tham số dùng default locale | Với key độc lập ngôn ngữ, dùng `Locale.ROOT` |
-| `"title".toUpperCase()` có chữ `İ` | Turkish casing | Truyền đúng locale theo mục đích |
-| Dùng `Locale.ENGLISH` cho mọi văn bản | Cho rằng tiếng Anh là quy tắc mặc định toàn cầu | Với văn bản tiếng khác, dùng locale của văn bản; với key kỹ thuật, `ROOT` |
-| Dùng vòng `charAt(i)` rồi `Character.toUpperCase(...)` | Không xử lý 1:N và ngữ cảnh đầy đủ | Chuyển cả `String` bằng API có Locale |
-| Dự đoán output giữ nguyên chiều dài | `ß` có thể thành `SS`, `İ` thành `i + dấu` | Không định vị theo index cũ nếu chuỗi đã đổi |
-| Dùng `equalsIgnoreCase` thay Collator | Không phải so sánh theo locale | Chọn API đúng với hợp đồng tìm kiếm/sắp xếp |
-| Dùng lowercase làm Unicode full case folding | Casing khác case folding | Thiết kế quy tắc Unicode profile rõ ràng |
-| Tin rằng hai chuỗi nhìn giống nhau thì equals | Unicode normalization khác nhau | Dùng Normalizer nếu hợp đồng yêu cầu |
-| Lưu bản uppercase/lowercase rồi bỏ bản gốc | Mất khả năng khôi phục cách viết | Giữ chuỗi nguồn và key xử lý riêng |
-| Dùng `Locale.setDefault` theo từng request | Thay trạng thái dùng chung của JVM | Truyền locale vào mọi thao tác |
-| Biến đổi username/token mà không có đặc tả | Có thể gây collision hoặc bypass logic | Xác định whitelist, normalization và so sánh an toàn |
-| Dùng casing để dịch nội dung | Chỉ biến đổi hoa/thường, không dịch | Dùng ResourceBundle/i18n để bản địa hóa thông điệp |
+| `"TITLE".toLowerCase()` produces a different key on Turkish machines | Parameterless overload uses default locale | For language-independent keys, use `Locale.ROOT` |
+| `"title".toUpperCase()` has letter `İ` | Turkish casing | Pass the right locale for the purpose |
+| Using `Locale.ENGLISH` for all text | Assuming English is the global default rule | For other-language text, use the text's locale; for technical keys, `ROOT` |
+| Looping `charAt(i)` then `Character.toUpperCase(...)` | Does not handle 1:N and full context | Convert the whole `String` with a Locale-taking API |
+| Assuming output preserves length | `ß` can become `SS`, `İ` can become `i + mark` | Do not index by old positions if the string changed |
+| Using `equalsIgnoreCase` instead of Collator | Not locale-sensitive comparison | Choose the API matching the search/sort contract |
+| Using lowercase as Unicode full case folding | Casing differs from case folding | Design an explicit Unicode profile rule |
+| Believing two visually identical strings are equal | Different Unicode normalization | Use Normalizer if the contract requires it |
+| Saving uppercase/lowercase version and discarding original | Loses ability to recover original spelling | Keep source string and processing key separate |
+| Using `Locale.setDefault` per request | Mutates JVM shared state | Pass locale into every operation |
+| Transforming username/token without a spec | Can cause collisions or logic bypass | Define whitelist, normalization, and safe comparison |
+| Using casing to translate content | Only transforms case, does not translate | Use ResourceBundle/i18n to localize messages |
 
-## 14. Câu hỏi ôn tập
+## 14. Review questions
 
-**Câu 1.** `"TITLE".toLowerCase(Locale.ROOT)` khác `"TITLE".toLowerCase(Locale.forLanguageTag("tr-TR"))` thế nào?
+**Question 1.** How does `"TITLE".toLowerCase(Locale.ROOT)` differ from `"TITLE".toLowerCase(Locale.forLanguageTag("tr-TR"))`?
 
-**Đáp án:** Với `ROOT`, chữ `I` thành `i` (`U+0069`). Với Turkish, `I` thành `ı` (`U+0131`). Các chuỗi `"title"` và `"tıtle"` khác nhau khi so sánh chính xác.
+**Answer:** With `ROOT`, the letter `I` becomes `i` (`U+0069`). With Turkish, `I` becomes `ı` (`U+0131`). The strings `"title"` and `"tıtle"` differ under exact comparison.
 
-**Câu 2.** Có nên dùng `String.toLowerCase()` không tham số để chuẩn hóa key protocol?
+**Question 2.** Should you use the parameterless `String.toLowerCase()` to normalize protocol keys?
 
-**Đáp án:** Không, vì nó phụ thuộc default locale của JVM. Dùng `Locale.ROOT` hoặc thuật toán canonicalization được protocol quy định, kèm validation.
+**Answer:** No, because it depends on the JVM default locale. Use `Locale.ROOT` or the canonicalization algorithm specified by the protocol, along with validation.
 
-**Câu 3.** Vì sao `"straße".toUpperCase(Locale.GERMAN)` có thể dài hơn chuỗi ban đầu?
+**Question 3.** Why can `"straße".toUpperCase(Locale.GERMAN)` be longer than the original string?
 
-**Đáp án:** `ß` mở rộng thành `SS`; đó là ánh xạ Unicode một-nhiều. Độ dài từ 6 thành 7.
+**Answer:** `ß` expands to `SS`; that is a one-to-many Unicode mapping. The length increases from 6 to 7.
 
-**Câu 4.** `"STRASSE".toLowerCase(Locale.GERMAN)` có trả lại `"straße"` không?
+**Question 4.** Does `"STRASSE".toLowerCase(Locale.GERMAN)` return `"straße"`?
 
-**Đáp án:** Không. Kết quả là `"strasse"`; chuyển hoa/thường không bảo đảm hoàn nguyên.
+**Answer:** No. The result is `"strasse"`; case conversion does not guarantee round-tripping.
 
-**Câu 5.** `equalsIgnoreCase` có tham số `Locale` không? Nó có thay `Collator` trong mọi trường hợp không?
+**Question 5.** Does `equalsIgnoreCase` take a `Locale` parameter? Does it replace `Collator` in all cases?
 
-**Đáp án:** Không có tham số locale, và không phải công cụ collation đầy đủ theo ngôn ngữ. Dùng bộ so sánh phù hợp yêu cầu.
+**Answer:** It has no locale parameter, and it is not a full language-specific collation tool. Use a comparator matching the requirements.
 
-**Câu 6.** `"İ".toLowerCase(Locale.ROOT)` có nhất thiết dài một code point không?
+**Question 6.** Is `"İ".toLowerCase(Locale.ROOT)` guaranteed to be one code point long?
 
-**Đáp án:** Không. Kết quả gồm `i` `U+0069` và dấu chấm kết hợp `U+0307`, hai code point. Trong `tr-TR`, nó thành một `i`.
+**Answer:** No. The result consists of `i` `U+0069` and combining dot `U+0307`, two code points. In `tr-TR`, it becomes a single `i`.
 
-**Câu 7.** Chuỗi có chữ tiếng Việt cùng hình thức hiển thị nhưng dùng code point dấu kết hợp khác nhau thì chỉ lowercase đã đủ để equals không?
+**Question 7.** If strings have Vietnamese letters with the same visual appearance but different combining mark code points, is lowercasing alone enough for `equals`?
 
-**Đáp án:** Chưa chắc. Có thể cần normalization theo một form được thỏa thuận, ví dụ NFC; casing không mặc nhiên chuẩn hóa toàn bộ Unicode.
+**Answer:** Not necessarily. Normalization to an agreed form, such as NFC, may be required; casing does not automatically normalize all of Unicode.
 
-## 15. Ghi nhớ
+## 15. Takeaways
 
-- `String.toLowerCase(Locale)` và `toUpperCase(Locale)` có thể dùng quy tắc **ngôn ngữ/vùng**; hãy truyền locale tường minh khi mục đích đã rõ.
-- Overload **không có `Locale`** dựa vào `Locale.getDefault()` và dễ làm định danh kỹ thuật phụ thuộc máy chủ.
-- `Locale.ROOT` là lựa chọn thường phù hợp cho phép chuyển chữ **không phụ thuộc locale**, nhưng không thay hợp đồng xử lý/so sánh Unicode chuyên biệt của từng hệ thống.
-- Các mapping Unicode có thể là **một-nhiều** và **phụ thuộc ngữ cảnh**: Turkish `I/İ`, German `ß`, Greek sigma là ví dụ quan trọng.
-- Chuyển hoa/thường **không bảo đảm giữ độ dài**, **không hoàn nguyên**, **không thay thế normalization** và **không đồng nghĩa collation/case folding**.
-- Chọn đúng `Locale` cho văn bản người dùng; kiểm thử ít nhất các tình huống Turkish, Greek và German trước khi đưa sản phẩm đa ngôn ngữ vào thực tế.
+- `String.toLowerCase(Locale)` and `toUpperCase(Locale)` can use **language/region** rules; pass an explicit locale when the intent is clear.
+- Overloads **without `Locale`** rely on `Locale.getDefault()` and easily make technical identifiers depend on the host machine.
+- `Locale.ROOT` is usually the appropriate choice for **locale-independent** case conversion, but does not replace a system's specialized Unicode processing/comparison contract.
+- Unicode mappings can be **one-to-many** and **context-dependent**: Turkish `I/İ`, German `ß`, and Greek sigma are key examples.
+- Case conversion **does not guarantee length preservation**, **is not reversible**, **does not replace normalization**, and **is not synonymous with collation/case folding**.
+- Choose the right `Locale` for user text; test at least Turkish, Greek, and German scenarios before shipping multilingual products to production.
 
-**Tài liệu chính thức:**
+**Official documentation:**
 
 - [Java SE 21 — String, toLowerCase/toUpperCase](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html)
 - [Java SE 21 — Locale](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Locale.html)

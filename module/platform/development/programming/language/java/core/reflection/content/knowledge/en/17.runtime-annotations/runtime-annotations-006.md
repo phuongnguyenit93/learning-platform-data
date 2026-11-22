@@ -1,12 +1,12 @@
-# Annotation trên interface hoặc phương thức không tự truyền như annotation lớp
+# Annotations on Interfaces or Methods Do Not Propagate Automatically Like Class Annotations
 
-Trong Java Reflection, annotation đặt trên **lớp**, **interface** và **phương thức** không tuân theo cùng một quy tắc kế thừa. Meta-annotation `@Inherited` chỉ khiến annotation trên **class cha** có thể được tìm khi truy vấn **class con** theo chuỗi superclass. Nó **không** tự truyền annotation từ interface sang implementing class, từ superinterface sang subinterface, hay từ method cha/interface sang method override/implementation.
+In Java Reflection, annotations placed on **classes**, **interfaces**, and **methods** do not follow the same inheritance rules. The meta-annotation `@Inherited` only enables annotations on a **superclass** to be found when querying a **subclass** along the superclass chain. It does **not** automatically propagate annotations from an interface to an implementing class, from a superinterface to a subinterface, or from a parent/interface method to an overriding/implementing method.
 
-Vì vậy, khi xử lý **annotation runtime**, cần phân biệt ba việc: annotation **được khai báo trực tiếp** tại đâu, method Reflection đang biểu diễn **method nào**, và ứng dụng có yêu cầu thêm quy tắc tìm kiếm ngoài Java Reflection chuẩn hay không. Sự khác biệt quyết định kết quả của `getAnnotation`, `getDeclaredAnnotation` và các API liên quan.
+Therefore, when handling **runtime annotations**, you must distinguish three things: where the annotation is **directly declared**, which **method** the Reflection method object represents, and whether the application requires additional lookup rules beyond standard Java Reflection. This distinction determines the results of `getAnnotation`, `getDeclaredAnnotation`, and related APIs.
 
-## 1. Retention, Target và Inherited là ba khái niệm khác nhau
+## 1. Retention, Target, and Inherited are three distinct concepts
 
-Định nghĩa một annotation có thể đặt trên type/method và đọc ở runtime:
+Define an annotation that can be placed on types/methods and read at runtime:
 
 ```java
 import java.lang.annotation.ElementType;
@@ -23,27 +23,27 @@ public @interface Label {
 }
 ```
 
-Đoạn trên là **định nghĩa minh họa**, lưu trong `Label.java` nếu công bố annotation top-level `public`. Ví dụ hoàn chỉnh ở mục 4 khai báo `Label` bên trong class để chỉ dùng một file.
+The snippet above is an **illustrative definition**, saved in `Label.java` if declaring a top-level `public` annotation. The complete example in section 4 declares `Label` inside a class so that only a single file is needed.
 
-| Meta-annotation | Tác dụng | Không có nghĩa là |
+| Meta-annotation | Effect | Does not mean |
 | --- | --- | --- |
-| `@Retention(RUNTIME)` | Giữ annotation để các API Reflection có thể đọc lúc chạy | Annotation sẽ được kế thừa |
-| `@Target(TYPE)` / `@Target(METHOD)` | Cho phép áp dụng annotation ở vị trí type hoặc method | Annotation trên interface/method sẽ tự truyền |
-| `@Inherited` | Khi truy vấn annotation của một **class**, nếu class chưa khai báo nó, Reflection có thể tìm ở **superclass** | Interface, method, field, parameter tự kế thừa annotation |
+| `@Retention(RUNTIME)` | Retains the annotation so Reflection APIs can read it at runtime | The annotation will be inherited |
+| `@Target(TYPE)` / `@Target(METHOD)` | Allows applying the annotation at type or method sites | Annotations on interfaces/methods will propagate automatically |
+| `@Inherited` | When querying an annotation on a **class**, if the class does not declare it, Reflection can search **superclasses** | Interfaces, methods, fields, and parameters automatically inherit annotations |
 
-`@Inherited` chỉ là meta-annotation gắn với **định nghĩa annotation type**. Dù `Label` được phép dùng trên method (`@Target(METHOD)`), hiệu ứng `@Inherited` **vẫn không áp dụng cho method**.
+`@Inherited` is only a meta-annotation attached to the **annotation type definition**. Even though `Label` is allowed on methods (`@Target(METHOD)`), the `@Inherited` effect **still does not apply to methods**.
 
-Một annotation muốn được quan sát bằng `Class.getAnnotation` hoặc `Method.getAnnotation` phải có runtime retention. Retention mặc định nếu bỏ `@Retention` là `CLASS`, không phù hợp với ví dụ đọc annotation lúc chạy.
+An annotation that needs to be observed via `Class.getAnnotation` or `Method.getAnnotation` must have runtime retention. The default retention if `@Retention` is omitted is `CLASS`, which is unsuitable for examples reading annotations at runtime.
 
-## 2. Mốc so sánh: annotation trên superclass
+## 2. Baseline for comparison: annotations on a superclass
 
-Giả sử `Label` có `@Inherited`, `@Retention(RUNTIME)` và `@Target(TYPE)`, `Base` mang `@Label("base-class")` còn `Child extends Base` không khai báo nhãn. Khi hỏi `Child.class.getAnnotation(Label.class)`, Reflection nhận nhãn từ `Base`; `Child.class.getDeclaredAnnotation(Label.class)` trả `null`. Nếu `Child` tự mang `@Label("child-class")`, nhãn riêng thắng.
+Suppose `Label` has `@Inherited`, `@Retention(RUNTIME)`, and `@Target(TYPE)`, `Base` carries `@Label("base-class")`, while `Child extends Base` declares no label. When querying `Child.class.getAnnotation(Label.class)`, Reflection receives the label from `Base`; `Child.class.getDeclaredAnnotation(Label.class)` returns `null`. If `Child` itself carries `@Label("child-class")`, its own label wins.
 
-Đây là **quy tắc tra annotation tại class declaration**, không sao chép annotation vào bytecode của `Child`. Phần tiếp theo đối chiếu quy tắc này với interface và method, là hai trường hợp Java Reflection xử lý khác.
+This is a **lookup rule on class declarations**; it does not copy the annotation into `Child`'s bytecode. The next section contrasts this rule with interfaces and methods, which Java Reflection treats differently.
 
-## 3. Interface và method không tự kế thừa annotation
+## 3. Interfaces and methods do not automatically inherit annotations
 
-### 3.1. Interface được annotatе trực tiếp, class triển khai không tự có
+### 3.1. Interface annotated directly, implementing class does not get it automatically
 
 ```java
 @Label("contract")
@@ -52,11 +52,11 @@ interface Contract {}
 class Implementation implements Contract {}
 ```
 
-`Contract.class.getAnnotation(Label.class)` trả annotation trực tiếp trên `Contract`. `Implementation.class.getAnnotation(Label.class)` trả `null` nếu `Implementation` không có annotation tương ứng từ superclass. Tương tự, `interface Sub extends Contract` cũng không tự có annotation của `Contract` theo `@Inherited`.
+`Contract.class.getAnnotation(Label.class)` returns the direct annotation on `Contract`. `Implementation.class.getAnnotation(Label.class)` returns `null` if `Implementation` has no matching annotation from a superclass. Likewise, `interface Sub extends Contract` does not automatically receive `Contract`'s annotation via `@Inherited`.
 
-Nếu một framework muốn coi annotation của interface có hiệu lực trên implementing class, framework cần **chủ động tìm trong interfaces**, rồi áp dụng chính sách riêng về thứ tự và xung đột.
+If a framework wants interface annotations to take effect on implementing classes, the framework must **actively search interfaces**, then apply its own policy on ordering and conflicts.
 
-### 3.2. Method override không tự có annotation của parent method
+### 3.2. Overriding method does not automatically receive the parent method's annotation
 
 ```java
 class Parent {
@@ -69,11 +69,11 @@ class Child extends Parent {
 }
 ```
 
-`Child.class.getDeclaredMethod("execute").getAnnotation(Label.class)` trả `null` vì method `Child.execute` được khai báo mới và không tự có `@Label` của `Parent.execute`. Dù `Label` mang `@Inherited`, Reflection không tự duyệt overridden method.
+`Child.class.getDeclaredMethod("execute").getAnnotation(Label.class)` returns `null` because method `Child.execute` is a new declaration and does not automatically receive `@Label` from `Parent.execute`. Even when `Label` carries `@Inherited`, Reflection does not automatically walk overridden methods.
 
-Method interface cũng tương tự: annotation trên `Contract.execute()` không tự xuất hiện ở `Implementation.execute()`.
+Interface methods behave similarly: an annotation on `Contract.execute()` does not automatically appear on `Implementation.execute()`.
 
-### 3.3. Kế thừa method mà **không override** là trường hợp khác
+### 3.3. Inheriting a method **without overriding** is a different case
 
 ```java
 class Parent {
@@ -83,13 +83,13 @@ class Parent {
 class Child extends Parent {}
 ```
 
-`Child.class.getMethod("work")` có thể trả `Method` khai báo tại `Parent`; `getDeclaringClass()` cho thấy `Parent.class`. Nếu đọc `getAnnotation(Label.class)` trên chính `Method` đó, ta vẫn thấy `@Label("parent-method")` vì **đang đọc metadata method của Parent**, không phải annotation đã được sao chép lên một method khác tại Child.
+`Child.class.getMethod("work")` can return the `Method` declared on `Parent`; `getDeclaringClass()` shows `Parent.class`. If we read `getAnnotation(Label.class)` on that `Method` itself, we still see `@Label("parent-method")` because **we are reading `Parent`'s method metadata**, not an annotation copied onto a different method on `Child`.
 
-Các ví dụ ở mục 3 là tình huống minh họa riêng biệt; không đặt nhiều class `Parent` trùng tên trong cùng một file. Mục tiếp theo có chương trình chạy hoàn chỉnh, phân biệt các trường hợp bằng tên rõ ràng.
+The examples in section 3 are separate illustrative scenarios; do not place multiple `Parent` classes with the same name in the same file. The next section contains a complete runnable program distinguishing these cases with distinct names.
 
-## 4. Ví dụ Java 17+ có thể biên dịch/chạy
+## 4. Compilable/runnable Java 17+ example
 
-Tạo tệp `AnnotationInheritanceDemo.java` với nội dung:
+Create the file `AnnotationInheritanceDemo.java` with the contents:
 
 ```java
 import java.lang.annotation.ElementType;
@@ -171,14 +171,14 @@ public class AnnotationInheritanceDemo {
 }
 ```
 
-Chạy ở thư mục chứa tệp, với Java 17 trở lên:
+Run in the directory containing the file, with Java 17 or later:
 
 ```bash
 javac AnnotationInheritanceDemo.java
 java AnnotationInheritanceDemo
 ```
 
-Kết quả stdout:
+Stdout result:
 
 ```text
 child.class=base-class
@@ -194,32 +194,32 @@ implementedMethod.labelAbsent=true
 interfaceMethod.label=interface-method
 ```
 
-**Giải thích từng nhóm kết quả:**
+**Explanation of each group of results:**
 
-1. `Child` kế thừa **kết quả tra cứu annotation ở cấp class** từ `Base` do `Label` mang `@Inherited`. `getDeclaredAnnotation` vẫn trả `null` vì `Child` không tự khai báo.
-2. `Contract` được gắn `@Label` trực tiếp nên đọc được `interface-type`; `Implementation` triển khai `Contract` nhưng không tự nhận annotation đó.
-3. `inheritedMethod` không bị `Child` override; `Child.class.getMethod(...)` trả đối tượng `Method` của `Base` nên `getDeclaringClass()` là `Base` và `Label` vẫn có trên method ấy.
-4. `overriddenMethod` là method khai báo ở `Child`; annotation `Label` không được truyền từ method `Base`. Truy vấn trực tiếp `Base.overriddenMethod` vẫn có `base-override-method`.
-5. `Implementation.execute` không tự có annotation của `Contract.execute`. Muốn đọc `interface-method` phải truy vấn method khai báo trên interface.
+1. `Child` inherits the **class-level annotation lookup result** from `Base` because `Label` carries `@Inherited`. `getDeclaredAnnotation` still returns `null` because `Child` does not declare it itself.
+2. `Contract` is annotated directly with `@Label`, so `interface-type` is read; `Implementation` implements `Contract` but does not automatically receive that annotation.
+3. `inheritedMethod` is not overridden by `Child`; `Child.class.getMethod(...)` returns `Base`'s `Method` object, so `getDeclaringClass()` is `Base` and `Label` is still present on that method.
+4. `overriddenMethod` is a method declared on `Child`; the `Label` annotation is not propagated from `Base`'s method. Querying `Base.overriddenMethod` directly still has `base-override-method`.
+5. `Implementation.execute` does not automatically have `Contract.execute`'s annotation. To read `interface-method`, you must query the method declared on the interface.
 
-Trong ví dụ chỉ **đọc metadata**, không cần gọi `setAccessible(true)` hoặc thực thi các method đích. Kết quả không phụ thuộc vào thứ tự trả về của các mảng Reflection.
+The example only **reads metadata**; there is no need to call `setAccessible(true)` or invoke the target methods. The result does not depend on the return order of Reflection arrays.
 
-## 5. Chọn API theo phần tử đang truy vấn
+## 5. Choosing the API by the element being queried
 
-| API | Khi nào dùng? |
+| API | When to use? |
 | --- | --- |
-| `getAnnotation(A.class)` / `isAnnotationPresent(A.class)` | Hỏi annotation *present* trên phần tử; chỉ khi phần tử là class mới có thể xét `@Inherited`. |
-| `getDeclaredAnnotation(A.class)` | Chỉ hỏi annotation được khai báo trực tiếp, không tìm superclass. |
-| `getAnnotations()` / `getDeclaredAnnotations()` | Liệt kê annotation theo phạm vi tương ứng, không tự mở container repeatable. |
-| `getAnnotationsByType(A.class)` / `getDeclaredAnnotationsByType(A.class)` | Đọc cả các `@Repeatable` gián tiếp trong container, có hoặc không xét inheritance phù hợp. |
+| `getAnnotation(A.class)` / `isAnnotationPresent(A.class)` | Query a *present* annotation on an element; only when the element is a class can `@Inherited` be considered. |
+| `getDeclaredAnnotation(A.class)` | Query only annotations declared directly, without searching superclasses. |
+| `getAnnotations()` / `getDeclaredAnnotations()` | List annotations within the corresponding scope, without auto-unpacking repeatable containers. |
+| `getAnnotationsByType(A.class)` / `getDeclaredAnnotationsByType(A.class)` | Also read indirect `@Repeatable` annotations inside containers, with or without applicable inheritance. |
 
-Trên một `Method` đại diện cho khai báo override, cả hai getter một-annotation đều đọc **method hiện tại**; nếu cần annotation trên method cha/interface, phải chủ động duyệt quan hệ method. Không suy ra một method đã nhận annotation kế thừa chỉ vì `getMethod()` trả một khai báo từ superclass.
+On a `Method` representing an overriding declaration, both single-annotation getters read the **current method**; if you need annotations on a parent/interface method, you must actively traverse the method relationship. Do not infer that a method has received an inherited annotation just because `getMethod()` returned a declaration from a superclass.
 
-## 6. Khi muốn lấy annotation method cha, phải tự duyệt
+## 6. When you want a parent method's annotation, you must traverse manually
 
-Một thư viện đôi khi muốn method override dùng annotation khai báo trên method cha. Đây là **quy tắc tự thiết kế**; Java Reflection mặc định không làm vậy.
+A library sometimes wants an overriding method to use annotations declared on the parent method. That is a **custom-designed rule**; Java Reflection does not do this by default.
 
-Ví dụ helper tìm annotation trực tiếp trên các method trùng tên/chữ ký trong superclass chain:
+Example of a helper searching for a direct annotation on methods with the same name/signature along the superclass chain:
 
 ```java
 import java.lang.annotation.Annotation;
@@ -241,20 +241,20 @@ static <A extends Annotation> A findFromClassHierarchy(
                 return annotation;
             }
         } catch (NoSuchMethodException ignored) {
-            // Lớp này không khai báo method với chữ ký đã tìm.
+            // This class does not declare a method with the searched signature.
         }
     }
     return null;
 }
 ```
 
-Đây là **helper minh họa** cần đặt bên trong một class và không có `main`. Nó có thể tìm `@Label("base-override-method")` ở `Base.overriddenMethod` khi bắt đầu từ `Child` và không thấy `Label` tại method `Child`.
+This is an **illustrative helper** that must be placed inside a class and has no `main`. It can find `@Label("base-override-method")` on `Base.overriddenMethod` when starting from `Child` and not finding `Label` on `Child`'s method.
 
-**Giới hạn quan trọng:** đoạn này tìm theo **tên và kiểu tham số giống nhau**, chưa chứng minh hai method có quan hệ override hợp lệ theo Java. Nó không loại trường hợp `private`, `static`, synthetic/bridge method, không xét visibility, và không duyệt các interface. Nếu framework cần ngữ nghĩa kế thừa annotation chặt chẽ, phải xử lý riêng các điều kiện này, đặc biệt với generics, covariant return và nhiều superclass/interface.
+**Important limitation:** this snippet searches by **matching name and parameter types**, which does not prove the two methods have a valid Java override relationship. It does not exclude `private`, `static`, or synthetic/bridge methods, does not check visibility, and does not traverse interfaces. If a framework needs strict annotation inheritance semantics, it must handle these conditions explicitly, especially with generics, covariant returns, and multiple superclasses/interfaces.
 
-## 7. Muốn tìm annotation của interface, cũng cần chính sách riêng
+## 7. To find annotations on interfaces, you also need a custom policy
 
-Trong chương trình ở mục 4:
+In the program in section 4:
 
 ```java
 Label interfaceLabel =
@@ -265,40 +265,40 @@ Label methodLabel =
         interfaceMethod.getAnnotation(Label.class);
 ```
 
-Đoạn này là **mã minh họa**, cần khai báo `Contract`/`Label`, import `Method` và xử lý `NoSuchMethodException`. Nó đọc trực tiếp annotation ở interface và method do interface khai báo; không làm `Implementation` mang annotation ấy.
+This snippet is **illustrative code**, requiring `Contract`/`Label` declarations, importing `Method`, and handling `NoSuchMethodException`. It directly reads annotations on the interface and the method declared by the interface; it does not make `Implementation` carry that annotation.
 
-Nếu class động triển khai nhiều interface, có thể truy cập `Class.getInterfaces()` để tự duyệt; cần xem xét superinterface và các interface do superclass triển khai khi bài toán cần, cũng như tránh thăm lặp. Nếu hai interface có cùng annotation nhưng khác giá trị, ứng dụng phải xác định quy tắc ưu tiên/xung đột. **Không có một chính sách Java Reflection mặc định** rằng annotation interface nào sẽ được “truyền” cho implementation.
+If a class dynamically implements multiple interfaces, you can access `Class.getInterfaces()` to traverse them yourself; consider superinterfaces and interfaces implemented by superclasses when the problem requires it, as well as avoiding duplicate visits. If two interfaces have the same annotation with different values, the application must define a precedence/conflict rule. **There is no default Java Reflection policy** dictating which interface annotation gets “propagated” to the implementation.
 
-Các framework có thể triển khai cơ chế merged-annotation, tìm annotation trên interface hoặc method hierarchy theo chính sách riêng. Đó là hành vi của framework, không thay đổi hợp đồng `@Inherited` hay `Class.getAnnotation` trong Java chuẩn. Khi phụ thuộc framework, cần kiểm tra đúng phiên bản và API cụ thể.
+Frameworks can implement merged-annotation mechanisms, searching annotations across interfaces or method hierarchies according to their own policies. That is framework behavior and does not alter the contract of `@Inherited` or `Class.getAnnotation` in standard Java. When relying on a framework, verify the exact version and specific API.
 
-## 8. Các lỗi hiểu sai thường gặp
+## 8. Common misconceptions
 
-| Nhầm lẫn | Điều đúng |
+| Misconception | Correct fact |
 | --- | --- |
-| `@Inherited` giúp annotation interface truyền sang implementing class | Chỉ xét superclass khi truy vấn class; interface không tự truyền |
-| `@Inherited` giúp method override nhận annotation từ method cha | Không áp dụng cho method |
-| `@Target(TYPE, METHOD)` làm annotation có cơ chế kế thừa ở cả hai nơi | Target chỉ giới hạn vị trí đặt annotation |
-| `@Retention(RUNTIME)` có nghĩa là annotation được kế thừa | Runtime retention chỉ giúp Reflection nhìn thấy |
-| `Child.getMethod("work").getAnnotation(...)` thấy annotation nên method con đã được annotate | Nếu không override, đối tượng `Method` có thể là method của superclass |
-| `getAnnotation` và `getDeclaredAnnotation` là tương đương | `getDeclaredAnnotation` chỉ đọc khai báo trực tiếp; `getAnnotation` trên class có thể xét `@Inherited` |
-| Annotation trên `Contract.execute` tự xuất hiện ở `Implementation.execute` | Phải truy vấn interface method hoặc có cơ chế tìm riêng |
-| Method có `@Override` sẽ được copy annotation từ parent | `@Override` là kiểm tra tại biên dịch, không tự sao chép runtime annotation |
-| API framework tìm thấy interface annotation tức là Reflection chuẩn cũng vậy | Framework có thể duyệt hierarchy theo quy tắc bổ sung |
+| `@Inherited` makes interface annotations propagate to implementing classes | Only inspects superclasses when querying a class; interfaces do not propagate automatically |
+| `@Inherited` makes overriding methods receive annotations from the parent method | Does not apply to methods |
+| `@Target(TYPE, METHOD)` gives annotations an inheritance mechanism in both places | Target only restricts where the annotation can be placed |
+| `@Retention(RUNTIME)` means the annotation is inherited | Runtime retention only makes it visible to Reflection |
+| `Child.getMethod("work").getAnnotation(...)` sees an annotation so the child method was annotated | If not overridden, the `Method` object can be the superclass's method |
+| `getAnnotation` and `getDeclaredAnnotation` are equivalent | `getDeclaredAnnotation` reads only direct declarations; `getAnnotation` on a class can consider `@Inherited` |
+| Annotations on `Contract.execute` automatically appear on `Implementation.execute` | Must query the interface method or use a custom search mechanism |
+| A method with `@Override` copies annotations from the parent | `@Override` is a compile-time check and does not copy runtime annotations |
+| A framework API finding interface annotations means standard Reflection does the same | The framework may traverse the hierarchy under additional rules |
 
-## 9. Checklist xử lý annotation runtime
+## 9. Checklist for handling runtime annotations
 
-1. **Xác định phần tử chứa annotation:** class, interface, method hay phần tử khác? Cơ chế `@Inherited` chỉ áp dụng với class qua superclass.
-2. **Kiểm tra retention:** cần `RetentionPolicy.RUNTIME` cho việc đọc annotation qua Reflection lúc chạy.
-3. **Kiểm tra target:** `ElementType.TYPE` cho class/interface, `METHOD` cho method; target không quy định inheritance.
-4. **Chọn đúng API:** `getDeclaredAnnotation` để đọc trực tiếp; `getAnnotation` khi cần semantics “present” của element.
-5. **Nếu đọc method kế thừa, xem `getDeclaringClass()`:** có thể đang lấy metadata của method cha chứ không phải annotation được truyền.
-6. **Nếu đọc method override/implement, đừng trông chờ @Inherited:** tự kiểm tra parent method/interface method khi chính sách ứng dụng cần.
-7. **Nếu có nhiều nguồn annotation, xác định ưu tiên rõ ràng:** superclass, interfaces, overridden methods, repeatable container và xung đột phải có contract.
-8. **Kiểm chứng bằng test cho framework:** kết quả từ cơ chế tìm kiếm mở rộng không thể suy ra chỉ từ API Reflection chuẩn.
+1. **Identify the element containing the annotation:** class, interface, method, or another element? The `@Inherited` mechanism applies only to classes via superclasses.
+2. **Check retention:** `RetentionPolicy.RUNTIME` is needed to read annotations via Reflection at runtime.
+3. **Check target:** `ElementType.TYPE` for classes/interfaces, `METHOD` for methods; target does not specify inheritance.
+4. **Choose the right API:** `getDeclaredAnnotation` for direct reads; `getAnnotation` when needing the element's “present” semantics.
+5. **When reading an inherited method, check `getDeclaringClass()`:** you may be reading the parent method's metadata rather than a propagated annotation.
+6. **When reading an overriding/implementing method, do not rely on @Inherited:** inspect the parent method/interface method explicitly when application policy requires it.
+7. **When multiple annotation sources exist, define clear precedence:** superclasses, interfaces, overridden methods, repeatable containers, and conflicts must have a contract.
+8. **Verify framework behavior with tests:** results from extended lookup mechanisms cannot be inferred from standard Reflection APIs alone.
 
-## 10. Tài liệu gốc
+## 10. Primary references
 
-- [`@Inherited` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/annotation/Inherited.html): phạm vi inheritance giới hạn ở annotation trên class và superclass.
-- [`AnnotatedElement` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AnnotatedElement.html): ý nghĩa của annotation present, declared, associated và các API truy vấn.
+- [`@Inherited` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/annotation/Inherited.html): inheritance scope limited to annotations on classes and superclasses.
+- [`AnnotatedElement` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AnnotatedElement.html): meanings of present, declared, associated annotations, and query APIs.
 
-**Ghi nhớ:** `@Inherited` chỉ có hiệu lực khi **truy vấn annotation trên một class qua superclass chain**. Interface và method có annotation của riêng chúng; lớp triển khai interface hoặc phương thức override không tự nhận annotation đó. Khi cần hành vi truyền từ interface/method, phải xây quy tắc tìm kiếm riêng và kiểm tra rõ declaring class, quan hệ override, độ ưu tiên và runtime retention.
+**Key takeaway:** `@Inherited` takes effect only when **querying annotations on a class along the superclass chain**. Interfaces and methods have their own annotations; implementing classes or overriding methods do not automatically receive those annotations. When propagation from interfaces/methods is needed, build an explicit lookup rule and clearly check declaring class, override relationships, precedence, and runtime retention.

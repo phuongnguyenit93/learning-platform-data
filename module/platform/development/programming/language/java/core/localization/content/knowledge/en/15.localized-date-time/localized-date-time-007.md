@@ -1,26 +1,26 @@
-# withZone, withChronology và withDecimalStyle trong DateTimeFormatter (Java)
+# withZone, withChronology, and withDecimalStyle in DateTimeFormatter (Java)
 
-## 1. Ba lớp cấu hình khác nhau của ngày giờ bản địa
+## 1. Three Distinct Configuration Layers for Localized Dates and Times
 
-`java.time.format.DateTimeFormatter` là API định dạng/phân tích ngày giờ trong Java 8+ (bao gồm Java 17). Ngoài pattern và `Locale`, formatter còn có ba kiểu override quan trọng:
+`java.time.format.DateTimeFormatter` is the date/time formatting and parsing API in Java 8+ (including Java 17). Beyond patterns and `Locale`, a formatter has three important override methods:
 
-- **`withZone(ZoneId)`**: đặt **múi giờ ghi đè** để formatter xử lý một thời điểm hoặc cung cấp zone trong một số trường hợp format/parse. Nó không thay đổi `Instant` nguồn và không làm thay đổi múi giờ mặc định của JVM.
-- **`withChronology(Chronology)`**: đặt **hệ lịch** dùng trong quá trình biểu diễn hoặc phân tích, ví dụ ISO/Gregorian kiểu ISO-8601, lịch Nhật, lịch Phật giáo Thái Lan. Nó không phải thao tác đổi múi giờ.
-- **`withDecimalStyle(DecimalStyle)`**: đặt **cách biểu diễn chữ số và ký hiệu số** (zero digit, dấu cộng, dấu trừ, dấu phân tách phần thập phân) được formatter dùng. Nó không phải phép đổi lịch hoặc đơn vị thời gian.
+- **`withZone(ZoneId)`**: sets a **time-zone override** so the formatter can process an instant or supply a zone in certain format/parse scenarios. It does not alter the source `Instant` and does not change the JVM's default time zone.
+- **`withChronology(Chronology)`**: sets the **calendar system** used when formatting or parsing, such as ISO-8601/Gregorian, Japanese, or Thai Buddhist calendars. It is not a time-zone conversion.
+- **`withDecimalStyle(DecimalStyle)`**: sets the **representation of digits and numeric symbols** (zero digit, plus sign, minus sign, decimal separator) used by the formatter. It is not a calendar or time-unit conversion.
 
-Một thông điệp “cùng một ngày giờ” có ít nhất ba chiều cần xác định:
+A message expressing "the same date and time" has at least three dimensions to determine:
 
-| Câu hỏi | Cơ chế | Ví dụ |
+| Question | Mechanism | Example |
 | --- | --- | --- |
-| Tại thời điểm ấy, đồng hồ địa phương chỉ mấy giờ? | `ZoneId` / `withZone` | UTC `00:30`, TP.HCM `07:30` cùng một `Instant`. |
-| Hệ lịch gọi năm, kỷ nguyên và ngày ấy thế nào? | `Chronology` / `withChronology` | ISO năm 2024, Phật giáo Thái năm 2567. |
-| Các chữ số được viết bằng ký tự nào? | `DecimalStyle` / `withDecimalStyle` | `2024` hoặc `٢٠٢٤`. |
+| What time does the local clock show at that instant? | `ZoneId` / `withZone` | UTC `00:30`, Ho Chi Minh City `07:30` for the same `Instant`. |
+| How does the calendar name the year, era, and date? | `Chronology` / `withChronology` | ISO year 2024, Thai Buddhist year 2567. |
+| Which characters are used to write the digits? | `DecimalStyle` / `withDecimalStyle` | `2024` or `٢٠٢٤`. |
 
-**Không nên đánh đồng `Locale` với zone, chronology hoặc decimal style.** Locale có thể cung cấp ngữ cảnh ngôn ngữ cho tên tháng/thứ và các format style, nhưng zone là ngữ nghĩa thời điểm; chronology là hệ lịch; decimal style là các ký hiệu biểu diễn. Tùy API và formatter, một số mặc định có thể dựa trên locale, nhưng nếu ứng dụng cần kết quả cụ thể, hãy cấu hình tường minh.
+**Do not equate `Locale` with zone, chronology, or decimal style.** Locale can provide language context for month/weekday names and format styles, whereas zone is instant semantics, chronology is the calendar system, and decimal style is the set of display symbols. Depending on the API and formatter, some defaults may derive from a locale, but when an application needs deterministic results, configure them explicitly.
 
-## 2. DateTimeFormatter bất biến: các phương thức with... trả formatter mới
+## 2. DateTimeFormatter Is Immutable: `with...` Methods Return a New Formatter
 
-`DateTimeFormatter` là **immutable** và an toàn để chia sẻ giữa các thread khi cấu hình không đổi. Các phương thức `withZone`, `withChronology`, `withDecimalStyle`, `withLocale`, `withResolverStyle` đều **trả về một đối tượng formatter mới** với override tương ứng; chúng không sửa formatter cũ.
+`DateTimeFormatter` is **immutable** and safe to share across threads when its configuration does not change. Methods such as `withZone`, `withChronology`, `withDecimalStyle`, `withLocale`, and `withResolverStyle` all **return a new formatter object** with the corresponding override; they do not mutate the original formatter.
 
 ```java
 DateTimeFormatter base =
@@ -29,32 +29,32 @@ DateTimeFormatter inVietnam =
         base.withZone(ZoneId.of("Asia/Ho_Chi_Minh"));
 ```
 
-Hai câu lệnh đặt trong phương thức Java, cần import `java.time.ZoneId`, `java.time.format.DateTimeFormatter` và `java.util.Locale`.
+These two statements sit inside a Java method and require importing `java.time.ZoneId`, `java.time.format.DateTimeFormatter`, and `java.util.Locale`.
 
-Trong ví dụ, `base` vẫn không có override zone; `inVietnam` có zone TP.HCM. Nếu bạn gọi `base.withZone(...)` mà **không nhận giá trị trả về**, biến `base` không thay đổi:
+In the example, `base` still has no zone override; `inVietnam` has the Ho Chi Minh City zone. If you call `base.withZone(...)` **without capturing the return value**, `base` remains unchanged:
 
 ```java
-base.withZone(ZoneId.of("UTC")); // Kết quả bị bỏ qua!
+base.withZone(ZoneId.of("UTC")); // Return value ignored!
 ```
 
-Với formatter bất biến, cách đúng là gán sang biến mới (hoặc gán lại nếu biến không phải `final`). Lợi ích: bạn có thể giữ một formatter gốc rồi tạo các phiên bản cho từng thị trường mà không làm thay đổi cấu hình dùng chung.
+With an immutable formatter, the proper way is to assign to a new variable (or reassign if the variable is not `final`). Benefit: you can keep one base formatter and derive market-specific variants without altering shared configuration.
 
-### Phân biệt những gì get... trả về
+### Distinguishing what `get...` returns
 
-Các API getter giúp kiểm chứng trạng thái:
+Getter APIs let you inspect state:
 
-- `getZone()` trả `ZoneId` override hoặc `null` nếu chưa đặt.
-- `getChronology()` trả `Chronology` override hoặc `null` nếu chưa đặt.
-- `getDecimalStyle()` trả bộ ký hiệu đang dùng (thường mặc định là `DecimalStyle.STANDARD` trên formatter cơ bản).
-- `getLocale()` trả locale của formatter, không phải bằng chứng rằng mọi cấu hình zone/chronology/decimal style đều được suy ra từ locale đó.
+- `getZone()` returns the `ZoneId` override or `null` if unset.
+- `getChronology()` returns the `Chronology` override or `null` if unset.
+- `getDecimalStyle()` returns the active symbol set (typically defaulting to `DecimalStyle.STANDARD` on basic formatters).
+- `getLocale()` returns the formatter's locale, not proof that every zone/chronology/decimal-style setting was derived from that locale.
 
-Nếu một formatter đã có override riêng, thay đổi một chiều bằng `withZone` không có nghĩa các chiều còn lại tự chuyển theo.
+If a formatter already has separate overrides, changing one dimension with `withZone` does not cause the remaining dimensions to shift automatically.
 
-## 3. withZone(ZoneId): hiển thị thời điểm ở một múi giờ
+## 3. withZone(ZoneId): Displaying an Instant in a Time Zone
 
-### 3.1. Khi đối số là Instant
+### 3.1. When the argument is an Instant
 
-`Instant` biểu diễn một điểm trên trục thời gian UTC, không gắn một múi giờ trình bày cụ thể. Để format một `Instant` thành các trường ngày/giờ địa phương, formatter cần biết `ZoneId`.
+`Instant` represents a point on the UTC timeline without an attached display time zone. To format an `Instant` into local date/time fields, the formatter needs a `ZoneId`.
 
 ```java
 Instant instant = Instant.parse("2024-01-02T00:30:00Z");
@@ -72,15 +72,15 @@ System.out.println(hcm.format(instant));
 // 2024-01-02 07:30 Asia/Ho_Chi_Minh
 ```
 
-Đây là đoạn trong phương thức Java; ví dụ chạy độc lập ở mục 7. Kết quả khác nhau vì TP.HCM có độ lệch UTC+07:00 vào thời điểm ví dụ. **`Instant` vẫn là cùng một thời điểm**, không bị cộng thêm bảy giờ trong dữ liệu nguồn.
+This is a snippet inside a Java method; the standalone runnable example is in section 7. The outputs differ because Ho Chi Minh City has an offset of UTC+07:00 at the example instant. **`Instant` remains the exact same moment**, without seven hours being added to the source data.
 
-Ý nghĩa của `VV` trong pattern: in **zone ID**, ví dụ `Asia/Ho_Chi_Minh`. Không nhầm với `XXX` (offset theo mẫu), `z` (tên zone hiển thị theo locale) hoặc `HH` (giờ). Chọn ký hiệu đúng nhu cầu hiển thị, và tránh nhầm offset cố định `+07:00` với một region zone có quy tắc lịch sử/chuyển giờ.
+Meaning of `VV` in the pattern: prints the **zone ID**, such as `Asia/Ho_Chi_Minh`. Do not confuse it with `XXX` (formatted offset), `z` (localized zone display name), or `HH` (hour). Choose the symbol that matches your display requirement, and avoid confusing a fixed offset `+07:00` with a region zone that has historical or transition rules.
 
-### 3.2. withZone không giống cộng/trừ giờ thủ công
+### 3.2. withZone is not manual hour addition/subtraction
 
-Đừng chuyển một thời điểm sang địa phương bằng cách cộng 7 giờ vào epoch milliseconds hoặc đổi `Instant` thành một `LocalDateTime` mới không có zone rồi lưu như một thời điểm khác. Chính sách time zone có thể thay đổi theo thời kỳ và khu vực; `ZoneId` cùng quy tắc lịch sử từ cơ sở dữ liệu TZDB mới là nguồn cần dùng.
+Do not convert an instant to local time by adding 7 hours to epoch milliseconds or turning an `Instant` into a zone-less `LocalDateTime` and storing it as another instant. Time-zone policies can change across eras and regions; `ZoneId` together with historical rules from the TZDB database is the authoritative source.
 
-Một số cách đặt đúng ý nghĩa:
+Meaningful ways to express it:
 
 ```java
 Instant instant = Instant.parse("2024-01-02T00:30:00Z");
@@ -88,13 +88,13 @@ ZonedDateTime local = instant.atZone(
         ZoneId.of("Asia/Ho_Chi_Minh"));
 ```
 
-Bây giờ `local` biểu diễn cùng thời điểm nhưng có zone. Khi cần nhiều cách hiển thị cùng một thời điểm, giữ `Instant` (hoặc kiểu có offset/zone thích hợp) ở domain, rồi áp formatter theo mục tiêu.
+Now `local` represents the same instant with a zone attached. When multiple views of the same instant are needed, keep `Instant` (or an appropriate offset/zoned type) in the domain layer, and apply formatters per presentation target.
 
-### 3.3. Khi dữ liệu là LocalDate hoặc LocalDateTime
+### 3.3. When the data is LocalDate or LocalDateTime
 
-`LocalDate` chỉ có ngày; `LocalDateTime` có ngày và giờ nhưng **không có zone hay offset**. `withZone(...)` không tự suy diễn rằng `LocalDateTime` là một thời điểm UTC rồi chuyển thành giờ địa phương.
+`LocalDate` has only a date; `LocalDateTime` has date and time but **no zone or offset**. `withZone(...)` does not assume a `LocalDateTime` is UTC and shift it to local time.
 
-Với pattern chỉ sử dụng trường địa phương:
+With a pattern using only local fields:
 
 ```java
 DateTimeFormatter formatter = DateTimeFormatter
@@ -106,13 +106,13 @@ System.out.println(formatter.format(
 // 2024-01-02 00:30
 ```
 
-Đầu vào không có `Instant` hay offset để chuyển đổi, nên các trường ngày/giờ vẫn được lấy từ `LocalDateTime`. Ngược lại, format `Instant.parse("2024-01-02T00:30:00Z")` bằng chính formatter đó cho `2024-01-02 07:30`.
+The input has no `Instant` or offset to convert, so the date/time fields are taken directly from `LocalDateTime`. Conversely, formatting `Instant.parse("2024-01-02T00:30:00Z")` with that exact same formatter yields `2024-01-02 07:30`.
 
-**Không lạm dụng kết quả này để kết luận mọi pattern đều format được mọi loại TemporalAccessor.** Nếu pattern đòi các trường không có ở dữ liệu (ví dụ `VV` khi không có zone phù hợp, `HH` trên `LocalDate`, hoặc offset trên dữ liệu thiếu offset), có thể gặp `UnsupportedTemporalTypeException`/`DateTimeException`. Cần chọn kiểu đầu vào đủ thông tin và test pattern được sử dụng.
+**Do not overgeneralize from this to conclude every pattern can format every `TemporalAccessor`.** If a pattern demands fields missing from the input (such as `VV` without an available zone, `HH` on a `LocalDate`, or an offset on data lacking an offset), you can hit `UnsupportedTemporalTypeException`/`DateTimeException`. Pick an input type with sufficient information and test the pattern in use.
 
-### 3.4. withZone khi parse
+### 3.4. withZone when parsing
 
-`withZone` có thể cung cấp zone override để diễn giải một chuỗi **không chứa zone** thành một thời điểm khi đủ ngày và giờ:
+`withZone` can supply a zone override to interpret a string **without a zone** as an instant when date and time are present:
 
 ```java
 DateTimeFormatter formatter = DateTimeFormatter
@@ -124,29 +124,29 @@ Instant parsed = Instant.from(
 // 2024-01-02T00:30:00Z
 ```
 
-Nhưng **không phải mọi chuỗi không có offset đều được phép quy ra Instant**: nếu thiếu ngày hoặc giờ, hoặc biểu diễn thời gian không hợp lệ, resolver có thể không tạo đủ các trường. Khi input đã chứa offset hoặc zone, thứ tự ưu tiên giữa thông tin trong text và override phụ thuộc trường dữ liệu và cách tính `INSTANT_SECONDS`; cần test các trường hợp thực tế. Không dùng `withZone` như “ép múi giờ” không điều kiện cho mọi input.
+However, **not every offset-less string can be resolved to an `Instant`**: if date or time is missing, or the time representation is invalid, the resolver may not construct all required fields. When the input already contains an offset or zone, precedence between the parsed text and the override depends on the fields and how `INSTANT_SECONDS` is resolved; test real cases. Do not treat `withZone` as an unconditional "force time zone" on arbitrary inputs.
 
-### 3.5. Zone, Offset và DST
+### 3.5. Zone, Offset, and DST
 
-Một region zone như `America/New_York` có thể chuyển sang/ra khỏi daylight saving time. Với `LocalDateTime` nằm trong **gap** (giờ không tồn tại) hoặc **overlap** (giờ lặp), ánh xạ từ local time sang thời điểm tuyệt đối cần quy tắc riêng. Việc chọn `ZoneId` chưa thay thế quyết định nghiệp vụ về gap/overlap, đặc biệt trong đặt lịch, thanh toán, nhật ký kiểm toán.
+A region zone like `America/New_York` transitions into and out of daylight saving time. For a `LocalDateTime` falling inside a **gap** (nonexistent hour) or **overlap** (repeated hour), mapping from local time to an absolute instant requires explicit rules. Selecting a `ZoneId` does not replace business decisions about gaps and overlaps, especially in scheduling, billing, and audit logs.
 
-Với một `Instant` đã biết, chuyển sang địa phương là duy nhất tại thời điểm ấy. Với một giờ đồng hồ địa phương chưa có offset, phải xác định cách giải quyết ambiguity.
+Given a known `Instant`, converting to local time is unique at that moment. Given a local wall-clock time without an offset, you must define how to resolve ambiguity.
 
-## 4. withChronology(Chronology): thay hệ lịch khi hiển thị/parse
+## 4. withChronology(Chronology): Changing the Calendar System for Display and Parsing
 
-### 4.1. Chronology là gì?
+### 4.1. What is Chronology?
 
-`Chronology` (thuộc `java.time.chrono`) mô tả cách một hệ lịch tổ chức năm, tháng, ngày và kỷ nguyên. Các chronology có sẵn trong Java gồm:
+`Chronology` (in `java.time.chrono`) describes how a calendar system organizes years, months, days, and eras. Built-in chronologies in Java include:
 
-- `IsoChronology.INSTANCE`: hệ ISO-8601, mặc định của `LocalDate`.
-- `JapaneseChronology.INSTANCE`: hệ lịch Nhật với các era tương ứng.
-- `ThaiBuddhistChronology.INSTANCE`: hệ Phật giáo Thái Lan.
-- `MinguoChronology.INSTANCE`: hệ Dân Quốc.
-- `HijrahChronology.INSTANCE`: một hệ lịch Hijrah với dữ liệu/ràng buộc riêng.
+- `IsoChronology.INSTANCE`: ISO-8601 system, the default for `LocalDate`.
+- `JapaneseChronology.INSTANCE`: Japanese calendar with its eras.
+- `ThaiBuddhistChronology.INSTANCE`: Thai Buddhist calendar.
+- `MinguoChronology.INSTANCE`: Minguo calendar.
+- `HijrahChronology.INSTANCE`: a Hijrah calendar with its own data and constraints.
 
-**Không coi chronology là múi giờ hoặc ngôn ngữ.** Một người có thể đọc tiếng Anh về một ngày theo lịch Phật giáo Thái Lan; việc chọn chronology chỉ định cách hệ lịch diễn đạt các trường ngày tháng, còn tên era/tháng cần locale phù hợp.
+**Do not confuse a chronology with a time zone or a language.** Someone can read English text about a date in the Thai Buddhist calendar; choosing a chronology specifies how calendar fields are computed, while era/month names still need an appropriate locale.
 
-### 4.2. Ví dụ ISO so với Thai Buddhist
+### 4.2. ISO vs. Thai Buddhist example
 
 ```java
 LocalDate isoDate = LocalDate.of(2024, 1, 2);
@@ -162,20 +162,20 @@ System.out.println(calendar
 // BE 2567-01-02
 ```
 
-Hai dòng nói về **cùng ngày thực tế theo cách ánh xạ hệ lịch**, nhưng số năm và era khác. `withChronology` chuyển dữ liệu date sang chronology được chọn để hiển thị; nó không làm `isoDate` thay đổi thành ngày 2567 trong hệ ISO, cũng không dịch chuyển thời điểm theo time zone.
+Both lines refer to **the same actual day mapped across calendar systems**, while the year number and era differ. `withChronology` converts the date to the selected chronology for display; it does not turn `isoDate` into year 2567 in the ISO system, nor does it shift the instant by time zone.
 
-Trong pattern:
+In the pattern:
 
 - `G`: era.
-- `uuuu`: proleptic year của chronology đang được dùng.
-- `MM`: tháng dưới dạng chữ số.
-- `dd`: ngày trong tháng.
+- `uuuu`: proleptic year of the active chronology.
+- `MM`: numeric month.
+- `dd`: day of month.
 
-Ví dụ dùng `Locale.ENGLISH` để tên era/chuỗi `AD` và `BE` có output có thể kiểm tra. Với locale khác, tên era có thể khác vì dữ liệu localization.
+The example uses `Locale.ENGLISH` so era names `AD` and `BE` produce verifiable output. Under other locales, era names may differ due to localization data.
 
-### 4.3. Parse với chronology override
+### 4.3. Parsing with a chronology override
 
-Khi formatter có `withChronology(ThaiBuddhistChronology.INSTANCE)`, nó có thể đọc ngày theo lịch Thái. Bạn có thể lấy ra:
+When a formatter has `withChronology(ThaiBuddhistChronology.INSTANCE)`, it can read dates written in the Thai calendar. You can extract:
 
 ```java
 DateTimeFormatter thai = DateTimeFormatter
@@ -193,38 +193,38 @@ LocalDate backToIso = LocalDate.from(thai.parse(view));
 // 2024-01-02
 ```
 
-Đây là đoạn Java trong phương thức với import `LocalDate`, `ThaiBuddhistDate`, `ThaiBuddhistChronology` và `DateTimeFormatter`; chương trình đầy đủ ở mục 7. Việc parse và chuyển kết quả về `LocalDate` cho phép dùng dữ liệu domain ISO một cách nhất quán, nhưng hãy chỉ định chronology tường minh khi input thuộc hệ lịch khác.
+This is a Java snippet inside a method requiring imports for `LocalDate`, `ThaiBuddhistDate`, `ThaiBuddhistChronology`, and `DateTimeFormatter`; the full program is in section 7. Parsing and converting back to `LocalDate` lets you keep ISO domain data consistent, while explicitly specifying the chronology whenever input belongs to another calendar system.
 
-### 4.4. Chronology không chỉ là cộng số năm
+### 4.4. Chronology is more than adding an offset to the year
 
-Đừng viết một thuật toán kiểu “năm Thái = năm ISO + 543” để thay `Chronology` cho mọi ngôn ngữ/hệ lịch. Mỗi calendar có quy tắc era, độ dài tháng/năm, niên hiệu, dữ liệu lịch sử hoặc phạm vi hỗ trợ khác nhau; không thể áp dụng một phép cộng số học cho lịch Nhật hay Hijrah.
+Do not write an algorithm like "Thai year = ISO year + 543" as a substitute for `Chronology` across languages and calendars. Every calendar has its own era rules, month/year lengths, reign names, historical data, or supported range; a simple arithmetic addition cannot work for Japanese or Hijrah calendars.
 
-Đối với domain ngày giờ, thường nên lưu `LocalDate`/`Instant` theo ngữ nghĩa ổn định, rồi định dạng theo chronology/locale cho người dùng khi cần. Một số ứng dụng cần lưu `ChronoLocalDate` nếu nghiệp vụ thực sự hoạt động bằng hệ lịch cụ thể; khi đó cần làm rõ quy tắc chuyển đổi và so sánh trước khi lưu dữ liệu.
+For date/time domains, it is usually best to store `LocalDate`/`Instant` with stable semantics and format using a chronology/locale for users when needed. Some applications must store `ChronoLocalDate` if the business genuinely operates in a specific calendar; in that case, clarify conversion and comparison rules before persisting data.
 
-### 4.5. ResolverStyle và dữ liệu lịch không hợp lệ
+### 4.5. ResolverStyle and invalid calendar data
 
-Khi parse, `withChronology` không phải kiểm tra tất cả quy tắc hợp lệ của ứng dụng. Nó kết hợp cùng `ResolverStyle` (ví dụ `STRICT`) để xử lý ngày, era và các trường lịch. Với dữ liệu quan trọng, chọn pattern đủ trường, test ngày nhuận, era boundary và giới hạn hệ lịch. Đặc biệt, ký hiệu `yyyy` (year of era) khác `uuuu` (proleptic year); trong strict parsing đôi khi cần era `G` hoặc cấu hình resolver phù hợp.
+When parsing, `withChronology` alone does not enforce all application validation rules. It works together with `ResolverStyle` (for example `STRICT`) to validate days, eras, and calendar fields. For critical data, choose a pattern with sufficient fields, and test leap days, era boundaries, and calendar bounds. In particular, `yyyy` (year-of-era) differs from `uuuu` (proleptic year); in strict parsing, an era `G` or matching resolver configuration may be required.
 
-## 5. withDecimalStyle(DecimalStyle): chữ số và dấu số
+## 5. withDecimalStyle(DecimalStyle): Digits and Numeric Signs
 
-### 5.1. Bốn thành phần của DecimalStyle
+### 5.1. Four components of DecimalStyle
 
-`java.time.format.DecimalStyle` lưu các ký tự được `DateTimeFormatter` dùng cho biểu diễn chữ số và dấu số:
+`java.time.format.DecimalStyle` stores the characters used by `DateTimeFormatter` for representing digits and numeric signs:
 
-| API | Ý nghĩa | Ví dụ |
+| API | Meaning | Example |
 | --- | --- | --- |
-| `getZeroDigit()` | Ký tự cho chữ số 0, các chữ số kế tiếp được suy ra từ đó. | `'0'` hoặc `'٠'` |
-| `getPositiveSign()` | Ký hiệu dấu cộng. | `'+'` |
-| `getNegativeSign()` | Ký hiệu dấu trừ. | `'-'` |
-| `getDecimalSeparator()` | Ký hiệu phân tách phần thập phân khi formatter dùng decimal separator. | `'.'` hoặc `'٫'` |
+| `getZeroDigit()` | Character for digit 0; subsequent digits are derived from it. | `'0'` or `'٠'` |
+| `getPositiveSign()` | Plus sign character. | `'+'` |
+| `getNegativeSign()` | Minus sign character. | `'-'` |
+| `getDecimalSeparator()` | Decimal separator character when the formatter uses one. | `'.'` or `'٫'` |
 
-`DecimalStyle.STANDARD` dùng chữ số Latin `0–9`, dấu `+`, `-` và dấu chấm `.`. Các phương thức `withZeroDigit(char)`, `withPositiveSign(char)`, `withNegativeSign(char)` và `withDecimalSeparator(char)` trả đối tượng `DecimalStyle` mới; không sửa bản gốc.
+`DecimalStyle.STANDARD` uses Latin digits `0–9`, `+`, `-`, and dot `.`. The methods `withZeroDigit(char)`, `withPositiveSign(char)`, `withNegativeSign(char)`, and `withDecimalSeparator(char)` return a new `DecimalStyle` object without mutating the original.
 
-`DecimalStyle.of(locale)` tạo DecimalStyle theo dữ liệu locale được JDK hỗ trợ. **Đừng tự giả định** một locale luôn dùng một hệ chữ số nhất định: người dùng có thể đặt numbering system khác; dữ liệu locale/JDK và extension có thể ảnh hưởng. Nếu cần ký tự chính xác, hãy kiểm tra `DecimalStyle` được tạo ra hoặc cung cấp explicit style.
+`DecimalStyle.of(locale)` creates a `DecimalStyle` based on JDK-supported locale data. **Do not assume** a locale always uses a single fixed numbering system: users can select another numbering system, and locale/JDK data or extensions can affect it. When exact characters matter, inspect the created `DecimalStyle` or supply an explicit style.
 
-### 5.2. Đổi chữ số không đổi giá trị ngày
+### 5.2. Changing digits does not change the date value
 
-Ví dụ một ngày theo ISO vẫn là ngày 02/01/2024 dù chữ số được in theo hệ Arabic-Indic:
+For example, an ISO date is still January 2, 2024 even when printed with Arabic-Indic digits:
 
 ```java
 DecimalStyle arabicDigits = DecimalStyle.STANDARD
@@ -241,11 +241,11 @@ LocalDate date = LocalDate.parse(view, formatter);
 // 2024-01-02
 ```
 
-`withDecimalStyle` chỉ đổi **cách đọc/ghi ký tự số**; nó không đổi chronology sang lịch Hijrah, không chuyển giờ, không tự đổi văn bản tên tháng hay nội dung chuỗi literal trong pattern. Dấu `-` giữa năm/tháng/ngày ở pattern `"uuuu-MM-dd"` là **literal text**, nên vẫn hiển thị dấu ASCII `-`, dù DecimalStyle có thể đổi negative sign cho một số field có dấu.
+`withDecimalStyle` changes only **how numeric characters are read and written**; it does not switch the chronology to Hijrah, shift times, translate month names, or alter literal text inside the pattern. The `-` between year/month/day in `"uuuu-MM-dd"` is **literal text**, so it still renders as ASCII `-`, even though `DecimalStyle` can change the negative sign for signed numeric fields.
 
-### 5.3. Dấu phân cách thập phân: chỉ ảnh hưởng khi phần định dạng dùng nó
+### 5.3. Decimal separator: applies only where formatting uses it
 
-Không phải mọi dấu chấm `.` trong pattern đều được thay bởi `DecimalStyle.getDecimalSeparator()`. Nếu bạn viết literal `"."` trong pattern, nó vẫn là dấu chấm literal. Decimal separator của DecimalStyle được dùng khi formatter xây bằng thao tác có ngữ nghĩa phần thập phân, ví dụ `DateTimeFormatterBuilder.appendFraction(..., true)`.
+Not every dot `.` in a pattern is replaced by `DecimalStyle.getDecimalSeparator()`. If you write a literal `"."` in a pattern, it remains a literal dot. `DecimalStyle`'s decimal separator is used when a formatter is built with an operation that has decimal-fraction semantics, such as `DateTimeFormatterBuilder.appendFraction(..., true)`.
 
 ```java
 DecimalStyle style = DecimalStyle.STANDARD
@@ -264,11 +264,11 @@ String text = fractional.format(t);
 // "٢٠٢٤-٠١-٠٢ ٠٣:٠٤:٠٥٫١٢٣"
 ```
 
-Ở đây ký tự `٫` (U+066B) là dấu phân tách phần thập phân của formatter; các dấu `-` và `:` trong pattern là literal, không bị chuyển. Nếu dùng `DateTimeFormatter.ofPattern("HH:mm:ss.SSS")`, dấu chấm trong pattern là literal và **không bảo đảm** được thay bằng dấu tùy biến của DecimalStyle.
+Here, `٫` (U+066B) is the formatter's decimal separator; `-` and `:` in the pattern are literals and are not converted. If you use `DateTimeFormatter.ofPattern("HH:mm:ss.SSS")`, the dot in the pattern is a literal and is **not guaranteed** to be replaced by a custom `DecimalStyle` separator.
 
-### 5.4. DecimalStyle có thể ảnh hưởng parsing
+### 5.4. DecimalStyle can affect parsing
 
-Khi formatter đã được cấu hình Arabic-Indic digits, chuỗi ISO với chữ số ASCII có thể bị từ chối:
+Once a formatter is configured for Arabic-Indic digits, an ISO string with ASCII digits can be rejected:
 
 ```java
 DateTimeFormatter formatter = DateTimeFormatter
@@ -276,17 +276,17 @@ DateTimeFormatter formatter = DateTimeFormatter
         .withDecimalStyle(
                 DecimalStyle.STANDARD.withZeroDigit('\u0660'));
 
-LocalDate.parse("٢٠٢٤-٠١-٠٢", formatter); // Thành công.
-LocalDate.parse("2024-01-02", formatter); // Có thể ném DateTimeParseException.
+LocalDate.parse("٢٠٢٤-٠١-٠٢", formatter); // Succeeds.
+LocalDate.parse("2024-01-02", formatter); // May throw DateTimeParseException.
 ```
 
-Điểm quan trọng: parser bị ảnh hưởng bởi **ký tự số được cấu hình**, không chỉ bởi `ResolverStyle`. Vì vậy, khi UI cho phép nhiều numbering systems, cần thiết kế lựa chọn/chính sách chuẩn hóa rõ ràng; đừng cho rằng mọi loại chữ số đều được parser chấp nhận tự động.
+Key point: the parser is governed by the **configured digit characters**, not just `ResolverStyle`. Therefore, when a UI allows multiple numbering systems, design an explicit selection/normalization policy; do not assume every digit script is accepted automatically by the parser.
 
-Không nên thay thế mọi ký tự số Unicode thành ASCII một cách âm thầm ở input quan trọng. Nếu sản phẩm cho phép chuẩn hóa, hãy kiểm thử những hệ chữ số được hỗ trợ và xử lý dữ liệu không hợp lệ minh bạch.
+Do not silently replace all Unicode digit characters with ASCII on critical inputs. If the product permits normalization, test all supported digit scripts and handle invalid inputs transparently.
 
-## 6. Đặt các override cùng nhau
+## 6. Combining Overrides Together
 
-Ba phương thức có thể được kết hợp thành một formatter:
+All three methods can be chained on a single formatter:
 
 ```java
 DateTimeFormatter formatter = DateTimeFormatter
@@ -297,20 +297,20 @@ DateTimeFormatter formatter = DateTimeFormatter
                 DecimalStyle.STANDARD.withZeroDigit('\u0660'));
 ```
 
-Đoạn này nằm trong phương thức Java; cần import các class liên quan. Ý nghĩa từng override:
+This snippet sits inside a Java method and requires importing the relevant classes. Role of each override:
 
-1. `withZone`: chọn local time của một `Instant` theo TP.HCM.
-2. `withChronology`: hiển thị ngày theo lịch Phật giáo Thái Lan khi có dữ liệu ngày tương thích.
-3. `withDecimalStyle`: in các chữ số theo hệ được chỉ định.
-4. `Locale.ENGLISH` trong `ofPattern`: bối cảnh cho tên era và các ký tự văn bản localization của pattern.
+1. `withZone`: resolves the local time of an `Instant` in Ho Chi Minh City.
+2. `withChronology`: displays the date in the Thai Buddhist calendar when compatible date data is present.
+3. `withDecimalStyle`: prints digits in the specified numbering system.
+4. `Locale.ENGLISH` in `ofPattern`: provides context for era names and any localized text elements in the pattern.
 
-Khi chuỗi hiển thị có year-of-era/era, timezone và hệ số đặc thù, parser phải dùng các override tương ứng (hoặc nhập explicit zone/chronology phù hợp) để diễn giải đúng. **Không trông chờ một chuỗi chỉ chứa ngày và giờ, không chứa zone hoặc era, luôn cho phép khôi phục đầy đủ mọi thông tin ban đầu.**
+When a displayed string contains year-of-era/era, time zone, and a specific digit system, the parser must use the corresponding overrides (or receive an explicit zone/chronology) to interpret it accurately. **Do not expect a string containing only date and time, without zone or era, to always allow lossless recovery of all original information.**
 
-Nếu yêu cầu chỉ là ngày sinh (không phải timestamp), `LocalDate` + chronology mong muốn thường phù hợp hơn `Instant` + zone, vì ngày sinh không nhất thiết gắn với một thời điểm UTC. Ngược lại, log sự kiện/timestamp nên có `Instant` cùng zone hiển thị khi cần.
+If the requirement is simply a birth date (not a timestamp), `LocalDate` + desired chronology is usually more appropriate than `Instant` + zone, because a birth date is not inherently tied to a UTC instant. Conversely, event logs and timestamps should carry `Instant` along with a display zone when needed.
 
-## 7. Ví dụ Java 17+ độc lập: so sánh zone, chronology và decimal style
+## 7. Standalone Java 17+ Example: Comparing Zone, Chronology, and Decimal Style
 
-Tạo tệp **`DateTimeFormatterOverridesDemo.java`** sau đây. Ví dụ cố định dữ liệu đầu vào, locale và các override nên đầu ra có thể kiểm chứng. Không đổi `Locale.setDefault(...)` hoặc `TimeZone.setDefault(...)` của JVM.
+Create the file **`DateTimeFormatterOverridesDemo.java`** below. The example fixes input data, locale, and overrides so the output is verifiable. Do not mutate the JVM's `Locale.setDefault(...)` or `TimeZone.setDefault(...)`.
 
 ```java
 import java.time.Instant;
@@ -394,14 +394,14 @@ public class DateTimeFormatterOverridesDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 hoặc mới hơn trong thư mục chứa tệp:
+Compile and run with JDK 17 or newer in the directory containing the file:
 
 ```bash
 javac -encoding UTF-8 DateTimeFormatterOverridesDemo.java
 java DateTimeFormatterOverridesDemo
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 utc=2024-01-02 00:30 UTC
@@ -419,95 +419,95 @@ fraction=٢٠٢٤-٠١-٠٢ ٠٣:٠٤:٠٥٫١٢٣
 fractionParsed=2024-01-02T03:04:05.123
 ```
 
-### Đọc kết quả đúng cách
+### Reading the output properly
 
-- Hai dòng `utc`/`hcm` phản ánh **zone khác nhau của cùng một Instant**, không phải hai sự kiện khác nhau.
-- `iso` và `thai` dùng cùng `LocalDate` nhưng chronology khác, nên số năm và era khác.
-- `thaiParsed` là kiểu ngày thuộc hệ Phật giáo Thái Lan; `isoParsed` chuyển cùng ngày đó về `LocalDate` ISO.
-- `digits` in chữ số Arabic-Indic, nhưng dấu gạch trong pattern vẫn là dấu literal ASCII.
-- `parsed` nhận lại `LocalDate` ban đầu khi dùng cùng formatter; `ascii=rejected` cho thấy cần lưu ý ký tự số của parser.
-- `local` và `instant` minh họa `LocalDateTime` không tự chuyển giờ chỉ vì formatter có zone, trong khi `Instant` được chuyển theo zone.
-- `fraction` và `fractionParsed` chứng minh dấu phân tách phần thập phân thuộc `DecimalStyle` khi formatter được xây bằng `appendFraction(..., true)`.
+- The two lines `utc`/`hcm` reflect **different zones of the same `Instant`**, not two different events.
+- `iso` and `thai` use the same `LocalDate` with different chronologies, so the year number and era differ.
+- `thaiParsed` is a Thai Buddhist calendar date type; `isoParsed` converts that same date back to an ISO `LocalDate`.
+- `digits` prints Arabic-Indic digits, while the hyphens in the pattern remain ASCII literal hyphens.
+- `parsed` recovers the original `LocalDate` when using the same formatter; `ascii=rejected` highlights the need to account for the parser's digit characters.
+- `local` and `instant` show that `LocalDateTime` does not shift time just because the formatter has a zone, whereas `Instant` is converted according to the zone.
+- `fraction` and `fractionParsed` demonstrate that the decimal separator comes from `DecimalStyle` when the formatter is built with `appendFraction(..., true)`.
 
-## 8. Những lỗi thường gặp
+## 8. Common Mistakes
 
-| Lỗi | Vì sao sai | Cách làm đúng |
+| Mistake | Why it is wrong | Proper approach |
 | --- | --- | --- |
-| Gọi `formatter.withZone(zone)` rồi bỏ kết quả | `DateTimeFormatter` immutable. | Gán formatter mới. |
-| Đổi locale và giả định timezone cũng đổi | Locale và zone là hai khái niệm khác. | Chọn `ZoneId` riêng từ ngữ cảnh. |
-| Dùng `LocalDateTime` như một Instant có sẵn UTC | LocalDateTime không có zone/offset. | Xác định vùng/time zone trước khi ánh xạ sang Instant. |
-| Tự cộng số giờ khi “đổi zone” | DST và quy tắc lịch sử có thể phức tạp. | Dùng `ZoneId`/`ZonedDateTime`. |
-| Coi `withChronology` là cộng 543 vào năm ISO | Mỗi hệ lịch có quy tắc riêng. | Dùng `Chronology`/`ChronoLocalDate`. |
-| Nghĩ `ThaiBuddhistDate` là dữ liệu lưu năm ISO đã đổi vĩnh viễn | Đây là cách biểu diễn date trong chronology riêng. | Quy định rõ dạng lưu và conversion. |
-| Dùng `yyyy` trong strict parsing mà không có era | Year-of-era khác proleptic year. | Dùng `uuuu` nếu thích hợp hoặc cung cấp era. |
-| Nghĩ `withDecimalStyle` đổi mọi ký tự literal `.` | DecimalStyle chỉ áp cho các ký hiệu số mà formatter xử lý. | Dùng `appendFraction(..., true)` khi cần decimal separator style. |
-| Nghĩ `DecimalStyle` tự đổi calendar sang lịch Arabic/Hijrah | DecimalStyle chỉ là ký hiệu chữ số/dấu. | Chọn `Chronology` độc lập. |
-| Định dạng bằng chữ số Arabic-Indic nhưng parse bằng formatter ASCII | Hai formatter có input grammar khác nhau. | Dùng cùng style/locale phù hợp; test số Unicode. |
-| Đổi `TimeZone.setDefault` hoặc `Locale.setDefault` trên từng request | Trạng thái chung JVM, có thể tác động thread khác. | Truyền formatter/zone/locale tường minh. |
-| Dùng một pattern trên mọi TemporalAccessor | Không phải type nào cũng có đủ trường. | Chọn type đúng và test tất cả field trong pattern. |
+| Calling `formatter.withZone(zone)` and discarding the result | `DateTimeFormatter` is immutable. | Assign the returned formatter. |
+| Changing locale and assuming the timezone also changed | Locale and zone are two separate concepts. | Select `ZoneId` separately from context. |
+| Treating `LocalDateTime` as an implicit UTC `Instant` | `LocalDateTime` has no zone or offset. | Determine the region/time zone before mapping to `Instant`. |
+| Manually adding hours to "switch zones" | DST and historical rules can be complex. | Use `ZoneId`/`ZonedDateTime`. |
+| Treating `withChronology` as adding 543 to the ISO year | Each calendar system has its own rules. | Use `Chronology`/`ChronoLocalDate`. |
+| Thinking `ThaiBuddhistDate` is permanently mutated ISO year data | It is a date representation in its own chronology. | Define storage format and conversions explicitly. |
+| Using `yyyy` in strict parsing without an era | Year-of-era differs from proleptic year. | Use `uuuu` if appropriate or supply an era. |
+| Thinking `withDecimalStyle` changes every literal `.` character | `DecimalStyle` applies only to numeric symbols handled by the formatter. | Use `appendFraction(..., true)` when decimal-separator styling is needed. |
+| Thinking `DecimalStyle` switches the calendar to Arabic/Hijrah | `DecimalStyle` covers only digit and sign symbols. | Choose `Chronology` independently. |
+| Formatting with Arabic-Indic digits yet parsing with an ASCII formatter | The two formatters have different input grammars. | Use the matching style/locale; test Unicode digits. |
+| Mutating `TimeZone.setDefault` or `Locale.setDefault` per request | JVM-wide shared state that can affect other threads. | Pass formatter/zone/locale explicitly. |
+| Using one pattern on every `TemporalAccessor` | Not every type carries all fields. | Pick the right type and test every field in the pattern. |
 
-## 9. Chọn kiểu dữ liệu phù hợp trước khi định dạng
+## 9. Choosing the Right Data Type Before Formatting
 
-| Dữ liệu trong ứng dụng | Kiểu Java thường dùng | Khi cần override |
+| Application data | Typical Java type | When overrides are needed |
 | --- | --- | --- |
-| Ngày không có giờ/múi giờ, ví dụ ngày sinh | `LocalDate` | `withChronology`/`withDecimalStyle` nếu UI cần lịch/chữ số khác. |
-| Giờ hẹn địa phương chưa gắn zone | `LocalDateTime` + `ZoneId` được lưu/giải quyết riêng | `withZone` không đủ để làm rõ gap/overlap; cần quy tắc chuyển sang `ZonedDateTime`. |
-| Thời điểm sự kiện tuyệt đối | `Instant` | `withZone` để hiển thị local date/time, kết hợp chronology/decimal style khi cần. |
-| Ngày giờ có timezone region | `ZonedDateTime` | Formatter có thể giữ zone trong dữ liệu hoặc override; cần xác định chủ đích. |
-| Ngày theo lịch ngoài ISO | `ChronoLocalDate`/kiểu chronology cụ thể | Chọn chronology rõ ràng và kiểm soát conversion sang ISO nếu cần. |
-| Input ngày/giờ bản địa hóa | `String` + formatter cấu hình rõ | Parse đúng zone, chronology, decimal style, resolver style và domain constraints. |
+| Date without time/timezone, e.g., birthday | `LocalDate` | `withChronology`/`withDecimalStyle` if the UI needs another calendar or digit script. |
+| Local appointment time without an attached zone | `LocalDateTime` + `ZoneId` stored/resolved separately | `withZone` is not enough to disambiguate gaps/overlaps; need rules to convert to `ZonedDateTime`. |
+| Absolute event instant | `Instant` | `withZone` to display local date/time, combined with chronology/decimal style as needed. |
+| Date-time with a time-zone region | `ZonedDateTime` | Formatter can keep the data's zone or override it; decide intentionally. |
+| Date in a non-ISO calendar | `ChronoLocalDate`/specific chronology type | Choose chronology explicitly and control conversion to ISO if needed. |
+| Localized date/time input | `String` + clearly configured formatter | Parse with the right zone, chronology, decimal style, resolver style, and domain constraints. |
 
-Không dùng `Instant` cho một ngày thuần túy nếu không có thời điểm; không dùng `LocalDateTime` làm timestamp toàn cục. Quyết định kiểu dữ liệu là trách nhiệm domain trước khi nghĩ tới pattern định dạng.
+Do not use `Instant` for a pure calendar date that has no time of day; do not use `LocalDateTime` as a global timestamp. Choosing the data type is a domain responsibility before thinking about formatting patterns.
 
-## 10. Validation và kiểm thử các override
+## 10. Validation and Testing of Overrides
 
-Khi parse hoặc nhận input từ UI:
+When parsing or accepting UI input:
 
-1. **Kiểm tra cú pháp và locale:** string có phù hợp pattern, chữ số và dấu của `DecimalStyle` đã chọn không? Có text dư không?
-2. **Kiểm tra chronology:** ngày/era có hợp lệ trong lịch người dùng chọn không, có nằm trong phạm vi được hỗ trợ không?
-3. **Kiểm tra zone và nghĩa thời điểm:** nếu input là ngày-giờ địa phương, có DST gap/overlap không và chọn chính sách gì? Đừng tự giả định input có UTC.
-4. **Kiểm tra domain:** ngày có trong khoảng cho phép không, deadline đã qua chưa, số năm/era có ý nghĩa nghiệp vụ không?
-5. **Kiểm tra tính tái lập:** cố định `Instant`, `ZoneId`, `Locale`, `Chronology`, `DecimalStyle`, phiên bản Java và dữ liệu TZDB nếu output chính xác tuyệt đối quan trọng.
+1. **Syntax and locale check:** does the string match the pattern, digits, and signs of the chosen `DecimalStyle`? Is there trailing text?
+2. **Chronology check:** is the date/era valid in the user's chosen calendar, and within the supported range?
+3. **Zone and instant semantics check:** if the input is a local date-time, is there a DST gap/overlap and what policy applies? Never assume input is UTC.
+4. **Domain check:** is the date within the allowed range, has a deadline passed, and is the year/era meaningful in the domain?
+5. **Reproducibility check:** pin `Instant`, `ZoneId`, `Locale`, `Chronology`, `DecimalStyle`, Java version, and TZDB data when exact output matters.
 
-`DateTimeFormatter.parse` có thể ném `DateTimeParseException` khi chuỗi không khớp pattern hoặc không thể resolve, nhưng parse thành công không có nghĩa mọi chính sách nghiệp vụ đã được đáp ứng. Với pattern không chứa đủ dữ liệu cho kiểu đầu ra mong muốn, thao tác `Instant.from(...)`/`LocalDate.from(...)` vẫn có thể thất bại.
+`DateTimeFormatter.parse` can throw `DateTimeParseException` when a string does not match the pattern or cannot be resolved, yet successful parsing does not guarantee all business policies are satisfied. With a pattern lacking enough data for the target type, `Instant.from(...)`/`LocalDate.from(...)` can still fail.
 
-### Ma trận kiểm thử ngắn
+### Short test matrix
 
-| Tình huống | Kỳ vọng |
+| Scenario | Expectation |
 | --- | --- |
-| Một Instant với UTC và Asia/Ho_Chi_Minh | Cùng thời điểm, giờ địa phương khác nhau. |
-| LocalDateTime format bằng formatter có zone | Không suy diễn chuyển đổi từ UTC nếu không có instant/offset. |
-| ThaiBuddhistChronology và ISO | Cùng ngày, year/era hiển thị khác. |
-| Parse ThaiBuddhist text thành ISO LocalDate | Chuyển đổi về đúng ngày ISO nếu dữ liệu đầy đủ. |
-| Arabic-Indic digits + DecimalStyle tương ứng | Format/parse khớp khi dùng cùng style. |
-| ASCII digits với formatter yêu cầu Arabic-Indic | Bị từ chối hoặc xử lý theo chính sách đã xác định. |
-| Decimal separator qua appendFraction(..., true) | Sử dụng dấu của DecimalStyle, không phải literal `.`. |
-| Ngày 29/02 hợp lệ và ngày không tồn tại | ResolverStyle được cấu hình để kiểm tra đúng. |
-| DST overlap/gap ở zone có chuyển giờ | Áp dụng chính sách giải quyết thời gian địa phương rõ ràng. |
+| Same `Instant` with UTC and `Asia/Ho_Chi_Minh` | Same instant, different local times. |
+| `LocalDateTime` formatted by a formatter with a zone | Does not infer a conversion from UTC without an instant/offset. |
+| `ThaiBuddhistChronology` and ISO | Same day, different year/era displayed. |
+| Parsing `ThaiBuddhist` text into ISO `LocalDate` | Converts to the exact ISO date when data is complete. |
+| Arabic-Indic digits + matching `DecimalStyle` | Formatting/parsing matches when using the same style. |
+| ASCII digits with a formatter expecting Arabic-Indic | Rejected or handled per defined policy. |
+| Decimal separator via `appendFraction(..., true)` | Uses `DecimalStyle`'s separator, not literal `.`. |
+| Valid Feb 29 and nonexistent dates | `ResolverStyle` configured to validate properly. |
+| DST overlap/gap in a zone with clock transitions | Applies an explicit local-time resolution policy. |
 
-## 11. Bài tập thực hành
+## 11. Practice Exercises
 
-**Bài 1 — Giờ địa phương:** format `Instant.parse("2024-01-02T00:30:00Z")` bằng formatter `uuuu-MM-dd HH:mm VV` với `UTC` và `Asia/Ho_Chi_Minh`. Thử thay `Instant` bằng `LocalDateTime`. Giải thích vì sao không thể lấy mọi LocalDateTime và coi nó là UTC để đổi giờ.
+**Exercise 1 — Local time:** format `Instant.parse("2024-01-02T00:30:00Z")` with `"uuuu-MM-dd HH:mm VV"` using `UTC` and `Asia/Ho_Chi_Minh`. Try replacing `Instant` with `LocalDateTime`. Explain why you cannot take any `LocalDateTime` and treat it as UTC to shift hours.
 
-**Bài 2 — Lịch ngoài ISO:** format `LocalDate.of(2024, 1, 2)` theo `ThaiBuddhistChronology` với pattern `G uuuu-MM-dd`, parse ngược về `ThaiBuddhistDate` và `LocalDate`. Thử đổi `Locale.ENGLISH` sang locale khác rồi kiểm tra chữ era thay đổi ra sao.
+**Exercise 2 — Non-ISO calendar:** format `LocalDate.of(2024, 1, 2)` in `ThaiBuddhistChronology` with pattern `"G uuuu-MM-dd"`, and parse it back into `ThaiBuddhistDate` and `LocalDate`. Try switching `Locale.ENGLISH` to another locale and inspect how the era text changes.
 
-**Bài 3 — Chữ số:** tạo `DecimalStyle` bắt đầu từ `'٠'` và format `LocalDate.of(2024, 1, 2)`. Thử parse bằng formatter dùng chữ số Arabic-Indic và formatter tiêu chuẩn. Nêu quy tắc input của form nên là gì nếu cần hỗ trợ cả hai hệ chữ số.
+**Exercise 3 — Digits:** create a `DecimalStyle` starting at `'٠'` and format `LocalDate.of(2024, 1, 2)`. Try parsing with the Arabic-Indic digit formatter and with a standard formatter. State what input rule a form should enforce if both numbering systems must be supported.
 
-**Bài 4 — Phần giây:** dùng `DateTimeFormatterBuilder.appendFraction(NANO_OF_SECOND, 3, 3, true)` rồi đặt `withDecimalStyle` với U+066B. So sánh kết quả với pattern có dấu chấm literal; giải thích vì sao không phải mọi dấu `.` đều được đổi.
+**Exercise 4 — Fractional seconds:** use `DateTimeFormatterBuilder.appendFraction(NANO_OF_SECOND, 3, 3, true)` and set `withDecimalStyle` using U+066B. Compare the result with a pattern using a literal dot; explain why not every `.` is replaced.
 
-**Bài 5 — Cấu hình kết hợp:** tạo một formatter với `withZone` TP.HCM, `withChronology` Thai Buddhist và `withDecimalStyle` Arabic-Indic. Cho cùng `Instant`, thử đổi riêng từng override và xác định trường nào của output bị ảnh hưởng.
+**Exercise 5 — Combined configuration:** create a formatter with `withZone` Ho Chi Minh City, `withChronology` Thai Buddhist, and `withDecimalStyle` Arabic-Indic. Given the same `Instant`, toggle each override individually and identify which output fields are affected.
 
-**Bài 6 — Parse có zone:** phân tích chuỗi `"2024-01-02 07:30"` bằng formatter có `withZone(Asia/Ho_Chi_Minh)` và chuyển thành `Instant`. Kiểm tra kết quả kỳ vọng `2024-01-02T00:30:00Z`. Sau đó xem xét một giờ địa phương thuộc DST overlap/gap trong zone phù hợp và thiết kế cách phát hiện tình huống không đơn trị.
+**Exercise 6 — Parsing with zone:** parse `"2024-01-02 07:30"` using a formatter with `withZone(Asia/Ho_Chi_Minh)` and convert to `Instant`. Verify the expected result `2024-01-02T00:30:00Z`. Then examine a local time falling in a DST overlap/gap in an appropriate zone and design a way to detect non-unique instants.
 
-## 12. Checklist hoàn thành
+## 12. Completion Checklist
 
-- [ ] Phân biệt rõ `ZoneId`, `Chronology` và `DecimalStyle`.
-- [ ] Biết rằng `withZone`, `withChronology`, `withDecimalStyle` trả formatter mới, không sửa bản cũ.
-- [ ] Biết lúc nào `withZone` chuyển thời điểm (có `Instant`/offset) và lúc nào không có đủ ngữ nghĩa để chuyển (chỉ `LocalDateTime`).
-- [ ] Hiểu chronology có thể thay era/year mà không làm thay đổi chính ngày thực tế.
-- [ ] Biết chữ số và decimal separator của formatter có thể do `DecimalStyle` quyết định, khác các ký tự literal của pattern.
-- [ ] Chọn đúng kiểu dữ liệu `Instant`/`LocalDate`/`LocalDateTime`/`ChronoLocalDate` trước khi format.
-- [ ] Có thể format/parse với locale, chronology, decimal style và zone tường minh; kiểm tra thêm resolver/domain.
-- [ ] Có test cho chữ số Unicode, ngày lịch ngoài ISO, UTC vs local time, và DST nếu domain cần.
+- [ ] Clearly distinguish `ZoneId`, `Chronology`, and `DecimalStyle`.
+- [ ] Know that `withZone`, `withChronology`, and `withDecimalStyle` return new formatters without mutating the old one.
+- [ ] Know when `withZone` converts an instant (with `Instant`/offset) and when there is not enough semantics to convert (pure `LocalDateTime`).
+- [ ] Understand that chronology can change era/year without changing the actual calendar day.
+- [ ] Know that a formatter's digits and decimal separator can be controlled by `DecimalStyle`, unlike literal characters in the pattern.
+- [ ] Choose the right data type—`Instant`/`LocalDate`/`LocalDateTime`/`ChronoLocalDate`—before formatting.
+- [ ] Format and parse with explicit locale, chronology, decimal style, and zone; also verify resolver/domain constraints.
+- [ ] Write tests for Unicode digits, non-ISO calendar dates, UTC vs. local time, and DST where required by the domain.
 
-**Kết luận:** `withZone` quyết định **múi giờ biểu diễn thời điểm**, `withChronology` quyết định **hệ lịch**, và `withDecimalStyle` quyết định **ký hiệu số**. Chúng có thể kết hợp, nhưng không thay thế nhau; formatter không sửa dữ liệu gốc hoặc cấu hình toàn JVM. Phần cốt lõi của localization là chọn đúng **kiểu dữ liệu thời gian** và truyền đầy đủ ngữ cảnh trước khi render/parse.
+**Conclusion:** `withZone` determines the **time zone for expressing an instant**, `withChronology` determines the **calendar system**, and `withDecimalStyle` determines **numeric symbols**. They can be combined, yet cannot replace one another; a formatter does not mutate source data or JVM-global settings. The essence of localization is choosing the right **temporal data type** and passing complete context before rendering or parsing.

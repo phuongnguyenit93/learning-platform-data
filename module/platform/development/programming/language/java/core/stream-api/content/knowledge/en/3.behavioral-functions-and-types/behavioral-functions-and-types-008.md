@@ -1,28 +1,28 @@
-# Thiết kế hàm thuần và hàm ánh xạ dễ kiểm thử
+# Designing Pure Functions and Testable Mapping Functions
 
-## 1. Vì sao hàm ánh xạ cần dễ kiểm thử?
+## 1. Why Should Mapping Functions Be Easy to Test?
 
-Trong Java Stream API, một pipeline thường có dạng **nguồn dữ liệu → các phép toán trung gian → phép toán kết thúc**. Ví dụ, `filter` lựa chọn đơn hàng, `map` biến đổi đơn hàng thành dữ liệu hiển thị, `reduce` hoặc `collect` tổng hợp kết quả. Các phép toán trung gian phần lớn được thực thi **lười** (*lazy*): Java chỉ đánh giá chúng khi một phép toán kết thúc cần dữ liệu.
+In the Java Stream API, a pipeline typically takes the form **data source → intermediate operations → terminal operation**. For example, `filter` selects orders, `map` transforms orders into display data, and `reduce` or `collect` aggregates results. Intermediate operations are mostly executed **lazily**: Java only evaluates them when a terminal operation needs data.
 
-Điều đó đặt ra yêu cầu quan trọng: hàm được truyền vào `map` phải có hành vi rõ ràng ngay cả khi Java gọi hàm vào thời điểm khác dự kiến, bỏ qua một số lời gọi do tối ưu hóa, hoặc chia công việc cho nhiều luồng. Một **hàm thuần** (*pure function*) là cách thiết kế phù hợp: với cùng đầu vào, hàm trả cùng kết quả và không tạo tác dụng phụ có thể quan sát từ bên ngoài.
+That sets an important requirement: the function passed to `map` must behave predictably even when Java invokes it at an unexpected time, skips some invocations due to optimizations, or splits work across multiple threads. A **pure function** is an appropriate design choice: given the same inputs, it returns the same result and produces no externally observable side effects.
 
-Mục tiêu của bài học:
+Lesson objectives:
 
-- Phân biệt hàm thuần, hàm có trạng thái và hàm có tác dụng phụ trong Java.
-- Thiết kế ánh xạ `T → R` thành phương thức nhỏ, có hợp đồng đầu vào/đầu ra rõ ràng.
-- Biến các phụ thuộc như thời gian, thuế suất, cấu hình thành đầu vào tường minh.
-- Kết hợp `Function`, `map`, `mapToLong` và `flatMap` mà không làm mất tính dễ kiểm thử.
-- Kiểm thử trực tiếp từng hàm bằng JUnit 5, sau đó kiểm thử tích hợp trong pipeline.
-- Nhận diện các giới hạn về dữ liệu mutable, lỗi, thứ tự, thực thi song song và hiệu năng.
+- Distinguish pure functions, stateful functions, and functions with side effects in Java.
+- Design `T → R` mappings as small methods with clear input/output contracts.
+- Turn dependencies like time, tax rates, and configuration into explicit inputs.
+- Combine `Function`, `map`, `mapToLong`, and `flatMap` without sacrificing testability.
+- Unit-test each function directly with JUnit 5, then test integration within a pipeline.
+- Recognize limits regarding mutable data, errors, ordering, parallel execution, and performance.
 
-## 2. Hiểu chính xác “thuần” trong Java
+## 2. Understanding "Pure" Precisely in Java
 
-Hàm thuần cần đáp ứng hai điều kiện chính:
+A pure function must satisfy two core conditions:
 
-1. **Đầu ra chỉ phụ thuộc vào đầu vào**: cùng dữ liệu và cùng ngữ cảnh đã được truyền vào, hàm luôn trả kết quả có cùng giá trị.
-2. **Không có tác dụng phụ quan sát được**: hàm không thay đổi trạng thái bên ngoài, không sửa đối tượng đầu vào, không ghi file, gửi yêu cầu mạng, cập nhật database, ghi log như một phần nghiệp vụ hoặc thay đổi bộ đếm dùng chung.
+1. **Output depends solely on inputs**: given the same data and passed-in context, the function always returns a result with the same value.
+2. **No observable side effects**: the function does not mutate external state, modify input objects, write files, send network requests, update databases, emit logging as business behavior, or alter shared counters.
 
-Ví dụ:
+Example:
 
 ```java
 static int square(int value) {
@@ -34,9 +34,9 @@ static String normalizeRegion(String region) {
 }
 ```
 
-`square(4)` luôn cho `16`. `normalizeRegion(" hn ")` luôn cho `"HN"` vì locale được cố định bằng `Locale.ROOT`. Hai hàm tạo kết quả từ đầu vào mà không sửa trạng thái khác.
+`square(4)` always yields `16`. `normalizeRegion(" hn ")` always yields `"HN"` because the locale is fixed to `Locale.ROOT`. Both functions produce results from their inputs without mutating external state.
 
-Ngược lại:
+By contrast:
 
 ```java
 static int counter = 0;
@@ -46,60 +46,60 @@ static int nextSequence(int value) {
 }
 
 static String normalizeUsingCurrentLocale(String value) {
-    return value.toUpperCase(); // Phụ thuộc vào default locale của môi trường.
+    return value.toUpperCase(); // Depends on the environment's default locale.
 }
 ```
 
-`nextSequence(4)` trả kết quả khác nhau giữa các lần gọi. `normalizeUsingCurrentLocale` có thể tạo kết quả khác nhau khi default locale thay đổi. Để làm hành vi rõ ràng và dễ kiểm thử, hãy truyền `Locale` vào hàm hoặc chọn `Locale.ROOT` khi nghiệp vụ yêu cầu phép chuẩn hóa độc lập ngôn ngữ.
+`nextSequence(4)` returns different results across calls. `normalizeUsingCurrentLocale` can produce different results if the default locale changes. To make behavior explicit and testable, pass `Locale` into the function or choose `Locale.ROOT` when business logic requires locale-independent normalization.
 
-**Phân biệt các tính chất thường bị nhầm:**
+**Distinguishing commonly confused properties:**
 
-| Tính chất | Ý nghĩa | Có đồng nghĩa với hàm thuần không? |
+| Property | Meaning | Equivalent to a pure function? |
 | --- | --- | --- |
-| Deterministic | Cùng đầu vào cho cùng đầu ra trong ngữ cảnh đã xác định | Chưa đủ: hàm vẫn có thể ghi log, tăng bộ đếm |
-| Stateless | Không phụ thuộc vào trạng thái thay đổi giữa các lời gọi | Chưa đủ: hàm vẫn có thể sửa dữ liệu đầu vào |
-| Non-interfering | Không can thiệp nguồn dữ liệu đang được Stream duyệt | Là yêu cầu quan trọng của Stream, nhưng chưa bao hàm mọi tác dụng phụ |
-| Thread-safe | Có thể gọi đồng thời mà không làm hỏng trạng thái | Chưa đủ: `AtomicInteger.incrementAndGet()` an toàn luồng nhưng vẫn thay đổi trạng thái |
-| Pure | Đầu ra phụ thuộc đầu vào, không có tác dụng phụ quan sát được | Đáp ứng cả tính quyết định và không có tác dụng phụ |
+| Deterministic | Same inputs produce same output in a defined context | Not enough: the function might still log or increment counters |
+| Stateless | Does not depend on mutable state across invocations | Not enough: the function might still mutate input data |
+| Non-interfering | Does not interfere with the data source being traversed by the Stream | An essential Stream requirement, yet does not cover all side effects |
+| Thread-safe | Can be called concurrently without corrupting state | Not enough: `AtomicInteger.incrementAndGet()` is thread-safe yet mutates state |
+| Pure | Output depends on inputs, no observable side effects | Satisfies both determinism and absence of side effects |
 
-Một hàm có thể dùng **biến cục bộ**, tạo object mới hoặc dùng bộ đệm cục bộ mà vẫn thuần, miễn là chúng không làm rò rỉ trạng thái mutable hoặc thay đổi dữ liệu bên ngoài. Tính thuần nói về **hành vi có thể quan sát**, không có nghĩa là tuyệt đối không cấp phát bộ nhớ.
+A function may use **local variables**, allocate new objects, or use local buffers and still remain pure, as long as they do not leak mutable state or mutate external data. Purity concerns **observable behavior**, not an absolute ban on memory allocation.
 
-Ngoài ra, **idempotent** khác **pure**: `f(f(x)) == f(x)` là tính lũy đẳng, còn tính thuần nói về kết quả và tác dụng phụ. Hàm `square` thuần nhưng không lũy đẳng vì `square(square(2)) == 16` khác `square(2) == 4`.
+Also, **idempotent** differs from **pure**: `f(f(x)) == f(x)` defines idempotence, whereas purity concerns determinism and side effects. `square` is pure but not idempotent because `square(square(2)) == 16` differs from `square(2) == 4`.
 
-## 3. Đọc chữ ký trước khi viết mapper
+## 3. Reading Signatures Before Writing a Mapper
 
-Phương thức cơ bản trên `Stream<T>` có dạng:
+The fundamental method on `Stream<T>` has the signature:
 
 ```java
 <R> Stream<R> map(Function<? super T, ? extends R> mapper)
 ```
 
-- `T`: kiểu phần tử đầu vào của stream hiện tại.
-- `R`: kiểu phần tử đầu ra sau ánh xạ.
-- `Function<T,R>`: biểu diễn phép biến đổi một giá trị kiểu `T` thành một giá trị kiểu `R`.
-- `? super T` và `? extends R`: cho phép các kiểu cha/kiểu con tương thích khi truyền hàm.
-- `Stream<R>`: kết quả là một stream mới, chưa tự động chạy pipeline.
+- `T`: the input element type of the current stream.
+- `R`: the output element type after mapping.
+- `Function<T,R>`: represents a transformation from one value of type `T` to one value of type `R`.
+- `? super T` and `? extends R`: allow compatible supertypes/subtypes when passing functions.
+- `Stream<R>`: the result is a new stream, not yet automatically executing the pipeline.
 
-`map` là phép biến đổi **một phần tử thành một kết quả** mỗi khi mapper được đánh giá. Nếu muốn loại phần tử, thông thường dùng `filter`; nếu một phần tử có thể sinh ra không, một hoặc nhiều kết quả, cân nhắc `flatMap` hoặc `mapMulti`. Không sử dụng giá trị `null` để ngầm diễn tả “bỏ phần tử” khi có thể biểu diễn chính sách rõ ràng hơn.
+`map` is a **one-element-to-one-result** transformation whenever the mapper is evaluated. If you want to drop elements, normally use `filter`; if one element can produce zero, one, or many results, consider `flatMap` or `mapMulti`. Do not use `null` to implicitly mean "drop element" when you can express the policy more explicitly.
 
-Các functional interface thường gặp trong chương **Hàm hành vi và kiểu dữ liệu**:
+Common functional interfaces in the **Behavioral Functions and Types** chapter:
 
-| Interface | Dạng hàm | Cách dùng phổ biến trong Stream |
+| Interface | Function shape | Common usage in Streams |
 | --- | --- | --- |
-| `Function<T,R>` | `T → R` | `map`, biến đổi bản ghi thành DTO |
-| `UnaryOperator<T>` | `T → T` | Chuẩn hóa cùng kiểu |
+| `Function<T,R>` | `T → R` | `map`, converting records into DTOs |
+| `UnaryOperator<T>` | `T → T` | Same-type normalization |
 | `Predicate<T>` | `T → boolean` | `filter`, `anyMatch` |
 | `ToIntFunction<T>` / `ToLongFunction<T>` | `T → int/long` | `mapToInt`, `mapToLong` |
-| `BinaryOperator<T>` | `(T,T) → T` | `reduce` với phép gộp cùng kiểu |
-| `BiFunction<T,U,R>` | `(T,U) → R` | Biểu diễn ánh xạ cần hai đầu vào |
-| `Consumer<T>` | `T → void` | `forEach`; thường chứa tác dụng phụ |
-| `Supplier<T>` | `() → T` | Tạo giá trị/bộ tích lũy theo yêu cầu |
+| `BinaryOperator<T>` | `(T,T) → T` | `reduce` with same-type combining |
+| `BiFunction<T,U,R>` | `(T,U) → R` | Expressing mappings that require two inputs |
+| `Consumer<T>` | `T → void` | `forEach`; often contains side effects |
+| `Supplier<T>` | `() → T` | Supplying values/accumulators on demand |
 
-Đừng cho rằng mọi `Consumer` hay `Supplier` đều không thuần: cần đánh giá cách triển khai. Tuy nhiên, các mapper từ dữ liệu đầu vào sang giá trị đầu ra thường dễ làm thuần hơn các hàm chủ yếu phục vụ I/O.
+Do not assume every `Consumer` or `Supplier` is impure: evaluate the implementation. However, mappers transforming input data to output values are usually easier to keep pure than functions primarily meant for I/O.
 
-## 4. Một mapper nghiệp vụ có hợp đồng rõ ràng
+## 4. A Business Mapper with a Clear Contract
 
-Giả sử dữ liệu bán hàng đầu vào gồm mã đơn, vùng, số lượng và đơn giá. Hệ thống muốn tạo đối tượng hiển thị với vùng được chuẩn hóa và thành tiền đã tính. Ta thiết kế ánh xạ:
+Suppose incoming sales data contains order ID, region, quantity, and unit price. The system wants to produce a display object with normalized region and computed total amount. We design the mapping:
 
 ```text
 RawOrder(id, region, quantity, unitPrice)
@@ -111,7 +111,7 @@ RawOrder(id, region, quantity, unitPrice)
 OrderView(id, normalizedRegion, amount)
 ```
 
-Mã hoàn chỉnh dưới đây chạy với **JDK 17 trở lên** (sử dụng `record` và `Stream.toList()`):
+The complete code below runs on **JDK 17 or later** (using `record` and `Stream.toList()`):
 
 ```java
 import java.math.BigDecimal;
@@ -140,17 +140,17 @@ public class OrderMapper {
         Objects.requireNonNull(raw, "raw");
 
         if (raw.id() == null || raw.id().isBlank()) {
-            throw new IllegalArgumentException("id không được trống");
+            throw new IllegalArgumentException("id must not be blank");
         }
         if (raw.region() == null || raw.region().isBlank()) {
-            throw new IllegalArgumentException("region không được trống");
+            throw new IllegalArgumentException("region must not be blank");
         }
         Objects.requireNonNull(raw.unitPrice(), "unitPrice");
         if (raw.quantity() <= 0) {
-            throw new IllegalArgumentException("quantity phải dương");
+            throw new IllegalArgumentException("quantity must be positive");
         }
         if (raw.unitPrice().signum() < 0) {
-            throw new IllegalArgumentException("unitPrice không được âm");
+            throw new IllegalArgumentException("unitPrice must not be negative");
         }
 
         String normalizedRegion = raw.region()
@@ -195,25 +195,25 @@ public class OrderMapper {
 }
 ```
 
-**Vì sao `toView` dễ kiểm thử?**
+**Why is `toView` easy to test?**
 
-1. **Đầu vào duy nhất:** `RawOrder`, không truy cập database, đồng hồ hay biến toàn cục.
-2. **Kết quả rõ kiểu:** `OrderView`, không trả cấu trúc mập mờ như `Object[]` hoặc `Map<String,Object>`.
-3. **Không sửa đầu vào:** tạo `OrderView` mới, không viết vào `RawOrder`.
-4. **Chuẩn hóa nhất quán:** `strip()` và `Locale.ROOT` cho đầu ra độc lập default locale.
-5. **Quy tắc dữ liệu hiển thị:** lượng không dương, giá âm, mã/vùng rỗng được từ chối có chủ đích.
-6. **Có thể gọi độc lập:** không cần tạo `Stream` để kiểm thử `toView`.
+1. **Single input:** `RawOrder`, without accessing a database, clock, or global variables.
+2. **Strongly typed output:** `OrderView`, rather than returning ambiguous structures like `Object[]` or `Map<String,Object>`.
+3. **Does not mutate input:** creates a new `OrderView` without writing to `RawOrder`.
+4. **Consistent normalization:** `strip()` and `Locale.ROOT` produce outputs independent of the default locale.
+5. **Explicit data rules:** non-positive quantity, negative price, and blank ID/region are intentionally rejected.
+6. **Callable standalone:** no `Stream` is needed to test `toView`.
 
-Trong ví dụ, `String` và `BigDecimal` đều bất biến (*immutable*) nên các thành phần chứa trong hai record an toàn trước việc sửa dữ liệu. Tuy nhiên **`record` chỉ bất biến ở mức tham chiếu trường**: nếu trường là `List` hoặc object mutable, cần sao chép phòng vệ khi tạo bản ghi và khi công khai dữ liệu nếu muốn bảo đảm bất biến thực sự.
+In this example, both `String` and `BigDecimal` are *immutable*, so the components held inside both records are safe against mutation. However, **`record` is only shallowly immutable at the field-reference level**: if a field is a `List` or mutable object, perform defensive copying on construction and exposure if true immutability is required.
 
-`BigDecimal` phù hợp hơn `double` khi tính tiền để tránh sai số biểu diễn nhị phân. Phép tính `quantity × unitPrice` ở đây không làm tròn; nếu nghiệp vụ yêu cầu thuế/chiết khấu, phải chỉ rõ **thời điểm và quy tắc làm tròn**. Việc làm tròn từng dòng có thể khác làm tròn trên tổng.
+`BigDecimal` is more suitable than `double` for monetary calculations to avoid binary representation errors. The calculation `quantity × unitPrice` here performs no rounding; if business rules require tax or discounts, specify **when and how rounding occurs**. Per-line rounding can differ from rounding on the total.
 
-## 5. Tách hàm nghiệp vụ khỏi pipeline
+## 5. Extracting Business Functions from Pipelines
 
-Viết nguyên toàn bộ công thức trong `map` có thể làm code ngắn nhưng khó đặt tên, tái sử dụng và kiểm thử:
+Writing the entire formula inline inside `map` can make code brief, yet harder to name, reuse, and test:
 
 ```java
-// Khó kiểm thử độc lập nếu biểu thức ngày càng phức tạp.
+// Hard to unit-test independently as the expression grows more complex.
 List<OrderMapper.OrderView> views = rows.stream()
     .map(row -> new OrderMapper.OrderView(
         row.id().strip(),
@@ -223,7 +223,7 @@ List<OrderMapper.OrderView> views = rows.stream()
     .toList();
 ```
 
-Lambda này cũng **bỏ qua phần kiểm tra dữ liệu** của `toView`. Khi nghiệp vụ phát triển, logic rải rác ở nhiều pipeline dễ bị lệch nhau. Cách rõ ràng hơn:
+This lambda also **skips the data validation** in `toView`. As business logic evolves, logic scattered across multiple pipelines easily drifts out of sync. A clearer way:
 
 ```java
 List<OrderMapper.OrderView> views = rows.stream()
@@ -231,11 +231,11 @@ List<OrderMapper.OrderView> views = rows.stream()
     .toList();
 ```
 
-Phương thức thuần làm nhiệm vụ chuyển đổi; pipeline chịu trách nhiệm **chọn nguồn, lọc, nhóm và tập hợp kết quả**. Một mapper có tên diễn đạt ý định giúp người đọc hiểu dữ liệu đang chuyển từ kiểu nào sang kiểu nào mà không phải phân tích một lambda dài.
+The pure method handles transformation; the pipeline is responsible for **selecting sources, filtering, grouping, and collecting results**. A mapper with an intent-revealing name helps readers see what type data is transforming from and to without dissecting a long lambda.
 
-### 5.1. Ghép các bước thuần với `Function`
+### 5.1. Composing Pure Steps with `Function`
 
-`Function` có `compose`, `andThen` và `identity`:
+`Function` has `compose`, `andThen`, and `identity`:
 
 ```java
 import java.util.Locale;
@@ -252,21 +252,21 @@ System.out.println(alsoNormalize.apply(" hn ")); // HN
 System.out.println(Function.<String>identity().apply("A")); // A
 ```
 
-Với `f.andThen(g)`, Java thực hiện `g(f(x))`; với `g.compose(f)` cũng là `g(f(x))`. Khi các hàm thành phần thuần, việc ghép này vẫn thuần, đồng thời dễ viết test cho từng phép biến đổi.
+With `f.andThen(g)`, Java performs `g(f(x))`; with `g.compose(f)`, it is also `g(f(x))`. When the component functions are pure, their composition remains pure while keeping each transformation easy to unit-test.
 
-Không phải mọi phép ghép đều hoán đổi được: `strip.andThen(uppercase)` có thể phù hợp, nhưng đổi thứ tự hai phép xử lý khác có thể làm thay đổi kết quả. Kiểm thử dựa trên **hợp đồng nghiệp vụ**, không giả định thứ tự là tùy ý.
+Not every composition is commutative: `strip.andThen(uppercase)` may work either way, yet swapping two other processing steps can alter the result. Test against the **business contract** rather than assuming order is arbitrary.
 
-### 5.2. Chọn đúng phép ánh xạ
+### 5.2. Choosing the Right Mapping Operation
 
-| Nhu cầu | Phép toán | Ví dụ |
+| Need | Operation | Example |
 | --- | --- | --- |
-| Mỗi đơn hàng → một DTO | `map` | `.map(OrderMapper::toView)` |
-| Mỗi đơn hàng → một giá trị `long` | `mapToLong` | `.mapToLong(OrderMapper.RawOrder::quantity)` |
-| Mỗi nhóm chứa nhiều phần tử → dãy phẳng | `flatMap` | `.flatMap(List::stream)` |
-| Mỗi phần tử có thể phát 0–n kết quả qua `Consumer` | `mapMulti` (JDK 16+) | Dùng khi không cần tạo stream con cho mỗi phần tử |
-| Chỉ giữ bản ghi thỏa quy tắc | `filter` | `.filter(row -> row.quantity() > 0)` |
+| Each order → one DTO | `map` | `.map(OrderMapper::toView)` |
+| Each order → one `long` value | `mapToLong` | `.mapToLong(OrderMapper.RawOrder::quantity)` |
+| Each group holds multiple elements → flat sequence | `flatMap` | `.flatMap(List::stream)` |
+| Each element may emit 0–n results via `Consumer` | `mapMulti` (JDK 16+) | Useful when avoiding creating a sub-stream per element |
+| Keep only records matching a rule | `filter` | `.filter(row -> row.quantity() > 0)` |
 
-Ví dụ phân biệt `map` và `flatMap`:
+Example distinguishing `map` and `flatMap`:
 
 ```java
 List<List<String>> groups = List.of(
@@ -283,16 +283,16 @@ List<String> members = groups.stream()
     .toList(); // [A, B, C]
 ```
 
-## 6. Đưa phụ thuộc thay đổi thành tham số tường minh
+## 6. Making Varying Dependencies Explicit Parameters
 
-Một mapper không nên tự tìm tỷ giá, đồng hồ hiện tại hoặc thuế suất trong lúc duyệt dữ liệu:
+A mapper should not look up exchange rates, the current clock, or tax rates on its own while traversing data:
 
 ```java
-// Thiết kế phụ thuộc bên ngoài; khó tạo kết quả ổn định khi kiểm thử.
+// Design depends on external state; hard to produce deterministic results in tests.
 // .map(order -> convert(order, rateService.currentRate()))
 ```
 
-Nếu nghiệp vụ cho phép sử dụng **một thuế suất chụp tại thời điểm bắt đầu xử lý**, đọc thuế suất ở ranh giới I/O trước, rồi truyền giá trị cố định vào hàm:
+If business rules allow using **a tax rate snapshotted at the start of processing**, read the tax rate at the I/O boundary first, then pass the fixed value into the function:
 
 ```java
 import java.math.BigDecimal;
@@ -304,10 +304,10 @@ static BigDecimal priceWithTax(
     BigDecimal taxRate
 ) {
     if (amount == null || taxRate == null) {
-        throw new IllegalArgumentException("amount/taxRate không được null");
+        throw new IllegalArgumentException("amount/taxRate must not be null");
     }
     if (amount.signum() < 0 || taxRate.signum() < 0) {
-        throw new IllegalArgumentException("giá trị không được âm");
+        throw new IllegalArgumentException("values must not be negative");
     }
     return amount
         .multiply(BigDecimal.ONE.add(taxRate))
@@ -321,24 +321,24 @@ List<BigDecimal> amountsWithTax = rows.stream()
     .toList();
 ```
 
-Đoạn trên minh họa phương thức `priceWithTax` đặt trong một lớp/hàm bao phù hợp và biến `rows` từ ví dụ trước. `BigDecimal` bất biến; biến `fixedTaxRate` không thay đổi trong pipeline, nên mapper không lệ thuộc vào giá trị biến thiên theo thời gian. Muốn hỗ trợ loại thuế, tỷ giá hoặc cách làm tròn khác nhau, hãy thêm tham số hoặc một **value object cấu hình bất biến**, rồi kiểm thử từng trường hợp.
+The snippet above illustrates the `priceWithTax` method placed inside an appropriate enclosing class/method using `rows` from the previous example. `BigDecimal` is immutable; `fixedTaxRate` does not change within the pipeline, so the mapper does not depend on time-varying values. To support different tax types, exchange rates, or rounding modes, add parameters or an **immutable configuration value object**, and test each case.
 
-Với thời gian, truyền `Instant`, `LocalDate` hoặc `Clock` một cách có chủ đích. Nếu nhận `Clock` và gọi `instant()` trong mapper, kết quả còn phụ thuộc thời điểm gọi; để ánh xạ thuần với “thời điểm xử lý”, hãy lấy một `Instant` cố định trước khi tạo pipeline và truyền trực tiếp vào mapper. Tương tự, nếu kết quả phụ thuộc timezone, truyền `ZoneId` thay vì âm thầm dùng timezone mặc định.
+For time, pass `Instant`, `LocalDate`, or `Clock` intentionally. If you accept `Clock` and call `instant()` inside the mapper, results still depend on invocation timing; to map purely with "processing timestamp", capture a single fixed `Instant` before constructing the pipeline and pass it directly into the mapper. Similarly, if output depends on time zone, pass `ZoneId` instead of silently relying on the default time zone.
 
-**Phân biệt capture an toàn và capture nguy hiểm:**
+**Distinguishing safe capture from risky capture:**
 
 ```java
-String prefix = "ORDER-"; // String bất biến, giá trị cố định.
+String prefix = "ORDER-"; // Immutable String, fixed value.
 List<String> ids = List.of("1", "2").stream()
     .map(id -> prefix + id)
     .toList(); // [ORDER-1, ORDER-2]
 ```
 
-Một biến được lambda capture phải là `final` hoặc *effectively final*; điều này **không bảo đảm object mà biến tham chiếu là bất biến**. Chẳng hạn `final List<String> shared` vẫn có thể bị sửa qua `shared.add(...)`. Hãy bảo đảm cả **giá trị và nội dung được capture** ổn định nếu cần hàm thuần.
+A variable captured by a lambda must be `final` or *effectively final*; this **does not guarantee that the object referenced by the variable is immutable**. For example, `final List<String> shared` can still be modified via `shared.add(...)`. Ensure both **the captured reference and its contents** are stable if you need a pure function.
 
-## 7. Các phản ví dụ thường gặp
+## 7. Common Anti-Patterns
 
-### 7.1. Sửa danh sách đầu ra trong mapper
+### 7.1. Mutating an Output List Inside a Mapper
 
 ```java
 import java.util.ArrayList;
@@ -347,7 +347,7 @@ import java.util.List;
 List<String> sharedResults = new ArrayList<>();
 List<String> names = List.of("An", "Bình", "Chi");
 
-// Tránh cách này:
+// Avoid this approach:
 names.stream()
     .map(name -> {
         sharedResults.add(name.toUpperCase());
@@ -355,15 +355,15 @@ names.stream()
     })
     .toList();
 
-// Dùng ánh xạ để tạo kết quả:
+// Use mapping to produce the result:
 List<String> uppercaseNames = names.stream()
     .map(name -> name.toUpperCase(java.util.Locale.ROOT))
     .toList();
 ```
 
-Biến `sharedResults` bị sửa từ lambda; khi đổi sang `parallelStream()`, `ArrayList` không an toàn cho nhiều luồng ghi đồng thời. Dù dùng collection concurrent, hàm vẫn có tác dụng phụ và khó kiểm thử độc lập. Nên để `map` trả giá trị, còn terminal operation như `toList` hay `collect` kết hợp kết quả.
+`sharedResults` is mutated from inside the lambda; switching to `parallelStream()` makes `ArrayList` unsafe for concurrent writes. Even with a concurrent collection, the function still has side effects and is difficult to unit-test standalone. Let `map` return values, and let terminal operations like `toList` or `collect` assemble the results.
 
-### 7.2. Dựa vào số lần mapper được gọi
+### 7.2. Relying on How Many Times the Mapper Is Called
 
 ```java
 import java.util.List;
@@ -378,13 +378,13 @@ long count = List.of("a", "b", "c").stream()
     .count();
 
 System.out.println(count); // 3
-// Không được khẳng định calls == 3; map có thể được bỏ qua
-// nếu count() xác định được kích thước từ nguồn.
+// Do not assert calls == 3; map may be skipped
+// if count() can determine the size directly from the source.
 ```
 
-Stream được phép tối ưu hóa để bỏ qua một số bước trung gian khi điều đó không ảnh hưởng kết quả được bảo đảm. `AtomicInteger` an toàn luồng về mặt cập nhật bộ đếm, nhưng không biến mapper thành hàm thuần. Vì vậy, kiểm thử **giá trị trả về**, không kiểm thử số lần gọi `map` như một quy tắc bắt buộc.
+Streams are permitted to optimize away intermediate steps when doing so does not affect the guaranteed result. `AtomicInteger` makes counter updates thread-safe, yet does not make the mapper pure. Therefore, test **return values**, not `map` invocation counts as a mandatory contract.
 
-### 7.3. Thay đổi phần tử nguồn
+### 7.3. Mutating Source Elements
 
 ```java
 class MutableOrder {
@@ -395,7 +395,7 @@ class MutableOrder {
 List<MutableOrder> source = new ArrayList<>();
 source.add(new MutableOrder(" hn "));
 
-// Tránh: thay đổi object của nguồn ngay trong phép ánh xạ.
+// Avoid: mutating source objects right inside the mapping step.
 List<MutableOrder> changed = source.stream()
     .map(order -> {
         order.region = order.region.strip();
@@ -404,30 +404,30 @@ List<MutableOrder> changed = source.stream()
     .toList();
 ```
 
-Việc trả đúng tham chiếu `order` sau khi sửa khiến bước ánh xạ có tác dụng phụ đối với dữ liệu bên ngoài. Dù việc sửa trường không phải lúc nào cũng thay đổi **cấu trúc** của collection, nó vẫn làm mapper không thuần và có thể ảnh hưởng các phép toán khác đang đọc chung object. Hãy tạo đối tượng kết quả mới với dữ liệu đã chuẩn hóa.
+Returning the exact same `order` reference after mutation gives the mapping step side effects on external data. Even though mutating a field does not always alter the **structure** of the collection, it makes the mapper impure and can affect other operations reading the shared object. Construct a new result object with normalized data instead.
 
-### 7.4. Gọi I/O từ mapper
+### 7.4. Calling I/O from a Mapper
 
 ```java
-// Ví dụ phản mẫu: mỗi phần tử kích hoạt truy vấn từ xa.
+// Anti-pattern example: each element triggers a remote query.
 // .map(order -> remotePriceService.lookupPrice(order.id()))
 ```
 
-Kiểu mapper này có thời gian chạy phụ thuộc mạng, có thể thất bại, gây N+1 request và tạo kết quả thay đổi theo thời điểm gọi. Nếu cần dữ liệu bên ngoài, ưu tiên truy xuất và kiểm soát lỗi ở tầng I/O, xây một snapshot dữ liệu rõ ràng, sau đó ánh xạ thuần từ snapshot sang kết quả. Không phải mọi truy vấn đều có thể gom trước; khi không thể, hãy xem bước I/O là một thao tác riêng có chính sách retry, timeout và quan sát lỗi, thay vì ngụy trang thành biến đổi thuần.
+This kind of mapper has network-dependent latency, can fail, causes N+1 requests, and yields results that vary depending on when it runs. When external data is needed, prefer fetching and handling errors at the I/O layer, building an explicit data snapshot, and then purely mapping from the snapshot to the result. Not every query can be batched ahead of time; when it cannot, treat the I/O step as an explicit operation with retry, timeout, and error-observability policies rather than disguising it as a pure transformation.
 
-## 8. Thiết kế hợp đồng lỗi và dữ liệu thiếu
+## 8. Designing Error Contracts and Missing Data Handling
 
-Hàm ánh xạ dễ kiểm thử cần nói rõ **đầu vào hợp lệ**, cách xử lý `null`, giá trị ngoài miền và hành vi khi lỗi.
+A testable mapping function needs to specify **valid inputs**, `null` handling, out-of-range values, and failure behavior.
 
-Có ba hướng thường dùng:
+There are three common approaches:
 
-| Chính sách | Khi nào dùng | Điều cần kiểm thử |
+| Policy | When to use | What to test |
 | --- | --- | --- |
-| Fail fast bằng ngoại lệ | Dữ liệu sai khiến kết quả nghiệp vụ không đáng tin | Kiểu ngoại lệ, điều kiện phát sinh, không có kết quả sai âm thầm |
-| Trả `Optional<R>` | Việc “không có kết quả” là trạng thái hợp lệ, có chủ đích | Có/không có kết quả, chính sách bỏ bản ghi |
-| Trả một kiểu kết quả có thành công/thất bại | Cần gom lỗi có cấu trúc thay vì dừng toàn bộ | Giá trị thành công, mã lỗi, nguyên nhân và thứ tự xử lý |
+| Fail fast with exceptions | Invalid data makes business results untrustworthy | Exception type, trigger conditions, no silent wrong results |
+| Return `Optional<R>` | "No result" is an intentional, valid state | Presence/absence of result, record-dropping policy |
+| Return a result type with success/failure | Need to collect structured errors instead of aborting everything | Success values, error codes, causes, and processing order |
 
-`toView` ở trên chọn **fail fast** cho số lượng không hợp lệ, giá âm và dữ liệu bắt buộc trống. Đừng chuyển mọi ngoại lệ thành `Optional.empty()` rồi tự động bỏ bản ghi, vì điều đó có thể làm doanh thu được tính sai mà không ai biết. Nếu yêu cầu nghiệp vụ thật sự là “bỏ bản ghi thiếu dữ liệu tùy chọn”, có thể dùng:
+`toView` above chooses **fail fast** for invalid quantities, negative prices, and blank required fields. Do not turn every exception into `Optional.empty()` and silently drop records, as that could cause revenue to be miscalculated without anyone noticing. If the business requirement truly is "drop records missing optional data", you can use:
 
 ```java
 import java.util.List;
@@ -446,15 +446,15 @@ List<String> validRegions = List.of(" hn ", " ", "hcm").stream()
     .toList(); // [HN, HCM]
 ```
 
-Lúc này chính sách “bỏ vùng trống” được thể hiện tường minh. `Optional::stream` có từ JDK 9. Nếu muốn giữ lại lý do thất bại cho từng dòng, một kiểu kết quả có cấu trúc là lựa chọn rõ hơn `Optional`.
+Here, the "drop blank regions" policy is stated explicitly. `Optional::stream` has been available since JDK 9. If you want to retain failure reasons per row, a structured result type is a clearer choice than `Optional`.
 
-Lưu ý nguồn `List.of(...)` **không nhận phần tử `null`**; ví dụ trên có chuỗi trống, không có `null`. `Stream` có thể được tạo từ những nguồn chứa `null`, nên nếu dữ liệu thực tế có thể thiếu giá trị, kiểm thử khả năng đó tại ranh giới nhập liệu.
+Note that `List.of(...)` **does not accept `null` elements**; the example above contains a blank string, not `null`. A `Stream` can be built from sources containing `null`, so if real data can miss values, test that case at the ingestion boundary.
 
-## 9. Kiểm thử hàm trước, pipeline sau
+## 9. Testing Functions First, Pipelines Second
 
-Với hàm thuần, unit test cần rất ít thiết lập: tạo đầu vào, gọi trực tiếp hàm, so sánh giá trị đầu ra. Không cần mock database hay HTTP để kiểm tra chuẩn hóa vùng và tính thành tiền.
+With pure functions, unit tests need minimal setup: construct inputs, call the function directly, and compare output values. No database or HTTP mocks are needed to test region normalization and amount calculation.
 
-Ví dụ JUnit 5; giả sử lớp `OrderMapper` ở mục 4 nằm cùng package với lớp test:
+JUnit 5 example; assume the `OrderMapper` class from section 4 is in the same package as the test class:
 
 ```java
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -480,7 +480,7 @@ class OrderMapperTest {
             ),
             actual
         );
-        assertEquals(" hn ", input.region()); // Không sửa nguồn.
+        assertEquals(" hn ", input.region()); // Does not mutate source.
         assertEquals(" O-1 ", input.id());
     }
 
@@ -542,36 +542,36 @@ class OrderMapperTest {
 }
 ```
 
-### 9.1. Ma trận test có giá trị
+### 9.1. Valuable Test Matrix
 
-| Nhóm kiểm thử | Dữ liệu minh họa | Kỳ vọng |
+| Test group | Sample data | Expected |
 | --- | --- | --- |
-| Happy path | `" hn "`, lượng `2`, giá `100.00` | `HN` và `200.00` |
-| Chuẩn hóa | `"hcm"`, `" Hn "` | Kết quả vùng thống nhất |
-| Ranh giới miền | Số lượng `0` hoặc âm | Ngoại lệ theo hợp đồng |
-| Giá trị không hợp lệ | Giá âm, mã/vùng trống, giá `null` | Lỗi rõ ràng |
-| Tính bất biến | Giữ tham chiếu `RawOrder` trước/sau | Không có trường đầu vào bị sửa |
-| Tính quyết định | Gọi cùng mapper hai lần | Giá trị kết quả bằng nhau |
-| Pipeline | Nhiều đơn, nguồn rỗng, kết hợp `filter`/`collect` | Danh sách hoặc tổng hợp đúng |
-| Hợp đồng tiền tệ | Số thập phân, quy tắc làm tròn | Kết quả đúng độ chính xác và scale đã thống nhất |
+| Happy path | `" hn "`, quantity `2`, price `100.00` | `HN` and `200.00` |
+| Normalization | `"hcm"`, `" Hn "` | Consistent region output |
+| Domain boundaries | Quantity `0` or negative | Exception per contract |
+| Invalid values | Negative price, blank ID/region, `null` price | Explicit error |
+| Immutability | Keep `RawOrder` reference before/after | No input field modified |
+| Determinism | Call same mapper twice | Equal result values |
+| Pipeline | Multiple orders, empty source, combined with `filter`/`collect` | Correct list or aggregation |
+| Monetary contract | Decimals, rounding rules | Results match agreed precision and scale |
 
-Khi kiểm thử `BigDecimal`, `equals` còn so sánh **scale**: `new BigDecimal("2.0")` và `new BigDecimal("2.00")` có giá trị số học bằng nhau nhưng không `equals`. Dùng `compareTo` nếu yêu cầu chỉ so sánh trị số; dùng `equals` nếu scale là một phần hợp đồng. Tránh thay đổi chiến lược so sánh tùy tiện giữa các bài test.
+When testing `BigDecimal`, `equals` also compares **scale**: `new BigDecimal("2.0")` and `new BigDecimal("2.00")` have equal numeric value yet are not `equals`. Use `compareTo` if the requirement only compares numeric magnitude; use `equals` if scale is part of the contract. Avoid switching comparison strategies arbitrarily across tests.
 
-### 9.2. Tư duy kiểm thử thuộc tính
+### 9.2. Property-Based Testing Mindset
 
-Ngoài ví dụ cụ thể, xác định các **bất biến**:
+Beyond concrete examples, identify **invariants**:
 
-- Đầu vào hợp lệ có `quantity > 0` và `unitPrice >= 0` thì `amount` luôn không âm.
-- `toView` không làm thay đổi `RawOrder` đầu vào.
-- Cùng đầu vào trả cùng `OrderView`, bất kể pipeline có bao nhiêu phần tử khác.
-- Với cùng vùng và giá không âm, tổng của hai dòng bằng tổng các `amount` tương ứng (nếu không áp dụng chính sách làm tròn từng bước làm thay đổi tổng).
-- Duyệt theo thứ tự nào cũng không ảnh hưởng phép cộng `BigDecimal`; ngược lại, phép ghép chuỗi có thể phụ thuộc thứ tự.
+- Valid input with `quantity > 0` and `unitPrice >= 0` always yields non-negative `amount`.
+- `toView` never modifies the input `RawOrder`.
+- The same input returns the same `OrderView`, regardless of how many other elements are in the pipeline.
+- For the same region and non-negative prices, the sum of two rows equals the sum of their respective `amount` values (unless a per-row rounding policy alters the total).
+- Traversal order does not affect `BigDecimal` addition; by contrast, string concatenation can depend on order.
 
-Các thuộc tính này có thể được kiểm thử bằng nhiều bộ dữ liệu, kể cả công cụ property-based testing khi dự án sử dụng. Đừng viết test xác nhận số lần gọi lambda hoặc thứ tự chạy trong `parallel()` nếu điều đó không thuộc hợp đồng của API.
+These properties can be tested across many datasets, including with property-based testing tools if the project uses them. Do not write tests asserting lambda call counts or execution order in `parallel()` when that is not part of the API contract.
 
-## 10. Tính thuần giúp gì cho Stream song song và các API nâng cao?
+## 10. How Does Purity Help Parallel Streams and Advanced APIs?
 
-### 10.1. Song song không tự động nhanh hơn
+### 10.1. Parallel Is Not Automatically Faster
 
 ```java
 List<OrderMapper.OrderView> views = rows.parallelStream()
@@ -579,13 +579,13 @@ List<OrderMapper.OrderView> views = rows.parallelStream()
     .toList();
 ```
 
-`OrderMapper.toView` không chứa trạng thái dùng chung nên thích hợp về mặt hành vi khi nhiều luồng gọi đồng thời. Tuy nhiên `parallelStream()` không đảm bảo tăng tốc: nguồn nhỏ, chi phí phân chia dữ liệu, đồng bộ kết quả, thao tác có thứ tự và cấp phát object có thể khiến chương trình chậm hơn. Hãy đo trên khối lượng dữ liệu thực. Với nguồn `List` có encounter order, `toList()` vẫn giữ encounter order trong kết quả, dù thời điểm xử lý từng phần tử khác nhau.
+`OrderMapper.toView` holds no shared state, so it is behaviorally suited to concurrent calls from multiple threads. However, `parallelStream()` does not guarantee speedup: small sources, splitting overhead, result synchronization, ordered operations, and object allocation can make it slower. Benchmark on realistic data volumes. For a `List` source with encounter order, `toList()` still preserves encounter order in the output, even though individual elements are processed at different times.
 
-**Hàm thuần chỉ giải quyết một phần bài toán an toàn song song.** Nguồn dữ liệu vẫn không được bị sửa đồng thời trái hợp đồng; collector cũng phải có bộ tích lũy và hàm combiner đúng. Các phép toán `sorted`, `distinct`, `limit`, `findFirst` có thể tăng chi phí khi stream chạy song song hoặc đòi hỏi duy trì thứ tự.
+**Pure functions only solve part of the parallel-safety puzzle.** The data source must still not be mutated concurrently against contract; collectors must also have proper accumulators and combiners. Operations like `sorted`, `distinct`, `limit`, and `findFirst` can increase cost in parallel streams or require preserving order.
 
-### 10.2. `reduce`, `collect` và phép gộp
+### 10.2. `reduce`, `collect`, and Merging
 
-`map` biến từng phần tử thành kết quả mới; `reduce` gom kết quả bằng một phép toán phù hợp. Phép gộp của `reduce` phải có tính kết hợp (*associative*), dùng identity thích hợp và tránh thay đổi accumulator dùng chung:
+`map` turns each element into a new result; `reduce` aggregates results using a suitable operation. The combiner in `reduce` must be *associative*, use an appropriate identity, and avoid mutating a shared accumulator:
 
 ```java
 BigDecimal total = rows.stream()
@@ -594,35 +594,35 @@ BigDecimal total = rows.stream()
     .reduce(BigDecimal.ZERO, BigDecimal::add);
 ```
 
-`BigDecimal::add` tạo đối tượng kết quả mới và có tính kết hợp về giá trị toán học đối với phép cộng thập phân chính xác. `Collectors.groupingBy(...)` trong ví dụ chính có thể dùng mutable accumulator **nội bộ do collector quản lý**; điều đó không làm cho mapper `toView` có tác dụng phụ. Với **collector tùy chỉnh**, phải đọc kỹ `supplier`, `accumulator`, `combiner`, `finisher`, cũng như `Collector.Characteristics` trước khi dùng với pipeline song song.
+`BigDecimal::add` creates a new result object and is mathematically associative for exact decimal addition. `Collectors.groupingBy(...)` in the main example may use mutable accumulators **internally managed by the collector**; that does not give `toView` side effects. For **custom collectors**, carefully examine `supplier`, `accumulator`, `combiner`, `finisher`, as well as `Collector.Characteristics` before using them in parallel pipelines.
 
-### 10.3. `Spliterator`, trạng thái và Stream Gatherers
+### 10.3. `Spliterator`, State, and Stream Gatherers
 
-`Spliterator` điều khiển cách duyệt và chia nguồn; các đặc tính như `ORDERED`, `SIZED`, `IMMUTABLE` hay `CONCURRENT` ảnh hưởng đến khả năng tối ưu và tính an toàn. Bất biến trong mapper không thay thế được hợp đồng của nguồn/spliterator.
+`Spliterator` controls how a source is traversed and split; characteristics such as `ORDERED`, `SIZED`, `IMMUTABLE`, or `CONCURRENT` affect optimization opportunities and safety. Immutability in a mapper cannot substitute for the source/spliterator contract.
 
-**Stream Gatherers** được chuẩn hóa từ **JDK 24** và cung cấp phép biến đổi trung gian có thể **có trạng thái có chủ đích**, như tạo cửa sổ `Gatherers.windowFixed(...)`. Khi dùng `gather`, hãy tách logic ánh xạ phần tử có thể làm thuần khỏi phần quản lý trạng thái cửa sổ hoặc tích lũy của gatherer. Các yêu cầu của `Gatherer` về initializer, integrator, combiner và finisher cần được kiểm tra riêng; mã dùng `gather` sẽ không biên dịch trên JDK 17/21.
+**Stream Gatherers**, standardized in **JDK 24**, provide intermediate transformations that can **intentionally hold state**, such as windowing via `Gatherers.windowFixed(...)`. When using `gather`, separate pure element-mapping logic from the gatherer's windowing or accumulation state management. `Gatherer` requirements for initializer, integrator, combiner, and finisher must be verified separately; code using `gather` will not compile on JDK 17/21.
 
-## 11. Quy trình thiết kế mapper dễ kiểm thử
+## 11. Process for Designing a Testable Mapper
 
-Khi nhận một bài toán ánh xạ mới, thực hiện theo trình tự:
+When given a new mapping problem, follow these steps:
 
-1. **Chốt hợp đồng kiểu:** xác định `T` và `R`; đầu ra có phải value object/DTO mới không?
-2. **Liệt kê dữ liệu cần dùng:** đầu vào chính, cấu hình, locale, ngày xử lý, tỷ giá, chính sách làm tròn.
-3. **Đưa phụ thuộc biến đổi ra ngoài:** đọc I/O, thời gian và dữ liệu có khả năng thay đổi ở ranh giới, truyền giá trị snapshot phù hợp vào phép ánh xạ.
-4. **Định nghĩa dữ liệu hợp lệ và lỗi:** `null`, chuỗi trống, phạm vi giá trị, ngoại lệ hay kiểu kết quả tường minh.
-5. **Viết hàm nhỏ có tên nghiệp vụ:** chỉ tính toán và tạo kết quả, không sửa nguồn hay cập nhật trạng thái dùng chung.
-6. **Kiểm thử trực tiếp:** happy path, biên, lỗi, tính bất biến, tính quyết định, quy tắc số học.
-7. **Ghép vào Stream:** sử dụng method reference như `.map(OrderMapper::toView)`; dùng `filter`, `flatMap`, `reduce`, `collect` theo đúng ngữ nghĩa.
-8. **Đánh giá hợp đồng pipeline:** có cần encounter order, có terminal operation, có nguồn I/O cần đóng, có lý do chạy song song không?
+1. **Lock down the type contract:** determine `T` and `R`; should the output be a new value object/DTO?
+2. **List required data:** primary input, configuration, locale, processing date, exchange rate, rounding policy.
+3. **Externalize varying dependencies:** read I/O, timestamps, and mutable data at boundaries, passing appropriate snapshots into the mapping function.
+4. **Define valid data and errors:** `null`, blank strings, value ranges, exceptions vs. explicit result types.
+5. **Write small business-named functions:** compute and construct outputs only; never mutate sources or shared state.
+6. **Test directly:** happy paths, boundaries, errors, immutability, determinism, numeric rules.
+7. **Plug into the Stream:** use method references like `.map(OrderMapper::toView)`; use `filter`, `flatMap`, `reduce`, and `collect` with proper semantics.
+8. **Review pipeline contracts:** is encounter order needed, is there a terminal operation, is there an I/O source to close, is there a reason to run in parallel?
 
-### Bài tập áp dụng
+### Practice Exercises
 
-**Bài 1.** Viết hàm thuần `normalizeCode(String code)`: bỏ khoảng trắng hai đầu, chuyển chữ hoa bằng `Locale.ROOT` và từ chối chuỗi trống. Viết ít nhất ba test: đầu vào thường, đầu vào toàn khoảng trắng và `null`.
+**Exercise 1.** Write a pure function `normalizeCode(String code)`: trim leading/trailing whitespace, convert to uppercase using `Locale.ROOT`, and reject blank strings. Write at least three tests: normal input, whitespace-only input, and `null`.
 
-**Bài 2.** Từ `List<RawOrder>`, lấy danh sách `OrderView` chỉ cho đơn có `quantity >= 2`. Đặt phép `filter` trước `map` để điều kiện số lượng nằm ở lớp dữ liệu nguồn; giữ `toView` là hàm ánh xạ độc lập. Kiểm thử nguồn rỗng và trường hợp không có đơn nào đạt điều kiện.
+**Exercise 2.** Given `List<RawOrder>`, obtain a list of `OrderView` only for orders with `quantity >= 2`. Place `filter` before `map` so the quantity condition lives at the source-data layer; keep `toView` as an independent mapping function. Test an empty source and a case where no order qualifies.
 
-**Bài 3.** Thêm `discountRate` vào một hàm mới `discountedAmount(BigDecimal amount, BigDecimal rate)`. Quy định rõ khoảng hợp lệ `0 ≤ rate ≤ 1` và chiến lược làm tròn. Viết test cho `0`, `1`, giá trị giữa khoảng và giá trị ngoài khoảng. Tránh đọc mức giảm giá từ biến cấu hình toàn cục ngay trong hàm.
+**Exercise 3.** Add `discountRate` to a new function `discountedAmount(BigDecimal amount, BigDecimal rate)`. Explicitly define the valid range `0 ≤ rate ≤ 1` and rounding strategy. Write tests for `0`, `1`, an in-range value, and out-of-range values. Avoid reading the discount rate from a global configuration variable inside the function.
 
-**Bài 4.** Một đồng nghiệp đề xuất `orders.parallelStream().map(o -> { count++; return toView(o); }).toList()`. Hãy chỉ ra vấn đề về shared state, race condition và vì sao bộ đếm số lần gọi mapper không phải hợp đồng của Stream. Viết lại bằng phép biến đổi thuần, rồi dùng kết quả của terminal operation để tính tổng số phần tử nếu thật sự cần.
+**Exercise 4.** A colleague suggests `orders.parallelStream().map(o -> { count++; return toView(o); }).toList()`. Identify the issues regarding shared state, race conditions, and why a mapper call counter is not part of the Stream contract. Rewrite it using a pure transformation, then use the terminal operation's result to count elements if genuinely needed.
 
-Một mapper tốt có thể được kiểm tra như một phép toán `input → output`, không cần tạo stream, mock dịch vụ hay dựa vào thứ tự chạy. Khi kết hợp các mapper thuần, pipeline Java Stream API giữ được ưu điểm xử lý dữ liệu khai báo, dễ mở rộng sang `filter`, `reduce`, `collect` và grouping, đồng thời giảm rủi ro về trạng thái, tài nguyên và xử lý song song.
+A good mapper can be tested as an `input → output` operation without creating streams, mocking services, or relying on execution order. When combining pure mappers, Java Stream API pipelines retain the advantages of declarative data processing—easily extending to `filter`, `reduce`, `collect`, and grouping—while reducing risks around state, resources, and parallel execution.

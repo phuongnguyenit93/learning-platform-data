@@ -1,73 +1,73 @@
-# Vì sao tạo được `Locale` không có nghĩa mọi dịch vụ đều hỗ trợ?
+# Why Being Able to Create a `Locale` Does Not Mean Every Service Supports It
 
-## 1. Vấn đề cốt lõi: `Locale` là yêu cầu, không phải giấy chứng nhận hỗ trợ
+## 1. Core issue: `Locale` is a request, not a certificate of support
 
-Trong Java, ta có thể tạo một đối tượng `Locale` chỉ với một thẻ ngôn ngữ hợp lệ về mặt cấu trúc:
+In Java, you can construct a `Locale` object simply from a structurally valid language tag:
 
 ```java
 Locale locale = Locale.forLanguageTag("zz-ZZ");
 ```
 
-`zz-ZZ` ở đây là mã minh họa cho một lựa chọn ngôn ngữ/vùng không phổ biến, không đại diện cho thị trường đã được ứng dụng triển khai. Java vẫn có thể tạo và giữ thẻ này. Nhưng từ đó **không thể kết luận** rằng Java, thư viện giao diện, hệ thống thông báo, dữ liệu tiền tệ hoặc chính ứng dụng đã có tài nguyên cho lựa chọn ấy.
+`zz-ZZ` here is an illustrative code for an uncommon language/region choice, not representing any market deployed by the application. Java can still create and store this tag. Yet from that **you cannot conclude** that Java, UI libraries, messaging systems, currency data, or the application itself have resources for that choice.
 
-Đây là điểm cần phân biệt trong mô hình `Locale`:
+This is a key distinction in the `Locale` model:
 
-- **Biểu diễn yêu cầu:** tạo `Locale`, lấy `getLanguage()`, `getCountry()`, `toLanguageTag()` và truyền vào API.
-- **Có triển khai/dữ liệu:** từng dịch vụ (định dạng số, ngày, so sánh chữ, phân tách từ, resource bundle...) có bộ dữ liệu và nhà cung cấp locale riêng.
-- **Có khả năng hoạt động nhờ fallback:** dịch vụ có thể trả về kết quả dùng quy tắc chung hoặc một locale khác, ngay cả khi không có dữ liệu riêng cho locale yêu cầu.
-- **Đúng với thị trường và người dùng:** bản dịch, ngữ pháp, ký hiệu, quy tắc địa phương và các ca giao diện đã được kiểm chứng. Đây là một mức đảm bảo cao hơn việc gọi API thành công.
+- **Representing a request:** creating `Locale`, calling `getLanguage()`, `getCountry()`, `toLanguageTag()`, and passing it to APIs.
+- **Having implementations/data:** each service (number formatting, date formatting, string collation, word breaking, resource bundles, etc.) has its own dataset and locale providers.
+- **Working via fallback:** a service may return results using generic rules or another locale, even when no dedicated data exists for the requested locale.
+- **Fit for market and users:** translations, grammar, symbols, local conventions, and UI cases have been verified. This is a higher bar than an API call succeeding.
 
-**Kết luận của hiện tượng:** `new Locale(...)` (cách cũ), `Locale.forLanguageTag(...)` hay `Locale.Builder` chỉ tạo **đối tượng mô tả locale**; chúng không tự tải bản dịch, không kiểm tra đủ dịch vụ và không bắt ứng dụng hỗ trợ locale đó.
+**Conclusion of this phenomenon:** `new Locale(...)` (legacy), `Locale.forLanguageTag(...)`, or `Locale.Builder` only creates a **locale descriptor object**; they do not load translations, check all services, or force the application to support that locale.
 
-## 2. Vì sao Java cho tạo locale chưa được hỗ trợ?
+## 2. Why does Java allow creating an unsupported locale?
 
-### 2.1. Đối tượng `Locale` lưu định danh, không lưu toàn bộ dữ liệu địa phương
+### 2.1. The `Locale` object stores an identifier, not all local data
 
-Một `Locale` có thể mang:
+A `Locale` can carry:
 
-| Thành phần | Ví dụ | Ý nghĩa |
+| Component | Example | Meaning |
 | --- | --- | --- |
-| Language | `vi` | Ngôn ngữ |
-| Script | `Latn`, `Hant` | Hệ chữ khi cần phân biệt |
-| Region | `VN`, `US` | Quốc gia/vùng |
-| Variant | Một biến thể hợp lệ | Thông tin biến thể bổ sung |
-| Extension | Ví dụ `u-nu-latn` | Yêu cầu bổ sung theo chuẩn BCP 47, mức hỗ trợ tùy dịch vụ |
+| Language | `vi` | Language |
+| Script | `Latn`, `Hant` | Writing system when disambiguation is needed |
+| Region | `VN`, `US` | Country/region |
+| Variant | A valid variant | Additional variant information |
+| Extension | E.g. `u-nu-latn` | Additional BCP 47 request; support varies by service |
 
-`Locale.forLanguageTag("vi-VN")` tạo mô tả tiếng Việt tại Việt Nam; `Locale.forLanguageTag("zz-ZZ")` vẫn có thể tạo một mô tả hợp lệ về mặt cú pháp. Không thao tác nào trong hai thao tác đó bảo đảm có tệp dịch, quy tắc phân loại chữ, dữ liệu vùng hay thiết kế giao diện tương ứng.
+`Locale.forLanguageTag("vi-VN")` creates a description of Vietnamese in Vietnam; `Locale.forLanguageTag("zz-ZZ")` can still create a syntactically valid description. Neither operation guarantees the existence of translation files, collation rules, regional data, or corresponding UI design.
 
-`Locale.Builder` có thể phát hiện **lỗi cú pháp** bằng `IllformedLocaleException`, nhưng cũng không chứng minh **có dịch vụ hỗ trợ**. `Locale.forLanguageTag` xử lý các phần không đúng cú pháp theo quy tắc phân tích thẻ ngôn ngữ; vì vậy đừng dùng việc hàm không ném exception làm phép kiểm tra “locale này đã được hỗ trợ”.
+`Locale.Builder` can catch **syntax errors** via `IllformedLocaleException`, yet still does not prove **service support exists**. `Locale.forLanguageTag` handles malformed parts according to language tag parsing rules; therefore do not use the absence of an exception as a test for "this locale is supported".
 
-Ví dụ:
+Example:
 
 ```java
 Locale requested = Locale.forLanguageTag("zz-ZZ");
 System.out.println(requested.toLanguageTag()); // zz-ZZ
 ```
 
-Kết quả cho biết Java giữ được định danh yêu cầu. Nó không chứng minh đã có bản dịch `zz`.
+The output shows that Java preserved the requested identifier. It does not prove `zz` translations exist.
 
-### 2.2. “Hỗ trợ” phụ thuộc dịch vụ và bộ dữ liệu
+### 2.2. "Support" depends on the service and dataset
 
-Các dịch vụ locale-sensitive trong Java không bắt buộc có cùng danh sách locale. Chẳng hạn:
+Locale-sensitive services in Java are not required to share the same list of locales. For example:
 
-| Dịch vụ/API | Cung cấp gì? | Vì sao có thể khác dịch vụ khác? |
+| Service/API | What does it provide? | Why can it differ from other services? |
 | --- | --- | --- |
-| `NumberFormat` | Cách trình bày/phân tích số, phần trăm, tiền | Cần dữ liệu ký hiệu và mẫu định dạng số |
-| `DateFormat` / `DateTimeFormatter` | Mẫu, tên tháng, tên thứ, quy tắc hiển thị ngày/giờ | Cần dữ liệu ngày/giờ và có cơ chế fallback riêng |
-| `Collator` | Thứ tự so sánh chuỗi phù hợp ngôn ngữ | Cần quy tắc sắp xếp chữ |
-| `BreakIterator` | Ranh giới ký tự, từ, câu, dòng | Cần quy tắc phân đoạn văn bản |
-| `ResourceBundle` | Thông điệp do ứng dụng/thư viện cung cấp | Phụ thuộc các bundle hiện có trên classpath/module và fallback của chúng |
-| `Currency` | Thông tin mã/đồng tiền liên quan đến vùng, khi xác định được | Phụ thuộc dữ liệu tiền tệ và vùng, không phải kho bản dịch |
+| `NumberFormat` | Formatting/parsing numbers, percentages, currency | Needs symbol data and number formatting patterns |
+| `DateFormat` / `DateTimeFormatter` | Patterns, month names, weekday names, date/time display rules | Needs date/time data and has its own fallback mechanism |
+| `Collator` | Linguistically appropriate string comparison order | Needs character sorting rules |
+| `BreakIterator` | Character, word, sentence, and line boundaries | Needs text segmentation rules |
+| `ResourceBundle` | Messages supplied by the application/libraries | Depends on available bundles on classpath/modules and their fallback |
+| `Currency` | Currency code/unit info associated with a region, when determinable | Depends on currency and region data, not a translation repository |
 
-Một locale có thể có khả năng định dạng số nhưng **không có bản dịch ứng dụng**; có bundle dịch nhưng chưa được kiểm thử việc sắp xếp từ hay hiển thị lịch. Ngay trong Java, dữ liệu có thể đến từ những locale-data provider khác nhau, bao gồm dữ liệu CLDR của JDK và các provider mở rộng qua SPI, tùy phiên bản/cấu hình/runtime.
+A locale may have number formatting capability yet **lack application translations**; or have translation bundles yet remain untested for word sorting or calendar display. Even within Java, data can come from different locale-data providers, including the JDK's CLDR data and providers extended via SPI, depending on version/configuration/runtime.
 
-Không nên hiểu “hàm chạy thành công” là “dịch vụ có dữ liệu chuẩn riêng cho đúng locale”. Đặc biệt, việc API lặng lẽ áp dụng quy tắc dự phòng có thể che giấu thiếu dữ liệu.
+Do not interpret "method ran without error" as "the service has dedicated accurate data for that exact locale". In particular, an API silently applying fallback rules can mask missing data.
 
-## 3. Kiểm tra khả năng được công bố theo từng API
+## 3. Checking advertised capability per API
 
-Nhiều API cung cấp `getAvailableLocales()`, ví dụ `NumberFormat`, `DateFormat`, `Collator`, `BreakIterator`. Hãy hỏi **đúng dịch vụ** mà ứng dụng sắp dùng thay vì chỉ nhìn danh sách locale toàn JVM.
+Many APIs provide `getAvailableLocales()`, such as `NumberFormat`, `DateFormat`, `Collator`, and `BreakIterator`. Ask **the specific service** your application is about to use rather than only inspecting the JVM-wide locale list.
 
-Tạo tệp **`LocaleAvailabilityDemo.java`**:
+Create the file **`LocaleAvailabilityDemo.java`**:
 
 ```java
 import java.text.BreakIterator;
@@ -101,37 +101,37 @@ public class LocaleAvailabilityDemo {
 }
 ```
 
-Chạy bằng JDK 17+:
+Run with JDK 17+:
 
 ```bash
 javac -encoding UTF-8 LocaleAvailabilityDemo.java
 java -cp . LocaleAvailabilityDemo
 ```
 
-Dòng đầu có kết quả xác định:
+The first line has deterministic output:
 
 ```text
 requested: zz-ZZ
 ```
 
-Các dòng còn lại phụ thuộc phiên bản JDK, cấu hình locale provider và những provider được cài đặt trong runtime, nên **không có stdout cố định áp dụng cho mọi máy**. Với một runtime không công bố hỗ trợ `zz-ZZ`, có thể thấy `false` ở các dòng kiểm tra, nhưng lời gọi `getNumberInstance(requested).format(...)` vẫn có thể tạo ra chuỗi số do dùng dữ liệu dự phòng.
+The remaining lines depend on the JDK version, locale provider configuration, and providers installed in the runtime, so **there is no single fixed stdout across all machines**. In a runtime that does not advertise support for `zz-ZZ`, you may see `false` on the check lines, while `getNumberInstance(requested).format(...)` can still produce a formatted number string using fallback data.
 
-### Cách hiểu đúng kết quả
+### How to interpret the results properly
 
-- `true` nghĩa là dịch vụ **công bố** locale ấy trong tập do API trả về. Nó không chứng minh bản dịch giao diện của bạn đã tồn tại hoặc mọi quy tắc văn hóa đã đúng.
-- `false` nghĩa là locale ấy **không có trong danh sách được công bố của API đó**. Nó không nhất thiết đồng nghĩa mọi lời gọi định dạng với locale đó sẽ thất bại; dịch vụ có thể fallback.
-- Kết quả của `NumberFormat` **không được suy ra** từ `DateFormat` hoặc `Collator`.
-- `Locale.getAvailableLocales()` trả về danh sách locale cài đặt/được cung cấp ở phạm vi runtime; **không phải danh sách bản dịch mà ứng dụng có**, và cũng không phải kiểm thử đầy đủ cho từng nghiệp vụ.
+- `true` means the service **advertises** that locale in the set returned by the API. It does not prove your UI translations exist or that all cultural rules are accurate.
+- `false` means that locale **is not in that API's advertised list**. It does not necessarily mean every formatting call with that locale will fail; the service may fall back.
+- Results from `NumberFormat` **cannot be inferred** from `DateFormat` or `Collator`.
+- `Locale.getAvailableLocales()` returns the list of locales installed/provided at the runtime level; it is **not the list of translations your application has**, nor is it sufficient testing for every business feature.
 
-Một kiểm tra `Arrays.asList(...).contains(requested)` như trên so khớp **chính xác đối tượng locale**, thích hợp để khảo sát API. Trong ứng dụng thực tế, việc lựa chọn `vi-VN` khi chỉ có `vi` là một **chính sách matching/fallback** riêng, không thể chỉ dựa vào phép `contains` này.
+A check like `Arrays.asList(...).contains(requested)` above performs an **exact locale object match**, which is useful for inspecting APIs. In real applications, choosing `vi` when `vi-VN` is requested is a separate **matching/fallback policy** and cannot rely solely on this `contains` check.
 
-## 4. `ResourceBundle`: có thể trả về thông điệp mà vẫn không có bản dịch đúng locale
+## 4. `ResourceBundle`: can return a message while still lacking a translation for the right locale
 
-`ResourceBundle` đọc tài nguyên do ứng dụng/thư viện đóng gói, tách biệt với tập locale sẵn có của `NumberFormat` hay `Collator`.
+`ResourceBundle` reads resources packaged by the application/libraries, separate from the available locale sets of `NumberFormat` or `Collator`.
 
-Giả sử dự án chỉ cung cấp:
+Suppose a project only provides:
 
-**`labels.properties`** (gói gốc):
+**`labels.properties`** (root bundle):
 
 ```properties
 welcome=Hello
@@ -143,7 +143,7 @@ welcome=Hello
 welcome=Xin chào
 ```
 
-Và chương trình **`BundleFallbackDemo.java`**:
+And the program **`BundleFallbackDemo.java`**:
 
 ```java
 import java.util.Locale;
@@ -171,65 +171,65 @@ public class BundleFallbackDemo {
 }
 ```
 
-Lưu ba tệp cùng thư mục và chạy trên classpath bằng JDK 17+:
+Save all three files in the same directory and run on the classpath with JDK 17+:
 
 ```bash
 javac -encoding UTF-8 BundleFallbackDemo.java
 java -cp . BundleFallbackDemo
 ```
 
-Với đúng ba tệp ở ví dụ, đầu ra:
+With the exact three files in the example, output:
 
 ```text
 vi-VN -> Xin chào (bundle: vi)
 fr-FR -> Hello (bundle: und)
 ```
 
-**Giải thích chi tiết:**
+**Detailed explanation:**
 
-- Người dùng yêu cầu `vi-VN`; không có `labels_vi_VN.properties` nhưng có `labels_vi.properties`, nên lời chào tiếng Việt được chọn. `getLocale()` trả về `vi`: locale của bundle thực sự được nạp, không nhất thiết trùng locale đã yêu cầu.
-- Người dùng yêu cầu `fr-FR`; không có bundle tiếng Pháp, nên lấy `labels.properties` gốc với `Locale.ROOT`. `Locale.ROOT.toLanguageTag()` là `und` (“undetermined”). Lời gọi thành công nhưng thông điệp **vẫn là tiếng Anh**.
-- `getNoFallbackControl(...)` trong ví dụ tắt nhánh thử **default locale của JVM** để kết quả rõ ràng; nó vẫn cho phép dùng **bundle gốc**. Với cơ chế `getBundle` mặc định, tập ứng viên còn có thể xét default locale theo thuật toán của `ResourceBundle`.
-- Trên JDK 17, resource bundle `.properties` được đọc bằng UTF-8 theo quy tắc hiện hành (có cơ chế tương thích dữ liệu cũ). Vì vậy có thể lưu trực tiếp dấu tiếng Việt như ví dụ; cần bảo đảm công cụ đóng gói giữ nguyên nội dung/encoding.
+- The user requested `vi-VN`; `labels_vi_VN.properties` does not exist, but `labels_vi.properties` does, so the Vietnamese greeting is selected. `getLocale()` returns `vi`: the locale of the bundle actually loaded, not necessarily the requested locale.
+- The user requested `fr-FR`; no French bundle exists, so the root `labels.properties` with `Locale.ROOT` is loaded. `Locale.ROOT.toLanguageTag()` is `und` ("undetermined"). The call succeeds, yet the message **is still English**.
+- `getNoFallbackControl(...)` in the example disables the branch that tries the **JVM default locale** to keep results clear; it still allows falling back to the **root bundle**. With the default `getBundle` behavior, the candidate set may also check the default locale according to `ResourceBundle`'s algorithm.
+- On JDK 17, `.properties` resource bundles are read as UTF-8 under current rules (with legacy compatibility mechanisms). Thus Vietnamese diacritics can be saved directly as in the example; ensure build/packaging tools preserve content and encoding.
 
-Điều tương tự xảy ra khi bundle có một số khóa nhưng thiếu những khóa khác: `getString` có thể lấy giá trị từ bundle cha. Nếu không tìm thấy khóa ở toàn bộ chuỗi phân giải, Java ném `MissingResourceException`. Do đó cần kiểm tra **độ phủ khóa và chất lượng dịch**, không chỉ kiểm tra `getBundle` có trả về đối tượng.
+The same applies when a bundle has some keys but is missing others: `getString` may pull values from a parent bundle. If the key is not found anywhere in the resolution chain, Java throws `MissingResourceException`. Therefore, check **key coverage and translation quality**, not just whether `getBundle` returns an object.
 
-Một chương trình có thể có tài nguyên `labels_vi.properties` ngay cả khi dịch vụ bên thứ ba không hỗ trợ quy tắc riêng cho `vi-VN`. Ngược lại, runtime có thể định dạng số tiếng Pháp nhưng ứng dụng không có bất kỳ thông điệp tiếng Pháp nào.
+A program can have `labels_vi.properties` even if a third-party service lacks dedicated rules for `vi-VN`. Conversely, the runtime may format French numbers while the application has no French messages at all.
 
-## 5. Fallback là tính năng hữu ích nhưng dễ làm ta kết luận sai
+## 5. Fallback is a helpful feature, yet easily leads to wrong conclusions
 
-Có nhiều lớp fallback độc lập:
+There are multiple independent fallback layers:
 
 ```text
-Thẻ người dùng yêu cầu: vi-VN / fr-FR / ...
+User-requested tag: vi-VN / fr-FR / ...
            |
-           +--> Matching locale mà sản phẩm cam kết hỗ trợ
-           |       -> ví dụ hỗ trợ vi, en; chọn fallback en
+           +--> Matching a locale the product commits to support
+           |       -> e.g., supports vi, en; picks fallback en
            |
            +--> ResourceBundle
-           |       -> bản dịch biến thể/vùng -> ngôn ngữ -> bundle gốc
-           |       -> có thể thử default locale theo Control
+           |       -> variant/region translation -> language -> root bundle
+           |       -> may try default locale depending on Control
            |
            +--> NumberFormat / DateFormat / Collator / ...
-                   -> nhà cung cấp dữ liệu của từng dịch vụ
-                   -> quy tắc dự phòng riêng của runtime
+                   -> each service's data provider
+                   -> runtime's own fallback rules
 ```
 
-Sơ đồ thể hiện **các nhánh độc lập**, không phải một thứ tự thực thi duy nhất của Java. Một `ResourceBundle` lấy được câu tiếng Anh và một `NumberFormat` tạo được chuỗi số **không chứng minh** rằng sản phẩm đang hỗ trợ đầy đủ `fr-FR`.
+The diagram shows **independent branches**, not a single unified execution order in Java. A `ResourceBundle` returning an English sentence and a `NumberFormat` producing a number string **do not prove** that the product fully supports `fr-FR`.
 
-Một số API còn có thể không phân giải được dữ liệu vùng cụ thể hoặc ném lỗi cho đầu vào không phù hợp. Đừng giả định tất cả API đều fallback, hay đều fallback về cùng một locale. Đặc biệt:
+Some APIs may also fail to resolve region-specific data or throw errors for unsuitable input. Do not assume every API falls back, or falls back to the same locale. Specifically:
 
-- `NumberFormat.getCurrencyInstance(locale)` dùng quy tắc format theo locale; nó **không đổi đơn vị tiền tệ hoặc tỷ giá** của dữ liệu giao dịch.
-- `Currency.getInstance(locale)` có điều kiện về thông tin vùng và dữ liệu mã tiền; chỉ tạo được `Locale` không bảo đảm suy ra được tiền tệ.
-- `DateTimeFormatter.ofLocalizedDate(...).withLocale(locale)` cần dữ liệu mẫu định dạng. Chọn locale **không** chọn múi giờ; múi giờ phải được xác định riêng bằng `ZoneId`.
-- `Collator` có thể dùng quy tắc chung nếu thiếu dữ liệu chuyên biệt. Kết quả sắp xếp chạy được không đủ để kết luận đúng yêu cầu từ điển của ngôn ngữ.
-- Các extension Unicode trong BCP 47 (như lựa chọn hệ chữ số) chỉ có hiệu lực ở những API/provider thực sự hiểu và áp dụng chúng.
+- `NumberFormat.getCurrencyInstance(locale)` uses locale formatting rules; it **does not change the currency unit or exchange rate** of transaction data.
+- `Currency.getInstance(locale)` requires valid region information and currency code data; merely creating a `Locale` does not guarantee a currency can be derived.
+- `DateTimeFormatter.ofLocalizedDate(...).withLocale(locale)` requires pattern formatting data. Choosing a locale **does not** choose a time zone; time zone must be specified separately with `ZoneId`.
+- `Collator` may use generic rules when specialized data is missing. Producing a sort order without errors is not enough to conclude it meets the language's dictionary requirements.
+- Unicode extensions in BCP 47 (such as selecting a numbering system) only take effect in APIs/providers that actually understand and apply them.
 
-## 6. Định nghĩa rõ “locale được hỗ trợ” của chính ứng dụng
+## 6. Explicitly defining the application's own "supported locales"
 
-Đối với sản phẩm, “supported locale” nên là **cam kết cụ thể** với từng tính năng, thay vì chỉ là “Java chấp nhận language tag”.
+For a product, "supported locale" should be a **concrete commitment** per feature, rather than simply "Java accepts the language tag".
 
-Ví dụ, ứng dụng chỉ phát hành giao diện tiếng Việt và tiếng Anh:
+For example, an application ships only Vietnamese and English UIs:
 
 ```java
 import java.util.Locale;
@@ -253,66 +253,66 @@ public class SupportedLocaleDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 SupportedLocaleDemo.java
 java -cp . SupportedLocaleDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 requested: fr-FR
 selected: en
 ```
 
-Ví dụ chỉ minh họa chính sách hỗ trợ **theo language**. Trong sản phẩm thực tế, `en-US` và `en-GB` hoặc `zh-Hans` và `zh-Hant` có thể cần xem như các locale riêng; việc rút xuống `getLanguage()` không luôn phù hợp. Hãy dùng một danh sách locale hỗ trợ thực tế cùng một chính sách matching có định nghĩa rõ; có thể sử dụng `Locale.LanguageRange` với `Locale.lookup`/`Locale.filter` khi thương lượng các thẻ ngôn ngữ theo BCP 47 và HTTP `Accept-Language`.
+The example only illustrates a support policy **by language**. In real products, `en-US` and `en-GB`, or `zh-Hans` and `zh-Hant`, may need to be treated as distinct locales; collapsing to `getLanguage()` is not always appropriate. Use an actual list of supported locales with a well-defined matching policy; `Locale.LanguageRange` with `Locale.lookup`/`Locale.filter` can be used when negotiating BCP 47 language tags and HTTP `Accept-Language`.
 
-Một danh sách hỗ trợ đáng tin nên trả lời được:
+A reliable support list should answer:
 
-1. **Thông điệp:** bản dịch đã đủ khóa, được duyệt, có fallback minh bạch hay chưa?
-2. **Số/ngày/giờ:** dữ liệu provider nào được dùng, định dạng được kiểm thử theo locale và phiên bản runtime nào?
-3. **Sắp xếp, tìm kiếm và chia từ:** tính năng có thực sự cần quy tắc ngôn ngữ cụ thể, và đã kiểm thử chưa?
-4. **Tiền tệ, múi giờ, đơn vị đo:** phần nào do locale gợi ý, phần nào phải là lựa chọn hoặc dữ liệu nghiệp vụ riêng?
-5. **Giao diện:** đã thử văn bản dài, dấu tiếng Việt, chữ phải-sang-trái khi cần, font, đọc màn hình và thông báo lỗi chưa?
+1. **Messages:** are all keys translated, reviewed, and backed by transparent fallback?
+2. **Numbers/dates/times:** which provider data is used, and for which locales and runtime versions is formatting tested?
+3. **Sorting, searching, and word segmentation:** does the feature genuinely require language-specific rules, and has it been tested?
+4. **Currency, time zone, measurement units:** which parts are hinted by locale, and which must be explicit choices or business data?
+5. **UI:** have long strings, Vietnamese diacritics, right-to-left scripts where applicable, fonts, screen readers, and error messages been tested?
 
-| Trạng thái | Điều thực sự có thể khẳng định |
+| Status | What can actually be asserted |
 | --- | --- |
-| `Locale.forLanguageTag(tag)` trả về đối tượng | Java biểu diễn/phân tích được định danh theo khả năng của API |
-| `SomeService.getAvailableLocales()` chứa locale | Dịch vụ đó công bố locale trong runtime hiện tại |
-| Lời gọi định dạng không ném lỗi | Có kết quả; có thể đã dùng fallback |
-| `ResourceBundle.getBundle` trả về bundle | Tìm thấy bundle theo cơ chế phân giải; chưa chắc đúng locale yêu cầu |
-| QA bản dịch và định dạng theo locale đạt | Tính năng đã được kiểm chứng trong phạm vi kiểm thử cụ thể |
-| Ứng dụng quảng bá hỗ trợ locale | Nên là cam kết dựa trên các phép kiểm tra và giới hạn được công bố |
+| `Locale.forLanguageTag(tag)` returns an object | Java can represent/parse the identifier within that API's capabilities |
+| `SomeService.getAvailableLocales()` contains the locale | That service advertises the locale in the current runtime |
+| A formatting call throws no error | Output was produced; fallback may have been used |
+| `ResourceBundle.getBundle` returns a bundle | A bundle was found by resolution rules; not necessarily the requested locale |
+| Translation and formatting QA for the locale passes | The feature has been verified within the specific test scope |
+| The application advertises support for the locale | Should be a commitment backed by checks and documented limits |
 
-## 7. Cách kiểm thử để không bị fallback che lỗi
+## 7. How to test so fallback does not mask bugs
 
-Với mỗi locale ứng dụng dự kiến hỗ trợ, nên kiểm tra các nhóm ca sau:
+For each locale the application plans to support, check the following test groups:
 
-- **Đúng bản dịch:** những khóa quan trọng xuất hiện bằng ngôn ngữ mong muốn; không rơi về bundle gốc ngoài chính sách cho phép. Kiểm tra `bundle.getLocale()` khi cần phát hiện fallback toàn bundle; riêng trường hợp thiếu từng khóa phải kiểm thử bằng độ phủ nội dung/giá trị.
-- **Khóa chưa dịch:** hệ thống hiển thị nội dung dự phòng có kiểm soát, hoặc báo thiếu bản dịch ở bước kiểm thử/build; không để lộ tên khóa hay thông báo lẫn ngôn ngữ ngoài ý muốn.
-- **Định dạng locale:** đối chiếu mẫu số, ngày, phần trăm/tiền tệ, tên tháng và thứ trên JDK/locale-provider đã chọn. Tránh cố định snapshot cho mọi JDK nếu dữ liệu CLDR có thể được cập nhật.
-- **Giá trị biên:** số âm, số rất lớn, số thập phân, ngày chuyển năm, ngày/giờ gần thời điểm đổi múi giờ, ngôn ngữ có dấu hoặc script khác.
-- **Dịch vụ độc lập:** định dạng số thành công không thay thế kiểm thử `Collator` và `BreakIterator` nếu ứng dụng sử dụng chúng.
-- **Locale không được hỗ trợ:** yêu cầu `zz-ZZ` hoặc một thẻ hợp lệ nằm ngoài danh sách sản phẩm; xác nhận ứng dụng chọn fallback dự kiến, không thông báo nhầm rằng locale ấy đã được hỗ trợ đầy đủ.
-- **Môi trường:** cố định hoặc ghi nhận phiên bản JDK, cấu hình locale provider, timezone, tập tài nguyên và dependency. Dữ liệu giữa các bản JDK/CLDR có thể thay đổi.
+- **Correct translations:** critical keys appear in the expected language; they do not fall back to the root bundle outside allowed policy. Inspect `bundle.getLocale()` when needed to detect whole-bundle fallback; for individual missing keys, test content/value coverage directly.
+- **Untranslated keys:** the system displays controlled fallback content or flags missing translations during testing/build; never expose raw key names or unintended mixed-language messages.
+- **Locale formatting:** verify number, date, percentage/currency patterns, and month/weekday names on the chosen JDK/locale provider. Avoid pinning exact snapshots across all JDKs if CLDR data may be updated.
+- **Boundary values:** negative numbers, very large numbers, decimals, year transitions, dates/times near DST/timezone shifts, languages with diacritics or different scripts.
+- **Independent services:** successful number formatting does not replace testing `Collator` and `BreakIterator` if the application uses them.
+- **Unsupported locales:** request `zz-ZZ` or a valid tag outside the product list; verify the application selects the expected fallback and does not falsely indicate that the locale is fully supported.
+- **Environment:** pin or record JDK version, locale provider configuration, timezone, resource set, and dependencies. Data across JDK/CLDR versions can change.
 
-### Những sai lầm dễ gặp
+### Common pitfalls
 
-| Sai lầm | Vì sao sai? | Cách làm đúng |
+| Mistake | Why is it wrong? | Correct practice |
 | --- | --- | --- |
-| “Tạo `Locale` không lỗi thì ngôn ngữ này được hỗ trợ” | `Locale` chỉ lưu định danh | Kiểm tra khả năng của từng dịch vụ và độ phủ sản phẩm |
-| “Có trong `Locale.getAvailableLocales()` là có bản dịch” | Dữ liệu runtime khác tài nguyên ứng dụng | Kiểm tra bundle, khóa dịch và QA |
-| “`format()` ra chữ là đã đúng locale” | Kết quả có thể xuất phát từ fallback | Kiểm thử kết quả thực tế và provider |
-| “Có `messages_fr.properties` là mọi dịch vụ đều hỗ trợ `fr-FR`” | Bundle chỉ giải quyết thông điệp | Kiểm thử số, ngày, chữ, quy tắc nghiệp vụ riêng |
-| “API nào cũng trả về cùng danh sách locale” | Mỗi API/provider có phạm vi khác nhau | Dùng `getAvailableLocales()` của đúng API |
-| “`Locale` xác định luôn múi giờ/đơn vị tiền” | Đây là các dữ kiện khác nhau | Quản lý `ZoneId`, mã tiền và nghiệp vụ độc lập |
-| “Fallback không báo lỗi thì không cần kiểm tra” | Fallback có thể che bản dịch bị thiếu | Kiểm thử locale thực dùng và định nghĩa fallback rõ ràng |
+| "Creating `Locale` without error means this language is supported" | `Locale` only stores an identifier | Verify each service's capability and product coverage |
+| "Being in `Locale.getAvailableLocales()` means translations exist" | Runtime data is separate from application resources | Verify bundles, translation keys, and QA |
+| "`format()` outputs text so the locale is right" | Output may come from fallback | Test actual results and providers |
+| "Having `messages_fr.properties` means every service supports `fr-FR`" | Bundles only resolve messages | Test numbers, dates, text, and business rules separately |
+| "Every API returns the same list of locales" | Each API/provider has a different scope | Call `getAvailableLocales()` on the specific API |
+| "`Locale` also determines time zone/currency unit" | Those are separate facts | Manage `ZoneId`, currency codes, and business data independently |
+| "Fallback throws no error so no testing is needed" | Fallback can hide missing translations | Test the actual locales used and define fallback clearly |
 
-## 8. Ghi nhớ
+## 8. Key takeaways
 
-- **Tạo được `Locale` chỉ chứng minh có đối tượng mô tả yêu cầu.** Nó không tự bổ sung dữ liệu, dịch văn bản hoặc chứng minh mọi dịch vụ Java hỗ trợ locale đó.
-- **Hỗ trợ thuộc về từng API/provider và từng phần của sản phẩm.** `NumberFormat`, `DateFormat`, `Collator`, `BreakIterator` và `ResourceBundle` có phạm vi khác nhau.
-- **Fallback có thể khiến lời gọi thành công dù thiếu hỗ trợ trực tiếp.** Muốn biết đang dùng bản dịch nào, cần quan sát locale/tài nguyên thực được chọn và kiểm thử nội dung.
-- **Ứng dụng phải tự định nghĩa danh sách locale hỗ trợ, chính sách lựa chọn/fallback và bộ kiểm thử.** Không suy ra cam kết sản phẩm từ việc `Locale.forLanguageTag` nhận một thẻ.
+- **Being able to create a `Locale` only proves you have a request descriptor object.** It does not add data, translate text, or prove every Java service supports that locale.
+- **Support belongs to each API/provider and each part of the product.** `NumberFormat`, `DateFormat`, `Collator`, `BreakIterator`, and `ResourceBundle` have distinct scopes.
+- **Fallback can make calls succeed despite lacking direct support.** To know which translation is actually in use, observe the resolved locale/resource and test the content.
+- **The application must define its own supported locale list, selection/fallback policy, and test suite.** Do not infer a product commitment from `Locale.forLanguageTag` accepting a tag.

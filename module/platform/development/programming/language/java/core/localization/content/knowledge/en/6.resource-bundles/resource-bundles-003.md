@@ -1,12 +1,12 @@
-# Tạo ResourceBundle gốc và các bản dịch theo Locale trong Java
+# Creating a Root ResourceBundle and Locale Translations in Java
 
-Một ứng dụng đa ngôn ngữ không nên đặt câu chữ giao diện trực tiếp trong nhiều nhánh `if (language.equals(...))`. Cách làm có thể mở rộng là **tách nội dung thành bộ thông điệp (bundle)** theo ngôn ngữ và vùng, rồi chọn bộ phù hợp với `Locale` của người dùng. Java cung cấp `java.util.ResourceBundle` cho nhu cầu đó.
+A multilingual application should not embed UI wording directly across numerous `if (language.equals(...))` branches. A scalable approach is to **separate content into message sets (bundles)** by language and region, then select the one matching the user's `Locale`. Java provides `java.util.ResourceBundle` for this need.
 
-Bài học này hướng dẫn **tạo bundle gốc**, tạo những file bản dịch cùng tên cơ sở cho từng locale, đọc thông điệp qua Java 17+, hiểu quan hệ giữa bundle vùng–ngôn ngữ–gốc, xử lý key còn thiếu và đóng gói tài nguyên đúng cách. Trọng tâm là **tổ chức và tạo file tài nguyên**, kèm chương trình có thể chạy để kiểm chứng.
+This lesson guides you through **creating a root bundle**, creating translation files with the same base name for each locale, reading messages with Java 17+, understanding the relationship between region–language–root bundles, handling missing keys, and packaging resources properly. The focus is on **organizing and creating resource files**, accompanied by a runnable program to verify the behavior.
 
-## 1. Bundle gốc và bundle theo locale là gì?
+## 1. What Are the Root Bundle and Locale Bundles?
 
-`ResourceBundle` là một API tra cứu dữ liệu bản địa hóa bằng **khóa (key)**. Với bundle dựa trên file `.properties`, mỗi file chứa các cặp `key=value`:
+`ResourceBundle` is an API for looking up localized data by **key**. With `.properties`-based bundles, each file contains `key=value` pairs:
 
 ```properties
 app.title=Locale Workshop
@@ -14,19 +14,19 @@ button.start=Start
 button.quit=Quit
 ```
 
-- **Base name** là tên logic chung của bộ tài nguyên, ví dụ `messages`. Khi gọi API, truyền `"messages"`, không truyền đuôi `.properties`.
-- **Bundle gốc (root/base bundle)** là `messages.properties`, không có hậu tố locale. Nó cung cấp các giá trị mặc định làm điểm dự phòng.
-- **Bundle ngôn ngữ** là file như `messages_en.properties` hoặc `messages_vi.properties`.
-- **Bundle vùng** là file như `messages_en_US.properties`, `messages_en_GB.properties`, `messages_vi_VN.properties`. Nó ghi đè các khóa cần khác nhau theo vùng, không nhất thiết chép lại toàn bộ bundle cha.
-- **Locale được yêu cầu** là tham số `Locale` khi gọi `ResourceBundle.getBundle(baseName, locale)`. Nó quyết định các tên file ứng viên mà Java xem xét.
+- **Base name** is the shared logical name of the resource set, for example `messages`. When calling the API, pass `"messages"`, not the `.properties` extension.
+- **Root/base bundle** is `messages.properties`, with no locale suffix. It provides default values acting as a fallback point.
+- **Language bundle** is a file such as `messages_en.properties` or `messages_vi.properties`.
+- **Region bundle** is a file such as `messages_en_US.properties`, `messages_en_GB.properties`, or `messages_vi_VN.properties`. It overrides keys that need to differ by region without having to copy the entire parent bundle.
+- **Requested locale** is the `Locale` argument passed to `ResourceBundle.getBundle(baseName, locale)`. It determines the candidate filenames Java considers.
 
-Ví dụ `en-US` và `en-GB` đều dùng tiếng Anh nhưng có thể chọn nhãn nút khác nhau. Nếu key của file vùng không tồn tại, Java có thể lấy từ bundle tiếng Anh chung và sau đó từ bundle gốc theo chuỗi bundle cha. Nói cách khác, bản dịch theo locale **có thể chỉ chứa phần khác biệt**.
+For example, `en-US` and `en-GB` both use English yet may choose different button labels. If a key does not exist in the region file, Java can retrieve it from the general English bundle and then from the root bundle along the parent bundle chain. In other words, a locale translation **can contain only the differences**.
 
-**Phân biệt hai cú pháp:** thẻ ngôn ngữ BCP 47 viết `en-US` (dấu gạch nối); **tên file ResourceBundle Java** dùng `messages_en_US.properties` (dấu gạch dưới). Đây là hai quy ước khác nhau. Trong Java, hãy tạo locale bằng `Locale.forLanguageTag("en-US")`.
+**Distinguish two syntaxes:** BCP 47 language tags are written `en-US` (hyphen); **Java ResourceBundle filenames** use `messages_en_US.properties` (underscore). These are two different conventions. In Java, construct the locale using `Locale.forLanguageTag("en-US")`.
 
-## 2. Thiết kế bộ tài nguyên mẫu
+## 2. Designing a Sample Resource Set
 
-Ta xây dựng một ứng dụng nhỏ hỗ trợ tiếng Anh chung, tiếng Anh Hoa Kỳ, tiếng Anh Vương quốc Anh, tiếng Việt chung và tiếng Việt tại Việt Nam. Các file có cùng base name `messages`:
+Let's build a small application supporting general English, US English, UK English, general Vietnamese, and Vietnamese for Vietnam. All files share the base name `messages`:
 
 ```text
 localization-demo/
@@ -39,22 +39,22 @@ localization-demo/
 └── messages_vi_VN.properties
 ```
 
-Đặt tất cả các file trên vào **cùng một thư mục** cho ví dụ chạy trực tiếp. Khi chạy từ thư mục đó với classpath là `.`, JVM sẽ thấy cả mã lớp và tài nguyên `.properties`.
+Place all of these files in the **same directory** for a directly runnable example. When running from that directory with classpath `.`, the JVM sees both the class file and the `.properties` resources.
 
-Quy ước đặt tên:
+Naming conventions:
 
-| File | Vai trò |
+| File | Role |
 | --- | --- |
-| `messages.properties` | Bundle gốc; dự phòng các key chưa được dịch hoặc khi không có bộ locale phù hợp |
-| `messages_en.properties` | Bản tiếng Anh chung |
-| `messages_en_US.properties` | Phần cần khác riêng cho `en-US` |
-| `messages_en_GB.properties` | Phần cần khác riêng cho `en-GB` |
-| `messages_vi.properties` | Bản tiếng Việt chung |
-| `messages_vi_VN.properties` | Phần cần khác riêng cho `vi-VN` |
+| `messages.properties` | Root bundle; fallback for untranslated keys or when no matching locale bundle exists |
+| `messages_en.properties` | General English translation |
+| `messages_en_US.properties` | Overrides specific to `en-US` |
+| `messages_en_GB.properties` | Overrides specific to `en-GB` |
+| `messages_vi.properties` | General Vietnamese translation |
+| `messages_vi_VN.properties` | Overrides specific to `vi-VN` |
 
-File gốc **không bắt buộc** tồn tại để mọi cách tra cứu đều hoạt động, nhưng việc tạo nó là một lựa chọn hữu ích: bạn chủ động xác định điểm dự phòng cuối cùng. Nếu không tìm thấy **bất kỳ bundle ứng viên nào**, `getBundle` sẽ ném `MissingResourceException` thay vì tự tạo thông điệp.
+The root file is **not strictly required** for every lookup setup to work, but creating it is a helpful practice: you explicitly define the final fallback point. If **no candidate bundle** is found at all, `getBundle` throws `MissingResourceException` instead of fabricating messages.
 
-### Bước 1 — Tạo bundle gốc `messages.properties`
+### Step 1 — Create the Root Bundle `messages.properties`
 
 ```properties
 # messages.properties
@@ -64,26 +64,26 @@ button.quit=Quit
 status.ready=Ready
 ```
 
-Ý nghĩa bốn key:
+Meaning of the four keys:
 
-- `app.title`: tiêu đề ứng dụng.
-- `button.start` và `button.quit`: nhãn hai thao tác.
-- `status.ready`: thông báo trạng thái.
+- `app.title`: application title.
+- `button.start` and `button.quit`: labels for two actions.
+- `status.ready`: status message.
 
-Bundle gốc nên có **đủ các key mà ứng dụng dùng** để có điểm dự phòng xác định. Tên key thường được đặt theo chức năng giao diện thay vì dùng trực tiếp câu tiếng Anh làm key: khi câu dịch đổi, code có thể giữ nguyên key.
+The root bundle should contain **all keys the application uses** so there is a deterministic fallback point. Key names are usually named after UI functionality rather than using the English sentence itself as the key: when translated wording changes, code can keep the same key.
 
-### Bước 2 — Tạo bundle tiếng Anh chung `messages_en.properties`
+### Step 2 — Create the General English Bundle `messages_en.properties`
 
 ```properties
 # messages_en.properties
 button.start=Start
 ```
 
-Ở đây bản tiếng Anh chung chỉ ghi đè `button.start`. Các key `app.title`, `button.quit` và `status.ready` chưa được khai báo sẽ được tìm từ bundle cha `messages.properties`.
+Here the general English bundle only overrides `button.start`. The undeclared keys `app.title`, `button.quit`, and `status.ready` will be looked up from the parent bundle `messages.properties`.
 
-Bạn **cũng có thể** đặt đầy đủ mọi key ở file ngôn ngữ, nếu đó là chính sách kiểm soát bản dịch của nhóm. Ví dụ này cố ý dùng bundle gọn để cho thấy cách tra cứu kế thừa.
+You **can also** place every key in the language file if that is your team's translation-control policy. This example intentionally uses a minimal bundle to demonstrate inherited lookup.
 
-### Bước 3 — Tạo bản tiếng Anh theo vùng
+### Step 3 — Create Regional English Bundles
 
 File `messages_en_US.properties`:
 
@@ -99,11 +99,11 @@ File `messages_en_GB.properties`:
 button.start=Begin
 ```
 
-Hai file này đều có một key nhưng giá trị khác nhau. Các key còn lại đến từ `messages_en.properties` nếu có, rồi `messages.properties`. Điều này tránh chép lặp hàng chục chuỗi giống nhau cho các vùng cùng ngôn ngữ.
+Both files contain one key with different values. The remaining keys come from `messages_en.properties` if present, then `messages.properties`. This avoids duplicating dozens of identical strings across regions sharing a language.
 
-Nếu hai vùng thực sự dùng cùng một cách diễn đạt, không nhất thiết phải tạo file vùng riêng. Chỉ tạo khi có bản dịch, chính tả, từ vựng hoặc nội dung riêng cần duy trì.
+If two regions truly use the exact same phrasing, you do not have to create a separate region file. Only create one when there is region-specific translation, spelling, terminology, or content to maintain.
 
-### Bước 4 — Tạo bản tiếng Việt và biến thể `vi-VN`
+### Step 4 — Create Vietnamese and the `vi-VN` Variant
 
 File `messages_vi.properties`:
 
@@ -121,13 +121,13 @@ File `messages_vi_VN.properties`:
 button.start=Khởi động
 ```
 
-Ở đây tiếng Việt chung đã dịch ba key nhưng chưa có `button.quit`. Giá trị `button.quit=Quit` từ bundle gốc vẫn có hiệu lực. Đây là cách fallback hợp lệ về mặt cơ chế, nhưng có thể không phù hợp để phát hành vì giao diện bị **trộn ngôn ngữ**. Trong sản phẩm thực, kiểm tra độ đầy đủ của bản dịch và có quy tắc quyết định key nào được phép fallback.
+Here general Vietnamese translates three keys but omits `button.quit`. The value `button.quit=Quit` from the root bundle still takes effect. This is valid fallback behavior mechanically, but it may be unsuitable for release because the UI becomes **mixed-language**. In real products, verify translation completeness and establish rules deciding which keys are allowed to fall back.
 
-**Mã hóa:** từ Java 9 trở đi, `PropertyResourceBundle` đọc tài nguyên `.properties` dưới dạng **UTF-8** theo mặc định, với cơ chế xử lý tương thích khi gặp dữ liệu không hợp lệ. Vì vậy, Java 17+ có thể chứa trực tiếp `Học`, `Bắt đầu`, `Sẵn sàng` trong file UTF-8. Cần lưu file thật ở UTF-8; editor, quy trình đóng gói và console phải hiển thị Unicode đúng. Không chuyển những chuỗi này thành ASCII không dấu chỉ để tránh giải quyết lỗi mã hóa.
+**Encoding:** starting with Java 9, `PropertyResourceBundle` reads `.properties` resources as **UTF-8** by default, with compatibility handling when invalid sequences are encountered. Therefore, Java 17+ can directly store `Học`, `Bắt đầu`, and `Sẵn sàng` in UTF-8 files. Ensure the files are actually saved in UTF-8; the editor, packaging pipeline, and console must display Unicode properly. Do not strip diacritics into plain ASCII just to avoid fixing an encoding issue.
 
-## 3. Chương trình Java 17+ đọc các bundle vừa tạo
+## 3. Java 17+ Program Reading the Created Bundles
 
-Lưu file sau với tên **`BundleDemo.java`** vào cùng thư mục với sáu file `.properties`:
+Save the following file as **`BundleDemo.java`** in the same directory as the six `.properties` files:
 
 ```java
 import java.util.Locale;
@@ -159,14 +159,14 @@ public class BundleDemo {
 }
 ```
 
-Từ thư mục chứa các file, chạy:
+From the directory containing the files, run:
 
 ```bash
 javac -encoding UTF-8 BundleDemo.java
 java -cp . BundleDemo
 ```
 
-**Stdout của chương trình, khi sáu file được tạo đúng như hướng dẫn và được đọc dưới dạng UTF-8:**
+**Program stdout, when the six files are created as instructed and read as UTF-8:**
 
 ```text
 en-US | title=Locale Workshop | start=Get started | quit=Quit | ready=Ready
@@ -176,32 +176,32 @@ vi-VN | title=Học Locale | start=Khởi động | quit=Quit | ready=Sẵn sàn
 fr-FR | title=Locale Workshop | start=Start | quit=Quit | ready=Ready
 ```
 
-**Giải thích từng hàng:**
+**Row-by-row explanation:**
 
-1. `en-US` có `messages_en_US`: `button.start` lấy từ US, các key còn lại đi qua cha `en` đến gốc.
-2. `en-GB` tương tự nhưng chọn `Begin` từ bundle GB.
-3. `en-AU` **không có** file vùng tương ứng: Java dùng `messages_en.properties` cho `button.start`, sau đó dùng gốc cho những key còn lại.
-4. `vi-VN` có `messages_vi_VN.properties`; `button.start` là `Khởi động`, `app.title` và `status.ready` từ `messages_vi.properties`, `button.quit` từ gốc.
-5. `fr-FR` không có bundle tiếng Pháp: với cách gọi đã vô hiệu hóa fallback sang locale mặc định của JVM, Java dùng `messages.properties`.
+1. `en-US` has `messages_en_US`: `button.start` comes from US, and the remaining keys go through parent `en` to root.
+2. `en-GB` behaves similarly but picks `Begin` from the GB bundle.
+3. `en-AU` **has no** corresponding region file: Java uses `messages_en.properties` for `button.start`, then root for the remaining keys.
+4. `vi-VN` has `messages_vi_VN.properties`; `button.start` is `Khởi động`, `app.title` and `status.ready` come from `messages_vi.properties`, and `button.quit` comes from root.
+5. `fr-FR` has no French bundle: with fallback to the JVM's default locale disabled in this call, Java uses `messages.properties`.
 
-Kết quả cho thấy **một lần gọi `getBundle` chọn bundle thích hợp**, còn mỗi lần gọi `getString(key)` có thể lấy giá trị từ bundle đang chọn hoặc các bundle cha.
+The output shows that **a single `getBundle` call selects the appropriate bundle**, while each `getString(key)` call can retrieve values from the selected bundle or its parent bundles.
 
-### Vì sao dùng `getNoFallbackControl` trong ví dụ?
+### Why Use `getNoFallbackControl` in the Example?
 
-`ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_PROPERTIES)` có hai ý nghĩa:
+`ResourceBundle.Control.getNoFallbackControl(ResourceBundle.Control.FORMAT_PROPERTIES)` has two effects:
 
-- Chỉ xét các bundle dạng file `.properties` theo cấu hình format này, không dùng lựa chọn class-based trong danh sách format ứng viên.
-- Không thêm một lượt **fallback sang default locale JVM** khi không tìm được bundle cho locale yêu cầu. Bundle gốc vẫn là một ứng viên bình thường và vẫn là nguồn dự phòng.
+- Only considers `.properties` file bundles according to this format configuration, excluding class-based options from the candidate format list.
+- Does not add a **fallback pass to the JVM's default locale** when no bundle is found for the requested locale. The root bundle remains a normal candidate and still acts as a fallback source.
 
-Ví dụ sẽ dễ kiểm thử vì không thay đổi theo `Locale.getDefault()` của máy đang chạy. Với overload phổ biến `ResourceBundle.getBundle("messages", locale)`, Java có thể tìm bundle theo **default locale** nếu không tìm được tài nguyên ứng viên phù hợp. Lúc đó một yêu cầu `fr-FR` có thể chọn ngôn ngữ mặc định của server nếu môi trường và danh sách tài nguyên dẫn đến kết quả đó. Điều này làm đường fallback khó đoán nếu không kiểm thử rõ.
+This makes the example predictable to test because it does not change with `Locale.getDefault()` on the host machine. With the common `ResourceBundle.getBundle("messages", locale)` overload, Java may look up a bundle for the **default locale** if no matching candidate resource is found. In that case, a request for `fr-FR` could select the server's default language if the environment and available resources lead there. That makes the fallback path harder to predict without explicit testing.
 
-`Control` trong ví dụ áp dụng cho cách dùng bundle **classpath truyền thống**. Trong môi trường JPMS với named modules, các overload `getBundle` dùng `ResourceBundle.Control` có giới hạn/không được hỗ trợ theo cách này; hãy sử dụng cơ chế lookup của module/provider phù hợp. Ví dụ đang đặt mã và properties trên classpath, không tạo named module.
+`Control` in this example applies to **traditional classpath** bundle usage. In a JPMS environment with named modules, `getBundle` overloads taking `ResourceBundle.Control` are restricted/unsupported in this manner; use the appropriate module/provider lookup mechanism instead. This example places code and properties on the classpath without creating a named module.
 
-## 4. Java tìm bundle và key theo thứ tự nào?
+## 4. In What Order Does Java Search for Bundles and Keys?
 
-Hãy phân biệt hai câu hỏi:
+Distinguish two questions:
 
-**Câu hỏi A — chọn bundle:** Java xét các bundle ứng viên tương ứng với locale được yêu cầu, chẳng hạn khi yêu cầu `en-US` thì thứ tự đơn giản hóa là:
+**Question A — selecting a bundle:** Java evaluates candidate bundles corresponding to the requested locale; for example, when `en-US` is requested, the simplified order is:
 
 ```text
 messages_en_US.properties
@@ -211,33 +211,33 @@ messages_en.properties
 messages.properties
 ```
 
-Đối với `en-AU` chưa có file vùng:
+For `en-AU`, which has no region file yet:
 
 ```text
-messages_en_AU.properties  (không có)
+messages_en_AU.properties  (absent)
            ↓
-messages_en.properties     (có)
+messages_en.properties     (present)
            ↓
-messages.properties        (có)
+messages.properties        (present)
 ```
 
-**Câu hỏi B — tìm một key:** bundle locale cụ thể có thể **chỉ định nghĩa một số key**. Khi `bundle.getString("button.quit")` không tìm thấy trong bundle vùng, nó tiếp tục tìm ở bundle cha và cuối cùng ở gốc. Java không nhất thiết “ghép vật lý” tất cả file thành một file mới; kết quả được tra qua chuỗi kế thừa.
+**Question B — finding a key:** a locale-specific bundle may **define only some keys**. When `bundle.getString("button.quit")` is not found in the region bundle, lookup continues to the parent bundle and finally to the root. Java does not physically merge all files into one new file; results are resolved along the inheritance chain.
 
-| Locale yêu cầu | Bundle cụ thể nhất trong ví dụ | `button.start` | `button.quit` |
+| Requested Locale | Most Specific Bundle in Example | `button.start` | `button.quit` |
 | --- | --- | --- | --- |
-| `en-US` | `messages_en_US` | `Get started` | Gốc: `Quit` |
-| `en-GB` | `messages_en_GB` | `Begin` | Gốc: `Quit` |
-| `en-AU` | `messages_en` | `Start` | Gốc: `Quit` |
-| `vi-VN` | `messages_vi_VN` | `Khởi động` | Gốc: `Quit` |
-| `fr-FR` | `messages` | `Start` | Gốc: `Quit` |
+| `en-US` | `messages_en_US` | `Get started` | Root: `Quit` |
+| `en-GB` | `messages_en_GB` | `Begin` | Root: `Quit` |
+| `en-AU` | `messages_en` | `Start` | Root: `Quit` |
+| `vi-VN` | `messages_vi_VN` | `Khởi động` | Root: `Quit` |
+| `fr-FR` | `messages` | `Start` | Root: `Quit` |
 
-Thứ tự trên minh họa trường hợp ngôn ngữ + vùng thông thường. Locale còn có thể có **script, variant và extensions**, vì vậy danh sách ứng viên thực tế do `ResourceBundle.Control.getCandidateLocales(...)` quy định, không nên tự ghép/cắt chuỗi tag BCP 47 bằng tay để giả lập toàn bộ thuật toán.
+The ordering above illustrates the common language + region case. A `Locale` can also have **script, variant, and extensions**, so the actual candidate list is defined by `ResourceBundle.Control.getCandidateLocales(...)`; do not manually splice/truncate BCP 47 tag strings to simulate the full algorithm.
 
-Thêm file `messages_en_AU.properties` với `button.start=Launch` sẽ cho phép `en-AU` lấy nhãn mới ở vùng đó mà không sửa code Java. Các key chưa khai báo vẫn theo chuỗi bundle cha.
+Adding `messages_en_AU.properties` with `button.start=Launch` allows `en-AU` to pick up the new regional label without modifying Java code. Undeclared keys still follow the parent bundle chain.
 
-### Kiểm tra bundle cụ thể đã được chọn
+### Inspecting Which Specific Bundle Was Selected
 
-Có thể dùng `getLocale()` trên đối tượng `ResourceBundle` để quan sát locale của bundle cụ thể nhất được tìm thấy. Nó có thể **khác locale đã yêu cầu** khi fallback:
+You can call `getLocale()` on the `ResourceBundle` instance to see the locale of the most specific bundle found. It can **differ from the requested locale** during fallback:
 
 ```java
 Locale request = Locale.forLanguageTag("en-AU");
@@ -251,30 +251,30 @@ System.out.println("Requested: " + request.toLanguageTag());
 System.out.println("Loaded: " + bundle.getLocale().toLanguageTag());
 ```
 
-Đây là đoạn mã **đặt bên trong phương thức Java với import `Locale`/`ResourceBundle`**, không phải một chương trình độc lập. Với bộ file của bài, stdout:
+This snippet is meant to be **placed inside a Java method with `Locale`/`ResourceBundle` imported**, not run as a standalone program. With this lesson's files, stdout is:
 
 ```text
 Requested: en-AU
 Loaded: en
 ```
 
-Nếu bundle gốc được chọn, `bundle.getLocale()` thường là `Locale.ROOT`; `Locale.ROOT.toLanguageTag()` là `und` (undetermined). `getLocale()` cho biết bundle được chọn, **không trả nguồn của từng key riêng lẻ**: key có thể đến từ bundle cha.
+If the root bundle is selected, `bundle.getLocale()` is typically `Locale.ROOT`; `Locale.ROOT.toLanguageTag()` returns `und` (undetermined). `getLocale()` tells you the selected bundle, **not the source of each individual key**: a key may come from a parent bundle.
 
-## 5. Đặt tên file đúng và đặt trên classpath
+## 5. Naming Files Properly and Placing Them on the Classpath
 
-Các tên đúng cho base name `messages`:
+Correct filenames for base name `messages`:
 
-| Locale Java | Thẻ BCP 47 | Tên file dự kiến |
+| Java Locale | BCP 47 Tag | Expected Filename |
 | --- | --- | --- |
-| `Locale.ROOT` | `und` khi gọi `toLanguageTag()` | `messages.properties` |
+| `Locale.ROOT` | `und` when calling `toLanguageTag()` | `messages.properties` |
 | `Locale.forLanguageTag("en")` | `en` | `messages_en.properties` |
 | `Locale.forLanguageTag("en-US")` | `en-US` | `messages_en_US.properties` |
 | `Locale.forLanguageTag("pt-BR")` | `pt-BR` | `messages_pt_BR.properties` |
 | `Locale.forLanguageTag("zh-Hant-TW")` | `zh-Hant-TW` | `messages_zh_Hant_TW.properties` |
 
-**Không đặt tên file là `messages_en-US.properties`** rồi kỳ vọng cơ chế `ResourceBundle` theo quy ước chuẩn tự tìm thấy. API sử dụng các thành phần `Locale` để xây dựng tên resource với dấu `_`.
+**Do not name the file `messages_en-US.properties`** and expect standard `ResourceBundle` lookup to find it. The API uses `Locale` components to construct resource names with `_`.
 
-Nếu đưa vào dự án Gradle/Java thông thường, cấu trúc có thể là:
+In a typical Gradle/Java project, the structure might look like:
 
 ```text
 src/
@@ -292,7 +292,7 @@ src/
 │           └── messages_vi_VN.properties
 ```
 
-Với cách đặt resources **bên trong package `com/example/i18n`**, base name phải là `"com.example.i18n.messages"`:
+With resources placed **inside package `com/example/i18n`**, the base name must be `"com.example.i18n.messages"`:
 
 ```java
 ResourceBundle bundle = ResourceBundle.getBundle(
@@ -300,36 +300,36 @@ ResourceBundle bundle = ResourceBundle.getBundle(
         Locale.forLanguageTag("vi-VN"));
 ```
 
-Đây là ví dụ gọi API trong một phương thức đã import các lớp. Nếu các file `.properties` được để **ngay tại gốc resources**, base name tương ứng là `"messages"`. Đặt sai base name hoặc resources không nằm trên runtime classpath thường dẫn đến `MissingResourceException` dù file có mặt trong thư mục dự án.
+This is an example API call inside a method with the classes imported. If the `.properties` files are placed **directly at the resources root**, the corresponding base name is `"messages"`. Using the wrong base name or failing to include resources on the runtime classpath usually leads to `MissingResourceException` even when the files exist in the project directory.
 
-Cần kiểm tra cả **việc đóng gói**: file tài nguyên phải được copy vào classpath output/đóng gói trong JAR ở đường dẫn phù hợp. `javac` chỉ biên dịch `.java`; nó không tự chuyển `.properties` từ thư mục khác vào output. Gradle/Maven có bước xử lý resources; khi chạy Java thủ công, hãy để files đúng thư mục trong `-cp` hoặc sao chép rõ ràng.
+Also verify **packaging**: resource files must be copied to the classpath output / packaged inside the JAR at the matching path. `javac` only compiles `.java` files; it does not automatically move `.properties` files from another directory into the output. Gradle/Maven have a resource-processing step; when running Java manually, put the files in the right directory on `-cp` or copy them explicitly.
 
-## 6. Chọn giữa ghi đè từng key và bản dịch đầy đủ
+## 6. Choosing Between Per-Key Overrides and Full Translations
 
-Có hai chiến lược thiết kế thông dụng:
+There are two common design strategies:
 
-**Kế thừa gọn:** bundle vùng chỉ ghi đè key khác, bundle ngôn ngữ dịch các key còn lại, bundle gốc làm fallback. Ưu điểm là ít lặp; nhược điểm là bản dịch thiếu có thể bị che bởi fallback và giao diện trộn ngôn ngữ.
+**Sparse inheritance:** region bundles override only differing keys, language bundles translate remaining keys, and the root bundle serves as fallback. The advantage is less duplication; the disadvantage is that missing translations can be masked by fallback and result in mixed-language UIs.
 
-**Bản dịch đầy đủ theo locale hỗ trợ:** mỗi locale được công bố chính thức phải có mọi key cần thiết. Ưu điểm là dễ kiểm soát chất lượng/làm việc với biên dịch viên; nhược điểm là cần cơ chế đồng bộ key, công sức duy trì và có thể trùng nhiều giá trị. Ngay cả khi file đầy đủ, ResourceBundle vẫn giữ cơ chế kế thừa.
+**Complete translations per supported locale:** every officially supported locale must contain every required key. The advantage is easier quality control and translator workflow; the disadvantage is the need for key-synchronization tooling, maintenance effort, and possibly duplicated values. Even when files are complete, `ResourceBundle` still preserves its inheritance mechanism.
 
-Cách áp dụng thường hợp lý:
+A practical approach:
 
-1. Định nghĩa **khóa chuẩn** trong `messages.properties` như một hợp đồng nội dung, với tên có nghĩa rõ ràng.
-2. Xác định các locale app **thực sự hỗ trợ** và mức độ bản dịch cần đạt để phát hành. `Locale.getAvailableLocales()` không phải danh sách bản dịch của ứng dụng.
-3. Tạo bundle ngôn ngữ và chỉ thêm bundle vùng/script khi có khác biệt có chủ đích.
-4. Tạo kiểm thử/kiểm tra build đối chiếu key của bundle dịch với bundle gốc, phân biệt key thiếu được phép fallback và key bắt buộc phải dịch.
-5. Kiểm tra nhãn trong UI thực tế: chiều dài chữ, ký tự Unicode, chỗ xuống dòng, từ ngữ tự nhiên, placeholder/biến số.
+1. Define **canonical keys** in `messages.properties` as a content contract, with clear meaningful names.
+2. Determine which locales the app **actually supports** and the translation completeness required for release. `Locale.getAvailableLocales()` is not the application's list of translations.
+3. Create language bundles and add region/script bundles only when intentional differences exist.
+4. Create tests or build checks comparing translated bundle keys against the root bundle, distinguishing keys allowed to fall back from keys that must be translated.
+5. Inspect labels in the actual UI: text length, Unicode characters, line breaks, natural phrasing, and placeholders/variables.
 
-**Không dịch các key**; dịch giá trị. Tránh đặt tên key là số thứ tự hay câu UI có khả năng thay đổi để các refactor câu chữ không gây thay đổi khắp code.
+**Do not translate keys**; translate values. Avoid naming keys with sequence numbers or mutable UI sentences so wording refactors do not ripple through code.
 
-## 7. Key bị thiếu: kết quả thực tế và cách phát hiện
+## 7. Missing Keys: Actual Behavior and How to Detect Them
 
-Có hai tình huống khác nhau:
+There are two distinct situations:
 
-- **Thiếu key ở bundle vùng nhưng có ở cha/gốc:** `getString(key)` vẫn trả giá trị ở cha. Đây chính là hành vi muốn minh họa ở ví dụ.
-- **Key không có trong bất kỳ bundle nào của chuỗi tra cứu:** `getString(key)` ném `MissingResourceException`. Đừng bắt lỗi chung rồi âm thầm hiển thị chuỗi trống, vì làm mất dấu hiệu bản dịch bị lỗi.
+- **Key missing in the region bundle but present in parent/root:** `getString(key)` still returns the parent's value. This is precisely the behavior demonstrated in the example.
+- **Key absent from every bundle in the lookup chain:** `getString(key)` throws `MissingResourceException`. Do not catch errors generically and silently display an empty string, because that hides broken translations.
 
-Chương trình nhỏ sau dùng **cùng sáu file đã tạo**. Lưu thành `MissingKeyDemo.java`:
+The small program below uses **the same six files already created**. Save it as `MissingKeyDemo.java`:
 
 ```java
 import java.util.Locale;
@@ -371,64 +371,64 @@ Has help: false
 Missing key: help.text
 ```
 
-`containsKey("button.quit")` là `true` vì Java tìm được key trong **bundle cha** dù `messages_vi_VN.properties` không tự khai báo nó. `containsKey` cho biết key có tồn tại ở **chuỗi bundle**, không xác nhận file dịch cụ thể đã dịch key đó. Vì thế muốn đo **độ đầy đủ** của từng file, phải phân tích danh sách key trong file nguồn trực tiếp bằng công cụ build/QA riêng, không chỉ kiểm tra `ResourceBundle.containsKey` sau fallback.
+`containsKey("button.quit")` returns `true` because Java finds the key in the **parent bundle** even though `messages_vi_VN.properties` does not declare it itself. `containsKey` reports whether the key exists in the **bundle chain**, not whether a specific translation file translated it. Therefore, to measure **completeness** per file, inspect the key list in the source files directly with dedicated build/QA tooling, rather than relying only on `ResourceBundle.containsKey` after fallback.
 
-Một ứng dụng có thể thiết kế fallback “chỉ root, không dùng ngôn ngữ mặc định JVM” hoặc chính sách khác; nhưng chính sách phải tường minh và được kiểm thử trên locale chưa có bản dịch.
+An application may design a "root-only, no JVM default language" fallback policy or another policy; whatever the policy, it must be explicit and tested against untranslated locales.
 
-## 8. Cấu trúc nội dung và những chi tiết của `.properties`
+## 8. Content Structure and `.properties` Details
 
-`.properties` có một số quy tắc cần nhớ:
+Keep these `.properties` rules in mind:
 
-- Một key thường được viết như `section.action.label=Text`; dấu `=` hoặc `:` có thể ngăn key và value. Để dễ đọc và review, dùng nhất quán `=`.
-- Các dòng bắt đầu bằng `#` hoặc `!` (sau khoảng trắng đầu dòng) là comment. Tránh đặt comment giữa nhiều dòng của một value nối bằng backslash.
-- Giá trị dài có thể nối nhiều dòng bằng dấu backslash ở cuối dòng theo cú pháp properties. Đừng nghĩ xuống dòng vật lý trong file luôn là ký tự xuống dòng của chuỗi Java.
-- Dấu cách đầu giá trị, backslash và các ký tự cú pháp cần được viết/escape đúng theo định dạng Java properties. Thử chạy parser thật để kiểm tra các giá trị nhạy cảm.
-- File bản dịch nên dùng UTF-8 với Java 17+ và kiểm thử đầu ra Unicode. Khi dùng `Properties.load(InputStream)` trực tiếp thì mặc định về mã hóa khác `PropertyResourceBundle`; **không đánh đồng hai API**.
-- Nếu câu chứa tham số động, ví dụ `Hello, {0}!`, `getString` chỉ lấy nguyên mẫu. Muốn chèn tham số theo locale có thể dùng `java.text.MessageFormat` với locale tường minh; cần kiểm tra cú pháp dấu nháy đơn và placeholder. Không dùng `String.format` một cách tùy tiện nếu các vùng cần đổi thứ tự tham số.
-- Tránh để password/token hoặc thông tin bí mật trong bundle giao diện được đóng gói phát hành: các file đó là **tài nguyên ứng dụng có thể bị đọc**.
+- A key is typically written `section.action.label=Text`; either `=` or `:` can separate key and value. For readability and code review, consistently use `=`.
+- Lines starting with `#` or `!` (after leading whitespace) are comments. Avoid placing comments between lines of a multiline value joined by backslashes.
+- Long values can span multiple lines using a trailing backslash according to `.properties` syntax. Do not assume a physical newline in the file always becomes a newline character in the Java string.
+- Leading spaces in values, backslashes, and syntax characters must be written/escaped according to Java `.properties` rules. Run the real parser to verify sensitive values.
+- Translation files should use UTF-8 on Java 17+ with Unicode output tested. Calling `Properties.load(InputStream)` directly defaults to a different encoding than `PropertyResourceBundle`; **do not equate the two APIs**.
+- If a sentence contains dynamic parameters, such as `Hello, {0}!`, `getString` returns only the raw template. To substitute locale-aware arguments, use `java.text.MessageFormat` with an explicit locale; verify single-quote and placeholder syntax. Do not arbitrarily use `String.format` if regions need to reorder parameters.
+- Avoid storing passwords/tokens or secrets in UI bundles packaged for release: those files are **readable application resources**.
 
-Đối với nút có nhãn khác theo vùng, giữ `button.start` giống nhau và chỉ thay **value**. Nếu mỗi vùng lại dùng key khác, code sẽ phải biết chi tiết của từng ngôn ngữ và phá vỡ mục tiêu tách nội dung khỏi logic.
+For a button whose label differs by region, keep `button.start` identical and change only the **value**. If each region used a different key, code would need to know details of each language and break the goal of separating content from logic.
 
-## 9. Tạo bundle trong dự án thực tế
+## 9. Creating Bundles in a Real Project
 
-Quy trình triển khai được đề xuất:
+Recommended workflow:
 
-1. **Lập danh sách message key** từ các vị trí cần bản địa hóa. Ví dụ `login.title`, `login.submit`, `errors.required`, `nav.home`. Đặt tên nhất quán, không gắn tên vùng trong key nếu cùng một vai trò.
-2. **Tạo file gốc** `messages.properties` và đưa tất cả key chuẩn vào đây. Chuỗi ở gốc phải được chủ động biên tập như một lựa chọn fallback chính thức.
-3. **Tạo file theo ngôn ngữ** như `messages_en.properties`, `messages_vi.properties`, `messages_fr.properties`. Đồng bộ key cần dịch.
-4. **Thêm file theo vùng/script khi có yêu cầu thật**, ví dụ `messages_en_GB.properties`, `messages_pt_BR.properties`, `messages_zh_Hant_TW.properties`. Chú ý candidate locale khi có script.
-5. **Đặt file ở resources/classpath**, kiểm tra tên base name trong lời gọi `getBundle` và khả năng package trong JAR.
-6. **Chọn locale ở ranh giới ứng dụng**: ưu tiên locale người dùng đã chọn; nếu lấy từ HTTP `Accept-Language`, đối chiếu với danh sách locale được ứng dụng hỗ trợ. Dùng một fallback ứng dụng rõ ràng.
-7. **Đọc key bằng ResourceBundle** và truyền giá trị vào UI. Khi render nhiều key cùng một request, tái sử dụng bundle thích hợp thay vì lặp nhiều lần thao tác chọn locale.
-8. **Kiểm thử độ phủ và bản dịch** qua các locale hỗ trợ, key thiếu, sai mã hóa, cả trường hợp vùng chưa có file riêng.
-9. **Review với người bản ngữ** và rà soát nội dung, tràn layout, dấu câu, văn phong. Đúng cú pháp không có nghĩa là bản dịch tốt.
+1. **List message keys** from locations needing localization. For example `login.title`, `login.submit`, `errors.required`, `nav.home`. Name them consistently without embedding region names in keys that share a role.
+2. **Create the root file** `messages.properties` and put all canonical keys there. Root strings should be actively curated as an official fallback option.
+3. **Create language files** such as `messages_en.properties`, `messages_vi.properties`, `messages_fr.properties`. Synchronize keys needing translation.
+4. **Add region/script files when truly needed**, such as `messages_en_GB.properties`, `messages_pt_BR.properties`, `messages_zh_Hant_TW.properties`. Pay attention to candidate locales when scripts are present.
+5. **Place files in resources/classpath**, and check the base name in `getBundle` calls as well as JAR packaging.
+6. **Choose the locale at the application boundary**: prefer the user's chosen locale; if reading from HTTP `Accept-Language`, match against the application's supported locales. Apply an explicit application fallback.
+7. **Read keys with `ResourceBundle`** and pass values to the UI. When rendering many keys in one request, reuse the resolved bundle instead of repeating locale selection logic.
+8. **Test coverage and translations** across supported locales, missing keys, encoding issues, and regions without dedicated files.
+9. **Review with native speakers** and inspect wording, layout overflow, punctuation, and tone. Valid syntax does not guarantee a good translation.
 
-### Khi bản dịch được sửa lúc ứng dụng đang chạy
+### When Translations Are Edited While the App Is Running
 
-`ResourceBundle` có cơ chế **cache bundle** để tránh tải file lặp lại không cần thiết. Việc chỉnh file trên đĩa **không bảo đảm** một lời gọi `getBundle` kế tiếp thấy ngay nội dung mới. Với tài nguyên tĩnh đóng gói trong JAR, thông thường cần phát hành lại/restart theo quy trình ứng dụng. Nếu ứng dụng tự triển khai cơ chế reload động, cần thiết kế `ResourceBundle.Control`/TTL, refresh và đồng bộ cache phù hợp với môi trường; không mặc định Java theo dõi file `.properties` tự động. Với bài học cơ bản này, chỉ dùng bản dịch tĩnh trên classpath.
+`ResourceBundle` includes **bundle caching** to avoid redundant file loading. Editing a file on disk **does not guarantee** that the next `getBundle` call immediately sees the new content. For static resources packaged in a JAR, a redeploy/restart is normally required per application lifecycle. If an application implements dynamic reloading, it must design `ResourceBundle.Control`/TTL, refresh, and cache synchronization appropriate for its environment; do not assume Java watches `.properties` files automatically. For this foundational lesson, use static translations on the classpath only.
 
-## 10. Lỗi phổ biến khi tạo bộ file dịch
+## 10. Common Mistakes When Creating Translation File Sets
 
-| Lỗi | Hiện tượng / nguyên nhân | Cách xử lý |
+| Mistake | Symptom / Cause | Fix |
 | --- | --- | --- |
-| Đặt `messages_en-US.properties` | Cơ chế tên file chuẩn không khớp hậu tố vùng | Dùng `messages_en_US.properties` |
-| Truyền `"messages.properties"` vào `getBundle` | Base name bị hiểu sai | Truyền `"messages"` |
-| Đặt resources trong package nhưng gọi `"messages"` | Không tìm đúng đường dẫn | Dùng base name đầy đủ `"com.example.i18n.messages"` |
-| Biên dịch Java nhưng bỏ quên file `.properties` trên classpath | Không tải được bundle | Đưa resources vào đường dẫn runtime/JAR |
-| Chỉ có file vùng mà không có gốc trong thiết kế kỳ vọng fallback chung | Key hoặc locale khác có thể không có ứng viên hợp lệ | Tạo bundle gốc và kiểm thử fallback |
-| Key ở bundle dịch khác key trong gốc | Tra không đúng chuỗi mong muốn | Dùng cùng bộ key chuẩn |
-| Chỉ tạo file vùng, bỏ key không khác rồi tưởng `getString` luôn thất bại | Cơ chế cha có thể cung cấp giá trị | Hiểu chuỗi kế thừa; kiểm tra bản dịch theo chính sách |
-| Dùng `containsKey` để đánh giá bản dịch vùng đã đầy đủ | Nó có thể thấy key từ bundle cha | So sánh file dịch với key chuẩn riêng |
-| Dựa vào locale mặc định của server để chọn ngôn ngữ người dùng | Kết quả có thể phụ thuộc môi trường | Truyền `Locale` tường minh vào `getBundle` |
-| File Việt không thực sự lưu UTF-8 | Ký tự bị lỗi khi tải/hiển thị | Kiểm tra encoding editor, nguồn và console |
-| Đổi `Locale.setDefault` theo từng request | Default là toàn JVM và gây ảnh hưởng luồng khác | Chọn locale theo user/request, không sửa global |
-| Cho rằng `getBundle` tự dịch mọi chuỗi | API chỉ tra giá trị trong bundle | Tạo và quản lý bản dịch thật |
-| Cho rằng key thiếu trong bundle vùng là key không tồn tại | `getString` có thể tìm ở cha | Phân biệt key chưa dịch và key vắng toàn bộ |
-| Mong thay đổi file `.properties` được đọc lại ngay | Bundle có cache | Thiết kế reload hoặc deploy lại có kiểm soát |
+| Naming `messages_en-US.properties` | Standard naming mechanism does not match region suffix | Use `messages_en_US.properties` |
+| Passing `"messages.properties"` to `getBundle` | Base name is misinterpreted | Pass `"messages"` |
+| Placing resources in a package while calling `"messages"` | Cannot locate the right path | Use fully qualified base name `"com.example.i18n.messages"` |
+| Compiling Java but forgetting `.properties` on classpath | Cannot load bundle | Include resources in runtime/JAR path |
+| Creating only region files without a root when expecting general fallback | Other keys or locales may lack valid candidates | Create root bundle and test fallback |
+| Keys in translated bundle differ from root keys | Fails to look up expected string | Use the same canonical key set |
+| Creating only a region file with differing keys and thinking `getString` always fails | Parent mechanism can provide values | Understand inheritance chain; check translations per policy |
+| Using `containsKey` to judge if a region translation is complete | It can see keys from parent bundles | Compare translation file against canonical keys directly |
+| Relying on the server's default locale to pick user language | Results depend on environment | Pass an explicit `Locale` to `getBundle` |
+| Vietnamese file is not actually saved as UTF-8 | Characters corrupt on load/display | Check editor, source, and console encoding |
+| Changing `Locale.setDefault` per request | Default is JVM-wide and affects other threads | Select locale per user/request without mutating global state |
+| Assuming `getBundle` auto-translates strings | API only looks up values in bundles | Author and manage real translations |
+| Assuming a key missing in a region bundle means the key does not exist | `getString` may resolve from parent | Distinguish untranslated keys from completely absent keys |
+| Expecting `.properties` edits to be reread immediately | Bundle is cached | Design controlled reload or redeploy |
 
-## 11. Bài tập và cách tự kiểm tra
+## 11. Practice Exercises and Self-Check
 
-**Bài tập 1 — Bổ sung bản dịch tiếng Pháp.** Tạo `messages_fr.properties` gồm:
+**Exercise 1 — Add a French translation.** Create `messages_fr.properties` containing:
 
 ```properties
 # messages_fr.properties
@@ -437,31 +437,31 @@ button.start=Démarrer
 status.ready=Prêt
 ```
 
-Chạy lại `BundleDemo`. Vì bundle `fr` đã tồn tại, yêu cầu `fr-FR` giờ sử dụng bộ tiếng Pháp cho ba key đã dịch và bundle gốc cho `button.quit`. Hãy dự đoán hàng `fr-FR` trước khi chạy.
+Re-run `BundleDemo`. Since bundle `fr` now exists, requesting `fr-FR` now uses French for the three translated keys and the root bundle for `button.quit`. Predict the `fr-FR` output row before running.
 
-**Bài tập 2 — Bổ sung `en-AU`.** Tạo `messages_en_AU.properties`:
+**Exercise 2 — Add `en-AU`.** Create `messages_en_AU.properties`:
 
 ```properties
 # messages_en_AU.properties
 button.start=Let's begin
 ```
 
-Khi chạy lại, `en-AU` chọn giá trị `Let's begin` trong file vùng, các key còn lại tiếp tục fallback. Chú ý: dấu nháy đơn trong file `.properties` thông thường không yêu cầu escape đặc biệt; cú pháp `MessageFormat` có quy tắc khác nếu sau này sử dụng template có tham số.
+When re-run, `en-AU` picks `Let's begin` from the region file while remaining keys continue falling back. Note: single quotes in plain `.properties` files do not require special escaping; `MessageFormat` syntax has different rules if parameterized templates are used later.
 
-**Bài tập 3 — Kiểm tra key thiếu.** Gọi `bundle.getString("help.text")` trước khi tạo key này trong các file. Xác định lỗi, sau đó thêm `help.text=Help` vào bundle gốc và kiểm chứng lookup không còn lỗi. Thử thêm một bản dịch `help.text` vào `messages_vi.properties` để thấy kết quả khác theo locale.
+**Exercise 3 — Test a missing key.** Call `bundle.getString("help.text")` before creating this key in the files. Observe the error, then add `help.text=Help` to the root bundle and verify the lookup succeeds. Try adding a translation for `help.text` in `messages_vi.properties` to observe locale-specific output.
 
-**Bài tập 4 — Chọn cấu trúc resources.** Di chuyển bộ `messages*.properties` từ gốc classpath vào `com/example/i18n/` và cập nhật base name Java thành `com.example.i18n.messages`. Kiểm tra classpath và các file được đóng gói trước khi chạy. Mục tiêu là nắm quan hệ giữa **tên logic** và **đường dẫn tài nguyên**, không sửa các khóa nội dung.
+**Exercise 4 — Organize resource structure.** Move `messages*.properties` from the classpath root into `com/example/i18n/` and update the Java base name to `com.example.i18n.messages`. Check the classpath and packaged files before running. The goal is to grasp the relationship between **logical name** and **resource path**, without modifying content keys.
 
-**Tự đánh giá:** sau bài này, bạn nên giải thích được vì sao `en-GB` lấy `Begin` nhưng `en-AU` lấy `Start`, vì sao `vi-VN` vẫn nhận `Quit` từ gốc, vì sao `fr-FR` lấy bundle gốc ở ví dụ ban đầu, và vì sao file trong package khác cần base name khác.
+**Self-assessment:** after this lesson, you should be able to explain why `en-GB` gets `Begin` while `en-AU` gets `Start`, why `vi-VN` still receives `Quit` from the root, why `fr-FR` used the root bundle in the initial example, and why files in another package require a different base name.
 
-## 12. Ghi nhớ
+## 12. Key Takeaways
 
-- Bundle gốc **`messages.properties`** là nền tảng dự phòng; các file `messages_<language>.properties`, `messages_<language>_<REGION>.properties` cung cấp bản dịch và ghi đè theo mức cụ thể.
-- Dùng **cùng key** giữa mọi locale. Các file vùng chỉ cần ghi đè key có khác biệt nếu chính sách dự án cho phép.
-- Gọi `ResourceBundle.getBundle("messages", locale)` để tra resource theo locale; dùng `getString(key)` để lấy giá trị, có thể fallback qua bundle cha.
-- Trong ví dụ Java 17+, dùng `getNoFallbackControl(FORMAT_PROPERTIES)` nhằm phân biệt rõ **fallback trong chuỗi bundle** với **fallback sang default locale JVM**.
-- Dấu `-` của tag `en-US` và dấu `_` của tên file `messages_en_US.properties` có vai trò khác nhau.
-- File phải có mặt **trên runtime classpath** đúng đường dẫn và đúng base name. UTF-8, key đầy đủ và chính sách fallback cần được kiểm thử.
-- `ResourceBundle` hỗ trợ **lựa chọn thông điệp đã dịch**, không tự dịch nội dung và không xác nhận chất lượng bản dịch.
+- The root bundle **`messages.properties`** serves as the fallback foundation; `messages_<language>.properties` and `messages_<language>_<REGION>.properties` provide translations and overrides by specificity.
+- Use the **same keys** across all locales. Region files only need to override differing keys if project policy allows.
+- Call `ResourceBundle.getBundle("messages", locale)` to look up resources by locale; use `getString(key)` to retrieve values, potentially falling back through parent bundles.
+- In the Java 17+ example, `getNoFallbackControl(FORMAT_PROPERTIES)` clearly separates **bundle-chain fallback** from **JVM default-locale fallback**.
+- The `-` in tag `en-US` and the `_` in filename `messages_en_US.properties` serve different roles.
+- Files must exist **on the runtime classpath** at the matching path and base name. UTF-8 encoding, key completeness, and fallback policy must be tested.
+- `ResourceBundle` handles **selecting already-translated messages**; it does not auto-translate content or verify translation quality.
 
-Tạo một bundle gốc rõ ràng, thêm bản dịch theo ngôn ngữ trước, và chỉ thêm biến thể vùng khi thật sự cần. Khi thiết kế và kiểm thử đầy đủ, một key như `button.start` có thể phục vụ nhiều locale mà code Java không cần biết những cách diễn đạt cụ thể trong từng vùng.
+Create a clear root bundle, add language translations first, and add region variants only when genuinely needed. When designed and tested thoroughly, a key like `button.start` can serve many locales without Java code needing to know the specific phrasing in each region.

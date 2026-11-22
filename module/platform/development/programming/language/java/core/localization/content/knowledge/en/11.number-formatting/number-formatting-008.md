@@ -1,71 +1,71 @@
-# Định dạng số có vị trí trường bằng FieldPosition và AttributedCharacterIterator trong Java
+# Formatting Numbers with Field Positions Using FieldPosition and AttributedCharacterIterator in Java
 
-## 1. Khi chuỗi đã định dạng vẫn chưa đủ
+## 1. When a Formatted String Is Not Enough
 
-`NumberFormat.format(...)` thường dùng để chuyển một số thành chuỗi phù hợp với `Locale`, ví dụ `1234567.89` thành `1,234,567.89` với `Locale.US`. Nhưng đôi khi ứng dụng cần biết **vị trí từng phần trong chuỗi kết quả** để tô màu, đặt con trỏ, đọc bằng công nghệ hỗ trợ tiếp cận, hoặc tách phần nguyên và thập phân mà không đoán bằng ký tự dấu phẩy/dấu chấm.
+`NumberFormat.format(...)` is commonly used to turn a number into a `Locale`-appropriate string, such as `1234567.89` into `1,234,567.89` with `Locale.US`. Sometimes, however, an application needs to know the **positions of individual parts within the resulting string** to style colors, place a cursor, expose segments to assistive technologies, or split integer and fractional parts without guessing by comma or period characters.
 
-Java cung cấp hai cách bổ sung thông tin vị trí:
+Java provides two ways to obtain positional metadata:
 
-- **`java.text.FieldPosition`:** yêu cầu một vị trí `[beginIndex, endIndex)` của một trường cụ thể trong quá trình format vào `StringBuffer`. Hữu ích nếu chỉ cần một trường, ví dụ phần nguyên hoặc phần thập phân.
-- **`java.text.AttributedCharacterIterator`:** duyệt toàn bộ chuỗi cùng các **thuộc tính (attributes)** gắn trên từng khoảng ký tự; hữu ích khi cần nhiều trường, những trường xuất hiện nhiều lần hoặc các thuộc tính chồng lấp.
+- **`java.text.FieldPosition`:** requests a `[beginIndex, endIndex)` range for one specific field while formatting into a `StringBuffer`. Useful when you only need a single field, such as the integer or fractional part.
+- **`java.text.AttributedCharacterIterator`:** iterates over the entire string along with **attributes** attached to each character span; useful when you need multiple fields, fields appearing multiple times, or overlapping attributes.
 
-Đối với định dạng số, các thuộc tính được khai báo trong `NumberFormat.Field`, ví dụ `INTEGER`, `FRACTION`, `GROUPING_SEPARATOR`, `DECIMAL_SEPARATOR`, `SIGN`, `CURRENCY`, `PERCENT` và `EXPONENT`.
+For number formatting, attributes are declared in `NumberFormat.Field`, such as `INTEGER`, `FRACTION`, `GROUPING_SEPARATOR`, `DECIMAL_SEPARATOR`, `SIGN`, `CURRENCY`, `PERCENT`, and `EXPONENT`.
 
-Lưu ý: `FieldPosition` và `AttributedCharacterIterator` **không tự tạo quy tắc định dạng**. Chính `NumberFormat` hoặc `DecimalFormat` chọn dấu phân tách, nhóm chữ số, đơn vị tiền và chữ số theo `Locale`; hai API trên giúp xác định **trường nào nằm ở đâu** trong kết quả.
+Note: `FieldPosition` and `AttributedCharacterIterator` **do not define formatting rules themselves**. `NumberFormat` or `DecimalFormat` chooses separators, digit grouping, currency symbols, and digits according to `Locale`; those two APIs let you identify **which field lies where** in the formatted result.
 
-## 2. Những thành phần có thể xuất hiện trong một số đã định dạng
+## 2. Components That Can Appear in a Formatted Number
 
-Với `Locale.US` và mẫu số có hai chữ số sau dấu thập phân, xét:
+With `Locale.US` and a format showing two digits after the decimal point, consider:
 
 ```text
 1,234,567.89
 ```
 
-Ta có thể chia thành các trường:
+It can be broken down into fields:
 
-| Phần văn bản | Trường `NumberFormat.Field` | Phạm vi trong chuỗi |
+| Text segment | `NumberFormat.Field` field | Range in string |
 |---|---|---|
 | `1,234,567` | `INTEGER` | `[0,9)` |
-| Dấu `,` thứ nhất | `GROUPING_SEPARATOR` | `[1,2)` |
-| Dấu `,` thứ hai | `GROUPING_SEPARATOR` | `[5,6)` |
-| Dấu `.` | `DECIMAL_SEPARATOR` | `[9,10)` |
+| First `,` | `GROUPING_SEPARATOR` | `[1,2)` |
+| Second `,` | `GROUPING_SEPARATOR` | `[5,6)` |
+| `.` mark | `DECIMAL_SEPARATOR` | `[9,10)` |
 | `89` | `FRACTION` | `[10,12)` |
 
-**Các trường có thể chồng lấp.** Dấu phẩy nhóm chữ số nằm trong khoảng `INTEGER`, đồng thời mỗi dấu phẩy có thuộc tính `GROUPING_SEPARATOR` riêng. Vì vậy không nên hình dung mọi thuộc tính đều phân hoạch chuỗi thành những đoạn không giao nhau.
+**Fields can overlap.** Grouping commas lie within the `INTEGER` span, while each comma also carries its own `GROUPING_SEPARATOR` attribute. Therefore, do not imagine every attribute partitions the string into disjoint segments.
 
-Từ đây xuất hiện hai nhu cầu:
+From this arise two distinct needs:
 
-1. Nếu chỉ muốn biết **toàn bộ phần nguyên** `1,234,567`, một `FieldPosition(NumberFormat.Field.INTEGER)` là đủ.
-2. Nếu cần đánh dấu **từng dấu phẩy** và phần thập phân, `AttributedCharacterIterator` phù hợp hơn vì có thể có nhiều run cho cùng thuộc tính.
+1. If you only need the **entire integer part** `1,234,567`, a single `FieldPosition(NumberFormat.Field.INTEGER)` suffices.
+2. If you need to highlight **each individual comma** as well as the fractional part, `AttributedCharacterIterator` is more suitable because the same attribute can have multiple runs.
 
-Các khoảng ở đây đếm bằng **chỉ số ký tự UTF-16 theo Java** (`String`/`StringBuffer`), bắt đầu từ `0` và kết thúc **không bao gồm** `endIndex`. Chúng không phải byte offset UTF-8 và không bảo đảm trùng với chỉ số grapheme người dùng nhìn thấy.
+Ranges here are measured in **Java UTF-16 character indices** (`String`/`StringBuffer`), starting at `0` and ending **exclusively** at `endIndex`. They are not UTF-8 byte offsets and are not guaranteed to match user-perceived grapheme indices.
 
-## 3. FieldPosition: một trường và cặp chỉ số đầu/cuối
+## 3. FieldPosition: One Field and a Start/End Index Pair
 
-Một `FieldPosition` được tạo từ trường quan tâm:
+A `FieldPosition` is created for the field of interest:
 
 ```java
 FieldPosition position =
         new FieldPosition(NumberFormat.Field.INTEGER);
 ```
 
-Sau đó truyền nó vào overload định dạng có ba tham số:
+Then pass it into the three-argument formatting overload:
 
 ```java
 StringBuffer buffer = new StringBuffer();
 formatter.format(1234567.89, buffer, position);
 ```
 
-Khi format hoàn tất, đọc:
+When formatting completes, read:
 
-- `position.getBeginIndex()` — chỉ số bắt đầu, **bao gồm** ký tự này.
-- `position.getEndIndex()` — chỉ số kết thúc, **loại trừ** ký tự tại vị trí này.
+- `position.getBeginIndex()` — start index, **inclusive** of this character.
+- `position.getEndIndex()` — end index, **exclusive** of the character at this index.
 
-Dùng `buffer.substring(begin, end)` để lấy phần được định vị. Chính vì cuối là exclusive nên độ dài của vùng là `end - begin`.
+Use `buffer.substring(begin, end)` to extract the located portion. Because the end is exclusive, the span's length is `end - begin`.
 
-### Ví dụ Java 17+ độc lập
+### Standalone Java 17+ Example
 
-Tạo tệp `NumberFieldPositionDemo.java`:
+Create `NumberFieldPositionDemo.java`:
 
 ```java
 import java.text.FieldPosition;
@@ -109,14 +109,14 @@ public class NumberFieldPositionDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac NumberFieldPositionDemo.java
 java NumberFieldPositionDemo
 ```
 
-Kết quả được kiểm chứng với JDK:
+Verified output on the JDK:
 
 ```text
 text=1,234,567.89
@@ -124,13 +124,13 @@ integer=[0,9) value=1,234,567
 fraction=[10,12) value=89
 ```
 
-`FieldPosition` không tạo chuỗi kết quả mới; chuỗi được append vào chính `StringBuffer` đã truyền. Vì vậy, muốn định vị thêm một trường, ta tạo một `FieldPosition` khác và gọi format lần nữa. Một lời gọi chỉ cập nhật vị trí của **trường được yêu cầu**.
+`FieldPosition` does not create a new result string; the formatted text is appended to the passed `StringBuffer`. Thus, to locate an additional field, create another `FieldPosition` and call `format` again. A single call only updates the bounds of the **requested field**.
 
-## 4. Ý nghĩa của chỉ số khi StringBuffer đã có tiền tố
+## 4. Index Meaning When StringBuffer Already Has a Prefix
 
-Một lỗi phổ biến là tưởng `beginIndex` luôn bắt đầu đếm tại phần số mới được nối vào. Thực tế, nó là **chỉ số trong StringBuffer kết quả đầy đủ**, bao gồm phần đã có trước khi format.
+A common mistake is assuming `beginIndex` always starts counting from the newly appended number. In reality, it is the **index within the complete resulting `StringBuffer`**, including content already present before formatting.
 
-Ví dụ:
+Example:
 
 ```java
 StringBuffer buffer = new StringBuffer("PRE:");
@@ -139,31 +139,31 @@ FieldPosition position =
 formatter.format(1234567.89, buffer, position);
 ```
 
-Đoạn này giả định biến `formatter` được tạo và cấu hình như ví dụ trước. Sau khi chạy:
+This snippet assumes `formatter` is created and configured as in the previous example. After running:
 
 ```text
 buffer  = PRE:1,234,567.89
 integer = [4,13)
 ```
 
-Bốn ký tự `PRE:` đã chiếm các vị trí `0` đến `3`. Phần nguyên bắt đầu tại `4`. Nếu một ứng dụng xây dựng thông báo dài dần và muốn tô màu phần nguyên của số, nên sử dụng trực tiếp chỉ số do `FieldPosition` trả về, **không tự trừ/đoán độ dài tiền tố**.
+The four characters `PRE:` occupy indices `0` through `3`. The integer part begins at `4`. If an application builds up a message incrementally and wants to style the integer portion of a number, it should use the indices returned by `FieldPosition` directly, **rather than subtracting or guessing the prefix length**.
 
-Lưu ý có hai cách phân biệt `FieldPosition` qua các overload constructor:
+Note that there are two ways to distinguish `FieldPosition` via constructor overloads:
 
-- `new FieldPosition(NumberFormat.Field.INTEGER)`: dùng đối tượng thuộc tính được định nghĩa trong `NumberFormat.Field`.
-- `new FieldPosition(NumberFormat.INTEGER_FIELD)` hoặc `new FieldPosition(NumberFormat.FRACTION_FIELD)`: cách dùng dựa trên hằng `int` lịch sử.
+- `new FieldPosition(NumberFormat.Field.INTEGER)`: uses the attribute object defined in `NumberFormat.Field`.
+- `new FieldPosition(NumberFormat.INTEGER_FIELD)` or `new FieldPosition(NumberFormat.FRACTION_FIELD)`: legacy usage based on `int` constants.
 
-Với mã mới, nên dùng `NumberFormat.Field` vì rõ ngữ nghĩa và bao quát nhiều trường hơn. Không đánh đồng `NumberFormat.INTEGER_FIELD` (int field ID) với `NumberFormat.Field.INTEGER` (đối tượng thuộc tính).
+For new code, prefer `NumberFormat.Field` because it has clearer semantics and covers more fields. Do not equate `NumberFormat.INTEGER_FIELD` (an `int` field ID) with `NumberFormat.Field.INTEGER` (an attribute object).
 
-## 5. Những giới hạn của FieldPosition
+## 5. Limitations of FieldPosition
 
-### Một đối tượng FieldPosition theo dõi một loại trường
+### One FieldPosition Tracks One Field Type
 
-`FieldPosition` không trả toàn bộ các trường trong cùng một lần định dạng. Nếu bạn muốn phần nguyên, phần thập phân, dấu âm và từng dấu phân nhóm, phải thực hiện các lần format cần thiết hoặc chuyển sang `AttributedCharacterIterator`.
+`FieldPosition` does not return all fields in a single formatting call. If you need the integer part, fractional part, negative sign, and every grouping separator, you must perform the necessary format calls or switch to `AttributedCharacterIterator`.
 
-### Trường xuất hiện nhiều lần: chỉ một vị trí được ghi nhận
+### Repeated Fields: Only One Occurrence Is Recorded
 
-Ví dụ `1,234,567.89` có **hai** dấu `,`. Với:
+For instance, `1,234,567.89` has **two** `,` marks. With:
 
 ```java
 FieldPosition grouping =
@@ -172,48 +172,48 @@ StringBuffer output = new StringBuffer();
 formatter.format(1234567.89, output, grouping);
 ```
 
-`FieldPosition` được thiết kế cho **một** cặp vị trí, và formatter thông thường báo vị trí lần xuất hiện đầu của trường. Trên `NumberFormat` của Java 17+ với `Locale.US`, kết quả cho dấu nhóm là `[1,2)`; nó **không trả danh sách** `[1,2)` và `[5,6)`. Đây là lý do dùng iterator khi cần các vị trí lặp.
+`FieldPosition` is designed for **one** pair of indices, and standard formatters report the position of the first occurrence of the field. On Java 17+ `NumberFormat` with `Locale.US`, the result for the grouping separator is `[1,2)`; it **does not return a list** of `[1,2)` and `[5,6)`. This is why you use an iterator when repeated positions are needed.
 
-### Trường không xuất hiện
+### Absent Fields
 
-Ví dụ nếu format số thường không có ký hiệu tiền tệ, hỏi `NumberFormat.Field.CURRENCY` có thể cho `beginIndex=0` và `endIndex=0`. Trong thực tế đó là tín hiệu “không tìm thấy trường” theo cách xử lý thông dụng, không phải vùng văn bản hữu ích.
+For example, when formatting a regular number without a currency symbol, querying `NumberFormat.Field.CURRENCY` may yield `beginIndex=0` and `endIndex=0`. In practice, that is the conventional signal for "field not found," not a useful text span.
 
-Đừng gọi `substring(begin, end)` rồi kết luận mọi trường rỗng đều hợp lệ. Với các trường thực tế mong muốn có ký tự, hãy kiểm tra `end > begin` trước khi tô màu. Nếu cần biết chắc thuộc tính có mặt, sử dụng `AttributedCharacterIterator` để kiểm tra attribute tương ứng.
+Do not call `substring(begin, end)` assuming every empty span is valid. For fields expected to have characters, check `end > begin` before styling. If you need certainty about whether an attribute is present, use `AttributedCharacterIterator` to inspect the attribute directly.
 
-### Cẩn thận khi tái sử dụng
+### Careful When Reusing
 
-`FieldPosition` là đối tượng mutable vì formatter ghi chỉ số vào nó. Tạo đối tượng mới cho từng yêu cầu định vị sẽ rõ ràng hơn so với tái sử dụng giữa các lượt format. Tương tự, `StringBuffer` được append; nếu không muốn giữ kết quả cũ, hãy tạo một buffer mới.
+`FieldPosition` is a mutable object because the formatter writes indices into it. Creating a fresh object for each positioning request is clearer than reusing one across formatting calls. Similarly, `StringBuffer` is appended to; if you do not want to retain previous output, create a new buffer.
 
-Không chia sẻ một đối tượng `NumberFormat` mutable cho nhiều thread mà không đồng bộ hoặc chiến lược quản lý instance thích hợp; Java không bảo đảm các formatters này thread-safe.
+Do not share a mutable `NumberFormat` across threads without synchronization or a proper instance management strategy; Java does not guarantee thread safety for these formatters.
 
-## 6. AttributedCharacterIterator: xem toàn bộ các trường trong một lần định dạng
+## 6. AttributedCharacterIterator: Inspecting All Fields in One Pass
 
-`NumberFormat.formatToCharacterIterator(Object)` trả về một `AttributedCharacterIterator`: nó duyệt các ký tự đã định dạng, đồng thời báo những **`AttributedCharacterIterator.Attribute`** nào gắn tại từng vùng.
+`NumberFormat.formatToCharacterIterator(Object)` returns an `AttributedCharacterIterator`: it iterates over the formatted characters while reporting which **`AttributedCharacterIterator.Attribute`** instances apply to each span.
 
 ```java
 AttributedCharacterIterator iterator =
         formatter.formatToCharacterIterator(1234567.89);
 ```
 
-Mỗi thuộc tính có thể được lấy bằng:
+Attributes can be read using:
 
-- `iterator.getAttribute(NumberFormat.Field.INTEGER)`: giá trị attribute tại vị trí hiện tại, hoặc `null` khi không có.
-- `iterator.getAttributes()`: bản đồ các attributes tại vị trí hiện tại.
-- `iterator.getRunStart(attribute)` / `iterator.getRunLimit(attribute)`: khoảng lớn nhất liên tục mà **giá trị của attribute đó không thay đổi**.
-- `iterator.getRunStart()` / `iterator.getRunLimit()`: khoảng mà **toàn bộ tập attributes** không thay đổi.
-- `iterator.first()`, `next()`, `setIndex(index)`, `getBeginIndex()` và `getEndIndex()`: API điều hướng ký tự.
+- `iterator.getAttribute(NumberFormat.Field.INTEGER)`: the attribute value at the current position, or `null` if absent.
+- `iterator.getAttributes()`: map of attributes at the current position.
+- `iterator.getRunStart(attribute)` / `iterator.getRunLimit(attribute)`: the largest contiguous range where **that specific attribute's value does not change**.
+- `iterator.getRunStart()` / `iterator.getRunLimit()`: the range where the **entire set of attributes** does not change.
+- `iterator.first()`, `next()`, `setIndex(index)`, `getBeginIndex()`, and `getEndIndex()`: character navigation APIs.
 
-Một *run* không nhất thiết trùng với một đơn vị ngôn ngữ; nó là một khoảng liên tục của các vị trí có cùng thuộc tính hoặc tập thuộc tính được xét.
+A *run* does not necessarily correspond to a linguistic unit; it is a contiguous span of indices sharing the same attribute or set of attributes under inspection.
 
-### Tại sao getRunLimit(attribute) hữu ích?
+### Why Is getRunLimit(attribute) Useful?
 
-Nếu một vùng có `INTEGER` xuyên qua dấu phân nhóm, `getRunLimit(NumberFormat.Field.INTEGER)` có thể trả một vùng lớn bao phủ toàn phần nguyên. Trong khi đó, `getRunLimit(NumberFormat.Field.GROUPING_SEPARATOR)` tách riêng từng dấu phẩy vì thuộc tính grouping chỉ hiện diện tại đúng dấu phân nhóm.
+If an `INTEGER` span crosses grouping separators, `getRunLimit(NumberFormat.Field.INTEGER)` can return one large span covering the entire integer part. Meanwhile, `getRunLimit(NumberFormat.Field.GROUPING_SEPARATOR)` isolates each comma individually because the grouping attribute is only present at the grouping separator itself.
 
-Khi cần tô màu một trường cụ thể, **lấy giới hạn theo chính thuộc tính đó**. Nếu dùng `getRunLimit()` không truyền đối số, các thay đổi của **bất kỳ thuộc tính nào** cũng khiến một run bị chia nhỏ; ví dụ phần nguyên sẽ bị cắt thêm tại dấu nhóm.
+When styling a specific field, **query run limits using that specific attribute**. If you use the zero-argument `getRunLimit()`, changes in **any attribute** split a run; for example, the integer part would be fragmented at every grouping separator.
 
-## 7. Ví dụ Java 17+ độc lập: duyệt mọi vị trí nhóm chữ số
+## 7. Standalone Java 17+ Example: Iterating Over All Digit-Grouping Positions
 
-Tạo tệp `NumberAttributedDemo.java`:
+Create `NumberAttributedDemo.java`:
 
 ```java
 import java.text.AttributedCharacterIterator;
@@ -274,14 +274,14 @@ public class NumberAttributedDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac NumberAttributedDemo.java
 java NumberAttributedDemo
 ```
 
-Kết quả kiểm chứng:
+Verified output:
 
 ```text
 text=1,234,567.89
@@ -292,48 +292,48 @@ grouping [5,6) = <,>
 decimal [9,10) = <.>
 ```
 
-Chương trình thực hiện các bước:
+The program performs these steps:
 
-1. Dùng `formatToCharacterIterator(...)` tạo chuỗi định dạng kèm thông tin thuộc tính.
-2. Duyệt từ `first()` đến `CharacterIterator.DONE` để dựng chuỗi hiển thị.
-3. Với mỗi thuộc tính cần tìm, duyệt các run bằng `getRunLimit(field)`.
-4. Chỉ in những run có `getAttribute(field) != null`.
-5. Mỗi lần dịch `index` tới `limit` để không bỏ sót hay lặp lại đoạn ký tự.
+1. Uses `formatToCharacterIterator(...)` to produce the formatted string with attribute metadata.
+2. Iterates from `first()` until `CharacterIterator.DONE` to build the display string.
+3. For each target attribute, walks runs via `getRunLimit(field)`.
+4. Prints only runs where `getAttribute(field) != null`.
+5. Advances `index` to `limit` on each step so no character range is skipped or repeated.
 
-Ví dụ dùng iterator do `NumberFormat` tạo ra, có `getBeginIndex() == 0`, nên các chỉ số có thể dùng trực tiếp với `String.substring`. Với một `AttributedCharacterIterator` tổng quát có begin index khác 0, cần điều chỉnh chỉ số khi tự sao chép nội dung sang chuỗi mới bắt đầu tại 0.
+The example uses an iterator created by `NumberFormat`, which has `getBeginIndex() == 0`, so indices work directly with `String.substring`. For a general `AttributedCharacterIterator` with a non-zero begin index, adjust indices when copying into a new 0-based string.
 
-### Vì sao dấu nhóm vẫn nằm trong INTEGER?
+### Why Are Grouping Separators Still Inside INTEGER?
 
-Quan sát `integer [0,9)` bao gồm cả hai dấu phẩy, trong khi `grouping` có hai run riêng. Một ký tự có thể cùng lúc thuộc phần nguyên và là dấu nhóm. Việc dùng hai thuộc tính không mâu thuẫn; một thuộc tính diễn tả vùng **phần nguyên tổng thể**, thuộc tính kia nêu vai trò **dấu phân nhóm**.
+Observe that `integer [0,9)` encompasses both commas, while `grouping` has two separate runs. A single character can simultaneously belong to the integer part and act as a grouping separator. Having both attributes is not contradictory; one describes the **overall integer span**, while the other denotes the **grouping separator** role.
 
-## 8. Kết hợp thuộc tính để tạo kiểu hiển thị
+## 8. Combining Attributes for Display Styling
 
-Giả sử màn hình muốn:
+Suppose a UI screen wants to:
 
-- In phần nguyên `1,234,567` đậm.
-- Tô riêng dấu nhóm `,` bằng màu khác.
-- Làm phần thập phân `89` nhỏ hơn.
+- Render the integer part `1,234,567` in bold.
+- Color the grouping commas `,` differently.
+- Render the fractional part `89` in a smaller font.
 
-Nếu chỉ dùng `FieldPosition.INTEGER`, bạn biết phạm vi phần nguyên nhưng **không có danh sách các dấu nhóm**. Với `AttributedCharacterIterator`, tại từng ký tự có thể kiểm tra `iterator.getAttributes()` để quyết định nhiều lớp kiểu cùng lúc.
+Using only `FieldPosition.INTEGER`, you know the integer range but **have no list of grouping separators**. With `AttributedCharacterIterator`, at each character you can inspect `iterator.getAttributes()` to apply multiple style layers at once.
 
-Tại `1,234,567.89`, ví dụ vị trí:
+In `1,234,567.89`, example positions:
 
-| Index | Ký tự | Thuộc tính chính |
+| Index | Character | Primary attributes |
 |---:|---|---|
 | 0 | `1` | `INTEGER` |
-| 1 | `,` | `INTEGER` và `GROUPING_SEPARATOR` |
+| 1 | `,` | `INTEGER` and `GROUPING_SEPARATOR` |
 | 2–4 | `234` | `INTEGER` |
-| 5 | `,` | `INTEGER` và `GROUPING_SEPARATOR` |
+| 5 | `,` | `INTEGER` and `GROUPING_SEPARATOR` |
 | 6–8 | `567` | `INTEGER` |
 | 9 | `.` | `DECIMAL_SEPARATOR` |
 | 10–11 | `89` | `FRACTION` |
 
-Có thể tạo danh sách các span rồi áp dụng trong GUI, tài liệu hoặc rich-text API. Nhưng cần xác định quy tắc khi các span **chồng lên nhau**, ví dụ màu dấu phẩy được ưu tiên hơn màu của toàn phần nguyên.
+You can build a list of spans and apply them in a GUI, document, or rich-text API. However, you must define precedence rules when spans **overlap**—for instance, the comma color overriding the whole-integer color.
 
-Một đoạn mã minh họa kiểm tra thuộc tính trên một vị trí đã biết (đặt trong phương thức có biến `iterator` từ ví dụ trên):
+An illustrative snippet checking attributes at a known index (inside a method with `iterator` from the example above):
 
 ```java
-iterator.setIndex(1); // dấu ',' đầu tiên
+iterator.setIndex(1); // first ',' character
 boolean integer = iterator.getAttribute(
         NumberFormat.Field.INTEGER) != null;
 boolean grouping = iterator.getAttribute(
@@ -341,23 +341,23 @@ boolean grouping = iterator.getAttribute(
 System.out.println(integer && grouping); // true
 ```
 
-Đây là **đoạn minh họa**, không phải chương trình độc lập. Nó cho thấy dấu nhóm có thể mang hai thuộc tính đồng thời. Đừng thử gán kiểu vào chính iterator; nó dùng để **đọc**. Mã render nên chuyển các run/attributes thành định dạng mà thư viện UI thực tế hỗ trợ.
+This is an **illustrative snippet**, not a standalone program. It demonstrates that a grouping separator can carry two attributes simultaneously. Do not attempt to write styles into the iterator itself; it is for **reading**. Rendering code should translate runs/attributes into whatever format the actual UI library supports.
 
-## 9. Thuộc tính số âm, tiền tệ và phần trăm
+## 9. Attributes for Negative Numbers, Currency, and Percentages
 
-Ngoài `INTEGER`, `FRACTION`, `GROUPING_SEPARATOR` và `DECIMAL_SEPARATOR`, `NumberFormat.Field` còn mô tả các thành phần khác tùy kiểu formatter:
+Besides `INTEGER`, `FRACTION`, `GROUPING_SEPARATOR`, and `DECIMAL_SEPARATOR`, `NumberFormat.Field` describes other components depending on formatter style:
 
-| Thuộc tính | Vai trò |
+| Attribute | Role |
 |---|---|
-| `SIGN` | Dấu cộng hoặc trừ khi có trong kết quả |
-| `CURRENCY` | Vùng ký hiệu/đơn vị tiền tệ khi định dạng tiền |
-| `PERCENT` | Dấu phần trăm |
-| `PERMILLE` | Dấu phần nghìn |
-| `EXPONENT` | Chữ số của số mũ |
-| `EXPONENT_SIGN` | Dấu số mũ |
-| `EXPONENT_SYMBOL` | Ký hiệu đánh dấu phần số mũ |
+| `SIGN` | Plus or minus sign when present in output |
+| `CURRENCY` | Currency symbol/code span when formatting currency |
+| `PERCENT` | Percent sign |
+| `PERMILLE` | Permille sign |
+| `EXPONENT` | Exponent digits |
+| `EXPONENT_SIGN` | Exponent sign |
+| `EXPONENT_SYMBOL` | Symbol introducing the exponent part |
 
-Ví dụ:
+Example:
 
 ```java
 NumberFormat currency =
@@ -365,93 +365,93 @@ NumberFormat currency =
 String text = currency.format(-1234.5);
 ```
 
-Với quy ước US điển hình, kết quả có thể giống `-$1,234.50`; vị trí dấu trừ, ký hiệu tiền và các dấu phân cách chịu ảnh hưởng của locale, bộ dữ liệu locale và cấu hình formatter. Thay vì tự tìm `"$"` bằng `indexOf` hoặc giả định luôn có dấu `-` tại index 0, hãy tìm `SIGN` và `CURRENCY` trên attributed iterator của **kết quả đã format**.
+Under typical US conventions, the result might look like `-$1,234.50`; minus-sign placement, currency symbol, and separators depend on locale, locale data, and formatter configuration. Instead of searching for `"$"` with `indexOf` or assuming `-` is always at index 0, inspect `SIGN` and `CURRENCY` on the attributed iterator of the **formatted output**.
 
-Tương tự, `NumberFormat.getPercentInstance(Locale.US)` có thể đặt dấu phần trăm tại vị trí khác so với các locale khác. Phần trăm còn có quy tắc nhân 100 khi format; thuộc tính `PERCENT` chỉ xác định vùng ký hiệu chứ không thay đổi quy tắc tính.
+Similarly, `NumberFormat.getPercentInstance(Locale.US)` may place the percent sign in a different position than other locales. Percentages also apply the multiply-by-100 rule during formatting; the `PERCENT` attribute only identifies the symbol span without altering calculation rules.
 
-Với các trường **không xuất hiện** trong kết quả, iterator sẽ không có run nào chứa attribute tương ứng. Phải xử lý tình huống này bình thường thay vì truy cập phần tử đầu của một danh sách rỗng.
+For fields **absent** from the output, the iterator will contain no runs with that attribute. Handle this case gracefully rather than accessing the first element of an empty list.
 
-## 10. So sánh FieldPosition và AttributedCharacterIterator
+## 10. Comparing FieldPosition and AttributedCharacterIterator
 
-| Tiêu chí | `FieldPosition` | `AttributedCharacterIterator` |
+| Criterion | `FieldPosition` | `AttributedCharacterIterator` |
 |---|---|---|
-| API chính | `format(number, StringBuffer, position)` | `formatToCharacterIterator(number)` |
-| Kết quả chính | Cặp `beginIndex/endIndex` của một trường | Chuỗi có attributes và nhiều runs |
-| Số trường mỗi lượt | Một loại trường yêu cầu | Nhiều trường có thể duyệt |
-| Trường lặp như grouping | Thường chỉ ghi một vị trí | Lấy được nhiều vùng |
-| Thuộc tính chồng lấp | Không diễn đạt đầy đủ | Có thể đọc các thuộc tính cùng vị trí |
-| Chi phí sử dụng | Đơn giản cho một span | Phức tạp hơn nhưng giàu thông tin |
-| Ứng dụng | Chọn phần nguyên/phần thập phân | Tô kiểu, đánh dấu nhiều dấu phân cách, đọc rich-text |
+| Main API | `format(number, StringBuffer, position)` | `formatToCharacterIterator(number)` |
+| Primary output | A `beginIndex/endIndex` pair for one field | Character sequence with attributes and multiple runs |
+| Fields per pass | One requested field type | Multiple fields traversable |
+| Repeated fields like grouping | Usually records only one position | Retrieves all spans |
+| Overlapping attributes | Cannot express completely | Can read multiple attributes at the same position |
+| Usage overhead | Simple for a single span | More complex, yet richer information |
+| Use cases | Selecting integer/fraction portion | Styling, highlighting multiple separators, rich-text rendering |
 
-Chọn theo nhu cầu thay vì luôn dùng cách phức tạp. Nếu chỉ cần chuỗi, `formatter.format(number)` là đủ. Nếu chỉ cần một vùng để đặt con trỏ, `FieldPosition` đơn giản. Nếu cần nhiều thành phần hoặc sự chồng lấp, dùng `AttributedCharacterIterator`.
+Choose according to your needs rather than always picking the more complex tool. If you only need the string, `formatter.format(number)` suffices. If you only need one span for cursor placement, `FieldPosition` is simple. If you need multiple components or overlapping attributes, use `AttributedCharacterIterator`.
 
-## 11. Những điểm cần kiểm thử khi thay đổi Locale hoặc cấu hình
+## 11. What to Test When Changing Locale or Configuration
 
-Kết quả như `1,234,567.89` và các offset ở trên được kiểm tra với `Locale.US`, grouping bật và hai chữ số thập phân. Không nên áp nguyên các chỉ số này lên locale khác:
+Results like `1,234,567.89` and the offsets above were verified with `Locale.US`, grouping enabled, and two decimal places. Do not apply those exact indices to other locales:
 
-- `de-DE` thường dùng dấu `.` để nhóm và `,` cho thập phân.
-- `fr-FR` có thể dùng dấu cách không ngắt hoặc dấu cách hẹp để nhóm; ký tự và độ dài có thể thay đổi theo JDK/dữ liệu locale.
-- Một số hệ số sử dụng ký tự chữ số khác ASCII.
-- Tiền tệ có thể có dấu và ký hiệu ở trước hoặc sau phần số.
-- `setMaximumFractionDigits(...)`, `setMinimumFractionDigits(...)`, `setGroupingUsed(false)` ảnh hưởng đến văn bản và sự tồn tại của các trường.
+- `de-DE` typically uses `.` for grouping and `,` for decimal.
+- `fr-FR` may use a non-breaking space or narrow non-breaking space for grouping; the character and length may vary across JDKs/locale data.
+- Some numbering systems use non-ASCII digit characters.
+- Currencies may place signs and symbols before or after the numeric part.
+- `setMaximumFractionDigits(...)`, `setMinimumFractionDigits(...)`, and `setGroupingUsed(false)` affect the text and presence of fields.
 
-Vì vậy, **định dạng một lần theo locale thực tế rồi đọc metadata của chính kết quả đó**. Không cố tính offset từ số chữ số ban đầu hoặc cắt bằng dấu phân tách giả định.
+Therefore, **format once using the actual locale and read the metadata from that very result**. Never compute offsets from raw digit counts or split on assumed separator characters.
 
-### UTF-16 và khả năng hiển thị
+### UTF-16 and Display Considerations
 
-Các index `beginIndex`, `endIndex` là chỉ số Java UTF-16. Ký tự ngoài BMP có thể gồm hai code units; ký tự kết hợp hoặc grapheme phức tạp có thể gồm nhiều code points. Để lấy substring trong cùng chuỗi Java, index này phù hợp. Nhưng nếu chuyển sang API giao diện dùng offset theo UTF-8 bytes, Unicode code points hay grapheme clusters, cần chuyển đổi hệ chỉ số đúng cách.
+`beginIndex` and `endIndex` are Java UTF-16 indices. Characters outside the BMP can occupy two code units; combining characters or complex graphemes can span multiple code points. For substring extraction within the same Java string, these indices fit directly. However, when passing offsets to UI APIs measured in UTF-8 bytes, Unicode code points, or grapheme clusters, convert index systems properly.
 
-### Hành vi trên nhiều luồng
+### Multithreaded Behavior
 
-Các instance `NumberFormat` và `DecimalFormat` thường mutable và không được thiết kế để chia sẻ đồng thời giữa threads mà không đồng bộ. Khi ứng dụng cần định dạng theo người dùng/locale trên server, tạo formatter theo request hoặc dùng cơ chế quản lý thread an toàn. `FieldPosition` và iterator cũng mang trạng thái vị trí đang được đọc/ghi, nên không tái sử dụng tùy tiện giữa các tác vụ chạy đồng thời.
+`NumberFormat` and `DecimalFormat` instances are typically mutable and not designed to be shared concurrently across threads without synchronization. When a server formats per user/locale, create a formatter per request or use a thread-safe instance management strategy. `FieldPosition` and iterators also hold mutable positional state while being written/read, so never reuse them carelessly across concurrent tasks.
 
-## 12. Lỗi thường gặp
+## 12. Common Mistakes
 
-1. **Nhầm endIndex là inclusive.** Thực tế vùng là `[begin,end)`; dùng `substring(begin,end)`, không cộng thêm 1.
-2. **Nhầm chỉ số tương đối với phần vừa append.** `FieldPosition` đếm trên `StringBuffer` đầy đủ, bao gồm tiền tố sẵn có.
-3. **Cho rằng INTEGER chỉ gồm chữ số.** Trong nhiều formatter, dấu grouping cũng nằm trong khoảng INTEGER và đồng thời có thuộc tính GROUPING_SEPARATOR.
-4. **Dùng FieldPosition để tìm mọi dấu phẩy.** Nó không chứa danh sách các vị trí lặp; dùng attributed iterator.
-5. **Dùng getRunLimit() không tham số và mong một span INTEGER duy nhất.** Run có thể bị tách bởi thay đổi ở thuộc tính khác. Dùng `getRunLimit(NumberFormat.Field.INTEGER)` khi chỉ quan tâm thuộc tính đó.
-6. **Cho rằng bất kỳ attribute nào cũng hiện diện.** Nếu không có phân số, currency hoặc dấu âm, run tương ứng có thể không tồn tại.
-7. **Cắt chuỗi theo index hardcode từ US.** Locale, cách nhóm số và số chữ số thập phân làm thay đổi offset.
-8. **Dùng split hoặc indexOf(',') để suy ra trường.** Dấu nhóm và dấu thập phân thay đổi theo locale; metadata của formatter chính xác hơn.
-9. **Bỏ qua phần đầu do dấu âm/đơn vị tiền.** Vùng INTEGER có thể bắt đầu sau dấu âm hoặc ký hiệu tiền.
-10. **Tưởng FieldPosition và NumberFormat.Field là một.** `FieldPosition` mang một kết quả vị trí; `NumberFormat.Field` định danh loại trường.
-11. **Tái sử dụng một StringBuffer/FieldPosition như trạng thái mới hoàn toàn.** Buffer append và position mutable; tạo mới để tránh sai offset/lẫn lượt.
-12. **Quên định vị theo UTF-16.** Index Java không tự đồng nhất với byte offset hoặc grapheme index của hệ khác.
+1. **Treating `endIndex` as inclusive.** In fact, the range is `[begin,end)`; call `substring(begin,end)` without adding 1.
+2. **Assuming indices are relative to the newly appended portion.** `FieldPosition` counts indices across the full `StringBuffer`, including any existing prefix.
+3. **Assuming `INTEGER` contains only digits.** In many formatters, grouping separators also fall inside the `INTEGER` span while carrying `GROUPING_SEPARATOR`.
+4. **Using `FieldPosition` to find all commas.** It does not hold a list of repeated positions; use an attributed iterator.
+5. **Calling zero-argument `getRunLimit()` expecting a single `INTEGER` span.** The run can be split by changes in other attributes. Use `getRunLimit(NumberFormat.Field.INTEGER)` when you only care about that attribute.
+6. **Assuming every attribute is always present.** If there is no fraction, currency, or negative sign, the corresponding run will not exist.
+7. **Slicing strings with hardcoded US offsets.** Locale, grouping rules, and fractional digit counts change offsets.
+8. **Using `split` or `indexOf(',')` to infer fields.** Grouping and decimal marks vary by locale; formatter metadata is accurate.
+9. **Ignoring leading offsets from minus signs or currency symbols.** The `INTEGER` span may start after a minus sign or currency symbol.
+10. **Confusing `FieldPosition` with `NumberFormat.Field`.** `FieldPosition` holds a positional result; `NumberFormat.Field` identifies the field type.
+11. **Reusing a `StringBuffer`/`FieldPosition` as if it were completely fresh.** Buffers append and positions mutate; create fresh instances to avoid wrong offsets or cross-call leakage.
+12. **Forgetting UTF-16 indexing.** Java indices do not automatically match byte offsets or grapheme indices of external systems.
 
-## 13. Bài tập thực hành
+## 13. Practice Exercises
 
-**Bài 1.** Cho văn bản `1,234,567.89` với index bắt đầu từ 0, đâu là vùng `FRACTION`?
+**Exercise 1.** Given the text `1,234,567.89` with 0-based indexing, what is the `FRACTION` span?
 
-Đáp án: `[10,12)`, văn bản `89`. Dấu thập phân `.` tại `[9,10)` không thuộc vùng FRACTION.
+Answer: `[10,12)`, text `89`. The decimal point `.` at `[9,10)` is not part of `FRACTION`.
 
-**Bài 2.** Với văn bản trên, `FieldPosition(NumberFormat.Field.INTEGER)` trả về gì?
+**Exercise 2.** For the text above, what does `FieldPosition(NumberFormat.Field.INTEGER)` return?
 
-Đáp án: `[0,9)`, tương ứng `1,234,567`; dấu nhóm nằm trong vùng này.
+Answer: `[0,9)`, corresponding to `1,234,567`; grouping separators are included in this span.
 
-**Bài 3.** Vì sao `AttributedCharacterIterator` phát hiện được hai dấu phẩy còn một `FieldPosition(GROUPING_SEPARATOR)` không trả hai khoảng?
+**Exercise 3.** Why does `AttributedCharacterIterator` detect both commas while a single `FieldPosition(GROUPING_SEPARATOR)` does not return two ranges?
 
-Đáp án: `FieldPosition` có một cặp begin/end; attributed iterator ghi thuộc tính theo từng vị trí và có thể duyệt nhiều run `GROUPING_SEPARATOR`.
+Answer: `FieldPosition` holds one begin/end pair; the attributed iterator records attributes per position and can walk multiple `GROUPING_SEPARATOR` runs.
 
-**Bài 4.** Nếu `StringBuffer` đã có tiền tố `PRE:`, phần nguyên của `1,234,567.89` có index nào?
+**Exercise 4.** If a `StringBuffer` already contains the prefix `PRE:`, what are the indices of the integer part of `1,234,567.89`?
 
-Đáp án: `[4,13)`, vì bốn ký tự của tiền tố nằm trước số.
+Answer: `[4,13)`, because the four prefix characters precede the number.
 
-**Bài 5.** Trong iterator, tại dấu `,` của chuỗi US, hai thuộc tính nào có thể cùng hiện diện?
+**Exercise 5.** In the iterator, at a `,` character of the US string, which two attributes can be present simultaneously?
 
-Đáp án: `NumberFormat.Field.INTEGER` và `NumberFormat.Field.GROUPING_SEPARATOR`.
+Answer: `NumberFormat.Field.INTEGER` and `NumberFormat.Field.GROUPING_SEPARATOR`.
 
-**Bài 6.** Khi đổi sang một locale có quy tắc dấu nhóm khác, có được giữ nguyên `[1,2)` và `[5,6)` không?
+**Exercise 6.** When switching to a locale with different grouping rules, can you keep `[1,2)` and `[5,6)` unchanged?
 
-Đáp án: Không. Cần format bằng locale mới, sau đó đọc các run và chỉ số của kết quả mới.
+Answer: No. You must format using the new locale, then read the runs and indices from the new output.
 
-## 14. Ghi nhớ
+## 14. Key Takeaways
 
-- `FieldPosition` cung cấp một vùng `[begin,end)` khi bạn **đã biết trường muốn tìm**. Nó dễ dùng với `NumberFormat.format(..., StringBuffer, FieldPosition)`.
-- `AttributedCharacterIterator` cung cấp **các vùng thuộc tính trên cả chuỗi**, hỗ trợ nhiều occurrences, nhiều trường và các thuộc tính chồng lấp.
-- Các vị trí được tính trên **chuỗi thực tế sau khi format**, nên phải xét `Locale`, ký hiệu số, tiền tệ và cấu hình format.
-- `getRunLimit(field)` giúp duyệt đúng phạm vi của một thuộc tính; `getRunLimit()` dùng toàn bộ các thuộc tính, có thể chia span thành những đoạn nhỏ hơn.
-- Khi cần render hoặc xử lý từng phần của một số đã bản địa hóa, dựa vào metadata của formatter đáng tin cậy hơn việc tự tách theo dấu `.` hoặc `,`.
+- `FieldPosition` provides a single `[begin,end)` span when you **already know the one field you want to locate**. It pairs easily with `NumberFormat.format(..., StringBuffer, FieldPosition)`.
+- `AttributedCharacterIterator` provides **attributed spans across the entire string**, supporting multiple occurrences, multiple fields, and overlapping attributes.
+- Positions are computed on the **actual formatted string**, so `Locale`, numeric symbols, currency, and format settings all apply.
+- `getRunLimit(field)` traverses the exact span of a single attribute; `getRunLimit()` considers all attributes, which can split spans into smaller segments.
+- When rendering or processing individual parts of a localized number, relying on formatter metadata is far more reliable than manually splitting on `.` or `,`.
 
-**Tài liệu chính thức:** [Java SE 17 — FieldPosition](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/FieldPosition.html) · [Java SE 17 — AttributedCharacterIterator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/AttributedCharacterIterator.html) · [Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html) · [Java SE 17 — NumberFormat.Field](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.Field.html).
+**Official Documentation:** [Java SE 17 — FieldPosition](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/FieldPosition.html) · [Java SE 17 — AttributedCharacterIterator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/AttributedCharacterIterator.html) · [Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html) · [Java SE 17 — NumberFormat.Field](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.Field.html).

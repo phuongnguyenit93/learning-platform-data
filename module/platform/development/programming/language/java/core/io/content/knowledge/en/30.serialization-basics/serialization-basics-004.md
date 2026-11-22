@@ -1,10 +1,10 @@
-# Java Serialization: tham chiếu dùng chung, vòng tham chiếu và object handle
+# Java Serialization: Shared References, Circular References, and Object Handles
 
-## 1. Bài toán: làm sao khôi phục đúng **đồ thị đối tượng**?
+## 1. The Problem: How to Correctly Restore an **Object Graph**?
 
-Khi dùng `ObjectOutputStream` và `ObjectInputStream`, điều quan trọng không chỉ là lưu giá trị của từng field. Một đối tượng Java có thể **trỏ đến cùng một đối tượng từ nhiều field khác nhau**, hoặc các đối tượng có thể **tham chiếu vòng về nhau**.
+When using `ObjectOutputStream` and `ObjectInputStream`, what matters is not only saving each field's value. A Java object can **point to the same object from multiple different fields**, or objects can **reference each other in a cycle**.
 
-Ví dụ:
+Example:
 
 ~~~text
                +-------------------+
@@ -19,11 +19,11 @@ Ví dụ:
                       |  Hà Nội  |
                       +----------+
 
-home và office là **cùng một Address**, không phải hai Address
-chỉ tình cờ có nội dung giống nhau.
+home and office are **the same Address**, not two Addresses
+that merely happen to have identical content.
 ~~~
 
-Và một vòng tham chiếu:
+And a circular reference:
 
 ~~~text
        +--------+   next    +--------+
@@ -34,17 +34,17 @@ Và một vòng tham chiếu:
                       next
 ~~~
 
-Nếu chỉ sao chép nội dung field thành các bản độc lập, sau deserialize:
+If field contents were merely copied as independent duplicates, after deserialization:
 
-- Có thể làm mất quan hệ `person.home == person.office`.
-- Có thể làm vòng `A -> B -> A` thành một chuỗi sao chép vô hạn hoặc một cấu trúc sai.
-- Có thể làm thay đổi ngữ nghĩa chương trình, vì **identity** (đồng nhất tham chiếu) khác với equality (bằng nhau về nội dung).
+- The relationship `person.home == person.office` could be lost.
+- The cycle `A -> B -> A` could turn into an infinite copy chain or an incorrect structure.
+- Program semantics could change, because **identity** (reference identity) differs from equality (content equality).
 
-**Java Object Serialization mặc định giữ cấu trúc chia sẻ và các vòng tham chiếu** bằng cách gán **object handle** cho những đối tượng đã xuất hiện trong *cùng một luồng tuần tự hóa*. Những lần gặp lại thường được ghi thành **back-reference** thay vì serialize toàn bộ đối tượng lần nữa.
+**Default Java Object Serialization preserves sharing structure and circular references** by assigning an **object handle** to objects that have already appeared within *the same serialization stream*. Subsequent encounters are typically written as a **back-reference** instead of serializing the entire object again.
 
-## 2. Điều kiện cơ bản để serialize một đồ thị
+## 2. Basic Requirements to Serialize a Graph
 
-Một lớp được tuần tự hóa mặc định thường triển khai `java.io.Serializable`:
+A class serialized with the default mechanism typically implements `java.io.Serializable`:
 
 ~~~java
 import java.io.Serializable;
@@ -61,15 +61,15 @@ final class Node implements Serializable {
 }
 ~~~
 
-`Serializable` là **marker interface**: không bắt buộc định nghĩa method. `ObjectOutputStream.writeObject(root)` duyệt những object reachable qua các field tham chiếu cần tuần tự hóa:
+`Serializable` is a **marker interface**: no methods are required. `ObjectOutputStream.writeObject(root)` traverses objects reachable through serializable reference fields:
 
-- Field instance bình thường, **không phải `transient` hoặc `static`**, được tham gia vào cơ chế default serialization (tuân theo các quy tắc của lớp/kiểu).
-- Field kiểu primitive được lưu theo giá trị.
-- Field tham chiếu tới object khác có thể kéo theo cả **đồ thị các object mà nó trỏ tới**.
-- `null` được ghi như giá trị null, không tạo object mới.
-- Mọi object cần ghi trong đồ thị phải phù hợp với cơ chế serialization; một field tham chiếu đến object không serializable thường gây `NotSerializableException`, trừ khi được loại bỏ hoặc xử lý tùy biến.
+- Regular instance fields that are **neither `transient` nor `static`** participate in the default serialization mechanism (subject to class/type rules).
+- Primitive fields are stored by value.
+- Fields referencing other objects can pull along the entire **graph of objects they point to**.
+- `null` is written as a null value without creating a new object.
+- Every object to be written in the graph must be eligible for the serialization mechanism; a field referencing a non-serializable object normally causes `NotSerializableException`, unless excluded or handled via custom serialization.
 
-Không nên nhầm:
+Do not confuse:
 
 ~~~java
 Node first = new Node("X");
@@ -77,9 +77,9 @@ Node second = new Node("X");
 boolean same = first == second;  // false
 ~~~
 
-Dù `first.name.equals(second.name)` là true, chúng là **hai instance khác nhau** và theo cơ chế mặc định sẽ được lưu dưới hai handle khác nhau.
+Even though `first.name.equals(second.name)` is true, they are **two distinct instances** and under the default mechanism will be saved with two different handles.
 
-Ngược lại:
+Conversely:
 
 ~~~java
 Node shared = new Node("X");
@@ -88,58 +88,58 @@ Node second = shared;
 boolean same = first == second;  // true
 ~~~
 
-Đây chỉ là **một object** có hai tham chiếu. Serialization giữ quan hệ `==` đó khi khôi phục graph trong luồng, miễn không bị cơ chế thay thế object tùy biến thay đổi.
+This is only **one object** with two references. Serialization preserves that `==` relationship when reconstructing the graph in the stream, provided custom object replacement does not alter it.
 
-## 3. Object handle là gì?
+## 3. What Is an Object Handle?
 
-`ObjectOutputStream` quản lý trạng thái của luồng, trong đó có bảng ghi nhớ những object đã được serialize. Khi gặp một object lần đầu:
+`ObjectOutputStream` manages the stream's state, including a table tracking objects already serialized. When encountering an object for the first time:
 
-1. Luồng ghi thông tin loại object (gồm class descriptor khi cần).
-2. Object nhận một **handle** — mã nhận dạng nội bộ trong **stream**, không phải Java reference, địa chỉ RAM hay `hashCode()`.
-3. Luồng ghi các field cần lưu; nếu field tham chiếu đến object khác thì tiếp tục xử lý object đó.
-4. Nếu gặp lại object đã được ghi, luồng có thể ghi **reference đến handle** thay vì lặp lại toàn bộ object.
+1. The stream writes object type information (including a class descriptor when needed).
+2. The object receives a **handle** — an internal identifier within the **stream**, not a Java reference, RAM address, or `hashCode()`.
+3. The stream writes the fields to be persisted; if a field references another object, it continues processing that object.
+4. If an already-written object is encountered again, the stream can write a **reference to the handle** instead of repeating the whole object.
 
-Ở phía đọc, `ObjectInputStream` duy trì bảng handle tương ứng để trả lại các tham chiếu tới **cùng instance đã khôi phục**.
+On the reading side, `ObjectInputStream` maintains a corresponding handle table to return references to the **same restored instance**.
 
-Sơ đồ khái niệm:
+Conceptual diagram:
 
 ~~~text
 ObjectOutputStream
 
-Lần 1: writeObject(address)
+Call 1: writeObject(address)
   -> NEW_OBJECT(Address, handle H1, fields ...)
 
-Lần 2: writeObject(address) với CÙNG instance
+Call 2: writeObject(address) with the SAME instance
   -> REFERENCE(H1)
 
 ObjectInputStream
 
-Lần 1: readObject() -> Address#1
-Lần 2: readObject() -> chính Address#1
+Call 1: readObject() -> Address#1
+Call 2: readObject() -> the same Address#1
 
-Do đó: firstRead == secondRead  ==> true
+Therefore: firstRead == secondRead  ==> true
 ~~~
 
-Đây chỉ là **sơ đồ logic**. Trong stream thực còn header, class descriptor, mã loại phần tử và các handle của class descriptor, string/array và object khác. Không coi `H1` là byte handle cố định hay một mã có thể đem lưu độc lập.
+This is only a **logical diagram**. An actual stream also contains a header, class descriptors, element type codes, and handles for class descriptors, strings/arrays, and other objects. Do not treat `H1` as a fixed handle byte or an ID that can be stored independently.
 
-### Handle khác `hashCode()`, `equals()` và object ID nghiệp vụ
+### Handles Differ from `hashCode()`, `equals()`, and Business Object IDs
 
-| Khái niệm | Dùng để làm gì? | Phạm vi/giới hạn |
+| Concept | What is it used for? | Scope/limitations |
 |---|---|---|
-| `==` trên hai reference | Kiểm tra cùng một instance | Trong một JVM |
-| `equals()` | Kiểm tra tính bằng nhau do lớp định nghĩa | Không nhất thiết cùng instance |
-| `hashCode()` | Hỗ trợ hashing; không phải ID duy nhất | Có thể trùng, có thể thay đổi theo implementation |
-| **Serialization handle** | Nhận dạng các object đã xuất hiện trong stream | Nội bộ mỗi stream, chịu tác động bởi `reset()` |
-| ID nghiệp vụ (UUID, database ID) | Nhận dạng thực thể ở mức ứng dụng | Do ứng dụng quy định, không do serialization tự tạo |
+| `==` on two references | Checks whether they are the same instance | Within one JVM |
+| `equals()` | Checks equality defined by the class | Not necessarily the same instance |
+| `hashCode()` | Supports hashing; not a unique ID | Can collide; can vary by implementation |
+| **Serialization handle** | Identifies objects already seen in the stream | Internal per stream; affected by `reset()` |
+| Business ID (UUID, database ID) | Identifies entities at the application level | Defined by the application, not auto-generated by serialization |
 
-**Không dùng một handle được đọc từ stream như primary key database.** Nó chỉ là cơ chế biểu diễn tham chiếu trong định dạng tuần tự hóa.
+**Never use a handle read from a stream as a database primary key.** It is strictly a reference-representation mechanism inside the serialization format.
 
-## 4. Vì sao tham chiếu dùng chung được bảo toàn?
+## 4. Why Are Shared References Preserved?
 
-Giả sử:
+Suppose:
 
 ~~~java
-// Đoạn minh họa trong ngữ cảnh có lớp Address và Person Serializable.
+// Illustrative snippet in a context with Serializable Address and Person classes.
 Address address = new Address("Hà Nội");
 Person person = new Person();
 person.home = address;
@@ -147,44 +147,44 @@ person.office = address;
 out.writeObject(person);
 ~~~
 
-Khi serializer duyệt field `home`, nó lưu `address` và gán handle. Đến field `office`, nó thấy **cùng object address** nên ghi back-reference. Phía đọc tái lập:
+When the serializer traverses field `home`, it saves `address` and assigns a handle. Reaching field `office`, it sees the **same `address` object** and writes a back-reference. The reading side reconstructs:
 
 ~~~java
 Person restored = (Person) in.readObject();
 System.out.println(restored.home == restored.office); // true
 ~~~
 
-Nếu hai field trỏ đến **hai Address khác nhau nhưng có giá trị giống nhau**, mặc định serializer không tự “gộp” chúng lại:
+If two fields point to **two different `Address` instances that happen to have equal values**, the default serializer does not "merge" them:
 
 ~~~text
-Trước ghi:   home -> Address#1("HN")
-             work -> Address#2("HN")
-Sau đọc:     home -> Address#3("HN")
-             work -> Address#4("HN")
+Before write: home -> Address#1("HN")
+              work -> Address#2("HN")
+After read:   home -> Address#3("HN")
+              work -> Address#4("HN")
 
-home != work, dù thuộc tính có thể giống nhau.
+home != work, even though their attributes may be identical.
 ~~~
 
-Đây là lý do phải xác định bài toán có cần bảo toàn **identity** hay chỉ cần bảo toàn **giá trị**.
+This is why you must decide whether the problem requires preserving **identity** or only preserving **values**.
 
-### Chia sẻ trong nhiều cấp lồng nhau
+### Sharing Across Multiple Nested Levels
 
-Không chỉ hai field của cùng object được bảo toàn. Nếu một danh sách chứa `sameNode` hai lần, hoặc nhiều đối tượng khác nhau cùng trỏ đến một đối tượng con, back-reference vẫn có thể được dùng trong một đồ thị được ghi vào cùng stream.
+It is not only two fields of the same object that are preserved. If a list contains `sameNode` twice, or multiple different objects point to one child object, a back-reference can still be used within a graph written to the same stream.
 
 ~~~java
 Node sameNode = new Node("shared");
 List<Node> nodes = new ArrayList<>();
 nodes.add(sameNode);
 nodes.add(sameNode);
-// Sau serialize/deserialize nodes, phần tử index 0 và 1
-// vẫn là cùng một Node: nodes.get(0) == nodes.get(1).
+// After serializing/deserializing nodes, elements at index 0 and 1
+// are still the same Node: nodes.get(0) == nodes.get(1).
 ~~~
 
-Đoạn này là mã minh họa, cần imports `java.util.*` và lớp Node serializable; không phải một chương trình độc lập.
+This snippet is illustrative code, requiring `java.util.*` imports and a serializable `Node` class; it is not a standalone program.
 
-## 5. Vòng tham chiếu: tại sao serializer không đệ quy vô hạn?
+## 5. Circular References: Why Doesn't the Serializer Recurse Infinitely?
 
-Nếu hai object trỏ về nhau:
+If two objects point to each other:
 
 ~~~java
 Node a = new Node("A");
@@ -193,57 +193,57 @@ a.next = b;
 b.next = a;
 ~~~
 
-Quá trình lưu có thể hình dung:
+The saving process can be pictured as:
 
 ~~~text
 writeObject(a)
-  1) gặp A lần đầu -> cấp handle HA
-  2) ghi A.next = B
-     3) gặp B lần đầu -> cấp handle HB
-     4) ghi B.next = A
-        5) A đã có HA -> ghi REFERENCE(HA), không đệ quy thêm
-  6) quay lại hoàn tất B rồi A
+  1) first encounter with A -> assign handle HA
+  2) write A.next = B
+     3) first encounter with B -> assign handle HB
+     4) write B.next = A
+        5) A already has HA -> write REFERENCE(HA), stop recursing
+  6) return to finish B, then A
 ~~~
 
-Điểm then chốt: **handle của object được gán trước khi toàn bộ field tham chiếu của nó được viết xong**. Vì vậy khi đọc đến một liên kết quay về object đang trong quá trình serialize, serializer đã có handle để tham chiếu.
+The key point: **an object's handle is assigned before all of its reference fields have finished being written**. Thus, when reaching a link back to an object currently being serialized, the serializer already has a handle to reference.
 
-Phía đọc cũng tạo/đăng ký đối tượng trước khi hoàn tất toàn bộ field của nó theo cơ chế mặc định, cho phép khôi phục vòng:
+The reading side also allocates/registers the object before completing all of its fields under the default mechanism, enabling cycle reconstruction:
 
 ~~~java
 Node restored = (Node) in.readObject();
 boolean cycle = restored.next.next == restored; // true
 ~~~
 
-Vòng tham chiếu **không** cần được cắt bằng cách đặt field thành `null`. Tuy nhiên, cơ chế tuần tự hóa có hạn mức tài nguyên (độ sâu, kích thước) và có thể thất bại trên đồ thị quá lớn/phức tạp; không tự suy ra mọi đồ thị vô hạn hoặc dữ liệu hỏng đều đọc được.
+Circular references **do not** need to be broken by setting fields to `null`. However, the serialization mechanism has resource limits (depth, size) and can fail on excessively large/complex graphs; do not assume arbitrary unbounded graphs or corrupted data can always be read.
 
-### Self-reference
+### Self-Reference
 
-Một object có thể trỏ đến chính nó:
+An object can point to itself:
 
 ~~~java
 Node self = new Node("SELF");
 self.next = self;
 ~~~
 
-Sau serialize/deserialize mặc định:
+After default serialization/deserialization:
 
 ~~~java
 Node restored = (Node) in.readObject();
 System.out.println(restored.next == restored); // true
 ~~~
 
-Đây là một trường hợp vòng độ dài 1. Với nhiều thư viện JSON, xử lý vòng có thể cần chiến lược riêng; **đừng lấy hành vi JSON làm mặc định cho Java Object Serialization**.
+This is a cycle of length 1. With many JSON libraries, handling cycles may require a special strategy; **do not assume JSON behavior applies to Java Object Serialization**.
 
-## 6. Chương trình Java 17+ hoàn chỉnh
+## 6. Complete Java 17+ Program
 
-Ví dụ này chứng minh **bốn hiện tượng** bằng cách chạy thực tế:
+This example demonstrates **four phenomena** by running actual code:
 
-1. Hai lần `writeObject(root)` liên tiếp trong cùng `ObjectOutputStream` tham chiếu đến **cùng object đã được serialize trước**.
-2. Sửa field `name` rồi gọi lại `writeObject(root)` **không tự lưu field mới** nếu object vẫn còn handle cũ trong stream.
-3. `ObjectOutputStream.reset()` làm lần ghi tiếp theo trở thành **một lần serialize mới**; phía đọc nhận một graph mới, và nội dung field mới được ghi.
-4. Các tham chiếu chia sẻ và vòng `A -> B -> A` vẫn được tái lập **bên trong từng graph**.
+1. Two consecutive `writeObject(root)` calls in the same `ObjectOutputStream` reference the **same previously serialized object**.
+2. Modifying the `name` field and calling `writeObject(root)` again **does not automatically save the new field value** if the object still has an existing handle in the stream.
+3. `ObjectOutputStream.reset()` makes the next write a **new serialization**: the reading side receives a new graph, and the updated field content is written.
+4. Shared references and the `A -> B -> A` cycle are still reconstructed **within each graph**.
 
-Lưu tệp **`ObjectHandleDemo.java`**:
+Save the file **`ObjectHandleDemo.java`**:
 
 ~~~java
 import java.io.ByteArrayInputStream;
@@ -271,20 +271,20 @@ public class ObjectHandleDemo {
         Node b = new Node("B");
 
         a.next = b;
-        a.also = b; // Hai field của A trỏ đến cùng B.
-        b.next = a; // A -> B -> A tạo vòng.
+        a.also = b; // Both fields of A point to the same B.
+        b.next = a; // A -> B -> A forms a cycle.
 
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         try (ObjectOutputStream out =
                      new ObjectOutputStream(bytes)) {
-            out.writeObject(a); // Graph đầu tiên, có handle của A/B.
-            out.writeObject(a); // Back-reference tới A cũ.
+            out.writeObject(a); // First graph, creates handles for A/B.
+            out.writeObject(a); // Back-reference to the original A.
 
             a.name = "A-updated";
-            out.writeObject(a); // Vẫn back-reference, không ghi name mới.
+            out.writeObject(a); // Still a back-reference, does not write the new name.
 
-            out.reset();        // Hủy bảng handle của stream.
-            out.writeObject(a); // Ghi graph mới với name đã thay đổi.
+            out.reset();        // Discard the stream's handle table.
+            out.writeObject(a); // Write a new graph with the updated name.
         }
 
         try (ObjectInputStream in = new ObjectInputStream(
@@ -316,14 +316,14 @@ public class ObjectHandleDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục có tệp nguồn:
+Compile and run in the directory containing the source file:
 
 ~~~bash
 javac ObjectHandleDemo.java
 java ObjectHandleDemo
 ~~~
 
-**Stdout chính xác khi chương trình chạy thành công:**
+**Exact stdout when the program succeeds:**
 
 ~~~text
 same-root=true
@@ -336,136 +336,136 @@ new-cycle=true
 original-vs-restored=false
 ~~~
 
-**Giải thích từng dòng:**
+**Line-by-line explanation:**
 
-- `first == second == third` đều đúng vì ba lần đọc đầu phục hồi **một object handle** từ một object mới rồi hai back-reference.
-- `old-name=A` vì giá trị của A đã được ghi khi nó **xuất hiện lần đầu trong stream**; thay đổi A trong bộ nhớ **không tự cập nhật bytes đã serialize**.
-- `afterReset.name` là `"A-updated"` vì lần ghi sau `reset()` thực hiện serialize trạng thái hiện tại của A.
-- `first != afterReset` vì sau reset, reader tạo một graph mới cho phần dữ liệu tiếp theo.
-- `first.next == first.also` cho thấy shared B được giữ.
-- `first.next.next == first` và `afterReset.next.next == afterReset` cho thấy cả graph cũ và graph mới có chu trình đúng.
-- `a == first` là false vì `a` là object gốc trong bộ nhớ trước khi ghi, còn `first` là một object được khôi phục bởi deserialization trong cùng JVM.
+- `first == second == third` are all true because the first three reads restore **one object handle** from one new object followed by two back-references.
+- `old-name=A` because A's value was recorded when it **first appeared in the stream**; mutating A in memory **does not retroactively update already-serialized bytes**.
+- `afterReset.name` is `"A-updated"` because the write after `reset()` serializes A's current state.
+- `first != afterReset` because after reset, the reader creates a new graph for subsequent data.
+- `first.next == first.also` shows that the shared B is preserved.
+- `first.next.next == first` and `afterReset.next.next == afterReset` show that both the old graph and the new graph have intact cycles.
+- `a == first` is false because `a` is the original object in memory before writing, whereas `first` is an object reconstructed by deserialization within the same JVM.
 
-**Lưu ý:** `ByteArrayOutputStream` chỉ giữ bytes trong bộ nhớ, vì vậy demo không phụ thuộc filesystem. Nó kiểm chứng identity và nội dung, **không mô phỏng persistence/durability trên đĩa**.
+**Note:** `ByteArrayOutputStream` only holds bytes in memory, so the demo does not depend on the filesystem. It verifies identity and content, **not disk persistence/durability**.
 
-## 7. Object handle tồn tại trong phạm vi nào?
+## 7. What Is the Scope of an Object Handle?
 
-Bảng handle thuộc **mỗi `ObjectOutputStream`** và được phía `ObjectInputStream` tương ứng theo dõi. Nó **không phải cache toàn cục JVM**.
+The handle table belongs to **each `ObjectOutputStream`** and is tracked by the corresponding `ObjectInputStream`. It is **not a JVM-wide global cache**.
 
-### Cùng stream, cùng object
+### Same Stream, Same Object
 
 ~~~java
 out.writeObject(shared);
 out.writeObject(shared);
 ~~~
 
-Thao tác thứ hai có thể chỉ ghi back-reference, vì `shared` đã có handle trong luồng đó. Khi đọc hai mục tương ứng, hai biến nhận được tham chiếu cùng object.
+The second operation can simply write a back-reference, since `shared` already has a handle in that stream. When reading the two corresponding entries, both variables receive references to the same object.
 
-### Hai stream độc lập
+### Two Independent Streams
 
 ~~~java
-// Minh họa, hai ObjectOutputStream khác nhau:
+// Illustration, two different ObjectOutputStreams:
 outA.writeObject(shared);
 outB.writeObject(shared);
 ~~~
 
-Hai stream có trạng thái handle riêng. Đọc các stream độc lập thông thường tạo object mới cho mỗi stream, dù phía ghi truyền vào đúng cùng một object gốc.
+The two streams have separate handle states. Reading independent streams normally creates a new object per stream, even if the writer passed in the exact same original object.
 
-### Trong một lần ghi cả graph
+### Within One Write of an Entire Graph
 
 ~~~java
-// Minh họa root chứa cùng subObject qua nhiều field.
+// Illustration: root holds the same subObject across multiple fields.
 root.left = subObject;
 root.right = subObject;
 out.writeObject(root);
 ~~~
 
-Field `left/right` cùng trỏ đến subObject trong graph được phục hồi (mặc định). Điều này hoạt động không phụ thuộc vào việc có gọi `writeObject(root)` lần thứ hai hay không.
+Fields `left/right` point to the same `subObject` in the restored graph (by default). This works regardless of whether `writeObject(root)` is called a second time.
 
-### Hai object có nội dung bằng nhau
+### Two Objects with Equal Content
 
 ~~~java
 out.writeObject(new Node("same"));
 out.writeObject(new Node("same"));
 ~~~
 
-Đây là **hai instance khác nhau**, không phải một shared reference. Kết quả đọc thường tạo hai Node riêng biệt.
+These are **two distinct instances**, not a single shared reference. Reading normally creates two separate `Node` instances.
 
-**Đừng dựa vào giá trị `equals()` hoặc `System.identityHashCode()` để đoán handle serialization.** Đó là những cơ chế khác.
+**Do not rely on `equals()` or `System.identityHashCode()` values to guess serialization handles.** Those are completely different mechanisms.
 
-## 8. Vì sao sửa object rồi `writeObject()` lại có thể nhận trạng thái cũ?
+## 8. Why Can Mutating an Object and Calling `writeObject()` Again Receive the Old State?
 
-Một lỗi rất phổ biến:
+A very common mistake:
 
 ~~~java
-// Minh họa: User là lớp Serializable.
+// Illustration: User is a Serializable class.
 User user = new User("first");
 out.writeObject(user);
 
 user.name = "second";
-out.writeObject(user); // Không tự phát lại toàn bộ trạng thái mới.
+out.writeObject(user); // Does not automatically resend the full new state.
 ~~~
 
-Luồng đã biết handle của `user` nên lần hai có thể là back-reference. Reader trả lại object có dữ liệu được khôi phục từ **lần ghi đầu tiên**.
+The stream already knows `user`'s handle, so the second call can emit a back-reference. The reader returns the object with data restored from the **first write**.
 
-### Các cách giải quyết tùy mục tiêu
+### Solutions Depending on Your Goal
 
-- **Muốn giữ identity và không muốn snapshot mới:** `writeObject` như thường lệ; back-reference là hành vi cần thiết.
-- **Muốn ghi trạng thái mới của toàn graph:** gọi `ObjectOutputStream.reset()` tại một ranh giới hợp lệ **trước lần ghi kế tiếp**; stream quên handle cũ, lần sau serialize lại.
-- **Muốn chủ động gửi lại trạng thái của cùng object nhưng giữ những đối tượng phụ đã biết:** nghiên cứu `writeUnshared(...)` hoặc `writeObject` trên một bản snapshot riêng, hiểu rõ giới hạn phạm vi chia sẻ.
-- **Muốn cập nhật trạng thái lưu bền theo transaction:** object stream không phải database; cần định dạng record/version hoặc cơ chế lưu trữ phù hợp.
+- **Want to preserve identity and do not want a new snapshot:** call `writeObject` as usual; back-referencing is the required behavior.
+- **Want to write the new state of the entire graph:** call `ObjectOutputStream.reset()` at a valid boundary **before the next write**; the stream forgets old handles and re-serializes next time.
+- **Want to explicitly resend the same object's state while keeping already-known child objects:** examine `writeUnshared(...)` or `writeObject` on a separate snapshot, understanding its sharing-scope limitations.
+- **Want to update persisted state transactionally:** an object stream is not a database; use a versioned record format or an appropriate storage engine.
 
-Không sửa thủ công bảng handle hay dựa vào việc `flush()` để làm mới object đã được cache trong stream. **`flush()` đẩy bytes đang đệm; không xóa object handles.**
+Do not manually tamper with handle tables or rely on `flush()` to refresh an object cached in the stream. **`flush()` pushes buffered bytes; it does not clear object handles.**
 
-## 9. `ObjectOutputStream.reset()`: xóa trạng thái handle cho các mục ghi tiếp
+## 9. `ObjectOutputStream.reset()`: Clearing Handle State for Subsequent Writes
 
-`reset()` trên `ObjectOutputStream`:
+`reset()` on `ObjectOutputStream`:
 
-1. Bỏ trạng thái ghi nhớ những object đã xuất hiện trong stream.
-2. Ghi dấu reset trong stream để phía `ObjectInputStream` tương ứng **cũng xóa bảng handle tại vị trí đó**.
-3. Những object đã ghi trước đó **không bị sửa hoặc mất khỏi bytes hiện có**.
-4. Object cùng Java reference nếu được `writeObject` sau reset sẽ được serialize như một lần xuất hiện mới.
-5. Có thể làm tăng kích thước stream vì object và class descriptor có thể được ghi lại.
+1. Discards remembered state of objects already seen in the stream.
+2. Writes a reset marker into the stream so the corresponding `ObjectInputStream` **also clears its handle table at that point**.
+3. Previously written objects **are not modified or removed from existing bytes**.
+4. If an object with the same Java reference is passed to `writeObject` after reset, it is serialized as a new occurrence.
+5. Can increase stream size because objects and class descriptors may be written again.
 
-Ví dụ:
+Example:
 
 ~~~java
-out.writeObject(root); // Root được gán handle lần đầu.
+out.writeObject(root); // Root is assigned a handle for the first time.
 out.writeObject(root); // Back-reference.
-out.reset();            // Quên bảng handle.
-out.writeObject(root); // Dữ liệu của root được ghi lại.
+out.reset();            // Forget handle table.
+out.writeObject(root); // Root's data is written again.
 ~~~
 
-**Không gọi `reset()` trong lúc serializer đang thực hiện ghi một object**, ví dụ gọi tùy tiện bên trong `private writeObject(ObjectOutputStream out)` để ép child mới. Đặc tả không cho phép reset trong quá trình serialize object; có thể ném `IOException`.
+**Do not call `reset()` while the serializer is actively writing an object**, such as calling it arbitrarily inside `private writeObject(ObjectOutputStream out)` to force a fresh child. The specification forbids resetting mid-object serialization and it can throw `IOException`.
 
-Reset là **mốc cho những object về sau**, không phải lệnh xóa bytes trước nó. Đừng nhầm với `ByteArrayOutputStream.reset()`: phương thức của ByteArrayOutputStream xóa **nội dung buffer bytes** trong RAM, còn `ObjectOutputStream.reset()` có nhiệm vụ đặt lại **trạng thái serialization** và ghi marker tương ứng.
+Reset is a **milestone for subsequent objects**, not a command to erase preceding bytes. Do not confuse it with `ByteArrayOutputStream.reset()`: `ByteArrayOutputStream`'s method clears the **byte buffer contents** in RAM, whereas `ObjectOutputStream.reset()` resets **serialization state** and writes the corresponding marker.
 
-### Reset có “deep copy” không?
+### Does Reset Perform a "Deep Copy"?
 
-Nếu sau reset ta serialize lại toàn bộ root graph, phía đọc có graph mới, trong đó các tham chiếu nội bộ vẫn được chia sẻ/có vòng đúng cách. Tuy nhiên:
+If after reset we serialize the whole root graph again, the reading side gets a new graph in which internal references remain properly shared/cyclic. However:
 
-- Dữ liệu mutable chỉ phản ánh trạng thái tại thời điểm được serialize lại.
-- Nếu một field là `transient`/`static` hoặc các custom hooks thay đổi logic, graph kết quả có thể khác.
-- Định nghĩa graph mới không tự đảm bảo thread-safety nếu object gốc bị thread khác sửa trong lúc serialize.
+- Mutable data only reflects the state at the moment of re-serialization.
+- If a field is `transient`/`static` or custom hooks alter logic, the resulting graph may differ.
+- Defining a new graph does not automatically ensure thread-safety if another thread mutates the original object during serialization.
 
-## 10. `writeUnshared()`: ghi lại object ở cấp gốc mà không dùng back-reference cũ
+## 10. `writeUnshared()`: Rewriting the Root-Level Object Without Using an Old Back-Reference
 
-Ngoài `writeObject`, Java cung cấp:
+Besides `writeObject`, Java provides:
 
 ~~~java
 out.writeUnshared(obj);
 ~~~
 
-Theo tài liệu `ObjectOutputStream`:
+According to `ObjectOutputStream` documentation:
 
-- Đối với **object ở cấp gốc được truyền trực tiếp**, `writeUnshared(obj)` luôn ghi object như một object mới xuất hiện, thay vì viết back-reference đến lần ghi trước.
-- Những lần `writeObject(obj)` về sau **không tham chiếu ngược tới lần ghi bằng `writeUnshared`** như thể đó là một lần ghi shared thông thường.
-- Quy tắc này **chỉ áp dụng trực tiếp cho root object của lời gọi**. Các object con được tham chiếu transitively vẫn có thể chia sẻ handle với object đã ghi khác.
-- Vì vậy **`writeUnshared()` không phải deep copy toàn bộ graph** và không có nghĩa tắt object caching trên mọi cấp.
+- For the **root-level object passed directly**, `writeUnshared(obj)` always writes the object as a newly appearing object, rather than writing a back-reference to a previous write.
+- Subsequent `writeObject(obj)` calls **do not back-reference a `writeUnshared` write** as if it were a regular shared write.
+- This rule **applies only directly to the root object of the call**. Transitively referenced child objects can still share handles with other already-written objects.
+- Therefore, **`writeUnshared()` is not a full-graph deep copy** and does not mean disabling object caching at every level.
 
-### Ví dụ trực tiếp với hai lần ghi unshared
+### Direct Example with Two Unshared Writes
 
-Lưu thành **`UnsharedDemo.java`**:
+Save as **`UnsharedDemo.java`**:
 
 ~~~java
 import java.io.ByteArrayInputStream;
@@ -508,7 +508,7 @@ public class UnsharedDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac UnsharedDemo.java
@@ -523,194 +523,194 @@ second=7
 distinct=true
 ~~~
 
-Trong ví dụ này Box đơn giản, không có `readResolve()` hoặc object con, nên hai lần đọc nhận **hai instance khác nhau**.
+In this example `Box` is simple, with no `readResolve()` or child objects, so the two reads receive **two distinct instances**.
 
-### `readUnshared()` khác `readObject()`
+### `readUnshared()` Differs from `readObject()`
 
-`ObjectInputStream.readUnshared()` nhận một object mới **và ngăn những lần đọc back-reference về handle đó**. Nếu `readUnshared()` gặp chính một back-reference đã có trong stream, Java ném một **`ObjectStreamException`** (thường gặp `InvalidObjectException` theo triển khai; không nên gắn logic vào một subtype cụ thể nếu chỉ dựa trên hợp đồng API).
+`ObjectInputStream.readUnshared()` receives a new object **and prevents subsequent reads from back-referencing that handle**. If `readUnshared()` encounters an actual back-reference already in the stream, Java throws an **`ObjectStreamException`** (commonly `InvalidObjectException` by implementation; do not tie logic to a specific subtype if relying solely on the API contract).
 
-Ví dụ sai:
+Incorrect example:
 
 ~~~java
-// Ghi:
+// Write:
 out.writeObject(box);
-out.writeObject(box); // Back-reference tới box.
+out.writeObject(box); // Back-reference to box.
 
-// Đọc:
+// Read:
 Box first = (Box) in.readObject();
-Box second = (Box) in.readUnshared(); // Không hợp lệ trên back-reference.
+Box second = (Box) in.readUnshared(); // Invalid on a back-reference.
 ~~~
 
-Đây là **đoạn minh họa ở hai phía ghi/đọc**, không phải chương trình độc lập. Không dùng `readUnshared` tùy tiện thay cho tất cả `readObject`.
+This is an **illustrative snippet across writer/reader sides**, not a standalone program. Do not arbitrarily substitute `readUnshared` for all `readObject` calls.
 
-**Ngoại lệ tinh tế:** `readResolve()` có thể thay object bằng một singleton hoặc instance đã có ở nơi khác, và enum/Class có ngữ nghĩa đặc biệt. Vì vậy kết hợp `writeUnshared/readUnshared` không phải cam kết tuyệt đối về một instance mới cho *mọi loại object*. Với `readResolve` trả về array, `readUnshared` dùng bản clone nông theo đặc tả. Bản thân child object trong graph cũng có thể vẫn chia sẻ.
+**Subtle exception:** `readResolve()` can replace an object with a singleton or an instance existing elsewhere, and `enum`/`Class` have special semantics. Thus combining `writeUnshared`/`readUnshared` is not an absolute guarantee of a brand-new instance for *every kind of object*. When `readResolve` returns an array, `readUnshared` uses a shallow clone per the specification. Child objects inside the graph can themselves still be shared.
 
-## 11. Dòng byte: `TC_OBJECT`, `TC_REFERENCE` và `TC_RESET`
+## 11. Byte Stream: `TC_OBJECT`, `TC_REFERENCE`, and `TC_RESET`
 
-Trong giao thức Java Object Serialization, các phần tử stream được đánh dấu bằng mã loại:
+In the Java Object Serialization protocol, stream elements are tagged with type codes:
 
-| Token | Ý nghĩa khái quát |
+| Token | General meaning |
 |---|---|
-| `TC_OBJECT` | Dữ liệu một ordinary object mới |
-| `TC_ARRAY` | Một array mới |
-| `TC_STRING` / `TC_LONGSTRING` | Một String mới |
-| `TC_CLASSDESC` | Class descriptor tương ứng |
-| `TC_REFERENCE` | Tham chiếu đến object/descriptor/string đã có handle |
-| `TC_NULL` | Tham chiếu null |
-| `TC_RESET` | Đặt lại trạng thái handle của luồng tại điểm này |
+| `TC_OBJECT` | Data for a new ordinary object |
+| `TC_ARRAY` | A new array |
+| `TC_STRING` / `TC_LONGSTRING` | A new String |
+| `TC_CLASSDESC` | Corresponding class descriptor |
+| `TC_REFERENCE` | Reference to an object/descriptor/string that already has a handle |
+| `TC_NULL` | Null reference |
+| `TC_RESET` | Resets the stream's handle state at this point |
 
-Đây là cách **hình dung giao thức**, không phải danh sách mọi token. Một stream thực còn header như magic/version, các descriptor và phần tử khác. Không phải mỗi lần gọi `writeObject` đều sinh `TC_OBJECT`; lần gặp lại có thể chỉ sinh `TC_REFERENCE`.
+This is a **conceptual view of the protocol**, not a list of every token. An actual stream also has a header like magic/version, descriptors, and other elements. Not every `writeObject` call emits `TC_OBJECT`; subsequent encounters may emit only `TC_REFERENCE`.
 
 ~~~text
-writeObject(root)  -> NEW root (handle Hroot), các child, field ...
+writeObject(root)  -> NEW root (handle Hroot), children, fields ...
 writeObject(root)  -> TC_REFERENCE(Hroot)
 reset()            -> TC_RESET
-writeObject(root)  -> NEW root/children, handle table mới
+writeObject(root)  -> NEW root/children, fresh handle table
 ~~~
 
-Handle không phải memory pointer. Nó dùng để biểu diễn sự nhận dạng object **bên trong định dạng stream**.
+A handle is not a memory pointer. It serves to represent object identity **inside the stream format**.
 
-Muốn học binary format, đọc Java Object Serialization Stream Protocol thay vì dựa vào hexdump của một ví dụ duy nhất; handle của class descriptors, strings và các thành phần phụ khiến offsets thay đổi theo đồ thị.
+To learn the binary format, read the Java Object Serialization Stream Protocol instead of relying on a single example's hexdump; handles for class descriptors, strings, and auxiliary elements shift offsets depending on the graph.
 
-## 12. Khi nào quan hệ chia sẻ hoặc vòng có thể bị thay đổi?
+## 12. When Can Sharing or Cyclic Relationships Be Altered?
 
-Cơ chế mặc định bảo toàn graph, nhưng các cấu hình/hook đặc biệt có thể thay đổi kết quả:
+The default mechanism preserves the graph, but special configurations/hooks can change the outcome:
 
-### `transient` và `static`
+### `transient` and `static`
 
 ~~~java
 class Data implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    Node child;                // Mặc định được serialize.
-    transient Node cache;      // Không lưu bằng default serialization.
-    static Node registry;      // Không thuộc trạng thái instance được lưu.
+    Node child;                // Serialized by default.
+    transient Node cache;      // Not persisted by default serialization.
+    static Node registry;      // Not part of persisted instance state.
 }
 ~~~
 
-Nếu một vòng chỉ đi qua field `transient`, cạnh tham chiếu đó **không được lưu** theo cơ chế mặc định. Khi deserialize, field transient của object nhận giá trị mặc định trừ khi có logic tùy biến khôi phục.
+If a cycle passes only through a `transient` field, that reference edge **is not saved** by the default mechanism. On deserialization, the object's transient field receives its default value unless custom logic restores it.
 
-### `writeReplace()` và `readResolve()`
+### `writeReplace()` and `readResolve()`
 
-Một lớp có thể định nghĩa cơ chế **thay thế object** khi ghi/đọc. Khi `readResolve()` trả singleton (ví dụ một instance canonical), kết quả `==` có thể không còn đúng theo cách suy đoán từ object mới thông thường.
+A class can define an **object substitution** mechanism on write/read. When `readResolve()` returns a singleton (e.g., a canonical instance), `==` results may no longer match what you would expect from regular new objects.
 
-Điều này hữu ích với singleton/canonicalization nhưng phải thiết kế và kiểm thử rõ, vì dễ gây nhầm identity, đặc biệt khi kết hợp `readUnshared`. Không tự gắn các hook này vào ví dụ graph mặc định nếu không cần.
+This is useful for singletons/canonicalization, yet must be carefully designed and tested because it easily causes identity confusion, especially when combined with `readUnshared`. Do not attach these hooks to default graph examples unnecessarily.
 
 ### Custom `writeObject/readObject`
 
-Một lớp có thể tùy biến dữ liệu field lưu trong stream. Nếu custom implementation bỏ qua một field quan trọng, tự ghi object con khác thường hoặc khôi phục theo quy tắc riêng, graph kết quả có thể khác.
+A class can customize the field data stored in the stream. If a custom implementation skips an important field, manually writes unusual child objects, or restores according to bespoke rules, the resulting graph can differ.
 
-**Nguyên tắc:** nếu mục tiêu là bảo toàn graph như mặc định, giữ `defaultWriteObject()` / `defaultReadObject()` đúng contract trong các hook, và chỉ bổ sung logic đã kiểm chứng.
+**Rule of thumb:** if your goal is to preserve the graph as in default serialization, keep `defaultWriteObject()` / `defaultReadObject()` faithful to the contract inside hooks, and only add verified logic.
 
 ### `Externalizable`
 
-`Externalizable` trao quyền lớn hơn cho lớp tự ghi/đọc trạng thái. Không mặc nhiên kỳ vọng mọi custom format phục hồi graph đúng nếu tác giả tự bỏ qua field hoặc không tái lập quan hệ tham chiếu. Hãy phân biệt khả năng handle của stream với dữ liệu mà lớp chọn ghi.
+`Externalizable` grants the class greater control to manually write/read its state. Do not blindly expect every custom format to restore the graph accurately if the author omits fields or fails to re-establish reference relationships. Distinguish the stream's handle capability from the data a class chooses to write.
 
-## 13. Lỗi phổ biến: nhầm identity, snapshot và reset
+## 13. Common Mistakes: Confusing Identity, Snapshots, and Reset
 
-| Triệu chứng | Nguyên nhân | Cách xử lý |
+| Symptom | Cause | Solution |
 |---|---|---|
-| Sau đọc, hai field `==` dù tưởng phải là bản sao | Chúng vốn trỏ cùng object; stream bảo toàn chia sẻ | Xác định rõ cần share hay copy, tạo object mới nếu yêu cầu |
-| Sau đọc, hai object `equals()` nhưng `!=` | Trước ghi có hai instance khác nhau | Đừng nhầm value equality với identity |
-| Gặp vòng tham chiếu mà lo serialize vô hạn | Hiểu nhầm serializer luôn đệ quy không có memoization | Object handles phá vòng với cơ chế mặc định |
-| Sửa field rồi `writeObject` lại nhưng reader vẫn thấy giá trị cũ | Stream dùng back-reference đến object đã ghi | Ghi snapshot mới hoặc `out.reset()` ở ranh giới hợp lệ |
-| `flush()` xong vẫn thấy giá trị cũ | Flush bytes không xóa bảng handles | Dùng reset/strategy khác, không dựa vào flush |
-| `writeUnshared()` rồi tưởng mọi object con đều riêng biệt | Chỉ root object được đảm bảo ghi như mới | Hiểu rõ transitively referenced children vẫn có thể share |
-| `readUnshared()` gặp back-reference và lỗi | API cấm đọc back-reference bằng readUnshared | Ghép đúng write/read semantics |
-| `reset()` trong custom serialization gây lỗi | Reset không được gọi giữa lúc ghi object | Chỉ reset khi ở ngoài lượt serialize graph |
-| Deserialization ném `NotSerializableException` lúc ghi | Một reachable object không serializable | Làm nó serializable, `transient` hoặc dùng custom representation |
-| `InvalidClassException` khi đọc | Class metadata/`serialVersionUID` không tương thích | Quản lý version/schema, không chỉ đổi UID tùy tiện |
-| Dữ liệu bị sửa đồng thời trong lúc serialize | Object graph không được snapshot nguyên tử | Đồng bộ hoặc tạo immutable snapshot trước khi ghi |
-| Stream ngày càng lớn vì reset thường xuyên | Mỗi reset làm object/class descriptors được ghi lại | Cân bằng freshness, identity và kích thước |
-| Đọc lại object gốc từ stream rồi so `==` với object nguồn | Deserialization thông thường tạo object mới | So sánh identity trong graph được khôi phục, không qua hai thế giới |
+| After reading, two fields are `==` when copies were expected | They originally pointed to the same object; stream preserves sharing | Clarify whether sharing or copying is needed; create new objects if required |
+| After reading, two objects are `equals()` but `!=` | Before writing, they were two distinct instances | Do not confuse value equality with identity |
+| Worrying circular references will cause infinite serialization | Mistakenly thinking serializer always recurses without memoization | Object handles break cycles under the default mechanism |
+| Modifying a field then calling `writeObject` again, yet reader still sees old value | Stream uses a back-reference to the already-written object | Write a new snapshot or call `out.reset()` at a valid boundary |
+| Still seeing old values after `flush()` | Flushing bytes does not clear the handle table | Use reset or another strategy; do not rely on flush |
+| Calling `writeUnshared()` thinking all child objects are distinct too | Only the root object is guaranteed to be written as new | Understand transitively referenced children can still share handles |
+| `readUnshared()` hits a back-reference and fails | API forbids reading a back-reference with `readUnshared` | Match write/read semantics properly |
+| Calling `reset()` inside custom serialization throws an error | Reset cannot be called mid-object write | Only reset outside graph serialization turns |
+| Serialization throws `NotSerializableException` on write | A reachable object is not serializable | Make it serializable, `transient`, or use a custom representation |
+| `InvalidClassException` on read | Class metadata/`serialVersionUID` incompatible | Manage versions/schemas; do not just change UID arbitrarily |
+| Data mutated concurrently during serialization | Object graph is not snapshotted atomically | Synchronize or create an immutable snapshot before writing |
+| Stream grows continuously due to frequent resets | Each reset causes objects/class descriptors to be written again | Balance freshness, identity, and size |
+| Reading original object from stream and comparing `==` against source object | Normal deserialization creates new objects | Compare identity within the restored graph, not across two worlds |
 
-## 14. Liên hệ với `serialVersionUID` và ngoại lệ
+## 14. Relation to `serialVersionUID` and Exceptions
 
-Serialization chứa thông tin lớp và trạng thái field. Nếu class được thay đổi không tương thích giữa ghi và đọc, có thể gặp `InvalidClassException`. Nên khai báo `private static final long serialVersionUID` cho lớp serializable cần duy trì định dạng ổn định, nhưng **khai báo UID không đảm bảo mọi thay đổi class đều tương thích**.
+Serialization includes class information and field state. If a class changes incompatibly between write and read, `InvalidClassException` can occur. Declare `private static final long serialVersionUID` explicitly for serializable classes that need a stable format, though **declaring a UID does not guarantee every class change is compatible**.
 
-Các lỗi cần biết:
+Exceptions to know:
 
-- `NotSerializableException`: một object không hỗ trợ serialization trong graph và không được thay thế/loại bỏ hợp lệ.
-- `InvalidClassException`: class descriptor/schema không tương thích với phiên bản lớp hiện tại.
-- `StreamCorruptedException`: dữ liệu stream không đúng định dạng hoặc đã bị hỏng.
-- `EOFException`: đọc quá dữ liệu stream sẵn có.
-- `ClassNotFoundException`: không tìm được lớp cần khôi phục.
-- `ObjectStreamException` khi `readUnshared` gặp back-reference trái phép.
-- `IOException`: lỗi I/O nền hoặc lỗi giao thức.
+- `NotSerializableException`: an object in the graph does not support serialization and is not validly replaced/excluded.
+- `InvalidClassException`: class descriptor/schema is incompatible with the current class version.
+- `StreamCorruptedException`: stream data is malformed or corrupted.
+- `EOFException`: reading past available stream data.
+- `ClassNotFoundException`: the class to reconstruct cannot be found.
+- `ObjectStreamException` when `readUnshared` encounters an illegal back-reference.
+- `IOException`: underlying I/O failure or protocol error.
 
-**Không nên tiếp tục dùng một `ObjectOutputStream` hoặc `ObjectInputStream` với giả định trạng thái vẫn an toàn sau lỗi nghiêm trọng giữa lúc ghi/đọc graph**. Đọc tài liệu về exception protocol của Java serialization và tạo stream mới khi cần phục hồi theo một ranh giới đáng tin cậy.
+**Do not continue using an `ObjectOutputStream` or `ObjectInputStream` assuming its state is still safe after a serious error mid-graph write/read**. Read the Java serialization exception protocol documentation and create a new stream when recovering at a reliable boundary.
 
-## 15. Bảo mật: chỉ deserialize dữ liệu đáng tin hoặc có kiểm soát
+## 15. Security: Only Deserialize Trusted or Controlled Data
 
-Java Object Serialization **không phải định dạng giao tiếp an toàn mặc định cho dữ liệu không tin cậy**. `ObjectInputStream.readObject()` có thể tạo một đồ thị lớp phong phú và kích hoạt các cơ chế đặc biệt khi khôi phục; stream bị sửa đổi có thể gây lạm dụng bộ nhớ/tài nguyên hoặc các nguy cơ deserialization khác.
+Java Object Serialization **is not a safe default communication format for untrusted data**. `ObjectInputStream.readObject()` can instantiate a rich class graph and trigger special mechanisms during restoration; a tampered stream can cause memory/resource abuse or other deserialization hazards.
 
-Với đầu vào không tin cậy:
+For untrusted input:
 
-1. Cân nhắc dùng một định dạng dữ liệu đơn giản, có schema rõ thay vì Java native serialization.
-2. Nếu bắt buộc dùng `ObjectInputStream`, triển khai **`ObjectInputFilter`** ở Java 17 để giới hạn lớp, graph depth, số reference, kích thước array và tổng bytes theo phạm vi cho phép.
-3. Giới hạn kích thước input trước khi deserialize, xác thực nguồn và kiểm tra business invariants sau khi đọc.
-4. Đừng coi `serialVersionUID` hay object handle là biện pháp xác thực hoặc mã hóa.
-5. Không log trực tiếp toàn bộ object graph trong môi trường nhạy cảm; có thể tạo vòng hoặc lộ dữ liệu.
+1. Consider using a simpler, explicit-schema data format instead of Java native serialization.
+2. If `ObjectInputStream` is unavoidable, configure **`ObjectInputFilter`** in Java 17 to restrict classes, graph depth, reference counts, array sizes, and total bytes within allowed bounds.
+3. Bound input size before deserializing, authenticate the source, and check business invariants after reading.
+4. Do not treat `serialVersionUID` or object handles as authentication or encryption measures.
+5. Do not directly log the entire object graph in sensitive environments; it can introduce cycles or leak data.
 
-Ví dụ minh họa bộ lọc đơn giản:
+Simple filter illustration:
 
 ~~~java
-// Đoạn minh họa, input là ObjectInputStream đã tạo.
-// Hãy điều chỉnh pattern theo class thực tế, không copy
-// một allowlist demo sang production mà chưa kiểm tra.
+// Illustration; input is an already-created ObjectInputStream.
+// Adjust the pattern to actual classes; do not copy
+// a demo allowlist to production without reviewing it.
 ObjectInputFilter filter = ObjectInputFilter.Config.createFilter(
         "maxdepth=20;maxrefs=10000;maxbytes=1048576;maxarray=100000;!*");
 input.setObjectInputFilter(filter);
 ~~~
 
-Pattern trên **chặn mọi lớp** không được cho phép tường minh, nên không thể đọc ví dụ Node nếu giữ nguyên; nó chỉ minh họa ý nghĩa **giới hạn tài nguyên + deny-by-default**. Trong ứng dụng thật phải thêm danh sách lớp được phép theo ngữ cảnh. Đoạn minh họa cần `import java.io.ObjectInputFilter;`.
+The pattern above **blocks every class** not explicitly permitted, so it cannot read the `Node` example as-is; it only illustrates **resource limits + deny-by-default**. Real applications must add context-appropriate allowed classes. The snippet requires `import java.io.ObjectInputFilter;`.
 
-## 16. Thiết kế hợp lý cho dữ liệu ứng dụng
+## 16. Sound Design for Application Data
 
-### Khi nên giữ chia sẻ như mặc định
+### When to Keep Sharing as Default
 
-Nếu nhiều entity đang sử dụng **cùng một object** có ý nghĩa (ví dụ một address/cache/config được chia sẻ trong graph), serialization mặc định giúp khôi phục đúng topology. Dùng `writeObject` thông thường và bảo đảm mọi object cần lưu trong graph có representation phù hợp.
+If multiple entities share **the same meaningful object** (for instance, a shared address/cache/config in the graph), default serialization restores the topology accurately. Use standard `writeObject` and ensure every object to be persisted in the graph has an appropriate representation.
 
-### Khi cần snapshot phiên bản mới
+### When You Need a Fresh Snapshot Version
 
-Nếu viết liên tục nhiều snapshot của cùng object mutable vào **một ObjectOutputStream**, cần chính sách làm mới:
+If writing multiple consecutive snapshots of the same mutable object to **one `ObjectOutputStream`**, you need a refresh policy:
 
-- `reset()` giữa các snapshot nếu chấp nhận việc object mới không chia sẻ identity với snapshot trước.
-- Hoặc xây dựng DTO/immutable snapshot mới cho mỗi lần ghi.
-- Đừng dùng `flush()` hoặc `close()` như cách yêu cầu serializer viết lại object đã có handle.
+- Call `reset()` between snapshots if it is acceptable that the new object does not share identity with previous snapshots.
+- Or build a new DTO/immutable snapshot for each write.
+- Do not use `flush()` or `close()` as a way to ask the serializer to rewrite an object that already has a handle.
 
-### Khi cần tránh lặp lại cả đồ thị
+### When Avoiding Repeating the Entire Graph
 
-Nếu graph rất lớn với nhiều shared references, việc giữ handle có thể giảm kích thước stream đáng kể. Nhưng bảng handle cũng giữ trạng thái lâu trong luồng; một stream sống rất lâu có thể tiêu thụ bộ nhớ nhiều hơn. Có thể reset tại các boundary rõ ràng, chấp nhận dữ liệu được serialize lại sau reset.
+If a graph is very large with many shared references, keeping handles can significantly reduce stream size. However, the handle table also retains state long-term in the stream; a very long-lived stream can consume more memory. You can reset at clear boundaries, accepting that data is re-serialized after reset.
 
-### Khi cần persistence lâu dài
+### When Long-Term Persistence Is Required
 
-Java native serialization phụ thuộc định dạng lớp, serial UID và những quy tắc tương thích. Nếu lưu bền nhiều năm, truyền qua môi trường công nghệ khác hoặc cần kiểm soát schema, cân nhắc format có version và schema độc lập (ví dụ JSON/CBOR/Protocol Buffers phù hợp ngữ cảnh), đồng thời chủ động biểu diễn object IDs/references nếu cần chia sẻ và vòng.
+Java native serialization depends on class format, serial UIDs, and compatibility rules. For multi-year persistence, cross-technology transfer, or strict schema control, consider a versioned, schema-independent format (such as JSON/CBOR/Protocol Buffers fitting the context), and explicitly model object IDs/references if sharing and cycles are needed.
 
-## 17. Tự kiểm tra
+## 17. Self-Check
 
-1. Hai field trước khi ghi cùng trỏ tới một object. Sau deserialize mặc định, `field1 == field2`? **True.**
-2. Hai object khác nhau nhưng `equals() == true`. Serializer có tự gộp? **Không.**
-3. A.next=B và B.next=A. Vì sao không đệ quy vô hạn? **Serializer gán handle trước khi ghi xong các field và dùng back-reference khi gặp lại A.**
-4. Object handle có phải Java memory address hay database ID không? **Không; đó là mã trong phạm vi stream.**
-5. `writeObject(obj)` hai lần trong cùng stream, không reset. Hai lần đọc thường trả object nào? **Cùng instance đã deserialize qua back-reference.**
-6. Sửa field sau lần ghi đầu rồi `writeObject` lại. Có tự gửi field mới không? **Không, nếu lần hai là back-reference.**
-7. `ObjectOutputStream.reset()` có xóa bytes đã ghi không? **Không. Nó đặt lại trạng thái handle và ghi reset marker.**
-8. `ByteArrayOutputStream.reset()` có giống ObjectOutputStream.reset không? **Không. Một cái xóa bytes trong bộ nhớ, một cái đặt lại trạng thái serialization.**
-9. `writeUnshared(root)` có bảo đảm toàn bộ child object cũng không shared với graph trước không? **Không; chỉ root ở cấp gọi.**
-10. `readUnshared()` đọc một back-reference có hợp lệ không? **Không, ném ObjectStreamException.**
-11. Field `static` hoặc `transient` được default serialization lưu hay không? **Không.**
-12. ObjectInputStream có nên đọc stream bất kỳ từ Internet không? **Không; cần kiểm soát nguồn, filter và giới hạn tài nguyên.**
-13. `serialVersionUID` có thay thế versioning/scheme migration không? **Không.**
-14. Dùng cùng class nhưng tạo hai ObjectOutputStream khác nhau, có dùng chung bảng handle không? **Không.**
-15. Tại sao `original == restored` thường false dù graph giữ identity? **Deserialization tạo object trong một graph mới; identity chỉ được tái lập giữa các reference bên trong graph/stream được đọc.**
+1. Two fields point to the same object before writing. After default deserialization, is `field1 == field2`? **True.**
+2. Two distinct objects have `equals() == true`. Does the serializer merge them automatically? **No.**
+3. `A.next=B` and `B.next=A`. Why is there no infinite recursion? **The serializer assigns a handle before finishing writing fields and emits a back-reference when encountering A again.**
+4. Is an object handle a Java memory address or a database ID? **No; it is a stream-scoped identifier.**
+5. Call `writeObject(obj)` twice in the same stream without reset. What do two reads usually return? **The same deserialized instance via back-reference.**
+6. Modify a field after the first write, then call `writeObject` again. Does it automatically send the new field? **No, if the second write is a back-reference.**
+7. Does `ObjectOutputStream.reset()` erase already-written bytes? **No. It resets handle state and writes a reset marker.**
+8. Is `ByteArrayOutputStream.reset()` the same as `ObjectOutputStream.reset()`? **No. One clears bytes in memory; the other resets serialization state.**
+9. Does `writeUnshared(root)` guarantee all child objects are also unshared with the previous graph? **No; only the root at the call level.**
+10. Is calling `readUnshared()` to read a back-reference valid? **No, it throws `ObjectStreamException`.**
+11. Are `static` or `transient` fields saved by default serialization? **No.**
+12. Should `ObjectInputStream` read arbitrary streams from the Internet? **No; source control, filters, and resource limits are required.**
+13. Does `serialVersionUID` replace versioning/schema migration? **No.**
+14. Using the same class across two different `ObjectOutputStream` instances—do they share a handle table? **No.**
+15. Why is `original == restored` usually false even though the graph preserves identity? **Deserialization creates objects in a new graph; identity is only re-established among references within the read graph/stream.**
 
-## 18. Tham khảo chính thức
+## 18. Official References
 
-- [Java SE 17 — ObjectOutputStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectOutputStream.html): `writeObject`, `writeUnshared`, `reset` và tham chiếu dùng chung.
-- [Java SE 17 — ObjectInputStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputStream.html): `readObject`, `readUnshared`, khôi phục đồ thị, serial filtering.
-- [Java SE 17 — Java Object Serialization Specification: System Architecture](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/serial-arch.html): handles, shared references và cyclic references.
-- [Java SE 17 — Object Output Classes](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/output.html): thuật toán gán handle, reset, writeUnshared.
-- [Java SE 17 — Object Input Classes](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/input.html): phục hồi handle, reset token và readUnshared.
-- [Java SE 17 — Stream Protocol](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/protocol.html): định dạng phần tử, TC_REFERENCE, TC_RESET và class descriptors.
-- [Java SE 17 — ObjectInputFilter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputFilter.html): giới hạn và lọc dữ liệu khi deserialize.
+- [Java SE 17 — ObjectOutputStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectOutputStream.html): `writeObject`, `writeUnshared`, `reset`, and shared references.
+- [Java SE 17 — ObjectInputStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputStream.html): `readObject`, `readUnshared`, graph restoration, serial filtering.
+- [Java SE 17 — Java Object Serialization Specification: System Architecture](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/serial-arch.html): handles, shared references, and cyclic references.
+- [Java SE 17 — Object Output Classes](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/output.html): handle assignment algorithm, reset, writeUnshared.
+- [Java SE 17 — Object Input Classes](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/input.html): handle restoration, reset token, and readUnshared.
+- [Java SE 17 — Stream Protocol](https://docs.oracle.com/en/java/javase/17/docs/specs/serialization/protocol.html): element format, `TC_REFERENCE`, `TC_RESET`, and class descriptors.
+- [Java SE 17 — ObjectInputFilter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputFilter.html): limiting and filtering data during deserialization.

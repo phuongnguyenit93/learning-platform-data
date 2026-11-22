@@ -1,14 +1,14 @@
-# Nhận diện checked exception và unchecked exception — Java 17+
+# Identifying Checked Exceptions and Unchecked Exceptions — Java 17+
 
-## 1. Hai nhóm ngoại lệ khác nhau ở quy tắc biên dịch
+## 1. Two Exception Groups Differ in Compiler Rules
 
-Trong Java, ngoại lệ (*exception*) biểu diễn tình huống bất thường trong khi thực thi: dữ liệu không hợp lệ, tài nguyên không sẵn có, trạng thái không cho phép thực hiện thao tác... Java chia các kiểu có thể ném thành **checked** và **unchecked** dựa trên **hệ phân cấp lớp**, chứ không dựa vào mức độ “nghiêm trọng” hoặc nội dung thông điệp.
+In Java, an **exception** represents an abnormal condition during execution: invalid data, unavailable resources, a state that does not allow an operation, and so on. Java divides throwable types into **checked** and **unchecked** based on the **class hierarchy**, rather than on "severity" or message content.
 
-- **Checked exception:** khi một lệnh có thể phát sinh kiểu checked, mã gọi phải **bắt (catch)** hoặc **khai báo chuyển tiếp (throws)** ngoại lệ theo quy tắc của trình biên dịch.
-- **Unchecked exception:** trình biên dịch **không bắt buộc** người gọi phải catch hoặc khai báo throws; tuy nhiên ngoại lệ vẫn có thể được ném khi chạy, có stack trace và có thể được xử lý khi phù hợp.
+- **Checked exception:** when a statement can produce a checked type, the calling code must **catch** or **declare (`throws`)** the exception according to compiler rules.
+- **Unchecked exception:** the compiler **does not require** the caller to catch or declare `throws`; however, the exception can still be thrown at runtime, produces a stack trace, and can be caught when appropriate.
 
 ~~~java
-// IOException là checked: phải xử lý hoặc khai báo.
+// IOException is checked: must be handled or declared.
 static String load(String key) throws java.io.IOException {
     if (key.isBlank()) {
         throw new java.io.IOException("empty key");
@@ -16,7 +16,7 @@ static String load(String key) throws java.io.IOException {
     return key;
 }
 
-// IllegalArgumentException là unchecked.
+// IllegalArgumentException is unchecked.
 static int requirePositive(int n) {
     if (n <= 0) {
         throw new IllegalArgumentException("n must be positive");
@@ -25,11 +25,11 @@ static int requirePositive(int n) {
 }
 ~~~
 
-**Lưu ý:** `throws` không làm phương thức tự động ném ngoại lệ. Nó **khai báo khả năng ngoại lệ thoát ra** từ phương thức; `throw` mới thực hiện thao tác ném một đối tượng ngoại lệ cụ thể.
+**Note:** `throws` does not make a method throw an exception automatically. It **declares the possibility of an exception escaping** the method; `throw` is what actually throws a specific exception object.
 
-## 2. Nhận diện từ cây kế thừa
+## 2. Identifying from the Inheritance Tree
 
-Trong Java 17, các kiểu có thể được ném bằng `throw` phải thuộc `Throwable` (hoặc lớp con).
+In Java 17, types that can be thrown with `throw` must belong to `Throwable` (or a subclass).
 
 ~~~text
 java.lang.Throwable
@@ -53,54 +53,54 @@ java.lang.Throwable
             └── ArrayIndexOutOfBoundsException
 ~~~
 
-Quy tắc phân loại theo lớp gốc:
+Classification rules by base class:
 
-| Kiểu kế thừa từ | Nhóm | Nghĩa vụ compiler |
+| Inherits From | Group | Compiler Obligation |
 |---|---|---|
-| `Exception` nhưng **không** nằm dưới `RuntimeException` | **Checked exception** | Phải catch hoặc declare (`throws`) nếu ngoại lệ có thể thoát ra |
-| `RuntimeException` và mọi lớp con | **Unchecked exception** | Không bắt buộc catch/declare |
-| `Error` và mọi lớp con | **Unchecked exception classes** | Không bắt buộc catch/declare, nhưng thường không nên xem là lỗi nghiệp vụ để phục hồi |
-| `Throwable` trực tiếp hoặc các lớp con không thuộc nhánh `Error`/`RuntimeException` | **Checked** theo quy tắc Java | Catch hoặc declare nếu có thể thoát ra |
+| `Exception` but **not** under `RuntimeException` | **Checked exception** | Must catch or declare (`throws`) if the exception can escape |
+| `RuntimeException` and all subclasses | **Unchecked exception** | Catch/declare not required |
+| `Error` and all subclasses | **Unchecked exception classes** | Catch/declare not required, though generally should not be treated as recoverable business errors |
+| `Throwable` directly or subclasses outside `Error`/`RuntimeException` branches | **Checked** per Java rules | Catch or declare if it can escape |
 
-**Phân biệt quan trọng:** từ “unchecked exception classes” trong đặc tả Java bao gồm cả nhánh `Error`. Trong trao đổi thực tế, người ta thường gọi nhánh `RuntimeException` là “unchecked exceptions” và nói riêng “Errors”. `Error` **không phải** là lớp con của `RuntimeException`.
+**Important distinction:** the phrase "unchecked exception classes" in the Java specification includes the `Error` branch as well. In everyday discussion, developers often refer to the `RuntimeException` branch as "unchecked exceptions" and talk about "Errors" separately. `Error` is **not** a subclass of `RuntimeException`.
 
-Một lớp tự định nghĩa kế thừa `Exception` (không qua `RuntimeException`) là checked; kế thừa `RuntimeException` là unchecked.
+A custom class extending `Exception` (not via `RuntimeException`) is checked; extending `RuntimeException` is unchecked.
 
-## 3. Các ví dụ nhận diện thường gặp
+## 3. Common Identification Examples
 
-| Kiểu ngoại lệ | Nhóm | Tình huống thường gặp |
+| Exception Type | Group | Typical Situation |
 |---|---|---|
-| `java.io.IOException` | Checked | Đọc/ghi dữ liệu vào I/O thất bại |
-| `java.sql.SQLException` | Checked | Thao tác JDBC gặp lỗi |
-| `java.lang.ClassNotFoundException` | Checked | Tải lớp theo tên không tìm được lớp |
-| `java.lang.InterruptedException` | Checked | Luồng bị ngắt khi chờ/ngủ |
-| `java.text.ParseException` | Checked | Một API phân tích chuỗi khai báo lỗi parse |
-| `java.lang.NumberFormatException` | Unchecked | Chuỗi không chuyển được thành số qua `Integer.parseInt` |
-| `java.lang.NullPointerException` | Unchecked | Dùng tham chiếu `null` ở thao tác yêu cầu object |
-| `java.lang.IllegalArgumentException` | Unchecked | Đối số vi phạm quy tắc API |
-| `java.lang.IllegalStateException` | Unchecked | Trạng thái object không cho phép hành vi |
-| `java.lang.ArrayIndexOutOfBoundsException` | Unchecked | Truy cập chỉ số ngoài phạm vi mảng |
-| `java.lang.StackOverflowError` | Unchecked (Error) | Stack không đủ cho các lời gọi lồng nhau |
+| `java.io.IOException` | Checked | Reading/writing I/O data fails |
+| `java.sql.SQLException` | Checked | A JDBC operation encounters an error |
+| `java.lang.ClassNotFoundException` | Checked | Loading a class by name cannot find the class |
+| `java.lang.InterruptedException` | Checked | Thread is interrupted while waiting/sleeping |
+| `java.text.ParseException` | Checked | A string-parsing API declares a parse error |
+| `java.lang.NumberFormatException` | Unchecked | String cannot be parsed into a number via `Integer.parseInt` |
+| `java.lang.NullPointerException` | Unchecked | Using a `null` reference in an operation requiring an object |
+| `java.lang.IllegalArgumentException` | Unchecked | Argument violates an API rule |
+| `java.lang.IllegalStateException` | Unchecked | Object state does not permit the behavior |
+| `java.lang.ArrayIndexOutOfBoundsException` | Unchecked | Accessing an index outside array bounds |
+| `java.lang.StackOverflowError` | Unchecked (Error) | Stack space exhausted by nested calls |
 
-Tên lớp có hậu tố `Exception` **không bảo đảm checked**: `NumberFormatException` vẫn unchecked. Ngược lại, một số lỗi như `OutOfMemoryError` không phải ngoại lệ nghiệp vụ dù không cần khai báo `throws`.
+Having a class name ending in `Exception` **does not guarantee checked**: `NumberFormatException` is still unchecked. Conversely, errors such as `OutOfMemoryError` are not business exceptions even though they do not require `throws`.
 
-Không phải mọi kiểu “parse dữ liệu” đều ném checked exception: `Integer.parseInt("abc")` ném **unchecked `NumberFormatException`**. Hãy xem **chính xác chữ ký API và lớp ngoại lệ**, không đoán theo tình huống.
+Not every "data parsing" operation throws a checked exception: `Integer.parseInt("abc")` throws **unchecked `NumberFormatException`**. Always check the **exact API signature and exception class** rather than guessing from context.
 
-## 4. Checked: catch hoặc declare (`throws`)
+## 4. Checked: Catch or Declare (`throws`)
 
-Giả sử `Files.readString(Path.of("settings.txt"))` có thể ném `IOException` (checked). Phương thức sau là **mã cố ý sai để minh họa lỗi biên dịch**:
+Suppose `Files.readString(Path.of("settings.txt"))` can throw `IOException` (checked). The following method is **deliberately invalid code to illustrate a compile-time error**:
 
 ~~~java
-// KHÔNG BIÊN DỊCH nếu giữ nguyên:
+// DOES NOT COMPILE as written:
 static String readWrong() {
     return java.nio.file.Files.readString(
             java.nio.file.Path.of("settings.txt"));
 }
 ~~~
 
-Vì checked `IOException` có thể thoát ra, compiler yêu cầu xử lý. Có hai hướng chính:
+Because checked `IOException` can escape, the compiler requires handling. There are two main approaches:
 
-**A. Khai báo chuyển tiếp:**
+**A. Declare propagation:**
 
 ~~~java
 static String readFile() throws java.io.IOException {
@@ -109,9 +109,9 @@ static String readFile() throws java.io.IOException {
 }
 ~~~
 
-Caller của `readFile()` phải tiếp tục **catch hoặc declare**, cho đến một ranh giới xử lý thích hợp. `throws IOException` **không đọc file hộ**, không tự catch và không bảo đảm thao tác sẽ lỗi khi chạy.
+Callers of `readFile()` must continue to **catch or declare**, up to an appropriate handling boundary. `throws IOException` **does not read the file for you**, does not catch anything on its own, and does not guarantee the operation will fail at runtime.
 
-**B. Bắt ngoại lệ tại vị trí cần xử lý:**
+**B. Catch the exception where it should be handled:**
 
 ~~~java
 static String readOrDefault() {
@@ -124,15 +124,15 @@ static String readOrDefault() {
 }
 ~~~
 
-Khi file không tồn tại/không đọc được, nhánh catch trả giá trị dự phòng. Đoạn trên là minh họa API **có tương tác filesystem**, không phải ví dụ xác định stdout ở mục 9. Trong chương trình hoàn chỉnh, ta chủ động tạo ngoại lệ để kết quả giống nhau trên các máy.
+When the file does not exist or cannot be read, the catch branch returns a fallback value. The snippet above illustrates an API **interacting with the filesystem**, not the deterministic stdout example in section 9. In the complete program, we throw an exception explicitly so results are identical across machines.
 
-**Không nên trả DEFAULT vô điều kiện trong mọi ứng dụng**: nếu không có mặc định hợp lệ, hãy thêm bối cảnh rồi chuyển tiếp lỗi hoặc xử lý phù hợp. Không nuốt lỗi để che sai sót nghiệp vụ.
+**Do not return `DEFAULT` unconditionally in every application**: if no valid default exists, add context and propagate the error or handle it appropriately. Do not swallow errors to hide business failures.
 
-## 5. Unchecked: compiler không ép catch/declare
+## 5. Unchecked: Compiler Does Not Enforce Catch/Declare
 
 ~~~java
 static int parseAge(String text) {
-    int age = Integer.parseInt(text); // Có thể NumberFormatException.
+    int age = Integer.parseInt(text); // Can throw NumberFormatException.
     if (age < 0) {
         throw new IllegalArgumentException("age cannot be negative");
     }
@@ -140,13 +140,13 @@ static int parseAge(String text) {
 }
 ~~~
 
-Phương thức trên **không cần** ghi `throws NumberFormatException` hoặc `throws IllegalArgumentException`. Tuy nhiên:
+This method **does not need** `throws NumberFormatException` or `throws IllegalArgumentException`. However:
 
-- `parseAge("20")` trả `20`.
-- `parseAge("abc")` ném `NumberFormatException`.
-- `parseAge("-2")` ném `IllegalArgumentException` do kiểm tra quy tắc.
+- `parseAge("20")` returns `20`.
+- `parseAge("abc")` throws `NumberFormatException`.
+- `parseAge("-2")` throws `IllegalArgumentException` due to rule validation.
 
-Caller vẫn có thể catch ngoại lệ unchecked nếu lỗi là một kết quả dự kiến từ dữ liệu không đáng tin:
+Callers can still catch unchecked exceptions if an error is an expected outcome from untrusted data:
 
 ~~~java
 try {
@@ -163,21 +163,21 @@ try {
 invalid number
 ~~~
 
-**Không có nghĩa unchecked = an toàn để bỏ qua.** Một lỗi unchecked không được bắt cũng có thể làm kết thúc luồng đang chạy và được handler mặc định thông báo bằng stack trace.
+**Unchecked does not mean "safe to ignore."** An uncaught unchecked error can also terminate the running thread and be reported by the default handler with a stack trace.
 
-Một phương thức **được phép khai báo** `throws IllegalArgumentException` nhằm tài liệu hóa hợp đồng, nhưng đây không phải yêu cầu của compiler. Với các bug như `NullPointerException`, thường nên sửa nguyên nhân thay vì chỉ thêm catch chung chung.
+A method **is allowed to declare** `throws IllegalArgumentException` to document its contract, though this is not required by the compiler. For bugs like `NullPointerException`, you should usually fix the root cause rather than just adding a generic catch.
 
-## 6. Phân biệt `throw`, `throws`, `try` và `catch`
+## 6. Distinguishing `throw`, `throws`, `try`, and `catch`
 
-| Cú pháp | Vai trò | Ví dụ |
+| Syntax | Role | Example |
 |---|---|---|
-| `throw` | Ném một đối tượng `Throwable` cụ thể | `throw new IOException("failed");` |
-| `throws` | Khai báo những ngoại lệ có thể thoát khỏi method/constructor | `void load() throws IOException` |
-| `try` | Đánh dấu khối thực thi có thể phát sinh lỗi | `try { load(); }` |
-| `catch` | Xử lý kiểu ngoại lệ khớp nhánh | `catch (IOException ex) { ... }` |
-| `finally` | Khối dọn dẹp thường chạy khi rời try/catch | `finally { ... }` |
+| `throw` | Throws a specific `Throwable` object | `throw new IOException("failed");` |
+| `throws` | Declares exceptions that may exit a method/constructor | `void load() throws IOException` |
+| `try` | Marks an execution block that may raise errors | `try { load(); }` |
+| `catch` | Handles exception types matching the branch | `catch (IOException ex) { ... }` |
+| `finally` | Cleanup block that normally runs when leaving try/catch | `finally { ... }` |
 
-Chú ý mã Java phải có các import hoặc dùng tên đầy đủ cho `IOException`. Một ví dụ tự chứa về cú pháp:
+Note that Java code must have imports or use fully qualified names for `IOException`. A self-contained syntax example:
 
 ~~~java
 import java.io.IOException;
@@ -189,13 +189,13 @@ class Reader {
 }
 ~~~
 
-Với checked exception, compiler sẽ kiểm tra việc **bắt hoặc khai báo** trên luồng điều khiển có thể thoát. Nó không yêu cầu mỗi method trong dự án phải có `throws`, cũng không bắt buộc catch tất cả nhánh unchecked.
+For checked exceptions, the compiler checks **catch-or-declare** along control-flow paths that can escape. It does not require every method in a project to have `throws`, nor does it force catching all unchecked branches.
 
-Trong phương thức `main`, cũng có thể viết `public static void main(String[] args) throws IOException` để chuyển tiếp lỗi. Đây là cách biên dịch được nhưng không tự đem lại chính sách phục hồi hay thông báo thân thiện cho người dùng.
+In `main`, you can also write `public static void main(String[] args) throws IOException` to forward errors. This compiles, but does not by itself provide a recovery policy or user-friendly messaging.
 
-## 7. `catch` phải đúng quan hệ kế thừa và thứ tự
+## 7. `catch` Must Respect Inheritance Relationships and Order
 
-`NumberFormatException` là lớp con của `IllegalArgumentException`. Khi bắt nhiều loại liên quan, đưa loại **cụ thể trước**, loại **tổng quát sau**:
+`NumberFormatException` is a subclass of `IllegalArgumentException`. When catching multiple related types, put the **specific type first** and the **general type later**:
 
 ~~~java
 try {
@@ -213,32 +213,32 @@ try {
 invalid digits
 ~~~
 
-Đảo hai catch sẽ khiến nhánh `NumberFormatException` trở nên **không thể tới được**, do `IllegalArgumentException` đã bắt tất cả lớp con ấy. Compiler báo lỗi.
+Swapping the two catch blocks would make the `NumberFormatException` branch **unreachable**, because `IllegalArgumentException` already catches all of its subclasses. The compiler reports an error.
 
-`catch (Exception ex)` có thể bắt checked/unchecked exceptions thuộc nhánh `Exception`, nhưng **không bắt `Error`**. `catch (Throwable ex)` bắt rộng hơn, thường không phù hợp cho xử lý nghiệp vụ thông thường. Chỉ dùng catch rộng tại ranh giới có chính sách rõ ràng (ghi log, chuyển đổi, đảm bảo cleanup), không che giấu những lỗi hệ thống khó phục hồi.
+`catch (Exception ex)` can catch checked and unchecked exceptions under the `Exception` branch, but **does not catch `Error`**. `catch (Throwable ex)` catches even more broadly and is usually unsuitable for ordinary business handling. Only use broad catches at boundaries with a clear policy (logging, translation, ensuring cleanup), without hiding hard-to-recover system errors.
 
-Đôi khi Java báo “exception is never thrown in body of corresponding try statement” khi catch một checked exception không thể phát sinh từ khối try theo phân tích của compiler. Không tạo catch checked “dự phòng” ở mọi nơi mà không có API phát sinh loại đó.
+Sometimes Java reports "exception is never thrown in body of corresponding try statement" when catching a checked exception that cannot arise from the `try` body according to compiler analysis. Do not add "just-in-case" checked catches everywhere when no API throws that type.
 
-## 8. Checked không đồng nghĩa với luôn phục hồi được
+## 8. Checked Does Not Mean Always Recoverable
 
-Một exception được phân loại theo **kiểu lớp**, không theo việc xử lý có dễ hay không.
+An exception is classified by **class type**, not by how easy it is to handle.
 
-- **Checked `IOException`:** có thể do file không tồn tại, hết quyền truy cập hoặc sự cố I/O. Có thể retry/fallback hoặc chuyển tiếp tùy tình huống.
-- **Unchecked `IllegalArgumentException`:** có thể được catch ở ranh giới nhập liệu để báo người dùng giá trị sai.
-- **Unchecked `NullPointerException`:** thường biểu thị lỗi logic/hợp đồng ở một đoạn code; xử lý hiệu quả có thể là ngăn null từ sớm.
-- **`Error`:** nhiều trường hợp biểu thị vấn đề VM/tài nguyên (như `StackOverflowError` và `OutOfMemoryError`) nên không coi `catch (Error)` là giải pháp mặc định.
+- **Checked `IOException`:** can be caused by a missing file, insufficient permissions, or I/O failure. You can retry, fall back, or propagate depending on the situation.
+- **Unchecked `IllegalArgumentException`:** can be caught at an input boundary to inform the user of an invalid value.
+- **Unchecked `NullPointerException`:** often indicates a logic/contract bug in code; effective handling may mean preventing null early.
+- **`Error`:** in many cases indicates a VM/resource issue (such as `StackOverflowError` and `OutOfMemoryError`), so `catch (Error)` should not be treated as a default solution.
 
-Khi thiết kế API:
+When designing APIs:
 
-- Chọn **checked** cho điều kiện mà caller được yêu cầu xử lý hoặc quyết định chuyển tiếp.
-- Chọn **unchecked** cho vi phạm hợp đồng, lập trình sai hoặc tình huống được API thiết kế trả về dưới dạng runtime exception.
-- Không phải mọi thư viện đều chọn giống nhau; luôn đọc **chữ ký method, Javadoc và tài liệu hợp đồng**.
+- Choose **checked** for conditions the caller is required to handle or explicitly decide to propagate.
+- Choose **unchecked** for contract violations, programming mistakes, or scenarios the API designs as runtime exceptions.
+- Not all libraries make the same choices; always read **method signatures, Javadocs, and contract documentation**.
 
-Một method khai báo `throws IOException` không chắc chắn **sẽ ném** exception mỗi lần gọi; chỉ nói nó **có khả năng thoát ra** theo hợp đồng và compiler sẽ kiểm tra.
+A method declaring `throws IOException` is not guaranteed **to throw** an exception on every call; it only states that it **can escape** per the contract, and the compiler enforces checking.
 
-## 9. Ví dụ Java 17+ chạy độc lập
+## 9. Standalone Runnable Java 17+ Example
 
-Tạo file đúng tên **`CheckedUncheckedDemo.java`**:
+Create a file named exactly **`CheckedUncheckedDemo.java`**:
 
 ~~~java
 import java.io.IOException;
@@ -253,12 +253,12 @@ public final class CheckedUncheckedDemo {
         return "value-" + key.strip();
     }
 
-    // Khai báo chuyển tiếp IOException checked.
+    // Declare propagation of checked IOException.
     static String prepare(String key) throws IOException {
         return loadFromSource(key) + "!";
     }
 
-    // Bắt checked exception ở một ranh giới có fallback phù hợp.
+    // Catch checked exception at a boundary with an appropriate fallback.
     static String loadOrDefault(String key) {
         try {
             return prepare(key);
@@ -267,7 +267,7 @@ public final class CheckedUncheckedDemo {
         }
     }
 
-    // Unchecked: không bắt buộc khai báo throws.
+    // Unchecked: throws declaration not required.
     static int parseAge(String raw) {
         int age = Integer.parseInt(raw);
         if (age < 0) {
@@ -343,7 +343,7 @@ javac --release 17 -encoding UTF-8 .\CheckedUncheckedDemo.java
 java -cp . CheckedUncheckedDemo
 ~~~
 
-Ví dụ **không truy cập filesystem**, mạng hoặc cơ sở dữ liệu; checked `IOException` được ném trực tiếp có kiểm soát. Không cần Maven/Gradle, thư viện ngoài hoặc preview features.
+The example **does not access the filesystem**, network, or database; checked `IOException` is thrown directly in a controlled way. No Maven/Gradle, external libraries, or preview features are required.
 
 ### Exact expected stdout
 
@@ -360,21 +360,21 @@ unchecked parent=RuntimeException
 program continues=true
 ~~~
 
-**Đọc kết quả:**
+**Reading the output:**
 
-1. Với key hợp lệ, `prepare(...)` trả chuỗi bình thường, dù method **có khai báo** `throws IOException`.
-2. Với key rỗng, `loadFromSource(...)` ném checked `IOException`; `loadOrDefault(...)` bắt để trả `DEFAULT`. Một lời gọi khác bắt lỗi và in loại + thông điệp.
-3. `parseAge("abc")` tạo unchecked `NumberFormatException`; `parseAge("-2")` ném unchecked `IllegalArgumentException`. Hai loại vẫn có thể catch bình thường.
-4. `assertReady(false)` ném unchecked `IllegalStateException`.
-5. Hai dòng `parent` cho thấy `IOException` kế thừa trực tiếp `Exception` và `IllegalStateException` kế thừa trực tiếp `RuntimeException`.
-6. Vì các ngoại lệ đều được xử lý có chủ đích, chương trình chạy đến dòng `program continues=true`.
+1. With a valid key, `prepare(...)` returns a normal string even though the method **declares** `throws IOException`.
+2. With an empty key, `loadFromSource(...)` throws checked `IOException`; `loadOrDefault(...)` catches it to return `DEFAULT`. Another call catches the error and prints type + message.
+3. `parseAge("abc")` produces unchecked `NumberFormatException`; `parseAge("-2")` throws unchecked `IllegalArgumentException`. Both can still be caught normally.
+4. `assertReady(false)` throws unchecked `IllegalStateException`.
+5. The two `parent` lines show that `IOException` directly inherits from `Exception` and `IllegalStateException` directly inherits from `RuntimeException`.
+6. Because the exceptions are handled intentionally, the program reaches `program continues=true`.
 
-## 10. Tự định nghĩa checked và unchecked exception
+## 10. Defining Custom Checked and Unchecked Exceptions
 
-Một class tùy chỉnh có thể phân loại qua **lớp cha**, không cần đăng ký với JVM.
+A custom class is classified via its **superclass**, with no JVM registration required.
 
 ~~~java
-// Minh họa độc lập trong phạm vi cùng package:
+// Standalone illustration within the same package scope:
 class MissingRecordException extends Exception {
     MissingRecordException(String message) {
         super(message);
@@ -388,15 +388,15 @@ class InvalidRecordStateException extends RuntimeException {
 }
 ~~~
 
-- `MissingRecordException extends Exception` → checked. Phương thức có thể ném kiểu này phải tuân thủ quy tắc catch/declare.
-- `InvalidRecordStateException extends RuntimeException` → unchecked. Compiler không ép caller catch/declare.
-- Cả hai vẫn là `Throwable`; cả hai có thể đi kèm thông điệp/cause, được in stack trace và được catch tương ứng.
+- `MissingRecordException extends Exception` → checked. Methods that can throw this type must follow catch/declare rules.
+- `InvalidRecordStateException extends RuntimeException` → unchecked. The compiler does not force callers to catch/declare it.
+- Both are still `Throwable`; both can carry a message/cause, print a stack trace, and be caught accordingly.
 
-Khi bọc lỗi để giữ nguyên nguyên nhân, có thể gọi constructor như `new IOException("cannot load config", cause)`. Đừng làm mất `cause` khi chuyển đổi exception nếu hệ thống cần chẩn đoán nguồn gốc lỗi.
+When wrapping an error to preserve the original cause, you can call a constructor like `new IOException("cannot load config", cause)`. Do not drop `cause` when translating exceptions if the system needs to diagnose the root source of failures.
 
-## 11. `try-with-resources` không thay quy tắc checked
+## 11. `try-with-resources` Does Not Change Checked Exception Rules
 
-Nhiều API I/O yêu cầu đóng resource, ví dụ:
+Many I/O APIs require closing resources, for example:
 
 ~~~java
 static String firstLine(java.nio.file.Path path)
@@ -408,72 +408,72 @@ static String firstLine(java.nio.file.Path path)
 }
 ~~~
 
-Đây là **mã minh họa method**, không chạy trong demo không phụ thuộc môi trường ở mục 9.
+This is **illustrative method code**, not run in the environment-independent demo in section 9.
 
-`try-with-resources` bảo đảm tài nguyên được quản lý đóng khi rời khối, kể cả khi có lỗi, nhưng hoạt động đọc/đóng **vẫn có thể ném checked `IOException`**. Vì vậy, ví dụ khai báo `throws IOException` thay vì giả định try-with-resources đã “xử lý mọi lỗi”.
+`try-with-resources` guarantees that the managed resource is closed when leaving the block, even on error, but reading or closing **can still throw checked `IOException`**. Therefore, the example declares `throws IOException` instead of assuming try-with-resources has "handled all errors."
 
-Nếu dùng `InterruptedException` từ `Thread.sleep(...)`, không nên nuốt tín hiệu ngắt. Tùy hợp đồng, có thể chuyển tiếp `throws InterruptedException` hoặc khi bắt để phục hồi trạng thái thì khôi phục cờ ngắt bằng `Thread.currentThread().interrupt()` theo yêu cầu thiết kế.
+When dealing with `InterruptedException` from `Thread.sleep(...)`, do not swallow the interruption signal. Depending on the contract, you can propagate `throws InterruptedException` or, when catching to restore state, restore the interrupt flag via `Thread.currentThread().interrupt()` as required by design.
 
-## 12. Những nhầm lẫn phổ biến
+## 12. Common Misconceptions
 
-| Nhầm lẫn | Hiểu đúng |
+| Misconception | Correct Understanding |
 |---|---|
-| Tên kết thúc `Exception` chắc chắn là checked | `RuntimeException` và các lớp con như `NumberFormatException` là unchecked |
-| Unchecked nghĩa là không bao giờ ném khi chạy | Vẫn được ném và có thể làm dừng luồng nếu không được xử lý |
-| Checked nghĩa là lúc chạy luôn có lỗi | Compiler yêu cầu xử lý/khai báo khả năng; đường chạy hợp lệ có thể không ném |
-| `throws` tự ném ngoại lệ | `throws` chỉ khai báo; `throw` ném |
-| Catch unchecked là không hợp lệ | Catch được khi phù hợp, chỉ là compiler không bắt buộc |
-| Thấy `Error` liền coi là checked vì khác `RuntimeException` | Các lớp con `Error` cũng unchecked theo phân loại Java |
-| `catch (Exception)` bắt luôn `OutOfMemoryError` | `Error` không kế thừa `Exception` |
-| Thêm `catch (IOException)` quanh mọi lệnh cho chắc | Compiler có thể từ chối catch checked không thể phát sinh |
-| Catch `IllegalArgumentException` rồi đến `NumberFormatException` | Nhánh con phía sau không thể tới được; đảo thứ tự |
-| `throws Exception` luôn là thiết kế tốt | Quá rộng, che mất hợp đồng ngoại lệ cụ thể; dùng kiểu phù hợp |
-| Catch và bỏ trống để ứng dụng khỏi crash | Có thể che giấu lỗi; xử lý, log hoặc chuyển tiếp có chủ đích |
-| `finally` tự biến ngoại lệ thành thành công | Cleanup không đồng nghĩa với xử lý nguyên nhân |
+| A name ending in `Exception` must be checked | `RuntimeException` and its subclasses such as `NumberFormatException` are unchecked |
+| Unchecked means never thrown at runtime | It can still be thrown and terminate a thread if unhandled |
+| Checked means an error always occurs at runtime | The compiler requires handling/declaring the possibility; valid execution paths may not throw |
+| `throws` throws an exception by itself | `throws` only declares; `throw` throws |
+| Catching unchecked exceptions is invalid | You can catch them when appropriate; the compiler simply does not force you to |
+| Seeing `Error` and thinking it is checked because it is not `RuntimeException` | `Error` subclasses are also unchecked under Java's classification |
+| `catch (Exception)` also catches `OutOfMemoryError` | `Error` does not inherit from `Exception` |
+| Adding `catch (IOException)` around every statement just in case | The compiler may reject catching a checked exception that cannot arise |
+| Catching `IllegalArgumentException` followed by `NumberFormatException` | The later subclass branch is unreachable; reverse the order |
+| `throws Exception` is always good design | Too broad, obscuring the specific exception contract; use appropriate types |
+| Catching and leaving empty so the app won't crash | Can mask bugs; handle, log, or propagate intentionally |
+| `finally` turns an exception into success | Cleanup is not the same as handling the cause |
 
-## 13. Bài tập có đáp án
+## 13. Exercises with Answers
 
-**A.** Phân loại `IOException`, `SQLException`, `IllegalStateException`, `NumberFormatException`, `StackOverflowError`.
+**A.** Classify `IOException`, `SQLException`, `IllegalStateException`, `NumberFormatException`, and `StackOverflowError`.
 
-**Đáp án:** `IOException` và `SQLException` **checked**; `IllegalStateException` và `NumberFormatException` **unchecked RuntimeException**; `StackOverflowError` là **unchecked Error**.
+**Answer:** `IOException` and `SQLException` are **checked**; `IllegalStateException` and `NumberFormatException` are **unchecked RuntimeException**; `StackOverflowError` is an **unchecked Error**.
 
-**B.** Vì sao lời gọi `Files.readString(Path.of("a.txt"))` trong method không catch/không throws báo lỗi compiler?
+**B.** Why does calling `Files.readString(Path.of("a.txt"))` inside a method without catch or throws produce a compiler error?
 
-**Đáp án:** vì API có thể ném checked `IOException`. Caller phải catch hoặc thêm `throws IOException` (hoặc siêu kiểu checked hợp lệ) trong khai báo.
+**Answer:** because the API can throw checked `IOException`. The caller must catch it or add `throws IOException` (or a valid checked supertype) to the declaration.
 
-**C.** Khi gọi `Integer.parseInt("bad")`, có cần khai báo `throws NumberFormatException` không?
+**C.** When calling `Integer.parseInt("bad")`, do you need to declare `throws NumberFormatException`?
 
-**Đáp án:** **Không**, `NumberFormatException` nằm dưới `RuntimeException`. Caller có thể catch nếu đầu vào không hợp lệ là trường hợp dự kiến.
+**Answer:** **No**, `NumberFormatException` sits under `RuntimeException`. The caller can catch it if invalid input is an expected scenario.
 
-**D.** Một class `class MyFailure extends Exception` là checked hay unchecked? Nếu `extends RuntimeException` thì sao?
+**D.** Is `class MyFailure extends Exception` checked or unchecked? What if it `extends RuntimeException`?
 
-**Đáp án:** `extends Exception` trực tiếp là **checked**, còn `extends RuntimeException` là **unchecked**.
+**Answer:** Directly `extends Exception` is **checked**, whereas `extends RuntimeException` is **unchecked**.
 
-**E.** Tại sao phải catch `NumberFormatException` trước `IllegalArgumentException` nếu cả hai đều có catch riêng?
+**E.** Why must `NumberFormatException` be caught before `IllegalArgumentException` if both have separate catch blocks?
 
-**Đáp án:** vì `NumberFormatException` là lớp con; bắt cha trước sẽ khiến bắt con sau **không thể tới được**.
+**Answer:** because `NumberFormatException` is a subclass; catching the superclass first makes the subsequent subclass catch **unreachable**.
 
-**F.** `catch (Exception ex)` có bắt được `StackOverflowError` không?
+**F.** Does `catch (Exception ex)` catch `StackOverflowError`?
 
-**Đáp án:** **Không**, `StackOverflowError` kế thừa `Error`, không phải `Exception`.
+**Answer:** **No**, `StackOverflowError` inherits from `Error`, not `Exception`.
 
-**G.** Khi hàm khai báo `throws IOException` nhưng nhận dữ liệu hợp lệ và không có lỗi nào, có nhất định ném IOException không?
+**G.** When a method declares `throws IOException` but receives valid data and encounters no errors, must it throw `IOException`?
 
-**Đáp án:** **Không**. `throws` chỉ là khai báo một khả năng; ví dụ `prepare(" config ")` trả `value-config!`.
+**Answer:** **No**. `throws` only declares a possibility; for example, `prepare(" config ")` returns `value-config!`.
 
-## 14. Checklist và kết luận
+## 14. Checklist and Conclusion
 
-- [ ] Xác định checked/unchecked bằng **hệ phân cấp `Throwable`**, không dựa vào tên/độ nghiêm trọng.
-- [ ] Biết `Exception` (không nằm dưới `RuntimeException`) thường là checked.
-- [ ] Biết nhánh `RuntimeException` và nhánh `Error` đều unchecked theo compiler.
-- [ ] Đọc được `throws IOException` trong chữ ký phương thức.
-- [ ] Phân biệt `throws` khai báo với `throw` ném.
-- [ ] Biết hai cách xử lý checked: `try-catch` hoặc tiếp tục khai báo `throws`.
-- [ ] Hiểu unchecked vẫn có thể bắt nhưng không bị compiler buộc bắt.
-- [ ] Sắp xếp các `catch` theo thứ tự kiểu cụ thể trước kiểu tổng quát.
-- [ ] Không nhầm `catch (Exception)` với bắt tất cả `Throwable`.
-- [ ] Giữ cause/stack trace khi chuyển tiếp hoặc bọc lỗi cần chẩn đoán.
-- [ ] Không dùng try-with-resources như lý do bỏ qua checked I/O exceptions.
-- [ ] Biên dịch, chạy `CheckedUncheckedDemo.java` trên JDK 17+ và kiểm tra exact stdout.
+- [ ] Identify checked vs. unchecked via the **`Throwable` hierarchy**, not by name or severity.
+- [ ] Know that `Exception` (not under `RuntimeException`) is generally checked.
+- [ ] Know that both the `RuntimeException` branch and the `Error` branch are unchecked by compiler rules.
+- [ ] Read `throws IOException` in method signatures.
+- [ ] Distinguish declaring `throws` from throwing with `throw`.
+- [ ] Know the two ways to handle checked exceptions: `try-catch` or continuing to declare `throws`.
+- [ ] Understand that unchecked exceptions can still be caught, though the compiler does not require catching them.
+- [ ] Order `catch` blocks with specific types before general types.
+- [ ] Do not confuse `catch (Exception)` with catching all `Throwable` types.
+- [ ] Preserve cause/stack trace when propagating or wrapping errors that need diagnosis.
+- [ ] Do not use try-with-resources as a reason to ignore checked I/O exceptions.
+- [ ] Compile and run `CheckedUncheckedDemo.java` on JDK 17+ and verify exact stdout.
 
-**Kết luận:** **Checked exception** buộc phía gọi **bắt hoặc khai báo** khả năng ngoại lệ theo quy tắc biên dịch Java. **Unchecked** thuộc nhánh `RuntimeException` hoặc `Error` và không có nghĩa vụ compile-time ấy, nhưng vẫn cần thiết kế xử lý lỗi hợp lý. Hãy nhìn **kiểu kế thừa**, **chữ ký API** và **hợp đồng ứng dụng** trước khi quyết định catch, throws hay sửa logic.
+**Conclusion:** **Checked exceptions** require callers to **catch or declare** the potential exception per Java's compiler rules. **Unchecked** types belong to the `RuntimeException` or `Error` branches and carry no such compile-time obligation, yet still require sensible error-handling design. Inspect **inheritance types**, **API signatures**, and **application contracts** before deciding whether to catch, declare `throws`, or fix logic.

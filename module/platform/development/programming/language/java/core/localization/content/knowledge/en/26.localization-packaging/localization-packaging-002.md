@@ -1,52 +1,52 @@
-# Class loader và phạm vi tìm tài nguyên trong Java
+# Class Loaders and Resource Lookup Scope in Java
 
-## 1. Khi tài nguyên có trong dự án nhưng Java vẫn báo “không tìm thấy”
+## 1. When a Resource Exists in the Project but Java Reports "Not Found"
 
-Một ứng dụng Java đa ngôn ngữ thường lưu thông điệp trong `.properties`, template, ảnh, cấu hình hoặc dữ liệu văn bản đi kèm mã chương trình. Lúc chạy trong IDE, chương trình có thể tìm được `messages_vi.properties`, nhưng sau khi đóng gói JAR hoặc chuyển sang một plugin lại nhận `null` hay `MissingResourceException`.
+A multilingual Java application typically stores messages in `.properties` files, templates, images, configurations, or text data alongside program code. When running in the IDE, the program may find `messages_vi.properties`, yet after packaging into a JAR or moving into a plugin, it receives `null` or `MissingResourceException`.
 
-Điều này không nhất thiết do file bị xóa. Rất có thể **file tồn tại nhưng không nằm trong phạm vi tìm kiếm của class loader hoặc module đang được dùng**.
+This is not necessarily because the file was deleted. Very likely, **the file exists, but it is outside the search scope of the class loader or module being used**.
 
-Ví dụ, một resource được đóng gói ở đường dẫn:
+For example, suppose a resource is packaged at the path:
 
 ```text
 demo/messages_vi.properties
 ```
 
-nhưng code gọi:
+but the code calls:
 
 ```java
 SomeClass.class.getClassLoader()
         .getResource("messages_vi.properties");
 ```
 
-Thì class loader sẽ tìm tên `messages_vi.properties` **ngay dưới gốc của đường tìm tài nguyên**, không tự thêm `demo/`. Nếu file nằm ở `demo/messages_vi.properties`, tên đúng cho `ClassLoader.getResource` thường là `"demo/messages_vi.properties"`.
+Then the class loader searches for the name `messages_vi.properties` **directly under the root of the resource lookup path**, without automatically prepending `demo/`. If the file is at `demo/messages_vi.properties`, the proper name for `ClassLoader.getResource` is usually `"demo/messages_vi.properties"`.
 
-Một tình huống khác: code trong ứng dụng chính dùng **application class loader**, nhưng file bản dịch nằm trong **plugin JAR do một URLClassLoader khác nạp**. Đường tìm của application loader không tự bao gồm tất cả plugin loaders trong JVM.
+Another scenario: code in the main application uses the **application class loader**, while the translation file resides inside a **plugin JAR loaded by a different URLClassLoader**. The application loader's search path does not automatically include all plugin loaders in the JVM.
 
-Với Java 9+ và Java 17, còn có **Java Platform Module System (JPMS)**: một resource trong **named module** có thể bị đóng gói và không được hiển thị cho code bên ngoài module, ngay cả khi package chứa resource đã được export cho truy cập type.
+With Java 9+ and Java 17, there is also the **Java Platform Module System (JPMS)**: a resource inside a **named module** can be encapsulated and hidden from code outside the module, even when the package containing the resource has been exported for type access.
 
-Bài học tập trung vào: classpath, class loader identity, tên resource, cách tìm tương đối/tuyệt đối, `ResourceBundle`, JAR, thread context class loader, named module, lỗi thường gặp và kiểm thử trên Java 17.
+This lesson focuses on: the classpath, class loader identity, resource names, relative/absolute lookup, `ResourceBundle`, JARs, thread context class loaders, named modules, common errors, and testing on Java 17.
 
-## 2. Tài nguyên khác lớp Java và khác file hệ điều hành
+## 2. Resources Are Different from Java Classes and OS Files
 
-Một **resource** là dữ liệu được ứng dụng dùng lúc chạy nhưng không nhất thiết là mã class: file `.properties`, `.json`, `.txt`, hình ảnh, template, chứng thư, v.v. Trước hết cần phân biệt:
+A **resource** is data used by an application at runtime that is not necessarily class bytecode: `.properties`, `.json`, `.txt` files, images, templates, certificates, etc. First, let's distinguish:
 
-| Đối tượng | Ví dụ | Cách truy cập điển hình |
+| Item | Example | Typical access method |
 | --- | --- | --- |
-| Class Java | `demo.App` | `ClassLoader.loadClass("demo.App")` |
-| Resource trên classpath | `demo/messages_vi.properties` | `Class.getResourceAsStream` hoặc `ClassLoader.getResourceAsStream` |
-| ResourceBundle | `demo.Messages` với các file `Messages_vi.properties` | `ResourceBundle.getBundle("demo.Messages", locale)` |
-| File ngoài trên đĩa | `/etc/app/config.properties` hoặc `C:\data\settings.txt` | `Path`, `Files`, `FileInputStream` |
-| Resource trong JAR | Entry `demo/messages_vi.properties` | Thường đọc qua resource stream từ class loader/module |
-| Resource thuộc named module | `demo/messages_vi.properties` bên trong module `app.main` | `Class.getResourceAsStream` hoặc `Module.getResourceAsStream` với quy tắc đóng gói |
+| Java Class | `demo.App` | `ClassLoader.loadClass("demo.App")` |
+| Resource on classpath | `demo/messages_vi.properties` | `Class.getResourceAsStream` or `ClassLoader.getResourceAsStream` |
+| ResourceBundle | `demo.Messages` with `Messages_vi.properties` files | `ResourceBundle.getBundle("demo.Messages", locale)` |
+| External file on disk | `/etc/app/config.properties` or `C:\data\settings.txt` | `Path`, `Files`, `FileInputStream` |
+| Resource in a JAR | Entry `demo/messages_vi.properties` | Typically read via a resource stream from the class loader/module |
+| Resource in a named module | `demo/messages_vi.properties` inside module `app.main` | `Class.getResourceAsStream` or `Module.getResourceAsStream` subject to encapsulation rules |
 
-**Resource trên classpath không phải là đường dẫn file hệ điều hành**. Java tìm tên resource bằng một chuỗi `/`-separated bên trong các root đã cấu hình; nó có thể đến từ thư mục hoặc từ một JAR. Nếu file nằm trong JAR, thường không thể áp dụng `Path.of(url.toURI())` như với một file bình thường trên đĩa.
+**A resource on the classpath is not an operating system file path**. Java resolves a resource name as a `/`-separated string within configured roots; it can come from a directory or from a JAR. If the file resides in a JAR, you generally cannot apply `Path.of(url.toURI())` as you would with a normal file on disk.
 
-Không nên dùng `new File("src/main/resources/...")` cho code runtime: `src/main/resources` là đường dẫn nguồn trong dự án, **không phải một đường dẫn đảm bảo tồn tại khi chạy bản phân phối**.
+Do not use `new File("src/main/resources/...")` in runtime code: `src/main/resources` is a source path in the project, **not a path guaranteed to exist when running a distributed build**.
 
-### 2.1. “Classpath root” là gì?
+### 2.1. What Is the "Classpath Root"?
 
-Ví dụ có cấu trúc đầu ra:
+Suppose you have the output layout:
 
 ```text
 out/
@@ -59,41 +59,41 @@ out/
   settings.json
 ```
 
-Khi chạy `java -cp out demo.App`, `out` là **classpath root**, không phải thư mục `demo`:
+When running `java -cp out demo.App`, `out` is the **classpath root**, not the `demo` directory:
 
-- Tên `demo/messages.txt` chỉ tới `out/demo/messages.txt`.
-- Tên `l10n/Messages_vi.properties` chỉ tới `out/l10n/Messages_vi.properties`.
-- Tên `settings.json` chỉ tới `out/settings.json`.
-- Tên `messages.txt` sẽ không tự chỉ tới `out/demo/messages.txt`.
+- The name `demo/messages.txt` points to `out/demo/messages.txt`.
+- The name `l10n/Messages_vi.properties` points to `out/l10n/Messages_vi.properties`.
+- The name `settings.json` points to `out/settings.json`.
+- The name `messages.txt` will not automatically point to `out/demo/messages.txt`.
 
-Nếu tài nguyên ở JAR, classpath root sẽ được hiểu là **gốc các entry trong JAR**. Ví dụ entry `l10n/Messages_vi.properties` trong `app.jar` có cùng tên resource logic như trong `out/l10n/…`.
+If resources are inside a JAR, the classpath root is understood as the **root of the entries in the JAR**. For example, the entry `l10n/Messages_vi.properties` in `app.jar` has the same logical resource name as in `out/l10n/…`.
 
-## 3. ClassLoader và phạm vi tìm kiếm
+## 3. ClassLoader and Lookup Scope
 
-`java.lang.ClassLoader` có trách nhiệm nạp class và có API tìm resource. Mỗi class ở runtime được nhận diện không chỉ bởi **tên đầy đủ** mà còn bởi **defining class loader**. Hai loader khác nhau có thể định nghĩa hai class trùng tên mà JVM xem là hai type khác nhau.
+`java.lang.ClassLoader` is responsible for loading classes and provides APIs for finding resources. Every class at runtime is identified not only by its **fully qualified name** but also by its **defining class loader**. Two different loaders can define two classes with the same name that the JVM treats as two distinct types.
 
-Đối với resource, điều quan trọng là:
+For resources, the key points are:
 
-- Mỗi loader có **đường tìm** và chiến lược ủy quyền riêng.
-- Resource chỉ được tìm thấy nếu nó có thể nhìn thấy qua loader đang sử dụng **và** tuân quy tắc module/encapsulation.
-- `getResource(...)` trả **`URL`** hoặc `null`.
-- `getResourceAsStream(...)` trả **`InputStream`** hoặc `null`.
-- Có thể xuất hiện **nhiều resource trùng tên** trên classpath; API một kết quả không có nghĩa đã kiểm tra hết tất cả.
-- Với parent delegation mặc định, lớp cha có thể được tìm trước lớp con; custom loader có thể triển khai chiến lược khác.
+- Each loader has its own **search path** and delegation strategy.
+- A resource is found only if it is visible through the active loader **and** satisfies module/encapsulation rules.
+- `getResource(...)` returns a **`URL`** or `null`.
+- `getResourceAsStream(...)` returns an **`InputStream`** or `null`.
+- **Multiple resources with the same name** can exist on the classpath; a single-result API does not mean all of them were checked.
+- With default parent delegation, the parent may be searched before the child; a custom loader may implement a different strategy.
 
-### 3.1. Ba loader quan trọng trong Java 17
+### 3.1. Three Important Loaders in Java 17
 
-Trong runtime Java tiêu chuẩn thường có:
+In a standard Java runtime there are typically:
 
-1. **Bootstrap class loader:** nạp những lớp lõi của nền tảng; trong Java API thường được biểu diễn bằng `null` khi hỏi loader của một số class nền tảng.
-2. **Platform class loader:** `ClassLoader.getPlatformClassLoader()`; liên quan các module nền tảng.
-3. **System/application class loader:** `ClassLoader.getSystemClassLoader()`; thường nạp application classes theo cấu hình launcher.
+1. **Bootstrap class loader:** loads core platform classes; in Java APIs it is commonly represented as `null` when querying the loader of certain platform classes.
+2. **Platform class loader:** `ClassLoader.getPlatformClassLoader()`; associated with platform modules.
+3. **System/application class loader:** `ClassLoader.getSystemClassLoader()`; typically loads application classes per launcher configuration.
 
-Tuy vậy, hệ thống thực tế có thể có loaders khác: `URLClassLoader`, container loader, plugin loader, module layer, test runner, app server hoặc framework loader.
+However, real-world systems can have other loaders: `URLClassLoader`, container loaders, plugin loaders, module layers, test runners, app servers, or framework loaders.
 
-**Không giả định loader của mọi class chính là system loader.** Cách đáng tin là xem class đang xét được nạp từ đâu bằng `MyClass.class.getClassLoader()` và biết rõ loader nào quản lý tài nguyên cần tìm.
+**Do not assume every class's loader is the system loader.** The reliable approach is to check where the class in question was loaded from using `MyClass.class.getClassLoader()` and know clearly which loader manages the resource you need.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ```java
 ClassLoader system = ClassLoader.getSystemClassLoader();
@@ -102,11 +102,11 @@ ClassLoader context = Thread.currentThread()
         .getContextClassLoader();
 ```
 
-Đoạn này nằm trong một method có class `MyClass` ở phạm vi nhìn thấy. Ba tham chiếu **có thể trùng hoặc khác nhau**; không lấy việc bằng nhau trong một lần chạy local làm quy tắc cho mọi container/plugin.
+This snippet sits inside a method where class `MyClass` is in scope. The three references **may be identical or different**; do not treat their equality in a single local run as a rule for all containers/plugins.
 
-### 3.2. Parent delegation không phải tìm ở tất cả loaders
+### 3.2. Parent Delegation Does Not Search All Loaders
 
-Ở `ClassLoader.getResource(name)` tiêu chuẩn, cơ chế mặc định tìm từ parent rồi mới tìm local khi cần. Ví dụ:
+In standard `ClassLoader.getResource(name)`, the default mechanism checks the parent first and then searches locally when needed. For example:
 
 ```text
 Application / Parent Loader
@@ -116,32 +116,32 @@ Application / Parent Loader
           +----> plugin loader B
 ```
 
-Nếu A và B là hai child loaders riêng, resource chỉ nằm trong B **không tự động xuất hiện** khi code hỏi A hoặc hỏi parent. Parent không biết mọi child và một child không phải đương nhiên tra cứu sibling.
+If A and B are two separate child loaders, a resource located only in B **does not automatically appear** when code queries A or queries the parent. The parent does not know about every child, and a child does not inherently look up siblings.
 
-Một số framework triển khai **child-first** hay quy tắc tùy chỉnh để cô lập plugin. Không khẳng định mọi `ClassLoader` đều parent-first nếu đang làm việc trong môi trường có loader tùy chỉnh.
+Some frameworks implement **child-first** or custom rules to isolate plugins. Do not assume every `ClassLoader` is parent-first if you are working in an environment with custom loaders.
 
-## 4. Class.getResource và ClassLoader.getResource: khác tên và vị trí gốc
+## 4. Class.getResource and ClassLoader.getResource: Different Names and Root Positions
 
-Hai họ API trông giống nhau nhưng cách giải tên khác nhau:
+These two API families look similar, yet they resolve names differently:
 
-| API | Tên `"hello.txt"` có ý nghĩa gì? | Tên `"/demo/hello.txt"` có ý nghĩa gì? |
+| API | What does `"hello.txt"` mean? | What does `"/demo/hello.txt"` mean? |
 | --- | --- | --- |
-| `demo.App.class.getResource(name)` | Tương đối với package `demo` → `demo/hello.txt` | Gốc tuyệt đối của resource namespace → `demo/hello.txt` |
-| `demo.App.class.getResourceAsStream(name)` | Tương đối với package `demo` | Dùng gốc tuyệt đối khi có `/` đầu tên |
-| `demo.App.class.getClassLoader().getResource(name)` | Tên trực tiếp tính từ classpath resource root | **Không** thêm slash đầu; dùng `demo/hello.txt` |
-| `ClassLoader.getSystemResource(name)` | Gốc tìm của system class loader | **Không** dùng slash đầu như `Class.getResource` |
+| `demo.App.class.getResource(name)` | Relative to package `demo` -> `demo/hello.txt` | Absolute root of the resource namespace -> `demo/hello.txt` |
+| `demo.App.class.getResourceAsStream(name)` | Relative to package `demo` | Uses absolute root when prefixed with `/` |
+| `demo.App.class.getClassLoader().getResource(name)` | Direct name from the classpath resource root | Do **not** add a leading slash; use `demo/hello.txt` |
+| `ClassLoader.getSystemResource(name)` | Search root of the system class loader | Do **not** use a leading slash as with `Class.getResource` |
 
-**Quy tắc thực hành:**
+**Practical rules:**
 
-- Với `Class.getResource("name")`, **không có `/` đầu** → tên được tiền tố bằng package của class anchor.
-- Với `Class.getResource("/some/path")`, **có `/` đầu** → tên từ gốc; Java bỏ slash này khi chuyển cho cơ chế tìm resource phù hợp.
-- Với `ClassLoader.getResource("some/path")`, dùng **tên tính từ root, không có slash đầu**. Không truyền `"/some/path"` theo thói quen của `Class.getResource`.
+- With `Class.getResource("name")`, **no leading `/`** -> the name is prefixed with the anchor class's package.
+- With `Class.getResource("/some/path")`, **with a leading `/`** -> the name starts from the root; Java strips this slash when passing it to the underlying resource lookup mechanism.
+- With `ClassLoader.getResource("some/path")`, use a **name relative to the root, without a leading slash**. Do not pass `"/some/path"` out of habit from `Class.getResource`.
 
-Trong **named module**, `Class.getResource` còn biết module mà class anchor thuộc về; chính sách truy cập khác với `ClassLoader.getResource` tìm xuyên các module. Những quy tắc module sẽ được trình bày riêng ở phần sau.
+In a **named module**, `Class.getResource` is also aware of the module to which the anchor class belongs; its access policy differs from `ClassLoader.getResource`, which searches across modules. Those module rules are covered in a dedicated section later.
 
-### 4.1. Vì sao hai cách tìm cùng một file?
+### 4.1. Why Do Two Approaches Find the Same File?
 
-Nếu `demo.App` có resource `demo/hello.txt` trong cùng classpath root, cả ba cách sau có thể tìm cùng entry:
+If `demo.App` has the resource `demo/hello.txt` in the same classpath root, all three calls below can find the same entry:
 
 ```java
 App.class.getResource("hello.txt");
@@ -149,17 +149,17 @@ App.class.getResource("/demo/hello.txt");
 App.class.getClassLoader().getResource("demo/hello.txt");
 ```
 
-Đây là code minh họa trong class `App` thuộc package `demo` (hoặc method có import `demo.App`).
+This is illustrative code inside class `App` in package `demo` (or a method importing `demo.App`).
 
-**Sai phổ biến:** `App.class.getClassLoader().getResource("/demo/hello.txt")` — slash đầu thuộc cú pháp của `Class.getResource`, không phải cú pháp classloader API. Trên class loader chuẩn, tên này thường trả `null`.
+**Common mistake:** `App.class.getClassLoader().getResource("/demo/hello.txt")` — the leading slash belongs to `Class.getResource` syntax, not the class loader API syntax. On standard class loaders, this name usually returns `null`.
 
-### 4.2. Không chỉ để đọc bản dịch
+### 4.2. Not Just for Reading Translations
 
-Cùng quy tắc áp dụng cho ảnh `logo.png`, file text `email-template.txt`, tệp JSON `schema.json` hoặc properties. Việc extension là `.properties` không khiến Java tự nhận ra chúng là resource bundle; chỉ `ResourceBundle.getBundle(...)` mới có cơ chế bundle naming, locale candidates và cache riêng.
+The same rules apply to images like `logo.png`, text files like `email-template.txt`, JSON files like `schema.json`, or properties. Having a `.properties` extension does not make Java automatically recognize them as resource bundles; only `ResourceBundle.getBundle(...)` has bundle naming, locale candidate lookup, and its own caching mechanism.
 
-## 5. Ví dụ Java 17 độc lập: nhìn rõ phạm vi tìm resource
+## 5. Standalone Java 17 Example: Seeing Resource Lookup Scope Clearly
 
-Chuẩn bị cấu trúc thư mục:
+Prepare the directory structure:
 
 ```text
 project/
@@ -171,13 +171,13 @@ project/
       greeting.txt
 ```
 
-Nội dung file `resources/demo/greeting.txt` (UTF-8):
+Contents of `resources/demo/greeting.txt` (UTF-8):
 
 ```text
 Xin chào
 ```
 
-Lưu `src/demo/ResourceScopeDemo.java`:
+Save `src/demo/ResourceScopeDemo.java`:
 
 ```java
 package demo;
@@ -212,7 +212,7 @@ public class ResourceScopeDemo {
 }
 ```
 
-Biên dịch và chuẩn bị classpath (shell Bash trên macOS/Linux; Windows PowerShell làm các thao tác copy tương đương):
+Compile and prepare the classpath (Bash shell on macOS/Linux; on Windows PowerShell perform equivalent copy operations):
 
 ```bash
 mkdir -p out/demo
@@ -221,7 +221,7 @@ cp resources/demo/greeting.txt out/demo/greeting.txt
 java -cp out demo.ResourceScopeDemo
 ```
 
-Stdout với đúng cấu trúc đã chỉ định:
+Stdout with the exact structure specified:
 
 ```text
 relative=true
@@ -231,27 +231,27 @@ wrongLoaderPath=false
 content=Xin chào
 ```
 
-Diễn giải:
+Interpretation:
 
-- `getResource("greeting.txt")` từ `demo.ResourceScopeDemo` tìm `demo/greeting.txt`.
-- `getResource("/demo/greeting.txt")` bắt đầu từ root và tới cùng resource.
-- `loader.getResource("demo/greeting.txt")` dùng path tính từ root.
-- `loader.getResource("greeting.txt")` tìm sai vị trí nên nhận `null` trong classpath test chỉ chứa resource đã nêu.
-- `InputStream` được đóng bằng `try-with-resources`, và byte UTF-8 được decode tường minh.
+- `getResource("greeting.txt")` from `demo.ResourceScopeDemo` looks up `demo/greeting.txt`.
+- `getResource("/demo/greeting.txt")` starts from the root and reaches the same resource.
+- `loader.getResource("demo/greeting.txt")` uses a root-relative path.
+- `loader.getResource("greeting.txt")` looks in the wrong location and thus returns `null` on a test classpath containing only the stated resource.
+- The `InputStream` is closed with `try-with-resources`, and UTF-8 bytes are decoded explicitly.
 
-Không dùng `Objects.requireNonNull` nếu sản phẩm muốn fallback mềm; ví dụ này cố ý **fail fast** khi một resource bắt buộc không có để tránh màn hình trống mà không có thông báo.
+Do not use `Objects.requireNonNull` if the product wants a soft fallback; this example intentionally **fails fast** when a required resource is missing to avoid a blank screen with no message.
 
-### 5.1. Resource path là path logic, không phải OS path
+### 5.1. A Resource Path Is a Logical Path, Not an OS Path
 
-Ngay cả trên Windows, tên resource vẫn dùng dấu gạch chéo **`/`**, ví dụ `"demo/greeting.txt"`, không dùng `"demo\\greeting.txt"` tùy hệ điều hành. Đường dẫn classpath được JVM thiết lập theo cú pháp của launcher; bản thân resource entry có tên slash-separated.
+Even on Windows, resource names still use forward slashes **`/`**, such as `"demo/greeting.txt"`, rather than OS-dependent `"demo\\greeting.txt"`. The classpath is configured by the JVM using the launcher's syntax; resource entry names themselves are slash-separated.
 
-**Cần phân biệt:** trong lệnh `java -cp`, các **classpath entries** được phân tách bằng ký tự phụ thuộc OS (thường `:` trên Unix, `;` trên Windows). Nhưng **tên resource bên trong entry** vẫn dùng `/`.
+**Distinction to keep in mind:** in the `java -cp` command, **classpath entries** are separated by an OS-dependent character (typically `:` on Unix, `;` on Windows). However, **resource names inside an entry** still use `/`.
 
-## 6. Null, URL và InputStream: tìm thấy không đồng nghĩa đọc thành công
+## 6. Null, URL, and InputStream: Finding Does Not Equal Reading Successfully
 
-`Class.getResource`/`ClassLoader.getResource` trả `URL` hoặc `null`. `getResourceAsStream` trả `InputStream` hoặc `null`, không tự ném `FileNotFoundException` khi resource không thấy.
+`Class.getResource`/`ClassLoader.getResource` returns a `URL` or `null`. `getResourceAsStream` returns an `InputStream` or `null`, and does not throw `FileNotFoundException` when a resource is missing.
 
-Ví dụ đúng về xử lý lỗi:
+Proper error-handling example:
 
 ```java
 try (InputStream in = App.class.getResourceAsStream(
@@ -262,27 +262,27 @@ try (InputStream in = App.class.getResourceAsStream(
     }
 
     byte[] data = in.readAllBytes();
-    // Decode bằng charset đã thỏa thuận với người tạo resource.
+    // Decode using the charset agreed upon with the resource author.
 }
 ```
 
-Đây là đoạn minh họa trong method của `App`, có xử lý `IOException` và import `InputStream`.
+This is an illustrative snippet inside a method of `App`, handling `IOException` and importing `InputStream`.
 
-Với resource tùy loại, `URL.openStream()` hoặc `getResourceAsStream` có thể ném `IOException` trong lúc đọc; kiểm tra resource URL có tồn tại **không** bảo đảm file có thể đọc được đầy đủ. Thực tế còn có quyền truy cập, file JAR hỏng, resource provider hoặc sự cố I/O.
+Depending on the resource type, `URL.openStream()` or `getResourceAsStream` can throw `IOException` while reading; verifying that a resource URL exists **does not** guarantee the file can be read completely. In practice, permissions, corrupt JAR files, resource providers, or I/O failures can still occur.
 
-**Không biến mọi thiếu resource thành `null` rồi tiếp tục lặng lẽ.** Trong hệ thống đa ngôn ngữ, file thông điệp bắt buộc vắng mặt nên được báo lỗi rõ, có fallback được thiết kế và test.
+**Do not turn every missing resource into `null` and silently continue.** In a multilingual system, a missing required message file should be reported clearly, with a designed and tested fallback.
 
-### 6.1. Đọc resource trong JAR
+### 6.1. Reading Resources Inside a JAR
 
-Khi đóng gói, URL có thể có dạng ý tưởng:
+When packaged, the URL can look conceptually like:
 
 ```text
 jar:file:/opt/app/app.jar!/demo/greeting.txt
 ```
 
-Đây **không phải** một đường dẫn `Path` của default filesystem có thể truyền trực tiếp vào `Files.readString(Path.of(url.toURI()))` trong mọi môi trường.
+This is **not** a default-filesystem `Path` that can be passed directly to `Files.readString(Path.of(url.toURI()))` in every environment.
 
-Khi chỉ cần nội dung text hoặc binary, dùng stream:
+When you only need text or binary contents, use a stream:
 
 ```java
 try (InputStream in =
@@ -295,13 +295,13 @@ try (InputStream in =
 }
 ```
 
-Đoạn này nằm trong method của `App` với `StandardCharsets` được import. Cách đọc stream hoạt động cho classpath directory và JAR nếu loader/module cho phép truy cập. Đừng giả định URL luôn mở được dưới dạng file path hoặc file có thể ghi.
+This snippet sits inside a method of `App` with `StandardCharsets` imported. Stream reading works for classpath directories and JARs if the loader/module permits access. Do not assume a URL can always be opened as a file path or that the file is writable.
 
-## 7. ResourceBundle dùng class loader như thế nào?
+## 7. How Does ResourceBundle Use the Class Loader?
 
-`java.util.ResourceBundle` giải quyết một tầng cao hơn: lấy **family** tài nguyên theo `baseName` và `Locale`, có quy tắc ứng viên, fallback và cache.
+`java.util.ResourceBundle` operates at a higher level: retrieving a **family** of resources by `baseName` and `Locale`, with candidate rules, fallback, and caching.
 
-Ví dụ family:
+Example family:
 
 ```text
 l10n/
@@ -311,7 +311,7 @@ l10n/
   Messages_vi_VN.properties
 ```
 
-Các file thường chứa cặp `key=value`. Gọi:
+The files usually contain `key=value` pairs. Calling:
 
 ```java
 ResourceBundle bundle = ResourceBundle.getBundle(
@@ -319,35 +319,35 @@ ResourceBundle bundle = ResourceBundle.getBundle(
         Locale.forLanguageTag("vi-VN"));
 ```
 
-Khi tìm, `ResourceBundle` xem `baseName` là tên đầy đủ **theo package, dùng dấu chấm**, không phải filename đầy đủ:
+During lookup, `ResourceBundle` treats `baseName` as a **package-style, dot-separated** name, not a full filename:
 
-- `"l10n.Messages"` → `l10n/Messages.properties` và các biến thể theo locale.
-- `"l10n.Messages_vi"` không phải baseName thích hợp nếu muốn hệ thống tự chọn locale từ `l10n.Messages`.
-- Không truyền `"l10n/Messages.properties"` rồi mong `getBundle` xử lý như `getResourceAsStream`.
-- Nếu không thấy bundle thích hợp và không có đường fallback hợp lệ, `getBundle` ném `MissingResourceException`, không trả `null`.
+- `"l10n.Messages"` -> `l10n/Messages.properties` and its locale variants.
+- `"l10n.Messages_vi"` is not the right `baseName` if you want the system to select locales from `l10n.Messages`.
+- Do not pass `"l10n/Messages.properties"` expecting `getBundle` to behave like `getResourceAsStream`.
+- If no suitable bundle is found and there is no valid fallback path, `getBundle` throws `MissingResourceException` instead of returning `null`.
 
-Trong Java 17, các overload không truyền `ClassLoader` được định nghĩa theo **caller module** (và các quy tắc loader liên quan khi chạy trong unnamed module), không nên giả định luôn dùng **thread context class loader**.
+In Java 17, overloads without a `ClassLoader` parameter are defined in terms of the **caller module** (and associated loader rules when running in an unnamed module); do not assume they always use the **thread context class loader**.
 
-### 7.1. Chỉ định loader rõ ràng khi cần
+### 7.1. Specifying the Loader Explicitly When Needed
 
-Với ứng dụng classpath hoặc plugin thuộc unnamed module, có overload:
+For classpath applications or plugins in an unnamed module, there is an overload:
 
 ```java
 ResourceBundle bundle = ResourceBundle.getBundle(
         "l10n.Messages", locale, targetLoader);
 ```
 
-Ý nghĩa:
+Meaning:
 
-- `"l10n.Messages"` là base name.
-- `locale` là locale mục tiêu, **không phải class loader**.
-- `targetLoader` định nghĩa phạm vi classpath/resource để tìm bundle trong ngữ cảnh API phù hợp.
+- `"l10n.Messages"` is the base name.
+- `locale` is the target locale, **not the class loader**.
+- `targetLoader` defines the classpath/resource scope for locating the bundle in the appropriate API context.
 
-Đừng đưa system loader vào overload này nếu resource thực sự chỉ thuộc child plugin loader. Cũng không nên lạm dụng loader tùy chỉnh cho tất cả bundle trong **named module**: JPMS có quy tắc module, visibility và provider riêng; có thể cần overload nhận `Module` hoặc `ResourceBundleProvider`.
+Do not pass the system loader to this overload if the resource actually belongs only to a child plugin loader. Likewise, do not overuse custom loaders for all bundles in a **named module**: JPMS has its own module, visibility, and provider rules; you may need the overload taking `Module` or a `ResourceBundleProvider`.
 
-### 7.2. Java 17 runnable: cùng loader, hai locale
+### 7.2. Runnable Java 17: Same Loader, Two Locales
 
-Chuẩn bị:
+Prepare:
 
 ```text
 project/
@@ -370,7 +370,7 @@ hello=Xin chào
 appName=Ví dụ
 ```
 
-Mã nguồn `src/demo/BundleScopeDemo.java`:
+Source `src/demo/BundleScopeDemo.java`:
 
 ```java
 package demo;
@@ -407,7 +407,7 @@ cp resources/l10n/Messages*.properties out/l10n/
 java -cp out demo.BundleScopeDemo
 ```
 
-Với bộ file và JDK 17 chuẩn, stdout:
+With the files and standard JDK 17, stdout:
 
 ```text
 root=Hello
@@ -415,32 +415,32 @@ vi=Xin chào
 viName=Ví dụ
 ```
 
-`ResourceBundle` tìm một bản dịch phù hợp từ family. Ở ví dụ này có `Messages_vi.properties` mà không cần `Messages_vi_VN.properties`; locale `vi-VN` có thể nhận biến thể `vi` theo cơ chế candidate lookup. Đó là **cơ chế lựa chọn bundle**, không phải `ClassLoader` tự đoán ngôn ngữ.
+`ResourceBundle` finds a matching translation from the family. In this example, `Messages_vi.properties` is present without needing `Messages_vi_VN.properties`; locale `vi-VN` can receive the `vi` variant via the candidate lookup mechanism. That is the **bundle selection mechanism**, not `ClassLoader` guessing the language.
 
-**Chú ý encoding:** kể từ JDK 9, `PropertyResourceBundle` mặc định đọc `.properties` theo UTF-8 và có chiến lược tương thích legacy ISO-8859-1; cấu hình system property như `java.util.PropertyResourceBundle.encoding` có thể ảnh hưởng. Với Java 17, nên lưu bundle trong UTF-8 nhất quán và pin/runtime test nếu có dữ liệu cũ.
+**Encoding note:** since JDK 9, `PropertyResourceBundle` reads `.properties` files as UTF-8 by default with a legacy ISO-8859-1 compatibility strategy; system properties such as `java.util.PropertyResourceBundle.encoding` can affect this. For Java 17, save bundles consistently in UTF-8 and pin/runtime-test if legacy data exists.
 
-### 7.3. Bundle caching: sửa file chưa chắc đọc được ngay
+### 7.3. Bundle Caching: Editing a File May Not Take Effect Immediately
 
-`ResourceBundle.getBundle` mặc định sử dụng cache; cùng baseName/locale/loader có thể trả bundle đã cache thay vì đọc lại file ngay. Khi thay file dịch lúc ứng dụng đang chạy, chỉ thay file không đủ để bảo đảm ứng dụng đã nạp bản mới.
+`ResourceBundle.getBundle` caches by default; the same `baseName`/`locale`/`loader` can return a cached bundle rather than re-reading the file immediately. When replacing a translation file while the application is running, replacing the file alone does not guarantee the application loads the new version.
 
-Có API như:
+There is an API such as:
 
 ```java
 ResourceBundle.clearCache(loader);
 ```
 
-Tuy nhiên:
+However:
 
-- Nó liên quan cache của resource bundles, không làm thay đổi classpath hoặc khả năng thấy resource của loader.
-- Không làm tài nguyên trong JAR tự cập nhật nếu file JAR không được thay đúng cách.
-- Với named modules và provider, quản lý cache/visibility có quy tắc riêng.
-- Cache theo loader có liên quan vòng đời plugin và nguy cơ giữ tham chiếu dữ liệu cũ.
+- It applies to the resource bundle cache; it does not alter the classpath or a loader's resource visibility.
+- It does not automatically refresh resources inside a JAR unless the JAR file itself is properly replaced.
+- With named modules and providers, cache/visibility management has its own rules.
+- Per-loader caching interacts with plugin lifecycles and the risk of retaining references to stale data.
 
-Đây là đoạn minh họa trong method có biến `loader`. Không xem `clearCache` là giải pháp cho đường dẫn sai hoặc mở package thiếu.
+This is an illustrative snippet inside a method that has a `loader` variable. Do not treat `clearCache` as a fix for a wrong path or a missing package open.
 
-## 8. Custom class loader và plugin: resource không tự “đi xuyên” mọi loader
+## 8. Custom Class Loaders and Plugins: Resources Do Not Automatically Cross Loaders
 
-Một plugin có thể được lưu riêng ngoài classpath chính:
+A plugin may be stored separately outside the main classpath:
 
 ```text
 project/
@@ -456,11 +456,11 @@ File `plugin-data/plugin/Labels.properties`:
 title=Plugin loaded
 ```
 
-Ta tạo `URLClassLoader` nhìn vào thư mục `plugin-data`. Loader này biết resource mà application classpath không bắt buộc biết.
+We create a `URLClassLoader` pointing to the `plugin-data` directory. This loader sees resources that the application classpath does not necessarily know about.
 
-### Java 17 runnable: loader riêng cho một bundle
+### Runnable Java 17: Separate Loader for a Bundle
 
-Tệp `src/demo/PluginResourceDemo.java`:
+File `src/demo/PluginResourceDemo.java`:
 
 ```java
 package demo;
@@ -476,8 +476,8 @@ public class PluginResourceDemo {
         URL root = Path.of("plugin-data")
                 .toAbsolutePath().toUri().toURL();
 
-        // Parent null: cô lập khỏi application classpath
-        // trong demo đơn giản này.
+        // Parent null: isolate from application classpath
+        // in this simple demo.
         try (URLClassLoader pluginLoader = new URLClassLoader(
                 new URL[]{root}, null)) {
 
@@ -495,7 +495,7 @@ public class PluginResourceDemo {
 }
 ```
 
-Chạy từ thư mục `project` bằng Bash:
+Run from the `project` directory with Bash:
 
 ```bash
 mkdir -p out
@@ -503,48 +503,48 @@ javac -encoding UTF-8 -d out src/demo/PluginResourceDemo.java
 java -cp out demo.PluginResourceDemo
 ```
 
-Stdout nếu đúng file `plugin-data/plugin/Labels.properties` như mô tả:
+Stdout with `plugin-data/plugin/Labels.properties` set up as described:
 
 ```text
 pluginVisible=true
 title=Plugin loaded
 ```
 
-**Vì sao dùng `parent=null` trong ví dụ?** Để nhấn mạnh resource root của plugin và tránh tình huống parent ứng dụng đã có một resource cùng tên. Trong plugin production, parent loader không nên tùy tiện đặt `null`: plugin có thể cần API class từ host hoặc nhiều thư viện, và chính sách delegation ảnh hưởng type identity/security. Hãy dùng chiến lược loader của framework hoặc thiết kế classloading rõ ràng.
+**Why use `parent=null` in the example?** To emphasize the plugin's resource root and avoid a situation where the application parent already contains a resource of the same name. In a production plugin, the parent loader should not arbitrarily be set to `null`: plugins may need host API classes or shared libraries, and delegation policies affect type identity/security. Use the framework's loader strategy or an explicit classloading design.
 
-**Đừng lầm:** `URLClassLoader` được truyền URL của **thư mục gốc** `plugin-data`, không phải URL của `plugin-data/plugin/Labels.properties`. Resource path `plugin/Labels.properties` được tìm tương đối với root đó.
+**Do not confuse:** `URLClassLoader` is passed the URL of the **root directory** `plugin-data`, not the URL of `plugin-data/plugin/Labels.properties`. The resource path `plugin/Labels.properties` is resolved relative to that root.
 
-### 8.1. Khi plugin nằm trong JAR
+### 8.1. When a Plugin Resides Inside a JAR
 
-Nếu plugin được đóng gói trong `plugin.jar` với entry `plugin/Labels.properties`, một `URLClassLoader` có URL của **chính file JAR** có thể đọc resource bằng cùng tên logic. Cách cài đặt phụ thuộc packaging, dependency visibility và Java module architecture.
+If a plugin is packaged in `plugin.jar` with entry `plugin/Labels.properties`, a `URLClassLoader` initialized with the URL of **the JAR file itself** can read the resource using the same logical name. How it is set up depends on packaging, dependency visibility, and Java module architecture.
 
-Không thể chỉ thêm JAR vào một thư mục bất kỳ rồi mong application loader vốn đã được tạo sẽ tự quét nó. Phải thiết lập classpath/module path từ lúc khởi động hoặc xây plugin loader/layer phù hợp.
+You cannot simply drop a JAR into an arbitrary directory and expect an already-created application loader to scan it automatically. You must configure the classpath/module path at startup or construct an appropriate plugin loader/layer.
 
-## 9. Thread context class loader (TCCL): công cụ của framework, không phải phép màu
+## 9. Thread Context Class Loader (TCCL): A Framework Tool, Not Magic
 
-Mỗi thread Java có thể có một **context class loader**, thường đọc bằng:
+Each Java thread can have a **context class loader**, typically read with:
 
 ```java
 ClassLoader tccl = Thread.currentThread()
         .getContextClassLoader();
 ```
 
-Một số thư viện và frameworks (bao gồm những cơ chế service discovery nhất định) sử dụng TCCL để tìm class/resource khi code thư viện không biết trước loader cụ thể của ứng dụng/plugin.
+Some libraries and frameworks (including certain service discovery mechanisms) use the TCCL to locate classes/resources when library code does not know the specific application/plugin loader ahead of time.
 
-Nhưng không phải **mọi** resource API tự dùng TCCL:
+However, **not every** resource API automatically uses the TCCL:
 
-- `MyClass.class.getResource(...)` dựa vào class anchor và module của nó.
-- `MyClass.class.getClassLoader().getResource(...)` dùng defining loader của class.
-- `ClassLoader.getSystemResource(...)` dùng system loader.
-- `ResourceBundle.getBundle(baseName, locale, loader)` dùng **loader được truyền**.
-- `ResourceBundle.getBundle(baseName, locale)` phụ thuộc caller module/loader theo overload Java 17, **không có lời hứa tự dùng TCCL**.
-- `Thread.currentThread().getContextClassLoader()` chỉ trả tham chiếu; caller phải **chủ động dùng** nó nếu đó là chính sách thư viện.
+- `MyClass.class.getResource(...)` relies on the anchor class and its module.
+- `MyClass.class.getClassLoader().getResource(...)` uses the class's defining loader.
+- `ClassLoader.getSystemResource(...)` uses the system loader.
+- `ResourceBundle.getBundle(baseName, locale, loader)` uses the **passed-in loader**.
+- `ResourceBundle.getBundle(baseName, locale)` depends on the caller module/loader per the Java 17 overload, **with no guarantee of automatically using the TCCL**.
+- `Thread.currentThread().getContextClassLoader()` only returns a reference; the caller must **actively use** it if that is the library's policy.
 
-**Không nên “sửa” thiếu resource bằng cách set TCCL bừa bãi.** Thay đổi TCCL cho thread dùng chung có thể ảnh hưởng thư viện khác, nhất là thread pool, async jobs và application server.
+**Do not "fix" missing resources by setting the TCCL indiscriminately.** Changing the TCCL on a shared thread can affect other libraries, especially in thread pools, async jobs, and application servers.
 
-### 9.1. Khi cần tạm đặt TCCL
+### 9.1. When Temporarily Setting the TCCL Is Necessary
 
-Một framework đôi khi làm:
+A framework sometimes does:
 
 ```java
 Thread thread = Thread.currentThread();
@@ -552,8 +552,8 @@ ClassLoader previous = thread.getContextClassLoader();
 
 try {
     thread.setContextClassLoader(pluginLoader);
-    // Gọi thư viện được thiết kế dùng TCCL.
-    // Ví dụ explicit: dùng chính TCCL để tra resource.
+    // Call a library designed to use the TCCL.
+    // Explicit example: use the TCCL itself to look up the resource.
     ClassLoader current = thread.getContextClassLoader();
     URL url = current.getResource("plugin/Labels.properties");
 } finally {
@@ -561,45 +561,45 @@ try {
 }
 ```
 
-Đây là code minh họa trong method có `pluginLoader` và import `java.net.URL`. `try/finally` bảo đảm khôi phục loader cũ khi hoàn tất. Với thread pool hoặc callback bất đồng bộ, **không** giả định TCCL sẽ tự được truyền qua mọi cơ chế và được restore bởi mọi thư viện.
+This is illustrative code inside a method with `pluginLoader` and `java.net.URL` imported. `try/finally` ensures the previous loader is restored upon completion. With thread pools or asynchronous callbacks, do **not** assume the TCCL is automatically propagated across every mechanism or restored by every library.
 
-### 9.2. Phân biệt ba identity
+### 9.2. Distinguishing the Three Identities
 
-Trong plugin system, có thể khác nhau giữa:
+In a plugin system, there can be differences among:
 
-1. **Defining loader của class đang gọi** (`SomeService.class.getClassLoader()`).
-2. **System loader** (`ClassLoader.getSystemClassLoader()`).
-3. **Context loader của thread** (`Thread.currentThread().getContextClassLoader()`).
+1. **The calling class's defining loader** (`SomeService.class.getClassLoader()`).
+2. **The system loader** (`ClassLoader.getSystemClassLoader()`).
+3. **The thread's context loader** (`Thread.currentThread().getContextClassLoader()`).
 
-Nếu kết quả khác nhau, việc chọn API không chính xác có thể khiến chương trình chỉ chạy được trong IDE nhưng không chạy trong app server. Hãy ghi log **danh tính loader** ở mức metadata không nhạy cảm khi chẩn đoán, tránh log dump toàn bộ đường dẫn nội bộ hoặc bí mật.
+If they differ, picking the wrong API can make a program work only in the IDE but fail in an app server. Log **loader identities** using non-sensitive metadata when diagnosing, avoiding dumping full internal paths or secrets.
 
-## 10. JPMS: named modules đặt thêm ranh giới tìm resource
+## 10. JPMS: Named Modules Add Another Boundary for Resource Lookup
 
-Kể từ Java 9, bên cạnh class loader còn có **module**. Java 17 phân biệt:
+Since Java 9, alongside class loaders there are **modules**. Java 17 distinguishes:
 
-- **Unnamed module**: thường chứa classes/resources chạy theo classpath.
-- **Named module**: có module name và quy tắc `module-info.java`, exports, opens, requires và resource encapsulation.
+- **Unnamed module**: typically holds classes/resources run on the classpath.
+- **Named module**: has a module name and `module-info.java` rules, exports, opens, requires, and resource encapsulation.
 
-Một class trong named module có thể truy cập tài nguyên **thuộc module của chính nó** qua `Class.getResourceAsStream` (với tên đúng). Tuy nhiên, `ClassLoader.getResource` tìm theo loader qua nhiều modules áp dụng quy tắc encapsulation chặt chẽ hơn.
+A class in a named module can access resources **belonging to its own module** via `Class.getResourceAsStream` (with the right name). However, `ClassLoader.getResource`, which searches via a loader across modules, enforces stricter encapsulation rules.
 
-Theo Java 17 API, resource **không phải `.class`** trong package của named module thường chỉ tìm thấy qua `ClassLoader.getResource` nếu package đó được **opened unconditionally**. Một package chỉ `exports` cho class access **không tương đương** `opens` cho resource access.
+According to the Java 17 API, a **non-`.class`** resource in a package of a named module can generally be found via `ClassLoader.getResource` only if that package is **opened unconditionally**. A package that is only `exports`-ed for class access **is not equivalent** to `opens` for resource access.
 
-### 10.1. Exports và opens không giống nhau
+### 10.1. Exports and Opens Are Not the Same
 
-| Khai báo | Mục tiêu chính | Có đồng nghĩa resource nhìn thấy qua mọi loader không? |
+| Declaration | Primary purpose | Does it mean resources are visible through any loader? |
 | --- | --- | --- |
-| `exports demo.api;` | Cho module khác dùng public types trong package | **Không** |
-| `opens demo.i18n;` | Mở package cho deep reflection và một số truy cập resource | Có thể cho phép truy cập resource theo các quy tắc JPMS |
-| `opens demo.i18n to some.module;` | Mở có điều kiện cho một module khác | **Không đủ** cho `ClassLoader.getResource` đòi *unconditional* opens |
-| Không `opens` | Package được đóng gói | Module chủ có thể đọc nội bộ; bên ngoài có thể bị từ chối |
+| `exports demo.api;` | Lets other modules use public types in the package | **No** |
+| `opens demo.i18n;` | Opens the package for deep reflection and certain resource access | May allow resource access under JPMS rules |
+| `opens demo.i18n to some.module;` | Conditionally opens to a specific module | **Not enough** for `ClassLoader.getResource`, which requires *unconditional* opens |
+| No `opens` | Package is encapsulated | Owning module can read internally; external access may be denied |
 
-**Cảnh báo phạm vi:** `ClassLoader.getResource` và `Module.getResourceAsStream` có điều kiện khác nhau. Trên named module, `ClassLoader.getResource` yêu cầu unconditional opens cho resource không phải `.class` trong package. `Module.getResourceAsStream` có thể cho phép resource khi package được mở tới **module caller**, và code bên trong module chủ có quyền nội bộ thích hợp. Không suy một hành vi từ API kia.
+**Scope warning:** `ClassLoader.getResource` and `Module.getResourceAsStream` have different conditions. On named modules, `ClassLoader.getResource` requires unconditional opens for non-`.class` resources in a package. `Module.getResourceAsStream` can allow access when the package is opened to the **caller module**, and code inside the owning module has appropriate internal access. Do not infer one API's behavior from the other.
 
 ### 10.2. Module.getResourceAsStream
 
-`Module.getResourceAsStream(name)` có khả năng đọc resource từ **module được chỉ định** theo Java 17 API; nó ném `IOException` khi đọc không thành công và trả `null` nếu tài nguyên không tồn tại hoặc không nhìn thấy.
+`Module.getResourceAsStream(name)` can read a resource from the **specified module** per the Java 17 API; it throws `IOException` if reading fails and returns `null` if the resource does not exist or is not visible.
 
-Ví dụ bên trong một class của named module:
+Example inside a class of a named module:
 
 ```java
 Module ownModule = SomeClass.class.getModule();
@@ -609,43 +609,43 @@ try (InputStream stream = ownModule.getResourceAsStream(
     if (stream == null) {
         throw new IllegalStateException("Resource not accessible");
     }
-    // Đọc resource ...
+    // Read resource ...
 }
 ```
 
-Đây là code minh họa trong method có `SomeClass` thuộc module, import `java.io.InputStream`, xử lý `IOException`. Tên ở đây được định nghĩa theo resource path bên trong module.
+This is illustrative code inside a method where `SomeClass` belongs to the module, importing `java.io.InputStream` and handling `IOException`. The name here is defined as the resource path inside the module.
 
-Để truy cập resource của **module khác**, cần xem package có được mở phù hợp với module đang gọi hay không; chỉ biết `Module` object không tự phá được ranh giới encapsulation.
+To access a resource in **another module**, check whether the package is opened appropriately to the calling module; merely having a `Module` object does not bypass encapsulation boundaries.
 
-### 10.3. Khác biệt giữa Class.getResource và ClassLoader.getResource trong named module
+### 10.3. Difference Between Class.getResource and ClassLoader.getResource in Named Modules
 
-Theo tài liệu Java 17:
+Per Java 17 documentation:
 
-- `Class.getResource` giải tên resource tương đối với package của class anchor (hoặc tuyệt đối khi có `/` đầu) rồi áp dụng truy cập theo module chứa class đó.
-- `ClassLoader.getResource` có phạm vi theo loader và các điều kiện visibility nghiêm hơn cho các resource không phải `.class` trong named module.
-- `Module.getResourceAsStream` tham chiếu module cụ thể, phù hợp khi code muốn nhận resource trong đúng module (vẫn tuân đóng gói).
-- `ResourceBundle` ở named modules có cơ chế lookup/provider riêng và không nên giản lược thành một `getResource` duy nhất.
+- `Class.getResource` resolves the resource name relative to the anchor class's package (or absolutely with a leading `/`) and then applies access checks for the module containing that class.
+- `ClassLoader.getResource` has loader-level scope and stricter visibility conditions for non-`.class` resources in named modules.
+- `Module.getResourceAsStream` targets a specific module, suited when code wants a resource from a particular module (still subject to encapsulation).
+- `ResourceBundle` in named modules has its own lookup/provider mechanism and should not be oversimplified to a single `getResource` call.
 
-Vì vậy, khi tài nguyên bản dịch nằm **cạnh class trong cùng named module**, `Anchor.class.getResourceAsStream("...")` hoặc `Anchor.class.getModule().getResourceAsStream("full/path")` thường là ý tưởng dễ kiểm soát hơn là tìm qua system class loader.
+Therefore, when translation resources sit **next to classes in the same named module**, `Anchor.class.getResourceAsStream("...")` or `Anchor.class.getModule().getResourceAsStream("full/path")` is usually easier to control than searching via the system class loader.
 
-### 10.4. Ví dụ minh họa module-info.java
+### 10.4. Illustrative module-info.java Example
 
 ```java
 module demo.app {
     exports demo.api;
 
-    // Ví dụ: mở package chứa resource ra ngoài không điều kiện.
+    // Example: open the package containing resources unconditionally.
     opens demo.i18n;
 }
 ```
 
-Đây là **file descriptor minh họa**, không phải chương trình chạy độc lập; để biên dịch phải có package `demo.api`, `demo.i18n` và cấu trúc dự án/module hợp lệ. Mở package vô điều kiện **không phải lúc nào cũng mong muốn**. Nếu chỉ code nội bộ module cần đọc tài nguyên, không tự động mở tài nguyên cho tất cả bên ngoài vì có thể tăng bề mặt truy cập.
+This is an **illustrative descriptor file**, not a standalone runnable program; compiling it requires packages `demo.api`, `demo.i18n`, and a valid project/module structure. Opening a package unconditionally is **not always desirable**. If only internal module code needs to read the resources, do not automatically open them to everyone externally, as that can increase the access surface.
 
-Không dùng `opens` chỉ để chữa lỗi đường dẫn khi resource vốn không được đóng gói vào module/JAR; kiểm tra packaging trước.
+Do not use `opens` merely to paper over a path error when the resource was never packaged into the module/JAR; check packaging first.
 
-## 11. ResourceBundle trong named modules và provider
+## 11. ResourceBundle in Named Modules and Providers
 
-`ResourceBundle.getBundle` có nhiều overload từ Java 9:
+`ResourceBundle.getBundle` has multiple overloads since Java 9:
 
 ```java
 ResourceBundle local = ResourceBundle.getBundle(
@@ -655,20 +655,20 @@ ResourceBundle fromModule = ResourceBundle.getBundle(
         "demo.i18n.Messages", locale, module);
 ```
 
-Đây là code minh họa với `locale` và `module` đã tồn tại. Overload nhận `Module` cho phép yêu cầu tìm bundle **on behalf of một module cụ thể**, vẫn tuân resource encapsulation.
+This is illustrative code assuming `locale` and `module` exist. The overload taking `Module` allows requesting bundle lookup **on behalf of a specific module**, still obeying resource encapsulation.
 
-Các điểm quan trọng:
+Key points:
 
-1. Trong named module, `getBundle(baseName, locale)` có ngữ nghĩa **caller module**; không đơn giản dùng system loader cho mọi bundle.
-2. Bundle cùng module có thể được đóng gói và tải theo quy tắc nội bộ; module khác chỉ truy cập được khi visibility/provider cho phép.
-3. `ResourceBundleProvider` có thể giúp cung cấp bundle qua service provider module; liên quan khai báo `uses`/`provides` trong `module-info.java`.
-4. `ResourceBundle.Control` chủ yếu dành cho unnamed modules/classpath; các overload với `Control` có thể ném `UnsupportedOperationException` khi dùng từ named module.
-5. Với resource bundle `.properties`, phải đảm bảo file thực sự có trong module artifact và đúng baseName/locale suffix.
-6. Java có cache resource bundles, vì vậy thay class loader/module hoặc file translation có thể cần xem vòng đời cache và cập nhật.
+1. In a named module, `getBundle(baseName, locale)` has **caller module** semantics; it does not simply use the system loader for every bundle.
+2. Bundles in the same module can be packaged and loaded under internal rules; other modules can access them only when visibility/providers permit.
+3. `ResourceBundleProvider` can help provide bundles via service provider modules; this involves `uses`/`provides` declarations in `module-info.java`.
+4. `ResourceBundle.Control` is primarily intended for unnamed modules/classpath; overloads with `Control` can throw `UnsupportedOperationException` when used from a named module.
+5. For `.properties` resource bundles, make sure the file actually exists in the module artifact with the proper `baseName` and locale suffix.
+6. Java caches resource bundles, so changing a class loader/module or translation file may require examining cache lifetime and updates.
 
-### Một lỗi migration hay gặp
+### A Common Migration Error
 
-Ứng dụng chuyển từ classpath sang module path, vẫn gọi:
+An application migrates from the classpath to the module path, while still calling:
 
 ```java
 ResourceBundle.getBundle(
@@ -676,59 +676,59 @@ ResourceBundle.getBundle(
         ClassLoader.getSystemClassLoader());
 ```
 
-Code có thể không còn tìm được bundle đóng gói trong named module vì resource encapsulation, dù trước khi modularize chạy bình thường. Không nên mở mọi package ra toàn cục chỉ để giữ nguyên lời gọi cũ. Cần chọn lại cách load theo **module của caller**, dùng `Module` overload hoặc provider API theo kiến trúc dự án.
+The code may no longer find bundles packaged inside a named module due to resource encapsulation, even though it ran fine before modularization. Do not open every package globally just to keep the old call unchanged. Re-select the loading approach based on the **caller's module**, using the `Module` overload or the provider API as fits the project architecture.
 
-## 12. Đóng gói JAR: có file nguồn chưa chắc có resource trong artifact
+## 12. JAR Packaging: Having the Source File Does Not Guarantee the Resource Is in the Artifact
 
-Một lỗi rất phổ biến khi deploy:
+A very common deployment mistake:
 
 ```text
-src/main/resources/l10n/Messages_vi.properties  ✓ có trên máy dev
-target/app.jar / build/libs/app.jar               ? chưa chắc chứa
+src/main/resources/l10n/Messages_vi.properties  ✓ exists on dev machine
+target/app.jar / build/libs/app.jar               ? not guaranteed to be included
 ```
 
-Maven/Gradle/IDE thường có cơ chế copy resources, nhưng cấu hình tùy dự án có thể loại trừ file, đổi thư mục đầu ra hoặc lọc nội dung. Do đó, khi resource không thấy sau deploy, nên kiểm tra **JAR artifact thực** thay vì chỉ kiểm tra `src/main/resources`.
+Maven/Gradle/IDEs usually copy resources, yet project-specific configuration can exclude files, change output directories, or filter contents. Hence, when a resource is missing after deployment, inspect the **actual JAR artifact** instead of only checking `src/main/resources`.
 
-Một ví dụ:
+An example:
 
 ```bash
 jar tf app.jar
 ```
 
-Đầu ra phải có entry tài nguyên cần thiết, ví dụ `l10n/Messages_vi.properties`, **nếu đó là nơi ứng dụng kỳ vọng tìm**. Tên entry phải khớp đường dẫn resource, bao gồm chữ hoa/thường (JAR entry names thường phân biệt case).
+The output must contain the required resource entry, such as `l10n/Messages_vi.properties`, **if that is where the application expects to find it**. The entry name must match the resource path, including letter casing (JAR entry names are normally case-sensitive).
 
-Các câu hỏi cần kiểm tra:
+Questions to verify:
 
-- Resource có thật trong JAR hay nằm ở thư mục nguồn nhưng chưa được copy?
-- Resource nằm tại root nào? Có bị thừa tiền tố như `resources/` không?
-- Classpath của `java -cp` hoặc `java -jar` thực sự là gì?
-- Khi dùng `java -jar`, tham số `-cp` trong nhiều tình huống không quyết định classpath như ta nghĩ; cần hiểu launcher và manifest của JAR.
-- Trong fat JAR/launcher đặc biệt, có custom nested-JAR loader hay resource URI khác `jar:file` thường?
-- Module path có đổi quy tắc visibility so với classpath?
-- Có bản dịch trùng tên ở nhiều dependency JAR không?
+- Is the resource actually inside the JAR, or is it only in the source directory without being copied?
+- At which root is the resource placed? Does it have an extra prefix like `resources/`?
+- What is the actual classpath of `java -cp` or `java -jar`?
+- When using `java -jar`, the `-cp` parameter in many cases does not determine the classpath the way one expects; understand the launcher and the JAR's manifest.
+- In a fat JAR/special launcher, is there a custom nested-JAR loader or a resource URI other than standard `jar:file`?
+- Does the module path change visibility rules compared to the classpath?
+- Are there duplicate translations with the same name across multiple dependency JARs?
 
-### Đừng biến URL resource thành Path mặc định
+### Do Not Convert a Resource URL into a Path by Default
 
-Resource trong JAR là **JAR entry**, không phải file path bình thường. Nếu cần bytes, dùng `InputStream`. Nếu một thư viện bên thứ ba **bắt buộc** cần file path vật lý, có thể cần extract resource ra thư mục tạm có quản lý vòng đời và an toàn, hoặc dùng filesystem provider thích hợp; đừng ép mọi URL thành `Path.of(...)`.
+A resource inside a JAR is a **JAR entry**, not an ordinary file path. If you need bytes, use `InputStream`. If a third-party library **strictly requires** a physical file path, you may need to extract the resource to a temporary directory with managed lifecycle and safety, or use an appropriate filesystem provider; do not force every URL through `Path.of(...)`.
 
-## 13. Resource trùng tên: getResource và getResources
+## 13. Duplicate Resource Names: getResource and getResources
 
-Có thể hai dependency cùng đóng gói:
+Two dependencies might both package:
 
 ```text
 config/defaults.properties
 ```
 
-Khi đó:
+In that case:
 
-- `loader.getResource("config/defaults.properties")` thường chỉ trả **một** URL tìm thấy theo search order của loader.
-- `loader.getResources("config/defaults.properties")` trả `Enumeration<URL>` để duyệt những resource phù hợp mà loader thấy.
-- `loader.resources("config/defaults.properties")` (Java 9+) trả `Stream<URL>`.
-- `ClassLoader.getSystemResources(name)` dùng **system loader**, không phải một phép quét tất cả loader đang sống.
+- `loader.getResource("config/defaults.properties")` typically returns only **one** URL found according to the loader's search order.
+- `loader.getResources("config/defaults.properties")` returns an `Enumeration<URL>` to iterate over matching resources visible to the loader.
+- `loader.resources("config/defaults.properties")` (Java 9+) returns a `Stream<URL>`.
+- `ClassLoader.getSystemResources(name)` uses the **system loader**, not a scan across every live loader.
 
-Đối với named modules, `getResources` cũng chịu giới hạn visibility/opens. Thứ tự resource trong nhiều modules cùng loader có thể không được xác định; không dựa vào “JAR nào thắng” nếu ứng dụng cần cấu hình có thứ tự rõ.
+For named modules, `getResources` is also subject to visibility/opens restrictions. Resource ordering across multiple modules in the same loader may be unspecified; do not rely on "which JAR wins" if the application needs deterministic configuration ordering.
 
-### Ví dụ duyệt mọi URL
+### Example: Iterating Over All URLs
 
 ```java
 ClassLoader loader = App.class.getClassLoader();
@@ -737,63 +737,63 @@ Enumeration<URL> urls = loader.getResources(
 
 while (urls.hasMoreElements()) {
     URL url = urls.nextElement();
-    // Log/trích xuất có kiểm soát.
+    // Log/extract in a controlled manner.
 }
 ```
 
-Đây là code minh họa trong method với `App` và import `java.net.URL`, `java.util.Enumeration`, xử lý `IOException`.
+This is illustrative code inside a method with `App`, importing `java.net.URL` and `java.util.Enumeration`, and handling `IOException`.
 
-Đừng dùng `getResource` để hợp nhất nhiều bản dịch trùng tên một cách tự động. `ResourceBundle` có quy tắc candidate/fallback theo locale, không phải thuật toán merge toàn bộ resources `.properties` trong các JAR. Nếu plugin được phép đóng góp nhiều bundle, thiết kế provider/namespace hoặc loader strategy rõ ràng.
+Do not use `getResource` to merge multiple identically named translation files automatically. `ResourceBundle` follows per-locale candidate/fallback rules, not an algorithm that merges every `.properties` resource across JARs. If plugins are allowed to contribute multiple bundles, design an explicit provider/namespace or loader strategy.
 
-## 14. Khi nào ResourceBundle gặp MissingResourceException?
+## 14. When Does ResourceBundle Throw MissingResourceException?
 
-`MissingResourceException` có thể xuất hiện vì những nguyên nhân khác nhau:
+`MissingResourceException` can occur for different reasons:
 
-1. `baseName` sai (dùng slash thay dot, thêm `.properties`, sai package).
-2. Không có bản bundle phù hợp và không có root/default fallback theo chính sách.
-3. Bundle file có nhưng không được copy vào classpath/JAR.
-4. Code đang dùng **sai class loader**; bản dịch nằm trong plugin loader khác.
-5. Code được chuyển sang **named module** và resource không thấy theo module encapsulation.
-6. Tài nguyên có trong artifact nhưng classpath/module path khác với giả định.
-7. File bundle có nhưng **key** được yêu cầu không tồn tại trong chuỗi bundle/parent.
-8. Tên file bị khác chữ hoa/thường hoặc dùng locale suffix không đúng quy ước.
+1. Incorrect `baseName` (using slashes instead of dots, appending `.properties`, wrong package).
+2. No matching bundle exists and there is no root/default fallback per policy.
+3. The bundle file exists but was not copied into the classpath/JAR.
+4. Code is using the **wrong class loader**; the translation resides in another plugin loader.
+5. Code was moved to a **named module** and the resource is hidden by module encapsulation.
+6. The resource is in the artifact, but the classpath/module path differs from assumptions.
+7. The bundle file exists, yet the requested **key** is absent in the bundle/parent chain.
+8. File names have mismatched casing or use non-standard locale suffixes.
 
-Cần phân biệt hai lỗi:
+Distinguish two errors:
 
-- **Không tìm được bundle family:** `getBundle(...)` ném `MissingResourceException`.
-- **Có bundle nhưng thiếu key:** `bundle.getString("some.key")` cũng ném `MissingResourceException`, nhưng nguyên nhân là không thấy key trong bundle và chuỗi fallback của nó.
+- **Bundle family not found:** `getBundle(...)` throws `MissingResourceException`.
+- **Bundle found, key missing:** `bundle.getString("some.key")` also throws `MissingResourceException`, but the cause is that the key is missing from the bundle and its fallback chain.
 
-Không nên “fix” mọi lỗi này bằng cách tự tạo bundle rỗng, vì có thể che mất bản dịch bắt buộc. Khi chuẩn bị nội dung cho nhiều locale, nên có **root fallback** phù hợp và kiểm thử toàn bộ key bắt buộc.
+Do not "fix" all of these errors by creating empty bundles, as that can mask mandatory translations. When preparing content for multiple locales, provide an appropriate **root fallback** and test all required keys.
 
-### 14.1. Chẩn đoán resource trước khi chẩn đoán fallback
+### 14.1. Diagnose Resource Visibility Before Diagnosing Fallback
 
-Một quy trình hiệu quả:
+An effective workflow:
 
-1. Xác nhận resource name theo namespace của API đang dùng.
-2. Xác nhận file có trong **artifact đã deploy**.
-3. Xác nhận class loader/module mà code thực sự dùng.
-4. Dùng `getResource` hoặc `getResourceAsStream` với **đúng** namespace để xem tài nguyên có nhìn thấy hay không.
-5. Nếu raw resource có thể nhìn thấy, mới kiểm tra `ResourceBundle` naming, candidate locale, key, cache và provider.
-6. Với named modules, kiểm tra `exports`/`opens`/resource access, không suy thẳng từ kết quả classloader lookup.
+1. Confirm the resource name according to the namespace of the API being used.
+2. Confirm the file is present in the **deployed artifact**.
+3. Confirm which class loader/module the code is actually using.
+4. Use `getResource` or `getResourceAsStream` in the **exact** namespace to verify whether the resource is visible.
+5. Only if the raw resource is visible should you inspect `ResourceBundle` naming, candidate locales, keys, cache, and providers.
+6. For named modules, check `exports`/`opens`/resource access rather than extrapolating directly from class loader lookup results.
 
-**Điểm tinh vi:** raw lookup bằng `ClassLoader.getResource` có thể thất bại với resource ở named module dù code trong cùng module vẫn tải bundle hoặc resource qua API module-aware được. Vì thế, bước 4 phải dùng **đúng API và scope của tình huống**, không coi system loader là “tiêu chuẩn tuyệt đối” để chẩn đoán mọi module.
+**Subtle point:** a raw lookup with `ClassLoader.getResource` can fail for a resource in a named module even when code in the same module can load the bundle or resource via module-aware APIs. Therefore, step 4 must use the **right API and scope for the situation**, rather than treating the system loader as the "absolute standard" for diagnosing every module.
 
-## 15. Thread context loader trong service/plugin thực tế
+## 15. Thread Context Loader in Real-World Services and Plugins
 
-Một thư viện chung thường được nạp bằng parent loader nhưng cần tra resources của plugin/user module. Nếu thư viện chỉ gọi `Library.class.getResource(...)`, nó sẽ neo vào library class/module, không nhất thiết thấy resources của plugin.
+A shared library is often loaded by a parent loader yet needs to look up resources from a plugin/user module. If the library only calls `Library.class.getResource(...)`, it anchors to the library class/module and will not necessarily see the plugin's resources.
 
-Có vài cách thiết kế:
+There are several design options:
 
-| Cách | Khi nào phù hợp | Rủi ro cần quản lý |
+| Approach | When appropriate | Risk to manage |
 | --- | --- | --- |
-| Truyền `ClassLoader` tường minh | Plugin/resource do loader riêng quản lý | Caller phải truyền loader đúng |
-| Truyền `Class<?> anchor` | Resource đặt cạnh class thuộc plugin | Cần hiểu relative/absolute naming và module |
-| Truyền `Module` | Tài nguyên đóng gói trong named module | Phải tuân encapsulation |
-| Dùng TCCL theo contract của framework | Thư viện được thiết kế tìm qua context | Phải restore khi dùng thread pool |
-| Dùng `ResourceBundleProvider` | Bundle phân phối ở các provider modules | Cần module descriptor/service plumbing |
-| Đưa mọi resource vào system classpath | Demo đơn giản | Không thích hợp cho nhiều kiến trúc cô lập |
+| Pass `ClassLoader` explicitly | Plugin/resource is managed by a separate loader | Caller must pass the right loader |
+| Pass `Class<?> anchor` | Resource sits beside a class in the plugin | Must understand relative/absolute naming and modules |
+| Pass `Module` | Resources are packaged in a named module | Must respect encapsulation |
+| Use TCCL per framework contract | Library is designed to look up via context | Must restore when using thread pools |
+| Use `ResourceBundleProvider` | Bundles are distributed across provider modules | Requires module descriptor/service plumbing |
+| Put all resources on system classpath | Simple demos | Unsuitable for isolated architectures |
 
-Một API của thư viện có thể nhận một **anchor class** hoặc loader được chỉ định bởi host, ví dụ:
+A library API can accept an **anchor class** or a loader specified by the host, for example:
 
 ```java
 static InputStream findRequiredResource(
@@ -807,175 +807,175 @@ static InputStream findRequiredResource(
 }
 ```
 
-Đây là method helper minh họa; caller phải đóng stream trả về. Nếu `absoluteName` không bắt đầu bằng `/`, nó được hiểu tương đối với package của `anchor`. Nếu thư viện muốn tham chiếu module tài nguyên thay vì class cụ thể, thiết kế overload nhận `Module` và các quy tắc access phù hợp.
+This is an illustrative helper method; the caller must close the returned stream. If `absoluteName` does not start with `/`, it is resolved relative to `anchor`'s package. If a library wants to reference a resource module rather than a specific class, design an overload taking `Module` with appropriate access rules.
 
-## 16. Locale, class loader và bundle lookup là ba trục khác nhau
+## 16. Locale, Class Loader, and Bundle Lookup Are Three Separate Axes
 
-Một lỗi hiểu sai thường gặp là cho rằng:
+A common misconception is thinking:
 
-> “Đã truyền `Locale.forLanguageTag("vi-VN")` thì Java phải tự nhìn thấy file `Messages_vi.properties` ở bất kỳ chỗ nào trên máy.”
+> "Since I passed `Locale.forLanguageTag("vi-VN")`, Java must automatically find `Messages_vi.properties` anywhere on the machine."
 
-Không đúng. Có ba quyết định riêng:
+Incorrect. There are three separate decisions:
 
-| Trục | Câu hỏi | API/concept |
+| Axis | Question | API/concept |
 | --- | --- | --- |
-| **Locale** | Muốn nội dung dịch cho ngôn ngữ/khu vực nào? | `Locale` |
-| **Resource naming** | Family/path nào chứa dữ liệu? | `baseName`, resource name |
-| **Class loader/module scope** | Dữ liệu nào được runtime hiện tại phép tìm? | `ClassLoader`, `Class`, `Module` |
+| **Locale** | Which language/region translation do we want? | `Locale` |
+| **Resource naming** | Which family/path contains the data? | `baseName`, resource name |
+| **Class loader/module scope** | Which data is the current runtime allowed to look up? | `ClassLoader`, `Class`, `Module` |
 
-Có thể đúng locale nhưng sai loader; đúng loader nhưng sai baseName; đúng baseName nhưng file không có trong JAR; đúng file nhưng package không mở ra cho module caller.
+You can have the right locale with the wrong loader; the right loader with the wrong `baseName`; the right `baseName` yet the file is absent from the JAR; or the right file yet the package is not opened to the caller module.
 
-Ngoài ra, `Locale.setDefault(...)` thay đổi default locale toàn JVM, **không** làm thêm JAR vào classpath và không sửa visibility của named module. Không dùng setDefault để xử lý lỗi đóng gói resource.
+Moreover, `Locale.setDefault(...)` changes the JVM-wide default locale; it **does not** add a JAR to the classpath and does not change named module visibility. Do not use `setDefault` to work around resource packaging errors.
 
-### Vì sao bài này là một phần localization?
+### Why Is This Lesson Part of Localization?
 
-Localization không chỉ là chọn mẫu định dạng số/ngày, mà còn là **bảo đảm nội dung dịch được đóng gói và tra cứu đúng nơi**. Khi ứng dụng nhiều module/plugin, bản dịch có thể được chia theo feature. Nếu class loader scope sai, UI có thể mất nhãn hoặc rơi về ngôn ngữ mặc định dù mã locale hoàn toàn hợp lệ.
+Localization is not only about choosing number/date formatting patterns, but also about **ensuring translated content is packaged and looked up in the right place**. When an application has multiple modules or plugins, translations may be partitioned by feature. If the class loader scope is wrong, the UI can lose labels or fall back to the default language even when the locale tag is completely valid.
 
-## 17. An toàn và tính đúng đắn khi đọc tài nguyên
+## 17. Safety and Correctness When Reading Resources
 
-Resource lookup là một hành vi đọc dữ liệu nằm trong đường tìm của loader/module. Khi tạo API lấy resource theo input bên ngoài, cần kiểm soát:
+Resource lookup reads data located within a loader/module's search path. When building an API that fetches resources based on external input, enforce controls:
 
-- Không nối trực tiếp một đường dẫn do người dùng nhập vào tên resource rồi xem là an toàn; whitelist tên/bundle nếu có thể.
-- Tránh lộ danh sách đường dẫn nội bộ trong thông báo lỗi công khai.
-- Dùng tên tài nguyên cố định từ domain/application khi đọc nội dung bắt buộc.
-- Đừng tin rằng mọi `.properties` đến từ resource root đều là dữ liệu đã kiểm chứng nếu plugin third-party có quyền đóng góp vào classpath/loader.
-- Không dùng tên tài nguyên chung chung dễ trùng giữa dependencies nếu có thể đặt namespace riêng.
-- Đóng stream bằng `try-with-resources`, xác định charset (UTF-8 cho văn bản theo contract).
-- Với plugin không đáng tin, class loader **không tự là sandbox bảo mật**. Đừng dùng custom loader như cơ chế cô lập quyền truy cập tuyệt đối.
-- Với named module, không mở vô điều kiện package chứa dữ liệu nhạy cảm chỉ để tiện tìm resource; áp dụng nguyên tắc tối thiểu quyền trong kiến trúc.
+- Do not directly concatenate user-supplied paths into resource names and assume it is safe; whitelist names/bundles whenever possible.
+- Avoid exposing internal path listings in public error messages.
+- Use fixed domain/application resource names when loading mandatory content.
+- Do not assume every `.properties` file from the resource root is trusted data if third-party plugins can contribute to the classpath/loader.
+- Avoid generic resource names that collide easily across dependencies when you can use a distinct namespace.
+- Close streams with `try-with-resources`, and specify the charset (UTF-8 for text per contract).
+- With untrusted plugins, a class loader **is not by itself a security sandbox**. Do not rely on custom loaders as an absolute access-isolation mechanism.
+- With named modules, do not unconditionally open packages holding sensitive data just for convenience in finding resources; follow the principle of least privilege in architecture.
 
-Vấn đề resource path không phải mọi thứ đều quy về `../`: loader/provider có thể xử lý tên khác nhau, vì vậy tốt nhất không thiết kế public endpoint “đọc bất kỳ resource name nào” từ classpath.
+Resource path safety is not solely about `../`: loaders/providers may handle names differently, so it is best not to design a public endpoint that "reads any resource name" from the classpath.
 
-## 18. Cách kiểm thử khi đóng gói thay đổi
+## 18. How to Test When Packaging Changes
 
-### 18.1. Test ở cả IDE và artifact thật
+### 18.1. Test Both in the IDE and with the Actual Artifact
 
-Không chỉ chạy unit test với thư mục `src/test/resources`, vì các tài nguyên test thường không có trong JAR production. Với bản release, chạy integration test từ **JAR/module đã đóng gói** và kiểm tra những bundle bắt buộc.
+Do not run only unit tests using `src/test/resources`, because test resources are normally absent from production JARs. For releases, run integration tests against the **packaged JAR/module** and verify required bundles.
 
-Các test cần có:
+Checks to include:
 
-- Mỗi resource cần thiết có trong artifact ở đúng entry path.
-- `getResourceAsStream` không null khi được gọi từ scope đúng.
-- UTF-8 decode đúng thông điệp tiếng Việt và ký tự ngoài ASCII.
-- Bundle `vi-VN`, `en-US` và root hoạt động theo nội dung sản phẩm.
-- Thiếu key tạo lỗi rõ ràng hoặc fallback đã được định nghĩa.
-- Chạy ở môi trường Windows/Linux để không phụ thuộc path separator của hệ điều hành trong resource names.
+- Every required resource is inside the artifact at the exact entry path.
+- `getResourceAsStream` is non-null when called from the proper scope.
+- UTF-8 decodes Vietnamese messages and non-ASCII characters accurately.
+- `vi-VN`, `en-US`, and root bundles behave per product specifications.
+- Missing keys produce clear errors or defined fallbacks.
+- Run on both Windows and Linux environments to ensure no OS path separator dependencies exist in resource names.
 
-### 18.2. Test nhiều class loaders
+### 18.2. Test Multiple Class Loaders
 
-Nếu dùng plugin:
+If using plugins:
 
-1. Một resource chỉ có trong plugin loader A.
-2. Một resource chỉ có trong plugin loader B.
-3. Một resource có tên trùng trong parent/child.
-4. Một resource vắng mặt.
-5. Một plugin loader được đóng/dispose rồi khởi tạo mới.
+1. A resource present only in plugin loader A.
+2. A resource present only in plugin loader B.
+3. A resource with the same name in both parent and child.
+4. A missing resource.
+5. A plugin loader that is closed/disposed and recreated.
 
-Kiểm tra API lấy đúng resource theo **scope chủ đích**, không tự trộn. Không giả định `ClassLoader.getSystemClassLoader()` nhìn thấy resource của B khi nó chỉ nằm trong URLClassLoader B.
+Verify that the API retrieves the right resource according to the **intended scope**, without accidental mixing. Do not assume `ClassLoader.getSystemClassLoader()` sees B's resources when they reside only in `URLClassLoader` B.
 
-### 18.3. Test named modules
+### 18.3. Test Named Modules
 
-Trên Java 17, kiểm tra:
+On Java 17, verify:
 
-- Resource cùng module có đọc được qua `Class.getResourceAsStream` / `Module.getResourceAsStream` đúng path không?
-- Module khác truy cập package không được mở có bị từ chối theo dự kiến không?
-- `opens` và `exports` có đúng mục tiêu không?
-- `ClassLoader.getResource` có tuân yêu cầu unconditional open cho non-class resource không?
-- `ResourceBundle.getBundle` có tìm được bundle theo caller module/provider setup không?
-- Chuyển từ classpath sang module path có làm thay đổi cache/search hay không?
+- Are resources in the same module readable via `Class.getResourceAsStream` / `Module.getResourceAsStream` with the exact path?
+- Is access from another module to an unopened package denied as expected?
+- Do `opens` and `exports` target the intended packages?
+- Does `ClassLoader.getResource` obey the unconditional open requirement for non-class resources?
+- Does `ResourceBundle.getBundle` locate bundles according to the caller module/provider setup?
+- Does switching from classpath to module path change caching/lookup behavior?
 
-Không dùng một bộ test classpath để khẳng định JPMS hoạt động đúng mà không kiểm thử module path.
+Do not use a classpath test suite to claim JPMS works properly without testing on the module path.
 
-### 18.4. Test fallback và cache
+### 18.4. Test Fallback and Cache
 
-Khi thiếu `Messages_vi_VN.properties` nhưng có `Messages_vi.properties`, xác nhận kết quả chọn bản `vi` đúng với chính sách. Khi thiếu key trong bundle chi tiết, kiểm tra parent/root fallback nếu đó là hành vi mong muốn. Nếu có hot reload, test cache invalidation và vòng đời class loader. **Không xóa cache như bước chữa lỗi mặc định** khi chưa xác nhận scope chính xác.
+When `Messages_vi_VN.properties` is absent but `Messages_vi.properties` exists, confirm the `vi` variant is selected per policy. When a key is missing in a specific bundle, verify parent/root fallback if that is the expected behavior. If hot reload exists, test cache invalidation and class loader lifecycles. **Do not clear the cache as a default fix** before confirming the right lookup scope.
 
-## 19. Sai lầm thường gặp và cách khắc phục
+## 19. Common Mistakes and How to Fix Them
 
-| Sai lầm | Hậu quả | Cách xử lý |
+| Mistake | Consequence | Resolution |
 | --- | --- | --- |
-| `ClassLoader.getResource("/a/b.txt")` | Tìm sai theo convention loader | Dùng `"a/b.txt"` |
-| `SomeClass.class.getResource("file.txt")` nhưng file ở root | Tìm tương đối trong package sai | Dùng `"/file.txt"` hoặc đặt đúng package |
-| Dùng `new File("src/main/resources/…")` sau khi deploy | Không còn thư mục source | Đọc stream resource runtime |
-| URL JAR entry ép thành `Path` của default FS | Lỗi scheme/path | Dùng `getResourceAsStream` |
-| Truyền `ResourceBundle.getBundle("a/b.properties", locale)` | Sai baseName | Dùng `"a.b"` (tên family) |
-| File nguồn tồn tại nhưng bị loại khỏi JAR | Production không tìm thấy | Kiểm tra artifact với `jar tf` |
-| Dùng application loader cho resource chỉ có trong plugin | `null`/`MissingResourceException` | Truyền plugin loader/anchor phù hợp |
-| Dùng TCCL nhưng API không hề đọc TCCL | Đổi context không có tác dụng | Xem contract API và truyền loader rõ |
-| Không restore TCCL trong thread pool | Request khác bị ảnh hưởng | `try/finally` khôi phục |
-| Đổi `Locale.setDefault` để “tìm” bundle | Không sửa scope, gây tác động chéo | Sửa loader/module/path |
-| `exports package` và nghĩ là `opens package` | Resource bị encapsulate | Chọn đúng access theo JPMS |
-| Coi `ClassLoader.getResource` là phép tìm xuyên mọi module | Không thấy resource kín | Dùng module-aware API đúng context |
-| Hai JAR cùng resource name, tin thứ tự luôn ổn định | Đọc bản ngoài dự kiến | Namespace riêng, kiểm tra `getResources` |
-| `ResourceBundle.clearCache` để “thêm” resource mới | Loader vẫn không thấy file | Sửa classpath/loader và artifact |
-| Đọc file dịch bằng charset mặc định | Dấu tiếng Việt lỗi trên máy khác | UTF-8 rõ ràng/ResourceBundle đúng JDK |
-| Coi `getResource != null` là đã đọc thành công | Stream có thể lỗi khi đọc | Đọc trong `try-with-resources`, xử lý I/O |
-| Dùng `ClassLoader` như sandbox plugin | Không đủ cô lập bảo mật | Thiết kế permissions/isolations thực |
-| Khẳng định test trong IDE đủ cho JAR/module | Runtime layout khác | Integration test artifact đóng gói |
+| `ClassLoader.getResource("/a/b.txt")` | Incorrect lookup per loader convention | Use `"a/b.txt"` |
+| `SomeClass.class.getResource("file.txt")` when file is at root | Looks up relative to the wrong package | Use `"/file.txt"` or place in the proper package |
+| Using `new File("src/main/resources/…")` after deployment | Source directory no longer exists | Read runtime resource stream |
+| Coercing a JAR entry URL to a default FS `Path` | Scheme/path error | Use `getResourceAsStream` |
+| Passing `ResourceBundle.getBundle("a/b.properties", locale)` | Invalid `baseName` | Use `"a.b"` (family name) |
+| Source file exists but is excluded from JAR | Missing in production | Inspect artifact with `jar tf` |
+| Using application loader for a plugin-only resource | `null`/`MissingResourceException` | Pass the appropriate plugin loader/anchor |
+| Setting TCCL when the API does not read TCCL | Changing context has no effect | Check API contract and pass loader explicitly |
+| Not restoring TCCL in a thread pool | Other requests are affected | Restore with `try/finally` |
+| Changing `Locale.setDefault` to "find" a bundle | Does not fix scope, causes side effects | Fix loader/module/path |
+| `exports package` and thinking it means `opens package` | Resource remains encapsulated | Choose proper access per JPMS |
+| Treating `ClassLoader.getResource` as searching across all modules | Encapsulated resources are invisible | Use context-appropriate module-aware API |
+| Two JARs share a resource name, assuming stable order | Reads an unexpected copy | Separate namespaces, check `getResources` |
+| Calling `ResourceBundle.clearCache` to "add" a new resource | Loader still cannot see the file | Fix classpath/loader and artifact |
+| Reading translation files with the default charset | Vietnamese diacritics break on other machines | Explicit UTF-8 / proper JDK `ResourceBundle` |
+| Treating `getResource != null` as successful read | Stream may fail while reading | Read inside `try-with-resources`, handle I/O |
+| Using `ClassLoader` as a plugin sandbox | Insufficient security isolation | Design real permissions/isolations |
+| Claiming IDE tests suffice for JAR/module | Runtime layout differs | Run integration tests on packaged artifact |
 
-## 20. Bài tập tự luyện và đáp án
+## 20. Practice Exercises and Answers
 
-**Bài 1.** Class `com.acme.App` muốn đọc `com/acme/help.txt`. Hai lời gọi nào tương đương nếu chạy trên classpath chuẩn?
+**Exercise 1.** Class `com.acme.App` wants to read `com/acme/help.txt`. Which two calls are equivalent when running on the standard classpath?
 
-**Đáp án:** `App.class.getResource("help.txt")` và `App.class.getResource("/com/acme/help.txt")`. Với class loader, dùng `App.class.getClassLoader().getResource("com/acme/help.txt")`.
+**Answer:** `App.class.getResource("help.txt")` and `App.class.getResource("/com/acme/help.txt")`. With a class loader, use `App.class.getClassLoader().getResource("com/acme/help.txt")`.
 
-**Bài 2.** File `Messages_vi.properties` nằm ở `l10n/` trong JAR. `ResourceBundle.getBundle` cần baseName nào?
+**Exercise 2.** File `Messages_vi.properties` sits in `l10n/` inside the JAR. Which `baseName` does `ResourceBundle.getBundle` need?
 
-**Đáp án:** `"l10n.Messages"`, không phải `"l10n/Messages_vi.properties"`.
+**Answer:** `"l10n.Messages"`, not `"l10n/Messages_vi.properties"`.
 
-**Bài 3.** Loader A và B đều là con của parent P; resource chỉ nằm trong B. Liệu hỏi `A.getResource(name)` có bắt buộc tìm được resource B không?
+**Exercise 3.** Loaders A and B are both children of parent P; a resource resides only in B. Will querying `A.getResource(name)` necessarily find B's resource?
 
-**Đáp án:** Không. Phạm vi và chiến lược delegation không tự bao gồm sibling loaders.
+**Answer:** No. Lookup scope and delegation strategy do not automatically include sibling loaders.
 
-**Bài 4.** Vì sao `Files.readString(Path.of("src/main/resources/a.txt"))` có thể chạy trong IDE nhưng lỗi ở JAR production?
+**Exercise 4.** Why can `Files.readString(Path.of("src/main/resources/a.txt"))` work in the IDE yet fail in a production JAR?
 
-**Đáp án:** Vì thư mục source không nhất thiết được ship. Resource nên đọc từ runtime classpath/module bằng stream.
+**Answer:** Because the source directory is not necessarily shipped. Resources should be read from the runtime classpath/module via streams.
 
-**Bài 5.** `ClassLoader.getResource` tìm không thấy một `.properties` trong named module nhưng `SomeClass.class.getResourceAsStream` từ class cùng module đọc được. Có mâu thuẫn không?
+**Exercise 5.** `ClassLoader.getResource` fails to find a `.properties` file in a named module, whereas `SomeClass.class.getResourceAsStream` from a class in the same module reads it. Is that a contradiction?
 
-**Đáp án:** Không. Hai API có cơ chế/module encapsulation khác nhau; `ClassLoader.getResource` có hạn chế với package không opened unconditionally.
+**Answer:** No. The two APIs have different module encapsulation mechanisms/rules; `ClassLoader.getResource` restricts access to packages that are not opened unconditionally.
 
-**Bài 6.** Người dùng đổi locale từ `en-US` sang `vi-VN` nhưng loader không thấy bundle `l10n.Messages`. Gọi `Locale.setDefault(viVN)` có sửa được scope loader không?
+**Exercise 6.** A user switches the locale from `en-US` to `vi-VN`, yet the loader cannot find bundle `l10n.Messages`. Will calling `Locale.setDefault(viVN)` fix the loader scope?
 
-**Đáp án:** Không. Locale chỉ ảnh hưởng cách chọn candidate/fallback, không làm resource bên ngoài loader trở nên nhìn thấy.
+**Answer:** No. Locale only affects candidate selection/fallback; it does not make resources outside the loader visible.
 
-**Bài 7.** `Thread.currentThread().setContextClassLoader(pluginLoader)` có chắc làm `ResourceBundle.getBundle("x.Y", locale)` dùng plugin loader không?
+**Exercise 7.** Does `Thread.currentThread().setContextClassLoader(pluginLoader)` guarantee that `ResourceBundle.getBundle("x.Y", locale)` uses the plugin loader?
 
-**Đáp án:** Không. Overload này dùng caller context/module theo API; nếu cần plugin loader trong classpath setup, truyền `pluginLoader` rõ bằng overload ba tham số.
+**Answer:** No. That overload uses the caller context/module per API; if you need the plugin loader in a classpath setup, pass `pluginLoader` explicitly using the three-argument overload.
 
-**Bài 8.** Hai dependency JAR đều có `config/settings.properties`, nên làm gì nếu kết quả cần xác định?
+**Exercise 8.** Two dependency JARs both contain `config/settings.properties`; what should you do if deterministic results are needed?
 
-**Đáp án:** Đặt namespace riêng hoặc thiết kế policy merge/priority rõ. Có thể dùng `getResources` để phát hiện các bản cùng tên; không dựa vô điều kiện vào thứ tự “resource đầu tiên”.
+**Answer:** Use separate namespaces or define a clear merge/priority policy. You can use `getResources` to detect duplicates; do not rely unconditionally on "first resource" ordering.
 
-**Bài 9.** Module X `exports x.messages` nhưng không `opens` package này. Resource `x/messages/Messages.properties` có chắc đọc được qua system class loader từ module khác không?
+**Exercise 9.** Module X `exports x.messages` but does not `opens` that package. Is resource `x/messages/Messages.properties` guaranteed to be readable via the system class loader from another module?
 
-**Đáp án:** Không. `exports` không đồng nghĩa `opens`; resource non-class trong named module chịu encapsulation theo API tìm kiếm.
+**Answer:** No. `exports` does not mean `opens`; non-class resources in named modules are governed by encapsulation depending on the lookup API.
 
-**Bài 10.** Khi file dịch trong JAR được cập nhật, gọi `ResourceBundle.clearCache(loader)` có luôn đủ không?
+**Exercise 10.** When a translation file inside a JAR is updated, is calling `ResourceBundle.clearCache(loader)` always enough?
 
-**Đáp án:** Không. Phải đảm bảo loader thực sự nhìn thấy artifact mới, JAR đã được reload/đổi đúng cách và module visibility phù hợp; cache chỉ là một phần.
+**Answer:** No. You must ensure the loader actually sees the new artifact, the JAR was reloaded/replaced properly, and module visibility matches; caching is only one part.
 
-**Bài 11.** Một hàm nhận `Class<?> anchor` rồi gọi `anchor.getResourceAsStream("a.txt")`. Vì sao thay anchor sang class ở package khác có thể đổi kết quả?
+**Exercise 11.** A method receives `Class<?> anchor` and calls `anchor.getResourceAsStream("a.txt")`. Why can changing `anchor` to a class in another package alter the outcome?
 
-**Đáp án:** Vì tên không có slash đầu được giải **tương đối với package của anchor**. Nếu muốn root path cố định, truyền `"/path/a.txt"`.
+**Answer:** Because a name without a leading slash is resolved **relative to the anchor's package**. If you want a fixed root path, pass `"/path/a.txt"`.
 
-**Bài 12.** Vì sao nên tránh một tên `messages.properties` chung cho mọi plugin?
+**Exercise 12.** Why should you avoid using a generic name like `messages.properties` across all plugins?
 
-**Đáp án:** Nó có thể va chạm giữa classpath entries hoặc loaders khi delegation/namespace không rõ. Đặt bundle theo package/feature riêng như `pluginA.i18n.Messages` sẽ dễ kiểm soát hơn.
+**Answer:** It can collide across classpath entries or loaders when delegation/namespaces are unclear. Naming bundles by package/feature such as `pluginA.i18n.Messages` is much easier to control.
 
-## 21. Tổng kết
+## 21. Summary
 
-- **Class loader quyết định phạm vi class/resource nhìn thấy**, không phải chỉ kiểm tra file có tồn tại trên đĩa.
-- `Class.getResource("relative")` tìm tương đối package; `Class.getResource("/absolute")` bắt đầu từ root; `ClassLoader.getResource("root/path")` dùng tên **không có slash đầu**.
-- Resource trong JAR thường phải đọc qua `InputStream`, không coi nó luôn là `File`/`Path` bình thường.
-- **ResourceBundle** có baseName kiểu `package.Name`, locale candidates, fallback và cache; có thể chọn loader/module rõ ràng trong các overload phù hợp.
-- **Plugin loader** không tự được application loader hay sibling loader tra cứu. TCCL chỉ có tác dụng khi API/thư viện thực sự dùng nó.
-- **Named modules** thêm resource encapsulation. `exports` khác `opens`; `ClassLoader.getResource` và `Module.getResourceAsStream` không có cùng quy tắc visibility.
-- Khi deploy, phải kiểm tra **artifact JAR/module thực tế**, path đúng, loader/module scope và cache/fallback; đừng chỉ kiểm tra source folder.
-- Dùng UTF-8 cho text theo contract, đóng streams, tránh resource name do input không đáng tin kiểm soát, và không xem class loader là sandbox.
-- **Để localization hoạt động đáng tin, chọn đúng cả Locale, bundle name và class loader/module scope.**
+- **The class loader determines the scope of visible classes/resources**, not merely whether a file exists on disk.
+- `Class.getResource("relative")` searches relative to the package; `Class.getResource("/absolute")` starts from the root; `ClassLoader.getResource("root/path")` uses a name **without a leading slash**.
+- Resources inside a JAR must typically be read via `InputStream`; do not assume they are always regular `File`/`Path` objects.
+- **ResourceBundle** uses `package.Name`-style `baseName`, locale candidates, fallback, and caching; loader/module can be selected explicitly via appropriate overloads.
+- **Plugin loaders** are not automatically queried by the application loader or sibling loaders. The TCCL only matters when an API/library actually reads it.
+- **Named modules** add resource encapsulation. `exports` differs from `opens`; `ClassLoader.getResource` and `Module.getResourceAsStream` do not share identical visibility rules.
+- When deploying, verify the **actual JAR/module artifact**, exact path, loader/module scope, and cache/fallback; do not inspect only the source folder.
+- Use UTF-8 for text per contract, close streams, avoid untrusted user-controlled resource names, and do not treat a class loader as a security sandbox.
+- **For reliable localization, get the Locale, bundle name, and class loader/module scope all right.**
 
-### Tài liệu chính thức Java SE 17
+### Official Java SE 17 Documentation
 
 - [Class — getResource / getResourceAsStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html)
 - [ClassLoader — getResource / getResources / getResourceAsStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html)

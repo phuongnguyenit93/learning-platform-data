@@ -1,11 +1,11 @@
-# BigInteger: Biểu diễn byte bù hai có dấu và constructor sign-magnitude
+# BigInteger: Signed Two's Complement Byte Representation and Sign-Magnitude Constructors
 
-Trong Java Core, `java.math.BigInteger` là kiểu **số nguyên có dấu với độ chính xác tùy ý**. Khi chuyển giữa `BigInteger` và mảng `byte[]`, cần đặc biệt phân biệt **hai cách giải mã hoàn toàn khác nhau**:
+In Java Core, `java.math.BigInteger` is an **arbitrary-precision signed integer** type. When converting between `BigInteger` and a `byte[]` array, it is essential to distinguish **two completely different decoding schemes**:
 
-- **Bù hai có dấu (signed two's complement)**: `new BigInteger(byte[] val)` đọc mảng byte như *một số nguyên có dấu*; bit cao nhất của byte đầu tiên là **bit dấu**.
-- **Dấu và độ lớn (sign–magnitude)**: `new BigInteger(int signum, byte[] magnitude)` nhận **dấu riêng** (`-1`, `0`, `1`) và coi *toàn bộ mảng byte là độ lớn không dấu*.
+- **Signed two's complement**: `new BigInteger(byte[] val)` reads the byte array as *a signed integer*; the highest bit of the first byte is the **sign bit**.
+- **Sign–magnitude**: `new BigInteger(int signum, byte[] magnitude)` takes a **separate sign** (`-1`, `0`, `1`) and treats *the entire byte array as an unsigned magnitude*.
 
-Cùng một byte có thể cho hai kết quả trái ngược:
+The very same byte can produce two opposite results:
 
 ```java
 byte[] input = {(byte) 0x80};
@@ -14,13 +14,13 @@ BigInteger signed = new BigInteger(input);     // -128
 BigInteger unsigned = new BigInteger(1, input); // +128
 ```
 
-**Vì sao?** Mẫu 8 bit `1000_0000` có giá trị **-128** khi hiểu là số nguyên signed two's complement 8 bit; cùng mẫu đó có giá trị **128** khi hiểu như một *magnitude không dấu* và cung cấp dấu dương bên ngoài.
+**Why?** The 8-bit pattern `1000_0000` has value **-128** when interpreted as an 8-bit signed two's complement integer; the same pattern has value **128** when interpreted as an *unsigned magnitude* with a positive sign supplied externally.
 
-Đây là kiến thức rất quan trọng khi xử lý **khóa mật mã, giao thức nhị phân, hash, số nguyên độ dài biến đổi và serialization**. Chỉ thiếu một byte `00` bảo vệ dấu cũng đủ làm một số nguyên dương lớn biến thành âm.
+This knowledge is critical when handling **cryptographic keys, binary protocols, hashes, variable-length integers, and serialization**. Missing even a single `00` sign-guard byte is enough to turn a large positive integer negative.
 
-## 1. BigInteger lưu số nguyên, không cố định 8/16/32/64 bit
+## 1. `BigInteger` Stores Integers, Not Fixed 8/16/32/64-Bit Widths
 
-`BigInteger` lưu số nguyên với dấu và độ dài tùy thuộc trị tuyệt đối, không giống `byte`, `short`, `int` hoặc `long` có độ rộng cố định. Với đầu vào dạng chuỗi:
+`BigInteger` stores an integer with a sign and a length proportional to its absolute value, unlike `byte`, `short`, `int`, or `long`, which have fixed widths. With string inputs:
 
 ```java
 import java.math.BigInteger;
@@ -30,54 +30,54 @@ BigInteger n = new BigInteger("-255");    // -255
 BigInteger h = new BigInteger("ff", 16);  // +255
 ```
 
-Các đoạn khai báo ở trên là **mảnh mã** đặt trong một lớp/phương thức phù hợp, không phải chương trình chạy độc lập. Khả năng biểu diễn số lớn **không có nghĩa các constructor byte đều coi dữ liệu là không dấu**. Constructor khác nhau mang **hợp đồng biểu diễn khác nhau**, dù kết quả đều là `BigInteger`.
+The declarations above are **code snippets** meant to be placed in an appropriate class/method, not a standalone runnable program. The ability to represent large numbers **does not mean all byte constructors treat data as unsigned**. Different constructors carry **different representation contracts**, even though all produce a `BigInteger`.
 
-| Constructor/API | Ý nghĩa | Giá trị ví dụ |
+| Constructor/API | Meaning | Example value |
 | --- | --- | --- |
-| `new BigInteger(byte[] bytes)` | Byte big-endian, **signed two's complement** | `[FF]` → -1 |
-| `new BigInteger(1, byte[] magnitude)` | Byte big-endian, **magnitude không dấu**, ép dấu dương | `[FF]` → +255 |
-| `new BigInteger(-1, byte[] magnitude)` | Magnitude không dấu, ép dấu âm | `[FF]` → -255 |
-| `new BigInteger("ff", 16)` | Parse chuỗi số có cơ số 16 | +255 |
-| `big.toByteArray()` | Mảng byte big-endian, **signed two's complement tối thiểu** | +255 → `[00 FF]` |
-| `big.signum()` | Trả dấu của **giá trị đã tạo** | -255 → -1 |
+| `new BigInteger(byte[] bytes)` | Big-endian bytes, **signed two's complement** | `[FF]` → -1 |
+| `new BigInteger(1, byte[] magnitude)` | Big-endian bytes, **unsigned magnitude**, forced positive sign | `[FF]` → +255 |
+| `new BigInteger(-1, byte[] magnitude)` | Unsigned magnitude, forced negative sign | `[FF]` → -255 |
+| `new BigInteger("ff", 16)` | Parses base-16 digit string | +255 |
+| `big.toByteArray()` | Big-endian byte array, **minimal signed two's complement** | +255 → `[00 FF]` |
+| `big.signum()` | Returns sign of the **constructed value** | -255 → -1 |
 
-`new BigInteger("ff",16)` và `new BigInteger(new byte[]{(byte)0xff})` **không có cùng kết quả**. Cái đầu đọc chữ số hex theo giá trị dương, cái sau đọc byte bit cao bật như số bù hai âm.
+`new BigInteger("ff",16)` and `new BigInteger(new byte[]{(byte)0xff})` **do not produce the same result**. The first reads hex digits as a positive value; the second reads a byte with its high bit set as a negative two's complement number.
 
-## 2. Hai định dạng đều dùng byte lớn trước (big-endian)
+## 2. Both Formats Put the Most Significant Byte First (Big-Endian)
 
-Các constructor mảng byte của `BigInteger` dùng **big-endian**: byte **quan trọng nhất ở đầu mảng**. Ví dụ mảng:
+`BigInteger`'s byte-array constructors use **big-endian**: the **most significant byte is at the start of the array**. For example, the array:
 
 ```text
 Byte 0   Byte 1
 0x01     0x00
 ```
 
-biểu diễn độ lớn `0x0100 = 256`, không phải `0x0001 = 1`. Quy tắc thứ tự byte áp dụng cho cả **signed two's complement** lẫn **sign–magnitude**; sự khác biệt nằm ở **cách hiểu bit dấu**, không phải cách đảo byte.
+represents the magnitude `0x0100 = 256`, not `0x0001 = 1`. This byte-ordering rule applies to both **signed two's complement** and **sign–magnitude**; the difference lies in **how the sign bit is interpreted**, not in reversing bytes.
 
-Với dữ liệu nhị phân little-endian (chẳng hạn một định dạng file hoặc giao thức tự định nghĩa), **không được truyền thẳng** mảng little-endian vào `BigInteger` rồi mong đúng. Cần đảo vị trí byte thành big-endian theo hợp đồng định dạng, đồng thời vẫn phải chọn cách diễn giải signed hay unsigned thích hợp.
+For little-endian binary data (for instance, a custom file format or protocol), **never pass** a little-endian array directly into `BigInteger` expecting the right result. You must reverse byte positions to big-endian per the format contract, while still choosing the proper signed or unsigned interpretation.
 
-Lưu ý: Big-endian nói về **vị trí các byte có ý nghĩa**, không phải cách các ký tự hex được in trên màn hình. Cũng không phụ thuộc CPU của máy đang chạy little-endian hay big-endian: constructor đã quy định thứ tự mảng byte.
+Note: Big-endian refers to the **positions of significant bytes**, not how hex characters are printed on screen. Nor does it depend on whether the host CPU runs little-endian or big-endian: the constructor specifies the byte-array order.
 
-## 3. Bù hai có dấu (two's complement) hoạt động ra sao?
+## 3. How Signed Two's Complement Works
 
-Với một mảng `n` byte, ta có độ rộng `w = 8n` bit. Trong **two's complement**:
+For an array of `n` bytes, the width is `w = 8n` bits. In **two's complement**:
 
-- Nếu bit cao nhất bằng 0, giá trị là không âm và được đọc như số nguyên nhị phân thông thường.
-- Nếu bit cao nhất bằng 1, giá trị là **âm**, bằng giá trị unsigned của toàn bộ mẫu bit **trừ `2^w`**.
+- If the highest bit is 0, the value is non-negative and read as an ordinary binary integer.
+- If the highest bit is 1, the value is **negative**, equal to the unsigned value of the entire bit pattern **minus `2^w`**.
 
-Công thức cho mẫu bit có độ rộng cố định:
+Formula for a fixed-width bit pattern:
 
 ```text
-U = giá trị unsigned của toàn bộ w bit
+U = unsigned value of all w bits
 
 signedValue =
-    U            nếu bit cao nhất = 0
-    U - 2^w      nếu bit cao nhất = 1
+    U            if highest bit = 0
+    U - 2^w      if highest bit = 1
 ```
 
-Ví dụ một byte (`w=8`, `2^8=256`):
+Single-byte examples (`w=8`, `2^8=256`):
 
-| Byte hex | Bit nhị phân | Unsigned | Signed two's complement |
+| Byte hex | Binary bits | Unsigned | Signed two's complement |
 | --- | --- | ---: | ---: |
 | `00` | `0000_0000` | 0 | 0 |
 | `01` | `0000_0001` | 1 | 1 |
@@ -85,23 +85,23 @@ Ví dụ một byte (`w=8`, `2^8=256`):
 | `80` | `1000_0000` | 128 | **-128** |
 | `FF` | `1111_1111` | 255 | **-1** |
 
-Với hai byte `FF 7F`, trị unsigned là `65407`; `65407 - 65536 = -129`. Vì vậy:
+With two bytes `FF 7F`, the unsigned value is `65407`; `65407 - 65536 = -129`. Thus:
 
 ```java
 new BigInteger(new byte[]{(byte) 0xff, 0x7f}); // -129
 ```
 
-Đây là mảng **16 bit bù hai có dấu**. Chỉ cần nhớ bit đầu tiên và số byte là đủ xác định miền có dấu của mảng: với một byte `FF` cho -1, với hai byte `00 FF` lại cho +255.
+This is a **16-bit signed two's complement** array. Knowing just the first bit and the byte count suffices to determine the array's signed range: one byte `FF` gives -1, while two bytes `00 FF` give +255.
 
-## 4. Constructor `BigInteger(byte[] val)`: dữ liệu được hiểu là signed
+## 4. Constructor `BigInteger(byte[] val)`: Data Is Interpreted as Signed
 
-Chữ ký:
+Signature:
 
 ```java
 public BigInteger(byte[] val)
 ```
 
-Nhận một mảng byte **big-endian signed two's complement**. Ví dụ:
+Accepts a **big-endian signed two's complement** byte array. Examples:
 
 ```java
 BigInteger a = new BigInteger(new byte[]{0x7f});          // +127
@@ -110,25 +110,25 @@ BigInteger c = new BigInteger(new byte[]{(byte) 0xff});   // -1
 BigInteger d = new BigInteger(new byte[]{0, (byte) 0x80}); // +128
 ```
 
-Hai byte `00 80` khác mảng `80`: tiền tố `00` khiến **bit dấu toàn mảng bằng 0**, bảo đảm số dương. Byte `80` ở vị trí sau vẫn đóng góp đúng 128 cho độ lớn.
+The two bytes `00 80` differ from array `80`: the prefix `00` makes the **sign bit of the entire array equal 0**, ensuring a positive number. The subsequent byte `80` still contributes 128 to the magnitude.
 
-Nếu `val` rỗng (`new byte[0]`), constructor **ném `NumberFormatException`**: signed two's complement không thể biểu diễn một giá trị từ zero byte đầu vào theo hợp đồng này. Muốn tạo số 0, dùng `BigInteger.ZERO` hoặc mảng chứa một byte `00`.
+If `val` is empty (`new byte[0]`), the constructor **throws `NumberFormatException`**: signed two's complement cannot represent a value from zero input bytes under this contract. To construct 0, use `BigInteger.ZERO` or an array containing a single `00` byte.
 
-Các giá trị `byte` trong Java tự chúng có dấu khi đọc như số nguyên đơn lẻ (`(byte)0xff == -1`). Tuy nhiên, khi tạo `BigInteger` từ mảng, Java ghép các **mẫu 8 bit** theo thứ tự, rồi diễn giải **dấu của toàn số**. Không được cộng các giá trị `byte` có dấu từng phần để mô phỏng kết quả mảng bù hai.
+Java `byte` values themselves are signed when read as standalone integers (`(byte)0xff == -1`). However, when creating a `BigInteger` from an array, Java concatenates the **8-bit patterns** in order and then interprets **the sign of the whole number**. Do not add individual signed `byte` values to simulate a two's complement array result.
 
-## 5. Constructor `BigInteger(int signum, byte[] magnitude)`: dấu riêng, độ lớn không dấu
+## 5. Constructor `BigInteger(int signum, byte[] magnitude)`: Separate Sign, Unsigned Magnitude
 
-Chữ ký:
+Signature:
 
 ```java
 public BigInteger(int signum, byte[] magnitude)
 ```
 
-Trong đó:
+Where:
 
-- **`signum`** chỉ có thể là `-1` (âm), `0` (zero), `1` (dương).
-- **`magnitude`** là mảng byte big-endian chứa **độ lớn không dấu**, ngay cả khi bit cao nhất của byte đầu tiên bằng 1.
-- Giá trị được tạo về mặt toán học là **`signum × magnitudeValue`** (với các điều kiện nhất quán đối với zero).
+- **`signum`** can only be `-1` (negative), `0` (zero), or `1` (positive).
+- **`magnitude`** is a big-endian byte array holding an **unsigned magnitude**, even if the highest bit of the first byte is 1.
+- The constructed value is mathematically **`signum × magnitudeValue`** (with consistency conditions for zero).
 
 ```java
 byte[] bits = {(byte)0xff};
@@ -137,42 +137,42 @@ BigInteger positive = new BigInteger(1, bits);  // +255
 BigInteger negative = new BigInteger(-1, bits); // -255
 ```
 
-Đây chính là cách tạo số **dương** từ một mảng byte có bit đầu bật mà **không cần thêm byte `00`** vào input.
+This is how you create a **positive** number from a byte array with the leading bit set **without needing to prepend a `00` byte** to the input.
 
 ```java
 BigInteger p = new BigInteger(1, new byte[]{(byte)0x80}); // +128
 BigInteger n = new BigInteger(-1, new byte[]{(byte)0x80}); // -128
 ```
 
-**Cảnh báo:** `signum = -1` **không có nghĩa** mảng `magnitude` cũng phải là dạng bù hai của số âm. Với magnitude `FF`, dấu -1 tạo **-255**, không phải -1. Dữ liệu đầu vào phải đúng chuẩn sign–magnitude đã thỏa thuận.
+**Warning:** `signum = -1` **does not mean** the `magnitude` array should also be in negative two's complement form. With magnitude `FF`, sign -1 produces **-255**, not -1. Input data must adhere to the agreed sign–magnitude format.
 
-## 6. Zero và quy tắc nhất quán của `signum`
+## 6. Zero and `signum` Consistency Rules
 
-Giá trị zero có độ lớn 0, dù bạn biểu diễn bằng `byte[]{0}`, mảng nhiều byte `00`, hoặc thậm chí mảng magnitude rỗng theo overload sign–magnitude.
+The value zero has magnitude 0, whether represented by `byte[]{0}`, a multi-byte `00` array, or even an empty magnitude array under the sign–magnitude overload.
 
-| `signum` | Magnitude | Kết quả |
+| `signum` | Magnitude | Result |
 | ---: | --- | --- |
 | `0` | `[00]` | 0 |
 | `0` | `[00, 00]` | 0 |
-| `+1` | `[00]` hoặc rỗng | 0 |
+| `+1` | `[00]` or empty | 0 |
 | `-1` | `[00]` | 0 |
 | `0` | `[01]` | **`NumberFormatException`** |
-| `2` hoặc `-2` | Bất kỳ magnitude | **`NumberFormatException`** |
+| `2` or `-2` | Any magnitude | **`NumberFormatException`** |
 
-Quy tắc quan trọng: **không thể yêu cầu dấu 0 nhưng magnitude khác 0**; `new BigInteger(0,new byte[]{1})` bị từ chối. Nếu magnitude thực sự bằng 0 nhưng signum là -1, kết quả BigInteger vẫn là **zero chuẩn hóa**, không có “negative zero” số nguyên.
+Important rule: **you cannot specify sign 0 with a nonzero magnitude**; `new BigInteger(0,new byte[]{1})` is rejected. If the magnitude is actually 0 while signum is -1, the resulting `BigInteger` is still **normalized zero**, with no integer "negative zero".
 
 ```java
 BigInteger zero = new BigInteger(-1, new byte[]{0, 0});
 System.out.println(zero.signum()); // 0
 ```
 
-Điều này khác floating-point `-0.0`: số nguyên `BigInteger` **không có hai giá trị zero khác dấu**. Khi dùng API sign–magnitude, cần kiểm tra việc gán dấu 0 nhất quán với magnitude để tránh tạo ra ngoại lệ không mong muốn.
+This differs from floating-point `-0.0`: the integer `BigInteger` **does not have two differently signed zero values**. When using the sign–magnitude API, check that passing sign 0 is consistent with the magnitude to avoid unexpected exceptions.
 
-Phân biệt thêm: `new BigInteger(new byte[0])` **lỗi** vì constructor signed cần ít nhất một byte; trong khi `new BigInteger(1,new byte[0])` cho giá trị **0**, như chương trình QA bên dưới.
+Also distinguish: `new BigInteger(new byte[0])` **fails** because the signed constructor requires at least one byte; whereas `new BigInteger(1,new byte[0])` gives the value **0**, as shown in the QA program below.
 
-## 7. Bảng đối chiếu từ cùng một mảng byte
+## 7. Comparison Table from the Same Byte Array
 
-| Mảng byte (hex) | `new BigInteger(bytes)` | `new BigInteger(1,bytes)` | `new BigInteger(-1,bytes)` |
+| Byte array (hex) | `new BigInteger(bytes)` | `new BigInteger(1,bytes)` | `new BigInteger(-1,bytes)` |
 | --- | ---: | ---: | ---: |
 | `00` | 0 | 0 | 0 |
 | `01` | 1 | 1 | -1 |
@@ -182,48 +182,48 @@ Phân biệt thêm: `new BigInteger(new byte[0])` **lỗi** vì constructor sign
 | `00 80` | 128 | 128 | -128 |
 | `FF 7F` | -129 | 65407 | -65407 |
 
-Dòng `FF 7F` là ví dụ quan trọng: dưới cách đọc **signed 16 bit** nó là -129; dưới cách đọc **magnitude** nó là `0xFF7F = 65407`, và dấu ngoài quyết định +65407 hoặc -65407. Việc hai constructor cho kết quả **cùng âm** trong trường hợp `80` và signum -1 chỉ là một trùng hợp của giá trị cụ thể, không làm chúng tương đương tổng quát.
+The `FF 7F` row is an important example: under **16-bit signed** reading it is -129; under **magnitude** reading it is `0xFF7F = 65407`, and the external sign decides +65407 or -65407. The fact that the two constructors produce **the same negative result** for `80` and signum -1 is merely a coincidence of that specific value, not general equivalence.
 
-Nếu đầu vào đến từ mạng/giao thức, bắt buộc biết rõ trường đó dùng **signed two's complement** hay **unsigned magnitude**. Không thể suy ra cách đọc đúng chỉ từ tên biến `bytes`, số byte hoặc việc chúng được in thành chữ số hex.
+If input comes from a network or protocol, you must know whether the field uses **signed two's complement** or **unsigned magnitude**. You cannot deduce the proper interpretation solely from a variable name `bytes`, the byte count, or the fact that they are printed as hex digits.
 
-## 8. `BigInteger.toByteArray()`: signed two's complement tối thiểu
+## 8. `BigInteger.toByteArray()`: Minimal Signed Two's Complement
 
-Để xuất lại `BigInteger` về byte, dùng:
+To export a `BigInteger` back to bytes, use:
 
 ```java
 byte[] encoded = bigInteger.toByteArray();
 ```
 
-API này trả về mảng **big-endian signed two's complement**, **số byte tối thiểu cần thiết** để giữ giá trị và dấu. Nó **không** trả magnitude unsigned đơn thuần và **không** giữ nguyên số byte đã nhập vào constructor trước đó.
+This API returns a **big-endian signed two's complement** array with **the minimum number of bytes needed** to hold both value and sign. It **does not** return a plain unsigned magnitude and **does not** preserve the byte count originally passed to the constructor.
 
-Ví dụ:
+Examples:
 
-| BigInteger value | `HexFormat.of().formatHex(value.toByteArray())` | Giải thích |
+| BigInteger value | `HexFormat.of().formatHex(value.toByteArray())` | Explanation |
 | ---: | --- | --- |
-| 0 | `00` | Zero cần một byte `00` |
-| +1 | `01` | Số dương nhỏ |
-| +127 | `7f` | Bit cao = 0 |
-| **+128** | **`0080`** | Thêm `00` để không bị hiểu -128 |
-| **+255** | **`00ff`** | Thêm `00` bảo vệ dấu |
-| -1 | `ff` | Bù hai một byte |
-| -128 | `80` | Giá trị âm hợp lệ với một byte |
-| **-129** | **`ff7f`** | Cần byte `ff` giữ dấu âm |
+| 0 | `00` | Zero needs one `00` byte |
+| +1 | `01` | Small positive number |
+| +127 | `7f` | High bit = 0 |
+| **+128** | **`0080`** | Adds `00` so it is not read as -128 |
+| **+255** | **`00ff`** | Adds `00` to guard sign |
+| -1 | `ff` | Single-byte two's complement |
+| -128 | `80` | Valid negative value in one byte |
+| **-129** | **`ff7f`** | Needs `ff` byte to keep negative sign |
 
-`toByteArray` đảm bảo *độ dài tối thiểu*, nên đừng coi `value.toByteArray().length == 4` hay 8 là bất biến chỉ vì giá trị được dùng trong một protocol 32/64 bit.
+`toByteArray` guarantees *minimal length*, so do not treat `value.toByteArray().length == 4` or 8 as an invariant just because the value is used in a 32/64-bit protocol.
 
-Ví dụ quan trọng:
+Important example:
 
 ```java
 BigInteger positive = new BigInteger(1, new byte[]{(byte)0xff});
 byte[] encoded = positive.toByteArray();
-// encoded gồm hai byte [00 FF], không phải một byte [FF].
+// encoded has two bytes [00 FF], not one byte [FF].
 ```
 
-Nếu truyền `encoded` cho `new BigInteger(encoded)`, ta nhận lại +255 chính xác. Nếu tự ý xóa `00` rồi dùng signed constructor, ta lại nhận -1.
+If you pass `encoded` to `new BigInteger(encoded)`, you get +255 back accurately. If you arbitrarily strip `00` and pass it to the signed constructor, you get -1 again.
 
-## 9. Vì sao cần byte `00` đầu với số dương?
+## 9. Why Is a Leading `00` Byte Needed for Positive Numbers?
 
-Với signed two's complement, bit cao nhất của byte đầu tiên **quyết định dấu**. Số dương 128 có mẫu nhị phân `1000_0000`; nếu chỉ có một byte thì mẫu bit đó là **-128**. Để giữ dấu dương trong định dạng signed, thêm byte `00` phía trước:
+In signed two's complement, the highest bit of the first byte **determines the sign**. Positive 128 has the binary pattern `1000_0000`; with only one byte, that bit pattern is **-128**. To keep the positive sign in signed format, prepend a `00` byte:
 
 ```text
 Magnitude 128:              80
@@ -235,32 +235,32 @@ Signed two's complement: 00 FF  => +255
 Signed two's complement:    FF  => -1
 ```
 
-Byte `00` đầu không phải padding vô nghĩa trong signed encoding; nó có thể là **điều kiện để đọc đúng dấu**. Nhưng khi dữ liệu thực sự là **unsigned magnitude**, byte `00` bảo vệ dấu có thể không được mong đợi; vì thế cùng một mảng được mã hóa theo hai contract khác nhau.
+A leading `00` byte is not meaningless padding in signed encoding; it can be **the condition required to read the sign correctly**. However, when the data is actually **unsigned magnitude**, a sign-guard `00` byte may not be expected; hence the same array is encoded under two different contracts.
 
-Không nên nghĩ `0x80` “mặc định là -128 trong mọi ngữ cảnh”. Nó là mẫu bit; **ý nghĩa số học tùy cách diễn giải**. Cách diễn giải đó phải được chọn khi tạo `BigInteger`.
+Do not think `0x80` "defaults to -128 in every context." It is a bit pattern; **its arithmetic meaning depends on the interpretation**. That interpretation must be chosen when constructing `BigInteger`.
 
-## 10. Byte `FF` đầu với số âm và sign extension
+## 10. Leading `FF` Bytes for Negative Numbers and Sign Extension
 
-Hai's complement có quy tắc **mở rộng dấu** (*sign extension*): để tăng độ rộng mà vẫn giữ một giá trị âm, bổ sung các byte `FF` ở bên trái; với giá trị không âm, bổ sung `00`.
+Two's complement has a **sign extension** rule: to increase width while preserving a negative value, pad with `FF` bytes on the left; for non-negative values, pad with `00`.
 
 ```text
--1 ở 8 bit:          FF
--1 ở 16 bit:      FF FF
--1 ở 32 bit: FF FF FF FF
+-1 in 8 bits:          FF
+-1 in 16 bits:      FF FF
+-1 in 32 bits: FF FF FF FF
 
-+255 ở 16 bit:      00 FF
-+255 ở 32 bit: 00 00 00 FF
++255 in 16 bits:      00 FF
++255 in 32 bits: 00 00 00 FF
 ```
 
-`BigInteger.toByteArray()` bỏ các byte mở rộng dấu **thừa**, nhưng giữ byte tối thiểu còn đủ thể hiện dấu. Ví dụ -1 được biểu diễn bằng một byte `FF`, không phải mảng vô hạn byte `FF`. -129 cần hai byte `FF 7F`, vì một byte signed không đủ chứa -129.
+`BigInteger.toByteArray()` drops **redundant** sign-extension bytes while retaining the minimum bytes sufficient to express the sign. For instance, -1 is represented by one byte `FF`, not an infinite array of `FF` bytes. -129 needs two bytes `FF 7F`, because one signed byte cannot hold -129.
 
-Với một hệ thống gửi đúng 4 byte cho signed 32 bit, mảng `FF` phải được **mở rộng thành `FF FF FF FF`** nếu muốn truyền -1. Ngược lại, nếu giao thức dùng unsigned 32 bit, bạn thường cần **zero-extension**; truyền `FF FF FF FF` trong signed BigInteger constructor sẽ cho -1 thay vì unsigned 4294967295.
+For a system expecting exactly 4 bytes for signed 32-bit, the array `FF` must be **extended to `FF FF FF FF`** to transmit -1. Conversely, if the protocol uses unsigned 32-bit, you generally need **zero-extension**; passing `FF FF FF FF` to the signed `BigInteger` constructor yields -1 instead of unsigned 4294967295.
 
-## 11. `signum` trong constructor không đồng nghĩa với `signum()` của kết quả
+## 11. `signum` in the Constructor Is Not Necessarily the Result's `signum()`
 
-`new BigInteger(signum,magnitude)` nhận một **tham số dấu được yêu cầu**. Sau khi tạo, `result.signum()` trả dấu của **giá trị thực sự**, luôn là -1, 0 hoặc 1.
+`new BigInteger(signum,magnitude)` accepts a **requested sign parameter**. After construction, `result.signum()` returns the sign of the **actual value**, always -1, 0, or 1.
 
-Ví dụ:
+Example:
 
 ```java
 BigInteger zero = new BigInteger(-1, new byte[]{0});
@@ -270,13 +270,13 @@ BigInteger negative = new BigInteger(-1, new byte[]{1});
 System.out.println(negative.signum()); // -1
 ```
 
-Không nên gán `signum` dựa trên một byte có dấu như `(byte)0x80 == -128`, vì constructor chỉ nhận đúng -1, 0, 1; -128 là một **giá trị byte**, không phải dấu hợp lệ của `BigInteger`.
+Do not set `signum` from a signed byte such as `(byte)0x80 == -128`, because the constructor accepts strictly -1, 0, 1; -128 is a **byte value**, not a valid `BigInteger` sign.
 
-Nếu bạn đang chuyển dữ liệu từ hệ thống có trường `sign` riêng và mảng `magnitude`, hãy ánh xạ `sign` sang -1/0/1 theo format, kiểm tra mismatch zero, rồi gọi constructor. Không dùng bit đầu mảng magnitude để suy đoán dấu nếu contract đã có dấu riêng.
+If you are converting data from a system with a separate `sign` field and a `magnitude` array, map `sign` to -1/0/1 per the format, check zero consistency, and then call the constructor. Do not use the leading bit of the magnitude array to guess the sign when the contract already specifies a separate sign.
 
-## 12. Các overload có offset và length
+## 12. Overloads with Offset and Length
 
-Java 17 có overload nhận **một đoạn của mảng**, tránh việc bắt buộc tạo bản sao bằng `Arrays.copyOfRange`:
+Java 17 has overloads taking **a slice of an array**, avoiding mandatory copies with `Arrays.copyOfRange`:
 
 ```java
 BigInteger signedPart =
@@ -286,27 +286,27 @@ BigInteger magnitudePart =
         new BigInteger(int signum, byte[] magnitude, int off, int len);
 ```
 
-Hai dòng trên là **chữ ký ý niệm**, không phải cú pháp khai báo biến hợp lệ — chúng dùng để liệt kê hình thức constructor.
+The two lines above are **conceptual signatures**, not valid variable declaration syntax—they serve to list constructor forms.
 
-Ví dụ runnable khi đặt trong phương thức:
+Runnable snippet when placed inside a method:
 
 ```java
 byte[] data = {(byte)0x7e, 0x00, (byte)0x80, 0x7f};
 
 BigInteger signed = new BigInteger(data, 1, 2);
-// Đọc [00,80] thành +128 (signed two's complement).
+// Reads [00,80] as +128 (signed two's complement).
 
 BigInteger magnitude = new BigInteger(1, data, 2, 1);
-// Đọc [80] thành +128 (positive magnitude).
+// Reads [80] as +128 (positive magnitude).
 ```
 
-`off` là **chỉ số bắt đầu**, `len` là **số byte cần đọc**, không phải chỉ số kết thúc. Nếu `off` và `len` vượt mảng, API ném lỗi chỉ số/đoạn. Với signed constructor, đoạn rỗng không hợp lệ vì không có byte biểu diễn; với magnitude constructor, độ lớn rỗng có thể tạo zero nếu dấu hợp lệ.
+`off` is the **starting index**, and `len` is the **number of bytes to read**, not the ending index. If `off` and `len` exceed array bounds, the API throws an index/range exception. For the signed constructor, an empty slice is invalid because there are no bytes to represent a number; for the magnitude constructor, an empty magnitude can produce zero if the sign is valid.
 
-Giống nguyên lý ở phần đầu, cả hai overload vẫn sử dụng **big-endian** trong phạm vi đoạn đã chọn. Việc truyền slice không thay đổi quy tắc signed hay magnitude, nên cần kiểm tra đúng trường dữ liệu của bản ghi.
+Just like the principle at the beginning, both overloads still use **big-endian** within the selected slice. Passing a slice does not change signed or magnitude rules, so check the exact record field definitions.
 
-## 13. `BigInteger("ff",16)` khác `BigInteger(byte[]{FF})` thế nào?
+## 13. How Does `BigInteger("ff",16)` Differ from `BigInteger(byte[]{FF})`?
 
-Một chuỗi chữ số hex có **ngữ nghĩa số học**, không phải một mảng byte signed:
+A string of hex digits has **arithmetic semantics**, not a signed byte array:
 
 ```java
 BigInteger byText = new BigInteger("ff", 16); // +255
@@ -316,21 +316,21 @@ BigInteger bySigned = new BigInteger(oneByte); // -1
 BigInteger byMagnitude = new BigInteger(1, oneByte); // +255
 ```
 
-Vì `"ff"` không có dấu `-`, constructor chuỗi hiểu là độ lớn 255. Với constructor mảng signed, byte `FF` là -1. Với sign–magnitude, dấu 1 làm byte `FF` biểu diễn +255.
+Because `"ff"` has no `-` sign, the string constructor interprets it as magnitude 255. With the signed array constructor, byte `FF` is -1. With sign–magnitude, sign 1 makes byte `FF` represent +255.
 
-Đặc biệt trong hệ thống lưu hash, nếu bạn chuyển một mảng byte sang **chuỗi hex** rồi dùng `new BigInteger(hex,16)`, kết quả sẽ là **dương** (trừ khi chuỗi có dấu âm); nếu dùng `new BigInteger(bytes)` trực tiếp, kết quả có thể âm. Đây là lý do phổ biến khiến cùng một digest có hai biểu diễn số nguyên khác nhau.
+Specifically in systems storing hashes, if you convert a byte array to a **hex string** and call `new BigInteger(hex,16)`, the result will be **positive** (unless the string has a minus sign); if you call `new BigInteger(bytes)` directly, the result can be negative. This is a common reason why the exact same digest ends up with two different integer representations.
 
-Nếu format thực chất là **bytes không dấu** chứ không phải số nguyên có dấu, phương thức rõ ý nghĩa là `new BigInteger(1,bytes)`. Dù vậy, hash/identifier có thể cần **giữ nguyên độ dài byte và zero đầu**, trong khi `BigInteger` biểu diễn **giá trị số** và có thể chuẩn hóa mất zero padding khi serialize lại.
+If the format is genuinely **unsigned bytes** rather than a signed integer, the clear-intent method is `new BigInteger(1,bytes)`. Even so, hashes/identifiers may need to **preserve exact byte length and leading zeros**, whereas `BigInteger` represents a **numeric value** and can normalize away zero padding upon re-serialization.
 
-## 14. BigInteger là giá trị số, không phải kho byte giữ nguyên định dạng
+## 14. `BigInteger` Is a Numeric Value, Not a Byte Store Preserving Format
 
-Giả sử input là ba byte:
+Suppose the input is three bytes:
 
 ```text
 00 00 FF
 ```
 
-Nếu gọi:
+If you call:
 
 ```java
 BigInteger value =
@@ -338,15 +338,15 @@ BigInteger value =
 // value = 255.
 ```
 
-thì `value.toByteArray()` trả **`00 FF`**, không phải `00 00 FF`. Không có cách nào từ riêng giá trị số 255 biết input ban đầu có bao nhiêu byte `00` đệm trước đó.
+then `value.toByteArray()` returns **`00 FF`**, not `00 00 FF`. There is no way from the numeric value 255 alone to know how many `00` bytes padded the original input.
 
-Vì vậy, nếu protocol có **trường cố định 16/32 byte**, việc lưu duy nhất dưới dạng `BigInteger` là chưa đủ cho round-trip *byte-for-byte*. Bạn phải lưu **độ dài định dạng** hoặc quy tắc pad/cắt byte, và tái tạo đúng số byte lúc xuất. Nếu format dùng big-endian unsigned 32 byte, cần **zero-pad**, không phải dấu-extend `FF`. Nếu format dùng signed two's complement fixed-width, cần **sign-extend**.
+Therefore, if a protocol has **fixed 16/32-byte fields**, storing solely as a `BigInteger` is not enough for a *byte-for-byte* round-trip. You must store the **format length** or pad/truncate rules, and reconstruct the exact byte count when writing out. If the format uses 32-byte big-endian unsigned, you must **zero-pad**, not sign-extend with `FF`. If the format uses fixed-width signed two's complement, you must **sign-extend**.
 
-Đừng bỏ byte `00` đầu một cách vô điều kiện: với mảng signed, đó có thể là byte thiết yếu để phân biệt +255 với -1. Chỉ bỏ khi bạn đã chủ động đổi từ signed representation sang **unsigned magnitude** và đích cũng hiểu theo contract đó.
+Do not strip leading `00` bytes unconditionally: in signed arrays, that byte can be essential to distinguish +255 from -1. Strip it only when you are intentionally converting from signed representation to **unsigned magnitude** and the consumer expects that contract as well.
 
-## 15. Cẩn thận khi convert qua primitive `byte`, `int`, `long`
+## 15. Be Careful When Converting via Primitive `byte`, `int`, `long`
 
-Java `byte` là signed trong phạm vi -128..127. Dù một byte `FF` tương ứng 255 khi xem unsigned, phép đọc trực tiếp:
+Java `byte` is signed in the range -128..127. Even though a byte `FF` corresponds to 255 when viewed unsigned, a direct read:
 
 ```java
 byte raw = (byte)0xff;
@@ -354,31 +354,31 @@ System.out.println(raw);                    // -1
 System.out.println(Byte.toUnsignedInt(raw)); // 255
 ```
 
-`Byte.toUnsignedInt` chỉ chuyển **một byte** thành giá trị 0..255 để quan sát/xử lý; nó không biến `new BigInteger(byte[])` thành unsigned constructor.
+`Byte.toUnsignedInt` only converts **one byte** into a 0..255 value for inspection/processing; it does not turn `new BigInteger(byte[])` into an unsigned constructor.
 
-Ngoài ra, `BigInteger.intValue()` và `longValue()` có thể **mất các bit cao** với giá trị lớn. Ví dụ:
+In addition, `BigInteger.intValue()` and `longValue()` can **lose high-order bits** for large values. Example:
 
 ```java
 BigInteger big = new BigInteger(1, new byte[]{
         0x01, 0x00, 0x00, 0x00, 0x00
 }); // 2^32.
-int lossy = big.intValue(); // 0 vì chỉ giữ 32 bit thấp.
+int lossy = big.intValue(); // 0 because only low 32 bits are kept.
 ```
 
-Nếu cần chuyển sang primitive **mà không chấp nhận mất dữ liệu**, dùng `intValueExact()` hoặc `longValueExact()` và xử lý `ArithmeticException` khi giá trị ngoài dải. Không nên “sửa” một số âm xuất hiện sai do constructor signed bằng cách ép sang `long`/mask sau đó: trước tiên phải xác định lại **cách diễn giải byte có đúng format hay không**.
+If you need to convert to a primitive **without accepting data loss**, use `intValueExact()` or `longValueExact()` and handle `ArithmeticException` when out of range. Do not try to "fix" a negative number produced incorrectly by the signed constructor by casting to `long` or masking afterward: first verify whether **the byte interpretation itself matches the format**.
 
-## 16. Fixed-width signed encoding: phải tự kiểm tra dải
+## 16. Fixed-Width Signed Encoding: You Must Check the Range Yourself
 
-`BigInteger.toByteArray()` trả **độ dài tối thiểu**, không thể tự bảo đảm tạo đúng 2, 4, 8 hay 32 byte. Với yêu cầu **signed two's complement w byte**, dải chính xác là:
+`BigInteger.toByteArray()` returns **minimal length**, and cannot on its own guarantee exactly 2, 4, 8, or 32 bytes. For a requirement of **w-byte signed two's complement**, the exact range is:
 
 ```text
 min = -2^(8*w-1)
 max =  2^(8*w-1)-1
 ```
 
-Chẳng hạn signed **một byte** chỉ chứa -128..127. +128 cần ít nhất **hai byte `00 80`**. Không được cắt chuỗi `00 80` thành `80` rồi giải mã signed vì sẽ thành -128.
+For example, **one signed byte** holds only -128..127. +128 requires at least **two bytes `00 80`**. You must not truncate `00 80` to `80` and decode as signed, as that becomes -128.
 
-Một phương thức mẫu (đặt trong lớp có import `java.util.Arrays`, `java.math.BigInteger`) để ghi đúng **w byte signed**:
+A sample method (placed in a class importing `java.util.Arrays`, `java.math.BigInteger`) to write exactly **w signed bytes**:
 
 ```java
 static byte[] toFixedSigned(BigInteger value, int width) {
@@ -400,7 +400,7 @@ static byte[] toFixedSigned(BigInteger value, int width) {
 }
 ```
 
-Ở đây việc kiểm tra dải **trước** bảo đảm mảng `minimal` không dài hơn `width` trong trường hợp hợp lệ; việc copy không cắt byte có nghĩa. Ví dụ:
+Here, checking the range **first** ensures the `minimal` array is never longer than `width` in valid cases; the copy never truncates meaningful bytes. Examples:
 
 ```text
 toFixedSigned(+128, 2) → 00 80
@@ -409,40 +409,40 @@ toFixedSigned(0,    2) → 00 00
 toFixedSigned(+128, 1) → ArithmeticException
 ```
 
-Đây là **mảnh hàm hỗ trợ**, không được gọi trong chương trình runnable ở phần sau; các ví dụ dự kiến có thể được đưa thành unit test theo contract signed fixed-width của giao thức. Với input không tin cậy, nên đặt **giới hạn độ dài hợp lý** ngoài việc chặn width <= 0 để tránh cấp phát mảng khổng lồ.
+This is a **helper function snippet**, not called in the runnable program in the following section; expected examples can be turned into unit tests matching the protocol's fixed-width signed contract. For untrusted input, you should enforce a **reasonable length cap** in addition to rejecting `width <= 0` to avoid huge array allocations.
 
-Nếu định dạng đích **unsigned**, không dùng bộ kiểm tra dải signed này; unsigned w byte có dải `0..2^(8*w)-1`, phần đệm phải là `00`, và constructor giải mã nên là `new BigInteger(1,bytes)`.
+If the target format is **unsigned**, do not use this signed range check; unsigned `w` bytes have range `0..2^(8*w)-1`, padding must be `00`, and the decoding constructor should be `new BigInteger(1,bytes)`.
 
-## 17. Zero, sign byte và các sai lầm khi serialize unsigned
+## 17. Zero, Sign Byte, and Mistakes When Serializing Unsigned
 
-Bài toán thường gặp: một giao thức nói rõ trường payload là **unsigned 256-bit integer**. Khi đọc:
+A common scenario: a protocol states the payload field is an **unsigned 256-bit integer**. When reading:
 
 ```java
-byte[] payload = {(byte)0x80, 0x00}; // Ví dụ thu nhỏ.
+byte[] payload = {(byte)0x80, 0x00}; // Scaled-down example.
 BigInteger value = new BigInteger(1, payload); // +32768.
 ```
 
-Nếu sai sót dùng `new BigInteger(payload)`, byte đầu `0x80` đặt bit dấu 1 và kết quả là **-32768** theo signed 16-bit. Do đó **constructor có dấu** là không phù hợp với contract unsigned.
+If you mistakenly use `new BigInteger(payload)`, the leading byte `0x80` sets the sign bit to 1 and the result is **-32768** in 16-bit signed. Thus the **signed constructor** does not fit an unsigned contract.
 
-Khi ghi unsigned ra mảng độ rộng cố định, có hai quy tắc quan trọng:
+When writing unsigned values to a fixed-width array, there are two important rules:
 
-1. **Giá trị phải không âm và vừa đủ w byte không dấu.** Không âm phải kiểm tra `value.signum() >= 0`, giới hạn lớn nhất là `2^(8w)-1`.
-2. **Không được nhầm byte `00` đầu của `toByteArray()` với một byte dữ liệu payload bắt buộc.** Khi giá trị dương có bit cao bật, `toByteArray()` có thể thêm `00` để bảo vệ dấu. Trong unsigned fixed-width payload, bạn cần bỏ byte bảo vệ dấu **nếu và chỉ nếu** đã xác nhận giá trị và số byte hợp lệ, rồi zero-pad tới đúng độ dài.
+1. **The value must be non-negative and fit within `w` unsigned bytes.** Non-negativity must be checked via `value.signum() >= 0`, with maximum `2^(8w)-1`.
+2. **Do not mistake a leading `00` byte from `toByteArray()` for a mandatory payload data byte.** When a positive value has its high bit set, `toByteArray()` may add `00` to protect the sign. In an unsigned fixed-width payload, you should strip the sign-guard byte **if and only if** the value and byte count have been validated, then zero-pad to the exact length.
 
-Ví dụ:
+Example:
 
 ```java
 BigInteger v = BigInteger.valueOf(255);
 byte[] signed = v.toByteArray(); // [00, FF].
-byte[] unsignedOneByte = {(byte)0xff}; // [FF], theo contract unsigned.
+byte[] unsignedOneByte = {(byte)0xff}; // [FF], per unsigned contract.
 BigInteger restored = new BigInteger(1, unsignedOneByte); // +255.
 ```
 
-Nếu `restored` được tạo bằng signed constructor thì lại thành -1. Tính nhất quán **encoder và decoder** là thiết yếu; “byte giống nhau” không đủ để chứng minh “giá trị giống nhau”.
+If `restored` were constructed with the signed constructor, it would turn back into -1. Consistency between **encoder and decoder** is essential; "the same bytes" is not enough to prove "the same value."
 
-## 18. Chương trình Java 17+ độc lập, kiểm tra đầy đủ hành vi chính
+## 18. Standalone Java 17+ Program Verifying Key Behaviors
 
-Lưu thành **`BigIntegerBytesDemo.java`**:
+Save as **`BigIntegerBytesDemo.java`**:
 
 ```java
 import java.math.BigInteger;
@@ -522,14 +522,14 @@ public class BigIntegerBytesDemo {
 }
 ```
 
-Chạy trên Java 17:
+Run on Java 17:
 
 ```bash
 javac --release 17 -encoding UTF-8 BigIntegerBytesDemo.java
 java BigIntegerBytesDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 signed80=-128
@@ -564,23 +564,23 @@ signumOfZero=0
 sourceArrayUnchanged=true
 ```
 
-Các nhóm kết quả cần chú ý:
+Key result groups to note:
 
-1. **`signed80=-128` vs `positive80=128`** và **`signedFF=-1` vs `positiveFF=255`** chứng minh khác biệt cốt lõi giữa hai constructor.
-2. **`negativeMagnitudeFF=-255`** cho thấy sign–magnitude với dấu -1 **không** diễn giải lại byte `FF` thành -1 trước khi đổi dấu.
-3. **`signed0080=128`, `signedFF7F=-129`** minh họa byte dẫn đầu quyết định dấu trong two's complement.
-4. **`int128Bytes=0080`, `int255Bytes=00ff`** cho thấy `toByteArray()` thêm `00` để bảo vệ dấu; các dòng `intMinus...` cho biết các giá trị âm và sign extension tối thiểu.
-5. **`positiveInputLeadingZeros=255`, `normalizedLeadingZeros=00ff`** cho thấy `BigInteger` không nhớ độ dài/padding ban đầu.
-6. **`signZeroMagnitudeZero=0`, `signMinusOneMagnitudeZero=0`** cho thấy zero được chuẩn hóa; các dòng `...Error=NumberFormatException` minh họa dấu không hợp lệ hoặc mâu thuẫn với magnitude.
-7. **`signedEmptyError` vs `magnitudeEmptyZero`** phân biệt mảng rỗng với hai constructor.
-8. **`signedSlice` và `magnitudeSlice`** minh họa lựa chọn một đoạn dữ liệu trong mảng; **`signedRoundTrip=true`** xác minh cặp `toByteArray` → signed constructor giữ lại giá trị `BigInteger` của các ví dụ.
-9. **`signumOfNegative=-1`**, **`signumOfZero=0`** cho thấy `signum()` lấy dấu giá trị thực, không sao chép đơn giản tham số signum ban đầu.
+1. **`signed80=-128` vs `positive80=128`** and **`signedFF=-1` vs `positiveFF=255`** demonstrate the core difference between the two constructors.
+2. **`negativeMagnitudeFF=-255`** shows that sign–magnitude with sign -1 **does not** first reinterpret byte `FF` as -1 before negating.
+3. **`signed0080=128`, `signedFF7F=-129`** illustrate how the leading byte determines the sign in two's complement.
+4. **`int128Bytes=0080`, `int255Bytes=00ff`** show `toByteArray()` prepends `00` to guard the sign; the `intMinus...` lines show negative values and minimal sign extension.
+5. **`positiveInputLeadingZeros=255`, `normalizedLeadingZeros=00ff`** show that `BigInteger` does not remember original length/padding.
+6. **`signZeroMagnitudeZero=0`, `signMinusOneMagnitudeZero=0`** show that zero is normalized; the `...Error=NumberFormatException` lines illustrate invalid signs or conflicts with magnitude.
+7. **`signedEmptyError` vs `magnitudeEmptyZero`** distinguish empty arrays across the two constructors.
+8. **`signedSlice` and `magnitudeSlice`** illustrate selecting a slice of data in an array; **`signedRoundTrip=true`** verifies that `toByteArray` → signed constructor preserves the `BigInteger` value for the examples.
+9. **`signumOfNegative=-1`**, **`signumOfZero=0`** show `signum()` takes the sign of the actual value rather than simply copying the original signum argument.
 
-Chương trình dùng `HexFormat` (có trong Java 17) để in byte theo hex, tránh nhầm các `byte` có giá trị âm khi in số thập phân bằng `println`.
+The program uses `HexFormat` (available in Java 17) to print bytes in hex, avoiding confusion with negative `byte` values printed in decimal by `println`.
 
-## 19. Hai phép round-trip khác nhau: theo giá trị và theo bytes
+## 19. Two Different Round-Trips: By Value and By Bytes
 
-**Round-trip theo giá trị** (value-preserving) với signed constructor:
+**Value-preserving round-trip** with the signed constructor:
 
 ```java
 BigInteger n = new BigInteger("-129");
@@ -588,53 +588,53 @@ BigInteger restored = new BigInteger(n.toByteArray());
 // n.equals(restored) == true.
 ```
 
-Đây là đường đi đúng theo hợp đồng của `BigInteger.toByteArray()`, vì cả hai đầu đều dùng signed two's complement big-endian.
+This is the path aligned with `BigInteger.toByteArray()`'s contract, because both ends use big-endian signed two's complement.
 
-**Round-trip theo bytes** (byte-for-byte) lại khác. Chẳng hạn:
+A **byte-for-byte round-trip** is different. For example:
 
 ```java
 byte[] input = {0, 0, (byte) 0xff};
 BigInteger value = new BigInteger(1, input);
 byte[] output = value.toByteArray();
-// output là [00, FF], ngắn hơn input [00, 00, FF].
+// output is [00, FF], shorter than input [00, 00, FF].
 ```
 
-Ta vẫn có **giá trị +255**, nhưng `input` và `output` khác độ dài. Đây **không phải lỗi BigInteger**: lớp biểu diễn giá trị số, không lưu lại cách pad đã dùng ở input.
+We still have **the value +255**, yet `input` and `output` differ in length. This is **not a `BigInteger` bug**: the class represents a numeric value and does not store the padding used in the input.
 
-Nếu cần giữ nguyên bytes của một giao thức, **lưu raw byte[] và metadata format** cùng với BigInteger hoặc áp dụng encoder fixed-width chuyên dụng. Khi so sánh tính đúng, tách điều kiện “đúng giá trị” khỏi điều kiện “đúng byte string”.
+If you need to preserve the exact bytes of a protocol, **store the raw `byte[]` and format metadata** alongside `BigInteger` or apply a dedicated fixed-width encoder. When checking correctness, separate the condition "correct value" from the condition "exact byte string."
 
-## 20. Những lỗi phổ biến và cách sửa
+## 20. Common Mistakes and Fixes
 
-| Nhầm lẫn | Hệ quả | Giải pháp |
+| Misconception | Consequence | Fix |
 | --- | --- | --- |
-| Tưởng `new BigInteger(bytes)` luôn đọc unsigned | Byte đầu `80`/ `FF` tạo số âm | Dùng `new BigInteger(1,bytes)` khi contract là unsigned |
-| Tưởng `new BigInteger(-1,bytes)` nhận bytes bù hai âm | Magnitude `FF` cho -255, không phải -1 | Truyền **độ lớn không dấu** và dấu riêng |
-| Bỏ byte `00` đầu từ signed representation | +255 có thể bị đọc thành -1 | Chỉ bỏ nếu đã đổi sang unsigned format |
-| Giữ nguyên `toByteArray()` để gửi đúng 32 byte | Kết quả có độ dài biến thiên | Mã hóa fixed-width với kiểm tra dải/padding |
-| Nghĩ `byte` Java âm thì mảng magnitude sẽ âm | Constructor sign–magnitude đọc **mẫu bit unsigned** | Dùng đúng constructor, không cộng giá trị byte có dấu |
-| Không biết input big-endian hay little-endian | Mọi byte có thể bị đọc sai thứ tự | Quy định và chuyển byte order đúng |
-| Tưởng `signum=0` luôn được chấp nhận | Magnitude khác zero gây NumberFormatException | Kiểm tra tính nhất quán dấu/magnitude |
-| Tưởng `signum=-1` với magnitude zero tạo -0 | BigInteger chỉ có zero, không có negative zero | Dựa vào `result.signum()` sau khi tạo |
-| Truyền `new byte[0]` cho signed constructor | `NumberFormatException` | Dùng `BigInteger.ZERO` hoặc `{0}` |
-| Nghĩ `new BigInteger("ff",16)` giống signed byte `FF` | Text hex là +255, signed byte FF là -1 | Phân biệt parse chuỗi với parse binary |
-| Ép `BigInteger` lớn bằng `intValue()` | Có thể mất các bit cao, trả sai số | Dùng `intValueExact()` nếu cần kiểm tra |
-| Kiểm thử chỉ với byte đầu dưới `80` | Bỏ sót lỗi sai dấu | Luôn test `7F`, `80`, `FF`, `00 80`, `FF 7F` |
+| Thinking `new BigInteger(bytes)` always reads unsigned | Leading byte `80`/`FF` produces negative numbers | Use `new BigInteger(1,bytes)` when contract is unsigned |
+| Thinking `new BigInteger(-1,bytes)` takes negative two's complement bytes | Magnitude `FF` yields -255, not -1 | Pass **unsigned magnitude** and separate sign |
+| Stripping leading `00` from signed representation | +255 can be read as -1 | Only strip if converting to unsigned format |
+| Using raw `toByteArray()` to send exactly 32 bytes | Output has variable length | Encode fixed-width with range/padding checks |
+| Thinking negative Java `byte` makes magnitude negative | Sign–magnitude constructor reads **unsigned bit patterns** | Use right constructor; do not sum signed byte values |
+| Not knowing if input is big-endian or little-endian | Every byte can be read in the wrong order | Specify and convert byte order properly |
+| Thinking `signum=0` is always accepted | Nonzero magnitude throws `NumberFormatException` | Check sign/magnitude consistency |
+| Thinking `signum=-1` with zero magnitude makes -0 | `BigInteger` only has zero, no negative zero | Rely on `result.signum()` after construction |
+| Passing `new byte[0]` to signed constructor | `NumberFormatException` | Use `BigInteger.ZERO` or `{0}` |
+| Thinking `new BigInteger("ff",16)` equals signed byte `FF` | Hex text is +255, signed byte `FF` is -1 | Distinguish string parsing from binary parsing |
+| Narrowing large `BigInteger` with `intValue()` | Can lose high bits, returning wrong number | Use `intValueExact()` when checking is needed |
+| Testing only with leading bytes below `80` | Misses sign bugs | Always test `7F`, `80`, `FF`, `00 80`, `FF 7F` |
 
-## 21. Câu hỏi tự kiểm tra
+## 21. Self-Check Questions
 
-1. **`new BigInteger(new byte[]{(byte)0x80})` cho giá trị gì?** -128, vì mảng một byte signed two's complement có bit dấu bằng 1.
-2. **Làm thế nào đọc đúng +128 từ mảng `{(byte)0x80}`?** Dùng `new BigInteger(1,bytes)` hoặc truyền signed mảng `{0,(byte)0x80}`.
-3. **`new BigInteger(new byte[]{(byte)0xff})` cho gì?** -1.
-4. **`new BigInteger(-1,new byte[]{(byte)0xff})` cho gì?** -255, vì mảng được đọc là magnitude 255 và dấu riêng là âm.
-5. **Vì sao `BigInteger.valueOf(255).toByteArray()` có hai byte `00 FF`?** Byte `00` giữ bit dấu 0 để signed constructor đọc được +255.
-6. **Tại sao `BigInteger.valueOf(-129).toByteArray()` là `FF 7F`?** Một byte signed không đủ lưu -129; cần biểu diễn bù hai 16 bit.
-7. **`BigInteger.ZERO.toByteArray()` là mảng rỗng hay `[00]`?** `[00]`; có ít nhất một byte để biểu diễn zero theo signed encoding.
-8. **`new BigInteger(0,new byte[]{1})` hợp lệ không?** Không. Nó ném NumberFormatException vì dấu 0 mâu thuẫn magnitude khác 0.
-9. **`new BigInteger(-1,new byte[]{0})` có tạo negative zero không?** Không. Giá trị là 0 và `signum()` trả 0.
-10. **Constructor signed và sign–magnitude có dùng thứ tự byte khác nhau không?** Không, cả hai đều big-endian; khác ở cách hiểu dấu.
-11. **`new BigInteger("ff",16)` có giống `new BigInteger(new byte[]{(byte)0xff})`?** Không. Cái đầu +255, cái sau -1.
-12. **Vì sao parse `[00 00 FF]` rồi `toByteArray()` không giữ ba byte?** BigInteger giữ giá trị số; `toByteArray` xuất signed representation tối thiểu.
-13. **Nếu giao thức yêu cầu unsigned 32 byte, có nên dùng thẳng `toByteArray()`?** Không. Phải kiểm tra giá trị không âm và nằm trong 256 bit, loại byte dấu bảo vệ nếu cần rồi zero-pad chính xác 32 byte.
-14. **Để đọc unsigned hash/digest có bit đầu bật, chọn constructor nào?** `new BigInteger(1,hashBytes)` khi muốn diễn giải hash như độ lớn không dấu, đồng thời giữ bytes/độ dài riêng nếu cần round-trip.
+1. **What value does `new BigInteger(new byte[]{(byte)0x80})` give?** -128, because a one-byte signed two's complement array has sign bit 1.
+2. **How do you correctly read +128 from `{(byte)0x80}`?** Use `new BigInteger(1,bytes)` or pass signed array `{0,(byte)0x80}`.
+3. **What does `new BigInteger(new byte[]{(byte)0xff})` give?** -1.
+4. **What does `new BigInteger(-1,new byte[]{(byte)0xff})` give?** -255, because the array is read as magnitude 255 and the separate sign is negative.
+5. **Why does `BigInteger.valueOf(255).toByteArray()` have two bytes `00 FF`?** The `00` byte keeps sign bit 0 so the signed constructor reads +255.
+6. **Why is `BigInteger.valueOf(-129).toByteArray()` equal to `FF 7F`?** One signed byte is not enough to hold -129; a 16-bit two's complement representation is required.
+7. **Is `BigInteger.ZERO.toByteArray()` an empty array or `[00]`?** `[00]`; at least one byte is needed to represent zero in signed encoding.
+8. **Is `new BigInteger(0,new byte[]{1})` valid?** No. It throws `NumberFormatException` because sign 0 contradicts a nonzero magnitude.
+9. **Does `new BigInteger(-1,new byte[]{0})` create negative zero?** No. The value is 0 and `signum()` returns 0.
+10. **Do the signed and sign–magnitude constructors use different byte orders?** No, both are big-endian; they differ in how the sign is interpreted.
+11. **Is `new BigInteger("ff",16)` the same as `new BigInteger(new byte[]{(byte)0xff})`?** No. The first is +255, the second is -1.
+12. **Why does parsing `[00 00 FF]` and calling `toByteArray()` not keep three bytes?** `BigInteger` holds the numeric value; `toByteArray` outputs minimal signed representation.
+13. **If a protocol requires 32-byte unsigned, should `toByteArray()` be used directly?** No. You must check that the value is non-negative and fits in 256 bits, strip any guard sign byte if needed, then zero-pad to exactly 32 bytes.
+14. **To read an unsigned hash/digest with its leading bit set, which constructor do you choose?** `new BigInteger(1,hashBytes)` when interpreting the hash as an unsigned magnitude, while keeping raw bytes/length separately if byte round-tripping is needed.
 
-**Ghi nhớ:** `new BigInteger(byte[])` nhận **signed two's complement big-endian**; `new BigInteger(signum,byte[])` nhận **dấu riêng và magnitude unsigned big-endian**. `toByteArray()` luôn trả **signed two's complement tối thiểu**, có thể thêm `00` để giữ số dương hoặc bớt padding so với dữ liệu gốc. Khi làm việc với binary protocol, hãy xác định **signed/unsigned, width và byte order** ngay từ đầu; chọn đúng constructor, kiểm tra biên và chỉ dùng encoder fixed-width nếu định dạng yêu cầu.
+**Key takeaway:** `new BigInteger(byte[])` accepts **big-endian signed two's complement**; `new BigInteger(signum,byte[])` accepts **a separate sign and big-endian unsigned magnitude**. `toByteArray()` always returns **minimal signed two's complement**, which may add `00` to preserve positive numbers or drop padding relative to original data. When working with binary protocols, establish **signedness, width, and byte order** up front; choose the right constructor, test boundaries, and use a fixed-width encoder whenever the format requires one.

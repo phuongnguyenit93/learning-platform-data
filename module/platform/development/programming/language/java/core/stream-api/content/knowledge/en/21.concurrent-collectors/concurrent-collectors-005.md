@@ -1,12 +1,12 @@
-# Ảnh hưởng của Collector phía sau đến phân nhóm đồng thời
+# Impact of Downstream Collectors on Concurrent Grouping
 
-Trong Java Stream API, `Collectors.groupingByConcurrent()` dùng để phân nhóm dữ liệu vào một `ConcurrentMap`. Tuy nhiên, việc **bản đồ kết quả hỗ trợ truy cập đồng thời** không có nghĩa mọi thao tác tích lũy bên trong từng nhóm đều diễn ra song song mà không cần phối hợp. Hiệu quả của pipeline còn phụ thuộc vào **downstream Collector** (collector phía sau): collector quyết định cách lưu, cộng dồn, biến đổi và hoàn thiện các giá trị của từng nhóm.
+In the Java Stream API, `Collectors.groupingByConcurrent()` is used to group data into a `ConcurrentMap`. However, **the result map supporting concurrent access** does not mean every accumulation operation inside each group runs in parallel without coordination. Pipeline effectiveness also depends on the **downstream Collector**: the collector that decides how each group's values are stored, accumulated, transformed, and finalized.
 
-Bài học thuộc chương **Thu thập đồng thời**, tập trung vào cách lựa chọn và kết hợp downstream collector khi xử lý dữ liệu bằng parallel stream; qua đó nhận diện được các điểm nghẽn đồng bộ hóa, yêu cầu an toàn luồng và sự đánh đổi giữa tính đúng đắn với hiệu năng.
+This lesson belongs to the **Concurrent Collection** chapter, focusing on how to choose and combine downstream collectors when processing data with parallel streams; thereby identifying synchronization bottlenecks, thread-safety requirements, and trade-offs between correctness and performance.
 
-## 1. `groupingByConcurrent` làm gì?
+## 1. What Does `groupingByConcurrent` Do?
 
-Xét biểu thức:
+Consider the expression:
 
 ```java
 ConcurrentMap<K, D> result = stream.parallel().collect(
@@ -14,70 +14,70 @@ ConcurrentMap<K, D> result = stream.parallel().collect(
 );
 ```
 
-- `classifier` tính khóa `K` của từng phần tử `T`.
-- `groupingByConcurrent` quản lý một bản đồ có khả năng được nhiều luồng cập nhật, thông thường là `ConcurrentHashMap`.
-- `downstream` thu thập các phần tử có **cùng khóa** thành một kết quả `D`; ví dụ `List<T>`, `Long`, `Set<T>` hoặc một bản đồ lồng nhau.
+- `classifier` computes the key `K` of each element `T`.
+- `groupingByConcurrent` manages a map capable of being updated by multiple threads, typically a `ConcurrentHashMap`.
+- `downstream` collects elements having **the same key** into a result `D`; for example `List<T>`, `Long`, `Set<T>`, or a nested map.
 
-Chữ *concurrent* ở collector bên ngoài biểu thị khả năng hỗ trợ tích lũy đồng thời vào kết quả chung. Nó không bảo đảm rằng JVM sẽ sử dụng nhiều luồng trong mọi lần chạy, cũng không bảo đảm các giá trị `D` là đối tượng thread-safe sau khi thu thập xong. Muốn có cơ hội xử lý đồng thời, nguồn và pipeline cần được vận hành song song, chẳng hạn qua `parallelStream()`.
+The word *concurrent* on the outer collector indicates the capability to support concurrent accumulation into a shared result. It does not guarantee that the JVM will use multiple threads on every run, nor does it guarantee that the resulting values `D` are thread-safe objects after collection finishes. To have an opportunity for concurrent execution, the source and pipeline must run in parallel, such as via `parallelStream()`.
 
-Khác với `groupingBy()`, collector `groupingByConcurrent()` có đặc tính `UNORDERED`: **thứ tự phần tử bên trong mỗi nhóm không được bảo đảm**, kể cả khi nguồn ban đầu có encounter order.
+Unlike `groupingBy()`, the `groupingByConcurrent()` collector has the `UNORDERED` characteristic: **element order within each group is not guaranteed**, even when the original source has an encounter order.
 
-## 2. Downstream ảnh hưởng đến việc tích lũy như thế nào?
+## 2. How Does the Downstream Affect Accumulation?
 
-Mỗi downstream collector có một *accumulation container* (vùng tích lũy trung gian) và hàm `accumulator` dùng để đưa phần tử vào vùng đó. Các đặc tính `Collector.Characteristics` cho biết cách vùng tích lũy có thể được sử dụng:
+Each downstream collector has an *accumulation container* and an `accumulator` function to incorporate elements into that container. `Collector.Characteristics` flags indicate how the accumulation container may be used:
 
-| Đặc tính của downstream | Ý nghĩa đối với phân nhóm đồng thời |
+| Downstream Characteristic | Meaning for Concurrent Grouping |
 | --- | --- |
-| `CONCURRENT` | Cho phép nhiều luồng gọi `accumulator` trên **cùng vùng tích lũy** một cách an toàn. `groupingByConcurrent` có thể tích lũy đồng thời vào cùng một nhóm mà không cần khóa bao ngoài do downstream không hỗ trợ concurrency. |
-| Không có `CONCURRENT` | Downstream không cam kết an toàn khi nhiều luồng cập nhật cùng container. `groupingByConcurrent` phải bảo vệ việc tích lũy vào từng nhóm; trong các triển khai JDK phổ biến, thao tác này được đồng bộ trên container của nhóm. |
-| `UNORDERED` | Downstream không phụ thuộc vào thứ tự đầu vào. Dù downstream có đặc tính này hay không, **kết quả của `groupingByConcurrent` vẫn không bảo đảm encounter order**. |
-| `IDENTITY_FINISH` | Có thể dùng chính vùng tích lũy làm giá trị kết quả mà không cần chuyển đổi ở bước cuối. Nếu downstream cần `finisher`, collector bên ngoài cũng cần hoàn thiện các giá trị trước khi trả về. |
+| `CONCURRENT` | Allows multiple threads to safely call `accumulator` on **the same accumulation container**. `groupingByConcurrent` can accumulate concurrently into the same group without an outer lock caused by a non-concurrent downstream. |
+| Not `CONCURRENT` | The downstream does not guarantee safety when multiple threads update the same container. `groupingByConcurrent` must protect accumulation into each group; in common JDK implementations, this operation is synchronized on the group's container. |
+| `UNORDERED` | The downstream does not depend on input order. Regardless of whether the downstream has this characteristic, **the result of `groupingByConcurrent` still does not guarantee encounter order**. |
+| `IDENTITY_FINISH` | The accumulation container itself can be used as the result value without conversion in the final step. If the downstream needs a `finisher`, the outer collector must also finalize the values before returning. |
 
-Một điểm tinh tế: **`groupingByConcurrent()` vẫn là concurrent collector ngay cả khi downstream không có `CONCURRENT`**. Bộ thu thập bên ngoài chịu trách nhiệm điều phối việc cập nhật an toàn. Nhưng nếu nhiều phần tử rơi vào cùng một khóa, thao tác cập nhật nhóm đó có thể bị tuần tự hóa, làm giảm lợi ích của parallel stream.
+A subtle point: **`groupingByConcurrent()` is still a concurrent collector even when the downstream does not have `CONCURRENT`**. The outer collector is responsible for coordinating safe updates. However, if many elements fall into the same key, updates to that group may be serialized, reducing the benefit of a parallel stream.
 
-Luồng xử lý có thể hình dung như sau:
+The processing flow can be visualized as follows:
 
 ```text
-Nhiều luồng đọc phần tử T
+Multiple threads reading elements T
           │
           ▼
-    classifier(T) → khóa K
+    classifier(T) → key K
           │
           ▼
-ConcurrentMap tìm/tạo container cho K
+ConcurrentMap finds/creates container for K
           │
-          ├─ downstream CONCURRENT
-          │    └─ Các luồng có thể tích lũy cùng container
+          ├─ CONCURRENT downstream
+          │    └─ Threads may accumulate into the same container
           │
-          └─ downstream không CONCURRENT
-               └─ Các lần tích lũy cùng container cần được phối hợp
+          └─ non-CONCURRENT downstream
+               └─ Accumulations into the same container must be coordinated
           │
           ▼
-    downstream finisher (nếu cần)
+    downstream finisher (if needed)
           │
           ▼
         Map<K, D>
 ```
 
-Các nhóm có khóa khác nhau vẫn có thể được xử lý đồng thời trong cả hai trường hợp. Vì vậy, **số lượng khóa khác nhau và mức độ phân bố dữ liệu giữa các khóa** ảnh hưởng mạnh đến hiệu năng.
+Groups with different keys can still be processed concurrently in both cases. Therefore, **the number of distinct keys and the distribution of data across keys** strongly affect performance.
 
-## 3. So sánh những downstream collector thông dụng
+## 3. Comparing Common Downstream Collectors
 
-| Downstream | Giá trị mỗi nhóm | `CONCURRENT` của downstream? | Hệ quả thực tế |
+| Downstream | Value per Group | Downstream `CONCURRENT`? | Practical Consequence |
 | --- | --- | --- | --- |
-| `toList()` | `List<T>` | Không | Có thể gom song song giữa các nhóm; việc thêm vào cùng danh sách cần được bảo vệ. Danh sách kết quả không mặc nhiên thread-safe. |
-| `toSet()` | `Set<T>` | Không | Khử trùng lặp theo nhóm; tập kết quả không mặc nhiên thread-safe. |
-| `counting()` | `Long` | Không | Đếm đúng số phần tử mỗi nhóm; một khóa quá phổ biến có thể thành điểm nghẽn. |
-| `summingInt(mapper)` | `Integer` | Không | Cộng các giá trị theo nhóm, có thể cần phối hợp cập nhật trên từng nhóm. |
-| `mapping(mapper, toList())` | `List<U>` | Không | Chuyển đổi phần tử rồi gom danh sách; `mapping` không tự tạo khả năng tích lũy đồng thời. |
-| `toConcurrentMap(keyMapper, valueMapper, merge)` | `ConcurrentMap<K2, V>` | Có | Bên trong mỗi nhóm có một concurrent map; các luồng có thể cập nhật container chung, dù vẫn có tranh chấp tại các khóa con. |
-| `collectingAndThen(toList(), finisher)` | Tùy `finisher` | Không trong ví dụ này | Có thêm bước hoàn thiện giá trị mỗi nhóm; không biến `toList()` thành collector concurrent. |
+| `toList()` | `List<T>` | No | Can collect in parallel across groups; additions to the same list must be protected. The resulting list is not inherently thread-safe. |
+| `toSet()` | `Set<T>` | No | Deduplicates per group; the resulting set is not inherently thread-safe. |
+| `counting()` | `Long` | No | Counts elements per group accurately; an overly common key can become a bottleneck. |
+| `summingInt(mapper)` | `Integer` | No | Sums values per group; may need coordinated updates per group. |
+| `mapping(mapper, toList())` | `List<U>` | No | Transforms elements then collects into a list; `mapping` does not itself add concurrent accumulation capability. |
+| `toConcurrentMap(keyMapper, valueMapper, merge)` | `ConcurrentMap<K2, V>` | Yes | Inside each group is a concurrent map; threads can update the shared container, though contention can still occur on subkeys. |
+| `collectingAndThen(toList(), finisher)` | Depends on `finisher` | No in this example | Adds a finalization step per group; does not turn `toList()` into a concurrent collector. |
 
-Đặc tính `CONCURRENT` phải xuất phát từ **hợp đồng của collector**, không thể suy từ tên kiểu kết quả hoặc từ việc sử dụng `parallelStream()`. Ví dụ, `toSet()` có thể là `UNORDERED` nhưng vẫn không phải `CONCURRENT`.
+The `CONCURRENT` characteristic must come from **the collector's contract**, and cannot be inferred from the result type name or from using `parallelStream()`. For example, `toSet()` can be `UNORDERED` yet still not `CONCURRENT`.
 
-## 4. Ví dụ đầy đủ: một tập đơn hàng, ba cách phân nhóm
+## 4. Complete Example: One Set of Orders, Three Grouping Approaches
 
-Ví dụ sau chạy với Java 16 trở lên (do sử dụng `record`):
+The following example runs on Java 16 or newer (because it uses `record`):
 
 ```java
 import java.util.List;
@@ -95,7 +95,7 @@ public class ConcurrentGroupingDemo {
             new Order("Bac", "B", 1)
         );
 
-        // 1. Gom các đơn hàng theo vùng.
+        // 1. Group orders by region.
         ConcurrentMap<String, List<Order>> ordersByRegion =
             orders.parallelStream().collect(
                 Collectors.groupingByConcurrent(
@@ -104,7 +104,7 @@ public class ConcurrentGroupingDemo {
                 )
             );
 
-        // 2. Đếm số đơn hàng trong từng vùng.
+        // 2. Count orders in each region.
         ConcurrentMap<String, Long> countByRegion =
             orders.parallelStream().collect(
                 Collectors.groupingByConcurrent(
@@ -113,7 +113,7 @@ public class ConcurrentGroupingDemo {
                 )
             );
 
-        // 3. Cộng số lượng theo sản phẩm bên trong từng vùng.
+        // 3. Sum quantities by product within each region.
         ConcurrentMap<String, ConcurrentMap<String, Integer>> quantityByRegion =
             orders.parallelStream().collect(
                 Collectors.groupingByConcurrent(
@@ -135,17 +135,17 @@ public class ConcurrentGroupingDemo {
 }
 ```
 
-Trong ví dụ:
+In this example:
 
-1. `toList()` tích lũy nhiều đơn vào danh sách của từng vùng. Mặc dù `ordersByRegion` là `ConcurrentMap`, không nên giả định `ordersByRegion.get("Bac")` là một `CopyOnWriteArrayList` hay danh sách cho phép cập nhật đồng thời.
-2. `counting()` sử dụng downstream không concurrent. Kết quả đếm vẫn chính xác vì `groupingByConcurrent` thực hiện việc tích lũy phù hợp với hợp đồng downstream.
-3. `toConcurrentMap()` tạo ra bản đồ con dùng `product` làm khóa. Hai đơn `("Bac", "A")` được hợp nhất bằng `Integer::sum`, tạo tổng `6`. Downstream này có `CONCURRENT`, nên có khả năng cập nhật đồng thời container bản đồ con.
+1. `toList()` accumulates multiple orders into each region's list. Although `ordersByRegion` is a `ConcurrentMap`, you should not assume `ordersByRegion.get("Bac")` is a `CopyOnWriteArrayList` or a list allowing concurrent updates.
+2. `counting()` uses a non-concurrent downstream. The count is still accurate because `groupingByConcurrent` performs accumulation in compliance with the downstream's contract.
+3. `toConcurrentMap()` creates a sub-map using `product` as the key. The two `("Bac", "A")` orders are merged via `Integer::sum`, yielding total `6`. This downstream has `CONCURRENT`, so it is capable of concurrently updating the sub-map container.
 
-Thứ tự các đơn khi duyệt `ordersByRegion.get("Bac")`, và thứ tự các khóa khi duyệt các bản đồ kết quả, không được coi là thứ tự ổn định. Vì vậy, ví dụ chỉ kiểm tra số lượng và tổng theo khóa.
+The order of orders when iterating `ordersByRegion.get("Bac")`, and the order of keys when iterating the resulting maps, must not be treated as a stable order. Therefore, the example only checks sizes and totals by key.
 
-## 5. Ví dụ nâng cao: tự viết downstream hỗ trợ concurrency
+## 5. Advanced Example: Writing a Custom Concurrency-Capable Downstream
 
-`counting()` không có đặc tính `CONCURRENT`. Nếu mục tiêu là đếm một lượng dữ liệu lớn với nhiều luồng cùng cập nhật một nhóm, có thể cân nhắc downstream dựa trên `LongAdder`:
+`counting()` does not have the `CONCURRENT` characteristic. If the goal is counting a large volume of data with many threads updating the same group, you can consider a downstream based on `LongAdder`:
 
 ```java
 import java.util.concurrent.atomic.LongAdder;
@@ -169,58 +169,58 @@ var counts = orders.parallelStream().collect(
 );
 ```
 
-Đoạn này giả sử `Order` và `orders` đã được khai báo như ví dụ trước. `LongAdder` hỗ trợ các luồng cùng tăng bộ đếm; `finisher` chuyển kết quả trung gian thành `Long` sau khi thu thập hoàn tất. Vì vậy collector **không** khai báo `IDENTITY_FINISH`. Đây là một phương án cần đo đạc trước khi áp dụng: `LongAdder`, việc tạo container và `finisher` cũng có chi phí; nó không tự động nhanh hơn `counting()` ở mọi tập dữ liệu.
+This snippet assumes `Order` and `orders` are declared as in the previous example. `LongAdder` supports multiple threads incrementing the counter together; the `finisher` converts the intermediate result into `Long` after collection completes. Therefore, the collector does **not** declare `IDENTITY_FINISH`. This is an option that should be measured before adoption: `LongAdder`, container creation, and the `finisher` also have costs; it is not automatically faster than `counting()` on every dataset.
 
-Khi tự viết downstream có `CONCURRENT`, hàm `accumulator` **phải thực sự an toàn nếu được gọi đồng thời trên cùng container**. Chỉ thêm cờ `CONCURRENT` cho collector dựa trên `ArrayList`, `HashMap` hoặc một bộ đếm `long` thông thường có thể gây mất dữ liệu hoặc race condition.
+When writing a custom downstream with `CONCURRENT`, the `accumulator` function **must actually be safe if called concurrently on the same container**. Simply adding the `CONCURRENT` flag to a collector based on `ArrayList`, `HashMap`, or a plain `long` counter can cause lost data or race conditions.
 
-## 6. Khi nào downstream làm mất lợi ích của parallel stream?
+## 6. When Does the Downstream Undermine Parallel Stream Benefits?
 
-Hiệu năng phụ thuộc vào sự phân bố khóa, chi phí tích lũy và mức độ tranh chấp:
+Performance depends on key distribution, accumulation cost, and contention level:
 
-- **Rất ít khóa, phân bố lệch:** Hàng triệu bản ghi cùng một `region` với `counting()` hoặc `toList()` khiến nhiều luồng cùng chờ cập nhật một nhóm. Số luồng tăng chưa chắc giúp chạy nhanh hơn.
-- **Nhiều khóa phân bố đều:** Các luồng thường cập nhật các container khác nhau. Downstream không concurrent vẫn có thể mang lại tốc độ tốt vì tranh chấp giữa các nhóm thấp.
-- **Downstream concurrent nhưng có khóa con nóng:** Với `toConcurrentMap(product, quantity, Integer::sum)`, nếu mọi đơn cùng `product`, việc hợp nhất một khóa trong map con vẫn có thể trở thành điểm nghẽn.
-- **`finisher` đắt đỏ:** `collectingAndThen(...)` hoặc collector có bước hoàn thiện tốn nhiều thời gian sẽ tăng tổng chi phí, kể cả khi giai đoạn tích lũy được xử lý song song.
-- **Tập dữ liệu nhỏ hoặc phép xử lý rẻ:** Chi phí phân chia công việc, điều phối luồng và cập nhật concurrent map có thể lớn hơn lợi ích từ chạy song song.
+- **Very few keys, skewed distribution:** Millions of records sharing one `region` with `counting()` or `toList()` cause many threads to wait to update a single group. More threads may not yield faster execution.
+- **Many evenly distributed keys:** Threads mostly update different containers. A non-concurrent downstream can still deliver good speed because inter-group contention is low.
+- **Concurrent downstream with hot subkeys:** With `toConcurrentMap(product, quantity, Integer::sum)`, if every order has the same `product`, merging that one key in the sub-map can still become a bottleneck.
+- **Expensive `finisher`:** `collectingAndThen(...)` or a collector with a costly finishing step increases total cost, even if the accumulation phase runs in parallel.
+- **Small dataset or cheap operations:** The cost of splitting work, coordinating threads, and updating a concurrent map can exceed the benefit of running in parallel.
 
-Ví dụ, với `Collectors.mapping(Order::product, Collectors.toSet())`, thao tác ánh xạ có thể chạy ở các luồng khác nhau nhưng việc thêm phần tử vào **cùng set của một nhóm** vẫn phải được điều phối vì `toSet()` không có `CONCURRENT`. `mapping()` không thay đổi sự thật này.
+For example, with `Collectors.mapping(Order::product, Collectors.toSet())`, the mapping operation can run on different threads, yet adding elements into **the same group's set** must still be coordinated because `toSet()` lacks `CONCURRENT`. `mapping()` does not change that fact.
 
-Khi tối ưu, hãy đo trên dữ liệu thật và so sánh ít nhất ba phương án có cùng kết quả cần thiết:
+When optimizing, measure on real data and compare at least three options that produce the same required result:
 
 ```java
-// A. Thu thập tuần tự theo nhóm.
+// A. Sequential grouped collection.
 orders.stream().collect(
     Collectors.groupingBy(Order::region, Collectors.counting())
 );
 
-// B. Parallel stream, groupingBy: kết hợp các bản đồ cục bộ.
+// B. Parallel stream, groupingBy: combine local maps.
 orders.parallelStream().collect(
     Collectors.groupingBy(Order::region, Collectors.counting())
 );
 
-// C. Parallel stream, groupingByConcurrent: tích lũy vào concurrent map.
+// C. Parallel stream, groupingByConcurrent: accumulate into a concurrent map.
 orders.parallelStream().collect(
     Collectors.groupingByConcurrent(Order::region, Collectors.counting())
 );
 ```
 
-Phương án B có chi phí gộp các bản đồ trung gian; phương án C có chi phí điều phối cập nhật bản đồ chung và có thể tranh chấp tại nhóm. Không có phương án nào mặc nhiên nhanh nhất. Trong benchmark nghiêm túc, nên dùng JMH, làm nóng JVM, lặp nhiều lần, giữ nguyên dữ liệu đầu vào và kiểm tra kết quả trước khi so thời gian.
+Option B pays the cost of merging intermediate maps; option C pays the cost of coordinating shared map updates and may contend on groups. No option is inherently fastest by default. In serious benchmarks, use JMH, warm up the JVM, run multiple iterations, keep input data constant, and verify results before comparing times.
 
-## 7. Những lỗi dễ mắc
+## 7. Easy-to-Make Mistakes
 
-**Nhầm `ConcurrentMap` với giá trị thread-safe.**
+**Confusing `ConcurrentMap` with thread-safe values.**
 
 ```java
 ConcurrentMap<String, List<Order>> byRegion = orders.parallelStream()
     .collect(Collectors.groupingByConcurrent(Order::region));
 
-// Không an toàn nếu nhiều luồng tự ý gọi add() trên cùng list này sau collect.
+// Unsafe if multiple threads arbitrarily call add() on this same list after collect.
 byRegion.get("Bac").add(new Order("Bac", "C", 5));
 ```
 
-Lời gọi `add()` riêng lẻ không phải vấn đề nếu chương trình đang chạy tuần tự; vấn đề xuất hiện khi **nhiều luồng đồng thời thay đổi cùng danh sách**. Tính an toàn trong quá trình `collect()` là trách nhiệm của collector; nó không biến danh sách trả về thành cấu trúc dữ liệu an toàn cho mọi thao tác sau đó. Nếu cần trạng thái chỉ đọc, cân nhắc hoàn thiện thành danh sách bất biến và không cho các luồng khác sửa bản đồ bên ngoài.
+A single `add()` call is not an issue if the program runs sequentially; the problem arises when **multiple threads concurrently mutate the same list**. Safety during `collect()` is the collector's responsibility; it does not turn the returned list into a data structure safe for arbitrary subsequent operations. If read-only state is needed, consider finalizing into unmodifiable lists and preventing other threads from mutating the outer map.
 
-**Dựa vào thứ tự sau `sorted()`.**
+**Relying on order after `sorted()`.**
 
 ```java
 var grouped = orders.parallelStream()
@@ -231,49 +231,49 @@ var grouped = orders.parallelStream()
     ));
 ```
 
-`sorted()` đặt thứ tự ở đầu ra của giai đoạn sắp xếp, nhưng `groupingByConcurrent` là collector `UNORDERED`, nên không bảo đảm các danh sách kết quả được sắp xếp theo `quantity`. Nếu thứ tự trong từng nhóm là yêu cầu nghiệp vụ, hãy dùng phương án có bảo toàn encounter order phù hợp hoặc sắp xếp rõ ràng các nhóm **sau khi** thu thập.
+`sorted()` establishes order at the output of the sorting stage, but `groupingByConcurrent` is an `UNORDERED` collector, so it does not guarantee the resulting lists remain sorted by `quantity`. If order within each group is a business requirement, use an approach that preserves encounter order appropriately or explicitly sort the groups **after** collection.
 
-**Không định nghĩa cách xử lý khóa con trùng lặp.**
+**Failing to define how duplicate subkeys are handled.**
 
 ```java
-// Lỗi nếu hai Order trong cùng region có product trùng nhau.
+// Error if two Orders in the same region have the same product.
 Collectors.groupingByConcurrent(
     Order::region,
     Collectors.toConcurrentMap(Order::product, Order::quantity)
 );
 ```
 
-Overload `toConcurrentMap(keyMapper, valueMapper)` không có hàm gộp sẽ ném `IllegalStateException` khi gặp khóa con trùng. Nếu muốn cộng dồn số lượng, cần dùng overload có `mergeFunction`, chẳng hạn `Integer::sum`.
+The `toConcurrentMap(keyMapper, valueMapper)` overload without a merge function throws `IllegalStateException` upon encountering duplicate subkeys. If you want to sum quantities, use the overload with a `mergeFunction`, such as `Integer::sum`.
 
-**Cho phép classifier trả về `null`.** `groupingByConcurrent()` không chấp nhận kết quả phân nhóm có khóa `null`; hãy chuẩn hóa khóa thiếu trước khi thu thập hoặc quyết định lọc bỏ phần tử theo yêu cầu nghiệp vụ.
+**Allowing the classifier to return `null`.** `groupingByConcurrent()` does not accept grouping results with `null` keys; normalize missing keys before collection or decide to filter out elements according to business rules.
 
-**Gắn nhãn `CONCURRENT` cho downstream không an toàn.** Đặc tính này là một cam kết về khả năng gọi đồng thời `accumulator`, không phải mẹo tối ưu. Nếu logic tích lũy có trạng thái dùng chung nhưng không được đồng bộ phù hợp, kết quả có thể sai khó tái hiện.
+**Attaching `CONCURRENT` to an unsafe downstream.** This characteristic is a promise about concurrent `accumulator` invocations, not an optimization trick. If accumulation logic has shared state without proper synchronization, results can fail in hard-to-reproduce ways.
 
-## 8. Cách chọn collector trong thực tế
+## 8. Choosing a Collector in Practice
 
-Trước tiên hãy hỏi: đầu ra mỗi nhóm cần là gì? Nếu chỉ cần phân nhóm để đọc danh sách, `groupingByConcurrent(classifier, toList())` là lựa chọn hợp lệ, miễn là không dựa vào thứ tự và không cập nhật các danh sách từ nhiều luồng sau khi `collect()` trả về. Nếu cần số lượng, `counting()` đơn giản và rõ nghĩa; chỉ cân nhắc một concurrent downstream tùy chỉnh khi phép đo cho thấy việc cập nhật nhóm là điểm nghẽn. Nếu cần tổng theo một khóa phụ, `toConcurrentMap()` thường là lựa chọn tự nhiên, với hàm gộp có tính kết hợp và phù hợp với việc xử lý không có thứ tự.
+First ask: what must each group's output be? If you only need to group to read lists, `groupingByConcurrent(classifier, toList())` is a valid choice, provided you do not rely on order and do not update the lists from multiple threads after `collect()` returns. If you need counts, `counting()` is simple and clear; only consider a custom concurrent downstream when measurements show group updates are the bottleneck. If you need sums by a subkey, `toConcurrentMap()` is usually the natural choice, with an associative merge function suitable for unordered processing.
 
-Hai câu hỏi tiếp theo quyết định hiệu năng và tính đúng đắn: **có bao nhiêu khóa thực sự được tạo ra?** và **downstream có thể cập nhật cùng container một cách an toàn hay không?** Với số khóa ít, áp lực lên từng nhóm thường chi phối; với nhiều khóa, chi phí phân bổ và gộp dữ liệu có thể chi phối. Khi kết quả yêu cầu thứ tự, cần một chiến lược bảo toàn hoặc tái tạo thứ tự rõ ràng thay vì suy luận từ `parallelStream()`.
+Two further questions determine performance and correctness: **how many keys are actually created?** and **can the downstream safely update the same container?** With few keys, pressure on individual groups usually dominates; with many keys, allocation and data-merging costs may dominate. When results require ordering, use an explicit order-preserving or order-reconstructing strategy instead of inferring it from `parallelStream()`.
 
-### Tự kiểm tra
+### Self-Check
 
-1. `groupingByConcurrent(classifier, toList())` có cho phép nhiều luồng thu thập an toàn không? Có: collector bên ngoài điều phối an toàn; điều đó **không** biến list trả về thành thread-safe.
-2. Vì sao `groupingByConcurrent(classifier, counting())` có thể chậm khi chỉ có một khóa? Nhiều luồng tranh chấp việc cập nhật cùng một container đếm không concurrent.
-3. Thay `toList()` bằng `mapping(mapper, toList())` có làm downstream trở thành concurrent không? Không; `mapping()` kế thừa các đặc tính thích hợp từ downstream, còn `toList()` không có `CONCURRENT`.
-4. Khi nào `toConcurrentMap()` làm downstream hữu ích hơn? Khi mỗi nhóm cần một map con được cập nhật đồng thời, có hàm xử lý khóa con trùng đúng nghiệp vụ và mức tranh chấp đủ thấp để việc song song mang lại lợi ích.
+1. Does `groupingByConcurrent(classifier, toList())` allow multiple threads to collect safely? Yes: the outer collector coordinates safely; that **does not** make the returned list thread-safe.
+2. Why can `groupingByConcurrent(classifier, counting())` be slow when there is only one key? Multiple threads contend on updating the same non-concurrent counting container.
+3. Does replacing `toList()` with `mapping(mapper, toList())` make the downstream concurrent? No; `mapping()` inherits appropriate characteristics from its downstream, and `toList()` does not have `CONCURRENT`.
+4. When is `toConcurrentMap()` more useful as a downstream? When each group needs a concurrently updated sub-map, with a business-valid duplicate subkey handler and low enough contention for parallelism to pay off.
 
-Điểm cốt lõi: **an toàn luồng của collector bên ngoài, khả năng tích lũy đồng thời của downstream, và an toàn của giá trị kết quả là ba vấn đề riêng biệt**. Hiểu đúng từng lớp giúp chọn cấu trúc thu thập vừa chính xác vừa phù hợp với đặc điểm dữ liệu thực tế.
-# Ảnh hưởng của Collector phía sau đến phân nhóm đồng thời
+Core takeaway: **thread-safety of the outer collector, concurrent accumulation capability of the downstream, and safety of the result values are three separate concerns**. Understanding each layer accurately helps you choose a collection structure that is both correct and suited to real data characteristics.
+# Impact of Downstream Collectors on Concurrent Grouping
 
-Trong **Java Stream API**, `Collectors.groupingByConcurrent` hỗ trợ phân nhóm vào `ConcurrentMap` và được thiết kế để tham gia quá trình thu thập song song. Tuy nhiên, một lời gọi `groupingByConcurrent` thường còn chứa **collector phía sau** (*downstream collector*), chẳng hạn `toList`, `counting`, `summingLong`, `mapping` hoặc một collector tự định nghĩa.
+In the **Java Stream API**, `Collectors.groupingByConcurrent` supports grouping into a `ConcurrentMap` and is designed to participate in parallel collection. However, a `groupingByConcurrent` call often also contains a **downstream collector**, such as `toList`, `counting`, `summingLong`, `mapping`, or a custom-defined collector.
 
-Đó là điểm dễ hiểu sai: **map ngoài có khả năng truy cập đồng thời không có nghĩa mọi đối tượng giá trị của nó đều thread-safe**, và **collector phía sau không có đặc tính `CONCURRENT` không có nghĩa `groupingByConcurrent` sai hoặc không thể dùng trên parallel stream**. Framework phải tuân thủ hợp đồng tích lũy của collector tổng hợp; cách xử lý cạnh tranh tại từng khóa có thể ảnh hưởng mạnh đến hiệu năng.
+This is an easy point to misunderstand: **an outer map capable of concurrent access does not mean every value object inside it is thread-safe**, and **a downstream collector without the `CONCURRENT` characteristic does not mean `groupingByConcurrent` is wrong or unusable on a parallel stream**. The framework must obey the accumulation contract of the composed collector; how contention at each key is handled can strongly affect performance.
 
-Bài học thuộc chương **Thu thập đồng thời** của mô-đun `JAVA_STREAM_API`. Mục tiêu là biết đọc hợp đồng của collector, lựa chọn downstream phù hợp, phân biệt tính đúng đắn với khả năng mở rộng, và tránh tự chia sẻ trạng thái mutable khi xử lý song song.
+This lesson belongs to the **Concurrent Collection** chapter of the `JAVA_STREAM_API` module. The goal is to read a collector's contract, select an appropriate downstream, distinguish correctness from scalability, and avoid sharing mutable state carelessly during parallel processing.
 
-## 1. Ba lớp phải phân biệt khi nói “đồng thời”
+## 1. Three Layers to Distinguish When Saying “Concurrent”
 
-Giả sử muốn phân loại các sự kiện theo `type` rồi lưu danh sách `id` của từng loại:
+Suppose we want to categorize events by `type` and store the list of `id`s for each type:
 
 ```text
 Stream<Event> --parallel--> groupingByConcurrent(Event::type,
@@ -287,21 +287,21 @@ Stream<Event> --parallel--> groupingByConcurrent(Event::type,
                        List<String>             List<String>
 ```
 
-Có ba câu hỏi **khác nhau**:
+There are three **different** questions:
 
-| Lớp | Câu hỏi | Điều cần hiểu |
+| Layer | Question | What to Understand |
 | --- | --- | --- |
-| **Nguồn Stream** | Có xử lý song song không? | `parallel()` cho phép framework chia nguồn; không bảo đảm các phần tử được xử lý theo thứ tự hoặc nhanh hơn. |
-| **Collector ngoài** | Có cho phép nhiều worker góp vào cùng kết quả tích lũy không? | `groupingByConcurrent` trả collector có đặc tính `CONCURRENT` và `UNORDERED` theo hợp đồng API. |
-| **Downstream và giá trị kết quả** | Container của từng nhóm có an toàn khi cập nhật đồng thời hay không? | `toList()` không phải concurrent collector; danh sách trả về cũng **không được bảo đảm thread-safe**. |
+| **Stream Source** | Is it processed in parallel? | `parallel()` allows the framework to split the source; does not guarantee elements are processed in order or faster. |
+| **Outer Collector** | Does it allow multiple workers to contribute to the same accumulation result? | `groupingByConcurrent` returns a collector with `CONCURRENT` and `UNORDERED` characteristics per the API contract. |
+| **Downstream and Result Values** | Is each group's container safe under concurrent updates? | `toList()` is not a concurrent collector; the returned lists are **not guaranteed to be thread-safe** either. |
 
-Một `ConcurrentMap<K, List<V>>` chỉ cho biết **các thao tác tương thích trên cấu trúc map** được hỗ trợ đồng thời theo hợp đồng của kiểu `ConcurrentMap`. Nó không biến `List<V>` bên trong thành danh sách an toàn để nhiều thread tùy ý `add`.
+A `ConcurrentMap<K, List<V>>` only states that **compatible operations on the map structure** are concurrently supported per the `ConcurrentMap` contract. It does not turn the inner `List<V>` into a safe list for multiple threads to arbitrarily call `add`.
 
-Điều quan trọng là lúc **đang collect**, framework phải phối hợp việc cập nhật giá trị theo đúng đặc tính của downstream. Sau khi `collect` kết thúc, mã người dùng nhận map và các giá trị; từ đó, quyền sửa đổi và tính an toàn luồng của từng value phải được đánh giá **riêng**.
+Crucially, **while `collect` is running**, the framework must coordinate value updates according to the downstream's characteristics. After `collect` finishes, user code receives the map and values; from then on, mutability and thread safety of each value must be evaluated **separately**.
 
-## 2. Cú pháp của `groupingByConcurrent`
+## 2. Syntax of `groupingByConcurrent`
 
-Ba overload chính, rút gọn kiểu generic để dễ đọc:
+Three main overloads, with generic types simplified for readability:
 
 ```java
 groupingByConcurrent(classifier);
@@ -311,13 +311,13 @@ groupingByConcurrent(classifier, downstream);
 groupingByConcurrent(classifier, mapFactory, downstream);
 ```
 
-Trong đó:
+Where:
 
-- `classifier` là `Function<T, K>`, trả khóa nhóm cho mỗi phần tử.
-- `downstream` là một `Collector` khác, quyết định **kiểu kết quả và cách tích lũy** của từng nhóm.
-- `mapFactory` là `Supplier` tạo một `ConcurrentMap` thích hợp, ví dụ `ConcurrentSkipListMap::new`.
+- `classifier` is a `Function<T, K>` returning the group key for each element.
+- `downstream` is another `Collector`, determining **the result type and accumulation method** for each group.
+- `mapFactory` is a `Supplier` creating an appropriate `ConcurrentMap`, e.g., `ConcurrentSkipListMap::new`.
 
-Kết quả terminal operation có kiểu `ConcurrentMap<K, D>`, với `D` do downstream quyết định. Overload chỉ nhận `classifier` tương đương về ý tưởng với việc thu các phần tử mỗi khóa vào một `List<T>`.
+The terminal operation result has type `ConcurrentMap<K, D>`, with `D` determined by the downstream. The overload taking only `classifier` is conceptually equivalent to collecting each key's elements into a `List<T>`.
 
 ```java
 import java.util.Arrays;
@@ -334,11 +334,11 @@ System.out.println(groups.get('A').size()); // 2
 System.out.println(groups.get('U').size()); // 2
 ```
 
-Trong ví dụ, hai nhóm tồn tại, nhưng **không được viết kiểm thử đòi các danh sách luôn theo thứ tự nguồn**. Collector có đặc tính `UNORDERED`; thứ tự phần tử trong từng nhóm không được bảo đảm, đặc biệt khi xử lý song song.
+In this example, two groups exist, but **you must not write tests demanding the lists always follow source order**. The collector has the `UNORDERED` characteristic; element order within each group is not guaranteed, especially under parallel execution.
 
-Ngoài ra, classifier trả `null` sẽ bị từ chối; dùng khóa bất biến hoặc khóa có `equals`/`hashCode` ổn định. Đối với loại nguồn có thể thay đổi, vẫn phải tuân thủ nguyên tắc *non-interference*: không sửa nguồn từ trong mapper hay classifier.
+In addition, a classifier returning `null` will be rejected; use immutable keys or keys with stable `equals`/`hashCode`. For mutable source types, you must still follow *non-interference*: do not modify the source from inside a mapper or classifier.
 
-## 3. So sánh `groupingBy` và `groupingByConcurrent`
+## 3. Comparing `groupingBy` and `groupingByConcurrent`
 
 ```java
 import java.util.List;
@@ -346,7 +346,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
-// events là List<Event>, Event có phương thức type().
+// events is a List<Event>, and Event has a type() method.
 Map<String, List<Event>> regular = events.parallelStream()
     .collect(Collectors.groupingBy(Event::type));
 
@@ -354,25 +354,25 @@ ConcurrentMap<String, List<Event>> concurrent = events.parallelStream()
     .collect(Collectors.groupingByConcurrent(Event::type));
 ```
 
-Đoạn mã là minh họa trong phạm vi có sẵn kiểu `Event` và biến `events`. Hai collector tạo cùng **cấu trúc logic nhóm theo khóa**, nhưng không có cùng hợp đồng về thứ tự và chiến lược kết hợp.
+This snippet is illustrative assuming an `Event` type and `events` variable exist. Both collectors produce the same **logical grouping structure by key**, but they do not share the same ordering contract or combination strategy.
 
-| Tiêu chí | `groupingBy` | `groupingByConcurrent` |
+| Criterion | `groupingBy` | `groupingByConcurrent` |
 | --- | --- | --- |
-| Kết quả | `Map<K, D>` | `ConcurrentMap<K, D>` |
-| Đặc tính `CONCURRENT` của collector ngoài | Không | Có |
-| Đặc tính `UNORDERED` của collector ngoài | Không mặc định | Có |
-| Cách xử lý song song điển hình | Tạo các map tích lũy bộ phận rồi gộp | Có thể nhiều worker tích lũy vào một map đồng thời |
-| Encounter order của nhóm | Có thể giữ thứ tự theo hợp đồng downstream và nguồn có thứ tự | Không được kỳ vọng giữ encounter order |
-| Giá trị `List<T>` có thread-safe không? | Không có bảo đảm | **Cũng không có bảo đảm** |
-| Có luôn nhanh hơn không? | Không | Không; tùy phân bố khóa và downstream |
+| Result | `Map<K, D>` | `ConcurrentMap<K, D>` |
+| Outer collector `CONCURRENT` characteristic | No | Yes |
+| Outer collector `UNORDERED` characteristic | Not by default | Yes |
+| Typical parallel processing | Creates partial accumulation maps then merges | Multiple workers can accumulate into one concurrent map |
+| Group encounter order | Can preserve order per downstream contract and ordered source | Must not be expected to preserve encounter order |
+| Are `List<T>` values thread-safe? | Not guaranteed | **Also not guaranteed** |
+| Always faster? | No | No; depends on key distribution and downstream |
 
-Trên nguồn có thứ tự, `groupingBy` kết hợp downstream `toList` phù hợp khi **thứ tự tương đối của phần tử trong từng danh sách là yêu cầu**. `groupingByConcurrent` ưu tiên khả năng tích lũy đồng thời, chấp nhận bỏ bảo đảm về encounter order.
+On an ordered source, `groupingBy` combined with downstream `toList` is appropriate when **the relative order of elements within each list is required**. `groupingByConcurrent` prioritizes concurrent accumulation capability, accepting the loss of encounter order guarantees.
 
-Với số khóa ít nhưng rất nhiều phần tử cùng khóa, tranh chấp khi cập nhật nhóm có thể lớn. Khi số khóa đa dạng, công việc phân tán hơn và collector đồng thời có cơ hội hiệu quả hơn. Cần **benchmark trên phân bố khóa thực tế**, không kết luận chỉ từ kích thước nguồn.
+With few keys and very many elements sharing a key, contention when updating a group can be high. When keys are diverse, work spreads out more and the concurrent collector has a better chance to be effective. **Benchmark on realistic key distributions**, rather than concluding from source size alone.
 
-## 4. Downstream `toList()`: không concurrent nhưng vẫn dùng được
+## 4. Downstream `toList()`: Non-Concurrent Yet Still Usable
 
-Một ví dụ hoàn chỉnh (Java 8+):
+A complete example (Java 8+):
 
 ```java
 import java.util.Arrays;
@@ -417,36 +417,36 @@ public class ConcurrentGroupingExample {
 }
 ```
 
-`mapping` là downstream **adapter**: nó đổi `Event` thành `String` rồi chuyển kết quả cho `toList`. `toList` không có đặc tính `CONCURRENT`, nhưng **toàn bộ collector do `groupingByConcurrent` tạo vẫn là một collector hợp lệ cho stream song song**.
+`mapping` is a downstream **adapter**: it converts `Event` to `String` and passes the result to `toList`. `toList` does not have the `CONCURRENT` characteristic, yet **the overall collector produced by `groupingByConcurrent` is still a valid collector for parallel streams**.
 
-Tại sao không xảy ra race do các worker cùng ghi một `ArrayList`? Vì implementation của collector tổng hợp **chịu trách nhiệm điều phối accumulation theo đặc tính downstream**. Khi downstream không hỗ trợ đồng thời trên cùng container, implementation có thể bảo vệ các cập nhật của cùng nhóm, chẳng hạn bằng đồng bộ hóa. Cơ chế nội bộ cụ thể là chi tiết triển khai, không phải thứ ứng dụng nên dựa vào.
+Why doesn't a race occur from workers writing to the same `ArrayList`? Because the composed collector implementation **is responsible for coordinating accumulation according to the downstream's characteristics**. When the downstream does not support concurrency on the same container, the implementation can protect updates for the same group, such as via synchronization. The exact internal mechanism is an implementation detail, not something the application should rely on.
 
-Tuy nhiên, sau khi `collect` trả về:
+However, after `collect` returns:
 
 ```java
-// KHÔNG dùng một List trả về như container dùng chung
-// cho nhiều thread tùy ý cùng add/remove.
+// DO NOT use a returned List as a shared container
+// for multiple threads to arbitrarily add/remove concurrently.
 List<String> errorIds = idsByType.get("ERROR");
 ```
 
-`ConcurrentMap` bảo vệ thao tác truy cập map theo hợp đồng; **không bảo đảm** `errorIds.add(...)` được gọi đồng thời từ nhiều thread sẽ an toàn. Nếu cần chia sẻ và cập nhật danh sách kết quả, phải chọn kiểu container/cơ chế đồng bộ phù hợp hoặc chuyển sang kết quả bất biến.
+`ConcurrentMap` protects map access operations per its contract; it **does not guarantee** that calling `errorIds.add(...)` concurrently from multiple threads will be safe. If you need to share and update the resulting lists, choose an appropriate container/synchronization mechanism or convert to immutable results.
 
-## 5. Downstream quyết định hình dạng và chi phí từng nhóm
+## 5. The Downstream Determines the Shape and Cost of Each Group
 
-Không phải báo cáo nào cũng cần giữ lại **mọi phần tử**. Chọn downstream đúng có thể cải thiện khả năng mở rộng hơn việc chỉ đổi `groupingBy` thành `groupingByConcurrent`.
+Not every report needs to retain **every element**. Choosing the right downstream can improve scalability more than merely switching from `groupingBy` to `groupingByConcurrent`.
 
-| Downstream | `D` trong `ConcurrentMap<K,D>` | Dữ liệu giữ lại | Lưu ý |
+| Downstream | `D` in `ConcurrentMap<K,D>` | Retained Data | Notes |
 | --- | --- | --- | --- |
-| `toList()` | `List<T>` | Toàn bộ phần tử | Chiếm bộ nhớ theo số phần tử; list không được bảo đảm thread-safe. |
-| `toSet()` | `Set<T>` | Phần tử duy nhất | Không hứa loại Set, thứ tự hay thread-safety. |
-| `counting()` | `Long` | Số đếm | Không lưu phần tử; có thể gặp tranh chấp với khóa “nóng”. |
-| `summingLong(mapper)` | `Long` | Một tổng | Tổng có thể tràn `long`; không cần list. |
-| `summarizingLong(mapper)` | `LongSummaryStatistics` | Count, sum, min, max, average | Đối tượng kết quả mutable, không an toàn cho cập nhật đồng thời tùy ý. |
-| `mapping(mapper, downstream)` | Theo downstream trong | Phụ thuộc downstream | Biến đổi từng phần tử trước khi tích lũy. |
-| `filtering(predicate, downstream)` (Java 9+) | Theo downstream trong | Chỉ phần tử được chọn vào downstream | Khóa đã được classifier nhìn thấy vẫn có thể tồn tại với kết quả rỗng/0. |
-| `collectingAndThen(downstream, finisher)` | Theo `finisher` | Chốt đối tượng sau tích lũy | Không biến một accumulator không concurrent thành concurrent. |
+| `toList()` | `List<T>` | All elements | Consumes memory proportional to element count; list is not guaranteed thread-safe. |
+| `toSet()` | `Set<T>` | Unique elements | Makes no promise about Set implementation, order, or thread-safety. |
+| `counting()` | `Long` | Count | Does not store elements; may face contention on “hot” keys. |
+| `summingLong(mapper)` | `Long` | A sum | Sum can overflow `long`; no list needed. |
+| `summarizingLong(mapper)` | `LongSummaryStatistics` | Count, sum, min, max, average | Result object is mutable, unsafe for arbitrary concurrent updates. |
+| `mapping(mapper, downstream)` | Per inner downstream | Depends on downstream | Transforms each element before accumulation. |
+| `filtering(predicate, downstream)` (Java 9+) | Per inner downstream | Only elements accepted into downstream | Keys already seen by the classifier can still exist with empty/0 results. |
+| `collectingAndThen(downstream, finisher)` | Per `finisher` | Finalizes object after accumulation | Does not turn a non-concurrent accumulator into a concurrent one. |
 
-Để tránh cấp phát danh sách lớn nếu chỉ cần đếm lỗi:
+To avoid allocating large lists when you only need to count errors:
 
 ```java
 import java.util.Arrays;
@@ -465,11 +465,11 @@ System.out.println(counts.get("ERROR")); // 3
 System.out.println(counts.get("INFO"));  // 1
 ```
 
-`counting` là downstream có thể dùng an toàn **qua `groupingByConcurrent`** nhưng bản thân nó không phải một concurrent collector. Điều này không gây lỗi hợp đồng; song song vẫn có thể cần phối hợp khi nhiều worker tích lũy vào cùng khóa.
+`counting` is a downstream that can be used safely **through `groupingByConcurrent`**, even though it is not a concurrent collector itself. This causes no contract violation; parallel execution may still need coordination when multiple workers accumulate into the same key.
 
-## 6. `summarizingLong`: nhiều chỉ số nhưng kết quả vẫn mutable
+## 6. `summarizingLong`: Multiple Metrics, Yet Mutable Results
 
-Nếu cần vừa đếm vừa đo thống kê theo nhóm, tránh `toList` rồi quét danh sách từng nhóm nhiều lần:
+If you need both counts and statistics per group, avoid `toList` followed by scanning each group's list multiple times:
 
 ```java
 import java.util.Arrays;
@@ -506,13 +506,13 @@ System.out.println(books.getMax());     // 200
 System.out.println(books.getAverage()); // 150.0
 ```
 
-`LongSummaryStatistics` dùng trạng thái mutable trong quá trình tích lũy. **Framework xử lý việc tích lũy phù hợp với hợp đồng của downstream**; điều đó không cấp quyền cho mã khác sửa `books` cùng lúc khi đang đọc. Đừng gọi `books.accept(...)` từ nhiều thread mà không có cơ chế bảo vệ độc lập.
+`LongSummaryStatistics` uses mutable state during accumulation. **The framework handles accumulation in accordance with the downstream's contract**; that does not grant permission for other code to mutate `books` while it is being read. Do not call `books.accept(...)` from multiple threads without independent protection.
 
-Số tiền `long` theo đơn vị nguyên nhỏ nhất giúp tránh sai số biểu diễn thập phân, nhưng `getSum()` vẫn có thể tràn `long`; `getAverage()` trả `double` có thể cần quy tắc làm tròn riêng. Nếu nghiệp vụ cần kết quả bất biến, **không trả trực tiếp các đối tượng thống kê mutable**.
+Using `long` amounts in the smallest integer unit avoids decimal representation errors, though `getSum()` can still overflow `long`; `getAverage()` returns `double` and may require its own rounding rules. If the business requires immutable results, **do not return mutable statistics objects directly**.
 
-### Chốt thống kê thành một giá trị bất biến
+### Finalizing Statistics into an Immutable Value
 
-Ví dụ Java 16+ dùng `record` để không lộ bộ tích lũy mutable:
+Java 16+ example using `record` to avoid exposing a mutable accumulator:
 
 ```java
 import java.util.Arrays;
@@ -546,15 +546,15 @@ Map<String, Metrics> immutableReport =
 System.out.println(immutableReport.get("BOOK").sum()); // 300
 ```
 
-Đoạn mã này sử dụng kiểu `Sale` ở ví dụ trước. Kết quả cuối là `Map` **không sửa đổi được**, còn các `Metrics` chỉ chứa primitive. Phần tích lũy ban đầu vẫn có thể mutable; `collectingAndThen` chỉ áp dụng finisher **sau khi việc tích lũy của từng phần đã hoàn tất**, không làm cho accumulator trở thành concurrent.
+This snippet uses the `Sale` type from the previous example. The final result is an **unmodifiable** `Map`, and the `Metrics` records hold only primitives. Initial accumulation may still be mutable; `collectingAndThen` only applies the finisher **after per-part accumulation finishes**, without making the accumulator concurrent.
 
-Đối với nhóm rỗng, `getMin()`/`getMax()` của `LongSummaryStatistics` chứa giá trị khởi tạo đặc biệt. Trong ví dụ `groupingByConcurrent`, mỗi khóa chỉ xuất hiện vì đã có phần tử được phân vào khóa; nếu thêm downstream `filtering` thì một nhóm có thể có count 0, cần xử lý trường hợp đó trước khi công bố min/max.
+For empty groups, `LongSummaryStatistics.getMin()`/`getMax()` contain special initial sentinel values. In the `groupingByConcurrent` example, each key only appears because an element was assigned to it; if you add a downstream `filtering`, a group can have count 0, so handle that case before publishing min/max.
 
-## 7. `mapping` và `filtering` không làm biến mất ràng buộc của downstream
+## 7. `mapping` and `filtering` Do Not Remove Downstream Constraints
 
-Một sai lầm khác là cho rằng chỉ cần bọc `toList()` bằng `mapping()` hoặc `filtering()` thì việc tích lũy tự trở thành đồng thời. Trên thực tế, hai adapter này **chuyển tiếp việc tích lũy** cho downstream và đặc tính của collector kết quả phụ thuộc các collector được ghép.
+Another misconception is thinking that merely wrapping `toList()` with `mapping()` or `filtering()` automatically makes accumulation concurrent. In reality, these two adapters **forward accumulation** to the downstream, and the resulting collector's characteristics depend on the composed collectors.
 
-Ví dụ đếm các sự kiện nghiêm trọng theo loại (Java 9+):
+Example counting severe events by service (Java 9+):
 
 ```java
 import java.util.Arrays;
@@ -589,21 +589,21 @@ System.out.println(severeCounts.get("API")); // 1
 System.out.println(severeCounts.get("UI"));  // 0
 ```
 
-`filtering` đặt **sau** classifier: nhóm `UI` tồn tại vì đã xuất hiện sự kiện của `UI`, dù không có cảnh báo nghiêm trọng. Nếu đặt `stream.filter(alert -> alert.severe)` **trước** `groupingByConcurrent`, nhóm `UI` sẽ không xuất hiện.
+`filtering` is placed **after** the classifier: the `UI` group exists because an event for `UI` appeared, even though it had no severe alerts. If you placed `stream.filter(alert -> alert.severe)` **before** `groupingByConcurrent`, the `UI` group would not appear.
 
-Hãy phân biệt **hình dạng kết quả** (Map chứa `Long`, `List`, `Statistics`...) với **đặc tính tích lũy** (`CONCURRENT`, `UNORDERED`, `IDENTITY_FINISH`). `mapping` hay `filtering` thường hữu ích về ngữ nghĩa, nhưng không tự giải quyết tranh chấp tại một khóa nóng.
+Distinguish **result shape** (a Map containing `Long`, `List`, `Statistics`, etc.) from **accumulation characteristics** (`CONCURRENT`, `UNORDERED`, `IDENTITY_FINISH`). `mapping` or `filtering` is often semantically useful, but does not by itself resolve contention on a hot key.
 
-## 8. `Collector.Characteristics` cho biết điều gì?
+## 8. What Does `Collector.Characteristics` Tell Us?
 
-Collector có tập đặc tính do `characteristics()` trả về:
+A Collector has a set of characteristics returned by `characteristics()`:
 
-| Đặc tính | Ý nghĩa | Điều **không** được suy ra |
+| Characteristic | Meaning | What Must **Not** Be Inferred |
 | --- | --- | --- |
-| `CONCURRENT` | Cho phép accumulator được gọi đồng thời từ nhiều thread trên **cùng một container tích lũy**. | Không bảo đảm **giá trị kết quả cuối** là immutable hoặc có mọi thao tác an toàn luồng. |
-| `UNORDERED` | Phép thu thập không cam kết giữ encounter order. | Không có nghĩa đầu vào được xử lý ngẫu nhiên hoặc iteration order của một map cụ thể không có quy tắc. |
-| `IDENTITY_FINISH` | Finisher về bản chất là phép đồng nhất, container tích lũy chính là kiểu kết quả. | Không có nghĩa đối tượng không thể thay đổi. |
+| `CONCURRENT` | Allows the accumulator to be called concurrently from multiple threads on **the same accumulation container**. | Does not guarantee the **final result value** is immutable or has all operations thread-safe. |
+| `UNORDERED` | The collection does not guarantee preserving encounter order. | Does not mean inputs are processed randomly or that a specific map's iteration order has no rule. |
+| `IDENTITY_FINISH` | The finisher is essentially the identity function; the accumulation container is the result type. | Does not mean the object is immutable. |
 
-Kiểm tra một số collector qua API:
+Inspecting a few collectors via the API:
 
 ```java
 import java.util.List;
@@ -625,15 +625,15 @@ System.out.println(grouped.characteristics()
     .contains(Collector.Characteristics.UNORDERED));  // true
 ```
 
-**Quan trọng:** Collector có `CONCURRENT` nhưng **không** có `UNORDERED` chỉ được phép thực hiện *concurrent reduction* trên stream có thứ tự nếu stream đã được coi là **unordered**. `groupingByConcurrent` là `UNORDERED`, vì thế việc tích lũy đồng thời không phải bảo toàn thứ tự gặp phần tử.
+**Important:** A Collector with `CONCURRENT` but **without** `UNORDERED` is only permitted to perform *concurrent reduction* on an ordered stream if the stream is already treated as **unordered**. `groupingByConcurrent` is `UNORDERED`, so concurrent accumulation does not have to preserve element encounter order.
 
-Đừng tự gắn `CONCURRENT` vào collector khi accumulator sử dụng `ArrayList.add`, `HashMap.put` hoặc tăng biến `long` dùng chung mà không có cơ chế an toàn đồng thời. Đặc tính ấy là **cam kết cho Stream framework**, không phải chỉ thị tăng tốc.
+Do not attach `CONCURRENT` to a collector whose accumulator uses `ArrayList.add`, `HashMap.put`, or increments a shared `long` variable without concurrency safety. That characteristic is a **contract with the Stream framework**, not a speedup directive.
 
-## 9. Downstream concurrent thực sự: khi nào cần?
+## 9. Genuinely Concurrent Downstreams: When Are They Needed?
 
-Nếu một nhóm cực lớn có nhiều worker cạnh tranh cập nhật cùng container, một downstream **thực sự concurrent** có thể cho phép tích lũy trực tiếp vào container nhóm mà không phải tuần tự hóa mọi cập nhật. Tuy nhiên, cấu trúc dữ liệu concurrent cũng có chi phí đồng bộ/cấp phát riêng và **không mặc nhiên nhanh hơn**.
+If a huge group has many workers competing to update the same container, a **genuinely concurrent** downstream can allow direct accumulation into the group's container without serializing all updates. However, concurrent data structures also carry their own synchronization/allocation overhead and are **not faster by default**.
 
-Ví dụ collector tự định nghĩa vào `ConcurrentLinkedQueue` (Java 8+):
+Example custom collector into `ConcurrentLinkedQueue` (Java 8+):
 
 ```java
 import java.util.Queue;
@@ -666,21 +666,21 @@ ConcurrentMap<Integer, ConcurrentLinkedQueue<String>> byLength =
 System.out.println(byLength.get(2).size()); // 3
 ```
 
-Ý nghĩa của thiết kế:
+Meaning of this design:
 
-- `supplier` tạo **một queue mới** cho từng container tích lũy; không trả queue dùng chung cho tất cả khóa.
-- `ConcurrentLinkedQueue.add` được thiết kế để nhiều thread có thể thêm phần tử an toàn.
-- Combiner gộp hai queue khi framework cần kết hợp các kết quả bộ phận.
-- `CONCURRENT` được khai báo vì **accumulator trên cùng queue** hỗ trợ cập nhật đồng thời.
-- `UNORDERED` được khai báo vì thứ tự phần tử trong queue không được bảo đảm theo encounter order ở chế độ song song.
+- `supplier` creates **a new queue** for each accumulation container; do not return a single shared queue for all keys.
+- `ConcurrentLinkedQueue.add` is designed so multiple threads can safely append elements.
+- Combiner merges two queues when the framework needs to combine partial results.
+- `CONCURRENT` is declared because **the accumulator on the same queue** supports concurrent updates.
+- `UNORDERED` is declared because element order in the queue is not guaranteed to match encounter order in parallel mode.
 
-Lưu ý: `Collectors.toCollection(ConcurrentLinkedQueue::new)` **không tự trở thành concurrent collector** chỉ vì kiểu collection được tạo là concurrent. Đặc tính collector phải được thiết kế và khai báo đúng hợp đồng, không suy ra đơn thuần từ lớp container.
+Note: `Collectors.toCollection(ConcurrentLinkedQueue::new)` **does not automatically become a concurrent collector** just because the created collection class is concurrent. Collector characteristics must be designed and declared per the contract, not inferred merely from the container class.
 
-Collector tùy chỉnh có `CONCURRENT` cần được kiểm chứng về tính đúng đắn khi accumulator và combiner có thể được gọi theo những cách hợp lệ khác nhau. Nếu không có yêu cầu hiệu năng đã đo đạc, những downstream chuẩn như `counting`, `toList` hoặc `summarizingLong` thường dễ bảo trì hơn.
+A custom collector with `CONCURRENT` must be verified for correctness when accumulator and combiner may be called in various valid patterns. Without a measured performance requirement, standard downstreams such as `counting`, `toList`, or `summarizingLong` are usually easier to maintain.
 
-## 10. Dùng `toConcurrentMap` làm downstream khi muốn kết quả dạng map con
+## 10. Using `toConcurrentMap` as a Downstream When Sub-Map Results Are Wanted
 
-Không phải mọi nhóm đều cần danh sách. Đôi khi trong mỗi nhóm, ta muốn **lập bảng tra cứu theo một khóa phụ**; `toConcurrentMap` có thể phù hợp:
+Not every group needs a list. Sometimes inside each group, we want to **build a lookup table by a secondary key**; `toConcurrentMap` can fit well:
 
 ```java
 import java.util.Arrays;
@@ -719,44 +719,44 @@ System.out.println(inventory.get("BOOK").get("B1")); // 5
 System.out.println(inventory.get("TOOL").get("T1")); // 4
 ```
 
-`toConcurrentMap` tạo một downstream concurrent và unordered cho việc thu vào map con. Khi **trùng khóa SKU**, cần merger `Integer::sum` hoặc một quy tắc tương ứng với nghiệp vụ; overload hai mapper không chấp nhận khóa trùng.
+`toConcurrentMap` creates a concurrent, unordered downstream for collecting into a sub-map. When **SKU keys collide**, a merger `Integer::sum` or a business-appropriate rule is required; the two-mapper overload rejects duplicate keys.
 
-Map con concurrent hỗ trợ các thao tác tương ứng an toàn đồng thời theo hợp đồng của nó, nhưng **không biến dữ liệu thành immutable**. Với dữ liệu tài chính hoặc inventory lớn, tổng kiểu `int` vẫn có khả năng tràn; dùng `long` hay kiểm tra tràn khi phù hợp.
+The concurrent sub-map supports its corresponding operations safely under concurrency per its contract, yet **does not make the data immutable**. For large financial or inventory datasets, `int` sums can still overflow; use `long` or overflow checks when appropriate.
 
-Đừng xây cấu trúc map lồng nhau chỉ vì thấy từ “concurrent”. Nếu chỉ cần số lượng của mỗi category, `groupingByConcurrent(..., counting())` đơn giản hơn và giữ ít dữ liệu hơn.
+Do not build nested map structures just because you see the word “concurrent”. If you only need the count per category, `groupingByConcurrent(..., counting())` is simpler and retains less data.
 
-## 11. Độ tập trung của khóa quyết định khả năng mở rộng
+## 11. Key Concentration Determines Scalability
 
-Ảnh hưởng của downstream bộc lộ rõ khi phân bố khóa thay đổi. So sánh hai tình huống:
+The downstream's effect becomes clear when key distribution changes. Compare two scenarios:
 
 ```text
-Phân bố khá đều:            Phân bố lệch mạnh:
+Fairly even distribution:    Heavily skewed distribution:
   A: 25%                      HOT: 99%
   B: 25%                      A: 0.5%
   C: 25%                      B: 0.5%
   D: 25%
 ```
 
-Với một downstream không concurrent như `toList` hoặc `counting`, các cập nhật cùng khóa phải được phối hợp để giữ tính đúng đắn. **Khóa HOT** trở thành nơi có thể phát sinh tranh chấp, làm nhiều worker phải chờ hoặc giảm mức song song hữu ích. Thêm `parallel()` không xóa được điểm nghẽn logic ấy.
+With a non-concurrent downstream like `toList` or `counting`, updates to the same key must be coordinated to preserve correctness. **The HOT key** becomes a point where contention can arise, forcing workers to wait or reducing useful parallelism. Adding `parallel()` does not eliminate that logical bottleneck.
 
-Khi downstream thực sự concurrent, một số cập nhật có thể tiến hành đồng thời trên cùng container; nhưng cấu trúc đồng thời thường dùng nguyên tử, phân mảnh dữ liệu hoặc phối hợp nội bộ. Điều đó vẫn có thể tốn chi phí, đặc biệt khi chỉ có vài phần tử.
+When the downstream is genuinely concurrent, some updates can proceed concurrently on the same container; however, concurrent structures typically use atomics, striping, or internal coordination. That still carries cost, especially when there are only a few elements.
 
-| Yếu tố | Tác động cần đo |
+| Factor | Impact to Measure |
 | --- | --- |
-| Số lượng khóa | Nhiều khóa độc lập có thể phân tán cập nhật tốt hơn. |
-| Độ lệch phân bố | Một khóa rất nóng có thể gây tranh chấp tại nhóm ấy. |
-| Downstream `toList` | Giữ toàn bộ phần tử, tốn bộ nhớ và cần phối hợp accumulation mỗi nhóm. |
-| Downstream `counting` | Giữ ít dữ liệu nhưng vẫn có thể tranh chấp tại nhóm nóng. |
-| Downstream concurrent | Có thể giúp giảm nút thắt, nhưng cấu trúc đồng thời cũng có overhead. |
-| Chi phí mapper/classifier | Nếu tính toán nặng, overhead đồng bộ chiếm tỷ lệ nhỏ hơn; nếu rất rẻ, overhead dễ nổi bật. |
-| Spliterator của nguồn | Nguồn khó chia sẽ hạn chế lợi ích parallel dù collector tối ưu. |
-| Ordered vs unordered | `groupingByConcurrent` bỏ nghĩa vụ giữ encounter order, có thể có lợi nếu nghiệp vụ cho phép. |
+| Number of keys | Many independent keys can distribute updates better. |
+| Distribution skew | One very hot key can cause contention on that group. |
+| `toList` downstream | Retains all elements, consumes memory, and requires per-group accumulation coordination. |
+| `counting` downstream | Retains little data, yet can still contend on a hot group. |
+| Concurrent downstream | Can help reduce bottlenecks, though concurrent structures also have overhead. |
+| Mapper/classifier cost | If computation is heavy, synchronization overhead is a smaller fraction; if very cheap, overhead stands out easily. |
+| Source Spliterator | Poorly splittable sources limit parallel gains even with an optimal collector. |
+| Ordered vs unordered | `groupingByConcurrent` drops the obligation to preserve encounter order, which can help if business rules allow it. |
 
-Không nên kết luận `groupingByConcurrent` luôn tốt hơn `groupingBy`. Với dataset nhỏ hoặc số nhóm rất ít, việc chia nguồn và phối hợp có thể khiến nó chậm hơn. Với dữ liệu có thứ tự mà kết quả đòi giữ thứ tự trong từng nhóm, `groupingByConcurrent` còn có thể **sai yêu cầu nghiệp vụ**, dù thời gian benchmark đẹp.
+You should not conclude that `groupingByConcurrent` is always better than `groupingBy`. With small datasets or very few groups, splitting the source and coordinating can make it slower. With ordered data where results must keep per-group ordering, `groupingByConcurrent` can also **violate business requirements**, even if benchmark timings look good.
 
-## 12. Chọn factory cho map ngoài: đồng thời không đồng nghĩa không có thứ tự khóa
+## 12. Choosing a Factory for the Outer Map: Concurrent Does Not Mean Unsorted Keys
 
-Overload ba tham số cho phép chọn loại `ConcurrentMap`:
+The three-parameter overload lets you choose the `ConcurrentMap` type:
 
 ```java
 import java.util.Arrays;
@@ -776,17 +776,17 @@ ConcurrentMap<String, Long> counts = Arrays.asList(
 System.out.println(counts.keySet()); // [API, DB, UI]
 ```
 
-`ConcurrentSkipListMap` duyệt khóa theo thứ tự sắp xếp, khác với `ConcurrentHashMap` vốn không bảo đảm thứ tự duyệt. Nhưng **thứ tự khóa được sắp xếp** không đồng nghĩa với việc giữ encounter order của từng phần tử thuộc nhóm. Collector vẫn là `UNORDERED`.
+`ConcurrentSkipListMap` iterates keys in sorted order, unlike `ConcurrentHashMap` which guarantees no iteration order. However, **sorted key order** does not mean preserving the encounter order of individual elements within each group. The collector is still `UNORDERED`.
 
-Khi chọn comparator cho map có thứ tự, cần hiểu quy tắc trùng khóa: comparator trả `0` có nghĩa các khóa tương đương đối với map có thứ tự. Không sử dụng comparator có trạng thái thay đổi hoặc bất nhất.
+When choosing a comparator for a sorted map, understand key equivalence rules: a comparator returning `0` means the keys are equivalent to the sorted map. Do not use a stateful or inconsistent comparator.
 
-Nếu chỉ cần hiển thị dữ liệu theo thứ tự khóa, cũng có thể **sắp xếp sau khi thu thập** để tách biệt logic tích lũy với logic hiển thị.
+If you only need to display data in key order, you can also **sort after collection** to decouple accumulation logic from display logic.
 
-## 13. Tính đúng đắn: những điều cần và không cần kiểm tra
+## 13. Correctness: What to Check and What Not to Check
 
-Với dữ liệu nguồn bất biến trong suốt pipeline, classifier/mapper không có side effect, downstream hợp lệ, một pipeline song song phải tạo kết quả đúng theo hợp đồng thu thập.
+With source data immutable throughout the pipeline, side-effect-free classifier/mapper, and a valid downstream, a parallel pipeline must produce correct results per the collection contract.
 
-Ví dụ kiểm tra số lượng thay vì thứ tự trong danh sách:
+Example checking counts rather than list order:
 
 ```java
 import java.util.List;
@@ -806,83 +806,83 @@ ConcurrentMap<Integer, List<Integer>> grouped =
 for (int key = 0; key < 4; key++) {
     List<Integer> group = grouped.get(key);
     if (group == null || group.size() != 2500) {
-        throw new AssertionError("Sai số phần tử nhóm " + key);
+        throw new AssertionError("Wrong element count for group " + key);
     }
     for (int n : group) {
         if (n % 4 != key) {
-            throw new AssertionError("Sai classifier");
+            throw new AssertionError("Wrong classifier");
         }
     }
 }
 ```
 
-Nếu còn cần chứng minh **không mất hoặc lặp phần tử**, có thể tạo một tập kiểm tra hoặc đếm tần suất giá trị trong từng nhóm khi nguồn có định danh duy nhất. Không được chỉ kiểm tra tổng kích thước nếu dữ liệu có thể bị ghi trùng mà vẫn giữ tổng.
+If you also need to prove **no elements were lost or duplicated**, build a verification set or count value frequencies in each group when the source has unique identifiers. Never check only total size if data could be duplicated while keeping the total unchanged.
 
-**Không kiểm tra:**
+**Do not assert:**
 
-- `grouped.get(key)` phải có thứ tự giống phần tử gốc của `IntStream.range`.
-- Mọi worker phải xử lý một số lượng phần tử bằng nhau.
-- Downstream `toList` phải là `ArrayList` hay một kiểu list thread-safe.
-- `groupingByConcurrent` nhất thiết nhanh hơn phiên bản tuần tự.
+- `grouped.get(key)` must have the same order as the original elements of `IntStream.range`.
+- Every worker must process an equal number of elements.
+- Downstream `toList` must be `ArrayList` or a thread-safe list type.
+- `groupingByConcurrent` must necessarily be faster than the sequential version.
 
-Với nguồn chứa `null`, classifier trả `null`, merger không kết hợp, key có `hashCode` thay đổi hoặc lambda phụ thuộc trạng thái chia sẻ, phải xử lý các vấn đề đó **trước khi** đánh giá hiệu năng.
+For sources containing `null`, classifiers returning `null`, non-associative mergers, keys with mutating `hashCode`, or lambdas depending on shared state, fix those issues **before** evaluating performance.
 
-## 14. Đo hiệu năng có phân bố khóa và downstream rõ ràng
+## 14. Measuring Performance with Clear Key Distributions and Downstreams
 
-Để tìm hiểu ảnh hưởng downstream, hãy tạo một benchmark với các biến độc lập:
+To study downstream impact, create a benchmark with independent variables:
 
-1. **Kích thước nguồn:** ví dụ 1.000, 100.000, 1.000.000 phần tử.
-2. **Phân bố khóa:** phân bố đều trên nhiều khóa và phân bố lệch rất mạnh về một khóa.
-3. **Downstream:** `counting`, `toList`, `summarizingLong`; nếu có nhu cầu thật, bổ sung custom concurrent collector.
-4. **Cách thu thập:** `groupingBy` và `groupingByConcurrent`, chạy tuần tự và song song theo thiết kế so sánh.
-5. **Môi trường:** số core, JDK, kích thước heap, mức tải và cách JMH thực thi benchmark.
+1. **Source size:** e.g., 1,000, 100,000, 1,000,000 elements.
+2. **Key distribution:** uniform across many keys and heavily skewed toward a single key.
+3. **Downstream:** `counting`, `toList`, `summarizingLong`; if genuinely needed, add a custom concurrent collector.
+4. **Collection strategy:** `groupingBy` and `groupingByConcurrent`, run sequentially and in parallel per comparison design.
+5. **Environment:** core count, JDK, heap size, system load, and how JMH runs the benchmark.
 
-Mọi phương án phải xuất phát từ **cùng dữ liệu** và tính **cùng chỉ số nghiệp vụ** khi so sánh thời gian. Không so `counting` với `toList` rồi tuyên bố collector A nhanh hơn B “trong cùng bài toán” nếu một bên giữ danh sách còn bên kia chỉ đếm; đó là hai mức công việc và hai hợp đồng đầu ra khác nhau.
+All options must start from **the same data** and compute **the same business metric** when comparing timings. Do not compare `counting` against `toList` and claim collector A is faster than B “on the same problem” when one retains lists and the other only counts; those are two different workloads and two different output contracts.
 
-Với JMH, dùng warm-up, nhiều measurement/fork và tiêu thụ kết quả phù hợp. Theo dõi `time/op`, throughput, allocation và GC nếu cần. **Không tự bịa số đo**: thời gian thay đổi theo phân bố khóa, thuật toán downstream, Spliterator và phần cứng.
+With JMH, use warm-up, multiple measurement/fork iterations, and proper result consumption. Track `time/op`, throughput, allocation, and GC if needed. **Do not fabricate numbers**: timings vary with key distribution, downstream algorithm, Spliterator, and hardware.
 
-Một bảng báo cáo hợp lý:
+A reasonable reporting table:
 
-| Nguồn | Phân bố khóa | Downstream | Collector ngoài | Thời gian (đo thực tế) | Ghi chú |
+| Source | Key Distribution | Downstream | Outer Collector | Time (Measured) | Notes |
 | --- | --- | --- | --- | --- | --- |
-| 100.000 sự kiện | Đều | `counting` | `groupingBy` | Điền sau khi đo | Baseline |
-| 100.000 sự kiện | Đều | `counting` | `groupingByConcurrent` | Điền sau khi đo | So chi phí gộp map |
-| 100.000 sự kiện | Lệch mạnh | `counting` | `groupingByConcurrent` | Điền sau khi đo | Theo dõi hot key |
-| 100.000 sự kiện | Lệch mạnh | `toList` | `groupingByConcurrent` | Điền sau khi đo | Thêm chi phí lưu phần tử |
+| 100,000 events | Uniform | `counting` | `groupingBy` | Fill after measuring | Baseline |
+| 100,000 events | Uniform | `counting` | `groupingByConcurrent` | Fill after measuring | Compare map merge cost |
+| 100,000 events | Heavily skewed | `counting` | `groupingByConcurrent` | Fill after measuring | Watch hot key |
+| 100,000 events | Heavily skewed | `toList` | `groupingByConcurrent` | Fill after measuring | Adds element storage cost |
 
-### Vì sao một downstream concurrent có thể vẫn chậm?
+### Why Can a Concurrent Downstream Still Be Slow?
 
-Một queue concurrent có thể làm nhiều thread thêm phần tử vào cùng nhóm mà không cần khóa độc quyền của collector ngoài. Nhưng nó vẫn có overhead quản lý nút và truy cập đồng thời. Với việc chỉ cần **đếm**, tạo queue chứa mọi phần tử thường là thiết kế **tốn bộ nhớ hơn nhiều** so với một bộ đếm. Hãy tối ưu **đúng yêu cầu dữ liệu đầu ra** trước khi tối ưu công nghệ đồng thời.
+A concurrent queue lets multiple threads append elements to the same group without an exclusive lock from the outer collector. Yet it still has node-management and concurrent-access overhead. When you only need to **count**, creating a queue holding every element is usually a **much more memory-intensive** design than a counter. Optimize for **the exact output data requirement** before optimizing concurrency mechanisms.
 
-## 15. Các sai lầm thường gặp
+## 15. Common Mistakes
 
-| Nhận định hoặc cách làm sai | Vấn đề | Cách sửa |
+| Incorrect Claim or Practice | Issue | Fix |
 | --- | --- | --- |
-| “`groupingByConcurrent` dùng `toList` là không thread-safe nên sai.” | Nhầm an toàn của **collector trong lúc thu thập** với thread-safety của **list kết quả**. | Dùng collector chuẩn theo hợp đồng; đừng sửa list kết quả đồng thời ngoài pipeline. |
-| “Map concurrent thì value nào cũng concurrent.” | `ConcurrentMap<K,List<V>>` không làm `List` tự an toàn luồng. | Chọn value immutable, concurrent hoặc đồng bộ riêng theo nhu cầu. |
-| “Thêm `ConcurrentLinkedQueue` vào `toCollection` là có collector `CONCURRENT`.” | Đặc tính collector không được suy ra từ lớp container. | Dùng collector được thiết kế, kiểm tra và khai báo `CONCURRENT` đúng cách. |
-| “`groupingByConcurrent` giữ thứ tự dữ liệu theo nhóm.” | Collector `UNORDERED` không hứa encounter order. | Chọn `groupingBy` phù hợp nếu thứ tự bắt buộc; hoặc sắp xếp kết quả. |
-| “Dùng `toList` khi chỉ cần đếm.” | Tạo nhiều đối tượng và giữ dữ liệu không cần thiết. | Dùng `counting`. |
-| “Downstream không concurrent làm parallel stream không thể chạy.” | Framework có thể phối hợp accumulator theo đặc tính downstream. | Vẫn dùng được; đo tranh chấp nếu hiệu năng quan trọng. |
-| “Cứ có nhiều core thì `groupingByConcurrent` luôn nhanh hơn.” | Hot key, overhead và nguồn khó chia có thể triệt tiêu lợi ích. | Đo trên khóa phân bố thực tế; so với tuần tự và `groupingBy`. |
-| “`LongSummaryStatistics` trả ra có thể cập nhật từ nhiều thread.” | Đối tượng mutable không được thiết kế để cùng cập nhật không đồng bộ. | Chốt thành DTO immutable hoặc phối hợp riêng. |
-| “`collectingAndThen` biến downstream thành concurrent.” | Finisher chỉ chuyển kết quả, không làm accumulator tự an toàn luồng. | Xét đặc tính downstream và collector tổng hợp. |
-| “Classifier có thể trả `null`.” | Collector phân nhóm concurrent từ chối khóa null. | Xác thực hoặc dùng khóa đại diện rõ nghĩa trước khi nhóm. |
+| “`groupingByConcurrent` using `toList` is not thread-safe so it is wrong.” | Confuses **collector safety during collection** with thread-safety of the **resulting list**. | Use standard collectors per contract; do not concurrently mutate result lists outside the pipeline. |
+| “If the map is concurrent, every value is concurrent too.” | `ConcurrentMap<K,List<V>>` does not make `List` automatically thread-safe. | Choose immutable, concurrent, or separately synchronized values as needed. |
+| “Passing `ConcurrentLinkedQueue` to `toCollection` gives a `CONCURRENT` collector.” | Collector characteristics are not inferred from the container class. | Use a collector properly designed, tested, and declared with `CONCURRENT`. |
+| “`groupingByConcurrent` preserves data order within groups.” | An `UNORDERED` collector does not promise encounter order. | Choose `groupingBy` appropriately if order is mandatory, or sort results. |
+| “Using `toList` when only a count is needed.” | Allocates many objects and retains unnecessary data. | Use `counting`. |
+| “A non-concurrent downstream prevents parallel streams from running.” | The framework can coordinate the accumulator per downstream characteristics. | Still works; measure contention if performance matters. |
+| “With many cores, `groupingByConcurrent` is always faster.” | Hot keys, overhead, and poorly splittable sources can negate benefits. | Measure on realistic key distributions; compare with sequential and `groupingBy`. |
+| “Returned `LongSummaryStatistics` can be updated from multiple threads.” | Mutable object not designed for unsynchronized concurrent updates. | Finalize into an immutable DTO or coordinate separately. |
+| “`collectingAndThen` makes the downstream concurrent.” | The finisher only transforms the result; it does not make the accumulator thread-safe. | Inspect downstream and composed collector characteristics. |
+| “The classifier can return `null`.” | Concurrent grouping collectors reject null keys. | Validate or use a meaningful sentinel key before grouping. |
 
-## 16. Bài tập thực hành
+## 16. Practice Exercises
 
-**Bài 1 — Phân biệt ba lớp.** Với `groupingByConcurrent(Event::type, mapping(Event::id, toList()))`, xác định: (a) collector ngoài có đặc tính nào, (b) downstream có concurrent không, (c) có thể sửa danh sách kết quả đồng thời từ nhiều thread không. Giải thích vì sao không nên lẫn lộn ba câu hỏi.
+**Exercise 1 — Distinguish Three Layers.** Given `groupingByConcurrent(Event::type, mapping(Event::id, toList()))`, identify: (a) which characteristics the outer collector has, (b) whether the downstream is concurrent, (c) whether the resulting lists can be mutated concurrently from multiple threads. Explain why these three questions must not be conflated.
 
-**Bài 2 — Đếm thay vì lưu toàn bộ.** Từ một triệu mã dịch vụ, dùng `parallelStream().collect(groupingByConcurrent(identity(), counting()))` để đếm theo mã. Kiểm tra tổng mọi count bằng số lượng đầu vào. So sánh chi phí bộ nhớ dự kiến với downstream `toList`.
+**Exercise 2 — Count Instead of Storing Everything.** From one million service codes, use `parallelStream().collect(groupingByConcurrent(identity(), counting()))` to count by code. Verify the sum of all counts equals the input size. Compare expected memory cost against a `toList` downstream.
 
-**Bài 3 — Khóa nóng.** Sinh dữ liệu sao cho 99% phần tử thuộc một khóa, 1% thuộc nhiều khóa còn lại. So sánh `groupingBy` và `groupingByConcurrent` cùng downstream `counting` bằng JMH. Tại sao kết quả có thể khác so với dữ liệu phân bố đều?
+**Exercise 3 — Hot Key.** Generate data such that 99% of elements belong to one key and 1% belong to remaining keys. Compare `groupingBy` and `groupingByConcurrent` with downstream `counting` using JMH. Why might the results differ from evenly distributed data?
 
-**Bài 4 — Thống kê bất biến.** Dùng `groupingByConcurrent(category, summarizingLong(amount))`, sau đó chuyển từng `LongSummaryStatistics` thành record chỉ có trường primitive và chốt map bằng `Map.copyOf`. Vì sao chỉ dùng `Map.copyOf` mà giữ `LongSummaryStatistics` chưa đủ?
+**Exercise 4 — Immutable Statistics.** Use `groupingByConcurrent(category, summarizingLong(amount))`, then convert each `LongSummaryStatistics` into a record with only primitive fields and seal the map with `Map.copyOf`. Why is using `Map.copyOf` alone while keeping `LongSummaryStatistics` insufficient?
 
-**Bài 5 — Grouping và filtering.** Từ danh sách các alert theo service, dùng `groupingByConcurrent(service, filtering(severe, counting()))`. So sánh với việc `stream.filter(severe)` trước khi nhóm. Với service chỉ có alert không nghiêm trọng, hai kết quả có khác nhau không?
+**Exercise 5 — Grouping and Filtering.** From a list of alerts by service, use `groupingByConcurrent(service, filtering(severe, counting()))`. Compare with `stream.filter(severe)` before grouping. For a service that only has non-severe alerts, do the two results differ?
 
-**Bài 6 — Collector tùy chỉnh.** Tạo một collector `CONCURRENT` từ `ConcurrentLinkedQueue`. Giải thích trách nhiệm của supplier, accumulator và combiner; vì sao `UNORDERED` phù hợp; và điều gì sai nếu supplier luôn trả về **cùng một queue dùng chung** cho tất cả nhóm.
+**Exercise 6 — Custom Collector.** Create a `CONCURRENT` collector backed by `ConcurrentLinkedQueue`. Explain the responsibilities of supplier, accumulator, and combiner; why `UNORDERED` is appropriate; and what goes wrong if the supplier always returns **the same shared queue** for all groups.
 
-**Bài 7 — Map con đồng thời.** Gom các mặt hàng theo category, rồi theo SKU bằng downstream `toConcurrentMap` có `Integer::sum`. Thử dữ liệu có SKU trùng; điều gì xảy ra nếu dùng overload không có merge function?
+**Exercise 7 — Concurrent Sub-Map.** Group items by category, then by SKU using downstream `toConcurrentMap` with `Integer::sum`. Test data with duplicate SKUs; what happens if you use the overload without a merge function?
 
-**Ghi nhớ:** `groupingByConcurrent` cung cấp cơ chế **thu thập đồng thời và không bảo đảm encounter order** ở tầng phân nhóm. Downstream quyết định **dạng giá trị, lượng trạng thái cần giữ và khả năng tranh chấp ở từng khóa**. Downstream như `toList` hoặc `counting` không phải concurrent collector nhưng vẫn được phép dùng bên trong `groupingByConcurrent` vì framework phối hợp tích lũy theo hợp đồng. Đừng nhầm điều đó với tính an toàn luồng của collection kết quả; chọn downstream theo nhu cầu dữ liệu và benchmark các phân bố khóa thực tế trước khi kết luận hiệu năng.
+**Remember:** `groupingByConcurrent` provides **concurrent, non-encounter-order-preserving collection** at the grouping layer. The downstream determines **the value shape, how much state is retained, and the potential for per-key contention**. Downstreams like `toList` or `counting` are not concurrent collectors, yet they are still valid inside `groupingByConcurrent` because the framework coordinates accumulation per the contract. Do not confuse that with thread safety of the resulting collections; choose downstreams based on data requirements and benchmark realistic key distributions before drawing performance conclusions.

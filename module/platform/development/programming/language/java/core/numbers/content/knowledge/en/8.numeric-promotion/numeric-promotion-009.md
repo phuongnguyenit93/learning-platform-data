@@ -1,42 +1,42 @@
-# Overload: nâng kiểu primitive, boxing và giới hạn kết hợp trong Java
+# Overloading: primitive promotion, boxing, and combination limits in Java
 
-Khi một lớp có nhiều phương thức cùng tên nhưng khác danh sách tham số (**overload**), Java chọn chữ ký sẽ gọi **tại thời điểm biên dịch** theo kiểu tĩnh của đối số. Sự lựa chọn này phụ thuộc vào những phép chuyển kiểu được cho phép ở từng giai đoạn xét overload. Ba khái niệm quan trọng là **widening primitive** (mở rộng kiểu nguyên thủy), **boxing/unboxing** (đóng hộp/mở hộp) và giới hạn khi kết hợp chúng.
+When a class has multiple methods with the same name but different parameter lists (**overloads**), Java selects which signature to call **at compile time** based on the static types of the arguments. This choice depends on which conversions are permitted at each stage of overload resolution. Three key concepts are **widening primitive conversion**, **boxing/unboxing**, and the limits on combining them.
 
-Sau bài này, bạn có thể dự đoán vì sao `m(7)` chọn `m(long)` thay vì `m(Integer)`; vì sao `int` không tự trở thành `Long`; và khi nào compiler ưu tiên một overload cố định thay vì varargs.
+After this lesson, you will be able to predict why `m(7)` selects `m(long)` rather than `m(Integer)`; why `int` does not automatically become `Long`; and when the compiler prefers a fixed-arity overload over varargs.
 
-## 1. Hiểu ba nhóm chuyển kiểu
+## 1. Understanding the three conversion groups
 
-### Widening primitive
+### Widening primitive conversion
 
-Widening primitive mở rộng một kiểu nguyên thủy sang kiểu có miền biểu diễn khác: `byte → short → int → long → float → double`; `char → int → long → float → double`; `short → int → long → float → double`. Không có chuyển đổi số tự động từ `boolean`; `char` không widening sang `short`.
+Widening primitive conversion expands a primitive type to one with a different representation range: `byte → short → int → long → float → double`; `char → int → long → float → double`; `short → int → long → float → double`. There is no automatic numeric conversion from `boolean`; `char` does not widen to `short`.
 
 ~~~java
 static void write(long value) { }
 
 byte number = 7;
-write(number); // byte -> long: hợp lệ
-write(7);      // int -> long: hợp lệ
+write(number); // byte -> long: valid
+write(7);      // int -> long: valid
 ~~~
 
-Widening primitive thường không mất phạm vi giá trị nhưng **có thể mất độ chính xác** với số lớn chuyển sang `float` hoặc `double`. Đây không phải narrowing primitive: `long → int` cần cast tường minh.
+Widening primitive conversion usually does not lose value range, though it **can lose precision** when large integers are converted to `float` or `double`. This is not narrowing primitive conversion: `long → int` requires an explicit cast.
 
-### Boxing và unboxing
+### Boxing and unboxing
 
-Boxing đổi một giá trị primitive thành wrapper tương ứng, chẳng hạn `int → Integer`, `long → Long`, `byte → Byte`. Unboxing đổi ngược lại, như `Integer → int`. Wrapper là đối tượng và có thể bằng `null`; nếu unbox `null`, Java ném `NullPointerException` khi thực thi.
+Boxing converts a primitive value into its corresponding wrapper, such as `int → Integer`, `long → Long`, `byte → Byte`. Unboxing converts the reverse, such as `Integer → int`. Wrappers are objects and can be `null`; if `null` is unboxed, Java throws `NullPointerException` at runtime.
 
 ~~~java
 static void takeInteger(Integer value) { }
 
 takeInteger(7);         // boxing int -> Integer
-Integer boxed = 7;     // boxing trong phép gán
+Integer boxed = 7;     // boxing in assignment
 int plain = boxed;     // unboxing Integer -> int
 ~~~
 
-`Integer` và `Long` là hai class wrapper riêng, không có quan hệ kế thừa giữa chúng; truyền wrapper này cho tham số wrapper kia không phải là widening reference.
+`Integer` and `Long` are two separate wrapper classes with no inheritance relationship between them; passing one wrapper for another wrapper parameter is not a widening reference conversion.
 
-### Widening reference
+### Widening reference conversion
 
-`Integer → Number → Object` là các chuyển đổi mở rộng kiểu tham chiếu (widening reference). Chúng không cần unboxing.
+`Integer → Number → Object` are widening reference conversions. They require no unboxing.
 
 ~~~java
 static void takeNumber(Number value) { }
@@ -45,25 +45,25 @@ Integer x = 7;
 takeNumber(x); // Integer -> Number: widening reference
 ~~~
 
-Nếu primitive `int` được truyền vào tham số `Object`, Java có thể **boxing `int → Integer` rồi widening reference `Integer → Object`**.
+If a primitive `int` is passed to an `Object` parameter, Java can **box `int → Integer` and then apply widening reference conversion `Integer → Object`**.
 
-## 2. Java xét overload theo ba pha
+## 2. Java resolves overloads in three phases
 
-Theo Java Language Specification `15.12.2, compiler tìm phương thức có thể áp dụng theo thứ tự sau:
+According to Java Language Specification `15.12.2`, the compiler searches for applicable methods in the following order:
 
-| Pha | Khi nào áp dụng | Chuyển kiểu |
+| Phase | When applied | Conversions |
 | --- | --- | --- |
-| 1 — strict invocation | Số đối số cố định; không boxing/unboxing và không trải varargs | Khớp kiểu, widening primitive, widening reference |
-| 2 — loose invocation | Nếu pha 1 không có ứng viên; vẫn số đối số cố định | Thêm boxing/unboxing và các chuỗi chuyển hợp lệ |
-| 3 — variable arity | Nếu hai pha trước không có ứng viên | Gọi varargs bằng các đối số phần tử |
+| 1 — strict invocation | Fixed number of arguments; no boxing/unboxing and no varargs expansion | Exact match, widening primitive, widening reference |
+| 2 — loose invocation | If phase 1 has no candidates; still fixed number of arguments | Adds boxing/unboxing and valid conversion chains |
+| 3 — variable arity | If the previous two phases have no candidates | Invokes varargs with individual element arguments |
 
-**Tìm được ứng viên ở pha nào thì dừng việc tìm pha sau ngay ở pha ấy.** Trong pha đang xét, nếu nhiều overload có thể áp dụng, Java chọn phương thức **cụ thể nhất** (most specific). Nếu không xác định được lựa chọn duy nhất, lỗi `ambiguous method call`; nếu không overload nào áp dụng, lỗi biên dịch.
+**Once candidates are found in a phase, the search stops at that phase without checking later phases.** Within the phase under consideration, if multiple overloads are applicable, Java selects the **most specific** method. If no single most specific choice can be determined, an `ambiguous method call` error occurs; if no overload applies, a compile error occurs.
 
-Điều này giải thích khẩu quyết “widening trước boxing, boxing trước varargs” trong các ví dụ đơn giản. Tuy nhiên “thắng” ở đây nói về **pha xét tính áp dụng**; nó không thay thế quy tắc chọn phương thức cụ thể nhất khi nhiều chữ ký cùng pha cạnh tranh.
+This explains the rule of thumb "widening before boxing, boxing before varargs" in simple examples. However, "winning" here refers to the **applicability phase**; it does not replace the most-specific selection rule when multiple signatures compete in the same phase.
 
-Một hàm khai báo `void f(int... values)` thực chất có tham số mảng `int[]`. Khi truyền một `int[]` vào hàm, nó được xét như lời gọi có số đối số cố định ngay pha 1; chỉ khi truyền các phần tử riêng lẻ để Java đóng gói mảng mới cần pha 3.
+A method declared `void f(int... values)` actually has an `int[]` array parameter. When an `int[]` is passed to the method, it is treated as a fixed-arity call right in phase 1; only when individual elements are passed for Java to pack into an array is phase 3 needed.
 
-## 3. Vì sao `int` ưu tiên `long` hơn `Integer`?
+## 3. Why does `int` prefer `long` over `Integer`?
 
 ~~~java
 static String choose(long value) {
@@ -74,48 +74,48 @@ static String choose(Integer value) {
 }
 ~~~
 
-- `choose(7)`: literal `7` có kiểu `int`. `int → long` là widening primitive nên overload `long` áp dụng ở pha 1. `int → Integer` là boxing, chỉ đến pha 2 mới được xét. Chọn `long`.
-- `byte b = 7; choose(b)`: `byte → long` là widening primitive ở pha 1. Không có boxing trực tiếp `byte → Integer`. Chọn `long`.
-- `choose(Integer.valueOf(7))`: đối số có kiểu `Integer`. Overload `Integer` là khớp chính xác ở pha 1, còn `long` cần unboxing `Integer → int` rồi widening `int → long` ở pha 2. Chọn `Integer`.
+- `choose(7)`: literal `7` has type `int`. `int → long` is a widening primitive conversion, so the `long` overload is applicable in phase 1. `int → Integer` is boxing, which is only considered in phase 2. `long` is chosen.
+- `byte b = 7; choose(b)`: `byte → long` is a widening primitive conversion in phase 1. There is no direct `byte → Integer` boxing. `long` is chosen.
+- `choose(Integer.valueOf(7))`: the argument has type `Integer`. The `Integer` overload is an exact match in phase 1, whereas `long` requires unboxing `Integer → int` and then widening `int → long` in phase 2. `Integer` is chosen.
 
-Điều đáng ghi nhớ là **kiểu tĩnh của biểu thức đối số**, không chỉ giá trị bằng số. `7`, `7L` và `Integer.valueOf(7)` không có cùng kiểu.
+The key point to remember is the **static type of the argument expression**, not just its numeric value. `7`, `7L`, and `Integer.valueOf(7)` do not have the same type.
 
-## 4. Những chuỗi kết hợp được phép và bị chặn
+## 4. Permitted and disallowed conversion chains
 
-Trong ngữ cảnh gọi phương thức, quy tắc `method invocation conversion` không cho phép nối tùy tiện mọi phép chuyển kiểu.
+In a method invocation context, `method invocation conversion` rules do not allow arbitrarily chaining any conversions together.
 
-| Đối số | Tham số | Kết quả | Lý do |
+| Argument | Parameter | Result | Reason |
 | --- | --- | --- | --- |
-| `byte` | `long` | Hợp lệ | Widening primitive |
-| `int` | `Integer` | Hợp lệ | Boxing |
-| `int` | `Object` | Hợp lệ | Boxing rồi widening reference: `int → Integer → Object` |
-| `Integer` | `long` | Hợp lệ | Unboxing rồi widening primitive: `Integer → int → long` |
-| `Integer` | `Number` | Hợp lệ | Widening reference |
-| `int` | `Long` | **Không** | Không tự widening primitive rồi boxing: `int → long → Long` |
-| `byte` | `Integer` | **Không** | Không tự widening primitive rồi boxing: `byte → int → Integer` |
-| `Integer` | `Long` | **Không** | Không tự unbox, widen rồi box lại |
-| `long` | `int` | **Không** | Narrowing primitive cần cast |
+| `byte` | `long` | Valid | Widening primitive |
+| `int` | `Integer` | Valid | Boxing |
+| `int` | `Object` | Valid | Boxing then widening reference: `int → Integer → Object` |
+| `Integer` | `long` | Valid | Unboxing then widening primitive: `Integer → int → long` |
+| `Integer` | `Number` | Valid | Widening reference |
+| `int` | `Long` | **No** | No automatic widening primitive then boxing: `int → long → Long` |
+| `byte` | `Integer` | **No** | No automatic widening primitive then boxing: `byte → int → Integer` |
+| `Integer` | `Long` | **No** | No automatic unbox, widen, then re-box |
+| `long` | `int` | **No** | Narrowing primitive requires a cast |
 
-Hai mẫu kết hợp phải nhớ là **boxing + widening reference** và **unboxing + widening primitive**. Ngoài ra, quy tắc loose invocation trong JLS còn có trường hợp widening reference rồi unboxing (sau đó có thể widening primitive), nhưng không có nghĩa một `Object` bất kỳ tự động được unbox như kiểu mong muốn: quan hệ kiểu và wrapper phải hợp lệ.
+Two valid combination patterns to remember are **boxing + widening reference** and **unboxing + widening primitive**. In addition, loose invocation rules in the JLS also include widening reference followed by unboxing (potentially followed by widening primitive), though this does not mean an arbitrary `Object` is automatically unboxed as any desired type: the type relationship and wrapper must be valid.
 
-Ví dụ sau cho thấy giới hạn rất cụ thể:
+The following example shows a very specific limitation:
 
 ~~~java
 static void acceptLong(Long number) { }
 
-// acceptLong(7);          // LỖI: int không tự thành Long
-acceptLong(7L);            // long -> Long: hợp lệ
-acceptLong((long) 7);      // cast cho biểu thức có kiểu long, sau đó boxing
+// acceptLong(7);          // ERROR: int does not automatically become Long
+acceptLong(7L);            // long -> Long: valid
+acceptLong((long) 7);      // cast produces a long expression, then boxing
 acceptLong(Long.valueOf(7L));
 ~~~
 
-Với `acceptLong(7)`, compiler **không** tự thực hiện `int → long → Long`. Chọn literal `7L` hoặc chuyển biểu thức sang `long` trước khi gọi nếu API yêu cầu `Long`. Tương tự, một biến kiểu `Integer` không tự trở thành `Long`.
+For `acceptLong(7)`, the compiler **does not** automatically perform `int → long → Long`. Choose the `7L` literal or convert the expression to `long` before calling if the API requires `Long`. Similarly, an `Integer` variable does not automatically become `Long`.
 
-**Hằng số nguyên nhỏ không được tự narrowing khi gọi hàm.** `byte b = 7` là phép gán hợp lệ do quy tắc hằng số, nhưng `acceptByte(7)` không hợp lệ nếu hàm chỉ nhận `byte`, bởi literal `7` vẫn có kiểu `int`. Phải gọi `acceptByte((byte) 7)`.
+**Small integer constants are not automatically narrowed in method calls.** `byte b = 7` is a valid assignment due to constant rules, but `acceptByte(7)` is invalid if the method only accepts `byte`, because the literal `7` still has type `int`. You must call `acceptByte((byte) 7)`.
 
-## 5. Widening reference có thể được chọn trước unboxing
+## 5. Widening reference can be chosen before unboxing
 
-Xét hai overload:
+Consider two overloads:
 
 ~~~java
 static String fromWrapper(Number value) {
@@ -126,13 +126,13 @@ static String fromWrapper(long value) {
 }
 ~~~
 
-Với `Integer x = 7; fromWrapper(x)`, overload `Number` áp dụng bằng widening reference `Integer → Number` ở pha 1, trong khi overload `long` cần unboxing rồi widening `Integer → int → long` ở pha 2. Vì thế Java chọn `fromWrapper(Number)`.
+With `Integer x = 7; fromWrapper(x)`, the `Number` overload applies via widening reference `Integer → Number` in phase 1, whereas the `long` overload requires unboxing followed by widening `Integer → int → long` in phase 2. Therefore Java selects `fromWrapper(Number)`.
 
-Nếu lớp **chỉ có** `fromWrapper(long)`, lời gọi bằng `Integer` vẫn hoàn toàn hợp lệ vì `Integer → int → long` là một chuỗi cho phép ở pha loose invocation. Kết quả chọn `Number` phía trên xuất phát từ **thứ tự xét pha**, không phải vì mọi tham số object luôn được ưu tiên hơn primitive.
+If the class **only had** `fromWrapper(long)`, calling it with `Integer` would still be completely valid because `Integer → int → long` is an allowed chain in the loose invocation phase. Selecting `Number` above results from the **phase ordering**, not because every object parameter always outranks primitives.
 
-## 6. Ví dụ Java 17+ hoàn chỉnh
+## 6. Complete Java 17+ example
 
-Lưu tệp dưới tên `OverloadConversions.java`:
+Save the file as `OverloadConversions.java`:
 
 ~~~java
 public class OverloadConversions {
@@ -187,7 +187,7 @@ public class OverloadConversions {
 }
 ~~~
 
-Biên dịch và chạy với Java 17 trở lên:
+Compile and run with Java 17 or higher:
 
 ~~~bash
 javac OverloadConversions.java
@@ -208,23 +208,23 @@ dispatch(7, 8)=varargs 2
 boxed(7)=Integer
 ~~~
 
-Trong chín dòng trên, `choose(7)` minh họa widening primitive được xét trước boxing; `fromWrapper(Integer)` minh họa widening reference trước unboxing; `unboxAndWiden(Integer)` và `receiveObject(7)` minh họa hai chuỗi hợp lệ; `dispatch(7)` ưu tiên overload cố định còn `dispatch(7, 8)` cần varargs; `boxed(7)` chứng minh boxing hợp lệ khi pha 1 không có phương thức phù hợp. Các kết quả có thể tái hiện bằng mã trên.
+In the nine lines above, `choose(7)` illustrates widening primitive being considered before boxing; `fromWrapper(Integer)` illustrates widening reference before unboxing; `unboxAndWiden(Integer)` and `receiveObject(7)` illustrate two valid chains; `dispatch(7)` prefers the fixed overload while `dispatch(7, 8)` requires varargs; and `boxed(7)` demonstrates valid boxing when phase 1 has no matching method. These outputs are reproducible with the code above.
 
-## 7. Hai ví dụ cố ý gây lỗi compile
+## 7. Two intentional compile-error examples
 
-Các đoạn sau là **mã minh họa lỗi**, không đưa nguyên vào chương trình chạy độc lập ở mục 6.
+The snippets below are **error-demonstration code**, not to be placed directly into the standalone runnable program in section 6.
 
-### Không có chuỗi widening rồi boxing
+### No widening-then-boxing chain
 
 ~~~java
 static void accept(Long value) { }
 
-accept(7); // ERROR: int không tự đổi thành Long
+accept(7); // ERROR: int does not automatically convert to Long
 ~~~
 
-Sửa thành `accept(7L)` hoặc `accept(Long.valueOf(7L))` nếu định nghĩa hàm thực sự đòi wrapper `Long`. Không nên thêm overload chỉ để “dỗ” compiler nếu ngữ nghĩa API chưa rõ.
+Fix by writing `accept(7L)` or `accept(Long.valueOf(7L))` if the method definition truly requires a `Long` wrapper. Do not add overloads merely to "appease" the compiler when API semantics are unclear.
 
-### Hai wrapper khác nhau gây mơ hồ với `null`
+### Two different wrappers cause ambiguity with `null`
 
 ~~~java
 static void process(Integer value) { }
@@ -233,33 +233,33 @@ static void process(Long value) { }
 process(null); // ERROR: ambiguous method call
 ~~~
 
-Cả hai overload đều nhận tham chiếu `null`, nhưng `Integer` và `Long` không phải subtype của nhau, nên không thể chọn một overload cụ thể hơn duy nhất. Có thể làm rõ ý định bằng `process((Integer) null)` hoặc `process((Long) null)`. Đoạn ví dụ này giả định các phương thức cùng nằm trong một lớp và được gọi ở nơi có thể truy cập.
+Both overloads accept a `null` reference, yet `Integer` and `Long` are not subtypes of one another, so no unique most specific overload can be selected. You can clarify intent with `process((Integer) null)` or `process((Long) null)`. This snippet assumes the methods are in the same class and called from an accessible scope.
 
-## 8. Các lỗi suy luận và lưu ý thiết kế API
+## 8. Reasoning errors and API design notes
 
-1. **Nhầm kiểu của literal với miền giá trị.** `7` là `int`; `7L` là `long`; gán được `7` vào `byte` không chứng minh gọi `f(byte)` bằng `f(7)` là hợp lệ.
-2. **Nhầm wrapper với primitive cùng ý nghĩa số học.** `Integer` là tham chiếu, không phải alias của `int`. Compiler chỉ unbox ở những ngữ cảnh cho phép. Unboxing một wrapper `null` gây `NullPointerException`.
-3. **Chọn overload theo kiểu runtime của object.** Nếu `Number n = Integer.valueOf(7)`, overload resolution nhìn thấy `Number`. Runtime polymorphism chọn implementation của **chữ ký đã chọn**, không quay lại chọn overload `Integer` chỉ vì object thật là `Integer`.
-4. **Cho rằng varargs luôn ưu tiên hoặc luôn xếp sau mọi tình huống.** Phân biệt khai báo varargs được sử dụng như tham số mảng ở pha 1 với việc trải nhiều đối số riêng lẻ ở pha 3. Hai khai báo `f(int[])` và `f(int...)` không thể tồn tại như hai overload phân biệt, vì cùng chữ ký phương thức.
-5. **Cho rằng kiểu trả về quyết định overload.** Không thể khai báo đồng thời `int f(int)` và `long f(int)` chỉ khác return type. Việc viết `long result = f(7)` không làm compiler “tìm chữ ký trả về long” như một tiêu chí đơn giản để chọn overload.
-6. **Chọn theo số bước chuyển đổi.** Quy tắc đúng là phân pha rồi tìm phương thức cụ thể nhất trong pha phù hợp đầu tiên. Một chuỗi hai bước hợp lệ có thể được dùng nếu không có overload ở pha sớm hơn.
-7. **Dùng cast để che mâu thuẫn API.** Cast `(long) 7` tạo biểu thức kiểu `long`; cast `(Integer) 7` tạo biểu thức kiểu `Integer`. Cast có thể giúp chủ động chọn overload nhưng làm thay đổi ngữ nghĩa nếu áp dụng tùy tiện.
-8. **Mở rộng kết luận sang mọi generic/lambda.** Generic method inference, lambda và method reference có thêm quy tắc chọn overload cụ thể. Sử dụng ba pha như nền tảng, sau đó kiểm tra các quy tắc JLS liên quan và thử compiler với ví dụ thực tế.
+1. **Confusing a literal's type with its value range.** `7` is `int`; `7L` is `long`; being able to assign `7` to `byte` does not prove calling `f(byte)` via `f(7)` is valid.
+2. **Confusing a wrapper with a primitive of the same numeric meaning.** `Integer` is a reference, not an alias for `int`. The compiler only unboxes in permitted contexts. Unboxing a `null` wrapper throws `NullPointerException`.
+3. **Expecting overload selection by runtime object type.** If `Number n = Integer.valueOf(7)`, overload resolution sees `Number`. Runtime polymorphism picks the implementation of the **already chosen signature**, rather than switching to an `Integer` overload just because the actual object is an `Integer`.
+4. **Assuming varargs always wins or always ranks last in every situation.** Distinguish a varargs declaration used with an array argument in phase 1 from expanding individual arguments in phase 3. Two declarations `f(int[])` and `f(int...)` cannot coexist as distinct overloads because they have the same method signature.
+5. **Assuming the return type determines overload resolution.** You cannot simultaneously declare `int f(int)` and `long f(int)` differing only in return type. Writing `long result = f(7)` does not make the compiler "look for a signature returning long" as a simple overload selection criterion.
+6. **Selecting by step count.** The actual rule is phase ordering followed by finding the most specific method in the first matching phase. A valid two-step chain can be used if no overload exists in an earlier phase.
+7. **Using casts to mask API mismatches.** Casting `(long) 7` creates a `long` expression; casting `(Integer) 7` creates an `Integer` expression. Casts can help deliberately pick an overload, but alter semantics if applied carelessly.
+8. **Overgeneralizing conclusions to all generics/lambdas.** Generic method inference, lambdas, and method references have additional specific overload selection rules. Use the three phases as a foundation, then check relevant JLS rules and test with the compiler on concrete examples.
 
-## 9. Quy trình tự kiểm tra một lời gọi overload
+## 9. Checklist for inspecting an overloaded call
 
-1. Ghi chính xác **kiểu tĩnh** của từng đối số (`7`, `7L`, wrapper, biến tham chiếu, `null`).
-2. Liệt kê các overload cùng tên có thể truy cập và phù hợp về số lượng tham số.
-3. Tìm ứng viên **pha 1** chỉ bằng khớp kiểu/widening, không boxing/unboxing.
-4. Nếu pha 1 rỗng, xét **pha 2** với boxing/unboxing và các chuỗi hợp lệ; không tự chèn primitive widening rồi boxing.
-5. Nếu pha 2 rỗng, mới xét **pha 3** cho variable arity.
-6. Trong pha đầu có ứng viên, chọn phương thức **cụ thể nhất**; nếu nhiều ứng viên không có lựa chọn duy nhất thì lỗi biên dịch. Sau đó mới nghĩ về giá trị runtime và unboxing `null`.
+1. Note the exact **static type** of each argument (`7`, `7L`, wrapper, reference variable, `null`).
+2. List accessible overloads with the same name and compatible parameter count.
+3. Look for **phase 1** candidates using only exact match/widening, without boxing/unboxing.
+4. If phase 1 is empty, examine **phase 2** with boxing/unboxing and valid chains; never insert primitive widening followed by boxing.
+5. Only if phase 2 is empty, examine **phase 3** for variable arity.
+6. In the first phase with candidates, choose the **most specific** method; if multiple candidates yield no unique winner, it is a compile error. Only afterward consider runtime values and `null` unboxing.
 
-**Tự luyện:** Có `m(long)` và `m(Integer)`. `m(1)` chọn gì? `m(Integer.valueOf(1))` chọn gì? Một phương thức chỉ có chữ ký `use(Long)` có gọi được bằng `use(1)` không?
+**Practice:** Given `m(long)` and `m(Integer)`. What does `m(1)` select? What does `m(Integer.valueOf(1))` select? Can a method with only the signature `use(Long)` be called with `use(1)`?
 
-**Đáp án:** `m(1)` chọn `m(long)` (pha 1); `m(Integer.valueOf(1))` chọn `m(Integer)` (pha 1, khớp chính xác); `use(1)` không biên dịch vì `int → long → Long` không phải chuỗi chuyển đổi ngầm hợp lệ trong lời gọi.
+**Answer:** `m(1)` selects `m(long)` (phase 1); `m(Integer.valueOf(1))` selects `m(Integer)` (phase 1, exact match); `use(1)` does not compile because `int → long → Long` is not a valid implicit conversion chain in a method invocation.
 
-## Tài liệu chuẩn
+## Official references
 
-- [Java Language Specification §5.3 — Invocation Contexts](https://docs.oracle.com/javase/specs/jls/se21/html/jls-5.html#jls-5.3): các loại chuyển kiểu và chuỗi được phép.
-- [Java Language Specification §15.12.2 — Determine Method Signature](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.12.2): thứ tự ba pha và chọn phương thức cụ thể nhất.
+- [Java Language Specification §5.3 — Invocation Contexts](https://docs.oracle.com/javase/specs/jls/se21/html/jls-5.html#jls-5.3): conversion kinds and permitted chains.
+- [Java Language Specification §15.12.2 — Determine Method Signature](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.12.2): three-phase ordering and most specific method selection.

@@ -1,89 +1,89 @@
-# Phân biệt escape của mẫu tìm và escape của phần thay thế trong Java
+# Distinguishing Search Pattern Escaping and Replacement Escaping in Java
 
-## 1. Tại sao có hai kiểu escape khác nhau?
+## 1. Why Are There Two Different Types of Escaping?
 
-Khi thay thế bằng regex trong Java, ví dụ `text.replaceAll(regex, replacement)`, hai tham số đi qua **hai bộ quy tắc riêng**:
+When replacing with regex in Java, such as `text.replaceAll(regex, replacement)`, the two arguments go through **two separate sets of rules**:
 
-1. **Mẫu tìm (regex/pattern)** được giải thích bởi `java.util.regex.Pattern`. Các ký tự như `.`, `*`, `+`, `?`, `[`, `(`, `|`, `$` và dấu `\` có thể mang ý nghĩa đặc biệt đối với việc **tìm vị trí khớp**.
-2. **Chuỗi thay thế (replacement)** được giải thích bởi `java.util.regex.Matcher`. Ở đây, `$1`, `$2` hoặc `${name}` có nghĩa là **chèn nội dung nhóm bắt**, còn dấu `\` dùng để escape ký tự tiếp theo trong *replacement*. Các ký tự regex như `.` hay `*` trong replacement thông thường chỉ là văn bản.
-3. **Nếu viết trong mã nguồn Java**, cả regex lẫn replacement còn phải đi qua cú pháp *Java string literal*: viết `\\` trong mã nguồn để tạo **một** dấu `\` ở chuỗi lúc chạy. Đây là lớp escape thứ ba, dễ bị nhầm với hai lớp ở trên.
+1. **Search pattern (regex/pattern)** is interpreted by `java.util.regex.Pattern`. Characters such as `.`, `*`, `+`, `?`, `[`, `(`, `|`, `$`, and `\` can carry special meaning for **finding match positions**.
+2. **Replacement string (replacement)** is interpreted by `java.util.regex.Matcher`. Here, `$1`, `$2`, or `${name}` mean **insert capturing group content**, while `\` is used to escape the next character in the *replacement*. Regex characters like `.` or `*` in a replacement are normally just plain text.
+3. **When written in Java source code**, both the regex and the replacement must also pass through *Java string literal* syntax: write `\\` in source code to produce **one** `\` in the runtime string. This is the third escaping layer, easily confused with the two layers above.
 
-Hình dung luồng xử lý:
+Visualizing the processing flow:
 
 ```text
-Mã nguồn Java
+Java source code
      |
-     |  Java string literal (\\ trong source -> \ lúc chạy)
+     |  Java string literal (\\ in source -> \ at runtime)
      v
-regex -------------------> Pattern: quy tắc tìm kiếm
-replacement -------------> Matcher: quy tắc chèn/đổi nhóm
+regex -------------------> Pattern: search rules
+replacement -------------> Matcher: insertion/group-replacement rules
                                         |
                                         v
-                                   Chuỗi kết quả
+                                   Result string
 ```
 
-Ví dụ, `"\\."` dùng ở **regex** có nghĩa là tìm **dấu chấm thật**; `"\\$"` dùng ở **replacement** có nghĩa là ghi **ký tự đô la thật**. Hai cú pháp giống hình dạng (dấu `\` trong chuỗi Java) nhưng thuộc **hai bộ giải thích khác nhau**.
+For example, `"\\."` used in a **regex** means finding a **literal dot**; `"\\$"` used in a **replacement** means writing a **literal dollar sign**. The two syntaxes look similar in form (`\` in a Java string) but belong to **two different interpreters**.
 
-> Quy tắc cần nhớ: **`Pattern.quote(...)` bảo vệ mẫu tìm**; **`Matcher.quoteReplacement(...)` bảo vệ nội dung thay thế**. Dùng đúng hàm tại đúng đầu vào.
+> Rule to remember: **`Pattern.quote(...)` protects the search pattern**; **`Matcher.quoteReplacement(...)` protects the replacement content**. Use the right method on the right input.
 
-## 2. Escape của mẫu tìm: regex diễn giải các ký tự đặc biệt
+## 2. Search Pattern Escaping: How Regex Interprets Special Characters
 
-### 2.1. Mẫu tìm là regex, không mặc định là văn bản thuần
+### 2.1. The Search Pattern Is a Regex, Not Plain Text by Default
 
-Xét hai câu lệnh:
+Consider two statements:
 
 ```java
 System.out.println("a.b".replaceAll(".", "-"));    // ---
 System.out.println("a.b".replaceAll("\\.", "-")); // a-b
 ```
 
-- Regex `"."` khớp **bất kỳ một ký tự** thông thường (trừ một số ký tự xuống dòng tùy chế độ), nên cả `a`, `.` và `b` đều được thay.
-- Regex ở runtime `\.` khớp **dấu chấm thật**; trong Java source phải viết `"\\."`, nên chỉ một dấu chấm được thay.
+- The regex `"."` matches **any single** ordinary character (except certain newline characters depending on mode), so `a`, `.`, and `b` are all replaced.
+- The runtime regex `\.` matches a **literal dot**; in Java source it must be written `"\\."`, so only the single dot is replaced.
 
-Bảng sau đọc từ **mã nguồn Java** sang ý nghĩa tìm kiếm:
+The following table reads from **Java source code** to search meaning:
 
-| Muốn tìm | Java source cho regex | Regex ở runtime | Ý nghĩa |
+| What to find | Java source for regex | Regex at runtime | Meaning |
 | --- | --- | --- | --- |
-| Dấu chấm `.` | `"\\."` | `\.` | Dấu chấm thông thường, không phải wildcard |
-| Một hoặc nhiều chữ số | `"\\d+"` | `\d+` | Regex cho dãy chữ số |
-| Ký tự `$` | `"\\$"` | `\$` | Dấu đô la thật, không phải mốc cuối |
-| Một dấu gạch chéo ngược `\` | `"\\\\"` | `\\` | Regex escape dấu `\` |
-| Từ "a" theo sau bởi chữ số | `"a\\d"` | `a\d` | Regex mô tả cấu trúc, không phải chuỗi cố định |
+| A dot `.` | `"\\."` | `\.` | Literal dot, not wildcard |
+| One or more digits | `"\\d+"` | `\d+` | Regex for digit sequence |
+| The `$` character | `"\\$"` | `\$` | Literal dollar sign, not end anchor |
+| One backslash `\` | `"\\\\"` | `\\` | Regex escaping `\` |
+| The letter "a" followed by a digit | `"a\\d"` | `a\d` | Regex describing structure, not a fixed string |
 
-Viết `"\d+"` hoặc `"\."` trực tiếp trong Java source sẽ gây lỗi biên dịch *illegal escape character*: `\d` và `\.` không phải escape hợp lệ của Java string literal. Điều này xảy ra **trước khi** regex engine nhận đầu vào.
+Writing `"\d+"` or `"\."` directly in Java source causes a compile error *illegal escape character*: `\d` and `\.` are not valid Java string literal escapes. This happens **before** the regex engine receives the input.
 
-### 2.2. Khi mẫu tìm đến từ dữ liệu người dùng
+### 2.2. When the Search Pattern Comes from User Input
 
-Nếu mục tiêu là tìm **đúng một chuỗi ký tự** do người dùng nhập, dùng `Pattern.quote(...)`:
+If the goal is to find **an exact character sequence** entered by a user, use `Pattern.quote(...)`:
 
 ```java
 String find = "$5.00";
-String source = "Giá là $5.00";
+String source = "Price is $5.00";
 String result = source.replaceAll(Pattern.quote(find), "10 USD");
-System.out.println(result); // Giá là 10 USD
+System.out.println(result); // Price is 10 USD
 ```
 
-Nếu dùng trực tiếp `"$5.00"` làm regex, ký tự `$` sẽ được hiểu là mốc kết thúc input, còn dấu `.` là ký tự bất kỳ; kết quả không phù hợp mục tiêu tìm văn bản `$5.00`. `Pattern.quote(find)` khiến toàn bộ nội dung `find` được xử lý như **văn bản literal**, kể cả khi chứa `\`, `$`, dấu ngoặc hoặc dấu `.`.
+If `"$5.00"` were used directly as a regex, `$` would be interpreted as the end-of-input anchor and `.` as any character; the result would not match the goal of finding the text `$5.00`. `Pattern.quote(find)` causes the entire content of `find` to be treated as **literal text**, even when it contains `\`, `$`, brackets, or `.`.
 
-Cách khác khi làm việc trực tiếp với `Pattern`:
+Another way when working directly with `Pattern`:
 
 ```java
 Pattern literal = Pattern.compile("$5.00", Pattern.LITERAL);
-System.out.println(literal.matcher("Giá là $5.00").find()); // true
+System.out.println(literal.matcher("Price is $5.00").find()); // true
 ```
 
-`Pattern.LITERAL` thay đổi **cách diễn giải pattern**, không thay đổi cú pháp replacement của `Matcher`. Nếu thật sự muốn tìm cấu trúc bằng regex (ví dụ `"\\d+"`), **không** quote toàn bộ regex, vì khi đó nó sẽ tìm ký tự `\`, `d`, `+` theo nghĩa đen.
+`Pattern.LITERAL` changes **how the pattern is interpreted**, not the replacement syntax of `Matcher`. If you actually want to match structure with regex (for example `"\\d+"`), do **not** quote the whole regex, because it would then literally look for `\`, `d`, `+`.
 
-## 3. Escape của phần thay thế: cú pháp riêng của Matcher
+## 3. Replacement Escaping: Matcher's Own Syntax
 
-Với `String.replaceAll(regex, replacement)`, `String.replaceFirst(regex, replacement)` và `Matcher.replaceAll(replacement)`, replacement không được hiểu như regex; thay vào đó nó có cú pháp riêng:
+For `String.replaceAll(regex, replacement)`, `String.replaceFirst(regex, replacement)`, and `Matcher.replaceAll(replacement)`, the replacement is not interpreted as a regex; instead it has its own syntax:
 
-- `$1`, `$2`, ... tham chiếu tới nhóm bắt tương ứng. `$0` là **toàn bộ lần khớp**.
-- `${name}` tham chiếu đến **nhóm bắt có tên**, được định nghĩa bằng `(?<name>...)` trong pattern.
-- `\` trong replacement escape ký tự tiếp theo; cần escape chính dấu `$` hoặc dấu `\` khi muốn chèn chúng theo nghĩa đen.
-- Một ký tự `$` không có tham chiếu nhóm hợp lệ có thể làm replacement lỗi. Tham chiếu tới nhóm không tồn tại cũng gây lỗi.
+- `$1`, `$2`, ... reference the corresponding capturing group. `$0` is the **entire match**.
+- `${name}` references a **named capturing group**, defined with `(?<name>...)` in the pattern.
+- `\` in the replacement escapes the next character; you must escape `$` or `\` itself when you want to insert them literally.
+- A `$` character without a valid group reference can cause a replacement error. Referencing a nonexistent group also causes an error.
 
-### 3.1. Ví dụ thay thế bằng nhóm bắt
+### 3.1. Example Replacing with Capturing Groups
 
 ```java
 Pattern p = Pattern.compile("(\\w+)-(\\d+)");
@@ -91,9 +91,9 @@ System.out.println(p.matcher("item-42").replaceAll("$2:$1"));
 // 42:item
 ```
 
-Regex có hai nhóm: `(\\w+)` bắt `item`; `(\\d+)` bắt `42`. Replacement `"$2:$1"` chèn nhóm hai, dấu hai chấm, rồi nhóm một. Ký tự `:` trong replacement là dấu hai chấm thông thường.
+The regex has two groups: `(\\w+)` captures `item`; `(\\d+)` captures `42`. The replacement `"$2:$1"` inserts group two, a colon, and then group one. The `:` character in the replacement is an ordinary colon.
 
-Với nhóm có tên:
+With named groups:
 
 ```java
 String result = "item-42".replaceAll(
@@ -102,37 +102,37 @@ String result = "item-42".replaceAll(
 System.out.println(result); // 42xitem
 ```
 
-Lưu ý: `${qty}` là cú pháp **replacement**; `(?<qty>...)` là cú pháp **regex pattern**. Không được hoán đổi hai dạng này.
+Note: `${qty}` is **replacement** syntax; `(?<qty>...)` is **regex pattern** syntax. Do not swap these two forms.
 
-### 3.2. Muốn xuất đúng ký tự đô la `$` hoặc backslash `\`
+### 3.2. When You Want to Output a Literal `$` or Backslash `\`
 
-Ví dụ thay dấu chấm bằng dấu đô la thật:
+Example replacing a dot with a literal dollar sign:
 
 ```java
 System.out.println("a.b".replaceAll("\\.", "\\$")); // a$b
 ```
 
-Ở đây:
-- Java source `"\\."` tạo regex `\.`, tìm dấu chấm.
-- Java source `"\\$"` tạo replacement gồm **backslash + dollar** (`\$` ở runtime). Matcher bỏ dấu escape và chèn `$` thật vào kết quả.
+Here:
+- Java source `"\\."` produces the regex `\.`, which finds the dot.
+- Java source `"\\$"` produces a replacement consisting of **backslash + dollar** (`\$` at runtime). Matcher strips the escape and inserts a literal `$` into the result.
 
-Tương tự, muốn thay dấu chấm bằng **một dấu backslash thật**:
+Similarly, to replace a dot with **one literal backslash**:
 
 ```java
 System.out.println("a.b".replaceAll("\\.", "\\\\")); // a\b
 ```
 
-Java source `"\\\\"` tạo **hai dấu backslash** lúc chạy; Matcher xử lý chúng để xuất **một dấu backslash**. Nếu replacement ở runtime chỉ có một dấu `\` đứng cuối, nó không escape được ký tự tiếp theo và sẽ gây lỗi.
+Java source `"\\\\"` produces **two backslashes** at runtime; Matcher processes them to output **one backslash**. If the runtime replacement has only a single trailing `\`, it cannot escape a following character and will throw an error.
 
-| Muốn đưa vào kết quả | Replacement Java source | Điều Matcher nhận tại runtime | Ý nghĩa |
+| What to put in the result | Java source replacement | What Matcher receives at runtime | Meaning |
 | --- | --- | --- | --- |
-| Giá trị nhóm 1 | `"$1"` | `$1` | Thay bằng nội dung group 1 |
-| Dấu `$` thật | `"\\$"` | `\$` | Escape `$` trong replacement |
-| Dấu `\` thật | `"\\\\"` | `\\` | Escape `\` trong replacement |
-| Văn bản `$1` thật | `Matcher.quoteReplacement("$1")` | `\$1` | Bảo vệ cả `$` để không đọc thành group |
-| Văn bản `$HOME\path` | `Matcher.quoteReplacement("$HOME\\path")` | Các dấu `$` và `\` được escape | Chèn nguyên văn đúng dữ liệu |
+| Value of group 1 | `"$1"` | `$1` | Replace with content of group 1 |
+| Literal `$` sign | `"\\$"` | `\$` | Escape `$` in replacement |
+| Literal `\` sign | `"\\\\"` | `\\` | Escape `\` in replacement |
+| Literal text `$1` | `Matcher.quoteReplacement("$1")` | `\$1` | Protect `$` so it is not read as a group |
+| Literal text `$HOME\path` | `Matcher.quoteReplacement("$HOME\\path")` | `$` and `\` signs are escaped | Insert data verbatim |
 
-Dùng `Matcher.quoteReplacement(replacement)` là lựa chọn ít lỗi hơn khi chuỗi thay thế là văn bản tự do, có thể chứa nhiều dấu `$` và `\`:
+Using `Matcher.quoteReplacement(replacement)` is the less error-prone option when the replacement string is arbitrary text that may contain multiple `$` and `\` characters:
 
 ```java
 String literal = "$1\\";
@@ -141,13 +141,13 @@ System.out.println("a.b".replaceAll(
 // a$1\b
 ```
 
-Nếu truyền `"$1\\"` trực tiếp dưới dạng replacement mà chưa quote, Matcher sẽ cố diễn giải `$1` là tham chiếu nhóm, hoặc diễn giải `\` là escape. Việc quote giúp coi toàn bộ chuỗi thay thế là văn bản.
+If `"$1\\"` were passed directly as the replacement without quoting, Matcher would try to interpret `$1` as a group reference, or `\` as an escape. Quoting treats the entire replacement string as plain text.
 
-**Khác biệt quan trọng:** Khi muốn `$1` thực sự chèn **nhóm 1**, đừng gọi `Matcher.quoteReplacement("$1")`, vì lúc đó chuỗi `$1` chỉ được chèn theo nghĩa đen.
+**Important distinction:** When you want `$1` to actually insert **group 1**, do not call `Matcher.quoteReplacement("$1")`, because then the string `$1` will just be inserted literally.
 
-## 4. Ví dụ Java 17+ hoàn chỉnh
+## 4. Complete Java 17+ Example
 
-Tạo file **`RegexEscapingDemo.java`**:
+Create the file **`RegexEscapingDemo.java`**:
 
 ```java
 import java.util.regex.Matcher;
@@ -157,16 +157,16 @@ public class RegexEscapingDemo {
     public static void main(String[] args) {
         String source = "file.txt | price $5.00 | item-42";
 
-        // 1. Pattern: tìm dấu chấm thật.
+        // 1. Pattern: find literal dots.
         System.out.println(source.replaceAll("\\.", "#"));
 
-        // 2. Tìm một chuỗi literal và thay bằng một chuỗi literal.
-        //    Cả dấu $ và backslash ở replacement đều được giữ nguyên.
+        // 2. Find a literal string and replace with a literal string.
+        //    Both $ and backslash in the replacement are preserved.
         System.out.println(source.replaceAll(
                 Pattern.quote("$5.00"),
                 Matcher.quoteReplacement("$10\\new")));
 
-        // 3. Replacement dùng nhóm bắt (không quoteReplacement).
+        // 3. Replacement using capturing groups (without quoteReplacement).
         Pattern item = Pattern.compile("(\\w+)-(\\d+)");
         System.out.println(item.matcher(source).replaceAll("$2:$1"));
 
@@ -175,28 +175,28 @@ public class RegexEscapingDemo {
                 "(?<name>[A-Za-z]+)-(?<qty>\\d+)",
                 "${qty}x${name}"));
 
-        // 5. Xuất $ và \ theo nghĩa đen.
+        // 5. Output $ and \ literally.
         System.out.println("a.b".replaceAll("\\.", "\\$"));
         System.out.println("a.b".replaceAll("\\.", "\\\\"));
 
-        // 6. Replacement chứa '$1' mà KHÔNG có ý nghĩa group 1.
+        // 6. Replacement containing '$1' WITHOUT group 1 meaning.
         System.out.println("a.b".replaceAll(
                 "\\.", Matcher.quoteReplacement("$1\\")));
 
-        // 7. String.replace là phép thay thế literal ở cả hai phía.
+        // 7. String.replace performs literal replacement on both sides.
         System.out.println("a.b".replace(".", "$1\\"));
     }
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 RegexEscapingDemo.java
 java RegexEscapingDemo
 ```
 
-Kết quả stdout:
+Stdout output:
 
 ```text
 file#txt | price $5#00 | item-42
@@ -209,19 +209,19 @@ a$1\b
 a$1\b
 ```
 
-Kết quả trên dùng dấu `\` **thật**; ví dụ `$10\new` không chứa xuống dòng, vì mã Java `"$10\\new"` tạo dấu backslash thật trước chữ `n`. Các biểu thức tương đương đã được kiểm tra qua JShell với JDK có hỗ trợ các API Java 17 này.
+The output above uses **literal** `\` characters; for example `$10\new` does not contain a newline, because the Java code `"$10\\new"` produces a literal backslash before the letter `n`. Equivalent expressions were verified via JShell on a JDK supporting these Java 17 APIs.
 
-## 5. Kết hợp hai phía khi dữ liệu được nhập nguyên văn
+## 5. Combining Both Sides When Data Is Entered Literally
 
-Nếu hệ thống cung cấp **find** và **replacement** như hai chuỗi do người dùng nhập, trước hết xác định có cần tính năng regex hay không. Với tác vụ thay chuỗi literal thông thường, **String.replace(find, replacement)** giữ nguyên ký tự đặc biệt ở cả hai phía và là API dễ hiểu nhất.
+If the system provides **find** and **replacement** as two user-entered strings, first determine whether regex capabilities are needed. For ordinary literal string replacement, **String.replace(find, replacement)** preserves special characters on both sides and is the clearest API.
 
-Nếu vẫn phải dùng bộ máy regex, dùng **Pattern.quote(find)** cho tham số tìm và **Matcher.quoteReplacement(replacement)** cho tham số thay. Chỉ quote phía nào thực sự là dữ liệu literal; quote cả một biểu thức regex đang dùng chủ động sẽ thay đổi điều kiện tìm kiếm. Ví dụ, tìm đúng ký tự **$5.00** và thay bằng **$10\x** đòi hỏi bảo vệ cả hai phía để tránh đọc **$** thành anchor hoặc tham chiếu nhóm.
+If you still must use the regex engine, use **Pattern.quote(find)** for the search argument and **Matcher.quoteReplacement(replacement)** for the replacement argument. Quote only whichever side is truly literal data; quoting an actively used regex expression will alter the search condition. For example, finding the exact characters **$5.00** and replacing with **$10\x** requires protecting both sides to avoid treating **$** as an anchor or group reference.
 
-## 6. Khi vừa dùng nhóm bắt, vừa muốn thêm ký tự đặc biệt
+## 6. When Using Capturing Groups While Adding Special Characters
 
-Không thể quote **toàn bộ** replacement nếu trong đó có `$1` cần mở rộng thành nhóm bắt. Hãy xây dựng replacement có chủ đích.
+You cannot quote the **entire** replacement if it contains `$1` that needs to expand into a capturing group. Construct the replacement intentionally.
 
-Ví dụ muốn đổi `name=42` thành `[name: $42]`:
+For example, to convert `name=42` into `[name: $42]`:
 
 ```java
 String output = "name=42".replaceAll(
@@ -230,15 +230,15 @@ String output = "name=42".replaceAll(
 System.out.println(output); // [name: $42]
 ```
 
-Đọc replacement Java source `"[$1: \\$$2]"` từ trái sang phải:
+Reading the Java source replacement `"[$1: \\$$2]"` from left to right:
 
-- `$1`: chèn nhóm 1 `name`.
-- `: `: văn bản thông thường.
-- `\\$` trong Java source: tạo `\$` ở runtime, để Matcher xuất dấu `$` thật.
-- `$2`: chèn nhóm 2 `42`.
-- `]`: văn bản thông thường.
+- `$1`: inserts group 1 `name`.
+- `: `: ordinary text.
+- `\\$` in Java source: produces `\$` at runtime, so Matcher outputs a literal `$`.
+- `$2`: inserts group 2 `42`.
+- `]`: ordinary text.
 
-Với logic replacement động phức tạp, `Matcher.appendReplacement` kết hợp `appendTail` cho phép tạo giá trị từ nội dung từng lần khớp. Giá trị được tạo ra **vẫn phải quote** nếu muốn chèn nguyên văn:
+For complex dynamic replacement logic, `Matcher.appendReplacement` combined with `appendTail` lets you build values from each match's content. The generated value **must still be quoted** if you want it inserted literally:
 
 ```java
 Matcher matcher = Pattern.compile("(\\w+)=([0-9]+)")
@@ -256,42 +256,42 @@ matcher.appendTail(out);
 System.out.println(out); // [a -> $1];[b -> $2]
 ```
 
-Cơ chế: `appendReplacement` chèn phần chưa khớp trước đó, sau đó chèn replacement cho lần khớp; `appendTail` chép nốt phần cuối còn lại. Vì `literalPart` chứa ký tự `$` với mục đích literal, dùng `quoteReplacement` là bắt buộc để tránh bị thay bằng group. `StringBuffer` là kiểu đối số của overload `appendReplacement(StringBuffer, String)` (Java cũng có overload với `StringBuilder` trong phiên bản hiện đại).
+Mechanism: `appendReplacement` inserts the preceding unmatched text followed by the replacement for the match; `appendTail` copies the remaining trailing text. Because `literalPart` contains `$` with literal intent, using `quoteReplacement` is mandatory to prevent it from being substituted as a group. `StringBuffer` is the parameter type of the `appendReplacement(StringBuffer, String)` overload (Java also provides a `StringBuilder` overload in modern versions).
 
-## 7. Các lỗi thường gặp và cách sửa
+## 7. Common Mistakes and How to Fix Them
 
-| Lỗi | Nguyên nhân | Cách sửa |
+| Mistake | Cause | Fix |
 | --- | --- | --- |
-| `replaceAll(".", "-")` thay mọi ký tự | `.` là wildcard regex | Dùng `"\\."` hoặc `Pattern.quote(".")` |
-| `replaceAll("$5", "...")` không tìm được dấu `$` thật | `$` trong regex là mốc cuối input | Dùng `Pattern.quote("$5")` |
-| `replaceAll("\\.", "$1")` lỗi khi không có nhóm 1 | `$1` trong replacement tham chiếu tới group 1 | Nếu muốn literal `$1`, dùng `Matcher.quoteReplacement("$1")` |
-| Replacement chứa dấu `$` do người dùng nhập gây lỗi tham chiếu nhóm | Chưa escape cú pháp replacement | Dùng `Matcher.quoteReplacement(userReplacement)` |
-| Dấu `\` biến mất hoặc replacement lỗi | Backslash được Matcher dùng để escape ký tự tiếp theo | Dùng `Matcher.quoteReplacement(...)`; hoặc đặt đủ backslash trong source |
-| Dùng `Pattern.quote(...)` cho replacement | Quote nhầm cú pháp regex thay vì replacement | Dùng `Matcher.quoteReplacement(...)` |
-| Dùng `Matcher.quoteReplacement(...)` cho mẫu tìm | Quote nhầm phía và có thể tạo regex sai nghĩa | Dùng `Pattern.quote(...)` |
-| Muốn chèn group `$1` nhưng toàn bộ replacement bị quote | `quoteReplacement` biến `$` thành literal | Giữ cú pháp `$1` trực tiếp và escape riêng các ký tự literal |
-| `"\d+"` hoặc `"\."` không biên dịch | Java string literal không nhận escape `\d` hay `\.` | Viết `"\\d+"` hoặc `"\\."` |
+| `replaceAll(".", "-")` replaces every character | `.` is a regex wildcard | Use `"\\."` or `Pattern.quote(".")` |
+| `replaceAll("$5", "...")` fails to find literal `$` | `$` in regex is the end-of-input anchor | Use `Pattern.quote("$5")` |
+| `replaceAll("\\.", "$1")` errors when there is no group 1 | `$1` in replacement references group 1 | If literal `$1` is wanted, use `Matcher.quoteReplacement("$1")` |
+| User-supplied replacement containing `$` causes group reference error | Replacement syntax not escaped | Use `Matcher.quoteReplacement(userReplacement)` |
+| `\` disappears or replacement errors | Backslash is used by Matcher to escape the next character | Use `Matcher.quoteReplacement(...)`; or supply enough backslashes in source |
+| Using `Pattern.quote(...)` for replacement | Wrongly quoting regex syntax instead of replacement | Use `Matcher.quoteReplacement(...)` |
+| Using `Matcher.quoteReplacement(...)` for search pattern | Quoting the wrong side and possibly creating a wrong regex | Use `Pattern.quote(...)` |
+| Wanting to insert group `$1` but entire replacement is quoted | `quoteReplacement` turns `$` into a literal | Keep `$1` syntax directly and escape literal characters separately |
+| `"\d+"` or `"\."` does not compile | Java string literal does not accept `\d` or `\.` escapes | Write `"\\d+"` or `"\\."` |
 
-Một số ngoại lệ thường gặp:
+Some common exceptions:
 
-- `PatternSyntaxException`: cú pháp regex không hợp lệ, chẳng hạn dấu `[` chưa đóng.
-- `IllegalArgumentException`: một số dạng replacement có tham chiếu nhóm sai cú pháp (chẳng hạn `$` đứng một mình).
-- `IndexOutOfBoundsException`: tham chiếu đến nhóm đánh số không tồn tại, ví dụ `$1` khi pattern không khai báo nhóm bắt nào.
+- `PatternSyntaxException`: invalid regex syntax, such as an unclosed `[`.
+- `IllegalArgumentException`: certain forms of syntactically invalid group references in replacement (such as a standalone `$`).
+- `IndexOutOfBoundsException`: referencing a nonexistent numbered group, such as `$1` when the pattern declares no capturing groups.
 
-Đừng dựa vào việc bắt rồi bỏ qua ngoại lệ để xử lý dữ liệu đầu vào; hãy phân biệt ngay từ đầu trường hợp người dùng cung cấp **văn bản literal** hay **regex/replacement template**.
+Do not rely on catching and ignoring exceptions to handle input data; distinguish upfront whether the user is providing **literal text** or a **regex/replacement template**.
 
-## 8. Bài tập áp dụng
+## 8. Practice Exercises
 
-**Bài 1.** Tìm dấu `$` thật trong `"Total: $12"` rồi đổi thành `"USD "`.
+**Exercise 1.** Find the literal `$` sign in `"Total: $12"` and replace it with `"USD "`.
 
 ```java
 System.out.println("Total: $12".replaceAll("\\$", "USD "));
 // Total: USD 12
 ```
 
-Đây là escape của **mẫu tìm**. Dấu `$` ở replacement `"USD "` không có mặt nên không cần quote.
+This is escaping of the **search pattern**. `$` is not present in the replacement `"USD "`, so no quoting is needed there.
 
-**Bài 2.** Thay dấu chấm trong `"a.b"` bằng đúng văn bản `"$2\path"`.
+**Exercise 2.** Replace the dot in `"a.b"` with the exact text `"$2\path"`.
 
 ```java
 String replacement = "$2\\path";
@@ -300,9 +300,9 @@ System.out.println("a.b".replaceAll(
 // a$2\pathb
 ```
 
-Ở đây `$2` là văn bản literal, **không** tham chiếu nhóm 2. Dấu `\` cũng phải giữ nguyên.
+Here `$2` is literal text, **not** a reference to group 2. The `\` must also be preserved.
 
-**Bài 3.** Đổi `"code-7"` thành `"7/code"` thông qua nhóm bắt:
+**Exercise 3.** Convert `"code-7"` to `"7/code"` using capturing groups:
 
 ```java
 System.out.println("code-7".replaceAll(
@@ -310,9 +310,9 @@ System.out.println("code-7".replaceAll(
 // 7/code
 ```
 
-Trường hợp này `$2` và `$1` **phải** mang ý nghĩa nhóm bắt, nên không quote replacement.
+In this case `$2` and `$1` **must** carry capturing-group meaning, so do not quote the replacement.
 
-**Bài 4.** Vì sao đoạn này không nhất thiết cho đúng kết quả mong muốn?
+**Exercise 4.** Why does this snippet not necessarily produce the desired result?
 
 ```java
 String find = "a.b";
@@ -320,7 +320,7 @@ String replacement = "$1";
 String output = "a.b".replaceAll(find, replacement);
 ```
 
-Đáp án: `find` được xử lý như regex, trong đó dấu chấm khớp bất kỳ ký tự; `replacement` chứa `$1` nhưng pattern không định nghĩa group 1 nên gây lỗi. Nếu mục tiêu là thay một chuỗi literal bằng chính `$1`, viết:
+Answer: `find` is treated as a regex, where the dot matches any character; `replacement` contains `$1`, but the pattern defines no group 1 so it causes an error. If the goal is to replace a literal string with `$1` itself, write:
 
 ```java
 String output = "a.b".replaceAll(
@@ -329,16 +329,16 @@ String output = "a.b".replaceAll(
 System.out.println(output); // $1
 ```
 
-Hoặc chỉ cần `"a.b".replace("a.b", "$1")` nếu không có yêu cầu dùng regex.
+Or simply `"a.b".replace("a.b", "$1")` if regex is not required.
 
-## 9. Checklist trước khi thay thế
+## 9. Pre-Replacement Checklist
 
-1. **Mẫu tìm là regex thực sự hay văn bản literal?** Regex thực sự thì viết/kiểm tra escape theo `Pattern`; văn bản literal thì dùng `Pattern.quote` hoặc `String.replace`.
-2. **Replacement là mẫu có group `$1`/`${name}` hay văn bản literal?** Mẫu group thì giữ đúng cú pháp tham chiếu; văn bản literal thì dùng `Matcher.quoteReplacement`.
-3. **Các dấu `\` trong Java source đã được viết đúng chưa?** Nên kiểm tra riêng chuỗi **sau khi Java phân tích string literal** và cách regex/Matcher phân tích chuỗi đó.
-4. **Có group phù hợp với replacement không?** `$1` đòi hỏi group 1; `${name}` đòi hỏi group có tên `name`.
-5. **Có dữ liệu động chứa `$`, `\`, `.`, `[`...?** Quote đúng từng phía; nếu không cần regex, chọn `String.replace` để giảm khả năng nhầm lẫn.
+1. **Is the search pattern a real regex or literal text?** If a real regex, write/check escapes according to `Pattern`; if literal text, use `Pattern.quote` or `String.replace`.
+2. **Is the replacement a template with `$1`/`${name}` groups or literal text?** If a group template, preserve reference syntax; if literal text, use `Matcher.quoteReplacement`.
+3. **Are `\` characters in Java source written correctly?** Inspect separately the string **after Java parses the string literal** and how regex/Matcher parses that string.
+4. **Are there matching groups for the replacement?** `$1` requires group 1; `${name}` requires a group named `name`.
+5. **Is there dynamic data containing `$`, `\`, `.`, `[`...?** Quote each side properly; if regex is unnecessary, choose `String.replace` to reduce confusion.
 
-**Kết luận:** `Pattern.quote` và `Matcher.quoteReplacement` giải quyết **hai vấn đề độc lập**. Escape regex quyết định **khớp cái gì**; escape replacement quyết định **chèn cái gì**. Trong Java source còn có lớp escape thứ ba cho dấu backslash. Xác định rõ ba lớp này giúp xử lý chính xác ký tự đặc biệt và nhóm bắt khi gọi `replaceAll`, `replaceFirst` hoặc `Matcher`.
+**Conclusion:** `Pattern.quote` and `Matcher.quoteReplacement` solve **two independent problems**. Regex escaping decides **what to match**; replacement escaping decides **what to insert**. In Java source there is also a third escaping layer for backslashes. Identifying these three layers clearly helps handle special characters and capturing groups accurately when calling `replaceAll`, `replaceFirst`, or `Matcher`.
 
-**Tham khảo chính thức:** [Java SE 17 — Pattern](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html), [Java SE 17 — Matcher.appendReplacement / quoteReplacement / replaceAll](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Matcher.html), [Java SE 17 — String.replaceAll](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#replaceAll(java.lang.String,java.lang.String)).
+**Official references:** [Java SE 17 — Pattern](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html), [Java SE 17 — Matcher.appendReplacement / quoteReplacement / replaceAll](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Matcher.html), [Java SE 17 — String.replaceAll](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#replaceAll(java.lang.String,java.lang.String)).

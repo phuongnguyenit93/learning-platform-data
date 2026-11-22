@@ -1,12 +1,12 @@
-# Đếm và tính tổng từng nhóm bằng counting và summing
+# Counting and Summing per Group with counting and summing
 
-Một bài toán thường gặp trong Java Stream API là: **mỗi khu vực có bao nhiêu đơn hàng và tổng doanh thu bao nhiêu?** Nếu chỉ gọi `count()` hoặc `sum()` trên toàn bộ Stream, ta có một con số cho tất cả dữ liệu. Muốn có **một kết quả cho từng nhóm**, hãy kết hợp `Collectors.groupingBy(...)` với một *downstream collector* như `Collectors.counting()` hoặc `Collectors.summingLong(...)`.
+A common problem in the Java Stream API is: **how many orders does each region have and what is the total revenue?** If you only call `count()` or `sum()` on the entire Stream, you get a single number for all the data. To get **one result per group**, combine `Collectors.groupingBy(...)` with a *downstream collector* such as `Collectors.counting()` or `Collectors.summingLong(...)`.
 
-Bài học thuộc chương **Collector nhiều tầng và tổng hợp** của mô-đun **JAVA_STREAM_API**. Ta sẽ thực hành đếm, tính tổng, nhóm hai tầng, kết hợp nhiều đại lượng và xử lý nhóm không có dữ liệu. Các ví dụ cũng giải thích mối liên hệ với pipeline lazy (`filter`, `map`, `collect`), hợp đồng collector, kiểu số, xử lý song song và hiệu năng. Trọng tâm không phải gọi thật nhiều API, mà là **phân biệt đúng phần tử được nhóm, khóa nhóm và phép tổng hợp trong từng nhóm**.
+This lesson belongs to the **Composed Collectors and Aggregation** chapter of the **JAVA_STREAM_API** module. We will practice counting, summing, two-level grouping, combining multiple metrics, and handling groups without data. The examples also explain the relationship with lazy pipelines (`filter`, `map`, `collect`), collector contracts, numeric types, parallel processing, and performance. The focus is not on calling as many APIs as possible, but on **correctly distinguishing the grouped elements, the grouping keys, and the aggregation within each group**.
 
-## 1. Tư duy hai tầng: phân nhóm và tổng hợp
+## 1. Two-level thinking: grouping and aggregation
 
-Xét danh sách đơn hàng với ba thông tin chính: khu vực, loại sản phẩm và số tiền.
+Consider a list of orders with three main pieces of information: region, product category, and amount.
 
 ```java
 import java.util.List;
@@ -30,9 +30,9 @@ List<Order> orders = List.of(
 );
 ```
 
-Dữ liệu có **7 đơn**, trong đó **5 đơn đã thanh toán**. Hai đơn chưa thanh toán là `O-03` và `O-07`.
+The dataset has **7 orders**, of which **5 orders are paid**. The two unpaid orders are `O-03` and `O-07`.
 
-Nếu yêu cầu “đếm số đơn theo khu vực”, ta cần tạo bốn nhóm: Bắc, Nam, Trung, Tây, rồi đếm từng nhóm. Có thể hình dung:
+If the requirement is “count the number of orders by region”, we need to create four groups: Bắc, Nam, Trung, Tây, and then count each group. You can visualize this as:
 
 ```text
                   orders.stream()
@@ -42,7 +42,7 @@ Nếu yêu cầu “đếm số đơn theo khu vực”, ta cần tạo bốn nh
           +--------------+---------------+-----------+
           |              |               |           |
          Bắc            Nam            Trung        Tây
-       3 đơn           2 đơn           1 đơn       1 đơn
+      3 orders       2 orders        1 order     1 order
           |              |               |           |
       counting()     counting()      counting()  counting()
           |              |               |           |
@@ -51,16 +51,16 @@ Nếu yêu cầu “đếm số đơn theo khu vực”, ta cần tạo bốn nh
                   Map<String, Long>
 ```
 
-Hai công việc độc lập về ý nghĩa:
+Two semantically independent tasks:
 
-1. **Classifier** của `groupingBy` xác định **khóa** mà mỗi phần tử thuộc về.
-2. **Downstream collector** xác định **giá trị** được tích lũy cho từng khóa.
+1. The **classifier** of `groupingBy` determines the **key** each element belongs to.
+2. The **downstream collector** determines the **value** accumulated for each key.
 
-Nếu thay `counting()` bằng `summingLong(Order::amountVnd)`, khóa nhóm vẫn giữ nguyên nhưng giá trị mỗi nhóm chuyển từ **số đơn** sang **tổng tiền**.
+If you replace `counting()` with `summingLong(Order::amountVnd)`, the group keys remain the same, but each group's value changes from **order count** to **total amount**.
 
-## 2. `Collectors.counting()`: đếm phần tử của từng nhóm
+## 2. `Collectors.counting()`: counting elements of each group
 
-`Collectors.counting()` là collector dùng để đếm số phần tử đi vào nó. Kiểu kết quả là `Long`.
+`Collectors.counting()` is a collector used to count the number of elements passed into it. The result type is `Long`.
 
 ```java
 import java.util.Map;
@@ -78,15 +78,15 @@ System.out.println(countByRegion.get("Trung")); // 1
 System.out.println(countByRegion.get("Tây"));   // 1
 ```
 
-Ở đây:
+Here:
 
-- `orders.stream()` tạo `Stream<Order>`.
-- `Order::region` là `Function<Order, String>` chọn khóa nhóm.
-- `Collectors.counting()` đếm số phần tử trong **mỗi nhóm**.
-- `groupingBy` tạo một collector có kết quả là `Map<String, Long>`.
-- `collect(...)` là terminal operation kích hoạt xử lý Stream.
+- `orders.stream()` creates a `Stream<Order>`.
+- `Order::region` is a `Function<Order, String>` that selects the group key.
+- `Collectors.counting()` counts the number of elements in **each group**.
+- `groupingBy` creates a collector whose result is `Map<String, Long>`.
+- `collect(...)` is the terminal operation that triggers Stream processing.
 
-### 2.1. Khác nhau giữa `stream.count()` và `Collectors.counting()`
+### 2.1. Difference between `stream.count()` and `Collectors.counting()`
 
 ```java
 long totalOrders = orders.stream().count(); // 7
@@ -98,20 +98,20 @@ Map<String, Long> perRegion = orders.stream()
     ));
 ```
 
-`stream.count()` trả về **một** giá trị `long` cho toàn bộ phần tử còn lại của pipeline. `Collectors.counting()` là **một collector**, có thể đặt làm downstream của `groupingBy` để trả về số lượng **riêng cho từng nhóm**.
+`stream.count()` returns **one** `long` value for all remaining elements in the pipeline. `Collectors.counting()` is **a collector**, which can be placed as the downstream of `groupingBy` to return a count **separately for each group**.
 
-| Nhu cầu | Cách viết phù hợp | Kiểu kết quả |
+| Requirement | Appropriate approach | Result type |
 | --- | --- | --- |
-| Đếm tất cả đơn | `orders.stream().count()` | `long` |
-| Đếm đơn theo khu vực | `groupingBy(Order::region, counting())` | `Map<String, Long>` |
-| Đếm đơn đã thanh toán theo khu vực | `filter(Order::paid)` rồi `groupingBy(..., counting())` | `Map<String, Long>` |
-| Chỉ đếm đơn thuộc một khu vực | `filter(...).count()` | `long` |
+| Count all orders | `orders.stream().count()` | `long` |
+| Count orders by region | `groupingBy(Order::region, counting())` | `Map<String, Long>` |
+| Count paid orders by region | `filter(Order::paid)` then `groupingBy(..., counting())` | `Map<String, Long>` |
+| Count orders belonging to one region only | `filter(...).count()` | `long` |
 
-Chọn `count()` khi không cần khóa nhóm. Chọn `counting()` khi số lượng là **giá trị của một phép thu thập**.
+Choose `count()` when no grouping key is needed. Choose `counting()` when the count is **the value of a collection operation**.
 
-### 2.2. Kết quả là `Long`, không phải `Integer`
+### 2.2. The result is `Long`, not `Integer`
 
-`Collectors.counting()` trả về `Long`, nên khai báo đúng là:
+`Collectors.counting()` returns `Long`, so the proper declaration is:
 
 ```java
 Map<String, Long> counts = orders.stream()
@@ -121,19 +121,19 @@ Map<String, Long> counts = orders.stream()
     ));
 ```
 
-Không khai báo `Map<String, Integer>` và không ép kiểu kết quả theo suy đoán. `Long` là kiểu số nguyên 64 bit; với tập dữ liệu thông thường, nó phù hợp để đếm số bản ghi lớn. Dù vậy, mọi kiểu nguyên hữu hạn đều có giới hạn, và việc dùng `Long` không làm nguồn dữ liệu lớn trở nên miễn phí về thời gian hoặc bộ nhớ.
+Do not declare `Map<String, Integer>` and do not cast the result by assumption. `Long` is a 64-bit integer type; for typical datasets, it is suitable for counting large numbers of records. Even so, every finite integer type has limits, and using `Long` does not make large data sources free in terms of time or memory.
 
-## 3. `summingInt`, `summingLong` và `summingDouble`
+## 3. `summingInt`, `summingLong`, and `summingDouble`
 
-Nếu `counting()` đếm **bao nhiêu** phần tử, các collector `summingX` tính tổng **một thuộc tính số** được trích xuất từ phần tử.
+Whereas `counting()` counts **how many** elements there are, the `summingX` collectors compute the sum of **a numeric property** extracted from each element.
 
-| Downstream collector | Hàm trích xuất | Kiểu kết quả | Trường hợp điển hình |
+| Downstream collector | Extractor function | Result type | Typical use case |
 | --- | --- | --- | --- |
-| `Collectors.summingInt(...)` | `ToIntFunction<T>` | `Integer` | Tổng số lượng `int` |
-| `Collectors.summingLong(...)` | `ToLongFunction<T>` | `Long` | Tổng giá trị `long`, ví dụ tiền theo đơn vị nguyên |
-| `Collectors.summingDouble(...)` | `ToDoubleFunction<T>` | `Double` | Tổng số đo `double` |
+| `Collectors.summingInt(...)` | `ToIntFunction<T>` | `Integer` | Sum of `int` quantities |
+| `Collectors.summingLong(...)` | `ToLongFunction<T>` | `Long` | Sum of `long` values, e.g., currency in integer units |
+| `Collectors.summingDouble(...)` | `ToDoubleFunction<T>` | `Double` | Sum of `double` measurements |
 
-Ba collector này nhận hàm **ánh xạ phần tử sang số**. Với đối tượng `Order`, `Order::amountVnd` là một `ToLongFunction<Order>` thích hợp.
+These three collectors take a function that **maps an element to a number**. For an `Order` object, `Order::amountVnd` is an appropriate `ToLongFunction<Order>`.
 
 ```java
 Map<String, Long> amountByRegion = orders.stream()
@@ -148,9 +148,9 @@ System.out.println(amountByRegion.get("Trung")); // 40000
 System.out.println(amountByRegion.get("Tây"));   // 75000
 ```
 
-Đây là **tổng mọi đơn**, kể cả đơn chưa thanh toán. Nếu yêu cầu là doanh thu đã thu tiền, phải lọc theo `paid` trước khi cộng hoặc áp dụng bộ lọc downstream có chủ đích.
+This is the **sum of all orders**, including unpaid orders. If the requirement is paid revenue, you must filter by `paid` before summing or apply an intentional downstream filter.
 
-### 3.1. `summingInt` cho số lượng hàng hóa
+### 3.1. `summingInt` for item quantities
 
 ```java
 record CartLine(String category, int quantity) {}
@@ -171,9 +171,9 @@ System.out.println(quantityByCategory.get("Sách")); // 5
 System.out.println(quantityByCategory.get("Bút"));  // 5
 ```
 
-Kết quả là `Map<String, Integer>` vì `summingInt` trả về `Integer`.
+The result is `Map<String, Integer>` because `summingInt` returns `Integer`.
 
-### 3.2. `summingLong` cho tổng tiền nguyên
+### 3.2. `summingLong` for integer monetary totals
 
 ```java
 Map<String, Long> paidRevenueByRegion = orders.stream()
@@ -189,9 +189,9 @@ System.out.println(paidRevenueByRegion.get("Trung")); // 40000
 System.out.println(paidRevenueByRegion.containsKey("Tây")); // false
 ```
 
-Vì khu vực Tây **không có đơn đã thanh toán**, nó **không có khóa** trong Map kết quả khi ta lọc trước khi nhóm. Đây là khác biệt quan trọng giữa “không có nhóm” và “nhóm có tổng bằng 0”.
+Because the `"Tây"` region **has no paid orders**, it **has no key** in the resulting Map when filtering before grouping. This is an important distinction between “no group” and “a group with a total of 0”.
 
-### 3.3. `summingDouble` cho dữ liệu số thực
+### 3.3. `summingDouble` for floating-point data
 
 ```java
 record SensorReading(String device, double value) {}
@@ -212,13 +212,13 @@ System.out.println(totalByDevice.get("S1")); // 3.75
 System.out.println(totalByDevice.get("S2")); // 3.0
 ```
 
-`double` sử dụng số thực dấu phẩy động nhị phân. Với các số không thể biểu diễn chính xác bằng nhị phân, thứ tự cộng và cách gom các phần khi chạy song song có thể ảnh hưởng chữ số cuối của kết quả. Không dùng `summingDouble` cho tiền cần độ chính xác thập phân tuyệt đối nếu chưa có mô hình làm tròn phù hợp.
+`double` uses binary floating-point numbers. For numbers that cannot be represented exactly in binary, the addition order and how partial sums are combined during parallel execution can affect the last digits of the result. Do not use `summingDouble` for currency that requires absolute decimal precision without an appropriate rounding model.
 
-## 4. Lọc trước hay sau khi phân nhóm?
+## 4. Filter before or after grouping?
 
-`filter` trong pipeline và `Collectors.filtering` trong downstream đều hữu ích, nhưng **chúng không tạo ra cùng bộ khóa**.
+`filter` in the pipeline and `Collectors.filtering` in the downstream are both useful, but **they do not produce the same set of keys**.
 
-### 4.1. Lọc toàn nguồn trước `groupingBy`
+### 4.1. Filtering the whole source before `groupingBy`
 
 ```java
 Map<String, Long> paidCounts = orders.stream()
@@ -234,11 +234,11 @@ System.out.println(paidCounts.get("Trung")); // 1
 System.out.println(paidCounts.containsKey("Tây")); // false
 ```
 
-Chỉ những đơn đã thanh toán đến được `groupingBy`. Khu vực Tây không có phần tử được nhóm nên **không xuất hiện**.
+Only paid orders reach `groupingBy`. The `"Tây"` region has no grouped elements, so it **does not appear**.
 
-### 4.2. Lọc bên trong mỗi nhóm bằng `Collectors.filtering`
+### 4.2. Filtering inside each group with `Collectors.filtering`
 
-Từ Java 9, `Collectors.filtering(predicate, downstream)` cho phép áp dụng bộ lọc **trong quá trình downstream thu thập**:
+Since Java 9, `Collectors.filtering(predicate, downstream)` allows applying a filter **during downstream collection**:
 
 ```java
 Map<String, Long> paidCountsIncludingZero = orders.stream()
@@ -256,9 +256,9 @@ System.out.println(paidCountsIncludingZero.get("Trung")); // 1
 System.out.println(paidCountsIncludingZero.get("Tây")); // 0
 ```
 
-Tất cả **khu vực đã xuất hiện trong nguồn** đều được `groupingBy` tạo nhóm; downstream `filtering` không đếm đơn chưa thanh toán, nên nhóm Tây có kết quả `0L`.
+All **regions present in the source** have groups created by `groupingBy`; the downstream `filtering` does not count unpaid orders, so the `"Tây"` group gets the result `0L`.
 
-Kết quả tổng tiền tương tự:
+The total amount behaves similarly:
 
 ```java
 Map<String, Long> revenueIncludingZero = orders.stream()
@@ -273,23 +273,23 @@ Map<String, Long> revenueIncludingZero = orders.stream()
 System.out.println(revenueIncludingZero.get("Tây")); // 0
 ```
 
-**Lưu ý:** Nếu một khu vực hoàn toàn không có trong nguồn (ví dụ `"Đông"`), ngay cả `Collectors.filtering` cũng không tự tạo khóa đó. Nếu báo cáo phải thể hiện đủ mọi khu vực hợp lệ, cần có danh mục khu vực chuẩn và bổ sung những khóa còn thiếu theo quy tắc nghiệp vụ.
+**Note:** If a region is completely absent from the source (for example, `"Đông"`), even `Collectors.filtering` will not create that key automatically. If a report must display every valid region, you need a standard catalog of regions and populate missing keys according to business rules.
 
-### 4.3. Quy tắc chọn cách lọc
+### 4.3. Rules for choosing how to filter
 
-| Yêu cầu | Đặt `filter` ở đâu? | Nhóm chỉ có phần tử không đạt điều kiện |
+| Requirement | Where to place `filter`? | Group with only non-matching elements |
 | --- | --- | --- |
-| Chỉ hiện khu vực có đơn đã thanh toán | Trước `groupingBy` | Không có khóa |
-| Hiện mọi khu vực từng có đơn, kể cả doanh thu thanh toán bằng 0 | Bên trong downstream `Collectors.filtering` | Có khóa với giá trị 0 |
-| Hiện cả khu vực chưa từng có đơn | Bổ sung danh mục khóa từ bên ngoài dữ liệu | Phải tạo khóa tường minh |
+| Show only regions with paid orders | Before `groupingBy` | No key |
+| Show every region that had orders, even with 0 paid revenue | Inside downstream `Collectors.filtering` | Has key with value 0 |
+| Show even regions that have never had orders | Add key catalog from outside the data | Must create key explicitly |
 
-Vị trí đặt phép lọc là một quyết định về **ý nghĩa báo cáo**, không chỉ là cách viết khác nhau.
+Where you place the filter is a decision about **report semantics**, not just a different way of writing code.
 
-## 5. Nhóm nhiều tầng: `groupingBy` lồng `groupingBy`
+## 5. Multi-level grouping: `groupingBy` nested in `groupingBy`
 
-Khi yêu cầu có hai chiều, chẳng hạn “theo khu vực rồi theo loại sản phẩm”, đặt một `groupingBy` bên trong downstream của `groupingBy` ngoài.
+When a requirement has two dimensions, such as “by region then by product category”, place one `groupingBy` inside the downstream of the outer `groupingBy`.
 
-### 5.1. Đếm đơn theo khu vực và loại sản phẩm
+### 5.1. Counting orders by region and product category
 
 ```java
 Map<String, Map<String, Long>> countsByRegionAndCategory =
@@ -309,16 +309,16 @@ System.out.println(countsByRegionAndCategory.get("Nam").get("Sách")); // 1
 System.out.println(countsByRegionAndCategory.get("Trung").get("Bút")); // 1
 ```
 
-Kiểu kết quả là `Map<String, Map<String, Long>>`:
+The result type is `Map<String, Map<String, Long>>`:
 
-- Khóa Map ngoài: `region`.
-- Khóa Map trong: `category`.
-- Giá trị trong cùng: số lượng đơn đã thanh toán của ô giao nhau.
+- Outer Map key: `region`.
+- Inner Map key: `category`.
+- Innermost value: count of paid orders for the intersecting cell.
 
-Sơ đồ:
+Diagram:
 
 ```text
-Stream<Order> (chỉ đơn paid)
+Stream<Order> (paid orders only)
     |
     +-- groupingBy(region)
            |
@@ -335,11 +335,11 @@ Stream<Order> (chỉ đơn paid)
                 +-- Bút  → 1L
 ```
 
-Cấu trúc Map lồng nhau chỉ có các khóa thực sự xuất hiện sau bước lọc. Do đó, `countsByRegionAndCategory.get("Trung").get("Sách")` trả về `null`, không phải tự động `0L`.
+The nested Map structure only contains keys that actually appear after the filter step. Therefore, `countsByRegionAndCategory.get("Trung").get("Sách")` returns `null`, not automatically `0L`.
 
-### 5.2. Tính tổng theo hai tầng
+### 5.2. Summing at two levels
 
-Chỉ cần đổi collector ở tầng cuối thành `summingLong`:
+Simply change the collector at the final level to `summingLong`:
 
 ```java
 Map<String, Map<String, Long>> revenueByRegionAndCategory =
@@ -359,15 +359,15 @@ System.out.println(revenueByRegionAndCategory.get("Nam").get("Sách")); // 10000
 System.out.println(revenueByRegionAndCategory.get("Nam").get("Bút"));  // 30000
 ```
 
-Mặc dù hai biểu thức có cùng dạng Map bên ngoài và bên trong, **ý nghĩa của giá trị cuối khác nhau**. Hãy đặt tên biến, kiểu báo cáo và tài liệu API sao cho không nhầm `count` với `amount`.
+Although both expressions have the same outer and inner Map shape, **the meaning of the final value differs**. Name your variables, report types, and API documentation so that `count` is never confused with `amount`.
 
-### 5.3. Thứ tự các chiều nhóm có ý nghĩa
+### 5.3. Order of grouping dimensions matters
 
-`groupingBy(region, groupingBy(category, ...))` tạo Map ngoài theo khu vực. Đổi thứ tự thành `groupingBy(category, groupingBy(region, ...))` tạo Map ngoài theo loại sản phẩm. Hai báo cáo có cùng các ô tổng hợp về mặt logic, nhưng **cấu trúc và cách truy xuất khác nhau**. Chọn chiều ngoài theo nhu cầu truy cập chính của nghiệp vụ.
+`groupingBy(region, groupingBy(category, ...))` creates the outer Map by region. Swapping the order to `groupingBy(category, groupingBy(region, ...))` creates the outer Map by product category. The two reports have the same aggregated cells logically, but **their structure and access pattern differ**. Choose the outer dimension based on the primary access pattern of the business logic.
 
-## 6. Đếm và tính tổng trong cùng một lượt thu thập
+## 6. Counting and summing in a single collection pass
 
-Nếu muốn **cả số đơn và tổng tiền** cho mỗi khu vực, có thể dùng hai pipeline riêng, nhưng cách đó có thể duyệt nguồn hai lần:
+If you want **both order count and total amount** for each region, you could use two separate pipelines, but that may traverse the source twice:
 
 ```java
 Map<String, Long> counts = orders.stream()
@@ -384,9 +384,9 @@ Map<String, Long> sums = orders.stream()
     ));
 ```
 
-Với nguồn là `List` ổn định, hai lượt thường dễ hiểu. Tuy nhiên, khi cần **một bản báo cáo nhất quán**, có thể ghép hai downstream collector bằng `Collectors.teeing` (Java 12+).
+With a stable `List` source, two passes are often easy to read. However, when you need **one consistent report**, you can combine two downstream collectors using `Collectors.teeing` (Java 12+).
 
-### 6.1. `teeing` với `counting` và `summingLong`
+### 6.1. `teeing` with `counting` and `summingLong`
 
 ```java
 import java.util.Map;
@@ -410,10 +410,10 @@ System.out.println(statsByRegion.get("Nam"));   // RegionStats[orderCount=2, tot
 System.out.println(statsByRegion.get("Trung")); // RegionStats[orderCount=1, totalVnd=40000]
 ```
 
-Hai downstream collector nhận **cùng các phần tử của từng nhóm**, sau đó `teeing` kết hợp hai kết quả thành một `RegionStats`:
+Both downstream collectors receive **the same elements of each group**, and then `teeing` combines the two results into a `RegionStats`:
 
 ```text
-                 Mỗi nhóm Order
+                 Each Order group
                        |
          +-------------+--------------+
          |                            |
@@ -427,11 +427,11 @@ Hai downstream collector nhận **cùng các phần tử của từng nhóm**, s
                    RegionStats
 ```
 
-Đây là cách **kết hợp collector**, không phải tự chia Stream thành hai nhánh để sử dụng lại. Nó cũng tránh phải đưa một bộ đếm mutable ở ngoài lambda. Khi kết quả cần nhiều thống kê hơn, có thể dùng `summarizingLong` hoặc collector tùy chỉnh, thay vì lồng `teeing` quá sâu đến mức khó đọc.
+This is **collector composition**, not manually splitting a Stream into two branches for reuse. It also avoids introducing a mutable counter outside a lambda. When the result needs more statistics, you can use `summarizingLong` or a custom collector instead of nesting `teeing` too deeply to the point of hurting readability.
 
-### 6.2. Khi chỉ cần thống kê một trường số
+### 6.2. When you only need statistics on a single numeric field
 
-`Collectors.summarizingLong` trả về `LongSummaryStatistics` gồm `count`, `sum`, `min`, `max` và `average`:
+`Collectors.summarizingLong` returns a `LongSummaryStatistics` containing `count`, `sum`, `min`, `max`, and `average`:
 
 ```java
 import java.util.LongSummaryStatistics;
@@ -453,11 +453,11 @@ System.out.println(north.getMax());     // 120000
 System.out.println(north.getAverage()); // 85000.0
 ```
 
-Nếu yêu cầu vừa đếm vừa cộng **cùng một giá trị số**, `summarizingLong` là lựa chọn gọn. Nếu phép đếm và phép cộng có **điều kiện khác nhau**, dùng `teeing` với các downstream `filtering` phù hợp, hoặc định nghĩa một collector tổng hợp riêng.
+If the requirement is to both count and sum **the same numeric value**, `summarizingLong` is a concise choice. If counting and summing have **different conditions**, use `teeing` with appropriate `filtering` downstreams, or define a custom aggregate collector.
 
-## 7. Phân biệt đếm phần tử, đếm khóa và đếm nhóm
+## 7. Distinguishing element counts, key counts, and group counts
 
-`counting()` đếm số **phần tử** đến với mỗi downstream, không đếm số lượng khóa Map.
+`counting()` counts the number of **elements** arriving at each downstream, not the number of Map keys.
 
 ```java
 Map<String, Long> byRegion = orders.stream()
@@ -471,15 +471,15 @@ long allOrders = orders.stream().count(); // 7
 long northernOrders = byRegion.get("Bắc"); // 3
 ```
 
-Ba kết quả trả lời ba câu hỏi khác nhau:
+These three results answer three different questions:
 
-| Giá trị | Câu hỏi | Kết quả |
+| Value | Question | Result |
 | --- | --- | ---: |
-| `byRegion.size()` | Có bao nhiêu khóa khu vực khác nhau? | 4 |
-| `orders.stream().count()` | Tổng bao nhiêu đơn? | 7 |
-| `byRegion.get("Bắc")` | Khu vực Bắc có bao nhiêu đơn? | 3 |
+| `byRegion.size()` | How many distinct region keys are there? | 4 |
+| `orders.stream().count()` | How many orders in total? | 7 |
+| `byRegion.get("Bắc")` | How many orders does region Bắc have? | 3 |
 
-Nếu muốn đếm số **SKU duy nhất trong mỗi khu vực**, cần đổi ý nghĩa downstream:
+If you want to count the number of **distinct SKUs in each region**, you need to change the downstream semantics:
 
 ```java
 record Item(String region, String sku) {}
@@ -507,15 +507,15 @@ System.out.println(distinctSkuByRegion.get("Bắc")); // 2
 System.out.println(distinctSkuByRegion.get("Nam")); // 1
 ```
 
-Ở đây không dùng `counting()` trực tiếp, vì nó sẽ đếm cả hai lần xuất hiện của `P-01`. Ta chuyển các phần tử thành SKU, gom thành tập giá trị duy nhất rồi đếm số thành viên tập. Đây là một ví dụ của **composed collectors**; chọn quy tắc đếm theo đúng đơn vị nghiệp vụ.
+Here `counting()` is not used directly, because it would count both occurrences of `P-01`. We map elements to SKU, collect into a set of unique values, and then count the set's size. This is an example of **composed collectors**; choose the counting rule according to the exact business unit.
 
-## 8. Stream rỗng, nhóm không tồn tại và giá trị 0
+## 8. Empty streams, missing groups, and zero values
 
-Trường hợp rỗng cần phân biệt ở ba cấp:
+Empty cases must be distinguished at three levels:
 
-1. **Toàn bộ Stream rỗng:** không có phần tử để tạo khóa.
-2. **Một nhóm không xuất hiện:** Map không chứa khóa đó.
-3. **Một nhóm có phần tử nguồn, nhưng downstream `filtering` loại hết:** nhóm có thể vẫn tồn tại với số lượng hoặc tổng bằng 0.
+1. **The entire Stream is empty:** there are no elements to create keys.
+2. **A group does not appear:** the Map does not contain that key.
+3. **A group has source elements, but downstream `filtering` rejects all of them:** the group can still exist with a count or sum of 0.
 
 ```java
 import java.util.List;
@@ -534,20 +534,20 @@ System.out.println(emptyCounts.isEmpty()); // true
 System.out.println(emptyCounts.get("Bắc")); // null
 ```
 
-`counting()` riêng trên một tập rỗng cho `0L`, nhưng `groupingBy` **không gọi downstream để tạo kết quả cho những khóa chưa từng có phần tử**. Vì vậy, Map rỗng khác với Map chứa `"Bắc" -> 0L`.
+`counting()` alone on an empty collection yields `0L`, but `groupingBy` **does not invoke the downstream to create results for keys that never had any element**. Therefore, an empty Map differs from a Map containing `"Bắc" -> 0L`.
 
-### 8.1. Đọc kết quả với giá trị mặc định
+### 8.1. Reading results with a default value
 
 ```java
 long northCount = emptyCounts.getOrDefault("Bắc", 0L);
 System.out.println(northCount); // 0
 ```
 
-`getOrDefault` giúp trình bày số 0 khi khóa vắng mặt, nhưng nó **không thêm khóa vào Map**. Nếu “chưa có dữ liệu” và “có nhóm với tổng bằng 0” là hai trạng thái khác nhau trong nghiệp vụ, đừng dùng mặc định `0L` để xóa đi sự khác biệt.
+`getOrDefault` helps display 0 when a key is absent, but it **does not add the key to the Map**. If “no data yet” and “a group with a total of 0” are two distinct states in the business logic, do not use a default `0L` to erase the difference.
 
-### 8.2. Khởi tạo các nhóm hợp lệ từ danh mục nghiệp vụ
+### 8.2. Initializing valid groups from a business catalog
 
-Nếu giao diện bắt buộc luôn thể hiện năm khu vực, kể cả `"Đông"` chưa có đơn:
+If the UI must always display five regions, including `"Đông"` which has no orders yet:
 
 ```java
 import java.util.LinkedHashMap;
@@ -570,11 +570,11 @@ System.out.println(complete);
 // {Bắc=2, Trung=1, Nam=2, Tây=0, Đông=0}
 ```
 
-Bước bổ sung danh mục diễn ra **sau khi thu thập**. Nó giúp kiểm soát chính xác những nhóm nào phải tồn tại và thứ tự hiển thị; thay đổi collector đơn thuần không thể suy ra các khu vực chưa có trong nguồn.
+The catalog completion step happens **after collection**. It gives exact control over which groups must exist and their display order; changing the collector alone cannot infer regions absent from the source.
 
-## 9. Kiểu Map, thứ tự khóa và nhóm nhiều tầng
+## 9. Map types, key order, and multi-level grouping
 
-`Collectors.groupingBy(classifier, downstream)` **không cam kết** kiểu Map cụ thể hoặc thứ tự duyệt khóa. Khi yêu cầu thứ tự, có thể chọn overload ba tham số với `mapFactory`:
+`Collectors.groupingBy(classifier, downstream)` **does not guarantee** a specific Map type or key iteration order. When ordering is required, you can choose the three-parameter overload with `mapFactory`:
 
 ```java
 import java.util.LinkedHashMap;
@@ -595,9 +595,9 @@ TreeMap<String, Long> bySortedRegion = orders.stream()
     ));
 ```
 
-Với nguồn `List` và pipeline **tuần tự** như ví dụ, `LinkedHashMap` duyệt khóa theo thứ tự chèn (Bắc, Nam, Trung, Tây). `TreeMap` duyệt theo thứ tự so sánh khóa tự nhiên của `String`; thứ tự này không nhất thiết tương đương quy tắc sắp chữ tiếng Việt.
+With a `List` source and a **sequential** pipeline like in the example, `LinkedHashMap` iterates keys in insertion order (Bắc, Nam, Trung, Tây). `TreeMap` iterates according to `String`'s natural comparison order; this order does not necessarily match Vietnamese collation rules.
 
-Map ngoài của một báo cáo nhóm hai tầng có thể là `TreeMap` và Map trong là `LinkedHashMap`:
+The outer Map of a two-level grouped report can be a `TreeMap` and the inner Map a `LinkedHashMap`:
 
 ```java
 Map<String, Map<String, Long>> report =
@@ -613,11 +613,11 @@ Map<String, Map<String, Long>> report =
         ));
 ```
 
-Chọn thứ tự và kiểu Map theo **cách sử dụng kết quả**, không chỉ theo vẻ đẹp của code.
+Choose the order and Map type according to **how the result is used**, not merely for code aesthetics.
 
-## 10. `partitioningBy` khi khóa chỉ có hai trạng thái
+## 10. `partitioningBy` when keys have only two states
 
-Nếu mục tiêu là nhóm theo một điều kiện đúng/sai, ví dụ đơn đã thanh toán hay chưa, `Collectors.partitioningBy` là một lựa chọn chuyên biệt.
+If the goal is to group by a true/false condition, such as whether an order is paid or not, `Collectors.partitioningBy` is a specialized choice.
 
 ```java
 import java.util.Map;
@@ -633,7 +633,7 @@ System.out.println(countByPayment.get(true));  // 5
 System.out.println(countByPayment.get(false)); // 2
 ```
 
-`partitioningBy` trả Map chứa **cả hai khóa `true` và `false`**, ngay cả khi một phía không có phần tử. Downstream `counting()` khi không có phần tử của một phía trả `0L`.
+`partitioningBy` returns a Map containing **both `true` and `false` keys**, even when one side has no elements. Downstream `counting()` with no elements on one side returns `0L`.
 
 ```java
 Map<Boolean, Long> emptyPartition = List.<Order>of()
@@ -647,13 +647,13 @@ System.out.println(emptyPartition.get(true));  // 0
 System.out.println(emptyPartition.get(false)); // 0
 ```
 
-Điều này khác với `groupingBy(Order::paid, counting())` trên Stream rỗng: `groupingBy` trả Map rỗng. Nếu chỉ có hai trạng thái boolean và cần luôn có cả hai kết quả, `partitioningBy` thể hiện ý định tốt.
+This differs from `groupingBy(Order::paid, counting())` on an empty Stream: `groupingBy` returns an empty Map. If there are only two boolean states and both results must always be present, `partitioningBy` expresses the intent clearly.
 
-## 11. Độ chính xác số học khi tổng hợp nhóm
+## 11. Arithmetic precision in group aggregation
 
-Các collector không kiểm tra tràn số thay cho ứng dụng. Điều kiện này đặc biệt quan trọng với báo cáo số lượng lớn và tiền.
+Collectors do not perform overflow checks on behalf of the application. This condition is especially important for large-volume and monetary reports.
 
-### 11.1. `summingInt` có thể tràn số `int`
+### 11.1. `summingInt` can overflow `int`
 
 ```java
 record Stock(String warehouse, int units) {}
@@ -679,11 +679,11 @@ System.out.println(wrongTotals.get("K1")); // -1294967296
 System.out.println(longTotals.get("K1"));  // 3000000000
 ```
 
-`summingInt` trả về `Integer` và cộng trong miền `int`. Nếu tổng có thể vượt `int`, cần chuyển kiểu **trước phép cộng**, không phải chỉ gán Map kết quả sang một biến chứa `Long`.
+`summingInt` returns `Integer` and sums in the `int` domain. If the sum can exceed `int`, you must convert the type **before the addition**, not merely assign the resulting Map to a variable holding `Long`.
 
-### 11.2. `summingLong` cũng có thể tràn
+### 11.2. `summingLong` can also overflow
 
-`Long.MAX_VALUE + 1L` không chứa được trong `long`. Nếu nghiệp vụ cần tổng nguyên lớn hơn giới hạn 64 bit, có thể kết hợp `groupingBy` với `Collectors.reducing` trên `BigInteger`:
+`Long.MAX_VALUE + 1L` does not fit in `long`. If the business logic needs an integer sum larger than the 64-bit limit, you can combine `groupingBy` with `Collectors.reducing` on `BigInteger`:
 
 ```java
 import java.math.BigInteger;
@@ -708,22 +708,22 @@ Map<String, BigInteger> exactTotals = transfers.stream()
 System.out.println(exactTotals.get("A")); // 9223372036854775808
 ```
 
-`BigInteger` tính tổng số nguyên chính xác theo giá trị đã có trong nguồn. Nó không sửa lỗi nếu phép nhân hoặc ép kiểu **trước đó** đã tràn số. Với tiền thập phân, cân nhắc `BigDecimal` và quy tắc làm tròn nghiệp vụ thay vì đổi sang `double`.
+`BigInteger` computes the exact integer sum from the values present in the source. It does not fix bugs if an **earlier** multiplication or cast already overflowed. For decimal currency, consider `BigDecimal` and business rounding rules rather than switching to `double`.
 
-### 11.3. `summingDouble` có giới hạn của số thực
+### 11.3. `summingDouble` has floating-point limitations
 
-`summingDouble` không cam kết tổng thập phân chính xác tuyệt đối: kết quả có thể sai khác do làm tròn nhị phân, độ lớn các toán hạng và thứ tự cộng. Nếu dữ liệu chứa `NaN` hoặc vô cực, phải định nghĩa chính sách xử lý số đo bất thường. Với số tiền chính xác theo đơn vị thập phân, dùng `BigDecimal` khi mô hình nghiệp vụ yêu cầu.
+`summingDouble` does not guarantee an exact decimal sum: results can vary due to binary rounding, operand magnitudes, and addition order. If the data contains `NaN` or infinity, a policy for handling abnormal measurements must be defined. For exact decimal monetary amounts, use `BigDecimal` when required by the business model.
 
-### 11.4. Kiểu số của biểu thức ánh xạ cũng quan trọng
+### 11.4. The numeric type of the mapping expression also matters
 
-Với `record Line(String group, int quantity, int priceVnd)`, mã sau vẫn có thể tràn `int` **trước khi summingLong nhận kết quả**:
+With `record Line(String group, int quantity, int priceVnd)`, the following code can still overflow `int` **before `summingLong` receives the result**:
 
 ```java
-// Có nguy cơ sai: phép nhân int * int diễn ra trước khi mở rộng sang long.
+// Risk of bug: int * int multiplication happens before widening to long.
 Collectors.summingLong(line -> line.quantity() * line.priceVnd())
 ```
 
-Cách đúng hơn khi phép nhân vừa miền `long`:
+A more accurate approach when the product fits in the `long` range:
 
 ```java
 Collectors.summingLong(
@@ -731,15 +731,15 @@ Collectors.summingLong(
 )
 ```
 
-Nếu cả tích hoặc tổng có thể vượt miền `long`, phải dùng kiểu lớn hơn và kiểm tra giới hạn theo nghiệp vụ.
+If either the product or the sum can exceed the `long` range, use a larger type and check limits according to business rules.
 
-## 12. Tính lazy, chi phí và song song
+## 12. Laziness, cost, and parallelism
 
-`filter`, `map` và các thao tác trung gian được đánh giá **lazy**. `collect` là terminal operation kích hoạt duyệt các phần tử cần thiết.
+`filter`, `map`, and intermediate operations are evaluated **lazily**. `collect` is the terminal operation that triggers traversal of the required elements.
 
 ```java
 var selected = orders.stream()
-    .filter(Order::paid); // Chưa tạo kết quả thống kê.
+    .filter(Order::paid); // Has not produced statistics yet.
 
 Map<String, Long> counts = selected.collect(
     Collectors.groupingBy(
@@ -748,16 +748,16 @@ Map<String, Long> counts = selected.collect(
     )
 );
 
-// selected.count(); // Không được dùng lại Stream đã tiêu thụ.
+// selected.count(); // Cannot reuse an already-consumed Stream.
 ```
 
-### 12.1. Thu thập thường cần đọc toàn bộ dữ liệu
+### 12.1. Collection typically needs to read all data
 
-Đếm và tính tổng theo từng nhóm không phải phép tìm kiếm dừng sớm: với một tập hữu hạn, các nhóm cần nhận hết những phần tử thuộc phạm vi tính toán. Kết quả Map có chi phí lưu **một entry cho mỗi khóa nhóm**; với nhóm hai tầng, còn có Map cho từng nhóm ngoài và các entry trong từng Map con.
+Counting and summing per group is not a short-circuiting search: for a finite dataset, groups must receive all elements within the computation scope. The resulting Map has the storage cost of **one entry per group key**; with two-level grouping, there is also a Map for each outer group and entries in each sub-Map.
 
-`groupingBy(..., counting())` không lưu tất cả phần tử thành danh sách như `groupingBy(...)` mặc định; nó chỉ giữ trạng thái cần thiết cho phép đếm. Tương tự, `summingLong` có thể tránh lưu toàn bộ giao dịch trong nhóm. Đây là lợi ích quan trọng của việc chọn downstream theo đúng kết quả yêu cầu.
+`groupingBy(..., counting())` does not store all elements into lists like the default `groupingBy(...)`; it only holds the state required for counting. Similarly, `summingLong` avoids storing all transactions in each group. This is an important benefit of choosing a downstream matching the required result.
 
-### 12.2. `parallelStream` không mặc định nhanh hơn
+### 12.2. `parallelStream` is not faster by default
 
 ```java
 Map<String, Long> parallelTotals = orders.parallelStream()
@@ -768,9 +768,9 @@ Map<String, Long> parallelTotals = orders.parallelStream()
     ));
 ```
 
-`groupingBy` thông thường **không phải concurrent collector**; khi song song, framework có thể tích lũy vào các Map riêng rồi **kết hợp**. Việc kết hợp nhiều Map có thể tốn chi phí nếu số khóa lớn.
+Standard `groupingBy` **is not a concurrent collector**; when running in parallel, the framework may accumulate into separate Maps and then **combine** them. Combining many Maps can be costly if the number of keys is large.
 
-Nếu phù hợp với nghiệp vụ không phụ thuộc thứ tự, có thể cân nhắc:
+If appropriate for order-independent business logic, you can consider:
 
 ```java
 import java.util.concurrent.ConcurrentMap;
@@ -783,16 +783,16 @@ ConcurrentMap<String, Long> concurrentTotals = orders.parallelStream()
     ));
 ```
 
-`groupingByConcurrent` là một concurrent, unordered collector. Downstream `summingLong` không cần tự thay đổi thành một biến dùng chung giữa các luồng; framework chịu trách nhiệm phối hợp để giữ tính đúng theo hợp đồng. Việc dùng `groupingByConcurrent` cũng **không** bảo đảm luôn nhanh hơn `groupingBy`: dữ liệu có ít khóa và rất nhiều phần tử cùng một khóa có thể gây tranh chấp.
+`groupingByConcurrent` is a concurrent, unordered collector. The downstream `summingLong` does not need to change itself into a variable shared across threads; the framework is responsible for coordination to preserve correctness under the contract. Using `groupingByConcurrent` also **does not** guarantee it is always faster than `groupingBy`: data with few keys and very many elements sharing the same key can cause contention.
 
-Song song hóa không khắc phục tràn số nguyên, không giải quyết sai số dấu phẩy động và không cho phép sửa tùy tiện một `HashMap` bên ngoài từ `forEach`.
+Parallelization does not fix integer overflow, does not resolve floating-point errors, and does not permit arbitrarily mutating an external `HashMap` from `forEach`.
 
-### 12.3. Tránh mutable state ngoài Collector
+### 12.3. Avoid mutable state outside the Collector
 
-Ví dụ không nên dùng:
+Example to avoid:
 
 ```java
-// Không an toàn, nhất là với parallelStream():
+// Unsafe, especially with parallelStream():
 Map<String, Long> mutableTotals = new java.util.HashMap<>();
 
 orders.parallelStream().forEach(order ->
@@ -804,13 +804,13 @@ orders.parallelStream().forEach(order ->
 );
 ```
 
-Đoạn này cập nhật `HashMap` dùng chung từ nhiều luồng mà không có đồng bộ đúng cách. Hãy dùng `groupingBy`/`groupingByConcurrent` với downstream thích hợp; collector quản lý trạng thái tích lũy, combiner và yêu cầu an toàn luồng.
+This snippet updates a shared `HashMap` from multiple threads without proper synchronization. Use `groupingBy`/`groupingByConcurrent` with an appropriate downstream; the collector manages accumulation state, the combiner, and thread-safety requirements.
 
-Với nguồn gắn với tài nguyên I/O, ví dụ `Files.lines(path)`, đóng Stream bằng `try-with-resources` dù terminal operation là `collect`. Chi phí hiệu năng phụ thuộc số phần tử, số nhóm, mapper, cấu trúc Map, kiểu số và độ cạnh tranh; đo bằng dữ liệu đại diện, chẳng hạn JMH, trước khi tối ưu.
+For sources tied to I/O resources, such as `Files.lines(path)`, close the Stream with `try-with-resources` even when the terminal operation is `collect`. Performance cost depends on element count, group count, mapper, Map structure, numeric types, and contention; measure with representative data, such as JMH, before optimizing.
 
-## 13. Ví dụ hoàn chỉnh: thống kê nhiều tầng và hai đại lượng
+## 13. Complete example: multi-level statistics and dual metrics
 
-Đoạn mã sau chạy trên **Java 17+** (sử dụng `record`, `Collectors.filtering` và `Collectors.teeing`). Nó tổng hợp một lượt các báo cáo phổ biến trên cùng danh sách nguồn; mỗi báo cáo tạo **một Stream mới**, vì Stream không thể dùng lại sau terminal operation.
+The following code runs on **Java 17+** (using `record`, `Collectors.filtering`, and `Collectors.teeing`). It aggregates several common reports over the same source list in one pass each; each report creates **a new Stream**, because a Stream cannot be reused after a terminal operation.
 
 ```java
 import java.util.List;
@@ -839,14 +839,14 @@ public class GroupedAggregationDemo {
             new Order("O-07", "Tây",   "Sách",  75_000L, false)
         );
 
-        // 1. Đếm tất cả đơn theo khu vực.
+        // 1. Count all orders by region.
         Map<String, Long> allCounts = orders.stream()
             .collect(Collectors.groupingBy(
                 Order::region,
                 Collectors.counting()
             ));
 
-        // 2. Đếm đơn đã thanh toán, vẫn giữ khu vực chỉ có đơn chưa thanh toán.
+        // 2. Count paid orders, keeping regions that only have unpaid orders.
         Map<String, Long> paidCounts = orders.stream()
             .collect(Collectors.groupingBy(
                 Order::region,
@@ -856,7 +856,7 @@ public class GroupedAggregationDemo {
                 )
             ));
 
-        // 3. Tổng doanh thu đã thanh toán theo khu vực.
+        // 3. Total paid revenue by region.
         Map<String, Long> revenue = orders.stream()
             .filter(Order::paid)
             .collect(Collectors.groupingBy(
@@ -864,7 +864,7 @@ public class GroupedAggregationDemo {
                 Collectors.summingLong(Order::amountVnd)
             ));
 
-        // 4. Đếm đơn đã thanh toán theo cả khu vực và loại sản phẩm.
+        // 4. Count paid orders by both region and product category.
         Map<String, Map<String, Long>> byRegionAndCategory =
             orders.stream()
                 .filter(Order::paid)
@@ -876,7 +876,7 @@ public class GroupedAggregationDemo {
                     )
                 ));
 
-        // 5. Một report cho mỗi khu vực: vừa số đơn vừa tổng tiền.
+        // 5. One report per region: both order count and total amount.
         Map<String, RegionStats> combined = orders.stream()
             .filter(Order::paid)
             .collect(Collectors.groupingBy(
@@ -901,85 +901,85 @@ public class GroupedAggregationDemo {
 }
 ```
 
-Phân tích năm kết quả:
+Analyzing the five results:
 
-| Báo cáo | Kiểu trả về | Nhóm Tây | Ý nghĩa |
+| Report | Return type | Tây group | Meaning |
 | --- | --- | --- | --- |
-| `allCounts` | `Map<String, Long>` | 1 | Đếm mọi đơn, không phân biệt thanh toán |
-| `paidCounts` | `Map<String, Long>` | 0 | Nhóm tồn tại nhưng không đơn nào đạt điều kiện downstream |
-| `revenue` | `Map<String, Long>` | Không có khóa | Stream đã lọc hết đơn ở Tây trước khi nhóm |
-| `byRegionAndCategory` | `Map<String, Map<String, Long>>` | Không có khóa | Báo cáo hai chiều chỉ chứa đơn đã thanh toán |
-| `combined` | `Map<String, RegionStats>` | Không có khóa | Một kết quả gồm số đơn và tổng tiền cho mỗi nhóm còn lại |
+| `allCounts` | `Map<String, Long>` | 1 | Counts all orders, regardless of payment |
+| `paidCounts` | `Map<String, Long>` | 0 | Group exists, but no order satisfies the downstream condition |
+| `revenue` | `Map<String, Long>` | No key | Stream filtered out all orders in Tây before grouping |
+| `byRegionAndCategory` | `Map<String, Map<String, Long>>` | No key | Two-dimensional report containing only paid orders |
+| `combined` | `Map<String, RegionStats>` | No key | A result containing both order count and total amount for each remaining group |
 
-Không phụ thuộc vào thứ tự in của `Map` nếu không chọn một `mapFactory` bảo đảm thứ tự. Các dòng `get(...)` trong ví dụ kiểm tra cụ thể từng khóa, nên không yêu cầu Map phải duyệt theo thứ tự nào.
+Do not rely on the print order of a `Map` unless you choose a `mapFactory` that guarantees ordering. The `get(...)` calls in the example inspect specific keys individually, so they do not require the Map to iterate in any particular order.
 
-## 14. Lỗi thường gặp và hướng khắc phục
+## 14. Common mistakes and fixes
 
-| Sai lầm | Hệ quả | Cách sửa |
+| Mistake | Consequence | How to fix |
 | --- | --- | --- |
-| Gọi `stream.count()` rồi mong nhận số lượng theo từng khóa | Chỉ nhận tổng toàn Stream | Đặt `counting()` vào downstream của `groupingBy` |
-| Khai báo `Map<K, Integer>` với `counting()` | Sai kiểu trả về | Dùng `Map<K, Long>` |
-| Coi `summingInt` phù hợp cho mọi tổng nguyên | Có thể tràn `int` | Dùng `summingLong` sau khi mở rộng kiểu, hoặc số nguyên chính xác hơn |
-| Dùng `summingLong` nhưng phép nhân trong mapper vẫn là `int * int` | Trung gian có thể tràn | Ép kiểu một toán hạng trước phép nhân |
-| Lọc trước khi nhóm rồi mong có khóa với giá trị 0 | Nhóm bị lọc hết không xuất hiện | Dùng downstream `filtering` nếu muốn giữ khóa đã có trong nguồn |
-| Cho rằng downstream `filtering` sẽ tạo cả nhóm chưa từng có trong nguồn | Không thể suy ra khóa chưa tồn tại | Bổ sung danh mục khóa nghiệp vụ tường minh |
-| Xem `get(key) == null` là tổng bằng 0 mà không kiểm tra ngữ nghĩa | Nhầm không có nhóm với nhóm có giá trị 0 | Dùng `containsKey` hoặc kiểu kết quả diễn đạt đủ trạng thái |
-| Đếm bản ghi bằng `counting()` khi muốn đếm giá trị duy nhất | Đếm trùng | `mapping` sang khóa duy nhất, `toSet`, rồi tính kích thước |
-| Dùng `groupingBy` hai tầng nhưng đọc nhầm thứ tự khóa | Truy xuất sai báo cáo | Xác định rõ Map ngoài là chiều nào, Map trong là chiều nào |
-| Lấy trung bình hai nhóm không có trọng số để ra trung bình toàn bộ | Sai khi số phần tử hai nhóm khác nhau | Gộp `sum` và `count` trước, sau đó chia |
-| Giả định Map trả về theo thứ tự xuất hiện | Không có bảo đảm từ overload mặc định | Dùng `LinkedHashMap::new`/`TreeMap::new` theo nhu cầu |
-| Cộng tiền thập phân bằng `summingDouble` và coi kết quả tuyệt đối chính xác | Sai số dấu phẩy động | Dùng `BigDecimal` và quy tắc làm tròn phù hợp |
-| Dùng lại cùng một Stream cho nhiều báo cáo | Stream đã tiêu thụ, có thể ném ngoại lệ | Tạo Stream mới hoặc kết hợp collector có chủ đích |
-| Sửa một `HashMap` bên ngoài bằng `parallelStream().forEach(...)` | Race condition, sai dữ liệu | Dùng collector đúng hợp đồng |
-| Mặc định `groupingByConcurrent` luôn nhanh hơn | Có thể tranh chấp khóa, overhead tăng | Đo trên dữ liệu, số nhóm và phân bố khóa thực tế |
+| Calling `stream.count()` expecting counts per key | Receives only the Stream-wide total | Place `counting()` as the downstream of `groupingBy` |
+| Declaring `Map<K, Integer>` with `counting()` | Wrong return type | Use `Map<K, Long>` |
+| Assuming `summingInt` works for all integer sums | Can overflow `int` | Use `summingLong` after widening the type, or a higher-precision integer type |
+| Using `summingLong` while multiplication in mapper is still `int * int` | Intermediate value can overflow | Cast one operand before multiplying |
+| Filtering before grouping and expecting a key with value 0 | Completely filtered-out groups do not appear | Use downstream `filtering` if you want to keep keys present in the source |
+| Assuming downstream `filtering` will also create groups never present in the source | Cannot infer nonexistent keys | Explicitly populate from a business key catalog |
+| Treating `get(key) == null` as a total of 0 without checking semantics | Confuses missing group with zero-valued group | Use `containsKey` or a result type expressing all states |
+| Counting records with `counting()` when wanting distinct value counts | Counts duplicates | `mapping` to the unique key, `toSet`, then take size |
+| Using two-level `groupingBy` but reading keys in the wrong order | Accesses the wrong report dimension | Clearly identify which dimension is the outer Map and which is the inner Map |
+| Taking an unweighted average of two group averages for the overall average | Wrong when group sizes differ | Combine `sum` and `count` first, then divide |
+| Assuming the returned Map preserves appearance order | Not guaranteed by the default overload | Use `LinkedHashMap::new`/`TreeMap::new` as needed |
+| Summing decimal money with `summingDouble` and assuming exact precision | Floating-point precision errors | Use `BigDecimal` and appropriate rounding rules |
+| Reusing the same Stream for multiple reports | Stream already consumed; throws exception | Create a new Stream or compose collectors intentionally |
+| Mutating an external `HashMap` via `parallelStream().forEach(...)` | Race condition, corrupted data | Use a collector that honors the contract |
+| Assuming `groupingByConcurrent` is always faster | Can cause key contention and increased overhead | Measure on actual data, group count, and key distribution |
 
-## 15. Bài tập thực hành
+## 15. Practice exercises
 
-### Bài 1: Đếm theo loại sản phẩm
+### Exercise 1: Count by product category
 
-Với danh sách `Order` trong mục 1, dùng `groupingBy(Order::category, counting())` đếm tất cả đơn theo loại hàng. So sánh với pipeline chỉ tính các đơn đã thanh toán và giải thích vì sao hai báo cáo có ý nghĩa khác nhau.
+Using the `Order` list in section 1, use `groupingBy(Order::category, counting())` to count all orders by category. Compare with a pipeline that counts only paid orders and explain why the two reports have different meanings.
 
-### Bài 2: Doanh thu đã thanh toán
+### Exercise 2: Paid revenue
 
-Dùng `filter(Order::paid)`, `groupingBy(Order::region, summingLong(Order::amountVnd))` để tính doanh thu từng khu vực. Kiểm tra riêng khu vực Tây và nêu lý do khóa này không xuất hiện.
+Use `filter(Order::paid)`, `groupingBy(Order::region, summingLong(Order::amountVnd))` to compute revenue per region. Check the `"Tây"` region specifically and explain why this key does not appear.
 
-### Bài 3: Đếm có giá trị 0
+### Exercise 3: Counting with zero values
 
-Viết lại báo cáo bài 2 bằng `groupingBy(Order::region, filtering(Order::paid, summingLong(...)))`. So sánh `containsKey("Tây")`, `get("Tây")` và `getOrDefault("Đông", 0L)`. Ba phép kiểm tra nói gì về sự tồn tại của dữ liệu?
+Rewrite exercise 2's report using `groupingBy(Order::region, filtering(Order::paid, summingLong(...)))`. Compare `containsKey("Tây")`, `get("Tây")`, and `getOrDefault("Đông", 0L)`. What do these three checks tell you about data existence?
 
-### Bài 4: Nhóm hai tầng
+### Exercise 4: Two-level grouping
 
-Tạo `Map<String, Map<String, Long>>` đếm số đơn đã thanh toán theo `category` trước, rồi `region` sau. So sánh cách truy xuất với `groupingBy(region, groupingBy(category, ...))`.
+Create a `Map<String, Map<String, Long>>` counting paid orders by `category` first, then `region`. Compare the access pattern with `groupingBy(region, groupingBy(category, ...))`.
 
-### Bài 5: Đếm và tính tổng một lượt
+### Exercise 5: Counting and summing in one pass
 
-Dùng `Collectors.teeing(counting(), summingLong(...), RegionStats::new)` để tạo `RegionStats` cho mỗi khu vực. Nếu cần thêm giá trị lớn nhất, hãy cân nhắc `summarizingLong` và giải thích lúc nào nó đơn giản hơn `teeing`.
+Use `Collectors.teeing(counting(), summingLong(...), RegionStats::new)` to produce a `RegionStats` for each region. If you also need the maximum value, consider `summarizingLong` and explain when it is simpler than `teeing`.
 
-### Bài 6: Độ chính xác khi tổng hợp
+### Exercise 6: Precision in aggregation
 
-Cho hai bản ghi kho cùng nhóm, mỗi bản ghi có `1_500_000_000` đơn vị. So sánh `summingInt` với `summingLong`; giải thích nguyên nhân tràn và thời điểm chuyển kiểu. Sau đó xây nhóm có tổng vượt `Long.MAX_VALUE` bằng `BigInteger`.
+Given two warehouse records in the same group, each with `1_500_000_000` units, compare `summingInt` with `summingLong`; explain the cause of overflow and when the type conversion must happen. Then build a group whose total exceeds `Long.MAX_VALUE` using `BigInteger`.
 
-### Bài 7: Nhóm không có dữ liệu
+### Exercise 7: Groups without data
 
-Tạo danh mục khu vực gồm Bắc, Trung, Nam, Tây và Đông. Từ `Map` chỉ chứa khu vực có giao dịch đã thanh toán, tạo một báo cáo đầy đủ năm khóa, đặt `0L` khi không có số liệu. Nêu khi nào việc thay thiếu dữ liệu bằng 0 là phù hợp và khi nào cần giữ trạng thái “chưa có dữ liệu”.
+Create a region catalog containing Bắc, Trung, Nam, Tây, and Đông. From a `Map` containing only regions with paid transactions, build a complete five-key report, setting `0L` when there are no figures. State when replacing missing data with 0 is appropriate and when the “no data yet” state must be preserved.
 
-### Bài 8: Đánh giá song song
+### Exercise 8: Evaluating parallelism
 
-Với tập dữ liệu có nhiều đơn nhưng chỉ hai khu vực, so sánh `groupingBy` và `groupingByConcurrent` khi chạy song song. Giải thích rủi ro tranh chấp ở số khóa ít, ảnh hưởng của `combiner` và vì sao nên đo trên workload đại diện thay vì chọn chỉ theo tên API.
+With a dataset containing many orders across only two regions, compare `groupingBy` and `groupingByConcurrent` under parallel execution. Explain the contention risk when there are few keys, the impact of the `combiner`, and why you should measure on a representative workload rather than choosing solely by API name.
 
-## 16. Tự kiểm tra kiến thức
+## 16. Self-check questions
 
-- `Collectors.counting()` khác `Stream.count()` như thế nào?
-- Trong `groupingBy(classifier, downstream)`, thành phần nào quyết định khóa, thành phần nào quyết định giá trị?
-- `summingInt`, `summingLong` và `summingDouble` trả về kiểu gì?
-- Vì sao tổng doanh thu có thể khác khi đặt `filter` trước và sau bước phân nhóm?
-- Khi nào dùng `Collectors.filtering` để giữ nhóm có kết quả bằng 0?
-- Cấu trúc `Map<K1, Map<K2, Long>>` biểu diễn hai chiều phân nhóm thế nào?
-- Khi nào `teeing` phù hợp hơn chạy hai pipeline độc lập?
-- `summarizingLong` có thể thay `counting` và `summingLong` trong tình huống nào?
-- Vì sao nhóm không xuất hiện khác với một nhóm có tổng bằng 0?
-- `partitioningBy` trên nguồn rỗng khác `groupingBy` như thế nào?
-- Vì sao `summingLong` không giải quyết mọi nguy cơ tràn số và mất chính xác?
-- Tại sao phải cân nhắc số nhóm và phân bố khóa khi xử lý song song?
+- How does `Collectors.counting()` differ from `Stream.count()`?
+- In `groupingBy(classifier, downstream)`, which component determines the key and which determines the value?
+- What types do `summingInt`, `summingLong`, and `summingDouble` return?
+- Why can total revenue differ when placing `filter` before versus after grouping?
+- When should you use `Collectors.filtering` to keep groups with a result of 0?
+- How does `Map<K1, Map<K2, Long>>` represent two grouping dimensions?
+- When is `teeing` more suitable than running two independent pipelines?
+- In what situations can `summarizingLong` replace `counting` and `summingLong`?
+- Why is an absent group different from a group with a sum of 0?
+- How does `partitioningBy` on an empty source differ from `groupingBy`?
+- Why does `summingLong` not solve every overflow and precision risk?
+- Why must group count and key distribution be considered in parallel processing?
 
-**Ghi nhớ:** Để đếm hoặc tính tổng **từng nhóm**, hãy đặt `Collectors.counting()` hoặc `Collectors.summingInt/summingLong/summingDouble(...)` làm **downstream** của `groupingBy`. Muốn thêm chiều báo cáo thì lồng `groupingBy`; muốn nhiều số liệu trong một kết quả thì cân nhắc `teeing` hoặc `summarizingLong`. Luôn phân biệt **nhóm không có khóa**, **nhóm có kết quả 0**, và **giá trị số có thể tràn hoặc sai số** trước khi đưa báo cáo vào nghiệp vụ.
+**Key takeaway:** To count or sum **per group**, place `Collectors.counting()` or `Collectors.summingInt/summingLong/summingDouble(...)` as the **downstream** of `groupingBy`. To add another reporting dimension, nest `groupingBy`; to compute multiple metrics in one result, consider `teeing` or `summarizingLong`. Always distinguish between **a group without a key**, **a group with a result of 0**, and **numeric values that can overflow or lose precision** before delivering reports to business logic.

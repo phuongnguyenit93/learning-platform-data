@@ -1,33 +1,33 @@
-# Không làm tròn sau mọi phép tính nếu hợp đồng không yêu cầu
+# Do Not Round After Every Operation Unless the Contract Requires It
 
-Trong Java, **làm tròn số không phải là công việc nên tự động thêm sau mọi phép toán**. Một chương trình có thể cần độ chính xác để tính toán nội bộ, rồi mới làm tròn đến một đơn vị được quy định khi quyết toán, ghi sổ hoặc hiển thị. Làm tròn quá sớm có thể làm mất thông tin và khiến tổng cuối khác với phép tính giữ độ chính xác rồi chỉ làm tròn tại điểm chốt.
+In Java, **rounding numbers is not something that should be automatically added after every arithmetic operation**. A program may need precision for internal calculations, and only round to a specified unit when settling, posting to a ledger, or displaying. Rounding too early can lose information and cause the final total to differ from a calculation that retains precision and rounds only at the settlement boundary.
 
-Nhưng cũng không thể khẳng định **chỉ làm tròn cuối luôn đúng**: nếu hợp đồng hoặc quy định yêu cầu mỗi dòng hóa đơn, từng giao dịch, từng phần phân bổ phải được làm tròn độc lập, những điểm đó là ranh giới nghiệp vụ bắt buộc.
+However, one cannot claim **rounding only at the end is always right** either: if a contract or regulation requires each invoice line, each transaction, or each allocation share to be rounded independently, those points are mandatory business boundaries.
 
-Bài học phân biệt ba khái niệm: **làm tròn nhị phân cố hữu** của `float`/`double`; **làm tròn thập phân chủ động** bằng `BigDecimal`, `Math.round` và `RoundingMode`; và **định dạng kết quả để hiển thị**. Cách quyết định đúng là đọc hợp đồng tính toán: làm tròn **giá trị nào, vào lúc nào, đến bao nhiêu chữ số, bằng quy tắc nào**?
+This lesson distinguishes three concepts: **inherent binary rounding** of `float`/`double`; **explicit decimal rounding** using `BigDecimal`, `Math.round`, and `RoundingMode`; and **formatting results for display**. The right way to decide is to read the computation contract: **which value** should be rounded, **when**, **to how many digits**, and **by what rule**?
 
-## 1. Làm tròn mỗi khoản và làm tròn tổng có thể khác nhau
+## 1. Rounding Each Item vs. Rounding the Total Can Differ
 
-Giả sử hai khoản đều bằng `0.015`, và ta phải làm tròn về **hai chữ số thập phân** theo quy tắc `HALF_UP`.
+Suppose two items are both `0.015`, and we must round to **two decimal places** using the `HALF_UP` rule.
 
-**Phương án A — chốt từng khoản trước khi cộng:**
+**Approach A — settle each item before summing:**
 
 ```text
 0.015 -> 0.02
 0.015 -> 0.02
-Tổng = 0.04
+Total = 0.04
 ```
 
-**Phương án B — cộng trước, chốt tổng sau:**
+**Approach B — sum first, settle total afterward:**
 
 ```text
 0.015 + 0.015 = 0.030
 round(0.030, 2) = 0.03
 ```
 
-Cùng dữ liệu, cùng scale, cùng rounding mode nhưng chênh `0.01`. Nếu **mỗi khoản là nghĩa vụ thanh toán độc lập** được ghi nhận ở `0.02`, tổng `0.04` có thể đúng. Nếu **hai khoản chỉ là thành phần trung gian của một nghĩa vụ chung** và yêu cầu chốt một lần, `0.03` phù hợp. Không thể tự chọn cách nào nếu hợp đồng chưa xác định.
+Same data, same scale, same rounding mode, yet a `0.01` difference. If **each item is an independent payment obligation** recorded at `0.02`, a total of `0.04` may be right. If **the two items are merely intermediate components of a single shared obligation** requiring one-time settlement, `0.03` is appropriate. You cannot arbitrarily pick one if the contract has not specified it.
 
-Ví dụ Java dùng `BigDecimal` chính xác từ chuỗi:
+Java example using exact `BigDecimal` from strings:
 
 ```java
 BigDecimal amount = new BigDecimal("0.015");
@@ -39,49 +39,49 @@ BigDecimal sumThenRound = amount.add(amount)
         .setScale(2, RoundingMode.HALF_UP); // 0.03
 ```
 
-Các đoạn code ngắn trong bài giả định đã có `import java.math.BigDecimal;` và `import java.math.RoundingMode;`, đặt trong một method. Chương trình độc lập đầy đủ nằm ở phần 9.
+The short code snippets in this lesson assume `import java.math.BigDecimal;` and `import java.math.RoundingMode;` are present, placed inside a method. The complete standalone program is in section 9.
 
-## 2. Đừng nhầm làm tròn thập phân chủ động với precision nhị phân
+## 2. Do Not Confuse Explicit Decimal Rounding with Binary Precision
 
-Java `double` có phần trị khoảng 53 bit, `float` khoảng 24 bit. Phần lớn phân số thập phân như `0.1` không có biểu diễn nhị phân hữu hạn, nên giá trị lưu trữ và mỗi phép toán số thực có thể chịu làm tròn **kể cả khi ta không hề gọi hàm round**.
+Java `double` has about 53 significand bits, and `float` has about 24 bits. Most decimal fractions such as `0.1` have no finite binary representation, so stored values and every floating-point operation can undergo rounding **even when you never call a round function**.
 
 ```java
 double value = 0.1 + 0.2;
 System.out.println(value); // 0.30000000000000004
 ```
 
-Vì vậy khuyến cáo “không làm tròn sau mọi phép tính” nghĩa là **không tự ép kết quả sau mỗi bước về số chữ số thập phân tùy chọn**, chứ không phải máy tính có thể loại bỏ sai số IEEE 754.
+Therefore, the advice "do not round after every operation" means **do not force intermediate results after each step to an arbitrary number of decimal places**, not that the computer can eliminate IEEE 754 error.
 
-Việc viết:
+Writing:
 
 ```java
 double value = 0.1 + 0.2;
 String displayed = String.format(java.util.Locale.US, "%.2f", value);
-// displayed là chuỗi "0.30"; value vẫn là 0.30000000000000004
+// displayed is the string "0.30"; value is still 0.30000000000000004
 ```
 
-chỉ **định dạng chuỗi**. Nó không sửa giá trị `value`. Nếu lưu chuỗi đã định dạng rồi parse ngược để tính tiếp, chương trình đã âm thầm đưa một bước làm tròn vào dữ liệu.
+only **formats a string**. It does not modify `value`. If you save the formatted string and parse it back to compute further, the program has silently introduced a rounding step into the data.
 
-### Vì sao làm tròn mọi bước không “sửa” số thực?
+### Why Doesn't Rounding at Every Step "Fix" Floating-Point Numbers?
 
-- Có phép toán đã mất độ chính xác **trước** khi bước làm tròn thập phân diễn ra.
-- Làm tròn theo scale nhỏ sau mỗi bước lại xóa thêm thông tin.
-- Các bước sau có thể cộng dồn phần chênh mới.
-- `double` chứa giá trị nhị phân; kết quả `Math.round(x * 100) / 100.0` vẫn mang kiểu `double` và không nhất thiết biểu diễn chính xác bội số `0.01`.
+- Some operations have already lost precision **before** the decimal rounding step occurs.
+- Rounding to a small scale after every step discards even more information.
+- Subsequent steps can accumulate the newly introduced discrepancies.
+- `double` holds binary values; the result of `Math.round(x * 100) / 100.0` is still a `double` and does not necessarily represent an exact multiple of `0.01`.
 
-Chỉ dùng phép làm tròn thập phân khi đó **thực sự là một phần của yêu cầu**, không phải vì muốn số in ra đẹp hơn.
+Use decimal rounding only when it **is genuinely part of the requirement**, not simply to make printed numbers look prettier.
 
-## 3. Scale, precision và rounding mode trong `BigDecimal`
+## 3. Scale, Precision, and Rounding Mode in `BigDecimal`
 
-`BigDecimal` phân biệt:
+`BigDecimal` distinguishes:
 
-| Thuật ngữ | Ý nghĩa | Ví dụ |
+| Term | Meaning | Example |
 | --- | --- | --- |
-| **Scale** | Vị trí dấu thập phân, thường tương ứng số chữ số sau dấu chấm khi scale không âm | `12.345` có scale 3 |
-| **Precision** | Tổng chữ số có nghĩa của hệ thập phân | `12.345` có precision 5 |
-| **Rounding mode** | Chính sách quyết định khi phải bỏ chữ số có nghĩa | `HALF_UP`, `HALF_EVEN`, `DOWN` ... |
+| **Scale** | Decimal point position, usually corresponding to digits after the decimal point when scale is non-negative | `12.345` has scale 3 |
+| **Precision** | Total significant digits in base 10 | `12.345` has precision 5 |
+| **Rounding mode** | Policy deciding what to do when significant digits must be dropped | `HALF_UP`, `HALF_EVEN`, `DOWN`, etc. |
 
-`setScale(2, RoundingMode.HALF_UP)` yêu cầu **hai chữ số sau dấu chấm**. `round(new MathContext(4, HALF_UP))` yêu cầu **bốn chữ số có nghĩa**:
+`setScale(2, RoundingMode.HALF_UP)` asks for **two digits after the decimal point**. `round(new MathContext(4, HALF_UP))` asks for **four significant digits**:
 
 ```java
 BigDecimal x = new BigDecimal("123.4567");
@@ -94,24 +94,24 @@ BigDecimal byPrecision = x.round(
 // 123.5
 ```
 
-Hai thao tác không thay thế nhau. `MathContext(2)` **không** có nghĩa làm tròn mọi giá trị đến 2 chữ số sau dấu thập phân.
+The two operations do not substitute for each other. `MathContext(2)` does **not** mean rounding every value to 2 decimal places.
 
-Các mode phổ biến:
+Common modes:
 
-| Mode | Ý nghĩa | Ví dụ scale 2 |
+| Mode | Meaning | Scale 2 example |
 | --- | --- | --- |
-| `HALF_UP` | Trường hợp đúng giữa hai khả năng, làm tròn ra xa 0 | `2.345 -> 2.35` |
-| `HALF_EVEN` | Trường hợp đúng giữa, chọn chữ số cuối giữ lại chẵn | `2.345 -> 2.34`; `2.355 -> 2.36` |
-| `DOWN` | Bỏ phần dư về phía 0 | `-2.349 -> -2.34` |
-| `FLOOR` | Hướng về âm vô cực | `-2.341 -> -2.35` |
-| `CEILING` | Hướng về dương vô cực | `-2.341 -> -2.34` |
-| `UNNECESSARY` | Không cho phép mất chữ số có nghĩa; nếu cần làm tròn thì ném `ArithmeticException` | `2.340 -> 2.34` hợp lệ; `2.345` bị từ chối |
+| `HALF_UP` | Exactly halfway between two possibilities, round away from 0 | `2.345 -> 2.35` |
+| `HALF_EVEN` | Exactly halfway, choose the even last retained digit | `2.345 -> 2.34`; `2.355 -> 2.36` |
+| `DOWN` | Truncate remainder toward 0 | `-2.349 -> -2.34` |
+| `FLOOR` | Toward negative infinity | `-2.341 -> -2.35` |
+| `CEILING` | Toward positive infinity | `-2.341 -> -2.34` |
+| `UNNECESSARY` | No loss of significant digits allowed; throws `ArithmeticException` if rounding is needed | `2.340 -> 2.34` valid; `2.345` rejected |
 
-**Không có một mode đúng cho mọi nghiệp vụ.** Cần biết quy định đối với số âm, điểm giữa, tiền tệ, thuế, đo lường và từng ranh giới quyết toán.
+**There is no single right mode for every business domain.** You need to know the rules for negative numbers, midpoints, currency, taxes, measurements, and each settlement boundary.
 
-## 4. Dùng `BigDecimal` khi cần tính decimal chính xác
+## 4. Use `BigDecimal` When Exact Decimal Calculations Are Needed
 
-Đối với phép cộng, trừ và nhân, `BigDecimal` tạo từ chuỗi cùng API không truyền `MathContext` có thể giữ kết quả thập phân chính xác (trong giới hạn tài nguyên).
+For addition, subtraction, and multiplication, `BigDecimal` created from strings with APIs that do not pass a `MathContext` can preserve exact decimal results (within resource limits).
 
 ```java
 BigDecimal a = new BigDecimal("0.015");
@@ -120,7 +120,7 @@ BigDecimal sum = a.add(b); // 0.030
 BigDecimal settled = sum.setScale(2, RoundingMode.HALF_UP); // 0.03
 ```
 
-Không nên tạo decimal chính xác từ literal `double` bằng constructor:
+You should not create exact decimals from `double` literals using the constructor:
 
 ```java
 BigDecimal exactDecimal = new BigDecimal("0.1");
@@ -128,11 +128,11 @@ BigDecimal fromTextRepresentation = BigDecimal.valueOf(0.1);
 BigDecimal fromBinaryApproximation = new BigDecimal(0.1);
 ```
 
-`new BigDecimal(0.1)` thể hiện **chính xác số nhị phân xấp xỉ 0.1 đang nằm trong `double`**, chứ không phải đúng số thập phân `0.1`. Dùng chuỗi thập phân hoặc số nguyên kèm scale nếu dữ liệu gốc thuộc mô hình decimal.
+`new BigDecimal(0.1)` reflects **the exact binary approximation of 0.1 sitting in `double`**, not the exact decimal `0.1`. Use decimal strings or integers with a scale if the source data belongs to a decimal model.
 
-### Phép chia là ngoại lệ quan trọng
+### Division Is an Important Exception
 
-`1/3` không có biểu diễn thập phân hữu hạn, nên `BigDecimal.ONE.divide(BigDecimal.valueOf(3))` ném `ArithmeticException` nếu không chỉ định cách xử lý. Có thể dùng:
+`1/3` has no finite decimal representation, so `BigDecimal.ONE.divide(BigDecimal.valueOf(3))` throws `ArithmeticException` if no handling rule is specified. You can use:
 
 ```java
 BigDecimal third = BigDecimal.ONE.divide(
@@ -140,29 +140,29 @@ BigDecimal third = BigDecimal.ONE.divide(
 // 0.333333
 ```
 
-Phép chia này buộc phải chọn precision/scale làm việc và sẽ có sai số. **Làm tròn trung gian có thể cần thiết** khi kết quả không biểu diễn hữu hạn. Mục tiêu là chọn độ chính xác làm việc đủ cho yêu cầu và không tiếp tục thu hẹp tùy tiện sau mọi phép cộng/nhân.
+This division forces choosing a working precision/scale and will have error. **Intermediate rounding may be necessary** when the result has no finite representation. The goal is to choose a working precision sufficient for the requirement and avoid shrinking it arbitrarily after every addition/multiplication.
 
-Cũng cần chú ý truyền `MathContext` có precision hữu hạn vào mỗi phép `add`/`multiply` có thể **chủ động làm tròn ngay ở các bước đó**, khác với việc dùng API không truyền context.
+Note also that passing a `MathContext` with finite precision into each `add`/`multiply` call can **actively round right at those steps**, unlike using the no-context API.
 
-## 5. Làm tròn đơn giá trước hay thành tiền dòng trước?
+## 5. Round Unit Price First or Line Total First?
 
-Giả sử đơn giá chính xác là `0.335`, số lượng là `3`, mode `HALF_UP` và đích là scale 2.
+Suppose the exact unit price is `0.335`, quantity is `3`, mode is `HALF_UP`, and target is scale 2.
 
-**Chốt đơn giá trước:**
+**Settle unit price first:**
 
 ```text
 round(0.335, 2) = 0.34
 0.34 * 3 = 1.02
 ```
 
-**Tính thành tiền dòng trước:**
+**Compute line total first:**
 
 ```text
 0.335 * 3 = 1.005
 round(1.005, 2) = 1.01
 ```
 
-Trong Java:
+In Java:
 
 ```java
 BigDecimal price = new BigDecimal("0.335");
@@ -175,53 +175,53 @@ BigDecimal totalFromLine = price.multiply(quantity)
         .setScale(2, RoundingMode.HALF_UP); // 1.01
 ```
 
-Nếu hợp đồng định nghĩa **đơn giá được chốt ở 0.34**, phép nhân theo đơn giá đã chốt có thể là đúng. Nếu hợp đồng định nghĩa đơn giá gốc 0.335 dùng để tính **thành tiền dòng** rồi mới làm tròn, kết quả là 1.01.
+If the contract defines **the unit price as settled at 0.34**, multiplying by the settled unit price may be right. If the contract defines the original unit price 0.335 as used to compute **the line amount** before rounding, the result is 1.01.
 
-Điểm quan trọng là phân biệt **giá trị trung gian**, **giá trị đã được quyết toán** và **giá trị chỉ định dạng để hiển thị**. Khi một khoản đã chốt theo quy định, tổng về sau phải dựa trên dữ liệu đã chốt nếu hợp đồng yêu cầu, chứ không tự tính lại một cách khác.
+The key point is distinguishing **intermediate values**, **settled values**, and **values formatted solely for display**. When an amount has been settled by rule, subsequent totals must be based on the settled data if the contract requires it, rather than recomputing differently.
 
-## 6. Những trường hợp cần làm tròn giữa chừng
+## 6. Cases Where Intermediate Rounding Is Necessary
 
-Khuyến cáo này **không cấm làm tròn có mục đích**. Ví dụ:
+This guideline **does not forbid purposeful rounding**. Examples:
 
-- **Dòng hóa đơn độc lập:** nếu thuế từng dòng phải được làm tròn, tổng thuế theo quy định có thể là tổng **thuế các dòng đã chốt**.
-- **Giao dịch được thanh toán độc lập:** mỗi khoản đã chuyển thực tế là một nghĩa vụ ở đơn vị tiền tệ nhỏ nhất. Không thể tính lại từ các số tiền “chưa làm tròn” rồi ghi đè lịch sử giao dịch.
-- **Chia tổng tiền thành nhiều phần:** từng phần phải nằm trên lưới đơn vị thanh toán; cần giải quyết khoản dư để bảo toàn tổng.
-- **Dữ liệu đo lường:** ở lúc tiếp nhận kết quả từ thiết bị có độ phân giải cố định, làm tròn/lượng tử hóa có thể là một phần của phép đo.
-- **Thuật toán có phép lượng tử hóa được đặc tả:** nếu mỗi vòng lặp được yêu cầu làm tròn, bỏ bước ấy sẽ thay đổi thuật toán.
+- **Independent invoice lines:** if tax per line must be rounded, the regulatory total tax may be the sum of **the settled line taxes**.
+- **Independently settled transactions:** each actually transferred amount is an obligation in the smallest currency unit. One cannot recompute from "unrounded" amounts and overwrite transaction history.
+- **Splitting a total into multiple shares:** each share must lie on the payment unit grid; remainder distribution must be resolved to preserve the sum.
+- **Measurement data:** when ingesting results from a fixed-resolution device, rounding/quantization may be part of the measurement itself.
+- **Algorithms with specified quantization:** if each iteration is required to round, omitting that step changes the algorithm.
 
-Ví dụ chia `10.00` thành ba khoản ở scale 2: `10 / 3` cho 3.333...; làm tròn từng khoản thành `3.33` rồi cộng sẽ chỉ được `9.99`. Một chính sách bảo toàn tổng có thể phân bổ thành `3.34 + 3.33 + 3.33 = 10.00`. Cần đặc tả ai nhận phần dư, phương thức phân bổ và cách xử lý khoản âm.
+For example, splitting `10.00` into three shares at scale 2: `10 / 3` gives 3.333...; rounding each share to `3.33` and summing yields only `9.99`. A sum-preserving policy might allocate `3.34 + 3.33 + 3.33 = 10.00`. You must specify who receives the remainder, the allocation method, and how negative amounts are handled.
 
-**Ranh giới nghiệp vụ** quan trọng hơn số lượng bước tính hoặc cảm giác rằng “số tiền chỉ có hai chữ số sau dấu chấm”.
+**Business boundaries** matter more than the number of calculation steps or an intuition that "money only has two digits after the decimal point."
 
-## 7. `Math.round` không tự động tương đương một quy tắc kế toán
+## 7. `Math.round` Is Not Automatically Equivalent to an Accounting Rule
 
-Một mẹo thường thấy:
+A commonly seen trick:
 
 ```java
 double x = 12.345;
 double twoPlaces = Math.round(x * 100.0) / 100.0;
 ```
 
-Nó có những hạn chế:
+It has limitations:
 
-- `x` và phép nhân `x*100` có thể đã là các xấp xỉ nhị phân.
-- `Math.round(double)` trả `long` và quy tắc điểm giữa hướng về dương vô cực: `Math.round(1.5)` là 2, nhưng `Math.round(-1.5)` là -1.
-- Với giá trị cực lớn hoặc NaN/vô cực, bước chuyển thành `long` có hành vi giới hạn riêng.
-- `twoPlaces` vẫn là `double`; biểu diễn nhị phân không đảm bảo đúng mọi bội của 0.01.
-- Nếu đặt mẹo này ở **mọi bước trung gian**, bạn lại làm mất thêm thông tin.
+- `x` and the multiplication `x*100` may already be binary approximations.
+- `Math.round(double)` returns `long` and rounds ties toward positive infinity: `Math.round(1.5)` is 2, but `Math.round(-1.5)` is -1.
+- For extremely large values or NaN/infinity, converting to `long` has specific clamping behaviors.
+- `twoPlaces` is still a `double`; binary representation does not guarantee exact multiples of 0.01.
+- If you place this trick at **every intermediate step**, you discard even more information.
 
 ```java
 System.out.println(Math.round(1.5));  // 2
 System.out.println(Math.round(-1.5)); // -1
 ```
 
-Trong khi `new BigDecimal("-1.5").setScale(0, RoundingMode.HALF_UP)` cho -2. Hai API không cùng quy tắc tại điểm giữa âm. Quy định nghiệp vụ cần nêu rõ chế độ làm tròn, thay vì dùng “round” như một khái niệm mơ hồ.
+Whereas `new BigDecimal("-1.5").setScale(0, RoundingMode.HALF_UP)` gives -2. The two APIs do not share the same rule at negative midpoints. Business rules must state the exact rounding mode rather than using "round" as a vague concept.
 
-Nếu chỉ cần in, `String.format` trả chuỗi, không thay đổi biến. Nếu cần decimal chính xác có thể tính tiếp, chọn mô hình decimal thích hợp từ đầu.
+If you only need to print, `String.format` returns a string without changing the variable. If you need exact decimals for further computation, choose an appropriate decimal model from the start.
 
-## 8. Hoãn làm tròn chưa đủ để bảo đảm ổn định số học
+## 8. Deferring Rounding Alone Does Not Guarantee Numerical Stability
 
-Ngay cả khi không thêm phép làm tròn decimal, `double` vẫn có các rủi ro: mất chữ số có nghĩa, sai số tích lũy và kết quả phụ thuộc thứ tự phép toán.
+Even without adding decimal rounding, `double` still carries risks: loss of significant digits, accumulated error, and order-dependent results.
 
 ```java
 double a = 1e16;
@@ -232,13 +232,13 @@ double first = (a + b) + c; // 1.0
 double second = a + (b + c); // 0.0
 ```
 
-Toán học thực cho cùng kết quả 1, nhưng `b + c` làm mất đóng góp 1 ở mức khoảng 1e16 vì precision `double` không đủ. Đây là **tính không kết hợp của số học dấu phẩy động**.
+Real-number math gives the same result 1, yet `b + c` loses the contribution of 1 around magnitude 1e16 because `double` precision is insufficient. This is **the non-associativity of floating-point arithmetic**.
 
-Khi yêu cầu nghiêm ngặt, cần cân nhắc thuật toán ổn định số, thứ tự cộng, phương pháp bù sai số, `BigDecimal` hoặc kiểu khác thích hợp. **Tránh làm tròn sớm** chỉ là một nguyên tắc giữ thông tin, không thay thế thiết kế thuật toán số.
+When requirements are strict, consider numerically stable algorithms, summation order, error compensation methods, `BigDecimal`, or another suitable type. **Avoiding premature rounding** is just one principle for preserving information, not a substitute for numerical algorithm design.
 
-## 9. Chương trình Java 17+ hoàn chỉnh
+## 9. Complete Java 17+ Program
 
-Lưu nội dung dưới đây thành **`RoundingBoundaryDemo.java`**:
+Save the content below as **`RoundingBoundaryDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -309,14 +309,14 @@ public class RoundingBoundaryDemo {
 }
 ```
 
-Dùng JDK 17 trở lên:
+Use JDK 17 or newer:
 
 ```bash
 javac RoundingBoundaryDemo.java
 java RoundingBoundaryDemo
 ```
 
-Kết quả mong đợi:
+Expected output:
 
 ```text
 roundEach=0.04
@@ -340,40 +340,40 @@ associationFirst=1.0
 associationSecond=0.0
 ```
 
-Kết quả `roundEach` và `roundTotal` khác nhau dù quy tắc scale/mode giống nhau. Hai ví dụ đơn giá chứng minh lựa chọn ranh giới rất quan trọng. `display=0.30` không làm thay đổi `rawValue`, và hai dòng association là ví dụ độc lập về sai số thuật toán dấu phẩy động.
+`roundEach` and `roundTotal` produce different results despite identical scale/mode rules. The two unit-price examples demonstrate that boundary choice is critical. `display=0.30` does not alter `rawValue`, and the two association lines serve as an independent example of floating-point algorithmic error.
 
-## 10. Cách mô tả hợp đồng làm tròn cho ứng dụng
+## 10. How to Specify a Rounding Contract for an Application
 
-Một đặc tả tốt cần trả lời:
+A good specification should answer:
 
-| Câu hỏi | Thông tin cần quy định |
+| Question | Information to specify |
 | --- | --- |
-| Đầu vào là decimal chính xác hay số đo xấp xỉ? | Chuỗi decimal, số nguyên đơn vị nhỏ nhất, float/double đo lường |
-| Đơn vị và miền giá trị là gì? | Đồng, xu, phần trăm, đơn vị vật lý, khoảng hợp lệ |
-| Giá trị được **chốt** là gì? | Đơn giá, từng dòng, từng khoản thuế, tổng hóa đơn, khoản thanh toán |
-| Ranh giới làm tròn ở đâu? | Sau mỗi khoản, sau tổng, khi trả kết quả hay khi hiển thị |
-| Dùng scale và mode nào? | `scale=2`, `HALF_UP` hoặc quy tắc khác |
-| Tổng phải bảo toàn theo các khoản đã chốt không? | Cách cộng/phân phối phần dư |
-| Phép chia vô hạn thập phân xử lý thế nào? | Precision làm việc, rounding mode và chính sách sai số |
-| Giá trị nào được lưu để đối soát? | Bản ghi quyết toán và (nếu cần) giá trị gốc phục vụ kiểm toán |
+| Are inputs exact decimals or approximate measurements? | Decimal strings, smallest integer units, measurement float/double |
+| What are the units and value domain? | Currency, cents, percentages, physical units, valid ranges |
+| Which values are **settled**? | Unit price, each line, each tax item, invoice total, payment amount |
+| Where are the rounding boundaries? | After each item, after total, on result return, or on display |
+| Which scale and mode are used? | `scale=2`, `HALF_UP`, or another rule |
+| Must the total preserve the sum of settled items? | Remainder addition/distribution method |
+| How is non-terminating decimal division handled? | Working precision, rounding mode, and error policy |
+| Which values are stored for reconciliation? | Settlement records and (if needed) original values for auditing |
 
-Một luồng điển hình là: **kiểm tra dữ liệu → tính với precision phù hợp → chỉ làm tròn tại ranh giới có ý nghĩa → lưu giá trị đã chốt → định dạng hiển thị**. Các phép tính sau phải dùng giá trị đã chốt nếu hợp đồng yêu cầu. Đừng vô tình parse dữ liệu hiển thị đã làm tròn rồi dùng làm nguồn tính mới.
+A typical flow is: **validate data → compute with appropriate precision → round only at meaningful boundaries → store settled values → format for display**. Subsequent computations must use the settled values if the contract requires it. Never accidentally parse rounded display data and feed it into new calculations.
 
-## 11. Các lỗi phổ biến và checklist
+## 11. Common Mistakes and Checklist
 
-| Hiểu nhầm | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| “Round sau mọi phép tính làm kết quả chính xác hơn.” | Có thể làm tổng sai khác và mất dữ liệu trung gian. |
-| “Round một lần cuối bao giờ cũng đúng.” | Sai nếu từng dòng hoặc giao dịch có nghĩa vụ chốt độc lập. |
-| “Không gọi `Math.round` thì `double` không bao giờ bị làm tròn.” | Sai, số thực nhị phân hữu hạn vốn chịu roundoff. |
-| “`String.format("%.2f", x)` sửa `x`.” | Sai, trả chuỗi định dạng. |
-| “`setScale(2)` giống `MathContext(2)`.” | Sai, scale khác số chữ số có nghĩa. |
-| “`BigDecimal` tự chia chính xác được 1/3.” | Sai, cần precision/rounding hoặc xử lý exception. |
-| “Dùng `new BigDecimal(0.1)` là lấy thập phân 0.1 chính xác.” | Sai, nó lấy giá trị nhị phân xấp xỉ đã nằm trong `double`. |
-| “`Math.round` luôn giống `HALF_UP`.” | Sai, nhất là tie âm. |
-| “Ba khoản `3.33` cộng lại bằng `10.00`.” | Sai, tổng `9.99`; cần phân bổ phần dư theo hợp đồng. |
-| “Không round sớm bảo đảm tính toán không sai số.” | Sai, cần xét thuật toán và precision của kiểu dữ liệu. |
+| "Rounding after every operation makes results more accurate." | Can alter totals and lose intermediate data. |
+| "Rounding once at the end is always right." | False if individual lines or transactions have independent settlement obligations. |
+| "If `Math.round` isn't called, `double` is never rounded." | False; finite binary floating-point numbers inherently undergo roundoff. |
+| "`String.format("%.2f", x)` modifies `x`." | False; it returns a formatted string. |
+| "`setScale(2)` is the same as `MathContext(2)`." | False; scale differs from total significant digits. |
+| "`BigDecimal` divides 1/3 exactly on its own." | False; requires precision/rounding or exception handling. |
+| "Using `new BigDecimal(0.1)` gets exact decimal 0.1." | False; it takes the binary approximation already stored in `double`. |
+| "`Math.round` always matches `HALF_UP`." | False, especially for negative ties. |
+| "Three shares of `3.33` add up to `10.00`." | False; the sum is `9.99`; remainder must be allocated per contract. |
+| "Avoiding early rounding guarantees error-free calculation." | False; you must still consider algorithms and data type precision. |
 
-Trước khi viết một phép làm tròn mới, hãy tự hỏi: **(1)** yêu cầu nào bắt buộc nó, **(2)** giá trị nào phải được chốt, **(3)** scale/mode nào được áp dụng, **(4)** tổng dùng bản gốc hay các khoản đã chốt, **(5)** có cần bảo toàn tổng/đối soát không, và **(6)** đây là phép tính hay chỉ là định dạng hiển thị?
+Before writing a new rounding operation, ask yourself: **(1)** what requirement mandates it, **(2)** which value must be settled, **(3)** which scale/mode applies, **(4)** does the total use raw values or settled items, **(5)** must totals/reconciliation be preserved, and **(6)** is this a calculation or merely display formatting?
 
-**Kết luận:** Đừng làm tròn sau mọi phép tính chỉ vì muốn kết quả “gọn”. Hãy làm tròn **đúng ranh giới được quy định**, bằng **kiểu số và rounding mode phù hợp**. Khi cần thiết, giữ precision nội bộ để tránh mất thông tin; khi hợp đồng yêu cầu chốt từng khoản, phải thực hiện và bảo toàn chính những khoản đã chốt đó.
+**Conclusion:** Do not round after every operation just to make numbers look "tidy." Round **at the exact specified boundaries**, using **the appropriate numeric type and rounding mode**. When needed, retain internal precision to avoid information loss; when the contract requires settling individual items, enforce it and preserve those exact settled items.

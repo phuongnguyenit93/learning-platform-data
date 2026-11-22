@@ -1,35 +1,35 @@
-# Kiểm thử nhiều luồng với formatter và locale khác nhau
+# Multi-Threaded Testing with Different Formatters and Locales
 
-## 1. Vấn đề: đúng ở một request, sai khi nhiều người dùng đồng thời
+## 1. The Problem: Correct for One Request, Broken Under Concurrent Users
 
-Một ứng dụng Java đa ngôn ngữ có thể phục vụ đồng thời người dùng `en-US`, `de-DE`, `vi-VN` và `fr-FR`. Mỗi người có quy tắc riêng để hiển thị số, phần trăm, tiền tệ, ngày giờ và thông báo. Nếu một formatter **có trạng thái mutable** được chia sẻ giữa các request, luồng này có thể thay cấu hình trong lúc luồng khác đang sử dụng, gây ra:
+A multilingual Java application can simultaneously serve `en-US`, `de-DE`, `vi-VN`, and `fr-FR` users. Each user has distinct rules for displaying numbers, percentages, currencies, dates/times, and messages. If a **mutable stateful** formatter is shared across requests, one thread can alter its configuration while another thread is using it, causing:
 
-- Người dùng Mỹ nhìn thấy dấu phân nhóm, dấu thập phân hoặc ký hiệu tiền của người dùng Đức.
-- Giá trị USD của đơn hàng A bị render bằng ký hiệu EUR do request B vừa gọi `setCurrency`.
-- `SimpleDateFormat` trả kết quả sai, lỗi parse ngẫu nhiên hoặc exception trong khi dùng chung nhiều thread.
-- Thay đổi `Locale.setDefault` toàn JVM để phục vụ từng request làm request khác nhận formatter mặc định sai locale.
-- Test tuần tự vượt qua nhưng test load/concurrency bị flaky: cùng input và domain value, output không ổn định.
+- A US user seeing German grouping marks, decimal points, or currency symbols.
+- Order A's USD amount rendering with a `€` symbol because request B just called `setCurrency`.
+- `SimpleDateFormat` returning wrong results, random parse failures, or exceptions when shared across threads.
+- Changing JVM-wide `Locale.setDefault` per request, causing other requests to receive default formatters for the wrong locale.
+- Sequential tests passing while load/concurrency tests flake: given identical inputs and domain values, output becomes nondeterministic.
 
-Đây là vấn đề thiết kế **trạng thái và ownership** của đối tượng, không phải lỗi bản dịch. Cùng một dữ liệu domain `BigDecimal("1234.50")` và `Currency USD` phải được bảo toàn. Chỉ **presentation formatter** được phép quyết định cách hiển thị theo locale/zone của **chính request đó**.
+This is an object **state and ownership** design issue, not a translation bug. The underlying domain data `BigDecimal("1234.50")` and `Currency USD` must remain intact. Only the **presentation formatter** is responsible for formatting according to **that specific request's** locale and zone.
 
-Bài thuộc nhóm **Kiểm thử và lỗi**, tập trung vào cách **phát hiện, tái hiện, sửa và kiểm thử** những lỗi do nhiều luồng dùng formatter và locale khác nhau. Tất cả ví dụ chính dùng Java 17+.
+This lesson belongs to **Testing and Pitfalls**, focusing on how to **detect, reproduce, fix, and test** bugs caused by multiple threads using formatters and locales concurrently. All main examples use Java 17+.
 
-### Mục tiêu
+### Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-1. Phân biệt các API **mutable, không bảo đảm thread-safe** với các API **immutable/thread-safe**.
-2. Hiểu vì sao tạo một `NumberFormat`/`SimpleDateFormat` static rồi thay locale/currency cho từng request là nguy hiểm.
-3. Viết bài kiểm thử race **có kiểm soát bằng CountDownLatch** thay vì chỉ trông đợi lỗi ngẫu nhiên.
-4. Tái hiện rò rỉ locale khi sử dụng `Locale.setDefault(...)` trong server đa luồng.
-5. Triển khai formatter **riêng theo thao tác/request** hoặc dùng `DateTimeFormatter` immutable chia sẻ an toàn.
-6. Thiết kế stress test nhiều locale, kiểu number/date/currency khác nhau, dữ liệu cố định và domain invariants.
-7. Hiểu giới hạn của `ThreadLocal`, cache theo `Locale`, `ResourceBundle`, `MessageFormat` và `Collator`.
-8. Phân biệt kiểm thử **hành vi đúng chức năng** với kiểm thử **có bằng chứng về race**.
+1. Distinguish **mutable, non-thread-safe** APIs from **immutable/thread-safe** APIs.
+2. Understand why holding a static `NumberFormat`/`SimpleDateFormat` and mutating locale/currency per request is hazardous.
+3. Write controlled race tests using **`CountDownLatch`** instead of hoping random scheduling triggers the bug.
+4. Reproduce locale leakage caused by `Locale.setDefault(...)` in a multi-threaded server.
+5. Implement **per-operation/request** formatters or share immutable `DateTimeFormatter`s safely.
+6. Design stress tests across multiple locales, number/date/currency kinds, fixed datasets, and domain invariants.
+7. Understand the limits of `ThreadLocal`, `Locale`-keyed caches, `ResourceBundle`, `MessageFormat`, and `Collator`.
+8. Distinguish testing **functional correctness** from testing **reproducible race evidence**.
 
-## 2. Một đối tượng formatter chứa trạng thái gì?
+## 2. What State Does a Formatter Object Hold?
 
-Ví dụ:
+Example:
 
 ```java
 NumberFormat number =
@@ -38,65 +38,65 @@ number.setCurrency(Currency.getInstance("USD"));
 number.setMaximumFractionDigits(2);
 ```
 
-Đây là đoạn minh họa trong phương thức; cần import `java.text.NumberFormat`, `java.util.Currency`, `java.util.Locale`. Dù formatter được tạo theo `Locale.US`, object vẫn có những trường cấu hình có thể thay đổi: currency, grouping, precision, rounding, parsing behavior, symbols và trong `DecimalFormat` còn có pattern, multiplier, `DecimalFormatSymbols`.
+This snippet illustrates code inside a method, requiring `import java.text.NumberFormat`, `java.util.Currency`, `java.util.Locale`. Even though the formatter was created for `Locale.US`, the object holds mutable configuration fields: currency, grouping, precision, rounding, parsing behavior, symbols, and in `DecimalFormat` also pattern, multiplier, and `DecimalFormatSymbols`.
 
-Nếu giữ một instance ở static field:
+If you keep an instance in a static field:
 
 ```java
-// Anti-pattern nếu nhiều request được phép thay cấu hình:
+// Anti-pattern if multiple requests can alter configuration:
 static final NumberFormat SHARED =
         NumberFormat.getCurrencyInstance(Locale.US);
 ```
 
-thì `final` chỉ bảo đảm **tham chiếu không được gán lại**. Nó **không đóng băng trạng thái bên trong**. Luồng A có thể gọi `SHARED.setCurrency(USD)` và luồng B gọi `SHARED.setCurrency(EUR)` trước khi A thực hiện `format`.
+then `final` guarantees only that the **reference cannot be reassigned**. It **does not freeze internal state**. Thread A may call `SHARED.setCurrency(USD)` and Thread B call `SHARED.setCurrency(EUR)` before Thread A runs `format`.
 
-Ngay cả nếu mọi request chỉ gọi `format` trên cùng `NumberFormat` mà không chủ động gọi setter, tài liệu Java SE vẫn nêu **number formats generally not synchronized**. Không suy diễn tính thread-safe chỉ từ việc ứng dụng hiện tại không sửa cấu hình sau khởi tạo.
+Even if every request only calls `format` on the same `NumberFormat` without actively calling setters, the Java SE documentation explicitly warns **number formats are generally not synchronized**. Never infer thread safety merely because your current code does not mutate configuration after initialization.
 
-### Bảng tính chất API cần nhớ
+### API Properties Reference Table
 
-| API | Đặc điểm quan trọng | Chiến lược sử dụng |
+| API | Key characteristic | Usage strategy |
 | --- | --- | --- |
-| `java.text.NumberFormat` | Mutable; không bảo đảm thread-safe | Instance riêng mỗi thao tác hoặc đồng bộ có chủ đích |
-| `java.text.DecimalFormat` | Mutable: pattern, symbols, rounding, multiplier và parse state | Không share mutable formatter giữa requests |
-| `java.text.DateFormat` / `SimpleDateFormat` | Mutable; không an toàn để dùng chung không đồng bộ | Ưu tiên `java.time`; legacy thì tạo instance riêng |
-| `java.text.MessageFormat` | Mutable: pattern, locale, các subformatter | Tạo instance riêng, hoặc dùng clone/đồng bộ với hợp đồng rõ |
-| `java.text.Collator` | Mutable: strength/decomposition; không tự bảo đảm mọi cấu hình dùng chung | Một instance mỗi thao tác hoặc bản sao độc lập |
-| `java.util.Calendar` | Mutable date/time fields, locale/week policy | Không share giữa requests |
-| `java.util.TimeZone` | Mutable configuration trong một số triển khai; global default có thể đổi | Tránh dùng object shared mutable |
-| `java.time.format.DateTimeFormatter` | **Immutable và thread-safe** | An toàn khi share cùng cấu hình |
-| `java.time.Instant`, `LocalDate`, `ZonedDateTime` | Immutable | An toàn để chia sẻ như giá trị |
-| `java.util.Locale` | Immutable | Có thể dùng chung; lưu locale trong context từng request |
-| `java.util.Currency`, `BigDecimal` | Immutable value objects | Dùng làm dữ liệu domain; format ở boundary |
-| `java.util.ResourceBundle` | Cơ chế bundle hỗ trợ truy cập đồng thời; provider/subclass có thể có riêng trạng thái | Chọn đúng locale, không mutate bundle/custom data |
-| `java.text.DecimalFormatSymbols` | Mutable | Không chia sẻ rồi sửa symbols giữa threads |
+| `java.text.NumberFormat` | Mutable; not guaranteed thread-safe | Separate instance per operation or intentional synchronization |
+| `java.text.DecimalFormat` | Mutable: pattern, symbols, rounding, multiplier, and parse state | Never share mutable formatters across requests |
+| `java.text.DateFormat` / `SimpleDateFormat` | Mutable; unsafe for unsynchronized sharing | Prefer `java.time`; for legacy, create per-operation instances |
+| `java.text.MessageFormat` | Mutable: pattern, locale, subformatters | Separate instance, or clone/synchronize under clear contract |
+| `java.text.Collator` | Mutable: strength/decomposition; not guaranteed safe for shared config | One instance per operation or independent copies |
+| `java.util.Calendar` | Mutable date/time fields, locale/week policy | Never share across requests |
+| `java.util.TimeZone` | Mutable config in some subclasses; global default can change | Avoid shared mutable objects |
+| `java.time.format.DateTimeFormatter` | **Immutable and thread-safe** | Safe to share with fixed configuration |
+| `java.time.Instant`, `LocalDate`, `ZonedDateTime` | Immutable | Safe to share as value objects |
+| `java.util.Locale` | Immutable | Shareable; store locale in per-request context |
+| `java.util.Currency`, `BigDecimal` | Immutable value objects | Use as domain data; format at boundaries |
+| `java.util.ResourceBundle` | Bundle lookup supports concurrent access; custom providers/subclasses may hold state | Pick explicit locale, never mutate bundles/custom data |
+| `java.text.DecimalFormatSymbols` | Mutable | Never share and mutate symbols across threads |
 
-**Điểm then chốt:** tính bất biến của `Locale` không truyền sang formatter mutable được tạo bằng locale đó. Và tính thread-safe của `DateTimeFormatter` không có nghĩa có thể thay đổi `Locale.setDefault` toàn JVM mà không gây ảnh hưởng tới request khác.
+**Core insight:** `Locale` immutability does not transfer to a mutable formatter constructed from that locale. Likewise, `DateTimeFormatter` thread safety does not mean you can mutate JVM-wide `Locale.setDefault` without affecting other requests.
 
-## 3. Ba loại lỗi cần kiểm thử riêng
+## 3. Three Distinct Bug Categories Requiring Dedicated Tests
 
-### 3.1. Data race và shared mutable state
+### 3.1. Data Race and Shared Mutable State
 
-Hai luồng sử dụng cùng một instance. Một luồng đổi `setCurrency`, `setGroupingUsed` hoặc pattern trong khi luồng khác đang định dạng. Có thể có lỗi logic dù thao tác setter và format **không cùng chạy tại đúng một CPU instruction**: chỉ cần thao tác của hai request xen kẽ đã đủ.
+Two threads share one instance. One thread calls `setCurrency`, `setGroupingUsed`, or changes the pattern while the other thread formats. Logical corruption can happen even if setter and `format` **do not overlap on the exact same CPU instruction**: simple interleaving between two requests is enough.
 
-### 3.2. Global-state interference
+### 3.2. Global-State Interference
 
-Một request gọi `Locale.setDefault(...)` hoặc `Locale.setDefault(Locale.Category.FORMAT, ...)` để tạm đổi ngôn ngữ. Đây là **default toàn JVM**, không phải biến local của request hay thread. Một request khác dùng `NumberFormat.getNumberInstance()` **không truyền locale** có thể nhận locale của người dùng trước.
+A request calls `Locale.setDefault(...)` or `Locale.setDefault(Locale.Category.FORMAT, ...)` to switch languages temporarily. That sets the **JVM-wide default**, not a local request or thread variable. Another request calling `NumberFormat.getNumberInstance()` **without a locale** may pick up the previous user's locale.
 
-### 3.3. Incorrect cache key hoặc vòng đời formatter
+### 3.3. Incorrect Cache Keys or Formatter Lifecycles
 
-Một cache như:
+A cache like:
 
 ```java
 Map<String, DateTimeFormatter> cache;
 ```
 
-không tự đúng chỉ vì `ConcurrentHashMap` an toàn cho nhiều luồng. Key cũng phải bao gồm **những cấu hình định danh output**: pattern, `Locale`, `ZoneId`, chronology, currency/numbering/rounding policy khi thích hợp. Nếu cache một formatter immutable theo pattern nhưng bỏ locale, ứng dụng không có data race trong Java memory model mà vẫn **trả kết quả sai theo ngữ cảnh**.
+is not automatically correct just because `ConcurrentHashMap` is thread-safe. The key must also include **every setting affecting output**: pattern, `Locale`, `ZoneId`, chronology, and currency/numbering/rounding policy when applicable. Caching an immutable formatter keyed by pattern alone while omitting locale has no Java Memory Model data race, yet still **returns contextually wrong output**.
 
-Đây là ba lỗi khác nhau, có thể tồn tại độc lập. Bộ test tốt phải xác nhận cả **thread safety**, **request isolation**, và **correct cache-key semantics**.
+These are three separate bugs that can exist independently. A solid test suite verifies **thread safety**, **request isolation**, and **correct cache-key semantics**.
 
-## 4. Anti-pattern 1: một `NumberFormat` chia sẻ cho nhiều currencies
+## 4. Anti-Pattern 1: One Shared `NumberFormat` Across Currencies
 
-Giả sử server khai báo:
+Suppose a server declares:
 
 ```java
 static final NumberFormat CURRENCY_FORMAT =
@@ -108,32 +108,32 @@ String show(BigDecimal amount, Currency currency) {
 }
 ```
 
-Đây là code minh họa, cần khai báo trong class. Tính chất nguy hiểm: mỗi request cố thay một object chung để phục vụ currency của mình.
+This illustrative snippet belongs inside a class. The hazard: each request mutates a shared object to serve its own currency.
 
 ### Timeline
 
 ```text
-Thread A (đơn USD)             Thread B (đơn EUR)
+Thread A (USD order)           Thread B (EUR order)
 -------------------------      ------------------------
 setCurrency(USD)
                                setCurrency(EUR)
 format(1234.50)
-→ kết quả có thể là €1,234.50
+→ result can be €1,234.50
 ```
 
-Bản thân request A vẫn nắm `Currency USD` đúng trong domain; lỗi xuất hiện vì formatter dùng chung đã bị thay cấu hình. Không sửa bằng cách đổi cả domain currency của A, mà phải sửa **ownership của formatter**.
+Request A still holds the right `Currency USD` in its domain object; the bug happens because the shared formatter had its configuration overwritten. Fix it not by altering A's domain currency, but by fixing **formatter ownership**.
 
-## 5. Tái hiện lỗi có kiểm soát bằng `CountDownLatch`
+## 5. Deterministic Bug Reproduction Using `CountDownLatch`
 
-Một race test chỉ chạy hai tác vụ rồi `sleep(10)` là thiếu tin cậy: scheduler có thể chạy theo thứ tự khác, lỗi không xuất hiện và test pass dù code vẫn sai.
+A race test that launches two tasks and calls `sleep(10)` is unreliable: the scheduler can order execution differently, hiding the bug and letting broken code pass.
 
-`CountDownLatch` giúp **đặt chính xác điểm xen kẽ**. Ví dụ bên dưới ép:
+`CountDownLatch` lets you **pin the exact interleaving point**. The example below forces:
 
-1. Luồng A đặt shared formatter ở USD.
-2. Luồng B đợi A xong rồi đặt formatter ở EUR.
-3. Luồng A chỉ bắt đầu format sau khi B đã đổi currency.
+1. Thread A sets the shared formatter to USD.
+2. Thread B waits for A, then sets the formatter to EUR.
+3. Thread A formats only after B has switched the currency.
 
-Tạo file `SharedCurrencyRaceDemo.java`:
+Create `SharedCurrencyRaceDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -178,33 +178,33 @@ public class SharedCurrencyRaceDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac -encoding UTF-8 SharedCurrencyRaceDemo.java
 java SharedCurrencyRaceDemo
 ```
 
-Kết quả trên JDK đã chạy thử với locale data thông dụng:
+Result on a tested JDK with standard locale data:
 
 ```text
 B: configured EUR
 A: €1,234.50
 ```
 
-Điều đáng lưu ý:
+Key observations:
 
-- A **đang có ý định format USD** nhưng nhận ký hiệu EUR.
-- Các latch bảo đảm B đã đặt EUR trước khi A gọi `format`. Đây là **state interference có điều phối**, không dựa vào xác suất race tình cờ.
-- `NumberFormat` của A vẫn được tạo với locale US, nên dấu phân nhóm/thập phân vẫn theo US; chỉ currency symbol bị thay. Nếu còn cùng lúc thay locale provider/default hoặc pattern, lỗi có thể phức tạp hơn.
-- Output symbol cụ thể có thể thay theo JDK/locale data; điều chắc chắn cần assert trong test là **mã currency/cấu hình của formatter A đã bị B làm sai so với request A**.
-- `CountDownLatch.await()` được khai báo ném `InterruptedException`; `Callable` do `ExecutorService.submit` chọn cho lambda ở đây có thể ném exception đó. Khi viết code tác vụ thật, cần có chính sách xử lý interrupt/cancellation rõ.
+- A **intended to format USD** yet received the EUR symbol.
+- The latches guarantee B sets EUR before A calls `format`. This is **coordinated state interference**, not luck-based race probability.
+- A's `NumberFormat` was still created with `Locale.US`, so grouping and decimal marks remain US-style; only the currency symbol changed. If locale provider/default or pattern also changed concurrently, failures would be even more erratic.
+- Specific symbol output can vary by JDK/locale data; what your test must assert reliably is that **A's formatter currency/config was corrupted by B relative to request A**.
+- `CountDownLatch.await()` throws `InterruptedException`; `Callable` selected by `ExecutorService.submit` permits throwing it here. Real production tasks need explicit interrupt/cancellation handling.
 
-**Không coi ví dụ là cách sử dụng formatter hợp lệ**. Nó cố tình minh họa sự cố để test và đào tạo.
+**Do not treat this example as valid formatter usage.** It intentionally demonstrates the failure mode for testing and training.
 
-## 6. Cách sửa: mỗi tác vụ có formatter riêng
+## 6. The Fix: Per-Task Private Formatters
 
-Thay vì `SHARED`, tạo formatter trong phạm vi local của request:
+Instead of `SHARED`, construct the formatter locally for the request:
 
 ```java
 static String showMoney(BigDecimal amount,
@@ -216,13 +216,13 @@ static String showMoney(BigDecimal amount,
 }
 ```
 
-Mỗi invocation có object mới. Không có request khác giữ cùng instance để sửa trước khi `format`. Đây là hướng sửa **đơn giản, ít rủi ro và dễ kiểm thử**.
+Every invocation gets a fresh object. No other request holds the same instance to mutate before `format`. This fix is **simple, low-risk, and easy to test**.
 
-**Đừng nhầm "tạo formatter riêng" với "tạo JVM riêng"**; chỉ cần một object mới trong mỗi invocation hoặc một lifetime không bị share. Khi profiling cho thấy việc tạo formatter thật sự tốn chi phí đáng kể, có thể cân nhắc caching cấu hình bất biến hoặc chiến lược instance-per-thread có kỷ luật, nhưng phải bảo toàn locale/currency và trạng thái mutable.
+**Do not confuse "create a private formatter" with "create a separate JVM"**; you only need a fresh object per invocation or an unshared lifetime. When profiling proves formatter allocation is genuinely a bottleneck, consider caching immutable configs or disciplined per-thread instances, while preserving locale, currency, and mutable state isolation.
 
-### Ví dụ Java 17+: thử 1.000 tác vụ nhiều locale
+### Java 17+ Example: Running 1,000 Multi-Locale Tasks
 
-Tạo file `SafeNumberConcurrencyDemo.java`:
+Create `SafeNumberConcurrencyDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -247,7 +247,7 @@ public class SafeNumberConcurrencyDemo {
                     (i % 2 == 0) ? Locale.US : Locale.GERMANY;
 
             tasks.add(() -> {
-                // Instance mới, private cho đúng một tác vụ.
+                // Fresh instance, private to this single task.
                 NumberFormat base =
                         NumberFormat.getNumberInstance(locale);
                 if (!(base instanceof DecimalFormat formatter)) {
@@ -293,59 +293,59 @@ javac -encoding UTF-8 SafeNumberConcurrencyDemo.java
 java SafeNumberConcurrencyDemo
 ```
 
-Stdout trên runtime đã kiểm thử:
+Stdout on the tested runtime:
 
 ```text
 cases=1000 failures=0
 ```
 
-Test này kiểm tra **isolation và numeric round-trip trong điều kiện chọn formatter chỉ hiển thị 2 chữ số phần lẻ**, với giá trị có đúng 2 chữ số. Nó **không chứng minh bằng một lần chạy** rằng mọi phiên bản JDK/provider đều an toàn, và cũng không kiểm tra strict grouping input. Tuy nhiên, thiết kế per-task tránh đúng loại chia sẻ mutable object đã minh họa.
+This test checks **isolation and numeric round-trip when the formatter is configured to display 2 fractional digits**, using a value with exactly 2 fractional digits. One run **does not prove** every JDK/provider version is safe, nor does it validate strict grouping grammar. Still, the per-task design avoids the shared-mutable-object bug demonstrated earlier.
 
-Một suite production còn nên thêm:
+A production suite should also add:
 
-- Nhiều amount khác nhau, cả số âm, số 0, số lớn, scale khác nhau.
-- `en-US`, `de-DE`, `fr-FR`, `vi-VN`, `ar-EG`, nhiều currency thực tế.
-- Số lượng luồng và lịch chạy khác nhau, barrier đồng thời, workload lặp lại.
-- Assertions theo **giá trị domain** và currency code, không chỉ kiểm tra output là chuỗi không rỗng.
-- Test chính sách rounding/scale khi `format → parse` không phải phép biến đổi bảo toàn mọi chữ số.
+- Varied amounts: negative, zero, large values, differing scales.
+- `en-US`, `de-DE`, `fr-FR`, `vi-VN`, `ar-EG`, and multiple real currencies.
+- Varied thread counts and schedules, simultaneous barriers, and repeated workloads.
+- Assertions on **domain values** and currency codes, not merely non-empty string outputs.
+- Rounding/scale policy tests when `format → parse` does not preserve all digits losslessly.
 
-## 7. Anti-pattern 2: đổi `Locale.setDefault` cho từng request
+## 7. Anti-Pattern 2: Mutating `Locale.setDefault` per Request
 
-`Locale.setDefault(...)` và `Locale.setDefault(Locale.Category.FORMAT, ...)` thay đổi **default của JVM**. Nó không tạo một "locale local" riêng cho thread đang chạy.
+`Locale.setDefault(...)` and `Locale.setDefault(Locale.Category.FORMAT, ...)` change the **JVM-wide default**. They do not create a thread- or request-local locale.
 
-Phân biệt:
+Distinguish:
 
-- `Locale.getDefault()`: locale mặc định chung.
-- `Locale.getDefault(Locale.Category.DISPLAY)`: mặc định phục vụ hiển thị tên locale/language.
-- `Locale.getDefault(Locale.Category.FORMAT)`: mặc định cho nhiều factory formatter số/ngày.
-- `NumberFormat.getNumberInstance()`: overload **không có locale**, dựa vào default FORMAT.
-- `NumberFormat.getNumberInstance(locale)`: overload **có locale**, giảm phụ thuộc vào global default.
-- `String.format(locale, ...)`: chọn locale tường minh khi cần string formatting; `String.format(...)` không có locale có thể dùng default FORMAT.
-- `DateTimeFormatter.withLocale(locale)`: trả bản formatter immutable cấu hình theo locale tường minh.
+- `Locale.getDefault()`: general default locale.
+- `Locale.getDefault(Locale.Category.DISPLAY)`: default for displaying locale/language names.
+- `Locale.getDefault(Locale.Category.FORMAT)`: default for many number/date formatter factories.
+- `NumberFormat.getNumberInstance()`: **locale-less** overload relying on the `FORMAT` default.
+- `NumberFormat.getNumberInstance(locale)`: **explicit-locale** overload avoiding global defaults.
+- `String.format(locale, ...)`: explicitly picks a locale for string formatting; parameterless `String.format(...)` uses the `FORMAT` default.
+- `DateTimeFormatter.withLocale(locale)`: returns an immutable formatter configured with an explicit locale.
 
-**Cạm bẫy:** code dùng `Locale.setDefault(Locale.US)` để "khởi tạo môi trường tiếng Anh" rồi sau đó một request gọi `setDefault(Locale.GERMANY)`. Không thread-local nào bảo vệ được default JVM này khi các request khác vẫn gọi API factory không truyền locale.
+**Trap:** code calls `Locale.setDefault(Locale.US)` to "initialize an English environment," and later a request calls `setDefault(Locale.GERMANY)`. No thread-local guard protects this JVM global while other requests call factory APIs without passing a locale.
 
-### Timeline lỗi
+### Failure Timeline
 
 ```text
 Thread A: setDefault(FORMAT, en-US)
 Thread B: setDefault(FORMAT, de-DE)
 Thread A: NumberFormat.getNumberInstance().format(1234.5)
-       → 1.234,5 (định dạng Đức)
+       → 1.234,5 (German format)
 ```
 
-**Cách đúng:** luôn xác định `Locale` của request từ profile/session/đầu vào đã kiểm tra, rồi truyền vào formatter:
+**Right approach:** always resolve the request's `Locale` from a validated profile/session/input and pass it to the formatter:
 
 ```java
 NumberFormat formatter =
         NumberFormat.getNumberInstance(requestLocale);
 ```
 
-Không sửa global default để phục vụ từng request. Với ứng dụng chỉ một locale toàn process, cấu hình default lúc khởi động có thể hợp lý, nhưng vẫn nên làm dependency của formatter rõ ràng và test không dựa vào locale của máy lập trình.
+Never mutate the global default per request. For single-locale processes, configuring the default at startup can be reasonable, yet formatter dependencies should still stay explicit and tests should never depend on the developer machine's locale.
 
-## 8. Java 17+: tái hiện race của `Locale.setDefault`
+## 8. Java 17+: Reproducing a `Locale.setDefault` Race
 
-Ví dụ dưới đây **thay đổi default toàn JVM có chủ đích**, vì vậy chỉ chạy trong **chương trình demo độc lập**, không gọi trong server hay cùng test suite với tác vụ phụ thuộc default locale. Nó lưu và phục hồi `Locale.Category.FORMAT` trong `finally`.
+The following example **intentionally mutates the JVM-wide default**, so run it only as a **standalone demo program**—never inside a server or shared test suite alongside tasks relying on the default locale. It saves and restores `Locale.Category.FORMAT` inside `finally`.
 
 File `DefaultLocaleRaceDemo.java`:
 
@@ -374,7 +374,7 @@ public class DefaultLocaleRaceDemo {
                         Locale.Category.FORMAT, Locale.US);
                 usSet.countDown();
                 deSet.await();
-                // Sai: factory không nhận request locale.
+                // Wrong: factory does not take request locale.
                 return NumberFormat.getNumberInstance()
                         .format(1234.5);
             });
@@ -403,34 +403,34 @@ javac DefaultLocaleRaceDemo.java
 java DefaultLocaleRaceDemo
 ```
 
-Stdout trên runtime thông dụng:
+Stdout on a standard runtime:
 
 ```text
 B: set de-DE
 A: 1.234,5
 ```
 
-Thread A đã đặt `en-US`, nhưng khi tạo formatter thì default FORMAT đang là `de-DE`. Điều kiện latch làm lỗi **tái hiện được** thay vì chờ scheduling ngẫu nhiên.
+Thread A set `en-US`, yet by the time it created its formatter, the `FORMAT` default was `de-DE`. The latches make the failure **reproducible** instead of waiting for lucky scheduling.
 
-**Phạm vi của việc phục hồi default:** `finally` làm sạch bản demo khi không có phần mềm nào khác cùng JVM sửa locale default. Trong chương trình thực có thread khác đồng thời thay default, ngay cả việc "lưu rồi khôi phục" cũng có thể **ghi đè cấu hình của bên khác**. Đó là lý do kiến trúc đúng là **không thay default per request**, chứ không phải thêm `try/finally` quanh mỗi yêu cầu.
+**Scope of restoring the default:** `finally` cleans up the demo when nothing else in the JVM alters the default locale. In a real process where other threads mutate the default concurrently, even "save and restore" can **overwrite someone else's configuration**. That is why the proper architecture is **never mutating the default per request**, rather than wrapping every request in `try/finally`.
 
-## 9. `SimpleDateFormat`: vấn đề cũ trong xử lý ngày giờ
+## 9. `SimpleDateFormat`: Legacy Pitfalls in Date-Time Handling
 
-`java.text.SimpleDateFormat` kế thừa `DateFormat`, là formatter **mutable và không thread-safe**. Nó có các thành phần trạng thái như `Calendar`, `NumberFormat` và zone. Những thao tác parse/format có thể sử dụng trạng thái nội bộ trong quá trình xử lý, nên dùng một instance static chia sẻ cho các luồng có thể dẫn tới kết quả không nhất quán, exception hoặc parse sai, kể cả khi người viết không chủ động gọi setter giữa requests.
+`java.text.SimpleDateFormat` extends `DateFormat` and is **mutable and non-thread-safe**. It holds internal stateful components such as `Calendar`, `NumberFormat`, and time zone. Even `parse`/`format` operations mutate internal state during execution, so sharing one static instance across threads can cause inconsistent output, exceptions, or corrupted parses—even when callers never invoke setters between requests.
 
 Anti-pattern:
 
 ```java
-// Không dùng chung không đồng bộ:
+// Do not share without synchronization:
 private static final SimpleDateFormat FORMATTER =
         new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 ```
 
-Càng nguy hiểm khi request gọi `setTimeZone(...)` trên cùng object để phục vụ nhiều zone.
+Even more dangerous is calling `setTimeZone(...)` per request on the shared object to serve multiple zones.
 
-### Hai hướng an toàn
+### Two Safe Approaches
 
-**Giải pháp A — tương thích legacy:** tạo `SimpleDateFormat` mới bên trong mỗi tác vụ, truyền `Locale` tường minh và set `TimeZone` thuộc tác vụ:
+**Approach A — legacy compatibility:** construct a fresh `SimpleDateFormat` inside each task, passing an explicit `Locale` and setting the task's `TimeZone`:
 
 ```java
 SimpleDateFormat format =
@@ -439,13 +439,13 @@ format.setTimeZone(TimeZone.getTimeZone(zoneId));
 String text = format.format(legacyDate);
 ```
 
-Đây là đoạn minh họa trong phương thức, có các biến `locale`, `zoneId` và `legacyDate`. Khi cần parse nghiêm ngặt, còn phải đặt `setLenient(false)` và kiểm tra tiêu thụ toàn bộ input.
+This snippet illustrates code inside a method with `locale`, `zoneId`, and `legacyDate` variables. For strict parsing, also call `setLenient(false)` and verify full-input consumption.
 
-**Giải pháp B — ưu tiên hiện đại:** dùng `java.time.Instant`, `ZoneId` và `DateTimeFormatter` immutable. Các API này có thể chia sẻ formatter base; cấu hình locale/zone của mỗi request được tạo bằng `withLocale`/`withZone`, trả instance mới. Việc đổi zone trình bày **không thay đổi Instant**.
+**Approach B — modern preference:** use `java.time.Instant`, `ZoneId`, and immutable `DateTimeFormatter`. These APIs allow sharing a base formatter; per-request locale/zone settings are applied with `withLocale`/`withZone`, returning new instances. Changing the presentation zone **never alters the underlying `Instant`**.
 
-## 10. `DateTimeFormatter` immutable: có thể chia sẻ base đúng cách
+## 10. Immutable `DateTimeFormatter`: Sharing a Base Properly
 
-Tạo một formatter bất biến:
+Create an immutable formatter:
 
 ```java
 static final DateTimeFormatter BASE =
@@ -453,7 +453,7 @@ static final DateTimeFormatter BASE =
                 "uuuu-MM-dd HH:mm XXX", Locale.ROOT);
 ```
 
-Trong mỗi request:
+Per request:
 
 ```java
 String text = BASE.withLocale(requestLocale)
@@ -461,11 +461,11 @@ String text = BASE.withLocale(requestLocale)
         .format(instant);
 ```
 
-Không có setter nào chỉnh `BASE`; `withLocale`/`withZone` trả formatter mới (hoặc cùng instance khi không đổi). Chính vì vậy không có race trên trạng thái cấu hình formatter, miễn dữ liệu được truyền vào đúng request.
+No setter mutates `BASE`; `withLocale`/`withZone` returns a new formatter (or the same instance if unchanged). Hence there is no race on formatter state, provided the right per-request data is passed in.
 
-### Java 17+: kiểm chứng hai zone dưới nhiều luồng
+### Java 17+: Verifying Two Zones Across Multiple Threads
 
-Tạo file `ImmutableDateTimeConcurrencyDemo.java`:
+Create `ImmutableDateTimeConcurrencyDemo.java`:
 
 ```java
 import java.time.Instant;
@@ -531,7 +531,7 @@ javac ImmutableDateTimeConcurrencyDemo.java
 java ImmutableDateTimeConcurrencyDemo
 ```
 
-Stdout với `DateTimeFormatter` pattern cố định:
+Stdout with a fixed `DateTimeFormatter` pattern:
 
 ```text
 UTC=2026-10-28 01:30 Z
@@ -539,23 +539,23 @@ Tokyo=2026-10-28 10:30 +09:00
 cases=1000 failures=0
 ```
 
-Ví dụ cố tình dùng pattern có ký tự Latin/số cố định và `Locale.ROOT` để stdout ít phụ thuộc CLDR. Với `ofLocalizedDateTime(FormatStyle.MEDIUM)`, tên tháng, dấu câu và pattern có thể khác khi nâng JDK/CLDR; test nên so với expectation theo locale/runtime đã xác định.
+The example intentionally uses fixed Latin/numeric pattern letters and `Locale.ROOT` so stdout barely depends on CLDR. With `ofLocalizedDateTime(FormatStyle.MEDIUM)`, month names, punctuation, and patterns can change across JDK/CLDR upgrades; tests should compare against expectations pinned to the locale/runtime.
 
-**Không suy rằng mọi thứ trong hệ ngày giờ tự bất biến:** `ZoneId` là giá trị bất biến nhưng các quy tắc tzdb có thể được cập nhật giữa các bản JDK; cùng `Instant` và vùng có thể hiển thị offset lịch sử khác nếu tzdb thay đổi. Đây là vấn đề dữ liệu múi giờ, không phải race của formatter.
+**Do not assume everything in date-time is immutable:** `ZoneId` is an immutable value, yet tzdb rules can be updated across JDK releases; the same `Instant` and zone can display a different historical offset if tzdb changes. That is a time-zone data update, not a formatter race.
 
-## 11. Kiểm thử `MessageFormat` và `Collator` khi xử lý đa ngôn ngữ
+## 11. Testing `MessageFormat` and `Collator` in Multilingual Concurrency
 
 ### 11.1. `MessageFormat`
 
-`java.text.MessageFormat` có thể thay locale, pattern và các `Format` con. Không lưu một `MessageFormat` static rồi gọi `setLocale`/`applyPattern` cho nhiều request:
+`java.text.MessageFormat` can mutate its locale, pattern, and sub-`Format`s. Never store a static `MessageFormat` and invoke `setLocale`/`applyPattern` across requests:
 
 ```java
-// Không an toàn nếu request thay trạng thái dùng chung:
+// Unsafe if requests mutate shared state:
 static final MessageFormat MESSAGE =
         new MessageFormat("{0,number}", Locale.US);
 ```
 
-Ngoài race, `MessageFormat.setLocale(...)` **không tự động thay đổi mọi subformat đã được cài đặt trước đó** theo mọi pattern mong đợi. Nếu muốn message đúng locale, tạo mới từ **pattern của ResourceBundle theo locale**:
+Beyond races, `MessageFormat.setLocale(...)` **does not automatically update every previously installed subformat** across arbitrary patterns. To produce locale-accurate messages, construct a fresh instance from the **locale's `ResourceBundle` pattern**:
 
 ```java
 ResourceBundle bundle =
@@ -565,33 +565,33 @@ MessageFormat message = new MessageFormat(
 String text = message.format(new Object[] {amount, count});
 ```
 
-Đây là đoạn minh họa trong phương thức; cần `Messages_<language>.properties` trên classpath và key tương ứng. Không dùng shared mutable `MessageFormat` làm global cache mà không có ownership.
+This snippet belongs inside a method, requiring `Messages_<language>.properties` on the classpath with the matching key. Never use a shared mutable `MessageFormat` as a global cache without ownership.
 
 ### 11.2. `Collator`
 
-`Collator` phục vụ so sánh/sắp xếp ngôn ngữ. Nó có các setter như `setStrength` và `setDecomposition`, nên không tạo một `Collator` shared rồi điều chỉnh cho từng request. Một comparator dùng `Collator` mutable cũng có thể tạo **thứ tự không ổn định** giữa lúc sort.
+`Collator` performs language-aware comparison/sorting. It exposes setters such as `setStrength` and `setDecomposition`, so never share one `Collator` and adjust it per request. A comparator backed by a mutable `Collator` can also produce **inconsistent ordering** mid-sort.
 
-**Không trộn hai loại test:**
+**Do not mix two test goals:**
 
-- Sorting test so thứ tự theo locale trong một phép sort với comparator có cấu hình cố định.
-- Concurrency test đảm bảo request A không đổi `strength`/`locale` của comparator mà request B đang dùng.
+- Sorting tests verify locale ordering during a single sort using a fixed-configuration comparator.
+- Concurrency tests ensure request A never alters the `strength`/`locale` of a comparator in use by request B.
 
-Nếu cần cache collator, hãy xét clone/instance riêng cho thao tác theo tài liệu API của provider, và không sửa đối tượng mà nhiều thread đang sử dụng.
+If caching collators, check cloning or per-operation instances per the provider's API docs, and never mutate an object in use by multiple threads.
 
 ### 11.3. `ResourceBundle`
 
-`ResourceBundle.getBundle(baseName, locale)` được thiết kế cho môi trường đa luồng và có caching hỗ trợ. Bản thân cache bundle không khiến bạn phải `Locale.setDefault` per request. Vấn đề thường nằm ở:
+`ResourceBundle.getBundle(baseName, locale)` is designed for multi-threaded environments and includes internal caching. Bundle caching itself never forces you to call `Locale.setDefault` per request. Bugs usually come from:
 
-- Lấy bundle **không truyền locale**, dẫn tới default JVM.
-- Lưu `ResourceBundle` của `en-US` vào field "current bundle" mutable toàn app, rồi đổi field khi request `vi-VN` đến.
-- Tạo custom `ResourceBundle` subclass hoặc map value mutable không bảo đảm truy cập an toàn.
-- Dùng một `MessageFormat` mutable trích từ bundle rồi share giữa threads.
+- Calling `getBundle` **without a locale**, falling back to the JVM default.
+- Storing an `en-US` `ResourceBundle` in an app-wide mutable "current bundle" field and swapping it when a `vi-VN` request arrives.
+- Implementing a custom `ResourceBundle` subclass or mutable value map without thread-safe access.
+- Extracting a mutable `MessageFormat` from a bundle and sharing it across threads.
 
-Nên giữ bundle theo **locale tường minh** và lấy `getString(key)`, sau đó format thành text trong phạm vi request.
+Look up bundles using an **explicit locale**, call `getString(key)`, and format text within the request scope.
 
-## 12. `ThreadLocal` có phải lời giải?
+## 12. Is `ThreadLocal` the Answer?
 
-`ThreadLocal<SimpleDateFormat>` là cách xử lý legacy thường gặp:
+`ThreadLocal<SimpleDateFormat>` is a common legacy workaround:
 
 ```java
 static final ThreadLocal<SimpleDateFormat> FORMAT =
@@ -599,37 +599,37 @@ static final ThreadLocal<SimpleDateFormat> FORMAT =
                 new SimpleDateFormat("yyyy-MM-dd"));
 ```
 
-Nó tránh chia **cùng instance** giữa các threads. Nhưng với server dùng **thread pool**, mỗi thread được tái sử dụng cho nhiều người dùng. Nếu instance trong `ThreadLocal` được tạo theo locale/zone của request đầu tiên, request sau được điều phối lên cùng thread có thể dùng **locale cũ**. `ThreadLocal` bảo vệ ở cấp *thread*, không bảo vệ ở cấp *request*.
+It avoids sharing the **same instance** across threads. However, on servers using **thread pools**, each thread is reused across many users. If the `ThreadLocal` instance is initialized with the first request's locale/zone, a later request scheduled onto the same thread may inherit the **stale locale**. `ThreadLocal` isolates at the *thread* level, not the *request* level.
 
-### Các nguy cơ khác
+### Other Risks
 
-- Giá trị còn giữ trong thread pool khi request kết thúc; có thể gây rò memory/context.
-- Một thread dùng nhiều formatter khác loại/locale; key chỉ theo thread là thiếu.
-- Task bất đồng bộ có thể chuyển sang thread khác; thread-local context không tự đi theo task.
-- Thiết kế xử lý exception không gọi `remove()` ở `finally` sẽ giữ state lâu hơn mong muốn.
-- Thread-local không khắc phục việc gọi `Locale.setDefault` toàn JVM.
+- Values linger in pooled threads after a request ends, risking memory/context leaks.
+- A single thread may need multiple formatters of different kinds/locales; keying by thread alone is insufficient.
+- Async tasks can hop to different threads; `ThreadLocal` context does not automatically follow tasks.
+- Exception paths missing `remove()` in `finally` retain state longer than intended.
+- `ThreadLocal` does not prevent damage from JVM-wide `Locale.setDefault` calls.
 
-**Ưu tiên:** tạo formatter mutable trong phương thức nếu chi phí chấp nhận được; dùng formatter immutable cho java.time; chỉ áp dụng pool/cache/ThreadLocal sau khi đo hiệu năng và có test concurrency, locale switch, cancellation, cleanup.
+**Preference:** create mutable formatters locally inside methods when cost is acceptable; use immutable formatters for `java.time`; introduce pooling/caching/`ThreadLocal` only after profiling, backed by concurrency, locale-switching, cancellation, and cleanup tests.
 
-## 13. Cache formatter: cache đúng thứ và đúng khóa
+## 13. Formatter Caching: Cache the Right Thing Under the Right Key
 
-Một số chiến lược:
+Comparison of strategies:
 
-| Cache | Thread safety | Nhận xét |
+| Cache | Thread safety | Notes |
 | --- | --- | --- |
-| `static NumberFormat SHARED` | **Không an toàn** nếu dùng chung không đồng bộ | Mutable, config cross-talk |
-| `ConcurrentHashMap<Locale, NumberFormat>` | Map thread-safe, **formatter bên trong không tự an toàn** | Không đủ |
-| `ConcurrentHashMap<Key, DateTimeFormatter>` | Có thể an toàn nếu Key immutable và đủ tham số | DateTimeFormatter immutable |
-| Cache `String` pattern/locale policy | Có thể an toàn nếu dữ liệu bất biến | Tạo DecimalFormat per-call |
-| Clone formatter template cho mỗi request | Có thể phù hợp tùy provider/clone semantics | Cần xác minh clone tạo bản độc lập |
-| `ThreadLocal<DecimalFormat>` | Tách instance theo thread nhưng có thể sai request locale | Chỉ dùng khi có quản lý context rõ |
-| Đồng bộ toàn bộ thao tác với shared formatter | Có thể tránh race nếu **mọi đọc/ghi** cùng lock | Giảm throughput, dễ thiếu lock chỗ khác |
+| `static NumberFormat SHARED` | **Unsafe** if shared unsynchronized | Mutable, config cross-talk |
+| `ConcurrentHashMap<Locale, NumberFormat>` | Map is thread-safe, **formatters inside are still unsafe** | Insufficient |
+| `ConcurrentHashMap<Key, DateTimeFormatter>` | Safe if `Key` is immutable and complete | `DateTimeFormatter` is immutable |
+| Cache `String` pattern/locale policy | Safe if data is immutable | Allocate `DecimalFormat` per call |
+| Clone a formatter template per request | Can work depending on provider/clone semantics | Must verify `clone()` produces independent state |
+| `ThreadLocal<DecimalFormat>` | Separates per thread yet risks stale request locale | Use only with strict context management |
+| Synchronize every operation on shared formatter | Avoids races if **all reads/writes** share one lock | Reduces throughput; easy to miss locks elsewhere |
 
-**Cache key cần phản ánh mọi tham số ảnh hưởng output.** Ví dụ formatter ngày giờ có thể cần `Locale`, `ZoneId`, pattern/style và chronology. Formatter tiền cần locale **và** mã currency; rounding/fraction digits và numbering systems cũng là cấu hình liên quan.
+**The cache key must capture every parameter affecting output.** For example, a date-time formatter may require `Locale`, `ZoneId`, pattern/style, and chronology. A currency formatter requires locale **and** currency code; rounding/fraction digits and numbering systems also matter.
 
-### Java 17+: cache immutable `DateTimeFormatter` đúng cách
+### Java 17+: Properly Caching Immutable `DateTimeFormatter`s
 
-Một đoạn mã minh họa độc lập về thiết kế key:
+Standalone snippet illustrating key design:
 
 ```java
 import java.time.ZoneId;
@@ -674,118 +674,118 @@ different zone key: true
 entries: 3
 ```
 
-**Giới hạn:** ví dụ dùng một pattern cố định trong source code; nếu pattern/style có thể khác theo request, phải bổ sung vào key. Cache không có eviction có thể tăng kích thước vô hạn khi sinh locale/zone/pattern tùy input; trong production cần chính sách giới hạn và validate supported locale/zone.
+**Limitation:** this example hard-codes one pattern; if pattern/style varies by request, include it in `Key`. An unbounded cache without eviction can grow indefinitely if untrusted input supplies arbitrary locales/zones/patterns; production systems need size bounds and validation against supported locales/zones.
 
-Các instance cached là **immutable**, do đó có thể chia sẻ. `computeIfAbsent` bảo vệ việc chèn vào map, nhưng **không tự khiến một object mutable bên trong trở nên thread-safe**.
+Cached instances are **immutable**, making sharing safe. `computeIfAbsent` protects map insertion, yet **cannot make a mutable value object inside thread-safe**.
 
-## 14. Chọn đúng oracle cho kiểm thử nhiều locale
+## 14. Choosing the Right Oracle for Multi-Locale Testing
 
-Một concurrency test sai:
+A broken concurrency test:
 
 ```java
-// Sai nếu các thread đang thao tác trên formatter cùng lúc:
+// Wrong if threads are operating on the formatter concurrently:
 assertEquals("1,234.50", shared.format(amount));
 ```
 
-Phép so này có thể báo lỗi khi locale/currency đổi đúng yêu cầu, hoặc pass tình cờ khi race không xảy ra. Test cần expectation theo *request context*, không theo global state hiện tại.
+This assertion can fail when locale/currency legitimately varies, or pass by accident when no race occurs. Tests need expectations tied to the *request context*, not mutable global state.
 
-### Những dữ liệu test phải được mang theo mỗi task
+### Test Metadata Each Task Should Carry
 
 ```text
 requestId
 localeTag
-currencyCode nếu định dạng tiền
-zoneId nếu định dạng ngày giờ
+currencyCode if formatting money
+zoneId if formatting date/time
 domain amount/ratio/instant
-pattern hoặc style, rounding và fraction digits
-expected result hoặc oracle xác định độc lập
+pattern or style, rounding, and fraction digits
+expected result or independently computed oracle
 ```
 
-**Oracle có hai cấp:**
+**Two levels of oracles:**
 
-1. **Numeric/domain oracle**: `BigDecimal.compareTo`, currency code, `Instant.equals`, scale/rounding policy. Đây là điều phải đúng bất kể CLDR.
-2. **Presentation oracle**: chuỗi hiển thị theo locale, dữ liệu CLDR/JDK và pattern. Khi assert literal, cố định runtime/provider hoặc dùng fixture đã được chấp thuận cho runtime ấy.
+1. **Numeric/domain oracle**: `BigDecimal.compareTo`, currency code, `Instant.equals`, scale/rounding policy. These must hold regardless of CLDR.
+2. **Presentation oracle**: localized display strings per CLDR/JDK data and pattern. When asserting exact literals, pin runtime/provider or use approved fixtures for that runtime.
 
-Một test tốt tạo expectation **trước khi chạy song song**, không dựa vào shared mutable formatter đang bị các luồng khác thay config. Ví dụ có thể tạo một formatter riêng cho từng locale tuần tự để tạo baseline; sau đó dùng exact per-task formatter trong pool và so kết quả với baseline. Khi so locale có trường hợp output trùng nhau về text, vẫn kiểm tra **locale/currency context đúng**, không ép mọi locale đều phải cho chuỗi khác.
+A good test computes expectations **before parallel execution**, never relying on a shared mutable formatter being mutated by other threads. For instance, format a baseline sequentially with a dedicated formatter per locale, then run per-task formatters in the pool and compare against the baseline. Where different locales happen to produce identical text, still verify the **locale/currency context** rather than forcing every locale to emit distinct strings.
 
-## 15. Xây dựng stress test có xác suất bắt race cao hơn
+## 15. Building Stress Tests with Higher Race-Detection Probability
 
-Thử một lần trên máy phát triển không đủ. Ngoài test latch deterministic để tái hiện một thứ tự cụ thể, dùng stress test:
+Running once on a developer laptop is not enough. Alongside deterministic latch tests reproducing a specific ordering, run stress tests with:
 
-1. **Nhiều luồng:** số thread vượt số CPU hoặc giống cấu hình thread pool production.
-2. **Nhiều locale/currency:** `en-US`/`de-DE`/`fr-FR`/`vi-VN`, USD/EUR/JPY/VND; zone UTC/Asia/Tokyo/Europe/Berlin khi cần.
-3. **Nhiều giá trị:** zero, số âm, amount lớn, BigDecimal scale khác, tỷ lệ phần trăm, ngày có DST, text với Unicode spacing.
-4. **Đồng bộ điểm bắt đầu:** có thể dùng `CountDownLatch` hoặc `CyclicBarrier` để tạo các pha cạnh tranh; không coi `Thread.sleep` là oracle.
-5. **Repeat:** lặp nhiều lần trên nhiều JDK/provider/OS; gắn seed nếu sinh ngẫu nhiên và log input tối thiểu khi fail.
-6. **Tách lỗi:** wrong locale symbol, wrong number, exception, parse suffix, mất precision, stale ThreadLocal, UI snapshot khác CLDR.
-7. **Time-bound:** đặt timeout cho task/future để không treo CI; khi timeout/hủy phải xử lý interrupt và cleanup.
-8. **Không bỏ ngoại lệ task:** `Future.get()` có thể ném `ExecutionException`; xem nguyên nhân, không chỉ đếm result false.
-9. **Không chia sẻ object domain mutable:** `BigDecimal`/`Instant` bất biến tốt, nhưng nếu test dùng `Calendar`/`Date` mutable cần snapshot/ownership rõ.
-10. **Không đồng bộ hóa chính đoạn code production sai** chỉ để test pass; nếu dùng lock trong oracle khác lock của system under test, lỗi vẫn có thể tồn tại.
+1. **High thread counts:** more threads than CPU cores, or matching production thread-pool sizing.
+2. **Diverse locales/currencies:** `en-US`/`de-DE`/`fr-FR`/`vi-VN`, USD/EUR/JPY/VND; zones UTC/`Asia/Tokyo`/`Europe/Berlin` as needed.
+3. **Diverse values:** zero, negative numbers, large amounts, varying `BigDecimal` scales, percentages, DST dates, text with Unicode spacing.
+4. **Synchronized start:** use `CountDownLatch` or `CyclicBarrier` to maximize contention; never treat `Thread.sleep` as an oracle.
+5. **Repetition:** iterate across multiple JDKs/providers/OSes; fix a seed if randomizing and log minimal failing inputs.
+6. **Categorized failures:** wrong locale symbol, wrong number, exception, trailing unparsed suffix, precision loss, stale `ThreadLocal`, UI snapshot differing from CLDR.
+7. **Time-bounded execution:** enforce task/future timeouts so CI never hangs; handle interrupts and cleanup on timeout/cancellation.
+8. **Never swallow worker exceptions:** `Future.get()` throws `ExecutionException`; inspect the root cause rather than just counting `false` results.
+9. **Do not share mutable domain objects:** `BigDecimal`/`Instant` are safely immutable, whereas tests using mutable `Calendar`/`Date` require clear snapshots/ownership.
+10. **Do not synchronize inside the production code under test solely via test locks** if the production path itself lacks synchronization; otherwise bugs remain in production.
 
-### Tính xác định và giới hạn
+### Determinism and Limitations
 
-- **Latch tests** chứng minh một interleaving gây lỗi logic một cách có kiểm soát; cực kỳ giá trị khi xây regression test.
-- **Stress tests** tăng xác suất bắt race khác; nếu pass không thể chứng minh toàn bộ code không có race.
-- **Static analysis/code review** tìm shared mutable fields và default-locale calls; hỗ trợ chứ không thay test.
-- **Load test production-like** kiểm tra cả thread pools, async context propagation và framework request scope.
+- **Latch tests** deterministically prove a buggy interleaving; invaluable for regression tests.
+- **Stress tests** raise the odds of catching other races; passing does not mathematically prove code is race-free.
+- **Static analysis / code review** spots shared mutable fields and default-locale calls; complementary, not a replacement for tests.
+- **Production-like load tests** exercise real thread pools, async context propagation, and framework request scopes.
 
-**Không dựa vào dòng log trông "lạ" để kết luận ngay về race**. Một thay đổi output còn có thể do CLDR, timezone database, format pattern hoặc default JVM khác giữa môi trường. Cần tái hiện với input/runtime tương đương và truy dấu state ownership.
+**Do not immediately blame a race whenever a log line looks "weird."** Output differences can also come from CLDR, time-zone database, format patterns, or JVM default differences across environments. Reproduce with matching inputs/runtime and trace state ownership.
 
-## 16. Locale context có thể bị rò qua thread pool
+## 16. Locale Context Can Leak Across Thread Pools
 
-Trong web server, một request tiếng Đức có thể được xử lý trên thread từng phục vụ người dùng tiếng Anh. Nếu ứng dụng giữ locale của request trong `ThreadLocal<Locale>` và quên `remove()`, tác vụ sau có thể kế thừa locale cũ.
+In a web server, a German request may execute on a thread that previously served an English user. If the app stores request locale in a `ThreadLocal<Locale>` and forgets `remove()`, a later task can inherit the stale locale.
 
-Đây là **context leak**. Dù formatter được tạo mới, nó vẫn có thể dùng **locale sai** do context đã bị rò.
+This is a **context leak**. Even if formatters are freshly constructed, they can still use the **wrong locale** due to leaked context.
 
-### Khuôn mẫu lifecycle
+### Lifecycle Pattern
 
 ```java
 try {
     REQUEST_LOCALE.set(localeFromRequest);
-    // Xử lý request, tạo formatter theo locale này.
+    // Process request, creating formatters with this locale.
 } finally {
     REQUEST_LOCALE.remove();
 }
 ```
 
-Đây là đoạn mã **minh họa trong một lớp có `ThreadLocal<Locale> REQUEST_LOCALE`**. Nó chỉ mô tả cleanup; không nên xem ThreadLocal là mặc định tốt nhất. **Truyền locale như đối số tường minh** qua service/presenter thường đơn giản và ít rủi ro hơn.
+This snippet illustrates cleanup inside a class holding `ThreadLocal<Locale> REQUEST_LOCALE`. It shows proper cleanup only; `ThreadLocal` should not be your default choice. **Passing locale as an explicit parameter** through services/presenters is usually simpler and less error-prone.
 
-Khi dùng `CompletableFuture`/`ExecutorService`, task có thể chạy ở thread khác; `ThreadLocal` thông thường không tự mang context sang thread đó. Không sửa bằng cách chuyển `Locale.setDefault` toàn JVM. Hãy truyền `Locale`, `ZoneId`, `Currency` vào lambda/task như các giá trị bất biến hoặc dùng cơ chế context propagation được framework hỗ trợ và test kỹ.
+With `CompletableFuture`/`ExecutorService`, tasks can run on different threads; plain `ThreadLocal` does not propagate automatically. Never work around this with JVM-wide `Locale.setDefault`. Pass `Locale`, `ZoneId`, and `Currency` into lambdas/tasks as immutable values, or use framework-supported context propagation and test it thoroughly.
 
-## 17. Các trường hợp locale không phải lỗi thread nhưng dễ bị chẩn đoán nhầm
+## 17. Locale Issues That Look Like Threading Bugs (Yet Are Not)
 
-### 17.1. `Locale` và `Currency` độc lập
+### 17.1. `Locale` and `Currency` Are Independent
 
-`Locale.GERMANY` không có nghĩa đơn hàng bắt buộc là EUR. Một user chọn tiếng Đức có thể thanh toán USD. Khi test, expectation cần **cả locale và currency code**. Không dựa vào `Currency.getInstance(locale)` nếu domain currency đã được lưu riêng.
+`Locale.GERMANY` does not force an order to be EUR. A German-speaking user can pay in USD. Test expectations need **both locale and currency code**. Never derive currency from `Currency.getInstance(locale)` when domain currency is stored separately.
 
-### 17.2. `Locale.Category.DISPLAY` khác `FORMAT`
+### 17.2. `Locale.Category.DISPLAY` Differs from `FORMAT`
 
-Thay `Locale.Category.DISPLAY` có thể ảnh hưởng tên hiển thị của language/country, còn `Category.FORMAT` thường liên quan formatting số/ngày. Phải test API đúng category. Nếu cố tạo tình huống race của `NumberFormat.getNumberInstance()` thì nên can thiệp **FORMAT**, không suy từ DISPLAY.
+Mutating `Locale.Category.DISPLAY` affects display names of languages/countries, whereas `Category.FORMAT` governs number/date formatting. Test the API with the matching category. If building a race test for `NumberFormat.getNumberInstance()`, target **`FORMAT`**, not `DISPLAY`.
 
-### 17.3. Grouping Unicode và CLDR
+### 17.3. Unicode Grouping and CLDR
 
-`fr-FR` có thể dùng **U+202F NARROW NO-BREAK SPACE**, trong khi một runtime/provider khác dùng U+00A0 hoặc cách khác. Cùng input không có race nhưng output khác sau nâng JDK. Khi test concurrency, snapshot literal nên gắn metadata runtime; kết quả domain phải được so độc lập.
+`fr-FR` may use **U+202F NARROW NO-BREAK SPACE**, while another runtime/provider uses U+00A0 or something else. Identical inputs with zero race can still differ after a JDK upgrade. In concurrency tests, pin runtime metadata on literal snapshots while checking domain values independently.
 
-### 17.4. Thay đổi timezone rules
+### 17.4. Time-Zone Rule Updates
 
-Date/time formatting khác nhau giữa các bản tzdb cũng có thể làm snapshot fail. Không phải race nếu mọi luồng cùng zone và formatter immutable tạo cùng output trong một runtime.
+Date/time formatting differences across tzdb versions can also break snapshots. It is not a race if every thread with the same zone and immutable formatter produces identical output within a single runtime.
 
-### 17.5. Dùng locale mặc định trong test
+### 17.5. Relying on Default Locale in Tests
 
-CI chạy với default locale khác máy cá nhân. Test phải có `Locale` được truyền tường minh, hoặc chạy một bài test riêng kiểm soát default trong **JVM độc lập**. Một test sửa `Locale.setDefault` có thể gây ảnh hưởng test khác chạy parallel trên cùng JVM ngay cả khi test đó có `finally`.
+CI often has a different default locale than a developer laptop. Pass `Locale` explicitly in tests, or run default-locale tests in an **isolated JVM**. A test mutating `Locale.setDefault` can interfere with parallel tests in the same JVM even if it uses `finally`.
 
-## 18. Một bài test hoàn chỉnh: request context và formatter per-call
+## 18. A Complete Test: Request Context and Per-Call Formatters
 
-Cách thiết kế thực tế là đóng gói dữ liệu không đổi vào một record:
+A practical pattern packages immutable request data in a record:
 
 ```java
 record DisplayContext(Locale locale, Currency currency) {}
 ```
 
-Sau đó mỗi task nhận context cố định. Mọi formatter mutable được tạo bên trong task; không có biến static mutable đóng vai trò "locale hiện tại".
+Each task receives a fixed context. Every mutable formatter is constructed inside the task; no static mutable field holds a "current locale."
 
-Tạo file `RequestScopedFormattingDemo.java`:
+Create `RequestScopedFormattingDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -860,20 +860,20 @@ failures=0
 context unchanged=true
 ```
 
-Ở đây exact rendering expectation được tính **tuần tự bằng formatter riêng** trước khi bắt đầu 1.000 tasks. Điều đó khiến bài test ổn định hơn việc hardcode ký hiệu/khoảng trắng của một JDK cụ thể. Nó phát hiện output khác baseline trong một runtime, nhưng không thay thế test **currency identity** hoặc test hiển thị nhiều locale có kết quả trùng nhau.
+Here exact rendering expectations are computed **sequentially with dedicated formatters** before launching the 1,000 tasks. That makes the test resilient without hard-coding symbols/spaces for a specific JDK. It detects output diverging from the runtime baseline, though it does not replace **currency-identity** tests or tests where two locales share identical output.
 
-Dùng record `Context` không phải để tránh mọi vấn đề concurrency thần kỳ; nó làm cho việc truyền phụ thuộc theo request trở nên **tường minh**. Các thành phần `Locale`/`Currency`/`BigDecimal` vốn là immutable value objects.
+Using the `Context` record is not magic concurrency dust; it makes per-request dependency passing **explicit**. `Locale`/`Currency`/`BigDecimal` are inherently immutable value objects.
 
-## 19. Kiểm thử parse khi các formatter có locale khác nhau
+## 19. Testing Parsing When Formatters Have Different Locales
 
-Cùng `"1,234"` có thể mang nghĩa khác nhau:
+The same `"1,234"` can carry different meanings:
 
-- `en-US`: thường là một nghìn hai trăm ba mươi tư.
-- `de-DE`: thường là một phẩy hai ba bốn.
+- `en-US`: typically one thousand two hundred thirty-four.
+- `de-DE`: typically one point two three four.
 
-Hai parser đều có thể đọc **hết chuỗi**, nhưng tạo **hai giá trị khác nhau**. Vì thế kiểm tra `ParsePosition.getIndex()==input.length()` tuy cần để từ chối suffix vẫn **không phát hiện việc dùng nhầm locale** khi input tình cờ hợp lệ cho cả hai locale.
+Both parsers can consume **the entire string** yet return **two different values**. Therefore, checking `ParsePosition.getIndex()==input.length()`, while needed to reject suffixes, **will not catch using the wrong locale** when the input happens to be valid in both locales.
 
-### Một parser an toàn về ownership
+### An Ownership-Safe Parser
 
 ```java
 static BigDecimal parseDecimal(String raw, Locale locale) {
@@ -893,51 +893,51 @@ static BigDecimal parseDecimal(String raw, Locale locale) {
 }
 ```
 
-Đây là phương thức minh họa trong lớp có các import `BigDecimal`, `NumberFormat`, `DecimalFormat`, `ParsePosition` và `Locale`. Mỗi lần parse tạo formatter riêng nên an toàn với những request gọi đồng thời. Nhưng **full consumption không đồng nghĩa strict grouping**: `DecimalFormat` có thể cho phép dấu nhóm ở vị trí không chuẩn. Nếu parser phục vụ tiền hoặc schema nghiêm, cần thêm lexical/domain validation.
+This snippet illustrates a method inside a class importing `BigDecimal`, `NumberFormat`, `DecimalFormat`, `ParsePosition`, and `Locale`. Each call creates its own formatter, making concurrent requests safe. Remember that **full consumption does not equal strict grouping**: `DecimalFormat` may accept grouping separators in non-standard positions. For money or strict schemas, add lexical/domain validation.
 
-### Những test quan trọng
+### Essential Parsing Tests
 
-| Input | Locale nguồn | Giá trị mong đợi | Nhận định |
+| Input | Source locale | Expected value | Note |
 | --- | --- | --- | --- |
-| `"1,234"` | en-US | `1234` | Phải truyền locale nguồn |
-| `"1,234"` | de-DE | `1.234` | Cùng text, giá trị khác |
-| `"1.234,50"` | de-DE | `1234.50` | Không được parse bằng locale US |
-| `"1,234.50oops"` | en-US | REJECT | Kiểm tra full input |
-| `"12,34.50"` | en-US | Tùy lexical policy | Full parse chưa đủ |
-| `"NaN"` | en-US | REJECT nếu domain là Money | Có thể trả `Double` đặc biệt |
-| Số `fr-FR` dùng U+202F | fr-FR | Đúng giá trị số | Kiểm tra Unicode space |
-| Amount USD hiển thị de-DE | de-DE + USD | Numeric amount đúng, currency USD | Không suy currency từ locale |
+| `"1,234"` | `en-US` | `1234` | Must pass source locale |
+| `"1,234"` | `de-DE` | `1.234` | Same text, different value |
+| `"1.234,50"` | `de-DE` | `1234.50` | Must not parse with US locale |
+| `"1,234.50oops"` | `en-US` | REJECT | Full-input check |
+| `"12,34.50"` | `en-US` | Depends on lexical policy | Full parse alone is insufficient |
+| `"NaN"` | `en-US` | REJECT if Money domain | Can return special `Double` |
+| `fr-FR` number using U+202F | `fr-FR` | Exact numeric value | Test Unicode space |
+| USD amount displayed in `de-DE` | `de-DE` + USD | Right numeric amount, USD currency | Do not infer currency from locale |
 
-**Lỗi khi concurrency và locale mismatch có thể trông giống nhau:** nếu một request de-DE bị cấp parser en-US do cache sai, `ParsePosition` có thể dừng sớm hoặc cũng có thể parse thành số hoàn chỉnh nhưng sai ý nghĩa. Test phải xác minh **cả source locale lẫn numeric result**.
+**Concurrency bugs and locale mismatches can look identical:** if a `de-DE` request gets an `en-US` parser from a bad cache, `ParsePosition` might stop early or parse the whole string into the wrong number. Tests must assert **both source locale and numeric result**.
 
-## 20. Ma trận kiểm thử chuyên sâu
+## 20. Deep Concurrency Test Matrix
 
-| Nhóm | Tình huống test | Điều phải khẳng định |
+| Group | Test scenario | What to assert |
 | --- | --- | --- |
-| Shared formatter | A set USD, B set EUR, A format | Reproduce lỗi của anti-pattern |
-| Per-request formatter | 1.000–10.000 tasks khác locale | Không mismatch về value/context |
-| Global default race | A set en-US, B set de-DE | Overload không locale bị can thiệp |
-| Immutable date formatter | Shared BASE + `withLocale`/`withZone` | Không ảnh hưởng task khác |
-| `SimpleDateFormat` legacy | Tạo riêng hoặc dùng synchronized access | Không share mutable |
-| `MessageFormat` | Hai locale, pattern/placeholders khác | Không rò nội dung/ngữ pháp |
-| `Collator` | Hai strength và locale khi sort | Không mutate comparator đang dùng |
-| `ThreadLocal` | Hai request khác locale cùng pool thread | Không dùng stale locale |
-| Async task | Locale truyền theo task thay vì đọc thread-local | Context không bị mất |
-| Currency | USD/EUR/JPY, same locale và khác locale | Mã currency và amount bất biến |
-| Number parsing | Input cùng text ở en-US/de-DE | Result đúng source locale |
-| Percent | Ratio 0.125 in 12.5% | Không nhân/chia 100 hai lần |
-| Date/time | UTC/Tokyo, ngày DST | Instant bất biến, zone đúng |
-| Unicode spaces | fr-FR, các dấu nhóm U+202F/U+00A0 | Không so ký tự bằng mắt |
-| JDK/CLDR upgrade | Cùng task cùng locale khác runtime | Phân loại presentation diff |
-| Error handling | Future throws/timeout/interruption | Không bỏ lỗi test |
-| Cleanup | Shutdown executor, clear ThreadLocal | Không giữ state sau request |
-| Performance | Có/không cache formatter | Tối ưu sau khi đã đạt correctness |
+| Shared formatter | A sets USD, B sets EUR, A formats | Reproduces anti-pattern failure |
+| Per-request formatter | 1,000–10,000 multi-locale tasks | Zero value/context mismatches |
+| Global default race | A sets `en-US`, B sets `de-DE` | Locale-less overloads suffer interference |
+| Immutable date formatter | Shared `BASE` + `withLocale`/`withZone` | Zero cross-task interference |
+| Legacy `SimpleDateFormat` | Per-task instance or synchronized access | Never shared mutable |
+| `MessageFormat` | Two locales, different patterns/placeholders | No content or grammar leakage |
+| `Collator` | Two strengths and locales while sorting | Never mutate in-use comparator |
+| `ThreadLocal` | Two requests with different locales on same pool thread | No stale locale |
+| Async tasks | Locale passed to task rather than read from thread-local | Context never lost |
+| Currency | USD/EUR/JPY, same and differing locales | Currency code and amount invariant |
+| Number parsing | Same text in `en-US`/`de-DE` | Result matches source locale |
+| Percent | Ratio `0.125` in `12.5%` | Not multiplied/divided by 100 twice |
+| Date/time | UTC/Tokyo, DST transition days | `Instant` invariant, right zone |
+| Unicode spaces | `fr-FR`, U+202F/U+00A0 grouping | Never compare spaces by eye |
+| JDK/CLDR upgrade | Same task, same locale, different runtimes | Classify presentation diffs |
+| Error handling | `Future` throws/timeout/interruption | Never drop test failures |
+| Cleanup | Shutdown executor, clear `ThreadLocal` | No retained state after request |
+| Performance | With/without formatter caching | Optimize only after correctness |
 
-Nên đặt test race điều phối được trong CI; stress tests có thể chạy thêm các lần lặp, cấu hình worker count và runtime khác nhau. Nếu dùng unit framework, mỗi test phải cô lập state toàn JVM. Những bài test cố ý sửa `Locale.setDefault` nên chạy trong **forked JVM riêng** hoặc được serialize tuyệt đối với các test phụ thuộc locale default.
+Put deterministic coordinated race tests in CI; stress tests can run extra iterations, worker counts, and runtimes. When using a unit test framework, isolate JVM-wide state per test. Tests that intentionally call `Locale.setDefault` should run in a **separate forked JVM** or be strictly serialized away from default-dependent tests.
 
-## 21. Cách ghi nhận lỗi khi test thất bại
+## 21. Logging Failures Effectively
 
-Với dữ liệu giả lập không nhạy cảm, log các thông tin:
+Using non-sensitive synthetic fixtures, log:
 
 ```text
 testCaseId
@@ -947,12 +947,12 @@ formatter type / intended configuration
 domain input (anonymized fixture)
 expected output / actual output
 actual Unicode code points
-parse consumed index + error index nếu có
+parse consumed index + error index if any
 Java runtime/version, locale provider
 worker exception/timeout/interrupt status
 ```
 
-**Không log bí mật người dùng hoặc dữ liệu giao dịch thật** chỉ để debug localization. Khi output khác vì Unicode space, in code points bằng `String.codePoints()` thay vì nhìn chuỗi:
+**Never log user secrets or real transaction data** just to debug localization. When outputs differ over Unicode spaces, dump code points via `String.codePoints()` rather than eyeballing strings:
 
 ```java
 static String points(String text) {
@@ -963,89 +963,89 @@ static String points(String text) {
 }
 ```
 
-Đây là đoạn minh họa; cần import `java.util.Locale`. Nó làm rõ `U+0020`, `U+00A0` và `U+202F` nếu formatter hoặc CLDR đổi ký tự khoảng trắng.
+This illustrative snippet requires `import java.util.Locale`. It immediately distinguishes `U+0020`, `U+00A0`, and `U+202F` if a formatter or CLDR version changes whitespace characters.
 
-## 22. Những lỗi phổ biến và cách sửa
+## 22. Common Mistakes and Fixes
 
-| Lỗi | Hậu quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Dùng `static final DecimalFormat` chung | `final` không bảo vệ state mutable | Tạo per-call hoặc đồng bộ trọn thao tác |
-| Dùng `ConcurrentHashMap<Locale, NumberFormat>` | Map an toàn, formatter vẫn không an toàn | Cache immutable config hoặc instance riêng |
-| A setCurrency rồi format trên shared object | B đổi currency làm A nhận ký hiệu sai | Currency từ domain + formatter per request |
-| `SimpleDateFormat` static | Parse/format không ổn định đa luồng | `DateTimeFormatter` immutable |
-| `Locale.setDefault` theo request | Locale global bị cross-talk | Truyền locale tường minh |
-| Dùng `Locale.getDefault()` trong parser mọi người dùng | Nguồn input có locale khác server | Input locale theo request |
-| Dùng `ThreadLocal` không reset | Thread pool leak/stale locale | `finally/remove` hoặc bỏ ThreadLocal |
-| Dùng `ThreadLocal` để chuyển async context | Task khác thread mất context | Truyền values vào task |
-| Cache key chỉ có pattern, bỏ locale | Formatting sai dù cache thread-safe | Key chứa đủ Locale/Zone/pattern |
-| Cache `DateTimeFormatter` nhưng input chưa validate | Bùng số entry do locale/zone tùy ý | Validate và giới hạn cache |
-| Race test chỉ dùng `Thread.sleep` | Flaky và khó tái hiện | CountDownLatch/CyclicBarrier |
-| Test pass một lần thì kết luận an toàn | Không bao phủ mọi lịch chạy | Deterministic interleaving + stress |
-| Xét chuỗi theo một locale duy nhất | Bỏ lỗi khác dấu và chữ số | Matrix multi-locale |
-| Hardcode symbol/space mọi JDK | CLDR upgrade làm test fail giả | Runtime metadata và domain invariants |
-| So chuỗi khi domain là số | Không xác định đúng nghiệp vụ | `BigDecimal`/currency code |
-| Không gọi `Future.get()` | Bỏ exception trong worker | Collect mọi futures, assert/propagate |
-| Không `shutdown()` executor | Thread không kết thúc, leak | `finally/shutdown`, timeout nếu cần |
-| Coi full parse là đúng locale | Cùng input có thể thành hai số | Test source locale và numeric value |
+| Sharing `static final DecimalFormat` | `final` does not protect mutable state | Per-call instance or full synchronization |
+| Using `ConcurrentHashMap<Locale, NumberFormat>` | Map is safe; formatters are still unsafe | Cache immutable config or per-call instance |
+| A sets currency then formats on shared object | B swaps currency, giving A the wrong symbol | Domain currency + per-request formatter |
+| Static `SimpleDateFormat` | Unstable multi-threaded parse/format | Immutable `DateTimeFormatter` |
+| `Locale.setDefault` per request | Global locale cross-talk | Pass locale explicitly |
+| Using `Locale.getDefault()` in user-facing parsers | Input source locale differs from server | Pass request input locale |
+| Unreset `ThreadLocal` | Thread-pool context leak / stale locale | `finally`/`remove` or avoid `ThreadLocal` |
+| Relying on `ThreadLocal` across async tasks | Tasks on other threads lose context | Pass immutable values into tasks |
+| Cache key has pattern only, omits locale | Wrong output despite thread-safe map | Include `Locale`/`Zone`/pattern in key |
+| Caching `DateTimeFormatter` from unvalidated input | Unbounded cache growth from arbitrary locales/zones | Validate and bound cache |
+| Race tests using only `Thread.sleep` | Flaky and hard to reproduce | `CountDownLatch`/`CyclicBarrier` |
+| Passing once means code is thread-safe | Misses unseen thread schedules | Deterministic interleaving + stress |
+| Testing strings in a single locale | Misses separator and digit bugs | Multi-locale matrix |
+| Hard-coding symbols/spaces across all JDKs | CLDR upgrades break tests spuriously | Runtime metadata + domain invariants |
+| Comparing formatted strings when domain is numeric | Fails to verify business values | `BigDecimal`/currency code |
+| Ignoring `Future.get()` | Swallows worker exceptions | Collect all futures, assert/propagate |
+| Forgetting `shutdown()` on executor | Hanging threads, leaks | `finally`/`shutdown`, with timeout if needed |
+| Treating full parse as right locale | Same text yields two different numbers | Verify source locale and numeric value |
 
-## 23. Câu hỏi tự kiểm tra
+## 23. Self-Check Questions
 
-1. **Vì sao `static final NumberFormat` không tự an toàn?** `final` cố định tham chiếu, không làm formatter mutable thành immutable.
-2. **Một thread A set USD, B set EUR, A format có thể xảy ra lỗi gì?** A hiển thị ký hiệu EUR dù domain currency là USD.
-3. **Vì sao ví dụ `CountDownLatch` tốt hơn `Thread.sleep`?** Nó tạo thứ tự xen kẽ cụ thể, tái hiện được lỗi logic.
-4. **`Locale` có immutable không?** Có. Nhưng formatter được tạo bằng locale có thể vẫn mutable.
-5. **`Locale.setDefault` có áp dụng riêng cho request hiện tại không?** Không; thay default toàn JVM.
-6. **`NumberFormat.getNumberInstance()` không đối số dùng locale nào?** Default FORMAT phù hợp của JVM.
-7. **Nếu dùng `NumberFormat.getNumberInstance(locale)` cho từng task thì tránh được điều gì?** Giảm phụ thuộc default locale và chia sẻ cấu hình mutable.
-8. **`DateTimeFormatter.withLocale` có sửa formatter gốc không?** Không; trả formatter immutable được cấu hình.
-9. **`SimpleDateFormat` có an toàn để dùng chung qua nhiều threads không?** Không nếu không đồng bộ thích hợp.
-10. **`ConcurrentHashMap<Locale, DecimalFormat>` đủ để bảo vệ format không?** Không; nó chỉ bảo vệ cấu trúc map.
-11. **`ThreadLocal` có đảm bảo locale đúng cho request sau trên cùng thread không?** Không nếu stale state hoặc cache bỏ ngữ cảnh.
-12. **Tại sao `Future.get()` quan trọng trong stress test?** Để quan sát kết quả và exception thay vì bỏ lỗi bên trong worker.
-13. **`ResourceBundle` dùng trong nhiều luồng có bắt buộc setDefault không?** Không; lấy bundle bằng locale tường minh.
-14. **`MessageFormat` có thể dùng một instance static rồi gọi `setLocale` từng request không?** Không nên; có mutable state và format con.
-15. **Hai luồng tạo `DateTimeFormatter` từ shared immutable BASE có an toàn không?** Có nếu dùng immutable methods và context đúng.
-16. **Vì sao cùng `"1,234"` ở en-US/de-DE nguy hiểm?** Có thể parse hết nhưng cho hai giá trị khác nhau.
-17. **Stress test pass 1.000 tác vụ có chứng minh mọi race đã biến mất không?** Không; chỉ xác minh những tình huống và lịch chạy đã thực hiện.
-18. **Vì sao dùng snapshot literal số Pháp có thể flake sau nâng JDK?** CLDR có thể thay grouping space U+202F/U+00A0.
-19. **Nên làm gì khi locale của request được truyền sang `CompletableFuture`?** Capture/truyền đối số bất biến, không phụ thuộc ThreadLocal tự lan truyền.
-20. **Khi nào cache immutable formatter nên có key Locale và ZoneId?** Khi hai thuộc tính này ảnh hưởng output; thêm mọi pattern/style liên quan.
-21. **Nếu format date time khác do tzdb update, đó có chắc là race không?** Không; phải đối chiếu runtime/rules.
-22. **Điều gì phải bất biến dù request chạy song song và đổi locale?** Số tiền domain, currency code, ratio, Instant, trạng thái và tính đúng use case.
-23. **Tại sao lock chỉ quanh `format` chưa chắc đủ?** Nếu setter cấu hình nằm ngoài cùng lock, thread khác vẫn có thể can thiệp giữa setter và format.
-24. **Khi nào cần kiểm thử riêng `Locale.Category.DISPLAY`?** Khi code hiển thị tên ngôn ngữ/vùng, khác phạm vi number/date FORMAT.
+1. **Why is `static final NumberFormat` not automatically safe?** `final` freezes the reference, not the mutable formatter's internal state.
+2. **Thread A sets USD, B sets EUR, then A formats—what can happen?** A displays the EUR symbol even though its domain currency is USD.
+3. **Why is the `CountDownLatch` example better than `Thread.sleep`?** It enforces a deterministic interleaving that reliably reproduces the logic bug.
+4. **Is `Locale` immutable?** Yes. Yet a formatter constructed from it can still be mutable.
+5. **Does `Locale.setDefault` apply only to the current request?** No; it alters the JVM-wide default.
+6. **Which locale does parameterless `NumberFormat.getNumberInstance()` use?** The JVM's `FORMAT` default locale.
+7. **What does calling `NumberFormat.getNumberInstance(locale)` per task avoid?** Dependence on default locale and shared mutable configuration.
+8. **Does `DateTimeFormatter.withLocale` mutate the original formatter?** No; it returns a configured immutable formatter.
+9. **Is `SimpleDateFormat` safe to share across threads?** Not without proper synchronization.
+10. **Is `ConcurrentHashMap<Locale, DecimalFormat>` enough to protect formatting?** No; it only protects the map structure.
+11. **Does `ThreadLocal` guarantee the right locale for the next request on the same thread?** No, if stale state or a mismatched cache persists.
+12. **Why is `Future.get()` critical in stress tests?** To observe results and exceptions instead of silently losing worker failures.
+13. **Does multi-threaded `ResourceBundle` usage require `setDefault`?** No; load bundles with explicit locales.
+14. **Can `MessageFormat` use one static instance with `setLocale` per request?** Avoid doing so; it holds mutable state and subformats.
+15. **Are two threads deriving `DateTimeFormatter` from a shared immutable `BASE` safe?** Yes, when using immutable methods and right per-request context.
+16. **Why is `"1,234"` dangerous across `en-US` and `de-DE`?** It can parse completely in both yet yield two different values.
+17. **Does a stress test passing 1,000 tasks prove all races are gone?** No; it only verifies the scenarios and schedules executed.
+18. **Why might a French number literal snapshot flake after a JDK upgrade?** CLDR can change grouping spaces between U+202F and U+00A0.
+19. **How should a request's locale be passed into a `CompletableFuture`?** Capture/pass immutable arguments explicitly instead of relying on `ThreadLocal` propagation.
+20. **When should an immutable formatter cache key include `Locale` and `ZoneId`?** Whenever those attributes affect output, along with any relevant pattern/style.
+21. **If date-time output changes due to a tzdb update, is that a race?** No; compare against runtime/zone rules.
+22. **What must remain invariant even when requests run concurrently across changing locales?** Domain amounts, currency codes, ratios, `Instant`s, state, and business correctness.
+23. **Why is locking only around `format` potentially insufficient?** If configuration setters sit outside the same lock, another thread can still interleave between setter and `format`.
+24. **When must `Locale.Category.DISPLAY` be tested separately?** When code displays language/region names rather than `FORMAT` numbers/dates.
 
-## 24. Checklist trước khi triển khai
+## 24. Pre-Deployment Checklist
 
-- [ ] Xác định tất cả formatter mutable dưới dạng static field, singleton hoặc cache.
-- [ ] Không có request nào gọi `Locale.setDefault` hay `TimeZone.setDefault` để đổi ngữ cảnh người dùng.
-- [ ] Mọi formatter số/tiền nhận `Locale` tường minh và currency code từ domain.
-- [ ] Legacy formatter mutable được tạo per operation, hoặc toàn bộ chuỗi set/format/parse nằm trong synchronization đúng.
-- [ ] Với ngày giờ mới, ưu tiên `DateTimeFormatter` và các kiểu `java.time` immutable.
-- [ ] `MessageFormat` và `Collator` không bị thay cấu hình khi đang được các task dùng chung.
-- [ ] Không cache mutable object chỉ bằng `ConcurrentHashMap` rồi nghĩ là đã thread-safe.
-- [ ] Nếu cache immutable formatter, key gồm locale/zone/pattern/style và có giới hạn vòng đời phù hợp.
-- [ ] `ThreadLocal` có cleanup và được kiểm tra với thread pool/async tasks, hoặc được loại bỏ khi không cần.
-- [ ] Stress test chạy nhiều locale/currency/zone, nhiều luồng, nhiều giá trị và quan sát `Future.get()`.
-- [ ] Có ít nhất một deterministic interleaving test cho anti-pattern đã từng gây lỗi.
-- [ ] Không dùng `Thread.sleep` đơn độc làm cơ chế kiểm thử thứ tự.
-- [ ] Test phân biệt domain numeric/instant invariants và output presentation theo CLDR.
-- [ ] Input parser kiểm tra full consumption, đúng source locale, strict grammar/domain khi cần.
-- [ ] Test thay default locale được chạy trong JVM cô lập, tránh ảnh hưởng test khác.
-- [ ] Test CI ghi JDK/provider/locale và Unicode code points khi xuất hiện output khác.
-- [ ] Executor/tài nguyên được dọn trong `finally`; timeout và interrupt được xử lý đúng policy.
+- [ ] Identify all mutable formatters held in static fields, singletons, or caches.
+- [ ] Ensure no request calls `Locale.setDefault` or `TimeZone.setDefault` to switch user context.
+- [ ] Every number/currency formatter receives an explicit `Locale` and domain currency code.
+- [ ] Mutable legacy formatters are created per operation, or the entire set/format/parse sequence is properly synchronized.
+- [ ] For new date-time code, prefer `DateTimeFormatter` and immutable `java.time` types.
+- [ ] `MessageFormat` and `Collator` are never reconfigured while shared across tasks.
+- [ ] Mutable objects are never placed in a `ConcurrentHashMap` and assumed thread-safe.
+- [ ] Any immutable formatter cache includes locale/zone/pattern/style in its key and enforces lifecycle bounds.
+- [ ] Any `ThreadLocal` cleans up properly and is tested with thread pools and async tasks, or removed if unnecessary.
+- [ ] Stress tests cover multiple locales/currencies/zones, multiple threads, diverse values, and inspect `Future.get()`.
+- [ ] At least one deterministic interleaving test exists for previously observed anti-patterns.
+- [ ] `Thread.sleep` is never used alone to control test ordering.
+- [ ] Tests separate numeric/instant domain invariants from CLDR presentation output.
+- [ ] Input parsers verify full consumption, source locale, and strict grammar/domain rules where required.
+- [ ] Tests mutating default locale run in isolated JVMs so other tests are unaffected.
+- [ ] CI tests log JDK/provider/locale and Unicode code points when unexpected outputs occur.
+- [ ] Executors and resources are cleaned up in `finally`; timeouts and interrupts follow policy.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html): cảnh báo number formats không synchronized, locale-specific factory và parsing.
-- [Java SE 17 — DecimalFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormat.html): cấu hình mutable, pattern, symbols và rounding.
-- [Java SE 17 — SimpleDateFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/SimpleDateFormat.html): synchronization và xử lý ngày giờ legacy.
-- [Java SE 17 — MessageFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html): pattern, locale, subformat và tính mutable.
+- [Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html): warning that number formats are not synchronized, locale-specific factories, and parsing.
+- [Java SE 17 — DecimalFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormat.html): mutable configuration, patterns, symbols, and rounding.
+- [Java SE 17 — SimpleDateFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/SimpleDateFormat.html): synchronization and legacy date-time handling.
+- [Java SE 17 — MessageFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html): patterns, locale, subformats, and mutability.
 - [Java SE 17 — Collator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Collator.html): mutable collation strength/decomposition.
-- [Java SE 17 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html): immutable, thread-safe formatting theo locale/zone.
-- [Java SE 17 — Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html): `setDefault`, `getDefault` và `Locale.Category.FORMAT`/`DISPLAY`.
-- [Java SE 17 — ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html): cơ chế bundle/cache và locale-specific lookup.
-- [Java SE 17 — CountDownLatch](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CountDownLatch.html): điều phối thứ tự các luồng trong kiểm thử.
+- [Java SE 17 — DateTimeFormatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html): immutable, thread-safe formatting by locale/zone.
+- [Java SE 17 — Locale](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html): `setDefault`, `getDefault`, and `Locale.Category.FORMAT`/`DISPLAY`.
+- [Java SE 17 — ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html): bundle/cache mechanics and locale-specific lookup.
+- [Java SE 17 — CountDownLatch](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CountDownLatch.html): coordinating thread execution order in tests.
 - [Java SE 17 — ExecutorService](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/ExecutorService.html): submit/invokeAll/shutdown.
 - [Java SE 17 — ThreadLocal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ThreadLocal.html): lifetime, set/get/remove, thread-pool context.
-- [Unicode CLDR](https://cldr.unicode.org/): nguồn locale data, Unicode number/date/currency patterns được cập nhật theo phiên bản.
+- [Unicode CLDR](https://cldr.unicode.org/): source of locale data, Unicode number/date/currency patterns updated across releases.

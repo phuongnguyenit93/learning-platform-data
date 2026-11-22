@@ -1,14 +1,14 @@
-# Tránh tạo nhiều chuỗi trung gian khi xử lý theo từng bước trong Java
+# Avoiding Intermediate Strings When Processing Step by Step in Java
 
-## Mục tiêu
+## Objective
 
-Khi chuẩn hóa dữ liệu, tạo thông báo, dựng CSV, ghép nhiều trường hoặc biến đổi văn bản trong vòng lặp, một chương trình Java có thể tạo ra nhiều đối tượng `String` chỉ để sử dụng trong thời gian rất ngắn. Bài học này giúp bạn xác định khi nào các chuỗi trung gian làm tăng cấp phát bộ nhớ, chọn kỹ thuật giảm số lần sao chép/nối chuỗi, và giữ nguyên ngữ nghĩa của phép biến đổi. Mục tiêu là giảm công việc không cần thiết ở đoạn mã thực sự cần tối ưu, chứ không loại bỏ mọi `String` tạm bằng mọi giá.
+When normalizing data, building messages, generating CSV, joining multiple fields, or transforming text in a loop, a Java program can create many `String` objects that are used only very briefly. This lesson helps you identify when intermediate strings increase memory allocation, choose techniques to reduce string copying/concatenation, and preserve the semantics of the transformation. The goal is to reduce unnecessary work in code that genuinely needs optimization, not to eliminate every temporary `String` at all costs.
 
-## 1. Vì sao phát sinh chuỗi trung gian?
+## 1. Why Do Intermediate Strings Occur?
 
-`String` trong Java là **bất biến** (immutable): sau khi tạo, nội dung của một đối tượng `String` không bị sửa trực tiếp. Các phương thức như `replace(...)`, `toUpperCase(...)`, `substring(...)` hoặc thao tác nối chuỗi có thể trả về một chuỗi mới để biểu diễn kết quả. Tùy trường hợp, một số phương thức được phép trả về chính đối tượng cũ nếu nội dung không đổi; do đó không nên tuyên bố “mỗi lời gọi đều chắc chắn tạo một `String` mới”.
+`String` in Java is **immutable**: once created, the contents of a `String` object are not modified directly. Methods such as `replace(...)`, `toUpperCase(...)`, `substring(...)`, or string concatenation can return a new string to represent the result. Depending on the case, some methods are allowed to return the existing object if the content is unchanged; therefore, you should not claim that “every call is guaranteed to create a new `String`”.
 
-Ví dụ:
+For example:
 
 ```java
 String source = "  Java-Core  ";
@@ -18,36 +18,36 @@ String c = b.toUpperCase(java.util.Locale.ROOT);
 System.out.println(c);
 ```
 
-Kết quả:
+Output:
 
 ```text
 JAVA CORE
 ```
 
-`a` và `b` là các giá trị trung gian phục vụ bước tiếp theo. Cách viết trên dễ đọc, đúng chức năng và hoàn toàn có thể là lựa chọn tốt đối với dữ liệu nhỏ hoặc xử lý ít lần. Nhưng nếu đoạn xử lý này chạy hàng triệu lần hoặc trên văn bản rất dài, các bản sao và đối tượng tạm có thể gây thêm **allocation**, lưu lượng bộ nhớ và áp lực cho garbage collector (GC). Chúng cũng có thể phải duyệt qua nội dung nhiều lần.
+`a` and `b` are intermediate values serving the next step. The code above is readable, functionally correct, and can be a completely good choice for small data or infrequent execution. However, if this processing runs millions of times or on very long text, the copies and temporary objects can cause extra **allocation**, memory traffic, and garbage collector (GC) pressure. They may also have to scan the content multiple times.
 
-Phân biệt ba chi phí:
-- **Cấp phát:** tạo các đối tượng `String` hoặc bộ đệm phụ, đặc biệt khi lặp lại rất nhiều lần.
-- **Sao chép/duyệt:** chuyển nội dung từ đầu vào sang kết quả mới hoặc kiểm tra lại từng ký tự qua nhiều công đoạn.
-- **Giữ bộ nhớ:** lưu tham chiếu đến nhiều kết quả tạm hoặc dùng bộ đệm có dung lượng quá lớn trong thời gian dài.
+Distinguish three costs:
+- **Allocation:** creating `String` objects or auxiliary buffers, especially when repeated very many times.
+- **Copying/traversal:** moving content from input to new results or re-inspecting each character across multiple stages.
+- **Memory retention:** holding references to many temporary results or keeping buffers with excessively large capacity for a long time.
 
-JVM có tối ưu hóa khi chạy, chẳng hạn tối ưu nối chuỗi hoặc loại bỏ một số cấp phát trong trường hợp phù hợp. Tuy vậy, không thể dựa vào suy đoán rằng JIT luôn loại bỏ mọi chuỗi trung gian. Khi hiệu năng quan trọng, cần đo trên đúng bản JDK và workload.
+The JVM performs runtime optimizations, such as optimizing string concatenation or eliminating certain allocations in suitable cases. Even so, you cannot rely on speculation that the JIT always eliminates every intermediate string. When performance matters, measure on the exact JDK version and workload.
 
-## 2. Nhận diện chuỗi trung gian trong vòng lặp
+## 2. Identifying Intermediate Strings in Loops
 
-Với vòng lặp `result += part`, mỗi kết quả bất biến có thể chứa lại toàn bộ tiền tố trước đó; nếu chuỗi tăng đều, tổng dữ liệu phải tạo theo mô hình nối tuần tự có thể tăng bậc hai theo số lượt. `StringBuilder` cho phép tích lũy bằng một vùng đệm rồi gọi `toString()` khi hoàn tất. Bài về nối lặp `+=` đã phân tích công thức chi phí này; ở đây cần nhận diện **những giá trị tạm chỉ được tạo ra để lập tức chép vào một kết quả khác**.
+In a `result += part` loop, each immutable result can contain the entire preceding prefix again; if the string grows steadily, the total data that must be created under a sequential concatenation model can grow quadratically with the number of iterations. `StringBuilder` lets you accumulate in a single buffer and call `toString()` when finished. The lesson on repeated `+=` concatenation analyzed this cost formula; here, focus on identifying **temporary values created solely to be immediately copied into another result**.
 
-Các câu hỏi hữu ích khi xem xét một pipeline:
+Useful questions when reviewing a pipeline:
 
-- Có đang tạo chuỗi định dạng bằng `prefix + value + suffix` chỉ để đưa ngay vào `builder.append(...)` không? Nếu có, có thể append từng thành phần trực tiếp.
-- Có tạo `text.substring(begin, end)` chỉ để append đoạn đó vào bộ đệm không? Overload `append(text, begin, end)` có thể tránh giá trị trung gian này.
-- Có thật sự cần giữ một `String` sau mỗi bước không? Nếu các kết quả chỉ phục vụ bước tiếp theo, cân nhắc gộp các thao tác xây dựng đầu ra; nếu là biến đổi Unicode, chuẩn hóa hoặc escaping phức tạp, vẫn phải giữ ngữ nghĩa chuẩn.
+- Are you creating a formatted string with `prefix + value + suffix` only to pass it immediately to `builder.append(...)`? If so, you can append each component directly.
+- Are you creating `text.substring(begin, end)` just to append that slice to a buffer? The `append(text, begin, end)` overload can avoid this temporary value.
+- Do you genuinely need to keep a `String` after every step? If intermediate results only serve the next step, consider merging output-building operations; if Unicode transformations, normalization, or complex escaping are involved, standard semantics must still be preserved.
 
-Không thể kết luận nhanh hơn chỉ từ việc số biến tạm giảm. Sau khi bảo đảm kết quả tương đương, hãy đo allocation và thời gian trên dữ liệu đại diện. Những ví dụ ở phần tiếp theo tập trung trực tiếp vào cách bỏ chuỗi tạm khi định dạng hoặc sao chép một đoạn.
+You cannot conclude something is faster solely from having fewer temporary variables. After ensuring identical output, measure allocations and time on representative data. The examples in the next sections focus directly on removing temporary strings when formatting or copying a slice.
 
-## 3. Gộp nhiều bước xây dựng đầu ra vào cùng một `StringBuilder`
+## 3. Merging Multiple Output-Building Steps into One `StringBuilder`
 
-Giả sử chương trình cần nối các phần dưới dạng `[value]`. Cách sau tạo chuỗi trình bày cho từng phần rồi mới nối kết quả:
+Suppose a program needs to join parts formatted as `[value]`. The following approach builds a formatted string for each part before appending the result:
 
 ```java
 StringBuilder out = new StringBuilder();
@@ -57,7 +57,7 @@ for (String value : values) {
 }
 ```
 
-Có thể append trực tiếp từng phần vào bộ đệm:
+You can append each part directly into the buffer:
 
 ```java
 StringBuilder out = new StringBuilder();
@@ -67,9 +67,9 @@ for (String value : values) {
 String result = out.toString();
 ```
 
-Lúc này, phần định dạng `formatted` không còn cần thiết. `append(char)` thêm ký tự, còn `append(String)` thêm nội dung chuỗi mà không cần tạo chuỗi kết hợp mới ở tầng mã nguồn.
+Now, the intermediate `formatted` string is no longer needed. `append(char)` adds a character, and `append(String)` adds string content without creating a new combined string at the source-code level.
 
-Ví dụ đầy đủ — lưu thành `DirectAppendDemo.java`:
+Complete example — save as `DirectAppendDemo.java`:
 
 ```java
 public class DirectAppendDemo {
@@ -95,26 +95,26 @@ java DirectAppendDemo
 [A][B][C]
 ```
 
-Cách tiếp cận tương tự phù hợp khi dựng phần thân thông báo, command line, định dạng log có điều kiện, template đơn giản hoặc xuất dữ liệu dạng văn bản. Một builder nên có chủ sở hữu rõ ràng và chỉ tạo kết quả bất biến khi một bước thực sự cần nó.
+A similar approach fits building message bodies, command lines, conditional log formatting, simple templates, or text data export. A builder should have clear ownership and only produce an immutable result when a step genuinely needs one.
 
-## 4. Tránh tạo `substring` nếu chỉ cần chép một đoạn vào kết quả
+## 4. Avoiding `substring` When Only Copying a Slice into the Result
 
-Giả sử có văn bản chứa phần cần lấy trong một khoảng chỉ số. Cách sau tạo chuỗi tạm để chèn vào builder:
+Suppose you have text containing a portion to extract within an index range. The following creates a temporary string to insert into the builder:
 
 ```java
 String fragment = text.substring(begin, end);
 builder.append(fragment);
 ```
 
-Nếu chỉ cần chép các ký tự từ `text`, dùng overload:
+If you only need to copy characters from `text`, use the overload:
 
 ```java
 builder.append(text, begin, end);
 ```
 
-`StringBuilder.append(CharSequence, int start, int end)` chép nội dung ở khoảng **[start, end)** trực tiếp vào builder, tránh yêu cầu tạo đối tượng `String` từ `substring`. Chỉ số được tính bằng **đơn vị mã UTF-16**, giống `String.length()` và `String.substring(...)`.
+`StringBuilder.append(CharSequence, int start, int end)` copies the content in the range **[start, end)** directly into the builder, avoiding the need to create a `String` object from `substring`. Indices are measured in **UTF-16 code units**, just like `String.length()` and `String.substring(...)`.
 
-Ví dụ chạy độc lập — lưu thành `AppendRangeDemo.java`:
+Standalone runnable example — save as `AppendRangeDemo.java`:
 
 ```java
 public class AppendRangeDemo {
@@ -141,11 +141,11 @@ java AppendRangeDemo
 value=payload
 ```
 
-Kiểm tra `begin` và `end` trước khi append khi chỉ số lấy từ dữ liệu không tin cậy (ví dụ `indexOf` có thể trả về `-1`). Nếu thao tác cắt có thể nằm giữa cặp surrogate của một ký tự bổ sung Unicode, cần chọn ranh giới theo code point để tránh tạo chuỗi chứa surrogate lẻ. Khi API yêu cầu một `String` độc lập ở chính bước đó, không thể loại bỏ mọi chuyển đổi thành `String`.
+Validate `begin` and `end` before appending when indices come from untrusted data (for example, `indexOf` may return `-1`). If slicing could fall inside a surrogate pair of a supplementary Unicode character, choose boundaries by code point to avoid producing strings containing unpaired surrogates. When an API requires an independent `String` at that exact step, not every conversion to `String` can be eliminated.
 
-## 5. Khi nào nên xử lý trực tiếp một lượt duyệt?
+## 5. When Should You Process Directly in a Single Pass?
 
-Một pipeline quen thuộc:
+A familiar pipeline:
 
 ```java
 String output = input.trim()
@@ -154,11 +154,11 @@ String output = input.trim()
         .replace(' ', '_');
 ```
 
-Mỗi bước có thể tạo kết quả mới và quét nội dung lại. Nếu nghiệp vụ chỉ yêu cầu một bộ quy tắc nhỏ, có thể duyệt đầu vào một lần và ghi thẳng kết quả vào `StringBuilder`. Tuy nhiên, **không được đổi thuật toán rồi vô tình đổi kết quả**: `trim()`, `strip()`, xử lý hoa/thường Unicode và thao tác `char` không tương đương nhau trong mọi trường hợp.
+Each step may create a new result and scan the content again. If business logic only requires a small set of rules, you can traverse the input once and write the result directly into a `StringBuilder`. However, **do not change the algorithm and accidentally change the output**: `trim()`, `strip()`, Unicode casing, and `char` operations are not equivalent in all cases.
 
-Ví dụ sau có phạm vi được định nghĩa rõ: chỉ đổi **chữ ASCII A–Z thành a–z** và thay khoảng trắng ASCII cùng dấu gạch nối bằng `_`. Đây **không phải** cách viết lại tổng quát của `toLowerCase(Locale.ROOT)` hay `strip()` đối với mọi văn bản Unicode.
+The following example has a clearly defined scope: it only converts **ASCII letters A–Z to a–z** and replaces ASCII spaces and hyphens with `_`. This is **not** a general rewrite of `toLowerCase(Locale.ROOT)` or `strip()` for arbitrary Unicode text.
 
-Lưu thành `SinglePassAsciiDemo.java`:
+Save as `SinglePassAsciiDemo.java`:
 
 ```java
 public class SinglePassAsciiDemo {
@@ -194,23 +194,23 @@ a_b_c
 java_17
 ```
 
-**Ưu điểm:** một vòng duyệt và một builder, không tạo chuỗi riêng ở từng bước biến đổi. **Giới hạn:** hàm này giữ nguyên các ký tự Unicode khác ngoài ASCII, không loại bỏ khoảng trắng đầu/cuối, không xử lý quy tắc viết thường đặc biệt của ngôn ngữ và không xử lý token/locale. Nếu cần quy tắc Unicode đầy đủ, hãy dùng các API chuẩn hoặc thiết kế thuật toán theo code point/locale và kiểm thử thật kỹ. Tối ưu bộ nhớ không cho phép làm sai kết quả nghiệp vụ.
+**Advantages:** a single traversal loop and a single builder, without creating separate strings at each transformation step. **Limitations:** this function leaves non-ASCII Unicode characters unchanged, does not trim leading/trailing whitespace, does not handle language-specific casing rules, and does not handle tokens/locales. If full Unicode rules are needed, use the standard APIs or design a code-point/locale-aware algorithm and test thoroughly. Memory optimization never justifies breaking business correctness.
 
-Một cách tối ưu thường an toàn hơn viết lại toàn bộ pipeline là **gộp riêng những bước tạo đầu ra**: vừa duyệt/tokenize đầu vào, vừa nối delimiter và phần cần thiết vào một builder. Giữ các phép biến đổi Unicode khó ở API chuẩn nếu chi phí của chúng chưa được đo là nút thắt.
+An optimization that is often safer than rewriting an entire pipeline is **merging only the output-building steps**: while scanning/tokenizing the input, append delimiters and needed segments into one builder. Keep tricky Unicode transformations in standard APIs if their cost has not been measured as a bottleneck.
 
-## 6. Chọn đúng công cụ cho nhu cầu nối chuỗi
+## 6. Choosing the Right Tool for String-Joining Needs
 
-| Nhu cầu | Công cụ hợp lý | Lưu ý |
+| Need | Sensible tool | Notes |
 | --- | --- | --- |
-| Nối vài giá trị trong một biểu thức | Toán tử `+` | Ngắn gọn, JVM hiện đại có tối ưu nối chuỗi |
-| Tích lũy dữ liệu trong vòng lặp hoặc nhiều nhánh | `StringBuilder` | Tạo builder cho một đơn vị công việc; `toString()` một lần khi xong |
-| Nối các phần có dấu phân cách | `String.join(...)` hoặc `StringJoiner` | Tốt khi cần các chuỗi có sẵn; cân bằng tính dễ đọc và cấp phát |
-| Nối phần tử từ stream | `Collectors.joining(...)` | Dễ đọc; mỗi phép `map(...)` tạo `String` vẫn có thể sinh trung gian |
-| Định dạng nhiều giá trị theo mẫu phức tạp | `String.format(...)` / `formatted(...)` | Mạnh về định dạng; có chi phí parse/format, nên đo nếu ở hot path |
-| Ghi lượng văn bản lớn ra file/network | `Writer`, `BufferedWriter` hoặc API streaming thích hợp | Ghi dần để tránh giữ toàn bộ chuỗi kết quả trong RAM |
-| Bộ đệm có thao tác trên nhiều luồng | Phân định sở hữu và đồng bộ hóa | `StringBuilder` không thread-safe; `StringBuffer` đồng bộ từng phương thức nhưng không tự bảo đảm tính nguyên tử của cả quy trình nhiều bước |
+| Joining a few values in one expression | `+` operator | Concise; modern JVMs optimize string concatenation |
+| Accumulating data in a loop or across branches | `StringBuilder` | Create a builder for one unit of work; call `toString()` once when done |
+| Joining parts with a delimiter | `String.join(...)` or `StringJoiner` | Good when strings already exist; balances readability and allocation |
+| Joining elements from a stream | `Collectors.joining(...)` | Readable; each `map(...)` producing a `String` can still create intermediates |
+| Formatting many values with a complex template | `String.format(...)` / `formatted(...)` | Expressive formatting; has parse/format cost, so measure if on a hot path |
+| Writing large amounts of text to file/network | `Writer`, `BufferedWriter`, or appropriate streaming API | Write incrementally to avoid holding the entire result string in RAM |
+| Buffer accessed across multiple threads | Establish ownership and synchronization | `StringBuilder` is not thread-safe; `StringBuffer` synchronizes individual methods without making a multi-step workflow atomic |
 
-Ví dụ nối delimiter bằng `StringJoiner`:
+Example of delimiter joining with `StringJoiner`:
 
 ```java
 java.util.StringJoiner joiner = new java.util.StringJoiner(", ", "[", "]");
@@ -222,11 +222,11 @@ System.out.println(joiner.toString());
 [red, green, blue]
 ```
 
-`StringJoiner` phù hợp khi phần tử đã là chuỗi. Nhưng `String.join` hay `Collectors.joining` không tự loại bỏ các chuỗi tạm sinh bởi những bước trước đó như `stream.map(x -> expensiveTransform(x))`. Với dữ liệu rất lớn, có thể ghi trực tiếp từng bản ghi ra `Writer` thay vì dồn tất cả vào `StringBuilder`.
+`StringJoiner` works well when elements are already strings. However, `String.join` or `Collectors.joining` does not automatically eliminate temporary strings produced by earlier steps such as `stream.map(x -> expensiveTransform(x))`. For very large data, you can write each record directly to a `Writer` instead of accumulating everything into a `StringBuilder`.
 
-## 7. Quản lý dung lượng của `StringBuilder`
+## 7. Managing `StringBuilder` Capacity
 
-`StringBuilder` có `capacity()` là dung lượng bộ đệm hiện tại và `length()` là số đơn vị mã UTF-16 đang chứa. Khi append vượt capacity, bộ đệm phải mở rộng; việc mở rộng có thể đòi hỏi cấp phát và sao chép. Nếu có ước lượng đáng tin cậy về kích thước đầu ra, có thể khởi tạo dung lượng:
+`StringBuilder` has `capacity()` as its current buffer capacity and `length()` as the number of UTF-16 code units currently held. When appending exceeds capacity, the buffer must expand; expansion may require allocation and copying. If you have a reliable estimate of the output size, you can initialize capacity:
 
 ```java
 int estimatedChars = 128;
@@ -234,31 +234,31 @@ StringBuilder builder = new StringBuilder(estimatedChars);
 builder.append("prefix:").append("data");
 ```
 
-Chọn capacity dựa trên dữ liệu thực tế, chẳng hạn tổng chiều dài các phần và delimiter. Nếu chỉ biết số phần tử mà không biết độ dài từng phần, đừng nhân một hằng số quá lớn dẫn đến cấp phát dư thừa. `capacity()` có đơn vị UTF-16, không phải số Unicode code point hoặc số byte UTF-8. `StringBuilder.length()` cũng không bằng số ký tự người dùng cảm nhận trong mọi ngôn ngữ.
+Choose capacity based on actual data, such as the sum of part lengths and delimiters. If you only know the element count without knowing individual lengths, do not multiply by an excessively large constant that causes over-allocation. `capacity()` is in UTF-16 units, not Unicode code points or UTF-8 bytes. `StringBuilder.length()` also does not equal user-perceived characters in all languages.
 
-Những lưu ý thực tế:
+Practical notes:
 
-- `new StringBuilder()` đã có khả năng tăng dung lượng; không phải mọi trường hợp đều cần dự đoán capacity.
-- `ensureCapacity(...)` có thể hữu ích khi nhu cầu tăng đáng kể đã được biết trước.
-- `setLength(0)` xóa nội dung logic để tái sử dụng bộ đệm **nhưng có thể giữ nguyên vùng nhớ lớn đã cấp phát**. Tái sử dụng builder từng phình rất lớn trong cache dài hạn có thể giữ bộ nhớ quá lâu.
-- `toString()` trả về một `String` bất biến. Không gọi lặp đi lặp lại `toString()` trong vòng lặp chỉ để kiểm tra độ dài hoặc nội dung đơn giản; dùng `builder.length()`, `charAt(...)` hoặc trạng thái riêng khi phù hợp.
-- Đừng giữ một `StringBuilder` tĩnh dùng chung giữa các request/luồng. Ngoài nguy cơ race condition, nó có thể giữ dung lượng không mong muốn; ưu tiên builder cục bộ.
+- `new StringBuilder()` can already grow its capacity; not every case requires predicting capacity.
+- `ensureCapacity(...)` can help when a substantially larger requirement becomes known upfront.
+- `setLength(0)` clears the logical content to reuse the buffer **but may retain the large allocated backing array**. Reusing a builder that once grew huge in a long-lived cache can hold memory too long.
+- `toString()` returns an immutable `String`. Do not call `toString()` repeatedly inside a loop just to check length or simple contents; use `builder.length()`, `charAt(...)`, or dedicated state when appropriate.
+- Do not keep a shared static `StringBuilder` across requests/threads. Beyond the risk of race conditions, it can retain unwanted capacity; prefer local builders.
 
-## 8. Tránh tạo chuỗi trung gian ở các ranh giới xử lý
+## 8. Avoiding Intermediate Strings at Processing Boundaries
 
-### 8.1. Chỉ tạo thông báo khi thật sự cần
+### 8.1. Only Build Messages When Actually Needed
 
-Ví dụ logger hỗ trợ tham số hóa thường cho phép:
+For example, loggers supporting parameterized messages typically allow:
 
 ```java
 logger.debug("Processed id={}, size={}", id, size);
 ```
 
-Khi mức DEBUG bị tắt, framework có thể tránh định dạng văn bản cuối cùng. Cú pháp cụ thể tùy thư viện log đang dùng. Với các thao tác nặng trước khi gọi logger (ví dụ `expensiveToString()`), tham số hóa không mặc nhiên ngăn phương thức đó được đánh giá trước; hãy kiểm tra API lazy/supplier hoặc điều kiện enabled theo framework.
+When the DEBUG level is disabled, the framework can avoid formatting the final text. Exact syntax depends on the logging library in use. For expensive operations performed before calling the logger (such as `expensiveToString()`), parameterization does not automatically prevent that method from being evaluated first; check lazy/supplier APIs or enabled checks according to the framework.
 
-### 8.2. Đọc/ghi theo luồng nếu đầu ra rất lớn
+### 8.2. Stream Reads/Writes If the Output Is Very Large
 
-Tạo một `StringBuilder` khổng lồ cho hàng triệu bản ghi có thể giảm số lượng `String` trung gian nhưng vẫn giữ toàn bộ kết quả trong RAM. Nếu đích cuối là tệp hoặc socket, dùng `BufferedWriter` (với charset rõ ràng) để ghi từng phần:
+Creating a huge `StringBuilder` for millions of records may reduce the count of intermediate `String`s while still holding the entire result in RAM. If the final destination is a file or socket, use a `BufferedWriter` (with an explicit charset) to write incrementally:
 
 ```java
 try (java.io.BufferedWriter writer = java.nio.file.Files.newBufferedWriter(
@@ -270,58 +270,58 @@ try (java.io.BufferedWriter writer = java.nio.file.Files.newBufferedWriter(
 }
 ```
 
-Đoạn trên **là mẫu đặt trong một phương thức** đã có biến `Path path` và nguồn `Iterable<String> values`, không phải một chương trình độc lập. Cần xử lý lỗi I/O, quyền truy cập và đóng tài nguyên theo yêu cầu ứng dụng. Việc ghi streaming tránh tạo một `String` kết quả chứa cả tệp; API writer vẫn có thể dùng bộ đệm nội bộ.
+The snippet above **is a pattern to place inside a method** that already has a `Path path` variable and an `Iterable<String> values` source, not a standalone program. Handle I/O errors, permissions, and resource closing according to application requirements. Streaming writes avoid creating a single resulting `String` containing the entire file; the writer API may still use an internal buffer.
 
-### 8.3. Tận dụng dữ liệu sẵn có
+### 8.3. Leverage Existing Data
 
-Khi chỉ cần kiểm tra tiền tố, hậu tố, ký tự ở một vị trí hoặc tìm chuỗi con, ưu tiên `startsWith`, `endsWith`, `charAt`, `indexOf` thay vì cắt ra nhiều `substring` để so sánh. Ví dụ:
+When you only need to check a prefix, suffix, character at a position, or search for a substring, prefer `startsWith`, `endsWith`, `charAt`, and `indexOf` instead of slicing many `substring`s to compare. For example:
 
 ```java
 if (value.startsWith("ID:")) {
-    // Xử lý tiếp theo tùy nghiệp vụ.
+    // Further processing depends on business logic.
 }
 ```
 
-Với phần có thể lấy theo khoảng chỉ số, `append(value, begin, end)` giúp không tạo `substring` trung gian. Tuy vậy, không nên giữ tham chiếu đến nguồn rất lớn chỉ để tránh tạo một chuỗi nhỏ nếu nhu cầu lưu trữ lâu dài đòi một bản sao độc lập.
+For portions accessible by an index range, `append(value, begin, end)` avoids creating an intermediate `substring`. Still, do not hold a reference to a huge source just to avoid creating a small string if long-term storage calls for an independent copy.
 
-## 9. Khi nhiều phương thức biến đổi nối tiếp vẫn là lựa chọn đúng
+## 9. When Chaining Multiple Transformation Methods Is Still the Right Choice
 
-Các phép xử lý như chuẩn hóa Unicode, case folding theo ngôn ngữ, escaping JSON/XML, regex phức tạp, phân tích ngữ pháp hoặc an toàn injection có các quy tắc tinh vi. Viết một bộ duyệt thủ công chỉ vì muốn dùng `StringBuilder` có thể làm mất tính đúng đắn. Ví dụ:
+Operations such as Unicode normalization, locale-sensitive case folding, JSON/XML escaping, complex regex, parsing, or injection safety have subtle rules. Writing a manual loop solely to use `StringBuilder` can compromise correctness. For example:
 
-- `String.toLowerCase(Locale.ROOT)` có thể xử lý ánh xạ Unicode không tương đương với cộng một khoảng số trên `char`.
-- `String.strip()` dùng tiêu chí Unicode whitespace khác `trim()`; hai phương thức không thể hoán đổi tùy tiện.
-- Biểu thức chính quy có semantics đặc thù; `replaceAll(...)`, `replace(...)` và so khớp với `Pattern` biên dịch sẵn không tương đương nhau trong mọi trường hợp.
-- Escaping dữ liệu cấu trúc nên giao cho serializer/library phù hợp để tránh lỗi bảo mật, dù thao tác này có tạo chuỗi hoặc bộ đệm phụ.
-- Dãy Unicode có thể có surrogate pair và combining marks; từng `char` không nhất thiết là một code point, càng không tương đương một grapheme mà người dùng nhìn thấy.
+- `String.toLowerCase(Locale.ROOT)` handles Unicode mappings that are not equivalent to adding a numeric offset to a `char`.
+- `String.strip()` uses Unicode whitespace criteria different from `trim()`; the two methods cannot be swapped arbitrarily.
+- Regular expressions have specific semantics; `replaceAll(...)`, `replace(...)`, and matching with a precompiled `Pattern` are not equivalent in all cases.
+- Escaping structured data should be delegated to an appropriate serializer/library to avoid security bugs, even if it creates temporary strings or buffers.
+- Unicode sequences can contain surrogate pairs and combining marks; each `char` is not necessarily one code point, let alone one user-perceived grapheme.
 
-Hãy giữ pipeline dễ hiểu khi nó đã đủ nhanh hoặc khi phép biến đổi khó. Nếu profile cho thấy chi phí ở một bước, tối ưu đúng bước đó trước. Các lời gọi `replace(...)` không tìm thấy gì có thể trả về chuỗi gốc; số cấp phát thực tế phải được xác nhận bằng công cụ đo.
+Keep a readable pipeline when it is already fast enough or when the transformation is tricky. If profiling shows cost in a specific step, optimize that step first. Calls to `replace(...)` that find no match may return the original string; actual allocations must be confirmed with measurement tools.
 
-## 10. Đo hiệu năng và cấp phát đúng cách
+## 10. Measuring Performance and Allocations Properly
 
-Một đoạn thử đơn giản bằng `System.nanoTime()` dễ bị sai lệch bởi JIT warmup, GC, cache, kích thước dữ liệu, dead-code elimination và cách chuẩn bị đầu vào. Để so sánh các cách xử lý chuỗi:
+A simple test using `System.nanoTime()` is easily skewed by JIT warmup, GC, caches, data sizes, dead-code elimination, and how inputs are prepared. To compare string-processing approaches:
 
-1. **Xác nhận kết quả bằng nhau trước:** kiểm thử trường hợp rỗng, `null` nếu API cho phép, delimiter, đầu/cuối chuỗi, dấu tiếng Việt, ký tự bổ sung Unicode và dữ liệu lớn. Nếu thay đổi ngữ nghĩa, số liệu tốc độ không còn so sánh cùng chức năng.
-2. **Xác định workload:** số phần tử, chiều dài trung bình, phân bố chuỗi ASCII/Unicode, tần suất chạy, giới hạn heap và tỷ lệ dữ liệu cần biến đổi thực sự.
-3. **Profile ứng dụng:** dùng Java Flight Recorder (JFR), profiler hoặc công cụ đo cấp phát để tìm nơi sinh đối tượng; quan sát throughput, latency, allocation rate và GC pauses.
-4. **Benchmark đoạn nóng:** dùng JMH với warmup, nhiều lần đo và tiêu thụ kết quả để tránh tối ưu bỏ mã; so trên cùng phiên bản Java, phần cứng và dữ liệu. Theo dõi cả đơn vị `ops/s` hoặc `ns/op` và số byte cấp phát trên mỗi thao tác khi có thể.
-5. **Đưa thay đổi nhỏ vào ứng dụng thực:** đo lại end-to-end. Cải thiện microbenchmark không chắc cải thiện request latency nếu thời gian chủ yếu nằm ở I/O, lock hoặc database.
+1. **Verify identical outputs first:** test empty cases, `null` if the API allows it, delimiters, string boundaries, Vietnamese diacritics, supplementary Unicode characters, and large inputs. If semantics change, speed numbers no longer compare the same functionality.
+2. **Define the workload:** element count, average length, ASCII/Unicode distribution, call frequency, heap limits, and proportion of data actually needing transformation.
+3. **Profile the application:** use Java Flight Recorder (JFR), a profiler, or an allocation measurement tool to find where objects are created; observe throughput, latency, allocation rate, and GC pauses.
+4. **Benchmark hot segments:** use JMH with warmup, multiple measurement iterations, and result consumption to prevent dead-code elimination; compare on the same Java version, hardware, and data. Track both `ops/s` or `ns/op` and allocated bytes per operation when possible.
+5. **Test small changes in the real application:** re-measure end-to-end. Microbenchmark gains may not improve request latency if time is dominated by I/O, locks, or the database.
 
-Tối ưu có ý nghĩa khi **giữ đúng chức năng, giảm được chi phí đo thấy và không làm mã khó bảo trì vượt lợi ích**. Nên ưu tiên thay thế vòng `result += item` chạy nhiều lần bằng một builder hoặc ghi trực tiếp ra writer trước khi tối ưu các biểu thức nhỏ.
+An optimization is worthwhile when it **preserves correctness, achieves a measurable cost reduction, and does not hurt maintainability more than it helps**. Prioritize replacing high-iteration `result += item` loops with a builder or streaming directly to a writer before optimizing small expressions.
 
-## 11. Những lỗi thường gặp
+## 11. Common Mistakes
 
-| Lỗi | Hệ quả | Cách xử lý |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| `result += part` bên trong vòng lặp lớn | Tạo chuỗi kết quả tích lũy mới nhiều lần | Dùng `StringBuilder` hoặc `Writer` |
-| `builder.append(prefix + value + suffix)` ở mỗi vòng | Có thể tạo chuỗi `prefix + value + suffix` trước khi append | Gọi `append(prefix).append(value).append(suffix)` |
-| `builder.toString().isEmpty()` mỗi vòng | Yêu cầu tạo/kiểm tra chuỗi kết quả nhiều lần | Dùng `builder.length() == 0` |
-| `builder.append(text.substring(a, b))` chỉ để chép đoạn | Có thể tạo bản `String` tạm | Dùng `builder.append(text, a, b)` |
-| Tái sử dụng builder toàn cục hoặc builder khổng lồ | Race condition, dữ liệu lẫn nhau, giữ bộ nhớ | Dùng builder cục bộ theo công việc |
-| Tự viết lại xử lý Unicode để “nhanh hơn” | Sai ánh xạ chữ, sai whitespace, tách surrogate | Giữ API Unicode chuẩn; tối ưu khi có bằng chứng |
-| Dự đoán capacity quá lớn | Cấp phát RAM không cần thiết | Dùng ước lượng thực tế hoặc để builder tự tăng |
-| Dùng `StringBuilder` cho mọi phép `+` | Mã dài hơn nhưng lợi ích chưa chắc có | Chỉ sửa các đoạn code nóng đã xác định |
+| `result += part` inside a large loop | Repeatedly creates new accumulated result strings | Use `StringBuilder` or `Writer` |
+| `builder.append(prefix + value + suffix)` per iteration | May create a `prefix + value + suffix` string before appending | Call `append(prefix).append(value).append(suffix)` |
+| `builder.toString().isEmpty()` per iteration | Requires creating/checking the result string repeatedly | Use `builder.length() == 0` |
+| `builder.append(text.substring(a, b))` just to copy a slice | May create a temporary `String` copy | Use `builder.append(text, a, b)` |
+| Reusing a global builder or a huge builder | Race conditions, mixed data, retained memory | Use a local builder per unit of work |
+| Rewriting Unicode handling manually to be “faster” | Wrong case mappings, wrong whitespace, split surrogates | Keep standard Unicode APIs; optimize with evidence |
+| Over-estimating capacity | Unnecessary RAM allocation | Use realistic estimates or let the builder grow |
+| Using `StringBuilder` for every `+` | More verbose code with uncertain benefit | Only change identified hot code |
 
-Một mẹo nhỏ: nếu muốn thêm delimiter giữa các phần, hãy kiểm tra builder trước khi append:
+A small tip: if you want to insert a delimiter between parts, check the builder before appending:
 
 ```java
 if (builder.length() > 0) {
@@ -330,20 +330,20 @@ if (builder.length() > 0) {
 builder.append(value);
 ```
 
-Cách này tránh tạo chuỗi trung gian và tránh delimiter thừa ở đầu; tuy nhiên cần chính sách rõ ràng khi `value` là chuỗi rỗng, `null` hoặc phần tử cần lọc.
+This avoids creating intermediate strings and avoids a leading delimiter; however, you need a clear policy when `value` is an empty string, `null`, or a filtered-out element.
 
-## 12. Bài tập thực hành
+## 12. Practice Exercises
 
-**Bài 1 — nối kết quả:** từ mảng 10.000 chuỗi, tạo văn bản phân cách bằng dấu phẩy với hai cách: vòng lặp `+=` và `StringBuilder`. So sánh kết quả bằng `equals`, sau đó benchmark đúng cách; phân biệt “hai kết quả bằng nhau” với “đã chứng minh cách nào nhanh hơn”.
+**Exercise 1 — joining results:** from an array of 10,000 strings, build comma-separated text in two ways: a `+=` loop and `StringBuilder`. Compare the results with `equals`, then benchmark properly; distinguish “both outputs are equal” from “proving which way is faster”.
 
-**Bài 2 — bỏ chuỗi định dạng tạm:** viết lại mẫu `builder.append("(" + id + ":" + value + ")")` thành các lời gọi `append(...)` nối tiếp. Kiểm thử trường hợp `id` âm, `value` rỗng và ký tự Unicode.
+**Exercise 2 — removing temporary formatted strings:** rewrite `builder.append("(" + id + ":" + value + ")")` as chained `append(...)` calls. Test negative `id`, empty `value`, and Unicode characters.
 
-**Bài 3 — tránh `substring`:** với chuỗi `"before[content]after"`, tìm vị trí giữa dấu `[` và `]` rồi thêm trực tiếp vào builder bằng `append(source, start, end)`. Kiểm thử trường hợp thiếu dấu đóng.
+**Exercise 3 — avoiding `substring`:** given `"before[content]after"`, find the positions between `[` and `]` and append directly into a builder using `append(source, start, end)`. Test the case where the closing bracket is missing.
 
-**Bài 4 — pipeline:** định nghĩa tập quy tắc ASCII của riêng bạn, viết một hàm duyệt một lần tạo đầu ra tương đương chuỗi các phép `replace`. Viết test so sánh cho nhiều đầu vào trước khi đo cấp phát.
+**Exercise 4 — pipeline:** define your own set of ASCII rules and write a single-pass function producing output equivalent to a chain of `replace` calls. Write comparison tests across many inputs before measuring allocations.
 
-**Bài 5 — dữ liệu lớn:** thay mô hình xây dựng một chuỗi CSV cực lớn bằng ghi từng hàng qua `BufferedWriter`. Đo mức sử dụng heap và thời gian ghi cho cả hai trên bộ dữ liệu có kiểm soát.
+**Exercise 5 — large data:** replace a pattern that builds one huge CSV string with writing row by row through `BufferedWriter`. Measure heap usage and write time for both on a controlled dataset.
 
-### Kết luận thực hành
+### Practical Conclusion
 
-Đối với các bước xây dựng văn bản lặp lại, hãy nghĩ đến việc **append trực tiếp từng phần vào một `StringBuilder`**, dùng khoảng chỉ số để tránh `substring` chỉ nhằm sao chép, và chuyển sang ghi streaming khi đầu ra quá lớn. Những phép biến đổi Unicode phức tạp cần ưu tiên tính đúng đắn. Chọn nơi tối ưu dựa trên profiler, kiểm thử kết quả và đo cấp phát, không chỉ dựa vào số dấu `+` xuất hiện trong mã.
+For repetitive text-building steps, consider **appending parts directly into one `StringBuilder`**, using index ranges to avoid `substring` just for copying, and switching to streaming writes when outputs become too large. Complex Unicode transformations must prioritize correctness. Choose where to optimize based on a profiler, result tests, and allocation measurements, not merely by counting `+` signs in the code.

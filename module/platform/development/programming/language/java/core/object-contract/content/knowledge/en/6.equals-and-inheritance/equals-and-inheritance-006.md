@@ -1,18 +1,18 @@
-# Lớp `final` hoặc phương thức `equals() final` để giới hạn thay đổi hợp đồng
+# `final` Classes or `final equals()` Methods to Restrict Contract Changes
 
-## 1. Vấn đề khi `equals` gặp kế thừa
+## 1. The Problem When `equals` Meets Inheritance
 
-`Object.equals(Object)` biểu diễn quan hệ bằng nhau logic, không chỉ so sánh địa chỉ bộ nhớ. Hợp đồng yêu cầu **phản xạ** (`a.equals(a)`), **đối xứng** (`a.equals(b) == b.equals(a)`), **bắc cầu** (nếu `a=b`, `b=c` thì `a=c`), **nhất quán** khi dữ liệu so sánh không đổi và `a.equals(null) == false`. Ngoài ra, nếu `a.equals(b)` đúng thì `a.hashCode() == b.hashCode()` bắt buộc đúng. Hai hash bằng nhau **không** bắt buộc hai đối tượng bằng nhau.
+`Object.equals(Object)` represents logical equality, not merely comparing memory addresses. The contract requires **reflexivity** (`a.equals(a)`), **symmetry** (`a.equals(b) == b.equals(a)`), **transitivity** (if `a=b` and `b=c` then `a=c`), **consistency** when comparison data does not change, and `a.equals(null) == false`. Furthermore, if `a.equals(b)` is true then `a.hashCode() == b.hashCode()` must hold. Two equal hashes do **not** require two objects to be equal.
 
-Khi lớp cha định nghĩa `equals` bằng một trường như `id` nhưng lớp con tự thêm điều kiện `department`, hai lời gọi `parent.equals(child)` và `child.equals(parent)` có thể khác nhau. Ví dụ lớp cha chấp nhận mọi đối tượng cùng `id`, còn lớp con chỉ chấp nhận chính kiểu lớp con và cùng `department`. Kết quả là **đối xứng bị phá vỡ**; nhiều đối tượng còn có thể làm hỏng bắc cầu.
+When a parent class defines `equals` using a field like `id` while a subclass adds a `department` condition, the two calls `parent.equals(child)` and `child.equals(parent)` can differ. For instance, the parent accepts any object with the same `id`, while the subclass accepts only the subclass type itself with the same `department`. The result is **broken symmetry**; multiple objects can also break transitivity.
 
-`HashSet` và `HashMap` phụ thuộc hợp đồng `equals`/`hashCode` để loại trùng, tra cứu và xóa. Nếu hợp đồng bị phá, có thể không tìm thấy khóa tương đương hoặc tập hợp chứa các phần tử “trùng” một cách khó dự đoán. Hai chiến lược ngăn lớp con tùy ý thay đổi quan hệ bằng nhau là **khóa toàn bộ kiểu với `final class`** và **khóa riêng phép bằng nhau bằng `final equals(Object)`**.
+`HashSet` and `HashMap` depend on the `equals`/`hashCode` contract for deduplication, lookup, and removal. If the contract is broken, equivalent keys may not be found or the collection may contain “duplicate” elements unpredictably. Two strategies to prevent subclasses from arbitrarily altering the equality relation are **locking the entire type with `final class`** and **locking only equality with `final equals(Object)`**.
 
-## 2. `final class`: không cho kế thừa
+## 2. `final class`: Disallowing Inheritance
 
-Khi khai báo lớp là `final`, Java cấm lớp khác `extends` nó. Không có lớp con để override `equals`, thay đổi `hashCode` hay thêm phần danh tính mà lớp gốc chưa dự liệu. Đây là lựa chọn phù hợp với **value object**, ID, khóa bộ nhớ đệm và kiểu dữ liệu không cần hệ phân cấp con.
+When a class is declared `final`, Java forbids any other class from `extends`-ing it. There are no subclasses to override `equals`, alter `hashCode`, or add identity components that the original class did not anticipate. This is a suitable choice for **value objects**, IDs, cache keys, and data types that do not need a subclass hierarchy.
 
-Ví dụ trong tệp `AccountId.java`:
+Example in `AccountId.java`:
 
 ```java
 import java.util.Objects;
@@ -38,15 +38,15 @@ public final class AccountId {
 }
 ```
 
-Lớp này biên dịch được trên Java 17+ bằng `javac --release 17 AccountId.java`. Hai `AccountId` có cùng `value` sẽ bằng nhau và có cùng hash. Trường `value` là `String` bất biến và được khai báo `final`; constructor từ chối `null`. `final class` cấm `class ChildId extends AccountId` ở thời điểm biên dịch.
+This class compiles on Java 17+ with `javac --release 17 AccountId.java`. Two `AccountId` instances with the same `value` will be equal and share the same hash. The `value` field is an immutable `String` declared `final`; the constructor rejects `null`. `final class` forbids `class ChildId extends AccountId` at compile time.
 
-Vì bản thân lớp đã không thể bị kế thừa, thường không cần đánh dấu từng `equals` và `hashCode` là `final` để chống override. Nhưng **`final class` không tự làm cho logic đúng**: lập trình viên vẫn có thể viết `equals` bất đối xứng hoặc hash không tương thích, hoặc dùng một trường mutable trong phép so sánh.
+Because the class itself cannot be inherited, it is usually unnecessary to mark `equals` and `hashCode` individually as `final` to block overriding. However, **`final class` does not automatically make the logic right**: a developer can still write an asymmetric `equals` or an incompatible hash, or use a mutable field in the comparison.
 
-Record trong Java 17 cũng là kiểu **ngầm định `final`**. Chẳng hạn `record AccountId(String value) {}` sinh `equals`/`hashCode` từ thành phần `value`. Tuy nhiên, record chứa đối tượng mutable không tự có bất biến sâu; thành phần mảng được so sánh theo tham chiếu chứ không tự so sánh từng phần tử.
+Records in Java 17 are also **implicitly `final`** types. For instance, `record AccountId(String value) {}` generates `equals`/`hashCode` from the `value` component. However, a record containing a mutable object does not automatically have deep immutability; array components are compared by reference rather than automatically comparing elements one by one.
 
-## 3. `final equals(Object)`: vẫn cho subclass, giữ chung một định nghĩa
+## 3. `final equals(Object)`: Still Allowing Subclasses, Keeping One Shared Definition
 
-Khi cần lớp con để mở rộng hành vi nhưng mọi lớp phải dùng chung danh tính, lớp cha có thể khóa `equals(Object)`:
+When subclasses are needed to extend behavior yet all classes must share the same identity, the parent class can lock `equals(Object)`:
 
 ```java
 import java.util.Objects;
@@ -72,16 +72,16 @@ public class Member {
 }
 ```
 
-Đây là lớp minh họa độc lập trong `Member.java`. `Member` không `final`, nên subclass được phép thêm trường và phương thức; nhưng **không được override** `equals(Object)` hoặc `hashCode()`. Mọi `Member` có cùng `memberId` đều bằng nhau, kể cả khi chúng thuộc hai lớp con khác nhau. Quy tắc này **chỉ đúng khi miền nghiệp vụ thực sự xem cùng ID là cùng danh tính xuyên mọi subtype**.
+This is a standalone illustrative class in `Member.java`. `Member` is not `final`, so subclasses are allowed to add fields and methods; however, they **cannot override** `equals(Object)` or `hashCode()`. Every `Member` with the same `memberId` is equal, even if they belong to two different subclasses. This rule is **valid only when the domain genuinely treats the same ID as the same identity across all subtypes**.
 
-### Vì sao cần quan tâm `hashCode()`?
+### Why Care About `hashCode()`?
 
-Khóa `equals` nhưng cho phép subclass override `hashCode` chưa đủ an toàn. Lớp con có thể tạo hash theo `memberId` *và* `level`, trong khi `equals` vẫn chỉ nhìn `memberId`. Khi đó hai đối tượng bằng nhau có hash khác nhau. Vì vậy, nếu lớp cha sở hữu một chính sách equality thống nhất, thường nên khai báo **cả `equals(Object) final` và `hashCode() final`**, rồi dùng cùng bộ thuộc tính bất biến để triển khai.
+Locking `equals` while allowing subclasses to override `hashCode` is not safe enough. A subclass could compute its hash from `memberId` *and* `level`, while `equals` still looks only at `memberId`. Then two equal objects would have different hash codes. Therefore, if the parent class owns a unified equality policy, it should generally declare **both `final equals(Object)` and `final hashCode()`**, and implement them using the same immutable set of attributes.
 
-Nếu lớp con viết:
+If a subclass writes:
 
 ```java
-// Cố ý không biên dịch: Member.equals(Object) là final.
+// Intentionally does not compile: Member.equals(Object) is final.
 class BadMember extends Member {
     BadMember(String id) {
         super(id);
@@ -94,11 +94,11 @@ class BadMember extends Member {
 }
 ```
 
-thì trình biên dịch từ chối override. Lưu ý `equals(BadMember)` chỉ là một **overload**, không phải override `equals(Object)`. Collection trong Java dựa trên chữ ký `equals(Object)`; đừng dùng overload để thử thay đổi khái niệm bằng nhau vì kết quả lời gọi có thể phụ thuộc kiểu tĩnh của tham số.
+the compiler rejects the override. Note that `equals(BadMember)` is merely an **overload**, not an override of `equals(Object)`. Collections in Java rely on the `equals(Object)` signature; do not use overloading to try to change the notion of equality because the call outcome can depend on the static type of the parameter.
 
-## 4. Demo Java 17+ chạy được
+## 4. Runnable Java 17+ Demo
 
-Tạo `FinalEqualityDemo.java`. Hai ví dụ dùng hai cách khóa khác nhau; output cho thấy chúng hoạt động với `HashSet` như thế nào.
+Create `FinalEqualityDemo.java`. The two examples use the two different locking approaches; the output shows how they behave with `HashSet`.
 
 ```java
 import java.util.HashSet;
@@ -184,7 +184,7 @@ public class FinalEqualityDemo {
 }
 ```
 
-Lệnh biên dịch và chạy:
+Compile and run commands:
 
 ```bash
 javac --release 17 FinalEqualityDemo.java
@@ -202,64 +202,64 @@ member hash match: true
 member set size: 1
 ```
 
-Hai khóa `AccountKey` bằng nhau nên `HashSet` lưu một phần tử. `BasicMember` và `PremiumMember` cũng bằng nhau hai chiều vì `Member` áp dụng một chính sách khóa chung. Thuộc tính `rewardPoints` **không tham gia danh tính**, dù là trường của `PremiumMember`; đó là một lựa chọn miền dữ liệu, không phải một thuộc tính mà `final` tự suy ra.
+The two `AccountKey` keys are equal, so `HashSet` stores one element. `BasicMember` and `PremiumMember` are also equal in both directions because `Member` enforces a common key policy. The `rewardPoints` attribute **does not participate in identity**, even though it is a field of `PremiumMember`; that is a domain-model choice, not a property that `final` infers automatically.
 
-Nếu nghiệp vụ đòi hỏi một `PremiumMember` phải khác `BasicMember` ngay cả khi ID giống nhau, việc khóa `equals` ở cha theo mỗi `id` là **không phù hợp**. Không nên cố sửa hậu quả ở `HashSet`: phải điều chỉnh mô hình danh tính.
+If the domain requires a `PremiumMember` to differ from a `BasicMember` even when their IDs match, locking `equals` in the parent solely on `id` is **inappropriate**. You should not try to patch the consequence in `HashSet`: you must adjust the identity model.
 
-## 5. `instanceof` hay `getClass()` bên trong phương thức `final equals`?
+## 5. `instanceof` or `getClass()` Inside a `final equals` Method?
 
-Hai lựa chọn kiểm tra kiểu dẫn đến ý nghĩa khác nhau:
+The two type-checking choices lead to different meanings:
 
-| Kiểm tra | Cách hiểu về equality | Lưu ý |
+| Check | Interpretation of Equality | Note |
 | --- | --- | --- |
-| `other instanceof Member` | Một instance lớp cha có thể bằng instance lớp con nếu khóa chung bằng nhau; hai subtype khác nhau cũng có thể bằng nhau | Chỉ dùng nếu ID có cùng ý nghĩa xuyên các subtype |
-| `other != null && getClass() == other.getClass()` | Chỉ instance cùng **lớp runtime chính xác** mới bằng nhau | Subtype khác nhau không bằng nhau; trường riêng của subtype vẫn không được thêm vào `equals` đã khóa |
+| `other instanceof Member` | A parent instance can equal a subclass instance if the shared key matches; two different subtypes can also equal each other | Use only if the ID carries the same meaning across subtypes |
+| `other != null && getClass() == other.getClass()` | Only instances of the **exact same runtime class** are equal | Different subtypes are not equal; subtype-specific fields still cannot be added to the locked `equals` |
 
-Ví dụ, với `final equals` dựa vào `getClass()`, `Member` sẽ không bằng `PremiumMember`. Nhưng hai `PremiumMember` cùng ID và khác `rewardPoints` vẫn có thể bằng nhau vì phương thức ở cha chỉ thấy `id`. Lớp con không thể override để bổ sung điểm thưởng vào equality.
+For example, with a `final equals` based on `getClass()`, `Member` will not equal `PremiumMember`. Yet two `PremiumMember` objects with the same ID and different `rewardPoints` can still be considered equal because the parent method sees only `id`. The subclass cannot override to add reward points to equality.
 
-Một số framework tạo proxy bằng subclass làm lớp runtime khác kiểu miền gốc. Do đó, chọn `getClass()` cần cân nhắc kiến trúc proxy và quy tắc identity thực tế. Với lớp đã `final`, `instanceof` hay `getClass` thường không tạo ra khác biệt do subclass là không thể.
+Some frameworks create proxies via subclasses whose runtime class differs from the original domain type. Therefore, choosing `getClass()` requires considering proxy architecture and actual identity rules. For a class that is already `final`, `instanceof` or `getClass` usually makes no difference because subclassing is impossible.
 
-## 6. So sánh hai chiến lược
+## 6. Comparing the Two Strategies
 
-| Tiêu chí | `final class` | `final equals` trên lớp có thể kế thừa |
+| Criterion | `final class` | `final equals` on an Inheritable Class |
 | --- | --- | --- |
-| Có subclass không? | Không | Có |
-| Subclass thay đổi `equals` được không? | Không có subclass | Không thể override |
-| Subclass thêm dữ liệu/hành vi? | Không | Có |
-| Subclass định nghĩa lại identity riêng? | Không áp dụng | Không, trừ khi thay thiết kế lớp cha |
-| `hashCode` có bị override không? | Không có subclass | Cần khai báo `final hashCode()` để cấm override |
-| Chặn mọi lỗi hợp đồng? | Không | Không |
-| Phù hợp nhất | Value object, key, identifier độc lập | Phân cấp chia sẻ chung một định nghĩa identity |
+| Are subclasses allowed? | No | Yes |
+| Can subclasses alter `equals`? | No subclasses | Cannot override |
+| Can subclasses add data/behavior? | No | Yes |
+| Can subclasses redefine their own identity? | Not applicable | No, unless changing the parent class design |
+| Can `hashCode` be overridden? | No subclasses | Must declare `final hashCode()` to forbid overriding |
+| Blocks all contract bugs? | No | No |
+| Best suited for | Value objects, keys, standalone identifiers | Hierarchies sharing a single common identity definition |
 
-`final class` hạn chế mọi kế thừa, mạnh hơn nhưng cũng giảm khả năng mở rộng kiểu. `final equals` hẹp hơn: tiếp tục cho phép polymorphism nhưng khóa một chính sách cụ thể. Trong trường hợp thứ hai, cần bảo đảm không có phương thức còn override được làm thay đổi dữ liệu quyết định identity theo thời gian.
+`final class` restricts all inheritance, which is stronger yet also reduces type extensibility. `final equals` is narrower: it continues allowing polymorphism while locking one specific policy. In the second case, you must ensure no remaining overridable method mutates the data determining identity over time.
 
-## 7. Những lỗi suy luận phổ biến
+## 7. Common Reasoning Mistakes
 
-**Cho rằng final đồng nghĩa bất biến.** Một lớp `final` vẫn có thể chứa `List` hoặc mảng mutable; một trường `final` chỉ cố định tham chiếu, không cố định nội dung. Nếu hash phụ thuộc nội dung có thể sửa, đối tượng làm khóa `HashMap` có thể mất khả năng được tìm lại sau khi thay đổi.
+**Assuming final means immutable.** A `final` class can still hold a mutable `List` or array; a `final` field only fixes the reference, not the contents. If the hash depends on mutable contents, an object used as a `HashMap` key can become unfindable after mutation.
 
-**Khóa equality quá sớm.** Nếu lớp con cần dùng thuộc tính riêng trong tiêu chí danh tính, `final equals` ở cha sẽ ngăn điều đó. Khi ấy nên định nghĩa lại khóa chung sao cho chứa đầy đủ danh tính ngay khi khởi tạo, hoặc tách thành các value type `final` riêng. Có thể dùng composition/interface để chia sẻ hành vi mà không trói equality vào cây kế thừa.
+**Locking equality too early.** If a subclass needs to use its own attribute in the identity criterion, `final equals` in the parent will prevent that. In that case, either redefine the shared key so it captures full identity at construction time, or split into separate `final` value types. Composition/interfaces can be used to share behavior without tying equality to an inheritance tree.
 
-**Chỉ khóa equals, quên hashCode.** Lớp con có thể override hash dẫn đến hai đối tượng bằng nhau nhưng khác mã hash. Ngay cả không có override, mọi thay đổi trong phương thức gốc phải giữ quan hệ bắt buộc giữa hai phương thức.
+**Locking only equals and forgetting hashCode.** A subclass can override hash, leading to two equal objects with different hash codes. Even without overrides, any change in the base method must preserve the mandatory relation between the two methods.
 
-**Giả định tất cả subclass phải khác nhau.** Một `PremiumMember` và một `BasicMember` có thể là cùng thành viên với một ID; loại thành viên hoặc điểm thưởng là trạng thái, không hẳn danh tính. Ngược lại, nếu hai kiểu đại diện cho hai loại thực thể khác nhau, cùng ID có thể chưa đủ. Quyết định bằng nhau phải dựa vào miền dữ liệu.
+**Assuming all subclasses must be unequal.** A `PremiumMember` and a `BasicMember` may be the same member with one ID; membership tier or reward points are state, not necessarily identity. Conversely, if two types represent two different kinds of entities, having the same ID may not be enough. Equality decisions must follow the domain data.
 
-**Mọi framework đều chấp nhận final.** Một số thư viện ORM/proxy cần subclass hoặc override phương thức để cung cấp chức năng; `final class`/`final method` có thể ảnh hưởng. Không chọn công thức equality cho entity dựa trên ví dụ value object mà thiếu phân tích identity và cơ chế của framework.
+**Assuming every framework accepts final.** Some ORM/proxy libraries need to subclass or override methods to provide functionality; `final class`/`final method` can interfere. Do not choose an equality formula for an entity based on value-object examples without analyzing identity and framework mechanics.
 
-**Dùng `sealed` như thay thế tự động.** `sealed class` chỉ giới hạn **những subclass nào được phép kế thừa**; chúng vẫn có thể override `equals` nếu phương thức không `final`. Sealed giúp kiểm soát phạm vi kế thừa, nhưng không tự bảo đảm tính đối xứng hay bắc cầu.
+**Using `sealed` as an automatic replacement.** A `sealed class` only restricts **which subclasses are allowed to inherit**; they can still override `equals` if the method is not `final`. Sealed helps control inheritance scope, but does not automatically guarantee symmetry or transitivity.
 
-## 8. Kiểm thử cần có trước khi khóa hợp đồng
+## 8. Required Tests Before Locking the Contract
 
-Dùng ít nhất ba đối tượng đại diện cho cùng khóa, khác khóa và các subtype; kiểm tra:
+Use at least three objects representing the same key, a different key, and subtypes; check:
 
-1. `a.equals(a)` đúng; `a.equals(null)` sai.
-2. `a.equals(b)` và `b.equals(a)` giống nhau, đặc biệt với cặp cha–con.
-3. Nếu `a.equals(b)` và `b.equals(c)` thì `a.equals(c)`.
-4. Nếu `a.equals(b)` thì `a.hashCode()==b.hashCode()`. **Không** kiểm tra chiều ngược vì va chạm hash hợp lệ.
-5. Khi trạng thái liên quan không đổi, kết quả `equals`/`hashCode` ổn định qua nhiều lời gọi.
-6. `HashSet` loại trùng theo đúng identity; `HashMap.get` tìm lại giá trị bằng một đối tượng mới nhưng bằng nhau logic.
-7. Dữ liệu identity ổn định sau khi đưa đối tượng vào collection; rà soát các trường mutable và alias tham chiếu.
-8. Nếu khóa `equals` ở cha, thử tất cả cặp subtype có cùng/khác ID; xác nhận semantics thật sự mong muốn, đồng thời kiểm tra `hashCode` không còn đường override gây mâu thuẫn.
+1. `a.equals(a)` is true; `a.equals(null)` is false.
+2. `a.equals(b)` and `b.equals(a)` match, especially for parent–child pairs.
+3. If `a.equals(b)` and `b.equals(c)` then `a.equals(c)`.
+4. If `a.equals(b)` then `a.hashCode()==b.hashCode()`. Do **not** test the converse because hash collisions are valid.
+5. When relevant state does not change, `equals`/`hashCode` results remain stable across multiple calls.
+6. `HashSet` deduplicates by exact identity; `HashMap.get` retrieves values using a new but logically equal object.
+7. Identity data remains stable after inserting the object into collections; audit mutable fields and reference aliases.
+8. If locking `equals` in the parent, test all subtype pairs with matching/differing IDs; confirm the genuinely intended semantics, and verify `hashCode` has no remaining override path that causes inconsistency.
 
-Với `TreeSet`/`TreeMap`, còn phải kiểm tra `Comparable`/`Comparator` và ý nghĩa của `compare(a,b)==0`; `final equals` không tự ràng buộc comparator.
+With `TreeSet`/`TreeMap`, you must also test `Comparable`/`Comparator` and the meaning of `compare(a,b)==0`; `final equals` does not automatically constrain comparators.
 
-**Kết luận:** `final class` khóa **cả đường kế thừa**, phù hợp với loại dữ liệu không cần subclass. `final equals(Object)` khóa **một định nghĩa bằng nhau dùng chung cho phân cấp**, nên đi cùng `final hashCode()`. Cả hai chỉ hữu ích khi tiêu chí identity đúng, khóa đủ ổn định và mọi đối tượng liên quan được kiểm tra theo hợp đồng Java.
+**Conclusion:** `final class` locks **the entire inheritance path**, suitable for data types that do not need subclasses. `final equals(Object)` locks **a shared equality definition for a hierarchy**, and should go together with `final hashCode()`. Both are useful only when the identity criterion is right, keys are sufficiently stable, and all involved objects are tested against the Java contract.

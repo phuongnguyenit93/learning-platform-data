@@ -1,13 +1,13 @@
-# Đọc field static bằng Reflection: đối số đích bị bỏ qua
+# Reading static fields with Reflection: target argument is ignored
 
-## 1. Vấn đề: vì sao Field.get(null) vẫn đọc được giá trị?
+## 1. The problem: why can Field.get(null) still read the value?
 
-Trong Java, **field static thuộc về lớp** (chính xác hơn, thuộc về lớp định nghĩa field trong từng môi trường nạp lớp), thay vì thuộc riêng từng đối tượng. Do đó, khi gọi Reflection để đọc một field static, đối số `obj` của `Field.get(Object obj)` **không được dùng để chọn nơi chứa giá trị**. Theo Javadoc của `java.lang.reflect.Field`:
+In Java, **a static field belongs to the class** (more precisely, to the class that defines the field in each class-loading environment), rather than belonging individually to each object. Therefore, when using Reflection to read a static field, the `obj` argument of `Field.get(Object obj)` **is not used to select where the value is stored**. According to the Javadoc of `java.lang.reflect.Field`:
 
-- Nếu field là **static**: `obj` **bị bỏ qua**; có thể truyền `null`, một instance của lớp khai báo hoặc thậm chí một đối tượng không liên quan.
-- Nếu field là **instance**: `obj` bắt buộc là instance của lớp/interface khai báo field (hoặc subtype tương thích); `null` gây `NullPointerException`, đối tượng không tương thích gây `IllegalArgumentException`.
+- If the field is **static**: `obj` **is ignored**; you can pass `null`, an instance of the declaring class, or even an unrelated object.
+- If the field is an **instance** field: `obj` must be an instance of the class/interface declaring the field (or a compatible subtype); `null` causes `NullPointerException`, and an incompatible object causes `IllegalArgumentException`.
 
-Ví dụ cơ bản:
+Basic example:
 
 ```java
 class Settings {
@@ -16,15 +16,15 @@ class Settings {
 }
 ```
 
-Khi đã có `Field portField = Settings.class.getDeclaredField("port")`, các lời gọi `portField.get(null)`, `portField.get(new Settings())` và `portField.get(new Object())` đều đọc cùng **giá trị static hiện tại** là `8080`, nếu chưa có code khác cập nhật field. Việc đọc **không cần tạo bất kỳ `Settings` instance nào**.
+Once you have `Field portField = Settings.class.getDeclaredField("port")`, calling `portField.get(null)`, `portField.get(new Settings())`, and `portField.get(new Object())` all read the same **current static value** `8080`, provided no other code has updated the field. Reading **does not require creating any `Settings` instance**.
 
-Ngược lại, `id` là instance field: `Settings.class.getDeclaredField("id").get(null)` không hợp lệ, bởi không có instance nào để tìm giá trị `id`.
+Conversely, `id` is an instance field: `Settings.class.getDeclaredField("id").get(null)` is invalid, because there is no instance from which to find the value of `id`.
 
-**Quy tắc cần nhớ:** Field object quyết định *field nào được đọc*, còn `obj` chỉ định *instance nào cần đọc* **nếu field đó không static**. Với field static, giá trị gắn với `Field.getDeclaringClass()`, không gắn với đối tượng truyền vào.
+**Rule to remember:** The `Field` object determines *which field is read*, whereas `obj` specifies *which instance to read from* **if the field is not static**. For a static field, the value is tied to `Field.getDeclaringClass()`, not tied to the passed object.
 
-## 2. Nhận biết field static trước khi đọc
+## 2. Identifying a static field before reading
 
-Reflection trả về một `Field` đại diện cho khai báo, gồm tên, kiểu, modifier và lớp khai báo. Cách tương thích Java 17+ để kiểm tra static:
+Reflection returns a `Field` representing a declaration, including its name, type, modifiers, and declaring class. Java 17+-compatible way to check static:
 
 ```java
 Field f = Settings.class.getDeclaredField("port");
@@ -32,16 +32,16 @@ boolean isStatic = Modifier.isStatic(f.getModifiers());
 Object value = f.get(isStatic ? null : someInstance);
 ```
 
-Đoạn trên chỉ là **mảnh mã minh họa**, cần đặt trong một phương thức có xử lý `NoSuchFieldException`/`IllegalAccessException` và cung cấp biến `someInstance`, các import cần thiết.
+The snippet above is just an **illustrative code fragment**; it must be placed in a method handling `NoSuchFieldException`/`IllegalAccessException` and providing the `someInstance` variable and necessary imports.
 
-- `f.getModifiers()` trả về bit mask modifier; `Modifier.isStatic(...)` là cách kiểm tra chuẩn.
-- `f.getDeclaringClass()` trả về lớp/interface **khai báo chính field**, không nhất thiết là `getClass()` của đối tượng đích mà bạn đang có.
-- `f.getType()` trả về kiểu khai báo của **giá trị field** (ví dụ `int.class` với `port`), không cho biết field static hay instance.
-- `f.getName()` cho tên field; `getDeclaredField("port")` tìm khai báo trực tiếp trên `Settings`, còn `getField("port")` tìm field `public` theo quy tắc tìm kiếm public field, gồm thành viên kế thừa.
+- `f.getModifiers()` returns the modifier bit mask; `Modifier.isStatic(...)` is the standard check.
+- `f.getDeclaringClass()` returns the class/interface **declaring the field itself**, not necessarily `getClass()` of the target object you currently have.
+- `f.getType()` returns the declared type of **the field's value** (e.g., `int.class` for `port`), and does not indicate whether the field is static or instance.
+- `f.getName()` gives the field's name; `getDeclaredField("port")` searches for a direct declaration on `Settings`, whereas `getField("port")` searches for a `public` field according to public field lookup rules, including inherited members.
 
-Trên JDK 20+, `f.accessFlags().contains(AccessFlag.STATIC)` cũng biểu diễn kiểm tra này bằng tập cờ. Tuy nhiên, `accessFlags()` **không có trên JDK 17**; dùng `Modifier` nếu mã cần chạy trên JDK 17.
+On JDK 20+, `f.accessFlags().contains(AccessFlag.STATIC)` also expresses this check using a flag set. However, `accessFlags()` **does not exist on JDK 17**; use `Modifier` if the code needs to run on JDK 17.
 
-Trong mã xử lý nhiều field bất kỳ, nên rẽ nhánh rõ ràng:
+In code handling arbitrary fields, you should branch explicitly:
 
 ```java
 Object read(Field field, Object instance) throws IllegalAccessException {
@@ -52,11 +52,11 @@ Object read(Field field, Object instance) throws IllegalAccessException {
 }
 ```
 
-Đây là phương thức minh họa, không phải chương trình hoàn chỉnh. Cách viết `get(null)` cho field static làm rõ ý định và tránh tạo/đánh giá những biểu thức đối tượng thừa; ở nhánh instance, người gọi phải cung cấp đối tượng phù hợp và quyền truy cập vẫn được kiểm tra.
+This is an illustrative method, not a complete program. Writing `get(null)` for static fields clarifies intent and avoids creating/evaluating unnecessary object expressions; in the instance branch, the caller must provide a suitable object and access permissions are still checked.
 
-## 3. Chương trình Java 17+ độc lập, có thể biên dịch/chạy
+## 3. Standalone Java 17+ program, compilable and runnable
 
-Lưu toàn bộ mã sau vào **`StaticFieldReadDemo.java`**:
+Save the entire code below to **`StaticFieldReadDemo.java`**:
 
 ```java
 import java.lang.reflect.Field;
@@ -107,14 +107,14 @@ public class StaticFieldReadDemo {
 }
 ```
 
-Biên dịch/chạy trong thư mục chứa tệp bằng JDK 17 trở lên:
+Compile/run in the directory containing the file using JDK 17 or newer:
 
 ```bash
 javac StaticFieldReadDemo.java
 java StaticFieldReadDemo
 ```
 
-Stdout **đã được kiểm chứng khi chạy trên JDK 24**:
+Stdout **verified when run on JDK 24**:
 
 ```text
 static modifier = true
@@ -131,37 +131,37 @@ instance with unrelated = IllegalArgumentException
 after static set = 9090
 ```
 
-### Phân tích tuần tự
+### Step-by-step analysis
 
-1. `Class.forName(name, false, loader)` nạp/nhận diện lớp mà **không chủ động khởi tạo lớp** khi tham số `initialize` là `false`. `Settings.class.getName()` và `getDeclaredField(...)` cho phép xem metadata mà chưa cần tạo instance; ví dụ cố ý chưa gọi `new Settings()`.
-2. `Modifier.isStatic(staticField.getModifiers())` là `true`, nhưng mới chỉ kiểm tra metadata.
-3. Lần đầu `staticField.get(null)` **khởi tạo `Settings`** nếu chưa khởi tạo; vì thế dòng `Settings initialized` xuất hiện **sau** `before first get` và **trước** `get(null) = 8080`. Khởi tạo xong mới có thể đọc giá trị field.
-4. `staticField.get(new Object())` không ném `IllegalArgumentException` dù đối tượng đích không thuộc `Settings`, bởi field static **bỏ qua đối số đích**.
-5. Với `staticField.get(makeTarget())`, **Java vẫn đánh giá biểu thức đối số** `makeTarget()` trước khi bước vào `Field.get`. Vì vậy `argument evaluated` vẫn được in. Chỉ **giá trị tham chiếu trả về** của biểu thức mới bị phương thức bỏ qua khi xác định nơi đọc static field.
-6. `getInt(null)` đọc field `int` trực tiếp dưới dạng primitive; `get(null)` trả `Object` chứa `Integer` nhờ boxing.
-7. `instanceField.get(new Settings())` đọc đúng instance field `id`. Hai lời gọi tiếp theo minh họa lỗi với `null` và đối tượng sai kiểu đối với **instance field**.
-8. `staticField.setInt(null, 9090)` minh họa quy tắc tương tự ở thao tác **ghi** static field không `final`. Giá trị mới được đọc lại qua `getInt(new Object())`; đối tượng `new Object()` vẫn bị bỏ qua.
+1. `Class.forName(name, false, loader)` loads/resolves the class **without actively initializing the class** when the `initialize` parameter is `false`. `Settings.class.getName()` and `getDeclaredField(...)` allow inspecting metadata without creating an instance; the example intentionally has not called `new Settings()` yet.
+2. `Modifier.isStatic(staticField.getModifiers())` is `true`, which only checks metadata.
+3. The first `staticField.get(null)` **initializes `Settings`** if not yet initialized; thus the line `Settings initialized` appears **after** `before first get` and **before** `get(null) = 8080`. Only after initialization can the field value be read.
+4. `staticField.get(new Object())` does not throw `IllegalArgumentException` even though the target object does not belong to `Settings`, because static fields **ignore the target argument**.
+5. With `staticField.get(makeTarget())`, **Java still evaluates the argument expression** `makeTarget()` before entering `Field.get`. That is why `argument evaluated` is still printed. Only the **returned reference value** of the expression is ignored by the method when locating the static field storage.
+6. `getInt(null)` reads the `int` field directly as a primitive; `get(null)` returns an `Object` containing an `Integer` via boxing.
+7. `instanceField.get(new Settings())` reads the instance field `id` properly. The next two calls illustrate errors with `null` and a wrong-typed object for an **instance field**.
+8. `staticField.setInt(null, 9090)` illustrates the same rule for **writing** a non-`final` static field. The new value is read back via `getInt(new Object())`; the `new Object()` object is still ignored.
 
-## 4. Bảng phân biệt các tình huống
+## 4. Comparison table across scenarios
 
-Giả sử field có quyền truy cập phù hợp, lớp khởi tạo thành công và chưa bị thay đổi bởi luồng khác:
+Assuming the field has proper access permissions, the class initializes successfully, and no other thread modifies it:
 
-| Thao tác | Static field | Instance field |
+| Operation | Static field | Instance field |
 | --- | --- | --- |
-| `field.get(null)` | Hợp lệ, đọc giá trị thuộc lớp khai báo | `NullPointerException` |
-| `field.get(new DeclaringClass())` | Hợp lệ; instance bị bỏ qua | Hợp lệ, đọc giá trị của instance được truyền |
-| `field.get(new Unrelated())` | Hợp lệ; không kiểm tra target có thuộc lớp khai báo không | `IllegalArgumentException` |
-| `field.getInt(null)` nếu field có kiểu `int` | Hợp lệ, trả `int` | `NullPointerException` |
-| `field.set(null, value)` | Target bị bỏ qua; thao tác ghi còn phụ thuộc quyền truy cập, kiểu và `final` | `NullPointerException` |
-| `field.getDeclaringClass()` | Lớp/interface sở hữu field | Lớp/interface sở hữu field |
+| `field.get(null)` | Valid, reads value belonging to the declaring class | `NullPointerException` |
+| `field.get(new DeclaringClass())` | Valid; instance is ignored | Valid, reads value of the passed instance |
+| `field.get(new Unrelated())` | Valid; does not check whether target belongs to the declaring class | `IllegalArgumentException` |
+| `field.getInt(null)` if field has type `int` | Valid, returns `int` | `NullPointerException` |
+| `field.set(null, value)` | Target is ignored; write still depends on access permission, type, and `final` | `NullPointerException` |
+| `field.getDeclaringClass()` | Class/interface owning the field | Class/interface owning the field |
 
-**Giới hạn của bảng:** `field.get(new Unrelated())` vẫn thực hiện việc **tạo `new Unrelated()` trước khi gọi `get`**; nếu constructor có tác dụng phụ hoặc lỗi, điều đó vẫn xảy ra. “Bị bỏ qua” chỉ có nghĩa là Reflection không dùng **đối tượng đã được truyền vào** để chọn storage của static field.
+**Limitation of the table:** `field.get(new Unrelated())` still performs **creating `new Unrelated()` before calling `get`**; if the constructor has side effects or throws an error, that still happens. "Ignored" only means Reflection does not use **the passed object** to select the static field's storage.
 
-Một lựa chọn rất nên dùng là `field.get(null)` cho static field: rõ nghĩa, không tạo object, không đánh giá biểu thức thừa.
+A strongly recommended choice is `field.get(null)` for static fields: clear intent, no object creation, and no unnecessary expression evaluation.
 
-## 5. Static field là dữ liệu của lớp nào?
+## 5. Which class does a static field's data belong to?
 
-Xét **field hiding**, khi lớp con và lớp cha cùng khai báo static field trùng tên:
+Consider **field hiding**, when a subclass and a superclass both declare a static field with the same name:
 
 ```java
 class Parent {
@@ -173,41 +173,41 @@ class Child extends Parent {
 }
 ```
 
-Với metadata lấy từ **khai báo lớp cha**:
+With metadata taken from the **parent class declaration**:
 
 ```java
 Field parentCount = Parent.class.getDeclaredField("count");
 Object result = parentCount.get(new Child()); // 10
 ```
 
-Đây là mảnh mã minh họa và cần các import/ngoại lệ Reflection tương ứng. `Field` ở đây trỏ thẳng tới **`Parent.count`**. Mặc dù một instance `Child` được truyền vào, static target bị bỏ qua; không có “dynamic dispatch” chọn `Child.count`. Để đọc `Child.count`, phải có `Field childCount = Child.class.getDeclaredField("count")`.
+This is an illustrative snippet and requires corresponding Reflection imports/exceptions. Here `Field` points directly to **`Parent.count`**. Even though a `Child` instance is passed in, the static target is ignored; there is no "dynamic dispatch" selecting `Child.count`. To read `Child.count`, you must obtain `Field childCount = Child.class.getDeclaredField("count")`.
 
-Điều này rất khác với **instance method override**: đọc field (kể cả field instance) không áp dụng quy tắc dynamic dispatch theo class thực tế như gọi method override. `Field.getDeclaringClass()` là căn cứ đúng để biết field thuộc lớp nào.
+This differs greatly from **instance method overriding**: reading a field (even an instance field) does not apply dynamic dispatch rules based on the actual runtime class like calling an overridden method. `Field.getDeclaringClass()` is the true basis for knowing which class owns the field.
 
-**Class loader cũng là phần của danh tính lớp.** Hai `Class<?>` có cùng binary name nhưng được nạp bởi hai defining class loader khác nhau là hai runtime class khác nhau và có trạng thái static riêng. Nếu công cụ Reflection dùng sai `Class`/`ClassLoader`, việc thấy giá trị static khác nhau không có nghĩa `get` đã sử dụng target; hãy kiểm tra `field.getDeclaringClass()` và class loader thực tế.
+**The class loader is also part of a class's identity.** Two `Class<?>` objects with the same binary name but loaded by two different defining class loaders are two distinct runtime classes and have separate static state. If a Reflection tool uses the wrong `Class`/`ClassLoader`, seeing different static values does not mean `get` used the target; check `field.getDeclaringClass()` and the actual class loader.
 
-## 6. Class initialization: đọc static có thể kích hoạt `<clinit>`
+## 6. Class initialization: reading static can trigger `<clinit>`
 
-Javadoc của `Field.get(Object)` quy định rằng **nếu underlying field là static, lớp khai báo field sẽ được khởi tạo nếu trước đó chưa được khởi tạo**. Vì vậy, đọc bằng Reflection không chỉ là thao tác “xem metadata” thuần túy.
+The Javadoc of `Field.get(Object)` specifies that **if the underlying field is static, the class that declared the field is initialized if it has not already been initialized**. Therefore, reading via Reflection is not purely a "metadata inspection" operation.
 
-Các thao tác thường dễ bị nhầm:
+Operations commonly confused:
 
-- `Class.forName(name, false, loader)`: yêu cầu không initialize lớp ở bước tìm/nhận `Class`.
-- `SomeClass.class`, `Field.getName()`, `Field.getModifiers()` và `Class.getDeclaredField(...)`: dùng để tham chiếu/tra metadata; **không đồng nghĩa với việc đọc giá trị static**.
-- `field.get(null)` / `field.getInt(null)` với static field: kích hoạt khởi tạo lớp khai báo, nếu chưa được khởi tạo, rồi mới đọc.
-- Nếu static initializer thất bại, lời gọi có thể ném `ExceptionInInitializerError` (hoặc một lỗi khởi tạo liên quan). Những lần sử dụng tiếp theo có thể gặp `NoClassDefFoundError` do lớp đã ở trạng thái khởi tạo lỗi.
+- `Class.forName(name, false, loader)`: requests not initializing the class at the step of finding/obtaining `Class`.
+- `SomeClass.class`, `Field.getName()`, `Field.getModifiers()`, and `Class.getDeclaredField(...)`: used to reference/look up metadata; **not equivalent to reading the static value**.
+- `field.get(null)` / `field.getInt(null)` on a static field: triggers initialization of the declaring class, if not yet initialized, before reading.
+- If the static initializer fails, the call may throw `ExceptionInInitializerError` (or a related initialization error). Subsequent uses may encounter `NoClassDefFoundError` because the class is already in an erroneous initialization state.
 
-Trong ví dụ chính, chính dòng `get(null)` đã làm khối `static { ... }` chạy. Đây là điểm quan trọng khi viết scanner cấu hình hoặc plugin: việc “đọc static để kiểm tra” có thể làm chạy mã khởi tạo ngoài ý muốn, mở kết nối hoặc thực hiện tác vụ khác.
+In the main example, the `get(null)` line itself caused the `static { ... }` block to run. This is an important point when writing config scanners or plugins: "reading static just to inspect" can run unintended initialization code, open connections, or perform other tasks.
 
-**Trường hằng compile-time không được đánh đồng với mọi static field.** Với `static final int LIMIT = 123`, một biểu thức Java thông thường tham chiếu hằng có thể được compiler inline nên hành vi khởi tạo khác với `Field.get(null)`. Theo quy tắc của Reflection, đọc underlying static field vẫn yêu cầu initialize declaring class nếu chưa khởi tạo. Không dựa vào việc inlining của lời gọi trực tiếp để dự đoán hành vi Reflection.
+**Compile-time constant fields should not be equated with every static field.** With `static final int LIMIT = 123`, an ordinary Java expression referencing the constant can be inlined by the compiler, so initialization behavior differs from `Field.get(null)`. Under Reflection rules, reading an underlying static field still requires initializing the declaring class if not yet initialized. Do not rely on the inlining of direct calls to predict Reflection behavior.
 
-## 7. Đọc primitive static field: get hay getInt/getLong?
+## 7. Reading primitive static fields: get or getInt/getLong?
 
-`Field.get(Object)` luôn trả về `Object`. Với field primitive `int`, giá trị được boxing thành `Integer`; với field reference, trả đối tượng được lưu trong field (có thể là `null`).
+`Field.get(Object)` always returns `Object`. For a primitive `int` field, the value is boxed into `Integer`; for a reference field, it returns the object stored in the field (which may be `null`).
 
-`Field` còn có các biến thể `getBoolean`, `getByte`, `getChar`, `getShort`, `getInt`, `getLong`, `getFloat`, `getDouble`. **Quy tắc static bỏ qua target cũng áp dụng** cho các cách đọc typed này.
+`Field` also has variants `getBoolean`, `getByte`, `getChar`, `getShort`, `getInt`, `getLong`, `getFloat`, `getDouble`. **The rule that static fields ignore the target also applies** to these typed reads.
 
-Ví dụ với field `public static int port = 8080`:
+Example with field `public static int port = 8080`:
 
 ```java
 Object boxed = staticField.get(null); // Integer(8080)
@@ -215,58 +215,58 @@ int primitive = staticField.getInt(null); // 8080
 long widened = staticField.getLong(null); // 8080L
 ```
 
-Đây là đoạn minh họa trong phạm vi ví dụ chính, với `staticField` đã được lấy từ lớp `Settings`.
+This is an illustrative snippet within the scope of the main example, with `staticField` already retrieved from class `Settings`.
 
-Typed getter sử dụng **primitive widening conversion** khi hợp lệ. Vì `int` có thể widen thành `long`, `getLong(null)` dùng được với underlying `int`; nhưng `getInt(null)` không thể đọc underlying `long` bằng narrowing về `int` và có thể ném `IllegalArgumentException`. Đừng nhầm việc field static bỏ qua *target* với việc nó bỏ qua *kiểm tra kiểu dữ liệu*.
+Typed getters use **primitive widening conversion** when valid. Since `int` can widen to `long`, `getLong(null)` works on an underlying `int`; however, `getInt(null)` cannot read an underlying `long` by narrowing to `int` and may throw `IllegalArgumentException`. Do not confuse a static field ignoring the *target* with it ignoring *data type checks*.
 
-Với field static có kiểu tham chiếu `String`, dùng `get(null)` rồi cast đúng kiểu, sau khi đã xác nhận metadata `getType()` hoặc điều kiện thực tế. Không gọi `getInt(null)` để đọc một field `String`.
+For a static field of reference type `String`, use `get(null)` and cast to the proper type after confirming `getType()` metadata or actual conditions. Do not call `getInt(null)` to read a `String` field.
 
-## 8. Các loại lỗi cần tách biệt
+## 8. Types of errors to keep separate
 
-| Hiện tượng | Nguyên nhân đúng cần kiểm tra |
+| Symptom | Actual cause to check |
 | --- | --- |
-| `NoSuchFieldException` từ `getDeclaredField(...)` | Không có field tên đó **được khai báo trực tiếp** trên `Class` đang hỏi; có thể field kế thừa, tên sai hoặc sai class loader. |
-| `IllegalAccessException` khi `get(null)` | Field không cho phép caller truy cập theo quy tắc Java/module hiện hành. Target `null` không bỏ qua access check. |
-| `InaccessibleObjectException` từ `setAccessible(true)` | Không thể cho phép deep reflection do quy tắc module và điều kiện truy cập. |
-| `NullPointerException` khi `get(null)` | Có thể đang đọc **instance field**; xác nhận `Modifier.isStatic(f.getModifiers())` trước. |
-| `IllegalArgumentException` khi `get(wrongInstance)` | Với instance field, target sai kiểu; với typed getter, còn có thể do kiểu primitive không chuyển đổi hợp lệ. Với **static Field.get(Object)**, riêng target không liên quan **không** là lý do lỗi này. |
-| `ExceptionInInitializerError` khi đọc static | Static initialization thất bại; kiểm tra nguyên nhân ở khối static/khởi tạo field của lớp khai báo. |
-| Giá trị khác giữa các lần đọc | Có code đã ghi lại field, các luồng thay đổi trạng thái hoặc bạn đang xem hai runtime class từ class loader khác nhau. |
+| `NoSuchFieldException` from `getDeclaredField(...)` | No field with that name is **directly declared** on the queried `Class`; it may be an inherited field, misspelled name, or wrong class loader. |
+| `IllegalAccessException` on `get(null)` | The field does not allow caller access under current Java/module rules. A `null` target does not bypass access checks. |
+| `InaccessibleObjectException` from `setAccessible(true)` | Cannot allow deep reflection due to module rules and access conditions. |
+| `NullPointerException` on `get(null)` | You may be reading an **instance field**; confirm `Modifier.isStatic(f.getModifiers())` first. |
+| `IllegalArgumentException` on `get(wrongInstance)` | For instance fields, wrong target type; for typed getters, can also be an invalid primitive conversion. For **static `Field.get(Object)`**, an unrelated target alone is **not** a reason for this error. |
+| `ExceptionInInitializerError` when reading static | Static initialization failed; check the cause in the static block/field initializer of the declaring class. |
+| Different values across reads | Other code wrote to the field, threads mutated state, or you are looking at two runtime classes from different class loaders. |
 
-Với field `private static`, truyền `null` vẫn được nhưng **không tự vượt quyền private**. Có thể dùng `trySetAccessible()` khi module/điều kiện cho phép; không bảo đảm thành công. Với JDK 17+, strong encapsulation của module JDK và các named module có thể hạn chế reflection. Prefer public API hoặc thiết kế rõ quyền mở package, thay vì coi `setAccessible(true)` là luôn thành công.
+For a `private static` field, passing `null` still works, yet **does not automatically bypass private access**. You can use `trySetAccessible()` when module/access conditions allow; success is not guaranteed. In JDK 17+, strong encapsulation of JDK modules and named modules can restrict reflection. Prefer public APIs or explicitly design package opening rules, instead of treating `setAccessible(true)` as always succeeding.
 
-`Field.set(Object, Object)` và `setInt` cũng bỏ qua đối số target nếu field static; tuy nhiên quyền ghi, tính `final`, kiểu giá trị, class initialization và module vẫn được áp dụng. Nhiều **static final field là non-modifiable** qua Reflection ngay cả sau khi bật `setAccessible(true)`; chỉ nên minh họa ghi lên field static **không final** như ví dụ.
+`Field.set(Object, Object)` and `setInt` also ignore the target argument if the field is static; however, write permission, `final` status, value type, class initialization, and module rules still apply. Many **`static final` fields are non-modifiable** via Reflection even after enabling `setAccessible(true)`; only demonstrate writing to a **non-final** static field as in the example.
 
-## 9. Các hiểu nhầm thường gặp
+## 9. Common misconceptions
 
-**Nhầm 1 — `null` luôn gây NullPointerException.** Không đúng với `Field.get(null)` trên **static field**. Với instance field, lỗi là đúng vì thiếu đối tượng chứa giá trị.
+**Misconception 1 — `null` always causes NullPointerException.** False for `Field.get(null)` on a **static field**. For an instance field, the error is expected due to the missing object holding the value.
 
-**Nhầm 2 — truyền sai class sẽ khiến field static bị đọc từ class khác.** Không. `Field` đã gắn với declaring class ngay khi được tra cứu; `obj` không ảnh hưởng địa chỉ lưu trữ static.
+**Misconception 2 — passing the wrong class causes the static field to be read from another class.** No. `Field` is already bound to its declaring class upon lookup; `obj` does not affect the static storage location.
 
-**Nhầm 3 — “ignored” nghĩa là biểu thức đối số không chạy.** Sai. Java đánh giá các đối số trước khi gọi phương thức. `field.get(expensive())` vẫn có thể chạy `expensive()`, ném lỗi hoặc tạo tác dụng phụ. Chỉ giá trị target cuối cùng không được dùng bởi `get` nếu field static.
+**Misconception 3 — "ignored" means the argument expression does not run.** False. Java evaluates arguments before calling the method. `field.get(expensive())` can still execute `expensive()`, throw errors, or cause side effects. Only the final target value is not used by `get` if the field is static.
 
-**Nhầm 4 — Reflection tự khởi tạo class ngay khi hỏi tên field.** Không nhất thiết. Việc tra cứu `getDeclaredField` khác với việc đọc **giá trị static**; `get` có thể kích hoạt class initialization.
+**Misconception 4 — Reflection automatically initializes the class as soon as you ask for a field name.** Not necessarily. Looking up `getDeclaredField` differs from reading the **static value**; `get` can trigger class initialization.
 
-**Nhầm 5 — dùng một `new Object()` thì tránh được kiểm tra quyền truy cập.** Sai. Bỏ qua target không bỏ qua `IllegalAccessException`, encapsulation hay quyền module.
+**Misconception 5 — passing a `new Object()` bypasses access permission checks.** False. Ignoring the target does not bypass `IllegalAccessException`, encapsulation, or module permissions.
 
-**Nhầm 6 — getInt() hoạt động cho mọi kiểu numeric.** Sai. Typed getter thực hiện chuyển đổi primitive hợp lệ theo hướng widening; không tự narrowing, không parse `String` và không biến field kiểu tham chiếu thành primitive tùy ý.
+**Misconception 6 — getInt() works for every numeric type.** False. Typed getters perform valid primitive conversions in the widening direction; they do not auto-narrow, do not parse `String`, and do not convert reference-type fields to primitives arbitrarily.
 
-**Nhầm 7 — field static dùng dynamic dispatch giống method override.** Không. Field hiding khác method overriding; `Field.getDeclaringClass()` cho biết đúng field được đọc.
+**Misconception 7 — static fields use dynamic dispatch like method overrides.** No. Field hiding differs from method overriding; `Field.getDeclaringClass()` tells you the exact field being read.
 
-**Nhầm 8 — muốn đọc static bắt buộc tạo instance.** Không. `field.get(null)` là cách đọc có chủ ý và thường là cách dễ hiểu nhất, khi đã đủ quyền.
+**Misconception 8 — reading a static field requires creating an instance.** No. `field.get(null)` is the intentional and usually clearest way to read it, once you have sufficient permissions.
 
-## 10. Áp dụng trong framework / utility phản chiếu
+## 10. Applying in reflection frameworks / utilities
 
-Khi viết reflection utility xử lý cả static và instance field:
+When writing a reflection utility that handles both static and instance fields:
 
-1. **Lấy đúng `Class`** cần khảo sát; nếu có plugin/class loader, xác định loader của lớp.
-2. **Tra cứu đúng `Field`** bằng `getDeclaredField` hoặc `getField` theo phạm vi mong muốn; xử lý `NoSuchFieldException`.
-3. **Đọc metadata `Modifier.isStatic(field.getModifiers())`** và chuẩn bị target: `null` cho static, instance thực cho non-static.
-4. **Kiểm tra khả năng truy cập**; tôn trọng Java access control/module boundary. Nếu field không public, xem có thật sự cần reflection sâu hay có accessor API hợp lệ.
-5. **Đọc bằng getter phù hợp** với field type: `get(null)` cho reference/muốn boxing, `getInt(null)` cho primitive int, v.v. Xem xét khả năng static initialization phát sinh tác dụng phụ.
-6. **Diễn giải dữ liệu** theo declaring class và cấu trúc field; không suy từ target runtime class rằng field static có “bản sao riêng” trên object.
+1. **Obtain the exact `Class`** to inspect; if plugins/class loaders are involved, identify the class's loader.
+2. **Look up the exact `Field`** with `getDeclaredField` or `getField` according to the desired scope; handle `NoSuchFieldException`.
+3. **Read `Modifier.isStatic(field.getModifiers())` metadata** and prepare the target: `null` for static, real instance for non-static.
+4. **Check accessibility**; respect Java access control/module boundaries. If a field is non-public, evaluate whether deep reflection is genuinely needed or whether a legitimate accessor API exists.
+5. **Read with the appropriate getter** for the field type: `get(null)` for references/when boxing is desired, `getInt(null)` for primitive `int`, etc. Consider the possibility of static initialization causing side effects.
+6. **Interpret data** according to declaring class and field structure; do not infer from a target's runtime class that a static field has a "separate copy" on the object.
 
-Một helper gọn có thể dùng cho field đã có quyền truy cập:
+A concise helper usable for already-accessible fields:
 
 ```java
 import java.lang.reflect.Field;
@@ -285,24 +285,24 @@ public final class FieldReader {
 }
 ```
 
-Đây là **một lớp utility hoàn chỉnh** nhưng không có `main`; nó được gọi từ ứng dụng khác. Nó không tự bypass private/module access, không đảm bảo target instance đúng kiểu, và không ngăn tác dụng phụ khi class initialization xảy ra. Với field instance, `instance` phải phù hợp; với field static, caller có thể truyền `null`. Java reflection vẫn thực hiện access check bình thường.
+This is a **complete utility class** without `main`; it is called from another application. It does not bypass private/module access on its own, does not validate that the target instance has the right type, and does not prevent side effects when class initialization occurs. For instance fields, `instance` must be compatible; for static fields, the caller can pass `null`. Java reflection still performs normal access checks.
 
-## 11. Tự kiểm tra
+## 11. Self-check
 
-Giả sử `Field score` trỏ tới `public static int score = 50` trong `Game` và quyền truy cập bình thường:
+Suppose `Field score` points to `public static int score = 50` in `Game` with normal access permissions:
 
-1. `score.get(null)` cho gì? **`Integer` chứa `50`** qua boxing.
-2. `score.get(new Object())` có gây `IllegalArgumentException` vì sai target không? **Không**; target bị bỏ qua.
-3. `score.getInt(null)` cho gì? **Primitive `int` bằng `50`**.
-4. Nếu `static { System.out.println("init"); }` chưa chạy, lần đầu `score.get(null)` có thể làm gì? **Khởi tạo `Game` và in `init` trước khi trả giá trị**, nếu lớp chưa được initialize.
-5. Với `public int level = 2`, `levelField.get(null)` cho gì? **`NullPointerException`** vì thiếu instance.
-6. Nếu `score` được khai báo `private static` trong named module không cho phép deep reflection, truyền `null` có chữa lỗi quyền truy cập không? **Không**.
-7. Nếu `score.get(makeTarget())`, hàm `makeTarget()` có được chạy không? **Có**, vì biểu thức đối số được đánh giá trước; target object tạo ra vẫn bị bỏ qua sau đó.
-8. Hai lớp khác nhau đều có `static int score`: Reflection đọc field nào? **Field của declaring class gắn với đối tượng `Field`**, không dựa trên class của target được truyền.
+1. What does `score.get(null)` return? **An `Integer` containing `50`** via boxing.
+2. Does `score.get(new Object())` cause `IllegalArgumentException` due to a wrong target? **No**; the target is ignored.
+3. What does `score.getInt(null)` return? **Primitive `int` equal to `50`**.
+4. If `static { System.out.println("init"); }` has not run yet, what can the first `score.get(null)` do? **Initialize `Game` and print `init` before returning the value**, if the class has not been initialized yet.
+5. With `public int level = 2`, what does `levelField.get(null)` produce? **`NullPointerException`** due to missing instance.
+6. If `score` is declared `private static` in a named module that disallows deep reflection, does passing `null` fix the access permission error? **No**.
+7. In `score.get(makeTarget())`, is `makeTarget()` executed? **Yes**, because the argument expression is evaluated beforehand; the resulting target object is still ignored afterward.
+8. Two different classes both have `static int score`: which field does Reflection read? **The field of the declaring class bound to the `Field` object**, not based on the class of the passed target.
 
-## 12. Tài liệu chính thức
+## 12. Official documentation
 
-- [Oracle Java SE 17 — Field.get(Object), set(Object,Object) và typed getters](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html)
+- [Oracle Java SE 17 — Field.get(Object), set(Object,Object) and typed getters](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html)
 - [Oracle Java SE 25 — Field.get(Object), Javadoc](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/reflect/Field.html)
 - [Oracle Java SE 17 — Modifier.isStatic(int)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Modifier.html)
 - [Java Language Specification 8.3.1.1 — static Fields](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.3.1.1)

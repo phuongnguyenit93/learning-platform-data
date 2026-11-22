@@ -1,15 +1,15 @@
-# Chọn BigInteger cho chuỗi số vượt giới hạn long trong Java
+# Choosing BigInteger for Numeric Strings Exceeding long Limits in Java
 
-## 1. Khi nào cần BigInteger?
+## 1. When do you need BigInteger?
 
-Nếu đầu vào là **chuỗi biểu diễn số nguyên thập phân** và giá trị có thể vượt giới hạn kiểu **long**, hãy dùng **java.math.BigInteger** khi cần giữ nguyên **giá trị số học chính xác**.
+If the input is a **string representing a decimal integer** and the value can exceed the limits of **long**, use **java.math.BigInteger** when you need to preserve the **exact arithmetic value**.
 
-Miền của long là:
+The range of long is:
 
 - **Long.MIN_VALUE = −9223372036854775808** (−2^63).
 - **Long.MAX_VALUE = 9223372036854775807** (2^63−1).
 
-Ví dụ chuỗi **"9223372036854775808"** chỉ lớn hơn Long.MAX_VALUE đúng 1 đơn vị nhưng đã không thể biểu diễn như số dương trong long. Chuỗi **"-9223372036854775809"** lại nhỏ hơn Long.MIN_VALUE đúng 1 đơn vị. Cả hai đều có thể được biểu diễn chính xác bằng BigInteger.
+For example, the string **"9223372036854775808"** is only 1 greater than Long.MAX_VALUE yet already cannot be represented as a positive number in long. The string **"-9223372036854775809"** is only 1 less than Long.MIN_VALUE. Both can be represented accurately using BigInteger.
 
 ~~~java
 import java.math.BigInteger;
@@ -18,81 +18,81 @@ BigInteger aboveMax = new BigInteger("9223372036854775808");
 BigInteger belowMin = new BigInteger("-9223372036854775809");
 ~~~
 
-Hai dòng là đoạn mã minh họa, dùng trong một phương thức/class Java. **BigInteger** biểu diễn số nguyên có dấu với độ chính xác tùy ý (arbitrary precision), chịu các giới hạn tài nguyên và triển khai, thay vì giới hạn ở 64 bit.
+These two lines are an illustrative snippet, used inside a Java method/class. **BigInteger** represents signed integers with arbitrary precision, subject to resource and implementation limits rather than a 64-bit cap.
 
-**Điểm quyết định không nằm ở độ dài chuỗi đơn thuần**, mà ở **miền giá trị cần hỗ trợ** và **cách sử dụng dữ liệu sau đó**. Một chuỗi dài 30 chữ số bắt đầu bằng nhiều số 0 vẫn có thể là số nhỏ; ngược lại, số dương 19 chữ số đã có thể vượt Long.MAX_VALUE.
+**The deciding factor is not string length alone**, but the **value range to support** and **how the data is used afterward**. A 30-digit string starting with many zeros can still be a small number; conversely, a 19-digit positive number can already exceed Long.MAX_VALUE.
 
-## 2. Phân biệt ba bài toán trước khi chọn kiểu
+## 2. Distinguishing three problems before choosing a type
 
-| Tình huống | Cách biểu diễn thường phù hợp | Lý do |
+| Scenario | Typically suitable representation | Reason |
 | --- | --- | --- |
-| Số nguyên luôn nằm trong miền signed 64 bit | **long/Long** | Gọn, nhanh, có phép toán nguyên thủy |
-| Số nguyên có thể vượt signed long và cần tính toán chính xác | **BigInteger** | Không làm tràn miền long theo phép toán thông thường |
-| Mã định danh chỉ chứa chữ số, có thể có số 0 đầu, không dùng để tính | **String** | Giữ nguyên toàn bộ ký tự, kể cả số 0 đầu và định dạng |
-| Số có phần thập phân cần độ chính xác thập phân | **BigDecimal** | BigInteger chỉ biểu diễn **số nguyên** |
-| Chuỗi số không dấu 64 bit nhưng cần giá trị dương đúng đến 2^64−1 | **BigInteger** | long vẫn dùng bit dấu và không chứa được toàn miền dưới dạng số dương |
-| Dữ liệu chỉ cần biểu diễn mẫu bit unsigned 64 bit và API được thiết kế cho nó | **long** cùng các API unsigned | Phải thống nhất quy ước unsigned, không coi long là số dương |
+| Integer always lies within 64-bit signed range | **long/Long** | Compact, fast, supports primitive arithmetic |
+| Integer can exceed signed long and needs exact calculation | **BigInteger** | Does not overflow the long range during ordinary operations |
+| Digit-only identifier, possibly with leading zeros, not used in math | **String** | Preserves all characters, including leading zeros and formatting |
+| Number with fractional part needing decimal precision | **BigDecimal** | BigInteger represents **integers** only |
+| 64-bit unsigned numeric string needing exact positive values up to 2^64−1 | **BigInteger** | long still uses a sign bit and cannot hold the whole range as positive numbers |
+| Data only needs a 64-bit unsigned bit pattern and APIs are designed for it | **long** with unsigned APIs | Must adhere consistently to unsigned conventions, never treating long as positive |
 
-Nếu đây là số tài khoản, số điện thoại, mã bưu chính hoặc ID **không có phép toán số học**, giữ dạng String thường đúng hơn. Chuyển **"000123"** sang BigInteger rồi in lại sẽ nhận **"123"**: giá trị số không đổi, nhưng định danh có thể đã sai.
+If it is an account number, phone number, postal code, or ID **without arithmetic operations**, keeping it as String is usually more accurate. Converting **"000123"** to BigInteger and printing it back gives **"123"**: the numeric value is unchanged, yet the identifier may already be broken.
 
-Nếu bài toán thực sự là cộng, trừ, nhân, chia, kiểm tra nguyên tố, lũy thừa nguyên hoặc xử lý số nguyên rất lớn, BigInteger là lựa chọn trực tiếp.
+If the problem genuinely involves addition, subtraction, multiplication, division, primality testing, integer exponentiation, or processing very large integers, BigInteger is the direct choice.
 
-## 3. Vì sao Long.parseLong thất bại và không nên ép số qua double?
+## 3. Why Long.parseLong fails and why you shouldn't cast through double
 
 ~~~java
-long maximum = Long.parseLong("9223372036854775807"); // Hợp lệ
+long maximum = Long.parseLong("9223372036854775807"); // Valid
 
-// Khi thực thi sẽ ném NumberFormatException:
+// At runtime, this throws NumberFormatException:
 // long tooLarge = Long.parseLong("9223372036854775808");
 ~~~
 
-**Long.parseLong** ném **NumberFormatException** khi chuỗi không đúng cú pháp *hoặc* khi giá trị vượt phạm vi long. Nếu cần phân biệt lỗi cú pháp với vượt miền, hãy xác thực chuỗi theo quy ước đầu vào rồi so sánh giá trị BigInteger với hai biên long.
+**Long.parseLong** throws **NumberFormatException** when the string has invalid syntax *or* when the value exceeds the long range. If you need to distinguish syntax errors from range overflow, validate the string per input rules and then compare the BigInteger value against the two long bounds.
 
-Không chuyển qua **double** để né giới hạn long: double có thể biểu diễn số rất lớn về *độ lớn* nhưng không thể biểu diễn chính xác mọi số nguyên khi độ lớn tăng. Số nguyên liền kề có thể làm tròn thành cùng một double, vì significand double chỉ có 53 bit chính xác.
+Do not convert through **double** to bypass long limits: double can represent very large numbers in *magnitude*, yet cannot represent every integer accurately as magnitude grows. Adjacent integers can round to the same double, because double's significand has only 53 bits of precision.
 
 ~~~java
 double a = 9007199254740992.0; // 2^53
-double b = 9007199254740993.0; // làm tròn về cùng double như a
+double b = 9007199254740993.0; // rounds to the same double as a
 boolean equal = (a == b);       // true
 ~~~
 
-Nếu chuỗi đã đi qua hệ thống ngoài Java, ví dụ JSON consumer dùng JavaScript Number, giá trị có thể đã mất độ chính xác **trước** khi vào Java. Đối với số lớn cần chính xác xuyên hệ thống, truyền chuỗi thập phân hoặc dùng kiểu số lớn được hai phía thỏa thuận.
+If the string has passed through a system outside Java, such as a JSON consumer using JavaScript Number, the value may already have lost precision **before** entering Java. For large numbers needing cross-system exactness, transmit decimal strings or use an agreed-upon big-number type.
 
-## 4. Tạo BigInteger trực tiếp từ String
+## 4. Creating BigInteger directly from String
 
-Thêm import:
+Add the import:
 
 ~~~java
 import java.math.BigInteger;
 ~~~
 
-Constructor phổ biến nhất là **new BigInteger(String val)**, giải mã giá trị nguyên thập phân có dấu:
+The most common constructor is **new BigInteger(String val)**, which decodes a signed decimal integer value:
 
 ~~~java
 BigInteger zero = new BigInteger("0");
 BigInteger positive = new BigInteger("+123456789012345678901234567890");
 BigInteger negative = new BigInteger("-123456789012345678901234567890");
-BigInteger withZeros = new BigInteger("00000099"); // giá trị số 99
+BigInteger withZeros = new BigInteger("00000099"); // numeric value 99
 ~~~
 
-Chuỗi đầu vào có thể có dấu **+** hoặc **−** ở đầu; dấu không được đứng riêng. Constructor sẽ từ chối cú pháp không hợp lệ bằng NumberFormatException.
+The input string may have a leading **+** or **−** sign; the sign cannot stand alone. The constructor rejects invalid syntax with NumberFormatException.
 
-Ví dụ các chuỗi **không nên đưa thẳng vào constructor thập phân**:
+Examples of strings **that should not be passed straight to the decimal constructor**:
 
-| Chuỗi | Vấn đề |
+| String | Issue |
 | --- | --- |
-| **""** | Không có chữ số |
-| **"+"**, **"-"** | Chỉ có dấu |
-| **"12.0"** | Có phần thập phân, không phải số nguyên |
-| **"1_000"** | Dấu gạch dưới chỉ là cú pháp literal trong mã nguồn Java, không phải cú pháp thập phân của chuỗi |
-| **" 123 "** | Có khoảng trắng ở đầu/cuối; constructor không tự trim |
-| **"0xFF"** | Prefix 0x không tự được nhận diện bởi constructor thập phân |
+| **""** | No digits |
+| **"+"**, **"-"** | Sign only |
+| **"12.0"** | Has fractional part, not an integer |
+| **"1_000"** | Underscores are Java source literal syntax, not string decimal syntax |
+| **" 123 "** | Leading/trailing whitespace; constructor does not automatically trim |
+| **"0xFF"** | 0x prefix is not automatically recognized by the decimal constructor |
 
-Nếu nghiệp vụ cho phép khoảng trắng ngoài chuỗi, có thể gọi **strip()** trước khi parse. Nhưng phải quyết định quy tắc này ở ranh giới nhập liệu; không tự động xóa ký tự khi chúng có ý nghĩa.
+If business rules allow outer whitespace, you can call **strip()** before parsing. However, decide this rule at the input boundary; never automatically delete characters when they carry meaning.
 
-### Chọn cơ số với constructor hai tham số
+### Choosing a radix with the two-parameter constructor
 
-**new BigInteger(String val, int radix)** cho phép đọc cơ số từ **Character.MIN_RADIX = 2** tới **Character.MAX_RADIX = 36**:
+**new BigInteger(String val, int radix)** supports reading bases from **Character.MIN_RADIX = 2** to **Character.MAX_RADIX = 36**:
 
 ~~~java
 BigInteger binary = new BigInteger("101010", 2); // 42
@@ -100,9 +100,9 @@ BigInteger hex = new BigInteger("FF", 16);        // 255
 BigInteger negativeHex = new BigInteger("-FF", 16); // -255
 ~~~
 
-Khi dùng radix 16, truyền **"FF"**, không truyền **"0xFF"** vào constructor rồi mong nó tự loại bỏ prefix. Nếu định dạng đầu vào quy định prefix **0x**, hãy xác thực và loại bỏ đúng prefix theo giao thức trước khi gọi constructor.
+When using radix 16, pass **"FF"**, not **"0xFF"** expecting the constructor to strip the prefix. If the input format specifies a **0x** prefix, validate and strip the exact prefix per protocol before calling the constructor.
 
-**BigInteger.toString()** cho dạng thập phân chuẩn hóa; **toString(16)** cho chuỗi hexadecimal (mặc định chữ thường, không có prefix "0x"). Giá trị âm có dấu trừ:
+**BigInteger.toString()** gives normalized decimal form; **toString(16)** gives a hexadecimal string (lowercase by default, without a "0x" prefix). Negative values carry a minus sign:
 
 ~~~java
 BigInteger value = new BigInteger("9223372036854775808");
@@ -111,11 +111,11 @@ BigInteger parsedBack = new BigInteger(hex, 16);
 boolean same = parsedBack.equals(value); // true
 ~~~
 
-## 5. Kiểm tra đầu vào trước khi parse số quá lớn
+## 5. Validating input before parsing very large numbers
 
-Constructor BigInteger báo lỗi cú pháp, nhưng đối với đầu vào không tin cậy, ứng dụng thường cần quy định **giới hạn độ dài** và **bộ chữ số được chấp nhận** để ngăn tiêu thụ tài nguyên quá mức.
+The BigInteger constructor reports syntax errors, yet for untrusted input, applications typically must enforce **length limits** and **accepted digit sets** to prevent excessive resource consumption.
 
-Ví dụ, một hợp đồng chỉ chấp nhận **chữ số ASCII 0..9**, một dấu tùy chọn ở đầu và tối đa N chữ số. Hàm sau xác thực theo đúng hợp đồng đó:
+For example, a contract accepts only **ASCII digits 0..9**, an optional leading sign, and at most N digits. The following method validates strictly against that contract:
 
 ~~~java
 static BigInteger parseDecimal(String text, int maxDigits) {
@@ -141,22 +141,22 @@ static BigInteger parseDecimal(String text, int maxDigits) {
 }
 ~~~
 
-Đây là **phương thức thành viên đặt bên trong class**, cần import java.math.BigInteger. Hàm sẽ:
+This is a **member method placed inside a class**, requiring `import java.math.BigInteger`. The function will:
 
-1. Từ chối null hoặc maxDigits không hợp lệ.
-2. Cho phép một dấu **+/-** tùy chọn, không tính vào hạn mức chữ số.
-3. Từ chối chuỗi không có chữ số, quá dài hoặc chứa ký tự khác ASCII 0..9.
-4. Chỉ tạo BigInteger khi cú pháp đã đạt điều kiện.
+1. Reject null or invalid maxDigits.
+2. Allow an optional **+/-** sign, excluded from the digit quota.
+3. Reject strings with no digits, too many digits, or characters outside ASCII 0..9.
+4. Construct BigInteger only once syntax meets all conditions.
 
-Hàm này có chủ đích **không nhận khoảng trắng, dấu phân nhóm, dấu gạch dưới, chữ số Unicode ngoài ASCII, exponent notation**. Nếu sản phẩm cần các định dạng đó, hãy định nghĩa parser tương ứng thay vì lặng lẽ chấp nhận.
+This method intentionally **rejects whitespace, grouping separators, underscores, non-ASCII Unicode digits, and exponent notation**. If a product needs those formats, define an appropriate parser rather than accepting them silently.
 
-Hạn mức **maxDigits** không phải hằng cố định cho mọi ứng dụng: đặt theo hợp đồng API và sức chịu tải. Một số gồm hàng triệu chữ số vừa tốn chi phí parse/lưu, vừa có thể khiến các phép nhân hoặc lũy thừa về sau tốn CPU/bộ nhớ lớn. Giới hạn tài nguyên vẫn cần thiết dù BigInteger không bị giới hạn 64 bit.
+The **maxDigits** cap is not a fixed constant for all applications: set it per API contract and capacity. A number with millions of digits incurs both parse/storage cost and high CPU/memory cost for later multiplication or exponentiation. Resource limits remain necessary even though BigInteger has no 64-bit limit.
 
-## 6. So sánh một BigInteger có nằm trong miền long không
+## 6. Checking whether a BigInteger fits in the long range
 
-Không dùng **longValue()** để kiểm tra liệu số có vừa long hay không: phương thức đó có thể **cắt bỏ bit cao** mà không báo lỗi.
+Do not use **longValue()** to check whether a number fits in long: that method can **truncate high bits** without reporting an error.
 
-Dùng **compareTo** với hai đầu miền:
+Use **compareTo** against both range endpoints:
 
 ~~~java
 static final BigInteger LONG_MIN = BigInteger.valueOf(Long.MIN_VALUE);
@@ -168,18 +168,18 @@ static boolean fitsLong(BigInteger value) {
 }
 ~~~
 
-Đây là các trường/phương thức đặt trong class. **BigInteger.compareTo** trả về số âm, 0 hoặc số dương tùy quan hệ lớn/nhỏ/bằng; không so sánh BigInteger bằng toán tử **<** hay **>**.
+These are fields/methods placed inside a class. **BigInteger.compareTo** returns a negative number, 0, or a positive number depending on less/greater/equal relation; never compare BigInteger with **<** or **>** operators.
 
-Nếu chắc chắn giá trị nằm trong miền long, chuyển chính xác bằng **longValueExact()**:
+If you are certain the value fits in long, convert accurately with **longValueExact()**:
 
 ~~~java
 BigInteger ok = new BigInteger("1234567890123");
 long n = ok.longValueExact(); // 1234567890123L
 ~~~
 
-Nếu vượt miền, **longValueExact()** ném **ArithmeticException** thay vì tạo kết quả sai. Các phương thức **intValueExact()**, **shortValueExact()** và **byteValueExact()** cung cấp hành vi tương tự cho miền nhỏ hơn.
+If out of range, **longValueExact()** throws **ArithmeticException** instead of producing a wrong result. **intValueExact()**, **shortValueExact()**, and **byteValueExact()** provide equivalent behavior for narrower ranges.
 
-### Tại sao longValue() có thể nguy hiểm?
+### Why can longValue() be dangerous?
 
 ~~~java
 BigInteger above = new BigInteger("9223372036854775808");
@@ -187,28 +187,28 @@ long truncated = above.longValue(); // -9223372036854775808
 // above.longValueExact() -> ArithmeticException
 ~~~
 
-**9223372036854775808 = 2^63**. Khi chuyển theo **longValue()**, 64 bit thấp được diễn giải là một long có dấu, trở thành **Long.MIN_VALUE**. Dữ liệu bị đổi dấu nhưng không có exception.
+**9223372036854775808 = 2^63**. When converted via **longValue()**, the low 64 bits are interpreted as a signed long, becoming **Long.MIN_VALUE**. The sign flips without any exception.
 
-Nguyên tắc thực hành: dùng **longValueExact()** tại ranh giới API cần long, và chỉ dùng **longValue()** khi chủ động muốn lấy các bit thấp theo ngữ nghĩa được tài liệu mô tả.
+Rule of practice: use **longValueExact()** at API boundaries requiring long, and use **longValue()** only when deliberately extracting low bits per documented semantics.
 
-## 7. Thực hiện phép toán chính xác với BigInteger
+## 7. Performing exact arithmetic with BigInteger
 
-Khác kiểu nguyên thủy, BigInteger là **đối tượng bất biến** (immutable). Mỗi phép toán tạo/trả đối tượng kết quả; không cập nhật giá trị toán học của đối tượng cũ.
+Unlike primitives, BigInteger is an **immutable object**. Each operation creates/returns a result object; it never mutates the mathematical value of the existing object.
 
-| Bài toán | API BigInteger |
+| Operation | BigInteger API |
 | --- | --- |
-| Cộng, trừ | **add**, **subtract** |
-| Nhân | **multiply** |
-| Chia nguyên | **divide** |
-| Số dư theo phép chia | **remainder** |
-| Thương và dư cùng lúc | **divideAndRemainder** |
-| So sánh | **compareTo**, **equals** |
-| Trị tuyệt đối, đổi dấu | **abs**, **negate** |
-| Lũy thừa nguyên không âm | **pow(int exponent)** |
-| Dịch bit | **shiftLeft**, **shiftRight** |
-| Kiểm tra số bit | **bitLength**, **testBit** |
+| Add, subtract | **add**, **subtract** |
+| Multiply | **multiply** |
+| Integer division | **divide** |
+| Division remainder | **remainder** |
+| Quotient and remainder together | **divideAndRemainder** |
+| Compare | **compareTo**, **equals** |
+| Absolute value, negate | **abs**, **negate** |
+| Non-negative integer power | **pow(int exponent)** |
+| Bit shifts | **shiftLeft**, **shiftRight** |
+| Bit inspection | **bitLength**, **testBit** |
 
-Ví dụ:
+Example:
 
 ~~~java
 BigInteger a = new BigInteger("9223372036854775808");
@@ -220,38 +220,38 @@ BigInteger[] result = a.divideAndRemainder(BigInteger.valueOf(10));
 // result[0] = 922337203685477580, result[1] = 8
 ~~~
 
-Các hằng **BigInteger.ZERO**, **ONE**, **TEN** dùng được trong Java 17; **BigInteger.TWO** cũng có từ Java 9. Tránh viết **a + b** khi a, b là BigInteger vì không có operator overloading cho dấu cộng trên đối tượng.
+Constants **BigInteger.ZERO**, **ONE**, and **TEN** work in Java 17; **BigInteger.TWO** is also available since Java 9. Avoid writing **a + b** when a and b are BigInteger because there is no operator overloading for plus on objects.
 
-**BigInteger.divide** là chia nguyên, làm tròn thương về 0. Nếu cần số thập phân của phép chia, hãy sử dụng **BigDecimal** hoặc định dạng phân số theo hợp đồng. Với số âm, **remainder** và **mod** không phải luôn thay thế được nhau: **mod** yêu cầu modulus dương và trả giá trị không âm.
+**BigInteger.divide** performs integer division, rounding the quotient toward 0. If you need fractional decimals from division, use **BigDecimal** or a rational format per contract. For negative numbers, **remainder** and **mod** are not always interchangeable: **mod** requires a positive modulus and returns a non-negative value.
 
-## 8. Chuỗi unsigned 64 bit: hai miền khác nhau
+## 8. 64-bit unsigned strings: two different ranges
 
-Miền số nguyên unsigned 64 bit là **0 .. 18446744073709551615** (2^64−1), lớn hơn miền long dương tối đa.
+The 64-bit unsigned integer range is **0 .. 18446744073709551615** (2^64−1), larger than the maximum positive signed long.
 
 ~~~java
 String digits = "18446744073709551615";
-BigInteger unsignedMax = new BigInteger(digits); // dương, chính xác
-long bits = Long.parseUnsignedLong(digits);      // -1 theo long có dấu
+BigInteger unsignedMax = new BigInteger(digits); // positive, exact
+long bits = Long.parseUnsignedLong(digits);      // -1 as signed long
 String recovered = Long.toUnsignedString(bits);  // "18446744073709551615"
 ~~~
 
-**Long.parseUnsignedLong** phù hợp khi cần lưu **mẫu bit 64 bit** và dùng các API **compareUnsigned**, **divideUnsigned**, **remainderUnsigned**, **toUnsignedString** đúng quy ước. Nếu nghiệp vụ cần so sánh, cộng/trừ/tính toán một **số nguyên dương không dấu** với những giá trị có thể vượt 2^64−1, BigInteger thường trực tiếp và ít nhầm lẫn hơn.
+**Long.parseUnsignedLong** fits when storing a **64-bit pattern** and consistently using **compareUnsigned**, **divideUnsigned**, **remainderUnsigned**, and **toUnsignedString**. If business logic needs to compare, add/subtract, or compute on an **unsigned positive integer** with values that may exceed 2^64−1, BigInteger is usually more direct and less error-prone.
 
-Đừng lấy **Long.parseUnsignedLong** rồi so sánh bằng toán tử **>** thông thường: giá trị long bên trong có thể âm do bit dấu. Phải giữ nhất quán signed-vs-unsigned.
+Never call **Long.parseUnsignedLong** and then compare with the ordinary **>** operator: the internal long value can be negative due to the sign bit. Keep signed-vs-unsigned usage consistent.
 
-## 9. Khi dữ liệu đến từ API, JSON, CSV và database
+## 9. When data comes from APIs, JSON, CSV, and databases
 
-**CSV/text:** nhập như String, xác thực cú pháp/độ dài, parse BigInteger. Khi xuất, gọi **toString()**. Nếu cần giữ zero đầu hoặc cách viết nguyên gốc, lưu thêm **chuỗi gốc**, vì BigInteger chuẩn hóa biểu diễn số.
+**CSV/text:** read as String, validate syntax/length, parse BigInteger. On output, call **toString()**. If leading zeros or original formatting must be preserved, store the **raw string** as well, because BigInteger normalizes numeric representation.
 
-**JSON:** theo chuẩn JSON, token số không đảm bảo mọi consumer lưu chính xác số nguyên cực lớn. Nhiều ứng dụng JavaScript dùng **Number** và chỉ biểu diễn chính xác các số nguyên trong miền an toàn **±(2^53−1)**. Nên có hợp đồng truyền số lớn dưới dạng **chuỗi**, hoặc dùng cơ chế parser/BigInt phù hợp được thống nhất. Không mặc nhiên gửi BigInteger như JSON number rồi cho rằng mọi client sẽ đọc chính xác.
+**JSON:** under the JSON standard, numeric tokens do not guarantee every consumer stores huge integers accurately. Many JavaScript applications use **Number** and represent integers accurately only within the safe range **±(2^53−1)**. Agree on a contract transmitting big integers as **strings**, or use an agreed parser/BigInt mechanism. Never blindly send BigInteger as a JSON number assuming every client will read it accurately.
 
-**Database:** chọn kiểu cột hỗ trợ miền dữ liệu và thư viện ánh xạ tương ứng, như một kiểu **DECIMAL/NUMERIC** với precision đủ lớn nếu hệ quản trị hỗ trợ. Không giả sử kiểu BIGINT SQL hỗ trợ BigInteger không giới hạn, vì nhiều hệ quản trị dùng BIGINT 64 bit. Kiểm tra precision, scale, overflow/truncation và driver theo cơ sở dữ liệu thực tế.
+**Database:** choose a column type supporting the data range and matching mapping library, such as a **DECIMAL/NUMERIC** type with sufficient precision if supported by the DBMS. Do not assume SQL BIGINT supports unbounded BigInteger, because many DBMSs use 64-bit BIGINT. Check precision, scale, overflow/truncation, and driver behavior against the actual database.
 
-**Message queue/gRPC:** cần có định dạng giao tiếp cụ thể. Một trường int64 cố định không thể biểu diễn số dương trên 2^63−1 theo signed semantics. Có thể dùng chuỗi decimal hoặc biểu diễn byte có quy ước rõ nếu hệ thống yêu cầu.
+**Message queue/gRPC:** an explicit wire format is required. A fixed int64 field cannot represent positive numbers above 2^63−1 under signed semantics. You can use decimal strings or an agreed byte representation if required by the system.
 
-## 10. Chương trình đầy đủ Java 17+ và kết quả thực tế
+## 10. Complete Java 17+ program and actual output
 
-Tạo tệp **BigIntegerTextDemo.java**:
+Create file **BigIntegerTextDemo.java**:
 
 ~~~java
 import java.math.BigInteger;
@@ -337,14 +337,14 @@ public class BigIntegerTextDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac --release 17 BigIntegerTextDemo.java
 java BigIntegerTextDemo
 ~~~
 
-Kết quả stdout:
+Stdout output:
 
 ~~~text
 Long.MAX_VALUE: 9223372036854775807
@@ -366,76 +366,76 @@ Matches MAX + ONE: true
 Unsigned parse as long: -1
 ~~~
 
-**Ý nghĩa chính:**
+**Key takeaways:**
 
-- Số dương **2^63** không vừa signed long nhưng BigInteger giữ nguyên.
-- Khi chuyển ngược về long, **longValue()** lấy 64 bit thấp và có thể thành số âm; **longValueExact()** sẽ báo lỗi.
-- Số nguyên **2^64−1** có thể lưu dưới dạng BigInteger dương, nhưng Long.parseUnsignedLong trả về mẫu bit mà long signed đọc là −1.
-- Chuỗi có dấu cộng và zero đầu được parse thành **giá trị số chuẩn hóa**, không giữ hình thức chuỗi.
-- Các phép toán add/multiply vẫn chính xác trong miền minh họa.
+- The positive number **2^63** does not fit in signed long, yet BigInteger preserves it intact.
+- When converting back to long, **longValue()** takes the low 64 bits and can turn negative; **longValueExact()** throws an error.
+- The integer **2^64−1** can be stored as a positive BigInteger, whereas Long.parseUnsignedLong returns a bit pattern that signed long reads as −1.
+- Strings with a plus sign and leading zeros parse into a **normalized numeric value**, without retaining the string formatting.
+- add/multiply operations remain exact across the illustrated range.
 
-## 11. Hiệu năng và an toàn tài nguyên
+## 11. Performance and resource safety
 
-BigInteger hỗ trợ số nguyên rất lớn, nhưng **không miễn phí**:
+BigInteger supports very large integers, yet **is not free**:
 
-- Parse chuỗi dài tạo các cấu trúc dữ liệu lớn và cần thời gian CPU.
-- Phép nhân, chia, lũy thừa và modular exponentiation có chi phí tăng theo độ dài số.
-- Nếu một yêu cầu mạng có thể gửi chuỗi hàng triệu chữ số, cần giới hạn **số chữ số và tài nguyên** trước khi tạo hoặc tính trên BigInteger.
-- Nếu mọi giá trị được chứng minh nằm trong long, primitive long thường đơn giản và hiệu quả hơn.
-- BigInteger là immutable và thread-safe theo cách dùng giá trị bất biến, nhưng vẫn phải quản lý cập nhật tham chiếu chia sẻ đúng quy tắc đồng thời.
+- Parsing long strings allocates large data structures and takes CPU time.
+- Multiplication, division, exponentiation, and modular exponentiation grow in cost with number length.
+- If a network request can send a string with millions of digits, limit **digit count and resources** before constructing or computing on BigInteger.
+- If every value is proven to fit in long, primitive long is usually simpler and more efficient.
+- BigInteger is immutable and thread-safe as an immutable value, yet shared reference updates must still follow concurrency rules.
 
-Không tối ưu bằng cách **cắt chuỗi 19 chữ số đầu rồi parse long**: cách đó làm mất dữ liệu và có thể xử lý sai dấu, zero đầu, hoặc số có nhiều chữ số. Nếu cần chính xác, parse đúng giá trị hoặc từ chối với thông báo có căn cứ.
+Do not optimize by **slicing the first 19 digits and calling parseLong**: that loses data and mishandles signs, leading zeros, or multi-digit numbers. When accuracy is needed, parse the true value or reject with a clear error.
 
-## 12. Những lỗi phổ biến
+## 12. Common mistakes
 
-| Sai lầm | Hệ quả | Cách làm đúng |
+| Mistake | Consequence | Proper approach |
 | --- | --- | --- |
-| Dùng Long.parseLong rồi nghĩ nó tự mở rộng khi tràn | NumberFormatException | Parse BigInteger nếu miền có thể vượt long |
-| Dùng double để chứa số nguyên cực lớn | Có thể mất các chữ số thấp | Dùng BigInteger khi yêu cầu chính xác nguyên |
-| Dùng BigInteger.longValue() để kiểm tra có vừa long | Cắt bit cao, có thể đổi dấu | compareTo với biên hoặc longValueExact() |
-| Cho rằng độ dài > 19 chữ số luôn vượt long | Zero đầu có thể làm giá trị nhỏ | Parse/chuẩn hóa rồi so sánh miền |
-| Cho rằng 19 chữ số luôn vừa long | 9223372036854775808 đã vượt Long.MAX_VALUE | So sánh với hai biên chính xác |
-| Cho rằng parseUnsignedLong cho long dương vượt MAX_VALUE | Kết quả là mẫu bit long có dấu | Dùng API unsigned nhất quán hoặc BigInteger |
-| Dùng toán tử + cho hai BigInteger | Không biên dịch | Dùng a.add(b) |
-| Không gán giá trị trả về từ phép cộng | Đối tượng cũ không đổi | Gán result = a.add(b) |
-| Cho rằng BigInteger giữ zero đầu | toString chuẩn hóa dạng số | Giữ bản String gốc nếu cần |
-| Parse số khổng lồ không giới hạn từ client | Rủi ro tốn CPU và bộ nhớ | Giới hạn độ dài và phạm vi xử lý |
-| Dùng BigInteger cho số thập phân có dấu phẩy | NumberFormatException | Xem xét BigDecimal |
-| Coi SQL BIGINT đồng nghĩa BigInteger | Có thể bị giới hạn 64 bit | Kiểm tra kiểu cột và precision |
+| Using Long.parseLong thinking it auto-expands on overflow | NumberFormatException | Parse BigInteger if the range can exceed long |
+| Using double to hold huge integers | Can lose low digits | Use BigInteger when integer exactness is required |
+| Using BigInteger.longValue() to check if it fits in long | Truncates high bits, can flip sign | compareTo against bounds or longValueExact() |
+| Assuming length > 19 digits always exceeds long | Leading zeros can keep the value small | Parse/normalize then compare range |
+| Assuming 19 digits always fits in long | 9223372036854775808 already exceeds Long.MAX_VALUE | Compare against both exact bounds |
+| Assuming parseUnsignedLong gives a positive long above MAX_VALUE | Result is a signed long bit pattern | Use unsigned APIs consistently or BigInteger |
+| Using + operator on two BigIntegers | Does not compile | Use a.add(b) |
+| Not assigning the return value of add | Old object is unchanged | Assign result = a.add(b) |
+| Assuming BigInteger preserves leading zeros | toString normalizes numeric form | Keep original String if needed |
+| Parsing unbounded huge numbers from clients | CPU and memory exhaustion risk | Limit length and processing scope |
+| Using BigInteger for decimal numbers with a point | NumberFormatException | Consider BigDecimal |
+| Treating SQL BIGINT as synonymous with BigInteger | May be capped at 64 bits | Check column type and precision |
 
-## 13. Bài tập tự kiểm tra
+## 13. Self-check exercises
 
-**Bài 1.** Vì sao **"9223372036854775808"** không parse được bằng Long.parseLong nhưng parse được bằng BigInteger?
+**Exercise 1.** Why can **"9223372036854775808"** not be parsed by Long.parseLong, yet can be parsed by BigInteger?
 
-*Đáp án:* Giá trị bằng **2^63**, vượt cực đại signed long **2^63−1**; BigInteger không bị giới hạn ở 64 bit.
+*Answer:* Its value equals **2^63**, exceeding the signed long maximum **2^63−1**; BigInteger is not limited to 64 bits.
 
-**Bài 2.** Nếu chuyển BigInteger biểu diễn **2^63** bằng longValue(), kết quả có dấu là bao nhiêu?
+**Exercise 2.** If a BigInteger representing **2^63** is converted via longValue(), what is the signed result?
 
-*Đáp án:* **−9223372036854775808** do 64 bit thấp được diễn giải theo long có dấu. **longValueExact()** phải ném ArithmeticException.
+*Answer:* **−9223372036854775808** because the low 64 bits are interpreted as a signed long. **longValueExact()** must throw ArithmeticException.
 
-**Bài 3.** Chuỗi **"00000000000000000000000042"** có nhất thiết lớn hơn Long.MAX_VALUE không?
+**Exercise 3.** Is the string **"00000000000000000000000042"** necessarily greater than Long.MAX_VALUE?
 
-*Đáp án:* Không; giá trị nguyên là 42. Số lượng chữ số nguyên bản không đủ để xác định miền khi có zero đầu.
+*Answer:* No; its integer value is 42. Raw digit count alone is insufficient to determine range when leading zeros are present.
 
-**Bài 4.** Tại sao một mã định danh **"00042"** có thể không nên chuyển sang BigInteger?
+**Exercise 4.** Why should an identifier **"00042"** probably not be converted to BigInteger?
 
-*Đáp án:* Nếu các số 0 đầu là một phần định danh, BigInteger sẽ chuẩn hóa thành "42" và làm mất dạng gốc.
+*Answer:* If the leading zeros are part of the identifier, BigInteger normalizes it to "42" and loses the original form.
 
-**Bài 5.** Nếu ứng dụng dùng unsigned 64 bit và nhận chuỗi **"18446744073709551615"**, nên chọn cách nào để tính toán tiếp trên một **giá trị dương**?
+**Exercise 5.** If an application uses 64-bit unsigned values and receives **"18446744073709551615"**, which approach should be chosen to continue arithmetic on a **positive value**?
 
-*Đáp án:* BigInteger biểu diễn số dương đó trực tiếp. Nếu lưu long làm mẫu bit, phải dùng nhất quán API unsigned; toán tử signed có thể cho kết quả âm.
+*Answer:* BigInteger represents that positive number directly. If storing long as a bit pattern, unsigned APIs must be used consistently; signed operators can yield negative results.
 
-**Bài 6.** Làm sao trả về long khi một BigInteger vừa miền, đồng thời từ chối khi không vừa?
+**Exercise 6.** How do you return a long when a BigInteger fits in range, while rejecting it when it does not?
 
-*Đáp án:* Dùng **longValueExact()**, có thể kiểm tra trước với **compareTo(Long.MIN_VALUE/MAX_VALUE)** đã chuyển thành BigInteger.
+*Answer:* Use **longValueExact()**, optionally checking beforehand with **compareTo(Long.MIN_VALUE/MAX_VALUE)** converted to BigInteger.
 
-**Bài 7.** Vì sao phải giới hạn số chữ số đầu vào dù BigInteger có độ chính xác tùy ý?
+**Exercise 7.** Why must input digit count be limited even though BigInteger has arbitrary precision?
 
-*Đáp án:* Parse, lưu trữ và tính toán số cực lớn vẫn có chi phí CPU/bộ nhớ; giới hạn ngăn việc dùng tài nguyên không kiểm soát.
+*Answer:* Parsing, storing, and computing on huge numbers still cost CPU and memory; limits prevent uncontrolled resource usage.
 
-## 14. Tài liệu chính thức
+## 14. Official documentation
 
-- [BigInteger Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html): constructor theo String/radix, toString, compareTo, phép toán bất biến và longValueExact.
-- [Long Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html): giới hạn signed 64 bit, parseLong, parseUnsignedLong, toUnsignedString.
-- [BigDecimal Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): khi dữ liệu có phần thập phân.
-- [Java Language Specification SE 17 — Integer Types and Values](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.1): miền và biểu diễn primitive int/long.
+- [BigInteger Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html): String/radix constructors, toString, compareTo, immutable arithmetic, and longValueExact.
+- [Long Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html): 64-bit signed limits, parseLong, parseUnsignedLong, toUnsignedString.
+- [BigDecimal Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): when data has fractional decimal parts.
+- [Java Language Specification SE 17 — Integer Types and Values](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.1): ranges and representations of primitive int/long.

@@ -1,22 +1,22 @@
-# Thứ tự ưu tiên giữa lựa chọn người dùng và cấu hình mặc định khi chọn Locale
+# Priority Order Between User Choice and Default Configuration When Selecting a Locale
 
-Một ứng dụng Java có thể nhận nhiều tín hiệu về ngôn ngữ và vùng: người dùng vừa chọn tiếng Việt trên giao diện, tài khoản lưu tiếng Anh, trình duyệt gửi **Accept-Language: fr-FR**, cấu hình hệ thống đặt **vi-VN**, còn JVM đang có locale **en-US**. Nếu chương trình tùy tiện dùng tín hiệu nào gặp trước, cùng một người dùng có thể thấy các màn hình bằng những ngôn ngữ khác nhau.
+A Java application may receive multiple signals about language and region: the user just selected Vietnamese in the UI, their account stores English, the browser sends **Accept-Language: fr-FR**, system configuration sets **vi-VN**, while the JVM has locale **en-US**. If the program arbitrarily uses whichever signal it encounters first, the same user may see different screens in different languages.
 
-Bài học này xây dựng **chính sách thứ tự ưu tiên rõ ràng** để chọn **java.util.Locale** cho ứng dụng Java Core, giải thích cách xử lý ngôn ngữ không được hỗ trợ, fallback, và cách kiểm thử lựa chọn. Đề tài tập trung vào **quyết định chọn locale**; tra cứu bản dịch, định dạng số và ngày giờ chỉ là những bước tiêu thụ locale đã được quyết định.
+This lesson builds a **clear priority order policy** for selecting **java.util.Locale** in a Core Java application, explains how to handle unsupported languages, fallbacks, and how to test selection. The topic focuses on the **locale selection decision**; looking up translations and formatting numbers and dates are simply steps that consume the decided locale.
 
-## 1. Điều kiện tiên quyết: phải biết ứng dụng hỗ trợ locale nào
+## 1. Prerequisite: Knowing Which Locales the Application Supports
 
-**Locale** mô tả ngôn ngữ và có thể gồm vùng, chữ viết, biến thể và các phần mở rộng. Ví dụ:
+A **Locale** describes a language and may include region, script, variant, and extensions. For example:
 
-| Language tag | Ý nghĩa thường gặp |
+| Language tag | Common Meaning |
 | --- | --- |
-| **vi-VN** | Tiếng Việt tại Việt Nam |
-| **en-US** | Tiếng Anh theo quy ước Hoa Kỳ |
-| **en-GB** | Tiếng Anh theo quy ước Vương quốc Anh |
-| **fr-FR** | Tiếng Pháp tại Pháp |
-| **zh-Hant-TW** | Tiếng Trung chữ Phồn thể tại Đài Loan |
+| **vi-VN** | Vietnamese in Vietnam |
+| **en-US** | English following United States conventions |
+| **en-GB** | English following United Kingdom conventions |
+| **fr-FR** | French in France |
+| **zh-Hant-TW** | Traditional Chinese in Taiwan |
 
-Java tạo locale từ language tag theo BCP 47:
+Java creates a locale from a BCP 47 language tag:
 
 ~~~java
 import java.util.Locale;
@@ -31,14 +31,14 @@ public class LocaleBasics {
 }
 ~~~
 
-Lưu thành **LocaleBasics.java**, sau đó chạy:
+Save as **LocaleBasics.java**, then run:
 
 ~~~bash
 javac -encoding UTF-8 LocaleBasics.java
 java LocaleBasics
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 vi
@@ -46,130 +46,130 @@ VN
 vi-VN
 ~~~
 
-**Tạo được một đối tượng Locale không có nghĩa ứng dụng hỗ trợ locale đó.** Java có thể hiểu tag **ja-JP** trong khi sản phẩm không hề có bản dịch tiếng Nhật. Ứng dụng cần một danh sách xác định, ví dụ **vi-VN**, **en-US**, **fr-FR**, kèm bản dịch và cách định dạng tương ứng. Danh sách đó là chuẩn đối chiếu cho mọi nguồn yêu cầu ngôn ngữ.
+**Being able to construct a Locale object does not mean the application supports that locale.** Java can understand the tag **ja-JP** even when the product has no Japanese translations at all. The application needs a defined list, such as **vi-VN**, **en-US**, **fr-FR**, along with corresponding translations and formatting. That list is the reference baseline for all language request sources.
 
-Cần phân biệt các khái niệm:
+Distinguish these concepts:
 
-- **Requested locale:** người dùng hoặc phía gọi mong muốn.
-- **Supported locale:** một locale có trong phạm vi ứng dụng cam kết hỗ trợ.
-- **Resolved locale:** locale cuối cùng được chọn sau quy tắc ưu tiên và fallback.
-- **Application default:** locale dự phòng do ứng dụng cấu hình rõ ràng; nên là một supported locale.
-- **JVM default:** giá trị của **Locale.getDefault()**, phụ thuộc môi trường/chính sách chạy JVM và có thể thay đổi trong tiến trình.
+- **Requested locale:** what the user or caller wants.
+- **Supported locale:** a locale within the scope the application commits to support.
+- **Resolved locale:** the final locale selected after applying priority and fallback rules.
+- **Application default:** a fallback locale explicitly configured by the application; it should be a supported locale.
+- **JVM default:** the value of **Locale.getDefault()**, which depends on the environment/JVM runtime policy and can change during process execution.
 
-Không coi locale và múi giờ là một. **vi-VN** không tự xác định múi giờ; ngày giờ vẫn phải sử dụng thông tin **ZoneId** riêng. Tương tự, giao diện tiếng Anh không chứng minh rằng người dùng thanh toán bằng USD.
+Do not treat locale and time zone as the same thing. **vi-VN** does not determine the time zone by itself; dates and times must still use separate **ZoneId** information. Similarly, an English UI does not prove that the user pays in USD.
 
-## 2. Thứ tự ưu tiên phải là chính sách của ứng dụng
+## 2. Priority Order Must Be an Application Policy
 
-Java Core không tự đưa ra một thứ tự phổ quát giữa lựa chọn của người dùng, tùy chọn đã lưu, ngôn ngữ trình duyệt và cấu hình sản phẩm. **Locale.getDefault()** cũng không biết một người dùng vừa đổi ngôn ngữ trên giao diện hay đã lưu cấu hình tài khoản. Lập trình viên phải định nghĩa và thực thi chính sách đó.
+Core Java does not prescribe a universal order between user choice, saved preferences, browser language, and product configuration. **Locale.getDefault()** also does not know whether a user just switched language in the UI or saved an account setting. Developers must define and enforce that policy.
 
-Một **chính sách mẫu** phù hợp với ứng dụng đa người dùng:
+A **sample policy** suitable for a multi-user application:
 
-1. **Lựa chọn tường minh trong request/phiên hiện tại:** người dùng vừa chọn ngôn ngữ trên giao diện hoặc truyền một tham số hợp lệ mà hệ thống cho phép.
-2. **Tùy chọn được lưu của người dùng:** ngôn ngữ đã lưu trong hồ sơ hoặc cài đặt tài khoản.
-3. **Ngôn ngữ do client đề nghị:** ví dụ header **Accept-Language** từ trình duyệt, được thương lượng với danh sách supported locales.
-4. **Locale mặc định riêng của tenant/tổ chức:** nếu hệ thống đa tenant thực sự có thiết lập này.
-5. **Locale mặc định của ứng dụng:** một supported locale được khai báo trong cấu hình triển khai.
-6. **JVM default:** chỉ dùng như nguồn dự phòng **nếu sản phẩm chủ động lựa chọn và kiểm tra**; nhiều hệ thống sản xuất cố định application default thay vì ngầm dùng môi trường JVM.
+1. **Explicit choice in the current request/session:** the user just picked a language in the UI or passed a valid parameter permitted by the system.
+2. **Saved user preference:** the language stored in the profile or account settings.
+3. **Client-suggested language:** for example, the **Accept-Language** header from the browser, negotiated against the supported locales list.
+4. **Tenant/organization-specific default locale:** if a multi-tenant system actually has this setting.
+5. **Application default locale:** a supported locale declared in deployment configuration.
+6. **JVM default:** used as a fallback source **only if the product actively chooses and tests it**; many production systems fix an application default instead of implicitly relying on the JVM environment.
 
-Thứ tự trên là **quyết định sản phẩm có thể thay đổi**, không phải một chuẩn bắt buộc của Java. Ví dụ: hệ thống kiosk có thể ưu tiên cấu hình thiết bị hơn hồ sơ người dùng; hệ thống đa tenant có thể áp đặt danh sách supported locales khác nhau theo tenant. Tuy nhiên, ngay cả khi chính sách khác, thứ tự phải được viết rõ, nhất quán và kiểm thử được.
+The order above is a **changeable product decision**, not a mandatory Java standard. For example: a kiosk system may prioritize device configuration over a user profile; a multi-tenant system may enforce different supported locales lists per tenant. However, even when the policy differs, the order must be written down clearly, applied consistently, and be testable.
 
-Điểm quan trọng là phân biệt **lựa chọn hợp lệ** với **sự tồn tại của một chuỗi yêu cầu**. Nếu một request ghi **xx-YY** nhưng ứng dụng không hỗ trợ ngôn ngữ đó, không thể trả về chính xác locale yêu cầu như một lời cam kết rằng giao diện đã được dịch. Ứng dụng cần chọn chính sách: thử matching theo ngôn ngữ, xét nguồn ưu tiên kế tiếp, dùng default hoặc thông báo để người dùng chọn lại.
+The key point is to distinguish a **valid choice** from **the mere presence of a requested string**. If a request specifies **xx-YY** but the application does not support that language, it cannot return the requested locale verbatim as a promise that the UI is translated. The application must choose a policy: try language-based matching, check the next priority source, use the default, or prompt the user to choose again.
 
-## 3. Mô hình quyết định: từng tầng và điều kiện fallback
+## 3. Decision Model: Tiers and Fallback Conditions
 
-Có thể hình dung luồng đơn giản:
+You can visualize a simple flow:
 
 ~~~text
-Bắt đầu
+Start
   |
   v
-Có lựa chọn tường minh hợp lệ và được hỗ trợ?
-  | Có --> Dùng locale tương ứng
-  | Không
+Is there a valid, supported explicit choice?
+  | Yes --> Use the corresponding locale
+  | No
   v
-Có tùy chọn tài khoản được hỗ trợ?
-  | Có --> Dùng locale tương ứng
-  | Không
+Is there a supported account preference?
+  | Yes --> Use the corresponding locale
+  | No
   v
-Accept-Language có ứng viên được hỗ trợ?
-  | Có --> Dùng ứng viên theo thương lượng
-  | Không
+Does Accept-Language have a supported candidate?
+  | Yes --> Use the negotiated candidate
+  | No
   v
-Có mặc định tenant hợp lệ? (nếu áp dụng)
-  | Có --> Dùng mặc định tenant
-  | Không
+Is there a valid tenant default? (if applicable)
+  | Yes --> Use tenant default
+  | No
   v
-Dùng application default đã xác minh
+Use verified application default
 ~~~
 
-Ở mỗi tầng, chương trình phải trả lời hai câu hỏi độc lập: **nguồn này có được phép chi phối quyết định không?** và **giá trị của nguồn có thể ánh xạ sang một supported locale không?** Chuỗi rỗng, tag sai cú pháp, tag không hỗ trợ và nguồn vắng mặt phải được xử lý có chủ đích.
+At each tier, the program must answer two independent questions: **is this source allowed to govern the decision?** and **can the source's value map to a supported locale?** Empty strings, syntactically invalid tags, unsupported tags, and missing sources must all be handled intentionally.
 
-Bảng ví dụ với supported locales **vi-VN**, **en-US**, **fr-FR** và application default **vi-VN**:
+Example table with supported locales **vi-VN**, **en-US**, **fr-FR** and application default **vi-VN**:
 
-| Lựa chọn hiện tại | Đã lưu | Accept-Language | Kết quả | Lý do |
+| Current Choice | Saved | Accept-Language | Result | Reason |
 | --- | --- | --- | --- | --- |
-| **fr-FR** | en-US | vi-VN | **fr-FR** | Lựa chọn tường minh có ưu tiên cao nhất |
-| Không có | **en-US** | fr-FR | **en-US** | Ưu tiên cấu hình tài khoản |
-| Không có | Không có | **fr-FR, en-US;q=0.8** | **fr-FR** | Thương lượng ngôn ngữ client |
-| Không có | Không có | Không có | **vi-VN** | Dùng application default |
-| **es-ES** | en-US | fr-FR | **en-US** | Theo chính sách mẫu: lựa chọn không hỗ trợ được bỏ qua và xét nguồn tiếp |
+| **fr-FR** | en-US | vi-VN | **fr-FR** | Explicit choice has highest priority |
+| None | **en-US** | fr-FR | **en-US** | Account configuration takes priority |
+| None | None | **fr-FR, en-US;q=0.8** | **fr-FR** | Client language negotiation |
+| None | None | None | **vi-VN** | Use application default |
+| **es-ES** | en-US | fr-FR | **en-US** | Per sample policy: unsupported choice is skipped and the next source is evaluated |
 
-Hàng cuối thể hiện chính sách mẫu chứ không phải hành vi mặc nhiên của Java. Với thao tác đổi ngôn ngữ trực tiếp, có thể hợp lý hơn khi **hiển thị lỗi “ngôn ngữ chưa được hỗ trợ”** thay vì âm thầm dùng tùy chọn cũ; còn khi hiển thị trang, quy tắc fallback vẫn giúp trang có nội dung. Nên tách phản hồi cho thao tác cập nhật cài đặt khỏi thuật toán chọn locale lúc đọc.
+The last row illustrates the sample policy rather than automatic Java behavior. For a direct language-change action, it may make more sense to **display an “unsupported language” error** instead of silently using the old preference; whereas when rendering a page, fallback rules still help the page display content. You should separate feedback for preference-update actions from the locale resolution algorithm used on read.
 
-## 4. Thứ tự ưu tiên trong phạm vi một người dùng
+## 4. Priority Order Within a Single User's Scope
 
-### 4.1. Lựa chọn tường minh trong phiên hiện tại
+### 4.1. Explicit Choice in the Current Session
 
-Đây thường là tín hiệu thể hiện rõ nhất ý định mới nhất. Ví dụ người dùng đang có hồ sơ **en-US**, nhưng nhấp chuyển giao diện sang **vi-VN**. Nếu request hiện tại mang lựa chọn **vi-VN**, màn hình tiếp theo nên dùng **vi-VN** theo chính sách mẫu, ngay cả khi hồ sơ chưa kịp được cập nhật.
+This is usually the signal that most clearly reflects the latest intent. For example, a user has profile **en-US**, but clicks to switch the UI to **vi-VN**. If the current request carries the choice **vi-VN**, the next screen should use **vi-VN** under the sample policy, even if the profile has not yet been updated.
 
-Không nên truyền giá trị thô trực tiếp vào formatter mà chưa kiểm tra. Chỉ nhận các locale thuộc danh sách hỗ trợ, hoặc áp dụng quy tắc matching được mô tả cụ thể. Một tham số như **?lang=vi-VN** là dữ liệu do phía gọi cung cấp; nó không phải căn cứ để quyết định quyền truy cập hay phân quyền.
+Do not pass raw values directly to a formatter without validation. Only accept locales in the supported list, or apply explicitly described matching rules. A parameter like **?lang=vi-VN** is caller-supplied data; it is not a basis for deciding access control or authorization.
 
-### 4.2. Tùy chọn đã lưu trong hồ sơ
+### 4.2. Saved Preference in the Profile
 
-Nếu request không nêu lựa chọn mới, ứng dụng lấy giá trị đã lưu của người dùng. Điều này giữ trải nghiệm nhất quán khi họ đăng nhập từ thiết bị khác. Khi người dùng lưu thay đổi ngôn ngữ, cần xác định thời điểm hồ sơ được cập nhật và cache/session nào phải vô hiệu hóa để tránh tình trạng giao diện vẫn dùng lựa chọn cũ.
+If the request does not specify a new choice, the application reads the user's saved value. This preserves a consistent experience when they log in from another device. When a user saves a language change, determine when the profile is updated and which caches/sessions must be invalidated to avoid the UI continuing to use the old choice.
 
-Với người dùng chưa đăng nhập, có thể lưu lựa chọn ngôn ngữ trong cookie/session. Thứ tự giữa cookie và Accept-Language cũng phải được công bố trong chính sách. Đối với tài khoản đã đăng nhập, nếu cookie cũ khác hồ sơ, cần quyết định rõ tín hiệu nào thắng; không để thứ tự đọc dữ liệu ngẫu nhiên quyết định.
+For unauthenticated users, the language choice can be stored in a cookie/session. The order between cookies and Accept-Language must also be published in the policy. For logged-in accounts, if an old cookie differs from the profile, clearly decide which signal wins; do not let arbitrary data-reading order decide.
 
-### 4.3. Khi không có quyết định từ người dùng
+### 4.3. When There Is No User Decision
 
-Trình duyệt thường gửi **Accept-Language**, ví dụ:
+Browsers typically send **Accept-Language**, for example:
 
 ~~~http
 Accept-Language: fr-CA, fr;q=0.9, en-US;q=0.7
 ~~~
 
-Header này là **danh sách ưu tiên**, không phải một language tag duy nhất. **q** là trọng số chất lượng trong khoảng 0 đến 1; nếu không ghi q thì thông thường được hiểu bằng 1.0. **fr-CA** có thể không thuộc supported locales, nhưng **fr** có thể khớp với một locale tiếng Pháp mà ứng dụng cung cấp.
+This header is a **priority list**, not a single language tag. **q** is the quality weight between 0 and 1; if q is omitted, it is normally interpreted as 1.0. **fr-CA** may not belong to supported locales, while **fr** may match a French locale provided by the application.
 
-Không nên xử lý bằng cách lấy chuỗi trước dấu phẩy rồi gọi **Locale.forLanguageTag(...)**: cách làm đó bỏ qua ứng viên tiếp theo, trọng số q và các quy tắc thương lượng. Java Core có **Locale.LanguageRange.parse(...)**, **Locale.filter(...)** và **Locale.lookup(...)** cho những tình huống này.
+Do not handle it by taking the string before the first comma and calling **Locale.forLanguageTag(...)**: that approach discards subsequent candidates, q weights, and negotiation rules. Core Java provides **Locale.LanguageRange.parse(...)**, **Locale.filter(...)**, and **Locale.lookup(...)** for these situations.
 
-Một số request không có Accept-Language, ví dụ job nền, API client hoặc request kiểm thử. Khi đó chương trình chuyển tiếp về cấu hình hệ thống thay vì suy đoán ngôn ngữ từ địa chỉ IP.
+Some requests do not have Accept-Language, such as background jobs, API clients, or test requests. In that case, the program falls back to system configuration instead of guessing the language from an IP address.
 
-## 5. Matching: yêu cầu “en”, “en-GB” hay “fr-CA” nên được xử lý thế nào?
+## 5. Matching: How Should Requests Like “en”, “en-GB”, or “fr-CA” Be Handled?
 
-Chỉ cho phép so khớp chính xác có thể quá nghiêm: người dùng yêu cầu **en** trong khi ứng dụng hỗ trợ **en-US**. Nhưng cho phép khớp theo ngôn ngữ một cách tùy tiện cũng có thể gây lỗi: **zh-Hant** và **zh-Hans** dùng hệ chữ viết khác nhau; **pt-BR** và **pt-PT** có khác biệt từ vựng và quy ước hiển thị.
+Allowing only exact matching can be too strict: a user requests **en** while the application supports **en-US**. Yet allowing arbitrary language-only matching can also cause bugs: **zh-Hant** and **zh-Hans** use different writing scripts; **pt-BR** and **pt-PT** have vocabulary and display convention differences.
 
-Có ba cách thường gặp:
+There are three common approaches:
 
-| Cách matching | Đặc điểm | Khi thích hợp |
+| Matching Approach | Characteristics | When Suitable |
 | --- | --- | --- |
-| **Exact** | Chỉ chấp nhận locale đúng với một phần tử supported | Sản phẩm cần lựa chọn rất cụ thể |
-| **Language fallback có kiểm soát** | Nếu không exact, dùng cùng ngôn ngữ khi không nhập nhằng và chữ viết tương thích | Sản phẩm có một bản dịch cho mỗi ngôn ngữ |
-| **Negotiation theo language ranges** | Phân tích danh sách ưu tiên có q, chọn kết quả phù hợp từ supported locales | Xử lý Accept-Language và yêu cầu nhiều ứng viên |
+| **Exact** | Accepts only locales identical to a supported element | Products requiring very specific selection |
+| **Controlled language fallback** | If not exact, uses the same language when unambiguous and script-compatible | Products with one translation per language |
+| **Negotiation via language ranges** | Parses a priority list with q weights and selects a matching result from supported locales | Handling Accept-Language and multi-candidate requests |
 
-Với **Locale.forLanguageTag(...)**, hãy nhớ API có thể trả một locale với phần đầu vào bị xử lý lenient nếu tag không đúng cú pháp. Khi cần phân biệt dữ liệu nhập sai, dùng **new Locale.Builder().setLanguageTag(tag)** và bắt **IllformedLocaleException**. Sau khi parse vẫn phải kiểm tra ngôn ngữ không rỗng, danh sách hỗ trợ và chính sách matching. Không tin rằng một tag đúng cú pháp thì bản dịch, tiền tệ, múi giờ hoặc các ký hiệu cần thiết đã tồn tại trong ứng dụng.
+With **Locale.forLanguageTag(...)**, remember that the API may return a locale with part of the input handled leniently if the tag is malformed. When you need to detect invalid input, use **new Locale.Builder().setLanguageTag(tag)** and catch **IllformedLocaleException**. After parsing, you must still verify a non-empty language, the supported list, and the matching policy. Do not assume that because a tag is syntactically valid, the required translations, currency, time zone, or symbols exist in the application.
 
-Nếu supported locales chứa cả **en-US** và **en-GB**, yêu cầu chỉ có **en** không đủ để chọn một trong hai theo quy tắc “chỉ duy nhất một locale cùng ngôn ngữ”. Khi đó có thể dùng preferred variant từ cấu hình sản phẩm, một thứ tự được công bố, hoặc yêu cầu người dùng chọn vùng. Không nên chọn ngẫu nhiên phần tử đầu tiên của một tập không có thứ tự ổn định.
+If supported locales contain both **en-US** and **en-GB**, a request with only **en** is insufficient to pick one under the “only one locale with the same language” rule. In that case, you can use a preferred variant from product configuration, a published order, or ask the user to choose a region. Do not randomly pick the first element of a collection without a stable order.
 
-## 6. Java 17+: ví dụ đầy đủ tự quyết định thứ tự ưu tiên
+## 6. Java 17+: Complete Example of Self-Determined Priority Order
 
-Ví dụ dưới đây là **chính sách cụ thể**, không giả định Java tự có chính sách này:
+The example below is a **specific policy**, not assuming Java provides this policy automatically:
 
 - Supported locales: **vi-VN**, **en-US**, **fr-FR**.
-- Lựa chọn tường minh hợp lệ đứng trước giá trị đã lưu.
-- Mỗi lựa chọn đơn lẻ ưu tiên exact match, sau đó thử khớp cùng ngôn ngữ nếu chỉ có **một** supported locale cùng ngôn ngữ và không xung đột chữ viết.
-- Header Accept-Language được xử lý theo trọng số bằng API Java Core.
-- Nếu mọi nguồn đều vắng mặt hoặc không phù hợp, dùng **vi-VN** cấu hình sẵn.
-- Không đọc hoặc thay đổi **Locale.setDefault(...)** trong thuật toán này.
+- A valid explicit choice comes before the saved value.
+- Each single choice prioritizes exact match, then tries matching the same language if there is only **one** supported locale with that language and no script conflict.
+- The Accept-Language header is processed by weight using Core Java APIs.
+- If all sources are absent or unsuitable, use the preconfigured **vi-VN**.
+- Do not read or modify **Locale.setDefault(...)** in this algorithm.
 
 **File LocalePriorityDemo.java**
 
@@ -188,17 +188,17 @@ public class LocalePriorityDemo {
             Locale.forLanguageTag("vi-VN");
 
     public static void main(String[] args) {
-        show("1. Chọn trực tiếp",
+        show("1. Direct choice",
                 resolve("fr-FR", "en-US", "vi-VN"));
-        show("2. Không hỗ trợ ở tầng đầu",
+        show("2. Unsupported at first tier",
                 resolve("es-ES", "en-US", "fr-FR"));
-        show("3. Dùng header",
+        show("3. Using header",
                 resolve(null, null, "fr-CA, fr;q=0.9"));
-        show("4. Trọng số header",
+        show("4. Header weight",
                 resolve(null, null, "en-US;q=0.6, vi-VN;q=0.9"));
-        show("5. Dùng mặc định",
+        show("5. Using default",
                 resolve(null, null, null));
-        show("6. Khớp ngôn ngữ",
+        show("6. Language match",
                 resolve("en", null, null));
     }
 
@@ -206,7 +206,7 @@ public class LocalePriorityDemo {
         System.out.println(scenario + ": " + locale.toLanguageTag());
     }
 
-    // Thứ tự ưu tiên là chính sách của ứng dụng.
+    // Priority order is an application policy.
     static Locale resolve(
             String explicitChoice,
             String savedPreference,
@@ -248,14 +248,14 @@ public class LocalePriorityDemo {
             return null;
         }
 
-        // Exact match được ưu tiên.
+        // Exact match takes priority.
         for (Locale supported : SUPPORTED) {
             if (supported.equals(requested)) {
                 return supported;
             }
         }
 
-        // Cho phép cùng ngôn ngữ/chữ viết nếu duy nhất một ứng viên.
+        // Allow same language/script if there is a unique candidate.
         Locale unique = null;
         for (Locale supported : SUPPORTED) {
             if (!supported.getLanguage()
@@ -270,7 +270,7 @@ public class LocalePriorityDemo {
             }
 
             if (unique != null) {
-                // Không tự chọn giữa hai vùng có cùng ngôn ngữ.
+                // Do not automatically choose between two regions with the same language.
                 return null;
             }
             unique = supported;
@@ -290,67 +290,67 @@ public class LocalePriorityDemo {
                     Locale.filter(preferences, SUPPORTED);
             return matches.isEmpty() ? null : matches.get(0);
         } catch (IllegalArgumentException ex) {
-            // Header sai cấu trúc: thử nguồn ưu tiên thấp hơn.
+            // Malformed header: try lower-priority source.
             return null;
         }
     }
 }
 ~~~
 
-Lưu đúng tên **LocalePriorityDemo.java**. Chạy với Java 17+:
+Save with the exact name **LocalePriorityDemo.java**. Run with Java 17+:
 
 ~~~bash
 javac -encoding UTF-8 LocalePriorityDemo.java
 java LocalePriorityDemo
 ~~~
 
-Stdout kỳ vọng:
+Expected stdout:
 
 ~~~text
-1. Chọn trực tiếp: fr-FR
-2. Không hỗ trợ ở tầng đầu: en-US
-3. Dùng header: fr-FR
-4. Trọng số header: vi-VN
-5. Dùng mặc định: vi-VN
-6. Khớp ngôn ngữ: en-US
+1. Direct choice: fr-FR
+2. Unsupported at first tier: en-US
+3. Using header: fr-FR
+4. Header weight: vi-VN
+5. Using default: vi-VN
+6. Language match: en-US
 ~~~
 
-**Giải thích từng tình huống:**
+**Explanation of each scenario:**
 
-1. **fr-FR** là yêu cầu trực tiếp thuộc danh sách hỗ trợ nên chiến thắng **en-US** đã lưu và **vi-VN** từ client.
-2. **es-ES** không được ứng dụng hỗ trợ; theo chính sách ví dụ, nó được bỏ qua và **en-US** từ hồ sơ chiến thắng **fr-FR** ở header.
-3. Không có lựa chọn trực tiếp/hồ sơ; header ưu tiên **fr-CA** rồi **fr**. Vì danh sách hỗ trợ có **fr-FR**, range **fr** khớp và kết quả là **fr-FR**.
-4. **vi-VN** có trọng số 0.9, cao hơn **en-US** với 0.6 nên kết quả thương lượng là **vi-VN**.
-5. Không có dữ liệu đầu vào hợp lệ thì trả **APP_DEFAULT**, không phụ thuộc ngôn ngữ máy chạy.
-6. Yêu cầu **en** được ánh xạ sang **en-US** vì danh sách hiện tại chỉ có một locale tiếng Anh và không có xung đột chữ viết.
+1. **fr-FR** is a direct request in the supported list, so it beats the saved **en-US** and **vi-VN** from the client.
+2. **es-ES** is not supported by the application; under the example policy, it is skipped and **en-US** from the profile beats **fr-FR** in the header.
+3. No direct/profile choice; the header prioritizes **fr-CA** then **fr**. Because the supported list has **fr-FR**, range **fr** matches and the result is **fr-FR**.
+4. **vi-VN** has weight 0.9, higher than **en-US** at 0.6, so the negotiation result is **vi-VN**.
+5. With no valid input data, it returns **APP_DEFAULT**, independent of the host machine's language.
+6. The request **en** is mapped to **en-US** because the current list has only one English locale and no script conflict.
 
-**Giới hạn có chủ đích của ví dụ:** không triển khai tenant default, lưu hồ sơ, cookie hay giao diện thông báo lỗi, vì đó là các tầng tích hợp ngoài chức năng chọn locale thuần Java. Khi có tenant default, chèn một bước kiểm tra sau việc thương lượng header và trước **APP_DEFAULT**. Nếu chính sách sản phẩm đòi exact matching, bỏ nhánh chọn duy nhất theo ngôn ngữ.
+**Intentional limitations of the example:** it does not implement tenant defaults, profile storage, cookies, or an error-notification UI, as those are integration layers outside pure Java locale selection. When a tenant default exists, insert a check after header negotiation and before **APP_DEFAULT**. If product policy requires exact matching, remove the unique-language selection branch.
 
-### 6.1. Vì sao dùng Locale.filter thay vì tự tách header?
+### 6.1. Why Use Locale.filter Instead of Splitting the Header Manually?
 
-**Locale.LanguageRange.parse(header)** đọc danh sách ngôn ngữ và các trọng số. **Locale.filter(preferences, SUPPORTED)** tìm các supported locales phù hợp với các language ranges. Cách này tránh lối viết sai:
+**Locale.LanguageRange.parse(header)** parses the list of languages and weights. **Locale.filter(preferences, SUPPORTED)** finds supported locales matching the language ranges. This avoids buggy code like:
 
 ~~~java
-// Không nên dùng để xử lý toàn bộ Accept-Language:
+// Should NOT be used to handle the entire Accept-Language:
 Locale requested = Locale.forLanguageTag(
         "fr-CA, fr;q=0.9".split(",")[0]);
 ~~~
 
-Đoạn trên chỉ lấy **fr-CA** và đánh mất ứng viên **fr**. **Locale.lookup(...)** là một API khác để tìm một kết quả phù hợp nhất theo quy tắc lookup; kết quả và chiến lược so khớp có thể khác filtering. Hãy chọn một cơ chế rõ ràng, kiểm thử các trường hợp region/script và thống nhất với chính sách sản phẩm.
+The snippet above only takes **fr-CA** and loses candidate **fr**. **Locale.lookup(...)** is another API to find a single best match under lookup rules; its results and matching strategy can differ from filtering. Choose one clear mechanism, test region/script cases, and align with product policy.
 
-Ví dụ sử dụng **Locale.filter** cho danh sách hỗ trợ có một locale mỗi ngôn ngữ. Với một sản phẩm có nhiều biến thể cùng ngôn ngữ hoặc chính sách fallback vùng phức tạp, phải thiết kế thêm cách phân giải trường hợp không khớp/nhập nhằng.
+The example uses **Locale.filter** for a supported list with one locale per language. For a product with multiple variants of the same language or complex region fallback policies, you must design additional resolution for unmatched/ambiguous cases.
 
-### 6.2. Đầu vào sai và ngoại lệ
+### 6.2. Invalid Input and Exceptions
 
-**IllformedLocaleException** được bắt tại bước parse yêu cầu đơn lẻ; **IllegalArgumentException** được bắt khi parse header thương lượng. Đầu vào không hỗ trợ không làm chương trình lỗi: nó trả **null** từ hàm match để thử nguồn kế tiếp. Tuy vậy, ứng dụng thực tế nên phân biệt lý do **missing**, **malformed** và **unsupported** để thông báo phù hợp và theo dõi cấu hình, thay vì chỉ ghi “locale null”.
+**IllformedLocaleException** is caught when parsing a single request; **IllegalArgumentException** is caught when parsing the negotiation header. Unsupported input does not crash the program: it returns **null** from the match method to try the next source. However, a real application should distinguish **missing**, **malformed**, and **unsupported** reasons for proper messaging and configuration monitoring, instead of only logging “locale null”.
 
-Nếu người dùng vừa yêu cầu chuyển sang một locale không hỗ trợ, service cập nhật sở thích nên phản hồi lỗi xác thực rõ ràng và không lưu lựa chọn sai. Trong đường đọc trang, một fallback có định nghĩa trước giúp tránh trả một giao diện trống.
+If a user just requested switching to an unsupported locale, the preference-update service should return a clear validation error and not save the invalid choice. On the page-reading path, a predefined fallback helps avoid returning an empty UI.
 
-## 7. Phân biệt application default và JVM default
+## 7. Distinguishing Application Default and JVM Default
 
-### 7.1. Giá trị mặc định của JVM
+### 7.1. JVM Default Values
 
-Java cung cấp:
+Java provides:
 
 ~~~java
 Locale systemDefault = Locale.getDefault();
@@ -360,41 +360,41 @@ Locale displayDefault =
         Locale.getDefault(Locale.Category.DISPLAY);
 ~~~
 
-Đây là đoạn minh họa cần import **java.util.Locale**. **getDefault()** trả locale mặc định chung; hai category phân biệt ngữ cảnh định dạng dữ liệu và hiển thị tên địa phương/ngôn ngữ. JVM default có thể bắt nguồn từ hệ điều hành hoặc cấu hình chạy JVM, ví dụ một số thuộc tính **user.language**, **user.country**. Các mặc định đó có thể khác nhau giữa máy phát triển, CI, container và máy chủ.
+This is an illustrative snippet requiring importing **java.util.Locale**. **getDefault()** returns the general default locale; the two categories distinguish data formatting and displaying locale/language names. The JVM default can originate from the operating system or JVM startup configuration, such as certain properties **user.language**, **user.country**. Those defaults can differ across developer laptops, CI, containers, and servers.
 
-Ví dụ chương trình chỉ dùng **NumberFormat.getInstance()** hoặc **DateTimeFormatter** mà không có locale rõ ràng có thể tạo output khác nhau theo môi trường. Nếu nghiệp vụ cần tính xác định, hãy truyền resolved locale tường minh cho các API tiêu thụ ngôn ngữ/vùng.
+For example, a program that only calls **NumberFormat.getInstance()** or **DateTimeFormatter** without an explicit locale can produce different output depending on the environment. If business logic requires determinism, pass the resolved locale explicitly to APIs that consume language/region.
 
-### 7.2. Vì sao không dùng Locale.setDefault cho từng request?
+### 7.2. Why Not Use Locale.setDefault Per Request?
 
-**Locale.setDefault(locale)** thay đổi trạng thái dùng chung trong JVM. Nó không phải một biến theo thread hay một bộ nhớ riêng cho từng người dùng. Trong máy chủ có hai request chạy đồng thời:
+**Locale.setDefault(locale)** mutates shared JVM state. It is not a thread-local variable or per-user storage. On a server handling two concurrent requests:
 
 ~~~text
-Request A (vi-VN): gọi Locale.setDefault(vi-VN)
-Request B (en-US): gọi Locale.setDefault(en-US)
-Request A: gọi NumberFormat.getInstance() không truyền locale
-Kết quả A có thể theo en-US do B vừa thay đổi JVM default
+Request A (vi-VN): calls Locale.setDefault(vi-VN)
+Request B (en-US): calls Locale.setDefault(en-US)
+Request A: calls NumberFormat.getInstance() without passing a locale
+Result for A may follow en-US because B just changed the JVM default
 ~~~
 
-Đây là mô tả race condition, không phải một lịch chạy cố định. Dù mỗi request cố khôi phục locale cũ sau khi xử lý, sự đan xen giữa các request vẫn có thể làm kết quả sai. Chính sách an toàn hơn là **resolve locale thành một giá trị** rồi truyền giá trị đó qua các hàm cần dùng.
+This depicts a race condition, not a fixed execution schedule. Even if each request tries to restore the old locale afterward, interleaving between requests can still corrupt results. A safer policy is to **resolve the locale into a value** and pass that value to the functions that need it.
 
 ~~~java
 Locale selected = Locale.forLanguageTag("vi-VN");
 NumberFormat formatter = NumberFormat.getNumberInstance(selected);
 ~~~
 
-Đoạn trên cần import **java.util.Locale** và **java.text.NumberFormat**. **formatter** được cấu hình cho locale cụ thể, không phụ thuộc vào việc request khác đổi cài đặt. Bản thân **NumberFormat** có trạng thái mutable, nên không mặc định dùng chung cùng một instance giữa nhiều luồng.
+The snippet above requires importing **java.util.Locale** and **java.text.NumberFormat**. **formatter** is configured for a specific locale and does not depend on another request changing settings. **NumberFormat** itself has mutable state, so do not share a single instance across multiple threads by default.
 
-### 7.3. Khi nào xem JVM default là một nguồn ưu tiên?
+### 7.3. When Is the JVM Default Considered a Priority Source?
 
-Với ứng dụng desktop phục vụ một người dùng, dựa vào locale hệ điều hành khi lần đầu khởi động có thể hợp lý. Nhưng ngay khi người dùng chọn ngôn ngữ khác, giá trị đã chọn cần được áp dụng đúng chính sách.
+For a desktop application serving a single user, relying on the OS locale on first launch can be reasonable. Yet as soon as the user picks another language, the chosen value must be applied according to policy.
 
-Với dịch vụ web, API và job định kỳ, application default thường nên là cấu hình rõ ràng. Nếu tổ chức có quy tắc **“app config → JVM default → fallback cố định”**, hãy lọc mọi candidate theo supported locales và luôn kết thúc bằng một locale hợp lệ; đừng tin rằng **Locale.getDefault()** luôn nằm trong danh sách bản dịch sản phẩm.
+For web services, APIs, and scheduled jobs, the application default should usually be an explicit configuration. If an organization has a rule **“app config → JVM default → fixed fallback”**, filter every candidate against supported locales and always end with a valid locale; do not trust that **Locale.getDefault()** is always in the product's translation list.
 
-## 8. Các tầng mặc định khác: tenant, ứng dụng và môi trường
+## 8. Other Default Tiers: Tenant, Application, and Environment
 
-Trong sản phẩm đa tenant, một tenant có thể mặc định **fr-FR**, trong khi application default toàn hệ thống là **vi-VN**. Nếu người dùng không có lựa chọn riêng và header không tìm được locale hỗ trợ của tenant, quy tắc có thể rơi về mặc định tenant. Tuy nhiên, **supported locales** cũng có thể phụ thuộc tenant; khi đó phải đối chiếu mọi yêu cầu với danh sách đã được xác minh cho tenant hiện tại trước khi quyết định.
+In a multi-tenant product, one tenant may default to **fr-FR**, while the system-wide application default is **vi-VN**. If a user has no personal choice and the header finds no locale supported by the tenant, the rule can fall back to the tenant default. However, **supported locales** may also depend on the tenant; in that case, every request must be checked against the verified list for the current tenant before deciding.
 
-Một cách triển khai rõ ràng là cấu hình dạng khái niệm:
+A clear way to configure this is a conceptual format:
 
 ~~~yaml
 localization:
@@ -405,13 +405,13 @@ localization:
   default-locale: vi-VN
 ~~~
 
-Đây chỉ là **ví dụ định dạng cấu hình**, không phải tính năng tự nạp của Java Core. Mã khởi tạo cần đọc cấu hình bằng cơ chế ứng dụng đang dùng, kiểm tra language tags hợp lệ và xác minh default nằm trong supported list. Nếu điều kiện này sai, nên báo lỗi cấu hình khi khởi động thay vì để request bất kỳ chọn được locale không có resource.
+This is only a **configuration format example**, not an auto-loading feature of Core Java. Startup code needs to read configuration via the application's mechanism, validate language tags, and verify the default is in the supported list. If this condition fails, report a configuration error at startup rather than letting an arbitrary request select a locale without resources.
 
-Khi có nhiều tầng cấu hình, cũng cần phân biệt **cấu hình được nạp sau ghi đè cấu hình trước** với **locale ưu tiên khi xử lý request**. Hai cơ chế có thể liên quan nhưng không đồng nhất. Ví dụ application default được chọn từ biến môi trường lúc khởi động, sau đó tại request vẫn phải nhường cho lựa chọn trực tiếp của người dùng.
+When there are multiple configuration layers, also distinguish **later-loaded configuration overriding earlier configuration** from **locale priority during request handling**. The two mechanisms may be related, but they are not identical. For example, the application default may be selected from an environment variable at startup, yet at request time it must still yield to the user's explicit choice.
 
-## 9. Sau khi resolve: dùng locale nhất quán với ResourceBundle và formatter
+## 9. After Resolution: Using the Locale Consistently with ResourceBundle and Formatters
 
-Thuật toán chọn locale chỉ đưa ra một đối tượng **Locale**. Các tầng sau phải cùng tiêu thụ giá trị này:
+The locale selection algorithm outputs only a **Locale** object. Downstream layers must consume this same value:
 
 ~~~java
 Locale resolved = Locale.forLanguageTag("vi-VN");
@@ -428,15 +428,15 @@ DateTimeFormatter dates =
                 .withLocale(resolved);
 ~~~
 
-Đoạn minh họa cần import **java.util.Locale**, **java.util.ResourceBundle**, **java.text.NumberFormat**, **java.time.format.DateTimeFormatter** và **java.time.format.FormatStyle**; cần có resource bundle **messages** trên classpath. Ví dụ chỉ cho thấy cách truyền cùng resolved locale, không phải chương trình độc lập.
+The illustrative snippet requires importing **java.util.Locale**, **java.util.ResourceBundle**, **java.text.NumberFormat**, **java.time.format.DateTimeFormatter**, and **java.time.format.FormatStyle**; a resource bundle **messages** must exist on the classpath. The example only shows passing the same resolved locale, not a standalone program.
 
-### 9.1. Hai lớp fallback phải được tách bạch
+### 9.1. Two Fallback Layers Must Be Kept Separate
 
-**Lớp 1 – lựa chọn locale của ứng dụng:** thuật toán quyết định **fr-FR** hay **vi-VN** theo người dùng, header, danh sách hỗ trợ và default.
+**Layer 1 – application locale selection:** the algorithm decides **fr-FR** or **vi-VN** based on user, header, supported list, and default.
 
-**Lớp 2 – tìm resource trong ResourceBundle:** sau khi nhận locale **fr-FR**, cơ chế tra cứu có thể thử bundle cụ thể, bundle ngôn ngữ, bundle gốc, và trong một số trường hợp còn dùng JVM default khi tìm bundle. Điều này có thể dẫn đến tình huống **resolvedLocale = fr-FR** nhưng một thông điệp lại xuất phát từ resource của locale khác do fallback mặc định của API.
+**Layer 2 – resource lookup in ResourceBundle:** after receiving locale **fr-FR**, the lookup mechanism may try the specific bundle, language bundle, base bundle, and in some cases also use the JVM default when finding a bundle. This can lead to **resolvedLocale = fr-FR** yet a message coming from another locale's resource due to default API fallback.
 
-Nếu ứng dụng cần chính sách fallback resource độc lập với JVM default, với resource bundles dạng classpath truyền thống có thể kiểm soát bằng **ResourceBundle.Control**:
+If the application needs a resource fallback policy independent of the JVM default, for traditional classpath-based resource bundles it can be controlled with **ResourceBundle.Control**:
 
 ~~~java
 ResourceBundle bundle = ResourceBundle.getBundle(
@@ -446,89 +446,89 @@ ResourceBundle bundle = ResourceBundle.getBundle(
                 ResourceBundle.Control.FORMAT_PROPERTIES));
 ~~~
 
-Đoạn trên không độc lập, cần import **java.util.ResourceBundle**, biến **resolved** và resource trên classpath. **getNoFallbackControl** ngăn bước fallback theo locale mặc định của JVM; quy tắc tra cứu bundle của candidate và bundle gốc vẫn còn. **ResourceBundle.Control** có những hạn chế khi dùng named modules: không giả định overload nhận Control hoạt động như nhau trong mọi kiểu module; với named modules cần áp dụng cơ chế resource/provider được hỗ trợ và kiểm thử fallback thực tế.
+The snippet above is not standalone and requires importing **java.util.ResourceBundle**, the **resolved** variable, and resources on the classpath. **getNoFallbackControl** prevents the fallback step using the JVM default locale; candidate bundle and base bundle lookup rules still remain. **ResourceBundle.Control** has limitations when using named modules: do not assume the Control overload works identically across all module types; with named modules, apply supported resource/provider mechanisms and test actual fallback.
 
-**Nguyên tắc thực dụng:** resolved locale, bản dịch thực tế được chọn và nội dung hiển thị nên có quy ước nhất quán. Nếu app ưu tiên **vi-VN** nhưng thiếu một khóa tiếng Việt, cần có chính sách rõ về fallback sang ngôn ngữ gốc, cảnh báo thiếu khóa và QA bản dịch. Locale đúng không tự bảo đảm từng message key đã được dịch.
+**Pragmatic rule:** the resolved locale, the actual selected translation, and the displayed content should follow a consistent convention. If the app prioritizes **vi-VN** but lacks a Vietnamese key, have a clear policy for falling back to the base language, warning on missing keys, and translation QA. Having the right locale does not automatically guarantee every message key has been translated.
 
-### 9.2. Locale không thay thế các lựa chọn nghiệp vụ khác
+### 9.2. Locale Does Not Replace Other Business Choices
 
-- **Múi giờ:** lấy từ người dùng, tổ chức hoặc quy tắc nghiệp vụ, ví dụ **ZoneId.of("Asia/Ho_Chi_Minh")**; không suy từ locale.
-- **Tiền tệ:** mã tiền dùng trong giao dịch phải đến từ nghiệp vụ; không tự suy nó từ ngôn ngữ giao diện.
-- **Định dạng dữ liệu cho API:** dùng format hợp đồng xác định như ISO cho dữ liệu trao đổi, còn locale chủ yếu phục vụ hiển thị/nhập từ con người.
-- **Quyền truy cập:** locale/header/cookie không phải chứng cứ danh tính hay quyền của người dùng.
+- **Time zone:** obtain from the user, organization, or business rule, such as **ZoneId.of("Asia/Ho_Chi_Minh")**; do not infer from locale.
+- **Currency:** the currency code used in a transaction must come from business logic; do not infer it from the UI language.
+- **API data formats:** use deterministic contract formats like ISO for data exchange, while locale primarily serves human display/input.
+- **Access permissions:** locale/headers/cookies are not proof of user identity or authorization.
 
-## 10. Lựa chọn người dùng, cache và tính nhất quán xuyên request
+## 10. User Selection, Caching, and Cross-Request Consistency
 
-Trong dịch vụ web, locale đã resolve có thể đi cùng **request context**, session hoặc một đối tượng truyền qua các tầng xử lý. Không cần thay đổi biến global của JVM để truyền ngữ cảnh. Nếu dùng thread pool hoặc tác vụ bất đồng bộ, không giả định một biến **ThreadLocal** luôn tự chuyển sang thread xử lý tiếp theo; phải truyền hoặc thiết lập/dọn dẹp context rõ ràng theo kiến trúc.
+In a web service, the resolved locale can travel with the **request context**, session, or an object passed across processing layers. There is no need to mutate global JVM state to pass context. If using thread pools or async tasks, do not assume a **ThreadLocal** variable automatically transfers to the next processing thread; pass or set/clean up context explicitly according to the architecture.
 
-Khi cache nội dung đã dịch, **locale thường phải là một phần của cache key**. Ví dụ:
+When caching translated content, **locale usually must be part of the cache key**. For example:
 
 ~~~text
-Sai:  cache["welcome"] = "Xin chào"
-Đúng: cache[("welcome", "vi-VN")] = "Xin chào"
-      cache[("welcome", "en-US")] = "Hello"
+Wrong: cache["welcome"] = "Xin chào"
+Right: cache[("welcome", "vi-VN")] = "Xin chào"
+       cache[("welcome", "en-US")] = "Hello"
 ~~~
 
-Nếu ứng dụng dùng locale theo tenant hoặc phiên bản bản dịch, các yếu tố đó cũng có thể cần nằm trong cache key. Nếu không, request tiếng Anh có thể nhận bản dịch tiếng Việt do cache key quá chung.
+If the application uses per-tenant locales or translation versions, those factors may also need to be included in the cache key. Otherwise, an English request could receive a Vietnamese translation due to an overly generic cache key.
 
-Một user đổi lựa chọn từ **en-US** sang **vi-VN** cần thấy hiệu lực ở phạm vi đã cam kết: ngay lập tức trên request hiện tại, từ request tiếp theo sau khi lưu, hay sau khi tải lại trang. Xác định rõ thời điểm cập nhật profile, session và cache; tránh để UI nói “đã đổi ngôn ngữ” nhưng các phần sau vẫn lấy locale cũ.
+A user changing their selection from **en-US** to **vi-VN** needs to see it take effect within the promised scope: immediately on the current request, starting on the next request after saving, or after a page reload. Define clearly when profile, session, and cache are updated; avoid having the UI say “language changed” while subsequent parts still read the old locale.
 
-## 11. Kiểm thử thứ tự ưu tiên như một hợp đồng
+## 11. Testing Priority Order as a Contract
 
-Một resolver có giá trị khi hành vi được kiểm thử bằng bảng trường hợp. Không chỉ kiểm thử ngôn ngữ “happy path”. Với chính sách ở phần 6, các ca tối thiểu gồm:
+A resolver is valuable when its behavior is verified with a case table. Do not test only the “happy path” language. For the policy in section 6, minimal cases include:
 
-| Tình huống | Kết quả mong đợi |
+| Scenario | Expected Result |
 | --- | --- |
-| Explicit, saved và header đều hợp lệ nhưng khác nhau | Explicit thắng |
-| Explicit rỗng, saved và header khác nhau | Saved thắng |
-| Explicit không hỗ trợ, saved hợp lệ | Saved được chọn theo chính sách mẫu |
-| Hai tầng đầu vắng mặt, header có q | Dùng ứng viên có độ ưu tiên thương lượng phù hợp |
-| Header sai cú pháp | Không làm hỏng request; chuyển sang default |
-| Không có nguồn nào | Application default |
-| Explicit chỉ có **en**, chỉ hỗ trợ **en-US** | Ánh xạ thành **en-US** nếu cho phép language fallback |
-| Hỗ trợ **en-US** và **en-GB**, request chỉ có **en** | Không tự chọn vùng trong quy tắc unique-language |
-| Tag cùng ngôn ngữ nhưng khác script | Không tự đồng nhất hai hệ chữ viết |
-| JVM default đổi sang locale khác | Resolver vẫn cho cùng kết quả với cùng đầu vào và cấu hình |
+| Explicit, saved, and header are all valid but differ | Explicit wins |
+| Explicit is empty, saved and header differ | Saved wins |
+| Explicit is unsupported, saved is valid | Saved is selected under the sample policy |
+| First two tiers absent, header has q | Use the candidate with the appropriate negotiated priority |
+| Malformed header | Does not break the request; moves on to default |
+| No source present | Application default |
+| Explicit is only **en**, only **en-US** supported | Maps to **en-US** if language fallback is permitted |
+| Both **en-US** and **en-GB** supported, request is only **en** | Do not auto-pick a region under the unique-language rule |
+| Tags with same language but different script | Do not automatically treat the two writing systems as identical |
+| JVM default changes to another locale | Resolver still produces the same result for the same inputs and configuration |
 
-Nên kiểm thử thêm các chuỗi chứa khoảng trắng, tag viết sai, danh sách hỗ trợ rỗng, cấu hình default không nằm trong supported list, cookie cũ, tài khoản chưa đăng nhập và đổi ngôn ngữ đồng thời trên nhiều thiết bị.
+You should also test strings with whitespace, misspelled tags, empty supported lists, a default configuration not in the supported list, stale cookies, unauthenticated accounts, and concurrent language changes across multiple devices.
 
-Khi cần kiểm thử xem hành vi có bất biến theo môi trường, hãy đặt một JVM default khác trong **một bài kiểm thử cô lập**, rồi xác minh resolver trả cùng giá trị cho các đầu vào giống nhau. Không thực hiện **Locale.setDefault** tùy tiện giữa những bài kiểm thử chạy song song vì sẽ gây nhiễu toàn tiến trình.
+When testing whether behavior is environment-invariant, set a different JVM default in **an isolated test**, then verify the resolver returns the same values for identical inputs. Do not call **Locale.setDefault** arbitrarily among tests running in parallel because it interferes across the whole process.
 
-Phân biệt **kiểm thử resolver** với **kiểm thử đầu ra định dạng**: resolver có thể được kiểm thử bằng **toLanguageTag()** chính xác; dấu phân cách số/tên tháng có thể chịu ảnh hưởng dữ liệu locale/CLDR của JDK, nên muốn so khớp từng byte phải kiểm soát phiên bản runtime và dữ liệu.
+Distinguish **resolver testing** from **formatted output testing**: the resolver can be tested with exact **toLanguageTag()** checks; number separators/month names can be affected by JDK locale/CLDR data, so byte-for-byte comparison requires controlling the runtime version and data.
 
-## 12. Các lỗi phổ biến và cách khắc phục
+## 12. Common Pitfalls and How to Fix Them
 
-### Lỗi 1: Luôn dùng Locale.getDefault()
+### Pitfall 1: Always Using Locale.getDefault()
 
-Triệu chứng: trên laptop lập trình viên giao diện là tiếng Việt; trên máy chủ hoặc CI lại là tiếng Anh. Nguyên nhân: không có application default rõ ràng, hoặc formatter lấy locale môi trường. Khắc phục: cấu hình supported/default, giải quyết theo từng request và truyền resolved locale tường minh.
+Symptom: on a developer's laptop the UI is Vietnamese; on the server or CI it is English. Cause: no explicit application default, or formatters read the environment locale. Fix: configure supported/default locales, resolve per request, and pass the resolved locale explicitly.
 
-### Lỗi 2: Header ghi đè lựa chọn đã lưu
+### Pitfall 2: Header Overrides Saved Preference
 
-Triệu chứng: user đã đặt tiếng Pháp, nhưng khi mở từ trình duyệt có **Accept-Language: en-US** thì giao diện trở lại tiếng Anh. Nguyên nhân: middleware đọc header trước hồ sơ dù chính sách nói hồ sơ có ưu tiên cao hơn. Khắc phục: thống nhất đúng thứ tự xử lý trong một resolver tập trung.
+Symptom: the user set French, but when opening from a browser with **Accept-Language: en-US**, the UI reverts to English. Cause: middleware reads the header before the profile even though policy says the profile has higher priority. Fix: unify the exact processing order in a centralized resolver.
 
-### Lỗi 3: Dùng Locale.forLanguageTag mà không kiểm tra hỗ trợ
+### Pitfall 3: Using Locale.forLanguageTag Without Checking Support
 
-Triệu chứng: ứng dụng nhận tag **ko-KR**, nhưng chưa có bản dịch Hàn; màn hình xuất hiện hỗn hợp tiếng Anh/tiếng Việt. Nguyên nhân: nhầm cú pháp locale hợp lệ với khả năng hỗ trợ của sản phẩm. Khắc phục: xác minh danh sách supported và chính sách fallback; kiểm tra độ đầy đủ của resource bundle.
+Symptom: the application receives tag **ko-KR**, yet has no Korean translations; the screen shows a mix of English/Vietnamese. Cause: confusing valid locale syntax with product support capability. Fix: verify the supported list and fallback policy; check resource bundle completeness.
 
-### Lỗi 4: Chỉ lấy giá trị đầu tiên của Accept-Language
+### Pitfall 4: Taking Only the First Value of Accept-Language
 
-Triệu chứng: client gửi **fr-CA, fr;q=0.9, en-US;q=0.7**, trong khi ứng dụng chỉ hỗ trợ **fr-FR** và **en-US**; thuật toán thủ công có thể bỏ lỡ **fr-FR**. Khắc phục: dùng API thương lượng **Locale.LanguageRange** và một quy tắc matching được kiểm thử.
+Symptom: client sends **fr-CA, fr;q=0.9, en-US;q=0.7**, while the application only supports **fr-FR** and **en-US**; a manual algorithm can miss **fr-FR**. Fix: use the **Locale.LanguageRange** negotiation API and a tested matching rule.
 
-### Lỗi 5: Đổi ngôn ngữ bằng Locale.setDefault
+### Pitfall 5: Changing Language with Locale.setDefault
 
-Triệu chứng: request người dùng này thay đổi cách hiển thị của người khác. Nguyên nhân: locale mặc định là trạng thái chung của JVM. Khắc phục: giữ locale tại request/user context, tạo formatter theo locale.
+Symptom: one user's request changes how another user's view is displayed. Cause: the default locale is shared JVM state. Fix: keep the locale in request/user context and create formatters per locale.
 
-### Lỗi 6: Fallback không rõ ràng hoặc khác nhau giữa màn hình
+### Pitfall 6: Unclear or Inconsistent Fallback Across Screens
 
-Triệu chứng: trang sản phẩm fallback về **vi-VN**, trang thanh toán fallback về **en-US**; một số chuỗi còn rơi về resource của JVM default. Nguyên nhân: nhiều thành phần tự chọn locale và tra bundle riêng. Khắc phục: tập trung chính sách resolve, tài liệu hóa fallback cho resource và kiểm thử toàn bộ luồng hiển thị.
+Symptom: product pages fall back to **vi-VN**, checkout pages fall back to **en-US**; some strings even fall through to the JVM default's resource. Cause: multiple components pick locales and look up bundles independently. Fix: centralize resolution policy, document resource fallback, and test the entire rendering flow.
 
-### Lỗi 7: Trộn ngôn ngữ, vùng, múi giờ và tiền tệ
+### Pitfall 7: Mixing Language, Region, Time Zone, and Currency
 
-Triệu chứng: người dùng đổi UI sang tiếng Anh khiến thời gian hiển thị thành giờ Hoa Kỳ hoặc hóa đơn chuyển ký hiệu tiền. Nguyên nhân: coi locale là toàn bộ cài đặt địa phương. Khắc phục: quản lý riêng locale giao diện, time zone, currency và quy tắc giao dịch.
+Symptom: a user switches UI to English, causing timestamps to become US time or invoices to change currency symbol. Cause: treating locale as the entirety of regional settings. Fix: manage UI language locale, time zone, currency, and transaction rules separately.
 
-## 13. Mẫu thiết kế dễ bảo trì
+## 13. Maintainable Design Pattern
 
-Trong ứng dụng có nhiều luồng sử dụng locale, một thành phần chịu trách nhiệm **resolve** nên nhận dữ liệu đã kiểm tra quyền truy cập và được truyền các nguồn ưu tiên như tham số. Ví dụ chữ ký thiết kế:
+In an application with multiple locale-using flows, a component responsible for **resolve** should receive access-checked data and be passed priority sources as parameters. Example design signature:
 
 ~~~java
 Locale resolveLocale(
@@ -539,22 +539,22 @@ Locale resolveLocale(
         Locale applicationDefault);
 ~~~
 
-Đây là chữ ký minh họa, không phải đoạn code độc lập. Có thể chuyển các tham số thành một kiểu dữ liệu **LocalePreferenceContext** rõ ràng nếu ứng dụng có nhiều nguồn. Phần kiểm tra hỗ trợ và thuật toán matching nên tập trung; những phần hiển thị khác chỉ tiêu thụ **resolvedLocale**.
+This is an illustrative signature, not standalone code. Parameters can be grouped into an explicit **LocalePreferenceContext** data type if the application has many sources. Support checks and matching algorithms should be centralized; other presentation layers simply consume **resolvedLocale**.
 
-Một contract tốt ghi rõ:
+A good contract clearly states:
 
-1. **Nguồn đầu vào:** request, cookie/session, hồ sơ người dùng, header, tenant và app config.
-2. **Thứ tự ưu tiên:** áp dụng chính xác khi các nguồn mâu thuẫn.
-3. **Supported locales:** nguồn cấu hình duy nhất hoặc chính sách phạm vi tenant.
+1. **Input sources:** request, cookie/session, user profile, header, tenant, and app config.
+2. **Priority order:** applied precisely when sources conflict.
+3. **Supported locales:** single source of configuration or tenant-scoped policy.
 4. **Matching:** exact, language fallback, script/region handling, Accept-Language q.
-5. **Hành vi với giá trị không hợp lệ:** fallback hoặc lỗi phản hồi cho thao tác cập nhật.
-6. **Kết quả:** một supported locale xác định, có thể ghi log lý do chọn.
-7. **Tác động hệ thống:** truyền locale tường minh, cache đúng ngữ cảnh, không thay JVM default theo request.
+5. **Behavior on invalid values:** fallback or error response for update operations.
+6. **Output:** a deterministic supported locale, optionally logging the selection reason.
+7. **System effects:** pass locale explicitly, cache with proper context, never mutate JVM default per request.
 
-Nếu cần hỗ trợ người dùng tự đổi ngôn ngữ trên UI, hành động thay đổi nên vừa **lưu preference** theo nguyện vọng của người dùng, vừa đảm bảo **request hiện tại** sử dụng lựa chọn vừa được xác nhận. Tránh có hai cơ chế cạnh tranh nhau khi trang tải lại.
+If users must be supported in changing language directly in the UI, the change action should both **save the preference** as the user wishes and ensure the **current request** uses the newly confirmed choice. Avoid having two competing mechanisms when the page reloads.
 
-## 14. Tổng kết
+## 14. Summary
 
-**Ưu tiên lựa chọn người dùng so với cấu hình mặc định là một chính sách ứng dụng, không phải thứ tự tự động do java.util.Locale quyết định.** Với hệ thống đa người dùng, thiết kế phổ biến là **lựa chọn trực tiếp → tùy chọn đã lưu → thương lượng từ client → mặc định tenant (nếu có) → mặc định ứng dụng**. Mọi ứng viên phải được đối chiếu với danh sách supported locales và quy tắc matching được công bố; JVM default chỉ được dùng nếu chính sách thực sự yêu cầu.
+**Prioritizing user choice over default configuration is an application policy, not an automatic order decided by java.util.Locale.** For multi-user systems, a common design is **explicit choice → saved preference → client negotiation → tenant default (if any) → application default**. Every candidate must be checked against the supported locales list and published matching rules; the JVM default should only be used if policy truly requires it.
 
-Hãy giữ một nơi duy nhất quyết định locale, truyền kết quả tường minh sang ResourceBundle và các formatter, tránh **Locale.setDefault** theo request, đồng thời kiểm thử những trường hợp mâu thuẫn và fallback. Nhờ vậy người dùng nhận đúng ngôn ngữ mình đã chọn, và ứng dụng hoạt động ổn định dù chạy trên máy khác, trình duyệt khác hoặc nhiều request đồng thời.
+Keep a single place responsible for deciding the locale, pass the result explicitly to ResourceBundle and formatters, avoid **Locale.setDefault** per request, and test conflict and fallback cases. That way users get the exact language they chose, and the application behaves reliably across different machines, browsers, and concurrent requests.

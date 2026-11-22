@@ -1,31 +1,31 @@
-# Chuyển đổi ngầm định và ép kiểu tường minh trong Java 17+
+# Implicit Conversion and Explicit Casting in Java 17+
 
-**Chuyển đổi kiểu (*type conversion*)** là cách Java đưa giá trị của một biểu thức từ kiểu này sang kiểu khác. Hai trường hợp cần phân biệt khi viết mã:
+**Type conversion** is how Java converts the value of an expression from one type to another. Two cases need to be distinguished when writing code:
 
-- **Chuyển đổi ngầm định (*implicit conversion*)**: Java áp dụng quy tắc chuyển kiểu được phép mà không cần viết toán tử ép kiểu, ví dụ chuyển `int` sang `long` khi gán hoặc nâng các toán hạng số trước phép toán.
-- **Ép kiểu tường minh (*explicit cast*)**: người lập trình viết toán tử `(TargetType) expression`, thường khi chuyển kiểu có thể mất dữ liệu hoặc khi cần thu hẹp một tham chiếu. **Cast không bảo đảm kết quả chính xác hoặc an toàn lúc chạy.**
+- **Implicit conversion**: Java applies an allowed conversion rule without requiring a cast operator, such as converting `int` to `long` during assignment or promoting numeric operands before an operation.
+- **Explicit cast**: the programmer writes the `(TargetType) expression` operator, usually when a conversion may lose data or when narrowing a reference is needed. **A cast does not guarantee an accurate or safe result at runtime.**
 
 ~~~java
 int count = 120;
-long wide = count;         // Ngam dinh: int -> long.
-byte small = (byte) count; // Tuong minh: int -> byte.
+long wide = count;         // Implicit: int -> long.
+byte small = (byte) count; // Explicit: int -> byte.
 ~~~
 
-Trong ví dụ, cả `wide` và `small` đều là 120 vì giá trị 120 biểu diễn được bằng `byte`. Nhưng nếu `count = 130`, phép cast sang `byte` cho `-126`.
+In the example, both `wide` and `small` are 120 because the value 120 can be represented by `byte`. However, if `count = 130`, casting to `byte` yields `-126`.
 
-## 1. Chuyển đổi số nguyên thủy: widening và narrowing
+## 1. Primitive numeric conversions: widening and narrowing
 
-| Loại | Ví dụ | Compiler xử lý | Điều cần lưu ý |
+| Kind | Example | Compiler handling | Things to note |
 | --- | --- | --- | --- |
-| **Widening primitive** (mở rộng) | `long a = 42;` | Tự động cho phép | Không phải mọi chuyển sang số thực đều giữ độ chính xác |
-| **Narrowing primitive** (thu hẹp) | `byte b = (byte) 130;` | Thường cần cast | Có thể mất bit, thay đổi giá trị |
-| Mở rộng `char` | `int n = 'A';` | Tự động | `char` không dấu, `'A'` thành 65 |
-| Thu hẹp thành `char` | `char c = (char) 66;` | Thường cần cast | Kết quả trong miền 0–65.535 |
-| Chuyển `double` sang `int` | `int n = (int) 12.9;` | Cần cast | Bỏ phần thập phân, **không làm tròn gần nhất** |
-| Ngầm định tại biểu thức số học | `int sum = byteA + byteB;` | Hai `byte` thường được nâng thành `int` | Kiểu kết quả phụ thuộc toán hạng |
-| Chuyển `boolean` và kiểu số | `(int) true` | **Không hợp lệ** | Java không chuyển `boolean` sang số bằng cast |
+| **Widening primitive** | `long a = 42;` | Automatically allowed | Not every conversion to floating-point preserves precision |
+| **Narrowing primitive** | `byte b = (byte) 130;` | Usually requires a cast | May lose bits, changing the value |
+| Widening `char` | `int n = 'A';` | Automatic | `char` is unsigned, `'A'` becomes 65 |
+| Narrowing to `char` | `char c = (char) 66;` | Usually requires a cast | Result is in the range 0–65,535 |
+| Converting `double` to `int` | `int n = (int) 12.9;` | Requires a cast | Discards the fractional part, **does not round to nearest** |
+| Implicit in arithmetic expressions | `int sum = byteA + byteB;` | Two `byte`s are usually promoted to `int` | The result type depends on the operands |
+| Converting `boolean` and numeric types | `(int) true` | **Invalid** | Java does not convert `boolean` to a number via cast |
 
-Một chuỗi chuyển đổi mở rộng quen thuộc:
+A familiar widening conversion chain:
 
 ~~~text
 byte -> short -> int -> long -> float -> double
@@ -33,13 +33,13 @@ byte -> short -> int -> long -> float -> double
                  char  (char -> int -> long -> float -> double)
 ~~~
 
-Đây là sơ đồ ghi nhớ **một số đường hợp lệ**, không phải danh sách mọi phép chuyển riêng lẻ. Chú ý `char -> short` và `byte -> char` **không** phải widening hợp lệ. `boolean` đứng ngoài các phép chuyển kiểu số này.
+This is a mnemonic diagram for **some valid paths**, not a list of every individual conversion. Note that `char -> short` and `byte -> char` are **not** valid widening conversions. `boolean` stands outside these numeric type conversions.
 
-Widening **không nhất thiết bảo toàn toàn bộ chữ số**: ví dụ `long` lớn chuyển sang `double` có thể bị làm tròn vì `double` chỉ có 53 bit độ chính xác phần định trị. Ngược lại, `int -> long` bảo toàn đúng giá trị của mọi `int`.
+Widening **does not necessarily preserve all digits**: for example, converting a large `long` to `double` may round because `double` only has 53 bits of significand precision. Conversely, `int -> long` preserves the exact value of every `int`.
 
-## 2. Chương trình Java 17+ runnable
+## 2. Runnable Java 17+ program
 
-Tạo tệp UTF-8 tên **`TypeConversionDemo.java`**:
+Create a UTF-8 file named **`TypeConversionDemo.java`**:
 
 ~~~java
 public class TypeConversionDemo {
@@ -100,7 +100,7 @@ public class TypeConversionDemo {
 }
 ~~~
 
-Mở PowerShell (Windows) hoặc Bash (Linux/macOS) trong thư mục chứa file; dùng **JDK 17 trở lên**:
+Open PowerShell (Windows) or Bash (Linux/macOS) in the directory containing the file; use **JDK 17 or later**:
 
 ~~~bash
 java -version
@@ -109,7 +109,7 @@ javac -encoding UTF-8 TypeConversionDemo.java
 java TypeConversionDemo
 ~~~
 
-**Expected output chính xác** của lệnh `java TypeConversionDemo` (không gồm thông tin phiên bản JDK):
+**Exact expected output** of the `java TypeConversionDemo` command (excluding JDK version information):
 
 ~~~text
 widenIntToLong=120
@@ -131,36 +131,36 @@ downcast=Java
 badDowncast=ClassCastException
 ~~~
 
-### Giải thích các kết quả quan trọng
+### Explanation of important results
 
-1. `int -> long` và `int -> double` là chuyển đổi mở rộng tự động. Giá trị 120 được giữ chính xác; vì biến `asDouble` là `double`, khi in hiển thị `120.0`.
-2. `long huge = 2^53 + 1` không còn biểu diễn chính xác khi chuyển sang `double`. Giá trị bị làm tròn, nên so sánh sau khi chuyển lại thành `long` là `false`. **Không đồng nhất widening với “luôn chính xác”.**
-3. `(byte) 130` thu hẹp xuống 8 bit có dấu: 130 vượt 127, kết quả `-126`. Cast vẫn được Java cho phép, không báo tràn.
-4. `(int) 12.9` trả 12 và `(int) -12.9` trả -12: phần lẻ bị cắt **về phía 0**. Với `double` hữu hạn vượt miền `int`, kết quả khi cast được giới hạn vào biên gần nhất (`(int) 1.0e20` thành `Integer.MAX_VALUE`). `(int) Double.NaN` thành 0.
-5. `char 'A'` mở rộng sang `int` thành mã số 65; cast `(char) 66` thành ký tự `B`.
-6. Hai biến `byte` trong `left + right` được nâng thành `int`. Gán kết quả vào `int sum` là hợp lệ; gán trực tiếp vào một biến `byte` không được compiler cho phép nếu kết quả không phải biểu thức hằng phù hợp.
-7. `five / two` diễn ra giữa hai `int`, cho 2 **trước khi** gán sang `double` thành `2.0`. Ép `five` sang `double` **trước phép chia** tạo `2.5`.
-8. `Object general = "Java"` là phép mở rộng tham chiếu (*upcast*) được phép. Cast xuống `String` hợp lệ khi đối tượng thật là String. Cast xuống `Integer` vẫn có thể biên dịch từ `Object` nhưng thất bại **lúc chạy**, ném `ClassCastException`.
+1. `int -> long` and `int -> double` are automatic widening conversions. The value 120 is preserved accurately; because the variable `asDouble` is `double`, printing displays `120.0`.
+2. `long huge = 2^53 + 1` can no longer be represented accurately when converted to `double`. The value is rounded, so comparing after converting back to `long` yields `false`. **Do not equate widening with “always accurate”.**
+3. `(byte) 130` narrows to 8 signed bits: 130 exceeds 127, resulting in `-126`. The cast is still permitted by Java without reporting overflow.
+4. `(int) 12.9` returns 12 and `(int) -12.9` returns -12: the fractional part is truncated **toward 0**. For a finite `double` exceeding the `int` range, the cast result is clamped to the nearest boundary (`(int) 1.0e20` becomes `Integer.MAX_VALUE`). `(int) Double.NaN` becomes 0.
+5. `char 'A'` widens to `int` as code value 65; casting `(char) 66` yields the character `B`.
+6. The two `byte` variables in `left + right` are promoted to `int`. Assigning the result to `int sum` is valid; assigning directly to a `byte` variable is not allowed by the compiler unless the result is a suitable constant expression.
+7. `five / two` occurs between two `int`s, yielding 2 **before** being assigned to `double` as `2.0`. Casting `five` to `double` **before division** produces `2.5`.
+8. `Object general = "Java"` is an allowed reference widening (*upcast*). Casting down to `String` is valid when the actual object is a String. Casting down to `Integer` can still compile from `Object` but fails **at runtime**, throwing `ClassCastException`.
 
-## 3. Hằng int trong ngữ cảnh gán
+## 3. `int` constants in assignment context
 
-Java cho phép gán biểu thức hằng kiểu `int` nằm trong miền `byte`, `short` hoặc `char` mà không viết cast. Ngoại lệ này chỉ áp dụng ở những ngữ cảnh được đặc tả; không suy rộng thành chuyển đổi ngầm định cho biến `int` thông thường.
+Java allows assigning a constant expression of type `int` within the range of `byte`, `short`, or `char` without writing a cast. This exception applies only in specified contexts; do not generalize it into an implicit conversion for ordinary `int` variables.
 
 ~~~java
-byte threshold = 100;  // Hằng int vừa miền byte.
+byte threshold = 100;  // int constant fits within byte range.
 int runtime = 100;
-// byte wrong = runtime; // Không biên dịch.
+// byte wrong = runtime; // Does not compile.
 byte checked = (byte) runtime;
 ~~~
 
-Việc biểu thức có phải hằng tại compile time khác với việc biến tình cờ chứa giá trị nhỏ lúc chạy. Bài chuyên sâu về gán hằng sẽ phân biệt thêm `final` constant variable và phạm vi áp dụng.
-## 4. Cast đúng thời điểm trong biểu thức
+Whether an expression is a compile-time constant differs from a variable happening to hold a small value at runtime. The dedicated lesson on constant assignment will further distinguish `final` constant variables and their scope of application.
+## 4. Casting at the right time in expressions
 
-Kiểu toán hạng quyết định kiểu phép toán **trước** khi kết quả được gán. Vì vậy `long wrong = (long) (50_000 * 50_000);` vẫn nhận tích `int` đã tràn, còn `long right = (long) 50_000 * 50_000;` thực hiện nhân ở `long`, nhận `2500000000`. Cast sau phép tính không khôi phục được bit đã mất. Với phép chia, `(double) 5 / 2` cho `2.5`, nhưng `(double) (5 / 2)` chỉ cho `2.0`.
+Operand types determine the operation type **before** the result is assigned. Therefore, `long wrong = (long) (50_000 * 50_000);` still receives the overflowed `int` product, whereas `long right = (long) 50_000 * 50_000;` performs multiplication in `long`, yielding `2500000000`. Casting after the calculation cannot recover lost bits. With division, `(double) 5 / 2` gives `2.5`, while `(double) (5 / 2)` only gives `2.0`.
 
-## 5. Cast tham chiếu: kiểm tra đối tượng thực
+## 5. Reference casting: checking the actual object
 
-`Object o = "Java";` có thể được downcast về `String` vì đối tượng thực là chuỗi. Nếu cùng tham chiếu ấy được cast sang `Integer`, chương trình ném `ClassCastException`. Cast **không tạo đối tượng mới** và không phải chuyển đổi nội dung thành chuỗi.
+`Object o = "Java";` can be downcast to `String` because the actual object is a string. If that same reference is cast to `Integer`, the program throws `ClassCastException`. Casting **does not create a new object** and does not convert the content into a string.
 
 ~~~java
 Object o = "Java";
@@ -169,32 +169,32 @@ if (o instanceof String text) {
 }
 ~~~
 
-Pattern matching `instanceof` có trong Java 17; biểu thức `null instanceof String` là `false`, còn cast một tham chiếu `null` hợp lệ thì vẫn ra `null`.
+Pattern matching `instanceof` is available in Java 17; the expression `null instanceof String` is `false`, while a valid cast of a `null` reference still produces `null`.
 
-## 6. Những cơ chế khác với numeric cast
+## 6. Mechanisms distinct from numeric casting
 
-`Integer boxed = 42; int raw = boxed;` lần lượt dùng boxing và unboxing; nếu wrapper là `null`, unboxing ném `NullPointerException`. `Integer.parseInt("42")` phân tích chuỗi, không phải cast tham chiếu. Java cũng không hỗ trợ `(int) true`; nếu cần mã số từ boolean phải viết chính sách riêng như `flag ? 1 : 0`.
-## 7. Bài tập tự kiểm tra
+`Integer boxed = 42; int raw = boxed;` use boxing and unboxing respectively; if the wrapper is `null`, unboxing throws `NullPointerException`. `Integer.parseInt("42")` parses a string, not a reference cast. Java also does not support `(int) true`; if a numeric code from a boolean is needed, you must write an explicit rule such as `flag ? 1 : 0`.
+## 7. Self-check exercises
 
-1. **Ngầm định hay tường minh?** `long x = 17;` và `byte y = (byte) 130;` thuộc loại nào?  
-   *Đáp án:* Câu đầu widening implicit, câu sau narrowing explicit và `y = -126`.
-2. **Khi nào mất chính xác?** `double d = 9_007_199_254_740_993L;` có giữ đúng mọi đơn vị không?  
-   *Đáp án:* Không; `double` không thể biểu diễn chính xác số nguyên `2^53 + 1`.
-3. **Kiểu trung gian:** Với `int a = 50_000, b = 50_000;`, cách nào đúng cho tích `long`: `(long)(a*b)` hay `(long)a*b`?  
-   *Đáp án:* `(long) a * b`, vì cast xảy ra trước phép nhân.
-4. **Phép chia:** `double z = 7 / 2;` và `double w = (double) 7 / 2;` lần lượt bằng gì?  
-   *Đáp án:* `3.0` và `3.5`.
-5. **Reference cast:** `Object o = "Hi"; String a = (String) o;` có hợp lệ không? Còn `Integer b = (Integer) o;`?  
-   *Đáp án:* Cast về String thành công; cast về Integer ném `ClassCastException` khi chạy.
+1. **Implicit or explicit?** What category do `long x = 17;` and `byte y = (byte) 130;` belong to?  
+   *Answer:* The first is implicit widening, the second is explicit narrowing and `y = -126`.
+2. **When is precision lost?** Does `double d = 9_007_199_254_740_993L;` preserve every unit accurately?  
+   *Answer:* No; `double` cannot accurately represent the integer `2^53 + 1`.
+3. **Intermediate type:** Given `int a = 50_000, b = 50_000;`, which way is correct for a `long` product: `(long)(a*b)` or `(long)a*b`?  
+   *Answer:* `(long) a * b`, because the cast happens before the multiplication.
+4. **Division:** What do `double z = 7 / 2;` and `double w = (double) 7 / 2;` equal respectively?  
+   *Answer:* `3.0` and `3.5`.
+5. **Reference cast:** Is `Object o = "Hi"; String a = (String) o;` valid? What about `Integer b = (Integer) o;`?  
+   *Answer:* Casting to String succeeds; casting to Integer throws `ClassCastException` at runtime.
 
-## Checklist trước khi chuyển kiểu
+## Pre-conversion checklist
 
-- [ ] Phân biệt **implicit widening** và **explicit narrowing**.
-- [ ] Kiểm tra **miền giá trị và độ chính xác**, không chỉ kích thước kiểu.
-- [ ] Xác định kiểu **từng biểu thức trung gian** trước khi cast/gán kết quả.
-- [ ] Biết `byte`/`short`/`char` thường được nâng lên `int` trong phép số học.
-- [ ] Biết cast số thực sang số nguyên cắt về 0 và xử lý các giá trị ngoài miền theo quy tắc Java.
-- [ ] Phân biệt reference cast với tạo đối tượng, parsing và boxing.
-- [ ] Không mặc định downcast luôn an toàn; cân nhắc `instanceof`.
+- [ ] Distinguish **implicit widening** and **explicit narrowing**.
+- [ ] Check **value range and precision**, not just type size.
+- [ ] Determine the type of **each intermediate expression** before casting/assigning the result.
+- [ ] Know that `byte`/`short`/`char` are usually promoted to `int` in arithmetic operations.
+- [ ] Know that casting floating-point to integer truncates toward 0 and handles out-of-range values according to Java rules.
+- [ ] Distinguish reference casting from object creation, parsing, and boxing.
+- [ ] Do not assume a downcast is always safe; consider `instanceof`.
 
-**Kết luận:** Java thực hiện nhiều chuyển kiểu **ngầm định** khi ngữ cảnh cho phép, nhưng ép kiểu `(TargetType)` là **yêu cầu chuyển đổi**, không phải lời cam kết giữ nguyên giá trị hoặc thành công ở runtime. Hãy xem xét miền giá trị, loại biểu thức và kiểu động của đối tượng trước khi chọn cách chuyển.
+**Conclusion:** Java performs many **implicit** conversions when the context permits, but a cast `(TargetType)` is a **conversion request**, not a promise of preserving the value or succeeding at runtime. Consider the value range, expression kind, and dynamic type of the object before choosing how to convert.

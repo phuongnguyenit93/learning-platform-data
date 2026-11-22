@@ -1,19 +1,19 @@
-# Explicit named module từ module-info.java
+# Explicit Named Modules from module-info.java
 
-Trong Java Platform Module System (JPMS), explicit named module là module có tên và khai báo module descriptor tường minh trong file **module-info.java**. Descriptor này xác định danh tính module, dependency mà module cần đọc, package nào được công bố và các service mà module sử dụng hoặc cung cấp.
+In the Java Platform Module System (JPMS), an explicit named module is a module that has a name and declares an explicit module descriptor in the **module-info.java** file. This descriptor defines the module's identity, the dependencies the module needs to read, which packages are published, and the services the module uses or provides.
 
-Khi compiler xử lý module-info.java, nó kiểm tra cấu trúc khai báo và tạo ra file **module-info.class** trong kết quả biên dịch. Khi đóng gói module thành JAR modular, file descriptor nằm ở gốc JAR. Nhờ descriptor đó, Java có thể nhận diện module theo tên đã khai báo và áp dụng quy tắc phân giải module, đọc module và encapsulation của JPMS.
+When the compiler processes module-info.java, it validates the declaration structure and produces a **module-info.class** file in the compiled output. When packaging the module into a modular JAR, the descriptor file resides at the root of the JAR. Thanks to that descriptor, Java can identify the module by its declared name and apply JPMS module resolution, readability, and encapsulation rules.
 
-Bài học này tập trung vào cách tạo explicit named module, cấu trúc descriptor, quy trình biên dịch và đóng gói, cách Java nhận diện module trên module path, cùng các lỗi thường gặp khi chuyển một thư viện hoặc ứng dụng từ classpath sang module path.
+This lesson focuses on how to create an explicit named module, the descriptor structure, the compilation and packaging workflow, how Java identifies modules on the module path, as well as common errors when migrating a library or application from the classpath to the module path.
 
-## 1. Explicit named module là gì?
+## 1. What is an explicit named module?
 
-Một explicit named module có hai đặc điểm:
+An explicit named module has two characteristics:
 
-1. Có tên module ổn định được khai báo trong module descriptor.
-2. Có descriptor được biên dịch thành **module-info.class** và đặt ở gốc của module đã biên dịch hoặc gốc JAR modular.
+1. Has a stable module name declared in the module descriptor.
+2. Has a descriptor compiled into **module-info.class** and placed at the root of the compiled module or the root of the modular JAR.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.example.inventory {
@@ -21,46 +21,46 @@ module com.example.inventory {
 }
 ~~~
 
-Tên module là **com.example.inventory**. Package **com.example.inventory.api** được export để module khác có thể sử dụng các kiểu public trong package đó khi có quan hệ đọc phù hợp.
+The module name is **com.example.inventory**. The package **com.example.inventory.api** is exported so other modules can use public types in that package when an appropriate readability relationship exists.
 
-JPMS còn có hai trường hợp thường được đặt cạnh explicit named module:
+JPMS also has two other cases often placed alongside explicit named modules:
 
-| Loại | Cách nhận diện | Đặc điểm |
+| Type | How it is identified | Characteristics |
 | --- | --- | --- |
-| Explicit named module | Có module-info.class với descriptor module tường minh | Tên, dependency và package access được khai báo rõ |
-| Automatic module | JAR không có module descriptor nhưng được đặt trên module path | Tên module được suy ra từ Automatic-Module-Name hoặc tên JAR; có hành vi tương thích khi chuyển đổi |
-| Unnamed module | Class và JAR nằm trên classpath | Không có tên module tường minh; mã nguồn truyền thống tiếp tục chạy theo mô hình classpath |
+| Explicit named module | Has module-info.class with an explicit module descriptor | Name, dependencies, and package access are clearly declared |
+| Automatic module | JAR without a module descriptor but placed on the module path | Module name is derived from Automatic-Module-Name or the JAR name; has compatibility behavior during migration |
+| Unnamed module | Classes and JARs on the classpath | Has no explicit module name; traditional source code continues running under the classpath model |
 
-Explicit named module là cách mô tả module đầy đủ nhất. Tên module không cần suy ra từ tên file JAR, và các quy tắc phụ thuộc cùng quyền truy cập được lưu trong descriptor.
+An explicit named module is the most complete way to describe a module. The module name does not need to be inferred from the JAR file name, and dependency rules along with access permissions are stored in the descriptor.
 
-## 2. Vai trò của module-info.java
+## 2. The role of module-info.java
 
-File **module-info.java** là module declaration. Nó nằm ở gốc source của module, cùng cấp với cây package, không nằm bên trong một package Java thông thường.
+The **module-info.java** file is the module declaration. It resides at the root of the module's source, at the same level as the package tree, not inside a regular Java package.
 
-Cấu trúc tối thiểu:
+Minimal structure:
 
 ~~~java
 module com.example.inventory {
 }
 ~~~
 
-Đây là một named module có tên **com.example.inventory**. Dù body đang rỗng, compiler vẫn tạo descriptor cho module. Mọi module thông thường đều có dependency ngầm định tới module nền tảng **java.base**, vì vậy không cần viết **requires java.base** trong descriptor.
+This is a named module named **com.example.inventory**. Even though the body is empty, the compiler still generates a descriptor for the module. Every normal module has an implicit dependency on the platform module **java.base**, so there is no need to write **requires java.base** in the descriptor.
 
-Một descriptor có thể khai báo các directive sau:
+A descriptor can declare the following directives:
 
-| Directive | Vai trò |
+| Directive | Role |
 | --- | --- |
-| requires | Khai báo module dependency mà module hiện tại cần đọc |
-| requires transitive | Truyền khả năng đọc một dependency tới các module phụ thuộc vào module hiện tại |
-| requires static | Khai báo dependency cần khi biên dịch nhưng có thể tùy chọn ở runtime |
-| exports | Công bố package cho các module đọc module hiện tại |
-| exports ... to | Chỉ công bố package cho các module được liệt kê |
-| opens | Mở package cho deep reflection |
-| opens ... to | Chỉ mở package cho một số module cụ thể |
-| uses | Khai báo service mà module cần tìm implementation |
-| provides ... with | Khai báo implementation cung cấp cho một service |
+| requires | Declares a module dependency that the current module needs to read |
+| requires transitive | Propagates readability of a dependency to modules that depend on the current module |
+| requires static | Declares a dependency required at compile time but optional at runtime |
+| exports | Publishes a package to modules that read the current module |
+| exports ... to | Publishes a package only to the listed modules |
+| opens | Opens a package for deep reflection |
+| opens ... to | Opens a package only to specific modules |
+| uses | Declares a service for which the module needs to find implementations |
+| provides ... with | Declares an implementation provided for a service |
 
-Ví dụ descriptor kết hợp dependency và API:
+Example of a descriptor combining dependencies and API:
 
 ~~~java
 module com.example.inventory {
@@ -70,13 +70,13 @@ module com.example.inventory {
 }
 ~~~
 
-Module này đọc module **java.logging** và công bố package API. Các package khác của module vẫn được giữ đóng với module bên ngoài nếu không có directive export tương ứng.
+This module reads the **java.logging** module and publishes the API package. Other packages in the module remain closed to external modules unless a corresponding export directive is present.
 
-Directive **requires** và **exports** giải quyết hai việc riêng: requires thiết lập khả năng đọc module; exports thiết lập quyền truy cập package. Việc một module đọc được dependency không có nghĩa mọi package của dependency đều được công bố.
+The **requires** and **exports** directives solve two separate concerns: requires establishes module readability; exports establishes package accessibility. The fact that a module can read a dependency does not mean all packages of that dependency are published.
 
-## 3. Tổ chức source tree cho explicit named module
+## 3. Organizing the source tree for an explicit named module
 
-Một source tree modular thường đặt mỗi module trong một thư mục riêng có tên khớp với tên module:
+A modular source tree usually places each module in a separate directory whose name matches the module name:
 
 ~~~text
 inventory-project/
@@ -91,9 +91,9 @@ inventory-project/
                         └── Product.java
 ~~~
 
-File module-info.java nằm trực tiếp trong thư mục **com.example.inventory/**. Các class Java nằm trong các package bên dưới.
+The module-info.java file sits directly inside the **com.example.inventory/** directory. Java classes sit inside the packages underneath.
 
-Ví dụ descriptor:
+Descriptor example:
 
 ~~~java
 // src/com.example.inventory/module-info.java
@@ -102,7 +102,7 @@ module com.example.inventory {
 }
 ~~~
 
-Class API:
+API class:
 
 ~~~java
 // src/com.example.inventory/com/example/inventory/api/Product.java
@@ -121,7 +121,7 @@ public final class Product {
 }
 ~~~
 
-Class khởi chạy:
+Launcher class:
 
 ~~~java
 // src/com.example.inventory/com/example/inventory/Main.java
@@ -137,13 +137,13 @@ public class Main {
 }
 ~~~
 
-Class **Main** không cần nằm trong package được export để Java launcher khởi chạy module đó. Export phục vụ truy cập từ module khác; class main được chọn trực tiếp bằng tên module và tên class trong lệnh chạy.
+The **Main** class does not need to be in an exported package for the Java launcher to run that module. Exporting is for access from other modules; the main class is selected directly by module name and class name in the run command.
 
-Tên thư mục module trong source tree là một phần của quy ước tổ chức source khi dùng **--module-source-path**. Tên module có thẩm quyền vẫn là tên trong module-info.java. Giữ tên thư mục và tên module nhất quán giúp dự án dễ đọc và giảm nhầm lẫn khi build.
+The module directory name in the source tree is part of the source layout convention when using **--module-source-path**. The authoritative module name remains the name in module-info.java. Keeping the directory name and module name consistent makes the project easier to read and reduces confusion during builds.
 
-## 4. Quy tắc đặt tên module
+## 4. Module naming conventions
 
-Tên module thường dùng quy ước đảo ngược tên miền, tương tự tên package:
+Module names usually follow the reverse domain name convention, similar to package names:
 
 ~~~text
 com.example.inventory
@@ -151,16 +151,16 @@ org.example.reporting
 vn.company.learning.module
 ~~~
 
-Nên chọn tên:
+You should choose a name that is:
 
-- Ổn định trong suốt vòng đời module.
-- Có tính duy nhất trong hệ thống module mà ứng dụng sử dụng.
-- Dễ liên hệ với tổ chức hoặc sản phẩm sở hữu module.
-- Không phụ thuộc vào tên phiên bản hoặc tên build artifact.
+- Stable throughout the module's lifecycle.
+- Unique within the module system used by the application.
+- Easily associated with the organization or product that owns the module.
+- Independent of version names or build artifact names.
 
-Tên module phân biệt chữ hoa và chữ thường. Các thành phần tên được ngăn cách bằng dấu chấm và tuân theo quy tắc identifier của Java. Không dùng tên package hoặc tên JAR làm tên module một cách tùy tiện; hãy chọn tên rõ nghĩa rồi giữ nguyên trong descriptor và các directive **requires** của consumer.
+Module names are case-sensitive. Name components are separated by dots and follow Java identifier rules. Do not arbitrarily use a package name or JAR name as the module name; choose a meaningful name and keep it consistent across the descriptor and consumer **requires** directives.
 
-Tên file JAR không quyết định danh tính của explicit named module. Ví dụ, file **inventory-release.jar** vẫn có thể chứa module tên **com.example.inventory**. Khi một module khác khai báo dependency, nó dùng tên trong descriptor:
+The JAR file name does not determine the identity of an explicit named module. For example, the file **inventory-release.jar** can still contain a module named **com.example.inventory**. When another module declares a dependency, it uses the name in the descriptor:
 
 ~~~java
 module com.example.checkout {
@@ -168,19 +168,19 @@ module com.example.checkout {
 }
 ~~~
 
-Để tránh nhầm lẫn trong build và vận hành, nên đặt tên JAR gần với tên module, nhưng tên module trong descriptor mới là thông tin nền tảng dùng để phân giải.
+To avoid confusion in builds and operations, it is good practice to name the JAR close to the module name, but the module name in the descriptor is the fundamental information used for resolution.
 
-## 5. Compiler biến module-info.java thành descriptor nhị phân
+## 5. How the compiler turns module-info.java into a binary descriptor
 
-Compiler Java đọc module-info.java cùng các source file trong module. Kết quả biên dịch có file **module-info.class** ở gốc thư mục output của module.
+The Java compiler reads module-info.java along with the source files in the module. The compilation output contains **module-info.class** at the root of the module's output directory.
 
-Ví dụ biên dịch module inventory:
+Example compiling the inventory module:
 
 ~~~bash
 javac -d out --module-source-path src -m com.example.inventory
 ~~~
 
-Sau khi biên dịch, cấu trúc output có dạng:
+After compilation, the output structure looks like:
 
 ~~~text
 out/
@@ -194,9 +194,9 @@ out/
                     └── Product.class
 ~~~
 
-File module-info.class chứa thông tin descriptor ở dạng bytecode metadata. Nó không phải class Java thông thường mà ứng dụng tạo instance hoặc gọi method. Java compiler, công cụ JAR và module system sử dụng metadata này để nhận diện module.
+The module-info.class file contains the descriptor information as bytecode metadata. It is not an ordinary Java class that the application instantiates or invokes methods on. The Java compiler, JAR tool, and module system use this metadata to identify the module.
 
-Có thể xem cấu trúc output bằng lệnh liệt kê file:
+You can view the output structure with a file listing command:
 
 ~~~text
 out/com.example.inventory/module-info.class
@@ -204,32 +204,32 @@ out/com.example.inventory/com/example/inventory/Main.class
 out/com.example.inventory/com/example/inventory/api/Product.class
 ~~~
 
-Nếu output không có module-info.class ở gốc module, hãy kiểm tra vị trí module-info.java trong source tree và cách gọi javac. Đặt file descriptor bên trong package, chẳng hạn **src/com.example.inventory/com/example/inventory/module-info.java**, là sai cấu trúc.
+If the output does not have module-info.class at the module root, check the location of module-info.java in the source tree and how javac was invoked. Placing the descriptor file inside a package, such as **src/com.example.inventory/com/example/inventory/module-info.java**, is an incorrect layout.
 
-## 6. Đóng gói thành modular JAR
+## 6. Packaging into a modular JAR
 
-Một explicit named module thường được phân phối dưới dạng modular JAR. Khi đóng gói, cần giữ module-info.class ở gốc JAR cùng các class đã biên dịch.
+An explicit named module is usually distributed as a modular JAR. When packaging, keep module-info.class at the root of the JAR alongside the compiled classes.
 
-Tạo thư mục chứa JAR:
+Create a directory for JARs:
 
 ~~~bash
 mkdir -p mods
 ~~~
 
-Đóng gói module đã biên dịch:
+Package the compiled module:
 
 ~~~bash
 jar --create --file mods/com.example.inventory.jar \
     -C out/com.example.inventory .
 ~~~
 
-Có thể liệt kê nội dung JAR:
+You can list the JAR contents:
 
 ~~~bash
 jar --list --file mods/com.example.inventory.jar
 ~~~
 
-Kết quả cần có descriptor ở gốc:
+The output should have the descriptor at the root:
 
 ~~~text
 META-INF/
@@ -238,45 +238,45 @@ com/example/inventory/Main.class
 com/example/inventory/api/Product.class
 ~~~
 
-Các entry cụ thể có thể khác theo nội dung module, nhưng **module-info.class** phải nằm ở gốc JAR đối với modular JAR thông thường. Nếu descriptor bị đặt sai vị trí hoặc không được đưa vào JAR, công cụ module sẽ không nhận artifact đó như explicit named module theo cách dự định.
+Specific entries may vary depending on module contents, but **module-info.class** must reside at the root of the JAR for a standard modular JAR. If the descriptor is placed in the wrong location or omitted from the JAR, module tools will not recognize that artifact as an explicit named module as intended.
 
-Để xác nhận tên module và descriptor:
+To verify the module name and descriptor:
 
 ~~~bash
 jar --describe-module --file mods/com.example.inventory.jar
 ~~~
 
-Lệnh này hiển thị tên module, các package và các directive được ghi trong descriptor. Đây là bước kiểm tra hữu ích sau khi build hoặc khi nhận một JAR từ nhóm khác.
+This command displays the module name, packages, and directives recorded in the descriptor. This is a useful verification step after building or when receiving a JAR from another team.
 
-## 7. Đặt explicit named module trên module path
+## 7. Placing an explicit named module on the module path
 
-Module path là nơi Java tìm các module để phân giải. Nó có thể là một thư mục chứa modular JAR hoặc các thư mục module đã biên dịch theo cấu trúc exploded module.
+The module path is where Java looks for modules to resolve. It can be a directory containing modular JARs or compiled module directories arranged in an exploded module layout.
 
-Chạy module từ thư mục output:
+Run the module from the output directory:
 
 ~~~bash
 java --module-path out \
      -m com.example.inventory/com.example.inventory.Main
 ~~~
 
-Chạy module từ thư mục chứa JAR:
+Run the module from the directory containing the JAR:
 
 ~~~bash
 java --module-path mods \
      -m com.example.inventory/com.example.inventory.Main
 ~~~
 
-Cú pháp **-m module/class** xác định module và class có phương thức main. Tên module phải khớp với descriptor, còn tên class phải là tên đầy đủ của class chứa main.
+The **-m module/class** syntax specifies the module and the class containing the main method. The module name must match the descriptor, and the class name must be the fully qualified name of the class containing main.
 
-Nếu muốn chỉ định main class qua tên module mà không viết lại tên class ở lệnh chạy, có thể cấu hình Main-Class trong manifest của modular JAR và sử dụng cách khởi chạy phù hợp với manifest. Với ví dụ học tập, ghi rõ **module/class** giúp nhìn thấy chính xác module và điểm bắt đầu chương trình.
+If you want to specify the main class via the module name without repeating the class name in the run command, you can configure Main-Class in the modular JAR's manifest and use a launch method compatible with the manifest. For learning examples, explicitly writing **module/class** helps clearly see the module and program entry point.
 
-Khi dùng **--module-path**, Java thực hiện module resolution. Module gốc được chọn cùng các dependency mà descriptor yêu cầu sẽ tạo thành cấu hình chạy. Không phải mọi JAR nằm trong thư mục module path đều tự động trở thành module đang chạy; module system phân giải từ các module gốc và dependency liên quan.
+When using **--module-path**, Java performs module resolution. The selected root module along with the dependencies required by its descriptor form the runtime configuration. Not every JAR located in the module path directory automatically becomes an active module at runtime; the module system resolves from the root modules and their related dependencies.
 
-## 8. Explicit named module và encapsulation
+## 8. Explicit named modules and encapsulation
 
-Một trong những giá trị chính của explicit named module là kiểm soát package được module khác truy cập.
+One of the primary benefits of an explicit named module is controlling which packages other modules can access.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.example.inventory {
@@ -284,7 +284,7 @@ module com.example.inventory {
 }
 ~~~
 
-Module khác có thể khai báo:
+Another module can declare:
 
 ~~~java
 module com.example.checkout {
@@ -292,18 +292,18 @@ module com.example.checkout {
 }
 ~~~
 
-Module checkout có thể sử dụng public type trong package **com.example.inventory.api**. Package **com.example.inventory.internal** không được export nên không trở thành API thông thường cho module checkout.
+The checkout module can use public types in the **com.example.inventory.api** package. The **com.example.inventory.internal** package is not exported, so it does not become regular API for the checkout module.
 
-Một vài quy tắc quan trọng:
+A few important rules:
 
-- Export được khai báo ở cấp package, không phải từng class hoặc method.
-- Chỉ kiểu và thành viên public có khả năng được truy cập theo quy tắc Java thông thường; modifier của class và member vẫn có hiệu lực.
-- Export package cha không tự export package con.
-- **opens** phục vụ deep reflection, khác với **exports** phục vụ truy cập API thông thường.
-- **exports ... to** giới hạn consumer được truy cập package.
-- Module không khai báo export vẫn có thể sử dụng package nội bộ của chính nó.
+- Exports are declared at the package level, not per individual class or method.
+- Only public types and members can be accessed according to standard Java rules; class and member modifiers still take effect.
+- Exporting a parent package does not automatically export subpackages.
+- **opens** serves deep reflection, unlike **exports** which serves normal API access.
+- **exports ... to** restricts which consumers can access the package.
+- A module that declares no exports can still use its own internal packages.
 
-Ví dụ mở package cho framework persistence:
+Example of opening a package to a persistence framework:
 
 ~~~java
 module com.example.inventory {
@@ -314,29 +314,29 @@ module com.example.inventory {
 }
 ~~~
 
-Trong descriptor này, package API được công bố cho truy cập thông thường, còn package model chỉ được mở cho module persistence để framework có thể thực hiện deep reflection theo quy tắc JPMS.
+In this descriptor, the API package is published for normal access, while the model package is opened only to the persistence module so the framework can perform deep reflection under JPMS rules.
 
-## 9. Phân biệt explicit, automatic và unnamed module khi chuyển đổi
+## 9. Distinguishing explicit, automatic, and unnamed modules during migration
 
-Khi di chuyển một ứng dụng từ classpath sang module path, cần xác định loại module của từng dependency.
+When migrating an application from the classpath to the module path, it is necessary to determine the module type of each dependency.
 
 **Explicit named module**
 
-JAR có module-info.class hợp lệ. Tên module, requires, exports, opens, uses và provides được khai báo rõ. Đây là dạng nên hướng tới khi module đã được thiết kế và kiểm soát.
+A JAR with a valid module-info.class. The module name, requires, exports, opens, uses, and provides are clearly declared. This is the form to aim for once a module is designed and controlled.
 
 **Automatic module**
 
-JAR không có module-info.class nhưng được đặt trên module path. Tên module có thể được xác định từ thuộc tính manifest **Automatic-Module-Name**; nếu thuộc tính này không có, Java suy ra tên từ tên file JAR theo quy tắc của module system. Automatic module thường đọc các named module khác và export các package của nó để hỗ trợ chuyển đổi thư viện cũ. Vì vậy, nó không có ranh giới encapsulation được thiết kế tường minh như explicit module.
+A JAR without module-info.class but placed on the module path. The module name can be determined from the **Automatic-Module-Name** manifest attribute; if this attribute is absent, Java derives the name from the JAR file name according to module system rules. An automatic module typically reads other named modules and exports its packages to assist migrating legacy libraries. Therefore, it lacks explicitly designed encapsulation boundaries like an explicit module.
 
 **Unnamed module**
 
-Các class trên classpath thuộc unnamed module của class loader tương ứng. Nó không có tên module khai báo trong module-info.java. Mã nguồn truyền thống có thể tiếp tục chạy trên classpath trong khi các thành phần khác của ứng dụng đã modular hóa, nhưng cần hiểu rõ các quy tắc tương tác giữa named module và unnamed module.
+Classes on the classpath belong to the unnamed module of their corresponding class loader. It has no module name declared in module-info.java. Traditional source code can continue running on the classpath while other parts of the application have been modularized, though it is necessary to understand the interaction rules between named modules and unnamed modules.
 
-Thuộc tính **Automatic-Module-Name** trong manifest giúp đặt tên ổn định cho automatic module; nó không thay thế module-info.java và không biến JAR thành explicit named module. Muốn có explicit descriptor, cần tạo module-info.java, biên dịch và đóng gói lại JAR.
+The **Automatic-Module-Name** attribute in the manifest helps assign a stable name to an automatic module; it does not replace module-info.java and does not turn the JAR into an explicit named module. To have an explicit descriptor, you need to create module-info.java, compile, and repackage the JAR.
 
-## 10. Module mở và open module
+## 10. Open packages and open modules
 
-Ngoài dạng khai báo thông thường:
+In addition to the regular declaration form:
 
 ~~~java
 module com.example.inventory {
@@ -344,7 +344,7 @@ module com.example.inventory {
 }
 ~~~
 
-Java cho phép khai báo một **open module**:
+Java allows declaring an **open module**:
 
 ~~~java
 open module com.example.inventory {
@@ -354,85 +354,85 @@ open module com.example.inventory {
 }
 ~~~
 
-Open module mở tất cả package của module cho deep reflection ở runtime. Có thể dùng khi framework cần truy cập sâu vào nhiều package, nhưng phạm vi mở rộng hơn so với việc chỉ khai báo một vài directive **opens** hoặc **opens ... to**.
+An open module opens all packages of the module for deep reflection at runtime. It can be used when frameworks need deep access into many packages, though its scope is broader than declaring a few **opens** or **opens ... to** directives.
 
-Một open module vẫn là explicit named module: nó vẫn có tên và module descriptor. Từ khóa **open** thay đổi chính sách reflection của package, không loại bỏ dependency, exports hoặc module identity. Khi chỉ một số package cần reflection, nên cân nhắc mở đúng package và giới hạn module nhận quyền.
+An open module is still an explicit named module: it still has a name and a module descriptor. The **open** keyword changes the package reflection policy; it does not remove dependencies, exports, or module identity. When only certain packages need reflection, consider opening just the necessary packages and restricting which modules receive access.
 
-## 11. Kiểm tra module descriptor và dependency
+## 11. Inspecting module descriptors and dependencies
 
-Một số công cụ JDK giúp kiểm tra artifact sau khi biên dịch và đóng gói:
+Several JDK tools help inspect artifacts after compilation and packaging:
 
 ~~~bash
-# Hiển thị descriptor của modular JAR
+# Display the descriptor of a modular JAR
 jar --describe-module --file mods/com.example.inventory.jar
 ~~~
 
 ~~~bash
-# Liệt kê nội dung JAR để xác nhận module-info.class
+# List JAR contents to verify module-info.class
 jar --list --file mods/com.example.inventory.jar
 ~~~
 
 ~~~bash
-# Hiển thị module resolution khi chạy
+# Show module resolution when running
 java --show-module-resolution \
      --module-path mods \
      -m com.example.inventory/com.example.inventory.Main
 ~~~
 
 ~~~bash
-# Phân tích dependency module
+# Analyze module dependencies
 jdeps --module-path mods --module com.example.inventory
 ~~~
 
-Khi đọc kết quả, hãy kiểm tra:
+When reading the output, check:
 
-1. Tên module trong descriptor có đúng tên mà consumer dùng trong requires không?
-2. JAR có chứa module-info.class ở vị trí đúng không?
-3. Các dependency được khai báo có thể tìm thấy trên module path không?
-4. Package cần chia sẻ có được export tới module tiêu thụ không?
-5. Runtime đang dùng đúng artifact vừa được build hay đang lấy một bản JAR cũ?
+1. Does the module name in the descriptor match the name the consumer uses in requires?
+2. Does the JAR contain module-info.class in the right location?
+3. Can the declared dependencies be found on the module path?
+4. Are the packages that need to be shared exported to the consuming module?
+5. Is the runtime using the freshly built artifact or picking up an old JAR?
 
-Nếu build tool tạo JAR, hãy kiểm tra cấu hình đóng gói để chắc chắn module-info.class được giữ lại. Một bản JAR được tạo từ nhầm thư mục output có thể chứa class nhưng thiếu descriptor, khiến hành vi trên module path khác với mong đợi.
+If a build tool creates the JAR, check the packaging configuration to make sure module-info.class is retained. A JAR built from the wrong output directory might contain classes but lack the descriptor, causing behavior on the module path to differ from expectations.
 
-## 12. Lỗi thường gặp
+## 12. Common errors
 
 **module not found**
 
-Tên module trong requires không khớp với tên descriptor hoặc module dependency không nằm trong module path. Dùng jar --describe-module để kiểm tra tên thực tế của JAR và xem lại vị trí module path.
+The module name in requires does not match the descriptor name, or the module dependency is not on the module path. Use jar --describe-module to check the actual name of the JAR and review the module path location.
 
-**module-info.java không được nhận diện**
+**module-info.java is not recognized**
 
-File descriptor bị đặt trong package, sai tên file hoặc lệnh javac không biên dịch theo cấu trúc module. Đặt module-info.java ở gốc source của module và dùng tùy chọn biên dịch modular phù hợp.
+The descriptor file was placed inside a package, has the wrong file name, or the javac command is not compiling with a modular structure. Place module-info.java at the module's source root and use appropriate modular compilation options.
 
-**JAR có class nhưng không được nhận diện là explicit module**
+**JAR has classes but is not recognized as an explicit module**
 
-JAR có thể đã bị đóng gói thiếu module-info.class. Liệt kê nội dung JAR, kiểm tra descriptor trong thư mục output và tạo lại artifact từ đúng thư mục module.
+The JAR may have been packaged without module-info.class. List the JAR contents, inspect the descriptor in the output directory, and recreate the artifact from the correct module directory.
 
 **Package is not visible**
 
-Module tiêu thụ có thể chưa requires module sở hữu package hoặc package chưa được export. Kiểm tra cả hai điều kiện; chỉ có JAR trên module path không tự cấp quyền truy cập package.
+The consuming module may not have a requires directive for the module owning the package, or the package has not been exported. Check both conditions; merely having the JAR on the module path does not grant package access.
 
-**Chạy được trên classpath nhưng lỗi trên module path**
+**Works on the classpath but fails on the module path**
 
-Khi chuyển sang module path, JPMS áp dụng module graph và encapsulation. Hãy xác định dependency nào chưa khai báo, package nào chưa export hoặc framework nào cần opens. Không nên khắc phục mọi lỗi bằng cách mở toàn bộ package.
+When moving to the module path, JPMS enforces the module graph and encapsulation. Identify which dependencies are undeclared, which packages are unexported, or which frameworks need opens. Do not resolve every error by opening all packages.
 
-**Tên JAR và tên module khác nhau**
+**JAR name and module name differ**
 
-Tên JAR không quyết định tên explicit module. Dùng descriptor làm căn cứ và giữ tên module ổn định trong các directive requires.
+The JAR name does not determine the explicit module name. Use the descriptor as the source of truth and keep the module name stable in requires directives.
 
-## 13. Quy trình tạo explicit named module hoàn chỉnh
+## 13. Complete workflow for creating an explicit named module
 
-Khi bắt đầu một module mới, có thể đi theo trình tự:
+When starting a new module, you can follow this sequence:
 
-1. Chọn tên module ổn định, ví dụ **com.example.inventory**.
-2. Tạo thư mục source cho module và đặt **module-info.java** ở gốc.
-3. Khai báo dependency bằng requires.
-4. Chỉ export package thực sự là API công khai.
-5. Chỉ opens package khi framework cần deep reflection.
-6. Biên dịch bằng javac theo module source path.
-7. Kiểm tra output có module-info.class ở gốc module.
-8. Đóng gói JAR và kiểm tra bằng jar --describe-module.
-9. Đưa JAR lên module path và chạy bằng cú pháp module/class.
-10. Kiểm tra module resolution và dependency trong môi trường triển khai.
+1. Choose a stable module name, for example **com.example.inventory**.
+2. Create the module source directory and place **module-info.java** at the root.
+3. Declare dependencies using requires.
+4. Export only packages that are truly public API.
+5. Only use opens on packages when frameworks need deep reflection.
+6. Compile with javac using the module source path.
+7. Verify the output has module-info.class at the module root.
+8. Package the JAR and inspect it with jar --describe-module.
+9. Place the JAR on the module path and run using the module/class syntax.
+10. Verify module resolution and dependencies in the deployment environment.
 
-Khi đã hoàn thành, bạn có thể giải thích được explicit named module được tạo từ module-info.java như thế nào, descriptor được lưu ở đâu, tên module được dùng trong requires ra sao và vì sao một modular JAR có thể được phân giải trên module path. Đây là nền tảng để thiết kế các module Java có dependency rõ ràng, API công khai có kiểm soát và cấu trúc dễ bảo trì.
+Once complete, you can explain how an explicit named module is created from module-info.java, where the descriptor is stored, how the module name is used in requires, and why a modular JAR can be resolved on the module path. This is the foundation for designing Java modules with clear dependencies, controlled public APIs, and maintainable structure.

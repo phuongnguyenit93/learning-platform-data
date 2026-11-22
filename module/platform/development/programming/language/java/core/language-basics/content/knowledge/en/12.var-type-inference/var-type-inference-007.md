@@ -1,56 +1,56 @@
-# Kiểu suy ra từ literal và các phép tính số với `var` trong Java
+# Types Inferred from Literals and Numeric Operations with `var` in Java
 
-> **Java core — language-basics / Suy luận với var**  
-> **Môi trường:** JDK 17+; một tệp Java độc lập, chỉ dùng thư viện chuẩn.  
-> **Mục tiêu:** Dự đoán chính xác **kiểu tĩnh** được suy ra cho `var` từ literal, phép toán số học, phép ép kiểu và biểu thức điều kiện; tránh lỗi chia nguyên, tràn số trước khi mở rộng và hiểu nhầm rằng `var` tự chọn kiểu nhỏ nhất.
+> **Java core — language-basics / Inference with var**  
+> **Environment:** JDK 17+; a standalone Java file using only the standard library.  
+> **Goal:** Accurately predict the **static type** inferred for `var` from literals, arithmetic operations, casts, and conditional expressions; avoid integer division, overflow before widening, and the misconception that `var` automatically picks the smallest type.
 
-## 1. `var` lấy kiểu của biểu thức, không đoán theo giá trị
+## 1. `var` Takes the Type of the Expression, Rather Than Guessing from the Value
 
-Khi khai báo biến cục bộ bằng `var`, trình biên dịch suy luận kiểu từ **biểu thức khởi tạo tại thời điểm biên dịch**:
+When declaring a local variable with `var`, the compiler infers the type from **the initializer expression at compile time**:
 
 ~~~java
-var count = 10;     // int, không phải byte dù 10 rất nhỏ.
+var count = 10;     // int, not byte even though 10 is very small.
 var distance = 10L; // long.
 var ratio = 2.5;    // double.
 var precise = 2.5f; // float.
 var symbol = 'A';   // char.
 ~~~
 
-`var` **không phải kiểu động**. Sau `var count = 10;`, biến `count` có kiểu `int` cố định; `count = 2.5;` không biên dịch vì không thể ngầm chuyển `double` sang `int`.
+`var` is **not a dynamic type**. After `var count = 10;`, the variable `count` has a fixed `int` type; `count = 2.5;` does not compile because `double` cannot be implicitly converted to `int`.
 
-**Quy tắc thực hành:** Muốn dự đoán `var result = expression;`, trước tiên hãy xác định **kiểu của `expression` theo các quy tắc Java**. Kiểu suy ra chính là kiểu biểu thức đó.
+**Rule of thumb:** To predict `var result = expression;`, first determine **the type of `expression` according to Java's rules**. The inferred type is that exact expression type.
 
-## 2. Kiểu mặc định của literal số
+## 2. Default Types of Numeric Literals
 
-| Literal | Kiểu của literal | Ghi chú |
+| Literal | Type of the Literal | Notes |
 | --- | --- | --- |
-| `10`, `1_000`, `0xFF`, `0b1010` | `int` | Literal số nguyên không hậu tố mặc định là `int` nếu hợp lệ |
-| `10L`, `10l` | `long` | Nên viết `L` hoa tránh nhầm `l` với chữ số 1 |
-| `2.5`, `2.5d`, `1e3` | `double` | Literal số thực mặc định là `double` |
-| `2.5f`, `2.5F` | `float` | Cần hậu tố `f` hoặc `F` để literal là `float` |
-| `'A'` | `char` | Literal ký tự không phải `String` hay `int` |
-| `(byte) 10`, `(short) 10` | `byte`, `short` | Cast quyết định kiểu của biểu thức khởi tạo |
+| `10`, `1_000`, `0xFF`, `0b1010` | `int` | An integer literal without a suffix defaults to `int` if within range |
+| `10L`, `10l` | `long` | Prefer uppercase `L` to avoid confusing `l` with the digit 1 |
+| `2.5`, `2.5d`, `1e3` | `double` | A floating-point literal defaults to `double` |
+| `2.5f`, `2.5F` | `float` | Requires the `f` or `F` suffix for the literal to be `float` |
+| `'A'` | `char` | A character literal is neither `String` nor `int` |
+| `(byte) 10`, `(short) 10` | `byte`, `short` | The cast determines the type of the initializer expression |
 
 ~~~java
 var a = 1_000;        // int.
 var b = 1_000L;       // long.
-var c = 1e3;          // double (giá trị 1000.0).
+var c = 1e3;          // double (value 1000.0).
 var d = 1e3f;         // float.
 var e = (byte) 10;    // byte.
 ~~~
 
-Đừng nhầm **kiểu** với **cách in** hoặc độ lớn giá trị: `1000` và `1000L` có cùng giá trị toán học nhưng khác kiểu. Literal thập phân nguyên lớn ngoài phạm vi `int` cần hậu tố thích hợp như `2147483648L`; viết `var n = 2147483648;` không khiến Java tự đoán thành `long`.
+Do not confuse **type** with **how it prints** or value magnitude: `1000` and `1000L` have the same mathematical value but different types. A large decimal integer literal outside the `int` range requires an appropriate suffix such as `2147483648L`; writing `var n = 2147483648;` does not make Java automatically guess `long`.
 
-## 3. Phép tính quyết định kiểu của `var` trước khi gán
+## 3. Operations Determine the Type of `var` Before Assignment
 
-Với phép toán số học hai ngôi như `+`, `-`, `*`, `/`, `%`, Java áp dụng **binary numeric promotion** cho toán hạng trước khi tính:
+For binary arithmetic operators such as `+`, `-`, `*`, `/`, and `%`, Java applies **binary numeric promotion** to the operands before computing:
 
-1. Có `double` → kết quả kiểu `double`.
-2. Nếu không, có `float` → kết quả kiểu `float`.
-3. Nếu không, có `long` → kết quả kiểu `long`.
-4. Còn lại → kết quả kiểu `int` (kể cả toán hạng `byte`, `short`, `char`).
+1. If either is `double` → result type is `double`.
+2. Otherwise, if either is `float` → result type is `float`.
+3. Otherwise, if either is `long` → result type is `long`.
+4. Otherwise → result type is `int` (even for `byte`, `short`, or `char` operands).
 
-| Biểu thức khởi tạo | Kiểu suy ra với `var` | Kết quả ví dụ |
+| Initializer Expression | Inferred Type with `var` | Example Result |
 | --- | --- | --- |
 | `2 + 3` | `int` | `5` |
 | `2 + 3L` | `long` | `5` |
@@ -61,33 +61,33 @@ Với phép toán số học hai ngôi như `+`, `-`, `*`, `/`, `%`, Java áp d�
 | `7 / 2` | `int` | `3` |
 | `7 / 2.0` | `double` | `3.5` |
 
-Ví dụ:
+Example:
 
 ~~~java
-var sum = (byte) 10 + (short) 20; // int, không phải byte/short.
-var afterChar = 'A' + 1;          // int, không phải char.
+var sum = (byte) 10 + (short) 20; // int, not byte/short.
+var afterChar = 'A' + 1;          // int, not char.
 var mixed = 2 + 3L;               // long.
 ~~~
 
-`var` không phải nguyên nhân khiến `byte + short` trở thành `int`: **chính quy tắc toán tử** quyết định kiểu đó. `var` chỉ dùng lại kiểu đã được xác định.
+`var` is not the reason `byte + short` becomes `int`: **the operator rules themselves** determine that type. `var` simply adopts the type that was already determined.
 
-## 4. Bẫy chia số nguyên
+## 4. Integer Division Pitfall
 
 ~~~java
-var whole = 7 / 2;       // int: 3, không phải 3.5.
+var whole = 7 / 2;       // int: 3, not 3.5.
 var fraction = 7 / 2.0;  // double: 3.5.
 var byCast = (double) 7 / 2; // double: 3.5.
 ~~~
 
-Khi cả hai toán hạng của `/` là các kiểu số nguyên, Java thực hiện phép chia nguyên, bỏ phần lẻ theo hướng về 0. Khai báo `double result = 7 / 2;` vẫn cho **3.0**: phép chia nguyên **đã xảy ra trước** khi kết quả được chuyển thành `double` để gán.
+When both operands of `/` are integer types, Java performs integer division, truncating the fractional part toward 0. Writing `double result = 7 / 2;` still produces **3.0**: integer division **already occurred before** the result was converted to `double` for assignment.
 
-Muốn chia số thực, đưa **ít nhất một toán hạng** sang kiểu số thực **trước dấu chia**, bằng literal `2.0` hoặc cast `(double) 7`.
+To perform floating-point division, make **at least one operand** a floating-point type **before the division sign**, using a literal like `2.0` or a cast like `(double) 7`.
 
-Không dùng mẹo `var` để kỳ vọng Java tự tìm kiểu “đủ giữ phần lẻ”: `var` giữ đúng kiểu biểu thức, không sửa phép tính.
+Do not rely on `var` expecting Java to pick a type “capable of keeping the fractional part”: `var` preserves the exact expression type and does not alter the operation.
 
-## 5. Bẫy tràn số trước khi mở rộng
+## 5. Overflow Before Widening Pitfall
 
-Ngay cả khi biến đích là `long`, phép tính bằng `int` có thể tràn **trước lúc gán**:
+Even when the target variable is `long`, an `int` calculation can overflow **before assignment**:
 
 ~~~java
 var overflow = Integer.MAX_VALUE + 1;    // int: -2147483648.
@@ -95,28 +95,28 @@ var exact = (long) Integer.MAX_VALUE + 1; // long: 2147483648.
 var lateCast = (long) (Integer.MAX_VALUE + 1); // long: -2147483648.
 ~~~
 
-- `Integer.MAX_VALUE + 1`: hai toán hạng đều `int`, phép cộng kiểu `int` bị tràn rồi `var` suy ra `int`.
-- `(long) Integer.MAX_VALUE + 1`: cast làm **toán hạng** đầu thành `long` trước phép cộng; kết quả kiểu `long` không tràn.
-- `(long) (Integer.MAX_VALUE + 1)`: phép cộng đã tràn trong ngoặc, sau đó mới cast giá trị sai sang `long`.
+- `Integer.MAX_VALUE + 1`: both operands are `int`, the `int` addition overflows, and then `var` infers `int`.
+- `(long) Integer.MAX_VALUE + 1`: the cast widens the first **operand** to `long` before the addition; the `long` result does not overflow.
+- `(long) (Integer.MAX_VALUE + 1)`: the addition already overflowed inside the parentheses, and only afterward is the wrong value cast to `long`.
 
-**Ghi nhớ:** Nếu cần kiểu rộng, làm một toán hạng rộng lên **trước phép tính**, không chỉ chuyển kết quả đã tính.
+**Takeaway:** If you need a wider type, widen one operand **before the operation**, rather than just casting the already-computed result.
 
-## 6. Biểu thức điều kiện và phép ép kiểu
+## 6. Conditional Expressions and Type Casting
 
-Kiểu của phép ba ngôi `condition ? a : b` phụ thuộc quy tắc chọn kiểu của hai nhánh:
+The type of the ternary operator `condition ? a : b` depends on the typing rules for its two branches:
 
 ~~~java
-var mixedConditional = true ? 1 : 2.0; // double, giá trị 1.0.
-var castFirst = (float) 3;             // float, giá trị 3.0f.
+var mixedConditional = true ? 1 : 2.0; // double, value 1.0.
+var castFirst = (float) 3;             // float, value 3.0f.
 ~~~
 
-Trong ví dụ đầu, hai nhánh `int` và `double` làm biểu thức có kiểu `double`, dù điều kiện luôn chọn nhánh `1`. `var` suy ra `double` **từ kiểu của biểu thức**, không suy từ nhánh được chạy.
+In the first example, the `int` and `double` branches give the expression type `double`, even though the condition always selects the `1` branch. `var` infers `double` **from the type of the expression**, not from the branch that executes.
 
-**Lưu ý:** Java có quy tắc bổ sung cho biểu thức điều kiện số học (đặc biệt với literal hằng/kiểu nhỏ), nên không được áp dụng máy móc bảng phép cộng cho **mọi** dấu `?:`. Với biểu thức phức tạp, hãy xét quy tắc kiểu riêng của `?:` hoặc viết kiểu/cast tường minh nếu tính chính xác quan trọng.
+**Note:** Java has additional rules for numeric conditional expressions (especially involving constant literals and small types), so do not mechanically apply the addition table to **every** `?:` operator. For complex expressions, inspect the specific typing rules of `?:` or write an explicit type/cast when precision matters.
 
-## 7. Chương trình Java 17+ chạy được
+## 7. Runnable Java 17+ Program
 
-Tạo tệp **VarNumericInferenceDemo.java**:
+Create a file named **VarNumericInferenceDemo.java**:
 
 ~~~java
 public final class VarNumericInferenceDemo {
@@ -176,14 +176,14 @@ public final class VarNumericInferenceDemo {
 }
 ~~~
 
-Biên dịch và chạy tại thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 VarNumericInferenceDemo.java
 java VarNumericInferenceDemo
 ~~~
 
-**Expected output chính xác:**
+**Exact expected output:**
 
 ~~~text
 literals=int,long,float,double,char
@@ -198,29 +198,29 @@ conditional=1.0:double
 explicitCast=10:byte
 ~~~
 
-Các overload `kind(...)` giúp chương trình in **kiểu mà trình biên dịch chọn**, không suy luận kiểu qua `toString()` hay cách in số. Từ output có thể kiểm tra riêng kiểu biểu thức và giá trị thực tế.
+The `kind(...)` overloads allow the program to print **the type chosen by the compiler**, rather than guessing types via `toString()` or how numbers are formatted. From the output, you can inspect the expression's type and its actual value separately.
 
-## 8. Thói quen tốt và bài tập
+## 8. Good Habits and Exercises
 
-| Điều cần quyết định | Gợi ý |
+| Decision to Make | Recommendation |
 | --- | --- |
-| Muốn `long` ngay từ literal | Viết hậu tố `L`, ví dụ `var n = 10L;` |
-| Muốn `float` ngay từ literal | Dùng `f`/`F`, ví dụ `var f = 1.5f;` |
-| Muốn phép chia có phần lẻ | Đổi toán hạng sang `double` trước phép chia |
-| Muốn tổng không tràn `int` | Đưa toán hạng lên `long` trước phép cộng/nhân |
-| Kiểu suy ra khó nhìn từ initializer | Dùng kiểu khai báo rõ ràng hoặc cast có chủ đích |
-| So sánh các kết quả số thực | Xem xét độ chính xác và quy tắc làm tròn, đừng chỉ dựa vào hình thức literal |
+| Want `long` right from the literal | Write the `L` suffix, e.g. `var n = 10L;` |
+| Want `float` right from the literal | Use `f`/`F`, e.g. `var f = 1.5f;` |
+| Want division with a fractional part | Convert an operand to `double` before the division |
+| Want a sum not to overflow `int` | Promote an operand to `long` before addition/multiplication |
+| Inferred type is hard to spot from the initializer | Use an explicit type declaration or an intentional cast |
+| Comparing floating-point results | Consider precision and rounding rules, do not rely solely on literal appearance |
 
-**Bài 1.** Dự đoán kiểu của `var a = 7;`, `var b = 7L;`, `var c = 7f;` và `var d = 7.0;`. Mỗi biến có giá trị số học giống nhau không? Kiểu có giống nhau không?
+**Exercise 1.** Predict the types of `var a = 7;`, `var b = 7L;`, `var c = 7f;`, and `var d = 7.0;`. Do all variables have the same arithmetic value? Do they have the same type?
 
-**Bài 2.** Cho `var a = (byte) 5 + (short) 6;`. Kiểu của `a` là gì và vì sao không phải `byte`/`short`?
+**Exercise 2.** Given `var a = (byte) 5 + (short) 6;`, what is the type of `a` and why is it not `byte`/`short`?
 
-**Bài 3.** Tính `var quotient = 9 / 4;` và `var preciseQuotient = 9.0 / 4;`. Hai biến có kiểu và giá trị thế nào?
+**Exercise 3.** Evaluate `var quotient = 9 / 4;` and `var preciseQuotient = 9.0 / 4;`. What are the types and values of the two variables?
 
-**Bài 4.** So sánh `var a = Integer.MAX_VALUE + 1;`, `var b = (long) Integer.MAX_VALUE + 1;` và `var c = (long) (Integer.MAX_VALUE + 1);`. Hãy chỉ rõ chỗ tràn xảy ra.
+**Exercise 4.** Compare `var a = Integer.MAX_VALUE + 1;`, `var b = (long) Integer.MAX_VALUE + 1;`, and `var c = (long) (Integer.MAX_VALUE + 1);`. Point out exactly where overflow occurs.
 
-**Bài 5.** Cho `var result = false ? 1 : 2.0;`. Kiểu của `result` là gì? Có phụ thuộc nhánh nào chạy không?
+**Exercise 5.** Given `var result = false ? 1 : 2.0;`, what is the type of `result`? Does it depend on which branch runs?
 
-### Ghi nhớ
+### Takeaway
 
-**`var` không thay đổi luật tính số của Java: nó chỉ suy ra kiểu tĩnh từ biểu thức khởi tạo.** Literal mặc định `int` hoặc `double` nếu không có hậu tố; phép toán áp dụng numeric promotion; chia nguyên và tràn số xảy ra **trước khi** giá trị được gán. Khi cần chính xác, hãy chọn literal, cast và toán hạng đúng **trước phép tính**, thay vì trông chờ `var` tự chọn kiểu phù hợp.
+**`var` does not change Java's numeric calculation rules: it only infers the static type from the initializer expression.** Literals default to `int` or `double` without a suffix; operations apply numeric promotion; integer division and overflow happen **before** the value is assigned. When accuracy matters, choose the right literal, cast, and operands **before the operation**, rather than expecting `var` to automatically pick an appropriate type.

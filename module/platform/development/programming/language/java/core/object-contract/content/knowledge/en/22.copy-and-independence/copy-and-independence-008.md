@@ -1,49 +1,49 @@
-# Kiểm tra thay đổi bản sao có ảnh hưởng bản gốc hay không
+# Checking Whether Mutating a Copy Affects the Original
 
-## 1. Mục tiêu: kiểm tra tính độc lập của bản sao
+## 1. Goal: Verifying Copy Independence
 
-Khi sao chép một đối tượng Java, câu hỏi quan trọng không chỉ là “hai biến có trỏ tới hai đối tượng khác nhau không?”, mà là: **nếu thay đổi trạng thái có thể thay đổi được (mutable state) ở bản sao, trạng thái quan sát được của bản gốc có bị thay đổi theo hay không, và ngược lại?**
+When copying a Java object, the important question is not merely “do two variables point to two different objects?”, but: **if mutable state is modified on the copy, does the observable state of the original change as well, and vice versa?**
 
-Ví dụ, một đối tượng hồ sơ có tên (String), địa chỉ (Address) và danh sách kỹ năng (List<String>). Hai hồ sơ có thể là hai đối tượng khác nhau nhưng cùng trỏ tới một Address hoặc cùng trỏ tới một List. Khi sửa địa chỉ hay danh sách ở bản sao, bản gốc vẫn bị ảnh hưởng.
+For example, a profile object has a name (String), an address (Address), and a list of skills (List<String>). Two profiles can be two different objects yet still point to the same Address or the same List. When editing the address or list on the copy, the original is still affected.
 
-Cần phân biệt hai khái niệm:
+Two concepts must be distinguished:
 
-- **Khác danh tính (identity):** kiểm tra bằng toán tử **==** hoặc **!=** trên tham chiếu. **copy != original** chỉ chứng minh đối tượng ngoài cùng khác nhau.
-- **Độc lập về trạng thái mutable:** những thành phần được yêu cầu độc lập không có đường tham chiếu chia sẻ khiến thao tác sửa ở một phía làm thay đổi phía kia. Đây là hành vi phải kiểm thử bằng các thao tác thay đổi và quan sát cụ thể.
+- **Different identity:** checked with the **==** or **!=** operators on references. **copy != original** only proves the outermost objects are different.
+- **Mutable state independence:** components required to be independent have no shared reference paths allowing an edit on one side to change the other side. This is behavior that must be tested with concrete mutation and observation operations.
 
-Không phải mọi tham chiếu dùng chung đều là lỗi: có thể chia sẻ đối tượng bất biến như String, Integer hoặc một value object thực sự immutable mà không tạo rủi ro sửa chung. Mức độc lập cần đạt phụ thuộc vào **hợp đồng sao chép** của lớp/API; “deep copy” thường có nghĩa sao chép phần đồ thị mutable thuộc quyền sở hữu của đối tượng, chứ không nhất thiết tạo một bản mới cho mọi giá trị bất biến.
+Not every shared reference is a bug: immutable objects like String, Integer, or a truly immutable value object can be shared without creating shared-mutation risk. The required degree of independence depends on the **copy contract** of the class/API; “deep copy” usually means copying the mutable part of the graph owned by the object, not necessarily creating a new instance for every immutable value.
 
-## 2. Vì sao bản sao có thể ảnh hưởng bản gốc?
+## 2. Why Can a Copy Affect the Original?
 
-Các biến kiểu tham chiếu chứa tham chiếu tới đối tượng, không chứa toàn bộ cấu trúc đối tượng con. Gán biến hay sao chép trường tham chiếu có thể khiến hai đường truy cập cùng đến một đối tượng mutable.
+Reference-type variables hold a reference to an object, not the entire child object structure. Assigning a variable or copying a reference field can leave two access paths reaching the same mutable object.
 
-| Cách tạo | Đối tượng ngoài cùng | Trường tham chiếu mutable bên trong | Kết quả khi sửa |
+| Creation method | Outermost object | Inner mutable reference fields | Result upon mutation |
 | --- | --- | --- | --- |
-| **alias = original** | Chính cùng một đối tượng | Dùng chung | Mọi thay đổi trạng thái qua alias đều nhìn thấy qua original |
-| **Sao chép nông (shallow copy)** | Thường là đối tượng mới | Thường vẫn dùng chung đối tượng con | Sửa đối tượng con dùng chung có thể ảnh hưởng bản gốc |
-| **Sao chép sâu (deep copy)** | Đối tượng mới | Sao chép các phần mutable thuộc phạm vi cần độc lập | Thay đổi phần đã sao chép độc lập giữa hai phía |
-| **Thiết kế immutable / chia sẻ an toàn** | Có thể mới hoặc chia sẻ | Dữ liệu chia sẻ không thể bị thay đổi qua API hợp lệ | Không có thay đổi mutable để lan truyền qua phần được chia sẻ |
+| **alias = original** | Exact same object | Shared | Every state change via alias is visible through original |
+| **Shallow copy** | Usually a new object | Usually still shares child objects | Modifying a shared child object can affect the original |
+| **Deep copy** | New object | Copies mutable parts within the scope needing independence | Modifications to copied parts are independent between both sides |
+| **Immutable / safe-sharing design** | May be new or shared | Shared data cannot be mutated through valid APIs | No mutable change exists to propagate across shared parts |
 
-Một biến String được gán sang bản sao có thể dùng chung đối tượng String an toàn, vì String immutable. Ngược lại, nếu cùng một đối tượng Address được giữ trong hai đối tượng hồ sơ, lệnh **copy.address.city = "Huế"** sửa chính Address mà bản gốc đang giữ; đây không phải lệnh gán lại trường address của riêng bản sao.
+A String variable assigned to a copy can safely share the String object, because String is immutable. Conversely, if the same Address object is held in two profile objects, the statement **copy.address.city = "Huế"** modifies the very Address that the original holds; this is not reassigning the copy's own address field.
 
-Tương tự, việc gọi **new ArrayList<>(original.skills)** tạo một List mới nhưng chỉ sao chép các tham chiếu phần tử. Nếu các phần tử là String thì việc chia sẻ phần tử an toàn; nếu các phần tử là Address mutable thì thay đổi nội dung Address vẫn có thể lan qua hai danh sách.
+Similarly, calling **new ArrayList<>(original.skills)** creates a new List but only copies element references. If the elements are Strings, element sharing is safe; if the elements are mutable Address objects, changes to an Address's contents can still propagate across both lists.
 
-## 3. Quy trình kiểm thử đúng
+## 3. Proper Testing Procedure
 
-1. **Xác định hợp đồng:** bản sao cần độc lập ở những trường nào? Liệt kê cả đối tượng lồng nhau, mảng, collection, phần tử mutable và trạng thái có thể sửa thông qua getter hoặc phương thức khác.
-2. **Arrange – tạo dữ liệu gốc có thể quan sát:** ví dụ địa chỉ “Hà Nội”, danh sách [Java]. Tạo bản sao bằng đúng phương thức/API cần kiểm thử. Chụp giá trị trước khi sửa bằng bản snapshot độc lập hoặc expected value bất biến; tránh gọi một tham chiếu alias là “snapshot”.
-3. **Kiểm tra cấu trúc tham chiếu khi phù hợp:** **assertNotSame(original, copy)** chưa đủ; với những thành phần mutable phải tách, kiểm tra thêm **assertNotSame(original.address, copy.address)** và các collection hay phần tử liên quan. Nếu hợp đồng cố ý chia sẻ tài nguyên, không ép mọi tham chiếu đều khác nhau.
-4. **Act – sửa trực tiếp bản sao:** gán trường mutable, sửa trạng thái đối tượng con, thêm/xóa phần tử, thay đổi phần tử mutable. **Assert – xác nhận bản gốc không đổi** theo hợp đồng.
-5. **Kiểm tra chiều ngược lại:** sửa chính bản gốc rồi xác nhận phần tương ứng của bản sao không đổi. Hai chiều giúp phát hiện tham chiếu chung ngay cả khi chỉ có một phía phơi bày API sửa.
-6. **Lặp với những nhánh mutable quan trọng:** nhiều cấp lồng nhau, mảng, List, Map, phần tử mutable, null/collection rỗng và cấu trúc có vòng tham chiếu nếu mô hình dữ liệu có hỗ trợ.
+1. **Identify the contract:** which fields must the copy be independent on? List nested objects, arrays, collections, mutable elements, and state modifiable through getters or other methods.
+2. **Arrange – create observable original data:** for example city “Hà Nội”, list [Java]. Create the copy using the exact method/API under test. Capture pre-mutation values with an independent snapshot or immutable expected values; avoid calling an aliased reference a “snapshot”.
+3. **Check reference structure when appropriate:** **assertNotSame(original, copy)** is not enough; for mutable components that must be separated, also check **assertNotSame(original.address, copy.address)** and related collections or elements. If the contract intentionally shares a resource, do not force every reference to differ.
+4. **Act – mutate the copy directly:** assign mutable fields, modify child object state, add/remove elements, mutate mutable elements. **Assert – verify the original did not change** per the contract.
+5. **Test the reverse direction:** mutate the original itself and confirm the corresponding part of the copy does not change. Both directions catch shared references even when only one side exposes a mutating API.
+6. **Repeat across key mutable branches:** multiple nesting levels, arrays, List, Map, mutable elements, null/empty collections, and cyclic structures if the data model supports them.
 
-Cần tách bạch **sửa đối tượng con** với **gán lại tham chiếu**. Ví dụ **copy.address = new Address("Huế")** chỉ đổi trường address của copy, nên bản gốc không đổi ngay cả khi trước đó cả hai dùng chung Address. Để thử phát hiện shallow copy phải dùng **copy.address.city = "Huế"** hoặc một phương thức thực sự sửa đối tượng Address hiện có.
+Separate **mutating a child object** from **reassigning a reference**. For example, **copy.address = new Address("Huế")** only changes the copy's address field, so the original does not change even if both previously shared an Address. To test for a shallow copy, you must use **copy.address.city = "Huế"** or a method that actually mutates the existing Address object.
 
-## 4. Ví dụ Java 17+: so sánh alias, shallow copy và deep copy
+## 4. Java 17+ Example: Comparing Alias, Shallow Copy, and Deep Copy
 
-Đoạn sau là chương trình hoàn chỉnh. **UserProfile.shallowCopy()** tạo đối tượng UserProfile mới nhưng giữ nguyên tham chiếu Address và List. **UserProfile.deepCopy()** tạo Address và List mới. Vì phần tử của List là String immutable, cách sao chép List này đủ để độc lập với các trường mutable trong ví dụ.
+The following is a complete program. **UserProfile.shallowCopy()** creates a new UserProfile object while keeping the Address and List references unchanged. **UserProfile.deepCopy()** creates a new Address and a new List. Because the List's elements are immutable Strings, this way of copying the List suffices for independence of the mutable fields in the example.
 
-Lưu thành tệp **CopyIsolationDemo.java**:
+Save to **`CopyIsolationDemo.java`**:
 
 ~~~java
 import java.util.ArrayList;
@@ -156,14 +156,14 @@ public class CopyIsolationDemo {
 }
 ~~~
 
-Biên dịch và chạy (trong terminal có JDK 17+):
+Compile and run (in a terminal with JDK 17+):
 
 ~~~bash
 javac -encoding UTF-8 CopyIsolationDemo.java
 java CopyIsolationDemo
 ~~~
 
-Kết quả stdout chính xác:
+Exact stdout result:
 
 ~~~text
 Alias cùng đối tượng: true
@@ -176,18 +176,18 @@ Deep sau sửa gốc: Đà Nẵng | [Java, Spring]
 Các phép kiểm tra đã thành công.
 ~~~
 
-**Giải thích kết quả:**
+**Output explanation:**
 
-- **alias == original** là true: hai biến cùng trỏ tới một UserProfile.
-- **shallow != original** là true nhưng cả Address và List của shallow vẫn trỏ đến các đối tượng con của original; các sửa đổi qua shallow xuất hiện ở original.
-- **deep.address != source.address** và **deep.skills != source.skills**. Sau khi sửa deep, source vẫn giữ dữ liệu cũ. Sau khi sửa source, deep vẫn giữ dữ liệu riêng. Điều này chứng minh sự độc lập đối với các trường mutable đã kiểm tra trong mô hình này.
-- Phương thức **require(...)** ném AssertionError nếu điều kiện sai, không phụ thuộc cờ chạy **-ea** như câu lệnh assert của Java. Ví dụ cố ý kiểm tra shallow *có* tác động chung để minh họa hành vi, còn deep *không* có tác động chung để chứng minh yêu cầu độc lập.
+- **alias == original** is true: both variables point to the same UserProfile.
+- **shallow != original** is true, yet both shallow's Address and List still point to original's child objects; mutations through shallow appear in original.
+- **deep.address != source.address** and **deep.skills != source.skills**. After mutating deep, source keeps its old data. After mutating source, deep keeps its own data. This demonstrates independence for the mutable fields tested in this model.
+- The **require(...)** method throws AssertionError if the condition is false, independent of the **-ea** runtime flag unlike Java's assert statement. The example intentionally asserts that shallow *does* have shared side effects to illustrate behavior, while deep *does not* have shared side effects to prove the independence requirement.
 
-Lưu ý: deepCopy trên chỉ đúng trong phạm vi ví dụ vì Address không có trường mutable lồng nhau khác và List chứa String. Nếu Address có một đối tượng mutable bên trong hoặc List chứa phần tử mutable thì phải tiếp tục sao chép những nhánh đó theo hợp đồng.
+Note: `deepCopy` above is only correct within the scope of the example because Address has no other nested mutable fields and List holds Strings. If Address contains a mutable object inside or List holds mutable elements, those branches must continue to be copied per the contract.
 
-## 5. Chuyển tiêu chí trên thành kiểm thử tự động
+## 5. Turning the Above Criteria into Automated Tests
 
-Trong dự án có **JUnit Jupiter (JUnit 5)**, có thể viết một test riêng với các phép assert rõ ràng. Đoạn dưới giả định lớp test ở **cùng package** với CopyIsolationDemo và dự án đã khai báo dependency JUnit 5; đây là mã test bổ sung, không phải chương trình chạy độc lập bằng lệnh java trực tiếp.
+In a project with **JUnit Jupiter (JUnit 5)**, you can write a separate test with explicit assertions. The snippet below assumes the test class is in the **same package** as CopyIsolationDemo and the project already declares the JUnit 5 dependency; this is supplementary test code, not a program runnable directly with the `java` command.
 
 ~~~java
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -225,69 +225,69 @@ class CopyIsolationDemoTest {
 }
 ~~~
 
-Khi kiểm thử một phương thức sao chép thật trong dự án, thay **original.deepCopy()** bằng API thực tế, chọn bộ dữ liệu bao phủ các nhánh mutable và khẳng định theo hợp đồng. Một test duy nhất cho đối tượng phẳng có thể bỏ sót việc chia sẻ ở một trường ít dùng.
+When testing a real copy method in a project, replace **original.deepCopy()** with the actual API, pick a dataset covering mutable branches, and assert according to the contract. A single test for a flat object can miss sharing on a rarely used field.
 
-## 6. Ma trận tình huống cần kiểm tra
+## 6. Matrix of Scenarios to Test
 
-| Kiểu dữ liệu / cấu trúc | Tác động cần thử | Dấu hiệu bản sao chưa độc lập |
+| Data type / structure | Mutation to attempt | Sign the copy is not yet independent |
 | --- | --- | --- |
-| Trường nguyên thủy **int**, **boolean** | Sửa trường ở copy rồi kiểm tra original | Thông thường không thể lan qua phép copy giá trị nguyên thủy; nếu lan, có thể đang thao tác cùng đối tượng ngoài cùng |
-| **String**, kiểu wrapper bất biến | Gán giá trị mới cho trường ở copy | Gán trường riêng không làm sửa đối tượng String/Integer; không cần sao chép sâu chúng |
-| Đối tượng mutable lồng nhau, ví dụ **Address** | Sửa **copy.address.city** | **original.address.city** đổi theo |
-| Mảng nguyên thủy, ví dụ **int[]** | Sửa **copy.values[0]** | Phần tử của mảng original đổi theo nếu dùng chung mảng |
-| **List<String>** | **copy.skills.add(...)**, remove, set | List gốc đổi theo nếu dùng chung chính List |
-| **List<Address>** | Sửa **copy.addresses.get(0).city** | List mới nhưng phần tử Address vẫn dùng chung |
-| **Map<K, MutableValue>** | Sửa một value, thêm/xóa entry | Value gốc đổi theo nếu phần tử chung; thêm/xóa entry lan nếu Map chung |
-| Getter trả tham chiếu mutable | Lấy **copy.getAddress()** rồi sửa | Bản gốc đổi dù trường có thể được khai báo private |
-| Đồ thị có nhánh dùng chung/vòng tham chiếu | Sửa phần tử sâu hơn, kiểm tra hai chiều | Một nhánh còn chia sẻ ngoài phạm vi hợp đồng; sao chép đệ quy ngây thơ có thể lặp vô hạn |
+| Primitive fields **int**, **boolean** | Modify field on copy then check original | Normally cannot propagate across primitive value copy; if it does, you may be operating on the same outer object |
+| **String**, immutable wrapper types | Assign a new value to the field on copy | Reassigning a field does not mutate the String/Integer object; no need to deep-copy them |
+| Nested mutable object, e.g. **Address** | Modify **copy.address.city** | **original.address.city** changes along with it |
+| Primitive array, e.g. **int[]** | Modify **copy.values[0]** | Element of original array changes too if the array is shared |
+| **List<String>** | **copy.skills.add(...)**, remove, set | Original list changes too if the same List is shared |
+| **List<Address>** | Modify **copy.addresses.get(0).city** | New List, yet Address elements are still shared |
+| **Map<K, MutableValue>** | Mutate a value, add/remove entry | Original value changes if element is shared; entry add/remove propagates if Map is shared |
+| Getter returning mutable reference | Grab **copy.getAddress()** then mutate | Original changes even though the field may be declared private |
+| Graph with shared branches / reference cycles | Mutate deeper elements, test both directions | A branch remains shared outside contract scope; naive recursive copying may loop infinitely |
 
-Với List, Map và mảng, phải phân biệt **sao chép vỏ chứa** với **sao chép phần tử**. Ví dụ:
+For List, Map, and arrays, you must distinguish **copying the container shell** from **copying elements**. For example:
 
 ~~~java
 List<Address> original = new ArrayList<>();
 original.add(new Address("Hà Nội"));
 
-List<Address> copy = new ArrayList<>(original); // List mới, Address cũ
+List<Address> copy = new ArrayList<>(original); // New List, old Address
 copy.get(0).city = "Huế";
 
-// original.get(0).city cũng là "Huế" vì phần tử Address dùng chung.
+// original.get(0).city is also "Huế" because the Address element is shared.
 ~~~
 
-Đoạn này minh họa và sử dụng lớp Address đã định nghĩa ở ví dụ trước; không phải một tệp Java độc lập. Nếu muốn độc lập với thay đổi của từng Address, cần tạo Address mới cho từng phần tử, chẳng hạn duyệt source và gọi **new Address(item)**, đồng thời xử lý null và các mối liên hệ tham chiếu theo hợp đồng.
+This snippet is illustrative and uses the Address class defined in the previous example; it is not a standalone Java file. If independence from changes to each Address is desired, create a new Address for each element, such as iterating over source and calling **new Address(item)**, while handling nulls and reference relationships per the contract.
 
-## 7. Chọn chiến lược sao chép và giới hạn của từng API
+## 7. Choosing a Copy Strategy and Limits of Each API
 
-- **Copy constructor / factory method:** dễ diễn đạt chính xác cách sao chép các trường. Với lớp có trường mutable, cần quyết định sao chép đệ quy, giữ immutable hay chia sẻ một tài nguyên có chủ đích. Một copy constructor chỉ gán lại các tham chiếu có thể vẫn là shallow copy.
-- **clone():** **Object.clone()** sao chép trạng thái trường ở mức nông; nó không tự tạo bản sao độc lập cho mọi đối tượng con. Muốn dùng clone theo hợp đồng sâu phải cài đặt xử lý các trường mutable phù hợp. Việc lớp hỗ trợ Cloneable không có nghĩa đồ thị đối tượng đã được deep copy.
-- **Mảng:** **array.clone()** hoặc **Arrays.copyOf(...)** tạo mảng mới; đối với mảng chứa tham chiếu, các phần tử vẫn có thể cùng trỏ tới những đối tượng mutable.
-- **Collection:** **new ArrayList<>(source)** tạo List mới nhưng phần tử vẫn được chia sẻ theo tham chiếu. **List.copyOf(source)** tạo danh sách không cho sửa bằng các thao tác List của nó, nhưng không sao chép sâu các phần tử mutable; nó cũng từ chối null trong các phần tử đầu vào. **Collections.unmodifiableList(source)** là view không cho sửa qua view nhưng có thể phản ánh thay đổi từ danh sách nguồn bên dưới.
-- **record trong Java:** các component tham chiếu vẫn có thể trỏ tới đối tượng mutable. Cú pháp record không tự tạo bản sao sâu hoặc bảo đảm bất biến sâu; constructor và accessor có thể cần defensive copy nếu mục tiêu là bảo vệ trạng thái.
-- **Đối tượng immutable:** có thể chia sẻ an toàn khi tính bất biến là thật (bao gồm các phần con được phơi bày). Không nên cố sao chép mọi String hay value object immutable chỉ để mọi identity khác nhau.
-- **Đồ thị phức tạp:** với tham chiếu vòng, tham chiếu trỏ chung giữa nhiều trường hoặc đối tượng quản lý tài nguyên (file, socket, thread), khái niệm “deep copy toàn bộ” cần định nghĩa rõ. Một số thành phần phải giữ dùng chung hoặc không thể sao chép hợp lý; nên thiết kế API và test theo hợp đồng sở hữu.
+- **Copy constructor / factory method:** easily expresses exactly how fields are copied. For classes with mutable fields, decide whether to copy recursively, keep immutable, or intentionally share a resource. A copy constructor that only reassigns references may still be a shallow copy.
+- **clone():** **Object.clone()** shallow-copies field state; it does not automatically create independent copies for all child objects. To use clone under a deep contract, appropriate handling of mutable fields must be implemented. A class supporting Cloneable does not mean the object graph is deep-copied.
+- **Arrays:** **array.clone()** or **Arrays.copyOf(...)** creates a new array; for arrays holding references, elements can still point to mutable objects.
+- **Collections:** **new ArrayList<>(source)** creates a new List, yet elements are still shared by reference. **List.copyOf(source)** creates a list disallowing modification via its List operations, without deep-copying mutable elements; it also rejects nulls in input elements. **Collections.unmodifiableList(source)** is a view disallowing edits through the view, yet it can reflect changes from the underlying source list.
+- **Java record:** reference components can still point to mutable objects. Record syntax does not automatically create deep copies or guarantee deep immutability; constructors and accessors may need defensive copies if the goal is protecting state.
+- **Immutable objects:** can be safely shared when immutability is genuine (including exposed sub-parts). Do not try to copy every String or immutable value object merely to make every identity distinct.
+- **Complex graphs:** with circular references, references shared across multiple fields, or resource-managing objects (files, sockets, threads), “full deep copy” needs a clear definition. Some components must remain shared or cannot reasonably be copied; design the API and tests around the ownership contract.
 
-Ví dụ một cách hạn chế rò rỉ qua getter: thay vì trả trực tiếp một List mutable nội bộ, có thể trả **List.copyOf(internalList)** nếu phần tử an toàn để chia sẻ. Với phần tử mutable, cần tạo bản sao từng phần tử hoặc cung cấp giao diện chỉ đọc thực sự theo hợp đồng.
+Example of limiting leaks through a getter: instead of returning an internal mutable List directly, you can return **List.copyOf(internalList)** if elements are safe to share. For mutable elements, copy each element or provide a truly read-only interface per the contract.
 
-## 8. Các sai lầm phổ biến khi kết luận “bản sao độc lập”
+## 8. Common Mistakes When Concluding a “Copy Is Independent”
 
-1. **Chỉ kiểm tra copy != original:** kết luận sai vì đối tượng ngoài cùng khác nhau nhưng nhánh mutable có thể cùng tham chiếu.
-2. **Chỉ kiểm tra equals():** **equals()** trả lời câu hỏi bằng nhau về giá trị theo cách lớp định nghĩa, không nói hai đồ thị đối tượng có độc lập hay không. Hai bản sao có thể equals() true ngay sau khi sao chép mà vẫn độc lập.
-3. **Chỉ gán lại trường ở copy:** thay đổi tham chiếu riêng không thử được sharing của đối tượng con. Cần sửa *bên trong* đối tượng con mutable.
-4. **Chỉ kiểm tra chiều copy → original:** có thể bỏ sót những đường cập nhật qua bản gốc hay getter; thử cả hai chiều khi hợp đồng yêu cầu.
-5. **Dùng snapshot bị alias:** ví dụ **var before = original.address;** rồi đọc **before.city** sau khi sửa không phải là lưu giá trị ban đầu. Hãy lưu String city hoặc tạo snapshot độc lập.
-6. **Nhầm collection không sửa được với phần tử bất biến:** một List không cho add/remove vẫn có thể chứa Address mutable và chia sẻ Address với bản gốc.
-7. **Bỏ qua đường truy cập gián tiếp:** setter, getter, phần tử mảng, Map value và một nhánh con sâu vẫn có thể sửa chung trạng thái.
-8. **Dựa vào lệnh assert thông thường nhưng không bật -ea:** Java bỏ qua câu lệnh assert nếu assertions disabled. Dùng JUnit assertions hoặc kiểm tra luôn hoạt động như **require(...)** trong ví dụ.
-9. **Quên hợp đồng của hashCode/equals với đối tượng mutable:** nếu thay đổi trường tham gia equals/hashCode khi đối tượng là khóa HashMap hoặc phần tử HashSet, có thể làm tra cứu sai kỳ vọng. Đây là lý do bổ sung để thiết kế bản sao và tính bất biến cẩn thận; nó không phải phép thử thay thế cho independence.
+1. **Only checking copy != original:** false conclusion because the outermost objects differ while mutable branches may share references.
+2. **Only checking equals():** **equals()** answers value equality as defined by the class, not whether two object graphs are independent. Two copies can have `equals()` return true right after copying and still be independent.
+3. **Only reassigning a field on copy:** changing an individual reference does not test sharing of child objects. You must mutate *inside* the mutable child object.
+4. **Only testing the copy → original direction:** may miss update paths through the original or getters; test both directions when the contract requires it.
+5. **Using an aliased snapshot:** for example **var before = original.address;** then reading **before.city** after mutation is not saving the initial value. Save the String city or create an independent snapshot.
+6. **Confusing an unmodifiable collection with immutable elements:** a List disallowing add/remove can still hold mutable Address objects and share those Address instances with the original.
+7. **Skipping indirect access paths:** setters, getters, array elements, Map values, and deep sub-branches can still mutate shared state.
+8. **Relying on regular assert statements without enabling -ea:** Java ignores assert statements if assertions are disabled. Use JUnit assertions or always-active checks like **require(...)** in the example.
+9. **Forgetting the hashCode/equals contract with mutable objects:** mutating fields participating in equals/hashCode while the object is a HashMap key or HashSet element can make lookups behave unexpectedly. This is an additional reason to design copies and immutability carefully; it is not a replacement test for independence.
 
-## 9. Checklist đánh giá kết quả
+## 9. Result Evaluation Checklist
 
-Một bài kiểm thử về độc lập bản sao chỉ nên kết luận **PASS cho phạm vi được kiểm tra** khi:
+A copy-independence test should only conclude **PASS for the tested scope** when:
 
-- Xác định được bản sao bằng đúng cơ chế sản phẩm sử dụng và đối tượng ngoài cùng có danh tính phù hợp hợp đồng.
-- Những nhánh mutable cần tách có quan hệ identity đúng; nếu có chia sẻ, đó là chia sẻ được phép và không tạo ảnh hưởng trạng thái trái hợp đồng.
-- Sửa trực tiếp từng nhóm trạng thái mutable được yêu cầu trên copy không làm thay đổi trạng thái tương ứng của original.
-- Sửa original không làm thay đổi phần tương ứng của copy.
-- Những trường hợp trọng yếu như collection chứa phần tử mutable, null, dữ liệu rỗng và độ sâu nhiều cấp được bao phủ theo cấu trúc thật; expected value được lưu độc lập.
-- Kết quả quan sát bằng assertion có thể thất bại khi code sao chép bị hỏng; kiểm thử thực sự phát hiện shallow sharing ngoài ý muốn.
+- The copy is produced by the exact mechanism used in production and the outermost object has an identity matching the contract.
+- Mutable branches needing separation have the right identity relationships; if sharing exists, it is permitted sharing and causes no contract-violating state effects.
+- Directly mutating each required group of mutable state on the copy does not change the corresponding state of the original.
+- Mutating the original does not change the corresponding part of the copy.
+- Critical cases such as collections with mutable elements, null, empty data, and multi-level nesting are covered according to real structure; expected values are stored independently.
+- Observed assertion results can fail when the copy code is broken; tests genuinely detect unintended shallow sharing.
 
-**Kết luận:** Để trả lời “thay đổi bản sao có ảnh hưởng bản gốc không?”, hãy **thao tác lên trạng thái mutable được sao chép, kiểm tra trạng thái gốc trước/sau và thử cả chiều ngược lại**. Kiểm tra identity giúp định vị nguyên nhân, còn kiểm thử hành vi và hợp đồng sở hữu mới quyết định bản sao có độc lập đúng yêu cầu hay không.
+**Conclusion:** To answer “does mutating a copy affect the original?”, **act on the copied mutable state, check original state before/after, and test the reverse direction too**. Checking identity helps pinpoint the cause, while behavioral testing and the ownership contract determine whether the copy is independent as required.

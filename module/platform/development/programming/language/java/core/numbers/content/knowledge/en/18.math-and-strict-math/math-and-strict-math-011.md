@@ -1,8 +1,8 @@
-# Miền xác định, NaN, vô cực và độ chính xác được Javadoc quy định: `Math` và `StrictMath`
+# Domain, NaN, Infinity, and Accuracy Specified by Javadoc: `Math` and `StrictMath`
 
-Khi gọi `Math.sqrt`, `Math.log`, `Math.pow`, `Math.hypot` hay `StrictMath.exp`, không đủ để biết công thức toán học. Một chương trình Java còn phải biết **đầu vào nào hợp lệ, điều gì xảy ra với các giá trị đặc biệt IEEE 754, giới hạn sai số của kết quả, và tính tái lập mà API thực sự cam kết**.
+When calling `Math.sqrt`, `Math.log`, `Math.pow`, `Math.hypot`, or `StrictMath.exp`, knowing the mathematical formula is not enough. A Java program must also know **which inputs are valid, what happens with IEEE 754 special values, the error bounds of the result, and the reproducibility the API actually guarantees**.
 
-Một ví dụ ngắn:
+A brief example:
 
 ```java
 System.out.println(Math.sqrt(-1.0)); // NaN
@@ -10,25 +10,25 @@ System.out.println(Math.log(0.0));   // -Infinity
 System.out.println(Math.pow(Double.NaN, 0.0)); // 1.0
 ```
 
-Cả ba kết quả trên đều có ý nghĩa theo **hợp đồng của từng phương thức**, không thể suy luận bằng một quy tắc chung “đầu vào bất thường thì luôn ném exception” hoặc “có NaN ở đâu thì kết quả chắc chắn NaN”.
+All three results above make sense under **each method's contract** and cannot be deduced from a blanket rule like "unusual inputs always throw an exception" or "any NaN input always produces NaN".
 
-Bài học dùng **Java 17+**, tập trung vào cách **đọc và áp dụng Javadoc**. Khi triển khai với phiên bản Java khác, kiểm tra đúng tài liệu của phiên bản đang chạy. Nguồn chuẩn để tra cứu:
+This lesson uses **Java 17+**, focusing on how to **read and apply Javadoc**. When deploying on a different Java version, check the documentation for the exact version in use. Official reference sources:
 
 - [Javadoc Java 17 — java.lang.Math](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html)
 - [Javadoc Java 17 — java.lang.StrictMath](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StrictMath.html)
 
-## 1. “Miền xác định” trong toán học và trong `double`
+## 1. "Domain" in Mathematics vs. in `double`
 
-Toán học thực cho hàm \(\sqrt{x}\) miền \(x\geq 0\), hàm \(\ln(x)\) miền \(x>0\), và \(\arcsin(x)\) miền \(-1\leq x\leq1\). Nhưng giá trị `double` có thêm:
+Real mathematics gives \(\sqrt{x}\) the domain \(x\geq 0\), \(\ln(x)\) the domain \(x>0\), and \(\arcsin(x)\) the domain \(-1\leq x\leq1\). However, `double` values also include:
 
-- `Double.NaN`: kết quả không phải số theo ngữ nghĩa IEEE 754.
-- `Double.POSITIVE_INFINITY` và `Double.NEGATIVE_INFINITY`: vô cực có dấu.
-- `+0.0` và `-0.0`: zero có bit dấu khác nhau, dù `+0.0 == -0.0` là `true`.
-- Giá trị **subnormal** rất gần 0; overflow hoặc underflow có thể làm kết quả thành vô cực hoặc zero.
+- `Double.NaN`: a Not-a-Number result under IEEE 754 semantics.
+- `Double.POSITIVE_INFINITY` and `Double.NEGATIVE_INFINITY`: signed infinities.
+- `+0.0` and `-0.0`: zeros with different sign bits, even though `+0.0 == -0.0` is `true`.
+- **Subnormal** values very close to 0; overflow or underflow can turn results into infinity or zero.
 
-**Miền thực thông thường** chỉ là bước đầu để đọc tài liệu. Javadoc còn mô tả **special cases**: khi nhận NaN, vô cực, zero có dấu, số ngoài miền, hoặc các kết hợp đặc biệt giữa hai/ba tham số, phương thức cụ thể phải trả gì.
+**The ordinary real domain** is only the first step in reading documentation. Javadoc also specifies **special cases**: when receiving NaN, infinity, signed zero, out-of-domain numbers, or special combinations of two/three parameters, what a specific method must return.
 
-Ví dụ, với `sqrt`:
+For example, with `sqrt`:
 
 ```java
 double a = Math.sqrt(4.0); // 2.0
@@ -36,58 +36,58 @@ double b = Math.sqrt(-1.0); // NaN
 double c = Math.sqrt(-0.0); // -0.0
 ```
 
-`sqrt(-0.0)` **không** được coi như căn bậc hai của một số âm không hợp lệ: Javadoc ghi rõ phải trả **zero với cùng dấu**. Ngược lại `sqrt(-1.0)` trả NaN.
+`sqrt(-0.0)` is **not** treated as the square root of an invalid negative number: Javadoc explicitly states it must return **zero with the same sign**. Conversely, `sqrt(-1.0)` returns NaN.
 
-Không đồng nhất “NaN” với “exception”. Trong tính toán dấu phẩy động, nhiều phương thức thông báo trạng thái qua chính **giá trị trả về**.
+Do not equate "NaN" with "exception". In floating-point computation, many methods signal status through the **return value itself**.
 
-## 2. Vì sao không thể dùng một bảng quy tắc NaN chung cho mọi hàm?
+## 2. Why Cannot a Single Blanket NaN Rule Table Be Used for Every Function?
 
-Một số hàm lan truyền NaN theo cách thông thường, nhưng **special cases có thể ưu tiên hơn**:
+Some functions propagate NaN in the usual way, but **special cases can take precedence**:
 
-| Biểu thức Java | Kết quả | Hợp đồng cần nhận biết |
+| Java Expression | Result | Contract to Recognize |
 | --- | --- | --- |
-| `Math.sqrt(-1.0)` | `NaN` | Căn bậc hai của số âm thực không có kết quả thực |
-| `Math.sqrt(-0.0)` | `-0.0` | Giữ dấu zero |
-| `Math.log(+0.0)` | `-Infinity` | Zero là ranh giới của logarit |
-| `Math.log(-0.0)` | `-Infinity` | Cả hai zero cho âm vô cực |
-| `Math.log(-1.0)` | `NaN` | Đầu vào âm ngoài miền |
-| `Math.exp(Double.NEGATIVE_INFINITY)` | `+0.0` | Giới hạn của \(e^x\) khi \(x\to-\infty\) |
-| `Math.pow(Double.NaN, 0.0)` | `1.0` | Mũ bằng zero được quy định ưu tiên |
-| `Math.pow(-2.0, 0.5)` | `NaN` | Cơ số âm với số mũ hữu hạn không nguyên |
-| `Math.hypot(Double.POSITIVE_INFINITY, Double.NaN)` | `Infinity` | Đối số vô cực có ưu tiên theo Javadoc |
-| `Math.fma(Double.POSITIVE_INFINITY, 0.0, 1.0)` | `NaN` | Tích vô cực nhân zero là trường hợp đặc biệt |
-| `Math.min(-0.0, +0.0)` | `-0.0` | Âm zero nhỏ hơn dương zero theo contract của `min` |
-| `Math.max(-0.0, +0.0)` | `+0.0` | Dương zero lớn hơn âm zero theo contract của `max` |
+| `Math.sqrt(-1.0)` | `NaN` | Square root of a real negative number has no real result |
+| `Math.sqrt(-0.0)` | `-0.0` | Preserves zero sign |
+| `Math.log(+0.0)` | `-Infinity` | Zero is the boundary of the logarithm |
+| `Math.log(-0.0)` | `-Infinity` | Both zeros yield negative infinity |
+| `Math.log(-1.0)` | `NaN` | Out-of-domain negative input |
+| `Math.exp(Double.NEGATIVE_INFINITY)` | `+0.0` | Limit of \(e^x\) as \(x\to-\infty\) |
+| `Math.pow(Double.NaN, 0.0)` | `1.0` | Exponent equal to zero is given precedence |
+| `Math.pow(-2.0, 0.5)` | `NaN` | Negative base with finite non-integer exponent |
+| `Math.hypot(Double.POSITIVE_INFINITY, Double.NaN)` | `Infinity` | Infinite argument takes precedence per Javadoc |
+| `Math.fma(Double.POSITIVE_INFINITY, 0.0, 1.0)` | `NaN` | Infinity times zero product is a special case |
+| `Math.min(-0.0, +0.0)` | `-0.0` | Negative zero is smaller than positive zero per `min` contract |
+| `Math.max(-0.0, +0.0)` | `+0.0` | Positive zero is larger than negative zero per `max` contract |
 
-Điểm tinh tế: **`Math.pow(Double.NaN, 0.0)` trả 1.0**, dù đối số đầu là NaN. **`Math.hypot(Infinity, NaN)` trả vô cực**, dù có NaN. Việc khẳng định “bất kỳ tham số NaN nào cũng bắt buộc cho NaN” sẽ sai.
+Subtle point: **`Math.pow(Double.NaN, 0.0)` returns 1.0**, even though the first argument is NaN. **`Math.hypot(Infinity, NaN)` returns infinity**, despite the presence of NaN. Claiming "any NaN parameter must produce NaN" would be false.
 
-Cũng không nên tưởng `Math.min`/`Math.max` sử dụng y hệt toán tử `<`/`>` trong mọi trường hợp. Chúng có quy tắc tường minh cho signed zero và NaN.
+Nor should you assume `Math.min`/`Math.max` behave identically to `<`/`>` operators in every case. They have explicit rules for signed zero and NaN.
 
-## 3. Bảng miền xác định và các trường hợp biên tiêu biểu
+## 3. Domain and Representative Boundary Cases Table
 
-| Phương thức | Miền số thực hữu hạn thông thường | Đầu vào ở biên/ngoài miền |
+| Method | Ordinary Finite Real Domain | Boundary / Out-of-Domain Inputs |
 | --- | --- | --- |
 | `sqrt(x)` | \(x\geq0\) | `x<0` → NaN; `-0.0` → -0.0; `+Infinity` → +Infinity |
-| `cbrt(x)` | Mọi x thực | Số âm cho căn bậc ba âm; `-0.0` → -0.0; ±Infinity giữ dấu |
-| `log(x)` | \(x>0\) | ±0.0 → -Infinity; x âm → NaN; +Infinity → +Infinity |
-| `log10(x)` | \(x>0\) | ±0.0 → -Infinity; x âm → NaN |
-| `log1p(x)` | \(x>-1\) | `-1.0` → -Infinity; x nhỏ hơn -1 → NaN; ±0.0 giữ dấu |
-| `exp(x)` | Mọi x thực | -Infinity → +0.0; +Infinity → +Infinity; có thể overflow/underflow |
-| `expm1(x)` | Mọi x thực | -Infinity → -1.0; ±0.0 giữ dấu; có thể overflow |
+| `cbrt(x)` | All real x | Negative numbers give negative cube root; `-0.0` → -0.0; ±Infinity preserves sign |
+| `log(x)` | \(x>0\) | ±0.0 → -Infinity; negative x → NaN; +Infinity → +Infinity |
+| `log10(x)` | \(x>0\) | ±0.0 → -Infinity; negative x → NaN |
+| `log1p(x)` | \(x>-1\) | `-1.0` → -Infinity; x less than -1 → NaN; ±0.0 preserves sign |
+| `exp(x)` | All real x | -Infinity → +0.0; +Infinity → +Infinity; can overflow/underflow |
+| `expm1(x)` | All real x | -Infinity → -1.0; ±0.0 preserves sign; can overflow |
 | `asin(x)`, `acos(x)` | \(-1\leq x\leq1\) | `abs(x)>1` → NaN |
-| `sin(x)`, `cos(x)`, `tan(x)` | Mọi x thực | NaN hoặc ±Infinity → NaN; `sin`/`tan` giữ dấu zero |
-| `pow(a,b)` | Phụ thuộc cả a và b | `a<0`, b hữu hạn không nguyên → NaN; các quy tắc zero, NaN, vô cực chi tiết |
-| `hypot(x,y)` | Mọi x,y thực hữu hạn | Có Infinity → +Infinity kể cả tham số khác NaN |
-| `fma(a,b,c)` | Phép \(a\times b+c\) dấu phẩy động | Infinity × zero → NaN; có NaN → NaN |
-| `min(a,b)` / `max(a,b)` cho `double` | Mọi giá trị hữu hạn | Nếu một tham số NaN → NaN; phân biệt -0.0 và +0.0 |
+| `sin(x)`, `cos(x)`, `tan(x)` | All real x | NaN or ±Infinity → NaN; `sin`/`tan` preserve zero sign |
+| `pow(a,b)` | Depends on both a and b | `a<0`, finite non-integer b → NaN; detailed rules for zero, NaN, infinity |
+| `hypot(x,y)` | All finite real x,y | Any Infinity → +Infinity even if the other argument is NaN |
+| `fma(a,b,c)` | Floating-point \(a\times b+c\) | Infinity × zero → NaN; any NaN → NaN |
+| `min(a,b)` / `max(a,b)` for `double` | All finite values | If either parameter is NaN → NaN; distinguishes -0.0 and +0.0 |
 
-Bảng là bản đồ để tra cứu, **không thay thế danh sách special cases đầy đủ của từng Javadoc**. Đặc biệt `pow` có nhiều trường hợp tổ hợp số mũ 0, ±Infinity, cơ số ±0.0 và số mũ nguyên chẵn/lẻ; khi tính một tình huống biên phải đọc đúng mục `pow`.
+This table is a lookup map, **not a replacement for the full special cases list in each Javadoc**. In particular, `pow` has numerous combinations of exponent 0, ±Infinity, base ±0.0, and even/odd integer exponents; when evaluating a boundary case, read the exact `pow` section.
 
-**Hàm không ném exception** trong một ví dụ không chứng minh toàn bộ API không thể ném exception trong mọi bối cảnh. Chẳng hạn thao tác primitive nguyên như `Math.addExact` ném `ArithmeticException` khi tràn, nhưng `Math.sqrt(-1.0)` lại trả NaN. Mỗi phương thức có hợp đồng riêng.
+**A method not throwing an exception** in one example does not prove the entire API never throws exceptions in any context. For instance, integer primitive operations like `Math.addExact` throw `ArithmeticException` on overflow, whereas `Math.sqrt(-1.0)` returns NaN. Each method has its own contract.
 
-## 4. `NaN`, ±Infinity và các phép kiểm tra đúng
+## 4. `NaN`, ±Infinity, and Proper Checks
 
-Dùng API phân loại giá trị dấu phẩy động:
+Use floating-point classification APIs:
 
 ```java
 double x = Math.log(-1.0);
@@ -97,9 +97,9 @@ System.out.println(Double.isInfinite(x)); // false
 System.out.println(Double.isFinite(x));   // false
 ```
 
-`Double.isFinite(x)` chỉ trả `true` cho các giá trị hữu hạn, bao gồm `+0.0`, `-0.0` và cả số subnormal. `Float` có `Float.isNaN`, `Float.isInfinite` và `Float.isFinite` tương ứng.
+`Double.isFinite(x)` returns `true` only for finite values, including `+0.0`, `-0.0`, and subnormals. `Float` has corresponding `Float.isNaN`, `Float.isInfinite`, and `Float.isFinite`.
 
-**Không kiểm tra NaN bằng `x == Double.NaN`.** Bởi theo so sánh dấu phẩy động, NaN không bằng chính nó:
+**Do not check for NaN using `x == Double.NaN`.** Under floating-point comparison, NaN is not equal to itself:
 
 ```java
 double x = Double.NaN;
@@ -107,7 +107,7 @@ System.out.println(x == Double.NaN); // false
 System.out.println(Double.isNaN(x));  // true
 ```
 
-Khi chương trình yêu cầu **kết quả hữu hạn**, có thể xác thực sau phép tính:
+When a program requires a **finite result**, validate after computing:
 
 ```java
 static double requireFinite(double result) {
@@ -118,27 +118,27 @@ static double requireFinite(double result) {
 }
 ```
 
-Đây là method minh họa đặt trong class. Exception trong helper **do người lập trình chủ động ném**; không phải `Math` tự ném exception tương tự khi gặp giá trị bất thường. Kiểm tra `isFinite` vẫn **không phát hiện mất chữ số do làm tròn**, cũng không ngăn kết quả underflow về zero.
+This is an illustrative method placed in a class. The exception in the helper **is explicitly thrown by the programmer**; `Math` itself does not throw a similar exception upon encountering abnormal values. Checking `isFinite` still **does not detect digit loss from rounding**, nor does it prevent results from underflowing to zero.
 
-## 5. `+0.0` và `-0.0`: bằng nhau nhưng không thể thay thế tùy ý
+## 5. `+0.0` and `-0.0`: Equal Yet Not Arbitrarily Interchangeable
 
-Các kiểu `float` và `double` có bit dấu riêng cho zero. Toán tử số học `==` coi hai zero bằng nhau:
+`float` and `double` types have a dedicated sign bit for zero. The arithmetic operator `==` treats both zeros as equal:
 
 ```java
 System.out.println(+0.0 == -0.0); // true
 ```
 
-Nhưng Javadoc quy định nhiều hàm phải xét dấu:
+However, Javadoc specifies that many functions must inspect the sign:
 
 - `Math.sqrt(-0.0)` → `-0.0`.
 - `Math.cbrt(-0.0)` → `-0.0`.
-- `Math.sin(-0.0)` và `Math.tan(-0.0)` → `-0.0`.
-- `Math.expm1(-0.0)` và `Math.log1p(-0.0)` → `-0.0`.
+- `Math.sin(-0.0)` and `Math.tan(-0.0)` → `-0.0`.
+- `Math.expm1(-0.0)` and `Math.log1p(-0.0)` → `-0.0`.
 - `Math.log(-0.0)` → `-Infinity`.
 - `Math.exp(-0.0)` → `1.0`.
 - `Math.min(+0.0,-0.0)` → `-0.0`; `Math.max(+0.0,-0.0)` → `+0.0`.
 
-Để phân biệt bit:
+To distinguish bits:
 
 ```java
 long a = Double.doubleToRawLongBits(+0.0); // 0x0000000000000000
@@ -146,130 +146,130 @@ long b = Double.doubleToRawLongBits(-0.0); // 0x8000000000000000
 boolean sameBits = a == b; // false
 ```
 
-`Double.compare(+0.0, -0.0)` cũng phân biệt signed zero, khác với `==`. Khi dữ liệu chạy qua thuật toán có phép chia hoặc giới hạn một phía, giữ/chuẩn hóa dấu zero có thể ảnh hưởng kết quả. Ứng dụng bình thường không cần phân biệt dấu zero vẫn nên **chuẩn hóa có chủ đích**, không vì thấy `==` là true mà nghĩ bit và các phép toán sau đều giống nhau.
+`Double.compare(+0.0, -0.0)` also distinguishes signed zero, unlike `==`. When data flows through algorithms involving division or one-sided limits, preserving or normalizing zero's sign can affect outcomes. Ordinary applications that do not need to distinguish zero signs should still **normalize intentionally**, rather than assuming bits and subsequent operations are identical just because `==` is true.
 
-## 6. ULP là gì? “Sai số trong 1 ulp” có nghĩa gì?
+## 6. What Is ULP? What Does "Accuracy Within 1 ulp" Mean?
 
-`ulp` là viết tắt của *unit in the last place*. Với một vùng giá trị của `double`, khoảng cách giữa các số thực biểu diễn được **thay đổi theo độ lớn của số**. Gần `1.0`, khoảng cách giữa `1.0` và số `double` lớn hơn gần nhất là:
+`ulp` stands for *unit in the last place*. Within a `double` value region, the spacing between representable real numbers **changes with the magnitude of the number**. Near `1.0`, the gap between `1.0` and the nearest larger `double` is:
 
 ```java
 System.out.println(Math.ulp(1.0));       // 2.220446049250313E-16
 System.out.println(Math.nextUp(1.0));    // 1.0000000000000002
 ```
 
-Javadoc `Math` dùng ULP để định nghĩa **giới hạn sai số so với kết quả toán học chính xác**, chứ không phải số chữ số decimal cố định. Với cách nói “sai số tối đa 1 ulp”, giới hạn được đo trên **lưới số thực nhị phân ở độ lớn của kết quả**, không phải “sai số không quá 1 đơn vị số thực” hoặc “chính xác một chữ số cuối”.
+`Math` Javadoc uses ULP to define **error bounds relative to the exact mathematical result**, rather than a fixed number of decimal digits. With the phrasing "error at most 1 ulp", the bound is measured on the **binary floating-point grid at the magnitude of the result**, not "error at most 1.0 real unit" or "accurate in one last decimal digit".
 
-Một cách hình dung:
+A mental picture:
 
 ```text
 ... 1.0000000000000000
-... 1.0000000000000002   (số double tiếp theo)
+... 1.0000000000000002   (next double number)
 ... 1.0000000000000004
-       ^ khoảng cách gần 1.0 khoảng 2.22 × 10^-16
+       ^ spacing near 1.0 is about 2.22 × 10^-16
 ```
 
-Gần số rất lớn, ULP lớn hơn; gần zero, khoảng cách của số subnormal cực nhỏ. Độ chính xác tương đối và sai số tuyệt đối phải được phân tích trong miền dữ liệu thực tế.
+Near very large numbers, ULP is larger; near zero, subnormal spacing is tiny. Relative precision and absolute error must be analyzed within the actual data domain.
 
-### `Math.ulp` không đo sai số thực tế của một lời gọi
+### `Math.ulp` Does Not Measure the Actual Error of a Call
 
-`Math.ulp(result)` trả quy mô một bước biểu diễn quanh `result`; nó **không tự biết giá trị toán học chính xác** để tính `abs(result - exact)`.
+`Math.ulp(result)` returns the size of one representation step around `result`; it **does not know the exact mathematical value** to compute `abs(result - exact)`.
 
-Do đó:
+Thus:
 
 ```java
 double value = Math.exp(1.0);
 double spacing = Math.ulp(value);
 ```
 
-`spacing` là một kích thước ULP quanh số đã nhận, **không phải báo cáo** rằng `Math.exp(1.0)` thực sự sai đúng `spacing`.
+`spacing` is one ULP size around the obtained number, **not a report** that `Math.exp(1.0)` is actually off by `spacing`.
 
-Muốn đánh giá sai số của một hàm bằng kiểm thử chuẩn, cần kết quả tham chiếu có precision cao hơn hoặc phương pháp đối chiếu đáng tin; không thể suy ra error chỉ từ một lần gọi `Math.ulp`.
+To evaluate a function's error in standard testing, you need a higher-precision reference value or a reliable comparison method; you cannot deduce the error from a single call to `Math.ulp`.
 
-## 7. “Correctly rounded”, giới hạn 0,5/1/2 ulp và semi-monotonic
+## 7. "Correctly Rounded", 0.5/1/2 ulp Bounds, and Semi-Monotonic
 
-Javadoc phân biệt các cấp bảo đảm:
+Javadoc distinguishes guarantee levels:
 
-| Thuật ngữ | Ý nghĩa |
+| Term | Meaning |
 | --- | --- |
-| **Correctly rounded** | Chọn kết quả dấu phẩy động đúng theo quy tắc làm tròn được chỉ định từ kết quả toán học chính xác |
-| **Trong 0,5 ulp** | Mức sai số rất chặt; phương thức đúng như vậy được xem là trả số biểu diễn gần kết quả thực nhất (với quy tắc tie phù hợp) |
-| **Trong 1 ulp** | Sai lệch giới hạn theo khoảng cách lưới số; **không** nhất thiết luôn là kết quả làm tròn gần nhất trong mọi trường hợp |
-| **Trong 2 ulp** | Giới hạn lỏng hơn 1 ulp, áp dụng cho một số hàm được Javadoc chỉ rõ |
-| **Semi-monotonic** | Trên vùng hàm toán học tăng (hoặc giảm), xấp xỉ dấu phẩy động không được đảo hướng tăng (hoặc giảm), theo yêu cầu từng hàm |
+| **Correctly rounded** | Selects the right floating-point result under the specified rounding rule from the exact mathematical result |
+| **Within 0.5 ulp** | Very tight error bound; a method accurate to this level returns the representable number closest to the true result (with an appropriate tie rule) |
+| **Within 1 ulp** | Deviation bounded by the number-grid spacing; **not** necessarily the nearest rounded result in every case |
+| **Within 2 ulp** | Looser bound than 1 ulp, applied to certain functions explicitly noted in Javadoc |
+| **Semi-monotonic** | Over intervals where the mathematical function increases (or decreases), the floating-point approximation must not reverse direction, per each function's requirement |
 
-`Math.sqrt` được Javadoc Java 17 mô tả là **correctly rounded positive square root**: đây là một cam kết cụ thể. Trong khi đó, các hàm như `Math.sin`, `Math.log` và `Math.exp` có quy định **within 1 ulp** và **semi-monotonic**, không có lời hứa mọi kết quả được làm tròn đúng đến bit gần nhất.
+`Math.sqrt` is described by Java 17 Javadoc as the **correctly rounded positive square root**: this is a specific guarantee. Meanwhile, functions such as `Math.sin`, `Math.log`, and `Math.exp` are specified as **within 1 ulp** and **semi-monotonic**, with no promise that every result is rounded to the nearest bit.
 
-Cần nhớ:
+Keep in mind:
 
-1. **Đọc con số ULP trên đúng mục phương thức**, đừng áp dụng “1 ulp cho toàn bộ `Math`”.
-2. **Semi-monotonic không có nghĩa hàm luôn tăng trên toàn bộ trục số.** `sin(x)` tự nhiên có đoạn tăng, đoạn giảm; ràng buộc nói về việc xấp xỉ giữ chiều trên các đoạn mà hàm toán học có tính đơn điệu.
-3. **Trong 1 ulp không đồng nghĩa cùng bit trên mọi JVM.** Hai implementation có thể cho kết quả khác nhau nhưng đều nằm trong giới hạn Javadoc.
-4. **Bảo đảm về độ chính xác không thay cho bảo đảm miền giá trị.** Một hàm có đặc tả ULP vẫn có special cases NaN/Infinity/signed zero.
+1. **Read the ULP number in the exact method entry**, do not apply "1 ulp for all of `Math`".
+2. **Semi-monotonic does not mean a function increases across the entire real line.** `sin(x)` naturally has increasing and decreasing segments; the constraint is about the approximation preserving direction on intervals where the mathematical function is monotonic.
+3. **Within 1 ulp does not imply identical bits across all JVMs.** Two implementations can return different results while both remaining within Javadoc limits.
+4. **Accuracy guarantees do not replace value-domain guarantees.** A function with a ULP specification still has special cases for NaN/Infinity/signed zero.
 
-### Ví dụ các mức theo từng phương thức
+### Examples of Levels per Method
 
-Theo Javadoc Java 17:
+According to Java 17 Javadoc:
 
-| `Math` method | Cam kết liên quan |
+| `Math` method | Associated Guarantee |
 | --- | --- |
 | `sqrt(double)` | Correctly rounded |
-| `sin(double)`, `cos(double)`, `tan(double)` | Trong **1 ulp**, semi-monotonic |
-| `exp(double)`, `log(double)`, `log10(double)` | Trong **1 ulp**, semi-monotonic |
-| `expm1(double)`, `log1p(double)` | Trong **1 ulp**, semi-monotonic |
-| `pow(double,double)` | Trong **1 ulp**, semi-monotonic |
-| `hypot(double,double)` | Trong **1 ulp**; semi-monotonic theo một biến khi biến kia cố định |
-| `atan2(double,double)` | Trong **2 ulp**, semi-monotonic |
-| `sinh(double)`, `cosh(double)`, `tanh(double)` | Trong **2,5 ulp** theo Javadoc |
-| `fma(double,double,double)` | Tính tích rồi cộng như có precision/range vô hạn, **làm tròn một lần theo nearest-even** |
+| `sin(double)`, `cos(double)`, `tan(double)` | Within **1 ulp**, semi-monotonic |
+| `exp(double)`, `log(double)`, `log10(double)` | Within **1 ulp**, semi-monotonic |
+| `expm1(double)`, `log1p(double)` | Within **1 ulp**, semi-monotonic |
+| `pow(double,double)` | Within **1 ulp**, semi-monotonic |
+| `hypot(double,double)` | Within **1 ulp**; semi-monotonic in one variable when the other is fixed |
+| `atan2(double,double)` | Within **2 ulp**, semi-monotonic |
+| `sinh(double)`, `cosh(double)`, `tanh(double)` | Within **2.5 ulp** per Javadoc |
+| `fma(double,double,double)` | Computes product then sum as if with infinite precision/range, **rounded once to nearest-even** |
 
-Không suy luận sai rằng hàm có “2,5 ulp” chắc chắn luôn sai nhiều hơn một hàm “1 ulp”. Đó là **giới hạn tối đa được API cho phép**, không phải độ lớn sai số thực tế trong mọi lần gọi.
+Do not falsely deduce that a "2.5 ulp" function is always less accurate than a "1 ulp" function. That is the **maximum error bound permitted by the API**, not the actual error magnitude on every call.
 
-### Tại sao `fma` khác `a * b + c`?
+### Why Does `fma` Differ from `a * b + c`?
 
 ```java
 double combined = Math.fma(a, b, c);
 double separate = a * b + c;
 ```
 
-`Math.fma` làm tròn **một lần** sau khi tính chính xác toán học \(a\times b+c\), trong khi biểu thức thông thường có bước làm tròn tích rồi làm tròn tổng. Hai kết quả có thể khác vài bit ở trường hợp nhạy cảm. Điều này là **contract**, không phải do CPU nào “tình cờ tính tốt hơn”.
+`Math.fma` rounds **once** after mathematically computing \(a\times b+c\), whereas the ordinary expression rounds the product and then rounds the sum. The two results can differ by a few bits in sensitive cases. This is by **contract**, not because some CPU "happened to compute better".
 
-`Math.fma(Double.POSITIVE_INFINITY, 0.0, 1.0)` trả NaN theo special case cho vô cực nhân zero, không ném exception.
+`Math.fma(Double.POSITIVE_INFINITY, 0.0, 1.0)` returns NaN per the special case for infinity times zero, without throwing an exception.
 
-## 8. `Math` khác `StrictMath` ở đâu?
+## 8. Where Does `Math` Differ from `StrictMath`?
 
-**Cả hai đều** cung cấp nhiều phương thức toán học dấu phẩy động và các giá trị đặc biệt theo hợp đồng Java. Nhưng tính **tái lập kết quả bit-for-bit** không giống nhau:
+**Both** provide numerous floating-point math methods and special values according to Java's contract. However, **bit-for-bit result reproducibility** is not the same:
 
-- `Math` cho phép implementation khác nhau của **một số hàm** trên nền tảng/JVM khác nhau, miễn **đáp ứng accuracy và các ràng buộc Javadoc**. Điều này mở đường cho intrinsic, hướng dẫn CPU hoặc thư viện native nhanh hơn.
-- `StrictMath` yêu cầu một số hàm toán học có hành vi tương thích các thuật toán được công bố trong **fdlibm 5.3**; mục tiêu chính là **tính tái lập** giữa các nền tảng, không phải lời hứa “luôn chính xác hơn `Math`”.
-- Từ Java 17 (JEP 306), biểu thức dấu phẩy động Java đã trở lại ngữ nghĩa *always-strict*. Điều đó **không xóa khác biệt giữa hợp đồng `Math` và `StrictMath`**.
+- `Math` allows different implementations of **certain functions** across platforms/JVMs, provided they **meet accuracy and Javadoc constraints**. This paves the way for intrinsics, CPU instructions, or faster native libraries.
+- `StrictMath` requires certain math functions to behave compatibly with algorithms published in **fdlibm 5.3**; the primary goal is cross-platform **reproducibility**, not a promise of "always more accurate than `Math`".
+- Since Java 17 (JEP 306), Java floating-point expressions have returned to *always-strict* semantics. That **does not erase the difference between `Math` and `StrictMath` contracts**.
 
-Javadoc Java 17 `StrictMath` nêu cụ thể các hàm phải theo fdlibm, bao gồm `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `exp`, `log`, `log10`, `cbrt`, `atan2`, `pow`, `sinh`, `cosh`, `tanh`, `hypot`, `expm1` và `log1p`.
+Java 17 `StrictMath` Javadoc explicitly lists the functions that must follow fdlibm, including `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `exp`, `log`, `log10`, `cbrt`, `atan2`, `pow`, `sinh`, `cosh`, `tanh`, `hypot`, `expm1`, and `log1p`.
 
-**Không khái quát rằng mọi method trong `StrictMath` đều chạy fdlibm**; các phương thức khác có đặc tả riêng. Tên `StrictMath` cũng **không bảo đảm mọi phép gọi chạy chậm hơn hoặc chính xác hơn `Math`**.
+**Do not generalize that every method in `StrictMath` runs fdlibm**; other methods have their own specifications. Nor does the name `StrictMath` **guarantee every call runs slower or is more accurate than `Math`**.
 
-Ví dụ một yêu cầu thực tiễn:
+An example of a practical requirement:
 
 ```java
 double fastOrPlatform = Math.exp(1.0);
 double specReproducible = StrictMath.exp(1.0);
 ```
 
-Hai giá trị có thể giống nhau trong môi trường hiện tại, nhưng **không được dùng một test `Math.exp(x) == StrictMath.exp(x)` cho mọi x và mọi JVM như một đảm bảo**. Nếu quy trình cần tái lập bit trong hàm thuộc nhóm fdlibm, cân nhắc `StrictMath`, đồng thời cố định phiên bản Java, dữ liệu đầu vào và môi trường khi cần.
+Both values may match in the current environment, but **do not use a test `Math.exp(x) == StrictMath.exp(x)` for all x and all JVMs as a guarantee**. If a workflow requires bit reproducibility in an fdlibm-group function, consider `StrictMath`, while also pinning the Java version, input data, and environment as needed.
 
-## 9. Phương thức số nguyên: độ chính xác và overflow có hợp đồng khác
+## 9. Integer Methods: Precision and Overflow Have Different Contracts
 
-Chủ đề `Math`/`StrictMath` không chỉ có `double`. Một số API số nguyên như `Math.addExact`, `Math.multiplyExact` và `Math.toIntExact` **ném `ArithmeticException` khi tràn**.
+The `Math`/`StrictMath` topic is not just about `double`. Several integer APIs like `Math.addExact`, `Math.multiplyExact`, and `Math.toIntExact` **throw `ArithmeticException` on overflow**.
 
-Ngược lại, phép `Math.abs(int)` có trường hợp đặc biệt:
+Conversely, `Math.abs(int)` has a special case:
 
 ```java
 int minimum = Integer.MIN_VALUE;
 System.out.println(Math.abs(minimum)); // -2147483648
 ```
 
-Bởi miền `int` là `[-2^31, 2^31-1]`, giá trị tuyệt đối toán học của `Integer.MIN_VALUE` không biểu diễn được dưới dạng `int`. `Math.abs(minimum)` theo hợp đồng cũ trả lại chính số âm đó. **Đừng diễn giải tên `abs` là bảo đảm kết quả không âm với mọi `int`**.
+Because the `int` range is `[-2^31, 2^31-1]`, the mathematical absolute value of `Integer.MIN_VALUE` is unrepresentable as an `int`. `Math.abs(minimum)` by its legacy contract returns that same negative number. **Do not interpret the name `abs` as guaranteeing a non-negative result for every `int`**.
 
-Nếu cần phát hiện điều này:
+If you need to detect this:
 
 ```java
 try {
@@ -279,15 +279,15 @@ try {
 }
 ```
 
-`Math.absExact` (có trong Java 17) ném exception khi giá trị tuyệt đối không thể chứa vừa kiểu nguyên. Đây là **cơ chế lỗi khác** so với các giá trị NaN/Infinity của nhiều hàm `double`.
+`Math.absExact` (available in Java 17) throws an exception when the absolute value cannot fit in the integer type. This is a **different error mechanism** compared to the NaN/Infinity values of many `double` functions.
 
-Tóm lại, phải xem **kiểu tham số, overload và hợp đồng cụ thể** trước khi suy luận miền và cách báo lỗi.
+In summary, check **parameter types, overloads, and the specific contract** before inferring domain and error reporting behavior.
 
-## 10. Xây dựng xác thực đầu vào/đầu ra theo hợp đồng ứng dụng
+## 10. Building Input/Output Validation Based on Application Contracts
 
-Javadoc cho biết **Java sẽ trả gì**, không tự quyết định giá trị đó có được ứng dụng cho phép hay không.
+Javadoc tells you **what Java will return**; it does not decide whether that value is permissible by your application.
 
-Ví dụ ứng dụng yêu cầu căn bậc hai của số hữu hạn không âm, kết quả cũng phải hữu hạn:
+Example of an application requiring the square root of a finite non-negative number, where the result must also be finite:
 
 ```java
 static double checkedSqrt(double x) {
@@ -302,9 +302,9 @@ static double checkedSqrt(double x) {
 }
 ```
 
-Đây là method minh họa đặt trong class. Vì `-0.0 < 0.0` là false, helper **chấp nhận -0.0**, và `Math.sqrt(-0.0)` sẽ trả **-0.0**. Nếu contract cần loại trừ hoặc chuẩn hóa âm zero, phải thêm quy tắc cụ thể; điều kiện `x < 0.0` chưa đủ.
+This is an illustrative method placed in a class. Because `-0.0 < 0.0` is false, the helper **accepts -0.0**, and `Math.sqrt(-0.0)` will return **-0.0**. If the contract needs to exclude or normalize negative zero, add an explicit rule; `x < 0.0` alone is not enough.
 
-Với logarit tự nhiên:
+For natural logarithm:
 
 ```java
 static double checkedLog(double x) {
@@ -319,28 +319,28 @@ static double checkedLog(double x) {
 }
 ```
 
-Ở đây `x <= 0.0` sẽ **từ chối cả +0.0 và -0.0**. Cặp kiểm tra `Double.isFinite` và miền dương giúp loại NaN/Infinity một cách rõ ràng, thay vì chờ chúng lan truyền qua công thức.
+Here `x <= 0.0` **rejects both +0.0 and -0.0**. Pairing `Double.isFinite` with the positive domain cleanly filters out NaN/Infinity rather than letting them propagate through formulas.
 
-### Khi cần chấp nhận giá trị IEEE 754
+### When IEEE 754 Values Should Be Accepted
 
-Các hệ thống nghiên cứu hoặc mô phỏng có thể chủ ý giữ `NaN`/Infinity như trạng thái tính toán. Khi đó không nên dùng helper cấm mọi giá trị không hữu hạn; thay vào đó cần một cách xử lý có tài liệu:
+Research or simulation systems may intentionally keep `NaN`/Infinity as computation states. In that case, do not use helpers that forbid all non-finite values; instead have documented handling:
 
 ```java
 double result = Math.log(input);
 if (Double.isNaN(result)) {
-    // Đường xử lý NaN đã được thiết kế
+    // Designed NaN handling path
 } else if (Double.isInfinite(result)) {
-    // Đường xử lý vô cực
+    // Infinity handling path
 } else {
-    // Kết quả hữu hạn
+    // Finite result
 }
 ```
 
-Đây là đoạn minh họa bên trong method có biến `input`. Không âm thầm chuyển NaN thành zero để “làm chương trình chạy tiếp”: zero cũng là một giá trị toán học hợp lệ, nên cách đó che mất lỗi dữ liệu.
+This is an illustrative snippet inside a method with a declared `input` variable. Do not silently convert NaN to zero just to "keep the program running": zero is also a valid mathematical value, so doing so masks data errors.
 
-## 11. Chương trình Java 17+ độc lập và đầu ra đáng kiểm chứng
+## 11. Standalone Java 17+ Program and Verifiable Output
 
-Lưu thành **`MathJavadocContractDemo.java`**:
+Save as **`MathJavadocContractDemo.java`**:
 
 ```java
 import java.util.Locale;
@@ -415,14 +415,14 @@ public class MathJavadocContractDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac MathJavadocContractDemo.java
 java MathJavadocContractDemo
 ```
 
-**Đầu ra với các giá trị được chọn**:
+**Output for the selected values**:
 
 ```text
 sqrtNegative=NaN
@@ -457,48 +457,48 @@ checkedLogZero=detected
 checkedLogOne=0.0
 ```
 
-Các test tập trung vào **special cases mà Javadoc xác định rõ**. Hai dòng định dạng `Math.exp(1)` và `StrictMath.exp(1)` chỉ kiểm tra dạng hiển thị sáu chữ số decimal, **không tuyên bố mọi bit hai giá trị đều phải khớp**. Dùng số nhỏ, zero và giá trị đặc biệt giúp xây dựng test ổn định hơn so với kiểm tra chính xác toàn bộ chữ số của một phép tính siêu việt trên mọi JVM.
+The tests focus on **special cases explicitly defined by Javadoc**. The two formatted lines for `Math.exp(1)` and `StrictMath.exp(1)` only check six decimal digits of display output, **without claiming every bit of the two values must match**. Using small numbers, zero, and special values helps build more stable tests than checking every exact digit of a transcendental calculation across all JVMs.
 
-## 12. Thiết kế test đúng theo Javadoc thay vì hard-code kết quả máy hiện tại
+## 12. Designing Tests According to Javadoc Instead of Hard-Coding Current Machine Results
 
-Một bộ kiểm thử nên tách ba loại:
+A test suite should separate three categories:
 
-**(A) Special cases với kết quả xác định:** kiểm tra `Double.isNaN(Math.sqrt(-1.0))`, `Math.pow(Double.NaN, 0.0) == 1.0`, hoặc bit âm zero sau `Math.sqrt(-0.0)`. Với NaN, không dùng `== Double.NaN`.
+**(A) Special cases with deterministic results:** check `Double.isNaN(Math.sqrt(-1.0))`, `Math.pow(Double.NaN, 0.0) == 1.0`, or the negative-zero bit after `Math.sqrt(-0.0)`. For NaN, never use `== Double.NaN`.
 
-**(B) Miền đầu vào và giá trị đầu ra:** kiểm tra ứng dụng có từ chối log của số không dương, hoặc phát hiện overflow thành vô cực không. Các quy tắc này thuộc **business contract**, bổ sung cho Javadoc.
+**(B) Input domain and output values:** verify whether the application rejects logs of non-positive numbers, or detects overflow to infinity. These rules belong to the **business contract**, supplementing Javadoc.
 
-**(C) Sai số của kết quả hữu hạn:** nếu phương thức chỉ hứa “within 1 ulp” thay vì cùng bit, đừng lưu một chuỗi thập phân quá dài từ máy hiện tại làm expected duy nhất cho mọi hệ thống. So sánh với tham chiếu chính xác đủ cao và dùng mức sai số phù hợp đặc tả, đồng thời xét subnormal, vô cực, NaN, signed zero. Một công thức kiểu `abs(actual - expected) <= Math.ulp(actual)` chỉ là **minh họa thô**, chưa chắc đo đúng ulp của kết quả thực, không xử lý các giá trị đặc biệt và **không thay thế quy trình kiểm chứng chuẩn**.
+**(C) Error bounds of finite results:** if a method only promises "within 1 ulp" rather than identical bits, do not save an overly long decimal string from the current machine as the sole expected value across all systems. Compare against a sufficiently accurate reference using spec-compliant error bounds, while also accounting for subnormals, infinity, NaN, and signed zero. A formula like `abs(actual - expected) <= Math.ulp(actual)` is only a **rough illustration**—it may not measure exact ULP of the true result, does not handle special values, and **does not replace standard verification procedures**.
 
-Ví dụ một test về đặc điểm hướng tăng ở miền log dương có thể kiểm tra nhiều điểm mẫu. Nhưng vài điểm mẫu **không chứng minh hoàn toàn** semi-monotonic cho mọi `double`. Muốn kiểm thử sâu phải biết chính xác hợp đồng Javadoc, bộ tham chiếu, dải đầu vào và công cụ đánh giá số học.
+For instance, a test for the increasing behavior on the positive log domain can check multiple sample points. Yet a few sample points **do not fully prove** semi-monotonicity for every `double`. Thorough testing requires knowing the exact Javadoc contract, reference datasets, input ranges, and numerical evaluation tools.
 
-Nếu hệ thống đòi kết quả bit-for-bit để tái lập, cân nhắc dùng `StrictMath` với các hàm có ràng buộc fdlibm và viết rõ chính sách phiên bản/đầu vào, thay vì vô tình dựa vào một implementation cụ thể của `Math`.
+If a system demands bit-for-bit results for reproducibility, consider `StrictMath` for fdlibm-bound functions and document version/input policies explicitly, rather than accidentally relying on one specific `Math` implementation.
 
-## 13. Hiểu lầm phổ biến và checklist
+## 13. Common Misconceptions and Checklist
 
-| Hiểu lầm | Cách hiểu đúng |
+| Misconception | Correct Understanding |
 | --- | --- |
-| “Hàm `Math` nhận số ngoài miền sẽ ném `ArithmeticException`.” | Nhiều hàm số thực trả `NaN` hoặc Infinity, theo từng special case. |
-| “Bất kỳ đầu vào NaN nào cũng bắt buộc cho NaN.” | Sai với trường hợp như `Math.pow(NaN,0.0)`, và `hypot(Infinity,NaN)`. |
-| “`sqrt(-0.0)` phải cho NaN vì số âm.” | Sai: -0.0 được giữ dấu theo hợp đồng căn bậc hai. |
-| “`Math.min(+0.0,-0.0)` có thể tùy ý chọn một zero.” | Javadoc quy định chọn -0.0; `max` chọn +0.0. |
-| “1 ulp là sai số không quá 1.0.” | Sai: ulp là bước của lưới số thực nhị phân tại độ lớn kết quả. |
-| “Trong 1 ulp nghĩa là kết quả đã correctly rounded.” | Không nhất thiết; có thể chọn một giá trị kề thay vì gần nhất. |
-| “`Math.sqrt`, `Math.exp` và `Math.atan2` cùng một cam kết sai số.” | Không: phải đọc từng mục Javadoc. |
-| “Semi-monotonic nghĩa là hàm `sin` tăng mãi.” | Sai: đó là ràng buộc bảo toàn hướng trên vùng mà hàm toán học đơn điệu. |
-| “`StrictMath` luôn nhiều chữ số chính xác hơn `Math`.” | Không có bảo đảm như vậy; trọng tâm là tái lập theo thuật toán được chỉ định. |
-| “Java 17 always-strict khiến `Math` và `StrictMath` giống nhau.” | Sai: ngữ nghĩa biểu thức không xóa sự khác nhau ở đặc tả các method thư viện. |
-| “`Math.abs(int)` luôn không âm.” | Sai với `Integer.MIN_VALUE`; có thể dùng `absExact` để phát hiện tràn. |
-| “`Double.isFinite` đủ chứng minh kết quả không sai số.” | Sai: nó chỉ loại NaN/Infinity, không kiểm tra làm tròn hay underflow. |
+| "`Math` functions receiving out-of-domain numbers throw `ArithmeticException`." | Many floating-point functions return `NaN` or Infinity, per each special case. |
+| "Any NaN input must yield NaN." | False for cases like `Math.pow(NaN,0.0)` and `hypot(Infinity,NaN)`. |
+| "`sqrt(-0.0)` must yield NaN because it's negative." | False: -0.0 preserves its sign under the square root contract. |
+| "`Math.min(+0.0,-0.0)` can arbitrarily pick either zero." | Javadoc specifies returning -0.0; `max` returns +0.0. |
+| "1 ulp means an error of at most 1.0." | False: ulp is one step of the binary floating-point grid at the result's magnitude. |
+| "Within 1 ulp means the result is correctly rounded." | Not necessarily; an adjacent value may be chosen instead of the nearest one. |
+| "`Math.sqrt`, `Math.exp`, and `Math.atan2` share the same error guarantee." | No: read each Javadoc entry individually. |
+| "Semi-monotonic means `sin` always increases." | False: it is a constraint preserving direction on intervals where the mathematical function is monotonic. |
+| "`StrictMath` always has more accurate digits than `Math`." | There is no such guarantee; the focus is reproducibility via specified algorithms. |
+| "Java 17 always-strict makes `Math` and `StrictMath` identical." | False: expression semantics do not erase specification differences in library methods. |
+| "`Math.abs(int)` is always non-negative." | False for `Integer.MIN_VALUE`; `absExact` can be used to detect overflow. |
+| "`Double.isFinite` suffices to prove a result has no error." | False: it only excludes NaN/Infinity, without checking rounding or underflow. |
 
-Checklist thực hành:
+Practical checklist:
 
-1. **Mở đúng Javadoc của phiên bản Java đang dùng**, tìm đúng overload theo kiểu tham số.
-2. **Đọc công thức và miền thực** nhưng không dừng ở đó.
-3. **Đọc trọn mục “Special Cases”**: NaN, Infinity, signed zero, tham số ở biên, thứ tự ưu tiên giữa các trường hợp.
-4. **Đọc dòng cam kết sai số** của từng method: correctly rounded, 1 ulp, 2 ulp, 2,5 ulp và semi-monotonic nếu có.
-5. **Phân biệt `Math` và `StrictMath` theo yêu cầu tái lập**, không theo suy đoán tên class.
-6. **Xác định business contract** có cho phép kết quả NaN/vô cực, zero có dấu và underflow không.
-7. **Kiểm thử trường hợp biên riêng khỏi kiểm thử độ chính xác**; không dùng một so sánh `==` duy nhất cho mọi số thực.
-8. **Khi cần độ chính xác hoặc tái lập nghiêm ngặt**, dùng dữ liệu tham chiếu và tiêu chí sai số phù hợp, không lấy kết quả máy hiện tại làm chân lý cho mọi nền tảng.
+1. **Open the Javadoc for the exact Java version in use**, locating the exact overload by parameter types.
+2. **Read the formula and real domain**, but do not stop there.
+3. **Read the entire "Special Cases" section**: NaN, Infinity, signed zero, boundary parameters, and precedence among cases.
+4. **Read the accuracy guarantee line** for each method: correctly rounded, 1 ulp, 2 ulp, 2.5 ulp, and semi-monotonic if applicable.
+5. **Distinguish `Math` and `StrictMath` by reproducibility needs**, not by guessing from the class name.
+6. **Define the business contract** on whether NaN/infinite results, signed zero, and underflow are permitted.
+7. **Test boundary cases separately from accuracy tests**; do not use a single `==` comparison for all floating-point numbers.
+8. **When strict accuracy or reproducibility is needed**, use reference data and proper error criteria instead of treating the current machine's output as universal truth across all platforms.
 
-**Kết luận:** Hợp đồng `Math`/`StrictMath` không chỉ là công thức. Nó bao gồm **miền xác định, special cases, độ chính xác đo theo ULP, tính đơn điệu xấp xỉ và mức tái lập**. Lập trình Java đúng đòi hỏi đọc **Javadoc của từng phương thức**, xác thực giá trị theo mục đích ứng dụng và kiểm thử đúng điều API thực sự cam kết.
+**Conclusion:** The `Math`/`StrictMath` contract is more than just formulas. It encompasses **domains, special cases, ULP-measured accuracy, approximate monotonicity, and reproducibility levels**. Writing correct Java code requires reading **each method's Javadoc**, validating values for the application's intent, and testing what the API actually guarantees.

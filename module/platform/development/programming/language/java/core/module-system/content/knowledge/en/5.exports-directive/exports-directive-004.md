@@ -1,12 +1,12 @@
-# Exports type public và điều kiện truy cập
+# Exporting Public Types and Access Conditions
 
-## 1. exports kiểm soát điều gì?
+## 1. What Does exports Control?
 
-Trong Java Platform Module System (JPMS), một module có thể chứa nhiều package phục vụ các mục đích khác nhau: API dành cho người dùng, phần triển khai nội bộ, adapter, helper và mã kiểm thử. Nếu module không có ranh giới truy cập, người dùng dễ phụ thuộc trực tiếp vào các lớp triển khai mà tác giả module muốn giữ kín.
+In the Java Platform Module System (JPMS), a module can contain many packages serving different purposes: user-facing APIs, internal implementations, adapters, helpers, and test code. Without module access boundaries, users can easily depend directly on implementation classes that the module author intended to keep hidden.
 
-Chỉ thị **exports** trong module descriptor xác định package nào được công khai để module khác truy cập theo quy tắc Java thông thường.
+The **exports** directive in the module descriptor specifies which packages are made public for other modules to access under normal Java rules.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.customer {
@@ -14,29 +14,29 @@ module com.acme.customer {
 }
 ~~~
 
-Khai báo này cho phép các module đọc được com.acme.customer truy cập những kiểu public thuộc package com.acme.customer.api, đồng thời giữ các package khác của module ở trạng thái đóng đối với truy cập Java thông thường từ bên ngoài.
+This declaration allows modules that read com.acme.customer to access public types belonging to package com.acme.customer.api, while keeping other packages of the module closed to normal Java access from outside.
 
-Một số điểm cần nhớ:
+Some points to remember:
 
-- exports áp dụng cho **toàn bộ package**, không chọn riêng từng class hoặc method.
-- Chỉ thị exports không tự biến class hay member thành public.
-- Module sử dụng package vẫn phải có quyền đọc module cung cấp package đó.
-- Các quy tắc truy cập của ngôn ngữ Java như public, protected, package-private và private vẫn được áp dụng.
-- Package con là package riêng. Export com.acme.customer.api không tự export com.acme.customer.api.internal.
+- exports applies to the **entire package**, not selectively to individual classes or methods.
+- The exports directive does not automatically make classes or members public.
+- The module using the package must still have permission to read the module providing that package.
+- Java language access rules such as public, protected, package-private, and private still apply.
+- Subpackages are separate packages. Exporting com.acme.customer.api does not automatically export com.acme.customer.api.internal.
 
-Vì vậy, exports là một phần của hợp đồng API ở cấp module. Nó xác định bề mặt package mà module cho phép module khác sử dụng.
+Therefore, exports is part of the module-level API contract. It defines the package surface that a module allows other modules to use.
 
-## 2. Điều kiện để truy cập một type public
+## 2. Conditions for Accessing a Public Type
 
-Để mã trong module A sử dụng một type public thuộc package của module B, các điều kiện chính phải đồng thời thỏa mãn:
+For code in module A to use a public type belonging to a package of module B, the primary conditions must all be satisfied simultaneously:
 
-1. **Module B được phân giải trong cấu hình hiện tại**: module cung cấp phải hiện diện trong cấu hình module của ứng dụng.
-2. **Module A đọc được module B**: thường được khai báo bằng requires trong module-info.java của A; quan hệ đọc cũng có thể đến từ requires transitive hoặc các tùy chọn bổ sung khi chạy.
-3. **Package chứa type được export tới A**: B phải export package đó không hạn chế hoặc export có giới hạn tới chính module A.
-4. **Type và thành viên cần dùng có mức truy cập phù hợp**: type phải public; constructor, method hoặc field phải cho phép truy cập theo quy tắc Java.
-5. **Các điều kiện ngôn ngữ khác đều hợp lệ**: kiểu tham số, kiểu trả về, kiểu bao ngoài, kế thừa và các quy tắc truy cập protected cũng phải hợp lệ.
+1. **Module B is resolved in the current configuration**: the providing module must be present in the application's module configuration.
+2. **Module A reads module B**: typically declared using requires in A's module-info.java; readability can also come from requires transitive or additional runtime options.
+3. **The package containing the type is exported to A**: B must export that package unconditionally or via a qualified export specifically to module A.
+4. **The type and member being used have appropriate access levels**: the type must be public; the constructor, method, or field must permit access under Java rules.
+5. **Other language conditions are valid**: parameter types, return types, enclosing types, inheritance, and protected access rules must also be valid.
 
-Có thể hình dung quan hệ này như sau:
+This relationship can be visualized as follows:
 
 ~~~text
 Module A (consumer)
@@ -51,14 +51,14 @@ Package com.acme.customer.api
     |
     | public type + public member
     v
-Mã của module A được phép sử dụng API
+Module A code is allowed to use the API
 ~~~
 
-Chỉ có requires là chưa đủ nếu package không được export. Ngược lại, package được export cũng chưa đủ nếu module sử dụng không đọc module cung cấp.
+Having requires alone is not enough if the package is not exported. Conversely, an exported package is also not enough if the using module does not read the providing module.
 
-## 3. Ví dụ một module có API public và phần triển khai nội bộ
+## 3. Example of a Module with Public API and Internal Implementation
 
-Giả sử thư viện quản lý khách hàng có cấu trúc:
+Suppose a customer management library has the structure:
 
 ~~~text
 com.acme.customer/
@@ -73,7 +73,7 @@ com.acme.customer/
                 └── CustomerRepository.java
 ~~~
 
-Module descriptor chỉ export package API:
+The module descriptor exports only the API package:
 
 ~~~java
 module com.acme.customer {
@@ -81,7 +81,7 @@ module com.acme.customer {
 }
 ~~~
 
-Type public trong API:
+Public type in the API:
 
 ~~~java
 package com.acme.customer.api;
@@ -90,7 +90,7 @@ public record Customer(String id, String name) {
 }
 ~~~
 
-Service công khai:
+Public service:
 
 ~~~java
 package com.acme.customer.api;
@@ -102,7 +102,7 @@ public class CustomerService {
 }
 ~~~
 
-Một class triển khai nằm trong package internal:
+An implementation class located in the internal package:
 
 ~~~java
 package com.acme.customer.internal;
@@ -113,7 +113,7 @@ public class CustomerRepository {
 }
 ~~~
 
-Module ứng dụng khai báo phụ thuộc:
+The application module declares the dependency:
 
 ~~~java
 module com.acme.application {
@@ -121,7 +121,7 @@ module com.acme.application {
 }
 ~~~
 
-Và sử dụng API:
+And uses the API:
 
 ~~~java
 package com.acme.application;
@@ -139,27 +139,27 @@ public class Main {
 }
 ~~~
 
-Mã ứng dụng biên dịch được vì:
+The application code compiles because:
 
-- com.acme.application đọc com.acme.customer thông qua requires.
-- com.acme.customer export com.acme.customer.api.
-- Customer và CustomerService là các type public.
-- findById và name là các thành viên public có thể truy cập.
+- com.acme.application reads com.acme.customer through requires.
+- com.acme.customer exports com.acme.customer.api.
+- Customer and CustomerService are public types.
+- findById and name are accessible public members.
 
-Nếu Main thử import com.acme.customer.internal.CustomerRepository, compiler sẽ từ chối vì package internal không được export. Việc class CustomerRepository được khai báo public không thay đổi kết quả này. Mức public của type không thể vượt qua ranh giới module do exports thiết lập.
+If Main tries to import com.acme.customer.internal.CustomerRepository, the compiler will reject it because the internal package is not exported. The fact that class CustomerRepository is declared public does not change this result. A type's public modifier cannot cross the module boundary established by exports.
 
-## 4. exports không thay thế public và các mức truy cập Java
+## 4. exports Does Not Replace public and Java Access Levels
 
-JPMS bổ sung ranh giới ở cấp module; nó không xóa bỏ hệ thống truy cập thành viên của Java.
+JPMS adds a module-level boundary; it does not eliminate Java's member access system.
 
-| Mức truy cập | Ý nghĩa trong Java | Module khác truy cập qua package đã export? |
+| Access Level | Meaning in Java | Can another module access via an exported package? |
 |---|---|---|
-| public | Có thể truy cập từ nơi phù hợp theo quy tắc Java | Có, nếu type và các điều kiện module đều hợp lệ |
-| protected | Truy cập trong package và theo quy tắc subclass | Chỉ trong các ngữ cảnh được Java cho phép |
-| package-private | Chỉ trong cùng package | Không |
-| private | Chỉ trong phạm vi class/nest được Java cho phép | Không |
+| public | Accessible from appropriate places under Java rules | Yes, if the type and module conditions are valid |
+| protected | Accessible within the package and under subclass rules | Only in contexts permitted by Java |
+| package-private | Only within the same package | No |
+| private | Only within the class/nest scope permitted by Java | No |
 
-Ví dụ:
+Example:
 
 ~~~java
 package com.acme.customer.api;
@@ -180,14 +180,14 @@ public class CustomerService {
 }
 ~~~
 
-Nếu package này được export:
+If this package is exported:
 
-- Module khách hàng khác có thể gọi findById trên một instance hợp lệ.
-- validateExtension vẫn tuân theo quy tắc protected: mã ở package khác chỉ có thể truy cập trong ngữ cảnh subclass được Java cho phép.
-- resetCache là package-private nên không thể gọi từ module khác.
-- rebuildIndex là private nên không thể gọi trực tiếp từ bên ngoài class.
+- Other client modules can call findById on a valid instance.
+- validateExtension still follows protected rules: code in another package can only access it in a subclass context permitted by Java.
+- resetCache is package-private, so it cannot be called from another module.
+- rebuildIndex is private, so it cannot be called directly from outside the class.
 
-Tương tự, export một package không làm cho class package-private trong package đó trở thành public. Ví dụ sau vẫn không cho module ngoài package sử dụng InternalMapper:
+Similarly, exporting a package does not make a package-private class in that package public. The following example still prevents modules outside the package from using InternalMapper:
 
 ~~~java
 package com.acme.customer.api;
@@ -196,13 +196,13 @@ class InternalMapper {
 }
 ~~~
 
-Khi thiết kế API, hãy xác định rõ type và member nào thực sự là hợp đồng công khai. Tránh tăng mức truy cập chỉ để vượt qua lỗi biên dịch nếu type đó không dành cho người dùng thư viện.
+When designing an API, clearly identify which types and members are genuinely part of the public contract. Avoid increasing access levels just to bypass compile errors if the type is not meant for library users.
 
-## 5. Qualified exports: chỉ công khai cho module được chọn
+## 5. Qualified Exports: Exposing Only to Selected Modules
 
-Một module có thể export package cho tất cả module đọc nó hoặc chỉ cho một nhóm module có tên cụ thể.
+A module can export a package to all modules that read it or only to a specific group of named modules.
 
-Export không giới hạn:
+Unqualified export:
 
 ~~~java
 module com.acme.customer {
@@ -210,7 +210,7 @@ module com.acme.customer {
 }
 ~~~
 
-Bất kỳ module nào đọc com.acme.customer đều có thể truy cập các type public trong package API theo quy tắc Java.
+Any module that reads com.acme.customer can access public types in the API package under Java rules.
 
 Qualified export:
 
@@ -223,23 +223,23 @@ module com.acme.customer {
 }
 ~~~
 
-Trong ví dụ này:
+In this example:
 
-- com.acme.customer.api là API dành cho mọi module đọc thư viện.
-- com.acme.customer.spi chỉ được export cho com.acme.application và com.acme.integration.
-- Module khác có thể đọc com.acme.customer nhưng không được truy cập package SPI qua quy tắc truy cập thông thường.
+- com.acme.customer.api is the API for every module reading the library.
+- com.acme.customer.spi is exported only to com.acme.application and com.acme.integration.
+- Other modules can read com.acme.customer, but cannot access the SPI package through normal access rules.
 
-Qualified exports hữu ích khi module có một API công khai rộng và một số điểm mở rộng dành riêng cho các module tích hợp đã biết.
+Qualified exports are useful when a module has a broad public API and some extension points intended only for known integration modules.
 
-Danh sách module đích phải dùng đúng tên module được khai báo trong descriptor của chúng. Nếu đổi tên module đích, qualified export cũng cần được cập nhật.
+The target module list must use the exact module names declared in their descriptors. If a target module is renamed, the qualified export must also be updated.
 
-Qualified exports không tự tạo quan hệ đọc. Module đích vẫn cần đọc module nguồn, thường bằng requires. Việc export có giới hạn và việc đọc module là hai điều kiện độc lập.
+Qualified exports do not automatically create a readability relationship. The target module still needs to read the source module, usually via requires. Restricted exporting and module reading are two independent conditions.
 
-## 6. Export package không tự động export package con
+## 6. Exporting a Package Does Not Automatically Export Subpackages
 
-Trong Java, package không có quan hệ kế thừa truy cập theo cấu trúc tên. Package com.acme.customer.api và com.acme.customer.api.internal là hai package khác nhau.
+In Java, packages do not have an access inheritance relationship based on name structure. Package com.acme.customer.api and com.acme.customer.api.internal are two distinct packages.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.customer {
@@ -247,13 +247,13 @@ module com.acme.customer {
 }
 ~~~
 
-Khai báo trên chỉ export com.acme.customer.api. Nó không export:
+The declaration above exports only com.acme.customer.api. It does not export:
 
 - com.acme.customer.api.internal
 - com.acme.customer.api.validation
 - com.acme.customer.spi
 
-Nếu muốn công khai thêm package, cần khai báo riêng:
+If you want to expose additional packages, you need to declare them separately:
 
 ~~~java
 module com.acme.customer {
@@ -262,16 +262,16 @@ module com.acme.customer {
 }
 ~~~
 
-Không nên export toàn bộ package nội bộ chỉ vì chúng nằm bên dưới một package API. Việc export thêm một package tạo thêm bề mặt tương thích mà tác giả module phải cân nhắc khi thay đổi phiên bản thư viện.
+You should not export all internal packages just because they sit beneath an API package. Exporting an additional package creates more compatibility surface that the module author must consider when changing library versions.
 
-## 7. exports và requires transitive có vai trò khác nhau
+## 7. exports and requires transitive Have Different Roles
 
-Hai chỉ thị này thường xuất hiện cùng nhau nhưng giải quyết hai vấn đề khác nhau:
+These two directives often appear together, yet they solve two different problems:
 
-- **exports** quyết định package nào của module hiện tại có thể được module khác truy cập.
-- **requires transitive** truyền quan hệ đọc tới một module phụ thuộc cho các module đọc module hiện tại.
+- **exports** determines which packages of the current module can be accessed by other modules.
+- **requires transitive** propagates the readability relationship to a dependent module for modules that read the current module.
 
-Ví dụ module API sử dụng type từ module model trong chữ ký public:
+Example of an API module using a type from a model module in its public signature:
 
 ~~~java
 module com.acme.customer.api {
@@ -280,7 +280,7 @@ module com.acme.customer.api {
 }
 ~~~
 
-Module ứng dụng chỉ cần khai báo:
+The application module only needs to declare:
 
 ~~~java
 module com.acme.application {
@@ -288,29 +288,29 @@ module com.acme.application {
 }
 ~~~
 
-Nhờ requires transitive, com.acme.application có quan hệ đọc tới com.acme.model và có thể làm việc với type được API công khai làm lộ ra, miễn là package tương ứng của com.acme.model cũng được export phù hợp.
+Thanks to requires transitive, com.acme.application has a readability relationship to com.acme.model and can work with types exposed by the public API, provided the corresponding package of com.acme.model is also appropriately exported.
 
-Nếu chỉ viết exports com.acme.customer.api mà không có quan hệ đọc thích hợp tới com.acme.model, module sử dụng vẫn có thể gặp vấn đề khi cần tham chiếu type thuộc module model.
+If you only write exports com.acme.customer.api without an appropriate readability relationship to com.acme.model, the consuming module may still run into issues when needing to reference types from the model module.
 
-Một cách nhớ:
+A way to remember:
 
 ~~~text
 exports
-    -> Mở package của module hiện tại cho module khác.
+    -> Opens a package of the current module to other modules.
 
 requires transitive
-    -> Truyền quan hệ đọc tới module phụ thuộc.
+    -> Propagates readability to a dependent module.
 ~~~
 
-Không dùng requires transitive chỉ để “sửa cho biên dịch được”. Hãy dùng nó khi dependency thực sự xuất hiện trong API công khai hoặc người dùng API cần đọc module đó theo hợp đồng đã thiết kế.
+Do not use requires transitive just to "make it compile." Use it when the dependency genuinely appears in the public API or when API users need to read that module according to the designed contract.
 
-## 8. exports và opens: truy cập API khác truy cập reflection sâu
+## 8. exports and opens: API Access vs. Deep Reflection Access
 
-exports dành cho truy cập Java thông thường vào các type public và các thành viên được phép. Nó cũng hỗ trợ reflection công khai đối với các thành viên public của type public trong package đã export.
+exports is intended for normal Java access to public types and permitted members. It also supports public reflection on public members of public types within the exported package.
 
-Tuy nhiên, framework có thể cần reflection sâu để truy cập field private, constructor private hoặc method private. Trường hợp đó cần package được mở bằng opens.
+However, frameworks may need deep reflection to access private fields, private constructors, or private methods. In that case, the package needs to be opened with opens.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.customer {
@@ -319,13 +319,13 @@ module com.acme.customer {
 }
 ~~~
 
-Khai báo trên có nghĩa:
+The declaration above means:
 
-- Module người dùng API có thể truy cập type public trong com.acme.customer.api.
-- Module com.acme.persistence được phép thực hiện deep reflection vào package com.acme.customer.internal.
-- Package internal vẫn không trở thành API Java thông thường cho mọi module.
+- API consumer modules can access public types in com.acme.customer.api.
+- Module com.acme.persistence is permitted to perform deep reflection into package com.acme.customer.internal.
+- The internal package still does not become a normal Java API for all modules.
 
-Có thể mở package cho mọi module bằng:
+You can open a package to all modules with:
 
 ~~~java
 module com.acme.customer {
@@ -333,7 +333,7 @@ module com.acme.customer {
 }
 ~~~
 
-Hoặc khai báo toàn module là open:
+Or declare the entire module as open:
 
 ~~~java
 open module com.acme.customer {
@@ -341,21 +341,21 @@ open module com.acme.customer {
 }
 ~~~
 
-Một open module mở tất cả package của nó cho deep reflection ở thời điểm chạy. Trong module descriptor dạng open, không khai báo các chỉ thị opens riêng lẻ; nếu cần mở có giới hạn, dùng module thông thường với các dòng opens cụ thể.
+An open module opens all of its packages for deep reflection at runtime. In an open module descriptor, individual opens directives are not declared; if restricted opening is needed, use a normal module with specific opens lines.
 
-| Chỉ thị | Truy cập Java thông thường | Deep reflection |
+| Directive | Normal Java Access | Deep Reflection |
 |---|---|---|
-| exports | Cho phép theo mức public/protected của Java | Cho phép truy cập public thông thường |
-| opens | Không cấp quyền import/gọi API như exports | Cho phép truy cập sâu trong package |
-| open module | Không tự export package | Mở tất cả package cho deep reflection |
+| exports | Allowed according to Java public/protected levels | Allows normal public access |
+| opens | Does not grant import/API call permission like exports | Allows deep access within the package |
+| open module | Does not automatically export packages | Opens all packages for deep reflection |
 
-Nếu framework báo InaccessibleObjectException khi truy cập private member, hãy xem package đã được opens cho module framework chưa. Thêm exports thường không giải quyết được yêu cầu reflection sâu.
+If a framework reports InaccessibleObjectException when accessing a private member, check whether the package has been opened to the framework module via opens. Adding exports usually does not solve deep reflection requirements.
 
-## 9. Bổ sung export khi chạy bằng dòng lệnh
+## 9. Adding Exports at Runtime via the Command Line
 
-Trong giai đoạn chuyển đổi hoặc khi cần chẩn đoán, Java launcher và compiler có các tùy chọn bổ sung export mà không cần sửa ngay module descriptor.
+During migration or when diagnostics are needed, the Java launcher and compiler provide options to add exports without immediately modifying the module descriptor.
 
-Ví dụ mở package API cho một module đích:
+Example of opening an API package to a target module:
 
 ~~~bash
 java --add-exports com.acme.customer/com.acme.customer.internal=com.acme.application \
@@ -363,13 +363,13 @@ java --add-exports com.acme.customer/com.acme.customer.internal=com.acme.applica
      --module com.acme.application/com.acme.application.Main
 ~~~
 
-Cú pháp tổng quát:
+General syntax:
 
 ~~~text
 --add-exports source.module/package=target.module
 ~~~
 
-Có thể dùng ALL-UNNAMED làm đích khi muốn export package cho các class thuộc unnamed module:
+ALL-UNNAMED can be used as the target when exporting a package to classes belonging to the unnamed module:
 
 ~~~bash
 java --add-exports com.acme.customer/com.acme.customer.internal=ALL-UNNAMED \
@@ -377,33 +377,33 @@ java --add-exports com.acme.customer/com.acme.customer.internal=ALL-UNNAMED \
      com.acme.legacy.Main
 ~~~
 
-Đối với mã nguồn modular cần biên dịch trong môi trường tương ứng, javac cũng hỗ trợ --add-exports. Cấu hình bổ sung này nên được quản lý rõ ràng trong build hoặc launch configuration.
+For modular source code that needs to compile in a corresponding environment, javac also supports --add-exports. These additional configurations should be managed clearly in build or launch configurations.
 
-Các tùy chọn này hữu ích cho tương thích và chẩn đoán, nhưng nếu một package thực sự là API được hỗ trợ lâu dài, hãy khai báo nó trong module-info.java. Tránh để ứng dụng phụ thuộc vào package nội bộ của thư viện chỉ vì một tùy chọn dòng lệnh đã mở quyền truy cập.
+These options are helpful for compatibility and diagnostics, but if a package is truly a long-term supported API, declare it in module-info.java. Avoid letting an application depend on a library's internal package simply because a command-line option opened access.
 
-Lưu ý: --add-exports chỉ mở truy cập Java thông thường cho package được chỉ định. Nó không thay thế --add-opens khi framework cần deep reflection vào thành viên private.
+Note: --add-exports only opens normal Java access for the specified package. It does not replace --add-opens when a framework needs deep reflection into private members.
 
-## 10. Cách kiểm tra một API có được export hay không
+## 10. How to Check Whether an API Is Exported
 
-Khi một type public không thể được import từ module khác, hãy kiểm tra theo thứ tự:
+When a public type cannot be imported from another module, check in the following order:
 
-1. **Tên module**: module descriptor của thư viện khai báo đúng tên mà module tiêu thụ dùng trong requires hay chưa?
-2. **Module path**: module chứa type có được tìm thấy và phân giải trong lần biên dịch/chạy hiện tại không?
-3. **Tên package**: package khai báo trong source có đúng package mà module descriptor export không?
-4. **Kiểu export**: package được export không giới hạn hay qualified export chỉ tới một module khác?
-5. **Quan hệ đọc**: module tiêu thụ có requires module cung cấp hoặc nhận được quan hệ đọc hợp lệ không?
-6. **Mức truy cập Java**: type có public không, các type bao ngoài và constructor/member cần dùng có truy cập được không?
-7. **Reflection**: nếu lỗi xảy ra trong framework khi truy cập private member, package có cần opens cho module framework không?
+1. **Module name**: does the library's module descriptor declare the exact name that the consuming module uses in requires?
+2. **Module path**: is the module containing the type found and resolved in the current compile/run?
+3. **Package name**: does the package declared in source match the package exported by the module descriptor?
+4. **Export type**: is the package exported unconditionally, or qualified-exported only to another module?
+5. **Readability relationship**: does the consuming module require the providing module or receive a valid readability relationship?
+6. **Java access level**: is the type public, and are any enclosing types and needed constructors/members accessible?
+7. **Reflection**: if the error occurs inside a framework accessing private members, does the package need opens for the framework module?
 
-Có thể xem descriptor của một modular JAR:
+You can view the descriptor of a modular JAR:
 
 ~~~bash
 jar --describe-module --file mods/com.acme.customer.jar
 ~~~
 
-Đầu ra cho biết tên module, các package được export, các qualified export và các chỉ thị phụ thuộc. Đây là cách nhanh để xác nhận module đang phân phối có descriptor như dự kiến.
+The output shows the module name, exported packages, qualified exports, and dependency directives. This is a quick way to confirm that the distributed module has the expected descriptor.
 
-Có thể yêu cầu Java in module resolution khi chạy:
+You can ask Java to print module resolution at runtime:
 
 ~~~bash
 java --show-module-resolution \
@@ -411,51 +411,51 @@ java --show-module-resolution \
      --module com.acme.application/com.acme.application.Main
 ~~~
 
-Kết quả này giúp xác nhận module nào tham gia cấu hình chạy. Nếu module cung cấp không xuất hiện, cần xem lại module root, requires và module path trước khi kết luận lỗi nằm ở exports.
+This output helps confirm which modules participate in the runtime configuration. If the providing module does not appear, review root modules, requires, and the module path before concluding the error lies in exports.
 
-## 11. Lỗi thường gặp và cách xử lý
+## 11. Common Errors and How to Handle Them
 
-**Package không được export**
+**Package is not exported**
 
-Compiler có thể báo package không được export hoặc module không đọc được package. Kiểm tra module-info.java của module nguồn và bổ sung exports đúng package, đúng đối tượng nhận quyền nếu thiết kế yêu cầu.
+The compiler may report that the package is not exported or that the module cannot read the package. Check the source module's module-info.java and add exports for the correct package and the appropriate target recipients if the design requires it.
 
-**Type public nhưng vẫn không truy cập được**
+**Type is public but still inaccessible**
 
-Từ khóa public không vượt qua ranh giới module. Package chứa type phải được export tới module tiêu thụ, và module tiêu thụ phải đọc module nguồn.
+The public keyword does not cross module boundaries. The package containing the type must be exported to the consuming module, and the consuming module must read the source module.
 
-**Qualified export trỏ sai module**
+**Qualified export points to the wrong module**
 
-Nếu dòng exports package to module-name dùng sai tên, module cần truy cập sẽ không nhận được quyền. Đối chiếu tên trong module-info.java của module đích.
+If the line exports package to module-name uses the wrong name, the module needing access will not receive permission. Cross-check the name in the target module's module-info.java.
 
-**Package con bị hiểu nhầm là đã export**
+**Subpackage mistakenly assumed to be exported**
 
-Export package cha không export package con. Khai báo riêng từng package thuộc API công khai.
+Exporting a parent package does not export subpackages. Declare each package belonging to the public API individually.
 
-**API public làm lộ type từ package nội bộ**
+**Public API exposes types from an internal package**
 
-Một method public có thể trả về hoặc nhận tham số thuộc package không được export. Người dùng bên ngoài khó sử dụng đầy đủ hợp đồng đó. Hãy chuyển type cần công khai vào package API hoặc thiết kế lại chữ ký để không lộ chi tiết nội bộ.
+A public method may return or accept a parameter belonging to an unexported package. External users will find it difficult to use that contract fully. Move the type that needs to be public into the API package or redesign the signature so it does not expose internal details.
 
-**Framework không truy cập được private member**
+**Framework cannot access private members**
 
-exports không cấp quyền deep reflection. Mở đúng package bằng opens hoặc cấu hình tương đương cho module framework cần truy cập.
+exports does not grant deep reflection permission. Open the appropriate package using opens or an equivalent configuration for the framework module needing access.
 
-**Mở quá nhiều package**
+**Opening too many packages**
 
-Export hoặc open toàn bộ package nội bộ làm tăng bề mặt phụ thuộc và giảm khả năng thay đổi implementation. Chỉ export package thuộc hợp đồng API và chỉ opens cho framework thực sự cần reflection.
+Exporting or opening all internal packages increases the dependency surface and reduces the ability to change implementations. Export only packages belonging to the API contract and use opens only for frameworks that truly need reflection.
 
-## 12. Nguyên tắc thiết kế API module
+## 12. Module API Design Principles
 
-Khi thiết kế module, nên phân chia package theo vai trò:
+When designing a module, divide packages by role:
 
 ~~~text
 com.acme.customer/
 ├── com.acme.customer.api/          # Public API
-├── com.acme.customer.spi/          # Extension point có kiểm soát
+├── com.acme.customer.spi/          # Controlled extension point
 ├── com.acme.customer.internal/     # Implementation
-└── com.acme.customer.persistence/  # Chi tiết lưu trữ
+└── com.acme.customer.persistence/  # Persistence details
 ~~~
 
-Sau đó chỉ công khai các package cần thiết:
+Then expose only the necessary packages:
 
 ~~~java
 module com.acme.customer {
@@ -465,27 +465,27 @@ module com.acme.customer {
 }
 ~~~
 
-Các nguyên tắc nên áp dụng:
+Principles to apply:
 
-- Giữ API công khai nhỏ, ổn định và có tài liệu.
-- Dùng qualified exports khi chỉ một số module được phép tích hợp.
-- Giữ package triển khai ở trạng thái không export.
-- Không tăng mức truy cập Java chỉ để né lỗi module.
-- Dùng opens riêng cho nhu cầu deep reflection, tránh mở toàn module nếu không cần.
-- Khi API public làm lộ type của dependency khác, cân nhắc requires transitive dựa trên hợp đồng API.
-- Kiểm tra module descriptor của artifact thực tế sau khi đóng gói.
+- Keep the public API small, stable, and documented.
+- Use qualified exports when only a few modules are permitted to integrate.
+- Keep implementation packages unexported.
+- Do not widen Java access levels just to work around module errors.
+- Use opens separately for deep reflection needs, avoiding opening the entire module unless necessary.
+- When a public API exposes types from another dependency, consider requires transitive based on the API contract.
+- Verify the module descriptor of the actual artifact after packaging.
 
-Thiết kế như vậy giúp người dùng thư viện biết phần nào được hỗ trợ lâu dài, còn tác giả vẫn có thể thay đổi package và class triển khai nội bộ mà không phá vỡ API đã công bố.
+This design lets library users know which parts are supported long term, while authors can still change internal implementation packages and classes without breaking the published API.
 
-## 13. Ghi nhớ
+## 13. Key Takeaways
 
-- exports công khai package ở cấp module; nó không tự biến type hoặc member thành public.
-- Module tiêu thụ phải đọc module cung cấp và package phải được export tới module đó.
-- Java access modifiers vẫn có hiệu lực: package-private và private không trở thành public nhờ exports.
-- Qualified exports giới hạn package cho các module đích được chỉ định.
-- Export package không tự export package con.
-- requires transitive truyền quan hệ đọc; exports mở package của module hiện tại. Hai chỉ thị có vai trò riêng.
-- opens dành cho deep reflection; exports không thay thế opens.
-- Dùng jar --describe-module để xem descriptor và --show-module-resolution để quan sát cấu hình module khi chạy.
+- exports exposes a package at the module level; it does not automatically make types or members public.
+- The consuming module must read the providing module, and the package must be exported to that module.
+- Java access modifiers remain in effect: package-private and private do not become public via exports.
+- Qualified exports restrict a package to specified target modules.
+- Exporting a package does not automatically export subpackages.
+- requires transitive propagates readability; exports opens a package of the current module. Both directives have distinct roles.
+- opens is for deep reflection; exports does not replace opens.
+- Use jar --describe-module to view descriptors and --show-module-resolution to observe the module configuration at runtime.
 
-Khi gặp lỗi truy cập trong JPMS, hãy xác định đó là thiếu quan hệ đọc, thiếu export, mức truy cập Java không phù hợp hay thiếu opens cho reflection. Xử lý đúng điều kiện sẽ giữ API rõ ràng và tránh mở quyền truy cập rộng hơn nhu cầu.
+When encountering access errors in JPMS, determine whether it is a missing readability relationship, a missing export, an unsuitable Java access level, or a missing opens for reflection. Addressing the exact condition will keep the API clear and avoid opening access broader than needed.

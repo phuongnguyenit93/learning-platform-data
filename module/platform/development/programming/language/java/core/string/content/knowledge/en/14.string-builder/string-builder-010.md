@@ -1,17 +1,17 @@
-# `StringBuilder.repeat()` với code point hoặc `CharSequence` từ Java 21
+# `StringBuilder.repeat()` with Code Points or `CharSequence` Since Java 21
 
-## 1. Tổng quan và mục tiêu
+## 1. Overview and Objectives
 
-Từ **Java 21**, `java.lang.StringBuilder` có thêm hai phương thức `repeat` giúp **nối lặp lại** một Unicode code point hoặc một `CharSequence` vào **cuối bộ đệm đang có**:
+Starting in **Java 21**, `java.lang.StringBuilder` adds two `repeat` methods to **repeatedly append** a Unicode code point or a `CharSequence` to the **end of the existing buffer**:
 
 ```java
 StringBuilder repeat(int codePoint, int count)
 StringBuilder repeat(CharSequence cs, int count)
 ```
 
-Cả hai phương thức **thay đổi chính đối tượng `StringBuilder`**, trả về cùng tham chiếu `this` để có thể gọi nối tiếp và **không tự xóa** dữ liệu đang có. Chúng khác với `String.repeat(int)`, vốn trả về một `String` mới và đã có từ Java 11.
+Both methods **mutate the `StringBuilder` object itself**, return the same `this` reference for chaining, and **do not erase** existing data. They differ from `String.repeat(int)`, which returns a new `String` and has existed since Java 11.
 
-Ví dụ:
+Example:
 
 ```java
 StringBuilder builder = new StringBuilder(">");
@@ -19,28 +19,28 @@ builder.repeat('*', 3).repeat("ab", 2);
 System.out.println(builder); // >***abab
 ```
 
-Sau bài học, bạn có thể:
-- Phân biệt chính xác hai overload `repeat(int, int)` và `repeat(CharSequence, int)`.
-- Lặp một ký tự/emoji Unicode bằng **code point**, thay vì vô tình chia surrogate pair.
-- Lặp một chuỗi hay đoạn văn bản chứa nhiều ký tự bằng `CharSequence`.
-- Giải thích `count`, giá trị trả về, `length()` và các trường hợp `null`/đếm âm.
-- Biết phiên bản Java cần dùng, khác biệt với `String.repeat()` và giải pháp thay thế trước Java 21.
+After this lesson, you will be able to:
+- Accurately distinguish the two overloads `repeat(int, int)` and `repeat(CharSequence, int)`.
+- Repeat a Unicode character/emoji by **code point**, rather than accidentally splitting a surrogate pair.
+- Repeat a string or multi-character text segment via `CharSequence`.
+- Explain `count`, return value, `length()`, and `null`/negative-count cases.
+- Know the required Java version, differences from `String.repeat()`, and pre-Java 21 alternatives.
 
-## 2. Hai overload và ý nghĩa tham số
+## 2. Two Overloads and Parameter Meanings
 
-| Phương thức | Tham số đầu | `count` | Tác động |
+| Method | First Parameter | `count` | Effect |
 | --- | --- | --- | --- |
-| `repeat(int codePoint, int count)` | Giá trị nguyên của **một Unicode code point** | Số bản sao cần nối thêm | Nối biểu diễn UTF-16 của code point đó `count` lần. |
-| `repeat(CharSequence cs, int count)` | Một dãy ký tự, ví dụ `String`, `StringBuilder` hoặc `StringBuffer` | Số bản sao cần nối thêm | Nối toàn bộ dãy `cs` `count` lần. |
+| `repeat(int codePoint, int count)` | Integer value of **one Unicode code point** | Number of copies to append | Appends the UTF-16 representation of that code point `count` times. |
+| `repeat(CharSequence cs, int count)` | A character sequence, such as `String`, `StringBuilder`, or `StringBuffer` | Number of copies to append | Appends the entire sequence `cs` `count` times. |
 
-Cả hai:
-- Là phương thức **instance** của `StringBuilder`, không phải phương thức `static`.
-- Có kiểu trả về `StringBuilder`, thực tế là **cùng builder đang nhận lệnh**.
-- Nối vào **cuối**, không chèn tại một vị trí tùy ý.
-- Đòi `count >= 0`; nếu `count == 0`, không nối thêm nội dung nào.
-- Chỉ có từ **Java 21**. Nếu chương trình phải biên dịch ở Java 17 thì chưa dùng trực tiếp hai overload này được.
+Both:
+- Are **instance** methods on `StringBuilder`, not `static` methods.
+- Have return type `StringBuilder`, actually **the same builder receiving the call**.
+- Append at the **end**, not insert at an arbitrary position.
+- Require `count >= 0`; if `count == 0`, no content is appended.
+- Are available only since **Java 21**. If a program must compile on Java 17, these two overloads cannot be used directly.
 
-Ví dụ:
+Example:
 
 ```java
 StringBuilder b = new StringBuilder("Hi");
@@ -51,13 +51,13 @@ System.out.println(b);           // Hi!!
 System.out.println(same == b);   // true
 ```
 
-**Giải thích:** `repeat` không sinh ra builder riêng; nó nối hai dấu `!` vào `b`. Việc so sánh `same == b` cho kết quả `true` vì cả hai biến tham chiếu đến cùng đối tượng.
+**Explanation:** `repeat` does not produce a separate builder; it appends two `!` marks to `b`. Comparing `same == b` yields `true` because both variables reference the same object.
 
-## 3. `repeat(int codePoint, int count)` — lặp một code point
+## 3. `repeat(int codePoint, int count)` — Repeating a Code Point
 
-Trong Java, `int codePoint` là giá trị số biểu diễn một code point Unicode. Với các ký tự trong BMP (Basic Multilingual Plane), biểu diễn UTF-16 thông thường dài **một** `char`. Với code point ngoài BMP như `🚀` (`U+1F680`), biểu diễn UTF-16 cần **hai** `char` (surrogate pair).
+In Java, `int codePoint` is a numeric value representing a Unicode code point. For characters in the BMP (Basic Multilingual Plane), the normal UTF-16 representation is **one** `char` long. For a non-BMP code point such as `🚀` (`U+1F680`), the UTF-16 representation requires **two** `char`s (a surrogate pair).
 
-### 3.1. Ví dụ với code point trong BMP
+### 3.1. Example with a BMP Code Point
 
 ```java
 StringBuilder stars = new StringBuilder();
@@ -67,9 +67,9 @@ System.out.println(stars);          // *****
 System.out.println(stars.length()); // 5
 ```
 
-Literal `'*'` có kiểu `char`, được mở rộng thành `int` khi gọi `repeat(int, int)`. Do đó mỗi lần lặp nối thêm ký tự dấu sao.
+The literal `'*'` has type `char`, which widens to `int` when calling `repeat(int, int)`. Thus each repetition appends an asterisk.
 
-Có thể truyền trực tiếp giá trị code point:
+You can also pass a code point value directly:
 
 ```java
 StringBuilder letters = new StringBuilder();
@@ -78,14 +78,14 @@ letters.repeat(65, 2);
 System.out.println(letters); // AA
 ```
 
-**Rất quan trọng:** `65` được hiểu là code point `U+0041` (chữ `A`), **không** được biến thành chuỗi chữ số `"65"`. Muốn lặp văn bản `"65"`, dùng overload `CharSequence`:
+**Very important:** `65` is interpreted as code point `U+0041` (letter `A`), **not** converted into the digit string `"65"`. To repeat the text `"65"`, use the `CharSequence` overload:
 
 ```java
 System.out.println(
         new StringBuilder().repeat("65", 2)); // 6565
 ```
 
-### 3.2. Ví dụ với emoji ngoài BMP
+### 3.2. Example with a Non-BMP Emoji
 
 ```java
 StringBuilder emoji = new StringBuilder();
@@ -97,24 +97,24 @@ System.out.println(
         emoji.codePointCount(0, emoji.length())); // 2
 ```
 
-`0x1F680` là **một code point**, nhưng khi mã hóa thành UTF-16 nó cần hai code unit: high surrogate `U+D83D` và low surrogate `U+DE80`. Lặp hai lần cho **4 code unit** nhưng chỉ **2 code point**.
+`0x1F680` is **one code point**, yet when encoded into UTF-16 it takes two code units: high surrogate `U+D83D` and low surrogate `U+DE80`. Repeating twice produces **4 code units** yet only **2 code points**.
 
-Cách biểu diễn theo chỉ số:
+Index-by-index representation:
 
-| Chỉ số UTF-16 trong `"🚀🚀"` | Giá trị code unit | Thuộc code point |
+| UTF-16 Index in `"🚀🚀"` | Code Unit Value | Belongs to Code Point |
 | ---: | --- | --- |
-| 0 | `U+D83D` | `🚀` thứ nhất |
-| 1 | `U+DE80` | `🚀` thứ nhất |
-| 2 | `U+D83D` | `🚀` thứ hai |
-| 3 | `U+DE80` | `🚀` thứ hai |
+| 0 | `U+D83D` | 1st `🚀` |
+| 1 | `U+DE80` | 1st `🚀` |
+| 2 | `U+D83D` | 2nd `🚀` |
+| 3 | `U+DE80` | 2nd `🚀` |
 
-Nếu `codePoint` có biểu diễn UTF-16 một code unit thì độ dài tăng thêm `count`; nếu có hai code unit thì tăng thêm `2 * count` (khi dữ liệu đủ dung lượng bộ nhớ). Vì vậy, **số lần lặp không luôn bằng mức tăng `StringBuilder.length()`**.
+If `codePoint` has a one-code-unit UTF-16 representation, length increases by `count`; if it has two code units, length increases by `2 * count` (when memory is sufficient). Therefore, **the repeat count does not always equal the increase in `StringBuilder.length()`**.
 
-### 3.3. Code point hợp lệ, surrogate và đầu vào không tin cậy
+### 3.3. Valid Code Points, Surrogates, and Untrusted Input
 
-Phương thức `repeat(int codePoint, int count)` báo `IllegalArgumentException` nếu code point **không phải giá trị Unicode code point hợp lệ** (ngoài phạm vi `U+0000..U+10FFFF`) hoặc `count` âm.
+`repeat(int codePoint, int count)` throws `IllegalArgumentException` if the code point **is not a valid Unicode code point** (outside `U+0000..U+10FFFF`) or if `count` is negative.
 
-Một chi tiết Unicode: các giá trị surrogate `U+D800..U+DFFF` có thể được xem là **giá trị code point hợp lệ về mặt miền số** bởi `Character.isValidCodePoint`, nhưng **không phải Unicode scalar value** độc lập. Không nên dùng chúng làm một “ký tự hoàn chỉnh” khi sinh văn bản chuẩn cho bên ngoài. Nếu dữ liệu đến từ người dùng và yêu cầu là một Unicode scalar value, hãy chủ động loại trừ dải surrogate:
+A Unicode nuance: surrogate values `U+D800..U+DFFF` are considered **valid code points in numeric range** by `Character.isValidCodePoint`, yet are **not standalone Unicode scalar values**. They should not be used as "complete characters" when generating standard external text. If data comes from users and requires a Unicode scalar value, explicitly exclude the surrogate range:
 
 ```java
 static boolean isUnicodeScalar(int cp) {
@@ -123,11 +123,11 @@ static boolean isUnicodeScalar(int cp) {
 }
 ```
 
-Đoạn trên là một **phương thức hỗ trợ**, cần đặt trong một lớp Java; nó không phải chương trình độc lập. Việc kiểm tra scalar value bổ sung là **chính sách đầu vào của ứng dụng**, không nên nhầm với toàn bộ hợp đồng xác thực của API `repeat`.
+The snippet above is a **helper method** to place inside a Java class; it is not a standalone program. Adding a scalar value check is an **application input policy**, and should not be confused with the full validation contract of the `repeat` API.
 
-## 4. `repeat(CharSequence cs, int count)` — lặp cả một dãy ký tự
+## 4. `repeat(CharSequence cs, int count)` — Repeating an Entire Character Sequence
 
-`CharSequence` là một interface chung cho các dãy ký tự; `String` và `StringBuilder` đều triển khai interface này. Overload `repeat(CharSequence, int)` lấy **toàn bộ dãy được truyền vào**, không chỉ một ký tự.
+`CharSequence` is a common interface for character sequences; both `String` and `StringBuilder` implement it. The `repeat(CharSequence, int)` overload takes **the entire passed sequence**, not just one character.
 
 ```java
 StringBuilder b = new StringBuilder("List: ");
@@ -137,9 +137,9 @@ System.out.println(b);          // List: ababab
 System.out.println(b.length()); // 12
 ```
 
-Phần đầu `"List: "` dài 6 code unit; `"ab"` dài 2, lặp 3 lần thêm 6, tổng `length() == 12`.
+The prefix `"List: "` is 6 code units; `"ab"` is 2, repeated 3 times adds 6, totaling `length() == 12`.
 
-Có thể truyền một `CharSequence` khác `String`:
+You can pass a `CharSequence` other than `String`:
 
 ```java
 CharSequence unit = new StringBuilder("XY");
@@ -149,9 +149,9 @@ output.repeat(unit, 2);
 System.out.println(output); // >XYXY
 ```
 
-Ở đây `unit` được đọc như một dãy ký tự và `output` là nơi nhận bản lặp.
+Here `unit` is read as a character sequence and `output` receives the repeated copies.
 
-### 4.1. Dãy ký tự có emoji
+### 4.1. Sequences Containing Emojis
 
 ```java
 StringBuilder b = new StringBuilder();
@@ -161,13 +161,13 @@ System.out.println(b);          // 🚀🚀
 System.out.println(b.length()); // 4
 ```
 
-Dù truyền một `CharSequence` dài 2 code unit hay một code point `0x1F680`, kết quả văn bản ở ví dụ này giống nhau. Khác biệt là **ý nghĩa tham số**: overload `int` nhận **một code point**, còn overload `CharSequence` nhận **một dãy UTF-16 code unit**, có thể có nhiều code point.
+Whether passing a 2-code-unit `CharSequence` or code point `0x1F680`, the resulting text in this example is identical. The difference is **parameter semantics**: the `int` overload takes **one code point**, whereas the `CharSequence` overload takes **a sequence of UTF-16 code units**, which may contain multiple code points.
 
-Overload `CharSequence` không phân đoạn thành “ký tự nhìn thấy được”, không chuẩn hóa Unicode và không tự sửa surrogate đơn lẻ đã tồn tại trong dữ liệu nguồn.
+The `CharSequence` overload does not segment into "visible characters", does not normalize Unicode, and does not automatically fix lone surrogates already present in the source data.
 
-### 4.2. `null` có hành vi riêng
+### 4.2. `null` Has Specific Behavior
 
-Theo hợp đồng Java 21, khi `cs == null`, phương thức nối lặp lại **chuỗi bốn chữ `"null"`**:
+By the Java 21 contract, when `cs == null`, the method repeatedly appends the **four-letter string `"null"`**:
 
 ```java
 StringBuilder b = new StringBuilder();
@@ -177,7 +177,7 @@ System.out.println(b);          // nullnull
 System.out.println(b.length()); // 8
 ```
 
-Đây là **nội dung văn bản `"null"`**, không phải ngoại lệ `NullPointerException` và cũng không phải bỏ qua đầu vào. Hãy dùng kiểm tra `null` riêng nếu ứng dụng muốn chính sách khác:
+This is **the text content `"null"`**, not a `NullPointerException` and not ignoring the input. Use an explicit `null` check if the application requires a different policy:
 
 ```java
 CharSequence input = null;
@@ -189,11 +189,11 @@ if (input != null) {
 System.out.println(b.length()); // 0
 ```
 
-Không thể truyền `null` cho tham số nguyên thủy `int codePoint`; trường hợp `null` trên chỉ liên quan đến overload `CharSequence`.
+You cannot pass `null` for the primitive `int codePoint` parameter; the `null` case above applies only to the `CharSequence` overload.
 
-### 4.3. Tham số `CharSequence` có thể thay đổi
+### 4.3. Mutable `CharSequence` Arguments
 
-`String` là bất biến, nhưng `StringBuilder` hoặc một `CharSequence` tự định nghĩa có thể thay đổi trong quá trình thực thi. Nếu dãy nguồn bị sửa đồng thời trong khi gọi `repeat`, không nên giả định kết quả là bản sao nhất quán theo ý muốn. Với dãy nguồn có thể bị sửa, hãy tạo **snapshot `String` ổn định** trước:
+`String` is immutable, whereas `StringBuilder` or a custom `CharSequence` can change during execution. If the source sequence is modified concurrently during `repeat`, do not assume the result will be a consistent copy as intended. For mutable sources, create a **stable `String` snapshot** first:
 
 ```java
 StringBuilder source = new StringBuilder("OK");
@@ -205,13 +205,13 @@ dest.repeat(snapshot, 3);
 System.out.println(dest); // OKOKOK
 ```
 
-Điều này làm rõ phần được lặp. Nếu bản thân việc **đọc `source` để tạo snapshot** cũng cạnh tranh với một luồng sửa `source`, ứng dụng vẫn cần cơ chế đồng bộ phù hợp. `StringBuilder` nói chung **không bảo đảm thread-safe**.
+This keeps what is being repeated clear. If **reading `source` to create the snapshot** itself races with a thread mutating `source`, the application still needs an appropriate synchronization mechanism. `StringBuilder` in general **does not guarantee thread-safety**.
 
-## 5. `count` bằng 0, âm và vùng rỗng
+## 5. Zero `count`, Negative `count`, and Empty Sequences
 
-### Trường hợp `count == 0`
+### The `count == 0` Case
 
-Lặp `0` lần không làm thay đổi nội dung:
+Repeating `0` times does not change content:
 
 ```java
 StringBuilder b = new StringBuilder("seed");
@@ -222,7 +222,7 @@ b.repeat('*', 0);
 System.out.println(b); // seed
 ```
 
-Dãy rỗng cũng không tạo thêm ký tự:
+An empty sequence also adds no characters:
 
 ```java
 StringBuilder b = new StringBuilder("X");
@@ -231,21 +231,21 @@ b.repeat("", 100);
 System.out.println(b); // X
 ```
 
-### Trường hợp `count < 0`
+### The `count < 0` Case
 
-Số lần lặp âm không hợp lệ. Cả hai overload đều ném `IllegalArgumentException`:
+A negative repeat count is invalid. Both overloads throw `IllegalArgumentException`:
 
 ```java
 try {
     new StringBuilder().repeat("ab", -1);
 } catch (IllegalArgumentException ex) {
-    System.out.println("Negative count rejected"); // In ra dòng này.
+    System.out.println("Negative count rejected"); // Prints this line.
 }
 ```
 
-Tương tự, `repeat('A', -1)` không hợp lệ.
+Similarly, `repeat('A', -1)` is invalid.
 
-### Trường hợp code point vượt miền hợp lệ
+### Out-of-Range Code Point Case
 
 ```java
 try {
@@ -255,11 +255,11 @@ try {
 }
 ```
 
-`U+110000` lớn hơn giới hạn Unicode `U+10FFFF` nên không hợp lệ. Đừng dựa vào **thông báo lỗi** cụ thể của JVM; kiểm tra lớp ngoại lệ và điều kiện nghiệp vụ.
+`U+110000` exceeds the Unicode limit `U+10FFFF` and is therefore invalid. Do not rely on the JVM's specific **error message**; check the exception class and business conditions.
 
-### Số lần lặp quá lớn
+### Excessively Large Repeat Counts
 
-Với `count` rất lớn và đầu vào dài, nội dung kết quả có thể cần quá nhiều bộ nhớ hoặc vượt giới hạn kích thước mảng nội bộ. Cần đặt giới hạn đầu vào trước khi tạo dữ liệu:
+With a very large `count` and a long input, the resulting content may require too much memory or exceed internal array size limits. Validate input bounds before generating data:
 
 ```java
 static void validateRepeatCount(int count, int max) {
@@ -270,11 +270,11 @@ static void validateRepeatCount(int count, int max) {
 }
 ```
 
-Giới hạn `max` tùy nghiệp vụ; không có một con số cố định phù hợp mọi ứng dụng. Với hệ thống xử lý dữ liệu đầu vào không tin cậy, hãy kiểm soát cả **số lần lặp** lẫn **kích thước đoạn bị lặp**.
+The `max` limit depends on the domain; there is no single fixed number suitable for every application. For systems processing untrusted input, control both the **repeat count** and the **size of the repeated segment**.
 
-## 6. Chương trình Java 21+ chạy độc lập
+## 6. Standalone Runnable Java 21+ Program
 
-Lưu mã sau vào file `StringBuilderRepeatDemo.java`. **Yêu cầu JDK 21 trở lên** để biên dịch:
+Save the following code to `StringBuilderRepeatDemo.java`. **Requires JDK 21 or later** to compile:
 
 ```java
 public class StringBuilderRepeatDemo {
@@ -323,14 +323,14 @@ public class StringBuilderRepeatDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 StringBuilderRepeatDemo.java
 java StringBuilderRepeatDemo
 ```
 
-Đầu ra mong đợi (terminal hỗ trợ Unicode):
+Expected output (Unicode-capable terminal):
 
 ```text
 combined = >***abab
@@ -347,23 +347,23 @@ negative count rejected
 invalid code point rejected
 ```
 
-**Giải thích:** Hai overload hoạt động ngay trên builder được gọi. `repeat(0x1F680, 2)` ghi hai surrogate pair nên `length()` là 4, nhưng số code point là 2. `repeat(65, 2)` xem `65` là code point của `A`, trong khi `repeat("65", 2)` nhân đôi chuỗi số. `null` trở thành văn bản `"nullnull"`; `count == 0` giữ nguyên trạng thái; lần gọi `repeat` trả về chính builder để gọi nối tiếp.
+**Explanation:** Both overloads operate directly on the builder called. `repeat(0x1F680, 2)` writes two surrogate pairs so `length()` is 4, while the code point count is 2. `repeat(65, 2)` treats `65` as the code point for `A`, whereas `repeat("65", 2)` duplicates the digit string. `null` becomes `"nullnull"`; `count == 0` leaves state unchanged; each `repeat` call returns the builder itself for chaining.
 
-Chương trình này **không** dành cho JDK 17: khi biên dịch với Java 17, hai overload `StringBuilder.repeat` sẽ không được tìm thấy trong API.
+This program is **not** meant for JDK 17: when compiling with Java 17, the two `StringBuilder.repeat` overloads will not be found in the API.
 
-## 7. So sánh `StringBuilder.repeat` và `String.repeat`
+## 7. Comparing `StringBuilder.repeat` and `String.repeat`
 
-| Thuộc tính | `StringBuilder.repeat` | `String.repeat` |
+| Property | `StringBuilder.repeat` | `String.repeat` |
 | --- | --- | --- |
-| Có từ | Java **21** | Java **11** |
-| Phương thức điển hình | `builder.repeat("ab", 3)` hoặc `builder.repeat('*', 3)` | `"ab".repeat(3)` |
-| Đối tượng nhận lệnh | `StringBuilder` mutable | `String` immutable |
-| Kết quả | Trả **cùng `StringBuilder`** đã được nối thêm | Trả `String` kết quả |
-| Nội dung trước đó | **Giữ lại**, rồi nối phần lặp ở cuối | Lặp nội dung của chính chuỗi nhận lệnh |
-| Loại đầu vào bổ sung | Code point `int` hoặc `CharSequence` | Không có tham số code point/CharSequence |
-| Hỗ trợ chuỗi có emoji | Có, biểu diễn theo UTF-16 | Có, lặp chuỗi như văn bản |
+| Available since | Java **21** | Java **11** |
+| Typical call | `builder.repeat("ab", 3)` or `builder.repeat('*', 3)` | `"ab".repeat(3)` |
+| Receiver object | Mutable `StringBuilder` | Immutable `String` |
+| Return value | Returns **the same `StringBuilder`** with repetitions appended | Returns the resulting `String` |
+| Previous content | **Preserved**, with repetitions appended at the end | Repeats the content of the receiver string itself |
+| Additional input kinds | `int` code point or `CharSequence` | No code point/CharSequence parameter |
+| Supports strings with emojis | Yes, represented in UTF-16 | Yes, repeats string as text |
 
-Ví dụ đối chiếu:
+Comparison example:
 
 ```java
 String text = "ab";
@@ -377,15 +377,15 @@ System.out.println(repeatedText); // ababab
 System.out.println(builder);      // >ababab
 ```
 
-Nếu bạn cần một **`String` bất biến** với mẫu lặp cố định và không cần tích lũy phần khác, `"ab".repeat(3)` thường rất trực tiếp. Nếu bạn đang xây dựng một thông điệp nhiều phần trong một `StringBuilder`, `builder.repeat("ab", 3)` làm rõ ý định nối thêm mà không cần tạo riêng chuỗi trung gian chỉ để append.
+If you need an **immutable `String`** with a fixed repeated pattern and do not need to accumulate other parts, `"ab".repeat(3)` is usually very direct. If you are building a multi-part message in a `StringBuilder`, `builder.repeat("ab", 3)` makes the append intent clear without creating an intermediate string solely to append it.
 
-Không có lời khẳng định chung rằng cách này luôn nhanh hơn cách kia. Hiệu năng phụ thuộc kích thước dữ liệu, phiên bản JVM, bộ nhớ và bối cảnh sử dụng.
+There is no blanket claim that one approach is always faster than the other. Performance depends on data size, JVM version, memory, and usage context.
 
-## 8. Trước Java 21: làm thế nào?
+## 8. Before Java 21: How to Do It?
 
-Nếu ứng dụng phải hỗ trợ Java 17, **không thể dùng trực tiếp** `builder.repeat(codePoint, count)` hoặc `builder.repeat(cs, count)`.
+If an application must support Java 17, you **cannot directly use** `builder.repeat(codePoint, count)` or `builder.repeat(cs, count)`.
 
-### Cách A — `String.repeat` rồi `append` (Java 11+)
+### Approach A — `String.repeat` Then `append` (Java 11+)
 
 ```java
 StringBuilder builder = new StringBuilder(">");
@@ -394,7 +394,7 @@ builder.append("ab".repeat(3));
 System.out.println(builder); // >ababab
 ```
 
-Nếu cần lặp một code point ngoài BMP trên Java 17, chuyển nó thành chuỗi trước:
+If you need to repeat a non-BMP code point on Java 17, convert it to a string first:
 
 ```java
 int codePoint = 0x1F680;
@@ -406,9 +406,9 @@ builder.append(unit.repeat(2));
 System.out.println(builder); // 🚀🚀
 ```
 
-`Character.toChars(int)` đưa một code point hợp lệ thành `char[]` UTF-16 tương ứng; với `🚀`, mảng dài 2. Đây là phương án rõ nghĩa khi cần chuyển giá trị code point thành chuỗi lặp.
+`Character.toChars(int)` converts a valid code point into its corresponding UTF-16 `char[]`; for `🚀`, the array has length 2. This is a clear option when turning a code point value into a repeated string.
 
-### Cách B — Lặp `append` từng lần
+### Approach B — Loop Calling `append`
 
 ```java
 StringBuilder builder = new StringBuilder(">");
@@ -421,7 +421,7 @@ for (int i = 0; i < 3; i++) {
 System.out.println(builder); // >ababab
 ```
 
-Với code point:
+For a code point:
 
 ```java
 StringBuilder builder = new StringBuilder();
@@ -434,29 +434,29 @@ for (int i = 0; i < 2; i++) {
 System.out.println(builder); // 🚀🚀
 ```
 
-Cả hai ví dụ có thể dùng từ trước Java 21. Lời gọi `appendCodePoint` thích hợp cho code point Unicode, thay vì chuyển một code point ngoài BMP thành một `char` đơn lẻ.
+Both examples work prior to Java 21. Calling `appendCodePoint` is appropriate for Unicode code points, instead of converting a non-BMP code point into a single `char`.
 
-Nếu bạn phải chạy cả trên Java 17 và Java 21, dùng phương án chung `append` / `appendCodePoint` hoặc định nghĩa một phương thức hỗ trợ tương thích Java 17; không nên thêm phương thức Java 21 vào mã rồi giả định nó sẽ tự được thay thế ở runtime cũ.
+If you must run on both Java 17 and Java 21, use the common `append` / `appendCodePoint` approach or define a Java 17-compatible helper method; do not put a Java 21 method in code assuming an older runtime will substitute it automatically.
 
-## 9. Dung lượng bộ đệm và độ dài sau lặp
+## 9. Buffer Capacity and Length After Repeating
 
-`StringBuilder.length()` trả về số **UTF-16 code unit thực sự đang chứa**, khác với `capacity()` là dung lượng bộ đệm dành sẵn. `repeat` có thể làm `length()` tăng và có thể khiến builder mở rộng dung lượng lưu trữ.
+`StringBuilder.length()` returns the number of **actual UTF-16 code units currently stored**, unlike `capacity()`, which is the reserved buffer capacity. `repeat` can increase `length()` and may cause the builder to expand its backing storage.
 
-Nếu trước khi lặp `builder.length() == L` và đoạn `CharSequence` có `cs.length() == M`, thì với lần lặp thành công:
+If before repeating `builder.length() == L` and the `CharSequence` has `cs.length() == M`, then on a successful repeat:
 
 ```text
 newLength = L + M * count
 ```
 
-Với overload code point có độ dài biểu diễn UTF-16 là `U` (thường `1` hoặc `2`):
+For the code point overload with UTF-16 representation length `U` (usually `1` or `2`):
 
 ```text
 newLength = L + U * count
 ```
 
-Đó là độ dài theo `char` UTF-16, không phải số ký tự được cảm nhận bằng mắt.
+That is the length in UTF-16 `char`s, not visually perceived characters.
 
-Ví dụ:
+Example:
 
 ```java
 StringBuilder b = new StringBuilder("x");
@@ -465,9 +465,9 @@ b.repeat("🚀", 3);
 System.out.println(b.length()); // 7 (1 + 3*2)
 ```
 
-Có thể gọi `ensureCapacity(int)` trước khi xây dựng một chuỗi lớn để dự phòng chỗ chứa, nhưng chỉ nên làm khi đã tính kích thước cẩn thận, kiểm soát tràn số và có lý do thực tế. `ensureCapacity` **không** thay đổi độ dài nội dung, không giúp lặp dữ liệu quá giới hạn bộ nhớ thành công, và không là yêu cầu bắt buộc khi dùng `repeat`.
+You can call `ensureCapacity(int)` before building a large string to reserve space, but only when size has been computed carefully, overflow is controlled, and there is a practical reason. `ensureCapacity` **does not** change content length, does not allow repeating beyond memory limits, and is not mandatory when using `repeat`.
 
-Ví dụ về kiểm tra dung lượng dự kiến bằng `long`:
+Example checking expected capacity with `long`:
 
 ```java
 long requested = (long) unit.length() * count;
@@ -478,42 +478,42 @@ if (newLength > Integer.MAX_VALUE) {
 }
 ```
 
-Đây là phần minh họa cần đặt trong phương thức có các biến `unit`, `count`, `builder` đã khai báo. Dùng `long` tránh tràn âm khi nhân/chia dự kiến với số lượng lớn, nhưng **kết quả không vượt giới hạn `int` vẫn có thể quá lớn so với tài nguyên thực tế**, nên ứng dụng cần giới hạn nhỏ hơn nếu phù hợp.
+This is an illustrative snippet to place inside a method where `unit`, `count`, and `builder` are already declared. Using `long` prevents negative overflow when multiplying large counts, though **a result within the `int` limit can still be too large for actual resources**, so the application should enforce a smaller bound when appropriate.
 
-## 10. Lỗi thường gặp
+## 10. Common Mistakes
 
-| Nhầm lẫn | Hệ quả | Cách xử lý |
+| Misconception | Consequence | How to Handle |
 | --- | --- | --- |
-| Gọi `repeat` trên `StringBuilder` nhưng biên dịch bằng JDK 17. | Không tìm thấy phương thức tương ứng. | Dùng **JDK 21+** hoặc phương án `append`/`appendCodePoint` trước Java 21. |
-| Nghĩ `repeat(65, 2)` tạo `"6565"`. | Thực tế tạo `"AA"`. | Truyền `"65"` kiểu `CharSequence` nếu muốn nhân chuỗi chữ số. |
-| Nghĩ `repeat(int, count)` chỉ lặp một `char` 16 bit. | Dễ xử lý sai emoji ngoài BMP. | Giá trị `int` được hiểu là **code point**; kiểm tra `length()` theo UTF-16. |
-| Nghĩ `repeat` trả một builder mới và giữ builder cũ nguyên. | Làm thay đổi nội dung đối tượng đang dùng chung. | Nhớ phương thức **mutates receiver** và trả chính `this`. |
-| Nghĩ `count = 0` tạo một bản sao. | Thực tế không nối thêm gì. | Dùng `count > 0` khi muốn có phần lặp. |
-| Truyền số lần lặp âm. | `IllegalArgumentException`. | Xác thực số lần lặp. |
-| Truyền `CharSequence null` và mong bỏ qua. | Nối văn bản `"null"` theo số lần lặp. | Định nghĩa chính sách `null` và kiểm tra tường minh nếu cần. |
-| Lặp dãy mutable đang được sửa đồng thời. | Kết quả không còn có thể dự đoán theo một snapshot ổn định. | Dùng snapshot ổn định và cơ chế đồng bộ khi cần. |
-| Nhầm `length` với `capacity`. | Tính sai kích thước dữ liệu thực hoặc khả năng cấp phát. | Dùng `length()` cho nội dung, `capacity()` cho vùng đệm. |
-| Không giới hạn `count` hoặc kích thước `cs`. | Có thể vượt tài nguyên hoặc giới hạn kích thước nội bộ. | Xác thực kích thước theo yêu cầu nghiệp vụ. |
+| Calling `repeat` on `StringBuilder` while compiling with JDK 17. | Method not found. | Use **JDK 21+** or pre-Java 21 `append`/`appendCodePoint` alternatives. |
+| Thinking `repeat(65, 2)` produces `"6565"`. | Actually produces `"AA"`. | Pass `"65"` as a `CharSequence` if you want to repeat digit text. |
+| Thinking `repeat(int, count)` repeats only a 16-bit `char`. | Easy to mishandle non-BMP emojis. | The `int` value is treated as a **code point**; check `length()` in UTF-16. |
+| Thinking `repeat` returns a new builder and leaves the old one untouched. | Mutates the shared object's content. | Remember the method **mutates the receiver** and returns `this`. |
+| Thinking `count = 0` creates one copy. | Actually appends nothing. | Use `count > 0` when repetitions are wanted. |
+| Passing a negative repeat count. | `IllegalArgumentException`. | Validate the repeat count. |
+| Passing a `null` `CharSequence` expecting it to be skipped. | Appends `"null"` text `count` times. | Define a `null` policy and check explicitly if needed. |
+| Repeating a mutable sequence being modified concurrently. | Result is no longer predictable from a stable snapshot. | Use a stable snapshot and synchronization when needed. |
+| Confusing `length` with `capacity`. | Misjudges actual data size or allocation capacity. | Use `length()` for content, `capacity()` for buffer reserve. |
+| Leaving `count` or `cs` size unbounded. | May exceed resources or internal size limits. | Validate sizes according to domain requirements. |
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-Check Exercises
 
-### Bài 1 — code point hay văn bản số?
+### Exercise 1 — Code Point or Numeric Text?
 
 ```java
 System.out.println(new StringBuilder().repeat(65, 3));
 System.out.println(new StringBuilder().repeat("65", 3));
 ```
 
-**Đáp án:**
+**Answer:**
 
 ```text
 AAA
 656565
 ```
 
-`65` là code point U+0041; `"65"` là hai ký tự chữ số lặp ba lần.
+`65` is code point U+0041; `"65"` is two digit characters repeated three times.
 
-### Bài 2 — Emoji và độ dài
+### Exercise 2 — Emoji and Length
 
 ```java
 StringBuilder b = new StringBuilder();
@@ -522,9 +522,9 @@ System.out.println(b.length());
 System.out.println(b.codePointCount(0, b.length()));
 ```
 
-**Đáp án:** `6` rồi `3`. Mỗi emoji `🚀` chiếm hai code unit UTF-16.
+**Answer:** `6` then `3`. Each `🚀` emoji occupies two UTF-16 code units.
 
-### Bài 3 — Có ghi đè phần trước không?
+### Exercise 3 — Does It Overwrite Previous Content?
 
 ```java
 StringBuilder b = new StringBuilder("ABC");
@@ -532,9 +532,9 @@ b.repeat("-", 2);
 System.out.println(b);
 ```
 
-**Đáp án:** `ABC--`. `repeat` **nối vào cuối**, không xóa `ABC`.
+**Answer:** `ABC--`. `repeat` **appends to the end**, without erasing `ABC`.
 
-### Bài 4 — `null` và số lần lặp
+### Exercise 4 — `null` and Repeat Count
 
 ```java
 StringBuilder b = new StringBuilder("X");
@@ -542,34 +542,34 @@ b.repeat((CharSequence) null, 2);
 System.out.println(b);
 ```
 
-**Đáp án:** `Xnullnull`. Overload nhận `CharSequence` chuyển `null` thành chuỗi `"null"` rồi lặp hai lần.
+**Answer:** `Xnullnull`. The `CharSequence` overload converts `null` into `"null"` and repeats it twice.
 
-### Bài 5 — Phân biệt Java 17 và 21
+### Exercise 5 — Distinguishing Java 17 and 21
 
-Bạn cần lặp một chuỗi `"ab"` bốn lần trong `StringBuilder` nhưng dự án bắt buộc Java 17. Có thể gọi `builder.repeat("ab", 4)` không?
+You need to repeat `"ab"` four times in a `StringBuilder`, but the project requires Java 17. Can you call `builder.repeat("ab", 4)`?
 
-**Đáp án:** Không. Overload này có từ **Java 21**. Trên Java 17 có thể viết `builder.append("ab".repeat(4))` hoặc một vòng lặp `append("ab")`.
+**Answer:** No. This overload exists since **Java 21**. On Java 17, you can write `builder.append("ab".repeat(4))` or a loop calling `append("ab")`.
 
-### Bài 6 — Xử lý đầu vào rủi ro
+### Exercise 6 — Handling Risky Input
 
-Ứng dụng nhận `count` từ API công khai để sinh báo cáo văn bản. Nên làm gì trước khi gọi `repeat`?
+An application receives `count` from a public API to generate a text report. What should be done before calling `repeat`?
 
-**Đáp án:** Kiểm tra `count >= 0`, giới hạn tối đa theo tài nguyên/nghiệp vụ, giới hạn độ dài phần bị lặp và tránh tràn số khi dự tính dung lượng. Nếu dùng code point từ người dùng, xác thực miền Unicode theo yêu cầu và cân nhắc loại trừ surrogate khi cần Unicode scalar value.
+**Answer:** Check `count >= 0`, enforce a maximum bound per resources/business rules, bound the length of the repeated segment, and avoid overflow when estimating capacity. If using user-supplied code points, validate the Unicode range per requirements and consider excluding surrogates when Unicode scalar values are required.
 
-## 12. Tóm tắt
+## 12. Summary
 
-- Từ **Java 21**, `StringBuilder` có `repeat(int codePoint, int count)` và `repeat(CharSequence cs, int count)`.
-- Overload `int` lặp **một code point Unicode**; overload `CharSequence` lặp **cả một dãy ký tự**.
-- Cả hai **nối thêm vào cuối builder hiện tại**, trả về chính builder và hỗ trợ chaining.
-- `count == 0` không làm thay đổi nội dung; `count < 0` ném `IllegalArgumentException`. Code point ngoài miền hợp lệ cũng bị từ chối.
-- `CharSequence null` được lặp như văn bản `"null"`.
-- `StringBuilder.length()` tính theo **UTF-16 code unit**; code point ngoài BMP có thể chiếm hai `char` mỗi lần lặp.
-- `String.repeat(int)` có từ Java 11, nhưng **khác** vì trả `String` thay vì sửa `StringBuilder`.
-- Với Java 17, dùng `String.repeat` + `append` hoặc vòng lặp `append`/`appendCodePoint`.
+- Since **Java 21**, `StringBuilder` has `repeat(int codePoint, int count)` and `repeat(CharSequence cs, int count)`.
+- The `int` overload repeats **a Unicode code point**; the `CharSequence` overload repeats **an entire character sequence**.
+- Both **append to the end of the current builder**, return the builder itself, and support chaining.
+- `count == 0` leaves content unchanged; `count < 0` throws `IllegalArgumentException`. Out-of-range code points are also rejected.
+- A `null` `CharSequence` is repeated as the text `"null"`.
+- `StringBuilder.length()` counts **UTF-16 code units**; non-BMP code points take two `char`s per repetition.
+- `String.repeat(int)` has existed since Java 11, yet **differs** because it returns a `String` instead of mutating a `StringBuilder`.
+- For Java 17, use `String.repeat` + `append` or an `append`/`appendCodePoint` loop.
 
-## Tài liệu tham khảo
+## References
 
-- [Oracle Java SE 21 — `StringBuilder`: `repeat(int,int)` và `repeat(CharSequence,int)`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/StringBuilder.html)
+- [Oracle Java SE 21 — `StringBuilder`: `repeat(int,int)` and `repeat(CharSequence,int)`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/StringBuilder.html)
 - [Oracle Java SE 21 — `String.repeat(int)`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html#repeat(int))
-- [Oracle Java SE 21 — `Character` và Unicode code points](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Character.html)
-- [Java Language Specification 21 — Unicode escapes và ký tự](https://docs.oracle.com/javase/specs/jls/se21/html/jls-3.html)
+- [Oracle Java SE 21 — `Character` and Unicode code points](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Character.html)
+- [Java Language Specification 21 — Unicode escapes and characters](https://docs.oracle.com/javase/specs/jls/se21/html/jls-3.html)

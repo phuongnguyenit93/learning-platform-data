@@ -1,64 +1,64 @@
-# Kiểm tra bất biến sau khi khôi phục đối tượng trong Java Serialization
+# Validating Invariants After Restoring Objects in Java Serialization
 
-## 1. Tại sao phải kiểm tra bất biến *sau* deserialization?
+## 1. Why Validate Invariants *After* Deserialization?
 
-Một **bất biến (invariant)** là điều kiện luôn phải đúng với một đối tượng hợp lệ trong suốt vòng đời sử dụng. Ví dụ:
+An **invariant** is a condition that must always hold true for a valid object throughout its lifetime. For example:
 
-- Khoảng số phải thỏa `0 <= start <= end`.
-- Tài khoản không thể có mã định danh `null` hoặc rỗng.
-- Danh sách thành viên phải có số phần tử bằng `expectedCount`; không có phần tử `null`.
-- Một lịch hẹn phải có `startTime` trước `endTime`.
-- Một graph gồm nhiều đối tượng phải giữ đúng quan hệ giữa cha, con và các tham chiếu ngược.
-- Collection nội bộ không được bị sửa từ bên ngoài nếu hợp đồng class yêu cầu bất biến.
+- A numeric range must satisfy `0 <= start <= end`.
+- An account cannot have a `null` or blank identifier.
+- A member list must have size equal to `expectedCount`; no element may be `null`.
+- An appointment must have `startTime` before `endTime`.
+- A graph of multiple objects must keep parent, child, and back-reference links consistent.
+- Internal collections must not be externally mutated if the class contract requires immutability.
 
-**Serialization** biến trạng thái đối tượng thành byte stream. **Deserialization** qua `ObjectInputStream.readObject()` dựng lại đối tượng từ stream đó. Điểm dễ bỏ sót: với class chỉ triển khai `Serializable`, việc khôi phục thông thường **không gọi constructor của chính class Serializable**, nên kiểm tra bất biến chỉ có ở constructor có thể bị bỏ qua.
+**Serialization** turns object state into a byte stream. **Deserialization** via `ObjectInputStream.readObject()` reconstructs the object from that stream. An easily overlooked fact: for classes that simply implement `Serializable`, normal restoration **does not invoke the constructor of the Serializable class itself**, so invariant checks that only exist in the constructor can be bypassed.
 
-Ví dụ, constructor bảo đảm `start <= end` nhưng một stream cũ, file hỏng hoặc stream cố tình sửa có thể mang `start=20` và `end=10`. Nếu ứng dụng chấp nhận dữ liệu mà không kiểm tra, nó sẽ đưa **đối tượng có trạng thái không hợp lệ** vào logic hệ thống.
+For example, the constructor enforces `start <= end`, yet an old stream, corrupted file, or intentionally altered stream might carry `start=20` and `end=10`. If the application accepts the data without checking, it introduces an **object in an invalid state** into system logic.
 
-Đây là lý do Java cung cấp các điểm kiểm tra như `private readObject(...)`, `ObjectInputValidation.validateObject()`, `readObjectNoData()`, cùng các chiến lược cấu trúc như **serialization proxy** và **serializable record**.
+This is why Java provides validation checkpoints such as `private readObject(...)`, `ObjectInputValidation.validateObject()`, `readObjectNoData()`, along with structural strategies like **serialization proxies** and **serializable records**.
 
-Mục tiêu của bài: biết **bất biến nào cần kiểm tra, kiểm tra khi nào, ném lỗi gì, và vì sao một số kiểm tra cần chờ toàn bộ object graph khôi phục xong**.
+Lesson objective: know **which invariants to check, when to check them, what exception to throw, and why some checks must wait until the entire object graph is restored**.
 
-## 2. Deserialization diễn ra như thế nào?
+## 2. How Does Deserialization Proceed?
 
-Với class Serializable thông thường:
+For a regular Serializable class:
 
 ~~~text
 ObjectInputStream.readObject()
             |
             v
-Đọc class descriptor / trạng thái trong stream
+Read class descriptor / state in the stream
             |
             v
-Tạo đối tượng để khôi phục (KHÔNG gọi constructor Serializable class)
+Instantiate object to restore (DOES NOT call Serializable class constructor)
             |
             v
-Khôi phục các field; nếu có private readObject,
-thực thi readObject và defaultReadObject/readFields nếu dùng
+Restore fields; if private readObject exists,
+run readObject and defaultReadObject/readFields if used
             |
             v
-Hoàn tất đồ thị đối tượng đang được đọc
+Complete the object graph currently being read
             |
             v
-Thực hiện ObjectInputValidation đã đăng ký (nếu có)
+Run registered ObjectInputValidation (if any)
             |
             v
-Trả đối tượng hợp lệ cho caller hoặc ném exception
+Return valid object to caller or throw exception
 ~~~
 
-Sơ đồ đơn giản hóa, không thể hiện mọi chi tiết handle, back-reference, `readResolve`, inheritance và exception. Nhưng nó nhấn mạnh:
+This diagram is simplified and omits full details of handles, back-references, `readResolve`, inheritance, and exceptions. Still, it highlights:
 
-1. **Constructor là cổng kiểm tra cho đối tượng tạo bằng `new`, chưa đủ cho deserialization Serializable**.
-2. `defaultReadObject()` phục hồi field non-static/non-transient theo cơ chế mặc định; việc đó **không tự gọi validator tùy biến của class**.
-3. `readObject()` là hook để kiểm tra **trạng thái cục bộ ngay sau khi field của class được khôi phục**.
-4. `ObjectInputValidation` là hook bổ sung khi kiểm tra cần **đợi toàn bộ graph đã khôi phục** trước khi `readObject()` cấp cao trả về.
-5. Nếu kiểm tra thất bại, nên **từ chối stream bằng `InvalidObjectException`** thay vì cố âm thầm dùng object sai.
+1. **Constructors guard object creation via `new`, which is insufficient for Serializable deserialization.**
+2. `defaultReadObject()` restores non-static/non-transient fields by default; doing so **does not automatically invoke custom class validators**.
+3. `readObject()` is the hook for checking **local state immediately after the class's fields are restored**.
+4. `ObjectInputValidation` is an additional hook when checks must **wait until the entire graph has been restored** before top-level `readObject()` returns.
+5. If validation fails, **reject the stream with `InvalidObjectException`** rather than silently continuing with a bad object.
 
-### Vì sao constructor của Serializable không được gọi?
+### Why Isn't the Serializable Class's Constructor Called?
 
-Java Object Serialization có cơ chế dựng lại field từ stream. Constructor no-arg của **superclass đầu tiên không triển khai Serializable** có thể được gọi theo quy tắc serialization, nhưng constructor của class Serializable sẽ không được chạy như khi gọi `new` thông thường.
+Java Object Serialization has a mechanism to reconstruct fields from the stream. The no-arg constructor of the **nearest superclass that does not implement Serializable** may be called per serialization rules, but the Serializable class's own constructor will not run as in a normal `new` call.
 
-Do đó các câu lệnh sau:
+Thus the following statements:
 
 ~~~java
 public Range(int start, int end) {
@@ -68,49 +68,49 @@ public Range(int start, int end) {
 }
 ~~~
 
-là **mã minh họa**, chỉ bảo vệ đường tạo object qua constructor. Nó không đủ chứng minh mọi object `Range` do `ObjectInputStream.readObject()` trả về đều hợp lệ.
+are **illustrative code**, protecting only the constructor creation path. They do not prove every `Range` object returned by `ObjectInputStream.readObject()` is valid.
 
-**Ngoại lệ quan trọng:** Serializable **record** trong Java 17 được khôi phục theo cơ chế đặc thù có gọi **canonical constructor**; xem mục 10. Không nên áp dụng máy móc quy tắc constructor thông thường của Serializable class cho record.
+**Important exception:** Serializable **records** in Java 17 are restored via a special mechanism that invokes their **canonical constructor**; see Section 10. Do not mechanically apply ordinary Serializable class constructor rules to records.
 
-## 3. Xác định bất biến trước khi chọn hook
+## 3. Identify Invariants Before Choosing a Hook
 
-Có thể chia điều kiện cần kiểm tra thành hai nhóm.
+Conditions to validate can be split into two groups.
 
-| Nhóm | Ví dụ | Vị trí kiểm tra phù hợp |
+| Group | Example | Appropriate Validation Site |
 |---|---|---|
-| **Bất biến cục bộ** của một đối tượng | `start >= 0` và `start <= end`, ID khác `null` | Trong `readObject` ngay sau `defaultReadObject` |
-| **Bất biến toàn graph / liên đối tượng** | Parent-child links nhất quán, số lượng member bằng tổng dữ liệu sau khôi phục | `ObjectInputValidation` đăng ký từ `readObject` |
-| **Đầu vào tùy biến theo định dạng** | Hai field được ghi riêng trong `writeObject` | Trong `readObject` sau khi đọc đủ custom data |
-| **Luồng cũ/thiếu dữ liệu cho class** | Class được thêm vào hierarchy nhưng stream không có data cho nó | `readObjectNoData`, khôi phục trạng thái an toàn hoặc từ chối |
-| **Đối tượng bất biến có constructor nghiêm ngặt** | Value object với field final, defensive copy | Serialization proxy hoặc record, tùy hợp đồng |
+| **Local invariant** of a single object | `start >= 0` and `start <= end`, non-`null` ID | Inside `readObject` right after `defaultReadObject` |
+| **Graph-wide / cross-object invariant** | Consistent parent-child links, member count matches total after restoration | `ObjectInputValidation` registered from `readObject` |
+| **Custom-formatted input** | Two fields written explicitly in `writeObject` | Inside `readObject` after reading all custom data |
+| **Old stream / missing class data** | Class was inserted into hierarchy without stream data for it | `readObjectNoData`, restore safe state or reject |
+| **Immutable object with strict constructor** | Value object with final fields, defensive copies | Serialization proxy or record, depending on contract |
 
-**Phạm vi bất biến** quyết định thời điểm kiểm tra:
+**Invariant scope** determines validation timing:
 
-- Không được dùng validator toàn graph để thay thế mọi **kiểm tra cục bộ sớm**, nếu trạng thái cục bộ nguy hiểm có thể bị dùng trong lúc graph còn đang dựng.
-- Không được áp dụng một kiểm tra quan hệ liên đối tượng **quá sớm** nếu đối tượng liên quan vẫn chưa khôi phục hết hoặc có cycle/back-reference.
-- Cả hai loại đều cần tránh phát sinh **side effect không thể hoàn tác** trong lúc object còn chưa được chứng thực hợp lệ.
+- Do not use a graph-wide validator to replace early **local checks**, if dangerous local state could be used while the graph is still being built.
+- Do not apply a cross-object relationship check **too early** if the related objects have not finished restoring or if there are cycles/back-references.
+- Both kinds must avoid triggering **irreversible side effects** while the object is not yet verified valid.
 
-## 4. Hook private readObject: kiểm tra field ngay sau khôi phục
+## 4. The Private readObject Hook: Checking Fields Immediately After Restoration
 
-Một class Serializable có thể định nghĩa phương thức đúng chữ ký:
+A Serializable class can define a method with the exact signature:
 
 ~~~java
 private void readObject(ObjectInputStream in)
         throws IOException, ClassNotFoundException {
     in.defaultReadObject();
-    // Kiểm tra các field vừa khôi phục.
+    // Validate the restored fields.
 }
 ~~~
 
-Các lưu ý thiết yếu:
+Essential notes:
 
-- Phương thức phải **private**, **non-static**, trả `void` và nhận `ObjectInputStream`. Không phải override public method từ interface.
-- `in.defaultReadObject()` nạp các field có thể serialize của class theo tên. Nếu class có format custom, `readObject()` có thể dùng `readFields()` hoặc đọc các giá trị tùy biến theo đúng thứ tự được ghi.
-- Trong `readObject()` tùy biến, **không gọi `defaultReadObject()` và `readFields()` để đọc cùng dữ liệu hai lần**.
-- Kiểm tra sau khi đã có đủ dữ liệu cần thiết; nếu sai, ném `InvalidObjectException`.
-- Không nuốt `IOException`/`ClassNotFoundException` và trả về object có trạng thái chưa rõ.
+- The method must be **private**, **non-static**, return `void`, and take `ObjectInputStream`. It is not an override of a public interface method.
+- `in.defaultReadObject()` loads the class's serializable fields by name. If the class has a custom format, `readObject()` can use `readFields()` or read custom values in the exact order written.
+- Inside a custom `readObject()`, **do not call both `defaultReadObject()` and `readFields()` to read the same data twice**.
+- Validate after all required data is available; if invalid, throw `InvalidObjectException`.
+- Do not swallow `IOException`/`ClassNotFoundException` and return an object in an uncertain state.
 
-### Ví dụ bất biến: khoảng số không âm
+### Invariant Example: Non-Negative Numeric Range
 
 ~~~java
 final class Range implements Serializable {
@@ -138,19 +138,19 @@ final class Range implements Serializable {
 }
 ~~~
 
-Đây là **mã minh họa ở mức class**, cần các import `java.io.*`. Constructor bảo vệ khi tạo bằng `new`, còn `readObject` bảo vệ khi khôi phục field trực tiếp từ stream.
+This is **class-level illustrative code**, requiring `import java.io.*`. The constructor guards `new` instantiation, while `readObject` guards restoring fields directly from a stream.
 
-Tại sao `InvalidObjectException` tốt hơn `IllegalArgumentException`? Vì nó là loại `ObjectStreamException`/`IOException` chuyên dùng khi đối tượng khôi phục **không đạt kiểm tra hợp lệ**, giúp caller xác định lỗi deserialization một cách rõ ràng.
+Why is `InvalidObjectException` better than `IllegalArgumentException`? Because it is an `ObjectStreamException`/`IOException` subclass specifically designed for when a restored object **fails validation**, letting callers clearly identify deserialization failures.
 
-**Không sửa âm thầm `end = start` chỉ để che dữ liệu hỏng** nếu contract không cho phép điều đó. Nếu bài toán thực sự có chính sách migrate/normalize dữ liệu cũ, cần quy tắc chuyển đổi tường minh, không được biến mọi invalid stream thành một object trông có vẻ hợp lệ.
+**Do not silently fix `end = start` just to mask corrupted data** unless the contract allows it. If the problem genuinely has a legacy data migration/normalization policy, define explicit conversion rules rather than turning every invalid stream into a seemingly valid object.
 
-## 5. Vì sao ObjectInputValidation cần thiết cho object graph?
+## 5. Why Is ObjectInputValidation Needed for Object Graphs?
 
-Trong các graph có **tham chiếu vòng/cross-reference**, việc đọc field của một object chưa có nghĩa mọi object được tham chiếu đã hoàn toàn thiết lập trạng thái. Có thể có child trỏ về parent, hoặc nhiều phần cùng tham chiếu một object trong lúc nó còn đang deserialized.
+In graphs with **cycles/cross-references**, reading one object's fields does not mean all referenced objects have finished establishing their state. A child may point back to a parent, or multiple parts may reference an object while it is still being deserialized.
 
-Đối với quan hệ như `parent.children.contains(child)` và `child.parent == parent`, kiểm tra trong `parent.readObject()` có thể quá sớm trong một số kiểu graph, hoặc gây những hoạt động phụ nguy hiểm.
+For relationships like `parent.children.contains(child)` and `child.parent == parent`, checking inside `parent.readObject()` can be premature in certain graph shapes, or trigger dangerous secondary actions.
 
-Java cung cấp:
+Java provides:
 
 ~~~java
 public interface ObjectInputValidation {
@@ -158,9 +158,9 @@ public interface ObjectInputValidation {
 }
 ~~~
 
-và `ObjectInputStream.registerValidation(ObjectInputValidation obj, int priority)` để đăng ký callback **trong readObject của một class khi stream đang đọc object**. Callback sẽ chạy **sau khi object graph được khôi phục**, nhưng **trước khi đối tượng được trả cho caller** của lời đọc tương ứng.
+and `ObjectInputStream.registerValidation(ObjectInputValidation obj, int priority)` to register a callback **inside a class's readObject while the stream is reading the object**. The callback runs **after the object graph has been restored**, yet **before the object is returned to the caller** of the corresponding read.
 
-Cách dùng khái niệm:
+Conceptual usage:
 
 ~~~java
 private void readObject(ObjectInputStream in)
@@ -177,35 +177,35 @@ public void validateObject() throws InvalidObjectException {
 }
 ~~~
 
-Đây là **mã minh họa**: class phải implements `Serializable, ObjectInputValidation`; phương thức `graphRelationshipIsValid()` là logic domain cần triển khai, không phải API JDK.
+This is **illustrative code**: the class must implement `Serializable, ObjectInputValidation`; `graphRelationshipIsValid()` is domain logic to implement, not a JDK API.
 
-### Priority của validation
+### Validation Priority
 
-`registerValidation(obj, priority)` nhận số nguyên ưu tiên:
+`registerValidation(obj, priority)` takes an integer priority:
 
-- **Priority lớn hơn chạy trước** priority nhỏ hơn.
-- Với **cùng priority**, thứ tự callback **không xác định**.
-- Dùng `0` khi không có yêu cầu thứ tự.
-- Callback có thể ném `InvalidObjectException`; khi kiểm tra không đạt, việc đọc object sẽ thất bại.
+- **Higher priorities run before** lower priorities.
+- For **equal priorities**, callback order is **unspecified**.
+- Use `0` when no ordering requirement exists.
+- The callback may throw `InvalidObjectException`; when validation fails, reading the object fails.
 
-**Không thiết kế bất biến dựa vào thứ tự callback trong cùng priority**. Trong một callback, kiểm tra tất cả điều kiện mà mình chịu trách nhiệm; không giả định callback khác đã sửa chữa dữ liệu trước đó nếu không có dependency có chủ đích.
+**Do not design invariants relying on callback order within the same priority.** Inside one callback, check every condition it is responsible for; do not assume another callback has already patched data beforehand without an explicit dependency.
 
-### Khi nào được registerValidation?
+### When Can registerValidation Be Called?
 
-Chỉ đăng ký đúng khi `ObjectInputStream` đang trong giai đoạn deserialization phù hợp (thông thường từ `readObject` của class). Gọi `registerValidation` ngoài ngữ cảnh đó có thể ném `NotActiveException`. Nếu đối tượng callback `null`, Javadoc quy định `InvalidObjectException`.
+Register only when `ObjectInputStream` is in the proper deserialization phase (normally from the class's `readObject`). Calling `registerValidation` outside that context can throw `NotActiveException`. If the callback object is `null`, Javadoc specifies `InvalidObjectException`.
 
-**Không tự gọi `validateObject()` của các class khác trong lúc graph đang dựng** để "kiểm tra sớm" khi chưa biết trạng thái của các tham chiếu liên quan.
+**Do not manually invoke `validateObject()` on other classes while the graph is still assembling** to "check early" without knowing the state of related references.
 
-## 6. Chương trình Java 17+ hoàn chỉnh: hai cách từ chối object sai
+## 6. Complete Java 17+ Program: Two Ways to Reject Bad Objects
 
-Ví dụ này kiểm thử:
+This example tests:
 
-1. `Range` kiểm tra cục bộ trong `readObject`.
-2. `Roster` kiểm tra trạng thái sau khi toàn graph được restored qua `ObjectInputValidation`.
-3. Cả object hợp lệ và object có trạng thái hỏng sẽ được serialize thành byte[] rồi thử deserialization.
-4. Các câu lệnh cố ý làm hỏng field chỉ nằm trong **outer demo class** để tạo test data; đó không phải phương pháp sửa state trong production.
+1. `Range` performing local validation in `readObject`.
+2. `Roster` validating state after the entire graph is restored via `ObjectInputValidation`.
+3. Both valid and corrupted-state objects are serialized to `byte[]` and then deserialized.
+4. Statements intentionally corrupting fields live only inside the **outer demo class** to synthesize test data; that is not a state-mutation pattern for production.
 
-**Tệp: `InvariantDemo.java`**
+**File: `InvariantDemo.java`**
 
 ~~~java
 import java.io.*;
@@ -296,7 +296,7 @@ public class InvariantDemo {
         System.out.println("range=" + good);
 
         Range broken = new Range(4, 9);
-        broken.end = 1; // Chỉ outer test cố ý phá private state.
+        broken.end = 1; // Only the outer test intentionally breaks private state.
         try {
             load(save(broken));
             System.out.println("rangeRejected=false");
@@ -320,14 +320,14 @@ public class InvariantDemo {
 }
 ~~~
 
-Chạy với JDK 17 trở lên:
+Run with JDK 17 or later:
 
 ~~~bash
 javac InvariantDemo.java
 java InvariantDemo
 ~~~
 
-**Stdout đã kiểm tra trên JDK:**
+**Stdout verified on JDK:**
 
 ~~~text
 range=4..9
@@ -336,35 +336,35 @@ roster=[Ada, Bob]
 rosterRejected=true
 ~~~
 
-Giải thích:
+Explanation:
 
-- `new Range(4,9)` hợp lệ; deserialization chạy `Range.readObject` và giữ bất biến nên in `4..9`.
-- `broken.end = 1` chỉ có thể thực hiện vì `Range` là nested class của `InvariantDemo`; enclosing class được quyền truy cập private field của nested class. Đây là cách **cố tình tạo serialized fixture không hợp lệ trong bài test**, không phải field setter trong API production. Constructor ban đầu vẫn kiểm tra hợp lệ, nhưng serialized bytes chứa state đã bị thay đổi.
-- Khi `load(save(broken))`, `defaultReadObject` nạp `start=4`, `end=1` và validator ném `InvalidObjectException`; kết quả `rangeRejected=true`.
-- `Roster` hợp lệ có 2 tên và `expectedCount=2`. Khi deserialization hoàn tất graph, `validateObject` kiểm tra count và từng tên, rồi dùng `List.copyOf` để có danh sách không thể sửa qua API List.
-- `badRoster.expectedCount=3` khiến dữ liệu serializable không phù hợp với danh sách, do đó callback từ chối và in `rosterRejected=true`.
+- `new Range(4,9)` is valid; deserialization runs `Range.readObject` and preserves the invariant, printing `4..9`.
+- `broken.end = 1` is possible only because `Range` is a nested class of `InvariantDemo`; an enclosing class has access to private fields of its nested classes. This is a way to **deliberately synthesize an invalid serialized fixture in tests**, not a field setter in a production API. The constructor still checks validity, yet the serialized bytes contain altered state.
+- On `load(save(broken))`, `defaultReadObject` loads `start=4`, `end=1` and the validator throws `InvalidObjectException`; the output is `rangeRejected=true`.
+- A valid `Roster` has 2 names and `expectedCount=2`. Once deserialization completes the graph, `validateObject` checks count and each name, then uses `List.copyOf` for a list that cannot be modified via the List API.
+- `badRoster.expectedCount=3` makes the serializable data inconsistent with the list, so the callback rejects it and prints `rosterRejected=true`.
 
-**Lưu ý về chất lượng demo:** Trong ví dụ, constructor `Roster` chỉ sao chép danh sách mà chưa kiểm tra từng tên không null/blank, để giữ trọng tâm hiển thị callback sau deserialization. **Một class production phải kiểm tra bất biến ở tất cả đường tạo object**, gồm constructor, factory, setter hoặc mutation API, và đường deserialization. Có thể tái sử dụng một hàm validation domain chung thay vì lặp quy tắc phân tán.
+**Demo quality note:** In this example, the `Roster` constructor only copies the list without validating each name is non-null/non-blank, keeping focus on the post-deserialization callback. **A production class must check invariants on all object creation paths**, including constructors, factories, setters or mutation APIs, and the deserialization path. A shared domain validation helper can be reused instead of duplicating rules.
 
-### Vì sao không cần sửa từng byte serialized stream để thử invalid?
+### Why Not Patch Individual Bytes of a Serialized Stream to Test Invalid Cases?
 
-Unit test muốn kiểm tra invariant phải cung cấp stream chứa state xấu. Cách làm hỏng private field ở một fixture **cùng nest** như demo dễ kiểm soát hơn việc sửa byte bằng magic offset trong serialized binary. Không dùng offset cố định giả định format Java Serialization của một class luôn giống nhau giữa các phiên bản.
+Unit tests verifying invariants must supply streams containing bad state. Corrupting a private field in a fixture **in the same nest** as in this demo is more controllable than patching bytes at magic offsets in serialized binaries. Never use hardcoded offsets assuming Java Serialization's binary format for a class stays identical across versions.
 
-## 7. Kiểm tra null, phạm vi, collection và object liên kết
+## 7. Checking Nulls, Ranges, Collections, and Linked Objects
 
-Các nhóm bất biến thường cần kiểm tra:
+Categories of invariants often needing validation:
 
-| Đối tượng | Bất biến | Lỗi có thể có từ stream |
+| Object | Invariant | Possible Stream Defect |
 |---|---|---|
-| `Range` | `start >= 0`, `end >= start` | Start âm, end nhỏ hơn start |
-| `Account` | `accountId != null`, non-blank | Null hoặc empty ID |
-| `Order` | `items != null`, item hợp lệ | Missing field hoặc null list |
-| `Roster` | `expectedCount == names.size()` | Count không khớp |
-| `Schedule` | `start.isBefore(end)` | Thời gian đảo ngược hoặc null |
-| `GraphNode` | Quan hệ liên kết parent-child khớp | Back-reference không nhất quán |
-| `CacheConfig` | Timeout dương, memory budget trong khoảng | Field âm hoặc quá lớn |
+| `Range` | `start >= 0`, `end >= start` | Negative start, end smaller than start |
+| `Account` | `accountId != null`, non-blank | Null or empty ID |
+| `Order` | `items != null`, valid items | Missing field or null list |
+| `Roster` | `expectedCount == names.size()` | Mismatched count |
+| `Schedule` | `start.isBefore(end)` | Reversed or null timestamps |
+| `GraphNode` | Matching parent-child links | Inconsistent back-reference |
+| `CacheConfig` | Positive timeout, memory budget in bounds | Negative or huge field |
 
-Không đủ nếu chỉ kiểm tra null của container. Phải kiểm tra **từng phần tử** và những ràng buộc liên quan đến tổng số lượng/uniqueness:
+Checking only that the container is non-null is insufficient. You must validate **every element** as well as constraints on total counts/uniqueness:
 
 ~~~java
 if (members == null) {
@@ -377,11 +377,11 @@ for (Member member : members) {
 }
 ~~~
 
-Đây là mã minh họa: `Member` là type ứng dụng tự định nghĩa có phương thức `id()`, không phải một class JDK.
+This is illustrative code: `Member` is an application-defined type with an `id()` method, not a JDK class.
 
-### Kiểm tra số học tránh overflow
+### Arithmetic Checks to Prevent Overflow
 
-Ví dụ bất biến tổng tiền không âm:
+Example of a non-negative total invariant:
 
 ~~~java
 long total;
@@ -395,20 +395,20 @@ if (unitPrice < 0 || tax < 0 || total > maxAllowed) {
 }
 ~~~
 
-Các biến long là dữ liệu đã có từ object; đoạn code chỉ minh họa. Không tính `int sum = a + b` rồi kiểm tra `sum >= 0` mà không nghĩ tới **integer overflow**. Với dữ liệu do stream cung cấp, kích thước mảng, độ dài danh sách và số lượng nested objects cũng cần giới hạn ở nhiều lớp.
+The `long` variables are existing data from the object; this snippet is illustrative. Do not compute `int sum = a + b` and then check `sum >= 0` without accounting for **integer overflow**. With stream-supplied data, array sizes, list lengths, and nested object counts must also be bounded across multiple layers.
 
-### Không tin trường derived hoặc cached state
+### Do Not Trust Derived or Cached State Fields
 
-Nếu một class serialize `items` và cả `cachedTotal`, stream có thể cung cấp `cachedTotal` không khớp với items. Hai hướng:
+If a class serializes both `items` and `cachedTotal`, a stream could supply a `cachedTotal` that disagrees with `items`. Two approaches:
 
-- **Không serialize field derived:** đánh dấu `transient` và **tái tạo** nó từ dữ liệu nguồn sau khi khôi phục.
-- Nếu metadata cache cần lưu, **đối chiếu lại** với dữ liệu thực trước khi dùng hoặc bỏ cache rồi recompute theo chính sách.
+- **Do not serialize derived fields:** mark them `transient` and **recompute** them from source data after restoration.
+- If cached metadata must be stored, **re-verify** it against actual data before use or discard the cache and recompute per policy.
 
-Không dùng `cachedTotal` chưa xác thực để cấp phát memory, tính phí hoặc cấp quyền.
+Never use an unverified `cachedTotal` to allocate memory, charge fees, or grant permissions.
 
-## 8. Khi graph có cycle và aliasing
+## 8. When Graphs Have Cycles and Aliasing
 
-Một đối tượng có thể tham chiếu lặp cùng instance ở nhiều vị trí, và các đối tượng có thể có vòng liên kết:
+An object can be referenced multiple times in different places, and objects can form reference cycles:
 
 ~~~text
 Parent P ------> Child C
@@ -418,9 +418,9 @@ Parent P ------> Child C
       C.parent == P
 ~~~
 
-Trong `P.readObject`, `C` có thể chưa được xây dựng đầy đủ ở mọi thời điểm mà code tùy biến chạy, nhất là khi graph có cycle/back-reference. Vì vậy kiểm tra `C.parent == P` hoặc `P.children.contains(C)` thường phù hợp với **`ObjectInputValidation` sau graph hoàn tất** hơn là eager callback quá sớm.
+Inside `P.readObject`, `C` might not yet be fully constructed at every point where custom code runs, especially when the graph has cycles/back-references. Hence checking `C.parent == P` or `P.children.contains(C)` is usually better suited to **`ObjectInputValidation` after graph completion** rather than an overly eager callback.
 
-Ví dụ pseudocode:
+Pseudocode example:
 
 ~~~java
 private void readObject(ObjectInputStream in)
@@ -442,21 +442,21 @@ public void validateObject() throws InvalidObjectException {
 }
 ~~~
 
-Đây là **pseudocode không độc lập**: `Node`, `children` và field `parent` thuộc mô hình riêng của ứng dụng. Nếu dùng `List.copyOf(children)`, phải cẩn thận aliasing và tránh biến mutable object graph sang dạng không nhất quán; một bản sao list không tự clone các `Node` bên trong.
+This is **non-standalone pseudocode**: `Node`, `children`, and `parent` belong to the application's own model. If using `List.copyOf(children)`, watch out for aliasing and avoid mutating the object graph into inconsistency; copying a list does not deep-clone the `Node` instances inside.
 
-### Không nên gọi phương thức overridable của this khi đang deserialize
+### Avoid Calling Overridable Methods on `this` During Deserialization
 
-Trong `readObject`, object có thể ở trạng thái chưa hoàn tất. Nếu gọi method có thể override, subclass có thể chạy trên field chưa khởi tạo và làm rò rỉ tham chiếu `this`. Nên dùng validation nội bộ, private/final methods với tác động hạn chế và tránh đăng ký `this` vào global registry, dispatch event, khởi chạy thread hoặc gọi external callbacks trước khi hợp lệ.
+During `readObject`, the object may be in an incomplete state. Calling an overridable method lets a subclass run on uninitialized fields and can leak the `this` reference. Use internal validation, private/final methods with limited effects, and avoid registering `this` in global registries, dispatching events, starting threads, or invoking external callbacks before validity is confirmed.
 
-## 9. Dữ liệu thiếu khi class tiến hóa: readFields và readObjectNoData
+## 9. Missing Data During Class Evolution: readFields and readObjectNoData
 
-Serialized data có thể được tạo bởi một phiên bản class cũ. Trong Java Serialization, `serialVersionUID` hỗ trợ nhận diện phiên bản tương thích, **không tự bảo đảm bất biến domain**.
+Serialized data may have been created by an older version of a class. In Java Serialization, `serialVersionUID` aids compatible version identification, **not automatic domain invariant enforcement**.
 
-### 9.1. Field mới không có trong stream
+### 9.1. New Field Absent from the Stream
 
-Nếu phiên bản mới thêm `requiredName` nhưng stream cũ không có field, cách đọc mặc định có thể đặt field tham chiếu thành `null`, primitive thành 0/false. Chương trình phải quyết định có được migrate hợp lệ hay không.
+If a new version adds `requiredName` while an old stream lacks that field, default reading sets reference fields to `null` and primitives to 0/false. The program must decide whether migration is valid.
 
-Thay vì `defaultReadObject()`, có thể dùng `ObjectInputStream.GetField`:
+Instead of `defaultReadObject()`, you can use `ObjectInputStream.GetField`:
 
 ~~~java
 private void readObject(ObjectInputStream in)
@@ -474,11 +474,11 @@ private void readObject(ObjectInputStream in)
 }
 ~~~
 
-Đoạn này minh họa một class Serializable có field `String name`; `readFields()` và `defaultReadObject()` là **hai cách thay thế**, không gọi cả hai để nạp cùng một dữ liệu. Dùng `defaulted("name")` khi cần phân biệt field thực sự vắng mặt khỏi field có giá trị mặc định. `serialVersionUID` vẫn phải phù hợp chính sách tương thích.
+This snippet illustrates a Serializable class with field `String name`; `readFields()` and `defaultReadObject()` are **two mutually exclusive alternatives**—do not call both to read the same data. Use `defaulted("name")` when you need to distinguish a truly absent field from a field present with a default value. `serialVersionUID` must still match your compatibility policy.
 
 ### 9.2. readObjectNoData()
 
-Một class Serializable có thể khai báo:
+A Serializable class can declare:
 
 ~~~java
 private void readObjectNoData() throws ObjectStreamException {
@@ -487,17 +487,17 @@ private void readObjectNoData() throws ObjectStreamException {
 }
 ~~~
 
-Hook được dùng trong tình huống stream **không có dữ liệu tương ứng cho class trong hierarchy** (ví dụ thay đổi hierarchy tương thích, hoặc nguồn không hoàn chỉnh/bất thường), khác với việc một field đơn lẻ của class bị thiếu.
+This hook is used when a stream **lacks data for a class in the hierarchy** (for instance, compatible hierarchy changes, or an incomplete/anomalous source), which differs from a single field of the class being absent.
 
-Một số class có thể tự tái lập giá trị mặc định hợp lệ tại hook này; nếu không thể đảm bảo bất biến, **từ chối** là lựa chọn đúng. Không tự phỏng đoán giá trị của thông tin bảo mật, giá tiền, quyền truy cập hoặc định danh bị thiếu.
+Some classes can re-establish valid defaults in this hook; if invariants cannot be guaranteed, **rejecting** is the right choice. Never guess values for missing security info, prices, permissions, or identifiers.
 
-## 10. Object bất biến: defensive copy, serialization proxy và record
+## 10. Immutable Objects: Defensive Copies, Serialization Proxies, and Records
 
-### 10.1. Không để dữ liệu mutable phá bất biến về sau
+### 10.1. Prevent Mutable Data from Breaking Invariants Later
 
-Kiểm tra `List` trong validator là một bước; nhưng nếu object giữ một tham chiếu đến collection mutable có thể bị phần khác sửa, bất biến sẽ bị phá sau khi deserialize.
+Validating a `List` inside a validator is one step; however, if the object retains a reference to a mutable collection that another caller can modify, the invariant will be broken after deserialization.
 
-Ví dụ:
+Example:
 
 ~~~java
 private void readObject(ObjectInputStream in)
@@ -511,16 +511,16 @@ private void readObject(ObjectInputStream in)
 }
 ~~~
 
-Đây là minh họa. `List.copyOf` trả danh sách không thể bị chỉnh sửa qua API List, và giúp tạo **defensive snapshot** của collection. Nhưng các **phần tử mutable** bên trong vẫn cần được kiểm soát: `List.copyOf` là **shallow copy**, không tự clone sâu object graph.
+This is illustrative. `List.copyOf` returns a list unmodifiable via the List API and helps create a **defensive snapshot** of the collection. Yet **mutable elements** inside still require control: `List.copyOf` is a **shallow copy**, not a deep clone of the object graph.
 
-Với class Serializable có các field `final` và muốn giữ representation invariant nghiêm ngặt, việc tùy biến trường trong `readObject` không phải lúc nào là cách tốt nhất. Có thể chọn serialization proxy.
+For Serializable classes with `final` fields aiming to maintain strict representation invariants, mutating fields inside `readObject` is not always ideal. A serialization proxy can be chosen instead.
 
-### 10.2. Serialization proxy pattern
+### 10.2. Serialization Proxy Pattern
 
-Ý tưởng: bản thân class quan trọng không được deserialize trực tiếp. Nó serialize một **proxy** chỉ chứa dữ liệu được phép; `readResolve` của proxy tạo object mới **qua constructor/factory có kiểm tra bất biến**.
+Idea: the critical class itself is never deserialized directly. It serializes a **proxy** containing only permitted data; the proxy's `readResolve` constructs a new object **through an invariant-enforcing constructor/factory**.
 
 ~~~text
-ValueObject hợp lệ
+Valid ValueObject
     |
     | writeReplace()
     v
@@ -528,18 +528,18 @@ SerializationProxy(data primitives / stable values)
     |
     | byte stream
     v
-SerializationProxy được deserialize
+SerializationProxy is deserialized
     |
     | readResolve() -> new ValueObject(validated data)
     v
-ValueObject hợp lệ hoặc InvalidObjectException
+Valid ValueObject or InvalidObjectException
 ~~~
 
-Khi thiết kế theo pattern này, method `readObject` của class gốc thường **luôn ném InvalidObjectException** để cấm khôi phục trực tiếp một serialized form không qua proxy. `readResolve` của proxy xử lý đối tượng thay thế; đảm bảo mọi đường tạo object logic đi qua constructor/factory. Mẫu này có overhead và giới hạn riêng với subclass/cycle, nên cần thiết kế theo domain, không dùng bừa cho mọi class.
+When following this pattern, the original class's `readObject` method typically **always throws InvalidObjectException** to forbid direct restoration of a non-proxy serialized form. The proxy's `readResolve` handles replacement; ensure all logical creation paths pass through the constructor/factory. This pattern has overhead and specific limits regarding subclasses/cycles, so apply it per domain needs rather than blindly to every class.
 
-### 10.3. Serializable record trên Java 17
+### 10.3. Serializable Records in Java 17
 
-Record Serializable được khôi phục **bằng canonical constructor** theo cơ chế serialization đặc biệt. Vì vậy kiểm tra trong canonical constructor có thể dùng làm cổng xác thực ngay khi khôi phục.
+Serializable records are restored **via their canonical constructor** under a dedicated serialization mechanism. Therefore, checks in the canonical constructor can serve as a validation gate directly upon restoration.
 
 ~~~java
 record Score(int value) implements Serializable {
@@ -551,20 +551,20 @@ record Score(int value) implements Serializable {
 }
 ~~~
 
-Đây là **đoạn class minh họa**, cần `java.io.Serializable`. Nếu muốn trả lỗi domain ở cấp deserialization, caller cần hiểu exception có thể được bọc theo cơ chế serialization của record và xử lý thích hợp, không giả định hook `readObject` thông thường được gọi cho record. Với record, những phương thức serialization tùy biến như `readObject`/`writeObject` có semantics khác class Serializable truyền thống; hãy tham khảo đặc tả record serialization thay vì chép nguyên mẫu class thường.
+This is an **illustrative class snippet**, requiring `java.io.Serializable`. If domain errors should surface at deserialization level, callers must understand exceptions may be wrapped per record serialization mechanics and handle them appropriately, rather than assuming an ordinary `readObject` hook runs for records. For records, custom serialization methods like `readObject`/`writeObject` have different semantics from traditional Serializable classes; consult the record serialization specification instead of copying ordinary class templates verbatim.
 
-## 11. Đừng xem invariant validation là giải pháp an toàn duy nhất
+## 11. Do Not Treat Invariant Validation as the Sole Security Solution
 
-`InvalidObjectException` chặn một **object state không hợp lệ** trước khi object đó được trả cho caller. Nhưng nó không biến việc deserialize byte không tin cậy thành an toàn:
+`InvalidObjectException` blocks an **invalid object state** before that object is returned to the caller. Yet it does not make deserializing untrusted bytes safe:
 
-- **Gadget chain:** trong lúc deserialize, code các type đã được chọn có thể chạy **trước khi validator của class đích hoàn tất**.
-- **DoS / object bomb:** graph có thể rất sâu, có quá nhiều đối tượng, mảng rất lớn hoặc tiêu tốn CPU trước lúc được kiểm tra.
-- **Side effects sớm:** các `readObject` của class con lồng nhau có thể thực hiện hành vi nguy hiểm trước callback `ObjectInputValidation`.
-- **Class evolution:** type và field từ stream có thể khác những gì ứng dụng đã giả định, dù qua được `serialVersionUID`.
+- **Gadget chains:** during deserialization, code of chosen types can execute **before the target class's validator completes**.
+- **DoS / object bombs:** a graph can be deeply nested, contain excessive objects or huge arrays, or burn CPU before validation runs.
+- **Early side effects:** `readObject` hooks on nested child classes can perform dangerous actions before `ObjectInputValidation` callbacks.
+- **Class evolution:** types and fields in the stream can differ from what the application assumed, even if `serialVersionUID` passes.
 
-**Nguyên tắc:** Không nên deserialize Java native object từ nguồn không tin cậy nếu có lựa chọn format dữ liệu an toàn hơn. Nếu phải dùng Java Serialization, áp dụng **`ObjectInputFilter`** để hạn chế class/resource, xác thực nguồn, giới hạn byte/depth/reference/array, và chỉ sử dụng những class đã được kiểm toán. Filter hỗ trợ giảm bề mặt tấn công **trước/trong quá trình đọc**, còn invariant validator bảo vệ quy tắc domain **sau khi field/graph được dựng**.
+**Principle:** Avoid deserializing Java native objects from untrusted sources whenever a safer data format option exists. If Java Serialization must be used, apply **`ObjectInputFilter`** to restrict classes/resources, authenticate sources, bound bytes/depth/references/arrays, and permit only audited classes. Filters help shrink the attack surface **before/during reading**, while invariant validators enforce domain rules **after fields/graphs are constructed**.
 
-### Ví dụ policy filter ở mức ý tưởng
+### Conceptual Filter Policy Example
 
 ~~~java
 ObjectInputFilter filter =
@@ -575,30 +575,30 @@ in.setObjectInputFilter(filter);
 Object obj = in.readObject();
 ~~~
 
-Đây là **mã minh họa**: `in` là `ObjectInputStream`, package `com.example.model` chỉ là ví dụ, và filter phải cho phép **các loại thành phần cần thiết khác** theo định dạng object graph thực tế. Không copy nguyên policy vào production mà chưa kiểm tra type sẽ được khôi phục. Filter không tự xác minh field domain và không thay `InvalidObjectException`.
+This is **illustrative code**: `in` is an `ObjectInputStream`, `com.example.model` is just an example package, and the filter must permit **other required component types** matching the real object graph format. Do not copy a policy verbatim into production without verifying every type to be restored. Filters do not validate domain fields and do not replace `InvalidObjectException`.
 
-### Không trả một nửa object graph cho caller
+### Never Return Half an Object Graph to the Caller
 
-Nếu validator ném lỗi, bỏ phiên đọc và byte stream theo chính sách error handling. Không lấy các object đã được đặt tạm vào global cache trong quá trình khôi phục để dùng tiếp, vì chúng có thể chứa state chưa hợp lệ. Nên tránh callback/event đăng ký ngoài hệ thống trước khi validation thành công.
+If a validator throws, discard the read session and byte stream per error-handling policy. Do not reuse objects temporarily placed into a global cache during restoration, as they may hold unvalidated state. Avoid registering external callbacks/events before validation succeeds.
 
-## 12. Unit test bất biến trong môi trường thực tế
+## 12. Unit Testing Invariants in Real Environments
 
-Chỉ kiểm tra "serialize rồi deserialize bằng đúng class hiện tại" là chưa đủ; trường hợp đó thường cho **happy path** và không phát hiện đường bỏ qua constructor.
+Testing only "serialize then deserialize with the exact current class" is insufficient; that usually exercises the **happy path** and misses constructor-bypass bugs.
 
-Bộ test nên bao gồm:
+A test suite should cover:
 
-1. **Round-trip hợp lệ:** serialize rồi restore thành công, dữ liệu giữ đúng invariants.
-2. **Field số sai:** start âm, end nhỏ hơn start, thời gian đảo ngược.
-3. **Field nullable:** null name/ID/collection, phần tử null/blank, dữ liệu thiếu.
-4. **Cross-field:** tổng không khớp, range chồng lấn trái quy tắc, enum kết hợp không hợp lệ.
-5. **Cross-object/cycle:** parent-child reference không đồng bộ hoặc aliasing bất thường.
-6. **Dữ liệu phiên bản cũ:** field newly required bị thiếu; hook `readObjectNoData` khi đổi hierarchy.
-7. **Object graph quá lớn:** giới hạn size/depth bằng filter/quota, không chờ tới callback.
-8. **Defensive copy:** sau restore, thử sửa collection truyền ra API, bảo đảm object giữ đúng invariant.
-9. **Exception chính xác:** kỳ vọng `InvalidObjectException` (hoặc lỗi hợp đồng tương ứng) cho đường invalid, không chấp nhận fallback im lặng.
-10. **Resource lifecycle:** `ObjectInputStream`/underlying stream được đóng đúng khi exception, không rò rỉ file descriptor.
+1. **Valid round-trip:** serialize then restore successfully, verifying invariants hold.
+2. **Invalid numeric fields:** negative start, end less than start, reversed timestamps.
+3. **Nullable fields:** null name/ID/collection, null/blank elements, missing data.
+4. **Cross-field:** mismatched totals, illegally overlapping ranges, invalid enum combinations.
+5. **Cross-object/cycle:** unsynchronized parent-child references or abnormal aliasing.
+6. **Old-version data:** newly required field missing; `readObjectNoData` hook on hierarchy changes.
+7. **Oversized object graph:** size/depth limits enforced by filter/quota without waiting for callbacks.
+8. **Defensive copy:** after restoration, try mutating collections exposed by APIs and verify the object keeps its invariant.
+9. **Exact exception:** expect `InvalidObjectException` (or the matching contract error) for invalid paths, rejecting silent fallbacks.
+10. **Resource lifecycle:** `ObjectInputStream`/underlying streams closed properly on exception, leaking no file descriptors.
 
-### Ví dụ assertion mà không lệ thuộc bytes của stream
+### Assertion Example Without Depending on Raw Stream Bytes
 
 ~~~java
 byte[] payload = save(new Range(4, 9));
@@ -606,66 +606,66 @@ Range restored = (Range) load(payload);
 // Test restored.start == 4 && restored.end == 9.
 
 Range malformed = new Range(4, 9);
-// Chỉ code test cùng nest được phép deliberately change private field:
+// Only test code in the same nest may deliberately change private field:
 malformed.end = 1;
 
-// Test kỳ vọng load(save(malformed)) ném InvalidObjectException.
+// Test expects load(save(malformed)) throws InvalidObjectException.
 ~~~
 
-Đoạn minh họa sử dụng helper và nested class của `InvariantDemo` ở mục 6, không phải code độc lập. Không nên **patch bytes ở magic offset** rồi giả định serialized binary format sẽ giống nhau ở mọi build/version. Có thể dùng fixture phiên bản cũ hoặc serialization proxy fixture để tạo nguồn dữ liệu lỗi một cách có kiểm soát.
+This snippet uses helpers and nested classes from `InvariantDemo` in Section 6; it is not standalone code. Never **patch bytes at magic offsets** assuming the binary serialization format stays identical across builds/versions. Use legacy-version fixtures or serialization proxy fixtures to produce malformed data sources in a controlled way.
 
-## 13. Những lỗi phổ biến
+## 13. Common Mistakes
 
-1. **"Constructor đã validate nên deserialize luôn an toàn."** Sai với Serializable class thông thường; constructor của chính class không chạy như new.
-2. **"`defaultReadObject()` tự kiểm tra tất cả bất biến."** Sai; nó chủ yếu phục hồi field mặc định.
-3. **"`readObject()` phải public để Java gọi được."** Sai; hook chuẩn có chữ ký private đặc biệt.
-4. **"Cứ ném `IllegalArgumentException` là đủ."** `InvalidObjectException` diễn đạt lỗi khôi phục dữ liệu rõ hơn; caller cần nhận diện đúng loại lỗi.
-5. **"Chỉ check field != null."** Sai nếu còn ràng buộc phạm vi, thứ tự, uniqueness, checksum, cardinality hoặc cross-object.
-6. **"Đối tượng liên kết luôn hoàn tất khi parent.readObject chạy."** Không nên giả định trong graph có cycle và back-reference.
-7. **"`ObjectInputValidation` chạy ngay lúc đăng ký."** Sai; callback được thực hiện sau khi graph khôi phục theo hợp đồng.
-8. **"Các callback cùng priority có thứ tự cố định."** Sai; không được đảm bảo.
-9. **"Gọi `registerValidation` bất kỳ lúc nào cũng được."** Sai; chỉ được dùng trong ngữ cảnh đọc object phù hợp.
-10. **"Chỉ validate một lần đủ giữ bất biến mãi mãi."** Sai nếu object có mutable fields, aliasing và setter không kiểm tra.
-11. **"`List.copyOf` clone sâu toàn bộ graph."** Sai; shallow snapshot của collection, element mutable vẫn có thể thay đổi.
-12. **"serialVersionUID là security check."** Sai; nó không xác thực source hay domain data.
-13. **"ObjectInputFilter thay thế readObject validator."** Sai; filter chủ yếu hạn chế loại object và tài nguyên, không kiểm tra mọi quan hệ giữa field.
-14. **"readObjectNoData áp dụng mỗi khi một field thiếu."** Sai; nó xử lý class data vắng trong hierarchy, khác `GetField.defaulted`.
-15. **"readObject của Serializable class luôn gọi constructor."** Sai; nhưng Serializable record có cách khôi phục riêng với canonical constructor.
-16. **"Thấy validate thất bại cứ sửa state rồi tiếp tục."** Nếu không có quy tắc migration rõ ràng, phải từ chối dữ liệu.
-17. **"Dữ liệu đang deserialize có thể tự đăng ký vào global cache ngay."** Nguy hiểm vì object chưa được kiểm chứng.
-18. **"Deserialization từ nguồn bất kỳ an toàn miễn là mình bắt IOException."** Sai; validation không chặn mọi gadget/DoS trước khi callback.
+1. **"The constructor validates, so deserialization is always safe."** False for ordinary Serializable classes; the class's own constructor does not run like `new`.
+2. **"`defaultReadObject()` automatically checks all invariants."** False; it mainly restores default fields.
+3. **"`readObject()` must be public so Java can call it."** False; the standard hook has a special private signature.
+4. **"Just throwing `IllegalArgumentException` is enough."** `InvalidObjectException` expresses restoration data failure more clearly; callers need the right exception type.
+5. **"Only check `field != null`."** Wrong if there are range, ordering, uniqueness, checksum, cardinality, or cross-object constraints.
+6. **"Linked objects are always complete when `parent.readObject` runs."** Do not assume this in graphs with cycles and back-references.
+7. **"`ObjectInputValidation` runs immediately upon registration."** False; the callback executes after graph restoration per contract.
+8. **"Callbacks with the same priority have a fixed order."** False; ordering is unspecified.
+9. **"You can call `registerValidation` at any time."** False; it may only be used during an active object-reading context.
+10. **"Validating once keeps invariants forever."** False if the object has mutable fields, aliasing, and unchecked setters.
+11. **"`List.copyOf` deep-clones the entire graph."** False; it is a shallow snapshot of the collection—mutable elements can still be mutated.
+12. **"`serialVersionUID` is a security check."** False; it does not authenticate sources or domain data.
+13. **"`ObjectInputFilter` replaces `readObject` validators."** False; filters primarily restrict object types and resources, not all inter-field relationships.
+14. **"`readObjectNoData` applies whenever any field is missing."** False; it handles absent class data in a hierarchy, distinct from `GetField.defaulted`.
+15. **"`readObject` on Serializable classes always calls the constructor."** False; however, Serializable records have their own restoration flow via the canonical constructor.
+16. **"When validation fails, just patch the state and continue."** Without explicit migration rules, you must reject the data.
+17. **"Data being deserialized can register itself into a global cache right away."** Dangerous because the object is not yet verified.
+18. **"Deserializing from any source is safe as long as we catch `IOException`."** False; validation does not block gadgets/DoS occurring before the callback.
 
-## 14. Tự kiểm tra kiến thức
+## 14. Self-Check Knowledge Questions
 
-**Câu 1:** Tại sao constructor `Range(int start, int end)` có kiểm tra dữ liệu nhưng một object Deserialize vẫn có thể mang `start > end`?
+**Question 1:** Why can a deserialized object end up with `start > end` even though the `Range(int start, int end)` constructor validates inputs?
 
-**Đáp án:** Cơ chế `Serializable` thường khôi phục field từ byte stream mà không gọi constructor của chính Serializable class, nên phải kiểm tra ở hook deserialization.
+**Answer:** Standard `Serializable` restores fields from the byte stream without invoking the Serializable class's own constructor, so invariants must be checked in a deserialization hook.
 
-**Câu 2:** Trong `private readObject`, nên gọi `defaultReadObject()` trước hay sau khi kiểm tra `start` và `end`?
+**Question 2:** Inside `private readObject`, should `defaultReadObject()` be called before or after checking `start` and `end`?
 
-**Đáp án:** Trước. Field cần được phục hồi rồi mới có dữ liệu đúng để kiểm tra. Nếu không có custom format, `defaultReadObject` nạp những field serializable của class.
+**Answer:** Before. Fields must be restored first so you have the actual data to validate. Without a custom format, `defaultReadObject` loads the class's serializable fields.
 
-**Câu 3:** Khi nào dùng `ObjectInputValidation` thay vì chỉ kiểm tra ở `readObject`?
+**Question 3:** When should you use `ObjectInputValidation` instead of validating solely in `readObject`?
 
-**Đáp án:** Khi bất biến phụ thuộc graph hoặc các đối tượng khác có thể chưa được khôi phục xong trong lúc `readObject` đang chạy. Đăng ký validator từ `readObject` để nhận callback sau graph được khôi phục.
+**Answer:** When invariants depend on the graph or other objects that may not have finished restoring while `readObject` is running. Register the validator from `readObject` to receive a callback after graph restoration.
 
-**Câu 4:** Vì sao cùng priority `0` không nên dùng để sắp thứ tự hai validation phụ thuộc nhau?
+**Question 4:** Why shouldn't priority `0` be used to order two dependent validations?
 
-**Đáp án:** Java không bảo đảm thứ tự callbacks với cùng priority. Nếu cần dependency, phải thiết kế thứ tự có chủ đích hoặc hợp nhất kiểm tra phụ thuộc vào một điểm nhất quán.
+**Answer:** Java does not guarantee callback ordering for identical priorities. When dependencies exist, design explicit priority levels or combine dependent checks into one consistent point.
 
-**Câu 5:** Nếu stream cũ không có field `String name` mới bắt buộc, có thể phát hiện bằng cách nào?
+**Question 5:** If an old stream lacks a newly required `String name` field, how can you detect it?
 
-**Đáp án:** Có thể dùng `readFields()` và `GetField.defaulted("name")`, hoặc phát hiện giá trị null sau `defaultReadObject` tùy policy. Không tự coi null là hợp lệ nếu field là bắt buộc.
+**Answer:** You can use `readFields()` and `GetField.defaulted("name")`, or detect a `null` value after `defaultReadObject` per policy. Never treat `null` as valid if the field is required.
 
-**Câu 6:** `ObjectInputFilter` có thay việc kiểm tra `expectedCount == names.size()` không?
+**Question 6:** Does `ObjectInputFilter` replace checking `expectedCount == names.size()`?
 
-**Đáp án:** Không. Filter giúp hạn chế class/graph/resource, còn bất biến domain cần kiểm tra ở readObject hoặc ObjectInputValidation.
+**Answer:** No. Filters restrict classes/graphs/resources, while domain invariants must be checked in `readObject` or `ObjectInputValidation`.
 
-**Câu 7:** Object immutable đã được khôi phục và validate list. Dùng `List.copyOf` có làm mọi thành viên bên trong immutable không?
+**Question 7:** An immutable object has been restored and its list validated. Does `List.copyOf` make every member inside immutable?
 
-**Đáp án:** Không. Nó tạo snapshot không sửa được của collection, nhưng các phần tử có thể vẫn mutable. Cần defensive copy sâu hoặc type bất biến cho từng phần tử nếu invariant đòi hỏi.
+**Answer:** No. It creates an unmodifiable snapshot of the collection, but elements themselves may still be mutable. Deep defensive copies or immutable element types are needed if the invariant demands it.
 
-### Tài liệu chính thức (Java 17)
+### Official Documentation (Java 17)
 
 - [Serializable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/Serializable.html)
 - [ObjectInputStream: defaultReadObject, readFields, registerValidation, setObjectInputFilter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/ObjectInputStream.html)

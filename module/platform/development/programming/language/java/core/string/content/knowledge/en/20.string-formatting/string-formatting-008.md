@@ -1,18 +1,18 @@
-# Phân biệt độ chính xác khi trình bày với giá trị số gốc trong Java
+# Distinguishing Display Precision from Underlying Numeric Values in Java
 
-## Mục tiêu
+## Objectives
 
-Khi một ứng dụng Java hiển thị số tiền, tỷ lệ, điểm số hoặc kết quả đo, ta thường muốn **hiển thị ít chữ số hơn** để dễ đọc. Chẳng hạn, một phép tính có giá trị `12.3456` nhưng giao diện chỉ hiện `12.35`. Cần phân biệt rõ:
+When a Java application displays monetary amounts, ratios, scores, or measurement results, we often want to **display fewer digits** for readability. For instance, a calculation yields `12.3456`, while the UI only shows `12.35`. We must clearly distinguish:
 
-- **Giá trị số gốc**: dữ liệu được lưu trong biến `double`, `float`, `BigDecimal` hoặc kết quả của phép tính.
-- **Độ chính xác khi trình bày**: số chữ số được chọn để tạo chuỗi hiển thị, thông qua `String.format`, `System.out.printf` hoặc formatter tương tự.
-- **Làm tròn giá trị để sử dụng tiếp**: phép toán thật sự tạo ra một giá trị số mới theo quy tắc làm tròn, ví dụ `BigDecimal.setScale(..., RoundingMode.HALF_UP)`.
+- **Underlying numeric value**: data stored in a `double`, `float`, or `BigDecimal` variable, or produced by a calculation.
+- **Display precision**: the number of digits chosen when creating a display string, via `String.format`, `System.out.printf`, or a similar formatter.
+- **Rounding the value for further use**: an actual numeric operation producing a new numeric value under a rounding rule, e.g., `BigDecimal.setScale(..., RoundingMode.HALF_UP)`.
 
-**Định dạng thành hai chữ số sau dấu thập phân không thay đổi biến số gốc.** Kết quả định dạng là một `String`; các phép toán làm tròn là chuyện khác và cần chọn quy tắc phù hợp với nghiệp vụ.
+**Formatting to two digits after the decimal point does not alter the underlying numeric variable.** The formatted result is a `String`; rounding operations are a separate matter and require selecting rules suited to the business logic.
 
-Bài này tập trung vào Java Core, chủ đề định dạng chuỗi, đặc biệt format specifier `%.2f` và ý nghĩa của nó so với giá trị đang được giữ trong bộ nhớ.
+This lesson focuses on Java Core, string formatting, especially the `%.2f` format specifier and its meaning compared to the value held in memory.
 
-## 1. Ví dụ đầu tiên: số vẫn nguyên, chuỗi được rút gọn
+## 1. First Example: Number Stays Intact, String Is Shortened
 
 ```java
 import java.util.Locale;
@@ -26,7 +26,7 @@ System.out.println("Displayed: " + displayed);
 System.out.println("Still original: " + original);
 ```
 
-Kết quả:
+Output:
 
 ```text
 Original: 12.3456
@@ -34,20 +34,20 @@ Displayed: 12.35
 Still original: 12.3456
 ```
 
-Phân tích:
+Analysis:
 
-1. `original` có kiểu `double`; lệnh `String.format` đọc giá trị này để tạo văn bản.
-2. Chỉ thị `%.2f` yêu cầu biểu diễn số thực kiểu thập phân cố định với **hai chữ số sau dấu phân cách thập phân**.
-3. `displayed` là chuỗi `"12.35"`, không phải một `double` mới.
-4. Biến `original` chưa bị gán lại nên tiếp tục được dùng cho phép tính tiếp theo ở độ chính xác mà kiểu `double` đang lưu.
+1. `original` has type `double`; `String.format` reads this value to build text.
+2. The specifier `%.2f` requests a fixed-point decimal floating-point representation with **two digits after the decimal separator**.
+3. `displayed` is the string `"12.35"`, not a new `double`.
+4. The variable `original` was not reassigned, so it continues to be used in subsequent calculations at the precision stored by `double`.
 
-**Lưu ý về `double`:** số thập phân `12.3456` không nhất thiết được biểu diễn chính xác tuyệt đối bằng nhị phân IEEE 754. Việc `Double.toString` hiện `12.3456` có nghĩa nó xuất một dạng thập phân ngắn có thể chuyển trở lại cùng giá trị `double`, không phải bằng chứng rằng bit trong bộ nhớ mã hóa chính xác phân số thập phân đó. Tuy vậy, thao tác định dạng không sửa các bit của biến `original`.
+**Note on `double`:** the decimal number `12.3456` is not necessarily represented with exact precision in IEEE 754 binary. The fact that `Double.toString` prints `12.3456` means it outputs a short decimal form that converts back to the same `double` value, not proof that the bits in memory encode that exact decimal fraction. Still, the formatting operation does not modify the bits of `original`.
 
-## 2. Ý nghĩa của `%.2f`, `%8.2f` và `%.3g`
+## 2. Meaning of `%.2f`, `%8.2f`, and `%.3g`
 
-Các phương thức thuộc họ `java.util.Formatter` dùng cú pháp dấu `%` để mô tả cách biểu diễn một giá trị.
+Methods in the `java.util.Formatter` family use `%` syntax to describe how a value is represented.
 
-Ví dụ:
+Examples:
 
 ```java
 String a = String.format(Locale.US, "%.2f", 12.3456);
@@ -55,50 +55,50 @@ String b = String.format(Locale.US, "%8.2f", 12.3456);
 String c = String.format(Locale.US, "%.3g", 12345.678);
 ```
 
-Bảng so sánh:
+Comparison table:
 
-| Format | Ý nghĩa | Ví dụ kết quả |
+| Format | Meaning | Example Output |
 | --- | --- | --- |
-| `%.2f` | Số dạng thập phân cố định, hai chữ số sau dấu phân cách | `12.35` |
-| `%.0f` | Số dạng thập phân cố định, không có chữ số sau dấu phân cách | `12` với `12.3456` |
-| `%8.2f` | Như `%.2f` nhưng độ rộng tối thiểu của trường là tám ký tự | `"   12.35"` |
-| `%.3e` | Dạng khoa học, ba chữ số sau dấu phân cách ở phần định trị | `1.235e+01` với `12.3456` |
-| `%.3g` | Định dạng tổng quát với ba **chữ số có nghĩa** | `1.23e+04` với `12345.678` |
+| `%.2f` | Fixed-point decimal format, two digits after separator | `12.35` |
+| `%.0f` | Fixed-point decimal format, no digits after separator | `12` for `12.3456` |
+| `%8.2f` | Like `%.2f`, but minimum field width is eight characters | `"   12.35"` |
+| `%.3e` | Scientific notation, three digits after separator in mantissa | `1.235e+01` for `12.3456` |
+| `%.3g` | General format with three **significant digits** | `1.23e+04` for `12345.678` |
 
-Đối với chuyển đổi `f`, *precision* là số chữ số sau dấu phân cách thập phân. Đối với `g`, *precision* biểu thị số chữ số có nghĩa. Đối với `e`, nó là số chữ số sau dấu phân cách trong phần định trị của dạng khoa học. Không thể hiểu mọi loại specifier theo cùng một quy tắc.
+For the `f` conversion, *precision* is the number of digits after the decimal separator. For `g`, *precision* denotes the number of significant digits. For `e`, it is the number of digits after the separator in the mantissa of scientific notation. You cannot interpret every specifier type with the same rule.
 
-Ví dụ `%8.2f` có hai loại tham số định dạng khác nhau: `8` là **độ rộng hiển thị tối thiểu**, còn `2` mới là độ chính xác sau dấu thập phân. Độ rộng nhỏ hơn kết quả cần hiển thị sẽ không khiến Java âm thầm cắt bớt chữ số số học.
+For example, `%8.2f` has two different formatting parameters: `8` is the **minimum display width**, while `2` is the precision after the decimal point. A width smaller than the displayed output will not cause Java to silently truncate arithmetic digits.
 
-`%.2f` làm tròn để tạo chuỗi chứ không phải thao tác cắt chuỗi theo ký tự. Giá trị `12.3456` thành `12.35`, không phải `12.34`. Cách làm tròn ở tình huống đúng nửa đơn vị cần được xét cẩn thận khi dữ liệu đến từ số dấu phẩy động nhị phân.
+`%.2f` rounds to build the string rather than truncating characters. The value `12.3456` becomes `12.35`, not `12.34`. Rounding behavior at exact half-way cases should be examined carefully when the input comes from binary floating-point numbers.
 
-### Chỉ thị `%d` không có precision kiểu `%.2f`
+### The `%d` Specifier Has No `%.2f`-Style Precision
 
-`%d` dùng cho số nguyên. Trong Java Formatter, không dùng `%.2d` để nói rằng muốn "số nguyên có hai chữ số"; precision không được hỗ trợ cho chuyển đổi số nguyên kiểu `d`. Nếu muốn thêm số không phía trước, một cách viết là `%02d`:
+`%d` is for integers. In Java Formatter, do not write `%.2d` to ask for "a two-digit integer"; precision is not supported for the integer `d` conversion. If you want leading zeros, one way to write it is `%02d`:
 
 ```java
 String padded = String.format(Locale.US, "%02d", 7);
 System.out.println(padded); // 07
 ```
 
-Số `7` vẫn là số nguyên 7; `07` ở đây là **chuỗi được định dạng**, phù hợp hiển thị mã có độ rộng cố định theo yêu cầu.
+The number `7` is still integer 7; `07` here is a **formatted string**, suitable for displaying fixed-width codes as needed.
 
-## 3. Ba thao tác khác nhau cần phân biệt
+## 3. Three Distinct Operations to Differentiate
 
-| Thao tác | Kiểu dữ liệu đầu ra | Có sửa biến ban đầu? | Có tạo giá trị số đã làm tròn để tính tiếp? |
+| Operation | Output Data Type | Modifies Original Variable? | Creates Rounded Numeric Value for Further Math? |
 | --- | --- | --- | --- |
-| `String.format(Locale.US, "%.2f", x)` | `String` | Không | Không |
-| `System.out.printf("%.2f", x)` | Ghi chuỗi đã định dạng ra output | Không | Không |
-| `BigDecimal.setScale(2, mode)` | `BigDecimal` mới | Không vì `BigDecimal` bất biến | Có |
-| `Math.round(x)` với `x` kiểu `double` | `long` | Không | Có, nhưng làm tròn đến số nguyên |
-| `new BigDecimal("12.3456")` | `BigDecimal` | Không | Biểu diễn giá trị thập phân được xây dựng từ chuỗi, chưa giảm scale |
+| `String.format(Locale.US, "%.2f", x)` | `String` | No | No |
+| `System.out.printf("%.2f", x)` | Writes formatted string to output | No | No |
+| `BigDecimal.setScale(2, mode)` | New `BigDecimal` | No, because `BigDecimal` is immutable | Yes |
+| `Math.round(x)` with `double x` | `long` | No | Yes, but rounds to an integer |
+| `new BigDecimal("12.3456")` | `BigDecimal` | No | Decimal representation constructed from string, scale not yet reduced |
 
-Điểm quan trọng là phải xem **bạn cần làm gì với kết quả**. Nếu chỉ cần hiển thị báo cáo có hai chữ số thập phân, tạo `String` thường là đủ. Nếu nghiệp vụ yêu cầu chốt tiền đến cent, lưu số tiền đã quy đổi hoặc thực hiện các phép tính khác trên giá trị làm tròn, cần tạo giá trị số phù hợp và chọn `RoundingMode` có chủ đích.
+The key is to look at **what you need to do with the result**. If you only need to display a report with two decimal places, producing a `String` is usually sufficient. If business rules require locking amounts to cents, persisting converted amounts, or performing further math on rounded values, create an appropriate numeric value and choose a `RoundingMode` intentionally.
 
-Không nên chuyển một chuỗi đã định dạng sang số bằng `Double.parseDouble` chỉ để làm tròn: điều này trộn trách nhiệm hiển thị với tính toán và có thể thất bại theo locale (ví dụ chuỗi `12,35`).
+Do not parse a formatted string back into a number with `Double.parseDouble` just to round: this mixes presentation responsibilities with computation and can fail depending on locale (e.g., string `12,35`).
 
-## 4. `BigDecimal`: kiểm soát giá trị thập phân và quy tắc làm tròn
+## 4. `BigDecimal`: Controlling Decimal Values and Rounding Rules
 
-Các bài toán tài chính hoặc quy tắc thập phân chính xác thường cần `BigDecimal` thay vì dựa vào phép tính tiền tệ với `double`.
+Financial problems or exact decimal rules typically require `BigDecimal` rather than relying on monetary calculations with `double`.
 
 ```java
 import java.math.BigDecimal;
@@ -112,11 +112,11 @@ System.out.println(rounded);  // 12.35
 System.out.println(original); // 12.3456
 ```
 
-Trong ví dụ, constructor từ **chuỗi thập phân** giữ đúng giá trị `12.3456`. Lệnh `setScale(2, RoundingMode.HALF_UP)` tạo **một đối tượng số mới** với hai chữ số sau dấu thập phân và làm tròn theo chế độ đã chọn. `BigDecimal` là bất biến: biến `original` không bị sửa.
+In the example, the constructor from a **decimal string** preserves the exact value `12.3456`. Calling `setScale(2, RoundingMode.HALF_UP)` creates **a new numeric object** with two digits after the decimal point, rounded under the selected mode. `BigDecimal` is immutable: the `original` variable is not modified.
 
-### Phân biệt `HALF_UP` và `HALF_EVEN`
+### Distinguishing `HALF_UP` and `HALF_EVEN`
 
-Các chế độ làm tròn là quy tắc nghiệp vụ, đặc biệt khi giá trị nằm **đúng giữa hai kết quả có thể**:
+Rounding modes are business rules, especially when a value lies **exactly halfway between two possible outcomes**:
 
 ```java
 BigDecimal sample = new BigDecimal("2.345");
@@ -125,28 +125,28 @@ System.out.println(sample.setScale(2, RoundingMode.HALF_UP));
 System.out.println(sample.setScale(2, RoundingMode.HALF_EVEN));
 ```
 
-Kết quả:
+Output:
 
 ```text
 2.35
 2.34
 ```
 
-Ở bước làm tròn đến hai chữ số, `2.345` nằm đúng giữa `2.34` và `2.35`. `HALF_UP` làm tròn phía xa số không khi đúng nửa; `HALF_EVEN` chọn kết quả có chữ số cuối được giữ là chẵn, trong trường hợp này là `2.34`.
+When rounding to two digits, `2.345` is halfway between `2.34` and `2.35`. `HALF_UP` rounds away from zero on exact halves; `HALF_EVEN` picks the result whose last retained digit is even, which in this case is `2.34`.
 
-Không suy luận chế độ làm tròn nghiệp vụ chỉ từ những gì hiển thị bằng `%.2f`. Nếu chính sách kế toán quy định `HALF_EVEN`, `HALF_UP` hoặc chế độ khác, hãy thực hiện chính sách trên giá trị số bằng `BigDecimal`.
+Do not infer business rounding modes solely from what `%.2f` displays. If accounting policy mandates `HALF_EVEN`, `HALF_UP`, or another mode, enforce that policy on numeric values using `BigDecimal`.
 
-### Vì sao nên tránh `new BigDecimal(double)` cho thập phân cố định
+### Why Avoid `new BigDecimal(double)` for Fixed Decimals
 
-`double` lưu giá trị nhị phân gần với chữ số thập phân người dùng viết. Constructor `new BigDecimal(1.005)` chuyển **chính xác giá trị nhị phân của double** sang dạng thập phân, có thể tạo kết quả dài và khác mong đợi.
+`double` stores a binary value close to the decimal digits written by the user. The constructor `new BigDecimal(1.005)` converts the **exact binary value of the double** into decimal form, which can produce a long and unexpected result.
 
-Nếu nguồn là chuỗi thập phân, dùng `new BigDecimal("1.005")`. Nếu nguồn đã là `double` và cần cách biểu diễn thập phân theo `Double.toString`, `BigDecimal.valueOf(double)` thường phù hợp hơn constructor nhận `double` trực tiếp. Dù vậy, `valueOf` không thể khôi phục thông tin chính xác đã mất từ các phép tính nhị phân trước đó.
+If the source is a decimal string, use `new BigDecimal("1.005")`. If the source is already a `double` and you need the decimal representation per `Double.toString`, `BigDecimal.valueOf(double)` is usually more appropriate than the constructor taking `double` directly. Even so, `valueOf` cannot recover exact precision already lost in earlier binary operations.
 
-Khi yêu cầu tính tiền, nên giữ dữ liệu dưới dạng `BigDecimal` phù hợp từ lúc nhập và xác định điểm làm tròn rõ ràng. Không tạo số đã làm tròn bằng cách biến đổi kết quả hiển thị nhiều lần.
+When monetary calculations are required, keep data in an appropriate `BigDecimal` from input onward and define clear rounding points. Do not create rounded numbers by repeatedly transforming display strings.
 
-## 5. `Locale` chỉ đổi quy ước trình bày
+## 5. `Locale` Only Changes Presentation Conventions
 
-Một giá trị số có thể được viết khác nhau theo quốc gia:
+A numeric value can be written differently by country:
 
 ```java
 double amount = 12345.678;
@@ -158,33 +158,33 @@ System.out.println(us);
 System.out.println(de);
 ```
 
-Kết quả:
+Output:
 
 ```text
 12,345.68
 12.345,68
 ```
 
-Giải thích:
+Explanation:
 
-- Với `Locale.US`, dấu phẩy nhóm hàng nghìn và dấu chấm phân cách phần thập phân.
-- Với `Locale.GERMANY`, dấu chấm nhóm hàng nghìn và dấu phẩy phân cách phần thập phân.
-- `%,.2f` bật nhóm chữ số (`,`) và chọn hai chữ số thập phân (`.2`).
+- With `Locale.US`, commas group thousands and a dot separates the decimal part.
+- With `Locale.GERMANY`, dots group thousands and a comma separates the decimal part.
+- `%,.2f` enables digit grouping (`,`) and chooses two decimal digits (`.2`).
 
-Cả hai định dạng đọc cùng một `double amount`. Sự thay đổi dấu phân cách không làm thay đổi giá trị lưu trong biến.
+Both formats read the same `double amount`. Changing separators does not alter the value stored in the variable.
 
-**Khuyến nghị về hợp đồng API:** Đầu ra dành cho con người nên dùng `Locale` thích hợp. Dữ liệu trao đổi giữa hệ thống nên dùng biểu diễn được định nghĩa bởi chuẩn truyền tin (ví dụ JSON number theo cú pháp JSON) hoặc một schema có quy định rõ kiểu, precision và locale. Không lưu thẳng `"12.345,68"` vào trường số của API rồi mong `Double.parseDouble` hiểu đúng.
+**Recommendation on API contracts:** Human-facing output should use an appropriate `Locale`. Data exchanged between systems should use representations defined by the transfer standard (such as JSON numbers per JSON syntax) or a schema specifying exact type, precision, and locale. Do not store `"12.345,68"` directly in a numeric API field and expect `Double.parseDouble` to interpret it properly.
 
-`String.format("%.2f", value)` không truyền `Locale` sẽ sử dụng locale mặc định. Nếu kết quả dùng trong test, log có cấu trúc hoặc dữ liệu trao đổi cần tính ổn định, hãy chỉ định `Locale.US` hoặc locale phù hợp với chuẩn đầu ra thay vì phụ thuộc vào máy chạy.
+`String.format("%.2f", value)` without `Locale` uses the default locale. If results are used in tests, structured logs, or interchange data needing stability, specify `Locale.US` or a locale matching the output standard instead of depending on the host machine.
 
-## 6. Chọn lúc làm tròn: trước hay sau khi tính toán?
+## 6. Choosing When to Round: Before or After Calculation?
 
-Giả sử bạn cần tính tổng ba giá trị `0.333`. Có hai chiến lược không tương đương:
+Suppose you need to sum three values of `0.333`. There are two non-equivalent strategies:
 
-1. **Giữ độ chính xác đầu vào**, cộng ba giá trị rồi làm tròn kết quả: `0.333 + 0.333 + 0.333 = 0.999`, làm tròn hai chữ số thành `1.00`.
-2. **Làm tròn từng giá trị trước khi cộng**: mỗi `0.333` thành `0.33`, sau đó tổng thành `0.99`.
+1. **Preserve input precision**, add the three values, then round the result: `0.333 + 0.333 + 0.333 = 0.999`, which rounds to two digits as `1.00`.
+2. **Round each value before summing**: each `0.333` becomes `0.33`, then the sum becomes `0.99`.
 
-Ví dụ với `BigDecimal` để tránh độ lệch nhị phân:
+Example using `BigDecimal` to avoid binary drift:
 
 ```java
 BigDecimal each = new BigDecimal("0.333");
@@ -199,13 +199,13 @@ System.out.println(roundAtEnd);       // 1.00
 System.out.println(roundBeforeSum);   // 0.99
 ```
 
-Không thể quyết định quy tắc nào đúng chỉ từ cách hiển thị. Đối với hóa đơn, thuế, thống kê hoặc phép đo, quy tắc làm tròn từng dòng hay trên tổng là **yêu cầu nghiệp vụ**. API cần nói rõ điểm làm tròn, số chữ số thập phân và `RoundingMode`, bởi chúng có thể thay đổi kết quả thực tế.
+You cannot decide which rule is right solely from display formatting. For invoices, taxes, statistics, or measurements, rounding per line vs. on the total is a **business requirement**. APIs must specify rounding points, decimal places, and `RoundingMode`, because they can change actual outcomes.
 
-Nếu chỉ muốn hiển thị hai chữ số ở từng bước nhưng giữ số gốc để tính tiếp, có thể định dạng mỗi giá trị cho giao diện mà vẫn tính tổng bằng giá trị chưa được làm tròn. Phân biệt rõ "số đã hiển thị" với "số được dùng cho phép tính".
+If you only want to display two digits at each step while keeping the original number for further math, you can format each value for the UI while still computing the total from the unrounded values. Clearly separate "displayed numbers" from "numbers used in calculations."
 
-## 7. Ví dụ Java 17+ chạy hoàn chỉnh
+## 7. Complete Runnable Java 17+ Example
 
-Tạo tệp **`PrecisionPresentationDemo.java`**:
+Create a file **`PrecisionPresentationDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -253,14 +253,14 @@ public class PrecisionPresentationDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 PrecisionPresentationDemo.java
 java PrecisionPresentationDemo
 ```
 
-Kết quả hiển thị:
+Displayed output:
 
 ```text
 Original: 12.3456
@@ -277,28 +277,28 @@ Half even: 2.34
 Significant: 1.23e+04
 ```
 
-Mỗi dòng chứng minh một điểm:
+Each line proves a point:
 
-- `Original` và `Still original` trùng nhau; chỉ có `Displayed` dùng độ chính xác trình bày thấp hơn.
-- `Width` thêm ba dấu cách phía trước để đạt chiều rộng tối thiểu tám ký tự; đây không phải thay đổi giá trị số.
-- `US` và `Germany` dùng cùng số nhưng dấu phân cách theo locale.
-- `BigDecimal.setScale` tạo giá trị thập phân làm tròn riêng, vẫn giữ đối tượng số gốc.
-- `HALF_UP` và `HALF_EVEN` cho kết quả khác nhau ở điểm chính giữa.
-- `%.3g` lấy ba chữ số có nghĩa, có thể dùng ký hiệu khoa học; khác với việc yêu cầu ba chữ số sau dấu thập phân.
+- `Original` and `Still original` match; only `Displayed` uses lower display precision.
+- `Width` adds three leading spaces to reach a minimum width of eight characters; this does not change the numeric value.
+- `US` and `Germany` use the same number with locale-specific separators.
+- `BigDecimal.setScale` produces a separate rounded decimal value, while keeping the original numeric object intact.
+- `HALF_UP` and `HALF_EVEN` yield different results at the exact midpoint.
+- `%.3g` takes three significant digits and may use scientific notation; it differs from requesting three digits after the decimal point.
 
-## 8. Những tình huống thực tế và hướng xử lý
+## 8. Real-World Scenarios and How to Handle Them
 
-| Nhu cầu | Hướng xử lý | Lý do |
+| Need | Approach | Reason |
 | --- | --- | --- |
-| Hiển thị điểm trung bình thành hai chữ số | `String.format(locale, "%.2f", average)` | Chỉ thay đổi chuỗi đầu ra |
-| In một bảng có cột số được căn đều | `%8.2f` hoặc `%-8.2f` | Width/alignment là yêu cầu trình bày |
-| Lưu giá tiền đã chốt đến hai chữ số | `BigDecimal.setScale(2, roundingMode)` theo quy tắc nghiệp vụ | Giá trị số mới được chọn có chủ đích |
-| Tính tỷ lệ rồi hiển thị phần trăm | Tính tỷ lệ, đổi sang đơn vị phần trăm nếu cần, sau đó format kết quả | `%.2f` tự nó không nhân với 100 |
-| Hiển thị nhiều locale | Format trên cùng giá trị số với locale thích hợp | Dấu thập phân và dấu nhóm là quy ước ngôn ngữ |
-| Viết số vào dữ liệu máy đọc | Dùng schema/serializer với biểu diễn số được quy định | Chuỗi format cho giao diện có thể không parse thống nhất |
-| So sánh kết quả tính toán | Dùng giá trị số và định nghĩa epsilon/precision theo yêu cầu | Chuỗi cùng hiển thị không chứng minh giá trị số bằng nhau |
+| Display an average score to two digits | `String.format(locale, "%.2f", average)` | Only changes the output string |
+| Print a table with neatly aligned number columns | `%8.2f` or `%-8.2f` | Width/alignment is a presentation requirement |
+| Store a price locked to two decimal places | `BigDecimal.setScale(2, roundingMode)` per business rules | A new numeric value chosen intentionally |
+| Compute a ratio and display as a percentage | Compute the ratio, convert to percentage units if needed, then format | `%.2f` by itself does not multiply by 100 |
+| Display across multiple locales | Format the same numeric value with the appropriate locale | Decimal and grouping separators are language conventions |
+| Write numbers into machine-readable data | Use a schema/serializer with a defined number representation | UI-formatted strings may not parse uniformly |
+| Compare calculation results | Use numeric values and define epsilon/precision as required | Identical display strings do not prove numeric equality |
 
-### Hai số khác nhau có thể hiển thị giống nhau
+### Two Different Numbers Can Display Identically
 
 ```java
 double a = 1.231;
@@ -309,48 +309,48 @@ System.out.println(String.format(Locale.US, "%.2f", b)); // 1.23
 System.out.println(a == b);                              // false
 ```
 
-Hai chuỗi hiển thị đều là `"1.23"` nhưng giá trị số gốc không bằng nhau. Do đó không được suy luận `a == b` từ việc hai ô giao diện có cùng nội dung hai chữ số thập phân.
+Both displayed strings are `"1.23"`, yet the underlying numeric values are unequal. Therefore, never infer `a == b` from two UI cells showing identical two-decimal text.
 
-Ngược lại, việc hiển thị khác nhau do locale cũng không có nghĩa các số khác nhau. Khi thiết kế test, hãy phân biệt **kiểm thử định dạng** (so sánh chuỗi với locale cố định) và **kiểm thử tính toán** (so sánh giá trị, tolerance hoặc giá trị BigDecimal theo yêu cầu).
+Conversely, differing displays due to locale do not mean the numbers differ. When designing tests, separate **formatting tests** (comparing strings under a fixed locale) from **calculation tests** (comparing values, tolerances, or `BigDecimal` values as required).
 
-### Hai chuỗi có vẻ khác nhau nhưng biểu thị cùng giá trị
+### Two Different-Looking Strings Can Represent the Same Value
 
-Ví dụ `"12.30"` và `"12.3"` là hai `String` khác nhau. Khi được diễn giải theo cùng quy ước thập phân, chúng đều biểu thị giá trị số 12.3. Đối với `BigDecimal`, phương thức `equals` còn xét cả scale; `new BigDecimal("12.30").equals(new BigDecimal("12.3"))` là `false`, trong khi `compareTo` trả về 0. Việc chọn so sánh "bằng nhau" theo giá trị hay theo cách biểu diễn cần khớp hợp đồng API.
+For example, `"12.30"` and `"12.3"` are two distinct `String`s. When interpreted under the same decimal convention, both represent the numeric value 12.3. For `BigDecimal`, `equals` also considers scale; `new BigDecimal("12.30").equals(new BigDecimal("12.3"))` is `false`, whereas `compareTo` returns 0. Choosing value-based vs. representation-based equality must match the API contract.
 
-## 9. Các lỗi thường gặp
+## 9. Common Mistakes
 
-1. **Cho rằng `String.format("%.2f", value)` làm tròn biến `value`.** Nó trả về chuỗi mới. Nếu tiếp tục tính toán, `value` vẫn như cũ.
-2. **Gọi mọi specifier precision là "số chữ số thập phân".** Với `f` là chữ số sau dấu thập phân, với `g` là chữ số có nghĩa.
-3. **Nhầm width với precision.** `%8.2f` có width 8 và precision 2; width không giới hạn số chữ số có nghĩa của giá trị.
-4. **Dùng `%.2f` để làm tròn tiền tệ trong nghiệp vụ.** Nếu giá trị làm tròn phải được lưu hay tính tiếp, hãy định nghĩa kiểu số và chính sách làm tròn tường minh.
-5. **Dùng `new BigDecimal(double)` khi nguồn là số thập phân người dùng nhập.** Nó giữ giá trị nhị phân của `double`, có thể khác kỳ vọng thập phân. Ưu tiên tạo từ chuỗi đã được parse hợp lệ hoặc từ nguồn `BigDecimal`.
-6. **Dùng `Math.round` mà mong thu được hai chữ số thập phân.** Với `double`, `Math.round` trả về `long` nguyên; việc nhân chia với lũy thừa 10 dễ đưa sai số nhị phân vào phép tính.
-7. **Bỏ qua `Locale`.** Các môi trường có thể hiển thị dấu phân cách khác nhau, khiến so sánh chuỗi hay parse ngược không ổn định.
-8. **Làm tròn từng thành phần mà nghiệp vụ muốn làm tròn trên tổng.** Kết quả cuối có thể khác nhau, như ví dụ 0.333.
-9. **So sánh số bằng chuỗi đã format.** Hai số khác nhau có thể cùng hiển thị thành `1.23`, và cùng một số có thể xuất hiện khác nhau ở hai locale.
+1. **Assuming `String.format("%.2f", value)` rounds the variable `value`.** It returns a new string. If you continue calculating, `value` remains unchanged.
+2. **Calling every specifier precision "decimal places".** For `f`, it is digits after the decimal point; for `g`, it is significant digits.
+3. **Confusing width with precision.** `%8.2f` has width 8 and precision 2; width does not limit the significant digits of the value.
+4. **Using `%.2f` for business monetary rounding.** If the rounded value must be stored or used in further calculations, define an explicit numeric type and rounding policy.
+5. **Using `new BigDecimal(double)` when the source is user-entered decimal text.** It preserves the binary value of `double`, which may differ from decimal expectations. Prefer constructing from a validated string or a `BigDecimal` source.
+6. **Using `Math.round` expecting two decimal places.** For `double`, `Math.round` returns an integer `long`; multiplying and dividing by powers of 10 easily introduces binary floating-point error.
+7. **Ignoring `Locale`.** Different environments can render different separators, making string comparisons or reverse parsing unstable.
+8. **Rounding individual components when business rules require rounding the total.** Final results can differ, as in the `0.333` example.
+9. **Comparing numbers via formatted strings.** Two different numbers can both display as `1.23`, and the same number can appear differently in two locales.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-**Câu 1.** Cho `double price = 19.999;`. Sau `String label = String.format(Locale.US, "%.2f", price);`, kiểu của `label` là gì? Biến `price` có thành 20.00 không?
+**Question 1.** Given `double price = 19.999;`. After `String label = String.format(Locale.US, "%.2f", price);`, what is the type of `label`? Does `price` become 20.00?
 
-**Đáp án:** `label` có kiểu `String`, mang nội dung `"20.00"`. `price` vẫn là cùng giá trị `double` trước lời gọi.
+**Answer:** `label` has type `String`, with content `"20.00"`. `price` remains the exact same `double` value as before the call.
 
-**Câu 2.** `%.3f` khác `%.3g` thế nào?
+**Question 2.** How does `%.3f` differ from `%.3g`?
 
-**Đáp án:** `%.3f` yêu cầu ba chữ số sau dấu phân cách thập phân trong biểu diễn cố định; `%.3g` yêu cầu ba chữ số có nghĩa trong biểu diễn tổng quát.
+**Answer:** `%.3f` requests three digits after the decimal separator in fixed-point form; `%.3g` requests three significant digits in general form.
 
-**Câu 3.** Vì sao `BigDecimal.setScale(2, RoundingMode.HALF_EVEN)` không giống chỉ in bằng `%.2f`?
+**Question 3.** Why is `BigDecimal.setScale(2, RoundingMode.HALF_EVEN)` not the same as just printing with `%.2f`?
 
-**Đáp án:** `setScale` trả về đối tượng số `BigDecimal` mới đã được làm tròn bằng chế độ rõ ràng. `%.2f` chỉ tạo chuỗi trình bày theo quy tắc của formatter và không thay đổi giá trị số được truyền vào.
+**Answer:** `setScale` returns a new `BigDecimal` numeric object rounded with an explicit mode. `%.2f` only creates a presentation string per formatter rules and does not modify the passed numeric value.
 
-**Câu 4.** Vì sao không nên lấy chuỗi `"12.345,68"` (locale Đức) rồi đưa thẳng vào `Double.parseDouble`?
+**Question 4.** Why should you not take the string `"12.345,68"` (German locale) and pass it straight into `Double.parseDouble`?
 
-**Đáp án:** `Double.parseDouble` nhận cú pháp thập phân theo quy tắc không dùng dấu nhóm kiểu Đức; chuỗi này không phù hợp và sẽ gây `NumberFormatException`. Nếu phải đọc số định dạng theo locale, hãy dùng parser đúng locale và xác định rõ hợp đồng dữ liệu.
+**Answer:** `Double.parseDouble` accepts decimal syntax without German-style grouping separators; this string does not match and will throw `NumberFormatException`. If you must read locale-formatted numbers, use a locale-appropriate parser and clarify the data contract.
 
-**Câu 5.** `0.333` được ghi ba lần. Làm tròn từng số thành `0.33` rồi cộng có giống cộng thành `0.999` rồi làm tròn không?
+**Question 5.** `0.333` is recorded three times. Is rounding each number to `0.33` and adding them the same as adding them to `0.999` and then rounding?
 
-**Đáp án:** Không. Trường hợp đầu thành `0.99`, trường hợp sau thành `1.00` khi dùng làm tròn hai chữ số theo `HALF_UP`. Cần làm theo quy định của nghiệp vụ.
+**Answer:** No. The first case yields `0.99`, while the second yields `1.00` when rounding to two digits with `HALF_UP`. Follow the business specification.
 
-## Ghi nhớ
+## Key Takeaways
 
-**Độ chính xác khi trình bày là quy tắc chuyển giá trị số sang `String`; nó không đồng nghĩa với độ chính xác của giá trị số gốc hay chính sách làm tròn dùng cho tính toán.** Dùng `String.format`/`printf` để hiển thị, dùng `BigDecimal` và `RoundingMode` khi thật sự cần giá trị thập phân đã làm tròn, và truyền `Locale` rõ ràng khi quy ước dấu phân cách có ý nghĩa.
+**Display precision is a rule for converting a numeric value into a `String`; it is not synonymous with underlying numeric precision or calculation rounding policy.** Use `String.format`/`printf` for display, use `BigDecimal` and `RoundingMode` when a rounded decimal value is genuinely required, and pass an explicit `Locale` whenever separator conventions matter.

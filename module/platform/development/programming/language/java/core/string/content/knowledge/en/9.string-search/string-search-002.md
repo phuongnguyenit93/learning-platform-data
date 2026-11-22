@@ -1,18 +1,18 @@
-# Tìm kiếm theo tiền tố và hậu tố với `startsWith`, `startsWith(prefix, offset)` và `endsWith` trong Java
+# Prefix and Suffix Search with `startsWith`, `startsWith(prefix, offset)`, and `endsWith` in Java
 
-Khi cần xác định một `String` có bắt đầu hoặc kết thúc bằng một chuỗi ký tự cho trước hay không, Java cung cấp ba cách dùng trực tiếp: `startsWith(String prefix)`, `startsWith(String prefix, int toffset)` và `endsWith(String suffix)`. Cả ba phương thức trả về kiểu `boolean` và **so sánh nội dung ký tự theo vị trí xác định**, không thay đổi chuỗi nguồn.
+When you need to determine whether a `String` begins or ends with a given sequence of characters, Java provides three direct methods: `startsWith(String prefix)`, `startsWith(String prefix, int toffset)`, and `endsWith(String suffix)`. All three return a `boolean` and **compare character content at fixed positions** without modifying the source string.
 
-Điểm dễ nhầm nhất nằm ở overload có `toffset`: nó kiểm tra tiền tố **bắt đầu chính xác tại chỉ số `toffset` trong chuỗi nguồn**, chứ không đi tìm tiền tố ở một vị trí tùy ý từ `toffset` trở về sau.
+The most common point of confusion lies in the overload with `toffset`: it checks whether the prefix **starts strictly at index `toffset` in the source string**, rather than searching for the prefix at an arbitrary position from `toffset` onward.
 
-## 1. Ý nghĩa của ba phương thức
+## 1. Meaning of the Three Methods
 
-| Phương thức | Kiểm tra điều gì? | Ví dụ |
+| Method | What does it check? | Example |
 | --- | --- | --- |
-| `text.startsWith(prefix)` | `prefix` có xuất hiện ngay tại **đầu** `text` (chỉ số 0) không? | `"banana".startsWith("ban")` → `true` |
-| `text.startsWith(prefix, toffset)` | `prefix` có khớp **ngay tại vị trí `toffset`** trong `text` không? | `"banana".startsWith("ana", 1)` → `true` |
-| `text.endsWith(suffix)` | `suffix` có xuất hiện ngay tại **cuối** `text` không? | `"banana".endsWith("ana")` → `true` |
+| `text.startsWith(prefix)` | Does `prefix` appear right at the **start** of `text` (index 0)? | `"banana".startsWith("ban")` → `true` |
+| `text.startsWith(prefix, toffset)` | Does `prefix` match **starting right at index `toffset`** in `text`? | `"banana".startsWith("ana", 1)` → `true` |
+| `text.endsWith(suffix)` | Does `suffix` appear right at the **end** of `text`? | `"banana".endsWith("ana")` → `true` |
 
-Chữ ký công khai trong lớp `java.lang.String`:
+Public signatures in class `java.lang.String`:
 
 ```java
 public boolean startsWith(String prefix)
@@ -20,13 +20,13 @@ public boolean startsWith(String prefix, int toffset)
 public boolean endsWith(String suffix)
 ```
 
-Đây là chữ ký phương thức để tham khảo, không phải một chương trình chạy độc lập.
+These are method signatures for reference, not a standalone runnable program.
 
-Cả ba đều kiểm tra **một chuỗi con liên tiếp**. Chuỗi có thể dài hơn tiền tố/hậu tố. Ví dụ, `"Spring Boot"` bắt đầu bằng `"Spring"` dù sau đó còn ký tự; `"file.txt"` kết thúc bằng `".txt"` dù trước hậu tố còn tên tệp.
+All three check **a contiguous substring**. The string can be longer than the prefix/suffix. For example, `"Spring Boot"` starts with `"Spring"` even though more characters follow; `"file.txt"` ends with `".txt"` even though a file name precedes the suffix.
 
-## 2. `startsWith(String prefix)`: kiểm tra ngay tại đầu chuỗi
+## 2. `startsWith(String prefix)`: Checking at the Start of the String
 
-Ví dụ cơ bản:
+Basic example:
 
 ```java
 String text = "Java Core";
@@ -38,11 +38,11 @@ System.out.println(text.startsWith("Java Core")); // true
 System.out.println(text.startsWith("Java Core!")); // false
 ```
 
-Các lệnh trên là đoạn minh họa đặt trong một phương thức Java.
+The statements above are an illustrative snippet placed inside a Java method.
 
-Một tiền tố có thể bằng toàn bộ nội dung chuỗi: `text.startsWith(text)` trả về `true`. Ngược lại, tiền tố dài hơn chuỗi nguồn không thể khớp. Phương thức không bỏ qua khoảng trắng, không tự chuyển hoa/thường, cũng không tự cắt bỏ ký tự xuống dòng.
+A prefix can equal the entire string content: `text.startsWith(text)` returns `true`. Conversely, a prefix longer than the source string cannot match. The method does not skip whitespace, does not fold case, and does not strip newline characters.
 
-Tệp chạy được `StartsWithBasics.java`:
+Runnable file `StartsWithBasics.java`:
 
 ```java
 public class StartsWithBasics {
@@ -60,14 +60,14 @@ public class StartsWithBasics {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 StartsWithBasics.java
 java StartsWithBasics
 ```
 
-Kết quả:
+Output:
 
 ```text
 ban: true
@@ -79,36 +79,36 @@ suffix ana: true
 suffix ban: false
 ```
 
-Ở đây `"ana"` thực sự có trong `"banana"`, nhưng `startsWith("ana")` vẫn là `false` vì `"ana"` không nằm tại **đầu chuỗi**. Nếu mục tiêu là kiểm tra có xuất hiện **ở bất kỳ đâu**, dùng `contains(...)` hoặc `indexOf(...)` cho mục đích tìm kiếm khác.
+Here `"ana"` does exist in `"banana"`, yet `startsWith("ana")` is still `false` because `"ana"` is not at the **start of the string**. If the goal is to check whether it appears **anywhere**, use `contains(...)` or `indexOf(...)` for a different search purpose.
 
-## 3. `startsWith(String prefix, int toffset)`: kiểm tra ở một biên cụ thể
+## 3. `startsWith(String prefix, int toffset)`: Checking at a Specific Boundary
 
-Overload hai tham số có cú pháp:
+The two-parameter overload has the syntax:
 
 ```java
 boolean matched = text.startsWith(prefix, toffset);
 ```
 
-`toffset` là **chỉ số UTF-16 code unit trong `text`**, đánh dấu vị trí ký tự đầu tiên phải được so khớp với `prefix`. Nếu tiền tố có độ dài `m`, phương thức cần khớp đúng `m` code unit liên tiếp bắt đầu từ chỉ số `toffset`.
+`toffset` is a **UTF-16 code unit index in `text`**, marking the position of the first character that must match `prefix`. If the prefix has length `m`, the method must match exactly `m` consecutive code units starting at index `toffset`.
 
-Ví dụ, trong `"banana"`:
+For example, in `"banana"`:
 
 ```text
-Chuỗi:       b a n a n a
-Chỉ số:      0 1 2 3 4 5
+String:      b a n a n a
+Index:       0 1 2 3 4 5
              | | | | | |
-"ana" tại 1:  a n a
-"ana" tại 3:      a n a
+"ana" at 1:    a n a
+"ana" at 3:        a n a
 ```
 
-Vì thế:
+Therefore:
 
-- `"banana".startsWith("ana", 0)` → `false`; đầu chuỗi là `"ban"`.
-- `"banana".startsWith("ana", 1)` → `true`; từ vị trí 1 là `"ana..."`.
-- `"banana".startsWith("ana", 2)` → `false`; từ vị trí 2 là `"nan..."`.
-- `"banana".startsWith("ana", 3)` → `true`; ba ký tự cuối là `"ana"`.
+- `"banana".startsWith("ana", 0)` → `false`; the start of the string is `"ban"`.
+- `"banana".startsWith("ana", 1)` → `true`; from position 1 it is `"ana..."`.
+- `"banana".startsWith("ana", 2)` → `false`; from position 2 it is `"nan..."`.
+- `"banana".startsWith("ana", 3)` → `true`; the last three characters are `"ana"`.
 
-Tệp `StartsWithOffsetDemo.java`:
+File `StartsWithOffsetDemo.java`:
 
 ```java
 public class StartsWithOffsetDemo {
@@ -126,14 +126,14 @@ public class StartsWithOffsetDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 StartsWithOffsetDemo.java
 java StartsWithOffsetDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 offset 0: false
@@ -147,11 +147,11 @@ offset -1: false
 offset 7: false
 ```
 
-Nếu `toffset` âm, vượt quá độ dài chuỗi, hoặc không còn đủ ký tự để chứa toàn bộ `prefix`, kết quả là `false` (với `prefix` không phải `null`). Đây là **kết quả so khớp không thành công**, chứ không phải lời gọi luôn ném `IndexOutOfBoundsException` khi `toffset` nằm ngoài phạm vi. Riêng tiền tố rỗng có quy tắc biên hợp lệ được giải thích ở phần sau.
+If `toffset` is negative, exceeds the string length, or does not leave enough characters to hold all of `prefix`, the result is `false` (for a non-`null` `prefix`). This is a **failed match result**, not a call that throws `IndexOutOfBoundsException` whenever `toffset` is out of range. An empty prefix has its own valid boundary rule explained in a later section.
 
-### Điều rất dễ nhầm: offset không phải vị trí bắt đầu tìm kiếm
+### Very Common Mistake: `offset` Is Not a Search Starting Position
 
-Ví dụ:
+Example:
 
 ```java
 String text = "abaXaba";
@@ -160,9 +160,9 @@ System.out.println(text.startsWith("aba", 1)); // false
 System.out.println(text.indexOf("aba", 1));     // 4
 ```
 
-`startsWith("aba", 1)` chỉ kiểm tra ba ký tự ở **chính vị trí 1** (`"baX"`), nên trả `false`. `indexOf("aba", 1)` tìm **từ chỉ số 1 trở đi** và trả về vị trí 4 khi tìm thấy. Không thể thay thế hai phương thức này cho nhau.
+`startsWith("aba", 1)` only checks the three characters **strictly at position 1** (`"baX"`), so it returns `false`. `indexOf("aba", 1)` searches **from index 1 onward** and returns position 4 when found. These two methods are not interchangeable.
 
-Nếu cần so khớp một nhãn đứng sau phần đầu cố định, `startsWith(prefix, offset)` rất phù hợp:
+If you need to match a label located after a fixed-length header, `startsWith(prefix, offset)` is a great fit:
 
 ```java
 String line = "2026-10-22 ERROR: connection lost";
@@ -171,11 +171,11 @@ System.out.println(line.startsWith("ERROR:", 11)); // true
 System.out.println(line.startsWith("ERROR:", 10)); // false
 ```
 
-Với dữ liệu trên, ký tự `E` đầu tiên của `ERROR:` nằm tại chỉ số 11. Tuy nhiên, khi dữ liệu phần đầu có độ dài biến đổi, đừng tự đoán một offset cố định: hãy tìm mốc phù hợp bằng `indexOf` hoặc phân tích cấu trúc dữ liệu trước.
+With the data above, the first character `E` of `ERROR:` is at index 11. However, when the header has variable length, do not guess a fixed offset: find the appropriate anchor with `indexOf` or parse the data structure first.
 
-## 4. `endsWith(String suffix)`: kiểm tra phần kết thúc
+## 4. `endsWith(String suffix)`: Checking the Ending
 
-`endsWith(suffix)` trả về `true` nếu các code unit cuối của chuỗi nguồn bằng toàn bộ `suffix`. Phương thức không nhận tham số offset vì vị trí được xác định từ **cuối chuỗi nguồn**.
+`endsWith(suffix)` returns `true` if the trailing code units of the source string equal all of `suffix`. The method takes no offset parameter because the position is determined from the **end of the source string**.
 
 ```java
 String file = "report.csv";
@@ -187,25 +187,25 @@ System.out.println(file.endsWith("report.csv")); // true
 System.out.println(file.endsWith("REPORT.CSV")); // false
 ```
 
-Hậu tố có thể bằng toàn bộ chuỗi. Nếu hậu tố dài hơn chuỗi, kết quả là `false`. Việc kiểm tra không tự nhận biết khái niệm đuôi tệp, URL hay loại MIME; nó chỉ so sánh ký tự.
+The suffix can equal the entire string. If the suffix is longer than the string, the result is `false`. The check has no awareness of file extensions, URLs, or MIME types; it purely compares characters.
 
-Về quan hệ ngữ nghĩa, với một `suffix` không `null`, có thể hiểu phép kiểm tra:
+Semantically, for a non-`null` `suffix`, you can think of the check:
 
 ```java
 text.endsWith(suffix)
 ```
 
-tương đương về kết quả với:
+as equivalent in result to:
 
 ```java
 text.startsWith(suffix, text.length() - suffix.length())
 ```
 
-Nếu hậu tố dài hơn chuỗi, hiệu `text.length() - suffix.length()` âm và việc kiểm tra bắt đầu ở offset âm thất bại. Đây là cách nhìn để hiểu vị trí kiểm tra, **không phải yêu cầu bạn phải viết lại `endsWith`** trong code ứng dụng.
+If the suffix is longer than the string, `text.length() - suffix.length()` is negative and the check starting at a negative offset fails. This is a mental model for understanding where the check occurs, **not a requirement to rewrite `endsWith`** in application code.
 
-## 5. Prefix và suffix rỗng: những trường hợp biên
+## 5. Empty Prefix and Suffix: Boundary Cases
 
-Chuỗi rỗng `""` là tiền tố và hậu tố hợp lệ của **mọi `String`**.
+The empty string `""` is a valid prefix and suffix of **every `String`**.
 
 ```java
 String text = "Java";
@@ -217,20 +217,20 @@ System.out.println(empty.startsWith(empty)); // true
 System.out.println(empty.endsWith(empty));  // true
 ```
 
-Với overload có offset, tiền tố rỗng khớp tại **mọi vị trí biên hợp lệ từ 0 đến `text.length()`**, bao gồm biên cuối:
+With the offset overload, an empty prefix matches at **every valid boundary from 0 to `text.length()`**, including the trailing boundary:
 
-| Lời gọi với `text = "Java"` (độ dài 4) | Kết quả | Giải thích |
+| Call with `text = "Java"` (length 4) | Result | Explanation |
 | --- | --- | --- |
-| `text.startsWith("", 0)` | `true` | Tiền tố rỗng tại biên đầu |
-| `text.startsWith("", 2)` | `true` | Tiền tố rỗng tại biên giữa |
-| `text.startsWith("", 4)` | `true` | Tiền tố rỗng tại biên cuối |
-| `text.startsWith("", -1)` | `false` | Offset âm không hợp lệ |
-| `text.startsWith("", 5)` | `false` | Offset lớn hơn độ dài |
-| `text.startsWith("J", 4)` | `false` | Không còn code unit cho tiền tố không rỗng |
+| `text.startsWith("", 0)` | `true` | Empty prefix at start boundary |
+| `text.startsWith("", 2)` | `true` | Empty prefix at middle boundary |
+| `text.startsWith("", 4)` | `true` | Empty prefix at end boundary |
+| `text.startsWith("", -1)` | `false` | Invalid negative offset |
+| `text.startsWith("", 5)` | `false` | Offset greater than length |
+| `text.startsWith("J", 4)` | `false` | No code units left for a non-empty prefix |
 
-Điều này tương tự khoảng rỗng `[k, k)` ở một biên hợp lệ: vì không cần so khớp ký tự nào nên kết quả là `true`. Đừng tự động đồng nhất `startsWith("") == true` với việc chuỗi có chứa dữ liệu; ngay cả chuỗi nguồn rỗng cũng trả về `true`.
+This resembles an empty interval `[k, k)` at a valid boundary: because zero characters need to match, the result is `true`. Do not automatically equate `startsWith("") == true` with the string containing data; even an empty source string returns `true`.
 
-Tệp `EmptyPrefixSuffix.java` giúp kiểm tra đầy đủ:
+File `EmptyPrefixSuffix.java` helps verify this thoroughly:
 
 ```java
 public class EmptyPrefixSuffix {
@@ -251,14 +251,14 @@ public class EmptyPrefixSuffix {
 }
 ```
 
-Biên dịch:
+Compile:
 
 ```bash
 javac -encoding UTF-8 EmptyPrefixSuffix.java
 java EmptyPrefixSuffix
 ```
 
-Đầu ra:
+Output:
 
 ```text
 empty prefix: true
@@ -269,19 +269,19 @@ nonempty at length: false
 empty source: true
 ```
 
-Nếu muốn một prefix/suffix **bắt buộc phải có nội dung**, hãy xác thực điều kiện `!prefix.isEmpty()` hoặc `!suffix.isEmpty()` trước khi kiểm tra. Hành vi mặc định của API là cố ý và nhất quán.
+If you require a prefix/suffix **to be non-empty**, validate `!prefix.isEmpty()` or `!suffix.isEmpty()` before checking. The API's default behavior is intentional and consistent.
 
-## 6. So sánh có phân biệt hoa/thường và không tự chuẩn hóa Unicode
+## 6. Case-Sensitive Comparison and No Automatic Unicode Normalization
 
-Ba phương thức đều so sánh **chính xác dãy UTF-16 code unit**. Chúng không tự:
+All three methods compare **exact sequences of UTF-16 code units**. They do not automatically:
 
-- bỏ qua phân biệt chữ hoa/chữ thường;
-- xóa khoảng trắng đầu/cuối;
-- xử lý biến thể Unicode tương đương theo chuẩn hóa;
-- thực thi biểu thức chính quy (regex), wildcard `*` hoặc `?`;
-- dịch nghĩa văn bản theo ngôn ngữ tự nhiên.
+- ignore uppercase/lowercase differences;
+- trim leading/trailing whitespace;
+- handle canonically equivalent Unicode variants;
+- execute regular expressions (regex), `*` wildcards, or `?`;
+- interpret text according to natural language rules.
 
-Ví dụ:
+Example:
 
 ```java
 String name = "Readme.md";
@@ -291,9 +291,9 @@ System.out.println(name.endsWith(".MD"));    // false
 System.out.println(name.endsWith(".md"));    // true
 ```
 
-Nếu nghiệp vụ **đối với dữ liệu ASCII** muốn so sánh không phân biệt hoa/thường, có thể chuyển đổi các phía theo cùng quy tắc, chẳng hạn `toLowerCase(Locale.ROOT)`. Tuy nhiên, xử lý Unicode đầy đủ có thể phức tạp hơn vì ánh xạ chữ hoa/thường đôi khi thay đổi số code point; việc chuẩn hóa hai chuỗi cần được thiết kế và kiểm thử theo dữ liệu thực tế.
+If business logic **for ASCII data** wants case-insensitive comparison, you can convert both sides using the same rule, such as `toLowerCase(Locale.ROOT)`. However, full Unicode handling can be more complex because case mapping sometimes changes the number of code points; normalizing both strings must be designed and tested against real data.
 
-Khi chỉ cần so khớp một vùng cố định mà không phân biệt hoa/thường, `regionMatches(true, ...)` là API khác đáng cân nhắc:
+When you only need to match a fixed region case-insensitively, `regionMatches(true, ...)` is another API worth considering:
 
 ```java
 String text = "Java Core";
@@ -304,15 +304,15 @@ boolean result = text.regionMatches(
 System.out.println(result); // true
 ```
 
-Ở đây `true` bật chế độ ignore case của `regionMatches`; đây **không phải** overload của `startsWith`. Đoạn minh họa cần đặt trong một phương thức và biến `text` đã được khai báo như trên.
+Here `true` enables case-insensitive mode in `regionMatches`; this is **not** an overload of `startsWith`. The snippet must be placed inside a method and the variable `text` is declared as shown above.
 
-Với Unicode, hai chuỗi có thể hiển thị giống nhau nhưng khác dãy code point. Ví dụ `"\u00E9"` (é tiền tổ hợp) và `"e\u0301"` (e cộng dấu kết hợp) không tự động bằng nhau trong `startsWith` hoặc `endsWith` nếu chưa chuẩn hóa. Cần phân biệt vấn đề này với quy tắc so sánh tiền tố/hậu tố.
+With Unicode, two strings can look identical yet have different code point sequences. For example, `"\u00E9"` (precomposed é) and `"e\u0301"` (e plus combining acute accent) are not automatically equal in `startsWith` or `endsWith` without prior normalization. Distinguish that issue from prefix/suffix comparison rules.
 
-## 7. Vị trí trong `startsWith(prefix, toffset)` là UTF-16, không phải code point
+## 7. Positions in `startsWith(prefix, toffset)` Are UTF-16, Not Code Points
 
-Trong Java, `String.length()`, `charAt()` và tham số `toffset` dùng **chỉ số UTF-16 code unit**. Một Unicode code point ngoài BMP (ví dụ emoji 😀, `U+1F600`) chiếm hai code unit (surrogate pair). Vì vậy, vị trí code point và vị trí UTF-16 có thể không trùng nhau.
+In Java, `String.length()`, `charAt()`, and the `toffset` parameter use **UTF-16 code unit indices**. A Unicode code point outside the BMP (for instance, emoji 😀, `U+1F600`) occupies two code units (a surrogate pair). Thus, code point position and UTF-16 index may not coincide.
 
-Tệp `UnicodeOffsetPrefix.java`:
+File `UnicodeOffsetPrefix.java`:
 
 ```java
 public class UnicodeOffsetPrefix {
@@ -334,14 +334,14 @@ public class UnicodeOffsetPrefix {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac -encoding UTF-8 UnicodeOffsetPrefix.java
 java UnicodeOffsetPrefix
 ```
 
-Kết quả:
+Output:
 
 ```text
 length=4
@@ -353,15 +353,15 @@ ends with B=true
 B at code point boundary=true
 ```
 
-`text` chứa ba code point (`A`, emoji, `B`) nhưng có bốn UTF-16 code unit. `B` nằm ở chỉ số UTF-16 **3**, không phải **2**. Nếu bắt đầu từ **vị trí code point**, hãy chuyển thành chỉ số UTF-16 với `offsetByCodePoints(...)`.
+`text` contains three code points (`A`, the emoji, `B`) but has four UTF-16 code units. `B` is at UTF-16 index **3**, not **2**. If starting from a **code point position**, convert it to a UTF-16 index with `offsetByCodePoints(...)`.
 
-Các phương thức prefix/suffix chỉ thực hiện so khớp code unit; chúng không kiểm chứng ranh giới grapheme cluster và cũng không từ chối một chuỗi chứa surrogate đứng lẻ. Với dữ liệu văn bản quốc tế, phải định nghĩa đúng đơn vị chỉ số trước khi gọi overload có offset.
+Prefix/suffix methods only perform code-unit matching; they do not validate grapheme cluster boundaries and do not reject a string containing an unpaired surrogate. For international text data, define the index unit accurately before calling the offset overload.
 
-## 8. Ví dụ ứng dụng: kiểm tra nhãn đầu dòng và phần mở rộng tệp
+## 8. Applied Example: Checking Line-Start Labels and File Extensions
 
-Bài toán: đọc một số chuỗi đầu vào và phân loại theo nhãn `INFO:`, `ERROR:`, hoặc kiểm tra tên tệp có hậu tố `.csv`. Các so sánh này phù hợp vì nhãn nằm **ở đầu** và đuôi tệp nằm **ở cuối**.
+Problem: read several input strings and classify them by `INFO:` or `ERROR:` labels, or check whether a file name has the `.csv` suffix. These comparisons fit because the label is **at the start** and the file extension is **at the end**.
 
-Tệp `PrefixSuffixUseCase.java`:
+File `PrefixSuffixUseCase.java`:
 
 ```java
 public class PrefixSuffixUseCase {
@@ -394,14 +394,14 @@ public class PrefixSuffixUseCase {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 PrefixSuffixUseCase.java
 java PrefixSuffixUseCase
 ```
 
-Kết quả:
+Output:
 
 ```text
 error
@@ -413,30 +413,30 @@ false
 true
 ```
 
-Các tình huống cần hiểu:
+Cases to understand:
 
-- `" WARN: pending"` có dấu cách ở đầu nên không khớp bất kỳ nhãn nào bắt đầu tại chỉ số 0; ứng dụng muốn bỏ qua khoảng trắng cần xử lý riêng.
-- `"report.csv.bak"` chứa `".csv"` ở giữa, nhưng không **kết thúc** bằng `".csv"`; `endsWith(".csv")` trả `false`.
-- `"REPORT.CSV"` không kết thúc bằng `".csv"` theo so sánh phân biệt hoa/thường.
-- Trong `message`, chuỗi `ERROR:` bắt đầu ở chỉ số 11, nên overload `startsWith("ERROR:", 11)` kiểm tra thành công.
+- `" WARN: pending"` has a leading space so it does not match any label starting at index 0; applications wishing to ignore whitespace must handle it separately.
+- `"report.csv.bak"` contains `".csv"` in the middle, but does not **end** with `".csv"`; `endsWith(".csv")` returns `false`.
+- `"REPORT.CSV"` does not end with `".csv"` under case-sensitive comparison.
+- In `message`, `"ERROR:"` starts at index 11, so the `startsWith("ERROR:", 11)` overload checks it successfully.
 
-Kiểm tra `endsWith(".csv")` chỉ nhận diện hậu tố ký tự; nó **không xác minh nội dung tệp thực sự là CSV**, không bảo đảm an toàn đường dẫn và không thay thế xác thực định dạng dữ liệu.
+Checking `endsWith(".csv")` only detects a character suffix; it **does not verify that the file contents are actually CSV**, does not ensure path safety, and does not replace data-format validation.
 
-## 9. So sánh với `contains`, `indexOf`, `matches` và `regionMatches`
+## 9. Comparison with `contains`, `indexOf`, `matches`, and `regionMatches`
 
-Khi chọn API, hãy bắt đầu bằng ý nghĩa câu hỏi:
+When choosing an API, start with the question you are asking:
 
-| Câu hỏi của ứng dụng | API phù hợp |
+| Application question | Appropriate API |
 | --- | --- |
-| Có bắt đầu bằng tiền tố tại chỉ số 0 không? | `startsWith(prefix)` |
-| Có đúng tiền tố tại chỉ số UTF-16 xác định không? | `startsWith(prefix, toffset)` |
-| Có kết thúc bằng hậu tố không? | `endsWith(suffix)` |
-| Một chuỗi ký tự xuất hiện **ở bất kỳ đâu** không? | `contains(fragment)` |
-| Chuỗi xuất hiện **đầu tiên ở đâu**, tùy chọn bắt đầu tìm từ vị trí nào? | `indexOf(fragment)` hoặc `indexOf(fragment, fromIndex)` |
-| Toàn bộ chuỗi có khớp một **regex** không? | `matches(regex)` |
-| Hai vùng ký tự có bằng nhau, có tùy chọn bỏ qua hoa/thường không? | `regionMatches(...)` |
+| Does it start with a prefix at index 0? | `startsWith(prefix)` |
+| Is the exact prefix at a specific UTF-16 index? | `startsWith(prefix, toffset)` |
+| Does it end with a suffix? | `endsWith(suffix)` |
+| Does a character sequence appear **anywhere**? | `contains(fragment)` |
+| Where does a string **first appear**, optionally starting from a position? | `indexOf(fragment)` or `indexOf(fragment, fromIndex)` |
+| Does the entire string match a **regex**? | `matches(regex)` |
+| Are two character regions equal, optionally ignoring case? | `regionMatches(...)` |
 
-Ví dụ:
+Example:
 
 ```java
 String text = "banana";
@@ -448,13 +448,13 @@ System.out.println(text.indexOf("ana"));       // 1
 System.out.println(text.endsWith("ana"));      // true
 ```
 
-Không nên dùng `matches(".*prefix.*")` chỉ để hỏi một chuỗi có bắt đầu bằng nội dung cố định hay không. `startsWith` rõ mục đích hơn và không biến ký tự trong tiền tố thành cú pháp regex.
+Do not use `matches(".*prefix.*")` just to ask whether a string starts with fixed content. `startsWith` makes the intent clearer and does not turn characters in the prefix into regex syntax.
 
-## 10. Giá trị `null` và an toàn khi sử dụng
+## 10. `null` Values and Safe Usage
 
-Các phương thức này không xem `null` là tiền tố hoặc hậu tố rỗng. Nếu truyền tham số `null` cho `startsWith` hoặc `endsWith`, lời gọi sẽ ném `NullPointerException`. Nếu chính biến chuỗi nguồn là `null`, gọi phương thức trên nó cũng gây `NullPointerException`.
+These methods do not treat `null` as an empty prefix or suffix. Passing a `null` argument to `startsWith` or `endsWith` throws `NullPointerException`. If the source string variable itself is `null`, calling a method on it also causes `NullPointerException`.
 
-Ví dụ xử lý tham chiếu có thể là `null`:
+Example handling potentially `null` references:
 
 ```java
 static boolean hasErrorPrefix(String line) {
@@ -466,31 +466,31 @@ static boolean hasCsvSuffix(String fileName) {
 }
 ```
 
-Hai phương thức trên là ví dụ minh họa cần đặt bên trong một lớp Java. Toán tử `&&` thực hiện đánh giá ngắn mạch, nên chỉ gọi API chuỗi khi tham chiếu nguồn không `null`.
+The two methods above are illustrative examples that must be placed inside a Java class. The `&&` operator performs short-circuit evaluation, so the string API is only called when the source reference is non-`null`.
 
-Nếu `prefix` hoặc `suffix` đến từ dữ liệu đầu vào và có thể là `null`, hãy xử lý chúng theo quy định nghiệp vụ (từ chối, yêu cầu không rỗng hoặc dùng một giá trị mặc định có chủ đích), thay vì ngầm coi `null` bằng `""`.
+If `prefix` or `suffix` comes from input data and may be `null`, handle it according to business rules (reject, require non-empty, or use an intentional default value) instead of silently treating `null` as `""`.
 
-## 11. Lỗi phổ biến và cách tránh
+## 11. Common Mistakes and How to Avoid Them
 
-**1. Tưởng `startsWith(prefix, offset)` tìm vị trí đầu tiên sau offset.** Phương thức chỉ kiểm tra **đúng tại offset**; cần tìm từ offset trở đi thì dùng `indexOf(prefix, offset)`.
+**1. Thinking `startsWith(prefix, offset)` finds the first occurrence after `offset`.** The method checks **only at `offset`**; to search from `offset` onward, use `indexOf(prefix, offset)`.
 
-**2. Nghĩ offset nằm ngoài chuỗi luôn ném ngoại lệ.** Với tiền tố không `null`, `startsWith(prefix, offset)` trả `false` nếu offset âm hoặc vượt phạm vi có thể so khớp, kể cả trường hợp không đủ ký tự còn lại.
+**2. Assuming an out-of-range offset always throws an exception.** For a non-`null` prefix, `startsWith(prefix, offset)` returns `false` if `offset` is negative or beyond what can match, including when not enough characters remain.
 
-**3. Bỏ quên tiền tố/hậu tố rỗng.** `startsWith("")` và `endsWith("")` luôn `true`; `startsWith("", offset)` chỉ `true` khi offset nằm trong khoảng từ 0 đến `length()`. Kiểm tra thêm `isEmpty()` nếu yêu cầu nghiệp vụ cần chuỗi con không rỗng.
+**3. Overlooking empty prefixes/suffixes.** `startsWith("")` and `endsWith("")` are always `true`; `startsWith("", offset)` is only `true` when `offset` is between 0 and `length()`. Check `isEmpty()` additionally if business rules require a non-empty substring.
 
-**4. Tưởng các phương thức bỏ qua hoa/thường, khoảng trắng hoặc normalization.** Cả ba so khớp nội dung thực của `String`; mọi tiền xử lý cần được thiết kế riêng.
+**4. Assuming these methods ignore case, whitespace, or normalization.** All three match the exact contents of the `String`; any preprocessing must be designed explicitly.
 
-**5. Nhầm offset là số Unicode code point.** Java dùng chỉ số UTF-16; với emoji và ký tự bổ sung, chỉ số có thể khác vị trí code point.
+**5. Confusing `offset` with a Unicode code point count.** Java uses UTF-16 indices; for emojis and supplementary characters, the index can differ from the code point position.
 
-**6. Dùng `endsWith(".txt")` như bằng chứng chắc chắn về kiểu nội dung.** Hậu tố chỉ phản ánh tên chuỗi, không xác thực file hay định dạng dữ liệu.
+**6. Treating `endsWith(".txt")` as conclusive proof of content type.** A suffix only reflects the string name, not file verification or data-format validation.
 
-**7. Truyền `null` và mong kết quả `false`.** Cần tự kiểm tra đầu vào nếu có thể `null`.
+**7. Passing `null` and expecting `false`.** Validate inputs explicitly if they may be `null`.
 
-**8. Dùng `contains` để thay thế kiểm tra chính xác đầu/cuối.** `contains` có thể đúng dù phần cần tìm nằm giữa chuỗi; điều kiện phân loại sẽ sai nếu nghiệp vụ yêu cầu tiền tố hoặc hậu tố.
+**8. Using `contains` instead of exact start/end checks.** `contains` can return `true` even if the target appears in the middle of the string; classification conditions will be wrong if business logic requires a prefix or suffix.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-**Câu 1.** Với `String s = "banana";`, ba lệnh sau trả về gì?
+**Question 1.** Given `String s = "banana";`, what do these three expressions return?
 
 ```java
 s.startsWith("ana")
@@ -498,22 +498,22 @@ s.startsWith("ana", 1)
 s.startsWith("ana", 2)
 ```
 
-**Đáp án:** lần lượt là `false`, `true`, `false`. `"ana"` không ở đầu chuỗi, nhưng xuất hiện đúng tại chỉ số 1 và không xuất hiện tại chỉ số 2.
+**Answer:** `false`, `true`, `false`, respectively. `"ana"` is not at the start of the string, but appears right at index 1 and does not appear at index 2.
 
-**Câu 2.** Vì sao `"abc".startsWith("", 3)` là `true` nhưng `"abc".startsWith("", 4)` là `false`?
+**Question 2.** Why is `"abc".startsWith("", 3)` `true` while `"abc".startsWith("", 4)` is `false`?
 
-**Đáp án:** tiền tố rỗng khớp tại biên hợp lệ từ 0 đến `length()` (bằng 3), còn chỉ số 4 vượt biên cuối.
+**Answer:** An empty prefix matches at valid boundaries from 0 through `length()` (which is 3), whereas index 4 exceeds the trailing boundary.
 
-**Câu 3.** `"archive.tar.gz".endsWith(".tar")` cho kết quả gì?
+**Question 3.** What does `"archive.tar.gz".endsWith(".tar")` evaluate to?
 
-**Đáp án:** `false`, bởi toàn bộ chuỗi kết thúc bằng `".gz"`. `".tar"` chỉ xuất hiện trước hậu tố cuối cùng.
+**Answer:** `false`, because the full string ends with `".gz"`. `".tar"` only appears before the final suffix.
 
-**Câu 4.** Nếu cần tìm `"ERROR:"` ở bất cứ vị trí nào từ offset 5 trở về sau, nên dùng API nào?
+**Question 4.** If you need to find `"ERROR:"` at any position from offset 5 onward, which API should you use?
 
-**Đáp án:** `indexOf("ERROR:", 5)`, rồi kiểm tra kết quả có khác `-1` không. `startsWith("ERROR:", 5)` chỉ kiểm tra chính xác tại vị trí 5.
+**Answer:** `indexOf("ERROR:", 5)`, then check whether the result differs from `-1`. `startsWith("ERROR:", 5)` checks strictly at position 5.
 
-**Câu 5.** `startsWith` và `endsWith` có hiểu `.` hoặc `*` là ký tự đại diện regex không?
+**Question 5.** Do `startsWith` and `endsWith` treat `.` or `*` as regex wildcards?
 
-**Đáp án:** Không. Các tham số là dãy ký tự thông thường; muốn dùng biểu thức chính quy, phải chọn API phù hợp với regex và xử lý cú pháp riêng.
+**Answer:** No. The arguments are plain character sequences; to use regular expressions, pick a regex-capable API and handle regex syntax separately.
 
-**Ghi nhớ:** `startsWith(prefix)` kiểm tra **đầu chuỗi**, `startsWith(prefix, toffset)` kiểm tra **đúng tại offset** theo UTF-16, và `endsWith(suffix)` kiểm tra **cuối chuỗi**. Cả ba phân biệt hoa/thường, xử lý tiền tố/hậu tố rỗng theo quy tắc biên, và không tự tìm kiếm tùy ý bên trong chuỗi.
+**Takeaway:** `startsWith(prefix)` checks the **start of the string**, `startsWith(prefix, toffset)` checks **strictly at a UTF-16 offset**, and `endsWith(suffix)` checks the **end of the string**. All three are case-sensitive, follow boundary rules for empty prefixes/suffixes, and do not search arbitrarily inside the string.

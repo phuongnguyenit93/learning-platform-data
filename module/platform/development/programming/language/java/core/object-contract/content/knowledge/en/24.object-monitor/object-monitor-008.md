@@ -1,107 +1,107 @@
-# Xử lý InterruptedException và thời hạn chờ theo hợp đồng của Object monitor
+# Handling InterruptedException and Wait Timeouts Under the Object Monitor Contract
 
-## 1. Bài toán và mục tiêu
+## 1. Problem and objectives
 
-Một thread muốn chờ trạng thái do thread khác thay đổi (ví dụ hàng đợi có dữ liệu, công việc đã hoàn thành) có thể dùng monitor của **Object** cùng với **wait**, **notify** và **notifyAll**. Hợp đồng chờ phải phân biệt ba kết cục: **điều kiện thỏa**, **hết thời hạn**, và **yêu cầu ngắt (interruption)**. Chúng không tương đương: thức dậy không chắc thành công; hết hạn không phải bị ngắt; bị ngắt không phải lỗi nghiệp vụ của điều kiện.
+A thread that wants to wait for state modified by another thread (for example, a queue has data, a job has completed) can use **Object**'s monitor together with **wait**, **notify**, and **notifyAll**. The waiting contract must distinguish three outcomes: **condition satisfied**, **timeout expired**, and **interruption request**. They are not equivalent: waking up does not mean success; timing out is not being interrupted; being interrupted is not a business failure of the condition.
 
-Bài này thuộc chủ đề **Monitor của Object** trong Java Core. Mục tiêu là viết đúng vòng lặp chờ predicate, thiết kế timeout có ngân sách tổng, xử lý **InterruptedException** mà không đánh mất tín hiệu hủy, và ghi rõ giới hạn của thời hạn chờ.
+This lesson belongs to the **Object Monitor** topic in Java Core. The goal is to write a proper predicate-waiting loop, design timeouts with a total budget, handle **InterruptedException** without losing the cancellation signal, and clearly state the limits of wait timeouts.
 
-## 2. Hợp đồng của monitor và wait
+## 2. The monitor and wait contract
 
-Mỗi đối tượng Java có monitor. Thread phải **sở hữu monitor của chính đối tượng** khi gọi các phương thức **wait**, **notify** hoặc **notifyAll**; thường dùng **synchronized (monitor)**. Gọi không đúng monitor sẽ ném **IllegalMonitorStateException**.
+Every Java object has a monitor. A thread must **own the monitor of that exact object** when calling **wait**, **notify**, or **notifyAll**; typically **synchronized (monitor)** is used. Calling on the wrong monitor throws **IllegalMonitorStateException**.
 
-| Phương thức | Hành vi quan trọng | Lưu ý |
+| Method | Key behavior | Notes |
 | --- | --- | --- |
-| **monitor.wait()** | Nhả monitor này và chờ; trước khi trả về hoặc ném **InterruptedException**, thread phải giành lại monitor. | Không nhả các monitor khác mà thread đang giữ; có thể thức dậy không cần notify (spurious wakeup). |
-| **monitor.wait(long millis)** | Chờ tối đa theo mốc yêu cầu, có thể dậy do notify, timeout hoặc spurious wakeup; **millis = 0** nghĩa là chờ vô hạn. | millis âm gây **IllegalArgumentException**; không bảo đảm thời gian trả về chính xác. |
-| **monitor.wait(long millis, int nanos)** | Bổ sung phần nanos trong khoảng **0..999999**; thời gian âm/nanos ngoài khoảng không hợp lệ. | Không hứa độ chính xác nanosecond. |
-| **monitor.notify()** | Chọn một waiter trên cùng monitor để đánh thức. | Không chọn được waiter cụ thể; nó chỉ tiếp tục sau khi lấy lại monitor. |
-| **monitor.notifyAll()** | Đánh thức các waiter trên cùng monitor. | Mỗi waiter phải tự kiểm tra lại điều kiện; không phải tất cả đều xử lý thành công. |
+| **monitor.wait()** | Releases this monitor and waits; before returning or throwing **InterruptedException**, the thread must reacquire the monitor. | Does not release other monitors held by the thread; can wake up without notify (spurious wakeup). |
+| **monitor.wait(long millis)** | Waits up to the requested limit, can wake due to notify, timeout, or spurious wakeup; **millis = 0** means wait indefinitely. | Negative millis causes **IllegalArgumentException**; exact return timing is not guaranteed. |
+| **monitor.wait(long millis, int nanos)** | Adds a nanos part in the range **0..999999**; negative duration/out-of-range nanos is invalid. | Does not promise nanosecond precision. |
+| **monitor.notify()** | Selects one waiter on the same monitor to wake up. | Cannot select a specific waiter; it only continues after reacquiring the monitor. |
+| **monitor.notifyAll()** | Wakes up the waiters on the same monitor. | Each waiter must recheck the condition itself; not all will succeed in processing. |
 
-**wait trả về bình thường không chứng minh điều kiện đã đúng**, vì có thể timeout, có thông báo dành cho điều kiện khác, hoặc spurious wakeup. Luôn kiểm tra predicate trong **while** dưới cùng monitor:
+**`wait` returning normally does not prove the condition is true**, because there could be a timeout, a notification meant for another condition, or a spurious wakeup. Always check the predicate in a **while** loop under the same monitor:
 
 ~~~java
-// Các trường monitor, ready thuộc cùng một đối tượng chia sẻ.
+// The fields monitor and ready belong to the same shared object.
 synchronized (monitor) {
     while (!ready) {
         monitor.wait();
     }
-    // ready == true, kiểm tra lúc đang sở hữu monitor.
+    // ready == true, checked while owning the monitor.
 }
 
-// Ở phía thread phát tín hiệu:
+// On the signaling thread's side:
 synchronized (monitor) {
     ready = true;
     monitor.notifyAll();
 }
 ~~~
 
-Đây là hai đoạn minh họa, không phải một chương trình Java độc lập. Predicate và thao tác đổi trạng thái cần cùng một khóa: đọc **ready** ngoài synchronized rồi mới gọi wait có thể bỏ lỡ thay đổi xảy ra giữa hai bước. Dùng **if** thay **while** dễ khiến thread tiếp tục dù điều kiện còn sai.
+These are two illustrative snippets, not a standalone Java program. The predicate and state-changing operation need the same lock: reading **ready** outside synchronized before calling wait can miss a change occurring between the two steps. Using **if** instead of **while** easily causes the thread to proceed even when the condition is still false.
 
-Khi **wait** đang chờ, nó nhả monitor của đối tượng gọi wait; khi kết thúc, phải giành lại monitor trước khi caller làm việc tiếp. Tương tự, **notifyAll** không trao monitor ngay cho waiter: thread báo tín hiệu vẫn giữ khóa đến khi thoát synchronized. Vì thế có thể có độ trễ sau khi đã được báo hoặc sau khi timeout.
+While **wait** is waiting, it releases the monitor of the target object; upon finishing, it must reacquire the monitor before the caller proceeds. Likewise, **notifyAll** does not hand the monitor to waiters immediately: the signaling thread keeps the lock until exiting synchronized. Therefore, delays may occur after notification or after timeout expiration.
 
-## 3. InterruptedException: truyền tín hiệu ngắt theo hợp đồng
+## 3. InterruptedException: propagating the interrupt signal by contract
 
-**Thread.interrupt()** là lời yêu cầu hợp tác để một thread dừng hoặc thay đổi công việc. Nếu thread đang trong **Object.wait**, thao tác wait sẽ ném **InterruptedException** theo hợp đồng xử lý ngắt; thread đã giành lại monitor khi ngoại lệ được ném. Interrupt flag được xóa khi ngoại lệ này được ném, nên caller chỉ kiểm tra lại flag có thể bỏ sót yêu cầu nếu ai đó đã nuốt ngoại lệ.
+**Thread.interrupt()** is a cooperative request for a thread to stop or change its work. If the thread is inside **Object.wait**, the wait operation throws **InterruptedException** per the interruption-handling contract; the thread has already reacquired the monitor when the exception is thrown. The interrupt flag is cleared when this exception is thrown, so a caller that only checks the flag again could miss the request if someone swallowed the exception.
 
-Chính sách xử lý phụ thuộc tầng gọi:
+The handling policy depends on the calling layer:
 
-- **Phương thức ở tầng thấp có thể khai báo throws InterruptedException:** truyền ngoại lệ lên để caller quyết định hủy. Đây là cách rõ ràng nhất để không nhầm interruption với timeout.
-- **Tầng không được khai báo ngoại lệ checked** (ví dụ **Runnable.run()**): khi catch, gọi **Thread.currentThread().interrupt()** để khôi phục flag và chấm dứt công việc chờ. Như vậy tầng bên ngoài vẫn có thể quan sát yêu cầu ngắt.
-- **Không catch rỗng, không chỉ log rồi chờ lại** nếu chưa có chính sách rõ ràng. Điều này nuốt tín hiệu hủy và có thể làm tác vụ kẹt.
-- **Không luôn vừa khôi phục flag vừa ném InterruptedException** theo thói quen: một tầng truyền ngoại lệ đã mang thông tin ngắt; việc khôi phục flag thường dành cho tầng bắt không thể truyền tiếp.
+- **Low-level methods that can declare throws InterruptedException:** propagate the exception upward so the caller decides cancellation. This is the clearest way not to confuse interruption with timeout.
+- **Layers that cannot declare checked exceptions** (for example **Runnable.run()**): when catching, call **Thread.currentThread().interrupt()** to restore the flag and end the waiting work. That way outer layers can still observe the interruption request.
+- **Do not write an empty catch, and do not merely log and wait again** without an explicit policy. This swallows the cancellation signal and can leave tasks stuck.
+- **Do not routinely both restore the flag and throw InterruptedException** out of habit: a layer propagating the exception already carries the interrupt information; restoring the flag is generally for a catching layer that cannot propagate further.
 
 ~~~java
-// Trong một Runnable có trường gate kiểu Gate của ví dụ đầy đủ.
+// Inside a Runnable with a field gate of type Gate from the full example.
 @Override
 public void run() {
     try {
         boolean ready = gate.awaitOpen(java.time.Duration.ofSeconds(3));
         if (!ready) {
-            return; // Hết hạn theo hợp đồng, không phải interruption.
+            return; // Timed out per contract, not interruption.
         }
-        // Chỉ xử lý tiếp khi điều kiện đã đúng.
+        // Continue processing only when the condition is true.
     } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
-        return; // Giữ yêu cầu ngắt để caller/tầng ngoài có thể nhận biết.
+        return; // Preserve interrupt request so the caller/outer layer can detect it.
     }
 }
 ~~~
 
-Đoạn trên là ví dụ từng phần; chương trình độc lập ở mục 5. **Thread.interrupted()** đọc rồi xóa cờ interrupt; nếu chỉ muốn quan sát mà không xóa, dùng **Thread.currentThread().isInterrupted()**. Sau khi đã khôi phục cờ, việc tiếp tục chạy một thao tác blocking mà không có chính sách hủy có thể làm nó lập tức ném InterruptedException lần nữa.
+The snippet above is a partial example; a standalone program is in section 5. **Thread.interrupted()** reads and clears the interrupt flag; if you only want to inspect without clearing, use **Thread.currentThread().isInterrupted()**. Once the flag has been restored, continuing to run a blocking operation without a cancellation policy can cause it to immediately throw InterruptedException again.
 
-Cần nêu rõ độ ưu tiên khi **điều kiện đã đúng** và **interrupt flag đã được đặt**. Trong API mẫu bên dưới, nếu predicate đã đúng khi vào synchronized thì trả true mà không cần wait; interruption chỉ biểu hiện thành ngoại lệ khi lời gọi wait phải xử lý ngắt. Nếu muốn “đã bị interrupt thì hủy bất kể trạng thái”, phải thêm kiểm tra và ghi rõ hợp đồng riêng.
+Priority should be clearly specified when **the condition is already true** and **the interrupt flag is already set**. In the sample API below, if the predicate is already true upon entering synchronized, it returns true without needing to wait; interruption only manifests as an exception when the wait call has to handle interruption. If you want "if already interrupted then cancel regardless of state," you must add an explicit check and document a separate contract.
 
-## 4. Timeout không phải một lần gọi wait cố định
+## 4. A timeout is not a single fixed wait call
 
-Giả sử hợp đồng của API là “chờ điều kiện trong ngân sách 2 giây”. Mẫu sau **sai về tổng thời gian**:
+Suppose the API contract is "wait for the condition within a 2-second budget." The following pattern is **wrong about total time**:
 
 ~~~java
 synchronized (monitor) {
     while (!ready) {
-        monitor.wait(2_000); // Mỗi lần thức dậy lại cấp mới 2 giây.
+        monitor.wait(2_000); // Each wakeup grants a fresh 2 seconds.
     }
 }
 ~~~
 
-Nếu wakeup xảy ra nhiều lần trong khi predicate còn false, tổng thời gian có thể vượt xa 2 giây hoặc không kết thúc. Timeout không được cấp mới mỗi vòng. Phải đo **thời gian đã trôi qua** và tính lượng còn lại.
+If wakeups occur multiple times while the predicate remains false, total time can far exceed 2 seconds or never finish. The timeout must not be reset on every iteration. You must measure **elapsed time** and compute the remaining amount.
 
-Sử dụng **System.nanoTime()** vì đây là nguồn thời gian phù hợp để đo khoảng cách giữa hai lần đọc; không dùng **System.currentTimeMillis()** để đo deadline khi đồng hồ tường có thể đổi do chỉnh giờ. Chỉ trừ các kết quả nanoTime để tính elapsed, không dùng giá trị nanoTime làm thời điểm trên lịch.
+Use **System.nanoTime()** because it is the appropriate time source for measuring the interval between two readings; do not use **System.currentTimeMillis()** to measure deadlines when the wall clock can jump due to time adjustments. Only subtract nanoTime results to compute elapsed time; do not use nanoTime values as calendar timestamps.
 
-**TimeUnit.NANOSECONDS.timedWait(monitor, remainingNanos)** quy đổi ngân sách nanosecond dương thành wait phù hợp. Luôn kiểm tra **remainingNanos > 0** trước khi gọi; nếu tự gọi **wait(0)** vì làm tròn về 0 ms, tác vụ có thể chờ vô hạn.
+**TimeUnit.NANOSECONDS.timedWait(monitor, remainingNanos)** converts a positive nanosecond budget into an appropriate wait. Always check **remainingNanos > 0** before calling; if you directly call **wait(0)** due to rounding down to 0 ms, the task may wait indefinitely.
 
-Quy ước biên phù hợp cho API chờ predicate:
-1. Timeout âm → **IllegalArgumentException**, không bắt đầu chờ.
-2. Timeout bằng 0 → chỉ kiểm tra predicate một lần, trả true/false ngay.
-3. Timeout dương → chờ bằng phần ngân sách còn lại, lặp lại khi chưa thỏa điều kiện.
-4. Hết ngân sách và predicate còn false → trả **false**, không đánh đồng với **InterruptedException**.
-5. Nếu predicate đã đúng lúc thread giành lại monitor (dù thời gian thực tế đã vượt ngân sách do tranh khóa), API mẫu trả **true**; true nói lên trạng thái quan sát, không chứng minh thay đổi đã đến trước deadline tuyệt đối.
+Appropriate boundary conventions for a predicate-waiting API:
+1. Negative timeout → **IllegalArgumentException**, do not begin waiting.
+2. Zero timeout → check the predicate once and return true/false immediately.
+3. Positive timeout → wait using the remaining budget, repeating while the condition is not satisfied.
+4. Budget exhausted and predicate still false → return **false**, never conflating it with **InterruptedException**.
+5. If the predicate is true when the thread reacquires the monitor (even if wall time exceeded the budget due to lock contention), the sample API returns **true**; true reflects the observed state, not proof that the change arrived before an absolute deadline.
 
-Giới hạn: **synchronized** không cung cấp timeout khi thread đang tranh khóa *để vào* khối synchronized. Ngay cả khi wait hết hạn, thread có thể bị trì hoãn khi giành lại monitor hoặc được hệ điều hành lên lịch. Do đó timeout trong bài là ngân sách của vòng chờ điều kiện khi đã vào monitor, **không phải cam kết hàm trả về đúng trước một mốc cứng**.
+Limitation: **synchronized** does not provide a timeout while a thread is contending for the lock *to enter* the synchronized block. Even after wait expires, the thread can be delayed while reacquiring the monitor or being scheduled by the OS. Therefore, the timeout in this lesson is the budget of the condition-waiting loop once inside the monitor, **not a guarantee that the method always returns before a hard cutoff**.
 
-## 5. Ví dụ Java 17+ biên dịch và chạy được
+## 5. Compilable and runnable Java 17+ example
 
-Tạo **MonitorContractDemo.java**:
+Create **MonitorContractDemo.java**:
 
 ~~~java
 import java.time.Duration;
@@ -121,11 +121,11 @@ public class MonitorContractDemo {
         }
 
         /**
-         * @return true nếu quan sát được open == true; false nếu
-         *         hết ngân sách mà open vẫn false.
-         * @throws InterruptedException nếu bị ngắt trong lúc wait.
-         * @throws IllegalArgumentException nếu timeout âm.
-         * @throws ArithmeticException nếu Duration.toNanos() tràn long.
+         * @return true if open == true is observed; false if
+         *         the budget expires while open is still false.
+         * @throws InterruptedException if interrupted during wait.
+         * @throws IllegalArgumentException if timeout is negative.
+         * @throws ArithmeticException if Duration.toNanos() overflows long.
          */
         boolean awaitOpen(Duration timeout) throws InterruptedException {
             Objects.requireNonNull(timeout, "timeout");
@@ -144,7 +144,7 @@ public class MonitorContractDemo {
                         return false;
                     }
 
-                    // Chỉ truyền thời gian còn lại, không reset ngân sách.
+                    // Pass only remaining time, do not reset the budget.
                     TimeUnit.NANOSECONDS.timedWait(monitor, remainingNanos);
 
                     long elapsedNanos = System.nanoTime() - started;
@@ -183,14 +183,14 @@ public class MonitorContractDemo {
 }
 ~~~
 
-Biên dịch bằng Java 17 trở lên:
+Compile with Java 17 or later:
 
 ~~~text
 javac MonitorContractDemo.java
 java MonitorContractDemo
 ~~~
 
-Stdout mong đợi:
+Expected stdout:
 
 ~~~text
 Success: true
@@ -198,51 +198,51 @@ Timeout: false
 Interrupted: true
 ~~~
 
-Giải thích: Gate thứ nhất đã mở, nên chờ với **Duration.ZERO** vẫn trả true. Gate thứ hai không bao giờ được mở, nên trả false khi hết ngân sách. Gate thứ ba không mở và worker nhận yêu cầu interrupt; wait xử lý ngắt bằng ngoại lệ, worker khôi phục cờ trước khi thoát. Nếu interrupt đến trước lúc worker gọi wait, wait vẫn có thể phát hiện cờ khi được gọi: ví dụ không phụ thuộc vào việc worker đã kịp ngủ hay chưa.
+Explanation: The first Gate is already open, so waiting with **Duration.ZERO** still returns true. The second Gate is never opened, so it returns false when the budget expires. The third Gate does not open and `worker` receives an interrupt request; `wait` handles the interruption with an exception, and `worker` restores the flag before exiting. Even if the interrupt arrives before `worker` calls `wait`, `wait` can still detect the flag when invoked: the example does not depend on whether `worker` has gone to sleep yet.
 
-Mọi truy cập biến **open** đều nằm trong **synchronized (monitor)**. Ghi trạng thái rồi nhả khóa và đọc trạng thái sau khi giành khóa tạo bảo đảm hiển thị bộ nhớ giữa các thread; biến **open** không cần volatile trong thiết kế này. **notifyAll()** đánh thức các waiter để họ kiểm tra lại predicate khi lấy được khóa. Không gọi **Thread.sleep** thay wait bên trong synchronized: sleep không nhả monitor, khiến thread phát tín hiệu có thể không lấy được khóa để đổi trạng thái.
+All accesses to the **open** variable are inside **synchronized (monitor)**. Writing the state then releasing the lock and reading the state after acquiring the lock creates a memory visibility guarantee across threads; the **open** variable does not need `volatile` in this design. **notifyAll()** wakes the waiters so they recheck the predicate once they acquire the lock. Do not call **Thread.sleep** instead of wait inside synchronized: sleep does not release the monitor, which can prevent the signaling thread from acquiring the lock to change the state.
 
-**Về số học:** Duration lớn có thể khiến **toNanos()** ném **ArithmeticException**; đây là đầu vào không biểu diễn được trong ngân sách long nanosecond, không phải timeout thông thường. Trong ví dụ, thời lượng hợp lệ rất ngắn nên phép hiệu **System.nanoTime()** là phù hợp. Khi tự thiết kế hợp đồng có thời hạn rất lớn hoặc vô hạn, cần quyết định xử lý quá lớn một cách tường minh, không âm thầm chuyển thành **wait(0)**.
+**About arithmetic:** A large Duration can cause **toNanos()** to throw **ArithmeticException**; this is an input not representable within a long nanosecond budget, not a normal timeout. In the example, valid durations are very short so subtracting **System.nanoTime()** is appropriate. When designing a contract with very large or infinite timeouts yourself, decide how to handle oversized values explicitly rather than silently turning them into **wait(0)**.
 
-## 6. Thiết kế hợp đồng gọi và xử lý kết quả
+## 6. Designing the calling contract and handling outcomes
 
-| Tình huống khi giành monitor và kiểm tra | Kết quả của awaitOpen | Hành động phù hợp phía caller |
+| Situation when acquiring the monitor and checking | Result of awaitOpen | Appropriate caller action |
 | --- | --- | --- |
-| **open** đã true hoặc quan sát được true sau một lần thức dậy | **true** | Thực hiện bước yêu cầu Gate đã mở. |
-| Hết ngân sách và **open** vẫn false | **false** | Báo hết hạn, thử lại có giới hạn, hoặc chọn phương án dự phòng. |
-| Bị ngắt khi wait | Ném **InterruptedException** | Dừng tác vụ hoặc chuyển yêu cầu hủy lên tầng có trách nhiệm. |
-| Timeout âm | Ném **IllegalArgumentException** | Sửa tham số đầu vào. |
-| Duration không đổi được sang long nanoseconds | Ném **ArithmeticException** | Điều chỉnh hợp đồng về miền giá trị chấp nhận được. |
-| Timeout null | Ném **NullPointerException** | Không truyền đối số null. |
+| **open** is already true or observed true after a wakeup | **true** | Proceed with the step requiring Gate to be open. |
+| Budget expired and **open** is still false | **false** | Report timeout, perform bounded retry, or choose a fallback path. |
+| Interrupted while waiting | Throws **InterruptedException** | Stop the task or pass the cancellation request up to the responsible layer. |
+| Negative timeout | Throws **IllegalArgumentException** | Fix the input argument. |
+| Duration cannot convert to long nanoseconds | Throws **ArithmeticException** | Constrain the contract to the accepted value domain. |
+| Null timeout | Throws **NullPointerException** | Do not pass a null argument. |
 
-Nếu một caller chọn retry sau **false**, phải dùng **ngân sách tổng** của toàn quy trình retry; không tái cấp timeout vô hạn mỗi vòng. Cũng cần thiết kế predicate đủ diễn đạt trạng thái terminal: một producer thất bại hoặc bị hủy có thể không bao giờ mở Gate. Trong hệ thống thật, nếu có **done**, **failed**, **cancelled**, phải định nghĩa nhánh xử lý các trạng thái đó; đừng chỉ chờ boolean không thể thành true.
+If a caller chooses to retry after **false**, it must use a **total budget** for the whole retry procedure; do not re-grant an unlimited timeout on every iteration. You also need to design the predicate to express terminal states adequately: a producer that fails or is canceled might never open the Gate. In real systems, if there are **done**, **failed**, **cancelled**, define branches handling those states; do not merely wait on a boolean that can never become true.
 
-Thông báo monitor không giữ lại như “phiếu” cho lần wait sau. Việc tránh bỏ lỡ tín hiệu đến từ **việc lưu trạng thái điều kiện dưới cùng monitor và kiểm tra trước khi chờ**, không phải từ số lần gọi notify. Với nhiều waiter chờ điều kiện khác nhau trên cùng monitor, **notifyAll** thường an toàn hơn **notify**, dù có thể đánh thức nhiều thread để rồi họ lại wait.
+Monitor notifications are not retained like "tickets" for a future wait. Avoiding missed signals comes from **storing the condition state under the same monitor and checking before waiting**, not from the number of notify calls. With multiple waiters waiting on different conditions on the same monitor, **notifyAll** is usually safer than **notify**, even though it may wake multiple threads only for them to wait again.
 
-## 7. Những lỗi phổ biến và checklist
+## 7. Common mistakes and checklist
 
-| Lỗi | Vì sao sai | Cách làm đúng |
+| Mistake | Why it is wrong | Right approach |
 | --- | --- | --- |
-| Gọi **wait/notify** không giữ đúng monitor | Vi phạm quyền sở hữu khóa; **IllegalMonitorStateException** | Dùng cùng đối tượng trong synchronized và khi gọi. |
-| Dùng **if (!ready) wait()** | Thức dậy giả hoặc thông báo không làm ready đúng | Dùng vòng **while (!ready)**. |
-| Kiểm tra predicate ngoài synchronized | Có thể đọc giá trị cũ, bỏ lỡ tín hiệu | Bảo vệ mọi lần đọc/ghi state bằng cùng monitor. |
-| Catch InterruptedException rồi bỏ qua | Đánh mất tín hiệu hủy; chờ không kiểm soát | Truyền tiếp hoặc khôi phục flag và thoát ở tầng không truyền được. |
-| Cứ lặp lại wait với cùng timeout | Ngân sách tổng bị reset | Tính lại thời gian còn lại sau mỗi lần thức dậy. |
-| Dùng **wait(0)** cho “0 ms” | Thực tế là chờ vô hạn | Kiểm tra ngân sách hết trước khi wait. |
-| Nghĩ notifyAll báo thành công | Wakeup không thay thế việc kiểm tra điều kiện | Predicate quyết định kết quả. |
-| Dùng **currentTimeMillis** đo elapsed | Thay đổi đồng hồ tường làm sai deadline | Dùng hiệu **nanoTime**. |
-| Quên tranh khóa và lịch thread | Hàm có thể trả về sau deadline | Mô tả phạm vi timeout chính xác trong API. |
-| Dùng **sleep** khi giữ monitor | Sleep không nhả khóa, producer khó đổi state | Dùng wait có predicate. |
+| Calling **wait/notify** without holding the right monitor | Violates lock ownership; **IllegalMonitorStateException** | Use the same object in synchronized and when calling. |
+| Using **if (!ready) wait()** | Spurious wakeups or notifications that do not make ready true | Use a **while (!ready)** loop. |
+| Checking the predicate outside synchronized | Can read stale values and miss signals | Protect every read/write of state with the same monitor. |
+| Catching InterruptedException and ignoring it | Loses cancellation signal; uncontrolled waiting | Propagate upward, or restore flag and exit in layers that cannot propagate. |
+| Repeating wait with the same timeout | Total budget gets reset | Recompute remaining time after each wakeup. |
+| Using **wait(0)** for "0 ms" | Actually waits forever | Check budget expiration before waiting. |
+| Thinking notifyAll reports success | Wakeup does not replace condition checking | The predicate determines the outcome. |
+| Using **currentTimeMillis** to measure elapsed | Wall-clock adjustments break the deadline | Use **nanoTime** difference. |
+| Forgetting lock contention and thread scheduling | Method can return after the deadline | Document the exact timeout scope in the API. |
+| Using **sleep** while holding the monitor | Sleep does not release the lock, making it hard for producer to change state | Use wait with a predicate. |
 
-Trước khi hoàn tất code, tự hỏi: (1) Predicate có luôn được đọc và sửa dưới cùng monitor không? (2) Tất cả wait nằm trong **while** không? (3) Timeout 0 có trả ngay không? (4) Mỗi wakeup có trừ thời gian đã chờ không? (5) Interruption có đường xử lý riêng khỏi false không? (6) Tầng bắt ngoại lệ có truyền hoặc khôi phục cờ và dừng hợp lý không? (7) API có nói rõ rằng đây không phải deadline cứng của cả hàm không?
+Before finishing your code, ask yourself: (1) Is the predicate always read and modified under the same monitor? (2) Are all waits inside **while**? (3) Does a 0 timeout return immediately? (4) Does each wakeup subtract the time already waited? (5) Does interruption have a separate handling path from false? (6) Does the catching layer propagate or restore the flag and exit cleanly? (7) Does the API state clearly that this is not a hard deadline for the entire method?
 
-## 8. Câu hỏi tự ôn tập
+## 8. Self-review questions
 
-1. Kể các lý do **wait(1000)** có thể trở về bình thường mà predicate vẫn false. Vì sao phải dùng while?
-2. Khi **wait** ném **InterruptedException**, thread đã giành lại monitor chưa, và trạng thái interrupt flag ra sao?
-3. Vì sao năm lần wakeup giữa vòng chờ có thể biến **wait(2000)** lặp lại thành tổng thời gian hơn 2 giây? Cách tính đúng?
-4. Timeout bằng 0, timeout âm và thời hạn quá lớn khác nhau thế nào?
-5. Tại sao không thể dùng synchronized + Object.wait để bảo đảm toàn bộ lời gọi luôn kết thúc trước deadline tuyệt đối?
-6. Vì sao gọi notifyAll chỉ đúng khi state đã cập nhật dưới cùng monitor? Điều gì xảy ra nếu cập nhật ngoài khóa?
+1. List reasons **wait(1000)** can return normally while the predicate is still false. Why must while be used?
+2. When **wait** throws **InterruptedException**, has the thread reacquired the monitor yet, and what is the state of the interrupt flag?
+3. Why can five intermediate wakeups turn repeated **wait(2000)** calls into a total duration exceeding 2 seconds? What is the right calculation?
+4. How do zero timeout, negative timeout, and oversized duration differ?
+5. Why can synchronized + Object.wait not guarantee that the entire call always finishes before an absolute deadline?
+6. Why is calling notifyAll only valid when state has been updated under the same monitor? What happens if updated outside the lock?
 
-**Ghi nhớ:** **Object.wait** là cơ chế chờ và phối hợp monitor, không phải dấu hiệu hoàn thành nghiệp vụ. Hợp đồng đúng phân biệt rõ **thành công**, **hết hạn**, **ngắt**; dùng while kiểm tra state, ngân sách chờ còn lại và chính sách truyền/cất giữ tín hiệu interrupt.
+**Key takeaway:** **Object.wait** is a monitor waiting and coordination mechanism, not a sign of business completion. A proper contract clearly distinguishes **success**, **timeout**, and **interruption**; uses while to check state, remaining wait budget, and a policy for propagating/preserving the interrupt signal.

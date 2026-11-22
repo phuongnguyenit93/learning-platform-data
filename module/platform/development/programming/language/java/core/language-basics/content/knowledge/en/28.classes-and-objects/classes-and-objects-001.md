@@ -1,12 +1,12 @@
-# Lớp mô tả kiểu và đối tượng là thể hiện cụ thể — Java 17+
+# Classes Describe Types and Objects Are Concrete Instances — Java 17+
 
-## 1. Lớp khác đối tượng như thế nào?
+## 1. How Is a Class Different from an Object?
 
-Trong Java, **lớp (class)** định nghĩa một **kiểu dữ liệu**: tên kiểu, các thuộc tính (*fields*), hành vi (*methods*) và cách khởi tạo (*constructors*). **Đối tượng (object)** là một **thể hiện cụ thể (instance)** của kiểu đó, được tạo khi chương trình chạy.
+In Java, a **class** defines a **data type**: the type name, its attributes (*fields*), its behaviors (*methods*), and how it is initialized (*constructors*). An **object** is a **concrete instance** of that type, created when the program runs.
 
 ~~~java
-class Student {                          // Định nghĩa một lớp.
-    String name;                         // Trường instance.
+class Student {                          // Defines a class.
+    String name;                         // Instance field.
     int score;
 
     Student(String name, int score) {    // Constructor.
@@ -14,60 +14,60 @@ class Student {                          // Định nghĩa một lớp.
         this.score = score;
     }
 
-    void printInfo() {                   // Phương thức instance.
+    void printInfo() {                   // Instance method.
         System.out.println(name + ":" + score);
     }
 }
 ~~~
 
 ~~~java
-Student an = new Student("An", 70);       // Một đối tượng.
-Student binh = new Student("Binh", 85);   // Đối tượng thứ hai.
+Student an = new Student("An", 70);       // One object.
+Student binh = new Student("Binh", 85);   // A second object.
 an.printInfo();
 binh.printInfo();
 ~~~
 
-**Exact expected stdout** (khi đặt hai câu gọi trong `main`):
+**Exact expected stdout** (when placing the two calls in `main`):
 
 ~~~text
 An:70
 Binh:85
 ~~~
 
-`Student` là **kiểu chung** mô tả các đặc điểm và thao tác; `an` và `binh` là **hai biến tham chiếu đến hai đối tượng Student khác nhau**. Chúng dùng cùng định nghĩa lớp nhưng có dữ liệu `name`, `score` riêng.
+`Student` is the **shared type** describing characteristics and operations; `an` and `binh` are **two variables referencing two different Student objects**. They share the same class definition but have their own `name` and `score` data.
 
-## 2. Phân biệt class, object, reference và constructor
+## 2. Distinguishing class, object, reference, and constructor
 
-| Khái niệm | Ví dụ | Vai trò |
+| Concept | Example | Role |
 |---|---|---|
-| Class | `class Student { ... }` | Khai báo kiểu và các thành viên |
-| Object/instance | Đối tượng do `new Student(...)` tạo | Thể hiện có trạng thái riêng |
-| Reference variable | `Student an` | Biến có kiểu `Student`, giữ giá trị tham chiếu tới object (hoặc `null`) |
-| Constructor | `Student(String name, int score)` | Khởi tạo object khi được gọi qua `new` |
-| Instance field | `name`, `score` | Dữ liệu thuộc từng instance |
-| Instance method | `printInfo()` | Hành vi gọi trên một instance |
-| Static member | `static int created` | Thành viên gắn với lớp, không tồn tại một bản riêng ở mỗi object |
+| Class | `class Student { ... }` | Declares a type and its members |
+| Object/instance | An object created by `new Student(...)` | An instance with its own state |
+| Reference variable | `Student an` | A variable of type `Student`, holding a reference value to an object (or `null`) |
+| Constructor | `Student(String name, int score)` | Initializes an object when invoked via `new` |
+| Instance field | `name`, `score` | Data belonging to each individual instance |
+| Instance method | `printInfo()` | Behavior invoked on an instance |
+| Static member | `static int created` | A member associated with the class, without a separate copy per object |
 
-Câu lệnh:
+The statement:
 
 ~~~java
 Student student = new Student("Lan", 90);
 ~~~
 
-có hai phía:
+has two sides:
 
-1. `Student student` khai báo **biến tham chiếu** tên `student`.
-2. `new Student("Lan", 90)` tạo **đối tượng**, gọi constructor và cung cấp giá trị tham chiếu để lưu vào `student`.
+1. `Student student` declares a **reference variable** named `student`.
+2. `new Student("Lan", 90)` creates an **object**, invokes the constructor, and provides the reference value to store in `student`.
 
-Chỉ viết `Student student;` **không tạo object**, và vì là biến cục bộ chưa được gán, không được đọc nó trước khi gán. Nếu chủ động viết `Student student = null;`, biến đã được gán nhưng **chưa trỏ đến đối tượng nào**.
+Simply writing `Student student;` **does not create an object**, and because it is an unassigned local variable, you cannot read it before assigning it. If you explicitly write `Student student = null;`, the variable has been assigned, but **does not point to any object yet**.
 
-## 3. Mỗi đối tượng có trạng thái instance độc lập
+## 3. Each Object Has Independent Instance State
 
 ~~~java
 Student an = new Student("An", 70);
 Student binh = new Student("Binh", 85);
 
-an.score = 75; // Minh họa khi field có thể truy cập.
+an.score = 75; // Illustrates when the field is accessible.
 System.out.println(an.score);
 System.out.println(binh.score);
 ~~~
@@ -79,26 +79,26 @@ System.out.println(binh.score);
 85
 ~~~
 
-Thay đổi trường `score` của `an` không thay trường `score` của `binh`, vì hai object được tạo bằng **hai lần `new`**.
+Changing `an`'s `score` field does not change `binh`'s `score` field, because the two objects were created by **two separate `new` calls**.
 
-Một mô hình tham chiếu:
+A reference model:
 
 ~~~text
 Student an   ──────> Object #1: {name="An",   score=75}
 Student binh ──────> Object #2: {name="Binh", score=85}
 
-              Cùng kiểu Student, khác đối tượng và trạng thái.
+              Same Student type, different objects and state.
 ~~~
 
-Tên `Object #1` và `Object #2` chỉ là chú giải; không phải số nhận dạng Java tự in ra. Java không bảo đảm các object nằm ở vị trí bộ nhớ cụ thể mà chương trình được phép dựa vào.
+The names `Object #1` and `Object #2` are only annotations; they are not identifiers that Java automatically prints. Java does not guarantee that objects reside at specific memory locations that a program is allowed to rely on.
 
-Trong code thực tế, thường khai báo field `private` và cung cấp phương thức truy cập/cập nhật có kiểm tra, thay vì cho phép gán tùy ý vào `student.score`.
+In real-world code, you usually declare fields as `private` and provide accessor/mutator methods with validation, instead of allowing arbitrary assignments to `student.score`.
 
-## 4. Hai biến có thể trỏ cùng một đối tượng
+## 4. Two Variables Can Point to the Same Object
 
 ~~~java
 Student an = new Student("An", 70);
-Student alias = an;                 // Không gọi new, không tạo Student mới.
+Student alias = an;                 // Does not call new, does not create a new Student.
 alias.score = 80;
 System.out.println(an.score);
 System.out.println(an == alias);
@@ -111,29 +111,29 @@ System.out.println(an == alias);
 true
 ~~~
 
-`alias = an` **sao chép giá trị tham chiếu**. Vì `an` và `alias` đang chỉ đến cùng object, sửa trạng thái qua biến nào cũng thấy từ biến kia.
+`alias = an` **copies the reference value**. Since `an` and `alias` point to the same object, modifying state through either variable is visible from the other.
 
-Nếu sau đó:
+If afterwards:
 
 ~~~java
 alias = new Student("Chi", 90);
 System.out.println(an == alias);
 ~~~
 
-**Exact expected stdout (tiếp nối):**
+**Exact expected stdout (continued):**
 
 ~~~text
 false
 ~~~
 
-`alias` chuyển sang object mới; `an` vẫn giữ tham chiếu tới object cũ. **Gán lại biến tham chiếu** không tự thay một biến tham chiếu khác.
+`alias` switches to the new object; `an` still holds a reference to the old object. **Reassigning a reference variable** does not automatically change another reference variable.
 
-Với hai object được tạo riêng bằng `new`, toán tử `==` so sánh xem các tham chiếu có chỉ đến **cùng object** hay không. Nó không tự so sánh mọi field bên trong. Nếu cần kiểm tra giá trị nghiệp vụ tương đương, có thể thiết kế `equals`/`hashCode` phù hợp ở bài học nâng cao.
+For two objects created separately with `new`, the `==` operator compares whether the references point to the **same object**. It does not automatically compare every field inside. If you need to check equivalent business values, you can design appropriate `equals`/`hashCode` methods in an advanced lesson.
 
 
-## 5. Constructor giúp đối tượng có trạng thái ban đầu
+## 5. Constructors Give Objects an Initial State
 
-Khi gọi `new Student("Lan", 90)`, Java chọn constructor tương ứng để khởi tạo **chính instance mới**. Constructor mang tên lớp, không khai báo kiểu trả về và thường kiểm tra đầu vào trước khi hoàn tất. Ví dụ:
+When calling `new Student("Lan", 90)`, Java selects the matching constructor to initialize **that new instance**. A constructor has the same name as the class, declares no return type, and typically validates input before completing. For example:
 
 ~~~java
 class Student {
@@ -150,29 +150,29 @@ class Student {
 }
 ~~~
 
-`this.name` là field của object đang tạo, còn `name` là tham số. `final` ngăn gán lại field `name` sau khởi tạo, không khiến toàn bộ object bất biến. Nếu constructor ném ngoại lệ, biểu thức `new` không trả tham chiếu cho caller. Các quy tắc về constructor mặc định, overload, `this(...)` và `super(...)` được thực hành ở bài **Hàm khởi tạo thiết lập giá trị ban đầu**.
+`this.name` is the field of the object being created, while `name` is the parameter. `final` prevents reassigning the `name` field after initialization, which does not make the entire object immutable. If the constructor throws an exception, the `new` expression does not return a reference to the caller. Rules regarding default constructors, overloading, `this(...)`, and `super(...)` are practiced in the lesson **Constructors Set Initial Values**.
 
-## 6. Đối tượng có hành vi riêng, lớp có thành viên chung
+## 6. Objects Have Individual Behavior, Classes Have Shared Members
 
 ~~~java
-// Với instance method:
-an.increase(5); // Thay trạng thái của đối tượng an.
+// For an instance method:
+an.increase(5); // Mutates the state of the object an.
 
-// Với static method do lớp định nghĩa:
-Student.getCreatedCount(); // Đọc bộ đếm gắn với lớp Student.
+// For a static method defined by the class:
+Student.getCreatedCount(); // Reads the counter attached to the Student class.
 ~~~
 
-Phương thức **instance** chạy với một đối tượng nhận lời gọi; trong thân nó có thể dùng `this` để chỉ object ấy. Thành viên **static** gắn với lớp, không có một bản riêng trên từng object và static method không có `this`. Ví dụ hoàn chỉnh bên dưới minh họa cả hai, trong khi bài **Phân biệt thành viên static với thành viên đối tượng** giải thích phạm vi và rủi ro của trạng thái chung.
+An **instance** method runs on the object receiving the call; inside its body, `this` can be used to refer to that object. A **static** member is attached to the class, does not have a separate copy on each object, and a static method does not have `this`. The complete example below illustrates both, while the lesson **Distinguishing Static Members from Instance Members** explains scope and the risks of shared state.
 
-## 7. Chương trình Java 17+ hoàn chỉnh
+## 7. Complete Java 17+ Program
 
-Lưu đúng file **`ClassObjectBasicsDemo.java`**:
+Save the exact file **`ClassObjectBasicsDemo.java`**:
 
 ~~~java
 public final class ClassObjectBasicsDemo {
     private ClassObjectBasicsDemo() {}
 
-    // Lớp mô tả kiểu đối tượng Student.
+    // Class describing the Student object type.
     static final class Student {
         private static int createdCount;
 
@@ -261,7 +261,7 @@ public final class ClassObjectBasicsDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên; mở terminal tại thư mục chứa file. Không cần Maven, Gradle, thư viện ngoài hay preview features.
+**Requirements:** JDK 17 or later; open a terminal in the directory containing the file. No Maven, Gradle, external libraries, or preview features needed.
 
 **Bash (Linux/macOS):**
 
@@ -301,28 +301,28 @@ invalid increase=invalid increase
 created at end=3
 ~~~
 
-**Lưu ý tràn số:** Vì `score` luôn nằm trong `0..100`, so sánh `points > 100 - score` sẽ từ chối cả đối số rất lớn như `Integer.MAX_VALUE`; kiểm tra `score + points > 100` có thể sai do phép cộng `int` tràn trước khi so sánh.
+**Overflow note:** Because `score` is always within `0..100`, comparing `points > 100 - score` rejects even very large arguments such as `Integer.MAX_VALUE`; checking `score + points > 100` could fail because `int` addition overflows before the comparison.
 
-**Đối chiếu:** hai lần `new` đầu tạo hai object nên `createdCount == 2`. `alias = an` không tạo object; gọi `alias.increase(5)` thay đúng object `an` đang chỉ đến. Sau `alias = new Student("Chi", 90)`, có object thứ ba, còn `an` giữ nguyên trạng thái 80. Constructor từ chối tên rỗng, nên lần tạo thất bại không tăng bộ đếm trong mã này.
+**Verification:** the first two `new` calls create two objects so `createdCount == 2`. `alias = an` does not create an object; calling `alias.increase(5)` modifies the exact object `an` points to. After `alias = new Student("Chi", 90)`, there is a third object, while `an` keeps its state of 80. The constructor rejects an empty name, so the failed creation does not increment the counter in this code.
 
-## 8. Những lỗi thường gặp
+## 8. Common Mistakes
 
-| Sai lầm | Vì sao sai? | Cách hiểu đúng |
+| Mistake | Why is it wrong? | Correct understanding |
 |---|---|---|
-| Nghĩ `class Student` tự tạo học viên cụ thể | Chỉ định nghĩa kiểu | Cần `new Student(...)` để tạo instance |
-| Nghĩ `Student s;` tạo object | Chỉ khai báo biến tham chiếu local | Gán tham chiếu object trước khi dùng |
-| Nghĩ `Student s = null;` là object rỗng | `null` là không trỏ đến object | Không gọi `s.method()` khi null |
-| Nghĩ `Student b = a;` tạo bản sao | Chỉ sao chép tham chiếu | `a` và `b` cùng object |
-| Nghĩ thay `alias` sang `new` làm `an` đổi theo | Hai biến tham chiếu được gán độc lập | Gán lại alias không gán lại an |
-| Nghĩ các object chia sẻ toàn bộ instance fields | Instance có trạng thái riêng | Chỉ thành viên static chung theo lớp |
-| Viết constructor `void Student(...)` | Đó là method, không phải constructor | Constructor không có kiểu trả về |
-| Truy cập `private` field từ bên ngoài lớp | Vi phạm truy cập | Dùng phương thức phù hợp |
-| Dùng `==` để so nội dung tất cả fields | `==` với object reference so identity | Dùng chính sách equals khi cần |
-| In object trực tiếp rồi mong format ổn định | `toString` mặc định không mô tả giá trị nghiệp vụ | Viết `describe`/`toString` tùy nhu cầu |
+| Thinking `class Student` automatically creates a concrete student | It only defines the type | You need `new Student(...)` to create an instance |
+| Thinking `Student s;` creates an object | It only declares a local reference variable | Assign an object reference before using it |
+| Thinking `Student s = null;` is an empty object | `null` means pointing to no object | Do not call `s.method()` when null |
+| Thinking `Student b = a;` creates a copy | It only copies the reference | `a` and `b` point to the same object |
+| Thinking changing `alias` to `new` changes `an` as well | Two reference variables are assigned independently | Reassigning `alias` does not reassign `an` |
+| Thinking objects share all instance fields | Instances have separate state | Only `static` members are shared at the class level |
+| Writing constructor `void Student(...)` | That is a method, not a constructor | A constructor has no return type |
+| Accessing a `private` field from outside the class | Violates access control | Use an appropriate method |
+| Using `==` to compare the contents of all fields | `==` on object references compares identity | Use an `equals` policy when needed |
+| Printing an object directly and expecting a stable format | The default `toString` does not describe business values | Write `describe`/`toString` as needed |
 
-## 9. Bài tập có đáp án
+## 9. Exercises with Answers
 
-**A — Tạo bao nhiêu object?**
+**A — How many objects are created?**
 
 ~~~java
 Student first = new Student("Lan", 50);
@@ -330,9 +330,9 @@ Student second = first;
 Student third = new Student("Mai", 60);
 ~~~
 
-**Đáp án:** **2 Student objects** do có hai lần `new Student`. `second` chỉ là alias của `first`.
+**Answer:** **2 Student objects** because there are two `new Student` calls. `second` is just an alias of `first`.
 
-**B — Sau phép cập nhật qua alias thì sao?**
+**B — What happens after an update through an alias?**
 
 ~~~java
 Student first = new Student("Lan", 50);
@@ -341,9 +341,9 @@ alias.increase(10);
 System.out.println(first.getScore());
 ~~~
 
-**Đáp án:** `60`, vì hai biến trỏ tới cùng object.
+**Answer:** `60`, because both variables point to the same object.
 
-**C — Hai object cùng dữ liệu có chắc `==` true không?**
+**C — Are two objects with the same data guaranteed to have `==` true?**
 
 ~~~java
 Student a = new Student("An", 70);
@@ -351,23 +351,23 @@ Student b = new Student("An", 70);
 System.out.println(a == b);
 ~~~
 
-**Đáp án:** `false`. Hai lần `new` tạo hai object riêng, dù field có giá trị giống nhau.
+**Answer:** `false`. Two `new` calls create two separate objects, even if their fields have identical values.
 
-**D — Khi nào dùng `static`?** Khi dữ liệu/hành vi gắn với **lớp**, chẳng hạn bộ đếm số object tạo thành công trong ví dụ. Với dữ liệu của từng học viên, dùng instance field.
+**D — When should `static` be used?** When data/behavior belongs to the **class**, such as the counter of successfully created objects in the example. For each individual student's data, use instance fields.
 
-**E — Field nào thuộc từng object?** Trong `Student` của chương trình, `name` và `score` là instance fields; `createdCount` là static field.
+**E — Which fields belong to each object?** In `Student` from the program, `name` and `score` are instance fields; `createdCount` is a static field.
 
-## 10. Checklist và kết luận
+## 10. Checklist and Conclusion
 
-- [ ] Hiểu **class định nghĩa kiểu**, object là instance cụ thể.
-- [ ] Phân biệt khai báo biến tham chiếu với tạo object bằng `new`.
-- [ ] Biết constructor thiết lập trạng thái ban đầu.
-- [ ] Nhận ra mỗi object có bộ instance fields riêng.
-- [ ] Hiểu `b = a` chia sẻ object, không tự sao chép.
-- [ ] Biết `==` so identity của tham chiếu object.
-- [ ] Phân biệt instance method và static member.
-- [ ] Nhận diện `null` và tránh dereference khi không có object.
-- [ ] Biết dùng `private` và method để quản lý trạng thái.
-- [ ] Biên dịch và chạy `ClassObjectBasicsDemo.java` với JDK 17+, đối chiếu exact stdout.
+- [ ] Understand that a **class defines a type**, and an object is a concrete instance.
+- [ ] Distinguish declaring a reference variable from creating an object with `new`.
+- [ ] Know that constructors establish initial state.
+- [ ] Recognize that each object has its own set of instance fields.
+- [ ] Understand that `b = a` shares the object, rather than automatically copying it.
+- [ ] Know that `==` compares object reference identity.
+- [ ] Distinguish instance methods and `static` members.
+- [ ] Recognize `null` and avoid dereferencing when there is no object.
+- [ ] Know how to use `private` and methods to manage state.
+- [ ] Compile and run `ClassObjectBasicsDemo.java` with JDK 17+, and verify exact stdout.
 
-**Kết luận:** **Lớp là định nghĩa kiểu và hành vi; đối tượng là một thể hiện cụ thể được tạo khi chạy**. Nhiều object có thể cùng kiểu nhưng giữ trạng thái riêng; nhiều biến tham chiếu cũng có thể cùng trỏ đến **một** object. Đó là nền tảng để hiểu constructor, instance fields, instance methods và `static` trong Java.
+**Conclusion:** **A class is the definition of type and behavior; an object is a concrete instance created at runtime**. Multiple objects can share the same type while holding separate state; multiple reference variables can also point to **one** object. That is the foundation for understanding constructors, instance fields, instance methods, and `static` in Java.

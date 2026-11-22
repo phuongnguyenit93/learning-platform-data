@@ -1,59 +1,59 @@
-# Phân biệt encode chuỗi thành byte và decode byte thành chuỗi trong Java
+# Distinguishing Encoding Strings to Bytes from Decoding Bytes to Strings in Java
 
-Khi Java trao đổi văn bản với file, mạng, HTTP, cơ sở dữ liệu hay hệ thống khác, dữ liệu thường phải đi qua ranh giới giữa **`String` (ký tự)** và **`byte[]` (byte)**. Hai thao tác đi theo **hai hướng ngược nhau**:
+When Java exchanges text with files, networks, HTTP, databases, or other systems, data usually has to cross the boundary between **`String` (characters)** and **`byte[]` (bytes)**. The two operations go in **opposite directions**:
 
 ~~~text
-                         ENCODE (mã hóa ký tự)
-String (ký tự Unicode) ------------------------> byte[]
-       ^                                           |
-       |                 DECODE                    |
-       +-------------------------------------------+
-                 (giải mã byte thành ký tự)
+                         ENCODE (character encoding)
+String (Unicode characters) ---------------------> byte[]
+       ^                                             |
+       |                   DECODE                    |
+       +---------------------------------------------+
+                  (decode bytes into characters)
 
-Ví dụ với charset UTF-8:
+Example with the UTF-8 charset:
 "café" --encode--> 63 61 66 C3 A9 --decode--> "café"
 ~~~
 
-Trong bài này, **encode** nghĩa là *character encoding* (chuyển ký tự sang byte theo một bộ mã ký tự, `Charset`); **decode** là đảo chiều chuyển byte sang ký tự theo `Charset`. Đây **không phải mã hóa bảo mật** (encryption/decryption). Nếu muốn bảo mật dữ liệu, cần các cơ chế mật mã riêng; chuyển mã ký tự không làm dữ liệu trở thành bí mật.
+In this lesson, **encode** means *character encoding* (converting characters to bytes according to a character set, `Charset`); **decode** is the reverse direction, converting bytes to characters according to a `Charset`. This is **not security encryption** (encryption/decryption). If you want to secure data, you need separate cryptographic mechanisms; character encoding does not make data secret.
 
-## 1. Định nghĩa và API Java
+## 1. Definitions and Java APIs
 
-| Nội dung | Encode: chuỗi → byte | Decode: byte → chuỗi |
+| Item | Encode: String → Bytes | Decode: Bytes → String |
 | --- | --- | --- |
-| Đầu vào | `String` (văn bản) | `byte[]` (dữ liệu nhị phân) |
-| Đầu ra | `byte[]` | `String` |
-| Quy tắc chuyển đổi | Dùng `CharsetEncoder` | Dùng `CharsetDecoder` |
-| API thường dùng | `text.getBytes(charset)` | `new String(bytes, charset)` |
-| Ví dụ `UTF-8` | `"é"` → `C3 A9` | `C3 A9` → `"é"` |
-| Sai cách xử lý | Ký tự không biểu diễn được có thể bị thay thế hoặc báo lỗi | Dãy byte lỗi có thể bị thay thế hoặc báo lỗi |
+| Input | `String` (text) | `byte[]` (binary data) |
+| Output | `byte[]` | `String` |
+| Conversion rules | Uses `CharsetEncoder` | Uses `CharsetDecoder` |
+| Common API | `text.getBytes(charset)` | `new String(bytes, charset)` |
+| `UTF-8` example | `"é"` → `C3 A9` | `C3 A9` → `"é"` |
+| Error handling | Unmappable characters may be replaced or trigger an error | Malformed byte sequences may be replaced or trigger an error |
 
-Một **charset** quy định cách biểu diễn ký tự bằng dãy byte và cách khôi phục ký tự từ dãy byte. Trong Java, dùng kiểu `java.nio.charset.Charset`, đặc biệt các hằng chuẩn ở `java.nio.charset.StandardCharsets`:
+A **charset** specifies how characters are represented as byte sequences and how characters are recovered from byte sequences. In Java, use `java.nio.charset.Charset`, especially the standard constants in `java.nio.charset.StandardCharsets`:
 
-- `StandardCharsets.UTF_8`: bộ mã Unicode phổ biến, có số byte biến đổi theo ký tự, tương thích ASCII cho các ký tự ASCII.
-- `StandardCharsets.UTF_16BE`, `UTF_16LE`: UTF-16 với thứ tự byte xác định.
-- `StandardCharsets.UTF_16`: UTF-16 có quy tắc về BOM/thứ tự byte khác với hai biến thể chỉ rõ endian.
-- `StandardCharsets.US_ASCII`: phạm vi ASCII, không biểu diễn được mọi chữ tiếng Việt.
-- `StandardCharsets.ISO_8859_1`: bộ mã một byte cho tập ký tự Latin-1; không phải Unicode đầy đủ.
+- `StandardCharsets.UTF_8`: the widely used Unicode encoding with a variable number of bytes per character, ASCII-compatible for ASCII characters.
+- `StandardCharsets.UTF_16BE`, `UTF_16LE`: UTF-16 with an explicit byte order.
+- `StandardCharsets.UTF_16`: UTF-16 with BOM/byte-order rules that differ from the two endian-specific variants.
+- `StandardCharsets.US_ASCII`: the ASCII range; cannot represent all Vietnamese characters.
+- `StandardCharsets.ISO_8859_1`: a single-byte encoding for the Latin-1 character set; not full Unicode.
 
-**`String` là văn bản Unicode trong Java**, còn các byte là **biểu diễn bên ngoài** theo charset. Không suy ra byte mã hóa từ cách JVM lưu trữ nội bộ `String`. Cùng một `String` có thể tạo ra các dãy byte **khác nhau** khi dùng UTF-8, UTF-16 hay ISO-8859-1.
+**A `String` is Unicode text in Java**, whereas bytes are an **external representation** according to a charset. Do not infer encoded bytes from how the JVM stores a `String` internally. The same `String` can produce **different** byte sequences when using UTF-8, UTF-16, or ISO-8859-1.
 
-## 2. Encode: từ `String` sang `byte[]`
+## 2. Encode: from `String` to `byte[]`
 
-Phương thức quen thuộc là:
+The familiar method is:
 
 ~~~java
 byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
 ~~~
 
-Quá trình encode đọc nội dung ký tự của `text` và sinh dãy byte theo UTF-8. Ví dụ:
+The encoding process reads the character content of `text` and generates a byte sequence in UTF-8. For example:
 
-- Chữ `A` (U+0041) → byte UTF-8 `41`.
-- Chữ `é` (U+00E9) → hai byte `C3 A9`.
-- Emoji `😀` (U+1F600) → bốn byte `F0 9F 98 80`.
+- The letter `A` (U+0041) → UTF-8 byte `41`.
+- The letter `é` (U+00E9) → two bytes `C3 A9`.
+- The emoji `😀` (U+1F600) → four bytes `F0 9F 98 80`.
 
-Một ký tự hiển thị **không nhất thiết bằng một byte**. Thậm chí `String.length()` trong Java trả về **số đơn vị UTF-16**, không phải số Unicode code point, số ký tự người dùng nhìn thấy hay số byte sau encode. Emoji `😀` là một code point nhưng chiếm **hai đơn vị UTF-16** và **bốn byte UTF-8**.
+One visible character **does not necessarily equal one byte**. Even `String.length()` in Java returns the **number of UTF-16 code units**, not the number of Unicode code points, user-perceived characters, or encoded bytes. The emoji `😀` is one code point, yet occupies **two UTF-16 code units** and **four UTF-8 bytes**.
 
-### Ví dụ Java 17 chạy độc lập
+### Standalone Java 17 Example
 
 ~~~java
 // EncodingDemo.java
@@ -78,14 +78,14 @@ public class EncodingDemo {
 }
 ~~~
 
-Biên dịch/chạy với JDK 17 trở lên:
+Compile/run with JDK 17 or later:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 EncodingDemo.java
 java EncodingDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 UTF-8 hex = 41C3A9F09F9880
@@ -95,28 +95,28 @@ UTF-8 bytes = 7
 Round-trip equal = true
 ~~~
 
-`-encoding UTF-8` trong lệnh `javac` chỉ xác định **charset của tệp mã nguồn `.java`**. Tham số `StandardCharsets.UTF_8` trong chương trình mới xác định **charset khi encode/decode dữ liệu**. Đây là hai vị trí khác nhau, dù đều sử dụng UTF-8 trong ví dụ.
+`-encoding UTF-8` in the `javac` command only specifies the **charset of the `.java` source file**. The `StandardCharsets.UTF_8` argument inside the program is what specifies the **charset when encoding/decoding data**. These are two different places, even though both use UTF-8 in this example.
 
-`HexFormat` (có từ Java 17) chỉ **hiển thị byte dưới dạng chữ số thập lục phân để kiểm tra**. Dãy `41 C3 A9 F0 9F 98 80` vẫn là bảy byte; không phải bảy ký tự của một chuỗi văn bản gốc.
+`HexFormat` (available since Java 17) only **displays bytes as hexadecimal digits for inspection**. The sequence `41 C3 A9 F0 9F 98 80` is still seven bytes, not seven characters of an original text string.
 
-## 3. Decode: từ `byte[]` sang `String`
+## 3. Decode: from `byte[]` to `String`
 
-Phương thức thường dùng:
+The commonly used method is:
 
 ~~~java
 String text = new String(bytes, StandardCharsets.UTF_8);
 ~~~
 
-Decoder phải biết **cách hiểu các byte**. Bản thân `byte[]` không lưu nhãn “tôi đang ở UTF-8”; nếu không có giao ước hoặc metadata bên ngoài, máy nhận **không thể bảo đảm biết đúng charset** chỉ bằng cách nhìn mảng byte.
+The decoder must know **how to interpret the bytes**. A `byte[]` by itself does not carry a "I am UTF-8" label; without an agreement or external metadata, the receiver **cannot reliably know the right charset** just by looking at the byte array.
 
-Ví dụ với dãy byte `63 61 66 C3 A9`:
+For example, with the byte sequence `63 61 66 C3 A9`:
 
-- Giải mã bằng **UTF-8** → `"café"`.
-- Giải mã bằng **ISO-8859-1** → `"cafÃ©"` (hai byte `C3` và `A9` được coi là hai ký tự Latin-1).
+- Decoded with **UTF-8** → `"café"`.
+- Decoded with **ISO-8859-1** → `"cafÃ©"` (the two bytes `C3` and `A9` are treated as two Latin-1 characters).
 
-Các byte **không đổi**, cách diễn giải chúng thành ký tự **đổi**. Hiện tượng chữ bị hỏng do encode/decode nhầm charset gọi là **mojibake**.
+The bytes **do not change**; how they are interpreted into characters **changes**. Garbled text caused by encoding/decoding with the wrong charset is called **mojibake**.
 
-### Ví dụ: cùng byte, hai cách giải mã
+### Example: Same Bytes, Two Ways to Decode
 
 ~~~java
 // CharsetMismatchDemo.java
@@ -141,7 +141,7 @@ public class CharsetMismatchDemo {
 }
 ~~~
 
-Chạy `javac --release 17 -encoding UTF-8 CharsetMismatchDemo.java` và `java CharsetMismatchDemo`. Trên terminal hiển thị Unicode đúng, kết quả là:
+Run `javac --release 17 -encoding UTF-8 CharsetMismatchDemo.java` and `java CharsetMismatchDemo`. On a terminal that displays Unicode properly, the output is:
 
 ~~~text
 Bytes = 636166C3A9
@@ -151,55 +151,55 @@ Correct equal = true
 Wrong equal = false
 ~~~
 
-Nếu terminal hoặc hệ thống log còn sử dụng charset hiển thị khác, chữ in ra màn hình có thể tiếp tục bị biến dạng. Khi điều tra lỗi, hãy xem **hex của byte đầu vào**, **charset được khai báo**, **chuỗi sau decode**, và **charset của nơi xuất ra màn hình** như những bước riêng.
+If the terminal or logging system also uses a different display charset, the printed text on screen may be further distorted. When investigating an issue, inspect the **hex of the input bytes**, the **declared charset**, the **decoded string**, and the **charset of the output display** as separate steps.
 
-## 4. Vì sao phải dùng cùng charset?
+## 4. Why Must Both Sides Use the Same Charset?
 
-Mục tiêu thường là:
+The usual goal is:
 
 ~~~text
-String ban đầu
-   | encode theo charset X
+Original String
+   | encode with charset X
    v
 byte[]
-   | lưu/truyền nguyên vẹn
+   | store/transmit intact
    v
 byte[]
-   | decode theo charset X
+   | decode with charset X
    v
-String khôi phục
+Restored String
 ~~~
 
-Với dữ liệu Unicode hợp lệ và UTF-8, round-trip thông thường giữ nguyên nội dung:
+With valid Unicode data and UTF-8, a normal round-trip preserves the content:
 
 ~~~java
-String input = "Tiếng Việt và 😀";
+String input = "Café and 😀";
 byte[] wire = input.getBytes(StandardCharsets.UTF_8);
 String output = new String(wire, StandardCharsets.UTF_8);
 System.out.println(input.equals(output)); // true
 ~~~
 
-Tuy nhiên, “encode rồi decode cùng charset là luôn khôi phục 100%” **không đúng vô điều kiện**:
+However, "encode then decode with the same charset always recovers 100%" is **not unconditionally true**:
 
-1. **Charset có thể không biểu diễn được ký tự**: ví dụ `US_ASCII` không biểu diễn được `é` hay tiếng Việt có dấu. Nếu API dùng chế độ thay thế, dữ liệu gốc bị mất ngay trong bước encode.
-2. **Chuỗi Java có thể chứa surrogate UTF-16 không ghép cặp**: chuỗi đó không thể biểu diễn trực tiếp như các Unicode scalar value hợp lệ trong UTF-8; encoder có thể thay thế hoặc báo lỗi.
-3. **Dãy byte có thể bị hỏng hoặc cắt giữa chừng** khi truyền/lưu, khiến decode sai hoặc lỗi.
-4. **Hai đầu dùng khác charset** sẽ diễn giải byte không tương thích.
-5. **Có bước biến đổi khác** giữa hai phía (chuẩn hóa Unicode, chuyển xuống dòng, sửa nội dung, thay thế ký tự...) khiến hai `String` khác nhau dù charset đúng.
+1. **The charset may not be able to represent a character**: for example, `US_ASCII` cannot represent `é` or Vietnamese characters with diacritics. If the API uses replacement mode, the original data is lost right in the encode step.
+2. **A Java string may contain unpaired UTF-16 surrogates**: such a string cannot be represented directly as valid Unicode scalar values in UTF-8; the encoder may replace them or report an error.
+3. **Byte sequences can be corrupted or truncated mid-character** during transmission/storage, causing incorrect decoding or errors.
+4. **Two endpoints using different charsets** will interpret the bytes incompatibly.
+5. **Another transformation step** between the two sides (Unicode normalization, line-ending conversion, content editing, character replacement, etc.) can make the two `String`s differ even with the right charset.
 
-UTF-8 là lựa chọn mặc định tốt cho giao thức/tệp văn bản mới khi hai phía đều thống nhất dùng UTF-8. Với dữ liệu di sản dùng charset khác, phải tuân theo charset **thực sự được dùng khi tạo byte**, không tự đổi sang UTF-8 tại bước decode.
+UTF-8 is a good default choice for new protocols and text files when both sides agree on UTF-8. For legacy data using another charset, you must follow the charset **actually used when creating the bytes**, rather than arbitrarily switching to UTF-8 at the decode step.
 
-## 5. Khi encode/decode không thể giữ nguyên dữ liệu
+## 5. When Encode/Decode Cannot Preserve Data
 
-Ngay cả khi viết đúng hướng chuyển đổi, kết quả khứ hồi chưa chắc bằng bản gốc nếu dữ liệu không hợp lệ hoặc charset không biểu diễn được ký tự. Phân biệt ba tình huống:
+Even when writing the conversion direction correctly, a round-trip result is not guaranteed to equal the original if the data is invalid or the charset cannot represent the character. Distinguish these three scenarios:
 
-| Tình huống | Điều xảy ra | Cách xử lý |
+| Scenario | What Happens | How to Handle |
 | --- | --- | --- |
-| `"café"` được encode bằng US-ASCII | `é` không có mã tương ứng; `getBytes(US_ASCII)` thường thay bằng byte dấu `?` | Chọn charset biểu diễn được dữ liệu hoặc dùng `CharsetEncoder` với `REPORT` |
-| Byte UTF-8 `C3 28` được decode bằng UTF-8 | Byte `C3` thiếu continuation hợp lệ; `new String` thường thêm U+FFFD (`�`) | Dùng `CharsetDecoder` với `REPORT` nếu phải từ chối byte lỗi |
-| Byte UTF-8 `C3 A9` bị decode bằng ISO-8859-1 | Byte có thể hợp lệ nhưng tạo `Ã©` thay vì `é` (mojibake) | Xác nhận lại charset nguồn; kiểm tra byte gốc trước khi chuyển |
+| `"café"` encoded with US-ASCII | `é` has no corresponding code; `getBytes(US_ASCII)` typically replaces it with the `?` byte | Choose a charset that can represent the data or use `CharsetEncoder` with `REPORT` |
+| UTF-8 bytes `C3 28` decoded with UTF-8 | Byte `C3` lacks a valid continuation byte; `new String` typically inserts U+FFFD (`�`) | Use `CharsetDecoder` with `REPORT` if malformed bytes must be rejected |
+| UTF-8 bytes `C3 A9` decoded with ISO-8859-1 | The bytes may be valid in Latin-1, producing `Ã©` instead of `é` (mojibake) | Re-verify the source charset; inspect the original bytes before converting |
 
-Các constructor/phương thức tiện lợi thường dùng cơ chế **thay thế**, có thể làm mất dữ liệu mà không ném lỗi. Ví dụ nhỏ sau phân biệt một decoder mềm và một decoder nghiêm ngặt:
+Convenience constructors and methods usually use **replacement** mode, which can lose data without throwing an exception. The small example below contrasts a lenient decoder with a strict decoder:
 
 ~~~java
 byte[] invalid = {(byte) 0xC3, (byte) 0x28};
@@ -216,50 +216,50 @@ try {
 }
 ~~~
 
-Đây là đoạn đặt trong phương thức, với import `java.nio.ByteBuffer`, `java.nio.charset.CharacterCodingException`, `CodingErrorAction` và `StandardCharsets`. Bài **Dữ liệu sai mã, ký tự thay thế và mất thông tin** phân tích tình huống mất dữ liệu; bài **CharsetEncoder, CharsetDecoder và chính sách REPORT** giải thích hai API này, kể cả xử lý từng chunk qua `CoderResult`.
+This is a snippet to place inside a method, with imports `java.nio.ByteBuffer`, `java.nio.charset.CharacterCodingException`, `CodingErrorAction`, and `StandardCharsets`. The lesson **Malformed Data, Replacement Characters, and Data Loss** analyzes data-loss scenarios; the lesson **CharsetEncoder, CharsetDecoder, and the REPORT Policy** explains these two APIs, including chunk-by-chunk processing via `CoderResult`.
 
-## 6. Charset mặc định không phải hợp đồng trao đổi dữ liệu
+## 6. The Default Charset Is Not a Data Exchange Contract
 
-`text.getBytes()` và `new String(bytes)` dùng charset mặc định của JVM. Trên JDK 17 trở xuống, charset mặc định thường phụ thuộc hệ điều hành/locale; từ JDK 18, JEP 400 quy định UTF-8 trong cấu hình thông thường, nhưng dữ liệu cũ hoặc chế độ tương thích vẫn cần được xem xét. `Charset.defaultCharset()` cho biết giá trị thực tế của JVM đang chạy.
+`text.getBytes()` and `new String(bytes)` use the JVM's default charset. On JDK 17 and earlier, the default charset often depends on the operating system/locale; starting with JDK 18, JEP 400 specifies UTF-8 in standard configurations, though legacy data or compatibility modes still require attention. `Charset.defaultCharset()` returns the actual value of the running JVM.
 
-Trong giao thức/tệp mới đã chọn UTF-8, hãy luôn viết `getBytes(StandardCharsets.UTF_8)` và `new String(bytes, StandardCharsets.UTF_8)`. Nếu dữ liệu nguồn dùng charset khác, phải **decode bằng charset nguồn** thay vì tùy tiện ép UTF-8. Bài **Charset mặc định và ảnh hưởng môi trường hoặc phiên bản JDK** trình bày chi tiết JEP 400, các API chịu ảnh hưởng và cách kiểm thử khi nâng cấp.
+In new protocols and files where UTF-8 has been chosen, always write `getBytes(StandardCharsets.UTF_8)` and `new String(bytes, StandardCharsets.UTF_8)`. If the source data uses another charset, you must **decode using the source charset** rather than arbitrarily forcing UTF-8. The lesson **Default Charset and Environment or JDK Version Effects** covers JEP 400, affected APIs, and how to test during upgrades.
 
-## 7. Áp dụng encode/decode tại ranh giới thực tế
+## 7. Applying Encode/Decode at Real-World Boundaries
 
-Ví dụ dữ liệu văn bản đi qua file hoặc mạng:
+Example of text data passing through a file or network:
 
 ~~~text
-String nguồn
+Source String
    | getBytes(UTF_8)
    v
-byte[] -- ghi file / truyền mạng / lưu nguyên byte --> byte[]
+byte[] -- write file / send over network / store raw bytes --> byte[]
    | new String(bytes, UTF_8)
    v
-String phía nhận
+Receiver String
 ~~~
 
-- Với file văn bản, `Files.writeString(path, text, StandardCharsets.UTF_8)` và `Files.readString(path, StandardCharsets.UTF_8)` định nghĩa hai chiều ngay ở API I/O. Khi so sánh toàn vẹn byte, dùng `Files.write`/`readAllBytes` rồi so sánh `byte[]`.
-- Với HTTP/JSON, xác định charset theo **đặc tả định dạng hoặc giao thức** và chỉ đo `Content-Length` từ body byte thực sự được gửi đi. JSON escaping, phần header hay nén là các bước riêng, có thể làm kích thước cuối khác kích thước chuỗi ban đầu.
-- Với stream, một ký tự UTF-8 nhiều byte có thể bị chia giữa hai lần đọc. Dùng `InputStreamReader` với charset đã chọn hoặc decoder giữ trạng thái; decode mỗi mảnh byte riêng lẻ có thể sinh ký tự thay thế.
+- For text files, `Files.writeString(path, text, StandardCharsets.UTF_8)` and `Files.readString(path, StandardCharsets.UTF_8)` specify both directions directly in the I/O API. When comparing byte integrity, use `Files.write`/`readAllBytes` and compare `byte[]`.
+- For HTTP/JSON, determine the charset according to the **format or protocol specification** and only measure `Content-Length` from the actual byte body being sent. JSON escaping, headers, or compression are separate steps that can make the final size differ from the initial string's size.
+- For streams, a multi-byte UTF-8 character can be split across two reads. Use `InputStreamReader` with the chosen charset or a stateful decoder; decoding each byte chunk independently can produce replacement characters.
 
-Bài **Đối chiếu chuỗi qua ranh giới tệp, console và dữ liệu truyền** đưa ra bài chạy đầy đủ để kiểm tra byte tại nhiều điểm, phân biệt lỗi dữ liệu với lỗi hiển thị ở terminal.
+The lesson **Comparing Strings Across File, Console, and Wire Boundaries** provides a complete runnable example to inspect bytes at multiple checkpoints and distinguish data errors from terminal display errors.
 
-## 8. Một vài yếu tố ngoài charset cần phân biệt
+## 8. A Few Non-Charset Factors to Distinguish
 
-- **BOM**: UTF-8 BOM `EF BB BF` thường xuất hiện dưới dạng U+FEFF sau decode; chỉ xử lý theo quy tắc của định dạng tệp. UTF-16BE/LE cần thỏa thuận về byte order và cách dùng BOM.
-- **Unicode normalization**: `é` có thể là U+00E9 hoặc `e` + U+0301. Hai cách biểu diễn có thể trông giống nhưng vẫn khác byte; charset không tự chuẩn hóa.
-- **Biểu diễn nhị phân**: ảnh, tệp ZIP, âm thanh không tự nhiên là văn bản. Decode chúng thành `String` có thể làm mất byte, kể cả khi encode ngược.
-- **Base64 và escaping**: Base64 chuyển byte thành các ký tự ASCII để vận chuyển; escape bảo đảm cú pháp trong Java/JSON/HTML. Cả hai đều khác chuyển mã ký tự.
+- **BOM**: A UTF-8 BOM `EF BB BF` often appears as U+FEFF after decoding; handle it only according to the file format's rules. UTF-16BE/LE require an agreement on byte order and BOM usage.
+- **Unicode normalization**: `é` can be U+00E9 or `e` + U+0301. The two representations may look identical yet still differ in bytes; a charset does not normalize automatically.
+- **Binary representations**: Images, ZIP files, and audio are not naturally text. Decoding them into a `String` can corrupt or lose bytes, even if encoded back afterward.
+- **Base64 and escaping**: Base64 converts bytes into ASCII characters for transport; escaping preserves syntax in Java/JSON/HTML. Both are distinct from character encoding.
 
-## 9. Checklist trước khi tích hợp
+## 9. Checklist Before Integration
 
-1. Bên tạo dữ liệu đang có **văn bản** hay **byte nhị phân**?
-2. Charset nguồn là gì, và nó được ghi ở đâu trong giao thức/hợp đồng?
-3. Trước khi giải mã, byte có được giữ nguyên và có cần từ chối đầu vào malformed không?
-4. Trước khi mã hóa, charset đích có biểu diễn được mọi ký tự cần gửi không?
-5. Khi có khác biệt, đã kiểm tra byte hex, code point và charset của lớp hiển thị riêng rẽ chưa?
+1. Does the producer have **text** or **binary bytes**?
+2. What is the source charset, and where is it documented in the protocol/contract?
+3. Before decoding, are the bytes preserved intact and should malformed input be rejected?
+4. Before encoding, can the target charset represent every character that needs to be sent?
+5. When a discrepancy occurs, have you inspected hex bytes, code points, and the display layer's charset separately?
 
-## 10. Phân biệt đường đi đúng và sai
+## 10. Distinguishing the Right Path from the Wrong Path
 
 ~~~java
 String input = "café";
@@ -271,30 +271,30 @@ System.out.println(input.equals(right)); // true
 System.out.println(input.equals(wrong)); // false
 ~~~
 
-Đây là đoạn minh họa trong phương thức. Hai lời gọi `new String` đọc **cùng một dãy byte**; chỉ charset khác nhau. Vì thế cần bắt đầu từ hợp đồng byte nguồn, sau đó xác thực từng lớp biến đổi khi ứng dụng đi qua file, mạng hoặc môi trường mới.
+This is an illustrative snippet inside a method. Both `new String` calls read **the exact same byte sequence**; only the charset differs. Therefore, always start from the source byte contract, then verify each transformation layer as the application moves through files, networks, or new environments.
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-**Câu 1.** `"é".getBytes(StandardCharsets.UTF_8)` sinh bao nhiêu byte? Nếu decode chúng bằng `ISO_8859_1` thì ra chuỗi nào?
+**Question 1.** How many bytes does `"é".getBytes(StandardCharsets.UTF_8)` produce? If decoded with `ISO_8859_1`, what string does it produce?
 
-**Đáp án:** Hai byte `C3 A9`; decode Latin-1 tạo `"Ã©"` vì hai byte được hiểu là hai ký tự riêng.
+**Answer:** Two bytes `C3 A9`; decoding as Latin-1 produces `"Ã©"` because the two bytes are interpreted as two separate characters.
 
-**Câu 2.** Vì sao `"😀".length()` bằng `2` trong Java nhưng encode UTF-8 tạo `4` byte?
+**Question 2.** Why is `"😀".length()` equal to `2` in Java while UTF-8 encoding produces `4` bytes?
 
-**Đáp án:** `String.length()` đếm **hai đơn vị UTF-16** biểu diễn một code point U+1F600, còn UTF-8 biểu diễn code point đó bằng **bốn byte**.
+**Answer:** `String.length()` counts the **two UTF-16 code units** representing one code point U+1F600, whereas UTF-8 encodes that code point using **four bytes**.
 
-**Câu 3.** Khi Java đọc hai khối byte của một socket, tại sao không nên dùng `new String(chunk, UTF_8)` riêng cho từng khối?
+**Question 3.** When Java reads two byte chunks from a socket, why should you not call `new String(chunk, UTF_8)` separately on each chunk?
 
-**Đáp án:** Một ký tự UTF-8 nhiều byte có thể vắt qua ranh giới khối; decoder độc lập cho từng khối coi byte thiếu là lỗi. Dùng decoder có trạng thái hoặc `InputStreamReader`.
+**Answer:** A multi-byte UTF-8 character can straddle the boundary between chunks; an independent decoder on each chunk treats the incomplete bytes as an error. Use a stateful decoder or `InputStreamReader`.
 
-**Câu 4.** Encode `"café"` bằng US-ASCII có thể gây vấn đề gì? Muốn báo lỗi thay vì thay thế ký tự, nên dùng gì?
+**Question 4.** What problem can encoding `"café"` with US-ASCII cause? If you want an error instead of character replacement, what should you use?
 
-**Đáp án:** `é` không thuộc ASCII; API encode mềm có thể thay thế nó, làm mất dữ liệu. Dùng `CharsetEncoder` và `onUnmappableCharacter(CodingErrorAction.REPORT)`.
+**Answer:** `é` is not in ASCII; lenient encoding APIs may replace it, causing data loss. Use `CharsetEncoder` with `onUnmappableCharacter(CodingErrorAction.REPORT)`.
 
-**Câu 5.** Nếu byte của một file ZIP được đưa vào `String` bằng UTF-8 rồi encode lại, có đảm bảo giữ nguyên file gốc không?
+**Question 5.** If the bytes of a ZIP file are loaded into a `String` using UTF-8 and then encoded back, is the original file guaranteed to be preserved?
 
-**Đáp án:** Không. ZIP là dữ liệu nhị phân, có thể chứa chuỗi byte không hợp lệ theo UTF-8 và decoder sẽ thay thế. Giữ nguyên dạng byte hoặc byte stream.
+**Answer:** No. A ZIP file is binary data and may contain byte sequences that are invalid in UTF-8, which the decoder will replace. Keep it as raw bytes or a byte stream.
 
-## Ghi nhớ
+## Key Takeaways
 
-**Encode** là `String → byte[]` theo charset; **decode** là `byte[] → String` theo charset. Muốn khôi phục đúng dữ liệu, phải có **byte nguyên vẹn**, **charset thống nhất**, và **chính sách xử lý lỗi phù hợp**. Dùng `StandardCharsets.UTF_8` tường minh cho dữ liệu văn bản mới khi giao thức cho phép; kiểm tra byte bằng hex khi xảy ra lỗi; dùng `CharsetEncoder`/`CharsetDecoder` ở chế độ `REPORT` khi mất dữ liệu là không chấp nhận được.
+**Encode** is `String → byte[]` using a charset; **decode** is `byte[] → String` using a charset. To restore data accurately, you need **intact bytes**, a **consistent charset**, and an **appropriate error-handling policy**. Use `StandardCharsets.UTF_8` explicitly for new text data when the protocol allows; inspect bytes in hex when errors happen; use `CharsetEncoder`/`CharsetDecoder` in `REPORT` mode when data loss is unacceptable.

@@ -1,28 +1,28 @@
-# ResourceBundleProvider cho tài nguyên trong hệ mô-đun Java (JPMS)
+# ResourceBundleProvider for Resources in the Java Module System (JPMS)
 
-## Mục tiêu
+## Objectives
 
-Trong Java Core, `java.util.ResourceBundle` tải thông điệp hoặc dữ liệu theo `Locale`. Khi ứng dụng chạy bằng classpath, các file `.properties` và các lớp `ListResourceBundle` thường được tra qua class loader. Khi chuyển sang **Java Platform Module System (JPMS)**, tài nguyên có thể được đóng gói trong **named modules** có giới hạn truy cập riêng. Nếu ứng dụng muốn lấy bundle từ **một module cung cấp độc lập**, API phù hợp là **`java.util.spi.ResourceBundleProvider`**.
+In Java Core, `java.util.ResourceBundle` loads messages or data by `Locale`. When an application runs on the classpath, `.properties` files and `ListResourceBundle` classes are typically resolved via the class loader. When moving to the **Java Platform Module System (JPMS)**, resources can be packaged inside **named modules** with their own access boundaries. When an application needs to obtain bundles from **an independent provider module**, the appropriate API is **`java.util.spi.ResourceBundleProvider`**.
 
-`ResourceBundleProvider` là **service provider interface (SPI)** có từ Java 9, được tích hợp với cơ chế tìm bundle và `ServiceLoader`. Thông qua `uses` và `provides ... with ...` trong `module-info.java`, module consumer có thể phát hiện một hoặc nhiều module cung cấp tài nguyên mà không import implementation cụ thể.
+`ResourceBundleProvider` is a **service provider interface (SPI)** introduced in Java 9, integrated with bundle lookup and `ServiceLoader`. Using `uses` and `provides ... with ...` in `module-info.java`, a consumer module can discover one or more resource-providing modules without importing a concrete implementation.
 
-Sau bài, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt bundle nằm **cùng named module** với bundle được cung cấp bởi **named module khác**.
-- Biết chính xác cách đặt tên service interface theo **logical base name** của bundle.
-- Dùng `ResourceBundleProvider#getBundle(String, Locale)` và ý nghĩa của kết quả `null`.
-- Triển khai `AbstractResourceBundleProvider` cho file `.properties` và override `toBundleName` để đổi vị trí tài nguyên.
-- Viết ba module API, provider và consumer với `exports`, `requires`, `uses`, `provides` đúng vai trò.
-- Biên dịch và chạy một ví dụ **Java 17+ hoạt động thực sự** bằng `--module-source-path` và `--module-path`.
-- Hiểu vấn đề **split package**, module resolution, candidate locale, fallback, cache và encapsulation.
-- Phân biệt `ResourceBundleProvider` với `ResourceBundle.Control` khi nâng cấp ứng dụng classpath sang JPMS.
-- Chẩn đoán lỗi thiếu module provider, thiếu file resource, sai tên service hoặc `MissingResourceException`.
+- Distinguish bundles located in the **same named module** from bundles provided by **another named module**.
+- Name the service interface accurately based on the bundle's **logical base name**.
+- Use `ResourceBundleProvider#getBundle(String, Locale)` and understand the meaning of returning `null`.
+- Implement `AbstractResourceBundleProvider` for `.properties` files and override `toBundleName` to relocate resources.
+- Write three modules — API, provider, and consumer — with `exports`, `requires`, `uses`, and `provides` in their proper roles.
+- Compile and run a **working Java 17+ example** using `--module-source-path` and `--module-path`.
+- Understand **split packages**, module resolution, candidate locales, fallback, caching, and encapsulation.
+- Distinguish `ResourceBundleProvider` from `ResourceBundle.Control` when upgrading a classpath application to JPMS.
+- Diagnose missing provider modules, missing resource files, wrong service names, or `MissingResourceException`.
 
-Đây là bài thuộc nhóm **Đóng gói và mở rộng**: trọng tâm là cung cấp bản dịch bằng SPI trong JPMS, không phải bản thân cú pháp định dạng số/ngày hay hệ thống dịch tự động.
+This lesson belongs to the **Packaging and Extensibility** group: the focus is supplying translations via SPI in JPMS, not number/date formatting syntax or automated translation systems.
 
-## 1. Vì sao không chỉ dùng ResourceBundle.getBundle trực tiếp?
+## 1. Why Not Just Use ResourceBundle.getBundle Directly?
 
-Một ứng dụng nhỏ có thể để file dịch và code trong cùng module:
+A small application can keep translation files and code in the same module:
 
 ```text
 com.example.app
@@ -31,16 +31,16 @@ com.example.app
   com/example/app/Messages_vi.properties
 ```
 
-Khi tài nguyên được đóng gói đúng và truy cập từ chính module đó, `ResourceBundle.getBundle(baseName, locale)` có thể nạp bundle local; **không bắt buộc** tạo một interface provider cho mọi ứng dụng dùng JPMS.
+When resources are packaged properly and accessed from that same module, `ResourceBundle.getBundle(baseName, locale)` can load the local bundle; **creating a provider interface is not mandatory** for every JPMS application.
 
-Nhu cầu khác xuất hiện khi bản dịch được phân phối riêng, ví dụ:
+Different needs arise when translations are distributed separately, for example:
 
-- Sản phẩm có lõi chỉ biết các key, còn nhóm địa phương hóa phát hành module tiếng Việt, Anh, Pháp riêng.
-- Plugin cần bổ sung ngôn ngữ sau khi ứng dụng chính đã biên dịch.
-- Một thư viện chỉ công bố API tài nguyên, không muốn đóng gói mọi bản dịch.
-- Một module provider muốn nạp nguồn tùy biến thay vì để consumer tìm file nội bộ.
+- A core product knows only the keys, while localization teams ship separate Vietnamese, English, and French modules.
+- Plugins need to add languages after the main application has already been compiled.
+- A library publishes only the resource API without bundling every translation.
+- A provider module wants to load custom sources rather than letting consumers search internal files.
 
-Nếu bundle ở named module khác, việc gọi `ClassLoader.getResourceAsStream` từ consumer **không luôn nhìn thấy tài nguyên** do quy tắc encapsulation. `ResourceBundleProvider` cho phép chính **module sở hữu resource** chịu trách nhiệm tạo hoặc nạp `ResourceBundle`, rồi trả về cho cơ chế nạp bundle của Java.
+If the bundle resides in another named module, calling `ClassLoader.getResourceAsStream` from the consumer **will not always see the resource** due to encapsulation rules. `ResourceBundleProvider` lets the **module owning the resource** take responsibility for creating or loading the `ResourceBundle` and returning it to Java's bundle-loading mechanism.
 
 ```text
 com.demo.bundle.app
@@ -60,34 +60,34 @@ com.demo.bundle.impl
     +-- Messages_en.properties
 ```
 
-Consumer vẫn phải biết **logical base name** và **message key**, nhưng không cần phụ thuộc trực tiếp vào class implementation hoặc package vật lý của file dịch.
+The consumer still needs to know the **logical base name** and **message keys**, yet does not need a direct dependency on the implementation class or the physical package of the translation files.
 
-## 2. Những thuật ngữ và vai trò cốt lõi
+## 2. Core Terminology and Roles
 
-| Khái niệm | Ý nghĩa | Ví dụ |
+| Concept | Meaning | Example |
 | --- | --- | --- |
-| **Base name** | Định danh logic của family bundle | `com.demo.bundle.Messages` |
-| **Locale** | Ngôn ngữ/vùng yêu cầu | `vi-VN`, `en-US` |
-| **Service type** | Interface có tên theo quy tắc đặc biệt của ResourceBundleProvider | `com.demo.bundle.spi.MessagesProvider` |
-| **Provider implementation** | Class trả bundle theo base name/locale | `com.demo.impl.DemoProvider` |
-| **API module** | Nơi định nghĩa/export service interface | `com.demo.bundle.api` |
-| **Consumer module** | Module gọi `ResourceBundle.getBundle` | `com.demo.bundle.app` |
-| **Provider module** | Module triển khai service, sở hữu resources | `com.demo.bundle.impl` |
-| **Physical bundle name** | Nơi provider tra cứu file/class resource thực tế | `com.demo.impl.Messages_vi` |
-| **Resolved locale** | Locale của bundle thực sự đã nạp | `vi` |
+| **Base name** | Logical identifier of the bundle family | `com.demo.bundle.Messages` |
+| **Locale** | Requested language/region | `vi-VN`, `en-US` |
+| **Service type** | Interface named per the special `ResourceBundleProvider` convention | `com.demo.bundle.spi.MessagesProvider` |
+| **Provider implementation** | Class returning bundles by base name/locale | `com.demo.impl.DemoProvider` |
+| **API module** | Module defining/exporting the service interface | `com.demo.bundle.api` |
+| **Consumer module** | Module calling `ResourceBundle.getBundle` | `com.demo.bundle.app` |
+| **Provider module** | Module implementing the service and owning resources | `com.demo.bundle.impl` |
+| **Physical bundle name** | Where the provider looks up actual resource files/classes | `com.demo.impl.Messages_vi` |
+| **Resolved locale** | Locale of the bundle actually loaded | `vi` |
 
-**Logical base name không nhất thiết trùng physical bundle name.** Đây là điểm mở rộng quan trọng: caller vẫn dùng tên family ổn định trong khi các provider module có thể tổ chức resource ở các package khác nhau.
+**The logical base name does not have to match the physical bundle name.** This is an important extensibility point: callers use a stable family name while provider modules can organize resources in distinct packages.
 
-## 3. Quy tắc đặt tên service interface
+## 3. Service Interface Naming Convention
 
-Theo Java SE 17, service type cho một bundle có `baseName` phải mang tên đầy đủ:
+Per Java SE 17, the service type for a bundle with `baseName` must have the fully qualified name:
 
 ```text
 <package of baseName> + ".spi."
 + <simple name of baseName> + "Provider"
 ```
 
-Ví dụ:
+Examples:
 
 | Base name | Service interface |
 | --- | --- |
@@ -95,7 +95,7 @@ Ví dụ:
 | `org.acme.ui.Errors` | `org.acme.ui.spi.ErrorsProvider` |
 | `io.example.labels.Buttons` | `io.example.labels.spi.ButtonsProvider` |
 
-Interface đúng cho ví dụ:
+Correct interface for our example:
 
 ```java
 package com.demo.bundle.spi;
@@ -106,18 +106,18 @@ public interface MessagesProvider extends ResourceBundleProvider {
 }
 ```
 
-Lưu ý interface này **kế thừa** phương thức `getBundle(String, Locale)`. Nó cần có tên phù hợp với family `com.demo.bundle.Messages`.
+Note that this interface **inherits** the `getBundle(String, Locale)` method. Its name must match the `com.demo.bundle.Messages` family.
 
-Hai nhầm lẫn phổ biến:
+Two common mistakes:
 
-1. Đặt `MessagesProvider` trong package `com.demo.bundle` thay vì `com.demo.bundle.spi` và hy vọng Java tìm đúng.
-2. Chỉ viết `uses java.util.spi.ResourceBundleProvider;` trong consumer, trong khi tên service type được tìm theo family là `com.demo.bundle.spi.MessagesProvider`.
+1. Putting `MessagesProvider` in package `com.demo.bundle` instead of `com.demo.bundle.spi` and expecting Java to find it.
+2. Writing only `uses java.util.spi.ResourceBundleProvider;` in the consumer, when the service type looked up for the family is `com.demo.bundle.spi.MessagesProvider`.
 
-Trong trường hợp này, tên không phải sở thích tùy ý của nhóm phát triển: nó là **hợp đồng đặt tên của API**. Nếu gọi `ResourceBundle.getBundle("...Messages", locale)` thì các module phải thống nhất service type tương ứng.
+In this case, the name is not an arbitrary preference of the development team: it is an **API naming contract**. Calling `ResourceBundle.getBundle("...Messages", locale)` requires all modules to agree on the corresponding service type.
 
-## 4. Module API, consumer và provider liên kết ra sao?
+## 4. How Do the API, Consumer, and Provider Modules Link Together?
 
-### API module
+### API Module
 
 ```java
 module com.demo.bundle.api {
@@ -125,9 +125,9 @@ module com.demo.bundle.api {
 }
 ```
 
-`exports` công khai package chứa interface để provider và consumer tham chiếu được kiểu Java.
+`exports` exposes the package containing the interface so both provider and consumer can reference the Java type.
 
-### Consumer module
+### Consumer Module
 
 ```java
 module com.demo.bundle.app {
@@ -136,9 +136,9 @@ module com.demo.bundle.app {
 }
 ```
 
-`requires` cho phép app đọc API module; `uses` công bố module sử dụng service đó.
+`requires` lets the app read the API module; `uses` declares that the module consumes that service.
 
-### Provider module
+### Provider Module
 
 ```java
 module com.demo.bundle.impl {
@@ -149,30 +149,30 @@ module com.demo.bundle.impl {
 }
 ```
 
-`provides ... with ...` đăng ký implementation class. Class này phải implement đúng interface, đáp ứng yêu cầu service loading của JPMS. Ví dụ dùng class `public` với constructor no-arg `public`.
+`provides ... with ...` registers the implementation class. This class must implement the exact interface and satisfy JPMS service-loading requirements. The example uses a `public` class with a `public` no-arg constructor.
 
-Những khai báo bắt buộc phải **khớp chính xác cùng một interface**. Việc app không có `requires com.demo.bundle.impl;` là chủ đích để tránh dependency trực tiếp vào implementation; provider sẽ được service binding phát hiện khi module được resolve.
+These declarations must **match the exact same interface**. Omitting `requires com.demo.bundle.impl;` from the app is intentional to avoid a direct dependency on the implementation; the provider is discovered via service binding when the module is resolved.
 
-**Không dùng `open module` để chữa sai service name.** Việc mở package cho reflection khác với cơ chế đăng ký service và nạp resources đúng cách.
+**Do not use `open module` to fix a wrong service name.** Opening packages for reflection is unrelated to proper service registration and resource loading.
 
-## 5. Hợp đồng ResourceBundleProvider#getBundle
+## 5. The ResourceBundleProvider#getBundle Contract
 
-SPI gốc trong `java.util.spi` có chữ ký:
+The base SPI in `java.util.spi` has the signature:
 
 ```java
 ResourceBundle getBundle(String baseName, Locale locale);
 ```
 
-Không tự tạo file Java trong package `java.util.spi`; đây là chữ ký API có sẵn.
+Do not create your own Java file in package `java.util.spi`; this is the built-in API signature.
 
-Provider được gọi khi `ResourceBundle` tìm bundle phù hợp theo candidate locale:
+The provider is invoked while `ResourceBundle` searches for a matching bundle across candidate locales:
 
-- `baseName` là tên logic mà consumer yêu cầu.
-- `locale` là ứng viên locale được thử, không nhất thiết là requested locale cuối cùng.
-- Trả `ResourceBundle` khi provider có tài nguyên tương ứng.
-- Trả `null` khi provider **không có tài nguyên cho cặp baseName/locale**.
+- `baseName` is the logical name requested by the consumer.
+- `locale` is a candidate locale being tried, not necessarily the final requested locale.
+- Return a `ResourceBundle` when the provider has the matching resource.
+- Return `null` when the provider **has no resource for the `baseName`/`locale` pair**.
 
-Ví dụ trong subclass của `AbstractResourceBundleProvider`:
+Example in a subclass of `AbstractResourceBundleProvider`:
 
 ```java
 @Override
@@ -184,15 +184,15 @@ public ResourceBundle getBundle(String baseName, Locale locale) {
 }
 ```
 
-Đây là đoạn minh họa trong lớp provider đã có `import java.util.ResourceBundle;` và `import java.util.Locale;`.
+This is an illustrative snippet inside a provider class with `import java.util.ResourceBundle;` and `import java.util.Locale;`.
 
-`null` **không phải exception**: nó cho phép quá trình nạp thử candidate khác hoặc nguồn phù hợp khác. Nhưng không nên bắt mọi lỗi I/O, dữ liệu hỏng hay bug và trả `null` một cách âm thầm; việc đó làm mất tín hiệu vận hành.
+`null` **is not an exception**: it allows the loading process to try other candidates or other suitable sources. However, do not catch I/O errors, corrupt data, or bugs and silently return `null`; doing so hides operational signals.
 
-Nếu tìm không được bundle, `ResourceBundle.getBundle` có thể ném `MissingResourceException`. Nếu bundle tìm được nhưng một key không tồn tại, `bundle.getString(key)` cũng có thể ném `MissingResourceException`. Hai trường hợp cần được phân biệt khi điều tra.
+If no bundle is found, `ResourceBundle.getBundle` throws `MissingResourceException`. If a bundle is found yet a key is absent, `bundle.getString(key)` also throws `MissingResourceException`. Distinguish these two cases when investigating.
 
-## 6. AbstractResourceBundleProvider và toBundleName
+## 6. AbstractResourceBundleProvider and toBundleName
 
-`java.util.spi.AbstractResourceBundleProvider` cung cấp implementation cơ bản tìm bundle **bên trong module của provider**. Constructor:
+`java.util.spi.AbstractResourceBundleProvider` supplies a base implementation that looks up bundles **inside the provider's own module**. Constructor:
 
 ```java
 public DemoProvider() {
@@ -200,17 +200,17 @@ public DemoProvider() {
 }
 ```
 
-`java.properties` và `java.class` là các format được lớp cơ sở hỗ trợ. Với format khác như XML hoặc JSON, implement `getBundle` phù hợp thay vì cố truyền chuỗi format không được hỗ trợ cho superclass.
+`java.properties` and `java.class` are the formats supported by the base class. For other formats such as XML or JSON, implement `getBundle` appropriately instead of passing unsupported format strings to the superclass.
 
-Phương thức:
+Method:
 
 ```java
 protected String toBundleName(String baseName, Locale locale);
 ```
 
-được dùng để tạo tên tài nguyên ứng với một locale. Mặc định nó theo quy tắc tên chuẩn kiểu `Messages_vi` hoặc `Messages_en_US`.
+is used to construct the resource name corresponding to a locale. By default it follows standard naming like `Messages_vi` or `Messages_en_US`.
 
-Nếu đưa nhiều module bản dịch vào cùng module graph, đặt chúng cùng một package Java có thể gây vấn đề **split package**. Provider có thể override để chuyển sang package vật lý riêng:
+If multiple translation modules are placed into the same module graph, placing them in the same Java package can cause **split package** issues. A provider can override it to redirect to its own physical package:
 
 ```java
 @Override
@@ -221,21 +221,21 @@ protected String toBundleName(String baseName, Locale locale) {
 }
 ```
 
-Kết quả với locale `vi` là `com.demo.impl.Messages_vi`, tương ứng:
+For locale `vi`, the result is `com.demo.impl.Messages_vi`, corresponding to:
 
 ```text
 com/demo/impl/Messages_vi.properties
 ```
 
-Consumer vẫn gọi baseName `com.demo.bundle.Messages`. Việc map vật lý nằm trong implementation, không phơi ra trong API của consumer.
+The consumer still calls baseName `com.demo.bundle.Messages`. The physical mapping lives inside the implementation, unexposed in the consumer's API.
 
-Các provider riêng khác có thể chọn package `com.demo.impl.fr`, `com.demo.impl.de`... khi thiết kế mở rộng, miễn là tránh xung đột package và đúng quy tắc module/resource.
+Other separate providers can choose packages such as `com.demo.impl.fr`, `com.demo.impl.de`, etc., when designing for extensibility, provided they avoid package collisions and obey module/resource rules.
 
-## 7. Ví dụ Java 17+ hoàn chỉnh với ba named modules
+## 7. Complete Java 17+ Example with Three Named Modules
 
-Mô hình dưới đây đã được biên dịch và chạy bằng JDK 21, chỉ dùng các API tồn tại trên Java 17. Giá trị bản dịch minh họa là ASCII để output không phụ thuộc charset của terminal; file dịch thực tế có thể lưu văn bản tiếng Việt có dấu bằng UTF-8.
+The layout below was compiled and run on JDK 21 using only APIs present in Java 17. Illustrative translation values use ASCII so output does not depend on terminal charsets; real translation files can store accented Vietnamese text in UTF-8.
 
-### 7.1. Cây thư mục
+### 7.1. Directory Tree
 
 ```text
 resourcebundle-provider-demo/
@@ -252,14 +252,14 @@ resourcebundle-provider-demo/
 │   └── com.demo.bundle.app/
 │       ├── module-info.java
 │       └── com/demo/app/Main.java
-└── mods/                          (sinh ra khi build)
+└── mods/                          (generated during build)
 ```
 
-Các thư mục dưới `src` cần đúng tên module trong `module-info.java` khi sử dụng `--module-source-path`.
+Directories under `src` must match the module names in `module-info.java` when using `--module-source-path`.
 
-### 7.2. Module API
+### 7.2. API Module
 
-Tệp `src/com.demo.bundle.api/module-info.java`:
+File `src/com.demo.bundle.api/module-info.java`:
 
 ```java
 module com.demo.bundle.api {
@@ -267,7 +267,7 @@ module com.demo.bundle.api {
 }
 ```
 
-Tệp `src/com.demo.bundle.api/com/demo/bundle/spi/MessagesProvider.java`:
+File `src/com.demo.bundle.api/com/demo/bundle/spi/MessagesProvider.java`:
 
 ```java
 package com.demo.bundle.spi;
@@ -278,9 +278,9 @@ public interface MessagesProvider extends ResourceBundleProvider {
 }
 ```
 
-### 7.3. Module cung cấp
+### 7.3. Provider Module
 
-Tệp `src/com.demo.bundle.impl/module-info.java`:
+File `src/com.demo.bundle.impl/module-info.java`:
 
 ```java
 module com.demo.bundle.impl {
@@ -291,7 +291,7 @@ module com.demo.bundle.impl {
 }
 ```
 
-Tệp `src/com.demo.bundle.impl/com/demo/impl/DemoProvider.java`:
+File `src/com.demo.bundle.impl/com/demo/impl/DemoProvider.java`:
 
 ```java
 package com.demo.impl;
@@ -331,25 +331,25 @@ public final class DemoProvider extends AbstractResourceBundleProvider
 }
 ```
 
-Class này công bố public constructor không tham số và đúng interface. `toBundleName` nạp file theo package `com.demo.impl` thay vì logical package. `getBundle` từ chối family không đúng hoặc ngôn ngữ không phục vụ, còn trường hợp khác để superclass tìm resource.
+This class exposes a public no-arg constructor and implements the proper interface. `toBundleName` loads files from package `com.demo.impl` rather than the logical package. `getBundle` rejects mismatched families or unsupported languages, delegating valid cases to the superclass to locate the resource.
 
-Tệp `src/com.demo.bundle.impl/com/demo/impl/Messages_vi.properties`:
+File `src/com.demo.bundle.impl/com/demo/impl/Messages_vi.properties`:
 
 ```properties
 welcome=Xin chao
 ```
 
-Tệp `src/com.demo.bundle.impl/com/demo/impl/Messages_en.properties`:
+File `src/com.demo.bundle.impl/com/demo/impl/Messages_en.properties`:
 
 ```properties
 welcome=Hello
 ```
 
-Để chuyển sang bản dịch có dấu, lưu UTF-8 và kiểm tra encoding của build. `PropertyResourceBundle` từ Java 9 hỗ trợ UTF-8 theo hợp đồng với fallback ISO-8859-1 trong trường hợp phù hợp; không nhầm với hành vi `Properties.load(InputStream)`.
+To switch to accented translations, save in UTF-8 and check the build encoding. `PropertyResourceBundle` since Java 9 supports UTF-8 by contract with ISO-8859-1 fallback when applicable; do not confuse it with `Properties.load(InputStream)`.
 
-### 7.4. Module consumer
+### 7.4. Consumer Module
 
-Tệp `src/com.demo.bundle.app/module-info.java`:
+File `src/com.demo.bundle.app/module-info.java`:
 
 ```java
 module com.demo.bundle.app {
@@ -358,7 +358,7 @@ module com.demo.bundle.app {
 }
 ```
 
-Tệp `src/com.demo.bundle.app/com/demo/app/Main.java`:
+File `src/com.demo.bundle.app/com/demo/app/Main.java`:
 
 ```java
 package com.demo.app;
@@ -385,11 +385,11 @@ public class Main {
 }
 ```
 
-App không import `DemoProvider`, chỉ biết baseName và hợp đồng service.
+The app does not import `DemoProvider`; it only knows the `baseName` and the service contract.
 
-### 7.5. Biên dịch và copy file resource
+### 7.5. Compiling and Copying Resource Files
 
-Chạy từ thư mục `resourcebundle-provider-demo` với Bash trên Linux/macOS:
+Run from the `resourcebundle-provider-demo` directory using Bash on Linux/macOS:
 
 ```bash
 mkdir -p mods
@@ -403,11 +403,11 @@ cp src/com.demo.bundle.impl/com/demo/impl/*.properties \
    mods/com.demo.bundle.impl/com/demo/impl/
 ```
 
-Các lệnh `find`, `cp` và cú pháp `$(...)` thuộc Bash; không dùng nguyên xi trong PowerShell. Với PowerShell, có thể lấy danh sách file Java bằng `Get-ChildItem -Recurse -Filter *.java` rồi truyền đường dẫn cho `javac`, và dùng `Copy-Item` để copy `.properties`.
+`find`, `cp`, and `$(...)` syntax belong to Bash; do not run them verbatim in PowerShell. In PowerShell, you can collect Java files with `Get-ChildItem -Recurse -Filter *.java` to pass paths to `javac`, and use `Copy-Item` to copy `.properties` files.
 
-**Điểm thường quên:** `javac` biên dịch file Java nhưng không tự copy mọi tài nguyên ngoài Java vào `mods`. Nếu file properties chỉ nằm trong `src`, runtime sẽ không có nội dung để provider nạp. Khi dùng Maven/Gradle, kiểm tra tài nguyên thực sự đã đi vào build output/JAR và đúng đường dẫn.
+**Commonly forgotten step:** `javac` compiles Java files but does not automatically copy non-Java resources into `mods`. If `.properties` files stay only in `src`, the runtime will have no content for the provider to load. When using Maven/Gradle, verify that resources actually reach the build output/JAR at the expected path.
 
-### 7.6. Chạy chương trình
+### 7.6. Running the Program
 
 ```bash
 java --module-path mods \
@@ -421,7 +421,7 @@ VI=Xin chao (vi)
 EN=Hello (en)
 ```
 
-Ở runtime dùng kiểm thử, service binding resolve module provider từ module path do app khai báo `uses` phù hợp. Có thể thêm rõ module provider vào graph:
+At runtime in this test, service binding resolves the provider module from the module path because the app declares the matching `uses`. You can also explicitly add the provider module to the graph:
 
 ```bash
 java --module-path mods \
@@ -429,110 +429,110 @@ java --module-path mods \
   --module com.demo.bundle.app/com.demo.app.Main
 ```
 
-Output vẫn như trên.
+Output remains identical.
 
-Tại sao là `vi` và `en`? Code yêu cầu `vi-VN` và `en-US` nhưng provider chỉ có `Messages_vi.properties` và `Messages_en.properties`. `ResourceBundle` tìm candidate ít cụ thể hơn nên `bundle.getLocale()` cho `vi` hoặc `en`.
+Why `vi` and `en`? The code requested `vi-VN` and `en-US`, yet the provider only has `Messages_vi.properties` and `Messages_en.properties`. `ResourceBundle` tries less specific candidates, so `bundle.getLocale()` reports `vi` or `en`.
 
-Ví dụ ba module đã được **biên dịch và chạy**, bao gồm cả cách khởi chạy có và không có `--add-modules`; không phải một bộ snippets chưa kiểm chứng.
+This three-module example has been **compiled and executed**, including both with and without `--add-modules`; it is not an unverified set of snippets.
 
-## 8. Candidate locale, fallback và resolved locale
+## 8. Candidate Locale, Fallback, and Resolved Locale
 
-Một request `Locale.forLanguageTag("vi-VN")` có thể dẫn đến:
+A request for `Locale.forLanguageTag("vi-VN")` can follow:
 
 ```text
 Requested: vi-VN
     |
-Candidate: vi_VN (không có Messages_vi_VN.properties)
+Candidate: vi_VN (no Messages_vi_VN.properties)
     |
-Candidate: vi    (có Messages_vi.properties)
+Candidate: vi    (has Messages_vi.properties)
     |
 Resolved locale: vi
 ```
 
-Đây là **sơ đồ minh họa trường hợp cụ thể**, không phải toàn bộ quy tắc fallback của mọi locale. `ResourceBundle` có thể xét script/variant, root bundle và default locale theo hợp đồng API khi không tìm thấy candidate.
+This is a **diagram illustrating a concrete case**, not the complete fallback rules for all locales. `ResourceBundle` may inspect scripts/variants, the root bundle, and the default locale per the API contract when candidates are missing.
 
-Nên phân biệt:
+Distinguish:
 
-- `requestedLocale`: người dùng hoặc chương trình yêu cầu.
-- `candidateLocale`: một ứng viên được cơ chế nạp thử.
-- `resolvedLocale`: locale của bundle thực tế trả về, lấy qua `bundle.getLocale()`.
+- `requestedLocale`: what the user or program asked for.
+- `candidateLocale`: a candidate tried by the loading mechanism.
+- `resolvedLocale`: the locale of the bundle actually returned, obtained via `bundle.getLocale()`.
 
-Provider nên trả `null` khi không hỗ trợ candidate để thuật toán có thể thử tiếp. Không tự trả nội dung tiếng Anh cho mọi candidate nếu ứng dụng yêu cầu nhận biết locale fallback rõ ràng.
+A provider should return `null` when it does not support a candidate so the algorithm can keep trying. Do not return English content for every candidate if the application needs accurate fallback locale awareness.
 
-Nếu hệ thống cần kiểm soát “chỉ cho phép vi và en”, xác định danh sách ngôn ngữ hỗ trợ ở tầng ứng dụng, chọn fallback tường minh và kiểm thử cả bundle locale được trả về. Đừng giả định `getBundle` luôn trả chính xác requested locale.
+If a system needs to enforce "only allow vi and en," define the supported language list at the application layer, choose fallback explicitly, and assert against the returned bundle's locale. Do not assume `getBundle` always returns the exact requested locale.
 
-## 9. Service binding, module path và encapsulation
+## 9. Service Binding, Module Path, and Encapsulation
 
-`--module-path` chỉ định vị trí các modules khả dụng, không phải yêu cầu JVM nạp mọi file ở đó vào graph một cách vô điều kiện. Một provider chỉ được sử dụng khi module tương ứng được **resolve**.
+`--module-path` specifies where available modules live; it does not tell the JVM to unconditionally load every artifact there into the graph. A provider is used only when its module is **resolved**.
 
-Những yếu tố cần kiểm tra:
+Checks to verify:
 
-1. Module app được chạy bằng `--module`.
-2. API module có trong graph nhờ `requires`.
-3. App có `uses` đúng service type gắn với baseName.
-4. Provider có `provides` đúng và hiện diện trên module path.
-5. Runtime thực hiện service binding hoặc thêm provider bằng `--add-modules` khi cần.
-6. Đường dẫn tài nguyên bên trong compiled provider module thực sự tồn tại.
+1. The app module is launched with `--module`.
+2. The API module is in the graph via `requires`.
+3. The app has `uses` for the exact service type tied to `baseName`.
+4. The provider has the matching `provides` and is present on the module path.
+5. The runtime performs service binding or adds the provider via `--add-modules` when needed.
+6. The resource path inside the compiled provider module actually exists.
 
-Module implementation không nhất thiết `exports` package của nó cho app, vì app không import class implementation. Trong ví dụ, provider đọc resources local qua `AbstractResourceBundleProvider` mà không cần `open module`.
+The implementation module does not need to `exports` its package to the app, because the app never imports implementation classes. In the example, the provider reads local resources via `AbstractResourceBundleProvider` without needing `open module`.
 
-Điều đó **không** có nghĩa mọi tài nguyên trong mọi module đều truy cập được từ bất kỳ `ClassLoader` nào. Quy tắc encapsulation của `Module.getResourceAsStream` và nguồn tài nguyên riêng vẫn phải được tôn trọng.
+That does **not** mean every resource in every module is accessible from any `ClassLoader`. Encapsulation rules of `Module.getResourceAsStream` and private resources must still be respected.
 
-### Split package là gì?
+### What Is a Split Package?
 
-JPMS hạn chế cách nhiều named modules cùng sở hữu một package Java. Nếu các module bản dịch độc lập cùng đặt resources/lớp vào physical package `com.demo.bundle`, cấu trúc dễ gây xung đột package. Dùng physical package riêng, ví dụ `com.demo.impl`, và override `toBundleName` để giữ logical baseName ổn định.
+JPMS restricts multiple named modules from owning the same Java package. If independent translation modules both place resources/classes in physical package `com.demo.bundle`, the layout can trigger package conflicts. Use separate physical packages, such as `com.demo.impl`, and override `toBundleName` to keep the logical `baseName` stable.
 
-## 10. So sánh với ResourceBundle.Control
+## 10. Comparison with ResourceBundle.Control
 
-`ResourceBundle.Control` là một cơ chế tùy biến loading, format, candidate locales, TTL trong môi trường classpath/unnamed module. Với named modules, cách dùng một instance `Control` qua các overload `ResourceBundle.getBundle` có những giới hạn và `UnsupportedOperationException` ở các trường hợp không hỗ trợ.
+`ResourceBundle.Control` is a mechanism for customizing loading, formats, candidate locales, and TTL in classpath/unnamed-module environments. With named modules, using a `Control` instance via `ResourceBundle.getBundle` overloads has restrictions and throws `UnsupportedOperationException` in unsupported cases.
 
-Bảng phân biệt:
+Comparison table:
 
-| Thành phần | Vai trò |
+| Component | Role |
 | --- | --- |
-| `ResourceBundle.getBundle` | API lấy bundle cho base name/locale |
-| `ResourceBundleProvider` | SPI để bundle được cung cấp từ provider modules |
-| `AbstractResourceBundleProvider` | Implementation nền cho provider đọc `java.properties`/`java.class` |
-| `ResourceBundle.Control` | Tùy biến loading ở ngữ cảnh truyền thống, không thay thế SPI JPMS |
-| `ResourceBundleControlProvider` | SPI khác nhằm cung cấp Control; không phải provider bản dịch cho named module |
+| `ResourceBundle.getBundle` | API to fetch a bundle for a base name/locale |
+| `ResourceBundleProvider` | SPI allowing bundles to be supplied from provider modules |
+| `AbstractResourceBundleProvider` | Base implementation for providers reading `java.properties`/`java.class` |
+| `ResourceBundle.Control` | Customizes loading in traditional contexts; does not replace the JPMS SPI |
+| `ResourceBundleControlProvider` | Separate SPI for supplying `Control`; not a translation provider for named modules |
 
-Khi chuyển một codebase Java 8 dùng `Control` sang JPMS, cần xem lại loại module, cách gọi overload và kiến trúc resource. Không nên chỉ copy subclass `Control` rồi mặc định toàn bộ logic nạp custom format vẫn hoạt động như cũ.
+When migrating a Java 8 codebase using `Control` to JPMS, review module boundaries, overload calls, and resource architecture. Do not merely copy a `Control` subclass and assume all custom-format loading logic continues working as before.
 
-Provider có thể tự tạo bundle từ XML/JSON hoặc một nguồn dữ liệu khác thông qua `getBundle`. Nhưng `AbstractResourceBundleProvider` chỉ chấp nhận các format chuẩn được nó hỗ trợ; dữ liệu từ nguồn khác cần implementation phù hợp.
+A provider can construct bundles from XML/JSON or another data source inside `getBundle`. However, `AbstractResourceBundleProvider` only accepts the standard formats it supports; data from other sources requires an appropriate implementation.
 
-## 11. Cache và tính an toàn khi có nhiều luồng
+## 11. Caching and Multithreaded Safety
 
-`ResourceBundle` cache các bundle đã nạp theo cơ chế chuẩn. Vì vậy:
+`ResourceBundle` caches loaded bundles using its standard mechanism. Therefore:
 
-- Chỉnh file tài nguyên của một module/JAR đã được load không bảo đảm `getBundle` đọc lại ngay.
-- Khi phát hành resource mới, có thể cần lifecycle deploy/restart thích hợp.
-- `ResourceBundle.clearCache()` có tác dụng với cache trong phạm vi được API định nghĩa; không nên gọi mỗi request.
-- Một provider dùng nguồn dữ liệu động phải có policy refresh/version/caching rõ, không dựa vào việc sửa file ngẫu nhiên.
+- Editing a resource file of an already-loaded module/JAR does not guarantee `getBundle` re-reads it immediately.
+- Releasing new resources may require an appropriate deploy/restart lifecycle.
+- `ResourceBundle.clearCache()` applies to caches within the API-defined scope; do not call it on every request.
+- A provider backed by dynamic data sources must have an explicit refresh/version/caching policy rather than relying on ad-hoc file edits.
 
-Các implementation chuẩn như `PropertyResourceBundle` và `ListResourceBundle` có bảo đảm thread safety cho các thao tác mặc định tương ứng. Nhưng provider tùy biến có thể có `Map`, network client hoặc cache mutable; cần bảo vệ khi nhiều luồng cùng truy cập.
+Standard implementations such as `PropertyResourceBundle` and `ListResourceBundle` ensure thread safety for their default operations. However, a custom provider may hold a `Map`, network client, or mutable cache; protect them when multiple threads access concurrently.
 
-SPI chỉ giải quyết vấn đề **khám phá và phân phối resource**, không bảo đảm mọi state bên trong implementation đều thread-safe.
+The SPI solves **resource discovery and distribution**; it does not automatically make all internal implementation state thread-safe.
 
-## 12. Chẩn đoán MissingResourceException
+## 12. Diagnosing MissingResourceException
 
-Nếu `ResourceBundle.getBundle("com.demo.bundle.Messages", locale)` thất bại, kiểm tra tuần tự:
+If `ResourceBundle.getBundle("com.demo.bundle.Messages", locale)` fails, check sequentially:
 
-1. **Base name** có chính xác và không chứa hậu tố file hay locale không?
-2. Service interface có tên đúng `com.demo.bundle.spi.MessagesProvider` theo quy tắc Java 17 không?
-3. API module có export package SPI không?
-4. Consumer có `requires com.demo.bundle.api` và `uses com.demo.bundle.spi.MessagesProvider` không?
-5. Provider module có `provides ... with ...` khớp interface không?
-6. Provider class có constructor hợp lệ và thực sự implement interface không?
-7. Provider module có mặt trên module path và được resolve không?
-8. `getBundle` của provider có trả `null` vì check baseName hoặc locale quá chặt không?
-9. `toBundleName` có sinh tên bundle vật lý đúng không?
-10. Tệp `Messages_vi.properties` có được copy vào output ở đúng path không?
-11. Một candidate locale hay root bundle phù hợp có tồn tại không?
-12. Có cache cũ hoặc runtime đang chạy artifact khác với file vừa build không?
+1. Is the **base name** exact and free of file or locale suffixes?
+2. Is the service interface named `com.demo.bundle.spi.MessagesProvider` per Java 17 rules?
+3. Does the API module export the SPI package?
+4. Does the consumer declare `requires com.demo.bundle.api` and `uses com.demo.bundle.spi.MessagesProvider`?
+5. Does the provider module declare `provides ... with ...` matching the interface?
+6. Does the provider class have a valid constructor and actually implement the interface?
+7. Is the provider module present on the module path and resolved?
+8. Is the provider's `getBundle` returning `null` due to overly strict `baseName` or `locale` checks?
+9. Does `toBundleName` produce the right physical bundle name?
+10. Was `Messages_vi.properties` copied into the output at the exact path?
+11. Does a matching candidate locale or root bundle exist?
+12. Is there a stale cache or is the runtime running a different artifact than what you just built?
 
-Nếu bundle tải được nhưng `getString("welcome")` thất bại, cần điều tra **key**, không nhất thiết điều tra module graph từ đầu.
+If the bundle loads yet `getString("welcome")` fails, investigate the **key**, not the module graph from scratch.
 
-Một số công cụ hỗ trợ:
+Helpful diagnostic commands:
 
 ```bash
 java --show-module-resolution --module-path mods \
@@ -543,54 +543,54 @@ jar --list --file provider.jar
 jar --describe-module --file provider.jar
 ```
 
-Hai lệnh `jar` giả định bạn đã tạo một modular JAR tên `provider.jar`. Đó là tên minh họa, không phải file có sẵn ở cây thư mục demo trước khi đóng gói.
+The two `jar` commands assume you have created a modular JAR named `provider.jar`. That is an illustrative name, not a pre-existing file in the demo directory tree before packaging.
 
-## 13. Sai lầm thường gặp
+## 13. Common Mistakes
 
-| Sai lầm | Vì sao sai | Hướng đúng |
+| Mistake | Why it fails | Right approach |
 | --- | --- | --- |
-| Mọi bundle trong named module phải có SPI | Local bundle có thể được nạp trực tiếp | Chỉ dùng provider khi cần tách module/mở rộng |
-| Chỉ dùng `uses ResourceBundleProvider` | Service type có tên suy ra từ baseName | Tạo và khai báo interface đúng package `spi` |
-| Tên provider có thể đặt tùy ý | Không đúng theo quy tắc service type | Tuân công thức package + `.spi.` + simple name + Provider |
-| App cần import DemoProvider | Phá lợi ích tách implementation | App dùng ResourceBundle và service declaration |
-| Provider không cần `provides` | Service loader cần metadata module | Khai báo `provides ... with ...` |
-| `javac` copy properties | Compiler không tự copy các resource ngoài Java | Copy hoặc cấu hình build resource task |
-| File tài nguyên phải nằm cùng package logical | Provider có thể tự map tên vật lý | Override `toBundleName` |
-| Trả bundle tiếng Anh cho mọi locale | Che mất candidate và fallback đúng | Trả `null` cho locale không hỗ trợ |
-| Requested locale luôn trùng resolved locale | Có thể fallback `vi-VN` sang `vi` | Kiểm tra `getLocale()` |
-| Có module provider trên đĩa là đủ | Module cần được resolve vào graph | Kiểm tra module path và service binding |
-| Mở toàn bộ module giải quyết mọi lỗi | Sai name, path và metadata vẫn sai | Sửa đúng service/resource contracts |
-| Dùng `Control` như khi chạy classpath | Named module có giới hạn riêng | Dùng provider khi cần |
-| Đổi file resource thì app tự refresh | Bundle có caching/lifecycle | Quản lý phiên bản và refresh |
-| Tạo nhiều provider trùng locale không có policy | Có thể phụ thuộc thứ tự phát hiện | Tránh overlap hoặc xác định ưu tiên |
+| Every bundle in a named module needs an SPI | Local bundles can be loaded directly | Use a provider only when separating modules/extensibility |
+| Using only `uses ResourceBundleProvider` | Service type name is derived from `baseName` | Create and declare the interface in the `spi` package |
+| Naming the provider arbitrarily | Breaks the service-type naming convention | Follow package + `.spi.` + simple name + `Provider` |
+| App importing `DemoProvider` | Defeats implementation decoupling | App uses `ResourceBundle` and service declaration |
+| Provider omitting `provides` | ServiceLoader needs module metadata | Declare `provides ... with ...` |
+| Assuming `javac` copies properties | Compiler does not copy non-Java resources | Copy manually or configure build resource tasks |
+| Thinking resource files must match logical package | Provider can map physical names itself | Override `toBundleName` |
+| Returning the English bundle for every locale | Masks proper candidates and fallback | Return `null` for unsupported locales |
+| Assuming requested locale always equals resolved locale | `vi-VN` may fall back to `vi` | Inspect `getLocale()` |
+| Placing provider module on disk is enough | Module must be resolved into the graph | Verify module path and service binding |
+| Opening the entire module fixes all errors | Wrong names, paths, and metadata still fail | Fix service/resource contracts properly |
+| Using `Control` as on the classpath | Named modules enforce restrictions | Use a provider when needed |
+| Editing resource files refreshes the app automatically | Bundles have caching/lifecycles | Manage versioning and refresh explicitly |
+| Creating multiple providers for the same locale without a policy | Can depend on discovery order | Avoid overlap or define priority |
 
-## 14. Bài tập tự kiểm tra
+## 14. Self-Check Exercises
 
-**Bài 1 — service name.** Với base name `org.acme.ui.Words`, hãy tạo service type đúng quy tắc. Viết `uses` ở consumer và `provides` ở provider.
+**Exercise 1 — Service name.** For base name `org.acme.ui.Words`, create the service type following the convention. Write `uses` in the consumer and `provides` in the provider.
 
-**Bài 2 — bổ sung tiếng Pháp.** Thêm `Messages_fr.properties` vào module triển khai và nới logic provider. Gọi `Locale.FRANCE` nhưng chỉ có file cho `fr` thì resolved locale thường là gì?
+**Exercise 2 — Adding French.** Add `Messages_fr.properties` to the implementation module and relax the provider's check. When requesting `Locale.FRANCE` while only the `fr` file exists, what is the resolved locale typically?
 
-**Bài 3 — tách gói.** Giả sử có một provider bản dịch tiếng Đức trong module khác. Hãy đặt tài nguyên vào package vật lý riêng và override `toBundleName` để không gây split package.
+**Exercise 3 — Separating packages.** Suppose a German translation provider exists in another module. Place its resources in a separate physical package and override `toBundleName` to avoid a split package.
 
-**Bài 4 — kiểm tra build.** Bỏ bước copy `.properties` khỏi lệnh biên dịch. Vì sao code Java có thể compile thành công mà runtime không có bundle?
+**Exercise 4 — Checking the build.** Remove the `.properties` copy step from the compile commands. Why can Java code compile cleanly while the runtime lacks the bundle?
 
-**Bài 5 — provider resolution.** Provider module không được resolve. Hãy kiểm tra từng điều kiện của module path, service metadata và `--add-modules` để tìm nguyên nhân.
+**Exercise 5 — Provider resolution.** The provider module is not resolved. Check each condition of the module path, service metadata, and `--add-modules` to find the cause.
 
-**Bài 6 — Control và provider.** Một thư viện legacy dùng `ResourceBundle.Control` để đọc XML. Khi chuyển sang named module, bạn sẽ tổ chức `ResourceBundleProvider#getBundle` như thế nào?
+**Exercise 6 — Control and provider.** A legacy library used `ResourceBundle.Control` to read XML. When migrating to a named module, how would you structure `ResourceBundleProvider#getBundle`?
 
-**Bài 7 — fallback.** Phân biệt `requestedLocale = vi-VN`, candidate `vi-VN` và `vi`, cùng `getLocale() = vi` trong ví dụ. Làm sao để test fallback không phụ thuộc default locale?
+**Exercise 7 — Fallback.** Distinguish `requestedLocale = vi-VN`, candidates `vi-VN` and `vi`, and `getLocale() = vi` in the example. How do you test fallback independently of the default locale?
 
-**Bài 8 — cập nhật bản dịch.** Một dịch vụ muốn cập nhật resource mà không restart. Vì sao caching và lifecycle của named module khiến việc sửa file đơn giản không đủ? Đề xuất policy version/refresh.
+**Exercise 8 — Updating translations.** A service wants to update resources without restarting. Why do caching and named-module lifecycles make simply editing a file insufficient? Propose a versioning/refresh policy.
 
-## 15. Kết luận
+## 15. Conclusion
 
-**`java.util.spi.ResourceBundleProvider` là cơ chế cung cấp bundle giữa các named modules của JPMS.** Module consumer biết base name và service type theo quy tắc, khai báo `uses`; module provider implements interface và khai báo `provides ... with ...`. Nhờ vậy ứng dụng có thể thêm gói dịch mà không phụ thuộc trực tiếp vào lớp triển khai.
+**`java.util.spi.ResourceBundleProvider` is the mechanism for supplying bundles across named modules in JPMS.** The consumer module knows the `baseName` and convention-based service type and declares `uses`; the provider module implements the interface and declares `provides ... with ...`. This lets applications add translation packs without depending directly on implementation classes.
 
-`AbstractResourceBundleProvider` giúp đọc `.properties` hoặc bundle class trong provider module. Override `toBundleName` cho phép lưu resource ở package vật lý riêng và giữ logical base name ổn định. `ResourceBundle` tiếp tục xử lý candidate locale, fallback và cache; provider cần trả `null` đúng trường hợp và được resolve hợp lệ trong module graph.
+`AbstractResourceBundleProvider` helps read `.properties` or class bundles inside the provider module. Overriding `toBundleName` lets resources live in separate physical packages while keeping the logical `baseName` stable. `ResourceBundle` continues handling candidate locales, fallback, and caching; providers must return `null` appropriately and be properly resolved in the module graph.
 
-**Nguyên tắc cốt lõi:** *Hợp đồng dịch nằm ở base name và service interface; module triển khai sở hữu resource. Khai báo đúng service, đóng gói đúng file, kiểm chứng module resolution và kết quả locale thực tế.*
+**Core principle:** *The translation contract lives in the base name and service interface; the implementation module owns the resources. Declare the service properly, package the right files, and verify module resolution and actual resolved locales.*
 
-### Tài liệu API
+### API Documentation
 
 - [`ResourceBundleProvider` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/spi/ResourceBundleProvider.html)
 - [`AbstractResourceBundleProvider` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/spi/AbstractResourceBundleProvider.html)

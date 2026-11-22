@@ -1,10 +1,10 @@
-# Static final: không thể ghi bằng cách mở quyền Reflection thông thường
+# Static final: Cannot Be Written by Normal Reflection Access Suppression
 
-## 1. Câu hỏi cốt lõi
+## 1. Core Question
 
-Trong Java, một field khai báo `static final` là **field thuộc về class** (hoặc interface) và **tham chiếu/giá trị của field không được gán lại sau khi được khởi tạo** theo quy tắc của ngôn ngữ. Khi dùng Reflection, kể cả khi `Field.setAccessible(true)` hoặc `Field.trySetAccessible()` đã cho phép truy cập member vốn là private, các API ghi thông thường như `Field.set(...)`, `Field.setInt(...)` vẫn **không được cấp quyền ghi vào `static final`**.
+In Java, a field declared `static final` is a **field belonging to the class** (or interface), and **its reference/value cannot be reassigned after being initialized** according to the rules of the language. When using Reflection, even when `Field.setAccessible(true)` or `Field.trySetAccessible()` has allowed accessing a member that was private, normal write APIs such as `Field.set(...)` and `Field.setInt(...)` are still **not granted permission to write to `static final`**.
 
-Ví dụ:
+Example:
 
 ~~~java
 class Config {
@@ -12,34 +12,34 @@ class Config {
 }
 ~~~
 
-Lệnh `Config.class.getDeclaredField("PORT")` có thể lấy được metadata về field; nếu quyền module cho phép thì `setAccessible(true)` có thể cho đọc `PORT`. Tuy nhiên, gọi `field.setInt(null, 9090)` sẽ ném `IllegalAccessException`. Đừng nhầm việc lấy được `Field` hoặc bật được quyền truy cập với quyền **sửa** field đó.
+Calling `Config.class.getDeclaredField("PORT")` can obtain metadata about the field; if module permissions allow, `setAccessible(true)` can allow reading `PORT`. However, calling `field.setInt(null, 9090)` will throw `IllegalAccessException`. Do not confuse obtaining a `Field` or enabling access with having permission to **modify** that field.
 
-Quy tắc quan trọng trong JDK 17+ (và tiếp tục trong API JDK 26): **mọi `static final` được khai báo trong class hoặc interface là *non-modifiable final fields* đối với `java.lang.reflect.Field`**. Chính `AccessibleObject.setAccessible` và `Field.set` định nghĩa giới hạn này; không có sự khác biệt cho phép ghi chỉ vì field có `private`, `public`, kiểu primitive, `String` hay một kiểu object.
+An important rule in JDK 17+ (and continuing in the JDK 26 API): **every `static final` field declared in a class or interface is a *non-modifiable final field* for `java.lang.reflect.Field`**. `AccessibleObject.setAccessible` and `Field.set` themselves define this limit; there is no distinction that permits writing merely because the field is `private`, `public`, a primitive type, `String`, or an object type.
 
-## 2. Hiểu đúng ba lớp kiểm tra
+## 2. Understanding the Three Layers of Checks Correctly
 
-Với field `private static final`, có ba câu hỏi khác nhau:
+For a `private static final` field, there are three distinct questions:
 
-1. **Có tìm được khai báo field?** `getDeclaredField("name")` tìm field khai báo trong class, bất kể `public` hay `private`. Nó có thể ném `NoSuchFieldException` nếu tên sai.
-2. **Có được truy cập member đó không?** `setAccessible(true)` yêu cầu nới kiểm tra ngôn ngữ Java; `trySetAccessible()` trả về `true`/`false` tuỳ quyền. Java Platform Module System (JPMS) vẫn có thể từ chối deep reflection khi package không mở cho caller.
-3. **Field có cho phép ghi không?** Dù câu 2 thành công, field `static final` vẫn là *non-modifiable final field*. Gọi các setter Reflection thông thường sẽ ném `IllegalAccessException`.
+1. **Can the field declaration be found?** `getDeclaredField("name")` looks up a field declared in the class, regardless of whether it is `public` or `private`. It can throw `NoSuchFieldException` if the name is wrong.
+2. **Is accessing that member permitted?** `setAccessible(true)` requests relaxing Java language access checks; `trySetAccessible()` returns `true`/`false` depending on permissions. The Java Platform Module System (JPMS) can still deny deep reflection when the package is not open to the caller.
+3. **Is writing to the field permitted?** Even if question 2 succeeds, a `static final` field remains a *non-modifiable final field*. Calling normal Reflection setters will throw `IllegalAccessException`.
 
-Các cơ chế hoạt động ở những tầng khác nhau. `setAccessible(true)` **không xóa modifier `final`**, cũng không cho phép ứng dụng bỏ qua quy tắc ghi của `Field.set`.
+These mechanisms operate at different layers. `setAccessible(true)` **does not remove the `final` modifier**, nor does it allow an application to bypass the write rules of `Field.set`.
 
-| Thao tác | Trên field `static final` |
+| Operation | On a `static final` field |
 | --- | --- |
-| `Class.getDeclaredField("X")` | Lấy metadata thành công nếu field tồn tại; không mặc định cấp quyền đọc/ghi. |
-| `Field.getModifiers()` | Có thể kiểm tra `Modifier.isStatic(...)` và `Modifier.isFinal(...)`. |
-| `Field.setAccessible(true)` | Có thể thành công nếu caller có quyền mở truy cập; chỉ hỗ trợ đọc nếu field là *non-modifiable final*. |
-| `Field.trySetAccessible()` | Có thể trả `true`; kết quả này **không** có nghĩa được phép ghi. |
-| `Field.get(null)` / `getInt(null)` | Đọc nếu được phép; đối số đối tượng bị bỏ qua đối với field static. |
-| `Field.set(null, value)` / `setInt(null, value)` | Ném `IllegalAccessException` vì không có quyền ghi `static final`, ngay cả sau khi mở quyền truy cập. |
+| `Class.getDeclaredField("X")` | Obtains metadata successfully if the field exists; does not grant read/write permission by default. |
+| `Field.getModifiers()` | Can inspect `Modifier.isStatic(...)` and `Modifier.isFinal(...)`. |
+| `Field.setAccessible(true)` | May succeed if the caller has permission to open access; only supports reading if the field is *non-modifiable final*. |
+| `Field.trySetAccessible()` | May return `true`; this result **does not** mean writing is allowed. |
+| `Field.get(null)` / `getInt(null)` | Reads if permitted; the object argument is ignored for static fields. |
+| `Field.set(null, value)` / `setInt(null, value)` | Throws `IllegalAccessException` because there is no write permission for `static final`, even after enabling access. |
 
-Với setter Reflection cho field static, đối số đối tượng thường truyền `null` vì không gắn với instance. Với field instance, phải truyền đối tượng đúng kiểu. Đối số `null` **không phải nguyên nhân** khiến ghi `static final` bị từ chối.
+With Reflection setters for static fields, `null` is normally passed as the object argument because the field is not tied to an instance. With instance fields, an object of the appropriate type must be passed. Passing `null` **is not the reason** why writing `static final` is rejected.
 
-## 3. Ví dụ đầy đủ, chạy với Java 17 trở lên
+## 3. Complete Example, Runnable on Java 17 and Above
 
-Lưu đoạn sau vào file `StaticFinalDemo.java`:
+Save the following code into the file `StaticFinalDemo.java`:
 
 ~~~java
 import java.lang.reflect.Field;
@@ -91,14 +91,14 @@ public class StaticFinalDemo {
 }
 ~~~
 
-Chạy bằng JDK 17+:
+Run with JDK 17+:
 
 ~~~bash
 javac --release 17 StaticFinalDemo.java
 java StaticFinalDemo
 ~~~
 
-Stdout đã được kiểm tra với chương trình biên dịch ở chế độ tương thích Java 17:
+Stdout verified with the program compiled in Java 17 compatibility mode:
 
 ~~~text
 static final: true
@@ -110,54 +110,54 @@ mutate TAGS object: [A, B]
 change non-final static: 2
 ~~~
 
-**Giải thích từng kết quả:**
+**Explanation of each result:**
 
-- `LIMIT` có đồng thời cờ `static` và `final`. `trySetAccessible()` trả `true` bởi mã ví dụ chạy trên class path: class `Settings` thuộc unnamed module có package mở cho reflection. Điều đó cho phép đọc `10`.
-- `limit.setInt(null, 20)` không được phép ghi vì field là `static final`. `IllegalAccessException` là kết quả phải xử lý, dù lệnh nới quyền trước đó thành công.
-- `TAGS` là một **final reference** tới `ArrayList`. `tags.set(null, new ArrayList<>(...))` cố thay **tham chiếu field**, nên cũng thất bại.
-- `Settings.tags().add("B")` thay **trạng thái object** đã được field tham chiếu, không gán lại chính field. Vì object là `ArrayList` có thể thay đổi, thao tác thành công và in `[A, B]`.
-- `count` được khai báo `static` nhưng **không `final`**, nên Reflection có thể sửa field sau khi mở quyền. Kết quả `2` cho thấy hạn chế ghi ở trên gắn với `final`.
+- `LIMIT` has both the `static` and `final` flags. `trySetAccessible()` returns `true` because the example code runs on the classpath: the `Settings` class belongs to the unnamed module whose package is open to reflection. That allows reading `10`.
+- `limit.setInt(null, 20)` is not permitted to write because the field is `static final`. `IllegalAccessException` is the outcome that must be handled, even though the earlier access-suppression call succeeded.
+- `TAGS` is a **final reference** to an `ArrayList`. `tags.set(null, new ArrayList<>(...))` attempts to replace the **field reference**, so it also fails.
+- `Settings.tags().add("B")` changes the **state of the object** already referenced by the field, without reassigning the field itself. Because the object is a mutable `ArrayList`, the operation succeeds and prints `[A, B]`.
+- `count` is declared `static` but **not `final`**, so Reflection can modify the field after opening access. The result `2` shows that the write restriction above is tied to `final`.
 
-Bài học này không phụ thuộc vào mẹo can thiệp nội bộ JVM. Khả năng mở quyền đến từ việc mã ví dụ nằm trong unnamed module; với class trong **named module** không mở package cho caller, `trySetAccessible()` có thể trả `false` ngay trước bước đọc.
+This lesson does not rely on JVM internal manipulation tricks. The ability to open access comes from the example code residing in the unnamed module; for a class in a **named module** that has not opened its package to the caller, `trySetAccessible()` can return `false` before the read step even happens.
 
-## 4. `final` giữ nguyên tham chiếu, không làm object bất biến
+## 4. `final` Preserves the Reference, Not Object Immutability
 
-Xét:
+Consider:
 
 ~~~java
 private static final List<String> ITEMS = new ArrayList<>();
 ~~~
 
-Hai hành động khác bản chất:
+Two fundamentally different actions:
 
-- **Thay field:** `ITEMS = new ArrayList<>();` bị trình biên dịch chặn sau khi khởi tạo; `Field.set(null, anotherList)` cũng không được phép với `static final`.
-- **Thay trạng thái object:** `ITEMS.add("x")` vẫn có thể chạy vì `ArrayList` là cấu trúc mutable. Lúc này field vẫn trỏ tới cùng object.
+- **Replacing the field:** `ITEMS = new ArrayList<>();` is blocked by the compiler after initialization; `Field.set(null, anotherList)` is also not permitted for `static final`.
+- **Changing the object's state:** `ITEMS.add("x")` can still run because `ArrayList` is a mutable structure. Here the field still points to the same object.
 
-Tương tự, `static final StringBuilder BUILDER = new StringBuilder("A");` cho phép `BUILDER.append("B")` dù không cho phép `BUILDER = new StringBuilder("C")`. Ngược lại, `String` là immutable nên không có thao tác thay đổi nội dung của chính đối tượng `String`.
+Similarly, `static final StringBuilder BUILDER = new StringBuilder("A");` allows `BUILDER.append("B")` even though it does not allow `BUILDER = new StringBuilder("C")`. Conversely, `String` is immutable, so there is no operation that alters the contents of the `String` object itself.
 
-Để có collection chỉ đọc ở cấp API, cân nhắc `List.of(...)` hay bản sao bất biến `List.copyOf(...)`. Dù vậy, cần xét khả năng mutability của **các phần tử** nếu chúng là object phức tạp; `final` và collection không hỗ trợ thay đổi cấu trúc không bảo đảm deep immutability của cả đồ thị object.
+To obtain a read-only collection at the API level, consider `List.of(...)` or an immutable copy via `List.copyOf(...)`. Even then, you must consider the mutability of **the elements** if they are complex objects; `final` and a collection that rejects structural modification do not guarantee deep immutability of the entire object graph.
 
-## 5. Compile-time constant và field được khởi tạo tại runtime
+## 5. Compile-Time Constants vs. Fields Initialized at Runtime
 
-Một số field `static final` là **constant variables** theo Java Language Specification: chúng có kiểu primitive hoặc `String`, được khai báo `final` và khởi tạo bằng *constant expression*. Ví dụ:
+Some `static final` fields are **constant variables** according to the Java Language Specification: they have a primitive type or `String`, are declared `final`, and are initialized with a *constant expression*. Example:
 
 ~~~java
 public static final int TIMEOUT = 30;
 public static final String MODE = "safe";
 ~~~
 
-Khi mã khác tham chiếu các hằng này, trình biên dịch có thể ghi giá trị hằng trực tiếp vào bytecode của mã sử dụng (*inlining*). Thay đổi giá trị trong thư viện nhưng **không biên dịch lại** mã sử dụng có thể khiến chương trình tiếp tục thấy giá trị cũ. Vì thế, đừng thiết kế lại cấu hình runtime bằng cách tìm cách sửa field constant.
+When other code references these constants, the compiler may write the constant value directly into the bytecode of the calling code (*inlining*). Changing a value in a library without **recompiling** the consuming code can cause the program to keep seeing the old value. Therefore, never redesign runtime configuration by trying to mutate constant fields.
 
-Field sau cũng là `static final` nhưng giá trị được quyết định khi class khởi tạo:
+The following field is also `static final`, but its value is determined when the class is initialized:
 
 ~~~java
 public static final int STARTED_AT_SECOND =
         java.time.LocalTime.now().getSecond();
 ~~~
 
-Đây **không phải** constant variable có giá trị xác định tại compile time. Tuy nhiên, nó **vẫn không thể bị ghi bởi setter Reflection thông thường**, vì `static final` nào cũng thuộc nhóm không cho phép ghi. Quy tắc về *inlining* và quy tắc về quyền ghi Reflection là hai điều riêng biệt.
+This is **not** a constant variable whose value is determined at compile time. However, it **still cannot be written by normal Reflection setters**, because every `static final` field belongs to the non-writable group. The *inlining* rules and the Reflection write-permission rules are two separate matters.
 
-Một field `static final` có thể được gán trong static initializer:
+A `static final` field can be assigned in a static initializer:
 
 ~~~java
 static final int VALUE;
@@ -167,47 +167,47 @@ static {
 }
 ~~~
 
-Cách gán này hợp lệ **trong quá trình khởi tạo class** theo quy tắc Java source. Nó không mở ra quyền dùng Reflection gán lại sau khi khởi tạo.
+This assignment is valid **during class initialization** under Java source rules. It does not open up permission to use Reflection to reassign the field after initialization.
 
-## 6. So với các loại `final` khác
+## 6. Comparison with Other Kinds of `final`
 
-| Loại field | `Field.set` sau khi `setAccessible(true)` thành công | Lưu ý |
+| Field type | `Field.set` after `setAccessible(true)` succeeds | Notes |
 | --- | --- | --- |
-| `static final` trong class/interface | **Không thể ghi.** | Không phụ thuộc kiểu field là primitive hay reference. |
-| `final` instance trong class thông thường | Ở Java 17–25 có thể được Reflection cho ghi trong các điều kiện được tài liệu cho phép. | Không nên dùng ngoài các tình huống khởi tạo/tái dựng đối tượng đặc thù; code/JIT có thể tiếp tục quan sát giá trị cũ. |
-| `final` instance thuộc `record` | **Không thể ghi bằng cơ chế nới quyền thông thường.** | Record được bảo vệ bởi quy tắc *non-modifiable final field*. |
-| `final` thuộc hidden class | **Không thể ghi bằng cơ chế nới quyền thông thường.** | Không được coi như final instance của class thông thường. |
-| `static` nhưng không `final` | Có thể ghi nếu quyền truy cập và kiểu giá trị hợp lệ. | Ví dụ `count` trong chương trình ở trên. |
+| `static final` in a class/interface | **Cannot be written.** | Independent of whether the field type is primitive or reference. |
+| `final` instance in an ordinary class | In Java 17–25 may be written by Reflection under conditions documented as allowed. | Should not be used outside specialized object initialization/reconstruction scenarios; compiled code/JIT may continue observing the old value. |
+| `final` instance belonging to a `record` | **Cannot be written via normal access-suppression mechanisms.** | Records are protected by the *non-modifiable final field* rule. |
+| `final` belonging to a hidden class | **Cannot be written via normal access-suppression mechanisms.** | Not treated like a final instance field of an ordinary class. |
+| `static` but not `final` | Can be written if access permissions and value type are valid. | For example `count` in the program above. |
 
-Các giới hạn Reflection dành cho `final` instance đang tiếp tục được thắt chặt: **JDK 26** theo JEP 500 bắt đầu cảnh báo các lần ghi *final instance field* bằng deep reflection, có tùy chọn kiểm soát riêng (như `--illegal-final-field-mutation`). Hành vi ghi này được định hướng sẽ bị chặn mặc định trong phiên bản tương lai. Điểm quan trọng với bài này: **quy tắc cấm ghi `static final` đã có từ trước; các cờ cho phép final-field mutation của JDK mới không chuyển `static final` thành field ghi được.**
+Reflection restrictions for `final` instance fields continue to tighten: **JDK 26**, under JEP 500, begins warning on writes to *final instance fields* via deep reflection, with dedicated control options (such as `--illegal-final-field-mutation`). This write behavior is intended to be blocked by default in a future release. The key point for this lesson: **the rule forbidding writes to `static final` predates this; the final-field mutation flags in newer JDKs do not turn `static final` into a writable field.**
 
-Không nên dựa vào việc từng sửa được `final instance field` ở một JDK cũ để suy ra `static final` có thể sửa theo cách tương tự.
+Do not rely on having been able to modify a `final instance field` on an older JDK to infer that `static final` can be modified in a similar way.
 
-## 7. Các API và ngoại lệ liên quan
+## 7. Related APIs and Exceptions
 
-### `Field.setAccessible(true)` và `trySetAccessible()`
+### `Field.setAccessible(true)` and `trySetAccessible()`
 
-- `setAccessible(true)` yêu cầu nới kiểm tra truy cập Java. Nó có thể ném `InaccessibleObjectException` nếu caller không được phép mở member theo JPMS.
-- `trySetAccessible()` trả `false` nếu không thể bật quyền truy cập, thay vì ném `InaccessibleObjectException` cho tình huống quyền thông thường đó.
-- **Cả hai không tạo quyền ghi** cho `static final`. Do đó chương trình ở phần 3 vẫn nhận `IllegalAccessException` tại setter sau khi `trySetAccessible()` trả `true`.
+- `setAccessible(true)` requests relaxing Java access checks. It can throw `InaccessibleObjectException` if the caller is not permitted to open the member under JPMS.
+- `trySetAccessible()` returns `false` if access permission cannot be enabled, instead of throwing `InaccessibleObjectException` for that normal permission case.
+- **Neither creates write permission** for `static final`. Hence the program in section 3 still receives `IllegalAccessException` at the setter after `trySetAccessible()` returns `true`.
 
-### `Field.get(...)` và `Field.set(...)`
+### `Field.get(...)` and `Field.set(...)`
 
-`Field.get(null)` và các getter kiểu primitive như `Field.getInt(null)` đọc field static nếu quyền truy cập cho phép. `Field.set(null, value)` và các setter primitive phải vượt qua **kiểm tra quyền ghi**, nên `static final` bị từ chối. Các vấn đề khác như kiểu truyền sai, unboxing/narrowing không hợp lệ có thể gây `IllegalArgumentException`; chúng không phải bằng chứng rằng đang sửa được `final`.
+`Field.get(null)` and primitive getters such as `Field.getInt(null)` read a static field if access permissions allow. `Field.set(null, value)` and primitive setters must pass the **write-permission check**, so `static final` is rejected. Other issues such as wrong argument types or invalid unboxing/narrowing can cause `IllegalArgumentException`; they are not evidence that `final` is being modified.
 
-### `VarHandle` có thay được kết luận không?
+### Can `VarHandle` change this conclusion?
 
-Không. Với một `VarHandle` trỏ tới `final field`, các *write access modes* như `set` không được hỗ trợ và sẽ ném `UnsupportedOperationException` khi gọi. Việc lấy handle hoặc đọc giá trị không tự cấp chế độ ghi cho `static final`. `MethodHandles.Lookup` có các quy tắc quyền truy cập riêng; không nên xem nó như cửa hậu cho phép bỏ qua bất biến của `final`.
+No. For a `VarHandle` pointing to a `final field`, *write access modes* such as `set` are not supported and will throw `UnsupportedOperationException` when invoked. Obtaining a handle or reading a value does not automatically grant write modes for `static final`. `MethodHandles.Lookup` has its own access-permission rules; it should not be viewed as a backdoor for bypassing the immutability of `final`.
 
-### `Modifier.FINAL` không phải công tắc runtime
+### `Modifier.FINAL` is not a runtime toggle
 
-`Modifier.isFinal(field.getModifiers())` cho biết modifier. Việc tìm kiếm hoặc sửa dữ liệu nội bộ của `Field` để “gỡ bit final”, hay can thiệp bộ nhớ bằng API không được hỗ trợ, **không thuộc API ghi Reflection thông thường** và không bảo đảm tương thích các JDK. Các cách đó còn có thể xung đột với compiler optimization, class initialization và mô hình bộ nhớ. Tránh thiết kế hệ thống phụ thuộc vào chúng.
+`Modifier.isFinal(field.getModifiers())` reports the modifier. Searching for or modifying internal `Field` data to "clear the final bit", or manipulating memory with unsupported APIs, **does not belong to the normal Reflection write API** and offers no compatibility guarantee across JDKs. Such techniques can also conflict with compiler optimizations, class initialization, and the memory model. Avoid designing systems that depend on them.
 
-## 8. Thiết kế đúng khi thật sự cần thay đổi giá trị
+## 8. Proper Design When a Value Truly Needs to Change
 
-Nếu giá trị phải thay đổi khi chương trình đang chạy, đừng đặt nó vào một field `static final` rồi dựa vào Reflection để sửa.
+If a value must change while the program is running, do not place it in a `static final` field and rely on Reflection to modify it.
 
-**Lựa chọn 1 — field có thể thay đổi:** Sử dụng field không `final`, giới hạn quyền truy cập và cập nhật bằng API do class cung cấp. Trong chương trình đa luồng, cân nhắc `volatile` hoặc cơ chế đồng bộ thích hợp, thay vì mặc định một setter bất kỳ sẽ bảo đảm visibility.
+**Option 1 — a mutable field:** Use a non-`final` field, restrict access, and update it via an API provided by the class. In multi-threaded programs, consider `volatile` or an appropriate synchronization mechanism rather than assuming any arbitrary setter guarantees visibility.
 
 ~~~java
 final class RuntimeSettings {
@@ -226,9 +226,9 @@ final class RuntimeSettings {
 }
 ~~~
 
-Đây là **đoạn class để minh họa thiết kế**, không có `main` nên không tự tạo output. `volatile` hỗ trợ visibility và ordering đối với field đó; nó không thay thế mọi nhu cầu atomicity của logic nhiều bước.
+This is an **illustrative class snippet for design**, without a `main`, so it produces no output on its own. `volatile` provides visibility and ordering for that field; it does not replace all atomicity requirements of multi-step logic.
 
-**Lựa chọn 2 — final reference tới một vùng trạng thái có API cập nhật:** Có thể giữ reference cố định nhưng thay dữ liệu trong đối tượng được tham chiếu qua API thread-safe, chẳng hạn `AtomicReference<Configuration>`. Ở đây `static final` bảo vệ **identity của container**, còn `container.set(newConfig)` thay **trạng thái container** theo contract của nó. Dùng mô hình này chỉ khi thật sự cần trạng thái chia sẻ có thể cập nhật và hiểu tác động đồng thời.
+**Option 2 — a final reference to a state holder with an update API:** You can keep the reference fixed while replacing the data inside the referenced object via a thread-safe API, such as `AtomicReference<Configuration>`. Here `static final` protects **the identity of the container**, while `container.set(newConfig)` changes **the state of the container** according to its contract. Use this pattern only when shared mutable state is genuinely needed and concurrency implications are understood.
 
 ~~~java
 import java.util.concurrent.atomic.AtomicReference;
@@ -247,30 +247,30 @@ final class ConfigStore {
 }
 ~~~
 
-Đây cũng là class minh họa không có `main`. Mặc dù `CURRENT` là `static final`, không có chỗ nào ghi lại **tham chiếu field `CURRENT`**; mã chỉ gọi method cập nhật của object.
+This is also an illustrative class without a `main`. Even though `CURRENT` is `static final`, nowhere does the code rewrite **the `CURRENT` field reference**; it only calls the object's update method.
 
-**Lựa chọn 3 — dependency injection hoặc cấu hình khi khởi tạo:** Nếu cấu hình đáng lẽ cố định suốt vòng đời object, truyền nó qua constructor và khởi tạo instance mới khi thay cấu hình. Giải pháp này làm rõ sở hữu và chu kỳ sống của dữ liệu, tránh Reflection sửa cấu trúc runtime.
+**Option 3 — dependency injection or configuration at initialization:** If configuration is meant to remain fixed for the lifetime of an object, pass it through a constructor and instantiate a new instance when configuration changes. This approach clarifies ownership and data lifecycle, avoiding Reflection modifying runtime structures.
 
-## 9. Lỗi thường gặp và câu hỏi tự kiểm tra
+## 9. Common Mistakes and Self-Check Questions
 
-1. **“`setAccessible(true)` thành công nghĩa là ghi được.”** Sai: khi field là `static final`, chỉ có thể mở quyền đọc; setter vẫn không có write access.
-2. **“Lỗi do truyền `null` cho `Field.setInt(null, x)`.”** Sai: đối với static field, đối số instance bị bỏ qua.
-3. **“Chỉ `static final int` mới bị khóa vì compile-time constant.”** Sai: `static final List<?>` cũng không được gán lại bằng Reflection; field có giá trị runtime cũng bị khóa.
-4. **“`static final List` nghĩa là danh sách không thể thêm phần tử.”** Sai: `final` cố định reference; tính mutable của List quyết định khả năng thay nội dung.
-5. **“Truy cập được `private static final` trong module khác nếu bật accessible.”** Chưa chắc: JPMS có thể từ chối cả deep reflection khi package chưa `opens`; và nếu mở được thì vẫn không được ghi.
-6. **“`Field.set` báo `IllegalAccessException` nên phải dùng `--add-opens` là sẽ sửa được.”** `--add-opens` chỉ xử lý hàng rào module trong trường hợp phù hợp, không cấp quyền ghi vào non-modifiable final.
-7. **“Các tùy chọn final-field mutation mới sẽ mở được `static final`.”** Sai: chúng liên quan ghi `final` instance trong điều kiện được hỗ trợ, không loại bỏ hạn chế với static final.
+1. **"`setAccessible(true)` succeeding means it can be written."** False: when a field is `static final`, it can only open read access; the setter still has no write access.
+2. **"The error is caused by passing `null` to `Field.setInt(null, x)`."** False: for static fields, the instance argument is ignored.
+3. **"Only `static final int` is locked because it is a compile-time constant."** False: `static final List<?>` cannot be reassigned via Reflection either; fields with runtime-computed values are also locked.
+4. **"`static final List` means elements cannot be added to the list."** False: `final` fixes the reference; the mutability of the List determines whether its contents can change.
+5. **"You can access `private static final` in another module if you enable accessible."** Not necessarily: JPMS can deny even deep reflection when the package has not been opened with `opens`; and even if opened, writing is still disallowed.
+6. **"`Field.set` reports `IllegalAccessException`, so using `--add-opens` will fix it."** `--add-opens` only handles module barriers when appropriate; it does not grant write permission to a non-modifiable final field.
+7. **"The new final-field mutation options will unlock `static final`."** False: they relate to writing `final` instance fields under supported conditions and do not remove the restriction on static final.
 
-**Tự kiểm tra:**
+**Self-check:**
 
-- Thay `TAGS` trong ví dụ thành `List.of("A")`. Theo bạn lời gọi `Settings.tags().add("B")` sẽ ném ngoại lệ gì? *Gợi ý:* tính bất biến của object khác với modifier `final` của field.
-- Nếu bỏ `final` khỏi `LIMIT`, giữ nguyên tên và câu lệnh `setInt(null, 20)`, kết quả sẽ khác thế nào?
-- Tại sao field `static final int LIMIT = 10` có thêm rủi ro liên quan inlining nhưng field `static final List<String> TAGS` không phải là constant variable?
-- Nếu `trySetAccessible()` trả `false`, nên kiểm tra quyền mở package hoặc module nào trước khi thử đọc? Tại sao kể cả sau khi mở package vẫn không thể ghi `static final`?
+- Replace `TAGS` in the example with `List.of("A")`. What exception do you think `Settings.tags().add("B")` will throw? *Hint:* object immutability differs from the `final` modifier on a field.
+- If you remove `final` from `LIMIT` while keeping the same name and the `setInt(null, 20)` statement, how will the output differ?
+- Why does `static final int LIMIT = 10` carry extra risk related to inlining, whereas `static final List<String> TAGS` is not a constant variable?
+- If `trySetAccessible()` returns `false`, which package or module open permissions should be checked before attempting to read? Why is writing `static final` still impossible even after opening the package?
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 API — `Field.set(Object, Object)` và `Field.setInt(Object, int)`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html)
+- [Java SE 17 API — `Field.set(Object, Object)` and `Field.setInt(Object, int)`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html)
 - [Java SE 17 API — `AccessibleObject.setAccessible(boolean)`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html)
 - [Java SE 17 API — `VarHandle`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/VarHandle.html)
 - [Java Language Specification §4.12.4 — final Variables / constant variables](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.12.4)

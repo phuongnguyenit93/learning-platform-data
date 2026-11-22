@@ -1,85 +1,85 @@
-# `StringBuilder`: Bộ đệm ký tự có thể thay đổi và mô hình xây dựng chuỗi
+# `StringBuilder`: Mutable Character Buffer and String-Building Model
 
-## 1. Tại sao cần `StringBuilder`?
+## 1. Why Do We Need `StringBuilder`?
 
-Trong Java, `String` là **bất biến** (*immutable*): một đối tượng `String` đã được tạo không thể bị sửa nội dung qua API công khai. Các biểu thức như nối chuỗi, thay thế hoặc cắt chuỗi tạo ra giá trị chuỗi kết quả; biến có thể được gán tham chiếu khác nhưng nội dung đối tượng `String` cũ không đổi.
+In Java, `String` is **immutable**: once a `String` object is created, its content cannot be modified through the public API. Expressions such as concatenation, replacement, or slicing produce a new resulting string value; a variable can be assigned another reference, but the content of the old `String` object does not change.
 
-`StringBuilder` giải quyết nhu cầu khác: **xây dựng và chỉnh sửa dần một dãy ký tự trên cùng một đối tượng có thể thay đổi**. Nó đặc biệt hữu ích khi cần thêm nhiều phần vào kết quả, ghép dữ liệu trong vòng lặp, thay một đoạn văn bản, chèn vào giữa hoặc xóa ký tự.
+`StringBuilder` solves a different need: **incrementally building and modifying a character sequence on the same mutable object**. It is especially useful when appending many parts to a result, assembling data in a loop, replacing a segment of text, inserting in the middle, or deleting characters.
 
 ~~~java
 String text = "Hello";
-text += " Java"; // text trỏ tới giá trị String mới
+text += " Java"; // text points to a new String value
 
 StringBuilder builder = new StringBuilder("Hello");
-builder.append(" Java"); // cùng đối tượng builder được thay đổi
+builder.append(" Java"); // the same builder object is modified
 ~~~
 
-Cả hai có thể cho giá trị văn bản `"Hello Java"`. Khác biệt quan trọng là **mô hình đối tượng**: `String` giữ bất biến; `StringBuilder` có trạng thái có thể sửa, gồm dãy ký tự hiện tại và dung lượng bộ đệm đang cấp phát.
+Both can produce the text value `"Hello Java"`. The key difference is the **object model**: `String` remains immutable; `StringBuilder` has mutable state consisting of the current character sequence and the allocated buffer capacity.
 
-**Mục tiêu:** hiểu lúc nào nên dùng builder, cách `append` hoạt động, khác biệt `length`/`capacity`, các thao tác sửa tại chỗ, chuyển thành `String`, cách xử lý UTF-16 và giới hạn thread-safety.
+**Goal:** understand when to use a builder, how `append` works, the difference between `length` and `capacity`, in-place modification operations, converting to `String`, UTF-16 handling, and thread-safety limitations.
 
-## 2. Mô hình bộ đệm ký tự có thể thay đổi
+## 2. Mutable Character Buffer Model
 
-Hãy xem một `StringBuilder` như một vùng chứa dãy **UTF-16 code unit** có hai đại lượng chính:
+Think of a `StringBuilder` as a container holding a sequence of **UTF-16 code units** with two primary quantities:
 
-- **`length()`**: số code unit hiện đang thuộc **nội dung có hiệu lực** của builder.
-- **`capacity()`**: số code unit bộ đệm có thể giữ **trước khi cần tăng dung lượng**. Luôn có `0 <= length() <= capacity()`.
+- **`length()`**: the number of code units currently belonging to the builder's **valid content**.
+- **`capacity()`**: the number of code units the buffer can hold **before needing to grow its capacity**. Always `0 <= length() <= capacity()`.
 
-Một mô hình trực quan:
+An intuitive model:
 
 ~~~text
 builder = new StringBuilder(8)
 length = 0; capacity = 8
 
-Sau append("Java"):
-nội dung: [J][a][v][a][ ][ ][ ][ ]
+After append("Java"):
+content:  [J][a][v][a][ ][ ][ ][ ]
           ^-----------^ ^---------^
-             length=4     còn trống
+             length=4    available
 capacity=8
 
-Sau append(" 21"):
-nội dung: [J][a][v][a][ ][2][1][ ]
+After append(" 21"):
+content:  [J][a][v][a][ ][2][1][ ]
 length=7; capacity>=8
 
-Sau append thêm cho vượt capacity:
-builder tự mở rộng bộ đệm khi cần;
-nội dung cũ được giữ nguyên.
+After appending more beyond capacity:
+the builder automatically expands the buffer when needed;
+existing content is preserved.
 ~~~
 
-Đó là **mô hình logic**, không phải cam kết `StringBuilder` luôn được lưu trong một `char[]` vật lý hay luôn tăng capacity theo một tỷ lệ cố định. Cách tổ chức byte/mảng, cấp phát, tối ưu và growth policy cụ thể có thể khác theo JDK.
+That is a **logical model**, not a guarantee that `StringBuilder` is always stored in a physical `char[]` or always increases capacity by a fixed ratio. The specific byte/array layout, allocation, optimizations, and growth policy may vary by JDK.
 
-**Vì sao tái sử dụng bộ đệm hữu ích?** Nếu phải nối lần lượt nhiều phần, builder có thể tái dùng chỗ đã cấp phát, thay vì buộc chương trình biểu diễn mỗi trạng thái trung gian thành một giá trị `String` mới. Điều này thường hữu ích cho quy trình ghép liên tục, dù `+` của Java hiện đại cũng có tối ưu riêng.
+**Why is buffer reuse helpful?** If many parts must be appended sequentially, a builder can reuse already-allocated space instead of forcing the program to represent every intermediate state as a new `String` value. This is often helpful for continuous concatenation workflows, though modern Java's `+` also has its own optimizations.
 
-## 3. Bản đồ lựa chọn API khi xây dựng chuỗi
+## 3. API Selection Map When Building Strings
 
-Thay vì ghi nhớ một danh sách lệnh, hãy bắt đầu từ **kiểu thay đổi cần thực hiện**. Những bài tiếp theo đi sâu vào tham số, điều kiện biên và ngoại lệ của từng nhóm.
+Instead of memorizing a list of commands, start from the **type of change you need to make**. The following lessons go deeper into the parameters, boundary conditions, and exceptions of each group.
 
-| Mục tiêu | API thường dùng | Lưu ý quyết định |
+| Goal | Common APIs | Decision Notes |
 | --- | --- | --- |
-| Tạo builder rỗng hoặc có văn bản ban đầu | `new StringBuilder()`, `new StringBuilder(n)`, `new StringBuilder(text)` | Đối số `int` dự trù capacity; `String` cung cấp nội dung |
-| Nối dần dữ liệu | `append(value)` | Overload được chọn theo kiểu biểu thức; trả chính builder |
-| Nối một Unicode code point từ `int` | `appendCodePoint(cp)` | Code point ngoài BMP chiếm hai code unit; `append(cp)` lại nối chữ số |
-| Chỉnh nội dung theo vị trí | `insert`, `delete`, `deleteCharAt`, `replace` | Chỉ số theo UTF-16; `[start,end)` thường loại trừ biên cuối |
-| Đổi một đơn vị ký tự hoặc độ dài logic | `setCharAt(i,ch)`, `setLength(n)` | Hai phương thức trả `void`; tăng length bổ sung NUL |
-| Dự trù hoặc thử thu gọn vùng đệm | `ensureCapacity(n)`, `trimToSize()` | Không thay đổi nội dung; `trimToSize` là yêu cầu best-effort |
-| Đảo hoặc nối lặp dữ liệu | `reverse()`, `repeat(...)` | Đảo không bảo toàn mọi grapheme cluster; `repeat` của builder cần Java 21+ |
-| Lấy kết quả ổn định | `toString()` | Trả `String` có nội dung không đổi khi builder tiếp tục sửa |
+| Create an empty builder or one with initial text | `new StringBuilder()`, `new StringBuilder(n)`, `new StringBuilder(text)` | `int` argument reserves capacity; `String` provides content |
+| Append data incrementally | `append(value)` | Overload is chosen by expression type; returns the builder itself |
+| Append a Unicode code point from `int` | `appendCodePoint(cp)` | Code points outside the BMP take two code units; `append(cp)` appends digits instead |
+| Edit content by position | `insert`, `delete`, `deleteCharAt`, `replace` | Indices are in UTF-16 code units; `[start,end)` usually excludes the end bound |
+| Change a character unit or logical length | `setCharAt(i,ch)`, `setLength(n)` | Both methods return `void`; increasing length pads with NUL |
+| Reserve or attempt to shrink the buffer | `ensureCapacity(n)`, `trimToSize()` | Does not modify content; `trimToSize` is a best-effort request |
+| Reverse or repeat data | `reverse()`, `repeat(...)` | Reversing does not preserve every grapheme cluster; builder `repeat` requires Java 21+ |
+| Obtain a stable result | `toString()` | Returns a `String` whose content does not change when the builder is modified further |
 
-Một ví dụ ngắn cho thấy **việc chọn API dựa trên mục tiêu**:
+A short example showing **API selection based on goal**:
 
 ~~~java
 StringBuilder line = new StringBuilder("id=");
-line.append(42);            // thêm số thành văn bản: "id=42"
-line.insert(0, "[");        // chèn dấu mở
-line.append(']');           // nối dấu đóng
+line.append(42);            // append number as text: "id=42"
+line.insert(0, "[");        // insert opening bracket
+line.append(']');           // append closing bracket
 String finished = line.toString(); // "[id=42]"
 ~~~
 
-Mỗi lệnh nhìn thấy trạng thái sau lệnh trước. Nếu giữ `finished` rồi tiếp tục sửa `line`, `finished` vẫn mang nội dung ban đầu. Bởi vậy, một builder thích hợp để **lắp ráp**, còn `String` thích hợp làm **kết quả đã chốt**.
+Each statement sees the state after the previous statement. If you keep `finished` and continue modifying `line`, `finished` still holds the original content. Therefore, a builder is suitable for **assembling**, while `String` is suitable as a **finalized result**.
 
-## 4. Chương trình hoàn chỉnh Java 17+: quan sát mô hình xây dựng chuỗi
+## 4. Complete Java 17+ Program: Observing the String-Building Model
 
-Tạo tệp **`StringBuilderModelDemo.java`**:
+Create the file **`StringBuilderModelDemo.java`**:
 
 ~~~java
 public class StringBuilderModelDemo {
@@ -128,14 +128,14 @@ public class StringBuilderModelDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 StringBuilderModelDemo.java
 java StringBuilderModelDemo
 ~~~
 
-`stdout` đã xác nhận qua biên dịch/chạy:
+`stdout` verified via compilation/execution:
 
 ~~~text
 initial=0/4
@@ -154,63 +154,63 @@ sameText=true
 sameBuilderContent=true
 ~~~
 
-Giải thích kết quả:
+Output explanation:
 
-1. Constructor yêu cầu capacity `4` nhưng nội dung ban đầu rỗng, nên `initial=0/4`.
-2. `append` nối lần lượt `"Java"`, dấu cách và số `21`, tạo văn bản `"Java 21"` dài 7 code unit. Builder mở rộng nếu cần; ví dụ chỉ kiểm tra invariant `capacity >= length`.
-3. `insert` chèn `"SE "` trước số `21`. `replace` thay `"SE"` bằng `"Core"`. `delete` bỏ phần `" 21"` và `setCharAt` đổi `J` thành `j`.
-4. Biến `snapshot` là `String` lấy **trước** các sửa đổi, nên vẫn là `"Java 21"` trong khi builder thành `"java Core"`.
-5. `setLength(4)` cắt dãy còn `"java"`; `setLength(6)` bổ sung hai code unit `U+0000` có giá trị số `0`.
-6. `appendCodePoint(0x1F600)` thêm một emoji bằng **hai UTF-16 code unit**. Cùng với `A` và `B`, `unicode.length() == 4` nhưng có 3 code point.
-7. `substring(0, 4)` lấy chuỗi `"java"`, và `String.contentEquals(CharSequence)` cho phép so với nội dung của builder. Kết quả so hai `String` tạo từ builder cũng là `true`.
+1. The constructor requests a capacity of `4`, but the initial content is empty, so `initial=0/4`.
+2. `append` appends `"Java"`, a space, and the number `21` in sequence, producing the text `"Java 21"` of 7 code units. The builder expands if needed; the example only checks the invariant `capacity >= length`.
+3. `insert` inserts `"SE "` before `21`. `replace` replaces `"SE"` with `"Core"`. `delete` removes `" 21"` and `setCharAt` changes `J` to `j`.
+4. The `snapshot` variable is a `String` captured **before** those edits, so it remains `"Java 21"` while the builder becomes `"java Core"`.
+5. `setLength(4)` truncates the sequence to `"java"`; `setLength(6)` appends two `U+0000` code units with numeric value `0`.
+6. `appendCodePoint(0x1F600)` adds an emoji using **two UTF-16 code units**. Together with `A` and `B`, `unicode.length() == 4` while having 3 code points.
+7. `substring(0, 4)` extracts `"java"`, and `String.contentEquals(CharSequence)` allows comparing against the builder's content. Comparing two `String` objects created from builders also yields `true`.
 
-## 5. Cách suy luận đúng từ mô hình mutable
+## 5. Reasoning Correctly from the Mutable Model
 
-**Một builder là một đối tượng có trạng thái.** Ví dụ `StringBuilder alias = builder;` chỉ tạo tham chiếu thứ hai tới cùng đối tượng; `alias.append(...)` sẽ làm thay đổi văn bản mà `builder` nhìn thấy. Khi cần kết quả ổn định để truyền giữa các thành phần, lấy một `String` qua `toString()`, thay vì đưa builder mutable cho bên khác tự sửa.
+**A builder is a stateful object.** For example, `StringBuilder alias = builder;` only creates a second reference to the same object; `alias.append(...)` changes the text seen through `builder`. When you need a stable result to pass between components, obtain a `String` via `toString()` instead of handing a mutable builder to another party to edit.
 
-**Giới hạn chỉ số đến từ `length()`, không phải `capacity()`.** Một vùng đệm còn dư chỗ chưa làm cho `charAt(length())` hợp lệ. Với emoji bổ sung như 😀, `length()` tăng hai đơn vị UTF-16, còn số code point tăng một. Các thao tác sửa theo vị trí có thể cắt đôi surrogate pair; nếu cần xử lý theo ký tự hiển thị, phải xét cả grapheme cluster.
+**Index bounds come from `length()`, not `capacity()`.** Extra space in the buffer does not make `charAt(length())` valid. For a supplementary emoji like 😀, `length()` increases by two UTF-16 units while the code point count increases by one. Positional edit operations can split a surrogate pair in half; if you need to process by visible characters, you must also consider grapheme clusters.
 
-**Chọn công cụ theo vòng đời dữ liệu.** Một phép nối `String` bằng `+` ngắn thường rõ ràng và có thể được Java tối ưu. Khi gom nhiều mẩu trong một vòng lặp, dùng builder cục bộ thường phù hợp; chỉ dự trù capacity khi có ước lượng đáng tin và nhu cầu hiệu năng thực tế. `StringBuilder` không có đồng bộ nội bộ để dùng chung an toàn giữa những luồng cùng sửa; ưu tiên một nơi sở hữu builder hoặc phối hợp truy cập bằng cơ chế đồng bộ rõ ràng.
+**Choose the tool based on the data lifecycle.** A short `String` concatenation with `+` is often clear and can be optimized by Java. When collecting many pieces in a loop, a local builder is usually appropriate; only reserve capacity when you have a reliable estimate and a real performance need. `StringBuilder` has no built-in synchronization for safe shared mutation across multiple threads; prefer single-owner builders or coordinate access using explicit synchronization.
 
-## 6. Câu hỏi tự kiểm tra
+## 6. Self-Check Questions
 
-**Câu 1.** `new StringBuilder(32).length()` bằng bao nhiêu, và `capacity()` bằng bao nhiêu?
+**Question 1.** What are `new StringBuilder(32).length()` and `capacity()`?
 
-**Đáp án:** length bằng `0`, capacity bằng `32`. Không có ký tự nào được thêm chỉ vì đã dành chỗ.
+**Answer:** length is `0`, capacity is `32`. No characters are added just because space was reserved.
 
-**Câu 2.** Hai lệnh `builder.append("a"); builder.append("b");` có tạo ra hai builder mới không?
+**Question 2.** Do the two statements `builder.append("a"); builder.append("b");` create two new builders?
 
-**Đáp án:** không. Cả hai sửa cùng đối tượng builder và nội dung tích lũy thành `"ab"`.
+**Answer:** no. Both modify the same builder object, and the accumulated content becomes `"ab"`.
 
-**Câu 3.** Sau `String saved = builder.toString(); builder.append("!");`, nội dung `saved` có đổi không?
+**Question 3.** After `String saved = builder.toString(); builder.append("!");`, does the content of `saved` change?
 
-**Đáp án:** không. `saved` là `String` bất biến chứa trạng thái lúc `toString` được gọi.
+**Answer:** no. `saved` is an immutable `String` holding the state when `toString` was called.
 
-**Câu 4.** `ensureCapacity(200)` và `setLength(200)` khác nhau thế nào?
+**Question 4.** How do `ensureCapacity(200)` and `setLength(200)` differ?
 
-**Đáp án:** `ensureCapacity` dự trù tối thiểu 200 code unit mà không đổi nội dung; `setLength` làm độ dài nội dung bằng 200, cắt bớt hoặc thêm `\u0000` tùy trạng thái hiện tại.
+**Answer:** `ensureCapacity` reserves at least 200 code units without changing the content; `setLength` sets the content length to 200, truncating or padding with `\u0000` depending on the current state.
 
-**Câu 5.** Vì sao `new StringBuilder("😀").length()` bằng `2`?
+**Question 5.** Why does `new StringBuilder("😀").length()` equal `2`?
 
-**Đáp án:** emoji `U+1F600` cần một cặp surrogate gồm hai code unit UTF-16; `length` đếm code unit.
+**Answer:** the emoji `U+1F600` requires a surrogate pair consisting of two UTF-16 code units; `length` counts code units.
 
-**Câu 6.** Có an toàn khi hai luồng đồng thời gọi `append` lên một `StringBuilder` chung không?
+**Question 6.** Is it safe for two threads to concurrently call `append` on a shared `StringBuilder`?
 
-**Đáp án:** không có bảo đảm thread-safe nếu không đồng bộ; ưu tiên builder cục bộ hoặc cơ chế phối hợp thích hợp.
+**Answer:** there is no thread-safety guarantee without synchronization; prefer a local builder or an appropriate coordination mechanism.
 
-**Câu 7.** `StringBuilder("x").equals(new StringBuilder("x"))` có trả true vì cùng chữ `x` không?
+**Question 7.** Does `new StringBuilder("x").equals(new StringBuilder("x"))` return true because both contain `x`?
 
-**Đáp án:** không. `StringBuilder` không so nội dung bằng `equals`; hai instance khác nhau không bằng theo identity. Dùng `toString().equals(...)` để so văn bản.
+**Answer:** no. `StringBuilder` does not compare content with `equals`; two distinct instances are not equal by identity. Use `toString().equals(...)` to compare text.
 
-**Câu 8.** Vì sao không nên gọi `trimToSize()` sau mọi lần nối trong vòng lặp?
+**Question 8.** Why should you avoid calling `trimToSize()` after every append in a loop?
 
-**Đáp án:** builder có thể phải mở rộng lại ngay sau đó; hành vi này có thể tăng chi phí cấp phát và sao chép thay vì tận dụng capacity dư.
+**Answer:** the builder may have to expand again right afterward; doing so can increase allocation and copying overhead instead of taking advantage of spare capacity.
 
-## 7. Tài liệu chuẩn
+## 7. Official References
 
-- [Java SE 17 — `StringBuilder`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html): constructor, `append`, `insert`, `delete`, `replace`, `toString` và hợp đồng thread-safety.
-- [Java SE 17 — `AbstractStringBuilder`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/AbstractStringBuilder.html): `length`, `capacity`, `ensureCapacity`, `setLength` và thao tác code unit.
-- [Java SE 17 — `String`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): tính bất biến, chuỗi giá trị và phép so `equals`.
-- [Java SE 17 — `StringBuffer`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuffer.html): bộ đệm có đồng bộ và giới hạn thao tác ghép nhiều bước.
+- [Java SE 17 — `StringBuilder`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html): constructors, `append`, `insert`, `delete`, `replace`, `toString`, and thread-safety contract.
+- [Java SE 17 — `AbstractStringBuilder`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/AbstractStringBuilder.html): `length`, `capacity`, `ensureCapacity`, `setLength`, and code unit operations.
+- [Java SE 17 — `String`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): immutability, string values, and `equals` comparison.
+- [Java SE 17 — `StringBuffer`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuffer.html): synchronized buffer and multi-step concatenation limitations.
 
-**Ghi nhớ:** `StringBuilder` là một **đối tượng mutable tích lũy văn bản trong bộ đệm có thể mở rộng**. `length` là số code unit hiện có; `capacity` là dung lượng dự trù. Các thao tác `append/insert/delete/replace` sửa cùng builder; `toString` trả giá trị `String` bất biến; builder không tự đồng bộ giữa nhiều luồng.
+**Key takeaway:** `StringBuilder` is a **mutable object that accumulates text in an expandable buffer**. `length` is the current number of code units; `capacity` is the reserved capacity. Operations `append/insert/delete/replace` modify the same builder; `toString` returns an immutable `String` value; a builder does not automatically synchronize across multiple threads.

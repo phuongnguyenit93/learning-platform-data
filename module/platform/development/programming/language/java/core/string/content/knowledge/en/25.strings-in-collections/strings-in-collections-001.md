@@ -1,10 +1,10 @@
-# String làm khóa HashMap hoặc phần tử HashSet trong Java
+# String as a HashMap Key or HashSet Element in Java
 
-## 1. Mục tiêu và bối cảnh
+## 1. Goal and Context
 
-`String` là một trong những kiểu thường được dùng nhất làm **khóa** của `HashMap<String, V>` và làm **phần tử** của `HashSet<String>`: mã sản phẩm, tên cấu hình, nhãn trạng thái, token, tên đăng nhập, từ vựng hoặc chuỗi dùng để loại trùng. Hai collection này dựa vào cặp phương thức **`hashCode()` và `equals(Object)`** để nhận diện khóa/phần tử tương đương.
+`String` is one of the most commonly used types as a **key** of `HashMap<String, V>` and as an **element** of `HashSet<String>`: product codes, configuration names, status labels, tokens, usernames, vocabulary words, or strings used for deduplication. These two collections rely on the **`hashCode()` and `equals(Object)`** method pair to identify equivalent keys/elements.
 
-Ví dụ:
+Example:
 
 ~~~java
 Map<String, Integer> points = new HashMap<>();
@@ -18,13 +18,13 @@ tags.add("backend");
 System.out.println(tags.size()); // 1
 ~~~
 
-Trong các ví dụ, cần có import `java.util.Map`, `java.util.HashMap`, `java.util.Set` và `java.util.HashSet` nếu viết thành lớp Java độc lập. Các đoạn riêng lẻ chỉ nhằm minh họa; chương trình hoàn chỉnh có thể biên dịch bằng Java 17 ở phần 8.
+In the examples, imports for `java.util.Map`, `java.util.HashMap`, `java.util.Set`, and `java.util.HashSet` are required if written as a standalone Java class. Individual snippets are for illustration only; a complete program compilable with Java 17 is in section 8.
 
-**Điểm cốt lõi:** `HashMap` và `HashSet` quan tâm **nội dung logic được `equals` xem là bằng nhau**, không phải hai biến có tham chiếu đến cùng một đối tượng String hay không.
+**Key takeaway:** `HashMap` and `HashSet` care about **logical content considered equal by `equals`**, not whether two variables reference the same String object.
 
-## 2. Vì sao `String` dùng tốt làm khóa và phần tử tập hợp?
+## 2. Why Does `String` Work Well as a Key and Set Element?
 
-`String` có **nội dung bất biến**, `equals` so sánh nội dung phân biệt hoa/thường, và `hashCode` nhất quán với `equals`. Vì thế, cùng nội dung được coi là cùng khóa/phần tử dù tạo bởi hai instance khác nhau:
+`String` has **immutable content**, `equals` compares content case-sensitively, and `hashCode` is consistent with `equals`. Therefore, the same content is treated as the same key/element even when created by two different instances:
 
 ~~~java
 String first = new String("Java");
@@ -34,9 +34,9 @@ System.out.println(first.equals(other)); // true
 System.out.println(first.hashCode() == other.hashCode()); // true
 ~~~
 
-`HashMap` dùng hash để tìm vùng ứng viên rồi kiểm tra tính tương đương khóa; `HashSet` dùng nguyên tắc tương tự để loại phần tử lặp. **Cùng hash chưa chắc cùng giá trị**: `"FB"` và `"Ea"` có hash bằng nhau nhưng nội dung khác. Collection vẫn giữ chúng như hai khóa khác nhau. Công thức hash, va chạm và các điều kiện chi tiết của hợp đồng `equals–hashCode` được phân tích ở bài kế tiếp.
+`HashMap` uses the hash to locate a candidate region and then checks key equivalence; `HashSet` uses the same principle to eliminate duplicate elements. **Same hash does not guarantee same value**: `"FB"` and `"Ea"` have equal hashes but different content. The collection still keeps them as two distinct keys. The hash formula, collisions, and detailed conditions of the `equals–hashCode` contract are analyzed in the next lesson.
 
-Điểm mạnh của `String` là key đã chèn không đổi nội dung. Nếu sau khi `put` bạn gán lại biến `key = key + "-admin"`, map vẫn giữ khóa cũ: phép gán đổi tham chiếu của biến, **không sửa String đã lưu**.
+The strength of `String` is that an inserted key never changes its content. If after `put` you reassign the variable `key = key + "-admin"`, the map still keeps the old key: the assignment changes the variable's reference, **without modifying the stored String**.
 
 ~~~java
 String key = "user";
@@ -47,13 +47,13 @@ System.out.println(map.get("user")); // 7
 System.out.println(map.get(key));    // null
 ~~~
 
-Các đoạn là minh họa bên trong phương thức; chương trình độc lập có đầy đủ imports ở phần 8.
+Snippets are illustrations inside a method; a standalone program with full imports is in section 8.
 
-## 3. HashMap sử dụng String key như thế nào?
+## 3. How Does HashMap Use String Keys?
 
-### 3.1. `put`, `get` và `containsKey`
+### 3.1. `put`, `get`, and `containsKey`
 
-Mô hình khái niệm: `HashMap` dùng hash code để xác định vị trí ứng viên, rồi sử dụng `equals` để phân biệt các khóa khác nhau nằm cùng vùng lưu trữ. Chi tiết bucket, resize và cấu trúc xử lý va chạm thuộc phần triển khai JDK; API bảo đảm hành vi theo hợp đồng Map.
+Conceptual model: `HashMap` uses the hash code to determine a candidate location, then uses `equals` to distinguish different keys residing in the same storage region. Details of buckets, resizing, and collision-handling structures belong to the JDK implementation; the API guarantees behavior according to the Map contract.
 
 ~~~java
 Map<String, Integer> scores = new HashMap<>();
@@ -68,19 +68,19 @@ System.out.println(scores.size());          // 1
 System.out.println(scores.get("Java"));     // 20
 ~~~
 
-Lệnh `put` thứ hai **cập nhật giá trị của khóa tương đương** thay vì tạo entry mới. Java map không cho có hai khóa phân biệt theo `equals` cùng tồn tại. Trong khi đó `"Java"` và `"java"` mặc định là hai khóa khác nhau.
+The second `put` call **updates the value of the equivalent key** instead of creating a new entry. A Java map does not allow two keys considered equal by `equals` to coexist. Meanwhile, `"Java"` and `"java"` are two distinct keys by default.
 
-Các phương thức thường dùng:
+Commonly used methods:
 
-| Thao tác | Ý nghĩa |
+| Operation | Meaning |
 | --- | --- |
-| `put(key, value)` | Thêm ánh xạ nếu chưa có khóa tương đương, hoặc thay giá trị gắn với khóa đó; trả về giá trị cũ hoặc `null` theo hợp đồng. |
-| `get(key)` | Lấy giá trị của khóa tương đương; trả `null` nếu không có mapping, hoặc nếu mapping chứa giá trị `null`. |
-| `containsKey(key)` | Kiểm tra tồn tại khóa, giúp phân biệt “không có khóa” với “khóa có giá trị null”. |
-| `putIfAbsent(key, value)` | Thêm giá trị khi khóa chưa có mapping hoặc đang gắn với `null`; không phải lệnh cộng dồn. |
-| `merge` / `computeIfAbsent` | Hỗ trợ cập nhật/tạo giá trị theo quy tắc, tiện cho đếm tần suất hay gom nhóm. |
+| `put(key, value)` | Adds a mapping if no equivalent key exists, or replaces the value associated with that key; returns the previous value or `null` per the contract. |
+| `get(key)` | Retrieves the value of the equivalent key; returns `null` if there is no mapping, or if the mapping holds a `null` value. |
+| `containsKey(key)` | Checks whether the key exists, helping distinguish "key absent" from "key with null value". |
+| `putIfAbsent(key, value)` | Adds the value when the key has no mapping or is currently mapped to `null`; not an accumulation command. |
+| `merge` / `computeIfAbsent` | Supports updating/creating values according to a rule, convenient for frequency counting or grouping. |
 
-Ví dụ đếm tần suất:
+Frequency counting example:
 
 ~~~java
 Map<String, Integer> counts = new HashMap<>();
@@ -91,9 +91,9 @@ System.out.println(counts.get("java")); // 2
 System.out.println(counts.get("sql"));  // 1
 ~~~
 
-Việc dùng `String` làm key không có nghĩa map tự bỏ khoảng trắng, đổi chữ hoa hay chuẩn hóa Unicode: map lưu và tra cứu theo chuỗi **đúng như dữ liệu được đưa vào**.
+Using `String` as a key does not mean the map automatically strips whitespace, changes letter case, or normalizes Unicode: the map stores and looks up strings **exactly as provided**.
 
-### 3.2. Collision không phải key trùng
+### 3.2. Collision Is Not a Duplicate Key
 
 ~~~java
 Map<String, String> collisionMap = new HashMap<>();
@@ -105,11 +105,11 @@ System.out.println(collisionMap.get("FB"));   // first
 System.out.println(collisionMap.get("Ea"));   // second
 ~~~
 
-Hai chuỗi có hash code như nhau nhưng `equals` khác nhau, nên map chứa **hai** entry. Collision có thể làm lookup chậm hơn vì cần kiểm tra thêm, nhưng collision **không được gây mất dữ liệu** nếu các key tuân thủ `equals/hashCode`.
+The two strings have the same hash code but `equals` is false, so the map contains **two** entries. Collisions can make lookup slower because extra checks are needed, but a collision **must not cause data loss** as long as keys obey `equals/hashCode`.
 
-### 3.3. Null và giá trị null
+### 3.3. Null Keys and Null Values
 
-`HashMap` cho phép **một** khóa `null` và cho phép value `null`. Đây là hành vi riêng của `HashMap`, không áp dụng mặc định cho mọi `Map`:
+`HashMap` allows **one** `null` key and allows `null` values. This is specific to `HashMap` and does not apply by default to every `Map`:
 
 ~~~java
 Map<String, Integer> map = new HashMap<>();
@@ -120,13 +120,13 @@ System.out.println(map.get("pending"));        // null
 System.out.println(map.containsKey("pending"));// true
 ~~~
 
-Trong hệ thống thật, nếu `null` không có nghĩa nghiệp vụ rõ ràng, có thể cấm nó tại ranh giới đầu vào để dữ liệu đơn giản hơn. `Map.of(...)` và một số implementation khác không chấp nhận khóa/value `null`.
+In real systems, if `null` has no clear business meaning, it can be forbidden at the input boundary to keep data simpler. `Map.of(...)` and some other implementations do not accept `null` keys or values.
 
-## 4. HashSet sử dụng String element như thế nào?
+## 4. How Does HashSet Use String Elements?
 
-### 4.1. Loại phần tử trùng theo equals/hashCode
+### 4.1. Deduplicating Elements by equals/hashCode
 
-`HashSet` là tập hợp không cho phép các phần tử bằng nhau theo `equals`. Nó được triển khai dựa trên `HashMap`, dùng phần tử làm khóa nội bộ và một giá trị giả làm value:
+`HashSet` is a set that does not allow elements considered equal by `equals`. It is implemented on top of `HashMap`, using the element as the internal key and a dummy value as the map value:
 
 ~~~java
 Set<String> skills = new HashSet<>();
@@ -138,9 +138,9 @@ System.out.println(skills.size());                  // 2
 System.out.println(skills.contains("Java"));        // true
 ~~~
 
-`add` trả `true` khi tập hợp thay đổi và `false` nếu đã có phần tử tương đương. Hai đối tượng `String` khác tham chiếu nhưng cùng nội dung chỉ chiếm một phần tử; khác hoa/thường thì là hai phần tử mặc định.
+`add` returns `true` when the set changes and `false` if an equivalent element already exists. Two `String` objects with different references but the same content occupy only one element; different casing yields two elements by default.
 
-Một tình huống đơn giản là lấy các nhãn duy nhất:
+A simple scenario is extracting unique labels:
 
 ~~~java
 List<String> input = List.of("red", "blue", "red", "green");
@@ -148,11 +148,11 @@ Set<String> unique = new HashSet<>(input);
 System.out.println(unique.size()); // 3
 ~~~
 
-**Không được dựa vào thứ tự** khi duyệt `HashSet`. Nếu yêu cầu giữ thứ tự xuất hiện đầu tiên, dùng `LinkedHashSet`; nếu cần thứ tự sắp xếp theo bộ so sánh, cân nhắc `TreeSet` với quy tắc so sánh phù hợp.
+**Do not rely on order** when iterating over a `HashSet`. If preserving first-seen order is required, use `LinkedHashSet`; if sorted order according to a comparator is needed, consider `TreeSet` with an appropriate comparison rule.
 
-### 4.2. Một phần tử null, và khác biệt API
+### 4.2. One Null Element, and API Differences
 
-`HashSet` cho phép phần tử `null` (tối đa một lần), giống cách `HashMap` cho phép một khóa `null`:
+`HashSet` allows a `null` element (at most once), just like `HashMap` allows one `null` key:
 
 ~~~java
 Set<String> set = new HashSet<>();
@@ -161,32 +161,32 @@ System.out.println(set.add(null)); // false
 System.out.println(set.size());    // 1
 ~~~
 
-Không suy rộng quy tắc này sang tất cả `Set`: ví dụ `Set.of(...)` không chấp nhận `null`.
+Do not generalize this rule to all `Set` implementations: for example, `Set.of(...)` does not accept `null`.
 
-## 5. Key nhìn giống nhau vẫn có thể là hai giá trị
+## 5. Keys That Look Identical Can Still Be Two Different Values
 
-`String.equals` so sánh chính xác nội dung UTF-16: khác kiểu chữ, khoảng trắng, dấu kết hợp hoặc ký tự vô hình đều có thể thành **khóa khác**. Ví dụ:
+`String.equals` compares exact UTF-16 content: differences in letter case, whitespace, combining marks, or invisible characters can all become **different keys**. Example:
 
 ~~~java
 Map<String, Integer> prices = new HashMap<>();
 prices.put("Café", 120);
-System.out.println(prices.get("café"));       // null: khác hoa/thường
-System.out.println(prices.get("Cafe\u0301")); // null: Unicode khác biểu diễn
+System.out.println(prices.get("café"));       // null: different case
+System.out.println(prices.get("Cafe\u0301")); // null: different Unicode representation
 ~~~
 
-Không có thao tác chuẩn hóa ngầm khi `put`/`get`. Nếu định danh của ứng dụng thực sự **không phân biệt** một khác biệt nào đó, hãy tạo khóa canonical bằng **cùng một quy tắc** ở cả đường ghi và đường đọc. Ví dụ, mã kỹ thuật có thể dùng `strip().toLowerCase(Locale.ROOT)` nếu chính sách cho phép; muốn thống nhất biểu diễn Unicode chính tắc có thể cần `Normalizer.Form.NFC`. Riêng token, chữ ký hoặc mã phân biệt chữ hoa/thường **không được sửa tùy ý**. Bài “Chuẩn hóa khóa khác với bảo toàn văn bản hiển thị” trình bày thiết kế lưu riêng nhãn và khóa, xử lý va chạm sau chuẩn hóa.
+There is no implicit normalization during `put`/`get`. If an application's identifier truly **does not distinguish** a certain difference, build a canonical key using the **same rule** on both the write path and the read path. For example, technical codes might use `strip().toLowerCase(Locale.ROOT)` if policy allows; unifying canonical Unicode representations may require `Normalizer.Form.NFC`. However, tokens, signatures, or case-sensitive codes **must not be modified arbitrarily**. The lesson "Key Normalization vs. Preserving Display Text" covers designing separate storage for labels and keys and handling post-normalization collisions.
 
-Khi kết quả bất ngờ, hãy kiểm tra trực tiếp `equals` giữa khóa đã lưu và khóa tìm kiếm, kiểm tra khoảng trắng/ký tự vô hình, và dùng `containsKey` nếu value có thể là `null`. `intern` không giải quyết sự khác nhau của nội dung.
+When results are unexpected, check `equals` directly between the stored key and the lookup key, inspect whitespace/invisible characters, and use `containsKey` if the value can be `null`. `intern` does not resolve content differences.
 
-## 6. Vì sao String an toàn hơn khóa có thể thay đổi?
+## 6. Why Is String Safer Than Mutable Keys?
 
-`HashMap`/`HashSet` yêu cầu giá trị tham gia `equals` và `hashCode` của một phần tử **không đổi trong thời gian nó còn nằm trong collection**. Nếu dùng một đối tượng tùy biến làm khóa rồi sửa trạng thái được dùng để tính hash, một lần `get` hoặc `remove` có thể không còn tìm được entry trước đó; tương tự `HashSet.contains` có thể thất bại. Vấn đề đến từ vi phạm hợp đồng của key, không phải một lỗi ngẫu nhiên của map.
+`HashMap`/`HashSet` require that the values participating in an element's `equals` and `hashCode` **do not change while it remains in the collection**. If a custom mutable object is used as a key and the state used to compute its hash is modified, a subsequent `get` or `remove` may fail to find the previous entry; similarly `HashSet.contains` may fail. The issue comes from violating the key's contract, not from a random bug in the map.
 
-`String` loại bỏ lớp rủi ro đó do nội dung bất biến. Nhưng biến tham chiếu vẫn có thể đổi sang string mới, điều này không ảnh hưởng đối tượng cũ đã lưu.
+`String` eliminates that class of risk because its content is immutable. A reference variable can still be reassigned to a new string, which does not affect the old stored object.
 
-### 6.1. StringBuilder và các đối tượng mutable
+### 6.1. StringBuilder and Mutable Objects
 
-`StringBuilder` có thể sửa nội dung bằng `append`/`replace` và không ghi đè `equals/hashCode` để so sánh theo nội dung như `String`. Vì vậy dùng một đối tượng `StringBuilder` làm khóa map thường không thể hiện đúng yêu cầu so sánh giá trị. Hãy tạo `String` snapshot nếu cần key theo nội dung:
+`StringBuilder` can have its content modified with `append`/`replace` and does not override `equals/hashCode` to compare by content like `String`. Therefore, using a `StringBuilder` object as a map key usually fails to express value-based comparison properly. Create a `String` snapshot if a content-based key is needed:
 
 ~~~java
 StringBuilder builder = new StringBuilder("part");
@@ -199,24 +199,24 @@ builder.append("-updated");
 System.out.println(map.get("part")); // 5
 ~~~
 
-Dữ liệu trong builder thay đổi nhưng `safeKey` vẫn có giá trị `"part"`. Nếu key phải bao gồm nhiều trường, ưu tiên một kiểu **immutable value object** có `equals/hashCode` nhất quán (ví dụ `record` chứa các thành phần cũng bất biến) hơn là nối chuỗi tùy tiện gây mơ hồ dấu phân cách.
+The data in the builder changes, but `safeKey` still holds `"part"`. If a key must combine multiple fields, prefer an **immutable value object** with consistent `equals/hashCode` (for example, a `record` whose components are also immutable) rather than ad-hoc string concatenation that introduces delimiter ambiguity.
 
-### 6.2. Cùng một String cũng có thể bị “sai” vì chuẩn hóa đầu vào
+### 6.2. Even an Immutable String Can "Fail" Due to Input Normalization
 
-Tính bất biến chỉ đảm bảo khóa **không biến đổi sau khi đưa vào collection**. Nó không bảo đảm tất cả dữ liệu cần được coi là một khóa đều đã cùng biểu diễn. Ví dụ nếu lúc `put` dùng `input.strip()` nhưng lúc `get` dùng input nguyên văn, ứng dụng vẫn truy vấn hụt. Hãy tập trung chính sách vào một hàm như `canonicalKey(raw)` và dùng nó ở cả hai đường.
+Immutability only guarantees that the key **does not mutate after being placed into the collection**. It does not guarantee that all inputs meant to be treated as one key already share the same representation. For instance, if `put` uses `input.strip()` while `get` uses the raw input, the application will still miss lookups. Centralize the policy in a single function such as `canonicalKey(raw)` and use it on both paths.
 
-## 7. Hiệu năng, thứ tự, luồng và lựa chọn collection
+## 7. Performance, Ordering, Concurrency, and Collection Choice
 
-- **Độ phức tạp trung bình:** với hash phân tán tốt và kích thước hợp lý, `HashMap.get`/`put` và `HashSet.contains`/`add` thường đạt khoảng **O(1) trung bình**. Nếu collision cao hoặc resize, chi phí có thể tăng; tuyệt đối không bảo đảm O(1) cho mọi thao tác/mọi đầu vào.
-- **Chi phí tính hash String:** tính `hashCode` ban đầu phụ thuộc chiều dài chuỗi; một số JDK ghi nhớ hash của `String` sau lần tính. Khi so sánh khóa trùng hash, `equals` có thể cần so sánh từng code unit đến khi gặp khác biệt.
-- **Memory và intern:** không cần `intern()` để làm key. `HashMap` và `HashSet` đã xử lý cùng nội dung bằng `equals/hashCode`; dùng `intern` hàng loạt có thể tạo áp lực quản lý bộ nhớ và không giải quyết canonicalization nghiệp vụ.
-- **Thứ tự duyệt:** `HashMap` và `HashSet` **không cam kết** thứ tự chèn hoặc thứ tự sắp xếp. Dùng `LinkedHashMap`/`LinkedHashSet` khi muốn giữ thứ tự chèn; dùng `TreeMap`/`TreeSet` khi thực sự cần sắp xếp (lưu ý comparator chi phối logic nhận diện khóa của cấu trúc sorted).
-- **Đồng thời:** `String` bất biến **không làm cho `HashMap` hoặc `HashSet` trở thành thread-safe**. Nhiều luồng sửa collection cần đồng bộ hoặc một cấu trúc phù hợp như `ConcurrentHashMap` / `ConcurrentHashMap.newKeySet()`; các cấu trúc concurrent này có quy tắc riêng, ví dụ không cho key/value `null`.
-- **Chọn dạng khóa:** nếu miền khóa là enum hữu hạn, `EnumMap`/`EnumSet` thường phù hợp hơn string key. Nếu miền có quy tắc chuẩn hóa hoặc nhiều thành phần, tạo kiểu khóa rõ ràng sẽ giảm lỗi hơn là trải khắp code các lệnh `trim` và `toLowerCase`.
+- **Average complexity:** with a well-distributed hash and reasonable table size, `HashMap.get`/`put` and `HashSet.contains`/`add` typically achieve roughly **O(1) average** time. Under high collisions or resizing, cost can increase; O(1) is never guaranteed for all operations or all inputs.
+- **String hash computation cost:** computing the initial `hashCode` depends on string length; some JDKs cache a `String`'s hash after the first computation. When comparing keys with the same hash, `equals` may need to compare code units until a difference is found.
+- **Memory and intern:** you do not need `intern()` to use strings as keys. `HashMap` and `HashSet` already handle identical content via `equals/hashCode`; calling `intern` in bulk can create memory management pressure and does not solve business canonicalization.
+- **Iteration order:** `HashMap` and `HashSet` **make no guarantees** about insertion order or sorted order. Use `LinkedHashMap`/`LinkedHashSet` when insertion order must be preserved; use `TreeMap`/`TreeSet` when sorting is genuinely required (note that the comparator governs key identity in sorted structures).
+- **Concurrency:** `String` immutability **does not make `HashMap` or `HashSet` thread-safe**. Multiple threads modifying a collection require synchronization or an appropriate concurrent structure such as `ConcurrentHashMap` / `ConcurrentHashMap.newKeySet()`; these concurrent structures have their own rules, such as disallowing `null` keys and values.
+- **Choosing the key representation:** if the key domain is a finite enum, `EnumMap`/`EnumSet` are often a better fit than string keys. If the domain involves normalization rules or multiple fields, defining an explicit key type reduces bugs compared to scattering `trim` and `toLowerCase` calls throughout the codebase.
 
-## 8. Ví dụ Java 17+ độc lập, kết quả không phụ thuộc thứ tự duyệt
+## 8. Standalone Java 17+ Example, Independent of Iteration Order
 
-Lưu đoạn sau trong file **`StringHashCollectionsDemo.java`**:
+Save the following in **`StringHashCollectionsDemo.java`**:
 
 ~~~java
 import java.text.Normalizer;
@@ -285,14 +285,14 @@ public class StringHashCollectionsDemo {
 }
 ~~~
 
-Biên dịch và chạy từ thư mục chứa file:
+Compile and run from the directory containing the file:
 
 ~~~bash
 javac --release 17 StringHashCollectionsDemo.java
 java StringHashCollectionsDemo
 ~~~
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ~~~text
 sameReference=false
@@ -315,17 +315,17 @@ nullValue=true
 containsNullValueKey=true
 ~~~
 
-Đoạn chương trình **không in trực tiếp toàn bộ `HashMap` hoặc `HashSet`**, vì thứ tự phần tử/entry khi duyệt không phải hợp đồng được đảm bảo. Các giá trị truy vấn theo key, kích thước, boolean của `add` và so sánh `equals` cho output có thể dự đoán chính xác.
+The program **does not print the entire `HashMap` or `HashSet` directly**, because iteration order of elements/entries is not a guaranteed contract. Key-based lookups, sizes, `add` booleans, and `equals` comparisons produce completely predictable output.
 
-## 9. Quy trình thiết kế String key đáng tin cậy
+## 9. Process for Designing Reliable String Keys
 
-1. **Định nghĩa thế nào là cùng một khóa** theo nghiệp vụ: có phân biệt hoa/thường không, có bỏ khoảng trắng hay không, có chấp nhận Unicode tương đương chuẩn tắc không?
-2. **Chọn canonicalization** (nếu cần) và áp dụng nhất quán **trước `put`/`add` và trước `get`/`contains`/`remove`**.
-3. **Dùng `String` hoặc một kiểu khóa bất biến**, không dựa vào object identity hay trạng thái có thể thay đổi.
-4. **Chọn collection theo nhu cầu**: `HashMap` cho key → value; `HashSet` cho membership/uniqueness; biến thể có thứ tự hoặc concurrent khi thực sự cần.
-5. **Kiểm thử các cặp đầu vào đặc biệt**: cùng nội dung khác đối tượng, khác hoa/thường, space đầu/cuối, ký tự zero-width, precomposed/decomposed Unicode, hash collision và `null` khi hợp lệ.
+1. **Define what counts as the same key** according to business rules: is it case-sensitive, should whitespace be stripped, and should canonically equivalent Unicode be treated as equal?
+2. **Choose canonicalization** (if needed) and apply it consistently **before `put`/`add` and before `get`/`contains`/`remove`**.
+3. **Use `String` or an immutable key type**, never relying on object identity or mutable state.
+4. **Choose the collection based on requirements**: `HashMap` for key → value; `HashSet` for membership/uniqueness; ordered or concurrent variants when truly needed.
+5. **Test special input pairs**: same content with different objects, different case, leading/trailing spaces, zero-width characters, precomposed/decomposed Unicode, hash collisions, and `null` where allowed.
 
-Một API nên thể hiện chính sách rõ ràng. Ví dụ nếu định danh kỹ thuật cho phép loại whitespace đầu/cuối và không phân biệt hoa/thường:
+An API should express its policy clearly. For example, if technical identifiers allow stripping leading/trailing whitespace and case-insensitivity:
 
 ~~~java
 import java.util.Locale;
@@ -338,23 +338,23 @@ static String canonicalKey(String raw) {
 }
 ~~~
 
-Đây là **minh họa chính sách cụ thể**, không phải quy tắc chuẩn cho mọi loại khóa. Không dùng cho giá trị mà dấu cách/chữ hoa được định nghĩa là có ý nghĩa. Nếu áp dụng chuẩn hóa Unicode, thêm `Normalizer.normalize(...)` vào chính sách sau khi quyết định thứ tự xử lý, rồi xác minh bằng dữ liệu đầu vào thực tế.
+This is an **illustration of a specific policy**, not a standard rule for every kind of key. Do not use it for values where spaces or letter case are defined as meaningful. If applying Unicode normalization, add `Normalizer.normalize(...)` to the policy after deciding the processing order, then verify with real input data.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-1. Vì sao hai biến tham chiếu tới **hai đối tượng** `new String("x")` vẫn chỉ tạo **một** entry trong `HashMap`? → Vì `equals` bằng nhau và `hashCode` tương ứng bằng nhau.
-2. Hai chuỗi có cùng `hashCode` có bắt buộc là một key không? → **Không**. Va chạm vẫn có thể chứa hai khóa khác nhau, ví dụ `"FB"` và `"Ea"`.
-3. `HashSet.add(s)` trả `false` nghĩa là gì? → Đã tồn tại phần tử tương đương theo `equals` (trong điều kiện bộ hợp đồng hash/equals của phần tử hợp lệ).
-4. `String` bất biến có đảm bảo `HashMap` an toàn khi nhiều luồng đồng thời sửa không? → **Không**; đó là đặc tính của collection và cách đồng bộ.
-5. Vì sao nhập `"é"` đôi khi truy vấn không khớp? → Có thể khác dạng biểu diễn Unicode; cần định nghĩa và áp dụng chuẩn hóa nhất quán nếu nghiệp vụ muốn coi chúng như nhau.
-6. Vì sao `map.get(key) == null` chưa chắc nghĩa là khóa không tồn tại? → Một `HashMap` có thể gán value `null` cho key; kiểm tra `containsKey` nếu cần phân biệt.
+1. Why do two variables referencing **two objects** `new String("x")` still create only **one** entry in a `HashMap`? → Because `equals` is true and the corresponding `hashCode` values are equal.
+2. Do two strings with the same `hashCode` have to be the same key? → **No**. Collisions can still hold two distinct keys, such as `"FB"` and `"Ea"`.
+3. What does `HashSet.add(s)` returning `false` mean? → An equivalent element according to `equals` already exists (assuming valid hash/equals contracts for the elements).
+4. Does `String` immutability guarantee `HashMap` is safe when multiple threads modify it concurrently? → **No**; thread safety is a property of the collection and synchronization strategy.
+5. Why might typing `"é"` sometimes fail to match on lookup? → It may use a different Unicode representation; a consistent normalization rule must be defined and applied if business logic wants them treated as the same.
+6. Why does `map.get(key) == null` not necessarily mean the key is absent? → A `HashMap` can map a key to a `null` value; check `containsKey` when you need to distinguish the two.
 
-**Ghi nhớ:** `String` thích hợp làm key/element của cấu trúc hash vì **bất biến** và triển khai `equals/hashCode` theo **nội dung chuỗi**. `HashMap` quản lý ánh xạ, `HashSet` quản lý tính duy nhất; cả hai tuân theo quy tắc so sánh chuỗi đúng như giá trị được cung cấp, không tự chuẩn hóa dữ liệu.
+**Remember:** `String` works well as a key/element in hash-based structures because it is **immutable** and implements `equals/hashCode` based on **string content**. `HashMap` manages mappings and `HashSet` manages uniqueness; both follow string comparison rules on the exact values provided without normalizing data automatically.
 
-## Tài liệu tham khảo
+## References
 
 - [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): `equals`, `hashCode`, `isEmpty`, `strip`.
-- [Java SE 17 — Object](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html): hợp đồng `equals` và `hashCode`.
-- [Java SE 17 — HashMap](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashMap.html): key tương đương, null, hiệu năng, thứ tự và vấn đề đồng thời.
-- [Java SE 17 — HashSet](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashSet.html): membership, `add`, hash và thứ tự.
-- [Java SE 17 — Normalizer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html): NFC/NFD và tương đương chuẩn tắc.
+- [Java SE 17 — Object](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html): the `equals` and `hashCode` contract.
+- [Java SE 17 — HashMap](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashMap.html): key equivalence, null handling, performance, ordering, and concurrency issues.
+- [Java SE 17 — HashSet](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashSet.html): membership, `add`, hashing, and ordering.
+- [Java SE 17 — Normalizer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html): NFC/NFD and canonical equivalence.

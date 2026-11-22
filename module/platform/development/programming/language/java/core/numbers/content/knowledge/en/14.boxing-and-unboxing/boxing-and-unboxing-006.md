@@ -1,6 +1,6 @@
-# `List<Integer>` không phải `int[]` trong Java
+# `List<Integer>` Is Not `int[]` in Java
 
-Trong Java, `int[]` là **mảng các giá trị nguyên thủy `int`**, còn `List<Integer>` là **kiểu danh sách tham chiếu đến các đối tượng `Integer`**. Cả hai có thể biểu diễn dãy số như 2, 4, 6, nhưng chúng **không có cùng kiểu, cách lưu trữ, API, khả năng thay đổi kích thước, cách xử lý `null` và chi phí thao tác**.
+In Java, `int[]` is an **array of primitive `int` values**, whereas `List<Integer>` is a **list type holding references to `Integer` objects**. Both can represent a sequence of numbers like 2, 4, 6, but they **do not share the same type, storage layout, API, resizability, `null` handling, or operation costs**.
 
 ```java
 int[] array = {2, 4, 6};
@@ -13,31 +13,31 @@ System.out.println(array[0]);  // 2
 System.out.println(list.get(0)); // 2
 ```
 
-Kết quả in giống nhau không có nghĩa hai biến có thể hoán đổi cho nhau. Đặc biệt, trong chủ đề **Boxing và unboxing**, `List<Integer>` còn liên quan đến chuyển đổi ngầm giữa `int` và `Integer`, cấp phát/giữ tham chiếu đối tượng, và nguy cơ `NullPointerException` khi unboxing.
+Identical printed output does not mean the two variables are interchangeable. Specifically, in **Boxing and unboxing**, `List<Integer>` also involves implicit conversions between `int` and `Integer`, allocating/holding object references, and the risk of `NullPointerException` during unboxing.
 
-## 1. Bảng so sánh nhanh
+## 1. Quick comparison table
 
-| Đặc điểm | `int[]` | `List<Integer>` |
+| Aspect | `int[]` | `List<Integer>` |
 | --- | --- | --- |
-| Kiểu dữ liệu | Mảng của primitive `int` | Kiểu generic `List` với tham số kiểu tham chiếu `Integer` |
-| Phần tử | Giá trị `int` 32 bit | Tham chiếu tới đối tượng `Integer` hoặc `null` nếu implementation cho phép |
-| Lấy phần tử | `a[i]` | `list.get(i)` |
-| Gán phần tử | `a[i] = value` | `list.set(i, value)` nếu list hỗ trợ |
-| Số phần tử | `a.length` (trường) | `list.size()` (phương thức) |
-| Tăng/giảm số phần tử | Không; độ dài mảng cố định | Phụ thuộc implementation: `ArrayList` thêm/xóa được; `List.of` không sửa được |
-| Phần tử mặc định khi tạo vùng chứa | `new int[3]` chứa ba số 0 | `new ArrayList<Integer>()` rỗng; `new Integer[3]` chứa ba `null` |
-| Chấp nhận `null` làm phần tử | Không | Có thể, ví dụ `ArrayList`, nhưng `List.of` cấm |
-| Generic type argument | Không áp dụng | Phải dùng `Integer`, không thể viết `List<int>` |
-| Mô hình truy cập | Truy cập chỉ số của mảng | Hợp đồng `List`; độ phức tạp phụ thuộc loại list |
-| Thư viện thao tác | `Arrays.sort`, `Arrays.stream`, `Arrays.equals` | `sort`, `stream`, `contains`, `add`, `remove`... tùy khả năng sửa đổi |
-| Mức sử dụng bộ nhớ | Phần tử `int` được lưu trong mảng primitive | Thường có vùng tham chiếu và các đối tượng wrapper, thêm chi phí quản lý |
-| Tính tương thích kiểu | Không phải `Integer[]` hay `List<Integer>` | Không tự trở thành `int[]`, cần chuyển đổi chủ động |
+| Data type | Array of primitive `int` | Generic `List` type with reference type argument `Integer` |
+| Elements | 32-bit `int` values | References to `Integer` objects or `null` if the implementation permits |
+| Get element | `a[i]` | `list.get(i)` |
+| Set element | `a[i] = value` | `list.set(i, value)` if the list supports it |
+| Element count | `a.length` (field) | `list.size()` (method) |
+| Grow/shrink element count | No; array length is fixed | Depends on implementation: `ArrayList` supports add/remove; `List.of` is unmodifiable |
+| Default elements when creating container | `new int[3]` holds three 0s | `new ArrayList<Integer>()` is empty; `new Integer[3]` holds three `null`s |
+| Accepts `null` as an element | No | Possible, e.g., `ArrayList`, though `List.of` forbids it |
+| Generic type argument | Not applicable | Must use `Integer`; cannot write `List<int>` |
+| Access model | Array index access | `List` contract; complexity depends on list implementation |
+| Manipulation libraries | `Arrays.sort`, `Arrays.stream`, `Arrays.equals` | `sort`, `stream`, `contains`, `add`, `remove`... depending on mutability |
+| Memory usage | `int` elements stored in primitive array | Typically has reference backing storage and wrapper objects, adding management overhead |
+| Type compatibility | Neither `Integer[]` nor `List<Integer>` | Does not automatically become `int[]`; requires explicit conversion |
 
-**Cần nhớ:** `List<Integer>` chỉ định *kiểu phần tử*, **không chỉ định cấu trúc bên trong**. `ArrayList<Integer>` thường giữ tham chiếu trong một mảng `Object[]`, nhưng `LinkedList<Integer>` dùng các nút liên kết. Không được suy ra rằng mọi `List<Integer>` đều liên tục trong bộ nhớ hoặc có tốc độ truy cập chỉ số như mảng.
+**Remember:** `List<Integer>` specifies the *element type*, **not the internal structure**. `ArrayList<Integer>` typically stores references inside an `Object[]` array, whereas `LinkedList<Integer>` uses linked nodes. You must not infer that every `List<Integer>` is contiguous in memory or has array-like indexed access speed.
 
-## 2. `int` là primitive, `Integer` là lớp wrapper
+## 2. `int` is a primitive, `Integer` is a wrapper class
 
-`int` không phải một object. `Integer` là một lớp bất biến của `java.lang` chứa giá trị `int` và cung cấp các API như `intValue`, `parseInt`, `compare`.
+`int` is not an object. `Integer` is an immutable class in `java.lang` holding an `int` value and providing APIs such as `intValue`, `parseInt`, and `compare`.
 
 ```java
 int primitive = 42;
@@ -45,52 +45,52 @@ Integer wrapper = Integer.valueOf(42);
 int restored = wrapper.intValue();
 ```
 
-Java hỗ trợ **autoboxing** và **unboxing** nên nhiều phép chuyển đổi được viết ngắn hơn:
+Java supports **autoboxing** and **unboxing**, so many conversions are written more concisely:
 
 ```java
 Integer boxed = 42; // Autoboxing: int -> Integer.
 int unboxed = boxed; // Unboxing: Integer -> int.
 ```
 
-Khi thêm `int` vào `List<Integer>`, việc boxing xảy ra ngầm:
+When adding an `int` to a `List<Integer>`, boxing occurs implicitly:
 
 ```java
 java.util.List<Integer> values = new java.util.ArrayList<>();
-values.add(10);       // Về ý nghĩa là thêm một Integer chứa 10.
-int first = values.get(0); // get trả Integer; gán vào int -> unboxing.
+values.add(10);       // Semantically adds an Integer containing 10.
+int first = values.get(0); // get returns Integer; assigning to int -> unboxing.
 ```
 
-**Không phải mọi thao tác `List<Integer>` đều boxing mới**: có thể thêm một tham chiếu `Integer` đã tồn tại; JVM cũng có thể dùng cache wrapper đối với một số giá trị. Vì vậy, nói “mỗi phần tử luôn tạo đúng một object mới” là không chính xác. Điều quan trọng là API làm việc với **đối tượng/tham chiếu**, khác với ô `int` primitive.
+**Not every `List<Integer>` operation creates a new boxed object**: an existing `Integer` reference may be added; the JVM may also use wrapper caching for some values. Hence saying “every element always allocates exactly one new object” is inaccurate. What matters is that the API operates on **objects/references**, unlike primitive `int` slots.
 
-### Tại sao `List<int>` không hợp lệ?
+### Why is `List<int>` invalid?
 
-Java generics truyền thống yêu cầu **type argument là kiểu tham chiếu**; primitive `int` không phải type argument hợp lệ:
+Traditional Java generics require **type arguments to be reference types**; primitive `int` is not a valid type argument:
 
 ```java
-// List<int> bad = new ArrayList<>(); // Không biên dịch.
+// List<int> bad = new ArrayList<>(); // Does not compile.
 
 java.util.List<Integer> good = new java.util.ArrayList<>();
 ```
 
-Java không tự biến `List<int>` thành `List<Integer>` ở cú pháp generic. Khi cần tính toán theo luồng primitive tránh boxing, Java cung cấp `IntStream`; khi cần dữ liệu primitive lưu liên tục, `int[]` thường là lựa chọn phù hợp hơn.
+Java does not automatically transform `List<int>` into `List<Integer>` in generic syntax. When primitive-stream computation avoiding boxing is needed, Java provides `IntStream`; when contiguous primitive storage is needed, `int[]` is usually the better fit.
 
-### `Integer[]` cũng không phải `int[]`
+### `Integer[]` is also not `int[]`
 
-`Integer[]` là mảng **tham chiếu đến `Integer`**, có thể chứa `null`. Trong khi đó `int[]` là mảng chứa **giá trị `int`**. Hai kiểu mảng không tương thích bằng một phép cast thông thường:
+`Integer[]` is an array of **references to `Integer`**, which can hold `null`. Meanwhile, `int[]` is an array holding **`int` values**. The two array types are not compatible via an ordinary cast:
 
 ```java
 int[] primitives = {1, 2, 3};
-Integer[] objects = {1, 2, 3}; // Mỗi giá trị được boxing.
+Integer[] objects = {1, 2, 3}; // Each value is boxed.
 
-// Integer[] wrong = primitives; // Không biên dịch.
-// int[] wrong2 = objects;       // Không biên dịch.
+// Integer[] wrong = primitives; // Does not compile.
+// int[] wrong2 = objects;       // Does not compile.
 ```
 
-`Integer[]` có phần tử và bộ nhớ khác `int[]`; nó gần với `List<Integer>` về kiểu đối tượng phần tử, nhưng vẫn là **mảng có độ dài cố định**, không phải List.
+`Integer[]` differs from `int[]` in elements and memory; it is closer to `List<Integer>` regarding object element types, yet remains a **fixed-length array**, not a List.
 
-## 3. Khác biệt API: `length`, `size()`, `[]`, `get()`, `set()`
+## 3. API differences: `length`, `size()`, `[]`, `get()`, `set()`
 
-Với mảng:
+With an array:
 
 ```java
 int[] ages = {18, 20, 22};
@@ -99,7 +99,7 @@ System.out.println(ages[1]);     // 20.
 ages[1] = 21;
 ```
 
-Với danh sách:
+With a list:
 
 ```java
 java.util.List<Integer> ages =
@@ -110,46 +110,46 @@ System.out.println(ages.get(1)); // 20.
 ages.set(1, 21);
 ```
 
-Không thể dùng `ages.length` hoặc `ages[1]` khi `ages` có kiểu `List<Integer>`. Ngược lại, mảng không có `get`, `set`, `add` hoặc `size()` như `List`.
+You cannot use `ages.length` or `ages[1]` when `ages` has type `List<Integer>`. Conversely, arrays do not have `get`, `set`, `add`, or `size()` like `List`.
 
-### Kích thước và khả năng sửa đổi là hai trục khác nhau
+### Size and mutability are two separate axes
 
-Mảng có độ dài cố định, nhưng **phần tử có thể sửa**:
+Arrays have fixed length, but **elements can be modified**:
 
 ```java
 int[] nums = {1, 2};
-nums[0] = 9; // Hợp lệ.
-// nums.add(3); // Không có add.
+nums[0] = 9; // Valid.
+// nums.add(3); // No add method.
 ```
 
-`List<Integer>` chỉ là interface: nó có phương thức thay đổi dữ liệu nhưng implementation có thể **không hỗ trợ**. Ví dụ:
+`List<Integer>` is only an interface: it has data-mutation methods, yet an implementation might **not support them**. For example:
 
 ```java
 java.util.List<Integer> resizable = new java.util.ArrayList<>();
 resizable.add(1);
-resizable.add(2); // Tăng size lên 2.
+resizable.add(2); // Grows size to 2.
 
 java.util.List<Integer> fixedValues = java.util.List.of(1, 2);
-// fixedValues.add(3); // Ném UnsupportedOperationException lúc chạy.
-// fixedValues.set(0, 9); // Cũng ném UnsupportedOperationException.
+// fixedValues.add(3); // Throws UnsupportedOperationException at runtime.
+// fixedValues.set(0, 9); // Also throws UnsupportedOperationException.
 ```
 
-`List.of` (Java 9+) tạo danh sách **không sửa đổi được** (*unmodifiable*). Nó không cho thêm/xóa, cũng không cho thay phần tử và **không chấp nhận phần tử `null`**. `ArrayList` mặc định có thể thêm/xóa/set và có thể chứa `null`.
+`List.of` (Java 9+) creates an **unmodifiable** list. It forbids adding/removing, forbids replacing elements, and **does not accept `null` elements**. `ArrayList` by default supports add/remove/set and can contain `null`.
 
-Không nên suy luận rằng `List<Integer>` luôn “có thể tăng kích thước”; điều đó chỉ đúng với một số triển khai và điều kiện hoạt động.
+You should not infer that `List<Integer>` is always “resizable”; that only holds for certain implementations and operating conditions.
 
-## 4. Tác động của `null` và unboxing
+## 4. Impact of `null` and unboxing
 
-Đây là khác biệt quan trọng nhất về độ an toàn.
+This is the most important difference in terms of safety.
 
-`new int[3]` tạo **ba giá trị 0**. Mỗi phần tử của mảng primitive luôn là một `int` hợp lệ, không thể là `null`.
+`new int[3]` creates **three values of 0**. Every element of a primitive array is always a valid `int` and can never be `null`.
 
 ```java
 int[] ints = new int[1];
 System.out.println(ints[0]); // 0.
 ```
 
-Ngược lại, mảng wrapper `new Integer[3]` có các phần tử mặc định bằng `null`, còn `new ArrayList<Integer>()` ban đầu có **size = 0**, không có phần tử nào:
+Conversely, a wrapper array `new Integer[3]` has elements defaulting to `null`, while `new ArrayList<Integer>()` initially has **size = 0** with no elements:
 
 ```java
 Integer[] objects = new Integer[1];
@@ -159,80 +159,80 @@ java.util.List<Integer> empty = new java.util.ArrayList<>();
 System.out.println(empty.size()); // 0.
 ```
 
-Danh sách cho phép `null` có thể gây lỗi khi bạn lấy giá trị primitive:
+Lists that permit `null` can throw errors when you extract primitive values:
 
 ```java
 java.util.List<Integer> list = new java.util.ArrayList<>();
 list.add(null);
 
-// int x = list.get(0); // Ném NullPointerException lúc unboxing.
+// int x = list.get(0); // Throws NullPointerException during unboxing.
 Integer value = list.get(0);
 System.out.println(value == null); // true.
 ```
 
-Tương tự, `for (int x : list)` sẽ unbox từng `Integer` và có thể ném `NullPointerException` khi gặp `null`. `list.stream().mapToInt(Integer::intValue)` cũng không xử lý `null` một cách ngầm định.
+Similarly, `for (int x : list)` will unbox each `Integer` and can throw `NullPointerException` upon encountering `null`. `list.stream().mapToInt(Integer::intValue)` also does not implicitly handle `null`.
 
-**Thiết kế API:** nếu phần tử phải luôn có giá trị nguyên, có thể tránh `null` bằng validation hoặc dùng kiểu chứa primitive. Nếu `null` có nghĩa “chưa biết”, cần nêu rõ chính sách xử lý thay vì unboxing vô điều kiện hoặc tự động thay bằng 0 (vì 0 có thể là dữ liệu hợp lệ).
+**API design:** if elements must always hold integer values, avoid `null` through validation or use a primitive container. If `null` means “unknown”, state the handling policy explicitly instead of unconditionally unboxing or automatically replacing with 0 (since 0 might be valid data).
 
-## 5. Vì sao hai vùng chứa không tương thích trực tiếp?
+## 5. Why are the two containers not directly compatible?
 
-`int[]` là **một kiểu mảng runtime cụ thể** (array component type là primitive `int`). `List<Integer>` là **một đối tượng implements interface `List`**. Java không có chuyển đổi tự động giữa hai cấu trúc này:
+`int[]` is **a concrete runtime array type** (array component type is primitive `int`). `List<Integer>` is **an object implementing the `List` interface**. Java has no automatic conversion between these two structures:
 
 ```java
 int[] raw = {1, 2, 3};
 
-// List<Integer> list = raw; // Không biên dịch.
-// int[] other = new ArrayList<Integer>(); // Không biên dịch.
+// List<Integer> list = raw; // Does not compile.
+// int[] other = new ArrayList<Integer>(); // Does not compile.
 ```
 
-Cả hai đều là object ở mức tham chiếu Java (mảng là object), nhưng **một mảng `int[]` không triển khai `List`**. Ép `(List<Integer>) raw` cũng không phải giải pháp; nó không chuyển dữ liệu thành wrapper và danh sách.
+Both are objects at the Java reference level (arrays are objects), yet **an `int[]` array does not implement `List`**. Casting `(List<Integer>) raw` is also no solution; it does not convert data into wrappers and a list.
 
-`List<Integer>` không có nghĩa “một mảng int với API khác”. Bất kỳ chuyển đổi thực sự nào phải duyệt phần tử, thực hiện boxing hoặc unboxing, và tạo cấu trúc đích phù hợp.
+`List<Integer>` does not mean “an int array with a different API”. Any real conversion must iterate over elements, perform boxing or unboxing, and build the appropriate target structure.
 
-### Tính đa hình và generic invariance
+### Polymorphism and generic invariance
 
-`List<Integer>` **không phải subtype của** `List<Number>`, mặc dù `Integer extends Number`. Java generics có quy tắc *invariance* cho kiểu như `List<T>`:
+`List<Integer>` is **not a subtype of** `List<Number>`, even though `Integer extends Number`. Java generics follow *invariance* rules for types like `List<T>`:
 
 ```java
 java.util.List<Integer> ints = java.util.List.of(1, 2);
-// List<Number> numbers = ints; // Không biên dịch.
+// List<Number> numbers = ints; // Does not compile.
 
 java.util.List<? extends Number> readOnlyView = ints;
 Number x = readOnlyView.get(0);
 ```
 
-`List<? extends Number>` cho phép đọc các phần tử như `Number`, nhưng không cho phép tùy tiện thêm các `Number` mới, bởi danh sách thật có thể chỉ chấp nhận `Integer`. Đây là vấn đề **generic type safety**, không liên quan đến khả năng ép `int[]` sang List.
+`List<? extends Number>` allows reading elements as `Number`, but does not allow arbitrarily adding new `Number`s, because the actual list may only accept `Integer`. This is a matter of **generic type safety**, unrelated to being able to cast `int[]` to a List.
 
-Mảng đối tượng có quy tắc *covariance* khác generic và có thể phát sinh `ArrayStoreException` lúc chạy, nhưng `int[]` không phải subtype của `Object[]`: phần tử của `int[]` là primitive, không phải tham chiếu.
+Object arrays have *covariance* rules distinct from generics and can raise `ArrayStoreException` at runtime, yet `int[]` is not a subtype of `Object[]`: elements of `int[]` are primitives, not references.
 
-## 6. Bẫy phổ biến nhất: `Arrays.asList(int[])`
+## 6. The most common trap: `Arrays.asList(int[])`
 
-Nhiều người viết:
+Many developers write:
 
 ```java
 int[] raw = {2, 4, 6};
 var list = java.util.Arrays.asList(raw);
 ```
 
-Điều bất ngờ: **`list` không phải `List<Integer>`**. Nó là `List<int[]>` có **đúng một phần tử là nguyên cả mảng `raw`**.
+The surprise: **`list` is not `List<Integer>`**. It is `List<int[]>` with **exactly one element, which is the entire `raw` array**.
 
 ```java
 System.out.println(list.size());      // 1.
 System.out.println(list.get(0).length); // 3.
 ```
 
-`Arrays.asList(T... a)` nhận varargs kiểu **tham chiếu** `T`. Với đối số `int[]`, bản thân `int[]` là một object; Java suy ra `T = int[]`. Không có quá trình tự “trải” từng số trong mảng primitive thành `Integer`.
+`Arrays.asList(T... a)` accepts varargs of **reference** type `T`. With an `int[]` argument, `int[]` itself is an object; Java infers `T = int[]`. There is no automatic “unpacking” of each number in a primitive array into `Integer`.
 
-Vì vậy:
+Therefore:
 
 ```java
 // List<Integer> wrong = Arrays.asList(new int[]{1,2,3});
-// Lỗi biên dịch do kiểu suy ra không phù hợp.
+// Compile-time error due to incompatible inferred type.
 ```
 
-Đừng cố sửa bằng raw type hoặc ép kiểu không an toàn: hậu quả có thể là `ClassCastException` khi lấy phần tử.
+Do not try to fix it with raw types or unsafe casts: the consequence can be `ClassCastException` when retrieving elements.
 
-### `Arrays.asList(Integer[])` thì khác
+### `Arrays.asList(Integer[])` is different
 
 ```java
 Integer[] objects = {2, 4, 6};
@@ -243,21 +243,21 @@ list.set(0, 10);
 System.out.println(objects[0]); // 10.
 ```
 
-Trong trường hợp này, mảng phần tử tham chiếu `Integer[]` được đưa vào `Arrays.asList`, nên danh sách nhận từng phần tử `Integer`. Danh sách trả về có **kích thước cố định** và **backed by** mảng `objects`:
+In this case, a reference-element array `Integer[]` is passed to `Arrays.asList`, so the list receives each `Integer` element. The returned list has **fixed size** and is **backed by** the `objects` array:
 
-- `list.set` làm thay đổi vị trí tương ứng trong mảng gốc.
-- Thay đổi phần tử của mảng gốc được phản ánh qua danh sách.
-- `list.add` và `list.remove` ném `UnsupportedOperationException` vì chúng thay đổi kích thước.
+- `list.set` modifies the corresponding position in the original array.
+- Modifying an element of the original array is reflected through the list.
+- `list.add` and `list.remove` throw `UnsupportedOperationException` because they change the size.
 
-**Không nhầm `Arrays.asList` với `new ArrayList<>()`.** Cùng triển khai interface `List` nhưng có khả năng resize và quan hệ với mảng gốc rất khác nhau.
+**Do not confuse `Arrays.asList` with `new ArrayList<>()`.** Both implement the `List` interface, yet their resizability and relationship to the original array differ greatly.
 
-### `List.of(raw)` cũng không chuyển thành `List<Integer>`
+### `List.of(raw)` also does not convert to `List<Integer>`
 
-Nếu `raw` là `int[]`, `List.of(raw)` tạo một danh sách chứa **một phần tử là mảng `int[]`**, không phải danh sách boxed integers. Khi cần boxed list, hãy dùng stream `boxed()` hoặc vòng lặp.
+If `raw` is `int[]`, `List.of(raw)` creates a list containing **one element, the `int[]` array**, not a list of boxed integers. When a boxed list is needed, use stream `boxed()` or a loop.
 
-## 7. Chuyển từ `int[]` sang `List<Integer>`
+## 7. Converting from `int[]` to `List<Integer>`
 
-### Cách 1 — Vòng lặp và `ArrayList` (danh sách thay đổi được)
+### Approach 1 — Loop and `ArrayList` (modifiable list)
 
 ```java
 int[] raw = {2, 4, 6};
@@ -268,9 +268,9 @@ for (int value : raw) {
 }
 ```
 
-Đây là cách dễ hiểu và hoạt động với Java 17+. Nó tạo một danh sách **độc lập** với mảng gốc: thay `list.set(0, 99)` **không** sửa `raw[0]`, và thay `raw[0]` **không** sửa danh sách đã tạo.
+This approach is easy to understand and works on Java 17+. It creates a list **independent** of the original array: changing `list.set(0, 99)` **does not** modify `raw[0]`, and changing `raw[0]` **does not** modify the created list.
 
-Đối với dữ liệu lớn, có thể đặt dung lượng dự kiến:
+For large datasets, you can specify an expected capacity:
 
 ```java
 java.util.ArrayList<Integer> list =
@@ -280,9 +280,9 @@ for (int value : raw) {
 }
 ```
 
-`new ArrayList<>(raw.length)` chỉ chọn **initial capacity**; nó chưa tạo `raw.length` phần tử và `size()` ban đầu vẫn là 0. Không dùng `set(i, value)` ngay nếu chưa có phần tử ở index `i`.
+`new ArrayList<>(raw.length)` only sets the **initial capacity**; it does not create `raw.length` elements and initial `size()` remains 0. Do not call `set(i, value)` immediately if there is not yet an element at index `i`.
 
-### Cách 2 — `Arrays.stream(...).boxed()`
+### Approach 2 — `Arrays.stream(...).boxed()`
 
 ```java
 int[] raw = {2, 4, 6};
@@ -290,9 +290,9 @@ java.util.List<Integer> list =
         java.util.Arrays.stream(raw).boxed().toList();
 ```
 
-`Arrays.stream(raw)` tạo `IntStream` nhận các `int`. `boxed()` chuyển thành `Stream<Integer>`; `toList()` của Stream (có từ Java 16) trả về danh sách **unmodifiable**. Do đó `list.add(8)`/`list.set(0,9)` sẽ ném `UnsupportedOperationException`.
+`Arrays.stream(raw)` creates an `IntStream` receiving `int`s. `boxed()` converts to `Stream<Integer>`; Stream's `toList()` (available since Java 16) returns an **unmodifiable** list. Hence `list.add(8)`/`list.set(0,9)` will throw `UnsupportedOperationException`.
 
-Nếu muốn danh sách sửa được:
+If you want a modifiable list:
 
 ```java
 java.util.List<Integer> mutable =
@@ -301,19 +301,19 @@ java.util.List<Integer> mutable =
 mutable.add(8);
 ```
 
-Đừng giả định một cách chung rằng mọi terminal operation thu danh sách đều trả `ArrayList` có thể sửa. Hợp đồng mutability phải được kiểm tra rõ.
+Do not generally assume every terminal operation collecting a list returns a mutable `ArrayList`. The mutability contract must be checked explicitly.
 
-### Dùng `List.of` cho từng số biết trước
+### Using `List.of` for individual known numbers
 
 ```java
 java.util.List<Integer> values = java.util.List.of(2, 4, 6);
 ```
 
-Ở đây từng đối số `int` được boxing để trở thành `Integer`. Kết quả là danh sách không sửa đổi được. Dạng này tiện cho dữ liệu cấu hình ngắn, **không** đồng nghĩa `List.of(new int[]{2,4,6})`.
+Here each `int` argument is boxed into `Integer`. The result is an unmodifiable list. This form is convenient for short configuration data, **not** equivalent to `List.of(new int[]{2,4,6})`.
 
-## 8. Chuyển từ `List<Integer>` về `int[]`
+## 8. Converting from `List<Integer>` back to `int[]`
 
-### Cách 1 — Duyệt và unbox thủ công
+### Approach 1 — Manual traversal and unboxing
 
 ```java
 java.util.List<Integer> list = java.util.List.of(2, 4, 6);
@@ -324,19 +324,19 @@ for (int i = 0; i < list.size(); i++) {
 }
 ```
 
-Với `ArrayList`, `get(i)` thường là O(1), nên cách này phù hợp. Nhưng với một số `List` khác như `LinkedList`, truy cập index `get(i)` nhiều lần có thể tốn O(n²) tổng cộng. Nếu không biết implementation hoặc muốn code dùng chung, nên dùng enhanced-for:
+For `ArrayList`, `get(i)` is typically O(1), so this approach works well. However, for some other `List`s like `LinkedList`, repeated indexed `get(i)` access can cost O(n²) overall. If the implementation is unknown or you want general-purpose code, use enhanced-for:
 
 ```java
 int[] raw = new int[list.size()];
 int i = 0;
 for (Integer value : list) {
-    raw[i++] = value; // Unboxing, có thể ném NPE nếu value là null.
+    raw[i++] = value; // Unboxing, can throw NPE if value is null.
 }
 ```
 
-Nếu List có thể bị sửa đồng thời, việc lấy `size()` trước rồi duyệt không tự bảo đảm snapshot nhất quán. Phải có hợp đồng đồng bộ/snapshot phù hợp với ứng dụng.
+If the List can be modified concurrently, reading `size()` beforehand and then iterating does not automatically guarantee a consistent snapshot. You must have synchronization/snapshot contracts suitable for the application.
 
-### Cách 2 — Stream `mapToInt`
+### Approach 2 — Stream `mapToInt`
 
 ```java
 java.util.List<Integer> list = java.util.List.of(2, 4, 6);
@@ -346,9 +346,9 @@ int[] raw = list.stream()
         .toArray();
 ```
 
-`mapToInt(Integer::intValue)` thực hiện unboxing/chuyển sang `int`. Nếu danh sách chứa `null`, việc gọi `intValue` trên `null` sẽ ném `NullPointerException`.
+`mapToInt(Integer::intValue)` performs unboxing/conversion to `int`. If the list contains `null`, calling `intValue` on `null` throws `NullPointerException`.
 
-Nếu nghiệp vụ muốn bỏ qua `null`, phải viết rõ, chẳng hạn:
+If business rules wish to ignore `null`, write it explicitly, for example:
 
 ```java
 int[] nonNullOnly = list.stream()
@@ -357,44 +357,44 @@ int[] nonNullOnly = list.stream()
         .toArray();
 ```
 
-Nhưng việc **lọc mất phần tử** có thể thay đổi quan hệ vị trí, nên không áp dụng tùy tiện cho index, mẫu đo hay dữ liệu có thứ tự cố định. Trong nhiều API, từ chối `null` với lỗi rõ ràng là an toàn hơn.
+However, **filtering out elements** can shift positional relationships, so do not apply it carelessly to indices, measurement samples, or fixed-order data. In many APIs, rejecting `null` with an explicit error is safer.
 
-### `toArray` không tạo `int[]`
+### `toArray` does not produce `int[]`
 
 ```java
 java.util.List<Integer> list = java.util.List.of(2, 4, 6);
-Integer[] boxedArray = list.toArray(new Integer[0]); // Đúng: Integer[].
+Integer[] boxedArray = list.toArray(new Integer[0]); // Valid: Integer[].
 ```
 
-Phương thức `List.toArray` làm việc với **mảng đối tượng**; không có một cách gọi `toArray(new int[0])` để tự unbox toàn bộ. Nếu cần `int[]`, dùng vòng lặp hoặc `mapToInt(...).toArray()`.
+`List.toArray` operates on **object arrays**; there is no `toArray(new int[0])` call to automatically unbox everything. If `int[]` is needed, use a loop or `mapToInt(...).toArray()`.
 
-## 9. Các lỗi chỉ xuất hiện khi sử dụng API tập hợp
+## 9. Errors that only appear when using collection APIs
 
-### `remove(1)` không giống `remove(Integer.valueOf(1))`
+### `remove(1)` is not the same as `remove(Integer.valueOf(1))`
 
-`List<Integer>` có hai overload:
+`List<Integer>` has two overloads:
 
-- `remove(int index)` — xóa theo **chỉ số**.
-- `remove(Object o)` — xóa theo **giá trị** bằng quy tắc equality của đối tượng.
+- `remove(int index)` — removes by **index**.
+- `remove(Object o)` — removes by **value** using object equality rules.
 
 ```java
 java.util.List<Integer> nums =
         new java.util.ArrayList<>(java.util.List.of(10, 20, 30));
 
-nums.remove(1);                  // Xóa phần tử tại index 1 (giá trị 20).
+nums.remove(1);                  // Removes element at index 1 (value 20).
 System.out.println(nums);       // [10, 30].
 
-nums.remove(Integer.valueOf(30)); // Xóa theo giá trị 30.
+nums.remove(Integer.valueOf(30)); // Removes by value 30.
 System.out.println(nums);          // [10].
 ```
 
-`nums.remove(1)` chọn overload `remove(int)`, không phải “xóa số 1”. Nếu cần xóa giá trị 1, viết `nums.remove(Integer.valueOf(1))` hoặc ép rõ `remove((Object) 1)` sau khi cân nhắc boxing.
+`nums.remove(1)` picks the `remove(int)` overload, not “remove the number 1”. If you need to remove the value 1, write `nums.remove(Integer.valueOf(1))` or explicitly cast `remove((Object) 1)` after accounting for boxing.
 
-Với `int[]` không có `remove`; muốn loại phần tử cần tạo mảng mới hoặc tự quản lý một đoạn hợp lệ trong mảng.
+With `int[]`, there is no `remove`; removing an element requires creating a new array or manually tracking a valid slice in the array.
 
-### So sánh `Integer` bằng `==` có bẫy tham chiếu
+### Comparing `Integer` with `==` has reference traps
 
-`Integer` là object; hai tham chiếu có thể chỉ vào cùng wrapper hoặc không. Java cache một số giá trị boxed; không dựa vào cache để làm equality:
+`Integer` is an object; two references may or may not point to the same wrapper. Java caches some boxed values; do not rely on the cache for equality:
 
 ```java
 Integer a = Integer.valueOf(1000);
@@ -403,11 +403,11 @@ Integer b = Integer.valueOf(1000);
 System.out.println(a.equals(b)); // true.
 ```
 
-Không nên dùng `a == b` để kiểm tra hai wrapper có cùng **giá trị số**. Nó so sánh **định danh đối tượng** khi cả hai toán hạng là `Integer` (và không có unboxing do ngữ cảnh). Với `Integer` có thể `null`, dùng `java.util.Objects.equals(a,b)` khi muốn equality null-safe.
+You should not use `a == b` to check whether two wrappers have the same **numeric value**. It compares **object identity** when both operands are `Integer` (and there is no contextual unboxing). For nullable `Integer`, use `java.util.Objects.equals(a,b)` when null-safe equality is desired.
 
-### `Arrays.equals` khác `List.equals`
+### `Arrays.equals` differs from `List.equals`
 
-`int[]` không override `equals` để so sánh từng phần tử; `array1.equals(array2)` là so sánh tham chiếu theo `Object`. Để so nội dung:
+`int[]` does not override `equals` to compare element by element; `array1.equals(array2)` is reference comparison inherited from `Object`. To compare contents:
 
 ```java
 int[] x = {1, 2};
@@ -415,7 +415,7 @@ int[] y = {1, 2};
 System.out.println(java.util.Arrays.equals(x, y)); // true.
 ```
 
-`List.equals`, ngược lại, được định nghĩa theo thứ tự và equality của các phần tử:
+`List.equals`, by contrast, is defined by element order and equality:
 
 ```java
 java.util.List<Integer> x = java.util.List.of(1, 2);
@@ -423,46 +423,46 @@ java.util.List<Integer> y = new java.util.ArrayList<>(x);
 System.out.println(x.equals(y)); // true.
 ```
 
-`Arrays.equals(int[],int[])` và `List.equals` là hai API khác nhau, không có phép equals mặc định liên kiểu giữa `int[]` và `List<Integer>`.
+`Arrays.equals(int[],int[])` and `List.equals` are two different APIs; there is no default cross-type equals between `int[]` and `List<Integer>`.
 
-## 10. Hiệu năng và bộ nhớ: khác biệt có ý nghĩa khi dữ liệu lớn
+## 10. Performance and memory: differences that matter at large data scales
 
-Với `int[]`, phần tử nguyên thủy dùng **4 byte mỗi giá trị `int`**, chưa tính phần header/căn chỉnh của mảng. Mảng chứa trực tiếp các giá trị, thường có tính locality tốt khi duyệt tuần tự.
+With `int[]`, primitive elements use **4 bytes per `int` value**, excluding the array's header/alignment. The array stores values directly, typically yielding good locality during sequential traversal.
 
-Với `ArrayList<Integer>`:
+With `ArrayList<Integer>`:
 
-- `ArrayList` thường lưu **tham chiếu** trong mảng `Object[]`, không phải 4 byte `int` trực tiếp trong backing array.
-- `Integer` là một object wrapper; không gian lưu, cache và chính sách tối ưu JVM ảnh hưởng chi phí thực tế.
-- Boxing/unboxing có thể có chi phí; boxing đôi khi tái sử dụng object cache hoặc được JVM tối ưu hóa, vì thế không nên tuyên bố “mỗi vòng lặp luôn cấp phát một object”.
-- `ArrayList` còn quản lý capacity và có thể giữ chỗ chưa dùng.
-- `LinkedList<Integer>` thường cần các node liên kết, dẫn đến đặc tính bộ nhớ/cache/truy cập khác `ArrayList`.
+- `ArrayList` normally stores **references** in an `Object[]` array, not raw 4-byte `int`s directly inside the backing array.
+- `Integer` is a wrapper object; storage space, caching, and JVM optimization policies affect actual cost.
+- Boxing/unboxing can carry overhead; boxing sometimes reuses cached objects or is optimized by the JVM, so one should not claim “every iteration always allocates an object”.
+- `ArrayList` also manages capacity and may retain unused slots.
+- `LinkedList<Integer>` typically requires linked nodes, leading to different memory/cache/access characteristics than `ArrayList`.
 
-Kích thước chính xác trên heap phụ thuộc **JVM, pointer compression, layout, alignment, capacity, cache, vòng đời đối tượng và tối ưu JIT**. Không nên lấy một con số “`List<Integer>` tốn gấp X lần” làm chân lý cho mọi môi trường.
+Exact heap footprint depends on **the JVM, pointer compression, layout, alignment, capacity, caching, object lifetimes, and JIT optimizations**. You should not treat a rule like “`List<Integer>` costs X times more” as universal across every environment.
 
-### Với hàng triệu số nguyên
+### With millions of integers
 
-Nếu bạn làm tính toán nguyên đơn giản trên hàng triệu phần tử và **không cần collection API** hay `null`, `int[]` thường có lợi về không gian và truy cập tuần tự. Ví dụ:
+If you perform simple integer arithmetic on millions of elements and **do not need collection APIs** or `null`, `int[]` typically offers advantages in space and sequential access. For example:
 
 ```java
 long sum = 0L;
 for (int value : data) {
-    sum += value; // data là int[]; dùng long để giảm rủi ro tràn tổng int.
+    sum += value; // data is int[]; use long to reduce int sum overflow risk.
 }
 ```
 
-Đoạn này dùng `long` cho biến tổng nhưng tổng vẫn có thể tràn `long` nếu dữ liệu đủ lớn; tính toán chuẩn xác tuyệt đối đòi hỏi phân tích giới hạn miền.
+This snippet uses `long` for the sum variable, though the sum can still overflow `long` if the data is large enough; absolute exactness requires range-bounds analysis.
 
-Nếu cần thao tác thêm/xóa, thuật toán collection, các giao diện đa hình và sự thuận tiện của Java Collections, `List<Integer>` có thể hợp lý. Nhưng vì `List` là một interface, không thể suy ra hiệu năng chỉ từ tên kiểu khai báo.
+If you need add/remove operations, collection algorithms, polymorphic interfaces, and the convenience of Java Collections, `List<Integer>` can make sense. Yet because `List` is an interface, performance cannot be deduced from the declared type name alone.
 
-### Benchmark đúng cách
+### Benchmarking properly
 
-Nếu tối ưu hiệu năng thực sự quan trọng, dùng benchmark như **JMH**, có warmup, đo nhiều lượt, kiểm soát kích thước dữ liệu và tránh compiler tối ưu loại bỏ công việc. Không kết luận từ một lần `System.nanoTime()` hoặc từ các vòng lặp quá nhỏ. Khi đo, phân biệt chi phí **khởi tạo/bộ nhớ**, **truy cập**, **boxing**, **GC** và **tần suất thay đổi kích thước**.
+If performance optimization genuinely matters, use a benchmark tool like **JMH** with warmup, multiple iterations, controlled data sizes, and safeguards preventing the compiler from optimizing away work. Do not draw conclusions from a single `System.nanoTime()` measurement or overly tiny loops. When measuring, distinguish **initialization/memory**, **access**, **boxing**, **GC**, and **resizing frequency** costs.
 
-## 11. Duyệt, sắp xếp và Stream API
+## 11. Iteration, sorting, and Stream API
 
-### Vòng lặp
+### Loops
 
-Mảng:
+Array:
 
 ```java
 int[] arr = {3, 1, 2};
@@ -475,29 +475,29 @@ List:
 
 ```java
 java.util.List<Integer> nums = java.util.List.of(3, 1, 2);
-for (int value : nums) { // Mỗi Integer được unbox thành int.
+for (int value : nums) { // Each Integer is unboxed to int.
     System.out.println(value);
 }
 ```
 
-Nếu List có `null`, vòng lặp `for (int value : nums)` có thể ném NPE. Dùng `for (Integer value : nums)` nếu cần xử lý nullable, và định nghĩa rõ ý nghĩa `null`.
+If the List contains `null`, the loop `for (int value : nums)` can throw an NPE. Use `for (Integer value : nums)` if nullability needs handling, and define the meaning of `null` clearly.
 
-### Sắp xếp
+### Sorting
 
 ```java
 int[] arr = {3, 1, 2};
-java.util.Arrays.sort(arr); // Thay đổi mảng, kết quả {1,2,3}.
+java.util.Arrays.sort(arr); // Mutates array, result {1,2,3}.
 ```
 
 ```java
 java.util.List<Integer> nums =
         new java.util.ArrayList<>(java.util.List.of(3, 1, 2));
-nums.sort(Integer::compareTo); // Thay đổi List có hỗ trợ set.
+nums.sort(Integer::compareTo); // Mutates List if set is supported.
 ```
 
-Sắp xếp List không sửa đổi được có thể ném `UnsupportedOperationException`. Nếu danh sách chứa `null`, comparator không hỗ trợ `null` có thể gây NPE; lựa chọn chính sách sắp xếp null cần minh bạch. Khi thiết kế comparator số nguyên, dùng `Integer.compare(a,b)` thay vì phép trừ `a-b` có thể overflow.
+Sorting an unmodifiable List can throw `UnsupportedOperationException`. If the list contains `null`, a comparator that does not handle `null` can cause an NPE; the null-sorting policy should be transparent. When designing integer comparators, use `Integer.compare(a,b)` instead of subtraction `a-b` which can overflow.
 
-### Primitive stream và boxed stream
+### Primitive streams and boxed streams
 
 ```java
 int[] raw = {1, 2, 3};
@@ -507,19 +507,19 @@ java.util.List<Integer> list = java.util.List.of(1, 2, 3);
 int otherSum = list.stream().mapToInt(Integer::intValue).sum();
 ```
 
-`IntStream` chuyên cho primitive, giúp tránh một phần boxing trong chuỗi thao tác. `Stream<Integer>` vận hành trên wrapper và cần chuyển sang `IntStream` khi muốn các phép thống kê primitive như `sum`, `average` hoặc `summaryStatistics`.
+`IntStream` is specialized for primitives, avoiding some boxing in the pipeline. `Stream<Integer>` operates on wrappers and needs conversion to `IntStream` when primitive statistics like `sum`, `average`, or `summaryStatistics` are desired.
 
-**Cảnh báo về tràn:** `IntStream.sum()` trả `int`, có thể tràn như phép cộng `int`. Nếu cần tổng `long`, hãy map lên `long` trước:
+**Overflow warning:** `IntStream.sum()` returns `int`, which can overflow just like `int` addition. If a `long` sum is needed, map to `long` first:
 
 ```java
 long total = java.util.Arrays.stream(raw).asLongStream().sum();
 ```
 
-Với dữ liệu lớn vượt miền `long`, hãy cân nhắc `BigInteger`/kiểm tra tràn.
+For large data exceeding `long` range, consider `BigInteger`/overflow checks.
 
-## 12. Ví dụ Java 17+ chạy độc lập
+## 12. Standalone runnable Java 17+ example
 
-Lưu tệp `ListVsArrayDemo.java`:
+Save file `ListVsArrayDemo.java`:
 
 ```java
 import java.util.ArrayList;
@@ -597,14 +597,14 @@ public class ListVsArrayDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac --release 17 ListVsArrayDemo.java
 java ListVsArrayDemo
 ```
 
-Kết quả stdout:
+Stdout output:
 
 ```text
 array length = 3
@@ -625,83 +625,83 @@ remove index 1 = [10, 30]
 remove value 30 = [10]
 ```
 
-**Giải thích:** việc gọi `set/add` trên `boxed` không sửa `raw` vì đó là hai vùng chứa độc lập. `Arrays.asList(raw)` cho `List<int[]>` có size 1. `Arrays.asList(wrappers)` cho danh sách cố định kích thước liên kết với mảng `Integer[]`. `Stream.toList` trả danh sách không sửa đổi được; unbox một `null` gây NPE; overload `remove(int)` và `remove(Object)` thực hiện hai thao tác khác nhau.
+**Explanation:** calling `set/add` on `boxed` does not mutate `raw` because they are two independent containers. `Arrays.asList(raw)` gives a `List<int[]>` of size 1. `Arrays.asList(wrappers)` gives a fixed-size list backed by the `Integer[]` array. `Stream.toList` returns an unmodifiable list; unboxing a `null` throws NPE; the `remove(int)` and `remove(Object)` overloads perform two different operations.
 
-## 13. Nên chọn `int[]` hay `List<Integer>`?
+## 13. Should you choose `int[]` or `List<Integer>`?
 
-| Nhu cầu | Lựa chọn ưu tiên | Lý do |
+| Need | Preferred choice | Reason |
 | --- | --- | --- |
-| Dãy số nguyên kích thước cố định, xử lý số lượng lớn | `int[]` | Lưu primitive trực tiếp, thường có locality tốt và ít overhead |
-| API Java yêu cầu `List<Integer>` | `List<Integer>` | Tương thích với Collection/Stream/thuật toán generic |
-| Thêm/xóa linh hoạt | `ArrayList<Integer>` | Có khả năng resize; chú ý boxing/memory |
-| Chỉ cần danh sách hằng ít phần tử | `List.of(1,2,3)` | Dễ đọc, không sửa đổi được, không cho `null` |
-| Cần liên kết với một `Integer[]` có sẵn mà không đổi size | `Arrays.asList(integerArray)` | Backed by array; `set` hai chiều |
-| Cần một `int[]` từ List để gọi API primitive | `mapToInt(Integer::intValue).toArray()` | Chuyển cấu trúc và unbox rõ ràng |
-| Cần List từ mảng primitive | `Arrays.stream(arr).boxed()` hoặc vòng lặp | Boxing từng phần tử; chọn mutability rõ |
-| Cần nhận biết “không có giá trị” bằng `null` | `List<Integer>`/`Integer[]` nếu hợp đồng cho phép | Không unbox trước khi xử lý `null` |
-| Không được có `null` và dữ liệu luôn là số nguyên | `int[]` hoặc validation cho List | Loại nguy cơ null element |
-| Yêu cầu độ chính xác từng số và hiệu năng cao | `int[]`/`long[]` tùy miền | Không dùng số thực hoặc wrapper nếu không cần |
-| Collection cần equality/tra cứu/xóa phần tử linh hoạt | `List<Integer>` | Có API tiện dụng; phải hiểu `remove` và equality |
+| Fixed-size integer sequence, high-volume processing | `int[]` | Stores primitives directly, generally good locality and low overhead |
+| Java API requires `List<Integer>` | `List<Integer>` | Compatible with Collections/Streams/generic algorithms |
+| Flexible additions/removals | `ArrayList<Integer>` | Resizable; watch boxing/memory |
+| Only need a small constant list | `List.of(1,2,3)` | Readable, unmodifiable, forbids `null` |
+| Need a view linked to an existing `Integer[]` without changing size | `Arrays.asList(integerArray)` | Backed by array; bidirectional `set` |
+| Need an `int[]` from a List to call a primitive API | `mapToInt(Integer::intValue).toArray()` | Explicit structural conversion and unboxing |
+| Need a List from a primitive array | `Arrays.stream(arr).boxed()` or loop | Boxes each element; choose mutability explicitly |
+| Need to represent “no value” with `null` | `List<Integer>`/`Integer[]` if contract allows | Do not unbox before handling `null` |
+| No `null` allowed and data is always integers | `int[]` or List validation | Eliminates risk of null elements |
+| High precision per number and high performance required | `int[]`/`long[]` depending on range | Avoid floating-point or wrappers if unnecessary |
+| Collection needing flexible equality/lookup/element removal | `List<Integer>` | Convenient API; must understand `remove` and equality |
 
-### Checklist trước khi chuyển qua lại
+### Checklist before converting back and forth
 
-1. **Loại phần tử thực sự là gì?** `int`, `Integer`, `int[]` hay `Integer[]`? Đừng để `Arrays.asList` suy ra sai kiểu.
-2. **Có cần thay đổi số phần tử không?** `int[]` cố định; `ArrayList` resize; `List.of` và `Stream.toList` không sửa đổi.
-3. **Có cho phép `null` không?** Nếu có, chọn chính sách trước khi unbox; nếu không, validate hoặc chọn primitive.
-4. **Có cần đồng bộ mảng và list không?** `Arrays.asList(Integer[])` backed by array; stream boxing tạo vùng chứa độc lập.
-5. **Đã chọn API theo kiểu container chưa?** Mảng dùng `length`/`[]`; list dùng `size()`/`get`/`set`.
-6. **Có rủi ro mất hiệu năng/bộ nhớ do boxing không?** Đo trên dữ liệu thật, cân nhắc `int[]` và `IntStream`.
-7. **Khi so sánh/xóa, đang so nội dung hay tham chiếu/index?** `Arrays.equals` khác `List.equals`, `remove(int)` khác `remove(Object)`.
-8. **Tổng số nguyên có thể vượt `int` không?** `IntStream.sum()` vẫn cho `int`; dùng `long`/chính sách checked theo nhu cầu.
-9. **Có phụ thuộc implementation List không?** `get(i)` của `LinkedList` có tính chất khác `ArrayList`; đừng giả định mọi List đều random-access nhanh.
-10. **Có yêu cầu tương thích Java cụ thể không?** `Stream.toList` từ Java 16; ví dụ chính biên dịch ở Java 17+.
+1. **What is the actual element type?** `int`, `Integer`, `int[]`, or `Integer[]`? Do not let `Arrays.asList` infer the wrong type.
+2. **Does the element count need to change?** `int[]` is fixed; `ArrayList` resizes; `List.of` and `Stream.toList` are unmodifiable.
+3. **Is `null` allowed?** If yes, decide the policy before unboxing; if no, validate or pick primitives.
+4. **Do array and list need to stay synchronized?** `Arrays.asList(Integer[])` is backed by the array; stream boxing creates an independent container.
+5. **Did you pick APIs matching the container type?** Arrays use `length`/`[]`; lists use `size()`/`get`/`set`.
+6. **Is there a performance/memory risk from boxing?** Measure on real data, consider `int[]` and `IntStream`.
+7. **When comparing/removing, are you matching content or reference/index?** `Arrays.equals` differs from `List.equals`, `remove(int)` differs from `remove(Object)`.
+8. **Can an integer sum exceed `int`?** `IntStream.sum()` still yields `int`; use `long`/checked policies as needed.
+9. **Are you depending on a specific List implementation?** `LinkedList`'s `get(i)` has different characteristics from `ArrayList`; do not assume every List has fast random access.
+10. **Is there a specific Java compatibility requirement?** `Stream.toList` is from Java 16; main examples compile on Java 17+.
 
-## 14. Những lỗi hay gặp
+## 14. Common mistakes
 
-| Sai lầm | Hậu quả | Cách đúng |
+| Mistake | Consequence | Right way |
 | --- | --- | --- |
-| Viết `List<int>` | Không biên dịch | `List<Integer>` |
-| Coi `int[]` là `List<Integer>` và cast | Không tương thích kiểu | Chuyển bằng vòng lặp/stream boxing |
-| `Arrays.asList(new int[]{1,2,3})` rồi kỳ vọng list có ba số | Thực tế `List<int[]>` size 1 | `Arrays.stream(raw).boxed().toList()` |
-| Cho rằng `Arrays.asList(Integer[])` đổi size được | `add/remove` ném exception | Sao chép vào `new ArrayList<>(...)` |
-| Cho rằng `Stream.toList()` cho `ArrayList` mutable | Danh sách trả về unmodifiable | Bọc bằng `new ArrayList<>(...)` |
-| Gọi `list.get(i)` mà không xét `null` | Unboxing có thể ném NPE | Kiểm tra null/validation |
-| Tưởng `new ArrayList<>(capacity)` có sẵn `capacity` phần tử | `size()` vẫn 0 | Dùng `add` để điền |
-| Dùng `list.remove(1)` để xóa giá trị số 1 | Java xóa index 1 | `remove(Integer.valueOf(1))` |
-| Dùng `Integer == Integer` để so số | Có thể so identity wrapper, kết quả phụ thuộc object | `equals`/`Objects.equals` hoặc unbox có chủ đích |
-| Dùng `array1.equals(array2)` để so nội dung | So identity mảng | `Arrays.equals(array1,array2)` |
-| Giả định List phải có lưu trữ liên tục | `LinkedList` và implementation khác | Chọn implementation phù hợp |
-| Lấy `List.toArray(new Integer[0])` làm `int[]` | Trả `Integer[]` | `mapToInt(...).toArray()` |
-| Quên `IntStream.sum()` vẫn là `int` | Có thể overflow | `asLongStream().sum()` và kiểm tra miền |
-| Chỉ đo benchmark bằng một lần chạy | Warmup/GC/JIT làm sai kết luận | Benchmark có kiểm soát như JMH |
-| Coi nullable `Integer` bằng giá trị 0 | Mất khác biệt “thiếu” và 0 | Thiết kế dữ liệu rõ ràng |
+| Writing `List<int>` | Does not compile | `List<Integer>` |
+| Treating `int[]` as `List<Integer>` and casting | Incompatible types | Convert via loop/stream boxing |
+| `Arrays.asList(new int[]{1,2,3})` expecting a list of three numbers | Actually `List<int[]>` of size 1 | `Arrays.stream(raw).boxed().toList()` |
+| Assuming `Arrays.asList(Integer[])` is resizable | `add/remove` throws exception | Copy into `new ArrayList<>(...)` |
+| Assuming `Stream.toList()` returns a mutable `ArrayList` | Returned list is unmodifiable | Wrap with `new ArrayList<>(...)` |
+| Calling `list.get(i)` without considering `null` | Unboxing can throw NPE | Null check/validation |
+| Thinking `new ArrayList<>(capacity)` pre-populates `capacity` elements | `size()` is still 0 | Use `add` to populate |
+| Using `list.remove(1)` to remove the number value 1 | Java removes index 1 | `remove(Integer.valueOf(1))` |
+| Using `Integer == Integer` to compare numbers | May compare wrapper identity, result depends on objects | `equals`/`Objects.equals` or intentional unboxing |
+| Using `array1.equals(array2)` to compare contents | Compares array identity | `Arrays.equals(array1,array2)` |
+| Assuming a List must have contiguous storage | `LinkedList` and other implementations exist | Choose the right implementation |
+| Treating `List.toArray(new Integer[0])` as `int[]` | Returns `Integer[]` | `mapToInt(...).toArray()` |
+| Forgetting `IntStream.sum()` is still `int` | Can overflow | `asLongStream().sum()` and check bounds |
+| Benchmarking with only a single run | Warmup/GC/JIT skew conclusions | Controlled benchmark like JMH |
+| Treating nullable `Integer` as value 0 | Loses distinction between “missing” and 0 | Design explicit data semantics |
 
-## 15. Câu hỏi tự kiểm tra
+## 15. Self-check questions
 
-1. `List<Integer>` có lưu trực tiếp các ô `int` 32 bit như `int[]` không? Vì sao?
-2. Tại sao `List<int>` không biên dịch nhưng `List<Integer>` hợp lệ?
-3. Viết ba cách đọc phần tử thứ hai từ `int[]`, `Integer[]` và `List<Integer>`.
-4. Vì sao `Arrays.asList(intArray)` có size 1? Kiểu phần tử của list đó là gì?
-5. `Arrays.asList(integerArray)` cho loại list nào? Vì sao `set` hợp lệ nhưng `add` không?
-6. Nếu dùng `Arrays.stream(raw).boxed().toList()` rồi gọi `set`, điều gì xảy ra trên Java 17?
-7. Có thể có `null` trong `int[]` không? Còn trong `ArrayList<Integer>`? Khi nào unboxing gây NPE?
-8. Vì sao `new ArrayList<Integer>(100)` có `size() == 0`?
-9. `List<Integer>.remove(1)` khác `remove(Integer.valueOf(1))` ở điểm nào?
-10. Vì sao `Integer.valueOf(1000) == Integer.valueOf(1000)` không phải cách đáng tin để so giá trị?
-11. Làm sao chuyển `List<Integer>` thành `int[]` mà không giữ các wrapper?
-12. `Arrays.equals(int[],int[])` giải quyết bài toán gì mà `intArray.equals(otherIntArray)` không giải quyết?
-13. Khi nào nên chọn `int[]` thay vì `ArrayList<Integer>` cho hàng triệu phần tử?
-14. Nếu có `List<? extends Number>`, bạn có thể thêm mọi `Number` vào đó không? Vì sao?
-15. Vì sao dùng `List<Integer>` không bảo đảm có thể gọi `get(i)` trong O(1)?
+1. Does `List<Integer>` store 32-bit `int` slots directly like `int[]`? Why or why not?
+2. Why does `List<int>` fail to compile while `List<Integer>` is valid?
+3. Write three ways to read the second element from `int[]`, `Integer[]`, and `List<Integer>`.
+4. Why does `Arrays.asList(intArray)` have size 1? What is the element type of that list?
+5. What kind of list does `Arrays.asList(integerArray)` return? Why is `set` valid while `add` is not?
+6. If you use `Arrays.stream(raw).boxed().toList()` and then call `set`, what happens on Java 17?
+7. Can `null` exist in `int[]`? What about in `ArrayList<Integer>`? When does unboxing cause an NPE?
+8. Why does `new ArrayList<Integer>(100)` have `size() == 0`?
+9. How does `List<Integer>.remove(1)` differ from `remove(Integer.valueOf(1))`?
+10. Why is `Integer.valueOf(1000) == Integer.valueOf(1000)` not a reliable way to compare values?
+11. How do you convert `List<Integer>` into `int[]` without keeping wrappers?
+12. What problem does `Arrays.equals(int[],int[])` solve that `intArray.equals(otherIntArray)` does not?
+13. When should you pick `int[]` over `ArrayList<Integer>` for millions of elements?
+14. If you have a `List<? extends Number>`, can you add any `Number` to it? Why or why not?
+15. Why does using `List<Integer>` not guarantee that `get(i)` can be called in O(1)?
 
-## 16. Tài liệu chính thức
+## 16. Official references
 
-- [Java SE 17 — `List<E>`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html): hợp đồng `get`, `set`, `add`, `remove`, `equals` và khả năng không hỗ trợ sửa đổi.
-- [Java SE 17 — `ArrayList<E>`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ArrayList.html): danh sách có thể resize và cơ chế truy cập.
-- [Java SE 17 — `Arrays.asList`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Arrays.html#asList(T...)): danh sách kích thước cố định backed by array.
-- [Java SE 17 — `Arrays.stream(int[])`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Arrays.html#stream(int[])): tạo `IntStream` từ mảng primitive.
-- [Java SE 17 — `IntStream.boxed()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/IntStream.html#boxed()): boxing stream nguyên thủy sang `Stream<Integer>`.
-- [Java SE 17 — `Stream.toList()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/Stream.html#toList()): danh sách không sửa đổi được trả về từ stream.
-- [Java Language Specification `5.1.7–5.1.8](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html): boxing và unboxing conversions trong Java.
+- [Java SE 17 — `List<E>`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html): `get`, `set`, `add`, `remove`, `equals` contracts and unsupported modifications.
+- [Java SE 17 — `ArrayList<E>`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ArrayList.html): resizable list and access mechanism.
+- [Java SE 17 — `Arrays.asList`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Arrays.html#asList(T...)): fixed-size list backed by an array.
+- [Java SE 17 — `Arrays.stream(int[])`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Arrays.html#stream(int[])): creating an `IntStream` from a primitive array.
+- [Java SE 17 — `IntStream.boxed()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/IntStream.html#boxed()): boxing a primitive stream into `Stream<Integer>`.
+- [Java SE 17 — `Stream.toList()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/Stream.html#toList()): unmodifiable list returned from a stream.
+- [Java Language Specification `5.1.7–5.1.8](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html): boxing and unboxing conversions in Java.
 
-**Kết luận:** `int[]` chứa trực tiếp các giá trị nguyên thủy có độ dài cố định; `List<Integer>` chứa các **tham chiếu `Integer`** với hành vi cấu trúc phụ thuộc implementation. Hai kiểu **không hoán đổi tự động** và cần boxing/unboxing khi chuyển đổi. Hãy chọn dựa trên nhu cầu API, thay đổi kích thước, `null`, hiệu năng và kiểu dữ liệu; đặc biệt tránh bẫy `Arrays.asList(int[])`, `remove` overload và các danh sách unmodifiable.
+**Conclusion:** `int[]` directly stores fixed-length primitive values; `List<Integer>` stores **`Integer` references** with structural behavior depending on the implementation. The two types **are not automatically interchangeable** and require boxing/unboxing when converting. Choose based on API requirements, resizability, `null`, performance, and data types; specifically avoid the `Arrays.asList(int[])` trap, `remove` overload confusion, and unmodifiable list surprises.

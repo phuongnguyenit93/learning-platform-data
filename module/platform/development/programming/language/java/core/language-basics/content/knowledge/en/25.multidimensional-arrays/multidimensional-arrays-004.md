@@ -1,37 +1,37 @@
-# Lấy số hàng và độ dài của từng hàng trong mảng nhiều chiều Java
+# Getting the Number of Rows and Each Row's Length in Java Multidimensional Arrays
 
-## 1. Mảng hai chiều thực chất là mảng chứa các mảng
+## 1. A Two-Dimensional Array Is Really an Array of Arrays
 
-Trong Java, `int[][]` là **mảng của các mảng `int[]`**. Mảng ngoài lưu tham chiếu đến từng mảng con (từng hàng). Vì vậy, các hàng **không bắt buộc có cùng số phần tử**.
+In Java, `int[][]` is **an array of `int[]` arrays**. The outer array stores references to each subarray (each row). Therefore, rows **are not required to have the same number of elements**.
 
 ```java
 int[][] data = {
-    {10, 20, 30}, // hàng 0: 3 phần tử
-    {40},         // hàng 1: 1 phần tử
-    {},           // hàng 2: 0 phần tử
-    {50, 60}      // hàng 3: 2 phần tử
+    {10, 20, 30}, // row 0: 3 elements
+    {40},         // row 1: 1 element
+    {},           // row 2: 0 elements
+    {50, 60}      // row 3: 2 elements
 };
 ```
 
-Có hai phép lấy độ dài khác nhau:
+There are two different length lookups:
 
-- **`data.length`** là số phần tử của mảng ngoài, tức **số hàng**: ở ví dụ trên là `4`.
-- **`data[i].length`** là số phần tử của mảng con ở hàng `i`: lần lượt là `3`, `1`, `0`, `2`.
-- Chỉ số hàng hợp lệ: `0 <= i && i < data.length`. Chỉ số cột của hàng `i` hợp lệ: `0 <= j && j < data[i].length`, nếu `data[i] != null`.
+- **`data.length`** is the number of elements in the outer array, i.e., **the number of rows**: in the example above, `4`.
+- **`data[i].length`** is the number of elements in the subarray at row `i`: respectively `3`, `1`, `0`, `2`.
+- Valid row indices: `0 <= i && i < data.length`. Valid column indices for row `i`: `0 <= j && j < data[i].length`, if `data[i] != null`.
 
-`length` là **trường** của mảng, không viết `length()`. Không có thuộc tính `data.columns` hay một “số cột” cố định áp dụng cho tất cả mảng hai chiều Java.
+`length` is a **field** of an array, not written as `length()`. There is no `data.columns` property or fixed "column count" that applies to all Java two-dimensional arrays.
 
-## 2. Phân biệt mảng chữ nhật và mảng răng cưa
+## 2. Distinguishing Rectangular Arrays and Jagged Arrays
 
-| Cách tạo | `length` của mảng ngoài | Độ dài từng hàng |
+| Creation | Outer array `length` | Length of each row |
 | --- | ---: | --- |
 | `new int[2][3]` | `2` | `3, 3` |
 | `new int[3][0]` | `3` | `0, 0, 0` |
-| `new int[0][3]` | `0` | Không có hàng để truy cập |
+| `new int[0][3]` | `0` | No rows to access |
 | `new int[][] {{1, 2}, {3}, {}}` | `3` | `2, 1, 0` |
-| `new int[3][]` | `3` | Ba hàng ban đầu đều `null`; chưa thể gọi `.length` trên từng hàng |
+| `new int[3][]` | `3` | All three rows are initially `null`; `.length` cannot yet be read on each row |
 
-**Mảng chữ nhật** có tất cả hàng khác `null` và cùng độ dài, ví dụ `new int[2][3]`. **Mảng răng cưa** (jagged/ragged array) chứa các hàng có độ dài khác nhau. Trong Java, ngay cả những hàng ban đầu cùng kích thước cũng có thể được gán lại bằng các mảng con khác độ dài:
+A **rectangular array** has all rows non-`null` and of equal length, such as `new int[2][3]`. A **jagged array** (ragged array) contains rows of different lengths. In Java, even rows that were initially the same size can be reassigned to subarrays of different lengths:
 
 ```java
 int[][] grid = new int[2][3];
@@ -41,11 +41,11 @@ grid[1] = new int[5];
 // grid[1].length == 5
 ```
 
-Phép gán trên **thay mảng con ở hàng 1**, không làm thay đổi `length` của mảng con ban đầu. Độ dài mỗi đối tượng mảng là cố định sau khi cấp phát; số hàng cũng cố định nếu vẫn dùng cùng mảng ngoài.
+The assignment above **replaces the subarray at row 1**; it does not change the `length` of the original subarray. The length of each array object is fixed after allocation; the number of rows is also fixed as long as the same outer array is used.
 
-## 3. Ví dụ Java 17+ có thể biên dịch và chạy
+## 3. Compilable and Runnable Java 17+ Example
 
-Tạo tệp **`RowLengthsDemo.java`**:
+Create the file **`RowLengthsDemo.java`**:
 
 ```java
 public class RowLengthsDemo {
@@ -67,14 +67,14 @@ public class RowLengthsDemo {
         }
         System.out.println("Tong so phan tu: " + total);
 
-        // Mảng chữ nhật: mỗi hàng có độ dài 3.
+        // Rectangular array: each row has length 3.
         int[][] rectangle = new int[2][3];
         System.out.println("So hang chu nhat: " + rectangle.length);
         for (int i = 0; i < rectangle.length; i++) {
             System.out.println("Chu nhat hang " + i + ": " + rectangle[i].length);
         }
 
-        // Mảng ngoài đã tạo, nhưng từng hàng có thể chưa được tạo.
+        // Outer array created, but individual rows may not have been created yet.
         int[][] pending = new int[3][];
         pending[0] = new int[2];
         pending[1] = new int[0];
@@ -89,14 +89,14 @@ public class RowLengthsDemo {
 }
 ```
 
-Mở terminal trong thư mục chứa tệp với JDK 17 trở lên. Chạy trên Windows (CMD/PowerShell) hoặc Linux/macOS:
+Open a terminal in the directory containing the file with JDK 17 or higher. Run on Windows (CMD/PowerShell) or Linux/macOS:
 
 ```bash
 javac -encoding UTF-8 RowLengthsDemo.java
 java RowLengthsDemo
 ```
 
-Kết quả stdout (lệnh `javac` thành công không in kết quả):
+Stdout output (a successful `javac` command prints no output):
 
 ```text
 So hang: 4
@@ -113,11 +113,11 @@ Chua tao hang 1: 0
 Chua tao hang 2: null
 ```
 
-Vòng `for` đầu duyệt số hàng bằng `data.length`, sau đó lấy số phần tử tại **từng hàng** bằng `data[i].length`. Tổng số phần tử thực tế bằng tổng các độ dài hàng đã được cấp phát. `new int[0]` là hàng **rỗng nhưng tồn tại**, khác với hàng `null` là **chưa tham chiếu đến mảng con**.
+The first `for` loop iterates over the rows using `data.length`, then reads the element count of **each row** using `data[i].length`. The actual total number of elements equals the sum of the lengths of the allocated rows. `new int[0]` is a row that is **empty yet exists**, unlike a `null` row which **does not yet reference any subarray**.
 
-## 4. Duyệt an toàn và tính toán dựa trên độ dài từng hàng
+## 4. Safe Iteration and Calculations Based on Each Row's Length
 
-Không dùng `data[0].length` để duyệt tất cả hàng nếu chưa biết chắc đây là mảng chữ nhật, có hàng đầu tiên và hàng đó khác `null`. Với mảng răng cưa, cần lấy `data[i].length` ngay tại hàng `i`:
+Do not use `data[0].length` to iterate over all rows unless you know for sure that it is a rectangular array, has a first row, and that row is non-`null`. With a jagged array, retrieve `data[i].length` directly at row `i`:
 
 ```java
 int[][] values = {{1, 2, 3}, {}, {4, 5}};
@@ -126,10 +126,10 @@ for (int row = 0; row < values.length; row++) {
         System.out.println(values[row][col]);
     }
 }
-// In lần lượt: 1, 2, 3, 4, 5 (mỗi số trên một dòng)
+// Prints in order: 1, 2, 3, 4, 5 (one number per line)
 ```
 
-Với dữ liệu có thể chứa hàng `null`, kiểm tra trước khi lấy độ dài:
+For data that might contain `null` rows, check before reading the length:
 
 ```java
 int total = 0;
@@ -142,9 +142,9 @@ for (int[] row : values) {
 // total == 5
 ```
 
-Nếu chính mảng ngoài cũng có thể `null`, kiểm tra `values != null` trước khi đọc `values.length`. Việc chọn coi hàng `null` là “không có phần tử” chỉ là quy ước để tính tổng; về mặt dữ liệu, hàng `null` khác hàng rỗng.
+If the outer array itself might also be `null`, check `values != null` before reading `values.length`. Choosing to treat a `null` row as "having no elements" is just a convention for computing the sum; in terms of data representation, a `null` row differs from an empty row.
 
-Để kiểm tra các hàng có cùng kích thước (mảng chữ nhật), cần so sánh **tất cả hàng** với độ dài kỳ vọng, đồng thời loại trường hợp `null`:
+To check whether all rows have the same size (a rectangular array), compare **every row** against the expected length while ruling out `null` cases:
 
 ```java
 int[][] values = {{1, 2}, {3, 4}, {5, 6}};
@@ -161,15 +161,15 @@ for (int[] row : values) {
 // rectangular == true; width == 2
 ```
 
-Đối với mảng ngoài rỗng, ở đây quy ước `width = 0` và `rectangular = true` vì không có hàng nào vi phạm. Tùy yêu cầu nghiệp vụ, có thể chọn cách khác để xử lý trường hợp không có hàng.
+For an empty outer array, the convention here sets `width = 0` and `rectangular = true` because no row violates the condition. Depending on business requirements, you may choose a different way to handle the zero-row case.
 
-## 5. Các lỗi dễ gặp
+## 5. Common Mistakes
 
-1. **Nhầm `a.length` với `a[0].length`:** biểu thức thứ nhất đếm số hàng; biểu thức thứ hai chỉ đếm phần tử của hàng 0, không phải số hàng.
-2. **Giả định mọi hàng có cùng độ dài:** vòng `for (int j = 0; j < a[0].length; j++)` có thể bỏ sót phần tử ở hàng dài hoặc gây lỗi ở hàng ngắn. Dùng `a[i].length` khi duyệt hàng `i`.
-3. **Không kiểm tra mảng ngoài rỗng:** với `new int[0][3]`, `a.length == 0`, nhưng `a[0]` gây `ArrayIndexOutOfBoundsException`.
-4. **Không kiểm tra hàng `null`:** với `new int[3][]`, `a[0].length` gây `NullPointerException`; cần cấp phát hàng hoặc kiểm tra `null`.
-5. **Lấy `length()` thay `length`:** trên mảng dùng thuộc tính `length`; `String` mới dùng phương thức `length()`.
-6. **Nhầm độ dài với chỉ số cuối:** nếu hàng `i` có `k` phần tử và `k > 0` thì phần tử cuối là `a[i][k - 1]`, không phải `a[i][k]`.
+1. **Confusing `a.length` with `a[0].length`:** the first expression counts the number of rows; the second only counts elements of row 0, not the number of rows.
+2. **Assuming all rows have the same length:** a loop `for (int j = 0; j < a[0].length; j++)` can miss elements on longer rows or cause errors on shorter rows. Use `a[i].length` when iterating row `i`.
+3. **Not checking for an empty outer array:** with `new int[0][3]`, `a.length == 0`, so `a[0]` throws `ArrayIndexOutOfBoundsException`.
+4. **Not checking for `null` rows:** with `new int[3][]`, `a[0].length` throws `NullPointerException`; allocate the row first or check for `null`.
+5. **Using `length()` instead of `length`:** arrays use the `length` field; `String` is what uses the `length()` method.
+6. **Confusing length with the last index:** if row `i` has `k` elements and `k > 0`, then the last element is `a[i][k - 1]`, not `a[i][k]`.
 
-**Ghi nhớ:** `a.length` là số hàng; `a[i].length` là độ dài riêng của hàng `i` (chỉ khi hàng tồn tại). Mọi thao tác duyệt và truy cập cần tôn trọng ranh giới của từng hàng.
+**Key takeaway:** `a.length` is the number of rows; `a[i].length` is the individual length of row `i` (only when the row exists). Every traversal and access must respect each row's boundaries.

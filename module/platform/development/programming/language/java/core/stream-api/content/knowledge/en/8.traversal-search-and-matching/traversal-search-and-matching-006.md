@@ -1,21 +1,21 @@
-# Duyệt kết quả bằng forEach và forEachOrdered
+# Traversing Results with `forEach` and `forEachOrdered`
 
-Trong **Java Stream API**, cả `forEach` và `forEachOrdered` đều là thao tác kết thúc (*terminal operation*) dùng để thực hiện một hành động với các phần tử được pipeline tạo ra. Khác biệt cốt lõi là **thứ tự thực thi hành động**: `forEach` không cam kết giữ *encounter order*, còn `forEachOrdered` bảo đảm thực hiện theo encounter order **nếu Stream có thứ tự gặp phần tử được xác định**.
+In the **Java Stream API**, both `forEach` and `forEachOrdered` are terminal operations (*terminal operations*) used to perform an action on the elements produced by a pipeline. The core difference is **action execution order**: `forEach` makes no commitment to preserve *encounter order*, whereas `forEachOrdered` guarantees execution in encounter order **if the Stream has a defined encounter order**.
 
-Bài thuộc chương **Duyệt, tìm kiếm và đối sánh** của module **JAVA_STREAM_API**. Khi đã biết tổ chức pipeline lazy bằng `filter`, `map`, `reduce` và `collect`, bạn cần chọn đúng cách tiêu thụ kết quả, đặc biệt với Stream song song. Kiến thức này còn liên quan đến `Spliterator`, grouping, collector tùy chỉnh, Stream Gatherers và các giới hạn về trạng thái, tài nguyên, hiệu năng.
+This lesson belongs to the **Traversal, Search, and Matching** chapter of the **JAVA_STREAM_API** module. Once you know how to organize lazy pipelines with `filter`, `map`, `reduce`, and `collect`, you need to choose the right way to consume results, especially with parallel Streams. This knowledge also connects to `Spliterator`, grouping, custom collectors, Stream Gatherers, and limits around state, resources, and performance.
 
-## 1. Cú pháp: cả hai đều nhận Consumer và trả về void
+## 1. Syntax: Both Accept a `Consumer` and Return `void`
 
-Trong `java.util.stream.Stream<T>`:
+In `java.util.stream.Stream<T>`:
 
 ```java
 void forEach(Consumer<? super T> action);
 void forEachOrdered(Consumer<? super T> action);
 ```
 
-`Consumer<T>` là functional interface trong `java.util.function`, có phương thức trừu tượng `void accept(T value)`. Nó mô tả một hành động nhận phần tử nhưng không trực tiếp trả giá trị biến đổi.
+`Consumer<T>` is a functional interface in `java.util.function` with the abstract method `void accept(T value)`. It describes an action that receives an element without directly returning a transformed value.
 
-Ví dụ với nguồn có thứ tự:
+Example with an ordered source:
 
 ```java
 import java.util.Arrays;
@@ -31,76 +31,76 @@ names.stream()
 // CHI
 ```
 
-Trong pipeline trên, `map` là thao tác trung gian (*intermediate operation*) khai báo phép biến đổi, còn `forEachOrdered` là thao tác kết thúc thực sự kích hoạt việc duyệt.
+In the pipeline above, `map` is an intermediate operation (*intermediate operation*) declaring the transformation, while `forEachOrdered` is the terminal operation that actually triggers traversal.
 
-> `forEach`/`forEachOrdered` là công cụ **tiêu thụ phần tử để thực hiện hành động**. Khi muốn tạo một danh sách, tập hợp, bản đồ hay một giá trị tính toán, thường nên dùng `collect`, `reduce` hoặc terminal operation phù hợp hơn.
+> `forEach`/`forEachOrdered` are tools for **consuming elements to perform an action**. When you want to produce a list, set, map, or computed value, `collect`, `reduce`, or a more suitable terminal operation is usually the better choice.
 
-## 2. Encounter order khác thứ tự thread hoàn thành
+## 2. Encounter Order Differs from Thread Completion Order
 
-**Encounter order** là thứ tự các phần tử được nguồn và pipeline xác định. Một `List` có thứ tự theo vị trí phần tử; `IntStream.range(1, 6)` có thứ tự số tăng; `Stream` từ `HashSet` thường không có thứ tự gặp phần tử được bảo đảm. Các phép biến đổi như `map`, `filter` trên một nguồn có thứ tự thường giữ lại encounter order của những phần tử còn lại.
+**Encounter order** is the order of elements defined by the source and pipeline. A `List` is ordered by element position; `IntStream.range(1, 6)` has ascending numeric order; a `Stream` from `HashSet` typically has no guaranteed encounter order. Transformations like `map` and `filter` on an ordered source generally preserve the encounter order of remaining elements.
 
 ```text
-Nguồn List:       [1, 2, 3, 4, 5]
+Source List:       [1, 2, 3, 4, 5]
        |
       filter(n -> n % 2 != 0)
        |
-Kết quả có thứ tự: [1, 3, 5]
+Ordered result:    [1, 3, 5]
        |
     terminal operation
-       +-- forEach:        thứ tự hành động không được cam kết
-       +-- forEachOrdered: hành động với 1, rồi 3, rồi 5
+       +-- forEach:        action order is not guaranteed
+       +-- forEachOrdered: action runs for 1, then 3, then 5
 ```
 
-Với Stream song song, các worker có thể xử lý nhiều phần tử cùng lúc. **Thứ tự xử lý nội bộ** không nhất thiết trùng encounter order. `forEachOrdered` chỉ cam kết **thứ tự hành động của terminal operation** theo encounter order; điều đó không có nghĩa mọi bước `map`/`filter` bên trên đã được thực thi tuần tự hay cùng một thread.
+With parallel Streams, workers can process multiple elements simultaneously. **Internal processing order** does not necessarily match encounter order. `forEachOrdered` only guarantees the **action order of the terminal operation** follows encounter order; it does not mean every upstream `map`/`filter` step ran sequentially or on the same thread.
 
-### 2.1. Bảng so sánh
+### 2.1. Comparison Table
 
-| Tiêu chí | `forEach(action)` | `forEachOrdered(action)` |
+| Criterion | `forEach(action)` | `forEachOrdered(action)` |
 |---|---|---|
-| Loại thao tác | Kết thúc (*terminal*) | Kết thúc (*terminal*) |
-| Kiểu tham số | `Consumer<? super T>` | `Consumer<? super T>` |
-| Giá trị trả về | `void` | `void` |
-| Với Stream có encounter order | Không cam kết thứ tự hành động | Cam kết thực hiện hành động theo encounter order |
-| Với Stream không có encounter order | Không có thứ tự gặp phần tử cần giữ | Không tạo ra một thứ tự nghiệp vụ mới |
-| Khi thực thi song song | Các lời gọi action có thể chạy trên nhiều worker, theo thứ tự không dự đoán | Hành động được sắp theo encounter order; không cam kết chạy trên một thread duy nhất |
-| Chi phí | Thường dễ khai thác song song hơn khi hành động độc lập | Có thể cần chờ, điều phối, đồng bộ để giữ thứ tự |
-| Dùng điển hình | Gửi sự kiện độc lập, xử lý không phụ thuộc thứ tự | Xuất báo cáo hoặc ghi kết quả bắt buộc theo thứ tự |
+| Operation kind | Terminal (*terminal*) | Terminal (*terminal*) |
+| Parameter type | `Consumer<? super T>` | `Consumer<? super T>` |
+| Return type | `void` | `void` |
+| With Stream having encounter order | Action order not guaranteed | Guarantees action executes in encounter order |
+| With Stream lacking encounter order | No encounter order to preserve | Does not invent a new business order |
+| During parallel execution | Action calls may run on multiple workers in unpredictable order | Actions are ordered by encounter order; not guaranteed to run on a single thread |
+| Overhead | Usually easier to exploit parallelism when actions are independent | May require waiting, coordination, and synchronization to preserve order |
+| Typical usage | Sending independent events, order-insensitive processing | Exporting reports or writing output that must follow order |
 
-**Lưu ý:** `forEach` vẫn hoạt động trên những Stream có encounter order; đơn giản là phương thức **không có nghĩa vụ tôn trọng thứ tự đó**. Với Stream tuần tự thông thường, bạn thường quan sát các hành động diễn ra lần lượt theo thứ tự nguồn, nhưng không nên biến quan sát ấy thành một giả định áp dụng được khi thay nguồn, chế độ thực thi hoặc tối ưu pipeline.
+**Note:** `forEach` still works on Streams that have an encounter order; the method simply **has no obligation to respect that order**. With ordinary sequential Streams, you often observe actions occurring one by one in source order, but you should not turn that observation into an assumption that holds if the source, execution mode, or pipeline optimizations change.
 
-## 3. Quan sát sự khác nhau khi chạy tuần tự và song song
+## 3. Observing Differences in Sequential and Parallel Execution
 
-### 3.1. Stream tuần tự
+### 3.1. Sequential Stream
 
 ```java
 import java.util.stream.IntStream;
 
 IntStream.rangeClosed(1, 5)
         .forEach(System.out::print);
-// Trên pipeline tuần tự thông thường: 12345
+// On a typical sequential pipeline: 12345
 
 System.out.println();
 
 IntStream.rangeClosed(1, 5)
         .forEachOrdered(System.out::print);
-// 12345 (đúng thứ tự gặp phần tử)
+// 12345 (exact encounter order)
 ```
 
-Cả hai đều có thể cho ra cùng thứ tự trong ví dụ đơn giản. Khác biệt nằm ở **hợp đồng API**, thể hiện rõ hơn khi bật song song.
+Both can produce the same order in a simple example. The difference lies in the **API contract**, which becomes clearer when parallelism is enabled.
 
-### 3.2. Stream song song: forEach không bảo đảm thứ tự
+### 3.2. Parallel Stream: `forEach` Does Not Guarantee Order
 
 ```java
 IntStream.rangeClosed(1, 10)
         .parallel()
         .forEach(n -> System.out.print(n + " "));
-// Có thể: 7 6 9 10 8 3 5 4 2 1
-// Thứ tự cụ thể thay đổi tùy runtime và mỗi lần chạy.
+// Possible output: 7 6 9 10 8 3 5 4 2 1
+// Exact order varies by runtime and per run.
 ```
 
-Hành động in từng phần tử vẫn được gọi, nhưng **thứ tự các phần tử xuất hiện không được cam kết**. Ví dụ kết quả chỉ minh họa một khả năng; không dùng giá trị in thực tế để suy luận worker nào chắc chắn chạy trước.
+The print action is still invoked for each element, but **the order in which elements appear is not guaranteed**. The sample output merely illustrates one possibility; never use actual printed values to deduce which worker definitely ran first.
 
-### 3.3. Stream song song: forEachOrdered giữ thứ tự hành động
+### 3.3. Parallel Stream: `forEachOrdered` Preserves Action Order
 
 ```java
 IntStream.rangeClosed(1, 10)
@@ -109,9 +109,9 @@ IntStream.rangeClosed(1, 10)
 // 1 2 3 4 5 6 7 8 9 10
 ```
 
-Nguồn `rangeClosed` có encounter order từ nhỏ đến lớn, vì vậy `forEachOrdered` duy trì thứ tự các hành động in. Pipeline vẫn được cấu hình `parallel()`; đây **không phải** lời yêu cầu chuyển toàn bộ xử lý thành tuần tự.
+The `rangeClosed` source has ascending encounter order, so `forEachOrdered` maintains the order of print actions. The pipeline is still configured with `parallel()`; this is **not** a request to make all processing sequential.
 
-### 3.4. Tính thử trên một pipeline có filter và map
+### 3.4. Testing on a Pipeline with `filter` and `map`
 
 ```java
 import java.util.Arrays;
@@ -128,13 +128,13 @@ data.parallelStream()
 // 50
 ```
 
-`filter` giữ các số lẻ theo encounter order của `List` (3, 7, 5), rồi `map` biến thành 30, 70, 50. `forEachOrdered` bảo đảm việc in những kết quả này theo đúng thứ tự đó.
+`filter` retains odd numbers in the `List`'s encounter order (3, 7, 5), and `map` transforms them into 30, 70, 50. `forEachOrdered` guarantees printing these results in that exact order.
 
-## 4. Ví dụ hoàn chỉnh: ghi các mã đơn hàng theo thứ tự ưu tiên
+## 4. Complete Example: Writing Order IDs in Priority Order
 
-Giả sử cần lọc các đơn hàng đã thanh toán và xuất mã **theo ngày tạo tăng dần, rồi mã tăng dần**. Vì đây là yêu cầu thứ tự nghiệp vụ, phải mô tả thứ tự bằng `sorted` trước khi tiêu thụ. `forEachOrdered` chỉ **giữ** encounter order hiện có; nó không tự sắp xếp theo thuộc tính ngày hay mã.
+Suppose we need to filter paid orders and output their IDs **by ascending creation date, then ascending ID**. Because this is a business ordering requirement, we must establish the order with `sorted` before consuming. `forEachOrdered` only **preserves** existing encounter order; it does not sort by date or ID fields itself.
 
-Ví dụ Java 8 chạy độc lập:
+Standalone Java 8 example:
 
 ```java
 import java.time.LocalDate;
@@ -180,7 +180,7 @@ public class OrderTraversalDemo {
                 Comparator.comparing(Order::getCreatedOn)
                         .thenComparing(Order::getId);
 
-        System.out.println("Các đơn đã thanh toán theo thứ tự:");
+        System.out.println("Paid orders in order:");
 
         orders.parallelStream()
                 .filter(Order::isPaid)
@@ -191,8 +191,8 @@ public class OrderTraversalDemo {
         // DH-03
         // DH-04
 
-        // Nếu nghiệp vụ cần trả về dữ liệu thay vì in ra,
-        // collect tạo kết quả để phía gọi tự quyết định cách hiển thị.
+        // If business logic needs to return data instead of printing,
+        // collect produces the result so the caller decides how to display it.
         List<String> orderedIds = orders.parallelStream()
                 .filter(Order::isPaid)
                 .sorted(byDateThenId)
@@ -205,13 +205,13 @@ public class OrderTraversalDemo {
 }
 ```
 
-Pipeline có hai trách nhiệm rõ ràng: `sorted(byDateThenId)` xác lập thứ tự nghiệp vụ; `forEachOrdered` duy trì thứ tự đó trong lúc xuất. Nếu thay bằng `forEach` trên pipeline song song, việc in mã **có thể bị đảo thứ tự** dù trước đó đã gọi `sorted`.
+The pipeline has two clear responsibilities: `sorted(byDateThenId)` establishes the business order; `forEachOrdered` maintains that order during output. If replaced with `forEach` on the parallel pipeline, printed IDs **can become out of order** even though `sorted` was called upstream.
 
-Nếu chỉ muốn trả danh sách mã đã sắp xếp cho một lớp khác sử dụng, `collect(Collectors.toList())` thường thích hợp hơn việc in hoặc thêm phần tử vào một danh sách có thể thay đổi từ bên ngoài.
+If you only want to return a sorted list of IDs for another layer to use, `collect(Collectors.toList())` is usually better than printing or appending elements to an external mutable list.
 
-## 5. forEachOrdered có đảm bảo chạy trên một thread không?
+## 5. Does `forEachOrdered` Guarantee Running on One Thread?
 
-**Không.** Với Stream song song, JDK không cam kết mọi lời gọi action của `forEachOrdered` chạy trên cùng một thread. Điều được bảo đảm là đối với các phần tử theo encounter order, **việc thực hiện action cho một phần tử happens-before việc thực hiện action cho phần tử kế tiếp**. Quan hệ *happens-before* hỗ trợ khả năng nhìn thấy hiệu ứng bộ nhớ và thứ tự giữa những hành động đó.
+**No.** For a parallel Stream, the JDK does not promise that all `forEachOrdered` action invocations run on the same thread. What is guaranteed is that for elements in encounter order, **executing the action for one element happens-before executing the action for the next element**. The *happens-before* relationship ensures memory-effect visibility and ordering between those actions.
 
 ```java
 import java.util.stream.IntStream;
@@ -222,21 +222,21 @@ IntStream.rangeClosed(1, 5)
                 n + " : " + Thread.currentThread().getName()));
 ```
 
-Số 1 đến 5 sẽ xuất hiện theo encounter order, còn tên thread có thể khác nhau. Không được kiểm tra một tên thread cố định để xác nhận tính đúng đắn.
+Numbers 1 through 5 will appear in encounter order, while thread names may vary. Never assert on a fixed thread name to verify correctness.
 
-Ngược lại, `forEach` được đặc tả rõ là hành động cho một phần tử có thể được thực hiện ở bất kỳ thread nào mà thư viện chọn; nếu cần **đồng bộ** khi truy cập trạng thái dùng chung, lập trình viên phải đảm trách. Việc các phần tử cùng thuộc một Stream không tạo ra quy tắc tự động bảo vệ biến mutable được các action sửa đổi.
+Conversely, `forEach` explicitly specifies that the action for an element may run on whichever thread the library chooses; if **synchronization** is needed when accessing shared state, the programmer is responsible for it. Having elements belong to the same Stream creates no automatic rule protecting mutable variables modified by actions.
 
-### 5.1. Quan hệ happens-before chỉ áp dụng đúng phạm vi được bảo đảm
+### 5.1. The `happens-before` Guarantee Applies Only Within Its Defined Scope
 
-`forEachOrdered` bảo đảm thứ tự **các hành động `Consumer`** trên Stream có thứ tự; đừng suy rộng thành lời hứa rằng mọi hàm ở mọi bước trung gian sẽ được thực hiện tuần tự theo đúng encounter order. Ví dụ, một phép `map` tính toán tốn thời gian vẫn có thể thực hiện trên worker khác, nhưng việc gọi action sau cùng phải chờ để giữ thứ tự quan sát.
+`forEachOrdered` guarantees the ordering of **`Consumer` actions** on an ordered Stream; do not overgeneralize this into a promise that every function in every intermediate step runs sequentially in exact encounter order. For example, an expensive `map` computation can still run on another worker, while the final action invocation waits to preserve observable order.
 
-Điều này giải thích vì sao một pipeline có thể tính toán trung gian theo kiểu song song mà vẫn xuất kết quả theo đúng thứ tự.
+This explains why a pipeline can perform intermediate computations in parallel while still outputting results in exact order.
 
-## 6. Side effect và trạng thái chia sẻ: lỗi phổ biến với forEach
+## 6. Side Effects and Shared State: Common Mistakes with `forEach`
 
-`forEach` được dùng cho hành động có tác dụng bên ngoài như in log, phát thông báo hay cập nhật hệ thống khác. Nhưng việc tác động lên **cùng một cấu trúc mutable không thread-safe** từ nhiều action song song là nguy hiểm.
+`forEach` is intended for actions with external effects such as logging, sending notifications, or updating another system. However, mutating **the same non-thread-safe mutable structure** from parallel actions is dangerous.
 
-### 6.1. Sai: cùng sửa ArrayList từ nhiều worker
+### 6.1. Wrong: Mutating an `ArrayList` from Multiple Workers
 
 ```java
 import java.util.ArrayList;
@@ -247,14 +247,14 @@ List<Integer> unsafe = new ArrayList<>();
 
 IntStream.range(0, 10_000)
         .parallel()
-        .forEach(unsafe::add); // SAI: ArrayList không thread-safe.
+        .forEach(unsafe::add); // WRONG: ArrayList is not thread-safe.
 
-// Không thể dựa vào unsafe.size() hay nội dung kết quả.
+// You cannot rely on unsafe.size() or the resulting contents.
 ```
 
-Ví dụ có data race. Danh sách có thể thiếu phần tử, nội dung sai, hoặc xảy ra lỗi trong quá trình cập nhật nội bộ.
+This example has a data race. The list may lose elements, hold corrupted contents, or throw errors during internal updates.
 
-**Đúng: để collector điều phối việc tạo kết quả**
+**Right: let a collector coordinate building the result**
 
 ```java
 import java.util.List;
@@ -270,9 +270,9 @@ System.out.println(safe.size()); // 10000
 System.out.println(safe.get(0));  // 0
 ```
 
-Với nguồn `IntStream.range` có thứ tự, `Collectors.toList()` giữ encounter order trong danh sách kết quả. Mã không cần chia sẻ một `ArrayList` bên ngoài cho nhiều action.
+With an ordered `IntStream.range` source, `Collectors.toList()` preserves encounter order in the result list. The code needs no external `ArrayList` shared across actions.
 
-### 6.2. Synchronized collection tránh race, nhưng không tạo thứ tự nghiệp vụ
+### 6.2. Synchronized Collections Prevent Races, Not Business Ordering Issues
 
 ```java
 import java.util.ArrayList;
@@ -288,12 +288,12 @@ IntStream.rangeClosed(1, 100)
         .forEach(synchronizedList::add);
 ```
 
-Các thao tác `add` được đồng bộ, giúp tránh race trong quá trình sửa danh sách. Tuy nhiên, **thứ tự phần tử thêm vào vẫn có thể khác 1, 2, ..., 100** do `forEach` không giữ thứ tự. Chỉ cần danh sách kết quả theo nguồn thì `collect` rõ ý và thường phù hợp hơn.
+`add` operations are synchronized, preventing races during list modification. However, **the insertion order of elements can still differ from 1, 2, ..., 100** because `forEach` does not preserve order. When you simply want a result list following source order, `collect` states intent clearly and is usually more appropriate.
 
-### 6.3. Đếm hoặc tổng hợp: dùng terminal operation phù hợp
+### 6.3. Counting or Aggregating: Use the Proper Terminal Operation
 
 ```java
-// Không nên tự tăng biến chia sẻ trong forEach của parallel stream:
+// Avoid manually incrementing a shared variable inside parallel stream forEach:
 // long[] total = {0};
 // numbers.parallelStream().forEach(n -> total[0] += n);
 
@@ -306,17 +306,17 @@ long count = java.util.stream.LongStream.rangeClosed(1, 1000)
         .count(); // 500
 ```
 
-Khi bài toán là tính tổng, đếm, tìm cực trị, gom nhóm, xây Map hoặc List, Java Stream API có các terminal operation và collector được thiết kế để xử lý trực tiếp, không yêu cầu biến kết quả mutable ngoài pipeline.
+When the task is summing, counting, finding extrema, grouping, or building a Map or List, the Java Stream API has terminal operations and collectors designed to handle it directly without needing external mutable result variables.
 
-### 6.4. Cẩn thận với action không thể hoàn tác
+### 6.4. Be Careful with Irreversible Actions
 
-Nếu `forEach` gửi email, ghi giao dịch hoặc gọi API ngoài, lỗi ở một phần tử không tự hoàn tác các hành động đã diễn ra với phần tử khác. Khi chạy song song, hành động có thể xảy ra cùng lúc và theo thứ tự không xác định. Ngay cả `forEachOrdered` cũng không cung cấp tính nguyên tử, retry hay giao dịch.
+If `forEach` sends emails, records transactions, or calls external APIs, a failure on one element does not automatically roll back actions already executed for other elements. In parallel mode, actions can happen concurrently and in an indeterminate order. Even `forEachOrdered` provides no atomicity, retry, or transaction semantics.
 
-Với hệ thống có yêu cầu giao dịch, xử lý lỗi, retry hoặc giới hạn tốc độ, cần thiết kế chúng ở lớp nghiệp vụ phù hợp; không dựa vào thứ tự duyệt như một bảo đảm giao dịch.
+For systems requiring transactions, error handling, retries, or rate limiting, design them at the proper business layer; do not rely on traversal order as a transactional guarantee.
 
-## 7. forEachOrdered trên nguồn không có thứ tự
+## 7. `forEachOrdered` on Unordered Sources
 
-Không phải mọi nguồn đều có encounter order. Ví dụ `HashSet` không bảo đảm thứ tự duyệt:
+Not every source has an encounter order. For example, `HashSet` does not guarantee iteration order:
 
 ```java
 import java.util.Arrays;
@@ -328,12 +328,12 @@ Set<String> labels = new HashSet<>(
 
 labels.parallelStream()
         .forEachOrdered(System.out::println);
-// Không có bảo đảm sẽ in A, B, C hay theo thứ tự chèn.
+// No guarantee it will print A, B, C or follow insertion order.
 ```
 
-`forEachOrdered` **không sắp xếp** dữ liệu và không thêm một quy tắc encounter order mà nguồn không có.
+`forEachOrdered` **does not sort** data and does not invent an encounter order rule that the source lacks.
 
-Nếu cần thứ tự alphabet, tự thiết lập:
+If alphabetical order is needed, establish it yourself:
 
 ```java
 labels.parallelStream()
@@ -344,18 +344,18 @@ labels.parallelStream()
 // C
 ```
 
-Ngoài ra, `BaseStream.unordered()` có thể loại bỏ ràng buộc encounter order của một Stream để trao thêm tự do tối ưu khi nghiệp vụ không cần thứ tự. Khi đã gọi `unordered()`, không dùng `forEachOrdered` để trông chờ tự khôi phục thứ tự ban đầu.
+Additionally, `BaseStream.unordered()` can remove a Stream's encounter-order constraint to allow more optimization freedom when business logic does not require order. Once `unordered()` has been called, do not use `forEachOrdered` expecting it to restore the original order automatically.
 
-**Phân biệt hai loại thứ tự:**
+**Distinguish two kinds of ordering:**
 
-- **Thứ tự dữ liệu theo nghiệp vụ**: do `sorted(comparator)` hoặc bản chất nguồn xác định.
-- **Thứ tự hành động quan sát**: do terminal operation quyết định có phải tôn trọng encounter order hay không.
+- **Business data order**: determined by `sorted(comparator)` or the nature of the source.
+- **Observed action order**: determined by whether the terminal operation must respect encounter order.
 
-Muốn xuất báo cáo đã sắp xếp trên parallel stream, hai bước này thường cần xuất hiện cùng nhau: `sorted(...)` rồi `forEachOrdered(...)`.
+To export a sorted report on a parallel stream, these two steps usually need to appear together: `sorted(...)` followed by `forEachOrdered(...)`.
 
-## 8. Tính lazy, tiêu thụ một lần và mối liên hệ với matching
+## 8. Laziness, Single Consumption, and Relationship to Matching
 
-`filter`, `map` hay `sorted` được khai báo trước `forEach`/`forEachOrdered` nhưng thường chưa chạy cho đến khi terminal operation bắt đầu duyệt:
+`filter`, `map`, or `sorted` are declared before `forEach`/`forEachOrdered` but generally do not execute until the terminal operation begins traversing:
 
 ```java
 import java.util.stream.Stream;
@@ -363,18 +363,18 @@ import java.util.stream.Stream;
 Stream<String> pipeline = Stream.of("Java", "Stream")
         .map(String::toUpperCase);
 
-// map chưa được tiêu thụ để sinh kết quả ra bên ngoài.
+// map has not yet been consumed to produce output externally.
 pipeline.forEachOrdered(System.out::println); // JAVA, STREAM
 
 // pipeline.forEach(System.out::println);
-// SAI: Stream đã được tiêu thụ, không thể dùng lại.
+// WRONG: Stream has already been consumed and cannot be reused.
 ```
 
-Mỗi pipeline thông thường chỉ được **tiêu thụ một lần**. Nếu cần hai loại kết quả, tạo Stream mới từ nguồn hoặc dùng collector để trả kết quả cho bước xử lý tiếp theo.
+Each normal pipeline can only be **consumed once**. If two kinds of output are needed, create a fresh Stream from the source or use a collector to return data for downstream processing.
 
-### 8.1. forEach không phải thao tác tìm kiếm ngắn mạch
+### 8.1. `forEach` Is Not a Short-Circuiting Search Operation
 
-`forEach` và `forEachOrdered` được dùng để duyệt, thường cần hành động với mọi phần tử đi tới terminal operation. Nếu mục tiêu chỉ là tìm một bản ghi hoặc kiểm tra có phần tử thỏa điều kiện hay không, hãy dùng các terminal operation có ý nghĩa đúng hơn:
+`forEach` and `forEachOrdered` are meant for traversal, usually acting on every element reaching the terminal operation. If the goal is merely finding one record or checking whether any element matches a condition, use terminal operations with more accurate semantics:
 
 ```java
 import java.util.Arrays;
@@ -391,13 +391,13 @@ Optional<String> firstLongName = names.stream()
         .findFirst(); // Optional[Bình]
 ```
 
-`anyMatch` có thể kết thúc ngay khi tìm thấy một phần tử thỏa điều kiện; `findFirst` trả về phần tử đầu tiên theo encounter order nếu tồn tại; `findAny` có thể chọn một phần tử bất kỳ, đặc biệt hữu ích khi thứ tự không quan trọng trong pipeline song song.
+`anyMatch` can finish as soon as it finds one matching element; `findFirst` returns the first element in encounter order if present; `findAny` can choose any element, especially useful when order does not matter in a parallel pipeline.
 
-Không nên duyệt bằng `forEach` rồi dùng biến mutable bên ngoài để “tìm được thì dừng”: API này không có cơ chế `break` tương đương vòng lặp, và tạo trạng thái chung khó kiểm soát. Với nhu cầu dừng sớm, dùng `anyMatch`, `allMatch`, `noneMatch`, `findFirst`, `findAny` hoặc các toán tử giới hạn phù hợp.
+Do not traverse with `forEach` and use an external mutable variable to “stop when found”: this API has no loop-style `break` mechanism, and it creates hard-to-control shared state. For early-stopping needs, use `anyMatch`, `allMatch`, `noneMatch`, `findFirst`, `findAny`, or appropriate limiting operators.
 
-### 8.2. limit trước forEachOrdered
+### 8.2. `limit` Before `forEachOrdered`
 
-`limit(n)` là một thao tác trung gian giới hạn số phần tử đưa xuống terminal operation:
+`limit(n)` is an intermediate operation capping the number of elements passed down to the terminal operation:
 
 ```java
 java.util.stream.IntStream.rangeClosed(1, 10)
@@ -410,42 +410,42 @@ java.util.stream.IntStream.rangeClosed(1, 10)
 // 4
 ```
 
-Với nguồn có thứ tự, `limit(4)` chọn **bốn phần tử đầu theo encounter order**. `forEachOrdered` sau đó xuất đúng thứ tự ấy. Trên parallel stream có thứ tự, việc duy trì ràng buộc của `limit` và `forEachOrdered` có thể làm tăng chi phí so với xử lý không quan tâm thứ tự.
+With an ordered source, `limit(4)` picks **the first four elements in encounter order**. `forEachOrdered` then outputs them in that exact order. On an ordered parallel stream, maintaining the constraints of both `limit` and `forEachOrdered` can increase overhead compared to order-insensitive processing.
 
-## 9. Hiệu năng: nên chọn cách nào?
+## 9. Performance: Which Approach Should You Choose?
 
-`forEachOrdered` có thể làm giảm lợi ích của parallel stream vì các hành động cần được điều phối theo thứ tự. Nhưng không thể kết luận nó luôn chậm hơn: hiệu năng còn phụ thuộc vào nguồn, `Spliterator`, chi phí của từng bước `filter`/`map`, kích thước dữ liệu, số lõi CPU, I/O và tải hệ thống. Cần đo trên dữ liệu thực tế khi hiệu năng là yêu cầu quan trọng.
+`forEachOrdered` can reduce the benefit of a parallel stream because actions must be coordinated in order. However, you cannot conclude it is always slower: performance also depends on the source, `Spliterator`, cost of each `filter`/`map` step, data size, CPU core count, I/O, and system load. Measure on realistic data when performance is an important requirement.
 
-| Nhu cầu | Gợi ý |
+| Need | Suggestion |
 |---|---|
-| In hoặc xử lý tuần tự một số ít phần tử | `stream().forEachOrdered(...)` nếu thứ tự phải rõ ràng |
-| Duyệt hành động độc lập, không cần thứ tự | `forEach(...)` |
-| Xuất dữ liệu theo encounter order dù xử lý trung gian song song | `parallelStream().forEachOrdered(...)` |
-| Tạo List kết quả để trả về | `collect(Collectors.toList())` |
-| Tính tổng, đếm, tìm min/max | `sum`, `count`, `min`, `max`, `reduce` |
-| Gom nhóm, tạo Map | `collect(groupingBy(...))`, `collect(toMap(...))` |
-| Chỉ cần biết có phần tử thỏa điều kiện | `anyMatch(...)` |
-| Cần phần tử đầu tiên theo thứ tự | `findFirst()` |
-| Chỉ cần phần tử phù hợp bất kỳ | `findAny()` |
+| Print or process a few elements sequentially | `stream().forEachOrdered(...)` if order must be explicit |
+| Traverse independent actions, order irrelevant | `forEach(...)` |
+| Output data in encounter order despite parallel intermediate work | `parallelStream().forEachOrdered(...)` |
+| Produce a result List to return | `collect(Collectors.toList())` |
+| Sum, count, find min/max | `sum`, `count`, `min`, `max`, `reduce` |
+| Group, build a Map | `collect(groupingBy(...))`, `collect(toMap(...))` |
+| Only need to know if an element matches a condition | `anyMatch(...)` |
+| Need the first element in order | `findFirst()` |
+| Only need any matching element | `findAny()` |
 
-**Vì sao không dùng `parallelStream().forEachOrdered(...)` cho mọi bài toán?** Nếu nguồn chỉ có vài phần tử hoặc action nhanh, chi phí chia việc và chờ giữ thứ tự có thể vượt lợi ích tính toán song song. Với đầu ra tuần tự như một luồng log hoặc một màn hình console, khả năng tăng tốc cuối pipeline thường bị giới hạn bởi tốc độ đích ghi.
+**Why not use `parallelStream().forEachOrdered(...)` for every problem?** If the source has only a few elements or actions are fast, work-splitting and order-preservation overhead can outweigh parallel computation gains. With sequential outputs like a single log stream or console screen, end-of-pipeline speedup is often bounded by the sink's write speed.
 
-## 10. Những hiểu nhầm thường gặp
+## 10. Common Misconceptions
 
-| Nhận định | Cách hiểu đúng |
+| Claim | Accurate Understanding |
 |---|---|
-| “Đã `sorted` rồi thì `forEach` chắc chắn in đúng thứ tự.” | `sorted` thiết lập encounter order; `forEach` không cam kết thứ tự hành động trên Stream song song. |
-| “`forEachOrdered` luôn sắp xếp tăng dần.” | Nó chỉ giữ encounter order sẵn có; muốn tăng dần thì dùng nguồn có thứ tự phù hợp hoặc `sorted`. |
-| “`forEachOrdered` chạy trên đúng một thread.” | Không được cam kết; action được bảo đảm happens-before theo thứ tự phần tử, có thể dùng thread khác nhau. |
-| “`forEach` trên parallel stream chỉ đổi thứ tự, không có rủi ro khác.” | Side effect sửa trạng thái dùng chung có thể gây data race; thư viện không tự bảo vệ đối tượng mutable ngoài pipeline. |
-| “Dùng synchronizedList với `forEach` là giữ đúng thứ tự.” | Đồng bộ hóa việc thêm phần tử, nhưng không buộc `forEach` tuân encounter order. |
-| “`forEach` có thể trả List.” | Cả hai phương thức trả `void`; muốn kết quả dữ liệu, dùng collector hoặc terminal operation phù hợp. |
-| “Một Stream có thể gọi `forEach` xong rồi `forEachOrdered`.” | Stream đã tiêu thụ, phải tạo pipeline mới. |
-| “Dùng `forEach` để tìm và dừng ngay khi thấy phần tử đúng.” | Dùng `findFirst`, `findAny` hoặc `anyMatch` cho mục đích tìm kiếm ngắn mạch. |
+| “Once `sorted` is called, `forEach` is guaranteed to print in order.” | `sorted` establishes encounter order; `forEach` does not guarantee action order on parallel Streams. |
+| “`forEachOrdered` always sorts in ascending order.” | It only preserves existing encounter order; for ascending order, use an ordered source or `sorted`. |
+| “`forEachOrdered` runs on exactly one thread.” | Not guaranteed; actions are guaranteed happens-before in element order, and may use different threads. |
+| “`forEach` on a parallel stream only changes order, with no other risks.” | Side effects mutating shared state can cause data races; the library does not automatically protect mutable external objects. |
+| “Using a synchronizedList with `forEach` preserves order.” | Synchronizes element additions, but does not force `forEach` to follow encounter order. |
+| “`forEach` can return a List.” | Both methods return `void`; for data output, use a collector or appropriate terminal operation. |
+| “A Stream can call `forEach` and then `forEachOrdered`.” | The Stream is already consumed; you must create a new pipeline. |
+| “Use `forEach` to search and stop as soon as a match is found.” | Use `findFirst`, `findAny`, or `anyMatch` for short-circuiting search purposes. |
 
-## 11. Bài tập thực hành
+## 11. Practice Exercises
 
-### Bài 1. Đánh giá kết quả song song
+### Exercise 1. Evaluating Parallel Output
 
 ```java
 java.util.stream.IntStream.range(1, 6)
@@ -453,15 +453,15 @@ java.util.stream.IntStream.range(1, 6)
         .forEachOrdered(System.out::print);
 ```
 
-**Đáp án:** In `12345` vì `range(1, 6)` phát 1 đến 5 theo encounter order và `forEachOrdered` bảo đảm thứ tự hành động đó.
+**Answer:** Prints `12345` because `range(1, 6)` emits 1 through 5 in encounter order and `forEachOrdered` guarantees that action order.
 
-### Bài 2. Thay forEach bằng forEachOrdered đã đủ chưa?
+### Exercise 2. Is Replacing `forEach` with `forEachOrdered` Enough?
 
-Nguồn là một `HashSet<String>` gồm `"B"`, `"A"`, `"C"`. Yêu cầu luôn in `A`, `B`, `C`. Chỉ thay `forEach` bằng `forEachOrdered` có đủ không?
+The source is a `HashSet<String>` containing `"B"`, `"A"`, `"C"`. The requirement is to always print `A`, `B`, `C`. Is simply replacing `forEach` with `forEachOrdered` enough?
 
-**Đáp án:** Chưa. `HashSet` không có encounter order ổn định theo yêu cầu alphabet. Hãy gọi `sorted()` rồi `forEachOrdered(System.out::println)`.
+**Answer:** Not yet. `HashSet` has no stable encounter order matching alphabetical requirements. Call `sorted()` and then `forEachOrdered(System.out::println)`.
 
-### Bài 3. Thu thập dữ liệu an toàn khi song song
+### Exercise 3. Collecting Data Safely in Parallel
 
 ```java
 List<Integer> result = new java.util.ArrayList<>();
@@ -471,9 +471,9 @@ java.util.stream.IntStream.range(0, 1000)
         .forEach(result::add);
 ```
 
-**Câu hỏi:** Vì sao không nên dùng đoạn trên, và thay bằng gì?
+**Question:** Why should the snippet above not be used, and what should replace it?
 
-**Đáp án:** `ArrayList` không thread-safe, các worker có thể ghi đồng thời gây race. Dùng:
+**Answer:** `ArrayList` is not thread-safe; concurrent workers writing to it cause data races. Use:
 
 ```java
 List<Integer> result = java.util.stream.IntStream.range(0, 1000)
@@ -482,15 +482,15 @@ List<Integer> result = java.util.stream.IntStream.range(0, 1000)
         .collect(java.util.stream.Collectors.toList());
 ```
 
-### Bài 4. Duyệt hay tìm kiếm?
+### Exercise 4. Traverse or Search?
 
-Giả sử cần kiểm tra danh sách đơn hàng có ít nhất một đơn chưa thanh toán. Nên dùng `forEach` để cập nhật biến boolean hay `anyMatch`?
+Suppose you need to check whether an order list has at least one unpaid order. Should you use `forEach` to update a boolean variable or `anyMatch`?
 
-**Đáp án:** Dùng `orders.stream().anyMatch(order -> !order.isPaid())`. Nó diễn đạt đúng ý nghĩa kiểm tra tồn tại và có thể dừng sớm.
+**Answer:** Use `orders.stream().anyMatch(order -> !order.isPaid())`. It directly expresses an existence check and can stop early.
 
-### Bài 5. Chọn thứ tự nghiệp vụ
+### Exercise 5. Choosing Business Ordering
 
-Danh sách sản phẩm đã có `getPrice()`. Yêu cầu xuất tên sản phẩm theo giá tăng dần, nếu giá bằng nhau thì tên theo alphabet.
+A product list has `getPrice()`. The requirement is to print product names by ascending price, and alphabetically by name if prices are equal.
 
 ```java
 products.stream()
@@ -501,8 +501,8 @@ products.stream()
         .forEachOrdered(System.out::println);
 ```
 
-Đoạn minh họa giả định tồn tại kiểu `Product` với `getPrice()` trả `int` và `getName()` trả `String` không null. `sorted` tạo thứ tự; `forEachOrdered` dùng thứ tự đó để xuất tên.
+This illustration assumes a `Product` type exists with `getPrice()` returning `int` and `getName()` returning a non-null `String`. `sorted` establishes the order; `forEachOrdered` uses that order to output names.
 
-## 12. Nguyên tắc ghi nhớ
+## 12. Key Principles to Remember
 
-Khi **duyệt để tạo side effect**, dùng `forEach` nếu các hành động độc lập và thứ tự không quan trọng; dùng `forEachOrdered` khi cần tôn trọng encounter order. Nếu thứ tự nghiệp vụ chưa có, hãy tạo nó bằng nguồn có thứ tự hoặc `sorted`. Khi kết quả phải được giữ lại làm dữ liệu, ưu tiên `collect` và các terminal operation chuyên dụng. Trong Stream song song, tránh trạng thái mutable dùng chung và hiểu rằng **thứ tự hành động**, **thứ tự thực thi các bước trung gian** và **thread được sử dụng** là những khái niệm khác nhau.
+When **traversing to produce side effects**, use `forEach` if actions are independent and order does not matter; use `forEachOrdered` when encounter order must be respected. If the business order does not yet exist, establish it via an ordered source or `sorted`. When results must be retained as data, prefer `collect` and dedicated terminal operations. In parallel Streams, avoid shared mutable state and recognize that **action order**, **execution order of intermediate steps**, and **the thread used** are distinct concepts.

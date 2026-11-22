@@ -1,36 +1,36 @@
-# Ghi rõ requires, exports, uses và provides
+# Documenting requires, exports, uses, and provides
 
-## 1. Vì sao tài liệu module cần nói rõ bốn chỉ thị này?
+## 1. Why does module documentation need to spell out these four directives?
 
-Trong Java Platform Module System (JPMS), `module-info.java` là hợp đồng kỹ thuật giữa một named module và những module khác. Nó cho biết:
+In the Java Platform Module System (JPMS), `module-info.java` is the technical contract between a named module and other modules. It states:
 
-- `requires`: module này cần đọc module nào.
-- `exports`: những package nào được công bố như API cho code của module khác.
-- `uses`: module này tiêu thụ service contract nào bằng cơ chế service loading.
-- `provides ... with ...`: module này đăng ký implementation nào cho một service contract.
+- `requires`: which modules this module needs to read.
+- `exports`: which packages are exposed as APIs for other modules' code.
+- `uses`: which service contracts this module consumes via service loading.
+- `provides ... with ...`: which implementations this module registers for a service contract.
 
-Chỉ nhìn thấy những class `public` trong JAR hoặc danh sách dependency của Maven/Gradle không đủ để hiểu toàn bộ hợp đồng JPMS. Một module có thể nằm trên module path nhưng chưa được resolve; package chứa public class vẫn có thể không được export; provider class có thể tồn tại trong JAR nhưng không được đăng ký bằng `provides`.
+Merely seeing `public` classes in a JAR or a Maven/Gradle dependency list is not enough to understand the full JPMS contract. A module may sit on the module path without being resolved; a package containing public classes may remain unexported; a provider class may exist in the JAR without being registered via `provides`.
 
-Vì vậy, README của thư viện modular nên vừa chỉ ra **descriptor chính thức**, vừa giải thích **ý nghĩa với consumer và người triển khai provider**, đồng thời cung cấp cách xác minh artifact sau khi build.
+Therefore, a modular library's README should both present the **official descriptor** and explain **what it means for consumers and provider implementers**, while also providing ways to verify the built artifact.
 
-Bốn câu hỏi mà tài liệu nên trả lời rõ ràng:
+Four questions documentation should answer clearly:
 
-1. Người dùng thư viện cần khai báo `requires` module nào?
-2. Package nào thực sự là public API và package nào là implementation detail?
-3. Nếu thư viện dùng service, module consumer cần khai báo `uses` nào?
-4. Nếu thư viện cung cấp service, provider class nào được đăng ký và nó được nạp bằng cách nào?
+1. Which modules do library users need to declare in `requires`?
+2. Which packages are actually public APIs and which are implementation details?
+3. If the library uses services, which `uses` directive must consumer modules declare?
+4. If the library provides a service, which provider class is registered and how is it loaded?
 
-## 2. Một ví dụ có cả requires, exports, uses và provides
+## 2. An example containing requires, exports, uses, and provides
 
-Giả sử hệ thống xử lý thanh toán gồm ba phần:
+Suppose a payment processing system consists of three parts:
 
 ~~~text
-com.acme.payment.api       # Service contract và dữ liệu trao đổi
-com.acme.payment.card      # Module triển khai provider
-com.acme.payment.checkout  # Ứng dụng tìm và sử dụng provider
+com.acme.payment.api       # Service contract and data exchange types
+com.acme.payment.card      # Provider implementation module
+com.acme.payment.checkout  # Application discovering and using providers
 ~~~
 
-Module API:
+API module:
 
 ~~~java
 module com.acme.payment.api {
@@ -49,7 +49,7 @@ public interface PaymentProcessor {
 }
 ~~~
 
-Module provider:
+Provider module:
 
 ~~~java
 module com.acme.payment.card {
@@ -60,7 +60,7 @@ module com.acme.payment.card {
 }
 ~~~
 
-Module ứng dụng:
+Application module:
 
 ~~~java
 module com.acme.payment.checkout {
@@ -70,31 +70,31 @@ module com.acme.payment.checkout {
 }
 ~~~
 
-Khi biên dịch, cả provider và consumer đều cần đọc module API. Ở runtime, consumer dùng `ServiceLoader` để tìm provider đã tham gia module configuration. Consumer không cần `requires com.acme.payment.card;` chỉ vì nó muốn sử dụng provider thông qua service contract.
+At compile time, both the provider and consumer must read the API module. At runtime, the consumer uses `ServiceLoader` to locate providers participating in the module configuration. The consumer does not need `requires com.acme.payment.card;` just to use the provider through the service contract.
 
-Tài liệu của hệ thống nên giải thích từng quyết định này, không chỉ dán ba file descriptor rồi để người đọc tự suy luận.
+System documentation should explain each of these decisions, rather than pasting three descriptor files and leaving readers to deduce them.
 
-## 3. Ghi rõ module name và yêu cầu môi trường
+## 3. Specifying module name and environment requirements
 
-Đầu README nên có một đoạn thông tin cơ bản:
+The top of a README should include a basic information block:
 
-| Trường | Ví dụ | Vì sao cần ghi |
+| Field | Example | Why document it |
 |---|---|---|
-| Module name | `com.acme.payment.api` | Consumer dùng đúng tên trong `requires` |
-| Artifact | `com.acme:payment-api:1.2.0` | Build tool tải đúng dependency |
-| Java baseline | JDK 21 | Tránh chạy bằng runtime không phù hợp |
-| Module type | Explicit named module | Phân biệt với automatic module |
-| Exports | `com.acme.payment.api` | Xác định public API |
-| Services | `PaymentProcessor` | Biết service contract và provider discovery |
-| Optional integrations | Ví dụ module logging hoặc SQL | Biết dependency nào tùy chọn |
+| Module name | `com.acme.payment.api` | Consumers use the exact name in `requires` |
+| Artifact | `com.acme:payment-api:1.2.0` | Build tools download the right dependency |
+| Java baseline | JDK 21 | Avoids running with an incompatible runtime |
+| Module type | Explicit named module | Distinguishes from automatic modules |
+| Exports | `com.acme.payment.api` | Identifies public API |
+| Services | `PaymentProcessor` | Clarifies service contract and provider discovery |
+| Optional integrations | E.g., logging or SQL module | Identifies which dependencies are optional |
 
-Tên artifact Maven/Gradle **không nhất thiết trùng** với module name. Với explicit modular JAR, module name được định nghĩa bởi descriptor đã biên dịch. Nếu người dùng viết sai `requires`, việc có JAR đúng tên file cũng không giúp JPMS resolve được module.
+Maven/Gradle artifact names **do not necessarily match** the module name. For an explicit modular JAR, the module name is defined by the compiled descriptor. If users write the wrong `requires`, having a JAR with the right filename still will not let JPMS resolve the module.
 
-Trong README, ưu tiên viết đầy đủ module name thay vì chỉ gọi mơ hồ là “module payment”.
+In the README, prefer writing out the full module name instead of vague references like “the payment module”.
 
-## 4. requires: ghi rõ module cần đọc và lý do
+## 4. requires: clearly documenting modules to read and why
 
-Một đoạn descriptor:
+A descriptor snippet:
 
 ~~~java
 module com.acme.payment.checkout {
@@ -103,29 +103,29 @@ module com.acme.payment.checkout {
 }
 ~~~
 
-cần được giải thích:
+should be explained:
 
-- `requires com.acme.payment.api`: ứng dụng dùng các kiểu contract của API thanh toán.
-- `requires java.logging`: ứng dụng dùng logging API trong JDK.
-- `java.base` được đọc ngầm định, nên thường không cần một dòng `requires java.base;`.
+- `requires com.acme.payment.api`: the application uses the payment API contract types.
+- `requires java.logging`: the application uses the JDK logging API.
+- `java.base` is read implicitly, so a `requires java.base;` line is usually unnecessary.
 
-Ví dụ bảng trong tài liệu:
+Example documentation table:
 
-| Dependency module | Loại quan hệ | Được sử dụng để làm gì? |
+| Dependency module | Relationship type | Used for what? |
 |---|---|---|
-| `com.acme.payment.api` | `requires` | Truy cập `PaymentProcessor` và DTO công khai |
-| `java.logging` | `requires` | Ghi log qua `java.util.logging` |
-| `java.base` | Mandated/implicit | Các kiểu cốt lõi của Java |
+| `com.acme.payment.api` | `requires` | Accessing `PaymentProcessor` and public DTOs |
+| `java.logging` | `requires` | Logging via `java.util.logging` |
+| `java.base` | Mandated/implicit | Core Java types |
 
-Nếu một module được build bằng Maven hoặc Gradle, nên bổ sung artifact tương ứng với dependency bên thứ ba. Một tên module có thể không cho biết trực tiếp groupId, artifactId và version trong repository.
+If a module is built with Maven or Gradle, include the corresponding artifact for third-party dependencies. A module name alone may not directly reveal the repository groupId, artifactId, and version.
 
-**Đừng chỉ liệt kê dependency:** cho biết dependency nào thuộc public contract, dependency nào chỉ hỗ trợ implementation và dependency nào phải được cung cấp ở runtime.
+**Do not merely list dependencies:** state which dependencies belong to the public contract, which only support implementation, and which must be supplied at runtime.
 
-## 5. requires transitive: tài liệu phải nêu ảnh hưởng đến consumer
+## 5. requires transitive: documentation must state impact on consumers
 
-`requires transitive` là một phần quan trọng của public module contract.
+`requires transitive` is an important part of the public module contract.
 
-Giả sử public API của module report trả về một kiểu trong `java.sql`:
+Suppose a report module's public API returns a type from `java.sql`:
 
 ~~~java
 module com.acme.report.api {
@@ -146,20 +146,20 @@ public interface ReportService {
 }
 ~~~
 
-Dòng `requires transitive java.sql` cho phép những module đọc `com.acme.report.api` có readability tới `java.sql` theo quy tắc JPMS. Nó phù hợp khi kiểu thuộc dependency xuất hiện trong contract public của API.
+The `requires transitive java.sql` line grants modules that read `com.acme.report.api` readability to `java.sql` under JPMS rules. It is appropriate when a dependency's types appear in the API's public contract.
 
-README cần nói rõ:
+The README needs to state clearly:
 
-- Consumer nào có thể sử dụng API mà không cần khai báo `requires java.sql` riêng?
-- Vì sao dependency được chuyển tiếp?
-- Những type nào trong public API khiến dependency đó trở thành một phần contract?
-- Nếu thay đổi sang `requires` thông thường, consumer có thể phải sửa `module-info.java` như thế nào?
+- Which consumers can use the API without declaring `requires java.sql` separately?
+- Why is the dependency transitive?
+- Which types in the public API make that dependency part of the contract?
+- If changed to a regular `requires`, how might consumers have to update `module-info.java`?
 
-Không nên dùng `requires transitive` cho mọi module dependency chỉ để “đỡ lỗi biên dịch”. Việc mở rộng readability là quyết định thiết kế API và cần được ghi nhận như một phần tương thích của thư viện.
+Do not use `requires transitive` for every module dependency just to “save compile errors”. Extending readability is an API design decision and should be recorded as part of the library's compatibility guarantee.
 
-## 6. requires static: ghi rõ điều kiện runtime
+## 6. requires static: clearly documenting runtime conditions
 
-Ví dụ một tích hợp tùy chọn:
+Example of an optional integration:
 
 ~~~java
 module com.acme.payment.integration {
@@ -167,22 +167,22 @@ module com.acme.payment.integration {
 }
 ~~~
 
-`requires static` mô tả dependency cần được giải quyết khi compile, nhưng không bắt buộc phải có mặt trong runtime configuration theo cách của `requires` thông thường.
+`requires static` describes a dependency that must be resolved at compile time, but is not required to be present in the runtime configuration in the way a regular `requires` is.
 
-Tài liệu nên giải thích:
+Documentation should explain:
 
-- Dependency được dùng ở compile-time cho mục đích gì?
-- Có code path nào tại runtime thật sự cần nó không?
-- Khi kích hoạt tính năng nào thì consumer phải bổ sung artifact/module?
-- Hành vi fallback nếu dependency vắng mặt là gì?
+- What is the dependency used for at compile time?
+- Are there any runtime code paths that actually need it?
+- When enabling which features must consumers add the artifact/module?
+- What is the fallback behavior if the dependency is absent?
 
-Ví dụ mô tả:
+Example description:
 
-> Module `com.acme.annotations` cần khi biên dịch những source dùng annotation hỗ trợ. Ở runtime, ứng dụng không cần module này cho luồng thanh toán cơ bản; nếu bật tính năng tích hợp cụ thể, hãy kiểm tra yêu cầu runtime riêng.
+> The `com.acme.annotations` module is required when compiling sources that use supporting annotations. At runtime, the application does not need this module for basic payment flows; if enabling specific integration features, check their separate runtime requirements.
 
-`requires static` không tương đương trực tiếp với một Maven scope hay Gradle configuration. Cần ghi rõ cả dependency của build tool và quy tắc runtime JPMS, nhất là khi thư viện cung cấp optional feature.
+`requires static` is not directly equivalent to a Maven scope or Gradle configuration. Both the build-tool dependency and JPMS runtime rules must be documented clearly, especially when the library offers optional features.
 
-## 7. exports: công bố package API, không phải từng class
+## 7. exports: exposing API packages, not individual classes
 
 Descriptor:
 
@@ -192,9 +192,9 @@ module com.acme.payment.api {
 }
 ~~~
 
-Nghĩa là những public type thích hợp trong package `com.acme.payment.api` có thể được module khác truy cập khi consumer có readability. Các package khác không tự động được export.
+This means eligible public types in the `com.acme.payment.api` package can be accessed by other modules when the consumer has readability. Other packages are not automatically exported.
 
-Ví dụ:
+Example:
 
 ~~~text
 com.acme.payment.api
@@ -202,21 +202,21 @@ com.acme.payment.api.internal
 com.acme.payment.internal
 ~~~
 
-Chỉ export `com.acme.payment.api` **không export đệ quy** `com.acme.payment.api.internal` hoặc `com.acme.payment.internal`.
+Exporting only `com.acme.payment.api` **does not recursively export** `com.acme.payment.api.internal` or `com.acme.payment.internal`.
 
-Trong README nên có danh sách rõ:
+In the README, include a clear list:
 
-| Package | Trạng thái | Cam kết |
+| Package | Status | Commitment |
 |---|---|---|
-| `com.acme.payment.api` | Exported | Public API dành cho consumer |
-| `com.acme.payment.card.internal` | Not exported | Chi tiết provider, không import trực tiếp |
-| `com.acme.payment.api.internal` (nếu có) | Not exported | Helper nội bộ, không phải contract |
+| `com.acme.payment.api` | Exported | Public API for consumers |
+| `com.acme.payment.card.internal` | Not exported | Provider detail, do not import directly |
+| `com.acme.payment.api.internal` (if present) | Not exported | Internal helper, not a contract |
 
-Nếu source chứa class `public` trong package internal, điều đó không tự biến class thành API có thể dùng từ named module khác. Ranh giới package được xác lập bằng `exports`.
+If source code contains a `public` class in an internal package, that does not make the class a usable API from another named module. Package boundaries are established by `exports`.
 
-## 8. Qualified exports: chỉ cấp API cho module cụ thể
+## 8. Qualified exports: granting API access only to specific modules
 
-JPMS hỗ trợ export có đích:
+JPMS supports targeted exports:
 
 ~~~java
 module com.acme.payment.api {
@@ -227,22 +227,22 @@ module com.acme.payment.api {
 }
 ~~~
 
-Đoạn README tương ứng cần nói:
+The corresponding README section should state:
 
-- `com.acme.payment.api` được export vô điều kiện.
-- `com.acme.payment.spi` chỉ được export cho `com.acme.payment.card` và `com.acme.payment.wallet`.
-- Module khác không thể xem `spi` là public API chung nếu không có quyền bổ sung.
-- Module đích vẫn cần có quan hệ readability phù hợp để import các type trong package.
+- `com.acme.payment.api` is exported unconditionally.
+- `com.acme.payment.spi` is exported only to `com.acme.payment.card` and `com.acme.payment.wallet`.
+- Other modules cannot treat `spi` as a general public API without additional permission.
+- Target modules still need an appropriate readability relationship to import types in the package.
 
-Đừng mô tả qualified exports bằng câu chung “package này được public”. Cần ghi **public cho ai**, vì một module khác ngoài danh sách có thể compile fail dù package vẫn tồn tại trong JAR.
+Do not describe qualified exports with a generic sentence like “this package is public”. Specify **public to whom**, because any module outside the list can fail to compile even though the package exists in the JAR.
 
-Qualified exports tạo coupling tới tên module đích, nên tài liệu cũng phải cập nhật khi đổi tên các module cộng tác.
+Qualified exports create coupling to target module names, so documentation must also be updated when collaborating modules are renamed.
 
-## 9. Phân biệt exports với opens trong tài liệu
+## 9. Distinguishing exports from opens in documentation
 
-Dù đề bài tập trung bốn chỉ thị `requires`, `exports`, `uses` và `provides`, README cũng cần giải thích `opens` khi có framework reflection để tránh hiểu nhầm.
+Although the topic focuses on the four directives `requires`, `exports`, `uses`, and `provides`, a README also needs to explain `opens` when reflection frameworks are involved to avoid confusion.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.payment.api {
@@ -252,20 +252,20 @@ module com.acme.payment.api {
 }
 ~~~
 
-Giải thích:
+Explanation:
 
-- `exports` dùng cho truy cập Java thông thường tới public API.
-- `opens` cấp quyền deep reflection vào package cho framework được chỉ định.
-- Package được `opens` không vì thế trở thành package public API để import như một package đã export.
-- `exports` cũng không tự cho phép framework đọc/ghi mọi private field.
+- `exports` is for normal Java access to public APIs.
+- `opens` grants deep reflection access into a package for the specified framework.
+- A package that is `opens` does not thereby become a public API package for importing like an exported package.
+- Nor does `exports` automatically allow frameworks to read/write arbitrary private fields.
 
-Nếu framework chạy dưới unnamed module hoặc cấu hình runtime khác, tên module thực hiện reflection có thể khác; tài liệu triển khai phải dùng đúng module identity thực tế.
+If the framework runs in an unnamed module or another runtime configuration, the module name performing reflection may differ; deployment documentation must use the actual module identity.
 
-Tránh đưa `--add-opens` hoặc `--add-exports` vào hướng dẫn mặc định nếu descriptor có thể mô tả quan hệ đúng. Nếu phải dùng launcher flags khi migration, hãy ghi rõ lý do, module đích, phạm vi và kế hoạch loại bỏ.
+Avoid putting `--add-opens` or `--add-exports` into default instructions if the descriptor can express the proper relationship. If launcher flags must be used during migration, clearly document the reason, target module, scope, and removal plan.
 
-## 10. uses: nói rõ module nào tiêu thụ service
+## 10. uses: clearly stating which module consumes a service
 
-`uses` là khai báo của module **tiêu thụ** service. Ví dụ:
+`uses` is a declaration on the module that **consumes** a service. Example:
 
 ~~~java
 module com.acme.payment.checkout {
@@ -275,9 +275,9 @@ module com.acme.payment.checkout {
 }
 ~~~
 
-Nó không chọn một provider cụ thể. Nó cho biết module checkout có nhu cầu tìm implementation của `PaymentProcessor`.
+It does not select a specific provider. It indicates that the checkout module intends to look up implementations of `PaymentProcessor`.
 
-Ví dụ code:
+Code example:
 
 ~~~java
 package com.acme.payment.checkout;
@@ -299,19 +299,19 @@ public final class Main {
 }
 ~~~
 
-README của consumer nên trả lời:
+The consumer's README should answer:
 
-1. Service type chính xác là gì?
-2. Module nào khai báo `uses`?
-3. Có cần ít nhất một provider để khởi động không?
-4. Nếu không có provider, consumer xử lý kết quả rỗng ra sao?
-5. Nếu có nhiều provider, logic chọn provider dựa vào tiêu chí nào?
+1. What is the exact service type?
+2. Which module declares `uses`?
+3. Is at least one provider required to start up?
+4. If no provider is present, how does the consumer handle an empty result?
+5. If multiple providers exist, what criteria does the selection logic use?
 
-Nếu code chạy từ named module trực tiếp gọi `ServiceLoader`, descriptor của module caller cần `uses` tương ứng. Chỉ khai báo `requires` module API không thay thế được `uses`.
+If code running from a named module calls `ServiceLoader` directly, the caller module's descriptor needs the corresponding `uses`. Declaring only `requires` on the API module does not replace `uses`.
 
-## 11. provides ... with ...: ghi rõ implementation được đăng ký
+## 11. provides ... with ...: clearly documenting registered implementations
 
-Module provider:
+Provider module:
 
 ~~~java
 module com.acme.payment.card {
@@ -347,25 +347,25 @@ public final class CardPaymentProcessor
 }
 ~~~
 
-README của provider cần nêu:
+The provider's README should state:
 
-| Mục | Giá trị |
+| Item | Value |
 |---|---|
 | Provider module | `com.acme.payment.card` |
 | Service type | `com.acme.payment.api.PaymentProcessor` |
 | Implementation | `com.acme.payment.card.internal.CardPaymentProcessor` |
 | Provider identifier | `card` |
 | Dependency | `requires com.acme.payment.api` |
-| Cách kích hoạt | Đưa provider module vào runtime configuration |
-| Public package của provider | Không cần export implementation package chỉ để ServiceLoader tìm provider |
+| Activation | Include the provider module in the runtime configuration |
+| Provider's public packages | No need to export the implementation package just for ServiceLoader to find the provider |
 
-Provider class có thể được khai báo ở package không export. JPMS service binding sử dụng metadata `provides`, nên consumer không cần import implementation class.
+The provider class can be declared in an unexported package. JPMS service binding uses `provides` metadata, so consumers do not need to import the implementation class.
 
-`ServiceLoader` hỗ trợ provider constructor hoặc provider method hợp lệ theo quy tắc JPMS. Nếu thư viện dùng một phương án đặc biệt, nên mô tả cơ chế khởi tạo và yêu cầu constructor/`provider()` trong hướng dẫn dành cho người bảo trì provider.
+`ServiceLoader` supports a valid provider constructor or provider method according to JPMS rules. If the library uses a special approach, describe the instantiation mechanism and constructor/`provider()` requirements in the guide for provider maintainers.
 
-## 12. Service API và provider không nên bị buộc phụ thuộc ngược
+## 12. Service API and provider should not be forced into reverse dependencies
 
-Một kiến trúc thường dùng:
+A common architecture:
 
 ~~~text
 checkout module ------requires------> payment API module
@@ -376,20 +376,20 @@ checkout module ------requires------> payment API module
                                     card provider module
 ~~~
 
-Contract nằm trong module API. Provider triển khai contract và consumer sử dụng contract.
+The contract lives in the API module. The provider implements the contract and the consumer uses the contract.
 
-Không nên viết:
+Do not write:
 
 ~~~java
-// Thiết kế dễ gây coupling, không phải lựa chọn mặc định
+// Coupling-prone design, not the default choice
 module com.acme.payment.api {
     requires com.acme.payment.card;
 }
 ~~~
 
-chỉ để đưa provider vào runtime. Làm vậy khiến API phụ thuộc một implementation cụ thể, giảm khả năng thay thế provider.
+just to bring the provider into runtime. Doing so couples the API to a specific implementation, reducing provider substitutability.
 
-Thay vào đó, tài liệu deployment có thể chỉ ra cách thêm provider như root module khi cần:
+Instead, deployment documentation can show how to add the provider as a root module when needed:
 
 ~~~bash
 java --module-path mods \
@@ -397,25 +397,25 @@ java --module-path mods \
   -m com.acme.payment.checkout/com.acme.payment.checkout.Main
 ~~~
 
-Hoặc sử dụng service binding trong cấu hình/module layer phù hợp. Việc tìm provider phụ thuộc vào module configuration thực tế, không chỉ vào sự có mặt của JAR trong thư mục.
+Or use service binding in the appropriate configuration/module layer. Finding providers depends on the actual module configuration, not merely on the presence of JARs in a directory.
 
-## 13. Mô tả ServiceLoader theo module layer
+## 13. Documenting ServiceLoader with module layers
 
-Với plugin architecture, provider có thể nằm trong custom `ModuleLayer` thay vì boot layer.
+In a plugin architecture, providers may reside in a custom `ModuleLayer` rather than the boot layer.
 
-Khi đó hướng dẫn sử dụng nên phân biệt:
+In that case, usage instructions should distinguish:
 
 ~~~java
 ServiceLoader.load(PaymentProcessor.class)
 ~~~
 
-và:
+and:
 
 ~~~java
 ServiceLoader.load(pluginLayer, PaymentProcessor.class)
 ~~~
 
-Overload nhận `ModuleLayer` tìm provider trong layer được cung cấp và các ancestor layer liên quan. Vì vậy, nếu cần tìm riêng provider của custom layer, có thể kiểm tra module/layer của provider class:
+The overload taking `ModuleLayer` searches for providers in the given layer and its related ancestor layers. Therefore, if you need to find only providers from the custom layer, you can check the module/layer of the provider class:
 
 ~~~java
 var providers =
@@ -426,33 +426,33 @@ var providers =
                 .toList();
 ~~~
 
-README nên nêu cách ứng dụng tạo hoặc nhận `pluginLayer`, module nào được đưa vào configuration và cách consumer xác định provider mong đợi.
+The README should state how the application creates or obtains `pluginLayer`, which modules are placed into the configuration, and how consumers identify expected providers.
 
-Nếu có nhiều layer hoặc nhiều provider, không nên nói chung chung rằng “đặt JAR lên module path là tự động được sử dụng”. Cần chỉ rõ cơ chế resolution/service binding và cách khởi tạo.
+If there are multiple layers or multiple providers, do not make blanket claims like “putting the JAR on the module path automatically uses it”. Clearly specify the resolution/service-binding mechanism and instantiation approach.
 
-## 14. Bảng contract: requires, exports, uses, provides
+## 14. Contract table: requires, exports, uses, provides
 
-Trong README của một thư viện modular, một bảng tóm tắt thường giúp người đọc định vị nhanh:
+In a modular library's README, a summary table often helps readers orient quickly:
 
-| Chỉ thị | Nằm trong module nào | Ý nghĩa | Consumer/provider cần làm gì |
+| Directive | Located in module | Meaning | What consumer/provider must do |
 |---|---|---|---|
-| `requires com.acme.payment.api` | Checkout | Consumer đọc API module | Đảm bảo API module có trên module path |
-| `requires com.acme.payment.api` | Card provider | Provider triển khai API contract | Dùng đúng service class identity |
-| `exports com.acme.payment.api` | Payment API | Public API có thể được module khác sử dụng | Chỉ import public type từ package được export |
-| `uses PaymentProcessor` | Checkout | Consumer yêu cầu service | Gọi ServiceLoader và xử lý khi không có provider |
-| `provides PaymentProcessor with CardPaymentProcessor` | Card provider | Đăng ký implementation | Đưa provider module vào runtime configuration |
+| `requires com.acme.payment.api` | Checkout | Consumer reads API module | Ensure API module is on the module path |
+| `requires com.acme.payment.api` | Card provider | Provider implements API contract | Use the exact same service class identity |
+| `exports com.acme.payment.api` | Payment API | Public API usable by other modules | Import only public types from exported packages |
+| `uses PaymentProcessor` | Checkout | Consumer requests service | Call ServiceLoader and handle missing providers |
+| `provides PaymentProcessor with CardPaymentProcessor` | Card provider | Registers implementation | Include provider module in runtime configuration |
 
-Có thể thêm cột version/artifact nếu hệ thống có nhiều dependency bên thứ ba.
+You can add version/artifact columns if the system has many third-party dependencies.
 
-Bảng này nên được suy ra từ descriptor của **artifact phát hành**, không chỉ từ ý định trong source. Nếu build pipeline tạo multi-release JAR hoặc thay descriptor theo profile, cần ghi đúng cấu hình mà người dùng thực sự tải về.
+This table should be derived from the descriptor of the **released artifact**, not solely from source intent. If the build pipeline creates a multi-release JAR or alters descriptors by profile, record the exact configuration users actually download.
 
-## 15. Một README sử dụng được nên hướng dẫn consumer cụ thể
+## 15. A usable README should give consumers concrete instructions
 
-Ví dụ đoạn hướng dẫn ngắn:
+Short guide snippet example:
 
-### Thêm module vào project
+### Adding the module to a project
 
-Với consumer trên module path, thêm artifact `payment-api` và những dependency cần thiết vào build tool, sau đó khai báo:
+For consumers on the module path, add the `payment-api` artifact and required dependencies to your build tool, then declare:
 
 ~~~java
 module com.acme.payment.checkout {
@@ -461,11 +461,11 @@ module com.acme.payment.checkout {
 }
 ~~~
 
-### Thêm provider
+### Adding a provider
 
-Thêm artifact `payment-card` vào runtime module path. Đảm bảo module `com.acme.payment.card` được resolve, chẳng hạn bằng `--add-modules` nếu configuration khởi chạy không tự đưa provider vào.
+Add the `payment-card` artifact to the runtime module path. Ensure the `com.acme.payment.card` module is resolved, for instance with `--add-modules` if the launch configuration does not automatically include providers.
 
-### Tìm provider
+### Discovering a provider
 
 ~~~java
 PaymentProcessor processor =
@@ -474,88 +474,88 @@ PaymentProcessor processor =
                 .orElseThrow();
 ~~~
 
-### Xử lý lỗi
+### Handling failures
 
-Nếu không tìm thấy provider:
+If no provider is found:
 
-- Kiểm tra module caller đã khai báo `uses`.
-- Kiểm tra provider module có `provides`.
-- Kiểm tra provider module đã được resolve.
-- Kiểm tra service type của consumer/provider là cùng một class identity.
-- Kiểm tra lỗi khởi tạo provider từ exception thực tế.
+- Verify the caller module declared `uses`.
+- Verify the provider module has `provides`.
+- Verify the provider module was resolved.
+- Verify consumer/provider service types share the same class identity.
+- Check provider instantiation errors from the actual exception.
 
-Các bước đủ cụ thể này có giá trị hơn một đoạn README chỉ nói “hỗ trợ ServiceLoader”.
+Concrete steps like these are far more valuable than a README line simply saying “supports ServiceLoader”.
 
-## 16. Ghi rõ dependency bắt buộc, tùy chọn và chỉ dùng ở build/test
+## 16. Distinguishing required, optional, and build/test-only dependencies
 
-Một README modular nên tránh việc trộn các loại dependency.
+A modular README should avoid mixing dependency categories.
 
-Ví dụ:
+Example:
 
-| Thành phần | Khi compile | Khi chạy | Ghi chú |
+| Component | At compile time | At runtime | Notes |
 |---|---|---|---|
-| `com.acme.payment.api` | Bắt buộc cho consumer/provider | Bắt buộc khi consumer/provider dùng contract | Named module API |
-| `com.acme.payment.card` | Consumer không cần compile trực tiếp với class provider | Cần khi chọn provider card | Service implementation |
-| `java.logging` | Cần nếu module import logging API | Thường cần theo module graph | JDK module |
-| Annotation helper `com.acme.annotations` | Có thể chỉ cần compile | Tùy thiết kế | Cân nhắc `requires static` |
-| JUnit hoặc test fixtures | Dành cho test | Không phải dependency production | Không đưa vào hướng dẫn runtime thông thường |
+| `com.acme.payment.api` | Required for consumer/provider | Required when consumer/provider uses contract | Named API module |
+| `com.acme.payment.card` | Consumer does not need to compile against provider class | Needed when selecting card provider | Service implementation |
+| `java.logging` | Needed if module imports logging API | Usually needed per module graph | JDK module |
+| Annotation helper `com.acme.annotations` | May only be needed at compile time | Depends on design | Consider `requires static` |
+| JUnit or test fixtures | For tests | Not a production dependency | Keep out of normal runtime guides |
 
-Thông tin này cần đồng bộ với Maven/Gradle dependency scope/configuration. Ví dụ, trong Gradle `api` và `implementation` thể hiện cách dependency xuất hiện trên compile classpath của consumer; còn `requires` và `requires transitive` là quan hệ readability của JPMS. Hai hệ thống có liên quan nhưng không đồng nhất.
+This information needs to align with Maven/Gradle dependency scopes/configurations. For instance, in Gradle `api` and `implementation` govern how dependencies appear on a consumer's compile classpath; whereas `requires` and `requires transitive` are JPMS readability relationships. The two systems are related but not identical.
 
-## 17. Kiểm tra descriptor sau khi build
+## 17. Inspecting the descriptor after building
 
-File `module-info.java` trong source có thể khác nội dung artifact được publish do cách build, packaging hoặc profile. Vì vậy tài liệu release nên đi kèm một lệnh kiểm tra trực tiếp modular JAR:
+The `module-info.java` file in source may differ from the published artifact due to build steps, packaging, or profiles. Therefore, release documentation should include a command to inspect the modular JAR directly:
 
 ~~~bash
 jar --describe-module --file dist/com.acme.payment.api.jar
 ~~~
 
-Với provider:
+For the provider:
 
 ~~~bash
 jar --describe-module --file dist/com.acme.payment.card.jar
 ~~~
 
-Dòng `provides` phải thể hiện service type và implementation tương ứng. Kiểm tra `exports`, `requires` và các qualified exports/opens nếu có.
+The `provides` line must show the corresponding service type and implementation. Check `exports`, `requires`, and any qualified exports/opens.
 
-Có thể liệt kê nội dung JAR:
+You can list JAR contents:
 
 ~~~bash
 jar --list --file dist/com.acme.payment.api.jar
 ~~~
 
-Với explicit modular JAR thông thường, cần có `module-info.class` ở root:
+For a typical explicit modular JAR, `module-info.class` must exist at the root:
 
 ~~~text
 module-info.class
 com/acme/payment/api/PaymentProcessor.class
 ~~~
 
-Nếu JAR không có descriptor tường minh, việc đặt nó trên module path có thể khiến nó trở thành automatic module. Khi ấy contract readability/export khác với explicit module; README phải mô tả đúng loại module đang phát hành.
+If a JAR lacks an explicit descriptor, placing it on the module path may turn it into an automatic module. Its readability/export contract then differs from an explicit module; the README must accurately describe the module type being released.
 
-## 18. Xem module từ góc nhìn Java launcher
+## 18. Viewing modules from the Java launcher's perspective
 
-Đối với các module đã build dưới thư mục `mods`, có thể chạy:
+For built modules under a `mods` directory, you can run:
 
 ~~~bash
 java --module-path mods \
   --describe-module com.acme.payment.api
 ~~~
 
-Hoặc:
+Or:
 
 ~~~bash
 java --module-path mods \
   --describe-module com.acme.payment.card
 ~~~
 
-Khi muốn biết những module nào đang có thể được launcher quan sát:
+To see which modules are observable to the launcher:
 
 ~~~bash
 java --module-path mods --list-modules
 ~~~
 
-Và để xem quá trình phân giải module lúc chạy ứng dụng:
+And to observe module resolution when running the application:
 
 ~~~bash
 java --show-module-resolution \
@@ -564,58 +564,58 @@ java --show-module-resolution \
   -m com.acme.payment.checkout/com.acme.payment.checkout.Main
 ~~~
 
-Phân biệt:
+Distinguish:
 
-- `jar --describe-module`: mô tả một artifact JAR cụ thể.
-- `java --describe-module`: mô tả một observable module theo module path/runtime hiện tại.
-- `--show-module-resolution`: quan sát module graph được resolve khi khởi chạy ứng dụng.
+- `jar --describe-module`: describes a specific JAR artifact.
+- `java --describe-module`: describes an observable module given the current module path/runtime.
+- `--show-module-resolution`: observes the module graph resolved when launching the application.
 
-README nên chỉ rõ lệnh nào dành cho mục đích nào. Mô tả thành công một module không tự chứng minh provider đã được chọn hoặc chương trình đã chạy đúng.
+The README should clarify which command serves which purpose. Successfully describing a module does not by itself prove a provider was selected or the program ran properly.
 
-## 19. Tránh tài liệu gây hiểu nhầm về encapsulation
+## 19. Avoiding misleading statements about encapsulation
 
-Một số phát biểu cần tránh:
+Some statements to avoid:
 
-| Phát biểu dễ gây sai | Diễn đạt phù hợp |
+| Misleading statement | Appropriate phrasing |
 |---|---|
-| “Có `requires` là dùng được mọi class của dependency” | `requires` tạo readability; package vẫn phải export thích hợp |
-| “`exports` công khai cả module” | `exports` công bố package cụ thể, không đệ quy |
-| “Class `public` trong package internal luôn dùng được” | Named module khác vẫn chịu ràng buộc exports |
-| “`uses` bảo đảm có provider” | `uses` chỉ khai báo nhu cầu dùng service |
-| “`provides` luôn khiến provider được chạy” | Provider phải nằm trong configuration/layer và được ServiceLoader khởi tạo khi cần |
-| “Provider package phải `exports` cho consumer” | Với `provides` hợp lệ, không cần export implementation package chỉ để service loading |
-| “`opens` giống `exports`” | `opens` phục vụ deep reflection, còn `exports` phục vụ truy cập Java thông thường |
-| “Tên JAR chính là tên module” | Explicit module name lấy từ descriptor; automatic module có quy tắc đặt tên riêng |
+| “Having `requires` lets you use every class in the dependency” | `requires` creates readability; the package must still be appropriately exported |
+| “`exports` makes the whole module public” | `exports` exposes a specific package, non-recursively |
+| “A `public` class in an internal package is always usable” | Other named modules remain bound by `exports` |
+| “`uses` guarantees a provider exists” | `uses` only declares the need to consume a service |
+| “`provides` always causes the provider to run” | The provider must be in the configuration/layer and instantiated by ServiceLoader when needed |
+| “The provider package must be `exports`ed to consumers” | With a valid `provides`, there is no need to export the implementation package just for service loading |
+| “`opens` is like `exports`” | `opens` is for deep reflection, whereas `exports` is for normal Java access |
+| “The JAR name is the module name” | Explicit module names come from the descriptor; automatic modules have their own naming rules |
 
-Ngôn ngữ trong tài liệu cần phân biệt hành vi compiler, module resolver và ServiceLoader. Đây là những giai đoạn khác nhau.
+Documentation language should distinguish compiler behavior, module resolver behavior, and ServiceLoader behavior. These are distinct phases.
 
-## 20. Ghi rõ thay đổi phá vỡ compatibility của module contract
+## 20. Documenting breaking changes to the module contract
 
-Không phải mọi thay đổi `module-info.java` đều vô hại.
+Not every change to `module-info.java` is harmless.
 
-Ví dụ các thay đổi có thể ảnh hưởng consumer:
+Examples of changes that can affect consumers:
 
-- Đổi tên module được dùng trong `requires`.
-- Xóa một `exports` hoặc chuyển export vô điều kiện sang qualified exports.
-- Đổi tên package API được export.
-- Thay `requires transitive` thành `requires` khi consumer đang dựa vào readability truyền tiếp.
-- Xóa hoặc đổi service contract được công bố.
-- Xóa provider mà consumer đang kỳ vọng sẽ có tại runtime.
-- Thay đổi constructor/provider method khiến service instantiation không còn tương thích.
+- Renaming a module used in `requires`.
+- Removing an `exports` or switching an unconditional export to a qualified export.
+- Renaming an exported API package.
+- Changing `requires transitive` to `requires` when consumers rely on transitive readability.
+- Removing or changing an exposed service contract.
+- Removing a provider that consumers expect at runtime.
+- Changing a constructor/provider method such that service instantiation is no longer compatible.
 
-README và release notes nên ghi:
+The README and release notes should document:
 
-1. Module name cũ và mới, nếu có.
-2. Những package đã thêm/bỏ export.
-3. Những dependency thêm/bỏ hoặc thay đổi modifier.
-4. Những service `uses`/`provides` mới hoặc bị loại bỏ.
-5. Hành động migration mà consumer hoặc provider author cần thực hiện.
+1. Old and new module names, if any.
+2. Packages whose exports were added or removed.
+3. Dependencies added, removed, or whose modifiers changed.
+4. Services in `uses`/`provides` added or removed.
+5. Migration actions that consumers or provider authors need to take.
 
-Một release có cùng tên artifact nhưng đổi module name có thể buộc mọi consumer named module sửa descriptor; không nên chỉ ghi “internal refactor”.
+A release keeping the same artifact name while renaming the module can force every named-module consumer to edit its descriptor; do not summarize it merely as “internal refactor”.
 
-## 21. Tổ chức tài liệu cho multi-module repository
+## 21. Organizing documentation for a multi-module repository
 
-Nếu repository có nhiều module:
+If a repository has multiple modules:
 
 ~~~text
 payment/
@@ -625,34 +625,34 @@ payment/
 └── checkout-example/
 ~~~
 
-Nên chia tài liệu thành hai cấp:
+Split documentation into two levels:
 
-**README cấp repository:** trình bày module graph tổng quan, phiên bản Java, dependency quản lý chung, cách build và cách chạy ví dụ.
+**Repository-level README:** presents the overall module graph, Java version, shared dependency management, build instructions, and how to run examples.
 
-**README cấp module:** mô tả cụ thể `module-info.java`, exported packages, service contract, implementation, dependency module và hướng dẫn cho consumer/provider.
+**Module-level README:** describes the specific `module-info.java`, exported packages, service contracts, implementations, module dependencies, and guides for consumers/providers.
 
-Ví dụ bảng tổng quan:
+Overview table example:
 
-| Module | Vai trò | Requires | Exports | Uses | Provides |
+| Module | Role | Requires | Exports | Uses | Provides |
 |---|---|---|---|---|---|
-| `com.acme.payment.api` | Contract | `java.base` ngầm định | `com.acme.payment.api` | Không | Không |
-| `com.acme.payment.card` | Provider | `com.acme.payment.api` | Không cần export implementation | Không | `PaymentProcessor` |
-| `com.acme.payment.checkout` | Consumer | `com.acme.payment.api` | Không bắt buộc | `PaymentProcessor` | Không |
+| `com.acme.payment.api` | Contract | `java.base` implicit | `com.acme.payment.api` | None | None |
+| `com.acme.payment.card` | Provider | `com.acme.payment.api` | No need to export implementation | None | `PaymentProcessor` |
+| `com.acme.payment.checkout` | Consumer | `com.acme.payment.api` | Not required | `PaymentProcessor` | None |
 
-Có thể tạo sơ đồ phụ thuộc, nhưng sơ đồ phải thống nhất với descriptor được build. Nếu có custom `ModuleLayer`, nên bổ sung hình minh họa layer cha/con và nơi provider được nạp.
+You can create a dependency diagram, but the diagram must match the built descriptors. If custom `ModuleLayer`s are used, add a diagram showing parent/child layers and where providers are loaded.
 
-## 22. Mẫu mục README dành cho một named module
+## 22. README section template for a named module
 
-Dưới đây là cấu trúc có thể dùng lại:
+Below is a reusable structure:
 
 ~~~markdown
 # com.acme.payment.card
 
-## Thông tin module
+## Module info
 - Module name: com.acme.payment.card
 - Artifact: com.acme:payment-card:1.2.0
 - Java baseline: 21
-- Loại: explicit named module
+- Type: explicit named module
 
 ## Module descriptor
 ~~~java
@@ -664,74 +664,74 @@ module com.acme.payment.card {
 ~~~
 
 ## Requires
-- com.acme.payment.api: service contract bắt buộc.
+- com.acme.payment.api: required service contract.
 
 ## Exports
-- Không export implementation package.
+- Does not export the implementation package.
 
 ## Uses
-- Module này không gọi ServiceLoader cho contract khác.
+- This module does not call ServiceLoader for other contracts.
 
 ## Provides
 - Service: com.acme.payment.api.PaymentProcessor
 - Implementation: com.acme.payment.card.internal.CardPaymentProcessor
 
-## Tích hợp
-- Consumer cần requires com.acme.payment.api và uses PaymentProcessor.
-- Provider module cần được đưa vào runtime configuration.
+## Integration
+- Consumers need requires com.acme.payment.api and uses PaymentProcessor.
+- The provider module must be included in the runtime configuration.
 
-## Kiểm tra
+## Verification
 - jar --describe-module --file payment-card.jar
 - java --module-path mods --describe-module com.acme.payment.card
 ~~~
 
-Trong Markdown thực tế, nếu viết code fence lồng nhau, dùng fence ngoài dài hơn fence trong hoặc tách các khối code độc lập để nội dung hiển thị đúng.
+In real Markdown, if nesting code fences, use a longer outer fence than inner fences or separate code blocks so content renders properly.
 
-Mẫu này giúp người đọc không phải tự tìm hiểu service contract trong source, đồng thời giảm nguy cơ tài liệu chỉ mô tả class mà bỏ qua module boundary.
+This template saves readers from hunting down service contracts in source code, while reducing the risk of documentation describing only classes and omitting module boundaries.
 
-## 23. Các bước kiểm tra trước khi phát hành tài liệu
+## 23. Verification steps before publishing documentation
 
-Một quy trình đồng bộ tài liệu với artifact:
+A workflow to keep documentation aligned with artifacts:
 
-1. Build sạch các module với JDK mục tiêu.
-2. Xác nhận tên module và descriptor của từng JAR cuối.
-3. Liệt kê các `requires`, bao gồm `transitive` và `static` nếu có.
-4. Đối chiếu danh sách `exports` với các public API được hứa hỗ trợ.
-5. Kiểm tra qualified exports/opens và các module đích.
-6. Liệt kê service `uses` của consumer.
-7. Liệt kê service `provides` và provider implementation.
-8. Chạy consumer example trên module path thay vì chỉ classpath.
-9. Nếu có provider, chạy ví dụ ServiceLoader với provider module đã resolve.
-10. Đối chiếu Maven/Gradle metadata với tên module và dependency thực tế.
-11. Cập nhật README và migration notes khi descriptor thay đổi.
-12. Publish artifact và tài liệu theo cùng phiên bản.
+1. Clean-build all modules with the target JDK.
+2. Confirm module names and descriptors of each final JAR.
+3. List all `requires`, including `transitive` and `static` if present.
+4. Cross-check the `exports` list against the promised public APIs.
+5. Verify qualified exports/opens and target modules.
+6. List `uses` services of consumers.
+7. List `provides` services and provider implementations.
+8. Run the consumer example on the module path instead of only the classpath.
+9. If providers exist, run the ServiceLoader example with the provider module resolved.
+10. Cross-check Maven/Gradle metadata against actual module names and dependencies.
+11. Update the README and migration notes when descriptors change.
+12. Publish artifacts and documentation under the same version.
 
-Khi phải hỗ trợ nhiều phiên bản JDK, ghi rõ khác biệt nếu module graph hoặc các dependency JDK thay đổi. Đừng sao chép cứng kết quả của một JDK rồi khẳng định nó đúng cho mọi runtime.
+When supporting multiple JDK versions, document differences if the module graph or JDK dependencies change. Do not hard-copy results from one JDK and claim they hold for every runtime.
 
-## 24. Checklist ngắn cho người viết README
+## 24. Short checklist for README authors
 
-- [ ] Ghi đúng **module name** chứ không chỉ tên artifact/JAR.
-- [ ] Cung cấp ví dụ `module-info.java` dùng được.
-- [ ] Giải thích từng `requires` và phân biệt `transitive`/`static` khi có.
-- [ ] Liệt kê rõ package nào `exports`, package nào là internal.
-- [ ] Nếu có qualified exports, ghi rõ module đích.
-- [ ] Nếu có `opens`, ghi rõ mục đích reflection và module được cấp quyền.
-- [ ] Nếu có `uses`, ghi service type và cách consumer xử lý thiếu provider.
-- [ ] Nếu có `provides`, ghi service interface và implementation type.
-- [ ] Chỉ dẫn cách đưa provider module vào module configuration.
-- [ ] Không yêu cầu consumer import provider implementation package nếu thiết kế dựa trên ServiceLoader.
-- [ ] Ghi Java baseline, dependency artifact và lệnh chạy mẫu.
-- [ ] Có lệnh `jar --describe-module` để kiểm tra artifact cuối.
-- [ ] Có ví dụ consumer độc lập để xác nhận contract.
-- [ ] Ghi rõ các thay đổi module contract trong release notes.
+- [ ] State the exact **module name**, not just the artifact/JAR name.
+- [ ] Provide a working `module-info.java` example.
+- [ ] Explain each `requires` and distinguish `transitive`/`static` when used.
+- [ ] Clearly list which packages are `exports`ed and which are internal.
+- [ ] If qualified exports exist, specify the target modules.
+- [ ] If `opens` exists, state the reflection purpose and authorized modules.
+- [ ] If `uses` exists, state the service type and how consumers handle missing providers.
+- [ ] If `provides` exists, state the service interface and implementation type.
+- [ ] Instruct how to include the provider module in the module configuration.
+- [ ] Do not require consumers to import the provider implementation package when the design relies on ServiceLoader.
+- [ ] State the Java baseline, dependency artifacts, and sample run commands.
+- [ ] Include `jar --describe-module` commands to inspect the final artifact.
+- [ ] Include a standalone consumer example to verify the contract.
+- [ ] Document module contract changes in release notes.
 
-## 25. Ghi nhớ
+## 25. Key takeaways
 
-Đối với một modular library, tài liệu tốt phải phản ánh **module contract**, không chỉ liệt kê class trong JAR.
+For a modular library, good documentation must reflect the **module contract**, not merely list classes in a JAR.
 
-- **`requires`:** module đọc những module nào, dependency nào truyền tiếp tới consumer, dependency nào chỉ cần ở compile.
-- **`exports`:** package nào được hỗ trợ như public API và package nào bị giữ nội bộ.
-- **`uses`:** module cần tìm service contract nào và xử lý provider discovery ra sao.
-- **`provides`:** module đăng ký implementation nào, provider được đưa vào runtime như thế nào.
+- **`requires`:** which modules the module reads, which dependencies propagate transitively to consumers, and which dependencies are compile-only.
+- **`exports`:** which packages are supported as public API and which packages are kept internal.
+- **`uses`:** which service contracts the module needs to discover and how provider discovery is handled.
+- **`provides`:** which implementations the module registers and how providers are brought into runtime.
 
-Hãy viết README từ góc nhìn người dùng: **cần thêm artifact nào, khai báo module-info.java ra sao, import package nào, tìm provider bằng cách nào và kiểm tra lỗi ở đâu**. Khi những thông tin này khớp với `module-info.class` đã phát hành, người dùng có thể tích hợp module ổn định hơn, đồng thời ranh giới API/implementation được giữ rõ ràng.
+Write the README from the user's perspective: **which artifacts to add, how to declare module-info.java, which packages to import, how to discover providers, and where to check for errors**. When this information matches the published `module-info.class`, users can integrate the module more reliably while keeping API/implementation boundaries clear.

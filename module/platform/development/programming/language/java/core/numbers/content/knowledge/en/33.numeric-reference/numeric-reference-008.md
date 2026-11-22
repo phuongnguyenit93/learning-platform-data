@@ -1,158 +1,158 @@
-# Tra cứu JLS và Javadoc các API số trong Java: tìm đúng quy tắc, đúng phiên bản, đúng phương thức
+# Looking Up JLS and Javadoc for Numeric APIs in Java: Finding the Right Rule, Version, and Method
 
-## 1. Vì sao cần đọc tài liệu gốc?
+## 1. Why Read the Original Specifications?
 
-Khi gặp một kết quả khó hiểu như `Integer.MAX_VALUE + 1` trở thành số âm, `-7 / 3` ra `-2`, `2.0` khác `2.00` trong `BigDecimal.equals()`, hoặc `Double.MIN_VALUE` lại **dương**, cách đáng tin nhất là lần theo **tài liệu đặc tả chính thức** thay vì suy đoán hoặc chỉ nhìn kết quả trên một máy.
+When encountering a puzzling result such as `Integer.MAX_VALUE + 1` becoming negative, `-7 / 3` producing `-2`, `2.0` differing from `2.00` in `BigDecimal.equals()`, or `Double.MIN_VALUE` being **positive**, the most reliable approach is to trace the **official specification documents** rather than guessing or relying solely on observing one machine.
 
-Java có hai nguồn tài liệu quan trọng nhưng **khác mục đích**:
+Java has two essential documentation sources with **distinct purposes**:
 
-1. **JLS – Java Language Specification:** định nghĩa ngữ nghĩa của **ngôn ngữ Java**: kiểu primitive, toán tử `+`/`-`/`*`/`/`/`%`, promotion, casting, boxing/unboxing, thứ tự đánh giá, so sánh, literal và quy tắc khi chạy biểu thức.
-2. **Javadoc – tài liệu API Java SE:** định nghĩa **lớp, hằng, constructor và phương thức thư viện**: `Math.addExact`, `Integer.parseInt`, `Double.isNaN`, `BigDecimal.divide`, `BigInteger.mod`, `RoundingMode.HALF_EVEN`, v.v.
+1. **JLS – Java Language Specification:** defines the semantics of the **Java language**: primitive types, operators `+`/`-`/`*`/`/`/`%`, promotion, casting, boxing/unboxing, evaluation order, comparisons, literals, and expression runtime rules.
+2. **Javadoc – Java SE API documentation:** defines **library classes, constants, constructors, and methods**: `Math.addExact`, `Integer.parseInt`, `Double.isNaN`, `BigDecimal.divide`, `BigInteger.mod`, `RoundingMode.HALF_EVEN`, etc.
 
-Một truy vấn thường cần cả hai. Ví dụ, để giải thích vì sao `Integer.MAX_VALUE + 1` không tự ném lỗi, hãy tra **JLS** về toán học số nguyên; để biết thay bằng `Math.addExact` thì ngoại lệ gì được ném, hãy tra **Javadoc của `Math`**.
+A single question often requires both. For instance, to explain why `Integer.MAX_VALUE + 1` does not throw an error automatically, check the **JLS** on integer arithmetic; to learn what exception `Math.addExact` throws instead, check the **Javadoc of `Math`**.
 
-Bài học này là **hướng dẫn tra cứu và đối chiếu**, không phải bản liệt kê tất cả API số. Sau khi học, bạn có thể tự xác định “vấn đề này thuộc JLS hay Javadoc?”, chọn đúng bản Java, tìm đúng đề mục/phương thức, đọc hợp đồng và tạo chương trình Java 17+ để tái hiện kết quả.
+This lesson is a **lookup and cross-referencing guide**, not an exhaustive list of all numeric APIs. After studying it, you can determine "Does this belong to the JLS or Javadoc?", pick the right Java version, locate the exact section/method, read the contract, and build a Java 17+ program to reproduce the result.
 
-## 2. Bản đồ nguồn tài liệu chính thức
+## 2. Map of Official Documentation Sources
 
-| Cần giải đáp | Ưu tiên nguồn | Ví dụ câu hỏi |
+| Need to Answer | Primary Source | Example Question |
 |---|---|---|
-| Ngữ nghĩa của toán tử `+`, `/`, `%`, `==` | JLS, thường Chương 15 | Vì sao `-7 % 3` là `-1`? |
-| Miền primitive và quy tắc floating-point | JLS Chương 4 | `int` có mấy bit? `double` có signed zero? |
-| Chuyển kiểu, boxing, unboxing, numeric promotion | JLS Chương 5 | `int + long` ra kiểu gì? `Integer` null bị unbox khi nào? |
-| Kiểu và hành vi của `Math.floorDiv`, `addExact` | Javadoc `java.lang.Math` | Phương thức trả gì, ngoại lệ nào? |
-| Hằng `MIN_VALUE`, `MAX_VALUE` và parse | Javadoc `Integer`, `Long`, `Double` | `Double.MIN_VALUE` thực ra là gì? |
-| Số thập phân chính xác và so sánh giá trị | Javadoc `java.math.BigDecimal` | `equals` khác `compareTo` ở đâu? |
-| Số nguyên tùy độ lớn, chia lấy dư | Javadoc `java.math.BigInteger` | `mod` có chấp nhận modulus âm không? |
-| Rounding và precision | Javadoc `RoundingMode`, `MathContext` | `HALF_EVEN` xử lý đúng điểm giữa ra sao? |
-| Random cho mô phỏng hay token | Javadoc `Random`, `SecureRandom` | Thuật toán có phù hợp bảo mật không? |
-| Bytecode/JVM runtime, biểu diễn ở mức máy ảo | JVM Specification (JVMS), khi thật sự cần | Lệnh bytecode, verifier, execution engine |
+| Semantics of `+`, `/`, `%`, `==` operators | JLS, typically Chapter 15 | Why is `-7 % 3` equal to `-1`? |
+| Primitive ranges and floating-point rules | JLS Chapter 4 | How many bits does `int` have? Does `double` have signed zero? |
+| Type conversions, boxing, unboxing, numeric promotion | JLS Chapter 5 | What type does `int + long` have? When is a null `Integer` unboxed? |
+| Types and behavior of `Math.floorDiv`, `addExact` | Javadoc `java.lang.Math` | What does the method return, and what exceptions? |
+| `MIN_VALUE`, `MAX_VALUE` constants and parsing | Javadoc `Integer`, `Long`, `Double` | What actually is `Double.MIN_VALUE`? |
+| Exact decimals and value comparison | Javadoc `java.math.BigDecimal` | Where does `equals` differ from `compareTo`? |
+| Arbitrary-size integers, remainder | Javadoc `java.math.BigInteger` | Does `mod` accept a negative modulus? |
+| Rounding and precision | Javadoc `RoundingMode`, `MathContext` | How does `HALF_EVEN` handle exact midpoints? |
+| Random numbers for simulation or tokens | Javadoc `Random`, `SecureRandom` | Is the algorithm suitable for security? |
+| Bytecode/JVM runtime, VM-level representation | JVM Specification (JVMS), when truly needed | Bytecode instructions, verifier, execution engine |
 
-**JLS không phải Javadoc**, và Javadoc không phải quy tắc của một toán tử tự thân. `BigDecimal.add` là **method call** được mô tả trong Javadoc; `int + int` là **biểu thức** được quy định bởi JLS. Đừng viện dẫn `BigDecimal` để giải thích mặc định phép cộng primitive hay ngược lại.
+**The JLS is not Javadoc**, and Javadoc is not the rulebook of a language operator itself. `BigDecimal.add` is a **method call** described in Javadoc; `int + int` is an **expression** governed by the JLS. Do not cite `BigDecimal` to explain default primitive addition, or vice versa.
 
-### Điểm vào cho Java 17 (phù hợp ví dụ trong bài)
+### Entry Points for Java 17 (Matching Examples in This Lesson)
 
-- [JLS Java SE 17 – trang chủ](https://docs.oracle.com/javase/specs/jls/se17/html/index.html).
-- [JLS Chương 4 – Types, Values, and Variables](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html).
-- [JLS Chương 5 – Conversions and Contexts](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html).
-- [JLS Chương 15 – Expressions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html).
+- [JLS Java SE 17 – Home](https://docs.oracle.com/javase/specs/jls/se17/html/index.html).
+- [JLS Chapter 4 – Types, Values, and Variables](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html).
+- [JLS Chapter 5 – Conversions and Contexts](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html).
+- [JLS Chapter 15 – Expressions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html).
 - [Java SE 17 API documentation – Module `java.base`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/module-summary.html).
 - [Javadoc `java.lang.Math`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html).
 - [Javadoc `java.math.BigDecimal`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html).
 
-Đường dẫn tài liệu **có phiên bản**: `se17` trong JLS và `/javase/17/docs/api/` trong Javadoc. Khi dự án chạy Java 17, hãy bắt đầu với Java 17. Nếu dự án chạy bản khác, chuyển sang **JLS/Javadoc cùng phiên bản**, vì các API mới có thể chưa tồn tại hoặc hành vi/hợp đồng có ghi chú thay đổi.
+Documentation URLs are **versioned**: `se17` in the JLS and `/javase/17/docs/api/` in Javadoc. When a project runs Java 17, start with Java 17. If the project runs another version, switch to the **JLS/Javadoc of that same version**, because newer APIs might not exist yet or behaviors/contracts may have documented changes.
 
-## 3. Quy trình tra cứu chuẩn: từ biểu thức đến dẫn chứng
+## 3. Standard Lookup Workflow: From Expression to Citation
 
-Đề xuất quy trình 7 bước có thể áp dụng trong review và debug:
+A recommended 7-step workflow applicable during code review and debugging:
 
-1. **Viết lại câu hỏi thật cụ thể.** Ví dụ: “Ở Java 17, với biến `int a = -7;`, tại sao `a / 3` trả `-2` mà không phải `-3`?”
-2. **Phân loại biểu thức.** Toán tử ngôn ngữ hay lời gọi method? Primitive, wrapper hay `BigDecimal`? Có thể có unboxing/promotion không?
-3. **Khóa phiên bản JDK.** Lấy `java -version`, `javac -version`; nếu build có `--release 17` hoặc cấu hình toolchain, dùng đúng mức đó để so API.
-4. **Mở JLS hoặc Javadoc đúng đề mục.** Với toán tử chia, tới JLS §15.17.2; với `Math.floorDiv`, tìm method trong Javadoc `Math`.
-5. **Đọc đầy đủ các điều kiện cạnh và chú thích.** Quan tâm dấu âm, zero, overflow, rounding, loại tham số, `null`, ngoại lệ, và giới hạn của provider/implementation nếu có.
-6. **Tạo tái hiện tối thiểu.** Một lớp Java nhỏ, input cố định, in kiểu/giá trị hoặc bắt ngoại lệ có tên; tránh dependency bên ngoài.
-7. **Ghi kết luận kèm nguồn và phiên bản.** Trình bày tách bạch: “JLS định nghĩa ...; phương thức API theo Javadoc ...; chạy Java 17 cho kết quả ...”.
+1. **Rewrite the question concretely.** Example: "In Java 17, given `int a = -7;`, why does `a / 3` return `-2` instead of `-3`?"
+2. **Classify the expression.** Language operator or method call? Primitive, wrapper, or `BigDecimal`? Could unboxing/promotion occur?
+3. **Lock down the JDK version.** Run `java -version` and `javac -version`; if the build uses `--release 17` or a toolchain config, match that exact level when checking APIs.
+4. **Open the exact JLS or Javadoc section.** For the division operator, go to JLS §15.17.2; for `Math.floorDiv`, find the method in `Math` Javadoc.
+5. **Read all edge conditions and notes completely.** Pay attention to negative signs, zero, overflow, rounding, parameter types, `null`, exceptions, and provider/implementation limits if any.
+6. **Create a minimal reproduction.** A small Java class with fixed inputs printing types/values or catching named exceptions; avoid external dependencies.
+7. **Record the conclusion with source and version.** State clearly: "The JLS defines ...; the API method per Javadoc ...; running Java 17 produces ...".
 
-Mẫu ghi chú thực tế:
+Practical note template:
 
 ```text
-Câu hỏi    : Vì sao -7 / 3 = -2?
-Kiểu       : int / int -> int
-Nguồn      : JLS SE 17 §15.17.2 (Integer Division Operator /)
-Kết luận   : Phép chia nguyên làm tròn thương về 0
-Kiểm chứng : javac --release 17, java; in (-7 / 3) được -2
-API khác   : Math.floorDiv(-7,3) = -3, tra Javadoc Math.floorDiv
+Question   : Why is -7 / 3 = -2?
+Types      : int / int -> int
+Source     : JLS SE 17 §15.17.2 (Integer Division Operator /)
+Conclusion : Integer division rounds the quotient toward 0
+Verify     : javac --release 17, java; printing (-7 / 3) gives -2
+Other API  : Math.floorDiv(-7,3) = -3, check Javadoc Math.floorDiv
 ```
 
-Đây là **mẫu ghi chú tra cứu**, không phải lệnh shell. Điểm quan trọng là dẫn **đề mục**, không chỉ đưa link tới một trang chủ quá rộng.
+This is a **lookup note template**, not a shell command. The key point is citing the **specific section**, rather than just linking to an overly broad home page.
 
-## 4. Đọc JLS số ở đâu?
+## 4. Where to Read the JLS for Numbers?
 
-### 4.1. Chương 4: primitive và miền giá trị
+### 4.1. Chapter 4: Primitives and Value Ranges
 
-[JLS §4.2 – Primitive Types and Values](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2) giải thích các kiểu primitive. Những mốc hữu ích:
+[JLS §4.2 – Primitive Types and Values](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2) explains primitive types. Useful landmarks:
 
-| Mục JLS 17 | Nội dung nên tra |
+| JLS 17 Section | What to Look Up |
 |---|---|
-| [§4.2.1](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.1) | Kiểu số nguyên và miền `byte`, `short`, `int`, `long`, `char` |
-| [§4.2.2](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.2) | Các phép toán số nguyên, tràn số nguyên |
-| [§4.2.3](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.3) | Kiểu và giá trị floating-point `float`, `double` |
-| [§4.2.4](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.4) | Các phép toán floating-point và quy tắc số học |
+| [§4.2.1](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.1) | Integral types and ranges of `byte`, `short`, `int`, `long`, `char` |
+| [§4.2.2](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.2) | Integer operations, integer overflow |
+| [§4.2.3](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.3) | Floating-point types and values `float`, `double` |
+| [§4.2.4](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.2.4) | Floating-point operations and arithmetic rules |
 
-**Ví dụ câu hỏi:** “`Double.MIN_VALUE` có phải số âm bé nhất?” Trước tiên tra Javadoc `Double.MIN_VALUE` để hiểu hằng **cụ thể**; dùng JLS §4.2.3–4.2.4 để hiểu miền floating-point, subnormal, zero có dấu và `Infinity`. Chú ý `Double.MIN_VALUE` là **số dương khác 0 nhỏ nhất** biểu diễn được, không phải số hữu hạn âm nhỏ nhất.
+**Example question:** "Is `Double.MIN_VALUE` the smallest negative number?" First look up `Double.MIN_VALUE` Javadoc to understand the **specific** constant; use JLS §4.2.3–4.2.4 to understand floating-point ranges, subnormals, signed zero, and `Infinity`. Note that `Double.MIN_VALUE` is the **smallest nonzero positive** representable value, not the smallest finite negative number.
 
-### 4.2. Chương 5: kiểu của biểu thức và chuyển đổi
+### 4.2. Chapter 5: Expression Types and Conversions
 
-[JLS Chương 5](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html) đặc biệt hữu ích khi thấy kết quả bất ngờ sau casting hoặc boxing:
+[JLS Chapter 5](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html) is especially helpful when seeing unexpected results after casting or boxing:
 
-| Mục | Câu hỏi điển hình |
+| Section | Typical Question |
 |---|---|
-| [§5.1.2 Widening Primitive Conversion](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.2) | `int` chuyển sang `long` có chính xác không? `long` sang `double` có thể mất chữ số không? |
-| [§5.1.3 Narrowing Primitive Conversion](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.3) | Ép `long` sang `int` bị mất phần nào? |
-| [§5.1.7 Boxing Conversion](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.7) | Khi `int` chuyển thành `Integer`, có tạo object mới không? |
-| [§5.1.8 Unboxing Conversion](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.8) | `Integer n = null; n + 1` sẽ làm gì? |
-| [§5.6 Numeric Contexts](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.6) | Khi `int + double`, operands được promote thế nào? |
+| [§5.1.2 Widening Primitive Conversion](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.2) | Is converting `int` to `long` exact? Can `long` to `double` lose digits? |
+| [§5.1.3 Narrowing Primitive Conversion](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.3) | Which part is lost when casting `long` to `int`? |
+| [§5.1.7 Boxing Conversion](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.7) | When `int` converts to `Integer`, is a new object created? |
+| [§5.1.8 Unboxing Conversion](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.8) | What will `Integer n = null; n + 1` do? |
+| [§5.6 Numeric Contexts](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.6) | In `int + double`, how are operands promoted? |
 
-**Điểm tinh tế:** chuyển sang kiểu rộng hơn không nhất thiết giữ **mọi bit chính xác số học**. `long` → `double` là *widening primitive conversion* nhưng có thể mất chính xác với số nguyên lớn; nếu đang debug một giá trị `long` gần `2^53`, hãy tra JLS §5.1.2 thay vì cho rằng “widening luôn không mất dữ liệu”.
+**Subtlety:** converting to a wider type does not necessarily preserve **every bit with full numerical exactness**. `long` → `double` is a *widening primitive conversion*, yet it can lose precision for large integers; if debugging a `long` value near `2^53`, consult JLS §5.1.2 instead of assuming "widening is always lossless."
 
-### 4.3. Chương 15: toán tử và ngữ nghĩa biểu thức
+### 4.3. Chapter 15: Operators and Expression Semantics
 
-Các mục thường dùng:
+Commonly used sections:
 
-- [§15.17 – Multiplicative Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.17): `*`, `/`, `%`; đặc biệt [§15.17.2](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.17.2) cho phép chia và [§15.17.3](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.17.3) cho phép dư.
-- [§15.18 – Additive Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.18): phép cộng/trừ (và `+` nối chuỗi); [§15.18.2](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.18.2) cho cộng/trừ số.
-- [§15.21 – Equality Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.21): so sánh bằng, gồm numeric equality và reference equality.
-- [§15.7 – Evaluation Order](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.7): thứ tự đánh giá các phần của biểu thức.
-- [§15.26 – Assignment Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.26): phép gán và compound assignment như `+=`.
+- [§15.17 – Multiplicative Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.17): `*`, `/`, `%`; specifically [§15.17.2](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.17.2) for division and [§15.17.3](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.17.3) for remainder.
+- [§15.18 – Additive Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.18): addition/subtraction (and `+` string concatenation); [§15.18.2](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.18.2) for numeric addition/subtraction.
+- [§15.21 – Equality Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.21): equality comparison, including numeric equality and reference equality.
+- [§15.7 – Evaluation Order](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.7): evaluation order of expression parts.
+- [§15.26 – Assignment Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.26): assignment and compound assignment such as `+=`.
 
-Ví dụ dễ nhầm: `byte b = 1; b += 1;` hợp lệ nhưng `b = b + 1;` không biên dịch nếu thiếu ép kiểu, bởi numeric promotion và quy tắc compound assignment không hoàn toàn giống gán đơn. Tra **JLS §5.6** và **§15.26.2** thay vì chỉ đọc Javadoc của `Byte`.
+Easily confused example: `byte b = 1; b += 1;` is valid, whereas `b = b + 1;` fails to compile without a cast, because numeric promotion and compound assignment rules are not completely identical to simple assignment. Check **JLS §5.6** and **§15.26.2** rather than reading only `Byte`'s Javadoc.
 
-## 5. Đọc Javadoc các API số như thế nào?
+## 5. How to Read Javadoc for Numeric APIs?
 
-Một trang Javadoc điển hình có các phần: **Class/Interface/Enum**, mô tả ở đầu lớp, field/constructor/method summary, rồi **method detail**. Để xác nhận hành vi, đừng chỉ đọc summary một dòng; hãy cuộn tới đúng **overload** và kiểm tra:
+A typical Javadoc page contains: **Class/Interface/Enum**, top-level class description, field/constructor/method summaries, and **method detail**. To verify behavior, do not read only the one-line summary; scroll to the exact **overload** and check:
 
-- **Signature:** `static`/instance, kiểu tham số, kiểu trả về, overload nhận `int`, `long`, `double`, `BigDecimal` hay `MathContext`.
-- **Parameters/Returns:** ý nghĩa `bound`, giá trị âm, giới hạn mở/đóng, thứ tự/scale của kết quả.
-- **Throws:** ngoại lệ có thể phát sinh như `ArithmeticException`, `NumberFormatException`, `NullPointerException`.
-- **Since:** API xuất hiện từ bản Java nào; rất quan trọng nếu code phải chạy Java 17.
-- **API Note / Implementation Requirements / Implementation Note:** đọc khi có, nhưng phân biệt hợp đồng của API với mô tả chi tiết triển khai.
-- **See Also:** các API liên quan và lựa chọn thay thế.
-- **Mô tả của lớp:** đôi khi quy tắc quan trọng (như `BigDecimal.equals` khác `compareTo`) được nêu ở đầu lớp thay vì lặp lại trong mọi method.
+- **Signature:** `static`/instance, parameter types, return type, overloads taking `int`, `long`, `double`, `BigDecimal`, or `MathContext`.
+- **Parameters/Returns:** meaning of `bound`, negative values, open/closed bounds, result ordering/scale.
+- **Throws:** possible exceptions such as `ArithmeticException`, `NumberFormatException`, `NullPointerException`.
+- **Since:** which Java version introduced the API; crucial if code must run on Java 17.
+- **API Note / Implementation Requirements / Implementation Note:** read when present, while distinguishing API contracts from implementation details.
+- **See Also:** related APIs and alternatives.
+- **Class description:** sometimes critical rules (such as `BigDecimal.equals` differing from `compareTo`) are stated at the top of the class rather than repeated on every method.
 
-Đừng suy ra hành vi mọi overload chỉ từ tên phương thức. Chẳng hạn `BigDecimal.divide(BigDecimal)`, `divide(BigDecimal, int, RoundingMode)` và `divide(BigDecimal, MathContext)` có **hợp đồng độ chính xác/rounding khác nhau**.
+Do not infer the behavior of all overloads from the method name alone. For instance, `BigDecimal.divide(BigDecimal)`, `divide(BigDecimal, int, RoundingMode)`, and `divide(BigDecimal, MathContext)` have **different precision/rounding contracts**.
 
-### Bảng điều hướng nhanh
+### Quick Navigation Table
 
-| Lớp / enum | Link Javadoc Java 17 | Nên tra |
+| Class / Enum | Java 17 Javadoc Link | What to Look Up |
 |---|---|---|
 | `java.lang.Integer` | [Integer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html) | `MIN_VALUE`, `MAX_VALUE`, `parseInt`, `valueOf`, `compare`, `compareUnsigned` |
-| `java.lang.Long` | [Long](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html) | `parseLong`, `valueOf`, `compareUnsigned`, biên 64 bit |
+| `java.lang.Long` | [Long](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html) | `parseLong`, `valueOf`, `compareUnsigned`, 64-bit bounds |
 | `java.lang.Double` | [Double](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html) | `MIN_VALUE`, `MIN_NORMAL`, `isNaN`, `isFinite`, `compare`, `equals` |
-| `java.lang.Float` | [Float](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html) | Hằng, parse, so sánh floating-point |
+| `java.lang.Float` | [Float](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html) | Constants, parsing, floating-point comparison |
 | `java.lang.Math` | [Math](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html) | `abs`, `floor`, `ceil`, `round`, `floorDiv`, `floorMod`, `addExact`, `nextUp`, `ulp` |
-| `java.lang.StrictMath` | [StrictMath](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StrictMath.html) | Hợp đồng độ chính xác/tính tái lập của hàm số học |
+| `java.lang.StrictMath` | [StrictMath](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StrictMath.html) | Precision/reproducibility contracts of math functions |
 | `java.math.BigInteger` | [BigInteger](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html) | `add`, `divide`, `remainder`, `mod`, `intValueExact` |
 | `java.math.BigDecimal` | [BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html) | `scale`, `precision`, `equals`, `compareTo`, `divide`, `setScale` |
-| `java.math.MathContext` | [MathContext](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/MathContext.html) | Precision kết quả và rounding mode |
+| `java.math.MathContext` | [MathContext](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/MathContext.html) | Result precision and rounding mode |
 | `java.math.RoundingMode` | [RoundingMode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html) | `HALF_EVEN`, `HALF_UP`, `CEILING`, `FLOOR`, `UNNECESSARY` |
-| `java.util.Random` | [Random](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Random.html) | Seed, `nextInt(bound)`, mô phỏng ngẫu nhiên |
-| `java.security.SecureRandom` | [SecureRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html) | Sinh dữ liệu khó đoán cho mục tiêu bảo mật |
+| `java.util.Random` | [Random](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Random.html) | Seed, `nextInt(bound)`, random simulation |
+| `java.security.SecureRandom` | [SecureRandom](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/security/SecureRandom.html) | Unpredictable data generation for security purposes |
 
-**Tìm nhanh:** mở class Javadoc và dùng chức năng tìm kiếm trên trang (`Ctrl+F`) theo `methodName` hoặc `fieldName`, rồi chọn đúng overload trong phần **Method Details**; hoặc dùng mục Search của trang Java SE API. Khi phương thức có nhiều overload, ghi đầy đủ kiểu tham số trong ghi chú (ví dụ `divide(BigDecimal, int, RoundingMode)`).
+**Quick find:** open the class Javadoc and use in-page search (`Ctrl+F`) for `methodName` or `fieldName`, then pick the right overload under **Method Details**; or use the Java SE API Search box. When a method has multiple overloads, record the full parameter types in your notes (e.g., `divide(BigDecimal, int, RoundingMode)`).
 
-## 6. Tình huống 1: vì sao chia số nguyên âm khác `Math.floorDiv`?
+## 6. Case 1: Why Does Negative Integer Division Differ from `Math.floorDiv`?
 
-**Câu hỏi:** `-7 / 3` và `Math.floorDiv(-7, 3)` có giống nhau không?
+**Question:** Are `-7 / 3` and `Math.floorDiv(-7, 3)` the same?
 
-Tra cứu theo hai bước:
+Look up in two steps:
 
-1. **JLS §15.17.2** quy định phép chia nguyên `/` làm tròn thương về **0** (*truncation toward zero*). Bởi vậy `-7 / 3 = -2`.
-2. **Javadoc `Math.floorDiv`** định nghĩa chia theo hướng **âm vô cực**; bởi vậy `Math.floorDiv(-7, 3) = -3`.
+1. **JLS §15.17.2** specifies that the integer division operator `/` rounds the quotient toward **0** (*truncation toward zero*). Therefore `-7 / 3 = -2`.
+2. **Javadoc `Math.floorDiv`** defines division toward **negative infinity**; therefore `Math.floorDiv(-7, 3) = -3`.
 
-Phép dư `% ` primitive có dấu gắn với phép chia về 0: `-7 % 3 = -1`. `Math.floorMod(-7,3)` tương ứng với `floorDiv`, cho `2`. Nguồn: JLS §15.17.3 và Javadoc `Math.floorMod`.
+The signed primitive remainder `%` is tied to truncation-toward-0 division: `-7 % 3 = -1`. `Math.floorMod(-7,3)` corresponds to `floorDiv`, yielding `2`. Sources: JLS §15.17.3 and Javadoc `Math.floorMod`.
 
-**Tệp `NumericJlsDemo.java` – Java 17+:**
+**File `NumericJlsDemo.java` – Java 17+:**
 
 ```java
 public class NumericJlsDemo {
@@ -177,7 +177,7 @@ public class NumericJlsDemo {
 }
 ```
 
-Lệnh:
+Commands:
 
 ```bash
 javac --release 17 NumericJlsDemo.java
@@ -197,21 +197,21 @@ widenedDivision=3.5
 integerDivision=3
 ```
 
-Ở ví dụ này, `7.0 / 2` thực hiện phép chia floating-point sau numeric promotion, còn `7 / 2` là phép chia nguyên. Biểu thức `max + 1` là cộng `int` và bị overflow, không ném ngoại lệ. `Math.addExact(max,1)` **là phương thức API khác**, có hợp đồng ném `ArithmeticException` khi tràn. Đây là lý do hai nguồn JLS/Javadoc phải được đọc phối hợp.
+In this example, `7.0 / 2` performs floating-point division after numeric promotion, whereas `7 / 2` is integer division. The expression `max + 1` is `int` addition and overflows without throwing an exception. `Math.addExact(max,1)` **is a separate API method** whose contract throws `ArithmeticException` on overflow. That is why both JLS and Javadoc must be read together.
 
-## 7. Tình huống 2: `BigDecimal.equals` khác `compareTo` ở đâu?
+## 7. Case 2: Where Does `BigDecimal.equals` Differ from `compareTo`?
 
-**Câu hỏi:** Vì sao `new BigDecimal("2.0").equals(new BigDecimal("2.00"))` trả `false`, nhưng `compareTo` lại trả `0`?
+**Question:** Why does `new BigDecimal("2.0").equals(new BigDecimal("2.00"))` return `false`, while `compareTo` returns `0`?
 
-Đây là **hành vi thư viện**, không phải trực tiếp quy tắc `==` cho primitive. Tra Javadoc lớp `BigDecimal` và hai method:
+This is **library behavior**, not directly the primitive `==` rule. Check the `BigDecimal` class Javadoc and both methods:
 
-- `equals(Object)`: yêu cầu giá trị **và biểu diễn/scale** tương ứng cùng nhau.
-- `compareTo(BigDecimal)`: so thứ tự theo giá trị số học, có thể trả 0 cho hai số khác scale.
-- `scale()`, `precision()`: giải thích chi tiết biểu diễn.
-- `setScale(int,RoundingMode)`: điều chỉnh scale, có thể cần rounding.
-- `divide`: từng overload đặt chính sách tính chính xác/rounding khác nhau.
+- `equals(Object)`: requires both value **and representation/scale** to match.
+- `compareTo(BigDecimal)`: compares order by numerical value, and can return 0 for two numbers with different scales.
+- `scale()`, `precision()`: explain representation details.
+- `setScale(int,RoundingMode)`: adjusts scale, possibly requiring rounding.
+- `divide`: each overload specifies a different exactness/rounding policy.
 
-**Tệp `NumericBigDecimalDocsDemo.java`:**
+**File `NumericBigDecimalDocsDemo.java`:**
 
 ```java
 import java.math.BigDecimal;
@@ -261,19 +261,19 @@ exactDivision=ArithmeticException
 roundedDivision=0.33
 ```
 
-**Cách đọc kỹ:** `BigDecimal.ONE.divide(new BigDecimal("3"))` không thể tạo một thương thập phân hữu hạn chính xác, nên ném `ArithmeticException`; overload với scale `2` và `HALF_UP` trả `0.33`. Nếu nhầm các overload, bạn có thể áp dụng sai cách làm tròn hoặc kết luận sai rằng `BigDecimal.divide` “lúc nào cũng lỗi khi chia 3”.
+**Read carefully:** `BigDecimal.ONE.divide(new BigDecimal("3"))` cannot produce an exact finite decimal quotient, so it throws `ArithmeticException`; the overload with scale `2` and `HALF_UP` returns `0.33`. Confusing the overloads can lead to applying the wrong rounding or wrongly concluding that `BigDecimal.divide` "always fails when dividing by 3."
 
-Một ngộ nhận phổ biến khác: `new BigDecimal(0.1)` và `new BigDecimal("0.1")` **không đồng nhất** về giá trị thập phân, do tham số `double` đã mang sai số biểu diễn nhị phân. Điều này được giải thích trong mô tả constructor của Javadoc `BigDecimal`; hãy đọc **constructor details**, không chỉ xem tên lớp.
+Another common misconception: `new BigDecimal(0.1)` and `new BigDecimal("0.1")` are **not identical** in decimal value, because the `double` argument already carries binary representation error. This is explained in the constructor description of `BigDecimal` Javadoc; read **constructor details**, not just the class name.
 
-## 8. Tình huống 3: widening không luôn có nghĩa giữ toàn bộ chính xác
+## 8. Case 3: Widening Does Not Always Mean Keeping Full Precision
 
-**Câu hỏi:** `long` có thể chuyển thành `double` mà không mất chữ số không?
+**Question:** Can a `long` be converted to a `double` without losing digits?
 
-Tra **JLS §5.1.2**: `long` → `double` là một phép widening primitive conversion được phép, nhưng **có thể mất precision** vì `double` có số bit hữu hiệu hữu hạn.
+Check **JLS §5.1.2**: `long` → `double` is a permitted widening primitive conversion, yet **it can lose precision** because `double` has a finite number of significant bits.
 
-Một ví dụ được chọn sát ngưỡng `2^53`:
+An example chosen near the `2^53` threshold:
 
-**Tệp `NumericConversionDocsDemo.java`:**
+**File `NumericConversionDocsDemo.java`:**
 
 ```java
 public class NumericConversionDocsDemo {
@@ -308,22 +308,22 @@ sameAfterRoundTrip=false
 unboxing=NullPointerException
 ```
 
-Tra **JLS §5.1.7–§5.1.8** để hiểu boxing/unboxing. `maybe + 1` đòi unbox `Integer` thành `int`; vì `maybe == null` nên ném `NullPointerException`. Javadoc `Integer` giải thích kiểu wrapper và phương thức; quy tắc chuyển đổi trong **biểu thức `+`** thuộc JLS.
+Check **JLS §5.1.7–§5.1.8** to understand boxing/unboxing. `maybe + 1` requires unboxing `Integer` to `int`; because `maybe == null`, it throws `NullPointerException`. `Integer` Javadoc explains the wrapper type and its methods; conversion rules inside the **`+` expression** belong to the JLS.
 
-Ví dụ cũng nhắc rằng một phép chuyển đổi hợp lệ theo hệ thống kiểu có thể **không đáp ứng yêu cầu dữ liệu** nếu nghiệp vụ đòi giữ chính xác mọi chữ số.
+The example also reminds us that a conversion valid under the type system may **fail data requirements** if business logic demands keeping every digit exact.
 
-## 9. Tình huống 4: `Double.MIN_VALUE`, `NaN` và signed zero
+## 9. Case 4: `Double.MIN_VALUE`, `NaN`, and Signed Zero
 
-**Câu hỏi:** Vì sao `Double.MIN_VALUE` dương và `Double.NaN == Double.NaN` false?
+**Question:** Why is `Double.MIN_VALUE` positive and `Double.NaN == Double.NaN` false?
 
-Tra kết hợp:
+Look up both together:
 
-1. Javadoc `Double.MIN_VALUE` định nghĩa nó là **giá trị `double` dương khác 0 nhỏ nhất**; `Double.MIN_NORMAL` là giá trị normal dương nhỏ nhất.
-2. JLS §4.2.3–§4.2.4 mô tả các giá trị `float`/`double`, gồm signed zero, infinities và NaN.
-3. JLS §15.21.1 quy định numeric equality; so sánh `NaN == NaN` là false, còn `0.0 == -0.0` là true.
-4. Javadoc `Double.equals` và `Double.compare` mô tả quy tắc riêng khi **hai giá trị là wrapper**: NaN và signed zero có xử lý khác với primitive `==`.
+1. Javadoc `Double.MIN_VALUE` defines it as the **smallest nonzero positive `double` value**; `Double.MIN_NORMAL` is the smallest positive normal value.
+2. JLS §4.2.3–§4.2.4 describe `float`/`double` values, including signed zero, infinities, and NaN.
+3. JLS §15.21.1 specifies numeric equality: `NaN == NaN` evaluates to false, while `0.0 == -0.0` evaluates to true.
+4. Javadoc `Double.equals` and `Double.compare` describe the separate rules when **both values are wrappers**: NaN and signed zero are handled differently from primitive `==`.
 
-**Tệp `NumericFloatingDocsDemo.java`:**
+**File `NumericFloatingDocsDemo.java`:**
 
 ```java
 public class NumericFloatingDocsDemo {
@@ -359,122 +359,122 @@ zeroPrimitive=true
 zeroWrapper=false
 ```
 
-Nếu cần kiểm tra một giá trị có phải NaN hoặc hữu hạn, hãy đọc hợp đồng `Double.isNaN` và `Double.isFinite`. Không dùng `x == Double.NaN` để phát hiện NaN. Khi cần xét “giá trị kề theo biểu diễn”, `Math.nextUp`, `nextDown`, `ulp` được định nghĩa trong Javadoc `Math`, không phải tự lấy `x + 0.0000001` cho mọi độ lớn.
+When you need to test whether a value is NaN or finite, read the contracts of `Double.isNaN` and `Double.isFinite`. Do not use `x == Double.NaN` to detect NaN. When considering "the next representable value", `Math.nextUp`, `nextDown`, and `ulp` are defined in `Math` Javadoc, rather than adding `x + 0.0000001` across all magnitudes.
 
-## 10. Chọn đúng phiên bản và tránh thông tin “đúng nhưng không dùng được”
+## 10. Choosing the Right Version and Avoiding "Correct but Unusable" Information
 
-Một bài đăng có thể giới thiệu phương thức hợp lệ trong Java 21 nhưng dự án đang dùng Java 17. Khi ấy mã có thể không biên dịch, dù ý tưởng đúng.
+A blog post might introduce a method valid in Java 21 while the project uses Java 17. In that case, the code will fail to compile, even if the idea is valid.
 
-**Quy trình phiên bản:**
+**Version checklist:**
 
-- Kiểm tra runtime: `java -version`.
-- Kiểm tra compiler: `javac -version`.
-- Kiểm tra cấu hình project (Maven `maven.compiler.release`, Gradle toolchain hoặc `--release`) khi có.
-- Tra Javadoc đúng **Java SE release** theo target, không mặc định trang “latest”.
-- Xem tag **Since** ở class và method; phương thức được thêm vào bản mới có thể không tồn tại trong bản cũ.
-- Dùng `javac --release 17 Demo.java` để kiểm tra **ngôn ngữ và public API** theo mục tiêu Java 17 khi biên dịch bằng JDK hỗ trợ cờ này. Sau đó vẫn phải chạy thử trên runtime mục tiêu.
+- Check runtime: `java -version`.
+- Check compiler: `javac -version`.
+- Check project configuration (Maven `maven.compiler.release`, Gradle toolchain, or `--release`) when present.
+- Look up Javadoc for the exact target **Java SE release**, not blindly the "latest" page.
+- Check the **Since** tag on classes and methods; methods added in a newer release may not exist in an older one.
+- Use `javac --release 17 Demo.java` to verify **language and public API** against target Java 17 when compiling with a JDK supporting this flag. Afterward, still test on the target runtime.
 
-Ví dụ, **không tự mặc định** một tên phương thức đọc được từ Javadoc Java 21 cũng có trong Java 17. Nếu Java 17 chưa có API tương ứng, cần phương án tương thích Java 17 hoặc yêu cầu nâng bản Java có căn cứ.
+For example, **do not assume** a method name read in Java 21 Javadoc also exists in Java 17. If Java 17 lacks the corresponding API, use a Java 17-compatible alternative or submit a justified request to upgrade Java.
 
-### Javadoc khác với implementation detail
+### Javadoc Differs from Implementation Detail
 
-Javadoc của một phương thức có thể nêu “returns...” và “throws...”: đây là phần hợp đồng API. Một câu “implementation may use ...” hoặc một thuộc tính dựa trên provider/hệ điều hành có thể chỉ là chi tiết triển khai. Cần giữ ranh giới:
+A method's Javadoc may state "returns..." and "throws...": that is part of the API contract. A sentence saying "implementation may use ..." or a property dependent on provider/OS may merely be an implementation detail. Keep the boundary clear:
 
-- **Contract:** client được phép dựa vào.
-- **Implementation note:** thông tin hữu ích để tối ưu/chẩn đoán, không nhất thiết bảo đảm mọi nền tảng.
-- **JLS:** quy tắc ngôn ngữ được tiêu chuẩn hóa cho các compiler/Java implementation phù hợp.
+- **Contract:** clients are permitted to rely on it.
+- **Implementation note:** useful information for optimization/diagnostics, not necessarily guaranteed across every platform.
+- **JLS:** standardized language rules for compliant compilers/Java implementations.
 
-Ví dụ `Math` và `StrictMath` có các mô tả về độ chính xác và khả năng tái lập của hàm toán học. Đọc lời mở đầu của class và từng method trước khi tuyên bố “`Math.sin` luôn trả bit-pattern giống nhau trên mọi platform”.
+For example, `Math` and `StrictMath` document accuracy and reproducibility of math functions. Read the class overview and individual method docs before claiming "`Math.sin` always returns the exact same bit-pattern on every platform."
 
-## 11. Mẹo tìm kiếm và trích dẫn nguồn
+## 11. Search Tips and Citing Sources
 
-Khi một vấn đề chưa rõ nằm ở đâu, nên tìm các từ khóa tiếng Anh đúng thuật ngữ tài liệu:
+When it is unclear where an issue lives, search using standard English documentation terms:
 
-| Vấn đề | Từ khóa để tìm | Trang ưu tiên |
+| Issue | Search Keywords | Priority Page |
 |---|---|---|
-| Overflow `int` | `integer overflow JLS 4.2.2` | JLS §4.2.2 hoặc §15.18.2 |
-| Chia số âm | `integer division rounds toward zero JLS 15.17.2` | JLS §15.17.2 |
-| Ép kiểu số | `widening narrowing primitive conversion JLS 5.1` | JLS §5.1.2/§5.1.3 |
-| Boxing cache / unboxing null | `JLS 5.1.7 5.1.8` | JLS §5.1.7–§5.1.8 |
+| `int` overflow | `integer overflow JLS 4.2.2` | JLS §4.2.2 or §15.18.2 |
+| Negative division | `integer division rounds toward zero JLS 15.17.2` | JLS §15.17.2 |
+| Numeric casting | `widening narrowing primitive conversion JLS 5.1` | JLS §5.1.2/§5.1.3 |
+| Boxing cache / null unboxing | `JLS 5.1.7 5.1.8` | JLS §5.1.7–§5.1.8 |
 | Wrapper `==` | `reference equality JLS 15.21` | JLS §15.21 |
-| `Math.abs` của MIN_VALUE | `Math abs Integer.MIN_VALUE Java 17` | Javadoc `Math.abs(int)` |
+| `Math.abs` of MIN_VALUE | `Math abs Integer.MIN_VALUE Java 17` | Javadoc `Math.abs(int)` |
 | `BigDecimal.equals` | `BigDecimal equals compareTo scale Javadoc` | Javadoc `BigDecimal` |
-| `BigDecimal.divide` | `BigDecimal divide ArithmeticException non terminating` | Javadoc đúng overload `divide` |
-| Chính sách làm tròn | `RoundingMode HALF_EVEN table` | Javadoc `RoundingMode` |
+| `BigDecimal.divide` | `BigDecimal divide ArithmeticException non terminating` | Javadoc exact `divide` overload |
+| Rounding policy | `RoundingMode HALF_EVEN table` | Javadoc `RoundingMode` |
 | `Double.MIN_VALUE` | `Double MIN_VALUE MIN_NORMAL Java 17` | Javadoc `Double` |
 
-Nếu dùng công cụ tìm kiếm ngoài tài liệu, giới hạn kết quả vào miền chính thức như `docs.oracle.com`, rồi đối chiếu phiên bản. Trang thảo luận, blog và diễn đàn hữu ích để có ví dụ, nhưng đối với **hợp đồng ngôn ngữ/API**, nên kết luận dựa trên JLS/Javadoc gốc. Với một vấn đề tương tác của nhiều API, ghi đủ hai hoặc nhiều nguồn thay vì ép tất cả vào một link.
+If using external search engines, restrict results to official domains such as `docs.oracle.com`, then verify the version. Discussion sites, blogs, and forums are helpful for examples, but for **language/API contracts**, base your conclusions on the original JLS/Javadoc. For an issue involving interaction across multiple APIs, cite two or more sources instead of forcing everything into one link.
 
-**Dẫn chứng tốt:** “Java SE 17 JLS §15.17.2 (integer division) quy định chia nguyên theo hướng 0; Javadoc `Math.floorDiv(int,int)` định nghĩa floor division.”  
-**Dẫn chứng chưa đủ:** “Đọc trên mạng thấy Java chia âm hơi lạ.”
+**Good citation:** "Java SE 17 JLS §15.17.2 (integer division) specifies integer division toward 0; Javadoc `Math.floorDiv(int,int)` defines floor division."  
+**Insufficient citation:** "Read online that Java divides negative numbers oddly."
 
-## 12. Những lỗi thường gặp khi tra cứu
+## 12. Common Lookup Mistakes
 
-1. **Tra nhầm Javadoc cho toán tử:** `int + int`, `/`, `%`, `==` thuộc JLS; class `Integer` không trực tiếp thay thế ngữ nghĩa mọi toán tử.
-2. **Tra JLS để hỏi overload thư viện:** `BigDecimal.divide` và `Math.floorDiv` có hợp đồng method được mô tả trong Javadoc; JLS chỉ định nghĩa lời gọi method và các quy tắc ngôn ngữ liên quan.
-3. **Bỏ qua kiểu toán hạng:** `7 / 2` và `7.0 / 2` khác vì numeric promotion; wrapper còn có unboxing.
-4. **Bỏ qua dấu âm/zero:** `-7 / 3`, `-7 % 3`, `Math.floorDiv`, `Double.NaN`, `+0.0`/`-0.0` thường là test phân biệt đúng sai.
-5. **Chỉ xem method summary:** bỏ lỡ overload, `Throws`, `Since` hoặc câu cảnh báo trong method detail.
-6. **Nhầm `MIN_VALUE`:** `Integer.MIN_VALUE` là biên âm, `Double.MIN_VALUE` là số **dương** khác 0 nhỏ nhất.
-7. **Dùng Javadoc phiên bản mới hơn:** mã không thể biên dịch trên target cũ dù trang “latest” mô tả API hợp lệ.
-8. **Suy luận từ một lần chạy:** một kết quả có thể phụ thuộc implementation/provider; chạy chương trình chỉ là kiểm chứng, không thay thế mô tả đặc tả.
-9. **Đọc chữ “exact” mà bỏ kiểu đích:** `Math.addExact`, `BigDecimal.divide`, `BigInteger.intValueExact` đều có ý nghĩa chính xác và ngoại lệ tùy method; đọc đúng signature.
-10. **Bỏ qua precision/scale:** cùng giá trị toán học có thể khác `BigDecimal.equals`; nhìn `toString` mà không đọc `scale()` gây hiểu nhầm.
-11. **Quên rằng JLS/Javadoc là tài liệu tiếng Anh chuẩn:** khi dịch các từ `truncation`, `floor`, `ceiling`, `round toward zero`, `narrowing`, giữ kèm thuật ngữ gốc để giảm sai lệch.
-12. **Coi FAQ/preview/ảnh chụp tài liệu là nguồn cuối cùng:** ưu tiên trang đặc tả có đường dẫn phiên bản và section/method chính xác.
+1. **Looking up Javadoc for operators:** `int + int`, `/`, `%`, `==` belong to the JLS; the `Integer` class does not directly replace the semantics of every operator.
+2. **Looking up the JLS for library overloads:** `BigDecimal.divide` and `Math.floorDiv` have method contracts described in Javadoc; the JLS only defines method invocation and related language rules.
+3. **Ignoring operand types:** `7 / 2` and `7.0 / 2` differ due to numeric promotion; wrappers also involve unboxing.
+4. **Ignoring negative signs/zero:** `-7 / 3`, `-7 % 3`, `Math.floorDiv`, `Double.NaN`, and `+0.0`/`-0.0` are often the tests distinguishing right from wrong.
+5. **Reading only the method summary:** missing overloads, `Throws`, `Since`, or warnings inside method details.
+6. **Confusing `MIN_VALUE`:** `Integer.MIN_VALUE` is the negative bound, whereas `Double.MIN_VALUE` is the smallest nonzero **positive** number.
+7. **Using Javadoc from a newer version:** code will not compile on an older target even if the "latest" page documents a valid API.
+8. **Inferring from a single run:** a result can depend on implementation/provider; running a program is verification, not a substitute for the specification.
+9. **Seeing the word "exact" and ignoring the target type:** `Math.addExact`, `BigDecimal.divide`, and `BigInteger.intValueExact` each have specific exactness semantics and exceptions depending on the method; read the exact signature.
+10. **Ignoring precision/scale:** the same mathematical value can differ under `BigDecimal.equals`; looking at `toString` without checking `scale()` causes misunderstandings.
+11. **Forgetting that JLS/Javadoc are authoritative English specifications:** when translating terms like `truncation`, `floor`, `ceiling`, `round toward zero`, and `narrowing`, keep the original terminology alongside to minimize ambiguity.
+12. **Treating FAQs/previews/screenshots as final authority:** prefer versioned specification pages with exact section and method links.
 
-## 13. Bài tập tra cứu có đáp án
+## 13. Lookup Exercises with Answers
 
-1. **Câu hỏi:** `-7 / 3` có phải floor division? Tra ở đâu?  
-   **Đáp án:** Không, `/` primitive `int` lấy thương hướng 0, cho `-2`; xem **JLS §15.17.2**. Muốn floor division `-3`, xem method `Math.floorDiv` trong **Javadoc `Math`**.
+1. **Question:** Is `-7 / 3` floor division? Where do you look it up?  
+   **Answer:** No, primitive `int` `/` truncates the quotient toward 0, giving `-2`; see **JLS §15.17.2**. For floor division `-3`, see `Math.floorDiv` in **Javadoc `Math`**.
 
-2. **Câu hỏi:** `Math.addExact(Integer.MAX_VALUE,1)` có khác `Integer.MAX_VALUE+1` không?  
-   **Đáp án:** Có. Toán tử primitive overflow theo JLS; `Math.addExact` ném `ArithmeticException` theo Javadoc method. Kết quả `+` là `Integer.MIN_VALUE`.
+2. **Question:** Does `Math.addExact(Integer.MAX_VALUE,1)` differ from `Integer.MAX_VALUE+1`?  
+   **Answer:** Yes. The primitive operator overflows per the JLS; `Math.addExact` throws `ArithmeticException` per the method Javadoc. The `+` result is `Integer.MIN_VALUE`.
 
-3. **Câu hỏi:** `new BigDecimal("2.0").equals(new BigDecimal("2.00"))` là `false` do JLS hay Javadoc?  
-   **Đáp án:** Chủ yếu là hợp đồng `BigDecimal.equals` trong **Javadoc `BigDecimal`**; so sánh giá trị số học bằng `compareTo() == 0`.
+3. **Question:** Is `new BigDecimal("2.0").equals(new BigDecimal("2.00"))` being `false` due to the JLS or Javadoc?  
+   **Answer:** Primarily the contract of `BigDecimal.equals` in **Javadoc `BigDecimal`**; compare numerical values with `compareTo() == 0`.
 
-4. **Câu hỏi:** Vì sao `Double.MIN_VALUE > 0`?  
-   **Đáp án:** Hằng `MIN_VALUE` được **Javadoc `Double`** định nghĩa là số dương khác 0 nhỏ nhất. JLS §4.2.3 mô tả mô hình giá trị `double`.
+4. **Question:** Why is `Double.MIN_VALUE > 0`?  
+   **Answer:** The constant `MIN_VALUE` is defined by **Javadoc `Double`** as the smallest nonzero positive value. JLS §4.2.3 describes the `double` value model.
 
-5. **Câu hỏi:** Nếu `Integer x = null;` thì `x + 1` làm gì?  
-   **Đáp án:** Ném `NullPointerException` khi unboxing, tra **JLS §5.1.8** và §5.6. `x == null` chỉ là reference equality nên không unbox.
+5. **Question:** If `Integer x = null;`, what does `x + 1` do?  
+   **Answer:** Throws `NullPointerException` upon unboxing; see **JLS §5.1.8** and §5.6. `x == null` is reference equality only, so it does not unbox.
 
-6. **Câu hỏi:** `Math.nextUp(1.0)` tìm ở đâu?  
-   **Đáp án:** Method detail của **Javadoc `Math`**. Nó trả số `double` biểu diễn được kề trên 1.0, được in là `1.0000000000000002`.
+6. **Question:** Where do you find `Math.nextUp(1.0)`?  
+   **Answer:** Method detail of **Javadoc `Math`**. It returns the adjacent representable `double` above 1.0, printed as `1.0000000000000002`.
 
-7. **Câu hỏi:** `BigDecimal.ONE.divide(new BigDecimal("3"))` có làm tròn tự động không?  
-   **Đáp án:** Overload chia chính xác sẽ ném `ArithmeticException` khi thương thập phân không kết thúc; xem **Javadoc `BigDecimal.divide(BigDecimal)`**. Chọn overload với scale và rounding mode khi nghiệp vụ cho phép làm tròn.
+7. **Question:** Does `BigDecimal.ONE.divide(new BigDecimal("3"))` round automatically?  
+   **Answer:** The exact-division overload throws `ArithmeticException` when the decimal quotient does not terminate; see **Javadoc `BigDecimal.divide(BigDecimal)`**. Choose an overload with scale and rounding mode when business rules allow rounding.
 
-8. **Câu hỏi:** Vì sao cùng lời gọi method trên JDK mới biên dịch nhưng Java 17 không?  
-   **Đáp án:** Kiểm tra phần **Since** và phiên bản Javadoc, dùng `javac --release 17` để đối chiếu API công khai theo target; có thể method chưa được hỗ trợ trên Java 17.
+8. **Question:** Why does the same method call compile on a newer JDK yet fail on Java 17?  
+   **Answer:** Check the **Since** tag and Javadoc version, and use `javac --release 17` to verify public APIs against the target; the method may not yet be supported on Java 17.
 
-9. **Câu hỏi:** Nếu muốn tìm quy tắc `byte b = 1; b += 1;` khác `b = b + 1;`, đọc đâu?  
-   **Đáp án:** **JLS §5.6** về numeric promotion và **§15.26.2** về compound assignment. Không phải chỉ Javadoc `Byte`.
+9. **Question:** If you want to find why `byte b = 1; b += 1;` differs from `b = b + 1;`, where do you read?  
+   **Answer:** **JLS §5.6** on numeric promotion and **§15.26.2** on compound assignment. Not only `Byte` Javadoc.
 
-10. **Câu hỏi:** Khi viết một báo cáo lỗi số học, cần dẫn chứng thế nào?  
-    **Đáp án:** Nêu phiên bản Java, kiểu toán hạng, biểu thức cụ thể, method overload (nếu có), expected/actual, đoạn mã tái hiện, và link JLS section hoặc Javadoc method phù hợp.
+10. **Question:** When writing an arithmetic bug report, how should you cite evidence?  
+    **Answer:** State the Java version, operand types, exact expression, method overload (if any), expected/actual results, minimal reproduction code, and links to the relevant JLS section or Javadoc method.
 
-## 14. Checklist tra cứu nhanh trước khi kết luận
+## 14. Quick Pre-Conclusion Lookup Checklist
 
-- [ ] Ghi đúng bản Java target và lệnh biên dịch/run.
-- [ ] Xác định đây là **toán tử ngôn ngữ**, **chuyển kiểu**, hay **method thư viện**.
-- [ ] Tra JLS §4, §5, §15 nếu liên quan primitive, toán tử, promotion, casting, boxing/unboxing.
-- [ ] Tra **đúng lớp, đúng overload, đúng Java release** trong Javadoc nếu liên quan API.
-- [ ] Đọc `Returns`, `Throws`, `Since`, cảnh báo trong class/method detail.
-- [ ] Kiểm tra biên: MIN/MAX, số âm, số 0, NaN/Infinity, scale, rounding.
-- [ ] Viết chương trình nhỏ có đầu ra xác định và đối chiếu với đặc tả.
-- [ ] Phân biệt điều **được bảo đảm** với chi tiết triển khai/provider.
-- [ ] Lưu link tới section hoặc method cụ thể trong ghi chú kiến thức, test hoặc review.
+- [ ] Record exact target Java version and compile/run commands.
+- [ ] Identify whether it is a **language operator**, **type conversion**, or **library method**.
+- [ ] Check JLS §4, §5, §15 if involving primitives, operators, promotion, casting, or boxing/unboxing.
+- [ ] Check **the exact class, exact overload, and exact Java release** in Javadoc if involving APIs.
+- [ ] Read `Returns`, `Throws`, `Since`, and warnings in class/method details.
+- [ ] Check boundaries: MIN/MAX, negative numbers, zero, NaN/Infinity, scale, rounding.
+- [ ] Write a small program with deterministic output and cross-check against the spec.
+- [ ] Distinguish what is **guaranteed** from implementation/provider details.
+- [ ] Save links to the exact section or method in knowledge notes, tests, or reviews.
 
-## 15. Tổng kết
+## 15. Summary
 
-Đối với Java Core – numbers, hãy nhớ một nguyên tắc: **JLS giải thích Java thực hiện biểu thức như thế nào; Javadoc giải thích thư viện số công khai cam kết điều gì.** Khi cần kiểm chứng một hành vi:
+For Java Core – numbers, remember one principle: **the JLS explains how Java evaluates expressions; Javadoc explains what public numeric libraries guarantee.** When verifying a behavior:
 
-1. Xác định **kiểu và phiên bản Java**.
-2. Tìm **đúng section JLS** nếu là toán tử/chuyển đổi, hoặc **đúng method Javadoc** nếu là API.
-3. Đọc **các trường hợp biên, ngoại lệ, rounding và overload**.
-4. Dùng ví dụ Java 17+ tái hiện, nhưng kết luận theo **hợp đồng tài liệu**.
-5. Ghi nguồn chính thức cùng section/method để người khác kiểm chứng lại.
+1. Determine the **types and Java version**.
+2. Find the **exact JLS section** for operators/conversions, or the **exact Javadoc method** for APIs.
+3. Read **edge cases, exceptions, rounding, and overloads**.
+4. Use a Java 17+ example to reproduce, while basing your conclusion on the **specification contract**.
+5. Record official sources with section/method names so others can verify them independently.
 
-Nguồn gốc: [JLS SE 17](https://docs.oracle.com/javase/specs/jls/se17/html/index.html), [Java SE 17 Javadoc – `java.base`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/module-summary.html), [BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html), [Math](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html), [Double](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html).
+Primary sources: [JLS SE 17](https://docs.oracle.com/javase/specs/jls/se17/html/index.html), [Java SE 17 Javadoc – `java.base`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/module-summary.html), [BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html), [Math](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html), [Double](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html).

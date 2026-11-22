@@ -1,14 +1,14 @@
-# Executable dùng chung cho Method và Constructor trong Java Reflection
+# Executable Shared by Method and Constructor in Java Reflection
 
-Trong Reflection của Java, **Method** đại diện một phương thức, còn **Constructor<T>** đại diện một constructor. Cả hai cùng kế thừa lớp trừu tượng **java.lang.reflect.Executable**, được giới thiệu từ Java 8, vì chúng có rất nhiều thông tin chung: danh sách tham số, kiểu generic, annotation, ngoại lệ khai báo, modifiers, biến kiểu và cờ varargs/synthetic.
+In Java Reflection, **Method** represents a method, while **Constructor<T>** represents a constructor. Both inherit from the abstract class **java.lang.reflect.Executable**, introduced in Java 8, because they share a great deal of common information: parameter lists, generic types, annotations, declared exceptions, modifiers, type variables, and varargs/synthetic flags.
 
-Executable hữu ích nhất khi viết công cụ xử lý metadata của cả method lẫn constructor, chẳng hạn framework dependency injection, validation, binding, serialization, lập tài liệu API hoặc bộ phân tích chữ ký. Thay vì viết hai vòng lặp gần giống nhau cho Method và Constructor, ta có thể viết một hàm nhận Executable và đọc những thuộc tính chung.
+Executable is most useful when writing tools that process metadata for both methods and constructors, such as dependency injection, validation, binding, serialization, API documentation, or signature analysis frameworks. Instead of writing two nearly identical loops for Method and Constructor, you can write a single function that accepts Executable and reads those shared properties.
 
-**Giới hạn cốt lõi:** Executable là lớp nền dùng để **mô tả và phân tích** một thành phần có thể thực thi. Nó không có một phương thức invoke/newInstance chung: để gọi thực tế, phải phân biệt Method.invoke(...) và Constructor.newInstance(...).
+**Core limitation:** Executable is a base class used to **describe and analyze** an executable member. It does not have a common invoke/newInstance method: to actually invoke it, you must distinguish between Method.invoke(...) and Constructor.newInstance(...).
 
-## 1. Quan hệ kiểu và phạm vi trách nhiệm
+## 1. Type Relationships and Scope of Responsibility
 
-Sơ đồ lớp đơn giản:
+Simple class hierarchy:
 
 ~~~text
 java.lang.Object
@@ -18,17 +18,17 @@ java.lang.Object
                 └── java.lang.reflect.Constructor<T>
 ~~~
 
-Executable còn triển khai các interface **Member**, **AnnotatedElement**, **GenericDeclaration** và kế thừa chức năng truy cập reflective của **AccessibleObject**. Trên Java 17, đây là abstract sealed class chỉ cho phép Method và Constructor trực tiếp kế thừa.
+Executable also implements the **Member**, **AnnotatedElement**, and **GenericDeclaration** interfaces and inherits the reflective access functionality of **AccessibleObject**. On Java 17, it is an abstract sealed class that only permits Method and Constructor to directly inherit from it.
 
-| Khái niệm | Vai trò |
+| Concept | Role |
 | --- | --- |
-| **Method** | Đại diện phương thức khai báo bởi class/interface; có tên, kiểu trả về, receiver và phương thức invoke |
-| **Constructor<T>** | Đại diện constructor của class T; gọi newInstance để tạo instance của class khai báo |
-| **Executable** | Cung cấp API metadata chung cho Method và Constructor |
-| **Parameter** | Đại diện một tham số trong chữ ký runtime của một Executable |
-| **AccessibleObject** | Cung cấp các API như setAccessible/trySetAccessible để yêu cầu điều chỉnh kiểm tra truy cập |
+| **Method** | Represents a method declared by a class/interface; has a name, return type, receiver, and invoke method |
+| **Constructor<T>** | Represents a constructor of class T; calls newInstance to create an instance of the declaring class |
+| **Executable** | Provides a shared metadata API for Method and Constructor |
+| **Parameter** | Represents a parameter in the runtime signature of an Executable |
+| **AccessibleObject** | Provides APIs such as setAccessible/trySetAccessible to request adjusting access checks |
 
-Ví dụ về đa hình:
+Polymorphism example:
 
 ~~~java
 import java.lang.reflect.Executable;
@@ -44,111 +44,111 @@ System.out.println(e1.getParameterCount()); // 1
 System.out.println(e2.getParameterCount()); // 0
 ~~~
 
-Đoạn này có thể đặt trong một method khai báo throws ReflectiveOperationException. Hai đối tượng đều gọi được **getParameterCount()**, vì phương thức đó nằm ở Executable. Nhưng chỉ **method** có **invoke(receiver, args...)**, và chỉ **constructor** có **newInstance(args...)**.
+This snippet can be placed inside a method declared with throws ReflectiveOperationException. Both objects can call **getParameterCount()**, because that method resides on Executable. However, only **method** has **invoke(receiver, args...)**, and only **constructor** has **newInstance(args...)**.
 
-Không cố ép Executable thành Method nếu chưa kiểm tra kiểu. Có thể phân nhánh bằng:
+Do not try to cast Executable to Method without checking the type first. You can branch using:
 
 ~~~java
 if (executable instanceof Method m) {
-    // Có thể dùng Method.getReturnType(), Method.invoke(...)...
+    // You can use Method.getReturnType(), Method.invoke(...)...
 } else if (executable instanceof Constructor<?> c) {
-    // Có thể dùng Constructor.newInstance(...)...
+    // You can use Constructor.newInstance(...)...
 }
 ~~~
 
-Đây là fragment: biến executable phải tồn tại trong ngữ cảnh.
+This is a fragment: the executable variable must already exist in context.
 
-## 2. Những API metadata dùng chung
+## 2. Shared Metadata APIs
 
-Các nhóm dưới đây là trọng tâm của lớp Executable.
+The groups below are the core of the Executable class.
 
-| API | Kiểu kết quả | Chức năng |
+| API | Return Type | Purpose |
 | --- | --- | --- |
-| **getDeclaringClass()** | Class<?> | Lớp/interface khai báo thành phần |
-| **getName()** | String | Tên phương thức hoặc tên constructor theo quy ước Reflection |
-| **getModifiers()** | int | Modifiers như public/private/protected; giải mã bằng Modifier |
-| **getParameterCount()** | int | Tổng tham số runtime, kể cả một số tham số implicit/synthetic |
-| **getParameterTypes()** | Class<?>[] | Kiểu tham số sau erasure, theo thứ tự |
-| **getGenericParameterTypes()** | Type[] | Thông tin kiểu generic được khai báo khi có metadata |
-| **getParameters()** | Parameter[] | Đối tượng Parameter cho từng tham số runtime |
-| **getParameterAnnotations()** | Annotation[][] | Annotation trên khai báo từng tham số |
-| **getAnnotatedParameterTypes()** | AnnotatedType[] | Annotation đặt ở vị trí sử dụng kiểu tham số (TYPE_USE) |
-| **getExceptionTypes()** | Class<?>[] | Các kiểu exception trong throws theo runtime Class |
-| **getGenericExceptionTypes()** | Type[] | Các kiểu exception trong throws có thông tin generic |
-| **getAnnotatedExceptionTypes()** | AnnotatedType[] | Annotation TYPE_USE trên kiểu exception |
-| **getTypeParameters()** | TypeVariable<?>[] | Type variables được khai báo bởi chính method/constructor |
-| **isVarArgs()** | boolean | Có khai báo tham số cuối dạng varargs hay không |
-| **isSynthetic()** | boolean | Thành phần có do compiler sinh ra dạng synthetic hay không |
-| **toGenericString()** | String | Biểu diễn chữ ký có generic và modifiers |
-| **getAnnotatedReturnType()** | AnnotatedType | Thông tin kiểu trả về có annotation theo hợp đồng của từng subtype |
-| **getAnnotatedReceiverType()** | AnnotatedType hoặc null | Kiểu receiver được khai báo tại vị trí phù hợp; không phải mọi executable đều có receiver |
+| **getDeclaringClass()** | Class<?> | The class/interface that declares the member |
+| **getName()** | String | Method name or constructor name according to Reflection convention |
+| **getModifiers()** | int | Modifiers such as public/private/protected; decode using Modifier |
+| **getParameterCount()** | int | Total runtime parameters, including certain implicit/synthetic parameters |
+| **getParameterTypes()** | Class<?>[] | Parameter types after erasure, in order |
+| **getGenericParameterTypes()** | Type[] | Declared generic type information when metadata is present |
+| **getParameters()** | Parameter[] | Parameter object for each runtime parameter |
+| **getParameterAnnotations()** | Annotation[][] | Annotations on the declaration of each parameter |
+| **getAnnotatedParameterTypes()** | AnnotatedType[] | Annotations placed at the parameter type-use site (TYPE_USE) |
+| **getExceptionTypes()** | Class<?>[] | Exception types in the throws clause as runtime Class objects |
+| **getGenericExceptionTypes()** | Type[] | Exception types in the throws clause with generic information |
+| **getAnnotatedExceptionTypes()** | AnnotatedType[] | TYPE_USE annotations on exception types |
+| **getTypeParameters()** | TypeVariable<?>[] | Type variables declared by the method/constructor itself |
+| **isVarArgs()** | boolean | Whether the last parameter is declared as varargs |
+| **isSynthetic()** | boolean | Whether the member is compiler-generated as synthetic |
+| **toGenericString()** | String | Signature representation with generics and modifiers |
+| **getAnnotatedReturnType()** | AnnotatedType | Return type information with annotations per each subtype's contract |
+| **getAnnotatedReceiverType()** | AnnotatedType or null | Receiver type declared where applicable; not every executable has a receiver |
 
-Một số phương thức như **getParameterCount()**, **getParameters()**, **getGenericParameterTypes()** có phần triển khai chung trong Executable; một số phương thức khác là abstract, được Method và Constructor cài đặt. Từ góc độ người dùng API, vẫn có thể gọi chúng thông qua biến kiểu Executable.
+Some methods such as **getParameterCount()**, **getParameters()**, and **getGenericParameterTypes()** have shared implementations in Executable; others are abstract and implemented by Method and Constructor. From the API consumer's perspective, they can still be called through a variable of type Executable.
 
-### Chữ ký không phải là lời gọi thực thi
+### A Signature Is Not an Execution Call
 
-Executable cung cấp **getParameterCount()**, nhưng không tự cung cấp **invoke()**. Để thực thi:
+Executable provides **getParameterCount()**, but does not itself provide **invoke()**. To execute:
 
-- **Method.invoke(Object receiver, Object... args)** gọi method đã chọn; với static method, receiver có thể là null.
-- **Constructor.newInstance(Object... initargs)** tạo đối tượng của declaring class.
-- Cả hai đều có thể tạo **InvocationTargetException** nếu phần thân method hoặc constructor ném ngoại lệ.
-- **IllegalAccessException** liên quan tới quyền gọi; **IllegalArgumentException** thường liên quan receiver hoặc arguments không phù hợp. Các chi tiết kiểm tra access thuộc Method/Constructor và môi trường module.
+- **Method.invoke(Object receiver, Object... args)** invokes the selected method; for a static method, receiver may be null.
+- **Constructor.newInstance(Object... initargs)** creates an object of the declaring class.
+- Both can produce an **InvocationTargetException** if the method or constructor body throws an exception.
+- **IllegalAccessException** relates to invocation permissions; **IllegalArgumentException** usually relates to mismatched receiver or arguments. Details of access checks belong to Method/Constructor and the module environment.
 
-Khi viết một metadata scanner, tốt nhất giữ biến kiểu **Executable** trong phần phân tích chung, và chỉ phân nhánh đến subtype khi cần invoke hoặc API đặc thù.
+When writing a metadata scanner, it is best to keep the variable typed as **Executable** during the shared analysis phase, and only branch to subtypes when invocation or subtype-specific APIs are needed.
 
-## 3. Parameter: đối tượng đại diện từng tham số
+## 3. Parameter: Object Representing Each Parameter
 
-API **getParameters()** trả mảng **Parameter[]**, mỗi phần tử có:
+The **getParameters()** API returns a **Parameter[]** array, where each element has:
 
-- **getName()**: tên tham số đọc từ class file nếu có, hoặc tên tổng hợp như arg0, arg1.
-- **isNamePresent()**: class file có chứa tên tham số trong metadata thích hợp hay không.
-- **getType()**: Class<?> sau type erasure.
-- **getParameterizedType()**: Type biểu diễn khai báo generic.
-- **getAnnotations()**, **getAnnotation(...)**: annotation gắn trực tiếp lên khai báo tham số.
-- **getAnnotatedType()**: AnnotatedType cho các annotation trên vị trí dùng kiểu.
-- **isVarArgs()**: tham số có đại diện danh sách biến số đối số hay không.
-- **isImplicit()** và **isSynthetic()**: tham số ngầm định trong source hoặc do compiler tạo.
-- **getDeclaringExecutable()**: trở lại Method/Constructor khai báo tham số.
+- **getName()**: parameter name read from the class file if available, or a synthesized name such as arg0, arg1.
+- **isNamePresent()**: whether the class file contains the parameter name in appropriate metadata.
+- **getType()**: Class<?> after type erasure.
+- **getParameterizedType()**: Type representing the generic declaration.
+- **getAnnotations()**, **getAnnotation(...)**: annotations attached directly to the parameter declaration.
+- **getAnnotatedType()**: AnnotatedType for annotations at the type-use position.
+- **isVarArgs()**: whether the parameter represents a variable-length argument list.
+- **isImplicit()** and **isSynthetic()**: parameter that is implicit in source or generated by the compiler.
+- **getDeclaringExecutable()**: returns back to the Method/Constructor declaring the parameter.
 
-**Tên tham số không luôn được giữ trong file .class.** Với javac, hãy biên dịch cùng **-parameters** khi công cụ dựa vào tên như name, amount hoặc requestId. Không có tùy chọn đó, tên có thể trở thành arg0, arg1; không được coi các tên này là tên nguồn ổn định.
+**Parameter names are not always preserved in the .class file.** With javac, compile with **-parameters** when tools rely on names like name, amount, or requestId. Without that option, names may become arg0, arg1; do not treat these names as stable source names.
 
 ~~~bash
 javac --release 17 -parameters -encoding UTF-8 ExecutableDemo.java
 java ExecutableDemo
 ~~~
 
-Mặc dù **-g** thêm một số thông tin debug, nó không thay thế mục đích của **-parameters** để các API Reflection về tên tham số có thể dùng đúng theo hợp đồng. Tên tham số của một số cấu trúc đặc biệt như record có thể được compiler lưu theo quy tắc riêng; đừng vì thế suy ra mọi method đều có tên.
+Although **-g** adds some debug information, it does not replace the purpose of **-parameters** so that Reflection parameter-name APIs can work according to their contract. Parameter names of certain special constructs such as records may be stored by the compiler under their own rules; do not infer from that that every method has names.
 
-### Erasure: Class<?> khác Type
+### Erasure: Class<?> vs. Type
 
-Giả sử method có chữ ký:
+Suppose a method has the signature:
 
 ~~~java
 public <E extends Number> void submit(List<E> values, E limit) {}
 ~~~
 
-Thông tin thông thường:
+Typical information:
 
-| Tham số | getParameterTypes() | getGenericParameterTypes() |
+| Parameter | getParameterTypes() | getGenericParameterTypes() |
 | --- | --- | --- |
-| values | List.class | ParameterizedType biểu diễn List<E> |
+| values | List.class | ParameterizedType representing List<E> |
 | limit | Number.class | TypeVariable E |
 
-Lệnh tìm method phải dùng kiểu tham số sau erasure:
+The method lookup must use the erased parameter types:
 
 ~~~java
 clazz.getDeclaredMethod("submit", java.util.List.class, Number.class);
 ~~~
 
-clazz là biến kiểu Class<?> trong ví dụ. Không thể truyền một ParameterizedType biểu diễn List<E> vào **getDeclaredMethod**, bởi phương thức đó nhận **Class<?>...**.
+clazz is a variable of type Class<?> in the example. You cannot pass a ParameterizedType representing List<E> into **getDeclaredMethod**, because that method accepts **Class<?>...**.
 
-**getTypeParameters()** của method submit có một TypeVariable tên E; điều này khác việc **getGenericParameterTypes()** trả E ở vị trí tham số. Với Constructor của generic class, getTypeParameters() chỉ mô tả type variable được khai báo **riêng ở constructor**, không tự bao gồm tất cả type variable của class.
+**getTypeParameters()** of the submit method has one TypeVariable named E; this is different from **getGenericParameterTypes()** returning E at the parameter position. For a Constructor of a generic class, getTypeParameters() only describes type variables declared **specifically on the constructor**, and does not automatically include all type variables of the class.
 
-## 4. Ví dụ Java 17+ đầy đủ: phân tích Method và Constructor qua Executable
+## 4. Complete Java 17+ Example: Analyzing Method and Constructor via Executable
 
-Chương trình sau minh họa một hàm **inspect(Executable)** xử lý đồng thời constructor và method, in thông tin tên/kiểu tham số, generic, throws, varargs, annotations và sau đó gọi từng thành phần bằng API riêng.
+The following program demonstrates an **inspect(Executable)** function that handles both a constructor and a method simultaneously, printing parameter names/types, generics, throws, varargs, and annotations, and then invoking each member via its specific API.
 
-Lưu toàn bộ mã vào file **ExecutableDemo.java**:
+Save the entire code to a file named **ExecutableDemo.java**:
 
 ~~~java
 import java.io.IOException;
@@ -228,14 +228,14 @@ public class ExecutableDemo {
 }
 ~~~
 
-Biên dịch/chạy (JDK 17 trở lên):
+Compile/run (JDK 17 or higher):
 
 ~~~bash
 javac --release 17 -parameters -encoding UTF-8 ExecutableDemo.java
 java ExecutableDemo
 ~~~
 
-Stdout đã được kiểm tra trên JDK 21 sau khi biên dịch với **--release 17 -parameters**:
+Stdout verified on JDK 21 after compiling with **--release 17 -parameters**:
 
 ~~~text
 kind=constructor
@@ -263,38 +263,38 @@ invoke=[3, 4]
 service size=2
 ~~~
 
-### Phân tích kết quả
+### Result Analysis
 
-1. **Cùng một hàm inspect** nhận cả Constructor<Service> và Method qua **Executable**. Đoạn chương trình chỉ cần phân biệt method/constructor để in kind; các API còn lại trong inspect đều nằm ở phần chung.
-2. Constructor khai báo một tham số List<String> nên **count=1**, kiểu erased là List nhưng generic giữ được **java.util.List<java.lang.String>**. Không có type variable khai báo riêng, nên **typeVariables=0**.
-3. Method process có ba tham số: String, List<E> và int...; erasure của List<E> thành List. Varargs **int...** có kiểu tham số runtime **int[]**, vì vậy **varargs=true** nhưng getParameterTypes() của tham số cuối là mảng.
-4. Type variable E extends Number được khai báo trên chính method, do đó **typeVariables=1** và tên là **E**.
-5. **@Label** là annotation ở vị trí PARAMETER, đọc bằng Parameter.getAnnotation(Label.class). **@Marked** là TYPE_USE annotation, đọc qua AnnotatedType của tham số hoặc kiểu trả về. Hai nhóm annotation có nguồn thông tin khác nhau.
-6. getExceptionTypes() thấy **IOException** vì cả constructor và method đều khai báo throws IOException. Nó mô tả chữ ký khai báo; không khẳng định mỗi lần gọi sẽ ném IOException.
-7. Việc khởi tạo dùng **Constructor.newInstance**; gọi method dùng **Method.invoke**. Kết quả trả về từ Method.invoke là Object và được in như một List gồm 3, 4.
+1. **The same inspect function** accepts both Constructor<Service> and Method through **Executable**. The program only needs to distinguish method/constructor to print kind; all remaining APIs in inspect are on the shared base.
+2. The constructor declares one List<String> parameter, so **count=1**; the erased type is List while generic preserves **java.util.List<java.lang.String>**. There is no type variable declared on it, so **typeVariables=0**.
+3. The process method has three parameters: String, List<E>, and int...; erasure turns List<E> into List. Varargs **int...** has runtime parameter type **int[]**, so **varargs=true** while getParameterTypes() of the last parameter is an array.
+4. Type variable E extends Number is declared on the method itself, so **typeVariables=1** and its name is **E**.
+5. **@Label** is a PARAMETER-targeted annotation, read via Parameter.getAnnotation(Label.class). **@Marked** is a TYPE_USE annotation, read via the AnnotatedType of the parameter or return type. The two annotation groups come from different metadata sources.
+6. getExceptionTypes() sees **IOException** because both the constructor and method declare throws IOException. It describes the declared signature; it does not assert that every call will throw IOException.
+7. Instantiation uses **Constructor.newInstance**; method invocation uses **Method.invoke**. The return value from Method.invoke is Object and is printed as a List containing 3, 4.
 
-### Thử bỏ -parameters
+### Trying Without -parameters
 
-Biên dịch lại trong thư mục riêng hoặc xóa class cũ và chạy:
+Recompile in a separate directory or delete old class files and run:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 ExecutableDemo.java
 java ExecutableDemo
 ~~~
 
-Khi không có metadata tham số được giữ bởi -parameters, phần tên trong output thường đổi thành **arg0**, **arg1**, **arg2**, và **isNamePresent()** thành false, ví dụ:
+When parameter metadata is not retained by -parameters, the names in the output typically change to **arg0**, **arg1**, **arg2**, and **isNamePresent()** becomes false, for example:
 
 ~~~text
 p0=arg0:List,namePresent=false,generic=java.util.List<java.lang.String>
 ~~~
 
-Thông tin generic như List<String> và type variable E **không phụ thuộc vào -parameters giống tên biến**: nó đến từ thông tin generic signature của class file. Hãy phân biệt rõ các loại metadata để chẩn đoán.
+Generic information such as List<String> and type variable E **does not depend on -parameters the way variable names do**: it comes from the generic signature information in the class file. Clearly distinguish these metadata types when diagnosing issues.
 
-## 5. Declaration annotations và type-use annotations
+## 5. Declaration Annotations and Type-Use Annotations
 
-Một annotation gắn **trực tiếp lên khai báo tham số** khác một annotation gắn lên **kiểu** được sử dụng tại vị trí tham số.
+An annotation attached **directly to a parameter declaration** differs from an annotation attached to the **type** used at the parameter site.
 
-Ví dụ mã ngắn (không phải chương trình độc lập):
+Short code example (not a standalone program):
 
 ~~~java
 @Retention(RetentionPolicy.RUNTIME)
@@ -308,27 +308,27 @@ Ví dụ mã ngắn (không phải chương trình độc lập):
 void save(@Input @Checked List<String> values) {}
 ~~~
 
-Trong một đoạn mã thực tế cần import java.lang.annotation.* và java.util.List.
+In real code, you need to import java.lang.annotation.* and java.util.List.
 
-- **getParameterAnnotations()** trả mảng hai chiều: mỗi vị trí tương ứng tập các annotation khai báo của một tham số.
-- **getParameters()[i].getAnnotations()** cũng cho các declaration annotations trên Parameter đó.
-- **getAnnotatedParameterTypes()[i].getAnnotations()** cho các annotation TYPE_USE ở vị trí kiểu tham số tương ứng.
-- **getAnnotatedReturnType()** dùng cho type-use annotation tại kiểu trả về; với Method, có thể đọc cùng **getReturnType()** hoặc **getGenericReturnType()** tùy mục tiêu.
-- **getAnnotatedExceptionTypes()** mô tả type-use annotation của các exception trong throws.
-- **getAnnotatedReceiverType()** mô tả receiver type ở nơi hợp lệ (chẳng hạn receiver parameter được khai báo tường minh); có thể trả null nếu không có receiver thích hợp.
+- **getParameterAnnotations()** returns a two-dimensional array: each position corresponds to the set of declaration annotations of one parameter.
+- **getParameters()[i].getAnnotations()** also yields the declaration annotations on that Parameter.
+- **getAnnotatedParameterTypes()[i].getAnnotations()** yields the TYPE_USE annotations at the corresponding parameter type site.
+- **getAnnotatedReturnType()** is used for type-use annotations on the return type; for Method, it can be read alongside **getReturnType()** or **getGenericReturnType()** depending on the goal.
+- **getAnnotatedExceptionTypes()** describes type-use annotations of exceptions in throws.
+- **getAnnotatedReceiverType()** describes the receiver type where valid (for example, an explicitly declared receiver parameter); it may return null if there is no applicable receiver.
 
-Không ép mọi annotation vào cùng một loại. Một validation framework muốn biết annotation trên tham số nên đọc cả loại **declaration** lẫn loại **type-use** tùy meta-annotation @Target của chúng.
+Do not force all annotations into the same category. A validation framework that wants to inspect annotations on parameters should read both **declaration** and **type-use** annotations according to their @Target meta-annotation.
 
-**Chú ý:** mảng annotation không được đảm bảo phản ánh tất cả thông tin source nếu annotation không có RetentionPolicy.RUNTIME. Các annotation SOURCE/CLASS có thể không hiển thị theo các API phản chiếu runtime như các annotation RUNTIME.
+**Note:** annotation arrays are not guaranteed to reflect all source information if the annotation lacks RetentionPolicy.RUNTIME. SOURCE/CLASS annotations may not be visible through runtime reflection APIs the way RUNTIME annotations are.
 
-## 6. Implicit, synthetic parameters và sự khác nhau giữa các mảng
+## 6. Implicit, Synthetic Parameters and Differences Between Arrays
 
-Một executable không chỉ có các tham số hiển thị tường minh trong source. Compiler có thể đưa thêm **implicit** hoặc **synthetic** parameters. Hai trường hợp dễ gặp:
+An executable does not only contain parameters explicitly visible in source code. The compiler may insert **implicit** or **synthetic** parameters. Two common cases:
 
-- Constructor của **non-static inner class** thường có thêm tham số tham chiếu tới enclosing instance ở vị trí đầu.
-- Constructor liên quan một số cấu trúc compiler như enum có thể xuất hiện những tham số được bổ sung ngoài danh sách người lập trình viết.
+- The constructor of a **non-static inner class** usually has an additional parameter referencing the enclosing instance in the first position.
+- Constructors related to certain compiler constructs such as enum may have extra parameters added outside the list written by the programmer.
 
-Ví dụ:
+Example:
 
 ~~~java
 class Outer {
@@ -338,7 +338,7 @@ class Outer {
 }
 ~~~
 
-Đối với kiểu inner không static, constructor trong bytecode cần nhận một instance của Outer. Khi Reflection tra constructor, trong trường hợp javac thông thường sẽ phải dùng:
+For a non-static inner type, the constructor in bytecode needs to receive an instance of Outer. When looking up the constructor via Reflection, in the typical javac case you must use:
 
 ~~~java
 Outer outer = new Outer();
@@ -347,76 +347,76 @@ Constructor<Outer.Inner> c =
 Outer.Inner instance = c.newInstance(outer, 10);
 ~~~
 
-Đây là fragment cần import java.lang.reflect.Constructor và đặt trong method xử lý checked exceptions. Với **static nested class**, không có outer instance bổ sung theo cơ chế này.
+This is a fragment that requires importing java.lang.reflect.Constructor and placing it in a method that handles checked exceptions. For a **static nested class**, there is no extra outer instance under this mechanism.
 
-**Quan trọng khi xử lý metadata:**
+**Important when processing metadata:**
 
-- **getParameterCount()** tính cả tham số implicit/synthetic hiện diện ở runtime.
-- **getParameterTypes()** cho các kiểu thực tế dùng trong descriptor, cần thiết cho lookup.
-- **getParameters()** cho Parameter và các cờ **isImplicit()/isSynthetic()** khi metadata cho phép diễn giải.
-- **getGenericParameterTypes()** có thể trả danh sách có số lượng khác trong một số tình huống có implicit/synthetic parameters và generic signature; chính tài liệu API cảnh báo điều này.
-- Các mảng annotation cũng có thể phản ánh tham số bổ sung theo quy tắc riêng; đừng máy móc ghép mảng từ hai API khác nhau bằng index mà không kiểm tra quan hệ và độ dài.
+- **getParameterCount()** includes implicit/synthetic parameters present at runtime.
+- **getParameterTypes()** provides the actual types used in the descriptor, needed for lookup.
+- **getParameters()** provides Parameter objects and the **isImplicit()/isSynthetic()** flags when metadata allows interpreting them.
+- **getGenericParameterTypes()** may return a list with a different count in certain situations involving implicit/synthetic parameters and generic signatures; the API documentation itself warns about this.
+- Annotation arrays may also reflect extra parameters under specific rules; do not mechanically pair arrays from two different APIs by index without checking their relationship and lengths.
 
-Khi làm thư viện mapping tham số, phải kiểm thử trên class thực tế và trên compiler/JDK mục tiêu. Nếu cần xem descriptor ở bytecode, có thể dùng **javap -v** với file .class để xem MethodParameters, Signature và RuntimeVisibleParameterAnnotations/RuntimeVisibleTypeAnnotations.
+When building a parameter-mapping library, test on real classes and on the target compiler/JDK. If you need to inspect the descriptor in bytecode, you can use **javap -v** on the .class file to view MethodParameters, Signature, and RuntimeVisibleParameterAnnotations/RuntimeVisibleTypeAnnotations.
 
-## 7. isVarArgs() và cách truyền đối số thực tế
+## 7. isVarArgs() and Passing Actual Arguments
 
-Với method:
+Given the method:
 
 ~~~java
 void log(String label, int... numbers) {}
 ~~~
 
-Compiler biến kiểu tham số cuối thành mảng int[]. Một Method tìm được theo:
+The compiler turns the last parameter type into an int[] array. A Method looked up via:
 
 ~~~java
 Method method = clazz.getDeclaredMethod("log", String.class, int[].class);
 ~~~
 
-là hợp lệ nếu clazz mô tả class khai báo log.
+is valid if clazz describes the class declaring log.
 
-**isVarArgs()** chỉ cho biết phương thức được **khai báo bằng cú pháp biến số đối số**. Nó không có nghĩa Reflection tự luôn thực hiện overload resolution hay tự gom các số thành mảng như cú pháp gọi Java ở source:
+**isVarArgs()** only indicates that the method was **declared with variable-arity syntax**. It does not mean Reflection always performs overload resolution or automatically packs numbers into an array like Java source call syntax:
 
 ~~~java
 method.invoke(receiver, "sum", new int[] {1, 2, 3});
 ~~~
 
-Trong đó receiver là instance thích hợp; tham số thứ ba được truyền như một đối số mảng. Nếu method chỉ nhận một tham số kiểu String[] và cần truyền mảng làm **một phần tử** của varargs Object... của Method.invoke, ép rõ sang Object:
+Here receiver is an appropriate instance; the third parameter is passed as an array argument. If a method only takes a single parameter of type String[] and you need to pass the array as **one element** of Method.invoke's Object... varargs, cast explicitly to Object:
 
 ~~~java
 method.invoke(receiver, (Object) new String[] {"a", "b"});
 ~~~
 
-Dòng sau chỉ đúng khi method nhận **một String[]**, khác với method log(String,int...) phía trên. Cast (Object) đặc biệt có ích để tránh Java tự trải mảng tham chiếu String[] thành các phần tử varargs ở **chính lệnh Method.invoke**.
+The latter line is only valid when the method takes **one String[]**, unlike the log(String,int...) method above. The (Object) cast is especially useful to prevent Java from expanding a String[] reference array into varargs elements of **Method.invoke itself**.
 
-Tương tự, **Constructor.newInstance(Object... args)** cũng nhận mảng arguments theo runtime signature, chứ không chạy bộ chọn overload như javac. Không dùng isVarArgs() để giả định mọi lệnh gọi reflective sẽ tự chuyển số phần tử tùy ý thành một mảng.
+Similarly, **Constructor.newInstance(Object... args)** also takes an argument array matching the runtime signature, rather than running overload selection like javac. Do not use isVarArgs() to assume that every reflective call will automatically convert arbitrary numbers of elements into an array.
 
-## 8. Quyền truy cập qua AccessibleObject và JPMS
+## 8. Access Rights via AccessibleObject and JPMS
 
-Method và Constructor kế thừa khả năng yêu cầu bỏ qua một số kiểm tra Java language access từ AccessibleObject:
+Method and Constructor inherit the ability to request bypassing certain Java language access checks from AccessibleObject:
 
 ~~~java
 if (executable.trySetAccessible()) {
-    // Caller có thể yêu cầu tắt kiểm tra access trong giới hạn cho phép.
+    // The caller can request disabling access checks within permitted limits.
 }
 ~~~
 
-Đây là fragment giả định đã có biến Executable.
+This is a fragment assuming an Executable variable already exists.
 
-Trên Java Platform Module System (JPMS), private member của class thuộc một named module khác có thể nằm trong package **không mở cho module đang thực hiện Reflection**. Lệnh **setAccessible(true)** có thể ném **InaccessibleObjectException**, còn **trySetAccessible()** có thể trả false. Package được **exports** cho public API không tự cho phép deep reflection vào private method/constructor; thông thường cần **opens** phù hợp.
+On the Java Platform Module System (JPMS), a private member of a class belonging to another named module may reside in a package **not opened to the module performing Reflection**. Calling **setAccessible(true)** may throw **InaccessibleObjectException**, while **trySetAccessible()** may return false. A package that is **exports**-ed for public API does not automatically permit deep reflection into private methods/constructors; appropriate **opens** is usually required.
 
-Nếu mục đích chỉ là đọc metadata, nhiều API như getDeclaredMethods/getDeclaredConstructors/getParameters vẫn sử dụng được dù sau đó không có quyền invoke non-public member. Vì vậy:
+If the goal is only reading metadata, many APIs such as getDeclaredMethods/getDeclaredConstructors/getParameters still work even when you lack permission to invoke non-public members afterward. Therefore:
 
-1. Phân tích metadata với Executable trước.
-2. Chỉ yêu cầu deep reflective access khi thực sự cần invoke/newInstance.
-3. Kiểm tra module/package và caller chính xác nếu bị chặn.
-4. Không dùng setAccessible để vượt quyền đối với thành viên nội bộ khi API công khai đã đáp ứng yêu cầu.
+1. Analyze metadata with Executable first.
+2. Only request deep reflective access when you actually need invoke/newInstance.
+3. Verify the exact module/package and caller if blocked.
+4. Do not use setAccessible to bypass permissions on internal members when a public API already meets the requirement.
 
-Việc **setAccessible(true) thành công** cũng không làm thay đổi chữ ký Method/Constructor, generic return types, số tham số hoặc annotation. Đây là thay đổi kiểm tra quyền truy cập khi dùng Reflection, không phải sửa class file.
+Even when **setAccessible(true) succeeds**, it does not alter the Method/Constructor signature, generic return types, parameter count, or annotations. It is a change to access-check enforcement during Reflection, not a modification of the class file.
 
-## 9. Dùng Executable để viết scanner chung an toàn
+## 9. Using Executable to Write a Safe Generic Scanner
 
-Một scanner dùng cho cả Method và Constructor có thể nhận danh sách Executable rồi in những trường chung:
+A scanner used for both Method and Constructor can accept an Executable and print shared fields:
 
 ~~~java
 static void describe(Executable e) {
@@ -429,7 +429,7 @@ static void describe(Executable e) {
 }
 ~~~
 
-Đây là một method fragment cần import java.lang.reflect.Executable và java.lang.reflect.Parameter. Có thể gọi với Method hoặc Constructor. Khi quét toàn class, có thể lấy:
+This is a method fragment requiring imports for java.lang.reflect.Executable and java.lang.reflect.Parameter. It can be called with a Method or Constructor. When scanning an entire class, you can retrieve:
 
 ~~~java
 for (Method m : type.getDeclaredMethods()) {
@@ -440,64 +440,64 @@ for (Constructor<?> c : type.getDeclaredConstructors()) {
 }
 ~~~
 
-Biến type là Class<?> đã xác định; hai lệnh getDeclared... không duyệt superclass theo cùng cách getMethods(), và constructor **không được kế thừa**.
+The type variable is a resolved Class<?>; the two getDeclared... calls do not traverse superclasses the way getMethods() does, and constructors **are not inherited**.
 
-Khi nâng cấp scanner cho framework thực tế:
+When upgrading the scanner for a real-world framework:
 
-- Kiểm tra **Modifier** cùng **getDeclaringClass()**; không dựa vào thứ tự của getDeclaredMethods()/getDeclaredConstructors().
-- Kiểm tra **Method.isBridge()** (chỉ Method có) và **Executable.isSynthetic()** để giảm trường hợp compiler-generated members khi xuất tài liệu source API.
-- Dùng **isNamePresent()** trước khi lấy tên tham số làm tên property/JSON key/argument binding.
-- Phân biệt **getParameterTypes()** khi cần descriptor runtime với **getGenericParameterTypes()** khi cần phân tích T, List<T> hoặc wildcard.
-- Phân biệt **declaration annotation** và **type-use annotation**.
-- Khi có implicit/synthetic parameters, kiểm tra độ dài và metadata trước khi ghép nhiều mảng theo index.
-- Dùng subtype-specific API để xử lý **kiểu trả về của Method** hoặc **khởi tạo của Constructor**.
+- Check **Modifier** together with **getDeclaringClass()**; do not rely on the order of getDeclaredMethods()/getDeclaredConstructors().
+- Check **Method.isBridge()** (only Method has this) and **Executable.isSynthetic()** to reduce compiler-generated members when generating source API documentation.
+- Use **isNamePresent()** before using a parameter name as a property name/JSON key/argument binding.
+- Distinguish **getParameterTypes()** when needing runtime descriptors from **getGenericParameterTypes()** when analyzing T, List<T>, or wildcards.
+- Distinguish **declaration annotations** from **type-use annotations**.
+- When implicit/synthetic parameters exist, check lengths and metadata before pairing multiple arrays by index.
+- Use subtype-specific APIs to handle **Method return types** or **Constructor instantiation**.
 
-Một framework không nên mặc định lấy tên tham số, annotation và generic type làm toàn bộ hợp đồng xác thực: nhiều dữ liệu có thể thiếu vì cách build, retention, obfuscation hoặc compiler. Hãy có đường fallback và thông báo lỗi rõ ràng.
+A framework should not assume parameter names, annotations, and generic types form the entire validation contract: much of this data may be absent due to build settings, retention, obfuscation, or the compiler. Provide fallbacks and clear error messages.
 
-## 10. Lỗi phổ biến và câu hỏi tự kiểm tra
+## 10. Common Mistakes and Self-Check Questions
 
-### Lỗi thường gặp
+### Common Mistakes
 
-1. **Cố gọi executable.invoke(...)**: Executable không khai báo invoke/newInstance chung. Phân biệt Method và Constructor bằng instanceof, rồi dùng đúng API.
-2. **Cho rằng generic Type luôn là Class<?>**: với List<String>, Type có thể là ParameterizedType; với T có thể là TypeVariable. Không ép kiểu bừa.
-3. **Lấy getParameters()[i].getName() làm tên source chắc chắn**: thiếu -parameters thường sinh arg0/arg1, isNamePresent() là false.
-4. **Nhầm isVarArgs với tự gom arguments**: reflective invocation cần đối số đúng descriptor; last parameter là array.
-5. **Nhầm annotation trên tham số và annotation trên kiểu**: getParameterAnnotations() và getAnnotatedParameterTypes() phục vụ mục đích khác nhau.
-6. **Giả định tham số runtime luôn bằng số tham số viết trong source**: implicit/synthetic parameters có thể thay đổi parameter count và mô hình generic metadata.
-7. **Tin rằng getExceptionTypes() liệt kê mọi exception có thể xảy ra khi gọi**: nó chỉ phản ánh throws declaration, còn runtime exception/error vẫn có thể phát sinh.
-8. **Gọi setAccessible(true) để sửa metadata**: API chỉ thay đổi khả năng bỏ qua một số kiểm tra access; JPMS vẫn bảo vệ các package chưa opens phù hợp.
-9. **Bỏ qua bridge/synthetic methods** khi duyệt toàn class; method do compiler tạo có thể làm kết quả scanner khác với source.
-10. **Dựa vào thứ tự array getDeclaredMethods() hoặc getDeclaredConstructors()**: không có thứ tự ổn định theo source được bảo đảm.
+1. **Trying to call executable.invoke(...)**: Executable does not declare a common invoke/newInstance. Distinguish Method and Constructor with instanceof, then use the proper API.
+2. **Assuming generic Type is always Class<?>**: for List<String>, Type may be ParameterizedType; for T it may be TypeVariable. Do not cast blindly.
+3. **Treating getParameters()[i].getName() as a guaranteed source name**: missing -parameters often yields arg0/arg1, with isNamePresent() returning false.
+4. **Confusing isVarArgs with automatic argument packing**: reflective invocation requires arguments matching the descriptor; the last parameter is an array.
+5. **Confusing parameter annotations and type-use annotations**: getParameterAnnotations() and getAnnotatedParameterTypes() serve different purposes.
+6. **Assuming runtime parameter count always equals the source parameter count**: implicit/synthetic parameters can change parameter count and the generic metadata layout.
+7. **Believing getExceptionTypes() lists every exception that can occur on call**: it only reflects the throws declaration; runtime exceptions/errors can still occur.
+8. **Calling setAccessible(true) to modify metadata**: the API only alters the ability to bypass certain access checks; JPMS still protects packages that are not appropriately opened.
+9. **Ignoring bridge/synthetic methods** when iterating over an entire class; compiler-generated methods can make scanner output differ from source.
+10. **Relying on the array order of getDeclaredMethods() or getDeclaredConstructors()**: no stable source order is guaranteed.
 
-### Tự kiểm tra
+### Self-Check
 
-**Câu 1.** Biến Executable e đang trỏ tới Constructor<?>. Có thể gọi e.getParameters() không? Có thể gọi e.newInstance() trực tiếp không?
+**Question 1.** An Executable variable e points to a Constructor<?>. Can you call e.getParameters()? Can you call e.newInstance() directly?
 
-**Đáp án:** getParameters() được vì thuộc API Executable; newInstance() không phải API chung nên cần cast/kiểm tra Constructor<?>.
+**Answer:** getParameters() works because it belongs to the Executable API; newInstance() is not a shared API, so you need to cast/check for Constructor<?>.
 
-**Câu 2.** Method nhận List<String> và int... . Những kiểu nào dùng khi getDeclaredMethod?
+**Question 2.** A method takes List<String> and int... . What types are used in getDeclaredMethod?
 
-**Đáp án:** List.class và int[].class, theo thứ tự. Với varargs, tham số cuối có runtime type là mảng.
+**Answer:** List.class and int[].class, in order. With varargs, the last parameter has an array runtime type.
 
-**Câu 3.** Một Parameter có name là arg1 và isNamePresent() trả false. Có nên dùng arg1 làm tên dữ liệu API cố định không?
+**Question 3.** A Parameter has name arg1 and isNamePresent() returns false. Should arg1 be used as a fixed API data name?
 
-**Đáp án:** Không. Đây thường là tên tự sinh do thiếu metadata. Dùng -parameters hoặc cấu hình ánh xạ tên rõ ràng.
+**Answer:** No. This is usually a synthesized name due to missing metadata. Use -parameters or explicit name-mapping configuration.
 
-**Câu 4.** Khi đọc một parameter vừa có @Label khai báo vừa có @Marked TYPE_USE, nên dùng API gì?
+**Question 4.** When reading a parameter that has both a @Label declaration annotation and a @Marked TYPE_USE annotation, which APIs should be used?
 
-**Đáp án:** Parameter.getAnnotation(Label.class) cho declaration annotation và getAnnotatedType()/getAnnotatedParameterTypes() cho type-use annotation.
+**Answer:** Parameter.getAnnotation(Label.class) for the declaration annotation and getAnnotatedType()/getAnnotatedParameterTypes() for the type-use annotation.
 
-**Câu 5.** Method có generic type parameter E extends Number; getParameterTypes() cho tham số kiểu E trả gì, và getGenericParameterTypes() trả gì?
+**Question 5.** A method has a generic type parameter E extends Number; what does getParameterTypes() return for a parameter of type E, and what does getGenericParameterTypes() return?
 
-**Đáp án:** Thường là Number.class và TypeVariable E; type erasure được dùng để lookup, còn generic metadata phục vụ phân tích khai báo.
+**Answer:** Usually Number.class and TypeVariable E; type erasure is used for lookup, while generic metadata serves declaration analysis.
 
-**Câu 6.** Constructor của non-static inner class có thể có thêm tham số gì?
+**Question 6.** What extra parameter might the constructor of a non-static inner class have?
 
-**Đáp án:** Tham số enclosing instance của outer class, thường ở đầu descriptor runtime. Dùng đúng Class<?> khi tra cứu và kiểm tra Parameter flags nếu metadata có.
+**Answer:** The enclosing instance parameter of the outer class, typically at the beginning of the runtime descriptor. Use the right Class<?> when looking it up and check Parameter flags if metadata is present.
 
-**Ghi nhớ:** **Executable là API metadata chung cho Method và Constructor**. Dùng nó để phân tích tham số, generic, annotations, exceptions, varargs và modifiers; khi cần thực thi phải dùng **Method.invoke** hoặc **Constructor.newInstance**. Khi phụ thuộc vào tên tham số, build với **-parameters** và xác nhận **isNamePresent()**.
+**Remember:** **Executable is the shared metadata API for Method and Constructor**. Use it to analyze parameters, generics, annotations, exceptions, varargs, and modifiers; when execution is needed, use **Method.invoke** or **Constructor.newInstance**. When relying on parameter names, build with **-parameters** and verify **isNamePresent()**.
 
-### Tài liệu tham khảo
+### References
 
 - Java SE 17 — Executable: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Executable.html
 - Java SE 17 — Parameter: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Parameter.html

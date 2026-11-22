@@ -1,22 +1,22 @@
-# Đọc language, country, script, variant và extension của `Locale` trong Java
+# Reading language, country, script, variant, and extensions of `Locale` in Java
 
-## 1. Mục tiêu của bài học
+## 1. Lesson Objectives
 
-Một `java.util.Locale` không chỉ chứa “ngôn ngữ” và “quốc gia”. Nó có thể gồm **language** (ngôn ngữ), **country/region** (vùng), **script** (hệ chữ viết), **variant** (biến thể) và **extension** (thông tin mở rộng, ví dụ loại lịch hoặc hệ số). Đọc đúng những trường này giúp chương trình chọn tài nguyên ngôn ngữ, biểu diễn locale trong log, hiển thị tên thân thiện và tôn trọng tùy chọn của người dùng.
+A `java.util.Locale` contains more than just “language” and “country”. It can include **language**, **country/region**, **script** (writing system), **variant**, and **extensions** (additional information, such as calendar type or numbering system). Reading these fields correctly helps a program choose language resources, represent locales in logs, display user-friendly names, and respect user preferences.
 
-Sau bài này, bạn cần biết:
+After this lesson, you should know how to:
 
-- Phân biệt `getLanguage()`, `getCountry()`, `getScript()` và `getVariant()`.
-- Đọc các extension qua `getExtensionKeys()` và `getExtension(char)`.
-- Đọc riêng các thành phần của Unicode locale extension `u` bằng `getUnicodeLocaleAttributes()`, `getUnicodeLocaleKeys()` và `getUnicodeLocaleType(String)`.
-- Phân biệt giá trị **chuỗi rỗng**, **`null`** và **tập rỗng** khi trường không được khai báo.
-- Hiểu biểu diễn BCP 47 và cách tạo, kiểm tra, lưu trữ một `Locale` trong Java 17+.
+- Distinguish `getLanguage()`, `getCountry()`, `getScript()`, and `getVariant()`.
+- Read extensions via `getExtensionKeys()` and `getExtension(char)`.
+- Read individual parts of the Unicode locale extension `u` using `getUnicodeLocaleAttributes()`, `getUnicodeLocaleKeys()`, and `getUnicodeLocaleType(String)`.
+- Distinguish **empty string**, **`null`**, and **empty set** return values when a field is undeclared.
+- Understand BCP 47 representation and how to create, validate, and store a `Locale` in Java 17+.
 
-Đây là bài về **đọc cấu trúc `Locale`**. Không coi các trường này là bằng chứng địa chỉ, quốc tịch, múi giờ hay mã tiền tệ thực của một giao dịch.
+This lesson is about **reading `Locale` structure**. Do not treat these fields as proof of a transaction's actual address, nationality, time zone, or currency code.
 
-## 2. Giải phẫu một BCP 47 language tag
+## 2. Anatomy of a BCP 47 Language Tag
 
-Java hỗ trợ tạo `Locale` từ language tag BCP 47, ví dụ:
+Java supports creating a `Locale` from a BCP 47 language tag, for example:
 
 ```text
 en-Latn-US-posix-u-ca-japanese-nu-thai-x-demo
@@ -31,32 +31,32 @@ en-Latn-US-posix-u-ca-japanese-nu-thai-x-demo
 └───────────────────────────────────────── language = en
 ```
 
-| Phần | Ví dụ | Vai trò |
+| Part | Example | Role |
 | --- | --- | --- |
-| Language | `en`, `vi`, `zh` | Chọn ngôn ngữ; mã thường viết thường. |
-| Script | `Latn`, `Cyrl`, `Hans`, `Hant` | Xác định hệ chữ; mã ISO 15924, thường viết hoa chữ đầu. |
-| Country/region | `US`, `VN`, `419` | Xác định vùng; hai chữ cái hoặc ba chữ số theo BCP 47. |
-| Variant | `posix` | Biến thể riêng theo quy ước của tag. |
-| Extension | `u-...`, `x-...` | Tùy chọn bổ sung và phần private-use. |
+| Language | `en`, `vi`, `zh` | Selects the language; code is usually lowercase. |
+| Script | `Latn`, `Cyrl`, `Hans`, `Hant` | Identifies the writing system; ISO 15924 code, usually title-cased. |
+| Country/region | `US`, `VN`, `419` | Identifies the region; two letters or three digits per BCP 47. |
+| Variant | `posix` | Specific variant per the tag's conventions. |
+| Extension | `u-...`, `x-...` | Additional preferences and private-use section. |
 
-Không phải tag nào cũng chứa đủ năm thành phần. `"vi"` là một tag hợp lệ không khai báo vùng, script hay extension; `"vi-VN"` khai báo vùng nhưng vẫn không khai báo script. **Thiếu trường nghĩa là không được chỉ định**, không có nghĩa hệ chữ hoặc vùng của người dùng “không tồn tại”.
+Not every tag contains all five components. `"vi"` is a valid tag without a region, script, or extension; `"vi-VN"` declares a region but still does not declare a script. **An absent field means unspecified**, not that the user's script or region “does not exist”.
 
-Phân tích thủ công bằng `tag.split("-")` rất dễ sai: script và country là các phần tùy chọn, variant có thể nhiều subtag, extension `u` lại gồm nhiều keyword. Java đã cung cấp getter để đọc cấu trúc này an toàn hơn.
+Parsing manually with `tag.split("-")` is very error-prone: script and country are optional, variant can have multiple subtags, and the `u` extension itself contains multiple keywords. Java provides getters to read this structure more safely.
 
-## 3. Bốn getter cơ bản
+## 3. Four Basic Getters
 
-| API | Kết quả ví dụ với `en-Latn-US-posix` | Kiểu | Khi không có |
+| API | Example Result for `en-Latn-US-posix` | Type | When Absent |
 | --- | --- | --- | --- |
 | `locale.getLanguage()` | `"en"` | `String` | `""` |
 | `locale.getCountry()` | `"US"` | `String` | `""` |
 | `locale.getScript()` | `"Latn"` | `String` | `""` |
 | `locale.getVariant()` | `"posix"` | `String` | `""` |
 
-Java trả **mã định danh** chứ không phải tên tự nhiên: `getLanguage()` là `"vi"`, còn `getDisplayLanguage(Locale.ENGLISH)` có thể dùng để lấy tên ngôn ngữ tiếng Anh cho giao diện. Tương tự, `getCountry()` trả mã vùng `"VN"`, khác `getDisplayCountry(...)`.
+Java returns **identifier codes** rather than natural names: `getLanguage()` is `"vi"`, while `getDisplayLanguage(Locale.ENGLISH)` can be used to obtain the English language name for the UI. Similarly, `getCountry()` returns the region code `"VN"`, unlike `getDisplayCountry(...)`.
 
 ### 3.1. Language — `getLanguage()`
 
-`getLanguage()` đọc mã ngôn ngữ, thường là mã ISO 639 theo quy tắc BCP 47. Các tag `en`, `en-US` và `en-Latn-US` đều có language là `en`.
+`getLanguage()` reads the language code, typically an ISO 639 code per BCP 47 rules. The tags `en`, `en-US`, and `en-Latn-US` all have language `en`.
 
 ```java
 Locale vietnamese = Locale.forLanguageTag("vi-VN");
@@ -65,13 +65,13 @@ System.out.println(vietnamese.getLanguage()); // vi
 System.out.println(english.getLanguage());    // en
 ```
 
-*Đây là đoạn Java minh họa đặt bên trong phương thức, chưa phải chương trình độc lập.*
+*This is an illustrative Java snippet inside a method, not a standalone program.*
 
-`getLanguage()` chỉ mô tả language; nó không bảo đảm ứng dụng có bản dịch cho ngôn ngữ đó. `Locale.ROOT.getLanguage()` là `""`.
+`getLanguage()` only describes the language; it does not guarantee the application has translations for that language. `Locale.ROOT.getLanguage()` is `""`.
 
 ### 3.2. Country / Region — `getCountry()`
 
-`getCountry()` đọc mã vùng. Nó thường là mã hai chữ cái như `US`, `VN` nhưng theo BCP 47 cũng có thể là mã vùng ba chữ số như `419`.
+`getCountry()` reads the region code. It is commonly a two-letter code like `US` or `VN`, though per BCP 47 it can also be a three-digit region code such as `419`.
 
 ```java
 Locale a = Locale.forLanguageTag("en-US");
@@ -80,11 +80,11 @@ System.out.println(a.getCountry()); // US
 System.out.println(b.getCountry()); // 419
 ```
 
-Tag `vi-US` có `getLanguage()` là `"vi"` và `getCountry()` là `"US"`; kết hợp này chỉ nói về ngữ cảnh locale. **Không tự tính múi giờ bằng country** (một nước có thể có nhiều múi giờ), và không thay đổi đơn vị tiền tệ thật của dữ liệu dựa vào country. Với định dạng tiền và thời gian, hãy quản lý `Currency` và `ZoneId` theo yêu cầu riêng.
+The tag `vi-US` has `getLanguage()` equal to `"vi"` and `getCountry()` equal to `"US"`; this combination only describes locale context. **Do not compute time zones from the country** (a single country can span multiple time zones), and do not alter the actual currency unit of data based on country. For money and time formatting, manage `Currency` and `ZoneId` according to separate requirements.
 
 ### 3.3. Script — `getScript()`
 
-Script là mã hệ chữ viết ISO 15924, ví dụ `Latn` (Latin), `Cyrl` (Cyrillic), `Hans` (Chinese simplified), `Hant` (Chinese traditional). Cùng language có thể có nhiều script.
+Script is an ISO 15924 writing system code, such as `Latn` (Latin), `Cyrl` (Cyrillic), `Hans` (Chinese Simplified), or `Hant` (Chinese Traditional). The same language can have multiple scripts.
 
 | Tag | Language | Script | Country |
 | --- | --- | --- | --- |
@@ -94,40 +94,40 @@ Script là mã hệ chữ viết ISO 15924, ví dụ `Latn` (Latin), `Cyrl` (Cyr
 | `zh-Hant-TW` | `zh` | `Hant` | `TW` |
 | `vi-VN` | `vi` | `""` | `VN` |
 
-Chỉ dựa trên `getLanguage()` có thể chọn sai bản chữ viết (ví dụ hệ Latin so với Cyrillic ở `sr`). Tuy nhiên, `getScript()` trả `""` khi tag không chỉ định script; đừng suy diễn ngược rằng câu chữ người dùng không có hệ chữ.
+Relying solely on `getLanguage()` can pick the wrong writing system (for example Latin versus Cyrillic in `sr`). However, `getScript()` returns `""` when the tag does not specify a script; do not infer backward that the user's text has no script.
 
 ### 3.4. Variant — `getVariant()`
 
-Variant mô tả một biến thể hoặc quy ước cụ thể, ví dụ `posix` trong `en-US-posix`:
+Variant describes a specific variant or convention, such as `posix` in `en-US-posix`:
 
 ```java
 Locale locale = Locale.forLanguageTag("en-US-posix");
 System.out.println(locale.getVariant()); // posix
 ```
 
-Trong BCP 47, variant subtag thường có 5–8 ký tự chữ/số hoặc đúng bốn ký tự bắt đầu bằng số; có thể có nhiều variant. Một số `Locale` tạo bằng constructor Java cũ chứa variant legacy với dấu gạch dưới. Vì thế, đừng tự tách hoặc tự nối variant khi trao đổi language tag. Dùng `toLanguageTag()` để xuất định danh theo cú pháp BCP 47 và `Locale.Builder` khi cần kiểm tra từng thành phần.
+In BCP 47, a variant subtag typically has 5–8 alphanumeric characters or exactly four characters starting with a digit; multiple variants may exist. Some `Locale` objects created via legacy Java constructors contain legacy variants with underscores. Therefore, do not split or concatenate variants manually when exchanging language tags. Use `toLanguageTag()` to export identifiers in BCP 47 syntax and `Locale.Builder` when per-component validation is needed.
 
-Script mô tả *hệ chữ*, variant mô tả *biến thể*; không thể thay thế nhau. Trong ứng dụng thông thường, variant có thể vắng mặt.
+Script describes the *writing system*, while variant describes a *variant*; they are not interchangeable. In typical applications, variant may be absent.
 
-## 4. Extension — đọc theo key
+## 4. Extensions — Reading by Key
 
-Ngoài bốn thành phần cơ sở, `Locale` có thể chứa extension. Mỗi extension bắt đầu bằng một singleton key (chữ hoặc số), rồi đến các subtag. Java cung cấp:
+Beyond the four base components, a `Locale` can contain extensions. Each extension begins with a singleton key (a letter or digit), followed by subtags. Java provides:
 
-- `getExtensionKeys()` — trả `Set<Character>` gồm các key hiện có, ví dụ `['u', 'x']` nếu viết dưới dạng danh sách cho dễ hiểu.
-- `getExtension('u')` — trả toàn bộ phần nội dung extension `u` (không gồm tiền tố `u-`).
-- `getExtension('x')` — trả phần private-use sau `x-`.
-- `getExtension(key)` — trả `null` nếu key vắng mặt.
+- `getExtensionKeys()` — returns a `Set<Character>` of present keys, such as `['u', 'x']` if written as a list for readability.
+- `getExtension('u')` — returns the entire content of extension `u` (excluding the `u-` prefix).
+- `getExtension('x')` — returns the private-use portion after `x-`.
+- `getExtension(key)` — returns `null` if the key is absent.
 
-**Không giả định thứ tự lặp `Set` là cố định**. Dùng `TreeSet` nếu cần in các key theo thứ tự để kiểm thử hoặc đối chiếu kết quả.
+**Do not assume `Set` iteration order is fixed.** Use a `TreeSet` if you need to print keys in sorted order for testing or comparing results.
 
-### 4.1. Unicode locale extension `u`
+### 4.1. Unicode Locale Extension `u`
 
-Tag `en-US-u-ca-japanese-nu-thai` chứa hai Unicode locale keyword:
+The tag `en-US-u-ca-japanese-nu-thai` contains two Unicode locale keywords:
 
-- `ca=japanese`: loại lịch Nhật.
-- `nu=thai`: hệ chữ số Thái.
+- `ca=japanese`: Japanese calendar type.
+- `nu=thai`: Thai numbering system.
 
-Với một `Locale` tạo từ tag này:
+For a `Locale` created from this tag:
 
 ```java
 Locale locale =
@@ -143,26 +143,26 @@ String numbering = locale.getUnicodeLocaleType("nu");
 // "thai"
 ```
 
-Các getter chuyên cho `u`:
+Getters specialized for `u`:
 
-| Getter | Tác dụng | Ví dụ |
+| Getter | Effect | Example |
 | --- | --- | --- |
-| `getUnicodeLocaleKeys()` | Các keyword key trong extension `u` | `ca`, `nu` |
-| `getUnicodeLocaleType("ca")` | Type của keyword `ca` | `japanese` |
-| `getUnicodeLocaleType("nu")` | Type của keyword `nu` | `thai` |
-| `getUnicodeLocaleAttributes()` | Các Unicode attribute trong extension `u` | `attr` trong `en-u-attr-ca-gregory` |
+| `getUnicodeLocaleKeys()` | Keyword keys inside extension `u` | `ca`, `nu` |
+| `getUnicodeLocaleType("ca")` | Type of keyword `ca` | `japanese` |
+| `getUnicodeLocaleType("nu")` | Type of keyword `nu` | `thai` |
+| `getUnicodeLocaleAttributes()` | Unicode attributes inside extension `u` | `attr` in `en-u-attr-ca-gregory` |
 
-**Attribute khác keyword:** với `en-u-attr-ca-gregory`, `attr` là attribute (không có type), còn `ca` là keyword với type `gregory`. Vì vậy, `getUnicodeLocaleAttributes()` chứa `"attr"` và `getUnicodeLocaleType("ca")` trả `"gregory"`.
+**Attributes differ from keywords:** in `en-u-attr-ca-gregory`, `attr` is an attribute (no type), whereas `ca` is a keyword with type `gregory`. Accordingly, `getUnicodeLocaleAttributes()` contains `"attr"` and `getUnicodeLocaleType("ca")` returns `"gregory"`.
 
-Extension thể hiện tùy chọn hoặc ngữ cảnh, không bảo đảm mọi Java formatter tự động áp dụng toàn bộ tùy chọn. Ví dụ `ca=japanese` không tự buộc mọi `DateTimeFormatter` chuyển sang niên lịch Nhật; cần kiểm tra loại chronology được API sử dụng và cấu hình rõ ràng khi cần. Tương tự, phải kiểm tra hỗ trợ dữ liệu locale thực tế trước khi kỳ vọng chữ số theo `nu`.
+Extensions express preferences or context; they do not guarantee every Java formatter automatically applies all preferences. For example, `ca=japanese` does not automatically force every `DateTimeFormatter` to switch to the Japanese calendar; you must check the chronology used by the API and configure it explicitly when needed. Similarly, check actual locale data support before expecting digits formatted per `nu`.
 
-### 4.2. Private-use extension `x`
+### 4.2. Private-Use Extension `x`
 
-`en-US-x-demo` có `getExtension('x')` là `"demo"`. `x` dành cho thỏa thuận riêng, không có ý nghĩa chung được mọi ứng dụng Java hiểu giống nhau. Không diễn giải `x-demo` thành quốc gia, script, thông tin cá nhân hay tính năng có sẵn nếu hệ thống không định nghĩa quy ước riêng.
+`en-US-x-demo` has `getExtension('x')` equal to `"demo"`. `x` is reserved for private agreement and has no universal meaning understood identically by all Java applications. Do not interpret `x-demo` as a country, script, personal info, or built-in feature unless the system defines its own convention.
 
-### 4.3. Extension vắng mặt
+### 4.3. Absent Extensions
 
-Với `Locale.forLanguageTag("vi-VN")`:
+With `Locale.forLanguageTag("vi-VN")`:
 
 ```java
 Locale locale = Locale.forLanguageTag("vi-VN");
@@ -171,11 +171,11 @@ System.out.println(locale.getExtension('u') == null);    // true
 System.out.println(locale.getUnicodeLocaleKeys().isEmpty()); // true
 ```
 
-Điểm cần nhớ: thiếu language/country/script/variant thì getter trả `""`; thiếu một extension/type thì getter trả `null`; thiếu các key/attribute thì getter trả **tập rỗng**. Không gọi `getExtension('u').isEmpty()` khi chưa xử lý khả năng `null`.
+Key point to remember: when language/country/script/variant is missing, the getter returns `""`; when an extension/type is missing, the getter returns `null`; when keys/attributes are missing, the getter returns an **empty set**. Do not call `getExtension('u').isEmpty()` without handling the possibility of `null`.
 
-## 5. Ví dụ Java 17+ chạy độc lập, đọc đầy đủ các phần
+## 5. Standalone Runnable Java 17+ Example Reading All Parts
 
-Tạo tệp **`LocalePartsDemo.java`** với nội dung dưới đây. Để kết quả có thể đối chiếu chính xác, ví dụ dùng `TreeSet` khi in các tập key và attribute.
+Create the file **`LocalePartsDemo.java`** with the contents below. So that results can be compared deterministically, the example uses `TreeSet` when printing sets of keys and attributes.
 
 ```java
 import java.util.Locale;
@@ -217,14 +217,14 @@ public class LocalePartsDemo {
 }
 ```
 
-Dùng JDK 17 hoặc mới hơn, chạy trong cùng thư mục chứa tệp:
+Using JDK 17 or newer, run in the directory containing the file:
 
 ```bash
 javac -encoding UTF-8 LocalePartsDemo.java
 java LocalePartsDemo
 ```
 
-**Đầu ra chính xác:**
+**Exact output:**
 
 ```text
 tag=en-Latn-US-posix-u-ca-japanese-nu-thai-x-demo
@@ -243,23 +243,23 @@ missingScriptIsEmpty=true
 missingExtensionIsNull=true
 ```
 
-### Giải thích đầu ra
+### Explaining the Output
 
-1. `getLanguage()` chỉ trả `en`, không trả nguyên language tag; `getScript()` trả `Latn`, `getCountry()` trả `US`.
-2. `getVariant()` là `posix`; thông tin extension không lẫn vào variant.
-3. `getExtensionKeys()` trả các singleton `u` và `x`; nó không trực tiếp trả Unicode keyword `ca` hoặc `nu`.
-4. `getExtension('u')` trả `ca-japanese-nu-thai`, không chứa tiền tố `u-`; `getExtension('x')` trả `demo`, không có `x-`.
-5. `getUnicodeLocaleKeys()` trả `ca` và `nu`; mỗi giá trị cụ thể được lấy bằng `getUnicodeLocaleType(...)`.
-6. `getUnicodeLocaleAttributes()` cho `en-u-attr-ca-gregory` trả attribute `attr`, không trả keyword `ca`.
-7. Locale `vi-VN` không chứa script hoặc extension, nên điều kiện `isEmpty()` với script và so sánh `== null` với extension đều là `true`.
+1. `getLanguage()` only returns `en`, not the entire language tag; `getScript()` returns `Latn`, and `getCountry()` returns `US`.
+2. `getVariant()` is `posix`; extension information does not leak into variant.
+3. `getExtensionKeys()` returns the singletons `u` and `x`; it does not directly return the Unicode keywords `ca` or `nu`.
+4. `getExtension('u')` returns `ca-japanese-nu-thai`, without the `u-` prefix; `getExtension('x')` returns `demo`, without `x-`.
+5. `getUnicodeLocaleKeys()` returns `ca` and `nu`; each specific value is retrieved via `getUnicodeLocaleType(...)`.
+6. `getUnicodeLocaleAttributes()` for `en-u-attr-ca-gregory` returns the attribute `attr`, not the keyword `ca`.
+7. Locale `vi-VN` contains no script or extensions, so both `isEmpty()` for script and `== null` for the extension evaluate to `true`.
 
-Ví dụ này chỉ đọc và in thông tin cấu trúc. Nó không gọi `Locale.setDefault(...)`, do đó không thay đổi locale mặc định chung của JVM.
+This example only reads and prints structural information. It does not call `Locale.setDefault(...)`, so it does not alter the shared JVM default locale.
 
-## 6. Tạo Locale đúng cách để các getter có ý nghĩa
+## 6. Creating a Locale Properly So Getters Have Meaning
 
 ### `Locale.forLanguageTag(...)`
 
-Đây là API thuận tiện để đọc định danh được lưu hoặc truyền qua biên hệ thống:
+This is a convenient API for reading identifiers stored or transmitted across system boundaries:
 
 ```java
 Locale locale = Locale.forLanguageTag("zh-Hant-TW");
@@ -268,11 +268,11 @@ System.out.println(locale.getScript());   // Hant
 System.out.println(locale.getCountry());  // TW
 ```
 
-`forLanguageTag` có thể xử lý đầu vào sai theo cách linh hoạt, ví dụ dừng tại subtag không hợp lệ thay vì luôn báo lỗi. Vì vậy **tạo được đối tượng không đồng nghĩa đầu vào đúng hoặc locale được ứng dụng hỗ trợ**. Tại request boundary, cần xác thực cú pháp và kiểm tra danh sách locale sản phẩm hỗ trợ nếu điều đó là yêu cầu của hệ thống.
+`forLanguageTag` may handle malformed input leniently, such as stopping at an invalid subtag rather than always throwing an error. Therefore, **being able to create an object does not mean the input is valid or that the locale is supported by the application**. At request boundaries, validate syntax and check the product's supported locale list if that is a system requirement.
 
 ### `Locale.Builder`
 
-Khi có sẵn từng thành phần, dùng Builder để gắn chúng tường minh và kiểm tra cú pháp chặt hơn:
+When individual components are available, use Builder to attach them explicitly and validate syntax more strictly:
 
 ```java
 Locale custom = new Locale.Builder()
@@ -289,33 +289,33 @@ System.out.println(custom.toLanguageTag());
 // en-Latn-US-posix-u-ca-japanese-nu-thai-x-demo
 ```
 
-Các đoạn trong mục này là mã minh họa nằm trong phương thức Java. `Locale.Builder` có thể ném `IllformedLocaleException` nếu giá trị không hợp lệ theo cú pháp, nhưng nó không kiểm tra ứng dụng có bản dịch cho locale hay không.
+The snippets in this section are illustrative code placed inside a Java method. `Locale.Builder` may throw `IllformedLocaleException` if values are syntactically invalid, though it does not check whether the application has translations for the locale.
 
-Khi trao đổi giữa các hệ thống, dùng `toLanguageTag()` thay vì `toString()`. `Locale.toString()` có biểu diễn legacy của Java và không phải mã BCP 47 chuẩn để truyền qua API. Khi cần tên dễ đọc cho người dùng, các phương thức `getDisplayLanguage(...)`, `getDisplayScript(...)`, `getDisplayCountry(...)` hoặc `getDisplayName(...)` dùng một locale hiển thị khác để mô tả thành phần, thay vì dùng các getter mã kỹ thuật như nhãn UI.
+When exchanging identifiers between systems, use `toLanguageTag()` instead of `toString()`. `Locale.toString()` uses Java's legacy representation and is not a standard BCP 47 code for passing across APIs. When human-readable names are needed, methods such as `getDisplayLanguage(...)`, `getDisplayScript(...)`, `getDisplayCountry(...)`, or `getDisplayName(...)` take another display locale to describe components, rather than using technical code getters as UI labels.
 
-## 7. Lỗi thường gặp và cách tránh
+## 7. Common Mistakes and How to Avoid Them
 
-| Lỗi | Vì sao không đúng | Cách làm tốt hơn |
+| Mistake | Why It Is Incorrect | Better Approach |
 | --- | --- | --- |
-| Dùng `split("-")` rồi lấy vị trí cố định | Script, region và variant đều tùy chọn; extension gồm nhiều subtag. | Dùng các getter của `Locale`. |
-| Coi `getCountry()` là tên quốc gia | Nó trả mã vùng, ví dụ `VN`, `US` hoặc `419`. | Dùng `getDisplayCountry(displayLocale)` để hiển thị. |
-| Chỉ so sánh language cho mọi bản dịch | Script có thể phân biệt Latin, Cyrillic, giản thể, phồn thể. | Cân nhắc language + script + region khi chọn locale hỗ trợ. |
-| Cho rằng country luôn hai chữ cái | BCP 47 cho phép mã vùng số ba chữ số. | Không tự áp regex hai chữ cái cho mọi trường hợp. |
-| Coi không có script là lỗi | Nhiều language tag hợp lệ không khai báo script. | Kiểm tra `getScript().isEmpty()`. |
-| Gọi `getExtension('u').isEmpty()` | Khi không có extension, getter trả `null`. | Kiểm tra `null` trước. |
-| Nhầm Unicode key với extension key | `u` là extension key; `ca` và `nu` là keyword bên trong nó. | Dùng `getUnicodeLocaleKeys()` và `getUnicodeLocaleType(...)`. |
-| Tin `ca=japanese` tự đổi mọi định dạng ngày | Formatter/chronology có thể có quy tắc riêng. | Kiểm tra API định dạng được dùng. |
-| Tin locale lấy từ input đồng nghĩa có bản dịch | `Locale` chỉ mô tả định danh, không mang tài nguyên của sản phẩm. | Kiểm tra locale hỗ trợ và fallback của ứng dụng. |
-| Đổi `Locale.setDefault(...)` theo request | Default locale là trạng thái chung của JVM, dễ ảnh hưởng người dùng đồng thời. | Truyền `Locale` tường minh theo request. |
+| Using `split("-")` and reading fixed positions | Script, region, and variant are all optional; extensions consist of multiple subtags. | Use `Locale` getters. |
+| Treating `getCountry()` as a country name | It returns a region code, such as `VN`, `US`, or `419`. | Use `getDisplayCountry(displayLocale)` for display. |
+| Comparing only language for all translations | Script can distinguish Latin, Cyrillic, Simplified, or Traditional forms. | Consider language + script + region when selecting supported locales. |
+| Assuming country is always two letters | BCP 47 allows three-digit numeric region codes. | Do not enforce a two-letter regex for all cases. |
+| Treating missing script as an error | Many valid language tags do not declare a script. | Check `getScript().isEmpty()`. |
+| Calling `getExtension('u').isEmpty()` | When no extension exists, the getter returns `null`. | Check for `null` first. |
+| Confusing Unicode keys with extension keys | `u` is the extension key; `ca` and `nu` are keywords inside it. | Use `getUnicodeLocaleKeys()` and `getUnicodeLocaleType(...)`. |
+| Believing `ca=japanese` automatically changes all date formats | Formatters/chronologies may have their own rules. | Check the formatting API being used. |
+| Believing a locale parsed from input means translations exist | `Locale` only describes an identifier, not product resources. | Check the application's supported locales and fallback. |
+| Changing `Locale.setDefault(...)` per request | Default locale is JVM-wide shared state and can affect concurrent users. | Pass `Locale` explicitly per request. |
 
-## 8. Tự luyện để xác nhận đã nắm kiến thức
+## 8. Self-Practice to Confirm Mastery
 
-**Bài 1.** Với `vi-VN`, `sr-Latn-RS` và `zh-Hant-TW`, viết hàm in `getLanguage()`, `getCountry()`, `getScript()` và `getVariant()`. Chỉ ra trường nào trả `""`. Vì sao `sr-Latn-RS` và `sr-Cyrl-RS` không nên bị coi như nhau nếu sản phẩm có bản dịch theo script?
+**Exercise 1.** For `vi-VN`, `sr-Latn-RS`, and `zh-Hant-TW`, write a function printing `getLanguage()`, `getCountry()`, `getScript()`, and `getVariant()`. Point out which fields return `""`. Why should `sr-Latn-RS` and `sr-Cyrl-RS` not be treated as identical if the product has script-specific translations?
 
-**Bài 2.** Phân tích `en-u-attr-ca-gregory-nu-latn` bằng `getExtension('u')`, `getUnicodeLocaleAttributes()`, `getUnicodeLocaleKeys()` và `getUnicodeLocaleType(...)`. Kết quả cần chỉ ra attribute `attr`, keyword `ca=gregory` và `nu=latn`. In các `Set` bằng `TreeSet` để thứ tự có thể dự đoán.
+**Exercise 2.** Parse `en-u-attr-ca-gregory-nu-latn` using `getExtension('u')`, `getUnicodeLocaleAttributes()`, `getUnicodeLocaleKeys()`, and `getUnicodeLocaleType(...)`. The output should show attribute `attr`, and keywords `ca=gregory` and `nu=latn`. Print `Set`s using `TreeSet` so the order is predictable.
 
-**Bài 3.** Tạo cùng locale bằng `Locale.Builder` và `Locale.forLanguageTag(...)`. Kiểm tra `toLanguageTag()` và `equals(...)`. Thử một subtag sai cú pháp, quan sát parser mềm dẻo khác Builder kiểm tra chặt chẽ thế nào.
+**Exercise 3.** Create the same locale using `Locale.Builder` and `Locale.forLanguageTag(...)`. Check `toLanguageTag()` and `equals(...)`. Try a syntactically invalid subtag and observe how the lenient parser differs from Builder's strict checking.
 
-**Bài 4.** Viết phương thức nhận `Locale` và trả ra dữ liệu gồm language, region, script, variant và các Unicode keyword, nhưng phải xử lý đúng trường trống/null và **không tạo giá trị mặc định giả**. Khi cần serial hóa toàn bộ locale, dùng `toLanguageTag()`.
+**Exercise 4.** Write a method that accepts a `Locale` and returns data containing language, region, script, variant, and Unicode keywords, while properly handling empty/null fields and **without fabricating fake default values**. When the whole locale needs to be serialized, use `toLanguageTag()`.
 
-**Tiêu chí hoàn thành:** giải thích được ý nghĩa từng getter và kiểu kết quả khi thiếu dữ liệu; đọc được extension `u` với attribute/keyword, phần `x`; biết cách tạo locale từ language tag hoặc Builder; và không nhầm mã ngôn ngữ với tên hiển thị, múi giờ hay lựa chọn bản dịch thực tế của ứng dụng.
+**Completion criteria:** able to explain each getter's meaning and return type when data is absent; able to read extension `u` with attributes/keywords and section `x`; know how to create locales from language tags or Builder; and avoid confusing language codes with display names, time zones, or the application's actual translation choices.

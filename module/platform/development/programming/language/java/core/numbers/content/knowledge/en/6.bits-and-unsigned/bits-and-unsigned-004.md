@@ -1,65 +1,65 @@
-# Mở rộng dấu khi nâng kiểu `byte` hoặc `short` trong Java
+# Sign Extension When Promoting `byte` or `short` in Java
 
-Trong Java, `byte` và `short` là **số nguyên có dấu** (*signed integers*). Khi chuyển từ `byte`/`short` sang một kiểu nguyên rộng hơn như `int` hoặc `long`, Java bảo toàn **giá trị số học**. Đối với số âm trong biểu diễn bù hai, điều đó đòi hỏi **mở rộng dấu** (*sign extension*): điền các bit `1` vào phần bit mới ở bên trái. Đối với giá trị không âm, các bit mới là `0`.
+In Java, `byte` and `short` are **signed integers**. When converting from `byte`/`short` to a wider integer type such as `int` or `long`, Java preserves the **arithmetic value**. For negative numbers in two's complement representation, that requires **sign extension**: filling the newly added bits on the left with `1` bits. For non-negative values, the new bits are `0`.
 
-Hành vi này rất quan trọng khi xử lý byte nhị phân, mã màu, dữ liệu mạng, file và bitmask. Nếu muốn hiểu một mẫu 8/16 bit theo nghĩa **số không dấu**, cần diễn giải rõ ràng, chẳng hạn `b & 0xFF`, `s & 0xFFFF`, `Byte.toUnsignedInt(b)` hoặc `Short.toUnsignedInt(s)`.
+This behavior is critical when handling binary bytes, color codes, network data, files, and bitmasks. If you want to interpret an 8- or 16-bit pattern as an **unsigned number**, you must interpret it explicitly, such as `b & 0xFF`, `s & 0xFFFF`, `Byte.toUnsignedInt(b)`, or `Short.toUnsignedInt(s)`.
 
-## 1. Kiểu `byte` và `short` biểu diễn những gì?
+## 1. What Do `byte` and `short` Represent?
 
-| Kiểu Java | Số bit | Miền giá trị có dấu | Bit dấu |
+| Java Type | Bit Width | Signed Value Range | Sign Bit |
 | --- | ---: | --- | --- |
-| `byte` | 8 | -128 đến 127 | Bit thứ 7 |
-| `short` | 16 | -32768 đến 32767 | Bit thứ 15 |
-| `int` | 32 | -2147483648 đến 2147483647 | Bit thứ 31 |
-| `long` | 64 | -9223372036854775808 đến 9223372036854775807 | Bit thứ 63 |
-| `char` | 16 | 0 đến 65535 | Không có bit dấu |
+| `byte` | 8 | -128 to 127 | Bit 7 |
+| `short` | 16 | -32768 to 32767 | Bit 15 |
+| `int` | 32 | -2147483648 to 2147483647 | Bit 31 |
+| `long` | 64 | -9223372036854775808 to 9223372036854775807 | Bit 63 |
+| `char` | 16 | 0 to 65535 | No sign bit |
 
-Java sử dụng biểu diễn **bù hai** (*two's complement*) cho kiểu nguyên có dấu. Chẳng hạn một byte gồm tám bit `1111_1111` được hiểu là `-1` nếu nhìn như `byte`, nhưng cũng có thể được hiểu là `255` nếu áp dụng quy ước *unsigned 8-bit*.
+Java uses **two's complement** representation for signed integer types. For example, a byte consisting of eight bits `1111_1111` is understood as `-1` when viewed as a `byte`, yet can also be understood as `255` under the *unsigned 8-bit* convention.
 
-Trong Java **không có primitive `unsigned byte` hoặc `unsigned short`**. Dữ liệu thô thường được chứa trong `byte`/`short`; người lập trình cần chủ động chọn cách diễn giải có dấu hay không dấu khi tính toán.
+In Java, **there is no primitive `unsigned byte` or `unsigned short`**. Raw data is often stored in `byte`/`short`; the programmer must explicitly choose between signed and unsigned interpretation when computing.
 
-### Minh họa hai cách diễn giải cùng một byte
+### Illustrating two ways to interpret the same byte
 
 ```text
-Bit gốc:            1111 1111
-Đọc như byte signed:        -1
-Đọc như unsigned 8-bit:    255
+Original bits:            1111 1111
+Read as signed byte:             -1
+Read as unsigned 8-bit:         255
 
-Bit gốc:            1000 0000
-Đọc như byte signed:      -128
-Đọc như unsigned 8-bit:    128
+Original bits:            1000 0000
+Read as signed byte:           -128
+Read as unsigned 8-bit:         128
 ```
 
-Hai cách nhìn không làm thay đổi tám bit gốc; chỉ thay đổi **ý nghĩa số học** của chúng. Ngay trong mã Java, literal `0xFF` có kiểu `int` và giá trị `255`; để giữ tám bit đó vào một `byte`, cần ép kiểu:
+The two views do not alter the original eight bits; they only change their **arithmetic meaning**. Even in Java source code, the literal `0xFF` has type `int` and value `255`; to store those eight bits in a `byte`, a cast is required:
 
 ```java
-byte raw = (byte) 0xFF; // bit 11111111, giá trị byte = -1
+byte raw = (byte) 0xFF; // bits 11111111, byte value = -1
 ```
 
-## 2. Cơ chế sign extension khi nâng lên `int` và `long`
+## 2. How Sign Extension Works When Widening to `int` and `long`
 
-Khi widening một giá trị số nguyên có dấu từ `byte` thành `short`, `int` hoặc `long`, Java **giữ nguyên giá trị có dấu**. Theo biểu diễn nhị phân bù hai, các bit được bổ sung ở bên trái bằng bit dấu của giá trị nguồn:
+When widening a signed integer value from `byte` to `short`, `int`, or `long`, Java **preserves the signed value**. In two's complement binary representation, the added bits on the left are filled with the sign bit of the source value:
 
-- Nếu bit dấu của giá trị nguồn là `0` (giá trị không âm), thêm các bit `0`.
-- Nếu bit dấu là `1` (giá trị âm), thêm các bit `1`.
+- If the source value's sign bit is `0` (non-negative value), `0` bits are added.
+- If the sign bit is `1` (negative value), `1` bits are added.
 
-Ví dụ `byte b = -128` có bit gốc `1000_0000`. Khi nâng lên `int`:
+For example, `byte b = -128` has original bits `1000_0000`. When promoted to `int`:
 
 ```text
-byte -128 (8 bit):
+byte -128 (8 bits):
                             1000 0000
-int -128  (32 bit):
+int -128  (32 bits):
 1111 1111 1111 1111 1111 1111 1000 0000
-          24 bit mới = toàn các bit 1
+          24 new bits = all 1 bits
 ```
 
-Kết quả được diễn giải thành `-128` trong `int`, **không thành +128**. Việc mở rộng dấu giữ nguyên giá trị âm thay vì coi bit dấu cũ là bit dữ liệu thông thường.
+The result is interpreted as `-128` in `int`, **not +128**. Sign extension preserves the negative value instead of treating the old sign bit as an ordinary data bit.
 
-Với `byte b = 5`, bit gốc là `0000_0101`; khi nâng lên `int`, 24 bit thêm vào đều bằng `0` và kết quả vẫn là `5`.
+For `byte b = 5`, the original bits are `0000_0101`; when promoted to `int`, all 24 added bits are `0` and the result remains `5`.
 
-### Bảng kết quả chuẩn
+### Standard Results Table
 
-| Biểu thức | Giá trị số thập phân | Mẫu 32 bit dưới dạng hex |
+| Expression | Decimal Value | 32-bit Pattern in Hex |
 | --- | ---: | --- |
 | `(int) (byte) 0x7F` | 127 | `0x0000007F` |
 | `(int) (byte) 0x80` | -128 | `0xFFFFFF80` |
@@ -68,56 +68,56 @@ Với `byte b = 5`, bit gốc là `0000_0101`; khi nâng lên `int`, 24 bit thê
 | `(int) (short) 0x8000` | -32768 | `0xFFFF8000` |
 | `(int) (short) 0xFFFF` | -1 | `0xFFFFFFFF` |
 
-Các cast từ literal `int` sang `byte`/`short` ở đây **thu hẹp số bit trước**, rồi cast `int` phía ngoài thực hiện sign extension. Không nên đọc chuỗi cast như một phép “bỏ qua dấu”.
+Here, the casts from `int` literals to `byte`/`short` **narrow the bit width first**, and then the outer `(int)` cast performs sign extension. Do not read this cast chain as a "sign-ignoring" operation.
 
-## 3. Sign extension khác với zero extension
+## 3. Sign Extension vs. Zero Extension
 
-**Zero extension** là điền các bit `0` vào phần bên trái khi mở rộng. Với `byte`/`short` âm, chuyển kiểu nguyên thông thường sẽ thực hiện **sign extension**. Nếu dữ liệu thực sự là một số không dấu 8/16 bit, phải loại bỏ phần mở rộng dấu để lấy mẫu bit dưới dạng số dương.
+**Zero extension** fills the left positions with `0` bits when widening. For negative `byte`/`short` values, ordinary integer conversion performs **sign extension**. If the data is actually an 8- or 16-bit unsigned number, you must strip the sign-extended bits to obtain the bit pattern as a positive number.
 
-Với `byte b = (byte) 0xFF`:
+For `byte b = (byte) 0xFF`:
 
 ```text
-b dưới dạng byte:  1111 1111             (signed -1)
+b as byte:         1111 1111             (signed -1)
 
-Nâng kiểu bình thường:
+Normal promotion:
 int b:              FFFFFFFF             (signed -1)
 
-Giữ tám bit thấp, điền 0 vào các bit còn lại:
-b & 0xFF:          000000FF             (unsigned 255)
+Keep low eight bits, fill remaining bits with 0:
+b & 0xFF:           000000FF             (unsigned 255)
 ```
 
-Dùng toán tử AND:
+Using the AND operator:
 
 ```java
 byte b = (byte) 0xFF;
-int signed = b;             // -1: mở rộng dấu
-int unsigned = b & 0xFF;    // 255: giữ tám bit thấp
+int signed = b;             // -1: sign extension
+int unsigned = b & 0xFF;    // 255: keeps low eight bits
 
 short s = (short) 0xFFFF;
 int signedShort = s;        // -1
 int unsignedShort = s & 0xFFFF; // 65535
 ```
 
-Điều cốt lõi là `& 0xFF` **không biến kiểu `byte` thành unsigned**; nó tạo một biểu thức kiểu `int` có kết quả trong miền `0..255`. Với `short` và `& 0xFFFF`, kết quả nằm trong `0..65535`.
+The key point is that `& 0xFF` **does not turn `byte` into an unsigned type**; it creates an `int` expression whose result is in the range `0..255`. For `short` and `& 0xFFFF`, the result is in `0..65535`.
 
-### Tại sao mặt nạ hoạt động?
+### Why Does the Mask Work?
 
-Trong biểu thức `b & 0xFF`, `b` được nâng kiểu lên `int` **trước** khi phép AND xảy ra. Nếu `b == -1`, bit sau nâng kiểu là `0xFFFFFFFF`. Mặt nạ `0x000000FF` giữ tám bit thấp và xóa 24 bit cao:
+In `b & 0xFF`, `b` is promoted to `int` **before** the AND operation occurs. If `b == -1`, the bits after promotion are `0xFFFFFFFF`. The mask `0x000000FF` keeps the low eight bits and clears the high 24 bits:
 
 ```text
-0xFFFFFFFF   // b = -1 sau sign extension
-0x000000FF   // mặt nạ
+0xFFFFFFFF   // b = -1 after sign extension
+0x000000FF   // mask
 ----------
 0x000000FF   // 255
 ```
 
-Với `short`, mặt nạ `0x0000FFFF` giữ 16 bit thấp và xóa 16 bit cao. Mặt nạ cần phù hợp **chiều rộng của dữ liệu gốc**: `0xFF` cho byte, `0xFFFF` cho short.
+For `short`, the mask `0x0000FFFF` keeps the low 16 bits and clears the high 16 bits. The mask must match **the width of the original data**: `0xFF` for byte, `0xFFFF` for short.
 
-## 4. API `Byte.toUnsignedInt` và `Short.toUnsignedInt`
+## 4. The `Byte.toUnsignedInt` and `Short.toUnsignedInt` APIs
 
-Java có sẵn các phương thức biểu diễn giá trị có dấu thành giá trị không dấu tương ứng:
+Java provides built-in methods to convert signed values into their corresponding unsigned values:
 
-| Phương thức | Giá trị có dấu đầu vào | Giá trị `int` trả về |
+| Method | Input signed value | Returned `int` value |
 | --- | --- | --- |
 | `Byte.toUnsignedInt((byte) -1)` | -1 | 255 |
 | `Byte.toUnsignedInt((byte) -128)` | -128 | 128 |
@@ -125,7 +125,7 @@ Java có sẵn các phương thức biểu diễn giá trị có dấu thành gi
 | `Short.toUnsignedInt((short) -1)` | -1 | 65535 |
 | `Short.toUnsignedInt((short) -32768)` | -32768 | 32768 |
 
-`Byte.toUnsignedInt(b)` tương đương về kết quả với `b & 0xFF`; `Short.toUnsignedInt(s)` tương đương `s & 0xFFFF`. Các method này có ý nghĩa rõ ràng khi người đọc gặp mã xử lý dữ liệu nhị phân.
+`Byte.toUnsignedInt(b)` is equivalent in result to `b & 0xFF`; `Short.toUnsignedInt(s)` is equivalent to `s & 0xFFFF`. These methods communicate intent clearly when readers encounter binary-data processing code.
 
 ```java
 byte byteData = (byte) 0x80;
@@ -135,61 +135,61 @@ int unsignedByte = Byte.toUnsignedInt(byteData);     // 128
 int unsignedShort = Short.toUnsignedInt(shortData);  // 32768
 ```
 
-Chú ý: `Byte.toUnsignedInt` nhận **`byte`**, không nhận mọi số nguyên. `Short.toUnsignedInt` nhận **`short`**. Muốn xem tám bit thấp của một giá trị `int`, biểu thức `value & 0xFF` thường trực tiếp và rõ ý hơn việc ép tạm sang `byte` rồi gọi method.
+Note: `Byte.toUnsignedInt` accepts **`byte`**, not any integer. `Short.toUnsignedInt` accepts **`short`**. When you want to inspect the low eight bits of an `int` value, `value & 0xFF` is usually more direct and clearer than casting temporarily to `byte` and calling the method.
 
-Đừng nhầm `Integer.toUnsignedLong(int)` với API trên: nó diễn giải **toàn bộ 32 bit** của một `int` theo miền `0..4294967295` và trả `long`; không thay thế cho yêu cầu chỉ lấy 8 hoặc 16 bit thấp của dữ liệu.
+Do not confuse `Integer.toUnsignedLong(int)` with the APIs above: it interprets **all 32 bits** of an `int` in the range `0..4294967295` and returns a `long`; it does not replace taking only the low 8 or 16 bits of data.
 
-## 5. `char` được mở rộng bằng bit 0: trường hợp đối chiếu
+## 5. `char` Is Zero-Extended: A Contrast Case
 
-`char` có 16 bit **không dấu**. Khi `char` được nâng lên `int`, Java điền các bit `0` ở phần cao và giữ giá trị trong khoảng `0..65535`. Ngược lại, `short` là kiểu **có dấu** nên hai giá trị có cùng 16 bit có thể cho kết quả `int` khác nhau.
+`char` has 16 **unsigned** bits. When `char` is promoted to `int`, Java fills the upper bits with `0` and keeps the value in `0..65535`. Conversely, `short` is a **signed** type, so two values with the same 16 bits can produce different `int` results.
 
 ```java
 short signed = (short) 0xFFFF;  // -1
 char unsigned = (char) 0xFFFF; // 65535
 
-int fromShort = signed;   // -1, mẫu int là FFFFFFFF
-int fromChar = unsigned;  // 65535, mẫu int là 0000FFFF
+int fromShort = signed;   // -1, int pattern is FFFFFFFF
+int fromChar = unsigned;  // 65535, int pattern is 0000FFFF
 ```
 
-`char` trong Java đại diện một **UTF-16 code unit**; ví dụ trên chỉ dùng khả năng biểu diễn không dấu của nó để đối chiếu cách mở rộng bit. Không nên dùng `char` như một cách thay thế tổng quát cho số nguyên không dấu trong mọi API.
+`char` in Java represents a **UTF-16 code unit**; the example above merely uses its unsigned representation to contrast bit extension behavior. You should not use `char` as a general-purpose substitute for unsigned integers across APIs.
 
-### Ép `byte` âm sang `char`: chi tiết cần cẩn thận
+### Casting a Negative `byte` to `char`: A Subtle Detail
 
-`byte` không thể tự động mở rộng sang `char` vì miền giá trị của hai kiểu không bao chứa nhau theo quy tắc widening primitive conversion. Ép tường minh có thể tạo kết quả bất ngờ:
+`byte` cannot automatically widen to `char` because the value ranges of the two types do not subsume each other under widening primitive conversion rules. An explicit cast can produce a surprising result:
 
 ```java
 byte minusOne = -1;
-// char invalid = minusOne; // lỗi biên dịch: cần cast
+// char invalid = minusOne; // compile error: cast required
 
 char castDirectly = (char) minusOne;      // 65535 (0xFFFF)
 char lowEightBits = (char) (minusOne & 0xFF); // 255 (0x00FF)
 ```
 
-Khi cast trực tiếp `byte` âm sang `char`, việc chuyển từ giá trị có dấu sang miền 16 bit của `char` cho `0xFFFF` trong trường hợp `-1`. Nếu mục tiêu là chuyển **một byte không dấu** thành code unit mang giá trị `0..255`, hãy che bằng `& 0xFF` trước.
+When casting a negative `byte` directly to `char`, converting from the signed value into `char`'s 16-bit range produces `0xFFFF` in the case of `-1`. If the goal is to convert **an unsigned byte** into a code unit with value `0..255`, mask with `& 0xFF` first.
 
-## 6. Quy tắc unary/binary numeric promotion và phép toán bit
+## 6. Unary/Binary Numeric Promotion Rules and Bit Operations
 
-Không chỉ phép gán như `int x = b;` mới gây sign extension. Java thực hiện **nâng kiểu số học** (*numeric promotion*) với nhiều toán tử:
+Not only assignments like `int x = b;` trigger sign extension. Java performs **numeric promotion** for many operators:
 
-- `b + 1`, `b - 1`, `b * 2`: `byte` được nâng lên `int` trước khi tính.
-- `~b`: toán tử bù bit làm việc trên giá trị `int` đã nâng kiểu.
-- `b << 1`, `b >> 1` và `b >>> 1`: toán hạng trái `byte`/`short` được nâng lên `int` trước khi dịch bit.
-- `b & mask`, `b | mask`, `b ^ mask`: thao tác bit trên kết quả sau binary numeric promotion.
+- `b + 1`, `b - 1`, `b * 2`: `byte` is promoted to `int` before computation.
+- `~b`: the bitwise complement operator operates on the promoted `int` value.
+- `b << 1`, `b >> 1`, and `b >>> 1`: the left operand `byte`/`short` is promoted to `int` before shifting.
+- `b & mask`, `b | mask`, `b ^ mask`: bit manipulation operates on the result after binary numeric promotion.
 
-Ví dụ `byte b = -1`:
+Example with `byte b = -1`:
 
 ```java
 byte b = -1;
-int promoted = b;     // -1, bit FFFFFFFF
-int complement = ~b;  // 0, vì ~FFFFFFFF = 00000000
-int shifted = b >> 1; // -1, dịch phải số học giữ bit dấu
+int promoted = b;     // -1, bits FFFFFFFF
+int complement = ~b;  // 0, because ~FFFFFFFF = 00000000
+int shifted = b >> 1; // -1, arithmetic right shift preserves sign bit
 ```
 
-Nếu người học chỉ hình dung `b` là tám bit `11111111`, có thể dự đoán sai kết quả của phép dịch hay của `~b`; hầu hết các biểu thức trên **đã làm việc với int 32 bit**.
+If a learner only pictures `b` as eight bits `11111111`, they might mispredict the result of a shift or `~b`; most of these expressions **already operate on a 32-bit `int`**.
 
-### `>>` và `>>>` khi nguồn là byte âm
+### `>>` and `>>>` When the Source Is a Negative `byte`
 
-`>>` dịch phải có bảo toàn bit dấu của kiểu đã nâng; `>>>` dịch phải logic và điền `0`. Tuy nhiên **`>>>` không tự giới hạn phép dịch trong tám bit ban đầu**:
+`>>` performs a right shift preserving the sign bit of the promoted type; `>>>` performs a logical right shift and fills with `0`. However, **`>>>` does not automatically restrict the shift to the original eight bits**:
 
 ```java
 byte b = -1;
@@ -198,15 +198,15 @@ int logicalOnInt = b >>> 1;       // 2147483647 (0x7FFFFFFF)
 int logicalOnByte = (b & 0xFF) >>> 1; // 127 (0x7F)
 ```
 
-Tại sao `b >>> 1` không ra 127? `b` đã trở thành `0xFFFFFFFF` kiểu `int`, nên phép dịch logic 32 bit ra `0x7FFFFFFF`. Để dịch **giá trị 8 bit không dấu**, áp dụng `& 0xFF` **trước phép dịch**.
+Why doesn't `b >>> 1` give 127? `b` became `0xFFFFFFFF` of type `int`, so the 32-bit logical shift gives `0x7FFFFFFF`. To shift an **unsigned 8-bit value**, apply `& 0xFF` **before shifting**.
 
-Quy tắc tương tự với `short`: `(s & 0xFFFF) >>> 1` dịch giá trị không dấu 16 bit đúng mục đích.
+The same rule applies to `short`: `(s & 0xFFFF) >>> 1` shifts an unsigned 16-bit value as intended.
 
-## 7. Kết hợp nhiều byte thành một số nguyên không dấu
+## 7. Combining Multiple Bytes into an Unsigned Integer
 
-Khi ghép hai byte từ file hay giao thức mạng thành một số 16 bit **không dấu**, cần giữ đúng tám bit thấp của **từng byte** trước khi ghép.
+When combining two bytes from a file or network protocol into a 16-bit **unsigned** number, you must keep the low eight bits of **each byte** before combining.
 
-Giả sử byte cao có bit `1000_0000` (`0x80`) và byte thấp là `1111_1111` (`0xFF`). Giá trị không dấu 16 bit mong muốn là `0x80FF` = `33023`.
+Suppose the high byte has bits `1000_0000` (`0x80`) and the low byte is `1111_1111` (`0xFF`). The desired 16-bit unsigned value is `0x80FF` = `33023`.
 
 ```java
 byte high = (byte) 0x80;  // -128
@@ -216,20 +216,20 @@ int combined = ((high & 0xFF) << 8) | (low & 0xFF);
 // combined = 0x80FF = 33023
 ```
 
-Từng bước:
+Step by step:
 
-1. `high & 0xFF` biến mẫu `0x80` thành `128` kiểu `int`.
-2. Dịch trái tám bit: `128 << 8` thành `0x8000` (32768).
-3. `low & 0xFF` biến mẫu `0xFF` thành `255`.
-4. Phép OR `0x8000 | 0x00FF` thu được `0x80FF` (33023).
+1. `high & 0xFF` turns the pattern `0x80` into `128` of type `int`.
+2. Left shift by eight bits: `128 << 8` becomes `0x8000` (32768).
+3. `low & 0xFF` turns the pattern `0xFF` into `255`.
+4. Bitwise OR `0x8000 | 0x00FF` yields `0x80FF` (33023).
 
-**Lỗi phổ biến:** viết `(high << 8) | low` mà không mask sẽ khiến `low = -1` mở rộng thành `0xFFFFFFFF`, kéo toàn bộ kết quả OR thành `-1`, sai giá trị mong muốn.
+**Common mistake:** writing `(high << 8) | low` without masking causes `low = -1` to sign-extend to `0xFFFFFFFF`, pulling the entire OR result to `-1`—the wrong value.
 
-Với dữ liệu giao thức, quy ước **byte order** (*big endian/little endian*) vẫn phải được biết từ đặc tả. Ví dụ trên giả định `high` là byte cao; sign extension chỉ là một phần của việc giải mã nhị phân đúng.
+For protocol data, the **byte order** (*big endian/little endian*) convention must still be known from the specification. The example above assumes `high` is the most significant byte; sign extension is only one part of decoding binary data properly.
 
-## 8. Ví dụ Java 17+ hoàn chỉnh và output
+## 8. Complete Java 17+ Example and Output
 
-Tạo file **`SignExtensionDemo.java`**:
+Create the file **`SignExtensionDemo.java`**:
 
 ```java
 public class SignExtensionDemo {
@@ -274,14 +274,14 @@ public class SignExtensionDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac SignExtensionDemo.java
 java SignExtensionDemo
 ```
 
-**Output đúng:**
+**Exact output:**
 
 ```text
 byteSigned=-1
@@ -307,30 +307,30 @@ signedComparison=false
 unsignedComparison=true
 ```
 
-Khi chạy, `printf("%08X")` in tám chữ số hex của biểu diễn `int`. Vì thế `FFFFFFFF` chứng tỏ dấu âm của byte `-1` đã mở rộng lên 32 bit; `0000FFFF` của `char` cho thấy 16 bit cao được điền bằng `0`.
+When executed, `printf("%08X")` prints eight hex digits of the `int` representation. Thus `FFFFFFFF` proves that the negative sign of byte `-1` expanded to 32 bits; `0000FFFF` for `char` shows that the high 16 bits were filled with `0`.
 
-## 9. Những nhầm lẫn thường gặp
+## 9. Common Misconceptions
 
-| Hiểu nhầm | Quy tắc đúng |
+| Misconception | Correct Rule |
 | --- | --- |
-| “`byte b = (byte) 0xFF` thì `int x = b` cho 255.” | `byte` có dấu: `b == -1`; khi nâng lên `int` vẫn `-1` vì sign extension. |
-| “Cast `(int) b` loại bỏ phần dấu.” | Cast widening giữ nguyên giá trị signed và mở rộng bit dấu. |
-| “`b & 0xFF` làm `b` trở thành unsigned.” | `b` không đổi; biểu thức tạo **`int`** dương từ tám bit thấp. |
-| “`Short.toUnsignedInt(s)` mở rộng bằng dấu.” | API diễn giải `short` theo **16 bit không dấu** và trả `int` trong 0..65535. |
-| “`byte` và `char` đều 8 bit.” | `byte` 8 bit signed; `char` 16 bit unsigned UTF-16 code unit. |
-| “`(char) (byte) 0xFF` có giá trị 255.” | Cast trực tiếp byte `-1` sang char tạo `65535`; cần mask trước nếu muốn 255. |
-| “`b >>> 1` dịch đúng tám bit của byte.” | `b` được nâng thành `int` 32 bit trước; để dịch unsigned 8 bit, mask trước. |
-| “Ghép hai byte bằng `(high << 8) | low` luôn đúng.” | `low` âm mở rộng bit dấu; mask từng byte để không làm bẩn các bit cao. |
-| “`(byte) 0xFF` là cách viết một kiểu unsigned byte mới.” | Cast về `byte` chỉ giữ tám bit thấp và diễn giải signed: kết quả `-1`. |
-| “Sign extension làm giá trị âm đổi thành số dương.” | Sign extension **bảo toàn giá trị âm** khi chuyển sang kiểu nguyên rộng hơn. |
+| "`byte b = (byte) 0xFF` makes `int x = b` equal 255." | `byte` is signed: `b == -1`; when promoted to `int` it stays `-1` due to sign extension. |
+| "Casting `(int) b` strips the sign." | Widening casts preserve the signed value and extend the sign bit. |
+| "`b & 0xFF` makes `b` unsigned." | `b` is unchanged; the expression produces a positive **`int`** from the low eight bits. |
+| "`Short.toUnsignedInt(s)` sign-extends." | The API interprets `short` as **16 unsigned bits** and returns an `int` in 0..65535. |
+| "`byte` and `char` are both 8 bits." | `byte` is 8-bit signed; `char` is a 16-bit unsigned UTF-16 code unit. |
+| "`(char) (byte) 0xFF` has value 255." | Casting byte `-1` directly to char produces `65535`; mask first if you want 255. |
+| "`b >>> 1` shifts exactly eight bits of the byte." | `b` is promoted to 32-bit `int` first; to shift unsigned 8-bit, mask beforehand. |
+| "Combining two bytes with `(high << 8) | low` is always right." | Negative `low` sign-extends; mask each byte so high bits are not polluted. |
+| "`(byte) 0xFF` creates a new unsigned byte type." | Casting to `byte` keeps only the low eight bits and interprets them as signed: result `-1`. |
+| "Sign extension turns a negative value into a positive number." | Sign extension **preserves negative values** when converting to a wider integer type. |
 
-## 10. Quy trình kiểm tra mã xử lý bit
+## 10. Checklist for Auditing Bit-Handling Code
 
-1. **Xác định kiểu nguồn:** `byte` 8 bit signed, `short` 16 bit signed, `char` 16 bit unsigned. Kiểu nguồn quyết định việc thêm các bit dấu hay bit `0`.
-2. **Xác định ý nghĩa dữ liệu:** dữ liệu thật sự là số signed hay chỉ là 8/16 bit thô cần hiểu theo unsigned?
-3. **Kiểm tra điểm nâng kiểu:** `int i = b`, `b + 1`, `b >> 1`, `b & mask` đều có thể làm việc với `int` đã sign-extend.
-4. **Chuyển sang diễn giải unsigned trước khi tính nếu cần:** byte dùng `b & 0xFF` hoặc `Byte.toUnsignedInt(b)`; short dùng `s & 0xFFFF` hoặc `Short.toUnsignedInt(s)`.
-5. **Khi dịch/ghép byte:** mask mỗi thành phần trước khi shift/OR; chú ý thứ tự byte do định dạng dữ liệu quy định.
-6. **Kiểm tra bằng hex có độ rộng cố định:** `%08X` cho `int`, so sánh mẫu bit với kết quả số học; phân biệt giá trị signed và mẫu bit nguyên thủy.
+1. **Identify the source type:** 8-bit signed `byte`, 16-bit signed `short`, 16-bit unsigned `char`. The source type determines whether sign bits or `0` bits are added.
+2. **Determine the data semantics:** is the data genuinely a signed number or raw 8/16 bits to be read as unsigned?
+3. **Spot promotion points:** `int i = b`, `b + 1`, `b >> 1`, `b & mask` can all operate on a sign-extended `int`.
+4. **Switch to unsigned interpretation before computing if needed:** for byte use `b & 0xFF` or `Byte.toUnsignedInt(b)`; for short use `s & 0xFFFF` or `Short.toUnsignedInt(s)`.
+5. **When shifting/combining bytes:** mask each component before shifting/ORing; pay attention to the byte order specified by the data format.
+6. **Verify using fixed-width hex:** `%08X` for `int`, comparing bit patterns against arithmetic results; distinguish signed values from raw bit patterns.
 
-**Ghi nhớ:** nâng `byte`/`short` âm lên `int`/`long` thực hiện **sign extension**, giữ giá trị âm bằng cách bổ sung bit `1`. Khi muốn đọc bit gốc như số **không dấu**, dùng **mặt nạ** hoặc **API unsigned** trước những phép toán mà độ rộng và dấu có thể ảnh hưởng kết quả.
+**Remember:** promoting a negative `byte`/`short` to `int`/`long` performs **sign extension**, preserving the negative value by padding with `1` bits. When you want to read the original bits as an **unsigned** number, apply a **mask** or an **unsigned API** before any operations where width and sign could affect the result.

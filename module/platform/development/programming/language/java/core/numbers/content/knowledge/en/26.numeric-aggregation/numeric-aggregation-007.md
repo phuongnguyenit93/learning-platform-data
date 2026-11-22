@@ -1,24 +1,24 @@
-# Thứ tự cộng ảnh hưởng tổng dấu phẩy động trong Java
+# How Addition Order Affects Floating-Point Sums in Java
 
-## 1. Vấn đề và mục tiêu
+## 1. Problem and Goal
 
-Trong toán học, phép cộng số thực có tính kết hợp: \((a+b)+c=a+(b+c)\). Với kiểu `double` hoặc `float` trong Java, **thay đổi thứ tự cộng có thể làm thay đổi kết quả được lưu**. Nguyên nhân là máy tính lưu số dấu phẩy động bằng một số bit hữu hạn và phải làm tròn các kết quả trung gian không biểu diễn chính xác được.
+In mathematics, real-number addition is associative: \((a+b)+c=a+(b+c)\). With `double` or `float` in Java, **changing the order of addition can change the stored result**. The reason is that computers store floating-point numbers using a finite number of bits and must round intermediate results that cannot be represented exactly.
 
-Đặc tính này quan trọng khi tổng hợp hàng triệu bản ghi, tính điểm số, thống kê, xử lý nhiều giá trị có độ lớn chênh lệch, thay đổi thứ tự phần tử hoặc gộp kết quả từ nhiều tác vụ song song.
+This property matters when aggregating millions of records, computing scores, gathering statistics, processing values of widely differing magnitudes, reordering elements, or combining results from parallel tasks.
 
-Sau bài học, người đọc có thể giải thích nguồn gốc của sai số, tự tái hiện kết quả phụ thuộc thứ tự bằng Java 17, phân biệt những chiến lược cải thiện độ chính xác và quyết định khi nào cần dùng `BigDecimal` thay vì `double`.
+After this lesson, you will be able to explain the source of the error, reproduce order-dependent results in Java 17, distinguish strategies for improving accuracy, and decide when to use `BigDecimal` instead of `double`.
 
-## 2. Giới hạn của biểu diễn dấu phẩy động
+## 2. Limits of Floating-Point Representation
 
-Java sử dụng định dạng dấu phẩy động nhị phân tương ứng IEEE 754 cho `float` (32 bit) và `double` (64 bit). `float` có khoảng 24 bit chính xác significand, còn `double` có 53 bit (xấp xỉ 15–17 chữ số thập phân có nghĩa).
+Java uses the IEEE 754 binary floating-point format for `float` (32 bits) and `double` (64 bits). `float` has roughly 24 bits of significand precision, while `double` has 53 bits (approximately 15–17 significant decimal digits).
 
-Các giá trị như `0.1`, `0.2` không có biểu diễn nhị phân hữu hạn chính xác. Khi tạo một `double` bằng literal `0.1`, máy lưu giá trị nhị phân gần nhất. Mỗi phép cộng có thể tiếp tục sinh kết quả nằm giữa các giá trị biểu diễn được, nên phải làm tròn.
+Values like `0.1` and `0.2` have no exact finite binary representation. When creating a `double` with the literal `0.1`, the machine stores the nearest binary value. Every subsequent addition can produce a result lying between representable values and therefore must be rounded.
 
-**Khoảng cách giữa hai số biểu diễn liên tiếp thay đổi theo độ lớn của số.** Khi tổng đang rất lớn, thêm một số nhỏ có thể không làm thay đổi tổng. `Math.ulp(x)` cung cấp kích thước một bước (*unit in the last place*) tại `x`.
+**The spacing between two consecutive representable numbers varies with the magnitude of the number.** When a running sum is very large, adding a small number may not change the sum at all. `Math.ulp(x)` gives the size of one step (*unit in the last place*) at `x`.
 
-### Ví dụ Java 17: một số hạng nhỏ bị mất
+### Java 17 Example: A Small Term Is Lost
 
-Lưu thành `FloatingUlpDemo.java`:
+Save as `FloatingUlpDemo.java`:
 
 ~~~java
 public class FloatingUlpDemo {
@@ -35,14 +35,14 @@ public class FloatingUlpDemo {
 }
 ~~~
 
-Chạy với JDK 17 trở lên:
+Run with JDK 17 or newer:
 
 ~~~bash
 javac FloatingUlpDemo.java
 java FloatingUlpDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 ulp = 2.0
@@ -51,23 +51,23 @@ add before cancel = 0.0
 cancel before add = 1.0
 ~~~
 
-Cả `large` và `1.0` đều có thể biểu diễn trong `double`. Nhưng quanh `1.0e16`, bước biểu diễn là `2.0`. Khi cộng `1.0`, kết quả đúng nằm ở điểm giữa hai giá trị biểu diễn được; phép làm tròn đưa kết quả về `large`. Vì vậy đóng góp `1.0` không còn để phép trừ phía sau khôi phục.
+Both `large` and `1.0` are exactly representable in `double`. Yet around `1.0e16`, the representable step size is `2.0`. When adding `1.0`, the exact result falls halfway between two representable values; rounding pushes the result back to `large`. Thus the `1.0` contribution is gone and cannot be recovered by the later subtraction.
 
-## 3. Không kết hợp: cách đặt ngoặc và thứ tự làm thay đổi tổng
+## 3. Non-Associativity: Grouping and Order Change the Sum
 
-Khi ký hiệu `fl` là thao tác làm tròn về kiểu dấu phẩy động, hai biểu thức
+Denoting rounding to the floating-point type by `fl`, the two expressions
 
 \[
 \mathrm{fl}(\mathrm{fl}(a+b)+c)
-\quad\text{và}\quad
+\quad\text{and}\quad
 \mathrm{fl}(a+\mathrm{fl}(b+c))
 \]
 
-có các bước trung gian khác nhau. Chúng không nhất thiết cho cùng kết quả.
+have different intermediate steps. They do not necessarily produce the same result.
 
-### Ví dụ Java 17: cùng ba số, hai tổng
+### Java 17 Example: Same Three Numbers, Two Sums
 
-Lưu thành `FloatingAssociativityDemo.java`:
+Save as `FloatingAssociativityDemo.java`:
 
 ~~~java
 public class FloatingAssociativityDemo {
@@ -91,7 +91,7 @@ javac FloatingAssociativityDemo.java
 java FloatingAssociativityDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 left = 1.0
@@ -99,15 +99,15 @@ right = 0.0
 same = false
 ~~~
 
-Tổng toán học là `1`. Vế trái hủy hai số lớn trước rồi cộng `1`. Vế phải cộng `1` với số lớn âm trước, khiến đóng góp nhỏ bị làm tròn mất. Khi đổi **thứ tự phần tử** từ `[1e16, 1, -1e16]` sang `[1e16, -1e16, 1]` trong một vòng cộng trái sang phải, kết quả cũng có thể thay đổi từ `0.0` sang `1.0`.
+The mathematical sum is `1`. The left-hand side cancels the two large numbers first and then adds `1`. The right-hand side adds `1` to the large negative number first, causing the small contribution to be rounded away. Changing the **element order** from `[1e16, 1, -1e16]` to `[1e16, -1e16, 1]` in a left-to-right loop can likewise change the result from `0.0` to `1.0`.
 
-**Hệ quả:** không thể áp dụng tùy tiện phép biến đổi đại số của cộng số thực cho `double` rồi kỳ vọng kết quả từng bit luôn giống nhau. Java đánh giá biểu thức với những phép toán trung gian cụ thể; mỗi bước có thể mất thông tin.
+**Consequence:** you cannot arbitrarily apply algebraic transformations of real-number addition to `double` and expect bit-identical results. Java evaluates expressions with specific intermediate operations; each step can lose information.
 
-## 4. Sai số tích lũy khi cộng nhiều lần
+## 4. Accumulated Error When Adding Repeatedly
 
-Ngay cả khi không có số rất lớn, việc lặp phép cộng có thể tạo sai số khác so với một phép nhân tương ứng. Ví dụ `0.1` là số nhị phân gần đúng; mười phép cộng có cách làm tròn khác với phép nhân `10 * 0.1`.
+Even without huge numbers, repeating addition can accumulate error differently than an equivalent multiplication. For instance, `0.1` is an approximate binary number; ten additions round differently than `10 * 0.1`.
 
-Lưu thành `RepeatedFloatingSumDemo.java`:
+Save as `RepeatedFloatingSumDemo.java`:
 
 ~~~java
 public class RepeatedFloatingSumDemo {
@@ -130,7 +130,7 @@ javac RepeatedFloatingSumDemo.java
 java RepeatedFloatingSumDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 repeated = 0.9999999999999999
@@ -138,26 +138,26 @@ product = 1.0
 equal = false
 ~~~
 
-`println(double)` hiển thị chuỗi decimal ngắn cho phép chuyển lại về cùng `double`, không hiển thị đầy đủ mọi bit nhị phân. Việc `println(0.1)` in `0.1` **không có nghĩa 0.1 được lưu chính xác**.
+`println(double)` prints a short decimal string that converts back to the same `double`, not all of its binary bits. Seeing `println(0.1)` print `0.1` **does not mean `0.1` is stored exactly**.
 
-Lỗi làm tròn không nhất thiết chỉ tăng dần: có lần sai số cùng chiều, có lần bù trừ nhau. Kết quả phụ thuộc độ lớn, dấu và thứ tự của các số được cộng.
+Rounding error does not necessarily grow monotonically: sometimes errors point in the same direction, and sometimes they cancel out. The outcome depends on the magnitudes, signs, and order of the numbers being added.
 
-## 5. Mất số nhỏ và cancellation
+## 5. Swamping and Cancellation
 
-Có hai hiện tượng cần tách bạch:
+Two phenomena should be separated:
 
-1. **Swamping (số nhỏ bị nuốt):** một số hạng rất nhỏ so với tổng hiện tại có thể nhỏ hơn độ phân giải của `double` tại đó, khiến phép cộng không thay đổi kết quả.
-2. **Cancellation (triệt tiêu):** hai giá trị gần đối nhau cho tổng nhỏ. Những lỗi có sẵn ở các số hạng hoặc phép tính trung gian có thể lớn tương đối so với kết quả nhỏ.
+1. **Swamping:** a term very small relative to the current sum can be smaller than `double`'s resolution there, leaving the sum unchanged after addition.
+2. **Cancellation:** two nearly opposite values produce a small sum. Pre-existing errors in the terms or intermediate steps can become large relative to that small result.
 
-Nếu chỉ cộng các số dương, đưa các số nhỏ lên trước thường có thể giảm việc mất đóng góp nhỏ. Với dữ liệu gồm cả số âm/dương, **không có một thứ tự sắp xếp luôn tối ưu**, vì vị trí các cặp triệt tiêu cũng thay đổi.
+When summing only positive numbers, placing smaller numbers first can often reduce the loss of small contributions. With datasets containing both negative and positive numbers, **no single sort order is always optimal**, because the positions of cancelling pairs also shift.
 
-Sai số phải được đánh giá trong bối cảnh mục tiêu. Tổng `0.0` thay vì `1.0` là lỗi rất lớn nếu tổng đúng là 1, dù từng số hạng ban đầu có độ lớn `1e16`.
+Error must be evaluated in context. A sum of `0.0` instead of `1.0` is a huge error if the true sum is 1, even if individual input terms had magnitude `1e16`.
 
-## 6. Cộng bù Kahan
+## 6. Kahan Compensated Summation
 
-**Kahan summation** thêm biến `correction` để ước lượng phần đóng góp bị bỏ khi cộng. Phần bù đó được đưa vào phép cộng tiếp theo nhằm giảm sai số tích lũy trong nhiều trường hợp.
+**Kahan summation** adds a `correction` variable to estimate the low-order contribution dropped during addition. That compensation is folded into the next addition to reduce accumulated error in many cases.
 
-Cơ chế:
+Mechanism:
 
 ~~~text
 sum = 0
@@ -170,11 +170,11 @@ for each x:
 return sum
 ~~~
 
-Đây là pseudocode, không phải chương trình Java hoàn chỉnh. Các bước vẫn thực hiện bằng `double`, nên **Kahan không bảo đảm đúng tuyệt đối với mọi input**.
+This is pseudocode, not a complete Java program. Every step still runs in `double`, so **Kahan does not guarantee exactness for every input**.
 
-### Ví dụ Java 17: Kahan cải thiện tổng lặp
+### Java 17 Example: Kahan Improves a Repeated Sum
 
-Lưu thành `KahanSummationDemo.java`:
+Save as `KahanSummationDemo.java`:
 
 ~~~java
 public class KahanSummationDemo {
@@ -210,22 +210,22 @@ javac KahanSummationDemo.java
 java KahanSummationDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 naive = 0.9999999999999999
 kahan = 1.0
 ~~~
 
-Bộ số này minh họa lợi ích của phép cộng bù. Tuy nhiên, kết quả `1.0` không chứng minh thuật toán đã khôi phục mọi giá trị decimal đầu vào; `0.1` vốn được biểu diễn gần đúng khi chuyển thành `double`.
+This input set illustrates the benefit of compensated summation. However, getting `1.0` does not prove the algorithm recovered the exact decimal inputs; `0.1` was already approximated when converted to `double`.
 
-## 7. Neumaier: cải thiện khi có số lớn và số nhỏ xen kẽ
+## 7. Neumaier: Improvement When Large and Small Numbers Alternate
 
-**Neumaier summation** là một biến thể cộng bù. Nó theo dõi độ lớn tương đối của tổng tạm và số mới để tính phần bù. Với `[1e16, 1, -1e16]`, cả phép cộng thường lẫn Kahan cơ bản có thể cho `0.0`, nhưng Neumaier có thể giữ lại `1.0`.
+**Neumaier summation** is a compensated summation variant. It compares the relative magnitudes of the running sum and the new term to compute the compensation. On `[1e16, 1, -1e16]`, both naive addition and basic Kahan can yield `0.0`, whereas Neumaier can preserve `1.0`.
 
-### Ví dụ Java 17: ba kết quả khác nhau
+### Java 17 Example: Three Different Results
 
-Lưu thành `CompensatedSummationDemo.java`:
+Save as `CompensatedSummationDemo.java`:
 
 ~~~java
 public class CompensatedSummationDemo {
@@ -279,7 +279,7 @@ javac CompensatedSummationDemo.java
 java CompensatedSummationDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 naive = 0.0
@@ -287,11 +287,11 @@ kahan = 0.0
 neumaier = 1.0
 ~~~
 
-Neumaier có thể giữ phần nhỏ trong biến bù trong tình huống mà Kahan cơ bản vẫn đánh mất nó. Dù vậy, cả hai không thể bảo đảm tổng toán học chính xác trong mọi trường hợp, đặc biệt với `NaN`, `Infinity`, overflow, underflow hoặc dữ liệu đã mang sai số từ trước. Thuật toán phải được thử với đặc điểm dữ liệu thực tế.
+Neumaier can retain the small term in the compensation variable in cases where basic Kahan still loses it. Even so, neither guarantees the exact mathematical sum in every case, especially with `NaN`, `Infinity`, overflow, underflow, or inputs that already carry prior rounding error. Algorithms must be tested against realistic data characteristics.
 
-## 8. Pairwise summation và chia khối
+## 8. Pairwise Summation and Chunking
 
-**Pairwise summation** thay chuỗi cộng dài từ trái sang phải bằng cây phép cộng: chia mảng thành hai nửa, cộng mỗi nửa, sau đó cộng hai kết quả. Trong nhiều bài toán tổng các số không âm, phương pháp này giảm số bước cộng liên tiếp trên một nhánh và có thể giảm lỗi tích lũy.
+**Pairwise summation** replaces a long left-to-right addition chain with a tree of additions: split the array into two halves, sum each half, then add the two results. In many non-negative summation problems, this reduces the number of sequential additions along any branch and can reduce accumulated error.
 
 Pseudocode:
 
@@ -303,20 +303,20 @@ pairwise(values):
     return pairwise(left) + pairwise(right)
 ~~~
 
-Mỗi phép cộng trong cây vẫn làm tròn. **Pairwise không tốt hơn mọi thứ tự** trên mọi bộ số âm/dương, vì việc chia nhóm có thể di chuyển vị trí cancellation. Nếu hệ thống cần kết quả tái lập từng bit, phải cố định **cây cộng, kích thước khối và thứ tự các phần tử**, chứ không chỉ ghi “dùng pairwise”.
+Every addition in the tree still rounds. **Pairwise is not better than every other order** for all mixed-sign datasets, because grouping can shift where cancellation happens. If a system needs bit-reproducible results, you must fix **the addition tree, block sizes, and element order**, rather than merely specifying "use pairwise".
 
-## 9. Stream, reduce và tổng song song
+## 9. Streams, reduce, and Parallel Sums
 
-Trong Java, tính tổng với Stream có nhiều cách và không nhất thiết dùng cùng thứ tự:
+In Java, summing with Streams has several forms that do not necessarily use the same order:
 
-- Vòng `for` trên mảng có trình tự xác định cộng theo thứ tự vòng lặp.
-- `Arrays.stream(values).reduce(0.0, Double::sum)` giảm các giá trị bằng cộng. Hợp đồng giảm song song thường giả định phép kết hợp là associative; cộng `double` không có tính kết hợp về mặt số học máy, nên các cây gộp có thể cho kết quả khác.
-- `DoubleStream.sum()` theo API Java sử dụng một thuật toán cộng có bù, giúp cải thiện nhiều tình huống nhưng không loại bỏ ảnh hưởng của thứ tự hoặc giới hạn độ chính xác.
-- `Collectors.summingDouble(...)` cũng có thể chịu ảnh hưởng từ thứ tự và độ lớn các giá trị.
+- A `for` loop over an array has a deterministic sequence adding in loop order.
+- `Arrays.stream(values).reduce(0.0, Double::sum)` reduces values by addition. Parallel reduction contracts assume the combiner is associative; `double` addition is not associative in machine arithmetic, so different reduction trees can yield different results.
+- `DoubleStream.sum()` per the Java API uses a compensated summation algorithm, improving many cases without eliminating order effects or precision limits.
+- `Collectors.summingDouble(...)` can likewise be affected by element order and magnitudes.
 
-### Ví dụ Java 17: cùng dữ liệu, các API khác nhau
+### Java 17 Example: Same Data, Different APIs
 
-Lưu thành `FloatingStreamDemo.java`:
+Save as `FloatingStreamDemo.java`:
 
 ~~~java
 import java.util.Arrays;
@@ -343,7 +343,7 @@ javac FloatingStreamDemo.java
 java FloatingStreamDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 reduce = 0.0
@@ -351,17 +351,17 @@ sum finite = true
 parallel finite = true
 ~~~
 
-Hai phép kiểm tra `isFinite` tránh giả định một tổng cụ thể cho thuật toán và cách phân hoạch có thể khác nhau. Dữ liệu trong ví dụ đều hữu hạn, không gây overflow. Không suy diễn rằng tổng cụ thể của `parallel().reduce(...)` luôn giống tổng vòng lặp trên mọi hệ thống hay mọi kích thước đầu vào.
+The two `isFinite` checks avoid assuming a specific sum for algorithms and partitioning schemes that may vary. The example's inputs are finite and do not overflow. Do not conclude that a specific `parallel().reduce(...)` sum will always match a loop sum across all systems or input sizes.
 
-Khi tính song song mà cần kết quả ổn định, cố định phân hoạch và phương thức gộp hoặc dùng bộ tích lũy đáp ứng yêu cầu độ chính xác. Độ ổn định phải được xác minh bằng kiểm thử thực tế.
+When parallelizing and needing deterministic results, fix the partitioning and merging scheme or use an accumulator meeting your precision requirements. Determinism must be verified with real tests.
 
-## 10. BigDecimal khi cần phép cộng decimal chính xác
+## 10. BigDecimal When Exact Decimal Addition Is Required
 
-Nếu bài toán cần tính chính xác **giá trị thập phân đầu vào**, ví dụ tiền, `BigDecimal` là giải pháp thường phù hợp. Tạo BigDecimal từ chuỗi decimal và dùng `add(...)` không truyền `MathContext` để cộng chính xác các giá trị decimal đã lưu.
+If the problem requires exact arithmetic on **decimal input values**, such as money, `BigDecimal` is usually the right solution. Construct `BigDecimal` from decimal strings and use `add(...)` without a `MathContext` to sum stored decimal values exactly.
 
-### Ví dụ Java 17: tổng không phụ thuộc thứ tự với phép cộng decimal chính xác
+### Java 17 Example: Order-Independent Sum with Exact Decimal Addition
 
-Lưu thành `BigDecimalOrderDemo.java`:
+Save as `BigDecimalOrderDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -388,7 +388,7 @@ javac BigDecimalOrderDemo.java
 java BigDecimalOrderDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 first = 1
@@ -396,92 +396,92 @@ second = 1
 same value = true
 ~~~
 
-Phải hiểu phạm vi của kết luận:
+Understand the scope of this conclusion:
 
-- `new BigDecimal("0.1")` giữ đúng giá trị thập phân 0.1. `new BigDecimal(0.1)` giữ chính xác **giá trị nhị phân gần đúng của kiểu double**, không phải số decimal 0.1 lý tưởng.
-- `BigDecimal.valueOf(double)` dùng biểu diễn chuỗi chuẩn của double nhưng không phục hồi những thông tin đã mất khi làm phép tính double trước đó.
-- Nếu dùng `add(other, MathContext)` với precision giới hạn, **mỗi lần cộng có thể làm tròn**, khiến tổng BigDecimal cũng có thể phụ thuộc cách nhóm.
-- BigDecimal dùng nhiều chi phí hơn double trong nhiều bài toán. Không tự động chuyển mọi thống kê dấu phẩy động sang BigDecimal khi dung sai và hiệu năng cho phép dùng double.
+- `new BigDecimal("0.1")` keeps the exact decimal value 0.1. `new BigDecimal(0.1)` keeps the exact **binary approximation of `double`**, not the ideal decimal 0.1.
+- `BigDecimal.valueOf(double)` uses the canonical string representation of `double` but cannot recover information already lost in earlier `double` arithmetic.
+- If you use `add(other, MathContext)` with bounded precision, **each addition can round**, making `BigDecimal` sums depend on grouping as well.
+- `BigDecimal` has higher overhead than `double` in many workloads. Do not automatically convert all floating-point statistics to `BigDecimal` when tolerances and performance permit `double`.
 
-Với tiền tệ, cần xác định thời điểm làm tròn theo nghiệp vụ. **Làm tròn từng dòng rồi cộng có thể khác cộng chính xác trước rồi làm tròn tổng.**
+For money, define when rounding happens according to business rules. **Rounding each line item then summing can differ from summing exactly first and rounding the total.**
 
-## 11. Đo sai số và đặt kiểm thử đúng
+## 11. Measuring Error and Writing Proper Tests
 
-Sai số tuyệt đối so với tham chiếu chính xác hơn:
+Absolute error compared to a higher-precision reference:
 
 \[
 E_{\mathrm{abs}} = |S_{\mathrm{computed}}-S_{\mathrm{reference}}|.
 \]
 
-Sai số tương đối bằng sai số tuyệt đối chia cho \(|S_{\mathrm{reference}}|\), nhưng không phù hợp khi tổng tham chiếu bằng hoặc rất gần 0. Các bộ dữ liệu có cancellation thường cần đánh giá cả sai số tuyệt đối và các tiêu chuẩn gắn với nghiệp vụ.
+Relative error equals absolute error divided by \(|S_{\mathrm{reference}}|\), but is unsuitable when the reference sum is zero or very close to zero. Datasets with cancellation typically require checking both absolute error and domain-specific criteria.
 
-Một công thức dung sai gần đúng thường gặp:
+A common approximate tolerance formula:
 
 \[
 |a-b| \le \epsilon_{\mathrm{abs}}+
 \epsilon_{\mathrm{rel}}\max(|a|,|b|).
 \]
 
-Không chọn `1e-9` làm ngưỡng mặc định cho mọi trường hợp: dung sai phải phụ thuộc độ lớn dữ liệu, số phép tính và mục tiêu. Kiểm tra `NaN`, vô cực, tràn số, underflow và zero có dấu theo hợp đồng bài toán nếu đầu vào có thể chứa chúng.
+Do not pick `1e-9` as a universal default threshold: tolerance must depend on data magnitude, operation count, and goals. Check `NaN`, infinity, overflow, underflow, and signed zero per the problem contract if inputs may contain them.
 
-Một kế hoạch thử nghiệm hữu ích là chạy cùng bộ số ở thứ tự gốc, đảo ngược, sắp xếp theo độ lớn và chia khối; so sánh với giá trị tham chiếu chính xác hơn. Bao gồm cả dữ liệu `[1e16, 1, -1e16]`, nhiều số nhỏ lặp lại và nhiều số âm/dương gần triệt tiêu.
+A useful test plan runs the same dataset in original order, reversed order, sorted by magnitude, and chunked; compare against a higher-precision reference. Include `[1e16, 1, -1e16]`, many repeated small numbers, and nearly cancelling positive/negative numbers.
 
-## 12. Khi nào chọn cách tính nào?
+## 12. When to Choose Which Approach?
 
-| Yêu cầu | Cách tiếp cận | Giới hạn |
+| Requirement | Approach | Limitation |
 | --- | --- | --- |
-| Tổng double đơn giản, chấp nhận dung sai | Vòng lặp cộng theo thứ tự cố định | Có thể tích lũy sai số |
-| Nhiều phép cộng double | Kahan, pairwise hoặc phương pháp cộng bù khác | Không bảo đảm đúng tuyệt đối |
-| Số lớn/nhỏ âm/dương xen kẽ | Neumaier hoặc bộ tích lũy phù hợp | Kiểm thử cancellation và ngoại lệ |
-| Tính toán song song | Cố định cách chia và cây gộp nếu cần tái lập | Thay đổi phân hoạch có thể đổi tổng |
-| Giá trị tiền/decimal phải chính xác | BigDecimal từ nguồn decimal, cộng chính xác trước làm tròn | Tăng chi phí xử lý và bộ nhớ |
-| Cần tổng đúng bất kể thứ tự | Thuật toán tích lũy chính xác phù hợp hợp đồng | Cần giải pháp và kiểm chứng chuyên biệt |
+| Simple double sum, tolerance acceptable | Loop adding in fixed order | Can accumulate error |
+| Many double additions | Kahan, pairwise, or other compensated method | Does not guarantee exactness |
+| Alternating large/small positive/negative numbers | Neumaier or suitable accumulator | Test cancellation and edge cases |
+| Parallel computation | Fix split and merge tree if reproducibility needed | Changing partitions can change sum |
+| Money/decimals must be exact | BigDecimal from decimal source, exact sum before rounding | Higher CPU and memory cost |
+| Exact sum needed regardless of order | Exact accumulator algorithm matching contract | Needs specialized solution and verification |
 
-Không có một cách cộng nào tốt nhất cho mọi bộ số. Kết quả phải phù hợp sai số cho phép, độ trễ, khả năng tái lập và đặc điểm dữ liệu.
+No single summation method is best for every dataset. Results must fit the acceptable error, latency, reproducibility, and data characteristics.
 
-## 13. Lỗi thường gặp
+## 13. Common Mistakes
 
-1. **Cho rằng `double` cộng có tính kết hợp hoàn toàn:** mỗi phép cộng trung gian có thể làm tròn.
-2. **Nghĩ tổng luôn giống nhau khi chỉ đổi thứ tự phần tử:** các số nhỏ có thể bị mất ở vị trí khác.
-3. **Dùng `parallel().reduce` và mong từng bit giống vòng lặp tuần tự:** cây gộp có thể khác.
-4. **Tưởng `DoubleStream.sum()` cho kết quả số thực chính xác:** thuật toán có bù vẫn chịu giới hạn nhị phân.
-5. **Sắp xếp mọi số nhỏ trước rồi coi như đã giải quyết hoàn toàn:** có số âm/dương và cancellation làm kết quả phức tạp.
-6. **Tin Kahan luôn đủ:** bộ `[1e16, 1, -1e16]` có thể cần kỹ thuật bù mạnh hơn.
-7. **Tưởng `println(0.1)` chứng minh double lưu chính xác 0.1:** chuỗi hiển thị là biểu diễn decimal phù hợp, không phải bit lưu trữ.
-8. **Chuyển một double đã sai số sang BigDecimal để mong phục hồi dữ liệu:** thông tin đã mất không tự quay lại.
-9. **Để MathContext làm tròn giữa các lần cộng BigDecimal mà không xét thứ tự:** phép cộng sau làm tròn cũng có thể không kết hợp.
-10. **Bỏ qua NaN, Infinity, overflow hoặc dữ liệu rất chênh lệch:** chúng có thể phá những giả định của phép tính gần đúng.
-11. **So sánh số gần đúng bằng `==` trong mọi kiểm thử:** chỉ hợp lý nếu yêu cầu phải bằng chính xác theo giá trị double.
-12. **Dùng sai số tương đối khi tổng đúng bằng 0:** phép chia theo công thức tương đối không xác định.
+1. **Assuming `double` addition is strictly associative:** each intermediate addition can round.
+2. **Thinking sums always match when only element order changes:** small terms can be lost at different positions.
+3. **Using `parallel().reduce` and expecting bit-exact match with a sequential loop:** reduction trees can differ.
+4. **Thinking `DoubleStream.sum()` produces exact real-number results:** compensated summation is still bound by binary floating point.
+5. **Sorting all small numbers first and assuming everything is solved:** mixed signs and cancellation complicate outcomes.
+6. **Assuming Kahan is always enough:** inputs like `[1e16, 1, -1e16]` may need stronger compensation.
+7. **Thinking `println(0.1)` proves `double` stores 0.1 exactly:** the printed string is a suitable decimal representation, not the stored bits.
+8. **Converting an already-inaccurate `double` to `BigDecimal` expecting data recovery:** lost information does not return.
+9. **Letting `MathContext` round between `BigDecimal` additions without considering order:** addition with rounding can also be non-associative.
+10. **Ignoring `NaN`, `Infinity`, overflow, or extreme magnitude disparities:** these can break approximation assumptions.
+11. **Comparing approximate numbers with `==` in every test:** only valid if bit-exact `double` equality is genuinely required.
+12. **Using relative error when the true sum is `0`:** division in the relative error formula is undefined.
 
-## 14. Bài tập và đáp án
+## 14. Exercises and Answers
 
-**Câu 1.** Vì sao `(1e16 + (-1e16)) + 1` khác `1e16 + ((-1e16) + 1)` khi tính bằng double?
+**Question 1.** Why does `(1e16 + (-1e16)) + 1` differ from `1e16 + ((-1e16) + 1)` in `double` arithmetic?
 
-**Đáp án:** Biểu thức đầu triệt tiêu hai số lớn trước, trả `1.0`. Biểu thức sau làm mất đóng góp `1` ở phép cộng với số lớn âm, trả `0.0`.
+**Answer:** The first expression cancels the two large numbers first, returning `1.0`. The second loses the `1` contribution when adding it to the large negative number, returning `0.0`.
 
-**Câu 2.** Vì sao cộng `0.1` mười lần không nhất thiết bằng `0.1 * 10`?
+**Question 2.** Why does adding `0.1` ten times not necessarily equal `0.1 * 10`?
 
-**Đáp án:** `0.1` là giá trị nhị phân gần đúng; mười phép cộng làm tròn khác với phép nhân.
+**Answer:** `0.1` is an approximate binary value; ten additions round differently than a single multiplication.
 
-**Câu 3.** Kahan có luôn khôi phục số nhỏ đã mất trong bộ `[1e16, 1, -1e16]` không?
+**Question 3.** Does Kahan always recover a lost small term in `[1e16, 1, -1e16]`?
 
-**Đáp án:** Không. Kahan cơ bản có thể trả `0.0`; ví dụ Neumaier trả `1.0`.
+**Answer:** No. Basic Kahan can return `0.0`; for example, Neumaier returns `1.0`.
 
-**Câu 4.** Khi nào nên dùng BigDecimal?
+**Question 4.** When should `BigDecimal` be used?
 
-**Đáp án:** Khi cần tổng chính xác theo giá trị decimal của đầu vào (như tiền), xây dựng các đối tượng từ dữ liệu decimal chính xác và không làm tròn mỗi phép cộng nếu mục tiêu là tổng chính xác.
+**Answer:** When exact sums of decimal input values (such as money) are required, constructing objects from exact decimal data and avoiding per-addition rounding when the goal is an exact total.
 
-**Câu 5.** Có nên dùng sai số tương đối khi tổng tham chiếu là `0`?
+**Question 5.** Should relative error be used when the reference sum is `0`?
 
-**Đáp án:** Không, vì chia cho 0 không xác định; dùng sai số tuyệt đối hoặc tiêu chuẩn khác từ nghiệp vụ.
+**Answer:** No, because dividing by 0 is undefined; use absolute error or another domain-appropriate criterion.
 
-## 15. Ghi nhớ
+## 15. Takeaways
 
-- **Thứ tự cộng có thể thay đổi kết quả float/double** vì các phép tính trung gian phải làm tròn.
-- Số hạng nhỏ dễ bị mất khi cộng vào tổng lớn; các số lớn đối nhau có thể gây cancellation và làm lộ sai số.
-- Kahan, Neumaier, pairwise cải thiện nhiều trường hợp, nhưng không biến double thành số học thực vô hạn chính xác.
-- Stream song song có thể dùng cây cộng khác; xác định thuật toán và trình tự gộp khi cần kết quả tái lập.
-- Khi cần tổng decimal chính xác, dùng BigDecimal từ nguồn decimal và quản lý thời điểm làm tròn.
+- **Addition order can change `float`/`double` results** because intermediate operations must round.
+- Small terms are easily swamped when added to a large sum; large cancelling terms can expose prior rounding errors.
+- Kahan, Neumaier, and pairwise improve many cases, but do not turn `double` into infinite-precision real arithmetic.
+- Parallel streams can use different addition trees; fix the algorithm and merge order when reproducibility is required.
+- When exact decimal sums are required, use `BigDecimal` from decimal sources and manage when rounding occurs.
 
-Tài liệu tham khảo: Java SE 17 API `Double`, `Math.ulp`, `DoubleStream.sum`, `Collectors.summingDouble`, `BigDecimal` và IEEE 754.
+References: Java SE 17 API `Double`, `Math.ulp`, `DoubleStream.sum`, `Collectors.summingDouble`, `BigDecimal`, and IEEE 754.

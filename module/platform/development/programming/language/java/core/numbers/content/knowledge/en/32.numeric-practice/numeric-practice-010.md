@@ -1,12 +1,12 @@
-# Mô phỏng số ngẫu nhiên có thể tái lập bằng seed trong Java
+# Reproducible Seeded Random Simulation in Java
 
-## 1. Tình huống thực hành và mục tiêu
+## 1. Practice Scenario and Objectives
 
-Giả sử ta mô phỏng việc tung xúc xắc, tạo dữ liệu kiểm thử hoặc ước lượng π bằng phương pháp Monte Carlo. Ta muốn có ngẫu nhiên để thử nhiều tình huống, nhưng khi phát hiện lỗi, cần **chạy lại đúng các giá trị ngẫu nhiên đã dùng** để tái hiện và chẩn đoán.
+Suppose we simulate rolling dice, generating test data, or estimating π using the Monte Carlo method. We want randomness to explore many scenarios, yet when a bug appears, we need to **replay the exact random values used** in order to reproduce and diagnose it.
 
-Đó là mục tiêu của **mô phỏng có thể tái lập bằng seed** (*reproducible seeded simulation*). Một seed là trạng thái khởi tạo hoặc đầu vào khởi tạo cho bộ sinh số giả ngẫu nhiên (*pseudorandom number generator, PRNG*). Với cùng thuật toán, cùng seed, cùng chuỗi lời gọi và cùng điều kiện thực thi liên quan, ta có thể tạo lại cùng chuỗi đầu ra.
+That is the goal of **reproducible seeded simulation**. A seed is the initial state or starting input for a *pseudorandom number generator (PRNG)*. Given the same algorithm, same seed, same sequence of calls, and same relevant execution conditions, we can regenerate the exact same output sequence.
 
-Ví dụ đơn giản:
+Simple example:
 
 ```java
 Random first = new Random(2026L);
@@ -15,73 +15,73 @@ Random again = new Random(2026L);
 System.out.println(first.nextInt(100) == again.nextInt(100)); // true
 ```
 
-Đây không phải “ngẫu nhiên thực sự” từ môi trường; dãy đầu ra được tính theo thuật toán xác định. Seed cho phép chuyển một ca kiểm thử vốn khó tái hiện thành **một ca có thể phát lại**.
+This is not "true randomness" from the environment; the output sequence is computed by a deterministic algorithm. A seed lets you turn an otherwise hard-to-reproduce test case into **a replayable one**.
 
-Mục tiêu bài học:
-- Biết dùng `java.util.Random`, `SplittableRandom` và các API Java 17 thích hợp để điều khiển seed.
-- Hiểu điều kiện **cùng seed chưa đủ** để có cùng kết quả khi cách gọi hoặc phân phối khác nhau.
-- Xây dựng mô phỏng Monte Carlo tính xấp xỉ π và một ví dụ tung xúc xắc.
-- Kiểm tra sự tái lập, so sánh nhiều seed và tránh nhầm tính tái lập với tính đúng về thống kê.
-- Biết cách lưu seed, số bước, phiên bản thuật toán, tham số và chiến lược song song để tái hiện khi lỗi xảy ra.
-- Phân biệt PRNG cho mô phỏng với bộ sinh ngẫu nhiên cần bảo mật.
+Lesson objectives:
+- Know how to use `java.util.Random`, `SplittableRandom`, and appropriate Java 17 APIs to control seeds.
+- Understand why **the same seed is not enough** to produce the same result when call patterns or distributions differ.
+- Build a Monte Carlo simulation estimating π and a dice-rolling example.
+- Verify reproducibility, compare multiple seeds, and avoid confusing reproducibility with statistical correctness.
+- Know how to record the seed, step counts, algorithm version, parameters, and parallelism strategy to reproduce bugs when they happen.
+- Distinguish PRNGs for simulation from cryptographically secure random generators.
 
-## 2. Seed, PRNG và trạng thái thay đổi như thế nào?
+## 2. How Do Seeds, PRNGs, and State Change?
 
-PRNG duy trì **trạng thái nội bộ**. Mỗi lần gọi phương thức sinh số, nó dựa vào trạng thái hiện tại để tạo một kết quả và cập nhật trạng thái cho lần tiếp theo.
+A PRNG maintains **internal state**. Each time a generation method is called, it uses the current state to compute a result and updates the state for the next call.
 
-Một mô hình khái niệm:
+Conceptual model:
 
 ```text
-                seed cố định
+                 fixed seed
                      |
                      v
-                 khởi tạo PRNG
+              initialize PRNG
                      |
-              trạng thái S0
+                 state S0
                      |
             nextInt / nextDouble
                      v
-         đầu ra R0, trạng thái S1
+          output R0, state S1
                      |
             nextInt / nextDouble
                      v
-         đầu ra R1, trạng thái S2
+          output R1, state S2
                      |
                     ...
 ```
 
-Nếu hai PRNG độc lập bắt đầu từ cùng seed và thực hiện **cùng chuỗi phương thức với cùng đối số**, chúng tạo cùng kết quả theo thuật toán xác định tương ứng. Ngược lại, nếu luồng A gọi `nextInt()` ba lần còn luồng B gọi thêm một lần ở giữa, chuỗi giá trị gắn với từng bước nghiệp vụ có thể lệch dù seed giống nhau.
+If two independent PRNGs start from the same seed and execute the **same sequence of methods with the same arguments**, they produce the same results under their deterministic algorithm. Conversely, if run A calls `nextInt()` three times while run B makes one extra call in between, the values paired with each business step can diverge despite the same seed.
 
-**Không có cam kết** rằng “cùng seed” sẽ cho cùng chuỗi khi bạn đổi từ `Random` sang `SplittableRandom`, đổi thuật toán, thay trình tự gọi, thay cách chia luồng hoặc đổi một thành phần làm tiêu thụ RNG.
+There is **no guarantee** that "the same seed" yields the same sequence if you switch from `Random` to `SplittableRandom`, change algorithms, change call order, change thread partitioning, or alter a component that consumes the RNG.
 
-Một seed **không quyết định độ chính xác thống kê** của mô phỏng: nó quyết định điểm bắt đầu của một chuỗi giả ngẫu nhiên. Kết quả một seed có thể gần giá trị lý thuyết hoặc lệch đáng kể, đặc biệt khi số mẫu nhỏ.
+A seed **does not determine the statistical accuracy** of a simulation: it determines the starting point of a pseudorandom sequence. The result from one seed may be close to the theoretical value or deviate significantly, especially when sample counts are small.
 
-## 3. Chọn API phù hợp trong Java
+## 3. Choosing the Right API in Java
 
-| API | Cách dùng seed | Phạm vi phù hợp | Lưu ý |
+| API | How seed is used | Suitable scope | Notes |
 | --- | --- | --- | --- |
-| `java.util.Random` | `new Random(longSeed)` | Ví dụ, kiểm thử và mô phỏng tuần tự | Thuật toán lõi và cách cập nhật trạng thái được Java mô tả; nhiều phương thức có khả năng sinh dãy lặp lại khi cùng seed/call sequence |
-| `java.util.SplittableRandom` | `new SplittableRandom(longSeed)` | Mô phỏng phân luồng/cần tách bộ sinh | Có `split()` để sinh bộ sinh con; không dùng chung một đối tượng với nhiều luồng mà không có chiến lược phù hợp |
-| `java.util.random.RandomGenerator` (Java 17+) | Giao diện chung; chọn implementation thích hợp | Thiết kế API không gắn với một lớp cụ thể | Cần ghi lại **tên thuật toán/implementation**, không chỉ seed |
-| `java.util.random.RandomGeneratorFactory` (Java 17+) | Chọn thuật toán có tên, tạo generator từ seed | Thí nghiệm có yêu cầu quản lý thuật toán | Không tự suy rằng hai thuật toán khác nhau cho cùng kết quả |
-| `ThreadLocalRandom` | Không cho ứng dụng đặt seed bằng `setSeed` | Sinh số thuận tiện theo từng luồng khi không cần phát lại dãy bằng seed được điều khiển | Không phải lựa chọn phù hợp cho ca cần seed cụ thể |
-| `SecureRandom` | Thiết kế theo nhu cầu an ninh, không coi như một PRNG mô phỏng thông thường | Token, khóa, nonce và yêu cầu mật mã | Không dùng một seed công khai cố định để sinh dữ liệu bí mật |
+| `java.util.Random` | `new Random(longSeed)` | Examples, tests, and sequential simulations | Core algorithm and state update are documented by Java; methods produce repeatable sequences for identical seed/call sequence |
+| `java.util.SplittableRandom` | `new SplittableRandom(longSeed)` | Multi-threaded simulations / needing child generators | Provides `split()` to spawn child generators; do not share one instance across threads without an appropriate strategy |
+| `java.util.random.RandomGenerator` (Java 17+) | Common interface; select appropriate implementation | Designing APIs decoupled from a concrete class | Must record **algorithm/implementation name**, not just the seed |
+| `java.util.random.RandomGeneratorFactory` (Java 17+) | Select named algorithm, create generator from seed | Experiments requiring algorithm management | Do not assume two different algorithms yield the same results |
+| `ThreadLocalRandom` | Does not allow applications to set a seed via `setSeed` | Convenient per-thread generation when replay via controlled seed is unnecessary | Not suitable when a specific seed is required |
+| `SecureRandom` | Designed for security needs, not a standard simulation PRNG | Tokens, keys, nonces, and cryptographic uses | Never use a fixed public seed to generate secret data |
 
-**Lựa chọn thực hành:** Với bài mô phỏng tuần tự và test tái lập đơn giản, `Random` với seed ghi rõ thường là lựa chọn dễ hiểu. Với mô phỏng có nhiều nhánh độc lập, `SplittableRandom` hỗ trợ tách generator, nhưng vẫn cần kiểm soát **thứ tự tách**, phần việc của từng nhánh và cấu hình chạy.
+**Practical choice:** For sequential simulations and simple reproducibility tests, `Random` with an explicitly recorded seed is usually easy to follow. For simulations with multiple independent branches, `SplittableRandom` supports splitting generators, while still requiring control over **split order**, each branch's workload, and runtime configuration.
 
-### Tạo Random từ seed
+### Creating Random from a seed
 
 ```java
 long seed = 2026L;
 Random rng = new Random(seed);
 
-int die = rng.nextInt(6) + 1; // 1..6, gồm cả 1 và 6
+int die = rng.nextInt(6) + 1; // 1..6, including 1 and 6
 double u = rng.nextDouble(); // [0.0, 1.0)
 ```
 
-`Random.nextInt(6)` sinh các số nguyên từ 0 đến 5 với phân phối đều theo hợp đồng của API; cộng 1 để mô phỏng một xúc xắc sáu mặt. Cận trên 6 **không được bao gồm**.
+`Random.nextInt(6)` generates integers from 0 to 5 uniformly per the API contract; adding 1 simulates a six-sided die. The upper bound 6 is **exclusive**.
 
-Với `SplittableRandom` Java 17, có thể gọi:
+With Java 17's `SplittableRandom`, you can call:
 
 ```java
 SplittableRandom rng = new SplittableRandom(2026L);
@@ -89,34 +89,34 @@ int die = rng.nextInt(1, 7);           // 1..6
 double x = rng.nextDouble(-1.0, 1.0); // [-1.0, 1.0)
 ```
 
-Các câu lệnh trên là đoạn minh họa dùng trong phương thức, cần import lớp tương ứng.
+The statements above are illustrative snippets used inside a method, requiring the corresponding imports.
 
-## 4. Nguyên tắc tái lập: cùng seed + cùng thao tác + cùng ngữ cảnh
+## 4. Reproducibility Principle: Same Seed + Same Operations + Same Context
 
-Có ba cấp độ thường gặp:
+There are three common levels:
 
-**Cấp độ A — Phát lại đúng chuỗi trên một generator tuần tự.** Giữ nguyên seed, thuật toán và lời gọi. Ví dụ cùng gọi `nextInt(6)` tám lần với `Random(2026L)` cho cùng dãy tám kết quả.
+**Level A — Replaying the exact sequence on a sequential generator.** Keep seed, algorithm, and calls identical. For instance, calling `nextInt(6)` eight times on `Random(2026L)` produces the same eight-element sequence.
 
-**Cấp độ B — Phát lại một mô phỏng.** Ngoài generator, giữ nguyên dữ liệu đầu vào, số lần lặp, quy tắc chuyển đổi từ giá trị ngẫu nhiên sang tình huống, cách làm tròn, thứ tự các phép toán và nhánh điều kiện. Một thay đổi nhỏ, chẳng hạn thêm lần gọi RNG để mô phỏng thời tiết, có thể làm toàn bộ lượt tiếp theo khác nhau.
+**Level B — Replaying a simulation.** Beyond the generator, keep input data, iteration counts, rules mapping random numbers to events, rounding, operation order, and conditional branches identical. A small change, such as adding an RNG call to simulate weather, can make all subsequent turns differ.
 
-**Cấp độ C — Phát lại giữa môi trường/phiên bản hoặc qua nhiều luồng.** Cần kiểm soát thêm implementation, tên thuật toán, phiên bản chương trình/JDK nếu dựa vào chi tiết triển khai, cách chia luồng, số luồng, thứ tự gộp kết quả và chính sách về phép toán dấu chấm động.
+**Level C — Replaying across environments/versions or multiple threads.** You must also control the implementation, algorithm name, program/JDK version if relying on implementation details, thread partitioning, thread count, result-merging order, and floating-point policies.
 
-Một lỗi thiết kế thường gặp:
+A common design bug:
 
 ```java
 Random rng = new Random(2026L);
 int first = rng.nextInt(100);
 int second = rng.nextInt(100);
 
-// Ở lần chạy khác, mã gọi thêm rng.nextInt(100) trước khi tính second.
-// Giá trị gắn với "second" sẽ không còn như trước.
+// In another run, code makes an extra rng.nextInt(100) call before computing second.
+// The value assigned to "second" will no longer match.
 ```
 
-**Tính tái lập của nguồn RNG** không bảo đảm **tính tái lập của toàn bộ hệ thống** nếu ứng dụng có I/O, thời gian thực, dữ liệu bên ngoài, race condition hoặc thuật toán không xác định.
+**Reproducibility of the RNG source** does not guarantee **reproducibility of the whole system** if the application has I/O, wall-clock time, external data, race conditions, or non-deterministic algorithms.
 
-## 5. Bài thực hành 1: tung xúc xắc và phát lại kết quả
+## 5. Practice 1: Rolling Dice and Replaying Results
 
-Tạo một hàm nhận seed và số lần tung. Không truyền generator dùng chung từ bên ngoài vào các ca mà bạn muốn hoàn toàn độc lập; tạo generator mới từ seed cho mỗi lượt phát lại:
+Create a function taking a seed and roll count. Do not pass a shared external generator into cases you want completely isolated; create a fresh generator from the seed for each replay:
 
 ```java
 static int[] rollDice(long seed, int rolls) {
@@ -132,7 +132,7 @@ static int[] rollDice(long seed, int rolls) {
 }
 ```
 
-Đây là một **phương thức** để đặt trong lớp Java, kèm `import java.util.Random;`. Mỗi lời gọi mới với cùng `seed` và `rolls` sẽ thực hiện cùng số lần `nextInt(6)` theo cùng thứ tự.
+This is a **method** to place inside a Java class, with `import java.util.Random;`. Each new call with the same `seed` and `rolls` performs the same number of `nextInt(6)` calls in the same order.
 
 ```java
 int[] a = rollDice(2026L, 8);
@@ -141,39 +141,39 @@ int[] b = rollDice(2026L, 8);
 System.out.println(Arrays.equals(a, b)); // true
 ```
 
-Cần import `java.util.Arrays` khi sử dụng `Arrays.equals`. Thay seed thành 2027L có thể tạo dãy khác. Không nên ghi điều kiện cứng rằng **hai seed khác nhau luôn** sinh dãy kết quả khác nhau: đầu ra hữu hạn có thể trùng do ngẫu nhiên, nhất là khi số mẫu nhỏ hoặc miền kết quả nhỏ.
+Import `java.util.Arrays` when using `Arrays.equals`. Changing the seed to 2027L may generate a different sequence. Do not hard-assert that **two different seeds always** produce different result arrays: finite outputs can collide by chance, especially with small sample counts or small value domains.
 
-### Vì sao không tạo lại Random bên trong từng lần tung?
+### Why not recreate Random on every roll?
 
-Đoạn code sau cho kết quả ít đa dạng hơn dự định:
+The following code produces less variety than intended:
 
 ```java
 for (int i = 0; i < 8; i++) {
-    Random rng = new Random(2026L); // Reset cùng seed ở mỗi lượt!
+    Random rng = new Random(2026L); // Resets the same seed on every iteration!
     int die = rng.nextInt(6) + 1;
-    // die lặp lại cùng giá trị đầu tiên của generator.
+    // die repeats the very same first value of the generator.
 }
 ```
 
-Muốn tám lượt liên tiếp, **tạo một generator trước vòng lặp** và gọi nó tám lần. Nếu muốn tám kịch bản độc lập, có thể sử dụng tám seed được quản lý riêng nhưng không nên chỉ “lặp lại cùng seed” cho mỗi kịch bản.
+If you want eight consecutive rolls, **create one generator before the loop** and call it eight times. If you want eight independent scenarios, use eight separately managed seeds rather than merely "repeating the same seed" for every scenario.
 
-## 6. Bài thực hành 2: mô phỏng Monte Carlo ước lượng π
+## 6. Practice 2: Monte Carlo Simulation Estimating π
 
-Một điểm `(x, y)` được sinh đều trong hình vuông `[-1,1) × [-1,1)`. Điểm nằm trong hình tròn bán kính 1 khi:
+A point `(x, y)` is generated uniformly in the square `[-1,1) × [-1,1)`. The point lies inside the unit circle when:
 
 ```text
 x² + y² <= 1
 ```
 
-Tỉ lệ diện tích hình tròn so với hình vuông bằng `π / 4`. Nếu sinh `N` điểm đều và đếm `inside` điểm nằm trong hình tròn, ta tính:
+The area ratio of the circle to the square is `π / 4`. If we generate `N` uniform points and count `inside` points falling inside the circle, we compute:
 
 ```text
 piEstimate = 4 × inside / N
 ```
 
-Khi `N` lớn hơn, sai số lấy mẫu thường giảm về mặt thống kê; nhưng **một seed cố định không làm ước lượng tự trở thành giá trị π chính xác**, và không bảo đảm lần tăng `N` nào cũng cải thiện kết quả.
+As `N` grows, sampling error generally decreases statistically; however, **a fixed seed does not turn the estimate into the exact value of π**, and does not guarantee every increase in `N` improves the result.
 
-### Cài đặt an toàn, dễ phát lại
+### Safe, replayable implementation
 
 ```java
 record Estimate(long inside, int trials, double pi) {}
@@ -195,29 +195,29 @@ static Estimate estimatePi(long seed, int trials) {
 }
 ```
 
-Đây là **đoạn phương thức và record** cần đặt trong lớp/chương trình Java 17, có import `java.util.SplittableRandom`.
+This is a **method and record snippet** to place in a Java 17 class/program, with `import java.util.SplittableRandom`.
 
-Các điểm thiết kế:
-- `trials > 0` để không có chia cho 0.
-- `SplittableRandom(seed)` mới được khởi tạo **ở đầu mỗi mô phỏng**, tránh nhận một generator đã bị tiêu thụ ở lời gọi trước.
-- Mỗi lượt dùng chính xác **hai lần `nextDouble(-1.0,1.0)`**, theo thứ tự x rồi y.
-- `inside` kiểu `long` để dễ thích nghi nếu mở rộng vòng lặp; với `int trials`, bộ đếm này không tràn trong phạm vi đã cho.
-- `4.0 * inside / trials` là phép toán `double`, không phải phép chia số nguyên bị cắt phần lẻ.
-- Khi chạy lại với cùng seed, trial count và cùng implementation/call order, cặp `inside`/`pi` tái hiện được.
+Design points:
+- `trials > 0` ensures no division by 0.
+- A fresh `SplittableRandom(seed)` is initialized **at the start of each simulation**, avoiding receiving a generator already consumed by an earlier call.
+- Each iteration makes exactly **two calls to `nextDouble(-1.0,1.0)`**, in the order x then y.
+- `inside` is `long` to adapt easily if the loop is expanded; for `int trials`, this counter cannot overflow within the given range.
+- `4.0 * inside / trials` is `double` arithmetic, not integer division truncating the remainder.
+- When rerun with the same seed, trial count, and identical implementation/call order, the `inside`/`pi` pair is reproducible.
 
-### Đánh giá chất lượng thống kê
+### Evaluating statistical quality
 
-Trong mô phỏng này, xác suất điểm nằm trong hình tròn là `p = π / 4`. Nếu các mẫu độc lập như mô hình giả định, tỉ lệ `inside / N` có độ lệch chuẩn xấp xỉ:
+In this simulation, the probability of a point landing inside the circle is `p = π / 4`. Assuming independent samples per the model, the ratio `inside / N` has standard deviation approximately:
 
 \[
 \sqrt{\frac{p(1-p)}{N}}
 \]
 
-Độ lệch chuẩn của `piEstimate = 4 × inside/N` xấp xỉ bốn lần giá trị trên. Đây là ước lượng **sai số lấy mẫu**, không phải bảo đảm một lượt phải nằm trong một khoảng chặt. Không kiểm thử rằng kết quả với một seed cụ thể phải “gần π hơn” kết quả seed khác. Cần nhiều seed độc lập, thống kê và kiểm định thích hợp nếu muốn đánh giá chất lượng phân phối.
+The standard deviation of `piEstimate = 4 × inside/N` is roughly four times that value. This is an estimate of **sampling error**, not a guarantee that one run must fall within a tight interval. Do not assert that the result from one specific seed must be "closer to π" than another seed's result. Multiple independent seeds, statistics, and appropriate hypothesis tests are needed to evaluate distribution quality.
 
-## 7. Chương trình Java 17 hoàn chỉnh và kết quả đã chạy
+## 7. Complete Java 17 Program and Verified Output
 
-Tạo tệp **`SeededSimulationDemo.java`**:
+Create the file **`SeededSimulationDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -294,14 +294,14 @@ public class SeededSimulationDemo {
 }
 ```
 
-Biên dịch và chạy (JDK 17+):
+Compile and run (JDK 17+):
 
 ```bash
 javac SeededSimulationDemo.java
 java SeededSimulationDemo
 ```
 
-Kết quả đã kiểm chứng bằng biên dịch `javac --release 17` và chạy chương trình:
+Verified output from compiling with `javac --release 17` and running the program:
 
 ```text
 dice=[6, 5, 2, 1, 4, 5, 6, 5]
@@ -318,20 +318,20 @@ childDraw=72
 zeroTrialsRejected=true
 ```
 
-**Giải thích quan trọng:**
+**Important explanations:**
 
-1. Hai lời gọi `rollDice(2026L, 8)` xây hai generator độc lập nhưng cùng seed; vì quy trình giống nhau, mảng bằng nhau.
-2. `otherSeedDice` khác trong ví dụ cụ thể khi seed = 2027L. Đây là dữ liệu quan sát từ chương trình, không phải một định lý rằng mọi seed khác đều cho chuỗi khác.
-3. `a` và `b` cùng seed: lượt bốc thứ nhất của mỗi generator đều ra 99. Lượt thứ hai của `a` ra 50; so sánh `a1` với lượt thứ nhất `b0` minh họa tác động của **vị trí trong dãy**.
-4. Với 10.000 điểm, seed 2026L tạo 7.850 điểm trong hình tròn → π ước lượng 3.14; seed 2027L tạo 7.877 điểm → 3.1508. Hai kết quả là **mẫu mô phỏng**, không phải độ chính xác đảm bảo cho mọi seed.
-5. Hai `SplittableRandom` độc lập có cùng seed và đều gọi `split()` đúng một lần, nên generator con tạo cùng kết quả (72) trong môi trường đã kiểm chứng.
-6. `estimatePi(...,0)` bị từ chối bằng `IllegalArgumentException`; đây là kiểm tra đầu vào, không phải lỗi ngẫu nhiên.
+1. Both calls to `rollDice(2026L, 8)` build two independent generators with the same seed; because the procedure is identical, the arrays match.
+2. `otherSeedDice` differs in this concrete example when seed = 2027L. This is observed data from the program, not a theorem that every different seed produces a different sequence.
+3. `a` and `b` share the same seed: the first draw from each generator gives 99. The second draw of `a` gives 50; comparing `a1` with the first draw `b0` illustrates the effect of **position in the sequence**.
+4. With 10,000 points, seed 2026L yields 7,850 points inside the circle → estimated π is 3.14; seed 2027L yields 7,877 points → 3.1508. Both results are **simulation samples**, not guaranteed accuracy for every seed.
+5. Both independent `SplittableRandom` instances have the same seed and each call `split()` exactly once, so the child generators produce the same result (72) in the verified environment.
+6. `estimatePi(...,0)` is rejected with `IllegalArgumentException`; this is input validation, not a random error.
 
-## 8. Vì sao cùng seed đôi khi vẫn không cùng kết quả?
+## 8. Why Does the Same Seed Sometimes Still Not Give the Same Result?
 
-### 8.1. Khác thứ tự hoặc số lần gọi
+### 8.1. Different call order or call count
 
-Các lệnh sinh số tiêu thụ trạng thái. Ví dụ:
+Generation calls consume state. For example:
 
 ```java
 Random x = new Random(123L);
@@ -340,42 +340,42 @@ Random y = new Random(123L);
 int firstX = x.nextInt(100);
 int secondX = x.nextInt(100);
 int firstY = y.nextInt(100);
-// firstX == firstY, nhưng secondX không buộc bằng firstY.
+// firstX == firstY, but secondX does not have to equal firstY.
 ```
 
-Nếu nhánh điều kiện phụ thuộc dữ liệu khác, hai lần chạy có thể gọi RNG số lần khác nhau. Để phát lại, cố định cả dữ liệu và **thứ tự các sự kiện**.
+If conditional branches depend on different data, two runs may invoke the RNG a different number of times. To replay, fix both the data and **the order of events**.
 
-### 8.2. Khác thuật toán sinh số
+### 8.2. Different generation algorithm
 
-`Random`, `SplittableRandom` và các implementation trong `java.util.random` là **các bộ sinh khác nhau**. Không so sánh kết quả seed 42 giữa hai lớp rồi kết luận một lớp có lỗi vì không trùng.
+`Random`, `SplittableRandom`, and implementations in `java.util.random` are **different generators**. Do not compare results for seed 42 across two classes and conclude one has a bug because they do not match.
 
-Nếu bạn muốn test hợp đồng ứng dụng độc lập thuật toán, kiểm tra các tính chất như:
-- kết quả xúc xắc thuộc 1..6;
-- cùng cấu hình tái lập trong thuật toán đã chọn;
-- không có index vượt phạm vi;
-- phân phối có tính chất thống kê phù hợp qua nhiều seed (với test được thiết kế chuẩn).
+If you want to test an application contract independently of the algorithm, verify properties such as:
+- die results fall within 1..6;
+- identical configuration reproduces within the chosen algorithm;
+- no out-of-bounds index;
+- distribution exhibits proper statistical properties across many seeds (with properly designed tests).
 
-Nếu muốn tái hiện **từng giá trị chính xác xuyên phiên bản và máy**, lưu tên thuật toán, phiên bản JDK/implementation và đầu ra mẫu để kiểm soát thay đổi; nếu yêu cầu nghiêm ngặt, định nghĩa hoặc đóng băng thuật toán PRNG trong giao thức ứng dụng thay vì mặc định mọi API đều có cam kết bit-for-bit trên mọi runtime.
+If you want to reproduce **exact values across versions and machines**, record the algorithm name, JDK/implementation version, and sample outputs to catch changes; if requirements are strict, specify or freeze the PRNG algorithm in the application protocol rather than assuming every API guarantees bit-for-bit identity across all runtimes.
 
-### 8.3. Khác tham số phân phối hoặc phương thức
+### 8.3. Different distribution parameters or methods
 
-`nextInt(100)` và `nextInt(200)` có cách ánh xạ đầu ra khác nhau. Ngay cả khi dùng cùng generator và seed, thay bound, thay số lần gọi `nextDouble`, chuyển sang phân phối Gaussian, hoặc chèn `nextGaussian()` cũng có thể thay chuỗi giá trị xuất hiện trong nghiệp vụ. Các API có thể tiêu thụ trạng thái nội bộ với số bước khác nhau; không tự giả định một lời gọi nghĩa là một bước PRNG chuẩn.
+`nextInt(100)` and `nextInt(200)` map outputs differently. Even with the same generator and seed, changing bounds, changing `nextDouble` call counts, switching to a Gaussian distribution, or inserting `nextGaussian()` can alter the sequence of values seen by business logic. APIs may consume internal state in different numbers of steps; do not assume one method call equals one standard PRNG step.
 
-### 8.4. Tính không xác định bên ngoài RNG
+### 8.4. Non-determinism outside the RNG
 
-Nếu dữ liệu nguồn được lấy theo thứ tự thay đổi (ví dụ đọc các event đến bất định, duyệt collection không có thứ tự được bảo đảm, số luồng thay đổi), luồng logic có thể tiêu thụ RNG khác thứ tự. Nếu kết quả được tổng hợp bằng `double` ở các thứ tự khác, phép cộng dấu chấm động cũng có thể tạo kết quả chữ số cuối khác.
+If source data arrives in varying order (e.g., reading non-deterministic events, iterating over unordered collections, changing thread counts), business logic may consume the RNG in a different order. If results are aggregated using `double` in different orders, floating-point addition can also alter trailing digits.
 
-**Seed cần thiết, nhưng không đủ** để kiểm soát mọi nguồn không xác định trong hệ thống.
+**A seed is necessary, but not sufficient** to control every source of non-determinism in a system.
 
-## 9. Nhiều luồng: chia generator thay vì chia sẻ tùy tiện
+## 9. Multiple Threads: Split Generators Instead of Arbitrary Sharing
 
-### 9.1. Tránh phụ thuộc lịch chạy luồng
+### 9.1. Avoiding dependence on thread scheduling
 
-Chia sẻ một generator cho nhiều worker có thể khiến **số nào thuộc worker nào** phụ thuộc thứ tự thực thi. `Random` hỗ trợ sử dụng từ nhiều luồng theo đặc điểm API nhưng điều đó không tạo kết quả có thể dự báo cho từng task; `SplittableRandom` không được thiết kế để nhiều luồng đồng thời gọi trên cùng instance.
+Sharing one generator across multiple workers can make **which number goes to which worker** depend on execution order. `Random` supports multi-threaded use per API specs, yet that does not yield predictable results per task; `SplittableRandom` is not designed for concurrent calls on the same instance across threads.
 
-Một cách tốt hơn là cấp **một generator riêng cho mỗi nhánh công việc**, và xác định ánh xạ nhánh ↔ seed hoặc generator con một cách cố định.
+A better approach is assigning **a dedicated generator to each work branch**, with a fixed mapping between branch ↔ seed or child generator.
 
-### 9.2. Tách với SplittableRandom
+### 9.2. Splitting with SplittableRandom
 
 ```java
 long rootSeed = 2026L;
@@ -384,31 +384,31 @@ SplittableRandom root = new SplittableRandom(rootSeed);
 SplittableRandom taskA = root.split();
 SplittableRandom taskB = root.split();
 
-// Chuyển mỗi generator con tới đúng một task.
+// Pass each child generator to exactly one task.
 int a = taskA.nextInt(100);
 int b = taskB.nextInt(100);
 ```
 
-Mã trên là đoạn minh họa bên trong một phương thức. Để tái lập:
-1. Tạo `root` từ cùng seed.
-2. Gọi `split()` theo **cùng thứ tự xác định**, ví dụ tạo sẵn danh sách generator cho các task có ID cố định.
-3. Gán mỗi generator con cho đúng task; **không chia sẻ** một instance giữa nhiều task.
-4. Duy trì thuật toán và số lần gọi ổn định trong mỗi task.
-5. Thu thập kết quả theo thứ tự xác định nếu thao tác gộp phụ thuộc thứ tự, đặc biệt với `double`.
+The code above is an illustrative snippet inside a method. To stay reproducible:
+1. Create `root` from the same seed.
+2. Call `split()` in the **same deterministic order**, e.g., pre-generating a list of generators for tasks with fixed IDs.
+3. Assign each child generator to its exact task; **never share** one instance across multiple tasks.
+4. Keep the algorithm and call count stable within each task.
+5. Collect results in a deterministic order if merging is order-dependent, especially with `double`.
 
-Nếu số worker hoặc thứ tự split thay đổi, kết quả gắn với các task có thể thay đổi dù root seed không đổi. Khi cần task ID độc lập thứ tự scheduling, hãy dùng chiến lược dẫn xuất seed ổn định từ root seed và ID (với hàm mixing có thiết kế/kiểm chứng phù hợp), hoặc generator theo counter/index do ứng dụng quản lý.
+If worker counts or split order change, per-task results can change even with an unchanged root seed. When task IDs must be independent of scheduling order, use a deterministic seed-derivation strategy from root seed and ID (with a properly designed/tested mixing function), or an application-managed counter/index-based generator.
 
-### 9.3. Hai yêu cầu khác nhau: tái lập và tính độc lập thống kê
+### 9.3. Two different requirements: reproducibility vs. statistical independence
 
-Hai generator dùng **cùng seed** và cùng thuật toán sẽ cho **cùng chuỗi**, không phải hai chuỗi mẫu độc lập. Nếu dùng cùng seed để mô phỏng 1.000 phiên chạy, bạn có thể đang lặp lại một phiên 1.000 lần.
+Two generators using **the same seed** and same algorithm produce **the same sequence**, not two independent sample streams. If you reuse the same seed to simulate 1,000 runs, you may be repeating one run 1,000 times.
 
-Để đánh giá độ biến thiên giữa các phiên, dùng các luồng sinh khác nhau theo phương án được thiết kế, ví dụ quản lý seed theo ID phiên, hoặc split từ một root generator theo thứ tự xác định. Không mặc định rằng chỉ thay seed bằng `seed + i` chứng minh các luồng hoàn toàn độc lập về mọi tính chất thống kê; với mô phỏng nhạy cảm, cần cân nhắc chất lượng generator và cách chia stream.
+To evaluate variation across runs, use distinct generation streams according to a designed plan, such as managing seeds by run ID or splitting from a root generator in a deterministic order. Do not assume simply changing the seed by `seed + i` proves streams are completely independent in all statistical properties; for sensitive simulations, consider generator quality and stream-splitting design.
 
-## 10. Xây dựng test kiểm chứng sự tái lập
+## 10. Writing Tests to Verify Reproducibility
 
-### 10.1. Kiểm tra phát lại byte-for-byte hoặc value-for-value
+### 10.1. Byte-for-byte or value-for-value replay checks
 
-Ví dụ với mảng xúc xắc:
+Example with a dice array:
 
 ```java
 int[] first = rollDice(2026L, 100);
@@ -418,143 +418,143 @@ if (!Arrays.equals(first, second)) {
 }
 ```
 
-Trong chương trình Java 17, cần import `java.util.Arrays`. Nếu so sánh `double` yêu cầu đúng bit, có thể dùng `Double.doubleToLongBits()` hoặc `Double.doubleToRawLongBits()` theo hợp đồng, thay vì so với epsilon khi mục tiêu là **phát lại chính xác**. Với Monte Carlo record chứa cùng `inside`/`trials` và cùng phép tính, `equals()` của record là kiểm tra phù hợp trong ví dụ.
+In a Java 17 program, import `java.util.Arrays`. If `double` comparison requires bit-exactness, use `Double.doubleToLongBits()` or `Double.doubleToRawLongBits()` per contract, instead of comparing with an epsilon when the goal is **exact replay**. For the Monte Carlo record holding identical `inside`/`trials` and identical arithmetic, the record's `equals()` is an appropriate check in the example.
 
-### 10.2. Kiểm tra tính hợp lệ của phân phối
+### 10.2. Validating distribution properties
 
-Không nhầm **reproducible** với **statistically correct**. Với xúc xắc, tối thiểu cần kiểm tra:
+Do not confuse **reproducible** with **statistically correct**. For dice, at minimum verify:
 
 ```text
-Với mọi kết quả die trong mô phỏng:
+For every die result in the simulation:
     1 <= die <= 6
 ```
 
-Muốn kiểm tra xác suất gần đồng đều, phải dùng đủ số mẫu và kiểm định thống kê phù hợp (ví dụ kiểm định chi-bình-phương với mức ý nghĩa được định nghĩa), không khẳng định sáu mặt xuất hiện đúng bằng nhau trong một dãy ngắn.
+To check near-uniform probability, use enough samples and proper statistical tests (e.g., a chi-squared test at a defined significance level), rather than asserting all six faces appear equally often in a short sequence.
 
-Với mô phỏng π:
-- `inside` phải nằm trong `[0, trials]`.
-- `piEstimate` phải nằm trong `[0,4]`.
-- Với cùng seed, trials và môi trường thuật toán, kết quả phải tái hiện được.
-- Để đánh giá sai số ước lượng, chạy **nhiều phiên với seed/stream khác nhau** và phân tích phân phối kết quả; không dùng một seed duy nhất để kết luận độ chính xác thống kê.
+For the π simulation:
+- `inside` must lie in `[0, trials]`.
+- `piEstimate` must lie in `[0,4]`.
+- With the same seed, trials, and algorithm environment, results must be reproducible.
+- To evaluate estimation error, run **multiple sessions with different seeds/streams** and analyze the result distribution; do not use a single seed to judge statistical accuracy.
 
-### 10.3. Test đầu vào lỗi
+### 10.3. Testing invalid inputs
 
-Kiểm thử cả:
-- số lần tung âm: phải từ chối;
-- số mẫu Monte Carlo bằng 0 hoặc âm: phải từ chối;
-- các bound không hợp lệ khi gọi `nextInt(bound)` hoặc `nextDouble(origin,bound)`;
-- số lượng mẫu đủ lớn làm tràn `int` hoặc làm cạn bộ nhớ khi thiết kế mảng chứa toàn bộ kết quả;
-- seed được lưu dưới dạng văn bản: phải parse chính xác, tránh mất bit do chuyển qua `double`/định dạng số không lossless.
+Also test:
+- negative roll count: must reject;
+- zero or negative Monte Carlo trials: must reject;
+- invalid bounds when calling `nextInt(bound)` or `nextDouble(origin,bound)`;
+- sample counts large enough to overflow `int` or exhaust memory if designing an array storing all results;
+- seeds stored as text: must parse accurately, avoiding bit loss from passing through `double` or non-lossless number formats.
 
-Không thử phân bổ mảng hàng tỷ phần tử chỉ để chứng minh cấu hình không hợp lệ; kiểm tra miền và ngân sách tài nguyên trước.
+Do not attempt to allocate an array of billions of elements just to prove a configuration invalid; check domain bounds and resource budgets first.
 
-## 11. Ghi lại dữ liệu để phát lại lỗi
+## 11. Recording Data to Replay Failures
 
-Trong báo cáo lỗi hoặc kết quả thí nghiệm, nên ghi:
+In bug reports or experiment logs, record:
 
-| Thông tin | Ví dụ | Vì sao cần |
+| Information | Example | Why needed |
 | --- | --- | --- |
-| Tên bài toán/thuật toán | Monte Carlo π | Biết quy trình nào sử dụng RNG |
-| Seed | `2026` | Khởi tạo lại bộ sinh |
-| PRNG | `SplittableRandom` | Cùng seed nhưng khác thuật toán cho chuỗi khác |
-| Mô hình và tham số | `trials = 10000`; khoảng `[-1,1)` | Bảo toàn số bước và cách ánh xạ mẫu |
-| Phiên bản chương trình | commit/build/version | Tránh thay code làm lệch số lần gọi |
-| JDK và môi trường (khi cần) | JDK 17, vendor | Gắn chi tiết runtime ảnh hưởng tính nhất quán |
-| Chiến lược song song | task ID, seed con, thứ tự split | Phát lại đúng luồng |
-| Dữ liệu đầu vào ngoài RNG | tập dữ liệu, config | Không bỏ sót nguồn không xác định |
-| Kết quả/checksum | `inside = 7850` | Đối chiếu nhanh khi phát lại |
+| Problem/algorithm name | Monte Carlo π | Identifies which process consumes the RNG |
+| Seed | `2026` | Re-initializes the generator |
+| PRNG | `SplittableRandom` | Same seed with a different algorithm produces a different sequence |
+| Model and parameters | `trials = 10000`; range `[-1,1)` | Preserves step count and sample mapping |
+| Program version | commit/build/version | Prevents code changes from shifting call counts |
+| JDK and environment (when needed) | JDK 17, vendor | Captures runtime details affecting consistency |
+| Parallelism strategy | task ID, child seed, split order | Replays the exact threads |
+| Non-RNG inputs | dataset, config | Ensures no source of non-determinism is missed |
+| Output/checksum | `inside = 7850` | Quick verification during replay |
 
-Lưu seed theo kiểu `long` hoặc chuỗi số nguyên thập phân chính xác. Không serialize seed 64 bit qua một đường trung gian chuyển thành `double` nếu có thể làm mất độ chính xác số nguyên lớn.
+Store seeds as `long` or exact decimal integer strings. Never serialize a 64-bit seed through an intermediate conversion to `double` if it can lose large-integer precision.
 
-Nếu chạy nhiều phiên mô phỏng, ghi **seed riêng của từng phiên**, hoặc root seed cộng với cách dẫn xuất seed đã được định nghĩa. Thông tin “seed 2026” không đủ nếu số lượng task và thứ tự cấp generator chưa được ghi lại.
+If running multiple simulation sessions, log **each session's own seed**, or the root seed plus the defined seed-derivation scheme. Saying only "seed 2026" is insufficient if task count and generator allocation order are unrecorded.
 
-## 12. Thiết kế mô phỏng có thể kiểm thử và bảo trì
+## 12. Designing Testable and Maintainable Simulations
 
-Một mẫu thiết kế thuận tiện là đưa seed thành tham số đầu vào rõ ràng:
+A convenient pattern is passing the seed as an explicit input parameter:
 
 ```java
-// Phương thức minh họa bên trong một lớp Java.
+// Illustrative method inside a Java class.
 static SimulationResult simulate(long seed, SimulationConfig config) {
     Random rng = new Random(seed);
-    // Sử dụng rng chỉ trong lượt simulate này.
-    // Kết quả trả về chứa thống kê và, nếu cần, seed để chẩn đoán.
-    throw new UnsupportedOperationException("Ví dụ thiết kế API");
+    // Use rng solely within this simulation run.
+    // The returned result contains statistics and, if needed, the seed for diagnosis.
+    throw new UnsupportedOperationException("API design example");
 }
 ```
 
-Đoạn trên **chỉ minh họa hình dạng API**, không phải chương trình đầy đủ (`SimulationResult` và `SimulationConfig` là kiểu do ứng dụng phải tự định nghĩa). Trong phần code chạy độc lập phía trên, `estimatePi(seed,trials)` chính là triển khai cụ thể của ý tưởng này.
+The snippet above **only illustrates the API shape**, not a complete program (`SimulationResult` and `SimulationConfig` are application-defined types). In the standalone code above, `estimatePi(seed,trials)` is a concrete implementation of this idea.
 
-Các nguyên tắc:
-1. **Seed là đầu vào**, không giấu trong `System.currentTimeMillis()` hoặc một singleton không ai biết trạng thái.
-2. Generator thuộc vòng đời của **một lượt mô phỏng**; không tái sử dụng ngoài ý muốn giữa các ca test.
-3. Hàm mô phỏng cố gắng không có I/O hoặc tác dụng phụ ngoài, giúp dễ chạy lại và đối chiếu.
-4. Mọi quy tắc chuyển đầu ra PRNG thành dữ liệu nghiệp vụ nên được định nghĩa rõ.
-5. Nếu cần phân luồng, quản lý seed/nhánh trước khi submit task và ghi mapping ID.
-6. Có test **tính xác định**, **giá trị hợp lệ** và **kiểm thử thống kê** tách biệt.
+Principles:
+1. **Seed is an input**, not hidden inside `System.currentTimeMillis()` or a singleton with unknown state.
+2. The generator belongs to the lifecycle of **one simulation run**; never accidentally reuse it across test cases.
+3. Keep simulation functions free of I/O or external side effects where possible, making replay and comparison easy.
+4. Every rule mapping PRNG outputs to domain data should be clearly defined.
+5. If multi-threading is needed, manage seeds/branches before submitting tasks and log ID mappings.
+6. Keep **determinism**, **validity**, and **statistical** tests separate.
 
-Với bài thực hành hoặc CI, cố định seed để một lỗi không xuất hiện ngẫu nhiên hôm nay rồi biến mất ngày mai. Để tìm thêm lỗi trong hệ thống sản xuất, có thể chạy thêm các seed khác nhau, nhưng **luôn ghi seed gây thất bại**.
+For exercises or CI, fix the seed so a bug does not appear randomly today and vanish tomorrow. To uncover more bugs in production systems, you can run additional varying seeds, while **always logging any failing seed**.
 
-## 13. Sai lầm phổ biến và cách phòng tránh
+## 13. Common Mistakes and How to Avoid Them
 
-1. **Tạo `new Random()` không truyền seed rồi nghĩ có thể tái hiện.** Có thể mỗi lần khởi tạo nhận seed khác; truyền seed rõ ràng và log seed.
-2. **Tạo `new Random(sameSeed)` trong mỗi vòng lặp.** Bạn cứ lấy lại kết quả đầu của cùng dãy; giữ một generator cho toàn bộ mô phỏng.
-3. **Tưởng cùng seed luôn cho cùng kết quả khi đổi RNG.** Thuật toán có thể khác; ghi lại tên lớp/thuật toán.
-4. **Thêm một lời gọi ngẫu nhiên vào nhánh phụ mà không cập nhật golden test.** Vị trí tiêu thụ thay đổi sẽ làm các mẫu sau lệch; cần kiểm soát flow hoặc thiết kế các stream độc lập.
-5. **Chia sẻ một generator cho nhiều luồng và mong từng task luôn nhận cùng mẫu.** Scheduling có thể đổi thứ tự gọi; cấp generator theo task và cấu trúc split xác định.
-6. **Cho rằng hai seed khác nhau nhất thiết tạo dữ liệu khác nhau.** Dãy hữu hạn có thể trùng; không dùng bất đẳng thức giữa hai seed làm invariant bắt buộc.
-7. **Lấy một seed cố định làm bằng chứng chất lượng mô phỏng.** Nó chỉ đảm bảo phát lại; phải đánh giá nhiều phiên/mẫu để kiểm tra thống kê.
-8. **Dùng `SecureRandom` với seed cố định để tạo token có thể phát lại.** Điều này trái với mục đích bảo mật; dùng `SecureRandom` đúng ngữ cảnh bảo mật và không làm lộ entropy.
-9. **Không lưu phiên bản/thuật toán và thay cách chạy song song.** Seed đơn lẻ không đủ để tái hiện hệ thống đã thay đổi.
-10. **Không ghi bound/đơn vị của mẫu.** `nextInt(6)` cho 0..5, không phải 1..6; `nextDouble(-1,1)` không bao gồm cận trên.
-11. **Giữ tất cả kết quả trong mảng khổng lồ dù chỉ cần thống kê.** Có thể tính streaming như bộ đếm `inside` để tiết kiệm bộ nhớ và phòng tràn chỉ số.
-12. **Nhầm “ngẫu nhiên khó dự đoán” với PRNG seeded.** PRNG dùng để mô phỏng có thể phát lại, không phải mặc định phù hợp cho mục tiêu mật mã.
+1. **Creating `new Random()` without a seed and expecting reproducibility.** Each initialization may receive a different seed; pass an explicit seed and log it.
+2. **Creating `new Random(sameSeed)` inside every loop iteration.** You keep getting the first values of the same sequence; keep one generator for the entire simulation.
+3. **Assuming the same seed gives the same result when switching RNGs.** The algorithm may differ; record the class/algorithm name.
+4. **Adding an RNG call in a side branch without updating golden tests.** Changing consumption positions shifts all subsequent samples; control flow or design independent streams.
+5. **Sharing one generator across threads and expecting each task to always get the same samples.** Scheduling can alter call order; allocate generators per task with deterministic splitting.
+6. **Assuming two different seeds must produce different data.** Finite sequences can collide; never assert inequality across two seeds as a mandatory invariant.
+7. **Treating one fixed seed as proof of simulation quality.** It only ensures replayability; evaluate multiple runs/samples for statistical checks.
+8. **Using `SecureRandom` with a fixed seed to generate replayable tokens.** That defeats security; use `SecureRandom` properly in security contexts without exposing entropy.
+9. **Failing to record version/algorithm while changing parallel execution.** A bare seed is not enough to reproduce a changed system.
+10. **Failing to document sample bounds/units.** `nextInt(6)` gives 0..5, not 1..6; `nextDouble(-1,1)` excludes the upper bound.
+11. **Storing all results in a huge array when only summary statistics are needed.** Compute in streaming fashion like the `inside` counter to save memory and avoid index overflow.
+12. **Confusing "unpredictable randomness" with seeded PRNGs.** Simulation PRNGs are replayable, not suitable by default for cryptographic goals.
 
-## 14. Bài tập tự kiểm tra
+## 14. Self-Check Exercises
 
-**Bài 1 — phát lại xúc xắc.** Tại sao `rollDice(2026L,8)` chạy hai lần trả cùng dãy?  
-**Đáp án:** mỗi lần tạo một `Random` từ cùng seed và gọi `nextInt(6)` đúng tám lần, theo cùng thứ tự.
+**Exercise 1 — replaying dice.** Why does calling `rollDice(2026L,8)` twice return the same array?  
+**Answer:** each call creates a `Random` from the same seed and calls `nextInt(6)` exactly eight times, in the same order.
 
-**Bài 2 — hai seed khác nhau.** Có thể khẳng định hai seed khác nhau không bao giờ cho cùng một lần tung xúc xắc không?  
-**Đáp án:** không. Dù trạng thái khởi tạo khác, đầu ra có sáu khả năng nên nhiều seed có thể cùng tạo một kết quả (hoặc một chuỗi ngắn).
+**Exercise 2 — two different seeds.** Can we state that two different seeds will never produce the same single die roll?  
+**Answer:** no. Even with different initial states, there are only six possible outputs, so many seeds can produce the same result (or short sequence).
 
-**Bài 3 — thay đổi vị trí gọi.** Hai generator cùng seed nhưng một bên gọi `nextInt(100)` thêm một lần trước bước quan trọng. Giá trị bước đó có nhất thiết trùng không?  
-**Đáp án:** không. Hai chương trình đang lấy đầu ra từ các vị trí khác nhau trong dãy.
+**Exercise 3 — shifting call position.** Two generators have the same seed, but one calls `nextInt(100)` one extra time before a critical step. Must the value at that step match?  
+**Answer:** no. The two runs are drawing outputs from different positions in the sequence.
 
-**Bài 4 — kiểm tra π.** Mô phỏng 10.000 điểm, có 7.850 điểm trong hình tròn. Ước lượng π bao nhiêu?  
-**Đáp án:** `4.0 × 7850 / 10000 = 3.14`.
+**Exercise 4 — checking π.** In a simulation of 10,000 points, 7,850 fall inside the circle. What is the π estimate?  
+**Answer:** `4.0 × 7850 / 10000 = 3.14`.
 
-**Bài 5 — kết quả giống nhau không chứng minh chất lượng.** Nếu 100 lần chạy với cùng seed đều ra π = 3.14, đó có phải 100 mẫu độc lập để đánh giá độ tin cậy?  
-**Đáp án:** không. Đó chỉ là 100 lần phát lại cùng một mẫu mô phỏng.
+**Exercise 5 — identical results do not prove quality.** If 100 runs with the same seed all yield π = 3.14, are those 100 independent samples for evaluating reliability?  
+**Answer:** no. That is merely 100 replays of the exact same simulation sample.
 
-**Bài 6 — đồng thời.** Hai task nhận generator con từ cùng root seed nhưng thứ tự gọi `split()` được đảo ở lần chạy sau. Kết quả từng task có bắt buộc trùng không?  
-**Đáp án:** không. Generator gắn với mỗi task đã đổi; cần gán nhánh bằng thứ tự hoặc ID xác định.
+**Exercise 6 — concurrency.** Two tasks receive child generators from the same root seed, but the order of `split()` calls is swapped in a later run. Must each task's result still match?  
+**Answer:** no. The generator assigned to each task changed; branches must be assigned via deterministic order or ID.
 
-**Bài 7 — kiểm thử đúng.** Một test tính tái lập và một test thống kê khác nhau thế nào?  
-**Đáp án:** test tái lập kiểm tra cùng seed/cấu hình cho cùng kết quả; test thống kê đánh giá đặc điểm phân phối qua đủ nhiều mẫu hoặc các luồng độc lập.
+**Exercise 7 — proper testing.** How do a reproducibility test and a statistical test differ?  
+**Answer:** a reproducibility test verifies that the same seed/configuration yields the same result; a statistical test evaluates distribution properties across sufficiently many samples or independent streams.
 
-## 15. Checklist trước khi nộp bài mô phỏng
+## 15. Checklist Before Submitting a Simulation
 
-- [ ] Hàm mô phỏng nhận **seed** và số lượng mẫu rõ ràng.
-- [ ] Generator được tạo **một lần cho mỗi phiên**, không reset mỗi mẫu.
-- [ ] Các bound ngẫu nhiên đúng quy tắc, ví dụ xúc xắc 1..6 và tọa độ `[-1,1)`.
-- [ ] Mỗi phiên kiểm soát thứ tự gọi RNG và kiểm tra tham số đầu vào.
-- [ ] Chạy lại cùng seed/cấu hình tạo kết quả giống nhau trong môi trường đã kiểm chứng.
-- [ ] Có ít nhất một seed khác để quan sát độ biến thiên; không ép kết quả hai seed phải khác tuyệt đối.
-- [ ] Có kiểm tra invariant nghiệp vụ, ví dụ `0 <= inside <= trials`.
-- [ ] Nếu chạy song song, chiến lược seed/split/task ID không phụ thuộc scheduling.
-- [ ] Ghi seed, thuật toán, tham số, phiên bản chương trình và kết quả vào thông tin chẩn đoán.
-- [ ] Không dùng PRNG seeded cho token, mật khẩu hoặc dữ liệu cần bí mật.
+- [ ] Simulation function explicitly accepts **seed** and sample count.
+- [ ] Generator is created **once per run**, not reset on each sample.
+- [ ] Random bounds follow the rules, e.g., dice 1..6 and coordinates `[-1,1)`.
+- [ ] Each run controls RNG call order and validates input parameters.
+- [ ] Re-running with the same seed/configuration produces identical results in the verified environment.
+- [ ] At least one other seed is tested to observe variance; do not force two seeds' outputs to be strictly unequal.
+- [ ] Domain invariants are checked, e.g., `0 <= inside <= trials`.
+- [ ] If running in parallel, the seed/split/task-ID strategy does not depend on scheduling.
+- [ ] Seed, algorithm, parameters, program version, and results are recorded in diagnostic output.
+- [ ] Seeded PRNGs are not used for tokens, passwords, or secret data.
 
-## 16. Kết luận
+## 16. Conclusion
 
-- **Seed tạo khả năng tái lập một chuỗi giả ngẫu nhiên**, với điều kiện thuật toán, các lời gọi và ngữ cảnh được giữ nhất quán.
-- Với Java 17, dùng `Random(seed)` cho ví dụ đơn giản; dùng `SplittableRandom(seed)` khi cần bộ sinh có thể tách thành các luồng độc lập theo một kế hoạch xác định.
-- **Cùng seed không đảm bảo cùng kết quả toàn chương trình** nếu thay cách tiêu thụ random, dữ liệu, số luồng hoặc thuật toán.
-- Mô phỏng Monte Carlo có thể được test **về tính tái lập** bằng cùng seed, đồng thời cần nhiều seed/mẫu để kiểm tra **đặc tính thống kê**.
-- Khi cần phát lại lỗi, lưu **seed + tên thuật toán + tham số + phiên bản + thứ tự/chiến lược phân luồng**; không chỉ ghi một con số seed.
-- PRNG để mô phỏng và RNG phục vụ bảo mật là **hai mục tiêu khác nhau**.
+- **A seed enables replaying a pseudorandom sequence**, provided the algorithm, call sequence, and context remain consistent.
+- With Java 17, use `Random(seed)` for simple examples; use `SplittableRandom(seed)` when a generator must be split into independent streams according to a deterministic plan.
+- **The same seed does not guarantee the same whole-program output** if random consumption, data, thread counts, or algorithms change.
+- Monte Carlo simulations can be tested **for reproducibility** with the same seed, while multiple seeds/samples are needed to check **statistical properties**.
+- When bugs need replaying, record **seed + algorithm name + parameters + version + threading order/strategy**; do not log only a single seed number.
+- Simulation PRNGs and security RNGs serve **two different goals**.
 
-Tài liệu chính thức Java SE 17:
+Official Java SE 17 documentation:
 - [`Random`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Random.html)
 - [`SplittableRandom`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/SplittableRandom.html)
 - [`RandomGenerator`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/random/RandomGenerator.html)

@@ -1,23 +1,23 @@
-# ModuleReference, ModuleReader và resource
+# ModuleReference, ModuleReader, and resources
 
-Trong Java Module System, package \`java.lang.module\` cung cấp API để tìm, mô tả và đọc nội dung của một module. Hai kiểu quan trọng là **ModuleReference** và **ModuleReader**:
+In the Java Module System, the \`java.lang.module\` package provides APIs to locate, describe, and read the contents of a module. Two important types are **ModuleReference** and **ModuleReader**:
 
-- **ModuleReference** đại diện cho một tham chiếu tới module: nó giữ ModuleDescriptor và biết cách mở nội dung module.
-- **ModuleReader** cung cấp cách đọc các resource bên trong module mà không cần nạp class vào JVM.
+- **ModuleReference** represents a reference to a module: it holds the ModuleDescriptor and knows how to open the module's contents.
+- **ModuleReader** provides a way to read resources inside the module without loading classes into the JVM.
 
-Các API này hữu ích khi xây dựng công cụ kiểm tra module, phân tích module path, đóng gói ứng dụng, tìm resource hoặc làm việc với quá trình resolve module.
+These APIs are useful when building module inspection tools, analyzing the module path, packaging applications, locating resources, or working with the module resolution process.
 
-## 1. Vị trí của các kiểu trong Module API
+## 1. Where the types fit in the Module API
 
-Một module có thể được nhìn từ ba góc độ:
+A module can be viewed from three perspectives:
 
-| Kiểu | Vai trò |
+| Type | Role |
 |---|---|
-| ModuleDescriptor | Mô tả metadata của module: tên, version, requires, exports, opens, uses, provides và các package |
-| ModuleReference | Kết hợp descriptor với một tham chiếu tới nội dung module |
-| ModuleReader | Đọc resource thực tế trong nội dung module |
+| ModuleDescriptor | Describes module metadata: name, version, requires, exports, opens, uses, provides, and packages |
+| ModuleReference | Pairs a descriptor with a reference to the module's contents |
+| ModuleReader | Reads actual resources from the module's contents |
 
-Luồng làm việc thường gặp:
+Typical workflow:
 
 ~~~text
 ModuleFinder
@@ -26,7 +26,7 @@ ModuleFinder
     v
 ModuleReference
     |-- descriptor()  -> ModuleDescriptor
-    |-- location()    -> URI hoặc null
+    |-- location()    -> URI or null
     |
     | open()
     v
@@ -39,23 +39,23 @@ ModuleReader
     |-- close()
 ~~~
 
-ModuleReference và ModuleReader không phải là đối tượng Module trong package java.lang. Module là module đã được định nghĩa trong runtime; ModuleReference là tham chiếu được dùng trong quá trình tìm và resolve module; ModuleReader là giao diện đọc nội dung của module.
+ModuleReference and ModuleReader are not the Module object in the java.lang package. Module is a module already defined at runtime; ModuleReference is a reference used during module lookup and resolution; ModuleReader is an interface for reading the module's contents.
 
 ## 2. ModuleReference
 
-ModuleReference là lớp trừu tượng trong java.lang.module. Một đối tượng đại diện cho một module có thể được tìm thấy bởi ModuleFinder.
+ModuleReference is an abstract class in java.lang.module. An instance represents a module that can be found by ModuleFinder.
 
-Các phương thức chính:
+Key methods:
 
-| Phương thức | Ý nghĩa |
+| Method | Meaning |
 |---|---|
-| descriptor() | Trả về ModuleDescriptor của module |
-| location() | Trả về URI xác định vị trí nội dung module, hoặc null nếu không biết vị trí |
-| open() | Mở ModuleReader để đọc nội dung module; có thể ném IOException |
+| descriptor() | Returns the module's ModuleDescriptor |
+| location() | Returns the URI identifying the location of the module's contents, or null if the location is unknown |
+| open() | Opens a ModuleReader to read the module's contents; may throw IOException |
 
-ModuleReference không tự nạp class. Nó cung cấp metadata và điểm truy cập để công cụ đọc nội dung module.
+ModuleReference does not load classes itself. It provides metadata and an entry point for tools to read module contents.
 
-Ví dụ lấy tham chiếu tới module hệ thống java.base:
+Example obtaining a reference to the java.base system module:
 
 ~~~java
 import java.lang.module.ModuleFinder;
@@ -64,31 +64,31 @@ import java.lang.module.ModuleReference;
 ModuleReference reference = ModuleFinder.ofSystem()
         .find("java.base")
         .orElseThrow(() ->
-                new IllegalStateException("Không tìm thấy java.base"));
+                new IllegalStateException("java.base not found"));
 
 System.out.println(reference.descriptor().name());
 System.out.println(reference.location());
 ~~~
 
-ModuleFinder.ofSystem() tìm các module thuộc runtime image hiện tại. Với module nằm trên module path, có thể tạo finder bằng ModuleFinder.of(Path...). Sau khi có ModuleReference, có thể xem descriptor hoặc mở ModuleReader.
+ModuleFinder.ofSystem() finds modules belonging to the current runtime image. For modules located on the module path, you can create a finder using ModuleFinder.of(Path...). Once you have a ModuleReference, you can inspect the descriptor or open a ModuleReader.
 
-Không nên giả định location() luôn trả về một URI có thể chuyển trực tiếp thành Path. Vị trí có thể không được cung cấp hoặc dùng một URI scheme mà ứng dụng không xử lý như file thông thường. Nếu mục tiêu là đọc nội dung, hãy dùng ModuleReader.
+Do not assume location() always returns a URI that can be converted directly to a Path. The location may not be provided or may use a URI scheme that the application does not handle as a regular file. If the goal is to read contents, use ModuleReader.
 
-## 3. ModuleReader và cách truy cập resource
+## 3. ModuleReader and how to access resources
 
-ModuleReader là interface mở rộng Closeable. Nó cung cấp nhiều cách truy cập cùng một resource, tùy theo việc cần URI, InputStream hay ByteBuffer.
+ModuleReader is an interface extending Closeable. It provides multiple ways to access the same resource, depending on whether you need a URI, InputStream, or ByteBuffer.
 
-Tên resource là tên tương đối bên trong module, dùng dấu gạch chéo xuôi để phân tách package/thư mục. Ví dụ:
+A resource name is a relative name inside the module, using forward slashes to separate packages/directories. For example:
 
 - java/lang/Object.class
 - com/example/config.properties
 - META-INF/services/com.example.PaymentProvider
 
-Không thêm dấu gạch chéo ở đầu tên resource. Tên resource không phải đường dẫn tuyệt đối trên filesystem.
+Do not add a leading slash to the resource name. Resource names are not absolute paths on the filesystem.
 
-### find(name): tìm URI của resource
+### find(name): finding a resource's URI
 
-find(name) trả về Optional<URI>. Nếu tìm thấy resource, URI mô tả vị trí của resource theo cách triển khai ModuleReader cung cấp.
+find(name) returns Optional<URI>. If the resource is found, the URI describes the resource's location as provided by the ModuleReader implementation.
 
 ~~~java
 import java.io.IOException;
@@ -105,11 +105,11 @@ try (ModuleReader reader = reference.open()) {
 }
 ~~~
 
-find() phù hợp khi cần biết resource có tồn tại và cần URI của nó. URI này không nhất thiết là file URI. Không nên mặc định dùng Paths.get(uri) hoặc File để đọc mọi URI trả về.
+find() is suitable when you need to know whether a resource exists and obtain its URI. This URI is not necessarily a file URI. Do not assume you can use Paths.get(uri) or File to read every returned URI.
 
-### open(name): đọc resource bằng InputStream
+### open(name): reading a resource with InputStream
 
-open(name) trả về Optional<InputStream>. Đây là lựa chọn thuận tiện khi cần đọc tuần tự dữ liệu, chẳng hạn file properties, JSON hoặc nội dung nhị phân.
+open(name) returns Optional<InputStream>. This is a convenient choice when you need to read data sequentially, such as properties files, JSON, or binary content.
 
 ~~~java
 import java.io.IOException;
@@ -124,19 +124,19 @@ try (ModuleReader reader = reference.open()) {
     if (result.isPresent()) {
         try (InputStream input = result.get()) {
             byte[] bytes = input.readAllBytes();
-            System.out.println("Số byte: " + bytes.length);
+            System.out.println("Byte count: " + bytes.length);
         }
     } else {
-        System.out.println("Không tìm thấy resource");
+        System.out.println("Resource not found");
     }
 }
 ~~~
 
-Có hai tài nguyên cần đóng trong ví dụ: ModuleReader và InputStream. Mỗi đối tượng được đặt trong try-with-resources để bảo đảm được đóng kể cả khi có exception.
+There are two resources to close in the example: ModuleReader and InputStream. Each object is placed in a try-with-resources block to ensure it is closed even if an exception occurs.
 
-### read(name): đọc resource bằng ByteBuffer
+### read(name): reading a resource with ByteBuffer
 
-read(name) trả về Optional<ByteBuffer>. Cách này có thể phù hợp với công cụ xử lý dữ liệu nhị phân hoặc API làm việc trực tiếp với NIO.
+read(name) returns Optional<ByteBuffer>. This approach can be suitable for tools processing binary data or APIs working directly with NIO.
 
 ~~~java
 import java.io.IOException;
@@ -154,7 +154,7 @@ try (ModuleReader reader = reference.open()) {
         try {
             byte[] bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
-            System.out.println("Số byte: " + bytes.length);
+            System.out.println("Byte count: " + bytes.length);
         } finally {
             reader.release(buffer);
         }
@@ -162,11 +162,11 @@ try (ModuleReader reader = reference.open()) {
 }
 ~~~
 
-Khi read() trả về buffer, gọi release() trên chính ByteBuffer được trả về sau khi dùng xong. Việc giải phóng cụ thể phụ thuộc vào implementation; với một số implementation, buffer có thể dùng bộ nhớ ngoài heap. Không thay buffer gốc bằng một bản duplicate hoặc slice khi gọi release().
+When read() returns a buffer, call release() on the exact ByteBuffer returned after you are done using it. Specific deallocation depends on the implementation; for some implementations, the buffer may use off-heap memory. Do not replace the original buffer with a duplicate or slice when calling release().
 
-### list(): liệt kê tên resource
+### list(): listing resource names
 
-list() trả về Stream<String> chứa tên các resource trong module. Stream này cần được đóng sau khi sử dụng.
+list() returns a Stream<String> containing the names of resources in the module. This Stream must be closed after use.
 
 ~~~java
 import java.io.IOException;
@@ -181,43 +181,43 @@ try (ModuleReader reader = reference.open()) {
 }
 ~~~
 
-Không nên giả định list() chỉ trả về các file mà ứng dụng tự tạo. Nội dung module có thể gồm class, metadata và các resource khác. Hãy lọc theo tên hoặc phần mở rộng phù hợp với mục tiêu.
+Do not assume list() only returns files created by the application itself. Module contents can include classes, metadata, and other resources. Filter by name or extension appropriate to your goal.
 
-## 4. Chọn phương thức đọc nào?
+## 4. Which reading method to choose?
 
-| Nhu cầu | API nên dùng |
+| Need | API to use |
 |---|---|
-| Kiểm tra resource có tồn tại và lấy URI | find(name) |
-| Đọc tuần tự bằng API stream | open(name) |
-| Xử lý dữ liệu bằng NIO ByteBuffer | read(name), sau đó release(buffer) |
-| Liệt kê resource trong module | list() |
+| Check whether a resource exists and get its URI | find(name) |
+| Read sequentially using a stream API | open(name) |
+| Process data using NIO ByteBuffer | read(name), then release(buffer) |
+| List resources in a module | list() |
 
-Nếu chỉ cần đọc nội dung, open() thường dễ sử dụng vì InputStream có thể được đóng bằng try-with-resources. read() hữu ích khi phần còn lại của chương trình đã làm việc với ByteBuffer và có thể quản lý vòng đời buffer đúng cách.
+If you only need to read content, open() is usually easier to use because InputStream can be closed with try-with-resources. read() is useful when the rest of the program already works with ByteBuffer and can manage the buffer lifecycle properly.
 
-## 5. Quản lý vòng đời và lỗi
+## 5. Lifecycle and error management
 
-ModuleReader đại diện cho một phiên truy cập nội dung module. Sau khi mở reader, cần đóng nó khi hoàn tất:
+ModuleReader represents a session for accessing module contents. After opening a reader, close it when finished:
 
 ~~~java
 try (ModuleReader reader = reference.open()) {
-    // find, open, read hoặc list resource tại đây
+    // find, open, read, or list resources here
 }
 ~~~
 
-Một số điểm cần nhớ:
+Points to remember:
 
-1. reference.open() và các thao tác đọc có thể ném IOException. Xử lý hoặc khai báo exception phù hợp.
-2. find(), open() và read() dùng Optional để biểu diễn trường hợp không tìm thấy resource. Kiểm tra Optional trước khi lấy giá trị.
-3. InputStream lấy từ open() phải được đóng riêng.
-4. Stream lấy từ list() phải được đóng sau khi duyệt.
-5. ByteBuffer lấy từ read() phải được trả lại cho reader bằng release() khi không còn sử dụng.
-6. Không tiếp tục dùng reader sau khi đã đóng reader.
+1. reference.open() and read operations can throw IOException. Handle or declare the exception appropriately.
+2. find(), open(), and read() use Optional to represent the case where a resource is not found. Check the Optional before retrieving the value.
+3. InputStream obtained from open() must be closed separately.
+4. Stream obtained from list() must be closed after traversal.
+5. ByteBuffer obtained from read() must be returned to the reader via release() when no longer used.
+6. Do not continue using the reader after the reader has been closed.
 
-Dùng try-with-resources cho reader, stream và input stream giúp tránh rò rỉ tài nguyên. Với ByteBuffer, dùng finally để bảo đảm release() vẫn được gọi nếu xử lý dữ liệu gặp lỗi.
+Using try-with-resources for the reader, stream, and input stream helps prevent resource leaks. For ByteBuffer, use finally to ensure release() is still called if data processing encounters an error.
 
-## 6. Quan hệ với ModuleFinder và quá trình resolve
+## 6. Relationship with ModuleFinder and the resolution process
 
-ModuleFinder chịu trách nhiệm tìm các ModuleReference. Nó có thể tìm module trong runtime image hoặc từ các vị trí module path được cung cấp.
+ModuleFinder is responsible for locating ModuleReferences. It can locate modules in the runtime image or from supplied module path locations.
 
 ~~~java
 import java.lang.module.ModuleFinder;
@@ -233,31 +233,31 @@ for (ModuleReference reference : references) {
 }
 ~~~
 
-Trong ví dụ, thư mục mods được dùng làm đầu vào cho ModuleFinder. Mỗi kết quả là một ModuleReference. Từ reference, chương trình có thể đọc descriptor hoặc mở ModuleReader để kiểm tra nội dung.
+In the example, the mods directory is used as input to ModuleFinder. Each result is a ModuleReference. From a reference, the program can read the descriptor or open a ModuleReader to inspect the contents.
 
-Trong quá trình resolve, Java sử dụng các ModuleReference và ModuleDescriptor để xác định module nào cần có mặt, các quan hệ requires và cách tạo Configuration. ModuleReader cung cấp khả năng truy cập nội dung module cho các thao tác cần đọc resource. Việc đọc resource bằng ModuleReader không đồng nghĩa với việc module đã được định nghĩa trong một ModuleLayer hoặc class của module đã được nạp.
+During resolution, Java uses ModuleReferences and ModuleDescriptors to determine which modules need to be present, the requires relationships, and how to construct a Configuration. ModuleReader provides access to module contents for operations that need to read resources. Reading resources with ModuleReader does not mean the module has been defined in a ModuleLayer or that classes of the module have been loaded.
 
-## 7. Phân biệt với ClassLoader và Module
+## 7. Distinguishing from ClassLoader and Module
 
-| Thành phần | Trách nhiệm |
+| Component | Responsibility |
 |---|---|
-| ModuleReference | Tham chiếu module được tìm thấy, có descriptor và khả năng mở reader |
-| ModuleReader | Đọc resource từ nội dung module |
-| Module | Đại diện cho module trong runtime |
-| ClassLoader | Nạp class và cung cấp cơ chế tìm resource theo quy tắc của class loader |
+| ModuleReference | Reference to a found module, with descriptor and ability to open a reader |
+| ModuleReader | Reads resources from module contents |
+| Module | Represents a module at runtime |
+| ClassLoader | Loads classes and provides resource lookup according to class loader rules |
 
-ModuleReader là API cấp thấp để làm việc với nội dung module. Nếu ứng dụng chỉ cần tải resource trong lúc chạy theo cơ chế thông thường, API resource của ClassLoader hoặc Module có thể phù hợp hơn. Nếu đang xây dựng công cụ phân tích, đóng gói hoặc kiểm tra module trước khi nạp, ModuleReference và ModuleReader là những API phù hợp.
+ModuleReader is a low-level API for working with module contents. If an application only needs to load resources at runtime using normal mechanisms, the resource APIs of ClassLoader or Module may be more appropriate. If you are building tools for analyzing, packaging, or inspecting modules before loading, ModuleReference and ModuleReader are the appropriate APIs.
 
-## 8. Những lỗi thường gặp
+## 8. Common mistakes
 
-- **Giả định location() luôn khác null:** vị trí module có thể không được biết. Dùng ModuleReader để truy cập nội dung.
-- **Coi URI là đường dẫn file:** URI có thể dùng scheme khác file. Không chuyển URI thành Path một cách mặc định.
-- **Quên đóng reader hoặc InputStream:** dùng try-with-resources.
-- **Quên đóng Stream từ list():** đóng stream sau khi duyệt.
-- **Quên release ByteBuffer:** gọi reader.release() với buffer gốc sau khi xử lý.
-- **Dùng tên resource như đường dẫn tuyệt đối:** truyền tên tương đối, phân tách bằng dấu gạch chéo xuôi và không thêm dấu / ở đầu.
-- **Nhầm ModuleReference với Module:** reference phục vụ việc tìm và đọc module; Module đại diện cho module đã có trong runtime.
+- **Assuming location() is always non-null:** a module's location may be unknown. Use ModuleReader to access contents.
+- **Treating URIs as file paths:** a URI may use a scheme other than file. Do not convert URIs to Path by default.
+- **Forgetting to close the reader or InputStream:** use try-with-resources.
+- **Forgetting to close the Stream from list():** close the stream after traversal.
+- **Forgetting to release the ByteBuffer:** call reader.release() with the original buffer after processing.
+- **Using resource names like absolute paths:** pass relative names separated by forward slashes with no leading /.
+- **Confusing ModuleReference with Module:** reference serves finding and reading modules; Module represents a module already present at runtime.
 
-## 9. Ghi nhớ
+## 9. Key takeaways
 
-ModuleReference trả lời câu hỏi: “Module này được mô tả như thế nào và có thể mở nội dung ở đâu?”. ModuleReader trả lời câu hỏi: “Có thể tìm, liệt kê và đọc resource nào bên trong module?”. Kết hợp ModuleFinder, ModuleReference và ModuleReader cho phép công cụ Java khám phá metadata và nội dung module mà không cần nạp các class của module vào ứng dụng.
+ModuleReference answers the question: “How is this module described and where can its contents be opened?”. ModuleReader answers the question: “Which resources can be found, listed, and read inside the module?”. Combining ModuleFinder, ModuleReference, and ModuleReader allows Java tools to inspect module metadata and contents without loading the module's classes into the application.

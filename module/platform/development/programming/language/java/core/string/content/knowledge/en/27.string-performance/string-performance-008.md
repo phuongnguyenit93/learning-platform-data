@@ -1,62 +1,62 @@
-# Đánh giá bộ nhớ và kết quả String trên dữ liệu ASCII, tiếng Việt và emoji
+# Evaluating String Memory and Results on ASCII, Vietnamese, and Emoji Data
 
-**String.length() không trả về số byte.** Trong Java, chuỗi ASCII, văn bản tiếng Việt và emoji có thể khác nhau về số đơn vị mã UTF-16, số Unicode code point, kích thước khi mã hóa UTF-8 và dung lượng bộ nhớ của đối tượng trong JVM. Đánh giá hiệu năng String phải xác định rõ **đơn vị đo**, **dữ liệu đầu vào**, **thao tác** và **phiên bản JVM**.
+**String.length() does not return the number of bytes.** In Java, ASCII strings, Vietnamese text, and emojis can differ in their UTF-16 code unit count, Unicode code point count, UTF-8 encoded byte size, and object memory footprint in the JVM. Evaluating String performance requires clearly specifying the **unit of measurement**, **input data**, **operation**, and **JVM version**.
 
-Bài học này xây dựng phép so sánh có thể chạy trên Java 17+, giải thích cơ chế Compact Strings, những trường hợp Unicode dễ sai và quy trình đo heap/hiệu năng phù hợp. Các số byte mã hóa được xác định trực tiếp từ dữ liệu; con số payload nội bộ chỉ là **ước lượng có điều kiện**, còn thời gian chạy và heap thực tế cần đo bằng công cụ.
+This lesson builds a comparison runnable on Java 17+, explains Compact Strings, highlights error-prone Unicode cases, and outlines proper heap and performance measurement practices. Encoded byte counts are determined directly from the data; internal payload figures are **conditional estimates**, while actual runtime and heap usage must be measured with tools.
 
-## 1. Các đại lượng cần phân biệt
+## 1. Quantities to Distinguish
 
-| Đại lượng | Cách lấy trong Java | Thể hiện |
+| Quantity | How to obtain in Java | What it represents |
 | --- | --- | --- |
-| **UTF-16 code unit** | **s.length()** | Số đơn vị kiểu **char** trong mô hình API Java String |
-| **Unicode code point** | **s.codePointCount(0, s.length())** | Số điểm mã Unicode, không nhất thiết là số ký tự nhìn thấy |
-| **UTF-8 bytes** | **s.getBytes(StandardCharsets.UTF_8).length** | Kích thước byte khi truyền/lưu dưới định dạng UTF-8 |
-| **Grapheme cluster** | Bộ phân đoạn grapheme phù hợp Unicode | Đơn vị ký tự người dùng cảm nhận; có thể gồm nhiều code point |
-| **Heap memory** | Profiler/heap dump/JOL tùy mục tiêu | Header, byte[] nội bộ, tham chiếu, padding và dữ liệu còn được giữ |
-| **Allocation/op** | Benchmark/profiler GC | Dung lượng cấp phát tạm mỗi lần thực hiện thao tác |
+| **UTF-16 code unit** | **s.length()** | Number of **char** units in the Java String API model |
+| **Unicode code point** | **s.codePointCount(0, s.length())** | Number of Unicode code points, not necessarily visible characters |
+| **UTF-8 bytes** | **s.getBytes(StandardCharsets.UTF_8).length** | Byte size when transmitting or storing in UTF-8 format |
+| **Grapheme cluster** | Unicode-compliant grapheme segmenter | User-perceived character unit; may consist of multiple code points |
+| **Heap memory** | Profiler / heap dump / JOL depending on goal | Object header, internal byte[], references, padding, and retained data |
+| **Allocation/op** | Benchmark / GC profiler | Temporary memory allocated per operation |
 
-Không suy ra heap từ **getBytes(UTF_8).length**. Khi gọi **getBytes**, JVM còn có thể cấp phát mảng byte mới cho dữ liệu được mã hóa.
+Do not infer heap size from **getBytes(UTF_8).length**. Calling **getBytes** may also allocate a new byte array for the encoded data.
 
-### UTF-16 unit và code point khác nhau thế nào?
+### How Do UTF-16 Units and Code Points Differ?
 
-Một **char** trong Java lưu một đơn vị mã 16-bit, không phải lúc nào cũng là một Unicode code point. Nhiều chữ trong BMP cần một unit; một điểm mã ngoài BMP, chẳng hạn emoji **🙂**, cần **hai unit** gọi là *surrogate pair*. Do đó **"🙂".length() là 2** nhưng codePointCount là **1**.
+A **char** in Java stores a 16-bit code unit, which is not always a complete Unicode code point. Many characters in the BMP need one unit; a code point outside the BMP, such as the emoji **🙂**, needs **two units** called a *surrogate pair*. Thus **"🙂".length() is 2** while codePointCount is **1**.
 
-Ngược lại, một cụm emoji hiển thị như **👩‍💻** chứa **ba code point**: 👩, ZWJ (ký tự nối U+200D) và 💻. Vì hai hình emoji thành phần nằm ngoài BMP, chuỗi cần **năm UTF-16 code unit**, trong khi bộ hiển thị có thể vẽ nó thành **một** biểu tượng.
+Conversely, a displayed emoji sequence such as **👩‍💻** contains **three code points**: 👩, ZWJ (joiner character U+200D), and 💻. Because the two component emoji symbols lie outside the BMP, the string requires **five UTF-16 code units**, while a renderer may draw it as **one** symbol.
 
-## 2. Bộ dữ liệu đại diện và số liệu chính xác
+## 2. Representative Dataset and Exact Figures
 
-Ta dùng sáu trường hợp kiểm thử:
+We use six test cases:
 
-- **ASCII**: năm chữ ASCII.
-- **café**: có **é** U+00E9, ngoài ASCII nhưng thuộc Latin-1.
-- **Việt**: có **ệ** U+1EC7, ngoài Latin-1.
-- **🙂**: một điểm mã ngoài BMP.
-- **👩‍💻**: chuỗi emoji có ZWJ nối ba điểm mã.
-- **Việt**: dạng phân rã Unicode, gồm **V, i, e, dấu chấm dưới U+0323, dấu mũ U+0302, t**. Chuẩn hóa NFC cho dạng tương đương **Việt**.
+- **ASCII**: five ASCII letters.
+- **café**: contains **é** U+00E9, outside ASCII but within Latin-1.
+- **Việt**: contains **ệ** U+1EC7, outside Latin-1.
+- **🙂**: one code point outside the BMP.
+- **👩‍💻**: an emoji sequence with ZWJ joining three code points.
+- **Việt**: Unicode decomposed form, consisting of **V, i, e, combining dot below U+0323, combining circumflex U+0302, t**. NFC normalization yields the equivalent form **Việt**.
 
-| Dữ liệu | **length()** | **codePointCount()** | **Byte UTF-8** |
+| Data | **length()** | **codePointCount()** | **UTF-8 bytes** |
 | --- | ---: | ---: | ---: |
 | ASCII | 5 | 5 | 5 |
 | café | 4 | 4 | 5 |
 | Việt | 4 | 4 | 6 |
 | 🙂 | 2 | 1 | 4 |
 | 👩‍💻 | 5 | 3 | 11 |
-| Việt dạng phân rã | 6 | 6 | 8 |
+| Decomposed Việt | 6 | 6 | 8 |
 
-**Giải thích:**
+**Explanation:**
 
-- ASCII: một ký tự thông thường tương ứng một code unit và một byte UTF-8.
-- Chữ **é** mã hóa UTF-8 thành hai byte nhưng chỉ một UTF-16 unit.
-- Chữ **ệ** mã hóa UTF-8 thành ba byte và một UTF-16 unit.
-- **🙂** dùng hai UTF-16 unit nhưng chỉ một code point; UTF-8 dùng bốn byte.
-- **👩‍💻** có ba code point: 4 byte UTF-8 cho 👩, 3 byte cho ZWJ và 4 byte cho 💻, tổng cộng 11.
-- Hai dấu kết hợp trong **Việt** làm tăng cả số code unit/code point và kích thước byte, dù hình thức hiển thị có thể tương tự bản dựng sẵn.
+- ASCII: each ordinary character corresponds to one code unit and one UTF-8 byte.
+- The letter **é** encodes in UTF-8 as two bytes yet only one UTF-16 unit.
+- The letter **ệ** encodes in UTF-8 as three bytes and one UTF-16 unit.
+- **🙂** uses two UTF-16 units yet only one code point; UTF-8 uses four bytes.
+- **👩‍💻** has three code points: 4 UTF-8 bytes for 👩, 3 bytes for ZWJ, and 4 bytes for 💻, totaling 11.
+- Two combining marks in **Việt** increase both the code unit/code point counts and the byte size, even though visual rendering may look identical to the precomposed form.
 
-Không thể lấy một con số **“số ký tự”** rồi coi nó đồng thời là length, code point, grapheme và byte.
+You cannot take a single number of **“characters”** and treat it simultaneously as length, code points, graphemes, and bytes.
 
-## 3. Ví dụ Java 17+ chạy được
+## 3. Runnable Java 17+ Example
 
-Tạo tệp **StringMemoryComparison.java** với nội dung:
+Create the file **StringMemoryComparison.java** with the following content:
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -99,16 +99,16 @@ public class StringMemoryComparison {
 }
 ~~~
 
-Các escape Unicode biểu diễn chính xác các ký tự tiếng Việt và emoji, kể cả khi font console không thể hiện thị chúng. Chương trình in nhãn ASCII để stdout không phụ thuộc cách hiển thị Unicode của terminal.
+Unicode escapes accurately represent the Vietnamese characters and emojis, even when a console font cannot render them. The program prints ASCII labels so stdout does not depend on terminal Unicode rendering.
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 StringMemoryComparison.java
 java StringMemoryComparison
 ~~~
 
-Stdout (đã kiểm chứng bằng Java):
+Stdout (verified with Java):
 
 ~~~text
 ASCII: utf16=5, codePoints=5, utf8Bytes=5, compactPayloadEstimate=5
@@ -121,43 +121,43 @@ raw equal: false
 NFC equal: true
 ~~~
 
-Cột **compactPayloadEstimate** do chương trình tính theo quy tắc **một byte mỗi UTF-16 unit khi mọi unit nằm trong Latin-1, ngược lại hai byte mỗi unit**. Đây là **ước lượng riêng payload** trong những JVM sử dụng cơ chế Compact Strings, **không phải đo kích thước String trên heap**.
+The **compactPayloadEstimate** column is computed by the program using the rule **one byte per UTF-16 unit when all units fall within Latin-1, otherwise two bytes per unit**. This is an **estimate of the payload alone** in JVMs that use Compact Strings, **not a measurement of String size on the heap**.
 
-## 4. Compact Strings và cách hiểu đúng bộ nhớ nội bộ
+## 4. Compact Strings and Understanding Internal Memory Properly
 
-Trong nhiều bản **OpenJDK/HotSpot từ Java 9**, String dùng cơ chế **Compact Strings**: nội dung có thể nằm trong mảng **byte[]** với một trong hai chế độ mã hóa nội bộ.
+In many **OpenJDK/HotSpot builds since Java 9**, String uses **Compact Strings**: content can reside in a **byte[]** array with one of two internal encodings.
 
-**LATIN1:** tất cả UTF-16 unit có giá trị không vượt quá U+00FF. JVM có thể lưu một byte cho mỗi unit.
+**LATIN1:** all UTF-16 units have values at most U+00FF. The JVM can store one byte per unit.
 
-**UTF16:** khi có unit vượt U+00FF, JVM dùng hai byte cho mỗi unit trong payload chuỗi.
+**UTF16:** when any unit exceeds U+00FF, the JVM uses two bytes per unit in the string payload.
 
-Bảng ước lượng chỉ riêng **mảng dữ liệu nội bộ**:
+Estimated table for the **internal data array alone**:
 
-| Chuỗi | Ứng viên chế độ | Byte payload ước tính |
+| String | Candidate coder | Estimated payload bytes |
 | --- | --- | ---: |
 | ASCII | LATIN1 | 5 |
 | café | LATIN1 | 4 |
 | Việt | UTF16 | 8 |
 | 🙂 | UTF16 | 4 |
 | 👩‍💻 | UTF16 | 10 |
-| Việt phân rã | UTF16 | 12 |
+| Decomposed Việt | UTF16 | 12 |
 
-Trường hợp **café** rất hữu ích để phát hiện nhầm lẫn. Nó có **5 byte UTF-8** nhưng payload LATIN1 chỉ khoảng **4 byte**. Ngược lại **Việt** có **6 byte UTF-8** nhưng payload UTF16 có thể là **8 byte**. Vì vậy **mã hóa để truyền dữ liệu** và **cách lưu trong heap** không thể đồng nhất.
+The **café** case is very helpful for catching misconceptions. It has **5 UTF-8 bytes** while its LATIN1 payload is only around **4 bytes**. Conversely, **Việt** has **6 UTF-8 bytes** while its UTF16 payload can be **8 bytes**. Thus, **wire/transmission encoding** and **heap storage layout** cannot be equated.
 
-Những giới hạn phải ghi rõ trong báo cáo:
+Limitations that must be explicitly stated in reports:
 
-1. **Compact Strings là chi tiết triển khai**, không phải bảo đảm của đặc tả Java. Không suy số byte theo cách này cho mọi JVM hay khi Compact Strings bị tắt.
-2. **String object** và **byte[] object** còn có object header, tham chiếu, alignment và metadata. Tổng shallow size lớn hơn payload.
-3. Nhiều biến có thể trỏ cùng String, literal có thể được intern, JVM có thể dùng tối ưu chia sẻ dữ liệu hoặc String deduplication. Không được cộng máy móc payload theo số biến.
-4. Một ký tự nằm ngoài Latin-1 có thể khiến **toàn bộ payload** dùng UTF16, chứ không chỉ riêng ký tự đó.
-5. Kích thước shallow và retained phụ thuộc object graph. Số byte vừa cấp phát cho một thao tác cũng khác dung lượng còn tồn tại sau garbage collection.
-6. JVM có thể thay đổi biểu diễn hoặc tối ưu nối chuỗi theo phiên bản, flags và compiler/JIT.
+1. **Compact Strings is an implementation detail**, not a Java specification guarantee. Do not infer byte counts this way for every JVM or when Compact Strings is disabled.
+2. The **String object** and **byte[] object** also have object headers, references, alignment, and metadata. Total shallow size exceeds the payload.
+3. Multiple variables may point to the same String, literals may be interned, and the JVM may apply data sharing or String deduplication. Do not multiply payload blindly by variable count.
+4. A single character outside Latin-1 can force the **entire payload** to use UTF16, not just that character.
+5. Shallow and retained sizes depend on the object graph. Bytes freshly allocated by an operation also differ from memory still retained after garbage collection.
+6. The JVM may change representation or string concatenation optimizations across versions, flags, and compiler/JIT behavior.
 
-**Ví dụ:** trong chuỗi pha trộn hàng nghìn chữ ASCII với một chữ **ệ**, ước lượng payload của String có Compact Strings theo mô hình đơn giản là **hai byte cho mỗi UTF-16 unit**. Điều này không có nghĩa toàn bộ ứng dụng đều nhân đôi bộ nhớ vì object khác và chia sẻ dữ liệu vẫn tồn tại.
+**Example:** in a mixed string of thousands of ASCII letters with one **ệ**, the estimated String payload with Compact Strings under the simple model is **two bytes per UTF-16 unit**. That does not mean the entire application doubles in memory, because other objects and data sharing still exist.
 
-## 5. Lưu ý riêng với emoji và grapheme cluster
+## 5. Special Notes for Emojis and Grapheme Clusters
 
-Khi duyệt String theo từng **char**, một emoji ngoài BMP bị tách thành hai surrogate:
+When iterating over a String by **char**, a non-BMP emoji is split into two surrogates:
 
 ~~~java
 String smile = "\uD83D\uDE42";
@@ -167,21 +167,21 @@ System.out.println(Character.isHighSurrogate(smile.charAt(0))); // true
 System.out.println(Integer.toHexString(smile.codePointAt(0))); // 1f642
 ~~~
 
-Đây là snippet minh họa, đặt trong một phương thức Java khi chạy; chương trình hoàn chỉnh nằm ở phần 3.
+This is an illustrative snippet to place inside a Java method when running; the complete program is in section 3.
 
-**Sai lầm phổ biến** là dùng **substring(0, 1)** để lấy “emoji đầu tiên”. Với **🙂**, cách làm này chỉ lấy một nửa surrogate pair và có thể tạo dữ liệu Unicode không hợp lệ. Khi cần cắt theo code point, dùng **offsetByCodePoints** hoặc API xử lý code point thay vì chỉ số char tùy ý.
+A **common mistake** is using **substring(0, 1)** to get “the first emoji”. For **🙂**, this takes only half of a surrogate pair and can produce invalid Unicode data. When slicing by code points, use **offsetByCodePoints** or code-point APIs instead of arbitrary char indices.
 
-Nhưng **code point cũng chưa chắc tương đương ký tự nhìn thấy**. Chuỗi emoji ZWJ như **👩‍💻** có ba code point dù có thể hiển thị thành một hình. Dấu kết hợp trong tiếng Việt cũng có thể cùng chữ cơ sở tạo một grapheme cluster. Khi UI giới hạn “20 ký tự hiển thị”, cần xác định quy tắc phân đoạn **grapheme** phù hợp Unicode.
+However, **code points still do not necessarily match visible characters**. A ZWJ emoji sequence like **👩‍💻** has three code points even though it may render as one glyph. Vietnamese combining marks can also combine with a base letter to form a single grapheme cluster. When a UI enforces a “20 visible characters” limit, you need a Unicode-compliant **grapheme** segmentation rule.
 
-Không giả định **BreakIterator.getCharacterInstance** trên mọi phiên bản JDK đều xử lý chính xác mọi chuỗi emoji ZWJ mới theo Unicode UAX #29. Khi ứng dụng cần cắt/sắp xếp con trỏ theo grapheme, hãy kiểm tra bộ dữ liệu thực tế và cân nhắc thư viện phân đoạn grapheme cập nhật, ví dụ ICU4J phù hợp yêu cầu.
+Do not assume **BreakIterator.getCharacterInstance** on every JDK version handles all modern ZWJ emoji sequences accurately according to Unicode UAX #29. When an application must slice or position a cursor by graphemes, test on realistic data and consider an up-to-date grapheme segmentation library, such as ICU4J where appropriate.
 
-## 6. Chuẩn hóa Unicode ảnh hưởng kết quả và bộ nhớ
+## 6. Unicode Normalization Affects Both Results and Memory
 
-String.equals so sánh các đơn vị mã đã lưu; hai chuỗi có hình thức hiển thị tương tự nhưng khác dạng Unicode thường **không bằng nhau** theo equals.
+String.equals compares stored code units; two strings with identical visual appearance but different Unicode forms are usually **not equal** under equals.
 
 ~~~java
-String a = "Vi\u1EC7t";       // Việt dạng dựng sẵn
-String b = "Vie\u0323\u0302t"; // e kèm dấu tổ hợp
+String a = "Vi\u1EC7t";       // Precomposed form of Việt
+String b = "Vie\u0323\u0302t"; // e with combining marks
 
 System.out.println(a.equals(b)); // false
 System.out.println(
@@ -190,81 +190,81 @@ System.out.println(
                 .equals(a)); // true
 ~~~
 
-Đây cũng là snippet đặt bên trong phương thức. Dạng a dài **4 UTF-16 unit**, dài **6 byte UTF-8**. Dạng b dài **6 unit**, dài **8 byte UTF-8**. Sau NFC, dạng b có thể trở thành dạng dựng sẵn với độ dài ngắn hơn.
+This is also a snippet to place inside a method. Form a is **4 UTF-16 units** and **6 UTF-8 bytes**. Form b is **6 units** and **8 UTF-8 bytes**. After NFC, form b can become the shorter precomposed form.
 
-Nếu benchmark có dữ liệu tiếng Việt, cần nêu rõ **đầu vào đã được chuẩn hóa NFC/NFD hay chưa**. Nếu ứng dụng thực phải normalize trước mỗi thao tác, hãy đo chi phí normalize riêng hoặc đo toàn bộ pipeline, đừng loại bỏ chi phí đó mà vẫn khẳng định đây là hiệu năng end-to-end.
+If a benchmark includes Vietnamese data, specify clearly **whether inputs are already NFC/NFD-normalized**. If the real application must normalize before every operation, measure the normalization cost separately or measure the entire pipeline rather than omitting that cost while claiming end-to-end performance.
 
-NFC không tự biến mọi chuỗi trông giống nhau thành bằng nhau: trường hợp biến thể chữ, quy tắc locale và dấu cần xử lý theo nghiệp vụ. Cũng không nên trộn việc chuẩn hóa với so sánh byte payload mà không công bố bước biến đổi.
+NFC does not automatically make all visually similar strings equal: letter variants, locale rules, and diacritics must be handled according to business rules. Nor should normalization be mixed with payload-byte comparisons without disclosing the transformation step.
 
-## 7. Đánh giá bộ nhớ: đo cái gì và bằng công cụ nào?
+## 7. Memory Evaluation: What to Measure and With Which Tools?
 
-Nên tách ba câu hỏi:
+Separate three questions:
 
-**Câu hỏi A: Payload UTF-8 bao nhiêu byte?** Dùng **getBytes(StandardCharsets.UTF_8).length** như chương trình phần 3. Đây là con số tái lập cho dữ liệu được mã hóa, rất hữu ích khi giới hạn dung lượng request hoặc file.
+**Question A: How many bytes is the UTF-8 payload?** Use **getBytes(StandardCharsets.UTF_8).length** as in the section 3 program. This is a reproducible figure for encoded data, very useful for request or file size limits.
 
-**Câu hỏi B: Một String chiếm bao nhiêu byte trên heap?** Dùng công cụ kiểm tra object layout như **JOL (Java Object Layout)** hoặc heap dump/profiler, đồng thời quan sát cả String và mảng byte nội bộ. Phân biệt **shallow size** (kích thước riêng object) và **retained size** (dữ liệu chỉ còn được giữ thông qua object đó).
+**Question B: How many bytes does a String occupy on the heap?** Use an object-layout inspection tool such as **JOL (Java Object Layout)** or a heap dump/profiler, inspecting both the String and its internal byte array. Distinguish **shallow size** (size of the object itself) from **retained size** (memory kept alive solely through that object).
 
-**Câu hỏi C: Mỗi thao tác cấp phát bao nhiêu bộ nhớ?** Dùng allocation profiler hoặc bộ đếm **B/op** trong một microbenchmark đáng tin cậy. Ví dụ, tạo chuỗi mới, mã hóa UTF-8 và normalize có thể tạo số đối tượng tạm khác nhau dù kết quả đầu ra có cùng số byte.
+**Question C: How much memory does each operation allocate?** Use an allocation profiler or **B/op** counters in a reliable microbenchmark. For example, creating new strings, UTF-8 encoding, and normalizing can allocate different numbers of temporary objects even when the output has the same byte count.
 
-Không lấy hiệu giữa hai giá trị **Runtime.totalMemory() - Runtime.freeMemory()** trước/sau một thao tác ngắn làm “kích thước chính xác của String”. Con số còn phụ thuộc GC, allocation buffer, class loading, string pool, JIT và các đối tượng nền.
+Do not take the difference between **Runtime.totalMemory() - Runtime.freeMemory()** before and after a short operation as “the exact size of a String”. That number also depends on GC, allocation buffers, class loading, the string pool, JIT, and background objects.
 
-Nếu cần đo heap theo nhóm ASCII/tiếng Việt/emoji:
+When measuring heap across ASCII/Vietnamese/emoji groups:
 
-1. Cố định **JDK version, HotSpot/JVM, architecture, heap settings** và trạng thái Compact Strings; ghi lại các tham số thực tế.
-2. Tạo cùng số phần tử theo từng chính sách so sánh: cùng UTF-16 unit, cùng code point, cùng byte UTF-8 hoặc cùng grapheme.
-3. Tạo đối tượng thật ở runtime và giữ tham chiếu sống trong collection trong giai đoạn đo; tránh đo toàn literal được intern hoặc constant folded.
-4. Chọn phép đo phù hợp: shallow bytes, retained bytes, allocation rate hay kích thước byte mã hóa; ghi rõ có tính overhead của collection hay không.
-5. Lặp phép đo và quan sát theo cỡ mẫu; kiểm tra sharing, deduplication và object alignment trước khi kết luận.
+1. Fix the **JDK version, HotSpot/JVM, architecture, heap settings**, and Compact Strings setting; record actual parameters.
+2. Create the same number of elements under each comparison policy: equal UTF-16 units, equal code points, equal UTF-8 bytes, or equal graphemes.
+3. Construct real objects at runtime and retain live references in a collection during measurement; avoid measuring interned or constant-folded literals.
+4. Pick the right metric: shallow bytes, retained bytes, allocation rate, or encoded byte size; state explicitly whether collection overhead is included.
+5. Repeat measurements and inspect across sample sizes; check sharing, deduplication, and object alignment before concluding.
 
-**Một byte payload không phải một byte heap**. Đặc biệt đối với hàng triệu chuỗi rất ngắn, overhead của object và tham chiếu có thể chi phối tổng bộ nhớ nhiều hơn chênh lệch giữa một và hai byte payload mỗi code unit.
+**One payload byte is not one heap byte.** Especially for millions of very short strings, object and reference overhead can dominate total memory far more than the difference between one and two payload bytes per code unit.
 
-## 8. Đánh giá hiệu năng CPU: thiết kế phép so sánh công bằng
+## 8. CPU Performance Evaluation: Designing a Fair Comparison
 
-Phải xác định thao tác nào được đo:
+Specify exactly which operation is being measured:
 
-| Thao tác | Ý nghĩa về hiệu năng |
+| Operation | Performance implication |
 | --- | --- |
-| **length()** | Trả về số UTF-16 code unit; không đếm grapheme |
-| **charAt(i)** | Truy cập UTF-16 unit; có thể trả surrogate |
-| **codePointAt() / codePoints()** | Duyệt Unicode code point; xử lý khác với duyệt char |
-| **getBytes(UTF_8)** | Mã hóa UTF-8, thường cấp phát mảng byte |
-| **new String(bytes, UTF_8)** | Giải mã UTF-8 sang String |
-| **Normalizer.normalize(..., NFC)** | Chuẩn hóa Unicode, có chi phí theo dữ liệu |
-| **StringBuilder.append()** | Ghép các đoạn chuỗi với buffer có thể được mở rộng |
+| **length()** | Returns UTF-16 code unit count; does not count graphemes |
+| **charAt(i)** | Accesses a UTF-16 unit; may return a surrogate |
+| **codePointAt() / codePoints()** | Traverses Unicode code points; behaves differently from char traversal |
+| **getBytes(UTF_8)** | Encodes UTF-8; typically allocates a byte array |
+| **new String(bytes, UTF_8)** | Decodes UTF-8 into a String |
+| **Normalizer.normalize(..., NFC)** | Normalizes Unicode; cost depends on input |
+| **StringBuilder.append()** | Appends string segments into an expandable buffer |
 
-Không có định luật chung “ASCII luôn nhanh hơn tiếng Việt” hoặc “emoji luôn chậm hơn”. **length()** có đặc điểm rất khác **encode UTF-8**, và kết quả còn phụ thuộc dữ liệu, version JVM, JIT, warm-up, tính nhất quán của workload.
+There is no universal law that “ASCII is always faster than Vietnamese” or “emojis are always slower”. **length()** behaves very differently from **UTF-8 encoding**, and results also depend on data, JVM version, JIT, warm-up, and workload consistency.
 
-### Cố định cùng loại khối lượng công việc
+### Fixing the Same Workload Basis
 
-Tối thiểu nên chạy nhiều nhóm thí nghiệm:
+At minimum, run multiple experiment groups:
 
-- **Cùng số UTF-16 code unit:** phù hợp khi so hoạt động theo String.length hoặc charAt.
-- **Cùng số Unicode code point:** phù hợp khi thao tác phải duyệt code point.
-- **Cùng số byte UTF-8:** phù hợp với ràng buộc kích thước payload.
-- **Cùng số grapheme cluster:** phù hợp với thao tác UI theo ký tự cảm nhận, cần bộ phân đoạn đúng.
+- **Equal UTF-16 code units:** appropriate when comparing operations tied to String.length or charAt.
+- **Equal Unicode code points:** appropriate when operations traverse code points.
+- **Equal UTF-8 bytes:** appropriate for payload-size constraints.
+- **Equal grapheme clusters:** appropriate for UI operations on perceived characters, using a proper segmenter.
 
-Một chuỗi gồm 5 emoji ZWJ mang nhiều dữ liệu hơn chuỗi gồm 5 chữ ASCII theo byte và code unit; không thể gọi đây là phép so sánh cùng “5 ký tự” nếu chưa xác định ý nghĩa của ký tự.
+A string of 5 ZWJ emojis carries far more data than a string of 5 ASCII letters in bytes and code units; you cannot call that comparing the same “5 characters” without defining what a character means.
 
-### Benchmark Java đúng phương pháp
+### Benchmarking Java Methodically
 
-Đối với microbenchmark, dùng **JMH (Java Microbenchmark Harness)** thay vì đo một lần bằng System.nanoTime. Quy trình chuẩn cần:
+For microbenchmarks, use **JMH (Java Microbenchmark Harness)** instead of single-shot System.nanoTime. A standard process requires:
 
-1. Warm-up cho JVM/JIT và dùng nhiều lần chạy độc lập (**fork**).
-2. Dữ liệu tạo trước trong **@State** nếu chỉ đo thao tác String; nếu muốn đo cả tạo dữ liệu, phải định nghĩa benchmark riêng.
-3. Dùng kết quả để tránh **dead-code elimination** (ví dụ JMH **Blackhole**).
-4. Chọn đúng đơn vị **ns/op**, **ops/s** và với allocation dùng **B/op** khi profiler hỗ trợ.
-5. Ghi cấu hình JDK, GC, heap, CPU, số thread, size và tỉ lệ các dạng chuỗi.
-6. Báo cáo trung bình cùng phân tán/sai số và kiểm tra phép đo tăng tuyến tính hay xuất hiện điểm bất thường.
+1. Warming up the JVM/JIT and using multiple independent runs (**forks**).
+2. Pre-building data in **@State** when measuring only the String operation; if measuring creation too, define a separate benchmark.
+3. Consuming results to prevent **dead-code elimination** (e.g., JMH **Blackhole**).
+4. Choosing proper units: **ns/op**, **ops/s**, and for allocations **B/op** when supported by the profiler.
+5. Recording JDK, GC, heap, CPU, thread count, sizes, and string-type ratios.
+6. Reporting mean along with spread/error bounds, and checking whether measurements scale linearly or exhibit anomalies.
 
-Ví dụ một benchmark mã hóa 1.000 UTF-16 unit thuộc ba nhóm nội dung trả lời câu hỏi **chi phí encode ở cùng số unit**. Một benchmark khác cố định cùng 4.096 byte UTF-8 trả lời câu hỏi **chi phí encode trên cùng kích thước payload**. Hai kết quả không nhất thiết cho cùng thứ tự tốc độ, vì chúng đánh giá hai workload khác nhau.
+For example, a benchmark encoding 1,000 UTF-16 units across the three content groups answers **encoding cost at equal unit counts**. Another benchmark fixing 4,096 UTF-8 bytes answers **encoding cost at equal payload size**. Both need not produce the same speed ranking, because they evaluate different workloads.
 
-Ngoài microbenchmark, với API/web/file thực tế còn phải đo **end-to-end**: chuẩn hóa, encode/decode, xử lý String, ghi/đọc I/O và các bước phụ trợ. Chênh lệch vài nanosecond ở một API có thể không đáng kể khi I/O chi phối.
+Beyond microbenchmarks, real web/API/file services must also be measured **end-to-end**: normalization, encode/decode, String handling, I/O reads/writes, and auxiliary steps. A few nanoseconds' difference in one API may be negligible when I/O dominates.
 
-## 9. Ví dụ áp dụng trong sản phẩm
+## 9. Production Application Examples
 
-### 9.1. Giới hạn request theo byte
+### 9.1. Byte-Based Request Limits
 
-Nếu endpoint chỉ cho phép 1.024 byte UTF-8, đừng kiểm tra **text.length() <= 1024**. Với tiếng Việt và emoji, một code point có thể sử dụng nhiều byte UTF-8.
+If an endpoint allows at most 1,024 UTF-8 bytes, do not check **text.length() <= 1024**. With Vietnamese and emojis, a single code point can take multiple UTF-8 bytes.
 
 ~~~java
 int utf8Bytes = text.getBytes(
@@ -272,19 +272,19 @@ int utf8Bytes = text.getBytes(
 boolean withinLimit = utf8Bytes <= maxUtf8Bytes;
 ~~~
 
-Đoạn này minh họa, cần khai báo **text** và **maxUtf8Bytes** trong phạm vi phù hợp. Nếu chuỗi quá lớn hoặc cần streaming, có thể dùng encoder để tránh tạo toàn bộ byte[] chỉ nhằm tính kích thước.
+This snippet is illustrative; **text** and **maxUtf8Bytes** must be declared in the appropriate scope. If strings are very large or streaming is required, an encoder can be used to avoid allocating an entire byte[] just to measure size.
 
-### 9.2. Cắt nội dung theo giới hạn ký tự hiển thị
+### 9.2. Truncating Content by Visible Character Limit
 
-Nếu giao diện giới hạn 20 “ký tự người dùng nhìn thấy”, substring theo **20 char** có thể cắt một cặp surrogate; cắt theo **20 code point** vẫn có thể chia đôi một chuỗi emoji nối ZWJ hoặc dấu kết hợp. Hãy xác định thuật toán grapheme phù hợp trước khi cắt.
+If the UI limits input to 20 “user-perceived characters”, substringing at **20 chars** can split a surrogate pair; slicing at **20 code points** can still split a ZWJ emoji sequence or combining marks. Determine an appropriate grapheme algorithm before truncating.
 
-### 9.3. Tạo khóa và so sánh tiếng Việt
+### 9.3. Generating Keys and Comparing Vietnamese Text
 
-Nếu hai nguồn dữ liệu một bên dùng chữ dựng sẵn và một bên dùng dấu kết hợp, **String.equals** và hashCode có thể khác. Chuẩn hóa về một dạng theo quy tắc hệ thống **cả lúc ghi lẫn lúc tra cứu** trước khi đưa vào HashMap/HashSet để tránh khóa “giống mắt thường nhưng không bằng nhau”.
+If one data source uses precomposed characters and another uses combining marks, **String.equals** and hashCode can differ. Normalize consistently to one canonical form **both on write and on lookup** before inserting into HashMap/HashSet to avoid keys that “look identical to the eye yet do not match”.
 
-### 9.4. Ghép nhiều đoạn String
+### 9.4. Joining Many String Segments
 
-Khi ghép rất nhiều đoạn trong vòng lặp, có thể dùng **StringBuilder**:
+When joining very many segments in a loop, you can use **StringBuilder**:
 
 ~~~java
 StringBuilder builder = new StringBuilder();
@@ -294,63 +294,63 @@ for (String part : parts) {
 String result = builder.toString();
 ~~~
 
-Đoạn này minh họa với collection/array **parts** đã có. Không khẳng định StringBuilder luôn nhanh hơn phép cộng chuỗi: compiler và JIT có các tối ưu riêng, phải so sánh đúng workload.
+This snippet is illustrative with an existing collection/array **parts**. Do not assert StringBuilder is always faster than string `+` concatenation: the compiler and JIT have their own optimizations, so compare on the actual workload.
 
-## 10. Lỗi thường gặp
+## 10. Common Mistakes
 
-| Lỗi hoặc ngộ nhận | Hậu quả | Cách sửa |
+| Mistake or misconception | Consequence | Fix |
 | --- | --- | --- |
-| Dùng **length()** làm số byte mạng | Giới hạn byte sai với Unicode | Đo UTF-8 bytes trực tiếp |
-| Coi một emoji = một char | Cắt vỡ surrogate pair | Duyệt code point, phân đoạn grapheme khi cần |
-| Coi một code point = một ký tự hiển thị | Emoji ZWJ và dấu tổ hợp bị đếm sai | Dùng thuật toán grapheme phù hợp |
-| Coi mọi ký tự tiếng Việt = hai byte UTF-8 | Sai với các dấu và điểm mã khác nhau | Đo theo code point thực tế |
-| Coi **café** buộc phải dùng payload UTF16 | é thuộc Latin-1 | Phân biệt ASCII với Latin-1 |
-| Lấy payload Compact String bằng byte UTF-8 | Lẫn hai cơ chế mã hóa | Tách byte nội bộ với serialized bytes |
-| Lấy payload estimate làm heap object size | Bỏ qua header, byte[] và sharing | Dùng JOL/profiler/heap dump |
-| Benchmark **nanoTime** một lượt | Nhiễu JIT/GC và loại bỏ phép tính | Dùng JMH với warm-up, forks, Blackhole |
-| Bỏ qua NFC/NFD khi so sánh | Chuỗi tiếng Việt nhìn giống nhưng equals khác | Chuẩn hóa đồng nhất theo nghiệp vụ |
-| Đo ASCII ngắn với emoji dài hơn rồi so tốc độ trực tiếp | Workload không công bằng | Cố định tiêu chí so sánh |
+| Using **length()** as network byte count | Wrong byte limit for Unicode | Measure UTF-8 bytes directly |
+| Treating one emoji = one char | Splits surrogate pairs | Traverse code points; segment graphemes when needed |
+| Treating one code point = one visible character | ZWJ emojis and combining marks are miscounted | Use a proper grapheme algorithm |
+| Assuming every Vietnamese character = two UTF-8 bytes | Wrong for different accents and code points | Measure actual code points |
+| Assuming **café** must use UTF16 payload | é belongs to Latin-1 | Distinguish ASCII from Latin-1 |
+| Treating Compact String payload as UTF-8 bytes | Confuses two encoding mechanisms | Separate internal bytes from serialized bytes |
+| Treating payload estimate as heap object size | Ignores header, byte[], and sharing | Use JOL / profiler / heap dump |
+| Single-run **nanoTime** benchmark | JIT/GC noise and dead-code elimination | Use JMH with warm-up, forks, Blackhole |
+| Ignoring NFC/NFD when comparing | Visually identical Vietnamese strings fail equals | Normalize consistently per business rules |
+| Comparing short ASCII against longer emoji directly | Unfair workload | Fix the comparison criterion |
 
-## 11. Mẫu báo cáo đánh giá tái lập
+## 11. Reproducible Evaluation Report Template
 
-Một báo cáo kỹ thuật đủ tin cậy nên có:
+A reliable technical report should include:
 
-**Dữ liệu:** sáu nhóm ASCII/Latin-1/tiếng Việt dựng sẵn/tiếng Việt phân rã/emoji đơn/emoji ZWJ; số phần tử, tỉ lệ nhóm, cách chuẩn hóa và cách tạo mẫu.
+**Data:** the six groups (ASCII / Latin-1 / precomposed Vietnamese / decomposed Vietnamese / single emoji / ZWJ emoji); element counts, group proportions, normalization, and sample generation method.
 
-**Mã hóa:** với từng nhóm, bảng **UTF-16 units**, **code points**, **UTF-8 bytes** như phần 2. Nếu đo grapheme, ghi bộ phân đoạn, version và quy tắc Unicode.
+**Encoding:** for each group, a table of **UTF-16 units**, **code points**, and **UTF-8 bytes** as in section 2. If measuring graphemes, specify the segmenter, version, and Unicode rules.
 
-**JVM:** Java 17 hay 21 hoặc bản khác, HotSpot hoặc JVM khác, Compact Strings bật/tắt, heap/GC flags, CPU và môi trường chạy.
+**JVM:** Java 17 or 21 or another version, HotSpot or another JVM, Compact Strings enabled/disabled, heap/GC flags, CPU, and runtime environment.
 
-**Bộ nhớ:** ghi rõ đo **byte mã hóa**, **payload nội bộ ước tính**, **shallow size**, **retained size** hay **allocation/op**; không gọi chúng chung là “size String”.
+**Memory:** state explicitly whether measuring **encoded bytes**, **estimated internal payload**, **shallow size**, **retained size**, or **allocation/op**; never lump them together as “String size”.
 
-**Hiệu năng:** ghi thao tác, cùng đơn vị workload, warm-up/forks, kết quả theo đơn vị, phương sai và thời gian chạy toàn pipeline nếu phù hợp.
+**Performance:** record the operation, shared workload unit, warm-up/forks, results with units, variance, and full-pipeline runtime if relevant.
 
-**Kết luận:** rút ra nhận xét **trong điều kiện đã đo**, có thể lặp lại và không khái quát thành tính chất bất biến của mọi JVM.
+**Conclusion:** draw findings **under the measured conditions**, reproducible and without overgeneralizing into an invariant property of every JVM.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-**1. Vì sao "café" dùng 5 byte UTF-8 nhưng có thể chỉ cần 4 byte payload Compact String?**
+**1. Why does "café" use 5 UTF-8 bytes yet need only 4 bytes for a Compact String payload?**
 
-Vì **é U+00E9** mã hóa UTF-8 bằng hai byte nhưng vẫn nằm trong dải Latin-1 để lưu một byte trong cơ chế Compact Strings. Hai con số thuộc **hai cách mã hóa khác nhau**.
+Because **é U+00E9** encodes in UTF-8 using two bytes yet still falls inside the Latin-1 range to fit in one byte under Compact Strings. The two numbers belong to **two different encodings**.
 
-**2. Vì sao "Việt" có length 4, codePointCount 4, nhưng UTF-8 là 6 byte?**
+**2. Why does "Việt" have length 4, codePointCount 4, yet 6 UTF-8 bytes?**
 
-Vì **ệ** là một code point thuộc BMP nhưng cần ba byte UTF-8; ba ký tự còn lại cần một byte mỗi ký tự.
+Because **ệ** is a single BMP code point that requires three UTF-8 bytes; the remaining three characters require one byte each.
 
-**3. Chuỗi "🙂" có length 2; có phải hai emoji không?**
+**3. The string "🙂" has length 2; does that mean two emojis?**
 
-Không. Nó gồm một code point ngoài BMP và hai UTF-16 code unit.
+No. It consists of one non-BMP code point and two UTF-16 code units.
 
-**4. Nếu emoji "👩‍💻" có ba code point thì người dùng luôn thấy ba biểu tượng?**
+**4. If the emoji "👩‍💻" has three code points, do users always see three symbols?**
 
-Không. ZWJ có thể nối các phần thành một glyph; hình thức hiển thị phụ thuộc môi trường. Code point khác grapheme.
+No. ZWJ can join the parts into a single glyph; visual rendering depends on the environment. Code points differ from graphemes.
 
-**5. Có được kết luận "emoji tốn gấp đôi heap" từ hai bảng payload không?**
+**5. Can we conclude "emojis use double heap" from the two payload tables?**
 
-Không. Phải cố định cỡ mẫu, nội dung, cơ chế JVM và đo cả object overhead/sharing. Bảng payload không đo heap thực.
+No. You must fix sample size, content, JVM mechanism, and measure object overhead/sharing as well. The payload table does not measure actual heap.
 
-**6. Khi so tốc độ giữa ba loại chuỗi, phép đo nào cần cố định?**
+**6. When comparing speed across three string types, which measurement conditions must be fixed?**
 
-Phải cố định loại thao tác cùng **đơn vị workload** phù hợp: UTF-16 unit, code point, grapheme hay byte UTF-8; đồng thời kiểm soát JIT, warm-up, allocation và môi trường máy.
+Fix the operation type together with the appropriate **workload unit** (UTF-16 units, code points, graphemes, or UTF-8 bytes), while also controlling JIT, warm-up, allocations, and machine environment.
 
-**Ghi nhớ:** hiệu năng String đa ngôn ngữ chỉ có ý nghĩa khi phân biệt **UTF-16 length**, **Unicode code point/grapheme**, **byte UTF-8**, **payload nội bộ** và **heap thực tế**. Kết luận đúng là kết luận gắn với **dữ liệu và phép đo xác định**.
+**Takeaway:** multilingual String performance is meaningful only when distinguishing **UTF-16 length**, **Unicode code points/graphemes**, **UTF-8 bytes**, **internal payload**, and **actual heap**. Valid conclusions are tied to **well-defined data and measurements**.

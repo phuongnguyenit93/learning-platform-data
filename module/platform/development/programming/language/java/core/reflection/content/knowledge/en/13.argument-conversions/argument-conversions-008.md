@@ -1,8 +1,8 @@
-# Varargs Object... của API reflection và cách truyền một mảng như một đối số
+# The Reflection API's Object... Varargs and How to Pass an Array as One Argument
 
-## 1. Bài toán: truyền String[] vào Method.invoke nhưng Java lại hiểu thành nhiều đối số
+## 1. The problem: passing String[] to Method.invoke yet Java interprets it as multiple arguments
 
-Java Reflection cung cấp `java.lang.reflect.Method.invoke` để gọi một phương thức được xác định ở thời điểm chạy:
+Java Reflection provides `java.lang.reflect.Method.invoke` to call a method resolved at runtime:
 
 ~~~java
 Object invoke(Object receiver, Object... args)
@@ -10,38 +10,38 @@ Object invoke(Object receiver, Object... args)
                java.lang.reflect.InvocationTargetException;
 ~~~
 
-Tham số `receiver` là đối tượng nhận lời gọi (hoặc `null` cho phương thức static). Phần `Object... args` là **danh sách các đối số mà phương thức đích nhận được**, không phải một đối số duy nhất tên `args`. Ở bytecode, tham số thứ hai của `invoke` thực chất là `Object[]`. Ký hiệu ba chấm `...` khiến **trình biên dịch tại nơi gọi** có thể tự tạo mảng `Object[]` chứa từng đối số.
+The `receiver` parameter is the object receiving the call (or `null` for a static method). The `Object... args` part is **the list of arguments that the target method receives**, not a single argument named `args`. In bytecode, the second parameter of `invoke` is actually `Object[]`. The ellipsis `...` enables **the compiler at the call site** to automatically create an `Object[]` array containing each argument.
 
-Điều này dễ tạo bẫy khi bản thân phương thức đích cũng cần một đối số là **một mảng**:
+This easily creates a trap when the target method itself requires an argument that is **an array**:
 
 ~~~java
 public void printAll(String[] items) { /* ... */ }
 ~~~
 
-Nếu gọi:
+If called as:
 
 ~~~java
 String[] items = {"red", "blue"};
 Method method = Printer.class.getMethod("printAll", String[].class);
-method.invoke(printer, items); // DỄ SAI: items có thể bị dùng như Object[] đối số
+method.invoke(printer, items); // ERROR-PRONE: items can be used as the Object[] arguments array
 ~~~
 
-Vì `String[]` là một kiểu con của `Object[]`, trình biên dịch có thể dùng **chính `items` làm mảng chứa các đối số của `invoke`**. Reflection khi ấy thấy hai đối số `"red"` và `"blue"`, trong khi `printAll` chỉ khai báo **một tham số kiểu `String[]`**. Kết quả là `IllegalArgumentException` do số lượng đối số không khớp.
+Because `String[]` is a subtype of `Object[]`, the compiler can use **`items` itself as the array holding `invoke`'s arguments**. Reflection then sees two arguments `"red"` and `"blue"`, whereas `printAll` declares only **one parameter of type `String[]`**. The result is `IllegalArgumentException` due to an argument count mismatch.
 
-**Cách truyền chắc chắn một mảng thành một đối số duy nhất:**
+**The guaranteed way to pass an array as a single argument:**
 
 ~~~java
 method.invoke(printer, (Object) items);
 method.invoke(printer, new Object[] { items });
 ~~~
 
-Trong trường hợp trên, cả hai hình thức đều khiến `args` của `Method.invoke` có **một phần tử**, và phần tử đó chính là đối tượng mảng `String[]` cần đưa cho `printAll`.
+In the case above, both forms make `Method.invoke`'s `args` have **one element**, and that element is the `String[]` array object to pass to `printAll`.
 
-Bài này phân biệt hai lớp varargs, giải thích trường hợp `String[]` và `int[]`, xử lý `null`, chỉ ra sự khác nhau giữa phương thức đích nhận mảng thường và khai báo `String...`, đồng thời thực hành những lỗi được báo bằng Reflection.
+This lesson distinguishes the two varargs layers, explains the `String[]` and `int[]` cases, handles `null`, shows the difference between a target method taking a regular array vs. declaring `String...`, and practices the errors reported by Reflection.
 
-## 2. Hai lớp đối số: Object[] bên ngoài và mảng dữ liệu bên trong
+## 2. Two argument layers: outer Object[] and inner data array
 
-Xét API:
+Consider the API:
 
 ~~~java
 Method method = Printer.class.getMethod("printAll", String[].class);
@@ -49,110 +49,110 @@ String[] items = {"red", "blue"};
 Object result = method.invoke(printer, new Object[] { items });
 ~~~
 
-Ta có **hai mảng ở hai cấp**:
+We have **two arrays at two levels**:
 
 ~~~text
 Method.invoke(printer, new Object[] { items })
                       |
-                      +-- Object[] args của chính Method.invoke
+                      +-- Object[] args of Method.invoke itself
                           length = 1
                           args[0] --------------+
                                                  |
                                                  v
                                  String[] items = ["red", "blue"]
-                                 (một đối số của printAll)
+                                 (one argument of printAll)
 ~~~
 
-- **Mảng bên ngoài** có kiểu `Object[]`, biểu diễn *số lượng và thứ tự tham số* cần truyền cho phương thức đích.
-- **Mảng bên trong** có kiểu `String[]`, là *giá trị của đúng một tham số* mà `printAll(String[])` mong đợi.
-- `args.length == 1` không có nghĩa `items.length == 1`. `items` vẫn chứa hai chuỗi, hoặc có thể chứa hàng nghìn phần tử.
-- Phương thức đích nhận đúng một tham số `String[]`. Reflection không tự duyệt `items` và coi từng phần tử là một tham số của `printAll` khi nó đã được bọc đúng cách.
+- **The outer array** has type `Object[]`, representing *the number and order of parameters* to pass to the target method.
+- **The inner array** has type `String[]`, representing *the value of the single parameter* that `printAll(String[])` expects.
+- `args.length == 1` does not mean `items.length == 1`. `items` still contains two strings, or could contain thousands of elements.
+- The target method receives exactly one `String[]` parameter. Reflection does not iterate `items` and treat each element as a parameter of `printAll` once it is wrapped properly.
 
-Đối chiếu hai biểu thức:
+Contrast the two expressions:
 
 ~~~java
 method.invoke(printer, items);
 method.invoke(printer, new Object[] { items });
 ~~~
 
-Chúng **không tương đương** nếu `items` có kiểu `String[]` hoặc một kiểu mảng tham chiếu khác có thể chuyển sang `Object[]`. Biểu thức thứ nhất có thể gửi trực tiếp `items` làm mảng `args` của API `invoke`; biểu thức thứ hai tạo một `Object[]` chứa một phần tử duy nhất là `items`.
+They are **not equivalent** if `items` has type `String[]` or another reference array type convertible to `Object[]`. The first expression may send `items` directly as the `args` array of the `invoke` API; the second expression creates an `Object[]` containing a single element, `items`.
 
-Một cách tự kiểm tra trước khi chạy: nếu phương thức đích khai báo `printAll(String[])`, câu hỏi cần hỏi là **`Method.invoke` sẽ nhìn thấy bao nhiêu phần tử trong `Object[] args`?** Câu trả lời phải là một, và phần tử đó phải tương thích với `String[]`.
+A quick self-check before running: if the target method declares `printAll(String[])`, the question to ask is **how many elements will `Method.invoke` see in `Object[] args`?** The answer must be one, and that element must be compatible with `String[]`.
 
-## 3. Varargs ở Java hoạt động ở nơi gọi như thế nào?
+## 3. How does varargs in Java work at the call site?
 
-Ký hiệu `Object... args` là cú pháp cho tham số biến độ dài. Ở góc nhìn chữ ký JVM, nó là một tham số mảng `Object[]`. Java cho phép hai cách gọi phổ biến:
+The `Object... args` notation is syntax for a variable-arity parameter. From the JVM signature perspective, it is an `Object[]` array parameter. Java allows two common ways of calling it:
 
 ~~~java
-method.invoke(receiver, value1, value2); // dạng variable arity
-method.invoke(receiver, new Object[] { value1, value2 }); // mảng args tường minh
+method.invoke(receiver, value1, value2); // variable arity form
+method.invoke(receiver, new Object[] { value1, value2 }); // explicit args array
 ~~~
 
-Trong dạng thứ nhất, trình biên dịch thường tạo `new Object[] { value1, value2 }` để truyền tới phương thức `invoke`. Dạng thứ hai cung cấp trực tiếp mảng `Object[]`, nên trình biên dịch không cần tạo mảng khác.
+In the first form, the compiler typically generates `new Object[] { value1, value2 }` to pass to the `invoke` method. The second form supplies the `Object[]` array directly, so the compiler does not need to create another array.
 
-### Vì sao String[] gây bẫy?
+### Why does String[] cause a trap?
 
 ~~~java
 String[] words = {"a", "b"};
 method.invoke(receiver, words);
 ~~~
 
-`String[]` là một **reference array** và có quan hệ kiểu con với `Object[]`. Vì vậy, tại vị trí đối số cuối của phương thức `invoke(Object, Object...)`, trình biên dịch có thể chọn cách gọi với tham số mảng `Object[]` đã có (fixed arity). Nó không nhất thiết bọc cả `words` vào một `Object[]` mới.
+`String[]` is a **reference array** and has a subtype relationship with `Object[]`. Thus, at the last argument position of `invoke(Object, Object...)`, the compiler can choose the fixed-arity call with an already-existing `Object[]` array parameter. It does not necessarily wrap `words` inside a new `Object[]`.
 
-Đọc theo nghĩa tương đương ở tầng đối số truyền cho Reflection:
+Read in terms of the equivalent at the Reflection argument layer:
 
 ~~~text
 method.invoke(receiver, words)
-    -> args của Method.invoke là words
+    -> args of Method.invoke is words
     -> args.length = words.length
-    -> từng phần tử String bị xem là một đối số của phương thức đích
+    -> each String element is treated as an argument of the target method
 ~~~
 
-Khi biên dịch bằng `javac`, lời gọi kiểu này thường xuất hiện cảnh báo *non-varargs call for last parameter; cast to Object for a varargs call or to Object[] for a non-varargs call*. Cảnh báo này nói về **cách biên dịch lời gọi `Method.invoke`**, không phải tuyên bố rằng phương thức đích có hoặc không có varargs.
+When compiling with `javac`, this style of call often emits the warning *non-varargs call for last parameter; cast to Object for a varargs call or to Object[] for a non-varargs call*. This warning refers to **how the `Method.invoke` call is compiled**, not a claim about whether the target method has varargs or not.
 
-### Vì sao ép (Object) sửa được?
+### Why does casting to (Object) fix it?
 
 ~~~java
 method.invoke(receiver, (Object) words);
 ~~~
 
-Phép ép làm **kiểu tĩnh** của biểu thức đối số cuối trở thành `Object`, không còn là `Object[]`. Trình biên dịch phải dùng dạng variable arity và bọc giá trị này vào một `Object[]` chứa **một phần tử**.
+The cast makes the **static type** of the last argument expression become `Object`, no longer `Object[]`. The compiler must use the variable-arity form and wrap this value into an `Object[]` containing **one element**.
 
-Đáng chú ý, phép ép `(Object) words` **không thay bản chất runtime của mảng `words`**. Phần tử bên trong vẫn là `String[]` và vẫn có thể chuyển sang `String[]` tại phương thức đích. Phép ép chỉ tác động đến cách trình biên dịch đóng gói tham số cho lời gọi `invoke`.
+Notably, the cast `(Object) words` **does not change the runtime nature of the `words` array**. The element inside is still `String[]` and can still be passed to `String[]` at the target method. The cast only affects how the compiler packs parameters for the `invoke` call.
 
-### Vì sao ép (Object[]) KHÔNG sửa được?
+### Why does casting to (Object[]) NOT fix it?
 
 ~~~java
 method.invoke(receiver, (Object[]) words);
 ~~~
 
-Với `String[]`, ép kiểu này hợp lệ nhưng vẫn làm lời gọi nhận **một `Object[]` làm container của danh sách đối số**, nên sẽ trải các chuỗi thành nhiều tham số của phương thức đích. Nó chọn *đúng kiểu mảng bên ngoài*, trái với mục tiêu truyền chính mảng dữ liệu như một đối số.
+For `String[]`, this cast is valid, yet it still causes the call to take **an `Object[]` as the container of the argument list**, so it spreads the strings into multiple parameters of the target method. It chooses *the outer array type*, the opposite of the goal of passing the data array itself as one argument.
 
-Do đó, khi muốn truyền **một mảng dữ liệu** đến method đích, hãy ưu tiên `(Object) array` hoặc `new Object[]{array}`. Đừng tùy tiện đổi sang `(Object[]) array`.
+Therefore, when you want to pass **one data array** to the target method, prefer `(Object) array` or `new Object[]{array}`. Do not casually switch to `(Object[]) array`.
 
-## 4. Bảng tình huống cần phân biệt
+## 4. Table of scenarios to distinguish
 
-Giả sử phương thức đích là `void accept(String[] values)`, biến `String[] values = {"red", "blue"};`, đối tượng `m` là `Method` mô tả đúng phương thức:
+Suppose the target method is `void accept(String[] values)`, variable `String[] values = {"red", "blue"};`, and `m` is the `Method` describing that method:
 
-| Cách gọi | Số đối số mà method đích nhận | Kết quả |
+| Call | Arguments the target method receives | Result |
 | --- | --- | --- |
-| `m.invoke(target, (Object) values)` | 1: chính mảng `String[]` | ✅ Đúng |
-| `m.invoke(target, new Object[] { values })` | 1: chính mảng `String[]` | ✅ Đúng |
-| `Object[] args = { values }; m.invoke(target, args)` | 1: chính mảng `String[]` | ✅ Đúng |
-| `m.invoke(target, values)` | 2: `"red"` và `"blue"` | ❌ Sai số tham số |
-| `m.invoke(target, (Object[]) values)` | 2: `"red"` và `"blue"` | ❌ Sai số tham số |
-| `m.invoke(target, "red", "blue")` | 2 đối số String | ❌ Sai số tham số |
-| `m.invoke(target, (Object) null)` | 1 đối số `null` | ✅ Đúng nếu phương thức đích cho phép nhận mảng `null` |
-| `m.invoke(target, new Object[] { null })` | 1 đối số `null` | ✅ Đúng |
-| `m.invoke(target, (Object[]) null)` | Danh sách đối số ở API `invoke` là `null`, dùng được cho method **không có** tham số | ❌ Không tương thích với method cần một tham số |
+| `m.invoke(target, (Object) values)` | 1: the `String[]` array itself | ✅ Correct |
+| `m.invoke(target, new Object[] { values })` | 1: the `String[]` array itself | ✅ Correct |
+| `Object[] args = { values }; m.invoke(target, args)` | 1: the `String[]` array itself | ✅ Correct |
+| `m.invoke(target, values)` | 2: `"red"` and `"blue"` | ❌ Wrong parameter count |
+| `m.invoke(target, (Object[]) values)` | 2: `"red"` and `"blue"` | ❌ Wrong parameter count |
+| `m.invoke(target, "red", "blue")` | 2 String arguments | ❌ Wrong parameter count |
+| `m.invoke(target, (Object) null)` | 1 `null` argument | ✅ Correct if the target method allows a `null` array |
+| `m.invoke(target, new Object[] { null })` | 1 `null` argument | ✅ Correct |
+| `m.invoke(target, (Object[]) null)` | Argument list in `invoke` API is `null`, usable for a method with **no** parameters | ❌ Incompatible with a method requiring one parameter |
 
-Để gọi phương thức nhận **hai `String` riêng lẻ**, ví dụ `void pair(String left, String right)`, cách `m.invoke(target, new Object[]{"red", "blue"})` lại **đúng** vì hai phần tử là hai tham số. Việc mảng `Object[]` bên ngoài chứa bao nhiêu phần tử phải khớp với **số tham số thật sự của phương thức đích**, chứ không dựa vào số lượng phần tử của một dữ liệu mảng bên trong.
+To call a method taking **two individual `String`s**, for example `void pair(String left, String right)`, `m.invoke(target, new Object[]{"red", "blue"})` is actually **correct** because two elements are two parameters. How many elements the outer `Object[]` array contains must match **the actual parameter count of the target method**, rather than the element count of an inner data array.
 
-Lưu ý với `null`: `(Object) null` bảo đảm **một đối số có giá trị null**; `(Object[]) null` là **một biến mảng đối số bị null** đưa cho `Method.invoke`, không phải một phần tử null. Nếu target không có tham số, Java cho phép `args` là `null` hoặc mảng độ dài 0; với target cần một tham số, hãy dùng dạng chứa một phần tử.
+Note on `null`: `(Object) null` guarantees **one argument with value null**; `(Object[]) null` is **a null argument-array variable** passed to `Method.invoke`, not a null element. If the target has no parameters, Java allows `args` to be `null` or a 0-length array; if the target requires one parameter, use the form containing one element.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: mảng String[], primitive int[], varargs và null
+## 5. Complete Java 17+ example: String[], primitive int[], varargs, and null
 
-Tạo tệp **`ReflectionVarargsDemo.java`**:
+Create the file **`ReflectionVarargsDemo.java`**:
 
 ~~~java
 import java.lang.reflect.Method;
@@ -244,14 +244,14 @@ public class ReflectionVarargsDemo {
 }
 ~~~
 
-Biên dịch và chạy từ thư mục chứa tệp, với JDK 17 trở lên:
+Compile and run from the directory containing the file, with JDK 17 or later:
 
 ~~~bash
 javac --release 17 ReflectionVarargsDemo.java
 java ReflectionVarargsDemo
 ~~~
 
-**Stdout được suy ra theo hợp đồng Java SE 17, có thể tái hiện bằng đoạn mã trên:**
+**Stdout derived per the Java SE 17 contract, reproducible with the code above:**
 
 ~~~text
 accept parameters=1
@@ -268,64 +268,64 @@ primitive int[]: numbers=[1, 2]
 no-arg method: no-arguments
 ~~~
 
-### Giải thích code và output
+### Explaining the code and output
 
-- `accept.getParameterCount()` là `1` vì phương thức khai báo đúng một tham số `String[]`. Phần tử trong mảng dữ liệu không làm số tham số của phương thức tăng lên.
-- `collect.isVarArgs()` là `true` vì khai báo nguồn là `String... values`. Trong bytecode, tham số cuối là `String[]`; dấu varargs được ghi trong metadata.
-- `accept.invoke(receiver, (Object) words)` và `accept.invoke(receiver, new Object[]{words})` đều truyền một mảng `String[]` duy nhất.
-- `(Object[]) words` làm `words` trở thành container `args` của Reflection, nên có hai chuỗi riêng; trong khi `accept(String[])` chỉ yêu cầu một tham số.
-- `collect(String... values)` là **varargs của phương thức đích**. Tuy nhiên, `Method.invoke` **không tự gom `"red", "blue"` lại thành một `String[]` chỉ vì `collect.isVarArgs()` trả `true`**. Vì vậy truyền riêng hai chuỗi vẫn báo sai số tham số; cần truyền một `String[]` duy nhất.
-- `pair(String,String)` có hai tham số riêng, nên trải `words` (qua `(Object[])`) lại vừa đúng.
-- `int[]` là một đối tượng, nhưng **không phải** `Object[]`. Cách `(Object) new int[]{1,2}` truyền chính mảng nguyên thủy thành một đối số; không có auto-boxing từng phần tử `int` thành `Integer`.
-- `accept.invoke(receiver, (Object) null)` có **một đối số null** tương thích với `String[]`, còn `accept.invoke(receiver, (Object[]) null)` truyền **mảng danh sách đối số null**, không cung cấp một phần tử như phương thức đích yêu cầu.
-- Phương thức không tham số `noArguments()` được gọi bằng `none.invoke(receiver)`; nó không cần cung cấp mảng `args` ở mã nguồn.
+- `accept.getParameterCount()` is `1` because the method declares exactly one `String[]` parameter. Elements inside the data array do not increase the method's parameter count.
+- `collect.isVarArgs()` is `true` because the source declaration is `String... values`. In bytecode, the final parameter is `String[]`; the varargs flag is recorded in metadata.
+- `accept.invoke(receiver, (Object) words)` and `accept.invoke(receiver, new Object[]{words})` both pass a single `String[]` array.
+- `(Object[]) words` makes `words` become Reflection's `args` container, resulting in two separate strings; whereas `accept(String[])` requires only one parameter.
+- `collect(String... values)` is **the target method's varargs**. However, `Method.invoke` **does not automatically gather `"red", "blue"` into a `String[]` merely because `collect.isVarArgs()` returns `true`**. Thus passing two separate strings still reports a parameter count error; a single `String[]` must be passed.
+- `pair(String,String)` has two separate parameters, so spreading `words` (via `(Object[])`) fits right in.
+- `int[]` is an object, but **not** `Object[]`. `(Object) new int[]{1,2}` passes the primitive array itself as a single argument; there is no auto-boxing of each `int` element into `Integer`.
+- `accept.invoke(receiver, (Object) null)` has **one null argument** compatible with `String[]`, whereas `accept.invoke(receiver, (Object[]) null)` passes a **null argument-list array**, failing to supply the single parameter the target method requires.
+- The zero-parameter method `noArguments()` is invoked with `none.invoke(receiver)`; it does not need an `args` array in source code.
 
-Hàm `attempt` cố ý in **tên lớp ngoại lệ**, tránh phụ thuộc thông báo lỗi khác nhau giữa các phiên bản JDK. Khi Reflection gọi được method nhưng method đích tự ném ngoại lệ, `Method.invoke` bọc lỗi gốc thành `InvocationTargetException`; ví dụ này không làm phương thức đích ném ngoại lệ.
+The `attempt` helper intentionally prints **the exception class name**, avoiding dependence on error messages that vary across JDK versions. When Reflection successfully invokes a method but the target method itself throws an exception, `Method.invoke` wraps the original error in `InvocationTargetException`; this example does not cause target methods to throw exceptions.
 
-## 6. Array covariance, primitive arrays và Object[]
+## 6. Array covariance, primitive arrays, and Object[]
 
-### 7.1. Mảng tham chiếu có tính hiệp biến
+### 7.1. Reference arrays are covariant
 
-Trong Java, `String[]` là subtype của `Object[]`. Điều này giải thích tại sao:
+In Java, `String[]` is a subtype of `Object[]`. This explains why:
 
 ~~~java
 String[] words = {"a", "b"};
 Object[] asObjects = words;
 ~~~
 
-là hợp lệ, và tại sao `method.invoke(receiver, words)` có thể bị hiểu như đưa vào toàn bộ mảng đối số `Object[]`. Khi định truyền **mảng như dữ liệu**, hãy dùng `(Object) words` hoặc tạo wrapper `new Object[]{words}`.
+is valid, and why `method.invoke(receiver, words)` can be interpreted as passing the entire `Object[]` argument array. When intending to pass **an array as data**, use `(Object) words` or create a wrapper `new Object[]{words}`.
 
-Không nên cố “giải quyết” bằng cách đổ `String[]` vào một `Object[]` không có lớp bọc. Ví dụ:
+Do not try to "solve" this by pouring `String[]` into an `Object[]` without a wrapping layer. For example:
 
 ~~~java
-Object[] args = words; // mảng args có 2 phần tử, không phải 1
-method.invoke(receiver, args); // vẫn hai đối số "a", "b"
+Object[] args = words; // args array has 2 elements, not 1
+method.invoke(receiver, args); // still two arguments "a", "b"
 ~~~
 
-Muốn mảng args có một phần tử:
+To make the args array have one element:
 
 ~~~java
-Object[] args = { words }; // length == 1; args[0] là String[]
+Object[] args = { words }; // length == 1; args[0] is String[]
 method.invoke(receiver, args);
 ~~~
 
-### 7.2. Mảng primitive không phải Object[]
+### 7.2. Primitive arrays are not Object[]
 
-`int[]`, `long[]`, `char[]` đều là object và có thể gán cho `Object`, nhưng **không** là subtype của `Object[]`:
+`int[]`, `long[]`, and `char[]` are all objects and assignable to `Object`, yet **not** subtypes of `Object[]`:
 
 ~~~java
 int[] nums = {1, 2, 3};
-Object asOneObject = nums; // hợp lệ
-// Object[] notAllowed = nums; // lỗi biên dịch
+Object asOneObject = nums; // valid
+// Object[] notAllowed = nums; // compile error
 ~~~
 
-Vì vậy, lời gọi `method.invoke(receiver, nums)` thường được trình biên dịch đóng gói như một đối số `Object` duy nhất do `int[]` không thể trở thành `Object[]` trực tiếp. Tuy nhiên, dùng `(Object) nums` hoặc `new Object[]{nums}` cho rõ ý định và nhất quán với code xử lý nhiều loại mảng.
+Therefore, calling `method.invoke(receiver, nums)` is normally packed by the compiler as a single `Object` argument since `int[]` cannot become `Object[]` directly. Nevertheless, use `(Object) nums` or `new Object[]{nums}` for clear intent and consistency with code handling multiple array kinds.
 
-Một mảng số nguyên **không** tự biến thành `Integer[]`, và `Method.invoke` không tự boxing các phần tử bên trong mảng. Nếu phương thức đích nhận `Integer[]` thì truyền `int[]` vẫn sai kiểu; phải chủ động tạo/chuyển mảng phù hợp trước.
+A primitive integer array does **not** automatically become `Integer[]`, and `Method.invoke` does not automatically box elements inside an array. If the target method takes `Integer[]`, passing `int[]` is still a type mismatch; an appropriate array must be created/converted proactively beforehand.
 
-### 7.3. Mảng đa chiều cũng là một giá trị đối số
+### 7.3. Multidimensional arrays are also one argument value
 
-Ví dụ phương thức đích `void process(String[][] matrix)`:
+For example, target method `void process(String[][] matrix)`:
 
 ~~~java
 String[][] matrix = { {"a", "b"}, {"c"} };
@@ -333,79 +333,79 @@ Method m = Handler.class.getMethod("process", String[][].class);
 m.invoke(handler, (Object) matrix);
 ~~~
 
-`String[][]` cũng là một subtype của `Object[]` (vì mỗi phần tử là `String[]`), nên nếu không ép `(Object)`, nó có thể bị dùng làm container đối số của Reflection. Khi cần chuyển **toàn bộ ma trận là một đối số**, nguyên tắc vẫn giống `String[]`.
+`String[][]` is also a subtype of `Object[]` (because each element is a `String[]`), so without casting to `(Object)`, it can be used as Reflection's argument container. When passing **the entire matrix as one argument**, the rule remains the same as for `String[]`.
 
-Ví dụ này cần lớp `Handler` chứa method `process(String[][])`; đây là minh họa cách truyền, không phải chương trình độc lập.
+This example requires a `Handler` class containing `process(String[][])`; it illustrates how to pass it, not a standalone program.
 
-## 7. Truyền null và mảng rỗng chính xác
+## 7. Passing null and empty arrays accurately
 
-Ba khái niệm sau là khác nhau:
+The following three concepts are distinct:
 
-1. **Không có đối số cho phương thức đích**: `m.invoke(receiver)` hoặc `m.invoke(receiver, new Object[0])`.
-2. **Có đúng một đối số mang giá trị null**: `m.invoke(receiver, (Object) null)` hoặc `m.invoke(receiver, new Object[]{null})`.
-3. **Có đúng một đối số là mảng rỗng**: `m.invoke(receiver, (Object) new String[0])` khi phương thức đích nhận `String[]`.
+1. **No arguments for the target method**: `m.invoke(receiver)` or `m.invoke(receiver, new Object[0])`.
+2. **Exactly one argument with value null**: `m.invoke(receiver, (Object) null)` or `m.invoke(receiver, new Object[]{null})`.
+3. **Exactly one argument that is an empty array**: `m.invoke(receiver, (Object) new String[0])` when the target method accepts `String[]`.
 
-Các giá trị này không thể thay thế cho nhau:
+These values are not interchangeable:
 
-| Phương thức đích | Lời gọi reflection | Ý nghĩa |
+| Target method | Reflection call | Meaning |
 | --- | --- | --- |
-| `void noArgs()` | `invoke(receiver)` | Không đối số, hợp lệ |
-| `void noArgs()` | `invoke(receiver, (Object[]) null)` | `args` null được chấp nhận cho phương thức không tham số |
-| `void accept(String[] values)` | `invoke(receiver, (Object) null)` | Một tham số kiểu tham chiếu, giá trị null |
-| `void accept(String[] values)` | `invoke(receiver, (Object) new String[0])` | Một tham số String[] hợp lệ, độ dài 0 |
-| `void accept(String[] values)` | `invoke(receiver, new Object[]{null})` | Một tham số null hợp lệ |
-| `void accept(String[] values)` | `invoke(receiver)` | Thiếu một đối số; lỗi số tham số |
-| `void accept(String[] values)` | `invoke(receiver, (Object[]) null)` | Không cung cấp phần tử đối số cần thiết; lỗi số tham số |
+| `void noArgs()` | `invoke(receiver)` | No arguments, valid |
+| `void noArgs()` | `invoke(receiver, (Object[]) null)` | Null `args` is accepted for a zero-parameter method |
+| `void accept(String[] values)` | `invoke(receiver, (Object) null)` | One reference-type parameter, null value |
+| `void accept(String[] values)` | `invoke(receiver, (Object) new String[0])` | One valid String[] parameter, length 0 |
+| `void accept(String[] values)` | `invoke(receiver, new Object[]{null})` | One valid null parameter |
+| `void accept(String[] values)` | `invoke(receiver)` | Missing one argument; parameter count error |
+| `void accept(String[] values)` | `invoke(receiver, (Object[]) null)` | Required argument element not provided; parameter count error |
 
-Viết `m.invoke(receiver, null)` không có ép kiểu sẽ dễ gây nhầm lẫn ở **thời điểm biên dịch**: literal `null` có thể được coi là mảng `Object[]` của lời gọi varargs. Để truyền **một null đến phương thức đích**, luôn dùng `(Object) null` hoặc `new Object[]{null}`. Để truyền **một mảng rỗng**, tạo mảng **đúng kiểu của tham số đích**; `new Object[0]` bên ngoài có nghĩa không đối số, khác `new Object[]{new String[0]}`.
+Writing `m.invoke(receiver, null)` without a cast easily causes confusion at **compile time**: the `null` literal may be treated as the `Object[]` array of the varargs call. To pass **one null to the target method**, always use `(Object) null` or `new Object[]{null}`. To pass **an empty array**, create an array of **the target parameter's exact type**; an outer `new Object[0]` means zero arguments, unlike `new Object[]{new String[0]}`.
 
-## 8. Bài tập tự kiểm tra kèm đáp án
+## 8. Self-check exercises with answers
 
-**Bài 1.** Cho `void process(String[] names)`, `String[] names = {"An", "Binh"};` và `Method m` tương ứng. `m.invoke(receiver, names)` nhận mấy đối số ở cấp Reflection?
+**Exercise 1.** Given `void process(String[] names)`, `String[] names = {"An", "Binh"};`, and the corresponding `Method m`. How many arguments does `m.invoke(receiver, names)` receive at the Reflection level?
 
-**Đáp án:** Hai phần tử của `names` có thể trở thành hai đối số của `Method.invoke` do `String[]` tương thích `Object[]`. Method đích cần đúng một `String[]` nên lời gọi không đúng. Dùng `m.invoke(receiver, (Object) names)`.
+**Answer:** The two elements of `names` can become two arguments to `Method.invoke` because `String[]` is compatible with `Object[]`. The target method requires exactly one `String[]`, so the call is incorrect. Use `m.invoke(receiver, (Object) names)`.
 
-**Bài 2.** Với cùng phương thức đích, `m.invoke(receiver, new Object[]{names})` truyền bao nhiêu tham số?
+**Exercise 2.** With the same target method, how many parameters does `m.invoke(receiver, new Object[]{names})` pass?
 
-**Đáp án:** Một tham số là mảng `String[]`, phù hợp chữ ký.
+**Answer:** One parameter, which is the `String[]` array, matching the signature.
 
-**Bài 3.** `void aggregate(String... names)` được lấy bằng `getMethod("aggregate", String[].class)`. `method.isVarArgs()` trả `true`. Có thể gọi `method.invoke(receiver, "An", "Binh")` để Reflection tự gom hai chuỗi không?
+**Exercise 3.** `void aggregate(String... names)` is retrieved via `getMethod("aggregate", String[].class)`. `method.isVarArgs()` returns `true`. Can you call `method.invoke(receiver, "An", "Binh")` for Reflection to automatically pack the two strings?
 
-**Đáp án:** Không. Metadata varargs không khiến `Method.invoke` tự đóng gói `String[]` cho method đích. Cần `method.invoke(receiver, (Object) new String[]{"An","Binh"})` hoặc container `new Object[]{new String[]{"An","Binh"}}`.
+**Answer:** No. Varargs metadata does not make `Method.invoke` automatically pack `String[]` for the target method. Use `method.invoke(receiver, (Object) new String[]{"An","Binh"})` or the container `new Object[]{new String[]{"An","Binh"}}`.
 
-**Bài 4.** Một method đích nhận đúng hai đối số `String left, String right`. Có một biến `String[] names` chứa đúng hai chuỗi. Viết hai cách gọi hợp lệ.
+**Exercise 4.** A target method accepts two arguments `String left, String right`. You have a variable `String[] names` containing two strings. Write two valid ways to call it.
 
-**Đáp án:** `m.invoke(receiver, names[0], names[1])` hoặc `m.invoke(receiver, (Object[]) names)`; ở trường hợp này trải hai phần tử thành hai đối số mới là điều cần.
+**Answer:** `m.invoke(receiver, names[0], names[1])` or `m.invoke(receiver, (Object[]) names)`; in this case, spreading the two elements into two arguments is actually what is needed.
 
-**Bài 5.** Với method đích `void accept(int[] values)`, vì sao `int[]` không có cùng bẫy covariance như `String[]`?
+**Exercise 5.** For target method `void accept(int[] values)`, why doesn't `int[]` have the same covariance trap as `String[]`?
 
-**Đáp án:** `int[]` không phải `Object[]`. Nó là một `Object` duy nhất; với `Method.invoke`, có thể bọc thành một phần tử. Vẫn nên dùng `(Object) values` cho rõ ràng và tránh sự khác biệt khi thay kiểu mảng.
+**Answer:** `int[]` is not `Object[]`. It is a single `Object`; with `Method.invoke`, it can be wrapped as one element. You should still use `(Object) values` for clarity and to avoid surprises when changing array types.
 
-**Bài 6.** Phân biệt `m.invoke(receiver, (Object) null)` với `m.invoke(receiver, (Object[]) null)` nếu method đích nhận một `String[]`.
+**Exercise 6.** Distinguish `m.invoke(receiver, (Object) null)` from `m.invoke(receiver, (Object[]) null)` if the target method accepts one `String[]`.
 
-**Đáp án:** Cách thứ nhất truyền một đối số null, hợp lệ về kiểu tham chiếu; cách thứ hai gửi một mảng danh sách đối số null, không thỏa một tham số bắt buộc, nên bị lỗi số đối số.
+**Answer:** The first passes one null argument, valid for a reference type; the second passes a null argument-list array, failing to satisfy the required single parameter, resulting in an argument count error.
 
-**Bài 7.** Cho `void consume(Object[] values)`, bạn có `Object[] values = { "a", "b" };`. `consumeMethod.invoke(receiver, values)` có đúng không?
+**Exercise 7.** Given `void consume(Object[] values)`, you have `Object[] values = { "a", "b" };`. Is `consumeMethod.invoke(receiver, values)` right?
 
-**Đáp án:** Không. Với mục tiêu truyền cả `values` làm một tham số kiểu `Object[]`, dùng `consumeMethod.invoke(receiver, (Object) values)` hoặc `new Object[]{values}`. Nếu bỏ cast, `Object[] values` bị dùng trực tiếp làm container hai đối số.
+**Answer:** No. To pass all of `values` as a single parameter of type `Object[]`, use `consumeMethod.invoke(receiver, (Object) values)` or `new Object[]{values}`. Without the cast, `Object[] values` is used directly as the two-argument container.
 
-**Bài 8.** Khi `Method.invoke` ném `InvocationTargetException`, có thể kết luận là do mảng varargs bị trải không?
+**Exercise 8.** When `Method.invoke` throws `InvocationTargetException`, can you conclude it was because the varargs array was spread?
 
-**Đáp án:** Không. `InvocationTargetException` có nghĩa method đích đã được thực thi và ném ngoại lệ. Lỗi đếm đối số/kiểu đối số ở cơ chế gọi Reflection thường là `IllegalArgumentException` trước khi method được gọi.
+**Answer:** No. `InvocationTargetException` means the target method already executed and threw an exception. Argument count/type errors in the Reflection invocation mechanism usually cause `IllegalArgumentException` before the method is called.
 
-## 9. Ghi nhớ
+## 9. Takeaway
 
-**Đối với `Method.invoke(receiver, Object... args)`, mảng `Object[]` ngoài cùng luôn là danh sách tham số của phương thức đích.** Nếu đích cần **một tham số là mảng**, hãy đưa mảng dữ liệu vào **một phần tử** của danh sách đó:
+**For `Method.invoke(receiver, Object... args)`, the outermost `Object[]` array is always the target method's parameter list.** If the target requires **one parameter that is an array**, place the data array into **one element** of that list:
 
 ~~~java
 method.invoke(receiver, (Object) array);
 method.invoke(receiver, new Object[] { array });
 ~~~
 
-Đừng nhầm `String...` của phương thức đích với `Object...` của API Reflection; mỗi cơ chế đóng gói diễn ra trong **một lời gọi khác nhau**. Đừng nhầm `(Object) array` (một đối số) với `(Object[]) array` (toàn bộ mảng đối số). Khi chưa chắc, hãy kiểm tra `getParameterTypes()` và tạo `Object[]` bên ngoài tường minh.
+Do not confuse `String...` of the target method with `Object...` of the Reflection API; each packing mechanism happens in **a different call**. Do not confuse `(Object) array` (one argument) with `(Object[]) array` (the entire argument array). When unsure, check `getParameterTypes()` and construct the outer `Object[]` explicitly.
 
-**Tài liệu chuẩn:**
+**Official references:**
 
-- [Java SE 17: `Method.invoke` và `Method.isVarArgs`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html).
+- [Java SE 17: `Method.invoke` and `Method.isVarArgs`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html).
 - [Dev.java: Invoking Methods with Reflection](https://dev.java/learn/reflection/methods/).
-- [JLS §15.12.2.4 và §15.12.4.2 — Variable Arity Method Invocation](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html).
+- [JLS §15.12.2.4 and §15.12.4.2 — Variable Arity Method Invocation](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html).

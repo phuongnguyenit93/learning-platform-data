@@ -1,34 +1,34 @@
-# Automatic module exports mọi package
+# Automatic Modules Export All Packages
 
-Trong Java Platform Module System (JPMS), một thư viện JAR cũ có thể chưa có file **module-info.class** nhưng vẫn được đưa lên module path. Java khi đó xem JAR này như một **automatic module**. Module có tên và có thể được named module khác khai báo bằng **requires**, đồng thời tất cả package của nó được export.
+In the Java Platform Module System (JPMS), a legacy JAR library may not yet have a **module-info.class** file yet still be placed on the module path. Java then treats this JAR as an **automatic module**. The module has a name and can be declared by another named module using **requires**, while all of its packages are exported.
 
-Việc export mọi package giúp thư viện cũ dễ tham gia module graph mà chưa cần sửa source hoặc đóng gói lại ngay. Tuy nhiên, nó cũng làm giảm khả năng kiểm soát ranh giới API: package chứa implementation nội bộ cũng có thể được module khác truy cập nếu có các kiểu public. Đây là đặc điểm quan trọng cần hiểu trước khi dùng automatic module lâu dài.
+Exporting all packages helps legacy libraries join the module graph without immediately modifying source code or repackaging. However, it also reduces the ability to control API boundaries: packages containing internal implementation can still be accessed by other modules if they contain public types. This is an important characteristic to understand before using automatic modules long-term.
 
-## 1. Automatic module hình thành khi nào?
+## 1. When Is an Automatic Module Formed?
 
-Automatic module là một JAR không có module descriptor nhưng được đặt trên **module path**. Java tạo một module có tên từ JAR để các named module có thể phụ thuộc vào nó.
+An automatic module is a JAR without a module descriptor that is placed on the **module path**. Java creates a named module from the JAR so that named modules can depend on it.
 
-Ví dụ thư viện cũ:
+Example legacy library:
 
 ~~~text
 libs/
 └── legacy-utils-2.4.jar
 ~~~
 
-JAR này chưa có **module-info.class**. Khi được đưa vào module path, Java có thể nhận diện nó là automatic module. Nếu JAR có manifest khai báo **Automatic-Module-Name**, giá trị đó được dùng làm tên module. Nếu không, Java suy ra tên từ tên file JAR theo quy tắc đặt tên module.
+This JAR does not yet have **module-info.class**. When placed on the module path, Java can recognize it as an automatic module. If the JAR has a manifest declaring **Automatic-Module-Name**, that value is used as the module name. Otherwise, Java derives the name from the JAR file name according to module naming rules.
 
-Ví dụ manifest:
+Example manifest:
 
 ~~~text
 Manifest-Version: 1.0
 Automatic-Module-Name: com.example.legacy
 ~~~
 
-Tên module ổn định giúp ứng dụng không phụ thuộc vào cách filename được suy ra. Khi đổi tên file hoặc phiên bản artifact, tên suy ra từ filename có thể thay đổi. Thuộc tính **Automatic-Module-Name** giúp tránh thay đổi tên module chỉ vì đổi tên JAR.
+A stable module name keeps applications from depending on how the filename is derived. When the file name or artifact version changes, the name derived from the filename may change. The **Automatic-Module-Name** attribute helps prevent the module name from changing simply because the JAR was renamed.
 
-## 2. Tất cả package được export có nghĩa gì?
+## 2. What Does Exporting All Packages Mean?
 
-Một named module thông thường phải khai báo từng package muốn công khai:
+A regular named module must explicitly declare each package it wants to make public:
 
 ~~~java
 module com.example.library {
@@ -36,11 +36,11 @@ module com.example.library {
 }
 ~~~
 
-Trong trường hợp này, package API được export; package khác không được export sẽ giữ vai trò nội bộ đối với module bên ngoài.
+In this case, the API package is exported; other unexported packages remain internal to outside modules.
 
-Automatic module không có **module-info.java** để liệt kê các directive **exports**. Thay vào đó, Java xem tất cả package của automatic module là được export. Named module có quan hệ đọc tới automatic module có thể truy cập các kiểu public trong các package đó theo quy tắc Java.
+An automatic module has no **module-info.java** to list **exports** directives. Instead, Java treats all packages of the automatic module as exported. Named modules that have a readability relationship to the automatic module can access public types in those packages according to Java rules.
 
-Giả sử JAR chứa:
+Suppose the JAR contains:
 
 ~~~text
 legacy-utils.jar
@@ -49,17 +49,17 @@ legacy-utils.jar
 └── com/example/legacy/internal/SocketPool.class
 ~~~
 
-Cả ba package đều được automatic module export. Vì vậy, module ứng dụng có thể truy cập các kiểu public trong package **api**, **model** và cả **internal**, nếu các điều kiện truy cập Java khác được đáp ứng.
+All three packages are exported by the automatic module. Therefore, the application module can access public types in the **api**, **model**, and even **internal** packages, provided other Java access conditions are met.
 
-Tên package **internal** chỉ là quy ước đặt tên. Nó không tự tạo ra ranh giới bảo vệ trong JPMS. Khi JAR là automatic module, package đó vẫn nằm trong tập package được export.
+The package name **internal** is merely a naming convention. It does not by itself create a protective boundary in JPMS. When the JAR is an automatic module, that package is still included in the set of exported packages.
 
-Điều này khác với named module có descriptor tường minh, nơi tác giả có thể chỉ export package API và giữ package implementation không được export.
+This differs from a named module with an explicit descriptor, where the author can export only API packages and keep implementation packages unexported.
 
-## 3. Named module sử dụng automatic module như thế nào?
+## 3. How Does a Named Module Use an Automatic Module?
 
-Một named module có thể khai báo dependency tới automatic module bằng tên module mà JAR công bố.
+A named module can declare a dependency on an automatic module using the module name published by the JAR.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.example.app {
@@ -67,7 +67,7 @@ module com.example.app {
 }
 ~~~
 
-Code ứng dụng có thể import public type trong các package của thư viện:
+Application code can import public types in the library's packages:
 
 ~~~java
 package com.example.app;
@@ -83,21 +83,21 @@ public class Main {
 }
 ~~~
 
-Ví dụ import **SocketPool** minh họa hệ quả của việc export mọi package: package có tên internal không được bảo vệ khỏi module tiêu thụ chỉ bởi tên package. Trong ứng dụng thực tế, nên tránh phụ thuộc vào class nội bộ dù compiler cho phép truy cập.
+The example importing **SocketPool** illustrates the consequence of exporting all packages: a package named internal is not protected from consuming modules solely by its package name. In real applications, avoid depending on internal classes even when the compiler permits access.
 
-Đưa JAR lên module path và khai báo **requires** là hai việc riêng biệt:
+Placing a JAR on the module path and declaring **requires** are two separate steps:
 
-- Module path giúp Java tìm automatic module.
-- **requires** tạo quan hệ đọc từ named module sử dụng tới automatic module.
-- Việc automatic module export các package cho phép module sử dụng truy cập các kiểu public thuộc những package đó.
+- The module path helps Java locate the automatic module.
+- **requires** establishes a readability relationship from the consuming named module to the automatic module.
+- The automatic module's export of all packages allows the consuming module to access public types in those packages.
 
-Nếu chỉ thêm JAR vào module path mà module ứng dụng không khai báo dependency cần thiết, source vẫn có thể không biên dịch được vì thiếu quan hệ đọc.
+If you only add the JAR to the module path without the application module declaring the required dependency, the source may still fail to compile due to the missing readability relationship.
 
-## 4. Automatic module export không giới hạn mọi package
+## 4. Automatic Modules Export All Packages Without Restriction
 
-Hệ quả lớn nhất là automatic module không cung cấp khả năng chọn lọc package được export.
+The biggest consequence is that automatic modules offer no way to selectively export packages.
 
-Giả sử thư viện có cấu trúc:
+Suppose a library has the structure:
 
 ~~~text
 com.vendor.payment
@@ -108,51 +108,51 @@ com.vendor.payment
 └── debug
 ~~~
 
-Nếu JAR được dùng như automatic module, tất cả package trên đều được export. Module tiêu thụ có thể phụ thuộc vào class public trong **internal**, **adapter** hoặc **debug**, dù tác giả thư viện không có ý định coi chúng là API ổn định.
+If the JAR is used as an automatic module, all of the packages above are exported. Consuming modules can depend on public classes in **internal**, **adapter**, or **debug**, even if the library author never intended them to be stable API.
 
-Điều này tạo ra một số rủi ro:
+This creates several risks:
 
-**Phụ thuộc vào implementation**
+**Depending on implementation details**
 
-Ứng dụng có thể import trực tiếp class nội bộ thay vì gọi interface hoặc abstraction công khai. Khi thư viện thay đổi cách triển khai, ứng dụng có thể bị lỗi dù API dự kiến vẫn tương thích.
+Applications may directly import internal classes instead of calling public interfaces or abstractions. When the library changes its implementation, the application can break even though the intended API remains compatible.
 
-**Khó thay đổi cấu trúc package**
+**Hard to change package structure**
 
-Một package nội bộ đã bị module khác sử dụng sẽ trở thành một phần của dependency thực tế. Việc đổi tên, di chuyển hoặc xóa class trong package đó có thể gây lỗi biên dịch hoặc runtime.
+An internal package already used by another module becomes part of the actual dependency surface. Renaming, moving, or deleting classes in that package can cause compile-time or runtime errors.
 
-**Bề mặt API rộng**
+**Broad API surface**
 
-Các kiểu public trong nhiều package trở nên có thể truy cập qua ranh giới module. Việc xem xét module descriptor không giúp xác định package nào là API chính thức, bởi automatic module không có danh sách exports do tác giả khai báo.
+Public types across many packages become accessible across the module boundary. Inspecting the module descriptor does not help identify which packages are official API, because an automatic module has no author-declared exports list.
 
-**Khó kiểm soát tích hợp**
+**Hard to control integration**
 
-Framework hoặc module tiêu thụ có thể truy cập trực tiếp nhiều chi tiết nội bộ. Điều này làm tăng coupling và khiến việc nâng cấp thư viện khó dự đoán hơn.
+Frameworks or consuming modules can directly access many internal details. This increases coupling and makes library upgrades harder to predict.
 
-Automatic module vì thế phù hợp như một cầu nối để tích hợp thư viện cũ, nhưng không mang lại mức đóng gói chọn lọc như một named module được thiết kế đầy đủ.
+Automatic modules are therefore suitable as a bridge for integrating legacy libraries, but they do not provide the selective encapsulation of a well-designed named module.
 
-## 5. Kiểm tra package và tên của automatic module
+## 5. Checking Packages and Name of an Automatic Module
 
-Có thể dùng lệnh **jar --describe-module** để xem cách Java nhận diện một JAR:
-
-~~~bash
-jar --describe-module --file libs/legacy-utils-2.4.jar
-~~~
-
-Với JAR không có module descriptor, kết quả cho biết tên automatic module và trạng thái automatic. Nếu manifest có **Automatic-Module-Name**, tên ổn định đó được sử dụng; nếu không, tên được suy ra từ filename.
-
-Có thể kiểm tra manifest bằng:
+You can use the **jar --describe-module** command to see how Java recognizes a JAR:
 
 ~~~bash
 jar --describe-module --file libs/legacy-utils-2.4.jar
 ~~~
 
-Nếu cần xem nội dung manifest, có thể liệt kê hoặc giải nén file **META-INF/MANIFEST.MF** trong JAR. Hãy xác minh module name thực tế trước khi viết **requires**.
+For a JAR without a module descriptor, the output indicates the automatic module name and its automatic status. If the manifest has **Automatic-Module-Name**, that stable name is used; otherwise, the name is derived from the filename.
 
-Một lưu ý: **Automatic-Module-Name** chỉ ổn định tên module. Nó không tạo ra module descriptor đầy đủ, không giới hạn danh sách package được export và không biến package internal thành package được đóng gói riêng.
+You can inspect the manifest using:
 
-## 6. Ví dụ biên dịch và chạy với automatic module
+~~~bash
+jar --describe-module --file libs/legacy-utils-2.4.jar
+~~~
 
-Giả sử thư viện cũ nằm trong **libs/legacy-utils.jar** và công bố tên module **com.example.legacy**. Source ứng dụng:
+If you need to view the manifest contents, you can list or extract the **META-INF/MANIFEST.MF** file in the JAR. Always verify the actual module name before writing **requires**.
+
+One note: **Automatic-Module-Name** only stabilizes the module name. It does not create a full module descriptor, does not restrict the list of exported packages, and does not turn internal packages into encapsulated packages.
+
+## 6. Example: Compiling and Running with an Automatic Module
+
+Suppose the legacy library is in **libs/legacy-utils.jar** and publishes the module name **com.example.legacy**. Application sources:
 
 ~~~text
 src/
@@ -161,7 +161,7 @@ src/
     └── com/example/app/Main.java
 ~~~
 
-Module descriptor của ứng dụng:
+Application module descriptor:
 
 ~~~java
 module com.example.app {
@@ -169,7 +169,7 @@ module com.example.app {
 }
 ~~~
 
-Code sử dụng thư viện:
+Code using the library:
 
 ~~~java
 package com.example.app;
@@ -184,7 +184,7 @@ public class Main {
 }
 ~~~
 
-Biên dịch:
+Compile:
 
 ~~~bash
 javac --module-path libs \
@@ -193,51 +193,51 @@ javac --module-path libs \
       -m com.example.app
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 java --module-path "out:libs" \
      --module com.example.app/com.example.app.Main
 ~~~
 
-Ở đây, thư mục **libs** chứa JAR cũ và Java nhận diện nó như automatic module. Module ứng dụng khai báo **requires com.example.legacy** để có thể sử dụng các kiểu public trong những package được export của thư viện.
+Here, the **libs** directory holds the legacy JAR and Java recognizes it as an automatic module. The application module declares **requires com.example.legacy** to use public types in the library's exported packages.
 
-Trên Windows, dấu phân cách giữa các phần tử module path là dấu chấm phẩy (**;**); trên Linux và macOS là dấu hai chấm (**:**).
+On Windows, the separator between module path entries is a semicolon (**;**); on Linux and macOS, it is a colon (**:**).
 
-## 7. Automatic module và module thông thường
+## 7. Automatic Modules vs. Regular Modules
 
-So sánh automatic module với named module có descriptor:
+Comparing an automatic module with a named module that has a descriptor:
 
-| Đặc điểm | Automatic module | Named module có module-info.java |
+| Characteristic | Automatic Module | Named Module with module-info.java |
 |---|---|---|
-| Có tên module | Có | Có |
-| Có module descriptor do tác giả khai báo | Không | Có |
-| Có thể được dùng trong requires | Có | Có |
-| Package được export | Tất cả package | Theo các directive exports |
-| Có thể chọn module đích cho exports | Không qua descriptor của automatic module | Có thể dùng qualified exports |
-| Dependency được khai báo tường minh trong descriptor | Không | Có |
-| Mức kiểm soát API | Rộng, thuận tiện chuyển tiếp | Chủ động và chọn lọc |
+| Has a module name | Yes | Yes |
+| Has an author-declared module descriptor | No | Yes |
+| Can be used in requires | Yes | Yes |
+| Exported packages | All packages | According to exports directives |
+| Can target specific modules for exports | No via automatic module descriptor | Can use qualified exports |
+| Dependencies explicitly declared in descriptor | No | Yes |
+| API control level | Broad, convenient for transition | Intentional and selective |
 
-Automatic module cũng có khả năng đọc các module khác trong cấu hình module. Đây là hành vi thuận tiện cho thư viện cũ, nhưng làm dependency graph của nó ít tường minh hơn so với một module được thiết kế với các directive **requires** cụ thể.
+An automatic module also has the ability to read other modules in the module configuration. This is convenient for legacy libraries, but makes its dependency graph less explicit than a module designed with specific **requires** directives.
 
-Không nên nhầm việc automatic module export tất cả package với việc tất cả class hoặc thành viên đều có thể được truy cập. Quy tắc truy cập của Java vẫn áp dụng: kiểu hoặc thành viên cần đáp ứng modifier và điều kiện truy cập tương ứng. Export package cho phép truy cập các kiểu public qua ranh giới module; nó không biến private thành public.
+Do not confuse an automatic module exporting all packages with all classes or members becoming accessible. Java's access rules still apply: types or members must satisfy the corresponding modifiers and access conditions. Exporting a package permits access to public types across the module boundary; it does not turn private into public.
 
-## 8. Khi nào nên giữ automatic module?
+## 8. When Should You Keep an Automatic Module?
 
-Automatic module hữu ích trong một số trường hợp:
+Automatic modules are useful in several cases:
 
-- Thư viện bên thứ ba chưa cung cấp module descriptor nhưng ứng dụng cần đặt nó trên module path.
-- Ứng dụng đang chuyển dần từ classpath sang JPMS và chưa thể modular hóa mọi dependency.
-- Thư viện được đóng gói lại với tên module ổn định qua **Automatic-Module-Name**.
-- Cần giữ tương thích trong giai đoạn chuyển đổi trước khi tác giả thư viện hoặc nhóm ứng dụng bổ sung module descriptor.
+- A third-party library does not yet provide a module descriptor, but the application needs to place it on the module path.
+- The application is migrating incrementally from the classpath to JPMS and cannot modularize every dependency yet.
+- The library is repackaged with a stable module name via **Automatic-Module-Name**.
+- Compatibility needs to be preserved during the transition period before the library author or application team adds a module descriptor.
 
-Khi sử dụng, hãy kiểm tra các package được thư viện cung cấp và tránh import trực tiếp package implementation. Việc code có thể truy cập một class không có nghĩa class đó được tác giả cam kết là API ổn định.
+When using one, inspect the packages provided by the library and avoid importing implementation packages directly. Just because code can access a class does not mean the author commits to that class as a stable API.
 
-## 9. Khi nào nên tạo module descriptor tường minh?
+## 9. When Should You Create an Explicit Module Descriptor?
 
-Nếu bạn sở hữu thư viện hoặc có thể đóng góp thay đổi cho nó, hãy cân nhắc tạo **module-info.java** để kiểm soát package được export.
+If you own the library or can contribute changes to it, consider creating **module-info.java** to control which packages are exported.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.example.legacy {
@@ -245,52 +245,52 @@ module com.example.legacy {
 }
 ~~~
 
-Khi module descriptor này được đóng gói vào JAR, module trở thành named module thông thường. Chỉ package **com.example.legacy.api** được export; các package như **internal**, **adapter** hoặc **debug** không được công khai qua ranh giới module.
+When this module descriptor is packaged into the JAR, the module becomes a regular named module. Only the **com.example.legacy.api** package is exported; packages such as **internal**, **adapter**, or **debug** are not exposed across the module boundary.
 
-Lợi ích:
+Benefits:
 
-- Xác định rõ hợp đồng API.
-- Giữ package implementation ở bên trong module.
-- Giảm khả năng module tiêu thụ phụ thuộc vào class nội bộ.
-- Khai báo dependency bằng **requires** thay vì dựa vào khả năng đọc rộng của automatic module.
-- Có thể dùng **qualified exports** để chỉ công khai package cho một số module đích.
+- Clearly defines the API contract.
+- Keeps implementation packages inside the module.
+- Reduces the chance of consuming modules depending on internal classes.
+- Declares dependencies via **requires** instead of relying on the broad readability of an automatic module.
+- Allows using **qualified exports** to expose packages only to specific target modules.
 
-Nếu không thể sửa JAR bên thứ ba, hãy xem xét phiên bản thư viện đã hỗ trợ JPMS hoặc cách đóng gói tương thích được nhà cung cấp công bố. Không nên tự tạo một descriptor không khớp với cấu trúc package và dependency thực tế của thư viện.
+If you cannot modify a third-party JAR, look for a library version that already supports JPMS or a compatible packaging published by the vendor. Do not fabricate a descriptor that does not match the library's actual package structure and dependencies.
 
-## 10. Lỗi thường gặp
+## 10. Common Errors
 
-**Module không tìm thấy dù JAR đã tồn tại**
+**Module not found even though the JAR exists**
 
-Kiểm tra JAR có thực sự nằm trên module path hay chỉ trên classpath. Sau đó kiểm tra module name bằng **jar --describe-module** và đối chiếu với **requires**.
+Check whether the JAR is actually on the module path or only on the classpath. Then check the module name with **jar --describe-module** and compare it with **requires**.
 
-**Không import được package trong JAR**
+**Cannot import a package from the JAR**
 
-Nếu JAR là automatic module trên module path, các package của nó được export. Nếu vẫn không truy cập được, hãy kiểm tra quan hệ **requires**, tên module, class có public hay không và JAR có thực sự là automatic module hay không.
+If the JAR is an automatic module on the module path, its packages are exported. If it is still inaccessible, check the **requires** relationship, module name, whether the class is public, and whether the JAR is actually an automatic module.
 
-**Ứng dụng phụ thuộc vào package internal của thư viện**
+**Application depends on the library's internal package**
 
-Automatic module cho phép truy cập các kiểu public trong mọi package. Hãy chuyển sang API chính thức nếu có thể; nếu sở hữu thư viện, tạo descriptor tường minh để chỉ export package API.
+Automatic modules allow access to public types in every package. Switch to the official API if possible; if you own the library, create an explicit descriptor to export only API packages.
 
-**Đổi tên JAR làm lỗi requires**
+**Renaming the JAR breaks requires**
 
-Tên suy ra từ filename có thể thay đổi. Dùng manifest **Automatic-Module-Name** ổn định hoặc module descriptor tường minh, rồi cập nhật dependency theo tên module thực tế.
+Names derived from filenames can change. Use a stable **Automatic-Module-Name** manifest attribute or an explicit module descriptor, and update dependencies to match the actual module name.
 
-**Có nhiều phiên bản thư viện cùng công bố một module name**
+**Multiple versions of a library declare the same module name**
 
-Loại bỏ phiên bản dư thừa và giữ một nguồn module nhất quán. Không nên để nhiều JAR cùng tên module trên module path vì việc phân giải sẽ không còn rõ ràng.
+Remove redundant versions and keep a single consistent module source. Do not leave multiple JARs with the same module name on the module path because resolution will no longer be unambiguous.
 
-**Nhầm automatic module với unnamed module**
+**Confusing automatic modules with the unnamed module**
 
-JAR trên module path không có descriptor có thể trở thành automatic module có tên. JAR trên classpath thuộc unnamed module. Hai loại này có hành vi dependency và cách tham chiếu khác nhau.
+A JAR on the module path without a descriptor can become a named automatic module. A JAR on the classpath belongs to the unnamed module. The two have different dependency behaviors and ways of being referenced.
 
-## 11. Ghi nhớ
+## 11. Key Takeaways
 
-- Automatic module hình thành khi JAR không có **module-info.class** được đặt trên module path.
-- Automatic module có tên và có thể được named module khác tham chiếu bằng **requires**.
-- Tất cả package của automatic module được export, bao gồm package chứa implementation.
-- Export package không làm mọi thành viên trở thành public; quy tắc truy cập của Java vẫn được áp dụng.
-- **Automatic-Module-Name** ổn định module name nhưng không giới hạn package được export.
-- Automatic module phù hợp cho chuyển đổi từng bước; module descriptor tường minh phù hợp khi cần kiểm soát API và dependency.
-- Dùng **jar --describe-module** để xác minh tên và loại module trước khi cấu hình **requires**.
+- An automatic module is formed when a JAR without **module-info.class** is placed on the module path.
+- An automatic module has a name and can be referenced by other named modules via **requires**.
+- All packages of an automatic module are exported, including packages containing implementation.
+- Exporting packages does not make all members public; Java's access rules still apply.
+- **Automatic-Module-Name** stabilizes the module name but does not restrict exported packages.
+- Automatic modules are suited for step-by-step migration; explicit module descriptors are suited when API and dependency control is needed.
+- Use **jar --describe-module** to verify the module name and type before configuring **requires**.
 
-Khi tích hợp thư viện cũ, hãy xem automatic module là một cách đưa thư viện vào module graph nhanh chóng. Nếu cần bảo vệ package implementation và duy trì hợp đồng API lâu dài, hãy chuyển thư viện sang named module có descriptor và chỉ export những package thực sự cần công khai.
+When integrating a legacy library, treat automatic modules as a quick way to bring the library into the module graph. When you need to protect implementation packages and maintain a long-term API contract, migrate the library to a named module with a descriptor and export only the packages that truly need to be public.

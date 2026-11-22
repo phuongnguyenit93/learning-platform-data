@@ -1,32 +1,32 @@
-# Đếm phần tử bằng `count` và nhận biết tối ưu hóa bỏ qua duyệt
+# Counting Elements with `count` and Recognizing Traversal-Skipping Optimizations
 
-## 1. Mục tiêu bài học
+## 1. Lesson Objectives
 
-Trong **Java Stream API**, các pipeline thường kết hợp nguồn dữ liệu với những phép toán trung gian lazy như `filter`, `map`, `distinct`, `flatMap` và một phép toán kết thúc (terminal operation). Khi chỉ cần biết **có bao nhiêu phần tử trong kết quả**, ta dùng `count()` thay vì tạo một danh sách trung gian rồi gọi `size()`.
+In the **Java Stream API**, pipelines typically combine a data source with lazy intermediate operations such as `filter`, `map`, `distinct`, `flatMap`, and a terminal operation. When you only need to know **how many elements are in the result**, you use `count()` instead of creating an intermediate list and calling `size()`.
 
-Điểm dễ nhầm là: **`count()` trả về số phần tử của kết quả pipeline, nhưng không cam kết duyệt qua từng phần tử**. Khi đã biết chính xác số lượng phần tử và các bước trung gian không làm thay đổi số lượng ấy, triển khai Stream có thể tính ngay kết quả. Vì thế, đặt log hoặc thao tác cập nhật bên trong `peek` hay `map` rồi gọi `count()` không bảo đảm log hoặc thao tác đó sẽ chạy.
+A common point of confusion is: **`count()` returns the number of elements in the pipeline result, but it does not guarantee traversing each element**. When the exact number of elements is already known and the intermediate steps do not change that count, the Stream implementation can compute the result immediately. Therefore, placing logging or update operations inside `peek` or `map` and then calling `count()` does not guarantee that those logs or operations will execute.
 
-Sau bài này, bạn có thể:
+After this lesson, you can:
 
-- Dùng `count()` với `Stream<T>` và các primitive stream như `IntStream`.
-- Giải thích vì sao `count()` trả về `long`, hoạt động như terminal operation và có thể không duyệt dữ liệu.
-- Nhận diện nguồn có kích thước xác định (chẳng hạn `List`) và các bước giữ nguyên hoặc có thể thay đổi số phần tử.
-- Phân tích hiện tượng `peek`/`map` không được gọi trong một pipeline kết thúc bằng `count()`.
-- Viết phép đếm có điều kiện, đếm phần tử duy nhất, xử lý stream có thể vô hạn và lựa chọn phép toán phù hợp cho bài toán.
+- Use `count()` with `Stream<T>` and primitive streams such as `IntStream`.
+- Explain why `count()` returns `long`, behaves as a terminal operation, and may skip traversing data.
+- Recognize sources with a known size (such as `List`) and steps that preserve or can alter the element count.
+- Analyze why `peek`/`map` may not be invoked in a pipeline ending with `count()`.
+- Write conditional counting, unique element counting, handle potentially infinite streams, and choose the right operation for the problem.
 
-Bài thuộc chương **Duyệt, tìm kiếm và đối sánh** của module **`JAVA_STREAM_API`**. Những kiến thức về lazy evaluation, đặc tính nguồn và giới hạn tối ưu hóa này cũng cần thiết khi học collector tùy chỉnh, `Spliterator`, xử lý song song hay Stream Gatherers.
+This lesson belongs to the **Traversal, Search, and Matching** chapter of the **`JAVA_STREAM_API`** module. This knowledge about lazy evaluation, source characteristics, and optimization limits is also essential when learning custom collectors, `Spliterator`, parallel processing, or Stream Gatherers.
 
-## 2. `count()`: cú pháp, kiểu trả về và ý nghĩa
+## 2. `count()`: Syntax, Return Type, and Meaning
 
-Chữ ký của phương thức trên `Stream<T>`:
+The method signature on `Stream<T>`:
 
 ```java
 long count();
 ```
 
-`count()` là **terminal operation**: khi gọi, pipeline được yêu cầu tạo ra kết quả cuối là một số `long`. Con số đó biểu thị **số phần tử trong stream tại điểm gọi `count()`**, tức sau mọi phép toán trung gian đứng trước nó.
+`count()` is a **terminal operation**: when called, the pipeline is requested to produce a final result as a `long` number. That number represents **the number of elements in the stream at the point `count()` is called**, that is, after all intermediate operations preceding it.
 
-Ví dụ đầy đủ, dùng được từ Java 8:
+Complete example, usable from Java 8:
 
 ```java
 import java.util.Arrays;
@@ -48,49 +48,49 @@ public class DemKhoaHoc {
             .filter(ten -> ten.startsWith("Java"))
             .count();
 
-        System.out.println("Tổng: " + tongSo);
-        System.out.println("Khóa Java: " + soKhoaJava);
+        System.out.println("Total: " + tongSo);
+        System.out.println("Java courses: " + soKhoaJava);
     }
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
-Tổng: 5
-Khóa Java: 3
+Total: 5
+Java courses: 3
 ```
 
-Ở pipeline thứ hai, `filter` loại "Python" và "Kotlin", nên `count()` nhận số lượng các phần tử vượt qua điều kiện. Kết quả `3` **không phải số lần phương thức `filter` được gọi**.
+In the second pipeline, `filter` excludes "Python" and "Kotlin", so `count()` receives the number of elements passing the condition. The result `3` **is not the number of times the `filter` method was called**.
 
-Một số biểu thức khác:
+Some other expressions:
 
-| Biểu thức | Kết quả | Ý nghĩa |
+| Expression | Result | Meaning |
 | --- | ---: | --- |
-| `Stream.empty().count()` | `0L` | Stream rỗng. |
-| `Stream.of("A", "B", "C").count()` | `3L` | Ba phần tử. |
-| `Stream.of("A", "A", "B").distinct().count()` | `2L` | Hai giá trị phân biệt. |
-| `Stream.of(3, 6, 9).filter(n -> n > 5).count()` | `2L` | Hai phần tử thỏa điều kiện. |
-| `java.util.stream.IntStream.range(0, 100).count()` | `100L` | Một trăm số, từ 0 đến 99. |
+| `Stream.empty().count()` | `0L` | Empty stream. |
+| `Stream.of("A", "B", "C").count()` | `3L` | Three elements. |
+| `Stream.of("A", "A", "B").distinct().count()` | `2L` | Two distinct values. |
+| `Stream.of(3, 6, 9).filter(n -> n > 5).count()` | `2L` | Two elements matching the condition. |
+| `java.util.stream.IntStream.range(0, 100).count()` | `100L` | One hundred numbers, from 0 to 99. |
 
-**Vì sao kiểu `long`?** API dùng `long` để biểu diễn số lượng có thể lớn hơn giới hạn kiểu `int`. Nếu khai báo `int n = stream.count();` thì trình biên dịch báo lỗi không thể chuyển từ `long` sang `int` một cách tự động.
+**Why type `long`?** The API uses `long` to represent counts that can exceed the limit of `int`. If you declare `int n = stream.count();`, the compiler reports an error because it cannot automatically convert from `long` to `int`.
 
 ```java
 long hopLe = Stream.of(1, 2, 3).count();
 
-// KHÔNG BIÊN DỊCH: possible lossy conversion from long to int.
+// DOES NOT COMPILE: possible lossy conversion from long to int.
 // int saiKieu = Stream.of(1, 2, 3).count();
 ```
 
-Một stream chỉ được **tiêu thụ một lần**. Sau khi gọi `count()`, không tái sử dụng chính đối tượng stream đó cho `collect()`, `findFirst()` hay `count()` lần nữa; muốn tính thêm, hãy tạo stream mới từ nguồn.
+A stream can only be **consumed once**. After calling `count()`, do not reuse that same stream object for `collect()`, `findFirst()`, or another `count()`; to compute more, create a new stream from the source.
 
-## 3. Terminal operation có nhất thiết duyệt phần tử không?
+## 3. Must a Terminal Operation Traverse Elements?
 
-Từ "terminal" có nghĩa là **yêu cầu kết quả cuối và kết thúc việc sử dụng stream**, không có nghĩa là **bắt buộc gọi mọi bước trung gian trên từng phần tử**.
+The word "terminal" means **requesting a final result and ending use of the stream**, not **requiring every intermediate step to be invoked on every element**.
 
-### 3.1. Ví dụ `peek` không in gì nhưng `count()` vẫn đúng
+### 3.1. Example Where `peek` Prints Nothing Yet `count()` Is Still Correct
 
-Xét chương trình:
+Consider the program:
 
 ```java
 import java.util.Arrays;
@@ -101,29 +101,29 @@ public class DemKhongDuyet {
         List<String> ten = Arrays.asList("An", "Binh", "Chi");
 
         long soLuong = ten.stream()
-            .peek(s -> System.out.println("Đã gặp: " + s))
+            .peek(s -> System.out.println("Seen: " + s))
             .count();
 
-        System.out.println("Số lượng: " + soLuong);
+        System.out.println("Count: " + soLuong);
     }
 }
 ```
 
-Trên nhiều triển khai JDK hiện đại (đặc biệt từ Java 9), kết quả có thể chỉ là:
+On many modern JDK implementations (especially from Java 9 onward), the output may only be:
 
 ```text
-Số lượng: 3
+Count: 3
 ```
 
-Không có dòng `Đã gặp: ...` nào. **Đây là hành vi được phép**, không phải lỗi của `peek` hay `count()`.
+There are no `Seen: ...` lines. **This is permitted behavior**, not a bug in `peek` or `count()`.
 
-Lý do: nguồn `List` có số phần tử xác định; `peek` không thêm hay loại phần tử; do vậy `count()` có thể lấy chính xác kết quả `3` mà không cần yêu cầu nguồn cung cấp từng phần tử. Khi không duyệt, hành động trong `peek` cũng không được thực hiện.
+Reason: the `List` source has a known number of elements; `peek` neither adds nor removes elements; therefore `count()` can obtain the exact result `3` without asking the source to supply each element. When not traversing, the action inside `peek` is also not executed.
 
-> Chú ý phiên bản và triển khai: tài liệu API mô tả rõ khả năng tối ưu này; không được viết chương trình phụ thuộc vào việc `peek` chắc chắn chạy hay chắc chắn bị bỏ qua. Java 8 và các phiên bản/triển khai khác có thể biểu hiện khác nhau.
+> Version and implementation note: the API documentation explicitly describes this optimization capability; you must not write code that depends on `peek` definitely running or definitely being skipped. Java 8 and other versions/implementations may behave differently.
 
-### 3.2. `map` cũng có thể bị bỏ qua
+### 3.2. `map` Can Also Be Skipped
 
-`map` thay đổi **giá trị** nhưng thường không đổi **số lượng** phần tử:
+`map` changes **values** but usually does not change the **number** of elements:
 
 ```java
 List<String> ten = Arrays.asList("An", "Binh", "Chi");
@@ -135,12 +135,12 @@ long soLuong = ten.stream()
 System.out.println(soLuong); // 3
 ```
 
-Để tính số lượng, `count()` không cần biết các tên viết hoa ra sao. Nếu triển khai có đủ thông tin về kích thước, nó có thể bỏ qua việc gọi hàm `map` hoàn toàn.
+To compute the count, `count()` does not need to know what the uppercased names look like. If the implementation has sufficient size information, it can skip invoking the `map` function entirely.
 
-Điều này đặc biệt quan trọng nếu lambda có **tác dụng phụ**:
+This is especially important if the lambda has **side effects**:
 
 ```java
-// Cách viết không đáng tin cậy:
+// Unreliable way of writing:
 long soLuong = ten.stream()
     .map(s -> {
         ghiLogHoacCapNhatHeThong(s);
@@ -149,17 +149,17 @@ long soLuong = ten.stream()
     .count();
 ```
 
-`ghiLogHoacCapNhatHeThong(s)` **không được bảo đảm sẽ chạy**, dù `count()` trả đúng `3`. Đoạn trên minh họa một cách thiết kế cần tránh; phương thức `ghiLogHoacCapNhatHeThong` là tên giả định.
+`ghiLogHoacCapNhatHeThong(s)` **is not guaranteed to run**, even though `count()` returns the correct `3`. The snippet above illustrates a design pattern to avoid; `ghiLogHoacCapNhatHeThong` is a placeholder method name.
 
-**Quy tắc:** Hàm xử lý trong `map`, `filter`, `peek` nên không gây tác dụng phụ và không phụ thuộc vào việc được gọi bao nhiêu lần. Nếu mục tiêu là thực hiện một hành động cho từng phần tử, hãy dùng terminal operation phù hợp như `forEach`; còn nếu mục tiêu là đếm, hãy dùng `count` và chỉ dựa vào kết quả đếm.
+**Rule:** Processing functions in `map`, `filter`, and `peek` should be side-effect-free and must not depend on how many times they are called. If the goal is to perform an action for each element, use an appropriate terminal operation such as `forEach`; if the goal is counting, use `count` and rely solely on the count result.
 
-## 4. Tại sao triển khai có thể biết số lượng trước khi duyệt?
+## 4. Why Can the Implementation Know the Count Before Traversing?
 
-### 4.1. Nguồn có kích thước chính xác
+### 4.1. Sources with an Exact Size
 
-Nhiều nguồn dữ liệu biết sẵn số phần tử. Trong Stream API, thông tin này thường liên quan đến đặc tính **`Spliterator.SIZED`** của nguồn.
+Many data sources know their element count upfront. In the Stream API, this information is usually tied to the source's **`Spliterator.SIZED`** characteristic.
 
-Ví dụ:
+Example:
 
 ```java
 List<String> ten = Arrays.asList("An", "Binh", "Chi");
@@ -168,38 +168,38 @@ long dem = ten.stream().count(); // 3
 int kichThuoc = ten.size();      // 3
 ```
 
-Với nguồn là một danh sách ổn định, việc lấy số lượng trực tiếp từ nguồn có thể tránh lặp qua tất cả phần tử.
+With a stable list as the source, obtaining the count directly from the source can avoid iterating over all elements.
 
-Các nguồn phổ biến:
+Common sources:
 
-| Nguồn | Thông tin kích thước | Hệ quả đối với `count()` |
+| Source | Size Information | Consequence for `count()` |
 | --- | --- | --- |
-| `Arrays.asList(...).stream()` | Thường xác định chính xác | Có thể tính trực tiếp nếu pipeline không phá thông tin số lượng. |
-| `Stream.of(a, b, c)` | Xác định chính xác | Thường có thể tối ưu hóa đếm. |
-| `IntStream.range(0, 1000)` | Có số phần tử xác định | Có thể tính số lượng mà không duyệt hết các số. |
-| `Stream.iterate(seed, next)` | Không khai báo số phần tử hữu hạn | Thường không thể tự suy ra điểm kết thúc. |
-| `Stream.generate(supplier)` | Có thể sinh vô hạn; không có kích thước xác định | Không thể tự xác định tổng số phần tử. |
+| `Arrays.asList(...).stream()` | Usually known exactly | Can compute directly if the pipeline does not destroy size information. |
+| `Stream.of(a, b, c)` | Known exactly | Can usually optimize counting. |
+| `IntStream.range(0, 1000)` | Has an exact element count | Can compute the count without traversing all numbers. |
+| `Stream.iterate(seed, next)` | Does not declare a finite count | Usually cannot infer an endpoint automatically. |
+| `Stream.generate(supplier)` | May generate infinitely; no known size | Cannot determine total element count automatically. |
 
-Đặc tính `SIZED` cho biết nguồn có thể cung cấp số lượng phần tử còn lại một cách chính xác ở thời điểm phù hợp. Nó không đồng nghĩa **mọi pipeline xuất phát từ nguồn đó** đều biết chính xác kích thước sau các phép biến đổi.
+The `SIZED` characteristic indicates that the source can provide an exact count of remaining elements at the appropriate time. It does not mean **every pipeline originating from that source** knows its exact size after transformations.
 
-### 4.2. Phép toán có giữ nguyên số phần tử không?
+### 4.2. Does an Operation Preserve the Element Count?
 
-Hãy xét các phép toán trung gian trong pipeline:
+Consider the intermediate operations in a pipeline:
 
-| Phép toán | Tác động đến số lượng | Khả năng đếm mà không duyệt |
+| Operation | Effect on Count | Possibility of Counting Without Traversal |
 | --- | --- | --- |
-| `map` | Mỗi đầu vào tạo một đầu ra | Có thể giữ thông tin kích thước. |
-| `peek` | Không chủ ý thêm/bớt phần tử | Có thể giữ thông tin kích thước. |
-| `sorted` | Sắp xếp, không thêm/bớt | Có thể vẫn tính số lượng trực tiếp mà không cần sắp xếp. |
-| `unordered` | Bỏ yêu cầu về thứ tự, không đổi số lượng | Có thể giữ thông tin kích thước. |
-| `filter` | Có thể loại một số phần tử | Thường phải đánh giá điều kiện để biết số lượng. |
-| `distinct` | Có thể loại phần tử trùng | Thường phải xác định giá trị trùng. |
-| `flatMap` | Mỗi phần tử có thể tạo 0, 1 hoặc nhiều phần tử | Thường phải xét các stream con. |
-| `mapMulti` (Java 16+) | Có thể tạo 0, 1 hoặc nhiều phần tử | Thường phải duyệt để biết số lượng. |
-| `takeWhile` / `dropWhile` (Java 9+) | Có thể bỏ phần tử tùy điều kiện | Thường phải kiểm tra điều kiện. |
-| `limit(n)` / `skip(n)` | Giới hạn/bỏ số phần tử theo vị trí | Với nguồn có kích thước xác định, số lượng sau các bước này **có thể** được tính bằng phép toán số học. |
+| `map` | Each input produces one output | Can preserve size information. |
+| `peek` | Intentionally adds/removes no elements | Can preserve size information. |
+| `sorted` | Sorts without adding/removing | Can still compute count directly without sorting. |
+| `unordered` | Drops ordering requirement, does not change count | Can preserve size information. |
+| `filter` | May exclude some elements | Usually must evaluate the predicate to know the count. |
+| `distinct` | May remove duplicate elements | Usually must determine distinct values. |
+| `flatMap` | Each element may produce 0, 1, or more elements | Usually must inspect the substreams. |
+| `mapMulti` (Java 16+) | May produce 0, 1, or more elements | Usually must traverse to know the count. |
+| `takeWhile` / `dropWhile` (Java 9+) | May drop elements based on a condition | Usually must check the condition. |
+| `limit(n)` / `skip(n)` | Limits/skips elements by position | With a sized source, the count after these steps **can** be computed arithmetically. |
 
-Ví dụ:
+Example:
 
 ```java
 List<String> ten = Arrays.asList("An", "Binh", "Chi", "Dung");
@@ -218,25 +218,25 @@ long c = ten.stream()
     .count();                          // 2
 ```
 
-- Với `a`, `map` thay giá trị nhưng số phần tử chắc chắn vẫn là 4.
-- Với `b`, cần xác định những tên nào vượt qua bộ lọc; trong ví dụ là `Binh` và `Dung`.
-- Với `c`, nguồn có bốn phần tử; bỏ một rồi lấy nhiều nhất hai phần tử nên đếm được 2.
+- For `a`, `map` changes values, but the element count is guaranteed to remain 4.
+- For `b`, it is necessary to determine which names pass the filter; in this example, `Binh` and `Dung`.
+- For `c`, the source has four elements; skipping one and taking at most two yields a count of 2.
 
-Đây là **khả năng tối ưu**, không phải một lời hứa rằng mọi phiên bản JDK hoặc mọi kiểu pipeline sẽ áp dụng chính xác cùng một chiến lược. Tối ưu được phép thay đổi những bước trung gian thực tế được đánh giá, nhưng kết quả `count()` phải đúng theo ngữ nghĩa stream.
+This is an **optimization possibility**, not a promise that every JDK version or every pipeline shape will apply the exact same strategy. Optimizations are allowed to change which intermediate steps actually get evaluated, while the `count()` result must remain faithful to stream semantics.
 
-### 4.3. `SIZED` và `SUBSIZED` không giống nhau
+### 4.3. `SIZED` and `SUBSIZED` Are Not the Same
 
-Đặc tính `Spliterator.SIZED` nói về **kích thước chính xác của phần còn lại** mà spliterator đại diện. `Spliterator.SUBSIZED` bổ sung rằng các spliterator con thu được khi tách cũng có đặc tính `SIZED` và `SUBSIZED`.
+The `Spliterator.SIZED` characteristic refers to **the exact size of the remaining portion** represented by the spliterator. `Spliterator.SUBSIZED` adds that child spliterators obtained from splitting also have both `SIZED` and `SUBSIZED` characteristics.
 
-Hai đặc tính này hữu ích cho tối ưu hóa, nhất là khi xử lý song song, nhưng **không tự động bảo đảm** mọi bước trung gian đều được bỏ qua. Chẳng hạn, `filter` có thể khiến số lượng kết quả không còn suy ra trực tiếp từ kích thước nguồn.
+Both characteristics are useful for optimization, especially in parallel processing, but they **do not automatically guarantee** that all intermediate steps are skipped. For instance, `filter` can prevent the result count from being deduced directly from the source size.
 
-Khi tự triển khai `Spliterator` ở các bài học nâng cao, chỉ khai báo `SIZED` nếu thực sự đáp ứng hợp đồng chính xác về số phần tử còn lại. Khai báo sai có thể dẫn đến hành vi sai hoặc khó chẩn đoán.
+When implementing a custom `Spliterator` in advanced lessons, only declare `SIZED` if it genuinely satisfies the exact contract for remaining element count. Declaring it inaccurately can cause incorrect behavior or hard-to-diagnose bugs.
 
-## 5. Đếm sau `filter`, `distinct` và `flatMap`
+## 5. Counting After `filter`, `distinct`, and `flatMap`
 
-### 5.1. Đếm theo điều kiện
+### 5.1. Conditional Counting
 
-Nếu yêu cầu là **"Có bao nhiêu khóa học Java?"**, nên đặt điều kiện trong `filter`:
+If the requirement is **"How many Java courses are there?"**, put the condition inside `filter`:
 
 ```java
 List<String> khoaHoc = Arrays.asList(
@@ -250,23 +250,23 @@ long soKhoaJava = khoaHoc.stream()
 System.out.println(soKhoaJava); // 3
 ```
 
-Nguồn có bốn phần tử nhưng không thể chỉ dùng số 4 để suy ra có bao nhiêu tên bắt đầu bằng "Java". `count()` cần quan tâm đến kết quả của bộ lọc.
+The source has four elements, but 4 alone cannot tell you how many names start with "Java". `count()` needs to account for the filter's outcome.
 
-**Không nhầm `filter` với `map`**:
+**Do not confuse `filter` with `map`**:
 
 ```java
 long saiYeuCau = khoaHoc.stream()
     .map(ten -> ten.startsWith("Java"))
     .count();
 
-System.out.println(saiYeuCau); // 4, không phải 3
+System.out.println(saiYeuCau); // 4, not 3
 ```
 
-Ở đây `map` biến mỗi chuỗi thành `Boolean` (cả `true` lẫn `false` đều là một phần tử), vì vậy số lượng vẫn là bốn.
+Here `map` turns each string into a `Boolean` (both `true` and `false` are elements), so the count remains four.
 
-### 5.2. Đếm các giá trị duy nhất
+### 5.2. Counting Unique Values
 
-`distinct` loại những giá trị trùng nhau theo `equals`:
+`distinct` removes duplicate values according to `equals`:
 
 ```java
 List<String> ngonNgu = Arrays.asList(
@@ -280,7 +280,7 @@ long soNgonNgu = ngonNgu.stream()
 System.out.println(soNgonNgu); // 3
 ```
 
-Nếu cần phân biệt không phụ thuộc chữ hoa/chữ thường, phải chuẩn hóa trước:
+If uniqueness needs to be case-insensitive, normalize beforehand:
 
 ```java
 import java.util.Locale;
@@ -295,11 +295,11 @@ long soTenKhacNhau = ten.stream()
 System.out.println(soTenKhacNhau); // 2
 ```
 
-Số lượng sau `distinct` phụ thuộc vào các giá trị cụ thể; nguồn biết kích thước chưa đủ để suy ra có bao nhiêu giá trị duy nhất.
+The count after `distinct` depends on the concrete values; a sized source is not enough to infer how many unique values exist.
 
-### 5.3. Đếm phần tử sau khi làm phẳng
+### 5.3. Counting Elements After Flattening
 
-`flatMap` có thể biến một phần tử thành nhiều phần tử:
+`flatMap` can turn one element into multiple elements:
 
 ```java
 List<List<String>> nhom = Arrays.asList(
@@ -315,56 +315,56 @@ long soPhanTu = nhom.stream()
     .count();                       // 3
 ```
 
-Trong ví dụ này hai kết quả đều là 3 **chỉ là trùng hợp**. Một luồng có ba danh sách con không có nghĩa là luồng sau khi làm phẳng luôn có ba phần tử.
+In this example, both results being 3 **is merely a coincidence**. A stream of three sublists does not mean the flattened stream always has three elements.
 
-## 6. `peek` phù hợp để quan sát, không phù hợp để thực hiện nghiệp vụ
+## 6. `peek` Is Suited for Observation, Not for Business Logic
 
-Mặc dù `peek` thường được dùng để quan sát dữ liệu giữa các bước, nó **không phải cơ chế bảo đảm chạy tác vụ**. Đặc biệt, `count()` có thể không cần đánh giá `peek` nếu số lượng đã biết.
+Although `peek` is often used to observe data between steps, it is **not a guaranteed mechanism for executing tasks**. In particular, `count()` may not evaluate `peek` at all if the count is already known.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ```java
 List<String> ten = Arrays.asList("An", "Binh", "Chi", "Dung");
 
 long tong = ten.stream()
-    .peek(s -> System.out.println("Đang xét " + s))
+    .peek(s -> System.out.println("Checking " + s))
     .count();
 
-System.out.println("Tổng = " + tong);
+System.out.println("Total = " + tong);
 ```
 
-Một JDK có thể in chỉ `Tổng = 4`, trong khi JDK khác có thể in thêm các dòng quan sát. Chương trình đúng chỉ dựa vào `tong == 4`.
+One JDK might print only `Total = 4`, while another JDK might also print the observation lines. A correct program relies only on `tong == 4`.
 
-Khi thêm `filter`:
+When adding `filter`:
 
 ```java
 long hopLe = ten.stream()
     .filter(s -> s.length() >= 4)
-    .peek(s -> System.out.println("Hợp lệ: " + s))
+    .peek(s -> System.out.println("Valid: " + s))
     .count();
 
-System.out.println("Số tên hợp lệ = " + hopLe); // 2
+System.out.println("Valid name count = " + hopLe); // 2
 ```
 
-Trong pipeline thông thường, vì số lượng sau `filter` không biết sẵn nên quá trình phải kiểm tra các phần tử và log `peek` có thể xuất hiện. Tuy nhiên, **không dùng số dòng log để xác minh số lần xử lý** và không dựa vào tác dụng phụ này làm kết quả nghiệp vụ.
+In a typical pipeline, because the count after `filter` is not known ahead of time, execution must check the elements and `peek` logs may appear. However, **do not use log line counts to verify execution counts** and do not rely on this side effect as a business outcome.
 
-Nếu yêu cầu thực sự là **"Ghi nhận mỗi tên hợp lệ"**, hãy biểu diễn hành động thành terminal operation rõ ràng:
+If the actual requirement is **"Record each valid name"**, express the action as an explicit terminal operation:
 
 ```java
 ten.stream()
     .filter(s -> s.length() >= 4)
-    .forEach(s -> System.out.println("Hợp lệ: " + s));
+    .forEach(s -> System.out.println("Valid: " + s));
 ```
 
-Nếu vừa cần **đếm** vừa cần **thực hiện hành động**, hãy xác định mục tiêu và thiết kế tường minh: chẳng hạn thu các phần tử hợp lệ thành danh sách nếu dữ liệu đủ nhỏ, dùng `size()` của danh sách đó và xử lý danh sách theo yêu cầu. Với dữ liệu lớn, cân nhắc luồng xử lý chuyên dụng; không dựa vào tác dụng phụ bên trong pipeline chỉ để buộc `count()` duyệt.
+If you need both to **count** and to **perform an action**, clarify the goal and design explicitly: for instance, collect valid elements into a list if the dataset is small enough, use `size()` on that list, and process the list as required. For large datasets, consider a dedicated processing stream; do not rely on side effects inside a pipeline just to force `count()` to traverse.
 
-Cũng không nên chèn các hàm giả tạo làm thay đổi số lượng để "ép" `peek` chạy. Điều đó làm sai ý nghĩa pipeline và có thể làm giảm hiệu năng.
+You should also avoid inserting artificial operations that alter element counts solely to "force" `peek` to run. That distorts the pipeline's intent and can hurt performance.
 
-## 7. Đếm stream vô hạn: phải có điểm dừng phù hợp
+## 7. Counting Infinite Streams: You Must Have a Proper Stopping Point
 
-`count()` không tự dừng một nguồn có thể sinh vô hạn. Với những dãy như `Stream.iterate` hoặc `Stream.generate`, cần hạn chế số phần tử hoặc có điều kiện kết thúc trước khi muốn lấy kết quả đếm.
+`count()` does not automatically stop a potentially infinite source. With sequences like `Stream.iterate` or `Stream.generate`, you must restrict the number of elements or provide a terminating condition before expecting a count result.
 
-### 7.1. Đếm 10 số đầu tiên
+### 7.1. Counting the First 10 Numbers
 
 ```java
 import java.util.stream.Stream;
@@ -376,9 +376,9 @@ long soLuong = Stream.iterate(0, n -> n + 1)
 System.out.println(soLuong); // 10
 ```
 
-`limit(10)` bảo đảm pipeline chỉ yêu cầu tối đa mười phần tử. Việc `count()` có duyệt và gọi từng bước trung gian hay không còn tùy nguồn và triển khai; đây là cách biểu diễn yêu cầu hữu hạn.
+`limit(10)` ensures the pipeline requests at most ten elements. Whether `count()` traverses and invokes intermediate steps depends on the source and implementation; this is how a finite bound is expressed.
 
-### 7.2. Lọc trước khi giới hạn
+### 7.2. Filtering Before Limiting
 
 ```java
 long soSoChan = Stream.iterate(1, n -> n + 1)
@@ -389,7 +389,7 @@ long soSoChan = Stream.iterate(1, n -> n + 1)
 System.out.println(soSoChan); // 5
 ```
 
-Pipeline phải tìm đủ năm số chẵn, tương ứng 2, 4, 6, 8, 10. Nếu đổi thứ tự:
+The pipeline must find five even numbers, corresponding to 2, 4, 6, 8, 10. If you swap the order:
 
 ```java
 long soChanTrongNamSoDau = Stream.iterate(1, n -> n + 1)
@@ -400,49 +400,49 @@ long soChanTrongNamSoDau = Stream.iterate(1, n -> n + 1)
 System.out.println(soChanTrongNamSoDau); // 2
 ```
 
-Khác biệt là **đếm năm số chẵn đầu tiên** so với **đếm số chẵn trong năm số đầu tiên**.
+The difference is **counting the first five even numbers** versus **counting even numbers within the first five numbers**.
 
-### 7.3. Những pipeline không được chạy thử
+### 7.3. Pipelines You Should Not Run
 
-Các ví dụ sau có thể không bao giờ hoàn thành:
+The following examples may never finish:
 
 ```java
-// KHÔNG CHẠY: không giới hạn nguồn vô hạn.
+// DO NOT RUN: unbounded infinite source.
 // Stream.iterate(0, n -> n + 1).count();
 
-// KHÔNG CHẠY: filter không bao giờ cho phần tử nào đi qua,
-// nên limit(1) không nhận đủ phần tử.
+// DO NOT RUN: filter never lets any element pass,
+// so limit(1) never receives enough elements.
 // Stream.iterate(0, n -> n + 1)
 //     .filter(n -> false)
 //     .limit(1)
 //     .count();
 ```
 
-Với Java 9+, có thể dùng `takeWhile` trên dãy có thứ tự hoặc dạng `Stream.iterate(seed, hasNext, next)` để tạo điểm dừng dựa trên trạng thái:
+With Java 9+, you can use `takeWhile` on an ordered sequence or the `Stream.iterate(seed, hasNext, next)` overload to create a state-based stopping point:
 
 ```java
 long dem = Stream.iterate(0, n -> n < 100, n -> n + 1)
     .count(); // 100 — Java 9+
 ```
 
-Chỉ viết `filter(n -> n < 100)` **không thay thế** điều kiện dừng: bộ lọc loại phần tử nhưng có thể tiếp tục yêu cầu nguồn sinh giá trị mãi mãi.
+Merely writing `filter(n -> n < 100)` **does not replace** a stopping condition: the filter rejects elements, but it can continue asking the source to generate values forever.
 
-## 8. Chọn `count()`, `size()`, `anyMatch()` hay `Collectors.counting()`
+## 8. Choosing `count()`, `size()`, `anyMatch()`, or `Collectors.counting()`
 
-Nhu cầu khác nhau có những API phù hợp khác nhau:
+Different needs call for different APIs:
 
-| Nhu cầu | API nên cân nhắc | Ví dụ |
+| Need | API to Consider | Example |
 | --- | --- | --- |
-| Đếm toàn bộ phần tử của `Collection` đã có | `collection.size()` | `ten.size()` |
-| Đếm phần tử sau các bước xử lý Stream | `stream.count()` | `stream.filter(...).count()` |
-| Chỉ cần biết có ít nhất một phần tử thỏa điều kiện | `anyMatch(predicate)` | `stream.anyMatch(s -> s.isEmpty())` |
-| Kiểm tra có không phần tử nào thỏa điều kiện | `noneMatch(predicate)` | `stream.noneMatch(String::isEmpty)` |
-| Đếm theo từng nhóm | `Collectors.groupingBy(..., counting())` | `Map<K, Long>` |
-| Cần kết quả và danh sách các phần tử hợp lệ | `collect(toList())` rồi `size()` | Chỉ phù hợp khi cần thực sự lưu danh sách |
+| Count all elements of an existing `Collection` | `collection.size()` | `ten.size()` |
+| Count elements after Stream processing steps | `stream.count()` | `stream.filter(...).count()` |
+| Only need to know if at least one element matches | `anyMatch(predicate)` | `stream.anyMatch(s -> s.isEmpty())` |
+| Check that no element matches a condition | `noneMatch(predicate)` | `stream.noneMatch(String::isEmpty)` |
+| Count per group | `Collectors.groupingBy(..., counting())` | `Map<K, Long>` |
+| Need both the count and the list of valid elements | `collect(toList())` then `size()` | Appropriate only when you genuinely need to keep the list |
 
-### 8.1. Vì sao không luôn dùng `count() > 0`?
+### 8.1. Why Not Always Use `count() > 0`?
 
-`count()` cho biết số lượng chính xác; `anyMatch()` là **short-circuiting terminal operation** và có thể dừng ngay khi tìm được phần tử thỏa điều kiện.
+`count()` gives the exact quantity; `anyMatch()` is a **short-circuiting terminal operation** and can stop as soon as it finds a matching element.
 
 ```java
 List<String> ten = Arrays.asList("An", "Binh", "Chi", "Dung");
@@ -453,17 +453,17 @@ boolean coTenDai = ten.stream()
 System.out.println(coTenDai); // true
 ```
 
-Nếu chỉ cần câu trả lời **có/không**, `anyMatch` thể hiện ý định rõ hơn và có thể tránh duyệt toàn bộ nguồn. Ngược lại, nếu báo cáo cần "có **bao nhiêu** tên dài", dùng `filter(...).count()`.
+If you only need a **yes/no** answer, `anyMatch` expresses the intent more clearly and can avoid traversing the entire source. Conversely, if a report asks "**how many** long names are there", use `filter(...).count()`.
 
-### 8.2. `count()` và `Collectors.counting()`
+### 8.2. `count()` vs `Collectors.counting()`
 
-`count()` trả về tổng số phần tử của cả pipeline:
+`count()` returns the total element count of the entire pipeline:
 
 ```java
 long tong = ten.stream().count();
 ```
 
-`Collectors.counting()` thường có ích **bên trong collector khác**, chẳng hạn đếm số khóa học theo nhóm:
+`Collectors.counting()` is usually useful **inside another collector**, such as counting courses per group:
 
 ```java
 import java.util.Arrays;
@@ -485,25 +485,25 @@ System.out.println(theoNhom.get(true));  // 3
 System.out.println(theoNhom.get(false)); // 2
 ```
 
-Ở đây `groupingBy` phân phần tử thành hai nhóm và `counting()` đếm số phần tử **trong từng nhóm**. Nếu không cần phân nhóm, `count()` thường đơn giản và rõ ràng hơn.
+Here `groupingBy` splits elements into two groups and `counting()` counts elements **within each group**. When grouping is not needed, `count()` is usually simpler and clearer.
 
-### 8.3. `count()` khác số lần hành động được gọi
+### 8.3. `count()` Differs from Action Invocation Counts
 
-`count()` mô tả **số phần tử cuối cùng**, không mô tả số lần `map`, `peek`, comparator của `sorted` hoặc một callback bất kỳ được thực thi. Số lần gọi và thứ tự gọi các hàm hành vi là chi tiết triển khai, còn một số phép toán có thể short-circuit hoặc được bỏ qua khi không ảnh hưởng đến kết quả.
+`count()` describes **the final element count**, not how many times `map`, `peek`, a `sorted` comparator, or any callback is executed. The invocation count and call order of behavioral functions are implementation details, and some operations can short-circuit or be skipped when they do not affect the result.
 
-Điều này cũng quan trọng khi chuyển sang xử lý song song: dù kết quả đếm giống nhau, không được suy luận về thứ tự chạy hoặc số lần gọi của các thao tác có tác dụng phụ dựa trên kết quả `count()`.
+This also matters when switching to parallel processing: even though the count result is the same, do not infer execution order or invocation counts of side-effecting operations from `count()`'s result.
 
-## 9. Cách kiểm chứng và chẩn đoán tối ưu hóa
+## 9. How to Verify and Diagnose Optimizations
 
-Khi thấy `peek` không in gì, trước tiên kiểm tra:
+When you see `peek` printing nothing, check first:
 
-1. **Nguồn có biết số phần tử không?** Ví dụ `List`, mảng, `Stream.of`, `IntStream.range` thường có thông tin kích thước.
-2. **Những bước nào có thể thay đổi số lượng?** `map` và `peek` giữ nguyên số lượng; `filter`, `distinct`, `flatMap` thường khiến kết quả phụ thuộc dữ liệu.
-3. **Terminal operation có thật sự cần giá trị từng phần tử không?** `count()` có thể không cần; `collect(toList())` thường phải tạo giá trị đầu ra.
-4. **Có dựa vào tác dụng phụ không?** Nếu có, hãy thiết kế lại để hành động nghiệp vụ được biểu diễn tường minh.
-5. **Có nguồn vô hạn hoặc phép toán chặn trước `limit` không?** Kiểm tra khả năng pipeline không bao giờ hoàn thành.
+1. **Does the source know its element count?** For example, `List`, arrays, `Stream.of`, and `IntStream.range` usually carry size information.
+2. **Which steps can change the count?** `map` and `peek` preserve the count; `filter`, `distinct`, and `flatMap` usually make the result data-dependent.
+3. **Does the terminal operation actually need each element's value?** `count()` might not; `collect(toList())` usually has to produce output values.
+4. **Are you relying on side effects?** If so, redesign so business actions are expressed explicitly.
+5. **Is there an infinite source or a blocking operation before `limit`?** Check whether the pipeline might never terminate.
 
-### Minh họa tương phản
+### Contrasting Illustration
 
 ```java
 import java.util.Arrays;
@@ -523,53 +523,53 @@ public class KiemTraCount {
             .map(String::toLowerCase)
             .collect(Collectors.toList());
 
-        System.out.println("Đếm: " + dem);
-        System.out.println("Danh sách: " + danhSach);
+        System.out.println("Count: " + dem);
+        System.out.println("List: " + danhSach);
     }
 }
 ```
 
-Kết quả logic cần kiểm tra là:
+The logical results to verify are:
 
 ```text
-Đếm: 3
-Danh sách: [a, bb, ccc]
+Count: 3
+List: [a, bb, ccc]
 ```
 
-Các dòng `peek: ...` có thể có hoặc không tùy triển khai và cách tối ưu. Chúng **không phải phần của điều kiện đúng/sai** cho ví dụ.
+The `peek: ...` lines may or may not appear depending on the implementation and optimization. They **are not part of the pass/fail criteria** for the example.
 
-Khi kiểm thử, nên khẳng định trực tiếp các giá trị `dem == 3` và `danhSach.equals(Arrays.asList("a", "bb", "ccc"))`. Đừng viết test giả định `peek` luôn gọi ba lần, hoặc giả định số log không bao giờ xuất hiện.
+When testing, assert directly on `dem == 3` and `danhSach.equals(Arrays.asList("a", "bb", "ccc"))`. Never write tests assuming `peek` is always called three times, or assuming log lines never appear.
 
-## 10. Những lỗi thường gặp
+## 10. Common Mistakes
 
-| Lỗi hoặc hiểu nhầm | Nguyên nhân | Cách xử lý |
+| Mistake or Misconception | Cause | How to Handle |
 | --- | --- | --- |
-| `peek` không in gì khi dùng `count()` | Pipeline có thể được tối ưu mà không duyệt phần tử | Chỉ dùng `peek` để quan sát; không dựa vào tác dụng phụ |
-| `map` bị bỏ qua, tác vụ trong lambda không chạy | `map` giữ nguyên số phần tử, `count` không cần kết quả biến đổi | Di chuyển tác vụ nghiệp vụ sang cách thực thi tường minh |
-| `map(predicate).count()` trả về tổng số phần tử | `map` biến dữ liệu thành `Boolean`, không lọc | Thay bằng `filter(predicate).count()` |
-| `int n = stream.count()` không biên dịch | `count` trả về `long` | Khai báo `long n` |
-| Gọi `count()` rồi dùng lại cùng stream | Stream đã bị tiêu thụ | Tạo stream mới từ nguồn |
-| `count()` trên stream vô hạn không hoàn thành | Không có điều kiện dừng | Thêm giới hạn hữu hạn hoặc điều kiện kết thúc |
-| `filter(...).limit(n)` chạy mãi | Không bao giờ tìm đủ `n` phần tử phù hợp | Cân nhắc giới hạn nguồn trước `filter` |
-| Dùng `collect(toList()).size()` chỉ để đếm | Tạo cấu trúc trung gian không cần thiết | Dùng `count()` |
-| Dùng `count() > 0` chỉ để kiểm tra tồn tại | Có thể yêu cầu tính toàn bộ số lượng | Dùng `anyMatch` khi cần kiểm tra điều kiện |
-| Thấy kết quả đúng rồi cho rằng lambda chắc chắn đã chạy | Tối ưu hóa có thể bỏ qua phép toán không ảnh hưởng đến số lượng | Viết logic không phụ thuộc tác dụng phụ |
+| `peek` prints nothing when using `count()` | The pipeline can be optimized without traversing elements | Use `peek` only for observation; never rely on side effects |
+| `map` is skipped, task inside lambda does not run | `map` preserves element count; `count` does not need transformed results | Move business actions to an explicit execution mechanism |
+| `map(predicate).count()` returns total element count | `map` converts elements to `Boolean`, rather than filtering | Replace with `filter(predicate).count()` |
+| `int n = stream.count()` fails to compile | `count` returns `long` | Declare `long n` |
+| Calling `count()` and then reusing the same stream | The stream has already been consumed | Create a new stream from the source |
+| `count()` on an infinite stream never finishes | No stopping condition | Add a finite limit or terminating condition |
+| `filter(...).limit(n)` runs forever | Never finds `n` matching elements | Consider bounding the source before `filter` |
+| Using `collect(toList()).size()` just to count | Creates unnecessary intermediate structure | Use `count()` |
+| Using `count() > 0` just to check existence | May require computing the entire count | Use `anyMatch` when checking a condition |
+| Seeing a correct count and assuming the lambda surely ran | Optimizations can skip operations that do not affect element count | Write logic that does not depend on side effects |
 
-Hiểu sai về tối ưu hóa có thể dẫn đến lỗi khó nhận ra vì **số lượng vẫn đúng** trong khi một thao tác phụ mong đợi lại không được thực thi.
+Misunderstanding optimizations can lead to subtle bugs because **the count is still right** while an expected side effect fails to execute.
 
-## 11. Bài tập thực hành
+## 11. Practice Exercises
 
-### Bài 1 — Đếm phần tử theo điều kiện
+### Exercise 1 — Counting Elements by Condition
 
-Cho:
+Given:
 
 ```java
 List<Integer> diem = Arrays.asList(4, 7, 8, 10, 5, 7, 9);
 ```
 
-Viết pipeline đếm số điểm **từ 7 trở lên**. Kết quả phải là `long`. Giải thích vì sao `map(d -> d >= 7).count()` không giải được yêu cầu.
+Write a pipeline to count how many scores are **7 or higher**. The result must be a `long`. Explain why `map(d -> d >= 7).count()` does not solve the requirement.
 
-### Bài 2 — Phân tích `peek` và `map`
+### Exercise 2 — Analyzing `peek` and `map`
 
 ```java
 List<String> ten = Arrays.asList("A", "BB", "CCC", "DDDD");
@@ -580,11 +580,11 @@ long n = ten.stream()
     .count();
 ```
 
-`n` bằng bao nhiêu? Có thể khẳng định chương trình sẽ in đúng bốn dòng `A!`, `BB!`, `CCC!`, `DDDD!` không? Vì sao?
+What is `n`? Can we assert that the program will print exact four lines `A!`, `BB!`, `CCC!`, `DDDD!`? Why or why not?
 
-### Bài 3 — Thứ tự `filter` và `limit`
+### Exercise 3 — Order of `filter` and `limit`
 
-Dự đoán kết quả:
+Predict the results:
 
 ```java
 long a = java.util.stream.IntStream.rangeClosed(1, 20)
@@ -598,11 +598,11 @@ long b = java.util.stream.IntStream.rangeClosed(1, 20)
     .count();
 ```
 
-### Bài 4 — Chọn terminal operation
+### Exercise 4 — Choosing the Terminal Operation
 
-Trong danh sách 100.000 sản phẩm, bạn chỉ cần biết **có sản phẩm nào đang hết hàng hay không**. Nên dùng `filter(p -> p.isOutOfStock()).count() > 0` hay `anyMatch(p -> p.isOutOfStock())`? Khi nào cần dùng `count()`?
+In a list of 100,000 products, you only need to know **whether any product is out of stock**. Should you use `filter(p -> p.isOutOfStock()).count() > 0` or `anyMatch(p -> p.isOutOfStock())`? When should you use `count()`?
 
-### Bài 5 — Nhận diện pipeline có thể bị treo
+### Exercise 5 — Spotting a Pipeline That Can Hang
 
 ```java
 long n = Stream.iterate(1, x -> x + 1)
@@ -611,11 +611,11 @@ long n = Stream.iterate(1, x -> x + 1)
     .count();
 ```
 
-Đoạn mã có thể kết thúc không? Viết một cách sửa để phép đếm hoàn thành hữu hạn mà không thay đổi ý nghĩa "không có phần tử nào thỏa điều kiện".
+Can this snippet terminate? Write a fix so the count completes finitely without changing the meaning of "no elements satisfy the condition".
 
-### Đáp án tham khảo
+### Reference Answers
 
-**Bài 1:**
+**Exercise 1:**
 
 ```java
 long soDiemDat = diem.stream()
@@ -625,15 +625,15 @@ long soDiemDat = diem.stream()
 System.out.println(soDiemDat); // 5
 ```
 
-Các điểm thỏa điều kiện là 7, 8, 10, 7, 9. `map` chỉ tạo các giá trị `true`/`false` nên tổng số phần tử vẫn là bảy.
+The qualifying scores are 7, 8, 10, 7, 9. `map` only produces `true`/`false` values, so the total number of elements remains seven.
 
-**Bài 2:** `n == 4`. Cả `map` lẫn `peek` đều không thay đổi số lượng. Trên một triển khai biết sẵn kích thước, `count` có thể trả bốn ngay mà không đánh giá chúng. Do đó không có bảo đảm số dòng được in.
+**Exercise 2:** `n == 4`. Neither `map` nor `peek` changes the element count. On an implementation with known size, `count` can return four immediately without evaluating them. Therefore, there is no guarantee about printed lines.
 
-**Bài 3:** `a == 5` vì có ít nhất năm số chẵn trong 1..20; `b == 2` vì chỉ có 2 và 4 trong năm số đầu tiên.
+**Exercise 3:** `a == 5` because there are at least five even numbers in 1..20; `b == 2` because only 2 and 4 appear in the first five numbers.
 
-**Bài 4:** Dùng `anyMatch(p -> p.isOutOfStock())` vì chỉ hỏi tồn tại và có thể dừng sớm khi gặp sản phẩm hết hàng. Dùng `filter(...).count()` khi cần **số sản phẩm hết hàng chính xác**.
+**Exercise 4:** Use `anyMatch(p -> p.isOutOfStock())` because it only checks existence and can stop early upon encountering an out-of-stock product. Use `filter(...).count()` when you need the **exact number of out-of-stock products**.
 
-**Bài 5:** Pipeline có thể chạy vô hạn vì `filter(x -> false)` không cho phần tử nào qua, nên `limit(2)` không bao giờ nhận đủ hai phần tử. Nếu chỉ cần đếm kết quả trong **100 trạng thái đầu tiên**, hãy giới hạn nguồn trước:
+**Exercise 5:** The pipeline can run infinitely because `filter(x -> false)` lets no element pass, so `limit(2)` never receives two elements. If you only want to count results within the **first 100 states**, bound the source first:
 
 ```java
 long n = Stream.iterate(1, x -> x + 1)
@@ -644,18 +644,18 @@ long n = Stream.iterate(1, x -> x + 1)
 System.out.println(n); // 0
 ```
 
-Ở trường hợp điều kiện thật sự luôn sai, dùng luôn `Stream.empty().count()` cũng cho số 0; ý nghĩa tổng quát của bài tập là phải bảo đảm nguồn hữu hạn trước khi muốn tính số lượng chính xác.
+In a case where the condition is genuinely always false, `Stream.empty().count()` also yields 0; the general takeaway of the exercise is ensuring a finite source before attempting to compute an exact count.
 
-## 12. Ghi nhớ
+## 12. Key Takeaways
 
-`count()` là terminal operation trả về **`long`**: số phần tử còn lại sau các bước xử lý. Vì số lượng có thể biết từ nguồn và thông tin cardinality của pipeline, **`count()` có thể trả kết quả mà không duyệt phần tử hoặc gọi các thao tác trung gian như `map` và `peek`**.
+`count()` is a terminal operation returning **`long`**: the number of remaining elements after processing steps. Because the count can be known from the source and pipeline cardinality information, **`count()` can return a result without traversing elements or invoking intermediate operations such as `map` and `peek`**.
 
-Để viết đúng:
+To write correct code:
 
-- Dùng `filter(predicate).count()` để đếm phần tử thỏa điều kiện, `distinct().count()` để đếm giá trị duy nhất.
-- Dùng `anyMatch` khi chỉ cần biết **có ít nhất một phần tử phù hợp**, hoặc `Collection.size()` khi chỉ cần kích thước của collection đã có.
-- Không đặt các tác vụ bắt buộc thực hiện trong `peek` hoặc `map` chỉ để chờ `count()` kích hoạt.
-- Kiểm soát điểm dừng khi nguồn có thể vô hạn, đồng thời chú ý thứ tự `filter` và `limit`.
-- Đánh giá kết quả dựa vào **giá trị đếm**, không dựa vào số dòng log hay thứ tự gọi hàm.
+- Use `filter(predicate).count()` to count elements matching a condition, and `distinct().count()` to count unique values.
+- Use `anyMatch` when you only need to know **if at least one matching element exists**, or `Collection.size()` when you only need the size of an existing collection.
+- Do not place mandatory tasks inside `peek` or `map` expecting `count()` to trigger them.
+- Control stopping points when sources may be infinite, and pay attention to the order of `filter` and `limit`.
+- Evaluate correctness based on the **count value**, not on log line counts or function invocation order.
 
-Nhận biết khả năng bỏ qua duyệt giúp đọc đúng pipeline lazy, tránh lỗi do tác dụng phụ và hiểu nền tảng tối ưu hóa của Java Stream API trước khi chuyển sang grouping, collector tùy chỉnh, Spliterator và xử lý song song.
+Recognizing traversal-skipping optimizations helps you read lazy pipelines accurately, avoid side-effect bugs, and understand the optimization foundations of the Java Stream API before moving on to grouping, custom collectors, `Spliterator`, and parallel processing.

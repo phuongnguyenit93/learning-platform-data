@@ -1,31 +1,31 @@
-# indexOf với ký tự hoặc Unicode code point trong Java String
+# `indexOf` with a Character or Unicode Code Point in Java String
 
-Trong Java, **String.indexOf(int ch)** tìm lần xuất hiện đầu tiên của một ký tự hoặc một Unicode code point trong chuỗi; **String.indexOf(int ch, int fromIndex)** tìm từ một vị trí UTF-16 được chỉ định. Cả hai phương thức trả về **vị trí bắt đầu trong dãy đơn vị mã UTF-16** hoặc **-1 nếu không tìm thấy**.
+In Java, **String.indexOf(int ch)** finds the first occurrence of a character or a Unicode code point in a string; **String.indexOf(int ch, int fromIndex)** searches starting from a specified UTF-16 position. Both methods return the **starting position in the UTF-16 code unit sequence** or **-1 if not found**.
 
-Điểm dễ nhầm là đối số có kiểu **int**, không chỉ là char. Vì vậy, chúng có thể tìm những code point Unicode nằm ngoài BMP (Basic Multilingual Plane) và chiếm **hai đơn vị mã UTF-16**, chẳng hạn emoji 😀 (U+1F600). Tuy nhiên, vị trí trả về vẫn là **chỉ số UTF-16**, không phải số thứ tự code point hoặc số ký tự người dùng nhìn thấy.
+A common point of confusion is that the argument has type **int**, not just `char`. Because of that, they can search for Unicode code points outside the BMP (Basic Multilingual Plane) that occupy **two UTF-16 code units**, such as the emoji 😀 (U+1F600). However, the returned position is still a **UTF-16 index**, not a code point ordinal or a user-perceived character count.
 
-## 1. Cú pháp và ý nghĩa
+## 1. Syntax and Meaning
 
-Java cung cấp hai overload liên quan trực tiếp:
+Java provides two directly related overloads:
 
 ~~~java
 int indexOf(int ch)
 int indexOf(int ch, int fromIndex)
 ~~~
 
-Đây là **chữ ký API để học**, không phải phương thức cần tự định nghĩa. Hai overload đều trả về int:
+These are **API signatures for learning**, not methods you need to define yourself. Both overloads return `int`:
 
-- **indexOf(ch)**: tìm giá trị ch từ đầu chuỗi; nếu xuất hiện nhiều lần, trả vị trí bắt đầu của lần đầu tiên.
-- **indexOf(ch, fromIndex)**: chỉ xem xét các lần xuất hiện có vị trí bắt đầu từ **fromIndex trở đi**.
-- **Tìm thấy**: trả về chỉ số UTF-16 của lần khớp.
-- **Không tìm thấy**: trả về **-1**; đây là giá trị báo không có kết quả, không phải một chỉ số hợp lệ.
-- **Không sửa chuỗi**: String bất biến, indexOf() chỉ đọc nội dung.
+- **indexOf(ch)**: searches for the value `ch` from the start of the string; if it appears multiple times, returns the starting position of the first occurrence.
+- **indexOf(ch, fromIndex)**: only considers occurrences whose starting position is **from `fromIndex` onward**.
+- **Found**: returns the UTF-16 index of the match.
+- **Not found**: returns **-1**; this is a sentinel value indicating no result, not a valid index.
+- **Does not modify the string**: `String` is immutable; `indexOf()` only reads its contents.
 
-Với ch nằm trong BMP, hành vi về cơ bản là tìm đơn vị mã char có giá trị bằng ch. Với ch là code point bổ sung từ **U+10000 đến U+10FFFF**, phương thức tìm **cặp high surrogate + low surrogate** tương ứng và trả chỉ số của high surrogate. Với giá trị ch âm hoặc lớn hơn **U+10FFFF**, không có code point hợp lệ để tìm nên kết quả là -1.
+When `ch` is in the BMP, the behavior is essentially searching for a `char` code unit equal to `ch`. When `ch` is a supplementary code point from **U+10000 to U+10FFFF**, the method searches for the corresponding **high surrogate + low surrogate pair** and returns the index of the high surrogate. For a negative `ch` or a value greater than **U+10FFFF**, there is no valid code point to match, so the result is `-1`.
 
-## 2. Tìm một ký tự BMP bằng char
+## 2. Searching for a BMP Character with `char`
 
-Trong Java, literal như **'a'**, **'J'**, **'?'**, **'7'** có kiểu char. Khi truyền cho indexOf(int), Java tự nâng giá trị char sang int. Bạn không cần ép kiểu.
+In Java, literals like **'a'**, **'J'**, **'?'**, **'7'** have type `char`. When passed to `indexOf(int)`, Java automatically widens the `char` value to `int`. You do not need to cast.
 
 ~~~java
 String text = "Java Java";
@@ -37,9 +37,9 @@ System.out.println(text.indexOf('z'));     // -1
 System.out.println(text.indexOf('J', 1));  // 5
 ~~~
 
-Giải thích: chữ 'J' xuất hiện tại vị trí 0 và 5; indexOf('J') lấy vị trí 0, còn indexOf('J', 1) bỏ qua vị trí 0 và tìm vị trí 5. Nếu không có giá trị cần tìm, trả về -1.
+Explanation: the letter `'J'` appears at positions 0 and 5; `indexOf('J')` picks position 0, while `indexOf('J', 1)` skips position 0 and finds position 5. If the target value does not appear, `-1` is returned.
 
-**Không có sự khác biệt về kết quả giữa giá trị char 'J' và int 74** khi tìm trong chuỗi này:
+**There is no difference in result between the `char` value `'J'` and the `int` `74`** when searching this string:
 
 ~~~java
 String text = "Java";
@@ -47,11 +47,11 @@ System.out.println(text.indexOf('J')); // 0
 System.out.println(text.indexOf(74));  // 0
 ~~~
 
-74 chính là code point U+004A của chữ J. Tuy nhiên, nên dùng literal char khi muốn thể hiện một ký tự BMP dễ nhận biết và dùng mã code point dạng int khi xử lý Unicode tổng quát.
+`74` is the code point U+004A of the letter `J`. Still, prefer a `char` literal when representing an easily recognizable BMP character and an `int` code point when handling Unicode in general.
 
-### Phân biệt chữ hoa và chữ thường
+### Case Sensitivity
 
-indexOf() tìm **đúng giá trị ký tự/code point**; nó không tự bỏ qua hoa/thường:
+`indexOf()` searches for the **exact character/code point value**; it does not automatically ignore case:
 
 ~~~java
 String text = "Java";
@@ -59,42 +59,42 @@ System.out.println(text.indexOf('J')); // 0
 System.out.println(text.indexOf('j')); // -1
 ~~~
 
-Nếu nghiệp vụ cần tìm không phân biệt hoa/thường, phải xác định một quy tắc xử lý thích hợp. Việc tự chuyển toàn bộ chuỗi sang lowercase/uppercase có thể chịu ảnh hưởng của locale hoặc biến đổi số lượng ký tự; không nên mặc định phép chuyển đổi đó bảo toàn chỉ số UTF-16 trong mọi trường hợp.
+If business logic requires case-insensitive searching, an appropriate processing rule must be defined. Converting the entire string to lowercase/uppercase can be affected by locale or change the number of characters; you should not assume such conversion preserves UTF-16 indices in all cases.
 
-## 3. Vì sao kết quả là UTF-16 index, không phải thứ tự code point?
+## 3. Why Is the Result a UTF-16 Index, Not a Code Point Ordinal?
 
-Java String sử dụng các **đơn vị mã UTF-16**. Một code point trong BMP thường chiếm một đơn vị mã; code point bổ sung ngoài BMP chiếm **hai** đơn vị mã: high surrogate rồi low surrogate.
+Java `String` uses **UTF-16 code units**. A code point in the BMP normally occupies one code unit; a supplementary code point outside the BMP occupies **two** code units: a high surrogate followed by a low surrogate.
 
-Xét chuỗi:
+Consider the string:
 
 ~~~java
 String text = "A😀B😀";
 ~~~
 
-Nội dung gồm bốn Unicode code point theo thứ tự: A, 😀, B, 😀.
+The content consists of four Unicode code points in order: `A`, `😀`, `B`, `😀`.
 
-| UTF-16 index | Đơn vị mã | Ý nghĩa |
+| UTF-16 index | Code unit | Meaning |
 |---:|---|---|
 | 0 | U+0041 | A |
-| 1 | U+D83D | High surrogate của 😀 thứ nhất |
-| 2 | U+DE00 | Low surrogate của 😀 thứ nhất |
+| 1 | U+D83D | High surrogate of the first 😀 |
+| 2 | U+DE00 | Low surrogate of the first 😀 |
 | 3 | U+0042 | B |
-| 4 | U+D83D | High surrogate của 😀 thứ hai |
-| 5 | U+DE00 | Low surrogate của 😀 thứ hai |
+| 4 | U+D83D | High surrogate of the second 😀 |
+| 5 | U+DE00 | Low surrogate of the second 😀 |
 
-Vì vậy:
+Therefore:
 
-- **text.length() = 6**: sáu đơn vị mã UTF-16.
-- **text.codePointCount(0, text.length()) = 4**: bốn Unicode code point.
-- **text.indexOf('B') = 3**: B là code point thứ ba nếu đếm từ 1, nhưng bắt đầu tại UTF-16 index 3.
-- **text.indexOf(0x1F600) = 1**: emoji đầu tiên bắt đầu ở high surrogate index 1.
-- **text.indexOf(0x1F600, 2) = 4**: vị trí bắt đầu 1 nhỏ hơn fromIndex 2, nên bỏ qua emoji đầu và tìm emoji thứ hai tại index 4.
+- **text.length() = 6**: six UTF-16 code units.
+- **text.codePointCount(0, text.length()) = 4**: four Unicode code points.
+- **text.indexOf('B') = 3**: `B` is the third code point if counting from 1, yet it starts at UTF-16 index 3.
+- **text.indexOf(0x1F600) = 1**: the first emoji starts at high surrogate index 1.
+- **text.indexOf(0x1F600, 2) = 4**: starting position 1 is less than `fromIndex` 2, so the first emoji is skipped and the second emoji is found at index 4.
 
-Số thứ tự code point, vị trí UTF-16 và cụm ký tự hiển thị (grapheme cluster) là các khái niệm khác nhau. indexOf() trả về **UTF-16 offset**.
+Code point ordinal, UTF-16 position, and visible character cluster (grapheme cluster) are different concepts. `indexOf()` returns a **UTF-16 offset**.
 
-## 4. Tìm code point ngoài BMP bằng int
+## 4. Searching for Non-BMP Code Points with `int`
 
-Một emoji như 😀 tương ứng **U+1F600** và có giá trị thập phân 128512. Giá trị đó lớn hơn giới hạn của char, nên cần biểu diễn bằng **int**.
+An emoji like 😀 corresponds to **U+1F600** and has decimal value 128512. That value exceeds the range of `char`, so it must be represented as an **int**.
 
 ~~~java
 String text = "A😀B😀";
@@ -106,11 +106,11 @@ System.out.println(text.indexOf(smile, 4));   // 4
 System.out.println(text.indexOf(smile, 5));   // -1
 ~~~
 
-Ở lần tìm cuối, fromIndex=5 trỏ vào low surrogate của emoji thứ hai. **Vị trí bắt đầu** của cả hai cặp emoji là 1 và 4, đều nhỏ hơn 5; do đó không tìm được cặp bắt đầu tại hoặc sau index 5.
+In the final search, `fromIndex=5` points to the low surrogate of the second emoji. The **starting positions** of both emoji pairs are 1 and 4, both smaller than 5; therefore no pair starting at or after index 5 is found.
 
-Một literal char chỉ lưu một đơn vị mã 16 bit, nên **không thể viết** một emoji bổ sung trực tiếp như char '😀'. Hãy dùng int 0x1F600, Character.toCodePoint(high, low) khi đã có cặp surrogate, hoặc một API trả về code point dạng int.
+A `char` literal only stores one 16-bit code unit, so you **cannot write** a supplementary emoji directly as `char '😀'`. Use `int 0x1F600`, `Character.toCodePoint(high, low)` when you already have a surrogate pair, or an API that returns a code point as `int`.
 
-Ví dụ tạo giá trị tìm kiếm từ chính chuỗi:
+Example obtaining the search value from the string itself:
 
 ~~~java
 String text = "A😀B";
@@ -119,11 +119,11 @@ System.out.printf("U+%X%n", emojiCodePoint); // U+1F600
 System.out.println(text.indexOf(emojiCodePoint)); // 1
 ~~~
 
-**Điểm quan trọng:** codePointAt(1) trả về U+1F600 nhờ ghép cặp surrogate đúng; indexOf(emojiCodePoint) tìm cả cặp này. Cần phân biệt với text.charAt(1), vốn chỉ trả về high surrogate.
+**Key point:** `codePointAt(1)` returns U+1F600 by properly combining the surrogate pair; `indexOf(emojiCodePoint)` searches for the entire pair. Distinguish this from `text.charAt(1)`, which only returns the high surrogate.
 
-## 5. Chỉ số fromIndex: bao gồm vị trí bắt đầu
+## 5. `fromIndex`: Inclusive Starting Position
 
-Với **indexOf(ch, fromIndex)**, Java tìm lần xuất hiện đầu tiên có chỉ số bắt đầu **lớn hơn hoặc bằng fromIndex**. Chính vị trí fromIndex vẫn nằm trong phạm vi tìm kiếm.
+With **indexOf(ch, fromIndex)**, Java finds the first occurrence whose starting index is **greater than or equal to `fromIndex`**. The position `fromIndex` itself is included in the search range.
 
 ~~~java
 String text = "ABABA";
@@ -136,48 +136,48 @@ System.out.println(text.indexOf('A', 3));   // 4
 System.out.println(text.indexOf('A', 5));   // -1
 ~~~
 
-Những lưu ý về ranh giới:
+Boundary notes:
 
-- **fromIndex âm**: việc tìm kiếm bắt đầu tương đương vị trí 0.
-- **fromIndex bằng 0**: tương đương tìm từ đầu chuỗi.
-- **fromIndex >= length()**: với overload tìm ch, không còn vị trí bắt đầu hợp lệ, nên trả về -1.
-- **Chuỗi rỗng**: không có code unit để khớp, nên indexOf(int ch) luôn trả về -1.
-- **fromIndex là UTF-16 offset**, không phải số thứ tự Unicode code point.
+- **Negative `fromIndex`**: searching starts as if from position 0.
+- **`fromIndex` equal to 0**: equivalent to searching from the beginning of the string.
+- **`fromIndex >= length()`**: for the `ch` overloads, there is no valid starting position left, so `-1` is returned.
+- **Empty string**: has no code units to match, so `indexOf(int ch)` always returns `-1`.
+- **`fromIndex` is a UTF-16 offset**, not a Unicode code point ordinal.
 
-Tìm code point bổ sung đòi hỏi hai đơn vị mã liền nhau. Nếu fromIndex rơi vào giữa một cặp (tại low surrogate), cặp có high surrogate phía trước fromIndex sẽ **không** được coi là một lần khớp mới bắt đầu từ fromIndex.
+Searching for a supplementary code point requires two adjacent code units. If `fromIndex` lands in the middle of a pair (on the low surrogate), the pair whose high surrogate precedes `fromIndex` will **not** count as a new match starting at `fromIndex`.
 
-## 6. Một code point hợp lệ khác với một surrogate code unit
+## 6. A Valid Code Point Differs from a Surrogate Code Unit
 
-Đối số int của indexOf() có hai cách được xử lý tùy miền giá trị:
+The `int` argument to `indexOf()` is handled in two ways depending on its value range:
 
-| Đối số ch | Cách Java tìm |
+| Argument `ch` | How Java searches |
 |---|---|
-| 0 đến U+FFFF | So khớp một đơn vị mã UTF-16 có giá trị bằng ch |
-| U+10000 đến U+10FFFF | So khớp cặp surrogate UTF-16 hợp lệ biểu diễn ch |
-| ch âm hoặc ch > U+10FFFF | Không có kết quả: -1 |
+| 0 to U+FFFF | Matches a single UTF-16 code unit equal to `ch` |
+| U+10000 to U+10FFFF | Matches the valid UTF-16 surrogate pair representing `ch` |
+| Negative `ch` or `ch` > U+10FFFF | No match: `-1` |
 
-Trong dải **U+D800 đến U+DFFF**, các giá trị là surrogate code unit, **không phải Unicode scalar value độc lập**. Tuy nhiên, vì nằm trong miền 0 đến U+FFFF, indexOf(int) vẫn có thể tìm được riêng high/low surrogate trong chuỗi.
+In the range **U+D800 to U+DFFF**, values are surrogate code units, **not standalone Unicode scalar values**. However, because they fall within 0 to U+FFFF, `indexOf(int)` can still locate an individual high/low surrogate in the string.
 
 ~~~java
 String text = "A😀B";
 
 System.out.println(text.indexOf(0xD83D));   // 1: high surrogate
 System.out.println(text.indexOf(0xDE00));   // 2: low surrogate
-System.out.println(text.indexOf(0x1F600));  // 1: cặp đầy đủ
-System.out.println(text.indexOf(0x110000)); // -1: ngoài miền Unicode
+System.out.println(text.indexOf(0x1F600));  // 1: complete pair
+System.out.println(text.indexOf(0x110000)); // -1: outside Unicode range
 ~~~
 
-Đây là khác biệt hữu ích khi gỡ lỗi UTF-16:
+This is a useful distinction when debugging UTF-16:
 
-- Tìm **0xD83D** chỉ xác định đơn vị mã high surrogate, chưa chứng minh đó là emoji 😀 hoàn chỉnh.
-- Tìm **0x1F600** yêu cầu **cả cặp** high surrogate U+D83D và low surrogate U+DE00 liền nhau.
-- Với String có surrogate đơn lẻ hoặc cặp không hợp lệ, việc tìm một đơn vị mã surrogate vẫn có thể có kết quả; tìm code point bổ sung tương ứng sẽ không khớp cặp không hợp lệ.
+- Searching **0xD83D** only identifies a high surrogate code unit and does not prove it is a complete 😀 emoji.
+- Searching **0x1F600** requires **both** the high surrogate U+D83D and low surrogate U+DE00 adjacent to each other.
+- On a `String` with unpaired surrogates or an invalid pair, searching for a single surrogate code unit may still succeed; searching for the corresponding supplementary code point will not match an invalid pair.
 
-Để kiểm tra giá trị bổ sung là code point hợp lệ, có thể dùng Character.isValidCodePoint(int); nếu nghiệp vụ yêu cầu **Unicode scalar value**, còn phải loại trừ dải surrogate U+D800–U+DFFF.
+To check whether a supplementary value is a valid code point, you can use `Character.isValidCodePoint(int)`; if business logic requires a **Unicode scalar value**, you must also exclude the surrogate range U+D800–U+DFFF.
 
-## 7. Chương trình đầy đủ Java 17+
+## 7. Complete Java 17+ Program
 
-Lưu tệp **StringIndexOfCodePointDemo.java** bằng UTF-8:
+Save the file **StringIndexOfCodePointDemo.java** as UTF-8:
 
 ~~~java
 public class StringIndexOfCodePointDemo {
@@ -210,14 +210,14 @@ public class StringIndexOfCodePointDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 StringIndexOfCodePointDemo.java
 java StringIndexOfCodePointDemo
 ~~~
 
-Đầu ra chính xác:
+Exact output:
 
 ~~~text
 length=6
@@ -235,23 +235,23 @@ invalid=-1
 found=U+1F600
 ~~~
 
-**Giải thích kết quả:**
+**Output explanation:**
 
-1. length=6 vì có hai emoji, mỗi emoji chiếm hai đơn vị mã UTF-16.
-2. codePoints=4 vì nội dung gồm A, emoji, B, emoji.
-3. 'B' nằm tại UTF-16 index 3, dù là code point thứ ba tính từ đầu.
-4. Chỉ số của hai emoji là 1 và 4, tức vị trí **đầu cặp surrogate**.
-5. fromIndex=2 bỏ qua cặp bắt đầu ở 1; fromIndex=5 bỏ qua cả cặp bắt đầu ở 4.
-6. 0xD83D và 0xDE00 được xử lý như giá trị đơn vị mã riêng; 0x110000 nằm ngoài miền Unicode.
-7. Chỉ sau khi bảo đảm found >= 0, chương trình mới gọi codePointAt(found) để đọc code point khớp, tránh sử dụng -1 làm chỉ số.
+1. `length=6` because there are two emojis, each occupying two UTF-16 code units.
+2. `codePoints=4` because the content consists of `A`, emoji, `B`, emoji.
+3. `'B'` is at UTF-16 index 3, even though it is the third code point from the start.
+4. The indices of the two emojis are 1 and 4, which are the positions at the **start of each surrogate pair**.
+5. `fromIndex=2` skips the pair starting at 1; `fromIndex=5` skips the pair starting at 4 as well.
+6. `0xD83D` and `0xDE00` are handled as individual code unit values; `0x110000` is outside the Unicode range.
+7. Only after ensuring `found >= 0` does the program call `codePointAt(found)` to read the matched code point, avoiding using `-1` as an index.
 
-Chương trình không dựa vào cách console vẽ emoji để xác minh kết quả: code point được in dưới dạng U+1F600.
+The program does not rely on how the console renders emojis to verify the result: the code point is printed as `U+1F600`.
 
-## 8. Tìm tất cả lần xuất hiện của một code point
+## 8. Finding All Occurrences of a Code Point
 
-Khi cần mọi vị trí, có thể gọi indexOf(ch, fromIndex) trong vòng lặp và cập nhật **fromIndex** sau mỗi lần tìm thấy. Với code point bổ sung, nên nhảy qua toàn bộ cặp UTF-16 vừa khớp để tránh lặp lại và để thể hiện rõ điểm bắt đầu tìm tiếp.
+When you need every position, you can call `indexOf(ch, fromIndex)` in a loop and update **fromIndex** after each match. For supplementary code points, advance past the entire matched UTF-16 pair to avoid repetition and clearly mark the next search starting point.
 
-Ví dụ độc lập, lưu **AllCodePointMatches.java**:
+Standalone example, save **AllCodePointMatches.java**:
 
 ~~~java
 public class AllCodePointMatches {
@@ -277,7 +277,7 @@ javac -encoding UTF-8 AllCodePointMatches.java
 java AllCodePointMatches
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 match at UTF-16 index 0
@@ -285,29 +285,29 @@ match at UTF-16 index 3
 match at UTF-16 index 6
 ~~~
 
-Vì mỗi emoji chiếm hai đơn vị mã, chuỗi "😀x😀y😀" có các vị trí bắt đầu là 0, 3, 6. Hàm Character.charCount(0x1F600) trả 2; sau mỗi lần tìm, fromIndex được chuyển qua emoji đã khớp.
+Because each emoji takes two code units, the string `"😀x😀y😀"` has starting positions 0, 3, 6. `Character.charCount(0x1F600)` returns 2; after each match, `fromIndex` moves past the matched emoji.
 
-Nếu mục tiêu là **mọi lần xuất hiện có thể chồng lấn** của một mẫu chuỗi, chính sách di chuyển con trỏ có thể khác. Ví dụ trên chỉ xử lý từng code point đơn lẻ và lấy những lần xuất hiện tiếp theo.
+If the goal is **all potentially overlapping occurrences** of a string pattern, the cursor advancement policy can differ. The example above only handles a single code point and retrieves subsequent occurrences.
 
-### Khi chỉ cần duyệt từng code point, không phải tìm một giá trị
+### When You Only Need to Iterate Over Every Code Point, Not Search for One Value
 
-String.codePoints() cung cấp IntStream các code point; thích hợp để xử lý **toàn bộ** code point mà không cần xác định vị trí UTF-16. Nếu cần biết chính xác vị trí bắt đầu khớp trong String, indexOf(int) hoặc vòng lặp duyệt chỉ số UTF-16 sẽ phù hợp hơn.
+`String.codePoints()` provides an `IntStream` of code points; it is suitable for processing **all** code points without needing to determine UTF-16 positions. If you need the exact matching start position in `String`, `indexOf(int)` or a loop over UTF-16 indices is more appropriate.
 
-## 9. Phân biệt indexOf(int) với indexOf(String)
+## 9. Distinguishing `indexOf(int)` from `indexOf(String)`
 
-String còn có overload **indexOf(String str)** và **indexOf(String str, int fromIndex)** để tìm **cả một chuỗi con**, khác với tìm một code point bằng int.
+`String` also has the overloads **indexOf(String str)** and **indexOf(String str, int fromIndex)** to search for **an entire substring**, unlike searching for a single code point via `int`.
 
-Ví dụ:
+Example:
 
 ~~~java
 String text = "abcabc";
 
-System.out.println(text.indexOf('a'));     // 0: một ký tự
-System.out.println(text.indexOf("ab"));    // 0: chuỗi con
-System.out.println(text.indexOf("bc", 3)); // 4: chuỗi con từ index 3
+System.out.println(text.indexOf('a'));     // 0: single character
+System.out.println(text.indexOf("ab"));    // 0: substring
+System.out.println(text.indexOf("bc", 3)); // 4: substring from index 3
 ~~~
 
-Với emoji ngoài BMP, có thể tạo String biểu diễn code point bằng:
+For a non-BMP emoji, you can create a `String` representing the code point with:
 
 ~~~java
 int cp = 0x1F600;
@@ -318,47 +318,47 @@ System.out.println(text.indexOf(cp));    // 1
 System.out.println(text.indexOf(emoji)); // 1
 ~~~
 
-Kết quả giống nhau ở ví dụ, nhưng **kiểu tham số quyết định overload**: int tìm một code point (hoặc một đơn vị mã BMP), String tìm một dãy đơn vị mã. Đừng vô tình tìm chuỗi ký tự chữ số "128512" khi mục tiêu là emoji có code point 128512.
+The result is the same in the example, yet the **parameter type determines the overload**: `int` searches for one code point (or one BMP code unit), while `String` searches for a sequence of code units. Do not accidentally search for the digit character string `"128512"` when your target is the emoji whose code point is 128512.
 
-**Lưu ý sự khác nhau về chuỗi rỗng:** tìm "" bằng overload indexOf(String) có quy tắc khớp chuỗi rỗng tại một vị trí hợp lệ; tìm int không có khái niệm “code point rỗng”. Các quy tắc trên về fromIndex >= length() áp dụng cho **indexOf(int ch, int fromIndex)**; không tự áp dụng nguyên xi sang overload indexOf(String, int).
+**Note the difference regarding empty strings:** searching for `""` with the `indexOf(String)` overload has a rule for matching an empty string at a valid position; searching by `int` has no concept of an "empty code point". The rules above for `fromIndex >= length()` apply to **indexOf(int ch, int fromIndex)**; do not transfer them verbatim to the `indexOf(String, int)` overload.
 
-## 10. Sai lầm thường gặp và cách tránh
+## 10. Common Mistakes and How to Avoid Them
 
-1. **Dùng '😀' làm char literal:** một char chỉ chứa một đơn vị mã UTF-16; emoji U+1F600 cần hai đơn vị mã. Dùng int 0x1F600.
-2. **Hiểu kết quả là số thứ tự code point:** giá trị trả về của indexOf() là UTF-16 index. Với "A😀B", 'B' ở vị trí 3.
-3. **Nhầm fromIndex với thứ tự code point:** fromIndex=2 bắt đầu tìm từ UTF-16 index 2, không có nghĩa bỏ qua hai Unicode code point.
-4. **Xem -1 là vị trí bình thường:** trước khi dùng kết quả với charAt(), codePointAt(), substring(), cần kiểm tra result >= 0.
-5. **Cho rằng indexOf(0xD83D) có nghĩa tìm trọn emoji 😀:** đó chỉ là tìm high surrogate; muốn trọn code point dùng 0x1F600.
-6. **Mong indexOf() không phân biệt hoa/thường, tự bỏ dấu hoặc chuẩn hóa Unicode:** nó tìm giá trị theo dãy đơn vị mã; các quy tắc so khớp mở rộng phải được thiết kế riêng.
-7. **Thấy String.indexOf('x') và String.indexOf("x") mà nghĩ mọi quy tắc đều giống nhau:** tham số char được nâng thành int, còn "x" là String; các overload khác nhau, đặc biệt ở quy tắc tìm chuỗi rỗng.
-8. **Tính index theo số ký tự hiển thị:** emoji có thể ghép nhiều code point và dấu kết hợp; UTF-16 index không trực tiếp tương ứng vị trí hiển thị.
-9. **Cắt chuỗi tại chỉ số tưởng là biên code point:** nếu nhận kết quả indexOf(int) là đầu cặp surrogate, muốn lấy trọn code point bổ sung cần kết thúc tại start + Character.charCount(ch), không mặc định start + 1.
-10. **Dùng kết quả tìm chuỗi Unicode làm chỉ số cho hệ khác:** các thư viện hoặc giao thức có thể đo offset theo UTF-8 bytes, code points hoặc grapheme clusters; cần quy đổi minh bạch trước khi trao đổi chỉ số.
+1. **Using `'😀'` as a `char` literal:** a `char` holds only one UTF-16 code unit; emoji U+1F600 requires two code units. Use `int 0x1F600`.
+2. **Interpreting the result as a code point ordinal:** the return value of `indexOf()` is a UTF-16 index. In `"A😀B"`, `'B'` is at position 3.
+3. **Confusing `fromIndex` with code point ordinal:** `fromIndex=2` starts searching from UTF-16 index 2; it does not mean skipping two Unicode code points.
+4. **Treating `-1` as a normal position:** before passing the result to `charAt()`, `codePointAt()`, or `substring()`, check `result >= 0`.
+5. **Assuming `indexOf(0xD83D)` means searching for the full 😀 emoji:** that only searches for the high surrogate; to match the full code point, use `0x1F600`.
+6. **Expecting `indexOf()` to ignore case, strip accents, or normalize Unicode:** it searches by code unit sequence; extended matching rules must be designed explicitly.
+7. **Seeing `String.indexOf('x')` and `String.indexOf("x")` and assuming all rules are identical:** a `char` argument is widened to `int`, whereas `"x"` is a `String`; the overloads differ, especially for empty-string matching rules.
+8. **Computing indices by visible character count:** emojis can combine multiple code points and combining marks; UTF-16 indices do not map directly to display positions.
+9. **Slicing a string at an index assumed to be a code point boundary:** if `indexOf(int)` returns the start of a surrogate pair, capturing the full supplementary code point requires ending at `start + Character.charCount(ch)`, not assuming `start + 1`.
+10. **Using a Unicode string search result as an index for another system:** other libraries or protocols may measure offsets in UTF-8 bytes, code points, or grapheme clusters; convert explicitly before exchanging indices.
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-Check Exercises
 
-Với:
+Given:
 
 ~~~java
 String s = "x😀y😀";
 ~~~
 
-Hãy tự dự đoán:
+Predict the results:
 
-1. s.length() và s.codePointCount(0, s.length()) bằng bao nhiêu?
-2. s.indexOf('y') bằng bao nhiêu?
-3. s.indexOf(0x1F600) bằng bao nhiêu?
-4. s.indexOf(0x1F600, 2) bằng bao nhiêu?
-5. s.indexOf(0x1F600, 5) bằng bao nhiêu?
-6. s.indexOf(0xD83D) có nhất thiết là kiểm tra trọn một emoji 😀 hay không?
+1. What are `s.length()` and `s.codePointCount(0, s.length())`?
+2. What is `s.indexOf('y')`?
+3. What is `s.indexOf(0x1F600)`?
+4. What is `s.indexOf(0x1F600, 2)`?
+5. What is `s.indexOf(0x1F600, 5)`?
+6. Does `s.indexOf(0xD83D)` necessarily verify a complete 😀 emoji?
 
-**Đáp án và lý do:**
+**Answers and explanations:**
 
-1. **6 và 4**: x, emoji, y, emoji có 4 code point nhưng 6 đơn vị mã UTF-16.
-2. **3**: x ở 0; emoji đầu chiếm 1–2; y bắt đầu ở 3.
-3. **1**: emoji đầu có high surrogate tại 1.
-4. **4**: bỏ qua cặp bắt đầu ở 1, tìm cặp thứ hai tại 4.
-5. **-1**: fromIndex 5 nằm sau điểm bắt đầu cuối cùng 4.
-6. **Không**: 0xD83D chỉ yêu cầu khớp một đơn vị mã high surrogate, không xác nhận cả cặp U+D83D U+DE00.
+1. **6 and 4**: `x`, emoji, `y`, emoji have 4 code points but 6 UTF-16 code units.
+2. **3**: `x` is at 0; the first emoji occupies 1–2; `y` starts at 3.
+3. **1**: the first emoji has its high surrogate at 1.
+4. **4**: skips the pair starting at 1 and finds the second pair at 4.
+5. **-1**: `fromIndex` 5 lies after the last starting point 4.
+6. **No**: `0xD83D` only checks for a single high surrogate code unit and does not confirm the full `U+D83D U+DE00` pair.
 
-**Kết luận:** dùng **indexOf(int ch)** để tìm ký tự BMP hoặc Unicode code point; dùng **indexOf(int ch, int fromIndex)** khi cần tìm tiếp từ một offset. Khi tìm code point bổ sung, Java so khớp **cặp surrogate**, nhưng **mọi chỉ số trả về và fromIndex vẫn đo bằng đơn vị mã UTF-16**. Luôn kiểm tra **-1** và cẩn thận với ranh giới cặp surrogate.
+**Conclusion:** use **indexOf(int ch)** to find a BMP character or Unicode code point; use **indexOf(int ch, int fromIndex)** when continuing a search from an offset. When searching for supplementary code points, Java matches the **surrogate pair**, yet **every returned index and `fromIndex` is still measured in UTF-16 code units**. Always check for **-1** and be careful with surrogate pair boundaries.

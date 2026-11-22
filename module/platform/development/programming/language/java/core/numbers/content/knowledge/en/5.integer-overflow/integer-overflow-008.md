@@ -1,51 +1,51 @@
-# Math.abs với MIN_VALUE và lựa chọn absExact trong Java
+# `Math.abs` with `MIN_VALUE` and Choosing `absExact` in Java
 
-`Math.abs(x)` có vẻ là cách đơn giản để lấy trị tuyệt đối, nhưng với **`Integer.MIN_VALUE`** và **`Long.MIN_VALUE`** nó không thể trả về số dương tương ứng trong cùng kiểu số nguyên. Điều bất ngờ là **`Math.abs` không ném ngoại lệ**: kết quả vẫn là chính `MIN_VALUE`, tức một số âm.
+`Math.abs(x)` looks like a simple way to get an absolute value, yet for **`Integer.MIN_VALUE`** and **`Long.MIN_VALUE`** it cannot return the corresponding positive number within the same integer type. Surprisingly, **`Math.abs` does not throw an exception**: the result remains `MIN_VALUE` itself, which is a negative number.
 
 ```java
 System.out.println(Math.abs(Integer.MIN_VALUE)); // -2147483648
 System.out.println(Math.abs(Long.MIN_VALUE));    // -9223372036854775808
 ```
 
-Nếu một thuật toán dựa vào giả định “`Math.abs` luôn không âm”, lỗi có thể xuất hiện trong chỉ số mảng, kiểm tra khoảng cách, sắp xếp theo độ lớn, chọn bucket của bảng băm hoặc kiểm soát giới hạn. **`Math.absExact`** (có trong Java 17+) giúp phát hiện riêng trường hợp trị tuyệt đối không biểu diễn được bằng kiểu số nguyên đầu vào: nó **ném `ArithmeticException`** thay vì trả giá trị âm sai kỳ vọng.
+If an algorithm relies on the assumption "`Math.abs` is always non-negative," bugs can appear in array indexing, distance checks, magnitude-based sorting, hash-table bucket selection, or limit enforcement. **`Math.absExact`** (available in Java 17+) specifically detects when the absolute value cannot be represented in the input integer type: it **throws `ArithmeticException`** instead of returning an unexpected negative value.
 
-Bài này thuộc mục **Tràn và kiểm tra biên** trong **Java core – numbers**, tập trung vào cơ chế hai's complement, sự khác nhau giữa `abs` và `absExact`, lựa chọn xử lý thích hợp và những bẫy khi làm phép toán trước khi lấy trị tuyệt đối.
+This lesson belongs to the **Overflow and Boundary Checks** section of **Java core – numbers**, focusing on the two's complement mechanism, the difference between `abs` and `absExact`, appropriate handling choices, and pitfalls when computing operations before taking an absolute value.
 
-## 1. Vì sao MIN_VALUE không có trị tuyệt đối dương trong cùng kiểu?
+## 1. Why Doesn't `MIN_VALUE` Have a Positive Absolute Value in the Same Type?
 
-Các kiểu số nguyên có dấu Java sử dụng biểu diễn **bù hai** (*two's complement*) với độ rộng cố định. Miền giá trị bất đối xứng quanh 0:
+Java's signed integer types use fixed-width **two's complement** representation. The value range is asymmetric around 0:
 
-| Kiểu | Giá trị nhỏ nhất | Giá trị lớn nhất | Trị tuyệt đối toán học của MIN_VALUE |
+| Type | Minimum Value | Maximum Value | Mathematical Absolute Value of `MIN_VALUE` |
 | --- | ---: | ---: | ---: |
-| `int` 32 bit | `-2_147_483_648` | `2_147_483_647` | `2_147_483_648` |
-| `long` 64 bit | `-9_223_372_036_854_775_808` | `9_223_372_036_854_775_807` | `9_223_372_036_854_775_808` |
+| 32-bit `int` | `-2_147_483_648` | `2_147_483_647` | `2_147_483_648` |
+| 64-bit `long` | `-9_223_372_036_854_775_808` | `9_223_372_036_854_775_807` | `9_223_372_036_854_775_808` |
 
-Với số nguyên có dấu `n` bit, miền là từ `-2^(n-1)` đến `2^(n-1)-1`. Vì vậy trị tuyệt đối của `MIN_VALUE` bằng `2^(n-1)`, **vượt `MAX_VALUE` đúng một đơn vị**.
+For an `n`-bit signed integer, the range is from `-2^(n-1)` to `2^(n-1)-1`. Therefore, the absolute value of `MIN_VALUE` equals `2^(n-1)`, **exceeding `MAX_VALUE` by exactly one**.
 
-Ví dụ bit 32:
+32-bit example:
 
 ```text
-Integer.MIN_VALUE = -2147483648
-Bit của int       = 10000000 00000000 00000000 00000000
-Đổi dấu toán học  = +2147483648 (vượt Integer.MAX_VALUE)
-Kết quả 32 bit    = 10000000 00000000 00000000 00000000
-Diễn giải int     = -2147483648
+Integer.MIN_VALUE  = -2147483648
+int bits           = 10000000 00000000 00000000 00000000
+Math negation      = +2147483648 (exceeds Integer.MAX_VALUE)
+32-bit result      = 10000000 00000000 00000000 00000000
+int interpretation = -2147483648
 ```
 
-Các phép cộng, trừ và đổi dấu số nguyên Java theo kiểu nguyên thủy có hành vi được định nghĩa trên độ rộng bit cố định. Phép đổi dấu `-Integer.MIN_VALUE` cũng trả lại `Integer.MIN_VALUE`, không ném lỗi. `Math.abs(int)` dùng cùng miền giá trị và cũng **không tự động kiểm tra tràn**.
+Primitive integer addition, subtraction, and negation in Java have well-defined behavior over fixed bit widths. Unary negation `-Integer.MIN_VALUE` also returns `Integer.MIN_VALUE` without throwing. `Math.abs(int)` uses the same value range and **does not automatically check for overflow**.
 
-### Giá trị “gần MIN_VALUE” vẫn xử lý bình thường
+### Values "near `MIN_VALUE`" still behave normally
 
 ```java
 int a = Integer.MIN_VALUE + 1;
 System.out.println(Math.abs(a)); // 2147483647
 ```
 
-Chỉ riêng giá trị `Integer.MIN_VALUE` mới không có giá trị đối dương biểu diễn được trong `int`; tương tự, chỉ `Long.MIN_VALUE` là trường hợp đó đối với `long`. Các giá trị nguyên có dấu khác, kể cả `-MAX_VALUE`, đều có trị tuyệt đối nằm trong miền kiểu của chúng.
+Only `Integer.MIN_VALUE` lacks a representable positive counterpart in `int`; likewise, only `Long.MIN_VALUE` is that special case for `long`. Every other signed integer value, including `-MAX_VALUE`, has an absolute value within its type's range.
 
-## 2. Math.abs thực sự cam kết điều gì?
+## 2. What Does `Math.abs` Actually Guarantee?
 
-Trong Java, lớp `java.lang.Math` có các overload `abs(int)`, `abs(long)`, `abs(float)`, `abs(double)`. Với **`int` và `long`**, kết quả là độ lớn không âm của đối số trong mọi trường hợp **ngoại trừ giá trị MIN_VALUE của chính kiểu đó**, khi phương thức trả lại MIN_VALUE.
+In Java, `java.lang.Math` has overloads `abs(int)`, `abs(long)`, `abs(float)`, and `abs(double)`. For **`int` and `long`**, the result is the non-negative magnitude of the argument in every case **except that type's own `MIN_VALUE`**, where the method returns `MIN_VALUE`.
 
 ```java
 int normal = Math.abs(-42);                  // 42
@@ -54,11 +54,11 @@ int edge = Math.abs(Integer.MIN_VALUE);      // Integer.MIN_VALUE
 long longEdge = Math.abs(Long.MIN_VALUE);    // Long.MIN_VALUE
 ```
 
-Các dòng này là mảnh mã Java đặt trong một phương thức. Chúng biên dịch được và không phát sinh exception do giá trị MIN_VALUE.
+These lines are a Java snippet placed inside a method. They compile and do not throw an exception on `MIN_VALUE`.
 
-Điều này có hệ quả rất quan trọng: **kết quả kiểu `int` từ `Math.abs(int)` không thể được xem là bất biến “`result >= 0`”** nếu đầu vào chưa loại trừ `Integer.MIN_VALUE`. Tương tự với `long`.
+This has a crucial consequence: **an `int` result from `Math.abs(int)` cannot be treated as an invariant "`result >= 0`"** unless `Integer.MIN_VALUE` has been excluded from the inputs. The same holds for `long`.
 
-Một kiểm tra như sau có thể bắt lỗi sau khi nó đã xuất hiện, nhưng không cung cấp một kết quả đúng:
+A check like the following can catch the error after it occurs, yet still does not yield a valid value:
 
 ```java
 int magnitude = Math.abs(value);
@@ -67,11 +67,11 @@ if (magnitude < 0) {
 }
 ```
 
-Thay vì tự viết lại kiểm tra này khi muốn exception, Java đã có **`Math.absExact(value)`**.
+Instead of writing this check yourself when you want an exception, Java already provides **`Math.absExact(value)`**.
 
-## 3. Math.absExact: phát hiện tràn thay vì trả MIN_VALUE
+## 3. `Math.absExact`: Detecting Overflow Instead of Returning `MIN_VALUE`
 
-Java cung cấp hai overload **`Math.absExact(int)`** và **`Math.absExact(long)`**. Cả hai đều có trong Java 17. Chúng trả trị tuyệt đối khi kết quả biểu diễn được trong kiểu đầu vào, và **ném `ArithmeticException`** nếu đầu vào đúng bằng `MIN_VALUE` của kiểu đó.
+Java provides two overloads: **`Math.absExact(int)`** and **`Math.absExact(long)`**. Both are available in Java 17. They return the absolute value when the result is representable in the input type, and **throw `ArithmeticException`** if the input equals that type's `MIN_VALUE`.
 
 ```java
 int a = Math.absExact(-42);       // 42
@@ -81,28 +81,28 @@ long b = Math.absExact(-42L);     // 42L
 // Math.absExact(Long.MIN_VALUE)    → ArithmeticException
 ```
 
-So sánh các lựa chọn:
+Comparing the options:
 
-| Đầu vào | `Math.abs` | `Math.absExact` |
+| Input | `Math.abs` | `Math.absExact` |
 | --- | --- | --- |
 | `-42` (`int`) | `42` | `42` |
 | `0` (`int`) | `0` | `0` |
 | `Integer.MAX_VALUE` | `2147483647` | `2147483647` |
 | `Integer.MIN_VALUE + 1` | `2147483647` | `2147483647` |
-| `Integer.MIN_VALUE` | `-2147483648` | Ném `ArithmeticException` |
-| `Long.MIN_VALUE` | `-9223372036854775808` | Ném `ArithmeticException` |
+| `Integer.MIN_VALUE` | `-2147483648` | Throws `ArithmeticException` |
+| `Long.MIN_VALUE` | `-9223372036854775808` | Throws `ArithmeticException` |
 
-Dùng `absExact` khi hợp đồng phép tính cần **trả một số nguyên không âm trong cùng kiểu hoặc báo lỗi**. Ví dụ: một API yêu cầu trả `int` là độ lớn của độ lệch, và `Integer.MIN_VALUE` được coi là đầu vào không hợp lệ.
+Use `absExact` when the operation contract requires **returning a non-negative integer of the same type or failing**. For example: an API must return an `int` deviation magnitude, and `Integer.MIN_VALUE` is considered an invalid input.
 
-Điểm cần hiểu: `Math.absExact` **không trả được `2147483648` dưới dạng `int`**. Nó báo rằng kết quả không biểu diễn được. Nếu bài toán thực sự cần lưu trị tuyệt đối đó, hãy chọn kiểu đủ rộng trước khi tính.
+Key point: `Math.absExact` **cannot return `2147483648` as an `int`**. It signals that the result is unrepresentable. If your problem truly needs to store that absolute value, choose a sufficiently wide type before computing.
 
-### Không có Math.absExact(float) hoặc Math.absExact(double)
+### There is no `Math.absExact(float)` or `Math.absExact(double)`
 
-`Math.absExact` dành cho kiểu nguyên `int` và `long`, không phải phương thức có overload cho `float`/`double`. Đối với số dấu phẩy động, các quy tắc như `NaN`, vô cực, `+0.0`/`-0.0` khác với overflow nguyên. Không dùng một phương thức nguyên để suy diễn semantics cho floating point.
+`Math.absExact` is for the integer types `int` and `long`; there are no `float`/`double` overloads. For floating-point numbers, rules involving `NaN`, infinities, and `+0.0`/`-0.0` differ from integer overflow. Do not use an integer method to infer semantics for floating point.
 
-## 4. Khi cần trị tuyệt đối thật sự của Integer.MIN_VALUE: nâng kiểu trước
+## 4. When You Need the True Absolute Value of `Integer.MIN_VALUE`: Promote First
 
-Giá trị `2147483648` vượt `int` nhưng **nằm trong `long`**. Vì vậy, nếu nguồn là `int` mà đầu ra được phép là `long`, chuyển sang `long` **trước khi gọi `Math.abs`**:
+The value `2147483648` exceeds `int` yet **fits inside `long`**. Therefore, if the source is `int` and the output may be `long`, convert to `long` **before calling `Math.abs`**:
 
 ```java
 int value = Integer.MIN_VALUE;
@@ -111,104 +111,104 @@ long correct = Math.abs((long) value);
 // correct == 2147483648L
 ```
 
-Không hoán đổi thứ tự:
+Do not swap the order:
 
 ```java
 int value = Integer.MIN_VALUE;
 
 long tooLate = (long) Math.abs(value);
-// tooLate == -2147483648L: Math.abs(int) đã tính sai kỳ vọng trước khi cast.
+// tooLate == -2147483648L: Math.abs(int) already failed expectations before the cast.
 ```
 
-Hai cách này khác nhau ở **overload được chọn**:
+These two approaches differ in **which overload is selected**:
 
-- `Math.abs((long) value)`: đối số là `long`, gọi `Math.abs(long)`. `-2147483648L` có trị tuyệt đối vừa trong `long`.
-- `(long) Math.abs(value)`: đối số ban đầu là `int`, gọi `Math.abs(int)`; việc mở rộng lên `long` sau đó chỉ giữ nguyên giá trị âm đã nhận.
+- `Math.abs((long) value)`: the argument is `long`, calling `Math.abs(long)`. `-2147483648L` has an absolute value that fits in `long`.
+- `(long) Math.abs(value)`: the initial argument is `int`, calling `Math.abs(int)`; widening to `long` afterward merely preserves the negative value already returned.
 
-Cùng một nguyên tắc áp dụng cho đổi dấu:
+The same principle applies to negation:
 
 ```java
 long correct = -(long) Integer.MIN_VALUE; // 2147483648L
 long tooLate = (long) (-Integer.MIN_VALUE); // -2147483648L
 ```
 
-Việc chọn overload và thứ tự chuyển kiểu quyết định tính đúng đắn, không phải chỉ nhìn kiểu của biến nhận kết quả.
+Overload selection and conversion order determine correctness, not merely looking at the receiving variable's type.
 
-### Nên chọn Math.abs hay Math.absExact sau khi nâng kiểu?
+### Should you choose `Math.abs` or `Math.absExact` after widening?
 
-Nếu mục tiêu của một phép xử lý `int` là **trả `long` đúng tuyệt đối**, `Math.abs((long) value)` đã đủ vì mọi giá trị `int` và trị tuyệt đối của chúng đều vừa `long`. `Math.absExact((long) value)` cũng đúng, nhưng trường hợp tràn của overload `long` không thể xảy ra khi đầu vào ban đầu chắc chắn là `int`.
+If the goal of processing an `int` is to **return an exact `long` absolute value**, `Math.abs((long) value)` suffices because every `int` and its absolute value fit in `long`. `Math.absExact((long) value)` is also valid, though the `long` overload's overflow case cannot happen when the original input is guaranteed to be an `int`.
 
-Nếu mục tiêu **trả `int` và fail fast khi không vừa**, dùng `Math.absExact(value)`. Chọn theo hợp đồng trả về và cách ứng dụng xử lý dữ liệu vượt giới hạn.
+If the goal is to **return an `int` and fail fast when it does not fit**, use `Math.absExact(value)`. Choose according to the return contract and how the application handles out-of-range data.
 
-## 5. Với Long.MIN_VALUE, long rộng hơn không còn đủ
+## 5. For `Long.MIN_VALUE`, Widening to `long` Is No Longer Enough
 
-Trị tuyệt đối của `Long.MIN_VALUE` là `9223372036854775808`, lớn hơn `Long.MAX_VALUE` đúng một đơn vị. Không có kiểu số nguyên nguyên thủy Java rộng hơn `long`.
+The absolute value of `Long.MIN_VALUE` is `9223372036854775808`, which is larger than `Long.MAX_VALUE` by one. There is no primitive Java integer type wider than `long`.
 
-Có ba hướng thiết kế tùy yêu cầu:
+There are three design options depending on requirements:
 
-1. **Báo lỗi tràn:** `Math.absExact(longValue)` ném `ArithmeticException` khi nhận `Long.MIN_VALUE`.
-2. **Biểu diễn độ lớn chính xác:** dùng `BigInteger` và **chuyển trước khi lấy trị tuyệt đối**.
-3. **Xử lý dạng unsigned theo hợp đồng bit cụ thể:** có thể cần thao tác không dấu riêng, nhưng không coi kiểu `long` có dấu thành một số dương lớn hơn `Long.MAX_VALUE`.
+1. **Report overflow:** `Math.absExact(longValue)` throws `ArithmeticException` when given `Long.MIN_VALUE`.
+2. **Represent exact magnitude:** use `BigInteger` and **convert before taking the absolute value**.
+3. **Handle as unsigned under an explicit bit contract:** dedicated unsigned operations may be needed, without treating signed `long` as a positive number larger than `Long.MAX_VALUE`.
 
-Ví dụ đúng với `BigInteger`:
+Correct example with `BigInteger`:
 
 ```java
 import java.math.BigInteger;
 
-// Đặt trong một phương thức Java:
+// Placed inside a Java method:
 long value = Long.MIN_VALUE;
 
 BigInteger magnitude = BigInteger.valueOf(value).abs();
 // 9223372036854775808
 ```
 
-`BigInteger.valueOf(value)` nhận chính giá trị `long` có dấu rồi tạo đối tượng số nguyên; `BigInteger.abs()` có thể tạo ra trị tuyệt đối vượt 64 bit. Ngược lại, phương án sau là sai về thứ tự:
+`BigInteger.valueOf(value)` takes the signed `long` value as-is and creates an integer object; `BigInteger.abs()` can produce an absolute value exceeding 64 bits. Conversely, the following order is wrong:
 
 ```java
 long value = Long.MIN_VALUE;
 BigInteger wrong = BigInteger.valueOf(Math.abs(value));
-// wrong vẫn là -9223372036854775808.
+// wrong is still -9223372036854775808.
 ```
 
-Đưa giá trị đã xử lý sai vào một kiểu lớn hơn không khôi phục được ý định toán học ban đầu.
+Passing an already-mishandled value into a larger type cannot recover the original mathematical intent.
 
-## 6. Bẫy nguy hiểm hơn: biểu thức đã tràn trước khi gọi absExact
+## 6. More Dangerous Trap: An Expression Already Overflowed Before Calling `absExact`
 
-`Math.absExact` chỉ kiểm tra **trị tuyệt đối của giá trị nó thực sự nhận được**. Phương thức không thể biết phép cộng/trừ/nhân tạo ra đối số đã bị tràn trước đó.
+`Math.absExact` checks only the **absolute value of the value it actually receives**. The method cannot tell if the addition, subtraction, or multiplication producing its argument already overflowed earlier.
 
-Xét bài toán tính khoảng cách tuyệt đối giữa hai `int`:
+Consider computing the absolute distance between two `int` values:
 
 ```java
 int a = Integer.MAX_VALUE;
 int b = -Integer.MAX_VALUE;
 
-int wrong = Math.absExact(a - b); // Trả 2, KHÔNG ném ngoại lệ!
+int wrong = Math.absExact(a - b); // Returns 2, does NOT throw an exception!
 ```
 
-Phân tích:
+Analysis:
 
 ```text
-a                     =  2147483647
-b                     = -2147483647
-a - b về mặt toán học =  4294967294
-a - b trong int       = -2            (tràn int)
-Math.absExact(-2)     =  2            (không có overflow ở bước abs)
+a                    =  2147483647
+b                    = -2147483647
+Mathematical a - b   =  4294967294
+a - b in int         = -2            (int overflow)
+Math.absExact(-2)    =  2            (no overflow at the abs step)
 ```
 
-Kết quả `2` có vẻ hợp lệ và không có exception, nhưng khoảng cách toán học đúng phải là `4294967294`. **`absExact` không phải công cụ tự phát hiện mọi overflow xảy ra trước lời gọi**.
+The result `2` looks valid and throws no exception, yet the true mathematical distance is `4294967294`. **`absExact` is not a tool that automatically detects every overflow occurring before the call**.
 
-Vì khoảng cách giữa bất kỳ hai `int` nào đều nằm trong miền `long`, cách đúng là **nâng kiểu trước khi trừ**:
+Because the distance between any two `int` values fits within `long`, the right approach is to **widen before subtracting**:
 
 ```java
 long distance = Math.abs((long) a - b);
 // distance == 4294967294L
 ```
 
-Có thể dùng `Math.absExact((long) a - b)` khi muốn thể hiện chính sách checked arithmetic, nhưng ở đầu vào đều là `int`, hiệu tuyệt đối vẫn nằm trong giới hạn `long`.
+You can use `Math.absExact((long) a - b)` to express a checked-arithmetic policy, though with both inputs as `int`, the absolute difference stays within `long` limits.
 
-### Với hai long bất kỳ, BigInteger phù hợp hơn
+### For two arbitrary `long` values, `BigInteger` is more appropriate
 
-Hiệu toán học của `Long.MAX_VALUE` và `Long.MIN_VALUE` là `18446744073709551615`, vượt `long`. Cast hai toán hạng `long` thành `long` một lần nữa không giúp ích:
+The mathematical difference between `Long.MAX_VALUE` and `Long.MIN_VALUE` is `18446744073709551615`, exceeding `long`. Casting two `long` operands to `long` again does nothing:
 
 ```java
 BigInteger distance = BigInteger.valueOf(Long.MAX_VALUE)
@@ -217,18 +217,18 @@ BigInteger distance = BigInteger.valueOf(Long.MAX_VALUE)
 // 18446744073709551615
 ```
 
-Nếu đặc tả yêu cầu trả `long`, phải kiểm tra miền dữ liệu trước hoặc dùng phép trừ checked như `Math.subtractExact` rồi `Math.absExact`, sẵn sàng báo lỗi khi không biểu diễn được. Nếu đặc tả yêu cầu trả khoảng cách **toán học chính xác cho mọi cặp long**, `BigInteger` là hướng đúng.
+If the specification requires returning `long`, check the data range upfront or use checked subtraction like `Math.subtractExact` followed by `Math.absExact`, prepared to report an error when unrepresentable. If the specification requires returning the **exact mathematical distance for every pair of `long`s**, `BigInteger` is the right path.
 
-## 7. Ví dụ thực tế: lấy trị tuyệt đối của hash rồi lấy chỉ số
+## 7. Practical Example: Taking the Absolute Value of a Hash and Computing an Index
 
-Một mẫu code dễ gặp là:
+A common code pattern is:
 
 ```java
 int hash = key.hashCode();
 int index = Math.abs(hash) % capacity;
 ```
 
-Nếu `hash == Integer.MIN_VALUE`, `Math.abs(hash)` vẫn âm. Với `capacity = 10`, kết quả `index` là **`-8`**, không nằm trong miền chỉ số `0..9`.
+If `hash == Integer.MIN_VALUE`, `Math.abs(hash)` stays negative. With `capacity = 10`, the resulting `index` is **`-8`**, outside the `0..9` index range.
 
 ```java
 int hash = Integer.MIN_VALUE;
@@ -237,7 +237,7 @@ int capacity = 10;
 int brokenIndex = Math.abs(hash) % capacity; // -8
 ```
 
-Có thể sửa bằng cách nâng kiểu trước khi `abs`, nhưng khi mục đích thực sự chỉ là **ánh xạ số nguyên, kể cả âm, vào chu kỳ dương**, `Math.floorMod(hash, capacity)` thể hiện yêu cầu trực tiếp hơn:
+You could fix it by widening before `abs`, yet when the real goal is simply **mapping integers, including negative ones, into a positive cycle**, `Math.floorMod(hash, capacity)` expresses the requirement more directly:
 
 ```java
 int hash = Integer.MIN_VALUE;
@@ -246,21 +246,21 @@ int capacity = 10;
 int index = Math.floorMod(hash, capacity); // 2
 ```
 
-Khi `capacity > 0`, `Math.floorMod(hash, capacity)` nằm trong `0..capacity-1` đối với mọi `int hash`. Cần kiểm tra `capacity > 0`; nếu bằng 0 sẽ không có chỉ số hợp lệ. Kết quả `2` của `floorMod` **không bắt buộc giống** `Math.abs((long) hash) % capacity` (giá trị sau là 8). Chúng thể hiện **hai chính sách ánh xạ khác nhau**; chọn chính sách theo thuật toán, tính ổn định phân phối dữ liệu và hợp đồng hiện có.
+When `capacity > 0`, `Math.floorMod(hash, capacity)` lies in `0..capacity-1` for every `int hash`. Be sure to verify `capacity > 0`; if it is 0, there is no valid index. The `floorMod` result `2` **does not necessarily match** `Math.abs((long) hash) % capacity` (the latter is 8). They represent **two different mapping policies**; choose the policy based on the algorithm, distribution stability, and existing contracts.
 
-### Vì sao không dùng absExact để “cứu” công thức hash?
+### Why not use `absExact` to "fix" the hash formula?
 
 ```java
 int index = Math.absExact(hash) % capacity;
 ```
 
-Công thức này phát hiện `Integer.MIN_VALUE` rồi ném exception. Điều đó có thể phù hợp nếu quy tắc của ứng dụng muốn coi hash đặc biệt là lỗi. Nhưng thông thường hash có thể là **bất kỳ int nào**, và việc có một giá trị hash hợp lệ khiến ánh xạ index thất bại không phải điều mong muốn. Trong bài toán index chu kỳ dương, `floorMod` phù hợp hơn.
+This formula detects `Integer.MIN_VALUE` and throws an exception. That may make sense if your application rules treat that special hash as an error. Normally, however, a hash can be **any `int`**, and having one valid hash value make index mapping fail is undesirable. For positive cyclic indexing, `floorMod` is more appropriate.
 
-Một lựa chọn khác khi thuật toán làm việc trên **bit không dấu** là mask bit dấu với `hash & Integer.MAX_VALUE`; cách này cũng tạo giá trị không âm nhưng **chính sách ánh xạ khác** với `floorMod`. Không tự ý thay đổi hàm ánh xạ trong cấu trúc dữ liệu đã có vì có thể ảnh hưởng bucket hoặc tính tương thích với dữ liệu lưu trước đó.
+Another option when an algorithm works on **unsigned bits** is masking off the sign bit with `hash & Integer.MAX_VALUE`; this also yields a non-negative value, though with a **different mapping policy** from `floorMod`. Do not arbitrarily change the mapping function in an existing data structure, as it can affect buckets or compatibility with previously stored data.
 
-## 8. Ví dụ thực tế: độ lệch, khoảng cách và kiểm tra giới hạn
+## 8. Practical Example: Deviations, Distances, and Limit Checks
 
-Giả sử một dịch vụ cần xác định khoảng cách số lượng giữa hai bộ đếm:
+Suppose a service needs to compute the quantity difference between two counters:
 
 ```java
 static long absoluteDifference(int current, int previous) {
@@ -268,9 +268,9 @@ static long absoluteDifference(int current, int previous) {
 }
 ```
 
-Phương thức trên an toàn cho mọi cặp `int`. Nó cho kết quả `long` từ 0 đến `4294967295`, không làm mất giá trị do tràn `int`. Tuy vậy, kiểm tra một điều kiện nghiệp vụ như “chênh lệch không vượt 1000” còn cần so sánh với ngưỡng và xử lý input hợp lệ.
+The method above is safe for any pair of `int`s. It produces a `long` from 0 to `4294967295` without losing data to `int` overflow. However, checking a business rule like "deviation does not exceed 1000" still requires comparing against the threshold and validating inputs.
 
-Nếu phương thức bắt buộc trả `int`, phải quyết định rõ:
+If the method is required to return `int`, decide explicitly:
 
 ```java
 static int absoluteDifferenceExact(int current, int previous) {
@@ -279,31 +279,31 @@ static int absoluteDifferenceExact(int current, int previous) {
 }
 ```
 
-`Math.toIntExact` ném `ArithmeticException` khi khoảng cách vượt `Integer.MAX_VALUE`; nó báo lỗi **ở biên trả về**, không để cast làm mất thông tin.
+`Math.toIntExact` throws `ArithmeticException` when the distance exceeds `Integer.MAX_VALUE`; it reports an error **at the return boundary**, rather than letting a cast silently lose information.
 
-Với `long` là kiểu đầu vào và khoảng cách cần tuyệt đối đúng, dùng `BigInteger` như phần trước.
+When inputs are `long` and the distance must be exact, use `BigInteger` as shown earlier.
 
-### Trị tuyệt đối trong phép tính và biểu thức trung gian
+### Absolute values in calculations and intermediate expressions
 
-Ba lỗi thường gặp có cấu trúc giống nhau:
+Three common mistakes share the same structure:
 
 ```java
-// 1. Lấy abs quá muộn sau phép trừ int đã tràn:
+// 1. Calling abs too late after an int subtraction already overflowed:
 long wrongDistance = Math.abs(a - b);
 
-// 2. Cast quá muộn, sau khi Math.abs(int) đã trả MIN_VALUE:
+// 2. Casting too late, after Math.abs(int) already returned MIN_VALUE:
 long wrongMagnitude = (long) Math.abs(Integer.MIN_VALUE);
 
-// 3. Chuyển sang BigInteger sau khi Math.abs(long) đã trả MIN_VALUE:
+// 3. Converting to BigInteger after Math.abs(long) already returned MIN_VALUE:
 BigInteger wrongBigMagnitude =
         BigInteger.valueOf(Math.abs(Long.MIN_VALUE));
 ```
 
-Phải đặt **kiểu đủ rộng hoặc phép kiểm tra đúng tại thời điểm phép toán có thể tràn**. Chỉ kiểm tra kết quả cuối không thay thế được kiểm soát các bước trung gian.
+You must put **a sufficiently wide type or the right check at the point where the operation can overflow**. Checking only the final result cannot substitute for controlling intermediate steps.
 
-## 9. Có nên dùng phép if/ternary thay vì Math.absExact?
+## 9. Should You Use `if`/Ternary Instead of `Math.absExact`?
 
-Một triển khai tự viết dễ thấy:
+A common hand-written implementation:
 
 ```java
 static int naiveAbs(int value) {
@@ -311,9 +311,9 @@ static int naiveAbs(int value) {
 }
 ```
 
-Nó **không giải quyết** ca `Integer.MIN_VALUE`. Nhánh `-value` cũng quay lại số âm nhỏ nhất mà không ném exception. Muốn giữ `int` và phát hiện overflow, `Math.absExact` làm rõ ý định hơn một nhánh đặc biệt tự viết.
+It **does not solve** the `Integer.MIN_VALUE` case. The `-value` branch also wraps back to the smallest negative number without throwing an exception. To keep `int` and detect overflow, `Math.absExact` expresses the intent more clearly than a custom special-case branch.
 
-Nếu phải tự tạo thông báo lỗi nghiệp vụ khác `ArithmeticException`, có thể kiểm tra đầu vào tường minh:
+If you need a custom business exception other than `ArithmeticException`, check the input explicitly:
 
 ```java
 static int checkedMagnitude(int value) {
@@ -324,13 +324,13 @@ static int checkedMagnitude(int value) {
 }
 ```
 
-Đây là lựa chọn thiết kế **khác hợp đồng** với `Math.absExact`: loại exception và cách mô tả lỗi phụ thuộc API. Không cần viết lại nó nếu yêu cầu chỉ là overflow gây `ArithmeticException`.
+This is a design choice with a **different contract** from `Math.absExact`: the exception type and error description depend on your API. There is no need to rewrite it if overflow throwing `ArithmeticException` is all you need.
 
-Nếu bài toán chấp nhận trả kết quả trong `long`, mở rộng trước khi lấy abs thường gọn và giữ được cả trường hợp biên mà không phải báo lỗi.
+If the problem accepts returning the result in `long`, widening before calling `abs` is usually cleaner and handles the boundary case without throwing an error.
 
-## 10. Chương trình Java 17+ chạy độc lập
+## 10. Standalone Runnable Java 17+ Program
 
-Lưu đoạn sau thành **`AbsMinValueDemo.java`**. Chương trình minh họa `Math.abs` trả lại MIN_VALUE, `Math.absExact` báo lỗi, phép nâng kiểu đúng thời điểm, `BigInteger`, bẫy hiệu đã tràn và cách tạo chỉ số modulo không âm.
+Save the following snippet as **`AbsMinValueDemo.java`**. The program illustrates `Math.abs` returning `MIN_VALUE`, `Math.absExact` throwing an error, timely type promotion, `BigInteger`, the overflowed-difference trap, and generating non-negative modulo indices.
 
 ```java
 import java.math.BigInteger;
@@ -384,14 +384,14 @@ public class AbsMinValueDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 hoặc mới hơn:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac AbsMinValueDemo.java
 java AbsMinValueDemo
 ```
 
-Kết quả stdout:
+Stdout output:
 
 ```text
 abs-int-min=-2147483648
@@ -409,58 +409,58 @@ floor-mod-index=2
 big-long-distance=18446744073709551615
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- Hai dòng `abs-*-min` cho thấy `Math.abs` không tự ném exception trên số nguyên MIN_VALUE.
-- Hai dòng `abs-exact-*` chỉ xuất hiện do khối `catch` bắt exception từ `Math.absExact`.
-- `widen-before-abs` giữ đúng độ lớn của `Integer.MIN_VALUE`; `widen-after-abs` không sửa được kết quả `int` đã quay vòng.
-- `incorrect-abs-diff=2` đặc biệt quan trọng: `absExact` không phát hiện phép trừ đã tràn trước lời gọi. Phải mở rộng trước khi trừ.
-- Chỉ số `-8` từ `Math.abs(minInt) % 10` không hợp lệ cho mảng; `Math.floorMod(minInt, 10)` trả `2`.
-- Hai phép tính `BigInteger` giữ được các trị tuyệt đối vượt phạm vi `long`.
+- The two `abs-*-min` lines show that `Math.abs` does not throw an exception on integer `MIN_VALUE`.
+- The two `abs-exact-*` lines appear only because the `catch` blocks caught exceptions from `Math.absExact`.
+- `widen-before-abs` preserves the true magnitude of `Integer.MIN_VALUE`; `widen-after-abs` cannot fix the already-wrapped `int` result.
+- `incorrect-abs-diff=2` is especially important: `absExact` does not detect the subtraction that overflowed before the call. You must widen before subtracting.
+- Index `-8` from `Math.abs(minInt) % 10` is invalid for an array; `Math.floorMod(minInt, 10)` returns `2`.
+- The two `BigInteger` calculations retain absolute values beyond the `long` range.
 
-## 11. Phân biệt các lỗi dễ nhầm
+## 11. Distinguishing Easily Confused Mistakes
 
-| Mã hoặc quyết định | Kết quả/vấn đề | Cách dùng phù hợp |
+| Code or Decision | Result / Issue | Appropriate Usage |
 | --- | --- | --- |
-| `Math.abs(Integer.MIN_VALUE)` | Trả `Integer.MIN_VALUE`, vẫn âm | Chỉ dùng khi ca biên được xử lý hoặc miền loại trừ MIN_VALUE |
-| `Math.absExact(Integer.MIN_VALUE)` | Ném `ArithmeticException` | Khi kết quả phải vừa `int` hoặc phải báo overflow |
-| `Math.abs((long) Integer.MIN_VALUE)` | Trả `2147483648L` | Khi cần độ lớn chính xác và chấp nhận `long` |
-| `(long) Math.abs(Integer.MIN_VALUE)` | Vẫn âm `-2147483648L` | Tránh: chuyển kiểu quá muộn |
-| `Math.abs(Long.MIN_VALUE)` | Trả `Long.MIN_VALUE` | Không dùng như bảo đảm kết quả không âm |
-| `Math.absExact(Long.MIN_VALUE)` | Ném `ArithmeticException` | Khi `long` là giới hạn đầu ra |
-| `BigInteger.valueOf(Long.MIN_VALUE).abs()` | Trả chính xác `9223372036854775808` | Khi cần độ lớn vượt `long` |
-| `Math.absExact(a - b)` với hai `int` | Biểu thức `a-b` có thể đã tràn | Mở rộng trước khi trừ: `Math.abs((long)a-b)` |
-| `Math.abs(hash) % capacity` | Có thể âm nếu hash là MIN_VALUE | Với capacity dương, xét `Math.floorMod(hash, capacity)` |
-| `Math.absExact(hash) % capacity` | Có thể ném lỗi trên hash hợp lệ | Chọn chính sách mapping toàn miền, không mặc định coi MIN_VALUE là lỗi |
+| `Math.abs(Integer.MIN_VALUE)` | Returns `Integer.MIN_VALUE`, still negative | Use only when the edge case is handled or `MIN_VALUE` is excluded from the domain |
+| `Math.absExact(Integer.MIN_VALUE)` | Throws `ArithmeticException` | When the result must fit in `int` or overflow must be reported |
+| `Math.abs((long) Integer.MIN_VALUE)` | Returns `2147483648L` | When exact magnitude is needed and `long` is acceptable |
+| `(long) Math.abs(Integer.MIN_VALUE)` | Still negative `-2147483648L` | Avoid: type conversion happened too late |
+| `Math.abs(Long.MIN_VALUE)` | Returns `Long.MIN_VALUE` | Do not use as a guarantee of a non-negative result |
+| `Math.absExact(Long.MIN_VALUE)` | Throws `ArithmeticException` | When `long` is the output limit |
+| `BigInteger.valueOf(Long.MIN_VALUE).abs()` | Returns exact `9223372036854775808` | When magnitude exceeds `long` |
+| `Math.absExact(a - b)` with two `int`s | Expression `a-b` may have already overflowed | Widen before subtracting: `Math.abs((long)a-b)` |
+| `Math.abs(hash) % capacity` | Can be negative if hash is `MIN_VALUE` | With positive capacity, consider `Math.floorMod(hash, capacity)` |
+| `Math.absExact(hash) % capacity` | Can throw on a valid hash | Choose a full-domain mapping policy; do not assume `MIN_VALUE` is an error |
 
-### Một chi tiết về Java floating point
+### A note on Java floating point
 
-`Math.abs(float)` và `Math.abs(double)` không gặp sự bất đối xứng miền nguyên như `int`/`long`. Với floating point, `Float.MIN_VALUE` và `Double.MIN_VALUE` là **số dương nhỏ nhất khác 0** có thể biểu diễn, không phải giá trị âm lớn nhất về độ lớn. `Math.abs(Double.NaN)` vẫn là NaN, và `Math.abs(-0.0d)` trả dương 0.0.
+`Math.abs(float)` and `Math.abs(double)` do not suffer from the integer range asymmetry of `int`/`long`. For floating point, `Float.MIN_VALUE` and `Double.MIN_VALUE` are the **smallest non-zero positive numbers** representable, not the largest-magnitude negative values. `Math.abs(Double.NaN)` remains `NaN`, and `Math.abs(-0.0d)` returns positive `0.0`.
 
-Vì vậy, khi thấy `MIN_VALUE` trong code, phải đọc đúng **kiểu**: `Integer.MIN_VALUE`/ `Long.MIN_VALUE` là số âm cực tiểu; `Double.MIN_VALUE`/ `Float.MIN_VALUE` có ý nghĩa khác hẳn. Nếu cần kiểm tra dữ liệu đo lường, dùng `Double.isFinite`, xử lý `NaN` hoặc chính sách số thực thích hợp.
+Therefore, whenever you see `MIN_VALUE` in code, read the **type** carefully: `Integer.MIN_VALUE` / `Long.MIN_VALUE` are extreme negative integers; `Double.MIN_VALUE` / `Float.MIN_VALUE` have a completely different meaning. When validating measurement data, use `Double.isFinite`, handle `NaN`, or apply an appropriate floating-point policy.
 
-## 12. Kiểm thử và bài tập tự luyện
+## 12. Testing and Self-Practice Exercises
 
-1. Dự đoán kết quả `Math.abs(Integer.MIN_VALUE + 1)`, `Math.abs(Integer.MIN_VALUE)` và `Math.absExact(Integer.MIN_VALUE)`. Giải thích vì sao chỉ một trường hợp không có trị tuyệt đối dương trong `int`.
-2. Viết phương thức `long magnitude(int value)` trả đúng trị tuyệt đối của mọi `int`. Thử `-42`, `0`, `Integer.MAX_VALUE`, `Integer.MIN_VALUE`.
-3. Viết phương thức `int magnitudeExact(int value)` dùng `Math.absExact`. Kiểm tra ngoại lệ chỉ ở `Integer.MIN_VALUE`, đồng thời xác định kiểu exception.
-4. Vì sao `(long) Math.abs(Integer.MIN_VALUE)` sai còn `Math.abs((long) Integer.MIN_VALUE)` đúng? Trình bày overload được chọn tại từng bước.
-5. Cho `a=Integer.MAX_VALUE`, `b=-Integer.MAX_VALUE`. Dự đoán `Math.absExact(a-b)` và `Math.abs((long)a-b)`. Trình bày chỗ xảy ra overflow.
-6. Viết hàm `BigInteger magnitude(long value)` đúng với `Long.MIN_VALUE`. Giải thích vì sao không được lấy `Math.abs(value)` trước khi gọi `BigInteger.valueOf`.
-7. Với `capacity=10`, tính `Math.abs(Integer.MIN_VALUE) % capacity` và `Math.floorMod(Integer.MIN_VALUE, capacity)`. Hai cách khác nhau ở chính sách nào?
-8. Thiết kế API tính độ lệch giữa hai giá trị `long`, yêu cầu **chính xác với mọi cặp đầu vào**. Chọn kiểu trả về và phép toán, rồi kiểm thử `Long.MIN_VALUE` và `Long.MAX_VALUE`.
-9. Viết kiểm thử chứng minh một giá trị `int` khác `Integer.MIN_VALUE` luôn có trị tuyệt đối không âm trong `int`. Cần bao phủ những nhóm giá trị biên nào?
-10. Giải thích sự khác nhau về ý nghĩa giữa `Integer.MIN_VALUE` và `Double.MIN_VALUE`. Tại sao nhầm hai constant này có thể dẫn tới kiểm tra biên sai?
+1. Predict the results of `Math.abs(Integer.MIN_VALUE + 1)`, `Math.abs(Integer.MIN_VALUE)`, and `Math.absExact(Integer.MIN_VALUE)`. Explain why only one case has no positive absolute value in `int`.
+2. Write a method `long magnitude(int value)` that returns the exact absolute value of any `int`. Test `-42`, `0`, `Integer.MAX_VALUE`, and `Integer.MIN_VALUE`.
+3. Write a method `int magnitudeExact(int value)` using `Math.absExact`. Verify that the exception occurs only on `Integer.MIN_VALUE`, and identify the exception type.
+4. Why is `(long) Math.abs(Integer.MIN_VALUE)` wrong while `Math.abs((long) Integer.MIN_VALUE)` is right? Show the overload chosen at each step.
+5. Given `a=Integer.MAX_VALUE`, `b=-Integer.MAX_VALUE`, predict `Math.absExact(a-b)` and `Math.abs((long)a-b)`. Point out where overflow occurs.
+6. Write a function `BigInteger magnitude(long value)` that works for `Long.MIN_VALUE`. Explain why you must not call `Math.abs(value)` before `BigInteger.valueOf`.
+7. With `capacity=10`, compute `Math.abs(Integer.MIN_VALUE) % capacity` and `Math.floorMod(Integer.MIN_VALUE, capacity)`. How do the two approaches differ in policy?
+8. Design an API that computes the difference between two `long` values, required to be **exact for every pair of inputs**. Choose the return type and operation, then test with `Long.MIN_VALUE` and `Long.MAX_VALUE`.
+9. Write a test proving that any `int` value other than `Integer.MIN_VALUE` always has a non-negative absolute value in `int`. Which boundary value groups should you cover?
+10. Explain the difference in meaning between `Integer.MIN_VALUE` and `Double.MIN_VALUE`. Why can confusing these two constants lead to broken boundary checks?
 
-## 13. Checklist chọn cách lấy trị tuyệt đối
+## 13. Checklist for Choosing How to Take an Absolute Value
 
-- **Đầu vào là int/long?** Nhận diện MIN_VALUE và giới hạn biểu diễn của kiểu.
-- **Cần giữ nguyên kiểu và báo lỗi nếu tràn?** Dùng `Math.absExact(int/long)`; xử lý `ArithmeticException` ở tầng thích hợp.
-- **Nguồn là int, cần độ lớn toán học chính xác?** Cast sang `long` **trước** `Math.abs`.
-- **Nguồn là long, cần độ lớn chính xác kể cả MIN_VALUE?** Đổi sang `BigInteger` trước khi gọi `abs()`.
-- **Đối số là kết quả cộng/trừ/nhân?** Kiểm tra **overflow của biểu thức trung gian**, không chỉ gọi `absExact` sau đó.
-- **Mục tiêu là index/bucket trong `0..n-1`?** Cân nhắc `Math.floorMod(x,n)` với `n>0`, theo đúng chính sách ánh xạ thuật toán.
-- **Giá trị có thể là số thực?** Không áp dụng quy tắc MIN_VALUE của integer sang `float`/`double`; xác định cách xử lý NaN, infinity, signed zero.
-- **Kiểm thử:** thêm `MIN_VALUE`, `MIN_VALUE+1`, `-1`, `0`, `1`, `MAX_VALUE` và những biểu thức trung gian có thể tràn.
+- **Input is `int`/`long`?** Recognize `MIN_VALUE` and the type's representation limits.
+- **Need to keep the same type and report an error on overflow?** Use `Math.absExact(int/long)`; handle `ArithmeticException` at the appropriate layer.
+- **Source is `int`, need exact mathematical magnitude?** Cast to `long` **before** `Math.abs`.
+- **Source is `long`, need exact magnitude including `MIN_VALUE`?** Convert to `BigInteger` before calling `abs()`.
+- **Argument is the result of addition/subtraction/multiplication?** Check **overflow of the intermediate expression**, not just calling `absExact` afterward.
+- **Goal is an index/bucket in `0..n-1`?** Consider `Math.floorMod(x,n)` with `n>0`, following the algorithm's mapping policy.
+- **Values might be floating-point?** Do not apply integer `MIN_VALUE` rules to `float`/`double`; define handling for `NaN`, infinity, and signed zero.
+- **Testing:** include `MIN_VALUE`, `MIN_VALUE+1`, `-1`, `0`, `1`, `MAX_VALUE`, and intermediate expressions that can overflow.
 
-**Điểm cốt lõi:** `Math.abs` trên `int`/`long` không cam kết mọi kết quả đều không âm; giá trị MIN_VALUE là ngoại lệ do miền bù hai bất đối xứng. `Math.absExact` báo lỗi khi trị tuyệt đối không vừa kiểu; khi cần giá trị chính xác vượt miền, hãy đổi sang kiểu đủ rộng **trước khi thực hiện phép tính**.
+**Core takeaway:** `Math.abs` on `int`/`long` does not guarantee every result is non-negative; `MIN_VALUE` is an exception due to the asymmetric two's complement range. `Math.absExact` reports an error when the absolute value does not fit in the type; when you need exact values beyond the range, switch to a sufficiently wide type **before performing the operation**.

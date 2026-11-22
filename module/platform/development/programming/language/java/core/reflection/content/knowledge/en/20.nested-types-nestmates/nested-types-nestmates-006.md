@@ -1,63 +1,63 @@
-# getNestHost, getNestMembers và isNestmateOf trong Java Reflection
+# getNestHost, getNestMembers, and isNestmateOf in Java Reflection
 
-## 1. Nest và nestmate là gì?
+## 1. What are a nest and a nestmate?
 
-Từ Java 11, JVM hỗ trợ **nest-based access control**: một nhóm class/interface cùng *nest* có thể truy cập trực tiếp các thành viên `private` của nhau khi quy tắc truy cập Java cho phép. Trong nhóm này:
+Since Java 11, the JVM supports **nest-based access control**: a group of classes/interfaces in the same *nest* can directly access each other's `private` members when Java access rules permit. Within this group:
 
-- **Nest host** là class/interface chủ của nest.
-- **Nest members** gồm host và các class/interface được JVM xác nhận thuộc nest ấy.
-- Hai kiểu là **nestmates** nếu chúng có cùng nest host.
+- **Nest host** is the owning class/interface of the nest.
+- **Nest members** consist of the host and the classes/interfaces verified by the JVM as belonging to that nest.
+- Two types are **nestmates** if they share the same nest host.
 
-Khi biên dịch mã Java thông thường, compiler thường chọn class ngoài cùng (*top-level class*) làm host; các class/interface lồng trong nó, kể cả nhiều tầng, được ghi nhận là thành viên. Đây là khái niệm ở **mức class file và JVM**, không đơn thuần là quan hệ thụt lề hoặc từ khóa `static` trong mã nguồn.
+When compiling normal Java code, the compiler usually selects the outermost class (*top-level class*) as the host; classes/interfaces nested inside it, even across multiple levels, are recorded as members. This is a concept at the **class file and JVM level**, not simply indentation or the `static` keyword in source code.
 
-Ví dụ cấu trúc:
+Structure example:
 
 ```text
 Outer                         ← nest host
 ├── Outer$Inner               ← member
-├── Outer$Inner$Deep          ← member, host vẫn là Outer
+├── Outer$Inner$Deep          ← member, host is still Outer
 └── Outer$Helper              ← member
 
-AnotherTopLevel              ← nest khác, dù ở cùng package
+AnotherTopLevel              ← different nest, even in the same package
 ```
 
-Mỗi class/interface thuộc đúng một nest. Một class độc lập thường là host của **nest chỉ có chính nó**. Các API trong bài nằm trên `java.lang.Class` và có từ **Java 11**.
+Every class/interface belongs to exactly one nest. A standalone class is typically the host of a **nest containing only itself**. The APIs in this lesson are on `java.lang.Class` and have existed since **Java 11**.
 
-### Nest tồn tại để làm gì?
+### Why do nests exist?
 
-Trước Java 11, compiler đôi khi cần sinh phương thức cầu nối tổng hợp (*synthetic accessor*) để bytecode của lớp lồng truy cập `private` của lớp bao ngoài. Từ Java 11, JVM nhận biết quan hệ nest và cho phép truy cập `private` giữa những kiểu thật sự là nestmates, giảm nhu cầu sinh accessor kiểu đó. Cơ chế này vẫn tuân theo kiểm tra truy cập của JVM; nó không khiến mọi class trong cùng package hoặc cùng tên ngoài trở thành nestmate.
+Before Java 11, the compiler sometimes had to generate synthetic bridge methods (*synthetic accessors*) so that bytecode of a nested class could access `private` members of an enclosing class. Starting in Java 11, the JVM recognizes nest relationships and allows `private` access between types that are genuinely nestmates, reducing the need to generate such accessors. This mechanism still obeys JVM access checks; it does not make every class in the same package or with the same outer prefix a nestmate.
 
-Trong class file, thông tin thường được biểu diễn bởi:
+In class files, the information is normally represented by:
 
-- `NestMembers`: đặt trên host, khai báo các ứng viên thành viên được host cho phép.
-- `NestHost`: đặt trên member, trỏ về host.
+- `NestMembers`: placed on the host, declaring candidate members permitted by the host.
+- `NestHost`: placed on a member, pointing to the host.
 
-JVM kiểm tra sự phù hợp của thông tin này, bao gồm việc các kiểu thuộc cùng *runtime package* (tên package **và** class loader định nghĩa phù hợp) và host xác nhận member. Chỉ khai báo một chiều hoặc chỉ có cùng package là chưa đủ.
+The JVM validates the consistency of this information, including that the types belong to the same *runtime package* (matching package name **and** defining class loader) and that the host confirms the member. One-way declaration or merely sharing the same package is not enough.
 
-## 2. So sánh nhanh ba phương thức
+## 2. Quick comparison of the three methods
 
-| Phương thức | Kiểu trả về | Câu hỏi nó trả lời | Điểm cần nhớ |
+| Method | Return type | Question it answers | Key point to remember |
 |---|---|---|---|
-| `Class<?> getNestHost()` | `Class<?>` | Kiểu này thuộc nest có host là ai? | Host của chính nó thì trả về chính `Class` ấy. |
-| `Class<?>[] getNestMembers()` | Mảng `Class<?>` | JVM xác nhận những kiểu nào cùng nest? | Phần tử đầu là host; các phần tử sau không có thứ tự được bảo đảm. |
-| `boolean isNestmateOf(Class<?> c)` | `boolean` | Kiểu hiện tại và `c` có cùng host không? | So sánh quan hệ nest giữa **hai kiểu**; tham số `null` gây `NullPointerException`. |
+| `Class<?> getNestHost()` | `Class<?>` | Which host's nest does this type belong to? | If it is its own host, returns that same `Class`. |
+| `Class<?>[] getNestMembers()` | `Class<?>[]` array | Which types does the JVM confirm are in the same nest? | Element 0 is the host; subsequent elements have no guaranteed order. |
+| `boolean isNestmateOf(Class<?> c)` | `boolean` | Do the current type and `c` share the same host? | Compares the nest relationship between **two types**; a `null` argument throws `NullPointerException`. |
 
-Cả ba là **instance method của đối tượng `Class`**; ví dụ `Reader.class.getNestHost()`. Chúng trả về metadata của kiểu tại runtime, không phải instance của kiểu đó.
+All three are **instance methods of a `Class` object**; for example, `Reader.class.getNestHost()`. They return runtime metadata of the type, not an instance of that type.
 
-## 3. `getNestHost()`: xác định nest host
+## 3. `getNestHost()`: determining the nest host
 
-Chữ ký:
+Signature:
 
 ```java
 public Class<?> getNestHost()
 ```
 
-- Nếu gọi trên member lồng thông thường, kết quả là class ngoài cùng làm host.
-- Nếu gọi trên host, kết quả chính là host.
-- Class/interface độc lập thông thường có nest chỉ gồm chính nó nên kết quả cũng là chính nó.
-- Với `int.class`, `void.class` và các array class như `String[].class`, API trả về chính đối tượng `Class` được gọi. Mỗi kiểu như vậy được xem là nest một phần tử.
+- When called on a regular nested member, the result is the outermost class acting as host.
+- When called on the host, the result is the host itself.
+- A normal standalone class/interface has a nest consisting only of itself, so the result is itself.
+- For `int.class`, `void.class`, and array classes like `String[].class`, the API returns the receiver `Class` object itself. Each such type is treated as a single-element nest.
 
-Ví dụ ngắn:
+Short example:
 
 ```java
 class Box {
@@ -73,7 +73,7 @@ class Check {
 }
 ```
 
-Lưu thành `Check.java` (chỉ `Check` có `main`), chạy `javac Check.java` rồi `java Check`, kết quả:
+Save as `Check.java` (only `Check` has `main`), run `javac Check.java` then `java Check`, output:
 
 ```text
 true
@@ -81,50 +81,50 @@ true
 true
 ```
 
-Kết quả host **không nhất thiết là** `getDeclaringClass()` hoặc `getEnclosingClass()`. Chẳng hạn `Outer.Inner.Deep.class.getDeclaringClass()` trả về `Outer.Inner.class`, nhưng host thường là `Outer.class`.
+The host result **is not necessarily** `getDeclaringClass()` or `getEnclosingClass()`. For instance, `Outer.Inner.Deep.class.getDeclaringClass()` returns `Outer.Inner.class`, yet the host is typically `Outer.class`.
 
-## 4. `getNestMembers()`: liệt kê các kiểu cùng nest
+## 4. `getNestMembers()`: listing types in the same nest
 
-Chữ ký:
+Signature:
 
 ```java
 public Class<?>[] getNestMembers()
 ```
 
-Phương thức trước tiên xác định host `H`, rồi trả về mảng có `H` ở **vị trí 0** và các thành viên được `H` ghi nhận mà JVM xác minh được. Gọi phương thức từ host hoặc từ member cùng nest đều nhằm mô tả nest ấy.
+The method first determines the host `H`, then returns an array with `H` at **index 0** and the members recorded by `H` that the JVM can verify. Calling the method from the host or from a member of the same nest both describe that nest.
 
-Những chi tiết dễ bị bỏ sót:
+Details easily overlooked:
 
-1. `result[0]` là host, nhưng **thứ tự những phần tử còn lại không được bảo đảm**. API còn cho phép phần tử trùng lặp; đừng dùng vị trí hoặc số lượng như một giao ước ứng dụng.
-2. Không phải mọi tên ghi trong metadata nhất thiết xuất hiện trong kết quả. JVM cố nạp/xác minh từng ứng viên và chỉ đưa vào những kiểu được xác nhận thuộc nest.
-3. Nếu kiểu có nest một phần tử, mảng chỉ chứa chính kiểu đó. Với primitive, array và `void` cũng vậy.
-4. **Hidden classes** được thêm vào nest bằng `MethodHandles.Lookup.defineHiddenClass` không xuất hiện trong mảng chỉ dựa trên `NestMembers`. Vì thế `getNestMembers()` không phải API liệt kê tuyệt đối mọi lớp động ở runtime.
-5. Để hiển thị hoặc so sánh danh sách, nên dùng tên lớp, sắp xếp hoặc tập hợp khi phù hợp, thay vì phụ thuộc vào thứ tự gốc của mảng.
+1. `result[0]` is the host, but **the order of the remaining elements is not guaranteed**. The API even allows duplicate elements; do not use positions or counts as an application contract.
+2. Not every name recorded in metadata necessarily appears in the result. The JVM attempts to load/verify each candidate and includes only types confirmed to belong to the nest.
+3. If a type has a single-element nest, the array contains only that type. The same holds for primitives, arrays, and `void`.
+4. **Hidden classes** added to a nest via `MethodHandles.Lookup.defineHiddenClass` do not appear in the array based solely on `NestMembers`. Thus `getNestMembers()` is not an API for exhaustively listing every dynamic class at runtime.
+5. To display or compare the list, use class names, sorting, or sets as appropriate, rather than depending on the raw array order.
 
-`getNestMembers()` khác `getDeclaredClasses()`. Phương thức thứ hai mô tả các member class/interface khai báo **trực tiếp** trong một class và không phải là phép liệt kê toàn bộ nest. Nest có thể chứa lớp lồng nhiều tầng, local class hoặc anonymous class do compiler đưa vào.
+`getNestMembers()` differs from `getDeclaredClasses()`. The latter describes member classes/interfaces declared **directly** inside a class and is not an enumeration of the entire nest. A nest can include multi-level nested classes, local classes, or anonymous classes emitted by the compiler.
 
-## 5. `isNestmateOf(Class<?> c)`: kiểm tra quan hệ giữa hai kiểu
+## 5. `isNestmateOf(Class<?> c)`: checking the relationship between two types
 
-Chữ ký:
+Signature:
 
 ```java
 public boolean isNestmateOf(Class<?> c)
 ```
 
-Kết quả là `true` nếu hai kiểu cùng nest host; nếu không thì `false`.
+The result is `true` if the two types share the same nest host; otherwise `false`.
 
-- Member với member cùng host: `true`.
-- Host với member của nó: `true`.
-- Một kiểu với chính nó: `true`.
-- Hai top-level class khác nhau trong cùng package: thông thường `false` vì mỗi class có host riêng.
-- Hai kiểu chỉ có quan hệ kế thừa cha–con: **không mặc nhiên** là nestmates.
-- Gọi `SomeClass.class.isNestmateOf(null)` ném `NullPointerException`.
+- Member with member of the same host: `true`.
+- Host with its member: `true`.
+- A type with itself: `true`.
+- Two different top-level classes in the same package: normally `false` because each class has its own host.
+- Two types with only a parent–child inheritance relationship: **not automatically** nestmates.
+- Calling `SomeClass.class.isNestmateOf(null)` throws `NullPointerException`.
 
-Điều kiện về nest được quyết định bởi metadata/JVM, không bằng phép so sánh `getSimpleName()`, vị trí trong package hoặc chuỗi chứa ký tự `$` của tên class.
+The nest condition is determined by metadata/JVM, not by comparing `getSimpleName()`, package placement, or strings containing `$` in the class name.
 
-## 6. Ví dụ tổng hợp chạy được trên Java 17+
+## 6. Combined runnable example on Java 17+
 
-Tạo file **`NestDemo.java`** với nội dung:
+Create **`NestDemo.java`** with the content:
 
 ```java
 import java.util.Arrays;
@@ -134,7 +134,7 @@ public class NestDemo {
 
     static class Reader {
         String read() {
-            return KEY; // Reader truy cập private của host
+            return KEY; // Reader accesses private member of host
         }
     }
 
@@ -170,18 +170,18 @@ public class NestDemo {
     }
 }
 
-// Cùng file và cùng package, nhưng là top-level class khác.
+// Same file and same package, but a different top-level class.
 class Unrelated {}
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 NestDemo.java
 java NestDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Host of Reader: NestDemo
@@ -197,36 +197,36 @@ All declared nest members:
 - NestDemo$Writer
 ```
 
-**Giải thích kết quả:**
+**Explaining the output:**
 
-- `Reader` và `Writer` là hai member class của `NestDemo`, có chung nest host `NestDemo`; vì vậy `isNestmateOf` trả về `true`.
-- `Reader.read()` truy cập trường `private static KEY` của host. Ngược lại, phương thức `main` trên host đọc trường `private key` của `Writer`; cả hai truy cập đều hợp lệ.
-- `Unrelated` là một top-level class riêng. Việc nó được khai báo trong **cùng file `.java` và cùng package** không làm nó thuộc nest của `NestDemo`.
-- `String` thuộc nest khác, nên kiểm tra cũng trả về `false`.
-- Danh sách được sắp theo tên bằng `sorted()` để kết quả minh họa cố định. `getNestMembers()` **không tự bảo đảm** thứ tự sau host.
-- Mỗi kiểu `NestDemo`, `Reader`, `Writer` là một `Class<?>` riêng, nhưng đều báo cùng host.
+- `Reader` and `Writer` are two member classes of `NestDemo` sharing the nest host `NestDemo`; therefore `isNestmateOf` returns `true`.
+- `Reader.read()` accesses the `private static` field `KEY` of the host. Conversely, `main` on the host reads the `private` field `key` of `Writer`; both accesses are valid.
+- `Unrelated` is a separate top-level class. Being declared in **the same `.java` file and the same package** does not place it in `NestDemo`'s nest.
+- `String` belongs to a different nest, so the check also returns `false`.
+- The list is sorted by name using `sorted()` so the illustrative output is deterministic. `getNestMembers()` **does not guarantee** ordering after the host.
+- Each type `NestDemo`, `Reader`, and `Writer` is a separate `Class<?>`, yet all report the same host.
 
-Để quan sát class file, chạy:
+To inspect the class files, run:
 
 ```bash
 javap -v NestDemo
 javap -v 'NestDemo$Reader'
 ```
 
-Trong kết quả `javap`, tìm `NestMembers` trên `NestDemo` và `NestHost` trên `NestDemo$Reader`. Trên Windows PowerShell, giữ dấu nháy đơn quanh tên có `$` để shell không diễn giải thành biến. Đây là bằng chứng ở bytecode cho quan hệ nest; nội dung đầy đủ của `javap` phụ thuộc phiên bản compiler.
+In the `javap` output, look for `NestMembers` on `NestDemo` and `NestHost` on `NestDemo$Reader`. On Windows PowerShell, keep single quotes around names containing `$` so the shell does not interpret them as variables. This is bytecode evidence of the nest relationship; the full `javap` output depends on the compiler version.
 
-## 7. Nest so với cấu trúc lồng trong mã nguồn
+## 7. Nest vs nesting structure in source code
 
-Ba API dễ bị nhầm lẫn:
+Four APIs are easily confused:
 
-| API | Ý nghĩa |
+| API | Meaning |
 |---|---|
-| `getNestHost()` | Host theo quy tắc nest của JVM. |
-| `getDeclaringClass()` | Kiểu trực tiếp **khai báo** một member class/interface; `null` với kiểu không phải member class. |
-| `getEnclosingClass()` | Kiểu bao quanh về mặt ngữ cảnh khai báo, hữu ích cả với local/anonymous class. |
-| `getDeclaredClasses()` | Những member class/interface khai báo trực tiếp bên trong kiểu đang xét. |
+| `getNestHost()` | Host according to JVM nest rules. |
+| `getDeclaringClass()` | Type that directly **declares** a member class/interface; `null` for non-member types. |
+| `getEnclosingClass()` | Enclosing type in terms of declaration context, also useful for local/anonymous classes. |
+| `getDeclaredClasses()` | Member classes/interfaces declared directly inside the type under inspection. |
 
-Với cấu trúc:
+With the structure:
 
 ```java
 class Outer {
@@ -236,7 +236,7 @@ class Outer {
 }
 ```
 
-Các biểu thức sau đúng khi biên dịch thông thường trên Java 17:
+The following expressions are true under normal compilation on Java 17:
 
 ```java
 Outer.Inner.Deep.class.getDeclaringClass() == Outer.Inner.class
@@ -244,9 +244,9 @@ Outer.Inner.Deep.class.getNestHost() == Outer.class
 Outer.Inner.class.isNestmateOf(Outer.Inner.Deep.class)
 ```
 
-Cả ba đều có giá trị `true`. Ví dụ trên là **các biểu thức minh họa** (không phải một file Java độc lập có `main`).
+All three evaluate to `true`. The above example consists of **illustrative expressions** (not a standalone Java file with `main`).
 
-Local class và anonymous class cũng thường được compiler gán nest host là class ngoài cùng tương ứng. Để kiểm chứng bằng chương trình độc lập, tạo **`LocalNest.java`**:
+Local classes and anonymous classes are also usually assigned the corresponding outermost class as their nest host by the compiler. To verify with a standalone program, create **`LocalNest.java`**:
 
 ```java
 public class LocalNest {
@@ -269,69 +269,69 @@ public class LocalNest {
 }
 ```
 
-Chạy `javac --release 17 LocalNest.java` rồi `java LocalNest`, kết quả:
+Run `javac --release 17 LocalNest.java` then `java LocalNest`, output:
 
 ```text
 true
 true
 ```
 
-Do đó, không nên suy luận rằng `getNestMembers()` chỉ có nested class được viết bằng cú pháp member class. Danh sách thực tế dựa trên những class file đã được sinh và được JVM xác minh.
+Therefore, you should not infer that `getNestMembers()` only contains nested classes written with member-class syntax. The actual list is based on the generated class files verified by the JVM.
 
-## 8. Các tình huống đặc biệt và giới hạn
+## 8. Special cases and limitations
 
-**Primitive, array, `void`:** mỗi kiểu này được coi là nest riêng; ví dụ `String[].class.getNestHost() == String[].class` là `true`, còn `String[].class.isNestmateOf(String.class)` là `false`. Đừng hiểu “array của String” đồng nghĩa là nestmate của `String`.
+**Primitive, array, `void`:** each of these types is considered its own nest; for example, `String[].class.getNestHost() == String[].class` is `true`, whereas `String[].class.isNestmateOf(String.class)` is `false`. Do not treat “array of String” as a nestmate of `String`.
 
-**Class loader:** hai kiểu nhìn như cùng package theo tên văn bản vẫn có thể khác *runtime package* nếu được định nghĩa bởi class loader khác. Quy tắc nest không vượt qua ranh giới runtime package. Với framework nạp/biến đổi bytecode, kiểm tra quan hệ nest qua API thực tế an toàn hơn suy đoán từ tên class.
+**Class loader:** two types that look like they are in the same package by text name can still belong to different *runtime packages* if defined by different class loaders. Nest rules do not cross runtime package boundaries. For frameworks that load or transform bytecode, checking nest relationships via the actual API is safer than guessing from class names.
 
-**Class file không nhất quán:** nếu bytecode bị biến đổi khiến `NestHost`/`NestMembers` không phù hợp, quá trình xác định nest/truy cập `private` có thể thất bại hoặc kiểu bị xem như singleton nest tùy điều kiện xác minh. Cần kiểm tra bytecode thực tế, class loader và thông báo JVM thay vì kết luận từ tên class.
+**Inconsistent class files:** if bytecode is transformed so that `NestHost`/`NestMembers` do not match, nest resolution/`private` access may fail or the type may be treated as a singleton nest depending on verification conditions. Inspect the actual bytecode, class loader, and JVM messages instead of concluding from class names.
 
-**Hidden class:** một hidden class có thể được định nghĩa với quyền nestmate theo `Lookup.defineHiddenClass` và tùy chọn `NESTMATE`, nhưng không được bảo đảm xuất hiện trong `getNestMembers()` của host. Không dùng API này làm cơ chế khám phá đầy đủ mọi class động của một framework.
+**Hidden class:** a hidden class can be defined with nestmate rights via `Lookup.defineHiddenClass` and the `NESTMATE` option, but is not guaranteed to appear in the host's `getNestMembers()`. Do not use this API as a complete discovery mechanism for all dynamic classes in a framework.
 
-**Reflection không mở khóa truy cập vô điều kiện:** `isNestmateOf` chỉ cho biết quan hệ nest; nó không tự cấp quyền cho mã ở một class khác gọi mọi method `private` bằng `Method.invoke`. Quyền truy cập phản chiếu còn phụ thuộc caller, thành viên, `AccessibleObject` và quy tắc module/encapsulation. Nếu muốn gọi method private, cần kiểm tra quyền của chính thao tác reflection đó.
+**Reflection does not unconditionally unlock access:** `isNestmateOf` only reports the nest relationship; it does not automatically grant code in another class permission to invoke any `private` method via `Method.invoke`. Reflective access still depends on the caller, the member, `AccessibleObject`, and module/encapsulation rules. To invoke a private method, check the permissions of that reflection operation itself.
 
-## 9. Cách dùng trong thực tế
+## 9. Practical usage
 
-1. **Phân tích cấu trúc class:** gọi `getNestHost()` khi cần biết một member class, local class hay anonymous class thuộc host nào trong runtime.
-2. **Chẩn đoán công cụ sinh/biến đổi bytecode:** kết hợp `javap -v` với `getNestMembers()` và `isNestmateOf()` để xác nhận compiler hoặc enhancer đã duy trì thông tin nest hợp lệ.
-3. **Điều tra lỗi truy cập `private`:** nếu hai kiểu dự kiến là nestmate nhưng kiểm tra trả về `false`, rà soát class file, package, class loader và cách tạo kiểu động.
-4. **Hiển thị metadata:** dùng `getNestMembers()` rồi sắp xếp/deduplicate theo nhu cầu hiển thị; tránh dựa vào thứ tự và đếm phần tử gốc.
+1. **Class structure analysis:** call `getNestHost()` when you need to know which host a member class, local class, or anonymous class belongs to at runtime.
+2. **Diagnosing bytecode generation/transformation tools:** combine `javap -v` with `getNestMembers()` and `isNestmateOf()` to confirm that a compiler or enhancer preserved valid nest information.
+3. **Investigating `private` access errors:** if two types are expected to be nestmates yet the check returns `false`, examine the class files, package, class loader, and dynamic type creation.
+4. **Displaying metadata:** use `getNestMembers()` and then sort/deduplicate as needed for display; avoid relying on the raw order or element count.
 
-Ví dụ helper kiểm tra quan hệ theo API trực tiếp:
+Example helper checking the relationship via the direct API:
 
 ```java
 static boolean shareNest(Class<?> first, Class<?> second) {
     if (first == null || second == null) {
-        return false; // chính sách của helper; API isNestmateOf(null) ném NPE
+        return false; // helper policy; isNestmateOf(null) API throws NPE
     }
     return first.isNestmateOf(second);
 }
 ```
 
-Helper chỉ minh họa chính sách đầu vào `null` của ứng dụng và phải đặt trong một class để biên dịch; nó không thay đổi hợp đồng của API JVM.
+The helper only illustrates an application's `null`-input policy and must be placed inside a class to compile; it does not alter the JVM API contract.
 
-## 10. Lỗi hiểu sai thường gặp
+## 10. Common misconceptions
 
-- **“Hai lớp cùng package là nestmates.”** Sai: cùng package chỉ là một điều kiện liên quan; thông tin host/member còn phải khớp.
-- **“Class con luôn cùng nest với class cha.”** Sai: quan hệ kế thừa và quan hệ nest độc lập.
-- **“`getNestHost()` luôn trả về class bao trực tiếp.”** Sai: lớp lồng nhiều tầng thường vẫn có host là top-level class.
-- **“`getNestMembers()[1]` luôn là lớp lồng đầu tiên.”** Sai: chỉ phần tử 0 được bảo đảm là host; các phần tử sau có thứ tự không xác định.
-- **“`getNestMembers()` liệt kê hết mọi hidden class.”** Sai: hidden class thêm qua `defineHiddenClass` không nằm trong danh sách `NestMembers` phản ánh bởi API.
-- **“Kiểm tra `isNestmateOf()` bằng `true` là có thể bypass private trên mọi đối tượng.”** Sai: quan hệ nest không vô hiệu hóa quy tắc kiểm tra truy cập hoặc cơ chế đóng gói module.
-- **“Mọi nested class có host khác nhau.”** Sai: các member của cùng nest chia sẻ một host.
+- **“Two classes in the same package are nestmates.”** False: being in the same package is only one related condition; host/member metadata must also match.
+- **“A subclass is always in the same nest as its superclass.”** False: inheritance and nest relationships are independent.
+- **“`getNestHost()` always returns the immediately enclosing class.”** False: multi-level nested classes still typically have the top-level class as their host.
+- **“`getNestMembers()[1]` is always the first nested class.”** False: only element 0 is guaranteed to be the host; subsequent elements have unspecified order.
+- **“`getNestMembers()` lists all hidden classes.”** False: hidden classes added via `defineHiddenClass` are not in the `NestMembers` list reflected by the API.
+- **“Checking `isNestmateOf()` equals `true` lets you bypass private on any object.”** False: the nest relationship does not disable access-checking rules or module encapsulation.
+- **“Every nested class has a different host.”** False: members of the same nest share one host.
 
-## 11. Tự kiểm tra kiến thức
+## 11. Self-check
 
-1. Vì sao `Outer.Inner.Deep.class.getNestHost()` thường trả về `Outer.class` thay vì `Outer.Inner.class`?
-2. Tại sao hai top-level class trong cùng `.java` thường không phải nestmates?
-3. Khi in `getNestMembers()`, vì sao cần sắp xếp nếu muốn kết quả tái lập?
-4. Khi dùng runtime code generation, vì sao không thể dùng `getNestMembers()` để liệt kê chắc chắn mọi hidden class?
-5. Nestmate liên quan thế nào đến truy cập `private`, và vì sao nó không thay cho kiểm tra quyền Reflection?
+1. Why does `Outer.Inner.Deep.class.getNestHost()` typically return `Outer.class` instead of `Outer.Inner.class`?
+2. Why are two top-level classes in the same `.java` file typically not nestmates?
+3. When printing `getNestMembers()`, why do you need to sort if you want reproducible output?
+4. When using runtime code generation, why can't you use `getNestMembers()` to reliably list every hidden class?
+5. How do nestmates relate to `private` access, and why do they not replace Reflection access checks?
 
-**Ghi nhớ:** `getNestHost()` hỏi **host là ai**; `getNestMembers()` hỏi **những member nào được xác nhận trong nest**; `isNestmateOf(c)` hỏi **hai kiểu có chung host không**. Cả ba phản ánh quan hệ nest ở JVM (Java 11+), không thể suy ra chỉ từ package, kế thừa hoặc tên class.
+**Takeaway:** `getNestHost()` asks **who is the host**; `getNestMembers()` asks **which members are verified in the nest**; `isNestmateOf(c)` asks **do two types share the same host**. All three reflect JVM nest relationships (Java 11+) and cannot be inferred solely from package, inheritance, or class name.
 
-## Tài liệu chuẩn
+## Official references
 
 - [Java SE 17 — `Class.getNestHost`, `Class.getNestMembers`, `Class.isNestmateOf`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html)
-- [JVMS 17 — `NestHost`/`NestMembers` và quy tắc nestmate access control](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-5.html)
-- [JVMS 17 — Class File Format, Nest Attributes](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-4.html)
+- [JVMS 17 — `NestHost`/`NestMembers` and nestmate access control rules](https://docs.oracle.com/en/java/javase/17/docs/specs/jvms/se17/html/jvms-5.html)
+- [JVMS 17 — Class File Format, Nest Attributes](https://docs.oracle.com/en/java/javase/17/docs/specs/jvms/se17/html/jvms-4.html)

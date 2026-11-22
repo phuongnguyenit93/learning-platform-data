@@ -1,32 +1,32 @@
-# Ép kiểu trước phép chia để nhận kết quả số thực trong Java
+# Casting Before Division to Get a Floating-Point Result in Java
 
-> **Java core — language-basics / Số học**  
-> **Môi trường:** JDK 17+; ví dụ một file Java độc lập, không cần thư viện ngoài.  
-> **Mục tiêu:** Phân biệt phép chia nguyên với phép chia số thực; biết vì sao cần chuyển **toán hạng** sang `double`/`float` **trước dấu chia**, không phải ép kiểu kết quả sau khi phần lẻ đã mất.
+> **Java core — language-basics / Arithmetic**  
+> **Environment:** JDK 17+; standalone single-file Java examples, no external libraries required.  
+> **Objectives:** Distinguish integer division from floating-point division; understand why you must convert **an operand** to `double`/`float` **before the division operator**, rather than casting the result after the fractional part has already been lost.
 
-## 1. Vì sao `7 / 2` không phải `3.5`?
+## 1. Why Isn't `7 / 2` Equal to `3.5`?
 
-Khi **hai toán hạng của `/` đều là kiểu số nguyên**, Java thực hiện phép **chia nguyên**, bỏ phần lẻ theo hướng về 0:
+When **both operands of `/` are integer types**, Java performs **integer division**, dropping the fractional part toward zero:
 
 ~~~java
 int a = 7;
 int b = 2;
-int quotient = a / b; // 3, không phải 3.5.
+int quotient = a / b; // 3, not 3.5.
 ~~~
 
-Kể cả khi gán vào `double`, phép chia vẫn được thực hiện **trước phép gán**:
+Even when assigned to a `double`, the division is still performed **before the assignment**:
 
 ~~~java
-double misleading = a / b; // 3.0, không phải 3.5.
+double misleading = a / b; // 3.0, not 3.5.
 ~~~
 
-Trình tự là: `a / b` có **kiểu `int`**, tính ra `3`; sau đó Java mới mở rộng `int 3` thành `double 3.0` để gán. Kiểu biến đích **không quay ngược lại để đổi phép toán đã xảy ra**.
+The sequence is: `a / b` has **type `int`**, evaluates to `3`; only then does Java widen `int 3` to `double 3.0` for assignment. The target variable's type **does not go back and change the operation that already happened**.
 
-Với `byte`, `short` hoặc `char`, Java còn nâng toán hạng nhỏ lên `int` qua *binary numeric promotion*, nên `byte / byte` cũng cho kết quả nguyên kiểu `int`.
+With `byte`, `short`, or `char`, Java also promotes small operands to `int` via *binary numeric promotion*, so `byte / byte` also produces an integer result of type `int`.
 
-## 2. Ép kiểu **trước** dấu chia mới giữ được phần lẻ
+## 2. Casting **Before** the Division Operator Preserves the Fractional Part
 
-Muốn `7 / 2` ra `3.5`, hãy đổi **ít nhất một toán hạng** sang kiểu số thực **trước khi toán tử `/` chạy**:
+To make `7 / 2` evaluate to `3.5`, convert **at least one operand** to a floating-point type **before the `/` operator runs**:
 
 ~~~java
 int a = 7;
@@ -34,49 +34,49 @@ int b = 2;
 
 double r1 = (double) a / b; // 3.5
 double r2 = a / (double) b; // 3.5
-double r3 = a / 2.0;        // 3.5: literal 2.0 là double.
-float  r4 = (float) a / b;  // 3.5f: kiểu biểu thức là float.
+double r3 = a / 2.0;        // 3.5: literal 2.0 is a double.
+float  r4 = (float) a / b;  // 3.5f: expression type is float.
 ~~~
 
-Quy tắc *binary numeric promotion* của toán tử `/` chọn kiểu chung: nếu có toán hạng `double` thì phép chia là `double`; nếu không có `double` nhưng có `float` thì phép chia là `float`; với các toán hạng nguyên, kết quả là `long` nếu có `long`, nếu không là `int`.
+The `/` operator's *binary numeric promotion* rule chooses the common type: if there is a `double` operand, the division is `double`; if there is no `double` but there is a `float`, the division is `float`; for integer operands, the result is `long` if `long` is present, otherwise `int`.
 
-**Điểm cốt lõi:** `(double) a / b` biến `a` thành `double` **trước khi chia**. `a / (double) b` tương tự. Chỉ cần một toán hạng là số thực, không cần cast cả hai.
+**Key point:** `(double) a / b` turns `a` into a `double` **before dividing**. `a / (double) b` works the same way. Only one operand needs to be floating-point; you do not need to cast both.
 
-## 3. Ép kiểu **sau** phép chia không khôi phục được phần lẻ
+## 3. Casting **After** Division Cannot Restore the Fractional Part
 
-Ba biểu thức trông gần giống nhưng khác kết quả:
+Three similar-looking expressions produce different results:
 
-| Biểu thức khi `a = 7`, `b = 2` | Kiểu phép chia | Kết quả |
+| Expression when `a = 7`, `b = 2` | Division Type | Result |
 | --- | --- | --- |
 | `a / b` | `int` | `3` |
-| `double result = a / b;` | `int`, rồi mở rộng khi gán | `3.0` |
-| `(double) (a / b)` | `int`, rồi cast kết quả | `3.0` |
+| `double result = a / b;` | `int`, then widened on assignment | `3.0` |
+| `(double) (a / b)` | `int`, then cast result | `3.0` |
 | `(double) a / b` | `double` | `3.5` |
 | `a / (double) b` | `double` | `3.5` |
 | `a / 2.0` | `double` | `3.5` |
 | `(float) a / b` | `float` | `3.5f` |
 
-Quan sát vị trí dấu ngoặc:
+Observe the placement of parentheses:
 
 ~~~java
-double wrong = (double) (a / b); // Cast sau: 3.0.
-double right = ((double) a) / b; // Cast trước: 3.5.
+double wrong = (double) (a / b); // Cast after: 3.0.
+double right = ((double) a) / b; // Cast before: 3.5.
 ~~~
 
-`(double)(a / b)` không phải “ép kiểu trước phép chia” chỉ vì chữ `(double)` nằm ở đầu dòng: toàn bộ `a / b` nằm **trong ngoặc**, nên bị tính như số nguyên rồi mới cast.
+`(double)(a / b)` is not "casting before division" just because `(double)` appears at the beginning of the line: all of `a / b` is **inside parentheses**, so it is computed as an integer first and only then cast.
 
-Một bẫy tương tự là thứ tự phép nhân:
+A similar trap is the order of multiplication:
 
 ~~~java
-double wrongAgain = a / b * 1.0; // 3.0: chia nguyên trước.
-double rightAgain = a * 1.0 / b; // 3.5: nhân với double trước.
+double wrongAgain = a / b * 1.0; // 3.0: integer division first.
+double rightAgain = a * 1.0 / b; // 3.5: multiply by double first.
 ~~~
 
-Dùng `(double) a / b` thường biểu đạt mục đích trực tiếp hơn `a * 1.0 / b`.
+Using `(double) a / b` usually expresses intent more directly than `a * 1.0 / b`.
 
-## 4. Số âm, `long` và kiểu nguyên nhỏ
+## 4. Negative Numbers, `long`, and Small Integer Types
 
-Chia nguyên âm vẫn bỏ phần lẻ theo hướng về **0**, không làm tròn xuống âm vô cực:
+Negative integer division still discards the fractional part toward **0**, rather than rounding down toward negative infinity:
 
 ~~~java
 int negative = -7;
@@ -84,7 +84,7 @@ System.out.println(negative / 2);           // -3
 System.out.println((double) negative / 2);  // -3.5
 ~~~
 
-Số nguyên `long` cũng là **kiểu nguyên**, nên `9L / 4L` cho **2**, không phải `2.25`:
+The `long` integer type is also an **integer type**, so `9L / 4L` gives **2**, not `2.25`:
 
 ~~~java
 long total = 9L;
@@ -92,20 +92,20 @@ long parts = 4L;
 double average = (double) total / parts; // 2.25.
 ~~~
 
-Tương tự:
+Similarly:
 
 ~~~java
 byte small = 5;
 byte divisor = 2;
-int whole = small / divisor;              // 2 (kiểu int).
+int whole = small / divisor;              // 2 (type int).
 double fraction = (double) small / divisor; // 2.5.
 ~~~
 
-**Lưu ý độ chính xác:** Ép `long` rất lớn sang `double` có thể **làm tròn số nguyên nguồn** trước phép chia (vì `double` chỉ có 53 bit chính xác phần trị). Cast trước giúp tạo kết quả số thực, **không bảo đảm chính xác tuyệt đối** với mọi số lớn.
+**Precision note:** Casting a very large `long` to `double` can **round the source integer** before division (because `double` only has 53 bits of significand precision). Casting beforehand creates a floating-point result, **not a guarantee of exactness** for all large integers.
 
-## 5. Chương trình Java 17+ runnable
+## 5. Runnable Java 17+ Program
 
-Tạo file **CastBeforeDivisionDemo.java**:
+Create the file **CastBeforeDivisionDemo.java**:
 
 ~~~java
 public final class CastBeforeDivisionDemo {
@@ -163,14 +163,14 @@ public final class CastBeforeDivisionDemo {
 }
 ~~~
 
-Tại thư mục chứa file, chạy bằng Bash, PowerShell hoặc Command Prompt:
+In the directory containing the file, run using Bash, PowerShell, or Command Prompt:
 
 ~~~bash
 javac -encoding UTF-8 CastBeforeDivisionDemo.java
 java CastBeforeDivisionDemo
 ~~~
 
-**Expected output chính xác:**
+**Exact expected output:**
 
 ~~~text
 integer=3
@@ -194,16 +194,16 @@ zeroOverZero=NaN
 oneThird=0.3333333333333333
 ~~~
 
-Đối chiếu ba dòng quan trọng: `assignedDouble=3.0` và `castAfter=3.0` cho thấy **phần lẻ đã bị loại bỏ trong phép chia nguyên**; `castBeforeLeft=3.5` cho thấy ép kiểu toán hạng trước dấu `/` đã tạo phép chia số thực.
+Compare three key lines: `assignedDouble=3.0` and `castAfter=3.0` show **the fractional part was discarded in integer division**; `castBeforeLeft=3.5` shows that casting an operand before `/` produced floating-point division.
 
-## 6. Mẫu số bằng 0 và giới hạn của `double`
+## 6. Zero Divisor and Limits of `double`
 
-- Với `int`/`long`, chia hoặc lấy dư cho **0** ném `ArithmeticException`. Phải kiểm tra mẫu số nguyên nếu nó có thể bằng 0.
-- Với `double`/`float`, phép chia cho **0.0** tuân theo số thực IEEE 754: `7.0 / 0.0` cho `Infinity`, `0.0 / 0.0` cho `NaN`, không ném `ArithmeticException`.
-- Nếu hợp đồng yêu cầu giá trị hữu hạn, kiểm tra `Double.isFinite(value)` và quyết định cách xử lý mẫu số 0 theo nghiệp vụ **trước phép chia**.
-- `double` có thể biểu diễn **xấp xỉ** kết quả như `1.0 / 3`, không phải mọi phân số đều chính xác trong hệ nhị phân. Dùng `BigDecimal` kèm `RoundingMode` hoặc `MathContext` khi cần quy tắc độ chính xác thập phân rõ ràng.
+- For `int`/`long`, dividing or taking remainder by **0** throws `ArithmeticException`. You must check an integer divisor if it can be 0.
+- For `double`/`float`, dividing by **0.0** follows IEEE 754 floating-point rules: `7.0 / 0.0` gives `Infinity`, `0.0 / 0.0` gives `NaN`, and does not throw `ArithmeticException`.
+- If the contract requires finite values, check `Double.isFinite(value)` and decide how to handle a zero divisor according to business rules **before dividing**.
+- `double` can represent results like `1.0 / 3` only **approximately**; not every fraction is exact in binary. Use `BigDecimal` with a `RoundingMode` or `MathContext` when explicit decimal precision rules are required.
 
-Ví dụ có guard thay vì chấp nhận `Infinity`:
+Example with a guard instead of accepting `Infinity`:
 
 ~~~java
 static double ratio(int numerator, int denominator) {
@@ -214,29 +214,29 @@ static double ratio(int numerator, int denominator) {
 }
 ~~~
 
-Hàm có kết quả số thực khi mẫu số hợp lệ, nhưng vẫn buộc người gọi xử lý điều kiện chia cho 0 một cách có chủ đích.
+The method produces a floating-point result when the divisor is valid, while still forcing the caller to handle the divide-by-zero condition intentionally.
 
-## 7. Lỗi thường gặp và bài tập
+## 7. Common Mistakes and Exercises
 
-| Sai lầm | Cách sửa |
+| Mistake | Fix |
 | --- | --- |
-| `double result = a / b;` khi a, b là `int` | `double result = (double) a / b;` |
-| `(double) (a / b)` rồi kỳ vọng có phần lẻ | Cast một toán hạng **trước dấu chia** |
-| `a / b * 1.0` và nghĩ phép chia sẽ là số thực | Đưa `1.0` vào trước phép chia hoặc dùng cast |
-| Nghĩ `long / long` tự ra `double` | `long` vẫn là số nguyên; phải cast một toán hạng |
-| Nghĩ cast bảo đảm chính xác mọi số nguyên lớn | `double` vẫn có giới hạn độ chính xác |
-| Nghĩ phép chia số thực cho 0 ném `ArithmeticException` | Số thực có thể ra `Infinity`/`NaN`; cần kiểm tra riêng |
+| `double result = a / b;` when a, b are `int` | `double result = (double) a / b;` |
+| `(double) (a / b)` expecting a fractional part | Cast an operand **before the division operator** |
+| `a / b * 1.0` thinking the division will be floating-point | Put `1.0` before the division or use a cast |
+| Thinking `long / long` automatically yields `double` | `long` is still an integer; you must cast an operand |
+| Thinking casting guarantees exactness for all large integers | `double` still has precision limits |
+| Thinking floating-point division by 0 throws `ArithmeticException` | Floating-point numbers can produce `Infinity`/`NaN`; check separately |
 
-**Bài 1.** Cho `int a = 9, b = 4;`. Dự đoán `a / b`, `(double) (a / b)` và `(double) a / b`.
+**Exercise 1.** Given `int a = 9, b = 4;`. Predict `a / b`, `(double) (a / b)`, and `(double) a / b`.
 
-**Bài 2.** Giải thích vì sao `double d = 7 / 2;` cho 3.0 mà `double d = 7 / 2.0;` cho 3.5.
+**Exercise 2.** Explain why `double d = 7 / 2;` yields 3.0 while `double d = 7 / 2.0;` yields 3.5.
 
-**Bài 3.** Cho `int a = -9, b = 4;`. So sánh chia nguyên `a / b` với `(double) a / b`.
+**Exercise 3.** Given `int a = -9, b = 4;`. Compare integer division `a / b` with `(double) a / b`.
 
-**Bài 4.** Viết hàm tính trung bình từ `int sum` và `int count`, yêu cầu trả `double` và từ chối `count == 0`. Không dùng `(double) (sum / count)`.
+**Exercise 4.** Write a method to compute the average from `int sum` and `int count`, requiring a `double` return value and rejecting `count == 0`. Do not use `(double) (sum / count)`.
 
-**Bài 5.** Cho `long a = 9L, b = 4L;`. Tại sao `double x = a / b;` ra 2.0? Sửa để ra 2.25.
+**Exercise 5.** Given `long a = 9L, b = 4L;`. Why does `double x = a / b;` yield 2.0? Fix it so it yields 2.25.
 
-### Ghi nhớ
+### Key Takeaways
 
-Muốn phép chia hai số nguyên có kết quả số thực, hãy **ép ít nhất một toán hạng sang `double`/`float` trước toán tử `/`**: `(double) a / b` hoặc `a / (double) b`. Ép kiểu **sau** như `(double) (a / b)` chỉ chuyển kết quả nguyên đã mất phần lẻ thành số thực. Luôn xét mẫu số 0 và độ chính xác số thực khi áp dụng vào chương trình thật.
+To make division of two integers produce a floating-point result, **cast at least one operand to `double`/`float` before the `/` operator**: `(double) a / b` or `a / (double) b`. Casting **afterward**, such as `(double) (a / b)`, only converts an integer result that has already lost its fractional part into a floating-point number. Always consider zero divisors and floating-point precision when applying this to real programs.

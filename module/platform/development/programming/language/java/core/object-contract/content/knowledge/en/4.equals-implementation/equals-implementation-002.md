@@ -1,67 +1,67 @@
-# Vì sao `equals(MyType)` là nạp chồng thay vì ghi đè?
+# Why Is `equals(MyType)` an Overload Instead of an Override?
 
-## 1. Điểm quyết định là chữ ký phương thức
+## 1. The Deciding Factor Is the Method Signature
 
-Mọi lớp Java đều thừa kế (trực tiếp hoặc gián tiếp) từ `java.lang.Object`. Phương thức so sánh bình đẳng mà Java công bố ở `Object` là:
+Every Java class inherits (directly or indirectly) from `java.lang.Object`. The equality comparison method that Java declares on `Object` is:
 
 ```java
 public boolean equals(Object obj)
 ```
 
-Để **ghi đè (override)** phương thức này, lớp con phải cung cấp một phương thức có chữ ký tương ứng: tên `equals` và **tham số `Object`**. Tham số là `MyType` không tương đương với `Object`, dù `MyType` là lớp con của `Object`.
+To **override** this method, a subclass must provide a method with the corresponding signature: the name `equals` and **parameter `Object`**. A parameter of `MyType` is not equivalent to `Object`, even though `MyType` is a subclass of `Object`.
 
 ```java
 class MyType {
-    public boolean equals(MyType other) { // overload của equals(Object)
+    public boolean equals(MyType other) { // overload of equals(Object)
         return true;
     }
 
     @Override
-    public boolean equals(Object obj) {   // override Object.equals(Object)
+    public boolean equals(Object obj) {   // override of Object.equals(Object)
         return super.equals(obj);
     }
 }
 ```
 
-Đây chỉ là đoạn minh họa chữ ký; cách so sánh trả về `true` vô điều kiện ở `equals(MyType)` không phải cách cài đặt equality đúng cho ứng dụng.
+This is only a snippet illustrating signatures; returning `true` unconditionally in `equals(MyType)` is not a proper equality implementation for an application.
 
-| Cách khai báo | Quan hệ với `Object.equals(Object)` | Vì sao? |
+| Declaration | Relation to `Object.equals(Object)` | Why? |
 | --- | --- | --- |
-| `boolean equals(Object obj)` | **Override** | Giữ đúng tên và kiểu tham số của phương thức gốc |
-| `boolean equals(MyType other)` | **Overload** | Cùng tên nhưng kiểu tham số khác |
-| `boolean equals(String text)` | **Overload** | Kiểu tham số cũng khác |
-| `boolean equals(Object a, Object b)` | **Overload** | Khác số lượng tham số |
-| `boolean equals(Object obj, int mode)` | **Overload** | Khác danh sách tham số |
+| `boolean equals(Object obj)` | **Override** | Keeps the exact name and parameter type of the original method |
+| `boolean equals(MyType other)` | **Overload** | Same name but different parameter type |
+| `boolean equals(String text)` | **Overload** | Parameter type is also different |
+| `boolean equals(Object a, Object b)` | **Overload** | Different number of parameters |
+| `boolean equals(Object obj, int mode)` | **Overload** | Different parameter list |
 
-Kiểu trả về không giúp biến `equals(MyType)` thành override. Riêng khi ghi đè `Object.equals(Object)`, kiểu trả về phải tương thích với `boolean` — thực tế là `boolean`. Tương tự, đổi tên tham số từ `obj` sang `other` không làm thay đổi chữ ký.
+The return type does not turn `equals(MyType)` into an override. Specifically, when overriding `Object.equals(Object)`, the return type must be compatible with `boolean` — in practice, `boolean`. Similarly, renaming the parameter from `obj` to `other` does not change the signature.
 
-**Lưu ý về phạm vi:** Nếu một lớp cha hoặc interface do bạn tự định nghĩa cũng khai báo `equals(MyType)`, thì phương thức `equals(MyType)` ở lớp con có thể ghi đè hoặc hiện thực hóa *phương thức riêng đó*. Nhưng nó vẫn **không** ghi đè `Object.equals(Object)`.
+**Note on scope:** If a superclass or interface you defined yourself also declares `equals(MyType)`, then `equals(MyType)` in the subclass can override or implement *that specific method*. However, it still **does not** override `Object.equals(Object)`.
 
-## 2. Vì sao Java lại gọi hai phiên bản khác nhau?
+## 2. Why Does Java Call Two Different Versions?
 
-Java chọn một phương thức theo hai bước cần phân biệt:
+Java selects a method in two steps that must be distinguished:
 
-1. **Overload resolution (lúc biên dịch):** Java nhìn vào kiểu tĩnh của biến, kiểu tĩnh của đối số và các phương thức áp dụng được để chọn chữ ký nào sẽ được gọi.
-2. **Dynamic dispatch (lúc chạy):** Sau khi đã chọn chữ ký, nếu phương thức instance được ghi đè, Java chọn implementation thích hợp theo kiểu thực tế của đối tượng nhận lời gọi.
+1. **Overload resolution (at compile time):** Java looks at the static type of the variable, the static types of the arguments, and the applicable methods to choose which signature will be called.
+2. **Dynamic dispatch (at runtime):** After the signature has been chosen, if the instance method is overridden, Java selects the appropriate implementation based on the actual runtime type of the receiving object.
 
-Điều quan trọng là dynamic dispatch **không tự chuyển** từ chữ ký `equals(Object)` sang một overload `equals(MyType)` chỉ vì đối tượng truyền vào đang là `MyType`.
+Crucially, dynamic dispatch **does not automatically switch** from the `equals(Object)` signature to an `equals(MyType)` overload just because the passed-in object happens to be a `MyType`.
 
-Giả sử `a` có kiểu tĩnh `MyType`:
+Suppose `a` has static type `MyType`:
 
 ```java
 MyType b = new MyType();
 Object bAsObject = b;
 
-a.equals(b);          // Có thể chọn equals(MyType)
-a.equals(bAsObject);  // Chọn equals(Object)
-((Object) a).equals(b); // Chọn equals(Object)
+a.equals(b);          // May select equals(MyType)
+a.equals(bAsObject);  // Selects equals(Object)
+((Object) a).equals(b); // Selects equals(Object)
 ```
 
-Ba biểu thức ở trên dùng chung đối tượng thực tế, nhưng **kiểu tại vị trí gọi** khác nhau. Khi `MyType` có cả hai chữ ký, lời gọi đầu ưu tiên overload nhận `MyType` vì cụ thể hơn; hai lời gọi còn lại sử dụng chữ ký `equals(Object)`.
+The three expressions above use the same actual object, but the **types at the call site** differ. When `MyType` has both signatures, the first call prefers the overload accepting `MyType` because it is more specific; the remaining two calls use the `equals(Object)` signature.
 
-## 3. Ví dụ lỗi: chỉ cài `equals(MyType)`
+## 3. Broken Example: Implementing Only `equals(MyType)`
 
-Tạo tệp `BadEqualsDemo.java`:
+Create the file `BadEqualsDemo.java`:
 
 ```java
 import java.util.HashSet;
@@ -75,7 +75,7 @@ public class BadEqualsDemo {
             this.id = id;
         }
 
-        // Đây là overload; không ghi đè Object.equals(Object).
+        // This is an overload; it does not override Object.equals(Object).
         public boolean equals(Item other) {
             return other != null && id == other.id;
         }
@@ -98,14 +98,14 @@ public class BadEqualsDemo {
 }
 ```
 
-Chạy với JDK 17 hoặc mới hơn:
+Run with JDK 17 or newer:
 
 ```bash
 javac BadEqualsDemo.java
 java BadEqualsDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 true
@@ -114,20 +114,20 @@ false
 2
 ```
 
-Giải thích từng dòng:
+Line-by-line explanation:
 
-- `a.equals(b)`: `b` có kiểu tĩnh `Item`, nên Java chọn overload `equals(Item)`; hai `id` bằng nhau, nhận `true`.
-- `a.equals(bAsObject)`: đối số có kiểu tĩnh `Object`, nên `equals(Item)` không áp dụng. Java gọi `equals(Object)` thừa kế từ `Object`, mặc định so sánh cùng tham chiếu; kết quả `false`.
-- `((Object) a).equals(b)`: kiểu tĩnh của đối tượng nhận lời gọi là `Object`, vì vậy chỉ xét chữ ký nhìn thấy qua `Object`; do `Item` chưa override `equals(Object)`, kết quả vẫn `false`.
-- `HashSet` kiểm tra equality thông qua hợp đồng `equals(Object)` và `hashCode()`; hai instance riêng biệt không được coi là bằng nhau nên kích thước là `2`.
+- `a.equals(b)`: `b` has static type `Item`, so Java selects the `equals(Item)` overload; the two `id` values are equal, returning `true`.
+- `a.equals(bAsObject)`: the argument has static type `Object`, so `equals(Item)` does not apply. Java calls `equals(Object)` inherited from `Object`, which defaults to reference identity comparison; the result is `false`.
+- `((Object) a).equals(b)`: the static type of the receiver is `Object`, so only signatures visible through `Object` are considered; because `Item` has not overridden `equals(Object)`, the result is still `false`.
+- `HashSet` checks equality through the `equals(Object)` and `hashCode()` contract; the two separate instances are not considered equal, so the size is `2`.
 
-Đây là một lỗi dễ bỏ sót: kiểm thử thủ công `a.equals(b)` có thể “đạt”, trong khi `Set`, `Map` hoặc tiện ích làm việc qua `Object` lại không có cùng nhận định về bình đẳng.
+This is an easy bug to miss: manual tests like `a.equals(b)` may “pass”, while `Set`, `Map`, or utilities working through `Object` do not share the same view of equality.
 
-**Cách tự kiểm tra với `@Override`:** Nếu thêm `@Override` ngay trước `equals(Item other)` trong ví dụ này, biên dịch sẽ báo lỗi vì phương thức đó không ghi đè phương thức nào có chữ ký phù hợp ở kiểu cha hay interface. Đây là lý do nên dùng `@Override` mỗi khi bạn *định* ghi đè.
+**How to self-check with `@Override`:** If you add `@Override` right before `equals(Item other)` in this example, compilation will fail because that method does not override any method with a matching signature in a supertype or interface. This is why you should use `@Override` whenever you *intend* to override.
 
-## 4. Sửa đúng: ghi đè `equals(Object)` và `hashCode()`
+## 4. Proper Fix: Override `equals(Object)` and `hashCode()`
 
-Tạo tệp độc lập `GoodEqualsDemo.java`:
+Create a standalone file `GoodEqualsDemo.java`:
 
 ```java
 import java.util.HashSet;
@@ -175,14 +175,14 @@ public class GoodEqualsDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac GoodEqualsDemo.java
 java GoodEqualsDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 true
@@ -191,54 +191,54 @@ true
 1
 ```
 
-Ở phiên bản đúng:
+In the correct version:
 
-- `equals(Object)` được ghi đè thực sự. Vì vậy, dù gọi qua biến `Object`, dynamic dispatch vẫn chạy `Item.equals(Object)`.
-- `this == obj` xử lý nhanh trường hợp cùng tham chiếu.
-- Pattern matching cho `instanceof` (`obj instanceof Item other`, có trong Java 17) kiểm tra loại đối tượng, trả `false` cho `null` và kiểu không phù hợp, đồng thời tạo biến `other` đã ép kiểu.
-- `id == other.id` là quy tắc bình đẳng theo giá trị đã được lựa chọn cho ví dụ.
-- `hashCode()` dùng cùng thành phần `id`, bảo đảm hai `Item` bằng nhau có cùng mã băm. `HashSet` vì thế giữ một phần tử đại diện cho hai giá trị bằng nhau.
+- `equals(Object)` is genuinely overridden. Therefore, even when called through an `Object` variable, dynamic dispatch runs `Item.equals(Object)`.
+- `this == obj` handles the same-reference case quickly.
+- Pattern matching for `instanceof` (`obj instanceof Item other`, available in Java 17) checks the object type, returns `false` for `null` and incompatible types, and creates the cast variable `other`.
+- `id == other.id` is the value-based equality rule chosen for the example.
+- `hashCode()` uses the same `id` component, ensuring two equal `Item` instances have the same hash code. `HashSet` therefore keeps one element representing the two equal values.
 
-Vì `Item` được khai báo `final` và `id` bất biến, ví dụ tránh được những trường hợp phức tạp về bình đẳng giữa lớp cha và lớp con hoặc về mã băm thay đổi sau khi thêm vào `HashSet`. Với lớp có kế thừa, cần thiết kế quy tắc equality sao cho đối xứng và bắc cầu; không thể mặc định mọi cách dùng `instanceof` hay `getClass()` đều phù hợp.
+Because `Item` is declared `final` and `id` is immutable, the example avoids complex cases regarding equality between superclass and subclass or hash codes changing after insertion into a `HashSet`. For classes with inheritance, the equality rule must be designed to be symmetric and transitive; one cannot assume every way of using `instanceof` or `getClass()` is always suitable.
 
-## 5. Hệ quả đối với Collection, generics và API
+## 5. Consequences for Collections, Generics, and APIs
 
-Các API Java thường hoạt động qua kiểu `Object`, trực tiếp hoặc gián tiếp:
+Java APIs often operate through the `Object` type, directly or indirectly:
 
-- **`HashSet` và `HashMap`:** dùng các quy tắc `equals(Object)` và `hashCode()` để nhận diện phần tử hoặc khóa bằng nhau. Một overload `equals(MyType)` không thay thế được hai phương thức hợp đồng này.
-- **`Objects.equals(a, b)`:** nếu `a` không phải `null`, phương thức gọi `a.equals(b)` trên tham chiếu có kiểu `Object`; do đó lời gọi dựa vào `equals(Object)`.
-- **API tổng quát dùng `Object` hoặc kiểu tham số tổng quát:** chỉ biết hợp đồng của kiểu công bố ở biên API. Overload chỉ nhận kiểu con có thể không được chọn.
+- **`HashSet` and `HashMap`:** use the `equals(Object)` and `hashCode()` rules to identify equal elements or keys. An `equals(MyType)` overload cannot replace these two contract methods.
+- **`Objects.equals(a, b)`:** if `a` is not `null`, the method calls `a.equals(b)` on a reference of type `Object`; hence the call relies on `equals(Object)`.
+- **Generic APIs using `Object` or a generic type parameter:** know only the contract of the type declared at the API boundary. An overload taking only a subtype may not be selected.
 
-Generics không biến `equals(MyType)` thành override. Ví dụ, dùng `Set<Item>` không có nghĩa Collection sẽ gọi overload `equals(Item)`; các hợp đồng equality của Java vẫn dựa vào `Object.equals(Object)`.
+Generics do not turn `equals(MyType)` into an override. For example, using `Set<Item>` does not mean the Collection will call the `equals(Item)` overload; Java's equality contracts still rely on `Object.equals(Object)`.
 
-**Nên làm gì khi muốn so sánh theo nghiệp vụ khác với equality chung?** Dùng tên riêng thể hiện chủ đích, như `hasSameId(Item other)`, `matches(Item other)` hoặc `sameBusinessKey(Item other)`. Đừng đặt một overload `equals(MyType)` có tiêu chí khác với `equals(Object)`, vì kết quả khi gọi sẽ thay đổi khó đoán theo kiểu tĩnh của biến.
+**What should you do when you want a domain-specific comparison different from general equality?** Use a distinct name that expresses intent, such as `hasSameId(Item other)`, `matches(Item other)`, or `sameBusinessKey(Item other)`. Do not define an `equals(MyType)` overload with different criteria from `equals(Object)`, because the result when called will change unpredictably depending on the static type of the variable.
 
-## 6. Không chỉ là đúng chữ ký: phải giữ hợp đồng `equals`
+## 6. Not Just the Right Signature: Preserving the `equals` Contract
 
-Sau khi ghi đè đúng chữ ký, implementation còn phải đáp ứng hợp đồng `Object.equals`:
+After overriding the right signature, the implementation must also satisfy the `Object.equals` contract:
 
-| Thuộc tính | Diễn giải |
+| Property | Explanation |
 | --- | --- |
-| Phản xạ (reflexive) | `x.equals(x)` phải là `true` với `x` khác `null`. |
-| Đối xứng (symmetric) | `x.equals(y)` và `y.equals(x)` phải có cùng kết quả. |
-| Bắc cầu (transitive) | Nếu `x` bằng `y` và `y` bằng `z`, thì `x` phải bằng `z`. |
-| Nhất quán (consistent) | Khi thông tin dùng để so sánh không đổi, gọi lại phải giữ kết quả. |
-| Khác `null` | `x.equals(null)` phải là `false` với `x` khác `null`. |
-| Tương thích mã băm | Nếu `x.equals(y)` là `true`, `x.hashCode() == y.hashCode()` cũng phải là `true`. Chiều ngược lại không bắt buộc. |
+| Reflexive | `x.equals(x)` must be `true` for non-null `x`. |
+| Symmetric | `x.equals(y)` and `y.equals(x)` must return the same result. |
+| Transitive | If `x` equals `y` and `y` equals `z`, then `x` must equal `z`. |
+| Consistent | When the information used for comparison does not change, repeated calls must return the same result. |
+| Non-nullity | `x.equals(null)` must be `false` for non-null `x`. |
+| Hash code compatibility | If `x.equals(y)` is `true`, `x.hashCode() == y.hashCode()` must also be `true`. The converse is not required. |
 
-Không dùng trường dễ thay đổi để tính `hashCode` cho đối tượng đang được lưu làm khóa trong cấu trúc băm; thay đổi mã băm có thể khiến việc tìm kiếm hoặc xóa không còn hoạt động như mong đợi.
+Do not use mutable fields to compute `hashCode` for objects being stored as keys in a hash-based structure; changing the hash code can cause lookups or removals to stop working as expected.
 
-Nếu kiểu chỉ chứa dữ liệu bất biến và equality theo từng thành phần, Java `record` có thể giúp tránh lỗi cài đặt thủ công: `record Item(int id) {}` tự tạo `equals(Object)` và `hashCode()` theo các thành phần của record. Tuy nhiên vẫn cần quyết định xem so sánh theo từng trường có đúng ngữ nghĩa nghiệp vụ hay không.
+If a type contains only immutable data and uses component-wise equality, a Java `record` can help avoid manual implementation mistakes: `record Item(int id) {}` automatically generates `equals(Object)` and `hashCode()` based on the record components. However, you still need to decide whether field-by-field comparison matches the domain semantics.
 
-## 7. Checklist khi cài đặt `equals`
+## 7. Checklist When Implementing `equals`
 
-1. Dùng đúng `public boolean equals(Object obj)` và đặt `@Override` ngay trước phương thức.
-2. Xác định những trường thực sự tạo nên danh tính giá trị; kiểm tra `null` và loại đối tượng phù hợp.
-3. Đảm bảo phản xạ, đối xứng, bắc cầu và nhất quán; chú ý kế thừa và dữ liệu có thể thay đổi.
-4. Ghi đè `hashCode()` dựa trên cùng các thành phần tạo nên equality.
-5. Kiểm thử cả `a.equals(b)`, `a.equals((Object) b)`, `Objects.equals(a, b)`, cùng hành vi trong `HashSet` hoặc `HashMap`.
-6. Nếu cần một kiểu so sánh khác, dùng phương thức có tên rõ ràng thay vì tạo thêm overload `equals(MyType)` khó hiểu.
+1. Use the exact `public boolean equals(Object obj)` and place `@Override` right before the method.
+2. Identify which fields truly form value identity; check `null` and the appropriate object type.
+3. Ensure reflexivity, symmetry, transitivity, and consistency; pay attention to inheritance and mutable data.
+4. Override `hashCode()` based on the same components that define equality.
+5. Test `a.equals(b)`, `a.equals((Object) b)`, `Objects.equals(a, b)`, along with behavior in `HashSet` or `HashMap`.
+6. If a different kind of comparison is needed, use a clearly named method instead of adding a confusing `equals(MyType)` overload.
 
-**Tự kiểm tra:** Lớp `Person` chỉ có `boolean equals(Person p)`. Khi truyền hai `Person` có cùng dữ liệu vào `HashSet<Person>`, bộ sưu tập có bắt buộc coi chúng là một phần tử không? **Không.** `equals(Person)` là overload; nó không đổi hợp đồng `Object.equals(Object)`. Muốn các Collection nhận diện equality theo dữ liệu, hãy ghi đè `equals(Object)` và `hashCode()` đúng quy tắc.
+**Self-check:** Class `Person` only has `boolean equals(Person p)`. When passing two `Person` objects with the same data into a `HashSet<Person>`, is the collection guaranteed to treat them as one element? **No.** `equals(Person)` is an overload; it does not change the `Object.equals(Object)` contract. To make collections recognize data-based equality, properly override `equals(Object)` and `hashCode()`.
 
-**Ghi nhớ:** Override phụ thuộc vào chữ ký của phương thức được thừa kế; `equals(MyType)` có tham số khác `equals(Object)` nên thường là overload. Mã gọi Java và các Collection dựa vào hợp đồng `equals(Object)`, vì vậy implementation cần ghi đè đúng phương thức ấy.
+**Key takeaway:** Overriding depends on the signature of the inherited method; `equals(MyType)` has a different parameter from `equals(Object)` and is therefore usually an overload. Java callers and collections rely on the `equals(Object)` contract, so your implementation must override that exact method.

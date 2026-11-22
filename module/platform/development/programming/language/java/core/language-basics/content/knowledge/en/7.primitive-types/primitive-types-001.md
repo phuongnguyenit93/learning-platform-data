@@ -1,33 +1,33 @@
-# Toàn cảnh tám kiểu nguyên thủy trong Java (Java 17+)
+# Overview of the Eight Primitive Types in Java (Java 17+)
 
-Java có **tám kiểu nguyên thủy** (*primitive types*): `byte`, `short`, `int`, `long`, `float`, `double`, `char` và `boolean`. Chúng biểu diễn các giá trị cơ bản, khác với kiểu tham chiếu như `String`, mảng hoặc đối tượng. Nắm được miền giá trị, literal và cách các kiểu tương tác giúp tránh tràn số, mất chính xác và lỗi gán kiểu.
+Java has **eight primitive types**: `byte`, `short`, `int`, `long`, `float`, `double`, `char`, and `boolean`. They represent basic values, distinct from reference types such as `String`, arrays, or objects. Understanding their value ranges, literals, and how the types interact helps avoid overflow, loss of precision, and type assignment errors.
 
-## 1. Bảng tổng quan
+## 1. Overview Table
 
-| Kiểu | Kích thước, miền giá trị | Ví dụ | Công dụng |
+| Type | Size, value range | Example | Purpose |
 | --- | --- | --- | --- |
-| `byte` | 8 bit, −128 đến 127 | `byte a = -5;` | Dữ liệu số nhỏ, byte nhị phân |
-| `short` | 16 bit, −32.768 đến 32.767 | `short b = 32000;` | Tương thích định dạng cần số nguyên 16 bit |
-| `int` | 32 bit, −2.147.483.648 đến 2.147.483.647 | `int c = 42;` | Số nguyên thông thường |
-| `long` | 64 bit, −9.223.372.036.854.775.808 đến 9.223.372.036.854.775.807 | `long d = 9_000_000_000L;` | Số nguyên vượt miền `int` |
-| `float` | 32 bit IEEE 754, khoảng 6–7 chữ số thập phân có nghĩa | `float e = 1.25F;` | Số thực cần ít dung lượng/độ chính xác hơn |
-| `double` | 64 bit IEEE 754, khoảng 15–16 chữ số có nghĩa | `double f = 2.5;` | Số thực mặc định |
-| `char` | 16 bit không dấu, 0–65.535 | `char g = 'A';` | Một **đơn vị mã UTF-16** |
-| `boolean` | Hai giá trị `true`, `false` | `boolean h = true;` | Logic điều kiện |
+| `byte` | 8 bits, −128 to 127 | `byte a = -5;` | Small numeric data, binary bytes |
+| `short` | 16 bits, −32,768 to 32,767 | `short b = 32000;` | Compatibility with formats requiring 16-bit integers |
+| `int` | 32 bits, −2,147,483,648 to 2,147,483,647 | `int c = 42;` | General-purpose integers |
+| `long` | 64 bits, −9,223,372,036,854,775,808 to 9,223,372,036,854,775,807 | `long d = 9_000_000_000L;` | Integers exceeding the `int` range |
+| `float` | 32-bit IEEE 754, about 6–7 significant decimal digits | `float e = 1.25F;` | Floating-point numbers needing less space/precision |
+| `double` | 64-bit IEEE 754, about 15–16 significant digits | `double f = 2.5;` | Default floating-point numbers |
+| `char` | 16-bit unsigned, 0–65,535 | `char g = 'A';` | A single **UTF-16 code unit** |
+| `boolean` | Two values: `true`, `false` | `boolean h = true;` | Conditional logic |
 
-Bốn kiểu `byte`, `short`, `int`, `long` là **số nguyên có dấu**. `char` là đơn vị mã 16 bit **không dấu**, không phải mọi ký tự Unicode đầy đủ đều gói được trong một `char`: ví dụ emoji ngoài BMP cần hai `char` khi mã hóa UTF-16.
+The four types `byte`, `short`, `int`, and `long` are **signed integers**. `char` is an **unsigned** 16-bit code unit, and not every full Unicode character fits in a single `char`: for example, emojis outside the BMP require two `char` values when UTF-16 encoded.
 
-`float` và `double` lưu giá trị **xấp xỉ**, hỗ trợ cả `NaN`, `Infinity` và `-0.0`. Riêng `boolean` **không** nhận số `0` hoặc `1` thay cho `false`/`true`. Java không quy định kích thước lưu trữ cố định của `boolean`; số bit trong bảng là độ rộng giá trị theo ngôn ngữ, **không phải cam kết số byte RAM cho mọi biến**.
+`float` and `double` store **approximate** values, and also support `NaN`, `Infinity`, and `-0.0`. As for `boolean`, it **does not** accept `0` or `1` in place of `false`/`true`. Java does not mandate a fixed storage size for `boolean`; the bit widths in the table reflect the language-level value width, **not a guarantee of RAM bytes used for every variable**.
 
-## 2. Ví dụ Java 17+ có thể chạy ngay
+## 2. Runnable Java 17+ Example
 
-Tạo tệp UTF-8 tên **`PrimitiveTypesDemo.java`**:
+Create a UTF-8 file named **`PrimitiveTypesDemo.java`**:
 
 ~~~java
 public class PrimitiveTypesDemo {
-    static int defaultNumber;       // Field int mac dinh 0.
-    static boolean defaultFlag;     // Field boolean mac dinh false.
-    static char defaultCharacter;   // Field char mac dinh ma 0.
+    static int defaultNumber;       // Default int field is 0.
+    static boolean defaultFlag;     // Default boolean field is false.
+    static char defaultCharacter;   // Default char field is code 0.
 
     public static void main(String[] args) {
         byte smallest = -128;
@@ -63,7 +63,7 @@ public class PrimitiveTypesDemo {
 }
 ~~~
 
-Mở PowerShell (Windows) hoặc Bash (Linux/macOS) tại thư mục chứa tệp:
+Open PowerShell (Windows) or Bash (Linux/macOS) in the directory containing the file:
 
 ~~~bash
 java -version
@@ -94,18 +94,18 @@ narrowByte=-126
 decimalEqual=false
 ~~~
 
-Lý giải các dòng cần chú ý:
+Explanation of notable lines:
 
-- `9_000_000_000L` có hậu tố `L` để mang kiểu `long`; `1.25F` có `F` để mang kiểu `float`; `2.5D` là `double`, và `D` có thể bỏ.
-- `'A'` là `char`, ép sang `int` cho mã UTF-16 `65`. Ép kiểu `(int)` ở đây chỉ để hiển thị mã số.
-- `smallest + tickets` được **nâng kiểu thành `int`**, tính `-128 + 30000 = 29872`.
-- `5 / 2` chia số nguyên thành `2`; `5 / 2.0` chia số thực thành `2.5`.
-- `Integer.MAX_VALUE + 1` tràn số nguyên `int` về `-2147483648`; ép `130` xuống `byte` cho `-126`.
-- `0.1 + 0.2 == 0.3` là `false` vì số thực nhị phân không biểu diễn chính xác nhiều phân số thập phân.
+- `9_000_000_000L` has the `L` suffix to have type `long`; `1.25F` has `F` to have type `float`; `2.5D` is `double`, and `D` can be omitted.
+- `'A'` is a `char`, cast to `int` to give UTF-16 code `65`. Casting `(int)` here is only to display the numeric code.
+- `smallest + tickets` is **promoted to `int`**, computing `-128 + 30000 = 29872`.
+- `5 / 2` performs integer division resulting in `2`; `5 / 2.0` performs floating-point division resulting in `2.5`.
+- `Integer.MAX_VALUE + 1` overflows the `int` to `-2147483648`; narrowing `130` to `byte` yields `-126`.
+- `0.1 + 0.2 == 0.3` is `false` because binary floating-point cannot represent many decimal fractions exactly.
 
-## 3. Literal và phép chuyển kiểu
+## 3. Literals and Type Conversions
 
-### Viết literal đúng kiểu
+### Writing Literals with the Right Type
 
 ~~~java
 int days = 7;                   // int
@@ -116,20 +116,20 @@ char separator = ':';           // char
 boolean valid = false;          // boolean
 ~~~
 
-Literal nguyên thập phân như `7` mặc định có kiểu `int` (nếu nằm trong miền); literal số thực như `0.5` mặc định có kiểu `double`. Lỗi phổ biến:
+Decimal integer literals like `7` default to type `int` (if within range); floating-point literals like `0.5` default to type `double`. Common mistakes:
 
 ~~~java
-// float x = 0.5;         // Sai: double khong tu thu hep thanh float.
+// float x = 0.5;         // Wrong: double does not automatically narrow to float.
 float x = 0.5F;
-// long y = 5000000000;   // Sai: literal nguyen khong co L vuot mien int.
+// long y = 5000000000;   // Wrong: integer literal without L exceeds int range.
 long y = 5_000_000_000L;
 ~~~
 
-Java còn cho phép literal hệ 16, hệ 2, ví dụ `0xFF` và `0b1010`. Dấu gạch dưới như `1_000_000` giúp chia nhóm chữ số tại vị trí hợp lệ nhưng không làm thay đổi giá trị.
+Java also allows hexadecimal and binary literals, such as `0xFF` and `0b1010`. Underscores like `1_000_000` group digits at valid positions without changing the value.
 
-### Widening (mở rộng) và narrowing (thu hẹp)
+### Widening and Narrowing
 
-Một số phép chuyển đổi số học thông dụng:
+Some common numeric conversions:
 
 ~~~text
 byte → short → int → long → float → double
@@ -137,84 +137,84 @@ byte → short → int → long → float → double
              char
 ~~~
 
-Chuyển `int` sang `long` thường không mất giá trị. Nhưng **mở rộng kiểu không luôn bảo toàn độ chính xác**: một số `long` lớn không được `float` hoặc `double` biểu diễn nguyên vẹn. Ngược lại, thu hẹp như `int` sang `byte` có thể thay đổi giá trị:
+Converting `int` to `long` typically preserves the value. However, **widening conversions do not always preserve precision**: some large `long` values cannot be represented intact by `float` or `double`. Conversely, narrowing such as `int` to `byte` can change the value:
 
 ~~~java
 int original = 130;
 byte narrowed = (byte) original; // -126
 ~~~
 
-Phép gán hằng số nguyên đặc biệt được phép khi nằm trong miền, ví dụ `byte b = 100;` dù literal `100` có kiểu `int`. Nhưng biến `int` nói chung không tự thu hẹp về `byte`:
+A special integer constant assignment is permitted when the value is within range, such as `byte b = 100;` even though the literal `100` has type `int`. However, a general `int` variable does not automatically narrow to `byte`:
 
 ~~~java
 int n = 100;
-// byte b = n; // Sai neu khong ep kieu.
+// byte b = n; // Wrong without casting.
 byte b = (byte) n;
 ~~~
 
-### Integer promotion trong biểu thức
+### Integer Promotion in Expressions
 
-Với toán tử số học thông thường, `byte`, `short` và `char` được nâng thành `int` trước phép tính:
+With standard arithmetic operators, `byte`, `short`, and `char` are promoted to `int` before the operation:
 
 ~~~java
 byte left = 10, right = 20;
-int sum = left + right;        // Dung.
-// byte sum2 = left + right;  // Loi bien dich: ket qua la int.
+int sum = left + right;        // Correct.
+// byte sum2 = left + right;  // Compile error: result is int.
 ~~~
 
-**Kiểu của biến ở vế trái không tự đổi kiểu của phép tính.** Vì vậy `double answer = 5 / 2;` cho `2.0`, không phải `2.5`.
+**The type of the variable on the left-hand side does not automatically change the type of the operation.** Therefore, `double answer = 5 / 2;` produces `2.0`, not `2.5`.
 
-## 4. Giá trị mặc định và lỗi chưa khởi tạo
+## 4. Default Values and Uninitialized Errors
 
-**Field** của đối tượng/lớp nhận giá trị mặc định nếu chưa khởi tạo tường minh: số nguyên `0`, số thực `0.0`, `char` là mã 0, `boolean` là `false`. Đây là lý do ba static fields trong chương trình ví dụ có thể được đọc ngay.
+Object/class **fields** receive default values if not explicitly initialized: `0` for integers, `0.0` for floating-point numbers, code `0` for `char`, and `false` for `boolean`. This is why the three static fields in the example program can be read immediately.
 
-**Biến cục bộ** thì khác:
+**Local variables** are different:
 
 ~~~java
 int count;
-// System.out.println(count); // Loi bien dich: count chua duoc gan.
+// System.out.println(count); // Compile error: count has not been assigned.
 count = 3;
 System.out.println(count); // 3
 ~~~
 
-Java yêu cầu biến cục bộ được gán chắc chắn trước khi đọc; không có quy tắc mọi biến primitive tự nhận `0` khi vừa khai báo.
+Java requires local variables to be definitely assigned before reading; there is no rule that every primitive variable automatically gets `0` upon declaration.
 
-Không primitive nào nhận `null` trực tiếp:
+No primitive type accepts `null` directly:
 
 ~~~java
-// int n = null;         // Sai.
-// boolean b = null;     // Sai.
-Integer boxed = null;    // Dung: Integer la kieu tham chieu.
+// int n = null;         // Wrong.
+// boolean b = null;     // Wrong.
+Integer boxed = null;    // Correct: Integer is a reference type.
 ~~~
 
-Các lớp bao tương ứng như `Integer`, `Long`, `Double` và `Boolean` là **wrapper/reference types**, không phải tám primitive types. Khi unboxing wrapper đang null về primitive sẽ ném `NullPointerException` khi chạy.
+The corresponding wrapper classes such as `Integer`, `Long`, `Double`, and `Boolean` are **wrapper/reference types**, not the eight primitive types. Unboxing a `null` wrapper to a primitive throws a `NullPointerException` at runtime.
 
 
-## 5. Từ giá trị cần lưu đến kiểu nên chọn
+## 5. From the Value to Store to the Type to Choose
 
-Bảng tám kiểu phía trên giúp nhận diện khả năng biểu diễn; khi lập trình, còn cần xét **giá trị lớn nhất của kết quả trung gian** và **độ chính xác mong muốn**:
+The eight-type table above helps identify representational capability; when programming, you must also consider **the maximum value of intermediate results** and **the desired precision**:
 
-- Với số đếm, thường bắt đầu từ `int`; dùng `long` khi tổng/tích có thể vượt giới hạn `int`. Chuyển toán hạng sang `long` **trước phép tính**, vì biến nhận kiểu `long` không sửa được kết quả `int` đã tràn.
-- Với đại lượng đo gần đúng, `double` thường phù hợp; `float` chỉ khi dữ liệu hoặc API yêu cầu 32 bit. Không dùng số thực nhị phân nếu phép tính thập phân phải chính xác tuyệt đối: khi cần, xét `BigDecimal` hoặc đơn vị nguyên nhỏ nhất.
-- `byte`/`short` chủ yếu hữu ích khi định dạng dữ liệu yêu cầu đúng độ rộng; `boolean` dùng cho điều kiện; `char` dành cho **một code unit UTF-16**, còn văn bản tổng quát dùng `String`.
+- For counts, typically start with `int`; use `long` when sums/products may exceed the `int` limit. Convert operands to `long` **before the operation**, because a receiving `long` variable cannot fix an `int` result that has already overflowed.
+- For approximate measured quantities, `double` is usually appropriate; use `float` only when data or an API requires 32 bits. Do not use binary floating-point if decimal arithmetic must be strictly exact: when needed, consider `BigDecimal` or the smallest integer unit.
+- `byte`/`short` are mainly useful when data formats require that exact width; `boolean` is for conditions; `char` is for **a single UTF-16 code unit**, while general text uses `String`.
 
-Đây chỉ là bản đồ định hướng. Các bài về số nguyên, dấu phẩy động, Unicode và lựa chọn kiểu sẽ lần lượt phân tích điều kiện, rủi ro và cách tự kiểm chứng bằng mã nguồn.
+This is only an orientation map. The lessons on integers, floating-point, Unicode, and type selection will analyze conditions, risks, and how to verify them with source code in turn.
 
-## 6. Bài tập tự kiểm tra
+## 6. Self-Check Exercises
 
-1. **Phân loại tám kiểu:** Kể tên bốn kiểu nguyên có dấu, hai kiểu số thực, kiểu ký tự và kiểu logic.  
-   *Đáp án:* `byte`/`short`/`int`/`long`; `float`/`double`; `char`; `boolean`.
-2. **Dự đoán:** `double x = 7 / 2;` và `double y = 7 / 2.0;` cho kết quả gì?  
-   *Đáp án:* `x = 3.0`, `y = 3.5`.
-3. **Giải thích:** Vì sao `float f = 0.25;` không hợp lệ nhưng `float f = 0.25F;` hợp lệ?  
-   *Đáp án:* `0.25` là literal `double`; `F` tạo literal `float`.
-4. **Tràn số:** Dự đoán `(byte) 130`.  
-   *Đáp án:* `-126` do chuyển về giá trị 8 bit có dấu.
-5. **Biến cục bộ:** Vì sao `int x; System.out.println(x);` trong phương thức không biên dịch, nhưng đọc một field `int` chưa khai báo initializer được?  
-   *Đáp án:* Local variable không có giá trị mặc định; field có giá trị mặc định `0`.
-6. **Unicode:** Có thể chứa trọn emoji ngoài BMP trong một `char` không?  
-   *Đáp án:* Không; nó cần hai đơn vị mã UTF-16. Dùng `String` khi xử lý văn bản.
+1. **Classifying the eight types:** Name the four signed integer types, the two floating-point types, the character type, and the logical type.  
+   *Answer:* `byte`/`short`/`int`/`long`; `float`/`double`; `char`; `boolean`.
+2. **Predict:** What do `double x = 7 / 2;` and `double y = 7 / 2.0;` produce?  
+   *Answer:* `x = 3.0`, `y = 3.5`.
+3. **Explain:** Why is `float f = 0.25;` invalid while `float f = 0.25F;` is valid?  
+   *Answer:* `0.25` is a `double` literal; `F` creates a `float` literal.
+4. **Overflow:** Predict `(byte) 130`.  
+   *Answer:* `-126` due to narrowing to an 8-bit signed value.
+5. **Local variables:** Why does `int x; System.out.println(x);` inside a method fail to compile, whereas reading an `int` field declared without an initializer works?  
+   *Answer:* A local variable has no default value; a field has a default value of `0`.
+6. **Unicode:** Can a single `char` hold an entire emoji outside the BMP?  
+   *Answer:* No; it requires two UTF-16 code units. Use `String` when processing text.
 
-## Ghi nhớ
+## Key Takeaways
 
-Java 17 có **đúng tám primitive types**. `int` và `double` thường là lựa chọn mặc định cho số nguyên và số thực; `boolean` không phải số; `char` là **một UTF-16 code unit**. Hãy kiểm tra miền giá trị, hậu tố literal, quy tắc nâng/ép kiểu, tràn số và sai số dấu phẩy động **trước khi** quyết định kiểu dữ liệu cho bài toán.
+Java 17 has **exactly eight primitive types**. `int` and `double` are usually the default choices for integers and floating-point numbers; `boolean` is not numeric; `char` is **a single UTF-16 code unit**. Check value ranges, literal suffixes, promotion/casting rules, overflow, and floating-point rounding errors **before** deciding on a data type for a problem.

@@ -1,34 +1,34 @@
-# Kiểm thử dữ liệu chứa ký tự có ý nghĩa đặc biệt khi thay thế bằng regex trong Java
+# Testing Data Containing Special-Meaning Characters in Java Regex Replacement
 
-## 1. Vì sao cần kiểm thử riêng?
+## 1. Why Is Dedicated Testing Needed?
 
-`String.replaceAll(String regex, String replacement)` và `String.replaceFirst(String regex, String replacement)` sử dụng **hai ngôn ngữ cú pháp khác nhau**:
+`String.replaceAll(String regex, String replacement)` and `String.replaceFirst(String regex, String replacement)` use **two different syntactic languages**:
 
-- **Regex tìm kiếm**: dấu chấm, dấu sao, dấu cộng, dấu hỏi, ngoặc, dấu gạch đứng, dấu mũ, dấu dollar và backslash đều có thể mang ý nghĩa đặc biệt.
-- **Chuỗi replacement**: `$1` hoặc nhóm bắt có tên có thể được thay bằng nội dung nhóm đã khớp; dấu backslash có vai trò escape ký tự tiếp theo.
+- **Search regex**: dots, asterisks, plus signs, question marks, brackets, pipes, carets, dollar signs, and backslashes can all carry special meaning.
+- **Replacement string**: `$1` or named capturing groups can be substituted with the matched group content; the backslash serves to escape the next character.
 
-Bên ngoài hai cú pháp đó còn có **cú pháp Java string literal**: dấu backslash phải được escape một lần nữa trong mã Java. Vì vậy, dữ liệu chứa `.`, `[`, `|`, `$` và `\` dễ làm một phép thay thế trả kết quả sai hoặc ném ngoại lệ.
+Outside those two syntaxes lies **Java string literal syntax**: backslashes must be escaped one more time in Java code. Therefore, data containing `.`, `[`, `|`, `$`, and `\` can easily cause a replacement operation to return the wrong result or throw an exception.
 
-Ví dụ, `"a.b".replaceAll(".", "_")` trả về `"___"` chứ không phải `"a_b"`. Regex `.` là wildcard khớp các ký tự `a`, `.` và `b`. Ở phía replacement, truyền thẳng `"$1"` khi không có nhóm bắt thứ nhất có thể ném `IndexOutOfBoundsException`; một dấu `"$"` đứng riêng trong replacement có thể ném `IllegalArgumentException`.
+For example, `"a.b".replaceAll(".", "_")` returns `"___"` rather than `"a_b"`. The regex `.` is a wildcard matching the characters `a`, `.`, and `b`. On the replacement side, passing `"$1"` directly when there is no first capturing group can throw `IndexOutOfBoundsException`; a bare `"$"` in the replacement can throw `IllegalArgumentException`.
 
-**Mục tiêu kiểm thử:** chứng minh rằng dữ liệu tìm kiếm được xem đúng là regex hay văn bản nguyên văn theo yêu cầu, replacement giữ đúng từng ký tự, các trường hợp biên hoạt động rõ ràng, và lỗi cú pháp được phát hiện.
+**Testing goal:** prove that search data is treated accurately as regex or literal text as required, the replacement preserves every character exactly, edge cases behave clearly, and syntax errors are detected.
 
-## 2. Phân biệt các API
+## 2. Distinguishing the APIs
 
-| Nhu cầu | Cách dùng | Vì sao |
+| Requirement | Usage | Why |
 | --- | --- | --- |
-| Thay thế hai chuỗi **nguyên văn** | `text.replace(target, replacement)` | `String.replace(CharSequence, CharSequence)` không diễn giải hai đối số theo regex hoặc tham chiếu nhóm. |
-| Thay nguyên văn nhưng cần gọi `replaceAll` | `text.replaceAll(Pattern.quote(target), Matcher.quoteReplacement(replacement))` | Quote riêng cho cú pháp regex tìm kiếm và cú pháp replacement. |
-| Chủ động thay theo regex và dùng nhóm bắt | `text.replaceAll("(\\d+)", "[$1]")` | Giữ regex và `$1` đúng mục đích. |
-| Chỉ thay lần khớp đầu | `replaceFirst(regex, replacement)` | Vẫn phải áp dụng đúng hai quy tắc escape như `replaceAll`. |
+| Replace two **literal** strings | `text.replace(target, replacement)` | `String.replace(CharSequence, CharSequence)` does not interpret either argument as regex or group references. |
+| Literal replacement while needing to call `replaceAll` | `text.replaceAll(Pattern.quote(target), Matcher.quoteReplacement(replacement))` | Quotes separately for search regex syntax and replacement syntax. |
+| Deliberately replace by regex and use capturing groups | `text.replaceAll("(\\d+)", "[$1]")` | Preserves regex and `$1` as intended. |
+| Replace only the first match | `replaceFirst(regex, replacement)` | Still must apply the same two escaping rules as `replaceAll`. |
 
-**`Pattern.quote(String s)`** biến chuỗi tìm kiếm thành biểu thức khớp **nguyên văn**. Nó hoạt động với metacharacter như `.`, `*`, `[`, `\` và cả các chuỗi chứa tổ hợp `\E`. Nó không xử lý replacement.
+**`Pattern.quote(String s)`** turns the search string into an expression that matches **literally**. It works with metacharacters such as `.`, `*`, `[`, `\`, and even strings containing the `\E` sequence. It does not process the replacement.
 
-**`Matcher.quoteReplacement(String s)`** biến chuỗi thay thế thành **văn bản nguyên văn** khi truyền cho `replaceAll`/`replaceFirst`. Nó giữ ký tự `$` và `\`, không biến `$1` thành group reference. Nó không xử lý regex.
+**`Matcher.quoteReplacement(String s)`** turns the replacement string into **literal text** when passed to `replaceAll`/`replaceFirst`. It preserves `$` and `\` characters without turning `$1` into a group reference. It does not process the regex.
 
-Hai chức năng **không thay thế được cho nhau**. Nếu cả hai đối số là dữ liệu văn bản thuần túy, `String.replace` thường là API đơn giản nhất.
+The two functions are **not interchangeable**. If both arguments are plain text data, `String.replace` is usually the simplest API.
 
-Ví dụ ngắn (các lệnh đặt bên trong phương thức Java):
+Short example (statements placed inside a Java method):
 
 ~~~java
 String text = "a.b";
@@ -37,11 +37,11 @@ System.out.println(text.replaceAll("\\.", "_"));        // a_b
 System.out.println(text.replace(".", "$1\\backup"));    // a$1\backup
 ~~~
 
-Lệnh đầu dùng wildcard; lệnh thứ hai escape đúng regex dấu chấm; lệnh thứ ba thay văn bản nguyên văn, nên `$1` và backslash không bị diễn giải theo cú pháp replacement.
+The first statement uses a wildcard; the second properly escapes the dot regex; the third replaces literal text, so `$1` and the backslash are not interpreted under replacement syntax.
 
-## 3. Hàm thay thế nguyên văn an toàn
+## 3. A Safe Literal Replacement Helper
 
-Nếu API của hệ thống yêu cầu dùng `replaceAll`, có thể bọc quy tắc escape:
+If your system's API requires using `replaceAll`, you can wrap the escaping rules:
 
 ~~~java
 static String replaceLiteral(String text, String target, String replacement) {
@@ -54,17 +54,17 @@ static String replaceLiteral(String text, String target, String replacement) {
 }
 ~~~
 
-Đây là **mảnh phương thức minh họa**, được tích hợp đầy đủ trong chương trình phía dưới.
+This is an **illustrative method snippet**, integrated in full in the program below.
 
-Hàm chủ động **từ chối target rỗng**. Vì regex rỗng có thể khớp các vị trí độ rộng 0, việc thay toàn bộ có thể chèn replacement vào nhiều ranh giới; điều này thường không phải yêu cầu “tìm và thay một từ khóa”. Nếu ứng dụng muốn cho phép target rỗng, hãy quy định hành vi cụ thể và viết thêm test cho trường hợp đó.
+The method deliberately **rejects an empty target**. Because an empty regex can match zero-width positions, replacing all matches can insert the replacement at many boundaries; this is usually not what "find and replace a keyword" requires. If an application wants to allow an empty target, specify the exact behavior and write additional tests for that case.
 
-Không nên chỉ escape thủ công một hoặc hai ký tự: danh sách metacharacter regex rộng và cách parse replacement lại khác hẳn. Với dữ liệu thuần, hãy dùng API quote của thư viện chuẩn.
+You should not manually escape just one or two characters: the list of regex metacharacters is broad and replacement parsing rules are completely different. For plain data, use the standard library's quoting APIs.
 
-## 4. Bộ kiểm thử Java 17+ chạy độc lập
+## 4. Standalone Runnable Java 17+ Test Suite
 
-Ví dụ sau kiểm tra cả ký tự đặc biệt ở **target**, ở **replacement**, hành vi khi không khớp, Unicode, newline và những ngoại lệ cần xuất hiện. Không cần thư viện bên ngoài hay JUnit. Mỗi trường hợp so sánh chính xác chuỗi đầu ra bằng `equals`.
+The following example tests special characters in **target**, in **replacement**, behavior when there is no match, Unicode, newlines, and exceptions that should occur. No external library or JUnit is required. Each case compares the exact output string using `equals`.
 
-Tạo tệp **RegexSpecialCharacterTest.java**:
+Create the file **RegexSpecialCharacterTest.java**:
 
 ~~~java
 import java.util.regex.Matcher;
@@ -158,74 +158,74 @@ public class RegexSpecialCharacterTest {
 }
 ~~~
 
-Biên dịch, rồi chạy bằng JDK 17 trở lên:
+Compile, then run with JDK 17 or later:
 
 ~~~bash
 javac -encoding UTF-8 RegexSpecialCharacterTest.java
 java RegexSpecialCharacterTest
 ~~~
 
-Stdout khi toàn bộ kiểm thử thành công:
+Stdout when all checks pass:
 
 ~~~text
 PASS: 20 checks
 ~~~
 
-Nếu kỳ vọng khác kết quả thực tế, chương trình ném `AssertionError` và sẽ **không in thông báo PASS**. Cách này đáng tin cậy hơn việc chỉ nhìn `System.out.println` để đoán các token rỗng hay dấu backslash. `expectThrows` còn kiểm tra đúng loại ngoại lệ thay vì coi mọi ngoại lệ đều là thành công. Không dùng Java `assert` ở đây vì câu lệnh `assert` có thể bị bỏ qua nếu JVM chạy thiếu cờ `-ea`.
+If the expected value differs from the actual result, the program throws `AssertionError` and will **not print the PASS message**. This is more reliable than just eyeballing `System.out.println` to guess empty tokens or backslashes. `expectThrows` also checks the exact exception type instead of treating any exception as success. Java `assert` is not used here because `assert` statements can be skipped if the JVM runs without the `-ea` flag.
 
-Các trường hợp bao quát nhiều hơn phép thay một dấu chấm: mã còn thử dấu `|`, dấu ngoặc vuông, backslash trong từ khóa tìm kiếm, `$5` trong từ khóa, `$1` và `\` trong replacement, thay một lần bằng `replaceFirst`, nhóm bắt thật `$1`, nhiều dấu liên tiếp, dữ liệu Unicode/emoji, xuống dòng thật, chuỗi đầu vào rỗng và các đầu vào sai cú pháp.
+The cases cover far more than replacing a single dot: the code also tests `|`, square brackets, backslashes in search keywords, `$5` in keywords, `$1` and `\` in replacements, single-match replacement with `replaceFirst`, real `$1` capturing groups, consecutive characters, Unicode/emoji data, real line breaks, an empty input string, and syntactically invalid inputs.
 
-## 5. Ma trận kiểm thử với dữ liệu thực
+## 5. Test Matrix with Real-World Data
 
-| Nhóm | Tình huống cần thử | Kỳ vọng quan trọng |
+| Category | Scenario to Test | Key Expectation |
 | --- | --- | --- |
-| Regex metacharacters | Các ký tự `.`, `*`, `+`, `?`, `|`, `[`, `]`, `(`, `)`, `^`, `$` | Khi mục tiêu là tìm nguyên văn, ký tự không biến thành wildcard, quantifier, character class, nhóm hoặc anchor. |
-| Backslash trong target | Tìm `\` trong một đường dẫn | Regex khớp đúng một dấu backslash và không lỗi cú pháp. |
-| Dollar trong target | Tìm chuỗi `$5` | Dollar là dữ liệu nguyên văn, không thành anchor cuối chuỗi. |
-| Dollar trong replacement | Thay thành `$1`, `$5` hoặc chỉ `$` | Dollar không bị xử lý thành nhóm bắt nếu ứng dụng không yêu cầu. |
-| Backslash trong replacement | Thay thành chuỗi chứa `\tmp` hoặc `\` | Backslash vẫn tồn tại chính xác trong kết quả. |
-| Nhiều khớp liên tiếp | Thay từng dấu chấm trong `....` | Mỗi vị trí khớp được xử lý đúng một lần; không thiếu hoặc nhân đôi. |
-| Không có khớp | Input `abc`, target `XYZ` | Trả về nguyên chuỗi ban đầu. |
-| Unicode và emoji | Ký tự tiếng Việt có dấu và emoji | Không mất dấu hay làm hỏng cặp surrogate. |
-| Xuống dòng | Thay newline thật bằng hai ký tự `\` và `n` | Phân biệt newline thật với văn bản biểu diễn newline. |
-| Biên | Input rỗng, target rỗng, dữ liệu lặp | Có kết quả rõ ràng hoặc ngoại lệ được quy định. |
-| Cú pháp hỏng | Regex `[` hoặc replacement `$` chưa quote | Test xác nhận đúng loại lỗi, không nuốt exception. |
+| Regex metacharacters | Characters `.`, `*`, `+`, `?`, `|`, `[`, `]`, `(`, `)`, `^`, `$` | When the goal is literal matching, characters do not turn into wildcards, quantifiers, character classes, groups, or anchors. |
+| Backslash in target | Finding `\` in a path | Regex matches one literal backslash with no syntax error. |
+| Dollar in target | Finding the string `$5` | Dollar is literal data, not an end-of-string anchor. |
+| Dollar in replacement | Replacing with `$1`, `$5`, or just `$` | Dollar is not processed as a capturing group unless the application requires it. |
+| Backslash in replacement | Replacing with a string containing `\tmp` or `\` | Backslashes still exist accurately in the result. |
+| Consecutive matches | Replacing each dot in `....` | Each match position is processed exactly once; none missed or doubled. |
+| No match | Input `abc`, target `XYZ` | Returns the original string unchanged. |
+| Unicode and emoji | Accented Vietnamese characters and emoji | No lost diacritics or corrupted surrogate pairs. |
+| Line breaks | Replacing a real newline with the two characters `\` and `n` | Distinguishes a real newline from text representing a newline. |
+| Boundaries | Empty input, empty target, repeated data | Produces a clear result or a specified exception. |
+| Broken syntax | Regex `[` or unquoted replacement `$` | Test confirms the exact error type without swallowing exceptions. |
 
-Khi có yêu cầu mới, mở rộng ma trận: chỉ thay lần đầu, thay không phân biệt chữ hoa/thường, nhóm bắt có tên, ký tự xuống dòng Windows CRLF, chuỗi rất dài hoặc target thuộc nhiều bảng mã. Các lựa chọn đó cần được kiểm thử theo hợp đồng thực tế của ứng dụng.
+When new requirements arise, expand the matrix: replacing only the first match, case-insensitive replacement, named capturing groups, Windows CRLF line endings, very long strings, or targets across multiple encodings. Those options should be tested according to the application's actual contract.
 
-## 6. Ba lớp escape thường bị nhầm
+## 6. Three Commonly Confused Escaping Layers
 
-### Lớp 1: Java string literal
+### Layer 1: Java string literal
 
-Để có một dấu backslash thật ở runtime, mã Java viết `"\\"`. Newline thật viết `"\n"`. Để có hai ký tự **backslash rồi chữ n**, mã Java viết `"\\n"`.
+To get one literal backslash at runtime, Java code writes `"\\"`. A real newline is written `"\n"`. To get two characters **backslash then letter n**, Java code writes `"\\n"`.
 
-### Lớp 2: Regex tìm kiếm
+### Layer 2: Search regex
 
-Regex dấu chấm nguyên văn cần `\.`, tức Java string literal `"\\."`. Regex khớp một backslash thật cần hai backslash trong regex, tức bốn backslash trong Java string literal `"\\\\"`. Với target từ người dùng, `Pattern.quote` giúp khỏi phải tự tính các lớp escape đó.
+A literal dot regex requires `\.`, which is the Java string literal `"\\."`. A regex matching a literal backslash requires two backslashes in the regex, which is four backslashes in the Java string literal `"\\\\"`. For user-supplied targets, `Pattern.quote` saves you from calculating those escaping layers manually.
 
-### Lớp 3: Cú pháp replacement
+### Layer 3: Replacement syntax
 
-`$1` là tham chiếu tới nhóm bắt số 1 nếu chủ động dùng cú pháp này. Dấu `\` trong replacement có thể được parser dùng để escape ký tự tiếp theo. Bởi vậy, replacement từ dữ liệu như `"$1\\new"` cần `Matcher.quoteReplacement` nếu phải giữ nguyên mọi ký tự. **Quote regex không đồng thời quote replacement.**
+`$1` is a reference to capturing group 1 if you deliberately use this syntax. `\` in the replacement can be used by the parser to escape the following character. Therefore, a replacement from data such as `"$1\\new"` requires `Matcher.quoteReplacement` if all characters must be preserved. **Quoting the regex does not simultaneously quote the replacement.**
 
-Khi debug, so sánh toàn chuỗi bằng `equals`. Nếu cần phân tích sâu, có thể in `length` và từng code point; nhìn văn bản log đôi khi không phân biệt được một dấu backslash bị nuốt hoặc một newline thực.
+When debugging, compare whole strings with `equals`. If deep analysis is needed, you can print `length` and individual code points; looking at log text sometimes fails to distinguish a swallowed backslash or a real newline.
 
-## 7. Các lỗi phổ biến
+## 7. Common Mistakes
 
-1. **Chỉ quote target:** `Pattern.quote` xử lý regex nhưng replacement chứa `$` hoặc `\` vẫn có thể bị diễn giải hay gây lỗi.
-2. **Chỉ quote replacement:** regex chứa `.` hoặc `|` vẫn có thể khớp vị trí khác dự kiến.
-3. **Quote biểu thức khi thực sự muốn regex:** `Pattern.quote("(\\d+)")` tìm đúng các ký tự của biểu thức, chứ không tìm chữ số. Cần thống nhất target là **regex có chủ ý** hay **văn bản nguyên văn**.
-4. **Dùng `replaceAll` cho thay thế hoàn toàn nguyên văn:** cân nhắc `String.replace`, vừa rõ ý định vừa tránh lỗi cú pháp.
-5. **Catch mọi exception rồi đánh dấu test PASS:** `PatternSyntaxException` báo regex sai; replacement sai cũng có thể gây `IllegalArgumentException` hoặc `IndexOutOfBoundsException`. Phải kiểm tra đúng ngoại lệ mong đợi.
-6. **Chỉ thử dữ liệu ASCII đơn giản:** chưa bao phủ newline, Unicode, backslash hoặc dấu dollar; cần kiểm thử với dữ liệu thực tế.
-7. **Nhận regex tùy ý từ người dùng mà không giới hạn:** nếu tính năng cho phép regex tự do, cần thông báo lỗi cú pháp và kiểm soát tài nguyên do một số regex có thể chạy rất lâu. Nếu chỉ cần tìm văn bản thuần, quote target.
+1. **Quoting only the target:** `Pattern.quote` handles the regex, but a replacement containing `$` or `\` can still be interpreted or throw errors.
+2. **Quoting only the replacement:** a regex containing `.` or `|` can still match unintended positions.
+3. **Quoting an expression when you actually want regex:** `Pattern.quote("(\\d+)")` matches the exact characters of the expression, not digits. Decide consistently whether the target is an **intentional regex** or **literal text**.
+4. **Using `replaceAll` for completely literal replacement:** consider `String.replace`, which both makes the intent clear and avoids syntax errors.
+5. **Catching every exception and marking the test PASS:** `PatternSyntaxException` indicates an invalid regex; an invalid replacement can also throw `IllegalArgumentException` or `IndexOutOfBoundsException`. You must assert the exact expected exception.
+6. **Testing only simple ASCII data:** fails to cover newlines, Unicode, backslashes, or dollar signs; test with realistic data.
+7. **Accepting arbitrary regexes from users without limits:** if a feature allows free-form regexes, report syntax errors and enforce resource controls because some regexes can run very slowly. If only plain text search is needed, quote the target.
 
-## 8. Quy trình áp dụng
+## 8. Application Workflow
 
-Khi xây tính năng tìm và thay thế trong một trình soạn thảo hay công cụ xử lý chuỗi:
+When building a find-and-replace feature in an editor or string-processing tool:
 
-1. Xác định target là **regex** hay **dữ liệu nguyên văn**, và replacement là **template nhóm bắt** hay **dữ liệu nguyên văn**.
-2. Chọn API thích hợp: `String.replace` cho nguyên văn; `Pattern.quote` kết hợp `Matcher.quoteReplacement` nếu cần `replaceAll` với dữ liệu nguyên văn; regex thực khi cần nhóm bắt.
-3. Xây bộ test bao gồm metacharacters ở cả hai phía, nhiều lần khớp, không khớp, lỗi cú pháp, chuỗi rỗng, Unicode và newline.
-4. Kiểm tra **nội dung chính xác** và **ngoại lệ chính xác**, thay vì chỉ xác nhận chương trình không bị crash.
+1. Determine whether the target is a **regex** or **literal data**, and whether the replacement is a **capturing-group template** or **literal data**.
+2. Choose the appropriate API: `String.replace` for literal replacement; `Pattern.quote` combined with `Matcher.quoteReplacement` if `replaceAll` is needed with literal data; real regex when capturing groups are required.
+3. Build a test suite covering metacharacters on both sides, multiple matches, no match, syntax errors, empty strings, Unicode, and newlines.
+4. Assert **exact content** and **exact exceptions**, rather than merely confirming the program does not crash.
 
-**Ghi nhớ:** ký tự đặc biệt chỉ có ý nghĩa trong **ngữ cảnh cú pháp cụ thể**. `.` quan trọng với regex tìm kiếm, `$1` quan trọng với replacement, còn `\` phải đi qua lớp escape của Java. Kiểm thử tốt phải chứng minh cả ba lớp được xử lý đúng, đồng thời giữ nguyên dữ liệu người dùng muốn thay thế.
+**Key takeaway:** special characters only have meaning in a **specific syntactic context**. `.` matters to the search regex, `$1` matters to the replacement, and `\` must pass through Java's escaping layer. Good testing must prove that all three layers are handled properly while preserving the data the user intends to substitute.

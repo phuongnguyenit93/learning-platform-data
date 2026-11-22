@@ -1,73 +1,73 @@
-# Phân biệt biến cục bộ, tham số và trường trong Java 17+
+# Distinguishing Local Variables, Parameters, and Fields in Java 17+
 
-Trong Java, ba khai báo có thể cùng dùng kiểu `int` nhưng có vai trò rất khác nhau:
+In Java, three declarations can all use type `int` yet serve very different roles:
 
-- **Biến cục bộ (local variable):** khai báo bên trong thân phương thức, constructor hoặc khối; dùng để tính toán tạm trong phạm vi đó.
-- **Tham số (parameter):** biến được khai báo trong phần tham số của phương thức/constructor; nhận giá trị do bên gọi truyền vào.
-- **Trường (field):** biến khai báo ở cấp lớp hoặc interface, bên ngoài các phương thức; biểu diễn trạng thái của **đối tượng** hoặc dữ liệu **thuộc lớp** nếu là `static`.
+- **Local variable:** declared inside the body of a method, constructor, or block; used for temporary calculations within that scope.
+- **Parameter:** a variable declared in the parameter list of a method/constructor; receives a value passed by the caller.
+- **Field:** a variable declared at class or interface level, outside methods; represents **object** state or **class-level** data if marked `static`.
 
-Hiểu rõ nơi khai báo, phạm vi sử dụng và cách khởi tạo giúp tránh lỗi `cannot find symbol`, `variable might not have been initialized` và nhầm dữ liệu giữa các đối tượng.
+Understanding where each is declared, its scope, and how it is initialized helps prevent `cannot find symbol`, `variable might not have been initialized`, and mixing up data between objects.
 
-## 1. Nhận diện nhanh bằng vị trí khai báo
+## 1. Quick Identification by Declaration Location
 
 ~~~java
 public class Example {
     private int balance;             // Instance field.
     private static int accountCount; // Static field.
 
-    public Example(int initial) {    // initial: tham số constructor.
-        int checked = initial >= 0 ? initial : 0; // Biến cục bộ.
-        this.balance = checked;      // Gán vào field của đối tượng.
+    public Example(int initial) {    // initial: constructor parameter.
+        int checked = initial >= 0 ? initial : 0; // Local variable.
+        this.balance = checked;      // Assigns to the object's field.
         accountCount++;
     }
 
-    public int increase(int amount) { // amount: tham số phương thức.
-        int next = balance + amount;  // next: biến cục bộ.
-        balance = next;               // Cập nhật instance field.
+    public int increase(int amount) { // amount: method parameter.
+        int next = balance + amount;  // next: local variable.
+        balance = next;               // Updates the instance field.
         return balance;
     }
 }
 ~~~
 
-| Tiêu chí | Biến cục bộ | Tham số | Trường instance | Trường `static` |
+| Criterion | Local variable | Parameter | Instance field | `static` field |
 | --- | --- | --- | --- | --- |
-| Khai báo ở đâu? | Trong phương thức, constructor hoặc khối | Danh sách tham số | Trong thân lớp, không có `static` | Trong thân lớp, có `static` |
-| Thuộc về ai? | Một lần thực thi/phạm vi thích hợp | Một lần gọi phương thức/constructor | Mỗi đối tượng có bản riêng | Gắn với lớp trong ngữ cảnh tải lớp |
-| Có giá trị mặc định tự động? | **Không** | Không; nhận giá trị khi được gọi | **Có** | **Có** |
-| Tồn tại/được truy cập theo phạm vi nào? | Phạm vi khai báo và quy tắc luồng điều khiển | Trong thân khai báo tương ứng | Qua đối tượng hoặc `this` | Qua tên lớp, ví dụ `Example.accountCount` |
-| Điển hình dùng cho | Kết quả tính tạm | Input của thao tác | Trạng thái từng đối tượng | Đếm đối tượng, cấu hình dùng chung |
+| Where is it declared? | Inside a method, constructor, or block | Parameter list | In the class body, without `static` | In the class body, with `static` |
+| Who does it belong to? | One execution / appropriate scope | One method/constructor call | Each object has its own copy | Tied to the class in the class-loading context |
+| Has automatic default value? | **No** | No; receives value when called | **Yes** | **Yes** |
+| Accessible in what scope? | Declaration scope and control-flow rules | Inside the corresponding declaration body | Via an object or `this` | Via class name, e.g., `Example.accountCount` |
+| Typically used for | Temporary computation results | Operation input | Per-object state | Object counters, shared configuration |
 
-Tham số trong Java vẫn là **biến**, nhưng nó khác biến cục bộ tự khai báo ở chỗ **giá trị ban đầu được bên gọi cung cấp**. Nói “tham số là biến cục bộ” có thể đúng theo cách diễn giải rộng về vùng sử dụng, nhưng khi phân loại theo **vị trí khai báo** nên tách chúng ra.
+A parameter in Java is still a **variable**, but it differs from a self-declared local variable in that **its initial value is supplied by the caller**. Saying "parameters are local variables" can be valid under a broad interpretation of usage region, but when classifying by **declaration location**, it is better to separate them.
 
-## 2. Chương trình Java chạy được
+## 2. Runnable Java Program
 
-Lưu file UTF-8 **`VariableKindsDemo.java`**:
+Save the UTF-8 file **`VariableKindsDemo.java`**:
 
 ~~~java
 public class VariableKindsDemo {
-    private static int accountCount;  // Static field: ban dau = 0.
+    private static int accountCount;  // Static field: initially = 0.
 
     private final String owner;        // Instance field.
-    private int balance;               // Instance field: ban dau = 0.
-    private boolean active;            // Instance field: ban dau = false.
+    private int balance;               // Instance field: initially = 0.
+    private boolean active;            // Instance field: initially = false.
 
     public VariableKindsDemo(String owner) {
-        this.owner = owner;            // Field = tham so cung ten.
+        this.owner = owner;            // Field = parameter with same name.
         accountCount++;
     }
 
-    public void deposit(int amount) {  // amount: tham so.
+    public void deposit(int amount) {  // amount: parameter.
         if (amount <= 0) {
             throw new IllegalArgumentException("amount must be positive");
         }
 
-        int before = balance;          // Bien cuc bo.
-        balance += amount;             // Cap nhat instance field.
+        int before = balance;          // Local variable.
+        balance += amount;             // Update instance field.
         System.out.println(owner + ": " + before + " -> " + balance);
     }
 
     public static void main(String[] args) {
-        int startingAmount = 50;       // Bien cuc bo cua main.
+        int startingAmount = 50;       // Local variable of main.
 
         VariableKindsDemo mai = new VariableKindsDemo("Mai");
         VariableKindsDemo an = new VariableKindsDemo("An");
@@ -87,7 +87,7 @@ public class VariableKindsDemo {
 }
 ~~~
 
-Mở **PowerShell trên Windows** hoặc **Bash trên Linux** ở thư mục chứa tệp:
+Open **PowerShell on Windows** or **Bash on Linux** in the directory containing the file:
 
 ~~~bash
 java -version
@@ -109,37 +109,37 @@ an.finalBalance=20
 accounts.shared=2
 ~~~
 
-Vì sao?
+Why?
 
-1. `accountCount` là **static field**, tăng mỗi lần constructor chạy; có hai đối tượng nên kết quả là 2, bất kể đọc qua `accountCount` hay `VariableKindsDemo.accountCount`.
-2. `balance` và `active` là **instance fields** không khởi tạo tường minh: Java đặt giá trị mặc định `0` và `false` cho mỗi đối tượng.
-3. `owner` cũng là instance field nhưng được gán trong constructor. Tham số `owner` chỉ dùng để cung cấp giá trị cho trường `this.owner`.
-4. `startingAmount` là biến cục bộ của `main`; `mai.deposit(startingAmount)` truyền giá trị 50 vào tham số `amount` của `deposit`.
-5. `before` là biến cục bộ **riêng trong từng lần gọi `deposit`**. Trường `balance` của Mai thay đổi thành 50, còn của An thành 20: hai đối tượng không dùng chung instance field.
+1. `accountCount` is a **static field**, incremented every time the constructor runs; two objects were created so the result is `2`, whether read via `accountCount` or `VariableKindsDemo.accountCount`.
+2. `balance` and `active` are **instance fields** with no explicit initializer: Java sets default values `0` and `false` for each object.
+3. `owner` is also an instance field, assigned in the constructor. The `owner` parameter is only used to supply the value for the `this.owner` field.
+4. `startingAmount` is a local variable of `main`; `mai.deposit(startingAmount)` passes the value `50` into the `amount` parameter of `deposit`.
+5. `before` is a local variable **separate for each call to `deposit`**. Mai's `balance` field changes to `50`, while An's changes to `20`: two objects do not share instance fields.
 
-`main` là phương thức `static`: ở đó bạn **không thể truy cập trực tiếp `balance`** nếu không thông qua đối tượng (ví dụ `mai.balance`). Ngược lại, các phương thức instance như `deposit` có thể truy cập trường instance thông qua `this` ngầm định.
+`main` is a `static` method: there you **cannot access `balance` directly** without going through an object (for example `mai.balance`). Conversely, instance methods like `deposit` can access instance fields via the implicit `this`.
 
 
-## 3. Khởi tạo theo từng loại biến
+## 3. Initialization by Variable Kind
 
-**Field** có giá trị mặc định theo kiểu (`int` là 0, `boolean` là `false`, tham chiếu là `null`), dù field initializer và constructor có thể thay giá trị đó. **Tham số** nhận giá trị đối số từ lời gọi. **Biến cục bộ** không có giá trị mặc định được phép đọc; cần gán chắc chắn trước khi đọc.
+**Fields** have default values according to their type (`int` is `0`, `boolean` is `false`, references are `null`), though field initializers and constructors can change those values. **Parameters** receive argument values from the call. **Local variables** have no readable default value; they must be definitely assigned before reading.
 
 ~~~java
 class ExampleState {
-    int count; // 0 khi object mới tạo
+    int count; // 0 when a new object is created
 
-    int sum(int input) { // input là tham số đã nhận giá trị từ caller
-        int result = count + input; // result là local được khởi tạo
+    int sum(int input) { // input is a parameter that already received a value from the caller
+        int result = count + input; // result is an initialized local
         return result;
     }
 }
 ~~~
 
-Một `final` instance field chưa có initializer phải được gán hợp lệ trước khi constructor hoàn tất bình thường, như `owner` trong ví dụ chính. Bài về giá trị mặc định giải thích đầy đủ kiểu mảng, `char`, wrapper và thứ tự khởi tạo; bài về *definite assignment* phân tích các nhánh điều khiển.
+An uninitialized `final` instance field must be validly assigned before the constructor completes normally, such as `owner` in the main example. The lesson on default values fully explains array types, `char`, wrappers, and initialization order; the lesson on *definite assignment* analyzes control-flow branches.
 
-## 4. Phạm vi (scope) và tên bị che (shadowing)
+## 4. Scope and Shadowing
 
-Biến cục bộ hoặc tham số có thể **che** field cùng tên. Trong ví dụ:
+A local variable or parameter can **shadow** a field with the same name. In the example:
 
 ~~~java
 private final String owner;
@@ -149,75 +149,75 @@ public VariableKindsDemo(String owner) {
 }
 ~~~
 
-- `owner` bên phải là **tham số** constructor.
-- `this.owner` bên trái là **field** của đối tượng hiện tại.
+- `owner` on the right is the constructor **parameter**.
+- `this.owner` on the left is the current object's **field**.
 
-Nếu chỉ viết `owner = owner;`, cả hai vế sẽ nói tới tham số, không gán cho field; với field `final` chưa được khởi tạo, constructor còn vi phạm yêu cầu gán giá trị bắt buộc.
+If you just wrote `owner = owner;`, both sides would refer to the parameter, leaving the field unassigned; for an uninitialized `final` field, the constructor would also violate the mandatory assignment requirement.
 
-**Phạm vi khối:** biến khai báo trong `{ ... }` không dùng được ở ngoài phạm vi của nó:
+**Block scope:** a variable declared inside `{ ... }` cannot be used outside its scope:
 
 ~~~java
 if (true) {
     int inside = 10;
     System.out.println(inside);
 }
-// System.out.println(inside); // Loi: khong thay ten inside.
+// System.out.println(inside); // Error: cannot find symbol inside.
 ~~~
 
-Không chỉ có thụt lề: **dấu ngoặc nhọn và vị trí khai báo** mới quyết định phạm vi hợp lệ. Hai biến cục bộ cùng tên ở những phạm vi lồng nhau cũng không thể tùy ý được khai báo chồng lên nhau; khi không chắc, dùng tên rõ nghĩa thay vì cố tạo nhiều tên trùng.
+It is not just indentation: **braces and declaration position** determine the valid scope. Two local variables with the same name in nested scopes also cannot be arbitrarily declared overlapping one another; when unsure, use descriptive names instead of trying to reuse names.
 
-## 5. Truyền tham số trong Java là truyền theo giá trị
+## 5. Parameter Passing in Java Is Pass-by-Value
 
-Java **luôn truyền giá trị** vào tham số:
+Java **always passes values** into parameters:
 
 ~~~java
 static void changeNumber(int value) {
-    value = 99; // Chi doi bien tham so.
+    value = 99; // Only modifies the parameter variable.
 }
 
-// Trong main:
+// In main:
 int number = 5;
 changeNumber(number);
 System.out.println(number); // 5
 ~~~
 
-Đối với kiểu nguyên thủy, giá trị số được sao chép. Đối với đối tượng, **giá trị tham chiếu** được sao chép; phương thức có thể thay đổi trạng thái của đối tượng chung thông qua tham chiếu đó (nếu đối tượng cho phép), nhưng gán lại biến tham số không tự đổi tham chiếu trong biến của bên gọi.
+For primitive types, the numeric value is copied. For objects, the **reference value** is copied; the method can modify the shared object's state through that reference (if the object allows it), but reassigning the parameter variable does not change the reference in the caller's variable.
 
-Đừng diễn giải “tham số lưu ở stack, field lưu ở heap” thành một quy luật vật lý tuyệt đối: cách tối ưu hóa bộ nhớ là chi tiết triển khai của JVM. Khi học ngôn ngữ, quan trọng hơn là **ngữ nghĩa, phạm vi và cách chia sẻ trạng thái**.
+Do not turn "parameters are stored on the stack, fields are stored on the heap" into an absolute physical rule: memory optimization is a JVM implementation detail. When learning the language, **semantics, scope, and state sharing** matter more.
 
-## 6. Lỗi thường gặp
+## 6. Common Errors
 
-| Hiện tượng | Nguyên nhân thường gặp | Cách sửa |
+| Symptom | Common cause | Fix |
 | --- | --- | --- |
-| `variable might not have been initialized` | Đọc biến cục bộ trước khi gán chắc chắn | Gán giá trị trên mọi nhánh cần thiết |
-| `cannot find symbol` với biến | Dùng ngoài phạm vi hoặc gõ sai tên | Xem nơi khai báo và cặp `{ }` |
-| `non-static variable ... cannot be referenced from a static context` | Đọc instance field trực tiếp trong `main` | Tạo/nhận đối tượng rồi truy cập qua đối tượng |
-| Field không thay đổi sau constructor | Tham số che tên field, viết `owner = owner` | Viết `this.owner = owner` |
-| Hai đối tượng có chung giá trị ngoài dự kiến | Dùng `static` cho dữ liệu đáng ra thuộc từng đối tượng | Bỏ `static` với trạng thái riêng |
-| Field luôn bằng 0 hoặc `null` | Quên khởi tạo hoặc quên gán đúng field | Kiểm tra constructor và initializer |
-| Gán lại tham số nhưng bên gọi không đổi | Java truyền giá trị của đối số | Trả kết quả rồi gán ở bên gọi nếu cần |
+| `variable might not have been initialized` | Reading a local variable before definite assignment | Assign a value on all necessary branches |
+| `cannot find symbol` for a variable | Used out of scope or misspelled name | Check declaration location and `{ }` pairs |
+| `non-static variable ... cannot be referenced from a static context` | Reading an instance field directly in `main` | Create/receive an object and access through it |
+| Field unchanged after constructor | Parameter shadows field name, wrote `owner = owner` | Write `this.owner = owner` |
+| Two objects unexpectedly share a value | Used `static` for data that should belong to each object | Remove `static` for per-object state |
+| Field is always `0` or `null` | Forgot to initialize or assigned the wrong field | Check constructors and initializers |
+| Reassigning parameter does not change caller | Java passes argument values | Return the result and assign at the caller if needed |
 
-## 7. Bài tập tự kiểm tra
+## 7. Self-Check Exercises
 
-1. **Phân loại:** Trong `VariableKindsDemo`, `accountCount`, `owner`, `balance`, `startingAmount`, `amount`, `before` thuộc nhóm nào?  
-   *Đáp án:* `accountCount` là static field; `owner` và `balance` là instance fields; `startingAmount` và `before` là local variables; `amount` là parameter. Ngoài ra còn có tham số constructor `owner` che tên field.
-2. **Dự đoán:** Nếu gọi `mai.deposit(10)` thêm một lần, `mai.balance` và `an.balance` là bao nhiêu?  
-   *Đáp án:* 60 và 20. `accountCount` vẫn 2 vì không tạo thêm đối tượng.
-3. **Khởi tạo:** Tại sao `int balance;` ở cấp lớp đọc ra 0, nhưng `int local; System.out.println(local);` trong phương thức không biên dịch?  
-   *Đáp án:* Field nhận giá trị mặc định; local cần được gán chắc chắn.
-4. **Shadowing:** Giải thích khác biệt giữa `this.owner = owner;` và `owner = owner;` trong constructor.  
-   *Đáp án:* Câu đầu gán tham số cho field; câu sau chỉ gán tham số cho chính nó.
-5. **Truyền giá trị:** Vì sao đổi tham số `value` trong `changeNumber` không đổi biến `number` bên gọi?  
-   *Đáp án:* Tham số giữ bản sao của giá trị số.
+1. **Classification:** In `VariableKindsDemo`, which category do `accountCount`, `owner`, `balance`, `startingAmount`, `amount`, and `before` belong to?  
+   *Answer:* `accountCount` is a static field; `owner` and `balance` are instance fields; `startingAmount` and `before` are local variables; `amount` is a parameter. There is also the constructor parameter `owner` shadowing the field name.
+2. **Prediction:** If `mai.deposit(10)` is called once more, what are `mai.balance` and `an.balance`?  
+   *Answer:* `60` and `20`. `accountCount` remains `2` because no new object was created.
+3. **Initialization:** Why does `int balance;` at class level read as `0`, while `int local; System.out.println(local);` inside a method does not compile?  
+   *Answer:* Fields receive default values; locals must be definitely assigned.
+4. **Shadowing:** Explain the difference between `this.owner = owner;` and `owner = owner;` in the constructor.  
+   *Answer:* The first assigns the parameter to the field; the second only assigns the parameter to itself.
+5. **Pass-by-value:** Why does changing the `value` parameter in `changeNumber` not change the `number` variable at the caller?  
+   *Answer:* The parameter holds a copy of the numeric value.
 
 ## Checklist
 
-- [ ] Nhận diện được **biến cục bộ**, **tham số**, **instance field**, **static field** theo vị trí khai báo.
-- [ ] Biết field có giá trị mặc định nhưng local variable thì không.
-- [ ] Dùng `this.field` để giải quyết tên bị tham số hoặc biến cục bộ che.
-- [ ] Không dùng local variable ngoài phạm vi khối.
-- [ ] Hiểu instance field thuộc từng đối tượng, static field dùng chung ở cấp lớp.
-- [ ] Giải thích được cách Java truyền giá trị vào tham số.
-- [ ] Biên dịch và chạy `VariableKindsDemo.java`, dự đoán chính xác tám dòng kết quả.
+- [ ] Identify **local variables**, **parameters**, **instance fields**, and **static fields** by declaration location.
+- [ ] Know that fields have default values whereas local variables do not.
+- [ ] Use `this.field` to resolve names shadowed by parameters or local variables.
+- [ ] Do not use a local variable outside its block scope.
+- [ ] Understand that instance fields belong to each object and static fields are shared at class level.
+- [ ] Explain how Java passes values into parameters.
+- [ ] Compile and run `VariableKindsDemo.java`, accurately predicting all eight lines of output.
 
-**Ghi nhớ:** Biến cục bộ phục vụ một đoạn tính toán, tham số mang dữ liệu của lời gọi, còn trường lưu trạng thái của đối tượng hoặc lớp. Hãy hỏi ba câu khi gặp một tên biến: **Nó khai báo ở đâu? Ai sở hữu giá trị đó? Và khi nào nó được gán?**
+**Takeaway:** Local variables serve a block of computation, parameters carry call data, and fields store object or class state. Ask three questions whenever you see a variable name: **Where is it declared? Who owns that value? And when is it assigned?**

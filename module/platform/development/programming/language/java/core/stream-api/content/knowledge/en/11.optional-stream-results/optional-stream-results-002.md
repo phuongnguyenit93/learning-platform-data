@@ -1,38 +1,38 @@
-# Sử dụng `OptionalInt`, `OptionalLong` và `OptionalDouble`
+# Using `OptionalInt`, `OptionalLong`, and `OptionalDouble`
 
-## 1. Vì sao kết quả của Stream cần Optional?
+## 1. Why Do Stream Results Need Optional?
 
-Trong **Java Stream API**, các pipeline khai báo thường kết hợp nguồn dữ liệu, những thao tác trung gian lazy như `filter` và `map`, rồi kết thúc bằng `min`, `max`, `average`, `findFirst` hoặc `reduce`. Không phải lúc nào pipeline cũng tìm được phần tử để trả về. Ví dụ: nguồn rỗng, hoặc toàn bộ phần tử bị `filter` loại bỏ.
+In the **Java Stream API**, declarative pipelines often combine a data source, lazy intermediate operations such as `filter` and `map`, and end with `min`, `max`, `average`, `findFirst`, or `reduce`. A pipeline cannot always find an element to return. For example: the source is empty, or all elements are removed by `filter`.
 
-Java dùng ba kiểu **Optional nguyên thủy** để diễn đạt trường hợp một phép toán *có thể có hoặc không có kết quả*:
+Java uses three **primitive Optional** types to express the case where an operation *may or may not have a result*:
 
-- `OptionalInt`: có thể chứa một giá trị `int`.
-- `OptionalLong`: có thể chứa một giá trị `long`.
-- `OptionalDouble`: có thể chứa một giá trị `double`.
+- `OptionalInt`: may contain an `int` value.
+- `OptionalLong`: may contain a `long` value.
+- `OptionalDouble`: may contain a `double` value.
 
-Chúng không phải stream và cũng không phải `null`. Mỗi đối tượng biểu diễn **trạng thái có giá trị hoặc rỗng**. Điều này giúp mã gọi chủ động quyết định cách xử lý trường hợp thiếu dữ liệu, thay vì giả định rằng luôn có kết quả.
+They are not streams and they are not `null`. Each object represents **a present or empty state**. This allows calling code to proactively decide how to handle missing data, instead of assuming a result is always present.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Nhận biết phương thức nào của `IntStream`, `LongStream` và `DoubleStream` trả về Optional nguyên thủy.
-2. Kiểm tra và lấy giá trị bằng `isPresent`, `ifPresent`, `orElse`, `orElseGet`, `orElseThrow`.
-3. Phân biệt **không có kết quả** với kết quả hợp lệ bằng `0`, `0L` hoặc `0.0`.
-4. Xử lý các tình huống thực tế: điểm trung bình, giao dịch lớn nhất, giá trị đo và kết quả tìm kiếm.
-5. Lựa chọn Optional nguyên thủy, `Optional<T>`, giá trị mặc định và ngoại lệ phù hợp với hợp đồng nghiệp vụ.
+1. Identify which methods of `IntStream`, `LongStream`, and `DoubleStream` return a primitive Optional.
+2. Check and retrieve values using `isPresent`, `ifPresent`, `orElse`, `orElseGet`, and `orElseThrow`.
+3. Distinguish **having no result** from a valid result equal to `0`, `0L`, or `0.0`.
+4. Handle real-world scenarios: average score, largest transaction, measurement values, and search results.
+5. Choose among primitive Optional, `Optional<T>`, default values, and exceptions according to the business contract.
 
-Bài thuộc chương **Optional trong kết quả Stream** của module `JAVA_STREAM_API`. Đây là nền tảng để đọc kết quả các pipeline số học, `reduce` và các phép tổng hợp trong các nội dung nâng cao như grouping, collector tùy chỉnh hoặc xử lý song song.
+This lesson belongs to the **Optional in Stream Results** chapter of the `JAVA_STREAM_API` module. It provides the foundation for reading results of numeric pipelines, `reduce`, and aggregations in advanced topics such as grouping, custom collectors, or parallel processing.
 
-## 2. Bản đồ kiểu trả về của các phép toán kết thúc
+## 2. Return Type Map of Terminal Operations
 
-Các primitive stream được giới thiệu từ Java 8:
+Primitive streams were introduced in Java 8:
 
-| Loại stream | Các phép toán trả Optional nguyên thủy | Các phép toán trả giá trị trực tiếp |
+| Stream type | Operations returning primitive Optional | Operations returning a value directly |
 | --- | --- | --- |
 | `IntStream` | `min()`, `max()`, `findFirst()`, `findAny()`, `reduce(IntBinaryOperator)` → `OptionalInt`; `average()` → `OptionalDouble` | `sum()` → `int`, `count()` → `long` |
 | `LongStream` | `min()`, `max()`, `findFirst()`, `findAny()`, `reduce(LongBinaryOperator)` → `OptionalLong`; `average()` → `OptionalDouble` | `sum()` → `long`, `count()` → `long` |
 | `DoubleStream` | `min()`, `max()`, `findFirst()`, `findAny()`, `reduce(DoubleBinaryOperator)`, `average()` → `OptionalDouble` | `sum()` → `double`, `count()` → `long` |
 
-Một lưu ý quan trọng: **`average()` của cả ba loại primitive stream đều trả về `OptionalDouble`**. Trung bình của các số nguyên có thể là một số thập phân; vì vậy không có `OptionalInt` hoặc `OptionalLong` cho phép tính này.
+An important note: **`average()` on all three primitive stream types returns `OptionalDouble`**. The average of integers can be a fractional number; therefore, there is no `OptionalInt` or `OptionalLong` for this calculation.
 
 ```java
 import java.util.OptionalDouble;
@@ -48,7 +48,7 @@ OptionalDouble trungBinh = IntStream.of(7, 8, 9).average();
 OptionalDouble doLonNhat = DoubleStream.of(1.5, 2.5).max();
 ```
 
-Đọc từ kiểu nguồn sang kết quả:
+Reading from source type to result:
 
 ```text
 IntStream  ── min() / max() / findFirst() ──▶ OptionalInt
@@ -59,11 +59,11 @@ IntStream  ── average() ─────────────────�
 LongStream ── average() ──────────────────▶ OptionalDouble
 ```
 
-Khi thấy lỗi biên dịch do gán sai kiểu, hãy kiểm tra **kiểu của stream ở ngay trước terminal operation**, không chỉ kiểu dữ liệu ban đầu. Ví dụ `mapToLong` làm thay đổi kiểu stream, nên `findFirst()` sau đó trả về `OptionalLong`.
+When you see a compilation error due to assigning the wrong type, check **the stream type immediately before the terminal operation**, not just the initial data type. For example, `mapToLong` changes the stream type, so a subsequent `findFirst()` returns `OptionalLong`.
 
-## 3. Ví dụ hoàn chỉnh: phân tích điểm thi
+## 3. Complete Example: Analyzing Exam Scores
 
-Chương trình dưới đây chạy trên **Java 8 trở lên**:
+The program below runs on **Java 8 or later**:
 
 ```java
 import java.util.Arrays;
@@ -81,45 +81,45 @@ public class ThongKeDiem {
 
         System.out.println("Min: " + diemNhoNhat.orElse(-1));
         System.out.println("Max: " + diemLonNhat.orElse(-1));
-        System.out.println("Trung bình: " + diemTrungBinh.orElse(0.0));
+        System.out.println("Average: " + diemTrungBinh.orElse(0.0));
 
         int[] khongCoDiem = {};
         OptionalDouble trungBinhRong = Arrays.stream(khongCoDiem).average();
 
-        System.out.println("Có điểm? " + trungBinhRong.isPresent());
+        System.out.println("Has scores? " + trungBinhRong.isPresent());
     }
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
 Min: 6
 Max: 9
-Trung bình: 7.5
-Có điểm? false
+Average: 7.5
+Has scores? false
 ```
 
-Giải thích:
+Explanation:
 
-- `min()`, `max()` và `average()` là các **terminal operations**, làm tiêu thụ stream.
-- `Arrays.stream(diem)` tạo `IntStream`. Chương trình tạo **ba stream mới** từ cùng một mảng để thực hiện ba phép kết thúc độc lập.
-- `min()` và `max()` trả về `OptionalInt`; `average()` trả về `OptionalDouble`.
-- Với mảng rỗng, `average()` trả về `OptionalDouble.empty()`. Không có giá trị trung bình hợp lệ để lấy trực tiếp.
+- `min()`, `max()`, and `average()` are **terminal operations**, which consume the stream.
+- `Arrays.stream(diem)` creates an `IntStream`. The program creates **three new streams** from the same array to perform three independent terminal operations.
+- `min()` and `max()` return `OptionalInt`; `average()` returns `OptionalDouble`.
+- With an empty array, `average()` returns `OptionalDouble.empty()`. There is no valid average to retrieve directly.
 
-Trong ví dụ, `-1` và `0.0` là các giá trị mặc định để minh họa API. Khi áp dụng nghiệp vụ, **không được tự động coi điểm trung bình của tập dữ liệu rỗng là 0.0**, trừ khi yêu cầu thực sự định nghĩa như vậy.
+In the example, `-1` and `0.0` are default values to demonstrate the API. When applying business logic, **never automatically treat the average of an empty dataset as 0.0**, unless the requirements explicitly define it that way.
 
-## 4. Trạng thái rỗng khác giá trị bằng 0
+## 4. Empty State Differs From a Value of 0
 
-Một Optional nguyên thủy có hai trạng thái:
+A primitive Optional has two states:
 
 ```text
 OptionalInt
-  ├─ Có giá trị: OptionalInt.of(0) / OptionalInt.of(42) / ...
-  └─ Rỗng:      OptionalInt.empty()
+  ├─ Has a value: OptionalInt.of(0) / OptionalInt.of(42) / ...
+  └─ Empty:       OptionalInt.empty()
 ```
 
-`OptionalInt.of(0)` **có giá trị** và giá trị đó bằng 0. `OptionalInt.empty()` **không có giá trị nào**. Tương tự với `OptionalLong.of(0L)` và `OptionalDouble.of(0.0)`.
+`OptionalInt.of(0)` **has a value**, and that value is 0. `OptionalInt.empty()` **has no value**. The same applies to `OptionalLong.of(0L)` and `OptionalDouble.of(0.0)`.
 
 ```java
 import java.util.OptionalInt;
@@ -134,7 +134,7 @@ System.out.println(coSoKhong.orElse(-1)); // 0
 System.out.println(khongCoSo.orElse(-1)); // -1
 ```
 
-Khi stream rỗng:
+When a stream is empty:
 
 ```java
 import java.util.stream.IntStream;
@@ -143,7 +143,7 @@ OptionalInt ketQua = IntStream.empty().max();
 System.out.println(ketQua.isPresent()); // false
 ```
 
-Khi một phép kết thúc có **giá trị mặc định/đơn vị (identity)**, kết quả có thể là giá trị trực tiếp dù nguồn rỗng:
+When a terminal operation has a **default/identity value**, the result can be a direct value even when the source is empty:
 
 ```java
 int tongRong = IntStream.empty().sum();
@@ -153,58 +153,58 @@ System.out.println(tongRong);    // 0
 System.out.println(soLuongRong); // 0
 ```
 
-Điều này không làm `max()` hay `average()` trở nên có nghĩa trên tập rỗng. Không có "phần tử lớn nhất" hoặc "trung bình cộng" của tập rỗng theo hợp đồng của các phương thức đó.
+This does not make `max()` or `average()` meaningful on an empty set. There is no "largest element" or "arithmetic average" of an empty set under the contracts of those methods.
 
-**Một ví dụ nghiệp vụ:** Số lượng giao dịch bằng 0 có thể là dữ liệu hợp lệ; còn "chưa có dữ liệu giao dịch" có ý nghĩa khác. Nếu hai trạng thái cần được phân biệt, trả về `OptionalInt` hoặc `OptionalLong` sẽ rõ ràng hơn việc dùng một số giả định.
+**A business example:** A transaction count of 0 can be valid data; whereas "no transaction data yet" has a different meaning. If the two states need to be distinguished, returning `OptionalInt` or `OptionalLong` is clearer than using an assumed number.
 
-## 5. Kiểm tra an toàn: `isPresent`, `ifPresent` và `getAs...`
+## 5. Safe Checking: `isPresent`, `ifPresent`, and `getAs...`
 
-Các phương thức lấy giá trị tương ứng:
+The corresponding value retrieval methods:
 
-| Kiểu | Kiểm tra | Lấy giá trị | Nếu rỗng |
+| Type | Check | Get value | If empty |
 | --- | --- | --- | --- |
-| `OptionalInt` | `isPresent()` | `getAsInt()` | Ném `NoSuchElementException` |
-| `OptionalLong` | `isPresent()` | `getAsLong()` | Ném `NoSuchElementException` |
-| `OptionalDouble` | `isPresent()` | `getAsDouble()` | Ném `NoSuchElementException` |
+| `OptionalInt` | `isPresent()` | `getAsInt()` | Throws `NoSuchElementException` |
+| `OptionalLong` | `isPresent()` | `getAsLong()` | Throws `NoSuchElementException` |
+| `OptionalDouble` | `isPresent()` | `getAsDouble()` | Throws `NoSuchElementException` |
 
-Ví dụ hợp lệ:
+Valid example:
 
 ```java
 OptionalInt diemMax = IntStream.of(5, 8, 9).max();
 
 if (diemMax.isPresent()) {
-    System.out.println("Điểm cao nhất: " + diemMax.getAsInt());
+    System.out.println("Highest score: " + diemMax.getAsInt());
 } else {
-    System.out.println("Chưa có điểm để tính");
+    System.out.println("No scores yet to compute");
 }
 ```
 
-Nếu chỉ cần thực hiện hành động **khi có kết quả**, `ifPresent` ngắn gọn hơn:
+If you only need to perform an action **when a result is present**, `ifPresent` is more concise:
 
 ```java
 OptionalLong max = java.util.stream.LongStream
     .of(1_000L, 2_000L, 1_500L)
     .max();
 
-max.ifPresent(value -> System.out.println("Giao dịch lớn nhất: " + value));
+max.ifPresent(value -> System.out.println("Largest transaction: " + value));
 ```
 
-`ifPresent` nhận consumer của kiểu nguyên thủy tương ứng: `IntConsumer`, `LongConsumer` hoặc `DoubleConsumer`. Khi Optional rỗng, hành động không chạy.
+`ifPresent` accepts a consumer of the corresponding primitive type: `IntConsumer`, `LongConsumer`, or `DoubleConsumer`. When the Optional is empty, the action does not run.
 
-**Không gọi `getAsInt()`, `getAsLong()` hoặc `getAsDouble()` mà chưa biết chắc Optional có giá trị**:
+**Do not call `getAsInt()`, `getAsLong()`, or `getAsDouble()` without being certain the Optional has a value**:
 
 ```java
-// BIÊN DỊCH ĐƯỢC NHƯNG SẼ NÉM NoSuchElementException.
+// COMPILES BUT WILL THROW NoSuchElementException.
 // int x = java.util.OptionalInt.empty().getAsInt();
 ```
 
-Trong bài toán mà thiếu kết quả là một khả năng bình thường, việc gọi `getAs...` trực tiếp thường làm mã dễ hỏng. Hãy chọn `orElse`, `orElseGet`, `orElseThrow` hoặc xử lý nhánh rỗng tường minh.
+In problems where a missing result is a normal possibility, calling `getAs...` directly often makes code fragile. Choose `orElse`, `orElseGet`, `orElseThrow`, or handle the empty branch explicitly.
 
-## 6. Giá trị dự phòng: `orElse` và `orElseGet`
+## 6. Fallback Values: `orElse` and `orElseGet`
 
-### 6.1. `orElse`: có giá trị mặc định cố định
+### 6.1. `orElse`: Having a Fixed Default Value
 
-`orElse` trả về giá trị hiện có nếu Optional không rỗng; nếu rỗng, nó trả về giá trị dự phòng:
+`orElse` returns the present value if the Optional is not empty; if empty, it returns the fallback value:
 
 ```java
 int diemMacDinh = IntStream.empty()
@@ -224,43 +224,43 @@ System.out.println(giaoDichMacDinh);   // 0
 System.out.println(Double.isNaN(nhietDoMacDinh)); // true
 ```
 
-Giá trị dự phòng phải khớp kiểu nguyên thủy (`int`, `long` hoặc `double`) và **phải mang ý nghĩa nghiệp vụ**. `-1` có thể là giá trị đặc biệt hợp lệ trong một hệ thống nhưng là giá trị bị cấm trong hệ thống khác. `Double.NaN` cũng là một số `double` đặc biệt, không tương đương với trạng thái Optional rỗng.
+The fallback value must match the primitive type (`int`, `long`, or `double`) and **must carry business meaning**. `-1` may be a valid special value in one system yet a forbidden value in another. `Double.NaN` is also a special `double` value, not equivalent to an empty Optional state.
 
-Nếu cần phân biệt "không có dữ liệu" với một số thực, thường nên giữ `OptionalDouble` cho đến khi nơi sử dụng quyết định chính sách.
+If you need to distinguish "no data" from a floating-point number, it is usually better to keep `OptionalDouble` until the consumer decides the policy.
 
-### 6.2. `orElseGet`: tính giá trị dự phòng khi cần
+### 6.2. `orElseGet`: Computing the Fallback Value When Needed
 
-`orElseGet` nhận một supplier, chỉ gọi khi Optional rỗng. Đối với primitive Optional, supplier lần lượt là `IntSupplier`, `LongSupplier`, `DoubleSupplier`.
+`orElseGet` accepts a supplier, which is only called when the Optional is empty. For primitive Optionals, the suppliers are `IntSupplier`, `LongSupplier`, and `DoubleSupplier`, respectively.
 
 ```java
 OptionalInt ketQua = IntStream.of(4, 7, 2).max();
 
 int giaTri = ketQua.orElseGet(() -> {
-    System.out.println("Đang tính dự phòng");
+    System.out.println("Computing fallback");
     return -1;
 });
 
 System.out.println(giaTri); // 7
 ```
 
-Vì `ketQua` có giá trị, chuỗi `Đang tính dự phòng` không được in. Ngược lại, `orElse(-1)` phù hợp khi chỉ cần một hằng số đơn giản.
+Because `ketQua` has a value, the string `Computing fallback` is not printed. Conversely, `orElse(-1)` is suitable when only a simple constant is needed.
 
-Ví dụ dự phòng có ý nghĩa như tính cấu hình:
+Example of a meaningful fallback such as computing a configuration value:
 
 ```java
 int gioiHan = IntStream.empty()
     .max()
     .orElseGet(() -> {
-        // Tính cấu hình mặc định khi không có dữ liệu.
+        // Compute default configuration when there is no data.
         return 100;
     });
 ```
 
-Không nên dùng `orElseGet` chỉ để gây tác dụng phụ; mục đích chính của nó là **cung cấp giá trị**.
+Do not use `orElseGet` solely to cause side effects; its primary purpose is **providing a value**.
 
-## 7. Bắt buộc phải có kết quả: `orElseThrow`
+## 7. Requiring a Result: `orElseThrow`
 
-Trong một số hệ thống, không tìm được dữ liệu là lỗi nghiệp vụ: ví dụ đã yêu cầu điểm cao nhất của một lớp được xác nhận là có bài thi, nhưng hệ thống không chứa điểm nào. Khi đó, có thể ném ngoại lệ có thông báo rõ:
+In some systems, not finding data is a business error: for example, requesting the highest score of a class confirmed to have exam papers, yet the system contains no scores. In that case, you can throw an exception with a clear message:
 
 ```java
 import java.util.stream.IntStream;
@@ -268,38 +268,38 @@ import java.util.stream.IntStream;
 int diemCaoNhat = IntStream.of(6, 9, 8)
     .max()
     .orElseThrow(() -> new IllegalStateException(
-        "Không có điểm thi để tính điểm cao nhất"
+        "No exam scores to compute the highest score"
     ));
 
 System.out.println(diemCaoNhat); // 9
 ```
 
-Nếu stream rỗng, supplier tạo `IllegalStateException`. Đây là overload **`orElseThrow(Supplier<? extends X>)`** có trong Java 8.
+If the stream is empty, the supplier creates an `IllegalStateException`. This is the **`orElseThrow(Supplier<? extends X>)`** overload available in Java 8.
 
 ```java
-// Ví dụ cố ý phát sinh ngoại lệ lúc chạy:
+// Example intentionally throwing a runtime exception:
 // int max = IntStream.empty()
 //     .max()
-//     .orElseThrow(() -> new IllegalStateException("Thiếu điểm"));
+//     .orElseThrow(() -> new IllegalStateException("Missing scores"));
 ```
 
-Không cần viết `isPresent` rồi tự ném ngoại lệ khi `orElseThrow` diễn đạt cùng hợp đồng rõ hơn.
+There is no need to write `isPresent` and manually throw an exception when `orElseThrow` expresses the same contract more clearly.
 
-**Lựa chọn nhanh:**
+**Quick choice:**
 
-| Tình huống | Lựa chọn |
+| Situation | Choice |
 | --- | --- |
-| Không có dữ liệu là bình thường và bên gọi cần phân biệt | Giữ `OptionalInt` / `OptionalLong` / `OptionalDouble` |
-| Không có dữ liệu thì dùng một hằng số đã thống nhất | `orElse(defaultValue)` |
-| Cần tính giá trị dự phòng khi thiếu dữ liệu | `orElseGet(supplier)` |
-| Thiếu dữ liệu vi phạm hợp đồng nghiệp vụ | `orElseThrow(exceptionSupplier)` |
-| Chỉ chạy hành động nếu có kết quả | `ifPresent(consumer)` |
+| No data is normal and the caller needs to distinguish it | Keep `OptionalInt` / `OptionalLong` / `OptionalDouble` |
+| No data uses an agreed constant | `orElse(defaultValue)` |
+| Need to compute a fallback value when data is missing | `orElseGet(supplier)` |
+| Missing data violates the business contract | `orElseThrow(exceptionSupplier)` |
+| Only run an action if a result exists | `ifPresent(consumer)` |
 
-## 8. Ví dụ riêng cho `OptionalLong` và `OptionalDouble`
+## 8. Dedicated Examples for `OptionalLong` and `OptionalDouble`
 
-### 8.1. `OptionalLong`: tìm giao dịch lớn nhất
+### 8.1. `OptionalLong`: Finding the Largest Transaction
 
-Giá trị giao dịch có thể vượt giới hạn `int`, do đó dùng `LongStream`:
+Transaction amounts can exceed the `int` limit, so use `LongStream`:
 
 ```java
 import java.util.OptionalLong;
@@ -316,22 +316,22 @@ public class GiaoDichLonNhat {
         OptionalLong lonNhat = LongStream.of(giaoDich).max();
 
         lonNhat.ifPresent(value ->
-            System.out.println("Lớn nhất: " + value)
+            System.out.println("Largest: " + value)
         );
 
         long ketQua = lonNhat.orElseThrow(
-            () -> new IllegalStateException("Chưa có giao dịch")
+            () -> new IllegalStateException("No transactions yet")
         );
         System.out.println(ketQua); // 5000000000
     }
 }
 ```
 
-Nếu thực tế `giaoDich` rỗng, phép `max()` trả về `OptionalLong.empty()`. Không tự hiểu điều này thành số tiền `0L`, bởi một giao dịch có giá trị 0 vẫn có thể là một bản ghi thật.
+If `giaoDich` is actually empty, `max()` returns `OptionalLong.empty()`. Do not automatically interpret this as an amount of `0L`, because a transaction with a value of 0 can still be a real record.
 
-### 8.2. `OptionalDouble`: trung bình cảm biến
+### 8.2. `OptionalDouble`: Sensor Average
 
-`DoubleStream.average()` trả về `OptionalDouble`. Kết quả có thể không tồn tại nếu không có mẫu đo:
+`DoubleStream.average()` returns `OptionalDouble`. The result may not exist if there are no measurement samples:
 
 ```java
 import java.util.OptionalDouble;
@@ -347,13 +347,13 @@ public class TrungBinhCamBien {
         if (trungBinh.isPresent()) {
             System.out.println(trungBinh.getAsDouble()); // 25.0
         } else {
-            System.out.println("Chưa có mẫu đo");
+            System.out.println("No measurements yet");
         }
     }
 }
 ```
 
-Nếu nguồn có dữ liệu `Double.NaN` hoặc giá trị vô cực, kết quả số học có thể là `NaN` hoặc vô cực **dù Optional vẫn có giá trị**. Trạng thái có/không có dữ liệu và tính hợp lệ của một giá trị số thực là **hai kiểm tra khác nhau**.
+If the source contains `Double.NaN` or infinite values, the arithmetic result can be `NaN` or infinity **even though the Optional still has a value**. Data presence/absence and the validity of a floating-point value are **two different checks**.
 
 ```java
 OptionalDouble giaTri = DoubleStream.of(Double.NaN).average();
@@ -362,11 +362,11 @@ System.out.println(giaTri.isPresent());                 // true
 System.out.println(Double.isNaN(giaTri.getAsDouble())); // true
 ```
 
-Nếu hệ thống chỉ chấp nhận số hữu hạn, hãy kiểm tra `Double.isFinite(value)` (Java 8+) hoặc chính sách xác thực dữ liệu phù hợp, thay vì cho rằng `isPresent()` đồng nghĩa với giá trị đo hợp lệ.
+If the system only accepts finite numbers, check `Double.isFinite(value)` (Java 8+) or an appropriate data validation policy, instead of assuming `isPresent()` means a valid measurement value.
 
-## 9. `findFirst`, `findAny` và các kết quả tìm kiếm
+## 9. `findFirst`, `findAny`, and Search Results
 
-Khi tìm kiếm trong primitive stream, kiểu kết quả phụ thuộc vào stream **ngay trước phép kết thúc**:
+When searching in a primitive stream, the result type depends on the stream **immediately before the terminal operation**:
 
 ```java
 import java.util.OptionalInt;
@@ -386,9 +386,9 @@ System.out.println(dauTien.orElse(-1)); // 5
 System.out.println(batKy.isPresent());  // true
 ```
 
-`findFirst()` tôn trọng thứ tự gặp phần tử của một stream có thứ tự; trong ví dụ, kết quả là 5. `findAny()` cho phép trả về **một phần tử bất kỳ phù hợp**, đặc biệt hữu ích khi triển khai có thể tận dụng xử lý song song. Vì thế **không nên giả định** `batKy` luôn chứa 20L, dù trên một pipeline tuần tự đơn giản kết quả thường là phần tử gặp đầu tiên.
+`findFirst()` respects the encounter order of an ordered stream; in the example, the result is 5. `findAny()` allows returning **any matching element**, especially useful when the implementation can leverage parallel processing. Therefore **do not assume** `batKy` always contains 20L, even though on a simple sequential pipeline the result is usually the first element encountered.
 
-Với stream rỗng hoặc lọc không còn phần tử:
+With an empty stream or when filtering leaves no elements:
 
 ```java
 OptionalInt khongTimThay = IntStream.of(1, 2, 3)
@@ -398,13 +398,13 @@ OptionalInt khongTimThay = IntStream.of(1, 2, 3)
 System.out.println(khongTimThay.isPresent()); // false
 ```
 
-`findFirst` và `findAny` là terminal operations có thể **short-circuit**, nghĩa là có thể ngừng xử lý khi đã xác định kết quả. Nhưng điều đó không bảo đảm chúng sẽ đánh giá mọi lambda trong pipeline hay theo một thứ tự nhất định ở chế độ song song. Tránh đặt tác dụng phụ bắt buộc thực thi trong `filter` hoặc `map`.
+`findFirst` and `findAny` are terminal operations that can **short-circuit**, meaning they can stop processing once the result is determined. However, that does not guarantee they will evaluate every lambda in the pipeline or in a specific order in parallel mode. Avoid placing mandatory side effects inside `filter` or `map`.
 
-## 10. `reduce` có identity và không có identity
+## 10. `reduce` With and Without Identity
 
-`reduce` minh họa rõ khác biệt giữa "luôn có một giá trị tổng hợp" và "có thể không có kết quả".
+`reduce` clearly illustrates the difference between "always having an aggregated value" and "possibly having no result".
 
-### 10.1. Không có identity: trả Optional
+### 10.1. Without Identity: Returns Optional
 
 ```java
 import java.util.OptionalInt;
@@ -420,9 +420,9 @@ System.out.println(tong.orElse(-1));       // 12
 System.out.println(tongRong.isPresent());  // false
 ```
 
-Ở overload này, không có giá trị nào để bắt đầu giảm nếu stream rỗng, nên kết quả là `OptionalInt.empty()`.
+In this overload, there is no value to start reducing if the stream is empty, so the result is `OptionalInt.empty()`.
 
-### 10.2. Có identity: trả giá trị nguyên thủy
+### 10.2. With Identity: Returns a Primitive Value
 
 ```java
 int tong = IntStream.of(2, 4, 6)
@@ -435,34 +435,34 @@ System.out.println(tong);     // 12
 System.out.println(tongRong); // 0
 ```
 
-`0` là phần tử đơn vị của phép cộng: `0 + x = x`. Vì đã có identity, overload này trả trực tiếp `int` cả khi nguồn rỗng.
+`0` is the identity element of addition: `0 + x = x`. Because an identity is provided, this overload returns `int` directly even when the source is empty.
 
-| Phép toán | Stream có phần tử | Stream rỗng |
+| Operation | Stream with elements | Empty stream |
 | --- | --- | --- |
-| `reduce((a, b) -> a + b)` | `OptionalInt.of(tổng)` | `OptionalInt.empty()` |
-| `reduce(0, (a, b) -> a + b)` | `int` bằng tổng | `int` bằng 0 |
-| `sum()` | `int` bằng tổng | `int` bằng 0 |
+| `reduce((a, b) -> a + b)` | `OptionalInt.of(sum)` | `OptionalInt.empty()` |
+| `reduce(0, (a, b) -> a + b)` | `int` equal to sum | `int` equal to 0 |
+| `sum()` | `int` equal to sum | `int` equal to 0 |
 
-**Không tùy tiện đặt identity.** Nó phải thực sự là phần tử đơn vị của phép toán. Ví dụ `reduce(1, (a, b) -> a * b)` hợp lý cho phép nhân; dùng `0` làm identity cho phép nhân sẽ khiến kết quả sai.
+**Do not pick an arbitrary identity.** It must genuinely be the identity element of the operation. For example, `reduce(1, (a, b) -> a * b)` makes sense for multiplication; using `0` as the identity for multiplication will produce the wrong result.
 
-Để dùng `reduce` an toàn trên stream song song, hàm kết hợp cũng cần tuân thủ các yêu cầu như tính kết hợp (associativity). Nếu cần tính tổng thông thường, các phép `sum()` sẵn có thường dễ đọc hơn.
+To use `reduce` safely on a parallel stream, the combining function must also obey requirements such as associativity. If you need ordinary summation, the built-in `sum()` methods are usually easier to read.
 
-## 11. Phân biệt Optional nguyên thủy với `Optional<T>`
+## 11. Distinguishing Primitive Optionals From `Optional<T>`
 
-Ba kiểu Optional nguyên thủy **không có quan hệ kế thừa** với `Optional<Integer>`, `Optional<Long>` hoặc `Optional<Double>`. Vì vậy, không thể gán trực tiếp:
+The three primitive Optional types **have no inheritance relationship** with `Optional<Integer>`, `Optional<Long>`, or `Optional<Double>`. Therefore, they cannot be assigned directly:
 
 ```java
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.stream.IntStream;
 
-// KHÔNG BIÊN DỊCH: OptionalInt khác Optional<Integer>.
+// DOES NOT COMPILE: OptionalInt is different from Optional<Integer>.
 // Optional<Integer> sai = IntStream.of(1, 2).max();
 
 OptionalInt dung = IntStream.of(1, 2).max();
 ```
 
-`Optional<T>` là kiểu generic bọc giá trị đối tượng; ví dụ `Stream<Integer>.max(Comparator)` có thể trả về `Optional<Integer>`, còn `IntStream.max()` trả về `OptionalInt`:
+`Optional<T>` is a generic type wrapping an object value; for example, `Stream<Integer>.max(Comparator)` can return `Optional<Integer>`, whereas `IntStream.max()` returns `OptionalInt`:
 
 ```java
 import java.util.Comparator;
@@ -478,19 +478,19 @@ OptionalInt maxNguyenThuy = IntStream.of(1, 3, 2)
     .max();
 ```
 
-Sự khác biệt quan trọng:
+Important differences:
 
-| Đặc điểm | `OptionalInt` / `OptionalLong` / `OptionalDouble` | `Optional<T>` |
+| Characteristic | `OptionalInt` / `OptionalLong` / `OptionalDouble` | `Optional<T>` |
 | --- | --- | --- |
-| Giá trị bên trong | Primitive `int`/`long`/`double` | Giá trị tham chiếu kiểu `T` |
-| Lấy giá trị | `getAsInt`/`getAsLong`/`getAsDouble` | `get()` |
-| Không cần wrapper từng giá trị nguyên thủy | Có | Không |
-| `map`, `filter`, `flatMap` kiểu generic | Không có các phương thức này trong API primitive Optional | Có |
-| Có thể rỗng | Có | Có |
+| Inner value | Primitive `int`/`long`/`double` | Reference value of type `T` |
+| Retrieve value | `getAsInt`/`getAsLong`/`getAsDouble` | `get()` |
+| No wrapper needed per primitive value | Yes | No |
+| Generic `map`, `filter`, `flatMap` | These methods do not exist in the primitive Optional API | Yes |
+| Can be empty | Yes | Yes |
 
-Để **biến đổi một Optional nguyên thủy** trong Java 8, thường xử lý bằng `isPresent` rồi gọi giá trị, hoặc thực hiện `map` trên stream *trước khi* có Optional.
+To **transform a primitive Optional** in Java 8, you typically handle it with `isPresent` and retrieve the value, or perform `map` on the stream *before* obtaining the Optional.
 
-Ví dụ, thay vì tìm số rồi mới nhân đôi:
+For example, instead of finding the number first and then doubling it:
 
 ```java
 OptionalInt ketQua = IntStream.of(4, 7, 9)
@@ -501,7 +501,7 @@ OptionalInt ketQua = IntStream.of(4, 7, 9)
 System.out.println(ketQua.orElse(-1)); // 14
 ```
 
-Khi cần tích hợp với API đòi hỏi `Optional<Integer>`, có thể chuyển đổi tường minh:
+When you need to integrate with an API expecting `Optional<Integer>`, you can convert explicitly:
 
 ```java
 OptionalInt primitive = IntStream.of(4, 7).max();
@@ -511,19 +511,19 @@ Optional<Integer> boxed = primitive.isPresent()
     : Optional.empty();
 ```
 
-Sự chuyển đổi này có boxing, nên chỉ làm khi có lý do rõ ràng.
+This conversion involves boxing, so only do it when there is a clear reason.
 
-## 12. Bổ sung API theo phiên bản Java
+## 12. API Additions by Java Version
 
-Các ví dụ cốt lõi ở trên dùng API từ **Java 8**. Một số phương thức tiện ích xuất hiện sau đó:
+The core examples above use APIs from **Java 8**. Several utility methods appeared later:
 
-| Phương thức | Phiên bản | Công dụng |
+| Method | Version | Purpose |
 | --- | --- | --- |
-| `OptionalInt.stream()`, `OptionalLong.stream()`, `OptionalDouble.stream()` | Java 9+ | Chuyển Optional thành primitive stream có 0 hoặc 1 phần tử. |
-| `ifPresentOrElse(consumer, emptyAction)` | Java 9+ | Xử lý cả nhánh có giá trị lẫn nhánh rỗng. |
-| `isEmpty()` | Java 11+ | Kiểm tra Optional rỗng trực tiếp, tương đương `!isPresent()`. |
+| `OptionalInt.stream()`, `OptionalLong.stream()`, `OptionalDouble.stream()` | Java 9+ | Converts an Optional into a primitive stream of 0 or 1 element. |
+| `ifPresentOrElse(consumer, emptyAction)` | Java 9+ | Handles both the present-value branch and the empty branch. |
+| `isEmpty()` | Java 11+ | Checks whether an Optional is empty directly, equivalent to `!isPresent()`. |
 
-Ví dụ dùng `stream()` từ Java 9:
+Example using `stream()` from Java 9:
 
 ```java
 import java.util.OptionalInt;
@@ -538,43 +538,43 @@ int[] mang = lonNhat.stream()
 System.out.println(java.util.Arrays.toString(mang)); // [16]
 ```
 
-Nếu `lonNhat` rỗng, `lonNhat.stream()` tạo `IntStream` rỗng, nên `toArray()` trả mảng rỗng. Đây là cách tiện lợi để ghép tiếp vào các pipeline khi phiên bản Java hỗ trợ.
+If `lonNhat` is empty, `lonNhat.stream()` creates an empty `IntStream`, so `toArray()` returns an empty array. This is a convenient way to chain further into pipelines when the Java version supports it.
 
-Ví dụ Java 9+ cho hai nhánh:
+Java 9+ example for two branches:
 
 ```java
 IntStream.empty().max().ifPresentOrElse(
     value -> System.out.println("Max: " + value),
-    () -> System.out.println("Không có dữ liệu")
+    () -> System.out.println("No data")
 );
 
-// Không có dữ liệu
+// No data
 ```
 
-Đừng dùng những phương thức này trong dự án giới hạn ở Java 8. Ở Java 8, có thể dùng `isPresent()` và nhánh `if/else` như phần trước.
+Do not use these methods in projects restricted to Java 8. In Java 8, you can use `isPresent()` and an `if/else` branch as shown in the previous section.
 
-## 13. Những lỗi thường gặp
+## 13. Common Mistakes
 
-| Vấn đề | Nguyên nhân | Cách xử lý |
+| Issue | Cause | How to handle it |
 | --- | --- | --- |
-| Gọi `getAsInt()` trên Optional rỗng | Không có giá trị; ném `NoSuchElementException` | Dùng `orElse`, `orElseThrow` hoặc kiểm tra `isPresent` |
-| Tưởng `OptionalInt.empty()` bằng `OptionalInt.of(0)` | Lẫn lộn trạng thái thiếu dữ liệu và giá trị 0 hợp lệ | Dựa vào `isPresent` để biết có dữ liệu |
-| Gán `IntStream.average()` cho `OptionalInt` | `average()` trả về `OptionalDouble` | Khai báo đúng `OptionalDouble` |
-| Gán `IntStream.max()` cho `Optional<Integer>` | Optional nguyên thủy khác Optional generic | Sử dụng `OptionalInt` hoặc chuyển kiểu tường minh |
-| Mặc định dùng `orElse(0)` cho mọi trường hợp thiếu | 0 có thể làm sai báo cáo nghiệp vụ | Giữ Optional hoặc chọn chính sách thiếu dữ liệu rõ ràng |
-| Dùng `getAsDouble()` rồi chỉ kiểm tra `isPresent` | Số thực có thể là `NaN` hoặc vô cực | Kiểm tra tính hữu hạn nếu bài toán yêu cầu |
-| Truyền `null` thay cho một Optional rỗng | Mất ý nghĩa của kiểu Optional và gây nguy cơ `NullPointerException` | Dùng `OptionalInt.empty()`, `OptionalLong.empty()` hoặc `OptionalDouble.empty()` |
-| Dùng lại stream sau `max` / `average` / `findFirst` | Terminal operation đã tiêu thụ stream | Tạo stream mới từ nguồn |
-| Cho rằng `findAny()` luôn trả phần tử đầu | `findAny` không bảo đảm phần tử cụ thể | Dùng `findFirst` khi cần theo thứ tự |
-| Dùng phương thức `isEmpty()` trong Java 8 | Phương thức chỉ có từ Java 11 | Dùng `!isPresent()` trong Java 8 |
+| Calling `getAsInt()` on an empty Optional | No value present; throws `NoSuchElementException` | Use `orElse`, `orElseThrow`, or check `isPresent` |
+| Thinking `OptionalInt.empty()` equals `OptionalInt.of(0)` | Confusing missing data state with a valid value of 0 | Rely on `isPresent` to know whether data exists |
+| Assigning `IntStream.average()` to `OptionalInt` | `average()` returns `OptionalDouble` | Declare properly as `OptionalDouble` |
+| Assigning `IntStream.max()` to `Optional<Integer>` | Primitive Optional differs from generic Optional | Use `OptionalInt` or convert types explicitly |
+| Defaulting to `orElse(0)` for all missing cases | 0 can distort business reports | Keep Optional or choose a clear missing-data policy |
+| Using `getAsDouble()` after only checking `isPresent` | Floating-point number may be `NaN` or infinity | Check finiteness if required by the problem |
+| Passing `null` instead of an empty Optional | Defeats the purpose of Optional and risks `NullPointerException` | Use `OptionalInt.empty()`, `OptionalLong.empty()`, or `OptionalDouble.empty()` |
+| Reusing a stream after `max` / `average` / `findFirst` | Terminal operation has already consumed the stream | Create a new stream from the source |
+| Assuming `findAny()` always returns the first element | `findAny` does not guarantee a specific element | Use `findFirst` when order matters |
+| Using `isEmpty()` in Java 8 | Method only exists from Java 11 | Use `!isPresent()` in Java 8 |
 
-**Điểm cần nhớ khi chẩn đoán:** Optional là **kết quả của phép toán**, không phải bằng chứng rằng pipeline đã duyệt toàn bộ nguồn. Các phép tìm kiếm như `findFirst` có thể dừng sớm; đừng đặt tác dụng phụ bắt buộc bên trong lambda và giả định chúng luôn chạy.
+**Key point to remember when diagnosing:** Optional is **the result of an operation**, not proof that the pipeline traversed the entire source. Search operations like `findFirst` can terminate early; do not place mandatory side effects inside lambdas assuming they will always execute.
 
-## 14. Bài tập thực hành
+## 14. Practice Exercises
 
-### Bài 1 — Kết quả rỗng hay bằng 0?
+### Exercise 1 — Empty Result or Equal to 0?
 
-Dự đoán trạng thái và giá trị sau:
+Predict the state and values below:
 
 ```java
 OptionalInt a = IntStream.of(0).max();
@@ -586,31 +586,31 @@ System.out.println(a.orElse(-1));
 System.out.println(b.orElse(-1));
 ```
 
-Vì sao không thể chỉ so sánh `orElse(0)` để phân biệt hai trường hợp?
+Why can't you just compare `orElse(0)` to distinguish the two cases?
 
-### Bài 2 — Kiểu kết quả của `average`
+### Exercise 2 — Return Type of `average`
 
-Cho:
+Given:
 
 ```java
 long[] luotXem = {3L, 4L, 5L, 6L};
 ```
 
-Viết pipeline tạo một Optional chứa trung bình cộng số lượt xem. Optional có kiểu gì? Kết quả là bao nhiêu?
+Write a pipeline that produces an Optional containing the average number of views. What type is the Optional? What is the result?
 
-### Bài 3 — Xử lý kết quả không bắt buộc
+### Exercise 3 — Handling an Optional Result
 
-Cho:
+Given:
 
 ```java
 int[] diem = {4, 6, 8, 10};
 ```
 
-Tìm điểm đầu tiên lớn hơn 7, in ra nếu có. Nếu không có, dùng giá trị dự phòng `-1`. Thực hiện bằng API Java 8.
+Find the first score greater than 7, and print it if found. If none exists, use the fallback value `-1`. Implement using Java 8 APIs.
 
-### Bài 4 — `reduce` có và không có identity
+### Exercise 4 — `reduce` With and Without Identity
 
-Dự đoán kết quả:
+Predict the results:
 
 ```java
 OptionalLong a = java.util.stream.LongStream.empty()
@@ -620,9 +620,9 @@ long b = java.util.stream.LongStream.empty()
     .reduce(0L, (x, y) -> x + y);
 ```
 
-Vì sao `a` rỗng nhưng `b` bằng 0?
+Why is `a` empty while `b` equals 0?
 
-### Bài 5 — Trung bình cảm biến có `NaN`
+### Exercise 5 — Sensor Average With `NaN`
 
 ```java
 OptionalDouble m = java.util.stream.DoubleStream.of(
@@ -630,13 +630,13 @@ OptionalDouble m = java.util.stream.DoubleStream.of(
 ).average();
 ```
 
-`m.isPresent()` là `true` hay `false`? Tại sao vẫn cần kiểm tra dữ liệu trước khi dùng giá trị này?
+Is `m.isPresent()` `true` or `false`? Why do you still need to validate the data before using this value?
 
-### Đáp án tham khảo
+### Reference Solutions
 
-**Bài 1:** `a.isPresent() == true`, `b.isPresent() == false`, `a.orElse(-1) == 0`, `b.orElse(-1) == -1`. Nếu dùng `orElse(0)`, cả hai đều ra 0 dù trạng thái khác nhau.
+**Exercise 1:** `a.isPresent() == true`, `b.isPresent() == false`, `a.orElse(-1) == 0`, `b.orElse(-1) == -1`. If `orElse(0)` is used, both yield 0 even though their states differ.
 
-**Bài 2:**
+**Exercise 2:**
 
 ```java
 OptionalDouble trungBinh = java.util.Arrays.stream(luotXem)
@@ -645,34 +645,34 @@ OptionalDouble trungBinh = java.util.Arrays.stream(luotXem)
 System.out.println(trungBinh.orElse(-1.0)); // 4.5
 ```
 
-`Arrays.stream(long[])` tạo `LongStream`, nhưng `average()` vẫn trả `OptionalDouble`.
+`Arrays.stream(long[])` creates a `LongStream`, yet `average()` still returns `OptionalDouble`.
 
-**Bài 3:**
+**Exercise 3:**
 
 ```java
 OptionalInt timDuoc = java.util.Arrays.stream(diem)
     .filter(d -> d > 7)
     .findFirst();
 
-timDuoc.ifPresent(d -> System.out.println("Điểm: " + d)); // 8
+timDuoc.ifPresent(d -> System.out.println("Score: " + d)); // 8
 
 int giaTri = timDuoc.orElse(-1);
 System.out.println(giaTri); // 8
 ```
 
-Nếu tất cả điểm nhỏ hơn hoặc bằng 7, `findFirst()` trả Optional rỗng, `ifPresent` không in và `orElse(-1)` trả -1.
+If all scores are less than or equal to 7, `findFirst()` returns an empty Optional, `ifPresent` prints nothing, and `orElse(-1)` returns -1.
 
-**Bài 4:** `a.isPresent() == false` vì không có phần tử để bắt đầu phép giảm không identity. `b == 0L` vì identity `0L` là phần tử đơn vị của phép cộng.
+**Exercise 4:** `a.isPresent() == false` because there is no element to start the reduction without identity. `b == 0L` because the identity `0L` is the identity element of addition.
 
-**Bài 5:** `m.isPresent() == true` vì stream không rỗng. Tuy nhiên, kết quả `m.getAsDouble()` là `NaN` do một mẫu đầu vào là `NaN`. `OptionalDouble` chỉ diễn đạt *có kết quả hay không*, không bảo đảm kết quả là số hữu hạn.
+**Exercise 5:** `m.isPresent() == true` because the stream is not empty. However, `m.getAsDouble()` evaluates to `NaN` due to an input sample being `NaN`. `OptionalDouble` only expresses *whether a result exists or not*, not that the result is a finite number.
 
-## 15. Ghi nhớ
+## 15. Takeaways
 
-- `OptionalInt`, `OptionalLong` và `OptionalDouble` chứa **0 hoặc 1 giá trị nguyên thủy**, và được các phép toán như `min`, `max`, `findFirst`, `findAny` hoặc `reduce` không có identity trả về.
-- `average()` của `IntStream`, `LongStream` và `DoubleStream` đều trả **`OptionalDouble`**.
-- Trường hợp **không có dữ liệu** khác với giá trị hợp lệ `0`, `0L` hoặc `0.0`.
-- Dùng `isPresent`/`ifPresent` để kiểm tra, `orElse`/`orElseGet` khi có giá trị dự phòng, `orElseThrow` khi thiếu dữ liệu là lỗi.
-- Không gọi `getAs...` trên Optional rỗng; không nhầm Optional nguyên thủy với `Optional<T>`.
-- Khi làm việc với dữ liệu số thực, phải xét thêm `NaN`, vô cực và yêu cầu độ chính xác của bài toán.
+- `OptionalInt`, `OptionalLong`, and `OptionalDouble` hold **0 or 1 primitive value**, and are returned by operations such as `min`, `max`, `findFirst`, `findAny`, or `reduce` without identity.
+- `average()` on `IntStream`, `LongStream`, and `DoubleStream` all return **`OptionalDouble`**.
+- The **no data** case differs from a valid value of `0`, `0L`, or `0.0`.
+- Use `isPresent`/`ifPresent` to check, `orElse`/`orElseGet` when there is a fallback value, and `orElseThrow` when missing data is an error.
+- Do not call `getAs...` on an empty Optional; do not confuse primitive Optionals with `Optional<T>`.
+- When working with floating-point data, also consider `NaN`, infinity, and the precision requirements of the problem.
 
-Xử lý Optional đúng giúp pipeline Stream API diễn đạt rõ hợp đồng dữ liệu, giữ được ý nghĩa của trường hợp rỗng và tránh các lỗi lúc chạy trong ứng dụng thống kê, tìm kiếm và tổng hợp dữ liệu.
+Handling Optional properly helps Stream API pipelines clearly express data contracts, preserve the meaning of empty cases, and avoid runtime errors in statistics, search, and data aggregation applications.

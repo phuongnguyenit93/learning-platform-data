@@ -1,10 +1,10 @@
-# Always-strict từ Java 17 và vai trò lịch sử của `strictfp`
+# Always-Strict Since Java 17 and the Historical Role of `strictfp`
 
-Từ **Java SE 17**, các biểu thức dấu phẩy động `float` và `double` được đánh giá **luôn theo ngữ nghĩa strict** (*always-strict floating-point semantics*). Đây là thay đổi của **JEP 306 – Restore Always-Strict Floating-Point Semantics**. Vì vậy, trên Java 17 trở lên, thêm hay bỏ từ khóa `strictfp` **không làm thay đổi kết quả đánh giá một biểu thức dấu phẩy động**.
+Starting in **Java SE 17**, `float` and `double` floating-point expressions are evaluated **always under strict semantics** (*always-strict floating-point semantics*). This is the change introduced by **JEP 306 – Restore Always-Strict Floating-Point Semantics**. Therefore, on Java 17 and newer, adding or removing the `strictfp` keyword **does not change the evaluation result of a floating-point expression**.
 
-Trước Java 17, đặc biệt trong Java 1.2 đến Java 16, `strictfp` từng có tác dụng: nó yêu cầu các phép tính trong phạm vi áp dụng tuân thủ đúng tập giá trị `float`/`double` chuẩn, thay vì cho phép một số JVM sử dụng tập giá trị trung gian có **miền số mũ mở rộng**. Thay đổi từ Java 17 loại bỏ khác biệt này.
+Before Java 17, especially from Java 1.2 through Java 16, `strictfp` had an effect: it required computations within its scope to adhere strictly to the standard `float`/`double` value sets, instead of allowing some JVMs to use intermediate value sets with an **extended-exponent range**. The change in Java 17 removes this divergence.
 
-Ví dụ quan trọng:
+Key example:
 
 ```java
 static double ordinary(double x) {
@@ -16,75 +16,75 @@ static strictfp double legacyStrict(double x) {
 }
 ```
 
-Hai phương thức trên có **cùng ngữ nghĩa dấu phẩy động trên Java 17+**. `strictfp` vẫn được chấp nhận trong source code nhằm tương thích, nhưng trình biên dịch hiện đại có thể cảnh báo rằng modifier này không còn cần thiết.
+Both methods above have **identical floating-point semantics on Java 17+**. `strictfp` is still accepted in source code for compatibility, though modern compilers may warn that this modifier is no longer required.
 
-Bài học thuộc phần **Phép toán dấu phẩy động** của module **Java core – numbers**. Trọng tâm là hiểu “strict” nghĩa là gì, vì sao từng có `strictfp`, điều gì thực sự thay đổi trong Java 17, và những điều **always-strict không bảo đảm**.
+This lesson belongs to the **Floating-Point Arithmetic** section of the **Java core – numbers** module. The focus is understanding what "strict" means, why `strictfp` used to exist, what actually changed in Java 17, and what **always-strict does not guarantee**.
 
-## 1. “Strict floating-point” thực sự có nghĩa gì?
+## 1. What Does "Strict Floating-Point" Actually Mean?
 
-Java sử dụng biểu diễn số dấu phẩy động nhị phân IEEE 754:
+Java uses IEEE 754 binary floating-point representations:
 
-| Kiểu | Định dạng nhị phân | Độ chính xác phần trị | Số mũ và miền giá trị |
+| Type | Binary Format | Significand Precision | Exponent and Value Range |
 | --- | --- | --- | --- |
-| `float` | binary32, 32 bit | 24 bit kể cả bit ẩn | Miền tương ứng với binary32 |
-| `double` | binary64, 64 bit | 53 bit kể cả bit ẩn | Miền tương ứng với binary64 |
+| `float` | binary32, 32-bit | 24 bits including hidden bit | Range corresponding to binary32 |
+| `double` | binary64, 64-bit | 53 bits including hidden bit | Range corresponding to binary64 |
 
-Khi đánh giá **strict**, mỗi biểu thức có kiểu `float` chỉ nhận giá trị biểu diễn được bằng `float` chuẩn; mỗi biểu thức có kiểu `double` chỉ nhận giá trị biểu diễn được bằng `double` chuẩn. Các phép toán tương ứng với IEEE 754 tạo kết quả theo định dạng và quy tắc làm tròn được đặc tả, không được âm thầm duy trì một tập giá trị trung gian có số mũ lớn hơn kiểu của biểu thức.
+Under **strict** evaluation, every expression of type `float` only takes values representable by standard `float`; every expression of type `double` only takes values representable by standard `double`. Corresponding IEEE 754 operations produce results according to the specified format and rounding rules, without silently keeping an intermediate value set with a larger exponent than the expression's type.
 
-Ví dụ, với `double`:
+For example, with `double`:
 
 ```java
 double x = Double.MAX_VALUE;
 double result = (x * 2.0) / 2.0;
-// result là Infinity, không trở về x.
+// result is Infinity, it does not return to x.
 ```
 
-Tại bước `x * 2.0`, giá trị toán học vượt miền **hữu hạn** của `double`, nên kết quả là `+Infinity`. Sau đó `Infinity / 2.0` vẫn là `Infinity`.
+At step `x * 2.0`, the mathematical value exceeds the **finite** range of `double`, so the result is `+Infinity`. Then `Infinity / 2.0` remains `Infinity`.
 
-Đây là ví dụ minh họa sự khác nhau giữa toán học số thực lý tưởng và đánh giá dấu phẩy động với miền số mũ hữu hạn. Không được diễn giải `(x * 2) / 2 == x` là một đẳng thức luôn đúng khi dùng `double`.
+This example illustrates the difference between idealized real-number math and floating-point evaluation with a finite exponent range. You must not interpret `(x * 2) / 2 == x` as an always-true identity when using `double`.
 
-**Strict không có nghĩa vô hạn độ chính xác.** Kết quả hữu hạn vẫn có thể bị làm tròn; `0.1` và `0.2` không có biểu diễn nhị phân hữu hạn chính xác; phép toán có thể tràn thành vô cực hoặc underflow thành số subnormal/zero có dấu. Strict chỉ khiến **quy tắc đánh giá được xác định chặt chẽ**, không biến `float`/`double` thành `BigDecimal`.
+**Strict does not mean infinite precision.** Finite results can still be rounded; `0.1` and `0.2` have no exact finite binary representation; operations can overflow to infinity or underflow to subnormal numbers/signed zero. Strict only ensures **evaluation rules are tightly specified**; it does not turn `float`/`double` into `BigDecimal`.
 
-## 2. Lược sử ba giai đoạn của dấu phẩy động Java
+## 2. Brief Three-Stage History of Java Floating-Point
 
-| Giai đoạn | Hành vi mặc định | Vai trò của `strictfp` |
+| Stage | Default Behavior | Role of `strictfp` |
 | --- | --- | --- |
-| Java 1.0–1.1 | Luôn dùng ngữ nghĩa strict | Chưa có sự phân đôi chế độ như Java 1.2 |
-| Java 1.2–16 | Có thể dùng strict hoặc chế độ cho phép tập giá trị trung gian với **số mũ mở rộng** ở những nơi đặc tả cho phép | Yêu cầu đánh giá strict trong phạm vi được khai báo |
-| **Java 17 trở lên** | **Mọi biểu thức `float`/`double` đều always-strict** | Giữ để tương thích mã cũ; không còn ảnh hưởng phép tính |
+| Java 1.0–1.1 | Always used strict semantics | No mode split like in Java 1.2 yet |
+| Java 1.2–16 | Could use strict or a mode allowing intermediate value sets with **extended exponent** where permitted by the spec | Required strict evaluation within the declared scope |
+| **Java 17 and newer** | **All `float`/`double` expressions are always-strict** | Kept for backward source compatibility; no longer affects computation |
 
-### 2.1. Giai đoạn Java 1.0 và 1.1
+### 2.1. The Java 1.0 and 1.1 Era
 
-Những phiên bản đầu Java đã yêu cầu phép toán dấu phẩy động có ngữ nghĩa strict. Điều này phục vụ mục tiêu chương trình có hành vi được quy định rõ ràng trên các môi trường thực thi khác nhau.
+Early versions of Java required floating-point operations to have strict semantics. This served the goal of ensuring programs had well-defined behavior across different execution environments.
 
-### 2.2. Từ Java 1.2 đến Java 16: lý do xuất hiện strictfp
+### 2.2. From Java 1.2 to Java 16: Why `strictfp` Was Introduced
 
-Một số họ CPU đời cũ có đặc điểm phần cứng khiến việc thực hiện chính xác chế độ strict tốn chi phí đáng kể. Vì thế, từ Java 1.2, đặc tả cho phép một số phép tính `float` hoặc `double` **không FP-strict** dùng tập giá trị **extended-exponent**:
+Certain older CPU families had hardware characteristics that made exact strict mode significantly expensive. Therefore, starting in Java 1.2, the specification allowed some **non-FP-strict** `float` or `double` computations to use **extended-exponent** value sets:
 
-- `float-extended-exponent value set`: **cùng số bit chính xác phần trị** như `float`, nhưng miền số mũ được mở rộng.
-- `double-extended-exponent value set`: **cùng số bit chính xác phần trị** như `double`, nhưng miền số mũ được mở rộng.
+- `float-extended-exponent value set`: **same significand precision bits** as `float`, but an extended exponent range.
+- `double-extended-exponent value set`: **same significand precision bits** as `double`, but an extended exponent range.
 
-Điểm dễ nhầm: các tập giá trị lịch sử này được mô tả với **miền số mũ lớn hơn**, **không phải bảo đảm có thêm bit chính xác phần trị**. Không nên tóm tắt sai rằng “không strict thì Java được phép giữ toàn bộ phép tính ở bất kỳ độ chính xác 80-bit nào”.
+Common misconception: these historical value sets were specified with a **larger exponent range**, **not a guarantee of extra significand precision bits**. Do not summarize inaccurately that "without strict, Java was allowed to keep all calculations at arbitrary 80-bit precision".
 
-Với phép tính không strict, khi phần cứng/JVM được phép sử dụng miền số mũ mở rộng, một kết quả trung gian có thể tránh tràn hoặc underflow ở một vị trí mà phép tính strict đã đạt vô cực hoặc zero. Điều đó có thể tạo khác biệt ở kết quả cuối trong các môi trường lịch sử.
+With non-strict computation, when hardware/JVM was allowed to use an extended exponent range, an intermediate result could avoid overflowing or underflowing at a point where strict computation had already hit infinity or zero. That could create differences in final results across historical environments.
 
-`strictfp` được đưa vào để lập trình viên **chủ động yêu cầu strict evaluation** ở class/interface hoặc method thích hợp, khống chế khác biệt cho những biểu thức nằm trong phạm vi áp dụng.
+`strictfp` was introduced so programmers could **explicitly request strict evaluation** on a suitable class/interface or method, preventing variation for expressions within that scope.
 
-### 2.3. Từ Java 17: JEP 306 khôi phục always-strict
+### 2.3. Since Java 17: JEP 306 Restores Always-Strict
 
-Phần cứng và khả năng triển khai JVM đã tiến bộ, làm cho sự linh hoạt vì phần cứng cũ không còn cần thiết. **JEP 306** thống nhất lại ngữ nghĩa:
+Hardware and JVM implementations evolved, making the accommodation for legacy hardware unnecessary. **JEP 306** unified the semantics once again:
 
-- Không còn cho phép phép toán dấu phẩy động Java sử dụng tập giá trị trung gian có miền số mũ mở rộng thay cho `float`/`double` chuẩn.
-- Mọi biểu thức dấu phẩy động Java được đánh giá strict, **dù có hoặc không có `strictfp`**.
-- Từ khóa `strictfp` được giữ vì tương thích mã nguồn, nhưng không tạo “chế độ nghiêm ngặt hơn” cho phương thức/class có đánh dấu.
+- Java floating-point operations are no longer allowed to use extended-exponent intermediate value sets in place of standard `float`/`double`.
+- Every Java floating-point expression is evaluated strictly, **whether or not `strictfp` is present**.
+- The `strictfp` keyword is retained for source compatibility, yet creates no "stricter mode" for marked methods/classes.
 
-Đây là thay đổi ở **đặc tả ngôn ngữ và máy ảo**, không chỉ là lựa chọn trình biên dịch hay một cờ tối ưu của riêng HotSpot.
+This is a change in the **language and virtual machine specifications**, not merely a compiler option or a HotSpot-specific optimization flag.
 
-## 3. Cách dùng strictfp trong mã Java cũ
+## 3. How `strictfp` Was Used in Older Java Code
 
-Trong các phiên bản mà `strictfp` có tác dụng, modifier này thường được đặt trên **class**, **interface** hoặc **method** thích hợp để các biểu thức dấu phẩy động trong phạm vi đó có ngữ nghĩa strict.
+In versions where `strictfp` had an effect, this modifier was typically placed on an appropriate **class**, **interface**, or **method** so floating-point expressions within that scope had strict semantics.
 
-Ví dụ cú pháp:
+Syntax example:
 
 ```java
 public strictfp class LegacyCalculator {
@@ -94,7 +94,7 @@ public strictfp class LegacyCalculator {
 }
 ```
 
-Hoặc:
+Or:
 
 ```java
 public class LegacyCalculator {
@@ -104,51 +104,51 @@ public class LegacyCalculator {
 }
 ```
 
-Hai đoạn trên là **mẫu khai báo độc lập**, không nên đặt cả hai class `public` cùng tên trong một tệp. Trong Java 17+, modifier vẫn hợp lệ về cú pháp nhưng **không thay đổi ngữ nghĩa đánh giá**. Với mã Java 17+ viết mới, thông thường không cần thêm `strictfp` chỉ để có kết quả strict.
+The two snippets above are **independent declaration examples**; do not place two `public` classes with the same name in one file. In Java 17+, the modifier remains syntactically valid yet **does not alter evaluation semantics**. For newly written Java 17+ code, there is normally no need to add `strictfp` just to get strict results.
 
-Không phải mọi vị trí trong Java đều nhận modifier `strictfp`; chẳng hạn, nó không phải modifier dành cho một biến số riêng lẻ. Trong code review mã cũ, cần đọc phiên bản Java mục tiêu để hiểu nguyên nhân lịch sử của modifier.
+Not every position in Java accepts the `strictfp` modifier; for instance, it is not a modifier for an individual variable. When reviewing legacy code, check the target Java version to understand the historical reason for the modifier.
 
-## 4. Ví dụ sự khác biệt về số mũ trung gian
+## 4. Example of Intermediate Exponent Difference
 
-Xét phép tính:
+Consider the calculation:
 
 ```java
 double x = Double.MAX_VALUE;
 double value = x * 2.0 / 2.0;
 ```
 
-Trong đánh giá **strict**, kết quả của `x * 2.0` là `Infinity`. Vì vậy kết quả cuối vẫn là `Infinity`, dù trong toán học số thực lý tưởng `(x × 2) ÷ 2 = x`.
+Under **strict** evaluation, the result of `x * 2.0` is `Infinity`. Thus the final result remains `Infinity`, even though in idealized real-number math `(x × 2) ÷ 2 = x`.
 
-Trong mô hình lịch sử cho phép **extended-exponent**, một số trường hợp có thể giữ trung gian có số mũ lớn hơn, khiến phần nhân chưa tràn ngay trong giá trị trung gian. Khi các bước tiếp theo đưa giá trị trở về miền chuẩn, kết quả có thể khác.
+In the historical model permitting **extended-exponent**, some cases could hold an intermediate with a larger exponent, preventing the multiplication from overflowing immediately in the intermediate value. When subsequent steps brought the value back into the standard range, the result could differ.
 
-Lưu ý ba giới hạn khi dùng ví dụ này:
+Note three caveats when using this example:
 
-1. Nó mô tả **lý do có thể khác** giữa các chế độ đánh giá lịch sử, **không khẳng định** rằng mọi JVM trước Java 17 chắc chắn trả một giá trị khác.
-2. Các đoạn mã không strict ở Java 1.2–16 vẫn có thể được đánh giá strict trong nhiều môi trường. Việc cho phép miền số mũ mở rộng không bắt buộc JVM phải dùng miền đó.
-3. Trong **Java 17+**, không cần và không thể dùng `strictfp` để thay đổi lựa chọn giữa hai chế độ này: **chỉ có ngữ nghĩa strict**.
+1. It describes **why historical evaluation modes could differ**, **not a claim** that every pre-Java 17 JVM definitely returned a different value.
+2. Non-strict code on Java 1.2–16 could still be evaluated strictly in many environments. Permitting an extended exponent range did not compel a JVM to use it.
+3. In **Java 17+**, you neither need nor can use `strictfp` to toggle between these two modes: **only strict semantics exist**.
 
-Bởi vậy, khi phân tích một lỗi số học ghi nhận trên JVM cũ, hãy xem cả **phiên bản Java**, CPU/JVM và nguồn code có `strictfp`; đừng áp dụng suy luận “strictfp thay đổi kết quả” cho một chương trình thuần Java 17+ hiện đại.
+Therefore, when analyzing a numerical discrepancy reported on an older JVM, check the **Java version**, CPU/JVM, and whether source code had `strictfp`; do not apply "strictfp changes the result" reasoning to a pure modern Java 17+ program.
 
-## 5. Strict khác gì với độ chính xác số học?
+## 5. How Does Strict Differ from Numerical Exactness?
 
-Ngay cả khi luôn strict:
+Even when always strict:
 
 ```java
 double sum = 0.1 + 0.2;
 System.out.println(sum == 0.3); // false
 ```
 
-`0.1` và `0.2` không thể được biểu diễn chính xác bằng số hữu hạn bit của binary64. Mỗi phép toán làm tròn theo quy tắc IEEE 754 phù hợp. Strict yêu cầu phép toán tạo ra **kết quả đã làm tròn có thể biểu diễn**, không yêu cầu kết quả bằng số thực toán học vô hạn độ chính xác.
+`0.1` and `0.2` cannot be represented exactly with binary64's finite bits. Each operation rounds according to the appropriate IEEE 754 rule. Strict requires an operation to produce the **representable rounded result**, not a result equal to infinite-precision mathematical real numbers.
 
-### Các điểm không thay đổi bởi always-strict
+### Things Unchanged by Always-Strict
 
-- `float` vẫn có khoảng 24 bit độ chính xác nhị phân; `double` vẫn có khoảng 53 bit.
-- `NaN`, `+Infinity`, `-Infinity`, `+0.0`, `-0.0` vẫn tồn tại và hoạt động theo quy tắc số thực của Java.
-- Phép chia dấu phẩy động cho zero vẫn có thể tạo vô cực/NaN thay vì `ArithmeticException`.
-- Kết quả phép cộng, nhân có thể thay đổi khi đổi **thứ tự tính toán** do làm tròn và tràn.
-- Không nên dùng `double` thay `BigDecimal` cho tiền hoặc nghiệp vụ đòi thập phân chính xác chỉ vì Java 17 đã always-strict.
+- `float` still has about 24 bits of binary precision; `double` still has about 53 bits.
+- `NaN`, `+Infinity`, `-Infinity`, `+0.0`, and `-0.0` still exist and behave according to Java's floating-point rules.
+- Floating-point division by zero can still produce infinity/NaN rather than `ArithmeticException`.
+- Addition and multiplication results can still change when changing **evaluation order** due to rounding and overflow.
+- You must not use `double` instead of `BigDecimal` for currency or business logic needing exact decimals simply because Java 17 is always-strict.
 
-### Strict và thứ tự đánh giá biểu thức
+### Strict and Expression Evaluation Order
 
 ```java
 double big = 1e16;
@@ -157,17 +157,17 @@ double left = (big + 1.0) - big; // 0.0
 double right = (big - big) + 1.0; // 1.0
 ```
 
-Ở miền `1e16`, chênh lệch 1 quá nhỏ để `double` phân biệt sau phép cộng với `big`, nên `(big + 1.0)` được làm tròn trở lại `big`. Nhưng `big - big` cho 0 chính xác, rồi cộng 1 cho 1.0.
+Around `1e16`, a difference of 1 is too small for `double` to distinguish after adding to `big`, so `(big + 1.0)` rounds back to `big`. However, `big - big` gives 0 exactly, and adding 1 then gives 1.0.
 
-**Always-strict không làm phép cộng dấu phẩy động có tính kết hợp như số thực toán học.** Nó chỉ xác định kết quả tương ứng với biểu thức và thứ tự đánh giá mà Java đã quy định. Đổi nhóm bằng dấu ngoặc, đổi thứ tự cộng dồn hoặc thay thuật toán vẫn có thể đổi kết quả.
+**Always-strict does not make floating-point addition associative like mathematical real numbers.** It only determines the result corresponding to the expression and evaluation order specified by Java. Changing parentheses, changing accumulation order, or changing algorithms can still alter the result.
 
-## 6. Strict không có nghĩa “bất kể thao tác nào cũng cho cùng bit”
+## 6. Strict Does Not Mean "Every Approach Produces the Same Bits"
 
-Từ Java 17, các toán tử dấu phẩy động của Java và các phép chuyển đổi tương ứng có quy tắc đánh giá strict. Nhưng nếu hai chương trình **không cùng phép toán hoặc không cùng thuật toán**, chúng không buộc phải cho cùng kết quả bit.
+Since Java 17, Java's floating-point operators and corresponding conversions have strict evaluation rules. However, if two programs **do not use the same operations or the same algorithm**, they are not forced to yield the same bit-level results.
 
-### 6.1. Math.fma khác với nhân rồi cộng riêng
+### 6.1. `Math.fma` Differs from Separate Multiply-Then-Add
 
-`Math.fma(a, b, c)` (*fused multiply-add*) thực hiện tích và tổng với **một lần làm tròn cuối**, thay vì làm tròn sau nhân rồi lại làm tròn sau cộng. Nó có thể cho kết quả khác so với `a * b + c` ngay trên Java 17+:
+`Math.fma(a, b, c)` (*fused multiply-add*) evaluates the product and sum with **a single final rounding**, rather than rounding after multiplication and then rounding again after addition. It can yield a different result from `a * b + c` even on Java 17+:
 
 ```java
 double epsilon = Math.ulp(1.0);
@@ -181,49 +181,49 @@ System.out.println(separate == 0.0); // true
 System.out.println(fused < 0.0);      // true
 ```
 
-Vì tích chính xác của hai toán hạng là `1 - epsilon²`, phép nhân riêng làm tròn về 1.0 rồi phép trừ cho 0.0. `fma` chỉ làm tròn một lần sau tổng cuối và giữ được phần dư âm rất nhỏ.
+Because the exact product of the two operands is `1 - epsilon²`, standalone multiplication rounds to 1.0 and subtraction then yields 0.0. `fma` rounds only once after the final sum and preserves the tiny negative residual.
 
-**Sự khác biệt này không phải lỗi vi phạm always-strict.** `Math.fma` là một phép toán khác, có quy tắc rõ ràng. Một tối ưu hóa không được tự ý thay `a*b+c` bằng `Math.fma(a,b,c)` nếu thay đổi kết quả có thể quan sát được.
+**This difference is not a violation of always-strict.** `Math.fma` is a distinct operation with explicit rules. An optimization must not arbitrarily replace `a*b+c` with `Math.fma(a,b,c)` if doing so alters observable results.
 
-### 6.2. Math và StrictMath không phải strictfp
+### 6.2. `Math` and `StrictMath` Are Not `strictfp`
 
-Tên `StrictMath` dễ gây nhầm với modifier `strictfp`.
+The name `StrictMath` is easily confused with the `strictfp` modifier.
 
-- **`strictfp`** là modifier ngôn ngữ lịch sử, liên quan đến cách đánh giá **biểu thức** trong phạm vi áp dụng.
-- **`Math`** là lớp thư viện toán học có các hàm `sin`, `cos`, `log`, `sqrt`, `fma`, v.v. Hợp đồng làm tròn và sai số phụ thuộc **từng phương thức**.
-- **`StrictMath`** là lớp thư viện được thiết kế cho các yêu cầu tái lập kết quả của những hàm được đặc tả theo cách nghiêm ngặt, đặc biệt nhiều hàm siêu việt gắn với thuật toán chuẩn tham chiếu lịch sử.
+- **`strictfp`** is a historical language modifier concerning how **expressions** within its scope are evaluated.
+- **`Math`** is a mathematical library class providing `sin`, `cos`, `log`, `sqrt`, `fma`, etc. Rounding and accuracy contracts depend on **each method**.
+- **`StrictMath`** is a library class designed for reproducibility requirements of methods specified in a strict manner, especially many transcendental functions tied to historical reference algorithms.
 
-Java 17 always-strict **không có nghĩa mọi lời gọi `Math.sin` và `StrictMath.sin` đều phải có bit giống nhau** trong mọi tình huống. Cần đọc hợp đồng phương thức cụ thể, nhất là khi thuật toán yêu cầu tái lập bit giữa môi trường khác nhau.
+Java 17 always-strict **does not mean every call to `Math.sin` and `StrictMath.sin` must produce identical bits** in all situations. Read each method's specific contract, especially when an algorithm requires bitwise reproducibility across different environments.
 
-Cũng không nên mặc định rằng thay mọi lời gọi `Math` bằng `StrictMath` là cần thiết hoặc giúp xử lý mọi sai số; nó giải quyết một lớp yêu cầu về thư viện toán học, không thay thế thiết kế thuật toán hay lựa chọn kiểu số.
+Nor should you assume replacing all `Math` calls with `StrictMath` is necessary or solves all errors; it addresses a specific class of math library requirements, not algorithm design or numeric type selection.
 
-### 6.3. Song song và thứ tự cộng dồn
+### 6.3. Parallelism and Accumulation Order
 
-Hai luồng tính tổng cùng dữ liệu nhưng theo hai thứ tự khác nhau có thể nhận kết quả dấu phẩy động khác nhau. Always-strict không buộc `parallelStream().sum()` và một vòng lặp tuần tự phải đánh giá các phép cộng theo đúng cùng cây tính toán nếu API cho phép khác biệt thuật toán.
+Two threads summing the same data in two different orders can get different floating-point results. Always-strict does not compel `parallelStream().sum()` and a sequential loop to evaluate additions with the exact same expression tree if the API permits algorithmic differences.
 
-Khi cần tái lập kết quả, hãy kiểm soát **thứ tự phép toán**, cách chia nhóm, thuật toán cộng dồn và những lời gọi thư viện liên quan. `strictfp` trên Java 17 không giải quyết thay cho những quyết định này.
+When reproducibility is required, control **operation order**, chunking strategy, accumulation algorithm, and library calls. `strictfp` in Java 17 does not make these decisions for you.
 
-## 7. Java 17+ xử lý overflow, underflow, NaN và signed zero thế nào?
+## 7. How Does Java 17+ Handle Overflow, Underflow, NaN, and Signed Zero?
 
-Strict evaluation vẫn bao gồm các giá trị IEEE 754 đặc biệt:
+Strict evaluation still includes special IEEE 754 values:
 
-| Biểu thức | Kết quả ở Java 17+ | Điều cần hiểu |
+| Expression | Result in Java 17+ | What to Understand |
 | --- | --- | --- |
-| `Double.MAX_VALUE * 2.0` | `Infinity` | Tràn miền hữu hạn của double |
-| `Double.MIN_VALUE / 2.0` | `+0.0` | Underflow từ số dương subnormal nhỏ nhất |
-| `-Double.MIN_VALUE / 2.0` | `-0.0` | Underflow giữ dấu |
-| `1.0 / 0.0` | `Infinity` | Chia thực cho 0 không ném ArithmeticException |
-| `0.0 / 0.0` | `NaN` | Phép toán không có kết quả số thực xác định |
-| `0.1 + 0.2 == 0.3` | `false` | Dấu phẩy động nhị phân vẫn làm tròn |
-| `Math.fma(a,b,c)` so với `a*b+c` | Có thể khác nhau | Khác số lần làm tròn |
+| `Double.MAX_VALUE * 2.0` | `Infinity` | Overflow of `double` finite range |
+| `Double.MIN_VALUE / 2.0` | `+0.0` | Underflow from smallest positive subnormal |
+| `-Double.MIN_VALUE / 2.0` | `-0.0` | Underflow preserves sign |
+| `1.0 / 0.0` | `Infinity` | Floating-point division by 0 does not throw ArithmeticException |
+| `0.0 / 0.0` | `NaN` | Operation has no defined real numeric result |
+| `0.1 + 0.2 == 0.3` | `false` | Binary floating-point still rounds |
+| `Math.fma(a,b,c)` vs. `a*b+c` | Can differ | Different number of rounding steps |
 
-`Double.MIN_VALUE` **không phải số double âm nhỏ nhất**; nó là số dương khác 0 nhỏ nhất của `double`. Đây là một ca kiểm thử underflow rất hữu ích.
+`Double.MIN_VALUE` **is not the smallest negative double**; it is the smallest positive non-zero `double`. This is a very useful underflow test case.
 
-Với giá trị rất nhỏ nhưng vẫn biểu diễn được, Java hỗ trợ **subnormal numbers** và **gradual underflow**, không được tự ý “flush to zero” mọi số dưới ngưỡng chuẩn hóa. Trong Java 17+, các quy tắc strict cho `float`/`double` tiếp tục áp dụng ở những miền này.
+For very small yet still representable values, Java supports **subnormal numbers** and **gradual underflow**, and must not arbitrarily "flush to zero" every number below the normal threshold. In Java 17+, strict rules for `float`/`double` continue to apply in these regions.
 
-## 8. Compiler xử lý strictfp trên Java 17+ ra sao?
+## 8. How Does the Compiler Handle `strictfp` on Java 17+?
 
-Một chương trình Java 17+ vẫn có thể khai báo:
+A Java 17+ program can still declare:
 
 ```java
 public class LegacyStrictDemo {
@@ -233,29 +233,29 @@ public class LegacyStrictDemo {
 }
 ```
 
-Đây là đoạn source độc lập và tên file phải là `LegacyStrictDemo.java`. Với `javac` hiện đại, khai báo có thể gây cảnh báo dạng:
+This is a standalone source snippet and the file name must be `LegacyStrictDemo.java`. With modern `javac`, the declaration can produce a warning like:
 
 ```text
 [strictfp] as of release 17, all floating-point expressions
 are evaluated strictly and 'strictfp' is not required
 ```
 
-Thông báo cụ thể/phần đường dẫn/số dòng phụ thuộc phiên bản công cụ, nên không nên coi chuỗi cảnh báo này là **stdout của chương trình**. Nó là cảnh báo **lúc biên dịch**, không phải kết quả của toán tử dấu phẩy động.
+The exact message/path/line number depends on the tool version, so do not treat this warning string as **program stdout**. It is a **compile-time** warning, not the output of floating-point operators.
 
-### Có nên xóa strictfp khỏi code cũ?
+### Should You Remove `strictfp` from Legacy Code?
 
-Nếu **chỉ triển khai và biên dịch cho Java 17 trở lên**, thường có thể bỏ modifier dư thừa mà không làm thay đổi ngữ nghĩa phép toán `float`/`double`. Tuy nhiên:
+If **deploying and compiling exclusively for Java 17 and newer**, you can usually remove the redundant modifier without changing `float`/`double` operation semantics. However:
 
-1. Hãy xác nhận phạm vi build thực sự chỉ nhắm Java 17+.
-2. Nếu cùng source vẫn cần tương thích với Java 8/11 hay các phiên bản trước 17, không vội xóa `strictfp` khi tính tái lập dấu phẩy động có thể phụ thuộc modifier đó.
-3. Kiểm thử những thuật toán nhạy với dấu phẩy động trước và sau refactor, đặc biệt nếu đồng thời thay đổi thứ tự phép toán, hàm `Math`/`StrictMath` hoặc phương thức `fma`.
-4. Không cần thêm `strictfp` để “vá” sai số `0.1 + 0.2` hoặc để ép chương trình tự ném exception khi tính vô cực.
+1. Confirm the build scope truly targets Java 17+ only.
+2. If the same source still needs compatibility with Java 8/11 or pre-17 releases, do not rush to delete `strictfp` where floating-point reproducibility might depend on that modifier.
+3. Test floating-point-sensitive algorithms before and after refactoring, especially if simultaneously changing operation order, `Math`/`StrictMath` functions, or `fma` methods.
+4. There is no need to add `strictfp` to "patch" `0.1 + 0.2` error or to force programs to throw an exception on infinity.
 
-Cách giải thích phù hợp trong code review hiện đại là: **modifier còn được chấp nhận vì tương thích nhưng không làm kết quả phép tính strict hơn trên Java 17+**.
+The appropriate explanation in a modern code review is: **the modifier is still accepted for compatibility, yet does not make calculations stricter on Java 17+**.
 
-## 9. Chương trình Java 17+ chạy độc lập
+## 9. Standalone Runnable Java 17+ Program
 
-Lưu file **`AlwaysStrictDemo.java`**:
+Save the file **`AlwaysStrictDemo.java`**:
 
 ```java
 public class AlwaysStrictDemo {
@@ -305,16 +305,16 @@ public class AlwaysStrictDemo {
 }
 ```
 
-Biên dịch/chạy trên JDK 17 hoặc mới hơn:
+Compile/run on JDK 17 or newer:
 
 ```bash
 javac AlwaysStrictDemo.java
 java AlwaysStrictDemo
 ```
 
-**Lưu ý:** `javac` có thể phát cảnh báo `strictfp` không cần thiết. Cảnh báo đó là output biên dịch, **không nằm trong stdout dưới đây**.
+**Note:** `javac` may emit a warning that `strictfp` is unnecessary. That warning is compiler output, **not part of the stdout below**.
 
-Stdout của chương trình:
+Program stdout:
 
 ```text
 plain-infinite=true
@@ -330,92 +330,92 @@ negative-underflow=-0.0
 nan-check=true
 ```
 
-Diễn giải:
+Interpretation:
 
-- Hai phương thức có và không có `strictfp` cho cùng kết quả tại phép tính tràn `double` trên Java 17+: `Infinity`.
-- `round-left` và `round-right` cho kết quả khác nhau vì **dấu ngoặc thay đổi thứ tự các phép toán**, không liên quan đến modifier.
-- `decimal-equal=false` chứng minh always-strict **không loại bỏ sai số nhị phân**.
-- `separate-zero=true` và `fused-negative=true` cho thấy phép `Math.fma` (một lần làm tròn) không tương đương nhân rồi trừ với hai lần làm tròn.
-- Underflow có thể cho zero dương hoặc âm; NaN vẫn có thể xuất hiện từ `0.0/0.0`.
+- Both methods with and without `strictfp` yield the same result on the `double` overflow calculation in Java 17+: `Infinity`.
+- `round-left` and `round-right` yield different results because **parentheses change the order of operations**, unrelated to the modifier.
+- `decimal-equal=false` proves always-strict **does not eliminate binary representation error**.
+- `separate-zero=true` and `fused-negative=true` show that `Math.fma` (one rounding) is not equivalent to multiply-then-subtract with two roundings.
+- Underflow can yield positive or negative zero; NaN can still arise from `0.0/0.0`.
 
-Không nên đưa một đoạn ví dụ chỉ chạy được trên Java 17+ rồi suy ra rằng JVM cũ **chắc chắn** trả kết quả khác ở chỗ không có `strictfp`. Các JVM cũ vẫn có thể lựa chọn strict evaluation ở những nơi đặc tả lịch sử cho phép.
+Do not present an example that only runs on Java 17+ and deduce that older JVMs **definitely** returned different results without `strictfp`. Older JVMs could still choose strict evaluation where the historical specification permitted.
 
-## 10. Những ngộ nhận phổ biến
+## 10. Common Misconceptions
 
-| Ngộ nhận | Thực tế |
+| Misconception | Reality |
 | --- | --- |
-| “Java 17 bỏ từ khóa `strictfp` khỏi cú pháp.” | Modifier vẫn được nhận để tương thích, nhưng không ảnh hưởng đánh giá dấu phẩy động. |
-| “Thêm `strictfp` vào Java 17 giúp kết quả chính xác hơn.” | Mọi biểu thức đã strict; modifier không bổ sung bit chính xác. |
-| “Strictfp từng bảo đảm mọi tính toán ở độ chính xác thực vô hạn.” | Nó chỉ kiểm soát tập giá trị `float`/`double` và phép làm tròn phù hợp; kết quả vẫn có sai số. |
-| “Chế độ không strict lịch sử luôn dùng phần trị nhiều bit hơn.” | Cơ chế lịch sử được đặc tả qua **extended exponent** với cùng số bit phần trị, không phải quyền tùy ý tăng precision. |
-| “Mọi JVM trước 17 đều cho kết quả khác khi bỏ strictfp.” | Chế độ số mũ mở rộng được **cho phép**, không bị bắt buộc ở mọi JVM. |
-| “Always-strict khiến phép cộng double có tính kết hợp.” | `(a+b)+c` vẫn có thể khác `a+(b+c)` do làm tròn. |
-| “Always-strict khiến `Math.fma(a,b,c)` giống `a*b+c`.” | `fma` có một lần làm tròn, biểu thức tách rời có thể hai lần. |
-| “`strictfp` và `StrictMath` là một tính năng.” | Modifier ngôn ngữ và lớp thư viện là hai cơ chế riêng. |
-| “Strict có nghĩa mọi `Math`/ `StrictMath` bitwise giống nhau.” | Cần xem hợp đồng và thuật toán từng phương thức. |
-| “Always-strict giúp tính tiền bằng double chính xác thập phân.” | `BigDecimal` hoặc số nguyên đơn vị nhỏ nhất vẫn phù hợp hơn khi yêu cầu decimal exactness. |
-| “Một cảnh báo strictfp lúc biên dịch là lỗi runtime.” | Đó là warning từ compiler; chương trình vẫn có thể chạy. |
+| "Java 17 removed the `strictfp` keyword from syntax." | The modifier is still accepted for compatibility, yet has no effect on floating-point evaluation. |
+| "Adding `strictfp` in Java 17 makes results more accurate." | All expressions are already strict; the modifier adds no precision bits. |
+| "`strictfp` used to guarantee all calculations in infinite real precision." | It only controlled `float`/`double` value sets and proper rounding; results still have rounding error. |
+| "Historical non-strict mode always used more significand bits." | The historical mechanism was specified via **extended exponent** with the same significand bits, not arbitrary precision expansion. |
+| "Every pre-17 JVM gave different results when omitting `strictfp`." | Extended-exponent mode was **permitted**, not mandatory on every JVM. |
+| "Always-strict makes `double` addition associative." | `(a+b)+c` can still differ from `a+(b+c)` due to rounding. |
+| "Always-strict makes `Math.fma(a,b,c)` identical to `a*b+c`." | `fma` has one rounding, while the separate expression has two. |
+| "`strictfp` and `StrictMath` are the same feature." | A language modifier and a library class are two separate mechanisms. |
+| "Strict means all `Math`/`StrictMath` calls are bitwise identical." | You must check each method's contract and algorithm. |
+| "Always-strict enables exact decimal currency math with `double`." | `BigDecimal` or smallest-unit integers remain more appropriate when decimal exactness is required. |
+| "A `strictfp` compile-time warning is a runtime error." | It is a compiler warning; the program can still run. |
 
-## 11. Áp dụng trong ứng dụng và kiểm thử
+## 11. Applying in Applications and Testing
 
-### 11.1. Khi nâng phiên bản Java
+### 11.1. When Upgrading Java Versions
 
-Một dự án cũ chuyển từ Java 8/11 sang Java 17 nên:
+An older project migrating from Java 8/11 to Java 17 should:
 
-- Kiểm tra những chỗ dùng `strictfp` và ghi chú lý do lịch sử, nếu có.
-- Đối chiếu kết quả ở các thuật toán nhạy với overflow/underflow, số subnormal, phép tính lặp nhiều lần và điều kiện ngưỡng.
-- Không quy kết mọi thay đổi số học khi nâng Java cho JEP 306: thay đổi thư viện, thuật toán, thứ tự tổng hợp, kiểu dữ liệu hoặc mã ứng dụng cũng có thể làm khác kết quả.
-- Nếu mã dùng `Math.sin`, `Math.log`… và cần khả năng lặp lại kết quả có tính ràng buộc, kiểm tra hợp đồng API cụ thể thay vì chỉ thêm modifier.
+- Inspect places using `strictfp` and note the historical reason, if any.
+- Cross-check results in algorithms sensitive to overflow/underflow, subnormal numbers, iterative calculations, and threshold conditions.
+- Do not blame every numerical change during a Java upgrade on JEP 306: library changes, algorithms, aggregation order, data types, or application code can also alter results.
+- If code uses `Math.sin`, `Math.log`, etc., and needs strict result reproducibility, check the specific API contract rather than merely adding a modifier.
 
-### 11.2. Khi thiết kế code Java 17+ mới
+### 11.2. When Designing New Java 17+ Code
 
-Lựa chọn thông thường là **không dùng `strictfp`**. Tập trung vào:
+The normal choice is **not to use `strictfp`**. Focus on:
 
-1. Chọn đúng kiểu `float`, `double`, `BigDecimal` hay số nguyên theo ý nghĩa dữ liệu.
-2. Xác định mức sai số có thể chấp nhận và quy tắc so sánh.
-3. Xác thực `NaN` và vô cực bằng `Double.isFinite` hoặc `Float.isFinite` nếu miền yêu cầu hữu hạn.
-4. Kiểm soát thứ tự phép toán, phép cộng dồn song song và các lời gọi như `Math.fma`.
-5. Kiểm thử biên gần overflow, subnormal và zero có dấu khi thuật toán nhạy với chúng.
+1. Choosing the right type—`float`, `double`, `BigDecimal`, or integer—based on data semantics.
+2. Defining acceptable error tolerances and comparison rules.
+3. Validating `NaN` and infinity with `Double.isFinite` or `Float.isFinite` if the domain requires finite values.
+4. Controlling operation order, parallel accumulation, and calls such as `Math.fma`.
+5. Testing boundaries near overflow, subnormals, and signed zero when algorithms are sensitive to them.
 
-### 11.3. Khi phải tái lập bit giữa nhiều máy hoặc nhiều lần chạy
+### 11.3. When Bit-Level Reproducibility Across Machines or Runs Is Required
 
-Always-strict giúp **thu hẹp nguồn khác biệt từng đến từ các chế độ số mũ trung gian**. Nhưng một lời hứa “kết quả bit-for-bit giống nhau” cho cả ứng dụng còn phụ thuộc vào:
+Always-strict **narrows the source of differences that used to come from intermediate exponent modes**. However, a "bit-for-bit identical results" guarantee for an entire application still depends on:
 
-- Có dùng cùng biểu thức và cùng dữ liệu đầu vào bit-for-bit hay không.
-- Thứ tự tính toán và các lần làm tròn (ví dụ FMA so với nhân/cộng riêng).
-- Việc gọi các hàm thư viện có bảo đảm kết quả xác định theo hợp đồng cụ thể hay không.
-- Mô hình song song, thứ tự reduction và những thay đổi của thuật toán.
+- Whether identical expressions and bit-for-bit identical input data are used.
+- Computation order and rounding steps (e.g., FMA vs. separate multiply/add).
+- Whether called library functions guarantee deterministic results under a specific contract.
+- Parallelism models, reduction order, and algorithmic changes.
 
-Một phép toán primitive được xác định chặt chẽ **không tự làm toàn bộ pipeline số học trở thành có tính quyết định** nếu pipeline còn những lựa chọn thuật toán khác nhau.
+Tightly defined primitive operations **do not automatically make an entire numerical pipeline deterministic** if the pipeline still leaves algorithmic choices open.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-1. Tại sao Java 17 gọi là **always-strict**, và nó khác gì chế độ mặc định cho phép extended exponent trên Java 1.2–16?
-2. `strictfp` lịch sử mở rộng số bit phần trị hay chỉ **hạn chế sự mở rộng miền số mũ trung gian**? Giải thích đúng bản chất.
-3. Trên Java 17+, hai phương thức có và không có `strictfp` nhưng có cùng biểu thức `double` có cần hai chế độ tính toán riêng không? Vì sao compiler có thể cảnh báo?
-4. Vì sao `Double.MAX_VALUE * 2.0 / 2.0` không trả lại `Double.MAX_VALUE` trong ngữ nghĩa strict?
-5. Vì sao `(1e16 + 1.0) - 1e16` khác `(1e16 - 1e16) + 1.0`? Always-strict có thay đổi điều đó không?
-6. Hãy giải thích sự khác nhau giữa `Math.fma(a,b,c)` và `a*b+c` về **số lần làm tròn**.
-7. Có nên thay toàn bộ `Math` bằng `StrictMath` để “bật strictfp” trong Java 17? Nêu đúng vai trò của từng tên.
-8. Một ứng dụng Java 8 có `strictfp` trên các phép tính nhạy với số mũ. Khi nâng lên Java 17 và muốn xóa modifier, bạn cần kiểm tra những gì?
-9. Vì sao always-strict không khiến `0.1 + 0.2 == 0.3` thành `true`?
-10. Nếu ứng dụng Java 17 tính tổng theo nhiều thứ tự trong các worker khác nhau, sự khác biệt kết quả có thể xuất hiện dù mọi biểu thức đều strict không?
+1. Why is Java 17 called **always-strict**, and how does it differ from the default mode permitting extended exponents in Java 1.2–16?
+2. Did historical `strictfp` expand significand bits, or only **restrict intermediate exponent range expansion**? Explain the true mechanism.
+3. On Java 17+, do two methods with and without `strictfp` containing the same `double` expression require two separate computation modes? Why might the compiler warn?
+4. Why does `Double.MAX_VALUE * 2.0 / 2.0` not return `Double.MAX_VALUE` under strict semantics?
+5. Why does `(1e16 + 1.0) - 1e16` differ from `(1e16 - 1e16) + 1.0`? Does always-strict change that?
+6. Explain the difference between `Math.fma(a,b,c)` and `a*b+c` in terms of **number of rounding steps**.
+7. Should you replace all `Math` calls with `StrictMath` to "enable `strictfp`" in Java 17? State the true role of each name.
+8. A Java 8 application has `strictfp` on exponent-sensitive calculations. When upgrading to Java 17 and wanting to remove the modifier, what should you check?
+9. Why does always-strict not make `0.1 + 0.2 == 0.3` become `true`?
+10. If a Java 17 application sums values in different orders across different workers, can result differences appear even though all expressions are strict?
 
-## 13. Checklist ghi nhớ
+## 13. Memory Checklist
 
-- **Java 17+ luôn strict:** không còn chọn giữa hai chế độ đánh giá dấu phẩy động theo `strictfp`.
-- **`strictfp` mang tính lịch sử và tương thích nguồn** trên Java 17+; không mang đến độ chính xác cao hơn.
-- **Java 1.2–16 cho phép extended-exponent value sets** trong ngữ cảnh không strict; cùng độ chính xác phần trị, miền số mũ rộng hơn.
-- **Strict không loại bỏ làm tròn**, overflow, underflow, signed zero, Infinity hoặc NaN.
-- **Biểu thức và thứ tự phép toán vẫn quan trọng**; `Math.fma` khác phép nhân cộng tách rời.
-- **`StrictMath` là API thư viện**, không phải cơ chế kích hoạt modifier `strictfp`.
-- **Kiểm thử reproducibility ở mức toàn thuật toán**, không chỉ nhìn modifier ở một method.
-- Với dữ liệu cần **thập phân chính xác**, vẫn phải dùng mô hình số thích hợp như `BigDecimal`, không trông cậy `strictfp`.
+- **Java 17+ is always strict:** there is no longer a toggle between two floating-point evaluation modes via `strictfp`.
+- **`strictfp` is historical and for source compatibility** on Java 17+; it brings no higher precision.
+- **Java 1.2–16 allowed extended-exponent value sets** in non-strict contexts; same significand precision, wider exponent range.
+- **Strict does not eliminate rounding**, overflow, underflow, signed zero, Infinity, or NaN.
+- **Expressions and operation order still matter**; `Math.fma` differs from separate multiply-then-add.
+- **`StrictMath` is a library API**, not a mechanism to activate the `strictfp` modifier.
+- **Test reproducibility at the full-algorithm level**, not just by looking at a modifier on one method.
+- For data needing **exact decimals**, you still must use an appropriate numeric model such as `BigDecimal`, rather than relying on `strictfp`.
 
-### Nguồn đặc tả để đọc thêm
+### Specification Sources for Further Reading
 
 - [JEP 306 – Restore Always-Strict Floating-Point Semantics](https://openjdk.org/jeps/306).
 - [Java Language Specification, Java SE 17 – §15.4 Floating-point Expressions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.4).
 - [Java Virtual Machine Specification, Java SE 17 – §2.8 Floating-Point Arithmetic](https://docs.oracle.com/javase/specs/jvms/se17/html/jvms-2.html#jvms-2.8).
 
-**Kết luận:** Java 17 không “làm số thực trở nên chính xác tuyệt đối”, mà **loại bỏ sự khác biệt về chế độ đánh giá strict/non-strict từng được cho phép vì phần cứng cũ**. `strictfp` vẫn xuất hiện trong mã di sản nhưng không làm thay đổi kết quả biểu thức Java 17+. Khi đánh giá tính đúng của phép toán thực, hãy chú ý miền biểu diễn, làm tròn, thứ tự phép tính, API thư viện và thuật toán.
+**Conclusion:** Java 17 did not "make floating-point numbers infinitely accurate"; rather, it **removed the difference between strict/non-strict evaluation modes formerly permitted for legacy hardware**. `strictfp` still appears in legacy code but does not alter expression results in Java 17+. When assessing floating-point correctness, pay attention to representation range, rounding, operation order, library APIs, and algorithms.

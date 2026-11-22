@@ -1,65 +1,65 @@
-# Kiến thức nền và trình tự học localization trong Java
+# Foundational Knowledge and Learning Sequence for Localization in Java
 
-> **Phạm vi:** Tổng quan kiến thức và lộ trình học localization cho ứng dụng Java 17+. Mục tiêu là biết cần học gì, theo thứ tự nào, vì sao từng phần quan trọng và tự triển khai được một ví dụ nhỏ trước khi đi sâu vào từng API.
+> **Scope:** Overview of concepts and learning path for localization in Java 17+ applications. The goal is to know what to learn, in what order, why each part matters, and to implement a small example yourself before diving deep into each API.
 
-## 1. Localization giải quyết bài toán gì?
+## 1. What Problem Does Localization Solve?
 
-Một ứng dụng phục vụ nhiều người dùng không thể giả định tất cả đều đọc cùng ngôn ngữ, viết số và ngày tháng theo cùng quy ước. Ví dụ, cùng một khoản tiền hoặc ngày giao hàng có thể cần được hiển thị khác nhau tùy ngôn ngữ, vùng và đơn vị tiền tệ.
+An application serving many users cannot assume everyone reads the same language or writes numbers and dates using the same conventions. For instance, the same monetary amount or delivery date may need to be displayed differently depending on language, region, and currency unit.
 
-Các khái niệm cần tách bạch:
+Concepts to keep separate:
 
-| Khái niệm | Ý nghĩa | Ví dụ |
+| Concept | Meaning | Example |
 | --- | --- | --- |
-| **Internationalization (i18n)** | Thiết kế phần mềm để có thể hỗ trợ nhiều ngôn ngữ/vùng mà không sửa logic nghiệp vụ cho mỗi thị trường. | Đưa thông điệp vào resource bundle, truyền `Locale` cho bộ định dạng. |
-| **Localization (l10n)** | Điều chỉnh nội dung và cách trình bày cho một ngôn ngữ/vùng cụ thể. | Bản dịch tiếng Việt, định dạng ngày và số theo `vi-VN`. |
-| **Locale** | Ngữ cảnh ngôn ngữ và vùng dùng để chọn quy tắc hiển thị. | `vi-VN`, `en-US`, `fr-FR`. |
-| **Time zone** | Quy tắc múi giờ để biến một thời điểm tuyệt đối thành giờ địa phương. | `Asia/Ho_Chi_Minh`, `America/New_York`. |
-| **Currency** | Đơn vị tiền tệ thực của dữ liệu/giá trị giao dịch. | VND, USD, EUR; không nên suy đoán từ ngôn ngữ giao diện. |
+| **Internationalization (i18n)** | Designing software so it can support multiple languages/regions without modifying business logic for each market. | Placing messages in resource bundles, passing `Locale` to formatters. |
+| **Localization (l10n)** | Adapting content and presentation for a specific language/region. | Vietnamese translations, formatting dates and numbers for `vi-VN`. |
+| **Locale** | Language and region context used to select display conventions. | `vi-VN`, `en-US`, `fr-FR`. |
+| **Time zone** | Time zone rules that turn an absolute instant into local time. | `Asia/Ho_Chi_Minh`, `America/New_York`. |
+| **Currency** | The actual currency unit of transaction data/values. | VND, USD, EUR; should not be guessed from the UI language. |
 
-**i18n là khả năng của thiết kế, l10n là nội dung và quy tắc cụ thể.** Chỉ dịch chuỗi chưa đủ: ứng dụng còn cần xử lý số thập phân, phần trăm, tiền, ngày giờ, thứ tự sắp xếp văn bản, số nhiều, chiều chữ và bố cục giao diện khi phù hợp.
+**i18n is a capability of the design; l10n is the concrete content and rules.** Translating strings alone is not enough: the application must also handle decimals, percentages, money, dates/times, text sorting order, plurals, text direction, and UI layout when applicable.
 
-Một luồng xử lý điển hình:
+A typical processing flow:
 
 ```text
-Người dùng / request
-    ↓ chọn locale (ưu tiên đã lưu, lựa chọn UI, ngôn ngữ trình duyệt)
-Locale + dữ liệu nghiệp vụ + mã thông điệp
-    ↓ tra bản dịch và định dạng theo locale, zone, currency rõ ràng
-Văn bản hiển thị cho người dùng
+User / request
+    ↓ select locale (saved preference, UI selection, browser language)
+Locale + business data + message key
+    ↓ look up translation and format with explicit locale, zone, currency
+Text displayed to the user
 ```
 
-Dữ liệu gốc nên giữ dạng có kiểu như `BigDecimal`, `Instant`, `LocalDate` và mã thông điệp. Chuỗi đã định dạng chủ yếu là **kết quả ở ranh giới hiển thị**, không nên trở thành dữ liệu nghiệp vụ để tính toán hoặc lưu trữ.
+Canonical data should remain in typed forms such as `BigDecimal`, `Instant`, `LocalDate`, and message keys. Formatted strings are primarily **output at the display boundary** and should not become business data for computation or storage.
 
-## 2. Kiến thức nền cần có trước khi học API
+## 2. Prerequisites Before Learning the APIs
 
-1. **Java căn bản:** `String`, `Map`, classpath, exception và thao tác với tệp `.properties`. Nắm khái niệm lớp/thư viện và sự khác nhau giữa mã nguồn, tài nguyên và tệp đã biên dịch.
-2. **Unicode và encoding:** Unicode mô tả ký tự; UTF-8 là cách mã hóa thành byte. Java `String` biểu diễn văn bản bằng các đơn vị UTF-16, vì vậy `length()` hoặc một `char` không luôn tương ứng một ký tự người dùng nhìn thấy. Khi đọc/ghi tệp, truyền charset rõ ràng (thường `StandardCharsets.UTF_8`).
-3. **Ngôn ngữ và vùng:** Mã ngôn ngữ như `vi` hoặc `en` khác mã vùng như `VN` hoặc `US`. Tag BCP 47 như `zh-Hant-TW` còn có thể mang thông tin chữ viết (script). Không coi các tag gần giống là hoàn toàn tương đương.
-4. **Kiểu dữ liệu ngày giờ:** Phân biệt `Instant` (thời điểm), `LocalDate` (ngày lịch), `LocalDateTime` (không có múi giờ), `ZonedDateTime` (có zone). `Locale` không quyết định múi giờ.
-5. **Phân biệt hiển thị và dữ liệu:** Giá trị `1234.5` vẫn là một số, dù màn hình hiển thị `1.234,5` hay `1,234.5`. Cũng vậy, bản dịch nhãn không làm thay đổi mã trạng thái hoặc định danh.
+1. **Core Java:** `String`, `Map`, classpath, exceptions, and working with `.properties` files. Understand classes/libraries and the difference between source code, resources, and compiled files.
+2. **Unicode and encoding:** Unicode defines characters; UTF-8 encodes them into bytes. Java `String` represents text as UTF-16 units, so `length()` or a single `char` does not always correspond to one user-perceived character. When reading/writing files, pass an explicit charset (usually `StandardCharsets.UTF_8`).
+3. **Language and region:** A language code such as `vi` or `en` differs from a region code such as `VN` or `US`. BCP 47 tags like `zh-Hant-TW` can also carry script information. Do not treat similar-looking tags as completely equivalent.
+4. **Date/time data types:** Distinguish `Instant` (point in time), `LocalDate` (calendar date), `LocalDateTime` (no time zone), `ZonedDateTime` (with zone). `Locale` does not determine the time zone.
+5. **Display vs. data:** The value `1234.5` remains the same number whether the screen displays `1.234,5` or `1,234.5`. Likewise, translating labels does not change status codes or identifiers.
 
-**Điểm kiểm tra trước khi tiếp tục:** giải thích được tại sao chuyển sang tiếng Việt chưa chắc làm giờ chuyển sang GMT+7, và tại sao không nên dùng dấu phẩy/dấu chấm của chuỗi hiển thị để tính tiền.
+**Checkpoint before continuing:** be able to explain why switching to Vietnamese does not automatically switch the clock to GMT+7, and why commas/periods from a display string should not be used to compute money.
 
-## 3. Bản đồ công cụ trong Java
+## 3. Tool Map in Java
 
-| Nhiệm vụ | API/cơ chế chính | Điều cần hiểu |
+| Task | Main API/Mechanism | What to Understand |
 | --- | --- | --- |
-| Biểu diễn và chọn ngôn ngữ/vùng | `java.util.Locale`, `Locale.forLanguageTag(...)` | Language tag, tag được hỗ trợ, fallback. |
-| Tách thông điệp khỏi mã | `java.util.ResourceBundle`, tệp `messages_*.properties` | Base name, key, candidate locales, tài nguyên thiếu. |
-| Chèn tham số trong bản dịch | `java.text.MessageFormat` | Placeholder đánh số, escape dấu nháy đơn, format theo locale. |
-| Hiển thị/phân tích số, tiền, phần trăm | `java.text.NumberFormat`, `java.util.Currency` | Ký hiệu, dấu nhóm, số chữ số thập phân, currency thực. |
-| Hiển thị ngày giờ | `java.time.format.DateTimeFormatter`, `FormatStyle` | Locale ảnh hưởng ngôn ngữ/mẫu hiển thị; `ZoneId` ảnh hưởng giờ. |
-| So sánh và phân đoạn văn bản | `java.text.Collator`, `BreakIterator` | Sắp xếp theo ngôn ngữ, biên từ/cụm ký tự. |
-| Chuẩn hóa Unicode | `java.text.Normalizer` | Dạng NFC/NFD và so sánh văn bản một cách nhất quán. |
-| Kiểm thử | JUnit hoặc chương trình kiểm chứng nhỏ | Bao phủ locale được hỗ trợ, khóa bị thiếu, fallback và dữ liệu biên. |
+| Represent and select language/region | `java.util.Locale`, `Locale.forLanguageTag(...)` | Language tags, supported tags, fallback. |
+| Separate messages from code | `java.util.ResourceBundle`, `messages_*.properties` files | Base name, keys, candidate locales, missing resources. |
+| Insert parameters in translations | `java.text.MessageFormat` | Numbered placeholders, escaping single quotes, locale-based formatting. |
+| Display/parse numbers, money, percentages | `java.text.NumberFormat`, `java.util.Currency` | Symbols, grouping marks, fractional digits, actual currency. |
+| Display dates and times | `java.time.format.DateTimeFormatter`, `FormatStyle` | Locale affects language/display style; `ZoneId` affects wall-clock time. |
+| Compare and segment text | `java.text.Collator`, `BreakIterator` | Linguistic sorting, word/character-cluster boundaries. |
+| Unicode normalization | `java.text.Normalizer` | NFC/NFD forms and consistent text comparison. |
+| Testing | JUnit or small verification programs | Covering supported locales, missing keys, fallback, and boundary data. |
 
-Java dùng dữ liệu locale của JDK; chi tiết hiển thị có thể khác giữa phiên bản JDK hoặc dữ liệu CLDR. Vì thế, ở các kiểm thử định dạng, cần phân biệt đặc tả bắt buộc với cách hiển thị phụ thuộc dữ liệu locale.
+Java uses the JDK's locale data; formatting details may vary across JDK versions or CLDR data. Therefore, in formatting tests, distinguish mandatory specifications from locale-data-dependent display formatting.
 
-## 4. Trình tự học đề xuất: từ nền tảng đến ứng dụng
+## 4. Recommended Learning Sequence: From Foundations to Application
 
-### Chặng 1 — Đọc và truyền `Locale`
+### Stage 1 — Reading and Passing `Locale`
 
-Thực hành với:
+Practice with:
 
 ```java
 Locale vi = Locale.forLanguageTag("vi-VN");
@@ -69,67 +69,67 @@ System.out.println(en.getLanguage());    // en
 System.out.println(en.getCountry());     // US
 ```
 
-Đây là đoạn minh họa đặt trong phương thức Java có thể chạy, không phải tệp Java độc lập.
+This is an illustrative snippet meant to sit inside an executable Java method, not a standalone Java file.
 
-Nắm cách xác định locale từ lựa chọn đã lưu, cài đặt người dùng hoặc tiêu đề `Accept-Language`. Với ứng dụng web, hãy đối chiếu danh sách locale **thực sự hỗ trợ**, đặt locale rõ ràng cho từng request, và có chính sách mặc định nhất quán. `Locale.getDefault()` chỉ là mặc định của tiến trình; gọi `Locale.setDefault(...)` theo từng request trên máy chủ nhiều người dùng dễ gây lẫn ngôn ngữ giữa các request.
+Learn how to determine the locale from saved preferences, user settings, or the `Accept-Language` header. In web applications, match against the list of **actually supported locales**, set an explicit locale per request, and enforce a consistent default policy. `Locale.getDefault()` is only the process default; calling `Locale.setDefault(...)` per request on a multi-user server easily mixes languages across requests.
 
-**Hoàn thành khi:** phân biệt được locale hiển thị, locale mặc định của JVM và zone của người dùng.
+**Done when:** you can distinguish display locale, JVM default locale, and the user's time zone.
 
-### Chặng 2 — Bóc thông điệp khỏi code bằng `ResourceBundle`
+### Stage 2 — Extracting Messages from Code with `ResourceBundle`
 
-Thay các literal như `"Hello"` rải rác trong mã bằng khóa ổn định, chẳng hạn `welcome`, `order.confirmed`. Chuẩn bị bản dịch riêng cho từng locale được hỗ trợ. Học quy tắc tìm tệp: base name `messages` có thể khớp `messages_vi_VN.properties`, sau đó `messages_vi.properties` và bản gốc `messages.properties` (còn có fallback qua default locale tùy cách gọi API).
+Replace scattered literals like `"Hello"` in code with stable keys such as `welcome`, `order.confirmed`. Prepare separate translations for each supported locale. Learn the file lookup rules: base name `messages` can match `messages_vi_VN.properties`, then `messages_vi.properties`, and the base `messages.properties` (plus fallback through the default locale depending on how the API is called).
 
-Cần biết: khóa nào cũng có bản dịch? Nếu một khóa thiếu thì sao? Nếu toàn bộ bundle thiếu, `ResourceBundle.getBundle(...)` ném `MissingResourceException`; nếu bundle tồn tại nhưng khóa thiếu, `getString(...)` cũng có thể ném lỗi này. Bản gốc `messages.properties` có thể làm fallback, nhưng **không dùng fallback để che giấu bản dịch còn thiếu trong kiểm thử**.
+Know what to check: does every key have a translation? What happens if a key is missing? If the entire bundle is missing, `ResourceBundle.getBundle(...)` throws `MissingResourceException`; if the bundle exists but a key is missing, `getString(...)` can also throw this error. The base `messages.properties` can serve as a fallback, yet **do not use fallback to hide missing translations in tests**.
 
-Từ Java 9, tài nguyên `.properties` được `ResourceBundle` nạp theo UTF-8 mặc định (có tương thích ngược trong một số trường hợp). Điều đó không có nghĩa mọi API đọc `.properties` đều cùng một quy tắc; khi đọc tệp tùy ý vẫn phải xét charset của API.
+Since Java 9, `.properties` resources are loaded by `ResourceBundle` as UTF-8 by default (with backward compatibility in some cases). That does not mean every API reading `.properties` follows the same rule; when reading arbitrary files, still check the API's charset.
 
-**Hoàn thành khi:** đổi lựa chọn locale và ứng dụng lấy đúng thông điệp, đồng thời giải thích được thứ tự fallback.
+**Done when:** switching the locale causes the application to load the right message, and you can explain the fallback order.
 
-### Chặng 3 — Chèn biến vào thông điệp đúng cách
+### Stage 3 — Inserting Variables into Messages Properly
 
-Tránh nối chuỗi theo một thứ tự cố định như `"Hello " + name` khi các ngôn ngữ có thể đảo thứ tự từ. Dùng khóa chứa mẫu `"Hello, {0}!"` rồi định dạng bằng `MessageFormat` với locale cần hiển thị. Đối số số/ngày có thể được định dạng dựa vào locale khi mẫu yêu cầu.
+Avoid concatenating strings in a fixed order like `"Hello " + name` when languages may reverse word order. Use a key containing the pattern `"Hello, {0}!"` and format with `MessageFormat` using the target locale. Numeric/date arguments can be formatted by locale when specified in the pattern.
 
-Lưu ý: `MessageFormat` dùng dấu nháy đơn `'` làm ký tự escape trong mẫu. Cần kiểm tra ví dụ có dấu nháy, dấu ngoặc nhọn và tham số sai chỉ số. Ngữ pháp số nhiều và giống ngữ pháp phức tạp không được giải quyết đầy đủ bằng mẫu đơn giản của Java 17; có thể tìm hiểu thư viện như ICU4J khi thực sự cần.
+Note: `MessageFormat` uses single quote `'` as an escape character in patterns. Test examples containing apostrophes, curly braces, and out-of-range parameter indices. Complex grammatical plurals and gender are not fully solved by simple Java 17 patterns; explore libraries like ICU4J when truly needed.
 
-**Hoàn thành khi:** bản dịch có placeholder vẫn có thể đổi thứ tự các tham số mà không sửa code gọi.
+**Done when:** translations with placeholders can reorder parameters without editing calling code.
 
-### Chặng 4 — Số, phần trăm và tiền tệ
+### Stage 4 — Numbers, Percentages, and Currencies
 
-Học `NumberFormat.getNumberInstance(locale)`, `getPercentInstance(locale)` và `getCurrencyInstance(locale)`. Đừng tự chèn dấu nhóm hoặc thay dấu chấm bằng dấu phẩy; bộ định dạng biết cách chọn ký hiệu theo locale. Khi định dạng giao dịch, truyền mã `Currency` của **giao dịch thực**, ví dụ USD, thay vì mặc nhiên coi locale Việt Nam là giá trị VND.
+Learn `NumberFormat.getNumberInstance(locale)`, `getPercentInstance(locale)`, and `getCurrencyInstance(locale)`. Never insert grouping marks manually or swap periods for commas; the formatter knows how to choose symbols by locale. When formatting a transaction, pass the `Currency` code of the **actual transaction**, such as USD, instead of assuming a Vietnamese locale means VND.
 
-Phân biệt rõ **định dạng** với **quy đổi tiền**: đổi nhãn USD thành VND không làm giá trị được chuyển đổi theo tỷ giá. Với tiền cần độ chính xác, ưu tiên `BigDecimal` và quy tắc làm tròn nghiệp vụ. Khi phân tích chuỗi nhập, dùng API parse cùng locale đã chọn, kiểm tra tiêu thụ toàn bộ chuỗi và xác thực giá trị; không xem một lần parse thành công là bằng chứng đầu vào hợp lệ hoàn toàn.
+Clearly distinguish **formatting** from **currency conversion**: changing a USD label to VND does not convert the value by an exchange rate. For money needing precision, prefer `BigDecimal` and business rounding rules. When parsing input strings, use the parsing API with the chosen locale, verify full-string consumption, and validate the value; do not treat one successful parse as proof of completely valid input.
 
-**Hoàn thành khi:** một giá trị số bất biến được hiển thị đúng với hai locale mà không đổi giá trị nguồn.
+**Done when:** an immutable numeric value displays properly under two locales without altering the source value.
 
-### Chặng 5 — Ngày, giờ và múi giờ
+### Stage 5 — Dates, Times, and Time Zones
 
-Học `DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale)` để hiển thị `LocalDate`. Sau đó học `Instant.atZone(zoneId)` hoặc `ZonedDateTime` khi một thời điểm cần hiển thị theo múi giờ người dùng.
+Learn `DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale)` to display `LocalDate`. Then learn `Instant.atZone(zoneId)` or `ZonedDateTime` when an instant must be shown in the user's time zone.
 
-Ba dữ kiện cần lưu độc lập khi thích hợp: **thời điểm**, **múi giờ** và **locale**. Ví dụ, một `Instant` có thể được chuyển sang `Asia/Ho_Chi_Minh` để ra giờ địa phương, rồi định dạng bằng `vi-VN` để dùng ngôn ngữ/kiểu trình bày phù hợp.
+Three facts to store independently when appropriate: **instant**, **time zone**, and **locale**. For example, an `Instant` can be converted to `Asia/Ho_Chi_Minh` to yield local time, and then formatted with `vi-VN` to use Vietnamese wording and presentation style.
 
-**Hoàn thành khi:** giải thích được vì sao đổi locale từ `en-US` sang `vi-VN` có thể đổi chữ/thứ tự ngày nhưng không tự đổi time zone.
+**Done when:** you can explain why changing locale from `en-US` to `vi-VN` can change date wording/order without automatically changing the time zone.
 
-### Chặng 6 — Quy tắc văn bản theo ngôn ngữ
+### Stage 6 — Language-Specific Text Rules
 
-Tìm hiểu `Collator` khi cần sắp xếp chuỗi để hiển thị cho người dùng (thay vì so sánh byte hoặc `String.compareTo`). `BreakIterator` hỗ trợ ranh giới từ/câu/ký tự theo locale; `Normalizer` hỗ trợ chuẩn hóa biểu diễn Unicode. Chú ý việc viết hoa/viết thường có thể phụ thuộc locale, ví dụ chữ I trong tiếng Thổ Nhĩ Kỳ; dùng `toLowerCase(Locale.ROOT)` cho một số xử lý định danh nội bộ khi quy tắc mong muốn độc lập ngôn ngữ, nhưng đừng mặc định đó là giải pháp cho mọi so sánh văn bản.
+Explore `Collator` when sorting strings for user display (instead of byte comparison or `String.compareTo`). `BreakIterator` supports locale-aware word/sentence/character boundaries; `Normalizer` supports normalizing Unicode representations. Watch that upper/lowercase mapping can be locale-dependent, such as the letter I in Turkish; use `toLowerCase(Locale.ROOT)` for certain internal identifier handling when language-independent rules are desired, though do not assume it solves every text comparison.
 
-**Hoàn thành khi:** nhận ra các lỗi do tách chuỗi theo `char`, sắp xếp máy móc hoặc ép chữ hoa/thường theo default locale.
+**Done when:** you can spot bugs caused by slicing strings by `char`, naive sorting, or case-folding with the default locale.
 
-### Chặng 7 — Gắn vào kiến trúc ứng dụng
+### Stage 7 — Integrating Into Application Architecture
 
-Thiết kế lớp hoặc dịch vụ nhận **locale của request** và mã thông điệp, trả chuỗi hiển thị. Dữ liệu nghiệp vụ lưu các giá trị có kiểu và khóa ổn định. Quản lý nguồn dịch bằng quy ước đặt key, bản gốc, quy trình review bản dịch, và cơ chế báo thiếu key. Phần giao diện có thể cần mở rộng chiều rộng nhãn, định dạng biểu mẫu, hỗ trợ màn hình đọc và chiều chữ phải sang trái nếu thị trường yêu cầu.
+Design a layer or service taking **request locale** and message key, returning display strings. Business data stores typed values and stable keys. Manage translation sources with key naming conventions, a base file, a translation review process, and missing-key reporting. The UI may need wider label space, form formatting, screen-reader support, and right-to-left text direction if target markets require it.
 
-**Hoàn thành khi:** thêm ngôn ngữ mới chủ yếu qua tài nguyên và cấu hình, không nhân bản logic nghiệp vụ theo ngôn ngữ.
+**Done when:** adding a new language happens primarily via resources and configuration, without duplicating business logic per language.
 
-### Chặng 8 — Kiểm thử và theo dõi chất lượng
+### Stage 8 — Testing and Quality Monitoring
 
-Kiểm tra có chủ đích ít nhất hai locale được hỗ trợ, một locale không hỗ trợ, key còn thiếu, placeholder sai, chuỗi tiếng Việt có dấu, số âm, ngày cuối tháng, và thời điểm sát ngày khi đổi zone. Kiểm tra text mở rộng, pseudo-localization (ví dụ kéo dài nhãn để lộ lỗi UI), và nội dung RTL khi có nhu cầu. Trong CI, đừng chỉ phụ thuộc mặc định của máy chạy: chỉ rõ locale/zone ở những test cần kết quả ổn định.
+Intentionally test at least two supported locales, one unsupported locale, missing keys, mismatched placeholders, Vietnamese strings with diacritics, negative numbers, end-of-month dates, and instants near day boundaries when switching zones. Test text expansion, pseudo-localization (such as elongating labels to expose UI bugs), and RTL content when applicable. In CI, do not rely solely on the runner's default: specify explicit locale/zone in tests needing deterministic output.
 
-**Hoàn thành khi:** test chứng minh thay đổi ngôn ngữ không ảnh hưởng dữ liệu nguồn hoặc người dùng khác.
+**Done when:** tests prove that changing languages does not affect source data or other users.
 
-## 5. Ví dụ Java 17+ chạy được: hai ngôn ngữ trong một chương trình
+## 5. Runnable Java 17+ Example: Two Languages in One Program
 
-Tạo **ba tệp cùng thư mục**. Với bản demo nhỏ này, `ResourceBundle` chọn tệp tiếng Việt hoặc tiếng Anh, còn `MessageFormat` chèn tên theo mẫu của từng bản dịch.
+Create **three files in the same directory**. In this small demo, `ResourceBundle` picks the Vietnamese or English file, and `MessageFormat` inserts the name according to each translation's pattern.
 
 **`messages_vi.properties`**
 
@@ -167,23 +167,23 @@ public class LocalizationDemo {
 }
 ```
 
-Lưu hai tệp `.properties` ở **UTF-8**. Chạy bằng terminal trong chính thư mục chứa ba tệp:
+Save both `.properties` files as **UTF-8**. Run via terminal inside the directory containing the three files:
 
 ```bash
 javac -encoding UTF-8 LocalizationDemo.java
 java -cp . LocalizationDemo
 ```
 
-Kết quả chính xác của ví dụ:
+Exact output of the example:
 
 ```text
 vi-VN: Xin chào, An!
 en-US: Hello, An!
 ```
 
-**Vì sao chạy đúng?** `Locale.forLanguageTag("vi-VN")` tạo locale tiếng Việt tại Việt Nam. `ResourceBundle` tìm tên cụ thể, sau đó tìm `messages_vi.properties`, lấy `welcome`; `MessageFormat` thay `{0}` bằng `An`. Lặp lại với `en-US` cho bản tiếng Anh. Cả hai bundle đều có sẵn nên kết quả không phụ thuộc vào default locale của JVM.
+**Why does this work?** `Locale.forLanguageTag("vi-VN")` creates a locale for Vietnamese in Vietnam. `ResourceBundle` looks up specific names, then finds `messages_vi.properties` and retrieves `welcome`; `MessageFormat` replaces `{0}` with `An`. Repeating with `en-US` yields the English version. Both bundles exist, so output does not depend on the JVM default locale.
 
-Để quan sát định dạng số và ngày theo locale, có thể bổ sung vào `greet` sau câu in thông điệp:
+To observe locale-based number and date formatting, you can add the following inside `greet` right after printing the message:
 
 ```java
 java.text.NumberFormat number =
@@ -197,37 +197,37 @@ System.out.println(number.format(12345.67));
 System.out.println(dateFormatter.format(date));
 ```
 
-Đoạn bổ sung này nằm **bên trong phương thức `greet`**, dùng biến `locale` đã có. Đầu ra thể hiện quy ước locale và có thể khác đôi chút theo dữ liệu CLDR/JDK; không nên hard-code toàn bộ dấu và tên tháng như một bất biến xuyên mọi phiên bản.
+This addition sits **inside the `greet` method**, reusing the existing `locale` variable. Output reflects locale conventions and may vary slightly across CLDR/JDK data; do not hardcode every separator and month name as an invariant across all versions.
 
-## 6. Các lỗi thường gặp và cách tự kiểm tra
+## 6. Common Mistakes and How to Self-Check
 
-| Sai lầm | Vì sao sai | Cách xử lý |
+| Mistake | Why It Is Wrong | How to Handle |
 | --- | --- | --- |
-| Dùng `Locale.setDefault(...)` cho mỗi request web | Locale mặc định là trạng thái cấp JVM, gây nhiễu giữa request đồng thời. | Truyền `Locale` tường minh qua tầng hiển thị. |
-| Coi locale và time zone là một | Ngôn ngữ không xác định vị trí/giờ hiện tại. | Quản lý riêng `Locale` và `ZoneId`. |
-| Nối literal vào mã nghiệp vụ | Khó dịch, khó thay thứ tự từ, khó kiểm tra đủ key. | Dùng key + bundle + tham số. |
-| Dùng nối chuỗi để định dạng số/ngày/tiền | Sai dấu thập phân, thứ tự ngày, ký hiệu và đơn vị. | Dùng formatter theo locale và dữ liệu tiền tệ thật. |
-| Tin rằng locale tự quy đổi tỷ giá | Định dạng tiền không thực hiện chuyển đổi giá trị. | Quy đổi là bài toán nghiệp vụ riêng, với nguồn tỷ giá rõ ràng. |
-| Chỉ test mặc định tiếng Anh | Bỏ sót key thiếu, dấu tiếng Việt, thông điệp dài, fallback. | Test ma trận locale và bản dịch. |
-| Xem `String.length()` là số ký tự người đọc thấy | Unicode có surrogate pair và chuỗi nhiều code point. | Chọn API theo đơn vị cần xử lý; kiểm tra grapheme/text boundary khi cần. |
-| Dùng `String.compareTo` để sắp xếp tên trên UI quốc tế | Thứ tự code unit có thể khác thứ tự chữ của ngôn ngữ. | Dùng `Collator` cho sắp xếp phục vụ người đọc. |
-| Chọn bản dịch chỉ theo quốc gia | Một quốc gia có thể dùng nhiều ngôn ngữ; một ngôn ngữ có nhiều biến thể vùng. | Đọc language tag, hỗ trợ fallback và ưu tiên đã chọn. |
+| Calling `Locale.setDefault(...)` per web request | Default locale is JVM-wide state, causing interference across concurrent requests. | Pass `Locale` explicitly through the presentation layer. |
+| Treating locale and time zone as the same | Language does not identify current location or wall-clock time. | Manage `Locale` and `ZoneId` separately. |
+| Concatenating literals in business logic | Hard to translate, hard to reorder words, hard to verify key completeness. | Use keys + bundles + parameters. |
+| Using string concatenation to format numbers/dates/money | Wrong decimal marks, date order, symbols, and units. | Use locale-aware formatters and real currency data. |
+| Believing locale converts exchange rates | Money formatting does not perform value conversion. | Currency conversion is a separate business task with an explicit rate source. |
+| Testing only the English default | Misses missing keys, Vietnamese diacritics, long messages, and fallbacks. | Test a matrix of locales and translations. |
+| Treating `String.length()` as visible character count | Unicode has surrogate pairs and multi-code-point sequences. | Choose APIs matching the target unit; check grapheme/text boundaries when needed. |
+| Using `String.compareTo` to sort names in international UI | Code-unit order can differ from linguistic alphabetical order. | Use `Collator` for reader-facing sorting. |
+| Choosing translations solely by country | One country may use multiple languages; one language may have regional variants. | Read language tags, support fallback and saved preferences. |
 
-### Checklist thực hành để tự đánh giá
+### Practical Self-Assessment Checklist
 
-- [ ] Phân biệt i18n, l10n, `Locale`, time zone và currency.
-- [ ] Đọc được `vi-VN`, `en-US` và biết chọn locale từ tập được hỗ trợ.
-- [ ] Tạo được hai tệp resource và lấy thông điệp qua `ResourceBundle`.
-- [ ] Dùng `MessageFormat` với placeholder đúng; hiểu lưu ý escape dấu nháy.
-- [ ] Hiển thị cùng số/ngày theo hai locale mà không đổi dữ liệu nguồn.
-- [ ] Không dùng locale mặc định toàn JVM làm trạng thái theo request.
-- [ ] Mô tả được fallback, cách phát hiện key thiếu và cách kiểm thử.
-- [ ] Biết khi nào cần học sâu thêm về collation, Unicode, plural/gender và RTL.
+- [ ] Distinguish i18n, l10n, `Locale`, time zone, and currency.
+- [ ] Read `vi-VN`, `en-US` and know how to select a locale from supported ones.
+- [ ] Create two resource files and retrieve messages via `ResourceBundle`.
+- [ ] Use `MessageFormat` with proper placeholders; understand single-quote escaping notes.
+- [ ] Display the same number/date in two locales without altering source data.
+- [ ] Never use the JVM-wide default locale as per-request state.
+- [ ] Describe fallback, how to detect missing keys, and how to test.
+- [ ] Know when to study collation, Unicode, plural/gender, and RTL more deeply.
 
-## 7. Bài tập nối tiếp theo mức độ
+## 7. Progressive Follow-Up Exercises
 
-1. **Cơ bản:** mở rộng demo với khóa `farewell` và bản dịch riêng; kiểm chứng cả hai ngôn ngữ. Cố tình xóa một key để quan sát `MissingResourceException`, sau đó khôi phục.
-2. **Ứng dụng:** viết phương thức `renderReceipt(Locale locale, BigDecimal amount, Currency currency, LocalDate date)`. Định dạng tiền và ngày theo locale, nhưng giữ nguyên amount và currency; thêm kiểm thử `vi-VN`/`en-US`.
-3. **Tích hợp:** ứng dụng nhỏ cho phép đổi ngôn ngữ theo lựa chọn người dùng. Mỗi request dùng locale riêng, có fallback rõ ràng, test trường hợp thiếu tài nguyên và thay đổi đồng thời giữa hai người dùng.
+1. **Basic:** extend the demo with a `farewell` key and separate translations; verify both languages. Intentionally delete one key to observe `MissingResourceException`, then restore it.
+2. **Applied:** write a method `renderReceipt(Locale locale, BigDecimal amount, Currency currency, LocalDate date)`. Format money and date by locale while keeping amount and currency unchanged; add tests for `vi-VN`/`en-US`.
+3. **Integration:** build a small app allowing language switching per user choice. Each request uses its own locale with explicit fallback; test missing resources and concurrent changes between two users.
 
-**Thứ tự ghi nhớ:** *Locale và Unicode → ResourceBundle → MessageFormat → định dạng số/tiền/ngày → xử lý văn bản → tích hợp và kiểm thử.* Khi hoàn thành chuỗi này, người học có đủ nền tảng để nghiên cứu sâu từng mảng localization mà không nhầm bản dịch với dữ liệu nghiệp vụ hoặc múi giờ.
+**Order to remember:** *Locale and Unicode → ResourceBundle → MessageFormat → number/currency/date formatting → text processing → integration and testing.* Completing this sequence gives learners a solid foundation to study each localization area deeply without confusing translations with business data or time zones.

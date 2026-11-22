@@ -1,115 +1,115 @@
-# Đăng ký dịch vụ, cấu hình lúc khởi động và xác minh khả năng hỗ trợ trong Java Localization
+# Service Registration, Startup Configuration, and Capability Verification in Java Localization
 
-## 1. Bối cảnh: viết lớp provider chưa đủ để Java sử dụng
+## 1. Context: Writing a Provider Class Alone Is Not Enough for Java to Use It
 
-Java cung cấp nhiều dịch vụ bản địa hóa có thể mở rộng: định dạng số, ngày giờ, tên locale, tên múi giờ, so sánh chuỗi theo ngôn ngữ và các quy tắc phân đoạn. Một dự án có thể cần bổ sung dữ liệu cho một locale chuyên biệt hoặc tùy biến một formatter mà dữ liệu mặc định trong JDK chưa đáp ứng.
+Java provides multiple extensible localization services: number formatting, date/time formatting, locale names, time zone names, language-specific string collation, and text segmentation rules. A project may need to add data for a specialized locale or customize a formatter that the JDK's built-in data does not satisfy.
 
-Giả sử bạn viết class kế thừa `java.text.spi.NumberFormatProvider`. Việc class **biên dịch được** không có nghĩa `NumberFormat.getNumberInstance(locale)` sẽ tự gọi nó. Để mở rộng hệ thống một cách đúng đắn, cần hoàn thành **ba trách nhiệm riêng biệt**:
+Suppose you write a class extending `java.text.spi.NumberFormatProvider`. Having the class **compile cleanly** does not mean `NumberFormat.getNumberInstance(locale)` will automatically invoke it. To extend the system properly, you must fulfill **three distinct responsibilities**:
 
-1. **Đăng ký dịch vụ:** đóng gói class và mô tả đúng service provider trên **classpath** hoặc **module path**.
-2. **Cấu hình lúc khởi động:** yêu cầu JDK xét nguồn `SPI` theo thứ tự thích hợp trong `java.locale.providers`.
-3. **Xác minh khả năng hỗ trợ:** kiểm tra provider có được phát hiện, có khai báo locale phù hợp, có thực sự được factory chọn, có fallback chính xác và có làm đúng semantics của dịch vụ.
+1. **Service registration:** package the class and declare the service provider accurately on the **classpath** or **module path**.
+2. **Startup configuration:** instruct the JDK to consider the `SPI` source in the proper order within `java.locale.providers`.
+3. **Capability verification:** verify that the provider is discovered, advertises the right locales, is actually selected by the factory, falls back properly, and implements the service's semantics accurately.
 
-Ba bước trên là chủ đề chính của bài thuộc nhóm **Đóng gói và mở rộng**. Một triển khai thành công phải đáp ứng cả ba; không chỉ có file `META-INF/services` hoặc một dòng `-D` là đủ.
+These three steps are the core subject of this lesson in the **Packaging and Extensibility** group. A successful deployment must satisfy all three; having only a `META-INF/services` file or only a `-D` flag is not enough.
 
-### Mục tiêu học tập
+### Learning Objectives
 
-Sau bài này bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt **service type**, **implementation**, **service registry**, **provider preference** và **selected provider**.
-- Đóng gói `NumberFormatProvider` với `META-INF/services` bằng công cụ `javac`/`jar` trên Java 17+.
-- Dùng `-Djava.locale.providers=SPI,CLDR` đúng chỗ khi khởi động JVM; hiểu vì sao `CLDR,SPI` có thể cho kết quả khác.
-- Sử dụng `ServiceLoader` như một phép kiểm tra đăng ký, đồng thời hiểu tại sao **discovered không đồng nghĩa selected**.
-- Sử dụng `getAvailableLocales()` và `isSupportedLocale(...)` để xác minh phạm vi provider, gồm cả vấn đề locale extensions.
-- Kiểm tra fallback với một locale không được custom provider hỗ trợ.
-- Biết cách khai báo `provides ... with ...` trong JPMS và phân biệt classpath/module path.
-- Chẩn đoán lỗi registration, packaging, startup property, supported locales, provider semantics và xung đột giữa các nguồn dữ liệu.
-- Tránh phụ thuộc dữ liệu locale legacy `COMPAT` sau khi nâng JDK 23+.
+- Distinguish **service type**, **implementation**, **service registry**, **provider preference**, and **selected provider**.
+- Package a `NumberFormatProvider` with `META-INF/services` using `javac`/`jar` on Java 17+.
+- Place `-Djava.locale.providers=SPI,CLDR` properly at JVM startup; understand why `CLDR,SPI` can yield different results.
+- Use `ServiceLoader` as a registration check, while understanding why **discovered does not mean selected**.
+- Use `getAvailableLocales()` and `isSupportedLocale(...)` to verify provider scope, including locale extension concerns.
+- Verify fallback behavior with a locale unsupported by the custom provider.
+- Know how to declare `provides ... with ...` in JPMS and distinguish classpath from module path.
+- Diagnose registration, packaging, startup property, supported locale, provider semantics, and multi-source conflict bugs.
+- Avoid depending on legacy `COMPAT` locale data after upgrading to JDK 23+.
 
-## 2. Hai cơ chế cần hiểu: Java SPI và thứ tự locale provider
+## 2. Two Mechanisms to Understand: Java SPI and Locale Provider Order
 
 ### 2.1. Java SPI (Service Provider Interface)
 
-Một SPI là hợp đồng để Java hoặc ứng dụng tải các implementation cài thêm. Trong localization, các abstract provider classes nằm trong:
+An SPI is a contract allowing Java or an application to load pluggable implementations. In localization, the abstract provider classes reside in:
 
-- `java.text.spi`: `NumberFormatProvider`, `DateFormatProvider`, `CollatorProvider`, `DecimalFormatSymbolsProvider` và những SPI tương ứng.
-- `java.util.spi`: `LocaleServiceProvider` (lớp gốc), `CurrencyNameProvider`, `LocaleNameProvider`, `TimeZoneNameProvider`, v.v.
+- `java.text.spi`: `NumberFormatProvider`, `DateFormatProvider`, `CollatorProvider`, `DecimalFormatSymbolsProvider`, and related SPIs.
+- `java.util.spi`: `LocaleServiceProvider` (root class), `CurrencyNameProvider`, `LocaleNameProvider`, `TimeZoneNameProvider`, etc.
 
-Ví dụ class:
+Example class:
 
 ```java
 public final class PrefixNumberProvider
         extends NumberFormatProvider {
-    // Phải triển khai các phương thức abstract được yêu cầu.
+    // Must implement the required abstract methods.
 }
 ```
 
-Chỉ riêng class này chưa được discover. Phải khai báo nó thông qua **provider-configuration file** hoặc metadata module. Đồng thời phải đưa artifact của nó vào đúng classpath/module path của tiến trình Java thực sự chạy ứng dụng.
+This class alone will not be discovered. It must be declared via a **provider-configuration file** or module metadata. Its artifact must also be placed on the actual classpath/module path of the Java process running the application.
 
-### 2.2. java.locale.providers điều khiển nguồn ưu tiên
+### 2.2. java.locale.providers Controls Source Precedence
 
-`java.locale.providers` là system property nhận danh sách provider cách nhau bằng dấu phẩy, ví dụ:
+`java.locale.providers` is a system property taking a comma-separated list of providers, for example:
 
 ```text
 SPI,CLDR,COMPAT
 ```
 
-Với JDK 17, một cách diễn giải thông dụng là:
+On JDK 17, a common interpretation is:
 
-1. `SPI`: thử những implementation do ứng dụng/thư viện cài, với dịch vụ/locale phù hợp.
-2. `CLDR`: thử dữ liệu Unicode CLDR của JDK nếu bước trước không đáp ứng.
-3. `COMPAT`: thử dữ liệu legacy, nếu JDK còn hỗ trợ và không có nguồn trước đáp ứng.
+1. `SPI`: try implementations installed by the application/libraries for matching services/locales.
+2. `CLDR`: try the JDK's Unicode CLDR data if the previous step did not satisfy the request.
+3. `COMPAT`: try legacy data, if the JDK still supports it and no earlier source matched.
 
-**Trên JDK 23 trở lên, dữ liệu COMPAT/JRE đã bị loại bỏ.** Cấu hình trên vẫn có chữ COMPAT không làm legacy formatter sống lại. Đối với runtime hiện đại, một cấu hình điển hình là:
+**On JDK 23 and later, COMPAT/JRE data has been removed.** Keeping `COMPAT` in the configuration string will not bring legacy formatters back. For modern runtimes, a typical configuration is:
 
 ```bash
 java -Djava.locale.providers=SPI,CLDR ...
 ```
 
-**Hai cơ chế là độc lập:** `META-INF/services` giúp JVM tìm thấy implementation; `java.locale.providers` giúp locale service lookup chọn xét nguồn SPI theo thứ tự. Không đăng ký sẽ không được phát hiện; không đưa `SPI` vào provider preference của JDK ở classpath có thể khiến implementation có mặt nhưng không được factory sử dụng.
+**The two mechanisms are independent:** `META-INF/services` helps the JVM find the implementation; `java.locale.providers` instructs locale service lookup to evaluate the `SPI` source in order. Without registration, the provider is never discovered; without including `SPI` in the JDK's provider preference on the classpath, the implementation may be present yet never used by the factory.
 
-### 2.3. Discovered và selected là hai trạng thái khác nhau
+### 2.3. Discovered and Selected Are Two Distinct States
 
-| Câu hỏi | Cách kiểm tra | Điều chưa chứng minh |
+| Question | How to verify | What it does not prove yet |
 | --- | --- | --- |
-| Class provider có trong JAR không? | `jar --list --file` hoặc xem cấu trúc artifact. | Chưa chứng minh có service registry đúng. |
-| File `META-INF/services` có trong JAR không? | Kiểm tra đường dẫn và nội dung UTF-8. | Chưa chứng minh provider class load được. |
-| `ServiceLoader` thấy class không? | Iterate `ServiceLoader.load(NumberFormatProvider.class)`. | Chưa chứng minh factory đã chọn nó. |
-| Provider khai báo hỗ trợ locale không? | `getAvailableLocales()`, `isSupportedLocale(locale)`. | Chưa chứng minh formatter trả đúng nội dung hoặc được ưu tiên. |
-| Factory thật có dùng implementation không? | Gọi `NumberFormat.getNumberInstance(locale)` với cấu hình khởi động khác nhau; instrument method nếu cần. | Không đảm bảo mọi dịch vụ/locale khác cũng dùng SPI. |
-| Khi provider không hỗ trợ thì sao? | Thử locale ngoài phạm vi. | Phải kiểm tra fallback và chính sách tương thích. |
+| Is the provider class in the JAR? | `jar --list --file` or inspect artifact structure. | Does not prove service registry is right. |
+| Is the `META-INF/services` file in the JAR? | Verify path and UTF-8 contents. | Does not prove the provider class can be loaded. |
+| Does `ServiceLoader` see the class? | Iterate `ServiceLoader.load(NumberFormatProvider.class)`. | Does not prove the factory selected it. |
+| Does the provider declare locale support? | `getAvailableLocales()`, `isSupportedLocale(locale)`. | Does not prove the formatter returns valid output or wins precedence. |
+| Does the actual factory use the implementation? | Call `NumberFormat.getNumberInstance(locale)` under different startup configs; instrument methods if needed. | Does not guarantee every other service/locale uses SPI. |
+| What happens when the provider does not support a locale? | Test out-of-scope locales. | Must verify fallback and compatibility policy. |
 
-**Không coi `ServiceLoader` trả về một instance là điều kiện đủ.** Một JAR có thể được load đúng nhưng runtime vẫn ưu tiên CLDR nếu startup option là `CLDR,SPI`, hoặc method yêu cầu một locale mà SPI không nhận.
+**Do not treat `ServiceLoader` returning an instance as sufficient proof.** A JAR can be loaded cleanly while the runtime still prefers CLDR if the startup option is `CLDR,SPI`, or if the method requests a locale the SPI declines.
 
-## 3. Provider nào thường có trong JDK?
+## 3. Which Providers Are Typically Available in the JDK?
 
-| Provider | Vai trò | Giới hạn |
+| Provider | Role | Limitations |
 | --- | --- | --- |
-| `CLDR` | Dữ liệu Unicode Common Locale Data Repository, dùng rộng rãi trên JDK mới. | Dữ liệu có thể thay đổi giữa các phiên bản JDK; không phải mọi service dùng chính xác một nguồn. |
-| `SPI` | Provider do ứng dụng hoặc thư viện cài. | Cần implementation, đăng ký, packaging, startup preference và test. |
-| `HOST` | Một số locale data hoặc custom settings từ hệ điều hành. | Phụ thuộc OS/vendor, không phải nền tảng nào cũng có. |
-| `COMPAT` / alias `JRE` | Dữ liệu legacy tương thích các JDK cũ. | Có ở JDK 17; bị loại bỏ từ JDK 23. |
+| `CLDR` | Unicode Common Locale Data Repository data, widely used on modern JDKs. | Data can change across JDK versions; not every service uses a single source identically. |
+| `SPI` | Providers installed by applications or libraries. | Requires implementation, registration, packaging, startup preference, and testing. |
+| `HOST` | Certain locale data or custom settings from the OS. | OS/vendor-dependent; not available on all platforms. |
+| `COMPAT` / alias `JRE` | Legacy data compatible with older JDKs. | Present in JDK 17; removed starting in JDK 23. |
 
-Mặc định trên Oracle/OpenJDK 17 tương đương `CLDR,COMPAT`. Với Java 23+, legacy COMPAT không còn và nguồn mặc định chủ đạo là `CLDR`.
+The default on Oracle/OpenJDK 17 is equivalent to `CLDR,COMPAT`. On Java 23+, legacy `COMPAT` is gone and the dominant default source is `CLDR`.
 
-Đối với bài toán mở rộng **một locale/service cụ thể**, không nên đặt `HOST` hay `COMPAT` vào danh sách chỉ vì muốn “nhiều lựa chọn hơn”. Hãy ưu tiên cơ chế rõ nghĩa, xác định theo nhu cầu, rồi test trên JDK thực tế.
+When extending **a specific locale/service**, do not add `HOST` or `COMPAT` to the list just to have "more choices." Favor an explicit, deterministic configuration suited to your needs, then test on the target JDK.
 
-## 4. Thiết kế ví dụ: mở rộng NumberFormat cho một locale có sẵn
+## 4. Designing the Example: Extending NumberFormat for an Existing Locale
 
-Ví dụ này dùng `Locale.FRANCE` để dễ **quan sát xung đột ưu tiên**: CLDR của JDK đã hỗ trợ locale đó; một SPI được cấu hình trước CLDR có thể ghi đè một số hành vi của dịch vụ định dạng số cho chính locale ấy.
+This example uses `Locale.FRANCE` so we can easily **observe precedence conflicts**: the JDK's CLDR already supports that locale; an SPI configured ahead of CLDR can override certain number-formatting behaviors for that very locale.
 
-Hành vi demo:
+Demo behavior:
 
-- `NumberFormat.getNumberInstance(Locale.FRANCE).format(12.5)` theo provider custom tạo `SPI:12.50`.
-- Theo định dạng số tiếng Pháp từ JDK CLDR điển hình, cùng số tạo `12,5`.
-- `Locale.US` không được provider custom khai báo hỗ trợ, do đó tiếp tục dùng formatter JDK, kết quả ví dụ `12.5`.
-- Provider được discover qua `ServiceLoader` nhưng có thể **không được chọn** khi `CLDR` đứng trước `SPI`.
+- `NumberFormat.getNumberInstance(Locale.FRANCE).format(12.5)` via the custom provider produces `SPI:12.50`.
+- Under typical JDK CLDR French number formatting, the same number produces `12,5`.
+- `Locale.US` is not declared supported by the custom provider, so it continues using the JDK formatter, producing e.g. `12.5`.
+- The provider is discovered via `ServiceLoader` yet may **not be selected** when `CLDR` precedes `SPI`.
 
-**Lưu ý:** tiền tố `SPI:` và dấu thập phân chấm ở ví dụ là **dấu hiệu kiểm chứng trong bài thực hành**, không phải quy tắc định dạng tiếng Pháp nên dùng trong sản phẩm. Custom provider production phải có dữ liệu và semantics thực sự phù hợp locale, không ghi dấu kiểm thử vào output người dùng.
+**Note:** the `SPI:` prefix and dot decimal separator in the example are **verification markers for this lab**, not French formatting conventions to ship in a product. A production custom provider must have genuinely locale-appropriate data and semantics without injecting test markers into user output.
 
-### Cây thư mục mẫu
+### Sample Directory Tree
 
-Tạo một thư mục riêng, không cần Maven/Gradle:
+Create a standalone directory without needing Maven/Gradle:
 
 ```text
 spi-demo/
@@ -123,11 +123,11 @@ spi-demo/
             └── java.text.spi.NumberFormatProvider
 ```
 
-Hai class cùng package `demo`; tệp service registry nằm chính xác tại `resources/META-INF/services/java.text.spi.NumberFormatProvider`. Tên file **phải trùng tên đầy đủ của SPI class**, không phải tên implementation.
+Both classes are in package `demo`; the service registry file sits at `resources/META-INF/services/java.text.spi.NumberFormatProvider`. The file name **must match the fully qualified name of the SPI class**, not the implementation class name.
 
-## 5. File thứ nhất: implementation NumberFormatProvider
+## 5. First File: The NumberFormatProvider Implementation
 
-Lưu vào `src/demo/PrefixNumberProvider.java`:
+Save to `src/demo/PrefixNumberProvider.java`:
 
 ```java
 package demo;
@@ -151,7 +151,7 @@ public final class PrefixNumberProvider
     @Override
     public boolean isSupportedLocale(Locale locale) {
         Objects.requireNonNull(locale, "locale");
-        // Ví dụ chỉ nhận đúng fr-FR, không nhận extension.
+        // Example accepts only exact fr-FR, without extensions.
         return Locale.FRANCE.equals(locale);
     }
 
@@ -184,45 +184,45 @@ public final class PrefixNumberProvider
 
     @Override
     public NumberFormat getPercentInstance(Locale locale) {
-        // Dấu % trong DecimalFormat pattern mang semantics nhân 100.
+        // The % sign in a DecimalFormat pattern carries multiply-by-100 semantics.
         return create("'SPI:'#,##0%");
     }
 }
 ```
 
-**Đây là class Java hoàn chỉnh có thể biên dịch trên JDK 17+.** Nó triển khai bốn phương thức abstract cơ bản của `NumberFormatProvider`. Nó không phải thư viện production đầy đủ: nếu triển khai thật còn phải kiểm soát tất cả hàm parse, làm tròn, tiền tệ, Unicode numbering systems, các biến thể locale và yêu cầu UI.
+**This is a complete Java class compilable on JDK 17+.** It implements the four basic abstract methods of `NumberFormatProvider`. It is not a full production library: a real implementation would also need to handle all parsing, rounding, currencies, Unicode numbering systems, locale variants, and UI requirements.
 
-### Vì sao getAvailableLocales quan trọng?
+### Why Does getAvailableLocales Matter?
 
-`getAvailableLocales()` công bố những locale mà provider cung cấp đối tượng/dữ liệu. Ở ví dụ:
+`getAvailableLocales()` advertises the locales for which the provider supplies objects/data. In the example:
 
 ```java
 return new Locale[] { Locale.FRANCE };
 ```
 
-Nếu khai báo locale không có implementation tương ứng, runtime có thể chọn provider sai rồi nhận output không hợp mong đợi. Đừng trả tất cả locale chỉ để “được gọi nhiều hơn”.
+If you advertise a locale without a matching implementation, the runtime may pick the wrong provider and receive unexpected output. Never return all locales just to "get called more often."
 
-### isSupportedLocale và Unicode extensions
+### isSupportedLocale and Unicode Extensions
 
-`LocaleServiceProvider.isSupportedLocale(locale)` mặc định so sánh các locale khả dụng mà **bỏ qua locale extensions**. Một số extension (ví dụ numbering system `u-nu-...`) có thể thay đổi yêu cầu định dạng số. Nếu implementation không hỗ trợ extension đó, nên định nghĩa rõ cách xử lý thay vì nhận mà âm thầm bỏ qua.
+`LocaleServiceProvider.isSupportedLocale(locale)` by default compares available locales while **ignoring locale extensions**. Certain extensions (such as numbering system `u-nu-...`) can change number-formatting requirements. If an implementation does not support that extension, define clear handling rather than accepting and silently ignoring it.
 
-Ví dụ này override `isSupportedLocale` với kiểm tra `Locale.FRANCE.equals(locale)` nên chỉ nhận **chính xác fr-FR không có extensions**. Với ứng dụng thực, hãy xác định support matrix cho language tag, script, region, Unicode extensions và locale fallback; không chỉ kiểm tra chuỗi tên quốc gia.
+This example overrides `isSupportedLocale` with `Locale.FRANCE.equals(locale)`, accepting only **exact fr-FR without extensions**. In real applications, define a support matrix for language tags, scripts, regions, Unicode extensions, and locale fallbacks rather than checking only country strings.
 
-### Vì sao factory tạo DecimalFormat trực tiếp?
+### Why Does the Factory Construct DecimalFormat Directly?
 
-Nếu trong method `getNumberInstance(Locale.FRANCE)` ta lại gọi:
+If inside `getNumberInstance(Locale.FRANCE)` you called:
 
 ```java
 return NumberFormat.getNumberInstance(Locale.FRANCE);
 ```
 
-và SPI đang được ưu tiên, lời gọi đó có thể quay về chính provider, gây vòng đệ quy. Demo tránh lỗi bằng `new DecimalFormat(pattern, symbols)`, sử dụng `DecimalFormatSymbols.getInstance(Locale.ROOT)` cho trường hợp số thử nghiệm, không gọi lại factory `NumberFormat` cho locale đang phục vụ.
+while `SPI` has priority, that call could loop back into the same provider, causing recursion. The demo avoids this bug using `new DecimalFormat(pattern, symbols)` with `DecimalFormatSymbols.getInstance(Locale.ROOT)` for the test numeric case, without re-entering the `NumberFormat` factory for the served locale.
 
-**Lưu ý:** các service locale khác có thể có SPI riêng. Nếu provider của bạn phụ thuộc một factory khác, vẫn cần phân tích chuỗi phụ thuộc để tránh vòng lặp hoặc nhận dữ liệu không như ý khi SPI có nhiều service.
+**Note:** other locale services can have their own SPIs. If your provider depends on another factory, analyze the dependency chain to prevent loops or unexpected data when multiple SPI services are active.
 
-## 6. File thứ hai: probe để xác minh discovery và selection
+## 6. Second File: Probe to Verify Discovery and Selection
 
-Lưu vào `src/demo/ProviderCheck.java`:
+Save to `src/demo/ProviderCheck.java`:
 
 ```java
 package demo;
@@ -264,56 +264,56 @@ public final class ProviderCheck {
 }
 ```
 
-Chương trình này **không mặc định rằng discovered=true thì JDK đã chọn SPI**. Nó đo ba điều khác nhau:
+This program **does not assume `discovered=true` means the JDK selected the SPI**. It measures three distinct things:
 
-1. `ServiceLoader` có tìm ra class `demo.PrefixNumberProvider` không?
-2. Class đó có khai báo hỗ trợ fr-FR nhưng không hỗ trợ en-US không?
-3. Kết quả của **factory thực tế** có khác khi đổi thứ tự provider không?
+1. Did `ServiceLoader` find `demo.PrefixNumberProvider`?
+2. Does that class report supporting fr-FR while rejecting en-US?
+3. Does the output of the **actual factory** change when provider order changes?
 
-Thứ tự vòng lặp `ServiceLoader` có thể khác nếu classpath có nhiều thư viện; demo chỉ in chi tiết của một class có tên xác định và một dòng `discovered`. Nếu thư viện khác có SPI cùng loại và cùng locale, cần xem lại ưu tiên giữa nhiều implementations và chính sách deploy.
+The iteration order of `ServiceLoader` can vary when multiple libraries are on the classpath; the demo prints details only for the named class and a single `discovered` line. If another library ships an SPI of the same type and locale, review precedence across implementations and deployment policies.
 
-### ServiceLoader trực tiếp không giống locale service lookup
+### Direct ServiceLoader Differs from Locale Service Lookup
 
-`ServiceLoader.load(NumberFormatProvider.class)` tìm service implementations đã đăng ký; nó không yêu cầu `java.locale.providers` phải chứa SPI để **được liệt kê** theo cách chung của ServiceLoader. Còn `NumberFormat.getNumberInstance(...)` là locale-sensitive factory được JDK điều phối theo provider preference.
+`ServiceLoader.load(NumberFormatProvider.class)` finds registered service implementations; it does not require `java.locale.providers` to include `SPI` in order to **enumerate** them in the general `ServiceLoader` sense. By contrast, `NumberFormat.getNumberInstance(...)` is a locale-sensitive factory dispatched by the JDK according to provider preferences.
 
-Vì vậy có thể xảy ra:
+Thus, it is entirely possible to see:
 
 ```text
 discovered=true
 frNumber=12,5
 ```
 
-Điều này **không mâu thuẫn**. Provider đã được phát hiện, nhưng `CLDR` có thể đã đáp ứng yêu cầu trước khi đến SPI.
+This is **not a contradiction**. The provider was discovered, yet `CLDR` may have satisfied the request before reaching `SPI`.
 
-## 7. File thứ ba: đăng ký trong META-INF/services
+## 7. Third File: Registration in META-INF/services
 
-Tạo file văn bản **không có phần mở rộng**:
+Create a plain text file **with no extension**:
 
 ```text
 resources/META-INF/services/java.text.spi.NumberFormatProvider
 ```
 
-Nội dung **chính xác một dòng**, là tên class provider đầy đủ:
+Contents: **exactly one line**, the fully qualified provider class name:
 
 ```text
 demo.PrefixNumberProvider
 ```
 
-Theo contract ServiceLoader:
+Per the `ServiceLoader` contract:
 
-- Tên service file phải là **fully qualified name** của SPI: `java.text.spi.NumberFormatProvider`.
-- Nội dung là một hoặc nhiều tên class cụ thể, mỗi dòng một class.
-- File phải được lưu bằng **UTF-8**.
-- Class phải có thể được class loader phù hợp nạp, truy cập và tạo instance.
-- Dòng trống và comment bắt đầu bằng `#` có thể được bỏ qua.
-- Không ghi `demo.ProviderCheck` thay cho provider; đó là class kiểm thử, không triển khai SPI.
-- Với nhiều provider có thể ghi nhiều dòng, nhưng phải quản lý rõ khả năng hỗ trợ và tránh phụ thuộc thứ tự không bảo đảm khi các JAR khác cùng đăng ký.
+- The service file name must be the **fully qualified name** of the SPI: `java.text.spi.NumberFormatProvider`.
+- Contents consist of one or more concrete class names, one per line.
+- The file must be saved in **UTF-8**.
+- The class must be loadable, accessible, and instantiable by the appropriate class loader.
+- Blank lines and `#`-prefixed comments are ignored.
+- Do not put `demo.ProviderCheck` instead of the provider; that is the test driver class, not an SPI implementation.
+- Multiple providers can be listed on separate lines, but capability boundaries must be managed clearly without relying on arbitrary ordering when other JARs also register services.
 
-**Chú ý PowerShell 5.1:** một số cách ghi text bằng `Set-Content -Encoding UTF8` có thể thêm UTF-8 BOM. Service registry yêu cầu UTF-8; BOM có thể khiến tên provider đầu file bị đọc sai. Dùng editor lưu **UTF-8 không BOM** hoặc cách sinh resource được build tool kiểm soát; đừng lưu thành UTF-16 hay tên file `.txt`.
+**PowerShell 5.1 note:** certain text-writing methods like `Set-Content -Encoding UTF8` can prepend a UTF-8 BOM. The service registry expects UTF-8; a BOM can corrupt parsing of the first provider name in the file. Use an editor saving **UTF-8 without BOM** or a build-tool-controlled resource generator; do not save as UTF-16 or add a `.txt` extension.
 
-### Jar phải chứa resource đúng vị trí
+### The JAR Must Contain Resources at the Exact Path
 
-Sau khi đóng gói, bên trong JAR phải có đường dẫn:
+After packaging, the JAR must contain:
 
 ```text
 META-INF/services/java.text.spi.NumberFormatProvider
@@ -321,41 +321,41 @@ demo/PrefixNumberProvider.class
 demo/ProviderCheck.class
 ```
 
-Chỉ có tệp class mà thiếu metadata service thì `ServiceLoader` không có căn cứ tìm implementation. Chỉ có metadata mà thiếu class thì có thể gặp `ServiceConfigurationError` khi nạp provider.
+Having only class files without service metadata leaves `ServiceLoader` unable to find the implementation. Having only metadata without the class triggers `ServiceConfigurationError` when loading providers.
 
-## 8. Biên dịch, đóng gói và chạy từ command line
+## 8. Compiling, Packaging, and Running from the Command Line
 
-Đứng tại thư mục `spi-demo` chứa `src` và `resources`.
+Run from the `spi-demo` directory containing `src` and `resources`.
 
-### Bước 1: compile cả hai class
+### Step 1: Compile Both Classes
 
 ```bash
 javac -encoding UTF-8 -d out src/demo/PrefixNumberProvider.java src/demo/ProviderCheck.java
 ```
 
-`-encoding UTF-8` chỉ định encoding của Java source file; nó **không tự chỉnh encoding mọi dữ liệu ở runtime**. `-d out` ghi `.class` vào đúng package directory dưới `out`.
+`-encoding UTF-8` specifies the encoding of Java source files; it **does not automatically set all runtime data encodings**. `-d out` places `.class` files into the matching package directories under `out`.
 
-### Bước 2: tạo JAR gồm class và resource
+### Step 2: Create a JAR Containing Classes and Resources
 
 ```bash
 jar --create --file spi-demo.jar -C out . -C resources .
 ```
 
-Lệnh `jar` của JDK 17+ này đưa cả compiled classes lẫn thư mục `META-INF/services` vào JAR. Có thể kiểm tra danh sách entry:
+This JDK 17+ `jar` command packages both compiled classes and `META-INF/services` into the JAR. You can inspect the entry list:
 
 ```bash
 jar --list --file spi-demo.jar
 ```
 
-Xác nhận có entry `META-INF/services/java.text.spi.NumberFormatProvider` và `demo/PrefixNumberProvider.class`. Lệnh liệt kê chỉ kiểm tra có entry, không chứng minh nội dung service file đúng; nếu `discovered=false`, hãy kiểm tra riêng nội dung resource trong artifact và lỗi runtime.
+Verify that `META-INF/services/java.text.spi.NumberFormatProvider` and `demo/PrefixNumberProvider.class` are present. Listing entries only confirms presence, not that the service file contents are valid; if `discovered=false`, inspect the resource contents inside the artifact and any runtime errors separately.
 
-### Bước 3: chạy trong **JVM mới** với SPI ưu tiên
+### Step 3: Run in a **Fresh JVM** with SPI Prioritized
 
 ```bash
 java -Djava.locale.providers=SPI,CLDR -cp spi-demo.jar demo.ProviderCheck
 ```
 
-**Stdout kỳ vọng** với JDK 17+ có SPI hoạt động và CLDR tương ứng:
+**Expected stdout** on JDK 17+ with active SPI and matching CLDR:
 
 ```text
 configured=SPI,CLDR
@@ -366,15 +366,15 @@ frNumber=SPI:12.50
 usNumber=12.5
 ```
 
-Dòng `frNumber` chứa `SPI:` chứng minh factory thực tế sử dụng implementation custom trong cấu hình thử nghiệm; `usNumber` cho thấy locale khác vẫn dùng nguồn JDK có sẵn.
+The `frNumber` line containing `SPI:` proves the factory actually used the custom implementation in this test configuration; `usNumber` shows that other locales still use built-in JDK data.
 
-### Bước 4: khởi động tiến trình khác với CLDR ưu tiên
+### Step 4: Start Another Process with CLDR Prioritized
 
 ```bash
 java -Djava.locale.providers=CLDR,SPI -cp spi-demo.jar demo.ProviderCheck
 ```
 
-Trên runtime CLDR hỗ trợ `fr-FR` như các JDK hiện đại thông dụng, kết quả ví dụ:
+On runtimes where CLDR supports `fr-FR`, such as common modern JDKs, example output:
 
 ```text
 configured=CLDR,SPI
@@ -385,68 +385,68 @@ frNumber=12,5
 usNumber=12.5
 ```
 
-Chú ý `discovered=true` vẫn giữ nguyên, nhưng factory `frNumber` không còn tiền tố SPI. Vì `CLDR` được ưu tiên và có dữ liệu cho service/locale ấy, implementation custom không được chọn để format số này.
+Notice `discovered=true` remains unchanged, yet the `frNumber` factory output no longer carries the `SPI:` prefix. Because `CLDR` has precedence and supplies data for that service/locale, the custom implementation is not selected to format this number.
 
-**Không dùng một kết quả cụ thể của CLDR như một giao thức cố định trên mọi JDK**. Locale data có thể thay đổi theo JDK/vendor; tuy nhiên, trên môi trường này, phép thử đủ minh họa cơ chế provider priority.
+**Do not treat a specific CLDR output as a fixed protocol across all JDKs.** Locale data can change across JDK/vendor releases; however, on this environment, the test clearly demonstrates provider priority.
 
-### Bước 5: chạy không đưa SPI JAR vào classpath
+### Step 5: Run Without Putting the SPI JAR on the Classpath
 
-Nếu chỉ muốn xem formatter JDK, có thể tạo một Java main độc lập không tham chiếu implementation rồi chạy mà không có provider JAR. **Không chạy `demo.ProviderCheck` bằng classpath trống** bởi bản thân class main cũng nằm trong `spi-demo.jar`. Để mô phỏng SPI resource thiếu, tạo artifact thử nghiệm khác **có main nhưng không chứa provider registration**, rồi kiểm tra `discovered=false`; không xóa hoặc sửa artifact gốc đang deploy.
+If you want to observe the JDK formatter alone, create a standalone Java main class that does not reference the implementation and run without the provider JAR. **Do not run `demo.ProviderCheck` with an empty classpath**, because the main class itself lives inside `spi-demo.jar`. To simulate a missing SPI resource, build a separate test artifact **with the main class but without provider registration**, and observe `discovered=false`; do not delete or alter the original deployed artifact.
 
-### Bước 6: lặp lại ở JDK và OS mục tiêu
+### Step 6: Repeat on the Target JDK and OS
 
-Lưu lại JDK vendor/version, `java.locale.providers`, các locale/service được thử và output từng tiến trình. Khi nâng version, sự thay đổi output có thể đến từ CLDR data hoặc rule SPI; không tự kết luận do compiler hoặc encoding.
+Record the JDK vendor/version, `java.locale.providers`, tested locales/services, and per-process output. Across version upgrades, output shifts may originate from CLDR data or SPI rules; do not jump to blaming the compiler or encoding.
 
-## 9. Cấu hình startup đúng chỗ
+## 9. Placing Startup Configuration in the Right Spot
 
-### 9.1. Thứ tự JVM options và application args
+### 9.1. Order of JVM Options vs. Application Args
 
-**Đúng:**
+**Right:**
 
 ```bash
 java -Djava.locale.providers=SPI,CLDR -cp spi-demo.jar demo.ProviderCheck
 ```
 
-**Sai:**
+**Wrong:**
 
 ```text
 java -cp spi-demo.jar demo.ProviderCheck -Djava.locale.providers=SPI,CLDR
 ```
 
-Dòng sai đặt `-D` **sau tên class**, nên thông thường đó là `args[]` cho ứng dụng, không phải system property khởi động JVM.
+The wrong line places `-D` **after the class name**, so it is passed as `args[]` to the application rather than as a JVM startup system property.
 
-Với executable jar có `Main-Class`:
+With an executable JAR specifying `Main-Class`:
 
 ```bash
 java -Djava.locale.providers=SPI,CLDR -jar application.jar
 ```
 
-**Đặt property ở launcher của JVM chạy thật**, không chỉ ở terminal dùng để compile. Cấu hình Maven Surefire, Gradle Test, IDE Run/Debug, Docker entrypoint và application server phải được kiểm tra theo JVM cụ thể mà chúng khởi tạo.
+**Set the property on the launcher of the actual running JVM**, not merely in the terminal used for compiling. Maven Surefire, Gradle Test, IDE Run/Debug configurations, Docker entrypoints, and application servers must all be checked against the specific JVM process they spawn.
 
-### 9.2. Không đổi bằng System.setProperty sau initialization
+### 9.2. Do Not Change via System.setProperty After Initialization
 
-`java.locale.providers` được đọc lúc runtime khởi động; trên JDK 17 tài liệu nêu gọi:
+`java.locale.providers` is read at runtime startup; JDK 17 documentation notes that calling:
 
 ```java
 System.setProperty("java.locale.providers", "SPI,CLDR");
 ```
 
-**sau khi JVM chạy không đổi thứ tự provider đã chọn**. Vì vậy, để so sánh `SPI,CLDR` với `CLDR,SPI`, chạy hai processes, không đổi property trong một process rồi format lại.
+**after the JVM is running does not change the selected provider order**. Therefore, to compare `SPI,CLDR` against `CLDR,SPI`, launch two separate processes rather than mutating the property mid-process and reformatting.
 
-Tương tự, `Locale.setDefault(Locale.FRANCE)` đổi locale mặc định của JVM, không phải property provider. Với ứng dụng nhiều người dùng, nên truyền locale cụ thể vào factory; không đổi default toàn JVM mỗi request.
+Similarly, `Locale.setDefault(Locale.FRANCE)` changes the JVM's default locale, not the provider property. In multi-user applications, pass explicit locales to factories instead of changing the JVM-wide default per request.
 
-### 9.3. Cấu hình trên nhiều JDK
+### 9.3. Configuration Across JDK Versions
 
-- **JDK 17:** mặc định tương đương `CLDR,COMPAT`; muốn nạp SPI trên classpath phải đưa `SPI` vào preference.
-- **JDK 21–22:** COMPAT/JRE đang ở giai đoạn cảnh báo loại bỏ; cần chuẩn bị migrate.
-- **JDK 23+:** dữ liệu COMPAT/JRE legacy đã bị loại. Cấu hình `SPI,CLDR` vẫn hữu ích nếu custom SPI có mặt và được hỗ trợ.
-- **HOST:** phụ thuộc nền tảng và không thay thế bước test provider SPI.
+- **JDK 17:** defaults to equivalent of `CLDR,COMPAT`; classpath SPIs require including `SPI` in preferences.
+- **JDK 21–22:** `COMPAT/JRE` is deprecated for removal; prepare migration.
+- **JDK 23+:** legacy `COMPAT/JRE` data has been removed. Configuring `SPI,CLDR` remains useful when a custom SPI is present and supported.
+- **HOST:** platform-dependent and does not replace testing custom SPI providers.
 
-Khi cần output ổn định cho giao thức, định dạng dữ liệu bằng schema/ISO hoặc pattern cụ thể; đừng dùng CLDR output như key lưu trữ bất biến.
+When stable output is required for protocols, format data with schemas/ISO formats or explicit patterns; never treat CLDR output as an immutable storage key.
 
-## 10. JPMS: đăng ký trong named module
+## 10. JPMS: Registering in a Named Module
 
-Nếu dự án triển khai provider trong một **Java named module**, thay cho resource classpath kiểu truyền thống có thể khai báo provider bằng `module-info.java`:
+If a project implements the provider inside a **Java named module**, instead of traditional classpath resources you can declare the provider in `module-info.java`:
 
 ```java
 module custom.locale.provider {
@@ -455,7 +455,7 @@ module custom.locale.provider {
 }
 ```
 
-Ở phía **consumer named module** sử dụng trực tiếp `ServiceLoader`:
+On the **consumer named module** side if using `ServiceLoader` directly:
 
 ```java
 module locale.demo.app {
@@ -463,160 +463,160 @@ module locale.demo.app {
 }
 ```
 
-Đây là **hai mô tả module riêng**; chúng không thay thế cùng lúc trong một file `module-info.java`. Một main application dùng `NumberFormat.getNumberInstance(...)` có thể không cần trực tiếp gọi `ServiceLoader`, nên không nhất thiết phải khai báo `uses` chỉ để gọi factory Java core. Nhưng nếu consumer tự `ServiceLoader.load(NumberFormatProvider.class)` trong named module, `uses` là phần service dependency cần thiết.
+These are **two separate module descriptors**; they do not replace each other inside one `module-info.java`. A main application calling `NumberFormat.getNumberInstance(...)` may not call `ServiceLoader` directly, so it does not necessarily need to declare `uses` merely to invoke Java core factories. However, if a consumer calls `ServiceLoader.load(NumberFormatProvider.class)` itself inside a named module, `uses` is required for the service dependency.
 
-Với modules, provider phải:
+With modules, the provider must:
 
-1. Có class implementation tương thích yêu cầu module/service loader.
-2. Có `provides ... with ...` trong provider module.
-3. Được đặt trên module path và **được đưa vào module graph/resolution** phù hợp.
-4. Được JDK locale service xem xét khi `SPI` có mặt trong `java.locale.providers`.
-5. Có test nhận diện trên Java command line thật và trong tool packaging thực tế.
+1. Have an implementation class meeting module/service-loader requirements.
+2. Have `provides ... with ...` in the provider module.
+3. Be placed on the module path and **resolved into the module graph** appropriately.
+4. Be considered by JDK locale services when `SPI` is present in `java.locale.providers`.
+5. Have tests verifying discovery on the actual Java CLI and in real packaging tools.
 
-Một lệnh chạy module minh họa:
+An illustrative module launch command:
 
 ```bash
 java -Djava.locale.providers=SPI,CLDR --module-path mods -m locale.demo.app/demo.ProviderCheck
 ```
 
-Lệnh trên **chỉ là cú pháp minh họa**, yêu cầu bạn đã biên dịch hai named modules vào `mods`, cấu hình `requires`/`provides`/`uses` đúng và module provider được resolve. Nó **không phải lệnh chạy cho bản JAR classpath ở mục 8**.
+The command above is **illustrative syntax only**, assuming you have compiled both named modules into `mods`, configured `requires`/`provides`/`uses` properly, and ensured the provider module is resolved. It is **not the run command for the classpath JAR in section 8**.
 
-### Có nên để META-INF/services và provides cùng lúc?
+### Should Both META-INF/services and provides Be Included Simultaneously?
 
-Đừng giả định cách đóng gói trên classpath và named module là giống nhau. Với **explicit named module**, service provision nên được khai báo trong module descriptor. Với **classpath JAR**, `META-INF/services` là cơ chế truyền thống.
+Do not assume classpath and named-module packaging work identically. For **explicit named modules**, service provision should be declared in the module descriptor. For **classpath JARs**, `META-INF/services` is the traditional mechanism.
 
-Khi có một thư viện hỗ trợ cả classpath lẫn module path, build/deploy phải test từng chế độ để tránh trùng service, service không được load hoặc provider module chưa nằm trong graph. `Automatic modules` và fat JAR/shading có các quy tắc riêng; không chỉ đổi extension rồi mặc định service discovery vẫn hoạt động.
+When a library supports both classpath and module path, build/deploy pipelines must test each mode to avoid duplicate services, unloaded services, or unresolved provider modules. `Automatic modules` and fat JARs/shading follow their own rules; do not rename extensions and assume service discovery keeps working.
 
-## 11. Xác minh “có hỗ trợ locale” không giống “đang được chọn”
+## 11. Verifying "Supports Locale" Is Not the Same as "Is Selected"
 
-### 11.1. Kiểm tra provider-local capability
+### 11.1. Checking Provider-Local Capability
 
-`getAvailableLocales()` trả mảng locale do provider khai báo. `isSupportedLocale(locale)` là phép kiểm tra chi tiết, có thể xét Unicode extensions. Hai phép này kiểm tra **provider có tuyên bố hỗ trợ hay không**.
+`getAvailableLocales()` returns the array of locales advertised by the provider. `isSupportedLocale(locale)` is a finer-grained check that can inspect Unicode extensions. Both verify **whether the provider claims support**.
 
-Tài liệu `LocaleServiceProvider` nói default `isSupportedLocale` thường bỏ qua extensions. Trong demo, ta override để nhận chính xác `Locale.FRANCE`, không tự nhận numbering extension mà implementation chưa xử lý.
+`LocaleServiceProvider` documentation notes that the default `isSupportedLocale` typically ignores extensions. In our demo, we overrode it to accept exact `Locale.FRANCE`, avoiding claiming support for numbering extensions our implementation does not handle.
 
-**Không suy diễn** chỉ cần `Locale.FRANCE` xuất hiện trong `NumberFormat.getAvailableLocales()` là custom SPI đã thắng. JDK CLDR cũng có thể hỗ trợ locale đó; method trả khả năng hỗ trợ tổng hợp, không đưa ra dấu vết provider nào đã được chọn.
+**Do not infer** that simply seeing `Locale.FRANCE` in `NumberFormat.getAvailableLocales()` means your custom SPI won. JDK CLDR also supports that locale; the method returns aggregated capability, not a trace of which provider was chosen.
 
-### 11.2. Kiểm tra discovery
+### 11.2. Checking Discovery
 
-`ServiceLoader.load(NumberFormatProvider.class)` cho biết implementation được register và load được trong class loader/module context tương ứng.
+`ServiceLoader.load(NumberFormatProvider.class)` confirms that the implementation is registered and loadable in the corresponding class loader/module context.
 
-Nếu xuất hiện `ServiceConfigurationError`, kiểm tra tên file, FQCN, constructor, class visibility, dependencies, lỗi module và UTF-8 encoding. Đừng catch rộng rồi im lặng trả `false` trong production: điều đó che giấu lỗi packaging quan trọng.
+If `ServiceConfigurationError` occurs, check the file name, FQCN, constructor, class visibility, dependencies, module errors, and UTF-8 encoding. Do not catch broadly and silently return `false` in production: that hides critical packaging failures.
 
-### 11.3. Kiểm tra selection bằng hành vi riêng và instrumentation
+### 11.3. Checking Selection via Distinct Behavior and Instrumentation
 
-Chỉ khi factory thật gọi custom behavior thì bạn có thể nói SPI đã thực sự được chọn cho **dịch vụ và locale đang thử**. Demo dùng output tiền tố `SPI:`. Với production, nên viết test dựa trên marker/spy trong môi trường test, hoặc logging trong provider implementation, thay vì thêm dấu kiểm thử vào output người dùng.
+Only when the factory actually executes custom behavior can you say the SPI was selected for the **tested service and locale**. The demo uses the `SPI:` prefix in output. In production, write tests using test-environment markers/spies or logging inside the provider implementation, rather than injecting test markers into user-facing output.
 
-**Một test locale không chứng minh mọi service đều dùng provider đó**: `NumberFormatProvider` không tự kiểm soát `DateFormat`, `DecimalFormatSymbolsProvider` hoặc `Collator`. Mỗi service có cơ chế và phạm vi hỗ trợ riêng.
+**Testing one locale does not prove every service uses that provider**: `NumberFormatProvider` does not control `DateFormat`, `DecimalFormatSymbolsProvider`, or `Collator`. Each service has its own lookup mechanism and support scope.
 
-### 11.4. Kiểm tra fallback
+### 11.4. Checking Fallback
 
-Một provider chỉ khai báo fr-FR không nên tự chiếm formatting en-US. Trong demo, `supportsUS=false` và factory en-US dùng dữ liệu JDK. Khi production provider hỗ trợ rất nhiều locale, thêm test những locale không hỗ trợ để phát hiện lỗi khai báo sai hoặc fallback không như dự kiến.
+A provider declaring only fr-FR must not hijack en-US formatting. In the demo, `supportsUS=false` and the en-US factory uses JDK data. When production providers support many locales, add tests for unsupported locales to catch over-broad declarations or unexpected fallbacks.
 
-### 11.5. Kiểm tra sau nâng JDK
+### 11.5. Checking After JDK Upgrades
 
-Locale data theo CLDR có thể thay đổi qua JDK versions; nên ghi cả code point khi so sánh Unicode whitespace. `12 345,67` có thể chứa dấu nhóm U+0020, U+00A0 hoặc U+202F khác nhau dù hiển thị gần giống. Đừng lưu chuỗi đã format như source of truth của giá trị số.
+CLDR locale data can evolve across JDK versions; record exact code points when comparing Unicode whitespace. `12 345,67` may contain U+0020, U+00A0, or U+202F grouping spaces despite looking nearly identical. Never store formatted strings as the source of truth for numeric values.
 
-## 12. Những lỗi phổ biến khi đóng gói SPI
+## 12. Common Mistakes When Packaging SPIs
 
-| Hiện tượng | Nguyên nhân hay gặp | Cách xác minh/sửa |
+| Symptom | Common cause | How to verify/fix |
 | --- | --- | --- |
-| `discovered=false` | Thiếu `META-INF/services`, sai FQCN, provider JAR chưa trên classpath. | `jar --list --file`, inspect resource, kiểm tra launcher. |
-| `ServiceConfigurationError` | File service sai UTF-8, tên class không tồn tại, provider không load được hoặc không có cấu trúc constructor phù hợp. | Xem exception gốc, class/module dependencies. |
-| `discovered=true` nhưng không có prefix `SPI:` | `CLDR` trước `SPI` hoặc locale/service không thuộc support scope. | Kiểm tra `-Djava.locale.providers` và gọi factory với fr-FR. |
-| `supportsFR=false` | `getAvailableLocales` hoặc `isSupportedLocale` khai báo không đúng. | Test trực tiếp Locale.FRANCE, extensions, country/language. |
-| `supportsUS=true` ngoài ý muốn | Provider khai báo quá rộng. | Giới hạn support matrix; test locale ngoài phạm vi. |
-| Chạy Maven/Gradle thấy khác IDE | JVM được truyền option khác nhau. | In `System.getProperty` trong process thực. |
-| Đổi `System.setProperty` không tác dụng | Locale provider order đã đọc lúc startup. | Khởi động JVM mới với `-D`. |
-| Provider dùng lại factory cùng locale | Nguy cơ recursion hoặc kết quả lặp không mong muốn. | Tạo formatter trực tiếp hoặc dùng dependency không tái nhập service. |
-| Provider cho currency/percent sai | Không đáp ứng semantics formatter tương ứng. | Test phần trăm, tiền tệ, số âm, grouping, rounding và parse. |
-| Test ra tiền tố theo một JDK nhưng khác JDK khác | Thay đổi source order/vendor/data hoặc deployment. | Ghi JDK version, provider options và registry artifact. |
-| Fat JAR mất service registry | Shading/assembly không merge đúng `META-INF/services`. | Inspect artifact cuối cùng, chạy integration test. |
-| Named module không thấy provider | Thiếu `provides`, `uses` hoặc provider chưa được resolve. | Kiểm tra module descriptor, module path, module graph. |
-| CLDR output khác sau nâng JDK | CLDR data thay đổi, COMPAT đã bị loại bỏ. | Kiểm thử regression và dùng invariant format nếu cần. |
+| `discovered=false` | Missing `META-INF/services`, wrong FQCN, provider JAR not on classpath. | `jar --list --file`, inspect resource, check launcher. |
+| `ServiceConfigurationError` | Invalid UTF-8 in service file, missing class name, unloadable provider, or missing valid constructor. | Inspect root cause exception and class/module dependencies. |
+| `discovered=true` yet no `SPI:` prefix | `CLDR` precedes `SPI` or locale/service outside support scope. | Check `-Djava.locale.providers` and test factory with fr-FR. |
+| `supportsFR=false` | `getAvailableLocales` or `isSupportedLocale` declared inaccurately. | Test `Locale.FRANCE`, extensions, and country/language directly. |
+| `supportsUS=true` unexpectedly | Provider declared too broadly. | Constrain support matrix; test out-of-scope locales. |
+| Maven/Gradle behaves differently from IDE | Different JVM options passed to processes. | Print `System.getProperty` inside the actual process. |
+| Calling `System.setProperty` has no effect | Locale provider order was read at startup. | Launch a fresh JVM with `-D`. |
+| Provider re-calls factory for same locale | Risk of recursion or unexpected looping. | Construct formatter directly or use non-reentrant dependencies. |
+| Wrong currency/percent provider output | Fails corresponding formatter semantics. | Test percent, currency, negatives, grouping, rounding, and parsing. |
+| Prefix works on one JDK but not another | Changed source order/vendor/data or deployment. | Record JDK version, provider options, and artifact registry. |
+| Fat JAR loses service registry | Shading/assembly failed to merge `META-INF/services`. | Inspect final artifact and run integration tests. |
+| Named module misses provider | Missing `provides`, `uses`, or unresolved provider module. | Check module descriptors, module path, and module graph. |
+| CLDR output changed after JDK upgrade | CLDR data updated; `COMPAT` removed. | Run regression tests and use invariant formats where needed. |
 
-### Đừng làm sai semantics của service
+### Do Not Violate Service Semantics
 
-Provider có thể được phát hiện và sử dụng mà vẫn **sai**. Một `NumberFormatProvider` production phải cho các formatter đáp ứng mục đích:
+A provider can be discovered and invoked while still being **wrong**. A production `NumberFormatProvider` must return formatters that satisfy their purpose:
 
-- `getNumberInstance`: trình bày số thông thường theo locale.
-- `getIntegerInstance`: cách hiển thị/parse số nguyên theo hợp đồng.
-- `getCurrencyInstance`: tiền tệ, ký hiệu, vị trí, làm tròn, các đơn vị tiền.
-- `getPercentInstance`: tỷ lệ và semantics phần trăm (thường nhân giá trị với 100).
-- Cách parse, dấu âm, grouping, chữ số Unicode và các special values phải được kiểm thử nếu domain hỗ trợ.
+- `getNumberInstance`: standard locale number presentation.
+- `getIntegerInstance`: integer formatting/parsing per contract.
+- `getCurrencyInstance`: currency, symbol, placement, rounding, and currency units.
+- `getPercentInstance`: ratios and percent semantics (typically multiplying values by 100).
+- Parsing, negative signs, grouping, Unicode digits, and special values must be tested if the domain supports them.
 
-Không chỉ viết đủ bốn phương thức để compiler thôi báo lỗi. **Khả năng hỗ trợ** là một cam kết về hành vi, không chỉ một mảng Locale.
+Do not merely stub out the four methods to satisfy the compiler. **Support capability** is a behavioral commitment, not just an array of `Locale`s.
 
-## 13. Kiểm thử và nghiệm thu một provider
+## 13. Testing and Accepting a Provider
 
-Ma trận nên có:
+Recommended test matrix:
 
-| Thử nghiệm | Cách thử | Điều cần chứng minh |
+| Test | How to test | What to prove |
 | --- | --- | --- |
-| Compile | `javac -encoding UTF-8` | Class/provider API chính xác với JDK 17+. |
-| JAR registry | `jar --list --file` | Resource đúng path, không bị build tool làm mất. |
-| Discovery | `ServiceLoader` | Implementation được load trên classpath/module path thực. |
-| Capability | `getAvailableLocales`, `isSupportedLocale` | Đúng locale/extension đã công bố. |
-| Selection | `SPI,CLDR` rồi `CLDR,SPI` trong hai process | Thứ tự nguồn ảnh hưởng provider được chọn khi cùng support. |
-| Fallback | `Locale.US` ngoài scope custom | Không chiếm formatter của locale khác. |
-| Startup | Đặt `-D` trước class/`-jar` | Cấu hình nằm trong JVM thực. |
-| Alternative startup | Thử `System.setProperty` sau init | Không trông đợi thay chain giữa chừng. |
-| Formatter semantics | Số âm, currency, integer, percent, parse | Output thực sự phù hợp loại formatter. |
-| Unicode locale | Locale có chữ số hoặc extensions | Provider có chính sách rõ, không giả vờ hỗ trợ. |
-| Upgrade | JDK 17, 21, 23+ | Không phụ thuộc legacy COMPAT ở JDK mới. |
-| Concurrency | Nhiều request/thread | Formatter mutable không bị chia sẻ thiếu kiểm soát. |
-| Final artifact | Classpath JAR và named module nếu cần | Cả hai dạng deploy đều nhận provider phù hợp. |
+| Compile | `javac -encoding UTF-8` | Class/provider API valid for JDK 17+. |
+| JAR registry | `jar --list --file` | Resource at right path, not stripped by build tool. |
+| Discovery | `ServiceLoader` | Implementation loads on actual classpath/module path. |
+| Capability | `getAvailableLocales`, `isSupportedLocale` | Matches advertised locales/extensions. |
+| Selection | `SPI,CLDR` then `CLDR,SPI` in two processes | Source order dictates chosen provider when both support a locale. |
+| Fallback | `Locale.US` outside custom scope | Does not hijack formatters for other locales. |
+| Startup | Place `-D` before class/`-jar` | Configuration reaches the actual JVM. |
+| Alternative startup | Try `System.setProperty` after init | Confirm mid-run chain mutation is not relied upon. |
+| Formatter semantics | Negatives, currency, integer, percent, parse | Output genuinely matches formatter type. |
+| Unicode locale | Locales with digits or extensions | Provider has explicit policy instead of faking support. |
+| Upgrade | JDK 17, 21, 23+ | No reliance on legacy `COMPAT` in newer JDKs. |
+| Concurrency | Multiple requests/threads | Mutable formatters are not unsafely shared. |
+| Final artifact | Classpath JAR and named module if needed | Both deployment modes resolve the provider properly. |
 
-### Cẩn thận với NumberFormat mutable
+### Beware Mutable NumberFormat Instances
 
-`NumberFormat` và `DecimalFormat` là mutable, không mặc nhiên thread-safe. Một provider nên tạo **formatter instance mới** trong mỗi lời gọi factory, hoặc quản lý an toàn nếu có pooling/caching. Không trả về một `static DecimalFormat` dùng chung rồi cho request khác nhau thay currency/rounding mà không đồng bộ.
+`NumberFormat` and `DecimalFormat` are mutable and not inherently thread-safe. A provider should create a **new formatter instance** per factory call, or manage synchronization safely if pooling/caching. Never return one shared `static DecimalFormat` and let concurrent requests mutate currency/rounding without synchronization.
 
-Class demo tạo formatter mới mỗi lần, phù hợp để thử. Với ứng dụng có performance yêu cầu cao, benchmark đúng workload rồi thiết kế reuse an toàn, không hi sinh correctness.
+The demo class creates a new formatter each time, suited for testing. For high-throughput applications, benchmark the real workload and design safe reuse without sacrificing correctness.
 
-### Chọn hợp đồng ổn định cho dữ liệu máy–máy
+### Choose Stable Contracts for Machine-to-Machine Data
 
-Nếu ứng dụng truyền giá trị sang một service khác, đừng lưu `SPI:12.50` hay `12,5` làm giá trị tiền gốc. Nên giữ `BigDecimal`/giá trị số có kiểu và currency code riêng; UI format theo locale/provider. Như vậy thay provider hoặc CLDR không làm thay nghĩa dữ liệu lưu trữ.
+When passing values to another service, never store `SPI:12.50` or `12,5` as the raw monetary value. Keep `BigDecimal`/typed numeric values alongside an explicit currency code; let the UI format by locale/provider. That way, changing providers or CLDR versions never alters the meaning of stored data.
 
-## 14. Bài tập thực hành
+## 14. Practice Exercises
 
-**Bài 1 — Đăng ký chuẩn:** dựng cấu trúc `src/demo` và `resources/META-INF/services` như bài. Cố ý đổi sai tên file registry rồi chạy `ProviderCheck`. Quan sát `discovered=false`, sửa lại và chạy từ **JAR cuối cùng**, không chỉ từ IDE.
+**Exercise 1 — Standard registration:** build the `src/demo` and `resources/META-INF/services` layout shown in this lesson. Intentionally misname the registry file and run `ProviderCheck`. Observe `discovered=false`, fix the name, and run from the **final JAR**, not just the IDE.
 
-**Bài 2 — Kiểm tra thứ tự:** chạy `SPI,CLDR` và `CLDR,SPI` trong hai tiến trình Java. Giải thích tại sao `discovered=true` ở cả hai nhưng `frNumber` có thể khác.
+**Exercise 2 — Checking order:** run `SPI,CLDR` and `CLDR,SPI` in two separate Java processes. Explain why `discovered=true` in both while `frNumber` can differ.
 
-**Bài 3 — Hỗ trợ locale/extension:** gọi trực tiếp `isSupportedLocale(Locale.FRANCE)`, `isSupportedLocale(Locale.US)` và một locale fr-FR có Unicode extension `u-nu-thai`. Thay đổi phương thức hỗ trợ chỉ khi provider thực sự xử lý đúng numbering system tương ứng.
+**Exercise 3 — Locale/extension support:** call `isSupportedLocale(Locale.FRANCE)`, `isSupportedLocale(Locale.US)`, and an fr-FR locale with Unicode extension `u-nu-thai` directly. Update the support check only if the provider genuinely handles that numbering system properly.
 
-**Bài 4 — Fallback:** dùng provider chỉ hỗ trợ `Locale.FRANCE`; thử `Locale.US` và `Locale.forLanguageTag("vi-VN")`. Không cần cố làm SPI thắng mọi locale. Test cái gì vẫn dùng CLDR/JDK.
+**Exercise 4 — Fallback:** using a provider supporting only `Locale.FRANCE`, test `Locale.US` and `Locale.forLanguageTag("vi-VN")`. Do not try to force the SPI to win every locale; verify what continues using CLDR/JDK.
 
-**Bài 5 — Sửa lỗi packaging:** xóa provider class khỏi JAR thử nghiệm nhưng để service file; quan sát `ServiceConfigurationError`. Hãy tạo artifact thử nghiệm mới, không sửa file JAR đang deploy.
+**Exercise 5 — Fixing packaging errors:** omit the provider class from a test JAR while keeping the service file; observe `ServiceConfigurationError`. Build a separate test artifact rather than modifying a deployed JAR.
 
-**Bài 6 — NumberFormat semantics:** mở rộng unit tests cho getIntegerInstance, getCurrencyInstance và getPercentInstance. Kiểm tra `0.125` hiển thị theo phần trăm, số âm, grouping, rounding và parse. Phân biệt tính đúng cú pháp với tính đúng định dạng ngôn ngữ.
+**Exercise 6 — NumberFormat semantics:** expand unit tests for `getIntegerInstance`, `getCurrencyInstance`, and `getPercentInstance`. Verify `0.125` formatted as a percent, negative numbers, grouping, rounding, and parsing. Distinguish syntactic validity from linguistically accurate formatting.
 
-**Bài 7 — Named module:** xây hai modules độc lập, provider khai báo `provides ... with ...`, consumer nếu tự gọi ServiceLoader khai báo `uses ...`. Đặt đúng module path và xác nhận provider được resolve.
+**Exercise 7 — Named modules:** build two independent modules; the provider declares `provides ... with ...`, and the consumer declares `uses ...` if calling `ServiceLoader` itself. Configure the module path properly and confirm the provider resolves.
 
-**Bài 8 — JVM startup:** thử đặt property ở IDE, test fork và application server. Ghi JVM args, property trong process và JDK vendor/version. Trả lời vì sao đặt property ở build tool JVM không chắc áp dụng cho application JVM.
+**Exercise 8 — JVM startup:** test setting the property in your IDE, test forks, and an application server. Record JVM args, in-process properties, and JDK vendor/version. Explain why setting the property on a build tool's JVM does not necessarily apply to the application JVM.
 
-**Bài 9 — JDK migration:** trên môi trường JDK 17 còn COMPAT và một JDK 23+ đã bỏ COMPAT, kiểm tra behavior provider khi `SPI,CLDR` và policy fallback. Không dùng legacy data như một yêu cầu bắt buộc cho mọi Java 17+.
+**Exercise 9 — JDK migration:** compare an environment on JDK 17 (with `COMPAT`) against JDK 23+ (without `COMPAT`), verifying provider behavior under `SPI,CLDR` and fallback policies. Do not treat legacy data as mandatory across all Java 17+ environments.
 
-### Checklist hoàn thành
+### Completion Checklist
 
-- [ ] Biết SPI khác class implementation và khác provider preference.
-- [ ] Đóng gói đúng `META-INF/services/java.text.spi.NumberFormatProvider` UTF-8.
-- [ ] Có class public triển khai đầy đủ abstract methods; biết cách package JAR.
-- [ ] Đặt `-Djava.locale.providers=SPI,CLDR` đúng vị trí lúc startup.
-- [ ] Phân biệt `ServiceLoader` discovery với factory selection.
-- [ ] Dùng `getAvailableLocales`/`isSupportedLocale` cho support matrix.
-- [ ] Có test fallback với locale khác, test same-locale khác thứ tự.
-- [ ] Biết cơ chế `provides`/`uses` khi dùng named module.
-- [ ] Không thay provider chain bằng System.setProperty sau runtime initialization.
-- [ ] Không dựa vào COMPAT/JRE trên JDK 23+.
-- [ ] Test semantics formatter, locale extensions, concurrency và final packaged artifact.
-- [ ] Không lưu display string làm giao thức dữ liệu máy–máy.
+- [ ] Understand how SPI differs from implementation class and provider preference.
+- [ ] Package UTF-8 `META-INF/services/java.text.spi.NumberFormatProvider` properly.
+- [ ] Provide a public class implementing all abstract methods; know how to package the JAR.
+- [ ] Place `-Djava.locale.providers=SPI,CLDR` in the right position at startup.
+- [ ] Distinguish `ServiceLoader` discovery from factory selection.
+- [ ] Use `getAvailableLocales`/`isSupportedLocale` for the support matrix.
+- [ ] Test fallback with other locales and test the same locale with different provider orders.
+- [ ] Know the `provides`/`uses` mechanism when using named modules.
+- [ ] Never mutate the provider chain via `System.setProperty` after runtime initialization.
+- [ ] Do not depend on `COMPAT/JRE` on JDK 23+.
+- [ ] Test formatter semantics, locale extensions, concurrency, and the final packaged artifact.
+- [ ] Never store display strings as machine-to-machine data protocols.
 
-## 15. Tham khảo chính thức
+## 15. Official References
 
-- **JDK 17 LocaleServiceProvider** — packaging, `getAvailableLocales`, `isSupportedLocale` và `java.locale.providers`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/spi/LocaleServiceProvider.html
-- **JDK 17 NumberFormatProvider** — các factory methods cần triển khai: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/spi/NumberFormatProvider.html
-- **JDK 17 ServiceLoader** — provider configuration và service discovery: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
+- **JDK 17 LocaleServiceProvider** — packaging, `getAvailableLocales`, `isSupportedLocale`, and `java.locale.providers`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/spi/LocaleServiceProvider.html
+- **JDK 17 NumberFormatProvider** — factory methods to implement: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/spi/NumberFormatProvider.html
+- **JDK 17 ServiceLoader** — provider configuration and service discovery: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html
 - **JDK 23 Migration — COMPAT removal**: https://docs.oracle.com/en/java/javase/23/migrate/removed-tools-and-components.html
 
-**Kết luận:** mở rộng localization trong Java phải đi qua chuỗi **đăng ký service đúng → cấu hình JVM đúng lúc → kiểm chứng discovery, capability, selection và fallback**. `ServiceLoader` thấy class chưa có nghĩa locale factory chọn nó; `SPI` nằm trong property chưa đủ nếu artifact hoặc service file sai; `getAvailableLocales` chỉ là lời công bố khả năng, chưa phải bằng chứng định dạng chính xác. Hãy kiểm thử end-to-end trên **JAR/module và JDK thực tế** trước khi xem một provider là đã hoạt động.
+**Conclusion:** extending localization in Java must follow the chain **correct service registration -> timely JVM configuration -> verified discovery, capability, selection, and fallback**. `ServiceLoader` seeing a class does not mean the locale factory selects it; having `SPI` in the property is not enough if the artifact or service file is wrong; `getAvailableLocales` is only a capability declaration, not proof of accurate formatting. Always test end-to-end on the **actual JAR/module and target JDK** before considering a provider operational.

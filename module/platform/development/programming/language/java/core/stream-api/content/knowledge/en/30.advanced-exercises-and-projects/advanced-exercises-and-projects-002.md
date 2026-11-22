@@ -1,57 +1,57 @@
-# Viết Collector tùy biến để tổng hợp nhiều chỉ số
+# Writing a Custom Collector to Aggregate Multiple Metrics
 
-Trong các dự án thực tế, một lần duyệt dữ liệu thường phải tạo **nhiều chỉ số liên quan**: tổng số đơn hàng, số đơn đã thanh toán, tổng tiền, giá trị nhỏ nhất/lớn nhất, trung bình và số đơn theo khu vực. Viết sáu hoặc bảy pipeline `stream()` riêng biệt có thể vẫn đúng với một `List` nhỏ, nhưng không phù hợp nếu nguồn rất lớn, chỉ tiêu thụ một lần hoặc gắn với I/O. Một **`Collector` tùy biến** có thể lưu đủ trạng thái trung gian, cập nhật mọi chỉ số khi nhận từng phần tử rồi tạo một đối tượng báo cáo ở cuối.
+In real-world projects, a single pass over data often has to produce **several related metrics**: total orders, paid orders, total revenue, min/max values, average, and order counts by region. Writing six or seven separate `stream()` pipelines might still work on a small `List`, but it is unsuitable when the source is very large, single-use, or tied to I/O. A **custom `Collector`** can hold enough intermediate state, update every metric as each element arrives, and build one report object at the end.
 
-Đây là bài thực hành nâng cao thuộc chương **Bài tập nâng cao và dự án** của module **JAVA_STREAM_API**. Ta kết hợp kiến thức về pipeline lazy, `filter`, `map`, `reduce`, `collect`, grouping, hợp đồng Collector, `Spliterator` và xử lý song song. Bên cạnh việc viết code Java 8 có thể chạy độc lập, bài tập yêu cầu suy luận về **tính đúng đắn**, **dữ liệu rỗng**, **tràn số**, **trạng thái dùng chung**, **tài nguyên** và **hiệu năng**; các kỹ thuật biến đổi nâng cao như Stream Gatherers không phải điều kiện cần để giải bài toán này.
+This is an advanced hands-on exercise in the **Advanced Exercises and Projects** chapter of the **JAVA_STREAM_API** module. We combine knowledge of lazy pipelines, `filter`, `map`, `reduce`, `collect`, grouping, the Collector contract, `Spliterator`, and parallel processing. Beyond writing standalone runnable Java 8 code, the exercise asks you to reason about **correctness**, **empty data**, **numeric overflow**, **shared state**, **resources**, and **performance**; advanced transformation techniques such as Stream Gatherers are not required to solve this problem.
 
-## 1. Bài toán dự án: báo cáo nhiều KPI từ đơn hàng
+## 1. Project Problem: Multi-KPI Order Report
 
-Giả sử ứng dụng nhận các đơn hàng với bốn thuộc tính:
+Suppose an application receives orders with four attributes:
 
-- `id`: mã đơn.
-- `region`: khu vực, ví dụ `BAC`, `NAM` hoặc `TRUNG`.
-- `amountCents`: số tiền ở đơn vị nhỏ nhất của tiền tệ, kiểu `long` và không âm.
-- `paid`: trạng thái đã thanh toán, kiểu `boolean`.
+- `id`: order ID.
+- `region`: region code, e.g. `BAC`, `NAM`, or `TRUNG`.
+- `amountCents`: monetary amount in the smallest currency unit, of type `long` and non-negative.
+- `paid`: payment status, of type `boolean`.
 
-Cho dữ liệu:
+Given the data:
 
-| Đơn | Khu vực | Số tiền (cents) | Đã thanh toán? |
+| Order | Region | Amount (cents) | Paid? |
 |---|---|---:|---|
-| O1 | BAC | 10.000 | Có |
-| O2 | NAM | 5.000 | Không |
-| O3 | BAC | 30.000 | Có |
-| O4 | NAM | 20.000 | Có |
-| O5 | BAC | 0 | Có |
-| O6 | TRUNG | 4.000 | Không |
+| O1 | BAC | 10,000 | Yes |
+| O2 | NAM | 5,000 | No |
+| O3 | BAC | 30,000 | Yes |
+| O4 | NAM | 20,000 | Yes |
+| O5 | BAC | 0 | Yes |
+| O6 | TRUNG | 4,000 | No |
 
-Yêu cầu báo cáo:
+Required report:
 
-| Chỉ số | Kết quả mong đợi |
+| Metric | Expected Result |
 |---|---|
-| Tổng số đơn | `6` |
-| Số đơn đã thanh toán | `4` |
-| Số đơn chưa thanh toán | `2` |
-| Tổng tiền đã thanh toán | `60_000L` |
-| Tiền đơn đã thanh toán thấp nhất | `0L` |
-| Tiền đơn đã thanh toán cao nhất | `30_000L` |
-| Tiền trung bình của đơn đã thanh toán | `15_000.0` |
-| Số đơn theo khu vực | `{BAC=3, NAM=2, TRUNG=1}` |
+| Total orders | `6` |
+| Paid orders | `4` |
+| Unpaid orders | `2` |
+| Total paid amount | `60_000L` |
+| Minimum paid order amount | `0L` |
+| Maximum paid order amount | `30_000L` |
+| Average paid order amount | `15_000.0` |
+| Order count by region | `{BAC=3, NAM=2, TRUNG=1}` |
 
-Các quy tắc nghiệp vụ cần làm rõ **trước khi** viết Collector:
+Business rules to clarify **before** writing the Collector:
 
-1. Số đơn theo khu vực tính **tất cả** đơn, kể cả chưa thanh toán.
-2. Tổng, min, max và trung bình tiền chỉ xét **đơn đã thanh toán**.
-3. Nếu **không có đơn đã thanh toán**, tổng tiền bằng 0 nhưng **min/max/trung bình không tồn tại**, không phải đều bằng 0.
-4. Đơn `null` hoặc khu vực `null` được coi là dữ liệu không hợp lệ; ví dụ sẽ báo lỗi thay vì âm thầm loại bỏ.
-5. Để kiểm soát tràn `long`, dùng `Math.addExact`. Nếu vượt giới hạn sẽ phát sinh ngoại lệ thay vì tạo tổng sai.
+1. Order count by region includes **all** orders, even unpaid ones.
+2. Total, min, max, and average amounts consider only **paid orders**.
+3. If there are **no paid orders**, total amount is 0, but **min/max/average do not exist**, rather than all being 0.
+4. A `null` order or `null` region is treated as invalid data; the example will fail fast rather than silently discarding it.
+5. To guard against `long` overflow, use `Math.addExact`. Overflowing throws an exception instead of producing a wrong sum.
 
-Việc thiết kế rõ các quy tắc này quan trọng không kém cú pháp Stream: một pipeline nhanh nhưng cho sai tập bản ghi vẫn là một triển khai không đạt.
+Defining these rules clearly is just as important as Stream syntax: a fast pipeline that aggregates the wrong set of records is still an unacceptable implementation.
 
-## 2. Vì sao cần Collector nhiều chỉ số?
+## 2. Why Do We Need a Multi-Metric Collector?
 
-### 2.1. Cách đơn giản nhưng duyệt nguồn nhiều lần
+### 2.1. The Simple Approach Traverses the Source Multiple Times
 
-Với một danh sách trong bộ nhớ, ta có thể viết:
+With an in-memory list, you could write:
 
 ```java
 long orderCount = orders.stream().count();
@@ -66,53 +66,53 @@ long paidTotal = orders.stream()
         .sum();
 ```
 
-Đoạn minh họa giả định có kiểu `Order` và nguồn `orders`. Mỗi lệnh `stream()` tạo một pipeline mới để tính **một đại lượng**. Với `List` có thể duyệt lại, cách này đôi khi rất dễ đọc và là lựa chọn hợp lý. Nhưng nếu tính thêm min, max, average và các thống kê khác, số lần quét tăng lên.
+The snippet assumes an `Order` type and an `orders` source. Each `stream()` call creates a new pipeline to compute **one quantity**. On a re-traversable `List`, this is sometimes very readable and a reasonable choice. However, if you also compute min, max, average, and other statistics, the number of scans multiplies.
 
-Quan trọng hơn, không thể gọi hai terminal operation trên **cùng một đối tượng `Stream`**:
+More importantly, you cannot invoke two terminal operations on **the same `Stream` instance**:
 
 ```java
 Stream<Order> source = orders.stream();
 
 long count = source.count();
 
-// SAI: Stream đã tiêu thụ.
+// WRONG: Stream has already been consumed.
 // long paidCount = source.filter(Order::isPaid).count();
 ```
 
-Với nguồn I/O chỉ đọc một lần, việc tạo lại Stream có thể đòi hỏi mở lại file, đọc lại dữ liệu hoặc thậm chí không khả thi. Một Collector nhiều chỉ số giúp hoàn thành các phép đo trong **một lần thu thập**.
+For a single-use I/O source, recreating the Stream may require reopening files, re-reading data, or may not even be feasible. A multi-metric Collector completes all measurements in **one collection pass**.
 
-### 2.2. Bốn yêu cầu thiết kế
+### 2.2. Four Design Requirements
 
-Collector tùy biến của chúng ta cần có:
+Our custom Collector must have:
 
-1. **Trạng thái trung gian đủ thông tin** để cập nhật các KPI và gộp được hai phần kết quả.
-2. **Hàm thêm một đơn hàng** vào trạng thái mà không sửa dữ liệu nguồn.
-3. **Hàm kết hợp hai trạng thái** để hoạt động đúng cả với parallel stream.
-4. **Hàm hoàn tất** tạo báo cáo bất biến, không cho caller sửa trạng thái nội bộ.
+1. **Sufficient intermediate state** to update all KPIs and merge two partial results.
+2. **A function to add one order** into the state without mutating the source data.
+3. **A function to combine two states** so it works properly even with parallel streams.
+4. **A finisher function** that produces an immutable report without letting the caller mutate internal state.
 
-Điểm quan trọng là **không tính trung bình trong mỗi lần tích lũy**. Chỉ giữ `sum` và `count`, rồi tính `sum / count` ở bước cuối, vì trung bình đơn lẻ của hai nhóm không đủ để tính trung bình chung khi kích thước nhóm khác nhau.
+A key point is **not computing the average on every accumulation step**. Keep only `sum` and `count`, then compute `sum / count` at the final step, because individual averages of two groups are insufficient to compute the combined average when group sizes differ.
 
-## 3. Kiểu Collector<T, A, R> và các thành phần
+## 3. Collector<T, A, R> Type and Its Components
 
-`java.util.stream.Collector<T, A, R>` có ba kiểu:
+`java.util.stream.Collector<T, A, R>` has three type parameters:
 
-| Ký hiệu | Ý nghĩa | Trong dự án |
+| Symbol | Meaning | In This Project |
 |---|---|---|
-| `T` | Kiểu phần tử nguồn | `Order` |
-| `A` | Kiểu trạng thái tích lũy có thể thay đổi | `MetricsAccumulator` |
-| `R` | Kiểu kết quả cuối | `Report` |
+| `T` | Source element type | `Order` |
+| `A` | Mutable accumulation state type | `MetricsAccumulator` |
+| `R` | Final result type | `Report` |
 
-Một Collector hoàn chỉnh có năm khái niệm:
+A complete Collector has five concepts:
 
-| Thành phần | Trách nhiệm | Định hướng triển khai |
+| Component | Responsibility | Implementation Plan |
 |---|---|---|
-| `supplier` | Tạo trạng thái rỗng | `MetricsAccumulator::new` |
-| `accumulator` | Nhận một `Order`, cập nhật trạng thái | `MetricsAccumulator::add` |
-| `combiner` | Gộp kết quả hai nhánh | `MetricsAccumulator::combine` |
-| `finisher` | Tạo báo cáo cuối | `MetricsAccumulator::finish` |
-| `characteristics` | Công bố tính chất Collector | Không công bố đặc tính không được bảo đảm |
+| `supplier` | Create an empty state | `MetricsAccumulator::new` |
+| `accumulator` | Accept one `Order`, update state | `MetricsAccumulator::add` |
+| `combiner` | Merge two branch results | `MetricsAccumulator::combine` |
+| `finisher` | Produce the final report | `MetricsAccumulator::finish` |
+| `characteristics` | Declare Collector properties | Do not declare unguaranteed characteristics |
 
-Để tạo Collector bằng Java 8:
+To create the Collector in Java 8:
 
 ```java
 Collector<Order, MetricsAccumulator, Report> collector =
@@ -123,55 +123,55 @@ Collector<Order, MetricsAccumulator, Report> collector =
                 MetricsAccumulator::finish);
 ```
 
-Đây là mẫu mã sẽ được định nghĩa đầy đủ ở phần 5. Vì `A = MetricsAccumulator` khác `R = Report`, **không khai báo `IDENTITY_FINISH`**. Vì container là trạng thái mutable thông thường, **không khai báo `CONCURRENT`**. Vì kết quả số học và Map đếm không phụ thuộc encounter order, phép thu thập này *có thể* được thiết kế là unordered, nhưng ví dụ không cần công bố `UNORDERED` để đúng và dễ kiểm chứng.
+This is the pattern that will be fully defined in section 5. Since `A = MetricsAccumulator` differs from `R = Report`, **do not declare `IDENTITY_FINISH`**. Since the container is ordinary mutable state, **do not declare `CONCURRENT`**. Because numeric results and count Maps do not depend on encounter order, this collection *could* be designed as unordered, yet the example does not need to declare `UNORDERED` to be correct and easy to verify.
 
-## 4. Mô hình trạng thái trung gian
+## 4. Intermediate State Model
 
-### 4.1. Lưu dữ liệu gì?
+### 4.1. What Data to Store?
 
-`MetricsAccumulator` cần các trường:
+`MetricsAccumulator` needs these fields:
 
 ```text
 orderCount        : long
 paidCount         : long
 paidCents         : long
-minPaidCents      : long (ban đầu Long.MAX_VALUE)
-maxPaidCents      : long (ban đầu Long.MIN_VALUE)
+minPaidCents      : long (initially Long.MAX_VALUE)
+maxPaidCents      : long (initially Long.MIN_VALUE)
 regionCounts      : Map<String, Long>
 ```
 
-**Không cần lưu từng đơn hàng**. Bộ tích lũy chỉ tăng đếm, cộng tiền, cập nhật min/max và tăng đếm theo vùng. Bộ nhớ tăng chủ yếu theo **số khu vực phân biệt**, không tăng tuyến tính theo tổng số đơn.
+**There is no need to store individual orders.** The accumulator only increments counters, adds amounts, updates min/max, and increments per-region counts. Memory grows mainly with the **number of distinct regions**, not linearly with total orders.
 
-### 4.2. Bất biến của trạng thái
+### 4.2. State Invariants
 
-Sau khi tích lũy một tập đơn hợp lệ:
+After accumulating a valid set of orders:
 
-- `orderCount >= 0` và `paidCount >= 0`.
+- `orderCount >= 0` and `paidCount >= 0`.
 - `0 <= paidCount <= orderCount`.
-- `paidCents` là tổng `amountCents` của các đơn đã thanh toán, trong miền `long` không tràn.
-- Nếu `paidCount > 0`, `minPaidCents` và `maxPaidCents` là cực trị thật của các đơn đã thanh toán.
-- Nếu `paidCount == 0`, không được hiển thị `Long.MAX_VALUE` hay `Long.MIN_VALUE` như cực trị thật.
-- Tổng mọi giá trị trong `regionCounts` bằng `orderCount`, nếu số đếm không tràn.
+- `paidCents` is the sum of `amountCents` of paid orders, within non-overflowing `long` range.
+- If `paidCount > 0`, `minPaidCents` and `maxPaidCents` are the true extrema of paid orders.
+- If `paidCount == 0`, `Long.MAX_VALUE` or `Long.MIN_VALUE` must never be exposed as real extrema.
+- The sum of all values in `regionCounts` equals `orderCount`, assuming counts do not overflow.
 
-Những bất biến này là công cụ kiểm tra một Collector chính xác hơn việc chỉ xem nó “chạy được”.
+These invariants verify a Collector more thoroughly than merely seeing that it "runs".
 
-### 4.3. Vì sao dùng Optional cho min, max và average?
+### 4.3. Why Use Optional for min, max, and average?
 
-Với một nguồn rỗng, hoặc nguồn có đơn nhưng không có đơn nào đã thanh toán:
+For an empty source, or a source with orders where none are paid:
 
 ```text
 paidCount = 0
 paidCents = 0
-minPaid   = không tồn tại
-maxPaid   = không tồn tại
-average   = không tồn tại
+minPaid   = absent
+maxPaid   = absent
+average   = absent
 ```
 
-`OptionalLong` và `OptionalDouble` giúp biểu diễn trạng thái thiếu giá trị. Việc trả số `0` từ `minPaid` sẽ sai về ý nghĩa khi không có phép đo; nhưng nếu có **một đơn đã thanh toán với số tiền 0**, min bằng `OptionalLong[0]` là kết quả hợp lệ.
+`OptionalLong` and `OptionalDouble` represent the missing-value state cleanly. Returning `0` from `minPaid` would be semantically wrong when no measurements exist; however, if there is **one paid order with amount 0**, a min of `OptionalLong[0]` is a valid result.
 
-## 5. Chương trình Java 8 hoàn chỉnh: một lần collect cho nhiều KPI
+## 5. Complete Java 8 Program: Single collect for Multiple KPIs
 
-Mã dưới đây có thể lưu thành `MultiMetricCollectorDemo.java` và chạy với JDK 8 trở lên. Mã sử dụng số tiền ở đơn vị nhỏ nhất và chỉ chấp nhận giá trị không âm. Các hàm tích lũy bảo vệ tràn số bằng `Math.addExact`.
+The code below can be saved as `MultiMetricCollectorDemo.java` and run on JDK 8 or later. It uses monetary amounts in the smallest unit and accepts only non-negative values. Accumulation functions guard against overflow with `Math.addExact`.
 
 ```java
 import java.util.Arrays;
@@ -199,7 +199,7 @@ public class MultiMetricCollectorDemo {
             this.region = Objects.requireNonNull(region, "region");
             if (amountCents < 0) {
                 throw new IllegalArgumentException(
-                        "amountCents không được âm");
+                        "amountCents must not be negative");
             }
             this.amountCents = amountCents;
             this.paid = paid;
@@ -211,7 +211,7 @@ public class MultiMetricCollectorDemo {
         boolean isPaid() { return paid; }
     }
 
-    // A: Trạng thái trung gian, chỉ thay đổi trong quá trình collect.
+    // A: Intermediate state, mutated only during collection.
     static final class MetricsAccumulator {
         private long orderCount;
         private long paidCount;
@@ -220,7 +220,7 @@ public class MultiMetricCollectorDemo {
         private long maxPaidCents = Long.MIN_VALUE;
         private final Map<String, Long> regionCounts = new HashMap<>();
 
-        // Accumulator: tiếp nhận một đơn.
+        // Accumulator: accepts one order.
         void add(Order order) {
             Objects.requireNonNull(order, "order");
 
@@ -238,7 +238,7 @@ public class MultiMetricCollectorDemo {
             }
         }
 
-        // Combiner: gộp đủ thông tin của nhánh phải vào nhánh trái.
+        // Combiner: merges all metrics from the right branch into the left branch.
         MetricsAccumulator combine(MetricsAccumulator right) {
             orderCount = Math.addExact(orderCount, right.orderCount);
             paidCount = Math.addExact(paidCount, right.paidCount);
@@ -257,7 +257,7 @@ public class MultiMetricCollectorDemo {
             return this;
         }
 
-        // Finisher: chụp một bản kết quả không cho sửa Map bên trong.
+        // Finisher: takes a result snapshot that forbids mutating the internal Map.
         Report finish() {
             OptionalLong min = paidCount == 0
                     ? OptionalLong.empty()
@@ -279,7 +279,7 @@ public class MultiMetricCollectorDemo {
         }
     }
 
-    // R: DTO báo cáo bất biến sau khi collect kết thúc.
+    // R: Immutable report DTO after collection completes.
     static final class Report {
         final long orderCount;
         final long paidCount;
@@ -316,7 +316,7 @@ public class MultiMetricCollectorDemo {
                 MetricsAccumulator::finish);
     }
 
-    // Phép so sánh được viết rõ để kiểm tra kết quả song song.
+    // Explicit comparison helper to verify parallel results.
     static boolean sameReport(Report a, Report b) {
         return a.orderCount == b.orderCount
                 && a.paidCount == b.paidCount
@@ -337,7 +337,7 @@ public class MultiMetricCollectorDemo {
                 new Order("O6", "TRUNG",  4_000L, false)
         );
 
-        // Hai cách thực thi phải cho các KPI tương đương.
+        // Both execution modes must produce equivalent KPIs.
         Report sequential = orders.stream()
                 .collect(metricsCollector());
         Report parallel = orders.parallelStream()
@@ -356,7 +356,7 @@ public class MultiMetricCollectorDemo {
 
         System.out.println(sameReport(sequential, parallel)); // true
 
-        // Nguồn hoàn toàn rỗng: không có cực trị/trung bình.
+        // Completely empty source: no extrema/average.
         Report empty = Collections.<Order>emptyList()
                 .stream()
                 .collect(metricsCollector());
@@ -366,7 +366,7 @@ public class MultiMetricCollectorDemo {
         System.out.println(empty.minPaid.isPresent()); // false
         System.out.println(empty.regionCounts.isEmpty()); // true
 
-        // Có đơn nhưng không đơn nào thanh toán.
+        // Orders exist, but none are paid.
         Report noPaid = Arrays.asList(
                 new Order("X1", "BAC", 100L, false))
                 .stream()
@@ -376,7 +376,7 @@ public class MultiMetricCollectorDemo {
         System.out.println(noPaid.averagePaid.isPresent()); // false
         System.out.println(noPaid.regionCounts.get("BAC")); // 1
 
-        // Collector tùy biến có thể dùng làm downstream theo nhóm.
+        // Custom Collector can serve as a downstream collector for grouping.
         Map<String, Report> reportsByRegion = orders.stream()
                 .collect(Collectors.groupingBy(
                         Order::getRegion, metricsCollector()));
@@ -388,31 +388,31 @@ public class MultiMetricCollectorDemo {
 }
 ```
 
-**Kết quả quan trọng:** báo cáo tuần tự và song song tương đương, cùng đếm sáu đơn và bốn đơn đã thanh toán, có tổng tiền 60.000 và trung bình 15.000. Với một nguồn rỗng, `paidCents == 0` nhưng `averagePaid` và `minPaid` đều rỗng. Với nguồn chỉ chứa đơn chưa thanh toán, số đơn và số đơn theo khu vực vẫn được đếm, trong khi thống kê tiền đã thanh toán không tồn tại.
+**Key results:** sequential and parallel reports match, both counting six orders and four paid orders, with a total of 60,000 and average of 15,000. With an empty source, `paidCents == 0` while both `averagePaid` and `minPaid` are empty. With a source containing only unpaid orders, order count and per-region counts are still tracked, while paid monetary statistics do not exist.
 
-Ví dụ dùng bộ dữ liệu nhỏ để kiểm tra **tính đúng**, không phải benchmark cho thấy parallel stream nhanh hơn. Không cần thêm `CONCURRENT` chỉ vì phép thu thập có thể chạy trên parallel stream: framework quản lý các bộ tích lũy độc lập rồi gọi combiner.
+The example uses a small dataset to test **correctness**, not as a benchmark claiming parallel streams are faster. There is no need to add `CONCURRENT` just because the collection can run on a parallel stream: the framework manages independent accumulators and then invokes the combiner.
 
-## 6. Giải thích từng thành phần của Collector
+## 6. Explaining Each Collector Component
 
-### 6.1. Supplier: trạng thái rỗng thật sự
+### 6.1. Supplier: Truly Empty State
 
-`MetricsAccumulator::new` tạo một đối tượng mới với các bộ đếm bằng 0 và `regionCounts` rỗng. Các giá trị `Long.MAX_VALUE` và `Long.MIN_VALUE` chỉ là *sentinel* nội bộ để cập nhật min/max; chúng **không được xuất ra báo cáo** nếu chưa có đơn đã thanh toán.
+`MetricsAccumulator::new` creates a fresh object with zeroed counters and an empty `regionCounts`. `Long.MAX_VALUE` and `Long.MIN_VALUE` are purely internal *sentinels* for updating min/max; they **must never be exposed in the report** if no paid order has been seen.
 
-Supplier không được lấy một `MetricsAccumulator` đã dùng trước đó từ biến static rồi trả lại cho tất cả các nhánh. Làm vậy có thể khiến hai worker cùng thay đổi một trạng thái mutable, gây race và vi phạm hợp đồng thu thập.
+The supplier must never grab a previously used `MetricsAccumulator` from a static field and hand it out to all branches. Doing so can cause two workers to mutate the same state, causing races and violating the collection contract.
 
-### 6.2. Accumulator: cập nhật đủ KPI cho mỗi phần tử
+### 6.2. Accumulator: Updating Every KPI per Element
 
-Với đơn `O2` chưa thanh toán:
+For unpaid order `O2`:
 
 ```text
 orderCount   + 1
 regionCounts["NAM"] + 1
-paidCount    giữ nguyên
-paidCents    giữ nguyên
-min/max      giữ nguyên
+paidCount    unchanged
+paidCents    unchanged
+min/max      unchanged
 ```
 
-Với đơn `O3` đã thanh toán, ngoài hai chỉ số đầu, accumulator còn:
+For paid order `O3`, in addition to the first two metrics, the accumulator also does:
 
 ```text
 paidCount + 1
@@ -421,120 +421,120 @@ minPaidCents = min(minPaidCents, 30000)
 maxPaidCents = max(maxPaidCents, 30000)
 ```
 
-Không dùng `forEach` để cập nhật một đối tượng Report chung bên ngoài pipeline. Việc thay đổi trạng thái trung gian là trách nhiệm của Collector, có giới hạn sở hữu và kết hợp rõ ràng.
+Do not use `forEach` to update a shared external `Report` object outside the pipeline. Mutating intermediate state is the Collector's responsibility, with clear ownership and combination boundaries.
 
-### 6.3. Combiner: không được chỉ cộng tổng tiền
+### 6.3. Combiner: Do Not Merge Only the Total Amount
 
-Khi gộp hai trạng thái, phải gộp **tất cả** chỉ số:
+When merging two states, **all** metrics must be merged:
 
-| Trường | Cách gộp |
+| Field | How to Merge |
 |---|---|
-| `orderCount` | Cộng đếm từ nhánh trái và nhánh phải |
-| `paidCount` | Cộng đếm đã thanh toán |
-| `paidCents` | Cộng tổng tiền đã thanh toán |
-| `minPaidCents` | Chọn min trên các nhánh có ít nhất một đơn đã thanh toán |
-| `maxPaidCents` | Chọn max trên các nhánh có ít nhất một đơn đã thanh toán |
-| `regionCounts` | Hợp nhất Map và cộng số đếm trùng khóa |
+| `orderCount` | Add counts from left and right branches |
+| `paidCount` | Add paid counts |
+| `paidCents` | Add paid totals |
+| `minPaidCents` | Take min across branches that have at least one paid order |
+| `maxPaidCents` | Take max across branches that have at least one paid order |
+| `regionCounts` | Merge Maps and sum counts for matching keys |
 
-Nếu bỏ quên việc kết hợp `regionCounts`, chương trình có thể “đúng” khi chạy tuần tự nhưng mất nhóm hoặc mất số đếm khi chạy song song. Nếu gộp trung bình trực tiếp, kết quả có thể sai với những phân đoạn có kích thước khác nhau.
+If you forget to combine `regionCounts`, the program may appear "correct" sequentially yet lose groups or counts in parallel. If you merge averages directly, results can be wrong when partitions differ in size.
 
-**Vì sao có thể cập nhật trạng thái bên trái rồi trả về chính nó?** Trong mutable reduction không concurrent, framework quản lý việc sử dụng từng container theo vòng đời của Collector. Combiner được phép lấy trạng thái nhánh trái làm kết quả sau gộp, miễn không gây chia sẻ trái phép và kết quả vẫn đúng.
+**Why can we mutate the left state and return it?** In non-concurrent mutable reduction, the framework manages each container's lifecycle according to the Collector contract. The combiner is permitted to reuse the left branch state as the merged result, as long as no illegal sharing occurs and the result stays valid.
 
-### 6.4. Finisher: chuyển trạng thái tạm thành kết quả có ý nghĩa
+### 6.4. Finisher: Turning Temporary State into Meaningful Output
 
-Finisher chỉ tính trung bình sau khi đã có tổng và số đếm, đồng thời chuyển sentinel min/max thành `OptionalLong`. Nó còn tạo một **bản sao `TreeMap`** và bọc bằng `Collections.unmodifiableMap`:
+The finisher computes the average only after sum and count are complete, and converts min/max sentinels into `OptionalLong`. It also creates a **`TreeMap` copy** wrapped with `Collections.unmodifiableMap`:
 
 ```java
 Map<String, Long> snapshot = Collections.unmodifiableMap(
         new TreeMap<>(regionCounts));
 ```
 
-Lợi ích của bản sao: `Report` không giữ trực tiếp Map mutable của accumulator. `TreeMap` còn cung cấp thứ tự khóa tăng dần cho mục đích trình bày; **đây là quyết định thiết kế kết quả**, không phải điều kiện để collector có thể xử lý song song.
+Benefit of copying: `Report` does not hold a direct reference to the accumulator's mutable Map. `TreeMap` also provides ascending key order for presentation; **this is a result-design choice**, not a prerequisite for parallel collection.
 
-Vì finisher thực hiện việc chuyển đổi thực sự từ `MetricsAccumulator` sang `Report`, không khai báo `Collector.Characteristics.IDENTITY_FINISH`.
+Because the finisher performs an actual conversion from `MetricsAccumulator` to `Report`, do not declare `Collector.Characteristics.IDENTITY_FINISH`.
 
-## 7. Chứng minh hợp đồng đơn vị, kết hợp và tương đương
+## 7. Proving Identity, Associativity, and Equivalence Contracts
 
-Một Collector tùy biến cần cho kết quả đúng với mọi cách framework chia và kết hợp dữ liệu hợp lệ.
+A custom Collector must produce correct results under every valid way the framework splits and combines data.
 
-### 7.1. Đơn vị (identity)
+### 7.1. Identity
 
-Gọi `E` là một accumulator mới từ supplier. Nó có các bộ đếm bằng 0, Map rỗng và chưa có cực trị. Với một trạng thái hợp lệ `A`:
+Let `E` be a fresh accumulator from the supplier. It has zero counters, an empty Map, and no extrema yet. For any valid state `A`:
 
 ```text
-combine(A, E) tương đương A
+combine(A, E) is equivalent to A
 ```
 
-Trong code, gộp số đếm và tiền với 0 không đổi kết quả; Map rỗng không thêm khóa nào; do `E.paidCount == 0` nên không làm thay đổi min/max.
+In code, adding counts and amounts with 0 leaves the result unchanged; an empty Map adds no keys; and because `E.paidCount == 0`, min/max are untouched.
 
-Trường hợp đối xứng `combine(E, A)` cũng cho cùng ý nghĩa: tổng/đếm được chép qua bằng phép cộng, min/max có giá trị từ `A` nếu `A` có đơn đã thanh toán, và Map đếm được hợp nhất.
+The symmetric case `combine(E, A)` also yields the same semantics: totals/counts are copied via addition, min/max take values from `A` if `A` has paid orders, and count Maps are merged.
 
-### 7.2. Kết hợp nhóm (associativity)
+### 7.2. Associativity
 
-Giả sử `A`, `B` và `C` là trạng thái tích lũy cho ba phân đoạn độc lập. Ta cần:
+Suppose `A`, `B`, and `C` are accumulated states for three independent partitions. We require:
 
 ```text
 combine(combine(A, B), C)  ≈  combine(A, combine(B, C))
 ```
 
-Đếm và tổng dùng phép cộng `long`, min/max dùng phép chọn cực trị, còn Map cộng số đếm theo từng khóa. Với **dữ liệu hợp lệ không gây tràn**, việc đổi cách nhóm không làm thay đổi chỉ số. Mọi phép cộng được kiểm tra bằng `Math.addExact` để thất bại rõ ràng khi kết quả vượt miền `long`.
+Counts and totals use `long` addition, min/max use extremum selection, and the Map sums per-key counts. For **valid non-overflowing data**, regrouping does not alter any metric. Every addition is checked with `Math.addExact` so it fails explicitly if results exceed `long` range.
 
-**Lưu ý về trung bình:** ta không gộp giá trị trung bình từng nhánh. Ví dụ:
+**Note on averages:** we never combine branch averages. For example:
 
 ```text
-Nhánh A: [10]         sum=10, count=1, average=10
-Nhánh B: [20, 30]     sum=50, count=2, average=25
+Branch A: [10]         sum=10, count=1, average=10
+Branch B: [20, 30]     sum=50, count=2, average=25
 
-SAI:  (10 + 25) / 2 = 17.5
-ĐÚNG: (10 + 50) / (1 + 2) = 20
+WRONG: (10 + 25) / 2 = 17.5
+RIGHT: (10 + 50) / (1 + 2) = 20
 ```
 
-Do đó, trạng thái trung gian bắt buộc giữ đủ thông tin `sum` và `count` đến bước finisher.
+Thus, intermediate state must retain full `sum` and `count` until the finisher step.
 
-### 7.3. Tương đương (equivalence)
+### 7.3. Equivalence
 
-Các cách tích lũy khác nhau phải tạo `Report` tương đương về **mọi KPI**, không chỉ riêng tổng tiền. Ví dụ, nếu hai báo cáo có `paidCents` bằng nhau nhưng `regionCounts` khác nhau thì **không tương đương** với yêu cầu dự án.
+Different accumulation strategies must produce equivalent `Report` objects across **every KPI**, not just total revenue. For example, if two reports have the same `paidCents` but different `regionCounts`, they are **not equivalent** under the project requirements.
 
-Hàm `sameReport` trong ví dụ so sánh mọi chỉ số và Map kết quả. Trên bộ dữ liệu nhỏ với kết quả số nguyên, việc so sánh `OptionalDouble` là hợp lý; trong các hệ thống tính trung bình từ nhiều giá trị dấu phẩy động, không nên luôn yêu cầu kết quả từng bit giống nhau vì thứ tự cộng có thể ảnh hưởng sai số.
+`sameReport` in the example compares every metric and the resulting Map. On small datasets with integer inputs, comparing `OptionalDouble` is reasonable; in systems averaging many floating-point values, bit-for-bit equality should not always be demanded because summation order can affect rounding error.
 
-### 7.4. Vì sao không khai báo CONCURRENT?
+### 7.4. Why Not Declare CONCURRENT?
 
-`MetricsAccumulator` dùng `HashMap` và nhiều trường `long` được thay đổi trực tiếp. Nếu nhiều worker cùng gọi `add` trên **một** accumulator, đây không phải code thread-safe.
+`MetricsAccumulator` uses `HashMap` and mutates several `long` fields directly. If multiple workers call `add` simultaneously on **one** accumulator, that code is not thread-safe.
 
-Nhưng khi dùng `orders.parallelStream().collect(metricsCollector())`, Collector **không có characteristic `CONCURRENT`**. Framework có thể cấp **container riêng cho các nhánh**, rồi gộp chúng; không yêu cầu mọi trường hay Map trong accumulator phải chịu cập nhật concurrent trên cùng instance.
+However, when calling `orders.parallelStream().collect(metricsCollector())`, the Collector **does not carry the `CONCURRENT` characteristic**. The framework allocates **separate containers per branch** and combines them; it does not require every field or Map inside the accumulator to support concurrent updates on the same instance.
 
-`UNORDERED` chỉ nên công bố nếu kết quả không phụ thuộc encounter order. Các chỉ số của ví dụ được thiết kế không phụ thuộc thứ tự, nhưng chỉ cần bỏ characteristic đó thì collector vẫn hoạt động đúng; không công bố `CONCURRENT` vẫn là quyết định thiết yếu.
+`UNORDERED` should only be declared if results do not depend on encounter order. The example's metrics are order-independent, yet omitting that characteristic still keeps the collector correct; withholding `CONCURRENT` remains the essential decision.
 
-## 8. Xử lý nguồn rỗng và chỉ số không tồn tại
+## 8. Handling Empty Sources and Non-Existent Metrics
 
-Có hai trường hợp khác nhau:
+There are two distinct cases:
 
-| Trường hợp | `orderCount` | `paidCount` | `paidCents` | `averagePaid` | `regionCounts` |
+| Case | `orderCount` | `paidCount` | `paidCents` | `averagePaid` | `regionCounts` |
 |---|---:|---:|---:|---|---|
-| Không có đơn nào | 0 | 0 | 0 | `OptionalDouble.empty()` | Map rỗng |
-| Có một đơn chưa thanh toán ở BAC | 1 | 0 | 0 | `OptionalDouble.empty()` | `{BAC=1}` |
-| Có một đơn đã thanh toán số tiền 0 | 1 | 1 | 0 | `OptionalDouble[0.0]` | Tùy khu vực |
-| Có hai đơn thanh toán 100 và 300 | 2 | 2 | 400 | `OptionalDouble[200.0]` | Tùy khu vực |
+| No orders at all | 0 | 0 | 0 | `OptionalDouble.empty()` | Empty Map |
+| One unpaid order in BAC | 1 | 0 | 0 | `OptionalDouble.empty()` | `{BAC=1}` |
+| One paid order of amount 0 | 1 | 1 | 0 | `OptionalDouble[0.0]` | By region |
+| Two paid orders of 100 and 300 | 2 | 2 | 400 | `OptionalDouble[200.0]` | By region |
 
-Một hệ thống dashboard có thể yêu cầu hiển thị dấu `—` khi không có trung bình, hoặc chủ động dùng `orElse(0.0)`. Tuy nhiên, **chính sách hiển thị không nên xóa mất thông tin “không có dữ liệu”** trong tầng thống kê nếu báo cáo cần phân biệt với trung bình thực sự bằng 0.
+A dashboard may want to display `—` when there is no average, or intentionally call `orElse(0.0)`. Even so, **presentation policy should not erase "no data" information** in the statistics layer if reports must distinguish it from an actual average of 0.
 
-Đối với các nhóm, `groupingBy` chỉ tạo khóa cho nhóm có ít nhất một phần tử cha. Nếu không có đơn thuộc khu vực `TAY`, `reportsByRegion` không tự thêm khóa `TAY` với `Report` rỗng; tầng báo cáo phải bổ sung nhóm vắng mặt nếu nghiệp vụ yêu cầu.
+For groups, `groupingBy` only creates keys for groups with at least one parent element. If there are no orders in region `TAY`, `reportsByRegion` will not automatically insert a `TAY` key with an empty `Report`; the reporting layer must backfill absent groups if business logic requires them.
 
-## 9. Mở rộng dự án: biến thể và chính sách dữ liệu
+## 9. Extending the Project: Variants and Data Policies
 
-### 9.1. Thêm số đơn chưa thanh toán
+### 9.1. Adding Unpaid Order Count
 
-Không cần thêm một trường mutable riêng nếu:
+There is no need for a separate mutable field if:
 
 ```java
 long unpaidCount = report.orderCount - report.paidCount;
 ```
 
-Vì `paidCount` là tập con của `orderCount`, ta có thể tính chỉ số này tại `Report.unpaidCount()`. Tránh lưu những chỉ số suy ra được nếu chúng có thể trở nên không nhất quán khi cập nhật/combiner.
+Since `paidCount` is a subset of `orderCount`, we can compute this metric in `Report.unpaidCount()`. Avoid storing derived metrics if they could become inconsistent during updates or combining.
 
-### 9.2. Tỷ lệ thanh toán
+### 9.2. Payment Rate
 
-Nếu muốn tỷ lệ đơn đã thanh toán:
+If you want the ratio of paid orders:
 
 ```java
 OptionalDouble paidRate = report.orderCount == 0
@@ -543,17 +543,17 @@ OptionalDouble paidRate = report.orderCount == 0
                 (double) report.paidCount / report.orderCount);
 ```
 
-Khi nguồn rỗng, tỷ lệ không được xác định. Việc tính tỷ lệ trong finisher hoặc trong một phương thức của `Report` giúp tránh gộp trực tiếp các tỷ lệ không có trọng số.
+When the source is empty, the rate is undefined. Computing the rate inside the finisher or in a `Report` method avoids directly merging unweighted ratios.
 
-### 9.3. Thêm tổng tiền theo khu vực
+### 9.3. Adding Paid Total by Region
 
-Có thể bổ sung:
+You can add:
 
 ```java
 Map<String, Long> paidCentsByRegion = new HashMap<>();
 ```
 
-Trong accumulator, chỉ với đơn đã thanh toán:
+In the accumulator, for paid orders only:
 
 ```java
 paidCentsByRegion.merge(
@@ -562,31 +562,31 @@ paidCentsByRegion.merge(
         Math::addExact);
 ```
 
-Trong combiner, duyệt Map từ nhánh phải và `merge(region, amount, Math::addExact)` vào Map bên trái. Trong finisher, tạo một snapshot bất biến cho kết quả. Việc thêm bất kỳ Map thống kê mới nào **đòi hỏi cả accumulator và combiner cập nhật đầy đủ**; nếu chỉ sửa accumulator, kết quả có nguy cơ sai trên parallel stream.
+In the combiner, iterate over the right branch's Map and `merge(region, amount, Math::addExact)` into the left Map. In the finisher, create an immutable snapshot for the result. Adding any new metric Map **requires updating both accumulator and combiner completely**; modifying only the accumulator risks wrong results on parallel streams.
 
-### 9.4. Số tiền âm, hoàn tiền và đổi tiền tệ
+### 9.4. Negative Amounts, Refunds, and Currency Conversion
 
-Ví dụ gốc từ chối `amountCents < 0`. Nếu ứng dụng hỗ trợ hoàn tiền, đây không chỉ là vấn đề đổi phép kiểm tra: cần quy tắc rõ ràng về tổng âm, cực trị, số tiền thanh toán và cách nhận diện giao dịch điều chỉnh.
+The original example rejects `amountCents < 0`. If an application supports refunds, it is not just a matter of flipping a check: you need explicit rules for negative sums, extrema, paid counts, and how adjustment transactions are identified.
 
-Nếu có **nhiều loại tiền tệ**, không được cộng trực tiếp mọi `amountCents` thành một tổng duy nhất. Cần nhóm theo loại tiền, chuyển đổi theo tỷ giá được phê duyệt hoặc định nghĩa một đơn vị kế toán thống nhất trước khi tổng hợp.
+If there are **multiple currencies**, never sum all `amountCents` directly into a single total. Group by currency, convert using an approved exchange rate, or define a unified accounting unit before aggregating.
 
-### 9.5. Nhiều phân vị hoặc top-N
+### 9.5. Multiple Quantiles or Top-N
 
-Median, percentile, top-N và distinct count chính xác có thể cần trạng thái phức tạp hơn. Ví dụ để tính median chính xác, một collector có thể phải giữ nhiều dữ liệu hơn chỉ `(sum, count, min, max)`. Không nên gán cho mọi KPI cùng độ phức tạp bộ nhớ: có chỉ số tính online với trạng thái hằng số, có chỉ số cần lưu nhiều phần tử.
+Median, percentiles, top-N, and exact distinct counts may require more complex state. For instance, to compute an exact median, a collector may have to retain far more data than just `(sum, count, min, max)`. Do not assume all KPIs share the same memory complexity: some metrics compute online in constant state, while others require storing many elements.
 
-## 10. Các vấn đề về độ chính xác và dữ liệu không hợp lệ
+## 10. Precision Issues and Invalid Data
 
-### 10.1. Tràn số nguyên
+### 10.1. Integer Overflow
 
-`long` không có miền giá trị vô hạn. Dùng `Math.addExact` giúp phát hiện trường hợp tổng hoặc số đếm vượt `Long.MAX_VALUE`. Khi điều đó xảy ra, collector sẽ ném `ArithmeticException`; không trả lại một con số bị tràn âm một cách âm thầm.
+`long` does not have an infinite range. Using `Math.addExact` detects when a sum or count exceeds `Long.MAX_VALUE`. When that happens, the collector throws `ArithmeticException` instead of silently returning a wrapped negative number.
 
-Với dữ liệu tiền lớn hoặc yêu cầu tính toán vượt phạm vi `long`, có thể thiết kế một accumulator sử dụng `BigInteger` hoặc `BigDecimal`. Mỗi lựa chọn có chi phí và chính sách làm tròn khác nhau.
+For large monetary volumes or calculations exceeding `long` bounds, you can design an accumulator using `BigInteger` or `BigDecimal`. Each choice carries different performance costs and rounding policies.
 
-### 10.2. Trung bình là double, không phải số tiền thập phân chính xác tuyệt đối
+### 10.2. Average as double vs. Exact Decimal Currency
 
-`(double) paidCents / paidCount` biểu diễn số thực nhị phân và có thể làm tròn. Nó phù hợp cho nhiều thống kê hiển thị, nhưng không luôn phù hợp với yêu cầu tài chính phải làm tròn chính xác theo một quy tắc cố định.
+`(double) paidCents / paidCount` represents a binary floating-point number and may introduce rounding. It is fine for many display statistics, though not always suitable for financial rules requiring exact rounding under a fixed policy.
 
-Ví dụ chuyển sang `BigDecimal` ở finisher:
+Example switching to `BigDecimal` in the finisher:
 
 ```java
 import java.math.BigDecimal;
@@ -600,13 +600,13 @@ Optional<BigDecimal> exactAverage = paidCount == 0
                         2, RoundingMode.HALF_UP));
 ```
 
-Đây là đoạn minh họa trong phạm vi `MetricsAccumulator`, nơi có các biến `paidCents` và `paidCount`. Quy tắc `scale = 2` và `HALF_UP` phải được chọn theo yêu cầu nghiệp vụ; nếu thống kê ở đơn vị cents thì kết quả cũng đang ở đơn vị cents, không tự chuyển sang đồng/đô la.
+This snippet illustrates code inside `MetricsAccumulator`, where `paidCents` and `paidCount` are in scope. The `scale = 2` and `HALF_UP` rule must be chosen according to business requirements; if statistics are in cents, the result is also in cents and does not automatically convert to dollars/VND.
 
-### 10.3. Null và phần tử hỏng
+### 10.3. Nulls and Corrupted Elements
 
-Đừng mặc định phần tử null được Stream tự loại bỏ. Với bộ dữ liệu chứa null, `MetricsAccumulator.add` hiện dùng `Objects.requireNonNull(order)` để **từ chối rõ ràng**; nó không tự bỏ qua bản ghi hỏng.
+Do not assume null elements are automatically removed by the Stream. On datasets containing null, `MetricsAccumulator.add` currently uses `Objects.requireNonNull(order)` to **reject explicitly**; it does not silently skip bad records.
 
-Nếu nghiệp vụ yêu cầu bỏ bản ghi null trước khi báo cáo:
+If business logic requires dropping null records before reporting:
 
 ```java
 Report result = orders.stream()
@@ -614,13 +614,13 @@ Report result = orders.stream()
         .collect(metricsCollector());
 ```
 
-Cách này làm số đếm phản ánh **các đơn hợp lệ sau lọc**, không phải tổng số dòng dữ liệu gốc. Nếu cần chỉ số **số bản ghi bị loại**, phải mô hình hóa nó trong accumulator hoặc một bước xác thực có thống kê riêng. Không nên vừa lọc âm thầm vừa báo cáo “tổng số bản ghi đã nhận”.
+This makes counts reflect **valid orders after filtering**, not total raw input records. If you need an **invalid record count**, model it inside the accumulator or in a separate validation pass with its own statistics. Never silently filter records while reporting "total records received".
 
-## 11. Đọc dữ liệu từ nguồn I/O nhưng vẫn đóng tài nguyên
+## 11. Reading from an I/O Source While Still Closing Resources
 
-Một ưu điểm của collector nhiều chỉ số là có thể tính nhiều KPI **ngay trong lúc duyệt file**, không phải giữ tất cả đơn trong bộ nhớ. Nhưng collector **không tự đóng** một Stream gắn tài nguyên I/O.
+One advantage of a multi-metric collector is computing multiple KPIs **while streaming through a file**, without holding every order in memory. However, a collector **does not automatically close** an I/O-backed Stream.
 
-Ví dụ khái quát:
+Conceptual example:
 
 ```java
 import java.nio.charset.StandardCharsets;
@@ -630,37 +630,37 @@ import java.util.stream.Stream;
 
 try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8)) {
     Report report = lines
-            .map(line -> parseOrder(line)) // Hàm parser do ứng dụng cung cấp.
+            .map(line -> parseOrder(line)) // Parser function provided by the app.
             .collect(metricsCollector());
 }
 ```
 
-Đoạn này minh họa cách dùng trong một lớp có `parseOrder(String)` và `path` đã khai báo; nó không phải chương trình độc lập. `Files.lines` phải được đặt trong `try-with-resources` ngay cả khi đã gọi terminal operation `collect`. Nếu parse lỗi hoặc đọc file ném ngoại lệ, nguồn vẫn được đóng khi rời khối `try`.
+This snippet illustrates usage inside a class where `parseOrder(String)` and `path` are already defined; it is not a standalone program. `Files.lines` must sit inside `try-with-resources` even after calling the terminal operation `collect`. If parsing fails or file reading throws an exception, the source is still closed upon exiting `try`.
 
-Đối với nguồn lớn, nên cân nhắc:
+For large sources, consider:
 
-- Parser có thể phân tích từng dòng độc lập không, hay cần trạng thái của dòng trước?
-- Bộ tích lũy đang giữ bao nhiêu khóa khu vực? Nếu số khóa rất lớn, `regionCounts` có thể tốn bộ nhớ.
-- Có giới hạn file descriptor hoặc tài nguyên khác không? `parallel()` không thay thế quản lý nguồn.
-- Kết quả có cần thứ tự không? Collector hiện chỉ tính thống kê, không cần giữ thứ tự đơn hàng.
+- Can the parser analyze each line independently, or does it need state from previous lines?
+- How many region keys does the accumulator retain? If key count is huge, `regionCounts` can consume significant memory.
+- Are there file descriptor or other resource limits? `parallel()` does not replace resource management.
+- Does the result require ordering? The current collector only computes statistics and does not need to preserve order.
 
-## 12. Khi nào nên dùng collector có sẵn thay vì tự viết?
+## 12. When to Use Built-In Collectors Instead of Writing Your Own?
 
-Collector tùy biến phù hợp khi cần **nhiều đại lượng với cùng quy tắc dữ liệu**, một lần duyệt và một đối tượng báo cáo nhất quán. Tuy nhiên, không nên tự viết khi API có sẵn đã thể hiện đủ yêu cầu.
+A custom Collector fits best when you need **multiple quantities under consistent data rules**, a single pass, and a cohesive report object. However, do not write one when built-in APIs already express the requirement cleanly.
 
-| Bài toán | Công cụ thường đơn giản hơn |
+| Problem | Usually Simpler Tool |
 |---|---|
-| Chỉ tính tổng tiền | `mapToLong(...).sum()` hoặc `Collectors.summingLong(...)` |
-| Chỉ đếm số đơn | `count()` hoặc `Collectors.counting()` |
-| Cần count/sum/min/max/average của **một trường số** | `summarizingLong(...)` |
-| Đếm đơn theo khu vực | `groupingBy(..., counting())` |
-| Tổng tiền theo khu vực | `groupingBy(..., summingLong(...))` |
-| Muốn kết hợp **hai** collector độc lập | `Collectors.teeing(...)` từ Java 12 |
-| Nhiều chỉ số, một DTO nhất quán, trạng thái tùy biến | `Collector.of(...)` |
+| Only summing amounts | `mapToLong(...).sum()` or `Collectors.summingLong(...)` |
+| Only counting orders | `count()` or `Collectors.counting()` |
+| Need count/sum/min/max/average of **one numeric field** | `summarizingLong(...)` |
+| Counting orders by region | `groupingBy(..., counting())` |
+| Total amount by region | `groupingBy(..., summingLong(...))` |
+| Combining **two** independent collectors | `Collectors.teeing(...)` since Java 12 |
+| Multiple metrics, one consistent DTO, custom state | `Collector.of(...)` |
 
-### 12.1. So sánh với summarizingLong
+### 12.1. Comparison with summarizingLong
 
-`Collectors.summarizingLong` tạo `LongSummaryStatistics`, tính count, sum, min, max và average của **một trường số**:
+`Collectors.summarizingLong` produces `LongSummaryStatistics`, computing count, sum, min, max, and average of **one numeric field**:
 
 ```java
 java.util.LongSummaryStatistics stats = orders.stream()
@@ -669,14 +669,14 @@ java.util.LongSummaryStatistics stats = orders.stream()
                 Order::getAmountCents));
 ```
 
-Cách này rất phù hợp nếu chỉ cần thống kê tiền của các đơn đã thanh toán. Nhưng nó không tự đếm **toàn bộ đơn**, **số đơn chưa thanh toán** và **số đơn theo khu vực** trong cùng một kết quả. Hơn nữa, `LongSummaryStatistics.getAverage()` trả 0 khi count bằng 0; nếu muốn phân biệt không có dữ liệu thì phải kiểm tra `getCount()`.
+This is great if you only need monetary statistics for paid orders. However, it does not simultaneously count **total orders**, **unpaid orders**, and **orders per region** in one result. Furthermore, `LongSummaryStatistics.getAverage()` returns 0 when count is 0; to distinguish missing data, you must check `getCount()`.
 
-### 12.2. So sánh với teeing
+### 12.2. Comparison with teeing
 
-Java 12 thêm `Collectors.teeing(downstream1, downstream2, merger)` để chạy **hai** collector trên cùng đầu vào rồi gộp hai kết quả cuối thành một:
+Java 12 added `Collectors.teeing(downstream1, downstream2, merger)` to run **two** collectors on the same input and merge both final results into one:
 
 ```java
-// Java 12+, chỉ minh họa hai đại lượng:
+// Java 12+, illustrating just two quantities:
 Map.Entry<Long, Long> totals = orders.stream()
         .collect(Collectors.teeing(
                 Collectors.counting(),
@@ -686,14 +686,14 @@ Map.Entry<Long, Long> totals = orders.stream()
                                 count, sum)));
 ```
 
-Đoạn này tính count của **tất cả** đơn và tổng tiền của **tất cả** đơn, không lọc trạng thái đã thanh toán. Khi cần nhiều đại lượng với các quy tắc con khác nhau, có thể lồng `teeing`, nhưng độ phức tạp kiểu tổng hợp dễ tăng. Collector tùy biến thường rõ ràng hơn nếu có một mô hình KPI thống nhất gồm nhiều bộ đếm và Map.
+This computes the count of **all** orders and total amount of **all** orders without filtering paid status. When multiple metrics need different sub-rules, you can nest `teeing`, though type complexity grows quickly. A custom Collector is usually clearer when you have a unified KPI model with multiple counters and Maps.
 
-## 13. Kiểm tra bằng cách chia và gộp thủ công
+## 13. Testing by Manual Splitting and Combining
 
-Không nên chỉ thử ví dụ tuần tự. Một lỗi combiner có thể không bộc lộ cho đến khi chạy song song. Hãy mô phỏng việc chia nguồn thành hai nhánh:
+Do not test only sequential examples. A combiner bug may remain hidden until parallel execution runs. Simulate splitting the source into two branches:
 
 ```java
-// Đoạn chạy trong lớp MultiMetricCollectorDemo ở phần 5.
+// Snippet running inside MultiMetricCollectorDemo from section 5.
 MetricsAccumulator left = new MetricsAccumulator();
 MetricsAccumulator right = new MetricsAccumulator();
 
@@ -710,50 +710,50 @@ Report onePass = sequential.finish();
 System.out.println(sameReport(merged, onePass)); // true
 ```
 
-Tiếp tục thử gộp với một trạng thái rỗng, gộp ba nhánh theo hai cách đặt ngoặc khác nhau, các nhánh chỉ có đơn chưa thanh toán và các nhóm trùng khóa. Test thủ công giúp phát hiện lỗi, nhưng **không chứng minh** cho mọi dữ liệu; cần lý giải bằng hợp đồng toán học của bộ tích lũy.
+Continue testing merges with an empty state, three-branch merges under two different parenthesizations, branches with only unpaid orders, and branches with overlapping group keys. Manual tests catch bugs, though they **do not prove correctness** for every dataset; you must reason from the accumulator's mathematical contract.
 
-### 13.1. Bộ ca kiểm tra quan trọng
+### 13.1. Essential Test Case Matrix
 
-| Ca kiểm tra | Điều phải đúng |
+| Test Case | What Must Hold |
 |---|---|
-| Nguồn hoàn toàn rỗng | Count và tổng bằng 0; cực trị/trung bình vắng mặt; Map rỗng |
-| Một đơn đã thanh toán tiền 0 | Paid count = 1; min/max/average có giá trị 0 |
-| Một đơn chưa thanh toán | Tổng đơn = 1, paid = 0, Map khu vực vẫn tăng |
-| Tất cả đơn thuộc một khu vực | Count theo khu vực bằng tổng số đơn |
-| Các đơn thuộc nhiều khu vực | Sum count của Map bằng tổng số đơn |
-| Đảo thứ tự danh sách | Các KPI và Map phải tương đương |
-| Chạy tuần tự và song song | Kết quả tương đương trên dữ liệu hợp lệ |
-| Gộp với trạng thái rỗng | Kết quả không đổi |
-| Gộp ba trạng thái theo hai thứ tự ngoặc | Kết quả tương đương |
-| Số tiền âm hoặc region null | Từ chối theo chính sách ví dụ |
-| Tổng tiền vượt `long` | Ném `ArithmeticException` thay vì tràn âm |
+| Completely empty source | Counts and totals are 0; extrema/average absent; Map empty |
+| One paid order of amount 0 | Paid count = 1; min/max/average equal 0 |
+| One unpaid order | Total orders = 1, paid = 0, region Map still increments |
+| All orders in one region | Region count equals total orders |
+| Orders across multiple regions | Sum of Map counts equals total orders |
+| Reversed list order | KPIs and Map must be equivalent |
+| Sequential vs. parallel runs | Equivalent results on valid data |
+| Combining with empty state | Result unchanged |
+| Combining three states in two parenthesizations | Equivalent results |
+| Negative amount or null region | Rejected per example policy |
+| Total amount exceeding `long` | Throws `ArithmeticException` instead of negative overflow |
 
-Với một dự án có kiểm thử tự động, nên dùng JUnit và tạo nhiều tổ hợp dữ liệu nhỏ; nếu kiểm thử hiệu năng, cần đo riêng và tránh coi việc “test thông qua” là bằng chứng collector song song luôn nhanh hơn.
+For a project with automated tests, use JUnit and generate varied small combinations; for performance testing, measure separately and avoid treating "test passed" as proof that a parallel collector is always faster.
 
-## 14. Các lỗi phổ biến khi viết Collector nhiều chỉ số
+## 14. Common Mistakes When Writing Multi-Metric Collectors
 
-| Lỗi | Hậu quả | Hướng sửa |
+| Mistake | Consequence | Fix |
 |---|---|---|
-| Tính trung bình bằng cách lấy trung bình hai accumulator | Sai khi các nhánh có kích thước khác nhau | Giữ sum và count; chia ở finisher |
-| Combiner chỉ gộp sum, bỏ Map hoặc count | Mất số liệu trên parallel stream | Gộp đủ mọi trường trạng thái |
-| Supplier trả cùng một object static | Các nhánh có thể sửa chung container | Tạo trạng thái mới cho mỗi lần supplier được gọi |
-| Đánh dấu `CONCURRENT` cho `HashMap` và `long` mutable | Data race khi worker cùng cập nhật | Không công bố `CONCURRENT` nếu accumulator không an toàn đồng thời |
-| Đánh dấu `IDENTITY_FINISH` khi `A != R` | Framework có thể bỏ qua finisher | Không dùng characteristic đó |
-| Xuất sentinel min/max khi count = 0 | Báo cáo hiển thị cực trị giả | Chuyển thành Optional rỗng |
-| `toList` giữ mọi đơn chỉ để tính KPI | Tốn bộ nhớ không cần thiết | Tích lũy chỉ số trực tiếp |
-| Dùng `sum` của `int` cho dữ liệu lớn | Tràn số | Dùng kiểu phù hợp, `Math.addExact` hoặc BigInteger |
-| Gọi `getAsDouble()` trên Optional rỗng | `NoSuchElementException` | Kiểm tra `isPresent` hoặc dùng chính sách mặc định rõ ràng |
-| Dùng `parallelStream()` rồi suy ra nhanh hơn | Overhead, tranh chấp, phân nhánh tốn chi phí | Benchmark theo dữ liệu thật |
-| Đọc file bằng `Files.lines` mà không đóng | Rò rỉ file descriptor | `try-with-resources` |
-| Lọc bản ghi hỏng mà không báo số lượng bị loại | KPI bị hiểu sai phạm vi dữ liệu | Định nghĩa chính sách kiểm tra và thống kê chất lượng |
+| Computing average by averaging two accumulators | Wrong when branches have different sizes | Keep sum and count; divide in finisher |
+| Combiner merges only sum, skipping Map or count | Lost data on parallel streams | Merge every state field |
+| Supplier returns the same static object | Branches mutate shared container | Create fresh state on every supplier call |
+| Marking `CONCURRENT` for mutable `HashMap` and `long` | Data race when workers update concurrently | Never declare `CONCURRENT` unless accumulator is thread-safe |
+| Marking `IDENTITY_FINISH` when `A != R` | Framework may skip finisher | Omit that characteristic |
+| Exposing sentinel min/max when count = 0 | Report displays fake extrema | Convert to empty Optional |
+| Calling `toList` to keep all orders just to compute KPIs | Unnecessary memory usage | Accumulate metrics directly |
+| Using `int` sum for large data | Numeric overflow | Use an appropriate type, `Math.addExact`, or BigInteger |
+| Calling `getAsDouble()` on empty Optional | `NoSuchElementException` | Check `isPresent` or apply an explicit default policy |
+| Using `parallelStream()` and assuming it is faster | Overhead, contention, costly splitting | Benchmark on real data |
+| Reading files with `Files.lines` without closing | File descriptor leak | Use `try-with-resources` |
+| Filtering bad records without reporting dropped count | KPIs misinterpret data scope | Define validation policy and quality metrics |
 
-## 15. Bài tập nâng cao có hướng dẫn và đáp án
+## 15. Guided Advanced Exercises and Solutions
 
-### Bài 1. Bổ sung tỷ lệ đơn đã thanh toán
+### Exercise 1. Add Paid Order Rate
 
-**Đề bài:** Từ các trường đã có, xây một phương thức `paidRate()` trả `OptionalDouble`. Nếu nguồn rỗng, không trả mặc định 0.
+**Prompt:** Using existing fields, implement a `paidRate()` method returning `OptionalDouble`. If the source is empty, do not default to 0.
 
-**Đáp án tham khảo:**
+**Reference solution:**
 
 ```java
 OptionalDouble paidRate() {
@@ -763,57 +763,57 @@ OptionalDouble paidRate() {
 }
 ```
 
-Đặt phương thức này trong `Report`. Bộ tích lũy không cần trường mới, vì tỷ lệ suy ra được từ hai bộ đếm đã có.
+Place this method in `Report`. The accumulator needs no new field, because the rate is derived from two existing counters.
 
-### Bài 2. Thêm tổng tiền đã thanh toán theo khu vực
+### Exercise 2. Add Paid Total Amount by Region
 
-**Đề bài:** Bổ sung `Map<String, Long> paidCentsByRegion` vào accumulator, rồi cập nhật nó trong các pha.
+**Prompt:** Add `Map<String, Long> paidCentsByRegion` to the accumulator and update it across all phases.
 
-**Hướng dẫn:** Tại `add` chỉ cộng tiền nếu `order.isPaid()`. Tại `combine` hợp nhất toàn bộ Map của nhánh phải bằng `merge`. Tại `finish` tạo snapshot bất biến. Không quên thử trường hợp một khu vực chỉ có đơn chưa thanh toán: tùy chính sách, nó có thể không xuất hiện trong Map **tiền đã thanh toán**, dù vẫn xuất hiện trong Map **số đơn**.
+**Guidance:** In `add`, add amount only if `order.isPaid()`. In `combine`, merge the entire Map from the right branch using `merge`. In `finish`, build an immutable snapshot. Remember to test a region that has only unpaid orders: depending on policy, it may be absent from the **paid amount** Map while still appearing in the **order count** Map.
 
-### Bài 3. Đếm lỗi dữ liệu thay vì ném ngoại lệ
+### Exercise 3. Count Data Errors Instead of Throwing
 
-**Đề bài:** Thay chính sách từ chối `Order null` thành báo cáo cả `invalidCount` và `validCount`.
+**Prompt:** Replace the policy of rejecting `null` `Order` with reporting both `invalidCount` and `validCount`.
 
-**Gợi ý:** Nếu đầu vào là một Stream có phần tử null, đưa kiểm tra null vào `add` thay vì gọi `Objects.requireNonNull` ngay từ đầu. Với đơn null, tăng `invalidCount` và `return`; với đơn hợp lệ, cập nhật các KPI. `combine` phải cộng thêm `invalidCount`. Định nghĩa rõ `orderCount` là số đơn hợp lệ hay tổng số bản ghi đã đọc và giữ nhất quán qua mọi bước.
+**Hint:** If the input Stream may contain null elements, move the null check into `add` instead of calling `Objects.requireNonNull` upfront. For a null order, increment `invalidCount` and `return`; for a valid order, update KPIs. `combine` must also sum `invalidCount`. Clearly define whether `orderCount` means valid orders or total records read, and keep that consistent across every step.
 
-### Bài 4. Tạo collector cho điểm thi
+### Exercise 4. Build a Collector for Exam Scores
 
-**Đề bài:** Thay `Order` bằng `StudentResult(studentId, className, score)`. Tính số bài làm, tổng điểm, điểm thấp nhất, cao nhất, trung bình và số bài theo lớp.
+**Prompt:** Replace `Order` with `StudentResult(studentId, className, score)`. Compute submission count, total score, lowest score, highest score, average, and submission count per class.
 
-**Đáp án định hướng:** Dùng trạng thái gồm `count`, `sum`, `min`, `max` và `Map<className, count>`; viết các hàm `add`, `combine`, `finish` tương tự. Cần quyết định cho điểm không hợp lệ, dữ liệu thiếu và quy tắc làm tròn trước khi triển khai.
+**Solution guidance:** Use state containing `count`, `sum`, `min`, `max`, and `Map<className, count>`; write `add`, `combine`, and `finish` similarly. Decide how to handle invalid scores, missing data, and rounding rules before implementing.
 
-### Bài 5. Phát hiện lỗi kết hợp trung bình
+### Exercise 5. Spot the Average-Combining Bug
 
-Hai nhánh có dữ liệu: A = `[10]`, B = `[20, 30]`. Một combiner gộp average A và average B bằng cách lấy trung bình của hai giá trị trung bình.
+Two branches have data: A = `[10]`, B = `[20, 30]`. A combiner merges average A and average B by taking the mean of the two averages.
 
-**Đáp án:** Kết quả sai là `(10 + 25) / 2 = 17.5`, còn trung bình đúng là `(10 + 20 + 30) / 3 = 20`. Cần gộp `(sum=10,count=1)` với `(sum=50,count=2)` rồi chia `60/3`.
+**Answer:** The wrong result is `(10 + 25) / 2 = 17.5`, whereas the true average is `(10 + 20 + 30) / 3 = 20`. You must combine `(sum=10,count=1)` with `(sum=50,count=2)` and then divide `60/3`.
 
-### Bài 6. Kiểm tra khả năng chạy song song
+### Exercise 6. Checking Parallel Compatibility
 
-**Đề bài:** Có cần thêm `Collector.Characteristics.CONCURRENT` để `orders.parallelStream().collect(metricsCollector())` hoạt động không?
+**Prompt:** Is `Collector.Characteristics.CONCURRENT` required for `orders.parallelStream().collect(metricsCollector())` to work?
 
-**Đáp án:** Không. Collector thông thường có thể chạy song song bằng các container riêng và combiner. Nếu công bố `CONCURRENT` với `HashMap`, các trường `long` và cập nhật mutable không được đồng bộ, chương trình có thể gặp data race.
+**Answer:** No. A standard Collector can run in parallel using separate containers and the combiner. Declaring `CONCURRENT` with an unsynchronized `HashMap`, mutable `long` fields, and unsynchronized updates would introduce data races.
 
-### Bài 7. Thiết kế một yêu cầu hiệu năng có thể đo được
+### Exercise 7. Designing a Measurable Performance Requirement
 
-**Đề bài:** Hãy xác định cách so sánh collector tùy biến với việc chạy nhiều pipeline độc lập.
+**Prompt:** Define how to compare the custom collector against running multiple independent pipelines.
 
-**Đáp án định hướng:** Dùng cùng dữ liệu và cùng quy tắc KPI, kiểm tra tính đúng trước, làm warm-up, đo nhiều lượt trên các kích thước đại diện, phân biệt trường hợp dữ liệu trong bộ nhớ với I/O, quan sát cả cấp phát bộ nhớ và tải CPU. Với benchmark Java nghiêm túc nên dùng JMH. Đừng mặc định custom collector luôn nhanh hơn: nếu số liệu rất nhỏ hoặc những thống kê có sẵn đủ dùng, sự đơn giản của `summarizingLong` có thể đáng giá hơn.
+**Guidance:** Use the same dataset and KPI rules, verify correctness first, perform warm-up, measure multiple runs across representative sizes, distinguish in-memory data from I/O, and observe both memory allocation and CPU load. For serious Java benchmarks, use JMH. Never assume a custom collector is always faster: if data is very small or built-in stats suffice, the simplicity of `summarizingLong` may be worth more.
 
-## 16. Checklist hoàn thành dự án
+## 16. Project Completion Checklist
 
-Một Collector nhiều chỉ số có thể coi là được thiết kế tốt khi trả lời được các câu hỏi sau:
+A multi-metric Collector can be considered well-designed when you can answer these questions:
 
-1. **Đã xác định rõ nguồn dữ liệu và phạm vi từng KPI chưa?** Count tất cả bản ghi hay chỉ bản ghi hợp lệ? Tiền xét mọi đơn hay chỉ đơn đã thanh toán?
-2. **Trạng thái trung gian có đủ thông tin không?** Đã giữ sum, count và dữ liệu để suy ra mọi chỉ số chưa?
-3. **Supplier có tạo trạng thái mới, rỗng và độc lập không?**
-4. **Accumulator có xử lý một phần tử theo quy tắc đã công bố và tránh side effect bên ngoài không?**
-5. **Combiner có gộp đủ mọi trường và thỏa tính kết hợp không?**
-6. **Finisher có trả kết quả không phụ thuộc vào Map mutable nội bộ và xử lý nguồn rỗng đúng không?**
-7. **Đã kiểm tra số học chưa?** Có tràn số, mất chính xác thập phân hoặc chia cho 0 không?
-8. **Đã kiểm thử tuần tự, song song, nguồn rỗng, một phần tử, dữ liệu hỏng và nhóm trùng khóa chưa?**
-9. **Có đang công bố characteristics chính xác không?** Đặc biệt, không đánh dấu `CONCURRENT` hay `IDENTITY_FINISH` tùy tiện.
-10. **Có cần collector tùy biến thật không?** `counting`, `summingLong`, `summarizingLong`, `groupingBy` hoặc `teeing` đã giải quyết đủ yêu cầu chưa?
+1. **Are the data source and each KPI's scope clearly defined?** Count all records or only valid ones? Sum all orders or only paid ones?
+2. **Does the intermediate state retain enough information?** Have sum, count, and data needed to derive all metrics been kept?
+3. **Does the supplier create fresh, empty, independent state?**
+4. **Does the accumulator process one element per published rules without external side effects?**
+5. **Does the combiner merge every field and satisfy associativity?**
+6. **Does the finisher return a result decoupled from the internal mutable Map and handle empty sources properly?**
+7. **Has arithmetic been checked?** Any overflow, decimal precision loss, or division by zero?
+8. **Have sequential, parallel, empty source, single-element, bad data, and duplicate group keys been tested?**
+9. **Are the declared characteristics accurate?** In particular, never tag `CONCURRENT` or `IDENTITY_FINISH` carelessly.
+10. **Is a custom Collector truly needed?** Would `counting`, `summingLong`, `summarizingLong`, `groupingBy`, or `teeing` already cover the requirement?
 
-**Kết luận:** Viết Collector tùy biến để tổng hợp nhiều chỉ số không chỉ là gọi `Collector.of`. Bài toán cốt lõi là chọn một **trạng thái có thể gộp**, giữ đủ thông tin cho mọi KPI, bảo đảm **đơn vị – kết hợp – tương đương**, và tách kết quả cuối khỏi trạng thái mutable. Khi thiết kế đúng, cùng một Collector có thể được dùng trên Stream tuần tự, Stream song song hoặc làm downstream của `groupingBy`, đồng thời giúp tiết kiệm các lần duyệt dữ liệu không cần thiết mà vẫn kiểm soát được độ chính xác và tài nguyên.
+**Conclusion:** Writing a custom Collector to aggregate multiple metrics is not just calling `Collector.of`. The core problem is choosing a **mergeable state**, retaining enough information for every KPI, guaranteeing **identity – associativity – equivalence**, and decoupling the final result from mutable state. When designed well, the same Collector works on sequential Streams, parallel Streams, or as a downstream collector of `groupingBy`, eliminating redundant data passes while keeping precision and resources under control.

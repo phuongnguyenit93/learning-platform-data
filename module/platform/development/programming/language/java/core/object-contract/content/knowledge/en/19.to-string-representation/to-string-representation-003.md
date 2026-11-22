@@ -1,58 +1,58 @@
-# Vì sao phần sau @ không được hiểu là địa chỉ bộ nhớ
+# Why the Part After `@` Must Not Be Understood as a Memory Address
 
-## 1. Hiện tượng thường gặp khi in một object
+## 1. Common Observation When Printing an Object
 
-Khi in một đối tượng Java chưa tự định nghĩa cách biểu diễn chuỗi, ta thường thấy dạng:
+When printing a Java object that has not defined its own string representation, we often see a form like:
 
 ```text
 com.example.Person@5acf9800
 ```
 
-Nhiều người nhìn phần `5acf9800` sau dấu `@` rồi gọi đó là “địa chỉ bộ nhớ” của đối tượng. Kết luận này **không được hợp đồng Java bảo đảm và vì thế không chính xác**. Ở cách biểu diễn mặc định từ `java.lang.Object.toString()`, phần sau dấu `@` là **giá trị `hashCode()` của đối tượng, được định dạng thành chuỗi thập lục phân (hex)**.
+Many people look at the `5acf9800` part after the `@` sign and call it the object's "memory address". That conclusion **is not guaranteed by the Java contract and is therefore incorrect**. In the default representation from `java.lang.Object.toString()`, the part after `@` is the object's **`hashCode()` value, formatted as a hexadecimal (hex) string**.
 
-Hệ quả quan trọng:
+Important consequences:
 
-- Không thể suy ra vị trí đối tượng trong RAM từ chuỗi `ClassName@hex`.
-- Hai đối tượng **khác tham chiếu** vẫn có thể in ra **cùng** hậu tố sau `@`.
-- Giá trị hash không phải ID duy nhất hoặc địa chỉ ổn định dùng để lưu lại giữa các lần chạy chương trình.
-- Nếu lớp ghi đè `hashCode()`, hậu tố của `Object.toString()` có thể phản ánh quy tắc hash do lập trình viên định nghĩa, hoàn toàn không liên quan đến cơ chế cấp phát bộ nhớ.
-- Nếu lớp ghi đè `toString()`, chuỗi in ra thậm chí **không cần có ký tự `@`**.
+- You cannot deduce an object's location in RAM from the `ClassName@hex` string.
+- Two objects with **different references** can still print the **same** suffix after `@`.
+- The hash value is not a unique ID or a stable address to store across program runs.
+- If a class overrides `hashCode()`, the suffix of `Object.toString()` may reflect a developer-defined hash rule completely unrelated to memory allocation.
+- If a class overrides `toString()`, the printed string does **not even need to contain the `@` character**.
 
-Bài này tập trung vào **cách hiểu chuỗi `toString()` mặc định**, nhất là nguồn gốc và giới hạn ý nghĩa của phần sau dấu `@`.
+This lesson focuses on **how to interpret the default `toString()` string**, especially the origin and limits of meaning of the part after `@`.
 
-## 2. Công thức thực sự của Object.toString()
+## 2. The Actual Formula of Object.toString()
 
-Theo hợp đồng của `java.lang.Object.toString()`, cách biểu diễn mặc định tương đương với:
+According to the contract of `java.lang.Object.toString()`, the default representation is equivalent to:
 
 ```java
 getClass().getName() + "@" + Integer.toHexString(hashCode())
 ```
 
-Đây là **biểu thức minh họa cơ chế của phương thức**, không phải một chương trình Java độc lập. Mỗi thành phần có nhiệm vụ rõ ràng:
+This is an **illustrative expression showing the method's mechanism**, not a standalone Java program. Each component has a clear role:
 
-| Thành phần | Ý nghĩa |
+| Component | Meaning |
 | --- | --- |
-| `getClass()` | Lấy lớp **thực tế lúc chạy** của đối tượng. |
-| `getClass().getName()` | Trả tên lớp dạng nhị phân mà Java dùng cho `Class.getName()`, ví dụ `com.example.Person`. |
-| `"@"` | Ký tự phân cách giữa tên lớp và hậu tố hash. |
-| `hashCode()` | Lấy số nguyên `int` do phương thức `hashCode()` của đối tượng trả về. |
-| `Integer.toHexString(...)` | Chuyển mẫu bit của số nguyên `int` thành biểu diễn hex không dấu, dùng các ký tự `0–9` và `a–f`. |
+| `getClass()` | Gets the **actual runtime** class of the object. |
+| `getClass().getName()` | Returns the binary class name that Java uses for `Class.getName()`, e.g., `com.example.Person`. |
+| `"@"` | Separator character between the class name and the hash suffix. |
+| `hashCode()` | Gets the `int` integer returned by the object's `hashCode()` method. |
+| `Integer.toHexString(...)` | Converts the bit pattern of the `int` integer into an unsigned hex representation, using characters `0–9` and `a–f`. |
 
-Giả sử `hashCode()` trả về số thập phân `42`:
+Suppose `hashCode()` returns the decimal number `42`:
 
 ```java
 System.out.println(Integer.toHexString(42)); // 2a
 ```
 
-Do đó, đối tượng của lớp `Person` đang dùng `Object.toString()` và có `hashCode() == 42` sẽ được hiển thị với hậu tố `@2a`. Số `2a` trong hệ 16 chỉ là một cách viết khác của `42` trong hệ 10. Nó không chứa thông tin bắt buộc về vùng nhớ.
+Therefore, an instance of `Person` using `Object.toString()` with `hashCode() == 42` will be displayed with the suffix `@2a`. The number `2a` in base 16 is simply another way of writing `42` in base 10. It contains no required information about a memory region.
 
-Cần phân biệt **giá trị hash** với **kích thước/vị trí tham chiếu**. `hashCode()` trả về `int` 32 bit; địa chỉ vùng nhớ trong một tiến trình có thể có cách biểu diễn, kích thước và cơ chế quản lý hoàn toàn khác. Việc hậu tố có ký tự hex khiến nó trông giống địa chỉ chỉ là sự giống nhau về cách viết.
+We must distinguish a **hash value** from **reference size/location**. `hashCode()` returns a 32-bit `int`; memory addresses in a process can have a completely different representation, size, and management mechanism. That the suffix contains hex characters making it look like an address is merely a similarity in notation.
 
-### Chú ý về tên lớp
+### Note on Class Names
 
-Nếu đối tượng là instance của lớp lồng, `getClass().getName()` có thể chứa ký tự `$`. Nếu là một mảng nguyên thủy kiểu `int[]`, tên từ `getClass().getName()` là `[I`, nên đầu ra mặc định của đối tượng mảng có dạng `[I@...`. Các quy tắc tên lớp này cũng không nói gì về vị trí bộ nhớ.
+If the object is an instance of a nested class, `getClass().getName()` may contain the `$` character. If it is a primitive array such as `int[]`, the name from `getClass().getName()` is `[I`, so the default output of the array object has the form `[I@...`. These class-naming rules also say nothing about memory location.
 
-Ví dụ:
+Example:
 
 ```java
 int[] values = {1, 2, 3};
@@ -60,28 +60,28 @@ System.out.println(values.getClass().getName()); // [I
 System.out.println(java.util.Arrays.toString(values)); // [1, 2, 3]
 ```
 
-*Đây là các lệnh minh họa trong một phương thức.* Muốn xem **nội dung** mảng, dùng `Arrays.toString` hoặc `Arrays.deepToString` khi phù hợp, thay vì cố giải mã hậu tố sau `@`.
+*These are illustrative statements inside a method.* To inspect array **contents**, use `Arrays.toString` or `Arrays.deepToString` as appropriate, instead of trying to decode the suffix after `@`.
 
-## 3. Hash code không phải địa chỉ và cũng không phải danh tính duy nhất
+## 3. A Hash Code Is Neither an Address Nor a Unique Identity
 
-`Object.hashCode()` trả về một số nguyên phục vụ hợp đồng băm của Java. Đối với `Object.hashCode()` mặc định, Java mô tả ý định tạo các mã khác nhau cho các object khác nhau “khi khả thi”, nhưng **không bảo đảm các mã luôn duy nhất**.
+`Object.hashCode()` returns an integer serving Java's hashing contract. For the default `Object.hashCode()`, Java describes the intent to produce distinct codes for distinct objects "as much as is reasonably practical", but **does not guarantee that codes are always unique**.
 
-Một số điểm giúp tránh hiểu nhầm:
+Several points help avoid misconceptions:
 
-1. **Không có API địa chỉ bộ nhớ trong `hashCode()`.** Đặc tả Java không yêu cầu `Object.hashCode()` tính bằng cách lấy địa chỉ RAM.
-2. **Va chạm hash là hợp lệ.** Hai object khác nhau có thể có cùng hash mà không vi phạm hợp đồng.
-3. **Hash không xác định equality theo chiều ngược lại.** Nếu `a.equals(b)` là `true` thì chúng phải có hash bằng nhau; nhưng cùng hash không chứng minh `equals()` là `true`.
-4. **Hậu tố không phải khóa lưu trữ.** Không dùng `@...` làm ID database, khóa phiên, định danh theo dõi liên tiến trình hoặc giá trị bí mật.
-5. **Giá trị không có cam kết lặp lại qua nhiều lần chạy.** Với hash mặc định, chương trình khởi động lại không có nghĩa các object mới cùng loại sẽ có hậu tố cũ.
-6. **JVM được tự do triển khai cơ chế của hash mặc định** miễn giữ hợp đồng ngôn ngữ/API. Một triển khai nào đó có thể dựa một phần vào thông tin liên quan đến đối tượng, nhưng không được suy luận từ đó rằng mọi JVM hay mọi lần chạy đều xuất địa chỉ bộ nhớ.
+1. **There is no memory-address API in `hashCode()`.** The Java specification does not require `Object.hashCode()` to be computed by reading a RAM address.
+2. **Hash collisions are valid.** Two different objects can have the same hash without violating the contract.
+3. **Hashes do not determine equality in reverse.** If `a.equals(b)` is `true`, they must have equal hashes; however, having the same hash does not prove `equals()` is `true`.
+4. **The suffix is not a storage key.** Do not use `@...` as a database ID, session key, cross-process tracking identifier, or secret value.
+5. **Values are not guaranteed to repeat across runs.** With default hashes, restarting the program does not mean new objects of the same type will have the old suffix.
+6. **The JVM is free to implement the default hash mechanism** as long as it preserves the language/API contract. A particular implementation might partly rely on object-related information, but you must not infer from that that every JVM or every run outputs a memory address.
 
-Đặc biệt, garbage collector có thể di chuyển đối tượng trong bộ nhớ trong một số cấu hình JVM. Java vẫn yêu cầu `hashCode()` của một object nhất quán trong cùng quá trình thực thi khi thông tin liên quan đến equality không đổi. Do đó, ngay cả trong môi trường có quản lý bộ nhớ di chuyển, chuỗi hash cũng không thể được hiểu như một bản chụp địa chỉ đang tồn tại ở mọi thời điểm.
+In particular, the garbage collector can move objects in memory in some JVM configurations. Java still requires an object's `hashCode()` to remain consistent within the same execution while information used in equality does not change. Thus, even in an environment with relocating memory management, the hash string cannot be understood as a snapshot of an address existing at all times.
 
-## 4. Thí nghiệm quan trọng: hai object khác nhau cùng in @2a
+## 4. Key Experiment: Two Different Objects Both Print @2a
 
-Ta không cần đo đạc vùng nhớ để chứng minh phần sau `@` **không phải địa chỉ**. Chỉ cần tạo một lớp **giữ `toString()` mặc định** nhưng **ghi đè `hashCode()`** để trả một hằng số. Khi đó mọi instance của lớp sẽ có cùng hậu tố dù là các object riêng biệt.
+We do not need to inspect memory regions to prove that the part after `@` **is not an address**. We simply create a class that **keeps the default `toString()`** while **overriding `hashCode()`** to return a constant. Then every instance of the class will have the same suffix despite being distinct objects.
 
-Tạo tệp `ToStringAtDemo.java`:
+Create the file `ToStringAtDemo.java`:
 
 ```java
 public class ToStringAtDemo {
@@ -97,7 +97,7 @@ public class ToStringAtDemo {
         public int hashCode() {
             return 42;
         }
-        // Không ghi đè toString() và equals().
+        // Does not override toString() and equals().
     }
 
     static final class Described {
@@ -139,14 +139,14 @@ public class ToStringAtDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 hoặc mới hơn, tại thư mục chứa tệp:
+Compile and run with JDK 17 or newer, in the directory containing the file:
 
 ```bash
 javac ToStringAtDemo.java
 java ToStringAtDemo
 ```
 
-Đầu ra chính xác trong package mặc định như mã trên:
+Exact output in the default package as in the code above:
 
 ```text
 ToStringAtDemo$FixedHash@2a
@@ -161,93 +161,93 @@ Described(label=third)
 null
 ```
 
-Giải thích từng bước:
+Step-by-step explanation:
 
-1. `first` và `second` đều là `FixedHash`, được tạo bằng hai lần `new` nên `first == second` là `false`.
-2. `FixedHash` không ghi đè `equals()`, vì vậy phép so tham chiếu mặc định cũng cho `first.equals(second) == false`.
-3. `FixedHash` ghi đè `hashCode()` để luôn trả `42`; `Integer.toHexString(42)` là `2a`.
-4. `FixedHash` không ghi đè `toString()`. Lời gọi `Object.toString()` của **mỗi** instance sẽ gọi `hashCode()` đã ghi đè. Bởi vậy cả hai object in ra cùng chuỗi `ToStringAtDemo$FixedHash@2a`.
-5. Chuỗi `toString()` của chúng giống nhau (`true`) trong khi **hai object không cùng tham chiếu và không bằng nhau theo `equals()`**. Vậy phần sau `@` không thể được hiểu như địa chỉ duy nhất của mỗi object.
-6. `Described` có ghi đè `toString()`, nên dù `hashCode() == 255`, chuỗi hiển thị chỉ là `Described(label=third)`. Công thức `ClassName@hex` chỉ áp dụng khi đang dùng cách biểu diễn mặc định.
-7. Với giá trị `null`, `String.valueOf((Object)null)` trả chuỗi `"null"`; không có object thực sự để gọi `getClass()` hay `hashCode()`.
+1. `first` and `second` are both `FixedHash`, created by two `new` calls, so `first == second` is `false`.
+2. `FixedHash` does not override `equals()`, so the default reference comparison also gives `first.equals(second) == false`.
+3. `FixedHash` overrides `hashCode()` to always return `42`; `Integer.toHexString(42)` is `2a`.
+4. `FixedHash` does not override `toString()`. Calling `Object.toString()` on **each** instance calls the overridden `hashCode()`. Therefore both objects print the same string `ToStringAtDemo$FixedHash@2a`.
+5. Their `toString()` strings are equal (`true`) while **the two objects do not share a reference and are not equal according to `equals()`**. Thus the part after `@` cannot be interpreted as a unique address of each object.
+6. `Described` overrides `toString()`, so even though `hashCode() == 255`, the displayed string is just `Described(label=third)`. The `ClassName@hex` formula only applies when the default representation is used.
+7. For `null`, `String.valueOf((Object)null)` returns the string `"null"`; there is no actual object on which to call `getClass()` or `hashCode()`.
 
-Tên `ToStringAtDemo$FixedHash` có dấu `$` vì đây là lớp lồng `static` và `Class.getName()` trả tên nhị phân của lớp. Nếu đưa lớp vào package khác, phần tên lớp in ra sẽ thêm tiền tố package, nhưng logic về hậu tố `@2a` không thay đổi.
+The name `ToStringAtDemo$FixedHash` has a `$` sign because it is a `static` nested class and `Class.getName()` returns the class's binary name. If the class is placed in another package, the printed class name adds the package prefix, but the logic regarding the `@2a` suffix does not change.
 
-### Điểm tinh tế: Object.toString() vẫn gọi hashCode() theo cơ chế ghi đè
+### Subtle Point: Object.toString() Still Calls hashCode() via Dynamic Dispatch
 
-Một lớp có thể **không** định nghĩa `toString()` nhưng **có** định nghĩa `hashCode()`. Khi `Object.toString()` thực hiện lời gọi `hashCode()` trên đối tượng, Java áp dụng dynamic dispatch để chạy phiên bản phù hợp với lớp runtime. Vì vậy, không nên nói rằng hậu tố sau `@` luôn là “identity hash” ngay cả khi `toString()` còn dùng mặc định.
+A class may **not** define `toString()` yet **still** define `hashCode()`. When `Object.toString()` makes the `hashCode()` call on the object, Java applies dynamic dispatch to run the version matching the runtime class. Therefore, you should not claim that the suffix after `@` is always an "identity hash" even when `toString()` is still using the default.
 
-Trong thí nghiệm, hậu tố được sinh trực tiếp từ phương thức `FixedHash.hashCode()` do lập trình viên viết. Đó là một số do chương trình quyết định, không phải thông tin bộ nhớ mà JVM tiết lộ.
+In the experiment, the suffix is generated directly from the `FixedHash.hashCode()` method written by the programmer. It is a number decided by the program, not memory information revealed by the JVM.
 
-## 5. Phân biệt hashCode() với System.identityHashCode()
+## 5. Distinguishing hashCode() from System.identityHashCode()
 
-Java còn có:
+Java also has:
 
 ```java
 int identityHash = System.identityHashCode(object);
 ```
 
-*Đây là một đoạn lệnh minh họa trong phương thức, với `object` đã được khai báo.*
+*This is an illustrative statement inside a method, where `object` has already been declared.*
 
-`System.identityHashCode(object)` trả về mã hash giống cách tính **`Object.hashCode()` mặc định** cho đối tượng ấy, **ngay cả khi lớp đã ghi đè `hashCode()`**. Điều này hữu ích khi cần quan sát theo identity trong công cụ debug. Tuy nhiên, **identity hash cũng không phải địa chỉ bộ nhớ** và **không được cam kết duy nhất**.
+`System.identityHashCode(object)` returns a hash code matching how **`Object.hashCode()` defaults** are computed for that object, **even when the class has overridden `hashCode()`**. This is useful when observing by identity in debugging tools. However, **an identity hash is also not a memory address** and **is not guaranteed to be unique**.
 
-| Biểu thức | Nguồn giá trị | Có chắc là địa chỉ bộ nhớ? |
+| Expression | Value Source | Guaranteed to Be a Memory Address? |
 | --- | --- | --- |
-| `object.hashCode()` | Phương thức `hashCode()` thực tế; có thể do lớp ghi đè. | Không. |
-| `System.identityHashCode(object)` | Hash theo semantics mặc định của `Object`, bỏ qua override `hashCode()`. | Không. |
-| `Integer.toHexString(object.hashCode())` | Cách biểu diễn hex của hash thông thường. | Không. |
-| `Object.toString()` mặc định | Tên lớp + `@` + hex của `object.hashCode()`. | Không. |
-| `object.toString()` nếu lớp ghi đè | Chuỗi do lớp tự định nghĩa. | Không thể suy đoán định dạng từ Object mặc định. |
+| `object.hashCode()` | Actual `hashCode()` method; may be overridden by the class. | No. |
+| `System.identityHashCode(object)` | Hash according to `Object`'s default semantics, ignoring `hashCode()` overrides. | No. |
+| `Integer.toHexString(object.hashCode())` | Hex representation of the regular hash. | No. |
+| Default `Object.toString()` | Class name + `@` + hex of `object.hashCode()`. | No. |
+| `object.toString()` if class overrides | String defined by the class itself. | Format cannot be assumed from default Object. |
 
-Điều gì xảy ra trong ví dụ `FixedHash`?
+What happens in the `FixedHash` example?
 
-- `first.hashCode() == 42` là giá trị chắc chắn vì lớp đã ghi đè phương thức.
-- `System.identityHashCode(first)` do JVM cấp theo quy tắc identity hash, **không** bị ép thành `42`.
-- Trị số identity hash thực tế không được bảo đảm và có thể tình cờ bằng hoặc khác `42`; vì vậy bài không ghi stdout giả định cho nó.
+- `first.hashCode() == 42` is a definite value because the class overrode the method.
+- `System.identityHashCode(first)` is provided by the JVM according to identity hash rules and is **not** forced to `42`.
+- The actual identity hash number is not guaranteed and may happen to equal or differ from `42`; therefore the lesson does not list an assumed stdout for it.
 
-Ngay cả `System.identityHashCode(first) == System.identityHashCode(second)` cũng không đủ chứng minh hai biến đang trỏ cùng object: hai object khác nhau có thể xảy ra hash collision. Muốn hỏi có đúng cùng instance hay không, dùng `first == second`. Muốn hỏi bình đẳng logic theo lớp, dùng `first.equals(second)`.
+Even `System.identityHashCode(first) == System.identityHashCode(second)` is not enough to prove two variables point to the same object: two different objects can experience a hash collision. To ask whether they are the exact same instance, use `first == second`. To ask about logical equality according to the class, use `first.equals(second)`.
 
-## 6. Liên hệ với equals() và hashCode(): ba khái niệm khác nhau
+## 6. Relation to equals() and hashCode(): Three Distinct Concepts
 
-Có ba câu hỏi cần giữ tách bạch:
+There are three questions to keep separate:
 
-| Câu hỏi | Cách kiểm tra | Ý nghĩa |
+| Question | How to Check | Meaning |
 | --- | --- | --- |
-| Hai biến có trỏ cùng instance không? | `a == b` | Đồng nhất tham chiếu. |
-| Hai object có bằng nhau về giá trị logic không? | `a.equals(b)` | Theo hợp đồng và cách triển khai của lớp. |
-| Hai object có cùng mã băm không? | `a.hashCode() == b.hashCode()` | So hai giá trị `int`, chỉ là thông tin hỗ trợ băm. |
+| Do two variables point to the same instance? | `a == b` | Reference identity. |
+| Are two objects equal in logical value? | `a.equals(b)` | According to the class's contract and implementation. |
+| Do two objects have the same hash code? | `a.hashCode() == b.hashCode()` | Compares two `int` values, merely hash-supporting information. |
 
-Hợp đồng Java bắt buộc: **nếu hai object bằng nhau theo `equals()` thì hash của chúng phải bằng nhau**. Chiều ngược lại không đúng: hai object khác nhau có thể có cùng hash. Vì vậy việc các object in cùng hậu tố hex không chứng minh chúng bằng nhau.
+The Java contract requires: **if two objects are equal by `equals()`, their hashes must be equal**. The converse is not true: two different objects can have the same hash. Therefore, objects printing the same hex suffix does not prove they are equal.
 
-Trong ví dụ `FixedHash`, tất cả các instance đều có hash `42` nhưng `equals()` mặc định vẫn chỉ công nhận cùng tham chiếu. Đây là lựa chọn hash chất lượng rất kém cho collection băm nếu có nhiều đối tượng, vì gây nhiều collision, nhưng **không vi phạm hợp đồng `equals()/hashCode()`**. Ta cố ý dùng nó để tách bạch hash với địa chỉ.
+In the `FixedHash` example, all instances have hash `42`, yet the default `equals()` still only recognizes the same reference. This is a very poor-quality hash choice for hash collections if there are many objects, as it causes many collisions, but **it does not violate the `equals()/hashCode()` contract**. We used it intentionally to separate hashes from addresses.
 
-Một lỗi khác: lớp ghi đè `equals()` theo các trường nhưng quên ghi đè `hashCode()` phù hợp. Hai object có thể equals nhau mà hash khác nhau, vi phạm hợp đồng và khiến `HashMap`/`HashSet` xử lý tra cứu không đúng. Đừng lấy hậu tố `@...` để quyết định equality; hãy thiết kế `equals()/hashCode()` đúng vai trò.
+Another mistake: a class overrides `equals()` based on fields but forgets to override `hashCode()` accordingly. Two objects can be equal via `equals()` while having different hashes, violating the contract and causing `HashMap`/`HashSet` lookups to behave incorrectly. Do not use the `@...` suffix to decide equality; design `equals()/hashCode()` for their proper roles.
 
-## 7. Vì sao giá trị hậu tố không phù hợp làm mã định danh lâu dài?
+## 7. Why the Suffix Value Is Unsuitable as a Long-Term Identifier
 
-Giả sử ứng dụng ghi một log:
+Suppose an application writes a log:
 
 ```text
 RequestContext@6d03e736 started
 ```
 
-Một kỹ sư khác tìm chuỗi `6d03e736` và muốn dùng làm ID để gắn các bản ghi trong database hoặc theo dõi xuyên nhiều lần khởi động. Điều đó không an toàn vì:
+Another engineer sees the string `6d03e736` and wants to use it as an ID to link database records or track across multiple restarts. That is unsafe because:
 
-- **Không đảm bảo không trùng:** một giá trị hash 32 bit có thể bị nhiều object sử dụng.
-- **Không cam kết ổn định qua tiến trình hoặc lần chạy khác:** khởi động lại JVM không tạo ra phép ánh xạ định danh có hợp đồng duy trì.
-- **Có thể bị ghi đè:** lớp thay đổi cách tính `hashCode()` sau khi cập nhật thư viện sẽ khiến hậu tố đổi ý nghĩa.
-- **Không gắn với lifecycle:** không có lời hứa rằng hậu tố cho biết object còn sống, đã được GC thu gom hay đã bị dịch chuyển vùng nhớ.
-- **Không mô tả nội dung:** người đọc không thể biết các trường quan trọng của một yêu cầu chỉ từ `@6d03e736`.
+- **No uniqueness guarantee:** a 32-bit hash value can be used by multiple objects.
+- **No stability guarantee across processes or different runs:** restarting the JVM does not create an identifier mapping with a preserved contract.
+- **Can be overridden:** a class changing how `hashCode()` is computed after a library update will change the meaning of the suffix.
+- **Not tied to lifecycle:** there is no promise that the suffix indicates whether the object is still alive, has been collected by GC, or has been relocated in memory.
+- **Does not describe content:** readers cannot tell the important fields of a request from `@6d03e736` alone.
 
-Nếu cần theo dõi yêu cầu qua log, hãy tạo request ID/correlation ID có quản lý, ví dụ một UUID theo từng request, rồi truyền nó qua các bước xử lý. Nếu cần ID nghiệp vụ lâu dài, dùng khóa nghiệp vụ hoặc định danh được hệ thống cấp. Nếu chỉ cần đọc trạng thái object để debug, ghi đè `toString()` theo những trường hữu ích và loại trừ thông tin nhạy cảm.
+If you need to trace a request through logs, generate a managed request ID/correlation ID, such as a per-request UUID, and pass it through processing steps. If you need a durable business ID, use a business key or system-issued identifier. If you only need to read object state for debugging, override `toString()` with useful fields and exclude sensitive information.
 
-**Lưu ý bảo mật:** Tránh đưa mật khẩu, token, khóa truy cập hoặc dữ liệu cá nhân nhạy cảm vào `toString()`. Nhiều framework hoặc logger có thể gọi `toString()` khi trình bày đối tượng; một chuỗi dễ đọc không đáng để làm lộ dữ liệu.
+**Security note:** Avoid putting passwords, tokens, access keys, or sensitive personal data into `toString()`. Many frameworks or loggers may call `toString()` when presenting an object; a readable string is not worth leaking data.
 
-## 8. Nếu lớp ghi đè toString(), còn dấu @ thì sao?
+## 8. If a Class Overrides toString(), What About the `@` Sign?
 
-Công thức `ClassName@hex` là cách biểu diễn **mặc định của `Object.toString()`**, không phải cấu trúc bắt buộc của mọi chuỗi Java.
+The `ClassName@hex` formula is the **default representation of `Object.toString()`**, not a mandatory structure for all Java strings.
 
-Một lớp có thể viết:
+A class can write:
 
 ```java
 @Override
@@ -256,70 +256,70 @@ public String toString() {
 }
 ```
 
-*Đây chỉ là phần thân của phương thức nằm trong một lớp có các trường `id` và `status`; không phải chương trình độc lập.*
+*This is only the method body inside a class with fields `id` and `status`; not a standalone program.*
 
-Khi đó chuỗi in ra do phương thức ghi đè quyết định. Nó có thể không có dấu `@`, hoặc có dấu `@` như một phần giá trị bình thường, chẳng hạn địa chỉ email `a@example.com`. Vì vậy **đừng viết parser đoán địa chỉ hoặc mã băm dựa vào ký tự `@` trong mọi `toString()`**.
+Then the printed string is decided by the overriding method. It may have no `@` sign, or have `@` as part of an ordinary value, such as an email address `a@example.com`. Therefore, **do not write a parser that guesses addresses or hash codes based on the `@` character in arbitrary `toString()` outputs**.
 
-Ngay cả với đối tượng chưa ghi đè `toString()`, ký tự `@` chỉ phân cách tên lớp và biểu diễn hash; thông tin đó thường không giúp tái tạo object hay nội dung dữ liệu. Nếu hệ thống cần định dạng máy đọc được, dùng serializer/DTO với schema rõ ràng thay cho dựa vào chuỗi debug.
+Even for objects that have not overridden `toString()`, the `@` character only separates the class name and the hash representation; that information usually does not help reconstruct the object or its data content. If a system needs a machine-readable format, use a serializer/DTO with an explicit schema instead of relying on debug strings.
 
-## 9. Một số hiểu nhầm và cách sửa
+## 9. Common Misconceptions and Corrections
 
-### Hiểu nhầm 1: “@ đi sau tên lớp nên chắc là địa chỉ”
+### Misconception 1: "`@` follows the class name so it must be an address"
 
-Sự thật: `Object.toString()` kết hợp `getClass().getName()`, `@` và `Integer.toHexString(hashCode())`. Định dạng trông giống địa chỉ chỉ là cách trình bày hex.
+Fact: `Object.toString()` combines `getClass().getName()`, `@`, and `Integer.toHexString(hashCode())`. Looking like an address is merely hex formatting.
 
-### Hiểu nhầm 2: “Hai object khác nhau luôn có hậu tố khác nhau”
+### Misconception 2: "Two different objects always have different suffixes"
 
-Sự thật: hash collision là hợp lệ. Ví dụ `FixedHash` đã chứng minh hai đối tượng mới khác nhau có thể cùng `@2a`.
+Fact: hash collisions are valid. The `FixedHash` example proved two distinct new objects can share `@2a`.
 
-### Hiểu nhầm 3: “Cùng hậu tố thì equals() bằng nhau”
+### Misconception 3: "Same suffix means `equals()` is true"
 
-Sự thật: cùng hash không suy ra `equals()`. Mặt khác, hai object `equals()` nhau bắt buộc có cùng `hashCode()` theo hợp đồng.
+Fact: same hash does not imply `equals()`. On the other hand, two objects that are `equals()` must have the same `hashCode()` by contract.
 
-### Hiểu nhầm 4: “Nếu dùng System.identityHashCode() thì sẽ ra địa chỉ thật”
+### Misconception 4: "Using `System.identityHashCode()` will give the real address"
 
-Sự thật: `identityHashCode` là mã băm theo semantics identity, nhưng API vẫn không hứa trả về địa chỉ bộ nhớ hoặc giá trị không bao giờ trùng.
+Fact: `identityHashCode` is a hash code following identity semantics, yet the API still does not promise to return a memory address or a never-colliding value.
 
-### Hiểu nhầm 5: “Đổi toString() cũng thay hashCode()”
+### Misconception 5: "Changing `toString()` also changes `hashCode()`"
 
-Sự thật: hai phương thức độc lập về trách nhiệm. Ghi đè `toString()` thay cách biểu diễn, không tự thay cách `equals()` hoặc `hashCode()` hoạt động. Ngược lại, ghi đè `hashCode()` có thể làm hậu tố của **Object.toString() mặc định** đổi theo.
+Fact: the two methods have independent responsibilities. Overriding `toString()` changes representation, not how `equals()` or `hashCode()` behaves. Conversely, overriding `hashCode()` can cause the suffix of the **default `Object.toString()`** to change as well.
 
-### Hiểu nhầm 6: “Số hex cho biết thứ tự tạo object”
+### Misconception 6: "The hex number indicates object creation order"
 
-Sự thật: `hashCode()` không có hợp đồng tăng dần theo lần cấp phát. So sánh độ lớn của hai hậu tố không xác định object nào được tạo trước.
+Fact: `hashCode()` has no contract to increase monotonically with allocations. Comparing the magnitude of two suffixes does not determine which object was created first.
 
-### Hiểu nhầm 7: “Có thể dùng chuỗi @hex làm key cho HashMap”
+### Misconception 7: "You can use the `@hex` string as a key for HashMap"
 
-Về mặt cú pháp có thể đặt bất kỳ chuỗi nào làm key, nhưng dùng `toString()` mặc định làm định danh logic là thiết kế thiếu bảo đảm. Hãy chọn các trường identity/value thực sự, dùng kiểu khóa bất biến và triển khai `equals()/hashCode()` nhất quán.
+Syntactically any string can be used as a key, but using the default `toString()` as a logical identifier is an unguaranteed design. Choose actual identity/value fields, use immutable key types, and implement `equals()/hashCode()` consistently.
 
-### Hiểu nhầm 8: “Có thể nhìn một log @hex rồi xác định object ở địa chỉ nào”
+### Misconception 8: "You can look at an `@hex` log and determine which address the object is at"
 
-Không. Định dạng `@hex` không cung cấp API tra cứu địa chỉ hay giải tham chiếu. Phân tích heap hoặc bộ nhớ thực tế cần công cụ chẩn đoán JVM thích hợp; ngay cả những công cụ ấy có khái niệm địa chỉ/ID phụ thuộc snapshot và runtime, không thể tự suy từ `Object.toString()`.
+No. The `@hex` format provides no address lookup or dereferencing API. Actual heap or memory analysis requires appropriate JVM diagnostic tools; even those tools have snapshot- and runtime-dependent address/ID concepts that cannot be inferred from `Object.toString()`.
 
-## 10. Câu hỏi tự kiểm tra
+## 10. Self-Check Questions
 
-**Câu 1.** `Person@2a` với `Object.toString()` mặc định có nghĩa `Person` được lưu tại địa chỉ RAM `0x2a` không?  
-**Đáp án:** Không. `2a` là biểu diễn hex của giá trị `hashCode()`, tức số thập phân `42`.
+**Question 1.** Does `Person@2a` from the default `Object.toString()` mean `Person` is stored at RAM address `0x2a`?  
+**Answer:** No. `2a` is the hex representation of the `hashCode()` value, i.e., decimal `42`.
 
-**Câu 2.** Hai object mới khác nhau có cùng chuỗi `SomeClass@2a` được không?  
-**Đáp án:** Có. Nếu cùng tên lớp và cùng hash, `Object.toString()` mặc định tạo ra cùng chuỗi dù hai tham chiếu khác nhau.
+**Question 2.** Can two different new objects have the same `SomeClass@2a` string?  
+**Answer:** Yes. If they share the same class name and the same hash, the default `Object.toString()` produces the same string even though the two references differ.
 
-**Câu 3.** Nếu chỉ ghi đè `hashCode()` thành `return 255;` nhưng vẫn dùng `Object.toString()`, hậu tố là gì?  
-**Đáp án:** `@ff` vì `255` trong hệ 16 là `ff`.
+**Question 3.** If only `hashCode()` is overridden to `return 255;` while still using `Object.toString()`, what is the suffix?  
+**Answer:** `@ff` because `255` in base 16 is `ff`.
 
-**Câu 4.** `System.identityHashCode(obj)` có bảo đảm trả địa chỉ bộ nhớ hoặc một ID duy nhất không?  
-**Đáp án:** Không. Nó bỏ qua override `hashCode()` để lấy identity hash, nhưng vẫn là hash chứ không phải API địa chỉ.
+**Question 4.** Does `System.identityHashCode(obj)` guarantee returning a memory address or a unique ID?  
+**Answer:** No. It bypasses `hashCode()` overrides to obtain the identity hash, but it is still a hash, not an address API.
 
-**Câu 5.** Hai object cùng hash có chắc bằng nhau theo `equals()`?  
-**Đáp án:** Không. Cùng hash chỉ là điều kiện bắt buộc của các object bằng nhau; hash collision giữa các object không bằng nhau được phép.
+**Question 5.** Are two objects with the same hash guaranteed to be equal by `equals()`?  
+**Answer:** No. Having the same hash is only a required condition for equal objects; hash collisions between unequal objects are allowed.
 
-**Câu 6.** Tại sao `Arrays.toString(array)` thích hợp hơn `array.toString()` để xem nội dung mảng một chiều?  
-**Đáp án:** `array.toString()` dùng cách hiển thị mặc định kiểu `[I@...`, còn `Arrays.toString` hiển thị từng phần tử.
+**Question 6.** Why is `Arrays.toString(array)` more suitable than `array.toString()` for viewing one-dimensional array contents?  
+**Answer:** `array.toString()` uses the default display format like `[I@...`, whereas `Arrays.toString` displays each element.
 
-**Câu 7.** Một lớp tự ghi đè `toString()` thành `"User(email=a@example.com)"` thì ký tự `@` có còn mang nghĩa hash không?  
-**Đáp án:** Không. Khi phương thức ghi đè tự quyết định định dạng, dấu `@` có thể chỉ là một ký tự văn bản thông thường.
+**Question 7.** If a class overrides `toString()` to `"User(email=a@example.com)"`, does the `@` character still carry a hash meaning?  
+**Answer:** No. When the overriding method determines the format itself, `@` can simply be an ordinary text character.
 
-**Câu 8.** Khi cần gắn ID xuyên nhiều request và nhiều lần khởi động JVM, có nên lưu phần sau `@` không?  
-**Đáp án:** Không. Dùng định danh có hợp đồng rõ ràng, chẳng hạn request ID, UUID hoặc khóa nghiệp vụ phù hợp.
+**Question 8.** When needing to attach an ID across multiple requests and multiple JVM restarts, should you store the part after `@`?  
+**Answer:** No. Use an identifier with a clear contract, such as a request ID, UUID, or appropriate business key.
 
-**Ghi nhớ:** Với `Object.toString()` mặc định, phần sau dấu `@` là **`Integer.toHexString(hashCode())`**, hoàn toàn không có cam kết đại diện cho địa chỉ RAM, thứ tự tạo object hay một định danh duy nhất. Muốn so object, dùng hợp đồng `equals()/hashCode()`; muốn kiểm tra cùng instance, dùng `==`; muốn quan sát dữ liệu, xây dựng `toString()` có ý nghĩa hoặc dùng công cụ chẩn đoán đúng mục đích.
+**Key takeaway:** With the default `Object.toString()`, the part after `@` is **`Integer.toHexString(hashCode())`**, with absolutely no promise that it represents a RAM address, object creation order, or a unique identifier. To compare objects, use the `equals()/hashCode()` contract; to check for the same instance, use `==`; to inspect data, build a meaningful `toString()` or use appropriate diagnostic tools.

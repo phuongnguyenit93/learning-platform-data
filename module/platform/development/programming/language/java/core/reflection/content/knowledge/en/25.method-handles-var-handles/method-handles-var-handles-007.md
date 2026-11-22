@@ -1,91 +1,91 @@
-# `MethodHandles.privateLookupIn` và điều kiện mở truy cập theo module (Java 17+)
+# `MethodHandles.privateLookupIn` and Module Access Opening Conditions (Java 17+)
 
-## 1. Vì sao cần `privateLookupIn`?
+## 1. Why Is `privateLookupIn` Needed?
 
-`MethodHandle` và `VarHandle` cung cấp cách truy cập phương thức, constructor và biến thông qua một **đối tượng năng lực truy cập** (`MethodHandles.Lookup`). Khi dùng `findVirtual`, `findStatic`, `findVarHandle`, v.v., Java kiểm tra quyền của `Lookup` ngay lúc tạo handle. Việc giữ được `Class<?>` hoặc biết tên thành viên private **không tự cấp quyền** để truy cập thành viên đó.
+`MethodHandle` and `VarHandle` provide access to methods, constructors, and variables through an **access capability object** (`MethodHandles.Lookup`). When calling `findVirtual`, `findStatic`, `findVarHandle`, etc., Java checks the `Lookup`'s permissions right at handle creation time. Holding a `Class<?>` or knowing a private member's name **does not automatically grant permission** to access that member.
 
-Phương thức:
+The method:
 
 ~~~java
 MethodHandles.Lookup targetLookup =
         MethodHandles.privateLookupIn(Target.class, callerLookup);
 ~~~
 
-tạo một `Lookup` có **ngữ cảnh tra cứu là `Target`** và có thể truy cập thành viên `private` của `Target`, nhưng **chỉ khi `callerLookup` đã đủ quyền và ranh giới module cho phép truy cập sâu** (*deep reflection*). API này xuất hiện từ Java 9, phù hợp với hệ thống module JPMS. Nó không mở package, không vô hiệu hóa module system và cũng chưa tạo `MethodHandle` hay `VarHandle`; muốn sử dụng một thành viên, phải tìm thành viên bằng `targetLookup` ở bước kế tiếp.
+creates a `Lookup` whose **lookup class context is `Target`** and which can access `Target`'s `private` members, **only when `callerLookup` already holds sufficient privileges and module boundaries permit deep access** (*deep reflection*). Introduced in Java 9, this API fits the JPMS module system. It does not open packages, does not disable the module system, and does not yet create a `MethodHandle` or `VarHandle`; to use a member, you must look up the member using `targetLookup` in the next step.
 
-Mục tiêu của bài:
+Lesson objectives:
 
-- Hiểu sự khác nhau giữa `MethodHandles.lookup()`, `publicLookup()`, `Lookup.in(...)` và `privateLookupIn(...)`.
-- Nắm chính xác yêu cầu `PRIVATE`, `MODULE`, quan hệ `reads` và chỉ thị `opens`.
-- Phân biệt `exports` với `opens` và biết dùng `--add-opens` để thử nghiệm/chẩn đoán.
-- Gọi được method private và field private bằng MethodHandle/VarHandle, xử lý lỗi truy cập đúng chỗ.
-- Nhận ra việc `Lookup` đi từ module này sang module khác làm mất mode `MODULE` và không thể tùy ý “chuyển tiếp” quyền private.
+- Understand the differences among `MethodHandles.lookup()`, `publicLookup()`, `Lookup.in(...)`, and `privateLookupIn(...)`.
+- Know the exact requirements for `PRIVATE`, `MODULE`, `reads` relationships, and `opens` directives.
+- Distinguish `exports` from `opens` and know how to use `--add-opens` for testing/diagnostics.
+- Invoke private methods and manipulate private fields with MethodHandle/VarHandle, handling access errors in the right place.
+- Recognize that moving a `Lookup` from one module to another drops the `MODULE` mode and prevents arbitrarily "forwarding" private permissions.
 
-## 2. `Lookup` là quyền truy cập có thể truyền đi
+## 2. `Lookup` Is a Transferable Access Capability
 
-`MethodHandles.lookup()` là **caller-sensitive**: lời gọi nằm trong lớp nào thì thông thường trả về `Lookup` với `lookupClass()` là lớp đó, có quyền đầy đủ của lớp gọi (trong một lời gọi thông thường, gồm các mode `PRIVATE` và `MODULE`).
+`MethodHandles.lookup()` is **caller-sensitive**: whichever class contains the call normally returns a `Lookup` whose `lookupClass()` is that class, with full privileges of the calling class (in an ordinary call, including the `PRIVATE` and `MODULE` modes).
 
 ~~~java
 MethodHandles.Lookup caller = MethodHandles.lookup();
 System.out.println(caller.lookupClass().getName());
 ~~~
 
-`MethodHandles.publicLookup()` chỉ cho phép nhóm truy cập public theo quy tắc của nó, **không có `PRIVATE`/`MODULE` để gọi `privateLookupIn`**. `caller.in(Other.class)` thay lớp làm ngữ cảnh tìm kiếm nhưng quyền có thể bị giảm, đặc biệt khi đổi class/package/module; nó không phải một cách tự nâng quyền private.
+`MethodHandles.publicLookup()` only grants public access according to its rules, **lacking `PRIVATE`/`MODULE` to call `privateLookupIn`**. `caller.in(Other.class)` changes the lookup context class, but privileges may be reduced—especially when changing classes, packages, or modules; it is not a way to self-elevate to private access.
 
-Các method quan trọng:
+Key methods:
 
-| API | Ý nghĩa |
+| API | Meaning |
 | --- | --- |
-| `MethodHandles.lookup()` | Tạo lookup gắn với **lớp thực sự đang gọi** |
-| `MethodHandles.publicLookup()` | Lookup public, không đủ quyền để yêu cầu private lookup |
-| `lookup.lookupClass()` | Lớp mà lookup hiện đại diện |
-| `lookup.lookupModes()` | Bitmask quyền, gồm `PUBLIC`, `PRIVATE`, `PROTECTED`, `PACKAGE`, `MODULE` ... |
-| `lookup.in(SomeClass.class)` | Đổi ngữ cảnh với quyền không tăng lên |
-| `MethodHandles.privateLookupIn(Target.class, lookup)` | Yêu cầu một lookup mới có quyền private trên `Target`, sau kiểm tra điều kiện |
-| `lookup.findVirtual`, `findStatic`, `findVarHandle` | Tạo handle trên thành viên theo quyền lookup đang có |
+| `MethodHandles.lookup()` | Creates a lookup bound to **its actual calling class** |
+| `MethodHandles.publicLookup()` | Public lookup, lacking privileges to request a private lookup |
+| `lookup.lookupClass()` | The class the lookup currently represents |
+| `lookup.lookupModes()` | Privilege bitmask, including `PUBLIC`, `PRIVATE`, `PROTECTED`, `PACKAGE`, `MODULE`, etc. |
+| `lookup.in(SomeClass.class)` | Switches context without increasing privileges |
+| `MethodHandles.privateLookupIn(Target.class, lookup)` | Requests a new lookup with private access on `Target`, after checking conditions |
+| `lookup.findVirtual`, `findStatic`, `findVarHandle` | Creates handles on members according to the lookup's current permissions |
 
-`Lookup` là một **capability**: nếu code được nhận một lookup đủ mạnh hoặc một handle tới method private thì code đó có thể thực thi khả năng đã được cấp. Hạn chế chia sẻ các đối tượng này cho plugin/thành phần không đáng tin; đừng coi việc giấu tên method là hàng rào bảo mật.
+`Lookup` is a **capability**: if code receives a sufficiently privileged lookup or a handle to a private method, that code can exercise the granted capability. Limit sharing these objects with untrusted plugins or components; do not treat hiding a method name as a security boundary.
 
-## 3. Các điều kiện của `privateLookupIn` theo Java 17
+## 3. Conditions for `privateLookupIn` in Java 17
 
-Xét `M1` là module chứa `callerLookup.lookupClass()` và `M2` là module chứa `Target.class`.
+Let `M1` be the module containing `callerLookup.lookupClass()` and `M2` be the module containing `Target.class`.
 
-### 3.1. Điều kiện chung
+### 3.1. General Conditions
 
-1. `callerLookup` phải có **cả `Lookup.PRIVATE` và `Lookup.MODULE`**. Một `Lookup` đã bị giới hạn bằng `publicLookup()` hay `dropLookupMode(...)` có thể không đủ quyền. `privateLookupIn` không tự lấy lại mode đã mất.
-2. `Target` phải là một **class/interface thực**, không phải primitive, `void` hoặc array class; dùng `int.class`, `void.class`, `String[].class` làm target sẽ gây `IllegalArgumentException`.
-3. `targetClass` và `callerLookup` không được `null`; nếu không sẽ có `NullPointerException`.
-4. Với các kiểm tra quyền không đạt, lời gọi có thể ném **`IllegalAccessException`**. Trên môi trường Java 17 còn bật Security Manager, chính sách tương ứng cũng có thể gây `SecurityException`.
+1. `callerLookup` must have **both `Lookup.PRIVATE` and `Lookup.MODULE`**. A `Lookup` restricted by `publicLookup()` or `dropLookupMode(...)` may lack sufficient modes. `privateLookupIn` does not restore lost modes.
+2. `Target` must be a **real class/interface**, not a primitive, `void`, or array class; passing `int.class`, `void.class`, or `String[].class` as target throws `IllegalArgumentException`.
+3. `targetClass` and `callerLookup` must not be `null`; otherwise `NullPointerException` is thrown.
+4. When permission checks fail, the call can throw **`IllegalAccessException`**. In Java 17 environments where a Security Manager is enabled, corresponding policies can also throw `SecurityException`.
 
-### 3.2. Khi `M1 == M2`
+### 3.2. When `M1 == M2`
 
-Khi lookup có đủ `PRIVATE`/`MODULE` và target nằm **cùng module**, `privateLookupIn` cho lookup có full-privilege access đến target, kể cả khác package trong module đó. Không cần thêm `opens` chỉ để làm private lookup **nội bộ cùng module**.
+When the lookup has `PRIVATE`/`MODULE` and the target is in the **same module**, `privateLookupIn` grants the lookup full-privilege access to the target, even across different packages within that module. No extra `opens` is needed just for an **intra-module** private lookup.
 
-Điều này không có nghĩa cú pháp Java thông thường trong một lớp được phép gọi method private của lớp khác. Quyền mở rộng này được cấp qua API có kiểm tra `Lookup` và phải được người sở hữu lookup quyết định sử dụng.
+This does not mean ordinary Java syntax in one class can call a private method of another class. This extended access is granted through an API that checks `Lookup` and must be decided by the lookup owner.
 
-### 3.3. Khi `M1 != M2`
+### 3.3. When `M1 != M2`
 
-Phải thỏa **đồng thời**:
+Both of the following must hold **simultaneously**:
 
-- **`M1 reads M2`:** module gọi có quan hệ đọc đến module đích, ví dụ `requires vault.core;` trong `module-info.java`, hoặc cấu hình tương ứng khi chạy.
-- **`M2 opens package chứa Target cho M1`:** ví dụ `opens demo.vault to demo.client;` trong descriptor của M2, hoặc thêm quyền mở đúng package qua `--add-opens vault.core/demo.vault=demo.client`.
+- **`M1 reads M2`:** the calling module has a readability relationship to the target module, e.g., `requires vault.core;` in `module-info.java`, or equivalent runtime configuration.
+- **`M2 opens Target's package to M1`:** e.g., `opens demo.vault to demo.client;` in M2's descriptor, or adding permission for the exact package via `--add-opens vault.core/demo.vault=demo.client`.
 
-Ngoài ra caller lookup vẫn phải có `PRIVATE` và `MODULE` như điều kiện chung. Chỉ có quyền đọc module hoặc chỉ có `exports` **chưa đủ** để truy cập thành viên private.
+In addition, the caller lookup must still hold `PRIVATE` and `MODULE` per the general condition. Having only module readability or only `exports` is **not enough** to access private members.
 
-| Tình huống | `privateLookupIn(Target, caller)` |
+| Scenario | `privateLookupIn(Target, caller)` |
 | --- | --- |
-| Cùng module, caller lookup đủ mode | Có thể tạo private lookup |
-| Khác module, có `reads` và package được `opens` cho caller | Có thể tạo private lookup |
-| Khác module, package chỉ `exports` | Không được phép private lookup |
-| Khác module, package `opens` nhưng module caller không đọc module đích | Không đủ điều kiện |
-| `publicLookup()` dù package đã `opens` | Không đủ `PRIVATE`/`MODULE` |
-| Target là `int.class` hay `String[].class` | `IllegalArgumentException` |
+| Same module, caller lookup has required modes | Can create private lookup |
+| Different modules, has `reads` and package is `opens` to caller | Can create private lookup |
+| Different modules, package is only `exports` | Private lookup is not permitted |
+| Different modules, package is `opens` but caller module does not read target module | Conditions not met |
+| `publicLookup()` even if package is `opens` | Lacks `PRIVATE`/`MODULE` |
+| Target is `int.class` or `String[].class` | `IllegalArgumentException` |
 
-> **Nguyên tắc:** kiểm tra module được thực hiện theo **module của lookup class**, không phải theo tên module do ứng dụng muốn giả định hoặc chỉ theo vị trí của file gọi API. Chuyển một `Lookup` qua API không làm nó có thêm quyền.
+> **Rule:** module checks are performed against the **module of the lookup class**, not a module name the application wishes to assume or merely the file location of the API call. Passing a `Lookup` through an API does not give it extra permissions.
 
-## 4. `exports` khác `opens` như thế nào?
+## 4. How Does `exports` Differ from `opens`?
 
-`module-info.java` có hai khái niệm bổ sung nhau:
+`module-info.java` has two complementary concepts:
 
 ~~~java
 module vault.core {
@@ -94,31 +94,31 @@ module vault.core {
 }
 ~~~
 
-- `exports demo.vault;`: cho các module đọc được `vault.core` sử dụng **kiểu public và thành viên public** trong package đó theo cơ chế truy cập thông thường. Không cho phép mở private members.
-- `opens demo.internal to demo.client;`: cho phép **deep reflection** vào package `demo.internal` từ module `demo.client` (vẫn cần các điều kiện lookup/module phù hợp). Không phải lời tuyên bố rằng toàn bộ kiểu package đó có thể được import trực tiếp khi biên dịch.
-- `opens demo.internal;`: mở cho mọi module; phạm vi rộng hơn cần thiết.
-- `open module vault.core { ... }`: mở tất cả package trong module; chỉ chọn khi thực sự phù hợp.
-- Một package có thể được `exports` và `opens` đồng thời nếu cần cả sử dụng API public lẫn reflection private.
+- `exports demo.vault;`: allows modules that read `vault.core` to use **public types and public members** in that package via normal access rules. It does not permit opening private members.
+- `opens demo.internal to demo.client;`: permits **deep reflection** into package `demo.internal` from module `demo.client` (still subject to appropriate lookup/module conditions). It is not a declaration that all types in that package can be imported directly at compile time.
+- `opens demo.internal;`: opens to every module; broader scope than necessary.
+- `open module vault.core { ... }`: opens all packages in the module; choose only when genuinely appropriate.
+- A package can be both `exports` and `opens` simultaneously if both public API usage and private reflection are needed.
 
-Nếu không sở hữu mã nguồn module đích, JVM hỗ trợ tùy chọn khi chạy:
+If you do not own the target module's source code, the JVM supports a runtime option:
 
 ~~~bash
 --add-opens vault.core/demo.vault=demo.client
 ~~~
 
-Phần trước dấu `=` là `module/package` cần mở; phần sau là **module được cấp quyền**, không phải tên package. Với code chạy từ **classpath**, module đích có thể mở cho `ALL-UNNAMED`:
+Before `=` is `module/package` to open; after `=` is the **module granted access**, not a package name. For code running from the **classpath**, the target module can open to `ALL-UNNAMED`:
 
 ~~~bash
 --add-opens vault.core/demo.vault=ALL-UNNAMED
 ~~~
 
-`--add-exports` và `--add-opens` là hai cơ chế khác nhau: thêm `--add-exports` không cho phép truy cập private. `--add-opens` cũng không tự cấp mode `PRIVATE`/`MODULE` cho một caller lookup yếu, và không tạo một quan hệ `reads` còn thiếu. Với module có tên, `--add-reads source.module=target.module` có thể bổ sung quan hệ đọc khi thực sự cần.
+`--add-exports` and `--add-opens` are two distinct mechanisms: adding `--add-exports` does not permit private access. Nor does `--add-opens` automatically grant `PRIVATE`/`MODULE` modes to a weak caller lookup, or create a missing `reads` relationship. For named modules, `--add-reads source.module=target.module` can add a readability relationship when genuinely needed.
 
-## 5. Ví dụ 1 — gọi method private, thao tác field private trong cùng module
+## 5. Example 1 — Calling a Private Method and Manipulating a Private Field in the Same Module
 
-Chương trình Java 17+ sau gồm hai **top-level class** trong cùng tệp, đặt trên classpath (unnamed module). Chúng **không phải nestmate**; do đó lookup trực tiếp của `PrivateLookupDemo` không được truy cập member private của `TokenBox`.
+The following Java 17+ program contains two **top-level classes** in the same file, placed on the classpath (unnamed module). They are **not nestmates**; therefore, `PrivateLookupDemo`'s direct lookup cannot access private members of `TokenBox`.
 
-Tạo tệp `PrivateLookupDemo.java`:
+Create `PrivateLookupDemo.java`:
 
 ~~~java
 import java.lang.invoke.MethodHandle;
@@ -166,14 +166,14 @@ public class PrivateLookupDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac PrivateLookupDemo.java
 java PrivateLookupDemo
 ~~~
 
-Kết quả mong đợi:
+Expected output:
 
 ~~~text
 Direct lookup denied
@@ -181,15 +181,15 @@ ID:ok
 count: 1 -> 5
 ~~~
 
-**Phân tích:** `caller` được tạo trong `PrivateLookupDemo` nên `findVirtual` trực tiếp không thể đọc `TokenBox.reveal` private. `privateLookupIn` đổi ngữ cảnh có quyền sang `TokenBox`. `findVirtual` tạo handle có chữ ký logic gồm receiver `TokenBox` rồi tới tham số `String`; `invokeExact(box, "ID:")` đòi hỏi kiểu Java ở điểm gọi khớp chính xác. `findVarHandle` tạo quyền truy cập tới trường `int count`; `get` và `set` trên instance cũng thực hiện theo kiểu được khai báo.
+**Analysis:** `caller` is created in `PrivateLookupDemo`, so direct `findVirtual` cannot read the private `TokenBox.reveal`. `privateLookupIn` switches the privileged context to `TokenBox`. `findVirtual` creates a handle with a logical signature consisting of receiver `TokenBox` followed by parameter `String`; `invokeExact(box, "ID:")` requires the Java types at the call site to match exactly. `findVarHandle` creates access to the `int count` field; `get` and `set` on the instance likewise follow the declared type.
 
-Nếu đặt `TokenBox` thành **nested class** cùng nest với lớp gọi, Java có thể cho phép truy cập private bằng nestmate access ngay cả khi không dùng `privateLookupIn`. Vì vậy, ví dụ cố ý dùng hai top-level class để chỉ ra khác biệt.
+If `TokenBox` were placed as a **nested class** in the same nest as the calling class, Java could allow private access via nestmate access even without `privateLookupIn`. Hence, the example deliberately uses two top-level classes to demonstrate the difference.
 
-## 6. Ví dụ 2 — hai module có tên: bị từ chối rồi mở package
+## 6. Example 2 — Two Named Modules: Denied First, Then Opening the Package
 
-Ta sẽ tạo module `vault.core` chứa `demo.vault.Vault` và module `demo.client` chứa chương trình thử nghiệm. `vault.core` **xuất API public** để `demo.client` biên dịch, nhưng ban đầu **chưa mở** package cho deep reflection.
+We will create module `vault.core` containing `demo.vault.Vault` and module `demo.client` containing the test program. `vault.core` **exports the public API** so `demo.client` compiles, but initially **does not open** the package for deep reflection.
 
-Cấu trúc thư mục:
+Directory structure:
 
 ~~~text
 src/
@@ -201,7 +201,7 @@ src/
     └── demo/client/Main.java
 ~~~
 
-Tệp `src/vault.core/module-info.java`:
+File `src/vault.core/module-info.java`:
 
 ~~~java
 module vault.core {
@@ -209,7 +209,7 @@ module vault.core {
 }
 ~~~
 
-Tệp `src/vault.core/demo/vault/Vault.java`:
+File `src/vault.core/demo/vault/Vault.java`:
 
 ~~~java
 package demo.vault;
@@ -223,7 +223,7 @@ public final class Vault {
 }
 ~~~
 
-Tệp `src/demo.client/module-info.java`:
+File `src/demo.client/module-info.java`:
 
 ~~~java
 module demo.client {
@@ -231,7 +231,7 @@ module demo.client {
 }
 ~~~
 
-Tệp `src/demo.client/demo/client/Main.java`:
+File `src/demo.client/demo/client/Main.java`:
 
 ~~~java
 package demo.client;
@@ -268,14 +268,14 @@ public class Main {
 }
 ~~~
 
-Tại thư mục chứa `src`, biên dịch và chạy (Java 17+):
+In the directory containing `src`, compile and run (Java 17+):
 
 ~~~bash
 javac --module-source-path src -d out -m vault.core,demo.client
 java --module-path out -m demo.client/demo.client.Main
 ~~~
 
-Kết quả khi `vault.core` chỉ có `exports`:
+Output when `vault.core` only has `exports`:
 
 ~~~text
 reads: true
@@ -283,9 +283,9 @@ open: false
 Private lookup denied
 ~~~
 
-Quan hệ đọc có do `requires vault.core;`. Nhưng `exports demo.vault;` **không đồng nghĩa** `opens demo.vault;`; `privateLookupIn` ném `IllegalAccessException` trước khi tìm method.
+The readability relationship exists due to `requires vault.core;`. However, `exports demo.vault;` **does not imply** `opens demo.vault;`; `privateLookupIn` throws `IllegalAccessException` before looking up the method.
 
-Hãy chạy lại với quyền mở package chỉ cho `demo.client`:
+Run again while opening the package only to `demo.client`:
 
 ~~~bash
 java --module-path out \
@@ -293,13 +293,13 @@ java --module-path out \
   -m demo.client/demo.client.Main
 ~~~
 
-Dấu `\` ở cuối dòng là cú pháp nối dòng thường dùng trong shell Unix. Trên Windows PowerShell, có thể viết cùng lệnh **trên một dòng**:
+The trailing `\` is line-continuation syntax commonly used in Unix shells. On Windows PowerShell, you can write the same command **on one line**:
 
 ~~~powershell
 java --module-path out --add-opens vault.core/demo.vault=demo.client -m demo.client/demo.client.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 reads: true
@@ -307,7 +307,7 @@ open: true
 ACCESS_GRANTED
 ~~~
 
-Để cấu hình bằng mã nguồn module thay vì flag chạy, đổi `src/vault.core/module-info.java` thành:
+To configure this in module source instead of a runtime flag, update `src/vault.core/module-info.java` to:
 
 ~~~java
 module vault.core {
@@ -316,19 +316,19 @@ module vault.core {
 }
 ~~~
 
-Sau đó **biên dịch lại cả hai module** và chạy lệnh thông thường, không cần `--add-opens`. Đích mở là **module client**, không phải package `demo.client`; tên trùng chỉ là lựa chọn của ví dụ.
+Then **recompile both modules** and run the normal command without `--add-opens`. The target of opening is the **client module**, not the `demo.client` package; the matching names are just an example choice.
 
-> Ví dụ hai module này đòi hỏi tổ chức thư mục và biên dịch bằng JPMS. Đặt mọi class lên classpath rồi chạy sẽ chuyển chúng vào unnamed module, nơi quy tắc mở package khác với một named module được đóng kín. Vì vậy không dùng một demo classpath để “chứng minh” named module đã mở hay chưa.
+> This two-module example requires directory organization and compilation with JPMS. Placing all classes on the classpath and running them moves them into the unnamed module, where package-opening rules differ from an encapsulated named module. Therefore, do not use a classpath demo to "prove" whether a named module is open.
 
-## 7. Điều gì xảy ra với lookup khi “teleport” qua module?
+## 7. What Happens to a Lookup When "Teleporting" Across Modules?
 
-`privateLookupIn(Target.class, caller)` được mô tả là **teleport lookup** đến target:
+`privateLookupIn(Target.class, caller)` is described as **teleporting a lookup** to the target:
 
-- Nếu hai lớp thuộc **cùng module**, kết quả có full-privilege access trên target và `previousLookupClass()` là `null`.
-- Nếu chuyển từ module `M1` sang module `M2` khác, kết quả có `PRIVATE` nhưng **mất `MODULE`**; `previousLookupClass()` ghi nhận lớp lookup ban đầu trong `M1`. Java 17 còn quy định lookup kết quả không có `ORIGINAL`.
-- Vì không còn `MODULE`, không thể lấy kết quả đó làm `caller` cho một `privateLookupIn` thứ hai sang class/module khác. Không thể xâu chuỗi việc cấp quyền sâu tới các module theo cách này.
+- If both classes belong to the **same module**, the result has full-privilege access on the target and `previousLookupClass()` is `null`.
+- If transitioning from module `M1` to a different module `M2`, the result has `PRIVATE` but **loses `MODULE`**; `previousLookupClass()` records the original lookup class in `M1`. Java 17 also specifies that the resulting lookup lacks `ORIGINAL`.
+- Because `MODULE` is gone, that result cannot be used as `caller` for a second `privateLookupIn` to yet another class/module. Deep-access privileges cannot be chained across modules this way.
 
-Để kiểm tra trong `Main` của ví dụ 2, sau khi tạo thành công `target` có thể thêm:
+To inspect this in `Main` of Example 2, after successfully creating `target` you can add:
 
 ~~~java
 System.out.println("target lookup class: "
@@ -339,7 +339,7 @@ System.out.println("has MODULE: "
         + ((target.lookupModes() & MethodHandles.Lookup.MODULE) != 0));
 ~~~
 
-Đoạn trên là **fragment**, chỉ chạy khi `target` được tạo từ hai module khác nhau; kết quả của `previousLookupClass()` khi đó không phải `null`:
+The snippet above is a **fragment**, runnable only when `target` is created across two different modules; `previousLookupClass()` is non-`null` in that case:
 
 ~~~text
 target lookup class: demo.vault.Vault
@@ -347,37 +347,37 @@ previous lookup class: demo.client.Main
 has MODULE: false
 ~~~
 
-Không áp dụng đoạn này máy móc vào trường hợp cùng module vì `previousLookupClass()` lúc đó có thể `null`. Sau khi đã có `MethodHandle` hợp lệ, Java chủ yếu kiểm tra kiểu gọi và khả năng thực thi của handle; không thực hiện lại phép cấp quyền `privateLookupIn` ở mỗi lần `invoke`. Vì vậy handle tới member private là đối tượng cần quản lý cẩn thận.
+Do not apply this snippet mechanically to the same-module case, because `previousLookupClass()` can be `null` then. Once a valid `MethodHandle` is obtained, Java primarily checks the call types and invocation feasibility of the handle; it does not re-run the `privateLookupIn` privilege check on every `invoke`. Thus, a handle to a private member is an object that must be managed carefully.
 
-## 8. So sánh với Reflection `setAccessible(true)`
+## 8. Comparison with Reflection `setAccessible(true)`
 
-Java Reflection truyền thống có thể dùng `getDeclaredMethod`, `getDeclaredField` và `setAccessible(true)`; Method Handles tạo trực tiếp một handle từ `Lookup`. Cả hai chịu ràng buộc **strong encapsulation** của module system, nhưng thời điểm và API kiểm tra khác nhau.
+Traditional Java Reflection can use `getDeclaredMethod`, `getDeclaredField`, and `setAccessible(true)`; Method Handles create a handle directly from a `Lookup`. Both are bound by the module system's **strong encapsulation**, though the timing and checking APIs differ.
 
-| Nội dung | Reflection truyền thống | Method Handles |
+| Aspect | Traditional Reflection | Method Handles |
 | --- | --- | --- |
-| Tìm member | `Class.getDeclaredMethod` / `getDeclaredField` | `Lookup.findVirtual` / `findVarHandle` |
-| Yêu cầu truy cập sâu | `setAccessible(true)` hoặc `trySetAccessible()` | `MethodHandles.privateLookupIn(...)` |
-| Module đóng package | Có thể bị `InaccessibleObjectException` / không mở được accessible | `privateLookupIn` có thể ném `IllegalAccessException` |
-| Thực thi | `Method.invoke`, `Field.get/set` | `MethodHandle.invokeExact/invoke`, `VarHandle.get/set` |
-| Kiểu lỗi khi gọi | `InvocationTargetException` có thể bọc lỗi từ method | MethodHandle thường truyền trực tiếp throwable của method; cũng cần xử lý sai kiểu gọi |
+| Finding members | `Class.getDeclaredMethod` / `getDeclaredField` | `Lookup.findVirtual` / `findVarHandle` |
+| Requesting deep access | `setAccessible(true)` or `trySetAccessible()` | `MethodHandles.privateLookupIn(...)` |
+| Module keeps package closed | May throw `InaccessibleObjectException` / fail to set accessible | `privateLookupIn` may throw `IllegalAccessException` |
+| Execution | `Method.invoke`, `Field.get/set` | `MethodHandle.invokeExact/invoke`, `VarHandle.get/set` |
+| Error style on call | `InvocationTargetException` may wrap method errors | MethodHandle generally propagates method throwables directly; type mismatches also need handling |
 
-Không nên diễn giải `privateLookupIn` như một “bypass” tương đương `setAccessible(true)`. Cả hai chỉ hoạt động trong phạm vi quyền được Java cho phép. Một thư viện cần tương thích nhiều phiên bản nên yêu cầu module sở hữu dữ liệu **mở có chọn lọc** đúng package, thay vì khuyến nghị `open module` hoặc `--add-opens` tất cả package theo mặc định.
+Do not interpret `privateLookupIn` as a "bypass" equivalent to `setAccessible(true)`. Both operate only within the bounds Java permits. A library needing cross-version compatibility should ask the data-owning module to **selectively open** only the needed package, rather than recommending `open module` or `--add-opens` for all packages by default.
 
-## 9. Lỗi thường gặp và cách chẩn đoán
+## 9. Common Errors and How to Diagnose Them
 
-| Triệu chứng | Nguyên nhân khả dĩ | Kiểm tra / xử lý |
+| Symptom | Possible Cause | Check / Fix |
 | --- | --- | --- |
-| `IllegalAccessException` tại `privateLookupIn` | Caller thiếu `PRIVATE`/`MODULE`, không có `reads`, hoặc target package không `opens` | In `lookupModes()`, `canRead`, `isOpen`; kiểm tra descriptor/flag |
-| `IllegalArgumentException` tại `privateLookupIn` | Target là primitive, void hoặc array | Dùng `Class` của class/interface thực |
-| `IllegalAccessException` tại `findVirtual` sau khi có lookup | Thành viên không truy cập được bởi lookup hoặc chọn sai quyền/ngữ cảnh | Kiểm tra lookup thực sự dùng và declaring class |
-| `NoSuchMethodException` tại `findVirtual` | Tên/`MethodType` không đúng, overload sai | Đối chiếu **kiểu trả về lẫn danh sách tham số** của MethodType |
-| `NoSuchFieldException` tại `findVarHandle` | Tên field hoặc kiểu field không khớp | Đối chiếu kiểu field chính xác |
-| `WrongMethodTypeException` lúc gọi handle | Sai kiểu ở điểm gọi `invokeExact` hay adapter type không phù hợp | So sánh `handle.type()` với kiểu receiver/argument/return |
-| `ClassCastException` khi gọi handle | Đối tượng tại runtime không phù hợp khi có chuyển kiểu | Kiểm tra receiver và kiểu đối số |
-| `InaccessibleObjectException` từ `setAccessible` | Package chưa mở cho deep reflection | Mở package đúng target hoặc chọn API public |
-| Chạy được trên classpath nhưng lỗi trên module path | Khác biệt giữa unnamed module và named module | Chạy mẫu JPMS thật, kiểm tra `module-info.java` |
+| `IllegalAccessException` in `privateLookupIn` | Caller lacks `PRIVATE`/`MODULE`, lacks `reads`, or target package is not `opens` | Print `lookupModes()`, `canRead`, `isOpen`; check descriptor/flags |
+| `IllegalArgumentException` in `privateLookupIn` | Target is primitive, void, or array | Pass the `Class` of a real class/interface |
+| `IllegalAccessException` in `findVirtual` after obtaining lookup | Member not accessible by lookup or wrong permissions/context chosen | Check which lookup is actually used and the declaring class |
+| `NoSuchMethodException` in `findVirtual` | Wrong name/`MethodType` or wrong overload | Verify **both return type and parameter list** of `MethodType` |
+| `NoSuchFieldException` in `findVarHandle` | Field name or field type mismatch | Verify the exact field type |
+| `WrongMethodTypeException` on handle call | Type mismatch at `invokeExact` call site or unsuitable adapter type | Compare `handle.type()` with receiver/argument/return types |
+| `ClassCastException` on handle call | Runtime object incompatible during conversion | Check receiver and argument types |
+| `InaccessibleObjectException` from `setAccessible` | Package not opened for deep reflection | Open the package to the exact target or choose a public API |
+| Works on classpath but fails on module path | Difference between unnamed module and named modules | Run a true JPMS sample; check `module-info.java` |
 
-Checklist chẩn đoán ngắn (các dòng sau là **fragment** trong class đã import `MethodHandles` và biết `Target`):
+Short diagnostic checklist (the following lines are a **fragment** inside a class that has imported `MethodHandles` and knows `Target`):
 
 ~~~java
 MethodHandles.Lookup caller = MethodHandles.lookup();
@@ -393,34 +393,34 @@ System.out.println("reads: " + from.canRead(to));
 System.out.println("opens: " + to.isOpen(pkg, from));
 ~~~
 
-Ở đây `Target` là lớp đích có sẵn trong chương trình, không phải tên API giả định. Kiểm tra thuộc tính này giúp xác định thiếu quyền nào **trước khi** dùng thử một thao tác truy cập private.
+Here `Target` is an existing target class in the program, not a hypothetical API name. Checking these properties helps identify which privilege is missing **before** attempting a private access operation.
 
-## 10. Thiết kế an toàn với module và Method Handle
+## 10. Safe Design with Modules and Method Handles
 
-1. **Sở hữu quyền mở package tại module đích.** Ưu tiên `opens package to trusted.module;` nếu thư viện thực sự cần deep reflection. Đối với tương tác thông thường, cung cấp public API qua `exports` hoặc qua service interface.
-2. **Tạo lookup tại vị trí đáng tin.** `MethodHandles.lookup()` phải được gọi trong mã của module caller có quyền phù hợp; một lookup nhận từ `publicLookup` hoặc plugin không đáng tin không thể tự nâng cấp.
-3. **Chỉ yêu cầu member cần thiết.** Sau khi có private lookup, tạo đúng `MethodHandle`/`VarHandle` cần dùng, không lưu và phát tán lookup đầy đủ nếu chỉ cần thao tác hẹp.
-4. **Tách kiểm tra quyền và lỗi nghiệp vụ.** `IllegalAccessException` khi tạo lookup khác với `WrongMethodTypeException` khi gọi handle và lỗi do chính method đích ném.
-5. **Không dựa vào tên package để suy ra quyền.** Module identity, `reads` và `opens` là các điều kiện runtime. Một package cùng tên trong hai module cũng không đương nhiên được cùng quyền truy cập.
-6. **Không mở rộng vô tội vạ package của JDK.** Nếu chẩn đoán lỗi `java.base`, cân nhắc API được hỗ trợ thay vì dùng `--add-opens java.base/...=ALL-UNNAMED` trong sản phẩm.
+1. **Own the package-opening grant at the target module.** Prefer `opens package to trusted.module;` if a library truly needs deep reflection. For ordinary interaction, provide public APIs via `exports` or service interfaces.
+2. **Create lookups in trusted locations.** `MethodHandles.lookup()` must be called in caller-module code with the proper privileges; a lookup obtained from `publicLookup` or an untrusted plugin cannot elevate itself.
+3. **Request only the needed members.** Once you have a private lookup, create the exact `MethodHandle`/`VarHandle`s required; do not store and distribute the full lookup when only narrow operations are needed.
+4. **Separate permission checks from business errors.** `IllegalAccessException` when creating a lookup differs from `WrongMethodTypeException` when invoking a handle and errors thrown by the target method itself.
+5. **Do not infer permissions from package names.** Module identity, `reads`, and `opens` are runtime conditions. Packages sharing the same name in two modules do not automatically share access rights.
+6. **Do not indiscriminately open JDK packages.** When diagnosing `java.base` errors, consider supported APIs instead of using `--add-opens java.base/...=ALL-UNNAMED` in production.
 
-`Lookup` mạnh là một quyền có thể ủy quyền. Khi một module mở package cho module khác, module nhận quyền có thể tạo handle tới member private trong package được mở; quyết định này có tác động đến ranh giới đóng gói của ứng dụng.
+A privileged `Lookup` is a delegatable capability. When one module opens a package to another module, the receiving module can create handles to private members in the opened package; this decision affects your application's encapsulation boundaries.
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-1. `publicLookup()` có đủ quyền gọi `privateLookupIn` không? **Không**, vì thiếu `PRIVATE` và `MODULE`.
-2. Hai class khác package nhưng cùng named module có bắt buộc `opens` không? **Không chỉ vì khác package**; `privateLookupIn` với caller full-privilege có thể tạo lookup private cùng module.
-3. Module client đã `requires vault.core;` và target package được `exports`, vậy đã gọi member private được chưa? **Chưa**; package còn phải `opens` cho client nếu khác module.
-4. `--add-opens vault.core/demo.vault=demo.client` trao quyền cho ai? **Module `demo.client`**, không phải mọi module; vẫn cần caller lookup đủ mode.
-5. Điều gì mất khi `privateLookupIn` chuyển giữa hai module có tên? **Mode `MODULE`** trên lookup kết quả; `previousLookupClass()` ghi nhận lớp lookup trước đó.
-6. Vì sao cùng mã nguồn chạy trên classpath đôi khi khác module path? **Unnamed module mở package**, còn named module có mô tả `exports`/`opens` và các quan hệ đọc được kiểm tra.
-7. Một `MethodHandle` đã được tạo thành công có cần gọi lại `privateLookupIn` trước mỗi `invokeExact` không? **Không**; phải dùng handle đúng chữ ký và giữ an toàn capability đã được cấp.
+1. Does `publicLookup()` have enough privilege to call `privateLookupIn`? **No**, because it lacks `PRIVATE` and `MODULE`.
+2. Do two classes in different packages within the same named module require `opens`? **Not merely for being in different packages**; `privateLookupIn` with a full-privilege caller can create a private lookup within the same module.
+3. The client module already has `requires vault.core;` and the target package is `exports`ed—can private members be invoked now? **Not yet**; the package must also be `opens` to the client if across modules.
+4. Who receives access from `--add-opens vault.core/demo.vault=demo.client`? **Module `demo.client`**, not every module; a caller lookup with the required modes is still needed.
+5. What is lost when `privateLookupIn` transitions between two named modules? **The `MODULE` mode** on the resulting lookup; `previousLookupClass()` records the prior lookup class.
+6. Why does the same source code sometimes behave differently on the classpath vs. the module path? **The unnamed module opens packages**, whereas named modules have `exports`/`opens` descriptors and checked readability relationships.
+7. Does a `MethodHandle` that was already created successfully need `privateLookupIn` called again before each `invokeExact`? **No**; you must invoke the handle with the exact signature and keep the granted capability safe.
 
-## 12. Tài liệu chính thức
+## 12. Official Documentation
 
-- [Java SE 17 — MethodHandles và privateLookupIn](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.html)
+- [Java SE 17 — MethodHandles and privateLookupIn](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.html)
 - [Java SE 17 — MethodHandles.Lookup](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/invoke/MethodHandles.Lookup.html)
 - [Java SE 17 — Module](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Module.html)
 - [Oracle Java 17 Migration Guide — --add-opens](https://docs.oracle.com/en/java/javase/17/migrate/migrating-jdk-8-later-jdk-releases.html)
 
-**Ghi nhớ:** `privateLookupIn` chỉ thành công khi caller lookup có **`PRIVATE` + `MODULE`**; nếu target ở module khác, cần thêm **`reads`** và **`opens`** đúng package/đúng module. `exports` chỉ giúp sử dụng API public, không mở private member. Sau khi được cấp quyền, `MethodHandle`/`VarHandle` là capability thực sự có thể thực thi và cần được quản lý cẩn thận.
+**Remember:** `privateLookupIn` succeeds only when the caller lookup holds **`PRIVATE` + `MODULE`**; if the target is in another module, **`reads`** and **`opens`** for the exact package/module are also required. `exports` only enables using public APIs, not opening private members. Once access is granted, `MethodHandle`/`VarHandle` is an executable capability that must be managed carefully.

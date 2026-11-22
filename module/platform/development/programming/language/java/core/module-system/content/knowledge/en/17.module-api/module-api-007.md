@@ -1,63 +1,63 @@
-# Module.getClassLoader() và giới hạn của ClassLoader
+# Module.getClassLoader() and the limits of ClassLoader
 
-## 1. Vai trò của Module.getClassLoader()
+## 1. The role of Module.getClassLoader()
 
-Từ Java 9, Java Platform Module System (JPMS) bổ sung lớp **java.lang.Module** để biểu diễn một module đang được JVM nạp. Mỗi module được định nghĩa bởi một class loader. Phương thức **Module.getClassLoader()** trả về class loader đã định nghĩa module đó.
+Since Java 9, the Java Platform Module System (JPMS) adds the **java.lang.Module** class to represent a module loaded by the JVM. Each module is defined by a class loader. The **Module.getClassLoader()** method returns the class loader that defined that module.
 
     Module module = Main.class.getModule();
     ClassLoader loader = module.getClassLoader();
 
-Cách lấy này hữu ích khi cần tìm hiểu một lớp thuộc module nào và module đó được nạp bởi loader nào. Thông thường, hãy bắt đầu từ một lớp mà ứng dụng đã biết, gọi **Class.getModule()**, rồi lấy loader từ đối tượng Module tương ứng.
+This approach is useful when you need to find out which module a class belongs to and which loader loaded that module. Typically, start from a class the application already knows, call **Class.getModule()**, and then obtain the loader from the corresponding Module object.
 
-Cần phân biệt hai khái niệm:
+Two concepts must be distinguished:
 
-- **Module** mô tả ranh giới module: tên module, các module mà nó đọc được, package được export hoặc open và những quan hệ liên quan.
-- **ClassLoader** chịu trách nhiệm tìm và định nghĩa các lớp. Loader tham gia quyết định một tên lớp được ánh xạ thành đối tượng Class nào trong JVM.
+- **Module** describes module boundaries: the module name, the modules it can read, exported or opened packages, and related relationships.
+- **ClassLoader** is responsible for finding and defining classes. The loader participates in determining which Class object in the JVM a class name maps to.
 
-Một class loader có thể định nghĩa nhiều named module và cả unnamed module của chính nó. Vì vậy, quan hệ giữa module và class loader không nhất thiết là một-một. Không thể suy ra rằng mỗi module luôn có một loader riêng, hoặc mọi module do cùng loader định nghĩa đều là cùng một module.
+One class loader can define multiple named modules as well as its own unnamed module. Therefore, the relationship between modules and class loaders is not necessarily one-to-one. You cannot deduce that every module always has its own loader, or that every module defined by the same loader is the same module.
 
-Trong JVM, danh tính của một lớp gắn với **tên nhị phân của lớp và class loader đã định nghĩa lớp đó**. Hai lớp có cùng tên đầy đủ nhưng được định nghĩa bởi hai loader khác nhau vẫn là hai kiểu khác nhau. Điều này giải thích nhiều lỗi ép kiểu hoặc liên kết lớp trong ứng dụng plugin, container và môi trường có nhiều loader.
+In the JVM, a class's identity is tied to **the binary name of the class and the class loader that defined that class**. Two classes with the same fully qualified name defined by two different loaders are still two distinct types. This explains many type-casting or class-linkage errors in plugin applications, containers, and multi-loader environments.
 
-## 2. Vì sao getClassLoader() có thể trả về null?
+## 2. Why can getClassLoader() return null?
 
-Nếu module được định nghĩa bởi **bootstrap class loader**, phương thức trả về **null**. Đây là giá trị hợp lệ, không có nghĩa module bị thiếu hoặc thao tác lấy loader thất bại.
+If a module is defined by the **bootstrap class loader**, the method returns **null**. This is a valid value; it does not mean the module is missing or that obtaining the loader failed.
 
-Ví dụ điển hình là module **java.base**, nơi có lớp String:
+A typical example is the **java.base** module, where the String class resides:
 
     Module baseModule = String.class.getModule();
 
     System.out.println(baseModule.getName());        // java.base
     System.out.println(baseModule.getClassLoader()); // null
 
-Bootstrap loader là loader nền tảng do JVM quản lý; ứng dụng không nhận được một đối tượng ClassLoader thông thường đại diện cho nó. Vì thế, không được gọi trực tiếp **loader.loadClass(...)** khi chưa xử lý trường hợp loader bằng null.
+The bootstrap loader is the foundational loader managed by the JVM; applications do not receive a regular ClassLoader object representing it. Therefore, never directly call **loader.loadClass(...)** without handling the case where loader is null.
 
-Một cách kiểm tra an toàn:
+A safe check:
 
     Module module = Main.class.getModule();
     ClassLoader loader = module.getClassLoader();
 
     if (loader == null) {
-        System.out.println("Module được nạp bởi bootstrap loader: "
+        System.out.println("Module is loaded by the bootstrap loader: "
                 + module.getName());
     } else {
         System.out.println("Class loader: " + loader);
     }
 
-Không nên thay thế kết quả null bằng **ClassLoader.getSystemClassLoader()** một cách máy móc. System class loader là một loader cụ thể của môi trường chạy; nó không phải đại diện chung cho mọi module và không nhất thiết là loader đã định nghĩa module đang xét.
+You should not mechanically replace a null result with **ClassLoader.getSystemClassLoader()**. The system class loader is a specific loader of the runtime environment; it is not a universal stand-in for every module and is not necessarily the loader that defined the module in question.
 
-## 3. Lấy loader không đồng nghĩa với quyền truy cập module
+## 3. Obtaining a loader does not equal module access permission
 
-Đây là giới hạn quan trọng nhất khi làm việc với JPMS: **Module.getClassLoader() chỉ cho biết loader gắn với module; nó không cấp thêm quyền đọc module, truy cập package hoặc phản chiếu sâu.**
+This is the most important limitation when working with JPMS: **Module.getClassLoader() only tells you the loader bound to the module; it does not grant additional module read permissions, package access, or deep reflection.**
 
-Quyền truy cập giữa các module vẫn tuân theo cấu hình module:
+Access permissions between modules still obey the module configuration:
 
-- **requires** khai báo quan hệ đọc giữa các module. Một module thường phải đọc module chứa kiểu mà nó sử dụng.
-- **exports** công khai một package cho các module khác theo quy tắc truy cập của Java. Export không biến mọi thành phần private hoặc package-private thành API công khai.
-- **opens** cho phép truy cập phản chiếu sâu vào package trong những điều kiện JPMS quy định. Đây là cơ chế thường cần khi framework dùng reflection để truy cập thành viên không public.
+- **requires** declares read relationships between modules. A module normally must read the module containing types it uses.
+- **exports** exposes a package to other modules according to Java's access rules. Export does not turn every private or package-private member into public API.
+- **opens** permits deep reflective access to a package under JPMS-specified conditions. This is the mechanism typically needed when a framework uses reflection to access non-public members.
 
-Ví dụ, nếu module A lấy được loader của module B, điều đó không tự động khiến A được phép sử dụng mọi lớp trong B. Cần kiểm tra đồng thời quan hệ đọc, package được export/open và các quy tắc truy cập Java thông thường.
+For example, if module A obtains module B's loader, that does not automatically allow A to use every class in B. You must simultaneously check read relationships, exported/opened packages, and standard Java access rules.
 
-Các API như **Module.canRead(...)**, **Module.isExported(...)** và **Module.isOpen(...)** giúp kiểm tra những khía cạnh này. Chúng trả lời các câu hỏi khác với **getClassLoader()**:
+APIs such as **Module.canRead(...)**, **Module.isExported(...)**, and **Module.isOpen(...)** help check these aspects. They answer different questions from **getClassLoader()**:
 
     Module source = Main.class.getModule();
     Module target = Service.class.getModule();
@@ -68,61 +68,61 @@ Các API như **Module.canRead(...)**, **Module.isExported(...)** và **Module.i
     boolean opened = target.isOpen("com.example.service",
                                    source);
 
-Kết quả cần được hiểu theo đúng loại quyền đang kiểm tra. Một package được export không đồng nghĩa package đó được open cho deep reflection.
+The results must be interpreted according to the exact permission type being checked. An exported package does not mean that package is opened for deep reflection.
 
-## 4. Dùng loader để nạp lớp: cần hiểu phạm vi tìm kiếm
+## 4. Using a loader to load classes: understand the search scope
 
-Khi loader khác null, có thể gọi **ClassLoader.loadClass(String)**:
+When loader is non-null, you can call **ClassLoader.loadClass(String)**:
 
     ClassLoader loader = Main.class.getModule().getClassLoader();
     Class<?> serviceType =
             loader.loadClass("com.example.service.Service");
 
-Lệnh này yêu cầu loader tìm lớp theo tên nhị phân. Nó có thể ném **ClassNotFoundException** nếu không tìm thấy lớp. Kết quả phụ thuộc vào cách loader triển khai việc tìm lớp, quan hệ parent-child và các module mà loader định nghĩa.
+This asks the loader to locate the class by binary name. It can throw **ClassNotFoundException** if the class is not found. The result depends on how the loader implements class lookup, parent-child relationships, and the modules the loader defines.
 
-Tuy nhiên, **loadClass(String) không phải API khẳng định rằng lớp trả về thuộc chính xác module mà bạn đang kiểm tra**. Một loader có thể định nghĩa nhiều module. Vì vậy, nếu yêu cầu là tìm một lớp trong một module cụ thể, hãy cân nhắc overload **Class.forName(Module, String)**:
+However, **loadClass(String) is not an API that guarantees the returned class belongs to the exact module you are inspecting**. A loader can define multiple modules. Therefore, if the requirement is to find a class in a specific module, consider the **Class.forName(Module, String)** overload:
 
     Module module = Main.class.getModule();
     Class<?> serviceType =
             Class.forName(module, "com.example.service.Service");
 
     if (serviceType == null) {
-        System.out.println("Không tìm thấy lớp trong module đã chỉ định");
+        System.out.println("Class not found in the specified module");
     }
 
-API này có từ Java 9. Nó tìm lớp theo module được chỉ định và trả về **null** nếu lớp không được tìm thấy trong module đó. Phương thức này không khởi tạo lớp. Đây thường là lựa chọn rõ nghĩa hơn khi cần ràng buộc việc tra cứu vào một module cụ thể.
+This API has existed since Java 9. It searches for the class in the specified module and returns **null** if the class is not found in that module. This method does not initialize the class. It is usually a clearer choice when you need to constrain lookup to a specific module.
 
-Không nhầm API trên với **Class.forName(String)**. Overload chỉ nhận tên lớp sử dụng cơ chế nạp lớp mặc định của nó, nên có thể tra cứu qua loader khác với loader của module mà bạn đang quan tâm.
+Do not confuse the API above with **Class.forName(String)**. The overload taking only a class name uses its default class-loading mechanism, so it may search through a different loader than the loader of the module you care about.
 
-## 5. Những giới hạn và khác biệt thường gặp của ClassLoader
+## 5. Common limitations and differences of ClassLoader
 
-### Cơ chế delegation
+### Delegation mechanism
 
-Nhiều class loader dùng mô hình parent delegation: trước tiên kiểm tra lớp đã được nạp, sau đó hỏi parent loader, rồi mới tự tìm lớp nếu cần. Đây là cách triển khai phổ biến, không phải cam kết rằng mọi loader tùy biến đều phải có cùng hành vi. Loader có thể ghi đè logic tìm lớp để phục vụ plugin, ứng dụng server hoặc môi trường chạy đặc thù.
+Many class loaders use a parent delegation model: first checking whether the class is already loaded, then asking the parent loader, and only then searching for the class themselves if needed. This is a common implementation, not a guarantee that every custom loader must behave the same way. A loader can override class lookup logic to serve plugins, application servers, or specialized runtime environments.
 
-Do đó, biết đối tượng loader không có nghĩa là biết đầy đủ thứ tự tìm lớp. Khi điều tra lỗi nạp lớp, cần xem cả loader cụ thể và cấu trúc parent của nó.
+Therefore, knowing the loader object does not mean knowing the full lookup order. When investigating class-loading errors, inspect both the specific loader and its parent structure.
 
-### Cùng tên lớp nhưng khác loader
+### Same class name but different loaders
 
-Giả sử hai plugin cùng mang một lớp tên **com.example.api.Message**, nhưng mỗi plugin được nạp bởi một loader riêng. JVM có thể xem chúng là hai kiểu khác nhau. Khi truyền đối tượng giữa hai phía, ứng dụng có thể gặp **ClassCastException**, dù thông báo hiển thị cùng tên lớp.
+Suppose two plugins both carry a class named **com.example.api.Message**, but each plugin is loaded by its own loader. The JVM can treat them as two different types. When passing objects between the two sides, the application can encounter **ClassCastException**, even though the message displays the same class name.
 
-Một số lỗi liên kết khác cũng có thể xuất hiện nếu các thành phần trong một kiểu dữ liệu được nạp từ những loader không tương thích. Cách xử lý thường là thống nhất nơi định nghĩa các API dùng chung, xác định ranh giới loader và tránh đóng gói nhiều bản sao của cùng API vào các vùng nạp lớp độc lập.
+Other linkage errors can also appear if components within a data type are loaded from incompatible loaders. The usual fix is to unify where shared APIs are defined, establish loader boundaries, and avoid packaging multiple copies of the same API into independent class-loading zones.
 
-### Module layer có thể dùng chiến lược loader khác nhau
+### Module layers can use different loader strategies
 
-JPMS cho phép tạo module layer với các chiến lược loader khác nhau. Ví dụ, **ModuleLayer.defineModulesWithOneLoader(...)** có thể định nghĩa các module trong layer bằng một loader dùng chung; **ModuleLayer.defineModulesWithManyLoaders(...)** có thể dùng loader riêng cho từng module. Ứng dụng cũng có thể dùng loader tùy biến khi xây dựng layer.
+JPMS allows creating module layers with different loader strategies. For example, **ModuleLayer.defineModulesWithOneLoader(...)** can define modules in a layer using a shared loader; **ModuleLayer.defineModulesWithManyLoaders(...)** can use a separate loader per module. Applications can also use custom loaders when building a layer.
 
-Vì vậy, không nên dựa vào giả định rằng mỗi module có một loader riêng. Hãy xem cách layer được tạo và cách loader được cấu hình trong ứng dụng thực tế.
+Therefore, do not rely on the assumption that each module has its own loader. Check how the layer was created and how loaders are configured in the actual application.
 
-### Context class loader là một khái niệm khác
+### Context class loader is a different concept
 
-**Thread.currentThread().getContextClassLoader()** trả về context class loader của thread. Framework hoặc thư viện có thể dùng loader này để tìm lớp hoặc provider thay mặt cho mã đang chạy.
+**Thread.currentThread().getContextClassLoader()** returns the thread's context class loader. Frameworks or libraries may use this loader to locate classes or providers on behalf of running code.
 
-Context class loader có thể khác loader trả về từ **Module.getClassLoader()**. Chúng phục vụ các mục đích khác nhau: một bên gắn với module chứa lớp, bên kia là ngữ cảnh nạp lớp do thread mang theo. Không nên thay thế lẫn nhau nếu chưa hiểu thư viện đang sử dụng cơ chế nào.
+The context class loader can differ from the loader returned by **Module.getClassLoader()**. They serve different purposes: one is tied to the module containing the class, while the other is the class-loading context carried by the thread. Do not substitute one for the other without understanding which mechanism the library uses.
 
-## 6. Ví dụ tổng hợp
+## 6. Combined example
 
-Ví dụ sau kiểm tra module và loader của một lớp ứng dụng:
+The following example inspects the module and loader of an application class:
 
     public class LoaderInfo {
         public static void printInfo(Class<?> anchor) {
@@ -140,13 +140,13 @@ Ví dụ sau kiểm tra module và loader của một lớp ứng dụng:
         }
     }
 
-Có thể gọi phương thức với một lớp thuộc ứng dụng:
+You can call the method with an application class:
 
     LoaderInfo.printInfo(Main.class);
 
-Nếu chạy trên classpath, lớp ứng dụng thường thuộc unnamed module. Nếu chạy trên module path, lớp có thể thuộc named module được khai báo trong **module-info.java**. Trong cả hai trường hợp, loader cụ thể phụ thuộc cấu hình runtime.
+If running on the classpath, application classes typically belong to an unnamed module. If running on the module path, classes can belong to a named module declared in **module-info.java**. In both cases, the specific loader depends on the runtime configuration.
 
-Để tra cứu một lớp thuộc đúng module, có thể dùng:
+To look up a class belonging to the exact module, you can use:
 
     Module module = Main.class.getModule();
     Class<?> result =
@@ -156,30 +156,30 @@ Nếu chạy trên classpath, lớp ứng dụng thường thuộc unnamed modul
         System.out.println("Found in module: " + result.getModule().getName());
     }
 
-Ví dụ dùng tên nhị phân đầy đủ của lớp, bao gồm package. Nếu lớp không thuộc module được chỉ định, kết quả là null; việc lấy được loader của module không làm thay đổi điều kiện này.
+The example uses the full binary name of the class, including the package. If the class does not belong to the specified module, the result is null; obtaining the module's loader does not change this condition.
 
-## 7. Cách chọn API phù hợp
+## 7. How to choose the right API
 
-| Nhu cầu | API nên xem xét | Lưu ý |
+| Need | API to consider | Note |
 |---|---|---|
-| Xác định module của một lớp | **Class.getModule()** | Trả về Module chứa lớp đó |
-| Lấy loader gắn với module | **Module.getClassLoader()** | Có thể trả về null với bootstrap loader |
-| Nạp lớp qua một loader đã biết | **ClassLoader.loadClass(String)** | Tìm theo logic của loader; không ràng buộc duy nhất vào một module |
-| Tra cứu lớp trong module xác định | **Class.forName(Module, String)** | Trả về null nếu lớp không nằm trong module đó; không khởi tạo lớp |
-| Kiểm tra module có đọc module khác | **Module.canRead(Module)** | Không thay thế kiểm tra truy cập package |
-| Kiểm tra package được công khai | **Module.isExported(...)** | Phục vụ quyền truy cập theo exports |
-| Kiểm tra package mở cho reflection | **Module.isOpen(...)** | Liên quan đến deep reflection |
-| Lấy loader theo ngữ cảnh thread | **Thread.getContextClassLoader()** | Có thể khác loader gắn với module |
+| Identify the module of a class | **Class.getModule()** | Returns the Module containing that class |
+| Get the loader bound to a module | **Module.getClassLoader()** | May return null for the bootstrap loader |
+| Load a class via a known loader | **ClassLoader.loadClass(String)** | Searches according to loader logic; not uniquely bound to one module |
+| Look up a class in a specific module | **Class.forName(Module, String)** | Returns null if the class is not in that module; does not initialize the class |
+| Check whether a module reads another module | **Module.canRead(Module)** | Does not replace package access checks |
+| Check whether a package is exposed | **Module.isExported(...)** | Serves access permissions via exports |
+| Check whether a package is open for reflection | **Module.isOpen(...)** | Relates to deep reflection |
+| Get the thread context loader | **Thread.getContextClassLoader()** | May differ from the loader bound to the module |
 
-## 8. Ghi nhớ
+## 8. Key takeaways
 
-- Lấy module từ một lớp bằng **Class.getModule()**, sau đó mới gọi **Module.getClassLoader()**.
-- Luôn xử lý trường hợp kết quả loader là null; đây là trường hợp hợp lệ của bootstrap loader.
-- Một loader có thể định nghĩa nhiều module, nên loader không đại diện duy nhất cho module.
-- **ClassLoader.loadClass(...)** tìm lớp theo logic của loader; nó không tự cấp quyền truy cập module và không bảo đảm lớp thuộc module đang xét.
-- Dùng **Class.forName(Module, String)** khi cần tra cứu lớp trong đúng module đã chỉ định.
-- Khi gặp lỗi truy cập, kiểm tra **requires**, **exports**, **opens** và quy tắc truy cập Java; đổi hoặc lấy loader không tự giải quyết các giới hạn này.
-- Khi gặp lỗi ép kiểu hoặc liên kết, kiểm tra xem các lớp có bị nạp từ những loader khác nhau hay không.
-- Phân biệt loader của module với context class loader của thread.
+- Obtain the module from a class with **Class.getModule()**, and only then call **Module.getClassLoader()**.
+- Always handle the case where the loader result is null; this is a valid case for the bootstrap loader.
+- A loader can define multiple modules, so a loader does not uniquely represent a module.
+- **ClassLoader.loadClass(...)** looks up classes according to the loader's logic; it does not grant module access permissions and does not guarantee the class belongs to the module in question.
+- Use **Class.forName(Module, String)** when you need to look up a class in the exact specified module.
+- When encountering access errors, check **requires**, **exports**, **opens**, and Java access rules; switching or obtaining a loader does not resolve these boundaries on its own.
+- When encountering cast or linkage errors, check whether the classes were loaded from different loaders.
+- Distinguish a module's loader from a thread's context class loader.
 
-**Module.getClassLoader() là API để nhận diện loader gắn với một module.** Muốn nạp lớp đúng phạm vi và truy cập được lớp đó, vẫn phải xét cách loader tìm lớp cùng với các quy tắc của Java Module System.
+**Module.getClassLoader() is the API for identifying the loader bound to a module.** To load classes within the right scope and access them, you must still consider how the loader locates classes along with the rules of the Java Module System.

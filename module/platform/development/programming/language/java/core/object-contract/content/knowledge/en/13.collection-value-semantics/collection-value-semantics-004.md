@@ -1,39 +1,39 @@
-# Hash code của List, Set và Map theo hợp đồng tương ứng
+# Hash Codes of List, Set, and Map Under Their Respective Contracts
 
-## 1. Mục tiêu: hiểu công thức được API quy định
+## 1. Goal: Understand the Formulas Specified by the API
 
-Trong Java Collections Framework, `List`, `Set` và `Map` định nghĩa **quy tắc cụ thể cho `equals(Object)` và `hashCode()`** để các cách cài đặt khác nhau vẫn tương thích khi biểu diễn cùng một giá trị logic.
+In the Java Collections Framework, `List`, `Set`, and `Map` define **specific rules for `equals(Object)` and `hashCode()`** so that different implementations remain compatible when representing the same logical value.
 
-Điểm mấu chốt: **không có một công thức `hashCode()` chung cho mọi collection**. Ba loại này có ý nghĩa bình đẳng khác nhau:
+Key point: **there is no single universal `hashCode()` formula for all collections**. These three types have different equality semantics:
 
-- **`List`:** dãy phần tử có vị trí, nên thứ tự là một phần của giá trị.
-- **`Set`:** tập hợp phần tử không trùng lặp; vị trí/thứ tự duyệt không phải một phần của bình đẳng theo hợp đồng `Set`.
-- **`Map`:** tập hợp các ánh xạ từ khóa đến giá trị; thứ tự duyệt/chèn không phải một phần của bình đẳng theo hợp đồng `Map`.
+- **`List`:** an ordered sequence of positioned elements, so order is part of the value.
+- **`Set`:** a collection of unique elements; position and iteration order are not part of equality under the `Set` contract.
+- **`Map`:** a collection of mappings from keys to values; iteration or insertion order is not part of equality under the `Map` contract.
 
-Vì vậy, `List` dùng công thức lũy tiến nhân **31**; `Set` cộng mã băm các phần tử; còn `Map` cộng mã băm các *entry*, mà mỗi entry kết hợp mã băm khóa và giá trị bằng XOR. Đây là các **công thức được Javadoc Java 17 quy định**, không phải chi tiết bucket ngẫu nhiên của riêng `ArrayList`, `HashSet` hoặc `HashMap`.
+Therefore, `List` uses a cumulative multiply-by-**31** formula; `Set` sums element hash codes; and `Map` sums *entry* hash codes, where each entry combines key and value hash codes via XOR. These are **formulas specified by the Java 17 Javadoc**, not arbitrary bucket details specific to `ArrayList`, `HashSet`, or `HashMap`.
 
-> Phân biệt kiểu: `List` và `Set` đều mở rộng `Collection`; `Map` **không** mở rộng `Collection`. Chúng thuộc cùng Java Collections Framework nhưng có các hợp đồng riêng.
+> Type distinction: `List` and `Set` both extend `Collection`; `Map` does **not** extend `Collection`. They belong to the same Java Collections Framework but have separate contracts.
 
-## 2. Nền tảng: hợp đồng `equals()` và `hashCode()`
+## 2. Foundation: The `equals()` and `hashCode()` Contract
 
-Trước khi xét công thức, cần nhớ hợp đồng của `Object`:
+Before examining the formulas, recall the `Object` contract:
 
-1. Nếu `a.equals(b)` trả `true` thì **bắt buộc** `a.hashCode() == b.hashCode()`.
-2. Nếu hai đối tượng **không** bằng nhau, chúng **vẫn có thể** trùng mã băm (collision); mã băm không phải ID duy nhất.
-3. Trong một lần thực thi Java, nếu không có thông tin dùng bởi `equals` thay đổi thì kết quả `hashCode` trên cùng đối tượng phải ổn định.
-4. Không có yêu cầu mã băm cố định giữa các lần chạy JVM khác nhau.
+1. If `a.equals(b)` returns `true`, then `a.hashCode() == b.hashCode()` **must** hold.
+2. If two objects are **not** equal, they **may still** share the same hash code (a collision); a hash code is not a unique ID.
+3. During a single Java execution, if no information used by `equals` changes, the result of `hashCode` on the same object must remain consistent.
+4. There is no requirement that hash codes stay fixed across different JVM runs.
 
-Mỗi kiểu `List`/`Set`/`Map` quy định công thức băm để bảo đảm rằng **hai instance bằng nhau về mặt logic, dù thuộc các lớp triển khai khác nhau, có cùng mã băm**.
+Each `List`/`Set`/`Map` type specifies a hash formula to ensure that **two logically equal instances, even from different implementation classes, produce the same hash code**.
 
-Ví dụ, một `ArrayList<String>` và một `LinkedList<String>` chứa cùng dãy phần tử có thể bằng nhau; một `HashSet<String>` và `LinkedHashSet<String>` chứa cùng tập phần tử cũng bằng nhau; tương tự cho `HashMap` và `LinkedHashMap` chứa cùng các cặp khóa–giá trị.
+For example, an `ArrayList<String>` and a `LinkedList<String>` holding the same element sequence can be equal; a `HashSet<String>` and a `LinkedHashSet<String>` holding the same element set are also equal; likewise for a `HashMap` and a `LinkedHashMap` holding the same key–value pairs.
 
-Các phần tử, khóa và giá trị tự chúng vẫn phải triển khai `equals/hashCode` đúng hợp đồng. Collection không thể “sửa hộ” một phần tử có cặp phương thức sai.
+The elements, keys, and values themselves must still implement `equals/hashCode` according to contract. A collection cannot "fix" an element whose pair of methods is broken.
 
-## 3. `List.hashCode()`: phép tích lũy theo thứ tự
+## 3. `List.hashCode()`: Order-Dependent Accumulation
 
-### 3.1. Quy tắc chính thức
+### 3.1. Official Rule
 
-Javadoc của `List.hashCode()` quy định thuật toán tương đương:
+The `List.hashCode()` Javadoc specifies an equivalent algorithm:
 
 ```java
 int hashCode = 1;
@@ -43,44 +43,44 @@ for (E element : list) {
 }
 ```
 
-Đây là **đoạn mã giả Java theo hợp đồng API**, với biến `list` đại diện cho một danh sách. Nó không phải chương trình độc lập vì `E` và `list` chưa được khai báo.
+This is a **Java pseudocode snippet from the API contract**, where the variable `list` represents a list. It is not a standalone program because `E` and `list` are not declared.
 
-Giải thích:
+Explanation:
 
-- Bắt đầu từ `1`, vì vậy **danh sách rỗng có mã băm bằng `1`**.
-- Mỗi phần tử, theo **đúng thứ tự duyệt của danh sách**, đóng góp vào giá trị hiện tại.
-- Phần tử `null` đóng góp `0`; công thức vẫn nhân mã băm tích lũy với `31`.
-- Các phép nhân/cộng được thực hiện trên `int` của Java; nếu vượt miền 32 bit, giá trị số nguyên tràn theo quy tắc của `int`. Không chuyển thành phép toán số thực, chuỗi hay hash ngẫu nhiên.
+- Starts at `1`, so **an empty list has a hash code of `1`**.
+- Each element, in the **exact iteration order of the list**, contributes to the running value.
+- A `null` element contributes `0`; the formula still multiplies the accumulated hash code by `31`.
+- Multiplications and additions are performed using Java `int` arithmetic; if the value exceeds the 32-bit range, the integer overflows according to `int` rules. Do not convert to floating-point, strings, or random hashes.
 
-Vì phép nhân `31` diễn ra sau từng bước, **thứ tự thường ảnh hưởng mã băm**. Tuy nhiên, hai danh sách khác thứ tự *có thể tình cờ trùng mã băm*; sự khác biệt vị trí làm chúng không bằng nhau theo `List.equals`, chứ không bảo đảm mã băm luôn khác nhau.
+Because multiplying by `31` occurs at every step, **order usually affects the hash code**. However, two lists with different orders *can happen to share the same hash code*; positional differences make them unequal under `List.equals`, rather than guaranteeing distinct hash codes.
 
-### 3.2. Tính thử bằng tay
+### 3.2. Manual Calculation
 
-Với `"A".hashCode() == 65`, `"B".hashCode() == 66`:
+Given `"A".hashCode() == 65`, `"B".hashCode() == 66`:
 
-| Danh sách | Cách tính | Mã băm |
+| List | Calculation | Hash Code |
 | --- | --- | ---: |
-| `[]` | Giá trị khởi tạo | `1` |
+| `[]` | Initial value | `1` |
 | `["A"]` | `31 × 1 + 65` | `96` |
 | `["A", "B"]` | `31 × 96 + 66` | `3042` |
 | `["B", "A"]` | `31 × (31 + 66) + 65` | `3072` |
 | `["A", null]` | `31 × (31 + 65) + 0` | `2976` |
 
-Thứ tự này khớp với `List.equals`: hai list bằng nhau khi đối tượng còn lại cũng là `List`, có cùng kích thước và từng cặp phần tử tại **cùng vị trí** bằng nhau (xử lý `null` đúng cách).
+This order matches `List.equals`: two lists are equal when the other object is also a `List`, has the same size, and each pair of elements at the **same position** is equal (handling `null` properly).
 
-Hai `List` có cùng phần tử nhưng thứ tự khác nhau không được mặc định xem là bằng nhau. Danh sách cũng có thể chứa phần tử lặp, ví dụ `["A", "A"]`, và mỗi **vị trí** vẫn được tính vào công thức.
+Two `List` instances with the same elements in different orders are not considered equal by default. A list can also contain duplicate elements, such as `["A", "A"]`, and every **position** is still included in the formula.
 
-### 3.3. Không phụ thuộc vào lớp lưu trữ
+### 3.3. Independent of Storage Class
 
-Một `ArrayList<>(List.of("A", "B"))` và một `LinkedList<>(List.of("A", "B"))` bằng nhau và đều có `hashCode() == 3042`. Bất kể một lớp dùng mảng, một lớp dùng danh sách liên kết, **hợp đồng `List` quyết định mã băm của chúng**.
+An `ArrayList<>(List.of("A", "B"))` and a `LinkedList<>(List.of("A", "B"))` are equal and both have `hashCode() == 3042`. Regardless of one class using an array and the other a linked list, **the `List` contract determines their hash code**.
 
-Nếu tự triển khai `List`, phải tuân thủ hợp đồng này; chỉ override `equals` mà tính một giá trị băm tùy ý theo vị trí bộ nhớ sẽ phá tính tương thích với các cách triển khai khác.
+If you implement `List` yourself, you must follow this contract; overriding only `equals` while computing an arbitrary hash value based on memory location will break compatibility with other implementations.
 
-## 4. `Set.hashCode()`: tổng mã băm các phần tử
+## 4. `Set.hashCode()`: Sum of Element Hash Codes
 
-### 4.1. Quy tắc chính thức
+### 4.1. Official Rule
 
-Theo Javadoc của `Set`, mã băm của tập hợp là **tổng mã băm của các phần tử**, với `null` được coi là `0`:
+According to the `Set` Javadoc, a set's hash code is the **sum of the hash codes of its elements**, with `null` treated as `0`:
 
 ```java
 int hashCode = 0;
@@ -89,57 +89,57 @@ for (E element : set) {
 }
 ```
 
-Đây là **đoạn mã giả theo hợp đồng**, không phải tệp Java độc lập.
+This is a **contract pseudocode snippet**, not a standalone Java file.
 
-- **Tập hợp rỗng có mã băm `0`.**
-- Thứ tự cộng không thay đổi kết quả số nguyên; mã băm của một tập hợp **không phụ thuộc thứ tự chèn hoặc duyệt**.
-- Mỗi phần tử có mặt trong set được cộng một lần; các giá trị bằng nhau không được lưu thành hai phần tử khác biệt theo hợp đồng `Set`.
-- Mã băm có thể trùng giữa các tập hợp khác nhau, kể cả khi không có phần tử nào chung.
+- **An empty set has hash code `0`.**
+- The order of addition does not change the integer result; a set's hash code **does not depend on insertion or iteration order**.
+- Each element present in the set is added once; equal values are not stored as two distinct elements under the `Set` contract.
+- Hash codes can match between different sets, even when they have no elements in common.
 
-Ví dụ, `Set.of("A", "B")` có giá trị `65 + 66 = 131`. Một `HashSet` thêm A rồi B và một `LinkedHashSet` thêm B rồi A đều biểu diễn cùng tập và có mã băm `131`. Tập chứa `"A"` và `null`, với triển khai cho phép `null` như `HashSet`, có mã băm `65 + 0 = 65`.
+For example, `Set.of("A", "B")` evaluates to `65 + 66 = 131`. A `HashSet` adding A then B and a `LinkedHashSet` adding B then A both represent the same set and have hash code `131`. A set containing `"A"` and `null`, in an implementation allowing `null` like `HashSet`, has hash code `65 + 0 = 65`.
 
-### 4.2. Vì sao không áp dụng công thức `List` cho `Set`?
+### 4.2. Why Is the `List` Formula Not Applied to `Set`?
 
-Một `Set` không có *vị trí phần tử* trong định nghĩa bình đẳng. Nếu mã băm phụ thuộc thứ tự duyệt, hai set bằng nhau nhưng có thứ tự lặp khác nhau có thể nhận mã băm khác nhau, vi phạm `equals => hashCode`.
+A `Set` has no *element position* in its definition of equality. If the hash code depended on iteration order, two equal sets with different iteration orders could receive different hash codes, violating `equals => hashCode`.
 
-Định nghĩa `Set.equals` so sánh hai set có cùng kích thước và các phần tử tương đương nhau, **không so vị trí**. Vì vậy công thức tổng là phép kết hợp giao hoán phù hợp với ngữ nghĩa set.
+The definition of `Set.equals` checks whether two sets have the same size and equivalent elements, **without comparing positions**. Therefore, summation is a commutative combination operation suited to set semantics.
 
-Cần phân biệt việc `LinkedHashSet` duy trì thứ tự lặp với việc thứ tự ấy **không tham gia** `Set.equals/hashCode`. Một lớp có thứ tự duyệt xác định vẫn phải tuân thủ cùng hợp đồng của `Set`.
+Distinguish between `LinkedHashSet` maintaining an iteration order and that order **not participating** in `Set.equals/hashCode`. A class with a deterministic iteration order must still adhere to the same `Set` contract.
 
-### 4.3. Collision không vi phạm hợp đồng
+### 4.3. Collisions Do Not Violate the Contract
 
-Giả sử hai phần tử khác nhau có mã băm `10` và `20`, trong khi một phần tử thứ ba có mã băm `30`. Khi ấy một set chứa hai phần tử đầu và set chứa phần tử thứ ba **có thể cùng mã băm `30`** nhưng không bằng nhau.
+Suppose two distinct elements have hash codes `10` and `20`, while a third element has hash code `30`. Then a set containing the first two elements and a set containing the third element **can share the same hash code `30`** without being equal.
 
-Không được kết luận hai set bằng nhau chỉ từ mã băm. Khi cần so sánh chính xác, dùng `set1.equals(set2)`.
+Do not conclude that two sets are equal solely from their hash codes. When exact comparison is needed, use `set1.equals(set2)`.
 
-## 5. `Map.hashCode()`: tổng mã băm các ánh xạ
+## 5. `Map.hashCode()`: Sum of Mapping Hash Codes
 
-### 5.1. Quy tắc chính thức của `Map`
+### 5.1. Official `Map` Rule
 
-Theo hợp đồng `Map.hashCode()`:
+According to the `Map.hashCode()` contract:
 
-> Mã băm của một map bằng tổng mã băm của các entry trong `entrySet()`.
+> The hash code of a map equals the sum of the hash codes of the entries in `entrySet()`.
 
-Viết dưới dạng công thức:
+Written as a formula:
 
 ```text
-hashCode(map) = Σ hashCode(entry) với mỗi entry ∈ map.entrySet()
+hashCode(map) = Σ hashCode(entry) for each entry ∈ map.entrySet()
 ```
 
-Đây là công thức của giao diện `Map`, không đòi hỏi map phải được cài bằng bảng băm. Những triển khai khác nhau có cùng các ánh xạ logic phải sinh cùng mã băm.
+This is a formula of the `Map` interface and does not require the map to be implemented with a hash table. Different implementations with the same logical mappings must produce the same hash code.
 
-### 5.2. Mã băm của một `Map.Entry`
+### 5.2. Hash Code of a `Map.Entry`
 
-`Map.Entry.hashCode()` quy định:
+`Map.Entry.hashCode()` specifies:
 
 ```java
 int entryHash = (key == null ? 0 : key.hashCode())
               ^ (value == null ? 0 : value.hashCode());
 ```
 
-Đây là **đoạn mã minh họa công thức**, trong đó `key` và `value` là các biến chưa khai báo. Ký hiệu `^` trong Java là **bitwise XOR** trên hai số nguyên, **không phải phép lũy thừa**.
+This is a **formula illustration snippet**, in which `key` and `value` are undeclared variables. The `^` symbol in Java is **bitwise XOR** on two integers, **not exponentiation**.
 
-Sau đó `Map.hashCode()` cộng các mã băm entry:
+Then `Map.hashCode()` sums the entry hash codes:
 
 ```java
 int mapHash = 0;
@@ -151,39 +151,39 @@ for (Map.Entry<K, V> entry : map.entrySet()) {
 }
 ```
 
-**Lưu ý về ưu tiên toán tử:** trong biểu thức Java cuối trên, phép cộng `+=` có ưu tiên gán thấp; để thể hiện rõ mỗi entry được XOR trước rồi cộng vào tổng, nên dùng dấu ngoặc như phiên bản sau:
+**Operator precedence note:** in the final Java expression above, compound assignment `+=` has low assignment precedence; to make it explicit that each entry is XORed first and then added to the sum, parenthesize it as in the following version:
 
 ```java
 mapHash += ((key == null ? 0 : key.hashCode())
          ^  (value == null ? 0 : value.hashCode()));
 ```
 
-Nếu sao chép vào mã chạy thực tế, luôn dùng dấu ngoặc này để không nhầm biểu thức và thuận tiện cho người đọc.
+If copying into runnable code, always include these parentheses to avoid misreading the expression and to help readers.
 
-### 5.3. Ví dụ tính tay
+### 5.3. Manual Calculation Example
 
-Với map chứa `"A" -> 1` và `"B" -> 2`:
+For a map containing `"A" -> 1` and `"B" -> 2`:
 
-| Ánh xạ | Mã băm khóa | Mã băm giá trị | Mã băm entry (XOR) |
+| Mapping | Key Hash Code | Value Hash Code | Entry Hash Code (XOR) |
 | --- | ---: | ---: | ---: |
 | `"A" -> 1` | `65` | `1` | `65 ^ 1 = 64` |
 | `"B" -> 2` | `66` | `2` | `66 ^ 2 = 64` |
 
-Tổng của hai entry là `64 + 64 = 128`. Do phép cộng giao hoán, map thêm B trước A và map thêm A trước B vẫn có mã băm `128` nếu chúng biểu diễn cùng các ánh xạ.
+The sum of the two entries is `64 + 64 = 128`. Because addition is commutative, a map adding B before A and a map adding A before B still have hash code `128` if they represent the same mappings.
 
-Các trường hợp đặc biệt:
+Special cases:
 
-- **Map rỗng:** không có entry nào để cộng, do đó `hashCode() == 0`.
-- **Khóa `null` hoặc giá trị `null`:** thành phần mã băm ấy đóng góp `0` nếu triển khai cho phép. Chẳng hạn `HashMap` có `"A" -> null` và `null -> "B"` thì tổng băm là `(65 ^ 0) + (0 ^ 66) = 131`.
-- **Đổi giá trị ứng với cùng khóa:** ánh xạ logic đã thay đổi, nên kết quả mã băm có thể thay đổi. Tuy nhiên không phải mỗi lần thay đổi mapping đều bắt buộc tạo mã băm khác; collision vẫn có thể xảy ra.
+- **Empty map:** no entries to sum, hence `hashCode() == 0`.
+- **`null` key or `null` value:** that component's hash code contributes `0` if allowed by the implementation. For instance, a `HashMap` with `"A" -> null` and `null -> "B"` has total hash `(65 ^ 0) + (0 ^ 66) = 131`.
+- **Changing the value for the same key:** the logical mapping has changed, so the resulting hash code may change. However, not every mapping change is guaranteed to yield a different hash code; collisions can still occur.
 
-`Map.equals` so sánh **các ánh xạ**: hai map bằng nhau nếu chứa cùng tập cặp khóa–giá trị theo ngữ nghĩa bình đẳng tương ứng, không xét thứ tự chèn. Vì vậy mã băm dựa trên entry, chứ không chỉ khóa.
+`Map.equals` compares **mappings**: two maps are equal if they contain the same set of key–value pairs under the respective equality semantics, regardless of insertion order. Hence the hash code is based on entries, not keys alone.
 
-## 6. Chương trình Java 17: đối chiếu ba hợp đồng
+## 6. Java 17 Program: Comparing the Three Contracts
 
-Ví dụ hoàn chỉnh dùng hai cách triển khai khác nhau cho từng loại. Các phép kiểm tra dựa vào công thức giao diện và dùng dữ liệu `String`/`Integer` có mã băm xác định; không suy luận từ bucket hoặc thứ tự không được bảo đảm của `HashMap`/`HashSet`.
+A complete example using two different implementations for each type. The checks rely on interface formulas and use `String`/`Integer` data with deterministic hash codes; they do not infer anything from buckets or unguaranteed ordering of `HashMap`/`HashSet`.
 
-Tạo tệp **`CollectionHashContractDemo.java`**:
+Create the file **`CollectionHashContractDemo.java`**:
 
 ```java
 import java.util.ArrayList;
@@ -244,14 +244,14 @@ public class CollectionHashContractDemo {
 }
 ```
 
-Chạy bằng JDK 17+:
+Run with JDK 17+:
 
 ```bash
 javac --release 17 CollectionHashContractDemo.java
 java CollectionHashContractDemo
 ```
 
-**Output đã kiểm chứng:**
+**Verified output:**
 
 ```text
 list equals: true
@@ -269,118 +269,118 @@ map with null hash: 131
 empty hashes: 1, 0, 0
 ```
 
-Phân tích:
+Analysis:
 
-1. **`List`:** `ArrayList` và `LinkedList` chứa cùng `["A","B"]` bằng nhau; cùng mã băm `3042`. Đổi thứ tự cho ví dụ cụ thể tạo mã băm `3072`, đúng công thức phụ thuộc vị trí. `Arrays.asList("A", null)` minh họa quy tắc phần tử `null` đóng góp `0`.
-2. **`Set`:** `HashSet` và `LinkedHashSet` bằng nhau dù thứ tự thêm khác nhau; cùng tổng băm `65+66=131`. Tập có `null` dùng mã băm phần tử `0`; `HashSet` cho phép `null`.
-3. **`Map`:** `HashMap` và `LinkedHashMap` có cùng hai ánh xạ nên bằng nhau, băm bằng `128`. Mỗi entry trong dữ liệu mẫu có XOR bằng `64`, tổng là `128`. Trường hợp `null` sử dụng `HashMap` vì `HashMap` cho phép khóa/giá trị `null`.
-4. **Rỗng:** công thức List khởi tạo `1`, còn Set và Map lấy tổng rỗng `0`. Vì vậy ba mã băm của collection rỗng lần lượt là `1`, `0` và `0`.
+1. **`List`:** `ArrayList` and `LinkedList` containing the same `["A","B"]` are equal; both have hash code `3042`. Reversing the order for this concrete example produces hash code `3072`, matching the position-dependent formula. `Arrays.asList("A", null)` illustrates the rule that a `null` element contributes `0`.
+2. **`Set`:** `HashSet` and `LinkedHashSet` are equal despite different insertion orders; both have hash sum `65+66=131`. The set with `null` uses element hash `0`; `HashSet` permits `null`.
+3. **`Map`:** `HashMap` and `LinkedHashMap` have the same two mappings so they are equal, with hash `128`. Each entry in the sample data has XOR equal to `64`, totaling `128`. The `null` case uses `HashMap` because `HashMap` permits `null` keys/values.
+4. **Empty:** the `List` formula initializes to `1`, whereas `Set` and `Map` take an empty sum of `0`. Hence the three hash codes of empty collections are `1`, `0`, and `0`, respectively.
 
-**Chú ý API factory:** `List.of(...)`, `Set.of(...)` và `Map.of(...)` **không chấp nhận phần tử/khóa/giá trị `null`**. Ví dụ dùng `Arrays.asList`, `HashSet` và `HashMap` cho các trường hợp có `null`; không thay các dòng ấy bằng `List.of(null)` hoặc `Map.of("A", null)` vì sẽ ném `NullPointerException`.
+**Factory API note:** `List.of(...)`, `Set.of(...)`, and `Map.of(...)` **do not accept `null` elements, keys, or values**. The example uses `Arrays.asList`, `HashSet`, and `HashMap` for the `null` cases; do not replace those lines with `List.of(null)` or `Map.of("A", null)`, as that will throw a `NullPointerException`.
 
-## 7. So sánh nhanh các công thức
+## 7. Quick Comparison of the Formulas
 
-| Kiểu | Điều kiện `equals` chính | Công thức `hashCode` | Có xét thứ tự? | Mã băm khi rỗng |
+| Type | Main `equals` Condition | `hashCode` Formula | Order-Sensitive? | Hash When Empty |
 | --- | --- | --- | --- | ---: |
-| `List` | Cùng kích thước, từng phần tử ở vị trí tương ứng bằng nhau | Bắt đầu `1`; với từng phần tử: `h = 31*h + elementHash` | Có, theo thứ tự list | `1` |
-| `Set` | Cùng tập phần tử logic, không xét vị trí | Tổng `elementHash` của từng phần tử | Không | `0` |
-| `Map` | Cùng các ánh xạ khóa → giá trị logic | Tổng `(keyHash ^ valueHash)` của từng entry | Không | `0` |
+| `List` | Same size, corresponding elements at matching positions are equal | Start at `1`; for each element: `h = 31*h + elementHash` | Yes, by list order | `1` |
+| `Set` | Same logical set of elements, position ignored | Sum of `elementHash` of each element | No | `0` |
+| `Map` | Same logical key → value mappings | Sum of `(keyHash ^ valueHash)` of each entry | No | `0` |
 
-Trong bảng, `elementHash`, `keyHash` hoặc `valueHash` bằng `0` khi thành phần tương ứng là `null` (và kiểu collection cho phép `null`).
+In the table, `elementHash`, `keyHash`, or `valueHash` is `0` when the corresponding component is `null` (and the collection type permits `null`).
 
-Đừng nhầm **thứ tự tham gia băm** với **thứ tự duyệt**: một `LinkedHashSet` có thứ tự duyệt cụ thể nhưng mã băm vẫn theo công thức Set không nhạy thứ tự. Tương tự, một `LinkedHashMap` có thể duyệt theo thứ tự chèn nhưng `Map.hashCode` không dựa trên thứ tự entry.
+Do not confuse **order participating in hashing** with **iteration order**: a `LinkedHashSet` has a specific iteration order, yet its hash code still follows the order-insensitive `Set` formula. Similarly, a `LinkedHashMap` can iterate in insertion order, yet `Map.hashCode` does not depend on entry order.
 
-Ngoài ra, một `List` không cần bằng một `Set` chỉ vì chúng chứa cùng tên các phần tử. Hai giao diện định nghĩa bình đẳng **trong cùng loại cấu trúc logic**; không gộp các công thức để so sánh khác loại.
+Additionally, a `List` does not have to equal a `Set` just because they contain the same element names. The two interfaces define equality **within the same logical structure type**; do not mix formulas to compare across different types.
 
-## 8. Mối liên hệ giữa `Map.hashCode()` và `entrySet()`
+## 8. Relationship Between `Map.hashCode()` and `entrySet()`
 
-Theo hai hợp đồng:
+By the two contracts:
 
 ```text
 Map.hashCode()
-  = tổng hashCode của các Map.Entry thuộc entrySet()
+  = sum of hashCode of the Map.Entry instances in entrySet()
   = entrySet().hashCode()
 ```
 
-Điều này đúng với một `Map` triển khai hợp lệ, vì `entrySet()` là một `Set<Map.Entry<K,V>>` và `Set.hashCode` chính là tổng mã băm phần tử. Lưu ý sự tương đương **của mã băm** ở đây không có nghĩa một `Map` bằng một `Set` theo `equals`.
+This holds for any compliant `Map` implementation, because `entrySet()` is a `Set<Map.Entry<K,V>>` and `Set.hashCode` is the sum of element hash codes. Note that equivalence **of hash codes** here does not mean a `Map` equals a `Set` under `equals`.
 
-Phân biệt ba view trên map:
+Distinguish the three views on a map:
 
-- `keySet()` là một `Set<K>`: băm dựa trên **các khóa**, không chứa mã băm giá trị.
-- `values()` là một `Collection<V>`: giao diện `Collection` không quy định một công thức `hashCode` chung như `List` hoặc `Set`; đừng giả sử nó bằng tổng mã băm các giá trị.
-- `entrySet()` là một `Set<Map.Entry<K,V>>`: băm dựa trên **các ánh xạ khóa–giá trị**, nên tổng chính là mã băm map.
+- `keySet()` is a `Set<K>`: hashed based on **the keys**, excluding value hash codes.
+- `values()` is a `Collection<V>`: the `Collection` interface does not mandate a universal `hashCode` formula like `List` or `Set`; do not assume it equals the sum of value hash codes.
+- `entrySet()` is a `Set<Map.Entry<K,V>>`: hashed based on **key–value mappings**, so its sum is the map's hash code.
 
-Chọn đúng view khi cần xử lý khóa, giá trị hoặc toàn bộ ánh xạ; không suy ra băm của map từ `keySet().hashCode()`.
+Choose the right view when working with keys, values, or full mappings; do not derive the map's hash from `keySet().hashCode()`.
 
-## 9. Các lỗi phổ biến khi triển khai hoặc sử dụng
+## 9. Common Mistakes When Implementing or Using
 
-### 9.1. Dùng cùng công thức băm cho mọi kiểu
+### 9.1. Using the Same Hash Formula for All Types
 
-Dùng tổng cho `List` sẽ bỏ qua vai trò vị trí và không đáp ứng thuật toán mà giao diện List đã quy định. Dùng nhân `31` cho `Set` theo thứ tự duyệt sẽ khiến hai set bằng nhau có nguy cơ sinh mã băm khác nhau. Với `Map`, chỉ băm khóa sẽ bỏ qua giá trị và không tuân theo công thức `Map.hashCode`.
+Using summation for `List` ignores the role of position and fails the algorithm required by the `List` interface. Using multiply-by-`31` in iteration order for `Set` risks generating different hash codes for two equal sets. For `Map`, hashing only keys omits values and violates the `Map.hashCode` formula.
 
-Không chỉ kiểm tra quy tắc tổng quát “bằng nhau ⇒ cùng băm”; khi triển khai một giao diện cụ thể, hãy tuân thủ **công thức mà chính giao diện đó yêu cầu**.
+Do not check only the general rule "equal ⇒ same hash"; when implementing a specific interface, follow **the exact formula that interface specifies**.
 
-### 9.2. Tưởng mã băm giống nhau nghĩa là collection bằng nhau
+### 9.2. Thinking Equal Hash Codes Mean Equal Collections
 
-Collision xảy ra ở cả ba loại. Ví dụ `Map.Entry("A", 1)` và `Map.Entry("B", 2)` trong bài có cùng mã băm `64` nhưng không phải cùng ánh xạ. Đừng dùng `hashCode` thay `equals` để quyết định tính bằng nhau.
+Collisions happen in all three types. For example, `Map.Entry("A", 1)` and `Map.Entry("B", 2)` in this lesson share the same hash code `64`, yet are not the same mapping. Never use `hashCode` instead of `equals` to decide equality.
 
-Thậm chí tổng hash `Set` hoặc `Map` bằng nhau còn dễ xuất hiện trong các cấu hình phần tử khác nhau. Mã băm là dấu hiệu phục vụ tra cứu, **không phải bằng chứng tương đương nội dung**.
+In fact, matching `Set` or `Map` hash sums can occur quite easily across different element configurations. A hash code is a hint for lookup, **not proof of content equivalence**.
 
-### 9.3. Phụ thuộc thứ tự của `HashSet` hoặc `HashMap`
+### 9.3. Depending on the Order of `HashSet` or `HashMap`
 
-Không đưa thứ tự iterator của `HashSet`/`HashMap` vào phép tính băm theo cách riêng. Hợp đồng Set/Map là độc lập thứ tự. Nếu nghiệp vụ cần thứ tự, dùng đúng collection có cam kết tương ứng; đừng viết `equals/hashCode` dựa trên thứ tự bucket của triển khai hiện tại.
+Do not incorporate the iterator order of `HashSet`/`HashMap` into custom hash calculations. The `Set`/`Map` contracts are order-independent. If business logic requires order, use an appropriate collection with ordering guarantees; do not write `equals/hashCode` based on the bucket order of the current implementation.
 
-### 9.4. Sửa phần tử hoặc key mutable khi collection làm khóa
+### 9.4. Mutating Elements or Keys When a Collection Serves as a Key
 
-Giả sử danh sách `List<String>` được dùng như khóa của một `HashMap`. Nếu nội dung danh sách đổi, `List.hashCode` có thể đổi. Bảng băm bên ngoài không tự di chuyển entry đã lưu theo mã băm mới; lookup có thể thất bại.
+Suppose a `List<String>` is used as a key in a `HashMap`. If the list's contents change, `List.hashCode` may change. The outer hash table does not automatically relocate the stored entry under the new hash code; lookups can fail.
 
-Tương tự:
+Similarly:
 
-- Trong `HashSet<Person>`, sửa thuộc tính của `Person` dùng trong `equals/hashCode` có thể khiến `contains` không tìm thấy phần tử.
-- Với `Map` được dùng làm khóa của map khác, sửa ánh xạ bên trong có thể khiến mã băm của khóa kiểu Map thay đổi.
-- Trong `Map<Key, Value>`, sửa **key** khi đang lưu có rủi ro phá lookup của chính map đó; còn sửa value mutable có thể thay đổi mã băm của đối tượng Map **nếu giá trị ấy có hashCode thay đổi**, ngay cả khi map vẫn tra cứu được theo key cũ.
+- In a `HashSet<Person>`, modifying a `Person` field used in `equals/hashCode` can prevent `contains` from finding the element.
+- For a `Map` used as a key in another map, modifying its inner mappings can change the hash code of the Map-typed key.
+- In a `Map<Key, Value>`, mutating the **key** while stored risks breaking lookup in that map itself; mutating a mutable value can change the hash code of the Map object **if that value's `hashCode` changes**, even if the map can still be queried by the old key.
 
-Ưu tiên dữ liệu bất biến khi dùng collection hoặc phần tử làm khóa băm; nếu bắt buộc thay đổi cấu trúc, cân nhắc tạo khóa mới.
+Prefer immutable data when using collections or elements as hash keys; if mutation is unavoidable, consider creating a new key.
 
-### 9.5. Nhầm mảng Java với list giá trị
+### 9.5. Confusing Java Arrays with Value Lists
 
-`int[]`, `String[]` là mảng Java, **không phải `List`**. Mảng không tự dùng công thức `List.hashCode`; so sánh và băm mảng theo nội dung phải dùng `Arrays.equals`/`Arrays.hashCode` (hoặc `deepEquals`/`deepHashCode` phù hợp cho mảng lồng nhau).
+`int[]` and `String[]` are Java arrays, **not `List`**. Arrays do not automatically use the `List.hashCode` formula; content-based comparison and hashing for arrays must use `Arrays.equals`/`Arrays.hashCode` (or `deepEquals`/`deepHashCode` as appropriate for nested arrays).
 
-Ví dụ, `List.of(new int[]{1,2})` có phần tử là *một mảng*, và mã băm của phần tử ấy dựa trên `int[].hashCode()`, không mặc định dựa trên giá trị `[1,2]`. Nếu muốn bình đẳng theo nội dung, hãy mô hình dữ liệu phù hợp và định nghĩa `equals/hashCode` nhất quán.
+For instance, `List.of(new int[]{1,2})` has *an array* as its element, and that element's hash code is based on `int[].hashCode()`, not by default on the values `[1,2]`. If you want content-based equality, model the data appropriately and define consistent `equals/hashCode`.
 
-### 9.6. Quên xử lý `null` và số nguyên tràn
+### 9.6. Forgetting `null` Handling and Integer Overflow
 
-Hợp đồng nêu `null` đóng góp mã băm `0`. Tuy nhiên việc **collection có cho phép `null` hay không** phụ thuộc lớp/factory cụ thể. `HashSet` và `HashMap` chấp nhận `null`, còn `Set.of` và `Map.of` thì không.
+The contract states that `null` contributes a hash code of `0`. However, whether **a collection allows `null`** depends on the specific class or factory. `HashSet` and `HashMap` accept `null`, whereas `Set.of` and `Map.of` do not.
 
-Khi mã băm lớn, phép cộng và nhân của `int` có thể tràn. Đó là hành vi có định nghĩa của phép toán số nguyên Java và là một phần ngữ nghĩa công thức này; **không đổi công thức sang `long` rồi ép kiểu theo một quy trình khác** nếu đang cài đặt hợp đồng giao diện.
+When hash codes grow large, `int` addition and multiplication can overflow. That is well-defined behavior of Java integer arithmetic and part of these formulas' semantics; **do not change the formula to `long` and cast using a different scheme** if you are implementing the interface contract.
 
-### 9.7. Tối ưu hash mà bỏ qua contract
+### 9.7. Optimizing Hashes While Ignoring the Contract
 
-Một `hashCode` “phân bố đẹp” nhưng khác công thức giao diện vẫn sai khi triển khai `List`/`Set`/`Map`. Mục tiêu đầu tiên là đúng API; tối ưu bucket và hiệu năng nằm ở tầng cấu trúc dữ liệu hoặc lựa chọn kiểu phần tử.
+A "well-distributed" `hashCode` that differs from the interface formula is still wrong when implementing `List`/`Set`/`Map`. The primary goal is API correctness; bucket and performance optimization belong at the data structure layer or element type choice.
 
-## 10. Cách kiểm tra khi review code
+## 10. What to Check During Code Review
 
-Với lớp tự triển khai `List`, `Set` hay `Map`, có thể dùng các phép kiểm tra sau:
+For a custom class implementing `List`, `Set`, or `Map`, you can run the following checks:
 
-1. So sánh instance với một cách triển khai chuẩn tương đương: `ArrayList` ↔ `LinkedList`, `HashSet` ↔ `LinkedHashSet`, `HashMap` ↔ `LinkedHashMap`. Nếu `equals` là `true` thì mã băm phải giống nhau.
-2. Tính tay theo công thức giao diện: List bắt đầu từ `1` và nhân `31` theo vị trí; Set cộng mỗi phần tử; Map cộng mỗi entry XOR key/value.
-3. Thử trường hợp **rỗng** và **`null`** bằng các lớp cho phép `null`.
-4. Thay đổi thứ tự **nhưng giữ cùng nội dung logic**: Set/Map phải giữ mã băm, List có thể đổi (đừng yêu cầu luôn đổi vì collision).
-5. Kiểm tra dữ liệu phần tử/khóa/giá trị có tuân thủ `equals/hashCode` và có bị sửa trong khi collection làm khóa băm hay không.
-6. Kiểm tra `hashCode` ổn định khi thông tin dùng cho `equals` không thay đổi; không dùng nguồn thời gian hoặc trạng thái bất định.
+1. Compare instances against a standard equivalent implementation: `ArrayList` ↔ `LinkedList`, `HashSet` ↔ `LinkedHashSet`, `HashMap` ↔ `LinkedHashMap`. If `equals` is `true`, the hash codes must match.
+2. Compute by hand using the interface formula: `List` starts at `1` and multiplies by `31` per position; `Set` sums each element; `Map` sums each entry's key/value XOR.
+3. Test **empty** and **`null`** cases using classes that permit `null`.
+4. Change order **while keeping the same logical content**: `Set`/`Map` must keep the same hash code, while `List` may change (do not require it to always change due to collisions).
+5. Verify whether elements/keys/values comply with `equals/hashCode` and whether they are mutated while the collection acts as a hash key.
+6. Verify `hashCode` stability when information used for `equals` does not change; do not use time sources or non-deterministic state.
 
-Khi cần mã nguồn chuẩn để tham khảo, xem tài liệu Oracle Java 17:
+When needing standard reference specifications, consult the Oracle Java 17 documentation:
 
-- [`List.hashCode()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html#hashCode()) — công thức nhân 31 theo thứ tự.
-- [`Set.hashCode()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html#hashCode()) — tổng mã băm phần tử.
-- [`Map.hashCode()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html#hashCode()) — tổng mã băm các entry.
-- [`Map.Entry.hashCode()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.Entry.html#hashCode()) — XOR mã băm khóa và giá trị.
+- [`List.hashCode()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html#hashCode()) — order-based multiply-by-31 formula.
+- [`Set.hashCode()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html#hashCode()) — sum of element hash codes.
+- [`Map.hashCode()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html#hashCode()) — sum of entry hash codes.
+- [`Map.Entry.hashCode()`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.Entry.html#hashCode()) — XOR of key and value hash codes.
 
-## 11. Ghi nhớ
+## 11. Takeaways
 
-- **`List`:** `h = 1`, sau đó theo từng vị trí `h = 31*h + elementHash`; list rỗng có băm `1`.
-- **`Set`:** tổng `elementHash`, không xét thứ tự; set rỗng có băm `0`.
-- **`Map`:** tổng `entryHash`, với `entryHash = keyHash ^ valueHash`, không xét thứ tự; map rỗng có băm `0`.
-- Thành phần `null` đóng góp mã băm `0`, nhưng không phải collection nào cũng cho phép `null`.
-- Hợp đồng bảo đảm **bằng nhau ⇒ cùng băm**, không bảo đảm **cùng băm ⇒ bằng nhau**.
-- Khi cài đặt giao diện List/Set/Map, phải theo **công thức chính thức của giao diện**, đồng thời giữ phần tử và khóa ổn định khi chúng tham gia tra cứu bằng bảng băm.
+- **`List`:** `h = 1`, then for each position `h = 31*h + elementHash`; an empty list has hash `1`.
+- **`Set`:** sum of `elementHash`, order-independent; an empty set has hash `0`.
+- **`Map`:** sum of `entryHash`, with `entryHash = keyHash ^ valueHash`, order-independent; an empty map has hash `0`.
+- A `null` component contributes hash code `0`, though not every collection permits `null`.
+- The contract guarantees **equal ⇒ same hash**, not **same hash ⇒ equal**.
+- When implementing the `List`/`Set`/`Map` interfaces, follow **the interface's official formula**, while keeping elements and keys stable when they participate in hash-table lookups.

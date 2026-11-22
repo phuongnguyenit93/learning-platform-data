@@ -1,6 +1,6 @@
-# Wrapper khác kiểu không tự bằng nhau qua equals trong Java
+# Different Wrapper Types Do Not Automatically Equal Each Other via equals in Java
 
-Trong Java, các wrapper số như `Byte`, `Short`, `Integer`, `Long`, `Float` và `Double` đều kế thừa `Number`, nhưng **`equals(Object)` của mỗi wrapper đòi đối tượng còn lại thuộc đúng loại wrapper tương ứng**. Vì thế:
+In Java, numeric wrappers such as `Byte`, `Short`, `Integer`, `Long`, `Float`, and `Double` all extend `Number`, yet **each wrapper's `equals(Object)` requires the other object to belong to that exact wrapper class**. Therefore:
 
 ~~~java
 Integer a = Integer.valueOf(42);
@@ -9,11 +9,11 @@ Long b = Long.valueOf(42L);
 System.out.println(a.equals(b)); // false
 ~~~
 
-Hai đối tượng biểu diễn cùng giá trị toán học 42, nhưng **không bằng nhau theo hợp đồng `Integer.equals`**. Đây là hành vi có chủ đích, không phải Java quên tự nâng kiểu. Bài học tập trung vào ranh giới giữa **bằng nhau theo kiểu đối tượng**, **bằng nhau theo số học**, **so sánh primitive**, và hệ quả trong collections.
+The two objects represent the same mathematical value 42, yet **are not equal under the `Integer.equals` contract**. This is intentional behavior, not Java forgetting to auto-widen. This lesson focuses on the boundary between **object-type equality**, **numeric equality**, **primitive comparison**, and consequences in collections.
 
-## 1. Tại sao `Integer.equals(Long)` là false?
+## 1. Why Is `Integer.equals(Long)` False?
 
-`Integer` lưu một giá trị `int`; `Long` lưu một giá trị `long`. Phương thức `Integer.equals(Object obj)` chỉ trả `true` khi `obj` là `Integer` có cùng giá trị `int`. Tương tự, `Long.equals` chỉ chấp nhận một `Long` có cùng giá trị `long`.
+`Integer` stores an `int` value; `Long` stores a `long` value. The `Integer.equals(Object obj)` method returns `true` only when `obj` is an `Integer` with the same `int` value. Likewise, `Long.equals` only accepts a `Long` with the same `long` value.
 
 ~~~java
 Integer i = Integer.valueOf(42);
@@ -25,21 +25,21 @@ boolean integerVsLong = i.equals(l);                  // false
 boolean longVsDouble = l.equals(d);                   // false
 ~~~
 
-| Lời gọi | Kết quả | Vì sao? |
+| Call | Result | Why? |
 | --- | --- | --- |
-| `Integer.valueOf(42).equals(Integer.valueOf(42))` | `true` | Cùng kiểu `Integer` và cùng `int` |
-| `Integer.valueOf(42).equals(Long.valueOf(42L))` | `false` | `Long` không phải `Integer` |
-| `Long.valueOf(42L).equals(Double.valueOf(42.0))` | `false` | `Double` không phải `Long` |
-| `Double.valueOf(42.0).equals(Double.valueOf(42.0))` | `true` | Cùng kiểu `Double` và cùng giá trị |
-| `Float.valueOf(42.0f).equals(Double.valueOf(42.0))` | `false` | Wrapper khác kiểu |
+| `Integer.valueOf(42).equals(Integer.valueOf(42))` | `true` | Same `Integer` type and same `int` |
+| `Integer.valueOf(42).equals(Long.valueOf(42L))` | `false` | `Long` is not an `Integer` |
+| `Long.valueOf(42L).equals(Double.valueOf(42.0))` | `false` | `Double` is not a `Long` |
+| `Double.valueOf(42.0).equals(Double.valueOf(42.0))` | `true` | Same `Double` type and same value |
+| `Float.valueOf(42.0f).equals(Double.valueOf(42.0))` | `false` | Different wrapper types |
 
-**Hợp đồng của `equals(Object)` khác phép so sánh các primitive có tự động widening.** Tham số của `equals` là `Object`, và Java không tự unbox/nâng kiểu hai đối tượng để so sánh giá trị số. Trong triển khai của các wrapper, logic kiểm tra loại trước khi xét giá trị.
+**The contract of `equals(Object)` differs from primitive comparisons with automatic widening.** The parameter of `equals` is `Object`, and Java does not auto-unbox/widen two objects to compare numeric values. In wrapper implementations, the logic checks type before checking value.
 
-Không dùng lập luận “cả hai đều là `Number`” để dự đoán `equals`: lớp cha `Number` **không định nghĩa một cơ chế equality số học chung** cho tất cả subclass. Đối tượng thực tế quyết định phương thức `equals` nào được chạy theo dynamic dispatch.
+Do not reason "both are `Number`" to predict `equals`: the `Number` superclass **does not define a universal numeric equality mechanism** for all subclasses. The actual runtime object determines which `equals` method executes via dynamic dispatch.
 
-## 2. `==` giữa primitive và `equals` giữa wrapper khác nhau
+## 2. `==` Between Primitives vs. `equals` Between Different Wrappers
 
-### Hai primitive được nâng kiểu số học
+### Two primitives undergo numeric promotion
 
 ~~~java
 int x = 42;
@@ -48,9 +48,9 @@ long y = 42L;
 System.out.println(x == y); // true
 ~~~
 
-Với `int` và `long`, phép so sánh `==` áp dụng binary numeric promotion: `int` được widening thành `long`, sau đó so sánh hai primitive. Do vậy kết quả là `true`.
+With `int` and `long`, the `==` comparison applies binary numeric promotion: `int` is widened to `long`, and then the two primitives are compared. Hence the result is `true`.
 
-### Wrapper được so với primitive có thể bị unbox
+### A wrapper compared to a primitive can be unboxed
 
 ~~~java
 Integer wrapper = Integer.valueOf(42);
@@ -59,11 +59,11 @@ long primitive = 42L;
 System.out.println(wrapper == primitive); // true
 ~~~
 
-Vì một phía là primitive số, Java unbox `wrapper` thành `int`, rồi widening `int → long` để so sánh. Nếu `wrapper` là `null`, phép unboxing có thể ném `NullPointerException`.
+Because one side is a numeric primitive, Java unboxes `wrapper` to `int`, then widens `int → long` to compare. If `wrapper` is `null`, unboxing can throw `NullPointerException`.
 
-### Hai wrapper khác kiểu không tự unbox để dùng `==`
+### Two wrappers of different types do not auto-unbox to use `==`
 
-Đoạn sau **cố ý không biên dịch**:
+The following snippet **intentionally does not compile**:
 
 ~~~java
 Integer i = Integer.valueOf(42);
@@ -72,9 +72,9 @@ Long l = Long.valueOf(42L);
 // boolean eq = i == l; // ERROR: incomparable types: Integer and Long
 ~~~
 
-`i` và `l` đều có kiểu tham chiếu; trong trường hợp này, phép `==` không kích hoạt cùng chuỗi unboxing + widening như khi có một toán hạng primitive. Hai lớp wrapper độc lập `Integer` và `Long` không phải các kiểu tham chiếu có thể so sánh bằng `==` với nhau.
+Both `i` and `l` have reference types; in this case, `==` does not trigger the same unboxing + widening chain as when one operand is primitive. Two independent wrapper classes `Integer` and `Long` are not reference types that can be compared to each other with `==`.
 
-Nếu cả hai đều được khai báo là `Number` hoặc `Object` thì `==` giữa hai biến tham chiếu có thể biên dịch, nhưng kết quả lúc đó là **đồng nhất tham chiếu**, không phải so sánh giá trị số.
+If both are declared as `Number` or `Object`, `==` between two reference variables compiles, yet the result is **reference identity**, not numeric value comparison.
 
 ~~~java
 Number a = Integer.valueOf(42);
@@ -83,11 +83,11 @@ boolean sameReference = a == b; // false
 boolean sameByEquals = a.equals(b); // false
 ~~~
 
-Ngay cả với **hai `Integer`**, `==` giữa hai tham chiếu chỉ kiểm tra xem đó có phải cùng một object hay không. Đừng dựa vào bộ đệm wrapper (`Integer.valueOf` có cache ở một miền giá trị) để suy luận rằng `==` là so sánh số. Hãy dùng `equals` nếu muốn equality theo kiểu wrapper hoặc unbox nếu thực sự muốn so sánh primitive và đã xử lý `null`.
+Even with **two `Integer`s**, `==` between two references only checks whether they are the same object. Do not rely on wrapper caching (`Integer.valueOf` caches a value range) to infer that `==` compares numbers. Use `equals` when you want wrapper-type equality, or unbox when you genuinely want primitive comparison and have handled `null`.
 
-## 3. `Number` và polymorphism không tự cung cấp equality xuyên kiểu
+## 3. `Number` and Polymorphism Do Not Provide Cross-Type Equality
 
-Một biến khai báo `Number` vẫn tham chiếu đến một object cụ thể như `Integer` hay `Long`:
+A variable declared as `Number` still references a concrete object such as `Integer` or `Long`:
 
 ~~~java
 Number left = Integer.valueOf(42);
@@ -96,15 +96,15 @@ Number right = Long.valueOf(42L);
 System.out.println(left.equals(right)); // false
 ~~~
 
-Lời gọi `left.equals(right)` chạy implementation của `Integer.equals` vì object phía trái là `Integer`. Nó kiểm tra object phía phải có phải `Integer` không; kết quả là `false`. Java không nhìn thấy hai object cùng kế thừa `Number` rồi mặc định gọi `longValue()` để so sánh.
+Calling `left.equals(right)` runs `Integer.equals`'s implementation because the left-hand object is an `Integer`. It checks whether the right-hand object is an `Integer`; the result is `false`. Java does not see that both objects extend `Number` and call `longValue()` by default to compare them.
 
-Điểm quan trọng: **kiểu tĩnh `Number` giúp truy cập các phép chuyển giá trị** như `intValue()`, `longValue()`, `doubleValue()`, nhưng không thiết lập khái niệm “cùng một số” thống nhất cho tất cả wrapper hoặc mọi subclass của `Number`.
+Key point: **the static type `Number` grants access to value-conversion methods** such as `intValue()`, `longValue()`, and `doubleValue()`, yet does not establish a unified notion of "the same number" across all wrappers or all `Number` subclasses.
 
-Ngoài các wrapper, các lớp như `BigInteger` và `BigDecimal` cũng kế thừa `Number` và có hợp đồng `equals` riêng. Khi nhận tham số tổng quát `Number`, một phương thức phải chủ động quyết định mình muốn so sánh điều gì: cùng object, cùng kiểu và giá trị, hay cùng giá trị số học sau chuyển đổi có kiểm soát.
+Beyond wrappers, classes like `BigInteger` and `BigDecimal` also extend `Number` and have their own `equals` contracts. When accepting a general `Number` parameter, a method must explicitly decide what it wants to compare: same object, same type and value, or same numeric value after a controlled conversion.
 
-## 4. `Objects.equals` an toàn null nhưng không chuyển kiểu số
+## 4. `Objects.equals` Is Null-Safe, Not a Numeric Type Converter
 
-`Objects.equals(a, b)` là công cụ thuận tiện để so sánh object có thể null. Nó trả `true` nếu cùng tham chiếu (bao gồm cùng null); nếu chỉ `a` khác null thì gọi `a.equals(b)`. **Nó không normalize wrapper**, không chuyển `Integer` sang `Long`.
+`Objects.equals(a, b)` is a convenient tool for comparing potentially null objects. It returns `true` if both references match (including both null); if `a` is non-null, it calls `a.equals(b)`. **It does not normalize wrappers**, and does not convert `Integer` to `Long`.
 
 ~~~java
 Integer i = Integer.valueOf(42);
@@ -114,11 +114,11 @@ System.out.println(java.util.Objects.equals(i, l)); // false
 System.out.println(java.util.Objects.equals(null, null)); // true
 ~~~
 
-Dùng `Objects.equals` khi mục tiêu là **object equality** và cần tránh tự gọi `null.equals(...)`. Nếu mục tiêu là **numeric equivalence giữa nhiều kiểu khác nhau**, cần chính sách chuyển đổi và so sánh riêng. Đổi từ `i.equals(l)` sang `Objects.equals(i, l)` không giải quyết khác biệt kiểu.
+Use `Objects.equals` when the goal is **object equality** and avoiding calling `null.equals(...)`. If the goal is **numeric equivalence across multiple different types**, you need a dedicated conversion and comparison policy. Changing `i.equals(l)` to `Objects.equals(i, l)` does not resolve type differences.
 
-## 5. Hệ quả trong `HashSet`, `HashMap` và khóa kiểu `Number`
+## 5. Consequences in `HashSet`, `HashMap`, and `Number` Keys
 
-Các collection băm dùng `equals` và `hashCode`. Vì `Integer(42)`, `Long(42)` và `Double(42.0)` không bằng nhau theo `equals`, chúng là **ba phần tử riêng** trong một tập `Set<Number>`:
+Hash-based collections use `equals` and `hashCode`. Because `Integer(42)`, `Long(42)`, and `Double(42.0)` are unequal under `equals`, they are **three distinct elements** in a `Set<Number>`:
 
 ~~~java
 java.util.Set<Number> values = new java.util.HashSet<>();
@@ -129,17 +129,17 @@ values.add(Double.valueOf(42.0));
 System.out.println(values.size()); // 3
 ~~~
 
-Một `Map<Number, String>` cũng có thể giữ riêng các khóa `Integer.valueOf(42)` và `Long.valueOf(42L)`. Điều này tác động đến cache, thống kê, deduplication, ánh xạ ID và việc lấy giá trị: `map.get(42L)` không tương đương `map.get(42)` khi khóa được lưu bằng wrapper khác loại.
+A `Map<Number, String>` can likewise hold `Integer.valueOf(42)` and `Long.valueOf(42L)` as separate keys. This affects caches, statistics, deduplication, ID mappings, and value retrieval: `map.get(42L)` is not equivalent to `map.get(42)` when the key was stored as a different wrapper type.
 
-**Điều kiện thiết kế:** Nếu “ID 42” chỉ có một kiểu số hợp lệ, hãy chuẩn hóa **kiểu khóa lúc nhập**, ví dụ dùng `Long` cho toàn bộ khóa ID có miền `long` hoặc `BigInteger` nếu cần số nguyên rất lớn. Tránh tạo `Map<Number, ...>` rồi hy vọng các wrapper khác kiểu gộp về cùng một khóa.
+**Design condition:** If "ID 42" has only one valid numeric type, normalize **the key type at ingestion**, e.g., use `Long` for all ID keys within `long` range, or `BigInteger` if very large integers are needed. Avoid creating `Map<Number, ...>` and hoping differently typed wrappers merge into the same key.
 
-Không tự viết `equals` cho object nghiệp vụ kiểu “đôi khi so sánh `Integer` với `Long` theo `doubleValue`” rồi giữ `hashCode` cũ: hai đối tượng được coi là bằng nhau bắt buộc có hash code tương ứng. Quy tắc nhất quán của `equals`/`hashCode` cần được duy trì.
+Do not write a custom business-object `equals` that "sometimes compares `Integer` and `Long` via `doubleValue`" while keeping an incompatible `hashCode`: two objects considered equal must have matching hash codes. The `equals`/`hashCode` consistency rule must be upheld.
 
-## 6. Muốn so sánh *giá trị số* giữa hai wrapper thì làm thế nào?
+## 6. How Do You Compare *Numeric Value* Between Two Wrappers?
 
-Trước hết phải định nghĩa rõ **miền dữ liệu**. Không có một phép ép chung nào đúng cho mọi giá trị của `Number`.
+First, clearly define **the data domain**. There is no single universal cast that is right for every `Number` value.
 
-### Trường hợp A — biết chắc cả hai là số nguyên primitive và vừa miền `long`
+### Case A — guaranteed both are primitive integers fitting in `long`
 
 ~~~java
 Integer i = Integer.valueOf(42);
@@ -148,9 +148,9 @@ Long l = Long.valueOf(42L);
 boolean sameNumericValue = i.longValue() == l.longValue(); // true
 ~~~
 
-Cách này hợp lệ vì `Integer` và `Long` đều biểu diễn số nguyên chính xác trong phạm vi `long`. Nó cũng dùng được cho `Byte`/`Short`, khi đã kiểm soát các kiểu đầu vào. Nhưng **không áp dụng bừa bãi cho `BigInteger` vượt miền long hoặc số `Double` chứa phần thập phân**, vì các lời gọi `longValue()` tương ứng có thể làm mất thông tin.
+This approach is valid because `Integer` and `Long` both represent exact integers within `long` range. It also works for `Byte`/`Short` once input types are controlled. However, **do not apply it indiscriminately to a `BigInteger` exceeding `long` range or a `Double` with a fractional part**, as those `longValue()` calls can lose information.
 
-Nếu cần chuẩn hóa nhiều wrapper số nguyên, có thể chuyển sang `BigInteger`:
+If you need to normalize multiple integer wrappers, you can convert to `BigInteger`:
 
 ~~~java
 java.math.BigInteger fromInt =
@@ -161,25 +161,25 @@ java.math.BigInteger fromLong =
 boolean equalIntegers = fromInt.equals(fromLong); // true
 ~~~
 
-Với dữ liệu đã là `BigInteger`, giữ chính đối tượng đó; đừng chuyển nó về `long` rồi lại xây lại `BigInteger`.
+For data already in `BigInteger`, keep that object as-is; do not convert it down to `long` only to rebuild a `BigInteger`.
 
-### Trường hợp B — yêu cầu thập phân có độ chính xác và chính sách rõ
+### Case B — decimal requirements with explicit precision and policy
 
-Nếu hệ thống nhận giá trị thập phân như `"42.0"` và `"42.00"`, `BigDecimal` cung cấp cả object equality và numeric comparison:
+If a system receives decimal values such as `"42.0"` and `"42.00"`, `BigDecimal` provides both object equality and numeric comparison:
 
 ~~~java
 java.math.BigDecimal x = new java.math.BigDecimal("42.0");
 java.math.BigDecimal y = new java.math.BigDecimal("42.00");
 
-boolean objectEqual = x.equals(y);   // false: khác scale
+boolean objectEqual = x.equals(y);   // false: different scale
 boolean numericEqual = x.compareTo(y) == 0; // true
 ~~~
 
-`BigDecimal.equals` đòi **cùng giá trị và cùng scale**, còn `compareTo` so sánh giá trị số thập phân và bỏ qua scale khác nhau. Nếu cần key thập phân mà coi `42.0` và `42.00` giống nhau, hãy quy định chiến lược chuẩn hóa scale hoặc kiểu khóa từ đầu, và hiểu tác động lên `HashMap`/`TreeMap`. `BigDecimal` là một subclass của `Number` nhưng không phải wrapper primitive.
+`BigDecimal.equals` requires **the same value and same scale**, whereas `compareTo` compares the decimal numeric value and ignores scale differences. If you need a decimal key treating `42.0` and `42.00` as identical, define a scale normalization strategy or key type upfront, and understand the impact on `HashMap`/`TreeMap`. `BigDecimal` is a `Number` subclass, not a primitive wrapper.
 
-### Trường hợp C — số thực và giá trị gần bằng
+### Case C — floating-point and approximate values
 
-`doubleValue()` giúp đưa nhiều `Number` về kiểu `double`, nhưng **không bảo toàn mọi giá trị số**. Ví dụ hai số nguyên `long` liền nhau ở vùng trên `2^53` có thể chuyển thành cùng một `double`:
+`doubleValue()` converts many `Number`s to `double`, yet **does not preserve every numeric value**. For example, two adjacent `long` integers above `2^53` can convert to the same `double`:
 
 ~~~java
 long a = 9_007_199_254_740_993L; // 2^53 + 1
@@ -189,17 +189,17 @@ boolean equalAsLong = a == b; // false
 boolean equalAsDouble = (double) a == (double) b; // true
 ~~~
 
-Đổi cả hai sang `double` rồi `==` có thể báo bằng nhau sai. Tương tự, số cực lớn có thể thành vô cực, số rất nhỏ có thể bị làm tròn; NaN và ±0 có các quy tắc đặc biệt. Nếu bài toán hỗn hợp integer/floating cần so sánh **chính xác**, phải định nghĩa cách xử lý miền, dấu, NaN, vô cực, overflow và phương pháp chuyển đổi trước khi xây comparator.
+Converting both to `double` and using `==` can falsely report equality. Likewise, huge numbers can become infinity, tiny numbers can be rounded; NaN and ±0 follow special rules. If a mixed integer/floating problem needs **exact** comparison, define how to handle range, sign, NaN, infinity, overflow, and conversion methods before building a comparator.
 
-Nếu nghiệp vụ chỉ cần “gần bằng” với dung sai, hãy viết một phép kiểm tra riêng cho dữ liệu hữu hạn, với tolerance hợp lý theo thang đo. **Không dùng phép so sánh gần bằng theo epsilon làm `equals`/comparator cho collection** nếu nó không bảo đảm bắc cầu và nhất quán.
+If business logic only needs "approximately equal" within a tolerance, write a separate check for finite data with a tolerance suited to the scale. **Do not use epsilon-based approximate comparison as `equals`/a comparator for collections** when it fails to guarantee transitivity and consistency.
 
-## 7. Wrapper số thực còn có quy tắc riêng về NaN và số 0 có dấu
+## 7. Floating-Point Wrappers Also Have Special Rules for NaN and Signed Zero
 
-`Float.equals` và `Double.equals` cũng yêu cầu **cùng wrapper type**. Ngoài ra, chúng sử dụng quy tắc so sánh bit chuẩn hóa NaN:
+`Float.equals` and `Double.equals` also require **the same wrapper type**. Additionally, they use canonicalized NaN bit comparison rules:
 
-- Hai object `Double` chứa NaN được `Double.equals` xem bằng nhau, dù toán tử primitive `Double.NaN == Double.NaN` là `false`.
-- `Double.valueOf(+0.0).equals(Double.valueOf(-0.0))` là `false`, dù primitive `+0.0 == -0.0` là `true`.
-- `Float.valueOf(Float.NaN).equals(Double.valueOf(Double.NaN))` là `false` vì **khác wrapper type**, dù cả hai đều biểu thị NaN.
+- Two `Double` objects holding NaN are treated as equal by `Double.equals`, even though primitive `Double.NaN == Double.NaN` is `false`.
+- `Double.valueOf(+0.0).equals(Double.valueOf(-0.0))` is `false`, even though primitive `+0.0 == -0.0` is `true`.
+- `Float.valueOf(Float.NaN).equals(Double.valueOf(Double.NaN))` is `false` due to **different wrapper types**, even though both represent NaN.
 
 ~~~java
 Double d1 = Double.valueOf(Double.NaN);
@@ -212,11 +212,11 @@ boolean signedZeroDifferent =
         Double.valueOf(0.0).equals(Double.valueOf(-0.0)); // false
 ~~~
 
-Trong các thuật toán cần sắp xếp `Float`/`Double`, `Float.compare` và `Double.compare` định nghĩa thứ tự phù hợp với wrapper: NaN được coi bằng NaN trong `compare`, và `-0.0` đứng trước `+0.0`. Điều đó không tạo ra equality chung giữa `Float` với `Double`.
+In algorithms sorting `Float`/`Double`, `Float.compare` and `Double.compare` define an ordering consistent with the wrappers: NaN compares equal to NaN in `compare`, and `-0.0` precedes `+0.0`. That still does not create shared equality between `Float` and `Double`.
 
-## 8. Ví dụ Java 17+ hoàn chỉnh
+## 8. Complete Java 17+ Example
 
-Lưu tệp tên `WrapperEquality.java`:
+Save the file named `WrapperEquality.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -283,7 +283,7 @@ public class WrapperEquality {
 }
 ~~~
 
-Biên dịch/chạy bằng Java 17 trở lên:
+Compile/run using Java 17 or newer:
 
 ~~~bash
 javac WrapperEquality.java
@@ -314,43 +314,43 @@ Double +0 equals -0 = false
 Objects.equals(null, null) = true
 ~~~
 
-Mười chín dòng kết quả minh họa sự khác nhau giữa wrapper `equals` và primitive equality, hệ quả trong tập hợp, sai số của `doubleValue` và quy tắc riêng cho NaN/zero có dấu.
+The nineteen lines of output illustrate the difference between wrapper `equals` and primitive equality, collection consequences, `doubleValue` precision loss, and special rules for NaN/signed zero.
 
-## 9. Những lỗi thường gặp khi xử lý wrapper khác kiểu
+## 9. Common Mistakes When Handling Different Wrapper Types
 
-1. **Cho rằng hai wrapper cùng giá trị toán học luôn `equals`.** `Integer.valueOf(42).equals(Long.valueOf(42L))` là `false` vì type khác nhau.
-2. **Dùng `Objects.equals` như phép chuẩn hóa số.** Nó chỉ bao bọc object equality và xử lý `null` an toàn.
-3. **Thấy `Number` rồi dùng `Number.equals` như một hợp đồng số học chung.** `Number` không triển khai một equality xuyên các subclass.
-4. **Dùng `==` giữa hai wrapper để đo giá trị.** Nếu hai tham chiếu cùng loại, đó thường là kiểm tra cùng object; nếu wrapper khác kiểu như `Integer` và `Long`, biểu thức có thể không biên dịch. Với một toán hạng primitive, unboxing có thể diễn ra và gây `NullPointerException` khi wrapper null.
-5. **Gộp mọi `Number` về `doubleValue` để so sánh.** Với số nguyên lớn hơn `2^53`, hai số khác nhau có thể thành cùng một `double`, khiến kết luận sai.
-6. **Lấy dữ liệu mixed numeric làm khóa `Map<Number, ...>` rồi mong truy vấn bằng wrapper khác kiểu trúng cùng entry.** Cần chuẩn hóa kiểu khóa theo đặc tả dữ liệu.
-7. **Nhầm `BigDecimal.equals` với `BigDecimal.compareTo`.** `42.0` và `42.00` có giá trị số thập phân bằng nhau nhưng scale khác; `equals` trả `false` và `compareTo` trả 0.
-8. **Cho rằng NaN của `Float` và NaN của `Double` bằng nhau theo `equals`.** Chúng là wrapper khác class nên `false`; ngay trong mỗi loại wrapper, quy tắc NaN/±0 cũng khác primitive.
-9. **Tự sửa `equals` mà không cập nhật `hashCode`.** Điều này làm hỏng tính nhất quán khóa hash và có thể gây lỗi khó tái hiện.
+1. **Assuming two wrappers with the same mathematical value are always `equals`.** `Integer.valueOf(42).equals(Long.valueOf(42L))` is `false` because the types differ.
+2. **Using `Objects.equals` as numeric normalization.** It only wraps object equality and handles `null` safely.
+3. **Seeing `Number` and using `Number.equals` as a universal arithmetic contract.** `Number` does not implement cross-subclass equality.
+4. **Using `==` between two wrappers to measure value.** If both references have the same type, it checks object identity; if they are different wrapper types like `Integer` and `Long`, the expression may not even compile. With one primitive operand, unboxing can occur and throw `NullPointerException` when the wrapper is null.
+5. **Coercing every `Number` via `doubleValue` to compare.** For integers larger than `2^53`, two distinct numbers can collapse into the same `double`, producing wrong conclusions.
+6. **Using mixed numeric data as keys in `Map<Number, ...>` and expecting lookups with another wrapper type to hit the same entry.** Normalize key types per the data specification.
+7. **Confusing `BigDecimal.equals` with `BigDecimal.compareTo`.** `42.0` and `42.00` have equal decimal numeric value yet different scales; `equals` returns `false` and `compareTo` returns 0.
+8. **Assuming `Float`'s NaN and `Double`'s NaN are equal via `equals`.** They are different wrapper classes so it is `false`; even within each wrapper type, NaN/±0 rules differ from primitives.
+9. **Overriding `equals` without updating `hashCode`.** This breaks hash-key consistency and can cause hard-to-reproduce bugs.
 
-## 10. Quy trình chọn phép so sánh
+## 10. Process for Choosing the Comparison Operation
 
-| Mục đích | Cách phù hợp | Chú ý |
+| Goal | Suitable approach | Note |
 | --- | --- | --- |
-| Cùng kiểu wrapper và cùng giá trị theo wrapper | `Objects.equals(a, b)` hoặc `a.equals(b)` khi a không null | Khác kiểu wrapper vẫn `false` |
-| Hai primitive cần numeric equality | `==` sau numeric promotion | NaN và signed zero có quy tắc đặc biệt |
-| Hai wrapper nguyên nhỏ biết chắc miền `long` | So sánh `longValue()` sau khi xác minh kiểu và miền | Không dùng cho `BigInteger` quá lớn hoặc số thập phân |
-| Số nguyên lớn chính xác | `BigInteger.equals`/`compareTo` | Giữ dữ liệu gốc chính xác |
-| Số thập phân chính xác | `BigDecimal.compareTo == 0` nếu không quan tâm scale | Xác định hợp đồng scale và key |
-| Sắp xếp số thực cùng loại | `Double.compare` / `Float.compare` | NaN và ±0 được xếp theo quy ước Java |
-| Map/set cần đồng nhất ID | Chuẩn hóa kiểu khóa ở biên dữ liệu | Bảo đảm `equals` và `hashCode` cùng chính sách |
+| Same wrapper type and same wrapper value | `Objects.equals(a, b)` or `a.equals(b)` when `a` is non-null | Different wrapper types remain `false` |
+| Two primitives needing numeric equality | `==` after numeric promotion | NaN and signed zero have special rules |
+| Two small integer wrappers known within `long` range | Compare `longValue()` after verifying types and range | Do not use for huge `BigInteger` or decimals |
+| Exact large integers | `BigInteger.equals`/`compareTo` | Preserves original data accurately |
+| Exact decimal numbers | `BigDecimal.compareTo == 0` if ignoring scale | Define scale and key contracts |
+| Sorting floating-point numbers of the same type | `Double.compare` / `Float.compare` | NaN and ±0 are ordered per Java convention |
+| Map/set needing consistent IDs | Normalize key type at the data boundary | Ensure `equals` and `hashCode` share the same policy |
 
-**Câu hỏi tự luyện:**
+**Self-practice questions:**
 
-- `Integer.valueOf(8).equals(Long.valueOf(8L))` trả gì? Thế `8 == 8L`?
-- Nếu `Number n = Integer.valueOf(8)`, `n.equals(Long.valueOf(8L))` có khác không?
-- Vì sao một `HashSet<Number>` có thể chứa cả `Integer(8)` và `Long(8)`?
-- Điều gì sai khi so sánh hai `long` khoảng `2^53` bằng cách ép cả hai sang `double`?
-- `new BigDecimal("8.0").equals(new BigDecimal("8.00"))` và `compareTo` có cùng kết quả không?
+- What does `Integer.valueOf(8).equals(Long.valueOf(8L))` return? What about `8 == 8L`?
+- If `Number n = Integer.valueOf(8)`, is `n.equals(Long.valueOf(8L))` any different?
+- Why can a `HashSet<Number>` contain both `Integer(8)` and `Long(8)`?
+- What is wrong with comparing two `long`s around `2^53` by casting both to `double`?
+- Do `new BigDecimal("8.0").equals(new BigDecimal("8.00"))` and `compareTo` give the same result?
 
-**Đáp án:** (1) `false` và `true`. (2) Vẫn `false` vì implementation `Integer.equals` được chạy. (3) Chúng là hai phần tử không bằng nhau theo wrapper `equals`. (4) Phép ép có thể làm mất bit độ chính xác và gộp hai số khác nhau. (5) `equals` là `false`, còn `compareTo` bằng 0.
+**Answers:** (1) `false` and `true`. (2) Still `false` because `Integer.equals`'s implementation runs. (3) They are two unequal elements under wrapper `equals`. (4) Casting can drop precision bits and merge two distinct numbers. (5) `equals` is `false`, while `compareTo` equals 0.
 
-## Tài liệu tham khảo
+## References
 
 - [Java SE 21 — Integer.equals](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Integer.html#equals(java.lang.Object)).
 - [Java SE 21 — Long.equals](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Long.html#equals(java.lang.Object)).

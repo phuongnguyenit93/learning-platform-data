@@ -1,15 +1,15 @@
-# Toán tử `<`, `<=`, `>` và `>=` cho giá trị số — Java 17+
+# Relational Operators `<`, `<=`, `>`, and `>=` for Numeric Values — Java 17+
 
-Java cung cấp bốn **toán tử so sánh quan hệ** (*relational operators*) để kiểm tra thứ tự của hai giá trị số. Mỗi phép so sánh có **hai toán hạng** và trả về **`boolean`**:
+Java provides four **relational operators** to check the ordering of two numeric values. Each comparison takes **two operands** and returns a **`boolean`**:
 
-| Toán tử | Ý nghĩa | Ví dụ | Kết quả |
+| Operator | Meaning | Example | Result |
 | --- | --- | --- | --- |
-| `a < b` | `a` nhỏ hơn `b` | `3 < 5` | `true` |
-| `a <= b` | `a` nhỏ hơn **hoặc bằng** `b` | `5 <= 5` | `true` |
-| `a > b` | `a` lớn hơn `b` | `9 > 5` | `true` |
-| `a >= b` | `a` lớn hơn **hoặc bằng** `b` | `5 >= 9` | `false` |
+| `a < b` | `a` is less than `b` | `3 < 5` | `true` |
+| `a <= b` | `a` is less than **or equal to** `b` | `5 <= 5` | `true` |
+| `a > b` | `a` is greater than `b` | `9 > 5` | `true` |
+| `a >= b` | `a` is greater than **or equal to** `b` | `5 >= 9` | `false` |
 
-**Phân biệt quan trọng:** `<` và `>` là so sánh **nghiêm ngặt**, không bao gồm bằng nhau; `<=` và `>=` bao gồm trường hợp hai giá trị bằng nhau. Các dấu `<=`, `>=` được viết liền nhau; `=<` hoặc `=>` không phải toán tử Java.
+**Important distinction:** `<` and `>` are **strict** comparisons that do not include equality; `<=` and `>=` include the case where both values are equal. The symbols `<=` and `>=` are written together without a space; `=<` and `=>` are not Java operators.
 
 ~~~java
 int age = 18;
@@ -17,25 +17,25 @@ boolean adult = age >= 18;   // true.
 boolean minor = age < 18;    // false.
 ~~~
 
-Toán tử không thay đổi giá trị của `age`. Nó chỉ sinh ra kết quả `boolean` có thể sử dụng trong `if`, `while`, `&&`, `||` hoặc biến boolean.
+The operator does not modify the value of `age`. It only produces a `boolean` result that can be used in `if`, `while`, `&&`, `||`, or a boolean variable.
 
-## 1. Điều kiện biên và tính đúng sai
+## 1. Boundary Conditions and Truth Values
 
-Với hai giá trị số bình thường và không chứa NaN:
+For two normal numeric values that do not contain NaN:
 
-| Trường hợp | `a < b` | `a <= b` | `a > b` | `a >= b` |
+| Case | `a < b` | `a <= b` | `a > b` | `a >= b` |
 | --- | --- | --- | --- | --- |
 | `a = 3`, `b = 5` | true | true | false | false |
 | `a = 5`, `b = 5` | false | true | false | true |
 | `a = 9`, `b = 5` | false | false | true | true |
 
-Một cách đọc dễ nhớ là điều kiện ở dấu `<=` hoặc `>=` đúng **khi một trong hai điều kiện “nhỏ/lớn hơn” hoặc “bằng” được thỏa mãn**.
+An easy way to remember this is that a `<=` or `>=` condition is true **when either the "less/greater than" condition or the "equal to" condition is satisfied**.
 
-Đừng lẫn với `==` và `!=`: đó là các phép kiểm tra **bằng/khác**, không phải toán tử xác định thứ tự. `a >= b` cũng không có nghĩa “`a` khác `b`”.
+Do not confuse them with `==` and `!=`: those check for **equality/inequality**, not ordering. Likewise, `a >= b` does not mean "`a` is different from `b`".
 
-## 2. Demo Java 17+ chạy độc lập
+## 2. Standalone Runnable Java 17+ Demo
 
-Tạo file UTF-8 tên **`NumericRelationalDemo.java`**:
+Create a UTF-8 file named **`NumericRelationalDemo.java`**:
 
 ~~~java
 public class NumericRelationalDemo {
@@ -125,7 +125,7 @@ public class NumericRelationalDemo {
 }
 ~~~
 
-Sử dụng **JDK 17 trở lên**, mở PowerShell (Windows) hoặc Bash (Linux/macOS) trong thư mục chứa file:
+Using **JDK 17 or later**, open PowerShell (Windows) or Bash (Linux/macOS) in the directory containing the file:
 
 ~~~bash
 java -version
@@ -134,7 +134,7 @@ javac -encoding UTF-8 NumericRelationalDemo.java
 java NumericRelationalDemo
 ~~~
 
-**Exact expected stdout** của riêng lệnh `java NumericRelationalDemo`:
+**Exact expected stdout** of the `java NumericRelationalDemo` command alone:
 
 ~~~text
 less=true
@@ -170,27 +170,27 @@ safeGreaterZero=true
 inRange=true
 ~~~
 
-Đầu ra của `java -version` và `javac -version` phụ thuộc JDK cài đặt, nên không nằm trong khối expected stdout cố định.
+The output of `java -version` and `javac -version` depends on the installed JDK, so it is not included in the fixed expected stdout block.
 
-## 3. Kiểu toán hạng và phép nâng kiểu số hai ngôi
+## 3. Operand Types and Binary Numeric Promotion
 
-Bốn toán tử quan hệ trên dùng cho **kiểu số**: `byte`, `short`, `char`, `int`, `long`, `float`, `double` và các lớp bao số thích hợp được **unbox**. Khi hai toán hạng có kiểu khác nhau, Java áp dụng **binary numeric promotion** trước khi so sánh.
+These four relational operators apply to **numeric types**: `byte`, `short`, `char`, `int`, `long`, `float`, `double`, and appropriate numeric wrapper classes that get **unboxed**. When the two operands have different types, Java applies **binary numeric promotion** before comparing.
 
-| Hai kiểu toán hạng | Kiểu được dùng khi so sánh | Ví dụ |
+| Two operand types | Type used during comparison | Example |
 | --- | --- | --- |
-| `byte` với `short` | `int` | `(byte) 1 < (short) 2` |
-| `char` với `int` | `int` | `'A' < 66` |
-| `int` với `long` | `long` | `5 < 6L` |
-| `int` với `float` | `float` | `5 < 5.5f` |
-| `long` với `double` | `double` | `10L > 9.5` |
-| `float` với `double` | `double` | `1.5f < 2.0` |
-| `Integer` với `Long` | Unbox rồi so theo `long` | `Integer.valueOf(7) < Long.valueOf(8)` |
+| `byte` and `short` | `int` | `(byte) 1 < (short) 2` |
+| `char` and `int` | `int` | `'A' < 66` |
+| `int` and `long` | `long` | `5 < 6L` |
+| `int` and `float` | `float` | `5 < 5.5f` |
+| `long` and `double` | `double` | `10L > 9.5` |
+| `float` and `double` | `double` | `1.5f < 2.0` |
+| `Integer` and `Long` | Unboxed then compared as `long` | `Integer.valueOf(7) < Long.valueOf(8)` |
 
-**Kiểu của phép so sánh luôn là `boolean`**, không phải `int`/`double`. Trong `int n = 3; boolean result = n < 5;`, `n` vẫn là `int` và `result` là `boolean`.
+**The type of a comparison expression is always `boolean`**, not `int`/`double`. In `int n = 3; boolean result = n < 5;`, `n` remains an `int` and `result` is a `boolean`.
 
-### So sánh `char`
+### Comparing `char`
 
-`char` là **đơn vị mã UTF-16 không dấu**, nên Java so sánh **giá trị số của đơn vị mã**, không dùng thứ tự từ điển theo ngôn ngữ:
+`char` is an **unsigned UTF-16 code unit**, so Java compares the **numeric value of the code unit**, rather than using natural-language lexicographical order:
 
 ~~~java
 char a = 'A';
@@ -198,33 +198,33 @@ char b = 'B';
 System.out.println(a < b); // true: 65 < 66.
 ~~~
 
-Dùng `Collator` hoặc quy tắc so sánh chuỗi phù hợp nếu bài toán là sắp xếp tên/chuỗi theo ngôn ngữ tự nhiên. Không coi so sánh hai `char` là một bộ máy so sánh văn bản hoàn chỉnh.
+Use `Collator` or appropriate string comparison rules if the problem involves sorting names/strings according to natural language. Do not treat comparing two `char` values as a complete text-comparison engine.
 
-### Wrapper và nguy cơ `null`
+### Wrappers and the `null` Risk
 
 ~~~java
 Integer number = 7;
-System.out.println(number < 10); // true do unboxing.
+System.out.println(number < 10); // true due to unboxing.
 
 Integer missing = null;
-// boolean check = missing < 10; // Khi chay nem NullPointerException.
+// boolean check = missing < 10; // Throws NullPointerException at runtime.
 ~~~
 
-Vì relational operator cần giá trị số nguyên thủy, wrapper thích hợp được unbox. Nếu wrapper là `null`, việc unbox ném `NullPointerException`. Trước khi so sánh dữ liệu có thể thiếu, hãy xác định quy tắc xử lý null, ví dụ:
+Because relational operators require primitive numeric values, an eligible wrapper is unboxed. If the wrapper is `null`, unboxing throws a `NullPointerException`. Before comparing potentially missing data, define a null-handling rule, for example:
 
 ~~~java
 Integer input = null;
 boolean valid = input != null && input >= 0;
-// false, vế phải && không chạy nếu input null.
+// false; the right-hand side of && does not run if input is null.
 ~~~
 
-Với các kiểu tham chiếu như `String`, `Boolean` hoặc đối tượng không phải giá trị số có thể unbox, `<`/`<=`/`>`/`>=` không hợp lệ.
+For reference types such as `String`, `Boolean`, or objects that are not unboxable numeric values, `<`/`<=`/`>`/`>=` are invalid.
 
-## 4. So sánh số nguyên và số thực: làm tròn khi nâng kiểu
+## 4. Comparing Integers and Floating-Point Numbers: Rounding During Promotion
 
-Không phải mọi phép so sánh giữa `int`/`long` và `float`/`double` đều giữ nguyên khả năng phân biệt từng số nguyên.
+Not every comparison between `int`/`long` and `float`/`double` preserves the ability to distinguish every individual integer.
 
-`float` có khoảng **24 bit độ chính xác của phần trị**. Hai số nguyên lớn khác nhau có thể trở thành cùng một giá trị khi được chuyển thành `float`:
+`float` has about **24 bits of significand precision**. Two distinct large integers can become the exact same value when converted to `float`:
 
 ~~~java
 int preciseInt = 16_777_217;
@@ -234,15 +234,15 @@ System.out.println(preciseInt > roundedFloat);  // false.
 System.out.println(preciseInt <= roundedFloat); // true.
 ~~~
 
-Tại phép so sánh, `preciseInt` được đổi sang `float` và làm tròn thành **16_777_216f**, bằng `roundedFloat`. Đây không phải Java “so sánh sai”; kết quả tuân theo **quy tắc chuyển kiểu trước phép so sánh**.
+At the comparison, `preciseInt` is converted to `float` and rounded to **16_777_216f**, which equals `roundedFloat`. This is not Java "comparing incorrectly"; the result follows the **type-conversion rules applied before comparison**.
 
-`double` có khoảng **53 bit độ chính xác của phần trị**, vì vậy `long` rất lớn có thể gặp vấn đề tương tự khi so với `double`.
+`double` has about **53 bits of significand precision**, so very large `long` values can run into the same issue when compared against `double`.
 
-Nếu nghiệp vụ cần so sánh chính xác các số nguyên rất lớn, hãy chọn biểu diễn và kiểu toán hạng thích hợp (ví dụ cùng `long`, hoặc `BigInteger.compareTo` khi vượt miền `long`) thay vì âm thầm chuyển qua số thực xấp xỉ.
+If your business logic requires exact comparisons of very large integers, choose an appropriate representation and operand types (for example, both `long`, or `BigInteger.compareTo` when exceeding the `long` range) instead of silently converting to approximate floating-point values.
 
-## 5. Trường hợp số thực đặc biệt: NaN, vô cực và zero có dấu
+## 5. Special Floating-Point Cases: NaN, Infinity, and Signed Zero
 
-Các phép quan hệ `<`, `<=`, `>` và `>=` với `NaN` đều trả `false`; vì vậy phủ định một quan hệ không nhất thiết tương đương quan hệ đối nghịch:
+The relational operators `<`, `<=`, `>`, and `>=` all return `false` when an operand is `NaN`; therefore, negating a relational expression is not necessarily equivalent to the opposite relation:
 
 ~~~java
 double x = Double.NaN;
@@ -251,13 +251,13 @@ System.out.println(!(x > 5.0)); // true
 System.out.println(x <= 5.0);   // false
 ~~~
 
-Dùng `Double.isNaN(x)` để nhận diện NaN; khi dữ liệu chỉ được phép là số hữu hạn, dùng `Double.isFinite(x)` để loại cả NaN và vô cực.
+Use `Double.isNaN(x)` to detect NaN; when data must only be finite numbers, use `Double.isFinite(x)` to reject both NaN and infinity.
 
-`Double.POSITIVE_INFINITY` lớn hơn mọi số `double` hữu hạn; `Double.NEGATIVE_INFINITY` nhỏ hơn mọi số hữu hạn. Hai giá trị `+0.0` và `-0.0` không nhỏ hơn/lớn hơn nhau theo toán tử quan hệ primitive, nhưng `<=` và `>=` giữa chúng đều đúng. Các API như `Double.compare` và `Double.equals` có quy tắc riêng cho NaN và zero có dấu, được giải thích kỹ trong bài **NaN và những kết quả so sánh khác trực giác**.
+`Double.POSITIVE_INFINITY` is greater than every finite `double`; `Double.NEGATIVE_INFINITY` is less than every finite `double`. The two values `+0.0` and `-0.0` are neither less than nor greater than each other under primitive relational operators, so both `<=` and `>=` between them are true. APIs such as `Double.compare` and `Double.equals` have their own rules for NaN and signed zeros, which are explained in detail in the lesson **NaN and Counterintuitive Comparison Results**.
 
-## 6. Cú pháp, độ ưu tiên và điều kiện ghép
+## 6. Syntax, Precedence, and Compound Conditions
 
-Bốn toán tử này có **độ ưu tiên thấp hơn phép cộng/nhân** nhưng **cao hơn `&&` và `||`**:
+These four operators have **lower precedence than addition/multiplication**, but **higher precedence than `&&` and `||`**:
 
 ~~~java
 int price = 8;
@@ -267,28 +267,28 @@ boolean affordable = price + tax <= 10; // true.
 boolean range = (price >= 0) && (price < 10); // true.
 ~~~
 
-Dấu ngoặc giúp biểu thị rõ ý nghĩa của điều kiện khoảng:
+Parentheses help make the meaning of a range condition clear:
 
 ~~~java
 int value = 7;
 boolean inRange = value >= 0 && value < 10; // true.
 ~~~
 
-Java **không hỗ trợ viết liên tiếp ba giá trị theo kiểu toán học `0 <= x < 10`**:
+Java **does not support chaining three values in mathematical notation like `0 <= x < 10`**:
 
 ~~~java
 int x = 7;
-// boolean invalid = 0 <= x < 10; // Loi bien dich.
+// boolean invalid = 0 <= x < 10; // Compilation error.
 boolean valid = (0 <= x) && (x < 10);
 ~~~
 
-Biểu thức `0 <= x` đã trả `boolean`, không thể làm toán hạng số của phép `< 10` tiếp theo. Cần tách thành hai phép so sánh rồi ghép bằng `&&`.
+The expression `0 <= x` already returns a `boolean`, which cannot serve as a numeric operand for the subsequent `< 10` comparison. You must split it into two comparisons joined with `&&`.
 
-Lưu ý toán tử quan hệ trả `boolean` nên không dùng phép cộng hoặc trừ trực tiếp hai kết quả quan hệ như với số nguyên.
+Note that relational operators return `boolean`, so you cannot directly add or subtract two relational results as if they were integers.
 
-## 7. Tràn số trong **biểu thức trước** phép so sánh
+## 7. Overflow in **Expressions Before** Comparison
 
-Đúng toán tử quan hệ chưa đủ nếu toán hạng đã được tính sai vì overflow:
+Using the right relational operator is not enough if an operand was already computed incorrectly due to overflow:
 
 ~~~java
 int a = Integer.MAX_VALUE;
@@ -298,7 +298,7 @@ System.out.println(overflowed);     // -2147483648.
 System.out.println(overflowed > 0); // false.
 ~~~
 
-`a + 1` được đánh giá theo `int` trước khi phép so sánh diễn ra. Để cần kết quả lớn hơn `int`, **nâng kiểu trước phép tính**, không chỉ ép kiểu kết quả sau phép tính:
+`a + 1` is evaluated as an `int` before the comparison takes place. When you need a result larger than `int`, **promote the type before the arithmetic operation**, rather than casting the result afterward:
 
 ~~~java
 int a = Integer.MAX_VALUE;
@@ -307,69 +307,69 @@ long correct = (long) a + 1;
 System.out.println(correct > 0); // true.
 ~~~
 
-Nếu bài toán yêu cầu **báo lỗi khi overflow** thay vì chuyển sang `long`, cân nhắc `Math.addExact`; với miền số nguyên vượt `long`, dùng `BigInteger.compareTo`. Với tính toán thập phân đòi hỏi chính xác, cân nhắc `BigDecimal.compareTo` và kiểm soát chính sách scale/rounding.
+If the requirements call for **reporting an error on overflow** instead of widening to `long`, consider `Math.addExact`; for integers beyond the `long` range, use `BigInteger.compareTo`. For decimal calculations requiring exact precision, consider `BigDecimal.compareTo` and explicitly manage the scale/rounding policy.
 
-## 8. So sánh kiểu số và so sánh chuỗi là hai việc khác nhau
+## 8. Numeric Comparison and String Comparison Are Different Things
 
 ~~~java
 int number = 12;
 System.out.println(number > 9); // true.
 
 // String text = "12";
-// boolean invalid = text > "9"; // Loi bien dich.
+// boolean invalid = text > "9"; // Compilation error.
 ~~~
 
-`String` không phải kiểu số, ngay cả khi chứa chữ số. Muốn so **giá trị số**, phải parse/validate trước:
+`String` is not a numeric type, even when it contains digits. To compare **numeric values**, you must parse/validate first:
 
 ~~~java
 int parsed = Integer.parseInt("12");
 boolean numericGreater = parsed > 9; // true.
 ~~~
 
-Muốn so **thứ tự từ điển của String**, dùng `String.compareTo(...)` hoặc bộ so sánh phù hợp thay vì toán tử `>`. Ví dụ `"12".compareTo("9") < 0` theo thứ tự từ điển ký tự, khác so sánh số 12 và 9.
+To compare **lexicographical order of Strings**, use `String.compareTo(...)` or an appropriate comparator instead of the `>` operator. For example, `"12".compareTo("9") < 0` follows character-based lexicographical ordering, which differs from comparing the numbers 12 and 9.
 
-## 9. Các lỗi thường gặp
+## 9. Common Mistakes
 
-| Hiểu nhầm | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| “`<`/`<=` trả số 0 hoặc 1.” | Chúng trả `boolean` |
-| “`a <= b` chỉ đúng khi `a` nhỏ hơn `b`.” | Cũng đúng khi bằng nhau (trừ trường hợp bất thường như NaN) |
-| “`0 <= x < 10` hợp lệ trong Java.” | Không; phải viết `0 <= x && x < 10` |
-| “Hai wrapper số đem so bằng `<` sẽ so địa chỉ.” | Các wrapper số được unbox để so giá trị số |
-| “Wrapper null so với số cho false.” | Có thể ném `NullPointerException` do unboxing |
-| “`int` so với `float` luôn chính xác tuyệt đối.” | Numeric promotion có thể làm tròn số nguyên lớn |
-| “`!(x > y)` luôn giống `x <= y`.” | Sai khi `x` hoặc `y` là NaN |
-| “`+0.0` nhỏ hơn `-0.0` vì bit dấu khác.” | Chúng bằng nhau theo phép quan hệ primitive |
-| “Thêm `> 0` tự sửa tràn số của toán hạng.” | Phải xử lý overflow **trước** khi so sánh |
+| "`<`/`<=` return 0 or 1." | They return `boolean` |
+| "`a <= b` is only true when `a` is less than `b`." | It is also true when they are equal (except in special cases like NaN) |
+| "`0 <= x < 10` is valid in Java." | No; you must write `0 <= x && x < 10` |
+| "Comparing two numeric wrappers with `<` compares addresses." | Numeric wrappers are unboxed to compare numeric values |
+| "Comparing a null wrapper with a number returns false." | It throws `NullPointerException` due to unboxing |
+| "Comparing `int` with `float` is always completely exact." | Numeric promotion can round large integers |
+| "`!(x > y)` is always the same as `x <= y`." | False when `x` or `y` is NaN |
+| "`+0.0` is less than `-0.0` because their sign bits differ." | They are equal under primitive relational comparisons |
+| "Adding `> 0` automatically fixes operand overflow." | Overflow must be handled **before** comparing |
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-Check Exercises
 
-1. `int a = 5, b = 5;` thì `a < b`, `a <= b`, `a > b` và `a >= b` là gì?  
-   *Đáp án:* `false`, `true`, `false`, `true`.
-2. `char a = 'A'; boolean c = a < 'B';` cho gì?  
-   *Đáp án:* `true` vì so giá trị mã UTF-16 65 và 66.
-3. `Integer a = 4; Long b = 5L; boolean c = a < b;` có hợp lệ không?  
-   *Đáp án:* Có; unboxing và numeric promotion cho kết quả `true`.
-4. `Integer x = null; boolean c = x < 10;` cho gì?  
-   *Đáp án:* `NullPointerException` khi unbox.
-5. `Double.NaN >= 0.0` và `!(Double.NaN < 0.0)` lần lượt là gì?  
-   *Đáp án:* `false` và `true`.
-6. Vì sao `int x = 16_777_217; float f = 16_777_216f; x > f` có thể là false?  
-   *Đáp án:* `x` được chuyển sang `float` và làm tròn thành giá trị bằng `f`.
-7. Viết điều kiện `10 <= score <= 20` trong Java.  
-   *Đáp án:* `score >= 10 && score <= 20`.
-8. `(Integer.MAX_VALUE + 1) > 0` là gì?  
-   *Đáp án:* `false` do phép cộng `int` tràn trước khi so sánh.
+1. If `int a = 5, b = 5;`, what are `a < b`, `a <= b`, `a > b`, and `a >= b`?  
+   *Answer:* `false`, `true`, `false`, `true`.
+2. What does `char a = 'A'; boolean c = a < 'B';` produce?  
+   *Answer:* `true`, because it compares UTF-16 code unit values 65 and 66.
+3. Is `Integer a = 4; Long b = 5L; boolean c = a < b;` valid?  
+   *Answer:* Yes; unboxing and numeric promotion yield `true`.
+4. What happens with `Integer x = null; boolean c = x < 10;`?  
+   *Answer:* `NullPointerException` upon unboxing.
+5. What are `Double.NaN >= 0.0` and `!(Double.NaN < 0.0)` respectively?  
+   *Answer:* `false` and `true`.
+6. Why can `int x = 16_777_217; float f = 16_777_216f; x > f` evaluate to false?  
+   *Answer:* `x` is converted to `float` and rounded to a value equal to `f`.
+7. Write the condition `10 <= score <= 20` in Java.  
+   *Answer:* `score >= 10 && score <= 20`.
+8. What does `(Integer.MAX_VALUE + 1) > 0` evaluate to?  
+   *Answer:* `false`, because the `int` addition overflows before the comparison.
 
 ## Checklist
 
-- [ ] Phân biệt `<`, `<=`, `>`, `>=` và nhớ kết quả đều là `boolean`.
-- [ ] Áp dụng so sánh quan hệ lên giá trị số, không lên `String`/`boolean`.
-- [ ] Hiểu **unboxing** của wrapper và **binary numeric promotion**.
-- [ ] Cẩn thận mất chính xác khi so số nguyên lớn với `float`/`double`.
-- [ ] Với NaN, cả bốn phép quan hệ đều false; `!(a > b)` không luôn giống `a <= b`.
-- [ ] Hiểu hai zero `+0.0` và `-0.0` so quan hệ bằng nhau.
-- [ ] Viết điều kiện khoảng bằng hai phép so sánh nối bởi `&&`.
-- [ ] Kiểm tra phép tính toán hạng có overflow trước khi tin vào kết quả so sánh.
+- [ ] Distinguish `<`, `<=`, `>`, `>=` and remember that all results are `boolean`.
+- [ ] Apply relational comparisons to numeric values, not to `String`/`boolean`.
+- [ ] Understand wrapper **unboxing** and **binary numeric promotion**.
+- [ ] Watch out for precision loss when comparing large integers with `float`/`double`.
+- [ ] With NaN, all four relational comparisons are false; `!(a > b)` is not always the same as `a <= b`.
+- [ ] Understand that `+0.0` and `-0.0` compare equal relationally.
+- [ ] Write range conditions as two comparisons joined by `&&`.
+- [ ] Check operand expressions for overflow before relying on the comparison result.
 
-**Kết luận:** `<`, `<=`, `>`, `>=` là các **toán tử quan hệ cho giá trị số** trong Java. Dùng chúng đúng không chỉ là nhớ dấu mà còn cần hiểu **kiểu số được so sánh**, **nâng kiểu**, **NaN** và **các phép tính xảy ra trước phép so sánh**.
+**Conclusion:** `<`, `<=`, `>`, and `>=` are the **relational operators for numeric values** in Java. Using them properly requires not only remembering the symbols, but also understanding the **numeric types being compared**, **type promotion**, **NaN**, and **any arithmetic operations occurring before the comparison**.

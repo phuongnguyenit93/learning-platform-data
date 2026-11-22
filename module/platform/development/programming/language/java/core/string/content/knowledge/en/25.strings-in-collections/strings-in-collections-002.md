@@ -1,12 +1,12 @@
-# String trong collection: hợp đồng equals–hashCode và va chạm băm
+# String in Collections: The equals–hashCode Contract and Hash Collisions
 
-Khi dùng **String** làm phần tử của **HashSet** hoặc làm khóa của **HashMap**, Java cần biết hai chuỗi có được xem là **cùng một giá trị** hay không. Hai phương thức **equals(Object)** và **hashCode()** phối hợp để trả lời câu hỏi đó. Hiểu đúng hợp đồng của chúng giúp tránh mất khóa, đếm sai phần tử và hiểu nhầm hiện tượng **va chạm băm (hash collision)**.
+When using **String** as an element of **HashSet** or as a key of **HashMap**, Java needs to know whether two strings are considered **the same value**. The two methods **equals(Object)** and **hashCode()** work together to answer that question. Understanding their contract properly helps prevent lost keys, incorrect element counts, and misunderstandings about **hash collisions**.
 
-Một nguyên tắc cần nhớ ngay từ đầu: **cùng hashCode không có nghĩa là hai String bằng nhau; nhưng hai String bằng nhau theo equals bắt buộc có cùng hashCode.**
+One principle to remember from the start: **having the same hashCode does not mean two Strings are equal; however, two Strings that are equal according to equals must have the same hashCode.**
 
-## 1. String.equals so sánh nội dung, không so sánh địa chỉ
+## 1. String.equals Compares Content, Not Memory Addresses
 
-String ghi đè phương thức **equals(Object)** để so sánh **nội dung ký tự**. Hai đối tượng String khác nhau vẫn được xem là bằng nhau nếu chứa cùng dãy đơn vị mã UTF-16 theo đúng thứ tự.
+String overrides the **equals(Object)** method to compare **character content**. Two different String objects are still considered equal if they contain the exact same sequence of UTF-16 code units in the same order.
 
 ~~~java
 String a = new String("java");
@@ -16,40 +16,40 @@ System.out.println(a == b);      // false
 System.out.println(a.equals(b));  // true
 ~~~
 
-Giải thích:
+Explanation:
 
-- **a == b** kiểm tra hai tham chiếu có trỏ đến **cùng một đối tượng** hay không; đối tượng được tạo tường minh bằng **new String(...)** khác đối tượng chuỗi literal.
-- **a.equals(b)** so sánh nội dung, nên trả về **true**.
-- So sánh nội dung của String có **phân biệt chữ hoa/chữ thường**: **"Java".equals("java")** là **false**.
-- **"java".equals(null)** là **false**. Nếu tham chiếu có thể null, có thể dùng **Objects.equals(a, b)** để kiểm tra hai giá trị null an toàn.
+- **a == b** checks whether two references point to the **same object**; an object explicitly created with **new String(...)** is distinct from a string literal object.
+- **a.equals(b)** compares content, so it returns **true**.
+- String content comparison is **case-sensitive**: **"Java".equals("java")** is **false**.
+- **"java".equals(null)** is **false**. If a reference might be null, **Objects.equals(a, b)** can be used to compare two possibly null values safely.
 
-Cùng nội dung không nhất thiết cùng tham chiếu. Cơ chế *string pool* hoặc **intern()** không làm thay đổi quy tắc so sánh nội dung của equals; không dùng **==** để quyết định hai chuỗi là cùng khóa trong ứng dụng.
+Having the same content does not necessarily mean sharing the same reference. The *string pool* mechanism or **intern()** does not change the content-comparison rules of equals; do not use **==** to decide whether two strings represent the same key in an application.
 
-## 2. Hợp đồng equals–hashCode là gì?
+## 2. What Is the equals–hashCode Contract?
 
-Mọi lớp Java có thể dùng như khóa trong bộ sưu tập dựa trên băm cần tuân thủ hai nhóm quy tắc.
+Every Java class that can be used as a key in a hash-based collection must adhere to two sets of rules.
 
-### 2.1. Những quy tắc cơ bản của equals
+### 2.1. Basic Rules of equals
 
-Đối với đối tượng khác null và khi trạng thái liên quan không thay đổi:
+For non-null objects when relevant state does not change:
 
-1. **Phản xạ:** **x.equals(x)** là true.
-2. **Đối xứng:** **x.equals(y)** và **y.equals(x)** phải trả về cùng kết quả.
-3. **Bắc cầu:** nếu x bằng y và y bằng z, x cũng phải bằng z.
-4. **Nhất quán:** khi dữ liệu dùng để so sánh không đổi, gọi lại equals phải cho cùng kết quả.
-5. **Với null:** **x.equals(null)** phải là false.
+1. **Reflexive:** **x.equals(x)** is true.
+2. **Symmetric:** **x.equals(y)** and **y.equals(x)** must return the same result.
+3. **Transitive:** if x equals y and y equals z, then x must also equal z.
+4. **Consistent:** as long as data used for comparison does not change, repeated calls to equals must return the same result.
+5. **With null:** **x.equals(null)** must be false.
 
-String đã triển khai các quy tắc này. Không cần viết lại equals cho String.
+String already implements these rules. You never need to rewrite equals for String.
 
-### 2.2. Những quy tắc của hashCode
+### 2.2. Rules of hashCode
 
-Hợp đồng của **hashCode()** gồm:
+The **hashCode()** contract includes:
 
-- Trong cùng một lần thực thi ứng dụng, nếu dữ liệu tham gia vào equals không đổi, các lần gọi **hashCode()** trên cùng đối tượng phải trả lại cùng số nguyên.
-- **Nếu x.equals(y) là true thì x.hashCode() và y.hashCode() phải bằng nhau.**
-- **Nếu x.equals(y) là false, hashCode của chúng được phép bằng nhau.** Hai giá trị khác nhau **không bắt buộc** tạo hai mã băm khác nhau.
+- Within the same execution of an application, if the data participating in equals does not change, calls to **hashCode()** on the same object must return the same integer.
+- **If x.equals(y) is true, then x.hashCode() and y.hashCode() must be equal.**
+- **If x.equals(y) is false, their hashCodes are allowed to be equal.** Two unequal values are **not required** to produce different hash codes.
 
-Có thể biểu diễn chính xác chiều suy luận:
+The implication direction can be expressed precisely:
 
 ~~~text
 x.equals(y) == true   ⇒   x.hashCode() == y.hashCode()
@@ -57,45 +57,45 @@ x.equals(y) == true   ⇒   x.hashCode() == y.hashCode()
 x.hashCode() == y.hashCode()   ⇏   x.equals(y) == true
 ~~~
 
-Vế thứ hai là lý do một collection dựa trên băm phải dùng **equals** để phân biệt những đối tượng có cùng mã băm. Nếu chỉ kiểm tra số hash, dữ liệu hợp lệ sẽ bị coi nhầm là trùng lặp.
+The second statement is why a hash-based collection must use **equals** to distinguish objects that share the same hash code. If it only checked the hash number, valid data would be mistakenly treated as duplicates.
 
-## 3. String.hashCode hoạt động ra sao?
+## 3. How Does String.hashCode Work?
 
-**String.hashCode()** tạo một giá trị kiểu **int** dựa trên nội dung String. Công thức về mặt ngữ nghĩa có dạng:
+**String.hashCode()** computes an **int** value from the String's content. Semantically, the formula has the form:
 
 ~~~text
 h = 0
-Lặp qua từng đơn vị mã UTF-16 c của chuỗi:
+Iterate over each UTF-16 code unit c of the string:
     h = 31 * h + c
-Kết quả là h theo số nguyên int 32-bit của Java.
+The result is h as a 32-bit Java int.
 ~~~
 
-Với chuỗi rỗng, hashCode bằng **0**. Với String có nội dung bằng nhau, tính toán trên cùng dãy đơn vị mã UTF-16 luôn cho cùng hashCode. Số **31** là hệ số trong thuật toán hashCode do Java định nghĩa cho String.
+For an empty string, hashCode is **0**. For Strings with equal content, computing over the same sequence of UTF-16 code units always yields the same hashCode. The number **31** is the multiplier in the hashCode algorithm defined by Java for String.
 
-Ví dụ:
+Example:
 
 ~~~text
-"Aa" = 31 × mã('A') + mã('a')
+"Aa" = 31 × code('A') + code('a')
      = 31 × 65 + 97
      = 2112
 
-"BB" = 31 × mã('B') + mã('B')
+"BB" = 31 × code('B') + code('B')
      = 31 × 66 + 66
      = 2112
 ~~~
 
-Do giá trị hashCode chỉ là một số **int 32-bit** trong khi số lượng chuỗi có thể tạo ra là vô hạn, chắc chắn tồn tại những chuỗi khác nhau cho cùng mã băm. hashCode cũng có thể âm do tràn số nguyên 32-bit; đây không phải lỗi.
+Because hashCode is only a **32-bit int** while the number of possible strings is infinite, there inevitably exist distinct strings that produce the same hash code. hashCode can also be negative due to 32-bit integer overflow; this is not a bug.
 
-**hashCode không phải định danh duy nhất, không phải dấu vân tay an toàn và không phải hàm băm mật mã.** Không dùng nó để xác nhận dữ liệu không bị thay đổi, tạo ID duy nhất hoặc kiểm chứng tính toàn vẹn cần bảo mật.
+**hashCode is not a unique identifier, not a secure fingerprint, and not a cryptographic hash function.** Do not use it to verify that data has not been tampered with, generate unique IDs, or check security-sensitive integrity.
 
-## 4. Từ hash code đến phép tìm kiếm thực tế
+## 4. From Hash Code to Actual Lookup
 
-`HashSet<String>` và `HashMap<String, V>` sử dụng **cả mã băm lẫn phép so sánh tương đương**. Mã băm giúp tìm nhóm ứng viên; `equals` xác nhận khóa chính xác. Do bảng có số bucket hữu hạn, ngay cả **hai hashCode khác nhau** cũng có thể rơi vào cùng bucket; đó là vấn đề triển khai được xử lý bên trong collection. Khi cùng hash mà khác `equals`, cả hai giá trị vẫn phải được phân biệt.
+`HashSet<String>` and `HashMap<String, V>` use **both the hash code and equivalence comparison**. The hash code locates a candidate group; `equals` confirms the exact key. Because the table has a finite number of buckets, even **two different hashCodes** can land in the same bucket; that is an implementation detail handled internally by the collection. When two keys share the same hash but differ by `equals`, both values must still be distinguished.
 
 ~~~java
 Map<String, Integer> map = new HashMap<>();
 map.put("Aa", 10);
-map.put("BB", 20); // "Aa" và "BB" có cùng hashCode
+map.put("BB", 20); // "Aa" and "BB" have the same hashCode
 System.out.println(map.size());      // 2
 System.out.println(map.get("Aa"));   // 10
 System.out.println(map.get("BB"));   // 20
@@ -107,11 +107,11 @@ System.out.println(set.add(new String("Aa"))); // false
 System.out.println(set.size());      // 2
 ~~~
 
-`map.put(new String("Aa"), 30)` (nếu gọi tiếp) cập nhật entry `"Aa"` vì `equals` đúng, nhưng không đổi entry `"BB"`. Không phải gọi `hashCode` hoặc tự duyệt bucket trong ứng dụng; `Map`/`Set` đã quy định ngữ nghĩa này. Ví dụ hoàn chỉnh ở phần 6 kiểm tra cả trường hợp trùng nội dung và collision.
+`map.put(new String("Aa"), 30)` (if called next) updates the `"Aa"` entry because `equals` is true, without changing the `"BB"` entry. Application code does not need to call `hashCode` or traverse buckets manually; `Map`/`Set` specify these semantics. The complete example in section 6 tests both duplicate content and collisions.
 
-## 5. Va chạm băm thực tế: "Aa" và "BB"
+## 5. A Real Hash Collision: "Aa" and "BB"
 
-Hai String **"Aa"** và **"BB"** có nội dung khác nhau nhưng **hashCode bằng nhau**. Đây là ví dụ va chạm băm ngắn, ổn định và dễ tự kiểm tra:
+The two Strings **"Aa"** and **"BB"** have different content yet **equal hashCodes**. This is a short, stable, and easy-to-verify example of a hash collision:
 
 ~~~java
 String first = "Aa";
@@ -122,15 +122,15 @@ System.out.println(second.hashCode()); // 2112
 System.out.println(first.equals(second)); // false
 ~~~
 
-**Va chạm không làm mất dữ liệu.** HashSet vẫn lưu được cả "Aa" lẫn "BB" vì equals trả về false. HashMap vẫn phân biệt và lấy đúng giá trị cho hai khóa.
+**Collisions do not cause data loss.** HashSet still stores both "Aa" and "BB" because equals returns false. HashMap still distinguishes them and retrieves the right value for each key.
 
-Điều này không mâu thuẫn với hợp đồng equals–hashCode. Hợp đồng yêu cầu **bằng nhau thì cùng hashCode**, chứ không hề yêu cầu **cùng hashCode thì bằng nhau**.
+This does not contradict the equals–hashCode contract. The contract requires **equal objects to have the same hashCode**, and never requires **same hashCode to mean equal objects**.
 
-Trong Java hiện đại, các bucket có nhiều phần tử va chạm được quản lý bằng cơ chế nội bộ thích hợp; HashMap có thể chuyển những bucket đủ đông sang cấu trúc cây khi thỏa các điều kiện triển khai. Đừng lập trình dựa vào thứ tự duyệt bucket hay giả định tất cả thao tác trong mọi tình huống đều có thời gian hằng số.
+In modern Java, buckets with many colliding elements are managed with appropriate internal mechanisms; HashMap can convert sufficiently crowded buckets into tree structures when implementation conditions are met. Do not write code that depends on bucket iteration order or assumes every operation in every scenario takes constant time.
 
-## 6. Chương trình Java 17+ hoàn chỉnh
+## 6. Complete Java 17+ Program
 
-Tạo file **StringHashContractDemo.java**:
+Create the file **StringHashContractDemo.java**:
 
 ~~~java
 import java.util.HashMap;
@@ -172,7 +172,7 @@ public class StringHashContractDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac StringHashContractDemo.java
@@ -196,41 +196,41 @@ Aa: 3
 BB: 2
 ~~~
 
-Cách đọc kết quả:
+How to read the output:
 
-- Hai đối tượng **a**, **b** khác tham chiếu, nhưng có nội dung và hashCode giống nhau.
-- **HashSet** chỉ nhận phần tử đầu tiên vì lần thêm thứ hai bằng theo equals.
-- Hai khóa **"Aa"** và **"BB"** có cùng hashCode nhưng không bằng nhau, nên HashMap vẫn có **hai** entry.
-- Lần **put(new String("Aa"), 3)** cập nhật giá trị của khóa tương đương với **"Aa"**, nhưng không tác động đến **"BB"**.
-- Ví dụ chỉ lấy dữ liệu bằng khóa tường minh; không dựa vào thứ tự duyệt **HashMap** hay **HashSet** vì thứ tự đó không được bảo đảm.
+- The two objects **a** and **b** have different references, yet identical content and hashCode.
+- **HashSet** only accepts the first element because the second addition is equal according to equals.
+- The two keys **"Aa"** and **"BB"** share the same hashCode but are not equal, so HashMap still holds **two** entries.
+- Calling **put(new String("Aa"), 3)** updates the value of the key equivalent to **"Aa"**, without affecting **"BB"**.
+- The example only retrieves data via explicit keys; it does not rely on the iteration order of **HashMap** or **HashSet** because that order is not guaranteed.
 
-Đây là minh họa trực tiếp cho việc **hashCode quyết định hướng tra cứu còn equals quyết định sự tương đương của khóa** trong bộ sưu tập dựa trên băm.
+This directly demonstrates that **hashCode guides the lookup while equals determines key equivalence** in hash-based collections.
 
-## 7. Điều kiện ổn định của khóa sau khi chèn
+## 7. Key Stability After Insertion
 
-Khóa nằm trong cấu trúc hash phải giữ nguyên các thông tin quyết định `equals/hashCode` khi còn được lưu. Với kiểu tự định nghĩa có trường mutable, việc sửa trường đó sau `put` có thể làm `get` không tìm thấy khóa dù entry vẫn tồn tại.
+A key inside a hash structure must keep the fields that determine `equals/hashCode` unchanged while it remains stored. For a custom type with mutable fields, modifying such a field after `put` can make `get` unable to find the key even though the entry is still there.
 
-`String` tránh được rủi ro này vì nội dung bất biến. Gán `key = key.toUpperCase()` chỉ đổi biến tham chiếu sang một `String` khác; giá trị cũ trong map vẫn nguyên. Nếu cần khóa gồm nhiều thành phần, cân nhắc một value object bất biến có hợp đồng `equals/hashCode` đúng thay vì dùng khóa mutable.
+`String` avoids this risk because its content is immutable. Reassigning `key = key.toUpperCase()` only switches the reference variable to a different `String`; the old value inside the map remains intact. If you need a composite key with multiple fields, consider an immutable value object with a proper `equals/hashCode` contract instead of using a mutable key.
 
-## 8. Phân biệt HashSet, HashMap với các collection khác
+## 8. Distinguishing HashSet and HashMap from Other Collections
 
-Không phải collection nào cũng dùng hashCode để nhận biết trùng lặp:
+Not every collection uses hashCode to detect duplicates:
 
-| Collection | Cách xác định phần tử/khóa | Ảnh hưởng của String.hashCode |
+| Collection | How elements/keys are identified | Effect of String.hashCode |
 | --- | --- | --- |
-| **HashSet<String>** | Hash rồi so sánh equals khi cần | Dùng để tổ chức tra cứu |
-| **HashMap<String, V>** | Hash và equals cho khóa | Dùng để tổ chức tra cứu |
-| **ArrayList<String>** | **contains**, **indexOf** dựa trên equals | Không dùng hashCode cho các thao tác này |
-| **TreeSet<String>** | **compareTo** hoặc Comparator để xác định thứ tự và trùng lặp | Không dùng hashCode để xác định phần tử trùng |
-| **TreeMap<String, V>** | **compareTo** hoặc Comparator cho khóa | Không dùng hashCode để xác định khóa trùng |
+| **HashSet<String>** | Hash first, then compare with equals when needed | Used to organize lookups |
+| **HashMap<String, V>** | Hash and equals for keys | Used to organize lookups |
+| **ArrayList<String>** | **contains**, **indexOf** rely on equals | Does not use hashCode for these operations |
+| **TreeSet<String>** | **compareTo** or Comparator to determine order and duplicates | Does not use hashCode to detect duplicate elements |
+| **TreeMap<String, V>** | **compareTo** or Comparator for keys | Does not use hashCode to detect duplicate keys |
 
-Với String theo thứ tự tự nhiên, **compareTo** trả về 0 khi nội dung String bằng nhau theo equals. Tuy nhiên nếu truyền Comparator tùy chỉnh, ví dụ **String.CASE_INSENSITIVE_ORDER**, TreeSet có thể coi **"Java"** và **"java"** là cùng một phần tử dù **String.equals** của chúng trả về false. Đây là quy tắc do Comparator chọn, không phải lỗi của hashCode.
+For String in natural order, **compareTo** returns 0 when String content is equal according to equals. However, if a custom Comparator is passed, such as **String.CASE_INSENSITIVE_ORDER**, TreeSet may treat **"Java"** and **"java"** as the same element even though **String.equals** returns false. This is a rule chosen by the Comparator, not a bug in hashCode.
 
-Nếu chỉ cần danh sách có thể chứa giá trị lặp, dùng List. Nếu cần tập giá trị duy nhất theo **String.equals**, dùng HashSet. Nếu cần bảng ánh xạ từ String sang giá trị, dùng HashMap. Nếu cần tập/ánh xạ có thứ tự theo Comparator, cân nhắc TreeSet/TreeMap.
+If you only need a list that may contain duplicate values, use List. If you need a set of unique values according to **String.equals**, use HashSet. If you need a mapping table from String to values, use HashMap. If you need a set/map ordered by a Comparator, consider TreeSet/TreeMap.
 
-## 9. Sự bằng nhau của khóa còn phụ thuộc chính sách dữ liệu
+## 9. Key Equality Also Depends on Data Policy
 
-`String.equals` phân biệt hoa/thường, khoảng trắng và cách mã hóa Unicode. Vì vậy `"Java"` và `"java"` là hai khóa theo `HashSet`, mặc dù một `TreeSet` dùng `String.CASE_INSENSITIVE_ORDER` có thể coi chúng là cùng khóa do quy tắc comparator.
+`String.equals` distinguishes letter case, whitespace, and Unicode encoding forms. Therefore, `"Java"` and `"java"` are two distinct keys in a `HashSet`, even though a `TreeSet` using `String.CASE_INSENSITIVE_ORDER` may treat them as the same key due to the comparator rule.
 
 ~~~java
 Set<String> raw = new HashSet<>();
@@ -239,72 +239,72 @@ raw.add("java");
 System.out.println(raw.size()); // 2
 ~~~
 
-Khi nghiệp vụ muốn hai biến thể thành một định danh, chuẩn hóa **trước khi lưu và tìm** theo chính sách rõ ràng. `toLowerCase(Locale.ROOT)` là một lựa chọn cho mã kỹ thuật, nhưng chưa bao trùm mọi quy tắc ngôn ngữ/Unicode. Chuẩn hóa dữ liệu không phải một thành phần của thuật toán hash và không chữa va chạm băm. Bài riêng về canonical key xử lý lựa chọn đó cùng việc bảo toàn nhãn hiển thị.
+When business logic wants two variants to map to a single identifier, normalize **before storing and looking up** according to an explicit policy. `toLowerCase(Locale.ROOT)` is one option for technical codes, though it does not cover every language/Unicode rule. Data normalization is not part of the hashing algorithm and does not fix hash collisions. A dedicated lesson on canonical keys covers that choice along with preserving display labels.
 
-## 10. Những hiểu lầm thường gặp
+## 10. Common Misconceptions
 
-### "Hash bằng nhau nghĩa là dữ liệu bằng nhau"
+### "Equal hashes mean equal data"
 
-**Sai.** "Aa" và "BB" có hashCode 2112 nhưng equals false. Hash collision là điều được cho phép và phải được xử lý. Không viết logic kiểu:
+**False.** "Aa" and "BB" both have hashCode 2112 yet equals is false. Hash collisions are allowed and must be handled. Never write logic like:
 
 ~~~java
-// SAI về ngữ nghĩa bằng nhau:
+// WRONG for equality semantics:
 boolean same = a.hashCode() == b.hashCode();
 ~~~
 
-Khi cần so nội dung, dùng **a.equals(b)** (nếu a chắc chắn không null) hoặc **Objects.equals(a, b)**.
+When comparing content, use **a.equals(b)** (if a is guaranteed non-null) or **Objects.equals(a, b)**.
 
-### "Hai String khác đối tượng là hai khóa khác nhau"
+### "Two different String objects are two different keys"
 
-**Sai đối với HashMap<String, ...> và HashSet<String>.** Chúng dựa vào equals, không dựa vào **==**. Một String mới chứa đúng nội dung cũ có thể truy vấn hoặc cập nhật entry đã tồn tại.
+**False for HashMap<String, ...> and HashSet<String>.** They rely on equals, not **==**. A new String holding the exact same content can look up or update an existing entry.
 
-### "HashSet bỏ mất khóa khi có collision"
+### "HashSet loses keys when a collision occurs"
 
-**Sai.** HashSet dùng equals để phân biệt những phần tử thực sự khác nhau. Collision có thể gây thêm chi phí tra cứu, nhưng không có nghĩa collection gộp hai String không bằng nhau.
+**False.** HashSet uses equals to distinguish elements that are genuinely different. Collisions can add extra lookup work, but they do not mean the collection merges unequal Strings.
 
-### "String hashCode có thể dùng làm ID duy nhất"
+### "String hashCode can be used as a unique ID"
 
-**Sai.** Đầu ra 32-bit không thể đại diện duy nhất cho mọi chuỗi. HashCode không phải ID nghiệp vụ hay checksum bảo mật. Nếu cần ID, sử dụng cơ chế sinh ID hoặc định danh từ dữ liệu phù hợp yêu cầu.
+**False.** A 32-bit output cannot uniquely represent all possible strings. HashCode is neither a business ID nor a security checksum. If an ID is needed, use an ID generator or a data-derived identifier that fits the requirements.
 
-### "Tôi có thể dùng == vì các literal nằm trong string pool"
+### "I can use == because literals live in the string pool"
 
-**Không an toàn.** String lấy từ file, request, phép ghép, hoặc được tạo bằng **new** có thể mang tham chiếu khác dù nội dung bằng nhau. **intern()** là một cơ chế riêng, không nên dùng để thay thế việc so sánh nội dung.
+**Unsafe.** Strings read from files, requests, concatenation, or created with **new** can have different references despite having the same content. **intern()** is a separate mechanism and should not be used to replace content comparison.
 
-### "HashMap/HashSet sẽ duyệt theo thứ tự thêm vào"
+### "HashMap/HashSet will iterate in insertion order"
 
-**Không có bảo đảm.** Cơ chế hash và collision không xác lập thứ tự duyệt ổn định. Khi cần giữ thứ tự chèn, cân nhắc **LinkedHashMap/LinkedHashSet**; khi cần sắp xếp theo thứ tự, cân nhắc **TreeMap/TreeSet** với thứ tự phù hợp.
+**Not guaranteed.** Hashing and collision mechanics do not establish a stable iteration order. When insertion order must be preserved, consider **LinkedHashMap/LinkedHashSet**; when sorted order is needed, consider **TreeMap/TreeSet** with an appropriate ordering.
 
-### "Tất cả trường hợp tìm kiếm đều O(1)"
+### "All lookup cases are O(1)"
 
-**Không có bảo đảm tuyệt đối.** Với phân bố hash phù hợp và kích thước bảng hợp lý, HashMap/HashSet có hiệu năng tra cứu trung bình rất tốt. Nếu có nhiều khóa rơi vào cùng bucket, thao tác phải xét nhiều ứng viên; Java có các tối ưu nội bộ cho trường hợp dày đặc, nhưng hiệu năng còn tùy dữ liệu và cấu trúc thực tế.
+**No absolute guarantee.** With good hash distribution and appropriate table sizing, HashMap/HashSet achieve very good average lookup performance. If many keys fall into the same bucket, operations must inspect multiple candidates; Java has internal optimizations for dense buckets, but actual performance still depends on the data and runtime structure.
 
-## 11. Cách tự kiểm tra khi gặp lỗi String trong collection
+## 11. How to Debug String Issues in Collections
 
-Khi **contains**, **get** hoặc **put** cho kết quả bất ngờ, thử kiểm tra theo trình tự:
+When **contains**, **get**, or **put** returns unexpected results, try checking in this order:
 
-1. In giá trị String theo cách thể hiện rõ whitespace, chữ hoa/thường và ký tự ẩn. **"java"** và **"java "** không bằng nhau.
-2. Kiểm tra trực tiếp **equals** giữa hai giá trị và so sánh **hashCode** để minh họa. Nếu equals true mà hashCode khác ở hai đối tượng cùng lớp, lớp tự định nghĩa có thể vi phạm hợp đồng; riêng String chuẩn không xảy ra điều này.
-3. Xác định collection đang dùng hợp đồng **equals/hashCode** hay **Comparator**. HashMap/HashSet khác TreeMap/TreeSet.
-4. Với khóa kỹ thuật, xác định có chuẩn hóa đồng nhất ở lúc ghi và lúc tra cứu không.
-5. Tránh kiểm tra lỗi bằng thứ tự duyệt HashMap vì đó không phải thứ tự được cam kết.
-6. Kiểm tra giá trị null riêng nếu API cần phân biệt **không có khóa** với **khóa có giá trị null**. Với Map, **containsKey** có thể cho thông tin khác việc chỉ xem kết quả **get**.
+1. Print the String value in a way that clearly reveals whitespace, letter case, and hidden characters. **"java"** and **"java "** are not equal.
+2. Check **equals** directly between the two values and compare **hashCode** for verification. If equals is true while hashCode differs on two objects of the same class, a custom class may violate the contract; standard String never has this issue.
+3. Determine whether the collection uses the **equals/hashCode** contract or a **Comparator**. HashMap/HashSet differ from TreeMap/TreeSet.
+4. For technical keys, verify whether consistent normalization is applied at both write time and lookup time.
+5. Avoid diagnosing bugs based on HashMap iteration order, since that order is not guaranteed.
+6. Check null values separately if the API must distinguish **missing key** from **key mapped to null**. For a Map, **containsKey** can provide information beyond just checking the result of **get**.
 
-Ví dụ nhỏ về sự khác biệt giữa **không có khóa** và **giá trị null**:
+Small example showing the difference between a **missing key** and a **null value**:
 
 ~~~java
 Map<String, String> map = new HashMap<>();
 map.put("present", null);
 
-// map.get("present") == null và map.get("missing") == null
-// nhưng map.containsKey("present") == true,
-// còn map.containsKey("missing") == false.
+// map.get("present") == null and map.get("missing") == null
+// but map.containsKey("present") == true,
+// whereas map.containsKey("missing") == false.
 ~~~
 
-Đây là vấn đề về ngữ nghĩa Map, không phải hash collision, nhưng thường bị nhầm khi debug việc tra cứu bằng String.
+This is a matter of Map semantics rather than a hash collision, yet it is frequently confused when debugging String lookups.
 
-## 12. Tự đánh giá kiến thức
+## 12. Knowledge Check
 
-Cho ba chuỗi:
+Given three strings:
 
 ~~~java
 String a = "Aa";
@@ -312,16 +312,16 @@ String b = "BB";
 String c = new String("Aa");
 ~~~
 
-Hãy dự đoán kết quả:
+Predict the results:
 
-| Biểu thức | Kết quả | Lý do |
+| Expression | Result | Reason |
 | --- | --- | --- |
-| **a.hashCode() == b.hashCode()** | true | Cùng mã băm 2112 |
-| **a.equals(b)** | false | Nội dung khác nhau |
-| **a == c** | false | c là đối tượng tạo mới |
-| **a.equals(c)** | true | Cùng nội dung "Aa" |
-| **a.hashCode() == c.hashCode()** | true | equals true kéo theo hashCode bằng nhau |
+| **a.hashCode() == b.hashCode()** | true | Same hash code 2112 |
+| **a.equals(b)** | false | Different content |
+| **a == c** | false | c is a newly created object |
+| **a.equals(c)** | true | Same content "Aa" |
+| **a.hashCode() == c.hashCode()** | true | equals being true implies equal hashCodes |
 
-Nếu thêm **a**, **b**, **c** vào một **HashSet<String>**, kích thước cuối là **2**: a và c được coi là cùng giá trị, còn b khác giá trị dù trùng hashCode. Nếu dùng làm khóa HashMap, **put(c, value)** sẽ cập nhật ánh xạ đang ứng với a; b vẫn là khóa riêng.
+If **a**, **b**, and **c** are added to a **HashSet<String>**, the final size is **2**: a and c are considered the same value, while b is a different value despite sharing the hashCode. If used as HashMap keys, **put(c, value)** will update the mapping corresponding to a; b remains a separate key.
 
-Hãy ghi nhớ đúng chiều suy luận: **equals bằng nhau ⇒ hashCode bằng nhau; hashCode bằng nhau ⇏ equals bằng nhau**. String đã bảo đảm hợp đồng, còn HashSet/HashMap đã được thiết kế để xử lý va chạm mà vẫn phân biệt các chuỗi thực sự khác nhau.
+Remember the implication direction accurately: **equal by equals ⇒ equal hashCode; equal hashCode ⇏ equal by equals**. String enforces the contract, while HashSet/HashMap are designed to handle collisions while keeping genuinely different strings separate.

@@ -1,43 +1,43 @@
-# Kiểm tra các cặp và bộ ba đối tượng ở nhiều mức kế thừa khi cài đặt `equals`
+# Testing Pairs and Triples Across Multiple Inheritance Levels When Implementing `equals`
 
-## 1. Vì sao cần thử nhiều đối tượng trong một hệ phân cấp?
+## 1. Why Test Multiple Objects Across a Hierarchy?
 
-Khi cài đặt `equals(Object)` cho lớp có quan hệ kế thừa, một phép thử `a.equals(b)` đơn lẻ không đủ để xác nhận hợp đồng bằng nhau. Lớp cha có thể chấp nhận lớp con, trong khi lớp con lại từ chối lớp cha vì muốn so sánh thêm trường riêng. Một cách sửa vội để làm đối xứng hai chiều còn có thể khiến **tính bắc cầu** bị vi phạm khi so sánh ba đối tượng.
+When implementing `equals(Object)` for classes in an inheritance relationship, a single `a.equals(b)` check is not enough to verify the equality contract. A parent class may accept a subclass, while the subclass rejects the parent because it wants to compare an additional field of its own. A quick patch to restore two-way symmetry can even cause **transitivity** to break when comparing three objects.
 
-Ví dụ một lớp `Point` chỉ có tọa độ và lớp con `ColoredPoint` có thêm màu sắc:
+For example, consider a `Point` class with only coordinates and a subclass `ColoredPoint` adding color:
 
-- Nếu `Point` coi mọi `ColoredPoint` cùng tọa độ là bằng mình, còn `ColoredPoint` từ chối `Point` vì thiếu màu, ta có thể gặp `a.equals(b) != b.equals(a)`: **vi phạm đối xứng**.
-- Nếu `ColoredPoint` chấp nhận so với `Point` bằng tọa độ, nhưng đòi hai `ColoredPoint` phải cùng màu, thì một `Point` thường có thể trở thành cầu nối giữa hai `ColoredPoint` khác màu: **vi phạm bắc cầu**.
+- If `Point` treats every `ColoredPoint` with the same coordinates as equal to itself, while `ColoredPoint` rejects `Point` for lacking color, we can get `a.equals(b) != b.equals(a)`: a **symmetry violation**.
+- If `ColoredPoint` agrees to compare against `Point` by coordinates, while requiring two `ColoredPoint` instances to match in color, then a plain `Point` can become a bridge between two differently colored `ColoredPoint` instances: a **transitivity violation**.
 
-Vì thế, với một phân cấp như `Base → Middle → Leaf`, cần kiểm tra **cả hai hướng của mọi cặp** và **mọi thứ tự liên quan của bộ ba**. Mục tiêu là phát hiện trường hợp một triển khai có vẻ đúng khi so sánh những đối tượng cùng lớp nhưng sai khi so sánh qua các cấp kế thừa.
+Therefore, for a hierarchy such as `Base → Middle → Leaf`, you must test **both directions of every pair** and **every relevant ordering of triples**. The goal is to catch cases where an implementation looks right when comparing objects of the same class yet fails when comparing across inheritance levels.
 
-Đề bài tập trung vào **phương pháp kiểm tra** tính đúng đắn của `equals` qua nhiều mức kế thừa: chọn mẫu, lập ma trận cặp, kiểm tra bộ ba, nhận diện phản ví dụ và chọn chính sách bình đẳng phù hợp.
+This lesson focuses on the **testing methodology** for verifying `equals` correctness across multiple inheritance levels: choosing samples, building a pair matrix, testing triples, spotting counterexamples, and choosing an appropriate equality policy.
 
-## 2. Hợp đồng cần dùng làm tiêu chuẩn kiểm tra
+## 2. The Contract Used as the Verification Standard
 
-Với các tham chiếu đối tượng không phải `null`, `equals` phải tuân thủ:
+For non-`null` object references, `equals` must obey:
 
-| Thuộc tính | Biểu thức cần kiểm tra | Ý nghĩa khi kiểm thử |
+| Property | Expression to Check | Meaning During Testing |
 | --- | --- | --- |
-| Phản xạ (*reflexive*) | `x.equals(x) == true` | Từng đối tượng phải bằng chính nó. |
-| Đối xứng (*symmetric*) | `x.equals(y) == y.equals(x)` | Một **cặp có thứ tự** phải được kiểm tra đủ hai chiều. |
-| Bắc cầu (*transitive*) | Nếu `x.equals(y)` và `y.equals(z)` đều đúng thì `x.equals(z)` cũng đúng. | Kiểm tra **bộ ba có thứ tự**, đặc biệt qua lớp cha làm cầu nối. |
-| Nhất quán (*consistent*) | Lặp lại phép so sánh khi trạng thái liên quan không đổi phải cho cùng kết quả. | Thử lặp và tránh sửa trạng thái giữa các phép thử. |
-| So với `null` | `x.equals(null) == false` | Mọi đối tượng thật phải từ chối `null` mà không ném lỗi. |
+| Reflexive | `x.equals(x) == true` | Every object must equal itself. |
+| Symmetric | `x.equals(y) == y.equals(x)` | An **ordered pair** must be tested in both directions. |
+| Transitive | If both `x.equals(y)` and `y.equals(z)` are true, then `x.equals(z)` is also true. | Test **ordered triples**, especially with a parent class acting as a bridge. |
+| Consistent | Repeating comparisons when relevant state does not change must yield the same result. | Test repeatedly and avoid mutating state between checks. |
+| Against `null` | `x.equals(null) == false` | Every real object must reject `null` without throwing an exception. |
 
-Ngoài ra, quan hệ với `hashCode` bắt buộc là:
+In addition, the mandatory relationship with `hashCode` is:
 
 ```text
-Nếu a.equals(b) == true thì a.hashCode() == b.hashCode().
+If a.equals(b) == true then a.hashCode() == b.hashCode().
 ```
 
-Chiều ngược lại **không bắt buộc**: hai đối tượng có thể cùng hash nhưng không bằng nhau. `equals` cần trả `false` cho đối tượng không tương thích về kiểu theo chính sách lớp, chứ không ném `ClassCastException` do ép kiểu thiếu kiểm tra.
+The converse is **not required**: two objects may share the same hash without being equal. `equals` must return `false` for objects incompatible in type under the class policy, rather than throwing `ClassCastException` from an unchecked cast.
 
-Đây là các điều kiện **đồng thời**. Một lớp vượt qua thử nghiệm phản xạ hay đối xứng vẫn có thể thất bại ở tính bắc cầu. Những phép thử trên một tập mẫu hữu hạn giúp tìm phản ví dụ; chúng không thể chứng minh mọi trường hợp có thể có của lớp đều đúng.
+These conditions hold **simultaneously**. A class that passes reflexivity or symmetry tests can still fail transitivity. Tests on a finite sample set help uncover counterexamples; they cannot prove every possible case for the class is correct.
 
-## 3. Chọn cặp ở cùng cấp, khác cấp và nhánh anh em
+## 3. Selecting Pairs at the Same Level, Across Levels, and Across Sibling Branches
 
-Xét phân cấp ba mức:
+Consider a three-level hierarchy:
 
 ```text
 Point
@@ -45,33 +45,33 @@ Point
         └── ColoredNamedPoint
 ```
 
-Giả sử lớp cha xem tọa độ là bản chất, lớp giữa xem thêm tên, lớp dưới cùng xem thêm màu. Để phát hiện sai sót, nên tạo các đối tượng có thể so sánh một cách có chủ đích:
+Suppose the parent treats coordinates as essential, the middle level also considers name, and the bottom level also considers color. To uncover flaws, construct comparable objects intentionally:
 
-1. **Cùng cấp, cùng dữ liệu**: hai `Point` có tọa độ bằng nhau; hai `NamedPoint` cùng tọa độ và tên; hai `ColoredNamedPoint` có mọi trường giống nhau.
-2. **Cùng cấp, khác dữ liệu**: chỉ đổi một trường tham gia `equals` để chắc chắn nhận `false` nếu trường đó thực sự ảnh hưởng đến bằng nhau.
-3. **Cùng tham chiếu**: `a.equals(a)` và một biến alias `b = a`; đây là kiểm tra phản xạ, không phải đối xứng đầy đủ.
-4. **Khác cấp kề nhau**: `Point ↔ NamedPoint`, `NamedPoint ↔ ColoredNamedPoint`, luôn gọi cả hai chiều.
-5. **Cách nhau hai mức**: `Point ↔ ColoredNamedPoint`; không được bỏ qua vì hai lớp trung gian có thể có quy tắc khác nhau.
-6. **Khác nhánh cùng cha**: nếu có hai lớp con khác nhau, kiểm tra `ChildA ↔ ChildB` cũng như những cặp với cha.
-7. **`null` và kiểu không liên quan**: mỗi đối tượng so với `null` và một loại ngoài phân cấp để phát hiện lỗi kiểm tra kiểu.
+1. **Same level, same data**: two `Point` instances with equal coordinates; two `NamedPoint` instances with the same coordinates and name; two `ColoredNamedPoint` instances with all fields matching.
+2. **Same level, different data**: change only one field participating in `equals` to verify `false` is returned if that field genuinely affects equality.
+3. **Same reference**: `a.equals(a)` and an alias variable `b = a`; this checks reflexivity, not full symmetry.
+4. **Adjacent levels**: `Point ↔ NamedPoint`, `NamedPoint ↔ ColoredNamedPoint`, always invoking both directions.
+5. **Two levels apart**: `Point ↔ ColoredNamedPoint`; do not skip this because the two intermediate classes may have different rules.
+6. **Different branches under the same parent**: if there are two different subclasses, test `ChildA ↔ ChildB` as well as pairs with the parent.
+7. **`null` and unrelated types**: each object against `null` and a type outside the hierarchy to detect type-checking bugs.
 
-Một **ma trận cặp** theo danh sách mẫu `[p, n, c]` tương đương với chín phép gọi:
+A **pair matrix** over sample list `[p, n, c]` corresponds to nine calls:
 
-| Bên trái `equals` | `p` (Point) | `n` (NamedPoint) | `c` (ColoredNamedPoint) |
+| Left side of `equals` | `p` (Point) | `n` (NamedPoint) | `c` (ColoredNamedPoint) |
 | --- | --- | --- | --- |
 | `p` | `p.equals(p)` | `p.equals(n)` | `p.equals(c)` |
 | `n` | `n.equals(p)` | `n.equals(n)` | `n.equals(c)` |
 | `c` | `c.equals(p)` | `c.equals(n)` | `c.equals(c)` |
 
-Để xác minh **đối xứng**, so sánh mỗi ô `(i, j)` với ô đối diện qua đường chéo `(j, i)`. Chẳng hạn, `p.equals(c)` phải cho kết quả giống `c.equals(p)`. Nếu chỉ gọi theo một chiều hoặc chỉ so sánh hai bản thể cùng lớp, lỗi tại ranh giới cha/con có thể bị bỏ qua.
+To verify **symmetry**, compare each cell `(i, j)` with its mirror across the diagonal `(j, i)`. For instance, `p.equals(c)` must produce the same result as `c.equals(p)`. If you only call in one direction or only compare two instances of the same class, bugs at parent/child boundaries can be missed.
 
-Không nên mặc định mọi cặp cha/con **phải bằng nhau**. Tùy mô hình dữ liệu, `Point` với `ColoredNamedPoint` có thể được định nghĩa luôn khác nhau, hoặc bằng nhau theo một khóa bất biến chung. Điều bắt buộc là chính sách đó phải nhất quán ở cả hai hướng và không phá hợp đồng.
+You should not assume every parent/child pair **must be equal**. Depending on the data model, `Point` and `ColoredNamedPoint` can be defined as always unequal, or equal by a shared immutable key. What is mandatory is that the policy is consistent in both directions and does not break the contract.
 
-## 4. Bộ ba kiểm tra bắc cầu: phải xét thứ tự
+## 4. Triples for Testing Transitivity: Order Matters
 
-Nếu `a.equals(b)` đúng và `b.equals(c)` đúng thì bắt buộc `a.equals(c)` đúng. Điều kiện này không chỉ áp dụng khi ba đối tượng có cùng runtime class.
+If `a.equals(b)` is true and `b.equals(c)` is true, then `a.equals(c)` must be true. This condition does not apply only when all three objects share the same runtime class.
 
-Ví dụ:
+Example:
 
 ```text
 red   = ColoredPoint(5, "red")
@@ -80,28 +80,28 @@ blue  = ColoredPoint(5, "blue")
 
 red.equals(plain)  → true
 plain.equals(blue) → true
-red.equals(blue)   → false   // VI PHẠM BẮC CẦU
+red.equals(blue)   → false   // TRANSITIVITY VIOLATION
 ```
 
-`plain` có cùng tọa độ với cả hai điểm màu, nhưng `red` và `blue` lại khác nhau. Không thể chấp nhận đồng thời tất cả ba quy tắc này nếu muốn `equals` là quan hệ tương đương.
+`plain` shares the same coordinates with both colored points, yet `red` and `blue` differ. You cannot accept all three rules simultaneously if `equals` is to be an equivalence relation.
 
-Với danh sách `n` mẫu, cách kiểm tra tổng quát:
+For a list of `n` samples, the general check is:
 
 ```text
-for mỗi a trong mẫu:
-    for mỗi b trong mẫu:
-        for mỗi c trong mẫu:
-            nếu a.equals(b) và b.equals(c) và !a.equals(c):
-                báo VI PHẠM BẮC CẦU với bộ ba (a, b, c)
+for each a in samples:
+    for each b in samples:
+        for each c in samples:
+            if a.equals(b) and b.equals(c) and !a.equals(c):
+                report TRANSITIVITY VIOLATION for triple (a, b, c)
 ```
 
-Ba vòng lặp duyệt **bộ ba có thứ tự**, kể cả lặp lại đối tượng. Với `n` phần tử có nhiều nhất `n³` bộ ba, rất phù hợp cho một tập kiểm thử nhỏ đã chọn kỹ. Đổi thứ tự các phần tử có thể làm điều kiện tiên đề khác đi; vì thế chỉ thử `(a, b, c)` mà không xét thứ tự còn lại là chưa đủ.
+Three loops iterate over **ordered triples**, including repeated objects. For `n` elements there are at most `n³` triples, well suited for a carefully chosen small test set. Changing the order of elements can change the premise conditions; therefore testing only `(a, b, c)` without checking the remaining permutations is insufficient.
 
-Bộ ba nên bao gồm: ba đối tượng cùng lớp; một lớp cha ở giữa hai lớp con; lớp giữa ở giữa cha và cháu; ba cấp liên tiếp; hai nhánh con với cha chung; những đối tượng khác giá trị nhưng cùng phần dữ liệu của lớp cha.
+Triples should include: three objects of the same class; a parent class between two subclasses; a middle class between parent and grandchild; three consecutive levels; two child branches with a common parent; and objects differing in value while sharing the parent's data portion.
 
-## 5. Java 17+: chương trình kiểm tra tự động cặp và bộ ba
+## 5. Java 17+: Automated Program for Checking Pairs and Triples
 
-Ví dụ sau cố ý tạo **hai kiểu triển khai sai**, sau đó so với một mô hình hợp lệ. Tất cả đều nằm trong một tệp độc lập `HierarchyEqualsAudit.java`, không cần thư viện kiểm thử bên ngoài.
+The following example intentionally builds **two flawed implementations**, then compares them against a valid model. Everything resides in a standalone file `HierarchyEqualsAudit.java`, requiring no external testing library.
 
 ```java
 import java.util.List;
@@ -109,7 +109,7 @@ import java.util.List;
 public class HierarchyEqualsAudit {
     record Sample(String label, Object value) { }
 
-    // Cấp cha: coi mọi Point có x bằng nhau là bằng nhau.
+    // Parent level: treats any Point with matching x as equal.
     static class Point {
         final int x;
 
@@ -130,7 +130,7 @@ public class HierarchyEqualsAudit {
         }
     }
 
-    // Cấp giữa: đòi phía bên kia ít nhất là NamedPoint.
+    // Middle level: requires the other side to be at least NamedPoint.
     static class NamedPoint extends Point {
         final String name;
 
@@ -147,7 +147,7 @@ public class HierarchyEqualsAudit {
         }
     }
 
-    // Cấp lá: đòi phía bên kia là ColoredNamedPoint.
+    // Leaf level: requires the other side to be ColoredNamedPoint.
     static final class ColoredNamedPoint extends NamedPoint {
         final String color;
 
@@ -164,7 +164,7 @@ public class HierarchyEqualsAudit {
         }
     }
 
-    // Cố sửa đối xứng khi so với Point thường, nhưng phá bắc cầu.
+    // Tries to fix symmetry against plain Point, but breaks transitivity.
     static final class LenientColorPoint extends Point {
         final String color;
 
@@ -186,7 +186,7 @@ public class HierarchyEqualsAudit {
         }
     }
 
-    // Phương án hợp lệ: mọi cấp cùng so sánh theo ID bất biến.
+    // Valid option: all levels compare by immutable ID.
     static class Entity {
         private final int id;
 
@@ -304,7 +304,7 @@ public class HierarchyEqualsAudit {
 }
 ```
 
-Chạy trong thư mục chứa tệp:
+Run in the directory containing the file:
 
 ```bash
 javac HierarchyEqualsAudit.java
@@ -324,19 +324,19 @@ Lenient subclasses: reflexive=true, nullRule=true, symmetry=true, transitivity=f
 Final inherited ID: reflexive=true, nullRule=true, symmetry=true, transitivity=true, hashAgreement=true
 ```
 
-**Cách đọc:**
+**How to read the output:**
 
-- **`Strict subclasses`:** `Point.equals` dùng `instanceof Point`, nên nhận một `NamedPoint` cùng `x`. Nhưng `NamedPoint.equals` đòi đối số là `NamedPoint`, nên loại `Point`. Ma trận cặp phát hiện **đối xứng sai**. Với bộ ba mẫu cụ thể này, bắc cầu vẫn đúng; không thể kết luận phương thức hợp lệ chỉ vì cột bắc cầu là `true`.
-- **`Lenient subclasses`:** `LenientColorPoint` bỏ qua màu khi đối số là `Point` thuần và so màu khi đối số cũng là `LenientColorPoint`. Mỗi cặp trong tập mẫu đối xứng, nhưng bộ ba `(red, bridge, blue)` làm **bắc cầu sai**.
-- **`Final inherited ID`:** các cấp `Entity → DetailedEntity → ColoredEntity` kế thừa cùng một `equals/hashCode` dạng `final`, so sánh duy nhất theo `id`. Với chính sách đã chọn, lớp con không thể bổ sung điều kiện làm hai chiều hoặc bộ ba mâu thuẫn. Các trường mô tả/màu **cố ý không tham gia** quan hệ bằng nhau.
+- **`Strict subclasses`:** `Point.equals` uses `instanceof Point`, so it accepts a `NamedPoint` with the same `x`. However, `NamedPoint.equals` requires the argument to be `NamedPoint`, so it rejects `Point`. The pair matrix catches **false symmetry**. On this specific triple of samples, transitivity happens to pass; you cannot conclude a method is valid merely because the transitivity column is `true`.
+- **`Lenient subclasses`:** `LenientColorPoint` ignores color when the argument is a plain `Point` and compares color when the argument is also a `LenientColorPoint`. Every pair in the sample set is symmetric, yet the triple `(red, bridge, blue)` makes **transitivity false**.
+- **`Final inherited ID`:** the levels `Entity → DetailedEntity → ColoredEntity` inherit the same `final` `equals/hashCode`, comparing solely by `id`. Under the chosen policy, subclasses cannot add conditions that make two directions or triples contradict. The description/color fields **intentionally do not participate** in equality.
 
-Trong ví dụ, các lớp sai `NamedPoint`, `ColoredNamedPoint` và `LenientColorPoint` kế thừa `Point.hashCode` dựa trên `x`. Đây là chủ ý để minh họa **đối xứng và bắc cầu độc lập** với lỗi hash: việc hai đối tượng không bằng nhau vẫn có thể trùng hash là hợp lệ. Trong hệ thống thật, cách chọn trường hash phải phù hợp với toàn bộ chính sách `equals`.
+In the example, the flawed classes `NamedPoint`, `ColoredNamedPoint`, and `LenientColorPoint` inherit `Point.hashCode` based on `x`. This is intentional to show that **symmetry and transitivity are independent** of hash errors: allowing two unequal objects to share the same hash is valid. In real systems, hash field selection must align with the entire `equals` policy.
 
-## 6. Mở rộng kiểm thử để bắt phản ví dụ tốt hơn
+## 6. Expanding Tests to Catch Counterexamples Better
 
-### Tạo mẫu khác biệt đúng một trường
+### Create Samples Differing by Exactly One Field
 
-Với mỗi mức, bổ sung các biến thể đổi một trường để phát hiện việc bỏ quên trường:
+At each level, add single-field variants to catch forgotten fields:
 
 ```text
 Point(5), Point(6)
@@ -345,35 +345,35 @@ ColoredNamedPoint(5,"oak","red"),
 ColoredNamedPoint(5,"oak","blue")
 ```
 
-Nếu chính sách của lớp quy định trường màu phải tham gia bằng nhau, hai đối tượng khác màu không được tự nhiên bị gộp chung. Ngược lại, nếu toàn phân cấp cùng định nghĩa bằng nhau chỉ qua `id`, thay đổi các trường mô tả **không nên** thay đổi kết quả. Kết quả kỳ vọng phải xuất phát từ hợp đồng nghiệp vụ được chọn, không từ tên trường.
+If the class policy states that color must participate in equality, two objects with different colors must not inadvertently merge. Conversely, if the entire hierarchy defines equality solely through `id`, changing descriptive fields **should not** alter the result. Expected outcomes must come from the chosen business contract, not from field names.
 
-### Duyệt ma trận sau mỗi cấp mới
+### Re-scan the Matrix After Each New Level
 
-Khi thêm một lớp cháu, chạy lại không chỉ kiểm thử của lớp cháu mà cả các cặp với **mọi lớp tổ tiên** và những lớp con khác cùng cha. Lớp cha cũng có thể bắt đầu vi phạm hợp đồng khi một kiểu con mới xuất hiện, dù mã nguồn `equals` của lớp cha chưa hề thay đổi.
+When adding a grandchild class, re-run not only the grandchild's tests, but also pairs against **every ancestor class** and sibling subclasses. Even the parent class can begin violating the contract when a new subtype appears, despite the parent's `equals` source code never changing.
 
-Có thể bổ sung danh sách mẫu qua bảng dữ liệu hoặc tham số hóa kiểm thử JUnit 5; phần quan trọng là cùng một bộ kiểm tra được áp dụng lên **tất cả các runtime type** trong phạm vi. Ví dụ `List<Sample>` của chương trình trên lưu chung các đối tượng kiểu `Object`, nên phép gọi `left.equals(right)` sử dụng **dynamic dispatch** tới phương thức thực tế của đối tượng bên trái. Đây chính là lý do đổi chiều phép gọi có thể cho kết quả khác nhau khi override sai.
+You can expand sample lists via data tables or parameterized JUnit 5 tests; what matters is that the same check suite runs across **all runtime types** in scope. For instance, `List<Sample>` in the program above stores objects generically as `Object`, so calling `left.equals(right)` uses **dynamic dispatch** to the actual method of the left-hand object. That is precisely why reversing call order can produce different results under a bad override.
 
-### Xác minh hash, null, nhất quán và ngoại lệ
+### Verify Hash, Null, Consistency, and Exceptions
 
-- Với mọi cặp mà `a.equals(b)` là `true`, kiểm tra hash bằng nhau. Không yêu cầu hai mã băm khác nhau khi `equals` là `false`.
-- Với mọi đối tượng mẫu, thử `a.equals(null)` và `a.equals(new Object())`; kết quả kỳ vọng thông thường là `false`.
-- Chạy lại các phép kiểm tra khi không thay đổi trạng thái liên quan để xem kết quả có ổn định.
-- Nếu các trường tham gia `equals/hashCode` có thể thay đổi, thiết kế thêm thử nghiệm có kiểm soát. Tránh sửa các trường đó khi đối tượng đang làm khóa của `HashMap` hoặc nằm trong `HashSet`, vì có thể khiến thao tác tra cứu bị sai.
-- Khi kiểm thử những cài đặt có khả năng ném ngoại lệ, bao rõ lỗi theo cặp/bộ ba để xác định phương thức nào bị hỏng. Ví dụ chương trình trên giả định `equals` trả boolean hợp lệ, nên không bao ngoại lệ trong vòng lặp.
+- For every pair where `a.equals(b)` is `true`, check that hash codes match. Do not require two hash codes to differ when `equals` is `false`.
+- For every sample object, test `a.equals(null)` and `a.equals(new Object())`; the normal expected result is `false`.
+- Re-run checks while not mutating relevant state to see whether results stay stable.
+- If fields participating in `equals/hashCode` are mutable, design additional controlled tests. Avoid mutating those fields while the object is a `HashMap` key or sits inside a `HashSet`, as that can break lookups.
+- When testing implementations that might throw exceptions, clearly wrap failures by pair/triple to pinpoint which method broke. For example, the program above assumes `equals` returns a valid boolean, so it does not catch exceptions inside the loop.
 
-Một tập thử nhỏ có thể chứa nhiều đối tượng **có cùng giá trị logic** nhưng khác tham chiếu, nhiều đối tượng khác nhau ở một trường, một đối tượng cha và nhiều lớp con. Chỉ sử dụng `a.equals(a)` hay hai instance cùng lớp không thể kiểm tra được nguy cơ do kế thừa.
+A small test set can include multiple objects with the **same logical value** but distinct references, multiple objects differing by one field, one parent object, and multiple subclasses. Using only `a.equals(a)` or two instances of the same class cannot test the risks introduced by inheritance.
 
-## 7. Chọn chính sách bình đẳng phù hợp để kiểm thử có ý nghĩa
+## 7. Choosing a Suitable Equality Policy So Testing Is Meaningful
 
-Có ba hướng thường gặp:
+There are three common directions:
 
-| Chính sách | Cách áp dụng | Điều phải chú ý |
+| Policy | How to Apply | What to Watch Out For |
 | --- | --- | --- |
-| **Bằng nhau theo kiểu runtime chính xác** | Dùng `getClass()` để yêu cầu cùng lớp trước khi so sánh trường. | Cha và con không bằng nhau, kể cả trùng dữ liệu cha; phải áp dụng nhất quán qua các override. |
-| **Bằng nhau theo khóa chung bất biến** | Lớp cha định nghĩa `final equals/hashCode` dựa trên khóa đại diện cho cùng thực thể ở mọi cấp. | Trường bổ sung ở lớp con không được âm thầm thay đổi ý nghĩa của `equals`. |
-| **Loại bỏ kế thừa khỏi lớp giá trị** | Dùng lớp `final` hoặc `record` cho kiểu giá trị; so sánh các thành phần được xác định rõ. | Các kiểu giá trị mới không tham gia bình đẳng qua một phân cấp có thể mở rộng. |
+| **Exact runtime-type equality** | Use `getClass()` to require the same class before comparing fields. | Parent and child are not equal, even if parent data matches; must be applied consistently across overrides. |
+| **Shared immutable-key equality** | Parent defines `final equals/hashCode` based on a key representing the same entity at every level. | Extra fields in subclasses must not silently alter the meaning of `equals`. |
+| **Remove inheritance from value classes** | Use `final` classes or `record`s for value types; compare clearly defined components. | New value types do not participate in equality across an extensible hierarchy. |
 
-Nếu chọn kiểu runtime chính xác, một lớp cha có thể dùng:
+If choosing exact runtime type, a parent class can use:
 
 ```java
 @Override
@@ -385,32 +385,32 @@ public boolean equals(Object obj) {
 }
 ```
 
-Đoạn này là **minh họa bên trong lớp `Point` có trường `x`**, không phải tệp chạy riêng. Nếu có lớp con override `equals`, chính sách kiểm tra kiểu và cách gọi `super.equals` vẫn phải được thiết kế đồng bộ. Chỉ thay `instanceof` thành `getClass` ở một vị trí, rồi giữ những so sánh lỏng lẻo khác, **không tự động** chứng minh cả phân cấp đúng.
+This snippet is an **illustration inside a `Point` class with field `x`**, not a standalone runnable file. If a subclass overrides `equals`, the type-checking policy and `super.equals` calls must still be designed in sync. Simply replacing `instanceof` with `getClass` in one place while keeping loose comparisons elsewhere **does not automatically** prove the hierarchy is correct.
 
-Chính sách khóa chung `final` của ví dụ chỉ phù hợp khi các thực thể có cùng `id` thực sự được xem là cùng giá trị **bất kể kiểu con**. Không nên áp dụng máy móc cho các loại khác nhau mà `id` có thể trùng nhưng ý nghĩa nghiệp vụ khác nhau. Với loại dữ liệu không cần thay đổi cấu trúc bằng kế thừa, lớp `final` hoặc `record` thường giảm đáng kể số tình huống phải kiểm thử.
+The `final` shared-key policy in the example is appropriate only when entities with the same `id` are genuinely treated as the same value **regardless of subtype**. Do not apply it mechanically to distinct kinds where IDs might collide while business meanings differ. For data types that do not need structural variation through inheritance, `final` classes or `record`s usually reduce the number of cases requiring testing considerably.
 
-Một lựa chọn mở rộng khác là mẫu `canEqual` để phối hợp bình đẳng trong phân cấp có override. Mẫu đó chỉ hữu ích khi được thiết kế và dùng nhất quán ở mọi cấp; vẫn cần ma trận cặp và bộ ba như trên để xác nhận hợp đồng thực tế.
+Another extensible option is the `canEqual` pattern to coordinate equality in hierarchies with overrides. That pattern is useful only when designed and applied consistently at every level; you still need the pair matrix and triples above to verify the actual contract.
 
-## 8. Chiến lược kiểm thử và cách đọc kết quả thất bại
+## 8. Testing Strategy and Interpreting Failure Output
 
-Dùng một vòng lặp chung như `audit` giúp phát hiện **tính chất của quan hệ bằng nhau** mà không phải viết riêng một câu lệnh `assert` cho từng cặp. Tuy nhiên, để một bộ kiểm thử có giá trị lâu dài:
+Using a generic loop such as `audit` helps reveal **properties of the equality relation** without writing separate `assert` statements for every pair. However, for a test suite to have lasting value:
 
-1. **Nêu rõ quy tắc bằng nhau dự kiến** cho các cặp cùng lớp và khác lớp; các tiên đề chỉ nói quan hệ phải nhất quán, không quyết định giúp bạn cặp nào phải bằng nhau.
-2. **Chọn mẫu phủ ít nhất ba mức** và các nhánh con liên quan, không chỉ những đối tượng cùng lớp. Sử dụng nhiều giá trị và ít nhất một cặp khác instance nhưng được kỳ vọng bằng nhau.
-3. **Kiểm tra phản xạ/null** trước; sau đó **ma trận cặp có hướng** để bắt đối xứng.
-4. **Kiểm tra mọi bộ ba có thứ tự** để bắt bắc cầu, in ra tên `(a,b,c)` gây thất bại để dễ sửa.
-5. **Kiểm tra hash khi bằng nhau** và chạy lại sau khi thay đổi mẫu/thiết kế.
-6. **Sửa quy tắc so sánh ở cấp phù hợp**, rồi chạy lại toàn bộ bộ kiểm thử của hệ phân cấp thay vì chỉ test trường hợp vừa hỏng.
+1. **State the expected equality rules clearly** for same-class and cross-class pairs; the axioms only say the relation must be consistent, not which pairs ought to be equal.
+2. **Choose samples covering at least three levels** and relevant child branches, not just same-class objects. Use multiple values and at least one pair of distinct instances expected to be equal.
+3. **Check reflexivity/null** first; then the **directed pair matrix** to catch symmetry bugs.
+4. **Check all ordered triples** to catch transitivity bugs, printing the failing `(a,b,c)` names for easier debugging.
+5. **Check hashes when equal**, and re-run after changing samples or design.
+6. **Fix comparison rules at the appropriate level**, then re-run the entire hierarchy's test suite instead of testing only the case that just failed.
 
-Với `n` mẫu, cặp là `O(n²)`, bộ ba là `O(n³)`; thường nên dùng tập mẫu có chủ ý trong unit test, kết hợp kiểm thử sinh dữ liệu (*property-based testing*) khi mô hình có nhiều biến thể. Nếu kiểm tra kết quả thay đổi theo trạng thái, cần đảm bảo không có luồng khác đồng thời sửa các trường trong lúc kiểm thử; các tiên đề của `equals` giả định trạng thái dùng để so sánh vẫn ổn định.
+With `n` samples, pairs are `O(n²)` and triples are `O(n³)`; usually use a purposeful sample set in unit tests, combined with *property-based testing* when the model has many variants. If testing whether results change with state, ensure no other thread concurrently mutates fields during the test; the `equals` axioms assume comparison state stays stable.
 
-### Câu hỏi tự kiểm tra
+### Self-Check Questions
 
-1. Nếu `Base.equals(Child)` là `true` nhưng `Child.equals(Base)` là `false`, hợp đồng nào bị vi phạm?
-2. Vì sao chỉ thử `a.equals(b)` mà không thử `b.equals(a)` có thể bỏ sót lỗi?
-3. Với `red.equals(plain) == true`, `plain.equals(blue) == true`, nhưng `red.equals(blue) == false`, lỗi gì xảy ra? Thứ tự của ba đối tượng có ý nghĩa thế nào?
-4. Nếu cả hai phía đều dùng mã băm bằng nhau nhưng không bằng nhau theo `equals`, đó có phải vi phạm không?
-5. Khi thêm lớp cháu, vì sao phải chạy lại các kiểm thử của **lớp cha và lớp giữa**?
-6. Khi nào được chủ động bỏ qua các trường mới của lớp con trong `equals`?
+1. If `Base.equals(Child)` is `true` yet `Child.equals(Base)` is `false`, which contract property is violated?
+2. Why can testing only `a.equals(b)` without testing `b.equals(a)` miss bugs?
+3. With `red.equals(plain) == true`, `plain.equals(blue) == true`, yet `red.equals(blue) == false`, what bug occurred? What is the significance of the ordering of the three objects?
+4. If both sides produce equal hash codes while not being equal under `equals`, is that a violation?
+5. When adding a grandchild class, why must you re-run tests of the **parent and middle classes**?
+6. When is it acceptable to intentionally omit a subclass's new fields in `equals`?
 
-**Ghi nhớ:** Với `equals` và kế thừa, cần kiểm tra **mọi cặp theo hai chiều** để xác minh đối xứng và **mọi bộ ba có thứ tự** để xác minh bắc cầu. Hãy lập mẫu ở các cấp cha, con, cháu và nhánh khác nhau, đồng thời xác định rõ chính sách bình đẳng trước khi kết luận triển khai đúng.
+**Takeaway:** With `equals` and inheritance, you must test **every pair in both directions** to verify symmetry and **every ordered triple** to verify transitivity. Prepare samples across parent, child, grandchild, and sibling branches, and clearly define the equality policy before concluding an implementation is correct.

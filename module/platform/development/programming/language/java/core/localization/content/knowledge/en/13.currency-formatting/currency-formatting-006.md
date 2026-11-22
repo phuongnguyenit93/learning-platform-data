@@ -1,47 +1,47 @@
-# Tách giá trị BigDecimal, mã tiền và quy tắc làm tròn trong Java
+# Separating BigDecimal Value, Currency Code, and Rounding Policy in Java
 
-Khi xử lý tiền tệ trong ứng dụng Java, một giá trị như `12.345 USD` thực ra chứa **ba loại thông tin độc lập**:
+When handling money in a Java application, a value like `12.345 USD` actually contains **three independent pieces of information**:
 
-1. **Giá trị số:** số tiền được biểu diễn chính xác, thường dùng `BigDecimal`.
-2. **Đơn vị tiền:** mã tiền tệ, thường dùng `java.util.Currency` với mã ISO 4217 như `USD`, `VND`, `JPY`, `KWD`.
-3. **Quy tắc làm tròn:** làm tròn lúc nào, đến bao nhiêu chữ số thập phân hoặc bước tiền nào, bằng `RoundingMode` và quy tắc nghiệp vụ phù hợp.
+1. **Numeric value:** the monetary amount represented accurately, typically using `BigDecimal`.
+2. **Currency unit:** the currency code, typically using `java.util.Currency` with ISO 4217 codes such as `USD`, `VND`, `JPY`, `KWD`.
+3. **Rounding policy:** when to round, to how many decimal places or what monetary increment, using `RoundingMode` and the appropriate business rule.
 
-Ba yếu tố này **không thể thay thế cho nhau**. Chỉ có `BigDecimal` không biết đơn vị là đô la hay đồng Việt Nam. `Currency` không thực hiện phép làm tròn. `RoundingMode` không tự quyết định số chữ số, thời điểm làm tròn hoặc luật thuế áp dụng. Một hệ thống tài chính an toàn cần mô hình hóa cả ba, đồng thời phân biệt **số tiền dùng để tính toán**, **số tiền được chốt/thanh toán**, và **chuỗi hiển thị theo locale**.
+These three dimensions **are not interchangeable**. `BigDecimal` alone does not know whether the unit is US dollars or Vietnamese dong. `Currency` performs no rounding. `RoundingMode` does not by itself decide the number of digits, the rounding boundary, or applicable tax rules. A safe financial system must model all three while distinguishing **computational amounts**, **settled/payable amounts**, and **locale-formatted display strings**.
 
-## 1. Vì sao phải tách ba thành phần?
+## 1. Why separate these three components?
 
-Xét hai tình huống:
-
-~~~text
-Hóa đơn A: 12.345 USD
-Hóa đơn B: 12.345 KWD
-~~~
-
-Cùng một giá trị `12.345` nhưng `USD` và `KWD` có số chữ số thập phân mặc định khác nhau theo dữ liệu tiền tệ mà Java cung cấp. Việc nên làm tròn hay giữ nguyên phải dựa vào **quy tắc của phép tính và mục đích sử dụng**, không chỉ nhìn vào số chữ số mà người dùng nhìn thấy.
-
-Tương tự:
+Consider two cases:
 
 ~~~text
-10.00 USD + 5.00 USD → phép cộng hợp lệ
-10.00 USD + 5.00 VND → không thể cộng trực tiếp như cùng một đơn vị
+Invoice A: 12.345 USD
+Invoice B: 12.345 KWD
 ~~~
 
-Muốn đổi từ USD sang VND phải có **tỷ giá, thời điểm, nguồn tỷ giá và chính sách chuyển đổi/làm tròn**. `Currency` không chứa tỷ giá và `BigDecimal` cũng không tự quy đổi.
+The same value `12.345` has different default fraction digits for `USD` and `KWD` according to the currency data Java provides. Whether to round or keep the precision must depend on **the calculation rule and intended use**, not merely on the number of digits visible to the user.
 
-| Thành phần | Java API chính | Trả lời câu hỏi | Không có trách nhiệm |
+Similarly:
+
+~~~text
+10.00 USD + 5.00 USD → valid addition
+10.00 USD + 5.00 VND → cannot add directly as the same unit
+~~~
+
+Converting from USD to VND requires **an exchange rate, timestamp, rate source, and conversion/rounding policy**. `Currency` holds no exchange rate, and `BigDecimal` does not convert currencies on its own.
+
+| Component | Primary Java API | Question it answers | What it is not responsible for |
 | --- | --- | --- | --- |
-| Giá trị số | `BigDecimal` | Có bao nhiêu đơn vị, kết quả số học là gì? | Không xác định tiền tệ hoặc luật thanh toán |
-| Mã tiền | `Currency` | Số thuộc loại tiền nào? | Không đổi tiền, không tự làm tròn |
-| Quy tắc làm tròn | `RoundingMode`, `setScale`, phép chia có mode | Giữ bao nhiêu chữ số và chọn phía nào? | Không xác định tỷ giá, thuế hoặc mốc làm tròn |
-| Cách hiển thị | `NumberFormat` / `DecimalFormat` + `Locale` | Hiển thị số tiền như thế nào cho người đọc? | Không thay đổi số tiền gốc nếu chỉ dùng để định dạng |
+| Numeric value | `BigDecimal` | How many units are there, and what is the arithmetic result? | Does not determine currency or settlement rules |
+| Currency code | `Currency` | Which currency does the number belong to? | Does not convert currencies, does not round on its own |
+| Rounding rule | `RoundingMode`, `setScale`, mode-aware division | How many digits to keep and which direction to pick? | Does not determine exchange rates, taxes, or rounding milestones |
+| Display formatting | `NumberFormat` / `DecimalFormat` + `Locale` | How should the amount be displayed to a reader? | Does not alter the underlying amount when used solely for formatting |
 
-Nguyên tắc nền tảng: **giá trị tiền có nghĩa phải đi kèm đơn vị tiền**, còn quy tắc làm tròn phải được chỉ định ở đúng ranh giới nghiệp vụ.
+Core principle: **a meaningful monetary value must be paired with its currency unit**, and rounding rules must be specified at the proper business boundaries.
 
-## 2. BigDecimal: biểu diễn số thập phân chính xác
+## 2. BigDecimal: exact decimal representation
 
-`java.math.BigDecimal` biểu diễn một giá trị thập phân bằng một hệ số nguyên không giới hạn độ lớn và một `scale` (số chữ số thập phân trong biểu diễn). Về mặt toán học, giá trị là `unscaledValue × 10^(-scale)`.
+`java.math.BigDecimal` represents a decimal value using an arbitrary-precision integer unscaled value and a `scale` (the number of digits to the right of the decimal point in the representation). Mathematically, the value is `unscaledValue × 10^(-scale)`.
 
-Ví dụ:
+Example:
 
 ~~~java
 BigDecimal a = new BigDecimal("12.345");
@@ -50,45 +50,45 @@ BigDecimal b = new BigDecimal("0.015");
 BigDecimal sum = a.add(b); // 12.360
 ~~~
 
-Trong chương trình đã import `java.math.BigDecimal`, tổng có giá trị số học chính xác. Kết quả giữ thông tin scale theo quy tắc phép cộng, nhưng vẫn chưa có thông tin `USD` hay `VND`.
+In a program that imports `java.math.BigDecimal`, the sum has an exact arithmetic value. The result preserves scale according to addition rules, yet still carries no `USD` or `VND` information.
 
-### Không dùng double để tạo số tiền theo dạng con người nhập
+### Do not use double to construct human-entered monetary amounts
 
-Ví dụ:
+Example:
 
 ~~~java
-BigDecimal safe = new BigDecimal("0.1");  // chính xác bằng 0.1
+BigDecimal safe = new BigDecimal("0.1");  // exact 0.1
 BigDecimal exactBinary = new BigDecimal(0.1);
 ~~~
 
-`new BigDecimal(0.1)` lấy **chính xác giá trị nhị phân mà double đang lưu**, vốn không bằng 0.1 trong hệ thập phân; vì vậy giá trị BigDecimal tạo ra có nhiều chữ số. Các đường tạo thường dùng:
+`new BigDecimal(0.1)` takes **the exact binary value stored by double**, which is not equal to 0.1 in base 10; thus the resulting BigDecimal has many digits. Common construction paths:
 
-- `new BigDecimal("0.1")`: dùng chuỗi thập phân đã được kiểm tra.
-- `BigDecimal.valueOf(0.1)`: dùng biểu diễn chuỗi chuẩn của `double`, thường tốt hơn constructor nhận `double` trực tiếp, nhưng **không thể phục hồi mọi độ chính xác đã mất trước đó**.
-- `BigDecimal.valueOf(12345, 2)`: tạo số `123.45` từ hệ số nguyên và scale đã chỉ định; phù hợp khi giao thức gửi đơn vị nhỏ nhất theo một **thang đo đã được thỏa thuận**.
+- `new BigDecimal("0.1")`: uses a validated decimal string.
+- `BigDecimal.valueOf(0.1)`: uses the canonical string representation of `double`, generally better than the `double` constructor directly, but **cannot recover any precision already lost beforehand**.
+- `BigDecimal.valueOf(12345, 2)`: constructs `123.45` from an integer unscaled value and a specified scale; suitable when a protocol sends minor units according to an **agreed scale**.
 
-Ví dụ dùng integer minor units:
+Example using integer minor units:
 
 ~~~java
 BigDecimal amount = BigDecimal.valueOf(12345, 2); // 123.45
 ~~~
 
-Nhưng đừng coi `2` là scale cố định của **mọi loại tiền**. Một giao thức có thể gửi số tiền nguyên theo đơn vị nhỏ nhất, song hệ số chia phải được hợp đồng giao tiếp quy định cho từng loại tiền hoặc từng phiên bản API; `Currency.getDefaultFractionDigits()` không thay thế đặc tả API.
+However, do not assume `2` is a fixed scale for **every currency**. A protocol may transmit an integer amount in minor units, yet the divisor must be specified by the communication contract per currency or per API version; `Currency.getDefaultFractionDigits()` does not replace an API specification.
 
-### Scale và precision là hai khái niệm khác nhau
+### Scale and precision are two different concepts
 
-| Khái niệm | Ví dụ | Ý nghĩa |
+| Concept | Example | Meaning |
 | --- | --- | --- |
-| `scale()` | `new BigDecimal("12.340").scale() == 3` | Ba chữ số sau dấu thập phân trong biểu diễn |
-| `precision()` | `new BigDecimal("12.340").precision() == 5` | Năm chữ số có nghĩa của hệ số thập phân |
-| Giá trị số học | `12.34` và `12.340` | Bằng nhau theo `compareTo`, dù scale khác |
-| `MathContext` | `new MathContext(5, HALF_EVEN)` | Điều khiển **precision** của phép tính, không phải chính sách luôn giữ 2 chữ số thập phân |
+| `scale()` | `new BigDecimal("12.340").scale() == 3` | Three digits after the decimal point in the representation |
+| `precision()` | `new BigDecimal("12.340").precision() == 5` | Five significant digits in the decimal coefficient |
+| Numeric value | `12.34` and `12.340` | Equal according to `compareTo`, despite different scales |
+| `MathContext` | `new MathContext(5, HALF_EVEN)` | Controls **precision** of operations, not a policy of always keeping 2 decimal places |
 
-`setScale(2, RoundingMode.HALF_EVEN)` chỉ định số chữ số ở phần thập phân. `round(new MathContext(5, ...))` giới hạn số chữ số có nghĩa. Với tiền, hai hành vi này có mục đích khác nhau, không được thay thế máy móc.
+`setScale(2, RoundingMode.HALF_EVEN)` specifies the number of fractional digits. `round(new MathContext(5, ...))` limits the number of significant digits. For money, these two operations serve different purposes and must not be substituted mechanically.
 
-## 3. Currency: mã tiền và thông tin tiền tệ
+## 3. Currency: currency codes and currency metadata
 
-`java.util.Currency` đại diện cho một đơn vị tiền được JDK nhận biết.
+`java.util.Currency` represents a currency unit recognized by the JDK.
 
 ~~~java
 import java.util.Currency;
@@ -105,32 +105,32 @@ System.out.println(jpy.getDefaultFractionDigits()); // 0
 System.out.println(kwd.getDefaultFractionDigits()); // 3
 ~~~
 
-Đoạn code trên minh họa các kết quả thường gặp với dữ liệu tiền tệ của JDK; mã và dữ liệu có thể được cập nhật theo phiên bản/runtime. Khi sản phẩm dựa trên thông tin tiền tệ có hiệu lực theo thời điểm, cần kiểm tra phiên bản dữ liệu và chính sách pháp lý/nghiệp vụ tương ứng.
+The snippet above illustrates typical results from the JDK's currency data; codes and data may be updated across versions and runtimes. When a product relies on time-effective currency metadata, check the data version and corresponding legal/business policies.
 
-`Currency.getInstance(code)` nhận **mã tiền tệ**, không nhận một chuỗi số tiền. Với mã không hợp lệ hoặc không được hỗ trợ, nó có thể ném `IllegalArgumentException`; `null` gây `NullPointerException`. Với input từ người dùng/API, phải kiểm tra và xử lý thay vì ghi nhận tùy ý một mã sai.
+`Currency.getInstance(code)` expects a **currency code**, not a formatted monetary string. For an invalid or unsupported code, it may throw `IllegalArgumentException`; `null` throws `NullPointerException`. For input from users or APIs, validate and handle errors rather than accepting an arbitrary bad code.
 
-### getDefaultFractionDigits() chỉ là metadata
+### getDefaultFractionDigits() is only metadata
 
-`Currency.getDefaultFractionDigits()` cho biết số chữ số thập phân mặc định được xác định trong dữ liệu tiền tệ mà JDK dùng; API có thể trả `-1` cho trường hợp không áp dụng/không xác định số chữ số thông thường.
+`Currency.getDefaultFractionDigits()` returns the default number of fraction digits defined in the JDK's currency data; the API may return `-1` when a standard number of fraction digits does not apply or is undefined.
 
-**Không đồng nhất số này với chính sách làm tròn bắt buộc của mọi nghiệp vụ.**
+**Do not equate this number with the mandatory rounding policy for every business operation.**
 
-- Một phép tính thuế bằng USD có thể cần nhiều chữ số trung gian hơn 2.
-- Một khoản thanh toán bằng VND thường được chốt ở số nguyên đồng, nhưng các phép tính trước đó có thể mang phần lẻ.
-- Một luồng tiền mặt có thể phải làm tròn đến **bước giá trị cụ thể**, không chỉ chọn số chữ số sau dấu thập phân. Ví dụ yêu cầu làm tròn theo bội số `0.05` không tương đương `setScale(2, mode)`.
-- Phương pháp hạch toán, chính sách của cổng thanh toán và quy định pháp lý có thể khác nhau; phải xác nhận chúng thay vì suy ra từ `Currency`.
+- A tax calculation in USD may require more than 2 intermediate decimal places.
+- A settlement in VND is typically finalized to whole dong, yet prior calculations may involve fractional parts.
+- A cash flow may need to round to a **specific value increment**, not just choose a number of decimal places. For instance, rounding to multiples of `0.05` is not equivalent to `setScale(2, mode)`.
+- Accounting methods, payment gateway policies, and legal regulations may differ; confirm them rather than inferring from `Currency`.
 
-`Currency.getSymbol(locale)` và `getDisplayName(locale)` phục vụ **trình bày**, không nên là định danh lưu trữ. Ký hiệu `$` có thể liên quan đến nhiều đồng tiền; mã `USD` và `CAD` thì khác nhau.
+`Currency.getSymbol(locale)` and `getDisplayName(locale)` are for **presentation**, not storage identifiers. The `$` symbol can refer to multiple currencies; codes `USD` and `CAD` are distinct.
 
-### Mã tiền không phải locale
+### Currency code is not locale
 
-`Locale.forLanguageTag("en-US")` là ngữ cảnh ngôn ngữ/vùng. `Currency.getInstance("USD")` là đơn vị tiền. Một người dùng hiển thị giao diện tiếng Việt có thể xem giá trị tính bằng USD, JPY hoặc EUR.
+`Locale.forLanguageTag("en-US")` is a language/region context. `Currency.getInstance("USD")` is a currency unit. A user viewing a Vietnamese interface may view values denominated in USD, JPY, or EUR.
 
-Không suy ra currency chỉ từ locale khi người dùng/hợp đồng giao dịch đã chỉ rõ mã tiền. `Currency.getInstance(locale)` có thể hữu ích để lấy đồng tiền mặc định gắn với vùng phù hợp, nhưng nó **không chứng minh đồng tiền được dùng cho một giao dịch cụ thể**.
+Do not infer currency solely from locale when the user or transaction contract already specifies a currency code. `Currency.getInstance(locale)` can be useful for obtaining the default currency associated with a matching region, yet it **does not prove which currency is used for a specific transaction**.
 
-## 4. RoundingMode: chỉ định hành vi, không chỉ kết quả
+## 4. RoundingMode: specifying behavior, not just a result
 
-Với số `2.345` cần làm tròn đến 2 chữ số thập phân:
+Given the number `2.345` to round to 2 decimal places:
 
 ~~~java
 BigDecimal value = new BigDecimal("2.345");
@@ -139,77 +139,77 @@ value.setScale(2, RoundingMode.HALF_UP);   // 2.35
 value.setScale(2, RoundingMode.HALF_EVEN); // 2.34
 ~~~
 
-Đây là đoạn minh họa trong phương thức đã import `java.math.BigDecimal` và `java.math.RoundingMode`. Hai kết quả khác nhau **đều có thể hợp lệ** tùy hợp đồng. Ứng dụng không nên tùy tiện đổi mode chỉ để nhìn “đẹp” hơn.
+This is an illustrative snippet inside a method that imports `java.math.BigDecimal` and `java.math.RoundingMode`. Both differing results **can be valid** depending on the contract. An application must not arbitrarily change modes just to make numbers look “nicer.”
 
-### Những mode cần hiểu
+### Modes to understand
 
-| RoundingMode | Ý nghĩa cơ bản | Lưu ý |
+| RoundingMode | Basic meaning | Notes |
 | --- | --- | --- |
-| `UP` | Tăng độ lớn, xa 0 nếu phải bỏ chữ số | Không giống `CEILING` với số âm |
-| `DOWN` | Giảm độ lớn, về 0 | Không giống `FLOOR` với số âm |
-| `CEILING` | Hướng tới (+∞) | Với số âm có thể gần 0 hơn |
-| `FLOOR` | Hướng tới (-∞) | Với số âm có thể xa 0 hơn |
-| `HALF_UP` | Gần nhất; nếu đúng giữa hai mức, chọn xa 0 | Thường gặp nhưng không mặc nhiên là chuẩn pháp lý |
-| `HALF_DOWN` | Gần nhất; nếu đúng giữa hai mức, chọn gần 0 | Cần kiểm tra ví dụ tie |
-| `HALF_EVEN` | Gần nhất; ở điểm giữa, chọn chữ số cuối giữ lại là chẵn | Thường được gọi là “banker's rounding” |
-| `UNNECESSARY` | Không chấp nhận trường hợp phải làm tròn | Ném `ArithmeticException` nếu mất độ chính xác |
+| `UP` | Increases magnitude, away from 0 if digits must be discarded | Not the same as `CEILING` for negative numbers |
+| `DOWN` | Decreases magnitude, toward 0 | Not the same as `FLOOR` for negative numbers |
+| `CEILING` | Toward (+∞) | For negative numbers, may move closer to 0 |
+| `FLOOR` | Toward (-∞) | For negative numbers, may move farther from 0 |
+| `HALF_UP` | Nearest neighbor; if equidistant, away from 0 | Common, though not automatically a legal standard |
+| `HALF_DOWN` | Nearest neighbor; if equidistant, toward 0 | Check tie examples carefully |
+| `HALF_EVEN` | Nearest neighbor; at midpoint, chooses even kept last digit | Commonly called “banker's rounding” |
+| `UNNECESSARY` | Rejects any case that requires rounding | Throws `ArithmeticException` if precision would be lost |
 
-Làm tròn ở số âm cần được kiểm thử riêng: `RoundingMode.CEILING` không có nghĩa “luôn tăng phần trị tuyệt đối” mà là hướng về (+∞). Tương tự, `HALF_UP` không đơn giản là cộng `0.5` rồi cắt phần nguyên với mọi số và scale.
+Rounding negative numbers must be tested separately: `RoundingMode.CEILING` does not mean “always increase absolute value,” it means toward (+∞). Likewise, `HALF_UP` is not simply adding `0.5` and truncating for all numbers and scales.
 
-Một ví dụ điểm giữa khác: `new BigDecimal("2.355").setScale(2, HALF_EVEN)` thành `2.36` vì chữ số hàng phần trăm cuối cùng `6` là chẵn. Không diễn giải “HALF_EVEN luôn làm tròn xuống”; ở điểm tie, nó chọn phía cho chữ số giữ lại là chẵn.
+Another midpoint example: `new BigDecimal("2.355").setScale(2, HALF_EVEN)` becomes `2.36` because the hundredths digit `6` is even. Do not interpret `HALF_EVEN` as “always rounds down”; at a tie, it picks the side whose kept digit is even.
 
-### Không làm tròn ngầm
+### Avoid implicit rounding
 
-Có thể cho phép số tiền chứa scale cao trong tính toán, rồi chỉ làm tròn ở ranh giới được quy định như **chốt đơn hàng**, **ghi số tiền phải thanh toán**, **tính thuế theo dòng hóa đơn** hoặc **xuất báo cáo**.
+You may allow amounts to retain high scale during intermediate calculations, and round only at designated boundaries such as **finalizing an order**, **recording the payable amount**, **computing line-item tax**, or **generating reports**.
 
-Cách thiết kế sai là mỗi phép `add`, `multiply`, `divide` hoặc constructor `Money` đều tự áp `setScale(currency.getDefaultFractionDigits(), HALF_UP)` mà không có lý do nghiệp vụ. Nó làm mất thông tin trung gian và có thể tạo tổng tiền khác khi đổi thứ tự các phép tính.
+A flawed design is having every `add`, `multiply`, `divide`, or `Money` constructor automatically apply `setScale(currency.getDefaultFractionDigits(), HALF_UP)` without a business reason. That discards intermediate precision and can yield different totals when operation order changes.
 
-## 5. Quy tắc làm tròn còn gồm thời điểm và đơn vị làm tròn
+## 5. Rounding policies also include timing and rounding increment
 
-Một `RoundingPolicy` hữu dụng phải mô tả nhiều hơn `RoundingMode`:
+A useful `RoundingPolicy` must describe more than `RoundingMode`:
 
-- **Phép tính nào:** thuế, phí, giảm giá, tổng thanh toán, đổi tiền, lãi.
-- **Làm tròn khi nào:** trên từng dòng, từng đơn vị, theo từng loại thuế hay trên tổng.
-- **Độ chia/step:** `scale=2`, `scale=0` hoặc bội số `0.05` tùy ngữ cảnh.
-- **Mode:** `HALF_UP`, `HALF_EVEN`, `DOWN`, v.v.
-- **Cách xử lý hoàn tiền, số âm và phần dư:** phải nhất quán với yêu cầu nghiệp vụ.
-- **Thông tin pháp lý hoặc hợp đồng:** nếu có, phải được rà soát bởi chủ sở hữu nghiệp vụ.
+- **Which calculation:** tax, fee, discount, payment total, currency conversion, interest.
+- **When to round:** per line item, per unit, per tax category, or on the total.
+- **Increment/step:** `scale=2`, `scale=0`, or multiples of `0.05` depending on context.
+- **Mode:** `HALF_UP`, `HALF_EVEN`, `DOWN`, etc.
+- **Handling refunds, negative amounts, and remainders:** must align with business requirements.
+- **Legal or contractual specifications:** where applicable, must be reviewed by the business owner.
 
-Hai cách làm tròn đều có thể “đúng theo mode”, nhưng tổng khác nhau vì **thời điểm làm tròn khác**:
+Two rounding approaches can both be “correct according to the mode,” yet produce different totals because **the rounding timing differs**:
 
 ~~~text
-Giá trị 1: 0.005 USD
-Giá trị 2: 0.005 USD
+Value 1: 0.005 USD
+Value 2: 0.005 USD
 
-Làm tròn từng giá trị với HALF_UP, scale 2:
+Round each value with HALF_UP, scale 2:
 0.005 → 0.01
 0.005 → 0.01
-Tổng: 0.02 USD
+Total: 0.02 USD
 
-Cộng trước rồi làm tròn với HALF_UP, scale 2:
+Add first, then round with HALF_UP, scale 2:
 0.005 + 0.005 = 0.010
-Tổng sau làm tròn: 0.01 USD
+Rounded total: 0.01 USD
 ~~~
 
-Sự khác biệt không phải lỗi của `BigDecimal`; đây là hệ quả của chính sách. Cần quy định rõ nghiệp vụ tính theo từng dòng hay tổng, đặc biệt với thuế, chiết khấu và chia tiền cho nhiều người.
+The difference is not a `BigDecimal` bug; it is a consequence of policy. You must explicitly specify whether business calculations round per line or on the total, especially for taxes, discounts, and splitting bills among multiple people.
 
-### Làm tròn theo bước không chỉ dùng setScale
+### Step-based rounding is not just setScale
 
-Nếu một chính sách tiền mặt đòi bước `0.05`, `setScale(2, ...)` đơn thuần vẫn cho phép `10.01` hoặc `10.02`, tức **không ép thành bội số 0.05**.
+If a cash policy requires a `0.05` increment, `setScale(2, ...)` alone still permits `10.01` or `10.02`—it **does not enforce multiples of 0.05**.
 
-Một cách biểu diễn khái niệm:
+A conceptual representation:
 
 ~~~text
-amount / 0.05 → làm tròn số đơn vị bước → nhân lại 0.05
+amount / 0.05 → round number of step units → multiply back by 0.05
 ~~~
 
-Đây chỉ là mô tả quy trình; khi hiện thực cần dùng `BigDecimal` và xác nhận quy tắc cho số âm, tie, thời điểm áp dụng, giá trị bước và kết quả cần bảo toàn. Không áp dụng bước tiền mặt cho khoản chuyển khoản chỉ vì giao dịch dùng cùng mã tiền.
+This is only a process description; an actual implementation must use `BigDecimal` and confirm rules for negative numbers, ties, when the rule applies, the step size, and what results must be preserved. Do not apply cash rounding increments to bank transfers simply because the transactions share the same currency code.
 
-## 6. Xây một Money value object bằng Java 17
+## 6. Building a Money value object with Java 17
 
-Một cách bảo vệ invariant là gói `BigDecimal` và `Currency` trong một kiểu bất biến, rồi để thao tác chốt tiền nhận **quy tắc làm tròn tường minh**. Java 17 hỗ trợ `record`, phù hợp minh họa mô hình này.
+One way to enforce invariants is to wrap `BigDecimal` and `Currency` in an immutable type and have the settlement operation accept an **explicit rounding rule**. Java 17 supports `record`, which suits illustrating this model.
 
-Tạo tệp **`MoneyDimensionsDemo.java`**:
+Create the file **`MoneyDimensionsDemo.java`**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -291,14 +291,14 @@ public class MoneyDimensionsDemo {
 }
 ~~~
 
-Biên dịch/chạy (Java 17 trở lên):
+Compile/run (Java 17 or later):
 
 ~~~bash
 javac -encoding UTF-8 MoneyDimensionsDemo.java
 java MoneyDimensionsDemo
 ~~~
 
-Stdout đã đối chiếu với JDK:
+Stdout verified against the JDK:
 
 ~~~text
 Digits USD=2, VND=0, KWD=3
@@ -313,35 +313,35 @@ String construction: 0.1
 Double construction exact 0.1: false
 ~~~
 
-**Giải thích:**
+**Explanation:**
 
-1. `Currency` giữ mã tiền và metadata số chữ số thập phân mặc định; ba mã trong ví dụ có thông số lần lượt `2`, `0`, `3`.
-2. Hai khoản USD được cộng **chính xác**: `12.345 + 0.015 = 12.360`. Phép cộng không tự bỏ số lẻ.
-3. `rounded(2, HALF_EVEN)` tạo **Money mới** với amount `12.36`; bản gốc không bị thay đổi. Việc chọn `2` ở đây là chính sách chốt số của ví dụ, không được suy ra tự động từ mọi phép tính.
-4. `2.345` nằm đúng giữa `2.34` và `2.35`; `HALF_UP` chọn `2.35`, `HALF_EVEN` chọn `2.34`.
-5. Phép chia `1/3` chỉ ra một điểm cần quyết định mode/scale: `divide(..., 2, HALF_UP)` trả `0.33`.
-6. Cộng USD với VND bị từ chối, tránh âm thầm trộn đơn vị.
-7. `UNNECESSARY` báo lỗi nếu việc đặt scale buộc phải bỏ chữ số có ý nghĩa.
-8. `new BigDecimal("0.1")` giữ đúng 0.1 thập phân; `new BigDecimal(0.1)` phản ánh xấp xỉ nhị phân nên không bằng 0.1 chính xác.
+1. `Currency` holds the currency code and default fraction-digits metadata; the three codes in the example report `2`, `0`, and `3` respectively.
+2. The two USD amounts are added **exactly**: `12.345 + 0.015 = 12.360`. Addition does not drop fractional digits automatically.
+3. `rounded(2, HALF_EVEN)` returns a **new Money** with amount `12.36`; the original instance is unchanged. Choosing `2` here is the example's settlement policy, not something to infer automatically for every calculation.
+4. `2.345` sits halfway between `2.34` and `2.35`; `HALF_UP` picks `2.35`, while `HALF_EVEN` picks `2.34`.
+5. Dividing `1/3` highlights a point requiring a mode/scale decision: `divide(..., 2, HALF_UP)` returns `0.33`.
+6. Adding USD and VND is rejected, preventing silent mixing of units.
+7. `UNNECESSARY` throws an error if setting the scale would require discarding significant digits.
+8. `new BigDecimal("0.1")` preserves the exact decimal 0.1; `new BigDecimal(0.1)` reflects binary approximation and is not equal to exact 0.1.
 
-`displayRaw()` cố ý in theo định dạng máy ổn định `USD 12.36` để dễ kiểm thử; đây **không phải** định dạng UI bản địa hóa. Mã tiền và amount được lưu riêng trong record, còn quy tắc làm tròn được truyền khi cần.
+`displayRaw()` intentionally prints a stable machine-readable format `USD 12.36` for easy testing; this is **not** a localized UI format. The currency code and amount are stored separately in the record, while rounding rules are passed in when needed.
 
-**Giới hạn của ví dụ:** record không thay thế một thư viện tiền tệ sản xuất. Nó chưa lưu policy theo từng chức năng, chưa giải quyết tỷ giá, ngân hàng, phí, cash rounding, lịch sử dữ liệu tiền, giới hạn tối đa hoặc việc phân bổ phần dư. Mục đích là thể hiện rõ ba trách nhiệm độc lập.
+**Limitations of this example:** the record does not replace a production money library. It does not store per-operation policies, nor does it solve exchange rates, banking rules, fees, cash rounding, currency metadata history, maximum bounds, or remainder allocation. Its purpose is to clearly demonstrate the three independent responsibilities.
 
-## 7. Phép tính: giữ chính xác tới ranh giới được phép làm tròn
+## 7. Arithmetic: preserve precision until the allowed rounding boundary
 
-### Cộng và trừ
+### Addition and subtraction
 
-Dùng `add`/`subtract` cho hai amount cùng mã tiền. Nếu sử dụng Money wrapper, bắt buộc check currency khi cộng hoặc trừ.
+Use `add`/`subtract` for two amounts with the same currency code. When using a Money wrapper, enforce a currency check on addition and subtraction.
 
 ~~~java
 BigDecimal subtotal = new BigDecimal("10.005")
         .add(new BigDecimal("1.005")); // 11.010
 ~~~
 
-Đoạn trên chưa làm tròn và chưa chọn chính sách tiền; hợp lệ nếu nghiệp vụ giữ ba chữ số trung gian.
+The snippet above has not rounded or applied a currency settlement policy; it is valid when the business retains three intermediate decimal places.
 
-### Nhân đơn giá với số lượng hoặc tỷ lệ
+### Multiplying unit price by quantity or rate
 
 ~~~java
 BigDecimal unitPrice = new BigDecimal("1.235");
@@ -349,17 +349,17 @@ BigDecimal quantity = new BigDecimal("3");
 BigDecimal exactLine = unitPrice.multiply(quantity); // 3.705
 ~~~
 
-Nếu nghiệp vụ yêu cầu `scale=2`, cần quy định làm tròn `unitPrice` trước khi nhân hay `exactLine` sau khi nhân. Hai phương pháp có thể tạo kết quả khác, nên phải có quy tắc nghiệp vụ thống nhất và testcase.
+If the business requires `scale=2`, you must specify whether to round `unitPrice` before multiplying or `exactLine` after multiplying. The two approaches can yield different results, so a consistent business rule and test cases are required.
 
-### Phép chia
+### Division
 
-Một số phép chia thập phân không có kết quả hữu hạn. Ví dụ:
+Some decimal divisions do not have a terminating representation. For example:
 
 ~~~java
 BigDecimal.ONE.divide(new BigDecimal("3"));
 ~~~
 
-có thể ném `ArithmeticException` vì `1/3` là thập phân vô hạn, không thể biểu diễn chính xác bằng một `BigDecimal` hữu hạn. Phải chỉ định độ chính xác/scale và mode khi nghiệp vụ cho phép làm tròn:
+can throw `ArithmeticException` because `1/3` is a non-terminating decimal and cannot be represented exactly as a finite `BigDecimal`. You must specify precision/scale and a rounding mode when the business permits rounding:
 
 ~~~java
 BigDecimal third = BigDecimal.ONE.divide(
@@ -367,40 +367,40 @@ BigDecimal third = BigDecimal.ONE.divide(
 // 0.3333
 ~~~
 
-Không bắt mọi `ArithmeticException` rồi thay kết quả bằng 0. Trường hợp phép chia vô hạn, chia cho 0 và lỗi do `UNNECESSARY` thể hiện các tình huống khác nhau; lựa chọn xử lý phải phù hợp nguyên nhân.
+Do not catch every `ArithmeticException` and substitute 0. Non-terminating division, division by zero, and `UNNECESSARY` failures represent distinct scenarios; error handling must match the cause.
 
-### Khi chia một khoản tiền thành nhiều phần
+### Splitting an amount into multiple parts
 
-Nếu chia `10.00 USD` cho ba người, phép chia chính xác hữu hạn theo cent sẽ không tồn tại (`10.00 / 3`). Làm tròn mỗi phần thành `3.33` cho cả ba chỉ thu được `9.99`. Cần chính sách **phân bổ phần dư** có thể kiểm toán, ví dụ hai người nhận `3.33`, người cuối nhận `3.34`, sao cho tổng đúng `10.00`.
+If you split `10.00 USD` among three people, an exact finite division in cents does not exist (`10.00 / 3`). Rounding each share to `3.33` for all three yields only `9.99`. You need an auditable **remainder allocation** policy—for example, two shares receive `3.33` and the final share receives `3.34`, so the sum equals exactly `10.00`.
 
-Đây là một ví dụ rõ ràng: `BigDecimal` bảo đảm số học đúng theo thao tác đã yêu cầu, nhưng **không tự định nghĩa công bằng hoặc phân bổ tiền**.
+This is a clear illustration: `BigDecimal` guarantees exact arithmetic for the requested operation, but **does not define fairness or monetary allocation on its own**.
 
-## 8. BigDecimal.equals() và compareTo() không tương đương
+## 8. BigDecimal.equals() and compareTo() are not equivalent
 
-Hai amount có thể bằng nhau về giá trị số nhưng khác scale:
+Two amounts can have equal numeric values while differing in scale:
 
 ~~~java
 BigDecimal x = new BigDecimal("12.30");
 BigDecimal y = new BigDecimal("12.300");
 
-x.compareTo(y) == 0; // true: cùng giá trị số
-x.equals(y);         // false: scale khác nhau
+x.compareTo(y) == 0; // true: same numeric value
+x.equals(y);         // false: different scale
 ~~~
 
-Điểm này quan trọng khi dùng `BigDecimal` làm khóa `Map`, phần tử `Set` hoặc thành phần trong `record Money`: phương thức `equals` mặc định của record dựa vào `equals` của các thành phần, nên `Money(12.30, USD)` và `Money(12.300, USD)` không nhất thiết bằng nhau theo `equals`.
+This matters when using `BigDecimal` as a `Map` key, a `Set` element, or a component of `record Money`: a record's default `equals` delegates to the `equals` of its components, so `Money(12.30, USD)` and `Money(12.300, USD)` are not necessarily equal under `equals`.
 
-Một số giải pháp hợp lý tùy miền nghiệp vụ:
+Reasonable solutions depending on the business domain:
 
-- Chuẩn hóa scale tại **ranh giới lưu/truyền** nếu hợp đồng yêu cầu biểu diễn duy nhất.
-- So sánh giá trị số qua `compareTo` khi chỉ muốn hỏi bằng nhau về mặt số học, đồng thời bảo đảm currency trùng.
-- Giữ nguyên scale đầu vào khi thông tin đó có ý nghĩa, chẳng hạn độ chính xác đã được khai báo.
-- Thận trọng với `stripTrailingZeros()`: nó có thể tạo scale âm, ví dụ số `1000` có thể được biểu diễn ở dạng số mũ. Không dùng nó một cách tự động cho mọi bản ghi tiền.
+- Normalize scale at **persistence/transmission boundaries** if the contract requires a unique representation.
+- Compare numeric values with `compareTo` when asking only about arithmetic equality, while ensuring currencies match.
+- Preserve input scale when that information is meaningful, such as declared precision.
+- Be cautious with `stripTrailingZeros()`: it can produce a negative scale, for instance representing `1000` in scientific form. Do not apply it blindly to every monetary record.
 
-Không để cách thức so sánh ngầm làm các khoản tiền hợp lệ bị xem là khác nhau hoặc ngược lại.
+Never let an implicit comparison rule treat valid equal amounts as different or vice versa.
 
-## 9. Định dạng hiển thị là bước khác với lượng tiền lưu trữ
+## 9. Display formatting is separate from stored monetary amounts
 
-Khi giao diện cần in số tiền theo vùng, dùng `NumberFormat` hoặc `DecimalFormat` với `Locale`, đồng thời chỉ định `Currency` của **giao dịch**, thay vì tin rằng currency mặc định của locale luôn đúng:
+When the UI needs to print an amount by region, use `NumberFormat` or `DecimalFormat` with `Locale`, while explicitly specifying the **transaction's `Currency`** instead of assuming the locale's default currency is always right:
 
 ~~~java
 import java.text.NumberFormat;
@@ -413,27 +413,27 @@ formatter.setCurrency(Currency.getInstance("USD"));
 String ui = formatter.format(new java.math.BigDecimal("1234.50"));
 ~~~
 
-Đây là **đoạn mã minh họa** không độc lập; output cụ thể phụ thuộc dữ liệu bản địa hóa/JDK và cấu hình formatter. Khi dùng `setCurrency`, cần đặc biệt lưu ý API `NumberFormat` **không bắt buộc tự điều chỉnh số chữ số thập phân theo currency mới**. Nếu ứng dụng cần một cách hiển thị nhất quán theo chính sách, hãy cấu hình các thuộc tính fraction digits phù hợp và kiểm thử.
+This is an **illustrative snippet**, not a standalone program; exact output depends on localization/JDK data and formatter configuration. When using `setCurrency`, note carefully that the `NumberFormat` API **is not required to adjust the number of fraction digits automatically to the new currency**. If an application needs consistent policy-driven display, configure the appropriate fraction-digit properties and test them.
 
-Quan trọng: **format một số tiền không đồng nghĩa chốt số tiền đó**. Một formatter có thể làm tròn giá trị để hiện thị, trong khi amount nguồn vẫn có nhiều chữ số. Không dùng chuỗi UI đã được format làm nguồn sự thật để tính tổng hoặc lưu vào sổ cái.
+Important: **formatting an amount does not mean settling that amount**. A formatter may round a value for display while the underlying amount retains more digits. Never use a formatted UI string as the source of truth for summing totals or posting to a ledger.
 
-### Không trộn currency symbol với mã tiền
+### Do not confuse currency symbols with currency codes
 
-Các ký hiệu như `$`, `¥`, `kr` có thể dùng cho nhiều đơn vị tiền hoặc khác cách biểu diễn theo locale. Khi truyền dữ liệu qua hệ thống hoặc audit, giữ mã như `USD`, `VND`, `JPY` hoặc một định danh tiền đã thỏa thuận. Chỉ tạo symbol cho lớp giao diện.
+Symbols such as `$`, `¥`, and `kr` can belong to multiple currency units or render differently across locales. When transmitting data across systems or auditing, keep codes like `USD`, `VND`, `JPY`, or an agreed currency identifier. Generate symbols only in the presentation layer.
 
-### Locale và tỷ giá là các vấn đề độc lập
+### Locale and exchange rates are independent concerns
 
-Một số tiền `100 USD` được hiển thị cho người dùng Việt Nam không tự đổi thành VND. Muốn đổi tiền, cần tỷ giá được công bố:
+An amount of `100 USD` displayed to a user in Vietnam does not automatically convert to VND. Converting currencies requires a published exchange rate:
 
 ~~~text
 convertedAmount = sourceAmount × exchangeRate
 ~~~
 
-Cần xác định currency nguồn, currency đích, rate, chiều tỷ giá, thời điểm/nguồn và chính sách làm tròn. `Currency` không có phương thức chuyển đổi giữa USD và VND.
+You must specify the source currency, target currency, rate, rate direction, timestamp/source, and rounding policy. `Currency` has no method to convert between USD and VND.
 
-## 10. Lưu trữ, API và hợp đồng trao đổi dữ liệu
+## 10. Persistence, APIs, and data exchange contracts
 
-Một thiết kế dữ liệu dễ kiểm toán là tách các trường:
+An easily auditable data design separates the fields:
 
 ~~~json
 {
@@ -442,9 +442,9 @@ Một thiết kế dữ liệu dễ kiểm toán là tách các trường:
 }
 ~~~
 
-Ở đây `amount` là chuỗi số thập phân chuẩn do API quy định và `currency` là mã tiền. Cách dùng chuỗi tránh việc nhiều client hoặc thư viện trung gian tự chuyển giá trị thành kiểu floating-point với độ chính xác không đáp ứng nghiệp vụ. Đây là **một lựa chọn thiết kế API**, không có nghĩa mọi giao thức đều bắt buộc dùng chuỗi.
+Here `amount` is a canonical decimal string specified by the API and `currency` is the currency code. Using a string prevents clients or intermediate libraries from converting the value into floating-point types with insufficient precision for the business. This is **one API design choice**, not a claim that every protocol must use strings.
 
-Nếu API dùng số nguyên minor units:
+If an API uses integer minor units:
 
 ~~~json
 {
@@ -454,13 +454,13 @@ Nếu API dùng số nguyên minor units:
 }
 ~~~
 
-thì số tiền là `1234.50 USD` theo hợp đồng `minorUnits × 10^(-scale)`. Không được chỉ dựa vào tên trường `minorUnits` rồi đoán scale là 2 cho mọi đồng tiền. Thậm chí với cùng một loại tiền, một số hệ thống thanh toán có quy tắc scale chuyên biệt theo phiên bản hoặc kênh; phải tuân thủ tài liệu hệ thống đó.
+then the amount is `1234.50 USD` under the contract `minorUnits × 10^(-scale)`. Never rely solely on the field name `minorUnits` and guess a scale of 2 for every currency. Even for the same currency, some payment systems have specialized scale rules by API version or channel; follow that system's documentation.
 
-### Cơ sở dữ liệu
+### Databases
 
-Các cột thường dùng là `DECIMAL/NUMERIC` cho amount và `CHAR(3)` hoặc `VARCHAR(3)` cho mã ISO currency (tùy hệ quản trị). Tránh `FLOAT/DOUBLE` cho số tiền cần độ chính xác thập phân.
+Typical columns are `DECIMAL/NUMERIC` for the amount and `CHAR(3)` or `VARCHAR(3)` for the ISO currency code (depending on the DBMS). Avoid `FLOAT/DOUBLE` for monetary amounts requiring decimal precision.
 
-Ví dụ cấu trúc khái niệm:
+Conceptual schema example:
 
 ~~~sql
 CREATE TABLE invoice_amount (
@@ -470,52 +470,52 @@ CREATE TABLE invoice_amount (
 );
 ~~~
 
-Đây là **minh họa SQL**; cú pháp, kiểu dữ liệu và giới hạn có thể khác theo database. `DECIMAL(20,6)` nghĩa là tổng precision 20 chữ số và scale 6 — **không phải chính sách chốt tiền**. Cần thiết kế precision/scale dựa trên giá trị tối đa, số lượng trung gian và ràng buộc sản phẩm. Đừng để database tự làm tròn hoặc cắt dữ liệu âm thầm khi ứng dụng chưa định nghĩa hành vi đó.
+This is an **SQL illustration**; syntax, data types, and limits vary by database. `DECIMAL(20,6)` means 20 total precision digits and a scale of 6—**not a monetary settlement policy**. Design precision/scale based on maximum values, intermediate quantities, and product constraints. Do not let the database silently round or truncate values when the application has not defined that behavior.
 
-Khi ghi tiền vào ledger hoặc tạo sự kiện thanh toán, nên lưu chính sách/phiên bản tính toán cần thiết để đối chiếu về sau, nhất là với thuế, đổi tiền hoặc giao dịch bị hoàn tiền nhiều năm sau.
+When posting money to a ledger or emitting payment events, store the policy or calculation version needed for future reconciliation—especially for taxes, currency conversions, or transactions refunded years later.
 
-## 11. Xác thực tiền và chính sách rounding
+## 11. Monetary validation and rounding policies
 
-Một `Money` phù hợp production nên xét:
+A production-ready `Money` model should consider:
 
-- `amount` và `currency` không `null`.
-- Mã tiền thuộc danh sách hợp lệ/được chấp nhận của hệ thống, không chỉ đúng cú pháp.
-- Giới hạn số chữ số và biên giá trị phù hợp database, API và nhà cung cấp thanh toán.
-- Cho phép hay cấm số âm theo **loại nghiệp vụ**, không cấm mọi số âm vì hoàn tiền/điều chỉnh có thể âm.
-- Có cho phép `amount=0` hay không, theo đặc tả.
-- Trạng thái trước khi làm tròn và sau khi chốt, không tự làm tròn tất cả phép toán.
-- Bảo đảm các phép cộng/trừ không trộn currency; phép đổi tiền phải có rate rõ ràng.
-- Kiểm soát logic rounding tại cùng một điểm duy nhất của nghiệp vụ và kiểm thử nhiều lần.
-- Chốt scale/step/mode vào tài liệu hợp đồng giao tiếp, cùng thay đổi phiên bản nếu có.
-- Bảo đảm số sau chốt không vượt giới hạn được hệ thống downstream chấp nhận.
+- `amount` and `currency` are non-`null`.
+- The currency code is in the system's valid/accepted list, not merely syntactically valid.
+- Digit limits and value bounds align with the database, APIs, and payment providers.
+- Allowing or forbidding negative amounts by **operation type**—do not ban all negatives because refunds and adjustments can be negative.
+- Whether `amount=0` is allowed, per specification.
+- Pre-rounding versus settled states, avoiding automatic rounding on every operation.
+- Ensuring additions/subtractions do not mix currencies; conversions must use an explicit rate.
+- Centralizing rounding logic at a single business boundary and testing it thoroughly.
+- Documenting scale/step/mode in communication contracts, including version changes if any.
+- Ensuring settled values do not exceed limits accepted by downstream systems.
 
-Nếu hệ thống chỉ xử lý USD, có thể chọn một chính sách phù hợp đơn giản; khi mở rộng sang JPY, VND, KWD hoặc thanh toán tiền mặt, đừng giả định chính sách USD hiện tại vẫn đúng.
+If a system handles only USD, a simple policy may suffice; when expanding to JPY, VND, KWD, or cash payments, never assume the existing USD policy still holds.
 
-## 12. Bảng lỗi phổ biến
+## 12. Common pitfalls
 
-| Sai lầm | Hậu quả | Cách phòng tránh |
+| Mistake | Consequence | Prevention |
 | --- | --- | --- |
-| `new BigDecimal(0.1)` cho giá người dùng nhập | Nhận chính xác xấp xỉ double, không phải 0.1 thập phân | Tạo từ chuỗi thập phân hoặc integer + scale đã thỏa thuận |
-| Chỉ lưu amount, bỏ currency | Không biết USD hay VND | Luôn lưu mã tiền cùng giá trị |
-| Dùng currency symbol làm định danh | `$` không phân biệt nhiều đồng tiền | Dùng mã ISO 4217 |
-| Cộng USD với VND | Tổng sai về đơn vị | Từ chối hoặc quy đổi minh bạch trước |
-| Dùng `getDefaultFractionDigits()` như luật làm tròn mọi phép tính | Mất phần lẻ cần thiết, có thể sai thuế/phí | Tách metadata khỏi chính sách nghiệp vụ |
-| Làm tròn mỗi phép trung gian theo default | Tổng phụ thuộc thứ tự xử lý | Định nghĩa thời điểm rounding chính xác |
-| Nhầm precision với scale | Kết quả sai mức độ chính xác cần giữ | Dùng `MathContext` và `setScale` đúng mục đích |
-| Dùng `divide` không có mode trong phép chia vô hạn | `ArithmeticException` | Chọn scale/precision và rounding mode theo nghiệp vụ |
-| Dùng `equals` để so BigDecimal về giá trị số | `12.30` khác `12.300` | Kiểm tra currency và dùng `compareTo` nếu cần so giá trị |
-| Coi định dạng UI đã làm tròn là số tiền chính thức | Chốt số sai hoặc mất tính truy vết | Giữ giá trị gốc và bước chốt riêng |
-| Bỏ qua số âm | Phát sinh lỗi với hoàn tiền, CEILING/FLOOR | Kiểm thử số âm và quy tắc hoàn tiền |
-| Cho rằng `scale=2` là làm tròn tiền mặt theo 0.05 | Có thể ra 10.02, không phải bội 0.05 | Dùng chính sách làm tròn theo bước |
-| Dùng `double` lưu tiền trong JSON/DB | Mất độ chính xác thập phân trong một số hệ thống | Hợp đồng decimal string/minor units, cột DECIMAL |
-| Dùng locale để suy ra currency giao dịch | Chọn sai đơn vị của giao dịch | Currency là dữ liệu nghiệp vụ độc lập |
-| Không lưu phiên bản policy | Khó tái lập số tiền trên hóa đơn cũ | Ghi đủ quy tắc và lịch sử tính toán cần thiết |
+| `new BigDecimal(0.1)` for user-entered prices | Receives the exact double approximation, not decimal 0.1 | Construct from decimal strings or agreed integer + scale |
+| Storing only amount and omitting currency | Unknown whether USD or VND | Always store the currency code alongside the value |
+| Using currency symbol as an identifier | `$` does not distinguish multiple currencies | Use ISO 4217 codes |
+| Adding USD and VND | Sum has invalid units | Reject or convert transparently first |
+| Using `getDefaultFractionDigits()` as the rounding rule for every calculation | Loses needed fractional precision, can miscalculate tax/fees | Separate metadata from business policy |
+| Rounding every intermediate step using defaults | Totals depend on processing order | Define exact rounding boundaries |
+| Confusing precision with scale | Incorrect level of preserved accuracy | Use `MathContext` and `setScale` for their intended purposes |
+| Calling `divide` without a mode on non-terminating division | `ArithmeticException` | Choose business scale/precision and rounding mode |
+| Using `equals` to compare `BigDecimal` numeric values | `12.30` differs from `12.300` | Check currency and use `compareTo` for numeric comparison |
+| Treating a rounded UI format as the official amount | Incorrect settlement or loss of audit trail | Keep the original value and a separate settlement step |
+| Ignoring negative numbers | Bugs with refunds, `CEILING`/`FLOOR` | Test negative numbers and refund rules |
+| Assuming `scale=2` means cash rounding to 0.05 | Can yield 10.02, not a multiple of 0.05 | Use a step-based rounding policy |
+| Using `double` for money in JSON/DB | Loss of decimal precision in some systems | Decimal string / minor-units contract, `DECIMAL` column |
+| Inferring transaction currency from locale | Picks the wrong unit for the transaction | Currency is independent business data |
+| Omitting policy version | Hard to reproduce amounts on historical invoices | Record necessary calculation rules and history |
 
-## 13. Kiểm thử những trường hợp dễ gây sai số
+## 13. Testing precision-sensitive cases
 
-Một bảng test tốt cần bao phủ **giá trị**, **currency**, **scale**, **mode** và **thời điểm làm tròn**, không chỉ ví dụ `1.23`:
+A strong test matrix should cover **values**, **currency**, **scale**, **mode**, and **rounding timing**, not just `1.23`:
 
-| Input / tình huống | Kỳ vọng hoặc kiểm tra |
+| Input / scenario | Expectation or assertion |
 | --- | --- |
 | `2.345` → scale 2, `HALF_UP` | `2.35` |
 | `2.345` → scale 2, `HALF_EVEN` | `2.34` |
@@ -523,51 +523,51 @@ Một bảng test tốt cần bao phủ **giá trị**, **currency**, **scale**,
 | `-2.345` → scale 2, `HALF_UP` | `-2.35` |
 | `-2.345` → scale 2, `HALF_EVEN` | `-2.34` |
 | `1 / 3` → scale 2, `HALF_UP` | `0.33` |
-| `1 / 3` → chia chính xác không mode | Có thể ném `ArithmeticException` |
-| `12.30` so với `12.300` | `compareTo==0`, `equals==false` |
-| `12.345 USD + 0.015 USD` | `12.360 USD` trước rounding |
-| `USD + VND` | Bị từ chối |
-| `0.005 + 0.005`, rounding từng dòng so với tổng | `0.02` so với `0.01` với HALF_UP scale 2 |
-| `VND`, `JPY`, `KWD` | Kiểm tra policy riêng, không mặc định scale 2 |
-| `1000.00` với giới hạn DB nhỏ | Xác nhận giới hạn và hành vi ghi không bị cắt |
-| Bước tiền `0.05` | Mọi số đã chốt phải là bội số chính xác của `0.05` |
-| Tổng phân bổ cho ba người | Tổng các phần phải bằng khoản tiền ban đầu |
-| Format bằng `Locale` khác | Số tiền gốc/currency không thay đổi |
+| `1 / 3` → exact division without mode | May throw `ArithmeticException` |
+| `12.30` vs `12.300` | `compareTo==0`, `equals==false` |
+| `12.345 USD + 0.015 USD` | `12.360 USD` before rounding |
+| `USD + VND` | Rejected |
+| `0.005 + 0.005`, line-item rounding vs total rounding | `0.02` vs `0.01` under HALF_UP scale 2 |
+| `VND`, `JPY`, `KWD` | Verify currency-specific policy, do not assume scale 2 |
+| `1000.00` with small DB bounds | Verify bounds and write behavior without truncation |
+| Increment `0.05` | Every settled number must be an exact multiple of `0.05` |
+| Sum of allocation among three people | Sum of parts must equal the original amount |
+| Format with another `Locale` | Underlying amount/currency remains unchanged |
 
-Các test property-based hữu ích: phép cộng không đổi mã tiền; số tiền không đổi khi chỉ định dạng; việc chốt lần hai theo cùng scale/mode không đổi số đã chốt; tổng các phần phân bổ khớp tổng gốc; mọi giao dịch qua ranh giới API/DB đều giữ đúng số và currency.
+Useful property-based tests: addition does not alter the currency code; amounts do not change when merely formatted; settling a second time with the same scale/mode leaves settled amounts unchanged; the sum of allocated parts matches the original total; every transaction crossing API/DB boundaries preserves exact numeric value and currency.
 
-Nếu luật rounding bị ràng buộc bởi quy định pháp luật hoặc chuẩn của đơn vị thanh toán, phải có testcase do chủ sở hữu nghiệp vụ xác nhận; ví dụ kiến thức Java không thể thay cho đặc tả chính thức.
+If rounding rules are governed by legal regulations or payment-network standards, obtain test cases confirmed by the business owner; Java knowledge alone cannot substitute for an official specification.
 
-## 14. Bài tập tự đánh giá
+## 14. Self-assessment exercises
 
-**Câu 1.** Tại sao dùng `BigDecimal` vẫn chưa đủ để đại diện cho tiền?
+**Question 1.** Why is using `BigDecimal` alone insufficient to represent money?
 
-**Đáp án:** `BigDecimal` chỉ nắm giá trị số, không biết mã currency, thời điểm làm tròn, bước tiền, tỷ giá hoặc chính sách nghiệp vụ.
+**Answer:** `BigDecimal` only holds a numeric value; it has no knowledge of currency code, rounding timing, monetary increments, exchange rates, or business policies.
 
-**Câu 2.** `Currency.getDefaultFractionDigits()` trả `0` với VND. Có phải mọi phép tính bằng VND phải lập tức chuyển về số nguyên?
+**Question 2.** `Currency.getDefaultFractionDigits()` returns `0` for VND. Must every calculation in VND immediately truncate to whole integers?
 
-**Đáp án:** Không. Đây là metadata chữ số thập phân mặc định. Phép tính thuế/giảm giá có thể giữ phần lẻ trung gian; việc chốt giao dịch và làm tròn dựa vào nghiệp vụ.
+**Answer:** No. That is default fraction-digit metadata. Tax or discount calculations may retain intermediate fractional precision; transaction settlement and rounding depend on business rules.
 
-**Câu 3.** `new BigDecimal("2.345")` làm tròn scale 2 bằng `HALF_EVEN` và `HALF_UP` cho cùng kết quả không?
+**Question 3.** Does rounding `new BigDecimal("2.345")` to scale 2 with `HALF_EVEN` and `HALF_UP` give the same result?
 
-**Đáp án:** Không. `HALF_EVEN` trả `2.34`; `HALF_UP` trả `2.35`.
+**Answer:** No. `HALF_EVEN` returns `2.34`; `HALF_UP` returns `2.35`.
 
-**Câu 4.** Vì sao `new BigDecimal("1").divide(new BigDecimal("3"))` có thể ném lỗi?
+**Question 4.** Why can `new BigDecimal("1").divide(new BigDecimal("3"))` throw an error?
 
-**Đáp án:** `1/3` có biểu diễn thập phân vô hạn, không thể lưu chính xác dưới dạng `BigDecimal` hữu hạn nếu không quy định scale/precision cùng mode.
+**Answer:** `1/3` has a non-terminating decimal expansion and cannot be stored exactly as a finite `BigDecimal` without specifying scale/precision and a rounding mode.
 
-**Câu 5.** Khi người dùng mở giao diện ở locale `vi-VN`, tiền trong hóa đơn có tự chuyển từ USD sang VND không?
+**Question 5.** When a user opens the UI in the `vi-VN` locale, does an invoice amount automatically convert from USD to VND?
 
-**Đáp án:** Không. Locale chỉ tác động ngữ cảnh hiển thị/định dạng; chuyển currency cần tỷ giá và quy tắc chuyển đổi tường minh.
+**Answer:** No. Locale only affects display/formatting context; converting currencies requires an exchange rate and explicit conversion rules.
 
-**Bài thực hành.** Mở rộng `MoneyDimensionsDemo` với kiểu `RoundingPolicy(scale, mode)` và hai chính sách riêng: làm tròn tiền từng dòng với `HALF_UP` và làm tròn trên tổng với `HALF_EVEN`. Cho ba giá trị có phần nghìn và chứng minh sự khác nhau. Thêm test số âm, currency mismatch, `UNNECESSARY` và bất biến tổng sau khi phân bổ. Giải thích trường hợp nào trong nghiệp vụ sẽ chọn từng policy.
+**Practice exercise.** Extend `MoneyDimensionsDemo` with a `RoundingPolicy(scale, mode)` type and two distinct policies: per-line rounding with `HALF_UP` and total rounding with `HALF_EVEN`. Provide three values with thousandths digits and demonstrate the difference. Add tests for negative numbers, currency mismatch, `UNNECESSARY`, and the sum-conservation invariant after allocation. Explain which business scenarios call for each policy.
 
-## 15. Tài liệu chính thức
+## 15. Official references
 
-- [Java SE 17 — BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): số học thập phân, scale, precision, `setScale`, `divide`, `equals` và `compareTo`.
-- [Java SE 17 — RoundingMode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html): các mode và quy tắc làm tròn.
-- [Java SE 17 — MathContext](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/MathContext.html): giới hạn số chữ số có nghĩa và rounding.
-- [Java SE 17 — Currency](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Currency.html): mã tiền, symbol và default fraction digits.
-- [Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html): định dạng số và tiền theo locale.
+- [Java SE 17 — BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): decimal arithmetic, scale, precision, `setScale`, `divide`, `equals`, and `compareTo`.
+- [Java SE 17 — RoundingMode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html): rounding modes and rules.
+- [Java SE 17 — MathContext](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/MathContext.html): significant-digit limits and rounding.
+- [Java SE 17 — Currency](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Currency.html): currency codes, symbols, and default fraction digits.
+- [Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html): locale-aware number and currency formatting.
 
-**Kết luận:** Một số tiền đáng tin cậy là **giá trị BigDecimal chính xác + mã Currency xác định + quy tắc làm tròn nghiệp vụ tường minh**. Không đồng nhất scale với precision, metadata currency với chính sách chốt tiền, hoặc chuỗi định dạng UI với dữ liệu dùng tính toán. Xác định **làm tròn khi nào, ở mức nào và bằng mode nào** trước khi viết phép tính tài chính.
+**Conclusion:** A reliable monetary representation is **an exact BigDecimal value + an explicit Currency code + an explicit business rounding policy**. Do not equate scale with precision, currency metadata with settlement rules, or formatted UI strings with computational data. Define **when to round, at what granularity, and with which mode** before writing financial calculations.

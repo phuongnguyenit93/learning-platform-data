@@ -1,8 +1,8 @@
-# Sắp xếp thứ tự phép tính để giảm mất thông tin trong Java
+# Reordering Operations to Reduce Information Loss in Java
 
-Với `float` và `double`, hai biểu thức **tương đương trong toán học số thực** có thể cho kết quả khác nhau trên Java. Nguyên nhân là số dấu phẩy động chỉ có hữu hạn bit phần trị và số mũ; sau mỗi phép toán, kết quả có thể bị làm tròn, làm mất những đóng góp quá nhỏ, hoặc trở thành vô cực/zero vì tràn và underflow.
+With `float` and `double`, two expressions that are **equivalent in real-number mathematics** can yield different results in Java. The reason is that floating-point numbers have only a finite number of significand and exponent bits; after each operation, the result may be rounded, losing tiny contributions, or become infinite/zero due to overflow and underflow.
 
-Ví dụ điển hình:
+A classic example:
 
 ```java
 double large = 1e16;
@@ -11,24 +11,24 @@ double lost = (large + 1.0) - large; // 0.0
 double kept = (large - large) + 1.0; // 1.0
 ```
 
-Trong toán học, cả hai đều bằng 1. Nhưng phép `large + 1.0` làm tròn về `large`: giá trị 1 bị mất trước khi thực hiện phép trừ. Khi triệt tiêu hai số lớn trước, giá trị 1 được giữ nguyên.
+Mathematically, both equal 1. However, `large + 1.0` rounds back to `large`: the value 1 is lost before subtraction is performed. When cancelling the two large numbers first, the value 1 is preserved.
 
-**Điểm cốt lõi:** thứ tự tính toán là một phần của thiết kế thuật toán số. Ta có thể giảm mất thông tin bằng cách cộng/ghép nhóm phù hợp, tránh trừ các giá trị gần bằng nhau, dùng công thức ổn định hơn và kiểm soát độ lớn của phép toán trung gian. Tuy nhiên, **không có một cách đảo thứ tự luôn tốt cho mọi dữ liệu**. Cần xét miền đầu vào và đo sai số.
+**Core point:** calculation order is part of numerical algorithm design. We can reduce information loss by summing/grouping appropriately, avoiding subtracting nearly equal values, using more stable formulas, and controlling the magnitude of intermediate operations. However, **there is no single reordering rule that is always best for all data**. You must examine the input domain and measure error.
 
-Bài học thuộc mục **Sai số và ổn định** trong module **Java core – numbers**. Trọng tâm là cách áp dụng và giới hạn của những kỹ thuật trên trong Java 17+.
+This lesson belongs to the **Error and stability** section in the **Java core – numbers** module. The focus is on how to apply these techniques and their limitations in Java 17+.
 
-## 1. Vì sao thứ tự có thể thay đổi kết quả?
+## 1. Why Can Order Change the Result?
 
-`float` và `double` sử dụng dấu phẩy động nhị phân IEEE 754:
+`float` and `double` use IEEE 754 binary floating-point representation:
 
-| Kiểu | Bit phần trị chính xác (kể cả bit ẩn) | Khoảng số nguyên liên tiếp được biểu diễn chính xác |
+| Type | Significand precision bits (including implicit bit) | Range of consecutive integers represented accurately |
 | --- | ---: | --- |
-| `float` | 24 | Từ `-2^24` đến `2^24` |
-| `double` | 53 | Từ `-2^53` đến `2^53` |
+| `float` | 24 | From `-2^24` to `2^24` |
+| `double` | 53 | From `-2^53` to `2^53` |
 
-Khi một kết quả chính xác nằm giữa hai số biểu diễn được, máy phải làm tròn. Ở nhiều phép toán cơ bản, Java áp dụng làm tròn tới giá trị gần nhất và khi bằng khoảng cách thì chọn giá trị có bit cuối chẵn (*round to nearest, ties to even*).
+When an exact result falls between two representable numbers, the machine must round. In many basic operations, Java applies round-to-nearest and when equidistant chooses the value with an even least significant bit (*round to nearest, ties to even*).
 
-Khoảng cách giữa các giá trị `double` liên tiếp thay đổi theo độ lớn. Chẳng hạn:
+The spacing between consecutive `double` values varies with magnitude. For instance:
 
 ```java
 double x = 1e16;
@@ -37,9 +37,9 @@ System.out.println(x + 1.0 == x);  // true
 System.out.println(x + 2.0 == x);  // false
 ```
 
-`Math.ulp(x)` (*unit in the last place*) cho biết bước độ phân giải tại `x`. Quanh `1e16`, số 1 nhỏ hơn một bước giữa hai giá trị biểu diễn lân cận.
+`Math.ulp(x)` (*unit in the last place*) indicates the resolution step at `x`. Around `1e16`, the number 1 is smaller than a single step between adjacent representable values.
 
-### Phép cộng không có tính kết hợp như số thực lý tưởng
+### Addition Is Not Associative Like Ideal Real Numbers
 
 ```java
 double a = 1e16;
@@ -50,23 +50,23 @@ double first = (a + b) + c;  // 1.0
 double second = a + (b + c); // 0.0
 ```
 
-Phép `a+b` triệt tiêu thành 0 rồi cộng 1 không mất thông tin; nhưng `b+c` bị làm tròn thành `b` trước. Do đó `(a+b)+c` không nhất thiết bằng `a+(b+c)` trong số học dấu phẩy động.
+The operation `a+b` cancels to 0 and then adding 1 loses no information; however, `b+c` is rounded to `b` first. Therefore, `(a+b)+c` does not necessarily equal `a+(b+c)` in floating-point arithmetic.
 
-Phép nhân cũng có thể không kết hợp khi xuất hiện rounding, overflow hoặc underflow. Việc thay đổi dấu ngoặc có thể làm kết quả tốt hơn **hoặc** xấu đi.
+Multiplication can also be non-associative when rounding, overflow, or underflow occurs. Changing parentheses can make the result better **or** worse.
 
-### Java 17 always-strict không sửa được tính không kết hợp
+### Java 17 always-strict Does Not Fix Non-Associativity
 
-Từ Java 17, Java có ngữ nghĩa *always-strict* cho biểu thức dấu phẩy động. Điều này quy định cách đánh giá chặt chẽ hơn, nhưng **không tăng vô hạn độ chính xác** và không biến `+`, `*` thành các phép kết hợp chính xác như số thực toán học. Đừng dùng `strictfp` để kỳ vọng mất sai số tự biến mất.
+Since Java 17, Java has *always-strict* semantics for floating-point expressions. This enforces stricter evaluation rules, but **does not grant infinite precision** and does not turn `+`, `*` into strictly associative operations like mathematical real numbers. Do not use `strictfp` expecting error loss to vanish automatically.
 
-## 2. Khi tổng lớn nuốt mất số hạng nhỏ
+## 2. When a Large Sum Swallows Small Terms
 
-Giả sử có dữ liệu:
+Suppose we have the data:
 
 ```java
 double[] values = {1e16, 1.0, 1.0, -1e16};
 ```
 
-Tổng toán học là **2**. Nhưng nếu cộng tuần tự từ trái sang phải:
+The mathematical sum is **2**. Yet if summed sequentially from left to right:
 
 ```java
 double sum = 0.0;
@@ -76,21 +76,21 @@ for (double value : values) {
 System.out.println(sum); // 0.0
 ```
 
-Diễn biến:
+Progression:
 
 ```text
-0                  ban đầu
-1e16               cộng số rất lớn
-1e16               cộng 1.0 nhưng bị làm tròn mất
-1e16               cộng 1.0 lần nữa vẫn mất
-0                  cộng -1e16 và triệt tiêu
+0                  initially
+1e16               add very large number
+1e16               add 1.0, but rounded away
+1e16               add 1.0 again, still lost
+0                  add -1e16 and cancel out
 ```
 
-Hai số 1 không thể xuất hiện lại ở bước cuối vì thông tin đã bị mất tại hai phép cộng trung gian.
+The two 1s cannot reappear at the final step because information was already lost in the two intermediate additions.
 
-### Ghép nhóm theo ý nghĩa số học
+### Grouping by Numerical Meaning
 
-Trong ví dụ này, nếu phép toán được phép đổi thứ tự, ta có thể nhóm hai số lớn để triệt tiêu và hai số nhỏ để cộng:
+In this example, if operations are allowed to be reordered, we can group the two large numbers to cancel out and the two small numbers to sum together:
 
 ```java
 double better = (values[0] + values[3])
@@ -98,40 +98,40 @@ double better = (values[0] + values[3])
 System.out.println(better); // 2.0
 ```
 
-Hoặc cộng hai số nhỏ trước:
+Or add the two small numbers first:
 
 ```java
 double smallFirst = 1.0 + 1.0 + 1e16 - 1e16;
 System.out.println(smallFirst); // 2.0
 ```
 
-Đây là hai ví dụ **cải thiện được kết quả của đúng bộ dữ liệu này**, không phải quy tắc “mọi phép cộng đều phải sắp xếp tăng theo trị tuyệt đối”. Với số hạng cả âm và dương, sự triệt tiêu có thể làm một cách sắp xếp khác tốt hơn. Nếu dữ liệu biểu diễn chuỗi trạng thái phụ thuộc thời gian, đôi khi thứ tự không thể tự ý đổi.
+These are two examples that **improve the result for this exact dataset**, not a rule that "every sum must be sorted in ascending order of absolute value." With both positive and negative terms, cancellation can make a different ordering better. If the data represents a time-dependent state sequence, sometimes the order cannot be arbitrarily changed.
 
-## 3. Ba chiến lược cộng nhiều số
+## 3. Three Strategies for Summing Many Numbers
 
-| Phương pháp | Cách làm | Lợi ích | Giới hạn |
+| Method | Approach | Benefits | Limitations |
 | --- | --- | --- | --- |
-| Cộng tuần tự (*naive summation*) | Lặp `sum += x` | Ít chi phí, dễ hiểu | Các số hạng nhỏ có thể bị mất |
-| Cộng từng cặp (*pairwise summation*) | Tính tổng theo cây cân bằng | Thường giảm số bước làm tròn trên mỗi đường tính | Kết quả vẫn phụ thuộc cách chia nhóm |
-| Cộng bù (*compensated summation*) | Giữ một phần sai số làm tròn trong biến bổ sung | Có thể bảo toàn những đóng góp nhỏ tốt hơn | Không luôn chính xác, phức tạp hơn |
+| Sequential summation (*naive summation*) | Loop `sum += x` | Low overhead, easy to understand | Small terms can be lost |
+| Pairwise summation (*pairwise summation*) | Sum in a balanced tree | Typically reduces rounding steps per computation path | Result still depends on grouping |
+| Compensated summation (*compensated summation*) | Keep part of the rounding error in an extra variable | Can preserve small contributions better | Not always exact, more complex |
 
-### 3.1. Pairwise summation
+### 3.1. Pairwise Summation
 
-Thay vì cộng một chuỗi dài từ trái sang phải, thuật toán pairwise phân đôi dãy, tính tổng từng nửa, sau đó cộng tổng hai nửa. Điều này giúp giảm chiều sâu cộng của mỗi phần tử từ mức tuyến tính về mức logarit trong cây cân bằng.
+Instead of summing a long sequence from left to right, the pairwise algorithm splits the sequence in half, sums each half, and then adds the two half-sums. This reduces the summation depth of each element from linear to logarithmic in a balanced tree.
 
 ```text
 x0 + x1 + x2 + x3 + x4 + x5 + x6 + x7
 
-Cộng cặp:     s01    s23    s45    s67
-Cộng nhóm:        s0123        s4567
-Cộng cuối:               total
+Pairwise add: s01    s23    s45    s67
+Group add:        s0123        s4567
+Final add:               total
 ```
 
-Pairwise thường hữu ích với dãy dài và có thể phối hợp song song. Tuy nhiên, hai cách chia nhóm có thể cho kết quả khác nhau; không được hứa mọi cây pairwise đều giảm sai số với mọi bộ dữ liệu có triệt tiêu mạnh.
+Pairwise summation is often useful for long sequences and can be combined with parallelism. However, two different groupings can yield different results; there is no guarantee that every pairwise tree reduces error for every dataset with heavy cancellation.
 
-### 3.2. Kahan summation
+### 3.2. Kahan Summation
 
-Thuật toán Kahan lưu `sum` và một biến `compensation` để bù sai số đã phát sinh trong phép cộng:
+The Kahan algorithm stores `sum` and a `compensation` variable to compensate for errors incurred during addition:
 
 ```java
 static double kahanSum(double[] values) {
@@ -149,25 +149,25 @@ static double kahanSum(double[] values) {
 }
 ```
 
-Đây là phương thức cần đặt trong một class. Với `{1e16, 1, 1, -1e16}`, Kahan có thể khôi phục tổng **2.0** do lưu lại phần 1 bị làm tròn mất ở bước đầu và bù ở bước sau.
+This is a method that must be placed inside a class. For `{1e16, 1, 1, -1e16}`, Kahan can recover the sum **2.0** by retaining the 1 rounded away in the early step and compensating in a later step.
 
-**Kahan không phải phép cộng chính xác tuyệt đối.** Trong một số dãy triệt tiêu bất lợi, chẳng hạn `{1e16, 1.0, -1e16}`, Kahan chuẩn vẫn có thể không trả 1.0. Khi cần chính xác hoặc độ ổn định cao hơn, cân nhắc Neumaier summation, thuật toán tổng bù nâng cao, số học đa độ chính xác hoặc một cách biểu diễn dữ liệu khác.
+**Kahan is not strictly exact addition.** In some adverse cancellation sequences, such as `{1e16, 1.0, -1e16}`, standard Kahan may still fail to return 1.0. When higher accuracy or stability is needed, consider Neumaier summation, higher-order compensated summation algorithms, multi-precision arithmetic, or a different data representation.
 
-### 3.3. Cách chọn
+### 3.3. How to Choose
 
-Dùng phép cộng tuần tự khi dữ liệu nhỏ hoặc yêu cầu sai số cho phép. Với số đo lớn, số lượng phần tử lớn và sai số tổng đáng kể, thử pairwise/Kahan cùng bộ dữ liệu kiểm thử. Nếu phép tính là **số nguyên bắt buộc chính xác**, nên dùng `long`, `Math.addExact` hoặc `BigInteger` đúng miền; nếu là tiền cần thập phân chính xác, cân nhắc `BigDecimal`. Không biến vấn đề chính xác tuyệt đối thành bài toán “mẹo cộng double”.
+Use sequential summation when data is small or error requirements allow it. With large measurements, many elements, and significant summation error, test pairwise/Kahan against representative test datasets. If the calculation involves **strictly exact integers**, use `long`, `Math.addExact`, or `BigInteger` matching the domain; if it is money requiring decimal exactness, consider `BigDecimal`. Do not turn an exactness requirement into a "double addition trick" problem.
 
-## 4. Triệt tiêu số gần bằng nhau: catastrophic cancellation
+## 4. Canceling Nearly Equal Numbers: Catastrophic Cancellation
 
-Khi trừ hai số gần bằng nhau, kết quả nhỏ có thể chứa **rất ít chữ số có nghĩa đáng tin**, dù mỗi toán hạng nhìn riêng có nhiều chữ số.
+When subtracting two nearly equal numbers, the small result may contain **very few reliable significant digits**, even though each operand on its own has many digits.
 
-Xét công thức:
+Consider the formula:
 
 ```text
 sqrt(1 + x) - 1
 ```
 
-với `x = 1e-16`:
+with `x = 1e-16`:
 
 ```java
 double x = 1e-16;
@@ -175,11 +175,11 @@ double naive = Math.sqrt(1.0 + x) - 1.0;
 System.out.println(naive); // 0.0
 ```
 
-`1.0 + 1e-16` bị làm tròn thành `1.0`; sau đó căn bậc hai và trừ 1 cho zero. Đầu vào `x` đã bị mất trong khi giá trị toán học của biểu thức vẫn dương gần `5e-17`.
+`1.0 + 1e-16` is rounded to `1.0`; then taking the square root and subtracting 1 yields zero. The input `x` has been lost even though the mathematical value of the expression remains positive near `5e-17`.
 
-### 4.1. Biến đổi bằng liên hợp
+### 4.1. Conjugate Transformation
 
-Trong miền biểu thức xác định và mẫu số khác 0:
+Within the domain where the expression is defined and the denominator is nonzero:
 
 ```text
 sqrt(1 + x) - 1
@@ -188,7 +188,7 @@ sqrt(1 + x) - 1
 = x / [sqrt(1 + x) + 1]
 ```
 
-Cách viết ổn định hơn quanh `x=0`:
+A more stable formulation around `x=0`:
 
 ```java
 double x = 1e-16;
@@ -196,47 +196,47 @@ double stable = x / (Math.sqrt(1.0 + x) + 1.0);
 System.out.println(stable); // 5.0E-17
 ```
 
-Tử số giữ trực tiếp `x`, nên dù `1.0+x` được làm tròn thành 1.0, phép chia vẫn bảo toàn đóng góp nhỏ.
+The numerator directly retains `x`, so even if `1.0+x` rounds to 1.0, the division still preserves the small contribution.
 
-Điều này minh họa nguyên tắc: **tránh tính hiệu của hai đại lượng gần bằng nhau nếu có công thức tương đương ổn định hơn**. Tuy nhiên phải xét miền xác định: căn yêu cầu `1+x >= 0` trong số thực; với `x=-1` mẫu số vẫn là 1, còn khi các giá trị cực lớn hoặc đặc biệt như Infinity/NaN, cách đánh giá cần được kiểm tra riêng.
+This illustrates the principle: **avoid computing the difference of two nearly equal quantities if a more stable equivalent formula exists**. However, you must consider the domain: the square root requires `1+x >= 0` in real numbers; at `x=-1` the denominator is still 1, while for extremely large values or special values like Infinity/NaN, evaluation must be checked separately.
 
-### 4.2. Không thể sửa phép tính sau khi dữ liệu đã bị làm tròn mất
+### 4.2. Computation Cannot Be Fixed After Data Has Already Been Rounded Away
 
-Nếu hai giá trị toán học khác nhau đã được lưu thành **cùng một giá trị `double`**, phép trừ giữa chúng chỉ thấy hai giá trị lưu được. Ép kiểu sau phép trừ hoặc đảo hai toán hạng không khôi phục thông tin ban đầu.
+If two distinct mathematical values have already been stored as **the exact same `double` value**, subtracting them only sees the two stored values. Casting after subtraction or swapping operands will not recover the original information.
 
-Giải pháp phải xuất hiện **trước bước mất thông tin**: đổi công thức, giữ số hạng nhỏ riêng, sử dụng kiểu chính xác hơn hoặc làm việc trực tiếp với dữ liệu gốc.
+The fix must happen **before the information-losing step**: change the formula, keep small terms separate, use a higher-precision type, or work directly with the original data.
 
-## 5. Chọn Math.log1p và Math.expm1 khi x gần 0
+## 5. Choosing Math.log1p and Math.expm1 When x Is Near 0
 
-Thư viện Java cung cấp hàm tránh mất thông tin trong hai biểu thức rất thường gặp.
+The Java library provides functions to prevent information loss in two very common expressions.
 
-### Math.log1p(x): log tự nhiên của 1+x
+### Math.log1p(x): Natural Log of 1+x
 
 ```java
 double x = 1e-16;
 double naive = Math.log(1.0 + x); // 0.0
-double stable = Math.log1p(x);    // Số dương gần 1e-16
+double stable = Math.log1p(x);    // Positive number near 1e-16
 ```
 
-Khi `x` rất nhỏ, phép `1.0+x` có thể làm tròn về 1, khiến `Math.log(1.0)` bằng 0. `Math.log1p` được thiết kế cho `ln(1+x)` và giữ độ chính xác tốt hơn ở vùng đó.
+When `x` is very small, `1.0+x` can round to 1, making `Math.log(1.0)` equal to 0. `Math.log1p` is designed for `ln(1+x)` and preserves accuracy much better in that region.
 
 ### Math.expm1(x): exp(x)-1
 
 ```java
 double x = 1e-16;
 double naive = Math.exp(x) - 1.0; // 0.0
-double stable = Math.expm1(x);    // Số dương gần 1e-16
+double stable = Math.expm1(x);    // Positive number near 1e-16
 ```
 
-Trong phép tính trực tiếp, `exp(x)` có thể làm tròn về 1 rồi phép trừ làm mất kết quả. `Math.expm1` tránh kiểu triệt tiêu này.
+In the direct calculation, `exp(x)` can round to 1 and then subtraction wipes out the result. `Math.expm1` avoids this kind of cancellation.
 
-Hai hàm có ích trong xác suất, thống kê, mô hình tăng trưởng và một số công thức tài chính; nhưng chỉ thay thế khi **ý nghĩa toán học cần tính đúng là `ln(1+x)` hoặc `exp(x)-1`**.
+Both functions are useful in probability, statistics, growth models, and certain financial formulas; however, substitute them only when **the exact mathematical quantity needed is `ln(1+x)` or `exp(x)-1`**.
 
-## 6. Đổi nhóm nhân/chia để tránh overflow và underflow trung gian
+## 6. Regrouping Multiplication/Division to Avoid Intermediate Overflow and Underflow
 
-Một biểu thức có kết quả toán học trong miền `double` vẫn có thể thất bại nếu **kết quả trung gian** vượt miền.
+An expression whose mathematical result lies within the `double` range can still fail if an **intermediate result** goes out of range.
 
-### 6.1. Tràn thành Infinity quá sớm
+### 6.1. Premature Overflow to Infinity
 
 ```java
 double x = Double.MAX_VALUE;
@@ -245,9 +245,9 @@ double overflowFirst = (x * 2.0) / 2.0; // Infinity
 double scaleFirst = x * (2.0 / 2.0);    // Double.MAX_VALUE
 ```
 
-Trong toán học cả hai bằng `x`. Nhưng phép `x*2` ở vế đầu tràn thành vô cực; chia vô cực cho 2 không đưa nó về hữu hạn. Phép tính ở vế sau tạo tỷ lệ 1 trước nên không tràn.
+Mathematically both equal `x`. Yet `x*2` on the first line overflows to infinity; dividing infinity by 2 does not bring it back to finite. The second line forms the ratio 1 first and therefore does not overflow.
 
-### 6.2. Underflow về zero quá sớm
+### 6.2. Premature Underflow to Zero
 
 ```java
 double tiny = 1e-300;
@@ -256,19 +256,19 @@ double underflowFirst = (tiny * tiny) / tiny; // 0.0
 double ratioFirst = tiny * (tiny / tiny);     // 1.0E-300
 ```
 
-`tiny*tiny` có độ lớn `1e-600`, quá nhỏ để lưu trong `double`; giá trị bị làm tròn thành 0. Tính tỷ lệ `tiny/tiny=1` trước tránh vấn đề cho bộ dữ liệu này.
+`tiny*tiny` has magnitude `1e-600`, too small to store in `double`; the value rounds to 0. Computing the ratio `tiny/tiny=1` first avoids the problem for this dataset.
 
-**Chú ý:** không phải cứ “chia trước” là tốt. Với mẫu số có thể bằng zero, rất nhỏ, rất lớn hoặc chứa NaN/Infinity, đổi thứ tự có thể gây lỗi mới. Cần xác minh miền xác định, dấu, giới hạn và chính sách sai số.
+**Note:** "dividing first" is not always good. When a denominator may be zero, very small, very large, or contain NaN/Infinity, changing order can introduce new bugs. You must verify the domain, sign, bounds, and error policy.
 
-### 6.3. Math.hypot tránh bình phương rồi mới lấy căn
+### 6.3. Math.hypot Avoids Squaring Before Taking the Square Root
 
-Độ dài của vector 2D:
+Length of a 2D vector:
 
 ```text
 sqrt(x² + y²)
 ```
 
-Nếu tính trực tiếp:
+If computed directly:
 
 ```java
 double x = 1e200;
@@ -276,20 +276,20 @@ double y = 1e200;
 double naive = Math.sqrt(x * x + y * y); // Infinity
 ```
 
-Vì `x*x` đã vượt miền hữu hạn của `double`, kết quả là vô cực, dù độ dài thực khoảng `1.414e200` vẫn hữu hạn.
+Because `x*x` already exceeds the finite range of `double`, the result is infinity, even though the true length around `1.414e200` is still finite.
 
-`Math.hypot(x, y)` dùng cách tính ổn định hơn cho căn tổng bình phương, tránh overflow/underflow trung gian không cần thiết:
+`Math.hypot(x, y)` uses a more stable computation for the square root of the sum of squares, avoiding unnecessary intermediate overflow/underflow:
 
 ```java
 double better = Math.hypot(1e200, 1e200);
 System.out.println(Double.isFinite(better)); // true
 ```
 
-`Math.hypot` không bảo đảm mọi đầu vào có kết quả hữu hạn: nếu **độ dài toán học** vượt miền biểu diễn, kết quả vẫn có thể vô cực.
+`Math.hypot` does not guarantee a finite result for every input: if the **mathematical length** exceeds the representable range, the result can still be infinite.
 
-## 7. Math.fma: giảm một lần làm tròn ở tích cộng
+## 7. Math.fma: Reducing One Rounding in Multiply-Add
 
-`Math.fma(a, b, c)` tính `a*b+c` bằng phép *fused multiply-add*, với một lần làm tròn ở cuối. Trong khi đó, biểu thức `a*b+c` có thể làm tròn sau nhân và làm tròn tiếp sau cộng.
+`Math.fma(a, b, c)` computes `a*b+c` using a *fused multiply-add*, with a single rounding at the end. In contrast, the expression `a*b+c` may round after multiplication and round again after addition.
 
 ```java
 double u = Math.ulp(1.0);
@@ -297,67 +297,67 @@ double a = 1.0 + u;
 double b = 1.0 - u;
 
 double separate = a * b - 1.0;     // 0.0
-double fused = Math.fma(a, b, -1.0); // Một số âm rất nhỏ.
+double fused = Math.fma(a, b, -1.0); // A very small negative number.
 ```
 
-Tích chính xác là `(1+u)(1-u)=1-u²`. Phép nhân riêng làm tròn về 1, rồi trừ 1 thành 0. FMA giữ giá trị trước khi làm tròn cuối và có thể cho kết quả âm khác 0.
+The exact product is `(1+u)(1-u)=1-u²`. Separate multiplication rounds to 1, and then subtracting 1 yields 0. FMA retains the value before final rounding and can produce a nonzero negative result.
 
-FMA hữu ích ở một số thuật toán vector, đa thức và cộng dồn tích, nhưng **không có nghĩa mọi phép tính đều chính xác tuyệt đối**. Vì nó cho kết quả khác nhân/cộng tách rời, không tự ý thay nếu hệ thống cần tính tương thích bit-for-bit.
+FMA is helpful in some vector, polynomial, and multiply-accumulate algorithms, but **it does not mean every computation is strictly exact**. Because it produces different results from separate multiply/add, do not substitute it arbitrarily if the system requires bit-for-bit compatibility.
 
-## 8. Tính toán có thứ tự khác vẫn phải đúng về kiểu và miền
+## 8. Reordered Computation Must Still Respect Types and Ranges
 
-Thứ tự phép toán không chỉ là vấn đề số thực; một phép tính nguyên có thể **tràn trước khi chuyển sang `double`**:
+Operation order is not only a floating-point issue; an integer operation can **overflow before converting to `double`**:
 
 ```java
 int count = 1_500_000_000;
 
-double wrong = count * 3;          // Tích int tràn trước khi gán.
-double floating = (double) count * 3; // Nhân double, không tràn int.
-long exact = (long) count * 3;     // 4_500_000_000L, nguyên chính xác.
+double wrong = count * 3;          // int product overflows before assignment.
+double floating = (double) count * 3; // double multiplication, no int overflow.
+long exact = (long) count * 3;     // 4_500_000_000L, exact integer.
 ```
 
-Nếu cần kết quả **số nguyên chính xác**, phương án `long` phù hợp hơn khi nó đủ miền, hoặc có thể dùng `Math.multiplyExact`/`BigInteger` khi cần kiểm tra. Chuyển sang `double` giúp tránh tràn ở ví dụ này nhưng có thể đánh mất các đơn vị nhỏ của những số nguyên lớn hơn `2^53`.
+If an **exact integer** result is required, `long` is better when its range suffices, or `Math.multiplyExact`/`BigInteger` can be used when checking is needed. Converting to `double` avoids overflow in this example, but can lose unit precision for integers larger than `2^53`.
 
-Cũng cần xét các phép chia: `int/int` bỏ phần lẻ trước khi gán vào `double`; ép sang `double` ở **một toán hạng trước phép chia** nếu muốn tính tỷ lệ gần đúng.
+Division must also be watched: `int/int` drops the fractional part before assigning to `double`; cast **one operand to `double` before division** if you want an approximate ratio.
 
-## 9. Đo sai số thay vì đánh giá kết quả bằng mắt
+## 9. Measure Error Instead of Eyeballing Results
 
-Một cách sắp xếp chỉ nên được gọi là “tốt hơn” khi có **giá trị tham chiếu** hoặc tiêu chí sai số.
+An ordering should only be called "better" when there is a **reference value** or an error criterion.
 
-Hai thước đo phổ biến:
+Two common metrics:
 
 ```text
-sai_số_tuyệt_đối = |kết_quả - tham_chiếu|
-sai_số_tương_đối = sai_số_tuyệt_đối / |tham_chiếu|
+absolute_error = |result - reference|
+relative_error = absolute_error / |reference|
 ```
 
-Sai số tương đối không dùng trực tiếp khi tham chiếu bằng 0. Khi kết quả thật gần 0, cần ngưỡng tuyệt đối có đơn vị, phân tích độ nhạy hoặc quy tắc miền rõ ràng.
+Relative error cannot be used directly when the reference is 0. When the true result is near 0, an absolute threshold with units, sensitivity analysis, or a clear domain rule is needed.
 
-Ví dụ tổng của `{1e16,1,1,-1e16}` có tham chiếu toán học chính xác bằng 2. Phép cộng tuần tự cho 0 nên sai số tuyệt đối bằng 2; ghép nhóm và Kahan cho 2 nên sai số bằng 0 **đối với chính dữ liệu này**.
+For example, the sum of `{1e16,1,1,-1e16}` has an exact mathematical reference of 2. Sequential summation gives 0 so the absolute error is 2; grouping and Kahan give 2 so the error is 0 **for this specific dataset**.
 
-Phân biệt:
+Distinguish between:
 
-- **Điều kiện bài toán** (*conditioning*): đầu vào thay đổi rất ít có thể làm kết quả toán học thay đổi tương đối nhiều; đặc biệt với hiệu hai số gần bằng nhau.
-- **Độ ổn định thuật toán** (*numerical stability*): thuật toán có khuếch đại sai số không cần thiết do thứ tự phép toán và biểu diễn trung gian không?
+- **Problem conditioning** (*conditioning*): a tiny change in input can cause a relatively large change in the mathematical result; especially with the difference of two nearly equal numbers.
+- **Numerical stability** (*numerical stability*): does the algorithm amplify error unnecessarily due to operation order and intermediate representation?
 
-Một thuật toán ổn định hơn không thể tự loại bỏ sai số vốn đã có trong dữ liệu đo. Cần biết độ chính xác nguồn và sai số được chấp nhận trước khi thay đổi công thức.
+A more stable algorithm cannot eliminate error already present in measured data. You need to know the source precision and acceptable error before changing formulas.
 
-### Checklist đánh giá một phép biến đổi
+### Checklist for Evaluating a Transformation
 
-1. Xác định ý nghĩa dữ liệu: số đo gần đúng, tổng nguyên chính xác, tiền tệ hay chỉ số?
-2. Đọc kiểu của **từng biểu thức con**: phép nào đã tràn hoặc làm tròn trước khi gán?
-3. Xem có cộng nhiều số rất nhỏ vào tổng lớn hay không; có thể thay bằng ghép nhóm, pairwise hoặc compensated summation?
-4. Xem có trừ hai giá trị gần bằng nhau hay không; có công thức tương đương tránh triệt tiêu?
-5. Với nhân chia, kiểm tra overflow/underflow trung gian và miền mẫu số.
-6. Dùng `Math.log1p`, `Math.expm1`, `Math.hypot`, `Math.fma` khi đúng mục đích và điều kiện áp dụng.
-7. Dùng test có kết quả chuẩn và đánh giá sai số tuyệt đối/tương đối có đơn vị.
-8. Thử các trường hợp số dương/âm, triệt tiêu mạnh, zero, số rất lớn/rất nhỏ, NaN và Infinity.
-9. Kiểm soát thứ tự tính toán trong tác vụ song song nếu cần tái lập kết quả bit-for-bit.
-10. Không giả định một phép đổi dấu ngoặc hợp lý trên dữ liệu mẫu luôn tốt trên mọi miền.
+1. Identify data meaning: approximate measurement, exact integer sum, currency, or index?
+2. Read the type of **each subexpression**: which operation already overflowed or rounded before assignment?
+3. Check if many very small numbers are added to a large sum; can grouping, pairwise, or compensated summation replace it?
+4. Check if two nearly equal values are subtracted; is there an equivalent formula avoiding cancellation?
+5. For multiplication/division, check intermediate overflow/underflow and denominator domain.
+6. Use `Math.log1p`, `Math.expm1`, `Math.hypot`, `Math.fma` when matching the purpose and applicability conditions.
+7. Write tests with ground-truth results and evaluate unit-aware absolute/relative error.
+8. Test positive/negative cases, heavy cancellation, zero, very large/very small numbers, NaN, and Infinity.
+9. Control computation order in parallel tasks if bit-for-bit reproducibility is needed.
+10. Do not assume a parenthesization that looks reasonable on sample data is always good across the whole domain.
 
-## 10. Chương trình Java 17+ hoàn chỉnh
+## 10. Complete Java 17+ Program
 
-Tạo file **`CalculationOrderDemo.java`**:
+Create the file **`CalculationOrderDemo.java`**:
 
 ```java
 public class CalculationOrderDemo {
@@ -433,7 +433,7 @@ public class CalculationOrderDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac CalculationOrderDemo.java
@@ -464,54 +464,54 @@ fma-separate-zero=true
 fma-negative=true
 ```
 
-**Cách đọc kết quả:** `lost`/`kept` và ba cách cộng cho thấy dữ liệu nhỏ có thể bị mất hoặc được giữ; `overflow-first`/`underflow-first` cho thấy giá trị trung gian quyết định kết quả; `root-stable`, `log1p-positive` và `expm1-positive` cho thấy công thức/hàm ổn định hơn gần 0; `Math.hypot` tránh overflow của bình phương; hai dòng FMA cho thấy giảm một lần làm tròn có thể làm kết quả khác nhân/trừ riêng.
+**How to read the output:** `lost`/`kept` and the three summation approaches show how small data can be lost or preserved; `overflow-first`/`underflow-first` show how intermediate values determine the result; `root-stable`, `log1p-positive`, and `expm1-positive` show more stable formulas/functions near 0; `Math.hypot` avoids squaring overflow; and the two FMA lines show that removing one rounding step can make the result differ from separate multiplication and subtraction.
 
-## 11. Những sai lầm thường gặp
+## 11. Common Mistakes
 
-| Nhầm lẫn | Tác hại | Cách xử lý |
+| Mistake | Harm | Remedy |
 | --- | --- | --- |
-| Coi `(a+b)+c` luôn bằng `a+(b+c)` | Mất số hạng nhỏ hoặc khác kết quả | Phân tích ULP và thử dữ liệu biên |
-| Cộng tất cả số nhỏ sau khi tổng đã rất lớn | Đóng góp nhỏ có thể bị nuốt | Thử ghép nhóm, pairwise, Kahan |
-| Khẳng định luôn phải cộng theo trị tuyệt đối tăng dần | Không đúng cho mọi dãy có dấu; có thể đổi semantics | Chỉ đổi thứ tự khi miền cho phép, đo sai số |
-| Coi Kahan luôn exact | Có trường hợp triệt tiêu mà Kahan vẫn sai | Kiểm thử, cân nhắc Neumaier/độ chính xác cao |
-| Lấy hiệu hai số gần bằng nhau mà không xét sai số | Mất nhiều chữ số có nghĩa | Dùng công thức tránh triệt tiêu, chẳng hạn liên hợp |
-| Tính `log(1+x)` hoặc `exp(x)-1` khi x quá nhỏ | Kết quả có thể về zero | Dùng `log1p` và `expm1` đúng mục đích |
-| Tính `sqrt(x*x+y*y)` với x,y lớn | Bình phương có thể vô cực | Dùng `Math.hypot` |
-| Nghĩ chia trước luôn an toàn | Có thể chia cho 0 hoặc sai ở miền khác | Chứng minh điều kiện và kiểm thử |
-| Nghĩ `Math.fma` và `a*b+c` phải luôn cùng bit | Khác số lần làm tròn | Chọn theo thuật toán, xem tính tương thích |
-| Ép kiểu sau phép nhân nguyên đã tràn | Giá trị đã mất trước khi cast | Nâng kiểu trước, dùng checked arithmetic |
-| Dùng `double` cho số lượng/tiền phải chính xác | Không bảo đảm giữ mọi đơn vị | Dùng kiểu nguyên hoặc thập phân chính xác |
-| Chỉ nhìn vài dòng output có vẻ hợp lý | Không thấy ca gần giới hạn và triệt tiêu | Có kết quả tham chiếu và chỉ tiêu sai số |
+| Assuming `(a+b)+c` always equals `a+(b+c)` | Small terms lost or different results | Analyze ULP and test boundary data |
+| Adding all small numbers after the sum is already huge | Small contributions can be swallowed | Try grouping, pairwise, or Kahan |
+| Claiming you must always sum in ascending order of magnitude | Not true for all signed sequences; can alter semantics | Reorder only when the domain allows, and measure error |
+| Assuming Kahan is always exact | Some cancellation cases still fail under Kahan | Test, consider Neumaier or higher precision |
+| Taking the difference of two nearly equal numbers without checking error | Loss of many significant digits | Use a cancellation-avoiding formula, e.g., conjugate |
+| Computing `log(1+x)` or `exp(x)-1` when x is too small | Result can collapse to zero | Use `log1p` and `expm1` for their intended purpose |
+| Computing `sqrt(x*x+y*y)` for large x, y | Squaring can become infinite | Use `Math.hypot` |
+| Thinking dividing first is always safe | Can divide by 0 or fail in other domains | Prove conditions and test |
+| Thinking `Math.fma` and `a*b+c` must always match bit-for-bit | Different number of rounding steps | Choose per algorithm, watch compatibility |
+| Casting after an integer multiplication has already overflowed | Value is already lost before the cast | Widen type first, use checked arithmetic |
+| Using `double` for quantities/money that must be exact | Cannot guarantee preserving every unit | Use exact integer or decimal types |
+| Looking at only a few plausible output lines | Misses near-limit and cancellation cases | Use reference results and error metrics |
 
-## 12. Bài tập tự luyện
+## 12. Practice Exercises
 
-**Bài 1 – Thứ tự và ULP.** Tính `Math.ulp(1e16)`; dự đoán `(1e16+1)-1e16` và `(1e16-1e16)+1`. Vì sao hai đáp án khác nhau?
+**Exercise 1 – Order and ULP.** Compute `Math.ulp(1e16)`; predict `(1e16+1)-1e16` and `(1e16-1e16)+1`. Why do the two answers differ?
 
-**Bài 2 – Tổng bốn số.** Với `{1e16, 1.0, 1.0, -1e16}`, tính tổng toán học, tổng tuần tự, tổng ghép nhóm và tổng Kahan. Hoán vị dữ liệu và quan sát thay đổi.
+**Exercise 2 – Sum of four numbers.** Given `{1e16, 1.0, 1.0, -1e16}`, compute the mathematical sum, sequential sum, grouped sum, and Kahan sum. Permute the data and observe changes.
 
-**Bài 3 – Phản ví dụ cho Kahan.** Thử `{1e16, 1.0, -1e16}`. Có thể chỉ dùng Kahan mà bảo đảm tổng chính xác 1.0 không? Hãy giải thích.
+**Exercise 3 – Counterexample for Kahan.** Try `{1e16, 1.0, -1e16}`. Can using Kahan alone guarantee an exact sum of 1.0? Explain.
 
-**Bài 4 – Triệt tiêu gần zero.** Chứng minh bằng liên hợp `sqrt(1+x)-1 = x/(sqrt(1+x)+1)`. Kiểm thử `x=1e-16`; nêu miền xác định.
+**Exercise 4 – Cancellation near zero.** Prove via conjugate that `sqrt(1+x)-1 = x/(sqrt(1+x)+1)`. Test `x=1e-16`; state the domain.
 
-**Bài 5 – Hàm thư viện ổn định.** Dùng `Math.log1p` và `Math.expm1` để tính những biểu thức tương đương với `log(1+x)` và `exp(x)-1` khi x gần 0. So sai số với kết quả độ chính xác cao.
+**Exercise 5 – Stable library functions.** Use `Math.log1p` and `Math.expm1` to compute expressions equivalent to `log(1+x)` and `exp(x)-1` when x is near 0. Compare errors against high-precision results.
 
-**Bài 6 – Overflow/underflow trung gian.** Giải thích sự khác biệt của `(Double.MAX_VALUE*2)/2` và `Double.MAX_VALUE*(2/2)` với các literal kiểu double. Làm tương tự cho `1e-300` nhân/chia.
+**Exercise 6 – Intermediate overflow/underflow.** Explain the difference between `(Double.MAX_VALUE*2)/2` and `Double.MAX_VALUE*(2/2)` with double literals. Do the same for `1e-300` multiplication/division.
 
-**Bài 7 – Độ dài vector.** So `Math.sqrt(x*x+y*y)` với `Math.hypot(x,y)` khi `x=y=1e200` và khi `x,y` rất nhỏ. Kết quả toán học có nằm trong miền double không?
+**Exercise 7 – Vector length.** Compare `Math.sqrt(x*x+y*y)` with `Math.hypot(x,y)` when `x=y=1e200` and when `x,y` are very small. Does the mathematical result lie within the double range?
 
-**Bài 8 – FMA và tái lập kết quả.** Viết test cho `Math.fma(a,b,-1)` với `a=1+ulp(1)`, `b=1-ulp(1)`. Vì sao dùng FMA có thể thay đổi kết quả bitwise?
+**Exercise 8 – FMA and reproducibility.** Write a test for `Math.fma(a,b,-1)` with `a=1+ulp(1)`, `b=1-ulp(1)`. Why can using FMA change the bitwise result?
 
-**Bài 9 – Thiết kế thực tế.** Một hệ thống tổng hợp hàng triệu phép đo trên các worker song song cần kết quả ổn định và lặp lại. Bạn sẽ cố định cây reduction, chọn thuật toán tổng nào, xử lý NaN/Infinity ra sao và đo sai số như thế nào?
+**Exercise 9 – Real-world design.** A system aggregating millions of measurements across parallel workers needs stable and repeatable results. How would you fix the reduction tree, which summation algorithm would you choose, how would you handle NaN/Infinity, and how would you measure error?
 
-## 13. Ghi nhớ
+## 13. Key Takeaways
 
-- Phép cộng và nhân dấu phẩy động **không kết hợp tổng quát**; thay đổi thứ tự có thể ảnh hưởng kết quả.
-- Số hạng quá nhỏ so với tổng đang có có thể bị làm tròn mất; ghép nhóm, pairwise hoặc Kahan có thể cải thiện nhưng không bảo đảm đúng tuyệt đối.
-- Trừ hai số gần bằng nhau có thể mất chữ số có nghĩa; ưu tiên biến đổi công thức để tránh triệt tiêu khi có thể.
-- `Math.log1p`, `Math.expm1`, `Math.hypot` giúp giải quyết các dạng mất thông tin trung gian thường gặp.
-- Nhân/chia theo thứ tự không phù hợp có thể overflow thành Infinity hoặc underflow về zero trước khi kết quả cuối được tính.
-- `Math.fma` khác biểu thức nhân cộng riêng vì chỉ làm tròn một lần.
-- Chọn kiểu đủ chính xác cho miền dữ liệu; **không có mẹo đổi thứ tự nào thay thế được `BigInteger`, `BigDecimal` hoặc checked arithmetic khi nghiệp vụ yêu cầu chính xác**.
-- Mọi tối ưu độ ổn định nên có **kết quả chuẩn, kiểm thử biên và tiêu chí sai số**.
+- Floating-point addition and multiplication are **not generally associative**; changing order can affect the result.
+- Terms too small relative to the running sum can be rounded away; grouping, pairwise, or Kahan can improve results but do not guarantee strict exactness.
+- Subtracting two nearly equal numbers can lose significant digits; prefer transforming the formula to avoid cancellation when possible.
+- `Math.log1p`, `Math.expm1`, and `Math.hypot` solve common forms of intermediate information loss.
+- Multiplying/dividing in an unsuitable order can overflow to Infinity or underflow to zero before the final result is computed.
+- `Math.fma` differs from separate multiply-and-add expressions because it rounds only once.
+- Choose a type sufficiently accurate for the data domain; **no reordering trick replaces `BigInteger`, `BigDecimal`, or checked arithmetic when business logic requires exactness**.
+- Every stability optimization should be backed by **reference results, boundary tests, and error criteria**.
 
-**Kết luận:** thay đổi thứ tự phép tính có thể giảm mất thông tin trong Java, nhưng chỉ khi đã hiểu nguyên nhân sai số và miền dữ liệu. Hãy chọn một công thức/thuật toán ổn định hơn dựa trên kiểm chứng, thay vì chỉ đổi dấu ngoặc theo thói quen.
+**Conclusion:** changing operation order can reduce information loss in Java, but only once you understand the error source and data domain. Choose a more stable formula/algorithm based on verification, rather than changing parentheses out of habit.

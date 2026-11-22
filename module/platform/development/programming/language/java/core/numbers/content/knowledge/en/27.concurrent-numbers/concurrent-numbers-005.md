@@ -1,11 +1,11 @@
-# Compare-and-set và việc hàm cập nhật có thể bị gọi lại
+# Compare-and-Set and Why an Update Function May Be Invoked Multiple Times
 
-## 1. Vấn đề khi nhiều luồng cùng cập nhật một con số
+## 1. The Problem When Multiple Threads Update One Number
 
-Giả sử một chương trình Java lưu bộ đếm lượt truy cập, số ghế còn lại, tổng số đơn hàng hoặc trạng thái số của một thiết bị. Nếu nhiều luồng cùng đọc, tính toán và ghi biến, đoạn mã sau **không bảo đảm tăng chính xác**:
+Suppose a Java program stores a visit counter, remaining seats, total orders, or the numeric state of a device. If multiple threads concurrently read, compute, and write the variable, the following code **does not guarantee accurate incrementing**:
 
 ```java
-// Counter là lớp chứa một trường mutable:
+// Counter is a class containing a mutable field:
 class Counter {
     int value = 0;
 
@@ -15,48 +15,48 @@ class Counter {
 }
 ```
 
-Phép `value = value + 1` là chuỗi thao tác: đọc giá trị, tính `+1`, ghi kết quả. Hai luồng có thể cùng đọc 10 rồi cùng ghi 11, khiến một lần tăng bị mất (*lost update*). Thêm `volatile` giúp bảo đảm tính hiển thị nhất định của truy cập biến, nhưng **không biến cả phép đọc–sửa–ghi thành một thao tác nguyên tử**.
+The statement `value = value + 1` is a sequence of operations: reading the value, computing `+1`, and writing the result. Two threads can both read 10 and both write 11, causing one increment to be lost (*lost update*). Adding `volatile` provides certain visibility guarantees for variable accesses, yet **does not turn the entire read–modify–write into an atomic operation**.
 
-Các lớp trong `java.util.concurrent.atomic`, đặc biệt `AtomicInteger` và `AtomicLong`, hỗ trợ các thao tác nguyên tử trên một giá trị số. Cơ chế quan trọng để hiểu chúng là **compare-and-set (CAS)** và **vòng lặp thử lại** khi giá trị đang được luồng khác thay đổi.
+Classes in `java.util.concurrent.atomic`, especially `AtomicInteger` and `AtomicLong`, support atomic operations on a numeric value. A key mechanism to understand them is **compare-and-set (CAS)** and **retry loops** when the value is concurrently changed by another thread.
 
-Mục tiêu chính của bài: hiểu chính xác điều kiện CAS thành công, vì sao hàm đưa vào `updateAndGet()` hoặc `getAndUpdate()` có thể được gọi **nhiều lần cho một lời gọi API**, cách thiết kế hàm cập nhật an toàn, và lúc nào nên chọn API số nguyên tử khác.
+Main goals of this lesson: understand the exact condition under which CAS succeeds, why a function passed to `updateAndGet()` or `getAndUpdate()` can be called **multiple times for a single API invocation**, how to design safe update functions, and when to choose other atomic number APIs.
 
-## 2. Compare-and-set (CAS) là gì?
+## 2. What Is Compare-and-Set (CAS)?
 
-Trong `AtomicInteger`:
+In `AtomicInteger`:
 
 ```java
 boolean compareAndSet(int expectedValue, int newValue);
 ```
 
-Ý nghĩa: tại thời điểm thao tác nguyên tử được thực hiện, nếu giá trị hiện tại **bằng** `expectedValue`, đặt nó thành `newValue` và trả `true`; nếu không, giữ nguyên giá trị và trả `false`.
+Meaning: at the moment the atomic operation executes, if the current value **equals** `expectedValue`, set it to `newValue` and return `true`; otherwise, leave the value unchanged and return `false`.
 
 ```java
 AtomicInteger seats = new AtomicInteger(2);
 
 boolean first = seats.compareAndSet(2, 1); // true: 2 -> 1
-boolean stale = seats.compareAndSet(2, 0); // false: current là 1
+boolean stale = seats.compareAndSet(2, 0); // false: current is 1
 int remaining = seats.get();               // 1
 ```
 
-Trong một lần CAS thành công, kiểm tra điều kiện và ghi giá trị được thực hiện cùng một bước nguyên tử đối với biến atomic đó. Nó bảo vệ thao tác **trên chính biến ấy** trước sự tranh chấp giữa các luồng cùng thao tác đúng thông qua atomic.
+In a successful CAS, checking the condition and writing the value happen in a single atomic step on that atomic variable. It protects the operation **on that variable itself** against contention among threads operating properly through the atomic API.
 
-Có thể hình dung:
+You can picture it as:
 
 ```text
-Giá trị hiện tại = 10
+Current value = 10
 
-Luồng A đọc 10, dự tính ghi 15.
-Luồng B đọc 10, CAS(10, 20) thành công -> giá trị = 20.
-Luồng A CAS(10, 15) thất bại vì giá trị hiện tại đã là 20.
-Luồng A phải đọc lại 20 và tính phương án mới, ví dụ 25.
+Thread A reads 10, plans to write 15.
+Thread B reads 10, CAS(10, 20) succeeds -> value = 20.
+Thread A's CAS(10, 15) fails because current value is already 20.
+Thread A must re-read 20 and compute a new candidate, e.g., 25.
 ```
 
-CAS không tự chọn cách tính lại. Vòng lặp của ứng dụng hoặc các API như `updateAndGet()` thực hiện công việc đó.
+CAS does not decide how to recompute by itself. Either an application loop or APIs such as `updateAndGet()` handle that work.
 
-## 3. Vòng lặp CAS: vì sao hàm cập nhật được tính lại?
+## 3. The CAS Loop: Why Is the Update Function Re-evaluated?
 
-Hãy xem một mô hình minh họa của `updateAndGet()`, **không phải bản chép mã nguồn nội bộ JDK**:
+Consider an illustrative model of `updateAndGet()`, **not a copy of internal JDK source code**:
 
 ```java
 static int updateWithCas(
@@ -68,25 +68,25 @@ static int updateWithCas(
         if (value.compareAndSet(observed, candidate)) {
             return candidate;
         }
-        // Có tranh chấp: đọc lại giá trị, gọi updater lần nữa.
+        // Contention occurred: re-read value, invoke updater again.
     }
 }
 ```
 
-Phương thức trên là mã minh họa cần đặt trong một lớp Java, với `import java.util.concurrent.atomic.AtomicInteger;`. Khi CAS thất bại vì có một cập nhật cạnh tranh, vòng lặp tính lại `candidate` từ giá trị mới. Do đó:
+The method above is illustrative code to place inside a Java class with `import java.util.concurrent.atomic.AtomicInteger;`. When CAS fails due to a competing update, the loop recomputes `candidate` from the new value. Consequently:
 
-- **Một lần gọi `updateAndGet(f)` có thể gọi `f` nhiều lần**; số lần tùy diễn biến tranh chấp.
-- **Chỉ phép CAS thành công mới chốt cập nhật** của lời gọi đó. Các kết quả tính thử trước đó có thể bị loại bỏ.
-- Giá trị mà `f` nhận ở mỗi lần chạy có thể khác nhau, vì trạng thái dùng để tính mới đã thay đổi.
-- Không được suy rằng “hàm trả kết quả một lần” đồng nghĩa “callback đã chạy một lần”.
+- **One call to `updateAndGet(f)` may invoke `f` multiple times**; how many times depends on contention.
+- **Only the successful CAS commits the update** for that call. Previous trial computation results are discarded.
+- The value `f` receives on each execution may differ, because the state used to compute the new value has changed.
+- Do not infer that "the method returns once" means "the callback ran once."
 
-Đây là hợp đồng quan trọng của các phương thức cập nhật bằng hàm trên atomic: tài liệu Java khuyến nghị hàm cập nhật **không có tác dụng phụ** (*side-effect-free*) vì nó có thể bị áp dụng lại khi thao tác cập nhật thất bại do tranh chấp.
+This is a crucial contract of functional update methods on atomics: Java documentation advises that the update function be **side-effect-free** because it may be re-applied when an attempted update fails due to contention.
 
-## 4. Ví dụ Java 17 có thể tái hiện retry một cách xác định
+## 4. A Java 17 Example That Deterministically Reproduces Retries
 
-Trong chương trình sau, hai `CountDownLatch` dùng **chỉ để kiểm chứng**: buộc luồng cạnh tranh cập nhật số từ 10 thành 20 **sau khi** callback lượt đầu tiên đã đọc 10 nhưng **trước khi** CAS của lượt đó diễn ra.
+In the following program, two `CountDownLatch` instances are used **solely for verification**: forcing a competing thread to update the number from 10 to 20 **after** the first callback pass has read 10 but **before** that pass's CAS executes.
 
-Tạo tệp **`CasRetryDemo.java`**:
+Create **`CasRetryDemo.java`**:
 
 ```java
 import java.util.concurrent.CountDownLatch;
@@ -155,14 +155,14 @@ public class CasRetryDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac CasRetryDemo.java
 java CasRetryDemo
 ```
 
-Kết quả **đã kiểm chứng** khi biên dịch với `javac --release 17`:
+**Verified** output when compiled with `javac --release 17`:
 
 ```text
 firstCAS=true, seats=1
@@ -173,92 +173,92 @@ accumulateAndGet=42
 longAfter=4000000001
 ```
 
-**Giải thích vì sao callback chạy hai lần:**
+**Explanation of why the callback ran twice:**
 
-1. `value` bắt đầu là 10. Lượt áp dụng hàm đầu tiên nhận `old = 10`, lưu dấu vết vào `firstSeen` và ra hiệu cho luồng cạnh tranh.
-2. Callback chờ `competitorDone`. Luồng cạnh tranh gọi `value.compareAndSet(10, 20)` thành công, vì lần cập nhật chính chưa chốt.
-3. Callback đầu tiên tiếp tục, đề xuất 15. CAS áp dụng đề xuất đó thất bại: số hiện tại đã là 20, không còn là 10.
-4. API cập nhật thử lại; callback nhận `old = 20`, tính 25. Lần CAS tiếp theo thành công vì luồng cạnh tranh đã hoàn thành.
-5. `updateAndGet()` trả 25. Bộ đếm chẩn đoán `calls = 2` chứng minh **một lời gọi API có hai lần đánh giá callback**.
+1. `value` starts at 10. The first function application receives `old = 10`, records it in `firstSeen`, and signals the competing thread.
+2. The callback waits on `competitorDone`. The competing thread calls `value.compareAndSet(10, 20)` and succeeds because the main update has not committed yet.
+3. The first callback resumes and proposes 15. The CAS applying that proposal fails: the current number is already 20, no longer 10.
+4. The update API retries; the callback receives `old = 20` and computes 25. The next CAS succeeds because the competing thread has finished.
+5. `updateAndGet()` returns 25. The diagnostic counter `calls = 2` proves **a single API call evaluated the callback twice**.
 
-Trong ví dụ, `calls.incrementAndGet()`, `firstSeen.set()` và hai latch là **tác dụng phụ chủ đích của mã thử nghiệm** để quan sát retry. **Không sao chép mô hình callback có tác dụng phụ này vào xử lý nghiệp vụ thực tế.** Các callback sản xuất bên dưới chỉ tính toán từ tham số nhận vào.
+In the example, `calls.incrementAndGet()`, `firstSeen.set()`, and the two latches are **intentional test-code side effects** to observe retries. **Do not copy this callback-with-side-effects pattern into production business logic.** The production callbacks below compute solely from their input argument.
 
-Lưu ý: đây là ví dụ có điều phối để làm lỗi CAS xuất hiện chắc chắn. Khi tranh chấp ngẫu nhiên trong hệ thống thật, callback có thể chạy một lần, hai lần hoặc nhiều lần; không giả định một số lần cụ thể.
+Note: this is a coordinated example to make a CAS failure happen deterministically. Under random contention in real systems, a callback may run once, twice, or many times; never assume a fixed count.
 
-## 5. Hàm cập nhật phải an toàn khi được gọi lại
+## 5. Update Functions Must Be Safe When Re-invoked
 
-Một hàm cập nhật **thuần** (*pure function*) chỉ tính kết quả từ dữ liệu đầu vào và các hằng số/đầu vào bất biến liên quan, không tạo tác dụng phụ có thể quan sát từ bên ngoài.
+A **pure function** computes its result solely from input data and relevant immutable constants/inputs, producing no externally observable side effects.
 
-### Cách đúng: tính lại giá trị số
+### Right way: recomputing a numeric value
 
 ```java
 AtomicInteger balance = new AtomicInteger(100);
 int latest = balance.updateAndGet(current -> current + 20);
-// balance = 120 nếu không có cập nhật cạnh tranh khác
+// balance = 120 if no other competing update occurred
 ```
 
-Hàm `current -> current + 20` có thể được gọi lại với giá trị mới sau khi CAS thất bại; giá trị cuối được chốt sau một CAS thành công.
+The function `current -> current + 20` can be re-invoked with a new value after a failed CAS; the final value is committed after a successful CAS.
 
-**Không yêu cầu hàm phải bất biến dưới phép áp dụng hai lần** theo nghĩa toán học `f(f(x)) = f(x)`. Hàm `f(x) = x + 20` không có tính chất đó nhưng vẫn phù hợp. Điều cần thiết là việc **tính thử nhiều lần không gây thêm tác dụng phụ**, và hàm tính đúng kết quả từ giá trị *hiện tại được truyền vào*.
+**The function does not need to be idempotent under double application** in the mathematical sense `f(f(x)) = f(x)`. The function `f(x) = x + 20` lacks that property yet is still suitable. What matters is that **re-evaluating it multiple times causes no extra side effects**, and the function computes the right result from the *current value passed in*.
 
-### Cách sai: gửi email, ghi log nghiệp vụ, gọi API bên ngoài
+### Wrong way: sending email, writing business logs, calling external APIs
 
 ```java
-// PHẢN VÍ DỤ — không thực hiện hành động ngoài trong callback.
+// ANTI-PATTERN — do not perform external actions inside the callback.
 balance.updateAndGet(current -> {
-    sendNotification("Đã cộng 20"); // Có thể chạy nhiều lần.
+    sendNotification("Added 20"); // May execute multiple times.
     return current + 20;
 });
 ```
 
-`sendNotification(...)` là ký hiệu minh họa hành vi bên ngoài, không phải phương thức có sẵn trong Java. Nếu CAS thất bại, thông báo có thể được gửi dù đề xuất `current + 20` **chưa từng được ghi**, hoặc gửi nhiều lần.
+`sendNotification(...)` is a placeholder representing external behavior, not a built-in Java method. If CAS fails, the notification may be sent even though the proposed `current + 20` **was never written**, or it may be sent multiple times.
 
-Tương tự, tránh gọi dịch vụ mạng, ghi file/database, phát thông điệp, tạo giao dịch thanh toán, tăng một bộ đếm nghiệp vụ khác, hoặc tạo ID mới bên trong callback mà bạn chỉ muốn thực hiện một lần.
+Similarly, avoid calling network services, writing files/databases, publishing messages, creating payment transactions, incrementing another business counter, or generating new IDs inside a callback when you intend them to happen only once.
 
-Nếu cần hành động phụ sau khi cập nhật:
+If a follow-up action is needed after updating:
 
 ```java
 int newValue = balance.updateAndGet(current -> current + 20);
-// Sau khi lời gọi thành công, phần code này chỉ chạy một lần theo luồng này.
+// After the call succeeds, this code runs once on this thread.
 recordSuccessfulUpdate(newValue);
 ```
 
-`recordSuccessfulUpdate(...)` cũng là ký hiệu minh họa, không phải phương thức Java có sẵn. Đây là bước **sau** khi cập nhật chốt thành công; tuy nhiên cập nhật atomic và hành động bên ngoài **không phải một giao dịch duy nhất**. Nếu ứng dụng có thể bị dừng giữa hai bước, hoặc cần bảo đảm gửi sự kiện đúng một lần khi có retry toàn bộ tác vụ, phải thiết kế thêm giao dịch, outbox hoặc khóa idempotency phù hợp.
+`recordSuccessfulUpdate(...)` is also an illustrative placeholder, not a built-in Java method. This step happens **after** the update commits; however, the atomic update and the external action **do not form a single transaction**. If the application can crash between the two steps, or if at-most-once/exactly-once event delivery under full task retries is required, you must design transactions, an outbox, or appropriate idempotency keys.
 
-### Các lỗi tinh vi khác
+### Other Subtle Bugs
 
-- **Đọc biến thay đổi từ bên ngoài:** `updateAndGet(x -> x + currentBonus.get())` có thể tính phần cộng khác nhau giữa các lần thử nếu `currentBonus` đổi. Nếu nghiệp vụ yêu cầu giữ nguyên khoản cộng cho *một* hành động, chụp giá trị thưởng trước rồi dùng hằng số đó trong callback.
-- **Thời gian và random:** `Instant.now()`, số ngẫu nhiên hoặc truy vấn trạng thái ngoài trong callback có thể cho kết quả khác nhau khi retry. Quyết định đầu vào bất biến trước khi cập nhật.
-- **Ngoại lệ:** nếu callback ném ngoại lệ, lời gọi cập nhật đó không chốt giá trị đề xuất; các tác dụng phụ đã xảy ra ở những lượt callback trước **không được hoàn tác**.
-- **Đọc hai atomic riêng lẻ:** callback chỉ bảo đảm CAS nguyên tử cho **một biến atomic đích**. Nó không chốt đồng thời một bản ghi nghiệp vụ trải qua nhiều biến khác.
+- **Reading mutable external variables:** `updateAndGet(x -> x + currentBonus.get())` may compute different increments across attempts if `currentBonus` changes. If business logic requires keeping the bonus fixed for *one* action, snapshot the bonus value beforehand and use that constant inside the callback.
+- **Time and randomness:** `Instant.now()`, random numbers, or external state queries inside a callback can yield different results on retry. Determine immutable inputs before updating.
+- **Exceptions:** if a callback throws an exception, that update call does not commit a proposed value; any side effects that already occurred in prior callback passes **are not rolled back**.
+- **Reading two separate atomics:** a callback only guarantees atomic CAS for **the single target atomic variable**. It does not simultaneously commit a business record spanning other variables.
 
-## 6. Các API liên quan và giá trị trả về
+## 6. Related APIs and Return Values
 
-| API | Cập nhật giá trị | Kết quả trả về | Lưu ý |
-| --- | --- | --- | --- |
-| `compareAndSet(expected, next)` | Nếu hiện tại bằng expected thì ghi next | `boolean` | `false` khi điều kiện không còn đúng |
-| `getAndSet(next)` | Ghi next nguyên tử | **Giá trị cũ** | Không cần callback |
-| `getAndIncrement()` | Cộng 1 | **Giá trị cũ** | Phù hợp bộ đếm đơn giản |
-| `incrementAndGet()` | Cộng 1 | **Giá trị mới** | Không cần viết lambda |
-| `getAndAdd(delta)` | Cộng delta | **Giá trị cũ** | Không cần viết callback |
-| `addAndGet(delta)` | Cộng delta | **Giá trị mới** | Không cần viết callback |
-| `getAndUpdate(f)` | Tính số mới bằng f | **Giá trị cũ của lần cập nhật thành công** | f có thể gọi lại |
-| `updateAndGet(f)` | Tính số mới bằng f | **Giá trị mới đã chốt** | f có thể gọi lại |
-| `getAndAccumulate(x, f)` | Tính bằng f(current, x) | **Giá trị cũ** | f có thể gọi lại |
-| `accumulateAndGet(x, f)` | Tính bằng f(current, x) | **Giá trị mới** | f có thể gọi lại |
+| API | Value update | Return value | Notes |
+|---|---|---|---|
+| `compareAndSet(expected, next)` | If current equals expected, write next | `boolean` | `false` when the condition no longer holds |
+| `getAndSet(next)` | Atomically write next | **Old value** | No callback needed |
+| `getAndIncrement()` | Add 1 | **Old value** | Fits simple counters |
+| `incrementAndGet()` | Add 1 | **New value** | No lambda needed |
+| `getAndAdd(delta)` | Add delta | **Old value** | No lambda needed |
+| `addAndGet(delta)` | Add delta | **New value** | No lambda needed |
+| `getAndUpdate(f)` | Compute new number with f | **Old value of successful update** | `f` may be called again |
+| `updateAndGet(f)` | Compute new number with f | **Committed new value** | `f` may be called again |
+| `getAndAccumulate(x, f)` | Compute with f(current, x) | **Old value** | `f` may be called again |
+| `accumulateAndGet(x, f)` | Compute with f(current, x) | **New value** | `f` may be called again |
 
-`AtomicInteger` sử dụng `IntUnaryOperator` cho `getAndUpdate`/`updateAndGet` và `IntBinaryOperator` cho `getAndAccumulate`/`accumulateAndGet`. `AtomicLong` có API tương tự với `LongUnaryOperator` và `LongBinaryOperator`.
+`AtomicInteger` uses `IntUnaryOperator` for `getAndUpdate`/`updateAndGet` and `IntBinaryOperator` for `getAndAccumulate`/`accumulateAndGet`. `AtomicLong` has matching APIs with `LongUnaryOperator` and `LongBinaryOperator`.
 
-Trong chương trình kiểm chứng, sau khi `value = 25`:
+In the verification program, after `value = 25`:
 
 ```java
 int old = value.getAndUpdate(x -> x + 5);      // old = 25; value = 30
 int now = value.accumulateAndGet(12, Integer::sum); // now = 42; value = 42
 ```
 
-Với phép cộng đơn giản, thường ưu tiên `addAndGet(5)` hay `getAndAdd(5)`. Những phương thức chuyên biệt này truyền ý định rõ ràng và tránh việc tạo callback nghiệp vụ không cần thiết. Khi công thức phụ thuộc trạng thái hiện tại, như giới hạn trên/dưới, các phương thức cập nhật bằng hàm là thích hợp.
+For simple addition, usually prefer `addAndGet(5)` or `getAndAdd(5)`. These specialized methods express intent clearly and avoid creating unnecessary business callbacks. When the formula depends on current state, such as upper/lower bounds, functional update methods are appropriate.
 
-### Ví dụ giới hạn giá trị
+### Value-Capping Example
 
 ```java
 AtomicInteger capacity = new AtomicInteger(7);
@@ -267,13 +267,13 @@ int capped = capacity.updateAndGet(
 // capped = 10
 ```
 
-Callback `Math.min(10, current + 4)` không có tác dụng phụ; nếu luồng khác thay đổi `capacity`, lời gọi có thể tính lại dựa trên giá trị mới.
+The callback `Math.min(10, current + 4)` has no side effects; if another thread alters `capacity`, the call can recompute from the new value.
 
-**Chú ý overflow:** `current + 4` với `int` vẫn có thể tràn nếu gần `Integer.MAX_VALUE`. Nếu muốn báo lỗi thay vì tràn, dùng `Math.addExact(current, 4)` và quy định rõ cách xử lý ngoại lệ. `AtomicInteger` không tự ngăn tràn số học.
+**Overflow note:** `current + 4` with `int` can still overflow near `Integer.MAX_VALUE`. If you want an error instead of wrap-around, use `Math.addExact(current, 4)` and explicitly define how to handle the exception. `AtomicInteger` does not automatically prevent arithmetic overflow.
 
-## 7. Tự viết vòng CAS khi cần điều kiện cụ thể
+## 7. Writing Your Own CAS Loop for Specific Conditions
 
-Một tình huống là chỉ cho phép giữ chỗ khi số ghế còn lại lớn hơn 0:
+One scenario is allowing a reservation only when remaining seats are greater than 0:
 
 ```java
 static boolean tryReserve(AtomicInteger remaining) {
@@ -285,20 +285,20 @@ static boolean tryReserve(AtomicInteger remaining) {
         if (remaining.compareAndSet(old, old - 1)) {
             return true;
         }
-        // Trạng thái đổi: đọc lại và kiểm tra điều kiện lần nữa.
+        // State changed: re-read and check the condition again.
     }
 }
 ```
 
-Đây là **đoạn mã phương thức**, đặt bên trong lớp Java và import `AtomicInteger`. Khi số ghế bằng 0, trả false; khi còn ghế, thử trừ đi 1 bằng CAS. Nếu thất bại do tranh chấp, vòng lặp **kiểm tra lại cả điều kiện** trước khi thử tiếp.
+This is a **method snippet** to place inside a Java class with `AtomicInteger` imported. When seats are 0, it returns false; when seats remain, it tries to subtract 1 via CAS. If CAS fails due to contention, the loop **re-checks the condition** before trying again.
 
-Nếu viết `if (remaining.get() > 0) remaining.decrementAndGet();` thì việc kiểm tra và giảm số ghế không nguyên tử như một thao tác kết hợp; hai luồng có thể cùng thấy “còn 1 ghế” và đều giảm xuống, gây âm số ghế. Vòng CAS ở trên gắn điều kiện `old > 0` với phiên bản số mà CAS đang kiểm tra.
+If you write `if (remaining.get() > 0) remaining.decrementAndGet();`, checking and decrementing are not atomic as one combined action; two threads can both observe "1 seat left" and both decrement, causing negative seat counts. The CAS loop above ties the `old > 0` check to the exact version of the number that CAS checks.
 
-Một lời gọi `tryReserve` hoàn thành thành công tương ứng một lần giảm nguyên tử. Nhưng toàn bộ tác vụ nghiệp vụ (ví dụ ghi database, thanh toán, tạo vé) cần cơ chế giao dịch riêng nếu phải đảm bảo nhất quán qua nhiều tài nguyên.
+One successful `tryReserve` call corresponds to one atomic decrement. However, the broader business task (e.g., database write, payment, ticket issuance) needs its own transaction mechanism if consistency across multiple resources is required.
 
-## 8. AtomicLong và giá trị lớn
+## 8. AtomicLong and Large Values
 
-Khi đếm số lớn vượt phạm vi `int`, dùng `AtomicLong`:
+When counting large values beyond the `int` range, use `AtomicLong`:
 
 ```java
 AtomicLong processedBytes = new AtomicLong(4_000_000_000L);
@@ -306,12 +306,12 @@ long newTotal = processedBytes.updateAndGet(current -> current + 1);
 // newTotal = 4_000_000_001L
 ```
 
-Tính nguyên tử và yêu cầu callback không có tác dụng phụ vẫn như `AtomicInteger`. Chọn kiểu `long` không loại bỏ nguy cơ overflow `long`; Java không tự làm phép cộng bão hòa. Nếu có thể vượt `Long.MAX_VALUE`, cần lựa chọn kiểu/thuật toán và kiểm tra giới hạn thích hợp.
+Atomicity and side-effect-free callback requirements remain the same as for `AtomicInteger`. Choosing `long` does not eliminate `long` overflow risk; Java does not perform saturating addition automatically. If `Long.MAX_VALUE` can be exceeded, pick an appropriate type/algorithm and boundary checks.
 
-Nếu bạn cần số thập phân chính xác như `BigDecimal` thay vì `int`/`long`, có thể dùng `AtomicReference<BigDecimal>` vì `BigDecimal` bất biến:
+If you need exact decimal numbers such as `BigDecimal` instead of `int`/`long`, you can use `AtomicReference<BigDecimal>` because `BigDecimal` is immutable:
 
 ```java
-// Cần import java.math.BigDecimal và
+// Requires importing java.math.BigDecimal and
 // java.util.concurrent.atomic.AtomicReference.
 AtomicReference<BigDecimal> total =
         new AtomicReference<>(new BigDecimal("10.00"));
@@ -320,78 +320,78 @@ total.updateAndGet(old -> old.add(new BigDecimal("2.50")));
 // total.get() = 12.50
 ```
 
-Callback `old -> old.add(...)` tạo giá trị `BigDecimal` mới mà không sửa số cũ; cách làm này phù hợp với việc tính lại khi CAS thất bại. Trong `AtomicReference`, `compareAndSet` so khớp tham chiếu mong đợi, **không gọi `BigDecimal.equals()` hay `compareTo()`**. Trường hợp nhiều trường dữ liệu cần chốt cùng lúc, cân nhắc giữ một đối tượng trạng thái bất biến trong một `AtomicReference` hoặc dùng đồng bộ/giao dịch thích hợp.
+The callback `old -> old.add(...)` creates a new `BigDecimal` without mutating the old number; this fits recomputation on CAS failure. In `AtomicReference`, `compareAndSet` matches the expected reference, **not calling `BigDecimal.equals()` or `compareTo()`**. When multiple data fields must be committed together, consider keeping an immutable state object in one `AtomicReference` or using proper synchronization/transactions.
 
-## 9. Ranh giới của CAS: những điều không được suy diễn
+## 9. Boundaries of CAS: What You Must Not Infer
 
-### 9.1. CAS không đảm bảo callback chỉ chạy một lần
+### 9.1. CAS Does Not Guarantee the Callback Runs Only Once
 
-Lỗi hay gặp nhất là đặt hành động có tác dụng phụ vào callback và cho rằng API “chỉ cập nhật một lần” nghĩa là callback “chỉ chạy một lần”. **Kết quả tính thử bị CAS từ chối nhưng tác dụng phụ bên ngoài vẫn có thể xảy ra.**
+The most common mistake is putting side-effecting actions in a callback and thinking "the API updates once" means "the callback runs once." **A trial result rejected by CAS can still leave external side effects behind.**
 
-Một callback phù hợp có dạng `old -> old + increment`, trong đó `increment` đã được xác định ổn định trước khi gọi; không thao tác cơ sở dữ liệu, gửi thông báo hay sinh ID trong đó.
+A proper callback looks like `old -> old + increment`, where `increment` is stably determined beforehand; do not touch a database, send notifications, or generate IDs inside it.
 
-### 9.2. Một atomic không biến nhiều bước nghiệp vụ thành giao dịch
+### 9.2. One Atomic Does Not Turn Multiple Business Steps into a Transaction
 
-`AtomicInteger` chỉ chốt một giá trị của một đối tượng atomic. Khi thay đổi hai biến độc lập, hoặc cần đồng bộ con số với dữ liệu ở file/database, các cập nhật riêng lẻ không trở thành một thao tác nguyên tử chung. Có thể dùng khóa, giao dịch hoặc một đối tượng trạng thái bất biến duy nhất tùy cấu trúc bài toán.
+`AtomicInteger` commits one value of one atomic object. When changing two independent variables, or synchronizing a number with file/database data, separate updates do not become a joint atomic operation. Depending on the problem, use locks, transactions, or a single immutable state object.
 
-### 9.3. Liveness và contention
+### 9.3. Liveness and Contention
 
-CAS là kỹ thuật thường dùng để triển khai cấu trúc dữ liệu và phép toán không dùng khóa tường minh. Dưới tranh chấp cao, một luồng có thể thử lại nhiều lần và tốn CPU; một lần gọi riêng không có bảo đảm chạy thành công sau đúng một số lần cố định. Khi công thức đắt đỏ, tính đi tính lại cũng có chi phí đáng kể.
+CAS is a technique commonly used to implement data structures and operations without explicit locking. Under high contention, a thread may retry many times and burn CPU; an individual call has no guarantee of succeeding in a fixed number of attempts. When the formula is expensive, recomputing repeatedly also carries significant cost.
 
-Đối với một bộ đếm cộng dồn được cập nhật rất nhiều luồng và không đòi hỏi điều kiện CAS riêng cho mỗi lần cập nhật, `LongAdder` có thể là lựa chọn hữu ích để cải thiện thông lượng. Tuy nhiên, `LongAdder.sum()` không phải snapshot nguyên tử của tất cả cập nhật đang đồng thời diễn ra; nó không thay thế `AtomicLong` khi cần đọc một trạng thái chính xác tại một thời điểm để ra quyết định.
+For an accumulative counter updated by very many threads without per-update CAS conditions, `LongAdder` can be a useful choice to improve throughput. However, `LongAdder.sum()` is not an atomic snapshot of all concurrent updates in progress; it does not replace `AtomicLong` when you need an exact point-in-time state read to make decisions.
 
-### 9.4. Quan hệ với volatile và memory visibility
+### 9.4. Relationship with volatile and Memory Visibility
 
-`AtomicInteger.get()` và `set()` có ngữ nghĩa truy cập bộ nhớ kiểu volatile; `compareAndSet()` cung cấp thao tác nguyên tử và các hiệu ứng bộ nhớ tương ứng theo Java API. Các thao tác này giúp các luồng nhìn thấy việc cập nhật giá trị atomic theo mô hình bộ nhớ Java.
+`AtomicInteger.get()` and `set()` have volatile-like memory access semantics; `compareAndSet()` provides atomic execution and corresponding memory effects per the Java API. These operations help threads observe updates to the atomic value under the Java Memory Model.
 
-Điều đó **không làm cho mọi biến thông thường** hoặc mọi quan hệ giữa các đối tượng trở nên thread-safe. Một tham chiếu atomic tới đối tượng mutable cũng không tự bảo vệ các trường mutable bên trong đối tượng ấy.
+That **does not make every ordinary variable** or every relationship among objects thread-safe. An atomic reference to a mutable object does not automatically protect mutable fields inside that object either.
 
-### 9.5. ABA: trạng thái có thể đổi rồi quay lại
+### 9.5. ABA: State Can Change and Return
 
-Nếu giá trị ban đầu là A, luồng khác thay thành B rồi lại A trước lúc CAS, thì `compareAndSet(A, next)` có thể thành công vì CAS kiểm tra **giá trị hiện tại**, chứ không biết lịch sử thay đổi. Đây là *ABA problem*, cần quan tâm khi nghiệp vụ phụ thuộc việc “chưa có thay đổi nào xảy ra” chứ không chỉ so sánh số hiện tại. Với bài toán phù hợp, có thể quản lý cả phiên bản/trạng thái hoặc dùng `AtomicStampedReference`; đừng mặc định CAS cho biết đã không có hoạt động giữa hai lần đọc.
+If the initial value is A and another thread changes it to B and back to A before CAS, `compareAndSet(A, next)` can succeed because CAS inspects **the current value**, unaware of change history. This is the *ABA problem*, relevant when business logic depends on "nothing changed in between" rather than just comparing the current number. Where appropriate, track a version/state or use `AtomicStampedReference`; never assume CAS proves no activity occurred between two reads.
 
-## 10. Lỗi thường gặp và cách tránh
+## 10. Common Mistakes and How to Avoid Them
 
-1. **Lầm tưởng `volatile int` đủ cho `x++`.** Nó không làm phép đọc–sửa–ghi thành một thao tác nguyên tử. Dùng `AtomicInteger.incrementAndGet()` hoặc đồng bộ phù hợp.
-2. **Viết callback có tác dụng phụ.** Nếu `updateAndGet()` retry, lệnh gửi email hoặc ghi database có thể chạy nhiều lần. Đưa tác dụng phụ ra ngoài và thiết kế ranh giới giao dịch riêng.
-3. **Dùng dữ liệu đang thay đổi ngoài callback.** Cùng một lời gọi API có thể tính kết quả khác nhau không chỉ vì atomic đổi mà còn vì biến ngoài đổi. Chụp dữ liệu đầu vào cần nhất quán trước khi cập nhật.
-4. **Hiểu nhầm giá trị trả về.** `getAndUpdate` trả số cũ, `updateAndGet` trả số mới; tương tự với cặp accumulate.
-5. **Tự viết CAS loop nhưng không đọc và kiểm tra lại điều kiện.** Khi CAS thất bại, phải xem trạng thái mới có còn cho phép thao tác không.
-6. **Dùng callback cho phép cộng đơn giản không cần thiết.** `getAndAdd` hoặc `addAndGet` diễn đạt rõ hơn và tránh callback.
-7. **Cho rằng AtomicInteger/AtomicLong không bao giờ tràn.** Tính nguyên tử khác hoàn toàn với kiểm tra phạm vi số học; dùng `Math.addExact` hoặc giới hạn nghiệp vụ khi cần.
-8. **Thử nghiệm đa luồng bằng `sleep()` rồi tin kết quả luôn tái hiện.** Lịch luồng không xác định; ví dụ kiểm chứng ở trên dùng `CountDownLatch` để tạo thứ tự rõ ràng.
-9. **Nhầm callback chạy lại với cập nhật được chốt nhiều lần.** Trong một lời gọi hoàn tất thành công, kết quả của một lần cập nhật được CAS chấp nhận; việc tính thử trước đó có thể bị bỏ.
-10. **Dùng một atomic để suy ra nhất quán toàn hệ thống.** Khi có nhiều biến hoặc tài nguyên khác, cần thêm giao thức đồng bộ hay giao dịch.
+1. **Assuming `volatile int` suffices for `x++`.** It does not turn read–modify–write into an atomic operation. Use `AtomicInteger.incrementAndGet()` or proper synchronization.
+2. **Writing callbacks with side effects.** If `updateAndGet()` retries, sending emails or writing to a database can execute multiple times. Move side effects outside and design separate transaction boundaries.
+3. **Using mutable external data inside the callback.** The same API call can compute different results not only because the atomic changed, but because external variables changed. Snapshot required inputs consistently before updating.
+4. **Misunderstanding return values.** `getAndUpdate` returns the old number, `updateAndGet` returns the new number; the same applies to the accumulate pair.
+5. **Writing a custom CAS loop without re-reading and re-checking the condition.** When CAS fails, verify whether the new state still permits the operation.
+6. **Using callbacks unnecessarily for simple addition.** `getAndAdd` or `addAndGet` expresses intent more clearly and avoids callbacks.
+7. **Assuming AtomicInteger/AtomicLong never overflow.** Atomicity is completely distinct from arithmetic range checking; use `Math.addExact` or business bounds when needed.
+8. **Testing concurrency with `sleep()` and trusting results always reproduce.** Thread scheduling is nondeterministic; the verification example above uses `CountDownLatch` to enforce clear ordering.
+9. **Confusing callback re-execution with multiple committed updates.** In one successfully completed call, only one update result is accepted by CAS; earlier trial computations are discarded.
+10. **Using one atomic to infer system-wide consistency.** When multiple variables or other resources exist, add synchronization protocols or transactions.
 
-## 11. Tự kiểm tra kiến thức
+## 11. Knowledge Self-Check
 
-**Câu 1.** Vì sao `updateAndGet(x -> x + 1)` có thể đánh giá lambda nhiều lần nhưng một lời gọi thành công chỉ chốt một lần cộng?  
-**Đáp án:** mỗi lần thử tính một ứng viên từ trạng thái quan sát; nếu CAS thất bại, ứng viên bị bỏ và lambda được gọi lại với trạng thái mới. Chỉ lần CAS thành công mới ghi ứng viên.
+**Question 1.** Why can `updateAndGet(x -> x + 1)` evaluate the lambda multiple times while a successful call commits only one addition?  
+**Answer:** each attempt computes a candidate from observed state; if CAS fails, the candidate is discarded and the lambda is called again with the new state. Only the successful CAS writes its candidate.
 
-**Câu 2.** Có nên viết `atomic.updateAndGet(x -> { sendEmail(); return x + 1; })` không?  
-**Đáp án:** không. `sendEmail()` minh họa tác dụng phụ có thể lặp lại khi retry; cần tách khỏi callback, và thiết kế xử lý nghiệp vụ nếu yêu cầu chính xác một lần.
+**Question 2.** Should you write `atomic.updateAndGet(x -> { sendEmail(); return x + 1; })`?  
+**Answer:** no. `sendEmail()` illustrates a side effect that can repeat on retry; separate it from the callback, and design business handling if exactly-once semantics are required.
 
-**Câu 3.** Khi `AtomicInteger` đang là 8, `compareAndSet(7, 9)` trả gì?  
-**Đáp án:** `false`, giá trị vẫn 8 vì giá trị mong đợi là 7.
+**Question 3.** When `AtomicInteger` currently holds 8, what does `compareAndSet(7, 9)` return?  
+**Answer:** `false`, and the value stays 8 because the expected value was 7.
 
-**Câu 4.** Sau `int old = value.getAndUpdate(x -> x * 2)` với `value = 4` (không có cạnh tranh), `old` và `value.get()` là gì?  
-**Đáp án:** `old = 4`, `value.get() = 8`.
+**Question 4.** After `int old = value.getAndUpdate(x -> x * 2)` with `value = 4` (no contention), what are `old` and `value.get()`?  
+**Answer:** `old = 4`, `value.get() = 8`.
 
-**Câu 5.** Một lambda `x -> x + 3` có bắt buộc thỏa `f(f(x)) == f(x)` để an toàn retry không?  
-**Đáp án:** không. Hàm cộng 3 không idempotent theo nghĩa toán học; điều cần là tính thử lại không có tác dụng phụ và kết quả mới đúng từ trạng thái được truyền vào.
+**Question 5.** Must a lambda `x -> x + 3` satisfy `f(f(x)) == f(x)` to be retry-safe?  
+**Answer:** no. Adding 3 is not mathematically idempotent; what is required is that retrying has no side effects and the new result is computed correctly from the state passed in.
 
-**Câu 6.** Nếu có ba biến `AtomicInteger` riêng cho `available`, `reserved` và `sold`, một lời gọi CAS trên `available` có bảo đảm ba biến đổi đồng thời không?  
-**Đáp án:** không. CAS trên một atomic không tạo giao dịch xuyên nhiều atomic hoặc các tài nguyên khác.
+**Question 6.** If there are three separate `AtomicInteger` variables for `available`, `reserved`, and `sold`, does a CAS call on `available` ensure all three change atomically together?  
+**Answer:** no. CAS on a single atomic does not create a transaction across multiple atomics or other resources.
 
-## 12. Kết luận
+## 12. Conclusion
 
-- **CAS** kiểm tra giá trị đang có và chỉ ghi giá trị mới nếu trạng thái vẫn khớp với giá trị mong đợi.
-- **`updateAndGet`, `getAndUpdate` và các biến thể accumulate có thể tính callback nhiều lần** do tranh chấp và retry.
-- **Hàm cập nhật cần không có tác dụng phụ**; tính lại không đồng nghĩa chốt nhiều lần. Không đặt ghi database, gửi thông báo hay cập nhật một tài nguyên khác trong callback.
-- Với phép cộng/tăng đơn giản, cân nhắc `incrementAndGet` hoặc `addAndGet`; với điều kiện gắn với trạng thái hiện tại, sử dụng hàm cập nhật thuần hoặc vòng CAS tự kiểm tra lại điều kiện.
-- Chọn `AtomicInteger` hay `AtomicLong` theo phạm vi số và quy tắc nghiệp vụ; tính nguyên tử không loại bỏ overflow, lỗi giao dịch đa tài nguyên hay vấn đề tranh chấp.
+- **CAS** checks the current value and writes the new value only if the state still matches the expected value.
+- **`updateAndGet`, `getAndUpdate`, and the accumulate variants can evaluate the callback multiple times** due to contention and retries.
+- **Update functions must be side-effect-free**; recomputing does not mean committing multiple times. Do not place database writes, notifications, or updates to another resource inside callbacks.
+- For simple addition/increment, consider `incrementAndGet` or `addAndGet`; for conditions tied to current state, use pure update functions or a CAS loop that re-checks the condition.
+- Choose `AtomicInteger` or `AtomicLong` according to numeric range and business rules; atomicity does not eliminate overflow, multi-resource transaction bugs, or contention issues.
 
-Tài liệu chính thức Java SE 17:
+Official Java SE 17 documentation:
 
 - [`AtomicInteger`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/AtomicInteger.html)
 - [`AtomicLong`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/AtomicLong.html)

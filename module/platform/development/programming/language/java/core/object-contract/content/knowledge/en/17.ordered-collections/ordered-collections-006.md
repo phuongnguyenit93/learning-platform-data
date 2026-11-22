@@ -1,34 +1,34 @@
-# Comparator không nhất quán với `equals()` và hợp đồng `Set` hoặc `Map`
+# Comparator Inconsistent with `equals()` and the `Set` or `Map` Contract
 
-## 1. Vấn đề cốt lõi: hai cách định nghĩa “cùng một phần tử”
+## 1. The core issue: two ways to define “the same element”
 
-Trong Java, `TreeSet<E>` và `TreeMap<K,V>` là các cấu trúc có thứ tự. Chúng dùng **thứ tự tự nhiên** (`Comparable.compareTo`) hoặc **thứ tự do `Comparator.compare` chỉ định** để tìm kiếm và phân biệt các phần tử/khóa. Với hai giá trị `a` và `b`, chúng xem là **tương đương theo thứ tự** khi:
+In Java, `TreeSet<E>` and `TreeMap<K,V>` are ordered structures. They use **natural ordering** (`Comparable.compareTo`) or **an ordering specified by `Comparator.compare`** to search for and distinguish elements/keys. For two values `a` and `b`, they treat them as **equivalent by ordering** when:
 
 ```java
 comparator.compare(a, b) == 0
 ```
 
-Đây là điều kiện dùng để xác định một vị trí tương đương trong cây; nó **không nhất thiết giống** `a.equals(b)`. Trong khi đó, giao diện `Set` và `Map` định nghĩa sự bằng nhau của phần tử và khóa theo hợp đồng `equals` (với cách xử lý `null` phù hợp):
+This is the condition used to identify an equivalent position in the tree; it **does not necessarily match** `a.equals(b)`. Meanwhile, the `Set` and `Map` interfaces define element and key equality according to the `equals` contract (with appropriate `null` handling):
 
-- `Set` không được chứa hai phần tử bằng nhau theo `equals`.
-- `Map` có mỗi khóa là duy nhất theo `equals`; ghi thêm cùng khóa logic sẽ thay thế giá trị của khóa ấy.
-- `TreeSet` và `TreeMap` dùng kết quả so sánh bằng 0 để ra quyết định tương đương, vì vậy nếu `Comparator` không nhất quán với `equals`, hành vi trong cây có thể **không đáp ứng được hợp đồng chung của `Set` hoặc `Map`**.
+- `Set` must not contain two elements that are equal under `equals`.
+- `Map` has each key unique under `equals`; writing again with the same logical key replaces that key's value.
+- `TreeSet` and `TreeMap` use a comparison result of 0 to make equivalence decisions, so if a `Comparator` is inconsistent with `equals`, behavior in the tree may **fail to satisfy the general `Set` or `Map` contract**.
 
-Một bộ so sánh gọi là **nhất quán với `equals`** khi, đối với mọi cặp phần tử hợp lệ trong miền so sánh:
+A comparator is called **consistent with `equals`** when, for every valid pair of elements in the comparison domain:
 
 ```text
 comparator.compare(a, b) == 0    ⇔    a.equals(b) == true
 ```
 
-Ký hiệu `⇔` là “khi và chỉ khi”: **hai chiều đều phải đúng**. Cần phân biệt điều này với yêu cầu cơ bản của một bộ so sánh là giữ thứ tự nhất quán (dấu đảo chiều, bắc cầu, và tương đương theo thứ tự ứng xử nhất quán với phần tử thứ ba). Một `Comparator` vẫn có thể xác định một thứ tự nội tại hợp lệ nhưng **không nhất quán với `equals`**; vấn đề lộ ra khi dùng nó làm quy tắc duy nhất của `TreeSet` hoặc `TreeMap`.
+The `⇔` symbol means “if and only if”: **both directions must hold**. Distinguish this from a comparator's basic requirement to maintain a consistent ordering (sign reversal, transitivity, and order-equivalent items behaving consistently against a third element). A `Comparator` can still define a valid internal ordering while being **inconsistent with `equals`**; the problem surfaces when it is used as the uniqueness rule of `TreeSet` or `TreeMap`.
 
-Theo tài liệu Java, cấu trúc cây vẫn có hành vi được xác định theo comparator ngay cả khi thứ tự không nhất quán với `equals`; tuy nhiên khi đó chúng có thể **vi phạm hợp đồng tổng quát của `Set` hoặc `Map`**. Đây là vấn đề về ngữ nghĩa API, không nhất thiết là ngoại lệ lúc chạy.
+According to Java documentation, tree structures still have behavior well-defined by the comparator even when the ordering is inconsistent with `equals`; however, in that case they can **violate the general contract of `Set` or `Map`**. This is an API semantics issue, not necessarily a runtime exception.
 
-## 2. Hai dạng không nhất quán cần phân biệt
+## 2. Two forms of inconsistency to distinguish
 
-### Dạng A: `compare(a, b) == 0` nhưng `!a.equals(b)`
+### Form A: `compare(a, b) == 0` while `!a.equals(b)`
 
-Ví dụ: hai chuỗi `"cat"` và `"dog"` có cùng độ dài, nhưng nội dung khác nhau. Một `Comparator` chỉ so độ dài:
+Example: two strings `"cat"` and `"dog"` have the same length, yet different contents. A `Comparator` comparing only length:
 
 ```java
 Comparator<String> byLength = Comparator.comparingInt(String::length);
@@ -36,32 +36,32 @@ System.out.println(byLength.compare("cat", "dog")); // 0
 System.out.println("cat".equals("dog"));            // false
 ```
 
-Đây là đoạn minh họa khi đặt trong một phương thức và import `java.util.Comparator`. Với `TreeSet` dùng `byLength`, chuỗi thứ hai không được thêm thành phần tử mới vì comparator cho kết quả 0. Tập có thể có kích thước 1 dù `equals` coi hai chuỗi là khác nhau; `contains("dog")` có thể là `true` mặc dù tập thực tế giữ chuỗi `"cat"`.
+This is an illustrative snippet when placed inside a method with `java.util.Comparator` imported. With a `TreeSet` using `byLength`, the second string is not added as a new element because the comparator produces 0. The set can have size 1 even though `equals` treats the two strings as different; `contains("dog")` can be `true` even though the set actually holds `"cat"`.
 
-Với `TreeMap` dùng cùng comparator, `put("dog", value2)` có thể **ghi đè giá trị** gắn với khóa `"cat"`, vì bản đồ xem hai khóa có cùng thứ tự. Đối tượng khóa đã được lưu thường vẫn là khóa ban đầu, còn giá trị được cập nhật.
+With a `TreeMap` using the same comparator, `put("dog", value2)` can **overwrite the value** attached to key `"cat"`, because the map considers the two keys to have the same ordering rank. The stored key object typically remains the original key, while the value is updated.
 
-Về mặt hợp đồng `Set` và `Map`, đây là sự **gộp nhầm các giá trị khác nhau**.
+In terms of the `Set` and `Map` contract, this is **erroneously merging distinct values**.
 
-### Dạng B: `a.equals(b)` là `true` nhưng `compare(a, b) != 0`
+### Form B: `a.equals(b)` is `true` while `compare(a, b) != 0`
 
-Giả sử lớp `Ticket` định nghĩa danh tính theo `id`, nhưng comparator lại ưu tiên `priority` trước `id`. Hai vé có cùng `id="T7"` nhưng priority khác nhau được `equals` coi là cùng vé, còn comparator lại phân biệt.
+Suppose a `Ticket` class defines identity by `id`, yet the comparator prioritizes `priority` before `id`. Two tickets having the same `id="T7"` but different priorities are treated by `equals` as the same ticket, whereas the comparator distinguishes them.
 
-`TreeSet` có thể giữ **cả hai vé bằng nhau theo `equals`** vì phép so sánh của cây không trả 0. `TreeMap` cũng có thể chứa hai entry có khóa `equals` bằng nhau, trái với kỳ vọng từ giao diện `Map`. Một `HashSet` hoặc `HashMap` với `equals`/`hashCode` đúng lại xem chúng là cùng phần tử/khóa.
+`TreeSet` can hold **both tickets that are equal under `equals`** because the tree's comparison does not return 0. `TreeMap` can also contain two entries whose keys are `equals`, contrary to expectations from the `Map` interface. A `HashSet` or `HashMap` with proper `equals`/`hashCode` instead views them as the same element/key.
 
-Đây là chiều ngược lại của lỗi: **tách nhầm một giá trị logic thành nhiều mục**.
+This is the opposite direction of the error: **erroneously splitting one logical value into multiple entries**.
 
-| Điều kiện của cặp `a,b` | Theo `equals` | Theo comparator | Hậu quả có thể gặp trong cấu trúc cây |
+| Condition on pair `a,b` | By `equals` | By comparator | Possible consequence in tree structure |
 | --- | --- | --- | --- |
-| `compare(a,b)==0`, `!a.equals(b)` | Khác nhau | Tương đương | `TreeSet` bỏ qua một phần tử, `TreeMap` thay giá trị của khóa khác |
-| `a.equals(b)`, `compare(a,b)!=0` | Bằng nhau | Khác vị trí | `TreeSet` giữ hai phần tử bằng nhau, `TreeMap` giữ hai khóa bằng nhau |
-| `a.equals(b)`, `compare(a,b)==0` | Bằng nhau | Tương đương | Hai cơ chế đồng thuận |
-| `!a.equals(b)`, `compare(a,b)!=0` | Khác nhau | Khác vị trí | Hai cơ chế đồng thuận |
+| `compare(a,b)==0`, `!a.equals(b)` | Different | Equivalent | `TreeSet` skips an element, `TreeMap` replaces another key's value |
+| `a.equals(b)`, `compare(a,b)!=0` | Equal | Different position | `TreeSet` keeps two equal elements, `TreeMap` keeps two equal keys |
+| `a.equals(b)`, `compare(a,b)==0` | Equal | Equivalent | Both mechanisms agree |
+| `!a.equals(b)`, `compare(a,b)!=0` | Different | Different position | Both mechanisms agree |
 
-Bảng trên giả định comparator vẫn tuân thủ **hợp đồng thứ tự** và khóa không thay đổi trong khi nằm trong cây. Một comparator vi phạm bắc cầu hoặc đổi kết quả tùy thời điểm có thể gây những vấn đề nghiêm trọng khác, nằm ngoài sự không nhất quán với `equals`.
+The table above assumes the comparator still obeys the **ordering contract** and keys do not mutate while residing in the tree. A comparator violating transitivity or changing results over time can cause other severe issues beyond inconsistency with `equals`.
 
-## 3. Chương trình Java 17+ minh họa cả hai lỗi và cách sửa
+## 3. Java 17+ program illustrating both errors and how to fix them
 
-Lưu toàn bộ mã sau thành **`ComparatorContractDemo.java`**. Nó dùng `record Word` (bình đẳng theo chuỗi `text`) và `Ticket` (bình đẳng theo `id`). Phần đầu chỉ so độ dài; phần sau dùng thứ tự theo priority trái với danh tính vé.
+Save the following full code as **`ComparatorContractDemo.java`**. It uses `record Word` (equality by string `text`) and `Ticket` (equality by `id`). The first part compares only length; the second part uses ordering by priority contrary to ticket identity.
 
 ```java
 import java.util.*;
@@ -164,14 +164,14 @@ public class ComparatorContractDemo {
 }
 ```
 
-Trong thư mục chứa tệp, biên dịch và chạy:
+In the directory containing the file, compile and run:
 
 ```bash
 javac ComparatorContractDemo.java
 java ComparatorContractDemo
 ```
 
-Đầu ra của chương trình:
+Program output:
 
 ```text
 words equals = false
@@ -193,64 +193,64 @@ ticket tree map size = 2
 fixed tickets size = 1
 ```
 
-### Diễn giải kết quả đầu tiên: comparator gộp nhầm
+### Interpreting the first result: over-merging comparator
 
-- `cat.equals(dog)` trả `false` vì `Word` là `record`, so thành phần `text`; `"cat"` và `"dog"` khác nhau.
-- `byLength.compare(cat,dog)` trả `0` vì cả hai có độ dài 3.
-- `byLengthSet.add(cat)` trả `true`; `add(dog)` trả `false` vì cây xem `dog` tương đương với `cat` đã có. Kích thước cuối là 1.
-- `byLengthSet.contains(dog)` là `true` theo cách tìm kiếm của cây, mặc dù phần tử được lưu là `cat`. Tương phản, `HashSet` dựa vào `equals`/`hashCode` của `Word` nên có kích thước 2.
-- `wordMap.put(dog,"second")` trả giá trị trước đó `"first"`; kích thước vẫn 1 và `get(dog)` là `"second"`. Đối tượng khóa trong entry là `Word[text=cat]`, cho thấy **giá trị mới thay thế theo comparator, nhưng không tự biến khóa cũ thành khóa mới**.
+- `cat.equals(dog)` returns `false` because `Word` is a `record`, comparing component `text`; `"cat"` and `"dog"` differ.
+- `byLength.compare(cat,dog)` returns `0` because both have length 3.
+- `byLengthSet.add(cat)` returns `true`; `add(dog)` returns `false` because the tree treats `dog` as equivalent to the existing `cat`. Final size is 1.
+- `byLengthSet.contains(dog)` is `true` under the tree's lookup method, even though the stored element is `cat`. In contrast, `HashSet` relies on `Word`'s `equals`/`hashCode` so its size is 2.
+- `wordMap.put(dog,"second")` returns the previous value `"first"`; size remains 1 and `get(dog)` is `"second"`. The key object in the entry is `Word[text=cat]`, showing that **the new value replaces according to the comparator, without turning the old key into the new key**.
 
-Đây là điểm dễ nhầm: `contains`, `get` và `put` của cây tuân theo comparator đã cung cấp. Chúng không thực hiện bước kiểm tra cuối `equals` để chữa trường hợp comparator trả 0 sai với danh tính logic.
+This is a common point of confusion: the tree's `contains`, `get`, and `put` follow the supplied comparator. They do not perform a final `equals` check to patch cases where the comparator returns 0 contrary to logical identity.
 
-### Diễn giải kết quả thứ hai: comparator tách nhầm
+### Interpreting the second result: over-splitting comparator
 
-- `low.equals(high)` là `true` vì `Ticket.equals` chỉ dựa trên `id="T7"`; `hashCode` cũng dùng `id` nên hợp đồng hash được giữ.
-- `byPriorityThenId.compare(low,high)` trả `-1` vì priority 1 nhỏ hơn 9, dù cùng `id`.
-- `TreeSet` và `TreeMap` vẫn giữ 2 mục vì comparator coi chúng khác nhau. `HashSet` coi chúng là một giá trị logic, nên kích thước 1.
-- `Comparator.comparing(Ticket::id)` chỉ so `id`; hai vé cùng `id` sẽ có kết quả 0, nên `fixedTickets` có kích thước 1, khớp chính sách equality của `Ticket`.
+- `low.equals(high)` is `true` because `Ticket.equals` relies solely on `id="T7"`; `hashCode` also uses `id` so the hash contract is preserved.
+- `byPriorityThenId.compare(low,high)` returns `-1` because priority 1 is less than 9, despite sharing `id`.
+- `TreeSet` and `TreeMap` still keep 2 entries because the comparator treats them as different. `HashSet` views them as one logical value, so size is 1.
+- `Comparator.comparing(Ticket::id)` checks only `id`; two tickets with the same `id` yield 0, so `fixedTickets` has size 1, matching `Ticket`'s equality policy.
 
-Hai tình huống này minh họa **cả hai hướng cần kiểm tra** khi yêu cầu comparator nhất quán với `equals`.
+These two scenarios illustrate **both directions that must be checked** when a comparator is required to be consistent with `equals`.
 
-## 4. Hợp đồng `Set` và `Map` bị ảnh hưởng cụ thể thế nào?
+## 4. How are the `Set` and `Map` contracts specifically affected?
 
-### 4.1. `Set`: thêm, tìm kiếm, xóa và duy nhất
+### 4.1. `Set`: add, search, remove, and uniqueness
 
-Giao diện `Set` xác định một tập các phần tử **không trùng nhau theo `equals`**. Về bản chất, `add(e)` trả về `false` nếu tập đã chứa phần tử bằng `e`; `contains(o)` có nghĩa tìm sự hiện diện của phần tử bằng `o`.
+The `Set` interface defines a collection of elements with **no duplicates according to `equals`**. Fundamentally, `add(e)` returns `false` if the set already contains an element equal to `e`; `contains(o)` means checking for the presence of an element equal to `o`.
 
-Với `TreeSet`, cây sử dụng comparator để xác định xem phần tử có tương đương với mục đã có không:
+With `TreeSet`, the tree uses the comparator to determine whether an element is equivalent to an existing entry:
 
-- Nếu `compare(a,b)==0` nhưng `!a.equals(b)`, việc thêm `b` sau `a` có thể bị từ chối; `contains(b)` có thể trả `true` dù `b` khác mọi đối tượng hiện đang lưu theo `equals`.
-- `remove(b)` cũng có thể xóa mục đại diện `a` nếu `compare(a,b)==0`, vì mục tiêu tìm kiếm được xác định bằng thứ tự.
-- Nếu `a.equals(b)` nhưng `compare(a,b)!=0`, tập có thể chứa cả hai phần tử, phá kỳ vọng không trùng nhau.
+- If `compare(a,b)==0` yet `!a.equals(b)`, adding `b` after `a` can be rejected; `contains(b)` can return `true` even though `b` differs from every currently stored object by `equals`.
+- `remove(b)` can also remove the representative entry `a` if `compare(a,b)==0`, because the search target is identified by ordering.
+- If `a.equals(b)` yet `compare(a,b)!=0`, the set can contain both elements, breaking the no-duplicates expectation.
 
-Với `HashSet`, điều kiện bằng nhau được xây dựng trên `equals` và `hashCode`; comparator không được dùng. Sự khác biệt giữa `HashSet` và `TreeSet` trong ví dụ là kết quả trực tiếp của hai quy tắc định danh.
+With `HashSet`, the equality condition is built on `equals` and `hashCode`; no comparator is used. The discrepancy between `HashSet` and `TreeSet` in the example is a direct result of two different identification rules.
 
-### 4.2. `Map`: khóa tương đương bị thay hoặc giữ trùng
+### 4.2. `Map`: equivalent keys replaced or kept as duplicates
 
-Giao diện `Map` định nghĩa khóa duy nhất theo `equals`. Với `HashMap`, hai khóa bằng nhau theo `equals` và có hash tương thích đại diện cùng một mapping.
+The `Map` interface defines unique keys according to `equals`. With `HashMap`, two keys equal by `equals` with compatible hashes represent the same mapping.
 
-`TreeMap` cần một thứ tự để định vị khóa, nên dùng `compare(k1,k2)==0`:
+`TreeMap` needs an ordering to locate keys, so it uses `compare(k1,k2)==0`:
 
-- Khi comparator trả 0 cho hai khóa khác nhau theo `equals`, `put(k2,v2)` có thể cập nhật entry của `k1`. Giá trị trước đó bị thay; `size()` không tăng. `get(k2)` tìm thấy entry bằng quy tắc của comparator.
-- Khi comparator trả khác 0 cho hai khóa bằng nhau theo `equals`, `TreeMap` có thể giữ cả hai entry. Khi đó phép tra cứu bằng một đối tượng thứ ba bằng các khóa theo `equals` có thể phụ thuộc kết quả comparator và không khớp với kỳ vọng của giao diện `Map`.
-- Các view `keySet()`, `entrySet()` và các thao tác thứ tự như `firstKey()`, `subMap()`, `headMap()`, `tailMap()` phụ thuộc vào quan hệ thứ tự, nên phạm vi dữ liệu cũng có thể khác trực giác nếu người dùng nghĩ “bằng khóa” có nghĩa `equals`.
+- When the comparator returns 0 for two keys that differ by `equals`, `put(k2,v2)` can update `k1`'s entry. The previous value is replaced; `size()` does not grow. `get(k2)` finds the entry via the comparator's rule.
+- When the comparator returns non-zero for two keys that are equal by `equals`, `TreeMap` can hold both entries. Then looking up with a third object equal to the keys by `equals` can depend on the comparator result and fail to match expectations of the `Map` interface.
+- The `keySet()`, `entrySet()` views and ordering operations like `firstKey()`, `subMap()`, `headMap()`, `tailMap()` depend on the ordering relation, so data ranges can also differ from intuition if a user assumes “equal key” means `equals`.
 
-**Lưu ý quan trọng:** Đây là lỗi ở **chính sách định nghĩa khóa** hoặc cách dùng cấu trúc, không nhất thiết là lỗi triển khai nội bộ của `TreeMap`. Nếu ứng dụng cố ý dùng đồng nhất theo comparator (ví dụ chuỗi không phân biệt hoa thường), kết quả có thể phù hợp yêu cầu nghiệp vụ, nhưng cần hiểu nó **khác ngữ nghĩa `equals` của kiểu khóa** và có thể phá hợp đồng `Map` tổng quát.
+**Important note:** This is a flaw in the **key-definition policy** or how the structure is used, not necessarily an internal implementation bug in `TreeMap`. If an application intentionally uses comparator-based equivalence (for instance, case-insensitive strings), the outcome may suit business requirements, but you must understand it **differs from the key type's `equals` semantics** and can break the general `Map` contract.
 
-### 4.3. Vì sao “chỉ cần comparator sắp xếp đúng” vẫn chưa đủ?
+### 4.3. Why is “as long as the comparator sorts properly” not enough?
 
-Một comparator so theo độ dài có thể giữ hoàn toàn các quy tắc của thứ tự: dấu đảo chiều, bắc cầu, các chuỗi cùng độ dài ứng xử giống nhau khi so với chuỗi thứ ba. Nó **đúng như một phép sắp xếp theo độ dài**, nhưng không phù hợp nếu `TreeSet` phải chứa mọi chuỗi khác nội dung.
+A comparator checking length can fully preserve ordering rules: sign reversal, transitivity, and strings of the same length behaving identically when compared against a third string. It is **valid as a sort by length**, yet unsuitable if `TreeSet` must store all strings with distinct contents.
 
-Ngược lại, comparator theo priority rồi id cũng có thể là một thứ tự hợp lệ, nhưng không phù hợp khi `Ticket.equals` định nghĩa hai vé cùng id là cùng một vé.
+Conversely, a comparator by priority then id can also be a valid ordering, yet unsuitable when `Ticket.equals` defines two tickets with the same id as the same ticket.
 
-Do đó, cần tách hai câu hỏi: **(1) Bộ so sánh có tuân thủ hợp đồng `Comparator` không? (2) Kết quả 0 có đại diện đúng equality của khóa/phần tử trong cấu trúc cây không?**
+Therefore, separate two questions: **(1) Does the comparator obey the `Comparator` contract? (2) Does a 0 result accurately represent key/element equality in the tree structure?**
 
-## 5. Cách sửa: thiết kế tiêu chí so sánh theo danh tính logic
+## 5. How to fix: design comparison criteria around logical identity
 
-### 5.1. Thêm tie-breaker cho những đối tượng `equals` khác nhau
+### 5.1. Add a tie-breaker for objects where `equals` differs
 
-Nếu `Word.equals` coi toàn bộ `text` là danh tính, đừng chỉ so chiều dài. Tạo comparator theo **độ dài trước, nội dung sau**:
+If `Word.equals` treats the full `text` as identity, do not compare only length. Build a comparator by **length first, content second**:
 
 ```java
 Comparator<Word> byLengthThenText =
@@ -258,47 +258,47 @@ Comparator<Word> byLengthThenText =
                   .thenComparing(Word::text);
 ```
 
-Đây là một biểu thức minh họa trong ngữ cảnh có `Word`, cần `import java.util.Comparator`. Nó trả về 0 **chỉ khi** cả độ dài và nội dung bằng nhau; vì nội dung giống nhau tất yếu cùng độ dài, phép so sánh 0 tương đương với `Word.equals` trong ví dụ.
+This is an illustrative expression in a context having `Word`, requiring `import java.util.Comparator`. It returns 0 **only when** both length and content are equal; since identical content inevitably has the same length, comparing as 0 is equivalent to `Word.equals` in the example.
 
-`TreeSet` vẫn sắp xếp theo độ dài tăng dần. Khi bằng độ dài, nó phân biệt `"cat"` và `"dog"` theo thứ tự từ điển. Kết quả đúng là cả hai cùng được giữ.
+`TreeSet` still sorts in ascending order of length. When lengths match, it distinguishes `"cat"` and `"dog"` lexicographically. The correct outcome is that both are kept.
 
-Không nên dùng các tie-breaker tùy tiện như `System.identityHashCode` để “ép khác nhau”: identity hash vẫn có thể va chạm, và hai đối tượng bằng nhau theo giá trị lại có thể bị so thành khác. Tie-breaker phải phù hợp với **chính sách equality**, không phải tìm một số ngẫu nhiên để tránh kết quả 0.
+Do not use arbitrary tie-breakers like `System.identityHashCode` to “force inequality”: identity hashes can still collide, and two objects equal by value can end up comparing as different. A tie-breaker must align with the **equality policy**, not seek a random number to avoid a 0 result.
 
-### 5.2. Loại trường ngoài danh tính khỏi comparator dùng cho cây
+### 5.2. Remove non-identity fields from the comparator used for the tree
 
-Trong `Ticket`, `equals` chỉ dựa trên `id`. Muốn dùng `TreeSet<Ticket>` như một `Set` theo danh tính vé, comparator phải cho 0 khi id bằng nhau:
+In `Ticket`, `equals` relies solely on `id`. To use `TreeSet<Ticket>` as a `Set` by ticket identity, the comparator must yield 0 when ids match:
 
 ```java
 Comparator<Ticket> byId = Comparator.comparing(Ticket::id);
 ```
 
-Đây là dòng minh họa trong ngữ cảnh đã định nghĩa lớp `Ticket` với getter `id()`. Khi `low` và `high` có cùng id, bộ so sánh cho 0, thống nhất với `equals`. Vì `id` là chuỗi không null và tham gia duy nhất vào `equals`, comparator này còn phân biệt mọi giá trị id khác nhau.
+This is an illustrative line in a context where the `Ticket` class with getter `id()` is defined. When `low` and `high` have the same id, the comparator yields 0, aligning with `equals`. Since `id` is a non-null string and participates exclusively in `equals`, this comparator also distinguishes all differing id values.
 
-Nếu yêu cầu **hiển thị** vé theo `priority` nhưng vẫn muốn định danh theo id, không nên buộc `TreeSet` vừa sắp theo priority vừa phải coi cùng id là trùng khi priority khác. Có thể lưu vé theo id bằng `Map<String,Ticket>`, rồi tạo danh sách và sắp xếp bản trình bày bằng comparator priority. Quy tắc tập hợp/khóa và quy tắc hiển thị lúc đó có thể khác nhau mà không gây nhập nhằng.
+If the requirement is to **display** tickets by `priority` while still identifying by id, do not force `TreeSet` both to sort by priority and to treat same-id items as duplicates when priorities differ. You can store tickets by id using `Map<String,Ticket>`, then build a list and sort the presentation view with a priority comparator. Collection/key rules and display rules can then differ without ambiguity.
 
-### 5.3. Có nên sửa `equals` để khớp comparator?
+### 5.3. Should `equals` be changed to match the comparator?
 
-Có thể sửa `equals` **chỉ khi yêu cầu nghiệp vụ thật sự thay đổi định nghĩa danh tính**. Ví dụ, nếu một vé có id và phiên bản, muốn hai vé cùng id nhưng phiên bản khác nhau là hai giá trị riêng, có thể để cả `equals`, `hashCode` và comparator xem phiên bản là thành phần danh tính.
+`equals` should be changed **only when business requirements genuinely change the definition of identity**. For example, if a ticket has an id and a version, and you want two tickets with the same id but different versions to be two separate values, then `equals`, `hashCode`, and the comparator can all treat version as part of identity.
 
-Không nên sửa `equals` chỉ để chữa một comparator dùng cho màn hình sắp xếp: thay đổi `equals` còn ảnh hưởng tới `HashSet`, `HashMap`, caching, deduplication và toàn bộ mã dựa vào giá trị logic của kiểu đó.
+Do not alter `equals` merely to patch a comparator used for a sorting screen: changing `equals` also affects `HashSet`, `HashMap`, caching, deduplication, and all code relying on that type's logical value.
 
-## 6. Khi nào chủ động chấp nhận comparator không nhất quán với `equals`?
+## 6. When is a comparator inconsistent with `equals` intentionally accepted?
 
-### Sắp xếp danh sách thông thường
+### Regular list sorting
 
-Khi `List.sort(comparator)` hoặc `Collections.sort(list,comparator)`, hai đối tượng có kết quả so sánh 0 có thể cùng xuất hiện trong danh sách. Sắp xếp không có hợp đồng “mỗi giá trị chỉ xuất hiện một lần” như `Set`. Vì vậy, **comparator chỉ theo độ dài** hoàn toàn có thể phù hợp khi cần nhóm các chuỗi theo chiều dài trong một `List`.
+With `List.sort(comparator)` or `Collections.sort(list,comparator)`, two objects having a comparison result of 0 can coexist in the list. Sorting does not have a “each value appears only once” contract like `Set`. Therefore, **a length-only comparator** can be completely suitable when grouping strings by length in a `List`.
 
-Điều kiện vẫn là comparator phải tạo một thứ tự nhất quán theo hợp đồng so sánh. Sắp xếp không tự sửa được comparator có vòng lặp hay thiếu tính bắc cầu.
+The condition remains that the comparator must produce a consistent ordering under the comparison contract. Sorting cannot automatically fix a comparator with cycles or missing transitivity.
 
-### Muốn cố ý coi khóa khác `equals` là cùng khóa
+### Intentionally treating keys different by `equals` as the same key
 
-Ví dụ, một ứng dụng xem `"Admin"` và `"admin"` là cùng tên người dùng khi xử lý trong một `TreeMap<String,V>` với `String.CASE_INSENSITIVE_ORDER`. Đây có thể là lựa chọn có chủ đích, nhưng `String.equals` vẫn phân biệt chữ hoa và thường. Khi giao tiếp với các API khác sử dụng `HashMap`/`HashSet`, kết quả gộp và nhận diện có thể khác nhau.
+For example, an application treats `"Admin"` and `"admin"` as the same username when processed in a `TreeMap<String,V>` with `String.CASE_INSENSITIVE_ORDER`. This can be an intentional choice, yet `String.equals` remains case-sensitive. When interfacing with other APIs using `HashMap`/`HashSet`, merging and recognition results can differ.
 
-Nếu định danh theo chữ thường là quy tắc chính của nghiệp vụ, thường dễ kiểm soát hơn khi **chuẩn hóa khóa trước khi lưu** (với chính sách locale/Unicode phù hợp) hoặc thiết kế một kiểu khóa có `equals`, `hashCode` và comparator cùng mô tả chính sách. Tránh đổi ý nghĩa equality ngầm giữa các collection khác nhau.
+If lowercase identity is the primary business rule, it is often easier to control by **normalizing keys before storing** (with an appropriate locale/Unicode policy) or designing a key type whose `equals`, `hashCode`, and comparator all express the policy. Avoid implicitly shifting the meaning of equality across different collections.
 
-### `Comparable` và `BigDecimal`
+### `Comparable` and `BigDecimal`
 
-Vấn đề tương tự cũng xảy ra với **thứ tự tự nhiên** do `compareTo` cung cấp mà không cần comparator riêng. Chẳng hạn:
+The same issue also occurs with **natural ordering** provided by `compareTo` without a separate comparator. For example:
 
 ```java
 BigDecimal x = new BigDecimal("2.0");
@@ -307,11 +307,11 @@ System.out.println(x.compareTo(y)); // 0
 System.out.println(x.equals(y));    // false
 ```
 
-Đoạn này cần `import java.math.BigDecimal` và đặt trong một phương thức. `BigDecimal.compareTo` so giá trị số; `BigDecimal.equals` còn xét `scale`. `TreeSet<BigDecimal>` coi hai giá trị này tương đương theo thứ tự, còn `HashSet<BigDecimal>` có thể giữ cả hai. Đây là một ngoại lệ quen thuộc giúp thấy yêu cầu **nhất quán với `equals` là rất quan trọng với cấu trúc cây**.
+This snippet needs `import java.math.BigDecimal` and sits inside a method. `BigDecimal.compareTo` compares numeric value; `BigDecimal.equals` also checks `scale`. `TreeSet<BigDecimal>` treats these two values as equivalent by ordering, while `HashSet<BigDecimal>` can retain both. This is a familiar exception highlighting why **consistency with `equals` is critical for tree structures**.
 
-## 7. Kiểm thử và rà soát bộ so sánh cho tập/bản đồ có thứ tự
+## 7. Testing and reviewing comparators for ordered sets/maps
 
-Không chỉ kiểm tra danh sách được sắp đẹp mắt. Với mọi kiểu khóa/phần tử muốn đưa vào `TreeSet` hoặc `TreeMap`, hãy kiểm tra **hai chiều tương thích**:
+Do not merely check that a list sorts nicely. For every key/element type intended for `TreeSet` or `TreeMap`, check **two-way compatibility**:
 
 ```java
 boolean sameByEquals = Objects.equals(a, b);
@@ -322,19 +322,19 @@ if (sameByEquals != sameByComparator) {
 }
 ```
 
-Đây là **đoạn kiểm thử** có các biến `a`, `b` và `comparator` được chuẩn bị trước; không phải chương trình chạy độc lập. Phải thử các cặp cùng giá trị, khác giá trị, cùng khóa chính nhưng khác trường phụ, khác khóa chính nhưng cùng trường sắp xếp, và giá trị biên. Đồng thời xác minh comparator có thể so sánh các đối tượng trong miền mà collection hỗ trợ.
+This is a **test snippet** with variables `a`, `b`, and `comparator` prepared beforehand; not a standalone runnable program. You must test pairs with equal values, different values, same primary key but different secondary fields, different primary keys but same sort field, and boundary values. Also verify that the comparator can compare objects across the domain supported by the collection.
 
-Ngoài consistency-with-equals, hãy kiểm tra đầy đủ hợp đồng thứ tự:
+Beyond consistency-with-equals, test the full ordering contract:
 
-1. **Dấu đảo chiều:** `Integer.signum(compare(a,b)) == -Integer.signum(compare(b,a))`. So **dấu**, không so `compare(a,b) == -compare(b,a)` vì phủ định `Integer.MIN_VALUE` có thể tràn.
-2. **Bắc cầu:** nếu `compare(a,b) > 0` và `compare(b,c) > 0` thì `compare(a,c) > 0`.
-3. **Nhất quán của tương đương theo thứ tự:** nếu `compare(a,b) == 0` thì dấu của `compare(a,c)` phải giống dấu của `compare(b,c)` với mọi `c` có thể so sánh.
-4. **Tính ổn định:** khóa không được đổi trường tham gia so sánh khi đang được lưu trong cây. Nếu thay khóa, cần xóa entry cũ rồi thêm lại hoặc xây lại cấu trúc.
-5. **Tương thích với equality:** đối với `Set`/`Map` theo danh tính logic, kiểm tra `compare(a,b)==0` khi và chỉ khi `a.equals(b)`.
+1. **Sign reversal:** `Integer.signum(compare(a,b)) == -Integer.signum(compare(b,a))`. Compare **signs**, not `compare(a,b) == -compare(b,a)` because negating `Integer.MIN_VALUE` can overflow.
+2. **Transitivity:** if `compare(a,b) > 0` and `compare(b,c) > 0`, then `compare(a,c) > 0`.
+3. **Consistency of ordering equivalence:** if `compare(a,b) == 0`, then the sign of `compare(a,c)` must match the sign of `compare(b,c)` for all comparable `c`.
+4. **Stability:** keys must not mutate fields participating in comparison while stored in the tree. If changing a key, remove the old entry and re-add or rebuild the structure.
+5. **Compatibility with equality:** for `Set`/`Map` by logical identity, check `compare(a,b)==0` if and only if `a.equals(b)`.
 
-Có thể viết một bộ kiểm thử nhỏ để chèn cả các cặp vào `TreeSet` lẫn `HashSet`, kiểm tra kích thước, `contains` và `remove`; và chèn vào `TreeMap`, kiểm tra `put` trả giá trị trước đó, `size`, `get`, `firstKey`. Khi mục tiêu là dùng `TreeSet`/`TreeMap` đúng hợp đồng chung, kết quả của bộ kiểm thử phải phản ánh **cùng một chính sách bình đẳng**.
+You can write a small test suite inserting pairs into both `TreeSet` and `HashSet`, checking size, `contains`, and `remove`; and inserting into `TreeMap`, checking `put`'s returned previous value, `size`, `get`, and `firstKey`. When the goal is using `TreeSet`/`TreeMap` under the general contract, test results must reflect **the same equality policy**.
 
-Một phép kiểm thử ví dụ về điều kiện bất nhất:
+An example check for the inconsistency condition:
 
 ```java
 Comparator<String> byLength = Comparator.comparingInt(String::length);
@@ -345,38 +345,38 @@ assert !a.equals(b);
 assert byLength.compare(a, b) == 0;
 ```
 
-Đoạn trên cần import `java.util.Comparator`, chạy trong phạm vi phương thức và khi bật assertions (`-ea`). Nó cố ý chứng minh comparator theo độ dài **không nhất quán** với `String.equals`. Để bộ kiểm thử luôn kiểm tra dù assertions bị tắt, dùng một `if` và ném `AssertionError` như ví dụ trước.
+The snippet above requires `import java.util.Comparator`, runs inside a method, and runs with assertions enabled (`-ea`). It intentionally demonstrates that the length comparator is **inconsistent** with `String.equals`. To make the test suite always check even if assertions are disabled, use an `if` and throw `AssertionError` as in the previous example.
 
-## 8. Lỗi phổ biến và cách khắc phục
+## 8. Common pitfalls and fixes
 
-| Sai sót | Hiện tượng | Cách xử lý |
+| Pitfall | Symptom | Resolution |
 | --- | --- | --- |
-| `Comparator.comparingInt(String::length)` dùng làm thứ tự của `TreeSet<String>` cần lưu mọi chuỗi khác nội dung | Hai chuỗi cùng độ dài bị gộp | Thêm tie-breaker `thenComparing(Comparator.naturalOrder())` hoặc so cả nội dung |
-| Comparator trả 0 cho khóa mà `equals` coi là khác | `TreeMap.put` thay giá trị ngoài ý muốn | Dùng các trường định danh làm tiêu chí phân biệt cuối cùng |
-| Comparator phân biệt các khóa `equals` bằng nhau | `TreeSet` hoặc `TreeMap` giữ hai mục bằng nhau | Loại trường không tham gia danh tính khỏi tiêu chí phân biệt của cây |
-| Cho rằng `TreeSet.contains` luôn gọi `equals` | `contains` có thể trả kết quả khó hiểu | Hiểu nó dựa vào `compare==0` trong thứ tự cây |
-| Thêm tie-breaker bằng identity hash | Không bảo đảm uniqueness; phá equality theo giá trị | Dùng thành phần danh tính bền vững và tương thích `equals` |
-| Thay đổi khóa sau khi thêm vào `TreeSet`/`TreeMap` | Vị trí cây không còn khớp thứ tự mới | Dùng khóa bất biến; xóa và thêm lại nếu cần |
-| Comparator không giữ bắc cầu hoặc tính nhất quán | Sort/lookup có thể sai, một số sort có thể báo lỗi hợp đồng | Kiểm thử cặp và bộ ba, dùng `Comparator.comparing` / `thenComparing` |
-| Coi `TreeSet` và `HashSet` là hoàn toàn thay thế được với mọi comparator | Kích thước/tra cứu khác nhau giữa hai kiểu tập | Bảo đảm `compare==0 ⇔ equals` khi cần cùng ngữ nghĩa Set |
-| Cố ý gộp khóa không phân biệt hoa thường mà không ghi rõ chính sách | Dữ liệu mất phân biệt chữ hoa và thường ở cây nhưng vẫn phân biệt trong hash | Chuẩn hóa khóa hoặc thiết kế kiểu khóa nhất quán |
+| `Comparator.comparingInt(String::length)` used as ordering for `TreeSet<String>` needing all distinct-content strings | Two strings of equal length are merged | Add tie-breaker `thenComparing(Comparator.naturalOrder())` or compare full content |
+| Comparator returns 0 for keys that `equals` treats as different | `TreeMap.put` replaces value unexpectedly | Use identifying fields as the final distinguishing criterion |
+| Comparator distinguishes keys that are equal by `equals` | `TreeSet` or `TreeMap` keeps two equal entries | Remove non-identity fields from the tree's distinguishing criteria |
+| Assuming `TreeSet.contains` always calls `equals` | `contains` can return confusing results | Understand it relies on `compare==0` in tree order |
+| Adding a tie-breaker using identity hash | Does not guarantee uniqueness; breaks value-based equality | Use stable identity components compatible with `equals` |
+| Mutating a key after adding to `TreeSet`/`TreeMap` | Tree position no longer matches the new order | Use immutable keys; remove and re-add if needed |
+| Comparator fails transitivity or consistency | Sort/lookup can misbehave; some sorts may report contract errors | Test pairs and triples, use `Comparator.comparing` / `thenComparing` |
+| Treating `TreeSet` and `HashSet` as completely interchangeable with any comparator | Sizes/lookups differ between the two set types | Ensure `compare==0 ⇔ equals` when identical Set semantics are needed |
+| Intentionally merging keys case-insensitively without documenting policy | Data loses case distinction in tree while remaining distinct in hash | Normalize keys or design a consistent key type |
 
-## 9. Bài tập tự kiểm tra
+## 9. Self-check exercises
 
-**Tình huống 1.** `TreeSet<String>` dùng comparator so độ dài, thêm `"red"` rồi `"sun"`. `size()` và `contains("sun")` có thể là gì?
+**Scenario 1.** `TreeSet<String>` uses a comparator comparing length; `"red"` is added, then `"sun"`. What can `size()` and `contains("sun")` be?
 
-`size()` bằng 1; `contains("sun")` là `true` vì độ dài đều 3. Tuy nhiên `"red".equals("sun")` là `false`. Nếu muốn cả hai chuỗi, cần thêm tiêu chí phân biệt nội dung trong comparator.
+`size()` equals 1; `contains("sun")` is `true` because both have length 3. However, `"red".equals("sun")` is `false`. If both strings are desired, a content-distinguishing criterion must be added to the comparator.
 
-**Tình huống 2.** Hai `Ticket` có cùng `id` nhưng priority 3 và 8. `equals` chỉ so id, comparator so priority rồi id. `TreeSet` có thể lưu mấy phần tử?
+**Scenario 2.** Two `Ticket`s share the same `id` but have priorities 3 and 8. `equals` checks only id, while the comparator checks priority then id. How many elements can `TreeSet` store?
 
-Hai phần tử, dù `equals` coi chúng là một. Comparator phân biệt vì priority khác nhau. Nếu khóa logic là id, một tập theo danh tính nên so id làm tiêu chí tương đương.
+Two elements, even though `equals` views them as one. The comparator distinguishes them because priorities differ. If the logical key is id, an identity-based set should compare id as the equivalence criterion.
 
-**Tình huống 3.** Một comparator nhất quán về dấu và bắc cầu nhưng trả 0 cho hai khóa khác nhau theo `equals`. Có phải comparator bị lỗi mọi lúc?
+**Scenario 3.** A comparator is consistent in sign and transitivity, yet returns 0 for two keys that differ by `equals`. Is the comparator always buggy?
 
-Không. Nó có thể phù hợp khi **chỉ sắp xếp `List`** hoặc ứng dụng chủ ý gom khóa theo chính sách riêng. Nhưng khi dùng làm thứ tự của `TreeSet`/`TreeMap` mà kỳ vọng hợp đồng `Set`/`Map` dựa trên `equals`, nó là không phù hợp.
+No. It can be appropriate when **only sorting a `List`** or when the application intentionally groups keys under a custom policy. However, when used as the ordering for `TreeSet`/`TreeMap` where the `equals`-based `Set`/`Map` contract is expected, it is inappropriate.
 
-**Tình huống 4.** Khi thêm khóa mới được comparator xem là bằng khóa đã có trong `TreeMap`, đối tượng khóa ban đầu có chắc được thay bằng đối tượng khóa mới không?
+**Scenario 4.** When adding a new key considered equal by the comparator to an existing key in `TreeMap`, is the original key object guaranteed to be replaced by the new key object?
 
-Không. Trong ví dụ ở mục 3, giá trị được thay nhưng entry vẫn giữ `Word[text=cat]` làm khóa. Cần phân biệt **cập nhật giá trị** với **thay đối tượng khóa được lưu**.
+No. In the section 3 example, the value is replaced yet the entry still retains `Word[text=cat]` as its key. Distinguish **updating the value** from **replacing the stored key object**.
 
-**Nguyên tắc áp dụng:** Với tập hoặc bản đồ có thứ tự, hãy xác định ý nghĩa “một phần tử/khóa duy nhất” **trước khi** viết comparator. Khi cần tương thích đúng hợp đồng `Set`/`Map`, bảo đảm `compare(a,b)==0` đúng **khi và chỉ khi** `a.equals(b)`. Nếu chỉ cần sắp xếp để hiển thị, có thể dùng tiêu chí khác trên `List` mà không làm thay đổi danh tính logic của dữ liệu.
+**Rule of thumb:** For ordered sets or maps, define what “one unique element/key” means **before** writing the comparator. When strict compatibility with the `Set`/`Map` contract is required, ensure `compare(a,b)==0` holds **if and only if** `a.equals(b)`. If you only need ordering for display, different criteria can be used on a `List` without altering the data's logical identity.

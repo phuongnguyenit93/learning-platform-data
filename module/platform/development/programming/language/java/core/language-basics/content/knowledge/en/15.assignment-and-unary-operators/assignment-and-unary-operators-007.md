@@ -1,6 +1,6 @@
-# Toán tử dấu `+`, dấu `-` và phủ định `!` — Java 17+
+# Unary Sign Operators `+`, `-`, and Logical Complement `!` — Java 17+
 
-Trong Java, `+`, `-` và `!` là **toán tử một ngôi** (*unary operators*) khi được đặt trước **một** toán hạng. Chúng cần được phân biệt với phép cộng/trừ hai ngôi.
+In Java, `+`, `-`, and `!` are **unary operators** when placed before **one** operand. They must be distinguished from binary addition and subtraction.
 
 ~~~java
 int number = 7;
@@ -10,21 +10,21 @@ boolean online = true;
 boolean offline = !online; // false.
 ~~~
 
-`+x` giữ giá trị số sau khi áp dụng **unary numeric promotion**; `-x` đổi dấu giá trị số; `!condition` đảo giá trị boolean. Chúng **không tự thay đổi biến nguồn** (khác với `++x`, `x++` hoặc `--x`).
+`+x` preserves the numeric value after applying **unary numeric promotion**; `-x` negates the numeric value; `!condition` inverts a boolean value. They **do not modify the source variable** (unlike `++x`, `x++`, or `--x`).
 
-## 1. Nhận biết ba toán tử
+## 1. Recognizing the Three Operators
 
-| Biểu thức | Tên | Kiểu toán hạng hợp lệ | Kết quả |
+| Expression | Name | Valid Operand Types | Result |
 | --- | --- | --- | --- |
-| `+x` | Dấu cộng một ngôi | Primitive số hoặc wrapper số được unbox | Giá trị số sau nâng kiểu |
-| `-x` | Dấu trừ một ngôi | Primitive số hoặc wrapper số được unbox | Giá trị đổi dấu sau nâng kiểu |
-| `!x` | Phủ định logic | `boolean` hoặc `Boolean` được unbox | Giá trị `boolean` ngược lại |
+| `+x` | Unary plus | Numeric primitive or unboxed numeric wrapper | Numeric value after type promotion |
+| `-x` | Unary minus | Numeric primitive or unboxed numeric wrapper | Negated value after type promotion |
+| `!x` | Logical complement | `boolean` or unboxed `Boolean` | Inverted `boolean` value |
 
-Ví dụ, `+5` không phải phép cộng hai toán hạng, còn `5 + 2` mới là phép cộng hai ngôi. Tương tự, `-5` là dấu trừ một ngôi nhưng `5 - 2` là phép trừ hai ngôi. `!` không dùng được với `int`, `double`, `String` hoặc đối tượng bất kỳ nếu đối tượng đó không được unbox thành `boolean`.
+For example, `+5` is not two-operand addition, whereas `5 + 2` is binary addition. Similarly, `-5` is unary minus, whereas `5 - 2` is binary subtraction. `!` cannot be used with `int`, `double`, `String`, or any object unless that object can be unboxed to `boolean`.
 
-## 2. Chương trình Java 17+ độc lập
+## 2. Standalone Java 17+ Program
 
-Tạo file UTF-8 **`UnarySignsAndNotDemo.java`**:
+Create a UTF-8 file **`UnarySignsAndNotDemo.java`**:
 
 ~~~java
 public class UnarySignsAndNotDemo {
@@ -116,7 +116,7 @@ public class UnarySignsAndNotDemo {
 }
 ~~~
 
-Chạy bằng JDK 17 trở lên, tại thư mục chứa file:
+Run with JDK 17 or later in the directory containing the file:
 
 ~~~bash
 java -version
@@ -125,7 +125,7 @@ javac -encoding UTF-8 UnarySignsAndNotDemo.java
 java UnarySignsAndNotDemo
 ~~~
 
-**Expected stdout chính xác** của lệnh `java UnarySignsAndNotDemo` (không bao gồm đầu ra phiên bản JDK):
+**Exact expected stdout** of `java UnarySignsAndNotDemo` (excluding JDK version output):
 
 ~~~text
 unaryPlus=7
@@ -159,9 +159,9 @@ nullNumber=NullPointerException
 nullBoolean=NullPointerException
 ~~~
 
-Các overload `typeOf(int)`, `typeOf(long)`, `typeOf(double)` biểu thị **kiểu tĩnh của biểu thức tại compile time**. Chúng giúp chứng minh `+small` có kiểu `int`, không còn kiểu `byte`. Code đã chủ động bắt các ngoại lệ được minh họa để giữ stdout ổn định.
+The `typeOf(int)`, `typeOf(long)`, and `typeOf(double)` overloads demonstrate **the static type of the expression at compile time**. They prove that `+small` has type `int`, no longer `byte`. The code intentionally catches the demonstrated exceptions to keep stdout deterministic.
 
-## 3. Dấu cộng `+` một ngôi và toán tử `+` hai ngôi
+## 3. Unary `+` and Binary `+`
 
 ~~~java
 int n = 4;
@@ -169,70 +169,70 @@ int unchanged = +n; // 4.
 int total = n + 5;   // 9.
 ~~~
 
-- `+n` chỉ có một toán hạng số, không tự tăng `n`.
-- `n + 5` có hai toán hạng và thực hiện phép cộng.
-- `"count=" + n` là `+` hai ngôi **nối chuỗi** vì có toán hạng `String`.
+- `+n` has only one numeric operand and does not increment `n`.
+- `n + 5` has two operands and performs addition.
+- `"count=" + n` is binary `+` for **string concatenation** because one operand is a `String`.
 
-`+` một ngôi **không** đọc chuỗi rồi phân tích thành số:
+Unary `+` **does not** read a string and parse it into a number:
 
 ~~~java
-// int invalid = +"42";  // Loi bien dich.
+// int invalid = +"42";  // Compile error.
 int parsed = Integer.parseInt("42"); // 42.
 ~~~
 
-Ngay cả khi giá trị không đổi, unary `+` vẫn áp dụng phép nâng kiểu số. Điều này quan trọng với `byte`, `short` và `char`.
+Even though the value does not change, unary `+` still applies numeric promotion. This matters for `byte`, `short`, and `char`.
 
-## 4. Nâng kiểu số một ngôi
+## 4. Unary Numeric Promotion
 
-Với dấu `+` và `-` một ngôi, Java áp dụng **unary numeric promotion**:
+For unary `+` and `-`, Java applies **unary numeric promotion**:
 
-| Toán hạng ban đầu | Kiểu của `+x` hoặc `-x` |
+| Original Operand | Type of `+x` or `-x` |
 | --- | --- |
 | `byte`, `short`, `char` | `int` |
 | `int` | `int` |
 | `long` | `long` |
 | `float` | `float` |
 | `double` | `double` |
-| `Byte`, `Short`, `Character` | Unbox rồi nâng lên `int` |
-| `Integer`, `Long`, `Float`, `Double` | Unbox thành primitive tương ứng |
+| `Byte`, `Short`, `Character` | Unboxed then promoted to `int` |
+| `Integer`, `Long`, `Float`, `Double` | Unboxed to the corresponding primitive |
 
 ~~~java
 byte b = 5;
-int a = +b;  // 5, kieu int.
-int c = -b;  // -5, kieu int.
-// byte d = -b; // Loi: khong tu gan int vao byte.
+int a = +b;  // 5, type int.
+int c = -b;  // -5, type int.
+// byte d = -b; // Error: cannot auto-assign int to byte.
 
 char letter = 'A';
-int codeUnit = +letter; // 65, kieu int.
+int codeUnit = +letter; // 65, type int.
 ~~~
 
-`char` là đơn vị mã UTF-16, nên `+'A'` trả về `int` 65 chứ không phải một ký tự đã gắn dấu. Với wrapper số, quá trình **unboxing** có thể ném `NullPointerException`:
+`char` is a UTF-16 code unit, so `+'A'` returns `int` 65 rather than a signed character. With numeric wrappers, **unboxing** can throw `NullPointerException`:
 
 ~~~java
 Integer missing = null;
-// int result = -missing; // Nem NullPointerException khi chay.
+// int result = -missing; // Throws NullPointerException at runtime.
 ~~~
 
-Hãy kiểm tra null nếu dữ liệu có thể thiếu.
+Check for null if the data may be absent.
 
-## 5. Dấu trừ `-`: đổi dấu không phải lúc nào cũng an toàn
+## 5. Unary `-`: Negation Is Not Always Safe
 
 ~~~java
 int n = 12;
-int opposite = -n; // -12; n van la 12.
+int opposite = -n; // -12; n remains 12.
 ~~~
 
-Đổi dấu một số nguyên ở biên âm có thể **tràn** vì miền `int` bất đối xứng:
+Negating an integer at the negative boundary can **overflow** because the `int` range is asymmetric:
 
 ~~~java
 int min = Integer.MIN_VALUE; // -2147483648.
-int stillMin = -min;         // -2147483648 (tran int).
+int stillMin = -min;         // -2147483648 (int overflow).
 long correct = -(long) min; // 2147483648.
 ~~~
 
-Giá trị toán học `2147483648` không biểu diễn được bằng `int`. Java không tự ném ngoại lệ ở phép đổi dấu nguyên thông thường. Nếu muốn **phát hiện tràn**, dùng `Math.negateExact(min)`, sẽ ném `ArithmeticException`. `Long.MIN_VALUE` có trường hợp tương tự.
+The mathematical value `2147483648` cannot be represented as an `int`. Java does not automatically throw an exception on ordinary integer negation. If you want to **detect overflow**, use `Math.negateExact(min)`, which throws `ArithmeticException`. `Long.MIN_VALUE` has the same behavior.
 
-Với số thực, dấu âm của **zero** được lưu lại:
+For floating-point numbers, the negative sign on **zero** is preserved:
 
 ~~~java
 double negZero = -0.0;
@@ -240,9 +240,9 @@ System.out.println(negZero == 0.0); // true.
 System.out.println(1.0 / negZero);  // -Infinity.
 ~~~
 
-`+0.0` và `-0.0` bằng nhau theo primitive `==` nhưng khác bit dấu; dấu trừ một ngôi tạo `-0.0` từ `+0.0`, và dấu cộng một ngôi không xóa dấu âm của `-0.0`.
+`+0.0` and `-0.0` are equal under primitive `==` but differ in their sign bit; unary minus produces `-0.0` from `+0.0`, and unary plus does not clear the negative sign of `-0.0`.
 
-## 6. Phủ định `!` chỉ cho boolean
+## 6. Logical Complement `!` Is Only for Booleans
 
 ~~~java
 boolean online = true;
@@ -253,7 +253,7 @@ boolean enabled = false;
 boolean blocked = !(ready && enabled); // true.
 ~~~
 
-| Biểu thức | Kết quả |
+| Expression | Result |
 | --- | --- |
 | `!true` | `false` |
 | `!false` | `true` |
@@ -261,37 +261,37 @@ boolean blocked = !(ready && enabled); // true.
 | `!(true && false)` | `true` |
 | `!(true || false)` | `false` |
 
-Đừng sử dụng `!` trên số nguyên như trong một số ngôn ngữ có truthiness:
+Do not use `!` on integers as in languages that have truthiness:
 
 ~~~java
 int count = 0;
-// boolean wrong = !count; // Loi bien dich.
+// boolean wrong = !count; // Compile error.
 boolean empty = !(count > 0); // true.
 ~~~
 
-`!` là **logical complement**; `~` mới là toán tử **bitwise complement** trên kiểu nguyên. Hai toán tử không thể thay thế cho nhau.
+`!` is **logical complement**; `~` is the **bitwise complement** operator on integral types. The two operators are not interchangeable.
 
-Với `Boolean`, Java tự **unbox** để áp dụng `!`, nên null có thể gây ngoại lệ:
+With `Boolean`, Java automatically **unboxes** to apply `!`, so null can cause an exception:
 
 ~~~java
 Boolean setting = null;
-// boolean disabled = !setting; // Nem NullPointerException.
+// boolean disabled = !setting; // Throws NullPointerException.
 ~~~
 
-### Quy tắc De Morgan
+### De Morgan's Laws
 
-Với biểu thức boolean `a` và `b`:
+For boolean expressions `a` and `b`:
 
-| Phủ định biểu thức ghép | Dạng biến đổi tương đương |
+| Negated Compound Expression | Equivalent Transformed Form |
 | --- | --- |
 | `!(a && b)` | `!a || !b` |
 | `!(a || b)` | `!a && !b` |
 
-Trong trường hợp `a` và `b` có tác dụng phụ (gọi phương thức, thay đổi trạng thái), cần đánh giá ngữ nghĩa từng biểu thức khi refactor; với biến boolean thông thường, bảng giúp phủ định điều kiện đúng và dễ đọc.
+In cases where `a` and `b` have side effects (method calls, state mutations), evaluate the semantics of each expression when refactoring; for ordinary boolean variables, this table helps negate conditions accurately and clearly.
 
-## 7. Thứ tự ưu tiên và dấu ngoặc
+## 7. Precedence and Parentheses
 
-Các toán tử một ngôi `+`, `-`, `!` có mức ưu tiên cao hơn các phép toán cộng/trừ hai ngôi và toán tử so sánh/logical:
+The unary operators `+`, `-`, and `!` have higher precedence than binary addition/subtraction and comparison/logical operators:
 
 ~~~java
 int a = 6;
@@ -302,54 +302,54 @@ int second = -(a + b); // -8.
 boolean smaller = !(a > b); // false.
 ~~~
 
-Trong `-a + b`, phần `-a` là biểu thức con. Trong `-(a + b)`, dấu trừ áp dụng cho **toàn tổng**. Với `!` cũng phải phủ định **toàn điều kiện** khi cần:
+In `-a + b`, `-a` is the subexpression. In `-(a + b)`, the minus sign applies to **the entire sum**. With `!`, you must likewise negate **the entire condition** when needed:
 
 ~~~java
-// boolean wrong = !a > b; // Sai kieu: !a yeu cau boolean.
+// boolean wrong = !a > b; // Type mismatch: !a requires boolean.
 boolean correct = !(a > b);
 ~~~
 
-## 8. Bẫy thường gặp
+## 8. Common Pitfalls
 
-| Nhầm lẫn | Điều đúng |
+| Misconception | Fact |
 | --- | --- |
-| “`+x` luôn giữ nguyên kiểu `x`.” | `byte`, `short`, `char` được nâng thành `int` |
-| “`-x` thay đổi trực tiếp `x`.” | Không, trả một giá trị mới |
-| “`+ "12"` biến chuỗi thành số.” | Sai; dùng parsing như `Integer.parseInt` |
-| “`!0` là true.” | Không hợp lệ: `!` cần boolean |
-| “`!` giống `~`.” | `!` đảo logic; `~` đảo bit |
-| “`-Integer.MIN_VALUE` là số dương.” | Tràn `int`, kết quả vẫn bằng `MIN_VALUE` |
-| “`Boolean` có thể dùng `!` kể cả khi null.” | Null gây `NullPointerException` khi unbox |
-| “`-0.0` giống `+0.0` trong mọi phép toán.” | Cùng `==` nhưng khác dấu ở nghịch đảo và bit biểu diễn |
+| “`+x` always keeps the type of `x`.” | `byte`, `short`, `char` are promoted to `int` |
+| “`-x` mutates `x` directly.” | No, it returns a new value |
+| “`+ "12"` turns a string into a number.” | False; use parsing such as `Integer.parseInt` |
+| “`!0` is true.” | Invalid: `!` requires a boolean |
+| “`!` is like `~`.” | `!` is logical negation; `~` is bitwise complement |
+| “`-Integer.MIN_VALUE` is positive.” | Overflows `int`, result remains `MIN_VALUE` |
+| “`Boolean` can use `!` even when null.” | Null causes `NullPointerException` on unboxing |
+| “`-0.0` is identical to `+0.0` in every operation.” | Equal under `==`, but differs in reciprocal and sign bit |
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-1. `int x = 6; int y = -x;`, `x` và `y` bằng bao nhiêu?  
-   *Đáp án:* 6 và -6.
-2. `-(3 + 2)` khác `-3 + 2` thế nào?  
-   *Đáp án:* -5 và -1.
-3. `byte b = 7; var n = -b;`, kiểu `n` là gì?  
-   *Đáp án:* `int`.
-4. `var code = +'A';`, kiểu và giá trị `code` là gì?  
-   *Đáp án:* `int`, 65.
-5. `!(true && false)` có giá trị nào?  
-   *Đáp án:* `true`.
-6. `Boolean flag = null; boolean x = !flag;` có chạy bình thường không?  
-   *Đáp án:* Không; ném `NullPointerException`.
-7. `-Integer.MIN_VALUE` và `-(long) Integer.MIN_VALUE` khác nhau ra sao?  
-   *Đáp án:* Kết quả `int` là -2147483648, còn `long` là 2147483648.
-8. `1.0 / -0.0` trả gì?  
-   *Đáp án:* `-Infinity`.
+1. Given `int x = 6; int y = -x;`, what are `x` and `y`?  
+   *Answer:* 6 and -6.
+2. How does `-(3 + 2)` differ from `-3 + 2`?  
+   *Answer:* -5 and -1.
+3. Given `byte b = 7; var n = -b;`, what is the type of `n`?  
+   *Answer:* `int`.
+4. Given `var code = +'A';`, what are the type and value of `code`?  
+   *Answer:* `int`, 65.
+5. What is the value of `!(true && false)`?  
+   *Answer:* `true`.
+6. Does `Boolean flag = null; boolean x = !flag;` run normally?  
+   *Answer:* No; it throws `NullPointerException`.
+7. How do `-Integer.MIN_VALUE` and `-(long) Integer.MIN_VALUE` differ?  
+   *Answer:* The `int` result is -2147483648, whereas the `long` result is 2147483648.
+8. What does `1.0 / -0.0` return?  
+   *Answer:* `-Infinity`.
 
 ## Checklist
 
-- [ ] Phân biệt `+x`/`-x` một ngôi với `a+b`/`a-b` hai ngôi.
-- [ ] Hiểu `+` một ngôi không đổi giá trị nhưng có thể nâng kiểu số.
-- [ ] Hiểu `-` đổi dấu và có thể tràn ở giá trị nguyên nhỏ nhất.
-- [ ] Chỉ dùng `!` cho boolean, không cho số nguyên hoặc String.
-- [ ] Kiểm tra null trước khi unbox wrapper.
-- [ ] Nhớ số thực có `+0.0` và `-0.0` với bit dấu khác nhau.
-- [ ] Dùng dấu ngoặc để phủ định đúng biểu thức mong muốn.
-- [ ] Dùng `Math.negateExact` nếu nghiệp vụ yêu cầu phát hiện overflow khi đổi dấu.
+- [ ] Distinguish unary `+x`/`-x` from binary `a+b`/`a-b`.
+- [ ] Understand that unary `+` does not change the value, yet can promote the numeric type.
+- [ ] Understand that `-` negates values and can overflow at the minimum integer value.
+- [ ] Use `!` only for booleans, not integers or `String`.
+- [ ] Check for null before unboxing wrappers.
+- [ ] Remember floating-point numbers have `+0.0` and `-0.0` with different sign bits.
+- [ ] Use parentheses to negate the exact intended expression.
+- [ ] Use `Math.negateExact` if business logic requires detecting overflow on negation.
 
-**Kết luận:** Unary `+` và `-` áp dụng trên **toán hạng số sau khi nâng kiểu**, trong khi unary `!` chỉ áp dụng cho **boolean**. Nắm rõ kiểu kết quả, phạm vi ưu tiên và các tình huống biên như null, overflow và zero có dấu sẽ giúp sử dụng chính xác ba toán tử này.
+**Conclusion:** Unary `+` and `-` operate on **numeric operands after promotion**, while unary `!` applies only to **booleans**. Knowing the result type, precedence scope, and edge cases such as null, overflow, and signed zero will help you use these three operators accurately.

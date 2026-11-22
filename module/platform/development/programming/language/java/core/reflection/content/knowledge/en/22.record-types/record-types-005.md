@@ -1,97 +1,97 @@
-# Annotation của record component khác annotation trên field, accessor và parameter
+# Record component annotations differ from annotations on fields, accessors, and parameters
 
-## 1. Một dòng khai báo, nhiều vị trí metadata
+## 1. One declaration line, multiple metadata locations
 
-Xét một record có thành phần `name`:
+Consider a record with a `name` component:
 
 ~~~java
 record Person(String name) {
 }
 ~~~
 
-Từ một thành phần trong phần đầu record, ta có những đối tượng khai báo liên quan:
+From a single component in the record header, we have these related declaration elements:
 
 ~~~text
 record component name
-    -> trường lưu trữ private final name
-    -> phương thức accessor name()
-    -> tham số name của canonical constructor
+    -> private final backing field name
+    -> accessor method name()
+    -> canonical constructor parameter name
 ~~~
 
-Các đối tượng này có quan hệ với nhau, nhưng **không phải cùng một phần tử được gắn annotation**. Reflection cung cấp một đối tượng riêng cho mỗi vị trí:
+These elements are related to each other, yet **they are not the same annotated element**. Reflection provides a distinct object for each location:
 
-- `RecordComponent`: thành phần record.
-- `Field`: trường lưu trữ.
-- `Method`: accessor.
-- `Parameter`: tham số của constructor.
+- `RecordComponent`: the record component.
+- `Field`: the backing field.
+- `Method`: the accessor.
+- `Parameter`: the constructor parameter.
 
-Vì thế, không thể thấy `@SomeAnnotation` gần một thành phần trong mã nguồn rồi kết luận rằng bốn truy vấn `getAnnotation(...)` đều phải có cùng kết quả.
+Therefore, you cannot see `@SomeAnnotation` next to a component in source code and conclude that all four `getAnnotation(...)` queries must return the same result.
 
-Muốn hiểu kết quả, phải biết **annotation được phép áp dụng ở đâu**, **thành viên hoặc tham số là ngầm định hay được viết tường minh**, và **annotation có được giữ lại cho Reflection lúc chạy hay không**.
+To understand the results, you must know **where the annotation is permitted to apply**, **whether the member or parameter is implicit or explicitly written**, and **whether the annotation is retained for Reflection at runtime**.
 
-## 2. Target và Retention trả lời hai câu hỏi khác nhau
+## 2. Target and Retention answer two different questions
 
-### 2.1. Target xác định vị trí áp dụng
+### 2.1. Target determines applicable locations
 
-`@Target` trên khai báo annotation xác định các ngữ cảnh hợp lệ.
+`@Target` on an annotation declaration determines the valid contexts.
 
-| `ElementType` | Vị trí tương ứng trong bài |
+| `ElementType` | Corresponding location in this article |
 | --- | --- |
-| `RECORD_COMPONENT` | Khai báo thành phần record |
-| `FIELD` | Khai báo trường lưu trữ |
-| `METHOD` | Khai báo phương thức accessor |
-| `PARAMETER` | Khai báo tham số của constructor |
-| `TYPE_USE` | Một vị trí sử dụng kiểu, ví dụ kiểu `String` của thành phần |
+| `RECORD_COMPONENT` | Record component declaration |
+| `FIELD` | Backing field declaration |
+| `METHOD` | Accessor method declaration |
+| `PARAMETER` | Constructor parameter declaration |
+| `TYPE_USE` | A type use location, such as the component's `String` type |
 
-Các hằng này được mô tả tại [ElementType](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/annotation/ElementType.html).
+These constants are described in [ElementType](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/annotation/ElementType.html).
 
-Một annotation có thể cho phép nhiều target. Ví dụ, annotation có cả `RECORD_COMPONENT` lẫn `FIELD` có thể xuất hiện trên cả metadata thành phần lẫn trường tương ứng khi áp dụng qua phần đầu record.
+An annotation can allow multiple targets. For example, an annotation with both `RECORD_COMPONENT` and `FIELD` can appear on both component metadata and the corresponding field when applied via the record header.
 
-Annotation chỉ có target `FIELD` vẫn có thể được viết tại vị trí thành phần trong phần đầu record và được truyền sang trường tương ứng. Điều đó **không** làm nó xuất hiện như annotation khai báo của `RecordComponent`. Chương trình ở phần sau sẽ kiểm chứng trường hợp này.
+An annotation with only the `FIELD` target can still be written at the component position in the record header and propagated to the corresponding field. That does **not** make it appear as a declared annotation of `RecordComponent`. The program in a later section verifies this case.
 
-### 2.2. Retention xác định có quan sát được lúc chạy hay không
+### 2.2. Retention determines runtime visibility
 
-| Chính sách | Ảnh hưởng đối với Reflection lúc chạy |
+| Policy | Effect on Reflection at runtime |
 | --- | --- |
-| `SOURCE` | Annotation bị bỏ khi biên dịch; không quan sát được bằng Reflection thông thường |
-| `CLASS` | Có trong class file nhưng không được giữ lại để các truy vấn annotation Reflection thông thường trả về |
-| `RUNTIME` | Có thể được đọc qua Reflection ở vị trí phù hợp |
+| `SOURCE` | Annotation is discarded at compile time; not observable by ordinary Reflection |
+| `CLASS` | Present in the class file but not retained to be returned by ordinary Reflection annotation queries |
+| `RUNTIME` | Can be read via Reflection at the appropriate location |
 
-Nếu không khai báo `@Retention`, mặc định là `CLASS`.
+If `@Retention` is omitted, the default is `CLASS`.
 
-Do đó, `getAnnotation(...)` trả về `null` có thể do đang hỏi sai vị trí, annotation không có ở vị trí đó, hoặc chính sách lưu giữ không cho quan sát lúc chạy. Không nên chỉ sửa `@Target` mà bỏ qua `@Retention`.
+Thus, `getAnnotation(...)` returning `null` may be because the wrong location is queried, the annotation is absent at that location, or the retention policy does not allow runtime observation. Do not fix only `@Target` while overlooking `@Retention`.
 
-## 3. Chọn đúng đối tượng Reflection
+## 3. Choosing the right Reflection object
 
-Với một record có thành phần `name` và canonical constructor nhận `String name`, các điểm truy vấn tương ứng là:
+For a record with a `name` component and a canonical constructor taking `String name`, the corresponding query points are:
 
-| Cần hỏi annotation tại đâu? | Đối tượng cần đọc |
+| Where to query the annotation? | Object to read |
 | --- | --- |
-| Thành phần record | `recordType.getRecordComponents()[index]` |
-| Trường lưu trữ | `recordType.getDeclaredField(component.getName())` |
+| Record component | `recordType.getRecordComponents()[index]` |
+| Backing field | `recordType.getDeclaredField(component.getName())` |
 | Accessor | `component.getAccessor()` |
-| Tham số canonical constructor | `canonical.getParameters()[index]` |
-| Kiểu của thành phần | `component.getAnnotatedType()` |
-| Kiểu trả về của accessor | `accessor.getAnnotatedReturnType()` |
+| Canonical constructor parameter | `canonical.getParameters()[index]` |
+| Component type | `component.getAnnotatedType()` |
+| Accessor return type | `accessor.getAnnotatedReturnType()` |
 
-Mỗi đối tượng khai báo có thể được hỏi bằng `getAnnotation(...)`, `isAnnotationPresent(...)` hoặc các API đọc annotation tương ứng.
+Each declaration object can be queried with `getAnnotation(...)`, `isAnnotationPresent(...)`, or the corresponding annotation-reading APIs.
 
-Đừng nhầm annotation của **tham số** với annotation của **constructor**. `parameter.getAnnotation(A.class)` hỏi một vị trí khác với `constructor.getAnnotation(A.class)`. Target `PARAMETER` không đồng nghĩa target `CONSTRUCTOR`.
+Do not confuse a **parameter** annotation with a **constructor** annotation. `parameter.getAnnotation(A.class)` queries a different location than `constructor.getAnnotation(A.class)`. Target `PARAMETER` does not mean target `CONSTRUCTOR`.
 
-Cũng không cần mở quyền truy cập để chỉ đọc annotation của một trường private. Đọc metadata bằng `Field.getAnnotation(...)` khác với đọc hoặc ghi giá trị trường bằng `Field.get(...)` hay `Field.set(...)`.
+Nor is it necessary to open access permissions just to read annotations on a private field. Reading metadata with `Field.getAnnotation(...)` differs from reading or writing field values with `Field.get(...)` or `Field.set(...)`.
 
-## 4. Chương trình đầy đủ: đối chiếu bốn vị trí
+## 4. Complete program: comparing four locations
 
-Chương trình sau khai báo các annotation chỉ dành cho từng vị trí, một annotation dùng chung bốn vị trí và một annotation chỉ dành cho kiểu.
+The following program declares annotations dedicated to each individual location, one annotation shared across four locations, and one annotation for types only.
 
-Nó cũng so sánh:
+It also compares:
 
-- Record có accessor và canonical constructor ngầm định.
-- Record viết tường minh accessor và canonical constructor có danh sách tham số.
-- Record có compact constructor.
-- Record đặt các giá trị annotation khác nhau tại từng vị trí.
+- A record with implicit accessor and canonical constructor.
+- A record with an explicitly written accessor and canonical constructor with an explicit parameter list.
+- A record with a compact constructor.
+- A record placing different annotation values at each location.
 
-Lưu vào `RecordAnnotationLocationsDemo.java`:
+Save into `RecordAnnotationLocationsDemo.java`:
 
 ~~~java
 import java.lang.annotation.Annotation;
@@ -239,14 +239,14 @@ public class RecordAnnotationLocationsDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 RecordAnnotationLocationsDemo.java
 java RecordAnnotationLocationsDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 == Automatic ==
@@ -283,38 +283,38 @@ explicit accessor value: accessor
 explicit parameter value: parameter
 ~~~
 
-Hàm `names(...)` chủ động sắp xếp tên annotation để stdout ổn định. Không dựa vào thứ tự các annotation trong mảng Reflection.
+The `names(...)` method intentionally sorts annotation names so stdout is stable. Do not rely on the order of annotations in Reflection arrays.
 
-Các record trong ví dụ đều có đúng một thành phần kiểu `String`. Vì vậy, mã khảo sát dùng vị trí `0` và chữ ký constructor một tham số. Với công cụ tổng quát, cần ánh xạ đúng các vị trí theo phần đầu record; phần 8 trình bày cách đó.
+The records in the example all have a single `String` component. Therefore, the inspection code uses index `0` and a single-parameter constructor signature. For a general-purpose tool, you must map positions properly according to the record header; section 8 shows how.
 
-## 5. Đọc các kết quả quan trọng
+## 5. Reading the key results
 
-### 5.1. Automatic: target quyết định nơi xuất hiện
+### 5.1. Automatic: target determines where annotations appear
 
-Với record `Automatic`, kết quả khai báo là:
+For record `Automatic`, the declaration results are:
 
-| Vị trí | Annotation quan sát được |
+| Location | Observable annotations |
 | --- | --- |
 | Component | `Everywhere`, `OnComponent` |
 | Field | `Everywhere`, `OnField` |
 | Accessor | `Everywhere`, `OnMethod` |
 | Parameter | `Everywhere`, `OnParameter` |
 
-`OnField`, `OnMethod` và `OnParameter` không xuất hiện khi hỏi annotation khai báo trên component, dù đều được viết trong phần đầu record.
+`OnField`, `OnMethod`, and `OnParameter` do not appear when querying declared annotations on the component, even though all of them were written in the record header.
 
-`Everywhere` có đủ bốn target nên xuất hiện ở cả bốn vị trí khi accessor và constructor tương ứng được tạo ngầm định. Đây là sự truyền annotation theo các ngữ cảnh áp dụng, không phải bốn đối tượng Reflection dùng chung một danh sách annotation.
+`Everywhere` has all four targets so it appears at all four locations when the corresponding accessor and constructor are implicitly generated. This is propagation of annotations to applicable contexts, not four Reflection objects sharing a single annotation list.
 
-Quy tắc về component và các thành viên liên quan nằm tại [JLS §8.10.1–8.10.3](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.10.1).
+Rules for components and related members are located in [JLS §8.10.1–8.10.3](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.10.1).
 
-### 5.2. Manual: viết tường minh làm thay đổi nơi quan sát
+### 5.2. Manual: explicit declarations change what is observed
 
-Record `Manual` có annotation trong phần đầu:
+Record `Manual` has annotations in the header:
 
 ~~~java
 @Everywhere("header") @TypeMark String text
 ~~~
 
-Nhưng accessor được viết tường minh mà không thêm annotation:
+Yet the accessor is explicitly written without adding annotations:
 
 ~~~java
 public String text() {
@@ -322,7 +322,7 @@ public String text() {
 }
 ~~~
 
-Và canonical constructor cũng có danh sách tham số viết tường minh:
+And the canonical constructor also has an explicitly written parameter list:
 
 ~~~java
 public Manual(String text) {
@@ -330,23 +330,23 @@ public Manual(String text) {
 }
 ~~~
 
-Các đoạn trên trích từ chương trình hoàn chỉnh, không phải các chương trình độc lập.
+The snippets above are excerpts from the complete program, not standalone programs.
 
-Kết quả:
+Results:
 
-- Component và trường vẫn có `Everywhere`.
-- Accessor không tự nhận `Everywhere` từ component.
-- Tham số viết tường minh không tự nhận `Everywhere` từ component.
-- Annotation trên kiểu của component và trường vẫn có `TypeMark`.
-- Kiểu trả về và kiểu tham số được viết tường minh không tự có `TypeMark`.
+- The component and field still have `Everywhere`.
+- The accessor does not automatically inherit `Everywhere` from the component.
+- The explicitly written parameter does not automatically inherit `Everywhere` from the component.
+- Annotations on the component type and field type still have `TypeMark`.
+- The explicitly written return type and parameter type do not automatically have `TypeMark`.
 
-Vì vậy, việc refactor từ accessor ngầm định sang accessor viết tay có thể thay đổi metadata mà một công cụ đang đọc trên `Method`, ngay cả khi phương thức vẫn trả về cùng giá trị như trước.
+Therefore, refactoring from an implicit accessor to a handwritten accessor can change the metadata a tool reads on `Method`, even when the method still returns the exact same value as before.
 
-Đừng kết luận metadata thành phần bị mất: `RecordComponent` vẫn có annotation của chính nó. Chỉ có những vị trí khác nhau đang cho kết quả khác nhau.
+Do not conclude that component metadata was lost: `RecordComponent` still has its own annotations. Different locations are simply giving different results.
 
-### 5.3. Compact: tham số vẫn được khai báo ngầm định
+### 5.3. Compact: parameters are still implicitly declared
 
-Record `Compact` viết:
+Record `Compact` writes:
 
 ~~~java
 public Compact {
@@ -354,19 +354,19 @@ public Compact {
 }
 ~~~
 
-Đây là compact canonical constructor. Người viết cung cấp phần thân, nhưng không viết lại danh sách tham số. Các tham số của nó vẫn được suy ra từ phần đầu record và được khai báo ngầm định.
+This is a compact canonical constructor. The author provides the body, without rewriting the parameter list. Its parameters are still inferred from the record header and are implicitly declared.
 
-Do đó, trong chương trình:
+Therefore, in the program:
 
-- Annotation `Everywhere` áp dụng cho tham số vẫn xuất hiện trên `Parameter`.
-- Annotation `TypeMark` vẫn có trên kiểu tham số.
-- Accessor không được viết tường minh nên vẫn nhận annotation phù hợp.
+- The `Everywhere` annotation applicable to parameters still appears on `Parameter`.
+- The `TypeMark` annotation is still present on the parameter type.
+- The accessor is not explicitly written so it still receives applicable annotations.
 
-Không áp dụng máy móc quy tắc “có viết constructor thì không truyền annotation”. Cần phân biệt **canonical constructor thông thường có danh sách tham số tường minh** với **compact constructor có tham số ngầm định**. Quy tắc hai dạng constructor được mô tả ở [JLS §8.10.4](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.10.4).
+Do not mechanically apply a rule like "if a constructor is written, annotations are not propagated." Distinguish a **normal canonical constructor with an explicit parameter list** from a **compact constructor with implicit parameters**. Rules for both constructor forms are described in [JLS §8.10.4](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.10.4).
 
-### 5.4. ExplicitValues: cùng loại annotation nhưng giá trị có thể khác
+### 5.4. ExplicitValues: same annotation type, potentially different values
 
-Bốn dòng cuối của chương trình là:
+The last four lines of the program output are:
 
 ~~~text
 explicit component value: header
@@ -375,93 +375,93 @@ explicit accessor value: accessor
 explicit parameter value: parameter
 ~~~
 
-Chương trình hợp lệ. Annotation trên component có giá trị `header`, còn accessor và tham số canonical constructor được viết tường minh với các giá trị khác.
+The program is valid. The annotation on the component has the value `header`, while the explicitly written accessor and canonical constructor parameter have different values.
 
-Vì thế, một công cụ không thể mặc định:
+Therefore, a tool cannot assume:
 
 ~~~text
-Tìm thấy cùng một loại annotation
-    -> mọi vị trí đều diễn đạt cùng một cấu hình
+Found the same annotation type
+    -> every location expresses the same configuration
 ~~~
 
-Nếu muốn kết hợp cấu hình từ nhiều nơi, công cụ phải định nghĩa rõ nơi ưu tiên và cách xử lý xung đột. Không nên nối tất cả annotation tìm được rồi xem chúng là các bản sao tương đương.
+If a tool wants to combine configuration from multiple places, it must clearly define precedence and conflict handling. Do not concatenate all found annotations and treat them as equivalent duplicates.
 
-### 5.5. ClassOnly: target đúng nhưng Reflection vẫn không thấy
+### 5.5. ClassOnly: right target, yet Reflection still cannot see it
 
-`ClassOnly` có target `RECORD_COMPONENT` nhưng retention là `CLASS`. Dòng kiểm tra cho:
+`ClassOnly` has target `RECORD_COMPONENT` but retention is `CLASS`. The check line gives:
 
 ~~~text
 ClassOnly visible at runtime: false
 ~~~
 
-Đây không phải bằng chứng rằng compiler không nhận annotation. Nó cho thấy annotation không được cung cấp qua API Reflection runtime ở chính sách lưu giữ đó.
+This is not evidence that the compiler ignored the annotation. It shows that the annotation is not exposed via the runtime Reflection API under that retention policy.
 
-Nếu cần khảo sát annotation có retention `CLASS`, đó là bài toán đọc class file bằng công cụ phù hợp, khác với việc chỉ gọi `RecordComponent.getAnnotation(...)`.
+If you need to inspect annotations with `CLASS` retention, that is a problem of reading class files with an appropriate tool, different from simply calling `RecordComponent.getAnnotation(...)`.
 
-## 6. Annotation của khai báo khác annotation trên kiểu
+## 6. Declaration annotations differ from annotations on types
 
-`RecordComponent.getAnnotation(...)` trả lời về annotation **của khai báo thành phần**. Để hỏi annotation **trên vị trí sử dụng kiểu**, dùng `getAnnotatedType()`.
+`RecordComponent.getAnnotation(...)` answers about annotations **of the component declaration**. To query annotations **on the type-use location**, use `getAnnotatedType()`.
 
-Trong record `Automatic`, `TypeMark` chỉ có target `TYPE_USE`. Vì vậy:
+In record `Automatic`, `TypeMark` only has the `TYPE_USE` target. Therefore:
 
-- Nó không xuất hiện trong danh sách annotation khai báo của component.
-- Nó xuất hiện trên `component.getAnnotatedType()`.
-- Với các phần tương ứng ngầm định, nó cũng xuất hiện trên kiểu trường, kiểu trả về accessor và kiểu tham số.
+- It does not appear in the component's declared annotation list.
+- It appears on `component.getAnnotatedType()`.
+- For the corresponding implicit members, it also appears on the field type, accessor return type, and parameter type.
 
-Có thể hình dung hai kênh riêng:
+You can picture two separate channels:
 
 ~~~text
 RecordComponent
-    -> getAnnotation(...)          : annotation của khai báo
+    -> getAnnotation(...)          : declaration annotation
     -> getAnnotatedType()
-         -> getAnnotation(...)     : annotation trên kiểu
+         -> getAnnotation(...)     : annotation on the type
 ~~~
 
-Một annotation có cả target `RECORD_COMPONENT` và `TYPE_USE` có thể được áp dụng theo cả hai vai trò. Khi đó hai truy vấn có thể cùng nhìn thấy một loại annotation, nhưng chúng vẫn đang đọc hai vị trí metadata khác nhau.
+An annotation with both `RECORD_COMPONENT` and `TYPE_USE` targets can apply in both roles. In that case both queries can see the same annotation type, yet they are still reading two different metadata locations.
 
-Đọc `getGenericType()` cũng không thay cho đọc `getAnnotatedType()`. `Type` mô tả cấu trúc kiểu; `AnnotatedType` cho phép khảo sát cấu trúc đó cùng các annotation trên vị trí sử dụng kiểu.
+Reading `getGenericType()` does not substitute for reading `getAnnotatedType()` either. `Type` describes the type structure; `AnnotatedType` allows inspecting that structure along with annotations on type-use locations.
 
-### Annotation lồng trong đối số generic
+### Nested annotations in generic arguments
 
-Với thành phần `List<@TypeMark String> values`, `TypeMark` được gắn với **lần sử dụng kiểu `String`**, không phải khai báo component hay kiểu `List` ngoài cùng. Vì thế, hai phép hỏi tại component và gốc `component.getAnnotatedType()` có thể không thấy annotation.
+For the component `List<@TypeMark String> values`, `TypeMark` is attached to **the type use of `String`**, not the component declaration or the outermost `List` type. Therefore, queries on the component and on the root `component.getAnnotatedType()` may not see the annotation.
 
-Mã minh họa sau giả sử đã có `RecordComponent component` của thành phần `values`, annotation `TypeMark` có `@Target(TYPE_USE)` và `@Retention(RUNTIME)`:
+The illustrative snippet below assumes you already have `RecordComponent component` for the `values` component, and annotation `TypeMark` with `@Target(TYPE_USE)` and `@Retention(RUNTIME)`:
 
 ~~~java
 java.lang.reflect.AnnotatedType root = component.getAnnotatedType();
 if (root instanceof java.lang.reflect.AnnotatedParameterizedType listType) {
     boolean marked = listType.getAnnotatedActualTypeArguments()[0]
             .isAnnotationPresent(TypeMark.class);
-    System.out.println(marked); // true với List<@TypeMark String>
+    System.out.println(marked); // true for List<@TypeMark String>
 }
 ~~~
 
-Dùng `instanceof` vì không phải mọi component đều có kiểu generic. Với mảng, wildcard hoặc biến kiểu, cần chọn giao diện `AnnotatedType` tương ứng và đi tới đúng nút; không làm phẳng các annotation của những vị trí kiểu khác nhau thành một tập chung.
+Use `instanceof` because not every component has a generic type. For arrays, wildcards, or type variables, choose the corresponding `AnnotatedType` interface and navigate to the right node; do not flatten annotations from different type positions into a single set.
 
-## 7. Một ma trận quy tắc để tự dự đoán
+## 7. A rule matrix for self-prediction
 
-Giả sử annotation có retention `RUNTIME` và được viết ở thành phần trong phần đầu record:
+Suppose an annotation has `RUNTIME` retention and is written on a component in the record header:
 
-| Target của annotation | Component | Trường lưu trữ | Accessor ngầm định | Tham số ngầm định của canonical constructor |
+| Annotation target | Component | Backing field | Implicit accessor | Implicit canonical constructor parameter |
 | --- | --- | --- | --- | --- |
-| Chỉ `RECORD_COMPONENT` | Có | Không | Không | Không |
-| Chỉ `FIELD` | Không | Có | Không | Không |
-| Chỉ `METHOD` | Không | Không | Có | Không |
-| Chỉ `PARAMETER` | Không | Không | Không | Có |
-| Cả bốn target trên | Có | Có | Có | Có |
-| Chỉ `TYPE_USE` | Không ở annotation khai báo | Đọc trên kiểu trường | Đọc trên kiểu trả về | Đọc trên kiểu tham số |
+| `RECORD_COMPONENT` only | Yes | No | No | No |
+| `FIELD` only | No | Yes | No | No |
+| `METHOD` only | No | No | Yes | No |
+| `PARAMETER` only | No | No | No | Yes |
+| All four targets above | Yes | Yes | Yes | Yes |
+| `TYPE_USE` only | Not on declaration annotations | Read on field type | Read on return type | Read on parameter type |
 
-Với dòng `TYPE_USE`, còn phải đọc `component.getAnnotatedType()` để quan sát annotation trên kiểu thành phần. Vị trí có thể nằm sâu trong cấu trúc kiểu, như ví dụ `List<@ItemMark String>`.
+For the `TYPE_USE` row, you also read `component.getAnnotatedType()` to observe the annotation on the component type. The location can be nested deep inside the type structure, as in the `List<@ItemMark String>` example.
 
-Ma trận dành cho các phần ngầm định. Accessor viết tường minh và tham số của canonical constructor có danh sách tham số viết tường minh phải được xem theo khai báo của chính chúng.
+The matrix applies to implicit parts. An explicitly written accessor and a parameter of a canonical constructor with an explicitly written parameter list must be examined on their own declarations.
 
-Việc truyền annotation của record là quy tắc ngôn ngữ, không phải cơ chế kế thừa annotation qua `@Inherited`. Không dùng `@Inherited` như cách yêu cầu tự truyền annotation giữa component, field, accessor và parameter.
+Record annotation propagation is a language rule, not the annotation inheritance mechanism via `@Inherited`. Do not use `@Inherited` as a way to request automatic propagation between component, field, accessor, and parameter.
 
-## 8. Ánh xạ đúng canonical constructor trong công cụ tổng quát
+## 8. Mapping the canonical constructor accurately in a general-purpose tool
 
-Chương trình đầu có một thành phần, nên dễ xác định tham số tương ứng. Với record có nhiều thành phần, nên bắt đầu từ thứ tự của `getRecordComponents()` và dựng chữ ký canonical constructor từ kiểu của các thành phần.
+The first program has one component, making it easy to identify the corresponding parameter. For records with multiple components, start from the order of `getRecordComponents()` and construct the canonical constructor signature from the component types.
 
-Đoạn sau là mã minh họa đặt trong một phương thức; `recordType` là token của lớp record đã biết. Cần các import Reflection tương ứng và `java.util.Arrays`; phương thức chứa đoạn này phải xử lý `NoSuchMethodException`.
+The following snippet is illustrative code placed inside a method; `recordType` is the token of a known record class. Corresponding Reflection imports and `java.util.Arrays` are required; the containing method must handle `NoSuchMethodException`.
 
 ~~~java
 RecordComponent[] components = recordType.getRecordComponents();
@@ -486,49 +486,49 @@ for (int i = 0; i < components.length; i++) {
 }
 ~~~
 
-Các điểm cần giữ:
+Points to preserve:
 
-- Chọn canonical constructor bằng đúng danh sách kiểu và thứ tự thành phần.
-- Không chọn constructor đầu tiên trong `getDeclaredConstructors()`; record có thể có constructor bổ sung.
-- Dùng `getType()` để có `Class<?>` tìm chữ ký, không ép mọi `getGenericType()` thành `Class`.
-- Ánh xạ tham số theo thứ tự thành phần, không đoán từ thứ tự field.
-- Khi chỉ cần annotation của parameter, không cần tạo một đối tượng record hay gọi constructor.
+- Select the canonical constructor by the exact type list and component order.
+- Do not pick the first constructor in `getDeclaredConstructors()`; a record can have additional constructors.
+- Use `getType()` to obtain `Class<?>` for signature lookup; do not cast every `getGenericType()` to `Class`.
+- Map parameters in component order; do not guess from field order.
+- When you only need parameter annotations, there is no need to create a record object or invoke the constructor.
 
-Với canonical constructor viết tường minh, vẫn có quan hệ vị trí giữa thành phần và tham số, nhưng annotation của tham số có thể khác annotation trên component. Ánh xạ được hai vị trí không có nghĩa dữ liệu annotation của chúng giống nhau.
+With an explicitly written canonical constructor, there is still a positional relationship between component and parameter, yet the parameter's annotations can differ from the component's annotations. Being able to map the two positions does not mean their annotation data is identical.
 
-## 9. Cách thiết kế quy tắc đọc annotation
+## 9. How to design annotation-reading rules
 
-Một công cụ nên bắt đầu từ câu hỏi nghiệp vụ cụ thể:
+A tool should start from a specific domain question:
 
-- Nếu annotation mô tả thành phần trong lược đồ dữ liệu record, hãy xác định liệu nguồn cấu hình là `RecordComponent`.
-- Nếu công cụ làm việc qua accessor, hãy quyết định cách xử lý annotation trên `Method` và kiểu trả về.
-- Nếu công cụ chuẩn bị đối số để gọi constructor, annotation của `Parameter` là một nguồn thông tin riêng.
-- Nếu annotation nói về kiểu dữ liệu hoặc phần tử trong cấu trúc generic, phải khảo sát `AnnotatedType`.
+- If the annotation describes a component in the record data schema, determine whether the configuration source is `RecordComponent`.
+- If the tool operates through accessors, decide how to handle annotations on `Method` and the return type.
+- If the tool prepares arguments to call a constructor, `Parameter` annotations are a separate source of information.
+- If the annotation describes the data type or elements inside a generic structure, inspect `AnnotatedType`.
 
-Đừng tự suy rằng annotation ở vị trí khác “chắc là cùng một annotation bị Reflection bỏ sót”. Hãy đọc từng nơi cần thiết và xác định chính sách rõ ràng.
+Do not assume an annotation at another location "must be the same annotation missed by Reflection." Read each necessary place and define a clear policy.
 
-Khi gặp nhiều vị trí có cấu hình khác nhau, công cụ có thể ưu tiên một vị trí, báo xung đột hoặc hỗ trợ một quy tắc kết hợp đã được định nghĩa. Lựa chọn đó thuộc hợp đồng của công cụ, không phải hành vi tự động của Reflection.
+When encountering different configurations across multiple locations, the tool can prioritize one location, report a conflict, or support a defined combination rule. That choice belongs to the tool's contract, not automatic Reflection behavior.
 
-Nếu annotation là loại lặp được, nên dùng `getAnnotationsByType(...)` hoặc `getDeclaredAnnotationsByType(...)` theo nhu cầu để đọc các lần xuất hiện qua container. Đây vẫn là thao tác trên **một vị trí đã chọn**, không phải tự hợp nhất bốn vị trí của record.
+If the annotation is repeatable, use `getAnnotationsByType(...)` or `getDeclaredAnnotationsByType(...)` as needed to read occurrences through the container. This is still an operation on **one chosen location**, not automatically merging the four record locations.
 
-## 10. Tự kiểm tra
+## 10. Self-check
 
-1. Annotation chỉ có target `FIELD` được viết trước một thành phần record. Có thể đọc nó bằng `RecordComponent.getAnnotation(...)` không?
-2. Annotation có target `RECORD_COMPONENT` và retention mặc định. Vì sao Reflection runtime có thể không thấy?
-3. Khi viết tường minh accessor nhưng không chép annotation từ phần đầu record, annotation trên accessor có được tự truyền như accessor ngầm định không?
-4. Compact constructor có tham số ngầm định hay danh sách tham số do người viết khai báo tường minh?
-5. Annotation trên một tham số canonical constructor có đồng nghĩa annotation trên chính constructor không?
-6. Với `List<@ItemMark String>`, vì sao hỏi annotation trên component và trên kiểu `List` ngoài cùng đều có thể không thấy?
-7. Nếu component có `@Everywhere("header")` nhưng accessor viết tay có `@Everywhere("accessor")`, chương trình có nhất thiết lỗi biên dịch không?
-8. Vì sao một công cụ không nên chọn constructor đầu tiên để đọc annotation tham số của record?
+1. An annotation with only the `FIELD` target is written before a record component. Can it be read with `RecordComponent.getAnnotation(...)`?
+2. An annotation has target `RECORD_COMPONENT` and default retention. Why might runtime Reflection not see it?
+3. When explicitly writing an accessor without copying annotations from the record header, are annotations on the accessor automatically propagated like an implicit accessor?
+4. Does a compact constructor have implicit parameters or an explicitly declared parameter list?
+5. Does an annotation on a canonical constructor parameter mean the annotation is on the constructor itself?
+6. For `List<@ItemMark String>`, why might querying annotations on the component and on the outermost `List` type both fail to see it?
+7. If a component has `@Everywhere("header")` while a handwritten accessor has `@Everywhere("accessor")`, does the program necessarily fail to compile?
+8. Why should a tool not pick the first constructor to read record parameter annotations?
 
-Đáp án:
+Answers:
 
-1. Không với annotation chỉ có target đó. Hãy đọc trên `Field` tương ứng.
-2. Retention mặc định là `CLASS`, không phải `RUNTIME`.
-3. Không. Phải xem annotation của chính accessor được viết tường minh.
-4. Tham số ngầm định, suy ra từ phần đầu record; annotation phù hợp được áp dụng theo các quy tắc cho tham số suy ra.
-5. Không. Đây là hai vị trí khai báo khác nhau.
-6. Annotation nằm trên đối số kiểu `String`; cần đi sâu qua `AnnotatedParameterizedType`.
-7. Không. Chương trình mẫu cho thấy các giá trị ở những vị trí đó có thể khác nhau hợp lệ.
-8. Record có thể có constructor bổ sung và mảng constructor không có thứ tự chọn mong muốn; cần tìm đúng chữ ký canonical theo các thành phần.
+1. No for an annotation with only that target. Read it on the corresponding `Field`.
+2. Default retention is `CLASS`, not `RUNTIME`.
+3. No. You must inspect the annotations of the explicitly written accessor itself.
+4. Implicit parameters, inferred from the record header; applicable annotations are applied according to the rules for inferred parameters.
+5. No. Those are two different declaration locations.
+6. The annotation is on the `String` type argument; you need to drill down via `AnnotatedParameterizedType`.
+7. No. The sample program shows that values at those locations can validly differ.
+8. A record can have additional constructors and the constructor array has no desired selection order; you must look up the exact canonical signature based on the components.

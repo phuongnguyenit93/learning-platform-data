@@ -1,15 +1,15 @@
-# Class.getInterfaces() — chỉ trả về các interface trực tiếp
+# Class.getInterfaces() — Returns Only Direct Interfaces
 
-## 1. Ý nghĩa và chữ “trực tiếp”
+## 1. Meaning and the Word "Direct"
 
-Trong Java Reflection, `Class<?>[] getInterfaces()` là phương thức của `java.lang.Class`, cho biết các **interface được khai báo trực tiếp** bởi kiểu đang xét. Phương thức trả về **mảng các đối tượng `Class<?>`** đại diện cho interface; nó không trả về đối tượng triển khai interface, không trả về tên dưới dạng `String`, và không tự duyệt toàn bộ cây kế thừa.
+In Java Reflection, `Class<?>[] getInterfaces()` is a method of `java.lang.Class` that tells you the **interfaces directly declared** by the type under inspection. The method returns an **array of `Class<?>` objects** representing interfaces; it does not return instances implementing the interfaces, does not return names as `String`, and does not automatically traverse the entire inheritance tree.
 
-- Với **class**, đó là các interface xuất hiện trực tiếp trong mệnh đề `implements` của chính class.
-- Với **interface**, đó là các superinterface xuất hiện trực tiếp trong mệnh đề `extends` của chính interface.
-- Interface có được **gián tiếp** qua superclass hoặc qua một interface cha khác không tự động xuất hiện trong kết quả của kiểu đang xét.
-- Kết quả là mảng rỗng `Class<?>[0]` nếu không có interface trực tiếp, chứ không phải `null`. Phần tử trong mảng đi theo thứ tự khai báo trong `implements` hoặc `extends`.
+- For a **class**, these are the interfaces appearing directly in the `implements` clause of the class itself.
+- For an **interface**, these are the superinterfaces appearing directly in the `extends` clause of the interface itself.
+- Interfaces obtained **indirectly** via a superclass or via another superinterface do not automatically appear in the result for the type under inspection.
+- The result is an empty array `Class<?>[0]` if there are no direct interfaces, not `null`. Elements in the array follow the declaration order in `implements` or `extends`.
 
-Ví dụ nhanh:
+Quick example:
 
 ~~~java
 interface A {}
@@ -18,20 +18,20 @@ class Parent implements A {}
 class Child extends Parent implements B {}
 ~~~
 
-Ở đây:
+Here:
 
-| Biểu thức | Interface trả về trực tiếp | Điều quan trọng |
+| Expression | Directly returned interfaces | Important note |
 | --- | --- | --- |
-| `A.class.getInterfaces()` | `[]` | `A` không `extends` interface nào. |
-| `B.class.getInterfaces()` | `[A]` | `B extends A` trực tiếp. |
-| `Parent.class.getInterfaces()` | `[A]` | `Parent implements A` trực tiếp. |
-| `Child.class.getInterfaces()` | `[B]` | `Child` chỉ khai báo `implements B`; `A` vẫn là một quan hệ kiểu hợp lệ nhưng không nằm trong mảng trực tiếp của `Child`. |
+| `A.class.getInterfaces()` | `[]` | `A` does not `extends` any interface. |
+| `B.class.getInterfaces()` | `[A]` | `B extends A` directly. |
+| `Parent.class.getInterfaces()` | `[A]` | `Parent implements A` directly. |
+| `Child.class.getInterfaces()` | `[B]` | `Child` only declares `implements B`; `A` is still a valid type relationship, but it is not in the direct array of `Child`. |
 
-Hãy tách hai câu hỏi: **“Kiểu này trực tiếp khai báo interface nào?”** dùng `getInterfaces()`; **“Kiểu này có thể được xem là một interface cụ thể hay không?”** dùng kiểm tra quan hệ kiểu như `SomeInterface.class.isAssignableFrom(Target.class)`.
+Separate two questions: **"Which interfaces does this type directly declare?"** uses `getInterfaces()`; **"Can this type be treated as a specific interface?"** uses a type-relationship check like `SomeInterface.class.isAssignableFrom(Target.class)`.
 
-## 2. Ví dụ chạy được với Java 17+
+## 2. Runnable Example with Java 17+
 
-Lưu toàn bộ chương trình sau thành `DirectInterfacesDemo.java`:
+Save the entire following program as `DirectInterfacesDemo.java`:
 
 ~~~java
 import java.io.Serializable;
@@ -81,14 +81,14 @@ public class DirectInterfacesDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac DirectInterfacesDemo.java
 java DirectInterfacesDemo
 ~~~
 
-Kết quả chuẩn:
+Expected output:
 
 ~~~text
 Child: [Middle, Marker]
@@ -103,59 +103,59 @@ Generic direct: java.util.function.Supplier
 Generic signature: java.util.function.Supplier<java.lang.String>
 ~~~
 
-Phân tích từng điểm:
+Point-by-point analysis:
 
-1. `Child` **trực tiếp** `implements Middle, Marker`, nên `getInterfaces()` trả `Middle` trước `Marker`, đúng thứ tự khai báo. `Root` không nằm trong mảng này dù `Middle extends Root`.
-2. `Serializable` thuộc mệnh đề `implements` của `Parent`, nên `Parent.class.getInterfaces()` có `Serializable` còn `Child.class.getInterfaces()` không có. Tuy vậy, một `Child` cũng là `Serializable` nhờ kế thừa `Parent`.
-3. `Middle` là một **interface**, nên kết quả `[Root]` đến từ `extends Root`. `Root` không extends interface nào nên kết quả rỗng.
-4. Các kiểu mảng và kiểu nguyên thủy có quy tắc riêng, xem phần tiếp theo.
-5. `isAssignableFrom` trả `true` cho cả quan hệ gián tiếp qua superinterface hoặc superclass; do đó khác mục đích `getInterfaces()`.
-6. `Supplier<String>` được trả về dưới dạng `Class` thô `Supplier` khi gọi `getInterfaces()`; thông tin `<String>` chỉ thấy ở `getGenericInterfaces()`.
+1. `Child` **directly** `implements Middle, Marker`, so `getInterfaces()` returns `Middle` before `Marker`, matching the declaration order. `Root` is not in this array even though `Middle extends Root`.
+2. `Serializable` belongs to the `implements` clause of `Parent`, so `Parent.class.getInterfaces()` contains `Serializable` while `Child.class.getInterfaces()` does not. However, a `Child` is also `Serializable` by inheriting from `Parent`.
+3. `Middle` is an **interface**, so the result `[Root]` comes from `extends Root`. `Root` does not extend any interface, so the result is empty.
+4. Array types and primitive types have their own rules; see the next section.
+5. `isAssignableFrom` returns `true` even for indirect relationships via superinterfaces or superclasses; thus it serves a different purpose from `getInterfaces()`.
+6. `Supplier<String>` is returned as the raw `Class` `Supplier` when calling `getInterfaces()`; the `<String>` information is only visible via `getGenericInterfaces()`.
 
-## 3. Các trường hợp đặc biệt
+## 3. Special Cases
 
-| Kiểu của `Class` | Kết quả `getInterfaces()` |
+| Kind of `Class` | Result of `getInterfaces()` |
 | --- | --- |
-| Class khai báo `implements I, J` | `[I, J]` theo thứ tự khai báo. |
-| Class không khai báo `implements` | Mảng rỗng, kể cả khi superclass triển khai interface. |
-| Interface khai báo `extends I, J` | `[I, J]` theo thứ tự khai báo. |
-| Interface không khai báo `extends` | Mảng rỗng. |
-| Kiểu mảng, chẳng hạn `String[]` hoặc `int[]` | `[Cloneable, java.io.Serializable]`, đúng thứ tự này, dù không có mã nguồn `implements`. |
-| Primitive như `int`, `boolean` hoặc `void.class` | Mảng rỗng. |
+| Class declaring `implements I, J` | `[I, J]` in declaration order. |
+| Class without `implements` | Empty array, even if its superclass implements interfaces. |
+| Interface declaring `extends I, J` | `[I, J]` in declaration order. |
+| Interface without `extends` | Empty array. |
+| Array type, such as `String[]` or `int[]` | `[Cloneable, java.io.Serializable]`, in this exact order, even without `implements` in source code. |
+| Primitives such as `int`, `boolean`, or `void.class` | Empty array. |
 
-Đặc biệt, `String[].class.getInterfaces()` không tìm các interface do `String` triển khai; nó phản ánh các interface của **chính kiểu mảng**. Tương tự, `int.class.getInterfaces()` rỗng nhưng `int[].class.getInterfaces()` có hai phần tử.
+In particular, `String[].class.getInterfaces()` does not look up interfaces implemented by `String`; it reflects the interfaces of the **array type itself**. Similarly, `int.class.getInterfaces()` is empty, but `int[].class.getInterfaces()` has two elements.
 
-## 4. Phân biệt với các API liên quan
+## 4. Distinguishing from Related APIs
 
-| API | Câu hỏi mà API trả lời |
+| API | Question the API answers |
 | --- | --- |
-| `type.getInterfaces()` | Interface nào được class trực tiếp triển khai hoặc được interface trực tiếp mở rộng? |
-| `type.getGenericInterfaces()` | Các interface trực tiếp ấy được khai báo với tham số kiểu generic nào, nếu có? Trả về `Type[]`, không phải `Class<?>[]`. |
-| `type.getSuperclass()` | Superclass trực tiếp của class là gì? Không dùng để liệt kê interface. |
-| `I.class.isAssignableFrom(type)` | Biến kiểu `I` có thể nhận đối tượng thuộc `type` hay không, xét cả quan hệ kế thừa và triển khai gián tiếp? |
-| `I.class.isInstance(object)` | Đối tượng thực tế có tương thích với interface `I` không? |
+| `type.getInterfaces()` | Which interfaces are directly implemented by the class or directly extended by the interface? |
+| `type.getGenericInterfaces()` | With which generic type parameters, if any, are those direct interfaces declared? Returns `Type[]`, not `Class<?>[]`. |
+| `type.getSuperclass()` | What is the direct superclass of the class? Not used to list interfaces. |
+| `I.class.isAssignableFrom(type)` | Can a variable of type `I` accept an object of `type`, considering both indirect inheritance and implementation? |
+| `I.class.isInstance(object)` | Is the actual object compatible with interface `I`? |
 
-Hai phương thức `isAssignableFrom` và `isInstance` phù hợp hơn khi muốn **kiểm tra khả năng gán kiểu**. Ví dụ `Root.class.isAssignableFrom(Child.class)` là `true` dù `Root` không nằm trong `Child.class.getInterfaces()`. Với `isInstance`, truyền một object; với `isAssignableFrom`, truyền một đối tượng `Class<?>`.
+The two methods `isAssignableFrom` and `isInstance` are better suited when you want to **check type assignability**. For example, `Root.class.isAssignableFrom(Child.class)` is `true` even though `Root` is not in `Child.class.getInterfaces()`. With `isInstance`, you pass an object; with `isAssignableFrom`, you pass a `Class<?>` object.
 
-`getGenericInterfaces()` vẫn chỉ liệt kê interface **trực tiếp**, nhưng giữ mô tả generic: trong ví dụ, kết quả chứa `java.util.function.Supplier<java.lang.String>`. Không ép mọi phần tử của `Type[]` sang `ParameterizedType` vì một interface có thể xuất hiện dưới dạng `Class` thô; trước khi ép kiểu phải kiểm tra `instanceof`.
+`getGenericInterfaces()` still lists only **direct** interfaces, but preserves generic descriptions: in the example, the result contains `java.util.function.Supplier<java.lang.String>`. Do not cast every element of `Type[]` to `ParameterizedType` because an interface can appear as a raw `Class`; check `instanceof` before casting.
 
-## 5. Khi cần biết toàn bộ interface tổ tiên
+## 5. When You Need to Know All Ancestor Interfaces
 
-Nếu cần liệt kê các interface có được qua nhiều cấp, `getInterfaces()` chỉ là bước khởi đầu. Với `Child` trong ví dụ, thuật toán phải đọc các interface trực tiếp của `Child`, đi tiếp qua `getInterfaces()` của từng interface đã tìm thấy, xét cả `Parent` qua `getSuperclass()`, và ghi nhận mỗi `Class<?>` đúng một lần trong `Set<Class<?>>` để tránh trùng khi nhiều nhánh hội tụ.
+If you need to list interfaces obtained across multiple levels, `getInterfaces()` is only the starting step. For `Child` in the example, the algorithm must read the direct interfaces of `Child`, continue through `getInterfaces()` of each discovered interface, also examine `Parent` via `getSuperclass()`, and record each `Class<?>` exactly once in a `Set<Class<?>>` to avoid duplicates when multiple branches converge.
 
-Ví dụ, `Child` có hai interface trực tiếp `[Middle, Marker]`, `Middle extends Root`, còn `Parent implements Serializable`. Nếu duyệt sâu từng nhánh interface trước khi chuyển sang nhánh kế tiếp và cuối cùng mới đi lên superclass, thứ tự kết quả là `[Middle, Root, Marker, Serializable]`. Đây là thứ tự do **thuật toán tự chọn**, không phải danh sách mà một lần gọi `Child.class.getInterfaces()` trả về.
+For example, `Child` has two direct interfaces `[Middle, Marker]`, `Middle extends Root`, and `Parent implements Serializable`. If you traverse each interface branch depth-first before moving to the next branch and finally walk up to the superclass, the resulting order is `[Middle, Root, Marker, Serializable]`. This is an order **chosen by the algorithm**, not a list that a single call to `Child.class.getInterfaces()` returns.
 
-Khi chỉ cần trả lời đúng/sai cho một interface, `Root.class.isAssignableFrom(Child.class)` rõ ràng và đơn giản hơn. Chỉ cần tự duyệt đồ thị khi phải thu thập toàn bộ interface; lúc đó nên dùng danh tính `Class<?>` làm khóa khử trùng lặp, xác định rõ thứ tự duyệt và quyết định có tính chính interface đầu vào hay chỉ tổ tiên. Những lựa chọn thuật toán và tình huống đồ thị hình thoi được triển khai chi tiết trong bài “Duyệt đồ thị interface và tránh lặp”.
+When you only need a true/false answer for one interface, `Root.class.isAssignableFrom(Child.class)` is clearer and simpler. You only need to traverse the graph yourself when you must collect all interfaces; in that case, use `Class<?>` identity as the deduplication key, clearly define the traversal order, and decide whether to include the input interface itself or only ancestors. Algorithm choices and diamond graph scenarios are covered in detail in the article "Traversing the interface graph and avoiding duplicates".
 
-## 6. Lỗi phổ biến và cách tự kiểm tra
+## 6. Common Mistakes and How to Self-Check
 
-- **Nhầm trực tiếp với toàn bộ cây kế thừa:** `Child.class.getInterfaces().length == 0` không chứng minh `Child` không triển khai interface nào; class cha có thể đã triển khai chúng.
-- **Bỏ sót superinterface:** class `implements Middle` không khiến `Root` xuất hiện trực tiếp trong mảng của class, dù `Middle extends Root`.
-- **Áp dụng máy móc cho array:** mọi kiểu mảng đều trả về `Cloneable` và `Serializable` trong thứ tự quy định.
-- **Đòi thông tin generic từ `Class<?>[]`:** dùng `getGenericInterfaces()` khi phải đọc `Supplier<String>` hay `Comparable<T>` từ khai báo trực tiếp.
-- **Truy cập `getInterfaces()[0]` khi chưa kiểm tra:** mảng có thể rỗng; kiểm tra `length` trước để tránh `ArrayIndexOutOfBoundsException`.
-- **Nhầm kết quả với instance:** `getInterfaces()` trả metadata về *kiểu*, không tạo instance, không gọi phương thức interface.
+- **Confusing direct with the entire inheritance tree:** `Child.class.getInterfaces().length == 0` does not prove `Child` implements no interfaces; a superclass may have already implemented them.
+- **Missing superinterfaces:** a class `implements Middle` does not cause `Root` to appear directly in the class's array, even though `Middle extends Root`.
+- **Applying general assumptions mechanically to arrays:** every array type returns `Cloneable` and `Serializable` in the specified order.
+- **Expecting generic information from `Class<?>[]`:** use `getGenericInterfaces()` when you must read `Supplier<String>` or `Comparable<T>` from direct declarations.
+- **Accessing `getInterfaces()[0]` without checking:** the array may be empty; check `length` first to avoid `ArrayIndexOutOfBoundsException`.
+- **Confusing the result with instances:** `getInterfaces()` returns metadata about the *type*; it does not create an instance or invoke interface methods.
 
-Tự kiểm tra với `class D extends Parent {}` trong ví dụ: `D.class.getInterfaces()` phải là `[]`, nhưng `Serializable.class.isAssignableFrom(D.class)` phải là `true`. Giải thích được cả hai kết quả nghĩa là đã nắm đúng ý nghĩa của **“trực tiếp”**.
+Self-check with `class D extends Parent {}` in the example: `D.class.getInterfaces()` must be `[]`, whereas `Serializable.class.isAssignableFrom(D.class)` must be `true`. Being able to explain both results means you have properly grasped the meaning of **"direct"**.
 
-**Tài liệu tham khảo:** [Java SE 17 API — java.lang.Class](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html), phần `getInterfaces()`, `getGenericInterfaces()` và `isAssignableFrom()`.
+**Reference:** [Java SE 17 API — java.lang.Class](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html), sections `getInterfaces()`, `getGenericInterfaces()`, and `isAssignableFrom()`.

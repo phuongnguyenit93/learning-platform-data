@@ -1,43 +1,43 @@
-# Đóng gói JAR hoặc runtime image và kiểm tra tài nguyên bản dịch trong Java
+# Packaging a JAR or Runtime Image and Verifying Translation Resources in Java
 
-## 1. Mục tiêu thực hành và ba loại sản phẩm triển khai
+## 1. Practice Goals and Three Types of Deployment Artifacts
 
-Một ứng dụng Java đã sử dụng `ResourceBundle` để hiển thị thông điệp đa ngôn ngữ có thể chạy đúng trong IDE nhưng sai khi triển khai:
+A Java application using `ResourceBundle` to display multilingual messages can run cleanly inside an IDE yet fail on deployment:
 
-- File `Texts_vi.properties` tồn tại trong thư mục `src/main/resources`, nhưng không xuất hiện trong JAR.
-- File có trong JAR nhưng ở sai đường dẫn, làm `ResourceBundle.getBundle(...)` không tìm được.
-- Chương trình vẫn tìm thấy bundle tiếng Việt, nhưng số/ngày được định dạng khác trên **runtime image tối giản** vì thiếu dữ liệu locale của JDK.
-- Ứng dụng chỉ chạy khi có JDK đầy đủ trên máy người phát triển, nhưng bản phân phối lại thiếu runtime.
-- Một bộ cài `jpackage` chứa runtime đúng nhưng launcher dùng nhầm JAR, hoặc chỉ chép thư mục runtime mà quên mã/tài nguyên ứng dụng.
+- `Texts_vi.properties` exists in `src/main/resources`, yet is missing from the JAR.
+- The file exists inside the JAR at the wrong path, causing `ResourceBundle.getBundle(...)` to miss it.
+- The program still loads the Vietnamese bundle, yet numbers/dates format differently on a **minimal runtime image** because JDK locale data is missing.
+- The application works only with a full JDK on the developer's machine, while the distributed package lacks a runtime.
+- A `jpackage` installer bundles the right runtime, yet the launcher uses the wrong JAR—or copies only the runtime directory while omitting application code/resources.
 
-Để giải quyết đúng, phải phân biệt **ba sản phẩm**:
+To solve this properly, distinguish **three artifacts**:
 
-| Sản phẩm | Công cụ | Chứa gì? | Cách dùng điển hình |
+| Artifact | Tool | Contents | Typical Usage |
 | --- | --- | --- | --- |
-| **JAR ứng dụng** | `jar`, Maven hoặc Gradle | `.class` và `.properties` của ứng dụng; có thể có manifest | `java -jar app.jar`, cần Java runtime có sẵn |
-| **Custom runtime image** | `jlink` | JVM và **các Java modules** được chọn (ví dụ `java.base`, `jdk.localedata`) | `runtime/bin/java -jar app.jar`; **không tự chứa app JAR** |
-| **Application image** | `jpackage --type app-image` | Launcher + ứng dụng/JAR + runtime image tương thích | Chạy launcher phân phối theo hệ điều hành |
+| **Application JAR** | `jar`, Maven, or Gradle | Application `.class` and `.properties` files; optional manifest | `java -jar app.jar`; requires an installed Java runtime |
+| **Custom runtime image** | `jlink` | JVM and selected **Java modules** (e.g., `java.base`, `jdk.localedata`) | `runtime/bin/java -jar app.jar`; **does not automatically include the app JAR** |
+| **Application image** | `jpackage --type app-image` | Launcher + application/JAR + compatible runtime image | Runs the OS-specific native launcher |
 
-Điểm quan trọng: **`jlink` không tự đưa file `Messages*.properties` hoặc ứng dụng classpath thông thường vào runtime image.** Nó tạo một bộ runtime có các module Java. Để tạo bản phân phối thực sự “có cả ứng dụng và runtime”, bạn phải cung cấp **app JAR bên cạnh runtime** hoặc dùng `jpackage` (hay một cơ chế phân phối khác).
+Key point: **`jlink` does not automatically package `Messages*.properties` or regular classpath applications into the runtime image.** It creates a runtime containing Java modules. To build a truly self-contained distribution with both app and runtime, ship the **app JAR alongside the runtime** or use `jpackage` (or another packaging mechanism).
 
-Bài thực hành sử dụng **Java 17+**, một class `ResourceAudit` và ba file `.properties`. Sau khi học, bạn sẽ:
+This hands-on guide uses **Java 17+**, one `ResourceAudit` class, and three `.properties` files. Afterward, you will know how to:
 
-1. Tạo ứng dụng có hai ngôn ngữ Anh–Việt.
-2. Biên dịch, đóng gói thành executable JAR và kiểm tra entry thực tế.
-3. Tạo runtime image bằng `jlink`, kèm dữ liệu locale thích hợp.
-4. Chạy app JAR bằng runtime vừa tạo, kiểm chứng thông điệp và định dạng.
-5. Tùy chọn dùng `jpackage` để kết hợp JAR và runtime thành app image.
-6. Viết tiêu chí kiểm thử đóng gói, phát hiện thiếu file, thiếu module, sai charset hoặc sai đường dẫn.
+1. Build an application supporting both English and Vietnamese.
+2. Compile, package an executable JAR, and verify its actual entries.
+3. Build a custom runtime image with `jlink` including appropriate locale data.
+4. Run the app JAR on the newly built runtime and verify messages and formatting.
+5. Optionally combine the JAR and runtime into an app image with `jpackage`.
+6. Define packaging verification criteria to catch missing files, missing modules, wrong charsets, or wrong paths.
 
-## 2. ResourceBundle có hai tầng cần kiểm tra
+## 2. ResourceBundle Has Two Layers to Verify
 
-`ResourceBundle` sử dụng các thông tin:
+`ResourceBundle` relies on:
 
-- **Base name**: ví dụ `com.example.i18n.Texts`.
-- **Locale được yêu cầu**: ví dụ `Locale.forLanguageTag("vi-VN")`.
-- **Runtime classpath/module**: nơi các file `.properties` hoặc các lớp bundle tồn tại.
+- **Base name**: e.g., `com.example.i18n.Texts`.
+- **Requested locale**: e.g., `Locale.forLanguageTag("vi-VN")`.
+- **Runtime classpath/module path**: where `.properties` files or bundle classes reside.
 
-Với base name ở ví dụ, cấu trúc resource ứng dụng trên classpath là:
+With the example base name, the application resource layout on the classpath is:
 
 ```text
 com/example/i18n/Texts.properties
@@ -45,7 +45,7 @@ com/example/i18n/Texts_en.properties
 com/example/i18n/Texts_vi.properties
 ```
 
-Trong Java, lời gọi:
+In Java, calling:
 
 ```java
 ResourceBundle bundle = ResourceBundle.getBundle(
@@ -53,20 +53,20 @@ ResourceBundle bundle = ResourceBundle.getBundle(
         Locale.forLanguageTag("vi-VN"));
 ```
 
-sẽ xét các candidate locale (ví dụ `vi_VN`, `vi` và root) theo thuật toán của `ResourceBundle`. Nếu không có `Texts_vi_VN.properties` nhưng có `Texts_vi.properties`, bundle ngôn ngữ `vi` vẫn có thể được chọn.
+evaluates candidate locales (e.g., `vi_VN`, `vi`, and root) per `ResourceBundle`'s lookup algorithm. If `Texts_vi_VN.properties` is absent while `Texts_vi.properties` exists, the `vi` language bundle is selected.
 
-Cần kiểm tra **hai tầng khác nhau**:
+You must test **two separate layers**:
 
-1. **Bundle của ứng dụng** (`Texts_vi.properties`) có tồn tại, được đặt đúng path và được load không?
-2. **Locale data của JDK** (`jdk.localedata`) có đủ cho các API Java như `NumberFormat`, `DateTimeFormatter`, `Collator` hay không?
+1. **Application bundles** (`Texts_vi.properties`): does the file exist, sit at the right path, and load?
+2. **JDK locale data** (`jdk.localedata`): is sufficient data present for Java APIs like `NumberFormat`, `DateTimeFormatter`, and `Collator`?
 
-Ví dụ, nếu thiếu module `jdk.localedata`, một số runtime image vẫn load được các **chuỗi do chính ứng dụng dịch** từ `Texts_vi.properties`, bởi `PropertyResourceBundle` thuộc `java.base`. Tuy nhiên **quy tắc format bản địa hóa của JDK** có thể fallback về dữ liệu locale có sẵn; không thể suy ra “tiếng Việt đầy đủ” chỉ vì `getString("greeting")` trả đúng.
+For example, without `jdk.localedata`, some runtime images can still load **application-translated strings** from `Texts_vi.properties`, since `PropertyResourceBundle` belongs to `java.base`. However, **JDK localization formatting rules** may fall back to available default data; never conclude "full Vietnamese support" merely because `getString("greeting")` returned the expected string.
 
-**Kết luận:** kiểm thử resource bundle và kiểm thử runtime locale data là **hai phép kiểm tra riêng**, đều cần trong quá trình đóng gói.
+**Conclusion:** verifying resource bundles and verifying runtime locale data are **two distinct checks**, both essential during packaging.
 
-## 3. Cấu trúc dự án mẫu
+## 3. Sample Project Structure
 
-Dự án không có thư viện thứ ba; `ResourceAudit` ở package `com.example.app`, resource ở namespace `com.example.i18n`:
+This project has no third-party libraries; `ResourceAudit` lives in package `com.example.app` and resources live in namespace `com.example.i18n`:
 
 ```text
 locale-packaging-demo/
@@ -84,34 +84,34 @@ locale-packaging-demo/
 │                       ├── Texts.properties
 │                       ├── Texts_en.properties
 │                       └── Texts_vi.properties
-└── build/                      # sinh ra sau khi chạy lệnh build
+└── build/                      # generated after running build commands
     ├── classes/
     ├── dist/
     ├── runtime/
     └── package/
 ```
 
-Bộ thư mục `build` **không phải dữ liệu nguồn**; nó được tạo bởi `javac`, `jar`, `jlink` và `jpackage` khi chạy các lệnh ở mục sau. Không cần phải viết `build` vào resource bundle base name.
+The `build` directory is **not source data**; it is generated by `javac`, `jar`, `jlink`, and `jpackage` in the commands below. Never include `build` in the resource bundle base name.
 
-Tên class sẽ là `com.example.app.ResourceAudit`. Base name luôn là `com.example.i18n.Texts`; Java không bắt buộc resource cùng package với class Main, miễn nó nằm ở đường dẫn thích hợp trên classpath/runtime.
+The main class name is `com.example.app.ResourceAudit`. The base name is always `com.example.i18n.Texts`; Java does not require resources to share the main class's package, as long as they sit at the right path on the classpath/runtime.
 
-### Quy tắc dịch tên logic thành đường dẫn
+### Rules for Mapping Logical Names to Paths
 
-| Phần tử | Giá trị |
+| Element | Value |
 | --- | --- |
 | Base name | `com.example.i18n.Texts` |
-| Tên root file | `Texts.properties` |
+| Root filename | `Texts.properties` |
 | Locale `en` | `Texts_en.properties` |
-| Locale `vi-VN` khi chỉ có bản `vi` | `Texts_vi.properties` |
-| Entry JAR cần có | `com/example/i18n/Texts_vi.properties` |
-| Thư mục nguồn | `src/main/resources/com/example/i18n/` |
-| Truy cập resource bằng classloader | `getResource("com/example/i18n/Texts_vi.properties")` |
+| Locale `vi-VN` when only `vi` exists | `Texts_vi.properties` |
+| Required JAR entry | `com/example/i18n/Texts_vi.properties` |
+| Source directory | `src/main/resources/com/example/i18n/` |
+| Resource access via ClassLoader | `getResource("com/example/i18n/Texts_vi.properties")` |
 
-Khi dùng `ClassLoader.getResource`, **không** thêm dấu `/` vào đầu đường dẫn. Trái lại, `SomeClass.class.getResource("/com/example/i18n/Texts_vi.properties")` có thể dùng dấu `/` đầu để tìm từ classpath root. Sự khác biệt nhỏ này thường gây lỗi khi viết bộ kiểm tra tài nguyên.
+When calling `ClassLoader.getResource`, do **not** prepend a leading `/`. By contrast, `SomeClass.class.getResource("/com/example/i18n/Texts_vi.properties")` uses a leading `/` to search from the classpath root. This small difference frequently trips up resource-audit checks.
 
-## 4. Tạo ba file thông điệp UTF-8
+## 4. Creating the Three UTF-8 Message Files
 
-Các tệp `.properties` sau phải được lưu **UTF-8** và đặt đúng vị trí đã nêu.
+Save the following `.properties` files as **UTF-8** in the exact locations listed.
 
 ### 4.1. src/main/resources/com/example/i18n/Texts.properties
 
@@ -121,7 +121,7 @@ count=Messages: {0,number,integer}
 only.root=ROOT_OK
 ```
 
-File root có thể được dùng như fallback nếu một key thiếu ở bản dịch cụ thể. Giá trị `only.root` cố tình **chỉ có ở root** để chứng minh cơ chế kế thừa key.
+The root file serves as fallback if a key is missing in a specific translation. `only.root` is intentionally defined **only in the root** to demonstrate key inheritance.
 
 ### 4.2. src/main/resources/com/example/i18n/Texts_en.properties
 
@@ -137,17 +137,17 @@ greeting=Xin chào, {0}!
 count=Tin nhắn: {0,number,integer}
 ```
 
-Các giá trị nằm trong **câu thông điệp hoàn chỉnh**, không tách thành các fragment kiểu `prefix`, `noun`, `suffix`. Với `{0}`, Java sẽ truyền một giá trị, còn bản dịch quyết định vị trí nó xuất hiện. `{0,number,integer}` cho phép `MessageFormat` định dạng số nguyên theo `Locale`.
+Each value is a **complete message sentence**, not fragments like `prefix`, `noun`, and `suffix`. With `{0}`, Java passes one argument and the translation decides where it appears. `{0,number,integer}` instructs `MessageFormat` to format the integer according to the `Locale`.
 
-Từ Java 9, `PropertyResourceBundle` mặc định thử UTF-8 với fallback ISO-8859-1 cho các byte UTF-8 không hợp lệ, theo JEP 226, trừ khi cấu hình khác. Không nhầm với `Properties.load(InputStream)` có quy tắc ISO-8859-1 riêng. Để kiểm tra chính xác file nguồn, đặt encoding UTF-8 thống nhất và cân nhắc thuộc tính `java.util.PropertyResourceBundle.encoding=UTF-8` trong môi trường cần đọc nghiêm ngặt.
+Starting in Java 9, `PropertyResourceBundle` reads UTF-8 by default with an ISO-8859-1 compatibility fallback for invalid UTF-8 byte sequences under JEP 226, unless configured otherwise. Do not confuse this with `Properties.load(InputStream)`, which follows its own ISO-8859-1 rules. To test source files cleanly, keep all files consistently UTF-8 and consider `java.util.PropertyResourceBundle.encoding=UTF-8` in environments requiring strict reading.
 
-### Vì sao không có Texts_vi_VN.properties?
+### Why Is There No Texts_vi_VN.properties?
 
-Mục đích là cho thấy **fallback từ locale vùng `vi-VN` xuống bundle ngôn ngữ `vi`**. Chương trình vẫn yêu cầu `vi-VN`, nhưng `bundle.getLocale().toLanguageTag()` dự kiến là `vi`. Đây là hành vi bình thường: **locale yêu cầu** và **locale của bundle tìm được** không phải lúc nào cũng trùng nhau.
+The goal is to illustrate **fallback from region locale `vi-VN` to language bundle `vi`**. The program still requests `vi-VN`, while `bundle.getLocale().toLanguageTag()` is expected to return `vi`. This is normal behavior: the **requested locale** and the **resolved bundle's locale** do not always match.
 
-## 5. Chương trình Java 17+ hoàn chỉnh: ResourceAudit.java
+## 5. Complete Java 17+ Program: ResourceAudit.java
 
-Tạo file **src/main/java/com/example/app/ResourceAudit.java**:
+Create **src/main/java/com/example/app/ResourceAudit.java**:
 
 ```java
 package com.example.app;
@@ -214,22 +214,22 @@ public final class ResourceAudit {
 }
 ```
 
-**Phân tích code:**
+**Code walkthrough:**
 
-1. Chương trình chấp nhận đối số `en` hoặc `vi`; không cần thay đổi `Locale.setDefault(...)` toàn JVM.
-2. `Locale.ENGLISH` yêu cầu bản dịch tiếng Anh; `Locale.forLanguageTag("vi-VN")` yêu cầu tiếng Việt Việt Nam.
-3. `ResourceBundle.getBundle(BASE, locale)` tìm bundle từ classpath (vì ví dụ là JAR không có `module-info.java`).
-4. `getLocale()` trả locale của bundle tìm được; có thể là `vi` dù locale yêu cầu là `vi-VN`.
-5. `ClassLoader.getResource(...)` kiểm tra **entry cụ thể có mặt** theo đúng path. Đây không phải cách thay `getBundle` trong toàn ứng dụng, chỉ là một probe cho bài thực hành.
-6. `MessageFormat` được tạo với locale người dùng chứ không dựa vào default locale của máy; định dạng `1234` vì vậy có thể dùng dấu nhóm nghìn phù hợp vùng.
-7. `only.root` được tra qua parent chain, chứng minh root resource có hiệu lực.
-8. Mã trả về `2` cho tham số ngôn ngữ không hỗ trợ, giúp script/CI phân biệt tình huống lỗi.
+1. The program accepts `en` or `vi` as an argument; no JVM-wide `Locale.setDefault(...)` is modified.
+2. `Locale.ENGLISH` requests English translations; `Locale.forLanguageTag("vi-VN")` requests Vietnamese in Vietnam.
+3. `ResourceBundle.getBundle(BASE, locale)` locates the bundle on the classpath (since the example JAR has no `module-info.java`).
+4. `getLocale()` reports the resolved bundle's locale; it can be `vi` even when `vi-VN` was requested.
+5. `ClassLoader.getResource(...)` verifies that the **specific entry is present** at the exact path. This is not a replacement for `getBundle` across an application—just a diagnostic probe for this exercise.
+6. `MessageFormat` is instantiated with the user's locale rather than the machine's default locale; thus `1234` formats with the region's thousands separator.
+7. `only.root` resolves through the parent chain, proving the root resource is active.
+8. Exit code `2` signals an unsupported language argument, helping CI scripts detect errors.
 
-**Giới hạn của probe:** `ClassLoader.getResource(...) != null` chứng minh classloader nhìn thấy file ở path đó, **không tự chứng minh đúng nội dung, đủ mọi key hoặc là bản dịch đã được kiểm tra chất lượng**. Vì vậy cần kiểm thử cả `getString` và kết quả format thực tế.
+**Limits of the probe:** `ClassLoader.getResource(...) != null` proves only that the classloader sees a file at that path—**not that its contents are valid, all keys exist, or translations passed QA**. Always test `getString` and actual formatting outputs as well.
 
-### Đầu ra khi dùng đủ resource và locale data
+### Output with Complete Resources and Locale Data
 
-Chạy với `en`:
+Running with `en`:
 
 ```text
 requested=en
@@ -241,7 +241,7 @@ count=Messages: 1,234
 fallback=ROOT_OK
 ```
 
-Chạy với `vi` trên JDK có dữ liệu locale `vi-VN` phù hợp:
+Running with `vi` on a JDK with full `vi-VN` locale data:
 
 ```text
 requested=vi-VN
@@ -253,21 +253,21 @@ count=Tin nhắn: 1.234
 fallback=ROOT_OK
 ```
 
-Các ví dụ output dựa trên quy tắc định dạng số của JDK hiện đại với locale data tương ứng (vi-VN thường dùng dấu chấm nhóm nghìn). **Vẫn phải kiểm tra trên JDK/runtime image được phát hành**, vì dữ liệu locale và provider có thể khác nhau. File bundle đúng không bảo đảm format số luôn như snapshot ở trên nếu bạn cắt giảm `jdk.localedata`.
+These example outputs reflect a modern JDK's number-formatting rules with matching locale data (`vi-VN` typically uses a dot as thousands separator). **Always verify on the actual released JDK/runtime image**, since locale data and providers can vary. Having the right bundle file does not guarantee numbers format like the snapshot above if you strip out `jdk.localedata`.
 
-## 6. Biên dịch và đóng gói JAR bằng JDK 17+
+## 6. Compiling and Packaging the JAR with JDK 17+
 
-Mở terminal tại **gốc thư mục `locale-packaging-demo`**.
+Open a terminal at the **root of `locale-packaging-demo`**.
 
-### Bước 1 — Compile
+### Step 1 — Compile
 
 ```bash
 javac -encoding UTF-8 -d build/classes src/main/java/com/example/app/ResourceAudit.java
 ```
 
-Lệnh tạo `build/classes/com/example/app/ResourceAudit.class`. `-encoding UTF-8` chỉ rõ charset của source Java, không liên quan trực tiếp tới cách `PropertyResourceBundle` đọc tài nguyên sau khi đóng gói.
+This creates `build/classes/com/example/app/ResourceAudit.class`. `-encoding UTF-8` specifies the charset of the Java source file and is unrelated to how `PropertyResourceBundle` reads packaged properties later.
 
-### Bước 2 — Tạo thư mục phân phối
+### Step 2 — Create the Distribution Directory
 
 Linux/macOS:
 
@@ -281,7 +281,7 @@ Windows PowerShell:
 New-Item -ItemType Directory -Force -Path build/dist
 ```
 
-### Bước 3 — Tạo executable JAR
+### Step 3 — Build the Executable JAR
 
 ```bash
 jar --create --file build/dist/localization-demo.jar \
@@ -289,28 +289,28 @@ jar --create --file build/dist/localization-demo.jar \
     -C build/classes . -C src/main/resources .
 ```
 
-Trong Bash, dấu `\` ở cuối dòng là ký hiệu nối dòng. Trên Windows PowerShell, dùng lệnh **một dòng**:
+In Bash, trailing `\` continues lines. On Windows PowerShell, run as a **single line**:
 
 ```powershell
 jar --create --file build/dist/localization-demo.jar --main-class com.example.app.ResourceAudit -C build/classes . -C src/main/resources .
 ```
 
-Ý nghĩa quan trọng:
+Key flags:
 
-- `--main-class` ghi tên Main vào manifest để `java -jar` biết class khởi chạy.
-- `-C build/classes .` đưa **nội dung bên trong `build/classes`** vào gốc JAR.
-- `-C src/main/resources .` đưa **nội dung của resource root** vào gốc JAR.
-- `-C` không phải một phần của tên file bundle; nó giúp giữ đúng entry như `com/example/i18n/Texts_vi.properties`.
+- `--main-class` writes `Main-Class` into the manifest so `java -jar` knows the entry point.
+- `-C build/classes .` places the **contents of `build/classes`** at the JAR root.
+- `-C src/main/resources .` places the **contents of the resource root** at the JAR root.
+- `-C` is not part of the bundle name; it preserves entries such as `com/example/i18n/Texts_vi.properties`.
 
-Đừng dùng `jar ... src/main/resources` theo cách đưa cả tiền tố nguồn vào JAR; nếu entry thành `src/main/resources/com/example/i18n/Texts_vi.properties` thì base name `com.example.i18n.Texts` sẽ **không** tìm được nó theo classpath root thông thường.
+Never pass `jar ... src/main/resources` in a way that embeds the source prefix into the JAR; if the entry becomes `src/main/resources/com/example/i18n/Texts_vi.properties`, base name `com.example.i18n.Texts` will **not** find it from the normal classpath root.
 
-### Bước 4 — Kiểm tra nội dung JAR
+### Step 4 — Inspect JAR Contents
 
 ```bash
 jar tf build/dist/localization-demo.jar
 ```
 
-Trong danh sách phải có ít nhất (đây chỉ là trích đoạn):
+The output must contain at least (this is an excerpt):
 
 ```text
 META-INF/MANIFEST.MF
@@ -320,40 +320,40 @@ com/example/i18n/Texts_en.properties
 com/example/i18n/Texts_vi.properties
 ```
 
-Kiểm tra manifest nếu cần:
+Inspect the manifest if needed:
 
 ```bash
 unzip -p build/dist/localization-demo.jar META-INF/MANIFEST.MF
 ```
 
-`unzip` là công cụ tùy môi trường, không thuộc mọi cài đặt JDK. Nếu không có, có thể dùng công cụ mở ZIP/JAR của hệ điều hành hoặc `jar --extract` trong một thư mục test an toàn. Manifest phải ghi `Main-Class: com.example.app.ResourceAudit` nếu JAR được tạo như lệnh ở trên.
+`unzip` depends on your environment and is not bundled with every JDK. If unavailable, use your OS's ZIP/JAR viewer or `jar --extract` inside a safe temporary directory. The manifest must list `Main-Class: com.example.app.ResourceAudit` when built with the command above.
 
-### Bước 5 — Chạy bằng JDK thông thường
+### Step 5 — Run with a Standard JDK
 
 ```bash
 java -jar build/dist/localization-demo.jar en
 java -jar build/dist/localization-demo.jar vi
 ```
 
-Output mong muốn là hai bảng ở mục 5. Đây là **smoke test thực sự trên JAR thành phẩm**. Chạy được bằng `java -cp build/classes:src/main/resources ...` chỉ chứng minh thư mục source resources có trong classpath, **không chứng minh JAR đúng**.
+The expected output matches the two blocks in Section 5. This is a **real smoke test on the packaged JAR**. Succeeding with `java -cp build/classes:src/main/resources ...` proves only that the source resource directory works on the classpath—**not that the JAR is packaged properly**.
 
-### Bước 6 — Chạy ở thư mục khác
+### Step 6 — Run from an Isolated Directory
 
-Chép `localization-demo.jar` sang một thư mục không có `src/main/resources` rồi chạy `java -jar ...`. Nếu tài nguyên được đóng gói đúng, chương trình vẫn tìm được hai bản dịch. Test này phát hiện trường hợp code còn vô tình đọc resource bằng `new File("src/main/resources/...")`.
+Copy `localization-demo.jar` to a directory without `src/main/resources` and run `java -jar ...`. If resources are packaged properly, the program still locates both translations. This test catches code that accidentally reads resources via `new File("src/main/resources/...")`.
 
-## 7. JAR và runtime image không phải một thứ
+## 7. A JAR and a Runtime Image Are Not the Same Thing
 
-Một JAR app có mã và properties, nhưng chạy bằng:
+An application JAR contains bytecode and properties, yet running:
 
 ```bash
 java -jar build/dist/localization-demo.jar vi
 ```
 
-vẫn yêu cầu hệ điều hành có Java runtime tương thích. Bạn có thể phân phối JAR cùng hướng dẫn cài JRE/JDK, hoặc tạo một **custom runtime image** để không phụ thuộc vào Java cài sẵn.
+still requires a compatible Java runtime installed on the OS. You can distribute the JAR alongside JRE/JDK installation instructions, or create a **custom runtime image** so you do not depend on preinstalled Java.
 
-`jlink` là công cụ chuẩn của JDK 9+ liên kết Java modules và các dependency module của chúng thành một thư mục runtime. Nó sử dụng `jmods` của JDK và có thể tạo một image nhỏ hơn bản JDK đầy đủ.
+`jlink` is the standard JDK 9+ tool that links Java modules and their module dependencies into a self-contained runtime directory. It uses the JDK's `jmods` and can produce an image smaller than a full JDK.
 
-**Phân biệt:**
+**Distinction:**
 
 ```text
 build/dist/localization-demo.jar
@@ -364,29 +364,29 @@ build/runtime/
     ├── conf/...
     ├── lib/modules
     └── ...
-        (Java runtime modules; không tự có app JAR)
+        (Java runtime modules; does not automatically contain the app JAR)
 ```
 
-Khi phân phối theo cách thủ công, người dùng cần **cả hai**: `build/runtime` và `localization-demo.jar`. Không thể chỉ gửi thư mục runtime rồi kỳ vọng class `com.example.app.ResourceAudit` nằm trong đó.
+When distributing manually, users need **both**: `build/runtime` and `localization-demo.jar`. You cannot ship only the runtime directory and expect `com.example.app.ResourceAudit` to be inside it.
 
-## 8. Tạo custom runtime image với jlink
+## 8. Building a Custom Runtime Image with jlink
 
-### 8.1. Modules cần có cho ứng dụng mẫu
+### 8.1. Modules Required by the Sample App
 
-Chương trình `ResourceAudit` dùng những API của `java.base`:
+`ResourceAudit` uses APIs from `java.base`:
 
 - `java.util.Locale`, `ResourceBundle`;
 - `java.text.MessageFormat`;
 - `java.lang`;
 - `java.net.URL`.
 
-Vì thế **`java.base` là module nền tảng bắt buộc**. Nhưng để định dạng số/ngày theo nhiều locale trong JDK, thường cần **`jdk.localedata`**, là module chứa thêm dữ liệu locale ngoài US English/ROOT của nhiều bản JDK.
+Therefore, **`java.base` is the mandatory foundation module**. However, to format numbers and dates across multiple locales in the JDK, you generally also need **`jdk.localedata`**, which supplies additional locale data beyond US English/ROOT in many JDK distributions.
 
-Trong Oracle JDK 21, dữ liệu en-US/root cơ bản có trong `java.base`; các locale data bổ sung thuộc `jdk.localedata`. Một số runtime chỉ có `java.base` vẫn gọi `Locale.forLanguageTag("vi-VN")` và load file `Texts_vi.properties`, nhưng **NumberFormat** có thể fallback vì chưa có dữ liệu format vi-VN.
+In Oracle JDK 21, basic `en-US`/root data lives in `java.base`, while additional locale data resides in `jdk.localedata`. A runtime containing only `java.base` can still construct `Locale.forLanguageTag("vi-VN")` and load `Texts_vi.properties`, yet **`NumberFormat`** may fall back due to missing `vi-VN` formatting data.
 
-### 8.2. Command jlink với dữ liệu locale
+### 8.2. jlink Command with Locale Data
 
-Với JDK 17+ có `jlink`:
+With JDK 17+ providing `jlink`:
 
 ```bash
 jlink --add-modules java.base,jdk.localedata \
@@ -395,30 +395,30 @@ jlink --add-modules java.base,jdk.localedata \
       --output build/runtime
 ```
 
-Windows PowerShell (một dòng):
+Windows PowerShell (single line):
 
 ```powershell
 jlink --add-modules java.base,jdk.localedata --include-locales=en,vi --strip-debug --no-header-files --no-man-pages --output build/runtime
 ```
 
-**Chỉ chạy khi `build/runtime` chưa tồn tại** hoặc đã được dọn dẹp có chủ đích cho lần build mới: `jlink` không dùng để ghi đè tùy ý lên một image đã có. Hãy xem kỹ đường dẫn output trước thao tác xóa hoặc thay thế.
+**Run only when `build/runtime` does not yet exist** or has been intentionally cleaned for a fresh build: `jlink` does not arbitrarily overwrite an existing image. Always double-check the output path before deleting or replacing anything.
 
-Giải thích option:
+Option breakdown:
 
-| Option | Tác dụng |
+| Option | Effect |
 | --- | --- |
-| `--add-modules java.base,jdk.localedata` | Đưa các module cần thiết vào image; `jdk.localedata` phục vụ dữ liệu locale bổ sung |
-| `--include-locales=en,vi` | Giữ dữ liệu locale phù hợp bộ lọc BCP 47 đã chọn; phải có `jdk.localedata` |
-| `--strip-debug` | Giảm thông tin debug trong image |
-| `--no-header-files` | Không đưa header C dùng cho phát triển native |
-| `--no-man-pages` | Không đưa trang manual |
-| `--output build/runtime` | Nơi sinh runtime image |
+| `--add-modules java.base,jdk.localedata` | Includes required modules in the image; `jdk.localedata` supplies extended locale data |
+| `--include-locales=en,vi` | Retains locale data matching the specified BCP 47 filter; requires `jdk.localedata` |
+| `--strip-debug` | Strips debug attributes from the image |
+| `--no-header-files` | Excludes C header files for native development |
+| `--no-man-pages` | Excludes man pages |
+| `--output build/runtime` | Destination directory for the runtime image |
 
-`--include-locales` là plugin của `jlink`. Theo tài liệu chính thức, khi dùng option này cần có `jdk.localedata` trong tập module. Dạng `en,vi` là danh sách các language tag, không phải tên file `Messages_en.properties` hay `Messages_vi.properties`.
+`--include-locales` is a `jlink` plugin. Per official documentation, using this option requires `jdk.localedata` in the module set. The `en,vi` value is a list of language tags, not filenames like `Messages_en.properties` or `Messages_vi.properties`.
 
-**Cảnh báo về bộ lọc locale:** plugin sử dụng matching theo BCP 47/RFC 4647. Hãy chạy test trực tiếp với `vi-VN` và `en` trên image thực tế; đừng chỉ kết luận “đã giữ tiếng Việt” vì option có chữ `vi`. Nếu app hỗ trợ thêm các vùng như `fr-FR` hoặc `ja-JP`, phải cập nhật image và kiểm thử cả số, ngày, tiền và collation tương ứng.
+**Warning about the locale filter:** the plugin matches using BCP 47/RFC 4647 filtering. Run real tests with `vi-VN` and `en` on the generated image rather than assuming "Vietnamese is included" solely because the flag says `vi`. If the app adds regions like `fr-FR` or `ja-JP`, update the image and test numbers, dates, currency, and collation for those locales as well.
 
-### 8.3. Kiểm tra image tạo ra
+### 8.3. Inspecting the Generated Image
 
 Linux/macOS:
 
@@ -434,16 +434,16 @@ Windows PowerShell:
 .\build\runtime\bin\java.exe --list-modules
 ```
 
-Trong `--list-modules` phải thấy ít nhất:
+`--list-modules` must include at least:
 
 ```text
 java.base@<JDK_VERSION>
 jdk.localedata@<JDK_VERSION>
 ```
 
-Hai dòng trên là **mẫu dạng đầu ra**, `<JDK_VERSION>` là placeholder dùng để giải thích, không phải output cố định. Version thực tế lấy từ JDK mà bạn đã chạy `jlink`. Các module khác nếu có thể xuất hiện do dependency hoặc tùy cấu hình.
+The two lines above are an **output pattern**, where `<JDK_VERSION>` is an explanatory placeholder rather than literal fixed text. The actual version comes from the JDK used to run `jlink`. Additional modules may appear due to dependencies or configuration.
 
-Chạy ứng dụng bằng **chính Java trong runtime image**, không phải `java` của PATH:
+Run the application using the **Java binary inside the runtime image itself**, not `java` on your `PATH`:
 
 Linux/macOS:
 
@@ -459,85 +459,85 @@ Windows PowerShell:
 .\build\runtime\bin\java.exe -jar build/dist/localization-demo.jar en
 ```
 
-Nếu tất cả file tài nguyên đi kèm JAR và `jdk.localedata` được giữ đúng, kết quả về `root-resource`, `localized-resource`, `greeting`, `count` và `fallback` dự kiến giống khi chạy bằng JDK đầy đủ.
+When all resource files are in the JAR and `jdk.localedata` is properly retained, `root-resource`, `localized-resource`, `greeting`, `count`, and `fallback` should match execution on the full JDK.
 
-**Đừng dùng `java -jar ...` không có đường dẫn `build/runtime/bin/java` để kiểm thử image**: lệnh ấy có thể vô tình chạy JDK hệ thống, khiến thử nghiệm “runtime tùy biến” không còn giá trị.
+**Never run bare `java -jar ...` without the `build/runtime/bin/java` path to test your image**: that can accidentally invoke the system JDK, invalidating the custom-runtime test.
 
-## 9. Thí nghiệm so sánh runtime thiếu và đủ locale data
+## 9. Experiment Comparing Minimal vs. Full Locale Data Runtimes
 
-Đây là một bài kiểm thử rất quan trọng, bởi có thể xảy ra tình huống **bản dịch hiển thị đúng nhưng số/ngày không đúng vùng**.
+This is a critical check because you can easily hit a state where **translations look right while numbers/dates format in the wrong locale**.
 
-Tạo image tối giản chỉ có `java.base` ở **thư mục khác**:
+Build a minimal image containing only `java.base` in a **separate directory**:
 
 ```bash
 jlink --add-modules java.base --output build/runtime-base
 ```
 
-Sau đó chạy cùng JAR:
+Then run the exact same JAR:
 
 ```bash
 build/runtime-base/bin/java -jar build/dist/localization-demo.jar vi
 ```
 
-Ở Windows, dùng `.\build\runtime-base\bin\java.exe` thay cho `build/runtime-base/bin/java`.
+On Windows, use `.\build\runtime-base\bin\java.exe` instead of `build/runtime-base/bin/java`.
 
-Hãy quan sát ba nhóm output:
+Observe three output groups:
 
-1. `localized-resource=true` có thể vẫn đúng vì file `Texts_vi.properties` nằm trong **app JAR**, không nằm trong `jdk.localedata`.
-2. `greeting=Xin chào, Lan!` có thể vẫn đúng vì chuỗi dịch do app cung cấp.
-3. `count=Tin nhắn: ...` có thể được định dạng theo dữ liệu locale **fallback** của runtime. Trên nhiều bản JDK chỉ có `java.base`, quy tắc phân cách nghìn cho vi-VN không có đủ, nên có thể khác image đủ dữ liệu.
+1. `localized-resource=true` still passes because `Texts_vi.properties` lives inside the **app JAR**, not inside `jdk.localedata`.
+2. `greeting=Xin chào, Lan!` still passes because the translated string comes from the app bundle.
+3. `count=Tin nhắn: ...` may format using the runtime's **fallback** locale data. On many `java.base`-only JDK builds, `vi-VN` thousands-grouping rules are unavailable, so output can differ from the full-locale image.
 
-**Không hardcode một output sai bắt buộc như “mọi image java.base-only in 1,234”**. JDK/provider có thể biến đổi theo phiên bản hoặc triển khai. Bài thực hành yêu cầu so sánh **thực tế** hai image ở cùng môi trường, ghi lại `--list-modules` và các giá trị quan sát được.
+**Never hardcode a forced failure assertion like "every `java.base`-only image prints `1,234`".** JDKs and providers can vary across versions or builds. This exercise asks you to compare **the actual output** of both images in the same environment, recording `--list-modules` and observed values.
 
-### Tại sao không chỉ test ResourceBundle.getString?
+### Why Isn't Testing ResourceBundle.getString Enough?
 
-`getString` chỉ kiểm tra dữ liệu bản dịch do app tự đóng gói. Những chức năng bản địa hóa khác cần có dữ liệu JDK:
+`getString` tests only application-packaged translation strings. Other localization features depend on JDK data:
 
 - `NumberFormat.getNumberInstance(locale)`;
 - `DateTimeFormatter.ofLocalizedDate(...).withLocale(locale)`;
-- `Collator.getInstance(locale)`, `BreakIterator` khi có hỗ trợ theo nhà cung cấp dữ liệu;
-- tên tháng/thứ, định dạng ngày/giờ, đơn vị tiền theo `Locale`.
+- `Collator.getInstance(locale)`, and `BreakIterator` where provider data applies;
+- month/weekday names, date/time formats, and currency formatting per `Locale`.
 
-Các API này có thể phụ thuộc nhiều module/provider khác nhau. **`jdeps` phân tích static module dependencies**, nhưng thường không suy ra được mọi nhu cầu dữ liệu runtime được chọn động qua `Locale` hoặc resource/provider service. Vì vậy chạy thử trên image đã cắt là bắt buộc.
+These APIs can depend on multiple modules and providers. **`jdeps` analyzes static module dependencies**, and typically cannot infer runtime data needs selected dynamically via `Locale` or service providers. Therefore, testing directly on the trimmed runtime image is mandatory.
 
-## 10. jdeps: kiểm tra dependency module nhưng đừng bỏ quên locale
+## 10. jdeps: Checking Module Dependencies Without Forgetting Locale Data
 
-`jdeps` là công cụ phân tích dependency của class/JAR. Với JAR mẫu:
+`jdeps` analyzes class/JAR dependencies. On the sample JAR:
 
 ```bash
 jdeps --print-module-deps build/dist/localization-demo.jar
 ```
 
-Đối với mã Java SE đơn giản của bài, kết quả thường là:
+For the simple Java SE code in this lesson, the output is typically:
 
 ```text
 java.base
 ```
 
-Điều này đúng: các lớp được tham chiếu tĩnh đều thuộc `java.base`. Nhưng **không đồng nghĩa ứng dụng chỉ cần dữ liệu của `java.base` để format mọi locale**. `jdk.localedata` chủ yếu cung cấp dữ liệu locale được sử dụng qua cơ chế locale providers chứ không nhất thiết là tham chiếu lớp tĩnh trong bytecode `ResourceAudit`.
+This is accurate: every statically referenced class resides in `java.base`. However, **it does not mean the application needs only `java.base` data to format every locale**. `jdk.localedata` primarily supplies locale data accessed dynamically via locale providers rather than appearing as direct static class references in `ResourceAudit` bytecode.
 
-Vì vậy khi chọn modules cho `jlink`:
+Therefore, when selecting modules for `jlink`:
 
-1. Dùng `jdeps` làm điểm bắt đầu để phát hiện Java modules mà code cần.
-2. Bổ sung modules cho locale/provider/runtime features mà test chứng minh là cần.
-3. Chạy lại `--list-modules` và smoke test thực sự.
-4. Không áp dụng máy móc `jlink --add-modules $(jdeps ...)` và cho rằng mọi chức năng bản địa hóa sẽ luôn đủ.
-5. Với thư viện ngoài, xem dependency không modular, reflective access, JNI, ServiceLoader và các module cần thiết trước khi tối giản image.
+1. Use `jdeps` as a starting point to discover Java modules referenced by code.
+2. Add modules required for locale data, providers, and runtime features proven necessary by tests.
+3. Re-run `--list-modules` and real smoke tests.
+4. Never blindly run `jlink --add-modules $(jdeps ...)` assuming all localization features will automatically work.
+5. For external libraries, inspect non-modular dependencies, reflective access, JNI, `ServiceLoader`, and required modules before trimming an image.
 
-Một ứng dụng phức tạp có thể cần `java.sql`, `java.desktop`, `java.logging` hoặc modules khác. Đừng copy danh sách chỉ có `java.base,jdk.localedata` từ bài demo sang app production mà không phân tích dependency.
+Complex applications may also need `java.sql`, `java.desktop`, `java.logging`, or other modules. Never copy a bare `java.base,jdk.localedata` list from a demo into production without analyzing real dependencies.
 
-## 11. jpackage: kết hợp JAR và runtime thành application image
+## 11. jpackage: Combining the JAR and Runtime into an Application Image
 
-`jlink` tạo **runtime image**, trong khi `jpackage` có thể tạo **app image** chứa launcher, ứng dụng và runtime.
+`jlink` creates a **runtime image**, whereas `jpackage` can create an **app image** bundling a native launcher, application, and runtime.
 
-Với các artifact đã có:
+Given the existing artifacts:
 
 ```text
 build/dist/localization-demo.jar  (app JAR)
 build/runtime/                    (custom runtime)
 ```
 
-Bạn có thể dùng `jpackage` từ JDK 17+:
+You can invoke `jpackage` from JDK 17+:
 
 ```bash
 jpackage --type app-image \
@@ -549,67 +549,67 @@ jpackage --type app-image \
          --dest build/package
 ```
 
-Trên Windows PowerShell, dùng lệnh một dòng:
+On Windows PowerShell, run on a single line:
 
 ```powershell
 jpackage --type app-image --name LocaleDemo --input build/dist --main-jar localization-demo.jar --main-class com.example.app.ResourceAudit --runtime-image build/runtime --dest build/package --win-console
 ```
 
-`--win-console` là option **chỉ dành cho Windows** để launcher có console phù hợp với ứng dụng dòng lệnh. Trên Linux/macOS, bỏ option này.
+`--win-console` is a **Windows-only** option giving the launcher a console window suited for CLI apps. Omit it on Linux/macOS.
 
-| Tham số | Tác dụng |
+| Parameter | Effect |
 | --- | --- |
-| `--type app-image` | Tạo application image, chưa phải installer .msi/.deb |
-| `--name LocaleDemo` | Tên app và launcher |
-| `--input build/dist` | Thư mục chứa JAR ứng dụng |
-| `--main-jar localization-demo.jar` | Tên JAR **tương đối với input directory** |
-| `--main-class com.example.app.ResourceAudit` | Main class của ứng dụng |
-| `--runtime-image build/runtime` | Sao chép custom runtime đã tạo |
-| `--dest build/package` | Nơi lưu app image |
-| `--win-console` | Hiển thị console launcher trên Windows |
+| `--type app-image` | Creates an application image rather than a `.msi`/`.deb` installer |
+| `--name LocaleDemo` | App and launcher name |
+| `--input build/dist` | Directory containing the application JAR |
+| `--main-jar localization-demo.jar` | JAR filename **relative to the input directory** |
+| `--main-class com.example.app.ResourceAudit` | Main class of the application |
+| `--runtime-image build/runtime` | Copies the prebuilt custom runtime |
+| `--dest build/package` | Output destination for the app image |
+| `--win-console` | Attaches a console launcher on Windows |
 
-**Chú ý:** `jpackage` có thể tự tạo runtime image qua `jlink` nếu không chỉ định `--runtime-image`. Ở đây ta chỉ rõ image sẵn có để kiểm soát module `jdk.localedata` và bộ locale. Không được lấy JAR thiếu `Texts_vi.properties` rồi kỳ vọng `jpackage` tự tìm source resource và sửa lỗi packaging cho bạn.
+**Note:** `jpackage` can invoke `jlink` internally if `--runtime-image` is omitted. Here we supply the prebuilt image explicitly to control `jdk.localedata` and included locales. Never pass a JAR missing `Texts_vi.properties` expecting `jpackage` to locate source resources and fix your packaging bug.
 
-### Cách chạy app image
+### How to Run the App Image
 
-Sau khi tạo, app image thường nằm ở `build/package/LocaleDemo` nhưng layout launcher khác theo OS.
+After creation, the app image typically resides at `build/package/LocaleDemo`, though launcher layout varies by OS.
 
-Linux (ví dụ):
+Linux (example):
 
 ```bash
 build/package/LocaleDemo/bin/LocaleDemo vi
 ```
 
-Windows PowerShell (ví dụ):
+Windows PowerShell (example):
 
 ```powershell
 .\build\package\LocaleDemo\LocaleDemo.exe vi
 ```
 
-macOS sử dụng bundle `LocaleDemo.app` với launcher bên trong `Contents/MacOS`; đường dẫn cụ thể phụ thuộc tên/bản đóng gói. Hãy kiểm tra **layout thực tế được công cụ tạo**, không áp một đường dẫn launcher chung cho mọi nền tảng.
+macOS creates a `LocaleDemo.app` bundle with the launcher inside `Contents/MacOS`; exact paths depend on packaging options. Always inspect the **actual layout produced by the tool** rather than hardcoding one launcher path across all platforms.
 
-`jpackage` tạo image/package **theo platform máy build**, không tự tạo một executable chung chạy đồng nhất trên Windows, Linux và macOS. Cần pipeline build phù hợp cho từng hệ điều hành và kiến trúc CPU.
+`jpackage` builds images/packages **for the host platform of the build machine**; it does not produce a single cross-platform executable running identically on Windows, Linux, and macOS. Maintain separate build pipelines per OS and CPU architecture.
 
-### Xác minh dữ liệu bản dịch trong app image
+### Verifying Translation Data Inside the App Image
 
-App image thường chứa JAR trong thư mục dành cho ứng dụng, và runtime riêng. Bạn cần xác minh:
+An app image normally stores the JAR in an application directory alongside a private runtime. Verify that:
 
-1. File JAR đã được đóng gói **chính là artifact đã kiểm tra**.
-2. JAR vẫn có các entry `com/example/i18n/Texts*.properties`.
-3. Runtime image được sao chép vẫn có `java.base` và `jdk.localedata`.
-4. Launcher chạy được `en` và `vi`.
-5. Dòng `localized-resource=true` và các thông điệp/chữ có dấu đúng.
-6. Chương trình chạy được trên máy thử **không có JDK/JRE cài sẵn** (theo OS/architecture tương thích).
+1. The packaged JAR is **the exact verified artifact**.
+2. The JAR still contains `com/example/i18n/Texts*.properties` entries.
+3. The copied runtime image still includes `java.base` and `jdk.localedata`.
+4. The launcher runs cleanly with both `en` and `vi`.
+5. `localized-resource=true`, messages, and accented characters render accurately.
+6. The program runs on a test machine **with no system JDK/JRE installed** (matching OS/architecture).
 
-Không chỉ dựa vào việc thư mục `LocaleDemo` được sinh thành công để kết luận i18n đã đúng. Test cuối cùng phải gọi launcher thật và kiểm tra **nội dung đầu ra**.
+Never treat successful generation of the `LocaleDemo` directory as proof that i18n works. The final test must invoke the actual launcher and inspect **output contents**.
 
-## 12. Hai lớp kiểm tra khi xây pipeline CI
+## 12. Two Verification Layers for CI Pipelines
 
-Bộ kiểm tra triển khai nên chia thành hai tầng.
+Deployment checks should be split into two layers.
 
-### Tầng A — Artifact integrity: file dịch có được gói đúng?
+### Layer A — Artifact Integrity: Are Translation Files Packaged Properly?
 
-Đối với JAR truyền thống, các bất biến:
+For a traditional JAR, verify invariants:
 
 ```text
 com/example/app/ResourceAudit.class
@@ -618,112 +618,112 @@ com/example/i18n/Texts_en.properties
 com/example/i18n/Texts_vi.properties
 ```
 
-Cần xác minh tên entry **chính xác**, không thêm `src/main/resources` hoặc thư mục `build` vào đầu. `jar tf` là công cụ chuẩn để xem các entry.
+Confirm entry paths are **exact**, with no leading `src/main/resources` or `build` directory. `jar tf` is the standard tool for listing entries.
 
-Nếu app có nhiều JAR/phụ thuộc, tài nguyên có thể nằm trong một JAR riêng. Khi đó phải kiểm tra **runtime classpath** thực sự. Với Spring Boot executable JAR, tài nguyên có thể nằm ở `BOOT-INF/classes/com/example/i18n/...` và được loader của Spring Boot tìm theo layout đặc biệt; đừng áp quy tắc root entry của JAR truyền thống một cách máy móc cho mọi archive layout.
+If an app has multiple JARs or dependencies, resources might live inside a separate JAR; inspect the **actual runtime classpath**. In Spring Boot executable JARs, resources typically reside under `BOOT-INF/classes/com/example/i18n/...` and are resolved by Spring Boot's custom loader—do not blindly apply flat traditional-JAR root rules to every archive layout.
 
-### Tầng B — Runtime behavior: ứng dụng có thực sự bản địa hóa?
+### Layer B — Runtime Behavior: Is the App Truly Localized?
 
-Các phép thử trên **chính runtime được phát hành**:
+Checks executed on **the actual distributed runtime**:
 
-| Kiểm tra | Input | Kết quả cần xác minh |
+| Check | Input | What to Verify |
 | --- | --- | --- |
-| Main class | `java -jar ... en` | Khởi động thành công |
+| Main class | `java -jar ... en` | Launches cleanly |
 | English bundle | `en` | `bundle-locale=en`, `greeting=Hello, Lan!` |
 | Vietnamese bundle | `vi` | `bundle-locale=vi`, `greeting=Xin chào, Lan!` |
-| Root fallback | `en` hoặc `vi` | `fallback=ROOT_OK` |
-| Classloader resource path | `en` hoặc `vi` | `root-resource=true` và `localized-resource=true` |
-| Number formatting | `en` | `count=Messages: 1,234` theo locale data mong đợi |
-| Number formatting | `vi` | `count=Tin nhắn: 1.234` theo locale data mục tiêu |
-| Unsupported locale | `fr` | Exit code 2, không bị root fallback ngầm coi là hỗ trợ |
-| JAR distribution | Move JAR ra khỏi source tree | App vẫn tìm được bundles |
-| Custom runtime | `runtime/bin/java -jar ... vi` | Không vô tình dùng system Java |
-| Module inventory | `runtime/bin/java --list-modules` | Các modules cần thiết thực sự hiện diện |
-| App image | Launcher `LocaleDemo vi` | Không cần system JDK, thông điệp đúng |
-| Encoding | File UTF-8 và stdout | Không mojibake, không lỗi Unicode |
+| Root fallback | `en` or `vi` | `fallback=ROOT_OK` |
+| Classloader resource path | `en` or `vi` | `root-resource=true` and `localized-resource=true` |
+| Number formatting | `en` | `count=Messages: 1,234` per expected locale data |
+| Number formatting | `vi` | `count=Tin nhắn: 1.234` per target locale data |
+| Unsupported locale | `fr` | Exit code `2`; not silently treated as supported via root fallback |
+| JAR portability | Move JAR outside source tree | App still resolves bundles |
+| Custom runtime | `runtime/bin/java -jar ... vi` | Does not accidentally invoke system Java |
+| Module inventory | `runtime/bin/java --list-modules` | Required modules are genuinely present |
+| App image | Launcher `LocaleDemo vi` | Runs without system JDK; messages match |
+| Encoding | UTF-8 files and stdout | No mojibake or Unicode corruption |
 
-CI có thể dùng script Bash/PowerShell đọc stdout, so sánh một số dòng ổn định, kiểm tra exit code và xác nhận các JAR entries. Tránh khẳng định mọi provider/JDK luôn có cùng dấu phân cách số/ngày nếu không cố định runtime data hoặc policy của ứng dụng.
+CI can run a Bash/PowerShell script capturing stdout, asserting stable lines, checking exit codes, and verifying JAR entries. Avoid asserting identical number/date separators across arbitrary providers/JDKs unless runtime data or formatting policies are pinned.
 
-### Không kiểm tra bằng mỗi tên file
+### Do Not Validate by Filename Alone
 
-Chỉ có `Texts_vi.properties` trong JAR chưa chứng minh:
+Merely seeing `Texts_vi.properties` inside the JAR does not prove:
 
-- File được **load qua base name** đúng.
-- Key `count` tồn tại và parse được bằng `MessageFormat`.
-- Văn bản UTF-8 được đọc đúng.
-- Runtime có `jdk.localedata`.
-- Chữ tiếng Việt hiển thị chính xác qua terminal.
-- Key bị thiếu có được phát hiện trước release.
-- Nội dung dịch đúng ngữ pháp, ngữ cảnh hoặc bố cục UI.
+- The file **loads via the base name** properly.
+- The `count` key exists and parses cleanly in `MessageFormat`.
+- UTF-8 text is decoded properly.
+- The runtime includes `jdk.localedata`.
+- Vietnamese characters render properly in the terminal.
+- Missing keys were caught before release.
+- Translations are grammatically, contextually, and layout-accurate.
 
-Do đó bài thực hành cố tình dùng **resource probe + getBundle + getString + MessageFormat + locale formatting** trong cùng chương trình.
+That is why this exercise deliberately combines **resource probe + `getBundle` + `getString` + `MessageFormat` + locale formatting** in a single program.
 
-## 13. Phân biệt fallback của bundle và fallback của dữ liệu locale
+## 13. Distinguishing Bundle Fallback from Locale Data Fallback
 
-Hai kiểu fallback này dễ bị nhầm.
+These two kinds of fallback are easy to confuse.
 
-### 13.1. Fallback của ResourceBundle
+### 13.1. ResourceBundle Fallback
 
-Nếu ứng dụng yêu cầu `vi-VN` mà chỉ có:
+If the application requests `vi-VN` and only has:
 
 ```text
 Texts_vi.properties
 Texts.properties
 ```
 
-`ResourceBundle` có thể chọn `Texts_vi.properties`. Nếu key `only.root` thiếu trong bản `vi`, nó được tìm ở parent bundle root.
+`ResourceBundle` selects `Texts_vi.properties`. If `only.root` is missing in `vi`, it resolves from the parent root bundle.
 
-Điều đó xảy ra theo **các resource do ứng dụng cung cấp**; nó không cần JDK sở hữu danh sách từ vựng tiếng Việt.
+This happens strictly across **application-supplied resources**; it does not require the JDK to know Vietnamese vocabulary.
 
-### 13.2. Fallback của JDK locale providers
+### 13.2. JDK Locale Provider Fallback
 
-`NumberFormat` hay `DateTimeFormatter` dựa vào dữ liệu locale của các provider Java. Trong một runtime image đã cắt `jdk.localedata`, dữ liệu format cho một số locale có thể thiếu, dù đối tượng `Locale.forLanguageTag("vi-VN")` vẫn được tạo hợp lệ.
+`NumberFormat` and `DateTimeFormatter` rely on Java locale providers' data. In a runtime image missing `jdk.localedata`, formatting data for some locales may be absent even though `Locale.forLanguageTag("vi-VN")` constructs without error.
 
-**Không suy ra `bundle.getLocale() == vi` nghĩa là `NumberFormat` có đủ dữ liệu vi-VN.** Cũng không dùng `Locale.getAvailableLocales()` đơn lẻ để chứng minh dữ liệu cụ thể tốt: cần test trực tiếp những API được ứng dụng sử dụng.
+**Never infer from `bundle.getLocale() == vi` that `NumberFormat` has complete `vi-VN` data.** Nor should `Locale.getAvailableLocales()` alone be treated as proof of complete data: test the actual APIs your application calls.
 
-### Ví dụ đo đủ module
+### Example Module Verification
 
 ```bash
 build/runtime/bin/java --list-modules
 ```
 
-Nên bao gồm:
+Should include:
 
 ```text
 java.base@...
 jdk.localedata@...
 ```
 
-Nhưng `--list-modules` chỉ chứng minh module hiện diện, **không tự kiểm tra bộ lọc `--include-locales`** đã giữ đúng ngôn ngữ/vùng. Vẫn phải chạy `ResourceAudit vi`, in định dạng số và kiểm thử các locale sản phẩm hỗ trợ.
+Yet `--list-modules` proves only that the module is present—**it does not verify that the `--include-locales` filter kept the right languages/regions**. You still must run `ResourceAudit vi`, print formatted numbers, and test every product-supported locale.
 
-## 14. Encoding trong JAR và runtime image
+## 14. Encoding in JARs and Runtime Images
 
-Tệp `.properties` không trở thành “text đã chuẩn hóa” khi bạn nén vào JAR. Công cụ `jar` chủ yếu đưa các byte tệp vào archive; nó không tự dịch tiếng Việt và không tự sửa file sai charset.
+`.properties` files do not become "normalized text" simply by being archived into a JAR. The `jar` tool packages file bytes as-is; it neither translates Vietnamese nor repairs broken charsets.
 
-Với Java 17+:
+On Java 17+:
 
-- Property resource bundles mặc định ưu tiên UTF-8 theo JEP 226 (Java 9+).
-- Khi file chứa byte không hợp lệ trong UTF-8, có cơ chế fallback ISO-8859-1 (tùy cấu hình).
-- `java.util.PropertyResourceBundle.encoding` có thể điều khiển cách đọc của `PropertyResourceBundle`.
-- `System.out`/terminal có thể dùng cơ chế encoding khác và cần kiểm tra riêng.
+- Property resource bundles prefer UTF-8 by default per JEP 226 (Java 9+).
+- When a file contains invalid UTF-8 byte sequences, an ISO-8859-1 fallback mechanism applies (depending on configuration).
+- `java.util.PropertyResourceBundle.encoding` can control how `PropertyResourceBundle` decodes files.
+- `System.out`/terminals can use different encodings and must be checked independently.
 
-**Một tình huống dễ gây nhầm:**
+**A common source of confusion:**
 
 ```text
-JAR entry đúng path
+JAR entry has correct path
     ↓
-ResourceBundle load được
+ResourceBundle loads successfully
     ↓
-Chuỗi Java đúng Unicode
+Java String has valid Unicode
     ↓
-System.out encode sang console charset
+System.out encodes to console charset
     ↓
-Terminal giải mã sai hoặc thiếu font
+Terminal decodes incorrectly or lacks font
     ↓
-Người dùng thấy chữ lỗi
+User sees garbled characters
 ```
 
-Trong trường hợp đó, sửa classpath không giải quyết lỗi hiển thị. Có thể kiểm tra byte hoặc Unicode code point của chuỗi trước khi in ra terminal. Một kỹ thuật debug tạm thời là in từng code point:
+In that situation, fixing the classpath will never fix the display bug. Inspect raw bytes or Unicode code points of the string before printing to the terminal. A quick diagnostic snippet prints code points:
 
 ```java
 String sample = bundle.getString("greeting");
@@ -731,152 +731,152 @@ sample.codePoints().forEach(cp ->
         System.out.printf("U+%04X%n", cp));
 ```
 
-Đây chỉ là **snippet**, cần biến `bundle` đã có. Nếu code point đúng nhưng terminal sai hình dạng chữ, nguyên nhân có thể nằm ở output encoding hoặc font. Nếu code point đã sai, hãy kiểm tra byte nguồn và pipeline build resource filtering/charset.
+This is just a **snippet** assuming `bundle` exists. If code points are correct while the terminal shows wrong glyphs, the issue lies in output encoding or font support. If code points are already corrupted, inspect source file bytes and build resource-filtering/charset steps.
 
-Lưu ý JEP 400 (JDK 18: UTF-8 by Default) điều chỉnh default charset của nhiều API, nhưng **không đồng nghĩa** `Properties.load(InputStream)`, `PropertyResourceBundle`, console I/O hay mọi giao thức đều đổi theo cùng một quy tắc. Không gộp JEP 226 và JEP 400 thành một thay đổi.
+Note that JEP 400 (JDK 18: UTF-8 by Default) adjusts the default charset of many APIs, yet **does not mean** `Properties.load(InputStream)`, `PropertyResourceBundle`, console I/O, and every protocol all follow one identical rule. Do not conflate JEP 226 and JEP 400 into a single change.
 
-## 15. Những lỗi thường gặp và cách khắc phục
+## 15. Common Errors and Fixes
 
-| Lỗi | Triệu chứng | Cách khắc phục |
+| Error | Symptom | Fix |
 | --- | --- | --- |
-| Đặt `Texts_vi.properties` sai path trong JAR | `MissingResourceException` hoặc fallback root | Đưa entry vào `com/example/i18n/` tính từ root |
-| Đặt file ở `src/main/java` | CLI build bỏ resource | Đưa vào `src/main/resources` |
-| Truyền `com/example/i18n/Texts.properties` vào `getBundle` | Không tìm được family | Truyền base name `com.example.i18n.Texts` |
-| Dùng `java -jar` nhưng JAR không có Main-Class | No main manifest attribute | Tạo JAR với `--main-class` |
-| Chạy class từ thư mục nhưng quên resources trong classpath | Bundle không tìm được | Thêm `src/main/resources` vào classpath hoặc package JAR |
-| Dùng `new File("src/main/resources/...")` | IDE chạy, deployment lỗi | Dùng `ResourceBundle`/`getResourceAsStream` |
-| Chỉ chạy `jlink` rồi gửi runtime image | Không có ứng dụng để chạy | Phân phối app JAR hoặc dùng `jpackage` |
-| Dùng `jlink --add-modules java.base` cho mọi ứng dụng | Thiếu module khác | Xem `jdeps` + test runtime features |
-| Không có `jdk.localedata` | Bundle đúng nhưng locale format thiếu | Thêm module và test dữ liệu locale |
-| Có `jdk.localedata` nhưng `--include-locales` quá hẹp | Một số locale bị bỏ | Cập nhật bộ lọc và chạy test thực |
-| Chỉ kiểm tra `--list-modules` | Không biết JAR có đúng resource không | Thêm `jar tf` và test `getBundle/getString` |
-| Chỉ kiểm tra `jar tf` | Không biết runtime có đủ locale không | Chạy JAR bằng runtime image thực tế |
-| Lệnh `java` dùng JDK hệ thống | Test runtime image không có giá trị | Gọi `build/runtime/bin/java` tường minh |
-| jpackage tạo launcher không có console trên Windows | CLI không thấy output | Thêm `--win-console` cho Windows |
-| App image sinh thành công nhưng Việt hóa sai | Bản dịch/locale data vẫn lỗi | Chạy launcher và so sánh nội dung |
-| Thay đổi source resources sau build | Artifact vẫn chứa bản cũ | Rebuild JAR và app image |
-| Dấu tiếng Việt bị lỗi | Encoding hoặc font terminal | Kiểm tra UTF-8 từng ranh giới |
-| Thiếu một key nhưng chương trình vẫn chạy | Root fallback che lỗi bản dịch | Kiểm tra translation coverage theo locale |
-| Trùng resource path ở nhiều dependencies | Classloader chọn bản khác | Đặt namespace riêng, kiểm tra runtime classpath |
-| JAR chạy trong Java desktop nhưng không ở runtime cắt | Thiếu `java.desktop` hoặc modules khác | Dựa trên dependency thực và test `jlink` |
-| Runtime đã cũ sau cập nhật JDK | Lỗ hổng hoặc dữ liệu locale cũ | Rebuild và phân phối lại runtime image |
+| `Texts_vi.properties` placed at wrong path in JAR | `MissingResourceException` or root fallback | Place entry under `com/example/i18n/` from JAR root |
+| Files placed in `src/main/java` | CLI build omits resources | Move to `src/main/resources` |
+| Passing `com/example/i18n/Texts.properties` to `getBundle` | Cannot locate bundle family | Pass base name `com.example.i18n.Texts` |
+| Running `java -jar` without `Main-Class` in JAR | No main manifest attribute | Build JAR with `--main-class` |
+| Running classes from directory without resources on classpath | Bundle not found | Add `src/main/resources` to classpath or package JAR |
+| Using `new File("src/main/resources/...")` | Works in IDE, fails in deployment | Use `ResourceBundle`/`getResourceAsStream` |
+| Running `jlink` and shipping only the runtime image | No application to run | Ship app JAR too or use `jpackage` |
+| Using `jlink --add-modules java.base` for every app | Missing required modules | Check `jdeps` + test runtime features |
+| Omitting `jdk.localedata` | Bundle loads but locale formatting falls back | Add module and test locale data |
+| Including `jdk.localedata` with overly narrow `--include-locales` | Some locales dropped | Update filter and test in real runtime |
+| Checking only `--list-modules` | Unsure whether JAR holds resources | Add `jar tf` and `getBundle/getString` tests |
+| Checking only `jar tf` | Unsure whether runtime has locale data | Run JAR on the actual runtime image |
+| `java` command invokes system JDK | Runtime image test is invalid | Invoke `build/runtime/bin/java` explicitly |
+| `jpackage` creates a windowless launcher on Windows | CLI shows no output | Add `--win-console` on Windows |
+| App image builds cleanly yet localization is wrong | Translations or locale data still broken | Execute launcher and verify output content |
+| Editing source resources after build | Artifact still holds old copy | Rebuild JAR and app image |
+| Garbled Vietnamese diacritics | Encoding or terminal font issue | Verify UTF-8 at every boundary |
+| Missing key silently runs | Root fallback masks missing translation | Check per-locale translation coverage |
+| Duplicate resource paths across dependencies | Classloader picks another dependency's file | Use unique namespaces; inspect runtime classpath |
+| JAR works on desktop Java but fails on trimmed runtime | Missing `java.desktop` or other modules | Audit real dependencies and test `jlink` |
+| Stale runtime after JDK security updates | Vulnerabilities or outdated locale data | Rebuild and redistribute the runtime image |
 
-## 16. Kiểm thử nâng cao: kiểm tra tính đầy đủ của bản dịch
+## 16. Advanced Verification: Checking Translation Completeness
 
-`ResourceBundle.getString` có thể lấy key từ parent bundle. Điều đó giúp fallback, nhưng cũng có thể khiến bản tiếng Việt **không hoàn chỉnh** mà pipeline vẫn báo không lỗi.
+`ResourceBundle.getString` can retrieve keys from parent bundles. While helpful for fallback, that can leave Vietnamese **incomplete** while the pipeline reports zero errors.
 
-Để kiểm tra **chất lượng đóng gói** thay vì chỉ hoạt động tối thiểu, có thể thực hiện:
+To audit **packaging quality** beyond minimal smoke tests:
 
-1. Liệt kê các key bắt buộc từ catalog gốc.
-2. Kiểm tra key có mặt trực tiếp trong mỗi file nguồn bản dịch, không chỉ qua parent.
-3. Kiểm tra pattern `MessageFormat` parse được ở từng locale.
-4. Kiểm tra placeholder của các bản dịch có cùng vai trò và kiểu, cho phép **đổi vị trí**.
-5. Chạy các đối số edge case: `0`, `1`, `1234`, tên chứa Unicode, dấu nháy đơn.
-6. Kiểm tra số nhiều theo quy tắc ngôn ngữ; `MessageFormat` truyền thống không tự là bộ plural CLDR hoàn chỉnh.
-7. Kiểm tra dấu câu, độ dài bản dịch và khả năng hiển thị trong terminal/UI.
-8. Chạy test cả từ source layout và từ **JAR/app image thành phẩm**, so sánh behavior.
+1. Enumerate all required keys from the root catalog.
+2. Verify every key is defined directly in each target translation file, not merely inherited from parent.
+3. Verify `MessageFormat` patterns parse cleanly in every locale.
+4. Verify placeholders across translations keep matching roles and types, allowing **reordering**.
+5. Test edge-case arguments: `0`, `1`, `1234`, names containing Unicode, single quotes.
+6. Verify plurals per linguistic rules; classic `MessageFormat` is not a full CLDR plural engine.
+7. Check punctuation, translation length, and rendering in the target terminal/UI.
+8. Run tests both from the source layout and from the **packaged JAR/app image**, comparing behavior.
 
-Đừng dựa vào `ResourceBundle.containsKey(key)` làm bằng chứng bản dịch con có key: phương thức có thể nhìn thấy key kế thừa từ parent. Muốn kiểm tra riêng file, hãy kiểm tra catalog source/archived entry một cách có chủ đích.
+Never treat `ResourceBundle.containsKey(key)` as proof that the child translation defines the key: `containsKey` sees inherited parent keys too. To audit individual files, inspect source/archived catalog entries directly.
 
-### Kiểm thử phiên bản ngôn ngữ thực
+### Testing Actual Supported Languages
 
-Một ứng dụng có thể hỗ trợ `en-US`, `vi-VN`, `ja-JP` nhưng triển khai chỉ bundle en, vi. `ResourceBundle` thường có fallback, vì vậy yêu cầu ja-JP có thể hiển thị English mà không phát sinh lỗi. Danh sách ngôn ngữ được hỗ trợ cần được **quy định riêng**, không suy ra từ việc `getBundle` trả về bundle nào đó.
+An app might target `en-US`, `vi-VN`, and `ja-JP` while shipping bundles only for `en` and `vi`. Because `ResourceBundle` falls back, requesting `ja-JP` can silently render English without throwing. Supported languages must be **governed by an explicit list**, not inferred from whether `getBundle` returns a bundle.
 
-Cần thêm bài kiểm thử cho tình huống “ngôn ngữ không hỗ trợ” để app hiển thị thông báo rõ hoặc fallback theo chính sách sản phẩm, thay vì âm thầm tuyên bố đã đổi ngôn ngữ.
+Add tests for "unsupported language" requests to ensure the app displays a clear error or follows product fallback policy, rather than silently claiming it switched languages.
 
-## 17. Phân phối runtime image và quản lý bảo mật
+## 17. Distributing Runtime Images and Security Maintenance
 
-Custom runtime image là **bản sao runtime được sinh từ một JDK ở thời điểm build**. Nó **không tự cập nhật** khi hệ điều hành cài bản Java mới. Khi có bản vá JDK hoặc dữ liệu locale/timezone thay đổi, bạn phải:
+A custom runtime image is a **snapshot of a specific JDK captured at build time**. It **does not auto-update** when the OS installs a newer Java release. Whenever JDK security patches or locale/timezone updates arrive, you must:
 
-1. Cập nhật JDK dùng để build image.
-2. Chạy lại `jlink` trên JDK đã cập nhật.
-3. Chạy lại test JAR với runtime mới.
-4. Tạo lại `jpackage app-image` hoặc gói phân phối khác.
-5. Phát hành lại artifact ứng dụng kèm runtime và ghi nhận phiên bản.
+1. Update the JDK used to build the image.
+2. Re-run `jlink` using the updated JDK.
+3. Re-test the JAR against the new runtime.
+4. Rebuild the `jpackage` `app-image` or other distribution package.
+5. Redistribute the application artifact + runtime and record the version.
 
-Không copy riêng file `lib/modules` từ image cũ rồi ghép với `bin/java` của bản khác; runtime image là một tập thống nhất, liên quan đến module graph và các thư viện native của cùng JDK/build.
+Never copy `lib/modules` from an older image and mix it with `bin/java` from another build; a runtime image is an integrated unit tied to a specific JDK build's module graph and native libraries.
 
-### Tính di động
+### Portability
 
-- JAR Java 17 (chỉ dùng Java SE) thường có thể chạy trên những Java runtime tương thích version ≥17.
-- Custom runtime image **phụ thuộc OS/architecture** mà nó được xây và thư viện native của JDK tương ứng; không phải archive “write once, run everywhere” theo cùng nghĩa với một JAR bytecode.
-- `jpackage` tạo app image/installer theo OS, cần build pipeline riêng cho Linux, Windows và macOS khi hỗ trợ nhiều nền tảng.
-- Không đưa JDK tools `javac`, `jar` vào image rồi mong máy người dùng biên dịch: image tối giản thường chỉ cần runtime để chạy ứng dụng.
+- A Java 17 JAR (using standard Java SE APIs) generally runs on compatible Java runtimes >= 17.
+- A custom runtime image **depends on the OS and CPU architecture** on which it was built and its JDK native libraries; it is not "write once, run everywhere" like a bytecode JAR.
+- `jpackage` produces OS-specific app images/installers, requiring separate build pipelines for Linux, Windows, and macOS when targeting multiple platforms.
+- Do not bundle JDK development tools like `javac` or `jar` into production images expecting user machines to compile: minimal images need only what is required to run the app.
 
-Vì vậy một pipeline có thể phát hành **một JAR logic** và **nhiều runtime/app images theo OS**, mỗi bản được thử nghiệm về resource bundle và locale data.
+Accordingly, a pipeline can publish **one platform-neutral JAR** alongside **per-OS runtime/app images**, each verified for resource bundles and locale data.
 
-## 18. Bài tập tự luyện
+## 18. Self-Practice Exercises
 
-**Bài 1.** Base name là `com.acme.i18n.Labels`, locale `vi-VN`. Nếu chỉ cung cấp file cho tiếng Việt chung, entry JAR đúng là gì?
+**Exercise 1.** Base name is `com.acme.i18n.Labels`, locale `vi-VN`. If only a generic Vietnamese file is provided, what is the exact JAR entry path?
 
-**Đáp án:** `com/acme/i18n/Labels_vi.properties`. Có thể thêm `Labels_vi_VN.properties` nếu cần ghi đè riêng cho Việt Nam, và `Labels.properties` làm root fallback.
+**Answer:** `com/acme/i18n/Labels_vi.properties`. You can optionally add `Labels_vi_VN.properties` for Vietnam-specific overrides and `Labels.properties` as root fallback.
 
-**Bài 2.** `jar tf` thấy `src/main/resources/com/example/i18n/Texts_vi.properties` nhưng Java không tìm thấy. Vì sao?
+**Exercise 2.** `jar tf` shows `src/main/resources/com/example/i18n/Texts_vi.properties`, yet Java cannot find it. Why?
 
-**Đáp án:** File nằm dưới tiền tố nguồn thay vì classpath root. Java đang tìm `com/example/i18n/Texts_vi.properties` theo base name của app.
+**Answer:** The file sits under the source prefix rather than the classpath root. Java looks for `com/example/i18n/Texts_vi.properties` matching the app's base name.
 
-**Bài 3.** Runtime image có `java.base` nhưng không `jdk.localedata`. App vẫn load được `Texts_vi.properties` thì có thể khẳng định số/ngày vi-VN được format chính xác không?
+**Exercise 3.** A runtime image includes `java.base` without `jdk.localedata`. The app still loads `Texts_vi.properties`; can you conclude `vi-VN` numbers and dates format accurately?
 
-**Đáp án:** Không. Bundle chứa chuỗi dịch do app cung cấp; locale data của Java formatter là tầng khác, cần test `NumberFormat`/`DateTimeFormatter` với runtime image đó.
+**Answer:** No. The bundle supplies app-translated strings; JDK formatter locale data is a separate layer that must be tested via `NumberFormat`/`DateTimeFormatter` on that runtime image.
 
-**Bài 4.** Lệnh `jlink --add-modules java.base,jdk.localedata --include-locales=en,vi` có tự chép `localization-demo.jar` vào image?
+**Exercise 4.** Does `jlink --add-modules java.base,jdk.localedata --include-locales=en,vi` automatically copy `localization-demo.jar` into the image?
 
-**Đáp án:** Không. `jlink` tạo runtime module image. App JAR phải được phân phối riêng hoặc kết hợp bằng `jpackage`.
+**Answer:** No. `jlink` builds a runtime module image. The app JAR must be distributed separately or bundled with `jpackage`.
 
-**Bài 5.** Sau khi chạy `jdeps --print-module-deps`, output chỉ có `java.base`. Tại sao vẫn nên bổ sung `jdk.localedata`?
+**Exercise 5.** `jdeps --print-module-deps` outputs only `java.base`. Why should `jdk.localedata` still be added?
 
-**Đáp án:** `jdeps` chủ yếu phát hiện module dependencies tĩnh từ bytecode; dữ liệu locale bổ sung có thể được sử dụng động qua locale providers và không xuất hiện thành dependency class trực tiếp.
+**Answer:** `jdeps` primarily detects static module dependencies from bytecode; extended locale data is resolved dynamically via locale providers and does not appear as direct class dependencies.
 
-**Bài 6.** `ResourceBundle.getBundle` trả bundle `vi` khi yêu cầu `vi-VN`. Đó có phải lỗi?
+**Exercise 6.** `ResourceBundle.getBundle` returns bundle `vi` when `vi-VN` was requested. Is that a bug?
 
-**Đáp án:** Không, nếu có `Texts_vi.properties` và không có bản vùng chi tiết. Đây là fallback locale phù hợp. Kiểm tra `getLocale()` để biết candidate thực sự được dùng.
+**Answer:** No, if `Texts_vi.properties` exists without a region-specific override. That is normal locale fallback. Check `getLocale()` to see which candidate was selected.
 
-**Bài 7.** Vì sao `jpackage --type app-image` vẫn cần kiểm tra `jar tf`?
+**Exercise 7.** Why must you still verify `jar tf` when using `jpackage --type app-image`?
 
-**Đáp án:** App image chỉ sao chép/đóng gói các artifact được cung cấp. Nếu JAR thiếu resources, jpackage không tự dựng lại file dịch từ source.
+**Answer:** An app image simply copies/packages the supplied artifacts. If the JAR is missing resources, `jpackage` will not rebuild translation files from source.
 
-**Bài 8.** Một bản runtime image chạy được trên Windows có thể đưa thẳng sang Linux không?
+**Exercise 8.** Can a runtime image built on Windows be copied directly to Linux?
 
-**Đáp án:** Không. Runtime image chứa binary và thư viện native phụ thuộc OS/CPU; cần tạo image phù hợp cho từng nền tảng.
+**Answer:** No. A runtime image contains OS- and CPU-specific native binaries and libraries; build separate images per target platform.
 
-**Bài 9.** Làm thế nào kiểm tra bạn đang chạy đúng Java trong image?
+**Exercise 9.** How do you verify you are running the Java binary inside your custom image?
 
-**Đáp án:** Gọi `build/runtime/bin/java --version`, `--list-modules` và chạy `build/runtime/bin/java -jar ...` với đường dẫn tường minh, thay vì lệnh `java` từ PATH.
+**Answer:** Invoke `build/runtime/bin/java --version`, `--list-modules`, and `build/runtime/bin/java -jar ...` using the explicit path instead of bare `java` on `PATH`.
 
-**Bài 10.** Nếu màn hình in `Xin chÃ o`, đó có chắc chắn là sai `ResourceBundle` path không?
+**Exercise 10.** If the screen prints `Xin chÃ o`, does that necessarily mean the `ResourceBundle` path is wrong?
 
-**Đáp án:** Không. Nếu `getString` và classloader probe thành công, lỗi có thể nằm ở bytes file dịch, build filtering, encoder stdout hoặc decoder của terminal. Cần kiểm tra từng tầng.
+**Answer:** No. If `getString` and the classloader probe succeed, the bug may lie in source file bytes, build resource filtering, stdout encoding, or terminal decoding. Inspect each layer.
 
-## 19. Checklist trước khi phát hành
+## 19. Pre-Release Checklist
 
-| Hạng mục | Điều kiện đạt |
+| Item | Acceptance Criteria |
 | --- | --- |
-| Build JAR | Thành công, Main-Class hợp lệ |
-| JAR entries | Có toàn bộ `Texts*.properties` dưới đúng `com/example/i18n/` |
-| UTF-8 | File nguồn và output không mojibake |
-| English locale | Message và số theo cấu hình được duyệt |
-| Vietnamese locale | Thông điệp tiếng Việt và số/ngày theo dữ liệu locale mục tiêu |
-| Root fallback | Key `only.root` hoạt động |
-| Missing keys | Translation coverage được kiểm tra, không chỉ fallback |
-| Custom runtime | `--list-modules` hiển thị Java modules cần có |
-| Include locales | Bộ lọc có đủ ngôn ngữ/vùng và smoke test thực chứng |
-| Runtime selection | Chạy chính `runtime/bin/java`, không phải system Java |
-| App packaging | `jpackage` có JAR + runtime + launcher |
-| CI | Test en/vi, unsupported locale, move artifact ra khỏi source tree |
-| Multiplatform | Image build/test riêng theo OS/architecture |
-| Security | Quy trình cập nhật JDK và build lại image được xác định |
+| JAR build | Succeeds with valid `Main-Class` |
+| JAR entries | All `Texts*.properties` present directly under `com/example/i18n/` |
+| UTF-8 | Source files and stdout show no mojibake |
+| English locale | Messages and numbers match approved conventions |
+| Vietnamese locale | Vietnamese messages and numbers/dates match target locale data |
+| Root fallback | `only.root` key resolves properly |
+| Missing keys | Translation coverage verified directly, not masked by fallback |
+| Custom runtime | `--list-modules` shows required Java modules |
+| Include locales | Locale filter covers needed languages/regions and passes smoke tests |
+| Runtime selection | Explicitly executes `runtime/bin/java`, not system Java |
+| App packaging | `jpackage` bundles JAR + runtime + launcher |
+| CI | Tests `en`/`vi`, unsupported locales, and execution outside source tree |
+| Multiplatform | Built and tested separately per OS/architecture |
+| Security | JDK update and runtime-image rebuild process documented |
 
-## 20. Tổng kết
+## 20. Summary
 
-1. **JAR** phải chứa cả bytecode và file bản dịch đúng **classpath path**. Với base name `com.example.i18n.Texts`, entry `com/example/i18n/Texts_vi.properties` là bắt buộc nếu muốn bản dịch tiếng Việt.
-2. **`jlink`** tạo **custom Java runtime image**. Nó không tự mang app JAR, và `--include-locales` cần `jdk.localedata`.
-3. **`jpackage`** có thể kết hợp **ứng dụng + runtime + launcher** thành app image; nội dung vẫn phải được kiểm thử.
-4. **Bundle resource** khác với **locale data của JDK**. Khi giảm size runtime, phải kiểm tra cả chuỗi dịch lẫn định dạng số/ngày.
-5. **`jar tf`, `jdeps`, `--list-modules` và smoke test bằng runtime/launcher thành phẩm** giải quyết các lớp lỗi khác nhau; không công cụ nào thay thế tất cả.
-6. Test cần chạy **ngoài IDE/source tree**, trên artifact và hệ điều hành thực tế, kể cả Unicode, fallback, key coverage và charset.
-7. Khi cập nhật JDK, hãy **rebuild runtime image** và phát hành lại; runtime image không tự nhận bản vá của Java cài trên máy.
+1. **JARs** must include both bytecode and translation files at the exact **classpath path**. For base name `com.example.i18n.Texts`, `com/example/i18n/Texts_vi.properties` is required for Vietnamese translations.
+2. **`jlink`** creates a **custom Java runtime image**. It does not automatically bundle the app JAR, and `--include-locales` requires `jdk.localedata`.
+3. **`jpackage`** combines **application + runtime + launcher** into an app image; contents still require verification.
+4. **Bundle resources** differ from **JDK locale data**. When trimming runtime size, verify both translated strings and number/date formatting.
+5. **`jar tf`, `jdeps`, `--list-modules`, and smoke tests against the final runtime/launcher** catch different classes of bugs; no single check replaces the others.
+6. Tests must run **outside the IDE and source tree** on real artifacts and target operating systems, covering Unicode, fallback, key coverage, and charsets.
+7. Whenever updating the JDK, **rebuild and redistribute the runtime image**; custom images do not inherit patches from system Java installations.
 
-**Tài liệu tham khảo chính thức:**
+**Official References:**
 
 - [Java SE 21 — ResourceBundle](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ResourceBundle.html)
 - [Java SE 21 — PropertyResourceBundle](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/PropertyResourceBundle.html)

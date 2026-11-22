@@ -1,12 +1,12 @@
-# Khởi tạo mảng bằng danh sách giá trị trong Java
+# Initializing Arrays with a Value List in Java
 
-> **Java core — language-basics / Mảng một chiều**  
-> **Môi trường:** JDK 17+; ví dụ một file tự chứa, không dùng thư viện ngoài.  
-> **Mục tiêu:** Phân biệt cú pháp `{...}` khi khai báo với `new T[]{...}` trong biểu thức, hiểu độ dài được suy ra từ số phần tử, kiểu thành phần, danh sách rỗng, thứ tự đánh giá và các lỗi biên dịch thường gặp.
+> **Java core — language-basics / One-Dimensional Arrays**  
+> **Environment:** JDK 17+; self-contained single-file examples, using no external libraries.  
+> **Goal:** Distinguish the `{...}` syntax at declaration from `new T[]{...}` in expressions, understand how length is inferred from the element count, component type rules, empty lists, evaluation order, and common compile-time errors.
 
-## 1. Cú pháp ngắn `{...}` ngay tại khai báo
+## 1. Shorthand `{...}` syntax directly at declaration
 
-Khi **khai báo biến mảng và khởi tạo ngay trong cùng câu lệnh**, ta có thể viết các phần tử trong dấu ngoặc nhọn:
+When **declaring an array variable and initializing it in the same statement**, you can write the elements inside curly braces:
 
 ~~~java
 int[] scores = {8, 10, 6};
@@ -14,7 +14,7 @@ String[] names = {"An", "Binh", "Chi"};
 boolean[] flags = {true, false, true};
 ~~~
 
-Java tạo đối tượng mảng mới, gán lần lượt các giá trị vào vị trí có chỉ số bắt đầu từ 0. `scores` có kiểu `int[]`, kiểu thành phần `int` và `scores.length == 3`.
+Java creates a new array object and assigns the values sequentially into slots starting at index 0. `scores` has type `int[]`, component type `int`, and `scores.length == 3`.
 
 ~~~java
 System.out.println(scores[0]); // 8
@@ -22,21 +22,21 @@ System.out.println(scores[2]); // 6
 System.out.println(scores.length); // 3
 ~~~
 
-Cú pháp đầy đủ tương đương:
+Equivalent full syntax:
 
 ~~~java
 int[] scores = new int[] {8, 10, 6};
 ~~~
 
-**Lưu ý:** Không khai báo kích thước trong `new int[] { ... }`, vì độ dài được xác định từ số biểu thức khởi tạo. Mảng đã tạo có `length` cố định; thay phần tử bằng `scores[i] = value` là hợp lệ, còn kéo dài chính đối tượng mảng là không thể.
+**Note:** Do not specify a size inside `new int[] { ... }`, because the length is determined by the number of initializer expressions. Once created, the array has a fixed `length`; replacing elements via `scores[i] = value` is valid, while extending the array object itself is impossible.
 
-## 2. Khi nào phải viết `new T[] {...}`?
+## 2. When must you write `new T[] {...}`?
 
-Dạng `{...}` **đơn độc** chỉ hợp lệ trong *array initializer* gắn trực tiếp với khai báo hoặc các ngữ cảnh khởi tạo thành phần mảng thích hợp. Khi biểu thức cần tạo mảng mới trong phép gán sau khai báo, đối số phương thức hoặc giá trị `return`, hãy ghi rõ `new T[] { ... }`.
+The standalone `{...}` form is only valid as an *array initializer* attached directly to a declaration or appropriate array component initialization contexts. When an expression needs to create a new array in a reassignment after declaration, as a method argument, or as a `return` value, explicitly write `new T[] { ... }`.
 
 ~~~java
 int[] values;
-values = new int[] {2, 4, 6};      // ĐÚNG.
+values = new int[] {2, 4, 6};      // VALID.
 
 static int total(int[] numbers) {
     int sum = 0;
@@ -46,12 +46,12 @@ static int total(int[] numbers) {
     return sum;
 }
 
-// Gọi:
+// Call:
 // int result = total(new int[] {1, 2, 3});
 // result == 6.
 ~~~
 
-Phương thức trả về mảng:
+A method returning an array:
 
 ~~~java
 static int[] createPair() {
@@ -59,87 +59,87 @@ static int[] createPair() {
 }
 ~~~
 
-Các dạng sau **không biên dịch** (chỉ minh họa, không đưa vào chương trình chạy):
+The following forms **do not compile** (for illustration only; do not include in a runnable program):
 
 ~~~java
 // int[] a;
-// a = {1, 2};                   // Thiếu "new int[]" ở phép gán.
-// total({1, 2});                // Thiếu "new int[]" ở đối số.
-// int[] wrong = new int[2] {1, 2}; // Vừa chỉ kích thước vừa khởi tạo.
+// a = {1, 2};                   // Missing "new int[]" in assignment.
+// total({1, 2});                // Missing "new int[]" in argument.
+// int[] wrong = new int[2] {1, 2}; // Both size and initializer specified.
 ~~~
 
-Bảng ghi nhớ:
+Quick reference table:
 
-| Ngữ cảnh | Cú pháp hợp lệ |
+| Context | Valid syntax |
 | --- | --- |
-| Khai báo + khởi tạo | `int[] a = {1, 2};` |
-| Khai báo + khởi tạo tường minh | `int[] a = new int[] {1, 2};` |
-| Gán lại sau khai báo | `a = new int[] {3, 4};` |
-| Đối số phương thức nhận `int[]` | `method(new int[] {1, 2});` |
-| Trả về `int[]` | `return new int[] {1, 2};` |
-| Khai báo có số phần tử, chưa ghi giá trị | `new int[2]` (nhận hai số 0 mặc định) |
+| Declaration + initialization | `int[] a = {1, 2};` |
+| Declaration + explicit initialization | `int[] a = new int[] {1, 2};` |
+| Reassignment after declaration | `a = new int[] {3, 4};` |
+| Method argument expecting `int[]` | `method(new int[] {1, 2});` |
+| Returning `int[]` | `return new int[] {1, 2};` |
+| Creating with element count, no values given yet | `new int[2]` (receives two default zeros) |
 
-## 3. Số phần tử, mảng rỗng và dấu phẩy cuối
+## 3. Element count, empty arrays, and trailing commas
 
-**Số biểu thức trong danh sách quyết định chiều dài mảng**, không phụ thuộc vào giá trị của phần tử.
+**The number of expressions in the list determines the array length**, independent of the values of the elements.
 
 ~~~java
 int[] three = {5, 5, 5}; // length = 3.
 int[] empty = {};        // length = 0.
-int[] two = {7, 9,};     // Dấu phẩy sau phần tử cuối là hợp lệ.
+int[] two = {7, 9,};     // A comma after the last element is valid.
 ~~~
 
-Dấu phẩy cuối có thể hữu ích khi chỉnh sửa danh sách nhiều dòng. Nó **không tạo thêm phần tử**.
+A trailing comma can be handy when editing multi-line lists. It **does not create an extra element**.
 
-`new int[] {}` và `new int[0]` đều tạo một đối tượng mảng dài 0; chúng không phải `null`:
+`new int[] {}` and `new int[0]` both create an array object of length 0; neither is `null`:
 
 ~~~java
 int[] nothing = {};
 System.out.println(nothing.length); // 0
-// nothing[0]; // Nếu truy cập: ArrayIndexOutOfBoundsException.
+// nothing[0]; // If accessed: ArrayIndexOutOfBoundsException.
 ~~~
 
-Giá trị mặc định khác với giá trị khai báo rõ ràng:
+Default values differ from explicitly specified values:
 
 ~~~java
 int[] defaults = new int[3]; // [0, 0, 0]
 int[] given = {0, 0, 0};     // [0, 0, 0]
 ~~~
 
-Hai mảng trên có cùng **nội dung khởi đầu**, nhưng là **hai đối tượng khác nhau**. Không dùng `==` để so sánh nội dung mảng; khi cần có thể dùng `java.util.Arrays.equals(defaults, given)`.
+The two arrays above have the same **initial contents**, yet they are **two distinct objects**. Do not use `==` to compare array contents; when needed, you can use `java.util.Arrays.equals(defaults, given)`.
 
-## 4. Quy tắc kiểu thành phần
+## 4. Component type rules
 
-Mỗi phần tử phải **tương thích với kiểu thành phần** theo quy tắc gán của Java:
+Each element must be **compatible with the component type** according to Java's assignment rules:
 
 ~~~java
-long[] distances = {1, 2, 3};    // Hợp lệ: int -> long.
-double[] rates = {1, 2.5, 3};    // Hợp lệ: giá trị số phù hợp.
-String[] words = {"A", null, "C"}; // Hợp lệ: tham chiếu String hoặc null.
+long[] distances = {1, 2, 3};    // Valid: int -> long.
+double[] rates = {1, 2.5, 3};    // Valid: compatible numeric values.
+String[] words = {"A", null, "C"}; // Valid: String reference or null.
 Object[] items = {"text", Integer.valueOf(7), null};
 ~~~
 
-Một mảng tham chiếu vẫn có **một kiểu thành phần**, nhưng có thể chứa nhiều lớp đối tượng runtime nếu đều gán được cho kiểu đó: `Object[]` ở trên chứa `String`, `Integer` và `null`.
+A reference array still has **one component type**, yet it can hold multiple runtime object classes if all are assignable to that type: `Object[]` above holds a `String`, an `Integer`, and `null`.
 
-Ví dụ sai:
-
-~~~java
-// int[] wrong = {1, "two"}; // String không gán được cho int.
-// String[] wrong2 = {"A", Integer.valueOf(2)}; // Integer không là String.
-~~~
-
-Một số hằng nguyên `int` nằm trong phạm vi của kiểu nhỏ hơn có thể được gán qua *constant narrowing*; nhưng hằng vượt miền thì không:
+Invalid examples:
 
 ~~~java
-byte[] bytes = {0, 127}; // Hợp lệ.
-// byte[] wrong = {128}; // Không biên dịch: vượt miền byte.
+// int[] wrong = {1, "two"}; // String cannot be assigned to int.
+// String[] wrong2 = {"A", Integer.valueOf(2)}; // Integer is not a String.
 ~~~
 
-Với mảng kiểu tham chiếu, kiểu thành phần thực còn được kiểm tra khi lưu giá trị ở **runtime** (ví dụ `String[]` gán qua `Object[]` có thể ném `ArrayStoreException` nếu cố lưu một `Integer`). Danh sách khởi tạo không bỏ qua cơ chế kiểm tra kiểu này.
+Certain `int` integer constants within the range of a smaller type can be assigned via *constant narrowing*; out-of-range constants cannot:
 
-## 5. Danh sách chứa biểu thức và thứ tự đánh giá
+~~~java
+byte[] bytes = {0, 127}; // Valid.
+// byte[] wrong = {128}; // Does not compile: out of byte range.
+~~~
 
-Mỗi phần tử không bắt buộc là literal. Java có thể đánh giá các biến, biểu thức số học và lời gọi phương thức **từ trái sang phải** trong danh sách:
+For reference-type arrays, the actual component type is also checked when storing values at **runtime** (for example, a `String[]` aliased through an `Object[]` can throw `ArrayStoreException` if you try to store an `Integer`). Initializer lists do not bypass this type-checking mechanism.
+
+## 5. Lists containing expressions and evaluation order
+
+Elements do not have to be literals. Java evaluates variables, arithmetic expressions, and method calls **from left to right** in the list:
 
 ~~~java
 int base = 4;
@@ -147,7 +147,7 @@ int[] computed = {base, base * 2, base + 5};
 // computed = [4, 8, 9].
 ~~~
 
-Ví dụ có hiệu ứng phụ để thấy rõ thứ tự:
+An example with side effects to make the order clear:
 
 ~~~java
 static int counter = 0;
@@ -157,42 +157,42 @@ static int next() {
     return counter * 10;
 }
 
-// Trong một phương thức:
+// Inside a method:
 // int[] values = {next(), next(), next()};
 // values = [10, 20, 30]; counter = 3.
 ~~~
 
-Lưu ý rằng nếu một biểu thức ném ngoại lệ, các phần tử còn lại chưa được đánh giá sẽ không được khởi tạo qua các biểu thức đó. Trong mã ứng dụng, hạn chế side effects phức tạp bên trong danh sách khởi tạo để dễ đọc và dễ kiểm thử.
+Note that if an expression throws an exception, the remaining expressions that have not yet been evaluated will not be evaluated to initialize elements. In application code, avoid complex side effects inside initializer lists to keep code readable and easy to test.
 
-## 6. `var`, tham chiếu và thay đổi mảng sau khi khởi tạo
+## 6. `var`, references, and mutating arrays after initialization
 
-Java 17 hỗ trợ suy luận kiểu của biến cục bộ bằng `var` khi biểu thức bên phải có kiểu rõ ràng:
+Java 17 supports local variable type inference with `var` when the expression on the right-hand side has a clear type:
 
 ~~~java
-var numbers = new int[] {2, 4, 6}; // Suy ra int[].
-// var wrong = {2, 4, 6};          // Không biên dịch.
+var numbers = new int[] {2, 4, 6}; // Infers int[].
+// var wrong = {2, 4, 6};          // Does not compile.
 ~~~
 
-Không có kiểu đích đủ rõ từ riêng `{...}`, nên không viết `var numbers = { ... };`. Với mã nhập môn, `int[] numbers = { ... };` thường ngắn và rõ nhất.
+There is no sufficiently clear target type from `{...}` alone, so you cannot write `var numbers = { ... };`. For introductory code, `int[] numbers = { ... };` is usually the shortest and clearest.
 
-Danh sách khởi tạo **tạo đối tượng mảng mới**, nhưng giá trị của mảng vẫn có thể được cập nhật:
+An initializer list **creates a new array object**, yet the values in the array can still be updated:
 
 ~~~java
 int[] a = {2, 4};
-a[0] = 9; // a thành [9, 4].
+a[0] = 9; // a becomes [9, 4].
 
 int[] alias = a;
-alias[1] = 7; // a thành [9, 7], vì alias trỏ cùng mảng.
+alias[1] = 7; // a becomes [9, 7], because alias points to the same array.
 
-a = new int[] {1, 3, 5}; // a trỏ mảng mới, dài 3.
-// alias vẫn trỏ mảng cũ [9, 7], dài 2.
+a = new int[] {1, 3, 5}; // a points to a new array of length 3.
+// alias still points to the old array [9, 7] of length 2.
 ~~~
 
-Để sao chép thành một mảng khác, dùng `a.clone()` hoặc `Arrays.copyOf(...)`. Với mảng tham chiếu chứa đối tượng mutable, cách sao chép này chỉ sao chép **tham chiếu phần tử**, không sao chép sâu các đối tượng.
+To copy into another array, use `a.clone()` or `Arrays.copyOf(...)`. For reference arrays containing mutable objects, this copy only copies **element references**, without deep-copying the objects.
 
-## 7. Chương trình Java 17+ chạy độc lập
+## 7. Standalone Java 17+ program
 
-Tạo file **ArrayInitializerDemo.java**:
+Create the file **ArrayInitializerDemo.java**:
 
 ~~~java
 import java.util.Arrays;
@@ -277,14 +277,14 @@ public final class ArrayInitializerDemo {
 }
 ~~~
 
-Tại thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+In the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 ArrayInitializerDemo.java
 java ArrayInitializerDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 declared=[2, 4, 6]
@@ -310,30 +310,30 @@ reassigned=[1, 3, 5]
 aliasOld=[99, 42, 6]
 ~~~
 
-Chú ý `trailing=[8, 9]` (dấu phẩy cuối không tăng độ dài), `sameObject=false` (cùng nội dung không đồng nghĩa cùng đối tượng), `calls=3` (biểu thức được đánh giá theo thứ tự) và `aliasOld` (gán lại biến không làm mảng cũ đổi chiều dài).
+Notice `trailing=[8, 9]` (the trailing comma does not increase length), `sameObject=false` (same contents does not mean same object), `calls=3` (expressions are evaluated in order), and `aliasOld` (reassigning the variable does not change the length of the old array).
 
-## 8. Lỗi thường gặp và bài tập
+## 8. Common pitfalls and exercises
 
-| Trường hợp | Cách xử lý |
+| Case | How to handle |
 | --- | --- |
-| Viết `a = {1, 2};` sau khi khai báo | Dùng `a = new int[] {1, 2};` |
-| Viết `method({1, 2})` | Truyền `new int[] {1, 2}` |
-| Viết `new int[2] {1, 2}` | Bỏ kích thước: `new int[] {1, 2}` |
-| Cho rằng `{1, 2,}` dài 3 | Dấu phẩy cuối không tạo vị trí |
-| Dùng `var a = {1, 2};` | Dùng `var a = new int[] {1, 2};` |
-| Trộn phần tử không tương thích | Chọn kiểu thành phần phù hợp hoặc sửa danh sách |
-| Nhầm `new int[3]` với `{3}` | Một bên là ba phần tử mặc định 0; bên kia là một phần tử giá trị 3 |
+| Writing `a = {1, 2};` after declaration | Use `a = new int[] {1, 2};` |
+| Writing `method({1, 2})` | Pass `new int[] {1, 2}` |
+| Writing `new int[2] {1, 2}` | Omit the size: `new int[] {1, 2}` |
+| Thinking `{1, 2,}` has length 3 | A trailing comma does not create a slot |
+| Using `var a = {1, 2};` | Use `var a = new int[] {1, 2};` |
+| Mixing incompatible elements | Choose an appropriate component type or fix the list |
+| Confusing `new int[3]` with `{3}` | One is three default 0 elements; the other is one element with value 3 |
 
-**Bài 1.** Khai báo mảng `double[]` bằng `{1.5, 2.0, 3.5}` và tính tổng; kiểm tra chiều dài được suy ra.
+**Exercise 1.** Declare a `double[]` array using `{1.5, 2.0, 3.5}` and compute the sum; check the inferred length.
 
-**Bài 2.** Tạo mảng rỗng bằng hai cách `{}` và `new int[0]`; so sánh độ dài và tham chiếu.
+**Exercise 2.** Create an empty array in two ways: `{}` and `new int[0]`; compare their lengths and references.
 
-**Bài 3.** Viết phương thức nhận `String[]`, gọi bằng `new String[] {"A", "B"}` và thử viết trực tiếp `{"A", "B"}` để nhận ra lỗi cú pháp.
+**Exercise 3.** Write a method that takes a `String[]`, call it with `new String[] {"A", "B"}`, and try writing `{"A", "B"}` directly to observe the syntax error.
 
-**Bài 4.** Khởi tạo bằng các lời gọi có side effects; xác định thứ tự và trạng thái biến sau các phần tử.
+**Exercise 4.** Initialize an array using calls with side effects; determine the evaluation order and the variable state after the elements.
 
-**Bài 5.** Khai báo `int[] a = {1, 2};`, lấy `alias = a` rồi gán `a = new int[] {3, 4, 5};`. Dự đoán các giá trị và `length` của hai tham chiếu.
+**Exercise 5.** Declare `int[] a = {1, 2};`, take `alias = a`, and then assign `a = new int[] {3, 4, 5};`. Predict the values and `length` of both references.
 
-### Ghi nhớ
+### Key takeaways
 
-**`T[] a = {v1, v2};`** là dạng khởi tạo ngắn **ngay khi khai báo**. Khi cần tạo mảng ở ngữ cảnh biểu thức, dùng **`new T[] {v1, v2}`**. Độ dài bằng **số phần tử được liệt kê**, kiểu từng phần tử phải gán được cho kiểu thành phần, và danh sách có thể rỗng hoặc có dấu phẩy cuối. Sau khi khởi tạo, đối tượng mảng có chiều dài cố định, nhưng nội dung có thể thay đổi.
+**`T[] a = {v1, v2};`** is the shorthand initialization form **right at declaration**. When you need to create an array in an expression context, use **`new T[] {v1, v2}`**. The length equals **the number of listed elements**, each element's type must be assignable to the component type, and the list can be empty or have a trailing comma. After initialization, the array object has a fixed length, while its contents can be modified.

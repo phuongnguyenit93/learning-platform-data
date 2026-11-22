@@ -1,10 +1,10 @@
-# Sắp xếp theo thứ tự tự nhiên bằng `sorted`
+# Sorting in Natural Order with `sorted`
 
-Java Stream API cho phép mô tả luồng xử lý dữ liệu bằng các thao tác khai báo như `filter`, `map`, `sorted` và `collect`. Khi cần đưa dữ liệu về **thứ tự tự nhiên** (natural order) mà không thay đổi tập dữ liệu gốc, ta dùng thao tác trung gian `sorted()` không đối số.
+The Java Stream API lets you describe data processing pipelines using declarative operations such as `filter`, `map`, `sorted`, and `collect`. When you need to arrange data in **natural order** without modifying the original dataset, use the zero-argument intermediate operation `sorted()`.
 
-Bài này thuộc chương **Thứ tự, loại trùng và cắt lát** của module **JAVA_STREAM_API**. Trọng tâm là hợp đồng của `Stream.sorted()`, cách Java xác định thứ tự tự nhiên từ `Comparable`, ảnh hưởng của encounter order, hành vi với parallel stream, cùng các giới hạn về bộ nhớ và nguồn vô hạn. Phần cuối minh họa việc kết hợp sắp xếp với `filter`, `map`, `distinct`, `limit`, `reduce` và `collect`.
+This lesson belongs to the **Ordering, Deduplication, and Slicing** chapter of the **JAVA_STREAM_API** module. It focuses on the contract of `Stream.sorted()`, how Java determines natural order from `Comparable`, the impact of encounter order, behavior with parallel streams, and constraints related to memory and infinite sources. The final sections illustrate combining sorting with `filter`, `map`, `distinct`, `limit`, `reduce`, and `collect`.
 
-## 1. Bắt đầu với `sorted()`
+## 1. Getting Started with `sorted()`
 
 ```java
 import java.util.List;
@@ -19,25 +19,25 @@ System.out.println(ascending); // [1, 3, 3, 8, 10]
 System.out.println(scores);    // [8, 3, 10, 1, 3]
 ```
 
-`sorted()` tạo một **stream mới có thứ tự tăng dần** theo thứ tự tự nhiên của phần tử. Danh sách `scores` gốc không bị sắp xếp tại chỗ. `toList()` là terminal operation lấy các phần tử đã được sắp xếp để tạo danh sách kết quả.
+`sorted()` produces a **new stream ordered in ascending sequence** according to the elements' natural order. The original `scores` list is not sorted in place. `toList()` is a terminal operation that pulls the sorted elements to construct the resulting list.
 
-Trong `Stream<T>`, chữ ký của thao tác là:
+In `Stream<T>`, the operation's signature is:
 
 ```java
 Stream<T> sorted();
 ```
 
-Các điểm cần ghi nhớ:
+Key points to remember:
 
-- `sorted()` là **intermediate operation**: việc sắp xếp được thực hiện khi terminal operation thực sự yêu cầu dữ liệu; chỉ gọi `sorted()` chưa tạo ngay một danh sách kết quả.
-- Đây là một thao tác **stateful**: muốn xuất ra phần tử nhỏ nhất một cách tổng quát, nó phải xem xét các phần tử đầu vào, và việc sắp xếp thường phải lưu trữ chúng.
-- Thứ tự được xác định bởi **natural ordering** của từng phần tử thông qua `Comparable`.
-- `sorted()` không loại phần tử trùng lặp. Muốn loại trùng cần thêm `distinct()`, nhưng tiêu chí loại trùng dùng `equals`, không phải `compareTo`.
-- `sorted()` sắp xếp **tăng dần** theo thứ tự tự nhiên; muốn giảm dần hoặc tiêu chí riêng phải dùng `sorted(Comparator)`, nằm ngoài phạm vi chính của bài này.
+- `sorted()` is an **intermediate operation**: sorting is performed when a terminal operation actually requests data; calling `sorted()` alone does not immediately create a sorted result list.
+- It is a **stateful** operation: to emit the smallest element in general, it must inspect the input elements, and sorting typically has to buffer them.
+- Ordering is determined by each element's **natural ordering** via `Comparable`.
+- `sorted()` does not remove duplicate elements. To deduplicate, add `distinct()`, though deduplication criteria use `equals`, not `compareTo`.
+- `sorted()` sorts **in ascending order** according to natural order; for descending order or custom criteria, use `sorted(Comparator)`, which is outside the primary scope of this lesson.
 
-## 2. Thứ tự tự nhiên đến từ `Comparable`
+## 2. Natural Order Comes from `Comparable`
 
-Phần tử của `Stream<T>` cần có khả năng so sánh với nhau theo `Comparable`. Giao diện `java.lang.Comparable<T>` quy định:
+Elements of `Stream<T>` must be comparable with one another via `Comparable`. The `java.lang.Comparable<T>` interface specifies:
 
 ```java
 public interface Comparable<T> {
@@ -45,27 +45,27 @@ public interface Comparable<T> {
 }
 ```
 
-Kết quả của `a.compareTo(b)` được hiểu qua **dấu** của số trả về:
+The result of `a.compareTo(b)` is interpreted by the **sign** of the returned integer:
 
-| Kết quả | Ý nghĩa |
+| Result | Meaning |
 |---|---|
-| Âm | `a` đứng trước `b` |
-| Bằng `0` | `a` và `b` bằng nhau **theo thứ tự sắp xếp** |
-| Dương | `a` đứng sau `b` |
+| Negative | `a` comes before `b` |
+| Equal to `0` | `a` and `b` are equal **in sort order** |
+| Positive | `a` comes after `b` |
 
-Không cần `compareTo` chỉ trả về `-1`, `0` hoặc `1`; bất kỳ số nguyên âm/dương nào cũng hợp lệ nếu bảo đảm hợp đồng so sánh. Không tự diễn giải trị tuyệt đối của kết quả thành khoảng cách giữa hai giá trị.
+`compareTo` does not have to return only `-1`, `0`, or `1`; any negative or positive integer is valid as long as the comparison contract is satisfied. Do not interpret the absolute value of the result as the distance between two values.
 
-Các kiểu phổ biến đã có thứ tự tự nhiên:
+Common types that already have natural ordering:
 
-| Kiểu | Thứ tự tự nhiên |
+| Type | Natural order |
 |---|---|
-| `Integer`, `Long`, `Double` | Theo giá trị số, với các quy tắc so sánh được kiểu đó định nghĩa |
-| `String` | Theo so sánh từ điển trên các đơn vị mã UTF-16, phân biệt chữ hoa/thường |
-| `LocalDate`, `LocalDateTime` | Theo thời điểm/ngày giờ được biểu diễn trong phạm vi kiểu |
-| `BigDecimal` | Theo giá trị số, không nhất thiết theo `equals` |
-| `Enum` | Theo thứ tự khai báo hằng enum |
+| `Integer`, `Long`, `Double` | By numeric value, following the comparison rules defined by each type |
+| `String` | By lexicographical comparison of UTF-16 code units, case-sensitive |
+| `LocalDate`, `LocalDateTime` | Chronologically by the date/time represented within the type's range |
+| `BigDecimal` | By numeric value, not necessarily consistent with `equals` |
+| `Enum` | By declaration order of the enum constants |
 
-### 2.1. Số nguyên: kết quả rõ ràng
+### 2.1. Integers: Clear Results
 
 ```java
 import java.util.List;
@@ -78,9 +78,9 @@ List<Integer> numbers = Stream.of(12, -3, 7, 0, 12)
 System.out.println(numbers); // [-3, 0, 7, 12, 12]
 ```
 
-Giá trị `12` xuất hiện hai lần nên được giữ cả hai. `sorted()` không làm thay đổi số lượng phần tử, không sửa giá trị và không gộp các phần tử bằng nhau.
+The value `12` appears twice, so both are retained. `sorted()` does not change the element count, alter values, or merge equal elements.
 
-### 2.2. Chuỗi: thứ tự tự nhiên không phải thứ tự từ điển theo ngôn ngữ
+### 2.2. Strings: Natural Order Is Not Language-Aware Dictionary Order
 
 ```java
 List<String> words = Stream.of("banana", "Apple", "apple", "Banana")
@@ -91,24 +91,24 @@ System.out.println(words);
 // [Apple, Banana, apple, banana]
 ```
 
-`String.compareTo` phân biệt chữ hoa và chữ thường; kết quả không nhất thiết là thứ tự từ điển mà người dùng mong đợi theo tiếng Việt hoặc một ngôn ngữ khác. Nếu cần sắp xếp theo quy tắc ngôn ngữ, dấu và chữ hoa/thường, phải chọn công cụ so sánh có ngữ cảnh, chẳng hạn `Collator`, và dùng overload `sorted(Comparator)`.
+`String.compareTo` is case-sensitive; the result is not necessarily the dictionary order users expect in Vietnamese or another language. When sorting according to locale rules, accents, and casing, choose a locale-aware comparator such as `Collator` and use the `sorted(Comparator)` overload.
 
-Một lỗi khác là dữ liệu số được lưu dưới dạng `String`:
+Another pitfall is numeric data stored as `String`:
 
 ```java
 System.out.println(Stream.of("2", "10", "3").sorted().toList());
-// [10, 2, 3] — so sánh chuỗi, không phải giá trị số
+// [10, 2, 3] — string comparison, not numeric value
 
 System.out.println(Stream.of("2", "10", "3")
         .map(Integer::parseInt)
         .sorted()
         .toList());
-// [2, 3, 10] — so sánh số nguyên
+// [2, 3, 10] — integer comparison
 ```
 
-Muốn sắp xếp số, nên chuyển sang kiểu số trước khi gọi `sorted()`; các chuỗi không hợp lệ phải được kiểm tra hoặc xử lý khi `parseInt` phát sinh `NumberFormatException`.
+To sort numerically, convert to a numeric type before calling `sorted()`; invalid strings must be validated or handled when `parseInt` throws `NumberFormatException`.
 
-### 2.3. Thứ tự tự nhiên với ngày tháng
+### 2.3. Natural Order with Dates
 
 ```java
 import java.time.LocalDate;
@@ -125,11 +125,11 @@ System.out.println(dates);
 // [2025-12-31, 2026-01-15, 2026-12-01]
 ```
 
-Với `LocalDate`, thứ tự tự nhiên có ý nghĩa theo trình tự ngày tháng. Không nên dùng chuỗi định dạng tùy ý như `"31/12/2025"` để sắp xếp thời gian, vì thứ tự ký tự có thể khác thứ tự thời gian.
+With `LocalDate`, natural order is chronologically meaningful. Do not use arbitrary formatted strings such as `"31/12/2025"` for chronological sorting, because character order can differ from time order.
 
-## 3. Tạo thứ tự tự nhiên cho kiểu dữ liệu tự định nghĩa
+## 3. Defining Natural Order for Custom Types
 
-Nếu một class có quy tắc thứ tự duy nhất, rõ ràng và ổn định, class đó có thể triển khai `Comparable<T>`. Chẳng hạn hệ thống xếp hạng nhiệm vụ theo mức ưu tiên tăng dần, rồi theo mã để phân định trường hợp bằng nhau:
+If a class has a single, clear, stable ordering rule, it can implement `Comparable<T>`. For example, a system ranking tasks by ascending priority, then by code to break ties:
 
 ```java
 import java.util.List;
@@ -156,25 +156,25 @@ System.out.println(ordered);
 // [Task[priority=1, code=A], Task[priority=1, code=B], Task[priority=3, code=C]]
 ```
 
-`Integer.compare(a, b)` đáng tin cậy hơn `a - b` khi so sánh số nguyên, vì phép trừ có thể tràn số:
+`Integer.compare(a, b)` is more reliable than `a - b` when comparing integers, because subtraction can overflow:
 
 ```java
-// Tránh cách này: phép trừ có thể overflow.
+// Avoid this: subtraction can overflow.
 // return this.priority - other.priority;
 
-// Nên dùng:
+// Prefer:
 return Integer.compare(this.priority, other.priority);
 ```
 
-> Dòng `return` thứ hai ở trên là biểu thức minh họa để đặt trong thân `compareTo`, không phải một chương trình Java độc lập.
+> The second `return` line above is an illustrative expression meant for the body of `compareTo`, not a standalone Java program.
 
-### 3.1. Hợp đồng của `compareTo`
+### 3.1. The Contract of `compareTo`
 
-Một thứ tự tự nhiên hợp lệ cần bảo đảm quan hệ so sánh nhất quán: nếu `a < b` và `b < c` thì `a < c`; kết quả phải có tính đối xứng về dấu; hai giá trị được coi bằng nhau theo so sánh phải có tương quan thứ tự nhất quán với các giá trị thứ ba.
+A valid natural order must preserve a consistent comparison relation: if `a < b` and `b < c`, then `a < c`; sign symmetry must hold; and two values considered equal under comparison must relate consistently in order to any third value.
 
-Thông thường, nên cố gắng làm cho `compareTo(a, b) == 0` nhất quán với `a.equals(b)`. Java cho phép một số kiểu có natural order không nhất quán với `equals` (ví dụ `BigDecimal` với scale khác nhau), nhưng điều đó có thể gây bất ngờ khi kết hợp `sorted`, `distinct`, `TreeSet` hoặc `TreeMap`.
+Normally, you should strive to make `compareTo(a, b) == 0` consistent with `a.equals(b)`. Java allows certain types to have a natural order inconsistent with `equals` (such as `BigDecimal` with different scales), but this can cause surprises when combining `sorted`, `distinct`, `TreeSet`, or `TreeMap`.
 
-Ví dụ:
+Example:
 
 ```java
 import java.math.BigDecimal;
@@ -182,15 +182,15 @@ import java.math.BigDecimal;
 BigDecimal a = new BigDecimal("1.0");
 BigDecimal b = new BigDecimal("1.00");
 
-System.out.println(a.compareTo(b)); // 0: bằng nhau theo giá trị số
-System.out.println(a.equals(b));    // false: scale khác nhau
+System.out.println(a.compareTo(b)); // 0: equal in numeric value
+System.out.println(a.equals(b));    // false: different scales
 ```
 
-Khi không tồn tại một thứ tự tự nhiên phù hợp cho mọi ngữ cảnh, thay vì ép class phải triển khai `Comparable`, nên dùng `Comparator` tại vị trí cần sắp xếp.
+When no single natural order fits all contexts, instead of forcing the class to implement `Comparable`, pass a `Comparator` at the sorting site.
 
-## 4. `sorted()` là stateful nhưng vẫn thuộc pipeline lazy
+## 4. `sorted()` Is Stateful Yet Part of a Lazy Pipeline
 
-Giống các intermediate operation khác, `sorted()` tạo một bước mô tả pipeline; công việc thực sự diễn ra khi terminal operation yêu cầu kết quả.
+Like other intermediate operations, `sorted()` constructs a pipeline stage; actual work happens when a terminal operation requests results.
 
 ```java
 import java.util.stream.Stream;
@@ -198,42 +198,42 @@ import java.util.stream.Stream;
 Stream<Integer> pipeline = Stream.of(9, 4, 7)
         .sorted();
 
-// Chưa có terminal operation nên chưa yêu cầu lấy danh sách đã sắp xếp.
-System.out.println("Đã khai báo pipeline");
+// No terminal operation yet, so no sorted list has been requested.
+System.out.println("Pipeline declared");
 
 System.out.println(pipeline.toList()); // [4, 7, 9]
 ```
 
-**Stateful** có nghĩa `sorted()` thường phải đọc hết nguồn hữu hạn và lưu các phần tử cần thiết để quyết định thứ tự; nó không thể đơn giản xuất từng phần tử ngay khi vừa nhận như `map` hoặc `filter` trong trường hợp tổng quát.
+**Stateful** means `sorted()` must generally read the entire finite source and buffer the elements needed to determine the order; in general, it cannot emit elements one by one as soon as they arrive like `map` or `filter`.
 
-Minh họa việc sắp xếp cần quan sát các giá trị trước khi xuất chúng:
+Illustrating that sorting must observe values before emitting them:
 
 ```java
 List<Integer> result = Stream.of(4, 1, 3)
-        .peek(n -> System.out.println("Nhận: " + n))
+        .peek(n -> System.out.println("Received: " + n))
         .sorted()
-        .peek(n -> System.out.println("Xuất: " + n))
+        .peek(n -> System.out.println("Emitted: " + n))
         .toList();
 
 System.out.println(result); // [1, 3, 4]
 ```
 
-Trong pipeline tuần tự này, ta thường quan sát đủ ba dòng `Nhận` trước những dòng `Xuất`, nhưng **không dùng `peek` làm cơ chế nghiệp vụ**: Stream API cho phép tối ưu hóa loại bỏ một số bước khi chúng không ảnh hưởng kết quả. Ví dụ `count()` trên nguồn có kích thước biết trước có thể không cần thực thi `sorted()` hay các thao tác `peek` tương ứng.
+In this sequential pipeline, you will typically observe all three `Received` lines before the `Emitted` lines, but **do not use `peek` as business logic**: the Stream API is allowed to optimize away stages when they do not affect the outcome. For example, `count()` on a sized source may skip executing `sorted()` and its surrounding `peek` callbacks.
 
-Sau khi một terminal operation tiêu thụ stream, không thể sử dụng lại cùng đối tượng stream:
+Once a terminal operation consumes a stream, the same stream instance cannot be reused:
 
 ```java
 Stream<Integer> values = Stream.of(3, 1, 2).sorted();
 System.out.println(values.toList()); // [1, 2, 3]
 
-// values.count(); // Không hợp lệ: stream đã được tiêu thụ.
+// values.count(); // Invalid: stream has already been consumed.
 ```
 
-Muốn tạo một cách nhìn sắp xếp khác, hãy tạo stream mới từ nguồn dữ liệu.
+To obtain another sorted view, create a new stream from the data source.
 
-## 5. Encounter order, tính ổn định và kết quả song song
+## 5. Encounter Order, Stability, and Parallel Results
 
-**Encounter order** là thứ tự logic mà các phần tử được gặp trong một stream có thứ tự; nó không có nghĩa nguồn đã tăng dần. Với `List.of(3, 1, 2)`, encounter order ban đầu là `3 → 1 → 2`. Sau `sorted()`, stream có encounter order tương ứng với thứ tự sắp xếp tự nhiên.
+**Encounter order** is the logical order in which elements are encountered in an ordered stream; it does not mean the source is already ascending. For `List.of(3, 1, 2)`, the initial encounter order is `3 → 1 → 2`. After `sorted()`, the stream has an encounter order matching the natural sort order.
 
 ```java
 List<Integer> ordered = List.of(3, 1, 2)
@@ -244,11 +244,11 @@ List<Integer> ordered = List.of(3, 1, 2)
 System.out.println(ordered); // [1, 2, 3]
 ```
 
-Trong ví dụ này, các phần tử có thể được xử lý trên nhiều thread, nhưng `toList()` vẫn trả danh sách theo thứ tự đã sắp xếp.
+In this example, elements may be processed on multiple threads, yet `toList()` still returns the list in sorted order.
 
-### 5.1. Khi nào `sorted()` ổn định?
+### 5.1. When Is `sorted()` Stable?
 
-Với **nguồn có encounter order**, `sorted()` là phép sắp xếp **ổn định** (*stable*): nếu hai phần tử so sánh bằng `0`, chúng giữ nguyên thứ tự tương đối ban đầu.
+For a **source with an encounter order**, `sorted()` is a **stable** sort: if two elements compare as `0`, they preserve their original relative order.
 
 ```java
 import java.util.List;
@@ -270,11 +270,11 @@ System.out.println(players.stream().sorted().toList());
 // [Player[rank=1, name=Minh], Player[rank=2, name=Lan], Player[rank=2, name=An]]
 ```
 
-Hai người có `rank = 2` được xem là bằng nhau theo `compareTo`, nên `Lan` vẫn đứng trước `An`. Ví dụ này cố ý xây dựng thứ tự theo hạng và **không phân định** hai tên khi hạng bằng nhau; vì vậy natural order của kiểu `Player` không hoàn toàn nhất quán với `equals`. Nếu nghiệp vụ đòi thứ tự đầy đủ, hãy thêm tiêu chí phụ, ví dụ `name`.
+The two players with `rank = 2` are considered equal by `compareTo`, so `Lan` stays before `An`. This example intentionally orders by rank and **does not break ties** between names when ranks match; thus `Player`'s natural order is not strictly consistent with `equals`. If business logic requires a total order, add a secondary criterion such as `name`.
 
-Đối với **nguồn không có encounter order** như `HashSet.stream()`, `sorted()` vẫn sắp xếp các giá trị theo thứ tự tự nhiên, nhưng không có bảo đảm ổn định cho những phần tử so sánh bằng `0`. Nếu cần kết quả tái lập ngay cả khi khóa sắp xếp bằng nhau, nên định nghĩa thêm tiêu chí phân định thứ tự thay vì chỉ dựa vào vị trí xuất hiện.
+For an **unordered source** such as `HashSet.stream()`, `sorted()` still arranges values in natural order, but there is no stability guarantee for elements comparing equal (`0`). If you need reproducible results even when sort keys tie, define an explicit tie-breaker rather than relying on arrival position.
 
-### 5.2. `parallel()` không hủy kết quả sắp xếp
+### 5.2. `parallel()` Does Not Break the Sorted Result
 
 ```java
 List<Integer> result = List.of(5, 2, 4, 1, 3)
@@ -285,14 +285,14 @@ List<Integer> result = List.of(5, 2, 4, 1, 3)
 System.out.println(result); // [1, 2, 3, 4, 5]
 ```
 
-`parallel()` thay đổi cách thực thi, không làm mất yêu cầu sắp xếp. Tuy vậy, terminal operation `forEach` **không bảo đảm thứ tự thực thi hành động** trong pipeline song song:
+`parallel()` changes execution mode, not the sorting requirement. However, the terminal operation `forEach` **does not guarantee action execution order** in a parallel pipeline:
 
 ```java
 List.of(5, 2, 4, 1, 3)
         .parallelStream()
         .sorted()
         .forEach(n -> System.out.print(n + " "));
-// Không được suy ra thứ tự in cố định.
+// Do not assume a fixed print order.
 
 System.out.println();
 
@@ -303,13 +303,13 @@ List.of(5, 2, 4, 1, 3)
 // 1 2 3 4 5
 ```
 
-Nếu mục đích là lấy một danh sách đã sắp xếp, `toList()` hoặc `collect(Collectors.toList())` diễn đạt ý định rõ hơn việc ghi vào một danh sách ngoài qua `forEach`. Tự thêm phần tử vào `ArrayList` từ nhiều thread có nguy cơ race condition.
+If the goal is to obtain a sorted list, `toList()` or `collect(Collectors.toList())` expresses the intent much more clearly than mutating an external list inside `forEach`. Adding elements to an `ArrayList` from multiple threads risks race conditions.
 
-## 6. Vị trí `sorted()` trong pipeline quyết định ý nghĩa
+## 6. Where `sorted()` Sits in the Pipeline Determines Meaning
 
-Các thao tác `filter`, `map`, `sorted`, `distinct` và `limit` đều có thể kết hợp, nhưng đổi thứ tự các bước có thể đổi kết quả hoặc chi phí.
+`filter`, `map`, `sorted`, `distinct`, and `limit` can all be combined, but reordering steps can change the result or the cost.
 
-### 6.1. `filter` trước `sorted`
+### 6.1. `filter` Before `sorted`
 
 ```java
 List<Integer> even = Stream.of(9, 2, 6, 3, 4)
@@ -320,9 +320,9 @@ List<Integer> even = Stream.of(9, 2, 6, 3, 4)
 System.out.println(even); // [2, 4, 6]
 ```
 
-Nếu phép lọc độc lập với thứ tự, lọc trước sắp xếp thường có lợi vì giảm số phần tử cần sắp xếp. Ví dụ `sorted().filter(...)` cũng cho kết quả `[2, 4, 6]` ở đây, nhưng có thể phải sắp xếp nhiều phần tử hơn.
+If filtering is independent of order, filtering before sorting is usually beneficial because it reduces the number of elements to sort. For instance, `sorted().filter(...)` also yields `[2, 4, 6]` here, but may have to sort more elements.
 
-### 6.2. `map` trước hay sau `sorted`?
+### 6.2. `map` Before or After `sorted`?
 
 ```java
 List<Integer> byOriginal = Stream.of(-5, 2, -1)
@@ -338,9 +338,9 @@ List<Integer> byAbsolute = Stream.of(-5, 2, -1)
 System.out.println(byAbsolute); // [1, 2, 5]
 ```
 
-Sắp xếp **trước** `map` nghĩa là xếp theo giá trị ban đầu; sắp xếp **sau** `map` nghĩa là xếp theo giá trị đã biến đổi. Hai pipeline chỉ tương đương khi phép biến đổi bảo toàn thứ tự cần so sánh.
+Sorting **before** `map` sorts by original values; sorting **after** `map` sorts by transformed values. The two pipelines are equivalent only when the transformation preserves the comparison order.
 
-### 6.3. `sorted().limit(n)` và `limit(n).sorted()`
+### 6.3. `sorted().limit(n)` vs `limit(n).sorted()`
 
 ```java
 List<Integer> firstThreeSmallest = Stream.of(8, 3, 7, 2, 9, 1)
@@ -356,9 +356,9 @@ List<Integer> sortFirstThreeSeen = Stream.of(8, 3, 7, 2, 9, 1)
 System.out.println(sortFirstThreeSeen); // [3, 7, 8]
 ```
 
-Pipeline thứ nhất trả ba giá trị nhỏ nhất của **toàn bộ nguồn**. Pipeline thứ hai chỉ lấy ba giá trị **đầu tiên theo encounter order**, rồi sắp xếp ba giá trị đó. Thứ tự các bước mang ý nghĩa nghiệp vụ khác nhau.
+The first pipeline returns the three smallest values across the **entire source**. The second takes only the **first three elements in encounter order** and then sorts those three. Step order carries different business meaning.
 
-Đối với nguồn **vô hạn** như `Stream.generate(...)`, đặt `sorted()` trước `limit()` thông thường khiến chương trình không thể hoàn tất vì `sorted()` cần toàn bộ đầu vào. Ngược lại:
+For **infinite** sources like `Stream.generate(...)`, placing `sorted()` before `limit()` normally prevents the program from finishing because `sorted()` requires the entire input. Conversely:
 
 ```java
 import java.util.concurrent.ThreadLocalRandom;
@@ -367,12 +367,12 @@ List<Integer> sample = Stream.generate(
         () -> ThreadLocalRandom.current().nextInt(100)
 ).limit(10).sorted().toList();
 
-System.out.println(sample); // 10 số ngẫu nhiên đã được xếp tăng dần
+System.out.println(sample); // 10 random numbers sorted in ascending order
 ```
 
-Ở đây `limit(10)` tạo nguồn hữu hạn cho `sorted()`. Nếu phải tìm N phần tử nhỏ nhất từ một nguồn hữu hạn rất lớn, việc `sorted().limit(N)` có thể tốn nhiều bộ nhớ; có thể cân nhắc thuật toán top-N chuyên biệt.
+Here `limit(10)` turns the stream into a finite source for `sorted()`. If you must find the smallest N elements from a very large finite source, `sorted().limit(N)` can consume substantial memory; consider a dedicated top-N algorithm.
 
-### 6.4. Sắp xếp và loại trùng
+### 6.4. Sorting and Deduplicating
 
 ```java
 List<Integer> unique = Stream.of(4, 2, 4, 1, 2)
@@ -383,7 +383,7 @@ List<Integer> unique = Stream.of(4, 2, 4, 1, 2)
 System.out.println(unique); // [1, 2, 4]
 ```
 
-`distinct()` xét phần tử trùng nhau theo `Object.equals`; `sorted()` xét thứ tự tự nhiên theo `Comparable.compareTo`. Hai quy tắc **không đồng nhất**:
+`distinct()` checks duplicates using `Object.equals`; `sorted()` determines natural order using `Comparable.compareTo`. The two rules are **not identical**:
 
 ```java
 import java.math.BigDecimal;
@@ -397,9 +397,9 @@ List<BigDecimal> values = List.of(
 System.out.println(values.stream().sorted().distinct().count()); // 2
 ```
 
-Hai `BigDecimal` đều có cùng giá trị số theo `compareTo`, nhưng `equals` khác nhau do scale; vì vậy `distinct()` giữ cả hai. Sắp xếp không thay đổi quy tắc loại trùng.
+Both `BigDecimal` values are numerically equal according to `compareTo`, but `equals` differs due to scale; hence `distinct()` keeps both. Sorting does not change deduplication rules.
 
-### 6.5. Chọn `min`/`max` khi chỉ cần một giá trị cực trị
+### 6.5. Choosing `min`/`max` When Only One Extremum Is Needed
 
 ```java
 List<Integer> temperatures = List.of(30, 25, 28, 24);
@@ -410,21 +410,21 @@ int minimum = temperatures.stream()
 System.out.println(minimum); // 24
 ```
 
-Nếu chỉ cần phần tử nhỏ nhất, `min` trực tiếp biểu đạt mục tiêu và có thể tránh chi phí sắp xếp toàn bộ:
+If you only need the smallest element, `min` directly expresses the intent and can avoid sorting the entire stream:
 
 ```java
-// Đúng nhưng thường không cần thiết nếu chỉ lấy một giá trị:
+// Correct, but usually unnecessary if taking only one value:
 int alsoMinimum = temperatures.stream()
         .sorted()
         .findFirst()
         .orElseThrow();
 ```
 
-`min` và `max` trả về `Optional<T>` vì stream có thể rỗng. Với số nguyên primitive, có `IntStream.min()`/`max()` và `OptionalInt`.
+`min` and `max` return `Optional<T>` because the stream may be empty. For primitive numbers, `IntStream.min()`/`max()` and `OptionalInt` are available.
 
-## 7. `sorted()` với stream kiểu nguyên thủy
+## 7. `sorted()` with Primitive Streams
 
-`IntStream`, `LongStream` và `DoubleStream` cũng có `sorted()` không đối số, nên có thể sắp xếp trực tiếp mà không cần boxing sang `Integer`, `Long` hoặc `Double`.
+`IntStream`, `LongStream`, and `DoubleStream` also provide a zero-argument `sorted()`, so you can sort directly without boxing to `Integer`, `Long`, or `Double`.
 
 ```java
 import java.util.Arrays;
@@ -445,25 +445,25 @@ System.out.println(Arrays.toString(
 )); // [-1.0, 2.5, 3.0]
 ```
 
-Với `DoubleStream`, các quy tắc sắp xếp liên quan đến `NaN`, `-0.0` và `+0.0` tuân theo `Double.compare`; đừng áp dụng máy móc trực giác so sánh số thực thông thường cho những giá trị đặc biệt này.
+With `DoubleStream`, sorting rules involving `NaN`, `-0.0`, and `+0.0` follow `Double.compare`; do not blindly apply everyday floating-point intuition to these special values.
 
-## 8. Trường hợp lỗi: không so sánh được, `null` và thứ tự không xác định
+## 8. Failure Cases: Non-Comparable Elements, `null`, and Unstable Ordering
 
-### 8.1. Phần tử không triển khai `Comparable`
+### 8.1. Elements Not Implementing `Comparable`
 
 ```java
 record Note(String text) {}
 
-// Không có natural ordering; khi thực sự so sánh các Note, có thể gây
-// ClassCastException trong lúc terminal operation tiêu thụ pipeline.
+// No natural ordering; when actually comparing Note instances, this can throw
+// ClassCastException while the terminal operation consumes the pipeline.
 // Stream.of(new Note("B"), new Note("A")).sorted().toList();
 ```
 
-Overload `sorted()` không có ràng buộc generic ngay trong chữ ký bắt kiểu `T` phải triển khai `Comparable`, nên lỗi có thể chỉ phát sinh **lúc chạy**, khi phép so sánh thực sự cần thực hiện. Với kiểu dữ liệu không có natural ordering, dùng `sorted(Comparator)` hoặc thiết kế `Comparable` thích hợp.
+The `sorted()` overload has no generic constraint in its signature requiring `T` to implement `Comparable`, so errors may surface only **at runtime** when comparison actually occurs. For types without a natural ordering, use `sorted(Comparator)` or design an appropriate `Comparable`.
 
-Nếu các phần tử có kiểu không thể so sánh lẫn nhau, ví dụ tập trộn `Integer` và `String` trong `Stream<Object>`, ta cũng có thể gặp `ClassCastException`.
+If elements have mutually incomparable types, such as a mixed `Integer` and `String` set in `Stream<Object>`, you can also encounter a `ClassCastException`.
 
-### 8.2. `null` trong nguồn
+### 8.2. `null` in the Source
 
 ```java
 import java.util.Objects;
@@ -476,29 +476,29 @@ List<String> safe = Stream.of("b", null, "a")
 System.out.println(safe); // [a, b]
 ```
 
-Natural ordering của các kiểu như `String` không xác định `null` là phần tử đứng đầu hay cuối. Nếu cần so sánh `null` với giá trị thật, `sorted()` có thể ném `NullPointerException` khi so sánh. Lọc `null` trước khi sắp xếp hoặc dùng `Comparator.nullsFirst(...)`/`Comparator.nullsLast(...)` ở overload có comparator để xác định chính sách rõ ràng.
+Natural ordering of types like `String` does not define whether `null` comes first or last. If `null` must be compared with a real value, `sorted()` can throw `NullPointerException` during comparison. Filter out `null` before sorting, or use `Comparator.nullsFirst(...)`/`Comparator.nullsLast(...)` on the comparator overload to specify an explicit policy.
 
-### 8.3. Phần tử có khóa sắp xếp thay đổi trong quá trình chạy
+### 8.3. Elements Whose Sort Key Mutates During Execution
 
-Kết quả có thể khó dự đoán khi đối tượng thay đổi trường dùng trong `compareTo` trong lúc pipeline đang sắp xếp. Vì vậy, tránh tác động lên dữ liệu nguồn trong các lambda, tránh sửa khóa sắp xếp từ thread khác; cân nhắc ánh xạ thành dữ liệu bất biến trước khi sắp xếp.
+Results can become unpredictable if objects mutate fields used in `compareTo` while the pipeline is sorting. Therefore, avoid mutating source data inside lambdas, avoid modifying sort keys from another thread, and consider mapping to immutable data before sorting.
 
-## 9. Chi phí bộ nhớ, độ phức tạp và nguồn vô hạn
+## 9. Memory Cost, Complexity, and Infinite Sources
 
-`sorted()` là một thao tác stateful; trong trường hợp tổng quát, phép sắp xếp N phần tử thường có chi phí thời gian khoảng **O(N log N)** và cần bộ nhớ đệm tương ứng để quản lý dữ liệu. Chi phí thực tế phụ thuộc triển khai, kiểu nguồn, đặc điểm dữ liệu và chế độ tuần tự/song song.
+`sorted()` is a stateful operation; in general, sorting N elements typically costs around **O(N log N)** time and requires corresponding buffer memory to manage the data. Actual cost depends on implementation, source type, data characteristics, and sequential vs. parallel mode.
 
-Một số lưu ý thực hành:
+Practical guidelines:
 
-1. **Nguồn hữu hạn lớn:** thu nhỏ đầu vào bằng `filter` trước `sorted` nếu không thay đổi ngữ nghĩa; tránh sắp xếp toàn bộ chỉ để lấy cực trị đơn lẻ.
-2. **Nguồn không giới hạn:** `Stream.generate(...).sorted().limit(5)` không thể sắp xếp xong nguồn vô hạn; dùng `limit(5).sorted()` nếu mục tiêu là sắp xếp một mẫu hữu hạn.
-3. **Chạy song song:** `parallelStream().sorted()` có thể được xử lý song song, nhưng cần phối hợp và lưu các phần tử; overhead có thể khiến tập nhỏ chậm hơn chạy tuần tự. Đo hiệu năng thay vì mặc định có lợi.
-4. **Side effect:** không dùng `peek`, `map` hoặc `compareTo` để ghi vào trạng thái chung khi sort, vì thứ tự/lần gọi không nên trở thành yêu cầu nghiệp vụ.
-5. **Tài nguyên:** `sorted()` không tự mở tệp; nhưng nếu nguồn lấy từ `Files.lines(path)`, stream nguồn giữ tài nguyên và cần `try-with-resources`. Sắp xếp dữ liệu tệp quá lớn có thể yêu cầu giải pháp sắp xếp ngoài bộ nhớ.
+1. **Large finite sources:** shrink the input with `filter` before `sorted` when semantics are unchanged; avoid sorting everything just to pick a single extremum.
+2. **Unbounded sources:** `Stream.generate(...).sorted().limit(5)` cannot finish sorting an infinite source; use `limit(5).sorted()` if the goal is to sort a finite sample.
+3. **Parallel execution:** `parallelStream().sorted()` can sort in parallel, but requires coordination and buffering of elements; overhead may make small datasets slower than sequential execution. Measure performance rather than assuming a win.
+4. **Side effects:** do not use `peek`, `map`, or `compareTo` to write to shared state during sorting, as invocation order and counts must not become business requirements.
+5. **Resources:** `sorted()` does not open files by itself; however, if the source comes from `Files.lines(path)`, the source stream holds resources and requires `try-with-resources`. Sorting excessively large file data may require an external-memory sort.
 
-Với dữ liệu đã ở trong một `List` và cần sắp xếp **trực tiếp tại chỗ**, `List.sort` có thể thích hợp hơn vì không cần dựng thêm danh sách kết quả. Nhưng nếu muốn giữ nguyên dữ liệu nguồn, `list.stream().sorted().toList()` thể hiện rõ ý định.
+When data is already in a `List` and needs to be sorted **in place**, `List.sort` may be more suitable because it avoids allocating a new result list. But when you want to keep the source data intact, `list.stream().sorted().toList()` expresses that intent clearly.
 
-## 10. Ví dụ tổng hợp có thể chạy (Java 17+)
+## 10. Complete Runnable Example (Java 17+)
 
-Chương trình độc lập sau chứng minh rằng sắp xếp tự nhiên không sửa nguồn, kết hợp được với `filter` và `distinct`, và vẫn tạo kết quả có thứ tự khi dùng parallel stream.
+The following standalone program demonstrates that natural sorting does not mutate the source, combines with `filter` and `distinct`, and still produces ordered output on a parallel stream.
 
 ```java
 import java.util.List;
@@ -549,31 +549,31 @@ public class NaturalSortedDemo {
 }
 ```
 
-Để chạy từ Java 16 trở lên có thể dùng `Stream.toList()`; trên Java 8–15, thay các đoạn `.toList()` bằng `.collect(Collectors.toList())` và không dùng `record` nếu phiên bản Java chưa hỗ trợ. `Stream.toList()` trả danh sách không thể chỉnh sửa, trong khi `Collectors.toList()` không cam kết kiểu hay tính thay đổi được của danh sách trả về.
+From Java 16 onward you can use `Stream.toList()`; on Java 8–15, replace `.toList()` with `.collect(Collectors.toList())` and avoid `record` if your Java version does not support it. `Stream.toList()` returns an unmodifiable list, whereas `Collectors.toList()` makes no guarantees about the returned list's exact type or mutability.
 
-## 11. Các sai lầm thường gặp
+## 11. Common Mistakes
 
-| Suy luận/cách viết | Vấn đề | Cách làm phù hợp |
+| Assumption / snippet | Issue | Appropriate approach |
 |---|---|---|
-| `list.stream().sorted()` làm thay đổi `list` | Stream tạo pipeline, không sắp xếp lại list gốc | Gọi terminal operation để lấy kết quả; nếu muốn sửa gốc dùng `list.sort` |
-| `sorted()` tự loại phần tử trùng | Thao tác sort không loại trùng | Dùng `distinct()` khi cần, chú ý tiêu chí `equals` |
-| `sorted()` luôn sắp xếp mọi `String` đúng thứ tự tiếng Việt | `String.compareTo` không theo quy tắc địa phương | Dùng `Collator`/comparator thích hợp |
-| `sorted().limit(3)` giống `limit(3).sorted()` | Một bên xét toàn bộ, một bên xét ba phần tử đầu | Chọn theo ý nghĩa nghiệp vụ |
-| `sorted()` chạy được với đối tượng bất kỳ | Phần tử có thể không `Comparable` | Định nghĩa natural order hoặc truyền comparator |
-| Sắp xếp giá trị `null` mà không định chính sách | So sánh có thể ném `NullPointerException` | Lọc null hoặc chọn comparator xử lý null |
-| `parallelStream().sorted().forEach(...)` luôn in tăng dần | `forEach` không bảo đảm thứ tự hành động | Dùng `forEachOrdered` hoặc `toList` |
-| `sorted().limit(5)` luôn hoàn tất trên stream vô hạn | `sorted` cần toàn bộ nguồn | Giới hạn nguồn hữu hạn trước sort |
-| Chỉ cần nhỏ nhất vẫn sort toàn bộ | Có thể tốn thời gian và bộ nhớ | Dùng `min(Comparator)` hoặc `IntStream.min()` |
+| `list.stream().sorted()` mutates `list` | Streams build pipelines, not in-place list sorting | Call a terminal operation for a result; to mutate in place use `list.sort` |
+| `sorted()` removes duplicates automatically | Sorting does not deduplicate | Use `distinct()` when needed, noting `equals` criteria |
+| `sorted()` always sorts every `String` in Vietnamese alphabetical order | `String.compareTo` does not follow locale rules | Use `Collator` / an appropriate comparator |
+| `sorted().limit(3)` equals `limit(3).sorted()` | One inspects all elements, the other inspects only the first three | Choose based on business meaning |
+| `sorted()` works on any object | Elements might not be `Comparable` | Define a natural order or pass a comparator |
+| Sorting `null` values without a policy | Comparison may throw `NullPointerException` | Filter nulls or use a null-handling comparator |
+| `parallelStream().sorted().forEach(...)` always prints ascending | `forEach` does not guarantee action order | Use `forEachOrdered` or `toList` |
+| `sorted().limit(5)` always finishes on an infinite stream | `sorted` requires the entire source | Bound the source before sorting |
+| Sorting everything just to get the minimum | Wastes time and memory | Use `min(Comparator)` or `IntStream.min()` |
 
-## 12. Tự kiểm tra
+## 12. Self-Check
 
-1. **`Stream.of(4, 1, 4, 2).sorted().toList()` cho kết quả nào?** `[1, 2, 4, 4]` vì sort tăng dần và không loại trùng.
-2. **`Stream.of("2", "10", "3").sorted().toList()` cho kết quả nào?** `[10, 2, 3]` vì `String.compareTo` không so sánh giá trị số.
-3. **Khác nhau giữa `sorted().limit(2)` và `limit(2).sorted()` với `[9, 3, 1]`?** Kết quả lần lượt `[1, 3]` và `[3, 9]`.
-4. **`sorted()` có làm thay đổi `List` nguồn không?** Không. Nó tạo một bước trong stream; phần tử nguồn không được sắp xếp tại chỗ.
-5. **Vì sao gọi `sorted()` với object không `Comparable` có thể lỗi ở runtime?** Vì `Stream<T>.sorted()` không yêu cầu ràng buộc generic ở thời điểm biên dịch; runtime phải thực hiện phép so sánh tự nhiên.
-6. **Một nguồn `HashSet` không có encounter order có thể dùng `sorted()` không?** Có, với phần tử so sánh được; thứ tự theo natural order được thiết lập, nhưng không cam kết ổn định giữa các phần tử có `compareTo == 0`.
-7. **`parallelStream().sorted().toList()` có bảo đảm kết quả tăng dần không?** Có, nếu các phần tử có natural ordering hợp lệ và pipeline tiêu thụ thành công.
-8. **Muốn tìm số nhỏ nhất, nên dùng `sorted().findFirst()` hay `min()`?** Thông thường dùng `min()` vì truyền đạt mục tiêu trực tiếp và không cần sắp xếp toàn bộ dãy.
+1. **What does `Stream.of(4, 1, 4, 2).sorted().toList()` return?** `[1, 2, 4, 4]` because it sorts ascending and does not deduplicate.
+2. **What does `Stream.of("2", "10", "3").sorted().toList()` return?** `[10, 2, 3]` because `String.compareTo` does not compare numeric values.
+3. **What is the difference between `sorted().limit(2)` and `limit(2).sorted()` on `[9, 3, 1]`?** Results are `[1, 3]` and `[3, 9]`, respectively.
+4. **Does `sorted()` modify the source `List`?** No. It creates a stage in the stream; source elements are not sorted in place.
+5. **Why can calling `sorted()` on non-`Comparable` objects fail at runtime?** Because `Stream<T>.sorted()` has no compile-time generic bound; natural comparison is attempted at runtime.
+6. **Can an unordered `HashSet` source use `sorted()`?** Yes, with comparable elements; natural ordering is established, though stability between elements with `compareTo == 0` is not guaranteed.
+7. **Does `parallelStream().sorted().toList()` guarantee ascending output?** Yes, provided elements have a valid natural ordering and the pipeline completes normally.
+8. **To find the smallest number, should you use `sorted().findFirst()` or `min()`?** Typically `min()`, as it communicates the goal directly without sorting the entire sequence.
 
-**Quy tắc áp dụng:** dùng `sorted()` khi phần tử có **thứ tự tự nhiên xác định** và mục tiêu là thứ tự tăng dần; dùng `sorted(Comparator)` khi cần quy tắc khác. Xem xét kỹ vị trí đặt `sorted` so với `filter`, `map`, `distinct` và `limit` vì nó quyết định cả **ý nghĩa kết quả** lẫn **chi phí xử lý**.
+**Rule of thumb:** use `sorted()` when elements have a **well-defined natural order** and the goal is ascending order; use `sorted(Comparator)` when a different rule is needed. Carefully review where `sorted` sits relative to `filter`, `map`, `distinct`, and `limit`, as placement determines both **result semantics** and **processing cost**.

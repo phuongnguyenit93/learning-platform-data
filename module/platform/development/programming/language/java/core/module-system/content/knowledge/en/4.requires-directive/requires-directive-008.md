@@ -1,37 +1,37 @@
-# Giảm phụ thuộc bằng API nhỏ và boundary rõ
+# Reducing Dependencies with Small APIs and Clear Boundaries
 
-Trong Java Platform Module System (JPMS), module không chỉ gom các package thành một đơn vị triển khai. Module còn tạo ranh giới để kiểm soát dependency và phần API mà module công khai cho bên ngoài.
+In the Java Platform Module System (JPMS), a module does not merely group packages into a deployment unit. A module also creates a boundary to control dependencies and the portion of the API that the module exposes externally.
 
-Một module được thiết kế tốt thường có hai đặc điểm:
+A well-designed module typically has two characteristics:
 
-- **API nhỏ:** chỉ công khai những kiểu và thao tác mà consumer thực sự cần.
-- **Boundary rõ:** consumer phụ thuộc vào hợp đồng ổn định, còn chi tiết triển khai được giữ bên trong module.
+- **Small API:** exposes only the types and operations that consumers genuinely need.
+- **Clear boundary:** consumers depend on a stable contract, while implementation details are kept inside the module.
 
-Hai đặc điểm này giúp giảm coupling (mức độ phụ thuộc chặt), giới hạn phạm vi thay đổi và giữ module graph dễ hiểu khi hệ thống phát triển.
+These two characteristics help reduce coupling (tight dependency), limit the scope of changes, and keep the module graph easy to understand as the system grows.
 
-## 1. Coupling hình thành ở đâu?
+## 1. Where does coupling form?
 
-Coupling xuất hiện khi một module biết quá nhiều về cấu trúc hoặc cách hoạt động của module khác. Ví dụ, module checkout có thể phụ thuộc trực tiếp vào:
+Coupling arises when one module knows too much about the structure or inner workings of another module. For example, a checkout module might depend directly on:
 
-- Lớp xử lý thanh toán cụ thể như `StripePaymentGateway`.
-- Package nội bộ chứa repository, HTTP client hoặc cấu hình của provider.
-- Kiểu dữ liệu của framework hoặc thư viện triển khai.
-- Nhiều class chi tiết chỉ để gọi một chức năng đơn giản.
+- A concrete payment handler class such as `StripePaymentGateway`.
+- Internal packages containing repositories, HTTP clients, or provider configurations.
+- Data types from a framework or implementation library.
+- Many detail classes just to invoke a simple operation.
 
-Khi implementation thay đổi, consumer có thể phải sửa và biên dịch lại dù nhu cầu nghiệp vụ không đổi. Nếu nhiều module cùng phụ thuộc vào những chi tiết đó, một thay đổi nhỏ có thể lan ra nhiều nơi.
+When the implementation changes, consumers may have to be modified and recompiled even though business requirements have not changed. If multiple modules depend on those details, a small change can ripple across many places.
 
-JPMS hỗ trợ giảm coupling bằng cách kiểm soát hai quan hệ:
+JPMS helps reduce coupling by controlling two relationships:
 
-1. **Module dependency:** module nào khai báo `requires` module nào.
-2. **Package accessibility:** package nào được công khai bằng `exports`, package nào được mở cho reflection bằng `opens`.
+1. **Module dependency:** which module declares `requires` on which module.
+2. **Package accessibility:** which packages are exposed with `exports`, and which packages are opened for reflection with `opens`.
 
-Dependency ở cấp module và API ở cấp package cần được thiết kế cùng nhau. Chỉ chia code thành nhiều module mà export quá nhiều package thì ranh giới vẫn yếu.
+Module-level dependencies and package-level APIs must be designed together. Splitting code into many modules while exporting too many packages still leaves weak boundaries.
 
-## 2. Chỉ export phần API cần thiết
+## 2. Export only the necessary API surface
 
-Một module có thể chứa nhiều package nhưng chỉ export một số package nhất định. Package không được export vẫn thuộc module, nhưng module khác không thể sử dụng các kiểu của package đó theo truy cập Java thông thường.
+A module can contain many packages yet export only certain specific packages. Unexported packages still belong to the module, but other modules cannot use types in those packages through regular Java access.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.catalog {
@@ -39,7 +39,7 @@ module com.acme.catalog {
 }
 ~~~
 
-Cấu trúc package:
+Package structure:
 
 ~~~text
 com.acme.catalog/
@@ -55,27 +55,27 @@ com.acme.catalog/
         └── DatabaseConfig.java
 ~~~
 
-Consumer chỉ có thể sử dụng API trong `com.acme.catalog.api` nếu module đọc được `com.acme.catalog`. Các package `internal` và `config` không được export nên được giữ bên trong boundary của module.
+Consumers can only use APIs in `com.acme.catalog.api` if the module reads `com.acme.catalog`. The `internal` and `config` packages are not exported and are therefore kept inside the module's boundary.
 
-Điều này tạo ra một hợp đồng rõ ràng:
+This establishes a clear contract:
 
-- `api` là bề mặt mà module cam kết cho consumer sử dụng.
-- `internal` là chi tiết triển khai có thể thay đổi mà không buộc consumer phụ thuộc vào nó.
-- `config` chứa cách module tự cấu hình; consumer không cần biết cấu trúc nội bộ.
+- `api` is the surface that the module commits to consumers for use.
+- `internal` is implementation detail that can change without forcing consumers to depend on it.
+- `config` holds how the module configures itself; consumers do not need to know internal structure.
 
-Không cần tạo một module riêng cho từng package. Boundary có thể nằm ngay trong một named module, với một vài package được export có chủ đích.
+There is no need to create a separate module for every package. A boundary can live right inside a named module, with a few intentionally exported packages.
 
-### API nhỏ có hình dạng như thế nào?
+### What does a small API look like?
 
-API nhỏ thường có:
+A small API usually has:
 
-- Ít kiểu public, tên và trách nhiệm rõ.
-- Method thể hiện hành vi nghiệp vụ, không phơi bày các bước nội bộ.
-- Kiểu dữ liệu đầu vào/đầu ra ổn định.
-- Hợp đồng lỗi có thể hiểu và xử lý được.
-- Không để lộ implementation class, persistence entity hoặc framework type nếu consumer không cần chúng.
+- Few public types, with clear names and responsibilities.
+- Methods expressing business behavior, without exposing internal steps.
+- Stable input/output data types.
+- Understandable and handleable error contracts.
+- No exposure of implementation classes, persistence entities, or framework types if consumers do not need them.
 
-Ví dụ, consumer chỉ cần lấy thông tin sản phẩm:
+For example, a consumer only needs to retrieve product information:
 
 ~~~java
 package com.acme.catalog.api;
@@ -92,13 +92,13 @@ public record Product(String id, String name) {
 }
 ~~~
 
-Consumer làm việc với `Catalog` và `Product`. Nó không cần biết module đang dùng JDBC, JPA, file hay một remote service để tìm dữ liệu.
+Consumers work with `Catalog` and `Product`. They do not need to know whether the module is using JDBC, JPA, files, or a remote service to look up data.
 
-Nếu sau này `JdbcCatalog` được thay bằng `RemoteCatalog`, module có thể thay implementation mà vẫn giữ nguyên API.
+If `JdbcCatalog` is later replaced by `RemoteCatalog`, the module can swap implementations while keeping the API intact.
 
-## 3. Dùng requires cho dependency trực tiếp
+## 3. Use requires for direct dependencies
 
-Trong `module-info.java`, khai báo `requires` cho module mà code của module hiện tại thực sự sử dụng:
+In `module-info.java`, declare `requires` for modules that the current module's code actually uses:
 
 ~~~java
 module com.acme.checkout {
@@ -106,16 +106,16 @@ module com.acme.checkout {
 }
 ~~~
 
-Điều này nói rằng `com.acme.checkout` cần đọc module `com.acme.catalog` và dependency đó phải được giải quyết khi ứng dụng chạy theo quy tắc module system.
+This states that `com.acme.checkout` needs to read the `com.acme.catalog` module and that dependency must be resolved when the application runs under module system rules.
 
-Một số nguyên tắc:
+Some principles:
 
-- Khai báo dependency trực tiếp, không dựa vào việc một module khác tình cờ kéo dependency vào graph.
-- Không thêm `requires` chỉ vì module đó xuất hiện trên module path.
-- Tránh phụ thuộc vào module triển khai nếu chỉ cần một API nhỏ.
-- Không tạo vòng phụ thuộc giữa các named module; thiết kế graph theo các lớp trách nhiệm có hướng rõ ràng.
+- Declare dependencies directly, without relying on another module happening to pull the dependency into the graph.
+- Do not add `requires` just because a module appears on the module path.
+- Avoid depending on an implementation module when only a small API is needed.
+- Do not create dependency cycles between named modules; design the graph in clear directed layers of responsibility.
 
-Ví dụ một graph dễ hiểu:
+Example of an easy-to-understand graph:
 
 ~~~text
 com.acme.checkout  ──requires──>  com.acme.catalog
@@ -126,13 +126,13 @@ com.acme.checkout  ──requires──>  com.acme.catalog
                               com.acme.payment.provider
 ~~~
 
-Trong mô hình này, checkout phụ thuộc vào hợp đồng thanh toán. Provider cũng phụ thuộc vào hợp đồng đó để triển khai. Checkout không cần biết provider cụ thể.
+In this model, checkout depends on the payment contract. The provider also depends on that contract to implement it. Checkout does not need to know the specific provider.
 
-## 4. Không lạm dụng requires transitive
+## 4. Do not overuse requires transitive
 
-`requires transitive` làm cho dependency được truyền khả năng đọc tới các module đọc module hiện tại. Đây là công cụ hữu ích khi dependency là một phần của API public, nhưng nó mở rộng dependency graph của consumer.
+`requires transitive` causes a dependency to have its readability propagated to modules that read the current module. This is a useful tool when the dependency is part of the public API, but it widens the consumer's dependency graph.
 
-So sánh:
+Compare:
 
 ~~~java
 module com.acme.billing {
@@ -141,7 +141,7 @@ module com.acme.billing {
 }
 ~~~
 
-và:
+and:
 
 ~~~java
 module com.acme.billing {
@@ -150,11 +150,11 @@ module com.acme.billing {
 }
 ~~~
 
-Ở trường hợp đầu, module billing đọc module money. Consumer của billing không tự động đọc money; nếu consumer trực tiếp sử dụng kiểu thuộc money, nó phải khai báo dependency trực tiếp của mình.
+In the first case, the billing module reads the money module. Consumers of billing do not automatically read money; if a consumer directly uses types belonging to money, it must declare its own direct dependency.
 
-Ở trường hợp thứ hai, consumer đọc billing cũng được phép đọc money. Điều này hợp lý khi kiểu của money xuất hiện trong public API của billing và consumer cần sử dụng kiểu đó.
+In the second case, consumers reading billing are also permitted to read money. This makes sense when types from money appear in billing's public API and consumers need to use those types.
 
-Ví dụ API:
+Example API:
 
 ~~~java
 package com.acme.billing.api;
@@ -166,9 +166,9 @@ public interface Invoice {
 }
 ~~~
 
-Vì `Money` xuất hiện trong chữ ký public của `Invoice`, consumer cần đọc module chứa `Money` để sử dụng đầy đủ API. Billing có thể khai báo `requires transitive com.acme.money` nếu muốn cam kết truyền khả năng đọc này cho consumer.
+Because `Money` appears in `Invoice`'s public signature, consumers need to read the module containing `Money` to use the API fully. Billing can declare `requires transitive com.acme.money` if it wants to commit to propagating this readability to consumers.
 
-Nếu API chỉ trả về kiểu do billing sở hữu:
+If the API only returns a type owned by billing:
 
 ~~~java
 package com.acme.billing.api;
@@ -177,17 +177,17 @@ public record InvoiceTotal(long amountInCents, String currency) {
 }
 ~~~
 
-thì billing có thể giữ `requires com.acme.money` thông thường cho phần triển khai nội bộ, hoặc thậm chí không cần phụ thuộc money nếu không sử dụng nó. Consumer chỉ cần biết kiểu `InvoiceTotal`.
+then billing can keep a regular `requires com.acme.money` for its internal implementation, or even not need to depend on money if it does not use it. Consumers only need to know the `InvoiceTotal` type.
 
-Không nên dùng `transitive` để “sửa nhanh” lỗi compile. Trước tiên hãy xem kiểu của dependency có thực sự xuất hiện trong API công khai hay consumer có đang thiếu dependency trực tiếp của chính nó hay không.
+Do not use `transitive` as a "quick fix" for compile errors. First check whether the dependency's types truly appear in the public API or whether the consumer is simply missing its own direct dependency.
 
-## 5. Đảo chiều phụ thuộc bằng interface hoặc service API
+## 5. Invert dependencies with interfaces or service APIs
 
-Một cách giảm coupling hiệu quả là để module nghiệp vụ phụ thuộc vào abstraction nhỏ, còn implementation nằm ở module khác.
+An effective way to reduce coupling is to have business modules depend on small abstractions, while implementations live in other modules.
 
-Ví dụ hệ thống checkout cần thực hiện thanh toán. Nếu checkout phụ thuộc trực tiếp vào provider cụ thể, thay đổi nhà cung cấp sẽ ảnh hưởng đến module nghiệp vụ.
+For example, a checkout system needs to process payments. If checkout depends directly on a specific provider, changing providers will affect the business module.
 
-Thay vào đó, định nghĩa một hợp đồng nhỏ trong module API:
+Instead, define a small contract in an API module:
 
 ~~~java
 module com.acme.payment.api {
@@ -217,7 +217,7 @@ public record PaymentReceipt(String transactionId) {
 }
 ~~~
 
-Module checkout sử dụng hợp đồng này:
+The checkout module uses this contract:
 
 ~~~java
 module com.acme.checkout {
@@ -227,9 +227,9 @@ module com.acme.checkout {
 }
 ~~~
 
-`uses` khai báo rằng module checkout cần tìm implementation của service `PaymentGateway`. Module checkout không phải khai báo dependency tới một provider cụ thể.
+`uses` declares that the checkout module needs to locate an implementation of the `PaymentGateway` service. The checkout module does not have to declare a dependency on a specific provider.
 
-Module provider triển khai hợp đồng:
+The provider module implements the contract:
 
 ~~~java
 module com.acme.payment.stripe {
@@ -259,9 +259,9 @@ public final class StripePaymentGateway implements PaymentGateway {
 }
 ~~~
 
-Package `com.acme.payment.stripe.internal` không cần export. Provider được khai báo bằng `provides ... with ...`, nên module system và `ServiceLoader` có thể tìm implementation theo service metadata.
+The `com.acme.payment.stripe.internal` package does not need to be exported. The provider is declared with `provides ... with ...`, so the module system and `ServiceLoader` can locate the implementation via service metadata.
 
-Trong module checkout, việc tìm provider có thể thực hiện qua:
+Inside the checkout module, locating the provider can be done via:
 
 ~~~java
 package com.acme.checkout.api;
@@ -290,7 +290,7 @@ public final class CheckoutService {
 }
 ~~~
 
-Các kiểu công khai của checkout có thể do chính checkout sở hữu:
+Checkout's public types can be owned by checkout itself:
 
 ~~~java
 package com.acme.checkout.api;
@@ -306,9 +306,9 @@ public record CheckoutResult(String orderId, String paymentReference) {
 }
 ~~~
 
-Consumer của checkout chỉ cần biết `CheckoutRequest` và `CheckoutResult`. Nó không cần import `PaymentGateway`, `PaymentCommand` hay `StripePaymentGateway`, vì các kiểu đó không xuất hiện trong public signature của checkout.
+Consumers of checkout only need to know `CheckoutRequest` and `CheckoutResult`. They do not need to import `PaymentGateway`, `PaymentCommand`, or `StripePaymentGateway`, because those types do not appear in checkout's public signatures.
 
-Khi khởi chạy ví dụ, provider phải có mặt trong cấu hình module runtime. Có thể thêm provider làm root module một cách tường minh:
+When launching the example, the provider must be present in the runtime module configuration. You can add the provider explicitly as a root module:
 
 ~~~bash
 java --module-path out \
@@ -316,17 +316,17 @@ java --module-path out \
   --module com.acme.checkout/com.acme.checkout.app.Main
 ~~~
 
-Ví dụ này thể hiện ba boundary:
+This example demonstrates three boundaries:
 
-1. `com.acme.checkout` phụ thuộc vào API thanh toán.
-2. `com.acme.payment.stripe` phụ thuộc vào cùng API để cung cấp implementation.
-3. Consumer của checkout chỉ phụ thuộc vào API checkout mà nó sử dụng.
+1. `com.acme.checkout` depends on the payment API.
+2. `com.acme.payment.stripe` depends on the same API to provide an implementation.
+3. Consumers of checkout depend only on the checkout API they use.
 
-Khi đổi provider Stripe sang một provider khác, module checkout không cần sửa code nếu provider mới tuân thủ cùng hợp đồng và được đưa vào runtime configuration.
+When switching from the Stripe provider to another provider, the checkout module needs no code changes if the new provider adheres to the same contract and is included in the runtime configuration.
 
-## 6. Giữ implementation bên trong boundary
+## 6. Keep implementations inside the boundary
 
-Một module có thể export package API và giữ phần còn lại ở package không export:
+A module can export its API package and keep the rest in unexported packages:
 
 ~~~java
 module com.acme.order {
@@ -334,7 +334,7 @@ module com.acme.order {
 }
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~text
 com.acme.order/
@@ -352,13 +352,13 @@ com.acme.order/
         └── JdbcOrderRepository.java
 ~~~
 
-Consumer chỉ nhìn thấy `api`. Các lớp trong `internal` và `persistence` có thể thay đổi mà không biến thành hợp đồng công khai.
+Consumers only see `api`. Classes in `internal` and `persistence` can change without becoming part of the public contract.
 
-Không export package chỉ để một module khác có thể gọi lớp nội bộ. Nếu module khác thực sự cần chức năng đó, hãy xác định xem chức năng có thuộc API ổn định hay nên được cung cấp qua một interface/service boundary.
+Do not export a package just so another module can call an internal class. If another module genuinely needs that functionality, determine whether the functionality belongs to a stable API or should be provided across an interface/service boundary.
 
-### exports, qualified exports và opens
+### exports, qualified exports, and opens
 
-Có ba lựa chọn thường được cân nhắc:
+There are three options commonly considered:
 
 ~~~java
 module com.acme.order {
@@ -368,17 +368,17 @@ module com.acme.order {
 }
 ~~~
 
-- `exports` công khai package cho mọi module đọc module này.
-- `exports ... to ...` chỉ công khai package cho một số module được chỉ định.
-- `opens ... to ...` cho phép một module được chỉ định truy cập reflection sâu vào package.
+- `exports` exposes a package to every module that reads this module.
+- `exports ... to ...` exposes a package only to a specified set of modules.
+- `opens ... to ...` grants a specified module deep reflective access to a package.
 
-Qualified exports có thể hữu ích cho một SPI nội bộ được chia sẻ với một số extension đã biết. Tuy nhiên, nếu danh sách consumer liên tục phình to, đó có thể là dấu hiệu boundary đang bị rò rỉ.
+Qualified exports can be helpful for an internal SPI shared with a few known extensions. However, if the consumer list keeps growing, that can be a sign that the boundary is leaking.
 
-`opens` phục vụ nhu cầu reflection của framework. Nó không phải cách thay thế cho một API Java thông thường và không nên mở toàn bộ package nếu chỉ một framework cần truy cập một package cụ thể.
+`opens` serves framework reflection needs. It is not a replacement for a normal Java API and should not open all packages if only one framework needs access to a specific package.
 
-## 7. Giữ module graph có hướng và ít tầng phụ thuộc
+## 7. Keep the module graph directed with few dependency layers
 
-Một graph rõ ràng thường có hướng từ tầng sử dụng tới tầng cung cấp hợp đồng:
+A clear graph typically flows from the consuming layer to the contract-providing layer:
 
 ~~~text
 application
@@ -393,37 +393,37 @@ small API / SPI
 provider / adapter
 ~~~
 
-Các module nghiệp vụ không nên phụ thuộc ngược vào implementation của adapter. Adapter phụ thuộc vào abstraction mà nó triển khai.
+Business modules should not depend back on adapter implementations. Adapters depend on the abstractions they implement.
 
-Nếu hai module cần gọi lẫn nhau, hãy kiểm tra xem chúng có đang gộp hai trách nhiệm khác nhau vào cùng một boundary hay không. Có thể tách một hợp đồng nhỏ dùng chung thành API module, nhưng không nên tạo một module `common` khổng lồ chứa mọi kiểu tiện ích của hệ thống.
+If two modules need to call each other, check whether they are merging two different responsibilities into the same boundary. You can extract a small shared contract into an API module, but avoid creating a giant `common` module containing every utility type in the system.
 
-Cần giữ cân bằng:
+Balance must be maintained:
 
-- **Module quá lớn:** boundary mờ, nhiều chức năng không liên quan bị gom lại.
-- **Module quá nhỏ:** dependency graph phức tạp, nhiều descriptor và chi phí điều phối không đem lại lợi ích.
-- **API quá rộng:** consumer phụ thuộc vào nhiều kiểu và chi tiết không cần thiết.
-- **API quá vụn:** consumer phải ghép nhiều thao tác cấp thấp để thực hiện một hành vi nghiệp vụ.
+- **Module too large:** blurry boundaries, unrelated features bundled together.
+- **Module too small:** complex dependency graph, many descriptors, and coordination overhead with no benefit.
+- **API too wide:** consumers depend on too many unnecessary types and details.
+- **API too fragmented:** consumers must piece together many low-level operations to perform one business action.
 
-Mục tiêu là module có cohesion cao: các thành phần bên trong phục vụ cùng một trách nhiệm, còn API công khai thể hiện đúng nhu cầu của consumer.
+The goal is high-cohesion modules: internal components serve a single responsibility, while the public API accurately reflects consumer needs.
 
-## 8. Quy trình thiết kế một boundary mới
+## 8. Process for designing a new boundary
 
-Khi tạo module hoặc refactor dependency, có thể đi theo các bước sau:
+When creating a module or refactoring dependencies, you can follow these steps:
 
-1. **Xác định consumer:** module nào cần chức năng và consumer thực sự cần gọi những thao tác nào?
-2. **Định nghĩa API trước:** tạo các interface, record hoặc exception cần thiết với chữ ký nhỏ và ổn định.
-3. **Chọn package công khai:** chỉ export package chứa hợp đồng mà consumer được phép sử dụng.
-4. **Giữ implementation nội bộ:** đặt class triển khai, repository, adapter và cấu hình vào package không export.
-5. **Khai báo dependency trực tiếp:** dùng `requires` cho module mà code thực sự cần đọc.
-6. **Xem lại public signatures:** chỉ dùng `requires transitive` khi consumer cần đọc dependency xuất hiện trong API public.
-7. **Đảo chiều phụ thuộc khi phù hợp:** dùng interface/SPI và `uses`/`provides` nếu module nghiệp vụ không nên biết provider cụ thể.
-8. **Kiểm tra module graph:** bảo đảm dependency đi theo hướng kiến trúc dự kiến và không tạo vòng phụ thuộc.
-9. **Kiểm tra runtime:** xác nhận provider và dependency có mặt trong module configuration khi khởi chạy.
+1. **Identify consumers:** which modules need the functionality and which operations do consumers actually need to call?
+2. **Define the API first:** create the necessary interfaces, records, or exceptions with small and stable signatures.
+3. **Choose public packages:** export only packages containing contracts that consumers are permitted to use.
+4. **Keep implementations internal:** place implementation classes, repositories, adapters, and configuration in unexported packages.
+5. **Declare direct dependencies:** use `requires` for modules that code genuinely needs to read.
+6. **Review public signatures:** only use `requires transitive` when consumers need to read dependencies appearing in the public API.
+7. **Invert dependencies when appropriate:** use interfaces/SPI and `uses`/`provides` if business modules should not know specific providers.
+8. **Inspect the module graph:** ensure dependencies flow in the intended architectural direction and do not create dependency cycles.
+9. **Verify runtime:** confirm providers and dependencies are present in the module configuration at launch.
 
-Một API boundary tốt phải có lý do rõ ràng cho từng kiểu public và từng cạnh `requires`. Nếu không giải thích được consumer cần một package hoặc dependency nào, hãy xem lại việc export và khai báo đó.
+A good API boundary must have a clear reason for every public type and every `requires` edge. If you cannot explain why a consumer needs a given package or dependency, review that export and declaration.
 
-## Kết luận
+## Conclusion
 
-Giảm phụ thuộc trong JPMS bắt đầu từ việc thu nhỏ bề mặt API và giữ implementation sau boundary của module. `exports` xác định package nào được công khai; `requires` thể hiện dependency trực tiếp; `requires transitive` chỉ nên dùng khi dependency thực sự là một phần của hợp đồng public. Với các integration có thể thay thế, interface và service provider giúp module nghiệp vụ phụ thuộc vào abstraction thay vì implementation cụ thể.
+Reducing dependencies in JPMS starts with minimizing the API surface and keeping implementations behind the module's boundary. `exports` specifies which packages are exposed; `requires` expresses direct dependencies; `requires transitive` should only be used when the dependency is genuinely part of the public contract. For replaceable integrations, interfaces and service providers allow business modules to depend on abstractions rather than concrete implementations.
 
-Khi thiết kế module, hãy bắt đầu từ nhu cầu của consumer, định nghĩa hợp đồng nhỏ, giữ package nội bộ không export và kiểm tra hướng của module graph. Cách làm này giúp implementation thay đổi độc lập hơn và giới hạn phạm vi ảnh hưởng của mỗi lần sửa đổi.
+When designing modules, start from consumer needs, define small contracts, keep internal packages unexported, and inspect the direction of the module graph. This approach enables implementations to evolve more independently and limits the blast radius of each change.

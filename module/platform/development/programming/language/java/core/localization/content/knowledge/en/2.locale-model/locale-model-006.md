@@ -1,28 +1,28 @@
-# Locale.ROOT và dữ liệu không phụ thuộc ngôn ngữ
+# `Locale.ROOT` and Language-Independent Data
 
-## 1. Vấn đề: cùng một dữ liệu nhưng khác locale
+## 1. Problem: the same data, different locales
 
-Một ứng dụng có thể chạy với locale mặc định khác nhau trên máy phát triển, máy chủ và máy kiểm thử. Với nội dung hiển thị cho người dùng, sự khác biệt về cách viết số, ngày và chữ là điều cần thiết. Với dữ liệu kỹ thuật như khóa cấu hình, tên mã trạng thái, định danh giao thức hay bộ lọc nội bộ, việc phụ thuộc ngôn ngữ của máy thường là lỗi.
+An application may run with different default locales across developer machines, servers, and test runners. For user-facing content, differences in how numbers, dates, and text are written are desirable. For technical data such as configuration keys, status code names, protocol identifiers, or internal filters, depending on the machine's language is usually a bug.
 
-Ví dụ, chuỗi `TITLE` chuyển thành `title` theo quy tắc chữ thường thông dụng của tiếng Anh, nhưng thành `tıtle` theo tiếng Thổ Nhĩ Kỳ (ký tự `ı` không dấu chấm). Nếu viết `"TITLE".toLowerCase()` không đối số, Java sẽ dùng locale mặc định, khiến cùng một khóa sinh ra các kết quả khác nhau tùy môi trường.
+For example, the string `TITLE` lowercases to `title` under common English lowercase rules, but to `tıtle` under Turkish rules (the dotless `ı` character). Writing `"TITLE".toLowerCase()` with no arguments causes Java to use the default locale, making the same key produce different outputs depending on the environment.
 
-Điều quan trọng là phân biệt hai bài toán: **nội dung cho người đọc** cần locale phù hợp với người đọc; **dữ liệu cho máy** phải tuân theo hợp đồng dữ liệu xác định, độc lập với cấu hình tùy tiện của tiến trình.
+It is important to separate two problems: **content for human readers** needs a locale appropriate for the reader; **data for machines** must follow a deterministic data contract, independent of arbitrary process configuration.
 
-## 2. `Locale.ROOT` là gì?
+## 2. What is `Locale.ROOT`?
 
-`java.util.Locale.ROOT` là locale gốc, không gắn ngôn ngữ, quốc gia hay biến thể cụ thể. Trong Java:
+`java.util.Locale.ROOT` is the root locale, not tied to any specific language, country, or variant. In Java:
 
-- `Locale.ROOT.getLanguage()` và `getCountry()` đều trả chuỗi rỗng.
-- `Locale.ROOT.toString()` trả chuỗi rỗng.
-- `Locale.ROOT.toLanguageTag()` trả `und`: mã BCP 47 cho ngôn ngữ chưa xác định.
+- `Locale.ROOT.getLanguage()` and `getCountry()` both return empty strings.
+- `Locale.ROOT.toString()` returns an empty string.
+- `Locale.ROOT.toLanguageTag()` returns `und`: the BCP 47 code for an undetermined language.
 
-ROOT khác `Locale.getDefault()`: locale mặc định có thể thay đổi theo môi trường hoặc do `Locale.setDefault`. ROOT cũng khác `Locale.ENGLISH`: English là ngôn ngữ xác định, còn ROOT không chọn một ngôn ngữ.
+ROOT differs from `Locale.getDefault()`: the default locale can change per environment or via `Locale.setDefault`. ROOT also differs from `Locale.ENGLISH`: English is a specific language, whereas ROOT does not select a language.
 
-Các API như `String.toLowerCase(Locale)`, `String.format(Locale, ...)`, `NumberFormat` hay `Collator` đều có thể nhận locale, nhưng mỗi API có hợp đồng riêng. Truyền ROOT yêu cầu quy tắc của locale gốc cho thao tác cụ thể; nó **không** bảo đảm mọi chuỗi, định dạng hay thao tác so sánh tự động trở thành chuẩn giao thức bất biến.
+APIs such as `String.toLowerCase(Locale)`, `String.format(Locale, ...)`, `NumberFormat`, and `Collator` can all accept a locale, yet each API has its own contract. Passing ROOT requests the root locale's rules for that specific operation; it does **not** guarantee that every string, format, or comparison automatically becomes an invariant protocol standard.
 
-## 3. Chuyển chữ hoa/thường cho khóa nội bộ
+## 3. Case conversion for internal keys
 
-Khi hợp đồng của hệ thống nói một loại khóa kỹ thuật không phân biệt hoa/thường, có thể dùng `toLowerCase(Locale.ROOT)` để tránh phụ thuộc locale mặc định.
+When a system contract states that a technical key is case-insensitive, `toLowerCase(Locale.ROOT)` can be used to avoid depending on the default locale.
 
 ```java
 import java.util.Locale;
@@ -44,14 +44,14 @@ public class LocaleRootDemo {
 }
 ```
 
-Lưu tệp `LocaleRootDemo.java` bằng UTF-8 rồi chạy với JDK 17+:
+Save the file `LocaleRootDemo.java` in UTF-8 and run with JDK 17+:
 
 ```text
 javac -encoding UTF-8 LocaleRootDemo.java
 java LocaleRootDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 tıtle
@@ -62,15 +62,15 @@ title
 und
 ```
 
-Hai dòng đầu minh họa sự khác nhau của quy tắc chữ thường; hai dòng tiếp theo minh họa cách dấu thập phân thay đổi theo locale trong `String.format`. Hai dòng cuối thể hiện ROOT ở dạng chuỗi và language tag.
+The first two lines illustrate differences in lowercase rules; the next two lines illustrate how the decimal separator changes by locale in `String.format`. The last two lines show ROOT in string form and as a language tag.
 
-Hãy chú ý: bản thân `toLowerCase(Locale.ROOT)` không mang ý nghĩa "mọi chữ đều thành ASCII" hoặc "mọi ký tự Unicode đều chỉ chuyển thành một ký tự". Quy tắc Unicode đôi khi có ánh xạ làm thay đổi số ký tự; chuyển hoa/thường cũng không thay thế Unicode normalization.
+Note carefully: `toLowerCase(Locale.ROOT)` itself does not mean "every letter becomes ASCII" or "every Unicode character maps to only one character". Unicode rules sometimes have mappings that change character counts; case conversion also does not replace Unicode normalization.
 
-Nếu chỉ muốn tạo khóa case-insensitive từ các ký tự ASCII do ứng dụng kiểm soát, hãy kiểm tra tập ký tự trước khi chuyển. Còn đối với tên người, từ ngữ tự nhiên và nội dung tìm kiếm, ROOT có thể không phù hợp: chúng cần quy tắc ngôn ngữ và yêu cầu sản phẩm riêng.
+If you only want to produce case-insensitive keys from application-controlled ASCII characters, validate the character set before converting. Conversely, for personal names, natural words, and search content, ROOT may not be suitable: those require language-specific rules and product requirements.
 
-## 4. Thiết kế hợp đồng khóa máy rõ ràng
+## 4. Designing clear machine key contracts
 
-Giả sử mã cấu hình chỉ được dùng `A-Z`, `a-z`, `0-9`, dấu chấm, gạch dưới và gạch nối. Hợp đồng nói khóa không phân biệt hoa/thường và lưu ở dạng lowercase. Ta có thể triển khai:
+Suppose a configuration code may only use `A-Z`, `a-z`, `0-9`, periods, underscores, and hyphens. The contract specifies that keys are case-insensitive and stored in lowercase. We can implement:
 
 ```java
 import java.math.BigDecimal;
@@ -92,14 +92,14 @@ public class MachineKeyDemo {
 }
 ```
 
-Lưu thành `MachineKeyDemo.java`, biên dịch và chạy:
+Save as `MachineKeyDemo.java`, compile, and run:
 
 ```text
 javac -encoding UTF-8 MachineKeyDemo.java
 java MachineKeyDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 server.port
@@ -107,89 +107,89 @@ log_level
 12.50
 ```
 
-Bước kiểm tra ASCII chủ động từ chối dữ liệu ngoài hợp đồng thay vì đoán cách xử lý. Tất cả thao tác ghi, đọc, so sánh và tra cứu phải dùng cùng quy tắc. `BigDecimal.toPlainString()` là ví dụ cách lấy biểu diễn số thập phân theo cú pháp được xác định bởi API, không thông qua bộ định dạng số theo locale.
+The ASCII validation step proactively rejects out-of-contract data rather than guessing how to process it. All write, read, comparison, and lookup operations must use the same rule. `BigDecimal.toPlainString()` is an example of obtaining a decimal representation in an API-defined syntax, without going through a locale-based number formatter.
 
-**Không phải mọi định danh đều cần lowercase.** Một giao thức có thể quy định phân biệt chữ hoa/thường; khi đó biến đổi ký tự sẽ làm sai dữ liệu. Hãy kiểm tra đặc tả trước khi chuẩn hóa.
+**Not every identifier should be lowercased.** A protocol may specify case sensitivity; in that case, transforming characters corrupts the data. Check the specification before normalizing.
 
-### Khi dữ liệu dùng Unicode
+### When data uses Unicode
 
-Nếu cho phép các chữ cái thuộc nhiều ngôn ngữ, việc đổi hoa/thường bằng ROOT không bảo đảm không có va chạm, không tự gộp các dạng Unicode tương đương và không thay thế `java.text.Normalizer`. Cần công bố rõ:
+If letters from multiple languages are allowed, case-folding with ROOT does not guarantee freedom from collisions, does not merge canonically equivalent Unicode forms, and does not replace `java.text.Normalizer`. Clearly specify:
 
-- Bộ ký tự được phép; có chấp nhận dấu và ký tự kết hợp hay không.
-- Có chuẩn hóa Unicode (NFC hoặc NFKC) không, ở bước nào, vì sao.
-- Có phân biệt hoa/thường hay không và xử lý va chạm khóa thế nào.
-- Quy tắc so sánh của Java, cơ sở dữ liệu, cache và search index có thống nhất không.
+- Which character set is allowed; whether diacritics and combining characters are accepted.
+- Whether Unicode normalization (NFC or NFKC) is performed, at which step, and why.
+- Whether matching is case-sensitive or case-insensitive, and how key collisions are handled.
+- Whether comparison rules in Java, the database, caches, and search indexes are consistent.
 
-Ví dụ, hai khóa trước đây khác nhau có thể trở thành cùng một khóa sau khi đổi chiến lược normalization. Việc thay đổi quy tắc cho dữ liệu đã lưu cần xét tác động đến migration và tính duy nhất.
+For example, two previously distinct keys might become the same key after changing the normalization strategy. Changing rules for stored data requires evaluating migration and uniqueness impact.
 
-## 5. Dữ liệu máy không đồng nghĩa mọi thao tác đều dùng ROOT
+## 5. Machine data does not mean using ROOT for every operation
 
-### Số và tiền tệ
+### Numbers and currency
 
-`String.format(Locale.ROOT, "%.2f", 12.5)` trả `12.50`, nhưng đó là **chuỗi được định dạng**, không phải một giá trị số có schema. Nếu API dùng JSON, hãy để thư viện JSON xuất trường number theo đặc tả JSON. Nếu lưu decimal chính xác hoặc đọc một giá trị trong định dạng kỹ thuật đã quy định, `BigDecimal` và cách chuyển đổi theo hợp đồng thường phù hợp hơn.
+`String.format(Locale.ROOT, "%.2f", 12.5)` returns `12.50`, which is a **formatted string**, not a schema-typed numeric value. If an API uses JSON, let the JSON library serialize numeric fields per the JSON specification. When storing exact decimals or parsing a value in a defined technical format, `BigDecimal` and contract-based conversions are usually more appropriate.
 
-`NumberFormat.getInstance(Locale.ROOT)` vẫn là một bộ định dạng theo dữ liệu locale gốc. Nó không mặc nhiên chấp nhận mọi cú pháp số, không bảo đảm quy tắc phân tách giống một giao thức bất kỳ. Khi định dạng số, nhóm hàng nghìn hoặc tiền tệ **cho người dùng**, chọn locale người dùng và quy định tiền tệ, thay vì áp ROOT vô điều kiện.
+`NumberFormat.getInstance(Locale.ROOT)` is still a formatter backed by root locale data. It does not automatically accept every numeric syntax, nor does it guarantee separator rules matching an arbitrary protocol. When formatting numbers, thousands grouping, or currency **for users**, choose the user's locale and currency rules instead of applying ROOT unconditionally.
 
-### Ngày giờ
+### Date and time
 
-Ngày hiển thị với tên tháng hoặc thứ cần locale người dùng. Ngày giờ trao đổi giữa dịch vụ nên dùng định dạng có hợp đồng rõ ràng như ISO 8601 / RFC 3339 tùy ngữ cảnh; trong Java Time API có `DateTimeFormatter.ISO_INSTANT` để biểu diễn một `Instant`.
+Dates displayed with month or weekday names need the user's locale. Dates and times exchanged between services should use a format with a clear contract such as ISO 8601 / RFC 3339 depending on context; in the Java Time API, `DateTimeFormatter.ISO_INSTANT` represents an `Instant`.
 
-Locale **khác** múi giờ. ROOT không tự gắn UTC, không chọn offset, không xử lý daylight saving time. Phải quy định timezone/offset và biểu diễn của thời điểm hoặc lịch ngày một cách riêng biệt.
+Locale **is different from** time zone. ROOT does not imply UTC, does not pick an offset, and does not handle daylight saving time. Specify time zone/offset and the representation of instants or calendar dates separately.
 
 ### Charset
 
-ROOT không quyết định mã hóa byte. Khi giao tiếp hệ thống, quy định charset rõ ràng, thường là `StandardCharsets.UTF_8`. Hai chuỗi Java giống nhau chỉ tạo ra cùng dãy byte khi dùng cùng quy tắc mã hóa; thay locale không thay thế bước này.
+ROOT does not determine byte encoding. When communicating across systems, specify the charset explicitly, typically `StandardCharsets.UTF_8`. Two identical Java strings produce the same byte sequence only when encoded with the same rule; changing locale does not replace this step.
 
-### Sắp xếp và so sánh
+### Sorting and comparison
 
-`Collator` dành cho so sánh/sắp xếp theo quy tắc văn bản và locale. `Collator.getInstance(Locale.ROOT)` vẫn dùng quy tắc collation; nó không tương đương so sánh byte và không hứa thứ tự cố định qua mọi phiên bản JDK hoặc dữ liệu ngôn ngữ.
+`Collator` is intended for text comparison/sorting according to textual and locale rules. `Collator.getInstance(Locale.ROOT)` still applies collation rules; it is not equivalent to byte comparison and does not promise a fixed ordering across all JDK versions or linguistic data updates.
 
-Với danh sách hiển thị, chọn collation phù hợp người đọc. Với thứ tự kỹ thuật cần tái lập, chọn comparator dựa trên hợp đồng (ví dụ thứ tự ASCII với khóa đã kiểm soát, hoặc quy tắc byte xác định), rồi kiểm thử tính nhất quán trong các hệ thống liên quan.
+For display lists, pick collation suited to the reader. For reproducible technical ordering, pick a contract-based comparator (for example ASCII ordering on controlled keys, or deterministic byte rules), and test consistency across the involved systems.
 
-### So sánh không phân biệt chữ hoa/thường
+### Case-insensitive comparison
 
-`String.equalsIgnoreCase` là một API riêng, không tương đương trong mọi trường hợp Unicode với việc gọi `toLowerCase(Locale.ROOT)` trên hai chuỗi rồi `equals`. Đừng mặc định chúng có cùng hành vi hoặc dùng chúng thay thế cho đối chiếu bảo mật. Token bí mật, chữ ký và khóa xác thực cần tuân thủ quy tắc so sánh chính xác của giao thức, không tự động biến đổi hoa/thường.
+`String.equalsIgnoreCase` is a separate API, not equivalent in all Unicode cases to calling `toLowerCase(Locale.ROOT)` on both strings followed by `equals`. Do not assume they behave identically or use them as substitutes for security comparisons. Secret tokens, signatures, and authentication keys must follow exact protocol comparison rules, without automatic case transformations.
 
-## 6. Bảng chọn cách xử lý
+## 6. Decision table for choosing how to handle data
 
-| Trường hợp | Nên chọn | Giải thích |
+| Scenario | Recommended choice | Explanation |
 | --- | --- | --- |
-| Khóa kỹ thuật ASCII, hợp đồng không phân biệt hoa/thường | Kiểm tra ký tự, rồi `toLowerCase(Locale.ROOT)` | Không phụ thuộc locale mặc định |
-| Từ ngữ, tên riêng, tìm kiếm cho người dùng | Locale phù hợp và thuật toán ngôn ngữ | Chữ hoa/thường có ý nghĩa trong từng ngôn ngữ |
-| Số, ngày, tiền tệ để hiển thị | API định dạng với locale người dùng; thêm currency/time zone khi cần | Tối ưu cho cách đọc của người dùng |
-| JSON, timestamp, số trong giao thức | Serializer / formatter theo đặc tả định dạng | Cú pháp giao thức được ưu tiên |
-| Truyền dữ liệu ký tự qua mạng/file | Charset cụ thể, ví dụ UTF-8 | Locale không quyết định bytes |
-| Thứ tự khóa kỹ thuật cần ổn định | Comparator được định nghĩa trong hợp đồng | Collator ROOT không phải thứ tự byte |
+| ASCII technical keys, case-insensitive contract | Validate characters, then `toLowerCase(Locale.ROOT)` | Independent of default locale |
+| Words, proper names, user-facing search | Appropriate locale and linguistic algorithms | Case carries meaning in specific languages |
+| Numbers, dates, currency for display | Formatting APIs with user locale; add currency/time zone when needed | Optimized for user readability |
+| JSON, timestamps, numbers in protocols | Serializer / formatter per format specification | Protocol syntax takes precedence |
+| Transmitting character data over network/files | Explicit charset, e.g. UTF-8 | Locale does not determine bytes |
+| Technical key ordering requiring stability | Comparator defined in the contract | ROOT Collator is not byte ordering |
 
-Một ứng dụng tiếng Việt có thể hiển thị số `12,50`, nhưng trao đổi giá trị số JSON dưới dạng `"amount": 12.50`. Cách hiển thị cho người đọc và schema trao đổi là hai trách nhiệm khác nhau. Không lấy output đã địa phương hóa của giao diện đưa thẳng vào trường số API.
+A Vietnamese application might display the number `12,50`, yet exchange the JSON numeric value as `"amount": 12.50`. Presentation for readers and exchange schemas are two separate responsibilities. Do not feed localized UI output directly into numeric API fields.
 
-## 7. Lỗi phổ biến cần tránh
+## 7. Common mistakes to avoid
 
-1. **Dùng `toLowerCase()` hoặc `toUpperCase()` không đối số cho mã nội bộ.** Hành vi bị ảnh hưởng bởi locale mặc định; kiểm thử trên một máy duy nhất dễ bỏ sót lỗi.
-2. **Cho rằng `Locale.ENGLISH` là locale vô ngôn ngữ.** English vẫn chọn ngôn ngữ; ROOT diễn đạt rõ hơn ý định không theo ngôn ngữ người dùng.
-3. **Xem ROOT là canonicalization hoàn chỉnh cho Unicode.** ROOT không tự chuẩn hóa NFC/NFKC, loại dấu, phát hiện va chạm hay xác định bộ ký tự hợp lệ.
-4. **Dùng ROOT cho toàn bộ văn bản người dùng.** Tên riêng, tìm kiếm và từ ngữ tự nhiên có thể cần cách xử lý theo locale xác định.
-5. **Dùng `NumberFormat`/ `Collator` với ROOT làm giao thức máy.** Chúng vẫn là các API locale; đặc tả giao thức và bộ serializer mới quyết định output hợp lệ.
-6. **Đổi `Locale.setDefault` để sửa một lời gọi.** Đây là trạng thái cấp tiến trình, có thể ảnh hưởng các luồng, thư viện và bài kiểm thử khác. Hãy truyền locale trực tiếp vào API cần dùng.
-7. **Bỏ qua tầng database.** Collation ở database hoặc cách chuẩn hóa của chỉ mục có thể khác Java; cùng một dữ liệu phải có chính sách thống nhất.
-8. **Thay quy tắc của khóa đã tồn tại mà không đánh giá dữ liệu cũ.** Hai khóa từng phân biệt có thể va chạm sau khi lowercase hoặc normalization; cần tính đến migration.
+1. **Calling zero-argument `toLowerCase()` or `toUpperCase()` on internal codes.** Behavior is affected by the default locale; testing on a single machine easily misses bugs.
+2. **Assuming `Locale.ENGLISH` is a language-neutral locale.** English still selects a language; ROOT expresses user-language independence more clearly.
+3. **Treating ROOT as complete Unicode canonicalization.** ROOT does not perform NFC/NFKC normalization, strip diacritics, detect collisions, or define valid character sets.
+4. **Using ROOT for all user-facing text.** Proper names, search, and natural language text may require locale-specific handling.
+5. **Using `NumberFormat`/`Collator` with ROOT as a machine protocol.** They are still locale APIs; protocol specs and serializers define valid output.
+6. **Changing `Locale.setDefault` to fix a single call.** That is process-level state and can affect other threads, libraries, and tests. Pass the locale directly to the API being called.
+7. **Ignoring the database layer.** Database collation or index normalization may differ from Java; the same data must have a unified policy.
+8. **Changing rules for existing keys without assessing existing data.** Two previously distinct keys may collide after lowercasing or normalization; plan for migration.
 
-## 8. Kiểm thử đúng phạm vi
+## 8. Testing with the right scope
 
-Đối với hàm normalize khóa ASCII, nên có các ca: chữ hoa/thường, chữ số, dấu được phép, chuỗi rỗng, `null`, khoảng trắng, đầu vào ngoài ASCII, khóa khác nhau nhưng chuẩn hóa thành một, và hoạt động nhất quán tại nơi ghi/truy vấn.
+For an ASCII key normalization function, cover cases such as: uppercase/lowercase, digits, allowed punctuation, empty string, `null`, whitespace, non-ASCII input, distinct keys normalizing to the same value, and consistent behavior across write and query paths.
 
-Để minh họa sự khác biệt của tiếng Thổ Nhĩ Kỳ, chỉ cần truyền `Locale.forLanguageTag("tr-TR")` vào hàm. Không cần thay `Locale.setDefault` toàn cục. Điều này tránh tác động phụ và làm test ổn định hơn, đặc biệt khi chạy song song.
+To demonstrate the Turkish difference, simply pass `Locale.forLanguageTag("tr-TR")` into the call. There is no need to mutate `Locale.setDefault` globally. This avoids side effects and keeps tests stable, especially when running in parallel.
 
-Một bài kiểm thử tích hợp cần kiểm chứng cùng chính sách trên Java, cơ sở dữ liệu, cache và dịch vụ nhận dữ liệu. Kiểm thử `String.toLowerCase(Locale.ROOT)` đơn lẻ không chứng minh toàn hệ thống đã thống nhất.
+An integration test should verify the same policy across Java, the database, caches, and downstream services. Testing `String.toLowerCase(Locale.ROOT)` in isolation does not prove the whole system is consistent.
 
-## 9. Cách ra quyết định
+## 9. How to make the decision
 
-Khi gặp một chuỗi trong ứng dụng, lần lượt trả lời:
+When encountering a string in your application, answer in order:
 
-1. **Ai tiêu thụ chuỗi này?** Người dùng: ưu tiên ngữ cảnh ngôn ngữ của họ. Máy: xác định hợp đồng dữ liệu.
-2. **Có cần biến đổi chữ hoa/thường không?** Nếu hợp đồng phân biệt hoa/thường thì giữ nguyên. Nếu không phân biệt, chọn quy tắc một cách tường minh.
-3. **Bộ ký tự là ASCII hay Unicode?** ASCII có thể có quy tắc đơn giản với ROOT; Unicode cần xem xét normalization, collation và va chạm.
-4. **Có đặc tả truyền tải/lưu trữ không?** Với số, ngày giờ, bytes, định dạng theo đặc tả quan trọng hơn chọn một locale chung.
-5. **Quy tắc đã được áp dụng ở mọi tầng chưa?** Ghi, đọc, truy vấn, tìm kiếm và migration phải tương thích.
+1. **Who consumes this string?** Users: prioritize their language context. Machines: define the data contract.
+2. **Is case transformation needed?** If the contract is case-sensitive, leave it untouched. If case-insensitive, choose the rule explicitly.
+3. **Is the character set ASCII or Unicode?** ASCII can have simple rules with ROOT; Unicode requires evaluating normalization, collation, and collisions.
+4. **Is there a transport/storage specification?** For numbers, dates/times, and bytes, formatting per the specification matters more than picking a general locale.
+5. **Is the rule applied across every layer?** Writes, reads, queries, search, and migrations must be compatible.
 
-**Ghi nhớ:** `Locale.ROOT` là lựa chọn hữu ích để loại bỏ sự phụ thuộc ngôn ngữ mặc định, đặc biệt khi chuyển hoa/thường của khóa kỹ thuật có quy tắc rõ ràng. Nó không thay thế chính sách Unicode, đặc tả dữ liệu, charset, timezone hay locale của văn bản dành cho người dùng.
+**Key takeaway:** `Locale.ROOT` is a useful choice to eliminate default-locale dependence, especially when transforming case on technical keys with clear rules. It does not replace Unicode policy, data specifications, charsets, time zones, or user-facing text locales.

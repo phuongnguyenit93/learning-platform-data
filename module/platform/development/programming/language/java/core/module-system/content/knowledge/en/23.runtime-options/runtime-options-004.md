@@ -1,20 +1,20 @@
-# --add-modules: thêm Observable Module vào tập Root
+# --add-modules: Adding Observable Modules to the Root Set
 
-Trong Java Platform Module System (JPMS), một module có thể nằm trên module path nhưng chưa được đưa vào module graph của ứng dụng. Khi đó JVM có thể tìm thấy module ấy, nhưng module chưa được resolve và chưa xuất hiện trong ModuleLayer đang chạy.
+In the Java Platform Module System (JPMS), a module can reside on the module path without yet being included in the application's module graph. In that case, the JVM can locate the module, but the module has not been resolved and does not appear in the running ModuleLayer.
 
-Tùy chọn dòng lệnh `--add-modules` cho phép chỉ định thêm các module làm **root modules** khi JVM phân giải module graph. Đây là cách yêu cầu runtime resolve một module observable dù module chính không khai báo `requires` trực tiếp tới nó.
+The command-line option `--add-modules` lets you specify additional modules as **root modules** when the JVM resolves the module graph. This is how you instruct the runtime to resolve an observable module even if the main module does not declare a direct `requires` to it.
 
-Điểm cần nhớ: **observable**, **root** và **resolved** là ba trạng thái liên quan nhưng không đồng nghĩa. `--add-modules` tác động tới tập root dùng để resolve module graph. Nó không tự cấp quyền readability, không export package và cũng không mở package cho deep reflection.
+Key point to remember: **observable**, **root**, and **resolved** are three related states, not synonyms. `--add-modules` affects the root set used to resolve the module graph. It does not automatically grant readability, does not export packages, and does not open packages for deep reflection.
 
-## 1. Observable Module là gì?
+## 1. What Is an Observable Module?
 
-Một module được xem là observable khi runtime có thể tìm thấy mô tả module đó thông qua các nguồn module đang cấu hình. Những nguồn phổ biến gồm:
+A module is considered observable when the runtime can locate that module's descriptor through the configured module sources. Common sources include:
 
-- Các system modules đi kèm JDK.
-- Các module nằm trên application module path được truyền qua `--module-path`.
-- Các module nằm trên upgrade module path nếu ứng dụng có cấu hình nguồn này.
+- System modules bundled with the JDK.
+- Modules on the application module path passed via `--module-path`.
+- Modules on the upgrade module path if the application configures that source.
 
-Ví dụ, thư mục `mods` có thể chứa hai module:
+For example, the `mods` directory might contain two modules:
 
 ~~~text
 mods/
@@ -26,66 +26,66 @@ mods/
     └── com/example/plugin/PluginMarker.class
 ~~~
 
-Khi chạy với:
+When running with:
 
 ~~~shell
 java --module-path mods --module com.example.app/com.example.app.Main
 ~~~
 
-Runtime có thể tìm thấy cả `com.example.app` và `com.example.plugin`. Tuy nhiên, nếu `com.example.app` không khai báo `requires com.example.plugin`, module plugin không nhất thiết được đưa vào graph chỉ vì nó đang nằm trên module path.
+The runtime can locate both `com.example.app` and `com.example.plugin`. However, if `com.example.app` does not declare `requires com.example.plugin`, the plugin module is not necessarily included in the graph just because it is sitting on the module path.
 
-Nói cách khác:
+In other words:
 
-- **Observable**: runtime có thể tìm thấy module.
-- **Root**: module được chọn làm điểm bắt đầu của quá trình resolution.
-- **Resolved**: module đã được đưa vào graph sau khi JVM phân giải các root và những dependency cần thiết.
+- **Observable**: the runtime can find the module.
+- **Root**: a module chosen as a starting point of the resolution process.
+- **Resolved**: a module that has been included in the graph after the JVM resolves the roots and their required dependencies.
 
-Module path xác định nơi tìm module. `--add-modules` xác định thêm module nào cần được đưa vào tập root.
+The module path determines where to look for modules. `--add-modules` determines which additional modules need to be added to the root set.
 
-## 2. Cú pháp và ý nghĩa của --add-modules
+## 2. Syntax and Meaning of --add-modules
 
-Cú pháp:
+Syntax:
 
 ~~~shell
 java --add-modules <module>(,<module>)* ...
 ~~~
 
-Có thể chỉ định một module hoặc nhiều module, phân cách bằng dấu phẩy:
+You can specify a single module or multiple modules, separated by commas:
 
 ~~~shell
 java --module-path mods --add-modules com.example.plugin,com.example.metrics --module com.example.app/com.example.app.Main
 ~~~
 
-JVM sẽ thêm các module được chỉ định vào tập root, sau đó resolve chúng cùng với dependency được khai báo bằng `requires`.
+The JVM adds the specified modules to the root set, then resolves them along with dependencies declared via `requires`.
 
-Ngoài tên module cụ thể, tùy chọn này hỗ trợ ba selector đặc biệt:
+In addition to specific module names, this option supports three special selectors:
 
-| Giá trị | Ý nghĩa |
+| Value | Meaning |
 | --- | --- |
-| `ALL-DEFAULT` | Thêm toàn bộ module thuộc tập default root modules |
-| `ALL-SYSTEM` | Thêm toàn bộ system modules |
-| `ALL-MODULE-PATH` | Thêm toàn bộ module observable tìm thấy trên module path |
+| `ALL-DEFAULT` | Adds all modules belonging to the default root modules set |
+| `ALL-SYSTEM` | Adds all system modules |
+| `ALL-MODULE-PATH` | Adds all observable modules found on the module path |
 
-Ví dụ:
+Examples:
 
 ~~~shell
-# Thêm một module cụ thể
+# Add a specific module
 java --module-path mods --add-modules com.example.plugin --module com.example.app/com.example.app.Main
 
-# Thêm tất cả module trên module path
+# Add all modules on the module path
 java --module-path mods --add-modules ALL-MODULE-PATH --module com.example.app/com.example.app.Main
 
-# Thêm toàn bộ system modules
+# Add all system modules
 java --add-modules ALL-SYSTEM --module com.example.app/com.example.app.Main
 ~~~
 
-Khi chỉ cần một plugin hoặc một module hỗ trợ cụ thể, nên ghi tên module đó. `ALL-MODULE-PATH` có thể khiến nhiều module không cần thiết tham gia resolution và làm lộ ra các xung đột cấu hình vốn chưa xuất hiện trước đó.
+When only a specific plugin or support module is needed, name that module explicitly. `ALL-MODULE-PATH` can pull unnecessary modules into resolution and surface configuration conflicts that would not otherwise occur.
 
-## 3. Root module ảnh hưởng đến quá trình resolution như thế nào?
+## 3. How Do Root Modules Affect the Resolution Process?
 
-Quá trình resolution bắt đầu từ tập root modules. Với mỗi root, JVM tiếp tục xem xét các dependency được khai báo qua `requires`, rồi đưa các module cần thiết vào graph.
+The resolution process starts from the set of root modules. For each root, the JVM continues examining dependencies declared via `requires`, then brings the required modules into the graph.
 
-Giả sử có các quan hệ:
+Suppose there are these relationships:
 
 ~~~text
 com.example.app
@@ -98,23 +98,23 @@ com.example.api
     └── requires java.base
 ~~~
 
-Nếu `com.example.app` là root, JVM resolve app cùng các dependency cần thiết của nó. Module plugin có thể vẫn chỉ là observable module nếu không có quan hệ nào khiến nó được resolve.
+If `com.example.app` is the root, the JVM resolves app along with its required dependencies. The plugin module may remain only an observable module if no relationship causes it to be resolved.
 
-Khi thêm:
+When adding:
 
 ~~~shell
 --add-modules com.example.plugin
 ~~~
 
-`com.example.plugin` trở thành một root bổ sung. JVM resolve plugin và các dependency của plugin. Kết quả là module graph có thể chứa cả app, plugin, api và java.base.
+`com.example.plugin` becomes an additional root. The JVM resolves the plugin and the plugin's dependencies. As a result, the module graph can contain app, plugin, api, and java.base.
 
-Điều này hữu ích khi một ứng dụng cần runtime nhận diện module hỗ trợ, plugin hoặc module cung cấp một khả năng được chọn theo cấu hình. Ứng dụng có thể tìm module đã resolve qua ModuleLayer API.
+This is useful when an application needs the runtime to recognize a support module, plugin, or module providing a capability selected by configuration. The application can locate resolved modules via the ModuleLayer API.
 
-## 4. Ví dụ: resolve một plugin không được requires trực tiếp
+## 4. Example: Resolving a Plugin Not Directly Required
 
-Ta tạo hai module độc lập. Module app không khai báo dependency tới plugin; module plugin vẫn có mặt trên module path.
+We create two independent modules. The app module does not declare a dependency on the plugin; the plugin module is still present on the module path.
 
-Cấu trúc thư mục:
+Directory structure:
 
 ~~~text
 src/
@@ -126,7 +126,7 @@ src/
     └── com/example/plugin/PluginMarker.java
 ~~~
 
-### Module plugin
+### The Plugin Module
 
 File `src/com.example.plugin/module-info.java`:
 
@@ -147,9 +147,9 @@ public final class PluginMarker {
 }
 ~~~
 
-Module plugin export package của nó để public API có thể được module đọc nó sử dụng. Việc export này độc lập với quyết định có resolve plugin hay không.
+The plugin module exports its package so its public API can be used by modules that read it. This export is independent of the decision whether to resolve the plugin.
 
-### Module app
+### The App Module
 
 File `src/com.example.app/module-info.java`:
 
@@ -186,11 +186,11 @@ public class Main {
 }
 ~~~
 
-Chương trình dùng `ModuleLayer.boot().findModule(...)` để kiểm tra plugin có thuộc boot layer hiện tại hay không. Nó dùng `Module.canRead(...)` để kiểm tra quan hệ readability từ app tới plugin.
+The program uses `ModuleLayer.boot().findModule(...)` to check whether the plugin belongs to the current boot layer. It uses `Module.canRead(...)` to check the readability relationship from app to plugin.
 
-### Biên dịch
+### Compilation
 
-Từ thư mục gốc của ví dụ, chạy:
+From the root directory of the example, run:
 
 ~~~shell
 javac -d mods/com.example.plugin src/com.example.plugin/module-info.java src/com.example.plugin/com/example/plugin/PluginMarker.java
@@ -198,51 +198,51 @@ javac -d mods/com.example.plugin src/com.example.plugin/module-info.java src/com
 javac --module-path mods -d mods/com.example.app src/com.example.app/module-info.java src/com.example.app/com/example/app/Main.java
 ~~~
 
-### Chạy không thêm root
+### Running Without Adding the Root
 
 ~~~shell
 java --module-path mods --module com.example.app/com.example.app.Main
 ~~~
 
-Kết quả mong đợi:
+Expected output:
 
 ~~~text
 Plugin resolved: false
 ~~~
 
-Module plugin có thể được tìm thấy trên module path, nhưng chưa được resolve vào boot layer.
+The plugin module can be found on the module path, but it has not been resolved into the boot layer.
 
-### Chạy với --add-modules
+### Running With --add-modules
 
 ~~~shell
 java --module-path mods --add-modules com.example.plugin --module com.example.app/com.example.app.Main
 ~~~
 
-Kết quả mong đợi:
+Expected output:
 
 ~~~text
 Plugin resolved: true
 App reads plugin: false
 ~~~
 
-Plugin đã được resolve và xuất hiện trong boot layer. Tuy nhiên, app vẫn chưa đọc được plugin vì module app không khai báo `requires com.example.plugin` và cũng chưa có quyền readability tương đương.
+The plugin has been resolved and appears in the boot layer. However, app still cannot read the plugin because the app module does not declare `requires com.example.plugin` and does not have equivalent readability permission.
 
-Ví dụ này cho thấy `--add-modules` giải quyết việc đưa module vào graph; nó không tự tạo quan hệ readability giữa mọi module.
+This example shows that `--add-modules` solves bringing the module into the graph; it does not automatically create readability relationships between modules.
 
-## 5. Phân biệt --add-modules với các tùy chọn module khác
+## 5. Distinguishing --add-modules from Other Module Options
 
-Các tùy chọn JPMS thường xuất hiện cùng nhau nhưng giải quyết những vấn đề khác nhau:
+JPMS options frequently appear together but solve different problems:
 
-| Tùy chọn | Vai trò |
+| Option | Role |
 | --- | --- |
-| `--module-path` | Chỉ định nơi runtime tìm các module ứng dụng |
-| `--add-modules` | Thêm module observable vào tập root để resolve |
-| `--limit-modules` | Giới hạn tập module observable mà runtime có thể sử dụng |
-| `--add-reads` | Bổ sung quan hệ readability giữa module nguồn và module đích |
-| `--add-exports` | Export một package của module đích cho module được chỉ định |
-| `--add-opens` | Mở package cho deep reflection từ module được chỉ định |
+| `--module-path` | Specifies where the runtime searches for application modules |
+| `--add-modules` | Adds observable modules to the root set for resolution |
+| `--limit-modules` | Limits the set of observable modules that the runtime can use |
+| `--add-reads` | Adds a readability relationship between a source module and a target module |
+| `--add-exports` | Exports a package of a target module to specified modules |
+| `--add-opens` | Opens a package for deep reflection from specified modules |
 
-Có thể dùng đồng thời `--add-modules` và `--add-reads` khi cần cả hai điều kiện:
+You can use `--add-modules` and `--add-reads` together when both conditions are needed:
 
 ~~~shell
 java \
@@ -252,15 +252,15 @@ java \
   --module com.example.app/com.example.app.Main
 ~~~
 
-Sau khi chạy với hai tùy chọn trên, plugin được resolve và app có readability tới plugin. Nếu cần truy cập public type từ package của plugin, package đó vẫn phải được export theo quy tắc JPMS. Nếu cần deep reflection vào member không public, còn phải đáp ứng quy tắc opens.
+After running with the two options above, the plugin is resolved and app has readability to the plugin. If accessing public types from the plugin's package is needed, that package must still be exported according to JPMS rules. If deep reflection into non-public members is needed, the opens rules must also be satisfied.
 
-Với ứng dụng được biên dịch thành named module, `--add-reads` khi chạy không thay thế cấu hình cần thiết ở thời điểm biên dịch. Nếu mã nguồn tham chiếu trực tiếp kiểu của module khác, hãy cấu hình module dependency đúng trong `module-info.java` hoặc cung cấp tùy chọn biên dịch phù hợp cho javac.
+For an application compiled into a named module, `--add-reads` at runtime does not replace the configuration needed at compile time. If source code directly references types of another module, configure the module dependency properly in `module-info.java` or provide the appropriate compile options to javac.
 
-## 6. Kết hợp với --limit-modules
+## 6. Combining with --limit-modules
 
-`--limit-modules` giới hạn tập module mà runtime coi là observable. Vì vậy, nó có thể làm cho một module không còn nằm trong tập có thể được resolve.
+`--limit-modules` restricts the set of modules that the runtime considers observable. Therefore, it can prevent a module from remaining in the set available for resolution.
 
-Ví dụ:
+Example:
 
 ~~~shell
 java \
@@ -270,55 +270,55 @@ java \
   --module com.example.app/com.example.app.Main
 ~~~
 
-Nếu `com.example.plugin` bị loại khỏi tập observable bởi giới hạn này, JVM không thể resolve module đó chỉ nhờ `--add-modules`. Tên module được thêm làm root phải tìm thấy được trong tập module runtime cho phép quan sát.
+If `com.example.plugin` is excluded from the observable set by this limit, the JVM cannot resolve that module merely via `--add-modules`. Any module name added as a root must be findable within the set of modules the runtime is permitted to observe.
 
-Khi gặp lỗi không tìm thấy module, hãy kiểm tra lần lượt:
+When encountering a module-not-found error, check in order:
 
-1. Module đã được biên dịch hoặc đóng gói đúng chưa?
-2. Module có nằm trong đường dẫn được truyền qua `--module-path` không?
-3. Tên module có khớp với tên khai báo trong `module-info.java` không?
-4. Có `--limit-modules` đang loại module đó khỏi tập observable không?
-5. Các dependency bắt buộc của module có thể được tìm thấy và resolve không?
+1. Has the module been compiled or packaged properly?
+2. Is the module located in the path passed via `--module-path`?
+3. Does the module name match the name declared in `module-info.java`?
+4. Is `--limit-modules` excluding that module from the observable set?
+5. Can the module's required dependencies be found and resolved?
 
-Nếu module không observable hoặc dependency không thể resolve, quá trình khởi động có thể thất bại với lỗi resolution, chẳng hạn `FindException` hoặc lỗi liên quan đến module không tìm thấy.
+If the module is not observable or a dependency cannot be resolved, startup can fail with a resolution error, such as `FindException` or a module-not-found error.
 
-## 7. Khi nào nên dùng --add-modules?
+## 7. When Should --add-modules Be Used?
 
-Một số trường hợp thường gặp:
+Some common cases:
 
-- **Plugin được chọn theo cấu hình:** plugin nằm trên module path nhưng không phải dependency bắt buộc của module chính. Có thể thêm plugin được chọn làm root khi khởi động.
-- **Module cung cấp API hoặc dịch vụ tùy chọn:** ứng dụng muốn bảo đảm module hỗ trợ được resolve trước khi tra cứu trong ModuleLayer.
-- **Công cụ kiểm thử hoặc chẩn đoán:** cần đưa module cụ thể vào graph để quan sát hoặc chạy một kịch bản kiểm thử.
-- **Ứng dụng cần nhiều module trên module path:** có thể dùng `ALL-MODULE-PATH` khi chủ đích là resolve tất cả module observable trong đường dẫn đó.
+- **Configuration-selected plugins:** the plugin resides on the module path but is not a mandatory dependency of the main module. The selected plugin can be added as a root at startup.
+- **Modules providing optional APIs or services:** the application wants to ensure a support module is resolved before looking it up in a ModuleLayer.
+- **Testing or diagnostic tools:** a specific module needs to be brought into the graph for observation or to run a test scenario.
+- **Applications needing many modules on the module path:** `ALL-MODULE-PATH` can be used when the intention is to resolve all observable modules on that path.
 
-Không nên dùng `ALL-MODULE-PATH` theo thói quen. Việc resolve mọi module có thể làm tăng phạm vi graph và khiến xung đột package, dependency hoặc cấu hình module xuất hiện sớm hơn.
+Do not use `ALL-MODULE-PATH` out of habit. Resolving every module can enlarge the graph scope and cause package, dependency, or module configuration conflicts to surface earlier.
 
-Nếu module luôn là thành phần bắt buộc của ứng dụng, khai báo `requires` trong `module-info.java` thường diễn đạt dependency rõ ràng hơn. `--add-modules` phù hợp khi cần điều khiển tập root từ cấu hình khởi chạy.
+If a module is always a mandatory part of the application, declaring `requires` in `module-info.java` usually expresses the dependency more clearly. `--add-modules` is suitable when you need to control the root set from the launch configuration.
 
-## 8. Những nhầm lẫn thường gặp
+## 8. Common Misconceptions
 
-1. **Module nằm trên module path thì chắc chắn đã được resolve:** module path chỉ cung cấp nguồn tìm kiếm; module có thể observable nhưng chưa nằm trong graph.
-2. **--add-modules tự cấp quyền truy cập:** tùy chọn này thêm root cho resolution. Readability, exports và opens vẫn có quy tắc riêng.
-3. **Root module chỉ resolve riêng nó:** JVM còn resolve các dependency cần thiết được khai báo qua `requires`.
-4. **ALL-MODULE-PATH chỉ là một module có tên:** đây là selector đặc biệt đại diện cho các module observable trên module path.
-5. **Có thể thêm module không tồn tại:** module phải observable trong cấu hình runtime; nếu không, resolution sẽ thất bại.
-6. **Dùng --add-modules thay cho requires trong mọi trường hợp:** dependency bắt buộc nên được thể hiện trong module descriptor để kiến trúc dễ hiểu và kiểm tra.
-7. **Plugin đã resolve nghĩa là app có thể gọi trực tiếp class của plugin:** app còn cần readability và package export phù hợp.
+1. **A module on the module path is definitely already resolved:** the module path only provides a search source; a module can be observable without yet being in the graph.
+2. **--add-modules automatically grants access permissions:** this option adds roots for resolution. Readability, exports, and opens still have their own rules.
+3. **A root module only resolves itself:** the JVM also resolves required dependencies declared via `requires`.
+4. **ALL-MODULE-PATH is just a named module:** it is a special selector representing observable modules on the module path.
+5. **You can add a non-existent module:** the module must be observable in the runtime configuration; otherwise, resolution will fail.
+6. **Using --add-modules instead of requires in every case:** mandatory dependencies should be expressed in the module descriptor so the architecture is easy to understand and verify.
+7. **A resolved plugin means the app can directly call the plugin's classes:** the app still needs readability and appropriate package exports.
 
-## 9. Quy trình chẩn đoán
+## 9. Diagnostic Workflow
 
-Khi một module có trên module path nhưng không xuất hiện trong runtime graph, hãy kiểm tra theo thứ tự:
+When a module exists on the module path but does not appear in the runtime graph, check in order:
 
-1. Xác nhận tên module bằng `module-info.java` hoặc metadata của JAR.
-2. Xác nhận module path trỏ đúng thư mục hoặc JAR chứa module.
-3. Kiểm tra module có bị giới hạn bởi `--limit-modules` không.
-4. Thêm module cần thiết bằng `--add-modules <module>`.
-5. Kiểm tra module đã được resolve bằng `ModuleLayer.boot().findModule(name)`.
-6. Nếu cần module khác sử dụng API của nó, kiểm tra readability bằng `Module.canRead`.
-7. Kiểm tra exports hoặc opens nếu thao tác cần quyền truy cập package tương ứng.
+1. Confirm the module name via `module-info.java` or JAR metadata.
+2. Confirm the module path points to the exact directory or JAR containing the module.
+3. Check whether the module is restricted by `--limit-modules`.
+4. Add the needed module using `--add-modules <module>`.
+5. Verify the module is resolved using `ModuleLayer.boot().findModule(name)`.
+6. If another module needs to use its API, check readability using `Module.canRead`.
+7. Check exports or opens if the operation requires access to the corresponding package.
 
-Quy trình này tách rõ lỗi tìm module, lỗi resolution và lỗi truy cập. Nhờ vậy, có thể xác định đúng tùy chọn runtime cần điều chỉnh.
+This workflow separates module-discovery errors, resolution errors, and access errors. As a result, you can identify the exact runtime option to adjust.
 
-## Kết luận
+## Conclusion
 
-`--add-modules` bổ sung module observable vào tập root để JVM resolve module graph. Nó hữu ích khi cần đưa plugin, module hỗ trợ hoặc module tùy chọn vào runtime mà không khai báo dependency bắt buộc trong module chính. Hãy nhớ rằng resolve module chỉ bảo đảm module có mặt trong graph; readability, exports và opens vẫn phải được cấu hình theo nhu cầu truy cập thực tế.
+`--add-modules` adds observable modules to the root set so the JVM resolves them into the module graph. It is useful when you need to bring plugins, support modules, or optional modules into the runtime without declaring mandatory dependencies in the main module. Remember that resolving a module only ensures the module is present in the graph; readability, exports, and opens still must be configured according to actual access needs.

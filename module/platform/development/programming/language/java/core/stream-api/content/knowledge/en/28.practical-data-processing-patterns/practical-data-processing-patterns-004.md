@@ -1,96 +1,96 @@
-# Tạo bảng tần suất từ và thống kê văn bản Unicode
+# Building Word Frequency Tables and Unicode Text Statistics
 
-## 1. Bài toán: đếm từ trong văn bản không chỉ là split theo dấu cách
+## 1. Problem: Word Counting in Text Is More Than Splitting on Spaces
 
-Trong các ứng dụng tìm kiếm, phân tích phản hồi, xử lý nhật ký hoặc đánh giá tài liệu, ta thường cần biết **một từ xuất hiện bao nhiêu lần**, từ nào phổ biến nhất, có bao nhiêu từ khác nhau và độ dài văn bản ra sao. Với **Java Stream API**, pipeline có thể biểu diễn nhiệm vụ này theo chuỗi bước khai báo:
+In search engines, feedback analytics, log processing, or document evaluation, we often need to know **how many times a word appears**, which words are most common, how many distinct words exist, and how long the text is. With the **Java Stream API**, a pipeline can express this task as a declarative sequence of steps:
 
 ```text
-Văn bản đầu vào
+Input text
        |
        v
-Chuẩn hóa Unicode + chữ hoa/chữ thường
+Unicode normalization + case normalization
        |
        v
-Tách các token dạng từ
+Extract word-like tokens
        |
        v
-flatMap: nhiều dòng -> một luồng token
+flatMap: many lines -> one token stream
        |
        v
 groupingBy(token, counting())
        |
        v
-Map<String, Long> tần suất
+Map<String, Long> frequencies
        |
        v
-Sắp theo tần suất giảm dần, token tăng dần
+Sort by frequency descending, token ascending
        |
        v
-Bảng báo cáo ổn định
+Deterministic report table
 ```
 
-Giả sử hai đoạn văn nhìn giống nhau:
+Suppose two text snippets look identical:
 
 ```text
-Văn bản A: CÀ phê, cà PHÊ!
-Văn bản B: café, café
+Text A: CÀ phê, cà PHÊ!
+Text B: café, café
 ```
 
-Văn bản A khác nhau về chữ hoa/thường. Trong văn bản B, chữ `é` thứ hai có thể được biểu diễn bằng **hai Unicode code point**: chữ `e` và dấu sắc kết hợp `U+0301`. Nếu chỉ dùng `String.split(" ")` rồi so sánh chuỗi, chương trình có thể tính ra nhiều mục riêng dù người dùng thấy cùng một chữ.
+Text A differs in letter case. In Text B, the second `é` can be represented by **two Unicode code points**: the letter `e` and the combining acute accent `U+0301`. If you only call `String.split(" ")` and compare strings, the program can count multiple separate entries even though a reader sees the exact same word.
 
-Bài này thuộc chương **Mẫu xử lý dữ liệu thực tế** của module `JAVA_STREAM_API`. Ta sẽ sử dụng `map`, `flatMap`, `filter`, `collect`, `Collectors.groupingBy`, `Collectors.counting` và `sorted`, đồng thời nhận diện giới hạn của xử lý Unicode bằng API chuẩn.
+This lesson belongs to the **Practical Data Processing Patterns** chapter of the `JAVA_STREAM_API` module. We will use `map`, `flatMap`, `filter`, `collect`, `Collectors.groupingBy`, `Collectors.counting`, and `sorted`, while recognizing the limits of Unicode processing with standard APIs.
 
-**Sau bài học, bạn có thể:**
+**After this lesson, you will be able to:**
 
-1. Phân biệt `char` UTF-16, Unicode code point và ký tự hiển thị (*grapheme cluster*).
-2. Chuẩn hóa dạng Unicode bằng `Normalizer`, rồi xử lý chữ hoa/thường theo một chính sách rõ ràng.
-3. Tách token có chữ và dấu kết hợp bằng biểu thức chính quy Unicode.
-4. Tạo bảng tần suất từ, sắp kết quả có tie-break xác định và tính thống kê văn bản.
-5. Đọc tập tin UTF-8 bằng `Files.lines` với `try-with-resources`.
-6. Nhận diện trường hợp regex không đủ cho tiếng Việt đa âm tiết, văn bản đa ngôn ngữ, emoji, từ có số và dấu câu.
+1. Distinguish UTF-16 `char` units, Unicode code points, and user-perceived characters (*grapheme clusters*).
+2. Normalize Unicode forms with `Normalizer`, then handle letter case under an explicit policy.
+3. Extract tokens containing letters and combining marks using Unicode regular expressions.
+4. Build a word frequency table, sort results with deterministic tie-breaking, and compute text statistics.
+5. Read UTF-8 files using `Files.lines` with `try-with-resources`.
+6. Recognize cases where regex is insufficient for multi-syllable Vietnamese words, multilingual text, emoji, alphanumeric words, and punctuation.
 
-Các ví dụ độc lập dùng **Java 17+**. Phần lớn API như `Stream`, `Normalizer`, `Pattern` và `Collectors.groupingBy` đã có từ Java 8.
+Standalone examples use **Java 17+**. Most APIs such as `Stream`, `Normalizer`, `Pattern`, and `Collectors.groupingBy` have existed since Java 8.
 
-## 2. Định nghĩa "từ" trước khi viết chương trình
+## 2. Define "Word" Before Writing Code
 
-Để bài toán có thể kiểm thử được, ta cần nói rõ **token nào được đếm**. Một quy tắc thực hành ban đầu:
+To make the problem testable, we must specify **which tokens are counted**. A practical baseline policy:
 
-- Chỉ lấy chuỗi ký tự bắt đầu bằng **chữ Unicode** (nhóm `\p{L}`).
-- Sau chữ đầu, chấp nhận thêm chữ hoặc **dấu kết hợp** (nhóm `\p{M}`).
-- Dấu cách, dấu câu, chữ số và emoji được xem là dấu phân cách hoặc bị bỏ qua theo chính sách này.
-- Chuyển chữ về chữ thường và chuẩn hóa **NFC** trước khi đếm.
-- Đếm theo **token**: mỗi lần xuất hiện đóng góp một đơn vị, kể cả khi token lặp lại trong cùng dòng.
+- Take only character sequences starting with a **Unicode letter** (category `\p{L}`).
+- After the initial letter, accept additional letters or **combining marks** (category `\p{M}`).
+- Spaces, punctuation, digits, and emoji are treated as delimiters or ignored under this policy.
+- Convert letters to lowercase and normalize to **NFC** before counting.
+- Count by **token occurrence**: each occurrence adds one unit, even when a token repeats on the same line.
 
-Ví dụ:
+Examples:
 
-| Văn bản đầu vào | Token theo chính sách bài học | Lưu ý |
+| Input text | Tokens under lesson policy | Notes |
 | --- | --- | --- |
-| `"CÀ phê"` | `cà`, `phê` | Hai âm tiết là hai token; không tự hiểu cụm `cà phê` là một từ ghép. |
-| `"café"` | `café` | Chữ có dấu được giữ. |
-| `"cafe" + dấu sắc kết hợp` | `café` sau NFC | Hai cách mã hóa được đưa về cùng dạng chuẩn. |
-| `"Java-Stream"` | `java`, `stream` | Dấu nối là dấu phân cách. |
-| `"A12 B34"` | `a`, `b` | Chữ số không nằm trong token theo quy tắc đang chọn. |
-| `"🙂 Java"` | `java` | Emoji không phải token dạng chữ. |
+| `"CÀ phê"` | `cà`, `phê` | Two syllables become two tokens; the phrase `cà phê` is not automatically treated as one compound word. |
+| `"café"` | `café` | Accented letters are preserved. |
+| `"cafe" + combining acute accent` | `café` after NFC | Both encodings normalize to the same canonical form. |
+| `"Java-Stream"` | `java`, `stream` | Hyphen acts as a separator. |
+| `"A12 B34"` | `a`, `b` | Digits are excluded from tokens under the chosen rule. |
+| `"🙂 Java"` | `java` | Emoji is not a letter token. |
 
-**Đây là một quy tắc token hóa có chủ đích, không phải định nghĩa ngôn ngữ học phổ quát về "từ".** Trong tiếng Việt, `"học sinh"` hoặc `"cà phê"` có thể là đơn vị từ vựng gồm nhiều âm tiết; regex dưới đây sẽ tách theo từng chuỗi chữ. Để đếm từ ghép đúng nghĩa, cần một bộ **word segmentation** phù hợp ngôn ngữ và mô hình dữ liệu.
+**This is an intentional tokenization rule, not a universal linguistic definition of "word".** In Vietnamese, `"học sinh"` or `"cà phê"` may be multi-syllable lexical units; the regex below splits by letter sequence. To count true compound words, use a **word segmentation** engine appropriate for the language and data model.
 
-## 3. Unicode: char, code point và ký tự hiển thị khác nhau
+## 3. Unicode: char, Code Points, and Perceived Characters Differ
 
-Java `String` được biểu diễn bằng các **đơn vị mã UTF-16**. Một `char` chứa một đơn vị mã 16 bit, nhưng không phải lúc nào cũng tương ứng với một ký tự Unicode hoàn chỉnh.
+Java `String` is encoded using **UTF-16 code units**. A `char` holds one 16-bit code unit, which does not always correspond to a complete Unicode character.
 
-Ví dụ:
+Example:
 
 ```java
 String greeting = "A🙂";
 
-System.out.println(greeting.length());        // 3 đơn vị UTF-16
+System.out.println(greeting.length());        // 3 UTF-16 units
 System.out.println(greeting.codePointCount(
-        0, greeting.length()));               // 2 code point
+        0, greeting.length()));               // 2 code points
 ```
 
-Chữ `A` sử dụng một đơn vị UTF-16; emoji `🙂` là code point ngoài Basic Multilingual Plane nên được mã hóa bằng **cặp surrogate**, chiếm hai đơn vị UTF-16.
+The letter `A` uses one UTF-16 unit; the emoji `🙂` is a code point outside the Basic Multilingual Plane and is encoded as a **surrogate pair**, taking two UTF-16 units.
 
-Một chữ có dấu kết hợp cũng có thể làm số code point khác số ký tự người đọc thấy:
+A letter with a combining mark can also make the code point count differ from the number of characters a reader perceives:
 
 ```java
 String composed = "é";
@@ -98,20 +98,20 @@ String decomposed = "e" + "\u0301"; // e + COMBINING ACUTE ACCENT
 
 System.out.println(composed.length());   // 1
 System.out.println(decomposed.length()); // 2
-System.out.println(composed.equals(decomposed)); // false trước chuẩn hóa
+System.out.println(composed.equals(decomposed)); // false before normalization
 ```
 
-Ba khái niệm:
+Three concepts:
 
-| Đơn vị | API Java thường dùng | Ý nghĩa |
+| Unit | Common Java API | Meaning |
 | --- | --- | --- |
-| UTF-16 code unit | `String.length()`, `charAt()` | Đơn vị lưu trữ của chuỗi Java. |
-| Unicode code point | `codePoints()`, `codePointCount()` | Giá trị ký tự trừu tượng của Unicode, có thể chiếm 1 hoặc 2 `char`. |
-| Grapheme cluster | Phân đoạn văn bản theo quy tắc hiển thị | Có thể gồm nhiều code point, ví dụ chữ với dấu kết hợp hoặc emoji ghép. |
+| UTF-16 code unit | `String.length()`, `charAt()` | Storage unit of a Java string. |
+| Unicode code point | `codePoints()`, `codePointCount()` | Abstract Unicode character value, occupying 1 or 2 `char`s. |
+| Grapheme cluster | Text segmentation per display rules | May comprise multiple code points, e.g., letter + combining marks or ZWJ emoji. |
 
-Nếu báo cáo muốn đếm **code point**, sử dụng `codePointCount` hoặc `codePoints`. Nếu muốn đếm **số ký tự mà người dùng nhìn thấy**, không thể coi `String.length()` hay số code point luôn chính xác; cần thuật toán phân đoạn grapheme thích hợp với phiên bản Unicode và ngữ cảnh hiển thị.
+If a report wants to count **code points**, use `codePointCount` or `codePoints`. If it wants to count **user-perceived characters**, you cannot assume `String.length()` or code point count is always accurate; use a grapheme segmentation algorithm matching the Unicode version and display context.
 
-### Duyệt code point bằng Stream nguyên thủy
+### Traversing Code Points with Primitive Streams
 
 ```java
 String sample = "A🙂é";
@@ -125,11 +125,11 @@ System.out.println(codePoints);     // 3
 System.out.println(unicodeLetters); // 2
 ```
 
-`String.codePoints()` trả `IntStream` gồm các code point. `Character.isLetter` xét từng code point; khác với việc xử lý từng `char` bằng một vòng lặp có nguy cơ tách cặp surrogate.
+`String.codePoints()` returns an `IntStream` of code points. `Character.isLetter` inspects each code point; unlike iterating `char` by `char` in a loop, it avoids splitting surrogate pairs.
 
-## 4. Chuẩn hóa Unicode bằng Normalizer và Locale
+## 4. Unicode Normalization with Normalizer and Locale
 
-Unicode có thể biểu diễn một số chữ với dấu theo nhiều chuỗi code point tương đương **về mặt chuẩn tắc**. Dạng chuẩn `NFC` thực hiện phép phân rã và hợp thành chuẩn tắc, giúp nhiều cách biểu diễn trở về một dạng thống nhất.
+Unicode can represent certain accented characters using multiple **canonically equivalent** code point sequences. Normalization form `NFC` performs canonical decomposition followed by canonical composition, unifying equivalent representations.
 
 ```java
 import java.text.Normalizer;
@@ -147,11 +147,11 @@ String b = Normalizer.normalize(
 System.out.println(a.equals(b)); // true
 ```
 
-`Normalizer.Form.NFC` là lựa chọn thường phù hợp khi **muốn giữ nguyên sự khác biệt chữ có dấu và không dấu**, đồng thời làm đồng nhất biểu diễn tổ hợp dấu.
+`Normalizer.Form.NFC` is usually the right choice when **you want to preserve distinctions between accented and unaccented letters** while unifying combining-mark representations.
 
-### Xử lý chữ hoa/thường
+### Handling Letter Case
 
-`String.toLowerCase()` không truyền locale sử dụng locale mặc định của môi trường, có thể làm kết quả khác nhau giữa các máy. Trong một hệ thống đếm token có quy ước ngôn ngữ trung lập, dùng `Locale.ROOT`:
+`String.toLowerCase()` without a locale uses the environment's default locale, which can cause results to differ across machines. In a token-counting system with language-neutral conventions, use `Locale.ROOT`:
 
 ```java
 import java.util.Locale;
@@ -160,7 +160,7 @@ String lower = "CÀ PHÊ".toLowerCase(Locale.ROOT);
 System.out.println(lower); // cà phê
 ```
 
-Quy trình chuẩn hóa minh họa:
+Illustrative normalization flow:
 
 ```java
 static String normalizeForCounting(String input) {
@@ -171,39 +171,39 @@ static String normalizeForCounting(String input) {
 }
 ```
 
-Lý do chuẩn hóa NFC **sau** bước chuyển chữ thường: một số phép chuyển hoa/thường có thể tạo hoặc giữ dấu kết hợp; chuẩn hóa lần cuối giúp khóa thống nhất.
+Why normalize to NFC **after** lowercasing: some case-conversion steps can produce or preserve combining marks; a final normalization ensures canonical keys.
 
-**Giới hạn quan trọng:** chuyển chữ thường bằng `Locale.ROOT` không tương đương đầy đủ với **Unicode case folding** trong mọi ngôn ngữ. Nếu cần so khớp ngôn ngữ chuyên biệt (ví dụ quy tắc chữ `I` ở tiếng Thổ Nhĩ Kỳ) hoặc so khớp tìm kiếm quốc tế nghiêm ngặt, phải chọn locale và cơ chế so khớp theo sản phẩm. Đừng âm thầm dùng một quy tắc chung cho toàn bộ hệ thống.
+**Important limitation:** lowercasing with `Locale.ROOT` is not fully equivalent to **Unicode case folding** across all languages. If you need locale-specific matching (such as Turkish `I` rules) or strict international search matching, choose the locale and matching mechanism per product requirements. Do not silently apply one global rule everywhere.
 
-### NFC khác NFKC như thế nào?
+### How NFC Differs from NFKC
 
-`NFKC` còn chuẩn hóa các ký tự **tương thích**, có thể gộp những hình thức viết mang ý nghĩa hiển thị khác nhau (ví dụ một số dạng ký tự toàn chiều rộng hoặc ký hiệu tương thích). Điều đó có ích cho một số hệ thống tìm kiếm nhưng cũng có thể làm mất phân biệt mà nghiệp vụ muốn giữ.
+`NFKC` also normalizes **compatibility** characters, which can merge visually distinct representations carrying different display semantics (such as full-width forms or compatibility symbols). That helps some search systems but may erase distinctions your domain wants to keep.
 
-| Mục tiêu | Hướng lựa chọn |
+| Goal | Suggested Approach |
 | --- | --- |
-| Gộp các cách mã hóa có dấu tương đương chuẩn tắc | Thường bắt đầu với `NFC`. |
-| Gộp thêm dạng ký tự tương thích | Cân nhắc `NFKC` sau khi xác định hệ quả. |
-| Bỏ dấu tiếng Việt để tìm kiếm không dấu | Là một chính sách riêng, **không phải tác dụng mặc định của NFC**. |
-| Giữ phân biệt chữ `ma`, `má`, `mà` | Không xóa các dấu kết hợp khi chuẩn hóa. |
+| Unify canonically equivalent accented encodings | Usually start with `NFC`. |
+| Also fold compatibility character forms | Consider `NFKC` after assessing consequences. |
+| Strip Vietnamese diacritics for accent-insensitive search | Requires a dedicated policy, **not a default effect of NFC**. |
+| Preserve distinctions like `ma`, `má`, `mà` | Do not strip combining marks during normalization. |
 
-Đừng bỏ dấu chỉ vì muốn đếm tần suất: các từ tiếng Việt khác dấu có thể mang nghĩa khác nhau.
+Do not strip diacritics just to count frequencies: Vietnamese words with different tones/diacritics carry different meanings.
 
-## 5. Token hóa bằng Pattern Unicode
+## 5. Tokenization with a Unicode Pattern
 
-Một biểu thức chính quy phù hợp với chính sách ở mục 2 là:
+A regular expression matching the policy in section 2 is:
 
 ```regex
 \p{L}[\p{L}\p{M}]*
 ```
 
-Giải thích:
+Explanation:
 
-- `\p{L}`: một ký tự thuộc nhóm **Letter** của Unicode, dùng ở vị trí đầu token.
-- `[\p{L}\p{M}]*`: tiếp theo là không hoặc nhiều **Letter**/**Mark**.
-- Biểu thức không nhận chữ số, ký hiệu nối hoặc dấu câu làm một phần của token.
-- Vì bắt đầu bằng `\p{L}`, một dấu kết hợp **đứng lẻ không có chữ trước nó** sẽ không tạo thành token.
+- `\p{L}`: a character in the Unicode **Letter** category, required at the start of the token.
+- `[\p{L}\p{M}]*`: followed by zero or more **Letter**/**Mark** characters.
+- Digits, hyphens, and punctuation are not included as part of a token.
+- Because it starts with `\p{L}`, a **lone combining mark without a preceding letter** will not form a token.
 
-Trong chuỗi Java, dấu gạch chéo ngược của regex phải được **escape thêm một lần**:
+In Java string literals, regex backslashes must be **escaped once more**:
 
 ```java
 import java.util.regex.Pattern;
@@ -213,9 +213,9 @@ Pattern WORD = Pattern.compile(
 );
 ```
 
-`Pattern` có thể dùng lại giữa nhiều lần phân tích. Đối tượng `Pattern` là bất biến về cấu hình, có thể được chia sẻ; còn mỗi `Matcher` là đối tượng có trạng thái và **không được chia sẻ đồng thời giữa các thread**.
+A `Pattern` can be reused across many analyses. `Pattern` is immutable in configuration and safe to share; each `Matcher` holds mutable state and **must not be shared concurrently across threads**.
 
-### Tạo danh sách token từ một chuỗi
+### Creating a Token List from a String
 
 ```java
 import java.util.ArrayList;
@@ -234,7 +234,7 @@ static List<String> tokenize(String input) {
 }
 ```
 
-Khi đặt `WORD`, `normalizeForCounting` và `tokenize` trong cùng một class:
+When `WORD`, `normalizeForCounting`, and `tokenize` are placed in the same class:
 
 ```java
 System.out.println(tokenize("CÀ phê, cà PHÊ!"));
@@ -247,33 +247,33 @@ System.out.println(tokenize("Java-Stream 2026 🙂"));
 // [java, stream]
 ```
 
-**Lưu ý về tính lazy:** hàm `tokenize` minh họa ở đây sử dụng `Matcher.find()` để **tạo một List trung gian cho mỗi chuỗi** trước khi trả về. Đây là chủ ý đơn giản hóa bài học; nó không phải một tokenizer hoàn toàn lazy. Với văn bản cực lớn hoặc cần streaming từng token, có thể viết `Spliterator` cho `Matcher` hoặc dùng thư viện token hóa chuyên dụng, nhưng phải tuân thủ hợp đồng tài nguyên và trạng thái.
+**Note on laziness:** `tokenize` here uses `Matcher.find()` to **build an intermediate List per string** before returning. This is an intentional simplification for the lesson; it is not a fully lazy tokenizer. For huge texts or token-by-token streaming, you can write a `Spliterator` over `Matcher` or use a dedicated tokenization library while respecting resource and state contracts.
 
-## 6. Vì sao split theo khoảng trắng chưa đủ?
+## 6. Why Splitting on Whitespace Is Not Enough
 
-Phương án thường thấy:
+A common attempt:
 
 ```java
 String[] pieces = "CÀ phê, cà PHÊ!".split("\\s+");
 ```
 
-Kết quả là các mảnh như `"phê,"` và `"PHÊ!"` vẫn mang dấu câu; nếu đem làm khóa Map trực tiếp, `"phê"` khác `"phê,"`. Chỉ dùng `split(" ")` còn bỏ sót tab hoặc dấu ngắt dòng.
+The resulting pieces like `"phê,"` and `"PHÊ!"` still carry punctuation; if used directly as Map keys, `"phê"` differs from `"phê,"`. Calling `split(" ")` also misses tabs or line breaks.
 
-Ngay cả `split("\\W+")` cũng cần thận trọng: ý nghĩa các lớp ký tự như `\w` và `\W` chịu ảnh hưởng bởi cờ và quy tắc của `Pattern`. Khi cần Unicode, việc viết rõ `\p{L}`/`\p{M}` diễn đạt tốt hơn **loại token mà bài toán muốn đếm**.
+Even `split("\\W+")` requires caution: the meaning of character classes like `\w` and `\W` depends on `Pattern` flags and rules. When Unicode support is required, explicitly specifying `\p{L}`/`\p{M}` better expresses **the kind of token the problem intends to count**.
 
-| Đầu vào | Hậu quả của cách tách sơ sài |
+| Input | Consequence of naive splitting |
 | --- | --- |
-| `"phê, phê!"` | Dấu câu có thể trở thành một phần khóa. |
-| `"café cafe" + dấu kết hợp` | Hai biểu diễn có thể không bằng nhau nếu thiếu NFC. |
-| `"CÀ cà"` | Đếm thành hai mục nếu chưa chuyển chữ thường. |
-| `"Java\\tStream"` | Split theo một dấu cách thường không xử lý tab. |
-| `"🙂 code"` | Kiểu đếm theo `char` có thể tách surrogate của emoji. |
+| `"phê, phê!"` | Punctuation can become part of the key. |
+| `"café cafe" + combining mark` | Two representations may not compare equal without NFC. |
+| `"CÀ cà"` | Counted as two entries without case normalization. |
+| `"Java\\tStream"` | Splitting on a single space misses tabs. |
+| `"🙂 code"` | `char`-based counting can split emoji surrogate pairs. |
 
-Không có một regex nào giải quyết toàn bộ phân đoạn văn bản của mọi ngôn ngữ. Hãy chọn một **hợp đồng token hóa cụ thể và có test**.
+No single regex solves text segmentation for every language. Choose a **concrete tokenization contract and write tests for it**.
 
-## 7. Xây bảng tần suất bằng flatMap, groupingBy và counting
+## 7. Building a Frequency Table with flatMap, groupingBy, and counting
 
-Giả sử văn bản được lưu dưới dạng nhiều dòng:
+Suppose text is stored as multiple lines:
 
 ```java
 List<String> lines = List.of(
@@ -283,7 +283,7 @@ List<String> lines = List.of(
 );
 ```
 
-Ý nghĩa của `flatMap`: mỗi dòng được biến thành **nhiều token**, rồi nối các Stream token thành một Stream chung.
+Meaning of `flatMap`: each line expands into **multiple tokens**, and those token streams are flattened into a single stream.
 
 ```java
 import java.util.Map;
@@ -298,15 +298,15 @@ Map<String, Long> frequencies = lines.stream()
         ));
 ```
 
-Đọc pipeline từ trái sang phải:
+Reading the pipeline left to right:
 
-1. `lines.stream()` tạo `Stream<String>` gồm các dòng.
-2. `flatMap(line -> tokenize(line).stream())` tạo Stream các token đã được chuẩn hóa, **giữ cả lần xuất hiện lặp**.
-3. `Function.identity()` lấy chính token làm khóa nhóm.
-4. `Collectors.counting()` đếm số lần token được đưa vào nhóm.
-5. Kết quả là `Map<String, Long>`.
+1. `lines.stream()` creates a `Stream<String>` of lines.
+2. `flatMap(line -> tokenize(line).stream())` produces a Stream of normalized tokens, **retaining repeated occurrences**.
+3. `Function.identity()` uses the token itself as the grouping key.
+4. `Collectors.counting()` counts how many times each token lands in its group.
+5. The result is a `Map<String, Long>`.
 
-Kiểm tra bằng các giá trị cụ thể:
+Checking concrete values:
 
 ```java
 System.out.println(frequencies.get("java"));   // 3
@@ -315,14 +315,14 @@ System.out.println(frequencies.get("phê"));    // 2
 System.out.println(frequencies.get("trà"));    // 2
 System.out.println(frequencies.get("café"));   // 2
 System.out.println(frequencies.get("stream")); // 2
-System.out.println(frequencies.size());        // 6 từ khác nhau
+System.out.println(frequencies.size());        // 6 distinct words
 ```
 
-Tổng số token là **13**: `java` xuất hiện ba lần, năm token còn lại xuất hiện hai lần mỗi token. Đây là một ví dụ có cả dấu tiếng Việt, chuẩn hóa NFC và chữ hoa/thường.
+The total token count is **13**: `java` appears three times, and the remaining five tokens appear twice each. This example exercises Vietnamese diacritics, NFC normalization, and letter case together.
 
-### Có thể dùng toMap thay cho groupingBy không?
+### Can `toMap` Replace `groupingBy`?
 
-Có, nếu xác định merge function đúng:
+Yes, if you specify the right merge function:
 
 ```java
 Map<String, Long> withMerge = lines.stream()
@@ -336,14 +336,14 @@ Map<String, Long> withMerge = lines.stream()
 System.out.println(withMerge.equals(frequencies)); // true
 ```
 
-`Collectors.toMap` **hai đối số** sẽ ném `IllegalStateException` khi token trùng; overload ba đối số với `Long::sum` mới diễn đạt đúng phép đếm. Với bài toán tần suất, `groupingBy(identity, counting())` thường gần ngữ nghĩa thống kê hơn.
+Two-argument `Collectors.toMap` throws `IllegalStateException` on duplicate tokens; only the three-argument overload with `Long::sum` expresses counting accurately. For frequency tables, `groupingBy(identity, counting())` usually reads closer to statistical intent.
 
-## 8. Xuất bảng tần suất theo thứ tự xác định
+## 8. Outputting the Frequency Table in Deterministic Order
 
-`Collectors.groupingBy` mặc định không cam kết thứ tự duyệt của Map kết quả. Với một bảng báo cáo, ta thường muốn:
+By default, `Collectors.groupingBy` does not guarantee iteration order on the returned Map. For a report table, we typically want:
 
-1. Tần suất **giảm dần**.
-2. Nếu bằng tần suất, token **tăng dần** để kết quả ổn định.
+1. Frequency **descending**.
+2. On equal frequency, token **ascending** so output stays deterministic.
 
 ```java
 record WordCount(String word, long count) {}
@@ -362,7 +362,7 @@ List<WordCount> ranking = frequencies.entrySet().stream()
 ranking.forEach(System.out::println);
 ```
 
-Kết quả của ví dụ ở mục 7:
+Output for the example in section 7:
 
 ```text
 WordCount[word=java, count=3]
@@ -373,9 +373,9 @@ WordCount[word=stream, count=2]
 WordCount[word=trà, count=2]
 ```
 
-**Thứ tự ở đây xác định theo `String.compareTo`** (thứ tự từ vựng theo đơn vị UTF-16), **không phải thứ tự từ điển tiếng Việt**. Ví dụ, so sánh chữ có dấu theo cách người Việt mong đợi cần một `Collator` và chính sách locale thích hợp. Nếu kết quả phải hoàn toàn ổn định xuyên môi trường, cần thống nhất phiên bản/rules của collator hoặc dùng comparator đã xác định rõ trong ứng dụng.
+**Ordering here uses `String.compareTo`** (lexicographical order by UTF-16 code units), **not Vietnamese alphabetical dictionary order**. Comparing accented letters according to Vietnamese conventions requires a `Collator` and an appropriate locale policy. If output must remain strictly identical across environments, pin collator versions/rules or use a well-defined application comparator.
 
-### Chỉ lấy top N
+### Taking Only the Top N
 
 ```java
 int topN = 3;
@@ -387,9 +387,9 @@ List<WordCount> top = ranking.stream()
 System.out.println(top.size()); // 3
 ```
 
-`limit` lấy tiền tố của danh sách **đã được sắp**. Đừng dùng `frequencies.entrySet().stream().limit(3)` rồi kỳ vọng đó là ba từ nhiều nhất.
+`limit` takes a prefix of the **already sorted** list. Do not call `frequencies.entrySet().stream().limit(3)` and expect the three most frequent words.
 
-### Chỉ in từ có tần suất lớn hơn ngưỡng
+### Printing Only Words Above a Threshold
 
 ```java
 List<WordCount> frequent = ranking.stream()
@@ -399,22 +399,22 @@ List<WordCount> frequent = ranking.stream()
 System.out.println(frequent); // [WordCount[word=java, count=3]]
 ```
 
-Nếu chỉ cần báo cáo chứ không cần Map giữ thứ tự, có thể giữ Map ban đầu rồi chỉ tạo `List<WordCount>` đã sắp khi xuất dữ liệu.
+If you only need a sorted report rather than an ordered Map, keep the initial Map and build the sorted `List<WordCount>` only when exporting results.
 
-## 9. Thống kê văn bản: dòng, token, từ khác nhau, code point
+## 9. Text Statistics: Lines, Tokens, Distinct Words, Code Points
 
-Bảng tần suất còn có thể cung cấp các số liệu tổng quan:
+The frequency table can also supply summary metrics:
 
-| Đại lượng | Định nghĩa trong bài này | Cách tính |
+| Metric | Definition in this lesson | How to compute |
 | --- | --- | --- |
-| **Số dòng đầu vào** | Số phần tử `String` trong danh sách dòng | `lines.size()` |
-| **Tổng số token** | Mọi lần xuất hiện, kể cả lặp | Tổng các value của bảng tần suất |
-| **Số token khác nhau** | Số khóa duy nhất sau chuẩn hóa | `frequencies.size()` |
-| **Số code point** | Code point Unicode trong văn bản gốc | `String.codePoints().count()` |
-| **Số code point dạng chữ** | Các code point thỏa `Character.isLetter` | `codePoints().filter(Character::isLetter).count()` |
-| **Độ dài token trung bình** | Trung bình **số code point** trên token đã chuẩn hóa | `mapToInt(...).average()` |
+| **Input line count** | Number of `String` elements in the line list | `lines.size()` |
+| **Total token count** | All occurrences, including repeats | Sum of frequency map values |
+| **Distinct token count** | Unique keys after normalization | `frequencies.size()` |
+| **Code point count** | Unicode code points in original text | `String.codePoints().count()` |
+| **Letter code point count** | Code points matching `Character.isLetter` | `codePoints().filter(Character::isLetter).count()` |
+| **Average token length** | Mean **code point count** across normalized tokens | `mapToInt(...).average()` |
 
-Ví dụ:
+Example:
 
 ```java
 long lineCount = lines.size();
@@ -442,22 +442,22 @@ double averageTokenCodePoints = lines.stream()
 System.out.println(lineCount);               // 3
 System.out.println(tokenCount);              // 13
 System.out.println(uniqueCount);             // 6
-System.out.println(averageTokenCodePoints); // khoảng 3.69
+System.out.println(averageTokenCodePoints); // approx. 3.69
 ```
 
-Trong ví dụ này, tổng độ dài các token sau NFC là **48 code point**, trên 13 token nên trung bình xấp xỉ **3,69**. `sourceCodePoints` và `sourceLetters` đo trên **dòng đầu vào gốc**, vì vậy có thể bao gồm dấu câu, chữ số và các code point khác theo từng định nghĩa.
+In this example, the combined length of normalized NFC tokens is **48 code points** across 13 tokens, averaging about **3.69**. `sourceCodePoints` and `sourceLetters` measure the **raw input lines**, so they may include punctuation, digits, and other code points per their definitions.
 
-`IntStream.average()` trả `OptionalDouble` vì Stream có thể rỗng. `orElse(0.0)` là **chính sách báo cáo** chứ không phải phép toán toán học: nếu không có token nào, giá trị trung bình thực sự **không xác định**; trong hệ thống cần phân biệt hai trạng thái, hãy giữ `OptionalDouble` hoặc dùng một trường nullable/flag theo thiết kế.
+`IntStream.average()` returns `OptionalDouble` because the Stream may be empty. `orElse(0.0)` is a **reporting policy**, not a mathematical operation: when there are zero tokens, the true average is **undefined**; in systems that must distinguish those states, keep `OptionalDouble` or use a nullable field/flag by design.
 
-### Tổng tần suất không được lẫn với số khóa
+### Do Not Confuse Total Frequency with Key Count
 
-`frequencies.size()` là **số từ khác nhau**, không phải tổng số lần xuất hiện. Đó là lỗi thường gặp khi chuyển từ `List<String>` sang `Map<String, Long>`. Để lấy tổng token mà không phải duyệt lại văn bản, cộng các value của Map.
+`frequencies.size()` is the **distinct word count**, not total occurrences. That is a common bug when transitioning from `List<String>` to `Map<String, Long>`. To obtain total tokens without re-scanning the text, sum the Map's values.
 
-## 10. Cắt bỏ stop words mà không làm sai bảng thống kê
+## 10. Filtering Stop Words Without Corrupting Statistics
 
-*Stop words* là những token thường gặp có thể được loại theo mục đích phân tích, chẳng hạn một số từ chức năng trong ngôn ngữ. Danh sách này **phụ thuộc lĩnh vực**; đừng tự loại `"không"`, `"có"` hoặc các từ quan trọng đối với phân tích cảm xúc/chủ đề.
+*Stop words* are frequent tokens that may be excluded for analysis purposes, such as certain function words in a language. This list is **domain-dependent**; do not blindly drop `"không"`, `"có"`, or words critical to sentiment or topic analysis.
 
-Trong ví dụ đơn giản, ta có một tập từ cần bỏ:
+In a simple example, suppose we have a set of words to exclude:
 
 ```java
 Set<String> stopWords = Set.of("và", "là", "của");
@@ -471,18 +471,18 @@ Map<String, Long> withoutStopWords = lines.stream()
         ));
 ```
 
-Nên chuẩn hóa stop words **bằng cùng chính sách** với token đầu vào. Nếu danh sách stop words đến từ file hoặc người dùng, hãy chạy `normalizeForCounting` (và quy tắc token hóa phù hợp) trên dữ liệu này, thay vì giả định chúng đã ở cùng dạng NFC/chữ thường.
+Normalize stop words **using the exact same policy** as input tokens. If the stop-word list comes from a file or user input, run `normalizeForCounting` (and matching tokenization rules) on it rather than assuming it is already in NFC lowercase.
 
-**Cần xác định thứ tự xử lý:** nếu lọc stop words trước `groupingBy`, số token khác nhau và tổng token của báo cáo sẽ **thay đổi**. Muốn đồng thời báo cáo số token tổng và số token sau lọc, nên tính hai chỉ số riêng hoặc xây một phép tổng hợp được thiết kế cho cả hai.
+**Define processing order:** if stop words are filtered before `groupingBy`, both distinct token count and total token count in the report **change**. If you need to report both total tokens and post-filter tokens simultaneously, compute two separate metrics or design an aggregator built for both.
 
-## 11. Unicode thực tế: dấu câu, chữ số, emoji và từ ghép
+## 11. Real-World Unicode: Punctuation, Digits, Emoji, and Compound Words
 
-Regex `\p{L}[\p{L}\p{M}]*` tạo một bộ tách token **có giới hạn rõ ràng**. Nó không giải quyết hoàn chỉnh mọi dạng văn bản:
+The regex `\p{L}[\p{L}\p{M}]*` defines a tokenizer with **clear boundaries**. It does not solve every text format completely:
 
-### Từ có số, hashtag và địa chỉ email
+### Words with Digits, Hashtags, and Email Addresses
 
 ```text
-Đầu vào      Chính sách regex trong bài
+Input        Lesson regex policy
 Java17       -> java
 #Java        -> java
 user@mail.io -> user, mail, io
@@ -490,25 +490,25 @@ don't        -> don, t
 AI-based     -> ai, based
 ```
 
-Điều này không nhất thiết sai nếu chỉ đếm chuỗi chữ; nhưng nếu sản phẩm cần giữ mã `Java17`, hashtag `#Java` hoặc email thành một token, phải **đổi hợp đồng token hóa**, không chỉ bổ sung `filter` sau đó. Có thể sử dụng một `Pattern` riêng cho mã sản phẩm, hashtag hoặc email và kiểm thử từng trường hợp.
+This is not necessarily wrong if you only count alphabetic sequences; however, if the product needs to keep `Java17`, hashtag `#Java`, or email addresses as single tokens, **change the tokenization contract**, not just a downstream `filter`. You can use a dedicated `Pattern` for product codes, hashtags, or emails and test each case.
 
-### Tiếng Việt và từ ghép nhiều âm tiết
+### Vietnamese and Multi-Syllable Compound Words
 
-Với `"học sinh"`, regex này tạo hai token `học` và `sinh`. Trong nhiều bài toán NLP tiếng Việt, cả cụm có thể là một đơn vị từ vựng. `Collectors.groupingBy` chỉ đếm những token được đưa vào, **không tự biết ranh giới từ theo ngôn ngữ**.
+For `"học sinh"`, this regex emits two tokens: `học` and `sinh`. In many Vietnamese NLP tasks, the whole phrase is one lexical unit. `Collectors.groupingBy` only counts the tokens fed into it and **does not know linguistic word boundaries**.
 
-Nếu cần **tần suất từ tiếng Việt theo nghĩa từ vựng**, hãy dùng bộ tách từ chuyên dụng và đánh giá trên dữ liệu có nhãn. Pipeline Stream từ bước token hóa trở đi (lọc, nhóm, đếm, sắp) vẫn có thể tái sử dụng.
+If you need **Vietnamese word frequencies at the lexical level**, use a dedicated word segmenter and evaluate it on labeled data. The downstream Stream pipeline (filtering, grouping, counting, sorting) can still be reused.
 
-### Chữ viết không dùng dấu cách
+### Scripts Without Word-Separating Spaces
 
-Một số hệ chữ như Hán văn không chia từ bằng khoảng trắng theo cùng cách. Regex ở đây có thể gộp một dãy chữ dài thành một token. Java có `BreakIterator.getWordInstance(locale)` để phân đoạn theo quy tắc ngôn ngữ/locale, nhưng chất lượng tách từ và bộ quy tắc phụ thuộc implementation cùng phiên bản JDK; với yêu cầu NLP chuyên sâu, cần đánh giá thư viện hoặc mô hình phù hợp.
+Some writing systems such as Chinese do not separate words with spaces in the same way. The regex here may merge a long run of characters into a single token. Java provides `BreakIterator.getWordInstance(locale)` for locale-based segmentation, though segmentation quality and rule sets vary by implementation and JDK version; for demanding NLP requirements, evaluate specialized libraries or models.
 
-### Emoji và grapheme clusters
+### Emoji and Grapheme Clusters
 
-Emoji như `🙂` hoặc emoji ghép qua `U+200D` không nằm trong token `\p{L}`. Nếu yêu cầu đếm emoji hay "ký tự người nhìn thấy", đó là **một bài toán khác**, cần xử lý grapheme clusters hoặc emoji sequences; không thể lấy `String.length()` làm số emoji.
+Emoji such as `🙂` or ZWJ sequences using `U+200D` are excluded from `\p{L}` tokens. If the requirement is to count emoji or "user-perceived characters", that is **a different problem**, requiring grapheme cluster or emoji sequence handling; `String.length()` cannot be used as an emoji count.
 
-## 12. Đọc văn bản UTF-8 với Files.lines và đóng tài nguyên
+## 12. Reading UTF-8 Text with Files.lines and Closing Resources
 
-Trong ứng dụng thực tế, dữ liệu thường đến từ một tệp. `Files.lines` tạo một `Stream<String>` các dòng, phù hợp với pipeline sau:
+In production applications, data often arrives from a file. `Files.lines` produces a `Stream<String>` of lines that fits the pipeline naturally:
 
 ```java
 import java.io.IOException;
@@ -534,36 +534,36 @@ static Map<String, Long> countWordsFromFile(Path path)
 }
 ```
 
-Những nguyên tắc quan trọng:
+Key principles:
 
-1. **Chỉ định UTF-8 rõ ràng**: không dựa vào charset mặc định của hệ điều hành.
-2. **Dùng `try-with-resources`**: Stream từ `Files.lines` gắn với tài nguyên I/O và cần đóng khi dùng xong.
-3. **Terminal operation nằm bên trong khối `try`**: nếu đóng Stream rồi mới gọi `collect`, nguồn đã hết vòng đời.
-4. **Không tái sử dụng Stream đã tiêu thụ**: muốn chạy báo cáo khác trên cùng file, mở lại nguồn hoặc thiết kế bộ tổng hợp nhiều chỉ số trong một lần duyệt.
-5. **Xử lý lỗi đúng ranh giới**: mở file có thể ném `IOException`; lỗi đọc trong khi duyệt lazy có thể xuất hiện dưới dạng `UncheckedIOException`. Đừng tự nuốt lỗi rồi báo một bảng tần suất thiếu dữ liệu là thành công.
+1. **Specify UTF-8 explicitly**: do not rely on the operating system's default charset.
+2. **Use `try-with-resources`**: a Stream from `Files.lines` backs an I/O resource and must be closed when finished.
+3. **Keep the terminal operation inside the `try` block**: if you close the Stream before calling `collect`, the underlying source is already closed.
+4. **Never reuse a consumed Stream**: to run another report on the same file, reopen the source or design a multi-metric aggregator in a single pass.
+5. **Handle errors at the proper boundary**: opening a file can throw `IOException`; read errors during lazy iteration can surface as `UncheckedIOException`. Never swallow errors and report a partial frequency table as success.
 
-Với file lớn, `Files.lines` giúp tránh phải đọc **toàn bộ file thành một String**. Tuy nhiên, implementation `tokenize` ở đây vẫn tạo List token **cho từng dòng**, và `groupingBy` giữ Map gồm mọi token khác nhau; bộ nhớ vẫn có thể tăng theo số lượng token duy nhất hoặc độ dài một dòng.
+For large files, `Files.lines` avoids loading the **entire file into one String**. Even so, `tokenize` as implemented here still creates a token List **per line**, and `groupingBy` retains a Map of all distinct tokens; memory can still grow with the number of unique tokens or maximum line length.
 
-Không nên dùng `parallel()` trên nguồn file tùy tiện: hiệu quả còn phụ thuộc Spliterator, cách chia dữ liệu, chi phí regex, I/O và thứ tự. Luôn kiểm tra tính đúng đắn trước khi đo hiệu năng.
+Do not apply `parallel()` to file sources indiscriminately: effectiveness depends on the Spliterator, chunking, regex cost, I/O, and ordering. Always verify correctness before benchmarking performance.
 
-## 13. Thống kê theo dòng và theo toàn tài liệu
+## 13. Per-Line vs. Whole-Document Statistics
 
-Tùy sản phẩm, **tần suất toàn văn** khác với **số dòng có chứa token**:
+Depending on the product, **corpus frequency** differs from **document/line frequency** (number of lines containing a token):
 
 ```text
-Dòng 1: java java
-Dòng 2: java stream
+Line 1: java java
+Line 2: java stream
 
-Tần suất token:
+Token frequency:
   java   = 3
   stream = 1
 
-Số dòng chứa token:
+Lines containing token:
   java   = 2
   stream = 1
 ```
 
-Để đếm **số dòng chứa** một token, chỉ cần loại trùng **trong từng dòng**, không loại trùng cả văn bản:
+To count **how many lines contain** a token, deduplicate **within each line**, not across the whole document:
 
 ```java
 List<String> sampleLines = List.of(
@@ -582,9 +582,9 @@ System.out.println(linePresence.get("java"));   // 2
 System.out.println(linePresence.get("stream")); // 1
 ```
 
-`distinct()` nằm **bên trong Stream của mỗi dòng**, nên mỗi token đóng góp tối đa một lần cho một dòng. Nếu đặt `distinct()` sau `flatMap` của toàn văn, mọi token chỉ còn một lần xuất hiện và kết quả đếm dòng sẽ sai.
+`distinct()` sits **inside each line's Stream**, so each token contributes at most once per line. Placing `distinct()` after the document-wide `flatMap` would collapse every token to count 1 and yield wrong line counts.
 
-Một chỉ số khác là **tần suất tương đối**:
+Another metric is **relative frequency**:
 
 ```java
 long total = frequencies.values().stream()
@@ -595,14 +595,14 @@ double javaShare = total == 0
         ? 0.0
         : (double) frequencies.getOrDefault("java", 0L) / total;
 
-System.out.println(javaShare); // khoảng 0.23077 = 3/13
+System.out.println(javaShare); // approx. 0.23077 = 3/13
 ```
 
-Khi trình bày phần trăm, cần nêu rõ mẫu số là **toàn bộ token** hay **token sau stop-word filtering**. Với văn bản không có token, không nên âm thầm gọi `0%` nếu báo cáo đòi phân biệt "không có dữ liệu".
+When reporting percentages, state clearly whether the denominator is **all tokens** or **tokens after stop-word filtering**. For text with zero tokens, avoid silently reporting `0%` if the report must distinguish "no data".
 
-## 14. Pipeline song song: an toàn với trạng thái và thứ tự
+## 14. Parallel Pipelines: Safety Around State and Ordering
 
-Về nguyên tắc, `groupingBy`/`counting` có thể được dùng trên nguồn song song:
+In principle, `groupingBy`/`counting` can run over a parallel source:
 
 ```java
 Map<String, Long> parallelFrequencies = lines.parallelStream()
@@ -615,28 +615,28 @@ Map<String, Long> parallelFrequencies = lines.parallelStream()
 System.out.println(parallelFrequencies.equals(frequencies)); // true
 ```
 
-Ví dụ này có các tính chất thuận lợi:
+This example has favorable properties:
 
-- `lines` là List ổn định, không bị sửa trong khi xử lý.
-- `normalizeForCounting` là phép biến đổi theo giá trị đầu vào, không sửa biến global.
-- Mỗi lần `tokenize` tạo `Matcher` và danh sách token **riêng cho lời gọi đó**.
-- `Pattern` được dùng chung an toàn vì pattern không mang trạng thái tìm kiếm của `Matcher`.
-- `Collectors.groupingBy(..., counting())` quản lý các kết quả tích lũy và kết hợp.
+- `lines` is a stable List not mutated during execution.
+- `normalizeForCounting` is a pure value transformation with no global mutations.
+- Each call to `tokenize` creates its **own** `Matcher` and token list.
+- `Pattern` is safely shared because it holds no `Matcher` search state.
+- `Collectors.groupingBy(..., counting())` manages intermediate accumulators and combining.
 
-**Không dùng** một `HashMap` dùng chung để tăng số đếm:
+**Do not use** a shared `HashMap` to increment counts:
 
 ```java
 Map<String, Long> shared = new HashMap<>();
 
-// SAI: ghi vào HashMap chung từ các tác vụ song song.
+// WRONG: mutating a shared HashMap from parallel tasks.
 lines.parallelStream()
         .flatMap(line -> tokenize(line).stream())
         .forEach(word -> shared.merge(word, 1L, Long::sum));
 ```
 
-`HashMap.merge` không khiến Map trở nên thread-safe. Việc cập nhật này có thể làm mất dữ liệu hoặc gây lỗi. Dùng collector như trên là lựa chọn rõ ràng hơn.
+`HashMap.merge` does not make the Map thread-safe. Concurrent updates can lose data or throw errors. Using a collector as above is the clean choice.
 
-Nếu không cần thứ tự và dữ liệu rất lớn, có thể **đo thử** `Collectors.groupingByConcurrent`:
+If ordering is unneeded and datasets are very large, you can **benchmark** `Collectors.groupingByConcurrent`:
 
 ```java
 ConcurrentMap<String, Long> concurrentFrequencies =
@@ -648,13 +648,13 @@ ConcurrentMap<String, Long> concurrentFrequencies =
                 ));
 ```
 
-`groupingByConcurrent` là collector concurrent, unordered; **không tự cam kết nhanh hơn**. Để có bảng kết quả theo thứ tự ổn định, hãy **sắp các entry sau khi đếm**, bất kể Map do collector nào tạo.
+`groupingByConcurrent` is a concurrent, unordered collector; it **does not automatically guarantee faster execution**. To produce a deterministically ordered table, **sort entries after counting**, regardless of which collector built the Map.
 
-Đặc biệt, **không chia sẻ một `Matcher` cho nhiều thread**. `Matcher` có con trỏ và các nhóm bắt được thay đổi theo `find()`; sử dụng chung có thể làm hỏng cả token và tần suất.
+In particular, **never share a single `Matcher` across threads**. `Matcher` stores mutable cursor and capture-group state updated by `find()`; sharing it corrupts both tokens and counts.
 
-## 15. Ví dụ Java 17+ hoàn chỉnh: phân tích Unicode và in bảng xếp hạng
+## 15. Complete Java 17+ Example: Unicode Analysis and Ranked Table
 
-Chương trình bên dưới chạy độc lập: chuẩn hóa NFC và chữ thường, tách token Unicode, tạo tần suất, sắp giảm dần theo số lần xuất hiện, tính thống kê và kiểm tra kết quả mong đợi.
+The standalone program below normalizes to NFC lowercase, extracts Unicode tokens, builds frequencies, sorts descending by occurrence count, computes statistics, and verifies expected results.
 
 ```java
 import java.text.Normalizer;
@@ -764,7 +764,7 @@ public class UnicodeWordFrequencyDemo {
                 || frequencies.get("java") != 3L
                 || frequencies.get("café") != 2L
                 || frequencies.get("cà") != 2L) {
-            throw new AssertionError("Kết quả đếm token sai");
+            throw new AssertionError("Wrong token count result");
         }
 
         List<WordCount> expected = List.of(
@@ -776,21 +776,21 @@ public class UnicodeWordFrequencyDemo {
                 new WordCount("trà", 2)
         );
         if (!ranking.equals(expected)) {
-            throw new AssertionError("Sai thứ tự bảng tần suất");
+            throw new AssertionError("Wrong frequency table ordering");
         }
 
-        System.out.println("Từ       | Số lần");
-        System.out.println("---------+-------");
+        System.out.println("Word     | Count");
+        System.out.println("---------+------");
         ranking.forEach(item -> System.out.printf(
                 "%-8s | %d%n", item.word(), item.count()
         ));
         System.out.printf(
-                "Dòng=%d, token=%d, khác nhau=%d%n",
+                "Lines=%d, tokens=%d, distinct=%d%n",
                 summary.lines(), summary.tokens(),
                 summary.distinctTokens()
         );
         System.out.printf(
-                "Độ dài token trung bình (code point)=%.2f%n",
+                "Average token length (code points)=%.2f%n",
                 summary.avgTokenCodePoints()
         );
         System.out.println("PASS");
@@ -798,7 +798,7 @@ public class UnicodeWordFrequencyDemo {
 }
 ```
 
-**Kết quả tần suất mong đợi:**
+**Expected frequency results:**
 
 ```text
 java   -> 3
@@ -807,28 +807,28 @@ cà     -> 2
 phê    -> 2
 stream -> 2
 trà    -> 2
-Tổng token: 13
-Số token khác nhau: 6
-Độ dài token trung bình: khoảng 3.69 code point
+Total tokens: 13
+Distinct tokens: 6
+Average token length: approx. 3.69 code points
 ```
 
-### Giải thích thiết kế
+### Design Explanation
 
-1. `WORD` là `Pattern` chia sẻ, còn mỗi lượt `tokenize` tạo `Matcher` riêng.
-2. `Normalizer.Form.NFC` và `Locale.ROOT` làm rõ chính sách hợp nhất khóa khi đếm.
-3. `flatMap` ghép token từ nhiều dòng thành một luồng dữ liệu.
-4. `groupingBy(identity, counting())` tạo Map tần suất mà không cần tự cập nhật HashMap ngoài pipeline.
-5. `rank` sắp theo **count giảm dần**, sau đó **token theo thứ tự `String.compareTo` tăng dần**, có tie-break cụ thể.
-6. `summarize` giữ riêng tổng token, số từ khác nhau và số code point của nguồn. Các chỉ số không bị nhầm với nhau.
-7. `assert` bằng điều kiện `if`/`throw` làm ví dụ thất bại nếu kết quả sai; không phụ thuộc vào việc JVM có bật `-ea`.
+1. `WORD` is a shared `Pattern`, while each `tokenize` call creates its own `Matcher`.
+2. `Normalizer.Form.NFC` and `Locale.ROOT` establish an explicit key-unification policy for counting.
+3. `flatMap` flattens tokens from multiple lines into one stream.
+4. `groupingBy(identity, counting())` builds the frequency Map without manual HashMap mutation outside the pipeline.
+5. `rank` sorts by **count descending**, then **token ascending by `String.compareTo`**, providing an explicit tie-breaker.
+6. `summarize` tracks total tokens, distinct words, and source code points separately so metrics are not confused.
+7. Explicit `if`/`throw` checks fail even when the JVM is launched without `-ea`.
 
-**Giới hạn của ví dụ:** đây là báo cáo **tần suất token dạng chữ**, chưa phải bộ tách từ tiếng Việt đa âm tiết hay hệ thống hỗ trợ mọi trường hợp Unicode. Với dữ liệu lớn, cách token hóa trả List sẽ tạo nhiều allocation; với quy tắc ngôn ngữ phức tạp, cần tokenizer chuyên dụng và bộ test phù hợp.
+**Example limitations:** this reports **letter-sequence token frequencies**, not multi-syllable Vietnamese word segmentation or full handling of every Unicode edge case. For large datasets, a List-returning tokenizer adds allocation overhead; for complex linguistic rules, use a dedicated tokenizer and matching test suite.
 
-## 16. Bài tập thực hành
+## 16. Practice Exercises
 
-### Bài 1 — Chuẩn hóa và kiểm chứng NFC
+### Exercise 1 — NFC Normalization and Verification
 
-Cho:
+Given:
 
 ```java
 List<String> data = List.of(
@@ -838,9 +838,9 @@ List<String> data = List.of(
 );
 ```
 
-**Yêu cầu:** dùng chính sách NFC/chữ thường ở bài này để đếm ba lần xuất hiện thành một khóa. Giải thích vì sao không đủ nếu chỉ gọi `toLowerCase(Locale.ROOT)` mà bỏ `Normalizer`.
+**Task:** apply this lesson's NFC/lowercase policy to count all three occurrences under one key. Explain why calling `toLowerCase(Locale.ROOT)` alone without `Normalizer` is insufficient.
 
-**Gợi ý lời giải:**
+**Suggested solution:**
 
 ```java
 Map<String, Long> counts = data.stream()
@@ -854,9 +854,9 @@ System.out.println(counts.get("café")); // 3
 System.out.println(counts.size());      // 1
 ```
 
-### Bài 2 — Bảng top N có tie-break
+### Exercise 2 — Top-N Table with Tie-Breaking
 
-Cho các dòng:
+Given lines:
 
 ```java
 List<String> logs = List.of(
@@ -866,9 +866,9 @@ List<String> logs = List.of(
 );
 ```
 
-**Yêu cầu:** tạo bảng tần suất, lấy hai token có số lần xuất hiện lớn nhất. Nếu bằng tần suất, sắp token tăng dần theo `String.compareTo`.
+**Task:** build a frequency table and extract the two most frequent tokens. On equal frequencies, sort tokens ascending by `String.compareTo`.
 
-**Lời giải:**
+**Solution:**
 
 ```java
 Map<String, Long> logCounts = frequencies(logs);
@@ -882,11 +882,11 @@ System.out.println(topTwo);
 //  WordCount[word=api, count=2]]
 ```
 
-`stream` cũng xuất hiện hai lần, nhưng `api` đứng trước `stream` ở bước tie-break.
+`stream` also appears twice, but `api` precedes `stream` in the tie-break step.
 
-### Bài 3 — Đếm số dòng chứa token
+### Exercise 3 — Counting Lines Containing Each Token
 
-Cho:
+Given:
 
 ```java
 List<String> comments = List.of(
@@ -896,9 +896,9 @@ List<String> comments = List.of(
 );
 ```
 
-**Yêu cầu:** tính cả tần suất token toàn văn và số dòng có chứa mỗi token. Phân biệt hai chỉ số.
+**Task:** compute both corpus token frequencies and the number of lines containing each token. Distinguish the two metrics.
 
-**Lời giải:**
+**Solution:**
 
 ```java
 Map<String, Long> occurrences = frequencies(comments);
@@ -916,69 +916,69 @@ System.out.println(occurrences.get("stream"));      // 3
 System.out.println(documentFrequency.get("stream")); // 2
 ```
 
-### Bài 4 — Xử lý emoji và Unicode bổ sung
+### Exercise 4 — Emoji and Supplementary Unicode
 
-Cho:
+Given:
 
 ```java
 String sample = "A🙂é";
 ```
 
-**Yêu cầu:** giải thích vì sao `sample.length() == 4` nhưng `sample.codePointCount(0, sample.length()) == 3`; phân biệt số code point, số token dạng chữ và số ký tự hiển thị.
+**Task:** explain why `sample.length() == 4` while `sample.codePointCount(0, sample.length()) == 3`; distinguish code point count, letter-token count, and perceived character count.
 
-**Đáp án:** `A` và `é` chiếm mỗi chữ một đơn vị UTF-16 trong dạng composed, emoji `🙂` chiếm hai đơn vị; tổng `length = 4`. Có ba Unicode code point. Với chính sách regex của bài, có hai token chữ là `a` và `é` sau chuẩn hóa; emoji không được tính thành token. Đếm grapheme cluster là một tiêu chí khác.
+**Answer:** `A` and `é` each take one UTF-16 unit in composed form, while emoji `🙂` takes two units; total `length = 4`. There are three Unicode code points. Under this lesson's regex policy, there are two letter tokens (`a` and `é` after normalization); emoji is not counted as a token. Counting grapheme clusters is a separate criterion.
 
-### Bài 5 — Đọc tệp thật và kiểm tra tài nguyên
+### Exercise 5 — Real File Reading and Resource Checks
 
-**Yêu cầu:** viết phương thức nhận `Path`, đọc UTF-8, đếm token, đóng Stream kể cả khi phát sinh ngoại lệ. Giải thích vì sao không gọi `Files.lines` rồi bỏ mặc Stream không đóng.
+**Task:** write a method accepting `Path`, reading UTF-8, counting tokens, and closing the Stream even when an exception occurs. Explain why `Files.lines` must never be called and left unclosed.
 
-**Lời giải:** tham khảo `countWordsFromFile` ở mục 12. Đặt toàn bộ terminal operation trong khối `try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8))`. Không làm mất thông tin về `IOException` hoặc `UncheckedIOException`.
+**Solution:** refer to `countWordsFromFile` in section 12. Place the entire terminal operation inside `try (Stream<String> lines = Files.lines(path, StandardCharsets.UTF_8))`. Do not suppress `IOException` or `UncheckedIOException`.
 
-### Bài 6 — Điều chỉnh chính sách token hóa
+### Exercise 6 — Adjusting the Tokenization Policy
 
-**Yêu cầu mở rộng:** sản phẩm muốn giữ `"Java17"` làm một token và xem dấu `#` trong hashtag là thành phần riêng của một loại token. Hãy định nghĩa lại quy tắc, ví dụ biểu thức có chữ số ở sau chữ đầu, rồi kiểm thử `Java17`, `Java-17`, `#Java`, email và dữ liệu có dấu Unicode.
+**Extension task:** the product wants `"Java17"` kept as a single token and `#` in hashtags treated as part of a specific token class. Redefine the rules—for example, allowing digits after the initial letter—then test `Java17`, `Java-17`, `#Java`, emails, and accented Unicode data.
 
-**Gợi ý:** có thể bắt đầu từ `\p{L}[\p{L}\p{M}\p{N}]*` nếu muốn cho phép chữ số Unicode sau chữ đầu; hashtag cần quy tắc khác. Mọi thay đổi định nghĩa token sẽ **thay đổi kết quả thống kê**, vì vậy cần cập nhật bộ test và tài liệu giải thích.
+**Hint:** you can start from `\p{L}[\p{L}\p{M}\p{N}]*` to permit Unicode digits after the leading letter; hashtags require a different rule. Any change to token definitions **changes statistical outputs**, so update tests and documentation accordingly.
 
-## 17. Những lỗi thường gặp
+## 17. Common Errors
 
-| Triệu chứng | Nguyên nhân | Cách xử lý |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| `"CÀ"` và `"cà"` thành hai khóa | Không chuẩn hóa chữ hoa/thường | Dùng quy tắc locale rõ ràng, ví dụ `toLowerCase(Locale.ROOT)`. |
-| `"café"` và `"cafe" + dấu kết hợp` thành hai khóa | Khác biểu diễn Unicode | Chuẩn hóa `Normalizer.Form.NFC` trước khi nhóm. |
-| `"phê,"` và `"phê"` bị đếm khác nhau | Dấu câu bị giữ trong token | Token hóa theo chính sách Unicode đã định nghĩa. |
-| Kết quả sai với emoji hoặc ký tự ngoài BMP | Duyệt từng `char` như ký tự hoàn chỉnh | Dùng `codePoints()` hoặc cơ chế grapheme phù hợp. |
-| Số từ bằng `frequencies.size()` nhưng thấp bất ngờ | Nhầm số token khác nhau với tổng lần xuất hiện | Cộng các value bằng `mapToLong(...).sum()`. |
-| Bảng tần suất in thứ tự khác nhau | `groupingBy` không cam kết thứ tự Map | Sắp entry theo count và token có tie-break. |
-| Dùng `toMap(key, value)` thì ném lỗi | Token trùng khóa | Dùng `groupingBy(..., counting())` hoặc `toMap(..., Long::sum)`. |
-| Một matcher cho nhiều thread làm mất token | `Matcher` mutable, không thread-safe | Tạo `Matcher` riêng cho mỗi lời gọi tokenizer. |
-| Bộ lọc stop words bỏ mất dữ liệu quan trọng | Danh sách và thứ tự lọc thiếu chính sách | Định nghĩa mục đích thống kê, giữ số liệu trước/sau lọc. |
-| `Files.lines` bị bỏ quên không đóng | Stream gắn với tài nguyên tệp | Dùng `try-with-resources` và terminal operation trong khối `try`. |
-| Unicode tiếng Việt bị tách sai từ ghép | Regex chỉ lấy token dạng chữ, không phải phân đoạn từ vựng | Dùng tokenizer có nhận biết ngôn ngữ nếu cần. |
-| File rất lớn làm hết bộ nhớ | Quá nhiều từ duy nhất, List token trung gian | Tính toán giới hạn, streaming tokenizer, chia lô hoặc thiết kế lưu trữ ngoài bộ nhớ. |
-| `parallelStream()` không nhanh hơn | Chi phí chia tác vụ, tạo Matcher/List và gộp Map | Đo thực tế; giữ biến đổi không có trạng thái dùng chung. |
+| `"CÀ"` and `"cà"` become two keys | No case normalization | Apply an explicit locale rule, e.g., `toLowerCase(Locale.ROOT)`. |
+| `"café"` and `"cafe" + combining mark` become two keys | Different Unicode encodings | Normalize with `Normalizer.Form.NFC` before grouping. |
+| `"phê,"` and `"phê"` counted separately | Punctuation retained in tokens | Tokenize according to the defined Unicode policy. |
+| Wrong results on emoji or non-BMP characters | Iterating `char` as full characters | Use `codePoints()` or proper grapheme segmentation. |
+| Word count equals `frequencies.size()` and is surprisingly low | Confusing distinct tokens with total occurrences | Sum Map values via `mapToLong(...).sum()`. |
+| Frequency table prints in inconsistent order | `groupingBy` makes no Map order guarantee | Sort entries by count and token with tie-breaking. |
+| `toMap(key, value)` throws an exception | Duplicate token keys | Use `groupingBy(..., counting())` or `toMap(..., Long::sum)`. |
+| Sharing one matcher across threads drops tokens | `Matcher` is mutable and not thread-safe | Create a fresh `Matcher` per tokenizer call. |
+| Stop-word filter drops critical words | Missing list/order policy | Define analytical purpose and keep pre-/post-filter metrics. |
+| `Files.lines` left unclosed | Stream backs an OS file handle | Use `try-with-resources` with the terminal operation inside `try`. |
+| Vietnamese compound words split incorrectly | Regex extracts letter tokens, not lexical words | Use a language-aware tokenizer when needed. |
+| Huge files run out of memory | Too many unique words or intermediate token Lists | Size limits, streaming tokenizer, batching, or out-of-core storage. |
+| `parallelStream()` is no faster | Splitting overhead, Matcher/List allocations, Map merging | Benchmark in practice; keep transformations free of shared state. |
 
-## 18. Checklist bàn giao pipeline phân tích văn bản
+## 18. Text Analytics Pipeline Handoff Checklist
 
-1. **Định nghĩa token:** có chữ số, hashtag, dấu nối, dấu nháy, emoji hoặc từ ghép nhiều âm tiết hay không?
-2. **Unicode:** chính sách NFC/NFKC, chữ thường và locale có được ghi rõ không?
-3. **Độ dài:** thống kê theo UTF-16 code unit, code point hay grapheme cluster?
-4. **Tách token:** `Pattern` có chấp nhận `\p{M}` và xử lý dấu kết hợp như mong muốn không?
-5. **Null:** dòng đầu vào có thể null không? Nếu có, lọc hoặc báo lỗi trước khi gọi `Normalizer`.
-6. **Stop words:** danh sách đã được chuẩn hóa theo cùng quy tắc với token chưa?
-7. **Đếm:** tổng số token và số token duy nhất có được tách thành hai chỉ số khác nhau không?
-8. **Bảng xếp hạng:** có thứ tự chính theo tần suất và tie-break xác định không?
-9. **Văn bản rỗng:** có xử lý Map rỗng và `OptionalDouble.empty()` đúng chính sách không?
-10. **Tệp:** có chỉ định UTF-8, đóng `Files.lines` và không nuốt lỗi đọc giữa pipeline không?
-11. **Song song:** matcher riêng cho mỗi tác vụ, không chia sẻ Map mutable và đã kiểm tra nội dung tuần tự/song song chưa?
-12. **Giới hạn ngôn ngữ:** với tiếng Việt, có phân biệt đếm âm tiết và đếm từ ghép không?
-13. **Hiệu năng:** đã đo số token, số token khác nhau, kích thước dòng cực đại và bộ nhớ chưa?
-14. **Kiểm thử:** có dữ liệu tiếng Việt NFC/NFD, tiếng Anh, emoji, chữ số, dấu câu, văn bản rỗng và stop words không?
+1. **Token definition:** are digits, hashtags, hyphens, apostrophes, emoji, or multi-syllable compounds included?
+2. **Unicode:** are NFC/NFKC, lowercasing, and locale policies explicitly documented?
+3. **Length metric:** are statistics measured in UTF-16 code units, code points, or grapheme clusters?
+4. **Tokenization:** does `Pattern` accept `\p{M}` and handle combining marks as intended?
+5. **Nulls:** can input lines be null? If so, filter or fail before calling `Normalizer`.
+6. **Stop words:** has the list been normalized using the exact same rules as tokens?
+7. **Counts:** are total token count and distinct token count tracked as separate metrics?
+8. **Ranking:** is there a primary sort by frequency and a deterministic tie-breaker?
+9. **Empty text:** are empty Maps and `OptionalDouble.empty()` handled according to policy?
+10. **Files:** is UTF-8 specified, `Files.lines` closed, and mid-pipeline read errors preserved?
+11. **Parallelism:** per-task Matchers, no shared mutable Maps, and sequential vs. parallel equivalence tested?
+12. **Language limits:** for Vietnamese, is syllable counting distinguished from compound-word counting?
+13. **Performance:** have token counts, unique token counts, maximum line size, and memory been measured?
+14. **Testing:** does coverage include NFC/NFD Vietnamese, English, emoji, digits, punctuation, empty text, and stop words?
 
-## Ghi nhớ
+## Key Takeaways
 
-Tạo **bảng tần suất từ** là một mẫu xử lý dữ liệu hữu ích để kết hợp nhiều kỹ thuật của **Java Stream API**: chuẩn hóa đầu vào, `flatMap` để làm phẳng token từ nhiều dòng, `groupingBy(Function.identity(), counting())` để đếm, rồi `sorted` để tạo bảng xếp hạng ổn định.
+Building a **word frequency table** is a versatile pattern combining multiple **Java Stream API** techniques: input normalization, `flatMap` to flatten per-line tokens, `groupingBy(Function.identity(), counting())` to count, and `sorted` to produce a deterministic ranking.
 
-Với văn bản Unicode, **định nghĩa token và chính sách chuẩn hóa quyết định kết quả**. `String.length()` đếm đơn vị UTF-16 chứ không phải luôn là số ký tự hiển thị; `Normalizer.Form.NFC` giúp thống nhất các biểu diễn dấu tương đương; `\p{L}` và `\p{M}` giúp biểu thức chính quy xử lý chữ và dấu kết hợp. Regex minh họa vẫn chỉ tách **token dạng chữ**, không tự hiểu từ ghép tiếng Việt hay mọi ngôn ngữ.
+For Unicode text, **your token definition and normalization policy determine the result**. `String.length()` counts UTF-16 units rather than always matching perceived characters; `Normalizer.Form.NFC` unifies canonically equivalent diacritic encodings; `\p{L}` and `\p{M}` help regex match letters with combining marks. The illustrative regex still extracts **letter tokens** rather than understanding Vietnamese compound words or every writing system.
 
-Hãy phân biệt tổng token với số token khác nhau, sắp bảng tần suất có tie-break, đóng nguồn I/O bằng `try-with-resources` và tránh cập nhật một Map/Matcher dùng chung trong pipeline song song. Sau khi chứng minh tính đúng đắn trên dữ liệu Unicode có chủ đích, mới đo và tối ưu hiệu năng.
+Always distinguish total tokens from distinct tokens, sort frequency tables with deterministic tie-breakers, close I/O streams via `try-with-resources`, and avoid updating shared Maps or Matchers inside parallel pipelines. Only after proving correctness on targeted Unicode test cases should you measure and optimize performance.

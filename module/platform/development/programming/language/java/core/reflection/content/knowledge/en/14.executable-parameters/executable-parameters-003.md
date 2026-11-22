@@ -1,52 +1,52 @@
-# `getParameterTypes()` khác `getGenericParameterTypes()` trong Java Reflection
+# `getParameterTypes()` vs. `getGenericParameterTypes()` in Java Reflection
 
-## 1. Mục tiêu: phân biệt kiểu tham số runtime và chữ ký generic
+## 1. Goal: Distinguishing Runtime Parameter Types and Generic Signatures
 
-Khi dùng Reflection trên `Method` hoặc `Constructor<?>`, hai phương thức cùng mô tả tham số của một *executable* nhưng trả về các biểu diễn khác nhau:
+When using Reflection on `Method` or `Constructor<?>`, two methods both describe the parameters of an *executable* but return different representations:
 
-- **`getParameterTypes()`** trả `Class<?>[]`: các lớp/kiểu thực tế theo **chữ ký đã erasure** (kiểu mà JVM dùng làm parameter descriptor). Nó phù hợp để tra cứu method/constructor theo chữ ký và xử lý kiểu runtime.
-- **`getGenericParameterTypes()`** trả `java.lang.reflect.Type[]`: các kiểu tham số theo **thông tin generic trong khai báo** nếu metadata hiện diện. Nó có thể phản ánh `List<String>`, `T`, `T[]`, `? extends Number`…, thay vì chỉ kiểu erasure.
+- **`getParameterTypes()`** returns `Class<?>[]`: the actual classes/types according to the **erased signature** (the types the JVM uses as parameter descriptors). It is suitable for looking up methods/constructors by signature and handling runtime types.
+- **`getGenericParameterTypes()`** returns `java.lang.reflect.Type[]`: parameter types according to the **generic information in the declaration** when metadata is present. It can reflect `List<String>`, `T`, `T[]`, `? extends Number`…, rather than just erased types.
 
-Cả hai là thành viên của lớp cha `java.lang.reflect.Executable`, nên dùng được cho **`Method` lẫn `Constructor`**. Các mảng được trả theo thứ tự tham số, nhưng có một ngoại lệ quan trọng ở constructor có tham số ngầm (mục 7).
+Both are members of the superclass `java.lang.reflect.Executable`, so they work for both **`Method` and `Constructor`**. The arrays are returned in parameter order, though there is an important exception for constructors with implicit parameters (section 7).
 
-| Tiêu chí | `getParameterTypes()` | `getGenericParameterTypes()` |
+| Criterion | `getParameterTypes()` | `getGenericParameterTypes()` |
 | --- | --- | --- |
-| Kiểu trả về | `Class<?>[]` | `Type[]` |
-| `List<String>` | `List.class` | `ParameterizedType` biểu diễn `List<String>` |
-| `T extends Number` | `Number.class` (erasure của `T`) | `TypeVariable` biểu diễn `T` |
-| `T[]` | `Number[].class` nếu erasure `T` là `Number` | `GenericArrayType` cho `T[]` |
-| `String[]` | `String[].class` | Thường là `Class` biểu diễn `String[]` |
-| Nhận biết wildcard | Không còn wildcard trong `Class<?>` | Wildcard nằm trong `ParameterizedType`, truy cập qua `WildcardType` |
-| Chọn overload / lookup | **Đúng API**: dùng các `Class<?>` erasure để tìm phương thức | Không truyền trực tiếp `Type[]` vào `getDeclaredMethod(...)` |
-| Mô tả generic cho schema/serialization | Không có generic arguments | Có thể lấy generic arguments/bounds từ chữ ký |
-| Phụ thuộc chữ ký generic metadata | Không cần metadata `Signature` để có erased parameter types | Thông tin generic chi tiết phụ thuộc vào generic signature được lưu trong class file |
+| Return type | `Class<?>[]` | `Type[]` |
+| `List<String>` | `List.class` | `ParameterizedType` representing `List<String>` |
+| `T extends Number` | `Number.class` (erasure of `T`) | `TypeVariable` representing `T` |
+| `T[]` | `Number[].class` if erasure of `T` is `Number` | `GenericArrayType` for `T[]` |
+| `String[]` | `String[].class` | Typically `Class` representing `String[]` |
+| Wildcard awareness | No wildcards remain in `Class<?>` | Wildcards reside inside `ParameterizedType`, accessed via `WildcardType` |
+| Overload selection / lookup | **Right API**: use erased `Class<?>` objects to find methods | Cannot pass `Type[]` directly into `getDeclaredMethod(...)` |
+| Describing generics for schema/serialization | No generic arguments | Can extract generic arguments/bounds from the signature |
+| Dependence on generic signature metadata | Does not require `Signature` metadata for erased parameter types | Detailed generic information depends on the generic signature stored in the class file |
 
-**Không nên hiểu `getGenericParameterTypes()` là “lấy kiểu thật của object đang truyền vào”**. Cả hai đọc **khai báo của method/constructor**, không đọc dữ liệu của các instance tham số lúc ứng dụng chạy.
+**Do not interpret `getGenericParameterTypes()` as "getting the real type of the object being passed in"**. Both read the **declaration of the method/constructor**, not the data of parameter instances at application runtime.
 
-## 2. Căn nguyên: type erasure trong Java
+## 2. Root Cause: Type Erasure in Java
 
-Generics của Java chủ yếu thực hiện kiểm tra kiểu lúc biên dịch. Sau khi biên dịch, JVM method descriptor sử dụng các kiểu đã xóa phần lớn thông tin generic (**type erasure**). Ví dụ các khai báo:
+Java generics primarily perform compile-time type checking. After compilation, JVM method descriptors use types with most generic information removed (**type erasure**). Example declarations:
 
 ```java
 void save(java.util.List<String> values) {}
 void accept(T number) {}
 ```
 
-Đây là **mảnh minh họa**, và `T` phải được khai báo ở cấp class hoặc method. Nếu `T extends Number`, kiểu erasure của `T` là `Number`. `List<String>` có kiểu erasure là `List`. Phần `String` và biến kiểu `T` có thể được ghi vào thuộc tính generic signature của class file, giúp Reflection tái tạo `Type` với nhiều chi tiết hơn.
+This is an **illustrative snippet**, and `T` must be declared at the class or method level. If `T extends Number`, the erased type of `T` is `Number`. `List<String>` has erased type `List`. The `String` part and type variable `T` can be written into the class file's generic signature attribute, enabling Reflection to reconstruct `Type` with richer detail.
 
-Các quy tắc cốt lõi:
+Core rules:
 
-1. `List<String>` và `List<Integer>` có **cùng kiểu erasure `List`**; do đó không thể có hai overload chỉ khác nhau ở hai generic arguments này.
-2. Với `<T extends Number & Comparable<T>>`, erasure của `T` là **bound đầu tiên** `Number`. Với biến kiểu không có bound tường minh, bound ngầm là `Object`.
-3. Nếu kiểu parameter là `T[]`, sau erasure `T` thành bound đầu tiên, nên parameter descriptor là mảng của kiểu bound ấy. Generic form vẫn có thể là `GenericArrayType`.
-4. `String...` là cú pháp tham số varargs; ở JVM, kiểu tham số tương ứng là **`String[]`**. `Executable.isVarArgs()` cho biết executable có khai báo varargs hay không.
-5. `getGenericParameterTypes()` không bảo đảm từng `Type` đều là một `ParameterizedType`: kiểu không generic như `int`, `String` hay `String[]` thường vẫn được biểu diễn bởi `Class<?>`.
+1. `List<String>` and `List<Integer>` have the **same erased type `List`**; therefore, you cannot have two overloads differing only in these two generic arguments.
+2. For `<T extends Number & Comparable<T>>`, the erasure of `T` is the **first bound** `Number`. For a type variable with no explicit bound, the implicit bound is `Object`.
+3. If the parameter type is `T[]`, after erasure `T` becomes its first bound, so the parameter descriptor is an array of that bound type. The generic form can still be `GenericArrayType`.
+4. `String...` is varargs parameter syntax; in the JVM, the corresponding parameter type is **`String[]`**. `Executable.isVarArgs()` indicates whether the executable is declared as varargs.
+5. `getGenericParameterTypes()` does not guarantee every `Type` is a `ParameterizedType`: non-generic types such as `int`, `String`, or `String[]` are usually still represented by `Class<?>`.
 
-Vì vậy hai API không mâu thuẫn: một API cung cấp danh sách kiểu cho **chữ ký runtime**, API kia giữ lại **ngữ nghĩa generic của khai báo** khi có dữ liệu.
+Thus the two APIs do not conflict: one provides the type list for the **runtime signature**, while the other preserves the **generic semantics of the declaration** when data is available.
 
-## 3. Ví dụ Java 17+ đầy đủ, biên dịch và chạy được
+## 3. Complete, Compilable, and Runnable Java 17+ Example
 
-Tạo tệp **`ParameterKindsDemo.java`** với mã sau (không khai báo `package`):
+Create the file **`ParameterKindsDemo.java`** with the following code (without a `package` declaration):
 
 ```java
 import java.lang.reflect.*;
@@ -105,14 +105,14 @@ public class ParameterKindsDemo {
 }
 ```
 
-Trong thư mục chứa file, chạy:
+In the directory containing the file, run:
 
 ```bash
 javac ParameterKindsDemo.java
 java ParameterKindsDemo
 ```
 
-**Kết quả đã xác minh:**
+**Verified output:**
 
 ```text
 member: analyze
@@ -130,34 +130,34 @@ upper bound: [class java.lang.Number]
 T bounds: [class java.lang.Number, java.lang.Comparable<T>]
 ```
 
-**Phân tích từng dòng:**
+**Line-by-line analysis:**
 
-- Tham số 0: `List<String>` bị erasure thành `List`. `getParameterTypes()[0]` trả `List.class`; `getGenericParameterTypes()[0]` là `ParameterizedType` giữ đối số kiểu `String`.
-- Tham số 1: `Map<String, ? extends Number>` bị erasure thành `Map`. Generic form giữ cả hai type arguments; phần thứ hai là `WildcardType` với upper bound `Number`.
-- Tham số 2: `T` bị erasure thành `Number` bởi bound đầu tiên. Generic form là `TypeVariable` có tên `T`.
-- Tham số 3: `T[]` có erasure `Number[]`, còn generic form là `GenericArrayType` mà component type là `T`.
-- Tham số 4: `List<? super Integer>` bị erasure thành `List`, nhưng generic form giữ wildcard với lower bound `Integer`.
-- Tham số 5: `String...` là `String[]` trên cả hai kết quả, và `isVarArgs()` là `true`. Không phải mọi `Type` ở generic array đều là cấu trúc generic phức tạp.
-- Constructor nhận `List<Integer>`: hai API hoạt động giống như trên method; constructor có `ParameterizedType` cho tham số này.
-- `method.getTypeParameters()[0]` lấy **biến kiểu khai báo bởi method `<T ...>`**. `getBounds()` cho biết hai bounds `Number` và `Comparable<T>`, trong khi erasure lấy bound đầu tiên.
+- Parameter 0: `List<String>` is erased to `List`. `getParameterTypes()[0]` returns `List.class`; `getGenericParameterTypes()[0]` is a `ParameterizedType` retaining the type argument `String`.
+- Parameter 1: `Map<String, ? extends Number>` is erased to `Map`. The generic form keeps both type arguments; the second is a `WildcardType` with upper bound `Number`.
+- Parameter 2: `T` is erased to `Number` via its first bound. The generic form is a `TypeVariable` named `T`.
+- Parameter 3: `T[]` has erasure `Number[]`, while the generic form is a `GenericArrayType` whose component type is `T`.
+- Parameter 4: `List<? super Integer>` is erased to `List`, but the generic form preserves the wildcard with lower bound `Integer`.
+- Parameter 5: `String...` is `String[]` in both results, and `isVarArgs()` is `true`. Not every `Type` in the generic array is a complex generic construct.
+- Constructor taking `List<Integer>`: the two APIs behave the same as on a method; the constructor has a `ParameterizedType` for this parameter.
+- `method.getTypeParameters()[0]` retrieves the **type variable declared by the method `<T ...>`**. `getBounds()` reports the two bounds `Number` and `Comparable<T>`, while erasure takes the first bound.
 
-Tên lớp triển khai cụ thể của `ParameterizedType` hay `TypeVariable` do JDK quyết định; ví dụ chỉ in các **giao diện** `Type` ổn định thay vì phụ thuộc vào tên nội bộ như `ParameterizedTypeImpl`.
+The concrete implementation class names of `ParameterizedType` or `TypeVariable` are decided by the JDK; the example only prints stable `Type` **interfaces** instead of relying on internal names like `ParameterizedTypeImpl`.
 
-## 4. Làm việc đúng với mô hình `Type`
+## 4. Working Properly with the `Type` Model
 
-`java.lang.reflect.Type` là giao diện chung. Các hình thái cần hiểu:
+`java.lang.reflect.Type` is the common interface. The forms to understand:
 
-| Hình thái `Type` | Ví dụ kiểu khai báo | Cách phân tích |
+| `Type` Form | Declared Type Example | How to Analyze |
 | --- | --- | --- |
-| `Class<?>` | `String`, `int`, `String[]`, kiểu raw `List` | `Class#getName()`, `isArray()`, `getComponentType()` |
+| `Class<?>` | `String`, `int`, `String[]`, raw `List` | `Class#getName()`, `isArray()`, `getComponentType()` |
 | `ParameterizedType` | `List<String>`, `Map<String, List<Integer>>` | `getRawType()`, `getActualTypeArguments()`, `getOwnerType()` |
-| `TypeVariable<?>` | `T` trong `<T extends Number>` | `getName()`, `getBounds()`, `getGenericDeclaration()` |
-| `GenericArrayType` | `T[]`, `List<String>[]` trong chữ ký hợp lệ | `getGenericComponentType()` |
+| `TypeVariable<?>` | `T` in `<T extends Number>` | `getName()`, `getBounds()`, `getGenericDeclaration()` |
+| `GenericArrayType` | `T[]`, `List<String>[]` in valid signatures | `getGenericComponentType()` |
 | `WildcardType` | `? extends Number`, `? super Integer` | `getUpperBounds()`, `getLowerBounds()` |
 
-Một `WildcardType` thường xuất hiện **bên trong đối số kiểu của `ParameterizedType`** (ví dụ `List<? super Integer>`), không nhất thiết là `Type` trả trực tiếp cho một formal parameter; Java không cho khai báo tham số có kiểu đứng một mình là `?`.
+A `WildcardType` typically appears **inside the type arguments of a `ParameterizedType`** (e.g., `List<? super Integer>`), not necessarily as a `Type` returned directly for a formal parameter; Java does not allow declaring a parameter whose standalone type is `?`.
 
-Ví dụ kiểm tra generic arguments trong `Map<String, ? extends Number>` dựa trên `method` của chương trình ở mục 3:
+Example inspecting generic arguments in `Map<String, ? extends Number>` based on `method` from the program in section 3:
 
 ```java
 Type parameter = method.getGenericParameterTypes()[1];
@@ -170,19 +170,19 @@ if (parameter instanceof ParameterizedType p) {
 }
 ```
 
-Đây là **mảnh mã đặt trong method**. Nội dung hai argument lần lượt là `java.lang.String` và `? extends java.lang.Number`. Nếu cần đọc bound, kiểm tra `argument instanceof WildcardType` rồi dùng `getUpperBounds()`/`getLowerBounds()`. Không ép trực tiếp wildcard thành `Class<?>`.
+This is a **code snippet placed inside a method**. The two arguments are `java.lang.String` and `? extends java.lang.Number`, respectively. If you need to read bounds, check `argument instanceof WildcardType` and then use `getUpperBounds()`/`getLowerBounds()`. Do not cast a wildcard directly to `Class<?>`.
 
-Với `T[]`, nếu `type instanceof GenericArrayType array`, hãy kiểm tra `array.getGenericComponentType()`: ở đây là biến kiểu `T`. Nếu kiểu tham số vốn là mảng thông thường như `String[]`, `type instanceof Class<?> clazz` và `clazz.isArray()` đúng; đây là hai đường xử lý khác nhau.
+For `T[]`, if `type instanceof GenericArrayType array`, inspect `array.getGenericComponentType()`: here it is type variable `T`. If the parameter type was originally a regular array like `String[]`, `type instanceof Class<?> clazz` and `clazz.isArray()` is true; these are two different handling paths.
 
-### Kiểu raw và khi không có thông tin generic chi tiết
+### Raw Types and Missing Detailed Generic Information
 
-Nếu parameter được khai báo **`List values`** (raw type), `getGenericParameterTypes()` có thể trả một `Class` tương ứng `List.class`. Không có `String`/`Integer` nào để suy ra. Nếu class file thiếu hoặc không giữ được metadata generic thích hợp, API không thể tự phục hồi type arguments từ dữ liệu runtime. Cần cung cấp schema, `Type` token hoặc metadata riêng nếu logic phụ thuộc vào generic argument.
+If a parameter is declared as **`List values`** (raw type), `getGenericParameterTypes()` may return a `Class` corresponding to `List.class`. There is no `String`/`Integer` to infer. If the class file lacks or does not retain appropriate generic metadata, the API cannot recover type arguments from runtime data. You must supply a separate schema, `Type` token, or metadata if logic depends on generic arguments.
 
-Không dùng chuỗi `type.getTypeName()` như đầu vào duy nhất để phân tích generic: định dạng chuỗi thuận tiện để hiển thị, nhưng để xây dựng schema đáng tin nên đi theo cấu trúc `ParameterizedType`, `TypeVariable`, `WildcardType` và `GenericArrayType`.
+Do not use the `type.getTypeName()` string as the sole input to parse generics: string formatting is convenient for display, but to build a reliable schema you should traverse the `ParameterizedType`, `TypeVariable`, `WildcardType`, and `GenericArrayType` structures.
 
-## 5. Tra cứu executable: dùng kiểu sau erasure
+## 5. Looking Up Executables: Use Erased Types
 
-`Class.getDeclaredMethod(String, Class<?>...)` và `Class.getMethod(String, Class<?>...)` nhận **`Class<?>` của formal parameter types**, không nhận đối tượng `ParameterizedType`. Trong ví dụ mục 3, lệnh tra cứu đúng là:
+`Class.getDeclaredMethod(String, Class<?>...)` and `Class.getMethod(String, Class<?>...)` accept **`Class<?>` of the formal parameter types**, not `ParameterizedType` objects. In the section 3 example, the correct lookup call is:
 
 ```java
 Method method = ParameterKindsDemo.class.getDeclaredMethod(
@@ -195,43 +195,43 @@ Method method = ParameterKindsDemo.class.getDeclaredMethod(
         String[].class);
 ```
 
-Đây là **mảnh mã** có thể đặt trong phương thức khai báo `throws NoSuchMethodException`. Việc truyền `Number.class`/`Number[].class` cho `T`/`T[]` tương ứng với erasure của bounded variable; `String[].class` là descriptor đúng cho varargs `String...`. `List<String>.class` hoặc `List<Integer>.class` **không tồn tại trong cú pháp class literal Java**.
+This is a **code snippet** that can be placed inside a method declared with `throws NoSuchMethodException`. Passing `Number.class`/`Number[].class` for `T`/`T[]` matches the erasure of the bounded variable; `String[].class` is the correct descriptor for varargs `String...`. `List<String>.class` or `List<Integer>.class` **do not exist in Java class literal syntax**.
 
-Ví dụ hai khai báo sau trong cùng class **không hợp lệ**, do có cùng name và erasure:
+For example, the following two declarations in the same class are **invalid**, because they share the same name and erasure:
 
 ```java
-// Minh họa lỗi biên dịch: name clash (không đặt cả hai trong class thực tế)
+// Compile error illustration: name clash (do not place both in an actual class)
 void handle(List<String> values) {}
 void handle(List<Integer> values) {}
 ```
 
-Nếu đang viết bộ chọn method overload, đừng so sánh generic arguments như thể JVM phân biệt hai overload ở cùng chữ ký erasure. Dùng `Class<?>[]` để lookup, rồi kiểm tra `Type[]` cho chính sách nghiệp vụ (chẳng hạn validation/serialization).
+If you are writing a method overload selector, do not compare generic arguments as though the JVM distinguishes two overloads with the same erased signature. Use `Class<?>[]` for lookup, then inspect `Type[]` for business policies (such as validation/serialization).
 
-### Chữ ký generic không phải kiểm tra kiểu động của dữ liệu
+### Generic Signatures Are Not Dynamic Data Type Checks
 
-Giả sử khai báo `void save(List<String> values)`. `getGenericParameterTypes()[0]` có thể mô tả `List<String>`, nhưng không có nghĩa runtime kiểm chứng rằng từng phần tử trong một `List` luôn là `String`. Với raw types, unchecked casts hoặc reflection, dữ liệu thực tế có thể không tuân theo ý nghĩa generic ở nguồn Java. Một thư viện serializer muốn xác minh dữ liệu cần kiểm tra giá trị và chính sách riêng.
+Suppose `void save(List<String> values)` is declared. `getGenericParameterTypes()[0]` may describe `List<String>`, but that does not mean runtime verifies every element inside a `List` is always a `String`. With raw types, unchecked casts, or reflection, actual data may not conform to the Java source generic intent. A serializer library wishing to verify data must validate values and enforce its own policy.
 
-## 6. Tham số `Parameter`, tên tham số và type-use annotations
+## 6. `Parameter`, Parameter Names, and Type-Use Annotations
 
-Ngoài hai mảng ở trên, `Executable` còn cung cấp:
+In addition to the two arrays above, `Executable` also provides:
 
-- `getParameters()` → `Parameter[]`: metadata của từng formal parameter, tên (nếu có), modifiers, tình trạng implicit/synthetic.
-- `Parameter.getType()` → `Class<?>` (erasure).
-- `Parameter.getParameterizedType()` → `Type` (thông tin generic của parameter đó).
-- `getAnnotatedParameterTypes()` → `AnnotatedType[]`: type-use annotations tại vị trí kiểu tham số (ví dụ chú thích `@NonNull` đặt trên type use nếu annotation hỗ trợ `ElementType.TYPE_USE` và được giữ ở runtime).
-- `getParameterCount()` → số lượng formal parameters theo mô hình executable.
-- `isVarArgs()` → phân biệt khai báo varargs với tham số mảng thông thường.
-- `getTypeParameters()` → `TypeVariable<?>[]` được khai báo trên executable (khác với mảng `Type[]` của các tham số).
+- `getParameters()` → `Parameter[]`: metadata of each formal parameter, name (if present), modifiers, implicit/synthetic status.
+- `Parameter.getType()` → `Class<?>` (erased).
+- `Parameter.getParameterizedType()` → `Type` (generic information of that parameter).
+- `getAnnotatedParameterTypes()` → `AnnotatedType[]`: type-use annotations at the parameter type site (for example, `@NonNull` placed on a type use if the annotation supports `ElementType.TYPE_USE` and is retained at runtime).
+- `getParameterCount()` → number of formal parameters in the executable model.
+- `isVarArgs()` → distinguishes varargs declarations from regular array parameters.
+- `getTypeParameters()` → `TypeVariable<?>[]` declared on the executable (distinct from the `Type[]` array of parameters).
 
-**Biên dịch bằng `javac -parameters`** giúp ghi tên tham số nguồn vào class file để `Parameter.getName()` có thể cung cấp tên thực (trong điều kiện phù hợp), và `isNamePresent()` cho biết tên có mặt. Nó **không phải là cờ bật generic signatures**. `getGenericParameterTypes()` vẫn có thể đọc generic signature của bytecode được biên dịch thông thường khi metadata đó tồn tại.
+**Compiling with `javac -parameters`** writes source parameter names into the class file so `Parameter.getName()` can provide actual names (under appropriate conditions), and `isNamePresent()` indicates whether names are present. It **is not a flag that enables generic signatures**. `getGenericParameterTypes()` can still read generic signatures from normally compiled bytecode when that metadata exists.
 
-Ví dụ, nếu `method.getParameters()[0].getName()` trả tên như `arg0` thì không thể tự kết luận generic type của parameter đã biến mất; metadata tên và metadata generic là hai cơ chế khác nhau.
+For example, if `method.getParameters()[0].getName()` returns a name like `arg0`, you cannot conclude that the parameter's generic type has disappeared; name metadata and generic metadata are two separate mechanisms.
 
-## 7. Bẫy tinh vi: tham số ngầm ở constructor inner class
+## 7. Subtle Pitfall: Implicit Parameters in Inner Class Constructors
 
-Một số constructor có **tham số ngầm hoặc synthetic** do trình biên dịch tạo ra, đặc biệt constructor của non-static inner class. Javadoc của `Executable.getGenericParameterTypes()` cảnh báo rằng **số lượng phần tử có thể khác `getParameterTypes()`**, tùy class file có generic information hay không: khi generic information hiện diện, API có thể chỉ báo các tham số được khai báo tường minh trong source; những tham số implicit/synthetic có thể không xuất hiện trong mảng generic.
+Some constructors have **implicit or synthetic parameters** generated by the compiler, especially constructors of non-static inner classes. The Javadoc for `Executable.getGenericParameterTypes()` warns that **the number of elements may differ from `getParameterTypes()`**, depending on whether the class file has generic information: when generic information is present, the API may report only the parameters explicitly declared in source; implicit/synthetic parameters may not appear in the generic array.
 
-Đây là ví dụ Java 17+ độc lập. Tạo tệp **`InnerReflectionDemo.java`**:
+Here is a standalone Java 17+ example. Create the file **`InnerReflectionDemo.java`**:
 
 ```java
 import java.lang.reflect.*;
@@ -257,14 +257,14 @@ public class InnerReflectionDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac InnerReflectionDemo.java
 java InnerReflectionDemo
 ```
 
-Kết quả đã xác minh với `javac` thông thường:
+Verified output with standard `javac`:
 
 ```text
 raw count: 2
@@ -274,84 +274,84 @@ raw: java.util.List
 generic: java.util.List<java.lang.String>
 ```
 
-Lớp `Inner` là non-static inner class nên JVM constructor nhận **tham chiếu đến instance của `InnerReflectionDemo`** để xác định enclosing instance; tham số này không được viết trong source constructor `Inner(List<String> names)`. Vì vậy `getParameterTypes()` liệt kê hai tham số runtime (`InnerReflectionDemo` và `List`), trong khi generic signature mô tả tham số khai báo tường minh là `List<String>`.
+Class `Inner` is a non-static inner class, so the JVM constructor receives a **reference to an instance of `InnerReflectionDemo`** for the enclosing instance; this parameter is not written in the source constructor `Inner(List<String> names)`. Thus `getParameterTypes()` lists two runtime parameters (`InnerReflectionDemo` and `List`), while the generic signature describes the explicitly declared parameter `List<String>`.
 
-**Hệ quả:** Không mặc định rằng `getParameterTypes()[i]` luôn tương ứng với `getGenericParameterTypes()[i]` ở mọi executable; vòng `for` trong ví dụ mục 3 **được viết cho method/constructor không có tham số ngầm**, không phải một bộ phân tích generic tổng quát cho mọi constructor. Trước khi ghép chỉ số, kiểm tra độ dài và tham số implicit/synthetic; nếu cần metadata theo từng tham số, cân nhắc `getParameters()` cùng `Parameter.getParameterizedType()` và đặc điểm biên dịch của class. Các trường hợp constructor của enum, inner class hoặc bytecode được tạo bởi công cụ cần được xem xét riêng thay vì đoán tương quan chỉ số.
+**Consequence:** Do not assume `getParameterTypes()[i]` always corresponds to `getGenericParameterTypes()[i]` on every executable; the `for` loop in the section 3 example **was written for methods/constructors without implicit parameters**, not as a general-purpose generic analyzer for all constructors. Before pairing by index, check array lengths and implicit/synthetic parameters; if per-parameter metadata is needed, consider `getParameters()` along with `Parameter.getParameterizedType()` and the class's compilation characteristics. Cases such as enum constructors, inner classes, or tool-generated bytecode must be handled specifically rather than guessing index alignment.
 
-Chính vì sự khác biệt metadata này, một chương trình khai thác Reflection tổng quát cần tránh giả thiết hai mảng có độ dài bằng nhau. Lỗi `ArrayIndexOutOfBoundsException` hay gán nhầm generic type cho enclosing instance là hậu quả có thể xảy ra nếu cứ lặp theo chiều dài `getParameterTypes()` rồi đọc `generic[i]`.
+Because of this metadata discrepancy, a general Reflection-based program should avoid assuming the two arrays have equal lengths. `ArrayIndexOutOfBoundsException` or assigning the wrong generic type to the enclosing instance can occur if you blindly loop up to `getParameterTypes().length` and read `generic[i]`.
 
-## 8. Trường hợp khó và những ngoại lệ khi đọc generic signature
+## 8. Edge Cases and Exceptions When Reading Generic Signatures
 
-Các API generic Reflection phụ thuộc metadata chữ ký được biên dịch/cung cấp. Theo Javadoc `Executable.getGenericParameterTypes()`, một số lỗi có thể xảy ra khi đọc chữ ký của bytecode không hợp lệ hoặc không còn nhất quán:
+Generic Reflection APIs rely on compiled/provided signature metadata. Per the Javadoc of `Executable.getGenericParameterTypes()`, several errors can occur when reading invalid or inconsistent bytecode signatures:
 
-| Ngoại lệ / Error | Nguyên nhân |
+| Exception / Error | Cause |
 | --- | --- |
-| `GenericSignatureFormatError` | Generic signature trong class file không tuân định dạng JVM |
-| `TypeNotPresentException` | Generic signature tham chiếu kiểu không thể tìm thấy |
-| `MalformedParameterizedTypeException` | Một parameterized type trong chữ ký không thể tạo dưới mô hình phản chiếu |
+| `GenericSignatureFormatError` | The generic signature in the class file does not conform to the JVM format |
+| `TypeNotPresentException` | The generic signature references a type that cannot be found |
+| `MalformedParameterizedTypeException` | A parameterized type in the signature cannot be instantiated under the reflection model |
 
-Đây không phải kết quả thông thường khi biên dịch Java chuẩn trên classpath/module path nhất quán, nhưng hữu ích khi xử lý bytecode cũ, bytecode generator, shading, version mismatch hoặc thư viện bị thiếu. Không nên dùng `catch (Exception)` để ngầm coi mọi dữ liệu signature lỗi là “không generic”; `GenericSignatureFormatError` là `Error`, không phải `Exception`.
+These do not occur during normal Java compilation on a consistent classpath/module path, but they are relevant when handling legacy bytecode, bytecode generators, shading, version mismatches, or missing libraries. Do not use `catch (Exception)` to silently treat any malformed signature as "non-generic"; `GenericSignatureFormatError` is an `Error`, not an `Exception`.
 
-Các lưu ý khác:
+Other notes:
 
-- `getDeclaredMethods()` có thể thấy **bridge/synthetic methods** do compiler tạo. Khi suy luận về API nguồn, kiểm tra `Method.isBridge()`/`isSynthetic()`; bản bridge có chữ ký sau erasure khác method nguồn.
-- Raw type trong signature có thể chỉ được biểu diễn bằng `Class<?>`; `getGenericParameterTypes()` không hứa trả `ParameterizedType` cho mọi parameter.
-- Với `TypeVariable`, bounds của method/class được khai báo độc lập; cùng tên `T` trong hai method không nhất thiết cùng declaration. Có thể dùng `getGenericDeclaration()` để biết biến kiểu thuộc nơi khai báo nào.
-- `getGenericParameterTypes()` giữ những thông tin generic còn có trong **declaration**, không thể dựng `List<String>` từ `List<?>` do caller truyền hoặc suy ra `String` từ phần tử hiện tại.
+- `getDeclaredMethods()` can see compiler-generated **bridge/synthetic methods**. When inferring source APIs, check `Method.isBridge()`/`isSynthetic()`; a bridge method has a different erased signature from the source method.
+- A raw type in a signature may simply be represented by `Class<?>`; `getGenericParameterTypes()` does not promise to return `ParameterizedType` for every parameter.
+- For `TypeVariable`, bounds of a method/class are declared independently; the same name `T` in two methods is not necessarily the same declaration. You can use `getGenericDeclaration()` to see which declaration owns the type variable.
+- `getGenericParameterTypes()` preserves generic information still present in the **declaration**; it cannot reconstruct `List<String>` from a `List<?>` passed by a caller or infer `String` from current elements.
 
-## 9. Quy trình áp dụng khi viết framework
+## 9. Workflow When Building a Framework
 
-1. **Xác định mục đích:** cần tìm executable/gọi method theo chữ ký JVM, hay cần hiểu generic contract để chuyển đổi JSON, binding, validation?
-2. **Tìm executable bằng erased types:** dùng `getDeclaredMethod(name, Class<?>...)`, `getDeclaredConstructor(Class<?>...)` hoặc liệt kê danh sách rồi lọc. Với overload, số/loại erased formal parameters là dữ kiện quan trọng.
-3. **Đọc generic contract:** gọi `getGenericParameterTypes()` (hoặc `Parameter.getParameterizedType()` nếu cần metadata theo từng tham số) và phân tích `Type` theo loại thực tế.
-4. **Xử lý type variables, wildcards và generic arrays:** duyệt cấu trúc `Type`; không ép mọi `Type` về `Class<?>`. Nếu cần resolve `T` trong subclass cụ thể, phải có **binding ngữ cảnh** từ generic superclass/interfaces hoặc type token; Reflection không tự thay `T` bằng type argument của mọi lời gọi.
-5. **Cẩn trọng với tham số ngầm:** nếu là constructor đặc biệt, không căn theo chỉ số hai mảng trước khi xác nhận tương ứng.
-6. **Kiểm tra đầu vào thật ở runtime:** chữ ký generic mô tả khai báo, còn dữ liệu thực tế cần validation riêng.
-7. **Báo lỗi metadata minh bạch:** xử lý trường hợp signature không hợp lệ hoặc thiếu dependency; đừng tạo schema sai khi thông tin generic không đủ.
+1. **Determine the goal:** do you need to find an executable/invoke a method by JVM signature, or understand the generic contract for JSON conversion, binding, or validation?
+2. **Look up the executable using erased types:** use `getDeclaredMethod(name, Class<?>...)`, `getDeclaredConstructor(Class<?>...)`, or list and filter. For overloads, the number/types of erased formal parameters are key facts.
+3. **Read the generic contract:** call `getGenericParameterTypes()` (or `Parameter.getParameterizedType()` if per-parameter metadata is needed) and inspect `Type` according to its actual kind.
+4. **Handle type variables, wildcards, and generic arrays:** traverse the `Type` structure; do not cast every `Type` to `Class<?>`. If you need to resolve `T` in a concrete subclass, you must have **contextual bindings** from generic superclasses/interfaces or a type token; Reflection does not automatically substitute `T` with call-site type arguments.
+5. **Be careful with implicit parameters:** if it is a special constructor, do not align the two arrays by index before confirming correspondence.
+6. **Validate real inputs at runtime:** generic signatures describe declarations, while actual data requires separate validation.
+7. **Report metadata errors transparently:** handle invalid signatures or missing dependencies; do not construct wrong schemas when generic information is insufficient.
 
-Ví dụ chọn đúng API:
+Examples of choosing the right API:
 
-| Mục tiêu | Ưu tiên |
+| Goal | Prefer |
 | --- | --- |
-| Tìm method có tham số `List<String>` trong class | `getDeclaredMethod("name", List.class)` |
-| Xác định list element type khai báo | `getGenericParameterTypes()` rồi đọc `ParameterizedType.getActualTypeArguments()` |
-| Tìm bound của `T extends Number` | `TypeVariable.getBounds()` |
-| Kiểm tra phương thức có varargs | `Executable.isVarArgs()` |
-| Phân tích type-use annotation | `getAnnotatedParameterTypes()` |
-| Lấy tên tham số nguồn nếu còn metadata | `getParameters()` và `Parameter.isNamePresent()` |
-| Thực hiện method với tham số tại runtime | Chuẩn bị object đúng erased types rồi gọi `Method.invoke(...)`; không dùng `ParameterizedType` làm runtime `Class` |
+| Find a method with parameter `List<String>` in a class | `getDeclaredMethod("name", List.class)` |
+| Determine declared list element type | `getGenericParameterTypes()` then read `ParameterizedType.getActualTypeArguments()` |
+| Find bounds of `T extends Number` | `TypeVariable.getBounds()` |
+| Check whether a method has varargs | `Executable.isVarArgs()` |
+| Analyze type-use annotations | `getAnnotatedParameterTypes()` |
+| Get source parameter names if metadata remains | `getParameters()` and `Parameter.isNamePresent()` |
+| Invoke method with arguments at runtime | Prepare objects matching erased types then call `Method.invoke(...)`; do not use `ParameterizedType` as a runtime `Class` |
 
-## 10. Sai lầm phổ biến và bài tập tự kiểm tra
+## 10. Common Pitfalls and Self-Check Exercises
 
-| Quan niệm sai | Cách hiểu đúng |
+| Misconception | Correct Understanding |
 | --- | --- |
-| “Hai API chỉ khác kiểu trả về mảng, thông tin giống nhau.” | Một bên là `Class<?>` erasure; bên kia có cấu trúc `Type` mô tả generic declaration. |
-| “`getGenericParameterTypes()[0]` luôn là `ParameterizedType`.” | Có thể là `Class`, `TypeVariable` hoặc `GenericArrayType`; tùy khai báo. |
-| “`getParameterTypes()` cho `List<String>`.” | Kết quả là `List.class`; generic argument đã erasure. |
-| “Có thể ép `Type` thành `Class<?>` cho mọi tham số.” | Cast sai với parameterized type/type variable/generic array. |
-| “Hai mảng luôn dài bằng nhau.” | Constructor inner class có tham số ngầm có thể khiến kích thước khác nhau. |
-| “`-parameters` mới làm generic Reflection hoạt động.” | Cờ này chủ yếu lưu **tên tham số**, không phải điều kiện chung để lưu generic signature. |
-| “Metadata `List<String>` chứng minh mọi phần tử trong List runtime đều là String.” | Generic type ở khai báo không thay thế kiểm tra dữ liệu runtime. |
-| “Có thể overload `handle(List<String>)` và `handle(List<Integer>)`.” | Hai chữ ký có erasure giống nhau nên clash khi cùng một phạm vi khai báo. |
+| "The two APIs only differ in array return type; the information is the same." | One gives erased `Class<?>`; the other provides `Type` structures describing the generic declaration. |
+| "`getGenericParameterTypes()[0]` is always a `ParameterizedType`." | It can be `Class`, `TypeVariable`, or `GenericArrayType`, depending on the declaration. |
+| "`getParameterTypes()` gives `List<String>`." | The result is `List.class`; generic arguments are erased. |
+| "You can cast `Type` to `Class<?>` for every parameter." | Casting fails on parameterized types, type variables, and generic arrays. |
+| "Both arrays always have the same length." | Inner class constructors with implicit parameters can cause different sizes. |
+| "`-parameters` is what makes generic Reflection work." | That flag mainly stores **parameter names**, not a general requirement for storing generic signatures. |
+| "`List<String>` metadata proves every element in a runtime List is a String." | Generic types on declarations do not replace runtime data validation. |
+| "You can overload `handle(List<String>)` and `handle(List<Integer>)`." | Both signatures have the same erasure and clash in the same declaration scope. |
 
-**Bài tập 1.** Cho `void f(List<? extends CharSequence> x, int[] y)`. Dự đoán hai mảng từ `getParameterTypes()` và `getGenericParameterTypes()`, và giải thích vì sao `int[]` thường là `Class<?>` trong cả hai.
+**Exercise 1.** Given `void f(List<? extends CharSequence> x, int[] y)`. Predict the two arrays from `getParameterTypes()` and `getGenericParameterTypes()`, and explain why `int[]` is usually `Class<?>` in both.
 
-**Bài tập 2.** Cho `<T extends Serializable & Comparable<T>> void f(T x, T[] xs)`. Dự đoán erasure của hai parameter và cách lấy cả hai bounds. `Serializable` là bound đầu tiên trong khai báo này.
+**Exercise 2.** Given `<T extends Serializable & Comparable<T>> void f(T x, T[] xs)`. Predict the erasure of both parameters and how to retrieve both bounds. `Serializable` is the first bound in this declaration.
 
-**Bài tập 3.** Dùng `ParameterizedType` để lấy `String` từ `List<String>`, rồi thay tham số bằng `List<? super Integer>` và xem lower bounds của `WildcardType`.
+**Exercise 3.** Use `ParameterizedType` to extract `String` from `List<String>`, then replace the parameter with `List<? super Integer>` and inspect the lower bounds of `WildcardType`.
 
-**Bài tập 4.** Tạo một non-static inner class có constructor nhận `List<String>`, chạy ví dụ mục 7 và lý giải sự khác biệt về số phần tử.
+**Exercise 4.** Create a non-static inner class with a constructor taking `List<String>`, run the section 7 example, and explain the difference in element counts.
 
-**Bài tập 5.** Viết logic tra cứu method `analyze` ở mục 3 bằng `getDeclaredMethod` mà không dùng bất kỳ generic `Type` nào, sau đó dùng `getGenericParameterTypes` để hiển thị danh sách kiểu khai báo đầy đủ.
+**Exercise 5.** Write lookup logic for the `analyze` method in section 3 using `getDeclaredMethod` without any generic `Type`, then use `getGenericParameterTypes` to display the full list of declared types.
 
-**Ghi nhớ:** `getParameterTypes()` cho **`Class<?>[]` theo chữ ký đã erasure**, còn `getGenericParameterTypes()` cho **`Type[]` phản ánh generic signature khi có metadata**. Cần chọn API theo mục đích, phân tích các dạng `Type` đúng cách, và đặc biệt không mặc định hai mảng luôn tương ứng 1:1 trong constructor có tham số ngầm.
+**Remember:** `getParameterTypes()` gives **`Class<?>[]` for the erased signature**, whereas `getGenericParameterTypes()` gives **`Type[]` reflecting the generic signature when metadata is present**. Choose the API according to your goal, inspect the `Type` forms properly, and especially never assume the two arrays always map 1:1 in constructors with implicit parameters.
 
-## 11. Tham khảo chính thức
+## 11. Official References
 
-- [Javadoc Java SE 17 — `Executable.getParameterTypes` và `getGenericParameterTypes`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Executable.html) — ngữ nghĩa, lưu ý tham số ngầm và các ngoại lệ khi đọc chữ ký.
-- [Javadoc Java SE 17 — `ParameterizedType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/ParameterizedType.html) — `getActualTypeArguments`, `getRawType`.
-- [Javadoc Java SE 17 — `TypeVariable`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/TypeVariable.html) — `getName`, `getBounds` và declaration.
-- [Javadoc Java SE 17 — `GenericArrayType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/GenericArrayType.html) — generic component type.
-- [Javadoc Java SE 17 — `WildcardType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/WildcardType.html) — upper/lower bounds.
-- [Javadoc Java SE 17 — `Class.getDeclaredMethod`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getDeclaredMethod(java.lang.String,java.lang.Class...)) — tra cứu method bằng danh sách `Class<?>`.
-- [Java Language Specification `4.6 Erasure`](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.6) — quy tắc xóa generic types.
+- [Java SE 17 Javadoc — `Executable.getParameterTypes` and `getGenericParameterTypes`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Executable.html) — semantics, notes on implicit parameters, and exceptions when reading signatures.
+- [Java SE 17 Javadoc — `ParameterizedType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/ParameterizedType.html) — `getActualTypeArguments`, `getRawType`.
+- [Java SE 17 Javadoc — `TypeVariable`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/TypeVariable.html) — `getName`, `getBounds`, and declaration.
+- [Java SE 17 Javadoc — `GenericArrayType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/GenericArrayType.html) — generic component type.
+- [Java SE 17 Javadoc — `WildcardType`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/WildcardType.html) — upper/lower bounds.
+- [Java SE 17 Javadoc — `Class.getDeclaredMethod`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getDeclaredMethod(java.lang.String,java.lang.Class...)) — looking up methods by a list of `Class<?>`.
+- [Java Language Specification `4.6 Erasure`](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.6) — generic type erasure rules.

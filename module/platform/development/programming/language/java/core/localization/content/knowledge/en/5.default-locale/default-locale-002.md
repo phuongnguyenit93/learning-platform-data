@@ -1,28 +1,28 @@
-# Hai nhóm `Locale.Category.DISPLAY` và `Locale.Category.FORMAT` trong Java
+# The Two Categories `Locale.Category.DISPLAY` and `Locale.Category.FORMAT` in Java
 
-Trong một ứng dụng đa ngôn ngữ, người dùng có thể muốn **đọc tên các ngôn ngữ/quốc gia bằng tiếng Việt** nhưng **hiển thị số, ngày tháng theo quy ước của Đức**. Hai nhu cầu này không nhất thiết phải dùng cùng một `Locale`. Java cung cấp hai nhóm mặc định trong `java.util.Locale.Category`: `DISPLAY` và `FORMAT`.
+In a multilingual application, a user might want to **read language/country names in Vietnamese** while **displaying numbers and dates according to German conventions**. These two needs do not necessarily have to use the same `Locale`. Java provides two default categories in `java.util.Locale.Category`: `DISPLAY` and `FORMAT`.
 
-Điểm cốt lõi của bài học: **`DISPLAY` điều khiển locale mặc định cho các thao tác tạo tên hiển thị**, còn **`FORMAT` điều khiển locale mặc định cho các thao tác định dạng được thiết kế sử dụng nhóm này**. Cả hai đều là cài đặt mặc định **cấp JVM**, không phải cấu hình riêng cho mỗi người dùng hay mỗi HTTP request.
+Core takeaway of this lesson: **`DISPLAY` controls the default locale for operations that produce display names**, while **`FORMAT` controls the default locale for formatting operations designed to use this category**. Both are **JVM-level** default settings, not per-user or per-HTTP-request configurations.
 
-## 1. Vì sao Java cần hai nhóm mặc định?
+## 1. Why Does Java Need Two Default Categories?
 
-Hãy xét một màn hình cài đặt có các phần sau:
+Consider a settings screen with the following parts:
 
-- Danh sách quốc gia/ngôn ngữ: `Germany`, `France`, `Vietnamese` hoặc các tên tương đương bằng ngôn ngữ giao diện.
-- Một giá trị số: `12345.67`, có thể hiển thị bằng dấu phân cách phần nghìn/thập phân theo vùng.
-- Một ngày: 28/10/2026, có thể được trình bày bằng thứ tự, cách viết và ký hiệu phù hợp với vùng.
+- A list of countries/languages: `Germany`, `France`, `Vietnamese`, or equivalent names in the UI language.
+- A numeric value: `12345.67`, which may be displayed using regional thousand/decimal separators.
+- A date: 28/10/2026, which may be presented using regionally appropriate order, wording, and symbols.
 
-Ngôn ngữ dùng để **gọi tên** một quốc gia là một lựa chọn; quy tắc dùng để **trình bày** số và ngày là một lựa chọn khác. Một JVM cũng có **default locale tổng quát** cho các API không chỉ định category. Do đó, phải biết lời gọi nào thật sự lấy default nào.
+The language used to **name** a country is one choice; the rules used to **present** numbers and dates are another choice. A JVM also has a **general default locale** for APIs that do not specify a category. Therefore, you must know which call actually reads which default.
 
-| Giá trị/default | API đọc | Mục đích chính | Ví dụ sử dụng |
+| Value/default | Reading API | Primary purpose | Usage examples |
 | --- | --- | --- | --- |
-| **Mặc định tổng quát** (không category) | `Locale.getDefault()` | Default chung cho API sử dụng mặc định tổng quát | `ResourceBundle.getBundle("messages")` dùng default tổng quát khi không truyền locale |
-| **DISPLAY** | `Locale.getDefault(Locale.Category.DISPLAY)` | Ngôn ngữ/vùng ưu tiên để *diễn đạt tên* trong các API tên hiển thị | `target.getDisplayName()`, `getDisplayLanguage()`, `getDisplayCountry()` |
-| **FORMAT** | `Locale.getDefault(Locale.Category.FORMAT)` | Quy ước địa phương ưu tiên khi *định dạng* qua API có hỗ trợ | `NumberFormat.getNumberInstance()`, `NumberFormat.getCurrencyInstance()` |
+| **General default** (no category) | `Locale.getDefault()` | Common default for APIs using the general default | `ResourceBundle.getBundle("messages")` uses the general default when no locale is passed |
+| **DISPLAY** | `Locale.getDefault(Locale.Category.DISPLAY)` | Preferred language/region for *expressing names* in display-name APIs | `target.getDisplayName()`, `getDisplayLanguage()`, `getDisplayCountry()` |
+| **FORMAT** | `Locale.getDefault(Locale.Category.FORMAT)` | Preferred regional conventions when *formatting* via supported APIs | `NumberFormat.getNumberInstance()`, `NumberFormat.getCurrencyInstance()` |
 
-`Locale.Category` là một enum có hai hằng `DISPLAY` và `FORMAT`. Chúng **phân loại mục đích dùng default**, không phải hai kiểu đối tượng locale mới: cả ba lệnh `getDefault(...)` vẫn trả về đối tượng `Locale` thông thường.
+`Locale.Category` is an enum with two constants: `DISPLAY` and `FORMAT`. They **categorize the purpose of the default**, rather than being two new kinds of locale objects: all three `getDefault(...)` calls still return ordinary `Locale` objects.
 
-### Nhìn dưới dạng luồng lựa chọn
+### Viewing It as a Selection Flow
 
 ```text
                  JVM
@@ -31,18 +31,19 @@ Ngôn ngữ dùng để **gọi tên** một quốc gia là một lựa chọn; 
         |         |          |
  general default  DISPLAY    FORMAT
         |         |          |
-  API dùng      Tên ngôn    Số, tiền,
-  default       ngữ/vùng    ngày tháng
-  tổng quát     hiển thị    (API tương ứng)
+  APIs using    Language/   Numbers, money,
+  general       region      dates & times
+  default       display     (respective APIs)
+        |       names        |
         |         |          |
   getDefault()  getDisplayName()  NumberFormat.getNumberInstance()
 ```
 
-Không phải API nào có yếu tố bản địa hóa cũng đương nhiên dùng `DISPLAY` hoặc `FORMAT`. Phải xem hợp đồng của **từng phương thức**. Nếu truyền `Locale` tường minh, API thường ưu tiên đối tượng được truyền thay vì các default toàn cục.
+Not every localization-related API automatically uses `DISPLAY` or `FORMAT`. You must check the contract of **each method**. If an explicit `Locale` is passed, APIs normally prioritize the passed object over the global defaults.
 
-## 2. Đọc default của từng nhóm
+## 2. Reading Each Category's Default
 
-Ba lời gọi dưới đây có thể trả về **ba locale khác nhau**:
+The three calls below can return **three different locales**:
 
 ```java
 Locale base = Locale.getDefault();
@@ -54,9 +55,9 @@ Locale format = Locale.getDefault(
         Locale.Category.FORMAT);
 ```
 
-Đây là **đoạn mã trong một phương thức**, cần `import java.util.Locale;`. Không dùng `Locale.getDefault()` như một bí danh chắc chắn cho `Locale.getDefault(Locale.Category.FORMAT)` hoặc `DISPLAY`: chúng có thể trùng nhau trong một môi trường, nhưng không có yêu cầu phải luôn trùng nhau.
+This is a **code snippet inside a method**, requiring `import java.util.Locale;`. Do not treat `Locale.getDefault()` as a guaranteed alias for `Locale.getDefault(Locale.Category.FORMAT)` or `DISPLAY`: they may match in one environment, but there is no requirement that they always match.
 
-Chương trình Java 17+ in ra ba locale đang hoạt động — file `InspectDefaultLocale.java`:
+Java 17+ program that prints the three active locales — file `InspectDefaultLocale.java`:
 
 ```java
 import java.util.Locale;
@@ -83,13 +84,13 @@ javac InspectDefaultLocale.java
 java InspectDefaultLocale
 ```
 
-Ví dụ **không có stdout cố định** vì default được JVM thiết lập khi khởi động dựa trên cấu hình máy chủ/môi trường. Một máy có thể in ra cùng thẻ cho cả ba dòng; máy khác có thể khác nhau. Dòng cuối là phép so sánh giá trị `Locale`, không so sánh object identity bằng `==`.
+This example **has no fixed stdout** because defaults are established by the JVM at startup based on host/environment configuration. One machine may print the same tag on all three lines; another machine may print different ones. The last line compares `Locale` values, not object identity with `==`.
 
-Khi cần kiểm tra thực trạng trên server, luôn quan sát từng category trực tiếp. Đừng kết luận `DISPLAY` và `FORMAT` giống nhau chỉ vì `Locale.getDefault()` trả một giá trị quen thuộc.
+When inspecting the actual state on a server, always observe each category directly. Do not conclude `DISPLAY` and `FORMAT` are the same just because `Locale.getDefault()` returns a familiar value.
 
-## 3. DISPLAY: ngôn ngữ diễn đạt tên của Locale
+## 3. DISPLAY: Language for Expressing a Locale's Name
 
-Đối tượng cần lấy tên và locale dùng để diễn đạt tên là **hai vai trò khác nhau**:
+The target object whose name is requested and the locale used to express that name play **two different roles**:
 
 ```java
 Locale target = Locale.forLanguageTag("ja-JP");
@@ -99,29 +100,29 @@ String implicitLabel = target.getDisplayName();
 String explicitLabel = target.getDisplayName(uiLocale);
 ```
 
-- `target` là locale được gọi tên: tiếng Nhật ở Nhật Bản.
-- `target.getDisplayName()` mặc định diễn đạt tên bằng `Locale.getDefault(Locale.Category.DISPLAY)`.
-- `target.getDisplayName(uiLocale)` diễn đạt tên bằng `vi-VN` theo dữ liệu bản địa hóa của runtime, **không phụ thuộc** default DISPLAY hiện hành.
-- Cả hai chỉ lấy chuỗi để hiển thị; chúng **không đổi** `target` và không biến locale Nhật thành locale Việt.
+- `target` is the locale being named: Japanese in Japan.
+- `target.getDisplayName()` defaults to expressing the name using `Locale.getDefault(Locale.Category.DISPLAY)`.
+- `target.getDisplayName(uiLocale)` expresses the name in `vi-VN` according to the runtime's localization data, **independent** of the current DISPLAY default.
+- Both only retrieve a string for display; they **do not modify** `target` and do not turn a Japanese locale into a Vietnamese locale.
 
-Cùng nhóm phương thức không tham số: `getDisplayLanguage()`, `getDisplayScript()`, `getDisplayCountry()`, `getDisplayVariant()`. Các overload có tham số `Locale inLocale` cho phép chọn ngôn ngữ hiển thị cụ thể.
+In the same group of no-argument methods: `getDisplayLanguage()`, `getDisplayScript()`, `getDisplayCountry()`, `getDisplayVariant()`. The overloads taking a `Locale inLocale` parameter allow choosing a specific display language.
 
-**Lưu ý:** nhãn hiển thị có thể khác nhau theo bản JDK, locale provider/dữ liệu CLDR và fallback nếu không có bản dịch. Giá trị `getDisplayName()` là **dữ liệu trình bày**, không nên dùng làm ID, khóa database hoặc giá trị lâu dài của một tùy chọn. Lưu thẻ `target.toLanguageTag()` khi cần định danh.
+**Note:** display labels can vary across JDK versions, locale providers/CLDR data, and fallbacks when a translation is absent. The value of `getDisplayName()` is **presentation data** and should not be used as an ID, database key, or persistent value of a preference. Store `target.toLanguageTag()` when an identifier is needed.
 
-### Ví dụ
+### Example
 
-Giả sử DISPLAY default là `en-US` và `target` là `fr-CA`:
+Suppose the DISPLAY default is `en-US` and `target` is `fr-CA`:
 
 ```java
 Locale target = Locale.forLanguageTag("fr-CA");
 String label = target.getDisplayName();
 ```
 
-Chuỗi có thể tương đương “French (Canada)” bằng tiếng Anh; với DISPLAY default `vi-VN`, nhãn được diễn đạt bằng tiếng Việt khi có dữ liệu hỗ trợ. Việc đặt tên locale **không quyết định** cách nhóm hàng nghìn hay hiển thị tiền tệ, vì đó là nhiệm vụ của formatter.
+The string may be equivalent to “French (Canada)” in English; with a DISPLAY default of `vi-VN`, the label is expressed in Vietnamese when supporting data is available. Naming a locale **does not determine** how thousands are grouped or how currency is displayed, as that is the formatter's responsibility.
 
-## 4. FORMAT: quy ước địa phương cho định dạng
+## 4. FORMAT: Regional Conventions for Formatting
 
-Các phương thức `NumberFormat` không có tham số locale dùng default `FORMAT`. Theo hợp đồng Java:
+`NumberFormat` methods without a locale parameter use the `FORMAT` default. According to Java's contract:
 
 ```java
 NumberFormat byDefault = NumberFormat.getNumberInstance();
@@ -131,29 +132,29 @@ NumberFormat equivalent =
                 Locale.getDefault(Locale.Category.FORMAT));
 ```
 
-Hai formatter dùng cùng locale hiệu lực tại thời điểm tạo, vì vậy khi định dạng cùng một số với cấu hình mặc định, chuỗi kết quả tương ứng phải bằng nhau. Đối tượng formatter trả về không nhất thiết là cùng một instance.
+Both formatters use the same effective locale at creation time, so when formatting the same number under the default configuration, the resulting strings must be equal. The returned formatter objects are not necessarily the same instance.
 
-Các ví dụ API thường dùng:
+Commonly used API examples:
 
-| Mục đích | Dùng default FORMAT | Chỉ định Locale tường minh |
+| Purpose | Uses FORMAT default | Specifies explicit Locale |
 | --- | --- | --- |
-| Số thông thường | `NumberFormat.getNumberInstance()` | `NumberFormat.getNumberInstance(locale)` |
-| Tiền tệ | `NumberFormat.getCurrencyInstance()` | `NumberFormat.getCurrencyInstance(locale)` |
-| Phần trăm | `NumberFormat.getPercentInstance()` | `NumberFormat.getPercentInstance(locale)` |
-| Định dạng ngày kiểu `java.text` | `DateFormat.getDateInstance()` | `DateFormat.getDateInstance(style, locale)` |
-| Định dạng ngày kiểu `java.time` | `DateTimeFormatter.ofLocalizedDate(style)` lấy mặc định FORMAT khi tạo formatter | `DateTimeFormatter.ofLocalizedDate(style).withLocale(locale)` |
+| Regular numbers | `NumberFormat.getNumberInstance()` | `NumberFormat.getNumberInstance(locale)` |
+| Currency | `NumberFormat.getCurrencyInstance()` | `NumberFormat.getCurrencyInstance(locale)` |
+| Percentages | `NumberFormat.getPercentInstance()` | `NumberFormat.getPercentInstance(locale)` |
+| `java.text` date formatting | `DateFormat.getDateInstance()` | `DateFormat.getDateInstance(style, locale)` |
+| `java.time` date formatting | `DateTimeFormatter.ofLocalizedDate(style)` reads the FORMAT default when creating the formatter | `DateTimeFormatter.ofLocalizedDate(style).withLocale(locale)` |
 
-Khi dùng `java.time`, truyền locale tường minh giúp cách định dạng ngày rõ ràng, ổn định theo yêu cầu người dùng. `FORMAT` **không phải múi giờ**; ngày giờ thực tế còn cần `ZoneId` trong trường hợp liên quan đến thời điểm.
+When using `java.time`, passing an explicit locale keeps date formatting clear and consistent with the user's request. `FORMAT` **is not a time zone**; actual date-times also need a `ZoneId` when an instant in time is involved.
 
-Dữ liệu có thể được định dạng theo cùng một ngôn ngữ nhưng khác vùng: `en-US` và `en-GB` có thể khác cách trình bày ngày và tiền tệ; `de-DE` và `en-US` khác quy tắc số. Không cố định một ví dụ chuỗi kết quả thành hợp đồng của mọi bản JDK và mọi nhà cung cấp dữ liệu locale.
+Data can be formatted in the same language but a different region: `en-US` and `en-GB` may differ in date and currency presentation; `de-DE` and `en-US` differ in number rules. Do not hard-code a single example output string as a contract across all JDK versions and all locale data providers.
 
-### FORMAT không lựa chọn đơn vị tiền của giao dịch
+### FORMAT Does Not Choose the Transaction Currency
 
-`NumberFormat.getCurrencyInstance(formatLocale)` thường chọn đơn vị tiền mặc định gắn với vùng; **đồng tiền nghiệp vụ** (USD, EUR, VND...) phải được truyền/quản lý độc lập. Với giá trị tiền thực tế, có thể cấu hình `formatter.setCurrency(Currency.getInstance("USD"))` sau khi chọn cách trình bày. Cần xử lý số chữ số thập phân, làm tròn và chính sách tiền tệ theo yêu cầu nghiệp vụ, không suy luận từ locale.
+`NumberFormat.getCurrencyInstance(formatLocale)` normally selects the default currency associated with the region; the **business currency** (USD, EUR, VND...) must be passed/managed independently. For real monetary values, you can configure `formatter.setCurrency(Currency.getInstance("USD"))` after choosing the presentation style. Decimal places, rounding, and currency policies must be handled according to business requirements, not inferred from the locale.
 
-## 5. Ví dụ kiểm chứng hai category hoạt động độc lập
+## 5. Example Verifying the Two Categories Work Independently
 
-**File `CategoryDefaultsDemo.java`, chạy trên Java 17+:**
+**File `CategoryDefaultsDemo.java`, runnable on Java 17+:**
 
 ```java
 import java.text.NumberFormat;
@@ -208,14 +209,14 @@ public class CategoryDefaultsDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac CategoryDefaultsDemo.java
 java CategoryDefaultsDemo
 ```
 
-**Stdout chính xác** khi ví dụ chạy đơn luồng và không có mã ngoài đồng thời thay đổi default JVM:
+**Exact stdout** when the example runs single-threaded and no external code concurrently alters JVM defaults:
 
 ```text
 General unchanged: true
@@ -225,20 +226,20 @@ Name uses DISPLAY: true
 Number uses FORMAT: true
 ```
 
-**Phân tích:**
+**Analysis:**
 
-1. `setDefault(DISPLAY, enUS)` cập nhật *chỉ default nhóm DISPLAY*.
-2. `setDefault(FORMAT, deDE)` cập nhật *chỉ default nhóm FORMAT*.
-3. `getDefault()` tổng quát giữ giá trị ban đầu vì chưa gọi overload `setDefault(Locale)`.
-4. `target.getDisplayName()` tương đương yêu cầu tên theo `en-US` — **mặc định DISPLAY**.
-5. `NumberFormat.getNumberInstance()` tương đương một formatter được tạo theo `de-DE` — **mặc định FORMAT**.
-6. `finally` khôi phục ba default để chương trình minh họa không cố ý giữ cấu hình mới sau khi xong.
+1. `setDefault(DISPLAY, enUS)` updates *only the DISPLAY category default*.
+2. `setDefault(FORMAT, deDE)` updates *only the FORMAT category default*.
+3. General `getDefault()` keeps its initial value because the `setDefault(Locale)` overload was not called.
+4. `target.getDisplayName()` is equivalent to requesting the name in `en-US` — **the DISPLAY default**.
+5. `NumberFormat.getNumberInstance()` is equivalent to a formatter created for `de-DE` — **the FORMAT default**.
+6. `finally` restores the three defaults so the demo program does not intentionally leave the new configuration active afterward.
 
-Đây là **ví dụ minh họa trong một tiến trình cô lập**. Thay đổi default locale là thao tác **toàn JVM**, không an toàn để dùng như cơ chế chọn ngôn ngữ theo từng HTTP request. Dù khôi phục trong `finally`, một luồng khác chạy **đồng thời** vẫn có thể quan sát giá trị tạm thời. Trong test, tránh chạy ví dụ thay đổi global song song với test phụ thuộc default; tốt nhất chạy ở process riêng nếu cần cách ly.
+This is an **illustrative example in an isolated process**. Changing default locales is a **JVM-wide** operation, unsafe to use as a per-HTTP-request language selection mechanism. Even with restoration in `finally`, another thread running **concurrently** can still observe the temporary values. In tests, avoid running examples that mutate globals in parallel with tests that depend on defaults; ideally run in a separate process if isolation is required.
 
-## 6. `setDefault(Locale)` và `setDefault(Category, Locale)` khác nhau
+## 6. Differences Between `setDefault(Locale)` and `setDefault(Category, Locale)`
 
-Java cung cấp hai cách thiết lập:
+Java provides two ways to set defaults:
 
 ```java
 Locale.setDefault(newLocale);
@@ -246,17 +247,17 @@ Locale.setDefault(Locale.Category.DISPLAY, displayLocale);
 Locale.setDefault(Locale.Category.FORMAT, formatLocale);
 ```
 
-Ở đây `newLocale`, `displayLocale` và `formatLocale` là các biến `Locale` đã được khai báo trong ngữ cảnh — đây là **chữ ký áp dụng**, không phải chương trình độc lập.
+Here `newLocale`, `displayLocale`, and `formatLocale` are `Locale` variables already declared in context — this shows **usage signatures**, not a standalone program.
 
-| Phương thức | Default tổng quát | DISPLAY | FORMAT |
+| Method | General default | DISPLAY | FORMAT |
 | --- | --- | --- | --- |
-| `Locale.setDefault(newLocale)` | Cập nhật | Cập nhật | Cập nhật |
-| `Locale.setDefault(DISPLAY, locale)` | Giữ nguyên | Cập nhật | Giữ nguyên |
-| `Locale.setDefault(FORMAT, locale)` | Giữ nguyên | Giữ nguyên | Cập nhật |
+| `Locale.setDefault(newLocale)` | Updated | Updated | Updated |
+| `Locale.setDefault(DISPLAY, locale)` | Unchanged | Updated | Unchanged |
+| `Locale.setDefault(FORMAT, locale)` | Unchanged | Unchanged | Updated |
 
-Vì `setDefault(Locale)` ghi đè **cả hai category**, việc đặt trước `DISPLAY=en-US`, `FORMAT=de-DE` rồi gọi `Locale.setDefault(Locale.forLanguageTag("fr-FR"))` sẽ làm cả ba thành `fr-FR`. Không dùng overload tổng quát nếu chỉ muốn thay đổi một category.
+Because `setDefault(Locale)` overwrites **both categories**, setting `DISPLAY=en-US` and `FORMAT=de-DE` first and then calling `Locale.setDefault(Locale.forLanguageTag("fr-FR"))` will turn all three into `fr-FR`. Do not use the general overload if you only want to change one category.
 
-**Ví dụ độc lập — `ResetCategoriesDemo.java`:**
+**Standalone example — `ResetCategoriesDemo.java`:**
 
 ```java
 import java.util.Locale;
@@ -308,34 +309,34 @@ fr-FR
 fr-FR
 ```
 
-Điều này giải thích một lỗi cấu hình phổ biến: khởi tạo riêng `DISPLAY`/`FORMAT` rồi gọi `setDefault(Locale)` ở thư viện hoặc mã bootstrap khác, vô tình mất hai lựa chọn đã cấu hình.
+This explains a common configuration bug: initializing `DISPLAY`/`FORMAT` separately and then calling `setDefault(Locale)` in another library or bootstrap code, unintentionally wiping out the two configured choices.
 
-### Thời điểm khởi tạo formatter
+### Formatter Creation Timing
 
-Default được đọc **khi API sử dụng nó**. Ví dụ, `NumberFormat.getNumberInstance()` tạo một formatter với locale áp dụng tại thời điểm gọi. Đổi `FORMAT` sau đó không phải lệnh yêu cầu mọi formatter đã tồn tại tự cập nhật. Cần tạo/cấu hình lại formatter phù hợp; đồng thời tránh chia sẻ formatter `java.text.NumberFormat` có trạng thái mutable giữa nhiều thread.
+Defaults are read **when the API uses them**. For example, `NumberFormat.getNumberInstance()` creates a formatter with the locale in effect at the time of the call. Changing `FORMAT` afterward is not a command instructing all existing formatters to update themselves. You must recreate or reconfigure the appropriate formatter; also avoid sharing a stateful mutable `java.text.NumberFormat` across multiple threads.
 
-## 7. Thiết lập ban đầu khi JVM khởi động
+## 7. Initial Setup at JVM Startup
 
-Khi JVM khởi động, Java xác lập default locale dựa trên cấu hình môi trường và các thuộc tính hệ thống phù hợp. Ngoài thuộc tính cơ sở như `user.language`, `user.country`, Java còn có các thành phần dành cho category như:
+When the JVM starts, Java establishes the default locale based on environment configuration and relevant system properties. Beyond base properties such as `user.language` and `user.country`, Java also has category-specific components such as:
 
-- `user.language.display`, `user.country.display` cho nhóm DISPLAY.
-- `user.language.format`, `user.country.format` cho nhóm FORMAT.
+- `user.language.display`, `user.country.display` for the DISPLAY category.
+- `user.language.format`, `user.country.format` for the FORMAT category.
 
-Ví dụ dòng lệnh khởi chạy chương trình ở mục 2 với các giá trị được yêu cầu (cách xử lý chính xác của các thuộc tính phụ thuộc quy tắc khởi tạo JDK):
+Example command line launching the program from section 2 with the requested values (exact handling of properties depends on JDK initialization rules):
 
 ```bash
 java -Duser.language=en -Duser.country=US -Duser.language.display=vi -Duser.country.display=VN -Duser.language.format=de -Duser.country.format=DE InspectDefaultLocale
 ```
 
-Với JDK tuân theo các thuộc tính khởi tạo này, ý định cấu hình là: mặc định tổng quát `en-US`, DISPLAY `vi-VN`, FORMAT `de-DE`. Không suy đoán default thực tế ở một runtime cụ thể mà không kiểm tra bằng `Locale.getDefault(...)`.
+With a JDK that follows these initialization properties, the configuration intent is: general default `en-US`, DISPLAY `vi-VN`, FORMAT `de-DE`. Do not guess the actual default in a specific runtime without checking via `Locale.getDefault(...)`.
 
-**Quan trọng:** đổi `System.setProperty("user.language.format", "de")` **sau khi JVM đã khởi tạo default** không phải cơ chế tin cậy để thay đổi `Locale` default đang hoạt động. Nếu có nhu cầu chuyển default khi đang chạy, API tương ứng là `Locale.setDefault(...)`. Tuy nhiên, vì tác động toàn tiến trình, một ứng dụng phục vụ nhiều người dùng thường nên truyền locale **tường minh** và chỉ cấu hình default tại điểm bootstrap có kiểm soát.
+**Important:** changing `System.setProperty("user.language.format", "de")` **after the JVM has initialized its defaults** is not a reliable mechanism for changing the active default `Locale`. If there is a need to switch defaults at runtime, the corresponding API is `Locale.setDefault(...)`. However, because of its process-wide effect, an application serving multiple users should normally pass locales **explicitly** and only configure defaults at a controlled bootstrap point.
 
-Đồng thời, locale không quyết định `ZoneId.systemDefault()` hay múi giờ của từng người dùng. Ngôn ngữ/vùng và múi giờ cần được quản lý như các lựa chọn độc lập.
+Additionally, locale does not determine `ZoneId.systemDefault()` or each user's time zone. Language/region and time zone must be managed as independent choices.
 
-## 8. Cách viết ứng dụng nhiều người dùng: truyền Locale tường minh
+## 8. How to Write Multi-User Applications: Pass Explicit Locales
 
-Với server web, chạy lần lượt hai request có `uiLocale` và `formatLocale` khác nhau **không nên sửa default JVM** trước mỗi lần dựng trang. Thay vào đó, xác định hai locale từ cài đặt người dùng/request và truyền vào từng API.
+For a web server, handling two consecutive requests with different `uiLocale` and `formatLocale` **should not modify JVM defaults** before rendering each page. Instead, determine the two locales from the user/request settings and pass them into each API.
 
 **File `ExplicitLocalePerRequestDemo.java` — Java 17+:**
 
@@ -395,7 +396,7 @@ javac ExplicitLocalePerRequestDemo.java
 java ExplicitLocalePerRequestDemo
 ```
 
-Chương trình luôn in **12 dòng**: 6 dòng cho A, sau đó 6 dòng cho B. Phần đầu và mã locale cố định:
+The program always prints **12 lines**: 6 lines for A, followed by 6 lines for B. The headers and locale tags are fixed:
 
 ```text
 User: A
@@ -408,72 +409,72 @@ Format locale: en-US
 ...
 ```
 
-Dấu `...` trong khối trên **chỉ mô tả việc bỏ qua ba dòng tên/số/ngày của từng user, không phải stdout đầy đủ**. Ba dòng còn lại có tiền tố `Locale name:`, `Number:`, `Date:` với giá trị do JDK tạo theo dữ liệu locale hiện hành. Không cố định chuỗi số/ngày được localize xuyên các JDK/CLDR khác nhau. Lợi ích chính là các request không ghi vào global defaults, không can thiệp lẫn nhau và code nói rõ trách nhiệm: tên theo `display`, định dạng theo `format`.
+The `...` in the block above **only indicates the omission of the three name/number/date lines for each user, not the complete stdout**. The remaining three lines are prefixed with `Locale name:`, `Number:`, and `Date:` with values generated by the JDK according to its current locale data. Do not hard-code localized number/date strings across different JDKs/CLDR versions. The main benefit is that requests do not write to global defaults, do not interfere with one another, and the code states responsibilities clearly: names via `display`, formatting via `format`.
 
-Trong ứng dụng lớn, có thể gom các lựa chọn của request trong một đối tượng ngữ cảnh bất biến, truyền nó vào service render; nếu không cần hai lựa chọn riêng, cả hai trường có thể cùng một locale. Khi request thiếu lựa chọn, áp dụng **fallback của ứng dụng** đã được quy định, không mặc định mọi người dùng cùng locale của máy chủ.
+In a larger application, you can group the request's choices in an immutable context object and pass it to the rendering service; if two separate choices are not needed, both fields can hold the same locale. When a request lacks a preference, apply the defined **application fallback**, rather than defaulting every user to the server's locale.
 
-## 9. Những API dễ hiểu nhầm về category
+## 9. APIs Commonly Misunderstood Regarding Categories
 
-Không thể suy đoán một phương thức theo tên class “nó có vẻ liên quan đến giao diện thì dùng DISPLAY”. Ví dụ:
+You cannot guess a method's category from its class name thinking "it looks UI-related so it uses DISPLAY". For example:
 
-| Lời gọi | Đọc default nào? | Gợi ý |
+| Call | Which default does it read? | Recommendation |
 | --- | --- | --- |
-| `locale.getDisplayName()` | DISPLAY | Dùng `getDisplayName(uiLocale)` khi biết locale người xem |
-| `locale.getDisplayLanguage()` | DISPLAY | Tên ngôn ngữ, không phải mã `getLanguage()` |
-| `NumberFormat.getInstance()` | FORMAT | Dùng `getInstance(formatLocale)` khi biết locale định dạng |
-| `NumberFormat.getCurrencyInstance()` | FORMAT | Lưu ý currency của giao dịch riêng |
-| `DateFormat.getDateInstance()` | FORMAT | Dùng overload có locale khi render theo người dùng |
-| `ResourceBundle.getBundle("messages")` | Mặc định **tổng quát** | Dùng `getBundle("messages", uiLocale)` khi muốn chọn tài nguyên theo user |
-| `Locale.getDefault()` | Tổng quát | Không thay thế mặc định DISPLAY/FORMAT |
-| `Locale.forLanguageTag("de-DE")` | Không dùng default JVM để chọn thẻ này | Tạo locale tường minh |
+| `locale.getDisplayName()` | DISPLAY | Use `getDisplayName(uiLocale)` when the viewer's locale is known |
+| `locale.getDisplayLanguage()` | DISPLAY | Language name, not the `getLanguage()` code |
+| `NumberFormat.getInstance()` | FORMAT | Use `getInstance(formatLocale)` when the formatting locale is known |
+| `NumberFormat.getCurrencyInstance()` | FORMAT | Remember transaction currency is separate |
+| `DateFormat.getDateInstance()` | FORMAT | Use the locale-taking overload when rendering per user |
+| `ResourceBundle.getBundle("messages")` | **General** default | Use `getBundle("messages", uiLocale)` when selecting resources per user |
+| `Locale.getDefault()` | General | Does not replace DISPLAY/FORMAT defaults |
+| `Locale.forLanguageTag("de-DE")` | Does not use JVM defaults to pick this tag | Creates an explicit locale |
 
-`ResourceBundle` là một ví dụ quan trọng: dù nó cung cấp chuỗi hiển thị trên UI, overload `getBundle(baseName)` dùng default `Locale.getDefault()` tổng quát, **không tự động chọn DISPLAY**. Vì vậy, đặt `Locale.Category.DISPLAY` không tự động đảm bảo toàn bộ thông điệp của ứng dụng chuyển sang đúng ngôn ngữ đó. Tài nguyên bản dịch cần được chọn riêng theo cơ chế i18n và fallback của ứng dụng.
+`ResourceBundle` is an important example: even though it supplies UI display strings, the `getBundle(baseName)` overload uses the general `Locale.getDefault()`, **not automatically DISPLAY**. Thus, setting `Locale.Category.DISPLAY` does not automatically ensure all application messages switch to that language. Translation resources must be selected explicitly according to the application's i18n and fallback mechanism.
 
-Một sai lầm khác là coi định dạng ngày cũng tự mang theo múi giờ. Với ngày lịch thuần `LocalDate`, định dạng chỉ đổi cách viết; với thời điểm `Instant`, cần chọn múi giờ `ZoneId` trước khi trình bày giờ địa phương. `FORMAT` và `DISPLAY` không lưu thông tin thời điểm hay múi giờ.
+Another mistake is treating date formatting as if it also carries a time zone. For a pure calendar date `LocalDate`, formatting only changes the presentation style; for an `Instant`, a `ZoneId` time zone must be selected before presenting local time. `FORMAT` and `DISPLAY` do not store instant or time zone information.
 
-## 10. Sai lầm phổ biến và cách tránh
+## 10. Common Mistakes and How to Avoid Them
 
-| Sai lầm | Vì sao sai | Cách xử lý |
+| Mistake | Why it is wrong | How to handle it |
 | --- | --- | --- |
-| Cho rằng `getDefault()`, `getDefault(DISPLAY)`, `getDefault(FORMAT)` luôn bằng nhau | Các category có thể cấu hình độc lập | Kiểm tra và truyền đúng category |
-| Chỉ gọi `setDefault(Locale)` để đổi FORMAT | Overload này cũng thay default tổng quát và DISPLAY | Nếu buộc thay default một nhóm, dùng overload có `Category` |
-| Đổi `Locale.setDefault(...)` trong từng HTTP request | Tác động toàn JVM, các luồng có thể đọc giá trị của request khác | Truyền locale tường minh |
-| Tin `getDisplayName()` dùng chính ngôn ngữ của locale đích | Nó dùng default DISPLAY | Gọi `getDisplayName(target)` nếu thực sự muốn nhãn tự thân |
-| Cho rằng `DISPLAY` quyết định `ResourceBundle.getBundle(baseName)` | Overload không locale dùng general default | Truyền locale vào `getBundle` |
-| Gọi `NumberFormat.getNumberInstance()` rồi mong nó theo DISPLAY | Nó dùng FORMAT | Truyền `formatLocale` tường minh hoặc chọn FORMAT đúng |
-| Đổi default và mong formatter cũ cập nhật | Formatter đã tạo có trạng thái riêng | Tạo lại với locale phù hợp |
-| Dùng tên đã dịch làm ID | Tên hiển thị có thể đổi theo ngôn ngữ/JDK | Lưu `toLanguageTag()` |
-| Cho rằng FORMAT quyết định múi giờ | Locale và timezone là hai khái niệm khác nhau | Quản lý `ZoneId` riêng |
-| Test xác nhận đúng toàn bộ chuỗi locale của mọi JDK | Dữ liệu locale/provider có thể thay đổi | Test hành vi/locale đã chọn; cố định runtime nếu snapshot bắt buộc |
-| Khôi phục default không đầy đủ trong test | Có thể làm sai lệch test sau | Ghi lại cả general, DISPLAY, FORMAT và khôi phục trong `finally`; không chạy song song |
+| Assuming `getDefault()`, `getDefault(DISPLAY)`, and `getDefault(FORMAT)` are always equal | Categories can be configured independently | Inspect and pass the right category |
+| Calling `setDefault(Locale)` just to change FORMAT | This overload also changes the general default and DISPLAY | If you must change one category's default, use the `Category` overload |
+| Changing `Locale.setDefault(...)` inside each HTTP request | JVM-wide effect; other threads may read another request's value | Pass explicit locales |
+| Believing `getDisplayName()` uses the target locale's own language | It uses the DISPLAY default | Call `getDisplayName(target)` if you truly want an endonym (self-name) |
+| Assuming `DISPLAY` governs `ResourceBundle.getBundle(baseName)` | The no-locale overload uses the general default | Pass the locale to `getBundle` |
+| Calling `NumberFormat.getNumberInstance()` and expecting it to follow DISPLAY | It uses FORMAT | Pass `formatLocale` explicitly or configure FORMAT properly |
+| Changing the default and expecting old formatters to update | Already-created formatters have their own state | Recreate with the appropriate locale |
+| Using translated display names as IDs | Display names can change by language/JDK | Store `toLanguageTag()` |
+| Assuming FORMAT determines the time zone | Locale and timezone are two distinct concepts | Manage `ZoneId` separately |
+| Writing tests asserting exact localized strings across all JDKs | Locale/provider data can change | Test behavior/selected locale; pin runtime if snapshots are mandatory |
+| Incomplete restoration of defaults in tests | Can skew subsequent tests | Record general, DISPLAY, and FORMAT and restore them in `finally`; do not run in parallel |
 
-## 11. Kiểm thử nên thực hiện
+## 11. Recommended Tests to Implement
 
-Một bộ kiểm thử có ý nghĩa cho ứng dụng i18n nên kiểm chứng:
+A meaningful test suite for an i18n application should verify:
 
-1. Khi đặt DISPLAY `en-US` và FORMAT `de-DE`, `getDisplayName()` tương đương overload có `en-US`, còn `NumberFormat.getNumberInstance()` tương đương overload có `de-DE`.
-2. Đặt category DISPLAY riêng không làm thay đổi giá trị đọc từ `getDefault()` tổng quát hoặc FORMAT, và tương tự cho FORMAT.
-3. Gọi `setDefault(Locale)` khiến general, DISPLAY và FORMAT cùng nhận locale mới.
-4. Khi truyền locale tường minh cho từng request, hai người dùng A và B có thể xem tên theo ngôn ngữ khác nhau trong khi định dạng cùng một giá trị theo vùng riêng; cả hai không cần thay default.
-5. Khi kiểm thử code có thay global defaults, cần khôi phục các giá trị trong `finally` và kiểm soát chạy song song. Test của ví dụ không thay thế kiểm thử độc lập tiến trình ở hệ thống thực.
-6. Kiểm tra riêng locale mặc định khi startup và hệ thống dịch thông điệp: mã gọi `ResourceBundle.getBundle(baseName)` và mã gọi `getDisplayName()` có thể sử dụng hai default khác nhau.
+1. When DISPLAY is set to `en-US` and FORMAT to `de-DE`, `getDisplayName()` matches the overload with `en-US`, while `NumberFormat.getNumberInstance()` matches the overload with `de-DE`.
+2. Setting the DISPLAY category alone does not change the value read from general `getDefault()` or FORMAT, and likewise for FORMAT.
+3. Calling `setDefault(Locale)` causes general, DISPLAY, and FORMAT to all receive the new locale.
+4. When passing explicit locales per request, two users A and B can view names in different languages while formatting the same value according to their own regions; neither needs to alter defaults.
+5. When testing code that alters global defaults, restore the values in `finally` and control parallel execution. Example tests do not replace process-isolated tests on real systems.
+6. Test startup default locales and the message translation system separately: code calling `ResourceBundle.getBundle(baseName)` and code calling `getDisplayName()` may use two different defaults.
 
-### Bài tập thực hành
+### Practice Exercises
 
-**Bài 1.** Viết chương trình in `getDefault()`, `getDefault(DISPLAY)` và `getDefault(FORMAT)`; dùng tùy chọn khởi động để yêu cầu các locale khác nhau. Quan sát trên runtime bạn đang sử dụng, giải thích vì sao ba giá trị có thể không giống nhau.
+**Exercise 1.** Write a program that prints `getDefault()`, `getDefault(DISPLAY)`, and `getDefault(FORMAT)`; use startup options to request different locales. Observe on the runtime you are using and explain why the three values may not be identical.
 
-**Bài 2.** Với `target=Locale.forLanguageTag("ja-JP")`, hãy lấy tên theo locale hiển thị `vi-VN` và `en-US`, đồng thời hiển thị cùng một số theo `de-DE` và `en-US`. Không đổi `Locale.setDefault`. Giải thích API nào nhận display locale và API nào nhận format locale.
+**Exercise 2.** Given `target=Locale.forLanguageTag("ja-JP")`, retrieve its name in display locales `vi-VN` and `en-US`, while formatting the same number in `de-DE` and `en-US`. Do not change `Locale.setDefault`. Explain which API takes the display locale and which API takes the format locale.
 
-**Bài 3.** Sửa một chương trình web giả định đang dùng `Locale.setDefault(userLocale)` trong request handler. Đổi thiết kế thành hai tham số `displayLocale` và `formatLocale` được truyền đến renderer. Viết test chứng minh hai request có locale khác nhau không ghi vào global default.
+**Exercise 3.** Fix a hypothetical web program that calls `Locale.setDefault(userLocale)` inside a request handler. Refactor the design into two parameters `displayLocale` and `formatLocale` passed to a renderer. Write a test proving two requests with different locales do not write to the global default.
 
-**Đáp án nguyên tắc:** bài 1 kiểm tra category riêng; bài 2 truyền `Locale` tường minh vào `getDisplayName` và `NumberFormat`; bài 3 tách ngữ cảnh người dùng khỏi default JVM, không đổi trạng thái toàn tiến trình.
+**Principle solutions:** Exercise 1 checks each category individually; Exercise 2 passes explicit `Locale` arguments to `getDisplayName` and `NumberFormat`; Exercise 3 separates user context from JVM defaults without mutating process-wide state.
 
-## 12. Tài liệu đối chiếu
+## 12. Reference Documentation
 
 - [JDK 21 — `java.util.Locale`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/Locale.html): `Category`, `getDefault`, `setDefault`, `getDisplayName`.
-- [JDK 21 — `java.text.NumberFormat`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/NumberFormat.html): các factory sử dụng mặc định `FORMAT` và overload truyền `Locale`.
-- [JDK 21 — `java.util.ResourceBundle`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ResourceBundle.html): lựa chọn bundle bằng locale mặc định hoặc locale truyền tường minh.
+- [JDK 21 — `java.text.NumberFormat`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/NumberFormat.html): factories using the `FORMAT` default and overloads taking `Locale`.
+- [JDK 21 — `java.util.ResourceBundle`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ResourceBundle.html): bundle selection using the default locale or an explicitly passed locale.
 
-## 13. Ghi nhớ
+## 13. Key Takeaway
 
-**`DISPLAY` trả lời “dùng ngôn ngữ/vùng nào để gọi tên các locale?”; `FORMAT` trả lời “dùng quy ước vùng nào để trình bày dữ liệu?”**. Java còn có default **tổng quát**, nên phải chọn đúng overload API. `Locale.setDefault(Locale)` thay đổi cả ba; `setDefault(Category, Locale)` thay đúng một nhóm nhưng vẫn tác động toàn JVM. Trong ứng dụng nhiều người dùng, truyền `Locale` tường minh vào API hiển thị và formatter để mỗi request độc lập, dễ kiểm thử và có hành vi rõ ràng.
+**`DISPLAY` answers “which language/region should be used to name locales?”; `FORMAT` answers “which regional conventions should be used to present data?”**. Java also has a **general** default, so you must choose the right API overload. `Locale.setDefault(Locale)` changes all three; `setDefault(Category, Locale)` changes only one group, yet still affects the entire JVM. In multi-user applications, pass explicit `Locale` values to display and formatting APIs so each request stays independent, easy to test, and deterministic in behavior.

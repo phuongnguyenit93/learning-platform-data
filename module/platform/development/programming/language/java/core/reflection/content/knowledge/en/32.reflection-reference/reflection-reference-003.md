@@ -1,35 +1,35 @@
-# Bảng chuyển đổi kiểu được phép khi Reflection `get`, `set`, `invoke` và `newInstance`
+# Table of Allowed Type Conversions in Reflection `get`, `set`, `invoke`, and `newInstance`
 
-Khi sử dụng Java Reflection, tên kiểu có thể được biết tại runtime nhưng lời gọi vẫn phải tuân theo **quy tắc chuyển đổi kiểu**. Một số chuyển đổi được Java Reflection hỗ trợ tự động, đặc biệt là **mở rộng kiểu nguyên thủy (primitive widening)** và **mở hộp (unboxing)** trong các trường hợp phù hợp. Ngược lại, **thu hẹp kiểu (narrowing)** như `long → int` hay `double → float` không được Reflection tự thực hiện.
+When using Java Reflection, type names may only be known at runtime, yet calls still must obey **type conversion rules**. Some conversions are supported automatically by Java Reflection, especially **primitive widening** and **unboxing** in appropriate cases. Conversely, **narrowing** conversions such as `long → int` or `double → float` are not performed automatically by Reflection.
 
-Bốn nhóm API dễ bị nhầm:
+Four API groups are easily confused:
 
-- `Field.get(...)`, `Field.getInt(...)`, `Field.getLong(...)`...: **đọc giá trị một field**, có thể boxing hoặc widening tùy getter được gọi.
-- `Field.set(...)`, `Field.setInt(...)`, `Field.setLong(...)`...: **ghi một giá trị vào field**, chỉ khi giá trị phù hợp kiểu field.
-- `Method.invoke(...)`: gọi **method đã được tìm thấy**, kiểm tra/chuyển đổi **đối số thực tế sang kiểu tham số khai báo**.
-- `Constructor.newInstance(...)`: tạo đối tượng bằng **constructor đã được tìm thấy**, sử dụng các quy tắc chuyển đổi đối số tương tự `Method.invoke`.
+- `Field.get(...)`, `Field.getInt(...)`, `Field.getLong(...)`...: **read a field's value**, potentially boxing or widening depending on which getter is called.
+- `Field.set(...)`, `Field.setInt(...)`, `Field.setLong(...)`...: **write a value to a field**, only when the value matches the field type.
+- `Method.invoke(...)`: invokes **a found method**, checking/converting **actual arguments to the declared parameter types**.
+- `Constructor.newInstance(...)`: creates an object using **a found constructor**, applying argument conversion rules similar to `Method.invoke`.
 
-Bài này đưa ra bảng đầy đủ cho tám primitive, đối chiếu các nhóm API, ví dụ Java 17+ biên dịch được và những trường hợp thất bại cần nhận biết. Chủ đề là **kiểu dữ liệu**, không phải tự động vượt qua quyền truy cập `private`, `final` hay ranh giới module.
+This article provides a complete table for all eight primitives, compares the API groups, gives compilable Java 17+ examples, and highlights failure cases to recognize. The topic is **data types**, not automatically bypassing `private`, `final`, or module boundaries.
 
-## 1. Nền tảng: identity, widening, boxing và unboxing
+## 1. Foundations: Identity, Widening, Boxing, and Unboxing
 
-### 1.1. Identity và widening primitive
+### 1.1. Identity and Primitive Widening
 
-**Identity conversion** giữ nguyên kiểu, ví dụ `int → int`.
+**Identity conversion** keeps the same type, e.g., `int → int`.
 
-**Widening primitive conversion** chuyển kiểu nguyên thủy sang kiểu đích được Java cho phép theo sơ đồ:
+**Widening primitive conversion** converts a primitive type to a target type permitted by Java according to the diagram:
 
 ```text
 byte  ──> short ──> int ──> long ──> float ──> double
                  ^
 char ────────────┘
 
-boolean  (chỉ chuyển sang boolean)
+boolean  (converts only to boolean)
 ```
 
-Sơ đồ chỉ minh họa những nhánh chính. Bảng đầy đủ dưới đây mới là chuẩn để tra cứu, đặc biệt vì `char` không chuyển trực tiếp sang `short` và các kiểu số có nhiều nhánh mở rộng.
+The diagram only illustrates the main branches. The full table below is the authoritative reference, especially since `char` does not convert directly to `short` and numeric types have multiple widening branches.
 
-| Kiểu nguồn | Kiểu đích primitive được phép (bao gồm chính nó) |
+| Source Type | Allowed Target Primitive Types (including itself) |
 | --- | --- |
 | `boolean` | `boolean` |
 | `byte` | `byte`, `short`, `int`, `long`, `float`, `double` |
@@ -40,15 +40,15 @@ Sơ đồ chỉ minh họa những nhánh chính. Bảng đầy đủ dưới đ
 | `float` | `float`, `double` |
 | `double` | `double` |
 
-**Không được phép tự động:** `int → byte`, `long → int`, `double → float`, `short → char`, `char → short`, và mọi chuyển đổi giữa `boolean` với các kiểu số.
+**Not allowed automatically:** `int → byte`, `long → int`, `double → float`, `short → char`, `char → short`, and any conversion between `boolean` and numeric types.
 
-`byte → char` cũng không được phép dù có những giá trị byte dương biểu diễn được bởi `char`. Reflection tuân theo **quan hệ chuyển đổi kiểu**, không tự xét giá trị hiện tại có vừa miền giá trị của kiểu đích hay không.
+`byte → char` is also not allowed even though positive byte values can be represented by `char`. Reflection follows **type conversion relationships**, without checking whether the current value fits within the target type's value range.
 
-**Widening không đồng nghĩa giữ nguyên độ chính xác tuyệt đối:** ví dụ `long → float` và `int → float` là chuyển đổi hợp lệ nhưng có thể mất bit chính xác do floating-point representation. Quy tắc widening ở đây nói đến **khả năng chuyển kiểu**, không phải bảo đảm không mất thông tin số.
+**Widening does not guarantee absolute precision preservation:** for example, `long → float` and `int → float` are valid conversions but can lose precision bits due to floating-point representation. The widening rules here refer to **type convertibility**, not a guarantee of zero numeric information loss.
 
-### 1.2. Boxing và unboxing
+### 1.2. Boxing and Unboxing
 
-Tám cặp primitive/wrapper tương ứng:
+The eight corresponding primitive/wrapper pairs:
 
 | Primitive | Wrapper |
 | --- | --- |
@@ -61,64 +61,64 @@ Tám cặp primitive/wrapper tương ứng:
 | `float` | `Float` |
 | `double` | `Double` |
 
-- **Boxing**: `int` thành đối tượng `Integer`.
-- **Unboxing**: `Integer` trở lại primitive `int`.
-- **Unboxing rồi widening**: `Integer(4) → int → long` là hợp lệ khi method/constructor/field đích yêu cầu `long`.
-- **Không có chuyển đổi tự động theo chuỗi unbox → widen → box sang wrapper khác**: `Integer` không tự biến thành `Long` để điền field hoặc tham số **khai báo `Long`**.
+- **Boxing**: `int` into an `Integer` object.
+- **Unboxing**: `Integer` back to primitive `int`.
+- **Unboxing then widening**: `Integer(4) → int → long` is valid when the target method/constructor/field requires `long`.
+- **No automatic conversion chain of unbox → widen → box to a different wrapper**: `Integer` does not automatically turn into `Long` to populate a field or parameter **declared as `Long`**.
 
-Khi viết `method.invoke(target, 5)`, trình biên dịch tự boxing literal `5` thành `Integer` để đưa vào danh sách đối số `Object...`. Sau đó, nếu **tham số phương thức đích là `long`**, Reflection có thể unbox `Integer → int` và widen `int → long`.
+When writing `method.invoke(target, 5)`, the compiler automatically boxes the literal `5` into `Integer` to place it in the `Object...` argument list. Then, if the **target method parameter is `long`**, Reflection can unbox `Integer → int` and widen `int → long`.
 
-## 2. Bảng nhanh: API nào nhận chuyển đổi nào?
+## 2. Quick Table: Which API Accepts Which Conversion?
 
-| Lời gọi Reflection | Kiểu nguồn thực tế | Kiểu đích/giá trị cần nhận | Quy tắc chính |
+| Reflection Call | Actual Source Type | Target Type / Value Expected | Main Rule |
 | --- | --- | --- | --- |
-| `field.get(obj)` | Kiểu khai báo của field | `Object` trả về | Field primitive được **box theo đúng kiểu gốc**; field tham chiếu trả chính giá trị tham chiếu |
-| `field.getInt(obj)` hoặc `getX` | Primitive của field | Primitive theo tên getter | Chỉ đọc được khi **field type → getter type** là identity/widening |
-| `field.set(obj, value)` | Đối tượng `value` | Kiểu khai báo của field | Field primitive: **unbox wrapper** rồi (nếu cần) widen; field tham chiếu: kiểm tra giá trị assignable hoặc `null` |
-| `field.setInt(obj, n)` hoặc `setX` | Primitive theo tên setter | Kiểu khai báo của field | Chỉ ghi được nếu **setter type → field type** là identity/widening |
-| `method.invoke(obj, args...)` | Từng đối số `Object`/wrapper | Tham số khai báo của **method đã chọn** | Unbox + widen cho primitive; tham chiếu phải tương thích; không tự narrowing |
-| `constructor.newInstance(args...)` | Từng đối số `Object`/wrapper | Tham số khai báo của **constructor đã chọn** | Tương tự `Method.invoke`; không tự narrowing |
+| `field.get(obj)` | Declared type of the field | Returned `Object` | Primitive fields are **boxed as their exact original type**; reference fields return the reference value itself |
+| `field.getInt(obj)` or `getX` | Primitive of the field | Primitive named by the getter | Readable only when **field type → getter type** is identity/widening |
+| `field.set(obj, value)` | `value` object | Declared type of the field | Primitive field: **unbox wrapper** then (if needed) widen; reference field: check value is assignable or `null` |
+| `field.setInt(obj, n)` or `setX` | Primitive named by the setter | Declared type of the field | Writable only if **setter type → field type** is identity/widening |
+| `method.invoke(obj, args...)` | Each `Object`/wrapper argument | Declared parameter of **the selected method** | Unbox + widen for primitives; references must be compatible; no automatic narrowing |
+| `constructor.newInstance(args...)` | Each `Object`/wrapper argument | Declared parameter of **the selected constructor** | Similar to `Method.invoke`; no automatic narrowing |
 
-**Hai chiều dễ nhầm nhất:**
+**The two directions most easily confused:**
 
-- Getter có kiểu đích: `Field.getLong` có thể đọc field `int` vì `int → long`.
-- Setter có kiểu nguồn: `Field.setLong` **không** thể ghi vào field `int` vì `long → int` là narrowing.
+- Getters have a target type: `Field.getLong` can read an `int` field because `int → long`.
+- Setters have a source type: `Field.setLong` **cannot** write to an `int` field because `long → int` is narrowing.
 
-Nói ngắn gọn: đọc dùng hướng **field → kết quả getter**; ghi/gọi/tạo đối tượng dùng hướng **đối số → vị trí đích**.
+In short: reading uses the direction **field → getter result**; writing/invoking/instantiating uses the direction **argument → target slot**.
 
-## 3. `Field.get(obj)`: đọc field dưới dạng `Object`
+## 3. `Field.get(obj)`: Reading a Field as `Object`
 
-`Field.get(Object obj)` trả về một `Object`.
+`Field.get(Object obj)` returns an `Object`.
 
-- Nếu field là reference, trả về reference đang lưu, có thể là `null`.
-- Nếu field primitive, giá trị được **box** thành wrapper tương ứng. Field `short` trả `Short`, field `int` trả `Integer`; không biến `short` thành `Integer` chỉ vì kết quả khai báo của `get` là `Object`.
-- Lệnh `(int) field.get(obj)` có thể unbox khi đối tượng thực tế là `Integer`, nhưng **không** phải cách tổng quát để chuyển một `Short` đã box thành `int`: cách ép kiểu này có thể ném `ClassCastException`.
+- If the field is a reference, returns the stored reference, which may be `null`.
+- If the field is primitive, the value is **boxed** into the corresponding wrapper. A `short` field returns `Short`, an `int` field returns `Integer`; it does not turn `short` into `Integer` just because `get`'s declared return type is `Object`.
+- `(int) field.get(obj)` can unbox when the actual object is `Integer`, but it is **not** a general way to convert a boxed `Short` to `int`: such a cast can throw `ClassCastException`.
 
-Ví dụ:
+Example:
 
 ```java
 class Sample {
     public short small = 7;
 }
 
-// Giả định một đoạn code khác đã tạo đối tượng Sample:
+// Assume another piece of code created the Sample object:
 Sample x = new Sample();
 java.lang.reflect.Field field = Sample.class.getField("small");
 
-Object raw = field.get(x);          // một Short chứa giá trị 7
-short small = (Short) raw;          // đúng
-int widened = field.getInt(x);     // đúng: short → int
+Object raw = field.get(x);          // a Short holding value 7
+short small = (Short) raw;          // valid
+int widened = field.getInt(x);     // valid: short → int
 ```
 
-Đây là đoạn minh họa phụ thuộc vào vị trí đặt class `Sample` để có quyền truy cập thích hợp; chương trình đầy đủ, độc lập nằm ở mục 7.
+This illustrative snippet depends on where class `Sample` is placed to have appropriate access permissions; the complete, standalone program is in Section 7.
 
-## 4. `Field.getBoolean/getByte/.../getDouble`: tra cứu phép đọc widening
+## 4. `Field.getBoolean/getByte/.../getDouble`: Widening Read Lookup
 
-Các getter primitive bao gồm `getBoolean`, `getByte`, `getShort`, `getChar`, `getInt`, `getLong`, `getFloat`, `getDouble`.
+Primitive getters include `getBoolean`, `getByte`, `getShort`, `getChar`, `getInt`, `getLong`, `getFloat`, `getDouble`.
 
-**Hướng bảng: cột “kiểu field” là nguồn, “getter được phép” là kiểu đích.**
+**Table direction: the "Field Type" column is the source, "Allowed Getters" are target types.**
 
-| Kiểu field | Những getter primitive hợp lệ |
+| Field Type | Valid Primitive Getters |
 | --- | --- |
 | `boolean` | `getBoolean` |
 | `byte` | `getByte`, `getShort`, `getInt`, `getLong`, `getFloat`, `getDouble` |
@@ -129,32 +129,32 @@ Các getter primitive bao gồm `getBoolean`, `getByte`, `getShort`, `getChar`, 
 | `float` | `getFloat`, `getDouble` |
 | `double` | `getDouble` |
 
-Ví dụ:
+Example:
 
 ```java
-// field là một Field thuộc instance có kiểu short.
-int a = field.getInt(instance);      // hợp lệ: short → int
-double b = field.getDouble(instance);// hợp lệ: short → double
+// field is an instance Field of type short.
+int a = field.getInt(instance);      // valid: short → int
+double b = field.getDouble(instance);// valid: short → double
 byte c = field.getByte(instance);    // IllegalArgumentException: short → byte
 ```
 
-Đoạn trên là minh họa, không phải file chạy độc lập. Lưu ý các **typed getter không tự unbox reference field**: nếu field khai báo `Integer` thì `getInt` không phải phương án tổng quát để đọc wrapper. Hãy dùng `get`, kiểm tra `Integer`, sau đó tự unbox.
+The snippet above is illustrative, not a standalone runnable file. Note that **typed getters do not automatically unbox reference fields**: if a field is declared as `Integer`, `getInt` is not a general way to read the wrapper. Use `get`, check for `Integer`, and then unbox manually.
 
-Ngữ nghĩa của bảng không phụ thuộc giá trị: field `short` đang chứa số 7 vẫn **không** thể được lấy bằng `getByte` vì kiểu field là `short`.
+The semantics of the table do not depend on the runtime value: a `short` field currently holding the number 7 still **cannot** be retrieved via `getByte` because the field type is `short`.
 
-## 5. `Field.set(obj, value)`: viết field, kiểm tra kiểu đích
+## 5. `Field.set(obj, value)`: Writing a Field, Checking Target Type
 
-`Field.set(Object obj, Object value)` nhận đối số thứ hai dưới dạng tham chiếu.
+`Field.set(Object obj, Object value)` accepts the second argument as a reference.
 
-### 5.1. Ghi vào primitive field
+### 5.1. Writing to a Primitive Field
 
-Giả sử field khai báo:
+Suppose the field is declared:
 
 ```java
 public long count;
 ```
 
-Các giá trị được phép:
+Allowed values:
 
 ```java
 field.set(obj, Long.valueOf(9));     // Long → long
@@ -163,45 +163,45 @@ field.set(obj, Short.valueOf((short) 9)); // Short → short → long
 field.set(obj, Character.valueOf('A'));  // Character → char → long
 ```
 
-Với field `long`, `Byte`, `Short`, `Character`, `Integer` và `Long` được unbox rồi widening nếu cần; `Float`, `Double` và `Boolean` không phù hợp.
+For a `long` field, `Byte`, `Short`, `Character`, `Integer`, and `Long` are unboxed and widened if needed; `Float`, `Double`, and `Boolean` are not compatible.
 
-Những thao tác sau thất bại:
+The following operations fail:
 
 ```java
 field.set(obj, Double.valueOf(9)); // IllegalArgumentException: double → long
-field.set(obj, "9");               // IllegalArgumentException: String không phải wrapper số
-field.set(obj, null);              // IllegalArgumentException: không unbox được null
+field.set(obj, "9");               // IllegalArgumentException: String is not a numeric wrapper
+field.set(obj, null);              // IllegalArgumentException: cannot unbox null
 ```
 
-Reflection **không parse chuỗi số**, không kiểm tra và tự thu hẹp một `Long` xuống `int`, và không tự chuyển `Double` sang `Integer` theo phép ép tường minh. Khi input từ JSON/CSV/String, ứng dụng phải tự parse, kiểm tra giới hạn và đưa ra wrapper có thể unbox/widen hợp lệ.
+Reflection **does not parse numeric strings**, does not check and automatically narrow a `Long` down to `int`, and does not automatically convert `Double` to `Integer` like an explicit cast. When input comes from JSON/CSV/String, the application must parse it, validate bounds, and supply a wrapper that can unbox/widen validly.
 
-### 5.2. Ghi vào reference field
+### 5.2. Writing to a Reference Field
 
-Nếu field khai báo `CharSequence`, có thể gán `String`, `StringBuilder` hoặc `null` vì chúng tương thích với kiểu đích:
+If a field is declared `CharSequence`, you can assign `String`, `StringBuilder`, or `null` because they are compatible with the target type:
 
 ```java
-// Field text được khai báo: public CharSequence text;
-textField.set(instance, "abc");                    // hợp lệ
-textField.set(instance, new StringBuilder("abc")); // hợp lệ
-textField.set(instance, null);                     // hợp lệ
+// Field text is declared: public CharSequence text;
+textField.set(instance, "abc");                    // valid
+textField.set(instance, new StringBuilder("abc")); // valid
+textField.set(instance, null);                     // valid
 textField.set(instance, Integer.valueOf(3));       // IllegalArgumentException
 ```
 
-Đối với field khai báo `Long`, `Integer.valueOf(3)` **không** được chuyển thành `Long.valueOf(3)`: đây là hai wrapper reference khác nhau.
+For a field declared `Long`, `Integer.valueOf(3)` is **not** converted into `Long.valueOf(3)`: these are two different reference wrapper types.
 
-### 5.3. Final, static, receiver và accessibility là những vấn đề khác
+### 5.3. Final, Static, Receiver, and Accessibility Are Separate Concerns
 
-- Instance field cần receiver đúng class hoặc subtype, không được truyền `null`.
-- Với static field, receiver bị bỏ qua (có thể dùng `null`).
-- Ghi field `final` bị giới hạn riêng, và việc cố mở quyền bằng `setAccessible(true)` không bảo đảm được phép ghi. Final static field thuộc diện ràng buộc chặt.
-- `getDeclaredField` tìm được metadata của private field nhưng không đồng nghĩa được phép đọc/ghi; `IllegalAccessException` có thể xảy ra.
-- Khi tên/receiver/quyền truy cập không hợp lệ, lỗi có thể xảy ra **trước khi** quy tắc chuyển đổi giá trị được áp dụng.
+- An instance field requires a receiver of the exact class or a subtype; `null` cannot be passed.
+- For a static field, the receiver is ignored (`null` can be used).
+- Writing to `final` fields is subject to specific restrictions, and attempting to grant access via `setAccessible(true)` does not guarantee write permission. `final static` fields are strictly constrained.
+- `getDeclaredField` finds metadata for a private field, but does not mean reading/writing is permitted; `IllegalAccessException` can occur.
+- When the name/receiver/access permission is invalid, an error can occur **before** value conversion rules are applied.
 
-## 6. `Field.setBoolean/setByte/.../setDouble`: bảng setter primitive
+## 6. `Field.setBoolean/setByte/.../setDouble`: Primitive Setter Table
 
-Các typed setter nhận một giá trị primitive (ví dụ `setInt(Object obj, int i)`). **Hướng bảng: kiểu tham số của setter → kiểu field đích.**
+Typed setters take a primitive value (for example `setInt(Object obj, int i)`). **Table direction: setter parameter type → target field type.**
 
-| Setter được gọi | Kiểu field có thể nhận |
+| Setter Called | Field Types Accepted |
 | --- | --- |
 | `setBoolean` | `boolean` |
 | `setByte` | `byte`, `short`, `int`, `long`, `float`, `double` |
@@ -212,21 +212,21 @@ Các typed setter nhận một giá trị primitive (ví dụ `setInt(Object obj
 | `setFloat` | `float`, `double` |
 | `setDouble` | `double` |
 
-Ví dụ field có kiểu `long`:
+Example with a field of type `long`:
 
 ```java
-wideField.setInt(instance, 42);       // hợp lệ: int → long
-wideField.setLong(instance, 42L);     // hợp lệ: long → long
+wideField.setInt(instance, 42);       // valid: int → long
+wideField.setLong(instance, 42L);     // valid: long → long
 wideField.setDouble(instance, 42.0);  // IllegalArgumentException
 ```
 
-Đừng đảo hướng của bảng getter và setter. `getLong` từ field `int` hợp lệ, trong khi `setLong` vào field `int` không hợp lệ.
+Do not invert the direction of the getter and setter tables. `getLong` from an `int` field is valid, whereas `setLong` into an `int` field is invalid.
 
-## 7. Chương trình Java 17+: chạy thật các ca thành công và thất bại
+## 7. Java 17+ Program: Running Actual Success and Failure Cases
 
-Ví dụ sau minh họa **cả bốn API**, gồm primitive widening, unboxing, reference assignability, lookup theo chữ ký chính xác, `void`, varargs và các lỗi thu hẹp kiểu.
+The following example demonstrates **all four APIs**, including primitive widening, unboxing, reference assignability, exact signature lookup, `void`, varargs, and narrowing errors.
 
-Tạo file **`ReflectionConversionsDemo.java`**:
+Create the file **`ReflectionConversionsDemo.java`**:
 
 ```java
 import java.lang.reflect.Constructor;
@@ -343,14 +343,14 @@ public class ReflectionConversionsDemo {
 }
 ```
 
-**Biên dịch/chạy:**
+**Compile/run:**
 
 ```bash
 javac -encoding UTF-8 ReflectionConversionsDemo.java
 java ReflectionConversionsDemo
 ```
 
-**Output thực tế của chương trình:**
+**Actual program output:**
 
 ```text
 constructor long=4
@@ -374,83 +374,83 @@ newInstance String -> long: IllegalArgumentException
 primitive get boxed=true
 ```
 
-Kết quả trên được kiểm chứng bằng `javac` và `java`. Một số câu lệnh dùng `expectIllegal` để minh họa và **chủ động bắt lỗi**, vì vậy chương trình vẫn kết thúc bình thường.
+The output above was verified with `javac` and `java`. Several statements use `expectIllegal` for illustration and **deliberately catch the error**, so the program still terminates normally.
 
-**Đọc kết quả theo nhóm:**
+**Reading the results by group:**
 
-1. `Constructor<Target>` nhận tham số khai báo `long`. Truyền `Integer(4)` được unbox thành `int` rồi widen thành `long`, nên `wide = 4`.
-2. `small` là field `short`. `Field.get` box thành `Short`; `getInt` hợp lệ; `getByte` thất bại vì sẽ phải thu hẹp `short → byte`.
-3. `wide` là field `long`. Ghi `Integer(21)` hoặc `setInt(33)` đều hợp lệ. `number` là field `int`; ghi `Character('A')` thành 65, còn `Long(5)` không thể tự thu hẹp xuống `int`.
-4. `text` khai báo `CharSequence`, nhận được `StringBuilder` vì implements interface này, nhưng không nhận `Integer`.
-5. `twice(double)` nhận `Integer(6)` sau unbox+widen và trả về `Double(12.0)`. Truyền chuỗi `"6"` không tự parse.
-6. `describe(CharSequence)` nhận `String` vì `String` implements `CharSequence`.
-7. `getMethod("twice", int.class)` **không tìm thấy** chỉ vì tồn tại `twice(double)`: lookup yêu cầu **chữ ký tham số khai báo**, không áp dụng quy tắc widening khi tìm method.
-8. `void` trả `null` qua `Method.invoke`. Phương thức nhận `String...` thực chất có tham số reflection cuối kiểu `String[]`, nên phải truyền một mảng như **một đối số**.
-9. Constructor `Target(long)` không tự chuyển `String` thành `long`.
+1. `Constructor<Target>` takes a parameter declared as `long`. Passing `Integer(4)` unboxes to `int` and widens to `long`, so `wide = 4`.
+2. `small` is a `short` field. `Field.get` boxes to `Short`; `getInt` is valid; `getByte` fails because it would have to narrow `short → byte`.
+3. `wide` is a `long` field. Writing `Integer(21)` or calling `setInt(33)` are both valid. `number` is an `int` field; writing `Character('A')` becomes 65, while `Long(5)` cannot be automatically narrowed to `int`.
+4. `text` is declared `CharSequence`, so it accepts `StringBuilder` because it implements this interface, but does not accept `Integer`.
+5. `twice(double)` accepts `Integer(6)` after unbox+widen and returns `Double(12.0)`. Passing the string `"6"` does not auto-parse.
+6. `describe(CharSequence)` accepts `String` because `String` implements `CharSequence`.
+7. `getMethod("twice", int.class)` **does not find it** just because `twice(double)` exists: lookup requires **the declared parameter signature**, without applying widening rules when searching for a method.
+8. `void` returns `null` via `Method.invoke`. A method taking `String...` actually has a final reflection parameter of type `String[]`, so an array must be passed as **a single argument**.
+9. The `Target(long)` constructor does not automatically convert `String` to `long`.
 
-## 8. `Method.invoke`: chuyển đổi tham số sau khi đã chọn method
+## 8. `Method.invoke`: Argument Conversion After Selecting the Method
 
-`Method.invoke(Object receiver, Object... args)` cho phép các chuyển đổi kiểu khi **truyền giá trị** cho từng tham số method:
+`Method.invoke(Object receiver, Object... args)` permits type conversions when **passing values** for each method parameter:
 
-| Method đích | Đối số truyền vào | Kết quả |
+| Target Method | Argument Passed | Result |
 | --- | --- | --- |
-| `f(long)` | `Integer.valueOf(3)` | Hợp lệ: unbox `int`, widen `long` |
-| `f(double)` | `Long.valueOf(3)` | Hợp lệ: unbox `long`, widen `double` |
-| `f(CharSequence)` | `"abc"` | Hợp lệ: reference tương thích |
-| `f(Number)` | `Integer.valueOf(3)` | Hợp lệ: `Integer` là subtype của `Number` |
-| `f(Long)` | `Integer.valueOf(3)` | Không hợp lệ: không tự unbox+widen+box thành `Long` |
-| `f(int)` | `Long.valueOf(3)` | Không hợp lệ: phải narrowing `long → int` |
-| `f(boolean)` | `Integer.valueOf(1)` | Không hợp lệ: số không tự đổi thành boolean |
-| `f(int)` | `null` | Không hợp lệ: không thể unbox `null` |
-| `f(String)` | `null` | Hợp lệ nếu việc gọi method/logic bên trong chấp nhận `null` |
-| `f(int)` | `"123"` | Không hợp lệ: Reflection không parse String |
+| `f(long)` | `Integer.valueOf(3)` | Valid: unbox `int`, widen `long` |
+| `f(double)` | `Long.valueOf(3)` | Valid: unbox `long`, widen `double` |
+| `f(CharSequence)` | `"abc"` | Valid: compatible reference |
+| `f(Number)` | `Integer.valueOf(3)` | Valid: `Integer` is a subtype of `Number` |
+| `f(Long)` | `Integer.valueOf(3)` | Invalid: does not auto-unbox+widen+box to `Long` |
+| `f(int)` | `Long.valueOf(3)` | Invalid: requires narrowing `long → int` |
+| `f(boolean)` | `Integer.valueOf(1)` | Invalid: numbers do not convert to boolean |
+| `f(int)` | `null` | Invalid: cannot unbox `null` |
+| `f(String)` | `null` | Valid if the method call/internal logic accepts `null` |
+| `f(int)` | `"123"` | Invalid: Reflection does not parse String |
 
-**Cực kỳ quan trọng:** hai bước sau hoàn toàn khác nhau:
+**Critically important:** the following two steps are completely different:
 
 ```java
-Method m = Target.class.getMethod("twice", double.class); // TÌM đúng signature
-Object result = m.invoke(target, Integer.valueOf(6));    // CHUYỂN giá trị
+Method m = Target.class.getMethod("twice", double.class); // FIND exact signature
+Object result = m.invoke(target, Integer.valueOf(6));    // CONVERT value
 ```
 
-`getMethod` và `getDeclaredMethod` tra cứu dựa trên **tên + kiểu tham số khai báo chính xác**, không tự chọn overload theo khả năng widening của đối số. Reflection không thay compiler làm overload resolution.
+`getMethod` and `getDeclaredMethod` search based on **name + exact declared parameter types**, without choosing an overload based on argument widening. Reflection does not perform overload resolution on behalf of the compiler.
 
-### Giá trị trả về của `invoke`
+### Return Value of `invoke`
 
-- Method trả primitive: `Method.invoke` box thành wrapper tương ứng, ví dụ `double → Double`.
-- Method trả reference: trả object thực tế, có thể `null`.
-- Method trả `void`: `invoke` trả `null`.
-- Mảng primitive như `int[]` được trả dưới dạng đối tượng mảng `int[]`, **không** tự box mỗi phần tử thành `Integer`.
+- Method returning primitive: `Method.invoke` boxes into the corresponding wrapper, e.g. `double → Double`.
+- Method returning reference: returns the actual object, which may be `null`.
+- Method returning `void`: `invoke` returns `null`.
+- Primitive arrays such as `int[]` are returned as the `int[]` array object, **without** automatically boxing each element into `Integer`.
 
-**Lỗi khác chuyển đổi:** method hợp lệ nhưng code đích ném exception thì `Method.invoke` bọc exception trong `InvocationTargetException`; xem `getCause()`. Lỗi kiểm tra đối số do Reflection thường là `IllegalArgumentException`, lỗi truy cập có thể là `IllegalAccessException`, receiver không phù hợp cũng dẫn đến lỗi riêng.
+**Errors other than conversion:** if the method is valid but target code throws an exception, `Method.invoke` wraps the exception in `InvocationTargetException`; inspect `getCause()`. Argument-checking errors from Reflection are typically `IllegalArgumentException`, access errors can be `IllegalAccessException`, and an unsuitable receiver also leads to its own error.
 
-## 9. `Constructor.newInstance`: cùng quy tắc đối số, nhưng constructor phải chọn đúng
+## 9. `Constructor.newInstance`: Same Argument Rules, but the Right Constructor Must Be Chosen
 
-`Constructor<T>.newInstance(Object... args)` áp dụng **unboxing và method invocation conversions** để khớp từng đối số với kiểu tham số của constructor đã chọn.
+`Constructor<T>.newInstance(Object... args)` applies **unboxing and method invocation conversions** to match each argument with the parameter type of the selected constructor.
 
 ```java
 Constructor<Target> constructor =
-        Target.class.getConstructor(long.class); // lookup chính xác long
-Target value = constructor.newInstance(Integer.valueOf(4)); // hợp lệ
+        Target.class.getConstructor(long.class); // exact lookup for long
+Target value = constructor.newInstance(Integer.valueOf(4)); // valid
 ```
 
-Trong đoạn trên, `Target` là class được định nghĩa ở ví dụ mục 7. Nếu thay `getConstructor(int.class)`, lookup ném `NoSuchMethodException` vì chỉ có constructor `Target(long)`.
+In the snippet above, `Target` is the class defined in the Section 7 example. If you change it to `getConstructor(int.class)`, lookup throws `NoSuchMethodException` because only the `Target(long)` constructor exists.
 
-Một vài tình huống:
+A few scenarios:
 
-- `newInstance(Short.valueOf((short) 5))` với constructor `(long)`: hợp lệ.
-- `newInstance(Long.valueOf(5))` với constructor `(int)`: không hợp lệ.
-- `newInstance("5")` với constructor `(long)`: không hợp lệ vì Reflection không parse.
-- `newInstance(null)` có thể gây nhập nhằng ở **lời gọi varargs Java**. Nếu muốn đưa **một tham số `null`** cho constructor có một tham số reference, dùng `newInstance((Object) null)`. Đối với constructor không tham số, có thể dùng `newInstance()`.
+- `newInstance(Short.valueOf((short) 5))` for constructor `(long)`: valid.
+- `newInstance(Long.valueOf(5))` for constructor `(int)`: invalid.
+- `newInstance("5")` for constructor `(long)`: invalid because Reflection does not parse.
+- `newInstance(null)` can cause ambiguity in a **Java varargs call**. If you want to pass **a single `null` argument** to a constructor with one reference parameter, use `newInstance((Object) null)`. For a no-arg constructor, you can use `newInstance()`.
 
-Tương tự `Method.invoke`, constructor có tham số varargs **không tự nhận từng đối số rời rạc của method đích rồi đóng gói vào mảng**. Hãy truyền một mảng đúng kiểu như một tham số formal.
+Similar to `Method.invoke`, a constructor with a varargs parameter **does not automatically take separate arguments of the target method and pack them into an array**. Pass a properly typed array as one formal argument.
 
-Một class `abstract`, enum, class không truy cập được hoặc constructor ném exception vẫn có thể làm `newInstance` thất bại vì lý do ngoài chuyển đổi. `Class.newInstance()` đã bị deprecated từ Java 9; dùng `getDeclaredConstructor().newInstance()` khi phù hợp thay thế.
+An `abstract` class, enum, inaccessible class, or constructor throwing an exception can still cause `newInstance` to fail for reasons other than conversion. `Class.newInstance()` has been deprecated since Java 9; use `getDeclaredConstructor().newInstance()` when appropriate instead.
 
-## 10. Varargs có hai tầng: của API Reflection và của method đích
+## 10. Varargs Has Two Layers: The Reflection API's and the Target Method's
 
-Chữ ký `Method.invoke(Object receiver, Object... args)` nghĩa là **chính API Reflection nhận varargs**. Điều đó không làm `invoke` tự thực hiện cơ chế gom varargs cho method được gọi.
+The signature `Method.invoke(Object receiver, Object... args)` means **the Reflection API itself accepts varargs**. That does not make `invoke` automatically perform varargs packing for the invoked method.
 
-Ví dụ method đích:
+Target method example:
 
 ```java
 public static String join(String... words) {
@@ -458,137 +458,137 @@ public static String join(String... words) {
 }
 ```
 
-Runtime signature của nó là `join(String[])`. Khi dùng Reflection:
+Its runtime signature is `join(String[])`. When using Reflection:
 
 ```java
 Method join = Target.class.getMethod("join", String[].class);
-Object result = join.invoke(null, (Object) new String[]{"a", "b"}); // đúng
+Object result = join.invoke(null, (Object) new String[]{"a", "b"}); // valid
 ```
 
-Ép `(Object)` bảo đảm mảng là **một phần tử** của `args` thay vì có thể bị diễn giải thành chính mảng chứa các đối số cho `Method.invoke`.
+Casting to `(Object)` ensures the array is **a single element** of `args` instead of potentially being interpreted as the array containing the arguments to `Method.invoke` itself.
 
 ```java
-join.invoke(null, "a", "b"); // Sai: 2 đối số thay vì 1 đối số String[]
+join.invoke(null, "a", "b"); // Wrong: 2 arguments instead of 1 String[] argument
 ```
 
-Trong tình huống phức tạp, cách rõ nhất là tạo mảng `Object[]` chứa đúng số lượng/thứ tự formal parameters:
+In complex situations, the clearest approach is to construct an `Object[]` array containing the exact count/order of formal parameters:
 
 ```java
 Object[] supplied = {new String[]{"a", "b"}};
 Object output = join.invoke(null, supplied);
 ```
 
-Nếu method đích có hai tham số, trong đó tham số cuối là varargs, hãy truyền **hai phần tử** cho mảng đối số Reflection; phần tử thứ hai là mảng đã được đóng gói đúng kiểu.
+If the target method has two parameters where the last parameter is varargs, pass **two elements** in the Reflection argument array; the second element is the properly typed packed array.
 
-## 11. Kết hợp boxing/unboxing có giới hạn quan trọng
+## 11. Important Limitations When Combining Boxing/Unboxing
 
-### Không coi tất cả `Number` là có thể unbox thành mọi primitive
+### Do Not Treat Every `Number` as Unboxable to Any Primitive
 
-Dù `Integer` và `Long` cùng extends `Number`, Reflection chỉ dùng các wrapper primitive phù hợp cho unboxing. Một đối tượng `BigDecimal` **không** tự chuyển sang `double` theo `doubleValue()` chỉ vì nó extends `Number`.
+Even though `Integer` and `Long` both extend `Number`, Reflection only uses the matching primitive wrappers for unboxing. A `BigDecimal` object **does not** automatically convert to `double` via `doubleValue()` just because it extends `Number`.
 
 ```java
-// Minh họa; không phải chương trình độc lập:
+// Illustration; not a standalone program:
 methodExpectingDouble.invoke(target, new java.math.BigDecimal("1.2"));
-// IllegalArgumentException: không phải wrapper primitive hợp lệ để unbox
+// IllegalArgumentException: not a valid primitive wrapper to unbox
 ```
 
-Nếu muốn nhận `Number` linh hoạt, phải tự xác định quy tắc chuyển đổi/độ chính xác và truyền một `Double` hoặc wrapper được cho phép tới method có formal `double`.
+If you want to accept `Number` flexibly, you must define your own conversion/precision rules and pass a `Double` or permitted wrapper to the method with formal parameter `double`.
 
-### Không có implicit narrowing dù giá trị “vừa”
+### No Implicit Narrowing Even When the Value "Fits"
 
 ```java
-// Method đích có tham số byte:
+// Target method has a byte parameter:
 methodExpectingByte.invoke(target, Integer.valueOf(5));
-// IllegalArgumentException: int → byte bị cấm tự động dù 5 vừa byte.
+// IllegalArgumentException: automatic int → byte is forbidden even though 5 fits in byte.
 ```
 
-Nếu có chính sách cho phép chuyển đổi thu hẹp, ứng dụng phải **chủ động kiểm tra miền giá trị**, ví dụ `value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE`, sau đó tạo `Byte.valueOf((byte) value)` trước khi invoke.
+If a policy allows narrowing conversion, the application must **explicitly check the value range**, e.g. `value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE`, and then construct `Byte.valueOf((byte) value)` before invoking.
 
-### Kiểu tham chiếu không được biến thành wrapper mới
+### Reference Types Are Not Converted into a Different Wrapper
 
 ```java
-// Method đích khai báo Long, đối số là Integer:
+// Target method declares Long, argument is Integer:
 methodExpectingLongObject.invoke(target, Integer.valueOf(8));
-// IllegalArgumentException: Integer không assignable tới Long.
+// IllegalArgumentException: Integer is not assignable to Long.
 ```
 
-Khác với method đích khai báo `long`, trường hợp này **không** tự động thực hiện `Integer → int → long → Long`.
+Unlike a target method declaring `long`, this case **does not** automatically perform `Integer → int → long → Long`.
 
-### Null và primitive
+### Null and Primitives
 
-Nếu formal parameter là primitive, `null` không thể được unbox; lời gọi có thể ném `IllegalArgumentException`. Đối với reference parameter, `null` có thể được truyền qua, nhưng code đích vẫn có thể ném exception nếu tự dereference `null`.
+If a formal parameter is primitive, `null` cannot be unboxed; the call can throw `IllegalArgumentException`. For a reference parameter, `null` can be passed through, though target code can still throw an exception if it dereferences `null`.
 
-## 12. Phân biệt lỗi tra cứu, lỗi chuyển đổi và lỗi quyền truy cập
+## 12. Distinguishing Lookup Errors, Conversion Errors, and Access Errors
 
-| Hoạt động | Vấn đề | Kết quả tiêu biểu |
+| Operation | Issue | Typical Outcome |
 | --- | --- | --- |
-| `getMethod("f", int.class)` khi chỉ có `f(long)` | Tìm sai signature; chưa gọi method | `NoSuchMethodException` |
-| `getDeclaredField("missing")` | Không có field khai báo | `NoSuchFieldException` |
-| `getInt` trên field `short` | Widening hợp lệ | Trả `int` |
-| `getByte` trên field `short` | Narrowing bị cấm | `IllegalArgumentException` |
-| `setInt` trên field `long` | Widening hợp lệ | Ghi giá trị |
-| `setLong` trên field `int` | Narrowing bị cấm | `IllegalArgumentException` |
-| `invoke` với `Long` cho tham số `int` | Narrowing bị cấm | `IllegalArgumentException` |
-| `invoke` đúng đối số nhưng target ném lỗi | Lỗi thực thi business method | `InvocationTargetException` bọc cause |
-| `newInstance` sai kiểu đối số | Không chuyển được theo quy tắc | `IllegalArgumentException` |
-| Truy cập member không được phép | Access/JPMS | `IllegalAccessException` hoặc `InaccessibleObjectException` ở thao tác mở quyền |
-| Receiver sai class hoặc `null` cho instance member | Truy cập sai đối tượng | `IllegalArgumentException` hoặc `NullPointerException` tùy API |
+| `getMethod("f", int.class)` when only `f(long)` exists | Looked up wrong signature; method not called yet | `NoSuchMethodException` |
+| `getDeclaredField("missing")` | No such declared field | `NoSuchFieldException` |
+| `getInt` on a `short` field | Valid widening | Returns `int` |
+| `getByte` on a `short` field | Narrowing forbidden | `IllegalArgumentException` |
+| `setInt` on a `long` field | Valid widening | Writes the value |
+| `setLong` on an `int` field | Narrowing forbidden | `IllegalArgumentException` |
+| `invoke` with `Long` for an `int` parameter | Narrowing forbidden | `IllegalArgumentException` |
+| `invoke` with valid arguments but target throws an error | Business method execution error | `InvocationTargetException` wrapping cause |
+| `newInstance` with wrong argument type | Cannot convert according to rules | `IllegalArgumentException` |
+| Accessing a disallowed member | Access/JPMS | `IllegalAccessException` or `InaccessibleObjectException` when opening access |
+| Wrong receiver class or `null` for instance member | Accessing wrong object | `IllegalArgumentException` or `NullPointerException` depending on API |
 
-**Nên tách hai bước xử lý lỗi:**
+**Separate error handling into two steps:**
 
-1. **Tra cứu và kiểm tra metadata**: xác nhận field/method/constructor được chọn đúng, receiver đúng, access hợp lệ, kiểu formal và đối số có thể chuyển đổi.
-2. **Đọc/ghi/gọi/tạo instance**: bắt lỗi Reflection theo API, đồng thời phân biệt exception do **code được gọi** phát sinh.
+1. **Lookup and metadata validation**: confirm the field/method/constructor is correctly selected, receiver is valid, access is allowed, and formal types and arguments are convertible.
+2. **Read/write/invoke/instantiate**: catch Reflection errors per API, while distinguishing exceptions raised by **the invoked code**.
 
-Không nên dựa vào việc catch `Exception` chung rồi suy đoán lỗi chuyển đổi khi thực tế lỗi đến từ quyền truy cập hoặc logic nghiệp vụ.
+Do not rely on catching generic `Exception` and guessing a conversion error when the error actually comes from access rights or business logic.
 
-## 13. Tiền kiểm kiểu khi xử lý danh sách field/method
+## 13. Pre-Checking Types When Processing a List of Fields/Methods
 
-Một thư viện mapping hoặc batch runner không nên thử `invoke` với từng giá trị rồi chờ vỡ tại mục cuối. Có thể làm preflight:
+A mapping library or batch runner should not try `invoke` on each value and wait to break on the last item. You can perform a preflight check:
 
-1. Với mỗi member đã chọn, lấy **kiểu đích thực tế** qua `Field.getType()`, `Method.getParameterTypes()` hoặc `Constructor.getParameterTypes()`.
-2. Đối với **kiểu đích tham chiếu**, xác nhận giá trị `null` hoặc `targetType.isInstance(value)`.
-3. Đối với **kiểu đích primitive**, xác định wrapper nguồn (nếu giá trị khác `null`), unbox về primitive tương ứng rồi kiểm tra bảng widening ở mục 1.
-4. Với typed `Field.getX/setX`, so sánh **kiểu primitive khai báo** với đúng chiều bảng ở mục 4/6.
-5. Kiểm tra số lượng đối số, varargs array đã đóng gói, receiver, static/instance và quyền truy cập.
-6. Chỉ khi tất cả entry đạt thì lập kế hoạch thực thi, đồng thời vẫn xử lý lỗi phát sinh khi thực thi.
+1. For each selected member, obtain the **actual target types** via `Field.getType()`, `Method.getParameterTypes()`, or `Constructor.getParameterTypes()`.
+2. For a **reference target type**, confirm the value is `null` or `targetType.isInstance(value)`.
+3. For a **primitive target type**, identify the source wrapper (if the value is non-`null`), unbox to the corresponding primitive, and check the widening table in Section 1.
+4. For typed `Field.getX/setX`, compare **the declared primitive type** using the correct direction in the tables of Sections 4/6.
+5. Check argument count, packed varargs array, receiver, static/instance, and access permissions.
+6. Only when all entries pass should you schedule execution, while still handling exceptions thrown during execution.
 
-Có thể tự cài một hàm `canWidenPrimitive(source, target)` dựa trên bảng ở mục 1; **đừng** dùng `target.isAssignableFrom(source)` cho primitive widening vì `isAssignableFrom` là quan hệ runtime type assignability, không phải bảng primitive widening.
+You can implement a helper `canWidenPrimitive(source, target)` based on the table in Section 1; **do not** use `target.isAssignableFrom(source)` for primitive widening because `isAssignableFrom` checks runtime type assignability, not the primitive widening table.
 
-Ví dụ:
+Example:
 
 ```java
-int.class.isAssignableFrom(short.class); // false: không kiểm tra widening
-Number.class.isAssignableFrom(Integer.class); // true: subtype tham chiếu
+int.class.isAssignableFrom(short.class); // false: does not check widening
+Number.class.isAssignableFrom(Integer.class); // true: reference subtype
 ```
 
-Các mapper cần hỗ trợ chuyển từ text, enum, date/time hoặc numeric custom type phải định nghĩa chính sách chuyển đổi **ngoài** quy tắc Reflection và thông báo khi giá trị không thể chuyển đổi an toàn.
+Mappers that need to support conversions from text, enum, date/time, or custom numeric types must define conversion policies **outside** Reflection rules and report when a value cannot be safely converted.
 
-## 14. Checklist và câu hỏi tự kiểm tra
+## 14. Checklist and Self-Check Questions
 
 **Checklist:**
 
-- Đã biết **kiểu field/formal parameter chính xác** và hướng chuyển đổi cần kiểm tra?
-- Nếu là primitive, kiểu nguồn có nằm trong bảng widening của kiểu đích?
-- Nếu là reference, giá trị có assignable hoặc `null` không? Có đang nhầm `Integer` với `Long`?
-- Đã phân biệt `Field.get` (boxing) với `Field.getX` (widening) và chiều ngược `Field.setX`?
-- `getMethod`/`getConstructor` có được tra cứu bằng signature khai báo chính xác?
-- Varargs đã được đóng gói thành **một tham số mảng** chưa?
-- Có xử lý access control, receiver, final/static và exception từ code đích không?
+- Do you know the **exact field/formal parameter type** and the conversion direction to check?
+- If primitive, is the source type in the target type's widening table?
+- If reference, is the value assignable or `null`? Are you confusing `Integer` with `Long`?
+- Have you distinguished `Field.get` (boxing) from `Field.getX` (widening) and the reverse direction `Field.setX`?
+- Were `getMethod`/`getConstructor` looked up using the exact declared signature?
+- Have varargs been packed into **a single array argument**?
+- Are access control, receiver, final/static, and exceptions from target code handled?
 
-**Tự kiểm tra:**
+**Self-check:**
 
-1. Field khai báo `char` có đọc được bằng `getShort`, `getInt` và `getDouble` không? Vì sao?
-2. Field khai báo `int` có nhận `Long.valueOf(3)` qua `Field.set` không, dù số 3 rất nhỏ?
-3. Với constructor `Widget(double)`, truyền `Integer.valueOf(5)` cho `Constructor.newInstance` có hợp lệ không? Tra cứu bằng `getConstructor(int.class)` có tìm thấy constructor ấy không?
-4. `Method.invoke` gọi method trả `long` thì trả về wrapper gì? Method trả `void` thì sao?
-5. Vì sao `Field.get` một field `short` trả `Short` trong khi `Field.getInt` trên field đó trả `int`?
-6. Một method có chữ ký `f(Long)` có nhận `Integer` tự động không? Nó khác `f(long)` ở đâu?
-7. Với `String... args`, vì sao `Method.invoke(receiver, "a", "b")` có thể sai?
-8. Trường hợp nào Reflection trả `InvocationTargetException` thay vì `IllegalArgumentException` khi gọi method?
+1. Can a field declared as `char` be read via `getShort`, `getInt`, and `getDouble`? Why?
+2. Does a field declared as `int` accept `Long.valueOf(3)` via `Field.set`, even though 3 is very small?
+3. With constructor `Widget(double)`, is passing `Integer.valueOf(5)` to `Constructor.newInstance` valid? Will looking up with `getConstructor(int.class)` find that constructor?
+4. When `Method.invoke` calls a method returning `long`, what wrapper does it return? What about a method returning `void`?
+5. Why does `Field.get` on a `short` field return `Short`, while `Field.getInt` on that field returns `int`?
+6. Does a method with signature `f(Long)` accept `Integer` automatically? How does it differ from `f(long)`?
+7. With `String... args`, why can `Method.invoke(receiver, "a", "b")` be wrong?
+8. In which case does Reflection throw `InvocationTargetException` instead of `IllegalArgumentException` when calling a method?
 
-### Nguồn tham khảo chính thức
+### Official References
 
-- [Java SE 17: `Field`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html): getter/setter, widening và boxing.
-- [Java SE 17: `Method`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html): `invoke`, chuyển đổi đối số và return value.
-- [Java SE 17: `Constructor`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html): `newInstance`, tham số và exception.
-- [Java Language Specification 17 §5.1–5.3](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html): widening, boxing, unboxing và method invocation conversions.
+- [Java SE 17: `Field`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html): getters/setters, widening, and boxing.
+- [Java SE 17: `Method`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Method.html): `invoke`, argument conversion, and return value.
+- [Java SE 17: `Constructor`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Constructor.html): `newInstance`, parameters, and exceptions.
+- [Java Language Specification 17 §5.1–5.3](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html): widening, boxing, unboxing, and method invocation conversions.

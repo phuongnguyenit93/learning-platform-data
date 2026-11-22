@@ -1,38 +1,38 @@
-# Sao chép nông và chia sẻ các mảng con — Java 17+
+# Shallow Copying and Sharing Subarrays — Java 17+
 
-## 1. Bản chất
+## 1. Fundamental Nature
 
-`int[][]` trong Java là **mảng ngoài chứa các tham chiếu tới mảng con `int[]`**. Vì vậy **sao chép mảng ngoài không đồng nghĩa sao chép các hàng**.
+In Java, `int[][]` is **an outer array containing references to `int[]` subarrays**. Therefore, **copying the outer array does not mean copying the rows**.
 
 ~~~java
 int[][] a = {{1, 2}, {3, 4, 5}};
 ~~~
 
-Ở đây `a.length == 2`, `a[0].length == 2`, `a[1].length == 3`. Mỗi hàng là một đối tượng mảng riêng. Một **tham chiếu hàng** có thể được lưu ở nhiều vị trí, thậm chí trong nhiều mảng ngoài khác nhau.
+Here `a.length == 2`, `a[0].length == 2`, `a[1].length == 3`. Each row is a separate array object. A **row reference** can be stored in multiple slots, even across multiple different outer arrays.
 
 ~~~text
-a (mảng ngoài) ---> [tham chiếu 0 | tham chiếu 1]
-                          |               |
-                          v               v
-                      [1, 2]         [3, 4, 5]
-                       int[]             int[]
+a (outer array) ---> [reference 0 | reference 1]
+                           |              |
+                           v              v
+                       [1, 2]        [3, 4, 5]
+                        int[]           int[]
 ~~~
 
-**Shallow copy — sao chép nông:** chỉ tạo bản sao của **một tầng mảng**, còn các phần tử tham chiếu ở tầng ấy vẫn trỏ đến các đối tượng cũ.
+**Shallow copy:** only creates a copy of **one array level**, while the reference elements at that level still point to the old objects.
 
-## 2. So sánh các cách sao chép
+## 2. Comparing Copying Approaches
 
-| Thao tác với `int[][] a` | Mảng ngoài mới? | Các hàng `int[]` mới? |
+| Operation on `int[][] a` | New outer array? | New `int[]` rows? |
 |---|---|---|
-| `int[][] b = a;` | Không | Không |
-| `int[][] b = a.clone();` | **Có** | **Không** |
-| `Arrays.copyOf(a, a.length)` | **Có** | **Không** |
-| `System.arraycopy(a, 0, b, 0, a.length)` với `b` là mảng ngoài mới | Đích có mảng ngoài riêng | **Không** |
-| Tạo mảng ngoài mới rồi `clone()` từng hàng | **Có** | **Có**, với hàng khác null |
+| `int[][] b = a;` | No | No |
+| `int[][] b = a.clone();` | **Yes** | **No** |
+| `Arrays.copyOf(a, a.length)` | **Yes** | **No** |
+| `System.arraycopy(a, 0, b, 0, a.length)` with `b` as a new outer array | Target has its own outer array | **No** |
+| Create a new outer array then `clone()` each row | **Yes** | **Yes**, for non-null rows |
 
-Gán `b = a` không tạo bản sao: `a == b` là `true`. Ngược lại, `a.clone()` tạo mảng ngoài khác (`a == b` là `false`), nhưng thường `a[0] == b[0]` vẫn là `true`.
+Assigning `b = a` creates no copy: `a == b` is `true`. In contrast, `a.clone()` creates a different outer array (`a == b` is `false`), yet typically `a[0] == b[0]` remains `true`.
 
-## 3. `clone()` tạo mảng ngoài mới, nhưng chia sẻ hàng
+## 3. `clone()` Creates a New Outer Array, but Shares Rows
 
 ~~~java
 int[][] original = {{1, 2}, {3, 4}};
@@ -52,9 +52,9 @@ false
 true
 ~~~
 
-`copy[0][0] = 9` sửa **mảng con chung**. Cả hai mảng ngoài đều quan sát được giá trị mới.
+`copy[0][0] = 9` modifies **the shared subarray**. Both outer arrays observe the new value.
 
-Nhưng thay một **tham chiếu hàng** chỉ sửa mảng ngoài đang giữ nó:
+However, replacing a **row reference** only modifies the outer array holding it:
 
 ~~~java
 copy[1] = new int[]{8};
@@ -62,16 +62,16 @@ System.out.println(java.util.Arrays.deepToString(original));
 System.out.println(java.util.Arrays.deepToString(copy));
 ~~~
 
-**Exact expected stdout (tiếp theo):**
+**Exact expected stdout (continued):**
 
 ~~~text
 [[9, 2], [3, 4]]
 [[9, 2], [8]]
 ~~~
 
-Phân biệt: `copy[row][col] = value` sửa **phần tử thuộc hàng**; `copy[row] = new int[]{...}` sửa **ô tham chiếu ở mảng ngoài**.
+Distinguish: `copy[row][col] = value` modifies **an element belonging to the row**; `copy[row] = new int[]{...}` modifies **the reference slot in the outer array**.
 
-## 4. `Arrays.copyOf` và `System.arraycopy` cũng là sao chép nông ở tầng ngoài
+## 4. `Arrays.copyOf` and `System.arraycopy` Are Also Shallow Copies at the Outer Level
 
 ~~~java
 int[][] source = {{1, 2}, {3}};
@@ -92,13 +92,13 @@ true
 true
 ~~~
 
-Vì phần tử của `int[][]` là tham chiếu tới `int[]`, sao chép phần tử mảng ngoài chỉ sao chép **giá trị tham chiếu**, không tự gọi `clone()` trên các hàng.
+Because the elements of `int[][]` are references to `int[]`, copying outer array elements only copies **reference values**, without automatically calling `clone()` on the rows.
 
-Nếu `Arrays.copyOf(source, source.length + 1)`, ô hàng mới được thêm mặc định là `null`, không phải `new int[0]`.
+With `Arrays.copyOf(source, source.length + 1)`, the newly added row slot defaults to `null`, not `new int[0]`.
 
-## 5. Sao chép độc lập từng hàng `int[]`
+## 5. Independently Copying Each `int[]` Row
 
-Khi muốn sửa bản sao **không ảnh hưởng dữ liệu `int` trong mảng gốc**, cần tạo mảng ngoài và từng mảng con riêng:
+When you want modifying the copy **not to affect `int` data in the original array**, you must create a separate outer array and separate subarrays:
 
 ~~~java
 static int[][] detachRows(int[][] source) {
@@ -112,10 +112,10 @@ static int[][] detachRows(int[][] source) {
 }
 ~~~
 
-- Mỗi hàng không null được `clone()` thành `int[]` mới.
-- Hàng rỗng vẫn là một `int[]` dài 0 **mới**.
-- Hàng null tiếp tục là null, không gọi `.clone()` lên null.
-- Mỗi hàng giữ độ dài riêng, nên cách này dùng được với **mảng răng cưa** (*jagged array*).
+- Each non-null row is `clone()`d into a new `int[]`.
+- An empty row becomes a **new** `int[]` of length 0.
+- A null row stays null, without calling `.clone()` on null.
+- Each row keeps its own length, so this approach works with **jagged arrays** (*jagged array*).
 
 ~~~java
 int[][] a = {{1, 2}, {3}};
@@ -133,9 +133,9 @@ System.out.println(java.util.Arrays.deepToString(b));
 [[99, 2], [3]]
 ~~~
 
-Với **`int[][]`**, cách này đủ để tách biệt các giá trị nguyên thủy. Với mảng chứa đối tượng có thể thay đổi trạng thái, sao chép từng hàng vẫn có thể chưa đủ.
+For **`int[][]`**, this approach is sufficient to isolate primitive values. For arrays containing objects with mutable state, copying each row may still not be enough.
 
-## 6. Hai hàng có thể cùng tham chiếu một mảng con
+## 6. Two Rows Can Reference the Same Subarray
 
 ~~~java
 int[] shared = {1, 2};
@@ -153,11 +153,11 @@ System.out.println(a[0] == a[1]);
 true
 ~~~
 
-Đây là **chia sẻ ngay bên trong cùng một mảng ngoài**. Khi dùng `detachRows(a)`, mỗi vị trí sẽ tạo một hàng mới riêng, tức **phá quan hệ cùng tham chiếu** dù giá trị ở mỗi hàng vẫn được sao chép đúng.
+This is **sharing right inside the same outer array**. When using `detachRows(a)`, each slot creates a separate new row, which **breaks the shared-reference relationship** even though the values in each row are still copied accurately.
 
-Nếu bài toán cần một bản sao có các hàng độc lập với nguồn **nhưng vẫn giữ quan hệ alias giữa các vị trí**, cần thuật toán khác (ví dụ ánh xạ identity từ hàng gốc sang hàng đã sao chép). Không mặc định mọi “deep copy” đều bảo toàn cấu trúc chia sẻ đối tượng.
+If the problem requires a copy whose rows are independent of the source **yet preserve alias relationships between slots**, you need a different algorithm (for example, an identity map from original rows to copied rows). Do not assume every "deep copy" preserves object-sharing graphs.
 
-## 7. Kiểu đối tượng mutable: clone hàng vẫn chia sẻ phần tử
+## 7. Mutable Object Types: Cloning a Row Still Shares Elements
 
 ~~~java
 StringBuilder[][] a = {
@@ -169,20 +169,20 @@ b[0][0].append("!");
 System.out.println(a[0][0]); // A!
 ~~~
 
-Mặc dù `a[0] != b[0]`, hai ô `a[0][0]` và `b[0][0]` vẫn cùng tham chiếu đối tượng `StringBuilder`, nên `append` làm bản gốc thay đổi.
+Even though `a[0] != b[0]`, the two cells `a[0][0]` and `b[0][0]` still reference the same `StringBuilder` object, so `append` mutates the original.
 
-Ngược lại, `b[0][0] = new StringBuilder("B")` chỉ thay tham chiếu tại **ô của hàng mới**, không đổi `a[0][0]`.
+In contrast, `b[0][0] = new StringBuilder("B")` only replaces the reference in **the cell of the new row**, without changing `a[0][0]`.
 
-| Kiểu dữ liệu | Muốn tách biệt trạng thái, cần sao chép đến đâu? |
+| Data type | To isolate state, how deep must copying go? |
 |---|---|
-| `int[][]` | Mảng ngoài + từng hàng `int[]` |
-| `String[][]` | Mảng ngoài + từng hàng thường đủ, vì `String` bất biến |
-| `StringBuilder[][]` | Mảng ngoài + từng hàng + **từng `StringBuilder` mutable** |
-| `int[][][]` | Phải xét cả **ba tầng mảng** |
+| `int[][]` | Outer array + each `int[]` row |
+| `String[][]` | Outer array + each row is usually enough, because `String` is immutable |
+| `StringBuilder[][]` | Outer array + each row + **each mutable `StringBuilder`** |
+| `int[][][]` | Must handle all **three array levels** |
 
-`clone()` không phải lệnh “sao chép sâu tất cả các object bên trong”.
+`clone()` is not a command to "deep-copy all objects inside".
 
-## 8. So sánh identity và nội dung
+## 8. Comparing Identity and Contents
 
 ~~~java
 int[][] a = {{1, 2}, {3}};
@@ -203,16 +203,16 @@ true
 [[1, 2], [3]]
 ~~~
 
-- `==` so **cùng object mảng ngoài** hay không.
-- `Arrays.equals(a,b)` so **phần tử tầng ngoài**; với `int[][]`, các phần tử là tham chiếu `int[]`, nên hai hàng mới khác identity thì không bằng nhau theo cách này.
-- `Arrays.deepEquals(a,b)` so sánh **nội dung lồng nhau**.
-- `Arrays.deepToString(a)` in nội dung các hàng dễ đọc.
+- `==` compares whether they are **the same outer array object**.
+- `Arrays.equals(a,b)` compares **outer-level elements**; for `int[][]`, the elements are `int[]` references, so two new rows with different identities are not equal under this method.
+- `Arrays.deepEquals(a,b)` compares **nested contents**.
+- `Arrays.deepToString(a)` prints the row contents in a readable form.
 
-**Nội dung bằng nhau không chứng minh hai cấu trúc độc lập**; phải xét tham chiếu chia sẻ theo từng tầng.
+**Equal contents do not prove two structures are independent**; you must examine shared references at each level.
 
-## 9. Chương trình Java 17 hoàn chỉnh
+## 9. Complete Java 17 Program
 
-Lưu tên **`ShallowArrayDemo.java`**:
+Save with the name **`ShallowArrayDemo.java`**:
 
 ~~~java
 import java.util.Arrays;
@@ -346,26 +346,26 @@ mutable copy=B
 3d level2 shared=true
 ~~~
 
-**Giải thích:** `clone()`, `Arrays.copyOf` và `System.arraycopy` trên `int[][]` vẫn chia sẻ hàng; `detachRows` tạo hàng `int[]` mới. Thay phần tử của hàng chia sẻ tác động bản gốc, còn thay cả tham chiếu hàng trong mảng ngoài riêng thì không. Với `StringBuilder[][]`, sao chép hàng không sao chép các object mutable.
+**Explanation:** `clone()`, `Arrays.copyOf`, and `System.arraycopy` on `int[][]` still share rows; `detachRows` creates new `int[]` rows. Modifying an element of a shared row affects the original, whereas replacing an entire row reference in a separate outer array does not. For `StringBuilder[][]`, copying rows does not copy mutable objects.
 
-## 10. Các lỗi thường gặp
+## 10. Common Mistakes
 
-| Sai lầm | Vì sao sai? | Sửa |
+| Mistake | Why is it wrong? | Fix |
 |---|---|---|
-| `b = a` là bản sao | Chỉ thêm tên tham chiếu | Dùng clone hoặc sao chép hàng tùy nhu cầu |
-| `a.clone()` là deep copy | Chỉ sao chép mảng ngoài | Clone từng hàng `int[]` |
-| `Arrays.copyOf(a, a.length)` sao chép mọi `int[]` | Chỉ sao chép các tham chiếu hàng | Tạo mảng con mới |
-| `System.arraycopy` tự clone các object con | Chỉ sao chép phần tử của mảng nguồn | Sao chép sâu theo dữ liệu |
-| `b[0][0]` và `b[0]` là cùng loại thao tác | Một lệnh sửa ô, một lệnh thay hàng | Xác định đúng tầng tham chiếu |
-| `source[i].clone()` khi hàng null | Ném `NullPointerException` | Kiểm tra null trước |
-| `Arrays.equals` đủ để so ma trận theo giá trị | Nó so phần tử tầng ngoài | Dùng `Arrays.deepEquals` |
-| Chỉ kiểm tra `a != b` để khẳng định độc lập | Các hàng vẫn có thể chung | So identity từng cấp |
-| Clone hàng `StringBuilder[]` sẽ sao chép từng StringBuilder | Các object vẫn dùng chung | Tạo object mới cho từng phần tử mutable |
-| Hai hàng nguồn dùng chung một object nhưng bản sao hàng tự giữ alias | Clone từng hàng làm tách alias | Nếu cần giữ alias nội bộ, dùng ánh xạ identity |
+| `b = a` creates a copy | Only adds another reference name | Use `clone` or copy rows depending on need |
+| `a.clone()` is a deep copy | Only copies the outer array | Clone each `int[]` row |
+| `Arrays.copyOf(a, a.length)` copies all `int[]` | Only copies row references | Create new subarrays |
+| `System.arraycopy` automatically clones child objects | Only copies elements from the source array | Deep-copy according to data needs |
+| `b[0][0]` and `b[0]` are the same kind of operation | One edits a cell, one replaces a row | Identify the exact reference level |
+| `source[i].clone()` when a row is null | Throws `NullPointerException` | Check for null first |
+| `Arrays.equals` is enough to compare matrices by value | It compares outer-level elements | Use `Arrays.deepEquals` |
+| Checking only `a != b` to confirm independence | Rows can still be shared | Compare identity at each level |
+| Cloning a `StringBuilder[]` row copies each `StringBuilder` | The objects are still shared | Create new objects for each mutable element |
+| Two source rows share an object and per-row cloning keeps the alias | Cloning each row breaks the alias | If internal aliases must be preserved, use an identity map |
 
-## 11. Bài tập có đáp án
+## 11. Exercises with Solutions
 
-**A — Dự đoán kết quả:**
+**A — Predict the output:**
 
 ~~~java
 int[][] a = {{1}, {2}};
@@ -376,31 +376,31 @@ System.out.println(Arrays.deepToString(a));
 System.out.println(Arrays.deepToString(b));
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 [[7], [2]]
 [[7], [8]]
 ~~~
 
-**B — Vì sao `a == b` false nhưng sửa hàng vẫn thấy ở `a`?** Vì sao chép nông tạo mảng ngoài mới, còn `a[i] == b[i]` vẫn có thể true.
+**B — Why is `a == b` false yet modifying a row is still visible in `a`?** Because shallow copying creates a new outer array, while `a[i] == b[i]` can still be true.
 
-**C — Sao chép an toàn mảng răng cưa có hàng null:** dùng `detachRows` ở mục 5; `{{1}, null, {}}` được sao chép thành cấu trúc nội dung `[[1], null, []]` với các hàng không null độc lập.
+**C — Safely copy a jagged array with null rows:** use `detachRows` from section 5; `{{1}, null, {}}` is copied into content structure `[[1], null, []]` with independent non-null rows.
 
-**D — Muốn hai hàng cùng tham chiếu sau khi sao chép?** Không dùng trực tiếp hàm clone từng hàng độc lập; cần ánh xạ hàng gốc → hàng sao chép để tái sử dụng cùng hàng mới tại các vị trí tương ứng.
+**D — Want two rows to still share a reference after copying?** Do not directly use an independent per-row clone method; you need a source-row → copied-row map to reuse the same new row at the corresponding positions.
 
-**E — Với `StringBuilder[][]` sao chép từng hàng đã đủ chưa?** Chưa nếu yêu cầu không chia sẻ trạng thái object. Cần tạo bản sao `StringBuilder` (hoặc object mutable tương ứng) trong từng ô.
+**E — For `StringBuilder[][]`, is copying each row enough?** Not if the requirement is not to share object state. You must create a copy of the `StringBuilder` (or corresponding mutable object) in each cell.
 
-## 12. Checklist và kết luận
+## 12. Checklist and Conclusion
 
-- [ ] Hiểu `int[][]` chứa **tham chiếu hàng**.
-- [ ] Phân biệt phép gán tham chiếu với bản sao nông.
-- [ ] Biết `clone()`, `Arrays.copyOf`, `System.arraycopy` ở tầng ngoài vẫn chia sẻ mảng con.
-- [ ] Hiểu `b[row][col] = x` khác `b[row] = new int[]{...}`.
-- [ ] Sao chép được các hàng `int[]` độc lập, kể cả hàng rỗng và null.
-- [ ] Nhận ra trường hợp nhiều hàng trỏ tới cùng một đối tượng `int[]`.
-- [ ] Phân biệt mảng con và object mutable nằm trong phần tử mảng con.
-- [ ] Dùng `Arrays.deepEquals` và `Arrays.deepToString` đúng mục đích.
-- [ ] Chạy `ShallowArrayDemo.java` bằng Java 17+, đối chiếu stdout.
+- [ ] Understand that `int[][]` holds **row references**.
+- [ ] Distinguish reference assignment from a shallow copy.
+- [ ] Know that `clone()`, `Arrays.copyOf`, and `System.arraycopy` at the outer level still share subarrays.
+- [ ] Understand that `b[row][col] = x` differs from `b[row] = new int[]{...}`.
+- [ ] Copy independent `int[]` rows, including empty and null rows.
+- [ ] Recognize when multiple rows point to the same `int[]` object.
+- [ ] Distinguish subarrays from mutable objects stored inside subarray elements.
+- [ ] Use `Arrays.deepEquals` and `Arrays.deepToString` for their intended purposes.
+- [ ] Run `ShallowArrayDemo.java` with Java 17+ and verify stdout.
 
-**Kết luận:** Sao chép nông của mảng nhiều chiều trong Java tạo **mảng ngoài mới nhưng vẫn chia sẻ các mảng con**. Thay nội dung hàng chung ảnh hưởng mọi tham chiếu tới hàng đó; thay tham chiếu hàng trong một mảng ngoài riêng thì không. Với `int[][]`, muốn độc lập dữ liệu hãy sao chép **cả mảng ngoài và từng `int[]` con**.
+**Conclusion:** Shallow copying a multidimensional array in Java creates **a new outer array while still sharing the subarrays**. Modifying the contents of a shared row affects all references to that row; replacing a row reference inside a separate outer array does not. For `int[][]`, to make data independent, copy **both the outer array and each inner `int[]`**.

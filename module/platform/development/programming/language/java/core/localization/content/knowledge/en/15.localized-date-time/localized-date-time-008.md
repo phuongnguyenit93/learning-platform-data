@@ -1,53 +1,53 @@
-# Tên tháng, tên ngày, kỳ trong ngày và TextStyle trong Java
+# Month Names, Day Names, Day Periods, and TextStyle in Java
 
-Khi hiển thị thời gian cho người dùng, chương trình Java không chỉ đổi **28/10/2026** thành một chuỗi số. Giao diện còn phải biết **tên tháng** (tháng Mười, October), **tên ngày trong tuần** (thứ Tư, Wednesday), **kỳ trong ngày** (AM/PM hoặc sáng, chiều, tối) và cách những tên ấy thay đổi theo ngôn ngữ, vị trí trong câu, độ dài nhãn và dữ liệu locale. Với Java 17+, các API chính là **java.time.Month**, **java.time.DayOfWeek**, **java.time.format.TextStyle**, **DateTimeFormatter**, **DateTimeFormatterBuilder** và **ChronoField**.
+When displaying dates and times to users, a Java program does more than turn **28/10/2026** into a string of digits. The UI also needs **month names** (tháng Mười, October), **weekday names** (thứ Tư, Wednesday), **day periods** (AM/PM or morning, afternoon, evening), and how those names change by language, position in a sentence, label length, and locale data. In Java 17+, the primary APIs are **java.time.Month**, **java.time.DayOfWeek**, **java.time.format.TextStyle**, **DateTimeFormatter**, **DateTimeFormatterBuilder**, and **ChronoField**.
 
-Điểm quan trọng: **TextStyle không phải kiểu chữ CSS hay JavaFX**. Nó là enum mô tả **dạng chữ của giá trị thời gian**: đầy đủ, viết tắt, hẹp và dạng dùng khi đứng riêng. Việc chọn đúng locale cùng đúng TextStyle giúp hiển thị ngày giờ tự nhiên hơn và tránh phụ thuộc ngầm vào ngôn ngữ của máy chủ.
+Key point: **TextStyle is not a CSS or JavaFX font style**. It is an enum describing the **textual form of a temporal value**: full, short, narrow, and standalone variants. Choosing the right `Locale` together with the right `TextStyle` makes dates and times read naturally and avoids implicitly depending on the server's language.
 
-## 1. Cần bản địa hóa thành phần nào của ngày giờ?
+## 1. Which Date/Time Components Need Localization?
 
-Xét thời điểm ngày **28/10/2026** lúc **09:30**. Dữ liệu gồm những giá trị có kiểu:
+Consider the date-time **28/10/2026** at **09:30**. The data consists of typed values:
 
-- **Month.OCTOBER**: tháng thứ 10 theo lịch ISO.
-- **DayOfWeek.WEDNESDAY**: thứ Tư, giá trị ISO là 3 (thứ Hai = 1).
-- **LocalDate.of(2026, 10, 28)**: ngày lịch, chưa có múi giờ.
-- **LocalTime.of(9, 30)**: giờ địa phương 09:30, chưa gắn với ngày hoặc múi giờ.
-- **ChronoField.AMPM_OF_DAY**: phần nửa ngày, **0** cho AM và **1** cho PM.
+- **Month.OCTOBER**: the 10th month in the ISO calendar.
+- **DayOfWeek.WEDNESDAY**: Wednesday, ISO value 3 (Monday = 1).
+- **LocalDate.of(2026, 10, 28)**: a calendar date, with no time zone.
+- **LocalTime.of(9, 30)**: local time 09:30, not bound to a date or time zone.
+- **ChronoField.AMPM_OF_DAY**: half-day period, **0** for AM and **1** for PM.
 
-Với cùng dữ liệu, một giao diện tiếng Anh có thể hiển thị **Wednesday, October 28, 2026 at 9:30 AM**. Giao diện tiếng Việt có thể dùng tên ngày, tháng và nhãn thời gian khác. Các ký tự, chữ viết tắt, thứ tự thành phần và cách đặt giới từ phụ thuộc locale và pattern.
+With the same data, an English UI might display **Wednesday, October 28, 2026 at 9:30 AM**. A Vietnamese UI can use different weekday names, month names, and time labels. Characters, abbreviations, component ordering, and prepositions depend on the locale and pattern.
 
-**Phân biệt ba lớp:**
+**Distinguish three layers:**
 
-| Lớp | Đại diện | Điều chịu trách nhiệm |
+| Layer | Representation | Responsibility |
 | --- | --- | --- |
-| Dữ liệu ngày giờ | LocalDate, LocalTime, LocalDateTime, ZonedDateTime | Giá trị thời gian có kiểu |
-| Tên và quy tắc ngôn ngữ | Locale, TextStyle, dữ liệu CLDR của JDK | Tên tháng, ngày, kỳ trong ngày |
-| Cách ghép câu | DateTimeFormatter pattern, bản dịch ResourceBundle | Thứ tự thành phần, từ nối, dấu câu |
+| Date/time data | `LocalDate`, `LocalTime`, `LocalDateTime`, `ZonedDateTime` | Typed temporal values |
+| Names and linguistic rules | `Locale`, `TextStyle`, JDK CLDR data | Month names, weekday names, day periods |
+| Sentence assembly | `DateTimeFormatter` patterns, `ResourceBundle` translations | Component ordering, connectors, punctuation |
 
-**Locale** không tự lựa chọn múi giờ và cũng không quyết định ngôn ngữ của một chuỗi chữ cố định bạn viết trong pattern.
+**Locale** does not select a time zone automatically, nor does it determine the language of fixed literal text you write inside a pattern.
 
-## 2. TextStyle là gì?
+## 2. What Is TextStyle?
 
-**java.time.format.TextStyle** có sáu hằng số:
+**java.time.format.TextStyle** has six constants:
 
-| TextStyle | Ý nghĩa | Khi nào cân nhắc |
+| TextStyle | Meaning | When to consider |
 | --- | --- | --- |
-| **FULL** | Tên đầy đủ trong ngữ cảnh định dạng | Ngày/tháng nằm trong một câu hoặc ngày đầy đủ |
-| **SHORT** | Tên rút gọn trong ngữ cảnh định dạng | Nhãn ngắn hơn, danh sách, biểu đồ |
-| **NARROW** | Dạng rất ngắn trong ngữ cảnh định dạng | Ô lịch cực hẹp, cần tránh nhầm lẫn |
-| **FULL_STANDALONE** | Tên đầy đủ khi đứng độc lập | Tiêu đề một tháng hoặc nhãn riêng |
-| **SHORT_STANDALONE** | Dạng rút gọn khi đứng độc lập | Nhãn tự đứng một mình |
-| **NARROW_STANDALONE** | Dạng hẹp khi đứng độc lập | Nhãn lịch độc lập có rất ít chỗ |
+| **FULL** | Full name in formatting context | Day/month inside a sentence or full date |
+| **SHORT** | Abbreviated name in formatting context | Shorter labels, lists, charts |
+| **NARROW** | Very short form in formatting context | Extremely narrow calendar cells where ambiguity is acceptable |
+| **FULL_STANDALONE** | Full name when standing alone | Month header or standalone label |
+| **SHORT_STANDALONE** | Short form when standing alone | Self-contained standalone label |
+| **NARROW_STANDALONE** | Narrow form when standing alone | Standalone calendar label with very little space |
 
-Java còn cung cấp **TextStyle.isStandalone()** để hỏi một style có thuộc nhóm standalone không, và **TextStyle.asStandalone()** hoặc **TextStyle.asNormal()** để chuyển giữa hai nhóm tương ứng.
+Java also provides **TextStyle.isStandalone()** to query whether a style belongs to the standalone group, and **TextStyle.asStandalone()** or **TextStyle.asNormal()** to convert between the two groups.
 
-**FULL khác FULL_STANDALONE về ngữ cảnh ngôn ngữ**, không phải chỉ khác độ dài. Một số ngôn ngữ có biến cách tên tháng tùy việc nó đi cùng ngày hay đứng một mình. Ví dụ trong tiếng Nga, cách viết tên tháng khi gắn với ngày có thể khác cách đặt tên tháng làm tiêu đề. Ngôn ngữ không có sự phân biệt đó có thể trả về cùng một chuỗi cho hai style. Không nên giả định mọi locale đều có sáu văn bản phân biệt.
+**FULL differs from FULL_STANDALONE in grammatical context**, not merely length. Some languages inflect month names depending on whether they appear with a day or stand alone. For example, in Russian, the spelling of a month name next to a day can differ from the month name used as a heading. Languages without that distinction may return the same string for both styles. Do not assume every locale has six distinct strings.
 
-**NARROW không bảo đảm duy nhất.** Nhiều tháng hoặc ngày trong tuần có thể cùng bắt đầu bằng một chữ cái, nên dạng hẹp thường không đủ để người dùng phân biệt khi không có thêm ngữ cảnh. Với lịch có khả năng truy cập (accessibility), nên có nhãn đầy đủ bên cạnh hoặc ở thuộc tính mô tả.
+**NARROW is not guaranteed to be unique.** Multiple months or weekdays can start with the same letter, so narrow forms are often insufficient for users to distinguish without extra context. For accessible calendars, provide a full label alongside or in an accessibility attribute.
 
-## 3. Lấy tên tháng bằng Month.getDisplayName
+## 3. Getting Month Names with Month.getDisplayName
 
-**Month** là enum của Java Time:
+**Month** is a Java Time enum:
 
 ~~~java
 import java.time.Month;
@@ -69,18 +69,18 @@ public class MonthNameDemo {
 }
 ~~~
 
-Lưu thành **MonthNameDemo.java**, chạy Java 17+:
+Save as **MonthNameDemo.java** and run with Java 17+:
 
 ~~~bash
 javac -encoding UTF-8 MonthNameDemo.java
 java MonthNameDemo
 ~~~
 
-Với dữ liệu locale tiếng Anh Hoa Kỳ thông dụng trong JDK 17, các tên tương ứng là **October**, **Oct**, **October**. Cùng một từ xuất hiện ở FULL và FULL_STANDALONE vì tiếng Anh không cần biến cách riêng ở đây. Với các ngôn ngữ có khác biệt ngữ pháp, chuỗi trả về có thể khác.
+With standard JDK 17 US English locale data, the corresponding names are **October**, **Oct**, and **October**. The same word appears for `FULL` and `FULL_STANDALONE` because English does not inflect months here. In languages with grammatical inflection, the returned strings can differ.
 
-**getDisplayName(style, locale)** lấy tên theo style và locale bạn chỉ định. Không cần gọi **Locale.setDefault()** để chuyển ngôn ngữ. Giá trị Month vẫn là tháng Mười, dù chuỗi hiển thị thay đổi.
+**getDisplayName(style, locale)** fetches the name for the style and locale you specify. You do not need to call **Locale.setDefault()** to switch languages. The `Month` value remains October even as the display string changes.
 
-Ví dụ khảo sát tiếng Việt và tiếng Nga:
+Example exploring Vietnamese and Russian:
 
 ~~~java
 Month october = Month.OCTOBER;
@@ -94,11 +94,11 @@ System.out.println(
         october.getDisplayName(TextStyle.FULL_STANDALONE, ru));
 ~~~
 
-Đây là đoạn minh họa trong một phương thức, cần import **Month**, **TextStyle**, **Locale**. Kết quả bằng chữ cụ thể dựa trên dữ liệu locale của runtime. Không nên mặc định rằng tên tháng Việt luôn có một cách viết hoa duy nhất, hoặc mọi JDK có cùng hình thức biến cách Nga trong từng style.
+This is an illustrative snippet inside a method, requiring imports for **Month**, **TextStyle**, and **Locale**. The exact text depends on the runtime's locale data. Do not assume Vietnamese month names always have a single capitalization, or that all JDKs share identical Russian inflection forms in every style.
 
-## 4. Lấy tên ngày trong tuần bằng DayOfWeek
+## 4. Getting Day-of-Week Names with DayOfWeek
 
-Tương tự Month, **DayOfWeek** cung cấp:
+Like `Month`, **DayOfWeek** provides:
 
 ~~~java
 DayOfWeek day = DayOfWeek.WEDNESDAY;
@@ -106,9 +106,9 @@ String label = day.getDisplayName(
         TextStyle.FULL, Locale.US);
 ~~~
 
-Đoạn minh họa cần import **java.time.DayOfWeek**, **java.time.format.TextStyle** và **java.util.Locale**; **label** là tên thứ Tư bằng tiếng Anh (**Wednesday**).
+This snippet requires importing **java.time.DayOfWeek**, **java.time.format.TextStyle**, and **java.util.Locale**; **label** is the English name for Wednesday (**Wednesday**).
 
-Các DayOfWeek được định nghĩa **MONDAY** đến **SUNDAY**, bất kể locale:
+The `DayOfWeek` constants are defined from **MONDAY** to **SUNDAY**, regardless of locale:
 
 ~~~text
 MONDAY.getValue() = 1
@@ -120,9 +120,9 @@ SATURDAY.getValue() = 6
 SUNDAY.getValue() = 7
 ~~~
 
-**getValue() luôn theo ISO-8601**, không thay đổi thành Chủ nhật = 1 chỉ vì dùng en-US. Locale tác động tên ngày, còn **ngày bắt đầu tuần của lịch địa phương** là quyết định khác, có thể lấy qua **WeekFields.of(locale).getFirstDayOfWeek()**.
+**getValue() is always ISO-8601**; it does not change to Sunday = 1 just because `en-US` is used. Locale affects the day's name, whereas **the local calendar's first day of the week** is a separate decision, available via **WeekFields.of(locale).getFirstDayOfWeek()**.
 
-Ví dụ:
+Example:
 
 ~~~java
 import java.time.DayOfWeek;
@@ -143,7 +143,7 @@ public class WeekStartDemo {
 }
 ~~~
 
-Chạy **javac WeekStartDemo.java** và **java WeekStartDemo**. Stdout:
+Run **javac WeekStartDemo.java** and **java WeekStartDemo**. Stdout:
 
 ~~~text
 3
@@ -151,11 +151,11 @@ MONDAY
 SUNDAY
 ~~~
 
-Thí nghiệm cho thấy **giá trị ISO của thứ Tư vẫn là 3**, nhưng mô hình tuần của locale Hoa Kỳ có thể đặt Chủ nhật ở đầu tuần. Đừng dùng **getDisplayName** hay **getValue** để suy ra thứ tự cột trong lịch; hãy dùng WeekFields hoặc chính sách của sản phẩm.
+This experiment shows that **Wednesday's ISO value remains 3**, while the US locale's week model puts Sunday at the start of the week. Do not use **getDisplayName** or **getValue** to deduce calendar column order; use `WeekFields` or product policy.
 
-## 5. Ví dụ hoàn chỉnh: tên tháng, tên ngày và AM/PM
+## 5. Complete Example: Month Name, Weekday Name, and AM/PM
 
-Ví dụ này dùng dữ liệu cố định và **Locale.US** tường minh để dễ quan sát. Nó không phụ thuộc locale mặc định của máy.
+This example uses fixed data and an explicit **Locale.US** for easy observation. It does not depend on the machine's default locale.
 
 **File MonthDayPeriodDemo.java**
 
@@ -196,14 +196,14 @@ public class MonthDayPeriodDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 MonthDayPeriodDemo.java
 java MonthDayPeriodDemo
 ~~~
 
-Kết quả với dữ liệu en-US của JDK 17:
+Output with JDK 17 `en-US` data:
 
 ~~~text
 month=October
@@ -213,39 +213,39 @@ evening=PM
 full=Wednesday, October 28, 2026 at 9:30 AM
 ~~~
 
-Các phần liên hệ với nhau:
+How the pieces connect:
 
-- **getDisplayName(TextStyle.FULL, Locale.US)** sinh tên riêng của Month/DayOfWeek theo locale.
-- **"a"** trong DateTimeFormatter pattern yêu cầu nhãn AM/PM.
-- **"h"** là giờ theo hệ 12 giờ, **"mm"** là phút.
-- **"EEEE"** là tên ngày trong tuần đầy đủ.
-- **"MMMM"** là tên tháng đầy đủ trong ngữ cảnh format.
-- **"uuuu"** là năm proleptic, phù hợp nhiều định dạng dựa trên ISO.
-- **'at'** được quote trong pattern vì đó là chữ cố định, không phải ký hiệu định dạng.
+- **getDisplayName(TextStyle.FULL, Locale.US)** produces the standalone/display name of `Month`/`DayOfWeek` for the locale.
+- **"a"** in a `DateTimeFormatter` pattern requests the AM/PM label.
+- **"h"** is the 12-hour clock hour, **"mm"** is minutes.
+- **"EEEE"** is the full weekday name.
+- **"MMMM"** is the full month name in formatting context.
+- **"uuuu"** is the proleptic year, suitable for many ISO-based formats.
+- **'at'** is quoted in the pattern because it is fixed literal text, not a format symbol.
 
-**Điểm học tập:** nếu thay **Locale.US** bằng **Locale.forLanguageTag("vi-VN")**, Java sẽ dùng tên tháng/ngày và nhãn kỳ trong ngày theo dữ liệu locale tiếng Việt; nhưng chữ literal **at** vẫn là tiếng Anh vì nó được hardcode trong pattern. Câu hoàn chỉnh cần pattern hoặc resource đúng ngôn ngữ, không thể chỉ thay locale.
+**Learning point:** if you replace **Locale.US** with **Locale.forLanguageTag("vi-VN")**, Java will use Vietnamese locale data for month/day names and day-period labels; however, the literal **at** remains in English because it is hardcoded in the pattern. A complete sentence requires a pattern or resource in the right language, not merely changing the locale.
 
-## 6. Pattern DateTimeFormatter: M và L
+## 6. DateTimeFormatter Patterns: M and L
 
-Một số ký hiệu trong **java.time.format.DateTimeFormatter** có ý nghĩa khác nhau theo TextStyle:
+Several symbols in **java.time.format.DateTimeFormatter** correspond to different `TextStyle` contexts:
 
-| Pattern | Ý nghĩa điển hình |
+| Pattern | Typical meaning |
 | --- | --- |
-| **M** | Số tháng, không đệm 0 nếu không cần |
-| **MM** | Tháng dạng số, thường đệm thành hai chữ số |
-| **MMM** | Tên tháng ngắn trong ngữ cảnh định dạng |
-| **MMMM** | Tên tháng đầy đủ trong ngữ cảnh định dạng |
-| **MMMMM** | Tên tháng dạng hẹp trong ngữ cảnh định dạng |
-| **L** / **LL** | Tháng dạng số trong ngữ cảnh đứng độc lập |
-| **LLL** | Tên tháng ngắn dạng standalone |
-| **LLLL** | Tên tháng đầy đủ dạng standalone |
-| **LLLLL** | Tên tháng hẹp dạng standalone |
+| **M** | Numeric month, unpadded if not needed |
+| **MM** | Numeric month, typically padded to two digits |
+| **MMM** | Short month name in formatting context |
+| **MMMM** | Full month name in formatting context |
+| **MMMMM** | Narrow month name in formatting context |
+| **L** / **LL** | Numeric month in standalone context |
+| **LLL** | Short month name in standalone form |
+| **LLLL** | Full month name in standalone form |
+| **LLLLL** | Narrow month name in standalone form |
 
-**M** và **L** không phải hai chữ số tháng khác nhau: chúng đại diện hai **ngữ cảnh ngữ pháp**. Với chuỗi ngày đầy đủ như **28 October 2026**, thường dùng dạng format (**MMMM**) còn tiêu đề tháng độc lập có thể dùng **LLLL**. Cần kiểm thử theo locale cụ thể, vì một số ngôn ngữ trả cùng tên cho hai dạng.
+**M** and **L** are not two different month numbers: they represent two **grammatical contexts**. For a full date string like **28 October 2026**, the formatting form (**MMMM**) is typically used, whereas a standalone month heading can use **LLLL**. Always test per locale, since some languages return the same string for both forms.
 
-### 6.1. Minh họa tiếng Nga
+### 6.1. Russian illustration
 
-Ví dụ minh họa:
+Illustrative example:
 
 ~~~java
 import java.time.LocalDate;
@@ -267,18 +267,18 @@ public class ContextualMonthDemo {
 }
 ~~~
 
-Lưu **ContextualMonthDemo.java**, chạy:
+Save **ContextualMonthDemo.java** and run:
 
 ~~~bash
 javac -encoding UTF-8 ContextualMonthDemo.java
 java ContextualMonthDemo
 ~~~
 
-Chương trình in **ngày tháng với tên tháng trong ngữ cảnh định dạng** ở dòng thứ nhất và **tên tháng đứng độc lập** ở dòng thứ hai. Một số bản dữ liệu locale tiếng Nga phân biệt hình thức biến cách tên tháng giữa hai dòng. Vì chính mục tiêu ở đây là quan sát dữ liệu CLDR của JDK, không nên ấn định một chuỗi tiếng Nga là stdout bất biến cho mọi bản runtime.
+The program prints **a date with the month name in formatting context** on the first line and **the standalone month name** on the second line. Some Russian locale data versions distinguish the inflected month spelling between the two lines. Because the goal here is to observe the JDK's CLDR data, do not assert one Russian string as an invariant stdout across all runtimes.
 
-**Sai lầm cần tránh:** dùng tên standalone để lắp thẳng vào cấu trúc câu mà ngôn ngữ yêu cầu dạng biến cách, hoặc dùng tên format làm tiêu đề tháng độc lập. Trong tiếng Anh có thể không lộ lỗi; trong một số ngôn ngữ khác nó sẽ thành cách diễn đạt không tự nhiên.
+**Mistake to avoid:** plugging a standalone name straight into a sentence structure where the language requires an inflected form, or using a formatting-context form as a standalone month heading. In English the bug may stay hidden; in other languages it produces unnatural phrasing.
 
-### 6.2. getDisplayName và pattern tương ứng
+### 6.2. `getDisplayName` and matching patterns
 
 ~~~java
 Month month = Month.OCTOBER;
@@ -289,43 +289,43 @@ String standalone = month.getDisplayName(
         TextStyle.FULL_STANDALONE, locale);
 ~~~
 
-Đoạn minh họa cần import **Month**, **TextStyle**, **Locale**. Tương ứng, một formatter dùng **MMMM** sẽ yêu cầu tên đầy đủ ở ngữ cảnh format; formatter dùng **LLLL** sẽ yêu cầu tên đầy đủ ở ngữ cảnh standalone. Kết quả cuối cùng còn phụ thuộc vào pattern, ngữ pháp câu và dữ liệu locale.
+This snippet requires importing **Month**, **TextStyle**, and **Locale**. Correspondingly, a formatter using **MMMM** requests the full name in formatting context; a formatter using **LLLL** requests the full name in standalone context. The final output also depends on the pattern, sentence grammar, and locale data.
 
-## 7. Pattern tên ngày: E, e và c
+## 7. Weekday Patterns: E, e, and c
 
-**DateTimeFormatter** hỗ trợ nhiều ký hiệu cho ngày trong tuần:
+**DateTimeFormatter** supports several symbols for day of week:
 
-| Pattern | Cách dùng |
+| Pattern | Usage |
 | --- | --- |
-| **E**, **EE**, **EEE** | Tên ngày dạng ngắn |
-| **EEEE** | Tên ngày đầy đủ |
-| **EEEEE** | Tên ngày dạng hẹp |
-| **EEEEEE** | Tên ngày dạng ngắn hơn theo dữ liệu |
-| **e** hoặc **ee** | Số ngày trong tuần theo quy tắc localized week của locale |
-| **eee** | Tên ngày dạng ngắn |
-| **eeee** | Tên ngày đầy đủ |
-| **eeeee** | Tên ngày dạng hẹp |
-| **c** | Số ngày trong tuần theo quy tắc locale |
-| **ccc** | Tên ngày ngắn dạng standalone |
-| **cccc** | Tên ngày đầy đủ dạng standalone |
-| **ccccc** | Tên ngày hẹp dạng standalone |
+| **E**, **EE**, **EEE** | Short weekday name |
+| **EEEE** | Full weekday name |
+| **EEEEE** | Narrow weekday name |
+| **EEEEEE** | Shorter weekday name per data |
+| **e** or **ee** | Day-of-week number per the locale's localized week rules |
+| **eee** | Short weekday name |
+| **eeee** | Full weekday name |
+| **eeeee** | Narrow weekday name |
+| **c** | Day-of-week number per locale rules |
+| **ccc** | Short weekday name in standalone form |
+| **cccc** | Full weekday name in standalone form |
+| **ccccc** | Narrow weekday name in standalone form |
 
-Với **e**/**c**, các số ngày trong tuần theo locale có thể khác **DayOfWeek.getValue()**. Chẳng hạn một locale có Chủ nhật là đầu tuần thì **e = 1** có thể là Chủ nhật, dù **DayOfWeek.SUNDAY.getValue() = 7**. Không sử dụng các ký hiệu đó để lưu giá trị ngày trong tuần làm khóa dữ liệu khi hợp đồng yêu cầu mã ISO.
+With **e**/**c**, localized day-of-week numbers can differ from **DayOfWeek.getValue()**. For example, in a locale where Sunday starts the week, **e = 1** can be Sunday even though **DayOfWeek.SUNDAY.getValue() = 7**. Do not use those symbols to store weekday numbers as data keys when the contract expects ISO codes.
 
-Mặt khác, **E** chủ yếu biểu diễn dạng **chữ**, không phải số thứ tự. Với nhãn lịch độc lập, các biến thể standalone **c** có thể phù hợp nếu ngôn ngữ phân biệt dạng này. Một số ngôn ngữ không có dữ liệu riêng, nên có thể gặp nhãn giống nhau.
+On the other hand, **E** primarily represents **textual** forms rather than ordinal numbers. For standalone calendar labels, the standalone **c** variants can be appropriate if the language distinguishes them. Some languages have no separate data, so the same label may appear.
 
-**Giới hạn pattern:** không phải mọi số lần lặp chữ đều hợp lệ. Ví dụ hai chữ **cc** không phải mẫu được hỗ trợ như **ee**. Nên viết pattern được tài liệu API hỗ trợ và có test chạy thực tế, thay vì áp dụng quy luật nhân đôi máy móc.
+**Pattern limits:** not every repetition count is valid. For instance, two letters **cc** is not a supported pattern like **ee**. Write patterns documented by the API and verify them with tests rather than mechanically doubling letters.
 
-## 8. Kỳ trong ngày: AM/PM là gì?
+## 8. Day Periods: What Is AM/PM?
 
-**AM/PM** chia ngày thành hai nửa:
+**AM/PM** divides the day into two halves:
 
-| ChronoField.AMPM_OF_DAY | Giờ 24h | Ý nghĩa |
+| ChronoField.AMPM_OF_DAY | 24-hour time | Meaning |
 | ---: | --- | --- |
-| **0** | 00:00–11:59:59… | Trước trưa, AM |
-| **1** | 12:00–23:59:59… | Sau trưa, PM |
+| **0** | 00:00–11:59:59… | Ante meridiem, AM |
+| **1** | 12:00–23:59:59… | Post meridiem, PM |
 
-Trong Java:
+In Java:
 
 ~~~java
 import java.time.LocalTime;
@@ -343,7 +343,7 @@ public class HalfDayDemo {
 }
 ~~~
 
-Chạy **javac HalfDayDemo.java** và **java HalfDayDemo**. Stdout chính xác, độc lập locale:
+Run **javac HalfDayDemo.java** and **java HalfDayDemo**. Exact, locale-independent stdout:
 
 ~~~text
 0
@@ -351,22 +351,22 @@ Chạy **javac HalfDayDemo.java** và **java HalfDayDemo**. Stdout chính xác, 
 1
 ~~~
 
-Dùng **DateTimeFormatter.ofPattern("a", locale)** để in nhãn theo locale. Ở en-US, nhãn quen thuộc là **AM** và **PM**; ở các locale khác, tên có thể được bản địa hóa và dùng dấu câu hoặc cách viết khác. Không tự động hardcode **"AM"** hoặc **"PM"** lên giao diện nhiều ngôn ngữ nếu người dùng mong đợi cách viết địa phương.
+Use **DateTimeFormatter.ofPattern("a", locale)** to print the label for a locale. In `en-US`, the familiar labels are **AM** and **PM**; in other locales, the names can be localized and use different punctuation or phrasing. Never hardcode **"AM"** or **"PM"** in a multilingual UI when users expect localized wording.
 
-### 8.1. Kết hợp a với giờ 12 tiếng
+### 8.1. Combining `a` with the 12-hour clock
 
-Một số ký hiệu giờ:
+Several hour pattern letters:
 
-| Pattern | Phạm vi giờ | Ví dụ ý nghĩa |
+| Pattern | Hour range | Meaning example |
 | --- | --- | --- |
-| **H** / **HH** | 0–23 | Giờ hệ 24h |
-| **h** / **hh** | 1–12 | Giờ hệ 12h, thường đi cùng **a** |
-| **K** / **KK** | 0–11 | Giờ trong AM/PM theo hệ 0–11 |
-| **k** / **kk** | 1–24 | Giờ đồng hồ hệ 1–24 |
-| **a** | Nhãn AM/PM | Nửa ngày |
-| **m** / **mm** | Phút | Không liên quan đến tên tháng **M** |
+| **H** / **HH** | 0–23 | 24-hour clock |
+| **h** / **hh** | 1–12 | 12-hour clock, usually paired with **a** |
+| **K** / **KK** | 0–11 | Hour in AM/PM on a 0–11 scale |
+| **k** / **kk** | 1–24 | Clock hour on a 1–24 scale |
+| **a** | AM/PM label | Half of day |
+| **m** / **mm** | Minute | Unrelated to month **M** |
 
-Ví dụ với Locale.US:
+Example with `Locale.US`:
 
 ~~~java
 import java.time.LocalTime;
@@ -389,14 +389,14 @@ public class TwelveHourDemo {
 }
 ~~~
 
-Lưu **TwelveHourDemo.java**, chạy:
+Save **TwelveHourDemo.java** and run:
 
 ~~~bash
 javac TwelveHourDemo.java
 java TwelveHourDemo
 ~~~
 
-Stdout với en-US:
+Stdout with `en-US`:
 
 ~~~text
 12:00 AM
@@ -404,11 +404,11 @@ Stdout với en-US:
 9:05 PM
 ~~~
 
-**00:00 không phải 00:00 AM khi dùng h; nó là 12:00 AM.** **12:00** là 12:00 PM, không phải AM. Dùng giờ **H** (24h) cùng nhãn **a** thường dư thừa và có thể gây nhầm lẫn trong giao diện. Đối với dữ liệu trao đổi giữa máy, chuỗi giờ ISO-8601 thường thích hợp hơn nhãn AM/PM.
+**00:00 is not 00:00 AM when using `h`; it is 12:00 AM.** **12:00** is 12:00 PM, not AM. Using 24-hour **H** together with **a** is usually redundant and confusing in a UI. For machine-to-machine exchange data, ISO-8601 time strings are generally preferable to AM/PM labels.
 
-## 9. TextStyle cho kỳ trong ngày với DateTimeFormatterBuilder
+## 9. TextStyle for Day Periods with DateTimeFormatterBuilder
 
-Enum **Month** và **DayOfWeek** có trực tiếp **getDisplayName(...)**, nhưng không có enum **AMPM** tương đương để gọi cùng phương thức. Với kỳ trong ngày kiểu nửa ngày, ta có thể format trường **ChronoField.AMPM_OF_DAY** bằng **DateTimeFormatterBuilder.appendText(...)**:
+The **Month** and **DayOfWeek** enums have **getDisplayName(...)** directly, whereas there is no equivalent **AMPM** enum with that method. For half-day period text, you can format **ChronoField.AMPM_OF_DAY** with **DateTimeFormatterBuilder.appendText(...)**:
 
 ~~~java
 import java.time.LocalTime;
@@ -434,29 +434,29 @@ public class AmPmTextStyleDemo {
 }
 ~~~
 
-Lưu **AmPmTextStyleDemo.java**, chạy:
+Save **AmPmTextStyleDemo.java** and run:
 
 ~~~bash
 javac AmPmTextStyleDemo.java
 java AmPmTextStyleDemo
 ~~~
 
-Với en-US trong Java 17, hai nhãn thông dụng thu được là:
+With `en-US` in Java 17, the two common labels produced are:
 
 ~~~text
 AM
 PM
 ~~~
 
-Ở đây **TextStyle.SHORT** chọn mức dạng chữ cho trường AM/PM. Tuy nhiên, một locale không nhất thiết có ba nhãn khác nhau cho FULL, SHORT và NARROW. Bản dữ liệu locale có thể cung cấp cùng nhãn hoặc fallback. Nếu sản phẩm có quy tắc nhãn riêng, **DateTimeFormatterBuilder.appendText(field, Map<Long,String>)** cho phép định nghĩa ánh xạ văn bản cụ thể; khi đó phải xác định rõ phạm vi locale và ngôn ngữ của map.
+Here **TextStyle.SHORT** selects the text form level for the AM/PM field. However, a locale does not necessarily have three distinct labels for FULL, SHORT, and NARROW. Locale data may supply the same label or a fallback. If the product has custom label rules, **DateTimeFormatterBuilder.appendText(field, Map<Long,String>)** lets you define an explicit text mapping; in that case, clearly scope the map's locale and language.
 
-**Không nhầm nhãn AM/PM với các kỳ trong ngày chi tiết** như sáng sớm, trưa, chiều, tối. AM/PM chỉ chia hai nửa ngày, còn kỳ trong ngày linh hoạt có thể chia nhiều khoảng.
+**Do not confuse AM/PM labels with granular day periods** such as early morning, noon, afternoon, and night. AM/PM splits the day into only two halves, whereas flexible day periods can divide it into multiple intervals.
 
-## 10. Pattern B: kỳ trong ngày linh hoạt
+## 10. Pattern B: Flexible Day Periods
 
-Java 17 **DateTimeFormatter** hỗ trợ ký hiệu pattern **B** cho **period-of-day** linh hoạt. Khác với **a**, vốn dựa trên AM/PM, **B** cho phép tên kỳ trong ngày phù hợp với quy tắc locale như “in the morning”, “in the afternoon”, “at night”, “noon”, “midnight” khi dữ liệu locale hỗ trợ.
+Java 17 **DateTimeFormatter** supports the pattern letter **B** for flexible **period-of-day**. Unlike **a**, which is based on AM/PM, **B** enables locale-rule-based day-period names such as "in the morning", "in the afternoon", "at night", "noon", and "midnight" when supported by locale data.
 
-Ví dụ khảo sát:
+Exploratory example:
 
 ~~~java
 import java.time.LocalTime;
@@ -485,46 +485,46 @@ public class FlexiblePeriodDemo {
 }
 ~~~
 
-Lưu **FlexiblePeriodDemo.java**, chạy:
+Save **FlexiblePeriodDemo.java** and run:
 
 ~~~bash
 javac FlexiblePeriodDemo.java
 java FlexiblePeriodDemo
 ~~~
 
-Chương trình in **năm dòng**, mỗi dòng cho biết nhãn **a** và **B** tại một thời điểm. Cách gọi **a** sẽ đưa nhãn AM/PM; cách gọi **B** có thể biểu diễn kỳ trong ngày cụ thể hơn. **Không đưa một stdout nguyên văn cố định cho B**, vì tên và ranh giới các kỳ được xác định bởi dữ liệu locale của runtime và có thể thay đổi theo bản JDK hoặc locale provider.
+The program prints **five lines**, each showing the **a** and **B** labels at a given time. Calling **a** yields AM/PM labels; calling **B** can express more specific periods of the day. **Do not assert a single verbatim stdout for `B`**, because period names and boundaries are defined by the runtime's locale data and can change across JDK versions or locale providers.
 
-Trong Java 17, số chữ B trong pattern có thể yêu cầu các mức dạng chữ theo ngữ cảnh; hãy sử dụng mẫu hợp lệ như **B**, **BBBB** hoặc **BBBBB** và kiểm thử. Không nên gắn nhãn “buổi sáng” cố định cho một khoảng giờ tự chọn rồi coi đó là hành vi chuẩn của mọi locale.
+In Java 17, the count of `B` letters in a pattern can request contextual text styles; use valid forms such as **B**, **BBBB**, or **BBBBB** and test them. Do not assign a fixed "morning" label to an arbitrary hour range and treat it as universal behavior across all locales.
 
-### 10.1. B không phải phép biến đổi của a
+### 10.1. `B` is not a transformation of `a`
 
-Hai giờ **09:00** và **11:59** đều là AM. Tuy nhiên, tùy ngôn ngữ có thể có các tên kỳ trong ngày cụ thể hoặc cách đặt nhãn “trưa” đặc biệt. **a** chỉ phân biệt nửa ngày; **B** tra quy tắc nhiều kỳ trong ngày.
+Both **09:00** and **11:59** are AM. However, depending on the language, there may be specific day-period names or special labels for "noon". **a** distinguishes only the two halves of the day; **B** looks up multi-period rules.
 
-Vì vậy trong một ứng dụng đa ngôn ngữ, cần chọn công cụ theo ngữ nghĩa câu:
+Therefore, in a multilingual application, choose the tool by sentence semantics:
 
-- Nhập hoặc hiển thị giờ kiểu **9:30 AM**: dùng **h:mm a** khi đây là quy ước của locale.
-- Câu tiếng Anh như **9:30 in the morning**: cân nhắc **h:mm B** khi dữ liệu locale và yêu cầu UI phù hợp.
-- Hiển thị bảng thời gian 24h: dùng **HH:mm**, thường không cần AM/PM.
-- Câu nghiệp vụ có kỳ riêng như “ca sáng”, “ca đêm”: đó là **định nghĩa miền nghiệp vụ**; không tự đồng nhất với day-period của CLDR.
+- Entering or displaying times like **9:30 AM**: use **h:mm a** when that is the locale's convention.
+- English phrasing like **9:30 in the morning**: consider **h:mm B** when locale data and UI requirements align.
+- Displaying a 24-hour timetable: use **HH:mm**, usually without AM/PM.
+- Domain sentences with custom shifts like "morning shift" or "night shift": those are **business-domain definitions**; do not equate them with CLDR day periods.
 
-## 11. Tên tháng/ngày trong một câu không chỉ là TextStyle
+## 11. Month/Day Names in a Sentence Are More Than TextStyle
 
-Một DateTimeFormatter nhận **pattern và locale**, nhưng không tự dịch văn bản literal:
+A `DateTimeFormatter` takes a **pattern and locale**, yet does not translate literal text automatically:
 
 ~~~java
 DateTimeFormatter en = DateTimeFormatter.ofPattern(
         "EEEE, MMMM d 'at' h:mm a", Locale.US);
 ~~~
 
-Với pattern trên, chữ **at** đã được ghi cứng. Chuyển sang **Locale.forLanguageTag("vi-VN")** sẽ thay các tên/thành phần bản địa hóa, nhưng chữ **at** vẫn tồn tại. Do đó:
+In the pattern above, the word **at** is hardcoded. Switching to **Locale.forLanguageTag("vi-VN")** replaces localized names and components, yet **at** remains. Therefore:
 
-1. **Locale** chọn tên tháng/ngày/kỳ trong ngày theo dữ liệu bản địa.
-2. **Pattern** chọn thứ tự và thành phần.
-3. **Từ nối/giới từ** phải nằm trong pattern đã dịch hoặc một nguồn nội dung theo locale (chẳng hạn ResourceBundle).
+1. **Locale** selects month/day/day-period names from localized data.
+2. **Pattern** chooses component order and parts.
+3. **Connectors and prepositions** must live in a translated pattern or localized content source (such as a `ResourceBundle`).
 
-Đối với ứng dụng phục vụ nhiều ngôn ngữ, hãy tạo pattern/formatter theo locale người xem thay vì dùng một mẫu tiếng Anh với các tên ngày được chuyển ngôn ngữ tự động. Một số ngôn ngữ yêu cầu cách đặt ngày/tháng đặc thù, dấu phẩy hoặc cấu trúc giới từ khác.
+For multilingual apps, define patterns/formatters per viewer locale instead of using an English template with translated day names swapped in. Some languages require specific day/month placement, commas, or different prepositional phrasing.
 
-Đối với giao diện ngày ngắn/dài thông thường, **DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)** kết hợp **withLocale(locale)** thường thuận tiện hơn tự đặt thứ tự tên tháng/ngày. Java sử dụng mẫu ngày địa phương hóa do runtime cung cấp thay vì một mẫu cố định do bạn viết.
+For typical short/long date displays, **DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL)** combined with **withLocale(locale)** is usually more convenient than ordering month/day names manually. Java uses the localized date pattern supplied by the runtime instead of a fixed pattern you write.
 
 ~~~java
 import java.time.LocalDate;
@@ -546,46 +546,46 @@ public class LocalizedFullDate {
 }
 ~~~
 
-Lưu **LocalizedFullDate.java**, chạy bằng **javac** rồi **java**. Kết quả là cách trình bày ngày đầy đủ theo vi-VN của JDK, có thể chứa tên ngày, tháng và quy ước riêng. Không khóa một stdout cụ thể ở đây vì chính mục đích ví dụ là dùng định dạng địa phương hóa của runtime.
+Save **LocalizedFullDate.java**, compile with **javac**, and run with **java**. The output is the JDK's full `vi-VN` date presentation, which may include day name, month, and local conventions. Do not pin one exact stdout here because the goal of the example is to use the runtime's localized format.
 
-## 12. Bảng đối chiếu: chọn TextStyle hay pattern nào?
+## 12. Reference Table: Which TextStyle or Pattern to Choose?
 
-| Nhu cầu UI | Lựa chọn nên xem xét | Lý do |
+| UI need | Option to consider | Reason |
 | --- | --- | --- |
-| Tiêu đề tháng trong lịch | **Month.getDisplayName(FULL_STANDALONE, locale)** hoặc **LLLL** | Ngữ cảnh tháng đứng riêng |
-| Tên tháng trong ngày đầy đủ | **MMMM** hoặc DateTimeFormatter localized style | Ngữ cảnh định dạng |
-| Nhãn tháng ngắn trong biểu đồ | **MMM** / **TextStyle.SHORT** | Gọn, nhưng cần biết có thể trùng |
-| Nhãn tháng cực ngắn | **MMMMM** / **TextStyle.NARROW** | Tiết kiệm chỗ; thường không duy nhất |
-| Tiêu đề ngày trong tuần | **DayOfWeek.getDisplayName(...)** | Dùng locale và style tường minh |
-| Ngày trong câu dài | **EEEE** | Tên ngày đầy đủ |
-| Dạng số ngày theo tuần địa phương | **e** hoặc WeekFields | Không đồng nhất ISO getValue |
-| Giờ kiểu 12h | **h:mm a** | Nhãn AM/PM |
-| Kỳ trong ngày linh hoạt | **B** | Tên kỳ theo dữ liệu locale của Java 17 |
-| Dữ liệu máy cần 24h | **HH:mm** hoặc ISO formatter | Không phụ thuộc tên kỳ trong ngày |
-| Chuỗi ngày đầy đủ tự nhiên | **ofLocalizedDate(FormatStyle.FULL)** | Dùng thứ tự và dấu câu theo locale |
-| Pattern do người dịch kiểm soát | **ofPattern(pattern, locale)** | Câu hoàn chỉnh thuộc bản dịch |
+| Month heading in a calendar | **Month.getDisplayName(FULL_STANDALONE, locale)** or **LLLL** | Standalone month context |
+| Month name in a full date | **MMMM** or `DateTimeFormatter` localized style | Formatting context |
+| Short month label in a chart | **MMM** / **TextStyle.SHORT** | Compact, though watch for collisions |
+| Ultra-short month label | **MMMMM** / **TextStyle.NARROW** | Saves space; often not unique |
+| Weekday column heading | **DayOfWeek.getDisplayName(...)** | Uses explicit locale and style |
+| Day in a long sentence | **EEEE** | Full weekday name |
+| Local week day number | **e** or `WeekFields` | Do not equate with ISO `getValue` |
+| 12-hour clock time | **h:mm a** | AM/PM label |
+| Flexible day period | **B** | Period names from Java 17 locale data |
+| Machine data needing 24h | **HH:mm** or ISO formatter | Independent of day-period names |
+| Natural full date string | **ofLocalizedDate(FormatStyle.FULL)** | Uses locale-appropriate order and punctuation |
+| Translator-controlled pattern | **ofPattern(pattern, locale)** | Complete translated sentence structure |
 
-**Cùng một TextStyle không bảo đảm chuỗi dài đúng bằng một số ký tự**: SHORT/NARROW là danh mục kiểu tên, không phải thuật toán cắt chuỗi. Không được lấy FULL rồi gọi substring để tự giả lập SHORT hoặc NARROW, vì cách viết tắt đúng có thể khác chữ đầu của tên đầy đủ.
+**The same TextStyle does not guarantee a fixed character count**: SHORT/NARROW are name categories, not string-truncation algorithms. Never take FULL and call `substring` to fake SHORT or NARROW, because proper abbreviations can differ from the leading letters of the full name.
 
-## 13. Tính khác nhau giữa locale và dữ liệu JDK/CLDR
+## 13. Differences Between Locales and JDK/CLDR Data
 
-Ngay khi chỉ định rõ **Locale.forLanguageTag("vi-VN")**, kết quả chữ vẫn có thể thay đổi giữa runtime:
+Even when specifying **Locale.forLanguageTag("vi-VN")** explicitly, textual results can change across runtimes:
 
-- Bản phát hành JDK tích hợp phiên bản dữ liệu địa phương hóa khác nhau.
-- Dữ liệu CLDR cập nhật viết hoa/viết thường, cách viết tắt hoặc cách đặt dấu.
-- Locale provider đang được cấu hình khác nhau.
-- Một style chưa có dữ liệu riêng nên formatter có thể fallback sang dạng chữ khác hoặc biểu diễn số.
-- Một ngôn ngữ có biến thể script/region riêng không nên tự gộp với biến thể khác.
+- Different JDK releases bundle different versions of localization data.
+- CLDR updates capitalization, abbreviations, or punctuation.
+- Configured locale providers may differ.
+- A style without dedicated data may cause the formatter to fall back to another text form or numeric representation.
+- Script/region variants of a language should not be conflated with another variant.
 
-Vì vậy, **truyền locale tường minh giúp tránh phụ thuộc vào default locale của máy**, nhưng không biến tên tháng/ngày thành hằng số bất biến qua mọi bản JDK. Nếu hệ thống dùng snapshot test so sánh toàn bộ văn bản, cần xác định phiên bản runtime được hỗ trợ hoặc đặt assertion theo phạm vi có ý nghĩa.
+Thus, **passing an explicit locale avoids depending on the machine's default locale**, yet does not turn month/day names into invariant constants across every JDK release. If a system uses exact full-text snapshot tests, pin the supported runtime version or write assertions over meaningful properties.
 
-Đối với tên tiếng Anh phổ thông như October/Wednesday, kết quả thường rất ổn định. Đối với ngôn ngữ có biến cách, tên dạng NARROW, cách viết tắt có dấu hoặc các kỳ trong ngày **B**, không nên tự gán output tuyệt đối mà chưa chạy kiểm thử trên runtime triển khai.
+For common English names such as October/Wednesday, output is usually very stable. For inflected languages, NARROW forms, accented abbreviations, or **B** day periods, do not assume exact output strings without running tests on the deployment runtime.
 
-## 14. Parsing tên tháng và ngày trong tuần
+## 14. Parsing Month and Weekday Names
 
-DateTimeFormatter không chỉ format mà còn có thể parse văn bản đã bản địa hóa. Tuy nhiên, nếu chuỗi đầu vào có tên tháng/ngày bằng chữ, phải biết **locale và style** của nguồn nhập.
+`DateTimeFormatter` can parse localized text as well as format it. However, if the input string contains textual month/day names, you must know the **locale and style** of the input source.
 
-Ví dụ full English:
+Full English example:
 
 **File ParseMonthNameDemo.java**
 
@@ -615,7 +615,7 @@ public class ParseMonthNameDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac ParseMonthNameDemo.java
@@ -628,22 +628,22 @@ Stdout:
 2026-10-28
 ~~~
 
-Trường hợp này dùng **MMMM** đúng tên tháng đầy đủ và **Locale.US** tường minh. Nếu người dùng nhập tên tháng tiếng Việt hoặc tiếng Nga, cần formatter và style phù hợp. Đừng dùng locale của server để parse dữ liệu theo ngôn ngữ của người dùng.
+This case uses **MMMM** matching the full month name and explicit **Locale.US**. If users enter Vietnamese or Russian month names, you need the corresponding formatter and style. Never use the server's locale to parse data in a user's language.
 
-### 14.1. Tên NARROW có thể nhập nhằng
+### 14.1. NARROW names can be ambiguous
 
-Khi **TextStyle.NARROW** dùng một ký tự cho nhiều tháng hoặc ngày, cùng chuỗi có thể ứng với nhiều giá trị. Vì vậy:
+When **TextStyle.NARROW** uses a single character for multiple months or weekdays, the same string can match multiple values. Therefore:
 
-- Dùng NARROW cho **nhãn trực quan** chỉ khi có ngữ cảnh đủ.
-- Không dùng NARROW làm định dạng nhập liệu ngày chính nếu hệ thống cần giải mã duy nhất.
-- Ưu tiên ISO numeric cho API hoặc bộ chọn ngày có cấu trúc.
-- Với dữ liệu người dùng tự do, thiết kế validation và thông báo lỗi theo locale.
+- Use NARROW for **visual labels** only when sufficient context exists.
+- Do not use NARROW as a primary date input format when the system needs unambiguous decoding.
+- Prefer ISO numeric formats for APIs or structured date pickers.
+- For free-form user input, design validation and localized error messages.
 
-### 14.2. Case, dấu câu và ký tự Unicode
+### 14.2. Case, punctuation, and Unicode characters
 
-Tên tháng/ngày có thể có dấu, dấu chấm viết tắt hoặc cách viết hoa khác nhau. **DateTimeFormatter** mặc định dùng quy tắc parse có phân biệt hoa/thường trong các trường hợp; nếu cần parse không phân biệt hoa/thường, có thể dùng **DateTimeFormatterBuilder.parseCaseInsensitive()** trước khi append pattern. Tuy vậy, **case-insensitive không đồng nghĩa bỏ dấu hoặc chuẩn hóa Unicode hoàn toàn**.
+Month/day names can include diacritics, abbreviation periods, or varying capitalization. By default, **DateTimeFormatter** uses case-sensitive parsing in standard setups; for case-insensitive parsing, call **DateTimeFormatterBuilder.parseCaseInsensitive()** before appending the pattern. Still, **case-insensitive does not strip diacritics or perform full Unicode normalization**.
 
-Ví dụ xây dựng formatter trong phương thức:
+Example building a formatter inside a method:
 
 ~~~java
 DateTimeFormatter formatter =
@@ -653,19 +653,19 @@ DateTimeFormatter formatter =
                 .toFormatter(Locale.US);
 ~~~
 
-Đoạn minh họa cần import **DateTimeFormatterBuilder**, **DateTimeFormatter**, **Locale**. Cần kiểm tra chuỗi thực và xử lý **DateTimeParseException**; với các ngôn ngữ có case mapping phức tạp, không tự giả định mọi cách gõ đều được nhận.
+This snippet requires importing **DateTimeFormatterBuilder**, **DateTimeFormatter**, and **Locale**. Test real strings and handle **DateTimeParseException**; for languages with complex case mappings, do not assume every typed variant will be accepted.
 
-## 15. WeekFields và tuần bắt đầu từ ngày nào
+## 15. WeekFields and Which Day Starts the Week
 
-Tên thứ và vị trí trong lịch có liên quan nhưng không phải một:
+Weekday names and calendar positions are related, yet distinct:
 
-- **DayOfWeek.MONDAY.getValue()** luôn bằng 1 theo ISO.
-- **WeekFields.of(Locale.US)** thường dùng Chủ nhật làm ngày đầu tuần.
-- Một locale khác có thể có ngày đầu tuần và số ngày tối thiểu của tuần đầu năm khác.
+- **DayOfWeek.MONDAY.getValue()** is always 1 per ISO.
+- **WeekFields.of(Locale.US)** typically uses Sunday as the first day of the week.
+- Other locales may have a different first day of the week and minimum days in the first week of the year.
 
-Khi hiển thị nhãn lịch theo locale, bạn có thể cần **getDisplayName(TextStyle.SHORT_STANDALONE, locale)** cho tiêu đề cột. Khi sắp cột, cần **WeekFields.of(locale).getFirstDayOfWeek()** hoặc chính sách người dùng chọn, chứ không sắp từ thứ Hai vì ISO luôn 1.
+When rendering localized calendar labels, you may need **getDisplayName(TextStyle.SHORT_STANDALONE, locale)** for column headers. When ordering columns, use **WeekFields.of(locale).getFirstDayOfWeek()** or a user-chosen preference, rather than starting on Monday just because ISO assigns it 1.
 
-Ví dụ code minh họa tính thứ tự bảy cột theo locale:
+Code snippet computing the order of seven columns for a locale:
 
 ~~~java
 DayOfWeek first =
@@ -675,19 +675,19 @@ for (int i = 0; i < 7; i++) {
     DayOfWeek day = first.plus(i);
     String label = day.getDisplayName(
             TextStyle.SHORT_STANDALONE, locale);
-    // Đưa label vào cột lịch thứ i.
+    // Place label into calendar column i.
 }
 ~~~
 
-Đoạn minh họa cần import **DayOfWeek**, **WeekFields**, **TextStyle**, **Locale**, và biến **locale**. **DayOfWeek.plus(...)** tự xoay vòng sau Chủ nhật, không cần tự dùng modulo.
+This snippet requires importing **DayOfWeek**, **WeekFields**, **TextStyle**, and **Locale**, plus a `locale` variable. **DayOfWeek.plus(...)** wraps around automatically after Sunday, so manual modulo arithmetic is unnecessary.
 
-**Không nhầm tuần của locale với timezone**: tuần bắt đầu ngày nào không cho biết ngày hiện tại của người dùng đang là ngày nào nếu chưa biết múi giờ cho thời điểm đó.
+**Do not confuse a locale's week with a time zone**: knowing which day starts the week does not tell you what calendar day it currently is for a user without knowing the time zone for that instant.
 
-## 16. Locale khác múi giờ và đồng hồ 12/24h
+## 16. Locale Differs from Time Zone and 12/24-Hour Clock
 
-Một thời điểm thực tế được biểu diễn bằng **Instant**, còn ngày/giờ người dùng nhìn thấy cần **ZoneId**. Locale quyết định tên tháng, tên ngày và cách viết, nhưng **không tự đổi instant sang giờ địa phương**.
+An actual instant is represented by **Instant**, while the date/time a user sees requires a **ZoneId**. Locale determines month names, day names, and formatting conventions, yet **does not automatically convert an instant to local time**.
 
-Ví dụ:
+Example:
 
 ~~~java
 Instant instant =
@@ -703,15 +703,15 @@ DateTimeFormatter formatter =
 String output = formatter.format(inVietnam);
 ~~~
 
-Đây là đoạn minh họa cần import **Instant**, **ZonedDateTime**, **ZoneId**, **DateTimeFormatter**, **Locale**. **instant** xác định thời điểm; **ZoneId** xác định lịch/giờ tại Việt Nam; **Locale** chọn tên ngày/tháng và dấu tương ứng. Không gán một stdout ngôn ngữ bản địa cố định vì các tên dựa trên dữ liệu JDK.
+This snippet requires importing **Instant**, **ZonedDateTime**, **ZoneId**, **DateTimeFormatter**, and **Locale**. **instant** identifies the point in time; **ZoneId** determines the Vietnam date/time; **Locale** chooses the corresponding day/month names and punctuation. Do not pin a fixed localized stdout string because names come from JDK data.
 
-Nếu dùng **LocalDateTime** không gắn timezone, nó là giá trị lịch + giờ địa phương, không tự tương ứng một Instant. Không nên lấy LocalDateTime của server rồi coi nó là thời điểm thực tế của mọi người dùng.
+When using a zone-less **LocalDateTime**, it is a local calendar date + wall-clock time and does not automatically map to an `Instant`. Do not take a server's `LocalDateTime` and treat it as the actual instant for all users.
 
-**Quy ước 12/24h** cũng khác với timezone. Locale có thể có quy tắc ưa dùng một hệ nhưng pattern **h:mm a** đã chọn 12h, còn **HH:mm** đã chọn 24h. Nếu giao diện để người dùng chọn hệ giờ, quyết định pattern phải theo preference, không chỉ locale.
+**12/24-hour conventions** also differ from time zone. A locale may favor one clock style, yet the pattern **h:mm a** explicitly selects 12-hour format and **HH:mm** selects 24-hour format. If the UI lets users pick their preferred clock format, choose the pattern according to that preference rather than solely from locale.
 
-## 17. ResourceBundle và văn bản bản dịch
+## 17. ResourceBundle and Translated Text
 
-Khi muốn viết câu có ngày tháng trong một ngôn ngữ cụ thể, pattern có thể được lưu trong ResourceBundle:
+When writing sentences containing dates in a specific language, patterns can be stored in a `ResourceBundle`:
 
 ~~~properties
 # messages_en.properties
@@ -723,131 +723,131 @@ appointment=Appointment: {0}
 appointment=Lịch hẹn: {0}
 ~~~
 
-Đây là hai tệp minh họa trên classpath. Trong một phương thức Java, bạn có thể:
+These are two illustrative files on the classpath. Inside a Java method, you can:
 
-1. Resolve locale người dùng theo danh sách ứng dụng hỗ trợ.
-2. Định dạng ngày/giờ bằng DateTimeFormatter với locale/zone thích hợp.
-3. Lấy câu văn từ ResourceBundle theo cùng locale và chính sách fallback.
-4. Dùng **MessageFormat** hoặc phương thức ghép an toàn để chèn văn bản đã định dạng.
+1. Resolve the user's locale against the application's supported list.
+2. Format the date/time with `DateTimeFormatter` using the appropriate locale/zone.
+3. Look up the sentence template from `ResourceBundle` using the same locale and fallback policy.
+4. Use **MessageFormat** or a safe formatting helper to insert the formatted text.
 
-Đừng kỳ vọng **ResourceBundle** tự tạo tên tháng/ngày khi một chuỗi literal được hardcode. Nó chỉ chọn nội dung bản dịch có sẵn. Nếu đưa một **LocalDate** trực tiếp vào **MessageFormat** với **{0,date}**, hãy lưu ý Java 17 MessageFormat vẫn dùng hệ **java.text.DateFormat** cho kiểu ngày truyền thống; cần chủ động dùng adapter **DateTimeFormatter.toFormat()** hoặc định dạng trước thành String.
+Do not expect **ResourceBundle** to generate month/day names when a literal string is hardcoded. It only selects pre-translated templates. If passing a **LocalDate** directly into **MessageFormat** with **{0,date}**, note that Java 17 `MessageFormat` still uses legacy **java.text.DateFormat** for traditional date placeholders; explicitly use the **DateTimeFormatter.toFormat()** adapter or pre-format into a `String`.
 
-Một câu dịch có thể đặt ngày trước hoặc sau từ nối, nên xây dựng pattern/cấu trúc theo ngôn ngữ chứ không chỉ thay vài từ tiếng Anh trong một mẫu cố định.
+A translated sentence may place the date before or after connecting words, so design patterns/structures per language rather than swapping a few words in one fixed English template.
 
-## 18. Những lỗi phổ biến
+## 18. Common Mistakes
 
-### Lỗi 1: Tưởng TextStyle là CSS
+### Mistake 1: Thinking TextStyle is CSS
 
-**TextStyle.FULL/SHORT/NARROW** là kiểu tên ngày/tháng theo ngôn ngữ, không đặt font-size, font-weight hay màu sắc. Không thể dùng NARROW để bảo đảm chuỗi vừa một số pixel nhất định.
+**TextStyle.FULL/SHORT/NARROW** are linguistic forms for day/month names, not font-size, font-weight, or color. You cannot use NARROW to guarantee a string fits within a fixed pixel width.
 
-### Lỗi 2: Dùng FULL thay FULL_STANDALONE trong tiêu đề
+### Mistake 2: Using FULL instead of FULL_STANDALONE in headings
 
-Trong một số ngôn ngữ có biến cách, tên tháng khi đứng độc lập khác tên tháng đi kèm ngày. Dùng **LLLL** hoặc **FULL_STANDALONE** cho tiêu đề khi phù hợp.
+In inflected languages, a month name standing alone differs from a month name paired with a day. Use **LLLL** or **FULL_STANDALONE** for headings when appropriate.
 
-### Lỗi 3: Hardcode chữ cái đầu làm nhãn NARROW
+### Mistake 3: Hardcoding the first letter as a NARROW label
 
-Chữ đầu của tên đầy đủ không đảm bảo tương đương tên hẹp chính thức và có thể trùng nhau. Dùng TextStyle.NARROW/NARROW_STANDALONE từ dữ liệu locale, hoặc một nhãn sản phẩm được thiết kế riêng.
+The initial letter of a full name is not guaranteed to match the official narrow form and can collide across months or days. Use `TextStyle.NARROW`/`NARROW_STANDALONE` from locale data, or an intentionally designed product label.
 
-### Lỗi 4: Nhầm getValue với số thứ trong lịch địa phương
+### Mistake 4: Confusing `getValue` with local calendar weekday numbers
 
-**DayOfWeek.getValue()** là ISO; vị trí cột theo locale nên dùng WeekFields và không phải lúc nào thứ Hai cũng đứng đầu.
+**DayOfWeek.getValue()** is ISO; localized column order should use `WeekFields` and does not always start with Monday.
 
-### Lỗi 5: Dùng h mà quên a
+### Mistake 5: Using `h` and forgetting `a`
 
-Định dạng **9:30** theo hệ 12 giờ có thể không phân biệt 09:30 và 21:30. Khi cần, dùng **h:mm a**; hoặc dùng **HH:mm** để tránh nhập nhằng.
+Formatting **9:30** on a 12-hour clock fails to distinguish 09:30 from 21:30. When needed, use **h:mm a**; or use **HH:mm** to avoid ambiguity.
 
-### Lỗi 6: Cho rằng 12:00 là AM
+### Mistake 6: Thinking 12:00 is AM
 
-**LocalTime.NOON** là PM, **LocalTime.MIDNIGHT** là AM. Với hệ 12 giờ, nửa đêm là 12:00 AM và giữa trưa là 12:00 PM.
+**LocalTime.NOON** is PM; **LocalTime.MIDNIGHT** is AM. On a 12-hour clock, midnight is 12:00 AM and noon is 12:00 PM.
 
-### Lỗi 7: Coi B đồng nghĩa với a
+### Mistake 7: Treating `B` as synonymous with `a`
 
-**B** là period-of-day linh hoạt, còn **a** chỉ là AM/PM. Các nhãn và ranh giới B phụ thuộc dữ liệu locale; không tự gán hẳn “ca sáng/ca tối” của doanh nghiệp vào nó.
+**B** is flexible period-of-day, whereas **a** is strictly AM/PM. Labels and boundaries for `B` depend on locale data; do not map business concepts like "morning shift/evening shift" onto it blindly.
 
-### Lỗi 8: Tưởng đổi Locale sẽ dịch cả literal trong pattern
+### Mistake 8: Assuming changing Locale translates pattern literals
 
-Pattern **"EEEE 'at' HH:mm"** luôn giữ chữ **at**; tên thứ thay đổi theo locale nhưng từ nối không thay. Dùng pattern hoặc ResourceBundle đã dịch đầy đủ.
+The pattern **"EEEE 'at' HH:mm"** always keeps the word **at**; the weekday name changes by locale, while the connector does not. Use fully translated patterns or `ResourceBundle` entries.
 
-### Lỗi 9: Cho rằng tên tháng/ngày không đổi giữa mọi JDK
+### Mistake 9: Assuming month/day names never change across JDKs
 
-Dữ liệu CLDR, provider và phiên bản Java có thể cập nhật dạng chữ. Với snapshot test exact, kiểm soát runtime hoặc assertion theo tính chất có ý nghĩa.
+CLDR data, providers, and Java releases can update wording. For exact snapshot tests, pin the runtime or assert meaningful properties.
 
-### Lỗi 10: Parse bằng NARROW hoặc sai locale
+### Mistake 10: Parsing with NARROW or the wrong locale
 
-Tên hẹp có thể nhập nhằng; tên tháng tiếng Nga/Việt có thể không đọc được bằng formatter en-US. Chọn formatter đúng ngôn ngữ và style của input, kiểm tra lỗi parse.
+Narrow names can be ambiguous; Russian/Vietnamese month names may not parse under an `en-US` formatter. Choose a formatter matching the input's language and style, and handle parse errors.
 
-### Lỗi 11: Dùng TextStyle để suy ra timezone
+### Mistake 11: Using TextStyle to infer a time zone
 
-TextStyle và Locale không xác định ZoneId. Một Instant có thể rơi vào ngày lịch khác ở hai múi giờ. Chọn zone theo dữ liệu của người dùng/nghiệp vụ.
+`TextStyle` and `Locale` do not determine a `ZoneId`. One `Instant` can fall on different calendar dates in two time zones. Select the zone from user/domain data.
 
-### Lỗi 12: Dùng DateTimeFormatter không truyền locale trong server
+### Mistake 12: Using DateTimeFormatter without passing a locale on a server
 
-**DateTimeFormatter.ofPattern(pattern)** không có locale tường minh có thể sử dụng default locale của môi trường. Hai máy có thể sinh tên tháng/ngày hoặc nhãn AM/PM khác. Với đầu ra theo user, dùng **ofPattern(pattern, locale)** hoặc **withLocale(locale)**.
+**DateTimeFormatter.ofPattern(pattern)** without an explicit locale can use the environment's default locale. Two servers can produce different month/day names or AM/PM labels. For user-facing output, use **ofPattern(pattern, locale)** or **withLocale(locale)**.
 
-## 19. Kiểm thử bản địa hóa tên tháng/ngày và kỳ trong ngày
+## 19. Testing Localization of Month Names, Day Names, and Day Periods
 
-| Kịch bản | Điều cần kiểm tra |
+| Scenario | What to verify |
 | --- | --- |
-| **Month.OCTOBER** dưới en-US/vi-VN/ru-RU | Tên đúng locale; full/standalone theo nhu cầu |
-| **DayOfWeek.WEDNESDAY** FULL/SHORT/NARROW | Tên đầy đủ, viết tắt, dạng hẹp đúng ngữ cảnh |
-| Lịch en-US và ISO | Khác biệt ngày đầu tuần nhưng getValue ISO không đổi |
-| **MMMM** so với **LLLL** | Tên tháng trong câu và tiêu đề độc lập |
-| **EEEE** so với **cccc** | Ngữ cảnh tên ngày trong tuần |
-| **00:00**, **12:00**, **21:05** với **h:mm a** | AM/PM và giờ 12 tiếng không nhầm |
-| **B** tại 00:00, 09:30, 12:00, 15:15, 22:00 | Nhãn day period theo dữ liệu locale |
-| Parse **28 October 2026** theo en-US | Trả LocalDate chính xác |
-| Parse tên viết tắt có dấu | Không tự bỏ dấu/case khi không có chính sách |
-| Chuỗi pattern có literal tiếng Anh | Kiểm tra literal không tự dịch khi đổi locale |
-| Cùng locale qua hai JDK hỗ trợ | Nhận diện khác biệt CLDR/provid­er nếu cần |
-| Cùng Instant qua hai ZoneId | Ngày lịch/giờ địa phương tính đúng zone |
-| Không gian lịch rất hẹp | TextStyle.NARROW không làm mất khả năng phân biệt/accessibility |
+| **Month.OCTOBER** in `en-US`/`vi-VN`/`ru-RU` | Locale-accurate names; full/standalone as required |
+| **DayOfWeek.WEDNESDAY** FULL/SHORT/NARROW | Full, abbreviated, and narrow forms in context |
+| `en-US` vs. ISO week | Different first day of week while ISO `getValue` stays unchanged |
+| **MMMM** vs. **LLLL** | Month name in sentence vs. standalone heading |
+| **EEEE** vs. **cccc** | Weekday name context |
+| **00:00**, **12:00**, **21:05** with **h:mm a** | AM/PM and 12-hour clock without confusion |
+| **B** at 00:00, 09:30, 12:00, 15:15, 22:00 | Day-period labels per locale data |
+| Parsing **28 October 2026** in `en-US` | Returns exact `LocalDate` |
+| Parsing accented abbreviations | Does not silently strip accents/case without a policy |
+| Pattern string with English literal | Verifies literals do not auto-translate when changing locale |
+| Same locale across two supported JDKs | Identifies CLDR/provider differences if needed |
+| Same `Instant` across two `ZoneId`s | Local calendar date/time computed accurately for each zone |
+| Very narrow calendar space | `TextStyle.NARROW` does not break distinguishability/accessibility |
 
-Nên **test logic có kiểu** (LocalDate, LocalTime, Month, DayOfWeek, AMPM_OF_DAY) riêng với **test nội dung bản địa hóa**. Đối với dữ liệu locale, chỉ chốt các chuỗi nguyên văn khi sản phẩm thực sự cần và môi trường đã được xác định. Đối với logic, assert giá trị ISO hoặc Instant thay vì phụ thuộc tên tháng hoặc ngày bằng chữ.
+Separate **typed-logic tests** (`LocalDate`, `LocalTime`, `Month`, `DayOfWeek`, `AMPM_OF_DAY`) from **localized-content tests**. For locale data, pin exact verbatim strings only when the product strictly requires them and the environment is pinned. For logic, assert ISO values or `Instant` rather than relying on textual month or weekday names.
 
-### 19.1. Test ổn định khi locale mặc định JVM khác
+### 19.1. Stable tests under different JVM default locales
 
-Một chương trình đã truyền locale vào mọi formatter có thể được chạy dưới các môi trường mặc định khác nhau bằng startup properties trong các tiến trình riêng:
+A program that passes explicit locales to every formatter can be run under different default environments using startup properties in separate processes:
 
 ~~~bash
 java -Duser.language=en -Duser.country=US MonthDayPeriodDemo
 java -Duser.language=de -Duser.country=DE MonthDayPeriodDemo
 ~~~
 
-Các lệnh trên chạy cùng class sau khi biên dịch. Vì chương trình dùng **Locale.US** tường minh, nhãn en-US không nên đổi chỉ vì default JVM khác. Không nên dùng **Locale.setDefault()** trong test chạy song song; đó là trạng thái toàn JVM, dễ gây race.
+These commands run the same compiled class. Because the program uses explicit **Locale.US**, `en-US` labels should not change just because the JVM default differs. Avoid calling **Locale.setDefault()** in parallel tests; it is JVM-global state and prone to races.
 
-**Với test B hoặc locale khác nhau theo phiên bản**, hãy chạy trên runtime mà ứng dụng hỗ trợ và ghi rõ dữ liệu localizations được dùng thay vì bắt mọi JDK trả một chuỗi y hệt.
+**For tests involving `B` or version-sensitive locales**, run on the target runtime supported by the application and document the localization data used rather than forcing every JDK to return an identical string.
 
-## 20. Bài tập tự kiểm tra
+## 20. Self-Check Exercises
 
-1. Viết một tiêu đề tháng cho người dùng tiếng Nga: nên thử **MMMM** hay **LLLL**? Tại sao?
-2. Tại sao **DayOfWeek.SUNDAY.getValue()** vẫn bằng 7 dù lịch Hoa Kỳ mở đầu bằng Chủ nhật?
-3. Dùng TextStyle.NARROW làm duy nhất nhãn nhập ngày trong tuần có rủi ro gì?
-4. Vì sao **h:mm** có thể nhập nhằng, còn **h:mm a** ít nhập nhằng hơn?
-5. **B** và **a** khác gì nhau nếu cùng format LocalTime 09:30?
-6. Chỉ thay locale của formatter có dịch được literal **'at'** trong pattern không?
-7. Khi cần hiển thị cùng Instant ở Việt Nam và Hoa Kỳ, vì sao phải xác định ZoneId?
-8. Nếu snapshot tiếng Việt khác sau nâng cấp JDK nhưng LocalDate không đổi, cần kiểm tra gì?
+1. Writing a month heading for Russian users: should you try **MMMM** or **LLLL**? Why?
+2. Why does **DayOfWeek.SUNDAY.getValue()** still equal 7 even though the US calendar starts on Sunday?
+3. What is the risk of using `TextStyle.NARROW` as the sole label for weekday input?
+4. Why can **h:mm** be ambiguous, whereas **h:mm a** is less ambiguous?
+5. How do **B** and **a** differ when formatting `LocalTime` 09:30?
+6. Does changing only the formatter's locale translate the literal **'at'** in a pattern?
+7. When displaying the same `Instant` in Vietnam and the United States, why must `ZoneId` be specified?
+8. If a Vietnamese snapshot changes after a JDK upgrade while `LocalDate` stays the same, what should you check?
 
-**Gợi ý trả lời:** (1) **LLLL** cho tiêu đề standalone, kiểm thử theo locale; (2) getValue là ISO, WeekFields điều khiển lịch địa phương; (3) nhãn hẹp có thể trùng/khó đọc; (4) thiếu AM/PM không phân biệt hai nửa ngày; (5) a chia hai nửa, B dùng quy tắc kỳ linh hoạt; (6) không; (7) Instant không có ngày giờ địa phương nếu chưa chọn zone; (8) phiên bản JDK/CLDR, locale provider và pattern/style.
+**Answer hints:** (1) **LLLL** for standalone headings, tested by locale; (2) `getValue` is ISO, while `WeekFields` governs local calendar weeks; (3) narrow labels can collide or be hard to read; (4) without AM/PM, the two halves of the day are indistinguishable; (5) `a` splits two halves, `B` uses flexible period rules; (6) no; (7) `Instant` has no local date/time until a zone is chosen; (8) JDK/CLDR version, locale provider, and pattern/style.
 
-## 21. Checklist thực hành
+## 21. Practical Checklist
 
-- Dùng **Month.getDisplayName(TextStyle, Locale)** cho tên tháng và **DayOfWeek.getDisplayName(TextStyle, Locale)** cho tên ngày.
-- Chọn **FULL/SHORT/NARROW** theo không gian hiển thị và khả năng đọc, không tự cắt chuỗi thủ công.
-- Dùng **STANDALONE** khi ngôn ngữ và ngữ cảnh yêu cầu tên tháng/ngày độc lập.
-- Phân biệt **MMMM** với **LLLL**, **EEEE** với **cccc**, và **e/c** dạng số tuần địa phương với ISO DayOfWeek.getValue.
-- Dùng **a** cho AM/PM; cân nhắc **B** khi cần period-of-day linh hoạt trong Java 17.
-- Không nhầm **H**, **h**, **K**, **k**, nhất là ở 00:00 và 12:00.
-- Với kỳ AM/PM dạng text, có thể dùng **DateTimeFormatterBuilder.appendText(ChronoField.AMPM_OF_DAY, TextStyle)**.
-- Dùng **DateTimeFormatter.ofPattern(pattern, locale)** hoặc localized format kết hợp **withLocale(locale)**, không vô tình dựa trên default JVM.
-- Đảm bảo các literal, giới từ và câu văn xung quanh được dịch, không nghĩ TextStyle dịch toàn bộ pattern.
-- Khi định dạng Instant, truyền **ZoneId** tường minh theo dữ liệu user/nghiệp vụ.
-- Khi parse, dùng locale/style đúng của input, tránh NARROW nhập nhằng và xử lý DateTimeParseException.
-- Kiểm thử tên bản địa trên các JDK hỗ trợ, đặc biệt FULL_STANDALONE, SHORT và pattern B.
-- Với API/dữ liệu máy, ưu tiên ISO numeric thay vì tên tháng, ngày hoặc kỳ trong ngày đã địa phương hóa.
+- Use **Month.getDisplayName(TextStyle, Locale)** for month names and **DayOfWeek.getDisplayName(TextStyle, Locale)** for weekday names.
+- Choose **FULL/SHORT/NARROW** based on display space and readability, never manual string slicing.
+- Use **STANDALONE** when the language and context require standalone month/day names.
+- Distinguish **MMMM** from **LLLL**, **EEEE** from **cccc**, and local week numbers **e/c** from ISO `DayOfWeek.getValue`.
+- Use **a** for AM/PM; consider **B** when flexible period-of-day is needed in Java 17.
+- Do not confuse **H**, **h**, **K**, and **k**, especially at 00:00 and 12:00.
+- For textual AM/PM periods, you can use **DateTimeFormatterBuilder.appendText(ChronoField.AMPM_OF_DAY, TextStyle)**.
+- Use **DateTimeFormatter.ofPattern(pattern, locale)** or localized formats with **withLocale(locale)**, never relying accidentally on JVM defaults.
+- Ensure literals, prepositions, and surrounding prose are translated; do not assume `TextStyle` translates the entire pattern.
+- When formatting an `Instant`, pass an explicit **ZoneId** from user/domain data.
+- When parsing, use the input's matching locale and style, avoid ambiguous NARROW forms, and handle `DateTimeParseException`.
+- Test localized names across supported JDKs, especially `FULL_STANDALONE`, `SHORT`, and pattern `B`.
+- For APIs and machine data, prefer ISO numeric formats over localized month, weekday, or day-period names.
 
-## 22. Kết luận
+## 22. Conclusion
 
-**TextStyle trong Java Time quyết định hình thức chữ của tên tháng, tên ngày và một số trường thời gian, không thay thế Locale hoặc pattern.** **Month** và **DayOfWeek** cung cấp **getDisplayName(TextStyle, Locale)**; **DateTimeFormatter** dùng **M/L**, **E/e/c** và **a/B** để mô tả tên, ngữ cảnh độc lập và kỳ trong ngày. Với AM/PM, **ChronoField.AMPM_OF_DAY** biểu diễn hai nửa ngày, còn pattern **B** dùng quy tắc kỳ trong ngày linh hoạt theo dữ liệu locale của Java 17.
+**`TextStyle` in Java Time determines the textual form of month names, day names, and certain temporal fields; it does not replace `Locale` or patterns.** **Month** and **DayOfWeek** provide **getDisplayName(TextStyle, Locale)**; **DateTimeFormatter** uses **M/L**, **E/e/c**, and **a/B** to express names, standalone context, and day periods. For AM/PM, **ChronoField.AMPM_OF_DAY** represents the two halves of the day, while pattern **B** uses flexible day-period rules from Java 17 locale data.
 
-Để chương trình rõ ràng và dễ kiểm thử, luôn xác định **locale người xem**, dùng **STANDALONE** nơi phù hợp, giữ riêng ngày giờ có kiểu khỏi văn bản bản địa hóa và quản lý **ZoneId** khi chuyển Instant sang giờ địa phương. Tránh hardcode tên tháng hoặc cắt chữ viết tắt, đồng thời kiểm thử đúng phiên bản JDK/CLDR để xử lý thay đổi dữ liệu bản địa hóa có chủ đích.
+To keep programs clear and testable, always identify the **viewer's locale**, use **STANDALONE** where appropriate, keep typed date/time values separate from localized text, and manage **ZoneId** when converting an `Instant` to local time. Avoid hardcoding month names or slicing abbreviations, and test against your target JDK/CLDR version to handle intentional localization data updates cleanly.

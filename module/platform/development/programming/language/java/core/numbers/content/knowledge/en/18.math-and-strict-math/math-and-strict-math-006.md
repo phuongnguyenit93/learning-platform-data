@@ -1,16 +1,16 @@
-# `Math.hypot` và việc giảm nguy cơ overflow trung gian trong Java
+# `Math.hypot` and Reducing the Risk of Intermediate Overflow in Java
 
-## 1. Bài toán: tính căn của tổng hai bình phương
+## 1. The Problem: Computing the Square Root of a Sum of Two Squares
 
-Trong hình học phẳng, độ dài cạnh huyền của tam giác vuông với hai cạnh góc vuông `x`, `y` là:
+In plane geometry, the hypotenuse length of a right triangle with legs `x`, `y` is:
 
 \[
 h=\sqrt{x^2+y^2}.
 \]
 
-Công thức này cũng là chuẩn Euclid hai chiều của vectơ `(x, y)` và xuất hiện trong phép tính khoảng cách giữa hai điểm, độ lớn vận tốc, tín hiệu phức, thống kê và các thuật toán số.
+This formula is also the two-dimensional Euclidean norm of the vector `(x, y)` and appears in distance calculations between two points, velocity magnitude, complex signals, statistics, and numerical algorithms.
 
-Một cách viết trực tiếp bằng Java:
+A direct way to write this in Java:
 
 ```java
 double x = 3.0;
@@ -20,29 +20,29 @@ double h = Math.sqrt(x * x + y * y);
 System.out.println(h); // 5.0
 ```
 
-Ở ví dụ nhỏ, công thức hoạt động tốt. Nhưng ở thang giá trị rất lớn hoặc rất nhỏ, các phép **bình phương trung gian** có thể vượt ra ngoài miền biểu diễn hoặc làm tròn về 0, ngay cả khi **kết quả cuối cùng vẫn biểu diễn được** bằng `double`.
+In small examples, the formula works well. However, at very large or very small scales, the **intermediate squaring** operations can exceed the representable range or round to 0, even when **the final result is still representable** as a `double`.
 
-Java cung cấp API phù hợp hơn:
+Java provides a more suitable API:
 
 ```java
 double h = Math.hypot(x, y);
 ```
 
-`Math.hypot(double x, double y)` tính độ lớn tương ứng với \(\sqrt{x^2+y^2}\) bằng thuật toán nhằm tránh overflow/underflow **không cần thiết ở bước trung gian**. `StrictMath.hypot(double,double)` cũng có chức năng cùng ý nghĩa.
+`Math.hypot(double x, double y)` computes the magnitude corresponding to \(\sqrt{x^2+y^2}\) using an algorithm designed to avoid **unnecessary overflow/underflow in intermediate steps**. `StrictMath.hypot(double,double)` serves the same purpose.
 
-**Ghi nhớ ngay:** khi thực sự muốn tính `sqrt(x*x + y*y)` trên số thực hữu hạn, hãy ưu tiên `Math.hypot(x, y)` thay vì tự tạo hai bình phương. Tuy nhiên, `hypot` không thể làm cho một kết quả thực sự quá lớn trở thành số hữu hạn, và không sửa dữ liệu đã mất chính xác từ trước khi gọi.
+**Remember immediately:** when you truly want to compute `sqrt(x*x + y*y)` on finite floating-point numbers, prefer `Math.hypot(x, y)` instead of squaring both values manually. However, `hypot` cannot make a genuinely huge result finite, and it cannot fix data that already lost precision before the call.
 
-## 2. Hai lỗi số học khác nhau: overflow và underflow trung gian
+## 2. Two Different Numerical Errors: Intermediate Overflow and Intermediate Underflow
 
-### 2.1. Overflow trung gian khi bình phương
+### 2.1. Intermediate Overflow When Squaring
 
-`double` chỉ biểu diễn được số hữu hạn đến khoảng:
+`double` only represents finite numbers up to approximately:
 
 \[
 \texttt{Double.MAX_VALUE}\approx 1.7976931348623157\times10^{308}.
 \]
 
-Với `x = y = 1e200`, mỗi bình phương toán học là `1e400`, lớn hơn miền hữu hạn của `double`. Vì vậy:
+With `x = y = 1e200`, each mathematical square is `1e400`, larger than the finite range of `double`. Thus:
 
 ```java
 double x = 1e200;
@@ -55,7 +55,7 @@ System.out.println(naive);  // Infinity
 System.out.println(stable); // 1.414213562373095E200
 ```
 
-Kết quả toán học thực sự là:
+The true mathematical result is:
 
 \[
 \sqrt{(10^{200})^2+(10^{200})^2}
@@ -63,15 +63,15 @@ Kết quả toán học thực sự là:
 \approx 1.414213562373095\times10^{200}.
 \]
 
-Giá trị cuối vẫn nhỏ hơn `Double.MAX_VALUE`. `Infinity` ở cách trực tiếp là **overflow giả do cách sắp xếp phép tính**, không phải vì kết quả toán học không chứa được trong `double`.
+The final value is still smaller than `Double.MAX_VALUE`. `Infinity` in the direct approach is a **spurious overflow caused by how the calculation is arranged**, not because the mathematical result cannot fit in `double`.
 
-Trong biểu thức trực tiếp, `x * x` đã thành `Infinity` trước khi `Math.sqrt` có cơ hội lấy căn. Một khi bước trung gian đã thành vô cực, căn không thể phục hồi giá trị hữu hạn vốn có.
+In the direct expression, `x * x` already became `Infinity` before `Math.sqrt` had a chance to take the root. Once an intermediate step becomes infinity, the square root cannot recover the original finite value.
 
-### 2.2. Underflow trung gian khi bình phương
+### 2.2. Intermediate Underflow When Squaring
 
-`Double.MIN_VALUE` là số `double` **dương khác 0 nhỏ nhất**, khoảng `4.94E-324`. Giá trị `Double.MIN_NORMAL` là ngưỡng số chuẩn hóa dương nhỏ nhất; phía dưới vẫn có số dưới chuẩn (*subnormal*).
+`Double.MIN_VALUE` is the **smallest positive non-zero** `double` number, around `4.94E-324`. The value `Double.MIN_NORMAL` is the smallest positive normal number threshold; below it lie *subnormal* numbers.
 
-Với `x = y = 1e-200`, bình phương toán học là `1e-400`, quá nhỏ để `double` giữ khác 0. Do đó:
+With `x = y = 1e-200`, the mathematical square is `1e-400`, too small for `double` to keep non-zero. Therefore:
 
 ```java
 double x = 1e-200;
@@ -84,81 +84,81 @@ System.out.println(naive);  // 0.0
 System.out.println(stable); // 1.414213562373095E-200
 ```
 
-Kết quả cuối khoảng `1.414E-200`, **lớn hơn rất nhiều** so với `Double.MIN_NORMAL` và hoàn toàn có thể biểu diễn như số hữu hạn chuẩn hóa. Nhưng công thức trực tiếp đánh mất cả hai bình phương trước khi lấy căn.
+The final result is around `1.414E-200`, **much larger** than `Double.MIN_NORMAL` and completely representable as a finite normal number. Yet the direct formula loses both squares before taking the root.
 
-Điểm chung của hai lỗi: thực hiện phép toán trung gian ở **thang độ lớn quá cao hoặc quá thấp** so với kết quả cuối. Chọn lại cấu trúc thuật toán có thể tránh phải biểu diễn các số trung gian nguy hiểm ấy.
+What both errors have in common: performing intermediate operations at a **magnitude scale far too high or too low** relative to the final result. Restructuring the algorithm avoids having to represent those dangerous intermediate values.
 
-## 3. `Math.hypot` thực hiện điều gì và bảo đảm gì?
+## 3. What Does `Math.hypot` Do and Guarantee?
 
-Chữ *hypot* viết tắt từ *hypotenuse* (cạnh huyền). Chữ ký phương thức trong Java 17:
+The word *hypot* is short for *hypotenuse*. Method signature in Java 17:
 
 ```java
 public static double hypot(double x, double y)
 ```
 
-Ý nghĩa toán học:
+Mathematical meaning:
 
 \[
 \operatorname{hypot}(x,y)=\sqrt{x^2+y^2}.
 \]
 
-Đối với đối số hữu hạn, kết quả là độ lớn không âm của vectơ `(x,y)`, được tính theo quy tắc số học dấu phẩy động. Thư viện tiêu chuẩn dùng thuật toán số để **giảm nguy cơ tràn hoặc mất dữ liệu trung gian** so với bình phương trực tiếp.
+For finite arguments, the result is the non-negative magnitude of the vector `(x,y)`, computed according to floating-point arithmetic rules. The standard library uses a numerical algorithm to **reduce the risk of intermediate overflow or data loss** compared to direct squaring.
 
-Một vài tính chất đáng nhớ:
+A few properties worth remembering:
 
-- Thứ tự hai đối số không thay đổi giá trị toán học: `hypot(x,y) = hypot(y,x)`.
-- Dấu của đối số không thay đổi độ dài: `hypot(-x,y) = hypot(x,y)` về mặt toán học.
-- Nếu `x = 0` và `y` hữu hạn, giá trị toán học là `abs(y)`.
-- Kết quả hữu hạn không âm; khi kết quả lý tưởng quá lớn để biểu diễn, kết quả có thể là `Infinity`.
-- Theo tài liệu API `Math.hypot`, kết quả số hữu hạn có sai số trong khoảng giới hạn **1 ULP** của kết quả chính xác và đáp ứng các yêu cầu chất lượng số được nêu trong đặc tả Java.
+- The order of the two arguments does not change the mathematical value: `hypot(x,y) = hypot(y,x)`.
+- The signs of the arguments do not change the length: `hypot(-x,y) = hypot(x,y)` mathematically.
+- If `x = 0` and `y` is finite, the mathematical value is `abs(y)`.
+- Finite results are non-negative; when the ideal result is too large to represent, the result can be `Infinity`.
+- Per the `Math.hypot` API documentation, finite numerical results have an error within **1 ULP** of the exact result and meet the numerical quality requirements specified by Java.
 
-`hypot` **không** có nghĩa là tính toán với độ chính xác vô hạn hay hoàn toàn chính xác cho mọi cặp đầu vào. Đó là một phép tính dấu phẩy động có làm tròn, nhưng giảm được một số nguy cơ lớn do biểu thức ngây thơ gây ra.
+`hypot` does **not** mean infinite-precision computation or exact results for every input pair. It is a floating-point computation with rounding, though it eliminates major risks caused by the naive expression.
 
-### Vì sao giá trị trả về là `double`?
+### Why Is the Return Type `double`?
 
-Trong Java 17, chữ ký `Math.hypot` nhận hai đối số `double` và trả `double`; không có overload `hypot(float,float)` trả `float`.
+In Java 17, the `Math.hypot` signature takes two `double` arguments and returns `double`; there is no `hypot(float,float)` overload returning `float`.
 
 ```java
 float fx = 3.0f;
 float fy = 4.0f;
 
-double accurateRange = Math.hypot(fx, fy); // float được nâng sang double
-float narrowed = (float) Math.hypot(fx, fy); // có ép kiểu xuống float
+double accurateRange = Math.hypot(fx, fy); // float is promoted to double
+float narrowed = (float) Math.hypot(fx, fy); // explicit cast down to float
 ```
 
-Nếu ép kết quả về `float`, phép chuyển đổi cuối có thể làm tròn hoặc overflow dù `Math.hypot` trả `double` hữu hạn. Sử dụng kiểu kết quả đúng với miền giá trị và yêu cầu độ chính xác.
+If you cast the result back to `float`, the final conversion can round or overflow even though `Math.hypot` returned a finite `double`. Use a result type that matches your value range and precision requirements.
 
-## 4. Ý tưởng kỹ thuật: đổi thang trước khi bình phương
+## 4. Technical Idea: Rescaling Before Squaring
 
-Để hiểu cơ chế mà không cần biết chi tiết triển khai của JDK, ta xem xét một biến đổi đại số.
+To understand the mechanism without needing JDK implementation internals, consider an algebraic transformation.
 
-Với `x`, `y` hữu hạn, đặt:
+For finite `x`, `y`, let:
 
 \[
 a=\max(|x|,|y|),\quad b=\min(|x|,|y|).
 \]
 
-Nếu `a > 0`, thì:
+If `a > 0`, then:
 
 \[
 \sqrt{x^2+y^2}
 =a\sqrt{1+\left(\frac{b}{a}\right)^2}.
 \]
 
-Bởi vì `0 <= b/a <= 1`, việc **bình phương tỷ số** không tạo ra số lớn bất thường. Phép nhân với `a` được dời về cuối, khi đã có độ lớn gần kết quả cần tìm.
+Because `0 <= b/a <= 1`, **squaring the ratio** does not produce abnormally large numbers. Multiplying by `a` is deferred to the end, once the magnitude is close to the desired result.
 
-Ví dụ với `x = y = 1e200`:
+Example with `x = y = 1e200`:
 
 \[
 a=10^{200},\quad b/a=1,\quad
 h=10^{200}\sqrt{2}.
 \]
 
-Thay vì tính `1e400` rồi lấy căn, thuật toán chỉ cần bình phương số `1`. Với `x = y = 1e-200` cũng vậy: tỷ số bằng `1`, không phải bình phương trực tiếp thành `1e-400`.
+Instead of computing `1e400` and taking its square root, the algorithm only needs to square `1`. The same applies for `x = y = 1e-200`: the ratio is `1`, rather than squaring directly to `1e-400`.
 
-### Phác thảo thuật toán để học nguyên lý
+### Algorithm Sketch for Learning the Principle
 
-Phương thức sau chỉ minh họa phép đổi thang, **không phải bản tái triển khai thay thế hoàn chỉnh của `Math.hypot`**:
+The following method only illustrates rescaling and is **not a complete drop-in reimplementation of `Math.hypot`**:
 
 ```java
 static double scaledExample(double x, double y) {
@@ -173,7 +173,7 @@ static double scaledExample(double x, double y) {
     double b = Math.min(Math.abs(x), Math.abs(y));
 
     if (a == 0.0) {
-        return 0.0; // Tránh 0/0 khi cả hai đối số là 0.
+        return 0.0; // Avoid 0/0 when both arguments are 0.
     }
 
     double ratio = b / a; // 0 <= ratio <= 1.
@@ -181,23 +181,23 @@ static double scaledExample(double x, double y) {
 }
 ```
 
-Đoạn trên giải thích tại sao **đưa tỷ lệ về khoảng [0,1]** làm giảm nguy cơ overflow của phép bình phương. Tuy nhiên, một thư viện số chất lượng cao còn phải xử lý chi tiết làm tròn, chênh lệch số mũ rất lớn, số dưới chuẩn, tràn khi nhân cuối, tính chính xác 1 ULP và các trường hợp biên. Bản phác thảo này **không cam kết** cùng chất lượng số với `Math.hypot` trên toàn miền.
+The snippet above explains why **bringing the ratio into [0,1]** reduces the overflow risk of squaring. However, a high-quality numerical library must also handle rounding details, very large exponent differences, subnormals, overflow on the final multiply, 1 ULP accuracy, and edge cases. This sketch **does not promise** the same numerical quality as `Math.hypot` across the entire domain.
 
-`Math.hypot` là lựa chọn mặc định tốt hơn việc tự viết hàm tương đương, trừ khi có yêu cầu chuyên sâu và có kiểm thử số học đầy đủ.
+`Math.hypot` is a better default choice than writing an equivalent function yourself, unless there is a specialized requirement with thorough numerical testing.
 
-### Tại sao tỷ số có thể làm tròn về 0 mà vẫn hữu ích?
+### Why Can the Ratio Round to 0 and Still Be Useful?
 
-Nếu `a` rất lớn còn `b` vô cùng nhỏ so với `a`, tỷ số `b/a` có thể bị làm tròn thành `0`. Khi đó:
+If `a` is very large and `b` is tiny compared to `a`, the ratio `b/a` may round to `0`. Then:
 
 \[
 \sqrt{a^2+b^2}\approx a.
 \]
 
-Đóng góp của `b` thực sự có thể quá nhỏ so với độ phân giải của kết quả `double` ở cỡ `a`, nên kết quả làm tròn vẫn là `a`. Tuy nhiên, điều này không có nghĩa `b` bằng 0 về mặt toán học; yêu cầu độ chính xác cao hơn phải dùng mô hình số phù hợp.
+The contribution of `b` can genuinely be too small relative to the resolution of a `double` at the scale of `a`, so the rounded result remains `a`. However, this does not mean `b` is mathematically 0; higher precision requirements must use an appropriate numerical model.
 
-## 5. `hypot` tránh lỗi trung gian nhưng không tránh tràn của kết quả thật
+## 5. `hypot` Avoids Intermediate Errors, Not Overflow of the True Result
 
-Một điểm dễ nhầm: `Math.hypot` **không bảo đảm kết quả luôn hữu hạn**.
+A common misconception: `Math.hypot` **does not guarantee the result is always finite**.
 
 ```java
 double x = Double.MAX_VALUE;
@@ -206,24 +206,24 @@ double y = Double.MAX_VALUE;
 System.out.println(Math.hypot(x, y)); // Infinity
 ```
 
-Ở đây độ dài toán học bằng \(\sqrt2 \cdot \texttt{Double.MAX_VALUE}\), vượt giá trị hữu hạn tối đa. Overflow ở **kết quả cuối** là một giới hạn không thể giải quyết bằng việc đổi thứ tự phép tính trong cùng kiểu `double`.
+Here the mathematical length equals \(\sqrt2 \cdot \texttt{Double.MAX\_VALUE}\), exceeding the maximum finite value. Overflow in the **final result** is a limit that cannot be solved by reordering operations within the same `double` type.
 
-Ngược lại:
+Conversely:
 
 ```java
 System.out.println(Math.hypot(1e308, 1e308));
 // 1.4142135623730951E308
 ```
 
-Độ dài toán học vẫn dưới `Double.MAX_VALUE` nên `Math.hypot` có thể trả một số hữu hạn, dù cách `Math.sqrt(x*x + y*y)` đã overflow ở bình phương.
+The mathematical length is still below `Double.MAX_VALUE`, so `Math.hypot` can return a finite number, even though `Math.sqrt(x*x + y*y)` already overflowed in squaring.
 
-Khi thiết kế chương trình, cần phân biệt:
+When designing a program, distinguish:
 
-- **Overflow trung gian có thể tránh:** bình phương hoặc cộng số trung gian quá lớn nhưng kết quả cần tìm vẫn nằm trong miền kiểu.
-- **Overflow kết quả không thể tránh bằng `hypot`:** độ dài thực sự lớn hơn miền `double`.
-- **Sai số làm tròn vẫn còn:** giá trị toán học nằm trong miền hữu hạn nhưng không có biểu diễn nhị phân chính xác.
+- **Avoidable intermediate overflow:** squaring or adding intermediate numbers is too large, while the target result still fits in the type's range.
+- **Result overflow unavoidable by `hypot`:** the actual length truly exceeds the `double` range.
+- **Rounding error still remains:** the mathematical value lies in the finite range, but lacks an exact binary representation.
 
-Nếu ứng dụng bắt buộc kết quả hữu hạn, vẫn nên xác thực:
+If the application requires finite results, still validate:
 
 ```java
 double length = Math.hypot(x, y);
@@ -232,13 +232,13 @@ if (!Double.isFinite(length)) {
 }
 ```
 
-Tùy hợp đồng, có thể cần phân biệt đầu vào vô cực/NaN với overflow do độ lớn kết quả; chỉ nhìn kết quả cuối không đủ cho mọi yêu cầu chẩn đoán.
+Depending on the contract, you may need to distinguish infinite/NaN inputs from overflow caused by result magnitude; looking only at the final result is not enough for all diagnostic requirements.
 
-## 6. `Infinity`, `NaN` và số 0 có dấu
+## 6. `Infinity`, `NaN`, and Signed Zero
 
-Các phương thức dấu phẩy động của Java có hành vi xác định cho giá trị đặc biệt.
+Java's floating-point methods have well-defined behavior for special values.
 
-### Vô cực và NaN
+### Infinity and NaN
 
 ```java
 System.out.println(Math.hypot(Double.POSITIVE_INFINITY, Double.NaN));
@@ -248,13 +248,13 @@ System.out.println(Math.hypot(Double.NaN, 4.0));
 // NaN
 ```
 
-Quy tắc quan trọng của `hypot`: nếu **một đối số là vô cực**, kết quả là vô cực dương, **kể cả khi đối số kia là NaN**. Nếu không có đối số vô cực mà một đối số là `NaN`, kết quả là `NaN`.
+Important rule of `hypot`: if **either argument is infinite**, the result is positive infinity, **even if the other argument is NaN**. If neither argument is infinite and one argument is `NaN`, the result is `NaN`.
 
-Không suy diễn quy tắc này từ việc thay trực tiếp giá trị vào `x*x + y*y`, vì phép cộng với NaN trong biểu thức thông thường có thể tạo `NaN` trong tình huống `hypot` trả vô cực.
+Do not deduce this rule by substituting values directly into `x*x + y*y`, because addition with NaN in an ordinary expression can produce `NaN` in cases where `hypot` returns infinity.
 
-### Dấu âm và signed zero
+### Negative Signs and Signed Zero
 
-Độ dài Euclid là độ lớn, nên kết quả không âm đối với đối số số thực. Nếu hai đối số đều là số 0, kể cả `-0.0`, kết quả là `+0.0`:
+Euclidean length is a magnitude, so the result is non-negative for real arguments. If both arguments are 0, including `-0.0`, the result is `+0.0`:
 
 ```java
 double length = Math.hypot(-0.0, -0.0);
@@ -265,41 +265,41 @@ System.out.println(
 // 0
 ```
 
-`0.0` và `-0.0` bằng nhau theo toán tử primitive `==`, nhưng có bit dấu khác nhau. `hypot` biểu diễn **độ dài**, do đó dấu của tọa độ âm hoặc của signed zero không được giữ trong kết quả.
+`0.0` and `-0.0` are equal under the primitive `==` operator, but have different sign bits. `hypot` represents **length**, so negative signs of coordinates or signed zeros are not preserved in the result.
 
-### Đầu vào lớn/nhỏ nhưng hữu hạn
+### Large/Small Finite Inputs
 
-`Math.hypot(1e200, 1e200)` và `Math.hypot(1e-200, 1e-200)` đều hữu hạn. Nhưng nếu đầu vào đã là `Infinity`, hoặc được tạo từ một phép tính khác đã overflow, `hypot` không thể khôi phục dữ liệu vốn hữu hạn trước phép toán đó.
+`Math.hypot(1e200, 1e200)` and `Math.hypot(1e-200, 1e-200)` are both finite. However, if an input is already `Infinity`, or came from another calculation that already overflowed, `hypot` cannot recover data that was finite before that operation.
 
-Tương tự, nếu một giá trị có độ lớn khác 0 đã underflow thành `0.0` **trước** khi truyền vào `hypot`, thì `hypot` chỉ nhìn thấy `0.0`; nó không khôi phục được giá trị gốc.
+Similarly, if a non-zero value already underflowed to `0.0` **before** being passed to `hypot`, then `hypot` only sees `0.0`; it cannot restore the original value.
 
-## 7. `Math.hypot` và `StrictMath.hypot` khác nhau như thế nào?
+## 7. How Do `Math.hypot` and `StrictMath.hypot` Differ?
 
-Java có hai lớp tiện ích tính toán:
+Java has two math utility classes:
 
-- `java.lang.Math`: tập hợp hàm toán học phổ biến. JVM có thể sử dụng các phép tối ưu hoặc mã nền tảng khi vẫn đáp ứng hợp đồng API.
-- `java.lang.StrictMath`: tập hợp hàm toán học được thiết kế với định hướng hành vi số học nhất quán, có các quy định chặt chẽ hơn về khả năng tái lập cho nhiều phép tính. Không nên suy luận rằng **mọi** cặp phương thức trong `Math` và `StrictMath` bắt buộc cho bit kết quả giống nhau trên mọi nền tảng và mọi phiên bản.
+- `java.lang.Math`: collection of common math functions. The JVM may use platform-specific optimizations or intrinsics while still satisfying the API contract.
+- `java.lang.StrictMath`: collection of math functions designed with an emphasis on consistent numerical behavior, with stricter rules on reproducibility for many computations. Do not infer that **every** pair of methods in `Math` and `StrictMath` must produce identical bit patterns on every platform and version.
 
-Cả hai có phương thức:
+Both have the method:
 
 ```java
 double a = Math.hypot(3.0, 4.0);
 double b = StrictMath.hypot(3.0, 4.0);
 ```
 
-Đối với bài toán tính độ dài thông thường, nên ưu tiên `Math.hypot` vì dễ đọc, là API trực tiếp và đáp ứng yêu cầu chất lượng số. Nếu hệ thống có hợp đồng kiểm thử tái lập chi tiết từng bit giữa các môi trường, cần đánh giá **đúng phương thức, JDK, phiên bản và nền tảng** trước khi chọn, thay vì mặc định tên `StrictMath` là lời hứa mọi phép toán toàn hệ thống đều chính xác tuyệt đối.
+For general length calculations, prefer `Math.hypot` because it is readable, a direct API, and meets numerical quality requirements. If a system has a detailed bit-by-bit cross-environment reproducibility test contract, evaluate **the exact method, JDK, version, and platform** before choosing, instead of assuming the name `StrictMath` promises every operation system-wide is completely exact.
 
-Đừng dùng `StrictMath.hypot` như biện pháp tự động loại bỏ mọi sai số dấu phẩy động: cả hai đều nhận và trả `double`, nên cùng chịu giới hạn miền biểu diễn.
+Do not use `StrictMath.hypot` as an automatic cure-all for floating-point errors: both take and return `double`, so they share the same representational limits.
 
-## 8. Tình huống ứng dụng: khoảng cách giữa hai điểm
+## 8. Application Scenario: Distance Between Two Points
 
-Cho hai điểm `P(x1, y1)` và `Q(x2, y2)`:
+Given two points `P(x1, y1)` and `Q(x2, y2)`:
 
 \[
 d(P,Q)=\sqrt{(x_2-x_1)^2+(y_2-y_1)^2}.
 \]
 
-Thay vì:
+Instead of:
 
 ```java
 double dx = x2 - x1;
@@ -307,7 +307,7 @@ double dy = y2 - y1;
 double distance = Math.sqrt(dx * dx + dy * dy);
 ```
 
-hãy dùng:
+use:
 
 ```java
 double dx = x2 - x1;
@@ -315,15 +315,15 @@ double dy = y2 - y1;
 double distance = Math.hypot(dx, dy);
 ```
 
-Hai đoạn trên là **mã minh họa trong ngữ cảnh đã khai báo các tọa độ**. `Math.hypot` loại bỏ nguy cơ overflow/underflow không cần thiết của các bình phương `dx*dx`, `dy*dy`.
+Both snippets are **illustrative code in a context where coordinates are already declared**. `Math.hypot` eliminates the unnecessary overflow/underflow risks of squaring `dx*dx` and `dy*dy`.
 
-Tuy nhiên, cần phân tích luôn phép **trừ tọa độ**:
+However, you must also analyze the **coordinate subtraction**:
 
-1. Nếu `x1`, `x2` là `double` rất lớn và gần nhau, các chữ số thấp có thể đã bị làm tròn trong bước lưu dữ liệu. `hypot` không phục hồi chênh lệch đã mất.
-2. Nếu tọa độ gốc là số nguyên lớn và được chuyển sang `double` trước khi trừ, các số nguyên liên tiếp có thể trở thành cùng giá trị `double`.
-3. Nếu dùng kiểu `int` và viết `int dx = x2 - x1`, bản thân phép trừ có thể overflow theo quy tắc số nguyên Java trước khi truyền vào `hypot`.
+1. If `x1`, `x2` are very large and close `double`s, the low digits may already have been rounded off when storing the data. `hypot` does not recover lost differences.
+2. If the original coordinates are large integers and converted to `double` before subtracting, consecutive integers may become the same `double` value.
+3. If using type `int` and writing `int dx = x2 - x1`, the subtraction itself can overflow under Java integer rules before being passed to `hypot`.
 
-Với tọa độ `int`, một cách tránh tràn ở phép trừ là **chuyển sang `double` trước khi trừ**:
+With `int` coordinates, one way to avoid overflow in subtraction is to **convert to `double` before subtracting**:
 
 ```java
 int x1 = Integer.MIN_VALUE;
@@ -335,23 +335,23 @@ double distance = Math.hypot(dx, 0.0);
 System.out.println(distance); // 4.294967295E9
 ```
 
-Mọi giá trị `int` đều biểu diễn chính xác bằng `double`, nên phép chuyển trước phép trừ không mất bit phần trị của tọa độ `int`. Ngược lại, ép kiểu **sau** phép trừ nguyên không cứu được overflow đã xảy ra.
+Every `int` value is represented exactly by `double`, so converting before subtracting loses no mantissa bits of `int` coordinates. Conversely, casting **after** integer subtraction cannot salvage an overflow that already occurred.
 
-Nếu tọa độ là `long` rất lớn và cần giữ phân biệt từng đơn vị, chỉ chuyển từng `long` sang `double` có thể làm tròn. Phải chọn cách tính chênh lệch chính xác và kiểu kết quả phù hợp với miền giá trị của ứng dụng.
+If coordinates are very large `long` values and unit-level distinction must be kept, simply converting each `long` to `double` can round. Choose an exact difference calculation and result type appropriate for the application's value range.
 
-### Khoảng cách 3 chiều
+### 3D Distance
 
-Với vectơ `(x,y,z)`, có thể lồng hai phép gọi:
+For a vector `(x,y,z)`, you can nest two calls:
 
 ```java
 double length3D = Math.hypot(Math.hypot(x, y), z);
 ```
 
-Đây là cách tránh viết ngay `sqrt(x*x + y*y + z*z)` với ba bình phương trung gian. Kết quả vẫn là phép tính `double` có làm tròn; cần xét overflow cuối cùng và sai số tích lũy. Nếu ứng dụng có yêu cầu numerical analysis đặc biệt, có thể cần thuật toán tính chuẩn nhiều chiều chuyên dụng.
+This avoids immediately writing `sqrt(x*x + y*y + z*z)` with three intermediate squares. The result is still a `double` calculation with rounding; consider final overflow and accumulated error. If the application has specialized numerical analysis requirements, a dedicated multi-dimensional norm algorithm may be needed.
 
-## 9. Ví dụ Java 17 đầy đủ và kết quả
+## 9. Complete Java 17 Example and Output
 
-Lưu chương trình sau dưới tên `HypotDemo.java`:
+Save the following program as `HypotDemo.java`:
 
 ```java
 public class HypotDemo {
@@ -401,14 +401,14 @@ public class HypotDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac HypotDemo.java
 java HypotDemo
 ```
 
-Kết quả điển hình trên JDK 17 tuân thủ hợp đồng Java (những chữ số cuối của phép tính dấu phẩy động phụ thuộc các bảo đảm cụ thể của phương thức và môi trường):
+Typical output on a Java-contract-compliant JDK 17 (last digits of floating-point calculations depend on specific method and environment guarantees):
 
 ```text
 3-4 naive: 5.0
@@ -427,127 +427,127 @@ int coordinate distance: 4.294967295E9
 strict hypot: 1.414213562373095E200
 ```
 
-Ví dụ kiểm chứng hai tình huống quan trọng:
+The example verifies two crucial scenarios:
 
-- Với `big`, phép nhân trung gian overflow thành `Infinity`, trong khi `Math.hypot` vẫn hữu hạn.
-- Với `tiny`, phép nhân trung gian làm tròn thành `0.0`, trong khi `Math.hypot` giữ kết quả hữu hạn khác 0.
+- With `big`, intermediate multiplication overflows to `Infinity`, whereas `Math.hypot` remains finite.
+- With `tiny`, intermediate multiplication rounds to `0.0`, whereas `Math.hypot` preserves a non-zero finite result.
 
-Trường hợp `Double.MAX_VALUE` cho thấy `Math.hypot` **không** thể tránh tràn ở kết quả cuối nếu độ dài thật vượt cận.
+The `Double.MAX_VALUE` case demonstrates that `Math.hypot` **cannot** prevent overflow in the final result if the true length exceeds the bound.
 
-## 10. Vì sao không tự thay bằng biểu thức “đã rút gọn”?
+## 10. Why Not Replace It Yourself with a "Simplified" Expression?
 
-### `Math.sqrt(x*x + y*y)` nhanh và ngắn nhưng có giới hạn
+### `Math.sqrt(x*x + y*y)` Is Fast and Short but Has Limits
 
-Công thức trực tiếp thường được dạy trong toán học và có thể đủ khi độ lớn đầu vào đã được giới hạn chặt. Tuy nhiên, khi số liệu có thể trải qua miền rất lớn/nhỏ, nó làm phát sinh các phép nhân nguy hiểm mà `hypot` được thiết kế để giảm.
+The direct formula is commonly taught in mathematics and can suffice when input magnitudes are tightly bounded. However, when data can span very large/small ranges, it triggers the dangerous multiplications that `hypot` was designed to mitigate.
 
-### Dùng `Math.abs(x)+Math.abs(y)` làm độ dài có đúng không?
+### Is Using `Math.abs(x)+Math.abs(y)` as Length Valid?
 
-Không. Đây là chuẩn Manhattan (`L1`) trong hai chiều, khác chuẩn Euclid (`L2`):
+No. That is the Manhattan (`L1`) norm in two dimensions, different from the Euclidean (`L2`) norm:
 
 \[
 |x|+|y| \neq \sqrt{x^2+y^2}
 \]
 
-trừ một số trường hợp đặc biệt. Với `(3,4)`, tổng tuyệt đối là `7` còn độ dài Euclid là `5`. Không thay đổi phép đo chỉ để tránh overflow mà không xác định lại bài toán.
+except in a few special cases. For `(3,4)`, the sum of absolutes is `7` while the Euclidean length is `5`. Do not change the metric just to avoid overflow without redefining the problem.
 
-### Dùng `x / max`, `y / max` rồi nhân lại có luôn an toàn?
+### Is Dividing `x / max`, `y / max` and Multiplying Back Always Safe?
 
-Kỹ thuật scaling là cơ sở tốt nhưng một phép cài đặt đơn giản có thể gặp khó ở số cực nhỏ, mất độ chính xác của tỷ số hoặc sai số làm tròn ở nhân cuối. Cần xử lý `max == 0`, `NaN`, vô cực, dấu, tỷ lệ rất lệch và kết quả gần giới hạn biểu diễn. Dùng `Math.hypot` thay cho mã tự phát triển trừ khi thật sự cần thuật toán đặc thù.
+Scaling is a solid foundation, but a naive implementation can run into trouble with tiny numbers, ratio precision loss, or rounding errors in the final multiplication. You must handle `max == 0`, `NaN`, infinity, signs, skewed ratios, and results near representation limits. Use `Math.hypot` instead of homegrown code unless a specialized algorithm is genuinely needed.
 
-### Đổi sang `BigDecimal` sau khi có `Infinity` có giúp không?
+### Does Converting to `BigDecimal` After Getting `Infinity` Help?
 
-Không. Nếu `x*x` đã thành `Infinity`, mọi chữ số về giá trị hữu hạn trước đó đã mất trong phép nhân. `BigDecimal` cũng không nhận trực tiếp vô cực làm giá trị decimal.
+No. If `x*x` has already become `Infinity`, all digits of the earlier finite value were lost during multiplication. Nor does `BigDecimal` accept infinity directly as a decimal value.
 
-Nếu thực sự cần miền lớn hơn `double` hoặc tính toán decimal chính xác, phải giữ **đầu vào nguyên bản** dưới kiểu phù hợp và chọn thuật toán căn số cao độ chính xác riêng, chứ không chuyển một kết quả đã overflow sang `BigDecimal` và mong phục hồi.
+If you truly need a range larger than `double` or exact decimal arithmetic, keep the **original inputs** in an appropriate type and choose a dedicated high-precision square root algorithm, rather than converting an overflowed result to `BigDecimal` hoping to recover it.
 
-## 11. Độ chính xác, ULP và kiểm thử
+## 11. Accuracy, ULP, and Testing
 
-### `hypot` có thể làm tròn nhưng thường đáng tin hơn biểu thức ngây thơ
+### `hypot` May Round, but Is Usually More Reliable Than the Naive Expression
 
-Dù tránh được nhiều lỗi trung gian, `Math.hypot` vẫn trả một giá trị `double`, tức độ dài thường phải được làm tròn. Cần phân biệt hai yêu cầu:
+Even though it avoids many intermediate errors, `Math.hypot` still returns a `double` value, meaning the length usually must be rounded. Distinguish two requirements:
 
-- **Đúng miền giá trị:** phép tính không overflow/underflow sai do trung gian khi kết quả có thể biểu diễn được.
-- **Đúng độ chính xác:** kết quả nằm gần giá trị toán học chuẩn trong giới hạn sai số quy định.
+- **Correct value domain:** the computation does not erroneously overflow/underflow in intermediate steps when the result is representable.
+- **Correct accuracy:** the result lies close to the true mathematical value within specified error bounds.
 
-Tài liệu `Math.hypot` nêu yêu cầu chất lượng về **ULP** (unit in last place). ULP là bước đơn vị của phần trị ở vùng số cụ thể, không phải một ngưỡng sai số tuyệt đối cố định trong toàn miền `double`.
+The `Math.hypot` documentation specifies a quality requirement in **ULP** (unit in last place). ULP is the unit step of the significand at a given numerical scale, not a fixed absolute error threshold across the entire `double` domain.
 
 ```java
 double h = Math.hypot(3.0, 4.0);
 double ulpAtResult = Math.ulp(h);
 ```
 
-Một ULP ở cỡ `5` khác hoàn toàn một ULP ở cỡ `1e200`. Không dùng số `1e-9` chung cho mọi phép so sánh nếu bài toán trải qua nhiều thang số.
+One ULP at scale `5` is completely different from one ULP at scale `1e200`. Do not use a universal `1e-9` for every comparison if the problem spans multiple orders of magnitude.
 
-### Test những miền nào?
+### Which Domains to Test?
 
-| Tình huống | Ví dụ | Mục tiêu |
+| Scenario | Example | Goal |
 | --- | --- | --- |
-| Tam giác quen thuộc | `(3,4)` | Kết quả cơ bản `5` |
-| Hai thành phần lớn | `(1e200,1e200)` | Không overflow trung gian |
-| Hai thành phần nhỏ | `(1e-200,1e-200)` | Không underflow trung gian thành 0 |
-| Gần cận hữu hạn | `(1e308,1e308)` | Trả độ dài hữu hạn nếu có thể |
-| Kết quả thật vượt cận | `(MAX_VALUE,MAX_VALUE)` | Nhận biết `Infinity` hợp lệ |
-| Một thành phần 0 | `(3,0)`, `(0,-4)` | Độ dài bằng trị tuyệt đối thành phần còn lại |
-| Hai signed zero | `(-0.0,-0.0)` | Kết quả `+0.0` |
-| Giá trị đặc biệt | `(NaN,4)`, `(Infinity,NaN)` | Đúng quy tắc API |
-| Một lớn, một rất nhỏ | `(1e200,1)` | Không giả định số nhỏ luôn ảnh hưởng bit kết quả |
-| Tọa độ nguyên gần biên | `Integer.MIN_VALUE`, `MAX_VALUE` | Tránh overflow khi tính hiệu nguyên |
+| Familiar triangle | `(3,4)` | Basic result `5` |
+| Two large components | `(1e200,1e200)` | No intermediate overflow |
+| Two small components | `(1e-200,1e-200)` | No intermediate underflow to 0 |
+| Near finite bound | `(1e308,1e308)` | Return finite length when possible |
+| True result exceeds bound | `(MAX_VALUE,MAX_VALUE)` | Recognize valid `Infinity` |
+| One component is 0 | `(3,0)`, `(0,-4)` | Length equals absolute value of the other component |
+| Two signed zeros | `(-0.0,-0.0)` | Result `+0.0` |
+| Special values | `(NaN,4)`, `(Infinity,NaN)` | Follow API rules |
+| One large, one tiny | `(1e200,1)` | Do not assume the tiny number always affects result bits |
+| Integer coordinates near bounds | `Integer.MIN_VALUE`, `MAX_VALUE` | Avoid overflow when computing integer differences |
 
-Với bài toán có độ chính xác cao, kiểm thử có thể dùng kết quả tham chiếu từ thuật toán số chính xác hơn, so sánh theo ULP hoặc theo sai số tương đối/tuyệt đối phù hợp. Không nên so sánh tất cả kết quả dấu phẩy động bằng `==` nếu phép tính có làm tròn; nhưng những trường hợp được bảo đảm chính xác như `(3,4)` cũng có thể kiểm tra kết quả cụ thể.
+For high-precision problems, tests can use reference results from higher-precision numerical algorithms, comparing by ULP or appropriate relative/absolute error. You should not compare all floating-point results using `==` if rounding occurs; however, guaranteed exact cases like `(3,4)` can still check the exact result.
 
-## 12. Những lỗi thường gặp
+## 12. Common Mistakes
 
-1. **Viết `Math.sqrt(x*x+y*y)` cho dữ liệu không giới hạn thang đo.** Bình phương có thể overflow/underflow dù kết quả cuối còn biểu diễn được.
-2. **Cho rằng `Math.hypot` luôn trả số hữu hạn.** Nếu độ dài thật vượt `Double.MAX_VALUE`, kết quả có thể `Infinity`.
-3. **Chỉ thử số nhỏ nên không nhìn thấy lỗi.** Các case `(3,4)` không phơi lộ overflow trung gian như `(1e200,1e200)`.
-4. **Cho rằng mọi underflow cuối đều do lỗi `hypot`.** Nếu độ dài toán học thật quá nhỏ so với độ phân giải, kết quả làm tròn về 0 có thể là đúng quy tắc của `double`.
-5. **Dùng `Double.MIN_VALUE` như số âm nhỏ nhất.** Nó là số dương khác 0 nhỏ nhất, không phải cận âm.
-6. **Bỏ qua `NaN`/vô cực trong dữ liệu nguồn.** `hypot(Infinity,NaN)` cho vô cực, không nhất thiết giống cách lan truyền NaN của biểu thức trực tiếp.
-7. **Trừ `int` rồi mới chuyển sang `double`.** Overflow có thể xảy ra ở hiệu `int` trước khi `hypot` được gọi.
-8. **Chuyển `long` rất lớn sang `double` rồi kỳ vọng giữ từng đơn vị.** Giá trị nguyên có thể đã mất bit phần thấp.
-9. **Tưởng `StrictMath.hypot` cho độ chính xác vô hạn.** API vẫn làm việc với `double`.
-10. **Coi công thức scaling vài dòng là chắc chắn tương đương thư viện.** Phải xử lý sai số, subnormal, overflow cuối và mọi góc biên.
-11. **Thay Euclid bằng `abs(x)+abs(y)` không xét ý nghĩa.** Đây là chuẩn khác, làm thay đổi bài toán.
-12. **Không kiểm tra kết quả trong ứng dụng đòi hỏi finite.** `Math.hypot` có thể trả `Infinity` hoặc `NaN`, cần chính sách xử lý.
-13. **Kỳ vọng `hypot` khôi phục thông tin đầu vào đã mất.** Các phép toán trước đó có thể đã làm tròn hoặc overflow; `hypot` chỉ nhận các `double` hiện tại.
-14. **Nhầm độ chính xác của phép tính với độ chính xác của dữ liệu nguồn.** Một thuật toán ổn định không thể sửa số đo hoặc biểu diễn ban đầu đã thiếu độ phân giải.
+1. **Writing `Math.sqrt(x*x+y*y)` for unbounded-scale data.** Squaring can overflow/underflow even when the final result is still representable.
+2. **Assuming `Math.hypot` always returns a finite number.** If the true length exceeds `Double.MAX_VALUE`, the result can be `Infinity`.
+3. **Only testing small numbers so bugs stay hidden.** Cases like `(3,4)` do not expose intermediate overflow like `(1e200,1e200)`.
+4. **Assuming every final underflow is a `hypot` bug.** If the true mathematical length is too small for `double` resolution, rounding to 0 follows `double` rules.
+5. **Using `Double.MIN_VALUE` as the smallest negative number.** It is the smallest positive non-zero number, not a negative bound.
+6. **Ignoring `NaN`/infinity in source data.** `hypot(Infinity,NaN)` gives infinity, not necessarily matching NaN propagation of the direct expression.
+7. **Subtracting `int`s before converting to `double`.** Overflow can occur in the `int` difference before `hypot` is called.
+8. **Converting very large `long`s to `double` expecting unit precision.** Integer values may have already lost low bits.
+9. **Thinking `StrictMath.hypot` offers infinite precision.** The API still works with `double`.
+10. **Assuming a few-line scaling formula is certainly equivalent to the library.** You must handle rounding error, subnormals, final overflow, and all corner cases.
+11. **Replacing Euclidean with `abs(x)+abs(y)` without checking semantics.** That is a different norm and changes the problem.
+12. **Not checking results in applications requiring finiteness.** `Math.hypot` can return `Infinity` or `NaN`, requiring a handling policy.
+13. **Expecting `hypot` to recover already lost input info.** Prior operations may have rounded or overflowed; `hypot` only receives the current `double`s.
+14. **Confusing computation accuracy with source data accuracy.** A stable algorithm cannot fix initial measurements or representations lacking resolution.
 
-## 13. Bài tập và đáp án
+## 13. Exercises and Answers
 
-**Bài 1.** Tại sao `Math.sqrt(1e200*1e200 + 1e200*1e200)` có thể trả `Infinity`, trong khi kết quả toán học cỡ `1.4e200`?
+**Exercise 1.** Why can `Math.sqrt(1e200*1e200 + 1e200*1e200)` return `Infinity`, while the mathematical result is around `1.4e200`?
 
-**Đáp án:** Hai phép bình phương trung gian tạo `1e400`, vượt miền hữu hạn của `double`; toán tử nhân cho `Infinity` trước khi có thể lấy căn. `Math.hypot(1e200,1e200)` tránh các bình phương trung gian quá lớn nên giữ kết quả hữu hạn.
+**Answer:** The two intermediate squarings produce `1e400`, exceeding the finite `double` range; multiplication yields `Infinity` before the square root can be taken. `Math.hypot(1e200,1e200)` avoids overly large intermediate squares, keeping the result finite.
 
-**Bài 2.** Tại sao `Math.sqrt(1e-200*1e-200 + 1e-200*1e-200)` cho `0.0`?
+**Exercise 2.** Why does `Math.sqrt(1e-200*1e-200 + 1e-200*1e-200)` give `0.0`?
 
-**Đáp án:** Các bình phương cỡ `1e-400` nhỏ hơn số `double` dương khác 0 nhỏ nhất, bị làm tròn về `0.0`; cộng và lấy căn không khôi phục được chúng. `Math.hypot` đổi thang và cho khoảng `1.414E-200`.
+**Answer:** The squares around `1e-400` are smaller than the smallest positive non-zero `double`, rounding to `0.0`; adding and taking the square root cannot recover them. `Math.hypot` rescales and produces around `1.414E-200`.
 
-**Bài 3.** `Math.hypot(Double.MAX_VALUE,Double.MAX_VALUE)` có phải lỗi của API nếu trả `Infinity`?
+**Exercise 3.** Is it an API bug if `Math.hypot(Double.MAX_VALUE,Double.MAX_VALUE)` returns `Infinity`?
 
-**Đáp án:** Không. Bản thân độ dài thực sự lớn hơn giá trị hữu hạn tối đa của `double`. `hypot` giảm **overflow trung gian không cần thiết**, không bảo đảm tránh overflow khi kết quả đúng vượt miền.
+**Answer:** No. The actual length itself is larger than the maximum finite `double` value. `hypot` reduces **unnecessary intermediate overflow**; it does not guarantee avoiding overflow when the true result exceeds the range.
 
-**Bài 4.** Với `x = 3`, `y = -4`, kết quả toán học của `Math.hypot(x,y)` là bao nhiêu? Dấu âm có được giữ không?
+**Exercise 4.** With `x = 3`, `y = -4`, what is the mathematical result of `Math.hypot(x,y)`? Is the negative sign kept?
 
-**Đáp án:** `5.0`. Độ dài luôn không âm; dấu của từng thành phần không trở thành dấu âm của kết quả.
+**Answer:** `5.0`. Length is always non-negative; the sign of individual components does not become a negative sign on the result.
 
-**Bài 5.** Nếu một đối số là `Infinity` và đối số kia là `NaN`, `Math.hypot` trả gì?
+**Exercise 5.** If one argument is `Infinity` and the other is `NaN`, what does `Math.hypot` return?
 
-**Đáp án:** Vô cực dương. Quy tắc đặc biệt của `hypot` ưu tiên vô cực nếu bất kỳ đối số nào là vô cực.
+**Answer:** Positive infinity. The special rule of `hypot` prioritizes infinity if either argument is infinite.
 
-**Bài 6.** Muốn tính khoảng cách giữa hai điểm với hoành độ kiểu `int`, tại sao nên dùng `(double)x2 - x1` trước khi gọi `hypot`?
+**Exercise 6.** To compute distance between two points with `int` x-coordinates, why should you use `(double)x2 - x1` before calling `hypot`?
 
-**Đáp án:** Nếu trừ hai giá trị `int` gần hai biên đối dấu, phép trừ `int` có thể overflow. Mọi giá trị `int` đều biểu diễn chính xác dưới dạng `double`, nên chuyển trước phép trừ tránh được overflow nguyên trong trường hợp này.
+**Answer:** If subtracting two `int` values near opposite-sign boundaries, `int` subtraction can overflow. Every `int` value is exactly representable as a `double`, so converting before subtraction avoids integer overflow in this case.
 
-**Bài 7.** `Math.hypot(1e308,1e308)` có thể hữu hạn không? Vì sao?
+**Exercise 7.** Can `Math.hypot(1e308,1e308)` be finite? Why?
 
-**Đáp án:** Có. Giá trị đúng khoảng `1.4142135623730951E308`, nhỏ hơn `Double.MAX_VALUE` khoảng `1.7976931348623157E308`; cách tính ổn định tránh được overflow bình phương.
+**Answer:** Yes. The true value is around `1.4142135623730951E308`, smaller than `Double.MAX_VALUE` around `1.7976931348623157E308`; stable computation avoids squaring overflow.
 
-**Bài 8.** Nếu một giá trị `float` được ép từ kết quả `Math.hypot`, có chắc không overflow không?
+**Exercise 8.** If a `float` value is cast from the result of `Math.hypot`, is it guaranteed not to overflow?
 
-**Đáp án:** Không. `Math.hypot` trả `double`; khi ép về `float`, số đó có thể vượt `Float.MAX_VALUE` và thành vô cực, hoặc bị làm tròn/mất độ chính xác.
+**Answer:** No. `Math.hypot` returns `double`; when cast to `float`, that number can exceed `Float.MAX_VALUE` and become infinity, or be rounded/lose precision.
 
-**Bài 9.** Nếu thuật toán 3D viết `Math.hypot(Math.hypot(x,y),z)`, có loại bỏ hoàn toàn mọi sai số không?
+**Exercise 9.** If a 3D algorithm writes `Math.hypot(Math.hypot(x,y),z)`, does it completely eliminate all errors?
 
-**Đáp án:** Không. Cách này tránh nhiều nguy cơ từ các phép bình phương trung gian nhưng vẫn làm tròn ở mỗi kết quả `double`. Với yêu cầu độ chính xác đặc biệt, cần phân tích sai số và kiểm tra trên miền dữ liệu thực tế.
+**Answer:** No. This approach avoids many risks from intermediate squaring, but still rounds at each `double` result. For strict accuracy requirements, error analysis and testing on the actual data domain are needed.
 
-**Ghi nhớ:** `Math.hypot(x,y)` là cách trực tiếp và đáng tin để tính \(\sqrt{x^2+y^2}\) trong Java 17+, nhất là khi thành phần có độ lớn rất lớn hoặc rất nhỏ. Hiểu **overflow trung gian** khác **overflow kết quả thực**, và kiểm tra cả chất lượng đầu vào lẫn giá trị trả về khi ứng dụng cần bảo đảm miền hữu hạn.
+**Key takeaway:** `Math.hypot(x,y)` is the direct and reliable way to compute \(\sqrt{x^2+y^2}\) in Java 17+, especially when components have very large or very small magnitudes. Understand that **intermediate overflow** differs from **true-result overflow**, and check both input quality and return values when your application needs finite-range guarantees.

@@ -1,52 +1,52 @@
-# Ký tự Unicode, ranh giới từ và cụm ký tự trong Java regex
+# Unicode Characters, Word Boundaries, and Grapheme Clusters in Java Regex
 
-## 1. Vì sao regex với Unicode khác regex chỉ xử lý ASCII?
+## 1. Why Does Regex with Unicode Differ from ASCII-Only Regex?
 
-Một `Java String` lưu chuỗi dưới dạng các **đơn vị mã UTF-16** (`char`). Trong Unicode, cần phân biệt ba khái niệm:
+A `Java String` stores a sequence of **UTF-16 code units** (`char`). In Unicode, three concepts must be distinguished:
 
-| Khái niệm | Ý nghĩa | Ví dụ |
+| Concept | Meaning | Example |
 | --- | --- | --- |
-| **Code unit** | Một đơn vị UTF-16, là thứ `String.length()` đếm. | Emoji `😀` (U+1F600) cần **2** `char` (surrogate pair). |
-| **Code point** | Một giá trị ký tự Unicode, có thể cần 1 hoặc 2 code unit UTF-16. | `e` + dấu sắc kết hợp U+0301 là **2** code point. |
-| **Extended grapheme cluster** | Một cụm code point thường được người đọc cảm nhận là một đơn vị ký tự. | `e` + U+0301 thường là **1** cụm; emoji `👩‍💻` là một cụm ghép bằng ZWJ. |
+| **Code unit** | One UTF-16 unit, which is what `String.length()` counts. | Emoji `😀` (U+1F600) requires **2** `char`s (a surrogate pair). |
+| **Code point** | One Unicode character value, which may take 1 or 2 UTF-16 code units. | `e` + combining acute accent U+0301 is **2** code points. |
+| **Extended grapheme cluster** | A sequence of code points typically perceived by a reader as a single character unit. | `e` + U+0301 is typically **1** cluster; emoji `👩‍💻` is one cluster joined with ZWJ. |
 
-Một ký tự nhìn thấy trên màn hình **không nhất thiết tương ứng với một `char` hay một code point**. Ngay cả một grapheme cluster cũng không bảo đảm chiếm đúng một ô hiển thị, vì độ rộng và cách kết xuất phụ thuộc font/giao diện.
+A character visible on screen **does not necessarily correspond to one `char` or one code point**. Even a grapheme cluster is not guaranteed to occupy a single display cell, because width and rendering depend on fonts and UI.
 
-Trong `java.util.regex.Pattern`, regex hiểu các thuộc tính Unicode qua `\p{...}` và `\P{...}`; nhận diện ranh giới từ bằng `\b`, `\B`; và hỗ trợ **extended grapheme cluster** bằng `\X` cùng ranh giới `\b{g}` (Java 9+). Đây là những khái niệm khác nhau và phục vụ mục đích khác nhau.
+In `java.util.regex.Pattern`, regex understands Unicode properties via `\p{...}` and `\P{...}`; identifies word boundaries via `\b` and `\B`; and supports **extended grapheme clusters** via `\X` and the boundary `\b{g}` (Java 9+). These are distinct concepts serving different purposes.
 
-## 2. Viết regex trong chuỗi Java: hai lớp escape
+## 2. Writing Regexes in Java Strings: Two Escaping Layers
 
-Regex là một ngôn ngữ nằm **bên trong** chuỗi Java. Khi viết trực tiếp bằng Java string literal, dấu gạch chéo ngược trong regex phải được escape thêm lần nữa:
+Regex is a language embedded **inside** a Java string. When written directly as a Java string literal, backslashes in the regex must be escaped a second time:
 
-| Ý định | Regex | String literal trong Java |
+| Intent | Regex | Java string literal |
 | --- | --- | --- |
-| Một chữ cái Unicode | `\p{L}` | `"\\p{L}"` |
-| Ranh giới từ | `\b` | `"\\b"` |
-| Một cụm grapheme | `\X` | `"\\X"` |
-| Ranh giới grapheme | `\b{g}` | `"\\b{g}"` |
+| One Unicode letter | `\p{L}` | `"\\p{L}"` |
+| Word boundary | `\b` | `"\\b"` |
+| One grapheme cluster | `\X` | `"\\X"` |
+| Grapheme boundary | `\b{g}` | `"\\b{g}"` |
 | Code point U+1F600 | `\x{1F600}` | `"\\x{1F600}"` |
 
-**Cẩn thận:** `"\b"` trong mã Java biểu diễn **ký tự backspace**, không phải regex word boundary. Tương tự, `"\p{L}"` không phải string literal Java hợp lệ vì `\p` không phải escape của Java.
+**Careful:** `"\b"` in Java code represents a **backspace character**, not a regex word boundary. Likewise, `"\p{L}"` is not a valid Java string literal because `\p` is not a Java escape.
 
-`Pattern.compile(regex).matcher(text).find()` tìm một đoạn khớp; `matcher.matches()` yêu cầu **toàn bộ vùng tìm kiếm** khớp. Với biểu thức dùng thường xuyên, nên biên dịch `Pattern` một lần để tái sử dụng.
+`Pattern.compile(regex).matcher(text).find()` finds a matching span; `matcher.matches()` requires the **entire search region** to match. For frequently used expressions, compile `Pattern` once and reuse it.
 
-## 3. Chọn ký tự theo thuộc tính Unicode
+## 3. Selecting Characters by Unicode Property
 
-### 3.1. General category và nhãn Unicode
+### 3.1. General Categories and Unicode Labels
 
-`\p{...}` khớp ký tự mang thuộc tính; `\P{...}` khớp ký tự **không** có thuộc tính tương ứng.
+`\p{...}` matches a character that has the property; `\P{...}` matches a character that **does not** have the corresponding property.
 
-| Biểu thức | Ý nghĩa | Tình huống dùng |
+| Expression | Meaning | Use case |
 | --- | --- | --- |
-| `\p{L}` | Nhóm **Letter**: chữ cái thuộc nhiều ngôn ngữ. | Tìm chữ cái, thay vì giới hạn `[A-Za-z]`. |
-| `\p{Lu}`, `\p{Ll}` | Chữ hoa / chữ thường theo Unicode category. | Kiểm tra loại chữ. |
-| `\p{M}` | **Mark**, gồm các dấu kết hợp (`Mn`, `Mc`, `Me`). | Giữ dấu khi xử lý chuỗi ở dạng decomposed. |
-| `\p{N}`, `\p{Nd}` | Số nói chung / chữ số thập phân. | Phân biệt `Ⅳ` thuộc nhóm số với chữ số thập phân. |
-| `\p{Sc}` | Ký hiệu tiền tệ. | Phát hiện các ký hiệu như `€` hay `$`. |
-| `\p{IsAlphabetic}` | Thuộc tính nhị phân Alphabetic. | Định nghĩa rộng hơn một số kiểu ký tự loại `L`. |
-| `\P{L}` | Một code point không thuộc nhóm chữ cái. | Tìm ký tự nằm ngoài nhóm Letter. |
+| `\p{L}` | **Letter** category: letters across many scripts. | Matching letters instead of limiting to `[A-Za-z]`. |
+| `\p{Lu}`, `\p{Ll}` | Uppercase / lowercase letters by Unicode category. | Checking letter casing. |
+| `\p{M}` | **Mark**, including combining marks (`Mn`, `Mc`, `Me`). | Preserving diacritics when processing decomposed strings. |
+| `\p{N}`, `\p{Nd}` | Numbers in general / decimal digits. | Distinguishing `Ⅳ` (a numeric character) from decimal digits. |
+| `\p{Sc}` | Currency symbols. | Detecting symbols such as `€` or `$`. |
+| `\p{IsAlphabetic}` | Binary Alphabetic property. | Broader definition than certain `L` category characters. |
+| `\P{L}` | A code point outside the Letter category. | Finding non-letter characters. |
 
-Ví dụ:
+Example:
 
 ```java
 Pattern letters = Pattern.compile("\\p{L}+");
@@ -57,23 +57,23 @@ System.out.println(letters.matcher("e\u0301").matches());     // false
 System.out.println(lettersAndMarks.matcher("e\u0301").matches()); // true
 ```
 
-`"Việt"` ở ví dụ đầu chứa chữ có dấu **dạng precomposed**. Còn `"e\u0301"` chứa chữ `e` và một **combining acute accent**. Nếu chỉ dùng `\p{L}+`, dấu kết hợp không thuộc nhóm Letter nên `matches()` trả `false`. Mẫu `\p{L}[\p{L}\p{M}]*` yêu cầu mở đầu bằng chữ và cho phép dấu sau đó; đây là ví dụ kỹ thuật chứ chưa phải định nghĩa đầy đủ của một từ trong ngôn ngữ tự nhiên.
+`"Việt"` in the first example contains **precomposed** accented letters. By contrast, `"e\u0301"` contains the letter `e` and a **combining acute accent**. With `\p{L}+` alone, the combining mark is not in the Letter category, so `matches()` returns `false`. The pattern `\p{L}[\p{L}\p{M}]*` requires starting with a letter and allows marks afterward; this is a technical illustration rather than a complete natural-language word definition.
 
-### 3.2. Script khác block
+### 3.2. Script vs. Block
 
-- **Script** (`\p{IsLatin}`, `\p{sc=Greek}`, `\p{script=Hiragana}`) chỉ hệ chữ mà ký tự được gán.
-- **Block** (`\p{InGreek}`, `\p{blk=Greek}`) là một **khoảng mã** Unicode, có thể chứa ký tự khác script hoặc ký tự chưa được gán.
-- **Category** (`\p{L}`, `\p{Lu}`) phân loại theo tính chất ký tự, độc lập với script.
+- **Script** (`\p{IsLatin}`, `\p{sc=Greek}`, `\p{script=Hiragana}`) indicates the writing system assigned to a character.
+- **Block** (`\p{InGreek}`, `\p{blk=Greek}`) is a Unicode **code point range**, which can contain characters from other scripts or unassigned code points.
+- **Category** (`\p{L}`, `\p{Lu}`) classifies by character nature, independent of script.
 
-Ví dụ `\p{sc=Greek}+` diễn đạt **script Greek**; `\p{InGreek}+` diễn đạt các code point nằm trong **block Greek**. Hai tập này không thể thay thế cho nhau trong mọi tình huống. Khi lọc văn bản tiếng Việt, `\p{IsLatin}` cũng không tự động bảo đảm bao gồm mọi dấu kết hợp đi kèm, vì mark có thể mang script `Inherited`.
+For example, `\p{sc=Greek}+` expresses the **Greek script**; `\p{InGreek}+` expresses code points within the **Greek block**. The two sets are not interchangeable in every situation. When filtering Vietnamese text, `\p{IsLatin}` also does not automatically guarantee all accompanying combining marks are included, since marks can carry the `Inherited` script.
 
-Java regex hỗ trợ phép giao/trừ tập trong character class, ví dụ `[\p{L}&&[^\p{Lu}]]` là ký tự loại Letter nhưng không thuộc category Uppercase Letter.
+Java regex supports set intersection/subtraction inside character classes, such as `[\p{L}&&[^\p{Lu}]]` for Letter characters that are not in the Uppercase Letter category.
 
-## 4. `\w`, `\d`, `\s` và chế độ Unicode
+## 4. `\w`, `\d`, `\s`, and Unicode Mode
 
-Mặc định theo Java 17, các lớp dựng sẵn chủ yếu dựa trên ASCII: `\w` tương đương `[a-zA-Z_0-9]`, `\d` là `[0-9]`, `\s` gồm các khoảng trắng ASCII thông dụng. Vì vậy `\w+` **không** tự động nhận toàn bộ chữ tiếng Việt.
+By default in Java 17, predefined classes are mainly ASCII-based: `\w` is equivalent to `[a-zA-Z_0-9]`, `\d` is `[0-9]`, and `\s` covers standard ASCII whitespace. Hence `\w+` **does not** automatically recognize all Vietnamese letters.
 
-Bật cờ `Pattern.UNICODE_CHARACTER_CLASS` (inline là `(?U)`) khi muốn các lớp dựng sẵn và các lớp POSIX dùng quy tắc Unicode:
+Enable `Pattern.UNICODE_CHARACTER_CLASS` (inline `(?U)`) when you want predefined and POSIX classes to use Unicode rules:
 
 ```java
 Pattern asciiWord = Pattern.compile("\\w+");
@@ -85,18 +85,18 @@ System.out.println(unicodeWord.matcher("đèn").matches());      // true
 System.out.println(inlineUnicodeWord.matcher("đèn").matches()); // true
 ```
 
-Trong Unicode mode, `\w` bao gồm chữ cái alphabetic, chữ số thập phân, combining marks, connector punctuation và một số ký tự điều khiển nối (`Join_Control`). Do đó `\w` **không đồng nghĩa** với “chữ cái”, “identifier Java hợp lệ” hay “từ có nghĩa”. Tùy yêu cầu:
+In Unicode mode, `\w` includes alphabetic letters, decimal digits, combining marks, connector punctuation, and certain join controls (`Join_Control`). Therefore `\w` is **not synonymous** with "letters", "valid Java identifier", or "meaningful word". Depending on requirements:
 
-- Chỉ chữ cái theo category: `\p{L}+`.
-- Chữ kèm dấu kết hợp: `\p{L}[\p{L}\p{M}]*`.
-- Token kiểu word, có thể chứa số, gạch dưới và mark: `(?U)\w+`.
-- Kiểm tra identifier Java thực sự: cân nhắc `Character.isJavaIdentifierStart`/`isJavaIdentifierPart` trên **code point**, hoặc parser tương ứng; regex `\w+` chưa đủ.
+- Only letters by category: `\p{L}+`.
+- Letters with combining marks: `\p{L}[\p{L}\p{M}]*`.
+- Word-like tokens, possibly containing digits, underscores, and marks: `(?U)\w+`.
+- Validating actual Java identifiers: consider `Character.isJavaIdentifierStart`/`isJavaIdentifierPart` on **code points**, or an appropriate parser; regex `\w+` is insufficient.
 
-Bật `UNICODE_CHARACTER_CLASS` cũng hàm ý `UNICODE_CASE`. Ngược lại, `Pattern.UNICODE_CASE` (inline `(?u)`) chỉ điều chỉnh cách so khớp **không phân biệt hoa/thường** khi kết hợp `CASE_INSENSITIVE`; `(?u)` tự nó không biến `\w` thành lớp Unicode. Phân biệt `u` chữ thường và `U` chữ hoa.
+Enabling `UNICODE_CHARACTER_CLASS` also implies `UNICODE_CASE`. Conversely, `Pattern.UNICODE_CASE` (inline `(?u)`) only adjusts **case-insensitive** matching when combined with `CASE_INSENSITIVE`; `(?u)` by itself does not turn `\w` into a Unicode class. Distinguish lowercase `u` from uppercase `U`.
 
-## 5. Ranh giới từ `\b` và `\B`
+## 5. Word Boundaries `\b` and `\B`
 
-`\b` là **zero-width assertion**: kiểm tra một *vị trí* ở ranh giới từ, không tiêu thụ ký tự. `\B` kiểm tra vị trí **không** phải ranh giới từ.
+`\b` is a **zero-width assertion**: it checks a *position* at a word boundary without consuming characters. `\B` checks a position that is **not** a word boundary.
 
 ```java
 String text = "café_42, đèn!";
@@ -106,41 +106,41 @@ while (words.find()) {
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
 café_42
 đèn
 ```
 
-Giải thích: `(?U)` chọn ngữ nghĩa Unicode của `\w`; `\b` ở hai đầu kiểm tra ranh giới, còn `\w+` **tiêu thụ** các ký tự của token. Gạch dưới và chữ số có thể nằm trong cùng một token, nên `café_42` là một kết quả. Muốn chỉ lấy chữ và dấu, cần mô tả tập ký tự riêng, không chỉ bao quanh `\w+` bằng `\b`.
+Explanation: `(?U)` selects Unicode semantics for `\w`; `\b` at both ends checks boundaries, while `\w+` **consumes** the token's characters. Underscores and digits can appear inside the same token, so `café_42` is a single match. To extract only letters and marks, specify a separate character set rather than wrapping `\w+` in `\b`.
 
-**Không nhầm `\b` với trình phân tích từ cho ngôn ngữ tự nhiên**: dấu gạch nối, dấu nháy, hashtag, emoji, tiếng Thái không có khoảng trắng tách từ, hoặc tiếng Việt nhiều âm tiết đều cần quy tắc phân đoạn phù hợp. `\b` không quyết định một “từ” theo từ điển hay ngữ pháp. Sử dụng `(?U)` nhất quán giúp tránh các giả định ASCII không mong muốn khi ghép `\b` với `\w`; đừng dựa vào việc từng phiên bản JDK xử lý chi tiết ranh giới giống hệt một tokenizer ngôn ngữ.
+**Do not confuse `\b` with a natural-language word tokenizer**: hyphens, apostrophes, hashtags, emojis, unspaced languages like Thai, or multisyllabic Vietnamese words all need appropriate segmentation rules. `\b` does not define a dictionary or grammatical "word". Using `(?U)` consistently helps avoid unintended ASCII assumptions when pairing `\b` with `\w`; do not rely on JDK-version-specific boundary details behaving identically to a language tokenizer.
 
-## 6. Cụm grapheme với `\X` và `\b{g}`
+## 6. Grapheme Clusters with `\X` and `\b{g}`
 
-Một **extended grapheme cluster** có thể gồm một hoặc nhiều code point: chữ + dấu kết hợp, chuỗi emoji ghép bằng zero-width joiner (ZWJ), hoặc cặp regional indicators tạo lá cờ.
+An **extended grapheme cluster** may consist of one or more code points: base letter + combining marks, emoji sequences joined by zero-width joiners (ZWJ), or regional indicator pairs forming a flag.
 
-| Regex | Vai trò | Có tiêu thụ ký tự? |
+| Regex | Role | Consumes characters? |
 | --- | --- | --- |
-| `\X` | Khớp **một cụm grapheme mở rộng**. | Có |
-| `\b{g}` | Kiểm tra **ranh giới giữa các cụm grapheme**. | Không |
-| `\b` | Kiểm tra ranh giới **word**. | Không |
-| `.` | Khớp một đơn vị regex; **không** phải cách đáng tin để đếm cụm grapheme. | Có |
+| `\X` | Matches **one extended grapheme cluster**. | Yes |
+| `\b{g}` | Checks a **boundary between grapheme clusters**. | No |
+| `\b` | Checks a **word** boundary. | No |
+| `.` | Matches one regex unit; **not** a reliable way to count grapheme clusters. | Yes |
 
-Ví dụ chuỗi `"e\u0301👩‍💻"` gồm **7 UTF-16 code unit**, **5 code point**, nhưng chỉ **2 grapheme cluster**: cụm `e + U+0301` và cụm emoji `woman technologist`. Với regex `\X`, hai lần `find()` trả hai cụm. `\b{g}` xác định vị trí UTF-16 ở các offset `0`, `2`, `7`. Trái lại, `\b` diễn đạt ranh giới từ và không dùng thay `\b{g}`.
+For example, the string `"e\u0301👩‍💻"` has **7 UTF-16 code units**, **5 code points**, yet only **2 grapheme clusters**: the `e + U+0301` cluster and the `woman technologist` emoji cluster. With regex `\X`, two `find()` calls return two clusters. `\b{g}` identifies the UTF-16 boundary positions at offsets `0`, `2`, and `7`. In contrast, `\b` expresses word boundaries and does not replace `\b{g}`.
 
-Có thể dùng `\X` khi muốn đi qua chuỗi theo các đơn vị ký tự mà người dùng thường nhận biết, chẳng hạn kiểm tra giới hạn *số cụm grapheme* hoặc cắt chuỗi ở ranh giới cluster. Tuy vậy, phân cụm Unicode không thay thế xử lý hiển thị/phông chữ, cũng không bảo đảm một cluster là “một chữ” của ngôn ngữ học.
+You can use `\X` to step through a string in character units that users typically perceive, such as enforcing a *grapheme cluster count* limit or slicing strings at cluster boundaries. Even so, Unicode clustering does not replace font/rendering logic, nor does it guarantee a cluster equals a linguistic "letter".
 
-### 6.1. Vị trí `Matcher.start()`/`end()` vẫn là UTF-16
+### 6.1. `Matcher.start()`/`end()` Positions Are Still UTF-16
 
-Ngay cả khi regex `\X` ghép cả emoji thành một cụm, các chỉ số `Matcher.start()`, `Matcher.end()`, `String.substring(...)` vẫn tính theo **UTF-16 code unit**, với `end()` là giới hạn loại trừ (*exclusive*). Đừng tăng một offset bằng 1 rồi cho rằng đã đi qua một code point hay một grapheme.
+Even when regex `\X` groups an entire emoji into one cluster, `Matcher.start()`, `Matcher.end()`, and `String.substring(...)` indices are still measured in **UTF-16 code units**, with `end()` being *exclusive*. Do not increment an offset by 1 assuming you have stepped past one code point or one grapheme.
 
-Muốn đếm code point: `s.codePointCount(0, s.length())`. Muốn đi qua code point: `s.codePoints()` hoặc `s.offsetByCodePoints(...)`. Muốn đi qua **grapheme**: dùng `Pattern.compile("\\X").matcher(s)` với `find()`. Không cắt chuỗi ở giữa surrogate pair hoặc cụm dấu/emoji khi mục tiêu là giữ nguyên ký tự người dùng thấy.
+To count code points: `s.codePointCount(0, s.length())`. To iterate over code points: `s.codePoints()` or `s.offsetByCodePoints(...)`. To iterate over **graphemes**: use `Pattern.compile("\\X").matcher(s)` with `find()`. Do not slice a string in the middle of a surrogate pair or a mark/emoji cluster when the goal is to keep user-visible characters intact.
 
-## 7. Ví dụ Java 17+ độc lập, chạy được
+## 7. Standalone Runnable Java 17+ Example
 
-Lưu **nguyên chương trình** sau thành `UnicodeRegexDemo.java`. Mã dùng escape Unicode trong những chuỗi đặc biệt để thể hiện rõ cấu trúc ký tự và chạy nhất quán ngay cả khi terminal không thuận tiện nhập emoji.
+Save the **entire program** below as `UnicodeRegexDemo.java`. The code uses Unicode escapes in special strings to clearly show character structure and run consistently even when a terminal cannot easily type emojis.
 
 ```java
 import java.text.Normalizer;
@@ -194,14 +194,14 @@ public class UnicodeRegexDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac UnicodeRegexDemo.java
 java UnicodeRegexDemo
 ```
 
-Kết quả chuẩn (UTF-8 output):
+Standard output (UTF-8 output):
 
 ```text
 UTF-16 units: 7
@@ -218,13 +218,13 @@ Word: đèn
 NFC equals é: true
 ```
 
-Ba phép đếm **7 / 5 / 2** lần lượt nói về code unit, code point và grapheme cluster. Các offset `[0,2)`, `[2,7)` thể hiện hai cụm, không phải hai `char`. Kết quả token tiếng Việt chứng minh chế độ Unicode cho `\w` trong regex này; hai phép kiểm tra NFD chứng minh lý do cần xét combining marks.
+The three counts **7 / 5 / 2** refer respectively to code units, code points, and grapheme clusters. The offsets `[0,2)` and `[2,7)` represent two clusters, not two `char`s. The Vietnamese token output demonstrates Unicode mode for `\w` in this regex; the two NFD checks demonstrate why combining marks must be accounted for.
 
-## 8. Chuẩn hóa Unicode, so khớp hoa/thường và giới hạn
+## 8. Unicode Normalization, Case Matching, and Limitations
 
-### NFC và NFD: hai cách biểu diễn cùng hình thức chữ
+### NFC and NFD: Two Representations of the Same Letter Shape
 
-`"é"` có thể là U+00E9 (precomposed) hoặc U+0065 + U+0301 (decomposed). Hai chuỗi đó có thể nhìn giống nhau nhưng không bằng nhau qua `String.equals()` và không nhất thiết khớp cùng một pattern literal. Khi cần so khớp một cách nhất quán, **chuẩn hóa cả dữ liệu lẫn tiêu chí tìm kiếm**:
+`"é"` can be U+00E9 (precomposed) or U+0065 + U+0301 (decomposed). Those two strings may look identical yet not be equal under `String.equals()` and not necessarily match the same literal pattern. When consistent matching is required, **normalize both the data and the search criteria**:
 
 ```java
 import java.text.Normalizer;
@@ -236,38 +236,38 @@ String right = Normalizer.normalize(b, Normalizer.Form.NFC);
 System.out.println(left.equals(right)); // true
 ```
 
-`Normalizer.Form.NFC` thường phù hợp khi muốn chuẩn hóa về dạng kết hợp. `NFD` tách canonical decomposition. Java còn có `Pattern.CANON_EQ` để đối sánh tương đương chuẩn tắc, nhưng cờ này có thể gây chi phí đáng kể; nên kiểm soát chuẩn hóa đầu vào trước nếu mục tiêu là so khớp văn bản theo cùng một dạng lưu trữ.
+`Normalizer.Form.NFC` is usually suitable when normalizing to composed form. `NFD` performs canonical decomposition. Java also has `Pattern.CANON_EQ` to match canonical equivalence, but that flag can incur significant overhead; normalize inputs upfront if the goal is to match text in a unified storage form.
 
-### Unicode case folding
+### Unicode Case Folding
 
-`Pattern.CASE_INSENSITIVE` riêng lẻ mặc định ưu tiên ASCII; thêm `Pattern.UNICODE_CASE` (hoặc `(?iu)`) để đối sánh hoa/thường theo Unicode. Đây là **case-insensitive matching**, không phải bước chuẩn hóa NFC/NFD và cũng không phải bảo đảm mọi phép chuyển chữ hoa/thường đặc thù từng locale. Các thao tác chuẩn hóa/case folding có thể làm thay đổi chuỗi và vị trí, nên cần chọn thứ tự xử lý nhất quán trước khi ghi nhận offset.
+`Pattern.CASE_INSENSITIVE` alone defaults to ASCII preference; add `Pattern.UNICODE_CASE` (or `(?iu)`) for Unicode case-insensitive matching. This is **case-insensitive matching**, not NFC/NFD normalization and not a guarantee of every locale-specific casing rule. Normalization/case-folding operations can change string contents and positions, so pick a consistent processing order before recording offsets.
 
-### Những sai lầm hay gặp
+### Common Mistakes
 
-1. Dùng `String.length()` để giới hạn “số ký tự người dùng nhìn thấy”; thực tế nó đếm UTF-16 code unit. Nếu sản phẩm cần giới hạn grapheme, hãy đếm `\X`.
-2. Dùng `\w+` mặc định rồi kết luận chữ có dấu “không hợp lệ”; thay bằng `(?U)\w+` hoặc biểu thức `\p{...}` đúng chính sách.
-3. Dùng `\p{L}+` cho chữ decomposed mà quên `\p{M}`; dẫn tới mất/loại dấu kết hợp.
-4. Dùng `\b` như bộ tách từ tiếng Việt/Thái hay như ranh giới emoji; mục tiêu đó cần logic ngôn ngữ hoặc `\b{g}`/`\X` tương ứng.
-5. Lấy chỉ số `Matcher.start()` làm vị trí code point hoặc grapheme; thực tế là UTF-16.
-6. Cho rằng NFC, cờ `(?U)` hay `(?iu)` loại được **ký tự giả mạo (confusables)** hoặc mọi zero-width character; kiểm tra nhận dạng/định danh cần chính sách riêng.
-7. Ghép thẳng dữ liệu người dùng vào regex; nếu tìm nguyên văn, dùng `Pattern.quote(userInput)` để tránh metacharacter hoạt động ngoài ý muốn.
+1. Using `String.length()` to limit "visible character count"; in reality it counts UTF-16 code units. If the product requires a grapheme limit, count `\X`.
+2. Using default `\w+` and concluding accented letters are "invalid"; replace with `(?U)\w+` or a policy-appropriate `\p{...}` expression.
+3. Using `\p{L}+` on decomposed text while forgetting `\p{M}`; this drops or rejects combining marks.
+4. Using `\b` as a Vietnamese/Thai word splitter or as an emoji boundary; those goals need linguistic logic or `\b{g}`/`\X` respectively.
+5. Treating `Matcher.start()` as a code point or grapheme index; in reality it is UTF-16.
+6. Assuming NFC, `(?U)`, or `(?iu)` eliminates **confusables** or all zero-width characters; identifier/identity checks require separate policies.
+7. Concatenating user input directly into a regex; when searching literally, use `Pattern.quote(userInput)` to avoid unintended metacharacter behavior.
 
-## 9. Chọn công cụ theo mục tiêu
+## 9. Choosing the Right Tool for the Goal
 
-| Mục tiêu | Cách làm gợi ý |
+| Goal | Suggested approach |
 | --- | --- |
-| Chỉ kiểm tra một code point thuộc loại chữ/số/dấu | `\p{L}`, `\p{Nd}`, `\p{M}` hoặc API `Character`. |
-| Tìm token gồm chữ, số, dấu kết hợp và gạch dưới | `(?U)\b\w+\b` rồi bổ sung quy tắc nghiệp vụ. |
-| Duyệt từng code point | `String.codePoints()`; giữ nguyên cặp surrogate. |
-| Duyệt từng cụm ký tự mở rộng | `Matcher` với `\X`. |
-| Xác định vị trí giữa cụm grapheme | Assertion `\b{g}`. |
-| So khớp chuỗi có thể khác dạng tổ hợp dấu | Chuẩn hóa `Normalizer` về cùng NFC/NFD trước. |
-| Chia từ theo quy tắc ngôn ngữ cụ thể | `BreakIterator.getWordInstance(locale)` để bắt đầu, hoặc thư viện NLP/ICU4J khi cần phân đoạn chính xác theo ngôn ngữ. |
+| Check whether one code point is a letter/digit/mark | `\p{L}`, `\p{Nd}`, `\p{M}`, or `Character` APIs. |
+| Find tokens of letters, digits, combining marks, and underscores | `(?U)\b\w+\b` plus business rules. |
+| Iterate over each code point | `String.codePoints()`; keeps surrogate pairs intact. |
+| Iterate over each extended grapheme cluster | `Matcher` with `\X`. |
+| Identify boundaries between grapheme clusters | Assertion `\b{g}`. |
+| Match strings that may differ in combining-mark composition | Normalize with `Normalizer` to the same NFC/NFD form first. |
+| Break words by specific language rules | `BreakIterator.getWordInstance(locale)` to start, or NLP/ICU4J libraries when accurate language segmentation is needed. |
 
-**Ghi nhớ:** **thuộc tính Unicode** trả lời “ký tự thuộc nhóm nào?”, **word boundary** trả lời “vị trí này có phải ranh giới token theo quy tắc regex?”, còn **grapheme cluster** trả lời “những code point nào đi cùng nhau thành một cụm ký tự?”. Việc chọn đúng tầng giúp regex xử lý chính xác tiếng Việt có dấu, emoji và các hệ chữ khác.
+**Takeaway:** **Unicode properties** answer "which category does a character belong to?", **word boundaries** answer "is this position a token boundary under regex rules?", and **grapheme clusters** answer "which code points combine into one character unit?". Selecting the right layer lets regex handle accented Vietnamese, emojis, and other writing systems accurately.
 
-### Tài liệu tham khảo
+### References
 
 - [Java SE 17 — `java.util.regex.Pattern`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html): Unicode Support, character classes, boundary matchers, `UNICODE_CHARACTER_CLASS`, `UNICODE_CASE`.
-- [Java SE 17 — `java.text.Normalizer`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html): NFC/NFD và so khớp canonical equivalence.
-- [Java SE 17 — `java.lang.String`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): UTF-16, `codePointCount` và offset theo code point.
+- [Java SE 17 — `java.text.Normalizer`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html): NFC/NFD and canonical equivalence matching.
+- [Java SE 17 — `java.lang.String`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): UTF-16, `codePointCount`, and code-point offsets.

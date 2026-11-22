@@ -1,52 +1,52 @@
-# Kiểm tra provider bị thiếu sau khi đóng gói
+# Checking for missing providers after packaging
 
-## 1. Vì sao provider có thể biến mất sau khi đóng gói?
+## 1. Why can a provider disappear after packaging?
 
-Java Service Provider Interface (SPI) cho phép một module hoặc ứng dụng sử dụng một service mà không phụ thuộc trực tiếp vào implementation cụ thể. Với Java Platform Module System (JPMS), service consumer khai báo \`uses\`, còn module cung cấp implementation khai báo \`provides ... with ...\` trong \`module-info.java\`.
+The Java Service Provider Interface (SPI) allows a module or application to use a service without depending directly on concrete implementations. With the Java Platform Module System (JPMS), the service consumer declares \`uses\`, while the module supplying the implementation declares \`provides ... with ...\` in \`module-info.java\`.
 
-Một chương trình có thể chạy đúng trong IDE nhưng không tìm thấy provider sau khi đóng gói vì môi trường chạy đã thay đổi: module path trở thành classpath, file \`module-info.class\` không còn trong JAR cuối, resource \`META-INF/services\` bị loại bỏ khi tạo fat JAR, provider module không được đưa vào runtime image, hoặc class provider không thể khởi tạo.
+A program may run fine in an IDE yet fail to find providers after packaging because the runtime environment has changed: the module path became the classpath, \`module-info.class\` is no longer in the final JAR, \`META-INF/services\` resources were dropped when creating a fat JAR, the provider module was not included in the runtime image, or the provider class cannot be instantiated.
 
-Khi điều tra, hãy tách ba giai đoạn:
+When investigating, separate three stages:
 
-1. **Khai báo và đóng gói:** artifact cuối có metadata hoặc service configuration cần thiết không?
-2. **Khám phá provider:** \`ServiceLoader\` có nhìn thấy provider trong module layer hoặc class loader đang dùng không?
-3. **Khởi tạo provider:** provider đã được tìm thấy nhưng có lỗi khi nạp class, gọi constructor hoặc gọi provider method không?
+1. **Declaration and packaging:** does the final artifact have the necessary metadata or service configuration?
+2. **Provider discovery:** does \`ServiceLoader\` see the provider in the module layer or class loader being used?
+3. **Provider instantiation:** was the provider found, yet failed when loading the class, calling the constructor, or calling the provider method?
 
-Thông báo “không có provider” và \`ServiceConfigurationError\` thường chỉ ra hai giai đoạn khác nhau. Đừng vội sửa dependency trước khi xác định provider mất ở giai đoạn nào.
+A "no provider found" symptom and a \`ServiceConfigurationError\` usually point to two different stages. Do not rush to change dependencies before identifying at which stage the provider was lost.
 
-## 2. Xác định ứng dụng đang chạy theo JPMS hay classpath
+## 2. Determining whether the application runs on JPMS or the classpath
 
-Đây là bước đầu tiên vì hai cơ chế đăng ký provider khác nhau.
+This is the first step because the two provider registration mechanisms differ.
 
-- **Named module trên module path:** metadata \`provides\` trong \`module-info.class\` đăng ký provider. Consumer phải khai báo \`uses\`.
-- **Ứng dụng trên classpath:** \`ServiceLoader\` tìm file cấu hình \`META-INF/services/<tên-đầy-đủ-của-service>\`. File chứa tên đầy đủ của từng implementation, mỗi tên trên một dòng.
-- **Modular JAR được đặt trên classpath:** JVM xử lý JAR đó như JAR thông thường; \`module-info.class\` không được dùng để tạo module. Nếu cần discovery theo classpath, artifact phải có \`META-INF/services\`.
+- **Named modules on the module path:** \`provides\` metadata in \`module-info.class\` registers providers. The consumer must declare \`uses\`.
+- **Applications on the classpath:** \`ServiceLoader\` looks for the configuration file \`META-INF/services/<fully-qualified-service-name>\`. The file contains the fully qualified name of each implementation, one name per line.
+- **A modular JAR placed on the classpath:** the JVM treats that JAR as a regular JAR; \`module-info.class\` is not used to create a module. If classpath-based discovery is needed, the artifact must contain \`META-INF/services\`.
 
-Ví dụ, một ứng dụng được khởi chạy bằng:
+For example, an application launched with:
 
 ~~~bash
 java --module-path mods --module com.acme.app/com.acme.app.Main
 ~~~
 
-đang chạy theo module path. Nếu chuyển sang:
+is running on the module path. If switched to:
 
 ~~~bash
 java -cp "app.jar:provider.jar:spi.jar" com.acme.app.Main
 ~~~
 
-thì các JAR được xử lý trên classpath. Trên Windows, dấu phân cách classpath là dấu chấm phẩy (\`;\`) thay vì dấu hai chấm (\`:\`).
+then the JARs are processed on the classpath. On Windows, the classpath separator is a semicolon (\`;\`) instead of a colon (\`:\`).
 
-Không suy luận chế độ chạy chỉ từ việc file có đuôi \`.jar\`. Hãy xem chính xác lệnh khởi chạy hoặc cấu hình container/service đang chạy trong môi trường triển khai.
+Do not infer the execution mode merely from files having a \`.jar\` extension. Inspect the exact launch command or container/service configuration running in the deployment environment.
 
-## 3. Đăng ký provider đúng trong module-info.java
+## 3. Registering providers properly in module-info.java
 
-Giả sử ứng dụng có ba module:
+Suppose an application has three modules:
 
-- \`com.acme.spi\` chứa interface service.
-- \`com.acme.json\` cung cấp implementation.
-- \`com.acme.app\` sử dụng service.
+- \`com.acme.spi\` contains the service interface.
+- \`com.acme.json\` provides the implementation.
+- \`com.acme.app\` uses the service.
 
-### 3.1. Module chứa service
+### 3.1. Service module
 
 ~~~java
 module com.acme.spi {
@@ -54,7 +54,7 @@ module com.acme.spi {
 }
 ~~~
 
-Interface service:
+Service interface:
 
 ~~~java
 package com.acme.spi;
@@ -64,9 +64,9 @@ public interface Formatter {
 }
 ~~~
 
-Package chứa service phải được export để các module consumer và provider có thể tham chiếu kiểu \`Formatter\`.
+The package containing the service must be exported so consumer and provider modules can reference the \`Formatter\` type.
 
-### 3.2. Module provider
+### 3.2. Provider module
 
 ~~~java
 module com.acme.json {
@@ -95,13 +95,13 @@ public final class JsonFormatter implements Formatter {
 }
 ~~~
 
-Module provider phải đọc được module chứa service, vì vậy nó khai báo \`requires com.acme.spi\`. Chỉ thị \`provides\` phải dùng đúng tên service và tên lớp provider đầy đủ.
+The provider module must be able to read the module containing the service, so it declares \`requires com.acme.spi\`. The \`provides\` directive must use the exact service name and fully qualified provider class name.
 
-Với provider class thông thường, lớp phải là public và có public constructor không tham số. JPMS cũng hỗ trợ provider method: lớp provider public có thể khai báo phương thức \`public static\` tên chính xác là \`provider\`, không nhận tham số và trả về kiểu tương thích với service. Khi dùng provider method, lớp khai báo phương thức không bắt buộc phải trực tiếp implement interface service.
+For a regular provider class, the class must be public and have a public no-argument constructor. JPMS also supports provider methods: a public provider class can declare a \`public static\` method named \`provider\` with no parameters and returning a type compatible with the service. When using a provider method, the class declaring the method does not have to implement the service interface directly.
 
-Package implementation không cần export chỉ để \`ServiceLoader\` sử dụng provider đã khai báo bằng \`provides\`. Chỉ export package đó nếu ứng dụng cần truy cập public API của implementation trực tiếp.
+The implementation package does not need to be exported merely for \`ServiceLoader\` to use a provider declared with \`provides\`. Export that package only if the application needs to access the implementation's public API directly.
 
-### 3.3. Module consumer
+### 3.3. Consumer module
 
 ~~~java
 module com.acme.app {
@@ -111,9 +111,9 @@ module com.acme.app {
 }
 ~~~
 
-Consumer phải khai báo \`uses\` cho service mà nó nạp bằng \`ServiceLoader\`. Nếu thiếu chỉ thị này, lời gọi \`ServiceLoader\` từ named module có thể thất bại với \`ServiceConfigurationError\`, dù provider JAR đã có mặt.
+The consumer must declare \`uses\` for the service it loads via \`ServiceLoader\`. Without this directive, calling \`ServiceLoader\` from a named module can fail with \`ServiceConfigurationError\`, even if the provider JAR is present.
 
-Mã sử dụng service:
+Code using the service:
 
 ~~~java
 package com.acme.app;
@@ -134,21 +134,21 @@ public class Main {
 }
 ~~~
 
-Nếu vòng lặp không chạy lần nào, loader không tìm thấy provider phù hợp trong phạm vi discovery đang dùng. Nếu vòng lặp ném \`ServiceConfigurationError\`, hãy đọc nguyên nhân gốc: class không tồn tại, không tương thích kiểu, constructor/provider method sai hoặc lỗi khởi tạo.
+If the loop does not execute at all, the loader found no matching provider in the discovery scope being used. If the loop throws \`ServiceConfigurationError\`, read the root cause: missing class, incompatible type, invalid constructor/provider method, or initialization error.
 
-## 4. Kiểm tra artifact sau khi build
+## 4. Inspecting artifacts after building
 
-Hãy kiểm tra chính JAR đã được triển khai, không chỉ thư mục output trong IDE hoặc build directory trước bước đóng gói cuối.
+Inspect the actual deployed JAR, not just the IDE output directory or build directory before the final packaging step.
 
-### 4.1. Kiểm tra descriptor của modular JAR
+### 4.1. Inspecting the descriptor of a modular JAR
 
-Dùng lệnh:
+Use the command:
 
 ~~~bash
 jar --describe-module --file mods/com.acme.json.jar
 ~~~
 
-Descriptor của provider phải thể hiện module name và chỉ thị \`provides\`, ví dụ:
+The provider's descriptor must show the module name and the \`provides\` directive, for example:
 
 ~~~text
 com.acme.json
@@ -156,66 +156,66 @@ requires com.acme.spi
 provides com.acme.spi.Formatter with com.acme.json.JsonFormatter
 ~~~
 
-Kiểm tra consumer:
+Inspect the consumer:
 
 ~~~bash
 jar --describe-module --file mods/com.acme.app.jar
 ~~~
 
-Kết quả cần có \`uses com.acme.spi.Formatter\` và dependency tới module chứa service.
+The output should contain \`uses com.acme.spi.Formatter\` and the dependency on the module containing the service.
 
-Nếu \`jar --describe-module\` báo không có module descriptor và suy ra automatic module, artifact cuối không còn descriptor tường minh như mong đợi. Kiểm tra cấu hình đóng gói để chắc chắn \`module-info.class\` được giữ lại và JAR đang được đặt trên module path.
+If \`jar --describe-module\` reports no module descriptor and derives an automatic module, the final artifact no longer has the expected explicit descriptor. Check the packaging configuration to make sure \`module-info.class\` is preserved and the JAR is being placed on the module path.
 
-### 4.2. Kiểm tra class và file trong JAR
+### 4.2. Checking classes and files in the JAR
 
-Liệt kê nội dung provider JAR:
+List the contents of the provider JAR:
 
 ~~~bash
 jar --list --file mods/com.acme.json.jar
 ~~~
 
-Xác nhận có:
+Verify that it contains:
 
-- \`module-info.class\` ở gốc JAR đối với modular JAR.
-- File class của provider, ví dụ \`com/acme/json/JsonFormatter.class\`.
-- Các class phụ thuộc cần thiết để khởi tạo provider.
+- \`module-info.class\` at the root of the JAR for a modular JAR.
+- The provider class file, such as \`com/acme/json/JsonFormatter.class\`.
+- Required dependency classes needed to instantiate the provider.
 
-Với ứng dụng classpath, kiểm tra file service configuration:
+For classpath applications, check the service configuration file:
 
 ~~~bash
 jar --list --file provider.jar
 ~~~
 
-Artifact phải chứa resource có đường dẫn chính xác:
+The artifact must contain a resource at the exact path:
 
 ~~~text
 META-INF/services/com.acme.spi.Formatter
 ~~~
 
-Nội dung file:
+File contents:
 
 ~~~text
 com.acme.json.JsonFormatter
 ~~~
 
-Tên service trong đường dẫn và tên implementation trong nội dung phải là tên đầy đủ, phân biệt chữ hoa/chữ thường. Nếu có nhiều provider, mỗi provider được ghi trên một dòng.
+The service name in the path and the implementation name in the contents must be fully qualified and case-sensitive. If there are multiple providers, each provider is written on its own line.
 
-### 4.3. Kiểm tra fat JAR và shaded JAR
+### 4.3. Checking fat JARs and shaded JARs
 
-Một lỗi phổ biến là nhiều dependency cùng chứa resource \`META-INF/services\`, nhưng bước tạo fat JAR chỉ giữ lại resource của một dependency hoặc ghi đè file trước đó. Khi đó provider có thể hoạt động trong IDE nhưng biến mất trong JAR hợp nhất.
+A common mistake is multiple dependencies containing \`META-INF/services\` resources, where the fat JAR creation step keeps only one dependency's resource or overwrites the earlier file. In that case, the provider may work in the IDE but vanish in the merged JAR.
 
-Cấu hình đóng gói phải **merge** các file service configuration cùng đường dẫn, giữ lại tất cả provider hợp lệ và loại bỏ dòng trùng nếu công cụ hỗ trợ. Ví dụ:
+The packaging configuration must **merge** service configuration files with the same path, keeping all valid providers and removing duplicate lines if supported by the tool. For example:
 
-- Gradle Shadow Plugin có thao tác \`mergeServiceFiles()\`.
-- Maven Shade Plugin có transformer \`ServicesResourceTransformer\`.
+- Gradle Shadow Plugin has the \`mergeServiceFiles()\` action.
+- Maven Shade Plugin has the \`ServicesResourceTransformer\` transformer.
 
-Sau khi thay đổi cấu hình, hãy kiểm tra lại resource trong artifact cuối bằng \`jar --list\` và đọc nội dung file service configuration đã được đóng gói. Chỉ thấy một dependency provider trong cây dependency không chứng minh resource đăng ký provider đã có trong JAR.
+After changing the configuration, re-check the resources in the final artifact with \`jar --list\` and read the contents of the packaged service configuration file. Merely seeing a provider dependency in the dependency tree does not prove the provider registration resource is inside the JAR.
 
-## 5. Kiểm tra module có được resolve lúc khởi chạy không
+## 5. Checking whether the module is resolved at startup
 
-Khi chạy ứng dụng modular, module provider phải được tìm thấy trên module path và được đưa vào module layer đang dùng.
+When running a modular application, the provider module must be found on the module path and placed into the module layer being used.
 
-Chạy với tùy chọn hiển thị quá trình phân giải:
+Run with the option that displays the resolution process:
 
 ~~~bash
 java --show-module-resolution \
@@ -223,16 +223,16 @@ java --show-module-resolution \
      --module com.acme.app/com.acme.app.Main
 ~~~
 
-Đọc output để xác nhận:
+Read the output to verify:
 
-- Module consumer được resolve.
-- Module chứa service được resolve.
-- Module provider xuất hiện trong kết quả service binding.
-- Không có lỗi module thiếu, module trùng tên hoặc dependency không thể resolve.
+- The consumer module is resolved.
+- The module containing the service is resolved.
+- The provider module appears in the service binding output.
+- There are no missing module, duplicate module name, or unresolvable dependency errors.
 
-JPMS có cơ chế service binding: trong quá trình resolve, provider module quan sát được trên module path có thể được bổ sung khi module đã resolve khai báo \`uses\` service tương ứng. Vì vậy, việc consumer có \`uses\` và provider có \`provides\` là hai phần của cùng một cấu hình.
+JPMS has a service binding mechanism: during resolution, observable provider modules on the module path can be added when an already resolved module declares \`uses\` for the corresponding service. Therefore, the consumer having \`uses\` and the provider having \`provides\` are two halves of the same configuration.
 
-Để chẩn đoán, có thể yêu cầu launcher đưa toàn bộ module trên module path vào tập root:
+To diagnose, you can instruct the launcher to add all modules on the module path to the root set:
 
 ~~~bash
 java --show-module-resolution \
@@ -241,23 +241,23 @@ java --show-module-resolution \
      --module com.acme.app/com.acme.app.Main
 ~~~
 
-Nếu provider chỉ xuất hiện khi dùng \`--add-modules ALL-MODULE-PATH\`, hãy kiểm tra lại service binding và descriptor của consumer/provider. Đây là cách khoanh vùng nguyên nhân; không nhất thiết phải giữ tùy chọn này trong lệnh production.
+If the provider only appears when using \`--add-modules ALL-MODULE-PATH\`, re-check service binding and the consumer/provider descriptors. This is a way to isolate the cause; you do not necessarily have to keep this option in production commands.
 
-Có thể kiểm tra tính hợp lệ của các module trên module path bằng:
+You can validate modules on the module path with:
 
 ~~~bash
 java --validate-modules --module-path mods
 ~~~
 
-Lệnh này giúp phát hiện một số vấn đề về cấu trúc và dependency module trước khi chạy ứng dụng.
+This command helps detect certain module structure and dependency issues before running the application.
 
-## 6. Trường hợp dùng jlink hoặc custom ModuleLayer
+## 6. Cases using jlink or custom ModuleLayers
 
-### 6.1. Runtime image được tạo bằng jlink
+### 6.1. Runtime image created with jlink
 
-Nếu ứng dụng được đóng gói thành runtime image, provider module phải tồn tại trong image cuối. Chỉ có JAR trên máy build không có nghĩa module đó đã được đưa vào image.
+If the application is packaged as a runtime image, the provider module must exist in the final image. Just having the JAR on the build machine does not mean that module was included in the image.
 
-Khi cần liên kết các service provider và dependency của chúng vào image, dùng tùy chọn \`--bind-services\`:
+When you need to link service providers and their dependencies into the image, use the \`--bind-services\` option:
 
 ~~~bash
 jlink \
@@ -267,22 +267,22 @@ jlink \
   --output runtime-image
 ~~~
 
-Sau khi tạo image, kiểm tra danh sách module:
+After creating the image, check the module list:
 
 ~~~bash
 runtime-image/bin/java --list-modules
 ~~~
 
-Trên Windows, dùng \`runtime-image\\bin\\java.exe --list-modules\` và điều chỉnh dấu phân cách module path theo hệ điều hành. Xác nhận module provider có trong image. Nếu không dùng \`--bind-services\`, hãy chủ động đưa module provider vào tập module được liên kết khi kiến trúc ứng dụng yêu cầu.
+On Windows, use \`runtime-image\\bin\\java.exe --list-modules\` and adjust the module path separator for the operating system. Verify that the provider module is in the image. If not using \`--bind-services\`, explicitly include the provider module in the set of linked modules when the application architecture requires it.
 
-### 6.2. Provider được nạp trong ModuleLayer riêng
+### 6.2. Provider loaded in a separate ModuleLayer
 
-Plugin có thể được nạp vào một \`ModuleLayer\` do ứng dụng tạo. Khi đó, tìm provider trong boot layer không đồng nghĩa với tìm provider trong layer plugin.
+Plugins can be loaded into a \`ModuleLayer\` created by the application. In that case, searching for providers in the boot layer is not the same as searching for providers in the plugin layer.
 
-Dùng overload nhận layer:
+Use the overload that accepts a layer:
 
 ~~~java
-ModuleLayer pluginLayer = /* layer đã tạo cho plugin */;
+ModuleLayer pluginLayer = /* layer created for plugins */;
 ServiceLoader<Formatter> loader =
         ServiceLoader.load(pluginLayer, Formatter.class);
 
@@ -291,11 +291,11 @@ for (Formatter formatter : loader) {
 }
 ~~~
 
-Đảm bảo module chứa service API được chia sẻ đúng giữa ứng dụng và plugin layer. Nếu mỗi layer hoặc class loader nạp một bản sao khác nhau của interface service, hai kiểu có cùng tên đầy đủ vẫn có thể là hai kiểu Java khác nhau và provider không tương thích với \`Class\` service mà consumer truyền vào.
+Ensure the module containing the service API is properly shared between the application and the plugin layer. If each layer or class loader loads a different copy of the service interface, two types with the same fully qualified name can still be two distinct Java types, making the provider incompatible with the service \`Class\` passed by the consumer.
 
-## 7. Chương trình kiểm tra descriptor và provider lúc runtime
+## 7. Program to inspect descriptors and providers at runtime
 
-Có thể viết một tiện ích nhỏ để liệt kê các chỉ thị provider mà \`ModuleFinder\` đọc được từ module path:
+You can write a small utility to list provider directives read by \`ModuleFinder\` from the module path:
 
 ~~~java
 import java.lang.module.ModuleDescriptor;
@@ -329,9 +329,9 @@ public class InspectServiceDeclarations {
 }
 ~~~
 
-Tiện ích này đọc metadata của module tìm thấy trên module path, không khởi tạo provider. Nó trả lời câu hỏi “JAR có khai báo provider không?”, nhưng chưa chứng minh provider có thể được khởi tạo trong runtime thực tế.
+This utility reads metadata of modules found on the module path without instantiating providers. It answers "does the JAR declare a provider?", but does not prove the provider can be instantiated in the actual runtime.
 
-Để kiểm tra discovery và khởi tạo, chạy đoạn code \`ServiceLoader\` trong chính ứng dụng với cùng module path, module layer và class loader như môi trường production. Nếu cần ghi nhận lỗi rõ ràng:
+To test discovery and instantiation, run the \`ServiceLoader\` code inside the application itself with the same module path, module layer, and class loader as the production environment. If you need to log errors clearly:
 
 ~~~java
 try {
@@ -343,33 +343,33 @@ try {
 }
 ~~~
 
-Không nuốt \`ServiceConfigurationError\` rồi trả về danh sách rỗng; thông tin lỗi thường chỉ ra provider class hoặc cấu hình nào đang hỏng.
+Do not swallow \`ServiceConfigurationError\` and return an empty list; the error details usually pinpoint which provider class or configuration is broken.
 
-## 8. Các nguyên nhân thường gặp và cách xử lý
+## 8. Common causes and solutions
 
-| Dấu hiệu | Nguyên nhân có thể | Cách kiểm tra và xử lý |
+| Symptom | Possible cause | How to check and fix |
 | --- | --- | --- |
-| Không có provider trên module path | Consumer thiếu \`uses\` hoặc provider thiếu \`provides\` | Dùng \`jar --describe-module\` kiểm tra cả hai descriptor. |
-| Provider JAR không xuất hiện khi resolve | JAR không nằm trên module path hoặc provider module không được resolve | Kiểm tra lệnh launch, \`--show-module-resolution\` và thử \`--add-modules ALL-MODULE-PATH\` để khoanh vùng. |
-| Chạy trong IDE được nhưng fat JAR không thấy provider | Resource \`META-INF/services\` bị ghi đè hoặc bỏ khi merge | Kiểm tra resource trong JAR cuối; cấu hình merge service files cho plugin đóng gói. |
-| Chạy bằng \`-m\` được nhưng chạy bằng \`-cp\` mất provider | \`module-info.class\` không được áp dụng trên classpath | Bổ sung \`META-INF/services\` cho cách chạy classpath hoặc giữ lệnh chạy trên module path. |
-| \`ServiceConfigurationError\`: provider không tìm thấy class | Class provider không có trong artifact hoặc tên lớp sai | Kiểm tra \`jar --list\`, tên package và class được đóng gói. |
-| \`ServiceConfigurationError\`: provider không phải subtype | Provider implement một bản sao khác của service API hoặc khai báo sai kiểu | Dùng chung một module/JAR API; loại bản sao SPI trùng khỏi fat JAR và classpath. |
-| Provider được tìm thấy nhưng khởi tạo thất bại | Thiếu public no-arg constructor, provider method sai chữ ký hoặc dependency runtime bị thiếu | Kiểm tra constructor/provider method và đọc nguyên nhân gốc trong stack trace. |
-| Provider hoạt động ở boot layer nhưng mất trong plugin | Đang tìm provider ở sai ModuleLayer | Gọi \`ServiceLoader.load(pluginLayer, Service.class)\` với layer chứa provider. |
-| Provider có trên máy build nhưng mất trong runtime image | jlink không liên kết module provider | Kiểm tra \`java --list-modules\` trong image; cân nhắc \`jlink --bind-services\`. |
+| No provider on the module path | Consumer is missing \`uses\` or provider is missing \`provides\` | Use \`jar --describe-module\` to inspect both descriptors. |
+| Provider JAR does not appear during resolution | JAR is not on the module path or provider module is not resolved | Check the launch command, \`--show-module-resolution\`, and try \`--add-modules ALL-MODULE-PATH\` to isolate. |
+| Works in IDE but fat JAR cannot see provider | \`META-INF/services\` resource was overwritten or dropped during merge | Inspect resources in the final JAR; configure service file merging in the packaging plugin. |
+| Works with \`-m\` but loses provider with \`-cp\` | \`module-info.class\` does not apply on the classpath | Add \`META-INF/services\` for classpath execution or keep running on the module path. |
+| \`ServiceConfigurationError\`: provider class not found | Provider class is missing from the artifact or class name is wrong | Check \`jar --list\`, package name, and packaged classes. |
+| \`ServiceConfigurationError\`: provider not a subtype | Provider implements a different copy of the service API or declares the wrong type | Share a single API module/JAR; remove duplicate SPI copies from the fat JAR and classpath. |
+| Provider found but instantiation fails | Missing public no-arg constructor, invalid provider method signature, or missing runtime dependency | Check constructor/provider method and read the root cause in the stack trace. |
+| Provider works in boot layer but missing in plugin | Looking up provider in the wrong ModuleLayer | Call \`ServiceLoader.load(pluginLayer, Service.class)\` with the layer containing the provider. |
+| Provider exists on build machine but missing in runtime image | `jlink` did not link the provider module | Check \`java --list-modules\` in the image; consider \`jlink --bind-services\`. |
 
-Ngoài các nguyên nhân trên, hãy kiểm tra tên service có thống nhất tuyệt đối giữa consumer và provider hay không. Tên module, tên package, tên service và tên provider là các giá trị khác nhau; không dùng tên file JAR thay cho tên module hoặc tên class.
+In addition to the causes above, check whether the service name matches identically between consumer and provider. Module name, package name, service name, and provider name are distinct values; do not use the JAR file name in place of a module name or class name.
 
-## 9. Quy trình điều tra ngắn gọn
+## 9. Short investigation workflow
 
-Khi lỗi chỉ xuất hiện sau khi đóng gói, thực hiện lần lượt:
+When an issue only appears after packaging, go through these steps in order:
 
-1. Ghi lại chính xác lệnh khởi chạy và xác định đang dùng module path hay classpath.
-2. Chạy \`jar --describe-module\` trên provider JAR và consumer JAR nếu dùng JPMS.
-3. Chạy \`jar --list\` trên artifact cuối để xác nhận provider class, \`module-info.class\` hoặc \`META-INF/services\` thực sự có mặt.
-4. Dùng \`--show-module-resolution\` để xem provider module có được resolve hay không.
-5. Chạy \`ServiceLoader\` trong đúng runtime production và ghi nhận \`ServiceConfigurationError\` đầy đủ nếu có.
-6. Nếu ứng dụng dùng jlink hoặc plugin layer, kiểm tra module provider đã nằm trong runtime image/layer và dùng đúng overload của \`ServiceLoader\`.
+1. Record the exact launch command and determine whether the module path or classpath is used.
+2. Run \`jar --describe-module\` on the provider JAR and consumer JAR if using JPMS.
+3. Run \`jar --list\` on the final artifact to confirm the provider class, \`module-info.class\`, or \`META-INF/services\` is actually present.
+4. Use \`--show-module-resolution\` to see whether the provider module is resolved.
+5. Run \`ServiceLoader\` in the actual production runtime and record any full \`ServiceConfigurationError\` if one occurs.
+6. If the application uses `jlink` or plugin layers, verify the provider module is in the runtime image/layer and use the right \`ServiceLoader\` overload.
 
-Kết quả của mỗi bước giúp khoanh vùng chính xác: khai báo bị mất, resource/class không được đóng gói, module không được resolve, loader đang tìm ở sai phạm vi hay provider không thể khởi tạo. Sửa đúng tầng gây lỗi rồi kiểm tra lại artifact cuối bằng cùng lệnh triển khai thực tế.
+The result of each step helps pinpoint the exact failure: missing declaration, unpackaged resource/class, unresolved module, loader searching the wrong scope, or provider failing instantiation. Fix the exact failing layer and then re-verify the final artifact with the exact deployment command.

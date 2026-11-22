@@ -1,38 +1,38 @@
-# Thư mục làm việc, thư mục đầu ra và classpath trong Java
+# Working Directory, Output Directory, and Classpath in Java
 
 > **Module:** Java core — language-basics  
-> **Chủ đề:** Công cụ và thực thi  
-> **Mục tiêu:** Phân biệt thư mục làm việc của tiến trình, thư mục chứa kết quả biên dịch và classpath. Tự biên dịch/chạy một project Java có `package`, nhiều tệp `.java`, tệp dữ liệu và classpath resource; giải thích vì sao JVM tìm được class nhưng chương trình không tìm được file, hoặc ngược lại.
+> **Topic:** Tools and Execution  
+> **Objective:** Distinguish the process working directory, compilation output directory, and classpath. Compile and run a Java project with `package`, multiple `.java` files, a data file, and a classpath resource; explain why the JVM can find a class while the program fails to find a file, or vice versa.
 
-## 1. Ba loại đường dẫn cần phân biệt
+## 1. Three types of paths to distinguish
 
-Một chương trình Java có thể vừa nạp bytecode `.class`, vừa đọc file trên ổ đĩa. Đó là **hai cơ chế tìm kiếm khác nhau**, thêm một cơ chế thứ ba khi compiler tạo kết quả:
+A Java program can both load `.class` bytecode and read files on disk. Those are **two different lookup mechanisms**, plus a third mechanism when the compiler writes output:
 
-| Khái niệm | Tác dụng | Ví dụ |
+| Concept | Purpose | Example |
 | --- | --- | --- |
-| **Working directory** (thư mục làm việc, CWD) | Nơi các đường dẫn file **tương đối** được giải quyết khi tiến trình chạy | `Path.of("data", "customer.txt")` đọc từ thư mục `data` dưới CWD |
-| **Output directory** (thư mục đầu ra biên dịch) | Nơi `javac -d` ghi các file `.class` theo cây package | `javac -d out ...` ghi `out/demo/app/Main.class` |
-| **Classpath** (đường tìm lớp/tài nguyên) | Danh sách các thư mục hoặc JAR dùng để tìm class và resource trên classpath | `java -cp 'out:resources' demo.app.Main` trên Linux/macOS |
+| **Working directory** (CWD) | Where **relative** file paths are resolved when the process runs | `Path.of("data", "customer.txt")` reads from the `data` directory under CWD |
+| **Output directory** | Where `javac -d` writes `.class` files according to the package tree | `javac -d out ...` writes `out/demo/app/Main.class` |
+| **Classpath** | List of directories or JARs used to locate classes and classpath resources | `java -cp 'out:resources' demo.app.Main` on Linux/macOS |
 
-Dùng `javac -d out` **không** làm chương trình tự chạy từ `out`, cũng **không** tự thêm `out` vào classpath của một lệnh `java` khác. Dùng `java -cp ...` **không** chuyển working directory sang bất kỳ thư mục nào được liệt kê.
+Using `javac -d out` does **not** make the program automatically run from `out`, nor does it automatically add `out` to the classpath of another `java` command. Using `java -cp ...` does **not** change the working directory to any directory listed.
 
 ~~~mermaid
 flowchart TD
-    A["src/main/java: mã nguồn"] --> B["javac -d out"]
-    B --> C["out: bytecode .class"]
+    A["src/main/java: source code"] --> B["javac -d out"]
+    B --> C["out: .class bytecode"]
     C --> D["Classpath: out + resources"]
-    R["resources: file bên trong classpath"] --> D
-    D --> J["JVM: nạp class, resource"]
-    W["Working directory: path-lab"] --> F["data/customer.txt: file tương đối"]
+    R["resources: files inside classpath"] --> D
+    D --> J["JVM: loads classes, resources"]
+    W["Working directory: path-lab"] --> F["data/customer.txt: relative file"]
     J --> F
-    J --> O["Kết quả chạy"]
+    J --> O["Execution result"]
 ~~~
 
-**Mẹo nhớ:** `-d` trả lời “compiler **ghi** ở đâu?”, `-cp` trả lời “JVM/compiler **tìm class** ở đâu?”, còn CWD trả lời “đường dẫn file **tương đối** bắt đầu ở đâu?”.
+**Memory tip:** `-d` answers “where does the compiler **write**?”, `-cp` answers “where do the JVM/compiler **look for classes**?”, and CWD answers “where do **relative** file paths start from?”.
 
-## 2. Project mẫu và cây thư mục
+## 2. Sample project and directory tree
 
-Ta tạo thư mục `path-lab` chứa mã Java 11+ không dùng dependency ngoài:
+Let's create a `path-lab` directory containing Java 11+ code without external dependencies:
 
 ~~~text
 path-lab/
@@ -51,9 +51,9 @@ path-lab/
         └── greeting.txt
 ~~~
 
-Khi biên dịch, chương trình sẽ tạo thêm thư mục `out`. Cây `src/main/java` là một **quy ước tổ chức**; từ khóa `package` trong mỗi tệp mới quyết định tên đầy đủ của class và cách Java sắp xếp output theo `-d`.
+Upon compilation, the program will additionally use the `out` directory. The `src/main/java` tree is an **organizational convention**; it is the `package` keyword in each file that determines the fully qualified class name and how Java organizes output under `-d`.
 
-Hai tệp văn bản cần tạo trước:
+Two text files to create first:
 
 **`data/customer.txt`**
 
@@ -67,13 +67,13 @@ Lan
 Xin chào
 ~~~
 
-Lưu với UTF-8. Chúng cùng là file văn bản nhưng **cách chương trình tìm chúng khác nhau**: `customer.txt` dựa trên working directory, còn `greeting.txt` sẽ được tìm qua classpath.
+Save with UTF-8. Both are text files, yet **how the program finds them differs**: `customer.txt` relies on the working directory, while `greeting.txt` will be looked up via the classpath.
 
-## 3. Viết mã Java cho project
+## 3. Writing Java code for the project
 
 ### 3.1. GreetingFormatter.java
 
-Tệp `src/main/java/demo/lib/GreetingFormatter.java`:
+File `src/main/java/demo/lib/GreetingFormatter.java`:
 
 ~~~java
 package demo.lib;
@@ -91,11 +91,11 @@ public final class GreetingFormatter {
 }
 ~~~
 
-Lớp có tên đầy đủ `demo.lib.GreetingFormatter`. `package demo.lib;` không phải một phần của đường dẫn Java command; JVM sẽ dùng tên package để tìm file class bên dưới mỗi **classpath root**.
+The class has the fully qualified name `demo.lib.GreetingFormatter`. `package demo.lib;` is not part of the Java command's directory path; the JVM will use the package name to locate the class file beneath each **classpath root**.
 
 ### 3.2. Main.java
 
-Tệp `src/main/java/demo/app/Main.java`:
+File `src/main/java/demo/app/Main.java`:
 
 ~~~java
 package demo.app;
@@ -124,12 +124,12 @@ public final class Main {
         Path workingDir = Path.of("").toAbsolutePath().normalize();
         System.out.println("Working directory: " + workingDir);
 
-        // File ngoài: tương đối theo working directory.
+        // External file: relative to working directory.
         Path customerFile = Path.of("data", "customer.txt");
         String customer = Files.readString(
                 customerFile, StandardCharsets.UTF_8).strip();
 
-        // Resource: tìm theo classpath, không theo CWD.
+        // Resource: looked up via classpath, not CWD.
         String greeting = readGreeting();
         System.out.println("Customer file: "
                 + customerFile.toAbsolutePath().normalize());
@@ -138,17 +138,17 @@ public final class Main {
 }
 ~~~
 
-Đọc kỹ sự khác nhau:
+Read the differences carefully:
 
-- `Files.readString(Path.of("data", "customer.txt"), UTF_8)` mở file tương đối với working directory. Nếu chưa có file, Java có thể ném `NoSuchFileException`.
-- `Main.class.getResourceAsStream("/messages/greeting.txt")` tìm resource từ **gốc đường tìm resource** cho class này. Ở ví dụ **classpath truyền thống**, đó là entry `resources` hoặc resource đã đóng gói trong JAR. Khi không tìm được, API trả `null` và chương trình chủ động ném `IllegalStateException`.
-- `import demo.lib.GreetingFormatter;` có nghĩa chương trình sử dụng một class khác; class này phải sẵn có khi biên dịch và khi runtime nạp nó.
+- `Files.readString(Path.of("data", "customer.txt"), UTF_8)` opens the file relative to the working directory. If the file does not exist yet, Java may throw `NoSuchFileException`.
+- `Main.class.getResourceAsStream("/messages/greeting.txt")` looks up the resource from the **resource lookup root** for this class. In this **traditional classpath** example, that is the `resources` entry or a resource packaged in a JAR. When not found, the API returns `null` and the program explicitly throws `IllegalStateException`.
+- `import demo.lib.GreetingFormatter;` means the program uses another class; this class must be available at compile time and when the runtime loads it.
 
-Tệp `Main.java` dùng `Path.of`, `Files.readString`, `String.strip` và `InputStream.readAllBytes` nên yêu cầu **Java 11 trở lên**. Đây là một project **console** giản lược để quan sát đường dẫn, không phải cấu hình Maven/Gradle hoàn chỉnh.
+`Main.java` uses `Path.of`, `Files.readString`, `String.strip`, and `InputStream.readAllBytes`, so it requires **Java 11 or higher**. This is a simplified **console** project for observing paths, not a complete Maven/Gradle configuration.
 
-## 4. Biên dịch và chạy bằng Bash trên macOS/Linux
+## 4. Compiling and running with Bash on macOS/Linux
 
-Từ **thư mục cha** của `path-lab`:
+From the **parent directory** of `path-lab`:
 
 ~~~bash
 cd path-lab
@@ -161,7 +161,7 @@ javac -encoding UTF-8 -d out \
 java -cp 'out:resources' demo.app.Main
 ~~~
 
-`mkdir -p out` tạo thư mục gốc cho output. Khi dùng `javac -d out`, hãy tạo sẵn `out`; compiler sẽ tạo thư mục package con trong đó. Sau khi biên dịch thành công, bạn sẽ có:
+`mkdir -p out` creates the root directory for output. When using `javac -d out`, create `out` beforehand; the compiler will create the package subdirectories inside it. After successful compilation, you will have:
 
 ~~~text
 out/
@@ -172,23 +172,23 @@ out/
         └── GreetingFormatter.class
 ~~~
 
-`-cp 'out:resources'` cung cấp **hai** classpath entries: `out` để tìm hai class và `resources` để tìm `messages/greeting.txt`. **Dấu hai chấm** là dấu phân tách classpath trên macOS/Linux.
+`-cp 'out:resources'` provides **two** classpath entries: `out` to find the two classes and `resources` to find `messages/greeting.txt`. A **colon** is the classpath separator on macOS/Linux.
 
-Kết quả ví dụ:
+Example output:
 
 ~~~text
-Working directory: <đường dẫn tuyệt đối tới path-lab>
-Customer file: <đường dẫn tuyệt đối tới path-lab/data/customer.txt>
+Working directory: <absolute path to path-lab>
+Customer file: <absolute path to path-lab/data/customer.txt>
 Xin chào, Lan!
 ~~~
 
-Hai đường dẫn phụ thuộc vị trí thật trên máy; dòng cuối phải là `Xin chào, Lan!`.
+The two paths depend on the actual location on your machine; the last line must be `Xin chào, Lan!`.
 
-**Không chạy `java Main`** khi class có `package demo.app;`. Tên lớp dùng để chạy là `demo.app.Main`, không có đuôi `.java` hoặc `.class`.
+**Do not run `java Main`** when the class has `package demo.app;`. The class name to run is `demo.app.Main`, without `.java` or `.class`.
 
-## 5. Biên dịch và chạy trên Windows PowerShell
+## 5. Compiling and running on Windows PowerShell
 
-Từ thư mục cha của `path-lab`:
+From the parent directory of `path-lab`:
 
 ~~~powershell
 Set-Location path-lab
@@ -197,51 +197,51 @@ javac -encoding UTF-8 -d out src/main/java/demo/lib/GreetingFormatter.java src/m
 java -cp 'out;resources' demo.app.Main
 ~~~
 
-Điểm khác biệt: **Windows dùng dấu chấm phẩy** để phân tách các entry classpath, vì vậy `out;resources`, không phải `out:resources`. Trong PowerShell, đặt toàn bộ chuỗi classpath trong dấu nháy đơn để shell truyền nó nguyên vẹn thành **một đối số**.
+The difference: **Windows uses a semicolon** to separate classpath entries, hence `out;resources`, not `out:resources`. In PowerShell, wrap the entire classpath string in single quotes so the shell passes it intact as **a single argument**.
 
-Bạn có thể dùng dấu gạch chéo xuôi trong đường dẫn truyền cho các công cụ Java trên Windows như ví dụ, hoặc dùng dạng đường dẫn Windows tương ứng. Tránh nhầm dấu **phân tách path trong hệ điều hành** với dấu **phân tách nhiều phần tử của classpath**.
+You can use forward slashes in paths passed to Java tools on Windows as in the example, or use the corresponding Windows path style. Avoid confusing the **OS path separator** with the **separator between multiple classpath elements**.
 
-Nếu thư mục có khoảng trắng như `C:\Java Projects\path-lab`, cần quote đường dẫn nguồn/đích chứa khoảng trắng. Ví dụ `java -cp 'C:\Java Projects\path-lab\out;C:\Java Projects\path-lab\resources' demo.app.Main` là classpath Windows gồm hai entry; khi dùng đường dẫn tuyệt đối, working directory **vẫn không tự thay đổi**.
+If a directory contains spaces such as `C:\Java Projects\path-lab`, you must quote source/destination paths containing spaces. For example, `java -cp 'C:\Java Projects\path-lab\out;C:\Java Projects\path-lab\resources' demo.app.Main` is a Windows classpath with two entries; even when using absolute paths, the working directory **still does not change automatically**.
 
-## 6. Thử nghiệm: lỗi nằm ở classpath hay working directory?
+## 6. Experiment: is the error in the classpath or the working directory?
 
-### Trường hợp A: class có đủ, nhưng thiếu resource
+### Case A: classes are present, but resource is missing
 
-Từ đúng thư mục `path-lab`, chạy:
+From the exact `path-lab` directory, run:
 
 ~~~bash
 java -cp out demo.app.Main
 ~~~
 
-- Java nạp `Main.class` và `GreetingFormatter.class` trong `out` thành công.
-- File `data/customer.txt` vẫn đọc được vì working directory đúng.
-- Nhưng `messages/greeting.txt` không có trong `out`, nên `getResourceAsStream` trả `null` và chương trình báo thiếu classpath resource.
+- Java loads `Main.class` and `GreetingFormatter.class` in `out` successfully.
+- `data/customer.txt` can still be read because the working directory is right.
+- However, `messages/greeting.txt` is not inside `out`, so `getResourceAsStream` returns `null` and the program reports a missing classpath resource.
 
-**Cách sửa:** thêm `resources` vào `-cp`, hoặc đóng gói resource vào JAR đúng đường dẫn. Không nên chỉ đổi CWD với hy vọng JVM tự tìm classpath resource.
+**Fix:** add `resources` to `-cp`, or package the resource into a JAR at the right path. Do not merely change CWD hoping the JVM will find classpath resources automatically.
 
-### Trường hợp B: có resource nhưng thiếu class
+### Case B: resource is present, but class is missing
 
 ~~~bash
 java -cp resources demo.app.Main
 ~~~
 
-JVM chỉ tìm trong `resources`, không thấy `demo/app/Main.class`. Chương trình thất bại ở bước **nạp main class**, chưa chạy logic đọc file. Thêm `out` vào classpath để JVM tìm được class.
+The JVM only searches inside `resources` and does not find `demo/app/Main.class`. The program fails at the **main class loading** step, before running the file-reading logic. Add `out` to the classpath so the JVM can find the classes.
 
-### Trường hợp C: classpath đúng nhưng CWD sai
+### Case C: classpath is right, but CWD is wrong
 
-Giả sử bạn đứng ở thư mục **cha** của `path-lab`. Nếu đưa classpath hợp lệ từ đó, ví dụ macOS/Linux:
+Suppose you are in the **parent** directory of `path-lab`. If you pass a valid classpath from there, for instance on macOS/Linux:
 
 ~~~bash
 java -cp 'path-lab/out:path-lab/resources' demo.app.Main
 ~~~
 
-JVM có thể tìm được class và resource. Nhưng `Path.of("data", "customer.txt")` lúc này trỏ tới `data/customer.txt` **bên dưới thư mục cha**, không phải `path-lab/data/customer.txt`. Chương trình sẽ báo thiếu file nếu file ấy không tồn tại ở vị trí đang tìm.
+The JVM can locate both the classes and the resource. However, `Path.of("data", "customer.txt")` now points to `data/customer.txt` **under the parent directory**, not `path-lab/data/customer.txt`. The program will report a missing file if that file does not exist at the location being searched.
 
-Có hai hướng giải quyết hợp lý: **chạy từ working directory đúng** hoặc **truyền đường dẫn file cấu hình rõ ràng** (tuyệt đối hay tương đối, được xử lý theo hợp đồng). Không nên viết cứng đường dẫn tuyệt đối tới máy của một lập trình viên vào mã nguồn dùng chung.
+There are two sensible solutions: **run from the right working directory** or **pass the configuration file path explicitly** (absolute or relative, handled by contract). Do not hardcode an absolute path to one developer's machine into shared source code.
 
-## 7. Classpath root và cấu trúc package
+## 7. Classpath root and package structure
 
-Lớp trong ví dụ khai báo:
+The class in the example declares:
 
 ~~~java
 package demo.app;
@@ -251,48 +251,48 @@ public final class Main {
 }
 ~~~
 
-Khi output đặt tại `out`, bytecode nằm ở `out/demo/app/Main.class`. Vì vậy:
+When output is placed in `out`, bytecode lives at `out/demo/app/Main.class`. Therefore:
 
-| Lệnh | Đánh giá | Lý do |
+| Command | Evaluation | Reason |
 | --- | --- | --- |
-| `java -cp out demo.app.Main` | Tìm được main class | Classpath root là `out`, Java tự ánh xạ `demo.app.Main` thành `demo/app/Main.class` |
-| `java -cp out/demo/app Main` | Sai cho lớp ví dụ | `Main` không nằm ở default package; trong bytecode tên lớp vẫn là `demo.app.Main` |
-| `java -cp resources demo.app.Main` | Thiếu classpath cho code | `resources` không chứa bytecode của main class |
+| `java -cp out demo.app.Main` | Finds main class | Classpath root is `out`; Java maps `demo.app.Main` to `demo/app/Main.class` |
+| `java -cp out/demo/app Main` | Wrong for the example class | `Main` is not in the default package; in bytecode the class name is still `demo.app.Main` |
+| `java -cp resources demo.app.Main` | Missing classpath for code | `resources` does not contain the main class bytecode |
 
-Tên **package** do khai báo `package` quyết định, không do thư mục hiện tại của terminal tự sinh ra. Nên đặt file nguồn theo cây package vì nó giúp code và build tool dễ hiểu; `javac -d` đặt output theo đúng tên package.
+The **package** name is determined by the `package` declaration, not automatically generated from the terminal's current directory. Place source files following the package tree because it keeps code and build tools clear; `javac -d` places output according to the package name.
 
-## 8. `javac -cp` khác `java -cp` thế nào?
+## 8. How does `javac -cp` differ from `java -cp`?
 
-Cùng là tùy chọn thiết lập đường tìm class, nhưng **thời điểm** khác:
+Both are options for setting the class lookup path, but the **timing** differs:
 
-- `javac -cp ...` cho **compiler** biết nơi tìm những class đã biên dịch hoặc JAR cần để giải quyết import/type.
-- `java -cp ...` cho **runtime** biết nơi tìm main class, các class phụ thuộc và các resource trên classpath.
+- `javac -cp ...` tells the **compiler** where to find already-compiled classes or JARs needed to resolve imports/types.
+- `java -cp ...` tells the **runtime** where to find the main class, dependent classes, and classpath resources.
 
-Trong ví dụ ban đầu, ta đưa **cả hai tệp nguồn** cho `javac` cùng một lần nên compiler có thể biên dịch chúng cùng nhau. Nếu biên dịch từng file riêng:
+In the initial example, we passed **both source files** to `javac` at once so the compiler could compile them together. If compiling each file separately:
 
 ~~~bash
-# Thực hiện từ path-lab, sau khi out đã tồn tại.
+# Run from path-lab, after out already exists.
 javac -encoding UTF-8 -d out src/main/java/demo/lib/GreetingFormatter.java
 javac -encoding UTF-8 -cp out -d out src/main/java/demo/app/Main.java
 ~~~
 
-Lượt biên dịch thứ hai cần thấy `GreetingFormatter.class` trong `out`. Nhưng sau khi build, lệnh chạy vẫn cần **`out` và `resources`** để chương trình hoạt động đúng.
+The second compilation pass needs to see `GreetingFormatter.class` inside `out`. Yet after building, the run command still needs **both `out` and `resources`** for the program to work properly.
 
-Nếu có thư viện ngoài `lib/helper.jar`, trong project thực tế, compiler và runtime có thể cần thêm JAR đó trên classpath:
+If there is an external library `lib/helper.jar`, in a real project, both compiler and runtime may need that JAR added to the classpath:
 
 ~~~bash
-# Minh họa cú pháp trên macOS/Linux; thay tên nguồn và lớp cho dự án thật.
+# Syntax illustration on macOS/Linux; replace source and class names for a real project.
 javac -cp 'lib/helper.jar' -d out YourFile.java
 java -cp 'out:resources:lib/helper.jar' your.package.Main
 ~~~
 
-Trên Windows, dùng `;` thay cho `:` khi phân tách nhiều phần tử classpath. Dòng này **không phải lệnh chạy project mẫu** vì project mẫu không có `lib/helper.jar` hay `YourFile.java`.
+On Windows, use `;` instead of `:` when separating multiple classpath elements. This line is **not a run command for the sample project** because the sample project has no `lib/helper.jar` or `YourFile.java`.
 
-Khi chỉ định `-cp` tường minh, đừng mặc định Java sẽ tự thêm `out`, `resources`, mọi JAR đang có hay thư mục hiện tại. `CLASSPATH` là biến môi trường tùy chọn, nhưng cấu hình bằng `-cp` thường rõ hơn cho từng lệnh.
+When specifying `-cp` explicitly, do not assume Java will automatically include `out`, `resources`, all existing JARs, or the current directory. `CLASSPATH` is an optional environment variable, but configuring with `-cp` is usually clearer per command.
 
-## 9. Đóng gói class và resource vào JAR
+## 9. Packaging classes and resources into a JAR
 
-Sau khi biên dịch, hãy tạo JAR có entry point và resource:
+After compiling, create a JAR with an entry point and resources:
 
 **Bash (macOS/Linux):**
 
@@ -310,62 +310,62 @@ jar --create --file demo.jar --main-class demo.app.Main -C out . -C resources .
 java -jar demo.jar
 ~~~
 
-Tùy chọn `-C out .` đưa các file class nằm trong `out` vào gốc JAR, giữ cây package. Tùy chọn `-C resources .` đưa `messages/greeting.txt` vào đúng đường dẫn ở bên trong JAR. `--main-class demo.app.Main` ghi thông tin main class vào manifest của JAR.
+The `-C out .` option places the class files inside `out` at the root of the JAR, preserving the package tree. The `-C resources .` option places `messages/greeting.txt` at the right path inside the JAR. `--main-class demo.app.Main` writes the main class info into the JAR's manifest.
 
-Khi chạy `java -jar`, JVM dùng main class từ manifest. **Đừng giả định** `-cp` đặt cạnh `-jar` sẽ tự thêm mọi thư viện ngoài vào đường tìm class; với ứng dụng nhiều dependency cần đóng gói hoặc khai báo chúng theo cách phù hợp.
+When running `java -jar`, the JVM uses the main class from the manifest. **Do not assume** placing `-cp` alongside `-jar` will automatically add external libraries to the class lookup path; applications with multiple dependencies must package or declare them appropriately.
 
-**Điểm mấu chốt:** `data/customer.txt` **vẫn là file bên ngoài**. Lệnh `java -jar demo.jar` từ `path-lab` vẫn đọc được file đó; chạy JAR từ một working directory khác có thể không đọc được, dù class và greeting resource đã nằm trong JAR.
+**Key takeaway:** `data/customer.txt` **remains an external file**. Running `java -jar demo.jar` from `path-lab` can still read that file; running the JAR from another working directory may fail to read it, even though the classes and greeting resource are already inside the JAR.
 
-## 10. Bảng chẩn đoán lỗi thường gặp
+## 10. Common error diagnosis table
 
-| Hiện tượng | Nguyên nhân có thể | Hướng khắc phục |
+| Symptom | Possible cause | How to resolve |
 | --- | --- | --- |
-| `javac -d out` không thể ghi class | `out` chưa tồn tại hoặc không có quyền ghi | Tạo `out` trước, kiểm tra quyền |
-| `Could not find or load main class` | `-cp` thiếu output root hoặc tên package sai | Kiểm tra `out/demo/app/Main.class` và chạy `demo.app.Main` |
-| `NoClassDefFoundError` | Thiếu class phụ thuộc lúc chạy, hoặc lỗi nạp/khởi tạo khác | Xem classpath, dependency và phần `Caused by` |
-| `package demo.lib does not exist` khi compile | Compiler không thấy mã hay class của thư viện nội bộ | Biên dịch cả hai nguồn hoặc thêm `-cp out` ở lượt sau |
-| `NoSuchFileException: data/customer.txt` | Sai working directory hoặc chưa có file | Xem CWD và đường dẫn thực tế, không chỉ classpath |
-| `Missing classpath resource` | Thiếu `resources` trên classpath/JAR, sai tên resource | Kiểm tra root classpath và `messages/greeting.txt` |
-| Chạy được trong IDE nhưng lỗi trên terminal | IDE đặt working directory, output hoặc classpath khác | Kiểm tra Run Configuration rồi so sánh ba giá trị |
-| `UnsupportedClassVersionError` | Bytecode build cho Java mới hơn runtime hỗ trợ | Kiểm tra JDK build, runtime và target phù hợp |
+| `javac -d out` cannot write classes | `out` does not exist yet or lacks write permissions | Create `out` first, check permissions |
+| `Could not find or load main class` | `-cp` missing output root or wrong package name | Check `out/demo/app/Main.class` and run `demo.app.Main` |
+| `NoClassDefFoundError` | Missing dependent class at runtime, or another loading/initialization error | Check classpath, dependencies, and the `Caused by` section |
+| `package demo.lib does not exist` when compiling | Compiler cannot see internal library source or classes | Compile both sources or add `-cp out` on the second pass |
+| `NoSuchFileException: data/customer.txt` | Wrong working directory or file does not exist yet | Check CWD and actual path, not just classpath |
+| `Missing classpath resource` | Missing `resources` on classpath/JAR, wrong resource name | Check classpath root and `messages/greeting.txt` |
+| Works in IDE but fails in terminal | IDE sets a different working directory, output, or classpath | Inspect Run Configuration and compare the three values |
+| `UnsupportedClassVersionError` | Bytecode built for newer Java than runtime supports | Check build JDK, runtime, and appropriate target |
 
-**Phân biệt lỗi ở ba tầng:** `javac` không tìm được type là lỗi **biên dịch**; `java` không tìm được main class là lỗi **nạp chương trình**; `Files.readString` không mở được file là lỗi **I/O lúc chạy**. Ba lỗi này cần ba hướng kiểm tra khác nhau.
+**Distinguish errors across three layers:** `javac` not finding a type is a **compile-time** error; `java` not finding the main class is a **program loading** error; `Files.readString` failing to open a file is a **runtime I/O** error. These three errors require three different checks.
 
-### Trường hợp biên đáng lưu ý
+### Notable edge cases
 
-- **Có khoảng trắng trong đường dẫn:** quote classpath và đối số đường dẫn. Trên Bash, dấu `;` có ý nghĩa đặc biệt đối với shell.
-- **Phân biệt hoa/thường:** các hệ điều hành có thể có quy tắc phân biệt chữ khác nhau; tên `Main.class`, package, resource phải chính xác.
-- **Đường dẫn tương đối trong IDE:** IDE có thể mặc định working directory là project root, module root hoặc thư mục cấu hình khác. Không mặc định giống terminal.
-- **Thư mục runtime khác với thư mục JDK:** `JAVA_HOME`, `java.home`, CWD và classpath là các khái niệm độc lập.
-- **Classpath khác module path:** bài này dùng classpath và project **không có `module-info.java`**. Ứng dụng theo Java Platform Module System có quy tắc nạp/module path riêng.
+- **Spaces in paths:** quote classpath and path arguments. In Bash, `;` has special meaning to the shell.
+- **Case sensitivity:** operating systems may have different case-sensitivity rules; `Main.class`, package, and resource names must match accurately.
+- **Relative paths in an IDE:** an IDE may default the working directory to the project root, module root, or another configured directory. Do not assume it matches the terminal.
+- **Runtime directory vs. JDK directory:** `JAVA_HOME`, `java.home`, CWD, and classpath are independent concepts.
+- **Classpath vs. module path:** this lesson uses the classpath and a project **without `module-info.java`**. Applications using the Java Platform Module System have their own module path loading rules.
 
-## 11. Quy trình kiểm tra nhanh khi project không chạy
+## 11. Quick checklist when the project does not run
 
-1. **Xem CWD:** Bash dùng `pwd`, PowerShell dùng `Get-Location`. Khi chạy Java, chương trình có thể in `Path.of("").toAbsolutePath()` để hỗ trợ chẩn đoán.
-2. **Xem nơi xuất bytecode:** file `.class` có dưới thư mục đã truyền cho `-d` không, và cây package có đúng không?
-3. **Xem runtime classpath:** entry đầu tiên chứa gốc package của main class không? Đã thêm resource/JAR cần thiết chưa?
-4. **Kiểm tra file dữ liệu:** `data/customer.txt` có tồn tại **tương đối với CWD** không?
-5. **Đọc nguyên thông báo lỗi:** lỗi biên dịch, lỗi load class hay lỗi mở file là ba tầng khác nhau.
-6. **Thay một yếu tố mỗi lượt:** không đổi cả classpath, CWD và package đồng thời rồi đoán nguyên nhân.
+1. **Check CWD:** Bash uses `pwd`, PowerShell uses `Get-Location`. When Java runs, the program can print `Path.of("").toAbsolutePath()` to aid diagnosis.
+2. **Check bytecode output:** are `.class` files under the directory passed to `-d`, and is the package tree right?
+3. **Check runtime classpath:** does the first entry contain the package root of the main class? Have needed resources/JARs been added?
+4. **Check data files:** does `data/customer.txt` exist **relative to CWD**?
+5. **Read the entire error message:** compile errors, class-loading errors, and file-opening errors are three different layers.
+6. **Change one factor per attempt:** do not change classpath, CWD, and package simultaneously and guess the cause.
 
-## 12. Bài tập có đáp án định hướng
+## 12. Exercises with guided answers
 
-**Bài 1 — Class có đủ nhưng resource thiếu.** Dự đoán điều gì xảy ra khi chạy `java -cp out demo.app.Main` từ `path-lab`.
+**Exercise 1 — Classes present but resource missing.** Predict what happens when running `java -cp out demo.app.Main` from `path-lab`.
 
-*Gợi ý:* Nạp được các file `.class` và đọc được `data/customer.txt`, nhưng thiếu `resources` để tìm `/messages/greeting.txt`.
+*Hint:* It loads the `.class` files and reads `data/customer.txt`, but lacks `resources` to find `/messages/greeting.txt`.
 
-**Bài 2 — Classpath đúng nhưng file không thấy.** Chạy từ thư mục cha với `-cp 'path-lab/out:path-lab/resources'` trên macOS/Linux. Tại sao `Files.readString` có thể thất bại?
+**Exercise 2 — Classpath right but file not found.** Run from the parent directory with `-cp 'path-lab/out:path-lab/resources'` on macOS/Linux. Why might `Files.readString` fail?
 
-*Gợi ý:* CWD là thư mục cha; đường dẫn tương đối sẽ trỏ tới `data` dưới thư mục cha, không phải dưới `path-lab`.
+*Hint:* CWD is the parent directory; the relative path points to `data` under the parent directory, not under `path-lab`.
 
-**Bài 3 — Thử compile hai lượt.** Biên dịch `GreetingFormatter.java` trước, sau đó `Main.java`. Lượt hai cần thêm tùy chọn nào để compiler tìm class đã tạo?
+**Exercise 3 — Try two-pass compilation.** Compile `GreetingFormatter.java` first, then `Main.java`. Which option must be added on the second pass for the compiler to find the already generated class?
 
-*Gợi ý:* Dùng `javac -cp out -d out ...`.
+*Hint:* Use `javac -cp out -d out ...`.
 
-**Bài 4 — Đóng gói JAR.** Tạo `demo.jar` chứa hai class và `messages/greeting.txt`. Chạy từ project root và từ một thư mục khác. Phần nào đã nằm trong JAR, phần nào vẫn phụ thuộc CWD?
+**Exercise 4 — JAR packaging.** Create `demo.jar` containing both classes and `messages/greeting.txt`. Run from the project root and from another directory. Which parts are inside the JAR, and which part still depends on CWD?
 
-**Bài 5 — Cải thiện thiết kế.** Cho chương trình nhận đường dẫn `customer.txt` qua `args[0]` thay vì cố định `data/customer.txt`. Kiểm tra trường hợp thiếu đối số, file không tồn tại và đường dẫn tương đối. Thảo luận khi nào nên dùng đường dẫn tuyệt đối.
+**Exercise 5 — Design improvement.** Have the program accept the `customer.txt` path via `args[0]` instead of hardcoding `data/customer.txt`. Check missing-argument, missing-file, and relative-path cases. Discuss when an absolute path should be used.
 
-### Tự đánh giá
+### Self-assessment
 
-Bạn hiểu bài khi tự trả lời được: `javac -d` tạo `.class` ở đâu; `java -cp` tìm `demo.app.Main` và resource từ đâu; `Path.of("data","customer.txt")` phụ thuộc thư mục nào; tại sao Java package cần tên FQCN khi chạy; và vì sao đóng gói JAR **không tự biến file bên ngoài thành resource bên trong JAR**.
+You understand this lesson when you can answer on your own: where `javac -d` creates `.class`; where `java -cp` looks up `demo.app.Main` and resources; which directory `Path.of("data","customer.txt")` depends on; why Java packages require an FQCN when running; and why packaging a JAR **does not automatically turn an external file into an internal JAR resource**.

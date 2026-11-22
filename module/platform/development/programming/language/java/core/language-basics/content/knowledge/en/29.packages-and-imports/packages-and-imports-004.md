@@ -1,49 +1,49 @@
-# Import một kiểu và import theo yêu cầu bằng dấu `*` — Java 17+
+# Single-Type Import and On-Demand Import with `*` — Java 17+
 
-## 1. `import` giải quyết vấn đề gì?
+## 1. What problem does `import` solve?
 
-Mỗi kiểu Java thuộc một package (trừ kiểu ở *unnamed package*). Khi sử dụng kiểu nằm ngoài package hiện tại, ta có thể viết **tên đầy đủ** (*fully qualified name*) hoặc dùng `import` để viết **tên ngắn** trong mã nguồn.
+Every Java type belongs to a package (except types in the *unnamed package*). When using a type located outside the current package, you can write its **fully qualified name** or use `import` to write its **short name** in source code.
 
 ~~~java
 java.util.List<String> names = java.util.List.of("An", "Binh");
 ~~~
 
-Tương đương khi khai báo import phù hợp:
+Equivalent when declaring an appropriate import:
 
 ~~~java
 import java.util.List;
 
-// Trong một lớp:
+// Inside a class:
 List<String> names = List.of("An", "Binh");
 ~~~
 
-`import` giúp **tra cứu tên lúc biên dịch**, không tạo object, không tự chạy mã của lớp được import và không sao chép mã nguồn thư viện vào file.
+`import` assists with **compile-time name lookup**; it does not create objects, automatically execute code in the imported class, or copy library source code into the file.
 
-## 2. Hai cú pháp cần nhận diện
+## 2. Two syntaxes to recognize
 
-| Cú pháp | Tên gọi | Ý nghĩa |
+| Syntax | Name | Meaning |
 |---|---|---|
-| `import java.util.List;` | **Single-type-import declaration** | Cho phép dùng tên ngắn `List` cho **một kiểu cụ thể** |
-| `import java.util.*;` | **Type-import-on-demand declaration** | Cho phép dùng tên ngắn của **các kiểu truy cập được** trong package `java.util` khi cần phân giải tên |
-| `java.util.List.of(...)` | Tên kiểu đầy đủ, không phải import | Không cần khai báo import cho `List` |
-| `import static java.lang.Math.PI;` | Single-static-import | Import **thành viên static**; khác với import kiểu |
-| `import static java.lang.Math.*;` | Static-import-on-demand | Import thành viên static theo yêu cầu; không phải `import java.lang.Math.*;` |
+| `import java.util.List;` | **Single-type-import declaration** | Allows using the short name `List` for **one specific type** |
+| `import java.util.*;` | **Type-import-on-demand declaration** | Allows using short names of **accessible types** in package `java.util` when resolving names |
+| `java.util.List.of(...)` | Fully qualified type name, not an import | No `import` declaration needed for `List` |
+| `import static java.lang.Math.PI;` | Single-static-import | Imports a **static member**; different from importing a type |
+| `import static java.lang.Math.*;` | Static-import-on-demand | Imports static members on demand; not `import java.lang.Math.*;` |
 
-Dấu `*` trong `import java.util.*;` **không có nghĩa** sao chép hay khởi tạo toàn bộ các lớp trong package. Trình biên dịch chỉ sử dụng các khai báo import để phân giải những tên xuất hiện trong mã.
+The `*` in `import java.util.*;` **does not mean** copying or instantiating all classes in the package. The compiler only uses import declarations to resolve names that appear in code.
 
-Ở Java 17, chỉ có ký hiệu `*` **nguyên vẹn** ở cuối khai báo import-on-demand: không có cú pháp kiểu `import java.util.L*;` để lọc tiền tố.
+In Java 17, only a **standalone** `*` at the end of an import-on-demand declaration is valid: there is no syntax like `import java.util.L*;` to filter by prefix.
 
-## 3. Dấu `*` không tìm kiếm đệ quy package con
+## 3. `*` does not recursively search subpackages
 
-`import java.util.*;` cho phép dùng các kiểu truy cập được trực tiếp từ `java.util` như `List` và `Map`, nhưng không tự đưa `java.util.concurrent.TimeUnit` vào phạm vi tên ngắn:
+`import java.util.*;` allows using types directly accessible from `java.util` such as `List` and `Map`, but it does not automatically bring `java.util.concurrent.TimeUnit` into short-name scope:
 
 ~~~java
 long seconds = java.util.concurrent.TimeUnit.MINUTES.toSeconds(1); // 60
 ~~~
 
-Muốn dùng `TimeUnit` không có tiền tố, hãy khai báo `import java.util.concurrent.TimeUnit;`. Bài về package con phân tích thêm các kiểu `AtomicInteger`, `Method` và sự khác biệt giữa package con với kiểu lồng nhau.
+To use `TimeUnit` without a prefix, declare `import java.util.concurrent.TimeUnit;`. The lesson on subpackages further analyzes types like `AtomicInteger`, `Method`, and the difference between subpackages and nested types.
 
-## 4. Khi nào dùng tên ngắn và tên đầy đủ?
+## 4. When to use short names vs. fully qualified names?
 
 ~~~java
 import java.util.List;
@@ -52,48 +52,48 @@ List<String> a = List.of("A");
 java.util.List<String> b = java.util.List.of("B");
 ~~~
 
-Cả hai đều sử dụng kiểu `java.util.List`.
+Both use the type `java.util.List`.
 
-- Dùng **single-type import** khi chỉ cần một vài kiểu: dễ nhận biết chính xác dependency.
-- Dùng **import-on-demand** khi làm việc với nhiều kiểu trong cùng package: ít dòng import hơn nhưng khó thấy ngay tất cả kiểu đang dùng.
-- Dùng **tên đầy đủ** khi cần nói rõ kiểu nào giữa các kiểu trùng tên, hoặc ở chỗ chỉ xuất hiện một lần.
-- IDE thường tự thêm, gộp hoặc sắp xếp import; đây là lựa chọn trình bày mã, không làm thay đổi hành vi bản thân kiểu được sử dụng.
+- Use **single-type import** when only a few types are needed: it makes exact dependencies easy to spot.
+- Use **import-on-demand** when working with many types in the same package: fewer import lines, though it is harder to see every type used at a glance.
+- Use **fully qualified names** when you need to disambiguate between types with the same name, or at a single occurrence.
+- IDEs often add, collapse, or sort imports automatically; this is a code formatting choice and does not change the behavior of the types themselves.
 
-**Cả hai dạng import đều không làm thay đổi tính năng của `List` hoặc cấu trúc của object**. Khác biệt chủ yếu ở việc phân giải tên.
+**Neither form of import changes the features of `List` or the structure of the object.** The difference lies mainly in name resolution.
 
-## 5. Khi hai package có kiểu cùng tên
+## 5. When two packages have types with the same name
 
 ~~~java
 import java.util.List;
 import java.awt.*;
 
-// Trong lớp:
+// Inside a class:
 List<String> names = List.of("An"); // java.util.List
 ~~~
 
-Single-type import cụ thể xác định `List` dù wildcard còn có `java.awt.List`. Với hai wildcard `java.util.*` và `java.awt.*`, tên `List` có thể trở nên mơ hồ; hai single-type imports khác kiểu cùng tên đơn giản thì gây lỗi ngay tại khai báo import. Java không có quy tắc “import cuối thắng”. Dùng qualified name khi phải nói rõ kiểu; bài xử lý hai lớp trùng tên đi sâu vào mức ưu tiên.
+An explicit single-type import selects `List` even when a wildcard also covers `java.awt.List`. With two wildcards `java.util.*` and `java.awt.*`, the name `List` can become ambiguous; two single-type imports for different types with the same simple name cause an error right at the import declarations. Java has no "last import wins" rule. Use a qualified name when you must specify which type you mean; the lesson on handling two classes with the same name goes deeper into precedence rules.
 
-## 6. Import kiểu lồng nhau và `java.lang`
+## 6. Importing nested types and `java.lang`
 
-Một kiểu lồng (*member type*) có thể import trực tiếp:
+A nested type (*member type*) can be imported directly:
 
 ~~~java
 import java.util.Map.Entry;
 
-// Trong lớp:
+// Inside a class:
 Entry<String, Integer> item =
         java.util.Map.entry("An", 10);
 ~~~
 
-`Entry` là kiểu lồng của `Map`; ở đây `Map.entry(...)` được viết bằng tên đầy đủ của `Map` vì ví dụ chỉ import `Entry`.
+`Entry` is a nested type of `Map`; here `Map.entry(...)` is written using `Map`'s fully qualified name because the example only imports `Entry`.
 
-Một số kiểu thông dụng như `String`, `System`, `Integer`, `Math` thuộc `java.lang`, và các kiểu truy cập được trong `java.lang` được Java **import-on-demand ngầm định**; thường không phải viết `import java.lang.String;`.
+Common types such as `String`, `System`, `Integer`, and `Math` belong to `java.lang`, and accessible types in `java.lang` are **implicitly imported on demand** by Java; you usually do not need to write `import java.lang.String;`.
 
-Kiểu được khai báo trong **cùng package** cũng có thể dùng tên ngắn khi không bị che khuất/xung đột theo quy tắc của Java.
+Types declared in the **same package** can also use short names when not shadowed or conflicted under Java's rules.
 
-## 7. Vị trí đặt `package` và `import`
+## 7. Placement of `package` and `import`
 
-Thứ tự thường thấy của một file `.java`:
+The standard order in a `.java` file:
 
 ~~~java
 package demo;
@@ -106,25 +106,25 @@ public class Example {
 }
 ~~~
 
-1. Khai báo `package` (nếu có), sau các chú thích và khoảng trắng.
-2. Các khai báo `import`, trước mọi top-level type declaration.
-3. Các khai báo `class`, `record`, `interface`, `enum`... của file.
+1. The `package` declaration (if any), after comments and whitespace.
+2. The `import` declarations, before any top-level type declarations.
+3. The `class`, `record`, `interface`, `enum`... declarations of the file.
 
-Không đặt `import` bên trong thân một phương thức hoặc sau một khai báo top-level class. Dấu `;` là bắt buộc cuối mỗi khai báo `package`/`import`.
+Do not place `import` inside a method body or after a top-level class declaration. A semicolon `;` is required at the end of every `package`/`import` declaration.
 
-Một file chỉ được có **tối đa một khai báo package**. Tên package không phải là đường dẫn file tự động do `import` tạo; lúc chạy, classpath và tên lớp đầy đủ vẫn phải phù hợp với file `.class` được biên dịch.
+A file may have **at most one package declaration**. A package name is not a file path automatically created by `import`; at runtime, the classpath and fully qualified class name must still match the compiled `.class` file.
 
-## 8. Chương trình Java 17+ chạy độc lập
+## 8. Standalone runnable Java 17+ program
 
-Tạo một file tên **`ImportKindsDemo.java`** trong thư mục làm việc, với toàn bộ nội dung:
+Create a file named **`ImportKindsDemo.java`** in your working directory with the full contents:
 
 ~~~java
 package demo;
 
-import java.util.List;       // Import đúng một kiểu.
-import java.util.*;          // Các kiểu khác trong java.util khi cần.
-import java.time.*;          // Package khác, import-on-demand riêng.
-import java.util.Map.Entry;  // Kiểu lồng cụ thể.
+import java.util.List;       // Import one specific type.
+import java.util.*;          // Other types in java.util as needed.
+import java.time.*;          // Another package, separate import-on-demand.
+import java.util.Map.Entry;  // Specific nested type.
 
 public final class ImportKindsDemo {
     private ImportKindsDemo() {}
@@ -155,9 +155,9 @@ public final class ImportKindsDemo {
 }
 ~~~
 
-Cách đọc các dòng import: `List` được chọn qua khai báo cụ thể; `ArrayList`, `Map`, `Collections` qua `java.util.*`; `LocalDate` qua `java.time.*`; `Entry` qua import kiểu lồng; `String` là `java.lang.String` được biết ngầm định; `TimeUnit` được dùng bằng **tên đầy đủ**, không cần import `java.util.concurrent`.
+How to read the import lines: `List` is selected via the explicit declaration; `ArrayList`, `Map`, and `Collections` via `java.util.*`; `LocalDate` via `java.time.*`; `Entry` via the nested-type import; `String` is `java.lang.String`, known implicitly; `TimeUnit` is used via its **fully qualified name**, without importing `java.util.concurrent`.
 
-**Biên dịch** từ thư mục chứa `ImportKindsDemo.java`. Tùy chọn `-d .` đặt file `.class` vào thư mục package phù hợp (`demo/`); không bắt buộc sắp sẵn thư mục nguồn `demo` để chạy ví dụ đơn file này.
+**Compile** from the directory containing `ImportKindsDemo.java`. The `-d .` option places the `.class` file into the matching package directory (`demo/`); you do not have to pre-create a `demo` source directory to run this single-file example.
 
 **Bash (Linux/macOS):**
 
@@ -187,53 +187,53 @@ qualified=2
 time unit=120
 ~~~
 
-Đầu ra không phụ thuộc thứ tự duyệt `Map.of`, vì chương trình **chỉ lấy phần tử theo khóa** `"An"`, không in trực tiếp toàn bộ map. Không cần `--enable-preview`.
+The output does not depend on `Map.of` iteration order, because the program **only looks up the entry by key** `"An"` rather than printing the whole map directly. No `--enable-preview` is needed.
 
-## 9. Lỗi thường gặp và cách sửa
+## 9. Common mistakes and fixes
 
-| Sai lầm | Vì sao sai? | Cách sửa |
+| Mistake | Why is it wrong? | How to fix |
 |---|---|---|
-| `import java.util.*;` rồi nghĩ đã có `TimeUnit` | Không bao gồm subpackage `concurrent` | Import riêng hoặc dùng tên đầy đủ |
-| `import java.util.L*;` | Không phải cú pháp Java | `import java.util.List;` hoặc `import java.util.*;` |
-| Import cả `java.util.*` và `java.awt.*`, rồi dùng `List` | Hai kiểu trùng tên gây mơ hồ | Single-type import hoặc qualified name |
-| Hai single-type imports cho hai `List` khác nhau | Xung đột khai báo | Chỉ import một, kiểu kia dùng tên đầy đủ |
-| Đặt `import` trong `main` | Import chỉ nằm ở đầu compilation unit | Đặt sau `package`, trước class |
-| Nghĩ wildcard import class vào runtime ngay | Import là cơ chế phân giải tên lúc biên dịch | Không suy luận tải lớp từ cú pháp import |
-| Nghĩ `java.lang.String` luôn phải import | Có import-on-demand ngầm định cho `java.lang` | Dùng `String` trực tiếp |
-| Gọi `java Demo` khi class ở `package demo` | Thiếu tên nhị phân đầy đủ | `java -cp . demo.ImportKindsDemo` |
-| Nhầm `import static` với import kiểu | Một bên import thành viên static | Chọn đúng cú pháp theo thứ được sử dụng |
+| Writing `import java.util.*;` and assuming `TimeUnit` is included | Does not include subpackage `concurrent` | Import separately or use the fully qualified name |
+| `import java.util.L*;` | Not valid Java syntax | `import java.util.List;` or `import java.util.*;` |
+| Importing both `java.util.*` and `java.awt.*`, then using `List` | Two types with the same name cause ambiguity | Single-type import or qualified name |
+| Two single-type imports for two different `List` types | Declaration conflict | Import only one, and use the fully qualified name for the other |
+| Placing `import` inside `main` | Imports may only appear at the top of a compilation unit | Place after `package`, before the class |
+| Thinking wildcards load classes at runtime immediately | Import is a compile-time name-resolution mechanism | Do not infer class loading from import syntax |
+| Thinking `java.lang.String` must always be imported | `java.lang` is implicitly imported on demand | Use `String` directly |
+| Running `java Demo` when the class is in `package demo` | Missing fully qualified binary name | `java -cp . demo.ImportKindsDemo` |
+| Confusing `import static` with type import | One imports static members | Choose the right syntax for what is being used |
 
-## 10. Bài tập có đáp án
+## 10. Exercises with answers
 
-**A.** Viết import chỉ dành cho `ArrayList` thuộc package `java.util`.  
-**Đáp án:** `import java.util.ArrayList;`
+**A.** Write an import specifically for `ArrayList` from package `java.util`.  
+**Answer:** `import java.util.ArrayList;`
 
-**B.** Có `import java.time.*;`, có dùng trực tiếp `LocalDate` được không?  
-**Đáp án:** **Có**, vì `LocalDate` thuộc package `java.time`.
+**B.** With `import java.time.*;`, can you use `LocalDate` directly?  
+**Answer:** **Yes**, because `LocalDate` belongs to package `java.time`.
 
-**C.** Có `import java.util.*;`, có dùng trực tiếp `TimeUnit` không?  
-**Đáp án:** **Không**, vì `TimeUnit` thuộc `java.util.concurrent`; thêm `import java.util.concurrent.TimeUnit;` hoặc ghi tên đầy đủ.
+**C.** With `import java.util.*;`, can you use `TimeUnit` directly?  
+**Answer:** **No**, because `TimeUnit` belongs to `java.util.concurrent`; add `import java.util.concurrent.TimeUnit;` or write the fully qualified name.
 
-**D.** Với `import java.util.List;` và `import java.awt.*;`, `List` không định danh đầy đủ chọn kiểu nào?  
-**Đáp án:** `java.util.List`, theo khai báo single-type import cụ thể.
+**D.** Given `import java.util.List;` and `import java.awt.*;`, which type does an unqualified `List` select?  
+**Answer:** `java.util.List`, according to the explicit single-type import declaration.
 
-**E.** Không import `List`, có khai báo `java.util.List<String> names;` được không?  
-**Đáp án:** **Có**, dùng tên đầy đủ nên không cần import.
+**E.** Without importing `List`, can you declare `java.util.List<String> names;`?  
+**Answer:** **Yes**, using the fully qualified name requires no import.
 
-**F.** Import `java.util.*` có khiến Java nạp hết lớp ở package đó khi khởi động không?  
-**Đáp án:** **Không**; wildcard import tham gia phân giải tên trong compilation unit, không ra lệnh nạp tất cả lớp.
+**F.** Does importing `java.util.*` make Java load every class in that package at startup?  
+**Answer:** **No**; wildcard imports participate in name resolution within the compilation unit and do not instruct the JVM to load all classes.
 
-## 11. Checklist và kết luận
+## 11. Checklist and conclusion
 
-- [ ] Phân biệt single-type import `import a.b.Type;` với type-import-on-demand `import a.b.*;`.
-- [ ] Biết wildcard `*` không bao gồm package con, không lọc theo tiền tố.
-- [ ] Biết dùng fully qualified type name khi không muốn import.
-- [ ] Nhận diện trường hợp trùng simple name và import mơ hồ.
-- [ ] Không coi thứ tự các dòng import là thứ tự ưu tiên.
-- [ ] Phân biệt import kiểu và `import static`.
-- [ ] Hiểu vị trí `package`, `import`, top-level type trong file.
-- [ ] Hiểu `java.lang` được import-on-demand ngầm định.
-- [ ] Biết `javac -d .` và tên `package.Class` khi chạy chương trình đóng gói.
-- [ ] Biên dịch, chạy `ImportKindsDemo.java` trên JDK 17+, kiểm tra exact stdout.
+- [ ] Distinguish single-type import `import a.b.Type;` from type-import-on-demand `import a.b.*;`.
+- [ ] Know that wildcard `*` does not include subpackages and does not filter by prefix.
+- [ ] Know how to use a fully qualified type name when avoiding imports.
+- [ ] Recognize simple-name collisions and ambiguous imports.
+- [ ] Do not treat the order of import lines as a precedence order.
+- [ ] Distinguish type imports from `import static`.
+- [ ] Understand the placement of `package`, `import`, and top-level types in a file.
+- [ ] Understand that `java.lang` is implicitly imported on demand.
+- [ ] Know `javac -d .` and the `package.Class` form when running a packaged program.
+- [ ] Compile and run `ImportKindsDemo.java` on JDK 17+ and verify the exact stdout.
 
-**Kết luận:** `import package.Type;` đưa **một kiểu cụ thể** vào khả năng dùng tên ngắn; `import package.*;` cho phép phân giải **các kiểu truy cập được trong đúng package ấy** khi cần. Dấu `*` không import đệ quy package con và không tự nạp tất cả lớp; khi trùng tên, dùng single-type import rõ ràng hoặc tên kiểu đầy đủ.
+**Conclusion:** `import package.Type;` brings **one specific type** into short-name usage; `import package.*;` allows resolving **accessible types directly in that package** as needed. `*` does not recursively import subpackages and does not preload all classes; when names collide, use an explicit single-type import or the fully qualified type name.

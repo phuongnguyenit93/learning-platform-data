@@ -1,14 +1,14 @@
-# Kết hợp `partitioningBy` với Collector phía sau
+# Combining `partitioningBy` with a Downstream Collector
 
-Trong Java Stream API, `Collectors.partitioningBy(predicate)` phân hoạch dữ liệu thành hai nhóm theo một điều kiện đúng/sai. Khi muốn làm **nhiều hơn việc lưu danh sách phần tử** — chẳng hạn đếm đơn hàng, cộng doanh thu, tìm đơn giá trị lớn nhất hoặc tiếp tục phân nhóm theo khu vực — ta dùng overload nhận **Collector phía sau** (*downstream collector*).
+In the Java Stream API, `Collectors.partitioningBy(predicate)` partitions data into two groups based on a true/false condition. When you want to do **more than storing a list of elements**—such as counting orders, summing revenue, finding the largest order, or grouping further by region—you use the overload that takes a **downstream collector** (*downstream collector*).
 
-Bài thuộc chương **Phân nhóm và phân hoạch** của module **JAVA_STREAM_API**. Mục tiêu là hiểu hợp đồng của `partitioningBy(predicate, downstream)`, cách kết hợp với `counting`, `mapping`, `summingLong`, `summarizingLong`, `filtering`, `groupingBy`, `maxBy`, `collectingAndThen` và `teeing`. Bài cũng giải thích kết quả trên nhóm rỗng, thứ tự, xử lý song song và giới hạn về trạng thái, tài nguyên và hiệu năng khi xây dựng pipeline `filter`, `map`, `reduce`, `collect`.
+This lesson belongs to the **Grouping and Partitioning** chapter of the **JAVA_STREAM_API** module. The goal is to understand the contract of `partitioningBy(predicate, downstream)` and how to combine it with `counting`, `mapping`, `summingLong`, `summarizingLong`, `filtering`, `groupingBy`, `maxBy`, `collectingAndThen`, and `teeing`. It also explains empty-group results, ordering, parallel execution, and limitations around state, resources, and performance when building `filter`, `map`, `reduce`, and `collect` pipelines.
 
-Các ví dụ sử dụng Java 17 để có `record`. `partitioningBy` và phần lớn collector cơ bản đã có từ Java 8; `Collectors.filtering` có từ Java 9, `Collectors.teeing` từ Java 12.
+Examples use Java 17 for `record`. `partitioningBy` and most basic collectors have existed since Java 8; `Collectors.filtering` was added in Java 9, and `Collectors.teeing` in Java 12.
 
-## 1. Tình huống: phân hoạch đơn hàng theo trạng thái thanh toán
+## 1. Scenario: Partitioning Orders by Payment Status
 
-Giả sử hệ thống có tập đơn hàng sau; tiền được lưu dưới dạng **số xu (`long`)** để tránh sai số nhị phân khi cộng các khoản tiền nhỏ:
+Suppose a system has the following set of orders; amounts are stored in **cents (`long`)** to avoid binary floating-point error when summing small monetary amounts:
 
 ```java
 import java.util.List;
@@ -24,12 +24,12 @@ List<Order> orders = List.of(
 );
 ```
 
-Ta cần tạo hai nhóm:
+We need to create two groups:
 
-- **`true`**: đơn hàng đã thanh toán (`paid == true`).
-- **`false`**: đơn hàng chưa thanh toán (`paid == false`).
+- **`true`**: paid orders (`paid == true`).
+- **`false`**: unpaid orders (`paid == false`).
 
-Nếu chỉ cần giữ danh sách đơn hàng, dùng overload một đối số:
+If you only need to keep the lists of orders, use the single-argument overload:
 
 ```java
 import java.util.Map;
@@ -42,11 +42,11 @@ System.out.println(byPaid.get(true).size());  // 3
 System.out.println(byPaid.get(false).size()); // 2
 ```
 
-Nhưng khi chỉ muốn đếm, việc lưu tất cả `Order` trong hai danh sách là không cần thiết. Đó là lý do sử dụng **downstream collector**.
+However, when you only want counts, storing all `Order` objects in two lists is unnecessary. That is why we use a **downstream collector**.
 
-## 2. Cú pháp và cách hiểu `downstream`
+## 2. Syntax and How to Read `downstream`
 
-Overload có hai đối số có dạng khái niệm:
+The two-argument overload has the conceptual signature:
 
 ```java
 static <T, D, A> Collector<T, ?, Map<Boolean, D>> partitioningBy(
@@ -55,17 +55,17 @@ static <T, D, A> Collector<T, ?, Map<Boolean, D>> partitioningBy(
 );
 ```
 
-Trong đó:
+Where:
 
-| Thành phần | Vai trò |
+| Component | Role |
 |---|---|
-| `T` | Kiểu phần tử nguồn, ví dụ `Order` |
-| `predicate` | Phân loại từng phần tử vào khóa `true` hoặc `false` |
-| `downstream` | Quy định cách tổng hợp **bên trong từng nhóm** |
-| `D` | Kiểu kết quả mà downstream tạo ra cho mỗi nhóm |
-| `Map<Boolean, D>` | Kết quả cuối, chứa hai giá trị tổng hợp tương ứng với hai khóa Boolean |
+| `T` | Source element type, e.g., `Order` |
+| `predicate` | Classifies each element into key `true` or `false` |
+| `downstream` | Defines how elements are aggregated **within each group** |
+| `D` | Result type produced by the downstream collector for each group |
+| `Map<Boolean, D>` | Final result containing two aggregated values corresponding to the two Boolean keys |
 
-Có thể đọc pipeline như sau:
+You can read the pipeline as follows:
 
 ```text
 Stream<Order>
@@ -73,15 +73,15 @@ Stream<Order>
      v
   Order::paid
      |
-     +------------> true  ----> downstream ----> D cho nhóm true
+     +------------> true  ----> downstream ----> D for the true group
      |
-     +------------> false ----> downstream ----> D cho nhóm false
+     +------------> false ----> downstream ----> D for the false group
                                                |
                                                v
                                           Map<Boolean, D>
 ```
 
-Ví dụ đếm:
+Counting example:
 
 ```java
 Map<Boolean, Long> counts = orders.stream()
@@ -94,11 +94,11 @@ System.out.println(counts.get(true));  // 3
 System.out.println(counts.get(false)); // 2
 ```
 
-`Collectors.counting()` là downstream collector. Nó nhận các phần tử `Order` của **từng phân hoạch** và trả về `Long`. Do đó kết quả toàn bộ là `Map<Boolean, Long>`, không phải `Map<Boolean, List<Order>>`.
+`Collectors.counting()` is the downstream collector. It receives the `Order` elements of **each partition** and returns `Long`. Therefore, the overall result is `Map<Boolean, Long>`, not `Map<Boolean, List<Order>>`.
 
-## 3. Hợp đồng quan trọng: luôn có hai khóa Boolean
+## 3. Important Contract: Both Boolean Keys Are Always Present
 
-Khác biệt nổi bật của `partitioningBy` là kết quả luôn có **cả hai khóa `Boolean.TRUE` và `Boolean.FALSE`**, ngay cả khi một hoặc cả hai phân hoạch không nhận phần tử nào.
+A defining characteristic of `partitioningBy` is that the result always contains **both `Boolean.TRUE` and `Boolean.FALSE` keys**, even if one or both partitions receive no elements.
 
 ```java
 Map<Boolean, Long> allPaid = orders.stream()
@@ -113,7 +113,7 @@ System.out.println(allPaid.get(false));           // 0
 System.out.println(allPaid.containsKey(false));   // true
 ```
 
-Nguồn hoàn toàn rỗng vẫn tạo **hai kết quả downstream cho hai phân hoạch rỗng**:
+A completely empty source still produces **two downstream results for the two empty partitions**:
 
 ```java
 import java.util.stream.Stream;
@@ -125,20 +125,20 @@ System.out.println(emptyLists.get(true));  // []
 System.out.println(emptyLists.get(false)); // []
 ```
 
-Nhưng “kết quả downstream cho nhóm rỗng” **không phải lúc nào cũng là `null` hay một danh sách rỗng**. Nó phụ thuộc collector được chọn:
+However, "the downstream result for an empty group" is **not always `null` or an empty list**. It depends on the chosen collector:
 
-| Downstream | Giá trị cho phân hoạch rỗng |
+| Downstream | Value for an empty partition |
 |---|---|
-| `toList()` | Danh sách rỗng |
-| `toSet()` | Tập rỗng |
+| `toList()` | Empty list |
+| `toSet()` | Empty set |
 | `counting()` | `0L` |
 | `summingLong(...)` | `0L` |
 | `averagingLong(...)` | `0.0` |
 | `maxBy(...)` | `Optional.empty()` |
-| `groupingBy(...)` | Map rỗng |
-| `summarizingLong(...)` | Đối tượng thống kê có `count == 0` |
+| `groupingBy(...)` | Empty map |
+| `summarizingLong(...)` | Statistics object with `count == 0` |
 
-Chẳng hạn:
+For example:
 
 ```java
 Map<Boolean, Long> none = Stream.<Order>empty()
@@ -151,11 +151,11 @@ System.out.println(none.get(true));  // 0
 System.out.println(none.get(false)); // 0
 ```
 
-**Lưu ý:** Có đủ hai khóa không có nghĩa `Map` có thứ tự duyệt cố định. Không dựa vào việc `entrySet()` in `false` trước hay `true` trước. Cũng không được mặc định kiểu triển khai, khả năng chỉnh sửa hay tính thread-safe của `Map` kết quả.
+**Note:** Having both keys present does not mean the `Map` has a fixed iteration order. Do not rely on `entrySet()` printing `false` first or `true` first. Also do not assume the concrete implementation class, mutability, or thread-safety of the resulting `Map`.
 
-## 4. Đếm và tính tổng trong từng phân hoạch
+## 4. Counting and Summing Within Each Partition
 
-### 4.1. Đếm với `counting()`
+### 4.1. Counting with `counting()`
 
 ```java
 Map<Boolean, Long> countByPayment = orders.stream()
@@ -168,9 +168,9 @@ System.out.println(countByPayment.get(true));  // 3
 System.out.println(countByPayment.get(false)); // 2
 ```
 
-Kiểu giá trị là `Long`, không phải `Integer`. Nếu mục tiêu chỉ là số lượng hai nhóm, cách này nói rõ yêu cầu và không phải lưu toàn bộ đối tượng.
+The value type is `Long`, not `Integer`. If the goal is only the sizes of the two groups, this states the intent clearly without storing all objects.
 
-### 4.2. Cộng doanh thu với `summingLong()`
+### 4.2. Summing revenue with `summingLong()`
 
 ```java
 Map<Boolean, Long> moneyByPayment = orders.stream()
@@ -183,11 +183,11 @@ System.out.println(moneyByPayment.get(true));  // 23000
 System.out.println(moneyByPayment.get(false)); // 15000
 ```
 
-Kết quả nhóm đã thanh toán là `12500 + 7500 + 3000 = 23000` xu, nhóm chưa thanh toán là `5000 + 10000 = 15000` xu.
+The paid group total is `12500 + 7500 + 3000 = 23000` cents, and the unpaid group total is `5000 + 10000 = 15000` cents.
 
-Nếu chỉ cần tổng tiền, hãy dùng `summingLong` thay vì lưu hai `List<Order>` rồi duyệt lại để cộng. Cần nhớ `long` **vẫn có thể overflow** nếu tổng vượt miền biểu diễn; lưu tiền theo đơn vị nguyên loại bỏ sai số nhị phân nhưng không loại bỏ nguy cơ tràn số.
+If you only need the total amount, use `summingLong` instead of storing two `List<Order>` collections and iterating again to sum. Keep in mind that `long` **can still overflow** if the sum exceeds its range; storing money in integer units eliminates binary floating-point error, but does not eliminate overflow risk.
 
-### 4.3. Tính trung bình với `averagingLong()`
+### 4.3. Computing averages with `averagingLong()`
 
 ```java
 Map<Boolean, Double> averageByPayment = orders.stream()
@@ -196,13 +196,13 @@ Map<Boolean, Double> averageByPayment = orders.stream()
                 Collectors.averagingLong(Order::amountCents)
         ));
 
-System.out.println(averageByPayment.get(true));  // 7666.666666666667 (xấp xỉ)
+System.out.println(averageByPayment.get(true));  // 7666.666666666667 (approx.)
 System.out.println(averageByPayment.get(false)); // 7500.0
 ```
 
-Nhóm đã thanh toán có tổng `23000` xu chia cho `3` đơn hàng. Kết quả trung bình là `double` và mang tính xấp xỉ. Với nhóm rỗng, `averagingLong` trả `0.0`; giá trị này **không cho biết** nhóm thực sự có trung bình bằng 0 hay không có phần tử. Nếu cần phân biệt, thu thập thêm số lượng hoặc dùng thống kê có `count`.
+The paid group has a total of `23000` cents divided by `3` orders. The average result is a `double` and is approximate. For an empty group, `averagingLong` returns `0.0`; this value **does not tell you** whether the group genuinely has an average of 0 or has zero elements. If you need to distinguish those cases, also collect the count or use statistics that track `count`.
 
-### 4.4. Nhiều thống kê với `summarizingLong()`
+### 4.4. Multiple statistics with `summarizingLong()`
 
 ```java
 import java.util.LongSummaryStatistics;
@@ -220,11 +220,11 @@ System.out.println(paid.getMin());     // 3000
 System.out.println(paid.getMax());     // 12500
 ```
 
-`summarizingLong` cung cấp `count`, `sum`, `min`, `max` và `average` mà không cần duyệt lại đầu vào. Với một nhóm rỗng, `getCount() == 0`, nhưng `getMin()` và `getMax()` có giá trị khởi tạo lần lượt `Long.MAX_VALUE` và `Long.MIN_VALUE`. Không coi chúng là cực trị nghiệp vụ khi nhóm không có dữ liệu.
+`summarizingLong` provides `count`, `sum`, `min`, `max`, and `average` without re-traversing the input. For an empty group, `getCount() == 0`, while `getMin()` and `getMax()` hold initial sentinel values `Long.MAX_VALUE` and `Long.MIN_VALUE`, respectively. Do not treat them as real business extremes when the group has no data.
 
-## 5. `mapping()`: đổi kiểu dữ liệu trước khi thu thập
+## 5. `mapping()`: Transforming Data Types Before Collecting
 
-`Collectors.mapping(mapper, downstream)` biến từng `Order` thành một giá trị khác **trong phạm vi phân hoạch tương ứng**. Nó giúp chọn trường dữ liệu cần giữ ở kết quả cuối.
+`Collectors.mapping(mapper, downstream)` converts each `Order` into another value **within the scope of its respective partition**. It lets you choose which field to keep in the final result.
 
 ```java
 Map<Boolean, List<String>> idsByPayment = orders.stream()
@@ -242,9 +242,9 @@ System.out.println(idsByPayment.get(false));
 // [O-102, O-104]
 ```
 
-`T` của nguồn là `Order`, nhưng `mapping` biến nó thành `String`, rồi `toList` cho kết quả `List<String>`. Kết quả toàn bộ có kiểu `Map<Boolean, List<String>>`.
+The source `T` is `Order`, but `mapping` turns it into `String`, and then `toList` produces `List<String>`. The overall result type is `Map<Boolean, List<String>>`.
 
-### 5.1. Lấy giá trị duy nhất trong mỗi nhóm
+### 5.1. Collecting unique values in each group
 
 ```java
 import java.util.Set;
@@ -264,7 +264,7 @@ System.out.println(regionsByPayment.get(false).equals(Set.of("Bắc", "Nam")));
 // true
 ```
 
-`toSet()` loại trùng theo hợp đồng của `Set`. Nó **không bảo đảm thứ tự phần tử** hay kiểu `Set` cụ thể. Nếu cần các mã vùng duy nhất theo thứ tự xuất hiện lần đầu ở nguồn có encounter order, dùng `toCollection(LinkedHashSet::new)`:
+`toSet()` deduplicates according to the `Set` contract. It **does not guarantee element order** or a specific `Set` implementation class. If you need unique region codes in first-appearance order from a source with encounter order, use `toCollection(LinkedHashSet::new)`:
 
 ```java
 import java.util.LinkedHashSet;
@@ -281,14 +281,14 @@ Map<Boolean, LinkedHashSet<String>> orderedRegions = orders.stream()
 System.out.println(orderedRegions.get(true)); // [Bắc, Nam]
 ```
 
-Giữ encounter order có thể tăng chi phí phối hợp khi xử lý song song. Nếu thứ tự không quan trọng, không nên thêm ràng buộc chỉ để được đầu ra “đẹp mắt” khi in.
+Preserving encounter order can increase coordination overhead in parallel processing. If ordering does not matter, do not add unnecessary constraints just for "pretty" print output.
 
-### 5.2. `mapping` trước hay `map` trên stream?
+### 5.2. `mapping` downstream or `map` on the stream?
 
-Trong ví dụ chỉ cần phân hoạch rồi lấy `id`, có thể viết:
+In the example where we need to partition and then extract `id`, we can write:
 
 ```java
-// Đúng: phân hoạch Order trước, rồi lấy id trong mỗi nhóm.
+// Correct: partition Order first, then extract id within each group.
 Map<Boolean, List<String>> result = orders.stream()
         .collect(Collectors.partitioningBy(
                 Order::paid,
@@ -296,13 +296,13 @@ Map<Boolean, List<String>> result = orders.stream()
         ));
 ```
 
-Nếu viết `orders.stream().map(Order::id)` **trước** `partitioningBy`, phần tử nguồn đã trở thành `String` và không còn `paid` để phân loại bằng `Order::paid`. Vì vậy, đặt `mapping` vào downstream là cách diễn đạt tự nhiên khi phép phân loại cần dữ liệu gốc còn kết quả chỉ cần một phần trường.
+If you write `orders.stream().map(Order::id)` **before** `partitioningBy`, the stream elements have already become `String`, and `paid` is no longer available to classify by `Order::paid`. Therefore, placing `mapping` in the downstream collector is the natural way to express classification on the full object while keeping only a subset of fields in the output.
 
-## 6. `filtering()` bên trong phân hoạch
+## 6. `filtering()` Inside a Partition
 
-`Collectors.filtering(predicate, downstream)` (Java 9+) cho phép mỗi phân hoạch chỉ **đóng góp những phần tử đạt thêm điều kiện** cho collector phía sau.
+`Collectors.filtering(predicate, downstream)` (Java 9+) lets each partition **contribute only elements that pass an additional condition** to the downstream collector.
 
-Ví dụ chỉ đếm đơn hàng có giá trị từ `10000` xu trở lên trong từng trạng thái thanh toán:
+For example, counting only orders with a value of `10000` cents or more within each payment status:
 
 ```java
 Map<Boolean, Long> highValueCounts = orders.stream()
@@ -318,13 +318,13 @@ System.out.println(highValueCounts.get(true));  // 1: O-101
 System.out.println(highValueCounts.get(false)); // 1: O-104
 ```
 
-Ta có thể đọc pipeline theo thứ tự:
+You can read the pipeline in order:
 
-1. Dựa vào `paid` để xác định phần tử thuộc phân hoạch `true` hay `false`.
-2. Trong phân hoạch đó, chỉ giữ đơn có `amountCents >= 10000` cho bước đếm.
-3. Đưa kết quả đếm của hai phân hoạch vào `Map<Boolean, Long>`.
+1. Based on `paid`, determine whether an element belongs to the `true` or `false` partition.
+2. Within that partition, keep only orders with `amountCents >= 10000` for counting.
+3. Place the count results of both partitions into `Map<Boolean, Long>`.
 
-Lọc **trước** khi gọi `partitioningBy` cũng có thể cho cùng số đếm trong ví dụ này:
+Filtering **before** calling `partitioningBy` can also yield the same counts in this example:
 
 ```java
 Map<Boolean, Long> alternative = orders.stream()
@@ -335,13 +335,13 @@ Map<Boolean, Long> alternative = orders.stream()
         ));
 ```
 
-Khác biệt nằm ở **cách biểu đạt các bước xử lý**: lọc trước collector loại phần tử ra khỏi toàn bộ luồng; `filtering` downstream diễn đạt điều kiện bổ sung trong cách tổng hợp từng phân hoạch. Với `partitioningBy`, hai khóa Boolean vẫn xuất hiện dù một phân hoạch không còn phần tử sau lọc. Khi lồng thêm `groupingBy`, đặt `filtering` ở đâu có thể ảnh hưởng những nhóm con nào được tạo ra; cần xác định mục đích trước khi di chuyển bước lọc.
+The difference lies in **how processing steps are expressed**: filtering before the collector removes elements from the entire stream; downstream `filtering` expresses an extra condition inside each partition's aggregation. With `partitioningBy`, both Boolean keys still appear even when a partition has zero elements left after filtering. When nesting `groupingBy` inside, where `filtering` is placed can affect which sub-groups are created; verify the intent before moving the filter step.
 
-## 7. Kết hợp `partitioningBy` với `groupingBy`
+## 7. Combining `partitioningBy` with `groupingBy`
 
-Khi hai chiều phân tích cùng quan trọng, ta có thể **phân hoạch trước, phân nhóm sau**.
+When two analysis dimensions are equally important, you can **partition first, then group**.
 
-Yêu cầu: với mỗi trạng thái thanh toán, tính tổng tiền theo vùng:
+Requirement: for each payment status, calculate the total amount by region:
 
 ```java
 Map<Boolean, Map<String, Long>> totalsByPaymentAndRegion =
@@ -360,7 +360,7 @@ System.out.println(totalsByPaymentAndRegion.get(false).get("Bắc")); // 10000
 System.out.println(totalsByPaymentAndRegion.get(false).get("Nam")); // 5000
 ```
 
-Cấu trúc kết quả:
+Result structure:
 
 ```text
 Map<Boolean, Map<String, Long>>
@@ -372,16 +372,16 @@ Map<Boolean, Map<String, Long>>
     Nam -> 5000
 ```
 
-Đổi thứ tự nesting thành `groupingBy(Order::region, partitioningBy(Order::paid, summingLong(...)))` sẽ tạo `Map<String, Map<Boolean, Long>>`. Hai cách có thể chứa cùng số liệu, nhưng phục vụ **hai cách tra cứu khác nhau**:
+Reversing the nesting order to `groupingBy(Order::region, partitioningBy(Order::paid, summingLong(...)))` produces `Map<String, Map<Boolean, Long>>`. Both approaches hold the same numbers, yet serve **two different lookup patterns**:
 
-- `Map<Boolean, Map<String, Long>>`: nhìn trạng thái thanh toán trước.
-- `Map<String, Map<Boolean, Long>>`: nhìn khu vực trước.
+- `Map<Boolean, Map<String, Long>>`: inspect payment status first.
+- `Map<String, Map<Boolean, Long>>`: inspect region first.
 
-Quan trọng: `partitioningBy` luôn có hai khóa Boolean **ở tầng mà nó được dùng**. Nhưng `groupingBy` chỉ tạo khóa cho những nhóm phân loại thực sự xuất hiện. Nếu một phân hoạch không có đơn hàng, map vùng bên trong của nó là map rỗng, không tự chứa tất cả các vùng tưởng tượng.
+Important: `partitioningBy` always contains both Boolean keys **at the level where it is used**. However, `groupingBy` creates keys only for classification groups that actually appear. If a partition has no orders, its inner region map is an empty map rather than automatically containing every hypothetical region.
 
-### 7.1. Nếu muốn cộng theo vùng mà không dùng `groupingBy`
+### 7.1. Summing by region without using `groupingBy`
 
-Vì `toMap` cũng là một collector, có thể dùng nó làm downstream và cung cấp merge function:
+Since `toMap` is also a collector, you can use it as a downstream collector and supply a merge function:
 
 ```java
 Map<Boolean, Map<String, Long>> amountsByRegion =
@@ -398,11 +398,11 @@ Map<Boolean, Map<String, Long>> amountsByRegion =
 System.out.println(amountsByRegion.get(true).get("Bắc")); // 20000
 ```
 
-Nếu bỏ `Long::sum`, hai đơn đã thanh toán cùng vùng `Bắc` tạo **khóa trùng** trong `toMap`, có thể gây `IllegalStateException`. `groupingBy(..., summingLong(...))` diễn đạt mục đích phân nhóm và cộng rõ ràng hơn. Ngoài ra, `groupingBy` không chấp nhận classifier trả khóa `null`; cần quy định chính sách cho vùng thiếu dữ liệu trước khi dùng.
+If `Long::sum` is omitted, two paid orders in the `Bắc` region create a **duplicate key** in `toMap`, which can throw `IllegalStateException`. `groupingBy(..., summingLong(...))` expresses the grouping-and-summing intent more clearly. Additionally, `groupingBy` does not accept a classifier returning a `null` key; define a policy for missing region data before using it.
 
-## 8. Tìm phần tử tốt nhất với `maxBy` hoặc `minBy`
+## 8. Finding the Best Element with `maxBy` or `minBy`
 
-Một phân hoạch có thể cần lấy **một đối tượng thỏa tiêu chí cực trị**. `Collectors.maxBy` trả `Optional<T>` cho từng nhóm, vì nhóm có thể rỗng:
+A partition may need to pick **a single object satisfying an extremum criterion**. `Collectors.maxBy` returns `Optional<T>` for each group because a group may be empty:
 
 ```java
 import java.util.Comparator;
@@ -423,9 +423,9 @@ System.out.println(biggestByPayment.get(false).orElseThrow().id());
 // O-104
 ```
 
-`thenComparing(Order::id)` định nghĩa tiêu chí phụ để phân định khi tiền bằng nhau. Nếu không có tiêu chí phụ và hai đơn có cùng giá trị lớn nhất, không nên dựa vào một lựa chọn đại diện không được quy định bởi nghiệp vụ.
+`thenComparing(Order::id)` defines a tie-breaker when amounts are equal. Without a secondary criterion, if two orders share the maximum amount, you should not rely on an arbitrary representative not defined by business rules.
 
-Đối với nguồn không có phần tử trong một nhóm:
+For a source with no elements in one group:
 
 ```java
 Map<Boolean, Optional<Order>> noUnpaid = orders.stream()
@@ -438,13 +438,13 @@ Map<Boolean, Optional<Order>> noUnpaid = orders.stream()
 System.out.println(noUnpaid.get(false).isEmpty()); // true
 ```
 
-Không dùng `orElseThrow()` khi phân hoạch có thể rỗng trừ khi rỗng thật sự là lỗi nghiệp vụ. Nếu muốn chuyển `Optional<Order>` thành mã định danh hoặc giá trị mặc định, hãy xử lý `Optional` rõ ràng.
+Do not call `orElseThrow()` when a partition can be empty unless emptiness is genuinely a business error. If you want to convert `Optional<Order>` into an identifier or default value, handle `Optional` explicitly.
 
-## 9. `collectingAndThen`: hoàn thiện kết quả của từng phân hoạch
+## 9. `collectingAndThen`: Finalizing Each Partition's Result
 
-`Collectors.collectingAndThen(downstream, finisher)` cho phép biến đổi **kết quả đã thu thập xong của mỗi nhóm**.
+`Collectors.collectingAndThen(downstream, finisher)` lets you transform **the completed collection result of each group**.
 
-Ví dụ kết quả là danh sách mã đơn hàng không thể chỉnh sửa:
+For example, producing an unmodifiable list of order IDs:
 
 ```java
 Map<Boolean, List<String>> immutableListsByPayment =
@@ -464,10 +464,10 @@ System.out.println(immutableListsByPayment.get(true));
 // [O-101, O-103, O-105]
 
 // immutableListsByPayment.get(true).add("O-999");
-// Ném UnsupportedOperationException.
+// Throws UnsupportedOperationException.
 ```
 
-Lưu ý **mỗi danh sách** được bọc/thay bằng kết quả không thể chỉnh sửa, nhưng không nên suy rằng **bản thân `Map`** cũng không thể chỉnh sửa. Nếu cần cả hai cấp không thể chỉnh sửa, có thể bọc thêm một `collectingAndThen` bên ngoài:
+Note that **each list** is wrapped/replaced with an unmodifiable result, but you should not infer that **the `Map` itself** is unmodifiable. If you need both levels to be unmodifiable, wrap an outer `collectingAndThen` around it:
 
 ```java
 Map<Boolean, List<String>> fullyReadOnly = orders.stream()
@@ -483,11 +483,11 @@ Map<Boolean, List<String>> fullyReadOnly = orders.stream()
         ));
 ```
 
-`List.copyOf` và `Map.copyOf` không chấp nhận phần tử/giá trị `null`. Chúng tạo các kết quả không thể chỉnh sửa ở mức collection; **không tạo deep immutability** nếu phần tử bên trong là đối tượng mutable.
+`List.copyOf` and `Map.copyOf` reject `null` elements/values. They make the collections unmodifiable at the collection level; they **do not provide deep immutability** if inner elements are mutable objects.
 
-## 10. `teeing`: tính nhiều chỉ số cùng lúc (Java 12+)
+## 10. `teeing`: Computing Multiple Metrics Simultaneously (Java 12+)
 
-`Collectors.teeing(left, right, merger)` đưa mỗi phần tử vào **hai collector con**, sau đó kết hợp hai kết quả thành một. Khi dùng làm downstream, ta có thể tính cả số lượng và tổng tiền của từng phân hoạch:
+`Collectors.teeing(left, right, merger)` feeds each element into **two child collectors**, then combines both results into one. When used as a downstream collector, we can compute both the count and total amount of each partition:
 
 ```java
 record Summary(long count, long totalCents) {}
@@ -508,29 +508,29 @@ System.out.println(summaryByPayment.get(false));
 // Summary[count=2, totalCents=15000]
 ```
 
-Ý nghĩa:
+Meaning:
 
-- `counting()` tạo `Long` số đơn hàng trong một phân hoạch.
-- `summingLong(...)` tạo `Long` tổng tiền của chính phân hoạch đó.
-- `Summary::new` ghép hai kết quả thành một record bất biến.
+- `counting()` produces a `Long` count of orders in a partition.
+- `summingLong(...)` produces a `Long` total amount for that same partition.
+- `Summary::new` combines the two results into an immutable record.
 
-Với phân hoạch rỗng, kết quả là `Summary(0, 0)`. Đó là hợp đồng rõ ràng hơn việc tự tạo một biến tổng mutable bên ngoài pipeline và cập nhật nó qua `peek`/`forEach`.
+For an empty partition, the result is `Summary(0, 0)`. That is a much cleaner contract than creating a mutable sum variable outside the pipeline and updating it via `peek`/`forEach`.
 
-Trong ứng dụng dùng Java 8–11, khi chưa có `teeing`, có thể dùng `summarizingLong` nếu cần bộ thống kê sẵn có, hoặc thiết kế collector phù hợp. Không cần tạo hai stream chỉ để đếm và cộng nếu một collector đã giải quyết được cả hai yêu cầu.
+In applications running Java 8–11 without `teeing`, you can use `summarizingLong` if a built-in statistics object suffices, or design an appropriate collector. There is no need to create two separate streams just to count and sum when a single collector handles both requirements.
 
-## 11. Phân biệt `partitioningBy` và `groupingBy`
+## 11. Distinguishing `partitioningBy` and `groupingBy`
 
-Hai collector đều chia dữ liệu thành các nhóm nhưng có hợp đồng khác nhau:
+Both collectors split data into groups, but they have different contracts:
 
-| Tiêu chí | `partitioningBy(predicate, downstream)` | `groupingBy(classifier, downstream)` |
+| Criterion | `partitioningBy(predicate, downstream)` | `groupingBy(classifier, downstream)` |
 |---|---|---|
-| Khóa | Chỉ `true` và `false` | Khóa kiểu `K` từ classifier |
-| Số nhóm có thể tạo | Luôn đúng hai khóa Boolean | Phụ thuộc các khóa thực tế xuất hiện |
-| Nhóm rỗng | Vẫn có kết quả downstream | Khóa không xuất hiện thường không có trong map |
-| Điều kiện đầu vào | Một `Predicate<T>` | Một `Function<T, K>` |
-| Dùng khi | Hai nhánh có/không, đạt/không đạt | Nhiều nhóm theo vùng, loại, trạng thái |
+| Keys | Only `true` and `false` | Keys of type `K` from classifier |
+| Number of groups created | Always exactly two Boolean keys | Depends on keys that actually appear |
+| Empty groups | Still receive a downstream result | Absent keys are usually not in the map |
+| Input function | A `Predicate<T>` | A `Function<T, K>` |
+| Use when | Two yes/no, pass/fail branches | Multiple groups by region, type, status |
 
-Ví dụ khi tất cả đơn đều đã thanh toán:
+Example when all orders are paid:
 
 ```java
 List<Order> paidOnly = orders.stream()
@@ -552,13 +552,13 @@ System.out.println(partitioned.get(false));         // 0
 System.out.println(grouped.containsKey(false));     // false
 ```
 
-Nếu cần **chính xác hai ô kết quả**, kể cả khi một ô rỗng, `partitioningBy` diễn đạt mô hình tốt hơn `groupingBy`. Nếu cần nhiều trạng thái, chẳng hạn `NEW`, `PAID`, `CANCELLED`, không nên ép chúng thành `true`/`false` làm mất thông tin; hãy dùng `groupingBy` với khóa miền dữ liệu phù hợp.
+If you need **exactly two result buckets**, even when one is empty, `partitioningBy` models the domain better than `groupingBy`. If you need multiple states, such as `NEW`, `PAID`, `CANCELLED`, do not squeeze them into `true`/`false` and lose information; use `groupingBy` with an appropriate domain key.
 
-## 12. Null, ngoại lệ và trạng thái dùng chung
+## 12. Nulls, Exceptions, and Shared State
 
-### 12.1. Điều kiện phân hoạch phải xác định
+### 12.1. The partitioning condition must be well-defined
 
-Với dữ liệu nguồn đúng kiểu `Order` và `paid` là `boolean` primitive, predicate `Order::paid` luôn trả `true` hoặc `false`. Nếu nguồn chứa **phần tử `null`**, method reference này có thể ném `NullPointerException` khi phần tử được xử lý:
+With valid `Order` source elements and primitive `boolean paid`, the `Order::paid` predicate always returns `true` or `false`. If the source contains **`null` elements**, this method reference can throw `NullPointerException` when processed:
 
 ```java
 import java.util.Objects;
@@ -573,30 +573,30 @@ Map<Boolean, Long> safeCounts = java.util.stream.Stream
 System.out.println(safeCounts.get(true)); // 1
 ```
 
-Trong bài toán có trạng thái thanh toán kiểu `Boolean` (có thể `null`), không tự coi `null` là `false` nếu nghiệp vụ cần phân biệt “chưa biết” với “chưa thanh toán”. `Boolean.TRUE.equals(value)` sẽ gom cả `false` và `null` vào nhánh `false`; đó là **lựa chọn nghiệp vụ có chủ đích**, không phải tính chất mặc định của `partitioningBy`.
+In problems with a boxed `Boolean` payment status (which can be `null`), do not automatically treat `null` as `false` if business rules need to distinguish "unknown" from "unpaid". `Boolean.TRUE.equals(value)` puts both `false` and `null` into the `false` branch; that is an **intentional business choice**, not an inherent default of `partitioningBy`.
 
-Muốn ba trạng thái riêng `TRUE`, `FALSE`, `UNKNOWN`, hãy dùng `groupingBy` với enum hoặc một khóa không null thể hiện đủ ba trạng thái.
+To represent three distinct states (`TRUE`, `FALSE`, `UNKNOWN`), use `groupingBy` with an enum or a non-null key that captures all three states.
 
-### 12.2. Downstream cũng có thể thất bại
+### 12.2. The downstream collector can also fail
 
-Nếu mapper hay classifier trong downstream ném exception, lỗi phát sinh khi `collect` thực sự tiêu thụ pipeline. Ví dụ `Collectors.groupingBy(Order::region)` không chấp nhận classifier trả khóa `null` trong các trường hợp thông thường; `Collectors.toMap` có thể ném lỗi do trùng khóa hoặc `null` value.
+If a mapper or classifier inside the downstream throws an exception, the error occurs when `collect` actually consumes the pipeline. For instance, `Collectors.groupingBy(Order::region)` does not allow the classifier to return a `null` key in standard cases; `Collectors.toMap` can throw on duplicate keys or `null` values.
 
-Vì vậy, việc predicate đã phân hoạch thành công **không đảm bảo** toàn bộ downstream collector thành công. Hãy xác định chính sách cho dữ liệu thiếu/trùng trước khi thu thập.
+Therefore, the predicate partitioning successfully **does not guarantee** the entire downstream collector will succeed. Define policies for missing/duplicate data before collecting.
 
-### 12.3. Tránh side effect trong predicate và collector
+### 12.3. Avoid side effects in predicates and collectors
 
 ```java
-// Không nên dùng biến ngoài để tự ghi kết quả trong pipeline song song.
+// Do not use an external variable to manually record results in a parallel pipeline.
 // List<Order> paid = new ArrayList<>();
 // orders.parallelStream().filter(order -> {
-//     if (order.paid()) paid.add(order); // không an toàn
+//     if (order.paid()) paid.add(order); // unsafe
 //     return order.paid();
 // }).count();
 ```
 
-Predicate nên **stateless** và **non-interfering**, không sửa nguồn hoặc cập nhật một `ArrayList` chung. Các collector chuẩn phối hợp tích lũy và kết hợp theo hợp đồng; không cần tự quản lý một container dùng chung bằng side effect.
+Predicates should be **stateless** and **non-interfering**, never mutating the source or appending to a shared `ArrayList`. Standard collectors coordinate accumulation and combination according to contract; there is no need to manually manage a shared container through side effects.
 
-## 13. Song song, thứ tự và hiệu năng
+## 13. Parallelism, Ordering, and Performance
 
 ```java
 Map<Boolean, Long> parallelCounts = orders.parallelStream()
@@ -609,21 +609,21 @@ System.out.println(parallelCounts.get(true));  // 3
 System.out.println(parallelCounts.get(false)); // 2
 ```
 
-Pipeline song song có thể chia nguồn thành nhiều phần rồi kết hợp **hai phân hoạch trung gian**. `Collectors.partitioningBy` không cam kết map kết quả là một map concurrent để các thread bên ngoài cùng cập nhật. Tránh giả định `Map<Boolean, D>` trả về thread-safe chỉ vì nguồn là `parallelStream()`.
+A parallel pipeline can split the source into chunks and then combine **two intermediate partitions**. `Collectors.partitioningBy` does not guarantee that the returned map is a concurrent map safe for external threads to mutate together. Avoid assuming the returned `Map<Boolean, D>` is thread-safe merely because the source is a `parallelStream()`.
 
-Các yếu tố ảnh hưởng hiệu năng:
+Factors affecting performance:
 
-1. **Loại downstream:** `counting` và `summingLong` chỉ giữ tổng hợp nhỏ; `toList` có thể giữ toàn bộ phần tử, còn `groupingBy` lồng nhau tạo thêm map và container.
-2. **Chi phí predicate/mapper:** nên dùng hàm thuần, đơn giản; đừng thực hiện I/O hay sửa trạng thái ngoài từ predicate.
-3. **Encounter order:** với nguồn có thứ tự, collector như `toList` thường cho kết quả phần tử theo encounter order; một số collector như `toSet` không cam kết thứ tự. Không dựa vào thứ tự duyệt của map hai khóa.
-4. **Số phần tử:** chỉ có **hai nhóm** không có nghĩa dùng song song chắc chắn nhanh hơn. Chi phí phân tách, tạo và ghép kết quả có thể vượt lợi ích với nguồn nhỏ.
-5. **Kiểu số:** cộng `double` có thể chịu sai số và thay đổi theo cách gộp song song; `long` tránh sai số dấu phẩy động cho đơn vị nguyên nhưng vẫn có thể overflow.
+1. **Downstream type:** `counting` and `summingLong` hold only small aggregates; `toList` may retain all elements, while nested `groupingBy` allocates additional maps and containers.
+2. **Predicate/mapper cost:** use pure, simple functions; do not perform I/O or mutate external state inside a predicate.
+3. **Encounter order:** on an ordered source, collectors like `toList` generally preserve encounter order of elements; collectors like `toSet` do not guarantee order. Do not rely on the iteration order of the two-key map.
+4. **Element count:** having only **two groups** does not mean parallelism is guaranteed to be faster. Splitting, container allocation, and result-merging overhead can outweigh benefits on small sources.
+5. **Numeric types:** `double` addition can suffer precision error and vary with parallel combination order; `long` avoids floating-point error for integer units, but can still overflow.
 
-`collect` là terminal operation, nên sau khi gọi không thể tiêu thụ lại cùng đối tượng stream. Với nguồn không giới hạn, `partitioningBy(..., counting())` hoặc `toList()` thông thường **không kết thúc** nếu không có giới hạn phù hợp. Với nguồn gắn tài nguyên, ví dụ `Files.lines(path)`, phải quản lý `close()` bằng `try-with-resources`; `partitioningBy` không tự đóng tài nguyên nguồn.
+`collect` is a terminal operation, so once called, the same stream object cannot be consumed again. For unbounded sources, `partitioningBy(..., counting())` or `toList()` normally **will not terminate** without a suitable bound. For resource-backed sources such as `Files.lines(path)`, manage `close()` with `try-with-resources`; `partitioningBy` does not automatically close source resources.
 
-## 14. Chương trình tổng hợp có thể chạy (Java 17+)
+## 14. Complete Runnable Program (Java 17+)
 
-Chương trình sau là một ví dụ độc lập. Nó dùng cùng tập đơn hàng để tạo danh sách, đếm, cộng tiền, nhóm theo vùng, tìm đơn lớn nhất và kết hợp hai phép thống kê:
+The following program is a standalone example. It uses the same order dataset to build lists, count, sum amounts, group by region, find the largest order, and combine two metrics:
 
 ```java
 import java.util.Comparator;
@@ -714,38 +714,38 @@ public class PartitioningDownstreamDemo {
 }
 ```
 
-Ở ví dụ song song, `teeing` kết hợp các collector chuẩn để thu thập cả số lượng và tổng. Không dùng biến `count` hoặc `sum` nằm ngoài pipeline để tự cập nhật qua nhiều thread.
+In the parallel example, `teeing` composes standard collectors to gather both count and sum. Do not use external `count` or `sum` variables updated manually across threads.
 
-## 15. Các lỗi thường gặp và cách sửa
+## 15. Common Mistakes and Fixes
 
-| Cách hiểu hoặc cách làm | Vấn đề | Cách phù hợp |
+| Misconception or practice | Problem | Better approach |
 |---|---|---|
-| Nghĩ `partitioningBy` chỉ có khóa đã xuất hiện | Hợp đồng luôn tạo hai khóa Boolean | Truy cập trực tiếp `get(true)`/`get(false)`, xử lý giá trị downstream cho nhóm rỗng |
-| Nghĩ downstream mặc định là `List` | Kết quả phụ thuộc collector | Dùng đúng kiểu `Map<Boolean, D>` |
-| Dùng `toList` rồi đếm/cộng lại dù chỉ cần thống kê | Lưu dữ liệu và duyệt lại không cần thiết | Dùng `counting`, `summingLong`, `summarizingLong` |
-| `averagingLong` trả `0.0` nên nhóm chắc có dữ liệu | Nhóm rỗng cũng có thể trả `0.0` | Xem thêm `count` hoặc `Optional` phù hợp |
-| `orders.map(Order::id)` trước phân hoạch theo `paid` | Sau `map` không còn dữ liệu để kiểm tra `paid` | Dùng `mapping(Order::id, ...)` làm downstream |
-| Dùng `toSet` rồi mong giữ thứ tự | `toSet` không bảo đảm thứ tự | Dùng `toCollection(LinkedHashSet::new)` khi cần |
-| Nghĩ `groupingBy` lồng trong `partitioningBy` luôn tạo mọi khóa vùng | Chỉ nhóm Boolean cố định; nhóm vùng có thể rỗng | Xử lý map vùng rỗng khi cần |
-| Dùng `toMap` downstream với khóa vùng trùng mà thiếu merge | Có thể ném `IllegalStateException` | Dùng merge phù hợp hoặc `groupingBy` |
-| Gọi `Optional.get()` trên `maxBy` của nhóm rỗng | Có thể ném `NoSuchElementException` | Dùng `isPresent`, `orElse`, `orElseThrow` có chủ đích |
-| Mặc định `Map` kết quả được sắp xếp hoặc thread-safe | Collector không cam kết | Chọn API/cấu trúc kết quả theo yêu cầu |
-| Predicate cập nhật `ArrayList` dùng chung khi chạy song song | Data race và side effect khó kiểm soát | Predicate thuần, collector phù hợp |
-| Thu thập từ stream vô hạn không giới hạn | Terminal operation không hoàn tất | Dùng nguồn hữu hạn hoặc `limit` trước `collect` |
+| Thinking `partitioningBy` only has keys that appeared | Contract always creates both Boolean keys | Access `get(true)`/`get(false)` directly and handle empty-group downstream values |
+| Thinking the downstream is always `List` | Result depends on the collector | Use the proper `Map<Boolean, D>` type |
+| Using `toList` then recounting/summing when only metrics are needed | Unnecessarily stores data and traverses twice | Use `counting`, `summingLong`, `summarizingLong` |
+| Assuming `averagingLong` returning `0.0` means the group has data | Empty groups also return `0.0` | Check `count` or `Optional` appropriately |
+| Calling `orders.map(Order::id)` before partitioning by `paid` | After `map`, `paid` is no longer available | Use `mapping(Order::id, ...)` as the downstream collector |
+| Using `toSet` and expecting insertion order | `toSet` does not guarantee order | Use `toCollection(LinkedHashSet::new)` when needed |
+| Thinking nested `groupingBy` inside `partitioningBy` creates all region keys | Only Boolean keys are fixed; region map can be empty | Handle empty region maps when needed |
+| Using `toMap` downstream with duplicate region keys and no merge | Can throw `IllegalStateException` | Use an appropriate merge function or `groupingBy` |
+| Calling `Optional.get()` on `maxBy` of an empty group | Can throw `NoSuchElementException` | Use `isPresent`, `orElse`, or `orElseThrow` intentionally |
+| Assuming the resulting `Map` is sorted or thread-safe | Not guaranteed by the collector | Choose APIs/result structures according to requirements |
+| Predicate updates a shared `ArrayList` in parallel execution | Data race and uncontrollable side effects | Pure predicate, proper collector |
+| Collecting from an unbounded infinite stream | Terminal operation never finishes | Use a finite source or `limit` before `collect` |
 
-## 16. Tự kiểm tra
+## 16. Self-Check
 
-1. **Khác biệt giữa `partitioningBy(predicate)` và `partitioningBy(predicate, counting())` là gì?** Cách đầu trả `Map<Boolean, List<T>>`, cách sau trả `Map<Boolean, Long>`.
-2. **Nếu mọi phần tử đều thỏa predicate, kết quả có khóa `false` không?** Có; downstream cho nhóm `false` nhận phân hoạch rỗng.
-3. **`Stream.<Order>empty().collect(partitioningBy(Order::paid, counting()))` trả những gì?** Map có cả `true -> 0L` và `false -> 0L`.
-4. **Muốn tổng tiền theo trạng thái thanh toán, dùng downstream nào?** `Collectors.summingLong(Order::amountCents)`.
-5. **Muốn danh sách `id` theo trạng thái, chọn gì?** `Collectors.mapping(Order::id, Collectors.toList())` bên trong `partitioningBy`.
-6. **Muốn tập vùng không trùng theo từng trạng thái?** `mapping(Order::region, toSet())`; nếu cần thứ tự xuất hiện đầu tiên thì dùng `toCollection(LinkedHashSet::new)`.
-7. **`filtering` downstream khác việc lọc trước collector ở chỗ nào?** Nó diễn đạt điều kiện lọc bên trong cách tổng hợp từng phân hoạch; cần xét vị trí bước lọc khi lồng collector khác.
-8. **Vì sao `partitioningBy(..., groupingBy(...))` không tự chứa mọi vùng?** Vì `groupingBy` chỉ sinh khóa vùng có dữ liệu; chỉ hai khóa Boolean là luôn hiện diện.
-9. **Vì sao `maxBy` trả `Optional<Order>`?** Để mô tả trường hợp phân hoạch không có phần tử phù hợp.
-10. **`teeing(counting(), summingLong(...), Summary::new)` tạo gì?** Một `Summary` chứa số đơn và tổng tiền của mỗi phân hoạch.
-11. **`partitioningBy` chạy từ `parallelStream` có trả map thread-safe không?** Không có bảo đảm đó; framework quản lý quá trình thu thập, không biến kết quả thành concurrent map.
-12. **Khi nào không nên dùng `partitioningBy`?** Khi có hơn hai trạng thái cần phân biệt; dùng `groupingBy` với khóa nhiều giá trị để không mất thông tin.
+1. **What is the difference between `partitioningBy(predicate)` and `partitioningBy(predicate, counting())`?** The former returns `Map<Boolean, List<T>>`, whereas the latter returns `Map<Boolean, Long>`.
+2. **If every element satisfies the predicate, does the result have a `false` key?** Yes; the downstream for the `false` group receives an empty partition.
+3. **What does `Stream.<Order>empty().collect(partitioningBy(Order::paid, counting()))` return?** A Map with both `true -> 0L` and `false -> 0L`.
+4. **If you want total amount by payment status, which downstream should you use?** `Collectors.summingLong(Order::amountCents)`.
+5. **If you want a list of `id`s by status, what do you choose?** `Collectors.mapping(Order::id, Collectors.toList())` inside `partitioningBy`.
+6. **If you want a deduplicated set of regions per status?** `mapping(Order::region, toSet())`; if first-appearance order is needed, use `toCollection(LinkedHashSet::new)`.
+7. **How does downstream `filtering` differ from filtering before the collector?** It expresses the filtering condition inside each partition's aggregation; you must consider filter placement when nesting other collectors.
+8. **Why does `partitioningBy(..., groupingBy(...))` not automatically contain every region?** Because `groupingBy` only generates keys for regions that have data; only the two Boolean keys are always present.
+9. **Why does `maxBy` return `Optional<Order>`?** To represent the case where a partition has no matching elements.
+10. **What does `teeing(counting(), summingLong(...), Summary::new)` produce?** A `Summary` containing the order count and total amount of each partition.
+11. **Does `partitioningBy` executed on `parallelStream` return a thread-safe map?** There is no such guarantee; the framework manages collection, without turning the result into a concurrent map.
+12. **When should you not use `partitioningBy`?** When there are more than two distinct states to distinguish; use `groupingBy` with a multi-valued key to avoid losing information.
 
-**Ghi nhớ:** `partitioningBy(predicate, downstream)` có cấu trúc **hai khóa Boolean cố định**, còn downstream quyết định **giá trị của từng khóa**. Chọn `counting` để đếm, `summingLong` để cộng, `mapping` để đổi kiểu, `groupingBy` để nhóm thêm, `maxBy` cho cực trị, `collectingAndThen` cho bước hoàn thiện và `teeing` để lấy nhiều chỉ số. Luôn kiểm tra kết quả của nhóm rỗng, các yêu cầu về thứ tự, kiểu số và hợp đồng xử lý song song trước khi đưa pipeline vào ứng dụng.
+**Key takeaway:** `partitioningBy(predicate, downstream)` has a structure of **two fixed Boolean keys**, while the downstream collector determines **each key's value**. Choose `counting` to count, `summingLong` to sum, `mapping` to transform types, `groupingBy` to group further, `maxBy` for extrema, `collectingAndThen` for a finishing step, and `teeing` to compute multiple metrics. Always check empty-group results, ordering requirements, numeric types, and parallel execution contracts before putting a pipeline into production.

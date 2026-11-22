@@ -1,61 +1,61 @@
-# Tránh so sánh trạng thái đang bị thay đổi đồng thời mà không có chính sách nhất quán
+# Avoiding Comparing Concurrently Mutated State Without a Consistency Policy
 
-Khi cài đặt `equals(Object)` và `hashCode()` cho đối tượng **có thể thay đổi trạng thái (mutable)**, chúng ta thường đọc nhiều trường để quyết định hai đối tượng có bằng nhau không. Nếu một luồng khác thay đổi những trường đó ngay trong lúc so sánh, kết quả có thể dựa trên **các giá trị thuộc những thời điểm khác nhau**. Chương trình khi ấy không còn một chính sách rõ ràng về trạng thái được đem ra so sánh.
+When implementing `equals(Object)` and `hashCode()` for **mutable** objects, we often read multiple fields to decide whether two objects are equal. If another thread modifies those fields right in the middle of the comparison, the result can be based on **values from different points in time**. At that point, the program no longer has a clear policy on what state is being compared.
 
-Vấn đề xuất hiện đặc biệt trong Java đa luồng: một biểu thức `a.equals(b)` nhìn có vẻ là một thao tác duy nhất trong mã nguồn, nhưng bên trong có thể gồm nhiều lần đọc trường, và Java **không tự biến toàn bộ lời gọi `equals` thành một thao tác nguyên tử**.
+This problem appears especially in multithreaded Java: an expression `a.equals(b)` looks like a single operation in source code, yet internally it may perform multiple field reads, and Java **does not automatically make the entire `equals` call an atomic operation**.
 
-Bài học này làm rõ rủi ro, mối liên hệ với hợp đồng đối tượng và các chính sách có thể áp dụng: ưu tiên đối tượng bất biến, lấy snapshot nhất quán, hoặc đồng bộ hóa toàn bộ quá trình đọc và ghi khi thực sự cần đối tượng mutable.
+This lesson clarifies the risk, its connection to the object contract, and the policies you can apply: preferring immutable objects, taking consistent snapshots, or synchronizing the entire read and write process when mutable objects are genuinely needed.
 
-## 1. Hợp đồng `equals()`/`hashCode()` khi trạng thái thay đổi
+## 1. The `equals()`/`hashCode()` contract when state changes
 
-Với hai đối tượng `a` và `b`, một triển khai `equals` hợp lệ phải có tính phản xạ, đối xứng, bắc cầu, kết quả nhất quán khi thông tin dùng để so sánh **không thay đổi**, và `a.equals(null)` phải là `false`. Với `hashCode`, nếu `a.equals(b)` là `true`, hai mã băm phải bằng nhau. Theo hợp đồng `Object.hashCode`, các lần gọi liên tiếp phải giữ kết quả khi không có thông tin dùng trong `equals` thay đổi.
+For two objects `a` and `b`, a valid `equals` implementation must be reflexive, symmetric, transitive, consistent when the information used for comparison **does not change**, and `a.equals(null)` must be `false`. For `hashCode`, if `a.equals(b)` is `true`, the two hash codes must be equal. Under the `Object.hashCode` contract, consecutive calls must return the same result provided no information used in `equals` changes.
 
-Điều kiện **“khi thông tin dùng để so sánh không thay đổi”** rất quan trọng. Nếu trạng thái thật sự biến đổi, kết quả `equals` hoặc `hashCode` có thể thay đổi theo quy tắc của lớp; đó không tự nó là vi phạm hợp đồng. Nhưng khi một luồng đọc trong lúc luồng khác ghi, thiếu chính sách đồng bộ hóa còn gây thêm ba rủi ro:
+The condition **"provided information used for comparison does not change"** is crucial. If state genuinely mutates, the result of `equals` or `hashCode` may change according to the class's rules; that by itself is not a contract violation. However, when one thread reads while another writes, lacking a synchronization policy introduces three additional risks:
 
-- **Đọc không nhất quán:** một trường được đọc từ phiên bản cũ, trường khác từ phiên bản mới, khiến phép so sánh phản ánh một trạng thái không được công bố như một chỉnh thể.
-- **Kết quả phụ thuộc lịch thực thi:** cùng một cặp tham chiếu, hai lần so sánh sát nhau có thể cho kết quả khác nhau, hoặc không phản ánh thời điểm logic mà chương trình mong muốn.
-- **Quan hệ `equals` và `hashCode` tại thời điểm sử dụng không phù hợp:** `equals` và `hashCode` có thể quan sát các phiên bản dữ liệu khác nhau nếu thao tác đồng thời, đặc biệt nguy hiểm với khóa của collection dựa trên hash.
+- **Inconsistent reads:** one field is read from an old version and another field from a new version, causing the comparison to reflect a state that was never published as a whole.
+- **Schedule-dependent results:** on the same pair of references, two back-to-back comparisons can yield different outcomes, or fail to reflect the logical instant the program intended.
+- **Mismatch between `equals` and `hashCode` at usage time:** `equals` and `hashCode` may observe different versions of the data under concurrent operations, which is especially dangerous for keys in hash-based collections.
 
-Đặc tả `equals` không hứa tính ổn định khi các trường liên quan đang bị sửa; chính thiết kế luồng và hợp đồng của lớp phải xác định điều gì xảy ra trong trường hợp đó.
+The `equals` specification does not promise stability while relevant fields are being modified; it is the class's threading design and contract that must specify what happens in that case.
 
-## 2. Vì sao so sánh từng trường có thể nhìn thấy trạng thái pha trộn?
+## 2. Why can field-by-field comparison observe mixed state?
 
-Giả sử một cấu hình logic phải thay đổi **đồng thời** hai trường `endpoint` và `timeoutMs`:
+Suppose a logical configuration must update two fields `endpoint` and `timeoutMs` **together**:
 
-| Thời điểm | `endpoint` | `timeoutMs` | Ý nghĩa |
+| Moment | `endpoint` | `timeoutMs` | Meaning |
 | --- | --- | --- | --- |
-| Phiên bản 1 | `alpha` | `100` | Cấu hình cũ hợp lệ |
-| Trong quá trình cập nhật từng trường | `beta` | `100` | Trạng thái trung gian nếu hai trường được gán riêng |
-| Phiên bản 2 | `beta` | `200` | Cấu hình mới hợp lệ |
+| Version 1 | `alpha` | `100` | Valid old configuration |
+| During field-by-field update | `beta` | `100` | Intermediate state if the two fields are assigned separately |
+| Version 2 | `beta` | `200` | Valid new configuration |
 
-Đoạn minh họa sau **chưa phải chương trình độc lập**:
+The following illustrative snippet **is not yet a standalone program**:
 
 ```java
-// Đang nằm trong một equals(Object) đã kiểm tra đúng kiểu.
+// Inside an equals(Object) that has already checked the proper type.
 return timeoutMs == other.timeoutMs
         && Objects.equals(endpoint, other.endpoint);
 ```
 
-Nếu có thread khác cập nhật cùng đối tượng, hai biểu thức có thể đọc các trường vào những thời điểm khác nhau. Ngay cả nếu mỗi trường được khai báo `volatile`, **volatile chỉ mang lại các bảo đảm visibility và ordering thích hợp cho từng truy cập**, chứ không gộp các lần đọc `endpoint` và `timeoutMs` thành một snapshot nguyên tử.
+If another thread updates the same object, the two expressions can read the fields at different moments. Even if each field is declared `volatile`, **`volatile` only provides visibility and ordering guarantees appropriate for each individual access**, rather than combining reads of `endpoint` and `timeoutMs` into one atomic snapshot.
 
-Tương tự:
+Similarly:
 
-- `Objects.equals(x, y)` giúp xử lý `null`; nó **không khóa** `x` hoặc `y`.
-- `synchronized` trên mỗi getter riêng lẻ chỉ bảo vệ từng lần gọi; nếu mở khóa giữa hai getter, writer vẫn có thể chen vào.
-- `ConcurrentHashMap` bảo vệ các hoạt động của map theo hợp đồng của nó, **không tự bảo vệ các trường mutable bên trong key/value**.
-- Ngay cả `AtomicInteger`/hai `AtomicReference` độc lập cũng không tạo giao dịch cho cả cặp trường.
+- `Objects.equals(x, y)` helps handle `null`; it **does not lock** `x` or `y`.
+- `synchronized` on each individual getter only protects each single call; if the lock is released between two getters, a writer can interleave.
+- `ConcurrentHashMap` protects map operations per its contract; it **does not automatically protect mutable fields inside keys/values**.
+- Even independent `AtomicInteger` / two `AtomicReference` instances do not create a transaction across the pair of fields.
 
-Đừng dựa vào việc “trong lúc thử nghiệm chưa thấy lỗi”: lỗi phụ thuộc lịch chạy, CPU, tối ưu hóa và cách đồng bộ hóa.
+Do not rely on "no bug was observed during testing": bugs depend on scheduling, CPU, optimizations, and synchronization details.
 
-## 3. Chính sách ưu tiên: so sánh các giá trị bất biến
+## 3. Preferred policy: compare immutable values
 
-Cách đơn giản và dễ kiểm chứng nhất là **định nghĩa trạng thái cần so sánh như một đối tượng bất biến**. Thay vì cập nhật từng trường trực tiếp trên đối tượng đang được người khác đọc, tạo một giá trị mới rồi công bố toàn bộ bằng một phép thay thế tham chiếu nguyên tử.
+The simplest and most verifiable approach is to **define the state to be compared as an immutable object**. Instead of updating individual fields directly on an object being read by others, create a new value and publish the whole thing via an atomic reference replacement.
 
-Trong Java 17+, `record` phù hợp để biểu diễn một snapshot có các component đơn giản, bất biến như `String` và `int`. Record tự sinh `equals`, `hashCode` và `toString` dựa trên component. Lưu ý: một `record` chứa tham chiếu đến `List` hoặc mảng **không tự làm sâu dữ liệu bên trong trở nên bất biến**; nếu phần được tham chiếu còn mutable, phải sao chép phòng vệ hoặc dùng biểu diễn bất biến phù hợp.
+In Java 17+, a `record` fits well for representing a snapshot with simple, immutable components such as `String` and `int`. A record auto-generates `equals`, `hashCode`, and `toString` based on its components. Note: a `record` holding a reference to a `List` or array **does not automatically make the inner data deeply immutable**; if the referenced part remains mutable, you must defensively copy or use an appropriate immutable representation.
 
-### Chương trình Java 17+ chạy được
+### Runnable Java 17+ program
 
-Lưu thành **`SnapshotComparisonDemo.java`**:
+Save as **`SnapshotComparisonDemo.java`**:
 
 ```java
 import java.util.concurrent.CountDownLatch;
@@ -110,14 +110,14 @@ public class SnapshotComparisonDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac SnapshotComparisonDemo.java
 java SnapshotComparisonDemo
 ```
 
-Kết quả xác định:
+Deterministic output:
 
 ```text
 Before: Settings[endpoint=alpha, timeoutMs=100]
@@ -128,91 +128,91 @@ Before hash matches copy: true
 Before equals after: false
 ```
 
-**Vì sao ví dụ an toàn với cập nhật đồng thời?**
+**Why is this example safe under concurrent updates?**
 
-1. `Settings` là một giá trị bất biến trong phạm vi ví dụ: cả `endpoint` (`String` bất biến) và `timeoutMs` không bị thay đổi sau khi tạo record.
-2. `AtomicReference<Settings>` giữ **một tham chiếu** đến toàn bộ cấu hình. `current.set(next)` công bố một record mới bằng thay thế tham chiếu nguyên tử, thay vì ghi hai trường của record đang được reader sử dụng.
-3. `snapshot()` gọi `current.get()` **một lần**. Reader có thể nhận toàn bộ phiên bản cũ hoặc toàn bộ phiên bản mới nếu cập nhật đang diễn ra, nhưng không nhận cặp trường pha trộn do đọc riêng.
-4. `CountDownLatch` và `Thread.join()` trong ví dụ chỉ làm rõ thứ tự quan sát để stdout có thể kiểm tra chính xác. Khi thread writer kết thúc, `after` là phiên bản mới. `before` vẫn giữ trạng thái cũ.
-5. `before.equals(equalCopy)` và `before.hashCode() == equalCopy.hashCode()` nhất quán vì hai snapshot không còn biến đổi.
+1. `Settings` is an immutable value within the scope of the example: neither `endpoint` (immutable `String`) nor `timeoutMs` is modified after creating the record.
+2. `AtomicReference<Settings>` holds **a single reference** to the entire configuration. `current.set(next)` publishes a new record via atomic reference replacement, rather than writing two fields of a record currently being used by readers.
+3. `snapshot()` calls `current.get()` **once**. A reader may receive either the full old version or the full new version if an update is in progress, never a mixed pair of fields from separate reads.
+4. `CountDownLatch` and `Thread.join()` in the example simply clarify observation order so stdout can be checked deterministically. Once the writer thread finishes, `after` is the new version. `before` keeps the old state.
+5. `before.equals(equalCopy)` and `before.hashCode() == equalCopy.hashCode()` are consistent because neither snapshot mutates anymore.
 
-Giải pháp `AtomicReference` phù hợp khi một phép cập nhật là **thay thế toàn bộ giá trị trạng thái**. Nếu nhiều writer cần thay đổi dựa trên giá trị hiện tại và không được phép ghi đè cập nhật của nhau, phải dùng chính sách phù hợp như `compareAndSet`/vòng lặp `updateAndGet` với hàm cập nhật không có side effect ngoài ý muốn, hoặc khóa khi có các bất biến phức tạp.
+The `AtomicReference` solution fits when an update **replaces the entire state value**. If multiple writers must update based on the current value and must not overwrite each other's updates, an appropriate policy such as `compareAndSet`/`updateAndGet` loops with side-effect-free update functions, or locks for complex invariants, must be used.
 
-## 4. Một lần chụp trạng thái của từng đối tượng chưa chắc là một snapshot toàn cục
+## 4. A single snapshot per object is not necessarily a global snapshot
 
-Giả sử có **hai đối tượng mutable độc lập** `left` và `right`. Nếu lấy `left.snapshot()` tại thời điểm T1 rồi lấy `right.snapshot()` tại T2, hai bản chụp riêng lẻ có thể nhất quán, nhưng **không bảo đảm cùng một thời điểm logic**.
+Suppose there are **two independent mutable objects** `left` and `right`. If you take `left.snapshot()` at time T1 and then `right.snapshot()` at T2, the two individual snapshots may each be self-consistent, yet **they are not guaranteed to belong to the same logical instant**.
 
-Có ba chính sách thường gặp; cần **chọn và công bố rõ** một chính sách cho API:
+There are three common policies; you should **choose and explicitly document** one policy for the API:
 
-| Chính sách | Ý nghĩa phép so sánh | Khi phù hợp |
+| Policy | Meaning of comparison | When appropriate |
 | --- | --- | --- |
-| So sánh hai snapshot được lấy riêng | Mỗi phía là một giá trị hợp lệ tại thời điểm chụp; không hứa cùng thời điểm | So sánh cấu hình độc lập, log, UI cho phép trạng thái chênh thời gian |
-| Snapshot nhất quán dưới cùng một khóa | Chặn writer liên quan trong toàn bộ khoảng chụp cả hai phía | Cần đảm bảo các trường/nhiều đối tượng cùng thuộc một phiên bản logic |
-| Snapshot theo phiên bản/giao dịch | Chỉ so khi đọc được một phiên bản thỏa điều kiện kiểm chứng; nếu có xung đột thì thử lại | Hệ thống có version counter, optimistic read hoặc transaction hỗ trợ |
+| Compare two separately captured snapshots | Each side is a valid value at its capture time; same instant is not promised | Comparing independent configs, logs, UI allowing time-skewed state |
+| Consistent snapshot under a shared lock | Blocks relevant writers across the entire span of capturing both sides | When fields/multiple objects must belong to one logical version |
+| Versioned/transactional snapshot | Compares only when a version passing validation is read; retries on conflict | Systems with version counters, optimistic reads, or transaction support |
 
-Nếu có thể bảo vệ cả hai đối tượng dưới **một khóa chung**, thao tác so sánh phải giữ khóa trong suốt quá trình tạo giá trị đọc được. Với hai khóa độc lập, phải định nghĩa **thứ tự lấy khóa cố định** để tránh deadlock và đảm bảo mọi writer đọc/ghi liên quan tuân thủ cùng giao thức. Chỉ khóa một phía, hoặc mỗi phía một lần rồi thả khóa, chưa chắc giải quyết được yêu cầu nhất quán toàn cục.
+If both objects can be protected under **one shared lock**, the comparison operation must hold the lock throughout producing the readable values. With two independent locks, you must define a **fixed lock-acquisition order** to prevent deadlocks and ensure all relevant readers/writers follow the same protocol. Locking only one side, or locking each side once and releasing, may not satisfy global consistency requirements.
 
-Một dạng so sánh snapshot cấp ứng dụng:
+An application-level snapshot comparison pattern:
 
 ```java
-// Pseudocode Java: caller giữ khóa/thực hiện transaction phù hợp
-// trước khi tạo cả hai snapshot.
+// Java pseudocode: caller holds appropriate locks/executes a transaction
+// before creating both snapshots.
 var leftSnapshot = left.captureState();
 var rightSnapshot = right.captureState();
 return leftSnapshot.equals(rightSnapshot);
 ```
 
-Đây là **mẫu thiết kế**, không phải đoạn chạy độc lập: hai phương thức `captureState()` và cơ chế khóa/transaction phải được ứng dụng cung cấp. Dù code nhìn ngắn, tính đúng đắn đến từ **giao thức điều phối writer/reader**, không đến từ tên phương thức.
+This is a **design pattern**, not a standalone runnable snippet: the two `captureState()` methods and the locking/transaction mechanism must be provided by the application. Even though the code looks short, correctness comes from the **writer/reader coordination protocol**, not from method names.
 
-Với cơ chế optimistic versioning, reader có thể đọc version trước và sau dữ liệu rồi chấp nhận chỉ khi version hợp lệ, dữ liệu không bị thay đổi trong khoảng đọc. Việc triển khai versioning cần memory visibility, quy tắc writer và thứ tự cập nhật chính xác. Kiểm tra version sơ sài, không có giao thức writer phù hợp, hoặc bỏ qua vấn đề thay đổi rồi quay lại cùng version có thể vẫn sai.
+With optimistic versioning, a reader can read a version before and after the data and accept only when the version is valid and data did not change during the read window. Implementing versioning requires proper memory visibility, writer rules, and exact update ordering. Sloppy version checks, missing writer protocols, or ignoring the ABA problem (changing and returning to the same version) can still be buggy.
 
-## 5. Khi nào nên tránh ghi đè `equals` theo trạng thái sống?
+## 5. When should you avoid overriding `equals` based on live state?
 
-Một số lớp thực chất đại diện cho **thực thể có danh tính ổn định** (ví dụ đơn hàng có ID), còn các thuộc tính như trạng thái, giá, mô tả, vị trí thay đổi theo thời gian. Nếu `equals` so mọi thuộc tính đang sống, cùng một thực thể trước và sau cập nhật có thể được xem là “không bằng nhau”; đôi khi đó không phải mục tiêu của mô hình.
+Some classes actually represent **entities with stable identity** (for example, an order with an ID), while attributes such as status, price, description, and location change over time. If `equals` compares every live attribute, the same entity before and after an update can be considered "not equal"; sometimes that is not the goal of the model.
 
-Hãy định nghĩa trước điều gì là “bằng nhau”:
+Define upfront what "equal" means:
 
-- **Value object:** hai đối tượng bằng nhau khi **giá trị logic bất biến** của chúng bằng nhau. Snapshot hoặc record bất biến là lựa chọn tự nhiên.
-- **Entity có ID ổn định:** phép so sánh có thể dựa trên **mã định danh ổn định, duy nhất theo miền nghiệp vụ**, được cấp phát và quản lý nhất quán. Nếu ID được gán trễ hoặc thay đổi vòng đời, thiết kế `equals`/`hashCode` cần xử lý cẩn thận; không tự thay ID bằng `hashCode`.
-- **Mutable state đang xử lý đồng thời:** nhiều trường có thể thay đổi nhưng không cần thuộc `equals` của wrapper. Cung cấp API `snapshot()` để người gọi **so sánh phiên bản đã đóng băng**, và ghi rõ semantics chụp trạng thái.
+- **Value object:** two objects are equal when their **immutable logical values** are equal. Snapshots or immutable records are natural choices.
+- **Entity with a stable ID:** comparison can rely on a **stable identifier, unique within the business domain**, allocated and managed consistently. If the ID is assigned late or changes across the lifecycle, the `equals`/`hashCode` design must handle it carefully; do not substitute `hashCode` for an ID.
+- **Concurrently mutated state:** many fields may change without needing to belong to the wrapper's `equals`. Provide a `snapshot()` API so callers **compare frozen versions**, and clearly document state-capture semantics.
 
-Không phải mọi lớp đều nên ghi đè `equals`. Với một đối tượng quản lý tài nguyên/phiên giao dịch mà ngữ nghĩa của nó là danh tính instance, `Object.equals` mặc định có thể đúng hơn việc đọc trạng thái thay đổi liên tục.
+Not every class should override `equals`. For a resource/session manager whose semantics is instance identity, the default `Object.equals` can be more accurate than reading continuously changing state.
 
-## 6. Đặc biệt nguy hiểm: mutable key trong `HashMap` hoặc `HashSet`
+## 6. Especially dangerous: mutable keys in `HashMap` or `HashSet`
 
-Giả sử `hashCode` phụ thuộc `status` hoặc `name`, rồi đối tượng được đặt làm key của `HashMap`. Nếu sau đó một luồng khác đổi trường ấy, `hashCode` tại thời điểm tra cứu có thể khác với hash khi chèn, khiến `map.get(key)` không tìm được phần tử ngay cả khi còn giữ chính tham chiếu key.
+Suppose `hashCode` depends on `status` or `name`, and the object is placed as a key in a `HashMap`. If another thread subsequently changes that field, `hashCode` at lookup time can differ from the hash at insertion time, causing `map.get(key)` to fail to find the element even while holding the exact key reference.
 
-Điều này **không được chữa** chỉ bằng cách dùng `ConcurrentHashMap`. Map có thể xử lý đồng thời các thao tác map theo hợp đồng, nhưng không biến một object key với `equals`/`hashCode` mutable thành khóa ổn định.
+This **is not cured** merely by using `ConcurrentHashMap`. The map can handle map operations concurrently per its contract, yet it cannot turn a key object with mutable `equals`/`hashCode` into a stable key.
 
-Các cách an toàn hơn:
+Safer approaches:
 
-- Dùng key bất biến như `String`, `UUID`, `record Key(...)` chứa thành phần bất biến, hoặc ID miền nghiệp vụ ổn định.
-- Nếu cần tra cứu theo snapshot, chèn **snapshot bất biến** làm key; bản snapshot cũ giữ nguyên nội dung và hash sau khi trạng thái sống được cập nhật.
-- Nếu phải dùng key mutable, cần một giao thức rất chặt để không đổi các trường tham gia `equals`/`hashCode` trong toàn bộ thời gian key đang nằm trong cấu trúc băm. Việc khóa quanh `put` đơn lẻ không đủ nếu field vẫn đổi về sau.
+- Use immutable keys such as `String`, `UUID`, a `record Key(...)` containing immutable components, or a stable business-domain ID.
+- If lookup by snapshot is needed, insert the **immutable snapshot** as the key; the old snapshot retains its contents and hash after live state is updated.
+- If a mutable key must be used, a very strict protocol is required so fields participating in `equals`/`hashCode` never change during the entire time the key resides in the hash structure. Locking around a single `put` is insufficient if fields still change later.
 
-Ví dụ, trong chương trình phần 3, đối tượng `Settings` đã được lấy ra từ `live.snapshot()` không đổi khi `live.replace(...)` được gọi; dùng snapshot làm key có ý nghĩa ổn định hơn dùng wrapper sống và một `hashCode` thay đổi theo `current.get()`.
+For example, in the program in section 3, the `Settings` object retrieved from `live.snapshot()` does not change when `live.replace(...)` is called; using the snapshot as a key has stable semantics compared to using the live wrapper with a `hashCode` that changes with `current.get()`.
 
-## 7. Những ngộ nhận phổ biến
+## 7. Common misconceptions
 
-1. **“Đã đánh dấu `volatile` cho từng trường, cả cặp sẽ nhất quán.”** Không. Từng lần đọc/ghi có visibility thích hợp, nhưng cặp thao tác không tự trở thành transaction.
-2. **“Dùng `synchronized` trên getter là đủ.”** Chưa chắc. Writer có thể chen giữa hai getter nếu khóa đã thả; yêu cầu snapshot nhiều trường cần giữ cùng giao thức cho toàn bộ khoảng chụp.
-3. **“Gọi `Objects.equals` tự động thread-safe.”** Không. Nó chỉ chọn xử lý `null` rồi gọi `equals` khi cần.
-4. **“Record lúc nào cũng bất biến sâu.”** Không. Các component tham chiếu có thể trỏ tới danh sách, mảng hoặc đối tượng mutable. Cần đóng băng/sao chép dữ liệu mà `equals` và `hashCode` phụ thuộc.
-5. **“Hai snapshot riêng lẻ đồng nhất có nghĩa cùng thời điểm.”** Không. Nếu yêu cầu một giao dịch nhất quán giữa nhiều thực thể, phải điều phối quá trình chụp.
-6. **“`ConcurrentHashMap` sẽ sửa mọi lỗi với key thay đổi.”** Không. Quy tắc về key và hợp đồng băm vẫn do ứng dụng đảm bảo.
-7. **“Có thể sửa lỗi race bằng cách đọc lại cho tới khi hai lần giống nhau.”** Không thể coi đó là bảo đảm chung nếu thiếu versioning/đồng bộ hóa được writer tuân thủ; giá trị có thể thay đổi qua lại, visibility có thể không phù hợp, và vòng lặp có thể không kết thúc.
-8. **“`a.equals(b)` luôn cho một kết quả duy nhất cho một cặp tham chiếu.”** Điều này chỉ có ý nghĩa khi quy tắc `equals` và trạng thái được giữ đủ ổn định. Với dữ liệu sống có thể sửa, hãy nói rõ so **phiên bản nào**.
+1. **"I marked every field `volatile`, so the pair will be consistent."** No. Individual reads/writes have proper visibility, yet the pair of operations does not automatically become a transaction.
+2. **"Putting `synchronized` on getters is enough."** Not necessarily. A writer can interleave between two getter calls once the lock is released; requiring a multi-field snapshot means keeping the same protocol across the entire capture span.
+3. **"Calling `Objects.equals` is automatically thread-safe."** No. It merely handles `null` and then calls `equals` when needed.
+4. **"A `record` is always deeply immutable."** No. Reference components can point to mutable lists, arrays, or objects. You must freeze/copy the data that `equals` and `hashCode` depend on.
+5. **"Two individual snapshots agreeing means they reflect the same point in time."** No. If a consistent transaction across multiple entities is required, you must coordinate the capture process.
+6. **"`ConcurrentHashMap` fixes all bugs with mutable keys."** No. Rules about keys and the hash contract must still be upheld by the application.
+7. **"You can fix races by re-reading until two reads match."** That cannot be relied upon as a general guarantee without versioning/synchronization followed by writers; values can change back and forth, visibility may be inadequate, and the loop might never terminate.
+8. **"`a.equals(b)` always gives one unique result for a pair of references."** That only holds when the `equals` rule and state are kept sufficiently stable. For mutable live data, explicitly state **which version** is being compared.
 
-## 8. Checklist khi thiết kế và review
+## 8. Design and review checklist
 
-Trước khi sử dụng `equals`/`hashCode` trên dữ liệu có cập nhật đa luồng, trả lời các câu hỏi sau:
+Before using `equals`/`hashCode` on data with multithreaded updates, answer the following questions:
 
-1. Những trường nào quyết định tính bằng nhau? Chúng là bất biến hay có thể được sửa bởi thread khác?
-2. Có yêu cầu một snapshot cùng thời điểm cho nhiều trường hoặc nhiều đối tượng hay chỉ cần mỗi đối tượng nhất quán riêng?
-3. Mọi reader và writer có dùng cùng giao thức (atomic publication, khóa, versioning hay transaction) không?
-4. Nếu dùng khóa, phạm vi khóa có bao trọn **toàn bộ thao tác đọc dữ liệu cần so sánh** không? Có nguy cơ deadlock giữa hai khóa không?
-5. Nếu so sánh hai snapshot, chúng có chứa bản sao sâu/bất biến phù hợp của các thành phần mutable không?
-6. Đối tượng có đang làm key của map/set dựa trên hash không? Hash và các trường tham gia `equals` có ổn định trong toàn bộ thời gian lưu trong map/set không?
-7. Bài test có kiểm tra nhiều luồng cập nhật, nhiều phiên bản, và bất biến miền nghiệp vụ không? Có cách đo/ghi lại được phiên bản snapshot khi debug không?
+1. Which fields determine equality? Are they immutable or can they be modified by another thread?
+2. Is a same-instant snapshot required across multiple fields or multiple objects, or does each object only need individual consistency?
+3. Do all readers and writers use the same protocol (atomic publication, locking, versioning, or transactions)?
+4. If using locks, does the lock scope cover the **entire read operation of the data needed for comparison**? Is there any deadlock risk between two locks?
+5. If comparing two snapshots, do they contain appropriate deep/immutable copies of mutable components?
+6. Is the object serving as a key in a hash-based map/set? Are its hash and `equals`-participating fields stable throughout its time stored in the map/set?
+7. Do tests exercise multiple writer threads, multiple versions, and business-domain invariants? Is there a way to measure/log snapshot versions when debugging?
 
-**Ghi nhớ:** `equals()` là phép kiểm tra theo một **quy tắc bằng nhau**, không phải hàng rào đồng bộ. Khi trạng thái có thể bị sửa đồng thời, phải định nghĩa rõ **phiên bản được so sánh** và bảo đảm reader/writer cùng tuân thủ chính sách đó. Ưu tiên so sánh **snapshot bất biến**; nếu cần trạng thái nhiều đối tượng tại một thời điểm logic, dùng cơ chế đồng bộ hóa hoặc transaction đủ phạm vi.
+**Takeaway:** `equals()` is a check according to an **equality rule**, not a synchronization barrier. When state can be mutated concurrently, you must clearly define **which version is being compared** and ensure readers/writers follow that same policy. Prefer comparing **immutable snapshots**; if the state of multiple objects at one logical point in time is required, use synchronization or transactions with sufficient scope.

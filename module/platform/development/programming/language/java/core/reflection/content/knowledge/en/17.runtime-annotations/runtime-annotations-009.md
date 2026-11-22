@@ -1,8 +1,8 @@
-# Đọc giá trị phần tử annotation qua phương thức của annotation type
+# Reading Annotation Element Values via Methods of the Annotation Type
 
-## 1. Annotation element là phương thức không tham số
+## 1. Annotation elements are zero-parameter methods
 
-Trong Java, annotation type được khai báo bằng `@interface`. Bên trong có thể khai báo các **annotation elements** dưới dạng phương thức **không có tham số**, trả về kiểu được ngôn ngữ cho phép. Ví dụ:
+In Java, an annotation type is declared using `@interface`. Inside, **annotation elements** can be declared as **zero-parameter** methods returning a language-permitted type. Example:
 
 ~~~java
 @interface Route {
@@ -11,7 +11,7 @@ Trong Java, annotation type được khai báo bằng `@interface`. Bên trong c
 }
 ~~~
 
-`value()` và `priority()` không phải các field public cũng không phải những phương thức nghiệp vụ có thân hàm. Chúng là các **element declaration** của annotation type. Khi một class hay method được gắn annotation:
+`value()` and `priority()` are neither public fields nor business methods with method bodies. They are **element declarations** of the annotation type. When a class or method is annotated:
 
 ~~~java
 @Route(value = "/orders", priority = 5)
@@ -19,7 +19,7 @@ class OrderEndpoint {
 }
 ~~~
 
-Java lưu các cặp tên–giá trị annotation thích hợp trong metadata của phần tử được đánh dấu. Nếu annotation có **`RetentionPolicy.RUNTIME`**, Reflection có thể đọc một instance annotation và gọi **phương thức element của annotation đó** để lấy giá trị:
+Java stores the appropriate annotation name–value pairs in the metadata of the marked element. If the annotation has **`RetentionPolicy.RUNTIME`**, Reflection can read an annotation instance and invoke **its element methods** to obtain values:
 
 ~~~java
 Route route = OrderEndpoint.class.getAnnotation(Route.class);
@@ -29,28 +29,28 @@ if (route != null) {
 }
 ~~~
 
-Các mảnh ví dụ này giải thích nguyên lý; chương trình Java 17 hoàn chỉnh ở phần 4 có khai báo import, retention và tất cả kiểu liên quan.
+These illustrative fragments explain the principle; the complete Java 17 program in section 4 includes imports, retention, and all related types.
 
-Điểm cốt lõi: **Đọc giá trị annotation là gọi element method trên annotation instance**. Không cần tìm một field có cùng tên, không dùng `Field.get`, và bản thân thao tác đọc metadata **không thực hiện nghiệp vụ** được mô tả bởi annotation.
+Core point: **Reading an annotation value means invoking the element method on an annotation instance**. There is no need to look up a field of the same name, do not use `Field.get`, and reading metadata itself **does not execute the business logic** described by the annotation.
 
-## 2. Hai đối tượng cần phân biệt: annotation type và annotation instance
+## 2. Two objects to distinguish: annotation type and annotation instance
 
-Giả sử có `@Rule("checkout")` gắn trên `Checkout.class`:
+Suppose `@Rule("checkout")` is attached to `Checkout.class`:
 
-- **Annotation type** là `Rule.class`. Nó là đối tượng `Class<Rule>` đại diện định nghĩa `@interface Rule`, chứa các element method khai báo như `String value()` và `int retries() default 3`.
-- **Annotation instance** là giá trị `Rule rule = Checkout.class.getAnnotation(Rule.class)`, đại diện thông tin annotation gắn trên lớp `Checkout`. Nó triển khai interface annotation và cung cấp giá trị của các element.
-- **Đối tượng được annotation đánh dấu** là `Checkout.class`, không phải `rule`. Metadata thuộc về phần tử được gắn annotation (class, method, field, parameter, ...).
+- **The annotation type** is `Rule.class`. It is the `Class<Rule>` object representing the `@interface Rule` definition, containing declared element methods such as `String value()` and `int retries() default 3`.
+- **The annotation instance** is the value `Rule rule = Checkout.class.getAnnotation(Rule.class)`, representing the annotation information attached to class `Checkout`. It implements the annotation interface and supplies element values.
+- **The annotated target** is `Checkout.class`, not `rule`. The metadata belongs to the element carrying the annotation (class, method, field, parameter, ...).
 
-Luồng xử lý thường gặp:
+Typical processing flow:
 
 ~~~text
-Định nghĩa @interface Rule
+Define @interface Rule
        |
        v
-Dùng @Rule(...) trên một phần tử
+Use @Rule(...) on an element
        |
        v
-Class file có annotation metadata (nếu retention cho phép)
+Class file has annotation metadata (if retention allows)
        |
        v
 Reflection: element.getAnnotation(Rule.class)
@@ -64,22 +64,22 @@ Rule annotation = ...
        +-- annotation.owner().name()
 ~~~
 
-**Sai lầm hay gặp:** viết `Rule.class.getDeclaredMethod("retries")` rồi nghĩ chỉ có object `Method` đã chứa giá trị `5` của annotation trên `Checkout`. Thực tế `Method` đó là mô tả **element method** dùng chung cho cả annotation type. Muốn đọc **giá trị tại nơi sử dụng cụ thể**, phải gọi method trên đúng **annotation instance**. `Method.getDefaultValue()` lại là một API khác: nó mô tả **giá trị mặc định đã khai báo ở annotation type**, không phải giá trị override tại một nơi sử dụng.
+**Common mistake:** writing `Rule.class.getDeclaredMethod("retries")` and thinking the `Method` object alone already holds the value `5` of the annotation on `Checkout`. In reality, that `Method` describes the **element method** shared across the entire annotation type. To read **the value at a specific usage site**, you must invoke the method on the exact **annotation instance**. `Method.getDefaultValue()` is another API: it describes **the default value declared on the annotation type**, not the overridden value at a usage site.
 
-## 3. Những kiểu trả về hợp lệ của annotation element
+## 3. Valid return types for annotation elements
 
-Một annotation element chỉ có thể trả về một trong những loại sau:
+An annotation element can only return one of the following types:
 
-1. Kiểu primitive: `boolean`, `byte`, `short`, `char`, `int`, `long`, `float`, `double`.
+1. Primitive types: `boolean`, `byte`, `short`, `char`, `int`, `long`, `float`, `double`.
 2. `String`.
-3. `Class` (kể cả các dạng `Class<?>` được ngôn ngữ cho phép).
-4. Một kiểu `enum`.
-5. Một kiểu annotation khác (nested annotation value).
-6. Mảng **một chiều** của một trong các loại trên.
+3. `Class` (including parameterized `Class<?>` forms permitted by the language).
+4. An `enum` type.
+5. Another annotation type (nested annotation value).
+6. A **one-dimensional** array of any of the above.
 
-Bảng ví dụ:
+Example table:
 
-| Khai báo element | Cách dùng tại annotation | Kiểu nhận được khi đọc |
+| Element declaration | Usage on annotation | Type received when reading |
 | --- | --- | --- |
 | `String value();` | `@Rule("checkout")` | `String` |
 | `int retries() default 3;` | `@Rule(retries = 5, ...)` | `int` |
@@ -89,13 +89,13 @@ Bảng ví dụ:
 | `String[] tags() default {};` | `tags = {"fast", "safe"}` | `String[]` |
 | `Owner owner() default @Owner(name = "system");` | `owner = @Owner(name = "core")` | `Owner` |
 
-Java không chấp nhận một annotation element trả về `List<String>`, `Map`, `Object`, mảng nhiều chiều hay kiểu được phép khác dưới dạng tổng quát không hợp lệ. Thay vì trả `List<String>`, khai báo `String[]` và chuyển sang collection trong code ứng dụng nếu cần.
+Java does not permit an annotation element to return `List<String>`, `Map`, `Object`, multidimensional arrays, or other disallowed arbitrary types. Instead of returning `List<String>`, declare `String[]` and convert to a collection in application code if needed.
 
-Ngoài ra, **`null` không phải giá trị annotation element hợp lệ**. Element bắt buộc được chỉ rõ tại nơi sử dụng nếu không có default, hoặc lấy default khi bỏ qua. Với element dạng `String[]`, mảng rỗng `{}` khác với `null`. Element method không khai báo tham số hay `throws` clause, và không có thân thực thi như method thông thường.
+Additionally, **`null` is not a valid annotation element value**. An element must be specified at the usage site if it has no default, or takes its default when omitted. For a `String[]` element, an empty array `{}` differs from `null`. Element methods declare no parameters or `throws` clauses, and have no method body like ordinary methods.
 
-## 4. Ví dụ Java 17 hoàn chỉnh
+## 4. Complete Java 17 example
 
-Tạo file **`AnnotationElementsDemo.java`**. Chương trình định nghĩa annotation với nhiều loại element, gắn một annotation có giá trị tường minh và một annotation dùng default, rồi đọc bằng phương thức của annotation type.
+Create the file **`AnnotationElementsDemo.java`**. The program defines an annotation with multiple element types, attaches one annotation with explicit values and one relying on defaults, then reads them via the annotation type's methods.
 
 ~~~java
 import java.lang.annotation.ElementType;
@@ -174,7 +174,7 @@ public class AnnotationElementsDemo {
 }
 ~~~
 
-Biên dịch/chạy từ thư mục chứa file:
+Compile/run from the directory containing the file:
 
 ~~~bash
 javac --release 17 AnnotationElementsDemo.java
@@ -202,23 +202,23 @@ declared-default=3
 missing=true
 ~~~
 
-Hành vi của ví dụ đã được xác minh qua Java Compiler ở mức Java 17 và chạy thử logic tương đương trong JShell. Bài dùng các annotation ở package mặc định để không cần file `module-info.java`; trong dự án thực tế nên khai báo package rõ ràng.
+The example's behavior was verified via the Java Compiler at Java 17 level and equivalent logic tested in JShell. This lesson uses annotations in the default package so no `module-info.java` file is needed; in real projects, declare packages explicitly.
 
-### Phân tích output
+### Output analysis
 
-1. `@Retention(RUNTIME)` trên `Rule` khiến `Checkout.class.getAnnotation(Rule.class)` có thể lấy annotation được khai báo, nên `rule != null` là `true`. `annotationType()` trả `Rule.class`.
-2. `rule.value()` là `"checkout"`, chính giá trị ghi trong `@Rule(value = "checkout", ...)`. `rule.retries()` trả primitive `int` bằng 5, không lấy default 3 vì annotation tại `Checkout` có ghi đè.
-3. `rule.level()` trả enum `Level.HIGH`; `rule.handler()` trả `Integer.class`; `rule.tags()` trả mảng `String[]` chứa hai giá trị; `rule.owner()` trả **annotation instance lồng nhau** kiểu `Owner`, rồi `.name()` trả `"core"`.
-4. `@Rule("fallback")` là cú pháp viết gọn cho element mang tên `value`. Vì các element khác đều có `default`, có thể bỏ qua chúng khi gắn annotation trên `Fallback`. Do đó `fallback.retries()` nhận 3, `fallback.tags()` trả mảng rỗng và `fallback.owner().name()` là `"system"`.
-5. `Rule.class.getDeclaredMethod("retries")` lấy `Method` mô tả element method. `retriesMethod.invoke(rule)` trả **giá trị tại annotation instance `rule`**, tức 5; vì gọi qua `Method.invoke` có kiểu trả về `Object`, primitive `int` được boxing thành `Integer` trong quá trình phản chiếu.
-6. `retriesMethod.getDefaultValue()` đọc **default trên khai báo element** (`3`). Nó không thay đổi theo nơi annotation được gắn. Nếu element không khai báo default, API này trả `null`.
-7. `String.class.getAnnotation(Rule.class)` trả `null` vì annotation `Rule` không hiện diện trên `String.class` theo quy tắc tìm kiếm tương ứng. Code thực tế nên luôn xử lý tình huống annotation vắng mặt.
+1. `@Retention(RUNTIME)` on `Rule` allows `Checkout.class.getAnnotation(Rule.class)` to retrieve the declared annotation, so `rule != null` is `true`. `annotationType()` returns `Rule.class`.
+2. `rule.value()` is `"checkout"`, matching the value written in `@Rule(value = "checkout", ...)`. `rule.retries()` returns primitive `int` `5`, not the default `3`, because the annotation on `Checkout` overrides it.
+3. `rule.level()` returns enum `Level.HIGH`; `rule.handler()` returns `Integer.class`; `rule.tags()` returns a `String[]` array holding two values; `rule.owner()` returns a **nested annotation instance** of type `Owner`, and `.name()` returns `"core"`.
+4. `@Rule("fallback")` is shorthand syntax for the element named `value`. Because all other elements have `default` values, they can be omitted when attaching the annotation to `Fallback`. Hence `fallback.retries()` gets `3`, `fallback.tags()` returns an empty array, and `fallback.owner().name()` is `"system"`.
+5. `Rule.class.getDeclaredMethod("retries")` retrieves the `Method` describing the element method. `retriesMethod.invoke(rule)` returns **the value on annotation instance `rule`**, i.e., `5`; because calling via `Method.invoke` has return type `Object`, the primitive `int` is boxed into `Integer` during reflection.
+6. `retriesMethod.getDefaultValue()` reads **the default on the element declaration** (`3`). It does not change depending on where the annotation is attached. If the element declares no default, this API returns `null`.
+7. `String.class.getAnnotation(Rule.class)` returns `null` because annotation `Rule` is not present on `String.class` under the corresponding lookup rules. Production code should always handle absent annotations.
 
-Đọc annotation element **không gọi một handler nghiệp vụ** vì nó chỉ trả về metadata. Ví dụ `handler = Integer.class` lưu một class literal; nó **không tạo `Integer` instance**, không khởi chạy logic xử lý nào.
+Reading an annotation element **does not invoke a business handler** because it only returns metadata. For example, `handler = Integer.class` stores a class literal; it **does not instantiate `Integer`** and does not launch any processing logic.
 
-## 5. Cách đọc gọn: gọi element method theo kiểu tĩnh
+## 5. Clean reading: calling element methods statically
 
-Nếu bạn biết annotation type tại thời điểm viết chương trình, cách đơn giản nhất là:
+If you know the annotation type when writing the program, the simplest approach is:
 
 ~~~java
 Rule rule = SomeClass.class.getAnnotation(Rule.class);
@@ -230,22 +230,22 @@ if (rule != null) {
 }
 ~~~
 
-Đoạn mã này chỉ minh họa, giả định `SomeClass` được gắn `@Rule` và các kiểu đã được định nghĩa như mục 4.
+This snippet is illustrative only, assuming `SomeClass` is annotated with `@Rule` and the types are defined as in section 4.
 
-Ưu điểm của **typed API**:
+Advantages of the **typed API**:
 
-- Compiler kiểm tra đúng tên method, đúng kiểu trả về.
-- Không cần ép kiểu `Object` từ `Method.invoke`.
-- Dễ đọc và dễ refactor khi annotation type đổi tên element.
-- Các giá trị mảng/enum/class/nested annotation giữ đúng kiểu khai báo, giảm lỗi runtime.
+- The compiler checks exact method names and return types.
+- No need to cast `Object` from `Method.invoke`.
+- Easy to read and refactor when the annotation type renames an element.
+- Array/enum/class/nested annotation values retain their declared types, reducing runtime errors.
 
-Đối với annotation bắt buộc phải có, tùy API có thể dùng `getDeclaredAnnotation` để lấy annotation khai báo trực tiếp trên phần tử, hoặc `getAnnotation` cho cách tìm kiếm theo quy tắc `AnnotatedElement`. Dù dùng API nào, nếu không có annotation phù hợp thì kết quả là `null` (đối với `getAnnotation`/`getDeclaredAnnotation` đơn lẻ) — **không gọi `rule.value()` trước khi kiểm tra**.
+For annotations that must be present, depending on the API you can use `getDeclaredAnnotation` to retrieve annotations declared directly on the element, or `getAnnotation` for lookup following `AnnotatedElement` rules. Whichever API is used, if no matching annotation exists, the result is `null` (for single `getAnnotation`/`getDeclaredAnnotation`) — **do not call `rule.value()` before checking**.
 
-Không nên dùng `field.get(...)` trên annotation instance để lấy `value` hay `retries`. Cấu trúc annotation type được công bố bằng **element method**, không có quy tắc public field cùng tên để đọc.
+Do not use `field.get(...)` on an annotation instance to read `value` or `retries`. An annotation type's structure is exposed via **element methods**, with no public fields of the same name to read.
 
-## 6. Đọc động: introspection element methods và `Method.invoke`
+## 6. Dynamic reading: element method introspection and `Method.invoke`
 
-Một framework có thể không biết trước tất cả tên element trong annotation type. Khi đó có thể nhận `Annotation annotation` và duyệt element methods:
+A framework may not know all element names in an annotation type ahead of time. In that case, it can accept `Annotation annotation` and iterate over element methods:
 
 ~~~java
 import java.lang.annotation.Annotation;
@@ -282,28 +282,28 @@ static String stringify(Object value) {
 }
 ~~~
 
-Đây là **các phương thức minh họa để chèn vào một class**, không phải file có `main` độc lập. `printElements` chỉ cần một instance của annotation đã lấy từ Reflection. Nếu muốn dùng riêng các method này, hãy đặt chúng vào một class Java hợp lệ và truyền annotation tương ứng.
+These are **illustrative methods to insert into a class**, not a standalone file with `main`. `printElements` only needs an annotation instance already obtained via Reflection. To use these methods standalone, place them in a valid Java class and pass a corresponding annotation.
 
-Các điểm quan trọng:
+Key points:
 
-- `annotation.annotationType()` trả **đúng annotation interface**; nó là lựa chọn rõ nghĩa hơn `annotation.getClass()` khi muốn tra cứu các element. Một annotation instance ở runtime có thể do JDK triển khai dưới dạng proxy/implementation, nhưng **implementation class không phải hợp đồng element của bạn**.
-- `getDeclaredMethods()` trên annotation type trả các element method khai báo trên chính annotation type. Không dựa vào thứ tự mảng trả về; sắp xếp theo tên nếu cần log ổn định.
-- `Method.invoke(annotation)` gọi element method trên **annotation instance**. Nếu kết quả là primitive, `invoke` trả wrapper; nếu là mảng, nhận đối tượng mảng với đúng loại; nếu là annotation lồng nhau, nhận annotation instance.
-- `Method.getDefaultValue()` trả default được **khai báo** trên element, hoặc `null` nếu không có default. Nó không cho biết giá trị thực tế tại mỗi lần dùng annotation.
-- Nếu cần phân biệt một giá trị bằng đúng default do không chỉ rõ khi gắn annotation hay do người viết **ghi tường minh giá trị trùng default**, Reflection thường chỉ cho thấy **giá trị đã hợp thành**. Đừng dùng `actualValue.equals(defaultValue)` để kết luận người viết có/không gõ element tại source.
-- Đừng coi `Annotation.toString()` là giao diện serialization dữ liệu ổn định. Hãy đọc các element cụ thể và tự định dạng khi muốn xuất JSON/log/API.
+- `annotation.annotationType()` returns the **exact annotation interface**; it is a clearer choice than `annotation.getClass()` when looking up elements. A runtime annotation instance may be implemented by the JDK as a proxy/implementation class, but **the implementation class is not your element contract**.
+- `getDeclaredMethods()` on an annotation type returns the element methods declared on that annotation type itself. Do not rely on the returned array order; sort by name if stable logging is needed.
+- `Method.invoke(annotation)` invokes the element method on the **annotation instance**. If the result is primitive, `invoke` returns a wrapper; if an array, an array object of the exact type; if a nested annotation, an annotation instance.
+- `Method.getDefaultValue()` returns the default **declared** on the element, or `null` if no default exists. It does not tell you the actual value at each annotation usage.
+- If you need to distinguish a value equaling the default because it was omitted when attaching the annotation versus because the author **explicitly wrote a value equal to the default**, Reflection generally shows only the **effective resolved value**. Do not use `actualValue.equals(defaultValue)` to conclude whether the author typed the element in source code.
+- Do not treat `Annotation.toString()` as a stable data serialization interface. Read specific elements and format them yourself when outputting JSON/logs/APIs.
 
-Mã lặp trên dùng `instanceof Object[]` để hiển thị các mảng reference; riêng mảng primitive có từng nhánh `Arrays.toString`. Nếu chỉ viết `String.valueOf(value)` cho một mảng, có thể nhìn thấy chuỗi tên kiểu/hash thay vì nội dung mảng.
+The loop above uses `instanceof Object[]` to display reference arrays; primitive arrays each have their own `Arrays.toString` branch. If you merely write `String.valueOf(value)` for an array, you may see a type-name/hash string instead of the array contents.
 
-## 7. Phân biệt default với giá trị instance
+## 7. Distinguishing default from instance value
 
-Trong `@interface RetryPolicy { int attempts() default 3; String label(); }`, phần tử `attempts()` có default là `3`, còn `label()` bắt buộc được cung cấp. `RetryPolicy.class.getDeclaredMethod("attempts").getDefaultValue()` trả `Integer(3)`; gọi `attempts()` trên annotation instance trả giá trị **hiệu lực** tại nơi sử dụng, có thể khác 3. `getDefaultValue()` trả `null` cho `label()` vì không khai báo default, không có nghĩa `label()` của annotation hợp lệ trả null.
+In `@interface RetryPolicy { int attempts() default 3; String label(); }`, the element `attempts()` has default `3`, while `label()` must be supplied. `RetryPolicy.class.getDeclaredMethod("attempts").getDefaultValue()` returns `Integer(3)`; calling `attempts()` on an annotation instance returns the **effective** value at the usage site, which can differ from 3. `getDefaultValue()` returns `null` for `label()` because no default is declared, which does not mean `label()` on a valid annotation returns null.
 
-Giá trị hiệu lực bằng default không chứng minh người viết đã bỏ qua element tại source. Bài riêng về `Method.getDefaultValue()` phân tích đầy đủ các kiểu dữ liệu, annotation evolution và phân biệt default method của interface.
+An effective value equaling the default does not prove the author omitted the element in source code. The separate lesson on `Method.getDefaultValue()` thoroughly analyzes data types, annotation evolution, and distinguishing interface default methods.
 
-## 8. Trường hợp `value` đặc biệt và những nhầm lẫn về cú pháp
+## 8. The special `value` case and syntax misconceptions
 
-Element tên `value` được Java cho phép viết gọn khi nó là element duy nhất được chỉ định tại nơi gắn annotation:
+An element named `value` has Java's shorthand syntax when it is the sole element specified where the annotation is attached:
 
 ~~~java
 @Rule("checkout")
@@ -311,7 +311,7 @@ class A {
 }
 ~~~
 
-Nó tương đương `@Rule(value = "checkout")` (các element còn lại dùng default nếu có). Nhưng nếu cần khai báo thêm element, dùng dạng đặt tên:
+It is equivalent to `@Rule(value = "checkout")` (remaining elements use defaults if any). However, if additional elements must be declared, use named form:
 
 ~~~java
 @Rule(value = "checkout", retries = 5)
@@ -319,65 +319,65 @@ class B {
 }
 ~~~
 
-Không được hiểu `value()` là hàm tự mang ý nghĩa nghiệp vụ hoặc là phương thức đặc biệt tự chạy. Nó chỉ có quy tắc cú pháp tiện lợi khi khai báo annotation. Cú pháp `@Rule("checkout", retries = 5)` không phải kiểu rút gọn được cho phép trong Java; phải viết tên `value =` khi cung cấp thêm cặp element–value.
+Do not interpret `value()` as a method with inherent business meaning or a special auto-running method. It merely has a convenient syntactic rule when applying the annotation. Syntax like `@Rule("checkout", retries = 5)` is not a permitted shorthand in Java; you must write `value =` when supplying additional element–value pairs.
 
-**Một annotation có thể có nhiều element**, nhưng chỉ duy nhất element `value` có cú pháp viết tắt này. Các element không có default phải được truyền tại nơi gắn annotation, dù tên của chúng không phải `value`.
+**An annotation can have multiple elements**, yet only the single element `value` has this shorthand syntax. Elements without defaults must be passed at the annotation site even if their names are not `value`.
 
-## 9. Đọc trên đúng phần tử runtime
+## 9. Reading on the right runtime element
 
-Để lấy annotation trên **method**, dùng `Method` từ `clazz.getDeclaredMethod(...)` rồi đọc bằng `method.getAnnotation(MyAnnotation.class)`; gọi `clazz.getAnnotation(...)` chỉ hỏi annotation của **class**. Đối với field, constructor, parameter hoặc TYPE_USE cũng phải chọn đúng đối tượng Reflection/`AnnotatedType`. `@Retention(RUNTIME)` bảo đảm metadata phù hợp được giữ để đọc; `@Target` chỉ hạn chế nơi dùng, không tự tạo hành vi. Các API declared, inherited và repeatable được giải thích ở phần đầu chương.
+To retrieve an annotation on a **method**, use `Method` from `clazz.getDeclaredMethod(...)` and read via `method.getAnnotation(MyAnnotation.class)`; calling `clazz.getAnnotation(...)` only queries annotations on the **class**. For fields, constructors, parameters, or TYPE_USE, you must likewise select the exact Reflection/`AnnotatedType` object. `@Retention(RUNTIME)` ensures matching metadata is kept for reading; `@Target` only restricts valid sites and creates no behavior on its own. Declared, inherited, and repeatable APIs are explained earlier in the chapter.
 
-## 10. Lỗi runtime cần xử lý khi đọc annotation
+## 10. Runtime errors to handle when reading annotations
 
-Thao tác đọc annotation element thông thường đơn giản, nhưng mã framework xử lý class file từ nhiều phiên bản có thể gặp ngoại lệ:
+Reading annotation elements is normally straightforward, yet framework code processing class files from multiple versions can encounter exceptions:
 
-| Tình huống | API liên quan | Cách hiểu/xử lý |
+| Situation | Related API | Interpretation/handling |
 | --- | --- | --- |
-| Annotation không tồn tại tại phần tử | `getAnnotation(...)` | Trả `null`; kiểm tra trước khi gọi element method |
-| Annotation không giữ ở `RUNTIME` | `getAnnotation(...)` | Metadata không sẵn có với Reflection runtime, không tự suy ra tên/giá trị |
-| Đọc method element từ annotation instance đúng kiểu | `rule.value()`, `rule.retries()` | Trả giá trị theo kiểu khai báo |
-| Lấy default của element không có default | `Method.getDefaultValue()` | Trả `null`; không có nghĩa một annotation instance hợp lệ có giá trị `null` |
-| Gọi `Method.invoke` với instance hoặc đối số sai | `invoke(...)` | Có thể ném `IllegalArgumentException` hoặc ngoại lệ Reflection liên quan |
-| Class literal trong annotation tham chiếu kiểu không còn tồn tại | Element trả `Class<?>` | Có thể ném `TypeNotPresentException` khi truy cập element |
-| Enum element tham chiếu enum constant đã bị loại ở runtime | Element trả `enum` | Có thể ném `EnumConstantNotPresentException` |
-| Type khai báo element đã thay đổi không tương thích với metadata còn lưu | Đọc element từ class file cũ | Có thể ném `AnnotationTypeMismatchException` |
-| Một required element bị thiếu do thay đổi không tương thích giữa các phiên bản | Lời gọi element method | Có thể ném `IncompleteAnnotationException` |
+| Annotation does not exist on element | `getAnnotation(...)` | Returns `null`; check before calling element methods |
+| Annotation is not retained at `RUNTIME` | `getAnnotation(...)` | Metadata is unavailable to runtime Reflection; do not infer names/values |
+| Reading element method from typed annotation instance | `rule.value()`, `rule.retries()` | Returns value with declared type |
+| Getting default of an element with no default | `Method.getDefaultValue()` | Returns `null`; does not mean a valid annotation instance has value `null` |
+| Calling `Method.invoke` with wrong instance or arguments | `invoke(...)` | Can throw `IllegalArgumentException` or related Reflection exceptions |
+| Class literal in annotation references a type that no longer exists | Element returning `Class<?>` | Can throw `TypeNotPresentException` when accessing the element |
+| Enum element references an enum constant removed at runtime | Element returning `enum` | Can throw `EnumConstantNotPresentException` |
+| Element declaration type changed incompatibly with stored metadata | Reading element from older class file | Can throw `AnnotationTypeMismatchException` |
+| A required element is missing due to incompatible changes across versions | Element method call | Can throw `IncompleteAnnotationException` |
 
-Khi dùng `Method.invoke`, ngoại lệ do method được gọi ném có thể được **bọc trong `InvocationTargetException`**, nên nếu cần diagnostic phải kiểm tra `getCause()`. Nếu chương trình giả định tên element từ cấu hình và gọi `getDeclaredMethod("name")` sai, API tra cứu có thể ném `NoSuchMethodException`; đó không phải là lỗi vì annotation instance không có giá trị.
+When using `Method.invoke`, an exception thrown by the invoked method can be **wrapped in `InvocationTargetException`**, so inspect `getCause()` if diagnostics are needed. If a program assumes an element name from configuration and calls `getDeclaredMethod("name")` incorrectly, the lookup API can throw `NoSuchMethodException`; that is not an error caused by an annotation instance lacking a value.
 
-Các trường hợp bất thường thường gắn với class file không đồng bộ phiên bản, thiếu dependency, class loader hoặc bytecode bị biến đổi. Không nên viết một bộ xử lý annotation chung rồi bắt mọi exception để silently bỏ qua metadata bắt buộc.
+Abnormal cases are usually tied to version-mismatched class files, missing dependencies, class loaders, or transformed bytecode. Do not write a generic annotation handler that catches all exceptions just to silently ignore required metadata.
 
-## 11. Đọc member value chưa thực hiện nghiệp vụ
+## 11. Reading member values does not yet execute business logic
 
-Với `@MinimumAge(18)`, `annotation.value()` chỉ trả số `18`; nó không tự đọc một field, so tuổi hoặc từ chối input. Tương tự, element `handler()` trả `Class<?>` không tự khởi tạo và chạy handler. Cần validator/framework hoặc caller đọc cấu hình, lấy dữ liệu thực tế và ra quyết định. Bài cuối chương có ví dụ chạy được và chỉ rõ các ranh giới validation.
+With `@MinimumAge(18)`, `annotation.value()` only returns the number `18`; it does not automatically read a field, compare ages, or reject input. Likewise, an element `handler()` returning `Class<?>` does not automatically instantiate and run a handler. A validator/framework or caller is needed to read the configuration, retrieve actual data, and make decisions. The final lesson of the chapter provides a runnable example and clarifies validation boundaries.
 
-## 12. Checklist khi đọc annotation element trong ứng dụng
+## 12. Checklist when reading annotation elements in an application
 
-1. **Xác định nơi annotation được gắn:** class, method, field, constructor hay parameter; tra cứu đúng phần tử.
-2. **Kiểm tra retention:** cần `RUNTIME` để đọc bằng Reflection runtime.
-3. **Chọn đúng annotation type:** dùng `getAnnotation(MyAnno.class)` và kiểm tra `null`.
-4. **Ưu tiên typed accessor:** `anno.value()`, `anno.level()`, `anno.tags()` nếu biết type; tránh Reflection hai lần không cần thiết.
-5. **Nếu xử lý tổng quát:** dùng `annotation.annotationType().getDeclaredMethods()`, `method.invoke(annotation)` và `getDefaultValue()` đúng mục đích.
-6. **Đừng nhầm default và actual:** default trên khai báo không chứng minh annotation instance hiện dùng default.
-7. **Xử lý giá trị nhiều kiểu:** primitive/wrapper, `String`, `Class<?>`, enum, annotation lồng nhau, mảng một chiều; định dạng array đúng.
-8. **Cân nhắc class loader và phiên bản:** thay đổi element signature hoặc enum/class được tham chiếu có thể khiến code đọc gặp exception ở runtime.
-9. **Giữ biệt lập metadata và nghiệp vụ:** cần code/framework cụ thể để biến giá trị annotation thành validation, routing, xử lý giao dịch hoặc behavior.
-10. **Kiểm thử trên artifact thực tế:** khi nhiều module hoặc công cụ bytecode tham gia, xác minh annotation thật sự được lưu và có giá trị phù hợp trong class file đã phát hành.
+1. **Identify where the annotation is attached:** class, method, field, constructor, or parameter; query the right element.
+2. **Verify retention:** `RUNTIME` is required for reading via runtime Reflection.
+3. **Choose the right annotation type:** use `getAnnotation(MyAnno.class)` and check for `null`.
+4. **Prefer typed accessors:** `anno.value()`, `anno.level()`, `anno.tags()` when the type is known; avoid unnecessary double Reflection.
+5. **If handling generically:** use `annotation.annotationType().getDeclaredMethods()`, `method.invoke(annotation)`, and `getDefaultValue()` for their intended purposes.
+6. **Do not confuse default with actual:** a default on the declaration does not prove the current annotation instance uses the default.
+7. **Handle multi-type values:** primitives/wrappers, `String`, `Class<?>`, enums, nested annotations, one-dimensional arrays; format arrays properly.
+8. **Consider class loaders and versions:** changing element signatures or referenced enums/classes can cause reading code to throw runtime exceptions.
+9. **Keep metadata separate from business logic:** specific code/frameworks are needed to turn annotation values into validation, routing, transaction handling, or behavior.
+10. **Test against real artifacts:** when multiple modules or bytecode tools are involved, verify annotations are truly retained with appropriate values in the released class files.
 
-## 13. Tự kiểm tra
+## 13. Self-check
 
-**Câu 1:** Annotation type khai báo `int retries() default 3;`. `Rule rule` trên `Checkout` ghi `retries = 5`. `rule.retries()` và `Rule.class.getDeclaredMethod("retries").getDefaultValue()` trả gì? **Lần lượt 5 và 3.**
+**Question 1:** An annotation type declares `int retries() default 3;`. `Rule rule` on `Checkout` specifies `retries = 5`. What do `rule.retries()` and `Rule.class.getDeclaredMethod("retries").getDefaultValue()` return? **5 and 3 respectively.**
 
-**Câu 2:** `getAnnotation(MyAnno.class)` trả `null`. Có thể gọi `.value()` không? **Không.** Phải kiểm tra annotation có tồn tại tại đúng phần tử và giữ ở runtime.
+**Question 2:** `getAnnotation(MyAnno.class)` returns `null`. Can you call `.value()`? **No.** You must verify the annotation exists on the right element and is retained at runtime.
 
-**Câu 3:** Element khai báo `String[] tags() default {};`. Gọi `annotation.tags()` nhận `List<String>` hay `String[]`? **`String[]`**, phải dùng `Arrays.toString`/duyệt mảng nếu muốn hiển thị nội dung.
+**Question 3:** An element declares `String[] tags() default {};`. Does calling `annotation.tags()` return `List<String>` or `String[]`? **`String[]`**, so you must use `Arrays.toString`/loop over the array to display its contents.
 
-**Câu 4:** Vì sao gọi `rule.owner().name()` hợp lệ? **Vì `owner()` trả một annotation instance kiểu `Owner`**, mà `Owner` có element `name()` trả `String`.
+**Question 4:** Why is calling `rule.owner().name()` valid? **Because `owner()` returns an annotation instance of type `Owner`**, and `Owner` has element `name()` returning `String`.
 
-**Câu 5:** Có thể dùng `annotation.getClass().getDeclaredMethods()` để coi mọi method tìm được là element chuẩn không? **Không nên.** Dùng `annotation.annotationType()` để lấy contract annotation type, tránh nhầm implementation class.
+**Question 5:** Can you use `annotation.getClass().getDeclaredMethods()` and treat every found method as a standard element? **You should not.** Use `annotation.annotationType()` to get the annotation type contract and avoid confusing it with the implementation class.
 
-**Câu 6:** `handler()` trả `Integer.class`. Có nghĩa ứng dụng đã tạo `Integer` và chạy một handler không? **Không.** Đây chỉ là giá trị class literal; hành vi xử lý phải do caller quyết định.
+**Question 6:** `handler()` returns `Integer.class`. Does that mean the application instantiated `Integer` and ran a handler? **No.** That is only a class literal value; execution behavior must be decided by the caller.
 
-**Câu 7:** `Method.getDefaultValue()` là `null` thì `annotation.element()` chắc cũng `null`? **Không.** Nó chỉ có nghĩa element không khai báo default; một annotation instance hợp lệ phải có giá trị theo quy tắc sử dụng annotation.
+**Question 7:** If `Method.getDefaultValue()` is `null`, does `annotation.element()` also have to be `null`? **No.** It only means the element declared no default; a valid annotation instance must have a value per annotation usage rules.
 
-**Ghi nhớ:** **Element của annotation là phương thức không tham số trên annotation type.** Lấy annotation instance từ đúng phần tử (`getAnnotation`), rồi gọi phương thức element (`annotation.value()` hoặc `Method.invoke(annotation)`) để đọc **giá trị thực tế**. Chỉ dùng `Method.getDefaultValue()` khi muốn đọc **giá trị mặc định trong khai báo**, và không nhầm metadata với hành vi nghiệp vụ.
+**Key takeaway:** **An annotation element is a zero-parameter method on the annotation type.** Obtain the annotation instance from the right element (`getAnnotation`), then invoke the element method (`annotation.value()` or `Method.invoke(annotation)`) to read the **actual value**. Use `Method.getDefaultValue()` only when you want to read the **declared default value**, and do not confuse metadata with business behavior.

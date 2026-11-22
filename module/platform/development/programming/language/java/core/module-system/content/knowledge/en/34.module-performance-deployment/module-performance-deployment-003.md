@@ -1,25 +1,25 @@
-# jlink image và thời gian khởi động
+# jlink Images and Startup Time
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Một ứng dụng Java modular thường chạy trên một JDK hoặc JRE có nhiều module hơn mức ứng dụng thực sự cần. Khi triển khai, ta có thể tạo một **custom runtime image** chỉ chứa runtime module cần thiết cùng ứng dụng và dependency của nó. Công cụ `jlink` thực hiện việc liên kết này.
+A modular Java application typically runs on a JDK or JRE that contains more modules than the application actually needs. At deployment time, you can build a **custom runtime image** containing only the required runtime modules along with the application and its dependencies. The `jlink` tool performs this linking.
 
-Custom image giúp đóng gói runtime nhất quán với ứng dụng, giảm dung lượng phân phối và có thể giảm thời gian khởi động trong một số môi trường. Tuy nhiên, image nhỏ hơn không tự động đồng nghĩa ứng dụng khởi động nhanh hơn: thời gian khởi động còn phụ thuộc class loading, khởi tạo framework, I/O, JIT, cấu hình JVM và công việc mà ứng dụng thực hiện.
+A custom image helps package a consistent runtime with the application, reduces distribution size, and can reduce startup time in some environments. However, a smaller image does not automatically mean the application starts faster: startup time also depends on class loading, framework initialization, I/O, JIT, JVM configuration, and the work the application performs.
 
-Bài này hướng dẫn tạo image bằng `jlink`, xác định module cần đưa vào, cấu hình launcher và đánh giá tác động tới startup bằng phép đo có kiểm soát.
+This lesson guides you through building an image with `jlink`, determining which modules to include, configuring a launcher, and evaluating the impact on startup through controlled measurements.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích custom runtime image và vai trò của `jlink`.
-- Xác định module roots cùng dependency cần đóng gói.
-- Tạo image có launcher riêng cho ứng dụng.
-- Chọn các tùy chọn giảm kích thước và hiểu trade-off.
-- Chạy ứng dụng bằng runtime image mà không phụ thuộc JDK cài trên máy đích.
-- Đo cold startup và warm startup để đánh giá kết quả thực tế.
+- Explain custom runtime images and the role of `jlink`.
+- Identify root modules and dependencies to package.
+- Create an image with a dedicated launcher for the application.
+- Choose size-reduction options and understand their trade-offs.
+- Run the application using the runtime image without depending on a JDK installed on the target machine.
+- Measure cold startup and warm startup to evaluate real-world results.
 
-## 2. jlink tạo ra những gì?
+## 2. What Does jlink Produce?
 
-`jlink` kết hợp các module đã biên dịch thành một runtime image có thể chạy độc lập. Image thường có cấu trúc tương tự:
+`jlink` combines compiled modules into a standalone executable runtime image. The image typically has a structure similar to:
 
 ~~~text
 app-image/
@@ -32,20 +32,20 @@ app-image/
 └── release
 ~~~
 
-Cấu trúc và file cụ thể thay đổi theo hệ điều hành và JDK. Thư mục `bin` chứa launcher runtime và launcher ứng dụng nếu đã khai báo; các thư mục còn lại chứa cấu hình, thư viện runtime, thông tin pháp lý và metadata.
+The exact structure and files vary by operating system and JDK. The `bin` directory contains the runtime launcher and the application launcher if declared; the remaining directories contain configuration, runtime libraries, legal notices, and metadata.
 
-Image có thể được chuyển tới máy đích cùng hệ điều hành và kiến trúc tương thích. Máy đích không cần cài một JDK đầy đủ riêng để chạy ứng dụng từ image này.
+The image can be transferred to a target machine with a compatible operating system and architecture. The target machine does not need a separate full JDK installed to run the application from this image.
 
-Điều quan trọng là `jlink` làm việc với **named modules**. Các module đầu vào phải có thể được phân giải từ runtime modules và module path. Một thư viện chỉ có trên classpath hoặc một automatic module không thể được đưa trực tiếp vào linked image như một named module thông thường. Cần modularize, thay thế hoặc đóng gói dependency đó theo kiến trúc phù hợp trước khi link.
+Importantly, `jlink` works with **named modules**. Input modules must be resolvable from runtime modules and the module path. A library present only on the classpath or an automatic module cannot be placed directly into a linked image as a regular named module. You need to modularize, replace, or package that dependency according to an appropriate architecture before linking.
 
-## 3. Chuẩn bị module cho ứng dụng
+## 3. Preparing Modules for the Application
 
-Giả sử có ứng dụng gồm hai module:
+Suppose we have an application consisting of two modules:
 
-- `com.example.app`: module chứa main class.
-- `com.example.greeting`: module cung cấp API mà app sử dụng.
+- `com.example.app`: the module containing the main class.
+- `com.example.greeting`: the module providing the API used by the app.
 
-Cấu trúc sau khi biên dịch:
+Directory structure after compilation:
 
 ~~~text
 project/
@@ -55,7 +55,7 @@ project/
 └── app-image/
 ~~~
 
-Module ứng dụng:
+Application module:
 
 ~~~java
 module com.example.app {
@@ -63,7 +63,7 @@ module com.example.app {
 }
 ~~~
 
-Module greeting:
+Greeting module:
 
 ~~~java
 module com.example.greeting {
@@ -85,21 +85,21 @@ public class Main {
 }
 ~~~
 
-Trước khi link, cần bảo đảm tất cả dependency mà ứng dụng cần đều có thể được tìm thấy. Nếu module app dùng JDBC, logging, XML hoặc service khác, module tương ứng phải nằm trong dependency closure hoặc được thêm làm root theo yêu cầu thực tế.
+Before linking, make sure all dependencies needed by the application can be located. If the app module uses JDBC, logging, XML, or other services, the corresponding modules must be in the dependency closure or added as roots according to actual requirements.
 
-Có thể dùng `jar --describe-module --file` để xem descriptor của từng modular JAR:
+You can use `jar --describe-module --file` to inspect the descriptor of each modular JAR:
 
 ~~~bash
 jar --describe-module --file mods/com.example.app.jar
 ~~~
 
-Cần xác nhận module name, `requires`, `exports`, `uses` và `provides` phù hợp với cấu hình mong đợi.
+Confirm that the module name, `requires`, `exports`, `uses`, and `provides` match the expected configuration.
 
-## 4. Xác định module cần link
+## 4. Determining Modules to Link
 
-Tham số quan trọng nhất là `--add-modules`. Nó chỉ định root module; `jlink` sẽ giải quyết các dependency cần thiết của các root đó.
+The most important option is `--add-modules`. It specifies the root modules; `jlink` resolves the dependencies required by those roots.
 
-Ví dụ:
+Example:
 
 ~~~bash
 jlink \
@@ -108,43 +108,43 @@ jlink \
     --output app-image
 ~~~
 
-Giải thích:
+Explanation:
 
-- `--module-path`: nơi tìm các module đầu vào. Ví dụ gồm thư mục `jmods` của JDK và thư mục chứa modular JAR của ứng dụng.
-- `--add-modules com.example.app`: chọn app làm root module để link.
-- `--output app-image`: thư mục đích của runtime image.
+- `--module-path`: where to find input modules. The example includes the JDK's `jmods` directory and the directory containing the application's modular JARs.
+- `--add-modules com.example.app`: selects the app as the root module to link.
+- `--output app-image`: target directory for the runtime image.
 
-Trên Windows PowerShell, path-list dùng dấu chấm phẩy:
+On Windows PowerShell, path-list uses semicolons:
 
 ~~~powershell
 jlink --module-path "$env:JAVA_HOME\jmods;mods" --add-modules com.example.app --output app-image
 ~~~
 
-Trên Linux/macOS, path-list thường dùng dấu hai chấm:
+On Linux/macOS, path-list normally uses colons:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" --add-modules com.example.app --output app-image
 ~~~
 
-Đường dẫn `$JAVA_HOME/jmods` phải thuộc JDK tương thích với công cụ `jlink` đang chạy. Không nên trộn các module runtime từ những JDK release khác nhau.
+The `$JAVA_HOME/jmods` path must belong to a JDK compatible with the `jlink` tool being executed. Do not mix runtime modules from different JDK releases.
 
-### Tìm module dependency bằng jdeps
+### Finding Module Dependencies with jdeps
 
-`jdeps` phân tích dependency tĩnh của class hoặc module và có thể gợi ý danh sách module cần thiết:
+`jdeps` analyzes static dependencies of classes or modules and can suggest a list of required modules:
 
 ~~~bash
 jdeps --print-module-deps --module-path mods --module com.example.app
 ~~~
 
-Kết quả là danh sách module dependency có thể dùng làm đầu vào để xem xét cho `--add-modules`. Hãy đọc và xác nhận danh sách trước khi link.
+The output is a list of module dependencies that can serve as input to review for `--add-modules`. Read and verify the list before linking.
 
-Phân tích tĩnh không thể luôn phát hiện dependency được nạp qua reflection, tên class cấu hình trong file, JNI hoặc plugin được khám phá động. Nếu ứng dụng có các cơ chế này, hãy kiểm tra cấu hình thực tế và bổ sung module cần thiết bằng `--add-modules`.
+Static analysis cannot always detect dependencies loaded via reflection, class names configured in files, JNI, or dynamically discovered plugins. If your application uses these mechanisms, check the actual configuration and add the needed modules via `--add-modules`.
 
-## 5. Thêm service provider khi cần
+## 5. Adding Service Providers When Needed
 
-Nếu ứng dụng sử dụng `ServiceLoader`, provider module phải được đưa vào runtime image để ứng dụng tìm thấy implementation khi chạy.
+If the application uses `ServiceLoader`, provider modules must be included in the runtime image so the application finds implementations at runtime.
 
-Có thể dùng:
+You can use:
 
 ~~~bash
 jlink \
@@ -154,13 +154,13 @@ jlink \
     --output app-image
 ~~~
 
-`--bind-services` yêu cầu linker liên kết các service provider module phù hợp với service được các module đã chọn sử dụng, cùng dependency cần thiết của chúng. Tùy chọn này hữu ích khi provider không phải dependency `requires` trực tiếp của app.
+`--bind-services` instructs the linker to link service provider modules matching the services used by the selected modules, along with their required dependencies. This option is useful when providers are not direct `requires` dependencies of the app.
 
-Không phải ứng dụng nào cũng cần `--bind-services`. Nếu không dùng service binding hoặc provider đã được đưa vào graph bằng cách khác, hãy chọn tùy chọn theo cấu trúc ứng dụng. Sau khi link, nên chạy kiểm thử chức năng cho từng service để xác nhận provider thực sự có mặt.
+Not every application needs `--bind-services`. If service binding is not used or providers are already pulled into the graph another way, choose options based on your application's structure. After linking, run functional tests for each service to confirm the providers are actually present.
 
-## 6. Tạo launcher riêng cho ứng dụng
+## 6. Creating a Dedicated Application Launcher
 
-Có thể tạo launcher mang tên ứng dụng ngay trong image:
+You can generate a launcher named after your application directly inside the image:
 
 ~~~bash
 jlink \
@@ -170,37 +170,37 @@ jlink \
     --output app-image
 ~~~
 
-Cú pháp:
+Syntax:
 
 ~~~text
 --launcher <launcher-name>=<module-name>/<main-class>
 ~~~
 
-Sau khi tạo image, có thể chạy launcher:
+After creating the image, you can run the launcher:
 
-Trên Linux/macOS:
+On Linux/macOS:
 
 ~~~bash
 ./app-image/bin/app
 ~~~
 
-Trên Windows:
+On Windows:
 
 ~~~powershell
 .\app-image\bin\app.bat
 ~~~
 
-Launcher được tạo từ module và main class đã chỉ định. Có thể truyền thêm đối số ứng dụng sau tên launcher:
+The launcher is generated from the specified module and main class. You can pass additional application arguments after the launcher name:
 
 ~~~bash
 ./app-image/bin/app --config config/app.yml
 ~~~
 
-Cách này giúp người vận hành chạy ứng dụng bằng một lệnh rõ ràng mà không cần nhớ module name và main class.
+This lets operators run the application with a clear command without needing to remember the module name and main class.
 
-## 7. Giảm kích thước runtime image
+## 7. Reducing Runtime Image Size
 
-`jlink` cung cấp nhiều tùy chọn để giảm kích thước image. Ví dụ:
+`jlink` provides several options to reduce image size. Example:
 
 ~~~bash
 jlink \
@@ -213,117 +213,117 @@ jlink \
     --output app-image
 ~~~
 
-Các tùy chọn:
+Options:
 
-| Tùy chọn | Tác dụng | Trade-off cần cân nhắc |
+| Option | Effect | Trade-off to Consider |
 | --- | --- | --- |
-| `--strip-debug` | Loại bỏ thông tin debug khỏi class file. | Có thể làm việc debug, phân tích stack và công cụ cần metadata kém thuận tiện hơn. |
-| `--no-header-files` | Bỏ header file dùng cho native development. | Không phù hợp nếu image cần cung cấp header cho quy trình biên dịch native. |
-| `--no-man-pages` | Bỏ man page của runtime. | Người vận hành không có tài liệu man page trong image. |
-| `--compress=2` | Nén resource trong image ở mức cao hơn. | Có thể tăng chi phí giải nén/đọc resource và không nhất thiết cải thiện startup. |
+| `--strip-debug` | Strips debug information from class files. | Can make debugging, stack trace analysis, and tools requiring metadata less convenient. |
+| `--no-header-files` | Omits header files used for native development. | Unsuitable if the image must provide headers for native compilation workflows. |
+| `--no-man-pages` | Omits runtime man pages. | Operators will not have man page documentation inside the image. |
+| `--compress=2` | Compresses resources in the image at a higher level. | Can increase decompression/resource-reading cost and does not necessarily improve startup. |
 
-Các giá trị nén được hỗ trợ và hành vi chi tiết phụ thuộc phiên bản JDK. Kiểm tra `jlink --help` của đúng JDK dùng để build trước khi chọn mức nén.
+Supported compression values and exact behavior depend on the JDK version. Check `jlink --help` of the exact JDK used to build before choosing a compression level.
 
-Không nên bật mọi tùy chọn giảm kích thước theo thói quen. Hãy xác định image có cần header, man page, debug metadata hay resource được truy cập thường xuyên không. Kích thước image là một chỉ số triển khai; nó không phải thước đo trực tiếp của hiệu năng ứng dụng.
+Do not enable all size-reduction options out of habit. Determine whether the image needs headers, man pages, debug metadata, or frequently accessed resources. Image size is a deployment metric; it is not a direct measure of application performance.
 
-## 8. Chạy và kiểm tra runtime image
+## 8. Running and Verifying the Runtime Image
 
-Sau khi link xong, dùng chính runtime trong image để chạy:
+After linking completes, use the runtime inside the image itself to run:
 
 ~~~bash
 ./app-image/bin/java --list-modules
 ~~~
 
-Trên Windows:
+On Windows:
 
 ~~~powershell
 .\app-image\bin\java.exe --list-modules
 ~~~
 
-Danh sách này cho thấy module có trong custom runtime image. Có thể kiểm tra launcher app:
+This list shows the modules present in the custom runtime image. You can test the app launcher:
 
 ~~~bash
 ./app-image/bin/app
 ~~~
 
-Nếu image chạy lỗi do thiếu module hoặc service, hãy kiểm tra lại module roots, dependency, module path đầu vào và tùy chọn `--bind-services`. Đừng mặc định rằng lệnh link thành công đã chứng minh mọi luồng chạy đều hoạt động.
+If the image fails to run due to a missing module or service, re-check module roots, dependencies, input module path, and the `--bind-services` option. Do not assume a successful link command proves all execution paths work.
 
-Nên chạy kiểm thử trên môi trường sạch tương tự máy đích, không dựa vào các JAR hoặc JDK module có sẵn trên máy phát triển. Điều này giúp phát hiện trường hợp ứng dụng vô tình phụ thuộc vào môi trường build.
+Run tests in a clean environment similar to the target machine, without relying on JARs or JDK modules already present on the development machine. This helps catch cases where the application accidentally depends on the build environment.
 
-## 9. jlink ảnh hưởng đến thời gian khởi động như thế nào?
+## 9. How Does jlink Affect Startup Time?
 
-Custom runtime image có thể ảnh hưởng tới startup theo một số cách:
+A custom runtime image can affect startup in several ways:
 
-- **Ít module và resource hơn:** có thể giảm lượng dữ liệu runtime cần phân phối và một số công việc khởi tạo liên quan đến module không được đóng gói.
-- **Ít file hơn:** có thể giảm I/O hoặc chi phí dò tìm trong một số môi trường triển khai.
-- **Nén resource:** giảm kích thước image nhưng có thể thêm chi phí giải nén khi resource được đọc.
-- **Khởi tạo ứng dụng:** thời gian tạo Spring context, kết nối database, nạp cấu hình, scan classpath/module path và chạy code khởi động thường chiếm phần đáng kể. `jlink` không tự loại bỏ các công việc này.
-- **JIT và warm-up:** lần chạy đầu có thể khác các lần chạy sau do JVM biên dịch code nóng và hệ điều hành có cache.
+- **Fewer modules and resources:** can reduce the amount of runtime data to distribute and some initialization work associated with unpackaged modules.
+- **Fewer files:** can reduce I/O or lookup overhead in some deployment environments.
+- **Resource compression:** reduces image size but can add decompression cost when resources are read.
+- **Application initialization:** time spent creating a Spring context, connecting to a database, loading configuration, scanning the classpath/module path, and running startup code often accounts for a significant portion. `jlink` does not eliminate this work on its own.
+- **JIT and warm-up:** the first run can differ from subsequent runs because the JVM compiles hot code and the OS has caches.
 
-Do đó, kết quả phụ thuộc workload và môi trường. Một image nhỏ hơn có thể giúp tải xuống và khởi tạo môi trường nhanh hơn nhưng thời gian từ lúc chạy lệnh tới lúc ứng dụng sẵn sàng vẫn có thể gần như không đổi nếu phần lớn thời gian nằm ở application initialization hoặc kết nối bên ngoài.
+Therefore, results depend on workload and environment. A smaller image can help download and initialize the environment faster, yet the time from invoking the command until the application is ready may remain nearly unchanged if most of the time is spent in application initialization or external connections.
 
-Nếu mục tiêu là startup latency thấp, hãy đo ứng dụng thực tế và xác định phần thời gian bị chi phối bởi runtime hay bởi logic khởi tạo của ứng dụng.
+If the goal is low startup latency, measure the actual application and determine whether time is dominated by the runtime or by application initialization logic.
 
-## 10. Đo cold startup và warm startup
+## 10. Measuring Cold Startup and Warm Startup
 
-Một phép đo có ý nghĩa phải định nghĩa rõ điểm bắt đầu và điểm kết thúc.
+A meaningful measurement must clearly define its start point and end point.
 
-Ví dụ, với ứng dụng CLI kết thúc ngay sau khi in kết quả, có thể đo thời gian process:
+For example, for a CLI application that exits immediately after printing output, you can measure process time:
 
-Trên Linux/macOS:
+On Linux/macOS:
 
 ~~~bash
 time ./app-image/bin/app
 ~~~
 
-Trên Windows PowerShell:
+On Windows PowerShell:
 
 ~~~powershell
 Measure-Command { & ".\app-image\bin\app.bat" }
 ~~~
 
-Với server, thời điểm process bắt đầu chưa phải thời điểm server sẵn sàng. Nên đo từ lúc launch đến khi health endpoint trả về trạng thái ready hoặc log phát ra tín hiệu readiness có ý nghĩa.
+For a server, process start time is not when the server is ready. Measure from launch until the health endpoint returns a ready status or the log emits a meaningful readiness signal.
 
-Để so sánh JDK đầy đủ và custom image:
+To compare a full JDK and a custom image:
 
-1. Build cùng một phiên bản ứng dụng, cùng cấu hình và cùng dependency.
-2. Dùng cùng JDK release, JVM flags, máy, CPU quota, memory limit và điều kiện môi trường.
-3. Định nghĩa một mốc readiness giống nhau cho cả hai cách chạy.
-4. Chạy nhiều lần, ghi từng kết quả và so sánh median cùng các percentile phù hợp.
-5. Tách lần chạy cold process khỏi warm process; nếu cần đo cold OS cache, phải kiểm soát cache và môi trường riêng.
-6. Giữ nguyên các dịch vụ ngoài như database, DNS và network để tránh so sánh hai điều kiện khác nhau.
-7. Đo đồng thời kích thước image, thời gian tải/phân phối và startup latency.
+1. Build the same application version, same configuration, and same dependencies.
+2. Use the same JDK release, JVM flags, machine, CPU quota, memory limit, and environmental conditions.
+3. Define an identical readiness milestone for both runs.
+4. Run multiple times, record each result, and compare the median along with appropriate percentiles.
+5. Separate cold process runs from warm process runs; if measuring cold OS cache, control the cache and environment separately.
+6. Keep external services such as databases, DNS, and network unchanged to avoid comparing two different conditions.
+7. Measure image size, download/distribution time, and startup latency together.
 
-Không dùng một lần chạy duy nhất làm kết luận. Kết quả có thể bị nhiễu bởi antivirus, filesystem cache, CPU scheduling, container startup, network và trạng thái máy.
+Do not use a single run as a conclusion. Results can be skewed by antivirus, filesystem cache, CPU scheduling, container startup, network, and machine state.
 
-Với server, nên ghi timestamp tại ít nhất hai mốc: process start và application ready. Nếu cần phân tích sâu hơn, thêm mốc sau khi module/lớp chính được nạp, sau khi framework context khởi tạo và sau khi kết nối dependency ngoài hoàn tất.
+For a server, record timestamps at least at two milestones: process start and application ready. If deeper analysis is needed, add milestones after main modules/classes are loaded, after the framework context initializes, and after external dependency connections complete.
 
-## 11. Khi startup vẫn chậm
+## 11. When Startup Is Still Slow
 
-Nếu custom image đã nhỏ nhưng ứng dụng vẫn khởi động chậm, hãy điều tra công việc thực tế trong startup path:
+If the custom image is already small yet the application still starts slowly, investigate the actual work on the startup path:
 
-- Giảm scan package/class không cần thiết và tránh nạp plugin không dùng.
-- Trì hoãn khởi tạo component chỉ dùng ở một số request.
-- Giảm số kết nối hoặc truy vấn đồng bộ được thực hiện trước readiness.
-- Tránh gọi network hoặc đọc file lớn trong static initializer.
-- Đo thời gian khởi tạo framework và từng bean/service quan trọng.
-- Kiểm tra logging, DNS, TLS handshake và database connection pool.
-- Xem xét Class Data Sharing (CDS) nếu phù hợp với JDK, nền tảng và cách đóng gói. CDS là cơ chế riêng cần cấu hình và đo riêng; nó không tự được bật chỉ vì đã dùng `jlink`.
+- Reduce unnecessary package/class scanning and avoid loading unused plugins.
+- Defer initialization of components used only on certain requests.
+- Reduce the number of synchronous connections or queries performed before readiness.
+- Avoid network calls or reading large files inside static initializers.
+- Measure initialization time of the framework and each key bean/service.
+- Inspect logging, DNS, TLS handshake, and database connection pools.
+- Consider Class Data Sharing (CDS) if suitable for your JDK, platform, and packaging. CDS is a separate mechanism requiring separate configuration and measurement; it is not enabled automatically just by using `jlink`.
 
-Không tối ưu bằng cách bỏ module mà ứng dụng vẫn cần. Một image nhỏ nhưng thiếu module sẽ không thể chạy đúng; một image có đủ module nhưng startup chậm vẫn cần profiling ở tầng ứng dụng.
+Do not optimize by removing modules the application still needs. A small image missing a module will not run properly; an image with all required modules that still starts slowly needs profiling at the application layer.
 
-## 12. Quy trình triển khai đề xuất
+## 12. Recommended Deployment Workflow
 
-1. Build các named module và dependency thành artifact có descriptor hợp lệ.
-2. Dùng `jdeps` để gợi ý dependency tĩnh; rà soát thêm reflection, JNI, plugin và service loading.
-3. Chọn module root bằng `--add-modules`; thêm `--bind-services` nếu cần liên kết provider.
-4. Chạy `jlink` với module path chứa JDK modules và application modules.
-5. Thêm launcher bằng `--launcher` và chỉ bật các tùy chọn giảm kích thước phù hợp.
-6. Kiểm tra danh sách module của image và chạy test trên môi trường sạch.
-7. Đo startup theo readiness marker, lặp nhiều lần và so sánh với baseline.
-8. Lưu lệnh link, JDK version, module roots, checksum image và kết quả benchmark cùng artifact phát hành.
+1. Build named modules and dependencies into artifacts with valid descriptors.
+2. Use `jdeps` to suggest static dependencies; also review reflection, JNI, plugins, and service loading.
+3. Select root modules with `--add-modules`; add `--bind-services` if providers need to be linked.
+4. Run `jlink` with a module path containing JDK modules and application modules.
+5. Add a launcher with `--launcher` and enable only appropriate size-reduction options.
+6. Inspect the image's module list and run tests in a clean environment.
+7. Measure startup against a readiness marker, repeat multiple times, and compare with the baseline.
+8. Archive the link command, JDK version, module roots, image checksum, and benchmark results alongside the release artifacts.
 
-Ví dụ lệnh tổng hợp:
+Consolidated example command:
 
 ~~~bash
 jlink \
@@ -338,17 +338,17 @@ jlink \
     --output app-image
 ~~~
 
-Đây là cấu hình minh họa. Chọn module, service binding và tùy chọn nén theo dependency và yêu cầu thực tế của ứng dụng.
+This is an illustrative configuration. Choose modules, service binding, and compression options according to your application's actual dependencies and requirements.
 
-## 13. Ghi nhớ
+## 13. Takeaways
 
-- `jlink` tạo custom runtime image từ named modules và dependency đã được resolve.
-- `--module-path` chỉ nơi tìm JDK modules và application modules; `--add-modules` chọn root module.
-- `--bind-services` giúp đưa service provider phù hợp vào image khi ứng dụng dùng ServiceLoader.
-- `--launcher` tạo lệnh chạy ứng dụng trong image.
-- `--strip-debug`, `--no-header-files`, `--no-man-pages` và `--compress` có thể giảm kích thước nhưng có trade-off.
-- Image nhỏ hơn không bảo đảm startup nhanh hơn; phải đo cold/warm startup và thời điểm application ready.
-- Nếu startup vẫn chậm, profiling application initialization, I/O, network và framework thường cho biết nguyên nhân cụ thể hơn.
-- Kiểm thử image trên môi trường sạch tương tự production trước khi phát hành.
+- `jlink` creates a custom runtime image from named modules and resolved dependencies.
+- `--module-path` specifies where to find JDK modules and application modules; `--add-modules` selects root modules.
+- `--bind-services` helps include matching service providers in the image when the application uses ServiceLoader.
+- `--launcher` creates a command inside the image to run the application.
+- `--strip-debug`, `--no-header-files`, `--no-man-pages`, and `--compress` can reduce size but carry trade-offs.
+- A smaller image does not guarantee faster startup; you must measure cold/warm startup and application ready time.
+- If startup remains slow, profiling application initialization, I/O, network, and frameworks usually reveals more specific causes.
+- Test the image in a clean environment similar to production before releasing.
 
-Hãy dùng `jlink` để tạo runtime gọn và có thể tái lập, sau đó dùng benchmark trên chính ứng dụng để quyết định cấu hình nào thực sự cải thiện thời gian triển khai và khởi động.
+Use `jlink` to create a lean and reproducible runtime, then use benchmarks on your actual application to decide which configuration genuinely improves deployment and startup time.

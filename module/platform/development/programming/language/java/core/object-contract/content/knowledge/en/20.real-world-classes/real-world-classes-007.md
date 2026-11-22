@@ -1,8 +1,8 @@
-# Vai trò của getClass() trong equals(), clone() và chẩn đoán
+# The Role of getClass() in equals(), clone(), and Diagnostics
 
-## 1. getClass() cho biết điều gì?
+## 1. What Does getClass() Tell Us?
 
-**Object.getClass()** là phương thức public final của java.lang.Object, có trên mọi đối tượng Java không null. Nó trả về một đối tượng **Class** biểu diễn **lớp thực tế tại thời điểm chạy (runtime class)** của đối tượng đang nhận lời gọi, kể cả khi biến đang được khai báo bằng kiểu cha hoặc interface.
+**Object.getClass()** is a public final method of java.lang.Object, available on every non-null Java object. It returns a **Class** object representing the **actual runtime class** of the object receiving the call, even when the variable is declared with a superclass or interface type.
 
 ~~~java
 Object value = "Java";
@@ -10,23 +10,23 @@ Class<?> actual = value.getClass();
 System.out.println(actual == String.class); // true
 ~~~
 
-Biến value có kiểu khai báo Object nhưng đối tượng đang trỏ tới là String. Vì vậy getClass() trả Class của String. Kết quả **không phụ thuộc vào kiểu khai báo của biến tham chiếu**.
+The variable value has declared type Object, yet the object it points to is a String. Therefore getClass() returns the Class of String. The result **does not depend on the reference variable's declared type**.
 
-Một số điểm nền tảng:
+Some foundational points:
 
-- Class là đối tượng mô tả một kiểu trong môi trường chạy Java. Có thể dùng để kiểm tra tên, modifier, superclass, interface, annotation hay phục vụ reflection.
-- Với một đối tượng đang tồn tại, getClass() trả lớp thực tế của chính đối tượng đó. Các lần gọi không làm thay đổi lớp đối tượng.
-- getClass() là final nên không thể ghi đè để giả mạo lớp trả về bằng một phương thức có cùng chữ ký.
-- Gọi getClass() trên biến tham chiếu **null** gây NullPointerException, vì không có đối tượng để gọi phương thức.
-- Một lớp có thể được nạp bởi các class loader khác nhau. Danh tính Class không chỉ là tên chuỗi của lớp; hai kiểu trùng tên nhưng do class loader khác nhau định nghĩa có thể là những Class khác nhau.
+- Class is an object describing a type in the Java runtime environment. It can be used to inspect names, modifiers, superclasses, interfaces, annotations, or for reflection.
+- For an existing object, getClass() returns the actual class of that object itself. Calling it does not alter the object's class.
+- getClass() is final, so it cannot be overridden to spoof the returned class with a method of the same signature.
+- Calling getClass() on a **null** reference variable causes a NullPointerException, because there is no object on which to invoke the method.
+- A class can be loaded by different class loaders. Class identity is not merely the class name string; two types with the same name defined by different class loaders can be distinct Class objects.
 
-Ba ứng dụng thường gặp trong hợp đồng đối tượng là: **kiểm tra kiểu chính xác trong equals()**, **xác minh kiểu runtime khi sao chép qua clone()**, và **chẩn đoán đối tượng hoặc hệ thống reflection/proxy**. getClass() tự nó không quyết định hai đối tượng bằng nhau, không thực hiện clone và không giải thích nguyên nhân lỗi.
+Three common applications in object contracts are: **exact type checking in equals()**, **verifying the runtime type when copying via clone()**, and **diagnosing objects or reflection/proxy systems**. By itself, getClass() does not decide whether two objects are equal, does not perform cloning, and does not explain the cause of a bug.
 
-## 2. getClass() trong equals(): so sánh đúng lớp runtime
+## 2. getClass() in equals(): Comparing the Exact Runtime Class
 
-Khi ghi đè equals(Object), lập trình viên phải xác định liệu hai đối tượng thuộc các kiểu khác nhau có được phép coi là bằng nhau hay không.
+When overriding equals(Object), a developer must decide whether two objects belonging to different types may be considered equal.
 
-Một mẫu phổ biến để chỉ chấp nhận **đúng cùng lớp runtime**:
+A common pattern for accepting only **the exact same runtime class**:
 
 ~~~java
 @Override
@@ -42,45 +42,45 @@ public boolean equals(Object obj) {
 }
 ~~~
 
-Đây là **trích đoạn** nằm trong lớp Account có trường id khác null và không thay đổi; chưa phải chương trình độc lập.
+This is an **excerpt** inside an Account class that has a non-null, immutable id field; not a standalone program.
 
-Cách triển khai trên hoạt động theo thứ tự:
+The implementation above works in order:
 
-1. Cùng tham chiếu this == obj: trả true (phản xạ, và tránh kiểm tra thừa).
-2. obj null: trả false, không gọi obj.getClass() trên null.
-3. getClass() khác obj.getClass(): trả false dù hai đối tượng có cùng trường id.
-4. Chỉ sau khi xác định lớp runtime giống nhau mới ép kiểu và so sánh các trường quyết định equality.
-5. hashCode phải nhất quán với equals: mọi cặp equals true bắt buộc có hash bằng nhau.
+1. Same reference this == obj: returns true (reflexivity, and avoids unnecessary checks).
+2. obj is null: returns false, avoiding calling obj.getClass() on null.
+3. getClass() differs from obj.getClass(): returns false even if both objects have the same id field.
+4. Only after confirming the same runtime class does it cast and compare the equality-defining fields.
+5. hashCode must stay consistent with equals: every pair where equals is true must have equal hashes.
 
-Trong mã này, **getClass() != obj.getClass() kiểm tra danh tính lớp**, khác với so sánh chuỗi tên lớp. Hai đối tượng từ cùng lớp có cùng đối tượng Class, còn hai lớp khác nhau sẽ không có cùng Class.
+In this code, **getClass() != obj.getClass() checks class identity**, which differs from comparing class name strings. Two objects from the same class share the same Class object, whereas two different classes will not have the same Class.
 
-### getClass() so với instanceof
+### getClass() vs. instanceof
 
-Hai kiểu kiểm tra có ý nghĩa khác nhau:
+The two checks have different meanings:
 
-| Cách kiểm tra | Điều được chấp nhận | Hệ quả |
+| Check | What Is Accepted | Consequence |
 | --- | --- | --- |
-| obj instanceof Account | Account và các đối tượng thuộc lớp con của Account | Hỗ trợ quan hệ kiểu con |
-| obj != null && getClass() == obj.getClass() | Chỉ đối tượng có đúng lớp runtime như this | Loại lớp con khác runtime class |
-| Account.class == obj.getClass() | Chỉ đúng lớp Account được nhắc trực tiếp | Không tương đương getClass() của this khi chạy trong lớp con |
+| obj instanceof Account | Account and objects of subclasses of Account | Supports subtype relationships |
+| obj != null && getClass() == obj.getClass() | Only objects with the exact same runtime class as this | Excludes subclasses with a different runtime class |
+| Account.class == obj.getClass() | Only the exact Account class named directly | Not equivalent to this.getClass() when running inside a subclass |
 
-**Ví dụ:** một đối tượng PremiumAccount kế thừa Account là instanceof Account, nhưng PremiumAccount.class khác Account.class. Vì vậy getClass cho hai đối tượng thuộc hai lớp này khác nhau.
+**Example:** a PremiumAccount object extending Account is an instanceof Account, yet PremiumAccount.class differs from Account.class. Hence getClass for objects of these two classes differs.
 
-Nếu equals của lớp cha dùng instanceof và chỉ so sánh id, còn lớp con bổ sung trạng thái quan trọng rồi ghi đè equals, rất dễ rơi vào lỗi **mất tính đối xứng**: lớp cha xem đối tượng lớp con là bằng nhau, nhưng lớp con từ chối lớp cha. Kiểm tra đúng lớp bằng getClass() có thể giúp định nghĩa một chính sách “khác lớp thì khác giá trị” rõ ràng và tránh một nhóm lỗi như vậy.
+If the superclass's equals uses instanceof and compares only id, while the subclass adds important state and overrides equals, it is very easy to fall into a **symmetry violation**: the superclass treats the subclass object as equal, yet the subclass rejects the superclass. Checking the exact class with getClass() can help define a clear "different class means different value" policy and prevent a category of such bugs.
 
-Tuy nhiên **getClass() không tự động làm equals đúng**: vẫn phải kiểm tra tính đối xứng, bắc cầu, nhất quán và quan hệ với hashCode. Đặc biệt khi lớp cha cho phép subclass mở rộng các trường mang ý nghĩa equality, việc để subclass kế thừa nguyên equals mà không bổ sung quy tắc có thể khiến các đối tượng lớp con bị coi bằng nhau dù các trường mới khác nhau.
+However, **getClass() does not automatically make equals right**: you must still verify symmetry, transitivity, consistency, and the relationship with hashCode. In particular, when a superclass lets subclasses extend equality-significant fields, letting a subclass inherit equals unchanged without adding rules can cause subclass objects to be considered equal even when their new fields differ.
 
-### Khi nào không nên dùng kiểm tra lớp chính xác?
+### When Should Exact-Class Checking Not Be Used?
 
-Nếu mô hình nghiệp vụ chủ ý coi các đối tượng từ các lớp con khác nhau là cùng một giá trị dựa trên giao diện chung, kiểm tra getClass() sẽ **quá chặt**. Một quy tắc dựa trên instanceof, interface, định danh hoặc thiết kế value object thống nhất có thể phù hợp hơn, nhưng phải bảo đảm đối xứng và bắc cầu trong toàn bộ hệ phân cấp.
+If the business model intentionally treats objects from different subclasses as the same value based on a shared interface, a getClass() check will be **too strict**. A rule based on instanceof, interfaces, identifiers, or a unified value-object design may fit better, provided symmetry and transitivity are preserved across the entire hierarchy.
 
-Ví dụ các lớp proxy runtime (một số ORM hoặc thư viện sinh lớp proxy động) có thể là lớp con của kiểu miền. getClass() trên proxy trả **lớp proxy thực tế**, khác với lớp thực thể ban đầu. Nếu equals dùng strict getClass, entity và proxy của nó có thể so sánh false ngay cả khi biểu diễn cùng một bản ghi. Trường hợp này cần tuân theo hợp đồng equality và API nhận diện lớp thực thể do framework cụ thể cung cấp; không nên tự giả định mọi proxy có cùng hành vi.
+For example, runtime proxy classes (some ORMs or dynamic proxy generation libraries) can be subclasses of the domain type. Calling getClass() on a proxy returns **the actual proxy class**, different from the original entity class. If equals uses strict getClass, an entity and its proxy may compare false even when representing the same record. In this case, follow the equality contract and entity-class resolution API provided by the specific framework; do not assume all proxies behave identically.
 
-**Nguyên tắc:** lựa chọn getClass hay instanceof dựa vào ý nghĩa bình đẳng và chiến lược kế thừa của lớp, không phải vì một câu thần chú “getClass luôn tốt hơn”.
+**Principle:** choose getClass or instanceof based on the semantics of equality and the class's inheritance strategy, not because of a mantra that "getClass is always better".
 
-## 3. getClass() và hợp đồng hashCode
+## 3. getClass() and the hashCode Contract
 
-Giả sử hai đối tượng phải cùng **lớp runtime và cùng id** mới equals:
+Suppose two objects must have both the **same runtime class and the same id** to be equal:
 
 ~~~java
 @Override
@@ -89,24 +89,24 @@ public int hashCode() {
 }
 ~~~
 
-Công thức này nhất quán với equals ở phần 2: nếu hai đối tượng có cùng runtime class và id, chúng có cùng giá trị đầu vào để băm.
+This formula is consistent with equals in Section 2: if two objects have the same runtime class and id, they have the same input values for hashing.
 
-Tuy nhiên, **không bắt buộc** hashCode phải thêm getClass() để hợp đồng đúng. Dùng id.hashCode() cũng có thể hợp lệ nếu id không null, vì hai đối tượng equals true luôn có id bằng nhau; những đối tượng khác lớp nhưng id giống nhau có thể va chạm hash, và va chạm là hợp lệ.
+However, it is **not mandatory** for hashCode to include getClass() for the contract to hold. Using id.hashCode() can also be valid if id is non-null, because two objects where equals is true always have equal ids; objects of different classes with the same id may collide on hash, and hash collisions are permitted.
 
-Vì thế:
+Therefore:
 
-- Thêm getClass vào hash có thể giúp phân tán theo kiểu khi có nhiều lớp dùng cùng id.
-- Bỏ getClass khỏi hash **không tự động là lỗi** nếu vẫn bảo đảm equals true kéo theo cùng hash.
-- Không dùng getClass().getName() chỉ để suy ra danh tính lớp; dùng chính Class trong những thiết kế cần phân biệt runtime type.
-- Nếu equals theo chính sách chấp nhận lớp con bằng lớp cha, phải chọn dữ liệu băm tương thích chính sách ấy; thêm runtime class vào hash có thể làm hai đối tượng equals true nhận hash khác nhau.
+- Adding getClass to the hash can help distribute by type when multiple classes share the same id.
+- Omitting getClass from the hash **is not automatically a bug** as long as equals true still implies equal hashes.
+- Do not use getClass().getName() just to infer class identity; use Class itself in designs that need to distinguish runtime types.
+- If equals follows a policy allowing subclasses to equal superclasses, choose hash inputs compatible with that policy; adding the runtime class to the hash can cause two objects where equals is true to get different hashes.
 
-Với đối tượng dùng làm khóa HashSet/HashMap, các trường tham gia equality nên ổn định trong suốt thời gian lưu khóa. Class runtime không đổi, nhưng các trường mutable như id nếu bị sửa vẫn có thể làm hash thay đổi và gây khó tìm lại khóa.
+For objects used as HashSet/HashMap keys, fields participating in equality should remain stable for as long as the key is stored. The runtime class does not change, yet mutable fields such as id, if modified, can still change the hash and make the key hard to find again.
 
-## 4. getClass() liên quan gì đến clone()?
+## 4. How Does getClass() Relate to clone()?
 
-Object.clone() là phương thức **protected** của Object. Với lớp có triển khai giao diện marker **Cloneable**, lời gọi super.clone() trong một override hợp lệ thường tạo một đối tượng mới có **đúng lớp runtime của đối tượng nguồn**, và sao chép từng trường theo kiểu **shallow copy**.
+Object.clone() is a **protected** method of Object. For a class implementing the marker interface **Cloneable**, calling super.clone() inside a valid override normally creates a new object with **the exact runtime class of the source object**, and copies each field via **shallow copy**.
 
-Đối với một lớp đơn giản:
+For a simple class:
 
 ~~~java
 @Override
@@ -119,38 +119,38 @@ public MyType clone() {
 }
 ~~~
 
-Đoạn này giả định lớp MyType implements Cloneable và không cần thêm xử lý sau khi clone. super.clone() không gọi constructor theo cách thông thường để xây dựng lại toàn bộ object graph.
+This snippet assumes class MyType implements Cloneable and needs no further processing after cloning. super.clone() does not invoke a constructor in the usual way to rebuild the entire object graph.
 
-Một số điều quan trọng:
+Several important points:
 
-1. **clone không tự do gọi từ bên ngoài**: Object.clone là protected; lớp có thể mở rộng quyền truy cập bằng override public clone.
-2. **Cloneable không có phương thức clone**: đó là marker interface làm Object.clone chấp nhận sao chép; chỉ khai báo implements Cloneable không tự biến clone thành public.
-3. **super.clone() tạo một thể hiện mới cùng runtime class**: nếu lời gọi đi qua lớp cha đến một đối tượng lớp con hỗ trợ Cloneable, thể hiện được tạo ra vẫn thuộc lớp con thực tế, không bị cắt xuống thành lớp cha.
-4. **Sao chép nông**: trường primitive được chép giá trị; trường tham chiếu được chép tham chiếu, nên cả nguồn và bản sao có thể cùng trỏ vào một List, mảng, hoặc đối tượng mutable.
-5. Nếu đối tượng không thực hiện Cloneable mà trực tiếp gọi Object.clone, CloneNotSupportedException sẽ được ném. Mảng Java là trường hợp có hỗ trợ clone và việc clone mảng tạo mảng mới cùng kiểu, nhưng phần tử tham chiếu bên trong vẫn được sao chép nông.
+1. **clone cannot be freely called from outside**: Object.clone is protected; a class can widen access by overriding public clone.
+2. **Cloneable has no clone method**: it is a marker interface that makes Object.clone accept copying; merely declaring implements Cloneable does not automatically make clone public.
+3. **super.clone() creates a new instance of the same runtime class**: if the call passes through a superclass onto a subclass object supporting Cloneable, the created instance still belongs to the actual subclass, rather than being sliced down to the superclass.
+4. **Shallow copying**: primitive fields are copied by value; reference fields are copied by reference, so both source and copy can point to the same List, array, or mutable object.
+5. If an object does not implement Cloneable and directly calls Object.clone, CloneNotSupportedException is thrown. Java arrays are a case that supports clone, and cloning an array creates a new array of the same type, though reference elements inside are still shallow-copied.
 
-getClass giúp **kiểm tra kiểu thực tế của bản sao**:
+getClass helps **verify the actual type of the copy**:
 
 ~~~java
 Object copied = original.clone();
 boolean sameRuntimeClass = original.getClass() == copied.getClass();
 ~~~
 
-Đây là đoạn minh họa đặt trong ngữ cảnh original có một phương thức clone truy cập được.
+This is an illustrative snippet placed in a context where original has an accessible clone method.
 
-### Điều gì là bảo đảm, điều gì chỉ là kỳ vọng?
+### What Is Guaranteed, and What Is Only an Expectation?
 
-Với **super.clone() của Object**, bản sao có runtime class giống nguồn và các trường được sao chép nông. Nếu lớp **ghi đè clone theo cách riêng** (ví dụ tự khởi tạo một kiểu khác và trả về dưới dạng Object), không thể kết luận mọi phương thức tên clone của mọi lớp Java đều giữ đúng runtime class. Tài liệu Object.clone mô tả các kỳ vọng thông thường như bản sao khác tham chiếu, cùng lớp runtime, thường tương đương về giá trị; các kỳ vọng này không được bắt buộc tuyệt đối đối với mọi override tự định nghĩa.
+With **Object's super.clone()**, the copy has the same runtime class as the source and fields are shallow-copied. If a class **overrides clone in its own way** (for example instantiating a different type and returning it as Object), one cannot conclude that every method named clone in every Java class preserves the exact runtime class. The Object.clone documentation describes typical expectations such as the copy being a distinct reference, having the same runtime class, and usually being equivalent in value; these expectations are not strictly enforced on every custom override.
 
-Ngoài ra:
+In addition:
 
-- Hai đối tượng khác tham chiếu không mặc định equals: nếu lớp kế thừa Object.equals, nó so sánh danh tính nên bản sao cũng không equals nguồn dù mọi trường vừa được copy.
-- Bản sao cùng Class không có nghĩa là các đối tượng con được copy độc lập.
-- Kiểm tra getClass() bằng nhau không chứng minh dữ liệu bằng nhau, copy đầy đủ, hoặc an toàn khi cùng sửa từ hai luồng.
+- Two objects with different references are not equal by default: if a class inherits Object.equals, it compares identity, so the copy does not equal the source even though all fields were just copied.
+- A copy having the same Class does not mean sub-objects were copied independently.
+- Checking that getClass() is equal does not prove data equality, deep copying, or thread safety under concurrent modification.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: equals, clone và chẩn đoán
+## 5. Complete Java 17+ Example: equals, clone, and Diagnostics
 
-Tạo tệp **GetClassContractDemo.java**:
+Create the file **GetClassContractDemo.java**:
 
 ~~~java
 import java.util.Arrays;
@@ -182,7 +182,7 @@ public class GetClassContractDemo {
         }
     }
 
-    // Không thêm trường tham gia equality: lớp con chỉ để minh họa kiểu runtime.
+    // Does not add fields participating in equality: subclass only to illustrate runtime type.
     static final class SpecialKey extends Key {
         SpecialKey(String id) {
             super(id);
@@ -267,14 +267,14 @@ public class GetClassContractDemo {
 }
 ~~~
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ~~~bash
 javac -encoding UTF-8 GetClassContractDemo.java
 java GetClassContractDemo
 ~~~
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ~~~text
 same Class for same type: true
@@ -295,19 +295,19 @@ array class: [I
 array is array type: true
 ~~~
 
-**Giải thích kết quả:**
+**Explanation of results:**
 
-- first và second là hai đối tượng Key riêng nhưng cùng runtime class và id, vì vậy equals trả true.
-- subclass là SpecialKey: vẫn là instanceof Key, nhưng runtime class khác Key. Phép equals kế thừa từ Key dùng getClass() nên cả hai chiều Key/SpecialKey đều false; đây là một ví dụ về chính sách equality nghiêm ngặt theo lớp runtime.
-- original.clone() qua super.clone() tạo CloneBox mới cùng runtime class. Tuy nhiên, trường numbers của hai bản vẫn cùng tham chiếu một mảng: sửa shallow cũng làm original thấy số 99.
-- independentCopy tạo một CloneBox mới từ constructor có sao chép mảng đầu vào. Sau khi sửa bản độc lập, original vẫn giữ phần tử đầu tiên là 99.
-- getName() cho lớp lồng tĩnh Key có tên nhị phân gồm dấu $. Kiểu mảng int[] có tên nhị phân JVM dạng [I; isArray() giúp nhận biết đó là kiểu mảng. Tên lớp để chẩn đoán phụ thuộc cấu trúc khai báo, package và class loader thực tế.
+- first and second are two distinct Key objects with the same runtime class and id, so equals returns true.
+- subclass is SpecialKey: still instanceof Key, yet its runtime class differs from Key. The equals inherited from Key uses getClass(), so both Key/SpecialKey directions are false; this is an example of a strict runtime-class equality policy.
+- original.clone() via super.clone() creates a new CloneBox with the same runtime class. However, the numbers field of both copies still references the same array: modifying shallow also causes original to see 99.
+- independentCopy creates a new CloneBox from the constructor that clones the input array. After modifying the independent copy, original still keeps its first element as 99.
+- getName() for the static nested class Key has a binary name containing $. The int[] array type has the JVM binary name [I; isArray() helps recognize it as an array type. Diagnostic class names depend on the actual declaration structure, package, and class loader.
 
-Ví dụ dùng riêng lớp Key để minh họa nguyên tắc equality, và CloneBox để minh họa clone. Không nên hiểu rằng mọi class đều phải vừa ghi đè equals vừa hỗ trợ Cloneable.
+The example uses Key separately to illustrate the equality principle, and CloneBox to illustrate clone. It should not be understood that every class must both override equals and support Cloneable.
 
-## 6. Dùng getClass() để chẩn đoán và điều tra lỗi
+## 6. Using getClass() for Diagnostics and Troubleshooting
 
-Khi một đối tượng xuất hiện ở vị trí nhận Object hoặc interface, getClass() giúp xác định **runtime type thực sự**:
+When an object appears in a position accepting Object or an interface, getClass() helps identify the **actual runtime type**:
 
 ~~~java
 static void inspect(Object value) {
@@ -322,26 +322,26 @@ static void inspect(Object value) {
 }
 ~~~
 
-Đây là phương thức minh họa có thể đặt trong một lớp Java; không phải chương trình độc lập vì thiếu lớp chứa và lời gọi.
+This is an illustrative method that can be placed inside a Java class; not a standalone program because it lacks an enclosing class and call site.
 
-Các API đáng biết:
+Useful APIs to know:
 
-| API | Thông tin | Lưu ý |
+| API | Information | Note |
 | --- | --- | --- |
-| obj.getClass() | Đối tượng Class của kiểu runtime | obj phải khác null |
-| type.getName() | Tên kiểu theo quy ước JVM/Java | Lớp lồng, mảng có tên đặc thù |
-| type.getSimpleName() | Tên ngắn của kiểu | Có thể là chuỗi rỗng với lớp ẩn danh |
-| type.getCanonicalName() | Tên chính tắc nếu tồn tại | Một số kiểu local/anonymous không có canonical name |
-| type.getSuperclass() | Lớp cha trực tiếp (nếu có) | Interface và Object có thể trả null |
-| type.getInterfaces() | Các interface trực tiếp được khai báo | Không tự liệt kê mọi interface kế thừa gián tiếp |
-| type.isArray() | Kiểu có phải mảng không | Hữu ích vì tên mảng có dạng JVM |
-| type.isInterface() | Kiểu có phải interface không | Hỗ trợ phân loại kiểu khi phản chiếu |
+| obj.getClass() | Class object of the runtime type | obj must be non-null |
+| type.getName() | Type name following JVM/Java conventions | Nested classes and arrays have special names |
+| type.getSimpleName() | Short name of the type | Can be an empty string for anonymous classes |
+| type.getCanonicalName() | Canonical name if one exists | Some local/anonymous types have no canonical name |
+| type.getSuperclass() | Direct superclass (if any) | Interfaces and Object can return null |
+| type.getInterfaces() | Directly declared interfaces | Does not automatically list indirectly inherited interfaces |
+| type.isArray() | Whether the type is an array | Useful because array names have JVM form |
+| type.isInterface() | Whether the type is an interface | Helps classify types during reflection |
 
-Ví dụ khi một biến kiểu List thực tế chứa ArrayList, getClass có thể giúp nhận ra lớp triển khai ở runtime. Với thư viện tạo proxy hoặc bytecode tăng cường, tên runtime có thể chứa mã sinh tự động; kết quả getClass hỗ trợ chẩn đoán nhưng không nên xem tên sinh tự động là API ổn định.
+For example, when a List-typed variable actually holds an ArrayList, getClass can help identify the implementing class at runtime. With libraries generating proxies or bytecode enhancements, the runtime name may include auto-generated codes; getClass output aids diagnostics, yet auto-generated names should not be treated as a stable API.
 
-### getClass() không thay thế instanceof và kiểm tra kiểu an toàn
+### getClass() Does Not Replace instanceof and Safe Type Checking
 
-Nếu chỉ cần biết đối tượng có hỗ trợ một giao diện nào đó, kiểm tra instanceof thường phản ánh đúng mục tiêu hơn:
+If you only need to know whether an object supports a certain interface, an instanceof check usually reflects the goal better:
 
 ~~~java
 if (value instanceof java.util.List<?> list) {
@@ -349,11 +349,11 @@ if (value instanceof java.util.List<?> list) {
 }
 ~~~
 
-Kiểm tra bằng chuỗi như getClass().getName().equals("java.util.ArrayList") dễ bị phụ thuộc triển khai, không xét lớp con, và có thể xử lý sai khi xuất hiện proxy. Dùng instanceof, Class.isInstance hoặc Class.isAssignableFrom phù hợp với mục tiêu kiểm tra khả năng gán kiểu.
+String-based checks such as getClass().getName().equals("java.util.ArrayList") easily couple to implementation details, ignore subclasses, and can misbehave when proxies appear. Using instanceof, Class.isInstance, or Class.isAssignableFrom matches the goal of checking type assignability.
 
-### Chẩn đoán lớp và ClassLoader
+### Diagnosing Classes and ClassLoaders
 
-Một kiểu được định danh bởi **tên nhị phân và class loader định nghĩa nó**. Khi gặp ClassCastException gây ngạc nhiên giữa những tên lớp trông giống nhau, thông tin class loader có thể giúp phân tích:
+A type is identified by its **binary name and defining class loader**. When encountering a surprising ClassCastException between seemingly identical class names, class loader information can aid analysis:
 
 ~~~java
 Class<?> type = value.getClass();
@@ -362,66 +362,66 @@ System.out.println("class: " + type.getName());
 System.out.println("loader: " + loader);
 ~~~
 
-Đoạn minh họa; loader có thể là null đối với lớp do bootstrap class loader định nghĩa, nên không gọi loader.toString() mà không kiểm tra null. Chỉ log thông tin lớp và loader ở mức phù hợp với chính sách vận hành, vì tên lớp/loader có thể làm lộ chi tiết triển khai trong log công khai.
+Illustrative snippet; loader may be null for classes defined by the bootstrap class loader, so do not call loader.toString() without a null check. Only log class and loader information at a level consistent with operational policies, because class/loader names can expose implementation details in public logs.
 
-Thông tin getClass giúp *đặt câu hỏi đúng*: đây là lớp thật hay proxy, đúng phiên bản và loader không, nó có kế thừa/triển khai đúng kiểu không? Nhưng riêng getClass không chứng minh nguyên nhân của mọi ClassCastException hoặc lỗi serialization/clone.
+Information from getClass helps *ask the right questions*: is this the real class or a proxy, is it the right version and loader, does it inherit/implement the right type? Yet getClass alone does not prove the root cause of every ClassCastException or serialization/clone failure.
 
-## 7. Những lỗi thường gặp và cách tránh
+## 7. Common Mistakes and How to Avoid Them
 
-### Lỗi 1: Gọi obj.getClass() khi obj có thể null
+### Mistake 1: Calling obj.getClass() when obj can be null
 
 ~~~java
-// Nguy cơ NullPointerException:
+// Risk of NullPointerException:
 return getClass() == obj.getClass();
 ~~~
 
-Cần kiểm tra obj == null trước. Khi muốn kiểm tra hai tham chiếu có cùng danh tính, toán tử == an toàn với null. Khi muốn so giá trị có thể null, dùng Objects.equals hoặc logic phù hợp.
+You must check obj == null first. When checking whether two references share the same identity, the == operator is null-safe. When comparing nullable values, use Objects.equals or suitable logic.
 
-### Lỗi 2: Dùng getClass trong equals rồi quên hashCode
+### Mistake 2: Using getClass in equals and forgetting hashCode
 
-Nếu equals được ghi đè, phải bảo đảm hashCode tương thích: hai đối tượng bằng nhau luôn có cùng hash. getClass không tự thay đổi hashCode của Object hay bảo đảm đúng hợp đồng. Các lớp giá trị nên xác định những trường tham gia equality rồi băm phù hợp.
+If equals is overridden, you must ensure hashCode is compatible: two equal objects always have the same hash. getClass does not automatically alter Object's hashCode or guarantee contract compliance. Value classes should identify the fields participating in equality and hash accordingly.
 
-### Lỗi 3: Coi getClass và instanceof là tương đương
+### Mistake 3: Treating getClass and instanceof as equivalent
 
-getClass kiểm tra đúng kiểu runtime, còn instanceof chấp nhận kiểu con hoặc triển khai interface. Việc thay thế một cách máy móc có thể đổi nghĩa nghiệp vụ, đặc biệt với hệ phân cấp lớp và proxy runtime.
+getClass checks the exact runtime type, whereas instanceof accepts subtypes or interface implementations. Swapping them mechanically can change business semantics, especially with class hierarchies and runtime proxies.
 
-### Lỗi 4: Nghĩ Cloneable tạo bản sao sâu
+### Mistake 4: Thinking Cloneable creates a deep copy
 
-implements Cloneable chỉ cho phép Object.clone sao chép theo cơ chế của nó. Nếu chứa mảng, List, Map hay đối tượng con mutable, bản sao qua super.clone thường chia sẻ các tham chiếu ấy. Muốn sao chép độc lập phải xử lý rõ từng thành phần mutable, cân nhắc aliasing hoặc dùng copy constructor/factory.
+implements Cloneable only permits Object.clone to copy according to its mechanism. If a class contains arrays, Lists, Maps, or mutable child objects, a copy via super.clone usually shares those references. To make an independent copy, explicitly copy each mutable component, consider aliasing, or use a copy constructor/factory.
 
-### Lỗi 5: Nghĩ clone() chỉ có thể trả đúng kiểu runtime
+### Mistake 5: Thinking clone() can only return the exact runtime class
 
-super.clone giữ runtime class trong trường hợp chuẩn. Nhưng một override clone tùy chỉnh có thể dùng logic riêng; không được coi bất kỳ phương thức có tên clone nào cũng được JVM bắt buộc sao y kiểu nguồn. Kiểm tra hợp đồng API cụ thể trước khi ép kiểu và dựa vào kết quả.
+super.clone preserves the runtime class in the standard case. However, a custom clone override can use its own logic; you must not assume that any method named clone is forced by the JVM to replicate the source's type. Check the specific API contract before casting and relying on the result.
 
-### Lỗi 6: Dùng getClass().getName() làm danh tính nghiệp vụ
+### Mistake 6: Using getClass().getName() as business identity
 
-Tên lớp có thể thay đổi khi refactor, shading, proxy generation hoặc class loader khác nhau. Danh tính doanh nghiệp thường nên dựa trên id hoặc dữ liệu miền. Tên lớp phục vụ phản chiếu và chẩn đoán, không phải khóa nghiệp vụ ổn định.
+Class names can change due to refactoring, shading, proxy generation, or different class loaders. Business identity should usually rely on an id or domain data. Class names serve reflection and diagnostics, not stable business keys.
 
-### Lỗi 7: Dùng constructor reflection để thay Object.clone mà không xét khác biệt
+### Mistake 7: Using constructor reflection to replace Object.clone without considering differences
 
-Một thao tác tạo đối tượng mới bằng reflection và gọi constructor **không mặc định** tạo bản sao: nó chạy logic constructor, có thể thiếu tham số, không sao chép trường, và bị ràng buộc truy cập/module. getClass().getDeclaredConstructor().newInstance() không thay thế super.clone hoặc một copy constructor được thiết kế đúng.
+Instantiating a new object via reflection and calling a constructor **does not by default** create a copy: it runs constructor logic, may lack arguments, does not copy fields, and is subject to access/module constraints. getClass().getDeclaredConstructor().newInstance() does not replace super.clone or a properly designed copy constructor.
 
-## 8. Cách quyết định trong thực tế
+## 8. How to Decide in Practice
 
-| Nhu cầu | Cách tiếp cận |
+| Need | Approach |
 | --- | --- |
-| equals chỉ chấp nhận đúng cùng runtime class | So sánh getClass() sau khi kiểm tra null |
-| equals cố ý hỗ trợ lớp con/giao diện chung | Xem xét instanceof và thiết kế hợp đồng toàn bộ phân cấp |
-| Hash code tương thích với equals theo lớp và trường | Hash các dữ liệu tương đương, có thể gồm getClass nếu cần |
-| Xác minh kiểu bản sao từ super.clone | So sánh getClass giữa nguồn và bản sao |
-| Muốn bản sao độc lập của dữ liệu mutable | Sao chép phần tử/đối tượng con thích hợp hoặc dùng copy constructor |
-| Gỡ lỗi runtime type/proxy | Ghi getClass().getName(), kiểm tra superclass và loader khi cần |
-| Kiểm tra một đối tượng có hỗ trợ interface | instanceof hoặc Class.isInstance/isAssignableFrom |
-| Kiểm tra chuỗi tên lớp cho logic nghiệp vụ | Tránh, ưu tiên dữ liệu định danh và API kiểu |
+| equals accepts only the exact same runtime class | Compare getClass() after checking for null |
+| equals intentionally supports subclasses/shared interface | Consider instanceof and design the contract across the whole hierarchy |
+| Hash code compatible with equals by class and fields | Hash the corresponding data, optionally including getClass if needed |
+| Verify the copy's type from super.clone | Compare getClass between source and copy |
+| Want an independent copy of mutable data | Copy elements/sub-objects appropriately or use a copy constructor |
+| Debug runtime type/proxy | Log getClass().getName(), inspect superclass and loader when needed |
+| Check whether an object supports an interface | instanceof or Class.isInstance/isAssignableFrom |
+| Check class name string for business logic | Avoid; prefer identifier data and type APIs |
 
-**Checklist trước khi hoàn tất:**
+**Checklist before finishing:**
 
-1. Với equals, đã định nghĩa rõ cùng lớp hay khác lớp có được coi bằng nhau chưa? Kiểm tra null, phản xạ, đối xứng, bắc cầu và hashCode.
-2. Nếu có lớp con, việc thêm trạng thái equality hoặc dùng proxy có làm đổi kết quả không? Có xung đột với yêu cầu nghiệp vụ không?
-3. Nếu clone, đã xác định mức sao chép nông/sâu chưa? Bản sao có chia sẻ cấu trúc mutable không? Có cần copy constructor/factory an toàn hơn không?
-4. Nếu dùng getClass để log, đã xử lý null, lớp được sinh động và tính ổn định của tên lớp chưa?
-5. Nếu thấy hai đối tượng có cùng getClass, nhớ rằng điều này **không** bảo đảm equals true, cấu trúc bên trong giống nhau hoặc hai đối tượng chia sẻ trạng thái.
+1. For equals, have you clearly defined whether same-class or cross-class objects may be considered equal? Check null, reflexivity, symmetry, transitivity, and hashCode.
+2. If subclasses exist, could adding equality state or using proxies alter the result? Does that conflict with business requirements?
+3. If cloning, have you determined shallow vs. deep copy depth? Does the copy share mutable structures? Is a safer copy constructor/factory needed?
+4. If using getClass for logging, have you handled null, dynamically generated classes, and class-name stability?
+5. If you see two objects with the same getClass, remember that this **does not** guarantee equals is true, identical internal structure, or shared state.
 
-## 9. Ghi nhớ
+## 9. Key Takeaway
 
-**getClass() cho biết chính xác runtime class của một đối tượng, không phải kiểu khai báo của biến.** Trong equals, nó hỗ trợ chính sách “đúng cùng lớp thì mới được so sánh giá trị”, cần được chọn có ý thức so với instanceof. Trong clone, nó giúp quan sát việc super.clone tạo bản sao cùng runtime class, nhưng việc chia sẻ trường tham chiếu có thể khiến bản sao chỉ là shallow copy. Trong chẩn đoán, getClass là điểm xuất phát hữu ích để nhận diện kiểu, lớp proxy, kiểu mảng và class loader — không thay cho việc thiết kế equality, copy hay xử lý lỗi đúng ngữ cảnh.
+**getClass() tells you the exact runtime class of an object, not the declared type of the variable.** In equals, it supports the policy "only the exact same class may compare values", which should be chosen deliberately over instanceof. In clone, it lets you observe that super.clone creates a copy of the same runtime class, yet sharing reference fields can leave the copy shallow. In diagnostics, getClass is a useful starting point for identifying types, proxy classes, array types, and class loaders — not a substitute for designing equality, copying, or error handling in the right context.

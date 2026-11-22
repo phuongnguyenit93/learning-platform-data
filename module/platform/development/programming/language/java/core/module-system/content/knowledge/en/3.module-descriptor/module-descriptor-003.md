@@ -1,12 +1,12 @@
-# requires, exports, opens, uses và provides trong module descriptor
+# requires, exports, opens, uses, and provides in a Module Descriptor
 
-Trong Java Platform Module System (JPMS), file module-info.java là nơi một mô-đun khai báo hợp đồng với phần còn lại của ứng dụng. Module descriptor cho biết mô-đun cần đọc mô-đun nào, công khai package nào, cho phép reflection ở đâu và tham gia cơ chế service như thế nào.
+In the Java Platform Module System (JPMS), the module-info.java file is where a module declares its contract with the rest of the application. The module descriptor specifies which modules a module needs to read, which packages it exposes, where reflection is permitted, and how it participates in the service mechanism.
 
-Năm chỉ thị thường gặp nhất là **requires**, **exports**, **opens**, **uses** và **provides**. Mỗi chỉ thị điều khiển một khía cạnh riêng. Hiểu đúng chúng giúp thiết kế API có ranh giới rõ ràng và xử lý các vấn đề tương thích với framework.
+The five most common directives are **requires**, **exports**, **opens**, **uses**, and **provides**. Each directive controls a distinct aspect. Understanding them accurately helps design APIs with clear boundaries and handle compatibility issues with frameworks.
 
-## 1. Module descriptor nằm ở đâu?
+## 1. Where Does the Module Descriptor Reside?
 
-Với một named module, file nguồn module-info.java nằm ở gốc source set của mô-đun, bên cạnh các package của nó. Ví dụ:
+For a named module, the module-info.java source file sits at the root of the module's source set, alongside its packages. For example:
 
 ~~~text
 src/
@@ -21,7 +21,7 @@ src/
                     └── OrderRepository.java
 ~~~
 
-Descriptor tối giản:
+Minimal descriptor:
 
 ~~~java
 module com.example.orders {
@@ -29,27 +29,27 @@ module com.example.orders {
 }
 ~~~
 
-Tên sau từ khóa module là tên mô-đun. Các chỉ thị bên trong cặp ngoặc nhọn mô tả dependency và quyền truy cập. Khi biên dịch, Java tạo module-info.class; trong một modular JAR, file này nằm ở thư mục gốc của JAR.
+The name after the module keyword is the module name. The directives inside the curly braces describe dependencies and access permissions. When compiled, Java generates module-info.class; in a modular JAR, this file sits at the root directory of the JAR.
 
-Một mô-đun luôn đọc được mô-đun nền tảng java.base mà không cần khai báo requires tường minh. Đây là nơi chứa các API cốt lõi như java.lang, java.util và java.io.
+A module can always read the platform module java.base without an explicit requires declaration. This is where core APIs such as java.lang, java.util, and java.io reside.
 
-Module descriptor không phải là danh sách tất cả lớp trong JAR. Nó là bản khai báo các quan hệ và ranh giới mà JPMS sử dụng khi phân giải mô-đun và kiểm soát truy cập.
+The module descriptor is not a list of all classes in the JAR. It is a declaration of relationships and boundaries that JPMS uses when resolving modules and enforcing access control.
 
-## 2. Tổng quan năm chỉ thị
+## 2. Overview of the Five Directives
 
-| Chỉ thị | Câu hỏi mà nó trả lời | Tác dụng |
+| Directive | Question It Answers | Effect |
 | --- | --- | --- |
-| **requires** | Mô-đun này cần đọc mô-đun nào? | Khai báo dependency và quan hệ readability. |
-| **exports** | Mô-đun khác được dùng API ở package nào? | Công khai package cho truy cập Java thông thường. |
-| **opens** | Framework nào được reflection sâu vào package nào? | Cho phép deep reflection tại runtime. |
-| **uses** | Mô-đun này cần tìm implementation của service nào? | Khai báo service consumer. |
-| **provides** | Mô-đun này cung cấp implementation cho service nào? | Đăng ký service provider trong module layer. |
+| **requires** | Which modules does this module need to read? | Declares dependencies and readability relationships. |
+| **exports** | Which packages' APIs can other modules use? | Exposes packages for standard Java access. |
+| **opens** | Which packages are frameworks allowed to deeply reflect on? | Permits deep reflection at runtime. |
+| **uses** | Which service implementations does this module need to locate? | Declares a service consumer. |
+| **provides** | Which services does this module supply implementations for? | Registers a service provider in the module layer. |
 
-Các chỉ thị này không thay thế lẫn nhau. Chẳng hạn, requires không tự công khai package của dependency; exports không cấp quyền deep reflection; opens không làm package trở thành API để mã khác import tùy ý.
+These directives are not interchangeable. For instance, requires does not automatically expose a dependency's packages; exports does not grant deep reflection permissions; opens does not turn a package into an API for other code to import freely.
 
-## 3. requires: khai báo mô-đun phụ thuộc
+## 3. requires: Declaring Dependent Modules
 
-Cú pháp cơ bản:
+Basic syntax:
 
 ~~~java
 module com.example.orders {
@@ -57,14 +57,14 @@ module com.example.orders {
 }
 ~~~
 
-Mô-đun orders khai báo rằng nó cần đọc mô-đun customer. Nhờ quan hệ này, mã trong orders có thể tham chiếu các kiểu thuộc những package mà customer export phù hợp.
+The orders module declares that it needs to read the customer module. Thanks to this relationship, code in orders can reference types belonging to packages that customer appropriately exports.
 
-Để việc sử dụng API thành công, cần có cả hai phía:
+For API usage to succeed, both sides are required:
 
-- Mô-đun sử dụng khai báo requires tới mô-đun sở hữu API.
-- Mô-đun sở hữu API export package chứa các kiểu cần công khai.
+- The consuming module declares requires to the module owning the API.
+- The module owning the API exports the package containing the types to be exposed.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.example.customer {
@@ -78,7 +78,7 @@ module com.example.orders {
 }
 ~~~
 
-Nếu chỉ có requires mà package API chưa được export, mô-đun orders vẫn không thể truy cập package đó. Nếu package đã export nhưng orders không đọc customer, mã trong orders cũng không tự động có quyền sử dụng API.
+If requires is present but the API package is not exported, the orders module still cannot access that package. If the package is exported but orders does not read customer, code in orders likewise does not automatically gain permission to use the API.
 
 ### 3.1. requires transitive
 
@@ -88,11 +88,11 @@ module com.example.orders.api {
 }
 ~~~
 
-requires transitive tạo ra quan hệ đọc được truyền tiếp. Các mô-đun đọc orders.api cũng được phép đọc customer.api thông qua quan hệ này.
+requires transitive creates an implied readability relationship. Modules that read orders.api are also permitted to read customer.api through this relationship.
 
-Hãy dùng transitive khi kiểu của dependency xuất hiện trong API công khai của mô-đun hiện tại. Ví dụ một phương thức public trả về Customer hoặc nhận Customer làm tham số. Người dùng API có thể cần đọc mô-đun customer để biên dịch mã gọi phương thức đó.
+Use transitive when a dependency's types appear in the current module's public API. For example, a public method returns Customer or accepts Customer as a parameter. Consumers of the API may need to read the customer module to compile code calling that method.
 
-Không nên thêm transitive chỉ vì mô-đun hiện tại có sử dụng dependency ở bên trong. Nếu dependency chỉ là chi tiết triển khai và không xuất hiện trong hợp đồng API, requires thông thường phù hợp hơn.
+Do not add transitive solely because the current module uses the dependency internally. If the dependency is only an implementation detail and does not appear in the API contract, a regular requires is more appropriate.
 
 ### 3.2. requires static
 
@@ -102,11 +102,11 @@ module com.example.orders {
 }
 ~~~
 
-requires static khai báo dependency cần có khi biên dịch nhưng không bắt buộc phải có trong cấu hình runtime. Nó thường phù hợp với annotation hoặc tích hợp tùy chọn chỉ phục vụ compile-time.
+requires static declares a dependency needed at compile time but not required to be present in the runtime configuration. It is typically suited for compile-time-only annotations or optional integrations.
 
-Nếu mã thực thi thực sự cần một lớp thuộc dependency tùy chọn, ứng dụng vẫn phải bảo đảm lớp đó có mặt khi chạy nhánh mã tương ứng. requires static không tự tạo stub và cũng không tự xử lý trường hợp thiếu lớp.
+If executing code genuinely needs a class belonging to an optional dependency, the application must still ensure that class is present when running that code path. requires static does not synthesize stubs, nor does it handle missing classes automatically.
 
-Có thể kết hợp static và transitive khi dependency vừa là dependency compile-time tùy chọn, vừa cần được truyền tiếp trong quan hệ readability:
+You can combine static and transitive when a dependency is both an optional compile-time dependency and needs to be propagated in readability relationships:
 
 ~~~java
 module com.example.api {
@@ -114,17 +114,17 @@ module com.example.api {
 }
 ~~~
 
-### 3.3. Dependency ngầm định java.base
+### 3.3. Implicit Dependency java.base
 
-Mọi named module đều có quan hệ đọc tới java.base. Vì vậy, descriptor thông thường không cần viết:
+Every named module has a readability relationship to java.base. Therefore, a descriptor typically does not need to write:
 
 ~~~java
 module com.example.orders {
-    // java.base được yêu cầu ngầm định.
+    // java.base is required implicitly.
 }
 ~~~
 
-Các mô-đun JDK khác như java.sql hoặc java.logging vẫn cần được khai báo khi mã của mô-đun sử dụng API của chúng:
+Other JDK modules such as java.sql or java.logging still need to be declared when the module's code uses their APIs:
 
 ~~~java
 module com.example.reporting {
@@ -133,9 +133,9 @@ module com.example.reporting {
 }
 ~~~
 
-## 4. exports: công khai package API
+## 4. exports: Exposing API Packages
 
-Cú pháp:
+Syntax:
 
 ~~~java
 module com.example.orders {
@@ -143,27 +143,27 @@ module com.example.orders {
 }
 ~~~
 
-exports cho phép các mô-đun đọc được mô-đun orders truy cập các kiểu public trong package com.example.orders.api, cùng các thành viên public/protected theo quy tắc truy cập của Java.
+exports allows modules that read the orders module to access public types in the com.example.orders.api package, along with their public/protected members according to Java's access rules.
 
-Ví dụ:
+Example:
 
 ~~~java
 package com.example.orders.api;
 
 public class OrderService {
     public void submit() {
-        // Xử lý đơn hàng.
+        // Process the order.
     }
 }
 ~~~
 
-Nếu package này được export, mô-đun khác có thể import OrderService khi đã khai báo requires tới mô-đun sở hữu package.
+If this package is exported, other modules can import OrderService once they declare requires to the module owning the package.
 
-Một lớp public trong package không được export vẫn không trở thành API có thể sử dụng từ named module khác. Từ khóa public của Java và ranh giới export của JPMS là hai lớp kiểm soát khác nhau.
+A public class in an unexported package still does not become an API usable from another named module. Java's public keyword and JPMS's export boundary are two distinct layers of control.
 
 ### 4.1. Qualified exports
 
-Có thể giới hạn package chỉ dành cho một số mô-đun:
+You can restrict a package to only specific modules:
 
 ~~~java
 module com.example.orders {
@@ -173,21 +173,21 @@ module com.example.orders {
 }
 ~~~
 
-Đây là qualified export. Mô-đun orders.plugin và orders.test có thể truy cập package SPI, còn các mô-đun khác không nhận được quyền đó chỉ vì package đã được export có giới hạn.
+This is a qualified export. The orders.plugin and orders.test modules can access the SPI package, while other modules do not receive that permission just because the package was exported with restrictions.
 
-Cách này hữu ích cho API nội bộ giữa các mô-đun trong cùng một sản phẩm. Nó cũng giúp tránh biến mọi package hỗ trợ thành hợp đồng công khai cho tất cả người dùng thư viện.
+This approach is useful for internal APIs between modules within the same product. It also helps avoid turning every supporting package into a public contract for all library users.
 
-### 4.2. exports không mở private field cho reflection
+### 4.2. exports Does Not Open Private Fields for Reflection
 
-exports phục vụ truy cập API thông thường. Nó không cấp quyền tổng quát để framework gọi setAccessible trên field hoặc constructor private của package.
+exports serves regular API access. It does not grant blanket permission for frameworks to call setAccessible on private fields or constructors of the package.
 
-Nếu framework cần deep reflection, cần xem xét opens. Không nên thêm exports chỉ để chữa InaccessibleObjectException vì hai chỉ thị giải quyết hai nhu cầu khác nhau.
+If a framework needs deep reflection, consider opens. Do not add exports merely to fix InaccessibleObjectException, because the two directives address different needs.
 
-## 5. opens: cho phép deep reflection
+## 5. opens: Allowing Deep Reflection
 
-Một số framework cần truy cập thành viên không public để ánh xạ object, inject dependency, serialize dữ liệu hoặc tạo proxy. JPMS kiểm soát hoạt động này bằng opens.
+Some frameworks need to access non-public members to map objects, inject dependencies, serialize data, or create proxies. JPMS controls this operation using opens.
 
-Cú pháp:
+Syntax:
 
 ~~~java
 module com.example.domain {
@@ -195,11 +195,11 @@ module com.example.domain {
 }
 ~~~
 
-Khai báo trên mở package model cho deep reflection ở runtime đối với các mô-đun khác. Nó không công khai package như một API Java thông thường.
+The declaration above opens the model package for deep reflection at runtime to other modules. It does not expose the package as a regular Java API.
 
 ### 5.1. Qualified opens
 
-Nên giới hạn quyền reflection cho mô-đun framework cụ thể khi có thể:
+Limit reflection permissions to specific framework modules whenever possible:
 
 ~~~java
 module com.example.domain {
@@ -207,11 +207,11 @@ module com.example.domain {
 }
 ~~~
 
-Chỉ mô-đun mapper được phép deep reflection trên package model. Nếu một framework khác cũng cần quyền, có thể liệt kê thêm tên mô-đun đích.
+Only the mapper module is allowed deep reflection on the model package. If another framework also needs permission, additional target module names can be listed.
 
 ### 5.2. open module
 
-Có thể mở tất cả package của mô-đun cho deep reflection bằng cú pháp:
+You can open all packages of a module for deep reflection using the syntax:
 
 ~~~java
 open module com.example.domain {
@@ -219,31 +219,31 @@ open module com.example.domain {
 }
 ~~~
 
-Đây là open module declaration. Mọi package trong mô-đun được mở cho deep reflection ở runtime. Vì phạm vi rộng, chỉ nên dùng khi mô-đun thực sự cần khả năng reflection tổng quát.
+This is an open module declaration. Every package in the module is opened for deep reflection at runtime. Because of its broad scope, use it only when the module truly requires general reflection capabilities.
 
-Một open module declaration không được chứa các chỉ thị opens riêng lẻ. Nếu chỉ một vài package cần mở, hãy dùng module declaration bình thường cùng các chỉ thị opens có phạm vi rõ ràng.
+An open module declaration must not contain individual opens directives. If only a few packages need to be opened, use a regular module declaration with clearly scoped opens directives.
 
-### 5.3. Mở package bằng tham số JVM
+### 5.3. Opening Packages via JVM Arguments
 
-Khi chưa thể sửa module-info.java của thư viện, có thể kiểm tra hoặc cấu hình tạm bằng --add-opens:
+When you cannot yet edit a library's module-info.java, you can test or temporarily configure it with --add-opens:
 
 ~~~bash
 java --add-opens com.example.domain/com.example.domain.model=com.example.mapper ...
 ~~~
 
-Nếu framework nằm trong classpath và thuộc unnamed module:
+If the framework sits on the classpath and belongs to the unnamed module:
 
 ~~~bash
 java --add-opens com.example.domain/com.example.domain.model=ALL-UNNAMED ...
 ~~~
 
-Tham số này mở package ở runtime cho đích được chỉ định. Nó hữu ích để xác nhận lỗi đến từ giới hạn reflection, nhưng cần quản lý cẩn thận trong cấu hình triển khai.
+This argument opens the package at runtime to the specified target. It is useful for confirming that an error stems from reflection restrictions, but must be managed carefully in deployment configurations.
 
-## 6. uses: khai báo service consumer
+## 6. uses: Declaring a Service Consumer
 
-JPMS hỗ trợ Service Provider Interface (SPI), cho phép mô-đun sử dụng một hợp đồng service mà không cần phụ thuộc trực tiếp vào lớp triển khai.
+JPMS supports the Service Provider Interface (SPI), allowing a module to use a service contract without depending directly on implementation classes.
 
-Mô-đun sử dụng khai báo service bằng uses:
+A consuming module declares a service with uses:
 
 ~~~java
 module com.example.checkout {
@@ -252,9 +252,9 @@ module com.example.checkout {
 }
 ~~~
 
-Trong ví dụ, checkout cần tìm một hoặc nhiều implementation của PaymentProcessor. Nó phụ thuộc vào mô-đun chứa interface service, nhưng không cần khai báo requires tới từng mô-đun provider.
+In the example, checkout needs to locate one or more implementations of PaymentProcessor. It depends on the module containing the service interface, without needing to declare requires to each provider module.
 
-Interface service có thể được định nghĩa như sau:
+The service interface can be defined as follows:
 
 ~~~java
 package com.example.payment.api;
@@ -264,9 +264,9 @@ public interface PaymentProcessor {
 }
 ~~~
 
-Package chứa interface phải được export để mô-đun consumer có thể tham chiếu kiểu PaymentProcessor.
+The package containing the interface must be exported so that the consumer module can reference the PaymentProcessor type.
 
-Khi mã trong checkout gọi ServiceLoader, khai báo uses cho biết mô-đun này có ý định tiêu thụ service đó:
+When code in checkout calls ServiceLoader, the uses declaration indicates that this module intends to consume that service:
 
 ~~~java
 ServiceLoader<PaymentProcessor> processors =
@@ -277,11 +277,11 @@ for (PaymentProcessor processor : processors) {
 }
 ~~~
 
-Trong named module, việc gọi ServiceLoader.load cho service cần được mô-đun khai báo bằng uses. Thiếu khai báo có thể dẫn tới ServiceConfigurationError khi ServiceLoader kiểm tra quyền sử dụng service.
+In a named module, calling ServiceLoader.load for a service must be declared by the module using uses. A missing declaration can lead to a ServiceConfigurationError when ServiceLoader checks permission to use the service.
 
-## 7. provides: đăng ký service provider
+## 7. provides: Registering a Service Provider
 
-Mô-đun chứa implementation khai báo provider bằng provides ... with ...:
+A module containing an implementation declares a provider with provides ... with ...:
 
 ~~~java
 module com.example.payment.card {
@@ -302,14 +302,14 @@ import com.example.payment.api.PaymentProcessor;
 public class CardPaymentProcessor implements PaymentProcessor {
     @Override
     public void process(long orderId) {
-        System.out.println("Xử lý thanh toán thẻ cho đơn " + orderId);
+        System.out.println("Processing card payment for order " + orderId);
     }
 }
 ~~~
 
-Mô-đun provider cần đọc mô-đun chứa service interface. Chỉ thị provides liên kết service type với một hoặc nhiều provider type.
+The provider module needs to read the module containing the service interface. The provides directive associates the service type with one or more provider types.
 
-Có thể đăng ký nhiều provider cho cùng một service:
+Multiple providers can be registered for the same service:
 
 ~~~java
 module com.example.payment {
@@ -321,13 +321,13 @@ module com.example.payment {
 }
 ~~~
 
-Package chứa provider không nhất thiết phải export. ServiceLoader có thể tạo provider theo khai báo mô-đun mà không cần công khai package triển khai cho mọi mô-đun khác.
+The package containing the provider does not necessarily need to be exported. ServiceLoader can instantiate the provider per the module declaration without exposing the implementation package to all other modules.
 
-Một provider trong named module thường cung cấp public no-argument constructor, hoặc một public static provider method theo quy tắc ServiceLoader. Provider method có tên provider, không nhận tham số và trả về một kiểu tương thích với service type. Cơ chế provider method hữu ích khi việc tạo implementation cần được điều khiển bởi mô-đun provider.
+A provider in a named module typically supplies a public no-argument constructor, or a public static provider method following ServiceLoader rules. The provider method is named provider, takes no parameters, and returns a type compatible with the service type. The provider method mechanism is useful when instantiating the implementation needs to be controlled by the provider module.
 
-## 8. Ví dụ hoàn chỉnh: tách API, ứng dụng và provider
+## 8. Complete Example: Separating API, Application, and Provider
 
-Một ví dụ nhỏ gồm ba mô-đun:
+A small example consisting of three modules:
 
 ~~~text
 src/
@@ -342,7 +342,7 @@ src/
     └── com/example/checkout/Main.java
 ~~~
 
-### Mô-đun API
+### API Module
 
 module-info.java:
 
@@ -362,7 +362,7 @@ public interface PaymentProcessor {
 }
 ~~~
 
-### Mô-đun provider
+### Provider Module
 
 module-info.java:
 
@@ -390,7 +390,7 @@ public class CardPaymentProcessor implements PaymentProcessor {
 }
 ~~~
 
-### Mô-đun ứng dụng
+### Application Module
 
 module-info.java:
 
@@ -421,25 +421,25 @@ public class Main {
 }
 ~~~
 
-Ứng dụng chỉ biết interface PaymentProcessor. Nó không cần import CardPaymentProcessor và cũng không cần khai báo requires tới mô-đun provider. Quan hệ service được mô tả qua uses và provides.
+The application knows only the PaymentProcessor interface. It does not need to import CardPaymentProcessor and does not need to declare requires to the provider module. The service relationship is described via uses and provides.
 
-Biên dịch ba mô-đun:
+Compile the three modules:
 
 ~~~bash
 javac --module-source-path src -d out -m     com.example.payment.api,com.example.payment.card,com.example.checkout
 ~~~
 
-Khi khởi chạy, cần bảo đảm mô-đun provider được đưa vào cấu hình mô-đun. Có thể thêm provider như một root module:
+At launch time, ensure the provider module is included in the module configuration. You can add the provider as a root module:
 
 ~~~bash
 java --module-path out --add-modules com.example.payment.card     -m com.example.checkout/com.example.checkout.Main
 ~~~
 
-Hoặc dùng cơ chế service binding phù hợp với cấu hình chạy để các provider được liên kết vào module graph. Nếu chỉ resolve mô-đun checkout và API mà không đưa provider vào cấu hình, ServiceLoader không thể tìm thấy provider chưa được resolve.
+Or use a service binding mechanism suited to the runtime configuration so providers are linked into the module graph. If only the checkout and API modules are resolved without including the provider in the configuration, ServiceLoader cannot discover an unresolved provider.
 
-## 9. Kết hợp các chỉ thị trong một descriptor
+## 9. Combining Directives in One Descriptor
 
-Một module descriptor có thể dùng nhiều chỉ thị cùng lúc:
+A module descriptor can use multiple directives simultaneously:
 
 ~~~java
 module com.example.orders {
@@ -459,84 +459,83 @@ module com.example.orders {
 }
 ~~~
 
-Ví dụ này thể hiện các quyết định khác nhau:
+This example illustrates different decisions:
 
-- java.sql là dependency mà mô-đun sử dụng.
-- customer.api được truyền tiếp readability vì kiểu của nó có thể xuất hiện trong API công khai.
-- annotations chỉ là dependency compile-time tùy chọn.
-- package api được công khai cho các mô-đun đọc orders.
-- package spi chỉ dành cho plugin nội bộ.
-- package model mở cho ORM thực hiện deep reflection.
-- mô-đun vừa tiêu thụ OrderProcessor, vừa cung cấp implementation mặc định.
+- java.sql is a dependency that the module uses.
+- customer.api has readability propagated transitively because its types can appear in the public API.
+- annotations is only an optional compile-time dependency.
+- the api package is exposed to modules that read orders.
+- the spi package is reserved for internal plugins.
+- the model package is opened for the ORM to perform deep reflection.
+- the module both consumes OrderProcessor and supplies a default implementation.
 
-Không nhất thiết dự án nào cũng cần cả năm loại chỉ thị. Chỉ khai báo những quan hệ có thật trong thiết kế mô-đun.
+Not every project needs all five kinds of directives. Declare only the relationships that truly exist in the module design.
 
-## 10. Phân biệt exports, opens và provides
+## 10. Distinguishing exports, opens, and provides
 
-Ba chỉ thị này thường bị nhầm vì đều đề cập đến package hoặc kiểu trong mô-đun, nhưng chúng phục vụ các cơ chế khác nhau:
+These three directives are often confused because all refer to packages or types within a module, yet they serve different mechanisms:
 
-| Chỉ thị | Ai sử dụng? | Kết quả |
+| Directive | Who Uses It? | Result |
 | --- | --- | --- |
-| exports | Mã Java của mô-đun khác | Có thể import và gọi API public trong package được export. |
-| opens | Framework hoặc thư viện dùng reflection | Có thể deep reflection vào package tại runtime. |
-| provides | ServiceLoader và module resolution | Đăng ký implementation cho một service type. |
+| exports | Java code of other modules | Can import and call public APIs in the exported package. |
+| opens | Frameworks or libraries using reflection | Can perform deep reflection into the package at runtime. |
+| provides | ServiceLoader and module resolution | Registers an implementation for a service type. |
 
-Ví dụ, ORM cần đọc field private thì cần opens. Một mô-đun muốn import OrderService thì cần package chứa OrderService được exports và mô-đun gọi có requires. Một ứng dụng muốn tìm implementation qua ServiceLoader thì consumer cần uses và provider cần provides.
+For example, an ORM needing to read private fields needs opens. A module wanting to import OrderService needs the package containing OrderService to be exported via exports and the calling module to have requires. An application wanting to discover implementations via ServiceLoader needs the consumer to have uses and the provider to have provides.
 
-## 11. Kiểm tra module descriptor và lỗi thường gặp
+## 11. Inspecting Module Descriptors and Common Errors
 
-Có thể xem descriptor của một JAR bằng:
+You can inspect a JAR's descriptor using:
 
 ~~~bash
 jar --describe-module --file libs/example.jar
 ~~~
 
-Lệnh này hiển thị tên mô-đun, các requires, exports, opens và thông tin provider nếu có.
+This command displays the module name, requires, exports, opens, and provider information if present.
 
-Một số lỗi và cách kiểm tra:
+Some errors and how to check them:
 
-| Triệu chứng | Nguyên nhân có thể | Kiểm tra hoặc sửa |
+| Symptom | Possible Cause | Check or Fix |
 | --- | --- | --- |
-| package is not visible | Thiếu requires hoặc package chưa exports | Kiểm tra descriptor của cả consumer và owner. |
-| module does not read module | Chưa có quan hệ readability | Thêm requires đúng mô-đun. |
-| does not export package | Package API chưa được export cho consumer | Thêm exports hoặc qualified exports. |
-| InaccessibleObjectException | Framework cần deep reflection | Mở đúng package bằng opens hoặc --add-opens. |
-| ServiceConfigurationError | Thiếu uses, provider chưa được resolve hoặc provider sai cấu hình | Kiểm tra uses, provides và module graph. |
-| Module not found | Thiếu JAR hoặc sai tên mô-đun | Dùng jar --describe-module và kiểm tra module path. |
+| package is not visible | Missing requires or package not yet exported via exports | Check the descriptors of both consumer and owner. |
+| module does not read module | No readability relationship exists | Add requires for the right module. |
+| does not export package | API package has not been exported to the consumer | Add exports or qualified exports. |
+| InaccessibleObjectException | Framework needs deep reflection | Open the right package using opens or --add-opens. |
+| ServiceConfigurationError | Missing uses, unresolved provider, or misconfigured provider | Check uses, provides, and the module graph. |
+| Module not found | Missing JAR or wrong module name | Use jar --describe-module and check the module path. |
 
-Khi chẩn đoán, hãy phân biệt lỗi compile-time với runtime. exports có ảnh hưởng đến khả năng truy cập API thông thường khi biên dịch và chạy; opens chủ yếu phục vụ reflection ở runtime. uses và provides liên quan đến việc khai báo, phân giải và tìm service provider.
+When diagnosing, distinguish compile-time errors from runtime errors. exports affects regular API accessibility at compile time and runtime; opens primarily serves runtime reflection. uses and provides relate to declaring, resolving, and locating service providers.
 
-## 12. Nguyên tắc thiết kế descriptor dễ bảo trì
+## 12. Principles for Designing Maintainable Descriptors
 
-- **Khai báo dependency trực tiếp:** mỗi mô-đun nên mô tả những mô-đun mà mã của nó thực sự cần đọc.
-- **Dùng transitive có chủ đích:** chỉ truyền tiếp readability khi dependency là một phần của API mà mô-đun công khai.
-- **Export package API:** tránh export package implementation hoặc package chỉ phục vụ nội bộ.
-- **Giới hạn qualified exports/opens:** nếu chỉ một vài mô-đun cần quyền truy cập, hãy ghi rõ tên đích.
-- **Mở reflection theo nhu cầu framework:** không dùng open module rộng chỉ để tránh tìm hiểu package nào thực sự cần mở.
-- **Tách service contract và provider:** consumer phụ thuộc vào interface; provider phụ thuộc vào contract và đăng ký bằng provides.
-- **Kiểm tra module graph:** sau khi thêm hoặc thay dependency, xác minh descriptor và cấu hình runtime bằng công cụ JDK.
+- **Declare direct dependencies:** each module should describe the modules its code actually needs to read.
+- **Use transitive intentionally:** propagate readability only when the dependency is part of the API exposed by the module.
+- **Export API packages:** avoid exporting implementation packages or internal-only packages.
+- **Limit with qualified exports/opens:** if only a few modules need access, explicitly name the targets.
+- **Open reflection according to framework needs:** do not use a broad open module just to avoid finding out which packages actually need to be opened.
+- **Separate service contracts and providers:** consumers depend on interfaces; providers depend on contracts and register via provides.
+- **Check the module graph:** after adding or changing dependencies, verify the descriptor and runtime configuration with JDK tools.
 
-Module descriptor tốt làm rõ hợp đồng của mô-đun ngay tại một nơi: dependency nào được đọc, API nào được công khai, package nào mở cho reflection và service nào được tiêu thụ hoặc cung cấp.
+A good module descriptor clarifies the module's contract in one place: which dependencies are read, which APIs are exposed, which packages are open for reflection, and which services are consumed or provided.
 
-## 13. Tự kiểm tra
+## 13. Self-Check
 
-**Tình huống 1:** Mô-đun checkout gọi một kiểu public trong package của customer nhưng gặp lỗi package is not visible. Cần kiểm tra những khai báo nào?
+**Scenario 1:** The checkout module calls a public type in a customer package but encounters a package is not visible error. Which declarations need to be checked?
 
-Trả lời: checkout cần requires tới customer; customer cần exports package chứa kiểu đó. Chỉ có một trong hai khai báo là chưa đủ.
+Answer: checkout needs requires to customer; customer needs exports for the package containing that type. Having only one of the two declarations is not enough.
 
-**Tình huống 2:** ORM cần gán giá trị vào field private của entity. Có nên export package entity không?
+**Scenario 2:** An ORM needs to assign values to private fields of an entity. Should the entity package be exported?
 
-Trả lời: nhu cầu này là deep reflection. Hãy dùng opens cho package entity và giới hạn tới mô-đun ORM nếu có thể. exports không thay thế opens.
+Answer: this need is deep reflection. Use opens for the entity package and restrict it to the ORM module if possible. exports does not replace opens.
 
-**Tình huống 3:** Ứng dụng cần tìm mọi implementation của PaymentProcessor mà không phụ thuộc vào lớp triển khai cụ thể. Cần những khai báo nào?
+**Scenario 3:** An application needs to locate all implementations of PaymentProcessor without depending on specific implementation classes. Which declarations are needed?
 
-Trả lời: mô-đun ứng dụng khai báo uses PaymentProcessor; mỗi mô-đun provider khai báo provides PaymentProcessor with Implementation. Các mô-đun provider cũng cần được đưa vào module configuration để ServiceLoader có thể phát hiện chúng.
+Answer: the application module declares uses PaymentProcessor; each provider module declares provides PaymentProcessor with Implementation. Provider modules also need to be included in the module configuration so ServiceLoader can discover them.
 
-**Tình huống 4:** Một thư viện xuất hiện trong API public của facade. Khi nào dùng requires transitive?
+**Scenario 4:** A library appears in a facade's public API. When should requires transitive be used?
 
-Trả lời: dùng requires transitive khi người đọc facade cũng cần đọc thư viện đó để sử dụng kiểu hoặc hợp đồng được facade đưa ra. Nếu dependency chỉ là chi tiết nội bộ, dùng requires thông thường.
+Answer: use requires transitive when readers of the facade also need to read that library to use types or contracts exposed by the facade. If the dependency is only an internal detail, use regular requires.
 
-**Tình huống 5:** Một framework chạy trên classpath cần reflection vào package trong named module. Có thể mở package cho ai?
+**Scenario 5:** A framework running on the classpath needs reflection into a package in a named module. Who can the package be opened to?
 
-Trả lời: có thể dùng opens ... to ... nếu framework có tên mô-đun phù hợp; với thư viện trên classpath, đích có thể là ALL-UNNAMED khi dùng tham số --add-opens.
-
+Answer: you can use opens ... to ... if the framework has a suitable module name; for libraries on the classpath, the target can be ALL-UNNAMED when using the --add-opens argument.

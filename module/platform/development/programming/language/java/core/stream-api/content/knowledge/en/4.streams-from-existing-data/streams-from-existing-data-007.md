@@ -1,12 +1,12 @@
-# Nối nguồn bằng Stream.concat và quản lý chuỗi nối
+# Joining Sources with Stream.concat and Managing Concatenation Chains
 
-Trong Java Stream API, dữ liệu thường nằm rải rác ở nhiều nguồn: danh sách đơn hàng mới và cũ, kết quả tra cứu chính và dự phòng, các đoạn log theo ngày hoặc hai tập bản ghi cần đưa qua cùng một pipeline. `Stream.concat` cho phép tạo **một Stream hợp nhất từ hai Stream có sẵn**, để tiếp tục dùng `filter`, `map`, `reduce`, `collect` và các thao tác khác theo phong cách khai báo.
+In the Java Stream API, data is often scattered across multiple sources: lists of new and old orders, primary and fallback lookup results, daily log segments, or two sets of records that need to pass through the same pipeline. `Stream.concat` lets you create **one unified Stream from two existing Streams**, so you can continue using `filter`, `map`, `reduce`, `collect`, and other operations in a declarative style.
 
-Bài học thuộc chương **Tạo Stream từ dữ liệu có sẵn** của module `JAVA_STREAM_API`. Mục tiêu là hiểu thứ tự phần tử khi nối, tính *lazy*, vòng đời sử dụng một lần, cách đóng các nguồn giữ tài nguyên, đồng thời biết khi nào nên chuyển từ `Stream.concat` sang cách tổ chức nhiều nguồn bằng `flatMap`. Các quyết định này ảnh hưởng trực tiếp đến tính đúng đắn, bộ nhớ và hiệu năng, đặc biệt khi xử lý I/O hoặc chạy song song.
+This lesson belongs to the **Streams from Existing Data** chapter of the `JAVA_STREAM_API` module. The goal is to understand element ordering when concatenating, *laziness*, single-use lifecycle, how to close resource-holding sources, and when to switch from `Stream.concat` to organizing multiple sources with `flatMap`. These decisions directly affect correctness, memory, and performance, especially when handling I/O or running in parallel.
 
-## 1. Stream.concat nối hai nguồn như thế nào?
+## 1. How Does Stream.concat Join Two Sources?
 
-Chữ ký của phương thức tĩnh trong `java.util.stream.Stream`:
+Signature of the static method in `java.util.stream.Stream`:
 
 ```java
 public static <T> Stream<T> concat(
@@ -15,15 +15,15 @@ public static <T> Stream<T> concat(
 );
 ```
 
-`Stream.concat(a, b)` tạo một Stream mới, gồm các phần tử của `a` theo sau bởi các phần tử của `b`. Nếu **cả hai Stream có thứ tự gặp phần tử** (*encounter order*), Stream kết quả giữ thứ tự của từng nguồn và đặt toàn bộ phần tử của `a` trước `b`.
+`Stream.concat(a, b)` creates a new Stream consisting of the elements of `a` followed by the elements of `b`. If **both Streams have an encounter order**, the resulting Stream preserves each source's order and places all elements of `a` before `b`.
 
 ```text
-Nguồn A: [A1, A2, A3] ─┐
+Source A: [A1, A2, A3] ─┐
                         ├─ Stream.concat(A, B) → [A1, A2, A3, B1, B2]
-Nguồn B: [B1, B2] ──────┘
+Source B: [B1, B2] ─────┘
 ```
 
-Ví dụ cơ bản, dùng được từ Java 8:
+Basic example, usable since Java 8:
 
 ```java
 import java.util.Arrays;
@@ -42,32 +42,32 @@ List<String> all = Stream.concat(
 System.out.println(all); // [An, Binh, Chi, Dung]
 ```
 
-Các điểm cần ghi nhớ:
+Points to remember:
 
-- `concat` nhận **hai Stream**, không nhận trực tiếp hai `List`. Với collection, gọi `stream()` trước.
-- `concat` tạo **pipeline mới**, không sao chép toàn bộ hai nguồn thành collection ở thời điểm gọi. Các phần tử được xử lý khi có thao tác kết thúc.
-- Nối không tự loại bản ghi trùng lặp, không tự sắp xếp lại và không trộn xen kẽ hai nguồn.
-- Mỗi đối số là một Stream có thể tiêu thụ **một lần**. Sau khi dùng chúng trong pipeline nối, không được tiếp tục sử dụng độc lập hai Stream nguồn.
-- Nếu một nguồn rỗng, kết quả mang các phần tử của nguồn còn lại. Cả hai nguồn phải khác `null`; truyền `null` gây `NullPointerException`.
+- `concat` takes **two Streams**, not two `List`s directly. For collections, call `stream()` first.
+- `concat` creates a **new pipeline**, without copying both sources entirely into a collection at call time. Elements are processed when a terminal operation is invoked.
+- Concatenation does not automatically remove duplicates, does not re-sort, and does not interleave the two sources.
+- Each argument is a **single-use** Stream. After passing them into the concatenated pipeline, you must not continue using the two source Streams independently.
+- If one source is empty, the result carries the elements of the other source. Both sources must be non-`null`; passing `null` causes a `NullPointerException`.
 
-Khác biệt với `Stream.of` đặc biệt dễ nhầm:
+The difference from `Stream.of` is particularly easy to confuse:
 
 ```java
 Stream<String> a = Stream.of("x", "y");
 Stream<String> b = Stream.of("z");
 
-Stream<Stream<String>> nested = Stream.of(a, b); // 2 phần tử, mỗi phần tử là Stream
-// Chỉ đóng gói tham chiếu; a và b chưa bị tiêu thụ ở thời điểm này.
+Stream<Stream<String>> nested = Stream.of(a, b); // 2 elements, each element is a Stream
+// Only wraps references; a and b have not been consumed at this point.
 ```
 
-`Stream.of(a, b)` tạo Stream **chứa hai đối tượng Stream**. `Stream.concat(a, b)` tạo Stream **chứa phần tử bên trong** hai Stream đó. Nếu muốn ghép nhiều nguồn, `flatMap` có thể làm phẳng Stream lồng nhau, nhưng cần cân nhắc tài nguyên và số lượng nguồn ở các phần sau.
+`Stream.of(a, b)` creates a Stream **containing two Stream objects**. `Stream.concat(a, b)` creates a Stream **containing the elements inside** those two Streams. If you want to combine multiple sources, `flatMap` can flatten a nested Stream, though resources and source counts must be considered in later sections.
 
-## 2. Nối pipeline là lazy, nhưng việc tạo nguồn có thể không lazy
+## 2. Concatenating Pipelines Is Lazy, but Creating Sources May Not Be
 
-Hãy tách biệt hai thời điểm:
+Separate two distinct moments in time:
 
-1. **Tạo nguồn và xây dựng pipeline:** Java đánh giá biểu thức đối số để lấy hai Stream rồi tạo Stream nối.
-2. **Duyệt các phần tử:** Thường chỉ xảy ra khi gọi thao tác kết thúc như `count`, `toArray`, `findFirst` hoặc `collect`.
+1. **Creating sources and building the pipeline:** Java evaluates the argument expressions to obtain two Streams and then creates the concatenated Stream.
+2. **Traversing elements:** Usually happens only when calling a terminal operation such as `count`, `toArray`, `findFirst`, or `collect`.
 
 ```java
 import java.util.stream.Stream;
@@ -78,27 +78,27 @@ Stream<String> right = Stream.of("bird")
         .peek(s -> System.out.println("B: " + s));
 
 Stream<String> merged = Stream.concat(left, right);
-System.out.println("Đã tạo pipeline");
+System.out.println("Pipeline created");
 
 merged.forEachOrdered(System.out::println);
 ```
 
-Ở pipeline tuần tự, phần in từ `peek` và các phần tử bắt đầu xuất hiện khi chạy `forEachOrdered`, sau thông báo `Đã tạo pipeline`. `peek` chỉ minh họa hoạt động; không nên dựa vào nó để ghi log hoặc dọn dẹp có tính bắt buộc vì một số thao tác kết thúc có thể được tối ưu hóa và bỏ qua việc duyệt phần tử.
+In a sequential pipeline, the output from `peek` and the elements begin appearing when `forEachOrdered` runs, after the message `Pipeline created`. `peek` only illustrates execution; do not rely on it for mandatory logging or cleanup because some terminal operations can optimize away element traversal.
 
-Đặc biệt, **lazy trong duyệt không có nghĩa lazy trong mở tài nguyên**:
+In particular, **laziness in traversal does not mean laziness in opening resources**:
 
 ```java
-// Hai lời gọi Files.lines(...) được đánh giá khi tạo joined,
-// dù chưa có thao tác kết thúc nào trên joined.
+// Both Files.lines(...) calls are evaluated when creating joined,
+// even before any terminal operation on joined.
 Stream<String> joined = Stream.concat(
         Files.lines(firstPath),
         Files.lines(secondPath)
 );
 ```
 
-Đoạn này minh họa thời điểm mở nguồn, **chưa phải mẫu quản lý tài nguyên an toàn**. Nếu mở tệp thứ hai thất bại, tệp đầu tiên có thể vẫn mở; nếu xử lý thành công mà không đóng, cả hai cũng có thể còn giữ tài nguyên. Phần 4 trình bày cách viết an toàn.
+This snippet illustrates when sources are opened, **not a safe resource management pattern**. If opening the second file fails, the first file may remain open; if processing succeeds without closing, both may also remain holding resources. Section 4 shows how to write this safely.
 
-### Nối với thao tác ngắn mạch
+### Concatenating with Short-Circuiting Operations
 
 ```java
 import java.util.stream.Stream;
@@ -113,25 +113,25 @@ joined.limit(2).forEachOrdered(System.out::println);
 // A2
 ```
 
-Với hai nguồn có thứ tự và pipeline tuần tự như trên, `limit(2)` không cần lấy phần tử từ nguồn B. Tương tự, `findFirst()` thường lấy từ A khi A có phần tử. Nhưng nếu thêm các thao tác cần quan sát toàn bộ dữ liệu, như `sorted()`, chi phí thực thi có thể tăng; còn với pipeline không có encounter order hoặc khi chạy song song, không nên suy diễn thứ tự xử lý nội bộ.
+With two ordered sources and a sequential pipeline like above, `limit(2)` does not need to pull elements from source B. Similarly, `findFirst()` usually takes from A when A has elements. However, if you add operations that must observe all data, such as `sorted()`, execution cost can increase; and for pipelines without encounter order or when running in parallel, do not infer internal processing order.
 
-**Hệ quả quan trọng:** dù phép ngắn mạch chưa đọc phần tử nào từ B, nếu B đã mở tệp hoặc giữ kết nối thì B vẫn phải được đóng.
+**Important consequence:** even if a short-circuiting operation has not read any elements from B, if B has already opened a file or held a connection, B must still be closed.
 
-## 3. Thứ tự, trùng lặp, kiểu dữ liệu và chế độ song song
+## 3. Ordering, Duplicates, Data Types, and Parallel Mode
 
-| Thuộc tính | Hành vi khi nối | Ý nghĩa thực hành |
+| Property | Behavior on concat | Practical significance |
 | --- | --- | --- |
-| Encounter order | Có thứ tự nếu **cả A và B** có thứ tự | Dữ liệu A đứng trước B trong thứ tự gặp phần tử |
-| Phần tử trùng lặp | Được giữ nguyên | Dùng `distinct()` nếu thực sự cần loại trùng |
-| Sắp xếp | Không tự tạo một thứ tự sắp xếp toàn cục | Hai nguồn đã sắp xếp riêng chưa chắc kết quả đã sắp xếp |
-| Lazy | Tiếp tục là pipeline lazy | Không có bản sao toàn bộ dữ liệu khi gọi `concat` |
-| Tái sử dụng nguồn | Không được tái sử dụng A/B hoặc Stream kết quả | Tạo Stream mới cho lần xử lý tiếp theo |
-| Song song | Kết quả là parallel nếu **ít nhất một** nguồn parallel | Cần cân nhắc thứ tự và chi phí phối hợp |
-| Nguyên thủy | Có `IntStream.concat`, `LongStream.concat`, `DoubleStream.concat` | Tránh boxing không cần thiết |
+| Encounter order | Ordered if **both A and B** are ordered | Data from A precedes B in encounter order |
+| Duplicate elements | Preserved | Use `distinct()` if deduplication is truly needed |
+| Sorting | Does not automatically create a global sort order | Two individually sorted sources do not guarantee a sorted result |
+| Laziness | Remains a lazy pipeline | No full copy of data when calling `concat` |
+| Source reuse | Cannot reuse A/B or the resulting Stream | Create new Streams for subsequent passes |
+| Parallelism | Result is parallel if **at least one** source is parallel | Must consider ordering and coordination cost |
+| Primitives | Has `IntStream.concat`, `LongStream.concat`, `DoubleStream.concat` | Avoids unnecessary boxing |
 
-### Ưu tiên dữ liệu nguồn trước và loại trùng
+### Prioritizing the First Source and Deduplicating
 
-Giả sử ưu tiên mã từ nguồn chính, sau đó mới bổ sung những mã chưa có từ nguồn phụ:
+Suppose you prioritize IDs from a primary source, then supplement with IDs not yet present from a fallback source:
 
 ```java
 import java.util.Arrays;
@@ -150,21 +150,21 @@ List<String> ids = Stream.concat(
 System.out.println(ids); // [u01, u02, u03]
 ```
 
-Với pipeline có encounter order, `distinct()` giữ **lần xuất hiện đầu tiên**, nên thứ tự ưu tiên nguồn chính được bảo toàn. Tuy vậy, `distinct()` xác định trùng lặp qua `equals`/`hashCode`, có thể tiêu tốn bộ nhớ cho tập phần tử đã thấy; với bản ghi đối tượng, cần quyết định rõ hai bản ghi có trùng nhau theo ID hay theo toàn bộ đối tượng.
+In a pipeline with encounter order, `distinct()` keeps the **first occurrence**, so the priority order of the primary source is preserved. However, `distinct()` determines duplicates via `equals`/`hashCode`, which can consume memory for the set of seen elements; for object records, clarify whether two records are considered duplicates by ID or by the entire object.
 
-### Hai nguồn đều được sắp xếp vẫn có thể cần sorted()
+### Two Individually Sorted Sources May Still Need sorted()
 
 ```java
 Stream<Integer> a = Stream.of(1, 4, 7);
 Stream<Integer> b = Stream.of(2, 3, 8);
 
 Stream.concat(a, b).forEachOrdered(System.out::println);
-// 1, 4, 7, 2, 3, 8  (không phải thứ tự tăng dần toàn cục)
+// 1, 4, 7, 2, 3, 8  (not globally ascending order)
 ```
 
-Nếu cần toàn cục tăng dần, dùng `Stream.concat(a, b).sorted()` với **những Stream mới**. `sorted()` có thể cần giữ nhiều phần tử trong bộ nhớ trước khi xuất kết quả; với hai nguồn lớn đã được sắp xếp, bài toán *merge sorted streams* cần thuật toán riêng thay vì chỉ nối rồi sắp xếp.
+If a globally ascending order is required, use `Stream.concat(a, b).sorted()` on **new Streams**. `sorted()` may need to buffer many elements in memory before emitting results; for two large already-sorted sources, the *merge sorted streams* problem calls for a dedicated merge algorithm rather than merely concatenating and sorting.
 
-### Nối các Stream số nguyên thủy
+### Concatenating Primitive Streams
 
 ```java
 import java.util.stream.IntStream;
@@ -177,9 +177,9 @@ int sum = IntStream.concat(
 System.out.println(sum); // 36
 ```
 
-`Stream.concat` làm việc với Stream đối tượng. Khi nguồn là `IntStream`, `LongStream` hoặc `DoubleStream`, hãy dùng phương thức `concat` tương ứng để có pipeline xử lý số nguyên thủy hiệu quả hơn, tránh boxing chỉ để nối.
+`Stream.concat` works with object Streams. When the sources are `IntStream`, `LongStream`, or `DoubleStream`, use the corresponding `concat` method for a more efficient primitive pipeline, avoiding boxing just to concatenate.
 
-### Lưu ý khi chạy song song
+### Notes When Running in Parallel
 
 ```java
 Stream<Integer> merged = Stream.concat(
@@ -191,13 +191,13 @@ System.out.println(merged.isParallel()); // true
 merged.forEachOrdered(System.out::println); // 1, 2, 3, 4
 ```
 
-`forEachOrdered` bảo đảm thứ tự gặp phần tử khi thứ tự đó tồn tại; `forEach` trên pipeline parallel không bảo đảm thứ tự in. Việc nối không tự bảo đảm tăng tốc: đặc điểm tách công việc từ hai nguồn và ràng buộc thứ tự có thể ảnh hưởng hiệu năng. Chỉ dùng parallel khi phép xử lý độc lập, không phụ thuộc trạng thái chia sẻ, và có lý do hiệu năng rõ ràng.
+`forEachOrdered` guarantees encounter order when that order exists; `forEach` on a parallel pipeline does not guarantee print order. Concatenation does not automatically guarantee speedup: work-splitting characteristics of the two sources and ordering constraints can affect performance. Only use parallel when processing is independent, does not rely on shared state, and has a clear performance justification.
 
-## 4. Vòng đời và đóng chuỗi nối đúng cách
+## 4. Lifecycle and Properly Closing Concatenated Chains
 
-`Stream.concat` kết nối **hai Stream nguồn vào cùng một pipeline sử dụng một lần**. Terminal operation như `count()` hoặc `collect()` làm pipeline được tiêu thụ nhưng **không tự gọi `close()`**. Điều này đặc biệt quan trọng với Stream trả về từ `Files.lines`, `Files.list` hoặc các nguồn I/O.
+`Stream.concat` connects **two source Streams into a single-use pipeline**. Terminal operations like `count()` or `collect()` consume the pipeline, but **do not automatically call `close()`**. This is especially important for Streams returned from `Files.lines`, `Files.list`, or I/O sources.
 
-### Đóng Stream nối sẽ đóng cả hai nguồn
+### Closing the Concatenated Stream Closes Both Sources
 
 ```java
 import java.util.ArrayList;
@@ -215,19 +215,19 @@ Stream<String> joined = Stream.concat(a, b);
 long count = joined.count();
 
 System.out.println(count);  // 2
-System.out.println(events); // []: count() không tự đóng nguồn
+System.out.println(events); // []: count() does not close sources automatically
 
 joined.close();
 System.out.println(events); // [close A, close B]
 ```
 
-Theo hợp đồng, khi đóng Stream kết quả từ `Stream.concat`, các hành động đóng của A và B được thực hiện. Hành động đăng ký bằng `onClose` chạy khi đóng, kể cả khi không duyệt hết nguồn. Nếu handler đóng ném ngoại lệ, Java vẫn cố chạy các handler còn lại và có thể lưu ngoại lệ bổ sung dưới dạng *suppressed exceptions*.
+By contract, closing the Stream returned by `Stream.concat` executes the close handlers of both A and B. Handlers registered with `onClose` run on close, even if the sources were not fully traversed. If a close handler throws an exception, Java still attempts to run the remaining handlers and may attach additional exceptions as *suppressed exceptions*.
 
-Nếu một Stream nguồn được sử dụng ở nhiều chỗ độc lập, việc ghép và đóng chung có thể làm các chỗ khác không dùng được nữa. Không dùng lại cùng một nguồn theo kiểu `Stream.concat(s, s)` hoặc dùng `a`/`b` sau khi đã gắn vào pipeline nối.
+If a source Stream were used in multiple independent places, combining and closing it jointly could break the other usages. Do not reuse the same source as in `Stream.concat(s, s)`, nor use `a`/`b` after attaching them to the concatenated pipeline.
 
-### Nối hai tệp: mở và đóng trong cùng phạm vi
+### Concatenating Two Files: Open and Close in the Same Scope
 
-Đây là mẫu nên dùng khi cần nối các dòng log của hôm qua với hôm nay rồi đếm cảnh báo:
+This is the recommended pattern when joining yesterday's and today's log lines and counting warnings:
 
 ```java
 import java.io.IOException;
@@ -252,18 +252,18 @@ public static long countWarnings(Path yesterday, Path today)
 }
 ```
 
-Khối `try-with-resources` giải quyết đồng thời các tình huống:
+The `try-with-resources` block handles these scenarios simultaneously:
 
-1. Cả hai nguồn được mở thành công: xử lý xong thì đóng `joined`, và theo đó đóng hai nguồn.
-2. Mở nguồn thứ hai thất bại: Java đóng `oldLines` đã mở trước đó, không để tệp đầu bị bỏ quên.
-3. Pipeline ném ngoại lệ trong khi đọc hoặc xử lý: Java vẫn thực hiện đóng tài nguyên khi rời khối.
-4. Đóng `joined` đóng các nguồn, rồi khối `try` có thể gọi `close()` lần nữa trên từng Stream đã khai báo. Đóng một Stream đã đóng là thao tác không gây hiệu lực bổ sung.
+1. Both sources open successfully: once processing finishes, `joined` is closed, and consequently both sources are closed.
+2. Opening the second source fails: Java closes `oldLines` that was opened earlier, leaving no dangling first file.
+3. The pipeline throws an exception while reading or processing: Java still closes resources upon exiting the block.
+4. Closing `joined` closes the sources, and then the `try` block may call `close()` again on each declared Stream. Closing an already-closed Stream is a no-op.
 
-Ví dụ trên trả **kết quả đã tính** (`long`), nên người gọi không phải giữ tài nguyên I/O. Khi cần trả Stream cho người gọi tự xử lý, phải thiết kế hợp đồng sở hữu rõ ràng: ai mở, ai gọi `close()`, và khi nào được tiêu thụ. Không trả Stream tạo trong `try-with-resources` mà khối `try` đã kết thúc trước khi người gọi dùng nó.
+The example above returns a **computed result** (`long`), so the caller does not have to hold I/O resources. When you must return a Stream for the caller to process, design an explicit ownership contract: who opens it, who calls `close()`, and when it can be consumed. Never return a Stream created inside a `try-with-resources` whose `try` block has already exited before the caller uses it.
 
-Một lưu ý về lỗi: `Files.lines(...)` có thể ném `IOException` khi mở; lỗi đọc phát sinh trong lúc duyệt lazy có thể được bọc thành `UncheckedIOException`. Cơ chế đóng trong `try-with-resources` vẫn áp dụng cho cả hai tình huống.
+One note on errors: `Files.lines(...)` can throw `IOException` when opening; read errors occurring during lazy traversal can be wrapped as `UncheckedIOException`. The closing mechanism in `try-with-resources` still applies in both cases.
 
-### Trường hợp có thao tác ngắn mạch
+### Case with Short-Circuiting Operations
 
 ```java
 public static boolean containsError(Path first, Path second)
@@ -276,11 +276,11 @@ public static boolean containsError(Path first, Path second)
 }
 ```
 
-Khi tìm thấy `ERROR` ở nguồn đầu, `anyMatch` có thể dừng mà chưa đọc nguồn thứ hai. Dù vậy, **cả hai Stream đã mở vẫn được đóng**. Đây là lý do phải gắn vòng đời tài nguyên với phạm vi `try` thay vì dựa vào việc terminal operation có đọc hết phần tử hay không.
+When `ERROR` is found in the first source, `anyMatch` can stop without reading the second source. Even so, **both opened Streams are still closed**. This is why resource lifecycles must be tied to a `try` scope instead of relying on whether the terminal operation reads every element.
 
-## 5. Nối nhiều hơn hai nguồn
+## 5. Joining More Than Two Sources
 
-`Stream.concat` chỉ nhận **hai đối số**. Có thể lồng lời gọi để nối ba nguồn:
+`Stream.concat` accepts only **two arguments**. You can nest calls to join three sources:
 
 ```java
 Stream<String> three = Stream.concat(
@@ -292,9 +292,9 @@ Stream<String> three = Stream.concat(
 );
 ```
 
-Với số lượng nguồn nhỏ và cố định, cách này rõ ràng. Nhưng **không nên xây chuỗi nối lồng nhau quá sâu** trong vòng lặp với hàng trăm hoặc hàng nghìn nguồn. Tài liệu Java cảnh báo truy cập phần tử của Stream được nối lặp nhiều tầng có thể tạo chuỗi lời gọi rất sâu, thậm chí `StackOverflowError`.
+For a small, fixed number of sources, this is clear. However, **do not build deeply nested concatenation chains** inside a loop over hundreds or thousands of sources. The Java documentation warns that accessing elements of repeatedly concatenated Streams can produce very deep call chains, potentially even `StackOverflowError`.
 
-### Nhiều collection: dùng flatMap để làm phẳng
+### Multiple Collections: Use flatMap to Flatten
 
 ```java
 import java.util.Arrays;
@@ -315,13 +315,13 @@ List<String> all = batches.stream()
 System.out.println(all); // [a1, a2, b1, c1, c2]
 ```
 
-`batches.stream()` tạo Stream các collection; `flatMap(Collection::stream)` biến mỗi collection thành Stream phần tử rồi làm phẳng chúng theo thứ tự gặp phần tử. Đây là phương án tự nhiên khi có **danh sách nguồn có độ dài thay đổi** và nguồn là collection không giữ tài nguyên phải đóng.
+`batches.stream()` creates a Stream of collections; `flatMap(Collection::stream)` turns each collection into a Stream of elements and flattens them in encounter order. This is the natural approach when you have a **variable-length list of sources** and the sources are collections that do not hold closable resources.
 
-Có thể viết `Stream.of(s1, s2, s3).flatMap(Function.identity())` khi mỗi `s1`/`s2`/`s3` đã là Stream. `flatMap` sẽ đóng các Stream con mà nó đã xử lý, nhưng nếu những Stream con đó đã được mở từ tệp từ trước và một phép ngắn mạch bỏ qua một số nguồn, các Stream chưa được đưa vào xử lý vẫn có thể còn mở. Vì vậy **không nên tạo trước hàng loạt Stream giữ tài nguyên rồi đưa vào `flatMap`**.
+You can write `Stream.of(s1, s2, s3).flatMap(Function.identity())` when `s1`/`s2`/`s3` are already Streams. `flatMap` closes the sub-Streams it has processed, but if those sub-Streams were already opened from files beforehand and a short-circuiting operation skips some sources, the unvisited Streams may remain open. Therefore, **do not pre-create a batch of resource-holding Streams and pass them into `flatMap`**.
 
-### Nhiều tệp: mở nguồn khi thực sự đến lượt xử lý
+### Multiple Files: Open Each Source Only When Its Turn Comes
 
-Khi số lượng tệp thay đổi, có thể duyệt danh sách đường dẫn và mở từng Stream con trong `flatMap`:
+When the number of files varies, you can traverse the list of paths and open each sub-Stream inside `flatMap`:
 
 ```java
 import java.io.IOException;
@@ -338,7 +338,7 @@ public static long countErrors(List<Path> files) {
             return Files.lines(path, StandardCharsets.UTF_8);
         } catch (IOException ex) {
             throw new UncheckedIOException(
-                    "Không mở được tệp: " + path, ex
+                    "Failed to open file: " + path, ex
             );
         }
     })) {
@@ -349,28 +349,28 @@ public static long countErrors(List<Path> files) {
 }
 ```
 
-Với cách này, `Files.lines` được gọi **khi mapper của `flatMap` cần đến đường dẫn tương ứng**, thay vì mở toàn bộ tệp ngay lúc xây dựng pipeline. `flatMap` có trách nhiệm đóng Stream con mà mapper trả về sau khi xử lý nó. `try-with-resources` vẫn đóng pipeline ngoài khi kết thúc, kể cả khi có ngoại lệ.
+With this approach, `Files.lines` is called **when the `flatMap` mapper reaches that path**, instead of opening all files when constructing the pipeline. `flatMap` is responsible for closing the sub-Stream returned by the mapper after processing it. `try-with-resources` still closes the outer pipeline when done, even if an exception occurs.
 
-Chú ý hai điểm:
+Note two points:
 
-- Vì `Files.lines` khai báo `IOException` trong khi mapper của `flatMap` không khai báo checked exception, ví dụ bọc lỗi mở tệp thành `UncheckedIOException`. Phần xử lý gọi phương thức cần tính đến dạng ngoại lệ này.
-- Mở lười giảm số tệp đang mở cùng lúc trong pipeline tuần tự, nhưng **không biến việc đọc tệp thành một giao dịch toàn vẹn**. Nếu một tệp lỗi giữa chừng, dữ liệu từ các tệp trước có thể đã được xử lý; nếu ghi ra bên ngoài ngay trong pipeline, không có cơ chế rollback tự động.
+- Because `Files.lines` declares `IOException` while the `flatMap` mapper does not declare checked exceptions, the example wraps file-opening errors into `UncheckedIOException`. Callers invoking the method need to account for this exception type.
+- Lazy opening reduces how many files are open simultaneously in a sequential pipeline, yet **does not turn file reading into an all-or-nothing transaction**. If one file fails partway through, data from earlier files may have already been processed; if writing externally inside the pipeline, there is no automatic rollback mechanism.
 
-Đối với xử lý parallel, nhiều nguồn I/O và nguồn có tài nguyên, cần đánh giá cẩn thận thứ tự mở/đóng và khả năng mở đồng thời trước khi cho pipeline chạy song song.
+For parallel processing, multiple I/O sources, and resource-backed sources, carefully evaluate open/close ordering and concurrent opening limits before running the pipeline in parallel.
 
-## 6. Thiết kế hàm cung cấp nguồn nối
+## 6. Designing Functions That Provide Concatenated Sources
 
-Một API tốt cần làm rõ nó trả về **kết quả đã tính** hay **một Stream còn sống**:
+A good API should make clear whether it returns a **computed result** or a **live Stream**:
 
-| Kiểu API | Vòng đời và trách nhiệm | Thích hợp khi |
+| API shape | Lifecycle and responsibility | Suitable when |
 | --- | --- | --- |
-| `List<T> combine(List<T>, List<T>)` | Tạo Stream ngắn hạn, trả kết quả đã thu thập | Kích thước dữ liệu phù hợp bộ nhớ |
-| `Stream<T> concatViews(Collection<T>, Collection<T>)` | Trả pipeline mới; nguồn collection thường không cần đóng | Muốn caller tiếp tục lọc/ánh xạ |
-| `long analyzeFiles(Path, Path)` | Mở, xử lý, đóng tệp trong phương thức | Muốn giữ trách nhiệm tài nguyên một chỗ |
-| `Stream<String> openJoinedFiles(Path, Path)` | Caller phải đóng Stream trả về; phải xử lý lỗi khi mở nguồn thứ hai | Muốn cho caller tự chọn terminal operation |
-| `Stream<T> fromSuppliers(...)` | Mỗi lần sử dụng phải tạo pipeline mới từ factory | Cần phân tích nguồn nhiều lần |
+| `List<T> combine(List<T>, List<T>)` | Creates a short-lived Stream, returns collected result | Data size fits in memory |
+| `Stream<T> concatViews(Collection<T>, Collection<T>)` | Returns a new pipeline; collection sources typically need no closing | Caller wants to continue filtering/mapping |
+| `long analyzeFiles(Path, Path)` | Opens, processes, and closes files inside the method | Want resource responsibility kept in one place |
+| `Stream<String> openJoinedFiles(Path, Path)` | Caller must close returned Stream; must handle error when opening second source | Caller wants to choose the terminal operation |
+| `Stream<T> fromSuppliers(...)` | Each use must create a new pipeline from a factory | Need to analyze sources multiple times |
 
-Ví dụ API trả Stream từ **hai collection có sẵn**, không mở tài nguyên bên ngoài:
+Example of an API returning a Stream from **two existing collections**, without opening external resources:
 
 ```java
 import java.util.Collection;
@@ -384,7 +384,7 @@ public static <T> Stream<T> concatViews(
 }
 ```
 
-Caller có thể chọn terminal operation:
+The caller can choose the terminal operation:
 
 ```java
 long count = concatViews(
@@ -393,9 +393,9 @@ long count = concatViews(
 ).filter(s -> s.length() > 1).count(); // 2
 ```
 
-Vì `concatViews` tạo Stream mới trên mỗi lần gọi, caller có thể gọi lại phương thức để phân tích dữ liệu lần khác. Điều này khác hẳn với việc lưu một biến `Stream` dùng chung cho nhiều lời gọi.
+Because `concatViews` creates a new Stream on each call, the caller can invoke the method again to analyze data another time. This is very different from storing a shared `Stream` variable across multiple calls.
 
-Đối với API mở hai tệp và trả Stream, cần xử lý trường hợp mở nguồn thứ hai thất bại **trước khi** ghép. Một mẫu an toàn là:
+For an API that opens two files and returns a Stream, handle the case where opening the second source fails **before** joining. A safe pattern is:
 
 ```java
 public static Stream<String> openJoinedFiles(Path first, Path second)
@@ -410,36 +410,36 @@ public static Stream<String> openJoinedFiles(Path first, Path second)
     }
 }
 
-// Caller sở hữu Stream kết quả và phải đóng:
+// Caller owns the resulting Stream and must close it:
 try (Stream<String> lines = openJoinedFiles(fileA, fileB)) {
     long total = lines.count();
 }
 ```
 
-Nếu mở nguồn B thất bại, phương thức đóng A trước khi trả lỗi. Khi cả hai đã mở, quyền đóng cả hai được chuyển qua Stream kết quả cho caller. Mẫu này minh họa hợp đồng sở hữu; với API sản xuất, còn cần cân nhắc cách giữ ngoại lệ gốc nếu `close` cũng ném lỗi, chính sách phát sinh lỗi I/O trong quá trình duyệt và tài liệu hướng dẫn sử dụng.
+If opening source B fails, the method closes A before rethrowing the error. Once both are open, responsibility for closing both is transferred via the resulting Stream to the caller. This pattern illustrates the ownership contract; for production APIs, also consider preserving the original exception if `close` throws, handling I/O errors during traversal, and documenting usage guidelines.
 
-## 7. Lỗi phổ biến và cách lựa chọn
+## 7. Common Errors and How to Choose
 
-| Tình huống | Vấn đề | Hướng xử lý |
+| Situation | Issue | Resolution |
 | --- | --- | --- |
-| `Stream.concat(listA, listB)` | `concat` cần Stream, không nhận List | `listA.stream()` và `listB.stream()` |
-| `Stream.of(streamA, streamB)` rồi tưởng đã nối phần tử | Tạo `Stream<Stream<T>>` | Dùng `concat` hoặc `flatMap` |
-| Dùng lại `streamA` sau `Stream.concat(streamA, streamB)` | Vi phạm vòng đời sử dụng một lần | Tạo Stream mới |
-| `Stream.concat(s, s)` | Hai nhánh cùng tham chiếu đến một Stream | Tạo hai Stream độc lập từ nguồn |
-| Nối các nguồn đã sorted rồi cho rằng toàn bộ vẫn sorted | Nối không thực hiện merge có sắp xếp | Dùng thuật toán merge phù hợp hoặc `sorted()` toàn cục |
-| Dùng `forEach` song song và kỳ vọng A luôn in trước B | `forEach` không bảo đảm thứ tự khi parallel | Dùng `forEachOrdered` nếu cần thứ tự |
-| Gọi `count` trên Stream nối hai tệp nhưng không đóng | Terminal operation không tự đóng | `try-with-resources` |
-| Tạo trước nhiều `Files.lines` rồi `flatMap`, sau đó `findFirst` | Nguồn chưa thăm tới có thể còn mở | Mở Stream trong mapper, hoặc quản lý tất cả nguồn tường minh |
-| Lồng `concat` hàng nghìn tầng | Pipeline có thể rất sâu, nguy cơ `StackOverflowError` | Dùng `flatMap` với collection hoặc factory nguồn |
-| Dùng `distinct`/`sorted` trên dữ liệu lớn mà bỏ qua bộ nhớ | Các thao tác trạng thái có thể tốn nhiều bộ nhớ | Đánh giá quy mô, đặc điểm nguồn và thuật toán thích hợp |
+| `Stream.concat(listA, listB)` | `concat` expects Streams, not Lists | `listA.stream()` and `listB.stream()` |
+| `Stream.of(streamA, streamB)` thinking elements were joined | Creates `Stream<Stream<T>>` | Use `concat` or `flatMap` |
+| Reusing `streamA` after `Stream.concat(streamA, streamB)` | Violates single-use lifecycle | Create a new Stream |
+| `Stream.concat(s, s)` | Both branches reference the same Stream | Create two independent Streams from the source |
+| Concatenating sorted sources and assuming the whole is sorted | Concatenation does not perform a sorted merge | Use an appropriate merge algorithm or global `sorted()` |
+| Using parallel `forEach` expecting A to always print before B | `forEach` does not guarantee order in parallel | Use `forEachOrdered` if order is needed |
+| Calling `count` on a Stream joining two files without closing | Terminal operation does not auto-close | `try-with-resources` |
+| Pre-creating many `Files.lines` then `flatMap` followed by `findFirst` | Unvisited sources may remain open | Open Streams inside the mapper, or manage all sources explicitly |
+| Nesting `concat` thousands of levels deep | Pipeline can become very deep, risking `StackOverflowError` | Use `flatMap` with a collection or source factory |
+| Using `distinct`/`sorted` on huge data ignoring memory | Stateful operations can consume significant memory | Assess scale, source characteristics, and suitable algorithms |
 
-## 8. Bài tập thực hành ngắn
+## 8. Short Practice Exercises
 
-1. Có `A = [4, 1]` và `B = [3, 1]`. Dự đoán kết quả `Stream.concat(A.stream(), B.stream()).distinct().collect(toList())`. **Đáp án:** `[4, 1, 3]` khi A/B có encounter order.
-2. Nối `IntStream.range(0, 3)` với `IntStream.of(10)` và tính tổng. **Đáp án:** `13`.
-3. Một Stream nối từ hai `Files.lines` gọi `findFirst()` thành công. Đã giải phóng cả hai tệp chưa? **Chưa**; vẫn cần `close()` hoặc `try-with-resources`.
-4. Vì sao không nên tạo trước 500 `Files.lines` rồi đưa vào `flatMap` để lấy phần tử đầu tiên? **Vì** nhiều tệp có thể đã mở dù phần lớn Stream con không được duyệt đến.
-5. Vì sao `Stream.concat(sortedA, sortedB)` có thể không tăng dần? **Vì** nối đặt toàn bộ A trước B, không so sánh để trộn phần tử giữa hai nguồn.
-6. Khi nào nên chọn `flatMap(Collection::stream)`? **Khi** có danh sách nhiều collection và muốn duyệt chúng trong một pipeline phẳng, tránh lồng `concat` quá sâu.
+1. Given `A = [4, 1]` and `B = [3, 1]`. Predict the result of `Stream.concat(A.stream(), B.stream()).distinct().collect(toList())`. **Answer:** `[4, 1, 3]` when A/B have encounter order.
+2. Concatenate `IntStream.range(0, 3)` with `IntStream.of(10)` and compute the sum. **Answer:** `13`.
+3. A Stream concatenated from two `Files.lines` calls `findFirst()` and succeeds. Have both files been released? **No**; `close()` or `try-with-resources` is still required.
+4. Why shouldn't you pre-open 500 `Files.lines` Streams and pass them into `flatMap` to fetch the first element? **Because** many files may remain open even though most sub-Streams are never visited.
+5. Why might `Stream.concat(sortedA, sortedB)` not be ascending? **Because** concatenation places all of A before B, without comparing to interleave elements between the two sources.
+6. When should you choose `flatMap(Collection::stream)`? **When** you have a list of multiple collections and want to traverse them in one flat pipeline, avoiding deeply nested `concat` calls.
 
-**Nguyên tắc thực hành:** Dùng `Stream.concat` cho hai nguồn hoặc một số ít nguồn cố định; giữ rõ thứ tự và vòng đời một lần. Khi nối nguồn I/O, quản lý việc mở và đóng ngay trong cấu trúc API hoặc chuyển trách nhiệm đóng cho caller một cách minh bạch. Khi số lượng nguồn tăng, ưu tiên tạo nguồn theo nhu cầu và làm phẳng bằng `flatMap` phù hợp với đặc điểm tài nguyên.
+**Practical rule:** Use `Stream.concat` for two sources or a small fixed number of sources; keep ordering and the single-use lifecycle clear. When joining I/O sources, manage opening and closing right inside the API structure or transfer closing responsibility to the caller transparently. When the number of sources grows, prefer creating sources on demand and flattening with `flatMap` suited to resource characteristics.

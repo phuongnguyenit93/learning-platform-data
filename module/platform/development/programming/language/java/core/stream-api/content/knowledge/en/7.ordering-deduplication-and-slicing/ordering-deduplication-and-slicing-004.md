@@ -1,37 +1,37 @@
-# Cắt lát dữ liệu bằng skip và limit
+# Slicing Data with `skip` and `limit`
 
-Khi một Stream chứa nhiều phần tử nhưng chương trình chỉ cần một đoạn, Java Stream API cung cấp hai phép toán trung gian là `skip(long n)` và `limit(long maxSize)`. Chúng thường đi cùng nhau để bỏ qua một số phần tử ở đầu và lấy một số lượng phần tử nhất định. Đây là kỹ thuật **cắt lát dữ liệu** (*slicing*), rất hữu ích khi hiển thị trang kết quả, lấy mẫu hữu hạn từ một nguồn dài hoặc kiểm soát số phần tử phải xử lý tiếp.
+When a Stream contains many elements but a program only needs a slice, the Java Stream API provides two intermediate operations: `skip(long n)` and `limit(long maxSize)`. They often appear together to skip a number of leading elements and take a fixed number of elements. This is **data slicing**, very useful for displaying paginated results, taking a finite sample from a long source, or controlling how many elements proceed downstream.
 
-Bài học thuộc chương **Thứ tự, loại trùng và cắt lát** của module **JAVA_STREAM_API**. Trong mô hình xử lý khai báo bằng pipeline lười, `skip` và `limit` có liên hệ trực tiếp với `filter`, `map`, `sorted`, `distinct` và các phép toán kết thúc như `collect`, `reduce`. Hiểu đúng chúng cũng giúp tránh lỗi phân trang, chi phí lớn khi xử lý song song và các tình huống nguồn vô hạn không bao giờ trả kết quả.
+This lesson belongs to the **Ordering, Deduplication, and Slicing** chapter of the **JAVA_STREAM_API** module. In the declarative lazy-pipeline model, `skip` and `limit` interact directly with `filter`, `map`, `sorted`, `distinct`, and terminal operations like `collect` and `reduce`. Understanding them well also helps avoid pagination bugs, high parallel-processing overhead, and non-terminating pipelines on infinite sources.
 
-## 1. Ý nghĩa chính xác của skip và limit
+## 1. Exact Meaning of `skip` and `limit`
 
-| Phép toán | Ý nghĩa | Đối số | Tính chất |
+| Operation | Meaning | Argument | Properties |
 | --- | --- | --- | --- |
-| `skip(n)` | Bỏ qua tối đa `n` phần tử đầu tiên **ở vị trí của bước đó** trong pipeline; chuyển tiếp các phần tử còn lại | Số `long` không âm | Trung gian, lười, có trạng thái vì phải theo dõi phần đầu đã bỏ |
-| `limit(n)` | Chỉ cho tối đa `n` phần tử đầu tiên **ở vị trí của bước đó** đi tiếp | Số `long` không âm | Trung gian, lười, có trạng thái và có khả năng ngắn mạch (*short-circuiting*) |
+| `skip(n)` | Discards at most the first `n` elements **at that stage** of the pipeline; forwards the remaining elements | Non-negative `long` | Intermediate, lazy, stateful because it must track the discarded prefix |
+| `limit(n)` | Allows at most the first `n` elements **at that stage** to pass downstream | Non-negative `long` | Intermediate, lazy, stateful, and **short-circuiting** |
 
-Ví dụ, một nguồn có encounter order:
+For example, given a source with an encounter order:
 
 ```text
-Nguồn:                  [10, 20, 30, 40, 50, 60, 70, 80]
-Sau skip(3):                     [40, 50, 60, 70, 80]
-Sau limit(2):                    [40, 50]
+Source:                 [10, 20, 30, 40, 50, 60, 70, 80]
+After skip(3):                   [40, 50, 60, 70, 80]
+After limit(2):                  [40, 50]
 ```
 
-Với một Stream có thứ tự, `skip(3).limit(2)` lấy hai phần tử ở **vị trí thứ tư và thứ năm** (nếu có). Hai phương thức này **không sửa Collection gốc**, không tạo danh sách con ngay khi được gọi và không tự kích hoạt việc duyệt phần tử.
+On an ordered Stream, `skip(3).limit(2)` selects the elements at the **fourth and fifth positions** (if present). Neither method **modifies the original Collection**, creates a sublist immediately when called, or triggers element traversal on its own.
 
-Các trường hợp biên:
+Edge cases:
 
-- `skip(0)` không bỏ phần tử nào; `limit(0)` không cho phần tử nào đi tiếp.
-- Nếu nguồn hữu hạn có ít hơn `n` phần tử, `skip(n)` cho Stream rỗng.
-- Nếu nguồn hữu hạn có ít hơn `n` phần tử, `limit(n)` cho tất cả phần tử còn lại.
-- `skip(-1)` và `limit(-1)` ném `IllegalArgumentException` vì đối số âm.
-- Khi nguồn không có encounter order, không thể dựa vào khái niệm “phần tử đầu tiên” theo thứ tự người dùng mong đợi; xem mục 6.
+- `skip(0)` discards no elements; `limit(0)` lets no elements pass downstream.
+- If a finite source has fewer than `n` elements, `skip(n)` yields an empty Stream.
+- If a finite source has fewer than `n` elements, `limit(n)` yields all remaining elements.
+- `skip(-1)` and `limit(-1)` throw `IllegalArgumentException` for negative arguments.
+- When a source has no encounter order, you cannot rely on the notion of "first elements" in a user-expected order; see section 6.
 
-## 2. Chạy thử trên List: nhìn thấy lát cắt
+## 2. Trying It on a `List`: Seeing the Slice
 
-Chương trình hoàn chỉnh sau dùng Java 8 trở lên:
+The following complete program runs on Java 8 or later:
 
 ```java
 import java.util.Arrays;
@@ -65,7 +65,7 @@ public class SliceDemo {
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
 [Chi, Dung, Ha]
@@ -74,11 +74,11 @@ Kết quả:
 [An, Binh, Chi, Dung, Ha, Khoa, Linh]
 ```
 
-Chú ý rằng nguồn `names` không thay đổi. `collect(Collectors.toList())` mới là bước tạo danh sách kết quả. Trong ví dụ này, danh sách nguồn có thứ tự theo vị trí, nên đoạn được lấy có thể xác định rõ.
+Notice that the source `names` is unchanged. `collect(Collectors.toList())` is the step that builds the resulting lists. In this example, the source list is ordered by position, so the extracted slice is well-defined.
 
-## 3. Vì sao hai phép toán đều lười nhưng chỉ limit ngắn mạch?
+## 3. Why Both Operations Are Lazy, Yet Only `limit` Short-Circuits
 
-Xét pipeline:
+Consider the pipeline:
 
 ```java
 List<Integer> output = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8)
@@ -92,22 +92,22 @@ List<Integer> output = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8)
 // output = [40, 60]
 ```
 
-Các bước có ý nghĩa như sau:
+Meaning of each step:
 
-1. `filter` giữ các số chẵn, tạo dãy logic `[2, 4, 6, 8]`.
-2. `skip(1)` bỏ số chẵn đầu tiên là `2`, còn `[4, 6, 8]`.
-3. `limit(2)` chỉ yêu cầu tối đa hai phần tử tiếp theo, là `4` và `6`.
-4. `map` nhân hai số đó với `10`; `collect` thu kết quả `[40, 60]`.
+1. `filter` keeps even numbers, producing the logical sequence `[2, 4, 6, 8]`.
+2. `skip(1)` discards the first even number `2`, leaving `[4, 6, 8]`.
+3. `limit(2)` requests at most the next two elements, which are `4` and `6`.
+4. `map` multiplies those two numbers by `10`; `collect` gathers `[40, 60]`.
 
-**Tính lười:** `filter`, `skip`, `limit` và `map` mô tả các bước xử lý; việc tiêu thụ thực tế bắt đầu khi `collect` được gọi. Pipeline tuần tự có thể kết hợp các bước trên khi đi qua từng phần tử, không nhất thiết tạo các danh sách trung gian như dãy logic minh họa.
+**Laziness:** `filter`, `skip`, `limit`, and `map` describe processing stages; actual consumption begins when `collect` is invoked. A sequential pipeline can fuse these stages per element without necessarily allocating intermediate lists like the logical sequence shown above.
 
-**Khả năng dừng sớm:** `limit(2)` có thể khiến pipeline dừng yêu cầu phần tử ngay khi đã nhận đủ hai phần tử từ `skip`. Ngược lại, `skip(2)` tự nó không giới hạn số lượng phần tử còn lại: terminal muốn lấy hết kết quả sau `skip` vẫn phải tiếp tục cho tới khi nguồn kết thúc.
+**Early stopping:** `limit(2)` allows the pipeline to stop requesting elements as soon as it receives two elements from `skip`. Conversely, `skip(2)` by itself does not bound how many elements remain: a terminal operation that wants everything after `skip` still has to continue until the source ends.
 
-Không dùng việc in log trong `peek` hoặc tác dụng phụ của `map` để xác nhận mọi phần tử đã được xử lý đúng một lần. Java có quyền áp dụng các tối ưu hóa bảo toàn kết quả; chẳng hạn, `count()` trên nguồn biết trước kích thước có thể tính số phần tử sau `skip`/`limit` mà không cần gọi mọi lambda.
+Do not use logging inside `peek` or side effects in `map` to verify that every element was processed exactly once. Java is permitted to apply optimizations that preserve the result; for instance, `count()` on a sized source can compute the element count after `skip`/`limit` without invoking every lambda.
 
-## 4. Đảo vị trí skip, limit và filter sẽ đổi bài toán
+## 4. Reordering `skip`, `limit`, and `filter` Changes the Problem
 
-### skip trước limit khác limit trước skip
+### `skip` before `limit` differs from `limit` before `skip`
 
 ```java
 List<Integer> input = Arrays.asList(10, 20, 30, 40, 50, 60);
@@ -123,9 +123,9 @@ List<Integer> b = input.stream()
     .collect(Collectors.toList()); // [30]
 ```
 
-Pipeline `a` bỏ hai phần tử đầu **rồi lấy ba phần tử tiếp theo**. Pipeline `b` chỉ xét ba phần tử đầu của nguồn **rồi bỏ hai phần tử** trong nhóm ba đó. Cả hai đều hợp lệ nhưng trả lời câu hỏi khác nhau.
+Pipeline `a` skips the first two elements **and then takes the next three**. Pipeline `b` considers only the first three elements of the source **and then skips two** of those three. Both are valid, but they answer different questions.
 
-### filter trước skip khác skip trước filter
+### `filter` before `skip` differs from `skip` before `filter`
 
 ```java
 List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
@@ -143,13 +143,13 @@ List<Integer> beforeFiltering = numbers.stream()
     .collect(Collectors.toList()); // [4, 6, 8]
 ```
 
-Nếu yêu cầu là “bỏ hai **số chẵn** đầu tiên”, đặt `filter` trước `skip`. Nếu yêu cầu là “bỏ hai **bản ghi đầu nguồn** rồi lọc số chẵn”, đặt `skip` trước `filter`.
+If the requirement is "skip the first two **even numbers**", put `filter` before `skip`. If the requirement is "skip the first two **source records** and then filter for even numbers", put `skip` before `filter`.
 
-Một cách tự kiểm tra khi viết pipeline là đọc từng bước thành câu đầy đủ: **lọc gì, theo thứ tự nào, bỏ bao nhiêu, lấy bao nhiêu?**
+A good self-check when writing a pipeline is to read the stages as a complete sentence: **filter what, in what order, skip how many, take how many?**
 
-## 5. Kết hợp sorted, distinct để cắt đúng đối tượng
+## 5. Combining `sorted` and `distinct` to Slice the Right Items
 
-Phân trang danh sách hoặc chọn một đoạn dữ liệu thường đòi hỏi **thứ tự xác định**. Khi nguồn vốn chưa có thứ tự phù hợp, hãy sắp xếp trước khi cắt:
+Paginating a list or selecting a slice usually requires a **deterministic order**. When the source does not already have the right order, sort before slicing:
 
 ```java
 List<Integer> scores = Arrays.asList(9, 1, 7, 3, 6, 2);
@@ -167,9 +167,9 @@ List<Integer> sortOnlyWindow = scores.stream()
     .collect(Collectors.toList()); // [3, 7]
 ```
 
-`sorted().skip(2).limit(2)` lấy phần tử thứ ba và thứ tư **trong dãy đã sắp xếp**. `skip(2).limit(2).sorted()` lại chọn hai phần tử theo thứ tự nguồn ban đầu, rồi mới sắp xếp riêng hai phần tử ấy.
+`sorted().skip(2).limit(2)` retrieves the third and fourth elements **in the sorted sequence**. `skip(2).limit(2).sorted()` instead selects two elements in original source order and then sorts only those two.
 
-Tương tự, nếu cần trang thứ hai của **danh sách mã không trùng nhau**, đặt `distinct()` trước `skip()`:
+Similarly, if you need the second page of a **deduplicated code list**, place `distinct()` before `skip()`:
 
 ```java
 List<String> codes = Arrays.asList("A", "A", "B", "C", "C", "D");
@@ -187,23 +187,23 @@ List<String> slicedThenUnique = codes.stream()
     .collect(Collectors.toList()); // [A, B]
 ```
 
-`distinct` trên Stream có thứ tự giữ lại lần xuất hiện đầu tiên của mỗi giá trị. Đặt nó sau slicing sẽ loại trùng **chỉ trong phần dữ liệu đã lấy**, khiến số phần tử và vị trí trang có thể khác mong đợi.
+On an ordered Stream, `distinct` keeps the first occurrence of each value. Placing it after slicing deduplicates **only within the retrieved slice**, so element counts and page boundaries may differ from expectations.
 
-Lưu ý về chi phí: `sorted` thường cần tiếp nhận toàn bộ đầu vào hữu hạn trước khi có thể phát kết quả đã sắp xếp. Vì vậy `sorted().skip(...).limit(...)` vẫn có thể phải đọc và sắp xếp cả nguồn; `limit` không làm bước `sorted` trước đó trở thành thao tác rẻ.
+Cost note: `sorted` normally must consume the entire finite input before emitting sorted elements. Hence `sorted().skip(...).limit(...)` can still read and sort the whole source; `limit` does not make the preceding `sorted` step cheap.
 
-## 6. Encounter order: “đầu” và “sau” chỉ rõ ràng khi có thứ tự
+## 6. Encounter Order: "First" and "Next" Are Only Clear When Ordered
 
-`skip` và `limit` đặc biệt dễ hiểu trên nguồn có **encounter order**: thứ tự phần tử mà Stream nhận từ nguồn.
+`skip` and `limit` are easiest to reason about on sources with an **encounter order**: the element order a Stream receives from its source.
 
-| Nguồn | Encounter order | Ý nghĩa của slicing |
+| Source | Encounter order | Meaning of slicing |
 | --- | --- | --- |
-| `List.stream()` | Có, theo thứ tự List | `skip` và `limit` lấy đoạn theo vị trí List |
-| `LinkedHashSet.stream()` | Có, theo thứ tự chèn | Đoạn theo thứ tự chèn của các giá trị không trùng |
-| `TreeSet.stream()` | Có, theo thứ tự được sắp xếp | Đoạn theo thứ tự sắp xếp của Set |
-| `HashSet.stream()` | Không bảo đảm | Không nên coi kết quả là “n phần tử đầu tiên” ổn định |
-| `stream.unordered()` | Bỏ ràng buộc về encounter order | Cho phép các triển khai chọn phần tử theo cách không giữ thứ tự nguồn |
+| `List.stream()` | Yes, by List position | `skip` and `limit` slice by List index |
+| `LinkedHashSet.stream()` | Yes, by insertion order | Slice by insertion order of unique values |
+| `TreeSet.stream()` | Yes, by sorted order | Slice by the Set's sort order |
+| `HashSet.stream()` | Not guaranteed | Do not treat results as a stable "first n elements" |
+| `stream.unordered()` | Drops encounter-order constraint | Allows implementations to select elements without preserving source order |
 
-Ví dụ:
+Example:
 
 ```java
 Set<Integer> values = new HashSet<>(
@@ -213,7 +213,7 @@ Set<Integer> values = new HashSet<>(
 List<Integer> unpredictable = values.stream()
     .limit(2)
     .collect(Collectors.toList());
-// Không dựa vào việc kết quả là [10, 20] hoặc một cặp cụ thể.
+// Do not rely on the result being [10, 20] or any specific pair.
 
 List<Integer> predictable = values.stream()
     .sorted()
@@ -223,19 +223,19 @@ List<Integer> predictable = values.stream()
 // [20, 30]
 ```
 
-Với nguồn không có encounter order, một phép `limit(n)` có thể chọn **bất kỳ** `n` phần tử phù hợp theo hợp đồng Stream; `skip(n)` có thể bỏ đi một tập `n` phần tử không xác định. Kết quả đúng về số lượng nhưng không bảo đảm ổn định giữa các lần chạy.
+For a source without an encounter order, `limit(n)` may choose **any** `n` eligible elements under the Stream contract; `skip(n)` may discard an unspecified set of `n` elements. The count is right, but stability across runs is not guaranteed.
 
-**Nếu ứng dụng cần phân trang ổn định, hãy tạo thứ tự có quy tắc và có yếu tố phân biệt khi trùng khóa**, ví dụ sắp xếp theo thời điểm rồi theo ID duy nhất. Chỉ sắp xếp theo một trường mà nhiều bản ghi cùng giá trị có thể chưa đủ để cố định vị trí trang khi dữ liệu và thứ tự nguồn thay đổi.
+**If an application needs stable pagination, establish a well-defined order with a tie-breaker**, such as sorting by timestamp and then by unique ID. Sorting only by a field where many records share the same value may not be enough to stabilize page positions when data or source order changes.
 
-## 7. Ứng dụng phân trang với skip và limit
+## 7. Pagination with `skip` and `limit`
 
-Giả sử trang được đánh số bắt đầu từ **1**, kích thước trang là `pageSize`. Công thức tính số phần tử cần bỏ:
+Suppose pages are **1-based**, with page size `pageSize`. Formula for the number of elements to skip:
 
 \[
 \text{offset} = (\text{pageNumber} - 1) \times \text{pageSize}
 \]
 
-Sau đó:
+Then:
 
 ```java
 stream
@@ -244,7 +244,7 @@ stream
     .collect(Collectors.toList());
 ```
 
-Ví dụ hoàn chỉnh với danh sách mã đơn hàng:
+Complete example with a list of order IDs:
 
 ```java
 import java.util.Arrays;
@@ -256,7 +256,7 @@ public class OrderPagingDemo {
             List<String> orderIds, int pageNumber, int pageSize) {
         if (pageNumber < 1 || pageSize < 1) {
             throw new IllegalArgumentException(
-                "pageNumber và pageSize phải lớn hơn 0"
+                "pageNumber and pageSize must be greater than 0"
             );
         }
 
@@ -266,7 +266,7 @@ public class OrderPagingDemo {
         );
 
         return orderIds.stream()
-            .sorted() // Với ví dụ này, mã là khóa duy nhất và thứ tự mong muốn.
+            .sorted() // For this example, ID is both unique key and desired order.
             .skip(offset)
             .limit(pageSize)
             .collect(Collectors.toList());
@@ -285,23 +285,23 @@ public class OrderPagingDemo {
 }
 ```
 
-Trong đoạn mã:
+In this code:
 
-1. Kiểm tra `pageNumber` và `pageSize` dương để tránh tham số sai.
-2. Ép sang `long` trước khi nhân và dùng `Math.multiplyExact` để phát hiện tràn số; `skip` nhận đối số `long`.
-3. Sắp xếp mã ID trước khi lấy trang để cùng một danh sách đầu vào cho kết quả xác định.
-4. Dùng `skip(offset).limit(pageSize)`, trang vượt cuối danh sách nhận `List` rỗng.
+1. Validate that `pageNumber` and `pageSize` are positive to reject invalid parameters.
+2. Cast to `long` before multiplying and use `Math.multiplyExact` to detect overflow; `skip` accepts a `long` argument.
+3. Sort IDs before slicing so the same input list produces deterministic pages.
+4. Using `skip(offset).limit(pageSize)`, a page past the end of the list returns an empty `List`.
 
-Một vài giới hạn thực tế:
+Some practical limitations:
 
-- `skip` **không tương đương truy cập ngẫu nhiên O(1)**. Khi offset lớn, pipeline có thể cần duyệt hoặc bỏ nhiều phần tử; Stream không tự biến thành công cụ phân trang hiệu quả cho bảng dữ liệu rất lớn.
-- `sorted()` ở ví dụ có thể đọc và lưu toàn bộ dữ liệu đầu vào để sắp xếp. Nếu dữ liệu đã có thứ tự phù hợp và ổn định, không cần sắp xếp lặp lại.
-- Dữ liệu thay đổi giữa hai lần lấy trang có thể làm bản ghi bị lặp hoặc bị bỏ sót khi dùng offset. Với cơ sở dữ liệu, thường nên thực hiện phân trang tại truy vấn với `ORDER BY` xác định và cân nhắc phân trang theo khóa (*keyset/cursor pagination*) nếu tập dữ liệu lớn hoặc liên tục thay đổi.
-- `skip`/`limit` làm việc trên **Stream tại thời điểm tiêu thụ**; chúng không tạo snapshot và cũng không khóa Collection khỏi sửa đổi đồng thời.
+- `skip` **is not equivalent to O(1) random access**. With large offsets, the pipeline may still have to traverse or discard many elements; Streams do not magically turn into efficient pagination for huge tables.
+- `sorted()` in the example may read and buffer the entire input to sort it. If the data already has an appropriate, stable order, do not sort repeatedly.
+- Data mutations between two page requests can cause duplicate or missed records when using offsets. With databases, it is usually better to paginate in the query with a deterministic `ORDER BY`, and consider *keyset/cursor pagination* for large or rapidly changing datasets.
+- `skip`/`limit` operate on the **Stream at consumption time**; they neither create a snapshot nor lock the Collection against concurrent modification.
 
-## 8. Cắt lát nguồn rất dài hoặc vô hạn
+## 8. Slicing Very Long or Infinite Sources
 
-Tính lười cho phép lấy một đoạn hữu hạn từ nguồn có thể sinh vô số phần tử:
+Laziness lets you extract a finite slice from a source capable of generating infinitely many elements:
 
 ```java
 List<Integer> window = IntStream.iterate(0, n -> n + 1)
@@ -313,12 +313,12 @@ List<Integer> window = IntStream.iterate(0, n -> n + 1)
 // [100, 101, 102, 103, 104]
 ```
 
-Trong ví dụ tuần tự này, pipeline bỏ 100 số đầu rồi thu năm số tiếp theo; `limit(5)` cho phép terminal `collect` hoàn tất mà không phải tiêu thụ vô hạn phần tử.
+In this sequential example, the pipeline skips the first 100 numbers and collects the next five; `limit(5)` allows the terminal `collect` to complete without consuming infinitely many elements.
 
-Tuy nhiên, `skip` và `limit` **không tự đảm bảo mọi pipeline sẽ kết thúc**. Nếu bước `filter` phía trước không cho đủ phần tử, giới hạn phía sau không bao giờ đạt:
+However, `skip` and `limit` **do not automatically guarantee every pipeline terminates**. If an upstream `filter` never passes enough elements, the downstream limit is never reached:
 
 ```java
-// Ví dụ để phân tích, KHÔNG chạy: nguồn chỉ sinh số dương.
+// Example for analysis, DO NOT run: source produces only positive numbers.
 // Stream.iterate(BigInteger.ONE, n -> n.add(BigInteger.ONE))
 //     .filter(n -> n.signum() < 0)
 //     .skip(2)
@@ -326,24 +326,24 @@ Tuy nhiên, `skip` và `limit` **không tự đảm bảo mọi pipeline sẽ k�
 //     .collect(Collectors.toList());
 ```
 
-Hoặc nếu đặt `sorted()` **trước** giới hạn trên nguồn vô hạn, phép sắp xếp thông thường cần nhận hết nguồn trước khi xuất phần tử đầu tiên:
+Or if `sorted()` is placed **before** the limit on an infinite source, general sorting must consume the entire source before emitting its first element:
 
 ```java
-// KHÔNG chạy: sorted() chờ toàn bộ nguồn vô hạn.
+// DO NOT run: sorted() waits for the entire infinite source.
 // IntStream.iterate(1, n -> n + 1).sorted().limit(5).sum();
 
-// Có thể kết thúc: chỉ sắp xếp năm phần tử đã lấy.
+// Terminates: sorts only the five elements already taken.
 int sum = IntStream.iterate(1, n -> n + 1)
     .limit(5)
     .sorted()
     .sum(); // 15
 ```
 
-Với nguồn có thể chặn khi lấy phần tử (như đọc dữ liệu ngoài), `limit` cũng **không phải timeout**. Nó đặt giới hạn số lượng, không phải giới hạn thời gian.
+For sources that may block while producing elements (such as reading external I/O), `limit` is also **not a timeout**. It sets a count limit, not a time limit.
 
-## 9. Chạy song song: chi phí giữ đúng vị trí cắt
+## 9. Running in Parallel: The Cost of Preserving Exact Slice Positions
 
-Cùng một pipeline có thể được tạo từ `collection.parallelStream()` hoặc chuyển chế độ bằng `parallel()`:
+The same pipeline can be created via `collection.parallelStream()` or switched using `parallel()`:
 
 ```java
 List<Integer> values = IntStream.rangeClosed(1, 20)
@@ -358,9 +358,9 @@ List<Integer> page = values.parallelStream()
 System.out.println(page); // [6, 7, 8, 9]
 ```
 
-Do List có encounter order, kết quả slicing vẫn phải tuân thủ thứ tự ấy, kể cả khi một số phần tử được xử lý đồng thời. Chính yêu cầu “bỏ **đúng năm phần tử đầu** và lấy **đúng bốn phần tử tiếp**” có thể làm `skip`/`limit` trên Stream song song tốn nhiều công sức phối hợp, nhất là khi nguồn khó chia hoặc kích thước không biết trước.
+Because `List` has an encounter order, slicing results must still respect that order even when some elements are processed concurrently. That exact requirement—"skip **the first five** and take **the next four**"—can make `skip`/`limit` on a parallel Stream expensive to coordinate, especially when the source splits poorly or its size is unknown.
 
-Nếu **thực sự không quan tâm phần tử nào được chọn**, có thể bỏ ràng buộc thứ tự để triển khai có thêm tự do tối ưu:
+If you **genuinely do not care which elements are chosen**, you can drop the ordering constraint to give implementations more freedom to optimize:
 
 ```java
 List<Integer> sample = values.parallelStream()
@@ -369,38 +369,38 @@ List<Integer> sample = values.parallelStream()
     .limit(4)
     .collect(Collectors.toList());
 
-// Có tối đa bốn phần tử, nhưng không dựa vào chúng là [6, 7, 8, 9].
+// Contains at most four elements, but do not rely on them being [6, 7, 8, 9].
 ```
 
-`unordered()` **không xáo trộn ngẫu nhiên** dữ liệu và cũng không hứa kết quả là một mẫu ngẫu nhiên công bằng; nó chỉ gỡ ràng buộc encounter order. Với phân trang thực tế, thường **không** nên dùng nó vì ứng dụng cần vị trí và thứ tự trang có thể dự đoán.
+`unordered()` **does not randomly shuffle** data and does not promise a fair random sample; it merely removes the encounter-order constraint. In real pagination, you should normally **not** use it because applications require predictable page positions and ordering.
 
-Đặc tính `SIZED`/`SUBSIZED` của `Spliterator` giúp Stream tối ưu cắt lát trên một số nguồn có kích thước và phân vùng rõ ràng. Kết quả thực tế vẫn phụ thuộc nguồn, kích thước, phép toán phía trước, terminal và môi trường chạy. Chuyển sang `parallelStream()` không bảo đảm nhanh hơn; chỉ nên quyết định sau khi đo đạc trên dữ liệu đại diện.
+`Spliterator` characteristics like `SIZED`/`SUBSIZED` help Streams optimize slicing on certain sized, cleanly splittable sources. Actual outcomes still depend on the source, size, preceding operations, terminal operation, and runtime environment. Switching to `parallelStream()` is not guaranteed to be faster; decide only after benchmarking on representative data.
 
-## 10. Những lỗi dễ gặp
+## 10. Common Pitfalls
 
-| Tình huống | Hệ quả | Cách xử lý |
+| Scenario | Consequence | Fix |
 | --- | --- | --- |
-| `limit` đặt trước `skip` mà muốn lấy trang kích thước cố định | Trang có thể ngắn hoặc rỗng bất ngờ | Thường dùng `skip(offset).limit(pageSize)` |
-| `skip` đặt trước `filter` mà muốn bỏ các phần tử **đã lọc** | Bỏ phần tử của nguồn gốc, không phải của tập kết quả lọc | Đặt `filter` trước `skip` |
-| `distinct` đặt sau slicing khi muốn phân trang giá trị duy nhất | Các trang có thể thiếu giá trị hoặc trùng giữa trang | Loại trùng trước khi cắt |
-| Phân trang `HashSet` mà không sắp xếp | Không có cam kết về trang nào chứa phần tử nào | Dùng thứ tự rõ ràng, ví dụ `sorted` |
-| Tính `pageNumber * pageSize` bằng `int` | Có nguy cơ tràn số trước khi truyền cho `skip` | Kiểm tra tham số, chuyển sang `long` và cân nhắc `Math.multiplyExact` |
-| Dùng `skip(1_000_000)` trên nguồn lớn rồi mong truy cập tức thì | Có thể tốn nhiều lượt duyệt và xử lý | Cân nhắc truy vấn tại nguồn, chỉ số hoặc cursor |
-| Gọi hai terminal trên cùng Stream | Stream bị tiêu thụ, thường gây `IllegalStateException` | Tạo Stream mới cho mỗi lần tiêu thụ |
-| Cho rằng `limit` giới hạn thời gian hoặc luôn chấm dứt nguồn vô hạn | Có thể chờ mãi khi nguồn bị chặn hoặc không có đủ phần tử vượt qua bước trước | Thiết kế điều kiện dừng và cơ chế hủy riêng |
+| Putting `limit` before `skip` when expecting fixed-size pages | Pages may be unexpectedly short or empty | Typically use `skip(offset).limit(pageSize)` |
+| Putting `skip` before `filter` when intending to skip **filtered** elements | Skips raw source elements instead of filtered ones | Place `filter` before `skip` |
+| Putting `distinct` after slicing when paginating unique values | Pages may have fewer values or duplicates across pages | Deduplicate before slicing |
+| Paginating a `HashSet` without sorting | No guarantee which page contains which elements | Establish a clear order, e.g., `sorted` |
+| Computing `pageNumber * pageSize` with `int` | Risk of integer overflow before passing to `skip` | Validate inputs, cast to `long`, and consider `Math.multiplyExact` |
+| Calling `skip(1_000_000)` on a large source expecting instant access | May incur heavy traversal and processing cost | Consider querying at the source, indexes, or cursors |
+| Calling two terminal operations on the same Stream | Stream is already consumed, typically throwing `IllegalStateException` | Create a new Stream per consumption |
+| Assuming `limit` bounds time or always terminates infinite sources | May hang if source blocks or never passes enough elements upstream | Design explicit stop conditions and cancellation mechanisms |
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-Check Exercises
 
-**Bài 1 — Dự đoán kết quả.** Với `List<Integer> data = Arrays.asList(2, 4, 6, 8, 10, 12);`, hai biểu thức sau có kết quả gì?
+**Exercise 1 — Predict the output.** Given `List<Integer> data = Arrays.asList(2, 4, 6, 8, 10, 12);`, what do these two expressions produce?
 
 ```java
 data.stream().skip(2).limit(2).collect(Collectors.toList());
 data.stream().limit(2).skip(2).collect(Collectors.toList());
 ```
 
-**Đáp án:** Biểu thức đầu trả `[6, 8]`; biểu thức sau trả `[]` vì chỉ cho hai phần tử đầu đi qua rồi bỏ cả hai.
+**Answer:** The first returns `[6, 8]`; the second returns `[]` because it passes only the first two elements and then discards both.
 
-**Bài 2 — Lọc rồi phân trang.** Từ các số từ 1 đến 15, chọn trang thứ hai (đánh số từ 1), mỗi trang ba **số lẻ**, giữ thứ tự tăng dần.
+**Exercise 2 — Filter then paginate.** From the integers 1 through 15, select the second page (1-based) with three **odd numbers** per page, in ascending order.
 
 ```java
 List<Integer> pageTwo = IntStream.rangeClosed(1, 15)
@@ -411,9 +411,9 @@ List<Integer> pageTwo = IntStream.rangeClosed(1, 15)
     .collect(Collectors.toList()); // [7, 9, 11]
 ```
 
-**Giải thích:** Các số lẻ là `[1, 3, 5, 7, 9, 11, 13, 15]`. Bỏ ba số lẻ đầu rồi lấy ba số lẻ tiếp theo.
+**Explanation:** The odd numbers are `[1, 3, 5, 7, 9, 11, 13, 15]`. Skip the first three odd numbers and take the next three.
 
-**Bài 3 — Chọn vị trí của distinct.** Dữ liệu `["A", "B", "A", "C", "D", "C"]`; yêu cầu lấy hai **giá trị khác nhau** sau giá trị khác nhau đầu tiên. Viết pipeline đúng.
+**Exercise 3 — Choosing where to put `distinct`.** Given `["A", "B", "A", "C", "D", "C"]`, get two **distinct values** after the first distinct value. Write the correct pipeline.
 
 ```java
 List<String> unique = Arrays.asList("A", "B", "A", "C", "D", "C")
@@ -424,16 +424,16 @@ List<String> unique = Arrays.asList("A", "B", "A", "C", "D", "C")
     .collect(Collectors.toList()); // [B, C]
 ```
 
-**Giải thích:** `distinct()` phải xử lý toàn bộ phần đầu cần thiết trước khi xác định vị trí trên dãy không trùng.
+**Explanation:** `distinct()` must process the necessary prefix before positions are counted on the deduplicated sequence.
 
-**Bài 4 — Trang cuối.** Một List có bảy phần tử. Phân trang kích thước ba, đánh số trang từ 1. Trang 1, 2, 3 và 4 có bao nhiêu phần tử?
+**Exercise 4 — Last page.** A List has seven elements. Paginating with page size three, 1-based page numbers: how many elements are on pages 1, 2, 3, and 4?
 
-**Đáp án:** Lần lượt là `3, 3, 1, 0`. `skip(9)` trên List bảy phần tử cho Stream rỗng; `limit(3)` không thể tự tạo thêm phần tử.
+**Answer:** `3, 3, 1, 0`, respectively. `skip(9)` on a seven-element List yields an empty Stream; `limit(3)` cannot fabricate extra elements.
 
-**Bài 5 — Hiệu năng.** Vì sao `parallelStream().sorted().skip(1000).limit(10)` chưa chắc nhanh hơn pipeline tuần tự?
+**Exercise 5 — Performance.** Why might `parallelStream().sorted().skip(1000).limit(10)` not be faster than a sequential pipeline?
 
-**Đáp án:** `sorted` thường phải thu và sắp xếp toàn bộ nguồn trước khi cắt, trong khi `skip`/`limit` phải giữ đúng vị trí theo encounter order. Chi phí chia việc, sắp xếp và ghép kết quả có thể lớn hơn lợi ích song song, đặc biệt với nguồn nhỏ hoặc khó chia.
+**Answer:** `sorted` usually must collect and sort the entire source before slicing, while `skip`/`limit` must preserve exact positions by encounter order. The overhead of splitting, sorting, and merging results can outweigh parallel gains, especially on small or poorly splittable sources.
 
-## Ghi nhớ
+## Key Takeaways
 
-`skip(n)` bỏ tối đa `n` phần tử đầu **tại vị trí được đặt**, còn `limit(n)` chỉ cho tối đa `n` phần tử kế tiếp đi tiếp và có thể giúp dừng sớm. Cặp `skip(offset).limit(pageSize)` là cách cắt lát và phân trang thông dụng của Java Stream API, nhưng kết quả chỉ thực sự có ý nghĩa theo **vị trí xác định** khi pipeline có encounter order phù hợp. Hãy suy luận thứ tự `filter`, `distinct`, `sorted` với slicing trước khi tối ưu, kiểm soát tràn offset và chi phí bỏ qua lượng lớn dữ liệu, đồng thời chú ý nguồn vô hạn và ràng buộc thứ tự khi chạy song song.
+`skip(n)` discards up to the first `n` elements **at its position in the pipeline**, whereas `limit(n)` allows at most `n` subsequent elements through and enables short-circuiting. The `skip(offset).limit(pageSize)` pair is the standard way to slice and paginate in the Java Stream API, but results only have a **deterministic positional** meaning when the pipeline has an appropriate encounter order. Reason carefully about the ordering of `filter`, `distinct`, and `sorted` relative to slicing before optimizing, guard against offset overflow and the cost of skipping large volumes, and watch out for infinite sources and ordering constraints in parallel execution.

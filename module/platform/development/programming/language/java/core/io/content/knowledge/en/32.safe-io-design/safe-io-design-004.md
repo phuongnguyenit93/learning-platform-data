@@ -1,35 +1,35 @@
-# TOCTOU: khoảng trống giữa kiểm tra và thao tác trong Java I/O
+# TOCTOU: The Gap Between Check and Use in Java I/O
 
-## 1. TOCTOU là gì và vì sao nguy hiểm?
+## 1. What Is TOCTOU and Why Is It Dangerous?
 
-**TOCTOU** viết tắt của **Time-of-Check to Time-of-Use**: ứng dụng kiểm tra một điều kiện ở thời điểm **T1**, nhưng chỉ thực hiện hành động dựa trên điều kiện đó tại **T2**. Trong khoảng T1 → T2, trạng thái được kiểm tra có thể đã thay đổi. Nếu ứng dụng mặc nhiên tin rằng kết quả kiểm tra vẫn còn đúng, nó có thể làm sai nghiệp vụ hoặc tạo lỗ hổng bảo mật.
+**TOCTOU** stands for **Time-of-Check to Time-of-Use**: an application checks a condition at time **T1**, but only performs the action based on that condition at **T2**. During the T1 → T2 window, the checked state may have changed. If the application assumes the check result is still valid, it can cause business logic errors or security vulnerabilities.
 
-Trong Java I/O, đối tượng hay gặp nhất là file và đường dẫn: ứng dụng kiểm tra một `Path` rồi mở, ghi, đổi tên hoặc xóa file tương ứng. Một tiến trình khác có thể thay file bằng symbolic link (symlink), đổi tên thư mục, tạo trước file hoặc điều chỉnh quyền giữa hai thao tác.
+In Java I/O, the most common objects are files and paths: an application checks a `Path` and then opens, writes, renames, or deletes the corresponding file. Another process can replace the file with a symbolic link (symlink), rename a directory, create the file beforehand, or change permissions between the two operations.
 
 ~~~text
-Thời điểm        Luồng ứng dụng                 Tác nhân khác
-T1               Kiểm tra: file chưa tồn tại
-                 |                             Tạo file cùng tên
-                 |                             hoặc thay symlink
-T2               Ghi file theo tên đã kiểm tra
+Time             Application thread             Other actor
+T1               Check: file does not exist
+                 |                              Creates file with same name
+                 |                              or swaps symlink
+T2               Writes file using checked name
                  |
-Kết quả          Thao tác có thể tác động lên đối tượng
-                 khác với đối tượng ứng dụng dự định.
+Result           The operation may affect a different
+                 object than the application intended.
 ~~~
 
-Có thể có race dù **không có attacker**: hai request đồng thời, hai worker, nhiều JVM, tác vụ dọn rác hoặc tiến trình ngoài đều có thể thay đổi trạng thái. Khi có đối thủ chủ động điều khiển thư mục/đường dẫn, đây còn là một dạng tấn công **race condition**.
+Races can happen even **without an attacker**: two concurrent requests, two workers, multiple JVMs, cleanup jobs, or external processes can all change state. When an adversary actively controls the directory or path, this also becomes a **race condition** attack.
 
-**Phân biệt ba yếu tố:**
+**Distinguish three elements:**
 
-- **Check:** một lần hỏi hoặc kiểm tra trạng thái, chẳng hạn `Files.exists(path)`, `Files.isReadable(path)`, `Files.isRegularFile(path)`, `Files.notExists(path)`, `Files.readAttributes(path, ...)` hoặc bước kiểm tra tên file.
-- **Gap:** khoảng thời gian giữa check và thao tác tiếp theo; dù rất ngắn vẫn tồn tại và thread scheduling có thể đổi thứ tự thực thi.
-- **Use:** thao tác tạo, mở, đọc, ghi, di chuyển, thay thế, xóa hoặc chỉnh metadata của file.
+- **Check:** a query or inspection of state, such as `Files.exists(path)`, `Files.isReadable(path)`, `Files.isRegularFile(path)`, `Files.notExists(path)`, `Files.readAttributes(path, ...)`, or a filename check step.
+- **Gap:** the interval between the check and the subsequent operation; even if very short, it exists and thread scheduling can reorder execution.
+- **Use:** the operation that creates, opens, reads, writes, moves, replaces, deletes, or modifies file metadata.
 
-Không phải mọi chuỗi có hai thao tác I/O đều là lỗ hổng. Vấn đề xuất hiện khi tính đúng đắn hoặc bảo mật **phụ thuộc vào giả định trạng thái ở T1 vẫn đúng ở T2**.
+Not every sequence of two I/O operations is a vulnerability. The problem arises when correctness or security **depends on assuming the state at T1 still holds at T2**.
 
-## 2. Cách TOCTOU xuất hiện trên filesystem
+## 2. How TOCTOU Occurs on the Filesystem
 
-Giả sử chương trình nhận tên file từ client và chỉ muốn tạo file mới khi chưa có file đó:
+Suppose a program receives a filename from a client and only wants to create a new file if it does not already exist:
 
 ~~~java
 Path target = uploadDir.resolve(requestedName);
@@ -38,39 +38,39 @@ if (Files.notExists(target)) {
 }
 ~~~
 
-Đây là **đoạn minh họa lỗi**, không phải chương trình độc lập. Phần nguy hiểm nằm ở:
+This is a **buggy illustrative snippet**, not a standalone program. The danger lies in:
 
-1. `Files.notExists(target)` chỉ phản ánh trạng thái được quan sát **ngay lúc gọi**. Nó không đặt khóa và không “đặt chỗ” tên file.
-2. Tác nhân khác có thể tạo `target` sau khi phương thức trả `true`.
-3. Lệnh `Files.writeString(target, content)` mặc định mở file với hành vi tương đương `CREATE`, `TRUNCATE_EXISTING` và `WRITE`. Vì vậy file vừa được tạo có thể bị **ghi đè/truncate**, thay vì được bảo vệ bằng điều kiện “chỉ tạo nếu chưa có”.
-4. Nếu một phần của đường dẫn là symlink mà bên khác có thể đổi, thao tác có thể bị hướng đến một file khác dự kiến.
+1. `Files.notExists(target)` only reflects the state observed **at the instant of the call**. It places no lock and does not "reserve" the filename.
+2. Another actor can create `target` after the method returns `true`.
+3. `Files.writeString(target, content)` opens the file by default with behavior equivalent to `CREATE`, `TRUNCATE_EXISTING`, and `WRITE`. Thus, the newly created file can be **overwritten/truncated** instead of being protected by the "create only if absent" condition.
+4. If part of the path is a symlink that another party can change, the operation can be redirected to an unintended file.
 
-`Files.exists` / `notExists` còn có chi tiết quan trọng: khi không xác định được trạng thái, **cả hai có thể trả `false`**. Kết quả không tồn tại không tự mang ý nghĩa chứng minh chắc chắn rằng có thể tạo file; không được dùng hai hàm này làm cơ chế đồng bộ hay kiểm soát quyền.
+`Files.exists` / `notExists` also has an important detail: when the status cannot be determined, **both can return `false`**. A non-existent result does not by itself prove it is safe to create the file; never use these two functions as synchronization or access control mechanisms.
 
-### 2.1. Các tình huống điển hình
+### 2.1. Typical Scenarios
 
-| Kiểm tra trước | Thao tác sau | Rủi ro khi trạng thái đổi giữa hai bước |
+| Pre-check | Subsequent operation | Risk if state changes between steps |
 | --- | --- | --- |
-| `if (!Files.exists(p))` | `Files.writeString(p, ...)` | File xuất hiện, dữ liệu của bên khác bị ghi đè |
-| `Files.isRegularFile(p)` | `Files.newInputStream(p)` | File bị thay hoặc symlink đổi mục tiêu, ứng dụng đọc file khác |
-| `Files.isWritable(p)` | `Files.newOutputStream(p)` | Quyền/trạng thái thay đổi; mở file thất bại hoặc trúng đối tượng khác |
-| Kiểm tra owner/permission/path | `Files.delete(p)` | Xóa một entry khác với entry đã kiểm tra |
-| `Files.size(p) <= limit` | `Files.readAllBytes(p)` | File tăng kích thước, tiêu thụ nhiều bộ nhớ hơn dự kiến |
-| Kiểm tra thư mục upload có tồn tại | Tạo file con trong thư mục | Thư mục có thể bị thay bằng symlink hoặc đổi sang nơi khác |
+| `if (!Files.exists(p))` | `Files.writeString(p, ...)` | File appears; another party's data is overwritten |
+| `Files.isRegularFile(p)` | `Files.newInputStream(p)` | File is replaced or symlink target changes; app reads another file |
+| `Files.isWritable(p)` | `Files.newOutputStream(p)` | Permissions/state change; open fails or hits a different object |
+| Check owner/permission/path | `Files.delete(p)` | Deletes a different entry than the one checked |
+| `Files.size(p) <= limit` | `Files.readAllBytes(p)` | File grows, consuming more memory than expected |
+| Check upload directory exists | Create child file in directory | Directory may be replaced with a symlink or moved elsewhere |
 
-Ví dụ kiểm tra `Files.size(p)` rồi dùng `readAllBytes(p)` **không** tạo hạn mức an toàn. Nếu kích thước tối đa là bất biến bảo mật, hãy giới hạn số byte **trong lúc đọc** và từ chối khi vượt hạn mức.
+For example, checking `Files.size(p)` and then calling `readAllBytes(p)` **does not** enforce a safe quota. If maximum size is a security invariant, limit the byte count **while reading** and reject when the limit is exceeded.
 
-### 2.2. Mối đe dọa thực tế phụ thuộc quyền của tác nhân khác
+### 2.2. Actual Threat Depends on Other Actors' Privileges
 
-Một attacker chỉ có thể tận dụng race khi họ có cách tác động trạng thái có liên quan: chẳng hạn quyền thay entry trong thư mục chứa file upload, quyền chỉnh symlink, hoặc khả năng gửi các request cạnh tranh. Trong thư mục chỉ chương trình đáng tin cậy có quyền sửa, rủi ro bị lợi dụng thường thấp hơn, nhưng vẫn có thể gặp lỗi do tiến trình nội bộ.
+An attacker can only exploit a race if they have a way to influence the relevant state: for instance, permission to modify entries in the upload directory, permission to alter symlinks, or the ability to send competing requests. In a directory writable only by the trusted program, exploitation risk is usually lower, though bugs from internal processes can still occur.
 
-Vì thế trước khi sửa lỗi phải xác định **ai sở hữu thư mục, ai có quyền đổi các entry, ai quyết định tên file và thao tác nào phải an toàn**. Không nên chỉ đổ lỗi cho JVM hay độ trễ của hệ điều hành.
+Therefore, before fixing an issue, determine **who owns the directory, who has permission to change entries, who decides filenames, and which operations must be safe**. Do not simply blame the JVM or OS scheduling latency.
 
-## 3. Ví dụ Java 17+: tái hiện sai sót check → write
+## 3. Java 17+ Example: Reproducing the Check → Write Bug
 
-Ví dụ sau **mô phỏng chính xác thứ tự interleaving**, nên kết quả ổn định mà không phải hy vọng hai thread đua đúng thời điểm. Nó tạo toàn bộ file trong một thư mục tạm riêng.
+The following example **simulates exact interleaving order**, so the result is deterministic without hoping two threads race at the right moment. It creates all files inside a dedicated temporary directory.
 
-Tạo file `ToctouCreateDemo.java`:
+Create file `ToctouCreateDemo.java`:
 
 ~~~java
 import java.nio.file.*;
@@ -84,21 +84,21 @@ public class ToctouCreateDemo {
         Path safe = dir.resolve("safe.txt");
 
         try {
-            // T1: Ứng dụng quan sát file chưa tồn tại.
+            // T1: Application observes that the file does not exist.
             boolean absent = Files.notExists(unsafe);
 
             if (absent) {
-                // Mô phỏng một tiến trình khác tạo file giữa T1 và T2.
+                // Simulate another process creating the file between T1 and T2.
                 Files.writeString(unsafe, "other", CREATE_NEW, WRITE);
 
-                // T2: Ứng dụng làm theo kết quả kiểm tra cũ.
+                // T2: Application acts based on the stale check result.
                 Files.writeString(unsafe, "app",
                         CREATE, TRUNCATE_EXISTING, WRITE);
             }
 
             System.out.println("unsafe=" + Files.readString(unsafe));
 
-            // File đã có trước: CREATE_NEW từ chối ghi đè.
+            // File already exists: CREATE_NEW refuses to overwrite.
             Files.writeString(safe, "other", CREATE_NEW, WRITE);
             try {
                 Files.writeString(safe, "app", CREATE_NEW, WRITE);
@@ -116,7 +116,7 @@ public class ToctouCreateDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac ToctouCreateDemo.java
@@ -131,34 +131,34 @@ safe=rejected
 safe-content=other
 ~~~
 
-**Diễn giải:** Ở nhánh đầu, kết quả `notExists` từng đúng, nhưng đến lúc `writeString` chạy, file đã tồn tại. Các option `CREATE` và `TRUNCATE_EXISTING` khiến ứng dụng ghi đè chuỗi `other` thành `app`.
+**Explanation:** In the first branch, `notExists` was true when checked, but by the time `writeString` ran, the file already existed. The `CREATE` and `TRUNCATE_EXISTING` options caused the application to overwrite `"other"` with `"app"`.
 
-Ở nhánh sau, `CREATE_NEW` làm điều kiện “file chưa tồn tại” và việc tạo file thành **một thao tác atomic đối với việc tạo entry cùng tên** theo hợp đồng `Files`. Khi entry đã có, nó báo `FileAlreadyExistsException` (trên provider minh họa), giữ nguyên nội dung. Không cần gọi `Files.notExists` trước.
+In the second branch, `CREATE_NEW` makes the "file does not exist" check and file creation **an atomic operation with respect to creating an entry of the same name** under the `Files` contract. When the entry already exists, it throws `FileAlreadyExistsException` (on the illustrated provider), keeping the original content intact. Calling `Files.notExists` beforehand is unnecessary.
 
-**Giới hạn của `CREATE_NEW`:** tính atomic áp dụng cho thao tác tạo entry tại đường dẫn mà filesystem đã phân giải. Nếu **thư mục cha hay các thành phần tổ tiên** do attacker thay đổi được, bản thân `CREATE_NEW` không phải giải pháp đầy đủ chống chuyển hướng qua symlink ở các thành phần đó. Đồng thời “không bị ghi đè lúc tạo” không có nghĩa file sẽ không bị thay sau khi tạo.
+**Limitation of `CREATE_NEW`:** atomicity applies to creating the entry at the path resolved by the filesystem. If **the parent directory or ancestor components** can be modified by an attacker, `CREATE_NEW` alone is not a complete solution against redirection through symlinks in those components. Likewise, "not overwritten at creation" does not mean the file cannot be altered after creation.
 
-## 4. Giảm khoảng trống bằng thao tác atomic, không phải bằng kiểm tra nhanh hơn
+## 4. Close the Gap With Atomic Operations, Not Faster Checks
 
-Một nguyên tắc thực tế: nếu điều kiện phải đúng **ngay tại lúc thao tác**, hãy tìm API thực hiện kiểm tra điều kiện và hành động **trong cùng thao tác**.
+A practical principle: if a condition must hold **at the exact time of the operation**, look for an API that checks the condition and performs the action **in the same operation**.
 
-### 4.1. Tạo file nếu chưa có
+### 4.1. Creating a File Only If Absent
 
-- `Files.createFile(path)` kiểm tra tên chưa có và tạo file rỗng như **một thao tác atomic**; nếu tồn tại thì thất bại.
-- `Files.newByteChannel(path, Set.of(CREATE_NEW, WRITE))` mở channel và yêu cầu tạo mới độc quyền, tránh chuỗi check rồi mở.
-- `Files.writeString(path, text, CREATE_NEW, WRITE)` làm tương tự cho nội dung chuỗi trong ví dụ trên.
+- `Files.createFile(path)` checks that the name is absent and creates an empty file as **an atomic operation**; if it exists, it fails.
+- `Files.newByteChannel(path, Set.of(CREATE_NEW, WRITE))` opens a channel and requires exclusive creation, avoiding the check-then-open sequence.
+- `Files.writeString(path, text, CREATE_NEW, WRITE)` does the same for string content in the example above.
 
-Đừng diễn giải “atomic create” thành “ghi toàn bộ nội dung atomic”. `CREATE_NEW` bảo vệ bước tạo tên file; một process khác có thể quan sát file đang được ghi dở. Muốn người đọc chỉ thấy **phiên bản nội dung hoàn chỉnh**, cần chiến lược **ghi vào file staging rồi publish**.
+Do not interpret "atomic create" as "writing the entire content atomically." `CREATE_NEW` protects the filename creation step; another process can observe a partially written file. To ensure readers only see a **complete version of the content**, use a **write-to-staging-then-publish** strategy.
 
-### 4.2. Ghi staging rồi publish bằng atomic move
+### 4.2. Writing to Staging Then Publishing With Atomic Move
 
-Mô hình phổ biến đối với một file kết quả:
+Common pattern for an output file:
 
-1. Tạo file tạm mới bằng `Files.createTempFile(parent, prefix, suffix)` **trong thư mục đích hoặc cùng FileStore**, với quyền thích hợp.
-2. Ghi toàn bộ nội dung vào file tạm, hoàn tất xử lý và đóng stream/channel.
-3. Gọi `Files.move(temp, destination, StandardCopyOption.ATOMIC_MOVE)` để yêu cầu filesystem đổi entry trong một thao tác atomic.
-4. Nếu provider ném `AtomicMoveNotSupportedException`, xử lý theo hợp đồng của ứng dụng: từ chối publish, chọn cơ chế có kiểm soát hoặc rollback. Không âm thầm fallback sang `move` thường rồi tuyên bố thao tác vẫn atomic.
+1. Create a new temporary file via `Files.createTempFile(parent, prefix, suffix)` **in the target directory or on the same `FileStore`**, with appropriate permissions.
+2. Write all content to the temporary file, finish processing, and close the stream/channel.
+3. Call `Files.move(temp, destination, StandardCopyOption.ATOMIC_MOVE)` to ask the filesystem to swap the entry in an atomic operation.
+4. If the provider throws `AtomicMoveNotSupportedException`, handle it per the application contract: refuse publishing, choose a controlled mechanism, or roll back. Do not silently fall back to a regular `move` and claim the operation is still atomic.
 
-Ví dụ logic publish (mã nằm **bên trong method có `throws IOException`**, với `parent` và `destination` đã được xác định an toàn):
+Example publish logic (code inside a **method with `throws IOException`**, where `parent` and `destination` have already been safely determined):
 
 ~~~java
 Path staging = Files.createTempFile(parent, ".publish-", ".part");
@@ -167,48 +167,48 @@ try {
             StandardOpenOption.WRITE,
             StandardOpenOption.TRUNCATE_EXISTING);
 
-    // Có thể ném AtomicMoveNotSupportedException.
+    // May throw AtomicMoveNotSupportedException.
     Files.move(staging, destination, StandardCopyOption.ATOMIC_MOVE);
 } finally {
     Files.deleteIfExists(staging);
 }
 ~~~
 
-Có hai điều phải ghi nhớ:
+Two things to remember:
 
-- Với `ATOMIC_MOVE`, tài liệu Java quy định **các option khác bị bỏ qua**; khi `destination` đã tồn tại, hành vi thay thế hay từ chối **phụ thuộc implementation**. Vì vậy **`ATOMIC_MOVE` không cung cấp cam kết “create only, tuyệt đối không overwrite”** cho đích đã tồn tại. Nếu cần cả atomic publish lẫn exclusive creation, phải chọn giao thức/storage hỗ trợ đúng tính chất đó và kiểm thử trên filesystem mục tiêu.
-- Atomic rename/move chủ yếu bảo vệ **tính nhất quán của việc nhìn thấy entry**, không tự bảo đảm dữ liệu đã được flush bền vững xuống storage sau mất điện. Nếu cần durability, còn phải xét `FileChannel.force(...)`, flush thư mục và bảo đảm của hệ điều hành/filesystem.
+- For `ATOMIC_MOVE`, the Java specification states that **other options are ignored**; when `destination` already exists, whether it replaces or rejects is **implementation-dependent**. Therefore, **`ATOMIC_MOVE` does not guarantee "create only, strictly no overwrite"** for an existing destination. If you need both atomic publishing and exclusive creation, choose a protocol/storage supporting that exact property and test on the target filesystem.
+- Atomic rename/move primarily protects **visibility consistency of the entry**, without guaranteeing that data has been durably flushed to storage across power loss. If durability is needed, you must also consider `FileChannel.force(...)`, directory flushing, and OS/filesystem guarantees.
 
-### 4.3. File lock và mutex có đủ không?
+### 4.3. Are File Locks and Mutexes Enough?
 
-- `synchronized`, `ReentrantLock` chỉ phối hợp các luồng **cùng chia sẻ đúng lock** trong JVM. Process khác không phải tham gia.
-- `FileChannel.lock()` / `tryLock()` là một cơ chế phối hợp khóa file; cách cưỡng chế khóa và phạm vi của chúng phụ thuộc platform. Nhiều filesystem dùng khóa advisory hoặc có hành vi khác trên mạng; process không tuân giao thức lock vẫn có thể gây vấn đề.
-- Distributed lock cũng chỉ có hiệu lực khi **mọi writer tuân giao thức** và điều kiện hết hạn/fencing được xử lý đúng.
+- `synchronized` and `ReentrantLock` only coordinate threads **sharing the exact same lock** inside the JVM. Other processes are not required to participate.
+- `FileChannel.lock()` / `tryLock()` is a file-locking coordination mechanism; lock enforcement and scope are platform-dependent. Many filesystems use advisory locks or behave differently over networks; processes not following the lock protocol can still cause issues.
+- Distributed locks also only hold when **every writer obeys the protocol** and expiration/fencing conditions are handled properly.
 
-Nếu cần tránh ghi đè, `CREATE_NEW` thường mạnh và đơn giản hơn “check bằng `exists` rồi lock/ghi”. Nếu bài toán là nhiều writer cùng cập nhật một giá trị, cần thiết kế concurrency control phù hợp, không chỉ thêm khóa quanh một `Path`.
+If avoiding overwrites is the goal, `CREATE_NEW` is usually stronger and simpler than "check with `exists` then lock/write." If the problem involves multiple writers updating a value concurrently, design proper concurrency control rather than just wrapping a `Path` in a lock.
 
-## 5. Symlink race: kiểm tra một đường dẫn, mở một đối tượng khác
+## 5. Symlink Race: Checking One Path, Opening Another Object
 
-### 5.1. Cơ chế
+### 5.1. Mechanism
 
-Giả sử một service chạy với quyền cao nhận tên `report.txt` bên trong thư mục mà user có thể thay đổi entry:
+Suppose a high-privilege service accepts a filename `report.txt` inside a directory where a user can modify entries:
 
 ~~~text
-T1: /uploads/report.txt -> file bình thường, kiểm tra hợp lệ
+T1: /uploads/report.txt -> normal file, check passes
        |
-       | attacker đổi report.txt thành symlink
+       | attacker replaces report.txt with a symlink
        v
 T2: /uploads/report.txt -> /some/other/location
-    service mở theo path, hành động bị chuyển hướng
+    service opens by path, action is redirected
 ~~~
 
-Symlink không phải nguyên nhân duy nhất. Đối tượng file còn có thể bị **rename/replace**, và một thành phần đường dẫn cha như `/uploads/current` có thể bị đổi thành symlink; chỉ kiểm tra symlink của **tên file cuối** chưa bảo vệ được mọi thành phần.
+Symlinks are not the only cause. File objects can also be **renamed/replaced**, and a parent path component such as `/uploads/current` can be swapped into a symlink; checking only whether the **final filename** is a symlink does not protect all components.
 
-Các thao tác như `Path.normalize()` và `Path.toAbsolutePath()` là xử lý tên đường dẫn, không khóa filesystem và không bảo đảm đối tượng đang được mở chính là đối tượng đã kiểm tra trước đó. `toRealPath()` giải quyết symlink để lấy real path tại **thời điểm gọi**, nhưng file vẫn có thể đổi trước lần sử dụng sau. Vì vậy “gọi `toRealPath` rồi mở file” vẫn có TOCTOU.
+Operations like `Path.normalize()` and `Path.toAbsolutePath()` manipulate path names, do not lock the filesystem, and do not guarantee that the opened object is the same one previously checked. `toRealPath()` resolves symlinks to obtain the real path at the **time of the call**, but the file can still change before subsequent use. Thus, "call `toRealPath` then open the file" still has TOCTOU.
 
-### 5.2. `NOFOLLOW_LINKS` giúp gì?
+### 5.2. How Does `NOFOLLOW_LINKS` Help?
 
-`LinkOption.NOFOLLOW_LINKS` yêu cầu API có hỗ trợ **không đi theo symbolic link** ở phép truy cập tương ứng. Ví dụ:
+`LinkOption.NOFOLLOW_LINKS` instructs supporting APIs **not to follow symbolic links** in that access operation. Example:
 
 ~~~java
 import java.nio.channels.SeekableByteChannel;
@@ -217,26 +217,26 @@ import java.util.Set;
 
 try (SeekableByteChannel channel = Files.newByteChannel(
         path, Set.of(StandardOpenOption.READ, LinkOption.NOFOLLOW_LINKS))) {
-    // Đọc từ channel đã mở.
+    // Read from the opened channel.
 }
 ~~~
 
-Đây là **đoạn minh họa**, giả định biến `path` đã được khai báo và code ở trong method có `throws IOException`. `NOFOLLOW_LINKS` trong lời gọi mở channel này giúp tránh follow **symlink cuối cùng** theo quy tắc provider. Nó không biến một lần `Files.isRegularFile(path, NOFOLLOW_LINKS)` trước đó thành thao tác atomic, không tự bảo vệ đường dẫn cha có thể bị thay, và không thay thế kiểm soát quyền của thư mục.
+This is an **illustrative snippet**, assuming `path` is declared and the code is inside a method with `throws IOException`. `NOFOLLOW_LINKS` in this channel-opening call helps avoid following the **final symlink** according to provider rules. It does not make a prior `Files.isRegularFile(path, NOFOLLOW_LINKS)` atomic, does not automatically protect mutable parent paths, and does not replace directory permission controls.
 
-Chỉ truyền `NOFOLLOW_LINKS` cho API thực sự chấp nhận nó; đừng suy luận mọi API nhận `Path` sẽ tuân cùng semantics.
+Only pass `NOFOLLOW_LINKS` to APIs that actually accept it; do not assume every API taking a `Path` obeys the same semantics.
 
-### 5.3. `SecureDirectoryStream`: thao tác tương đối với thư mục đang mở
+### 5.3. `SecureDirectoryStream`: Operations Relative to an Open Directory
 
-Java NIO.2 có interface `java.nio.file.SecureDirectoryStream<Path>` dành cho chương trình cần thực hiện file operation tương đối với một **handle của thư mục đã mở**. Tài liệu Java mô tả mục tiêu là tránh race khi di chuyển, xóa và truy cập file trong cây thư mục mà path có thể bị thay trong lúc chạy.
+Java NIO.2 provides the `java.nio.file.SecureDirectoryStream<Path>` interface for programs needing file operations relative to an **open directory handle**. Java documentation describes its goal as avoiding races when moving, deleting, and accessing files in a directory tree whose paths may be altered during execution.
 
-Điểm khác với cách `Files.isRegularFile(fullPath)` rồi `Files.newInputStream(fullPath)`:
+How it differs from `Files.isRegularFile(fullPath)` followed by `Files.newInputStream(fullPath)`:
 
-- `SecureDirectoryStream` định vị tên **tương đối với thư mục đã mở**, thay vì mỗi lần đi từ pathname đầy đủ.
-- Có thể mở entry con bằng `newByteChannel(relativeName, options)`, dùng `getFileAttributeView` cho file con, `deleteFile(relativeName)`, `move(...)` hoặc mở thư mục con bằng `newDirectoryStream(relativeDir, NOFOLLOW_LINKS)`.
-- Những thao tác mở thư mục con có thể giữ xử lý tương đối với handle qua từng mức cây, tránh phụ thuộc vào tên thư mục ngoài vốn có thể bị rename/replace.
-- **Không phải provider nào cũng hỗ trợ**. `Files.newDirectoryStream(dir)` chỉ trả về một đối tượng triển khai `SecureDirectoryStream` nếu hệ điều hành và provider cung cấp cơ chế tương ứng. Không được cast bừa và giả định tính năng luôn có.
+- `SecureDirectoryStream` locates names **relative to the open directory**, rather than starting from a full pathname each time.
+- It can open child entries with `newByteChannel(relativeName, options)`, use `getFileAttributeView` for child files, `deleteFile(relativeName)`, `move(...)`, or open subdirectories with `newDirectoryStream(relativeDir, NOFOLLOW_LINKS)`.
+- Opening subdirectories can keep operations handle-relative across each tree level, avoiding dependence on outer directory names that might be renamed or replaced.
+- **Not every provider supports it.** `Files.newDirectoryStream(dir)` only returns an instance implementing `SecureDirectoryStream` if the OS and provider supply the underlying mechanism. Never cast blindly or assume the feature is always available.
 
-Ví dụ file `SecureDirectoryStreamDemo.java`, chỉ đọc một file nằm trong thư mục tạm do chương trình tạo:
+Example file `SecureDirectoryStreamDemo.java`, reading only a file inside a temporary directory created by the program:
 
 ~~~java
 import java.nio.ByteBuffer;
@@ -282,32 +282,32 @@ public class SecureDirectoryStreamDemo {
 }
 ~~~
 
-Biên dịch:
+Compile:
 
 ~~~bash
 javac SecureDirectoryStreamDemo.java
 java SecureDirectoryStreamDemo
 ~~~
 
-Có **hai kết quả hợp lệ tùy provider**:
+There are **two valid outputs depending on the provider**:
 
 ~~~text
 hello
 ~~~
 
-hoặc:
+or:
 
 ~~~text
 secure-stream=unavailable
 ~~~
 
-Trong nhánh hỗ trợ, `newByteChannel` nhận tên tương đối `data.txt` và làm việc với directory stream đang mở. Đây là ví dụ API cho entry đơn giản; trong dịch vụ thực tế phải kiểm tra tên đầu vào, tránh tên tuyệt đối hoặc `..`, bảo đảm handle ban đầu mở từ thư mục tin cậy và triển khai chính sách **fail closed** nếu môi trường bắt buộc race resistance mà provider không hỗ trợ.
+In the supported branch, `newByteChannel` accepts the relative name `data.txt` and operates against the open directory stream. This is an API example for a single entry; in a real service, you must validate input names, reject absolute names or `..`, ensure the initial handle opens a trusted directory, and implement a **fail-closed** policy if the environment requires race resistance and the provider does not support it.
 
-**Giới hạn quan trọng:** giữ handle thư mục chưa tự xác nhận **quyền truy cập của ứng dụng đối với nội dung** hoặc dữ liệu đang đọc. Cần xác minh input, đối tượng và permissions tại thời điểm thích hợp. Khi cần kiểm soát chính xác các thao tác cấp hệ điều hành, có thể cần API native tương đương `openat` hoặc cơ chế hệ thống riêng — Java NIO.2 không đảm bảo tất cả các thuộc tính bảo mật của mọi filesystem.
+**Important limitation:** holding a directory handle does not by itself verify **application access permissions on the content** or data being read. Inputs, objects, and permissions must be verified at the appropriate points. When precise OS-level control is required, native equivalents like `openat` or dedicated OS mechanisms may be necessary—Java NIO.2 does not guarantee all security properties across every filesystem.
 
-## 6. Kiểm tra đường dẫn: cần làm nhưng chưa đủ
+## 6. Path Validation: Necessary but Insufficient
 
-Giả sử chỉ cho phép tên file trực tiếp bên trong thư mục `root`:
+Suppose only direct filenames inside directory `root` are allowed:
 
 ~~~java
 Path root = approvedRoot.toAbsolutePath().normalize();
@@ -318,42 +318,42 @@ if (!candidate.startsWith(root)) {
 }
 ~~~
 
-Đây là **mã minh họa nằm trong method** với hai biến đầu vào `approvedRoot` và `requestedName` đã khai báo. Nó giúp loại bỏ trường hợp path traversal **theo tên** như `../../outside.txt` sau khi normalize. Tuy nhiên:
+This is an **illustrative snippet inside a method** with input variables `approvedRoot` and `requestedName` already declared. It eliminates **name-based** path traversal cases such as `../../outside.txt` after normalization. However:
 
-- `startsWith` là kiểm tra theo các thành phần path, không kiểm tra real target trên filesystem.
-- Symlink có thể trỏ ra ngoài dù pathname đã chuẩn hóa vẫn nằm bên dưới `root`.
-- Nếu một tiến trình khác có quyền thay directory entry, kiểm tra ở T1 không bảo vệ cho lần mở ở T2.
-- Nếu chỉ cho phép **tên file một cấp**, nên kiểm tra `requestedName` thực sự là filename đơn, không có separator hoặc thành phần `..`, trước khi resolve.
-- Nên giới hạn quyền sửa của thư mục, đặt tên file do server kiểm soát khi phù hợp và dùng API thao tác tương đối với handle hoặc các lựa chọn mở atomic.
+- `startsWith` checks path components, not the real target on the filesystem.
+- Symlinks can point outside even when the normalized pathname stays under `root`.
+- If another process has permission to change directory entries, a check at T1 does not protect an open at T2.
+- If only **single-level filenames** are allowed, verify that `requestedName` is genuinely a single filename with no separators or `..` components before resolving.
+- Restrict write permissions on the directory, use server-controlled filenames where appropriate, and use handle-relative APIs or atomic open options.
 
-Kiểm tra path đầu vào vẫn cần thiết vì giúp xác định phạm vi. Hãy phân biệt rõ **path validation** với **filesystem object identity**; hai vấn đề phải được giải quyết bằng các cơ chế phù hợp.
+Validating input paths remains necessary because it defines scope. Clearly distinguish **path validation** from **filesystem object identity**; the two problems must be solved with appropriate mechanisms.
 
-## 7. Đọc, ghi, sửa và xóa: chọn biện pháp theo hành động
+## 7. Read, Write, Modify, and Delete: Choose Measures by Action
 
-| Mục tiêu | Cách không đủ | Hướng thiết kế tốt hơn |
+| Goal | Insufficient approach | Better design direction |
 | --- | --- | --- |
-| Chỉ tạo mới, không ghi đè | `if (!exists) write` | `CREATE_NEW` hoặc `Files.createFile` |
-| Không cho đọc qua symlink cuối | `isSymbolicLink` rồi `newInputStream` | Mở bằng API hỗ trợ `NOFOLLOW_LINKS`; xem cả đường dẫn cha |
-| Làm việc trong cây thư mục có thể bị thay | Kiểm tra real path rồi nhiều lần mở bằng full path | `SecureDirectoryStream` khi provider hỗ trợ; policy nếu không hỗ trợ |
-| Publish file hoàn chỉnh | Ghi trực tiếp vào file kết quả | Ghi staging rồi `ATOMIC_MOVE`, kiểm tra semantics thay thế đích |
-| Chỉ xóa entry đã được chọn | `isRegularFile(p)` rồi `delete(p)` | Định vị entry tương đối với handle thư mục tin cậy; khi phù hợp, `SecureDirectoryStream.deleteFile` |
-| Giới hạn số byte đọc | `Files.size(p)` rồi `readAllBytes(p)` | Đọc stream/channel với bộ đếm byte và ngừng ngay khi vượt giới hạn |
-| Cập nhật một record theo phiên bản | `read -> validate -> write` không khóa | Compare-and-set, optimistic locking với version, transaction hoặc unique constraint phù hợp |
+| Create only if absent, never overwrite | `if (!exists) write` | `CREATE_NEW` or `Files.createFile` |
+| Disallow reading through final symlink | `isSymbolicLink` then `newInputStream` | Open with API supporting `NOFOLLOW_LINKS`; consider parent path too |
+| Work in a mutable directory tree | Check real path then repeatedly open by full path | `SecureDirectoryStream` when provider supports it; policy if unsupported |
+| Publish a complete file | Write directly to final file | Write to staging then `ATOMIC_MOVE`; check target replacement semantics |
+| Delete only the selected entry | `isRegularFile(p)` then `delete(p)` | Locate entry relative to trusted directory handle; when suitable, `SecureDirectoryStream.deleteFile` |
+| Limit bytes read | `Files.size(p)` then `readAllBytes(p)` | Read stream/channel with byte counter and stop immediately when limit exceeded |
+| Update a versioned record | `read -> validate -> write` unlocked | Compare-and-set, optimistic locking with version, transaction, or appropriate unique constraint |
 
-Không phải atomic ở một bước nghĩa là cả nghiệp vụ đa bước atomic. Ví dụ tạo file thành công và sau đó insert DB row thất bại vẫn để lại trạng thái dở dang; khi cần nhất quán xuyên tài nguyên phải có transaction/compensation hoặc giao thức tương ứng.
+Being atomic at one step does not mean a multi-step business workflow is atomic. For example, creating a file successfully and then failing to insert a DB row still leaves an inconsistent state; when cross-resource consistency is needed, use transactions, compensation, or an appropriate protocol.
 
-## 8. Ví dụ TOCTOU ngoài file: giới hạn của check-before-update
+## 8. Non-File TOCTOU Example: Limits of Check-Before-Update
 
-TOCTOU cũng xuất hiện trong API/DB. Giả sử hai request cùng xử lý một mã coupon:
+TOCTOU also occurs in APIs/DBs. Suppose two requests concurrently process a coupon code:
 
 ~~~text
 A: SELECT remaining -> 1
 B: SELECT remaining -> 1
-A: UPDATE remaining -> 0; cho phép dùng
-B: UPDATE remaining -> 0; cũng cho phép dùng
+A: UPDATE remaining -> 0; allow use
+B: UPDATE remaining -> 0; also allow use
 ~~~
 
-Nếu ứng dụng chỉ dựa vào lần `SELECT` trước đó, hai request có thể cùng được chấp nhận. Hướng đúng là biến điều kiện thành một **thao tác có kiểm soát cạnh tranh** ở storage, chẳng hạn:
+If the application relies only on the prior `SELECT`, both requests can be accepted. The right approach is to turn the condition into a **concurrency-controlled operation** at storage level, such as:
 
 ~~~sql
 UPDATE coupon
@@ -361,90 +361,90 @@ SET remaining = remaining - 1
 WHERE id = ? AND remaining > 0;
 ~~~
 
-Đoạn SQL này chỉ minh họa một thao tác decrement có điều kiện. Ứng dụng phải kiểm tra **số hàng bị cập nhật**, bảo đảm khóa/định danh và transaction/isolation phù hợp. Nếu `UPDATE` ảnh hưởng 0 hàng thì từ chối sử dụng; không xác nhận thành công bằng kết quả `SELECT` cũ.
+This SQL snippet only illustrates a conditional decrement operation. The application must inspect **the updated row count**, ensure proper locking/identifiers, and use appropriate transactions/isolation. If `UPDATE` affects 0 rows, reject the coupon use; do not confirm success using the stale `SELECT` result.
 
-Bài toán file và DB chung bản chất: một “lần kiểm tra đúng” không phải cam kết rằng điều kiện vẫn đúng khi thao tác khác bắt đầu.
+File and DB problems share the same nature: a "passing check" is not a guarantee that the condition still holds when another operation starts.
 
-## 9. Những giải pháp tưởng đúng nhưng còn race
+## 9. Solutions That Look Right but Still Have Races
 
-### 9.1. “Kiểm tra lại ngay trước lúc mở”
+### 9.1. "Check Again Right Before Opening"
 
 ~~~java
 if (Files.exists(path) && Files.isReadable(path)) {
-    // Race vẫn có thể xảy ra ngay tại đây.
+    // A race can still happen right here.
     try (var in = Files.newInputStream(path)) {
         // ...
     }
 }
 ~~~
 
-Khoảng thời gian có thể ngắn hơn, nhưng chưa biến check+open thành một thao tác. `exists` và `isReadable` còn có semantics không bảo đảm lần mở sau sẽ thành công. Cần thiết kế trên **open/operation có ràng buộc thích hợp** rồi xử lý kết quả tại chính thao tác đó.
+The window may be shorter, but it has not merged check+open into a single operation. `exists` and `isReadable` also have semantics that do not guarantee the subsequent open will succeed. Design around **appropriately constrained open/operation primitives** and handle the outcome at that operation itself.
 
-### 9.2. “Dùng `synchronized` là xong”
+### 9.2. "Just Use `synchronized`"
 
-`synchronized` chỉ có ý nghĩa giữa những code path dùng **cùng monitor** trong một JVM; worker khác, JVM khác, process ngoài và attacker không bắt buộc tuân nó. Dùng khi cần đồng bộ nội bộ, không lấy nó làm bảo vệ file upload dùng chung.
+`synchronized` only applies between code paths using **the exact same monitor** within a single JVM; other workers, other JVMs, external processes, and attackers are not bound by it. Use it for internal synchronization, not as protection for shared upload files.
 
-### 9.3. “Dùng `NOFOLLOW_LINKS` ở lần check”
+### 9.3. "Use `NOFOLLOW_LINKS` on the Check Call"
 
-`Files.isRegularFile(path, NOFOLLOW_LINKS)` quan sát link tại một thời điểm. Nếu sau đó mở bằng lệnh không dùng `NOFOLLOW_LINKS`, vẫn có cửa sổ hoán đổi. Ngay cả `NOFOLLOW_LINKS` ở lần mở cũng phải được xem cùng rủi ro **ancestor path**.
+`Files.isRegularFile(path, NOFOLLOW_LINKS)` observes the link at a point in time. If opened afterward by a command without `NOFOLLOW_LINKS`, a swap window still exists. Even `NOFOLLOW_LINKS` on the open call must be evaluated alongside **ancestor path** risks.
 
-### 9.4. “So `fileKey` trước và sau”
+### 9.4. "Compare `fileKey` Before and After"
 
-`BasicFileAttributes.fileKey()` đôi khi giúp nhận diện file trên provider hỗ trợ, nhưng không phải tất cả provider trả khóa đáng tin cậy hoặc ổn định. So sánh hai lần vẫn là **phát hiện sau sự kiện**, không thay thế phép mở và xử lý gắn với cùng object. Khi thao tác ghi/xóa đã diễn ra trên sai file, phát hiện sau đó có thể quá muộn.
+`BasicFileAttributes.fileKey()` can sometimes help identify a file on supporting providers, but not all providers return reliable or stable keys. Comparing twice is still **post-event detection**, not a substitute for opening and operating on the same bound object. Once a write/delete has occurred on the wrong file, detecting it afterward may be too late.
 
-### 9.5. “Chỉ xử lý `IOException` rồi retry”
+### 9.5. "Just Catch `IOException` and Retry"
 
-Retry cùng đường dẫn mà không xem lại điều kiện an toàn có thể lặp lại race hoặc tác động lên entry mới. Phân biệt `FileAlreadyExistsException`, `NoSuchFileException`, `AccessDeniedException` và `AtomicMoveNotSupportedException`; phản ứng phụ thuộc hợp đồng của thao tác.
+Retrying the same path without re-evaluating safety conditions can repeat the race or act on a new entry. Distinguish `FileAlreadyExistsException`, `NoSuchFileException`, `AccessDeniedException`, and `AtomicMoveNotSupportedException`; the response depends on the operation's contract.
 
-### 9.6. “Di chuyển file là atomic trên mọi ổ đĩa”
+### 9.6. "File Moves Are Atomic on Every Disk"
 
-`Files.move` bình thường không có bảo đảm atomic chung cho mọi provider. `ATOMIC_MOVE` cũng có thể không được hỗ trợ, đặc biệt nếu khác filesystem. Không tự giả định việc kiểm tra trước `exists` giải quyết chuyện replace target trong `ATOMIC_MOVE`, vì đặc tả cho phép semantics khác nhau nếu target đã tồn tại.
+Regular `Files.move` has no universal atomic guarantee across all providers. `ATOMIC_MOVE` may also be unsupported, especially across different filesystems. Never assume a prior `exists` check solves target replacement in `ATOMIC_MOVE`, since the specification allows different semantics when the target already exists.
 
-## 10. Quy trình thiết kế chống TOCTOU
+## 10. Design Process Against TOCTOU
 
-1. **Xác định bất biến cần giữ**: không overwrite; không đọc ra ngoài thư mục; không xóa sai file; chỉ một request được claim job; không xử lý quá dung lượng cho phép.
-2. **Xác định tác nhân và phạm vi cạnh tranh**: thread cùng JVM, process khác, người dùng có quyền sửa directory entry, symlink, network filesystem hay transaction DB.
-3. **Tìm một primitive atomic đúng hợp đồng**: `CREATE_NEW`, directory-handle operations, conditional update, transaction, compare-and-set hoặc commit protocol.
-4. **Giữ handle/reference ổn định khi cần**: sau khi mở file/channel phù hợp, ưu tiên xử lý chính handle đó. Tránh kiểm tra trên path rồi mở lại cùng tên nếu sự thay đổi identity gây nguy hiểm.
-5. **Bảo vệ directory entry và kiểm soát quyền**: tên server sinh, directory chỉ service được sửa, option chống follow link thích hợp và provider hỗ trợ `SecureDirectoryStream` nếu cần.
-6. **Định nghĩa hành vi khi race thất bại**: thông thường coi “file đã tồn tại” là conflict hợp lệ, không phải lý do fallback sang overwrite. Ghi log bối cảnh tối thiểu rồi trả lỗi phù hợp.
-7. **Kiểm thử thứ tự đan xen có kiểm soát**: dùng latch/barrier, hook giả lập hoặc fixture để cưỡng bức T1–tác nhân đổi trạng thái–T2. Không dựa vào `Thread.sleep(...)` để hy vọng race tự xuất hiện.
-8. **Xác minh trên filesystem triển khai thực tế**: provider khác nhau ở hỗ trợ symlink, `SecureDirectoryStream`, atomic move, ACL và khả năng khóa.
+1. **Identify invariants to preserve:** no overwrite; no reading outside the directory; no deleting the wrong file; only one request claims a job; no processing beyond allowed capacity.
+2. **Identify actors and contention scope:** same-JVM threads, other processes, users with permissions to edit directory entries, symlinks, network filesystems, or DB transactions.
+3. **Find an atomic primitive matching the contract:** `CREATE_NEW`, directory-handle operations, conditional updates, transactions, compare-and-set, or commit protocols.
+4. **Keep stable handles/references when needed:** after opening the appropriate file/channel, prefer operating on that handle directly. Avoid checking a path and reopening by the same name when identity changes are hazardous.
+5. **Protect directory entries and access permissions:** server-generated names, directories writable only by the service, appropriate no-follow options, and providers supporting `SecureDirectoryStream` when needed.
+6. **Define behavior when a race fails:** normally treat "file already exists" as a valid conflict, not a reason to fall back to overwriting. Log minimal context and return an appropriate error.
+7. **Test controlled interleavings:** use latches/barriers, mock hooks, or fixtures to force T1–actor state mutation–T2. Do not rely on `Thread.sleep(...)` hoping a race happens naturally.
+8. **Verify on the actual deployment filesystem:** providers differ in symlink support, `SecureDirectoryStream`, atomic move, ACLs, and locking capabilities.
 
-Một phép thử âm tính hữu ích là tạo entry từ actor thứ hai **ngay sau check**, rồi xác minh ứng dụng không ghi đè. Với symlink race, cần kiểm thử trên hệ điều hành/provider thực sự có quyền tạo symlink và giới hạn rõ điều gì được bảo vệ; không suy diễn từ kết quả trên máy dev.
+A useful negative test is having a second actor create the entry **immediately after the check**, then verifying the application does not overwrite it. For symlink races, test on an OS/provider that genuinely has symlink-creation privileges and clearly bound what is protected; do not extrapolate from results on a developer laptop.
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-**Câu 1.** `Files.notExists(path)` trả `true`; có bảo đảm lệnh `Files.writeString(path, ...)` tiếp theo được phép tạo file mới mà không ghi đè không?
+**Question 1.** `Files.notExists(path)` returns `true`; does that guarantee the subsequent `Files.writeString(path, ...)` creates a new file without overwriting?
 
-**Đáp án:** Không. Entry có thể xuất hiện sau lần check. Nếu yêu cầu là “chỉ tạo mới”, truyền `CREATE_NEW` tại chính lần mở/ghi.
+**Answer:** No. The entry can appear after the check. If the requirement is "create new only," pass `CREATE_NEW` on the open/write call itself.
 
-**Câu 2.** `Files.createFile(path)` atomic có nghĩa là toàn bộ nội dung file do nhiều lần `write` sau đó cũng atomic?
+**Question 2.** Does `Files.createFile(path)` being atomic mean all content written across subsequent `write` calls is also atomic?
 
-**Đáp án:** Không. Atomic ở đây là hành vi check-and-create đối với entry. Publication nội dung hoàn chỉnh là bài toán khác, thường cần staging + atomic move và hiểu rõ guarantee của filesystem.
+**Answer:** No. Atomicity here applies to check-and-create on the entry. Publishing complete content is a separate problem, usually requiring staging + atomic move and understanding filesystem guarantees.
 
-**Câu 3.** Sau `Path.toRealPath()`, service chắc chắn không thể bị symlink race nếu tiếp tục mở bằng đường dẫn đó?
+**Question 3.** After `Path.toRealPath()`, is a service definitely immune to symlink races if it continues opening by that path?
 
-**Đáp án:** Không. `toRealPath` phản ánh thực trạng lúc gọi, không khóa các entry. Cần xem ai có thể thay parent và tận dụng open tương đối với directory handle hoặc API có option an toàn.
+**Answer:** No. `toRealPath` reflects the state at call time and does not lock entries. Examine who can modify parents and leverage directory-handle-relative opens or APIs with safe options.
 
-**Câu 4.** Vì sao `NOFOLLOW_LINKS` ở một lần `isRegularFile` chưa đủ?
+**Question 4.** Why is `NOFOLLOW_LINKS` on a single `isRegularFile` call insufficient?
 
-**Đáp án:** Đó vẫn là phép kiểm tra tách khỏi lần mở, nên entry có thể bị thay sau check. Option tại thao tác mở có hiệu lực thích hợp hơn đối với final symlink, nhưng chưa tự bảo vệ ancestor path.
+**Answer:** It is still a check separated from the open, so the entry can be swapped after checking. The option on the open operation itself is more effective for the final symlink, though it still does not protect ancestor paths by itself.
 
-**Câu 5.** Tại sao chỉ dùng `synchronized` không chống được attacker sửa file qua process khác?
+**Question 5.** Why does `synchronized` alone not stop an attacker from modifying a file via another process?
 
-**Đáp án:** Monitor Java chỉ đồng bộ những thread chung JVM dùng chính monitor đó. Process khác không chịu ràng buộc.
+**Answer:** Java monitors only synchronize threads in the same JVM using that exact monitor. Other processes are not constrained by it.
 
-**Câu 6.** Nếu provider không hỗ trợ `SecureDirectoryStream` mà hệ thống yêu cầu chống đổi directory entry khi đọc/xóa, nên làm gì?
+**Question 6.** If the provider does not support `SecureDirectoryStream` while the system requires resistance against directory entry swaps during read/delete, what should be done?
 
-**Đáp án:** Không âm thầm cast hoặc dùng fallback dựa vào các bước check/open nếu điều đó phá bất biến bảo mật. Từ chối tính năng, đổi provider/môi trường, siết quyền directory hoặc xây dựng cơ chế native phù hợp và kiểm thử.
+**Answer:** Do not silently cast or fall back to check/open steps if doing so breaks the security invariant. Reject the feature, change provider/environment, tighten directory permissions, or build an appropriate native mechanism and test it.
 
-## 12. Tài liệu tham khảo
+## 12. References
 
-- [Java SE 17 `Files` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html): `exists`, `notExists`, `createFile`, `newByteChannel`, `move` và option `ATOMIC_MOVE`.
-- [Java SE 17 `SecureDirectoryStream` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/SecureDirectoryStream.html): truy cập tương đối với directory handle, các thao tác mở/xóa/move tránh race theo mục tiêu của interface.
-- [Java SE 17 `LinkOption` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/LinkOption.html): semantics của `NOFOLLOW_LINKS`.
+- [Java SE 17 `Files` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html): `exists`, `notExists`, `createFile`, `newByteChannel`, `move`, and `ATOMIC_MOVE`.
+- [Java SE 17 `SecureDirectoryStream` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/SecureDirectoryStream.html): access relative to a directory handle, open/delete/move operations aimed at avoiding races.
+- [Java SE 17 `LinkOption` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/LinkOption.html): semantics of `NOFOLLOW_LINKS`.
 - [Java SE 17 `StandardOpenOption` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/StandardOpenOption.html): `CREATE_NEW`, `CREATE`, `TRUNCATE_EXISTING`, `WRITE`.
-- [Java SE 17 `FileChannel` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/channels/FileChannel.html): `lock`, `tryLock` và `force`.
+- [Java SE 17 `FileChannel` API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/channels/FileChannel.html): `lock`, `tryLock`, and `force`.
 
-**Điểm cốt lõi:** TOCTOU là lỗi của **giao thức nhiều bước dựa trên trạng thái có thể thay đổi**. Giải pháp không phải giảm vài microsecond giữa check và use, mà là thiết kế để điều kiện được xác nhận **ngay trong thao tác có ràng buộc phù hợp**, hoặc giữ reference ổn định tới đúng đối tượng cần xử lý.
+**Core takeaway:** TOCTOU is a flaw of **multi-step protocols built on mutable state**. The solution is not shaving microseconds between check and use, but designing so the condition is enforced **within the constrained operation itself**, or maintaining a stable reference to the exact object being processed.

@@ -1,66 +1,66 @@
-# Hằng tại thời điểm biên dịch và hằng `static final` trong Java 17+
+# Compile-Time Constants and `static final` Constants in Java 17+
 
-Trong Java, `final` có nghĩa là **biến không được gán lại sau khi đã được gán hợp lệ**, nhưng không có nghĩa mọi giá trị `final` đều được xác định lúc biên dịch.
+In Java, `final` means **the variable cannot be reassigned after a valid assignment**, but it does not mean every `final` value is determined at compile time.
 
-Đặc biệt, **`static final` không tự động đồng nghĩa với “hằng tại thời điểm biên dịch”**. Một trường `static final` có thể nhận giá trị từ phép tính cố định hoặc từ một phương thức phải chạy khi lớp được khởi tạo. Hai trường hợp có ảnh hưởng khác nhau tới kiểm tra cú pháp, khởi tạo lớp và mã đã biên dịch.
+Specifically, **`static final` does not automatically equal "compile-time constant"**. A `static final` field can receive its value from a fixed calculation or from a method that must run when the class is initialized. The two cases have different effects on syntax checking, class initialization, and compiled bytecode.
 
-## 1. Ba khái niệm cần phân biệt
+## 1. Three Concepts to Distinguish
 
-| Khái niệm | Định nghĩa thực tế | Ví dụ |
+| Concept | Practical definition | Example |
 | --- | --- | --- |
-| Biến `final` | Biến chỉ được gán theo quy tắc của `final`, không thể gán lại sau khi đã khởi tạo | `final int count = readCount();` |
-| Trường `static final` | Thuộc lớp và không thể gán lại sau khi khởi tạo; giá trị có thể tính lúc chạy | `static final int LIMIT = Integer.parseInt("12");` |
-| *Constant variable* (biến hằng tại thời điểm biên dịch) | Biến `final` có kiểu nguyên thủy hoặc `String` và được khởi tạo bằng **constant expression** | `static final int LIMIT = 3 * 4;` |
+| `final` variable | A variable assigned according to `final` rules, cannot be reassigned after initialization | `final int count = readCount();` |
+| `static final` field | Belongs to the class and cannot be reassigned after initialization; value may be computed at runtime | `static final int LIMIT = Integer.parseInt("12");` |
+| *Constant variable* (compile-time constant variable) | A `final` variable of primitive type or `String`, initialized with a **constant expression** | `static final int LIMIT = 3 * 4;` |
 
-Theo định nghĩa ngôn ngữ, *constant variable* **không nhất thiết phải là `static`**: `final int x = 2 + 3;` trong phương thức cũng có thể đáp ứng định nghĩa. Tuy nhiên, các hằng dùng chung của ứng dụng thường được đặt trong trường `static final`.
+By language definition, a *constant variable* **does not have to be `static`**: `final int x = 2 + 3;` inside a method can also satisfy the definition. However, shared application constants are typically placed in `static final` fields.
 
-**Công thức ghi nhớ:**
+**Mnemonic formula:**
 
 ~~~text
-final + (kiểu primitive hoặc String) + constant expression
+final + (primitive or String type) + constant expression
                       │
                       ▼
               constant variable
 
-static final nhưng thiếu một điều kiện trên
+static final but missing one of the conditions above
                       │
                       ▼
-           không phải constant variable
+           not a constant variable
 ~~~
 
-“Constant expression” là biểu thức mà quy tắc Java cho phép đánh giá tại thời điểm biên dịch, ví dụ literal, một số toán tử trên hằng, phép nối chuỗi hằng hoặc tham chiếu tới constant variable khác. **Gọi phương thức thông thường không phải constant expression**, ngay cả khi phương thức luôn trả cùng một số.
+A "constant expression" is an expression that Java's rules allow evaluating at compile time, such as literals, certain operators on constants, constant string concatenation, or references to other constant variables. **Calling a regular method is not a constant expression**, even if the method always returns the same number.
 
-## 2. Ví dụ hợp lệ và không phải hằng biên dịch
+## 2. Valid Examples vs. Non-Compile-Time Constants
 
 ~~~java
 static final int MAX_USERS = 2 * 3;              // Constant variable.
 static final String TITLE = "Java " + 17;        // Constant variable.
 static final double RATE = 0.05;                 // Constant variable.
 
-static final int CONFIG = Integer.parseInt("12"); // Khởi tạo lúc chạy.
-static final Integer BOXED = 12;                  // Wrapper, không phải primitive/String.
-static final int[] SCORES = {4, 5};               // Mảng là reference type.
-static final String BUILT = new String("Java");  // Có gọi new, không phải constant expression.
+static final int CONFIG = Integer.parseInt("12"); // Initialized at runtime.
+static final Integer BOXED = 12;                  // Wrapper, not primitive/String.
+static final int[] SCORES = {4, 5};               // Array is a reference type.
+static final String BUILT = new String("Java");  // Calls new, not a constant expression.
 ~~~
 
-Tất cả các trường trên đều `static final`. Nhưng **chỉ ba trường đầu** thỏa định nghĩa *constant variable*.
+All the fields above are `static final`. Yet **only the first three** meet the definition of a *constant variable*.
 
-### `static final` không có nghĩa “đối tượng không thể thay đổi”
+### `static final` Does Not Mean "Immutable Object"
 
 ~~~java
 static final int[] NUMBERS = {1, 2};
 
-// NUMBERS = new int[]{3, 4}; // Sai: không gán lại reference final.
-NUMBERS[0] = 99;              // Hợp lệ: thay phần tử mảng.
+// NUMBERS = new int[]{3, 4}; // Invalid: cannot reassign a final reference.
+NUMBERS[0] = 99;              // Valid: modifies array element.
 ~~~
 
-`final` ngăn gán lại **biến tham chiếu**, không đóng băng dữ liệu của đối tượng được tham chiếu. Do đó, không nên công bố mảng `public static final` rồi nghĩ rằng bên ngoài không thể sửa phần tử của nó.
+`final` prevents reassigning the **reference variable**, not freezing the data of the referenced object. Therefore, you should not expose a `public static final` array assuming external code cannot modify its elements.
 
-Ngoài ra, trường `static final` có thể được gán trong **static initializer** đúng quy tắc, thay vì có initializer ngay tại khai báo. Trường hợp đó thường không tạo *constant variable*; một số field `final` còn có thể được xác định bằng cấu hình khi lớp được khởi tạo.
+Additionally, a `static final` field can be assigned inside a **static initializer** following the rules, rather than having an initializer at declaration. That case usually does not produce a *constant variable*; some `final` fields can also be determined from configuration when the class is initialized.
 
-## 3. Chương trình Java 17+ chạy được: quan sát lúc khởi tạo lớp
+## 3. Runnable Java 17+ Program: Observing Class Initialization
 
-Tạo tệp **`CompileTimeConstantsDemo.java`**:
+Create the file **`CompileTimeConstantsDemo.java`**:
 
 ~~~java
 public class CompileTimeConstantsDemo {
@@ -91,7 +91,7 @@ public class CompileTimeConstantsDemo {
 }
 ~~~
 
-Ở PowerShell trên Windows hoặc Bash trên Linux, mở thư mục chứa tệp và chạy:
+In PowerShell on Windows or Bash on Linux, open the directory containing the file and run:
 
 ~~~bash
 java -version
@@ -111,18 +111,18 @@ runtimeLimit=12
 score0=90
 ~~~
 
-**Vì sao dòng khởi tạo lớp xuất hiện ở giữa?**
+**Why does the class initialization line appear in the middle?**
 
-1. `MAX_USERS` và `LABEL` là *constant variables*. Khi mã truy cập bằng biểu thức `Settings.MAX_USERS` và `Settings.LABEL`, compiler có thể dùng trực tiếp giá trị hằng; **chỉ đọc chúng không buộc `Settings` khởi tạo**.
-2. `local` là biến `final int` có constant expression `3 * 4`; bản thân nó không phải trường `static`.
-3. `RUNTIME_LIMIT` không phải constant variable vì initializer gọi `Integer.parseInt(...)`. Lần đầu đọc field này qua `Settings.RUNTIME_LIMIT` kích hoạt khởi tạo `Settings` (nếu lớp chưa khởi tạo). Khi đó mã khởi tạo static chạy theo thứ tự, in `Settings initialized`, rồi lệnh trong `main` mới in `runtimeLimit=12`.
-4. Mảng `SCORES` được tạo trong quá trình khởi tạo lớp. Dù tham chiếu là `final`, thao tác `SCORES[0] = 90` hoàn toàn hợp lệ.
+1. `MAX_USERS` and `LABEL` are *constant variables*. When code accesses them via `Settings.MAX_USERS` and `Settings.LABEL`, the compiler can inline the constant values directly; **merely reading them does not force `Settings` to initialize**.
+2. `local` is a `final int` variable with constant expression `3 * 4`; it is not a `static` field itself.
+3. `RUNTIME_LIMIT` is not a constant variable because its initializer calls `Integer.parseInt(...)`. The first read of this field via `Settings.RUNTIME_LIMIT` triggers initialization of `Settings` (if not yet initialized). At that point, static initialization code runs in order, prints `Settings initialized`, and only then does `main` print `runtimeLimit=12`.
+4. The `SCORES` array is created during class initialization. Even though the reference is `final`, `SCORES[0] = 90` is completely valid.
 
-Lưu ý: việc “không khởi tạo lớp khi đọc hằng” là quy tắc đối với **truy cập constant variable**, không áp dụng cho mọi cách sử dụng lớp (`new`, gọi phương thức `static` phù hợp, hoặc đọc field `static` không phải hằng có thể kích hoạt khởi tạo).
+Note: "not initializing the class when reading a constant" is a rule specifically for **accessing a constant variable**, and does not apply to all ways of using a class (`new`, calling an appropriate `static` method, or reading a non-constant `static` field can trigger initialization).
 
-## 4. Hệ quả thực tế: hằng có thể bị nhúng vào mã gọi
+## 4. Practical Consequence: Constants Can Be Inlined into Caller Code
 
-Compiler có thể **nhúng trực tiếp** giá trị của *constant variable* khi biên dịch lớp sử dụng nó. Ví dụ ở một thư viện:
+The compiler can **directly embed** the value of a *constant variable* when compiling a class that uses it. For example, in a library:
 
 ~~~java
 public class LibraryConfig {
@@ -130,7 +130,7 @@ public class LibraryConfig {
 }
 ~~~
 
-Một lớp khác:
+Another class:
 
 ~~~java
 public class Client {
@@ -140,55 +140,55 @@ public class Client {
 }
 ~~~
 
-Khi biên dịch `Client` dựa trên `LIMIT = 10`, mã của `Client` có thể chứa chính giá trị 10, thay vì đọc field lúc chạy. Nếu sau này thư viện sửa `LIMIT = 20` và **chỉ biên dịch lại `LibraryConfig`**, file `Client.class` cũ có thể **vẫn in 10**.
+When compiling `Client` against `LIMIT = 10`, `Client`'s bytecode may contain the value `10` itself instead of reading the field at runtime. If the library later changes `LIMIT = 20` and **only recompiles `LibraryConfig`**, the old `Client.class` file may **still print 10**.
 
-**Cách xử lý:** khi thay đổi constant variable công khai trong thư viện, **biên dịch lại các lớp sử dụng** và phát hành lại các artifact phụ thuộc. Đây là lý do không nên tùy tiện dùng `public static final` constant variables cho những giá trị dự kiến thay đổi giữa các phiên bản triển khai.
+**How to handle:** when changing a public constant variable in a library, **recompile the dependent classes** and republish dependent artifacts. This is why you should not casually use `public static final` constant variables for values expected to change across deployment versions.
 
-Với `static final int LIMIT = loadFromConfiguration();` (initializer gọi phương thức), giá trị không phải *compile-time constant* và việc truy cập field diễn ra lúc chạy. Nhưng nó vẫn thường chỉ được khởi tạo **một lần cho mỗi lần khởi tạo lớp**, không tự động cập nhật khi file cấu hình thay đổi.
+With `static final int LIMIT = loadFromConfiguration();` (initializer calls a method), the value is not a *compile-time constant* and field access happens at runtime. However, it is still typically initialized only **once per class initialization**, and does not automatically update when a config file changes.
 
-## 5. Khi nào compiler yêu cầu constant expression?
+## 5. When Does the Compiler Require a Constant Expression?
 
-Một tình huống dễ kiểm chứng trong Java 17 là nhãn `case` của `switch` truyền thống:
+An easily verifiable case in Java 17 is a traditional `switch` `case` label:
 
 ~~~java
 static final int OK = 2 * 3;                // Constant variable.
-static final int DYNAMIC = Math.max(5, 6); // Không phải constant variable.
+static final int DYNAMIC = Math.max(5, 6); // Not a constant variable.
 
-// Trong phương thức:
+// Inside a method:
 int status = 6;
 switch (status) {
     case OK:
-        System.out.println("OK"); // Hợp lệ.
+        System.out.println("OK"); // Valid.
         break;
-    // case DYNAMIC: // Sai: không phải constant expression.
+    // case DYNAMIC: // Invalid: not a constant expression.
     default:
         System.out.println("Khac");
 }
 ~~~
 
-`case OK:` được chấp nhận vì `OK` là *constant variable*, còn `DYNAMIC` không được chấp nhận ở vị trí nhãn `case` kiểu này vì lời gọi `Math.max` không phải constant expression.
+`case OK:` is accepted because `OK` is a *constant variable*, whereas `DYNAMIC` is rejected in this kind of `case` label because calling `Math.max` is not a constant expression.
 
-Đây là lý do một giá trị được tuyên bố `final` chưa đủ để dùng trong mọi vị trí đòi hỏi **hằng lúc biên dịch**.
+This is why declaring a value `final` is not enough to use it in every context requiring a **compile-time constant**.
 
-## 6. Lỗi và ngộ nhận thường gặp
+## 6. Common Errors and Misconceptions
 
-| Ngộ nhận/tình huống | Sự thật | Cách làm |
+| Misconception / situation | Reality | What to do |
 | --- | --- | --- |
-| “Có `static final` là constant variable” | Sai: initializer và kiểu còn phải thỏa điều kiện | Xét kiểu primitive/`String` và constant expression |
-| “`Integer` cũng giống `int`” | `Integer` là wrapper reference type | Dùng `int` nếu cần primitive constant variable |
-| “`new String("x")` là hằng vì nội dung cố định” | `new` không phải constant expression | Nếu cần hằng biên dịch, dùng `"x"` |
-| “`final int[]` là mảng bất biến” | Chỉ không thể đổi tham chiếu của biến `final` | Hạn chế quyền truy cập, dùng cấu trúc bất biến phù hợp |
-| “Thay `LIMIT` trong thư viện là đủ” | Lớp sử dụng đã biên dịch có thể còn giữ giá trị cũ | Rebuild và phát hành lại mã phụ thuộc |
-| “Đọc mọi field `static` đều khởi tạo lớp” | Đọc constant variable là ngoại lệ đáng chú ý | Phân biệt field hằng biên dịch và field runtime |
-| “`final` luôn cho phép dùng làm nhãn `case`” | Nhãn ở ví dụ cần constant expression | Dùng literal/constant variable hợp lệ |
+| "Having `static final` makes it a constant variable" | False: the initializer and type must also meet conditions | Check primitive/`String` type and constant expression |
+| "`Integer` is the same as `int`" | `Integer` is a reference wrapper type | Use `int` if a primitive constant variable is needed |
+| "`new String("x")` is a constant because content is fixed" | `new` is not a constant expression | If a compile-time constant is needed, use `"x"` |
+| "`final int[]` is an immutable array" | Only the `final` variable's reference cannot change | Restrict access, use an appropriate immutable structure |
+| "Changing `LIMIT` in the library is enough" | Compiled callers may still hold the old value | Rebuild and republish dependent code |
+| "Reading any `static` field initializes the class" | Reading a constant variable is a notable exception | Distinguish compile-time constant fields from runtime fields |
+| "`final` always allows use as a `case` label" | Labels in the example require a constant expression | Use a valid literal/constant variable |
 
-### Quy ước đặt tên
+### Naming Convention
 
-Hằng dùng chung thường viết chữ hoa và dấu gạch dưới, ví dụ `MAX_USERS`, `DEFAULT_TIMEOUT_SECONDS`, `APP_NAME`. Đây là **quy ước**, không phải điều kiện của compiler: `static final int maxUsers = 6;` vẫn hợp lệ và vẫn có thể là constant variable.
+Shared constants are usually written in uppercase with underscores, such as `MAX_USERS`, `DEFAULT_TIMEOUT_SECONDS`, `APP_NAME`. This is a **convention**, not a compiler requirement: `static final int maxUsers = 6;` is still valid and can still be a constant variable.
 
-## 7. Bài tập ngắn
+## 7. Short Exercises
 
-**Bài 1 — Phân loại.** Đâu là *constant variable*?
+**Exercise 1 — Classification.** Which ones are *constant variables*?
 
 ~~~java
 static final int A = 1 + 2;
@@ -198,28 +198,28 @@ static final String D = new String("Hi");
 static final Integer E = 3;
 ~~~
 
-*Đáp án:* `A` và `C`. `B` gọi phương thức; `D` dùng `new`; `E` là wrapper.
+*Answer:* `A` and `C`. `B` calls a method; `D` uses `new`; `E` is a wrapper.
 
-**Bài 2 — Đọc output.** Tại sao `Settings initialized` trong ví dụ chỉ in trước `runtimeLimit=12`, không in trước `maxUsers=6`?
+**Exercise 2 — Reading output.** Why did `Settings initialized` in the example only print right before `runtimeLimit=12`, and not before `maxUsers=6`?
 
-*Đáp án:* Hai constant variables được dùng mà không buộc lớp `Settings` khởi tạo; đọc non-constant static field `RUNTIME_LIMIT` kích hoạt khởi tạo.
+*Answer:* The two constant variables were used without forcing the `Settings` class to initialize; reading the non-constant static field `RUNTIME_LIMIT` triggered initialization.
 
-**Bài 3 — Thử tính bất biến.** Với `static final int[] VALUES = {1, 2};`, câu nào hợp lệ: `VALUES[0] = 5;` hay `VALUES = new int[]{5, 6};`?
+**Exercise 3 — Testing immutability.** Given `static final int[] VALUES = {1, 2};`, which statement is valid: `VALUES[0] = 5;` or `VALUES = new int[]{5, 6};`?
 
-*Đáp án:* Chỉ câu thứ nhất hợp lệ: phần tử có thể sửa, biến tham chiếu `final` không thể gán lại.
+*Answer:* Only the first statement is valid: elements can be modified, while the `final` reference variable cannot be reassigned.
 
-**Bài 4 — Thay đổi thư viện.** Một chương trình đã biên dịch dùng `public static final int VERSION = 1;`. Tại sao thay trong thư viện thành 2 mà không rebuild client có thể vẫn in 1?
+**Exercise 4 — Library change.** A compiled program uses `public static final int VERSION = 1;`. Why might changing it to `2` in the library without rebuilding the client still print `1`?
 
-*Đáp án:* Giá trị constant variable có thể đã được nhúng vào mã client khi biên dịch.
+*Answer:* The constant variable's value may have been inlined into the client's bytecode at compile time.
 
-## Checklist ghi nhớ
+## Retention Checklist
 
-- [ ] Phân biệt `final`, `static final` và *constant variable*.
-- [ ] Nêu đúng ba điều kiện: `final` + primitive/`String` + constant expression.
-- [ ] Biết lời gọi phương thức/`new` thường khiến initializer không phải constant expression.
-- [ ] Hiểu vì sao chỉ truy cập constant variable không làm lớp khai báo bắt buộc khởi tạo.
-- [ ] Nhận ra `final` của tham chiếu không đồng nghĩa đối tượng bất biến.
-- [ ] Biết phải biên dịch lại code phụ thuộc khi thay hằng public có thể được inline.
-- [ ] Chạy được `CompileTimeConstantsDemo.java` và giải thích sáu dòng output.
+- [ ] Distinguish `final`, `static final`, and *constant variable*.
+- [ ] State all three conditions: `final` + primitive/`String` + constant expression.
+- [ ] Know that method calls / `new` usually prevent an initializer from being a constant expression.
+- [ ] Understand why merely accessing a constant variable does not force the declaring class to initialize.
+- [ ] Recognize that `final` on a reference does not mean an immutable object.
+- [ ] Know to recompile dependent code when changing a public constant that may be inlined.
+- [ ] Run `CompileTimeConstantsDemo.java` and explain all six lines of output.
 
-**Kết luận:** `static final` thể hiện **biến cấp lớp không được gán lại**, còn *constant variable* là một trường hợp đặc biệt mà Java xác định từ **kiểu và constant expression**. Phân biệt hai khái niệm này để hiểu khởi tạo lớp, tính bất biến, `switch case` và tác động tới các file `.class` đã phát hành.
+**Conclusion:** `static final` expresses **a non-reassignable class-level variable**, while *constant variable* is a special case Java identifies from **type and constant expression**. Distinguish these two concepts to understand class initialization, immutability, `switch case`, and the impact on published `.class` files.

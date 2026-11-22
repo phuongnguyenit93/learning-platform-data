@@ -1,114 +1,114 @@
-# Quan hệ giữa reflection, kế thừa, generic và annotation trong Java
+# Relationships Among Reflection, Inheritance, Generics, and Annotations in Java
 
-## Mục tiêu học tập
+## Learning Objectives
 
-Sau bài này, bạn có thể giải thích **reflection nhìn thấy gì ở thời điểm chạy** khi một lớp có lớp cha, kiểu generic và annotation; chọn đúng API để đọc metadata; phân biệt metadata khai báo với hành vi thực khi gọi phương thức; và nhận diện các giới hạn thường gặp khi viết framework, thư viện hoặc công cụ phân tích mã Java.
+After this lesson, you will be able to explain **what reflection sees at runtime** when a class has a superclass, generic types, and annotations; choose the right API to read metadata; distinguish declaration metadata from actual behavior when invoking a method; and recognize common limitations when writing Java frameworks, libraries, or code-analysis tools.
 
-Bốn khái niệm liên quan nhưng có vai trò khác nhau:
+Four related concepts with different roles:
 
-| Khái niệm | Vai trò trong chương trình | Reflection có thể quan sát |
+| Concept | Role in a Program | What Reflection Can Observe |
 | --- | --- | --- |
-| **Kế thừa (inheritance)** | Tạo quan hệ lớp cha–con; thành viên có thể được thừa hưởng hoặc ghi đè | Cây kiểu, thành viên khai báo/truy cập được, lớp khai báo thành viên |
-| **Generic** | Kiểm tra kiểu ở thời điểm biên dịch; mô tả kiểu tham số hóa | Kiểu đã bị xóa khi chạy và một phần thông tin khai báo generic được lưu trong metadata |
-| **Annotation** | Gắn metadata có cấu trúc lên khai báo hoặc vị trí dùng kiểu | Annotation còn hiệu lực ở runtime, tùy `@Retention` và API truy vấn |
-| **Reflection** | Đọc metadata và có thể thao tác động trên đối tượng/thành viên | Các đối tượng `Class`, `Method`, `Field`, `Constructor`, `Type`, `Annotation` |
+| **Inheritance** | Establishes parent–child class relationships; members can be inherited or overridden | Type hierarchy, declared/accessible members, declaring class of a member |
+| **Generics** | Compile-time type checking; describes parameterized types | Erased runtime types and a portion of generic declaration information stored in metadata |
+| **Annotations** | Attaches structured metadata to declarations or type-use positions | Annotations retained at runtime, depending on `@Retention` and the querying API |
+| **Reflection** | Reads metadata and can dynamically operate on objects/members | `Class`, `Method`, `Field`, `Constructor`, `Type`, `Annotation` objects |
 
-**Điểm mấu chốt:** reflection không thay thế quy tắc kế thừa, không làm generic trở thành kiểm tra kiểu đầy đủ ở runtime, và không tự thực thi ý nghĩa nghiệp vụ của annotation. Nó chỉ cung cấp cơ chế quan sát hoặc gọi thành viên theo những quy tắc Java đã định nghĩa.
+**Key point:** reflection does not replace inheritance rules, does not turn generics into full runtime type checking, and does not automatically execute the business meaning of annotations. It only provides a mechanism to observe or invoke members according to the rules Java has defined.
 
-## 1. Kế thừa quyết định tập thành viên mà reflection có thể nhìn thấy
+## 1. Inheritance Determines the Set of Members That Reflection Can See
 
-### 1.1. Hai nhóm API rất dễ nhầm
+### 1.1. Two Easily Confused API Groups
 
-| Nhu cầu | API tiêu biểu | Ý nghĩa |
+| Need | Representative API | Meaning |
 | --- | --- | --- |
-| Lấy phương thức `public`, kể cả phương thức thừa hưởng | `clazz.getMethods()`, `clazz.getMethod(name, types...)` | Xét các phương thức `public` của kiểu đó và các phương thức `public` kế thừa từ lớp cha/interface |
-| Lấy phương thức **khai báo trực tiếp** ở lớp đang xét | `clazz.getDeclaredMethods()`, `clazz.getDeclaredMethod(...)` | Bao gồm `private`, `protected`, package-private và `public`; không tự đi lên lớp cha |
-| Lấy trường `public`, kể cả trường thừa hưởng | `clazz.getFields()`, `clazz.getField(name)` | Không bao gồm trường không `public` |
-| Lấy trường khai báo trực tiếp | `clazz.getDeclaredFields()`, `clazz.getDeclaredField(name)` | Không tự tìm trường lớp cha |
-| Lấy constructor | `clazz.getConstructors()` hoặc `clazz.getDeclaredConstructors()` | Chỉ constructor của chính lớp: **constructor không được kế thừa** |
-| Xem quan hệ cha/interface | `getSuperclass()`, `getInterfaces()` | Trả về kiểu cha trực tiếp và các interface trực tiếp |
-| Giữ thông tin generic của quan hệ cha | `getGenericSuperclass()`, `getGenericInterfaces()` | Trả về `Type`, có thể là `ParameterizedType` hoặc `Class` |
+| Get `public` methods, including inherited ones | `clazz.getMethods()`, `clazz.getMethod(name, types...)` | Considers `public` methods of the type and `public` methods inherited from superclasses/interfaces |
+| Get methods **declared directly** in the inspected class | `clazz.getDeclaredMethods()`, `clazz.getDeclaredMethod(...)` | Includes `private`, `protected`, package-private, and `public`; does not automatically walk up to superclasses |
+| Get `public` fields, including inherited ones | `clazz.getFields()`, `clazz.getField(name)` | Does not include non-`public` fields |
+| Get directly declared fields | `clazz.getDeclaredFields()`, `clazz.getDeclaredField(name)` | Does not automatically search superclass fields |
+| Get constructors | `clazz.getConstructors()` or `clazz.getDeclaredConstructors()` | Only constructors of the class itself: **constructors are not inherited** |
+| Inspect parent/interface relationships | `getSuperclass()`, `getInterfaces()` | Returns the direct superclass and direct interfaces |
+| Preserve generic information of parent relationships | `getGenericSuperclass()`, `getGenericInterfaces()` | Returns `Type`, which may be a `ParameterizedType` or `Class` |
 
-Ví dụ: nếu `Child extends Parent` và `Parent` có phương thức `public void ping()` thì `Child.class.getMethod("ping")` tìm được nó, nhưng `Child.class.getDeclaredMethod("ping")` sẽ ném `NoSuchMethodException` nếu `Child` không khai báo lại `ping`. Khi tìm metadata khai báo ở cả các lớp cha, hãy duyệt `getSuperclass()` và đọc `getDeclaredMethods()` theo từng cấp.
+For example: if `Child extends Parent` and `Parent` has a method `public void ping()`, then `Child.class.getMethod("ping")` finds it, whereas `Child.class.getDeclaredMethod("ping")` throws `NoSuchMethodException` if `Child` does not redeclare `ping`. When searching for declared metadata across superclasses as well, traverse `getSuperclass()` and read `getDeclaredMethods()` level by level.
 
-### 1.2. Ghi đè, che khuất và nơi khai báo là ba chuyện khác nhau
+### 1.2. Overriding, Hiding, and Declaring Class Are Three Different Things
 
-- **Override:** một phương thức instance phù hợp trong lớp con ghi đè phương thức lớp cha. Khi dùng `Method.invoke(object, args)` cho một phương thức instance, Java vẫn thực hiện **dispatch động** theo kiểu thực của đối tượng; `Method` lấy từ lớp cha vẫn có thể gọi phần triển khai override ở lớp con.
-- **Overload:** cùng tên nhưng khác danh sách tham số; reflection yêu cầu **kiểu tham số chính xác** khi gọi `getMethod(name, parameterTypes...)`. Không thể chỉ dựa vào tên phương thức.
-- **Field hiding:** trường cùng tên ở lớp con *che khuất* trường lớp cha, không dispatch đa hình như phương thức. `Field.getDeclaringClass()` cho biết đang đọc đúng trường nào.
-- **Static method hiding:** phương thức `static` không override như phương thức instance; `Method.invoke` dùng phương thức static được khai báo, không dispatch động theo đối tượng.
-- **Khả năng truy cập:** tìm thấy một `private` member không đồng nghĩa được phép đọc/gọi nó. `setAccessible(true)` hoặc `trySetAccessible()` phải tuân thủ kiểm tra truy cập và ranh giới module (JPMS).
+- **Overriding:** a matching instance method in a subclass overrides a superclass method. When using `Method.invoke(object, args)` for an instance method, Java still performs **dynamic dispatch** based on the actual type of the object; a `Method` obtained from the superclass can still invoke the overridden implementation in the subclass.
+- **Overloading:** same name but different parameter list; reflection requires **exact parameter types** when calling `getMethod(name, parameterTypes...)`. You cannot rely on the method name alone.
+- **Field hiding:** a field with the same name in a subclass *hides* the superclass field rather than dispatching polymorphically like methods. `Field.getDeclaringClass()` tells you which field is actually being read.
+- **Static method hiding:** `static` methods are not overridden like instance methods; `Method.invoke` uses the declared static method rather than dispatching dynamically by object.
+- **Accessibility:** finding a `private` member does not mean you are permitted to read/invoke it. `setAccessible(true)` or `trySetAccessible()` must obey access checks and module boundaries (JPMS).
 
-Danh sách trả về từ `getMethods()` hoặc `getDeclaredMethods()` **không có thứ tự bảo đảm**. Nếu cần hiển thị ổn định hoặc sinh mã, hãy tự sắp xếp theo quy tắc rõ ràng.
+The lists returned by `getMethods()` or `getDeclaredMethods()` **have no guaranteed order**. If you need stable display or code generation, sort them explicitly by a clear rule.
 
-## 2. Generic: còn metadata khai báo, nhưng kiểu tham số bị xóa phần lớn khi chạy
+## 2. Generics: Declaration Metadata Remains, While Type Arguments Are Mostly Erased at Runtime
 
-### 2.1. Type erasure tác động trực tiếp đến reflection
+### 2.1. Type Erasure Directly Affects Reflection
 
-Trong Java, `List<String>` và `List<Integer>` thường cùng có raw runtime class `List`/`ArrayList`. Bạn không thể hỏi một đối tượng `new ArrayList<String>()` để lấy lại chắc chắn `String` chỉ từ `object.getClass()`. Compiler kiểm tra generic, chèn ép kiểu (cast) khi cần và xóa phần lớn thông tin tham số kiểu trong biểu diễn runtime.
+In Java, `List<String>` and `List<Integer>` typically share the same raw runtime class `List`/`ArrayList`. You cannot ask a `new ArrayList<String>()` object to reliably give back `String` from `object.getClass()` alone. The compiler checks generics, inserts casts where needed, and erases most type-argument information in the runtime representation.
 
-Tuy nhiên, **khai báo** có thể giữ generic signature:
+However, **declarations** can retain a generic signature:
 
-- `Field.getType()` trả về `Class<?>` của kiểu sau xóa, còn `Field.getGenericType()` trả về `Type` có thể chứa `List<String>`.
-- `Method.getReturnType()` và `getParameterTypes()` cho các kiểu sau xóa; `getGenericReturnType()` và `getGenericParameterTypes()` trả về kiểu generic khai báo.
-- `Class.getSuperclass()` trả về raw superclass, còn `Class.getGenericSuperclass()` có thể giữ quan hệ `Parent<String>`.
-- `Class.getTypeParameters()` và `Method.getTypeParameters()` trả về các biến kiểu như `T`, `E` được khai báo ở lớp/phương thức.
+- `Field.getType()` returns the `Class<?>` of the erased type, whereas `Field.getGenericType()` returns a `Type` that may contain `List<String>`.
+- `Method.getReturnType()` and `getParameterTypes()` return the erased types; `getGenericReturnType()` and `getGenericParameterTypes()` return the declared generic types.
+- `Class.getSuperclass()` returns the raw superclass, whereas `Class.getGenericSuperclass()` can preserve a relationship such as `Parent<String>`.
+- `Class.getTypeParameters()` and `Method.getTypeParameters()` return type variables like `T`, `E` declared on the class/method.
 
-Đừng đồng nhất `Type` với `Class<?>`. Các dạng quan trọng của `Type`:
+Do not equate `Type` with `Class<?>`. Important forms of `Type`:
 
-| Dạng | Ví dụ khai báo | Ý nghĩa |
+| Form | Declaration Example | Meaning |
 | --- | --- | --- |
-| `Class<?>` | `String`, `int[]` | Kiểu cụ thể không tham số hóa trong biểu diễn đó |
-| `ParameterizedType` | `List<String>` | Raw type cùng các đối số kiểu thực tế |
-| `TypeVariable<?>` | `T` trong `class Box<T>` | Biến kiểu và các bound của nó |
-| `WildcardType` | `? extends Number` | Wildcard và giới hạn trên/dưới |
-| `GenericArrayType` | `T[]` | Kiểu mảng có thành phần là một generic type chưa thành `Class` cụ thể |
+| `Class<?>` | `String`, `int[]` | A concrete type that is not parameterized in that representation |
+| `ParameterizedType` | `List<String>` | A raw type together with its actual type arguments |
+| `TypeVariable<?>` | `T` in `class Box<T>` | A type variable and its bounds |
+| `WildcardType` | `? extends Number` | A wildcard and its upper/lower bounds |
+| `GenericArrayType` | `T[]` | An array type whose component is a generic type not yet resolved to a concrete `Class` |
 
-### 2.2. Generic ở lớp cha khác generic trên phương thức lớp cha
+### 2.2. Generics on a Superclass vs. Generics on a Superclass Method
 
-Giả sử `class Parent<T> { T read(); }` và `class Child extends Parent<String>`. Khi gọi `Child.class.getGenericSuperclass()`, metadata của *quan hệ extends* có thể chứa `String`. Nhưng `Parent.class.getDeclaredMethod("read").getGenericReturnType()` vẫn là biến kiểu `T` do `Parent` khai báo: reflection **không tự thay `T` bằng `String` trong metadata của chính `Parent`**.
+Suppose `class Parent<T> { T read(); }` and `class Child extends Parent<String>`. When calling `Child.class.getGenericSuperclass()`, the metadata of the *extends relationship* may contain `String`. However, `Parent.class.getDeclaredMethod("read").getGenericReturnType()` is still the type variable `T` declared by `Parent`: reflection **does not automatically substitute `T` with `String` in `Parent`'s own metadata**.
 
-Một công cụ cần suy luận kiểu trả về thực của `read` trong ngữ cảnh `Child` phải tự xây dựng ánh xạ `T -> String` rồi áp dụng ánh xạ qua từng cấp kế thừa (có thể qua nhiều lớp và interface). Với khai báo raw type hoặc thông tin generic không còn lưu, việc suy luận không phải lúc nào cũng thành công.
+A tool that needs to infer the actual return type of `read` in the context of `Child` must build a `T -> String` mapping itself and apply that mapping across each inheritance level (possibly through multiple classes and interfaces). With raw type declarations or when generic information is no longer retained, inference does not always succeed.
 
-### 2.3. Bridge method là điểm giao giữa kế thừa và erasure
+### 2.3. Bridge Methods Are the Intersection of Inheritance and Erasure
 
-Để bảo toàn tính override khi signature bị xóa, compiler có thể sinh **bridge method**. Chẳng hạn, `Parent<T>.convert(T)` có tham số erasure là `Object`, còn `Child extends Parent<String>` override bằng `convert(String)`. Compiler tạo một bridge như `convert(Object)` trong `Child` để lời gọi qua kiểu `Parent` vẫn đến phần triển khai `convert(String)`.
+To preserve overriding when signatures are erased, the compiler may generate a **bridge method**. For instance, `Parent<T>.convert(T)` has the erased parameter `Object`, while `Child extends Parent<String>` overrides it with `convert(String)`. The compiler generates a bridge such as `convert(Object)` in `Child` so that calls through type `Parent` still reach the `convert(String)` implementation.
 
-Reflection có thể thấy cả phương thức nguồn và bridge trong `getDeclaredMethods()`. Khi quét phương thức để dựng API, routing, logging hoặc validation, thường cần kiểm tra `Method.isBridge()` và `Method.isSynthetic()` nhằm tránh đăng ký trùng. Nhưng khi gọi phương thức, không nên xóa/sửa bridge: nó phục vụ tương thích và dispatch của JVM.
+Reflection can see both the source method and the bridge method in `getDeclaredMethods()`. When scanning methods to build APIs, routing, logging, or validation, you often need to check `Method.isBridge()` and `Method.isSynthetic()` to avoid duplicate registration. However, when invoking methods, do not delete or alter bridge methods: they exist for compatibility and JVM dispatch.
 
-## 3. Annotation: metadata của lớp hoặc thành viên có quy tắc kế thừa riêng
+## 3. Annotations: Class or Member Metadata Have Their Own Inheritance Rules
 
-### 3.1. Retention và target phải đúng
+### 3.1. Retention and Target Must Be Appropriate
 
-- `@Retention(SOURCE)`: annotation chỉ có ở mã nguồn, không còn trong class file.
-- `@Retention(CLASS)`: nằm trong class file nhưng **không truy cập bằng reflection runtime thông thường**; đây là mức mặc định nếu không khai báo `@Retention`.
-- `@Retention(RUNTIME)`: có thể tra bằng API reflection khi chương trình chạy.
-- `@Target(TYPE)` áp dụng cho khai báo kiểu; `METHOD`, `FIELD`, `PARAMETER` áp dụng cho từng loại thành viên; `TYPE_USE` dành cho các vị trí **dùng kiểu** như `List<@Checked String>`.
+- `@Retention(SOURCE)`: the annotation exists only in source code and is absent from the class file.
+- `@Retention(CLASS)`: present in the class file, but **not accessible via standard runtime reflection**; this is the default if `@Retention` is omitted.
+- `@Retention(RUNTIME)`: can be queried via Reflection APIs while the program is running.
+- `@Target(TYPE)` applies to type declarations; `METHOD`, `FIELD`, `PARAMETER` apply to each respective member kind; `TYPE_USE` is for **type-use positions** such as `List<@Checked String>`.
 
-Annotation chỉ khai báo dữ liệu. Chẳng hạn `@Audit` không tự ghi log; phải có mã chủ động tìm annotation và thực hiện hành vi tương ứng.
+Annotations only declare data. For example, `@Audit` does not automatically write logs; code must actively look up the annotation and perform the corresponding behavior.
 
-### 3.2. `@Inherited` có phạm vi hẹp
+### 3.2. `@Inherited` Has a Narrow Scope
 
-`@Inherited` đặt **trên khai báo loại annotation**, và chỉ có tác dụng khi truy vấn annotation trên **khai báo class** của một lớp con; Java tìm dọc superclass nếu lớp con không khai báo annotation đó.
+`@Inherited` is placed **on the annotation type declaration**, and only takes effect when querying annotations on the **class declaration** of a subclass; Java searches along the superclass chain if the subclass does not declare that annotation.
 
-Vì vậy:
+Therefore:
 
-- `Child.class.getAnnotation(Audited.class)` có thể nhận annotation `@Audited` từ superclass nếu `Audited` được đánh dấu `@Inherited`.
-- `Child.class.getDeclaredAnnotation(Audited.class)` chỉ xét lớp `Child`, nên có thể là `null`.
-- `@Inherited` **không truyền annotation từ interface mà class implements**, không áp dụng tự động cho annotation trên method/field/constructor, và không khiến annotation của phương thức cha xuất hiện trên phương thức override.
-- Để xử lý annotation trên interface, phương thức override, hoặc meta-annotation do ứng dụng định nghĩa, framework phải chủ động duyệt và đặt quy tắc kết hợp metadata.
+- `Child.class.getAnnotation(Audited.class)` can receive the `@Audited` annotation from a superclass if `Audited` is marked with `@Inherited`.
+- `Child.class.getDeclaredAnnotation(Audited.class)` inspects only `Child`, so it may be `null`.
+- `@Inherited` **does not propagate annotations from interfaces that a class implements**, does not apply automatically to annotations on methods/fields/constructors, and does not cause a superclass method's annotation to appear on an overriding method.
+- To handle annotations on interfaces, overridden methods, or application-defined meta-annotations, a framework must actively traverse the hierarchy and define metadata-merging rules.
 
-Đối với annotation lặp lại (`@Repeatable`), dùng `getAnnotationsByType(...)` / `getDeclaredAnnotationsByType(...)` khi muốn lấy nhiều giá trị; tránh giả định `getAnnotation(...)` luôn đại diện đủ các annotation lặp.
+For repeatable annotations (`@Repeatable`), use `getAnnotationsByType(...)` / `getDeclaredAnnotationsByType(...)` when you want to retrieve multiple values; avoid assuming `getAnnotation(...)` always represents all repeated annotations.
 
-### 3.3. Metadata của khai báo và của kiểu được dùng là khác nhau
+### 3.3. Declaration Metadata and Type-Use Metadata Are Different
 
-Ví dụ trường `List<@Checked String> names`: annotation `@Checked` thuộc **type argument `String`**, không phải annotation khai báo trực tiếp của trường `names`. Vì thế `Field.getAnnotation(Checked.class)` không đọc nó; phải dùng `Field.getAnnotatedType()`, ép hợp lệ sang `AnnotatedParameterizedType` và truy cập `getAnnotatedActualTypeArguments()`.
+For example, in the field `List<@Checked String> names`: the `@Checked` annotation belongs to the **type argument `String`**, not directly to the field declaration `names`. Therefore, `Field.getAnnotation(Checked.class)` does not read it; you must use `Field.getAnnotatedType()`, validly cast it to `AnnotatedParameterizedType`, and access `getAnnotatedActualTypeArguments()`.
 
-Tương tự, Java có `Method.getAnnotatedReturnType()`, `getAnnotatedParameterTypes()` và `Class.getAnnotatedSuperclass()` khi cần annotation ở vị trí dùng kiểu. Các annotation này cũng phải có `RUNTIME` retention nếu muốn quan sát bằng reflection.
+Similarly, Java provides `Method.getAnnotatedReturnType()`, `getAnnotatedParameterTypes()`, and `Class.getAnnotatedSuperclass()` when annotations in type-use positions are needed. These annotations must also have `RUNTIME` retention to be observable via reflection.
 
-## 4. Ví dụ tích hợp Java 17+: kế thừa + generic + annotation + reflection
+## 4. Integrated Java 17+ Example: Inheritance + Generics + Annotations + Reflection
 
-Lưu đoạn sau thành **KnowledgeReflectionDemo.java**. Chương trình dùng một lớp cha generic, một lớp con chuyên biệt kiểu `String`, một annotation trên lớp có `@Inherited` và một annotation đặt trên phương thức lớp cha.
+Save the following as **KnowledgeReflectionDemo.java**. The program uses a generic superclass, a subclass specializing the type `String`, a class annotation marked `@Inherited`, and an annotation placed on a superclass method.
 
 ~~~java
 import java.lang.annotation.ElementType;
@@ -189,14 +189,14 @@ public class KnowledgeReflectionDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac KnowledgeReflectionDemo.java
 java KnowledgeReflectionDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Inherited annotation: true
@@ -210,19 +210,19 @@ Bridge methods in Child: 1
 Reflective call result: JAVA
 ~~~
 
-**Giải thích các quan sát:**
+**Explanation of observations:**
 
-1. `Audited` được đánh dấu `@Inherited` nên truy vấn trên `Child` thấy annotation của `Parent`, nhưng truy vấn *declared* trên `Child` không thấy.
-2. Metadata `Child extends Parent<String>` giữ đối số `java.lang.String`. Trái lại, kiểu trả về khai báo của `Parent.convert(T)` vẫn là `T`.
-3. `@Label("parent")` tồn tại trên method của `Parent`; `Child.convert(String)` không tự kế thừa annotation của method bị override.
-4. `ping()` là phương thức `public` kế thừa; `getMethod("ping")` lấy được `Method` có `getDeclaringClass() == Parent.class`.
-5. Bridge `convert(Object)` giúp lời gọi qua kiểu `Parent` tìm đúng `Child.convert(String)`. Vì `Method.invoke` trên instance áp dụng dispatch động, kết quả là `JAVA` dù `Method` được lấy từ `Parent`.
+1. `Audited` is marked `@Inherited`, so querying `Child` sees `Parent`'s annotation, while a *declared* query on `Child` does not.
+2. The metadata `Child extends Parent<String>` retains the argument `java.lang.String`. Conversely, the declared return type of `Parent.convert(T)` remains `T`.
+3. `@Label("parent")` exists on `Parent`'s method; `Child.convert(String)` does not automatically inherit the annotation of the overridden method.
+4. `ping()` is an inherited `public` method; `getMethod("ping")` retrieves a `Method` whose `getDeclaringClass() == Parent.class`.
+5. The bridge `convert(Object)` lets calls through type `Parent` reach `Child.convert(String)`. Because `Method.invoke` on an instance applies dynamic dispatch, the result is `JAVA` even though the `Method` was obtained from `Parent`.
 
-Lưu ý: `getDeclaredMethods()` có thể chứa cả phương thức nguồn lẫn bridge/synthetic; không dựa vào thứ tự phần tử mảng để suy ra đâu là phương thức cần dùng.
+Note: `getDeclaredMethods()` may contain both source methods and bridge/synthetic methods; do not rely on array element order to infer which method to use.
 
-## 5. Ví dụ riêng về generic field và annotation ở vị trí dùng kiểu
+## 5. Separate Example of a Generic Field and a Type-Use Annotation
 
-Ví dụ trước dùng annotation trên **khai báo class/method**. Ví dụ này làm rõ một trường có generic signature và annotation **trên type argument**. Lưu thành **TypeUseDemo.java**:
+The previous example used annotations on **class/method declarations**. This example clarifies a field with a generic signature and an annotation **on a type argument**. Save as **TypeUseDemo.java**:
 
 ~~~java
 import java.lang.annotation.ElementType;
@@ -272,38 +272,38 @@ Type argument: java.lang.String
 Type-use annotation: true
 ~~~
 
-`getType()` chỉ thấy `List` đã xóa tham số, `getGenericType()` thấy `String` ở khai báo trường, còn `getAnnotatedType()` truy cập annotation trên vị trí dùng kiểu. Không có bước nào tự chứng minh mọi phần tử được đưa vào danh sách ở runtime đều thực sự là `String`; đó vẫn là trách nhiệm của hệ thống kiểu và logic kiểm tra dữ liệu.
+`getType()` sees only the erased `List`, `getGenericType()` sees `String` on the field declaration, and `getAnnotatedType()` accesses annotations on type-use positions. None of these steps proves that every element placed into the list at runtime is actually a `String`; that remains the responsibility of the type system and data-validation logic.
 
-## 6. Áp dụng khi xây dựng công cụ dùng reflection
+## 6. Applying This When Building Reflection-Based Tools
 
-Xét một thư viện cần tìm các phương thức gắn `@Action` trên một đối tượng có nhiều lớp cha. Một quy trình có thể kiểm chứng được:
+Consider a library that needs to find methods annotated with `@Action` on an object with multiple superclasses. A verifiable workflow:
 
-1. **Xác định quy tắc kế thừa mong muốn.** Chỉ đọc phương thức `public` có thể truy cập bằng `getMethods()`, hay quét tất cả khai báo qua từng cấp bằng `getDeclaredMethods()`? Annotation của method override có được ứng dụng *chủ động* lấy từ method cha hay không?
-2. **Duyệt kiểu có chủ đích.** Khi dùng `getDeclaredMethods()`, lần lượt duyệt superclass bằng `getSuperclass()`; xét interface riêng nếu yêu cầu. Lưu `getDeclaringClass()` để xác định nguồn metadata.
-3. **Xử lý bridge/synthetic và override.** Kiểm tra `isBridge()`/`isSynthetic()`, đối chiếu tên + kiểu tham số + quan hệ override để tránh cùng một hành vi được đăng ký hai lần. Không giả định mọi phương thức cùng tên là một.
-4. **Đọc annotation theo vị trí.** `getDeclaredAnnotation()` chỉ lấy trực tiếp; `getAnnotation()` trên class có thể tôn trọng `@Inherited`; đối với method cha/interface phải tự định nghĩa thuật toán tìm. Annotation gắn vào generic type argument cần API `AnnotatedType`.
-5. **Giải kiểu generic theo ngữ cảnh.** Trước tiên kiểm tra `Type` bằng `instanceof`; nếu gặp `TypeVariable` thì duyệt các quan hệ `ParameterizedType` giữa lớp cụ thể và nơi khai báo rồi thay biến kiểu theo mapping, bao gồm các trường hợp generic lồng nhau và nhiều cấp.
-6. **Thực thi có kiểm soát.** Kiểm tra modifier, quyền truy cập, tham số, kiểu receiver và lỗi có thể phát sinh. `Method.invoke` có thể ném `IllegalAccessException`, `IllegalArgumentException`, hoặc `InvocationTargetException` (bọc lỗi từ chính phương thức đích). Trong module Java, việc mở `private` member có thể bị từ chối.
-7. **Chọn và kiểm thử chính sách xung đột.** Nếu cả method lớp con và lớp cha có annotation, cần quy định cái nào ưu tiên; nếu có annotation trên interface, chỉ lấy khi nghiệp vụ quy định; nếu là repeatable annotation, phải xử lý tất cả giá trị thích hợp.
+1. **Define the desired inheritance rules.** Read only accessible `public` methods via `getMethods()`, or scan all declarations level by level via `getDeclaredMethods()`? Should annotations on overridden methods be *actively* pulled from parent methods?
+2. **Traverse types deliberately.** When using `getDeclaredMethods()`, walk superclasses sequentially with `getSuperclass()`; inspect interfaces separately if required. Record `getDeclaringClass()` to identify the metadata source.
+3. **Handle bridge/synthetic methods and overrides.** Check `isBridge()`/`isSynthetic()`, and compare name + parameter types + override relationships to avoid registering the same behavior twice. Do not assume all methods with the same name are the same.
+4. **Read annotations by location.** `getDeclaredAnnotation()` only gets direct annotations; `getAnnotation()` on a class may respect `@Inherited`; for parent methods/interfaces, you must define your own lookup algorithm. Annotations attached to generic type arguments require the `AnnotatedType` API.
+5. **Resolve generic types in context.** First inspect `Type` with `instanceof`; if you encounter a `TypeVariable`, traverse the `ParameterizedType` relationships between the concrete class and the declaring class and substitute type variables according to the mapping, including nested and multi-level generic cases.
+6. **Execute under control.** Check modifiers, access permissions, parameters, receiver type, and potential exceptions. `Method.invoke` can throw `IllegalAccessException`, `IllegalArgumentException`, or `InvocationTargetException` (wrapping errors from the target method itself). In Java modules, opening `private` members may be denied.
+7. **Choose and test conflict policies.** If both subclass and superclass methods have annotations, specify which takes precedence; if an interface has annotations, include them only when business rules specify; if an annotation is repeatable, handle all applicable values.
 
-**Ví dụ thực tế:** một framework mapping dữ liệu nhìn vào `Field.getGenericType()` để suy ra kiểu phần tử của `List<User>`, xem annotation trên trường hoặc trên `User` để quyết định chuyển đổi, rồi chọn setter `public` hay constructor phù hợp. Nếu lớp entity kế thừa từ entity cha, framework phải quyết định có quét field cha và xử lý field bị che khuất không. Reflection cung cấp dữ liệu để quyết định; chính framework sở hữu các quy tắc này.
+**Practical example:** a data-mapping framework looks at `Field.getGenericType()` to infer the element type of `List<User>`, inspects annotations on the field or on `User` to decide conversion, and then selects an appropriate `public` setter or constructor. If an entity class inherits from a parent entity, the framework must decide whether to scan parent fields and how to handle hidden fields. Reflection provides the data for decisions; the framework itself owns those rules.
 
-## 7. Những hiểu lầm thường gặp và cách tự kiểm tra
+## 7. Common Misconceptions and How to Self-Check
 
-| Hiểu lầm | Thực tế / cách kiểm tra |
+| Misconception | Reality / How to Verify |
 | --- | --- |
-| “`getDeclaredMethods()` có mọi method dùng được của object.” | Nó chỉ trả những method khai báo trong `Class` đang xét; muốn member thừa hưởng thì dùng `getMethods()` hoặc duyệt cấp cha. |
-| “`Method` của lớp cha luôn gọi thân method cha.” | Với instance method bị override, `invoke` vẫn dispatch động theo receiver. Static method thì khác. |
-| “Reflection lấy được `T=String` từ mọi đối tượng generic.” | Type erasure làm mất nhiều thông tin runtime; metadata quan hệ `extends Parent<String>` chỉ giúp giải được một số ngữ cảnh. |
-| “`@Inherited` áp dụng cho method và interface.” | Nó chỉ có tác dụng với annotation **trên class** được tìm qua **superclass**. |
-| “Không tìm thấy annotation tức annotation không tồn tại trong mã.” | Có thể annotation không có `RUNTIME` retention, đang ở method cha, hoặc nằm ở vị trí dùng kiểu thay vì khai báo. |
-| “Mỗi method trong `getDeclaredMethods()` tương ứng một method mã nguồn.” | Compiler có thể thêm bridge/synthetic methods. |
-| “`setAccessible(true)` luôn mở được private member.” | Kiểm tra truy cập, module JPMS và chính sách runtime có thể từ chối. |
-| “Có annotation thì tính năng tự chạy.” | Phải có thành phần đọc annotation và triển khai hành vi. |
+| "`getDeclaredMethods()` includes every usable method of an object." | It returns only methods declared in the `Class` under inspection; for inherited members, use `getMethods()` or walk superclasses. |
+| "A `Method` from a superclass always runs the superclass method body." | For overridden instance methods, `invoke` still dispatches dynamically by receiver. Static methods behave differently. |
+| "Reflection can retrieve `T=String` from any generic object." | Type erasure removes much runtime information; `extends Parent<String>` relationship metadata only resolves certain contexts. |
+| "`@Inherited` applies to methods and interfaces." | It applies only to annotations **on classes** looked up via **superclasses**. |
+| "Not finding an annotation means the annotation does not exist in code." | The annotation may lack `RUNTIME` retention, be on a parent method, or sit on a type-use position rather than the declaration. |
+| "Every method in `getDeclaredMethods()` corresponds to one source method." | The compiler may add bridge/synthetic methods. |
+| "`setAccessible(true)` can always open private members." | Access checks, JPMS modules, and runtime policies can reject it. |
+| "Having an annotation makes the feature run automatically." | There must be code that reads the annotation and implements the behavior. |
 
-Để tự kiểm tra, hãy trả lời ba câu hỏi: (a) `getMethod` và `getDeclaredMethod` khác nhau thế nào khi method chỉ có ở cha? (b) tại sao `Parent<T>.convert(T)` vẫn có generic return `T` dù `Child extends Parent<String>`? (c) vì sao `@Inherited` cho kết quả khác nhau giữa `Child.class.getAnnotation(...)` và `Child.class.getDeclaredAnnotation(...)`? Nếu giải thích được cả ba bằng ví dụ trên, bạn đã nắm được ranh giới giữa metadata khai báo, quan hệ kế thừa và hành vi runtime.
+To self-check, answer three questions: (a) how do `getMethod` and `getDeclaredMethod` differ when a method exists only in a superclass? (b) why does `Parent<T>.convert(T)` still have generic return type `T` even though `Child extends Parent<String>`? (c) why does `@Inherited` produce different results between `Child.class.getAnnotation(...)` and `Child.class.getDeclaredAnnotation(...)`? If you can explain all three using the example above, you have mastered the boundary between declaration metadata, inheritance relationships, and runtime behavior.
 
-### Tài liệu API chính thức
+### Official API Documentation
 
 - Java SE 21, `Class`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html
 - Java SE 21, `Method`: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html

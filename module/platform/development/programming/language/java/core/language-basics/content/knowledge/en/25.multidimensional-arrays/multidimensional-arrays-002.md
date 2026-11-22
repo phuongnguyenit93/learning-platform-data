@@ -1,27 +1,27 @@
-# Tạo ma trận chữ nhật và mảng có hàng dài khác nhau — Java 17+
+# Creating Rectangular Matrices and Jagged Arrays — Java 17+
 
-## 1. Mảng hai chiều trong Java thực chất là gì?
+## 1. What Is a Two-Dimensional Array in Java Really?
 
-Trong Java, một mảng hai chiều như `int[][] matrix` là **mảng chứa các tham chiếu tới mảng `int[]`**. Mỗi phần tử ở mảng ngoài là **một hàng**; mỗi hàng tự có trường `length`.
+In Java, a two-dimensional array like `int[][] matrix` is **an array containing references to `int[]` arrays**. Each element in the outer array is **a row**; each row has its own `length` field.
 
-Vì vậy Java cho phép cả:
+Therefore, Java supports both:
 
-- **Ma trận chữ nhật (rectangular array):** các hàng đều có cùng số cột.
-- **Mảng răng cưa (jagged/ragged array):** các hàng có thể dài khác nhau, có hàng rỗng, thậm chí hàng chưa được gán (giá trị `null`).
+- **Rectangular arrays:** all rows have the same number of columns.
+- **Jagged/ragged arrays:** rows can have different lengths, include empty rows, or even unassigned rows (value `null`).
 
-Đây không phải hai kiểu dữ liệu Java riêng biệt: **cả hai đều khai báo `int[][]`**. Khác biệt nằm ở cách tạo và độ dài thực tế của từng `int[]` con.
+These are not two separate Java data types: **both are declared as `int[][]`**. The difference lies in how they are created and the actual length of each inner `int[]`.
 
 ~~~java
 int[][] rectangle = new int[2][3];
 int[][] jagged = {{1}, {2, 3}, {4, 5, 6}};
 ~~~
 
-- `rectangle` gồm **2 hàng × 3 cột**; mọi phần tử mặc định bằng 0.
-- `jagged` gồm **3 hàng**, lần lượt dài **1, 2, 3** phần tử.
+- `rectangle` has **2 rows × 3 columns**; every element defaults to 0.
+- `jagged` has **3 rows**, with lengths **1, 2, 3** respectively.
 
-**Quy tắc bắt buộc:** duyệt theo `matrix.length` cho số hàng, và `matrix[row].length` cho số phần tử trong **chính hàng đó**.
+**Mandatory rule:** iterate using `matrix.length` for the number of rows, and `matrix[row].length` for the number of elements in **that specific row**.
 
-## 2. Tạo ma trận chữ nhật với `new int[rows][cols]`
+## 2. Creating a Rectangular Matrix with `new int[rows][cols]`
 
 ~~~java
 int[][] table = new int[2][3];
@@ -38,30 +38,30 @@ System.out.println(java.util.Arrays.deepToString(table));
 [[7, 0, 9], [0, 5, 0]]
 ~~~
 
-Java cấp phát mảng ngoài dài 2 và **hai mảng con riêng biệt**, mỗi mảng con dài 3:
+Java allocates an outer array of length 2 and **two separate subarrays**, each of length 3:
 
 ~~~text
-table (int[][]) ───> mảng ngoài length = 2
+table (int[][]) ───> outer array length = 2
                        [0] ──> int[] {7, 0, 9} length = 3
                        [1] ──> int[] {0, 5, 0} length = 3
 
-Chỉ số hàng: 0, 1
-Chỉ số cột trong mỗi hàng: 0, 1, 2
+Row indices: 0, 1
+Column indices in each row: 0, 1, 2
 ~~~
 
-| Biểu thức | Kết quả |
+| Expression | Result |
 |---|---:|
-| `table.length` | 2 (số hàng) |
+| `table.length` | 2 (number of rows) |
 | `table[0].length` | 3 |
 | `table[1].length` | 3 |
 | `table[0][2]` | 9 |
 | `table[1][1]` | 5 |
 
-Các phần tử `int` mặc định bằng 0; với `boolean[][]` mặc định là false, còn các ô phần tử kiểu đối tượng mặc định là null.
+`int` elements default to 0; for `boolean[][]` the default is false, while elements of object types default to null.
 
-**Quan trọng:** Mảng chữ nhật được tạo như trên có các hàng dài bằng nhau **ban đầu**, nhưng Java không khóa vĩnh viễn hình dạng đó. Vẫn có thể thay `table[1]` bằng mảng khác độ dài; khi ấy dữ liệu trở thành mảng răng cưa.
+**Important:** A rectangular array created as above has rows of equal length **initially**, but Java does not permanently lock that shape. You can still replace `table[1]` with an array of a different length; when you do, the data becomes a jagged array.
 
-## 3. Tạo mảng có hàng dài khác nhau bằng `new int[rows][]`
+## 3. Creating Arrays with Different Row Lengths Using `new int[rows][]`
 
 ~~~java
 int[][] jagged = new int[3][];
@@ -78,30 +78,30 @@ System.out.println(java.util.Arrays.deepToString(jagged));
 [[4, 5], [], [6, 7, 8]]
 ~~~
 
-Cách này chia thành **hai giai đoạn**:
+This approach is split into **two stages**:
 
-1. `new int[3][]` tạo mảng ngoài ba phần tử, **mỗi phần tử ban đầu là null**.
-2. Gán từng hàng bằng một `int[]` riêng có độ dài tùy nhu cầu.
+1. `new int[3][]` creates an outer array of three elements, **each initially null**.
+2. Assign each row to a separate `int[]` with whatever length is needed.
 
 ~~~text
-jagged (int[][]) ──> mảng ngoài length = 3
+jagged (int[][]) ──> outer array length = 3
                       [0] ──> {4, 5}     length = 2
                       [1] ──> {}         length = 0
                       [2] ──> {6, 7, 8}  length = 3
 ~~~
 
-**Không nhầm:**
+**Do not confuse:**
 
 ~~~java
-int[][] a = new int[3][];  // Hàng a[0], a[1], a[2] ban đầu null.
-int[][] b = new int[3][0]; // Có ba mảng con thật, mỗi mảng dài 0.
+int[][] a = new int[3][];  // Rows a[0], a[1], a[2] are initially null.
+int[][] b = new int[3][0]; // There are three real subarrays, each of length 0.
 ~~~
 
-Với `a[0].length` trước khi gán hàng, Java ném `NullPointerException`. Với `b[0].length`, kết quả là `0`.
+Accessing `a[0].length` before assigning the row causes Java to throw `NullPointerException`. With `b[0].length`, the result is `0`.
 
-## 4. Khởi tạo trực tiếp bằng dấu `{ }`
+## 4. Direct Initialization with `{ }`
 
-Nếu biết sẵn các giá trị, có thể khai báo:
+If the values are known ahead of time, you can declare:
 
 ~~~java
 int[][] rectangular = {
@@ -117,7 +117,7 @@ int[][] ragged = {
 };
 ~~~
 
-Hoặc tạo và gán bằng cú pháp array creation:
+Or create and assign using array creation syntax:
 
 ~~~java
 int[][] values = new int[][]{
@@ -127,9 +127,9 @@ int[][] values = new int[][]{
 };
 ~~~
 
-**Chú ý:** `int[][] x = {{1}, {2, 3}};` hợp lệ tại thời điểm khai báo; nhưng để gán nguyên một mảng mới cho biến đã khai báo, phải dùng `new int[][] { ... }` thay vì chỉ viết `{{...}}`.
+**Note:** `int[][] x = {{1}, {2, 3}};` is valid at declaration time; however, to assign a whole new array to an already declared variable, you must use `new int[][] { ... }` instead of writing only `{{...}}`.
 
-Có thể chứa hàng null một cách tường minh:
+It can explicitly contain a null row:
 
 ~~~java
 int[][] partial = {
@@ -139,9 +139,9 @@ int[][] partial = {
 };
 ~~~
 
-Kiểu của cả `rectangular`, `ragged` và `partial` vẫn là `int[][]`.
+The type of `rectangular`, `ragged`, and `partial` is still `int[][]`.
 
-## 5. `length` của mảng ngoài và từng hàng
+## 5. `length` of the Outer Array and Each Row
 
 ~~~java
 int[][] matrix = {{10, 20}, {30}, {}};
@@ -161,22 +161,22 @@ row 1 length=1
 row 2 length=0
 ~~~
 
-| Biểu thức | Ý nghĩa |
+| Expression | Meaning |
 |---|---|
-| `matrix.length` | Số phần tử ở mảng ngoài, thường được gọi là **số hàng** |
-| `matrix[row]` | Tham chiếu đến mảng con ở hàng `row` |
-| `matrix[row].length` | Độ dài **riêng** của hàng đó (nếu khác null) |
-| `matrix[row][col]` | Giá trị tại một ô có hàng và cột hợp lệ |
+| `matrix.length` | Number of elements in the outer array, commonly called **the number of rows** |
+| `matrix[row]` | Reference to the subarray at row `row` |
+| `matrix[row].length` | The **individual** length of that row (if non-null) |
+| `matrix[row][col]` | Value at a cell with valid row and column indices |
 
-**Không có** một trường chung `matrix.columns` hay `matrix[0].length` được Java bảo đảm là số cột cho mọi hàng. Chỉ khi bạn **đã xác lập và duy trì** bất biến ma trận chữ nhật thì một độ dài cột chung mới có nghĩa.
+**There is no** shared `matrix.columns` field, nor is `matrix[0].length` guaranteed by Java to be the column count for every row. Only when you **have established and maintained** the rectangular matrix invariant does a common column length make sense.
 
-## 6. Giữ đúng hình dạng khi sử dụng mảng
+## 6. Preserving the Right Shape When Using Arrays
 
-Việc tạo mảng chữ nhật hay răng cưa quyết định cách thuật toán đọc nó. Dùng `matrix.length` cho số hàng, `matrix[row].length` cho độ dài **hàng hiện tại**, và kiểm tra `matrix[row] != null` trước khi dùng `.length` nếu hàng được phép chưa cấp phát. Cần xử lý `new int[0][3]` (không có hàng), `new int[2][0]` (hai hàng rỗng) và `new int[2][]` (hai hàng ban đầu `null`) theo đúng hợp đồng dữ liệu.
+Creating a rectangular or jagged array determines how algorithms read it. Use `matrix.length` for the number of rows, `matrix[row].length` for the length of **the current row**, and check `matrix[row] != null` before using `.length` if rows are allowed to be unallocated. You must handle `new int[0][3]` (no rows), `new int[2][0]` (two empty rows), and `new int[2][]` (two initially `null` rows) according to the data contract.
 
-Vòng `for` và enhanced `for` sẽ được phân tích theo mục đích sửa/đọc ở bài **Duyệt bằng chỉ số hoặc enhanced for lồng nhau**. Phần này tập trung vào **tạo dữ liệu và duy trì bất biến hình dạng**.
+Standard `for` loops and enhanced `for` loops will be analyzed for modification/reading purposes in the lesson **Iterating with Nested Indexed or Enhanced `for` Loops**. This section focuses on **creating data and maintaining shape invariants**.
 
-## 7. Thay hàng có thể biến ma trận chữ nhật thành mảng răng cưa
+## 7. Replacing a Row Can Turn a Rectangular Matrix into a Jagged Array
 
 ~~~java
 int[][] matrix = new int[2][3];
@@ -193,13 +193,13 @@ System.out.println(matrix[0].length + "," + matrix[1].length);
 3,1
 ~~~
 
-Phần tử `matrix[1]` là một **biến chứa tham chiếu mảng con**, nên có thể được gán sang mảng mới. Trường `length` của từng mảng con vẫn cố định, nhưng **thay tham chiếu hàng** có thể làm các độ dài khác nhau.
+The element `matrix[1]` is a **variable holding a subarray reference**, so it can be reassigned to a new array. The `length` field of each individual subarray remains fixed, but **replacing a row reference** can cause row lengths to differ.
 
-Nếu bài toán bắt buộc là ma trận chữ nhật, chương trình phải **duy trì hợp đồng** rằng tất cả hàng tồn tại và cùng dài; khai báo `int[][]` không tự bảo đảm điều đó mãi mãi.
+If the problem strictly requires a rectangular matrix, the program must **enforce the contract** that all rows exist and have the same length; the `int[][]` declaration does not enforce that forever on its own.
 
-## 8. Kiểm tra dữ liệu có hình chữ nhật hay không
+## 8. Checking Whether Data Is Rectangular
 
-Một quy ước hữu ích: mảng ngoài rỗng được coi là chữ nhật rỗng; mảng ngoài null hoặc có hàng null không đạt điều kiện.
+A useful convention: an empty outer array is considered an empty rectangle; a null outer array or one with a null row does not qualify.
 
 ~~~java
 static boolean isRectangular(int[][] data) {
@@ -217,22 +217,22 @@ static boolean isRectangular(int[][] data) {
 }
 ~~~
 
-| Đầu vào | `isRectangular` |
+| Input | `isRectangular` |
 |---|---|
 | `new int[2][3]` | true |
 | `new int[2][0]` | true |
-| `new int[0][3]` | true theo quy ước trong hàm |
+| `new int[0][3]` | true by the convention in the method |
 | `{{1, 2}, {3}}` | false |
-| `new int[2][]` chưa gán hàng | false |
+| `new int[2][]` with unassigned rows | false |
 | `null` | false |
 
-Phép kiểm tra có chi phí `O(rows)` vì chỉ đọc độ dài mỗi hàng; không cần duyệt toàn bộ giá trị. Tuy nhiên nó chỉ kiểm tra **trạng thái hiện tại** — nếu sau đó thay một hàng, kết quả có thể khác.
+This check costs `O(rows)` because it only reads the length of each row; there is no need to traverse all values. However, it only checks **the current state** — if a row is replaced afterward, the result may change.
 
 
 
-## 9. Chương trình Java 17+ hoàn chỉnh, chạy bằng CLI
+## 9. Complete Java 17+ Program, Run via CLI
 
-Tạo file đúng tên **`RectangularJaggedArrayDemo.java`**:
+Create a file with the exact name **`RectangularJaggedArrayDemo.java`**:
 
 ~~~java
 import java.util.Arrays;
@@ -359,7 +359,7 @@ public final class RectangularJaggedArrayDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên; terminal ở thư mục chứa file. Không cần thư viện ngoài JDK, Maven, Gradle hay tính năng preview.
+**Requirements:** JDK 17 or higher; terminal in the directory containing the file. No external libraries beyond the JDK, Maven, Gradle, or preview features needed.
 
 **Bash (Linux/macOS):**
 
@@ -412,54 +412,54 @@ replaced row length=1
 jagged after replacement=[[1], [], [6, 7, 8]]
 ~~~
 
-**Đối chiếu:**
+**Verification:**
 
-1. `rectangle`: hai hàng, mỗi hàng ba phần tử; tổng `1+3+5=9`; `isRectangular` true.
-2. `jagged`: ba hàng lần lượt dài 2, 0, 3; tổng `4+5+6+7+8=30`; không chữ nhật.
-3. `validCell` kiểm tra cả chỉ số hàng, hàng null, chỉ số cột và độ dài hàng.
-4. `new int[0][3]` tạo **0 hàng**; `new int[2][0]` tạo **2 hàng rỗng**.
-5. `partial` có một hàng null và một hàng dài 1; hàm `sum` trong ví dụ chủ động bỏ qua hàng null.
-6. Truy cập `jagged[1][0]` gây vượt biên vì hàng 1 rỗng; `partial[0].length` gây null-pointer vì hàng 0 null.
-7. `rectangle.clone()` sao chép mảng ngoài nhưng chia sẻ các hàng: sửa `shallow[0][0]` làm `rectangle[0][0]` thành 99.
-8. `copyRows` tạo các hàng `int[]` riêng; sửa bản sao thành -1 không làm mảng gốc đổi.
-9. Thay `jagged[0]` bằng mảng dài 1 vẫn hợp lệ vì đây là phép gán **tham chiếu hàng**.
+1. `rectangle`: two rows, three elements each; sum `1+3+5=9`; `isRectangular` is true.
+2. `jagged`: three rows of lengths 2, 0, 3 respectively; sum `4+5+6+7+8=30`; not rectangular.
+3. `validCell` checks the row index, non-null row, column index, and row length.
+4. `new int[0][3]` creates **0 rows**; `new int[2][0]` creates **2 empty rows**.
+5. `partial` has one null row and one row of length 1; the `sum` method in the example intentionally skips null rows.
+6. Accessing `jagged[1][0]` causes an out-of-bounds error because row 1 is empty; `partial[0].length` causes a null-pointer error because row 0 is null.
+7. `rectangle.clone()` copies the outer array but shares the rows: modifying `shallow[0][0]` changes `rectangle[0][0]` to 99.
+8. `copyRows` creates separate `int[]` rows; changing the copy to -1 does not change the original array.
+9. Replacing `jagged[0]` with an array of length 1 is valid because this is a **row reference** assignment.
 
-## 10. Lỗi thường gặp và cách sửa
+## 10. Common Mistakes and Fixes
 
-| Sai lầm | Hậu quả | Cách đúng |
+| Mistake | Consequence | Correct approach |
 |---|---|---|
-| Nghĩ Java có kiểu ma trận chữ nhật riêng | Hiểu sai cấu trúc `int[][]` | Mảng ngoài chứa các mảng con |
-| `new int[3][]` rồi truy cập `a[0][0]` | `NullPointerException` vì chưa tạo hàng | Gán `a[0] = new int[...]` trước |
-| Dùng `matrix[0].length` cho mọi hàng | Vượt biên hoặc bỏ sót phần tử | Dùng `matrix[row].length` |
-| Nghĩ `matrix.length` là tổng số ô | Tính sai kích thước | `matrix.length` chỉ là số hàng |
-| Dùng `matrix[row].length` trên hàng null | `NullPointerException` | Kiểm tra hàng null |
-| Dùng `<= length` khi duyệt | `ArrayIndexOutOfBoundsException` | Dùng `< length` |
-| Cho rằng `new int[0][3]` có thể truy cập `[0]` | Mảng ngoài không có hàng | Kiểm tra `matrix.length > 0` |
-| Cho rằng `new int[2][0]` có các ô cột | Hàng có độ dài 0 | Không truy cập `[row][0]` |
-| Nghĩ từng `length` có thể sửa | Trường mảng là final | Thay cả tham chiếu hàng bằng mảng mới |
-| Nghĩ `matrix.clone()` sao chép mọi hàng | Hai cấu trúc vẫn chia sẻ mảng con | `Arrays.copyOf` từng hàng |
-| Giả định không có hàng null chỉ vì kiểu là `int[][]` | Crash ở `.length` | Xác lập hợp đồng dữ liệu và kiểm tra |
-| Cho rằng các hàng có cùng kích thước mãi mãi | Thay hàng làm mất hình chữ nhật | Kiểm tra/duy trì bất biến kích thước |
+| Thinking Java has a separate rectangular matrix type | Misunderstanding the `int[][]` structure | An outer array containing subarrays |
+| `new int[3][]` then accessing `a[0][0]` | `NullPointerException` because the row has not been created | Assign `a[0] = new int[...]` first |
+| Using `matrix[0].length` for all rows | Out-of-bounds error or missed elements | Use `matrix[row].length` |
+| Thinking `matrix.length` is the total number of cells | Incorrect size calculation | `matrix.length` is only the number of rows |
+| Using `matrix[row].length` on a null row | `NullPointerException` | Check for null rows |
+| Using `<= length` when iterating | `ArrayIndexOutOfBoundsException` | Use `< length` |
+| Assuming `new int[0][3]` can access `[0]` | The outer array has no rows | Check `matrix.length > 0` |
+| Assuming `new int[2][0]` has column cells | The rows have length 0 | Do not access `[row][0]` |
+| Thinking each `length` field can be modified | An array's length field is final | Replace the entire row reference with a new array |
+| Thinking `matrix.clone()` copies every row | Both structures still share subarrays | `Arrays.copyOf` each row |
+| Assuming no null rows exist just because the type is `int[][]` | Crash at `.length` | Establish a data contract and check |
+| Assuming rows stay the same size forever | Replacing a row breaks rectangular shape | Verify/maintain the size invariant |
 
-## 11. Bài tập có đáp án
+## 11. Exercises with Solutions
 
-### A — phân biệt chữ nhật và răng cưa
+### A — Distinguishing Rectangular and Jagged Arrays
 
 ~~~java
 int[][] a = new int[2][3];
 int[][] b = {{1}, {2, 3}};
 ~~~
 
-**Đáp án:** `a` ban đầu là ma trận chữ nhật 2×3; `b` là mảng răng cưa có hai hàng dài 1 và 2. Cả hai đều có kiểu `int[][]`.
+**Answer:** `a` is initially a 2×3 rectangular matrix; `b` is a jagged array with two rows of lengths 1 and 2. Both have type `int[][]`.
 
-### B — mảng ngoài đã tạo, nhưng hàng chưa tạo
+### B — Outer Array Created, but Row Not Created
 
 ~~~java
 int[][] a = new int[2][];
 // System.out.println(a[0].length);
 ~~~
 
-**Đáp án:** `a.length == 2`, nhưng `a[0] == null`. Nếu bật dòng truy cập `.length`, chương trình ném `NullPointerException`. Sửa:
+**Answer:** `a.length == 2`, but `a[0] == null`. If the line accessing `.length` is uncommented, the program throws `NullPointerException`. Fix:
 
 ~~~java
 a[0] = new int[3];
@@ -472,7 +472,7 @@ System.out.println(a[0].length);
 3
 ~~~
 
-### C — tổng các hàng khác độ dài
+### C — Sum of Rows of Differing Lengths
 
 ~~~java
 int[][] a = {{1, 2}, {}, {3, 4}};
@@ -485,9 +485,9 @@ for (int[] row : a) {
 System.out.println(total);
 ~~~
 
-**Đáp án:** in `10`. Hàng rỗng có 0 lượt duyệt.
+**Answer:** prints `10`. The empty row has 0 iterations.
 
-### D — truy cập chỉ số
+### D — Index Access
 
 ~~~java
 int[][] a = {{5}, {6, 7}};
@@ -495,9 +495,9 @@ System.out.println(a[1][1]);
 // System.out.println(a[0][1]);
 ~~~
 
-**Đáp án:** in `7`; `a[0][1]` vượt biên vì hàng đầu chỉ dài 1.
+**Answer:** prints `7`; `a[0][1]` is out of bounds because the first row only has length 1.
 
-### E — sao chép mảng hai chiều
+### E — Copying a Two-Dimensional Array
 
 ~~~java
 int[][] a = {{1}, {2}};
@@ -506,9 +506,9 @@ b[0][0] = 9;
 System.out.println(a[0][0]);
 ~~~
 
-**Đáp án:** in `9`, vì bản clone chỉ sao chép mảng ngoài, còn hàng `a[0]` và `b[0]` cùng tham chiếu mảng con.
+**Answer:** prints `9`, because `clone()` only copies the outer array, while `a[0]` and `b[0]` still reference the same subarray.
 
-### F — thay hàng làm đổi hình dạng
+### F — Replacing a Row Changes the Shape
 
 ~~~java
 int[][] a = new int[2][2];
@@ -516,21 +516,21 @@ a[1] = new int[4];
 System.out.println(a[0].length + "," + a[1].length);
 ~~~
 
-**Đáp án:** in `2,4`. Java cho phép thay một hàng bằng mảng có độ dài khác.
+**Answer:** prints `2,4`. Java allows replacing a row with an array of a different length.
 
-## 12. Checklist và kết luận
+## 12. Checklist and Conclusion
 
-- [ ] Biết `int[][]` là mảng chứa các mảng `int[]`.
-- [ ] Tạo ma trận chữ nhật bằng `new int[rows][cols]`.
-- [ ] Tạo mảng răng cưa bằng `new int[rows][]` rồi tạo từng hàng.
-- [ ] Phân biệt hàng `null` với hàng rỗng `new int[0]`.
-- [ ] Đọc số hàng bằng `matrix.length`, số cột thực tế từng hàng bằng `matrix[row].length`.
-- [ ] Duyệt đúng cả hàng dài ngắn khác nhau, không mặc định số cột chung.
-- [ ] Kiểm tra đủ biên hàng/cột và trạng thái null trước khi truy cập.
-- [ ] Hiểu `new int[0][3]` và `new int[2][0]` là các cấu trúc khác nhau.
-- [ ] Biết thay tham chiếu hàng có thể làm dữ liệu không còn chữ nhật.
-- [ ] Phân biệt sao chép một cấp `clone()` với sao chép từng hàng `Arrays.copyOf`.
-- [ ] Biết cách xác minh hình chữ nhật khi bài toán yêu cầu các hàng cùng độ dài.
-- [ ] Biên dịch và chạy `RectangularJaggedArrayDemo.java` trên Java 17+ và đối chiếu stdout.
+- [ ] Know that `int[][]` is an array containing `int[]` arrays.
+- [ ] Create rectangular matrices with `new int[rows][cols]`.
+- [ ] Create jagged arrays with `new int[rows][]` and then create each row.
+- [ ] Distinguish a `null` row from an empty row `new int[0]`.
+- [ ] Read the number of rows with `matrix.length` and each row's actual column count with `matrix[row].length`.
+- [ ] Iterate properly over rows of varying lengths without assuming a shared column count.
+- [ ] Check both row/column bounds and null status before accessing elements.
+- [ ] Understand that `new int[0][3]` and `new int[2][0]` are different structures.
+- [ ] Know that replacing a row reference can make data non-rectangular.
+- [ ] Distinguish single-level copying `clone()` from per-row copying `Arrays.copyOf`.
+- [ ] Know how to verify rectangular shape when a problem requires rows of equal length.
+- [ ] Compile and run `RectangularJaggedArrayDemo.java` on Java 17+ and verify stdout.
 
-**Kết luận:** Trong Java 17+, `int[][]` **không bắt buộc là một khối chữ nhật**; mỗi hàng là một mảng riêng có độ dài và tham chiếu riêng. `new int[r][c]` tạo các hàng ban đầu cùng dài, còn `new int[r][]` cho phép cấp phát từng hàng khác nhau. Muốn duyệt đúng và an toàn, hãy luôn dựa vào **`matrix.length` cho số hàng, `matrix[row].length` cho độ dài hàng hiện tại**, đồng thời xử lý hàng rỗng/null theo hợp đồng dữ liệu.
+**Conclusion:** In Java 17+, `int[][]` **is not required to be a rectangular block**; each row is a separate array with its own length and reference. `new int[r][c]` creates rows that initially have the same length, whereas `new int[r][]` allows allocating rows of different sizes. To iterate correctly and safely, always rely on **`matrix.length` for the number of rows and `matrix[row].length` for the length of the current row**, while handling empty/null rows according to the data contract.

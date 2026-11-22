@@ -1,17 +1,17 @@
-# Add-reads hoặc add-opens cho test có kiểm soát
+# Controlled --add-reads or --add-opens for Testing
 
-Khi kiểm thử ứng dụng dùng Java Platform Module System (JPMS), bộ test có thể cần truy cập nhiều thứ hơn mã production: framework phải khám phá phương thức kiểm thử bằng reflection, test cần đọc API của thư viện test hoặc một phép thử nội bộ cần chạm đến các lớp không export. JPMS sẽ không tự nới lỏng module graph chỉ vì mã chạy trong thư mục test.
+When testing an application that uses the Java Platform Module System (JPMS), the test suite may need more access than production code: the framework has to discover test methods via reflection, tests need to read a test library's API, or an internal test needs to reach non-exported classes. JPMS does not automatically relax the module graph just because code runs from a test directory.
 
-Hai tùy chọn thường gặp là **--add-reads** và **--add-opens**. Chúng giải quyết hai vấn đề khác nhau:
+Two common options are **--add-reads** and **--add-opens**. They solve two different problems:
 
-- **--add-reads** bổ sung quan hệ readability: một named module được phép đọc một module đích, kể cả unnamed module khi dùng ALL-UNNAMED.
-- **--add-opens** mở một package của module nguồn cho deep reflection từ module đích khi chạy.
+- **--add-reads** adds a readability relationship: a named module is allowed to read a target module, including the unnamed module when using ALL-UNNAMED.
+- **--add-opens** opens a package of a source module for deep reflection from a target module at runtime.
 
-Mục tiêu khi kiểm thử không phải phá encapsulation của toàn ứng dụng. Hãy dùng các quyền bổ sung chỉ khi test thực sự cần, thu hẹp theo module và package, chỉ áp dụng cho tác vụ test và không chuyển chúng vào cấu hình production.
+The goal during testing is not to break encapsulation across the entire application. Apply extra permissions only when tests genuinely need them, narrow them by module and package, restrict them to test tasks, and never carry them into production configuration.
 
-## 1. Vì sao test JPMS có nhu cầu truy cập đặc biệt?
+## 1. Why Do JPMS Tests Have Special Access Needs?
 
-Một ứng dụng modular có thể được triển khai bằng descriptor:
+A modular application might be deployed with this descriptor:
 
 ~~~java
 module com.example.billing {
@@ -19,49 +19,49 @@ module com.example.billing {
 }
 ~~~
 
-Ở production, consumer chỉ nên dùng package api. Nhưng khi chạy test có thể xuất hiện ba nhu cầu riêng:
+In production, consumers should only use the api package. At test time, however, three distinct needs can arise:
 
-1. Test black-box sử dụng API công khai của com.example.billing từ một module test khác.
-2. Test white-box được biên dịch vào module đang kiểm thử để kiểm tra hành vi nội bộ.
-3. Test runner hoặc framework phản chiếu vào class/method/field của module được kiểm thử.
+1. Black-box tests using the public API of com.example.billing from another test module.
+2. White-box tests compiled into the module under test to verify internal behavior.
+3. A test runner or framework reflecting on classes/methods/fields of the module under test.
 
-Nếu test là một named module độc lập và chỉ gọi API đã export, thường không cần thêm --add-reads hoặc --add-opens: chỉ cần khai báo requires và sử dụng public API như bình thường.
+If tests live in an independent named module and only call exported APIs, you typically do not need --add-reads or --add-opens: simply declare requires and use the public API normally.
 
-Nếu test được patch vào module production hoặc framework cần reflection sâu, việc nới lỏng quyền có mục tiêu đôi khi là cần thiết.
+If tests are patched into the production module or the framework requires deep reflection, targeted permission relaxation is sometimes necessary.
 
-## 2. Hiểu requires, exports, opens và readability
+## 2. Understanding requires, exports, opens, and Readability
 
-Mỗi quyền phục vụ một mục tiêu:
+Each mechanism serves a specific purpose:
 
-| Cơ chế | Ý nghĩa |
+| Mechanism | Meaning |
 | --- | --- |
-| requires m | Khai báo dependency tĩnh, làm cho module hiện tại đọc m. |
-| exports p | Cho phép truy cập kiểu public trong package p theo quy tắc JPMS. |
-| opens p | Cho phép deep reflection vào package p tại runtime. |
-| --add-reads a=b | Bổ sung quan hệ a đọc b trong cấu hình công cụ hoặc runtime. |
-| --add-exports a/p=b | Bổ sung export package p của a cho b. |
-| --add-opens a/p=b | Mở package p của a cho deep reflection từ b tại runtime. |
+| requires m | Declares a static dependency, making the current module read m. |
+| exports p | Allows access to public types in package p under JPMS rules. |
+| opens p | Allows deep reflection into package p at runtime. |
+| --add-reads a=b | Adds a readability edge where a reads b in tool or runtime configuration. |
+| --add-exports a/p=b | Exports package p of a to b. |
+| --add-opens a/p=b | Opens package p of a for deep reflection from b at runtime. |
 
-Không thể dùng một tùy chọn để thay thế tất cả:
+One option cannot substitute for all others:
 
-- Có readability chưa chắc truy cập được kiểu public trong package không export.
-- Package được export chưa chắc cho phép truy cập private field bằng reflection.
-- Package được open không tự bổ sung quan hệ readability hoặc biến package thành public API để import khi biên dịch.
-- --add-reads không mở package để framework gọi setAccessible(true).
+- Having readability does not let you access public types in a non-exported package.
+- An exported package does not necessarily permit accessing private fields via reflection.
+- An opened package does not automatically add readability or turn the package into a public API for compile-time imports.
+- --add-reads does not open a package for a framework to call setAccessible(true).
 
-Một lỗi khác nhau cần một cơ chế xử lý khác nhau.
+Different errors require different mechanisms.
 
-## 3. Cú pháp --add-reads
+## 3. --add-reads Syntax
 
-Cú pháp tổng quát:
+General syntax:
 
 ~~~text
 --add-reads SOURCE_MODULE=TARGET_MODULE
 ~~~
 
-Có thể chỉ định nhiều module đích bằng danh sách ngăn cách bằng dấu phẩy, tùy công cụ hỗ trợ. Quan hệ có hướng: SOURCE_MODULE được phép đọc TARGET_MODULE.
+Multiple target modules can be specified as a comma-separated list, depending on tool support. The relationship is directional: SOURCE_MODULE is permitted to read TARGET_MODULE.
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --module-path mods \
@@ -69,35 +69,35 @@ java --module-path mods \
     -m com.example.billing/com.example.billing.Main
 ~~~
 
-Trong ví dụ, com.example.billing được bổ sung quan hệ đọc com.example.testing.tools. Điều đó **không** có nghĩa com.example.testing.tools đọc com.example.billing; muốn chiều ngược lại phải có quan hệ readability riêng.
+In this example, com.example.billing is granted readability to com.example.testing.tools. That does **not** mean com.example.testing.tools reads com.example.billing; the reverse direction requires its own readability relationship.
 
-Quan hệ đọc cho phép tham chiếu giữa các module theo quy tắc JPMS, nhưng package của target vẫn phải export thích hợp để mã nguồn khác truy cập kiểu public.
+Readability allows cross-module references under JPMS rules, but the target's package must still be appropriately exported for external code to access public types.
 
-## 4. ALL-UNNAMED dùng khi dependency nằm trên classpath
+## 4. Using ALL-UNNAMED When Dependencies Are on the Classpath
 
-Một JAR nằm trên classpath thuộc unnamed module của class loader tương ứng. Nó không có module name để ghi trong requires của named module.
+A JAR on the classpath belongs to the unnamed module of its class loader. It has no module name to write in a named module's requires directive.
 
-Khi các test class được patch vào một named module nhưng cần dùng thư viện test trên classpath, có thể bổ sung quan hệ:
+When test classes are patched into a named module yet need to use test libraries on the classpath, you can add a readability edge:
 
 ~~~bash
 --add-reads com.example.billing=ALL-UNNAMED
 ~~~
 
-Ý nghĩa: module com.example.billing có thể đọc unnamed modules trong cấu hình hiện hành. Đây là tình huống thường gặp khi JUnit hoặc thư viện mocking được cung cấp qua test classpath thay vì module path.
+Meaning: module com.example.billing can read unnamed modules in the current configuration. This is common when JUnit or a mocking library is supplied on the test classpath instead of the module path.
 
-Tùy chọn này không thay đổi vị trí của thư viện và không biến JAR trên classpath thành một named module. Nếu named test module cần một thư viện đã có module name trên module path, ưu tiên requires trong descriptor test khi có thể.
+This option does not change where the library is located and does not turn classpath JARs into named modules. If a named test module needs a library that already has a module name on the module path, prefer requires in the test descriptor whenever possible.
 
-ALL-UNNAMED có phạm vi rộng hơn một named module cụ thể. Vì thế chỉ đặt nó ở tác vụ test thực sự cần đọc thư viện classpath.
+ALL-UNNAMED has a broader scope than a specific named module. Therefore, apply it only to test tasks that genuinely need to read classpath libraries.
 
-## 5. Cú pháp --add-opens
+## 5. --add-opens Syntax
 
-Cú pháp tổng quát:
+General syntax:
 
 ~~~text
 --add-opens SOURCE_MODULE/PACKAGE=TARGET_MODULE
 ~~~
 
-Ví dụ framework test được đóng gói thành named module com.example.test.engine và cần reflection sâu vào package com.example.billing.internal:
+For example, a test framework packaged as a named module com.example.test.engine needs deep reflection into package com.example.billing.internal:
 
 ~~~bash
 java --module-path mods \
@@ -105,23 +105,23 @@ java --module-path mods \
     -m com.example.test.launcher/com.example.test.launcher.Main
 ~~~
 
-Tên module trong lệnh trên là ví dụ minh họa; phải thay bằng module name thực tế của test engine, launcher và module ứng dụng.
+The module names in the command above are illustrative; replace them with the actual module names of your test engine, launcher, and application module.
 
-Tùy chọn --add-opens làm package có thể được deep reflection từ module đích tại runtime. Nó không cấp quyền mở mọi package khác của module nguồn.
+The --add-opens option makes the package accessible for deep reflection from the target module at runtime. It does not grant open access to every other package in the source module.
 
-Nếu test engine nằm trên classpath, thay module đích bằng ALL-UNNAMED:
+If the test engine sits on the classpath, replace the target module with ALL-UNNAMED:
 
 ~~~bash
 --add-opens com.example.billing/com.example.billing.internal=ALL-UNNAMED
 ~~~
 
-Chỉ mở đúng package mà test runner thực sự cần. Không nên mở cả java.base hoặc hàng chục package nội bộ của ứng dụng khi chưa có lỗi và lý do cụ thể.
+Open only the exact packages the test runner truly needs. Do not open all of java.base or dozens of internal application packages without a concrete error and reason.
 
-## 6. Vì sao JUnit hoặc framework test cần opens?
+## 6. Why Do JUnit or Test Frameworks Need opens?
 
-Framework test thường khám phá phương thức mang annotation và gọi chúng bằng reflection. Một phương thức test có thể package-private hoặc có constructor không public; việc gọi từ một module khác chịu quy tắc truy cập của JPMS.
+Test frameworks typically discover annotated methods and invoke them via reflection. A test method may be package-private or have a non-public constructor; invoking it from another module is governed by JPMS access rules.
 
-Ví dụ:
+Example:
 
 ~~~java
 package com.example.billing.test;
@@ -131,20 +131,20 @@ import org.junit.jupiter.api.Test;
 class InvoiceCalculatorTest {
     @Test
     void addsTax() {
-        // Assertions của test.
+        // Test assertions.
     }
 }
 ~~~
 
-Nếu class test được patch vào named module com.example.billing, module chứa framework có thể cần quyền reflection vào package com.example.billing.test để tạo instance và gọi method.
+If the test class is patched into the named module com.example.billing, the framework module may need reflective access to package com.example.billing.test to instantiate the class and invoke methods.
 
-Khi test engine là named module, nên mở package cho đúng module cần reflective access. Khi framework trên classpath, có thể dùng ALL-UNNAMED. Tên module cần mở cho phụ thuộc vào phiên bản, cách đóng gói và launcher đang chạy; hãy lấy từ lỗi thực tế hoặc tài liệu của test framework, không đoán từ tên JAR.
+When the test engine is a named module, open the package to the exact module needing reflective access. When the framework is on the classpath, ALL-UNNAMED can be used. Which module needs access depends on the version, packaging, and launcher in use; obtain it from the actual error or test framework documentation rather than guessing from the JAR filename.
 
-Không phải mọi test đều cần opens. Ví dụ một test chỉ gọi method public được export có thể chạy mà không yêu cầu deep reflection vào private member, tùy cách test runner hoạt động.
+Not every test needs opens. For example, a test that only calls exported public methods may run without requiring deep reflection into private members, depending on how the test runner operates.
 
-## 7. Test black-box với module riêng
+## 7. Black-Box Tests with a Separate Module
 
-Cách kiểm thử tốt cho hợp đồng công khai là đặt test trong một named module riêng:
+A good way to test public contracts is to place tests in a separate named module:
 
 ~~~text
 src/
@@ -156,7 +156,7 @@ src/
     └── com/example/billing/tests/ApiContractTest.java
 ~~~
 
-Module production:
+Production module:
 
 ~~~java
 module com.example.billing {
@@ -164,7 +164,7 @@ module com.example.billing {
 }
 ~~~
 
-Module test:
+Test module:
 
 ~~~java
 module com.example.billing.tests {
@@ -172,26 +172,26 @@ module com.example.billing.tests {
 }
 ~~~
 
-Test có thể sử dụng những kiểu public thuộc package api. Module test không tự đọc được package internal vì module production không export package đó.
+Tests can use public types in the api package. The test module cannot automatically read the internal package because the production module does not export it.
 
-Ưu điểm là test phản ánh đúng khả năng dùng thư viện từ một consumer bên ngoài. Nếu API cần một package hoặc type không được export, lỗi biên dịch sẽ giúp phát hiện hợp đồng chưa nhất quán.
+The benefit is that tests reflect how an external consumer actually uses the library. If the API needs a package or type that is not exported, a compile error exposes the inconsistent contract.
 
-Với loại test này, đừng thêm --add-exports hoặc --add-opens chỉ để làm test pass. Nếu test không dùng được API công khai, hãy xem lại thiết kế API hoặc cách test được tổ chức.
+For this type of test, do not add --add-exports or --add-opens just to make tests pass. If a test cannot use the public API, review the API design or how the test is structured.
 
-## 8. Test white-box với --patch-module
+## 8. White-Box Tests with --patch-module
 
-Một số test cần nằm trong cùng module với code production để kiểm tra package-private class hoặc hành vi nội bộ. JPMS hỗ trợ --patch-module để thêm class/resources vào một named module trong lúc biên dịch hoặc chạy.
+Some tests need to live in the same module as production code to test package-private classes or internal behavior. JPMS supports --patch-module to add classes/resources to a named module at compile time or runtime.
 
-Ví dụ:
+Example:
 
 ~~~text
 src/main/java/com/example/billing/internal/TaxTable.java
 src/test/java/com/example/billing/internal/TaxTableTest.java
 ~~~
 
-Khi test được patch vào com.example.billing, về mặt module system, các test class đó thuộc module com.example.billing chứ không hình thành một module test độc lập.
+When tests are patched into com.example.billing, from the module system's perspective those test classes belong to com.example.billing rather than forming an independent test module.
 
-Cấu hình biên dịch minh họa:
+Illustrative compile configuration:
 
 ~~~bash
 javac --module-path mods \
@@ -202,20 +202,20 @@ javac --module-path mods \
     src/test/java/com/example/billing/internal/TaxTableTest.java
 ~~~
 
-Ở đây:
+Here:
 
-- --patch-module chỉ ra nguồn test được biên dịch như phần bổ sung của module com.example.billing.
-- --add-reads bổ sung quan hệ đọc tới thư viện test ở classpath.
-- --class-path cung cấp thư viện test cho compiler.
-- out/test chứa class test sau khi biên dịch.
+- --patch-module indicates that the test sources are compiled as additions to module com.example.billing.
+- --add-reads adds readability to test libraries on the classpath.
+- --class-path supplies the test libraries to the compiler.
+- out/test holds the compiled test classes.
 
-Ví dụ cần các artifact thực tế đã được biên dịch vào mods và các thư viện tương ứng trong libs. Cách biên dịch được điều chỉnh theo cấu trúc và plugin build của dự án.
+The example assumes actual compiled artifacts in mods and corresponding libraries in libs. Compilation details are adapted to the project's layout and build plugins.
 
---patch-module **không phải** là một cách mở package cho framework bên ngoài. Test runner vẫn có thể cần --add-opens khi gọi test method bằng reflection.
+--patch-module is **not** a way to open packages to external frameworks. The test runner may still need --add-opens when invoking test methods via reflection.
 
-## 9. Test runtime có thể cần cả ba cấu hình
+## 9. Runtime Tests May Need All Three Settings
 
-Với test white-box được patch vào module production và framework chạy trên classpath, quá trình test có thể cần:
+For white-box tests patched into the production module with a framework running on the classpath, the test run may need:
 
 ~~~text
 --patch-module com.example.billing=out/test
@@ -223,19 +223,19 @@ Với test white-box được patch vào module production và framework chạy 
 --add-opens com.example.billing/com.example.billing.internal=ALL-UNNAMED
 ~~~
 
-Ý nghĩa khác nhau:
+Their roles differ:
 
-- patch-module đưa class test đã biên dịch vào named module đích.
-- add-reads cho test trong module đích đọc thư viện test thuộc unnamed module.
-- add-opens cho phép runner trên classpath reflection vào package test hoặc implementation cần thiết.
+- patch-module injects compiled test classes into the target named module.
+- add-reads lets tests inside the target module read test libraries in the unnamed module.
+- add-opens allows the classpath runner to reflect into the needed test or implementation package.
 
-Nếu test class nằm ở package com.example.billing.tests thay vì internal, hãy mở package thực sự chứa test class cho framework. Không nhất thiết phải mở internal chỉ vì đó là package bị test kiểm tra bằng gọi method package-private.
+If test classes live in com.example.billing.tests instead of internal, open the package actually containing the test classes to the framework. You do not necessarily need to open internal just because the tests exercise it by calling package-private methods.
 
-Những tùy chọn này chỉ nên tồn tại trong tiến trình test. Khi chạy ứng dụng production, không patch class test vào module và không truyền các quyền mở rộng nếu production không cần.
+These options should only exist in the test process. When running the production application, never patch test classes into modules and do not pass broadened permissions that production does not need.
 
-## 10. Ví dụ tối giản: tái hiện nhu cầu --add-opens
+## 10. Minimal Example: Reproducing the Need for --add-opens
 
-Giả sử có một named module com.example.counter:
+Suppose there is a named module com.example.counter:
 
 ~~~java
 module com.example.counter {
@@ -243,7 +243,7 @@ module com.example.counter {
 }
 ~~~
 
-Một class trong package không export:
+A class in a non-exported package:
 
 ~~~java
 package com.example.counter.internal;
@@ -256,7 +256,7 @@ public final class CounterState {
 }
 ~~~
 
-Một chương trình ReflectionProbe trên classpath muốn tạo instance và đọc private field:
+A ReflectionProbe program on the classpath wants to instantiate it and read the private field:
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -279,7 +279,7 @@ public class ReflectionProbe {
 }
 ~~~
 
-Giả sử modular JAR hoặc output của com.example.counter nằm trong mods và ReflectionProbe đã biên dịch nằm trong out/probe. Khi chạy:
+Suppose the modular JAR or compiled output of com.example.counter is in mods and the compiled ReflectionProbe is in out/probe. When running:
 
 ~~~bash
 java --module-path mods \
@@ -288,9 +288,9 @@ java --module-path mods \
     ReflectionProbe
 ~~~
 
-Lời gọi setAccessible(true) có thể ném InaccessibleObjectException vì package internal chưa open cho unnamed module.
+Calling setAccessible(true) can throw InaccessibleObjectException because the internal package is not open to the unnamed module.
 
-Nếu đây là phép test có kiểm soát, có thể chạy:
+If this is a controlled test, you can run:
 
 ~~~bash
 java --module-path mods \
@@ -300,59 +300,59 @@ java --module-path mods \
     ReflectionProbe
 ~~~
 
-Lúc này package internal được mở cho deep reflection từ chương trình trên classpath. Đây là quyền runtime có phạm vi rõ ràng, không phải thay đổi vĩnh viễn đối với module-info.java.
+Now the internal package is opened for deep reflection from the program on the classpath. This is a clearly scoped runtime permission, not a permanent change to module-info.java.
 
-Trong hệ thống thực, hãy cân nhắc liệu kiểm tra bằng public API có đủ hay không trước khi phụ thuộc vào private field.
+In real systems, consider whether testing through the public API is sufficient before relying on private fields.
 
-## 11. --add-reads không sửa được InaccessibleObjectException
+## 11. --add-reads Cannot Fix InaccessibleObjectException
 
-Giả sử module com.example.counter đã readable đối với module test, nhưng test cố gọi:
+Suppose module com.example.counter is already readable by the test module, yet the test attempts to call:
 
 ~~~java
 field.setAccessible(true);
 ~~~
 
-trên field private của package không open.
+on a private field of a non-open package.
 
-Thêm:
+Adding:
 
 ~~~text
 --add-reads com.example.tests=com.example.counter
 ~~~
 
-chỉ bổ sung quan hệ readability từ tests tới counter. Nó không cấp quyền truy cập field private bằng reflection.
+only adds a readability edge from tests to counter. It does not grant permission to access private fields via reflection.
 
-Khi lỗi nêu rõ package không opens cho module caller, cần xem xét opens hoặc --add-opens theo hướng phù hợp. Nếu test không thực sự cần private member, cách tốt hơn là chuyển sang public API.
+When an error states that a package is not open to the caller module, check opens or --add-opens appropriately. If the test does not genuinely need private members, switching to the public API is better.
 
-Ngược lại, --add-opens không giúp compiler import một kiểu public trong package không được export theo quy tắc truy cập thông thường. Khi cần compile-time API access, xem xét exports/--add-exports và readability.
+Conversely, --add-opens does not help the compiler import a public type in a non-exported package under standard access rules. When compile-time API access is needed, look at exports/--add-exports and readability.
 
-## 12. Cần --add-exports lúc nào?
+## 12. When Is --add-exports Needed?
 
-Bài học tập trung vào --add-reads và --add-opens, nhưng đôi khi lỗi test là package không visible, không phải deep reflection.
+This lesson focuses on --add-reads and --add-opens, but sometimes a test failure is due to a package not being visible rather than deep reflection.
 
-Ví dụ test muốn import một public implementation class trong package không export:
+For example, a test tries to import a public implementation class from a non-exported package:
 
 ~~~java
 import com.example.billing.internal.BillingCalculator;
 ~~~
 
-Nếu test là named module khác, compiler có thể báo package không được export. Việc thêm --add-opens ở runtime không giải quyết lỗi biên dịch đó.
+If the test is in another named module, the compiler may report that the package is not exported. Adding --add-opens at runtime will not solve that compilation error.
 
-Khi thực sự có nhu cầu tương thích, công cụ có thể dùng:
+When compatibility genuinely requires it, tooling can pass:
 
 ~~~text
 --add-exports com.example.billing/com.example.billing.internal=com.example.billing.tests
 ~~~
 
-cho đúng module đích ở compile-time và runtime khi cần. Tuy nhiên, nếu loại test đó có thể được viết bằng public API, không nên tạo phụ thuộc vào class internal chỉ vì dễ viết test hơn.
+to the exact target module at compile time and runtime as needed. However, if such tests can be written using the public API, do not create dependencies on internal classes simply to make writing tests easier.
 
-Nếu bạn quản lý code production, thường nên chuyển logic cần kiểm thử thành hợp đồng có chủ đích hoặc dùng test patched trong cùng module thay vì mở rộng API toàn cục.
+If you own the production code, it is usually better to turn the logic under test into an intentional contract or use patched tests in the same module rather than broadly exposing internal APIs.
 
-## 13. Cấu hình Gradle chỉ cho test
+## 13. Gradle Configuration Only for Tests
 
-Trong Gradle, nên đưa các tùy chọn JVM vào task Test, không đưa vào cấu hình chạy production.
+In Gradle, place JVM options on the Test task, not on production run configurations.
 
-Ví dụ với Groovy DSL:
+Example with Groovy DSL:
 
 ~~~groovy
 tasks.withType(Test).configureEach {
@@ -365,19 +365,19 @@ tasks.withType(Test).configureEach {
 }
 ~~~
 
-Đoạn này minh họa vị trí cấu hình. Nó chỉ phù hợp nếu test chạy với module com.example.billing đã được resolve và framework thực sự cần cả hai quyền.
+This snippet illustrates where to place the configuration. It is appropriate only if tests run with module com.example.billing resolved and the framework truly needs both permissions.
 
-Nếu Gradle hoặc test plugin đã cấu hình module path, patch-module hoặc các quyền tương đương, tránh lặp lại hoặc xung đột. Tùy chọn compiler cho task JavaCompile và tùy chọn JVM của task Test là hai phạm vi khác nhau.
+If Gradle or a test plugin already configures the module path, patch-module, or equivalent permissions, avoid duplication or conflicts. Compiler options on JavaCompile tasks and JVM options on Test tasks have different scopes.
 
-Khi biên dịch test class được patch vào named module, có thể cần cấu hình thêm compiler arguments hoặc module path. Không nên nghĩ rằng jvmArgs ở Test task tự thay đổi cách javac đã biên dịch test.
+When compiling test classes patched into a named module, you may also need to configure compiler arguments or the module path. Do not assume jvmArgs on the Test task alters how javac compiled the tests.
 
-Nếu chỉ một task integrationTest cần reflection, hãy cấu hình đúng task đó thay vì tasks.withType(Test) cho mọi test.
+If only an integrationTest task needs reflection, configure that specific task rather than applying tasks.withType(Test) to all tests.
 
-## 14. Cấu hình Maven cho test runtime
+## 14. Maven Configuration for Test Runtime
 
-Với Maven Surefire Plugin, các cờ JVM chạy test thường được cấu hình qua argLine, trong trường hợp plugin fork JVM và sử dụng chế độ chạy phù hợp.
+With the Maven Surefire Plugin, test runtime JVM flags are typically configured via argLine when the plugin forks a JVM and uses the appropriate execution mode.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ~~~xml
 <plugin>
@@ -392,20 +392,20 @@ Ví dụ minh họa:
 </plugin>
 ~~~
 
-Trong cấu hình thực tế, cần giữ lại các JVM arguments khác mà dự án đang dùng, chẳng hạn tham số của coverage agent. Cách cấu hình test module path và patch-module phụ thuộc plugin, phiên bản Java và cấu trúc dự án.
+In real configurations, preserve other JVM arguments your project uses, such as coverage agent flags. How the test module path and patch-module are configured depends on the plugin, Java version, and project layout.
 
-Đối với integration test, Maven Failsafe Plugin có thể được cấu hình riêng để giữ đúng phạm vi kiểm thử cần quyền nới lỏng.
+For integration tests, the Maven Failsafe Plugin can be configured separately to keep relaxed permissions scoped to the exact tests that need them.
 
-Không chép các tham số test này sang cấu hình java -jar, image container production hoặc script chạy dịch vụ. Mục đích của test-only flags là cho phép kiểm thử khi có lý do xác định, không thay đổi chính sách đóng gói của chương trình sản xuất.
+Do not copy these test flags into java -jar commands, production container images, or service launch scripts. Test-only flags exist to enable testing for specific reasons, not to change the packaging policy of the production program.
 
-## 15. Khi nào chọn descriptor thay vì flag?
+## 15. When to Choose the Descriptor Instead of Flags?
 
-Có hai hướng cấp quyền:
+There are two ways to grant permissions:
 
-1. **Khai báo quyền trong module-info.java:** phù hợp với hành vi được thiết kế lâu dài, ví dụ một framework production cần deep reflection vào package model.
-2. **Bổ sung flag ở test runtime/compiler:** phù hợp với tình huống chỉ test cần quyền, không nên trở thành hợp đồng production.
+1. **Declare permissions in module-info.java:** suited for long-term designed behavior, such as a production framework needing deep reflection into a model package.
+2. **Add flags at test runtime/compile time:** suited for cases where only tests need the permission and it should not become part of the production contract.
 
-Ví dụ production cần ORM:
+Example where production needs an ORM:
 
 ~~~java
 module com.example.billing {
@@ -414,70 +414,70 @@ module com.example.billing {
 }
 ~~~
 
-Đây là một phần thiết kế runtime của ứng dụng, không phải quyền tạm thời của test.
+This is part of the application's runtime design, not a temporary test permission.
 
-Ngược lại, nếu chỉ bộ test muốn đọc trạng thái private, nên cân nhắc cấu hình test-only:
+Conversely, if only the test suite wants to read private state, consider a test-only configuration:
 
 ~~~text
 --add-opens com.example.billing/com.example.billing.internal=com.example.tests
 ~~~
 
-Tên com.example.tests phải là module name thực tế khi test chạy như named module. Nếu framework reflection là một module khác với module chứa test class, đích opens phải là module thực sự thực hiện reflection.
+The name com.example.tests must be the actual module name when tests run as a named module. If the reflecting framework is in a different module from the test classes, the target of opens must be the module actually performing the reflection.
 
-Tránh chỉnh module-info.java production để mở package cho framework test chỉ được dùng trong quá trình build, trừ khi hệ thống có lý do kiến trúc rõ ràng.
+Avoid modifying production module-info.java to open packages to test frameworks used only during builds, unless the system has a clear architectural reason.
 
-## 16. Cách xác định module thực sự thực hiện reflection
+## 16. How to Identify the Module Actually Performing Reflection
 
-Thông báo lỗi thường cho biết module nguồn và module đích:
+Error messages usually report both the source module and the target module:
 
 ~~~text
 module com.example.billing does not "opens
 com.example.billing.internal" to module com.example.test.engine
 ~~~
 
-Điều đó nghĩa là:
+This means:
 
-- Package thuộc module com.example.billing.
-- Package bị từ chối là com.example.billing.internal.
-- Module thực hiện reflection là com.example.test.engine.
+- The package belongs to module com.example.billing.
+- The rejected package is com.example.billing.internal.
+- The module performing reflection is com.example.test.engine.
 
-Biện pháp test-only tương ứng có thể là:
+A corresponding test-only remedy might be:
 
 ~~~text
 --add-opens com.example.billing/com.example.billing.internal=com.example.test.engine
 ~~~
 
-Không nên tự động thay đích bằng module của test class nếu stacktrace cho biết framework engine thuộc một module khác.
+Do not automatically target the test class module if the stack trace shows the framework engine belongs to a different module.
 
-Nếu thông báo nói "to unnamed module", caller nằm trong unnamed module ở thời điểm lỗi. Khi đó có thể dùng ALL-UNNAMED cho test runtime, nhưng vẫn cần xác minh artifact trên classpath và phạm vi cần mở.
+If the message says "to unnamed module", the caller was in the unnamed module at the time of the error. In that case ALL-UNNAMED can be used for the test runtime, though you should still verify classpath artifacts and the exact scope to open.
 
-Để xác nhận module name của JAR:
+To confirm a JAR's module name:
 
 ~~~bash
 jar --describe-module --file path/to/test-engine.jar
 ~~~
 
-Cách này hữu ích với automatic modules, nơi tên được suy ra từ manifest hoặc tên file JAR.
+This is especially helpful for automatic modules, whose names are derived from the manifest or JAR filename.
 
-## 17. Khi bị "module not found" hoặc "unknown module"
+## 17. Handling "module not found" or "unknown module"
 
-Nếu --add-reads hoặc --add-opens tham chiếu tới module không tồn tại hoặc chưa được resolve, launcher/compiler có thể cảnh báo hoặc báo lỗi tùy tình huống.
+If --add-reads or --add-opens references a module that does not exist or has not been resolved, the launcher/compiler may warn or error depending on the situation.
 
-Nguyên nhân thường gặp:
+Common causes:
 
-- Sai module name của framework hoặc ứng dụng.
-- Dependency chưa được đưa vào module path.
-- Module nằm trên module path nhưng chưa được resolve vào configuration.
-- Cấu hình test dùng classpath nhưng flag lại trỏ tới tên của một module giả định.
-- Lệnh build dùng JDK hoặc cấu hình khác với lệnh chạy thủ công.
+- Wrong module name for the framework or application.
+- Dependency has not been placed on the module path.
+- Module is on the module path but was not resolved into the configuration.
+- Test configuration uses the classpath while the flag points to an assumed module name.
+- The build command uses a different JDK or configuration than the manual run command.
 
-Đầu tiên hãy xác minh module name thực tế:
+First verify the actual module name:
 
 ~~~bash
 jar --describe-module --file libs/framework.jar
 ~~~
 
-Sau đó xem module resolution ở runtime:
+Then inspect runtime module resolution:
 
 ~~~bash
 java --show-module-resolution \
@@ -485,26 +485,26 @@ java --show-module-resolution \
     -m com.example.app/com.example.app.Main
 ~~~
 
-Đặt thêm --add-modules khi có lý do cần đưa một module root vào graph. Đừng dùng --add-reads như cách thay thế việc tìm hoặc resolve một module bị thiếu.
+Add --add-modules when there is a reason to bring a root module into the graph. Do not use --add-reads as a substitute for locating or resolving a missing module.
 
-## 18. Một bảng phân biệt lỗi thường gặp
+## 18. Quick Error Distinction Table
 
-| Triệu chứng | Cơ chế có thể liên quan | Hướng xử lý |
+| Symptom | Possible Mechanism Involved | How to Address |
 | --- | --- | --- |
-| package ... is not visible | Thiếu export hoặc readability | Kiểm tra requires, module path, exports và --add-exports. |
-| module ... does not read ... | Thiếu readability | Kiểm tra requires hoặc --add-reads theo đúng chiều. |
-| InaccessibleObjectException | Deep reflection vào package chưa open | Kiểm tra opens hoặc --add-opens cho đúng caller. |
-| IllegalAccessException khi gọi method | Không đủ quyền reflection/Java visibility | Kiểm tra caller, member, exports/opens và cách gọi. |
-| ClassNotFoundException | Không tìm được class | Kiểm tra classpath/module path và class loader. |
-| NoClassDefFoundError | Dependency hoặc class cần thiết không được tải | Kiểm tra runtime dependencies và nguyên nhân gốc. |
-| Test chạy ở IDE nhưng CLI lỗi | IDE và CLI truyền module flags khác nhau | So sánh compiler args, JVM args và cấu hình module path. |
-| Test chỉ pass khi mở toàn bộ package | Test phụ thuộc mạnh vào implementation | Cân nhắc chuyển sang public API hoặc tập trung white-box test trong đúng module. |
+| package ... is not visible | Missing export or readability | Check requires, module path, exports, and --add-exports. |
+| module ... does not read ... | Missing readability | Check requires or --add-reads in the right direction. |
+| InaccessibleObjectException | Deep reflection into a closed package | Check opens or --add-opens for the exact caller. |
+| IllegalAccessException when invoking method | Insufficient reflection/Java visibility permission | Check caller, member, exports/opens, and invocation path. |
+| ClassNotFoundException | Class cannot be found | Check classpath/module path and class loader. |
+| NoClassDefFoundError | Required dependency or class failed to load | Check runtime dependencies and root cause. |
+| Tests pass in IDE yet fail on CLI | IDE and CLI pass different module flags | Compare compiler args, JVM args, and module path config. |
+| Tests only pass when opening all packages | Tests depend heavily on implementation | Consider switching to public API or isolating white-box tests in the right module. |
 
-Các lỗi này không nên được sửa bằng cách thêm mọi flag cùng lúc. Chọn quyền tối thiểu dựa trên thông báo lỗi và nhu cầu kiểm thử.
+Do not fix these errors by adding every flag at once. Choose the minimal permission based on the error message and testing need.
 
-## 19. Quan sát trạng thái module mà không mở quyền
+## 19. Observing Module State Without Opening Permissions
 
-Nếu cần xác minh readability và opens trong một chương trình, có thể dùng Module API:
+If you need to verify readability and opens inside a program, you can use the Module API:
 
 ~~~java
 Module owner = com.example.billing.api.Invoice.class.getModule();
@@ -519,72 +519,72 @@ System.out.println("Internal open to caller: " +
         owner.isOpen("com.example.billing.internal", caller));
 ~~~
 
-Các API này cho biết trạng thái quan hệ giữa hai module tại runtime mà không yêu cầu setAccessible(true). Khi phân tích framework, caller phải là module đang thực sự gọi reflection; kết quả kiểm tra với TestDiagnostics.class.getModule() không nhất thiết giống kết quả của một framework trong module khác.
+These APIs report the current runtime relationship between two modules without calling setAccessible(true). When analyzing a framework, caller must be the module actually invoking reflection; checking with TestDiagnostics.class.getModule() does not necessarily match a framework in another module.
 
-Để kiểm tra quyền mở cho test engine, lấy chính Module của engine nếu có thể, hoặc dựa vào thông báo exception và module graph.
+To check open permissions for a test engine, obtain the engine's own Module object if possible, or rely on exception messages and the module graph.
 
-## 20. Giữ quyền test ở phạm vi nhỏ nhất
+## 20. Keeping Test Permissions Narrowly Scoped
 
-Một chiến lược kiểm soát nên xác định rõ:
+A controlled strategy should clearly specify:
 
-- **Module nguồn:** module đang sở hữu package cần truy cập.
-- **Package:** package chứa class hoặc method đang bị từ chối.
-- **Module đích:** framework/test runner thực sự cần quyền.
-- **Giai đoạn:** chỉ compile test, chạy unit test hay integration test.
-- **Lý do:** thiếu readability, cần reflection sâu hay cần type public ở package không export.
-- **Điểm gỡ bỏ:** khi nâng cấp framework, refactor test hoặc chuyển sang API public.
+- **Source module:** the module owning the package to access.
+- **Package:** the package containing the denied class or method.
+- **Target module:** the framework/test runner that actually needs permission.
+- **Phase:** test compilation only, unit tests, or integration tests.
+- **Reason:** missing readability, deep reflection needed, or public type in a non-exported package.
+- **Removal point:** when upgrading the framework, refactoring tests, or switching to public APIs.
 
-Ví dụ bảng ghi chú cấu hình:
+Example configuration tracking table:
 
-| Quyền | Giai đoạn | Lý do |
+| Permission | Phase | Reason |
 | --- | --- | --- |
-| --add-reads com.example.billing=ALL-UNNAMED | Biên dịch test patched và test runtime khi cần | Test class thuộc named module phải tham chiếu thư viện test trên classpath. |
-| --add-opens com.example.billing/com.example.billing.tests=ALL-UNNAMED | Test runtime | Test engine trên classpath cần gọi test method bằng reflection. |
-| --add-opens com.example.billing/com.example.billing.internal=com.example.test.engine | Test runtime đặc thù | Engine named module cần kiểm tra private member trong phép thử white-box. |
+| --add-reads com.example.billing=ALL-UNNAMED | Patched test compile and test runtime when needed | Test classes in the named module must reference test libraries on the classpath. |
+| --add-opens com.example.billing/com.example.billing.tests=ALL-UNNAMED | Test runtime | Classpath test engine needs to invoke test methods via reflection. |
+| --add-opens com.example.billing/com.example.billing.internal=com.example.test.engine | Specific test runtime | Named-module engine needs to inspect private members in a white-box test. |
 
-Đừng thêm những dòng này nếu dự án không có nhu cầu tương ứng. Bảng chỉ minh họa cách ghi lại quyết định; tên module và package phải lấy từ dự án thật.
+Do not add these lines unless your project has the corresponding need. The table only illustrates how to document decisions; module and package names must come from your real project.
 
-## 21. Hướng loại bỏ flag tạm thời
+## 21. Steps to Eliminate Temporary Flags
 
-Một test-only flag có thể trở thành gánh nặng nếu không được quản lý. Để loại bỏ:
+A test-only flag can become technical debt if left unmanaged. To remove it:
 
-1. Liệt kê các flag JPMS đang được cấu hình riêng cho test.
-2. Nhóm theo module nguồn, package và module đích.
-3. Xác định test nào thực sự cần từng quyền.
-4. Với test black-box, chuyển kiểm tra sang API public thay vì private field.
-5. Với white-box, xem xét patch-module hoặc tách API nội bộ có chủ đích khi hợp lý.
-6. Nâng cấp framework nếu bản mới hỗ trợ JPMS tốt hơn.
-7. Bỏ từng flag sau khi loại bỏ nhu cầu thực tế.
-8. Chạy lại unit test, integration test và lệnh chạy production để xác nhận không có phụ thuộc ngầm.
+1. List all JPMS flags configured specifically for tests.
+2. Group them by source module, package, and target module.
+3. Identify which tests actually require each permission.
+4. For black-box tests, switch assertions to the public API instead of private fields.
+5. For white-box tests, consider patch-module or extracting an intentional internal API where appropriate.
+6. Upgrade frameworks if newer versions offer better JPMS support.
+7. Remove flags one by one once the underlying need is eliminated.
+8. Re-run unit tests, integration tests, and production launch commands to confirm no hidden dependency remains.
 
-Không cần đưa flag kiểm thử vào production chỉ để thống nhất các môi trường. Hai môi trường có vai trò khác nhau và nên có mức quyền tối thiểu phù hợp.
+Do not copy test flags into production just to make environments identical. The two environments have different roles and should maintain appropriate minimal privileges.
 
-## 22. Tự kiểm tra
+## 22. Self-Check
 
-**Tình huống 1:** Test class được patch vào com.example.billing và import một thư viện test trên classpath. Khi compiler báo module không đọc unnamed module, nên xem xét gì?
+**Scenario 1:** A test class is patched into com.example.billing and imports a test library on the classpath. When the compiler reports that the module does not read the unnamed module, what should you check?
 
-Trả lời: --add-reads com.example.billing=ALL-UNNAMED ở giai đoạn biên dịch test, cùng classpath chứa thư viện. Nếu runtime cũng cần liên kết tới thư viện đó, phải cấu hình quan hệ đọc phù hợp tại runtime.
+Answer: --add-reads com.example.billing=ALL-UNNAMED during test compilation, along with the classpath containing the library. If runtime also needs to link against that library, configure the appropriate readability relationship at runtime.
 
-**Tình huống 2:** Framework test trên classpath không gọi được method package-private trong module com.example.billing. Thông báo nêu package com.example.billing.tests không open. Flag nào có thể liên quan?
+**Scenario 2:** A test framework on the classpath cannot invoke a package-private method in module com.example.billing. The error states package com.example.billing.tests is not open. Which flag might apply?
 
-Trả lời: --add-opens com.example.billing/com.example.billing.tests=ALL-UNNAMED ở runtime, với điều kiện framework thực sự cần deep reflection vào package test này.
+Answer: --add-opens com.example.billing/com.example.billing.tests=ALL-UNNAMED at runtime, provided the framework genuinely needs deep reflection into this test package.
 
-**Tình huống 3:** Thêm --add-reads có làm setAccessible(true) thành công với private field của module khác không?
+**Scenario 3:** Does adding --add-reads make setAccessible(true) succeed on a private field of another module?
 
-Trả lời: không. --add-reads chỉ bổ sung readability. Deep reflection thường cần package được open đúng đích.
+Answer: no. --add-reads only adds readability. Deep reflection typically requires the package to be opened to the right target.
 
-**Tình huống 4:** Vì sao một test độc lập chỉ dùng API public được export thường không cần --add-opens?
+**Scenario 4:** Why does an independent test using only exported public APIs usually not need --add-opens?
 
-Trả lời: test có thể dùng requires và các quy tắc truy cập Java thông thường; không cần vượt qua kiểm tra private member.
+Answer: the test can rely on requires and standard Java access rules; there is no need to bypass private member checks.
 
-**Tình huống 5:** Test engine là named module, nhưng dự án dùng ALL-UNNAMED theo thói quen. Có gì cần kiểm tra?
+**Scenario 5:** The test engine is a named module, yet the project uses ALL-UNNAMED out of habit. What should be checked?
 
-Trả lời: xác minh module thực sự thực hiện reflection. Nếu là named module, nên chỉ định module name đó thay cho ALL-UNNAMED khi có thể.
+Answer: verify which module actually performs reflection. If it is a named module, specify that module name instead of ALL-UNNAMED whenever possible.
 
-**Tình huống 6:** Có nên thêm add-opens của test vào lệnh chạy production?
+**Scenario 6:** Should test add-opens flags be added to the production launch command?
 
-Trả lời: thông thường không. Chỉ cấp quyền nới lỏng trong tác vụ test cần nó, ghi rõ nguyên nhân và bỏ flag khi không còn nhu cầu.
+Answer: normally no. Grant relaxed permissions only in the test task that needs them, document the reason, and remove the flag when no longer needed.
 
-**Tình huống 7:** Compiler báo public class trong package internal không visible. Nên dùng --add-opens để sửa?
+**Scenario 7:** The compiler reports a public class in an internal package is not visible. Should --add-opens be used to fix it?
 
-Trả lời: không. Đây có thể là vấn đề exports/readability ở compile-time. Nên xem test có thể dùng API public hay cần tổ chức lại thành white-box test; chỉ dùng --add-exports có mục tiêu nếu thực sự cần.
+Answer: no. This is likely a compile-time exports/readability issue. Check whether the test can use the public API or should be reorganized as a white-box test; use targeted --add-exports only if truly necessary.

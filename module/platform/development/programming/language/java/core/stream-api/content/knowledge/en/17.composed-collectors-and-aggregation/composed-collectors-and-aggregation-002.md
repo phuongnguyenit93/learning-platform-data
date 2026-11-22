@@ -1,35 +1,35 @@
-# Tính trung bình và thống kê bằng `averaging` và `summarizing`
+# Computing Averages and Statistics with `averaging` and `summarizing`
 
-## 1. Bài toán: cần một con số hay cả bộ thống kê?
+## 1. The problem: need a single number or a full set of statistics?
 
-Trong module **JAVA_STREAM_API**, một pipeline khai báo thường dùng `filter`, `map` và `flatMap` để chọn hoặc biến đổi dữ liệu, sau đó dùng `collect` để tổng hợp. Hai nhóm collector đặc biệt hữu ích khi xử lý dữ liệu số là:
+In the **JAVA_STREAM_API** module, a declarative pipeline typically uses `filter`, `map`, and `flatMap` to select or transform data, then uses `collect` to aggregate. Two collector groups are especially useful when processing numeric data:
 
-- **`averagingInt`, `averagingLong`, `averagingDouble`**: tính **trung bình cộng**, trả một giá trị kiểu `Double`.
-- **`summarizingInt`, `summarizingLong`, `summarizingDouble`**: tạo **một đối tượng thống kê** chứa số mẫu, tổng, cực tiểu, cực đại và trung bình.
+- **`averagingInt`, `averagingLong`, `averagingDouble`**: compute the **arithmetic mean**, returning a `Double` value.
+- **`summarizingInt`, `summarizingLong`, `summarizingDouble`**: produce **a statistics object** containing count, sum, minimum, maximum, and average.
 
-Ví dụ, với bốn đơn hàng đã thanh toán, bộ phận vận hành có thể cần:
+For example, given four paid orders, operations may need:
 
-1. Số lượng sản phẩm trung bình trong một đơn.
-2. Doanh thu trung bình của một đơn.
-3. Đồng thời biết số đơn, doanh thu thấp nhất, cao nhất và tổng doanh thu.
-4. Thống kê tương tự theo **từng vùng** bằng `groupingBy`.
+1. The average item quantity per order.
+2. The average revenue per order.
+3. Simultaneously knowing the order count, minimum revenue, maximum revenue, and total revenue.
+4. Similar statistics **by region** using `groupingBy`.
 
-`averaging` phù hợp khi chỉ cần **một số trung bình**. `summarizing` phù hợp khi cần **nhiều chỉ số cùng lúc**, thường trong một lần duyệt pipeline.
+`averaging` is suitable when only **one average number** is needed. `summarizing` is suitable when **multiple metrics are needed at once**, typically in a single pipeline traversal.
 
-Mục tiêu của bài:
+Lesson objectives:
 
-- Đọc chữ ký và kiểu kết quả của sáu collector.
-- Phân biệt `Collector<T, ?, Double>` với `Collector<T, ?, IntSummaryStatistics>` (và các biến thể khác).
-- Kết hợp collector thống kê làm **downstream** của `groupingBy`, `filtering` và `collectingAndThen`.
-- Xác định hợp đồng cho **nguồn rỗng**, giá trị `0` hợp lệ và phép chia trung bình.
-- Kiểm soát rủi ro **tràn số**, **sai số `double`**, `NaN`, nguồn `null` và xử lý song song.
-- Viết kiểm thử kết quả nghiệp vụ, không dựa vào thứ tự gọi lambda.
+- Read the signatures and result types of the six collectors.
+- Distinguish `Collector<T, ?, Double>` from `Collector<T, ?, IntSummaryStatistics>` (and the other variants).
+- Compose statistics collectors as the **downstream** of `groupingBy`, `filtering`, and `collectingAndThen`.
+- Define the contract for **empty sources**, valid `0` values, and average division.
+- Control risks of **overflow**, **`double` precision error**, `NaN`, `null` sources, and parallel processing.
+- Write tests verifying business outcomes without relying on lambda invocation order.
 
-Các ví dụ đầy đủ trong bài sử dụng **JDK 17 trở lên** để dùng `record` và `Stream.toList()`. Các collector `averaging*` và `summarizing*` đã có từ Java 8; những API mới hơn sẽ được ghi chú khi xuất hiện.
+The full examples in this lesson use **JDK 17 or later** for `record` and `Stream.toList()`. The `averaging*` and `summarizing*` collectors have existed since Java 8; newer APIs will be noted where they appear.
 
-## 2. Đọc chữ ký của sáu collector
+## 2. Reading the signatures of the six collectors
 
-`Collectors` cung cấp những factory method sau (lược bớt chú thích để tập trung vào generic):
+`Collectors` provides the following factory methods (annotations omitted to focus on generics):
 
 ```java
 <T> Collector<T, ?, Double> averagingInt(
@@ -57,26 +57,26 @@ Các ví dụ đầy đủ trong bài sử dụng **JDK 17 trở lên** để d�
 )
 ```
 
-Ở đây:
+Here:
 
-- `T` là **kiểu phần tử của stream nguồn**, ví dụ `Order`.
-- `mapper` trích một giá trị nguyên thủy `int`, `long` hoặc `double` từ mỗi `T`.
-- `?` đại diện cho **kiểu trạng thái tích lũy `A`** mà collector giấu khỏi người gọi; nó không có nghĩa collector không cần trạng thái.
-- Tham số kiểu thứ ba, **`R`**, là kết quả của `collect`: `Double` hoặc một `*SummaryStatistics`.
+- `T` is the **element type of the source stream**, such as `Order`.
+- `mapper` extracts a primitive `int`, `long`, or `double` value from each `T`.
+- `?` represents the **intermediate accumulation state type `A`** hidden by the collector from the caller; it does not mean the collector is stateless.
+- The third type parameter, **`R`**, is the result of `collect`: `Double` or a `*SummaryStatistics`.
 
-| Collector | Mapper nhận `T` và trả | Kiểu kết quả `R` | Công dụng |
+| Collector | Mapper takes `T` and returns | Result type `R` | Purpose |
 | --- | --- | --- | --- |
-| `averagingInt` | `int` | `Double` | Trung bình các số nguyên |
-| `averagingLong` | `long` | `Double` | Trung bình các số nguyên dài |
-| `averagingDouble` | `double` | `Double` | Trung bình các số thực |
-| `summarizingInt` | `int` | `IntSummaryStatistics` | Đếm, tổng, min, max, average |
-| `summarizingLong` | `long` | `LongSummaryStatistics` | Đếm, tổng, min, max, average |
-| `summarizingDouble` | `double` | `DoubleSummaryStatistics` | Đếm, tổng, min, max, average |
+| `averagingInt` | `int` | `Double` | Average of integers |
+| `averagingLong` | `long` | `Double` | Average of long integers |
+| `averagingDouble` | `double` | `Double` | Average of floating-point numbers |
+| `summarizingInt` | `int` | `IntSummaryStatistics` | Count, sum, min, max, average |
+| `summarizingLong` | `long` | `LongSummaryStatistics` | Count, sum, min, max, average |
+| `summarizingDouble` | `double` | `DoubleSummaryStatistics` | Count, sum, min, max, average |
 
-Ví dụ đọc kiểu từ ngoài vào:
+Example of reading types from the outside in:
 
 ```java
-// Giả sử orders là List<Order>, Order.amountVnd() trả long.
+// Assume orders is List<Order>, and Order.amountVnd() returns long.
 Double averageAmount = orders.stream()
     .collect(Collectors.averagingLong(Order::amountVnd));
 
@@ -84,13 +84,13 @@ LongSummaryStatistics amountStats = orders.stream()
     .collect(Collectors.summarizingLong(Order::amountVnd));
 ```
 
-Đầu vào vẫn là `Stream<Order>`, **không phải `LongStream`**. Collector dùng `ToLongFunction<Order>` để trích số tiền nguyên thủy từ từng đơn hàng.
+The input is still `Stream<Order>`, **not `LongStream`**. The collector uses `ToLongFunction<Order>` to extract the primitive amount from each order.
 
-**Phân biệt:** `Stream.collect(Collector)` là terminal operation. Sau khi gọi, stream đã bị tiêu thụ; muốn tính một kết quả khác từ `List<Order>`, tạo stream mới bằng `orders.stream()`. Nếu muốn nhiều số đo trong **một pipeline**, `summarizing` thường giúp tránh lặp lại việc duyệt nguồn.
+**Distinction:** `Stream.collect(Collector)` is a terminal operation. Once called, the stream is consumed; to compute another result from `List<Order>`, create a new stream with `orders.stream()`. If you want multiple metrics in **one pipeline**, `summarizing` often helps avoid traversing the source repeatedly.
 
-## 3. `averagingInt`, `averagingLong` và `averagingDouble`
+## 3. `averagingInt`, `averagingLong`, and `averagingDouble`
 
-### 3.1. `averagingInt`: số nguyên đầu vào, `Double` đầu ra
+### 3.1. `averagingInt`: integer input, `Double` output
 
 ```java
 import java.util.List;
@@ -104,16 +104,16 @@ double average = quantities.stream()
 System.out.println(average); // 2.5
 ```
 
-Collector tích lũy các giá trị nguyên rồi trả **giá trị trung bình kiểu `Double`**. Đó không phải phép chia nguyên `int / int`, nên kết quả `2.5` không bị cắt thành `2`.
+The collector accumulates integer values and returns the **average as a `Double`**. It is not `int / int` integer division, so the result `2.5` is not truncated to `2`.
 
-Nếu nguồn là một `Stream<Order>`, không cần boxing số lượng ra `Integer` rồi mới tính:
+If the source is a `Stream<Order>`, there is no need to box quantities into `Integer` before computing:
 
 ```java
 double averageQuantity = orders.stream()
     .collect(Collectors.averagingInt(Order::quantity));
 ```
 
-### 3.2. `averagingLong`: trung bình các giá trị `long`
+### 3.2. `averagingLong`: average of `long` values
 
 ```java
 import java.util.List;
@@ -127,9 +127,9 @@ double average = amounts.stream()
 System.out.println(average); // 200.0
 ```
 
-Kiểu đầu vào của mapper là `long`, nhưng kiểu kết quả vẫn là `Double`, **không phải `Long`**. Nếu dữ liệu là số tiền nguyên đơn vị nhỏ nhất và quy tắc nghiệp vụ không cho phép sai số, không nên xem `Double` là định dạng tiền tệ chính xác tuyệt đối.
+The mapper's input type is `long`, yet the result type is still `Double`, **not `Long`**. If the data represents integer monetary amounts in the smallest currency unit and business rules allow zero rounding error, do not treat `Double` as an exact currency representation.
 
-### 3.3. `averagingDouble`: trung bình giá trị số thực
+### 3.3. `averagingDouble`: average of floating-point values
 
 ```java
 import java.util.List;
@@ -149,11 +149,11 @@ double meanWeight = samples.stream()
 System.out.println(meanWeight); // 2.3333333333333335
 ```
 
-`double` là số thực dấu phẩy động nhị phân. Nhiều giá trị thập phân không biểu diễn chính xác; tổng và trung bình có thể chịu sai số làm tròn. Với `Double.NaN` và các giá trị vô hạn, kết quả cũng cần chính sách dữ liệu riêng.
+`double` is a binary floating-point number. Many decimal values cannot be represented exactly; sums and averages can suffer rounding error. For `Double.NaN` and infinite values, the result also requires an explicit data policy.
 
-### 3.4. Cả ba trả gì khi stream rỗng?
+### 3.4. What do all three return on an empty stream?
 
-`Collectors.averagingInt`, `averagingLong` và `averagingDouble` **trả `0.0`** nếu không có phần tử đầu vào:
+`Collectors.averagingInt`, `averagingLong`, and `averagingDouble` **return `0.0`** when there are no input elements:
 
 ```java
 import java.util.List;
@@ -167,23 +167,23 @@ Double average = empty.stream()
 System.out.println(average); // 0.0
 ```
 
-Đây là **hợp đồng của collector**, không có nghĩa “đã quan sát được một mẫu với giá trị 0”. Nếu nghiệp vụ cần phân biệt **không có mẫu** và **trung bình thực sự bằng 0**, cần giữ thêm `count` hoặc trả kiểu như `OptionalDouble`. Mục 8 trình bày cách làm.
+This is **the collector's contract**, not an assertion that “a sample with value 0 was observed”. If business logic must distinguish between **no samples** and **an actual average of 0**, preserve `count` as well or return a type such as `OptionalDouble`. Section 8 shows how.
 
-## 4. `summarizing`: một collector thu nhiều số đo
+## 4. `summarizing`: one collector gathering multiple metrics
 
-Ba loại `*SummaryStatistics` có năm getter quan trọng:
+The three `*SummaryStatistics` classes provide five key getters:
 
-| Getter | Kiểu trả về với `IntSummaryStatistics` | Ý nghĩa |
+| Getter | Return type on `IntSummaryStatistics` | Meaning |
 | --- | --- | --- |
-| `getCount()` | `long` | Số phần tử đã đưa vào thống kê |
-| `getSum()` | `long` | Tổng các giá trị `int` |
-| `getMin()` | `int` | Nhỏ nhất |
-| `getMax()` | `int` | Lớn nhất |
-| `getAverage()` | `double` | Trung bình cộng |
+| `getCount()` | `long` | Number of elements included in the statistics |
+| `getSum()` | `long` | Sum of the `int` values |
+| `getMin()` | `int` | Minimum value |
+| `getMax()` | `int` | Maximum value |
+| `getAverage()` | `double` | Arithmetic mean |
 
-Với `LongSummaryStatistics`, `getSum()`, `getMin()` và `getMax()` trả `long`; với `DoubleSummaryStatistics`, chúng trả `double`. Cả ba đều có `getCount()` kiểu `long` và `getAverage()` kiểu `double`.
+With `LongSummaryStatistics`, `getSum()`, `getMin()`, and `getMax()` return `long`; with `DoubleSummaryStatistics`, they return `double`. All three have `getCount()` returning `long` and `getAverage()` returning `double`.
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.IntSummaryStatistics;
@@ -202,11 +202,11 @@ System.out.println(stats.getMax());     // 8
 System.out.println(stats.getAverage()); // 5.0
 ```
 
-Một phép `collect` tạo đầy đủ năm chỉ số. Nếu nguồn là một stream chỉ đọc một lần (ví dụ dòng từ file), cách này thường phù hợp hơn việc chạy năm terminal operation độc lập — vốn sẽ yêu cầu tái tạo nguồn hoặc lưu toàn bộ dữ liệu.
+A single `collect` produces all five metrics. If the source is a single-use stream (for example, lines from a file), this approach is usually preferable to running five separate terminal operations—which would require recreating the source or buffering all data.
 
-### 4.1. `IntSummaryStatistics` có tổng kiểu `long`
+### 4.1. `IntSummaryStatistics` has a `long` sum
 
-`IntSummaryStatistics` dùng `long` cho `getSum()` dù từng giá trị là `int`:
+`IntSummaryStatistics` uses `long` for `getSum()` even though individual values are `int`:
 
 ```java
 import java.util.IntSummaryStatistics;
@@ -219,11 +219,11 @@ IntSummaryStatistics s = IntStream.of(
 System.out.println(s.getSum()); // 4294967294
 ```
 
-Tổng trên vượt giới hạn `int` nhưng vẫn nằm trong `long`. Tuy vậy, **`long` cũng có giới hạn**: với số lượng cực lớn hoặc phép cộng không được phép tràn, phải thiết kế kiểm tra số học hoặc kiểu dữ liệu lớn hơn.
+The sum above exceeds the `int` limit yet still fits in `long`. However, **`long` also has a limit**: for huge counts or additions that must never overflow, you must design arithmetic checks or larger data types.
 
-### 4.2. Kiểu thống kê là object mutable
+### 4.2. Summary statistics classes are mutable objects
 
-Các lớp `IntSummaryStatistics`, `LongSummaryStatistics` và `DoubleSummaryStatistics` có `accept(...)` và `combine(...)` để cập nhật trạng thái:
+`IntSummaryStatistics`, `LongSummaryStatistics`, and `DoubleSummaryStatistics` provide `accept(...)` and `combine(...)` to mutate state:
 
 ```java
 import java.util.LongSummaryStatistics;
@@ -240,20 +240,20 @@ System.out.println(left.getCount()); // 3
 System.out.println(left.getSum());   // 600
 ```
 
-Do đó, đối tượng trả từ `summarizing*` là **snapshot có thể bị cập nhật**, không phải immutable value object. Tránh phát tán cùng tham chiếu cho các phần khác của hệ thống sửa ngoài ý muốn. Nếu cần kết quả bất biến, chuyển những getter mong muốn thành `record` hoặc DTO trong một bước hoàn thiện riêng.
+Therefore, the object returned by `summarizing*` is a **mutable snapshot**, not an immutable value object. Avoid sharing the same reference with other parts of the system that might mutate it unintentionally. If an immutable result is required, convert the needed getters into a `record` or DTO in a finishing step.
 
-## 5. Bảng hợp đồng cho nguồn rỗng
+## 5. Contract table for empty sources
 
-Trung bình và thống kê có những giá trị mặc định khác nhau. Các giá trị `min`/`max` của thống kê rỗng đặc biệt dễ gây lỗi nếu được đưa thẳng vào báo cáo.
+Averaging and summarizing have different default values. The `min`/`max` values of empty statistics are especially error-prone if passed directly into reports.
 
-| Collector / kết quả | Count | Sum | Min | Max | Average |
+| Collector / result | Count | Sum | Min | Max | Average |
 | --- | ---: | ---: | --- | --- | ---: |
-| `averagingInt/Long/Double` trên rỗng | — | — | — | — | `0.0` |
-| `IntSummaryStatistics` rỗng | 0 | 0 (`long`) | `Integer.MAX_VALUE` | `Integer.MIN_VALUE` | `0.0` |
-| `LongSummaryStatistics` rỗng | 0 | 0 (`long`) | `Long.MAX_VALUE` | `Long.MIN_VALUE` | `0.0` |
-| `DoubleSummaryStatistics` rỗng | 0 | 0.0 | `Double.POSITIVE_INFINITY` | `Double.NEGATIVE_INFINITY` | `0.0` |
+| `averagingInt/Long/Double` on empty | — | — | — | — | `0.0` |
+| Empty `IntSummaryStatistics` | 0 | 0 (`long`) | `Integer.MAX_VALUE` | `Integer.MIN_VALUE` | `0.0` |
+| Empty `LongSummaryStatistics` | 0 | 0 (`long`) | `Long.MAX_VALUE` | `Long.MIN_VALUE` | `0.0` |
+| Empty `DoubleSummaryStatistics` | 0 | 0.0 | `Double.POSITIVE_INFINITY` | `Double.NEGATIVE_INFINITY` | `0.0` |
 
-Ví dụ:
+Example:
 
 ```java
 import java.util.List;
@@ -270,24 +270,24 @@ System.out.println(emptyStats.getMax() == Long.MIN_VALUE); // true
 System.out.println(emptyStats.getAverage()); // 0.0
 ```
 
-**Quy tắc thiết kế:** chỉ coi `getMin()` và `getMax()` là số đo thực tế **khi `getCount() > 0`**. Nếu count bằng 0, kết quả hiển thị nên là “chưa có dữ liệu”, `OptionalLong.empty()`, hoặc một trạng thái tương ứng, không phải các sentinel ở bảng trên.
+**Design rule:** treat `getMin()` and `getMax()` as actual measurements **only when `getCount() > 0`**. When count is 0, the displayed result should be “no data”, `OptionalLong.empty()`, or an equivalent state—not the sentinels in the table above.
 
-Trên primitive streams, `IntStream.average()`, `LongStream.average()` và `DoubleStream.average()` trả `OptionalDouble`; với nguồn rỗng, chúng trả `OptionalDouble.empty()`. Đây là khác biệt quan trọng so với `Collectors.averaging*` trả `0.0`.
+On primitive streams, `IntStream.average()`, `LongStream.average()`, and `DoubleStream.average()` return `OptionalDouble`; on an empty source, they return `OptionalDouble.empty()`. This is an important difference from `Collectors.averaging*`, which returns `0.0`.
 
-## 6. Ví dụ nghiệp vụ đầy đủ: thống kê đơn hàng đã thanh toán
+## 6. Complete business example: statistics for paid orders
 
-Ví dụ dưới đây sử dụng một bản ghi `Order` gồm vùng, số lượng hàng, tiền đơn hàng (đơn vị VND), khối lượng và trạng thái thanh toán.
+The example below uses an `Order` record with region, item quantity, order amount (in VND), weight, and payment status.
 
-Nghiệp vụ yêu cầu:
+Business requirements:
 
-1. Chỉ thống kê các đơn đã thanh toán.
-2. Tính **số lượng hàng trung bình** bằng `averagingInt`.
-3. Tính **số tiền trung bình** bằng `averagingLong`.
-4. Tính **khối lượng trung bình** bằng `averagingDouble`.
-5. Thu **count / sum / min / max / average** của tiền đơn hàng bằng `summarizingLong`.
-6. Group số tiền theo vùng, chỉ tính các đơn đã thanh toán.
+1. Aggregate only paid orders.
+2. Compute **average item quantity** using `averagingInt`.
+3. Compute **average order amount** using `averagingLong`.
+4. Compute **average weight** using `averagingDouble`.
+5. Collect **count / sum / min / max / average** of order amounts using `summarizingLong`.
+6. Group amounts by region, counting only paid orders.
 
-Mã hoàn chỉnh, biên dịch trên **JDK 17+**:
+Complete code, compiling on **JDK 17+**:
 
 ```java
 import java.util.DoubleSummaryStatistics;
@@ -314,7 +314,7 @@ public class OrderAggregationDemo {
             if (id.isBlank() || region.isBlank()
                     || quantity < 0 || amountVnd < 0
                     || !Double.isFinite(weightKg) || weightKg < 0) {
-                throw new IllegalArgumentException("Order không hợp lệ");
+                throw new IllegalArgumentException("Invalid order");
             }
         }
     }
@@ -401,7 +401,7 @@ public class OrderAggregationDemo {
 }
 ```
 
-Đọc kiểu trong phép nhóm:
+Reading the types in grouping:
 
 ```text
 Stream<Order>
@@ -413,11 +413,11 @@ Stream<Order>
 Map<String, LongSummaryStatistics>
 ```
 
-`LinkedHashMap::new` trong ví dụ chỉ quyết định **loại Map và thứ tự chèn khóa** trên nguồn `List` tuần tự có encounter order. Bộ thống kê cho từng vùng do downstream collector tạo ra. `Map` không được mặc định hiểu là bất biến, và `LongSummaryStatistics` bên trong cũng mutable.
+`LinkedHashMap::new` in the example only determines the **Map implementation and key insertion order** on a sequential `List` source with encounter order. The statistics object for each region is created by the downstream collector. The `Map` is not immutable by default, and the `LongSummaryStatistics` values inside are also mutable.
 
-## 7. `groupingBy` và downstream `averaging` / `summarizing`
+## 7. `groupingBy` with downstream `averaging` / `summarizing`
 
-### 7.1. Trung bình riêng cho từng nhóm
+### 7.1. Separate average for each group
 
 ```java
 import java.util.Map;
@@ -437,16 +437,16 @@ System.out.println(averageAmountByRegion.get("HN"));  // 90000.0
 System.out.println(averageAmountByRegion.get("HCM")); // 120000.0
 ```
 
-Ở đây:
+Here:
 
-- Collector **ngoài** nhóm các `Order` theo `region`.
-- Collector **trong** nhận những `Order` thuộc từng vùng, trích `amountVnd` và tính trung bình.
-- Kiểu downstream là `Collector<Order, ?, Double>`.
-- Kết quả ngoài là `Map<String, Double>`.
+- The **outer** collector groups `Order` instances by `region`.
+- The **inner** collector receives the `Order` elements belonging to each region, extracts `amountVnd`, and computes the average.
+- The downstream type is `Collector<Order, ?, Double>`.
+- The outer result is `Map<String, Double>`.
 
-Không cần tự tạo `Map<String,List<Order>>` rồi lặp qua từng list để tính trung bình. Việc dùng downstream collector diễn đạt cấu trúc tổng hợp **nhiều tầng** ngay trong một phép `collect`.
+There is no need to manually build `Map<String,List<Order>>` and then loop over each list to compute the average. Using a downstream collector expresses **multi-level** aggregation directly within a single `collect`.
 
-### 7.2. Nhận cả bộ thống kê theo nhóm
+### 7.2. Getting the full statistics object per group
 
 ```java
 import java.util.LongSummaryStatistics;
@@ -471,11 +471,11 @@ System.out.println(hn.getMax());     // 120000
 System.out.println(hn.getAverage()); // 90000.0
 ```
 
-Về bản chất, mỗi nhóm có một trạng thái thống kê riêng. Không được lấy **trung bình của các trung bình vùng** để suy ra trung bình toàn bộ đơn, trừ khi các vùng có cùng số lượng mẫu.
+Fundamentally, each group has its own statistics state. You must not take the **average of regional averages** to derive the overall order average, unless all regions have the same sample count.
 
-Ví dụ, HN có hai đơn và HCM có hai đơn thì trung bình của hai số trung bình `90_000` và `120_000` tình cờ đúng bằng trung bình toàn bộ `105_000`. Nhưng nếu một vùng có một đơn còn vùng kia có mười đơn, cách lấy trung bình đơn giản của hai số trung bình sẽ sai.
+For example, HN has two orders and HCM has two orders, so the average of the two means `90_000` and `120_000` happens to equal the overall average `105_000`. But if one region has one order and another has ten orders, taking the simple average of the two means will be wrong.
 
-Công thức cần dùng khi gộp những nhóm có số mẫu khác nhau:
+Formula to use when combining groups with different sample counts:
 
 \[
 \overline{x}
@@ -483,13 +483,13 @@ Công thức cần dùng khi gộp những nhóm có số mẫu khác nhau:
 = \frac{\sum_{g} \mathrm{sum}_g}{\sum_{g} n_g}
 \]
 
-Trong đó `n_g` là số mẫu của nhóm `g`. `summarizing` giữ cả `count` lẫn `sum` nên thích hợp để diễn đạt bài toán này.
+Where `n_g` is the sample count of group `g`. `summarizing` retains both `count` and `sum`, making it suitable for expressing this problem.
 
-## 8. `filter` trước nhóm và `Collectors.filtering` trong nhóm
+## 8. `filter` before grouping vs. `Collectors.filtering` inside groups
 
-Hai cách lọc có thể tạo **khác biệt về tập khóa**, mặc dù các thống kê trên những nhóm còn lại giống nhau.
+Both filtering approaches can produce **differences in the key set**, even though the statistics on remaining groups are identical.
 
-### 8.1. `Stream.filter` trước `groupingBy`
+### 8.1. `Stream.filter` before `groupingBy`
 
 ```java
 var filteredBeforeGrouping = OrderAggregationDemo.sample().stream()
@@ -504,11 +504,11 @@ var filteredBeforeGrouping = OrderAggregationDemo.sample().stream()
 System.out.println(filteredBeforeGrouping.containsKey("DN")); // false
 ```
 
-Vùng DN chỉ có đơn chưa thanh toán. Khi lọc trước grouping, **không còn phần tử DN** để tạo nhóm.
+Region DN only has unpaid orders. When filtering before grouping, **no DN elements remain** to create a group.
 
-### 8.2. `Collectors.filtering` làm downstream
+### 8.2. `Collectors.filtering` as a downstream
 
-`Collectors.filtering` có từ **JDK 9**:
+`Collectors.filtering` has been available since **JDK 9**:
 
 ```java
 import java.util.LongSummaryStatistics;
@@ -532,18 +532,18 @@ System.out.println(withEmptyGroups.get("DN").getCount()); // 0
 System.out.println(withEmptyGroups.get("DN").getSum());   // 0
 ```
 
-Collector ngoài vẫn nhìn thấy đơn DN và tạo **khóa nhóm DN**; downstream `filtering` loại phần tử đó trước khi tính thống kê, tạo kết quả có `count == 0`. Vì vậy:
+The outer collector still sees the DN order and creates the **DN group key**; the downstream `filtering` rejects that element before computing statistics, producing a result with `count == 0`. Thus:
 
-- **Lọc trước nhóm:** chỉ có khóa của các phần tử đã lọc.
-- **Lọc trong downstream:** các khóa của nguồn trước lọc vẫn có thể tồn tại, với bộ thống kê rỗng.
+- **Filter before grouping:** only keys of filtered elements exist.
+- **Filter in downstream:** keys from the unfiltered source can still exist, with empty statistics.
 
-Nếu tất cả đơn của một vùng đều bị downstream loại, `getAverage() == 0.0` chỉ là giá trị trả về trên thống kê không có mẫu; **không** được báo cáo là doanh thu trung bình thực bằng 0.
+If all orders in a region are filtered out by the downstream, `getAverage() == 0.0` is merely the return value of a statistics object with no samples; it must **not** be reported as a true average revenue of 0.
 
-## 9. Giữ trạng thái “không có mẫu” bằng `collectingAndThen`
+## 9. Preserving the “no samples” state with `collectingAndThen`
 
-Nếu một API cần phân biệt “trung bình bằng 0” và “không có dữ liệu”, `Collectors.averaging*` không đủ thông tin khi đứng một mình. Có thể dùng `summarizing*` rồi chuyển `count == 0` thành một kết quả tùy chọn.
+If an API needs to distinguish “average is 0” from “no data”, `Collectors.averaging*` does not carry enough information on its own. You can use `summarizing*` and then transform `count == 0` into an optional result.
 
-`Collectors.collectingAndThen` nhận downstream collector và một finisher để biến kết quả downstream thành kiểu công khai mong muốn:
+`Collectors.collectingAndThen` takes a downstream collector and a finisher to transform the downstream result into the desired public type:
 
 ```java
 import java.util.OptionalDouble;
@@ -562,7 +562,7 @@ static <T> Collector<T, ?, OptionalDouble> optionalAverageLong(
 }
 ```
 
-Ví dụ dùng trên `Order`:
+Usage example with `Order`:
 
 ```java
 import java.util.OptionalDouble;
@@ -584,7 +584,7 @@ OptionalDouble missing = java.util.stream.Stream
 System.out.println(missing.isEmpty()); // true
 ```
 
-Đây là một ví dụ về **composed collector**:
+This is an example of a **composed collector**:
 
 ```text
 Order
@@ -594,9 +594,9 @@ Order
                                        └─ count > 0: OptionalDouble.of(avg)
 ```
 
-**Lưu ý:** `OptionalDouble` giải quyết **có/không có mẫu** nhưng không biến số `double` thành kiểu tính tiền chính xác. Nếu doanh thu phải đảm bảo số thập phân tuyệt đối theo quy tắc tài chính, xem mục 11.
+**Note:** `OptionalDouble` solves **sample presence/absence** but does not turn `double` into an exact monetary type. If revenue must preserve absolute decimal accuracy under financial rules, see section 11.
 
-Nếu đầu vào đã là một primitive stream, `LongStream.average()` trả `OptionalDouble` trực tiếp:
+If the input is already a primitive stream, `LongStream.average()` returns `OptionalDouble` directly:
 
 ```java
 OptionalDouble direct = OrderAggregationDemo.sample().stream()
@@ -605,11 +605,11 @@ OptionalDouble direct = OrderAggregationDemo.sample().stream()
     .average();
 ```
 
-Chọn giữa cách này và composed collector dựa trên mục tiêu: primitive terminal thích hợp cho **một thống kê của toàn luồng**; composed collector phù hợp khi cần kết hợp với `groupingBy` hoặc một bước hoàn thiện riêng.
+Choose between this and a composed collector based on your goal: a primitive terminal operation is suitable for **a single statistic of the whole stream**; a composed collector is suitable when composing with `groupingBy` or a custom finishing step.
 
-## 10. Biến bộ thống kê mutable thành kết quả bất biến
+## 10. Turning mutable statistics into an immutable result
 
-Các lớp `*SummaryStatistics` cho phép cập nhật sau khi thu thập. Để trả báo cáo bất biến, có thể dùng một `record` và `collectingAndThen`.
+`*SummaryStatistics` classes allow mutation after collection. To return an immutable report, you can use a `record` and `collectingAndThen`.
 
 ```java
 import java.util.OptionalLong;
@@ -644,11 +644,11 @@ static <T> Collector<T, ?, AmountReport> amountReport(
 }
 ```
 
-`AmountReport` có các trường giá trị bất biến, vì vậy caller không thể tiếp tục gọi `accept` hay `combine` để sửa thống kê đã công bố.
+`AmountReport` has immutable value fields, so callers cannot subsequently invoke `accept` or `combine` to alter published statistics.
 
-Lưu ý rằng record chỉ bảo đảm các **tham chiếu trường** là final; nếu một trường trỏ tới collection mutable thì record đó chưa chắc bất biến sâu. Ví dụ trên dùng primitive và các Optional nên không có vấn đề đó.
+Note that a record only guarantees that its **field references** are final; if a field points to a mutable collection, the record is not necessarily deeply immutable. The example above uses primitives and Optionals, so it does not have that issue.
 
-Sử dụng:
+Usage:
 
 ```java
 AmountReport report = OrderAggregationDemo.sample().stream()
@@ -663,13 +663,13 @@ System.out.println(report.minVnd().orElseThrow()); // 60000
 System.out.println(report.averageVnd().orElseThrow()); // 105000.0
 ```
 
-Nếu một nhóm không có mẫu, `AmountReport` thể hiện điều đó qua `count == 0` và các Optional rỗng, thay vì đưa `Long.MAX_VALUE` hay `Long.MIN_VALUE` vào JSON hoặc bảng báo cáo.
+If a group has no samples, `AmountReport` expresses this via `count == 0` and empty Optionals, instead of leaking `Long.MAX_VALUE` or `Long.MIN_VALUE` into JSON or report tables.
 
-## 11. Sai số số thực, tràn số và tính đúng đắn của trung bình
+## 11. Floating-point error, overflow, and correctness of averages
 
-### 11.1. Số nguyên cũng có thể tràn khi cộng
+### 11.1. Integers can also overflow when summed
 
-`summarizingInt` lưu tổng ở kiểu `long`, nhưng `summarizingLong` lưu tổng ở kiểu `long` và **có thể tràn**. Các collector `summingLong`/`averagingLong` cũng không cung cấp bảo đảm tự ném lỗi khi cộng vượt phạm vi `long`.
+`summarizingInt` stores the sum as `long`, whereas `summarizingLong` stores the sum as `long` and **can overflow**. `summingLong`/`averagingLong` also provide no guarantee of throwing an error automatically when addition exceeds the `long` range.
 
 ```java
 import java.util.List;
@@ -681,12 +681,12 @@ long wrapped = huge.stream()
     .collect(Collectors.summarizingLong(Long::longValue))
     .getSum();
 
-// Giá trị long đã tràn miền biểu diễn; không dùng cho thống kê tài chính.
+// The long value has overflowed its range; do not use for financial statistics.
 ```
 
-Nếu cần chính xác tuyệt đối, không tính tiền lớn bằng một accumulator có tổng `long` không kiểm soát tràn. Có thể dùng `BigInteger` hoặc `BigDecimal` và chính sách làm tròn.
+If absolute accuracy is required, do not compute large monetary amounts using an accumulator with an unchecked `long` sum. Use `BigInteger` or `BigDecimal` with an explicit rounding policy.
 
-Ví dụ tổng số tiền nguyên VND bằng `BigInteger`, dùng downstream `reducing`:
+Example of summing integer VND amounts using `BigInteger` with downstream `reducing`:
 
 ```java
 import java.math.BigInteger;
@@ -708,7 +708,7 @@ Map<String, BigInteger> exactByRegion =
 System.out.println(exactByRegion.get("HN")); // 180000
 ```
 
-Đối với **trung bình tiền tệ**, phép chia có thể không có biểu diễn thập phân hữu hạn. Vì vậy nên quy định `scale` và `RoundingMode`, thay vì chuyển ngay sang `double`:
+For **monetary averages**, division may not have a finite decimal representation. Therefore, specify `scale` and `RoundingMode` instead of immediately converting to `double`:
 
 ```java
 import java.math.BigDecimal;
@@ -728,19 +728,19 @@ BigDecimal exactRoundedAverage =
 System.out.println(exactRoundedAverage); // 3.33
 ```
 
-Chỉ dùng ví dụ khi nghiệp vụ cho phép hai chữ số thập phân và quy tắc `HALF_UP`. Với dữ liệu thực, phải lấy đúng `sum` và `count` từ cùng tập bản ghi; dùng hai pipeline trên nguồn có trạng thái thay đổi có thể dẫn đến kết quả không nhất quán.
+Use this pattern only when business rules allow two decimal places and `HALF_UP` rounding. With real data, ensure `sum` and `count` come from the exact same set of records; running two pipelines over a mutable source can yield inconsistent results.
 
-### 11.2. `double` không kết hợp chính xác về mặt bit
+### 11.2. `double` is not bit-exact associative
 
-Với `double`, phép cộng không bảo đảm:
+With `double`, addition does not guarantee:
 
 ```text
 (a + b) + c == a + (b + c)
 ```
 
-vì sai số làm tròn. Một phép thu thập song song có thể gộp các tổng cục bộ theo thứ tự khác, làm chữ số cuối của `average` hoặc `sum` thay đổi. Javadoc cũng lưu ý thứ tự đầu vào và thứ tự cộng có thể ảnh hưởng độ chính xác của `averagingDouble` và `summarizingDouble`.
+due to rounding error. A parallel collection may combine partial sums in a different order, changing the last digits of `average` or `sum`. The Javadoc also notes that input order and addition order can affect the precision of `averagingDouble` and `summarizingDouble`.
 
-Ví dụ minh họa mất độ chính xác:
+Example illustrating loss of precision:
 
 ```java
 double a = 1.0e16;
@@ -748,17 +748,17 @@ double b = 1.0;
 double c = -1.0e16;
 
 System.out.println((a + b) + c); // 0.0
-System.out.println(a + (b + c)); // 0.0 trong trường hợp này
+System.out.println(a + (b + c)); // 0.0 in this case
 
-// Xét phép nhóm khác:
+// Consider a different grouping:
 System.out.println((a + c) + b); // 1.0
 ```
 
-Không viết unit test đòi kết quả dấu phẩy động của collector song song phải **bằng bit** với kết quả tuần tự nếu không có hợp đồng đảm bảo. Nên dùng sai số dung sai phù hợp, hoặc một thuật toán cộng chính xác/ổn định hơn cho nghiệp vụ yêu cầu.
+Do not write unit tests requiring the floating-point result of a parallel collector to be **bit-for-bit identical** to the sequential result without a contract guaranteeing it. Use an appropriate tolerance delta, or a more accurate/stable summation algorithm when required by the domain.
 
-### 11.3. `NaN`, vô cực và dữ liệu đo không hợp lệ
+### 11.3. `NaN`, infinity, and invalid measurements
 
-`DoubleSummaryStatistics` có các quy tắc đặc biệt cho `NaN` và vô cực. Nếu bất kỳ mẫu nào là `NaN`, các phép tính tổng/trung bình có thể thành `NaN`; kết quả min/max cũng chịu ảnh hưởng theo hợp đồng của lớp. Với `+Infinity` và `-Infinity` đồng thời, phép cộng cho `NaN`.
+`DoubleSummaryStatistics` has special rules for `NaN` and infinity. If any sample is `NaN`, sum/average calculations can become `NaN`; min/max results are also affected per the class contract. With both `+Infinity` and `-Infinity`, addition yields `NaN`.
 
 ```java
 import java.util.DoubleSummaryStatistics;
@@ -771,24 +771,24 @@ DoubleSummaryStatistics stats = DoubleStream.of(
 System.out.println(Double.isNaN(stats.getAverage())); // true
 ```
 
-Nếu báo cáo chỉ cho phép số hữu hạn, kiểm tra ở **ranh giới dữ liệu** bằng `Double.isFinite(value)`. Có thể dùng `filter` để bỏ mẫu không hợp lệ nếu được nghiệp vụ cho phép; khi mẫu không hợp lệ biểu thị lỗi thiết bị hay lỗi nhập liệu, việc **ném lỗi hoặc ghi nhận lỗi riêng** thường đúng hơn việc âm thầm bỏ qua.
+If a report only allows finite numbers, validate at the **data boundary** using `Double.isFinite(value)`. You can use `filter` to drop invalid samples if permitted by business rules; when an invalid sample indicates a device or input error, **throwing an error or recording a separate error** is usually better than silently ignoring it.
 
-### 11.4. Tỷ lệ và trung bình có trọng số
+### 11.4. Ratios and weighted averages
 
-`averagingInt`/`averagingLong`/`averagingDouble` tính **trung bình cộng không trọng số**: mỗi phần tử stream đóng góp một mẫu. Nếu muốn doanh thu trung bình **mỗi sản phẩm** thì lấy trung bình giá trị của mỗi đơn là không đúng khi số lượng sản phẩm mỗi đơn khác nhau.
+`averagingInt`/`averagingLong`/`averagingDouble` compute an **unweighted arithmetic mean**: each stream element contributes one sample. If you want the average revenue **per item**, taking the average of each order's total value is incorrect when item quantities differ across orders.
 
-Với `quantity` là số sản phẩm và `amountVnd` là tổng tiền của đơn:
+With `quantity` as item count and `amountVnd` as the order's total amount:
 
 \[
-\text{Giá trị trung bình/sản phẩm}
+\text{Average value/item}
 = \frac{\sum \text{amountVnd}}{\sum \text{quantity}}
 \]
 
-Hai mẫu có số lượng khác nhau phải có trọng số khác nhau. Hãy dùng một phép tích lũy cho cả tử số và mẫu số (ví dụ collector tùy chỉnh, `teeing` hoặc mô hình thống kê phù hợp) và xử lý trường hợp mẫu số bằng 0. Không cố gắng ép một bài toán trung bình có trọng số vào `averagingLong(Order::amountVnd)`.
+Samples with different quantities must carry different weights. Use an accumulation that tracks both numerator and denominator (for example, a custom collector, `teeing`, or an appropriate statistical model) and handle the case where the denominator is 0. Do not try to force a weighted average problem into `averagingLong(Order::amountVnd)`.
 
-## 12. Lựa chọn giữa collector và terminal operation của primitive stream
+## 12. Choosing between collectors and primitive stream terminal operations
 
-Nếu chỉ cần **một số đo của cả luồng**, primitive stream đôi khi ngắn gọn và tránh boxing:
+If you only need **one metric for the whole stream**, primitive streams are sometimes more concise and avoid boxing:
 
 ```java
 import java.util.IntSummaryStatistics;
@@ -807,23 +807,23 @@ IntSummaryStatistics stats = source.stream()
     .summaryStatistics();
 ```
 
-So sánh:
+Comparison:
 
-| Bài toán | API tự nhiên |
+| Problem | Natural API |
 | --- | --- |
-| Một số trung bình trên `Stream<Order>` | `collect(averagingInt/Long/Double(mapper))` |
-| Một bộ thống kê trên `Stream<Order>` | `collect(summarizingInt/Long/Double(mapper))` |
-| Trung bình toàn bộ `IntStream` | `IntStream.average()` → `OptionalDouble` |
-| Bộ thống kê toàn bộ `LongStream` | `LongStream.summaryStatistics()` |
-| Trung bình theo từng khóa của `Stream<Order>` | `groupingBy(key, averaging*)` |
-| Bộ thống kê theo từng khóa | `groupingBy(key, summarizing*)` |
-| Trung bình phải phân biệt nguồn rỗng trong grouping | `collectingAndThen(summarizing*, finisher)` làm downstream |
+| Single average on `Stream<Order>` | `collect(averagingInt/Long/Double(mapper))` |
+| Single summary statistics on `Stream<Order>` | `collect(summarizingInt/Long/Double(mapper))` |
+| Average of an entire `IntStream` | `IntStream.average()` → `OptionalDouble` |
+| Summary statistics of an entire `LongStream` | `LongStream.summaryStatistics()` |
+| Average per key of `Stream<Order>` | `groupingBy(key, averaging*)` |
+| Summary statistics per key | `groupingBy(key, summarizing*)` |
+| Average that distinguishes empty sources inside grouping | `collectingAndThen(summarizing*, finisher)` as downstream |
 
-`IntStream`, `LongStream`, `DoubleStream` có những terminal operation chuyên biệt, nhưng **không** hỗ trợ `collect(Collector<T,A,R>)` giống object stream. Nếu cần dùng `Collectors.groupingBy` cho dữ liệu nguyên thủy, bạn có thể chuyển sang object stream bằng `boxed()` hoặc `mapToObj(...)`, hoặc thiết kế một phép tổng hợp primitive phù hợp.
+`IntStream`, `LongStream`, and `DoubleStream` have specialized terminal operations, but **do not** support `collect(Collector<T,A,R>)` like object streams. If you need `Collectors.groupingBy` for primitive data, you can convert to an object stream via `boxed()` or `mapToObj(...)`, or design an appropriate primitive aggregation.
 
-## 13. Tính lười, side effect và hiệu năng xử lý song song
+## 13. Laziness, side effects, and parallel processing performance
 
-Các collector chỉ chạy khi `collect` tiêu thụ pipeline. `filter` và `map` phía trước vẫn là intermediate operation lazy.
+Collectors run only when `collect` consumes the pipeline. Preceding `filter` and `map` remain lazy intermediate operations.
 
 ```java
 import java.util.stream.Collectors;
@@ -837,14 +837,14 @@ double averageEven = IntStream.rangeClosed(1, 10)
 System.out.println(averageEven); // 6.0
 ```
 
-Đây là ví dụ đúng về ngữ nghĩa nhưng nếu chỉ cần trung bình, phiên bản `IntStream.filter(...).average()` trực tiếp hơn và tránh bước boxing sang `Integer`.
+This example is semantically correct, though if only the average is needed, `IntStream.filter(...).average()` is more direct and avoids boxing to `Integer`.
 
-### 13.1. Không đưa side effect vào mapper
+### 13.1. Do not put side effects inside the mapper
 
-Tránh dùng mapper `ToIntFunction` như cơ chế tăng bộ đếm bên ngoài:
+Avoid using a `ToIntFunction` mapper as a mechanism to increment an external counter:
 
 ```java
-// Phản ví dụ:
+// Anti-pattern:
 java.util.concurrent.atomic.AtomicInteger observed =
     new java.util.concurrent.atomic.AtomicInteger();
 
@@ -854,28 +854,28 @@ double wrongDesign = OrderAggregationDemo.sample().stream()
         return order.quantity();
     }));
 
-// observed không nên là một phần hợp đồng nghiệp vụ.
+// observed should not be part of the business contract.
 ```
 
-Mapper của stream nên **non-interfering** và **stateless**. `AtomicInteger` chỉ giải quyết vấn đề cập nhật đồng thời của biến đếm, không biến side effect trong mapper thành lựa chọn thiết kế đúng. Muốn biết số mẫu, dùng `summarizingInt(...).getCount()` thay vì viết side effect.
+Stream mappers should be **non-interfering** and **stateless**. `AtomicInteger` only solves concurrent updates to the counter variable; it does not turn side effects in a mapper into good design. To know the sample count, use `summarizingInt(...).getCount()` instead of writing side effects.
 
-### 13.2. Parallel stream không tự nhanh hơn
+### 13.2. Parallel streams are not automatically faster
 
-`groupingBy` cùng downstream `summarizing*` có thể chạy với stream song song: framework có thể tạo nhiều trạng thái thống kê rồi gộp chúng. Tuy nhiên:
+`groupingBy` with downstream `summarizing*` can run on a parallel stream: the framework can create multiple statistics states and merge them. However:
 
-- Chi phí phân chia và gộp tăng lên, nhất là khi số bản ghi ít hoặc có nhiều nhóm nhỏ.
-- Collector không nhất thiết `CONCURRENT`; cơ chế hợp lệ thường là mỗi nhánh tích lũy vào trạng thái riêng, rồi kết hợp.
-- Số học `double` có thể cho khác biệt do thứ tự gộp.
-- Nếu yêu cầu thứ tự đầu ra, hãy xem thêm encounter order và collector characteristics; bản đồ nhóm thông thường không cam kết thứ tự duyệt khóa.
-- Không chia sẻ cùng một `IntSummaryStatistics` mutable cho nhiều luồng tự gọi `accept` nếu không có cơ chế đồng bộ phù hợp.
+- Splitting and merging overhead increases, especially with few records or many small groups.
+- The collector is not necessarily `CONCURRENT`; the standard mechanism is for each branch to accumulate into its own state and then combine.
+- `double` arithmetic can yield differences due to merge order.
+- If output order is required, check encounter order and collector characteristics; standard grouped maps do not guarantee key iteration order.
+- Do not share the same mutable `IntSummaryStatistics` across multiple threads calling `accept` directly without proper synchronization.
 
-Đo bằng bộ dữ liệu đại diện trước khi thêm `parallel()`. Trên dữ liệu nhỏ, code tuần tự thường đơn giản hơn.
+Measure with representative datasets before adding `parallel()`. On small datasets, sequential code is usually simpler.
 
-### 13.3. Tài nguyên và bộ nhớ
+### 13.3. Resources and memory
 
-`summarizing` giữ trạng thái tương đối gọn (một số biến tổng, đếm, cực trị), không cần giữ tất cả phần tử như `toList()`. Tuy nhiên, `groupingBy` tạo bộ thống kê **cho từng khóa**, nên số nhóm lớn vẫn làm bộ nhớ tăng.
+`summarizing` keeps relatively compact state (a few variables for sum, count, and extrema), without holding every element like `toList()`. However, `groupingBy` creates a statistics object **for each key**, so a large number of keys still increases memory usage.
 
-Nếu nguồn là `Files.lines(path)` hoặc stream nắm tài nguyên I/O, phải đóng bằng `try-with-resources`:
+If the source is `Files.lines(path)` or a stream holding I/O resources, close it with `try-with-resources`:
 
 ```java
 import java.io.IOException;
@@ -895,27 +895,27 @@ static IntSummaryStatistics lineLengthStats(Path path)
 }
 ```
 
-Với file rỗng, `getCount() == 0`. Nếu truy cập file gặp lỗi, không được tùy tiện chuyển thành bộ thống kê rỗng rồi coi như “không có dữ liệu”; lỗi I/O và nguồn rỗng là hai trạng thái khác nhau.
+For an empty file, `getCount() == 0`. If file access fails, do not arbitrarily turn the failure into empty statistics and treat it as “no data”; an I/O error and an empty source are two different states.
 
-## 14. Các sai lầm phổ biến
+## 14. Common mistakes
 
-| Sai lầm | Vì sao nguy hiểm? | Cách xử lý |
+| Mistake | Why is it dangerous? | How to handle |
 | --- | --- | --- |
-| Xem `averaging*` trên rỗng trả `OptionalDouble.empty()` | Thực tế collector trả `0.0` | Dùng `summarizing*` + count hoặc primitive `average()` |
-| Đọc `getMin/getMax` khi `count == 0` như số thực tế | Các giá trị là sentinel | Kiểm tra `getCount() > 0` |
-| Dùng trung bình nhóm để suy ra trung bình chung mà không xét số mẫu | Trung bình nhóm có thể có trọng số khác nhau | Cộng tổng và số mẫu |
-| Dùng `summarizingLong` cho tổng tiền có thể vượt `long` | Tổng có thể tràn | `BigInteger`/`BigDecimal` hoặc cơ chế kiểm tra số học |
-| So sánh `double` bằng tuyệt đối ở mọi bài test | Sai số làm tròn phụ thuộc dữ liệu và thứ tự gộp | Sai số dung sai hoặc số học chính xác |
-| Giữ `NaN`/Infinity mà không có hợp đồng | Có thể làm hỏng tổng, min, max, average | Validate dữ liệu hoặc phân loại lỗi |
-| Gọi `average` khi yêu cầu trung bình có trọng số | Mỗi phần tử được tính một mẫu như nhau | Thiết kế tử số và mẫu số |
-| Thay `Stream.filter` bằng downstream `filtering` không suy xét | Thay đổi tập khóa của grouping | Chọn theo yêu cầu tồn tại nhóm rỗng |
-| Trả trực tiếp đối tượng `SummaryStatistics` nhưng giả định bất biến | Người gọi có thể `accept/combine` | Tạo DTO/record bất biến |
-| Chạy nhiều terminal operation trên cùng stream | Stream chỉ dùng một lần | Tạo stream mới hoặc dùng một collector tổng hợp |
-| Cho rằng `parallel` chắc chắn nhanh hơn | Có chi phí gộp và khác biệt dấu phẩy động | Benchmark và giữ mapper thuần |
+| Assuming `averaging*` on empty returns `OptionalDouble.empty()` | The collector actually returns `0.0` | Use `summarizing*` + count or primitive `average()` |
+| Reading `getMin/getMax` when `count == 0` as real numbers | The values are sentinels | Check `getCount() > 0` |
+| Using group averages to derive overall average without sample counts | Groups may have different weights | Add sums and sample counts |
+| Using `summarizingLong` for monetary totals that can exceed `long` | The sum can overflow | `BigInteger`/`BigDecimal` or arithmetic overflow checks |
+| Comparing `double` with exact equality in every test | Rounding error depends on data and combine order | Tolerance delta or exact arithmetic |
+| Keeping `NaN`/Infinity without a contract | Can corrupt sum, min, max, and average | Validate data or classify errors |
+| Calling `average` when a weighted average is needed | Each element is counted as an equal sample | Design numerator and denominator accumulation |
+| Replacing `Stream.filter` with downstream `filtering` unthinkingly | Changes the grouping key set | Choose based on whether empty groups should exist |
+| Returning raw `SummaryStatistics` assuming immutability | Callers can call `accept/combine` | Build an immutable DTO/record |
+| Running multiple terminal operations on the same stream | Streams are single-use | Create a new stream or use an aggregate collector |
+| Assuming `parallel` is always faster | Adds merge overhead and floating-point differences | Benchmark and keep mappers pure |
 
-## 15. Kiểm thử JUnit 5
+## 15. JUnit 5 tests
 
-Ví dụ dưới đây tham chiếu lớp `OrderAggregationDemo` từ mục 6. Đặt file test trong cùng package phù hợp với mã nguồn và khai báo JUnit Jupiter trong dự án.
+The example below references `OrderAggregationDemo` from section 6. Place the test file in the appropriate package alongside the source code and declare JUnit Jupiter in the project.
 
 ```java
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -1035,70 +1035,70 @@ class OrderAggregationDemoTest {
 }
 ```
 
-**Ma trận kiểm thử nên bổ sung:** nguồn rỗng, nguồn chỉ có một mẫu, mọi mẫu bằng `0`, chỉ có giá trị âm (nếu mô hình cho phép), min/max bằng nhau, giá trị ở sát giới hạn kiểu số, thiếu khóa nhóm, mapper gặp `null`, giá trị `NaN` và vô cực, dữ liệu song song lớn, sai số trung bình và phép gộp có trọng số.
+**Test matrix to add:** empty source, single-sample source, all samples equal to `0`, negative-only values (if the domain allows), equal min/max, values near numeric type bounds, missing group keys, mapper encountering `null`, `NaN` and infinity values, large parallel datasets, average precision, and weighted combination.
 
-## 16. Bài tập tự luyện
+## 16. Practice exercises
 
-### Bài 1 — So sánh `averagingInt` và `summarizingInt`
+### Exercise 1 — Comparing `averagingInt` and `summarizingInt`
 
-Cho `List<Integer> values = List.of(1, 3, 5, 7)`. Viết hai pipeline:
+Given `List<Integer> values = List.of(1, 3, 5, 7)`. Write two pipelines:
 
-1. Lấy một giá trị trung bình bằng `Collectors.averagingInt`.
-2. Lấy `IntSummaryStatistics` rồi in `count`, `sum`, `min`, `max`, `average`.
+1. Obtain a single average using `Collectors.averagingInt`.
+2. Obtain `IntSummaryStatistics` and print `count`, `sum`, `min`, `max`, and `average`.
 
-Giải thích vì sao cả hai trung bình bằng `4.0` nhưng kiểu kết quả khác nhau.
+Explain why both averages equal `4.0` while their result types differ.
 
-### Bài 2 — Nguồn rỗng và `OptionalDouble`
+### Exercise 2 — Empty source and `OptionalDouble`
 
-Với `List<Integer> empty = List.of()`, đối chiếu:
+Given `List<Integer> empty = List.of()`, contrast:
 
 ```java
 empty.stream().collect(Collectors.averagingInt(Integer::intValue))
 empty.stream().mapToInt(Integer::intValue).average()
 ```
 
-Giải thích tại sao kết quả thứ nhất là `0.0` và kết quả thứ hai là `OptionalDouble.empty()`. Đề xuất kiểu trả về cho API mà số `0` cũng là một giá trị trung bình hợp lệ.
+Explain why the first result is `0.0` and the second result is `OptionalDouble.empty()`. Propose a return type for an API where `0` is also a valid average value.
 
-### Bài 3 — Thống kê theo nhóm
+### Exercise 3 — Statistics by group
 
-Cho danh sách sản phẩm có `category` và `price`. Dùng `groupingBy(category, summarizingLong(price))` để trả `Map<String,LongSummaryStatistics>`. Viết test cho hai nhóm có giá trị và một nhóm bị loại hết sau `Stream.filter`.
+Given a list of products with `category` and `price`, use `groupingBy(category, summarizingLong(price))` to return `Map<String,LongSummaryStatistics>`. Write tests for two groups with values and one group completely eliminated after `Stream.filter`.
 
-### Bài 4 — Khác nhau giữa hai cách lọc
+### Exercise 4 — Difference between two filtering approaches
 
-Từ `OrderAggregationDemo.sample()`, dùng `Stream.filter(Order::paid)` trước grouping, rồi dùng downstream `Collectors.filtering(Order::paid, summarizingLong(...))`. Kiểm tra sự khác nhau về việc vùng DN có khóa trong map hay không.
+From `OrderAggregationDemo.sample()`, use `Stream.filter(Order::paid)` before grouping, then use downstream `Collectors.filtering(Order::paid, summarizingLong(...))`. Verify the difference in whether region DN has a key in the map.
 
-### Bài 5 — Trung bình có trọng số
+### Exercise 5 — Weighted average
 
-Định nghĩa `record Item(int quantity, long totalVnd) {}`. Với `[Item(1,100), Item(3,900)]`:
+Define `record Item(int quantity, long totalVnd) {}`. With `[Item(1,100), Item(3,900)]`:
 
-- Trung bình của `totalVnd` **theo bản ghi** là `(100+900)/2 = 500`.
-- Giá trị trung bình **trên mỗi sản phẩm** là `(100+900)/(1+3) = 250`.
+- The average of `totalVnd` **per record** is `(100+900)/2 = 500`.
+- The average value **per item** is `(100+900)/(1+3) = 250`.
 
-Hãy thiết kế phép tích lũy đúng cho kết quả thứ hai và xử lý nguồn có tổng `quantity == 0`. Đừng dùng `averagingLong(Item::totalVnd)` cho câu hỏi “mỗi sản phẩm”.
+Design the correct accumulation for the second result and handle a source whose total `quantity == 0`. Do not use `averagingLong(Item::totalVnd)` for the “per item” question.
 
-### Bài 6 — Số tiền lớn
+### Exercise 6 — Large monetary amounts
 
-Cho số tiền `Long.MAX_VALUE` và `1`. Giải thích vì sao `summarizingLong` không phù hợp nếu báo cáo yêu cầu tổng chính xác tuyệt đối. Viết phiên bản dùng `BigInteger` để tổng không tràn; sau đó dùng `BigDecimal.divide` với `RoundingMode` để trình bày trung bình.
+Given amounts `Long.MAX_VALUE` and `1`, explain why `summarizingLong` is unsuitable if the report requires an exact total. Write a version using `BigInteger` so the sum does not overflow; then use `BigDecimal.divide` with `RoundingMode` to present the average.
 
-### Bài 7 — Bất biến và tài nguyên
+### Exercise 7 — Immutability and resources
 
-Viết một collector gồm `summarizingInt(String::length)` rồi `collectingAndThen` thành `record LengthReport(long count, long sum, OptionalInt min, OptionalInt max)`. Với file đọc bằng `Files.lines`, dùng `try-with-resources`. Phân biệt trường hợp file rỗng với trường hợp file không tồn tại.
+Write a collector combining `summarizingInt(String::length)` and `collectingAndThen` into `record LengthReport(long count, long sum, OptionalInt min, OptionalInt max)`. For a file read with `Files.lines`, use `try-with-resources`. Distinguish the empty-file case from the missing-file case.
 
-## 17. Bảng quyết định khi tổng hợp bằng collector
+## 17. Decision table for collector aggregation
 
-| Yêu cầu | Lựa chọn |
+| Requirement | Choice |
 | --- | --- |
-| Cần trung bình của một thuộc tính trên object stream | `averagingInt/Long/Double(mapper)` |
-| Cần count, sum, min, max, average trong một lượt | `summarizingInt/Long/Double(mapper)` |
-| Cần các số đo theo từng khóa | `groupingBy(key, summarizing*)` |
-| Chỉ cần trung bình theo từng khóa | `groupingBy(key, averaging*)` |
-| Cần giữ khóa nhóm dù phần tử không qua điều kiện downstream | `groupingBy(key, filtering(predicate, summarizing*))` |
-| Cần phân biệt không có mẫu và trung bình bằng 0 | `getCount()` hoặc `OptionalDouble` từ finisher |
-| Cần trả DTO bất biến | `collectingAndThen(summarizing*, stats -> new Report(...))` |
-| Cần tính trung bình trực tiếp trên primitive stream | `IntStream/LongStream/DoubleStream.average()` |
-| Cần tổng tiền chính xác vượt `long` | `BigInteger`/`BigDecimal` và quy tắc chia/làm tròn |
-| Có `NaN` hoặc vô cực trong dữ liệu đo | Validate hoặc quy định chính sách rõ ràng |
-| Cần trung bình có trọng số | Tích lũy tổng có trọng số và tổng trọng số |
-| Muốn tăng tốc bằng `parallel()` | Giữ mapper thuần, hiểu combiner, đo hiệu năng và dung sai số thực |
+| Need average of a property on an object stream | `averagingInt/Long/Double(mapper)` |
+| Need count, sum, min, max, average in one pass | `summarizingInt/Long/Double(mapper)` |
+| Need metrics per key | `groupingBy(key, summarizing*)` |
+| Only need average per key | `groupingBy(key, averaging*)` |
+| Need to keep group key even if elements fail downstream predicate | `groupingBy(key, filtering(predicate, summarizing*))` |
+| Need to distinguish no samples from average equal to 0 | `getCount()` or `OptionalDouble` from finisher |
+| Need to return an immutable DTO | `collectingAndThen(summarizing*, stats -> new Report(...))` |
+| Need to compute average directly on a primitive stream | `IntStream/LongStream/DoubleStream.average()` |
+| Need exact monetary sum exceeding `long` | `BigInteger`/`BigDecimal` and division/rounding rules |
+| `NaN` or infinity exists in measurement data | Validate or establish a clear policy |
+| Need a weighted average | Accumulate weighted sum and sum of weights |
+| Want speedup via `parallel()` | Keep mapper pure, understand combiner, benchmark and allow float tolerance |
 
-`averaging*` và `summarizing*` là hai nhóm collector bổ trợ nhau trong Java Stream API. **`averaging` tạo một số trung bình**, còn **`summarizing` giữ đủ thông tin về số lượng, tổng và cực trị** để đưa ra báo cáo đáng tin hơn. Khi kết hợp chúng với `groupingBy`, `filtering` và `collectingAndThen`, hãy đặc biệt chú ý khác biệt giữa **không có mẫu** và **mẫu bằng 0**, giới hạn miền số, độ chính xác của `double`, tính mutable của thống kê và chi phí khi gộp kết quả song song.
+`averaging*` and `summarizing*` are two complementary collector families in the Java Stream API. **`averaging` produces a single mean**, while **`summarizing` preserves enough information about count, sum, and extrema** to produce more reliable reports. When combining them with `groupingBy`, `filtering`, and `collectingAndThen`, pay close attention to the difference between **no samples** and **samples equal to 0**, numeric domain limits, `double` precision, statistics mutability, and parallel merge overhead.

@@ -1,40 +1,40 @@
-# Kết hợp nguồn vô hạn với limit, takeWhile và phép toán ngắn mạch
+# Combining Infinite Sources with limit, takeWhile, and Short-Circuiting Operations
 
-Một Stream **vô hạn** (*infinite stream*) có thể tiếp tục sinh phần tử mà không có điểm kết thúc tự nhiên. Java Stream API vẫn cho phép xử lý những nguồn như vậy nhờ cơ chế **đánh giá lười** (*lazy evaluation*): pipeline chỉ yêu cầu phần tử khi cần, và một số phép toán có thể dừng việc yêu cầu thêm dữ liệu sau khi đã đủ thông tin.
+An **infinite stream** can keep generating elements without a natural endpoint. The Java Stream API still allows processing such sources thanks to **lazy evaluation**: the pipeline only requests elements when needed, and certain operations can stop requesting additional data once enough information has been obtained.
 
-Bài học thuộc chương **Dãy số và Stream vô hạn** của module **JAVA_STREAM_API**. Đây là một ứng dụng quan trọng của mô hình xử lý dữ liệu khai báo bằng `filter`, `map`, `reduce` và `collect`: tạo một dãy theo quy tắc, giới hạn hoặc xác định điều kiện dừng, rồi lấy kết quả hữu hạn. Đồng thời, cần hiểu tác động của phép toán có trạng thái, xử lý song song, giới hạn tài nguyên và khả năng **không kết thúc** khi lựa chọn sai thứ tự pipeline.
+This lesson belongs to the **Sequences and Infinite Streams** chapter of the **JAVA_STREAM_API** module. This is a key application of the declarative data processing model with `filter`, `map`, `reduce`, and `collect`: generate a sequence according to a rule, limit it or define a stopping condition, and then obtain a finite result. At the same time, you must understand the impact of stateful operations, parallel processing, resource limits, and the possibility of **non-termination** when choosing the wrong pipeline order.
 
-## 1. Nguồn vô hạn thực chất hoạt động như thế nào?
+## 1. How Do Infinite Sources Actually Work?
 
-Trong Java, `Stream.iterate` và `Stream.generate` thường được dùng để mô tả nguồn có thể sinh phần tử không giới hạn:
+In Java, `Stream.iterate` and `Stream.generate` are commonly used to describe sources capable of generating unbounded elements:
 
 ```java
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-// Dãy 1, 2, 3, 4, ... (về ý tưởng không có điểm kết thúc).
+// The sequence 1, 2, 3, 4, ... (conceptually has no endpoint).
 IntStream naturals = IntStream.iterate(1, n -> n + 1);
 
-// Mỗi lần được yêu cầu sẽ lấy một giá trị từ Supplier.
+// Each time an element is requested, a value is pulled from the Supplier.
 Stream<String> repeated = Stream.generate(() -> "tick");
 ```
 
-Các lời gọi trên **không tạo sẵn một tập vô hạn phần tử trong bộ nhớ**. Chúng thiết lập một nguồn được duyệt theo nhu cầu. Khi gọi terminal operation, các phần tử mới được tính toán và truyền qua các bước trung gian.
+The calls above **do not pre-allocate an infinite set of elements in memory**. They set up a source that is traversed on demand. When a terminal operation is invoked, elements are computed and passed through intermediate steps.
 
-`Stream.iterate(seed, next)` (Java 8+) tạo Stream **tuần tự, có encounter order**, bắt đầu từ `seed`, rồi áp dụng hàm `next` để tính phần tử tiếp theo. `Stream.generate(supplier)` (Java 8+) tạo Stream **tuần tự, không có encounter order được bảo đảm**, gọi `supplier` để cung cấp phần tử theo nhu cầu.
+`Stream.iterate(seed, next)` (Java 8+) creates a **sequential stream with an encounter order**, starting from `seed`, and applies `next` to compute the subsequent element. `Stream.generate(supplier)` (Java 8+) creates a **sequential stream with no guaranteed encounter order**, calling `supplier` to supply elements on demand.
 
-| Cách tạo | Quy tắc tạo phần tử | Tính thứ tự | Trường hợp phù hợp |
+| Creation approach | Element generation rule | Ordering | Suitable cases |
 | --- | --- | --- | --- |
-| `IntStream.iterate(1, n -> n + 1)` | Mỗi phần tử kế tiếp dựa trên phần tử trước | Có encounter order | Dãy chỉ số, số thứ tự, cấp số cộng |
-| `Stream.iterate(seed, next)` | Phát triển trạng thái từ giá trị trước | Có encounter order | Dãy ngày, trạng thái bất biến, cấp số nhân |
-| `Stream.generate(supplier)` | Supplier được gọi mỗi khi cần phần tử | Không có encounter order được bảo đảm | Tạo mẫu độc lập, sinh dữ liệu thử nghiệm |
-| `Stream.iterate(seed, hasNext, next)` | Chỉ tiếp tục khi `hasNext` đúng | Có encounter order | Dãy có điều kiện dừng ngay tại nguồn (Java 9+) |
+| `IntStream.iterate(1, n -> n + 1)` | Each next element is based on the previous one | Has encounter order | Index sequences, ordinals, arithmetic progressions |
+| `Stream.iterate(seed, next)` | Evolves state from the previous value | Has encounter order | Date sequences, immutable states, geometric progressions |
+| `Stream.generate(supplier)` | Supplier is called whenever an element is needed | No guaranteed encounter order | Independent sample generation, test data generation |
+| `Stream.iterate(seed, hasNext, next)` | Only continues while `hasNext` is true | Has encounter order | Sequences with a stopping condition right at the source (Java 9+) |
 
-> **“Vô hạn” ở đây chỉ cách xây nguồn, không khẳng định chương trình thực tế chạy mãi.** Ví dụ `IntStream.iterate(1, n -> n + 1)` sử dụng `int`, nên nếu duyệt quá dài thì số nguyên có thể tràn. Khi cần dãy số lớn thực sự tăng mãi, hãy cân nhắc `BigInteger` hoặc miền dữ liệu phù hợp.
+> **"Infinite" here describes how the source is constructed, not a claim that a real program runs forever.** For example, `IntStream.iterate(1, n -> n + 1)` uses `int`, so if traversed too far the integer can overflow. When you need a large sequence that truly keeps growing, consider `BigInteger` or an appropriate data domain.
 
-## 2. limit(n): chỉ lấy tối đa n phần tử
+## 2. limit(n): Taking at Most n Elements
 
-`limit(long maxSize)` là **phép toán trung gian có khả năng ngắn mạch** (*short-circuiting intermediate operation*). Nó chỉ cho tối đa `maxSize` phần tử đi tiếp từ vị trí được đặt trong pipeline.
+`limit(long maxSize)` is a **short-circuiting intermediate operation**. It allows at most `maxSize` elements to proceed past the point where it is placed in the pipeline.
 
 ```java
 import java.util.List;
@@ -49,18 +49,18 @@ List<Integer> firstFive = IntStream.iterate(1, n -> n + 1)
 System.out.println(firstFive); // [1, 2, 3, 4, 5]
 ```
 
-Trình tự:
+Sequence of steps:
 
-1. `iterate` mô tả nguồn có thể sinh liên tiếp các số.
-2. `limit(5)` chỉ cho năm số đi qua và không yêu cầu số thứ sáu.
-3. `boxed()` chuyển các giá trị `int` thành `Integer`.
-4. `collect` tiêu thụ năm giá trị đó để tạo `List`.
+1. `iterate` describes a source capable of generating consecutive numbers.
+2. `limit(5)` lets only five numbers pass through and does not request the sixth.
+3. `boxed()` converts primitive `int` values to `Integer`.
+4. `collect` consumes those five values to build a `List`.
 
-`limit(0)` tạo pipeline không có phần tử đầu ra; `limit` với đối số âm ném `IllegalArgumentException`. Phép toán chỉ giới hạn **số phần tử đi qua nó**, không đặt giới hạn trực tiếp cho số lần đánh giá các bước trước.
+`limit(0)` creates a pipeline with no output elements; `limit` with a negative argument throws `IllegalArgumentException`. The operation only limits **the number of elements passing through it**, without directly placing a cap on how many times preceding steps are evaluated.
 
-### Vị trí limit thay đổi kết quả
+### The Position of limit Changes the Result
 
-Giả sử ta muốn lấy ba số chẵn đầu tiên từ dãy tự nhiên:
+Suppose we want the first three even numbers from the natural numbers:
 
 ```java
 List<Integer> firstThreeEven = IntStream.iterate(1, n -> n + 1)
@@ -71,7 +71,7 @@ List<Integer> firstThreeEven = IntStream.iterate(1, n -> n + 1)
 // [2, 4, 6]
 ```
 
-Pipeline phải xem lần lượt `1` đến `6` để tìm được ba số chẵn. Nếu chuyển `limit` lên trước:
+The pipeline must examine `1` through `6` in sequence to find three even numbers. If you move `limit` earlier:
 
 ```java
 List<Integer> evenAmongFirstThree = IntStream.iterate(1, n -> n + 1)
@@ -82,25 +82,25 @@ List<Integer> evenAmongFirstThree = IntStream.iterate(1, n -> n + 1)
 // [2]
 ```
 
-Biểu thức thứ hai chỉ xét **ba số đầu tiên của nguồn**, sau đó mới lọc. Cả hai đều kết thúc, nhưng trả lời hai câu hỏi khác nhau.
+The second expression only inspects **the first three numbers from the source**, and then filters. Both terminate, but they answer two different questions.
 
-### Có limit vẫn có thể không kết thúc
+### Even with limit, It Can Still Fail to Terminate
 
-`limit(3)` không bảo đảm thành công nếu **bước trước nó không bao giờ cung cấp đủ ba phần tử**:
+`limit(3)` does not guarantee completion if **the preceding step never supplies three elements**:
 
 ```java
-// KHÔNG CHẠY: không có số âm nào trong dãy BigInteger dương này.
+// DO NOT RUN: there are no negative numbers in this positive BigInteger sequence.
 // Stream.iterate(BigInteger.ONE, n -> n.add(BigInteger.ONE))
 //     .filter(n -> n.signum() < 0)
 //     .limit(3)
 //     .collect(Collectors.toList());
 ```
 
-`filter` ở đây sẽ tiếp tục tìm kiếm vô hạn vì không có phần tử nào vượt qua. Đây là quy tắc quan trọng nhất khi kết hợp nguồn vô hạn với phép toán trung gian: **phải bảo đảm có đường đi đến điểm dừng, bao gồm đủ phần tử hoặc một điều kiện kết thúc khác**.
+`filter` here will keep searching infinitely because no element gets through. This is the most important rule when combining an infinite source with intermediate operations: **you must ensure there is a path to termination, including enough matching elements or another termination condition**.
 
-## 3. takeWhile(predicate): lấy phần đầu liên tiếp thỏa điều kiện
+## 3. takeWhile(predicate): Taking the Contiguous Prefix Matching a Condition
 
-`takeWhile` được thêm từ **Java 9**. Với Stream **có encounter order**, nó cho ra *đoạn đầu dài nhất* gồm các phần tử liên tiếp thỏa predicate; ngay khi gặp phần tử đầu tiên không thỏa, nó ngừng lấy thêm phần tử của dãy theo cách duyệt tuần tự thông thường.
+`takeWhile` was added in **Java 9**. On a Stream **with an encounter order**, it yields the *longest contiguous prefix* of elements satisfying the predicate; as soon as it encounters the first element that fails, it stops taking further elements from the sequence under normal sequential traversal.
 
 ```java
 import java.util.stream.IntStream;
@@ -112,35 +112,35 @@ List<Integer> belowSix = IntStream.iterate(1, n -> n + 1)
 // [1, 2, 3, 4, 5]
 ```
 
-Nếu `predicate` sai ngay ở phần tử đầu tiên, kết quả rỗng. Nếu `predicate` luôn đúng trên một nguồn vô hạn, `takeWhile` không tạo được điểm dừng cho terminal cần tất cả phần tử.
+If `predicate` is false right at the first element, the result is empty. If `predicate` is always true on an infinite source, `takeWhile` cannot create a stopping point for a terminal operation that requires all elements.
 
-### takeWhile khác filter ở đâu?
+### How Does takeWhile Differ from filter?
 
-Cho dãy hữu hạn `[1, 2, 3, 4, 5, 6]`:
+Given the finite sequence `[1, 2, 3, 4, 5, 6]`:
 
 ```java
 List<Integer> prefix = IntStream.rangeClosed(1, 6)
     .takeWhile(n -> n % 2 != 0)
     .boxed()
     .collect(Collectors.toList());
-// [1] vì gặp số 2 thì dừng.
+// [1] because it stops when encountering 2.
 
 List<Integer> odds = IntStream.rangeClosed(1, 6)
     .filter(n -> n % 2 != 0)
     .boxed()
     .collect(Collectors.toList());
-// [1, 3, 5] vì filter xem toàn bộ nguồn.
+// [1, 3, 5] because filter inspects the entire source.
 ```
 
-| Phép toán | Trên nguồn có thứ tự | Ý nghĩa của điều kiện |
+| Operation | On an ordered source | Meaning of the condition |
 | --- | --- | --- |
-| `filter(p)` | Kiểm tra từng phần tử trong phần nguồn được tiêu thụ; loại phần tử không đạt | “Giữ mọi phần tử thỏa `p`” |
-| `takeWhile(p)` | Giữ đoạn đầu liên tiếp thỏa `p` và dừng tại lần sai đầu tiên | “Tiếp tục **chừng nào** `p` còn đúng” |
-| `limit(n)` | Giữ tối đa `n` phần tử tại vị trí đó | “Chỉ lấy `n` phần tử đầu tiên” |
+| `filter(p)` | Checks each element in the consumed source; discards non-matching elements | "Keep every element satisfying `p`" |
+| `takeWhile(p)` | Keeps the contiguous prefix satisfying `p` and stops at the first failure | "Continue **as long as** `p` holds" |
+| `limit(n)` | Keeps at most `n` elements at that position | "Take only the first `n` elements" |
 
-Vì vậy, `takeWhile(n -> n < 100)` trên dãy số **tăng dần** là một cách xác định ngưỡng dừng. Nếu dữ liệu dao động quanh ngưỡng, `takeWhile` dừng tại **lần vượt ngưỡng đầu tiên**, dù sau đó có thể lại xuất hiện giá trị hợp lệ. Với yêu cầu giữ mọi giá trị dưới ngưỡng, dùng `filter` và một điều kiện giới hạn phù hợp.
+Therefore, `takeWhile(n -> n < 100)` on a **monotonically increasing** sequence is a way to define a stopping threshold. If data fluctuates around the threshold, `takeWhile` stops at the **first threshold crossing**, even if valid values could appear later. To keep all values below the threshold, use `filter` along with an appropriate limiting condition.
 
-### Dùng BigInteger tránh tràn số trong dãy tăng
+### Using BigInteger to Avoid Overflow in Growing Sequences
 
 ```java
 import java.math.BigInteger;
@@ -157,11 +157,11 @@ System.out.println(powersOfTwo);
 // [1, 2, 4, 8, 16, 32, 64]
 ```
 
-Mỗi lần tạo phần tử, giá trị gấp đôi phần tử trước. Khi giá trị đạt `128`, predicate sai và pipeline có thứ tự dừng. `BigInteger` tránh được vấn đề tràn `int`/`long` trong ví dụ này, nhưng vẫn phải chú ý bộ nhớ nếu yêu cầu giá trị hoặc số lượng phần tử quá lớn.
+Each time an element is generated, the value doubles the previous one. When the value reaches `128`, the predicate becomes false and the ordered pipeline stops. `BigInteger` avoids `int`/`long` overflow in this example, though you must still watch memory if the requested values or element counts become too large.
 
-### Nguồn hữu hạn bằng iterate ba tham số
+### Finite Source Using Three-Argument iterate
 
-Java 9 còn hỗ trợ `Stream.iterate(seed, hasNext, next)` (và biến thể cho primitive Stream):
+Java 9 also supports `Stream.iterate(seed, hasNext, next)` (and primitive Stream variants):
 
 ```java
 List<Integer> values = IntStream
@@ -171,21 +171,21 @@ List<Integer> values = IntStream
 // [1, 2, 3, 4, 5]
 ```
 
-Điều kiện `hasNext` được kiểm tra trước khi phát phần tử tương ứng. Cách này diễn đạt điểm dừng ngay tại nguồn, hữu ích khi bản thân quy tắc sinh dãy đã có giới hạn. `takeWhile` lại hữu ích khi ta muốn **áp điều kiện dừng lên một Stream đã được xây dựng**.
+The `hasNext` condition is checked before emitting the corresponding element. This expresses the stopping point directly at the source, which is useful when the generation rule itself has a bound. `takeWhile`, on the other hand, is useful when you want to **apply a stopping condition to an already constructed Stream**.
 
-## 4. Phép toán ngắn mạch ở terminal operation
+## 4. Short-Circuiting Terminal Operations
 
-Ngoài `limit` và `takeWhile` ở nhóm **trung gian**, Java còn có các **terminal operation ngắn mạch**: chúng có thể xác định kết quả mà không cần xem hết nguồn.
+Beyond `limit` and `takeWhile` in the **intermediate** group, Java also has **short-circuiting terminal operations**: they can determine a result without examining the entire source.
 
-| Terminal | Dừng sớm khi nào? | Trên nguồn vô hạn |
+| Terminal | When does it stop early? | On an infinite source |
 | --- | --- | --- |
-| `findFirst()` | Đã tìm được phần tử đầu tiên theo encounter order (nếu có) | Có thể kết thúc nhanh nếu phần tử phù hợp xuất hiện. |
-| `findAny()` | Đã tìm được một phần tử bất kỳ | Thường phù hợp nếu không cần thứ tự, đặc biệt với parallel stream. |
-| `anyMatch(p)` | Gặp một phần tử thỏa `p` | Trả về `true` khi tìm được bằng chứng; nếu không có, có thể không dừng. |
-| `allMatch(p)` | Gặp một phần tử **không** thỏa `p` | Trả về `false` ngay khi có phản ví dụ; nếu tất cả đều thỏa, có thể không dừng. |
-| `noneMatch(p)` | Gặp một phần tử thỏa `p` | Trả về `false` ngay khi có phản ví dụ; nếu không phần tử nào thỏa, có thể không dừng. |
+| `findFirst()` | Once the first element in encounter order (if any) is found | Can terminate quickly if a matching element appears. |
+| `findAny()` | Once any element is found | Often suitable when order is not needed, especially with parallel streams. |
+| `anyMatch(p)` | Encounters an element satisfying `p` | Returns `true` when witness is found; if none exists, may not stop. |
+| `allMatch(p)` | Encounters an element **not** satisfying `p` | Returns `false` as soon as a counterexample is found; if all satisfy, may not stop. |
+| `noneMatch(p)` | Encounters an element satisfying `p` | Returns `false` as soon as a counterexample is found; if none satisfy, may not stop. |
 
-Ví dụ:
+Examples:
 
 ```java
 import java.util.stream.IntStream;
@@ -198,54 +198,54 @@ int firstMultipleOfSeven = IntStream.iterate(1, n -> n + 1)
 
 boolean hasMultipleOfEleven = IntStream.iterate(1, n -> n + 1)
     .anyMatch(n -> n % 11 == 0);
-// true: tìm thấy 11.
+// true: found 11.
 
 boolean allLessThanFive = IntStream.iterate(1, n -> n + 1)
     .allMatch(n -> n < 5);
-// false: gặp 5.
+// false: encountered 5.
 
 boolean noMultipleOfFour = IntStream.iterate(1, n -> n + 1)
     .noneMatch(n -> n % 4 == 0);
-// false: gặp 4.
+// false: encountered 4.
 ```
 
-Các ví dụ trên dùng Stream tuần tự để diễn giải số phần tử được kiểm tra. Khi xử lý song song, có thể có nhiều phần tử đang được xử lý trước khi tín hiệu ngắn mạch khiến công việc dừng lại.
+The examples above use sequential Streams to illustrate the number of elements inspected. When executing in parallel, multiple elements may be processed before the short-circuit signal halts the work.
 
-### Vì sao kết quả đúng không luôn đồng nghĩa sẽ kết thúc?
+### Why True Results Do Not Always Mean Termination?
 
-Xét `Stream.generate(() -> 1).allMatch(n -> n == 1)`. Tất cả phần tử mà chương trình gặp đều bằng `1`, nhưng trên nguồn vô hạn, không có thời điểm nào terminal có thể chứng minh **mọi** phần tử còn lại cũng thỏa chỉ bằng cách duyệt hết nguồn. Nó không có điều kiện dừng.
+Consider `Stream.generate(() -> 1).allMatch(n -> n == 1)`. Every element the program encounters equals `1`, yet on an infinite source there is never a point where the terminal can prove **all** remaining elements also satisfy it simply by exhausting the source. It has no stopping condition.
 
-Tương tự:
+Similarly:
 
-- `Stream.generate(() -> 1).anyMatch(n -> n == 2)` có thể chạy mãi vì không bao giờ gặp `2`.
-- `Stream.generate(() -> 1).noneMatch(n -> n == 2)` có thể chạy mãi vì không thể xác nhận đã hết phần tử.
-- `Stream.iterate(BigInteger.ONE, n -> n.add(BigInteger.ONE)).filter(n -> n.signum() < 0).findFirst()` không có phần tử phù hợp để trả về.
+- `Stream.generate(() -> 1).anyMatch(n -> n == 2)` can run forever because it never encounters `2`.
+- `Stream.generate(() -> 1).noneMatch(n -> n == 2)` can run forever because it cannot confirm there are no more elements.
+- `Stream.iterate(BigInteger.ONE, n -> n.add(BigInteger.ONE)).filter(n -> n.signum() < 0).findFirst()` has no matching element to return.
 
-Với Stream **rỗng**, các quy tắc ngắn mạch vẫn đúng: `anyMatch` trả về `false`, `allMatch` và `noneMatch` đều trả về `true` mà không gọi predicate. Đây là hệ quả logic của việc không có phần tử phản ví dụ.
+For an **empty** Stream, short-circuiting rules still hold: `anyMatch` returns `false`, while `allMatch` and `noneMatch` both return `true` without calling the predicate. This is a logical consequence of having no counterexample element.
 
-## 5. Thứ tự pipeline quyết định khả năng kết thúc
+## 5. Pipeline Order Determines Termination
 
-Một nguồn vô hạn thường an toàn để đưa vào terminal cần toàn bộ dữ liệu **chỉ sau khi pipeline đã trở thành hữu hạn**. Nhưng cần xét cả các bước đứng **trước** điểm giới hạn.
+An infinite source is generally safe to pass into a terminal operation needing all data **only after the pipeline has become finite**. However, you must also check steps placed **before** the limiting point.
 
-| Pipeline (bỏ qua cú pháp import) | Có kết thúc không? | Lý do |
+| Pipeline (omitting imports) | Does it terminate? | Reason |
 | --- | --- | --- |
-| `IntStream.iterate(1, n -> n + 1).limit(10).sum()` | Có | Chỉ mười phần tử được yêu cầu. |
-| `IntStream.iterate(1, n -> n + 1).filter(n -> n % 2 == 0).limit(10).sum()` | Có | Bộ lọc tìm được đủ mười số chẵn. |
-| `IntStream.iterate(1, n -> n + 1).takeWhile(n -> n <= 10).sum()` | Có | Điều kiện sai ở `11`. |
-| `Stream.generate(() -> 1).filter(n -> n == 2).limit(3).count()` | Không kết thúc theo cách đánh giá thông thường | Bộ lọc không phát ra phần tử nào, nên `limit` không đủ ba phần tử. |
-| `Stream.generate(() -> 1).distinct().limit(2).count()` | Không kết thúc theo cách đánh giá thông thường | Chỉ có một giá trị khác nhau, nên không thể tìm giá trị thứ hai. |
-| `IntStream.iterate(1, n -> n + 1).sorted().limit(3).boxed().collect(Collectors.toList())` | Không kết thúc theo cách đánh giá thông thường | `sorted` cần nhận hết nguồn trước khi phát giá trị đầu tiên. |
-| `IntStream.iterate(1, n -> n + 1).limit(3).sorted().boxed().collect(Collectors.toList())` | Có | `sorted` chỉ phải sắp xếp ba phần tử đầu. |
+| `IntStream.iterate(1, n -> n + 1).limit(10).sum()` | Yes | Only ten elements are requested. |
+| `IntStream.iterate(1, n -> n + 1).filter(n -> n % 2 == 0).limit(10).sum()` | Yes | The filter finds ten even numbers. |
+| `IntStream.iterate(1, n -> n + 1).takeWhile(n -> n <= 10).sum()` | Yes | Condition becomes false at `11`. |
+| `Stream.generate(() -> 1).filter(n -> n == 2).limit(3).count()` | Does not terminate under normal evaluation | Filter emits no elements, so `limit` never gets three elements. |
+| `Stream.generate(() -> 1).distinct().limit(2).count()` | Does not terminate under normal evaluation | Only one distinct value exists, so a second value can never be found. |
+| `IntStream.iterate(1, n -> n + 1).sorted().limit(3).boxed().collect(Collectors.toList())` | Does not terminate under normal evaluation | `sorted` needs to receive the entire source before emitting the first value. |
+| `IntStream.iterate(1, n -> n + 1).limit(3).sorted().boxed().collect(Collectors.toList())` | Yes | `sorted` only has to sort the first three elements. |
 
-> Các kết luận “không kết thúc” mô tả **ngữ nghĩa và cách đánh giá thông thường**, không tính đến việc chương trình bị ngắt, hết tài nguyên hoặc ngoại lệ như tràn số. Không nên đưa các pipeline được đánh dấu không kết thúc vào ứng dụng thực tế chỉ để kiểm tra.
+> "Does not terminate" conclusions describe **semantics and normal evaluation**, excluding external interruption, resource exhaustion, or exceptions like overflow. Do not put pipelines marked as non-terminating into production applications just to test them.
 
-`sorted` là phép toán trung gian **có trạng thái**, thường cần đệm toàn bộ đầu vào trước khi trả ra phần tử đã sắp xếp. Vì vậy, giới hạn sau `sorted` không cứu được pipeline sử dụng nguồn vô hạn. `distinct` cũng có trạng thái, nhưng có thể phát giá trị mới dần; nó chỉ kết thúc với `limit(k)` nếu thật sự gặp đủ `k` giá trị khác nhau.
+`sorted` is a **stateful** intermediate operation that usually needs to buffer the entire input before emitting sorted elements. Therefore, a limit after `sorted` cannot rescue a pipeline using an infinite source. `distinct` is also stateful, though it can emit new values incrementally; it only terminates with `limit(k)` if it actually encounters `k` distinct values.
 
-**Quy tắc thiết kế:** đặt bước giới hạn trước thao tác phải nhìn toàn bộ dữ liệu, nếu yêu cầu nghiệp vụ cho phép. Ví dụ “sắp xếp 100 phần tử đầu tiên” là `limit(100).sorted()`; còn “lấy 100 phần tử nhỏ nhất trong toàn bộ dãy vô hạn” thường không phải bài toán có thể giải bằng `sorted().limit(100)`.
+**Design rule:** place the limiting step before operations that must inspect all data, if business requirements allow. For example, "sort the first 100 elements" is `limit(100).sorted()`; whereas "get the 100 smallest elements of an arbitrary infinite sequence" is usually not a problem solvable by `sorted().limit(100)`.
 
-## 6. Kết hợp limit và takeWhile để có hai ranh giới
+## 6. Combining limit and takeWhile for Two Boundaries
 
-Trong thực tế có thể đặt **cả giới hạn số lượng và điều kiện giá trị**, giúp tránh việc thu thập dữ liệu quá nhiều nếu quy tắc sinh dãy thay đổi:
+In practice, you can impose **both a count limit and a value condition**, preventing excessive data collection if the sequence generation rule changes:
 
 ```java
 List<Integer> bounded = IntStream.iterate(1, n -> n + 1)
@@ -256,11 +256,11 @@ List<Integer> bounded = IntStream.iterate(1, n -> n + 1)
 // [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 ```
 
-Ở đây, `limit(10)` quyết định điểm kết thúc trước, nên pipeline không cần chờ `takeWhile` gặp `101`. Nếu đổi `limit(10)` thành `limit(200)`, `takeWhile` sẽ dừng tại `101` và kết quả chứa 100 số.
+Here, `limit(10)` determines the stopping point first, so the pipeline does not need to wait for `takeWhile` to reach `101`. If you change `limit(10)` to `limit(200)`, `takeWhile` will stop at `101` and the result will contain 100 numbers.
 
-Có thể đảo thứ tự hai phép toán trong một số bài toán đơn giản mà vẫn giữ kết quả, nhưng **không nên mặc định mọi phép toán trung gian có thể đổi chỗ**. Với `filter`, `sorted`, `skip` hoặc điều kiện có tác dụng phụ, ý nghĩa và chi phí có thể thay đổi rõ rệt.
+You can swap the order of these two operations in some simple problems and keep the same result, but **never assume all intermediate operations are commutative**. With `filter`, `sorted`, `skip`, or conditions with side effects, both semantics and cost can change significantly.
 
-Ví dụ thực tế: tạo dãy thời gian cách nhau 15 phút, chỉ lấy các mốc trước 12 giờ và tối đa sáu mốc:
+Practical example: generate a sequence of times spaced 15 minutes apart, taking only slots before noon and at most six slots:
 
 ```java
 import java.time.LocalTime;
@@ -277,41 +277,41 @@ List<LocalTime> slots = Stream
 // [09:00, 09:15, 09:30, 09:45, 10:00, 10:15]
 ```
 
-Lưu ý: `LocalTime.plusMinutes` quay về đầu ngày sau nửa đêm. Nếu cần mô hình thời gian không quay vòng trên nhiều ngày, hãy dùng `LocalDateTime` hoặc `Instant` và điều kiện dừng thích hợp; ví dụ trên chỉ lấy sáu mốc trước trưa trong cùng buổi.
+Note: `LocalTime.plusMinutes` wraps around to the start of the day after midnight. If you need a time model that does not wrap across multiple days, use `LocalDateTime` or `Instant` with an appropriate stopping condition; the example above only takes six morning slots before noon on the same session.
 
-## 7. Encounter order, parallel stream và takeWhile
+## 7. Encounter Order, Parallel Streams, and takeWhile
 
-`Stream.iterate` trả về Stream có encounter order, còn `Stream.generate` không bảo đảm encounter order. Sự khác nhau này đặc biệt quan trọng với `takeWhile`:
+`Stream.iterate` returns a Stream with an encounter order, while `Stream.generate` does not guarantee an encounter order. This difference is especially important for `takeWhile`:
 
-- Trên nguồn **có thứ tự**, `takeWhile(p)` lấy đoạn đầu dài nhất gồm các phần tử liên tiếp thỏa `p`.
-- Trên nguồn **không có thứ tự**, `takeWhile(p)` được phép chọn một tập con phù hợp của các phần tử thỏa `p`; không có khái niệm “đoạn đầu tiên” đáng tin cậy.
-- Trên Stream song song có thứ tự, `limit`, `takeWhile` và `findFirst` vẫn tuân theo hợp đồng thứ tự đầu ra, nhưng chi phí phối hợp và duy trì thứ tự có thể đáng kể. Việc thực thi predicate có thể xảy ra trên các phần tử bổ sung trước khi toàn bộ tác vụ dừng.
+- On an **ordered** source, `takeWhile(p)` takes the longest contiguous prefix of elements satisfying `p`.
+- On an **unordered** source, `takeWhile(p)` is allowed to select an arbitrary subset of elements satisfying `p`; there is no reliable notion of a "first prefix".
+- On an ordered parallel stream, `limit`, `takeWhile`, and `findFirst` still honor the output ordering contract, but coordination and order-preservation overhead can be significant. Predicate execution may occur on additional elements before the entire task stops.
 
-Nếu bài toán cần “dừng ở **lần vượt ngưỡng đầu tiên**” của một chuỗi tăng theo thời gian, hãy **giữ encounter order**. Không gọi `unordered()` chỉ để mong tăng tốc, vì điều đó làm thay đổi ý nghĩa của `takeWhile`.
+If the problem requires "stopping at the **first threshold crossing**" of a time-ordered series, **preserve encounter order**. Do not call `unordered()` merely hoping for speed, as that changes the meaning of `takeWhile`.
 
-Ngược lại, `findAny` không hứa lấy phần tử đầu tiên. Với bài toán “tìm một phần tử phù hợp bất kỳ”, nó có thể cho phép triển khai song song hiệu quả hơn `findFirst`.
+Conversely, `findAny` does not promise to return the first element. For a "find any matching element" problem, it can enable a more efficient parallel implementation than `findFirst`.
 
-Không dùng các lệnh ghi log trong `peek` hay tác dụng phụ bên trong `map` làm cơ sở để kết luận chính xác số lần phần tử đã được xét. Java Stream có quyền tối ưu hóa, bỏ qua một số bước hoặc đánh giá thêm phần tử khi xử lý song song, miễn tuân thủ hợp đồng kết quả.
+Do not use logging statements in `peek` or side effects inside `map` to conclude the exact number of times elements were evaluated. Java Streams are permitted to optimize, skip steps, or evaluate extra elements during parallel processing, as long as the result contract is upheld.
 
-## 8. Rủi ro về tài nguyên và cách phòng tránh
+## 8. Resource Risks and How to Prevent Them
 
-Tính lười giúp **không phải lưu toàn bộ nguồn trong bộ nhớ**, nhưng không tự bảo vệ chương trình khỏi pipeline kéo dài vô hạn. Một terminal cần hết dữ liệu, như `collect(toList())`, `toArray()`, `reduce(...)` hay `sum()`, có thể không trả về nếu đầu vào vẫn vô hạn.
+Laziness avoids **storing the entire source in memory**, but does not automatically protect a program from an infinitely running pipeline. A terminal operation needing all data, such as `collect(toList())`, `toArray()`, `reduce(...)`, or `sum()`, may never return if the input remains infinite.
 
-Các nguyên tắc thực hành:
+Practical guidelines:
 
-1. **Xác định điểm dừng trước khi chạy:** giới hạn số lượng bằng `limit`, ngưỡng đơn điệu bằng `takeWhile` hoặc điều kiện nguồn bằng `iterate(seed, hasNext, next)`.
-2. **Kiểm tra bước phía trước giới hạn:** `filter` có thực sự cho đủ kết quả? `distinct` có đủ giá trị khác nhau? `sorted` có bị đặt trước giới hạn không?
-3. **Không nhầm lẫn giới hạn phần tử với giới hạn thời gian:** `limit(10)` vẫn có thể chờ mãi nếu nguồn chặn khi lấy phần tử. Để có timeout thật sự cần cơ chế điều khiển/hủy ở tầng phù hợp; `limit` không tự cung cấp timeout.
-4. **Chú ý phép toán tích lũy:** tránh sưu tập lượng dữ liệu quá lớn vào `List`; có thể dùng `forEach` với xử lý phù hợp, nhưng vẫn phải có cơ chế dừng và quản lý tác dụng phụ.
-5. **Tránh tràn số và quay vòng trạng thái:** `int`, `long`, `LocalTime` đều có miền giá trị hữu hạn; một điều kiện tưởng như chắc chắn đổi từ đúng sang sai có thể không đổi do tràn hoặc quay vòng.
-6. **Cân nhắc song song:** chia một dãy sinh phụ thuộc vào phần tử trước không nhất thiết đem lại hiệu năng tốt; `parallel()` không bảo đảm nhanh hơn và không thay thế yêu cầu lambda không có trạng thái chia sẻ.
-7. **Quản lý nguồn tài nguyên:** `Stream.generate` với supplier đọc mạng/tệp vẫn cần cơ chế đóng tài nguyên liên quan; terminal kết thúc không có nghĩa mọi tài nguyên bên ngoài tự động được giải phóng.
+1. **Determine the stopping point before running:** bound quantity with `limit`, monotonic thresholds with `takeWhile`, or source conditions with `iterate(seed, hasNext, next)`.
+2. **Inspect steps before the limit:** does `filter` actually yield enough results? Does `distinct` have enough distinct values? Is `sorted` placed before a limit?
+3. **Do not confuse element limits with time limits:** `limit(10)` can still hang forever if the source blocks when fetching elements. For a real timeout, cancellation/control mechanisms at the appropriate layer are needed; `limit` does not provide a timeout by itself.
+4. **Watch out for accumulating operations:** avoid collecting huge amounts of data into a `List`; you can use `forEach` with proper handling, but still need a stopping mechanism and side-effect management.
+5. **Avoid numeric overflow and state wrap-around:** `int`, `long`, and `LocalTime` all have finite domains; a condition that looks certain to flip from true to false may fail to do so due to overflow or wrap-around.
+6. **Consider parallelism carefully:** splitting a sequence whose generation depends on previous elements does not necessarily deliver good performance; `parallel()` does not guarantee speed and does not waive the requirement for lambdas free of shared state.
+7. **Manage external resources:** `Stream.generate` with a supplier reading from network/files still needs resource-closing mechanisms; a finished terminal operation does not mean external resources are automatically released.
 
-Với pipeline cần lặp dãy cho nhiều phép tính, tạo Stream **mới** cho mỗi terminal. Stream Java chỉ được tiêu thụ một lần.
+For pipelines that need to iterate over a sequence for multiple calculations, create a **new** Stream for each terminal operation. A Java Stream can only be consumed once.
 
-## 9. Ví dụ tổng hợp chạy được với Java 9+
+## 9. Complete Runnable Example for Java 9+
 
-Chương trình sau cho thấy ba cách tạo kết quả hữu hạn từ nguồn vô hạn. Chỉ cần JDK 9 trở lên, không dùng thư viện ngoài:
+The following program demonstrates three ways to produce finite results from infinite sources. Only JDK 9 or later is required, with no external libraries:
 
 ```java
 import java.math.BigInteger;
@@ -336,26 +336,26 @@ public class InfiniteStreamDemo {
         boolean hasMultipleOfSeven = IntStream.iterate(1, n -> n + 1)
             .anyMatch(n -> n % 7 == 0);
 
-        System.out.println("Năm số chẵn: " + evenNumbers);
-        System.out.println("Lũy thừa của hai dưới 20: " + powersOfTwo);
-        System.out.println("Có bội số của 7: " + hasMultipleOfSeven);
+        System.out.println("First five evens: " + evenNumbers);
+        System.out.println("Powers of two under 20: " + powersOfTwo);
+        System.out.println("Has a multiple of 7: " + hasMultipleOfSeven);
     }
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
-Năm số chẵn: [2, 4, 6, 8, 10]
-Lũy thừa của hai dưới 20: [1, 2, 4, 8, 16]
-Có bội số của 7: true
+First five evens: [2, 4, 6, 8, 10]
+Powers of two under 20: [1, 2, 4, 8, 16]
+Has a multiple of 7: true
 ```
 
-Trong ví dụ, `filter().limit(5)` cần tìm đủ năm số chẵn; `takeWhile` dừng khi giá trị đầu tiên không nhỏ hơn 20 là `32`; `anyMatch` dừng khi thấy bội số đầu tiên của 7.
+In the example, `filter().limit(5)` needs to find five even numbers; `takeWhile` stops when the first value not less than 20 is `32`; `anyMatch` stops as soon as it sees the first multiple of 7.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-**Câu 1.** Dự đoán kết quả hai pipeline:
+**Question 1.** Predict the results of the two pipelines:
 
 ```java
 // A
@@ -368,21 +368,21 @@ IntStream.iterate(1, n -> n + 1).filter(n -> n % 2 == 0)
     .limit(6).boxed().collect(Collectors.toList());
 ```
 
-**Đáp án:** A là `[2, 4, 6]` vì chỉ lọc sáu giá trị đầu nguồn. B là `[2, 4, 6, 8, 10, 12]` vì `limit(6)` chỉ đếm phần tử đã vượt qua bộ lọc.
+**Answer:** A is `[2, 4, 6]` because only the first six source values are filtered. B is `[2, 4, 6, 8, 10, 12]` because `limit(6)` only counts elements that have passed the filter.
 
-**Câu 2.** `Stream.generate(() -> 10).distinct().limit(2).collect(Collectors.toList())` có kết thúc không?
+**Question 2.** Does `Stream.generate(() -> 10).distinct().limit(2).collect(Collectors.toList())` terminate?
 
-**Đáp án:** Không kết thúc theo cách đánh giá thông thường: sau phần tử `10` đầu tiên, `distinct` sẽ loại mọi phần tử `10` tiếp theo. `limit(2)` không bao giờ nhận đủ hai phần tử.
+**Answer:** It does not terminate under normal evaluation: after the first `10`, `distinct` discards every subsequent `10`. `limit(2)` never receives two elements.
 
-**Câu 3.** Với dãy `[3, 4, 3, 2, 1]`, `takeWhile(n -> n >= 3)` khác `filter(n -> n >= 3)` thế nào?
+**Question 3.** On `[3, 4, 3, 2, 1]`, how does `takeWhile(n -> n >= 3)` differ from `filter(n -> n >= 3)`?
 
-**Đáp án:** `takeWhile` cho `[3, 4, 3]`, dừng ở `2`; `filter` cũng cho `[3, 4, 3]` trong **dữ liệu cụ thể này**, nhưng vẫn xét hết `1`. Thay dãy thành `[3, 2, 4, 3, 1]` sẽ thấy khác biệt rõ: `takeWhile` cho `[3]`, còn `filter` cho `[3, 4, 3]`.
+**Answer:** `takeWhile` yields `[3, 4, 3]`, stopping at `2`; `filter` also yields `[3, 4, 3]` on **this specific data**, but still checks `1`. Changing the sequence to `[3, 2, 4, 3, 1]` reveals the clear difference: `takeWhile` gives `[3]`, whereas `filter` gives `[3, 4, 3]`.
 
-**Câu 4.** Vì sao `Stream.generate(() -> 1).allMatch(n -> n == 1)` không trả về `true` sau một số lần gọi predicate?
+**Question 4.** Why doesn't `Stream.generate(() -> 1).allMatch(n -> n == 1)` return `true` after a few predicate calls?
 
-**Đáp án:** Không có phần tử nào bác bỏ điều kiện nên `allMatch` chưa đủ thông tin để dừng; nguồn lại không có kết thúc tự nhiên. Muốn kiểm tra một **mẫu hữu hạn**, hãy dùng `limit(n)` trước `allMatch`.
+**Answer:** No element refutes the condition, so `allMatch` does not have enough information to stop; meanwhile, the source has no natural end. To test a **finite sample**, use `limit(n)` before `allMatch`.
 
-**Câu 5.** Muốn kiểm tra liệu có số chia hết cho 7 trong 100 số tự nhiên đầu tiên, nên giới hạn ở đâu?
+**Question 5.** To check whether there is a number divisible by 7 in the first 100 natural numbers, where should the limit be placed?
 
 ```java
 boolean found = IntStream.iterate(1, n -> n + 1)
@@ -391,8 +391,8 @@ boolean found = IntStream.iterate(1, n -> n + 1)
 // true
 ```
 
-**Giải thích:** `limit(100)` xác định tập cần kiểm tra; `anyMatch` có thể dừng sớm khi tìm được `7`. Nếu yêu cầu kiểm tra toàn bộ đúng 100 phần tử, dùng một terminal khác hoặc phép tính phù hợp với mục tiêu thay vì `anyMatch`.
+**Explanation:** `limit(100)` defines the set to inspect; `anyMatch` can stop early when `7` is found. If the requirement is to inspect all 100 elements unconditionally, use another terminal operation or computation suited to that goal instead of `anyMatch`.
 
-## Ghi nhớ
+## Key Takeaways
 
-Khi làm việc với Stream vô hạn trong **JAVA_STREAM_API**, điều quan trọng không chỉ là tạo nguồn bằng `iterate` hay `generate`, mà còn là **chứng minh pipeline có thể dừng**. `limit` giới hạn số phần tử đầu ra; `takeWhile` (Java 9+) lấy đoạn đầu liên tiếp thỏa điều kiện trên nguồn có thứ tự; `findFirst`, `findAny`, `anyMatch`, `allMatch` và `noneMatch` có thể kết thúc ngay khi đủ bằng chứng. Một `filter` không cho phần tử nào đi qua, `distinct` không tìm đủ phần tử mới hoặc `sorted` đứng trước giới hạn có thể khiến pipeline chạy mãi. Hãy kết hợp đúng thứ tự thao tác, kiểm soát tài nguyên và giữ ngữ nghĩa encounter order khi cần điểm dừng chính xác.
+When working with infinite Streams in **JAVA_STREAM_API**, what matters is not only creating a source with `iterate` or `generate`, but also **proving the pipeline can terminate**. `limit` bounds the output element count; `takeWhile` (Java 9+) takes the contiguous matching prefix on an ordered source; `findFirst`, `findAny`, `anyMatch`, `allMatch`, and `noneMatch` can finish as soon as there is enough evidence. A `filter` that lets no elements through, `distinct` without enough new values, or `sorted` before a limit can cause a pipeline to run forever. Combine operations in the right order, manage resources, and preserve encounter-order semantics when exact stopping points are required.

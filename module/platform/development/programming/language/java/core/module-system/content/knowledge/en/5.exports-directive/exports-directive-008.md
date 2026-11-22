@@ -1,23 +1,23 @@
-# Rà soát package nào thực sự cần export
+# Reviewing Which Packages Truly Need to Be Exported
 
-Trong Java Platform Module System (JPMS), chỉ thị `exports` công bố package của một module cho các module khác. Mỗi package được export trở thành một phần bề mặt API mà module đang cung cấp. Vì vậy, quyết định export ảnh hưởng trực tiếp đến mức độ phụ thuộc giữa các module, khả năng thay đổi implementation và phạm vi tương thích mà thư viện phải duy trì.
+In the Java Platform Module System (JPMS), the `exports` directive exposes a module's packages to other modules. Every exported package becomes part of the API surface that the module provides. Therefore, export decisions directly affect the degree of coupling between modules, the ability to change implementations, and the compatibility scope that the library must maintain.
 
-Một module có thể chứa nhiều package public, nhưng điều đó không có nghĩa tất cả đều nên được export. Việc rà soát cần bắt đầu từ câu hỏi: **module bên ngoài có thực sự cần sử dụng package này như một phần hợp đồng của module hay không?**
+A module may contain many public packages, yet that does not mean all of them should be exported. A review should begin with the question: **do external modules truly need to use this package as part of the module's contract?**
 
-## Mục tiêu
+## Objectives
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-- Kiểm kê package của một named module và phân loại theo vai trò.
-- Xác định package nào cần trở thành API công khai.
-- Phân biệt package API, package implementation và package chỉ phục vụ framework.
-- Quyết định giữa không export, export không giới hạn và qualified export.
-- Nhận biết trường hợp cần `opens` hoặc Service Provider thay vì export package.
-- Rà soát module descriptor và kiểm tra tác động của việc thu hẹp API.
+- Inventory packages of a named module and classify them by role.
+- Identify which packages need to become public APIs.
+- Distinguish API packages, implementation packages, and framework-only packages.
+- Decide between not exporting, unqualified export, and qualified export.
+- Recognize cases that require `opens` or a Service Provider instead of exporting a package.
+- Review a module descriptor and assess the impact of narrowing the API.
 
-## 1. exports công bố điều gì?
+## 1. What Does exports Expose?
 
-Chỉ thị `exports` được khai báo trong `module-info.java`:
+The `exports` directive is declared in `module-info.java`:
 
 ~~~java
 module com.acme.orders {
@@ -25,9 +25,9 @@ module com.acme.orders {
 }
 ~~~
 
-Khai báo này công bố package `com.acme.orders.api` cho các module đọc được `com.acme.orders`.
+This declaration exposes package `com.acme.orders.api` to modules that read `com.acme.orders`.
 
-Một module sử dụng API vẫn cần khai báo dependency:
+A module using the API still needs to declare the dependency:
 
 ~~~java
 module com.acme.application {
@@ -35,67 +35,67 @@ module com.acme.application {
 }
 ~~~
 
-Hai điều kiện phối hợp với nhau:
+Two conditions work together:
 
-- `requires` xác định module sử dụng đọc module cung cấp.
-- `exports` xác định package nào của module cung cấp được công bố cho module khác.
+- `requires` specifies that the consuming module reads the providing module.
+- `exports` specifies which packages of the providing module are exposed to other modules.
 
-Export package không biến mọi kiểu hoặc thành viên thành public. Quy tắc truy cập của Java vẫn áp dụng. Một class cấp cao nhất cần có mức truy cập phù hợp; các constructor, method và field vẫn chịu sự chi phối của `public`, `protected`, package-private và `private`.
+Exporting a package does not make every type or member public. Java access rules still apply. A top-level class needs an appropriate access level; constructors, methods, and fields remain governed by `public`, `protected`, package-private, and `private`.
 
-### 1.1. Export theo package, không theo class
+### 1.1. Exporting by Package, Not by Class
 
-JPMS export cả package. Không có cú pháp kiểu:
+JPMS exports entire packages. There is no syntax like:
 
 ~~~java
 exports com.acme.orders.api.OrderService;
 ~~~
 
-Thay vào đó, module công bố package:
+Instead, the module exposes a package:
 
 ~~~java
 exports com.acme.orders.api;
 ~~~
 
-Các package con là package riêng. Ví dụ:
+Subpackages are separate packages. For example:
 
 - `com.acme.orders.api`
 - `com.acme.orders.api.dto`
 - `com.acme.orders.internal`
 
-Export package `com.acme.orders.api` không tự động export `com.acme.orders.api.dto` hoặc `com.acme.orders.internal`. Nếu muốn công bố package con, phải khai báo riêng.
+Exporting package `com.acme.orders.api` does not automatically export `com.acme.orders.api.dto` or `com.acme.orders.internal`. If you want to expose a subpackage, you must declare it separately.
 
-Do đó, cách tổ chức package có ảnh hưởng trực tiếp đến độ rộng của API module. Đặt class nội bộ cùng package với API có thể khiến package đó phải export chỉ để một số class được truy cập. Tách API và implementation thành package riêng thường giúp kiểm soát ranh giới tốt hơn.
+Therefore, how packages are organized directly affects the breadth of the module's API. Placing internal classes in the same package as the API can force that package to be exported just so certain classes can be accessed. Separating API and implementation into distinct packages usually yields better boundary control.
 
-## 2. Bắt đầu bằng kiểm kê package
+## 2. Start with a Package Inventory
 
-Trước khi sửa module descriptor, hãy liệt kê package thực tế trong module. Với mỗi package, ghi lại:
+Before editing the module descriptor, list the actual packages in the module. For each package, record:
 
-- Tên package.
-- Những class, interface, enum và annotation quan trọng.
-- Module nào đang import hoặc sử dụng kiểu trong package.
-- Package có xuất hiện trong chữ ký API public của module khác không.
-- Framework hoặc công cụ nào cần truy cập package lúc chạy.
-- Package chứa API ổn định hay chi tiết triển khai có thể thay đổi.
+- Package name.
+- Important classes, interfaces, enums, and annotations.
+- Which modules are importing or using types in the package.
+- Whether the package appears in public API signatures of other modules.
+- Which frameworks or tools need to access the package at runtime.
+- Whether the package contains stable API or implementation details subject to change.
 
-Có thể dùng cấu trúc bảng sau làm phiếu rà soát:
+You can use the following table structure as a review sheet:
 
-| Package | Người sử dụng | Vai trò | Quyết định ban đầu |
+| Package | Consumers | Role | Initial Decision |
 |---|---|---|---|
-| `com.acme.orders.api` | App, integration | API công khai | Export |
-| `com.acme.orders.dto` | App, integration | Kiểu dữ liệu trao đổi | Export nếu là hợp đồng API |
-| `com.acme.orders.internal` | Chỉ module orders | Implementation | Không export |
-| `com.acme.orders.persistence` | ORM qua reflection | Persistence nội bộ | Xem xét opens |
-| `com.acme.orders.bootstrap` | Chỉ mã khởi tạo nội bộ | Implementation | Không export |
+| `com.acme.orders.api` | App, integration | Public API | Export |
+| `com.acme.orders.dto` | App, integration | Exchange data types | Export if part of the API contract |
+| `com.acme.orders.internal` | Orders module only | Implementation | Do not export |
+| `com.acme.orders.persistence` | ORM via reflection | Internal persistence | Consider opens |
+| `com.acme.orders.bootstrap` | Internal initialization code only | Implementation | Do not export |
 
-Bảng trên chỉ là ví dụ phân loại. Quyết định cuối cùng phải dựa trên cấu trúc và cách sử dụng thực tế của module đang rà soát.
+The table above is only a classification example. The final decision must be based on the actual structure and usage of the module under review.
 
-## 3. Tiêu chí quyết định package có cần export không
+## 3. Criteria for Deciding Whether a Package Needs Exporting
 
-### 3.1. Package chứa API mà module khác gọi trực tiếp
+### 3.1. Packages Containing APIs That Other Modules Call Directly
 
-Đây là ứng viên rõ ràng nhất để export.
+This is the clearest candidate for exporting.
 
-Ví dụ package `com.acme.payment.api` cung cấp service mà ứng dụng bên ngoài cần gọi:
+For example, package `com.acme.payment.api` provides a service that external applications need to call:
 
 ~~~java
 package com.acme.payment.api;
@@ -105,7 +105,7 @@ public interface PaymentService {
 }
 ~~~
 
-Nếu module khác cần import `PaymentService`, `PaymentResult` và `PaymentRequest`, package chứa các kiểu đó phải được export cho module sử dụng.
+If other modules need to import `PaymentService`, `PaymentResult`, and `PaymentRequest`, the package containing those types must be exported to the consuming modules.
 
 ~~~java
 module com.acme.payment {
@@ -113,13 +113,13 @@ module com.acme.payment {
 }
 ~~~
 
-Một API công khai nên có mục đích rõ ràng, kiểu dữ liệu ổn định và hợp đồng mà module cung cấp sẵn sàng duy trì.
+A public API should have a clear purpose, stable data types, and a contract that the providing module is prepared to maintain.
 
-### 3.2. Package chỉ chứa implementation nội bộ
+### 3.2. Packages Containing Only Internal Implementation
 
-Các package chứa helper, adapter, repository implementation, thuật toán nội bộ hoặc class phục vụ wiring thường không cần export nếu module khác không truy cập trực tiếp chúng.
+Packages containing helpers, adapters, repository implementations, internal algorithms, or wiring classes usually do not need to be exported if other modules do not access them directly.
 
-Ví dụ:
+Example:
 
 ~~~text
 com.acme.payment
@@ -133,7 +133,7 @@ com.acme.payment
     └── JpaPaymentRepository.java
 ~~~
 
-Module descriptor có thể chỉ công bố API:
+The module descriptor can expose only the API:
 
 ~~~java
 module com.acme.payment {
@@ -141,15 +141,15 @@ module com.acme.payment {
 }
 ~~~
 
-Các class trong package `internal` và `persistence` vẫn được sử dụng bên trong module. Module khác không thể truy cập chúng qua API Java thông thường nếu package không được export.
+Classes in the `internal` and `persistence` packages are still used inside the module. Other modules cannot access them through normal Java APIs if the packages are not exported.
 
-Giữ implementation trong package không export giúp module có thể đổi class, cấu trúc và thuật toán nội bộ mà ít ảnh hưởng đến client.
+Keeping implementations in unexported packages lets the module change classes, structures, and internal algorithms with minimal impact on clients.
 
-### 3.3. Package có kiểu public nhưng không có client bên ngoài
+### 3.3. Packages with Public Types but No External Clients
 
-Từ khóa `public` trên một class không tự động khiến package cần export.
+The `public` keyword on a class does not automatically mean the package needs to be exported.
 
-Ví dụ:
+Example:
 
 ~~~java
 package com.acme.payment.internal;
@@ -161,19 +161,19 @@ public class PaymentRetryPolicy {
 }
 ~~~
 
-Nếu chỉ các class khác trong module payment sử dụng `PaymentRetryPolicy`, không có lý do phải export package `com.acme.payment.internal`.
+If only other classes within the payment module use `PaymentRetryPolicy`, there is no reason to export package `com.acme.payment.internal`.
 
-Quyết định export dựa trên ranh giới module và hợp đồng cần công bố, không dựa riêng vào việc class được khai báo public.
+The decision to export is based on module boundaries and the contract to be published, not solely on whether a class is declared public.
 
-### 3.4. Package chỉ được framework truy cập bằng reflection
+### 3.4. Packages Accessed Only by Frameworks via Reflection
 
-Một số framework cần đọc annotation, tạo object, truy cập field hoặc gọi constructor bằng reflection. Trường hợp này cần xác định framework đang cần truy cập public API hay deep reflection.
+Some frameworks need to read annotations, instantiate objects, access fields, or invoke constructors via reflection. In this case, determine whether the framework needs public API access or deep reflection.
 
-- Nếu framework sử dụng API public theo cách thông thường, package có thể cần export.
-- Nếu framework cần deep reflection vào thành viên không public, package có thể cần mở bằng `opens`.
-- Nếu framework chỉ cần một package cho module framework cụ thể, ưu tiên giới hạn đối tượng được cấp quyền.
+- If the framework uses public APIs normally, the package may need to be exported.
+- If the framework needs deep reflection into non-public members, the package may need to be opened with `opens`.
+- If the framework only needs one package for a specific framework module, prefer restricting the granted target.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.payment {
@@ -182,13 +182,13 @@ module com.acme.payment {
 }
 ~~~
 
-Package API được export cho việc sử dụng thông thường. Package persistence được mở cho module ORM thực hiện reflection lúc chạy.
+The API package is exported for normal usage. The persistence package is opened to the ORM module to perform reflection at runtime.
 
-Không nên export toàn bộ package nội bộ chỉ vì một framework cần truy cập sâu vào một số thành viên.
+Do not export all internal packages just because a framework needs deep access to a few members.
 
-### 3.5. Package triển khai Service Provider
+### 3.5. Service Provider Implementation Packages
 
-Với cơ chế `ServiceLoader`, module cung cấp có thể khai báo provider trong module descriptor:
+With the `ServiceLoader` mechanism, a providing module can declare a provider in its module descriptor:
 
 ~~~java
 module com.acme.payment.provider {
@@ -199,7 +199,7 @@ module com.acme.payment.provider {
 }
 ~~~
 
-Module tiêu thụ khai báo:
+The consuming module declares:
 
 ~~~java
 module com.acme.application {
@@ -208,29 +208,17 @@ module com.acme.application {
 }
 ~~~
 
-Package chứa interface service cần được công bố cho client. Package triển khai provider thường không cần export chỉ để `ServiceLoader` tìm và khởi tạo provider đã khai báo bằng `provides ... with ...`.
+The package containing the service interface must be exposed to clients. The provider implementation package usually does not need to be exported just for `ServiceLoader` to locate and instantiate the provider declared via `provides ... with ...`.
 
-Đây là ví dụ cho thấy một package có thể được sử dụng gián tiếp qua cơ chế module mà không cần trở thành API package công khai.
+This is an example showing that a package can be used indirectly through module mechanisms without needing to become a public API package.
 
-## 4. Ba lựa chọn khi rà soát
+## 4. Three Options During Review
 
-Sau khi xác định mục đích của package, chọn một trong các hướng sau.
+After determining a package's purpose, choose one of the following paths.
 
-### 4.1. Không export
+### 4.1. Do Not Export
 
-Dùng khi package chỉ phục vụ implementation nội bộ và không cần được module khác truy cập trực tiếp.
-
-~~~java
-module com.acme.orders {
-    exports com.acme.orders.api;
-}
-~~~
-
-Package `com.acme.orders.internal` không xuất hiện trong descriptor nên vẫn là nội bộ của module.
-
-### 4.2. Export không giới hạn
-
-Dùng khi package là API mà các module đọc module hiện tại có thể sử dụng:
+Use when the package only serves internal implementation and does not need to be accessed directly by other modules.
 
 ~~~java
 module com.acme.orders {
@@ -238,13 +226,25 @@ module com.acme.orders {
 }
 ~~~
 
-Mọi module đọc `com.acme.orders` đều được phép truy cập API public đủ điều kiện trong package đã export.
+Package `com.acme.orders.internal` does not appear in the descriptor and therefore remains internal to the module.
 
-Đây là cam kết API rộng hơn qualified export. Hãy cân nhắc tính ổn định và nhu cầu của các client trước khi công bố.
+### 4.2. Unqualified Export
 
-### 4.3. Qualified export
+Use when the package is an API that modules reading the current module can use:
 
-Dùng khi package cần được công bố cho một số module có tên cụ thể:
+~~~java
+module com.acme.orders {
+    exports com.acme.orders.api;
+}
+~~~
+
+Every module reading `com.acme.orders` is permitted to access eligible public APIs in the exported package.
+
+This is a broader API commitment than a qualified export. Consider stability and client needs before exposing it.
+
+### 4.3. Qualified Export
+
+Use when the package needs to be exposed only to specific named modules:
 
 ~~~java
 module com.acme.orders {
@@ -253,12 +253,12 @@ module com.acme.orders {
 }
 ~~~
 
-Trong ví dụ này:
+In this example:
 
-- Package `com.acme.orders.api` được công bố cho mọi module đọc `com.acme.orders`.
-- Package `com.acme.orders.spi` chỉ được công bố cho module `com.acme.plugin` qua khai báo này.
+- Package `com.acme.orders.api` is exposed to every module reading `com.acme.orders`.
+- Package `com.acme.orders.spi` is exposed only to module `com.acme.plugin` via this declaration.
 
-Module đích vẫn cần đọc module cung cấp, ví dụ:
+The target module still needs to read the providing module, for example:
 
 ~~~java
 module com.acme.plugin {
@@ -266,64 +266,64 @@ module com.acme.plugin {
 }
 ~~~
 
-Qualified export hữu ích cho SPI, integration nội bộ giữa một số module hoặc API chỉ dành cho thành phần được kiểm soát. Nó không thay thế `requires` và không mở package cho deep reflection.
+Qualified exports are useful for SPIs, internal integration among a few modules, or APIs intended only for controlled components. They do not replace `requires` and do not open packages for deep reflection.
 
-## 5. Quy trình rà soát package theo từng bước
+## 5. Step-by-Step Package Review Process
 
-Có thể áp dụng quy trình sau cho một module đang có nhiều package hoặc đã export rộng từ trước.
+You can apply the following process to a module that currently has many packages or was broadly exported previously.
 
-### Bước 1: Lập danh sách package
+### Step 1: List all packages
 
-Liệt kê package có mã nguồn trong module. Nhóm theo vai trò:
+List packages containing source code in the module. Group them by role:
 
-- API công khai.
-- DTO/model trao đổi giữa module.
-- SPI hoặc extension point.
-- Implementation.
-- Persistence và adapter.
-- Bootstrap, configuration và helper.
-- Package phục vụ framework hoặc reflection.
+- Public API.
+- DTOs/models exchanged between modules.
+- SPIs or extension points.
+- Implementations.
+- Persistence and adapters.
+- Bootstrap, configuration, and helpers.
+- Packages serving frameworks or reflection.
 
-Không mặc định package có tên `api` chắc chắn là API ổn định; cần kiểm tra nội dung và client thực tế.
+Do not assume a package named `api` is definitely a stable API; inspect its actual contents and clients.
 
-### Bước 2: Tìm module tiêu thụ
+### Step 2: Find consuming modules
 
-Tìm các module khác có:
+Search for other modules that have:
 
-- `requires` module đang rà soát.
-- Câu lệnh import kiểu thuộc package đang xét.
-- Chữ ký public sử dụng kiểu thuộc package đó.
-- Cấu hình ServiceLoader hoặc framework cần package tương ứng.
+- `requires` on the module under review.
+- Import statements for types belonging to the package under consideration.
+- Public signatures using types belonging to that package.
+- ServiceLoader or framework configurations requiring that package.
 
-Một package chỉ được dùng nội bộ trong cùng module thường không cần export.
+A package used only internally within the same module usually does not need to be exported.
 
-### Bước 3: Xác định loại truy cập
+### Step 3: Identify the type of access
 
-Với từng client, xác định cách package được dùng:
+For each client, determine how the package is used:
 
-- Import và gọi public API.
-- Kế thừa hoặc triển khai interface public.
-- Truyền kiểu qua tham số, kiểu trả về hoặc generic.
-- Được tìm qua `ServiceLoader`.
-- Được framework truy cập bằng reflection.
-- Chỉ được gọi từ mã nội bộ của module.
+- Importing and calling public APIs.
+- Extending or implementing public interfaces.
+- Passing types via parameters, return types, or generics.
+- Being located via `ServiceLoader`.
+- Being accessed by frameworks via reflection.
+- Being called only from internal module code.
 
-Mỗi cách sử dụng có thể dẫn tới quyết định khác nhau. Ví dụ, API public thường cần export; deep reflection thường cần opens; provider đã khai báo trong descriptor thường không cần export package triển khai.
+Each usage pattern can lead to a different decision. For example, public APIs usually need exports; deep reflection usually needs opens; providers declared in the descriptor usually do not need the implementation package exported.
 
-### Bước 4: Chọn phạm vi công bố
+### Step 4: Choose the exposure scope
 
-Đối với package cần export, hỏi tiếp:
+For packages that need exporting, ask further:
 
-- Mọi module đọc module này có cần truy cập không?
-- Chỉ một module hoặc nhóm module tích hợp cần truy cập?
-- Package có chứa class nội bộ không liên quan đến client không?
-- Có thể tách API ra package riêng để giảm bề mặt công khai không?
+- Do all modules reading this module need access?
+- Does only one module or a group of integration modules need access?
+- Does the package contain internal classes unrelated to clients?
+- Can the API be separated into its own package to reduce the public surface?
 
-Chọn export không giới hạn, qualified export hoặc tách package theo nhu cầu thực tế.
+Choose unqualified export, qualified export, or splitting packages based on actual needs.
 
-### Bước 5: Cập nhật module-info.java
+### Step 5: Update module-info.java
 
-Ví dụ trước khi rà soát:
+Example before review:
 
 ~~~java
 module com.acme.orders {
@@ -334,7 +334,7 @@ module com.acme.orders {
 }
 ~~~
 
-Sau khi kiểm tra client, giả sử chỉ API cần được công bố, còn persistence cần reflection từ ORM:
+After checking clients, suppose only the API needs to be exposed, while persistence needs reflection from the ORM:
 
 ~~~java
 module com.acme.orders {
@@ -343,141 +343,141 @@ module com.acme.orders {
 }
 ~~~
 
-Package `internal` và `bootstrap` không còn export. Package persistence được mở đúng cho ORM nếu yêu cầu deep reflection đã được xác nhận.
+The `internal` and `bootstrap` packages are no longer exported. The persistence package is opened specifically for the ORM once the deep reflection requirement has been confirmed.
 
-Đây chỉ là ví dụ minh họa. Không xóa export đang được client sử dụng trước khi xác định và xử lý tác động của thay đổi.
+This is only an illustrative example. Do not remove exports currently used by clients before identifying and handling the impact of the change.
 
-### Bước 6: Kiểm tra client và runtime
+### Step 6: Verify clients and runtime
 
-Sau khi chỉnh descriptor:
+After editing the descriptor:
 
-1. Biên dịch module cung cấp.
-2. Biên dịch từng module client sử dụng API.
-3. Chạy các luồng tích hợp có liên quan.
-4. Kiểm tra framework cần reflection.
-5. Kiểm tra ServiceLoader nếu module có provider.
-6. Tìm các lỗi truy cập package hoặc kiểu không còn được công bố.
+1. Compile the providing module.
+2. Compile each client module using the API.
+3. Run the relevant integration flows.
+4. Test frameworks that require reflection.
+5. Test ServiceLoader if the module has providers.
+6. Look for access errors on packages or types no longer exposed.
 
-Nếu một client thất bại vì package không được export, cần xác định client đó có đang sử dụng API được hỗ trợ hay đang phụ thuộc vào implementation. Kết quả rà soát phải phản ánh hợp đồng thực tế của module.
+If a client fails because a package is not exported, determine whether that client is using a supported API or depending on an implementation. Review results must reflect the module's actual contract.
 
-## 6. Công cụ hỗ trợ kiểm kê và phân tích
+## 6. Tools to Support Inventory and Analysis
 
-### 6.1. Tìm package trong mã nguồn
+### 6.1. Finding packages in source code
 
-Có thể dùng công cụ tìm kiếm trong IDE hoặc dòng lệnh để liệt kê các khai báo package và vị trí import. Ví dụ với ripgrep:
+You can use search tools in your IDE or command line to list package declarations and import locations. For example, with ripgrep:
 
 ~~~bash
 rg "^package " src
 rg "^import com\.acme\.orders" ../
 ~~~
 
-Điều chỉnh thư mục tìm kiếm theo cấu trúc repository. Kết quả tìm kiếm giúp tìm các tham chiếu trong source code, nhưng không tự phát hiện mọi trường hợp reflection, cấu hình framework hoặc client được biên dịch riêng.
+Adjust search directories according to the repository structure. Search results help locate references in source code, but do not automatically detect every case of reflection, framework configuration, or separately compiled clients.
 
-### 6.2. Dùng jdeps
+### 6.2. Using jdeps
 
-Công cụ `jdeps` trong JDK giúp phân tích dependency ở cấp package và module.
+The `jdeps` tool in the JDK helps analyze dependencies at the package and module levels.
 
-Liệt kê dependency module:
+List module dependencies:
 
 ~~~bash
 jdeps --module-path libs --list-deps app.jar
 ~~~
 
-Giới hạn phân tích vào API:
+Restrict analysis to APIs:
 
 ~~~bash
 jdeps --api-only --module-path libs app.jar
 ~~~
 
-Kiểm tra module descriptor và dependency:
+Check the module descriptor and dependencies:
 
 ~~~bash
 jdeps --module-path libs --check com.acme.orders
 ~~~
 
-Các kết quả của `jdeps` hỗ trợ xác định dependency và kiểu xuất hiện trong API. Chúng không thay thế việc rà soát yêu cầu nghiệp vụ, reflection, cấu hình runtime hoặc hợp đồng tích hợp. Hãy kết hợp phân tích tĩnh với việc kiểm tra client thực tế.
+`jdeps` results assist in identifying dependencies and types appearing in APIs. They do not replace reviewing business requirements, reflection, runtime configuration, or integration contracts. Combine static analysis with actual client testing.
 
-### 6.3. Kiểm tra descriptor và module graph
+### 6.3. Inspecting descriptors and the module graph
 
-Có thể xem module descriptor của một JAR:
+You can inspect the module descriptor of a JAR:
 
 ~~~bash
 jar --describe-module --file libs/orders.jar
 ~~~
 
-Khi chạy ứng dụng, có thể xem module resolution:
+When running an application, you can view module resolution:
 
 ~~~bash
 java --show-module-resolution --module-path out -m com.acme.app/com.acme.app.Main
 ~~~
 
-Các lệnh này giúp kiểm tra tên module, requires và những module đã được giải quyết trong cấu hình chạy.
+These commands help verify module names, requires, and which modules are resolved in the runtime configuration.
 
-## 7. Cẩn trọng khi thu hẹp export
+## 7. Exercise Caution When Narrowing Exports
 
-Loại bỏ một dòng export có thể làm mã nguồn của client hiện tại không biên dịch được. Nếu client đang import class thuộc package đó, lỗi có thể xuất hiện ngay ở compile time.
+Removing an export line can prevent existing client source code from compiling. If a client imports a class belonging to that package, errors can appear immediately at compile time.
 
-Một package từng được export cũng có thể đã trở thành dependency không chính thức của hệ thống. Trước khi thu hẹp:
+A previously exported package may also have become an unofficial dependency in the system. Before narrowing:
 
-- Xác định tất cả module tiêu thụ đã biết.
-- Kiểm tra mã nguồn và cấu hình tích hợp bên ngoài repository nếu có.
-- Xác định package có phải hợp đồng công khai được hỗ trợ không.
-- Nếu cần, chuyển API cần giữ lại sang package công khai riêng.
-- Cập nhật client trước hoặc cùng đợt thay đổi.
-- Chạy lại biên dịch và kiểm thử tích hợp.
+- Identify all known consuming modules.
+- Check source code and integration configurations outside the repository, if any.
+- Determine whether the package is a supported public contract.
+- If necessary, move APIs that need to be preserved into a separate public package.
+- Update clients before or alongside the change.
+- Re-run compilation and integration tests.
 
-Không nên xóa export chỉ vì package có tên `internal` hoặc không xuất hiện trong một lần tìm kiếm. Cần xác minh các cách sử dụng hợp lệ và phạm vi client mà hệ thống phải hỗ trợ.
+Do not remove an export merely because a package is named `internal` or does not show up in a single search. Verify valid usages and the scope of clients the system must support.
 
-Ngược lại, export quá rộng cũng tạo rủi ro: client có thể bắt đầu phụ thuộc vào class nội bộ, khiến module khó thay đổi implementation và khó duy trì tương thích.
+Conversely, overly broad exports also carry risk: clients may begin depending on internal classes, making it difficult for the module to change implementations and maintain compatibility.
 
-## 8. Checklist cho mỗi package
+## 8. Checklist for Each Package
 
-Dùng checklist này khi ghi nhận quyết định:
+Use this checklist when recording decisions:
 
-- [ ] Package đã được xác định đúng trong module.
-- [ ] Đã tìm các module client và cách chúng sử dụng package.
-- [ ] Đã phân biệt API public với implementation nội bộ.
-- [ ] Đã xác định package có xuất hiện trong chữ ký API của module khác không.
-- [ ] Đã kiểm tra nhu cầu reflection và ServiceLoader.
-- [ ] Đã chọn không export, export không giới hạn, qualified export hoặc opens.
-- [ ] Nếu thu hẹp export, đã đánh giá tác động tới client.
-- [ ] Đã biên dịch và chạy các module liên quan.
-- [ ] Module descriptor phản ánh đúng hợp đồng cần công bố.
+- [ ] The package has been properly identified in the module.
+- [ ] Client modules and how they use the package have been identified.
+- [ ] Public APIs have been distinguished from internal implementation.
+- [ ] Checked whether the package appears in API signatures of other modules.
+- [ ] Reflection and ServiceLoader requirements have been verified.
+- [ ] Chosen between not exporting, unqualified export, qualified export, or opens.
+- [ ] If narrowing exports, impact on clients has been assessed.
+- [ ] Related modules have been compiled and run.
+- [ ] The module descriptor accurately reflects the contract to be published.
 
-Một bảng quyết định cuối cùng có thể được lưu cùng tài liệu thiết kế:
+A final decision table can be saved alongside design documentation:
 
-| Package | Client cần truy cập | Quyết định | Lý do |
+| Package | Clients Needing Access | Decision | Reason |
 |---|---|---|---|
-| `com.acme.orders.api` | App, integration | Export | API public |
-| `com.acme.orders.spi` | Module plugin cụ thể | Qualified export | Extension contract |
-| `com.acme.orders.internal` | Không có client bên ngoài | Không export | Implementation |
-| `com.acme.orders.persistence` | ORM qua deep reflection | Opens cho ORM | Truy cập runtime |
-| `com.acme.orders.provider.internal` | ServiceLoader | Không export | Provider khai báo bằng provides |
+| `com.acme.orders.api` | App, integration | Export | Public API |
+| `com.acme.orders.spi` | Specific plugin module | Qualified export | Extension contract |
+| `com.acme.orders.internal` | No external clients | Do not export | Implementation |
+| `com.acme.orders.persistence` | ORM via deep reflection | Opens to ORM | Runtime access |
+| `com.acme.orders.provider.internal` | ServiceLoader | Do not export | Provider declared via provides |
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-**Tình huống 1:** Module A khai báo `requires B;`. Module nào là module phụ thuộc?
+**Scenario 1:** Module A declares `requires B;`. Which module is the dependent module?
 
-**Trả lời:** A là module phụ thuộc; B là module được yêu cầu. Quan hệ đọc trực tiếp đi từ A tới B.
+**Answer:** A is the dependent module; B is the required module. The direct readability relationship goes from A to B.
 
-**Tình huống 2:** A yêu cầu B, B yêu cầu C bằng `requires C;`. A có tự động đọc C không?
+**Scenario 2:** A requires B, and B requires C via `requires C;`. Does A automatically read C?
 
-**Trả lời:** Không. `requires` thường không truyền khả năng đọc tới module phụ thuộc gián tiếp. A cần khai báo dependency trực tiếp vào C hoặc B dùng `requires transitive C;`.
+**Answer:** No. Normal `requires` does not propagate readability to indirect dependencies. A needs to declare a direct dependency on C, or B must use `requires transitive C;`.
 
-**Tình huống 3:** Vì sao một module có mặt trên module path nhưng vẫn không được app sử dụng?
+**Scenario 3:** Why is a module present on the module path yet still unused by the app?
 
-**Trả lời:** Module path chỉ cung cấp vị trí để Java tìm module. App còn phải khai báo quan hệ `requires` phù hợp; package được sử dụng cũng phải được export và kiểu phải đáp ứng quy tắc truy cập.
+**Answer:** The module path only provides the location for Java to find modules. The app must still declare an appropriate `requires` relationship; the used package must also be exported, and the type must satisfy access rules.
 
-**Tình huống 4:** Một module dùng dependency chỉ trong compile time. Có thể chọn modifier nào?
+**Scenario 4:** A module uses a dependency only at compile time. Which modifier can be chosen?
 
-**Trả lời:** Có thể dùng `requires static` nếu dependency không bắt buộc lúc chạy và code runtime không phụ thuộc sự hiện diện của class đó.
+**Answer:** `requires static` can be used if the dependency is optional at runtime and runtime code does not depend on that class's presence.
 
-**Tình huống 5:** Khi nào nên dùng `requires transitive`?
+**Scenario 5:** When should `requires transitive` be used?
 
-**Trả lời:** Khi module muốn module đọc nó cũng đọc dependency, thường vì kiểu của dependency xuất hiện trong API public mà client cần sử dụng.
+**Answer:** When a module wants modules reading it to also read the dependency, typically because types from the dependency appear in the public API that clients need to use.
 
-**Tình huống 6:** Một package không export nhưng được khai báo trong `provides ... with ...`. Có nhất thiết phải export package provider không?
+**Scenario 6:** A package is not exported, yet is declared in `provides ... with ...`. Is it mandatory to export the provider package?
 
-**Trả lời:** Không. Provider được khai báo trong module descriptor để ServiceLoader tìm thấy; package triển khai provider thường có thể giữ nội bộ. Package chứa service interface vẫn cần được công bố cho module tiêu thụ.
+**Answer:** No. The provider is declared in the module descriptor so ServiceLoader can find it; the provider implementation package can usually remain internal. The package containing the service interface still needs to be exposed to consuming modules.
 
-Khi rà soát một dòng `requires`, hãy xác định module đang khai báo, module được yêu cầu, hướng cạnh phụ thuộc, modifier và cách dependency được sử dụng trong API. Sau đó kiểm tra module path, package export và client để bảo đảm đồ thị module phản ánh đúng kiến trúc mong muốn.
+When reviewing a `requires` line, identify the declaring module, the required module, the dependency edge direction, modifiers, and how the dependency is used in the API. Then check the module path, package exports, and clients to ensure the module graph accurately reflects the intended architecture.

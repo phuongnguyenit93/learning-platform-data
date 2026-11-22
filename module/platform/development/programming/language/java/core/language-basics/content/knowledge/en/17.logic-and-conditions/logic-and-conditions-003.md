@@ -1,10 +1,10 @@
-# Dùng ngắn mạch để kiểm tra null và giới hạn mảng — Java 17+
+# Using Short-Circuiting for Null Checks and Array Bounds — Java 17+
 
-## 1. Bài học cốt lõi
+## 1. Core Lesson
 
-Trong Java, toán tử logic **`&&` (AND ngắn mạch)** và **`||` (OR ngắn mạch)** có thể **không đánh giá toán hạng bên phải** nếu kết quả đã được quyết định từ toán hạng bên trái.
+In Java, the logical operators **`&&` (short-circuit AND)** and **`||` (short-circuit OR)** may **skip evaluating the right-hand operand** if the result is already determined by the left-hand operand.
 
-Đây là cơ sở để kiểm tra an toàn theo thứ tự: **tham chiếu khác `null` → chỉ số không âm → chỉ số nhỏ hơn `array.length` → mới truy cập phần tử**.
+This is the basis for safely checking in order: **reference not `null` → non-negative index → index less than `array.length` → then access element**.
 
 ~~~java
 int[] values = {4, 0, -2};
@@ -18,18 +18,18 @@ boolean positive = values != null
 System.out.println(positive); // true
 ~~~
 
-Nếu `values == null`, biểu thức `values.length` **không được đánh giá**. Nếu `index` ngoài miền hợp lệ, `values[index]` **không được truy cập**. Nhưng điều này chỉ đúng khi các phép kiểm tra được đặt **đúng thứ tự và dùng toán tử ngắn mạch**.
+If `values == null`, the expression `values.length` **is not evaluated**. If `index` is out of bounds, `values[index]` **is not accessed**. However, this holds only when checks are placed **in the right order and use short-circuit operators**.
 
-## 2. Quy tắc `&&` và `||`
+## 2. Rules for `&&` and `||`
 
-Với hai biểu thức boolean `left`, `right`:
+Given two boolean expressions `left` and `right`:
 
-| Biểu thức | Khi nào bỏ qua `right`? | Kết quả khi bỏ qua |
+| Expression | When is `right` skipped? | Result when skipped |
 |---|---|---|
-| `left && right` | Khi `left == false` | `false` |
-| `left || right` | Khi `left == true` | `true` |
+| `left && right` | When `left == false` | `false` |
+| `left || right` | When `left == true` | `true` |
 
-Cụ thể:
+Specifically:
 
 ~~~java
 boolean a = false;
@@ -39,59 +39,59 @@ boolean andResult = a && b; // false
 boolean orResult = b || a;  // true
 ~~~
 
-Java đánh giá toán hạng trái trước. **Nếu cần thiết**, toán hạng phải mới được đánh giá; đây không phải đặc tính “compiler tình cờ tối ưu” mà là **ngữ nghĩa của toán tử**.
+Java evaluates the left-hand operand first. **If necessary**, the right-hand operand is then evaluated; this is not an "accidental compiler optimization" but **the operator's semantics**.
 
 ~~~mermaid
 flowchart TD
-    A["Đánh giá vế trái của &&"] --> B{"Vế trái true?"}
-    B -- "Không" --> C["Trả false, bỏ qua vế phải"]
-    B -- "Có" --> D["Đánh giá vế phải và dùng kết quả"]
-    E["Đánh giá vế trái của ||"] --> F{"Vế trái true?"}
-    F -- "Có" --> G["Trả true, bỏ qua vế phải"]
-    F -- "Không" --> H["Đánh giá vế phải và dùng kết quả"]
+    A["Evaluate left side of &&"] --> B{"Is left side true?"}
+    B -- "No" --> C["Return false, skip right side"]
+    B -- "Yes" --> D["Evaluate right side and use result"]
+    E["Evaluate left side of ||"] --> F{"Is left side true?"}
+    F -- "Yes" --> G["Return true, skip right side"]
+    F -- "No" --> H["Evaluate right side and use result"]
 ~~~
 
-Các biểu thức như `a && b && c` được nhóm theo tính kết hợp trái; cả chuỗi có thể dừng ngay khi tìm được một điều kiện false. Tương tự `a || b || c` có thể dừng ngay khi thấy true.
+Expressions like `a && b && c` are grouped by left-associativity; the whole chain can stop as soon as a false condition is found. Similarly, `a || b || c` can stop as soon as true is encountered.
 
-## 3. Kiểm tra `null` đúng thứ tự
+## 3. Checking `null` in the Right Order
 
-Giả sử tham chiếu `String` có thể null:
+Suppose a `String` reference may be null:
 
 ~~~java
 String name = null;
 
 boolean valid = name != null && !name.isBlank();
-System.out.println(valid); // false, không ném NullPointerException
+System.out.println(valid); // false, does not throw NullPointerException
 ~~~
 
-Vế trái `name != null` là false, vì vậy Java **không gọi** `name.isBlank()`. Nếu đảo thứ tự:
+The left side `name != null` is false, so Java **does not call** `name.isBlank()`. If the order is reversed:
 
 ~~~java
 String name = null;
 // boolean invalid = !name.isBlank() && name != null;
-// Khi chạy: NullPointerException vì gọi isBlank() trước.
+// At runtime: NullPointerException because isBlank() is called first.
 ~~~
 
-**Quy tắc:** điều kiện an toàn phải **đi trước thao tác phụ thuộc vào nó**.
+**Rule:** the safety condition must **precede the operation that depends on it**.
 
-| Nên dùng | Vì sao? |
+| Recommended | Why? |
 |---|---|
-| `obj != null && obj.isReady()` | Không gọi method trên null |
-| `text != null && !text.isEmpty()` | Không truy cập String null |
-| `array != null && array.length > 0` | Không lấy `length` trên null |
-| `boxed != null && boxed > 0` | Không unbox wrapper null |
+| `obj != null && obj.isReady()` | Does not call method on null |
+| `text != null && !text.isEmpty()` | Does not access null String |
+| `array != null && array.length > 0` | Does not read `length` on null |
+| `boxed != null && boxed > 0` | Does not unbox null wrapper |
 
-Không phải cứ viết `&&` ở đâu cũng an toàn. Ví dụ `obj.isReady() && obj != null` vẫn truy cập null **trước** khi kiểm tra.
+Writing `&&` anywhere is not automatically safe. For example, `obj.isReady() && obj != null` still dereferences null **before** checking.
 
-## 4. Guard giới hạn mảng một chiều
+## 4. Guarding One-Dimensional Array Bounds
 
-Với mảng `int[] array` có độ dài `n`, chỉ số hợp lệ phải thuộc khoảng **`[0, n)`**:
+For an `int[] array` of length `n`, a valid index must belong to the interval **`[0, n)`**:
 
 \[
 0 \le \text{index} < \text{array.length}
 \]
 
-Java **không** hỗ trợ cú pháp `0 <= index < array.length` kiểu toán học. Phải viết hai điều kiện riêng.
+Java does **not** support chained mathematical syntax like `0 <= index < array.length`. You must write two separate conditions.
 
 ~~~java
 static boolean positiveAt(int[] array, int index) {
@@ -102,28 +102,28 @@ static boolean positiveAt(int[] array, int index) {
 }
 ~~~
 
-Hàm có các thuộc tính sau:
+This method has the following properties:
 
-1. Mảng null → `false`, không truy cập `length`.
-2. Chỉ số âm → `false`, không truy cập phần tử.
-3. `index == array.length` → `false`: đây là **vị trí nằm ngay sau phần tử cuối**.
-4. Chỉ số hợp lệ → mới kiểm tra `array[index] > 0`.
-5. Mảng rỗng → luôn trả `false` với mọi chỉ số `int`.
+1. Null array → `false`, does not access `length`.
+2. Negative index → `false`, does not access element.
+3. `index == array.length` → `false`: this is **the position immediately after the last element**.
+4. Valid index → only then checks `array[index] > 0`.
+5. Empty array → always returns `false` for any `int` index.
 
-Với `int[] values = {4, 0, -2}`, các chỉ số hợp lệ là `0`, `1`, `2`, **không phải 3**.
+With `int[] values = {4, 0, -2}`, valid indices are `0`, `1`, `2`, **not 3**.
 
-**Lỗi off-by-one rất thường gặp:**
+**Very common off-by-one bug:**
 
 ~~~java
-// index <= array.length // SAI với truy cập phần tử
-// index < array.length  // ĐÚNG nếu đồng thời index >= 0
+// index <= array.length // WRONG for element access
+// index < array.length  // RIGHT when paired with index >= 0
 ~~~
 
-Chỉ số âm cũng không thể bỏ qua: Java **không** coi `array[-1]` là phần tử cuối như một số ngôn ngữ khác.
+Negative indices cannot be omitted either: Java does **not** treat `array[-1]` as the last element like some other languages.
 
-## 5. Kiểm tra giá trị phần tử có thể null
+## 5. Checking Potentially Null Element Values
 
-Một mảng tham chiếu như `String[]` có thể **không null**, nhưng một phần tử của nó lại **null**:
+A reference array such as `String[]` can be **non-null**, yet one of its elements is **null**:
 
 ~~~java
 String[] names = {"Java", null, "Go"};
@@ -134,10 +134,10 @@ boolean startsWithJ = names != null
         && names[1] != null
         && names[1].startsWith("J");
 
-System.out.println(startsWithJ); // false, không gọi startsWith trên null
+System.out.println(startsWithJ); // false, does not call startsWith on null
 ~~~
 
-Quy trình guard phải phân biệt **null của mảng** với **null của phần tử**:
+The guard sequence must distinguish **null array** from **null element**:
 
 ~~~java
 static boolean startsWithJAt(String[] names, int index) {
@@ -149,13 +149,13 @@ static boolean startsWithJAt(String[] names, int index) {
 }
 ~~~
 
-Nếu bỏ `names[index] != null`, đoạn cuối có thể gây `NullPointerException`. Đừng suy rằng `names != null` đủ bảo đảm mọi phần tử đều tồn tại và không null.
+Omitting `names[index] != null` can cause `NullPointerException` at the end. Do not assume `names != null` guarantees every element exists and is non-null.
 
-**Tính dễ đọc:** Nếu dùng cùng `names[index]` quá nhiều lần và dữ liệu có thể thay đổi đồng thời, hãy xác thực môi trường/đồng bộ trước; chỉ lặp biểu thức guard không biến thao tác thành nguyên tử.
+**Readability:** If you reuse the same `names[index]` too many times and data may change concurrently, validate/synchronize beforehand; merely repeating a guard expression does not make the operation atomic.
 
-## 6. Dùng `||` để loại bỏ dữ liệu không hợp lệ
+## 6. Using `||` to Reject Invalid Data
 
-Khi muốn phát hiện một chỉ số **không hợp lệ**, có thể dùng điều kiện nghịch đảo:
+When you want to detect an **invalid** index, you can use the negated condition:
 
 ~~~java
 static boolean invalidIndex(int[] array, int index) {
@@ -163,73 +163,73 @@ static boolean invalidIndex(int[] array, int index) {
 }
 ~~~
 
-Ở đây:
+Here:
 
-- Nếu `array == null` true, Java trả `true` ngay; không truy cập `array.length`.
-- Nếu `index < 0` true, điều kiện tiếp theo cũng bị bỏ qua.
-- Nếu đã vượt qua hai guard, `array.length` mới được đọc.
+- If `array == null` is true, Java returns `true` immediately; `array.length` is not accessed.
+- If `index < 0` is true, the subsequent condition is also skipped.
+- Only after passing both guards is `array.length` read.
 
-Mẫu hay dùng trong một phương thức:
+Common pattern inside a method:
 
 ~~~java
 if (array == null || index < 0 || index >= array.length) {
-    return false; // Hoặc throw theo hợp đồng API
+    return false; // Or throw per API contract
 }
-return array[index] > 0; // Sau guard, chỉ số hợp lệ
+return array[index] > 0; // After the guard, index is valid
 ~~~
 
-Hai cách mô tả cùng miền điều kiện:
+Two ways to express the same condition domain:
 
-| Ý nghĩa | Mẫu logic |
+| Meaning | Logic pattern |
 |---|---|
-| Hợp lệ để truy cập | `array != null && index >= 0 && index < array.length` |
-| Không hợp lệ | `array == null || index < 0 || index >= array.length` |
-| Truy cập phần tử nếu hợp lệ | `guard && array[index] > 0` |
-| Từ chối rồi mới truy cập | `if (invalid) return ...;` rồi `array[index]` |
+| Valid for access | `array != null && index >= 0 && index < array.length` |
+| Invalid | `array == null || index < 0 || index >= array.length` |
+| Access element if valid | `guard && array[index] > 0` |
+| Reject before accessing | `if (invalid) return ...;` then `array[index]` |
 
-Đây là một ứng dụng của quy tắc **De Morgan** khi điều kiện không có tác dụng phụ. Chọn cách diễn đạt đúng ngữ nghĩa nghiệp vụ và dễ kiểm tra.
+This is an application of **De Morgan's laws** when conditions have no side effects. Choose the phrasing that matches business semantics and is easy to verify.
 
-## 7. `&` và `|` KHÔNG ngắn mạch trên boolean
+## 7. `&` and `|` Do NOT Short-Circuit on Booleans
 
-Java có các toán tử `&` (AND không ngắn mạch) và `|` (OR không ngắn mạch) dùng được trên boolean. Chúng **đánh giá cả hai vế**, khác với `&&` và `||`.
+Java has the operators `&` (non-short-circuit AND) and `|` (non-short-circuit OR) usable on booleans. They **evaluate both sides**, unlike `&&` and `||`.
 
 ~~~java
 int[] numbers = null;
 
 // boolean unsafe = numbers != null & numbers.length > 0;
-// Nếu chạy: NullPointerException vì vế phải vẫn được đánh giá.
+// If run: NullPointerException because the right side is still evaluated.
 ~~~
 
-Tương tự:
+Similarly:
 
 ~~~java
 int[] values = {4, 0};
 
 // boolean unsafe = (values != null) & (values[99] > 0);
-// Nếu chạy: ArrayIndexOutOfBoundsException.
+// If run: ArrayIndexOutOfBoundsException.
 ~~~
 
-**Đừng thay `&&` bằng `&` trong null guard.** Với `|`, cũng không dùng để thay `||` nếu dựa vào việc bỏ qua phép truy cập nguy hiểm ở vế phải:
+**Do not replace `&&` with `&` in a null guard.** Likewise for `|`, do not use it in place of `||` when relying on skipping a dangerous access on the right side:
 
 ~~~java
 // values == null | values.length == 0
-// Nếu values là null, truy cập values.length vẫn chạy và có thể ném NPE.
+// If values is null, accessing values.length still runs and can throw NPE.
 ~~~
 
-Bảng đối chiếu:
+Comparison table:
 
-| Toán tử | Dùng với boolean | Đánh giá vế phải khi vế trái đã quyết định kết quả? |
+| Operator | Used with boolean | Evaluates right side when left side already decides result? |
 |---|---|---|
-| `&&` | Có | Không |
-| `||` | Có | Không |
-| `&` | Có | **Có** |
-| `|` | Có | **Có** |
+| `&&` | Yes | No |
+| `||` | Yes | No |
+| `&` | Yes | **Yes** |
+| `|` | Yes | **Yes** |
 
-Toán tử `&`/`|` còn dùng trong thao tác bitwise số nguyên; đây là chức năng khác. Bài này chỉ so sánh **ngữ nghĩa boolean**.
+`&`/`|` are also used in integer bitwise operations; that is a different feature. This lesson compares only **boolean semantics**.
 
-## 8. Mảng hai chiều có thể chứa hàng null hoặc hàng dài ngắn khác nhau
+## 8. Two-Dimensional Arrays Can Have Null Rows or Varying Row Lengths
 
-Trong Java, `int[][]` là **mảng chứa các tham chiếu tới từng hàng**. Một hàng có thể null, hàng khác có độ dài riêng (*jagged array*). Không được giả định mọi hàng đều có `matrix[0].length`.
+In Java, `int[][]` is an **array of references to individual rows**. One row may be null, and another may have its own length (*jagged array*). Do not assume every row has length `matrix[0].length`.
 
 ~~~java
 static boolean positiveAt2D(int[][] matrix, int row, int col) {
@@ -243,19 +243,19 @@ static boolean positiveAt2D(int[][] matrix, int row, int col) {
 }
 ~~~
 
-Thứ tự đúng:
+Correct order:
 
-1. Mảng ngoài khác null.
-2. `row` nằm trong `[0, matrix.length)`.
-3. Hàng `matrix[row]` khác null.
-4. `col` không âm, nhỏ hơn **độ dài của chính hàng đã chọn**.
-5. Chỉ khi ấy mới đọc `matrix[row][col]`.
+1. Outer array is non-null.
+2. `row` is within `[0, matrix.length)`.
+3. Row `matrix[row]` is non-null.
+4. `col` is non-negative and less than **the length of that specific selected row**.
+5. Only then read `matrix[row][col]`.
 
-Nếu đảo `matrix[row] != null` lên trước kiểm tra `row`, vẫn có thể ném `ArrayIndexOutOfBoundsException`. Nếu lấy `matrix[row].length` trước khi chắc chắn hàng khác null, có thể ném `NullPointerException`.
+Moving `matrix[row] != null` before the `row` bounds check can still throw `ArrayIndexOutOfBoundsException`. Reading `matrix[row].length` before ensuring the row is non-null can throw `NullPointerException`.
 
-## 9. Boolean wrapper cũng có thể là `null`
+## 9. Boxed `Boolean` Can Also Be `null`
 
-Với kiểu nguyên thủy `boolean`, chỉ có `true` hoặc `false`. Với wrapper `Boolean`, còn có thể là `null`:
+With primitive `boolean`, only `true` or `false` is possible. With the `Boolean` wrapper, it can also be `null`:
 
 ~~~java
 Boolean enabled = null;
@@ -264,19 +264,19 @@ boolean allowed = enabled != null && enabled;
 System.out.println(allowed); // false
 ~~~
 
-Khi `enabled == null`, toán hạng `enabled` ở bên phải không được đánh giá, tránh auto-unboxing null.
+When `enabled == null`, the `enabled` operand on the right is not evaluated, avoiding null auto-unboxing.
 
-Nếu muốn chỉ true mới được chấp nhận, một lựa chọn khác là:
+If only true should be accepted, another option is:
 
 ~~~java
 boolean allowed = Boolean.TRUE.equals(enabled);
 ~~~
 
-Cách này xử lý null an toàn, nhưng đừng nhầm kiểm tra Boolean với kiểm tra **miền chỉ số mảng**: hai vấn đề có thể xuất hiện cùng lúc và cần guard độc lập.
+This handles null safely, but do not confuse checking a `Boolean` with checking **array index bounds**: both issues can appear together and require independent guards.
 
-## 10. Ngoại lệ và tác dụng phụ: short-circuit không bảo vệ mọi thứ
+## 10. Exceptions and Side Effects: Short-Circuiting Does Not Protect Everything
 
-`&&`/`||` chỉ bỏ qua những **toán hạng chưa được đánh giá**. Chúng không hoàn tác tác dụng phụ trước đó và không tự xử lý các lỗi bên trong vế trái.
+`&&`/`||` only skip **unevaluated operands**. They do not roll back earlier side effects and do not handle errors occurring inside the left side.
 
 ~~~java
 int index = 0;
@@ -285,12 +285,12 @@ int[] values = {10, 20};
 boolean result = index++ < values.length
         && values[index] > 0;
 
-// Không nên viết: index đã tăng trước khi vế phải dùng index.
+// Avoid writing this: index has already incremented before the right side uses index.
 ~~~
 
-Dù biểu thức này có thể chạy với một số dữ liệu, nó dễ sai ở ranh giới: ví dụ `index` ban đầu là `values.length - 1`; vế trái có thể true rồi tăng chỉ số thành `values.length`, và vế phải truy cập ngoài mảng.
+Although this expression might work for some inputs, it easily breaks at boundaries: e.g., if `index` starts at `values.length - 1`, the left side can be true, increment `index` to `values.length`, and the right side accesses out of bounds.
 
-**Guard không nên tự thay đổi biến mà nó dùng để kiểm tra.** Tốt hơn:
+**A guard should not mutate the variable it is checking.** Better:
 
 ~~~java
 int index = 1;
@@ -299,15 +299,15 @@ boolean valid = values != null
         && index < values.length;
 if (valid) {
     int current = values[index];
-    index++; // Cập nhật rõ ràng ở một câu lệnh khác
+    index++; // Explicit update in a separate statement
 }
 ~~~
 
-Với nhiều thread cùng sửa tham chiếu, chỉ số hoặc nội dung mảng, các guard thông thường **không bảo đảm atomicity hoặc thread safety**. Cần đồng bộ/phân quyền sở hữu dữ liệu theo yêu cầu, thay vì chỉ đặt thêm `&&`.
+When multiple threads concurrently modify the reference, index, or array contents, ordinary guards **do not guarantee atomicity or thread safety**. Use appropriate synchronization or data ownership per requirements rather than just adding more `&&` checks.
 
-## 11. Khi nào nên tách thành `if` và guard clause?
+## 11. When to Split into `if` Statements and Guard Clauses?
 
-Một điều kiện ngắn như:
+A short condition such as:
 
 ~~~java
 boolean safe = array != null
@@ -315,7 +315,7 @@ boolean safe = array != null
         && index < array.length;
 ~~~
 
-thường rất dễ hiểu. Nhưng khi phải kiểm tra nhiều thuộc tính hoặc cần **thông báo lỗi riêng** cho null, chỉ số âm và chỉ số quá lớn, cách dùng guard clause rõ hơn:
+is usually very easy to understand. However, when multiple properties must be validated or you need **distinct error messages** for null, negative index, and too-large index, guard clauses are clearer:
 
 ~~~java
 static int requireElement(int[] array, int index) {
@@ -329,20 +329,20 @@ static int requireElement(int[] array, int index) {
 }
 ~~~
 
-Ưu điểm:
+Advantages:
 
-- Chỉ ra chính xác nguyên nhân từ chối.
-- Tách bước validation khỏi thao tác đọc.
-- Có thể kiểm thử riêng từng nhánh lỗi.
-- Tránh điều kiện boolean quá dài hoặc lặp thao tác có side effect.
+- Pinpoints the exact reason for rejection.
+- Separates validation from the read operation.
+- Allows testing each error branch independently.
+- Avoids overly long boolean conditions or repeated operations with side effects.
 
-Java 17 cũng có `Objects.checkIndex(index, length)` để kiểm tra chỉ số trong `[0,length)`; hàm này ném ngoại lệ nếu không hợp lệ. Nhưng khi đối tượng mảng có thể null, vẫn cần xử lý null **trước khi** truy cập `array.length`.
+Java 17 also provides `Objects.checkIndex(index, length)` to check indices in `[0, length)`; it throws an exception if invalid. However, when the array itself may be null, you still must handle null **before** accessing `array.length`.
 
-**Chọn API theo hợp đồng:** hàm truy vấn có thể trả false khi dữ liệu không hợp lệ; hàm truy cập bắt buộc có thể ném exception có ý nghĩa. Không âm thầm trả giá trị mặc định nếu làm mất khác biệt giữa dữ liệu lỗi và dữ liệu hợp lệ.
+**Choose the API based on its contract:** query functions can return false on invalid input; mandatory accessors can throw meaningful exceptions. Do not silently return a default value if that obscures the distinction between invalid and valid data.
 
-## 12. Ví dụ Java 17 hoàn chỉnh, có kết quả cố định
+## 12. Complete Java 17 Example with Deterministic Output
 
-Tạo file đúng tên **`ShortCircuitArrayGuardDemo.java`**:
+Create a file named exactly **`ShortCircuitArrayGuardDemo.java`**:
 
 ~~~java
 public final class ShortCircuitArrayGuardDemo {
@@ -460,7 +460,7 @@ public final class ShortCircuitArrayGuardDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên; terminal ở thư mục chứa file; không cần Maven, Gradle hoặc thư viện ngoài JDK.
+**Requirements:** JDK 17 or later; terminal in the directory containing the file; no Maven, Gradle, or external libraries needed.
 
 **Bash (Linux/macOS):**
 
@@ -509,43 +509,43 @@ required element=4
 required invalid=invalid index: 3
 ~~~
 
-### Cách kiểm tra kết quả
+### How to Verify the Output
 
-1. `positiveAt` từ chối mảng null, mảng rỗng, chỉ số âm và chỉ số bằng `length`; chỉ truy cập khi các guard đã qua.
-2. `invalidIndex` dùng OR ngắn mạch: mảng null hoặc chỉ số ngoài miền đều cho true an toàn.
-3. `startsWithJAt` kiểm tra cả mảng và **phần tử** trước khi gọi method trên String.
-4. `positiveAt2D` kiểm tra hàng null, độ dài riêng từng hàng và cột ngoài miền.
-5. `Boolean enabled = null` không gây NPE nhờ guard trước lúc unboxing.
-6. Hai dòng `&& skipped` và `|| skipped` **không in `called and-right` hoặc `called or-right`**, chứng minh vế phải bị bỏ qua.
-7. `&` và `|` vẫn in `called and-eager`, `called or-eager` vì chúng không short-circuit.
-8. Hai trường hợp `eager ...` ném NPE/AIOOBE; ví dụ bắt đúng loại và in thông báo cố định.
-9. `requireElement` minh họa tình huống dùng exception rõ ràng thay vì một giá trị mặc định.
+1. `positiveAt` rejects null arrays, empty arrays, negative indices, and indices equal to `length`; only accesses the element after guards pass.
+2. `invalidIndex` uses short-circuit OR: a null array or out-of-bounds index safely yields true.
+3. `startsWithJAt` checks both the array and **element** before invoking a method on the String.
+4. `positiveAt2D` checks for null rows, per-row lengths, and out-of-bounds columns.
+5. `Boolean enabled = null` avoids NPE thanks to the guard before unboxing.
+6. The two lines `&& skipped` and `|| skipped` **do not print `called and-right` or `called or-right`**, proving the right side was skipped.
+7. `&` and `|` still print `called and-eager` and `called or-eager` because they do not short-circuit.
+8. Both `eager ...` cases throw NPE/AIOOBE; the example catches the exact types and prints fixed messages.
+9. `requireElement` illustrates using an explicit exception instead of a default value.
 
-## 13. Lỗi thường gặp
+## 13. Common Mistakes
 
-| Lỗi hoặc ngộ nhận | Hậu quả | Cách đúng |
+| Mistake or misconception | Consequence | Correct approach |
 |---|---|---|
-| `array.length > 0 && array != null` | NPE nếu mảng null | Kiểm tra `array != null` trước |
-| `array != null & array.length > 0` | `&` luôn đánh giá vế phải | Dùng `&&` |
-| `array == null | array.length == 0` | `|` luôn đánh giá vế phải | Dùng `||` |
-| `index < array.length` không kiểm tra âm | Chỉ số âm vẫn có thể truy cập sai | `index >= 0 && index < array.length` |
-| `index <= array.length` | Cho phép index bằng length | Dùng `index < array.length` |
-| `array != null && array[index] > 0` | Chỉ bảo vệ null, chưa bảo vệ index | Thêm hai kiểm tra giới hạn |
-| `names != null && names[i].isBlank()` | Phần tử `names[i]` có thể null | Kiểm tra `names[i] != null` |
-| `matrix[row].length` trước khi kiểm tra row | Row có thể ngoài miền hoặc null | Guard ma trận, row, hàng rồi col |
-| `array[index++]` trong guard | Index có thể đổi giữa kiểm tra và truy cập | Tách cập nhật index khỏi validation |
-| `&&` tự đồng bộ mọi dữ liệu | Không atomic nếu dữ liệu bị thread khác sửa | Dùng đồng bộ/ownership phù hợp |
-| Nghĩ `&&` và `&` chỉ khác hiệu năng | Side effect và exception có thể khác | Chọn theo ngữ nghĩa |
-| Dùng null guard nhưng vẫn truy cập bên ngoài guard | Guard chỉ bảo vệ đoạn được kiểm soát | Xác thực ở điểm truy cập hoặc thiết kế API rõ |
-| `Boolean nullable` tự chuyển null thành false | Unboxing null ném NPE | Guard `!= null` hoặc `Boolean.TRUE.equals` |
+| `array.length > 0 && array != null` | NPE if array is null | Check `array != null` first |
+| `array != null & array.length > 0` | `&` always evaluates the right side | Use `&&` |
+| `array == null | array.length == 0` | `|` always evaluates the right side | Use `||` |
+| `index < array.length` without negative check | Negative indices can still cause invalid access | `index >= 0 && index < array.length` |
+| `index <= array.length` | Allows index equal to length | Use `index < array.length` |
+| `array != null && array[index] > 0` | Guards null only, not index | Add both bounds checks |
+| `names != null && names[i].isBlank()` | Element `names[i]` may be null | Check `names[i] != null` |
+| `matrix[row].length` before checking row | Row may be out of bounds or null | Guard matrix, row index, row reference, then col |
+| `array[index++]` inside a guard | Index may change between check and access | Separate index update from validation |
+| `&&` automatically synchronizes all data | Not atomic if another thread mutates the data | Use appropriate synchronization/ownership |
+| Thinking `&&` and `&` differ only in performance | Side effects and exceptions can differ | Choose based on semantics |
+| Using a null guard but still accessing outside it | The guard protects only the controlled block | Validate at access point or design a clear API |
+| Nullable `Boolean` auto-converts null to false | Unboxing null throws NPE | Guard `!= null` or use `Boolean.TRUE.equals` |
 
-## 14. Bài tập có đáp án
+## 14. Exercises with Answers
 
-### Bài A — kiểm tra chỉ số hợp lệ
+### Exercise A — checking a valid index
 
-Cho `int[] values = {5, 8, 13};` và một `index`. Hãy viết điều kiện chỉ đọc `values[index]` khi mảng tồn tại và index hợp lệ.
+Given `int[] values = {5, 8, 13};` and an `index`, write a condition that reads `values[index]` only when the array exists and the index is valid.
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 boolean valid = values != null
@@ -556,9 +556,9 @@ if (valid) {
 }
 ~~~
 
-Nếu `index == 3` hoặc `-1`, đoạn truy cập bị bỏ qua.
+If `index == 3` or `-1`, the access block is skipped.
 
-### Bài B — `&&` khác `&`
+### Exercise B — `&&` vs. `&`
 
 ~~~java
 int[] a = null;
@@ -566,9 +566,9 @@ boolean safe = a != null && a.length > 0;
 // boolean unsafe = a != null & a.length > 0;
 ~~~
 
-**Đáp án:** `safe == false`, không ném lỗi. Nếu chạy dòng `unsafe`, vế phải vẫn đọc `a.length` và ném `NullPointerException`.
+**Answer:** `safe == false`, throws no error. If the `unsafe` line runs, the right side still reads `a.length` and throws `NullPointerException`.
 
-### Bài C — guard với `||`
+### Exercise C — guard with `||`
 
 ~~~java
 int[] a = {2, 3};
@@ -577,9 +577,9 @@ boolean invalid = a == null || i < 0 || i >= a.length;
 System.out.println(invalid);
 ~~~
 
-**Đáp án:** `true`; Java dừng ở `i < 0`, không cần tính vế cuối.
+**Answer:** `true`; Java stops at `i < 0`, without evaluating the last operand.
 
-### Bài D — phần tử String null
+### Exercise D — null String element
 
 ~~~java
 String[] names = {null, "Java"};
@@ -590,9 +590,9 @@ boolean ok = names != null
 System.out.println(ok);
 ~~~
 
-**Đáp án:** `false`, không ném NPE.
+**Answer:** `false`, does not throw NPE.
 
-### Bài E — mảng hai chiều
+### Exercise E — two-dimensional array
 
 ~~~java
 int[][] matrix = {null, {3, 4}};
@@ -600,16 +600,16 @@ System.out.println(positiveAt2D(matrix, 0, 0));
 System.out.println(positiveAt2D(matrix, 1, 1));
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 false
 true
 ~~~
 
-Hàm `positiveAt2D` được định nghĩa trong ví dụ độc lập phía trên.
+The method `positiveAt2D` is defined in the standalone example above.
 
-### Bài F — lỗi khi index thay đổi ngay trong guard
+### Exercise F — bug when index changes inside the guard
 
 ~~~java
 int[] values = {10, 20};
@@ -617,21 +617,21 @@ int index = 1;
 // boolean ok = index++ < values.length && values[index] > 0;
 ~~~
 
-**Đáp án:** vế trái so `1 < 2` cho true nhưng tăng `index` lên 2; vế phải `values[2]` gây `ArrayIndexOutOfBoundsException`. Hãy dùng index không thay đổi trong quá trình guard, rồi cập nhật nó bằng câu lệnh riêng.
+**Answer:** the left side compares `1 < 2`, yielding true, but increments `index` to 2; the right side `values[2]` causes `ArrayIndexOutOfBoundsException`. Keep `index` unchanged during the guard, and update it in a separate statement.
 
-## 15. Checklist và kết luận
+## 15. Checklist and Conclusion
 
-- [ ] Nhớ `&&` bỏ vế phải khi vế trái false; `||` bỏ vế phải khi vế trái true.
-- [ ] Không nhầm `&&`/`||` với `&`/`|` boolean.
-- [ ] Luôn kiểm tra `array != null` trước `array.length`.
-- [ ] Kiểm tra cả `index >= 0` và `index < array.length`.
-- [ ] Với mảng reference, kiểm tra `array[index] != null` trước gọi method trên phần tử.
-- [ ] Với mảng hai chiều, guard từng cấp theo đúng thứ tự.
-- [ ] Dùng `array == null || index < 0 || index >= array.length` khi cần phát hiện invalid.
-- [ ] Hiểu short-circuit bỏ qua side effect ở vế phải nhưng không rollback thao tác đã xảy ra.
-- [ ] Không tăng/giảm index ngay trong các phép so sánh guard nếu còn dùng lại nó.
-- [ ] Phân biệt kiểm tra dữ liệu an toàn trong một thread và thread safety thực sự.
-- [ ] Chọn trả boolean hoặc ném exception theo hợp đồng API.
-- [ ] Biên dịch/chạy `ShortCircuitArrayGuardDemo.java` bằng Java 17+ và đối chiếu chính xác stdout.
+- [ ] Remember `&&` skips the right side when the left side is false; `||` skips the right side when the left side is true.
+- [ ] Do not confuse `&&`/`||` with boolean `&`/`|`.
+- [ ] Always check `array != null` before `array.length`.
+- [ ] Check both `index >= 0` and `index < array.length`.
+- [ ] For reference arrays, check `array[index] != null` before calling methods on the element.
+- [ ] For two-dimensional arrays, guard each level in the proper order.
+- [ ] Use `array == null || index < 0 || index >= array.length` when detecting invalid indices.
+- [ ] Understand that short-circuiting skips right-side effects, but does not roll back operations that already occurred.
+- [ ] Do not increment/decrement the index inside guard comparisons if it will be used again.
+- [ ] Distinguish single-thread data-safety checks from true thread safety.
+- [ ] Choose between returning boolean or throwing an exception based on the API contract.
+- [ ] Compile/run `ShortCircuitArrayGuardDemo.java` with Java 17+ and verify the exact stdout.
 
-**Kết luận:** Dùng ngắn mạch hiệu quả nhất khi **đặt điều kiện bảo vệ trước thao tác có thể lỗi**, theo thứ tự **null → chỉ số không âm → chỉ số nhỏ hơn length → phần tử tồn tại → truy cập**. `&&` và `||` cung cấp bảo đảm ngữ nghĩa để bỏ qua vế phải; `&` và `|` không làm vậy. Guard rõ ràng, không kèm side effect và có kiểm thử biên giúp code Java 17+ dễ đọc, đúng logic và tránh `NullPointerException`/`ArrayIndexOutOfBoundsException` không cần thiết.
+**Conclusion:** Short-circuiting works best when **guards are placed before operations that could fail**, in the order **null → non-negative index → index less than length → element exists → access**. `&&` and `||` provide the semantic guarantee to skip the right-hand side; `&` and `|` do not. Clear guards without side effects, combined with boundary tests, keep Java 17+ code readable, logically sound, and free from unnecessary `NullPointerException`/`ArrayIndexOutOfBoundsException`.

@@ -1,14 +1,14 @@
-# Điều kiện giới hạn khi Field.set gặp final trong Java Reflection
+# Limiting Conditions When Field.set Encounters final in Java Reflection
 
-Một trường (field) có từ khóa **final** được thiết kế để chỉ nhận giá trị trong quá trình khởi tạo hợp lệ theo quy tắc Java. Khi dùng Reflection, bạn vẫn có thể lấy đối tượng java.lang.reflect.Field và đọc giá trị của trường. Tuy nhiên, **đọc được Field, thậm chí gọi thành công setAccessible(true), không đồng nghĩa Field.set có quyền sửa giá trị final**.
+A field with the **final** keyword is designed to receive a value only during valid initialization according to Java rules. When using Reflection, you can still obtain the java.lang.reflect.Field object and read the field's value. However, **being able to read a Field, or even calling setAccessible(true) successfully, does not mean Field.set has permission to modify a final value**.
 
-Trong Java 17, một số **instance final field** của class thông thường vẫn có thể bị sửa bằng deep reflection theo điều kiện rất chặt; nhưng **static final**, final trong **record** và final trong **hidden class** là các trường **non-modifiable**, không thể ghi bằng Field.set. Từ JDK 26, những lần sửa final field bằng deep reflection còn chịu chính sách cảnh báo/giới hạn mới, hướng đến cấm mặc định trong các bản Java tương lai.
+In Java 17, some **instance final fields** of ordinary classes can still be modified via deep reflection under very strict conditions; however, **static final**, final fields in a **record**, and final fields in a **hidden class** are **non-modifiable** fields and cannot be written using Field.set. Starting in JDK 26, modifying final fields via deep reflection is also subject to new warning/restriction policies, moving toward being disallowed by default in future Java releases.
 
-Mục tiêu bài học: nhận biết trường hợp được phép hoặc bị chặn khi gọi Field.set, dự đoán exception, phân biệt quyền truy cập với quyền ghi, kiểm tra tác động của modules và chọn cách thiết kế an toàn thay cho sửa final sau khởi tạo.
+Lesson objectives: recognize cases that are allowed or blocked when calling Field.set, predict exceptions, distinguish access permission from write permission, examine the impact of modules, and choose safe design alternatives instead of mutating final fields after initialization.
 
-## 1. final trong mã nguồn khác gì với Reflection?
+## 1. How does final in source code differ from Reflection?
 
-Ví dụ:
+Example:
 
 ~~~java
 class Order {
@@ -24,59 +24,59 @@ class Order {
 }
 ~~~
 
-Mã Java thông thường không cho phép viết order.id = 100 sau constructor vì trường được khai báo final. Reflection có hai bước riêng:
+Ordinary Java code does not allow writing order.id = 100 after the constructor because the field is declared final. Reflection has two separate steps:
 
-1. Lấy metadata: Field field = Order.class.getDeclaredField("id").
-2. Truy cập hoặc ghi: field.get(order), field.set(order, 100), có thể cần field.setAccessible(true).
+1. Obtain metadata: Field field = Order.class.getDeclaredField("id").
+2. Access or write: field.get(order), field.set(order, 100), which may require field.setAccessible(true).
 
-**getDeclaredField** cho phép tìm field private đã khai báo trực tiếp trong lớp, nhưng bản thân nó không cấp quyền đọc/ghi. **setAccessible(true)** yêu cầu tắt các kiểm tra truy cập theo ngôn ngữ Java đối với Field đó, trong phạm vi quyền module cho phép. Nó **không loại bỏ các loại final bị Java đánh dấu là không thể ghi**.
+**getDeclaredField** lets you look up a private field declared directly in the class, but by itself it grants no read/write permission. **setAccessible(true)** requests suppressing Java language access checks for that Field, within the bounds permitted by module permissions. It **does not remove the categories of final that Java marks as non-modifiable**.
 
-Điều này phải tách thành ba câu hỏi:
+This must be separated into three questions:
 
-- Có tìm đúng Field và đối tượng đích không?
-- Caller có được phép thực hiện thao tác Reflection hay không?
-- Field thuộc loại final có thể sửa trong runtime/phiên bản JDK đang chạy hay không?
+- Were the right Field and target object found?
+- Is the caller permitted to perform the Reflection operation?
+- Does the field belong to a final category that can be modified in the running runtime/JDK version?
 
-Chỉ khi cả ba điều kiện đều phù hợp, Field.set mới có cơ hội hoàn thành. Việc sửa thành công không có nghĩa hành vi của chương trình sau đó luôn quan sát được giá trị mới.
+Only when all three conditions align does Field.set have a chance to complete. A successful modification does not mean subsequent program behavior will always observe the new value.
 
-## 2. Quy tắc Field.set đối với final trên Java 17
+## 2. Field.set rules for final on Java 17
 
-Theo API Java SE 17, để **ghi một final field bằng Field.set(Object, Object)**, các điều kiện sau phải đồng thời đúng:
+According to the Java SE 17 API, to **write a final field with Field.set(Object, Object)**, the following conditions must all hold simultaneously:
 
-1. **setAccessible(true) đã thành công trên chính Field này**.
-2. Field là **instance field**, tức **không phải static**.
-3. Lớp khai báo field **không phải hidden class**.
-4. Lớp khai báo field **không phải record class**.
-5. Object đích phù hợp, giá trị truyền vào có thể gán/chuyển đổi hợp lệ cho kiểu của field, và không có rào cản runtime bổ sung.
+1. **setAccessible(true) has succeeded on this exact Field**.
+2. The field is an **instance field**, meaning **not static**.
+3. The field's declaring class is **not a hidden class**.
+4. The field's declaring class is **not a record class**.
+5. The target object is compatible, the passed value can be validly assigned/converted to the field's type, and there are no additional runtime barriers.
 
-Khi thiếu một trong các điều kiện ghi final ở trên, Field.set có thể ném **IllegalAccessException**. Nếu quyền truy cập đã bị chặn ngay ở setAccessible(true), ngoại lệ thường gặp là **InaccessibleObjectException**. Nếu giá trị hoặc đối tượng không phù hợp, có thể gặp **IllegalArgumentException**; nếu truyền null cho instance field cần receiver, có thể gặp **NullPointerException**.
+When any of the final-write conditions above is missing, Field.set may throw **IllegalAccessException**. If access is already blocked at setAccessible(true), the common exception is **InaccessibleObjectException**. If the value or target object is incompatible, you may encounter **IllegalArgumentException**; if null is passed for an instance field requiring a receiver, you may encounter **NullPointerException**.
 
-| Loại field | Ví dụ | setAccessible(true) có thể cho đọc? | Field.set ghi final trên Java 17? |
+| Field type | Example | Can setAccessible(true) allow reading? | Does Field.set write final on Java 17? |
 | --- | --- | --- | --- |
-| Instance final trong class thông thường | private final int id | Có, nếu quyền truy cập cho phép | **Có điều kiện**, với các hạn chế trên |
-| Static final của class | private static final String NAME | Có, nếu quyền truy cập cho phép | **Không** |
-| Static final trong interface | String NAME = "x" | Có theo visibility/quyền truy cập | **Không** |
-| Instance final của record | record User(int id) | Có, nếu quyền truy cập cho phép | **Không** |
-| Final field trong hidden class | field final của lớp tạo qua Lookup.defineHiddenClass | Có, nếu quyền truy cập cho phép | **Không** |
-| Instance non-final thông thường | private int count | Có, nếu quyền truy cập cho phép | Có thể, theo quyền truy cập và quy tắc kiểu |
+| Instance final in an ordinary class | private final int id | Yes, if access permissions allow | **Conditionally**, with the restrictions above |
+| Static final of a class | private static final String NAME | Yes, if access permissions allow | **No** |
+| Static final in an interface | String NAME = "x" | Yes, according to visibility/access permissions | **No** |
+| Instance final of a record | record User(int id) | Yes, if access permissions allow | **No** |
+| Final field in a hidden class | final field of a class created via Lookup.defineHiddenClass | Yes, if access permissions allow | **No** |
+| Ordinary instance non-final | private int count | Yes, if access permissions allow | Possible, subject to access and type rules |
 
-**Chú ý:** bảng này nói về thao tác **Field.set** của Java Reflection, không kết luận về tất cả cơ chế như Java bytecode, JNI, serialization internals hoặc API đặc biệt khác. Không dùng mẹo dựa vào Unsafe hoặc sửa cờ Modifier để lách các ràng buộc: những cách đó không phải hợp đồng API ổn định.
+**Note:** this table describes the **Field.set** operation of Java Reflection, and does not draw conclusions about all mechanisms such as Java bytecode, JNI, serialization internals, or other special APIs. Do not use tricks based on Unsafe or modifying Modifier flags to bypass constraints: those approaches are not stable API contracts.
 
-### Non-modifiable final field nghĩa là gì?
+### What does non-modifiable final field mean?
 
-JDK 17 xác định ba nhóm **không thể ghi qua Field.set**:
+JDK 17 defines three groups that **cannot be written via Field.set**:
 
-- Mọi **static final** (trong class hoặc interface).
-- Mọi **final field khai báo trong hidden class**.
-- Mọi **final field khai báo trong record class**.
+- All **static final** fields (in a class or interface).
+- All **final fields declared in a hidden class**.
+- All **final fields declared in a record class**.
 
-Với các nhóm này, setAccessible(true) nếu được cho phép chỉ giúp Reflection **đọc** field không public; nó **không chuyển** field thành writable.
+For these groups, setAccessible(true), when permitted, only helps Reflection **read** a non-public field; it **does not turn** the field into a writable one.
 
-Một record như record Customer(int id) tự có instance component field tương ứng private final. Dù có lấy được Field("id"), Field.set vẫn không được phép sửa nó.
+A record such as record Customer(int id) automatically has a corresponding private final instance component field. Even if you can obtain Field("id"), Field.set is still not permitted to modify it.
 
-## 3. Ví dụ Java 17+ có thể biên dịch và chạy
+## 3. Compilable and runnable Java 17+ example
 
-Lưu toàn bộ đoạn dưới đây vào **FinalFieldRulesDemo.java**. Ví dụ cố tình thử bốn trường hợp: sửa instance final thông thường, ghi static final, ghi final của record và truyền sai kiểu dữ liệu.
+Save the entire snippet below into **FinalFieldRulesDemo.java**. The example intentionally tests four cases: modifying an ordinary instance final, writing a static final, writing a record final, and passing the wrong data type.
 
 ~~~java
 import java.lang.reflect.Field;
@@ -131,14 +131,14 @@ public class FinalFieldRulesDemo {
 }
 ~~~
 
-Biên dịch/chạy bằng JDK 17–25, hoặc chạy bằng JDK 21 để tái lập đúng stdout sau đây:
+Compile/run using JDK 17–25, or run using JDK 21 to reproduce the exact stdout below:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 FinalFieldRulesDemo.java
 java FinalFieldRulesDemo
 ~~~
 
-Stdout được kiểm tra bằng cách biên dịch với **--release 17** và chạy trên JDK 21:
+Stdout verified by compiling with **--release 17** and running on JDK 21:
 
 ~~~text
 instance final = true
@@ -148,25 +148,25 @@ record final = IllegalAccessException
 wrong value type = IllegalArgumentException
 ~~~
 
-Giải thích theo từng bước:
+Step-by-step explanation:
 
-1. Modifier.isFinal(instanceField.getModifiers()) trả true: metadata xác nhận instance field id có modifier final.
-2. instanceField.setAccessible(true) thành công vì ví dụ đang nằm trong cùng chương trình/module có quyền cần thiết. Trên JDK 21, Field.set(invoice, 42) ghi được vào **instance final của class thường**, Field.getInt trả 42.
-3. Settings.VERSION là **static final**. Ngay cả sau setAccessible(true), Field.set(null, "v2") ném IllegalAccessException; đối số receiver null vốn hợp lệ với static field, nên lỗi nằm ở quyền ghi final.
-4. Receipt.id là **record final**. setAccessible(true) không biến nó thành writable; Field.set ném IllegalAccessException.
-5. Instance id có kiểu int. Truyền chuỗi "text" không thể unbox/widen thành int, nên Field.set ném IllegalArgumentException.
+1. Modifier.isFinal(instanceField.getModifiers()) returns true: metadata confirms the instance field id has the final modifier.
+2. instanceField.setAccessible(true) succeeds because the example resides in the same program/module with the necessary permissions. On JDK 21, Field.set(invoice, 42) can write to an **ordinary class instance final**, and Field.getInt returns 42.
+3. Settings.VERSION is **static final**. Even after setAccessible(true), Field.set(null, "v2") throws IllegalAccessException; the null receiver argument is already valid for a static field, so the error is due to final write restrictions.
+4. Receipt.id is a **record final**. setAccessible(true) does not make it writable; Field.set throws IllegalAccessException.
+5. The instance id field has type int. Passing the string "text" cannot unbox/widen to int, so Field.set throws IllegalArgumentException.
 
-**Giới hạn của ví dụ:** chỉ kết luận Field.get quan sát 42 ngay sau thao tác thành công trên JDK được kiểm thử. Đừng coi đây là lời bảo đảm mọi đoạn code đã biên dịch, thread khác hoặc JVM/JIT khác đều nhìn thấy 42 qua getter hay truy cập trực tiếp. Trên JDK 26, lệnh sửa instance final trong ví dụ có thể phát **cảnh báo trên stderr** theo chính sách mới; phần stdout được ghi riêng để tránh nhầm lẫn.
+**Limitations of the example:** only conclude that Field.get observes 42 immediately after the successful operation on the tested JDK. Do not treat this as a guarantee that all compiled code, other threads, or other JVMs/JITs will see 42 via getters or direct access. On JDK 26, the command modifying the instance final in the example may emit **a warning on stderr** under the new policy; stdout is recorded separately to avoid confusion.
 
-## 4. setAccessible, trySetAccessible và quyền module
+## 4. setAccessible, trySetAccessible, and module permissions
 
-Trước khi gọi Field.set, kiểm tra lớp và module thực sự chứa field. Trong **Java Platform Module System (JPMS)**, các chỉ thị có vai trò khác nhau:
+Before calling Field.set, check the class and module that actually contain the field. In the **Java Platform Module System (JPMS)**, directives serve different roles:
 
-- **requires** tạo quan hệ module readability; nó không tự mở private member để Reflection.
-- **exports package** cho phép dùng public API ở package đó từ các module đọc thư viện; nó không tự cho quyền truy cập private field.
-- **opens package** hoặc **opens package to target.module** cho phép deep reflection trong phạm vi module được mở, gồm khả năng yêu cầu setAccessible(true) trên private field.
+- **requires** establishes a module readability relationship; it does not automatically open private members for Reflection.
+- **exports package** allows modules reading the library to use the public API in that package; it does not automatically grant access to private fields.
+- **opens package** or **opens package to target.module** allows deep reflection within the opened module scope, including the ability to request setAccessible(true) on private fields.
 
-Ví dụ module chứa entity:
+Example module containing entities:
 
 ~~~java
 module com.example.data {
@@ -175,30 +175,30 @@ module com.example.data {
 }
 ~~~
 
-Module com.example.json có thể yêu cầu mở quyền truy cập reflective vào các field của com.example.data.entity. Nhưng nếu field thuộc loại **static final** hoặc **record final**, opens vẫn **không biến nó thành writable**. Nếu field là ordinary instance final, opens có thể thỏa điều kiện truy cập; còn các giới hạn final của Field.set và JDK vẫn áp dụng.
+Module com.example.json can request reflective access to the fields of com.example.data.entity. However, if a field is **static final** or **record final**, opens still **does not make it writable**. If the field is an ordinary instance final, opens can satisfy the access condition; the final limits of Field.set and the JDK still apply.
 
-Ở một package không được mở cho caller module, ví dụ:
+In a package not opened to the caller module, for example:
 
 ~~~java
 Field field = someClass.getDeclaredField("value");
-field.setAccessible(true); // có thể ném InaccessibleObjectException
+field.setAccessible(true); // may throw InaccessibleObjectException
 ~~~
 
-Đây là **đoạn minh họa**; someClass phải là Class<?> đã xác định ở ngữ cảnh gọi, không phải chương trình độc lập.
+This is an **illustrative snippet**; someClass must be a Class<?> already defined in the calling context, not a standalone program.
 
-Thay bằng:
+Replace with:
 
 ~~~java
 if (field.trySetAccessible()) {
-    // Được phép yêu cầu bỏ qua kiểm tra access; chưa chắc ghi được nếu field final.
+    // Allowed to request bypassing access checks; may still not be writable if the field is final.
 } else {
-    // Module/package hoặc kiểm soát truy cập không cho phép.
+    // Module/package or access control does not permit it.
 }
 ~~~
 
-trySetAccessible() thường trả false thay vì ném InaccessibleObjectException khi không thể bật accessibility (nhưng các exception an ninh đặc biệt vẫn có thể tồn tại). Thành công của trySetAccessible() **không đồng nghĩa Field.set chắc chắn thành công**. Cần tách lỗi ở giai đoạn mở quyền và lỗi ở giai đoạn ghi.
+trySetAccessible() typically returns false instead of throwing InaccessibleObjectException when accessibility cannot be enabled (though special security exceptions may still exist). The success of trySetAccessible() **does not mean Field.set is guaranteed to succeed**. Errors at the access-enabling stage must be separated from errors at the write stage.
 
-Để chẩn đoán:
+To diagnose:
 
 ~~~java
 Class<?> owner = field.getDeclaringClass();
@@ -207,27 +207,27 @@ Module callerModule = YourCaller.class.getModule();
 System.out.println(ownerModule.isOpen(owner.getPackageName(), callerModule));
 ~~~
 
-Đây cũng là một đoạn minh họa; thay YourCaller bằng class thực hiện Reflection. **Module.isOpen** giúp kiểm tra ranh giới package, không quyết định riêng một field final có ghi được không. Với class và caller ở cùng module, các quy tắc truy cập có thể khác trường hợp hai named modules riêng biệt.
+This is also an illustrative snippet; replace YourCaller with the class performing Reflection. **Module.isOpen** helps inspect package boundaries, not independently determine whether a final field is writable. When the class and caller are in the same module, access rules may differ from the case of two separate named modules.
 
-Tùy chọn **--add-opens source.module/package=target.module** có thể cấp quyền deep reflection lúc khởi chạy khi phù hợp, nhưng **không** cho phép ghi các field non-modifiable final. Và từ JDK 26, **--add-opens cũng không thay thế quyền final-field mutation bổ sung** được đề cập ở mục 7.
+The **--add-opens source.module/package=target.module** option can grant deep reflection permission at startup when appropriate, but **does not** allow writing non-modifiable final fields. And starting in JDK 26, **--add-opens also does not substitute for the additional final-field mutation permission** discussed in section 7.
 
-## 5. Phân biệt từng loại lỗi khi Field.set thất bại
+## 5. Distinguishing each error type when Field.set fails
 
-| Hiện tượng | Điểm thất bại | Nguyên nhân thường gặp | Hướng giải quyết |
+| Symptom | Failure point | Common cause | Resolution |
 | --- | --- | --- | --- |
-| NoSuchFieldException | getDeclaredField/getField | Sai tên hoặc tìm nhầm lớp; getDeclaredField không tìm field kế thừa | Chọn đúng declaring class/tên field |
-| InaccessibleObjectException | setAccessible(true) | Package trong named module không opens cho caller | Xem module-info.java và quyền opens phù hợp |
-| trySetAccessible() trả false | trySetAccessible() | Không thể bật suppression theo access/module rules | Dùng API public hoặc điều chỉnh quyền có chủ đích |
-| IllegalAccessException | Field.set | Không đủ quyền ghi; hoặc final thuộc loại không được sửa | Kiểm tra final/static/record/hidden và accessible flag |
-| IllegalArgumentException | Field.set | Receiver sai class hoặc kiểu giá trị không thể chuyển hợp lệ | Dùng đúng object và đúng kiểu field |
-| NullPointerException | Field.set | Receiver null với instance field | Truyền instance thực |
-| Cảnh báo final field mutation (JDK 26) | Lúc đột biến final được phát hiện | Deep reflective mutation chưa được cho phép rõ ràng | Di chuyển logic khởi tạo; khi bắt buộc thì xem JEP 500 |
+| NoSuchFieldException | getDeclaredField/getField | Wrong name or wrong class searched; getDeclaredField does not search inherited fields | Choose the right declaring class/field name |
+| InaccessibleObjectException | setAccessible(true) | Package in a named module is not opened to the caller | Check module-info.java and appropriate opens permissions |
+| trySetAccessible() returns false | trySetAccessible() | Cannot enable suppression under access/module rules | Use a public API or intentionally adjust permissions |
+| IllegalAccessException | Field.set | Insufficient write permission; or final belongs to a non-modifiable category | Check final/static/record/hidden and the accessible flag |
+| IllegalArgumentException | Field.set | Receiver of wrong class or value type cannot be validly converted | Pass the right object and compatible field type |
+| NullPointerException | Field.set | Null receiver with an instance field | Pass an actual instance |
+| Final field mutation warning (JDK 26) | When final mutation is detected | Deep reflective mutation not explicitly permitted | Move initialization logic; if unavoidable, see JEP 500 |
 
-**Ví dụ:** Field f có kiểu int có thể nhận Integer qua unboxing và một số chuyển đổi nguyên thủy *widening* được hỗ trợ. Nhưng không được chuyển tùy tiện từ String thành int, cũng không mặc định thực hiện narrowing conversion như long xuống int. Có thể dùng phương thức chuyên biệt Field.setInt(...) nếu phù hợp, nhưng **nó cũng không vượt qua hạn chế final**.
+**Example:** a Field f of type int can accept Integer via unboxing and some supported primitive *widening* conversions. However, it cannot arbitrarily convert String to int, nor does it perform narrowing conversions by default such as long to int. A specialized method like Field.setInt(...) can be used if appropriate, but **it also does not bypass final restrictions**.
 
-### Kiểm tra modifier và declaring class
+### Checking modifiers and declaring class
 
-Dùng mã phụ trợ sau khi đã có Field:
+Use the following helper code after obtaining a Field:
 
 ~~~java
 int modifiers = field.getModifiers();
@@ -237,15 +237,15 @@ boolean inRecord = field.getDeclaringClass().isRecord();
 boolean inHidden = field.getDeclaringClass().isHidden();
 ~~~
 
-Đây là đoạn code minh họa, cần import java.lang.reflect.Field và java.lang.reflect.Modifier và biến field. Một quy tắc tự kiểm tra là: nếu isFinal và (isStatic hoặc inRecord hoặc inHidden), **đừng gọi Field.set để mong sửa field ấy**. Ngay cả khi các điều kiện trên đều false, vẫn phải xét quyền truy cập, phiên bản Java và rủi ro mutation của instance final.
+This is an illustrative snippet, requiring imports of java.lang.reflect.Field and java.lang.reflect.Modifier and a field variable. A self-check rule is: if isFinal and (isStatic or inRecord or inHidden), **do not call Field.set expecting to modify that field**. Even when all the above conditions are false, you must still consider access permissions, the Java version, and the risks of mutating an instance final.
 
-## 6. Vì sao sửa instance final thành công vẫn nguy hiểm?
+## 6. Why is modifying an instance final still dangerous even when it succeeds?
 
-Java cho phép một số ngoại lệ reflective phục vụ công cụ tái dựng đối tượng hoặc deserialization, nhưng **final không được thiết kế như biến cấu hình có thể sửa tùy thời điểm**. JDK 17 mô tả việc sửa final bằng Reflection chỉ có ý nghĩa trong các kịch bản reconstruction/deserialization phù hợp, trước khi đối tượng được các thành phần khác sử dụng.
+Java permits certain reflective exceptions to support object-reconstruction tools or deserialization, but **final is not designed as a configuration variable that can be modified at arbitrary times**. JDK 17 describes modifying final via Reflection as meaningful only in appropriate reconstruction/deserialization scenarios, before the object is used by other components.
 
-### Giá trị có thể không được mọi code quan sát như nhau
+### The value may not be observed uniformly by all code
 
-Xét ví dụ mang tính giải thích (không dự đoán stdout):
+Consider an explanatory example (without predicting stdout):
 
 ~~~java
 class Flags {
@@ -257,57 +257,57 @@ class Flags {
 }
 ~~~
 
-Compiler và JIT có thể tận dụng tính bất biến của final; một lệnh gọi getter hoặc mã đã tối ưu hóa có thể tiếp tục sử dụng giá trị cũ dù Reflection đã sửa ô nhớ. Đặc biệt với **compile-time constants** là final primitive/String khởi tạo bằng biểu thức hằng, Java có thể thay thế tham chiếu bằng hằng ngay từ bytecode của consumer.
+The compiler and JIT can leverage the immutability of final; a getter call or optimized code may continue using the old value even though Reflection modified the memory slot. Especially for **compile-time constants**—final primitives/Strings initialized with constant expressions—Java can replace references with the constant directly in the consumer's bytecode.
 
-Vì vậy:
+Therefore:
 
-- Không dùng Field.get ngay sau khi set như bằng chứng thay đổi sẽ phản ánh ổn định ở tất cả code.
-- Không xây dựng tính đúng đắn nghiệp vụ dựa trên sửa một final đã công bố cho thread khác.
-- Không dùng Reflection để đổi static final constant rồi trông chờ toàn bộ chương trình nhìn thấy thay đổi; Field.set thậm chí từ chối ghi loại này.
-- Sửa final sau khởi tạo phá vỡ giả định tối ưu hóa, bất biến và có thể làm suy yếu các bảo đảm về an toàn công bố đối tượng.
+- Do not use Field.get right after set as proof that the change will be consistently reflected across all code.
+- Do not build business correctness on modifying a final field that has already been published to other threads.
+- Do not use Reflection to change a static final constant and expect the entire program to see the change; Field.set even rejects writing this category.
+- Modifying final after initialization breaks optimization and immutability assumptions and can undermine safe-publication guarantees for objects.
 
-### Vấn đề thread và Java Memory Model
+### Threading and Java Memory Model issues
 
-Quy tắc final field của Java Memory Model có ý nghĩa đặc biệt tại lúc hoàn tất khởi tạo đối tượng qua constructor. Các bảo đảm đó không phải giấy phép cho một thread sửa final tùy ý rồi chờ mọi thread khác thấy giá trị mới. Field.set thành công là một thao tác reflective, **không phải giao thức đồng bộ hóa** thay thế happens-before, volatile hoặc synchronized.
+The Java Memory Model's final field rules have special meaning at the moment object initialization completes via a constructor. Those guarantees are not a license for one thread to modify final at will and expect all other threads to see the new value. A successful Field.set is a reflective operation, **not a synchronization protocol** that replaces happens-before, volatile, or synchronized.
 
-Nếu dữ liệu thật sự cần thay đổi theo thời gian, hãy thiết kế nó bằng field thông thường kết hợp cơ chế đồng bộ thích hợp; nếu cần giữ dữ liệu bất biến, hãy tạo instance mới bằng constructor hoặc factory method. Đừng xem final thành một kiểu mutable field ẩn.
+If data genuinely needs to change over time, design it with an ordinary field combined with appropriate synchronization; if data needs to remain immutable, create a new instance via a constructor or factory method. Do not treat final as a hidden mutable field.
 
-## 7. Lưu ý mới từ JDK 26: JEP 500 – Prepare to Make Final Mean Final
+## 7. New note from JDK 26: JEP 500 – Prepare to Make Final Mean Final
 
-Quy tắc ở mục 2 mô tả khả năng của **Java SE 17**. Cần phân biệt nó với một thay đổi khi chạy trên JDK hiện đại.
+The rules in section 2 describe the capabilities of **Java SE 17**. Contrast them with a change when running on a modern JDK.
 
-Từ **JDK 26**, JEP 500 bổ sung cơ chế phát hiện việc **mutate final instance fields thông qua deep reflection**. Theo chế độ mặc định ở JDK 26, lần mutation bất hợp lệ bởi một module có thể tiếp tục chạy nhưng phát **cảnh báo**. Mục tiêu được JDK công bố là một bản phát hành sau sẽ chuyển mặc định sang **từ chối thao tác**, trừ khi ứng dụng cấp quyền tường minh cho module thực hiện mutation.
+Starting in **JDK 26**, JEP 500 adds a mechanism to detect **mutating final instance fields via deep reflection**. Under the default mode in JDK 26, an unauthorized mutation by a module may continue running while emitting a **warning**. The JDK's stated goal is that a future release will switch the default to **denying the operation**, unless the application explicitly grants permission to the mutating module.
 
-Các tham số liên quan:
+Related options:
 
-- **--enable-final-field-mutation=ALL-UNNAMED**: cho phép code trong unnamed module (ứng dụng trên classpath) thực hiện kiểu mutation này khi các điều kiện truy cập khác cũng thỏa mãn.
-- **--enable-final-field-mutation=module.one,module.two**: cấp cho các named module được chỉ định thực hiện final-field mutation theo chính sách JDK 26.
-- **--illegal-final-field-mutation=warn**: cho phép nhưng cảnh báo, là chế độ mặc định của JDK 26 đối với mutation chưa được cấp quyền.
-- **--illegal-final-field-mutation=debug**: cảnh báo kèm stack trace, hữu ích để tìm library đang sửa final.
-- **--illegal-final-field-mutation=deny**: từ chối mutation không được cấp phép và dẫn đến IllegalAccessException.
-- **--illegal-final-field-mutation=allow**: cho phép mà không cảnh báo, chỉ nên coi là biện pháp chuyển tiếp.
+- **--enable-final-field-mutation=ALL-UNNAMED**: allows code in unnamed modules (applications on the classpath) to perform this kind of mutation when other access conditions are also met.
+- **--enable-final-field-mutation=module.one,module.two**: grants the specified named modules permission to perform final-field mutation under the JDK 26 policy.
+- **--illegal-final-field-mutation=warn**: allows but warns, which is the JDK 26 default for unauthorized mutation.
+- **--illegal-final-field-mutation=debug**: warns with a stack trace, useful for finding libraries that mutate final fields.
+- **--illegal-final-field-mutation=deny**: denies unauthorized mutation and leads to IllegalAccessException.
+- **--illegal-final-field-mutation=allow**: allows without warning; should only be treated as a transitional measure.
 
-Ví dụ minh họa **chỉ dùng với Java 26+**, giả sử ứng dụng ở classpath thật sự phải thực hiện mutation sau khi đã xét quyền truy cập:
+Illustrative example **for Java 26+ only**, assuming an application on the classpath genuinely must perform mutation after access permissions have been considered:
 
 ~~~bash
 java --enable-final-field-mutation=ALL-UNNAMED FinalFieldRulesDemo
 ~~~
 
-Hoặc chủ động kiểm thử ứng dụng theo chính sách nghiêm ngặt của JDK 26:
+Or proactively test the application under JDK 26's strict policy:
 
 ~~~bash
 java --illegal-final-field-mutation=deny FinalFieldRulesDemo
 ~~~
 
-Nếu thực hiện lệnh deny không kèm quyền --enable-final-field-mutation phù hợp, ví dụ ở mục 3 có thể thất bại sớm tại instanceField.set(invoice, 42) với IllegalAccessException, nên **không dùng stdout JDK 21 làm dự đoán cho lần chạy đó**.
+If you run the deny command without a matching --enable-final-field-mutation grant, the example in section 3 may fail early at instanceField.set(invoice, 42) with IllegalAccessException, so **do not use the JDK 21 stdout as a prediction for that run**.
 
-**Hai lớp điều kiện độc lập:** module sở hữu field vẫn phải mở package thích hợp cho caller qua opens/--add-opens (hoặc trường hợp truy cập được phép khác); đồng thời JDK 26 có thể đòi cấp phép mutation cho module caller. --enable-final-field-mutation không tự mở package, và **không biến static final/record final/hidden-class final thành writable**.
+**Two independent layers of conditions:** the module owning the field must still open the appropriate package to the caller via opens/--add-opens (or another permitted access case); at the same time, JDK 26 may require granting mutation permission to the caller module. --enable-final-field-mutation does not automatically open packages, and **does not turn static final/record final/hidden-class final into writable fields**.
 
-Chính sách này giúp các thư viện serialization/DI dần bỏ phụ thuộc vào việc sửa final đã tồn tại. Nếu bảo trì dự án chạy nhiều JDK, hãy thử bản mới, xem stderr và nâng phiên bản library trước khi cân nhắc bất kỳ tùy chọn cấp quyền nào.
+This policy helps serialization/DI libraries gradually drop reliance on mutating existing final fields. When maintaining a project across multiple JDKs, test the newer release, check stderr, and upgrade library versions before considering any permission-granting options.
 
-## 8. Cách thiết kế thay thế Reflection để giữ final đúng nghĩa
+## 8. Design alternatives to Reflection to keep final truly final
 
-### Đặt dữ liệu tại thời điểm khởi tạo
+### Set data at initialization time
 
 ~~~java
 public record UserProfile(String name, int level) {
@@ -317,59 +317,59 @@ public record UserProfile(String name, int level) {
 }
 ~~~
 
-Đây là class record độc lập có thể dùng trong dự án; khi cần thay đổi level, tạo một UserProfile mới thay vì Field.set lên field của record.
+This is a standalone record class usable in a project; when level needs to change, create a new UserProfile instead of calling Field.set on the record's field.
 
 ### Constructor, factory, builder
 
-Nếu đối tượng cần các giá trị bắt buộc, truyền chúng qua constructor/factory/builder. Các framework có thể hỗ trợ **constructor-based binding** hoặc **record canonical constructor** thay vì ghi từng private final field sau khi tạo instance. Khi framework cần truy cập non-public constructor ở module khác, vẫn có thể cần opens, nhưng không nhất thiết cần mutation final sau constructor.
+If an object requires mandatory values, pass them through a constructor/factory/builder. Frameworks can support **constructor-based binding** or a **record canonical constructor** instead of writing each private final field after instance creation. When a framework needs to access a non-public constructor in another module, opens may still be needed, but mutating final after the constructor is not necessarily needed.
 
-### Khi dữ liệu thực sự mutable
+### When data is genuinely mutable
 
-Dùng một field non-final với setter có kiểm soát, hoặc tạo object mới khi trạng thái thay đổi. Đối với ứng dụng đa luồng, chọn volatile, AtomicReference, synchronized hay immutable snapshot theo yêu cầu nhất quán thực tế. Đừng né final bằng Reflection để đổi trạng thái âm thầm.
+Use a non-final field with a controlled setter, or create a new object when state changes. For multi-threaded applications, choose volatile, AtomicReference, synchronized, or an immutable snapshot based on actual consistency requirements. Do not bypass final with Reflection to silently change state.
 
-### Với static constants
+### For static constants
 
-Muốn đổi cấu hình runtime, dùng nguồn cấu hình hoặc đối tượng cấu hình mutable có cơ chế cập nhật rõ ràng. Không dựa vào chỉnh static final primitive/String, đặc biệt các compile-time constants có khả năng bị inline vào nơi sử dụng.
+To change runtime configuration, use a configuration source or a mutable configuration object with an explicit update mechanism. Do not rely on editing static final primitives/Strings, especially compile-time constants that may be inlined at usage sites.
 
-## 9. Quy trình chẩn đoán từng bước
+## 9. Step-by-step diagnostic workflow
 
-1. **Tìm đúng Field.** Dùng getDeclaredField(name) trên class khai báo, không giả định nó duyệt superclasses. Với field kế thừa, tìm trên declaring class.
-2. **Kiểm tra loại field.** Modifier.isFinal(), Modifier.isStatic(), getDeclaringClass().isRecord(), isHidden(). Nếu final và là static/record/hidden: xem như không thể ghi qua Field.set.
-3. **Kiểm tra access.** Ai thực hiện Reflection? Package chứa field có được opens đúng module caller không? Nếu dùng setAccessible(true), lỗi tại đây thường khác lỗi tại Field.set.
-4. **Kiểm tra receiver và value.** Instance field cần object thuộc class phù hợp; primitive cần kiểu chuyển đổi được; static field không cần receiver.
-5. **Kiểm tra JDK đang chạy.** Khả năng Java 17 khác chính sách mutation JDK 26. Đọc warning/stack trace và thử cấu hình kiểm tra phù hợp khi bảo trì.
-6. **Đánh giá tính đúng đắn sau mutation.** Nếu field là final, không dùng kết quả Field.get đơn lẻ để kết luận getter/consumer khác sẽ thấy giá trị mới; ưu tiên sửa kiến trúc đối tượng.
+1. **Locate the right Field.** Use getDeclaredField(name) on the declaring class; do not assume it searches superclasses. For inherited fields, look up on the declaring class.
+2. **Check the field category.** Modifier.isFinal(), Modifier.isStatic(), getDeclaringClass().isRecord(), isHidden(). If it is final and static/record/hidden: treat it as non-writable via Field.set.
+3. **Check access.** Who is performing Reflection? Is the package containing the field opened to the right caller module? If using setAccessible(true), errors here usually differ from errors at Field.set.
+4. **Check receiver and value.** An instance field requires an object of a compatible class; a primitive requires a convertible type; a static field needs no receiver.
+5. **Check the running JDK.** Java 17 capabilities differ from JDK 26 mutation policies. Read warnings/stack traces and test appropriate configuration flags during maintenance.
+6. **Evaluate correctness after mutation.** If the field is final, do not use a single Field.get result to conclude that other getters/consumers will see the new value; prioritize fixing the object architecture.
 
-Một quy trình chẩn đoán tốt phân biệt rõ **metadata được tra cứu**, **quyền mở access**, **quyền ghi loại field**, **kiểu dữ liệu**, và **ngữ nghĩa bất biến**. Điều này thường chỉ ra lỗi nằm ở đâu mà không cần mở rộng quyền toàn bộ module.
+A sound diagnostic process clearly distinguishes **metadata lookup**, **enabling access**, **field-category write permission**, **data types**, and **immutability semantics**. This usually pinpoints where the failure lies without having to open permissions for an entire module.
 
-## 10. Tự kiểm tra
+## 10. Self-check
 
-**Câu 1.** private static final int LIMIT = 10; thuộc class thường, field.setAccessible(true) thành công. Field.setInt(null, 20) có thành công không?
+**Question 1.** private static final int LIMIT = 10; belongs to an ordinary class, and field.setAccessible(true) succeeds. Will Field.setInt(null, 20) succeed?
 
-**Đáp án:** Không. Đây là static final, thuộc nhóm non-modifiable trên Java 17; setter chuyên biệt không vượt qua giới hạn final.
+**Answer:** No. This is static final, belonging to the non-modifiable group on Java 17; specialized setters do not bypass final restrictions.
 
-**Câu 2.** private final int age của class thường, Field.setAccessible(true) thành công; receiver hợp lệ, kiểu truyền phù hợp. Field.set có thể chạy được trên Java 17 không?
+**Question 2.** private final int age of an ordinary class, Field.setAccessible(true) succeeds; valid receiver, compatible value type. Can Field.set run on Java 17?
 
-**Đáp án:** Có điều kiện. Đây là instance final không thuộc record/hidden class. Tuy nhiên việc sửa sau khi đối tượng được công bố không được bảo đảm quan sát đồng nhất, và JDK 26 còn có chính sách cảnh báo/giới hạn mới.
+**Answer:** Conditionally. This is an instance final not in a record/hidden class. However, modifying it after the object has been published is not guaranteed to be observed uniformly, and JDK 26 also introduces new warning/restriction policies.
 
-**Câu 3.** record Book(String title) có field title. Nếu gọi setAccessible(true) được rồi thì Field.set(book, "new") có hợp lệ không?
+**Question 3.** record Book(String title) has a field title. If setAccessible(true) can be called, is Field.set(book, "new") valid?
 
-**Đáp án:** Không. Instance final do record khai báo thuộc nhóm non-modifiable.
+**Answer:** No. An instance final declared by a record belongs to the non-modifiable group.
 
-**Câu 4.** Một module exports package chứa class nhưng không opens cho module framework muốn ghi private final field. Lỗi có thể xuất hiện từ bước nào?
+**Question 4.** A module exports the package containing a class but does not open it to a framework module that wants to write a private final field. At which step can an error appear?
 
-**Đáp án:** Từ setAccessible(true) vì không có opens (có thể ném InaccessibleObjectException). Thêm exports không thay thế opens; ngay cả khi opens được cấp, vẫn phải kiểm tra loại final và chính sách JDK.
+**Answer:** At setAccessible(true) because there is no opens (may throw InaccessibleObjectException). Adding exports does not replace opens; even when opens is granted, you must still check the final category and JDK policy.
 
-**Câu 5.** Trên JDK 26, mở package với --add-opens liệu đủ để tránh warning final field mutation?
+**Question 5.** On JDK 26, is opening a package with --add-opens enough to avoid the final field mutation warning?
 
-**Đáp án:** Không nhất thiết. Quyền deep reflection và quyền **mutate final** được xét riêng; nếu thật sự cần, phải hiểu --enable-final-field-mutation và --illegal-final-field-mutation.
+**Answer:** Not necessarily. Deep reflection permission and **final mutation** permission are evaluated separately; if truly needed, you must understand --enable-final-field-mutation and --illegal-final-field-mutation.
 
-**Ghi nhớ:** Reflection có thể **đọc** các final field trong phạm vi quyền phù hợp; **Field.set chỉ từng cho phép sửa một số instance final của class thông thường với điều kiện chặt chẽ**. Static final, record final và hidden-class final không thể ghi bằng Field.set. Trên JDK 26+, kiểm tra thêm chính sách final-field mutation và ưu tiên khởi tạo bất biến đúng bằng constructor/factory.
+**Remember:** Reflection can **read** final fields within appropriate access bounds; **Field.set only ever allowed modifying certain instance finals of ordinary classes under strict conditions**. Static final, record final, and hidden-class final fields cannot be written with Field.set. On JDK 26+, also check the final-field mutation policy and prefer proper immutable initialization via constructors/factories.
 
-### Tài liệu tham khảo
+### References
 
 - Java SE 17, java.lang.reflect.Field – Field.set: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html#set(java.lang.Object,java.lang.Object)
-- Java SE 17, AccessibleObject – setAccessible và các final field non-modifiable: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html#setAccessible(boolean)
+- Java SE 17, AccessibleObject – setAccessible and non-modifiable final fields: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/AccessibleObject.html#setAccessible(boolean)
 - Java SE 17, Class – isRecord/isHidden: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html
 - Java Language Specification §17.5 – final Field Semantics: https://docs.oracle.com/javase/specs/jls/se17/html/jls-17.html#jls-17.5
 - JEP 500 – Prepare to Make Final Mean Final: https://openjdk.org/jeps/500

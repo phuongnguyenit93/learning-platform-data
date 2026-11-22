@@ -1,14 +1,14 @@
-# getComponentType() cho từng tầng mảng trong Java Reflection
+# getComponentType() for Each Array Layer in Java Reflection
 
-Trong Java, mảng một chiều và mảng nhiều chiều đều là **đối tượng có kiểu mảng**. Java Reflection cho phép đọc cấu trúc kiểu đó ngay cả khi chương trình không biết trước số chiều hay kiểu phần tử cụ thể. Hai API quan trọng nhất là `Class.isArray()` và `Class.getComponentType()`.
+In Java, both one-dimensional arrays and multidimensional arrays are **objects with an array type**. Java Reflection lets you read that type structure even when the program does not know the number of dimensions or specific element type in advance. The two most important APIs are `Class.isArray()` and `Class.getComponentType()`.
 
-Ý tưởng cốt lõi: **mỗi lần gọi `getComponentType()` chỉ bỏ đi đúng một tầng mảng**. Nếu muốn tìm kiểu phần tử gốc của `int[][][]`, ta phải gọi lặp cho đến khi kiểu hiện tại không còn là mảng. Không nhầm kiểu thành phần của tầng kế tiếp với giá trị đang nằm trong một ô của mảng.
+Core idea: **each call to `getComponentType()` strips away exactly one array layer**. If you want to find the root element type of `int[][][]`, you must call it repeatedly until the current type is no longer an array. Do not confuse the component type of the next layer with the value currently sitting in an array slot.
 
-Bài thuộc chủ đề **Mảng động** trong Java Core Reflection; trọng tâm là khám phá từng tầng kiểu mảng và áp dụng metadata đó khi tạo/truy cập mảng bằng Reflection.
+This lesson belongs to the **Dynamic Arrays** topic in Java Core Reflection; the focus is on exploring each layer of an array type and applying that metadata when creating/accessing arrays with Reflection.
 
-## 1. Khái niệm: array class, component type và element type
+## 1. Concepts: Array Class, Component Type, and Element Type
 
-Xét ba biến:
+Consider three variables:
 
 ```java
 int[] one = new int[4];
@@ -16,35 +16,35 @@ int[][] two = new int[2][3];
 String[][][] three = new String[2][3][4];
 ```
 
-Đây là đoạn minh họa Java. Mỗi biến có một `Class<?>` khác nhau:
+This is a Java illustration snippet. Each variable has a different `Class<?>`:
 
-| Biểu thức lấy `Class<?>` | `isArray()` | `getComponentType()` | Kiểu phần tử gốc |
+| Expression Obtaining `Class<?>` | `isArray()` | `getComponentType()` | Root Element Type |
 | --- | --- | --- | --- |
 | `int[].class` | `true` | `int.class` | `int` |
 | `int[][].class` | `true` | `int[].class` | `int` |
 | `String[][][].class` | `true` | `String[][].class` | `String` |
 | `Object[].class` | `true` | `Object.class` | `Object` |
-| `int.class` | `false` | `null` | Không phải kiểu mảng |
-| `String.class` | `false` | `null` | Không phải kiểu mảng |
+| `int.class` | `false` | `null` | Not an array type |
+| `String.class` | `false` | `null` | Not an array type |
 
-Phân biệt:
+Distinguish:
 
-- **Array class**: kiểu của **toàn bộ đối tượng mảng**, ví dụ `int[][].class`.
-- **Immediate component type**: kiểu thành phần **trực tiếp**. `int[][].class.getComponentType()` trả `int[].class`, **không** trả ngay `int.class`.
-- **Ultimate element type**: kiểu phần tử gốc khi bóc hết các chiều, ví dụ `int.class` đối với `int[][][]`.
-- **Number of dimensions**: số lần cần gọi `getComponentType()` từ array class đến khi gặp kiểu không còn là array.
+- **Array class**: type of **the entire array object**, e.g., `int[][].class`.
+- **Immediate component type**: the **direct** component type. `int[][].class.getComponentType()` returns `int[].class`, **not** `int.class` immediately.
+- **Ultimate element type**: the root element type after peeling away all dimensions, e.g., `int.class` for `int[][][]`.
+- **Number of dimensions**: the number of times `getComponentType()` must be called starting from the array class until encountering a type that is no longer an array.
 
-Đây là cấu trúc kiểu, không phải kích thước runtime: `int[2][3]` và `int[100][0]` đều có kiểu `int[][].class`, mặc dù độ dài và tình trạng các hàng khác nhau.
+This is type structure, not runtime size: `int[2][3]` and `int[100][0]` both have type `int[][].class`, even though the lengths and state of their rows differ.
 
-## 2. API Class.getComponentType() hoạt động thế nào?
+## 2. How Does the Class.getComponentType() API Work?
 
-API Java:
+Java API:
 
 ```java
 Class<?> component = someType.getComponentType();
 ```
 
-Với một `Class<?>` biểu diễn kiểu mảng, kết quả là `Class<?>` của thành phần trực tiếp. Nếu `someType` **không biểu diễn kiểu mảng**, kết quả là `null`. Phương thức `getComponentType()` không duyệt sâu toàn bộ số chiều và không truy cập phần tử nào của mảng.
+For a `Class<?>` representing an array type, the result is the `Class<?>` of the immediate component. If `someType` **does not represent an array type**, the result is `null`. The `getComponentType()` method does not traverse all dimensions deeply and does not access any elements of an array.
 
 ```java
 System.out.println(int[][][].class.getComponentType().getTypeName());
@@ -60,31 +60,31 @@ System.out.println(int.class.getComponentType());
 // null
 ```
 
-Đoạn code minh họa có thể đặt trong `main`. `Class.getTypeName()` dùng để trình bày tên kiểu dễ đọc: `int[][]`, `java.lang.String[]`,... Trong khi đó, `Class.getName()` của array class sử dụng tên nhị phân/descriptor kiểu như `[[I`, nên khi viết tài liệu hoặc log cho người đọc, `getTypeName()` thường phù hợp hơn.
+This illustrative snippet can be placed in `main`. `Class.getTypeName()` is used to present human-readable type names: `int[][]`, `java.lang.String[]`, etc. Meanwhile, `Class.getName()` of an array class uses a binary/descriptor name such as `[[I`, so when writing documentation or logs for human readers, `getTypeName()` is usually more appropriate.
 
-Đừng gọi `getTypeName()` trên kết quả null:
+Do not call `getTypeName()` on a null result:
 
 ```java
 Class<?> next = String.class.getComponentType();
-// next == null; next.getTypeName() sẽ gây NullPointerException.
+// next == null; next.getTypeName() will cause NullPointerException.
 ```
 
-Quy tắc an toàn là kiểm tra `type.isArray()` trước mỗi lần lấy tầng tiếp theo, hoặc kiểm tra `component != null`.
+The safe rule is to check `type.isArray()` before getting each next layer, or check `component != null`.
 
-## 3. Bóc từng tầng: sơ đồ cho int[][][]
+## 3. Peeling One Layer at a Time: Diagram for int[][][]
 
-Tưởng tượng bắt đầu bằng `int[][][].class`:
+Imagine starting with `int[][][].class`:
 
 ```text
-Tầng 0: int[][][]  --getComponentType()--> int[][]
-Tầng 1: int[][]    --getComponentType()--> int[]
-Tầng 2: int[]      --getComponentType()--> int
-Tầng 3: int        --getComponentType()--> null
+Layer 0: int[][][]  --getComponentType()--> int[][]
+Layer 1: int[][]    --getComponentType()--> int[]
+Layer 2: int[]      --getComponentType()--> int
+Layer 3: int        --getComponentType()--> null
 ```
 
-Vậy số chiều là **3**. Khi dừng ở `int.class`, ta đã tìm được kiểu phần tử gốc. `int.class.isArray()` là `false`, cho dù `int` được tìm thấy bằng cách bóc từ một mảng.
+Thus the number of dimensions is **3**. When stopping at `int.class`, we have found the root element type. `int.class.isArray()` is `false`, even though `int` was found by peeling from an array.
 
-Điều tương tự đúng cho:
+The same holds true for:
 
 ```text
 java.lang.String[][] → java.lang.String[] → java.lang.String
@@ -92,11 +92,11 @@ boolean[][]          → boolean[]           → boolean
 Object[]             → Object
 ```
 
-Không được “nhảy” trực tiếp từ `String[][]` đến `String.class` nếu yêu cầu là khám phá **từng tầng**. Thông tin `String[].class` ở tầng giữa thường cần khi phản chiếu mảng đa chiều hoặc tạo các đoạn mảng không đều.
+You must not "jump" directly from `String[][]` to `String.class` if the requirement is to inspect **each layer**. Information like `String[].class` at an intermediate layer is often needed when reflecting multidimensional arrays or creating uneven array segments.
 
-## 4. Chương trình Java 17+ chạy độc lập
+## 4. Standalone Java 17+ Program
 
-Tạo tệp `ArrayComponentLayersDemo.java`:
+Create the file `ArrayComponentLayersDemo.java`:
 
 ```java
 import java.lang.reflect.Array;
@@ -158,14 +158,14 @@ public class ArrayComponentLayersDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac ArrayComponentLayersDemo.java
 java ArrayComponentLayersDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 primitive 3D:
@@ -193,22 +193,22 @@ unfilled type=int[][]
 unfilled row null=true
 ```
 
-Phân tích:
+Analysis:
 
-1. Mỗi vòng lặp `while (current.isArray())` tiến xuống **một chiều**, tăng biến `dimensions` một đơn vị. Khi `current` là kiểu gốc không phải mảng, vòng lặp kết thúc.
-2. `int[][][].class` cho ba dòng chuyển tiếp và phần tử gốc `int`. `String[][].class` cho hai dòng và phần tử gốc `java.lang.String`.
-3. Khi đầu vào là `int.class`, số chiều bằng 0 và `getComponentType()` của kiểu đó là null.
-4. `Array.newInstance(int.class, 2, 3)` tạo mảng `int[][]` có hai hàng và mỗi hàng dài ba phần tử. Kiểu trực tiếp bên trong là `int[]`.
-5. `Array.get(rectangular, 0)` lấy đối tượng mảng con ở hàng đầu; `Array.getLength(...)` sau đó đo độ dài **mảng con**, không phải toàn mảng hai chiều.
-6. `Array.getInt(rectangular[0], 1)` đọc phần tử primitive int ở hàng đầu, vị trí 1. Không được truyền thẳng `rectangular` vào `Array.getInt` với chỉ số hàng rồi mong nhận một int, vì component trực tiếp của `rectangular` là mảng `int[]`.
-7. `ragged` có hai hàng dài khác nhau, nhưng runtime class vẫn là `int[][].class`. Kiểu không mã hóa kích thước hoặc tính “hình chữ nhật”.
-8. `Array.newInstance(int[].class, 2)` tạo mảng hai chiều theo kiểu tổng thể `int[][]` nhưng chỉ cấp phát một tầng ngoài; các phần tử `int[]` bên trong còn null.
+1. Each iteration of `while (current.isArray())` steps down **one dimension**, incrementing the `dimensions` variable by one. When `current` is the root non-array type, the loop terminates.
+2. `int[][][].class` yields three transition lines and root element `int`. `String[][].class` yields two lines and root element `java.lang.String`.
+3. When the input is `int.class`, the dimension count is 0 and `getComponentType()` of that type is null.
+4. `Array.newInstance(int.class, 2, 3)` creates an `int[][]` array with two rows and each row three elements long. The immediate inner type is `int[]`.
+5. `Array.get(rectangular, 0)` retrieves the subarray object at the first row; `Array.getLength(...)` then measures the length of the **subarray**, not the entire two-dimensional array.
+6. `Array.getInt(rectangular[0], 1)` reads the primitive int element at the first row, position 1. You must not pass `rectangular` directly into `Array.getInt` with a row index expecting an int, because the immediate component of `rectangular` is an `int[]` array.
+7. `ragged` has two rows of different lengths, yet its runtime class is still `int[][].class`. The type does not encode sizes or "rectangularity".
+8. `Array.newInstance(int[].class, 2)` creates a two-dimensional array of overall type `int[][]` but allocates only one outer layer; the inner `int[]` elements are still null.
 
-## 5. Khác biệt giữa cấp độ kiểu và cấp độ dữ liệu
+## 5. Difference Between Type Level and Data Level
 
-`Class.getComponentType()` là thao tác **trên kiểu**; `java.lang.reflect.Array.get(...)` và `Array.getLength(...)` là thao tác **trên đối tượng mảng cụ thể**.
+`Class.getComponentType()` is an operation **on the type**; `java.lang.reflect.Array.get(...)` and `Array.getLength(...)` are operations **on a concrete array object**.
 
-Ví dụ:
+Example:
 
 ```java
 int[][] data = {
@@ -218,51 +218,51 @@ int[][] data = {
 
 Class<?> outerType = data.getClass();                // int[][].class
 Class<?> innerType = outerType.getComponentType();   // int[].class
-Object firstRow = Array.get(data, 0);                // một int[]
+Object firstRow = Array.get(data, 0);                // an int[]
 int rowCount = Array.getLength(data);                // 2
 int firstRowLength = Array.getLength(firstRow);      // 3
 int secondRowLength = Array.getLength(Array.get(data, 1)); // 1
 ```
 
-Đây là đoạn minh họa, cần `import java.lang.reflect.Array;`. Kiểu `int[][]` không cho biết hàng thứ nhất dài 3 và hàng thứ hai dài 1. Chỉ **đối tượng mảng cụ thể** mới chứa các độ dài thực tế này.
+This is an illustrative snippet requiring `import java.lang.reflect.Array;`. The type `int[][]` does not tell you that the first row has length 3 and the second row has length 1. Only the **concrete array object** holds these actual lengths.
 
-Đặc biệt:
+Specifically:
 
-- `getComponentType()` không trả **phần tử tại index 0**; nó trả một **Class** mô tả kiểu thành phần.
-- `Array.get(data, 0)` trả **Object** thực tế ở slot 0, ở ví dụ này là một mảng `int[]`.
-- Nếu hàng chưa khởi tạo, `Array.get(data, 0)` có thể trả null, trong khi `data.getClass().getComponentType()` vẫn trả `int[].class`.
-- `Array.getLength(someArray)` nhận một đối tượng mảng; nếu truyền scalar hoặc null không phù hợp sẽ ném exception theo API, không mang ý nghĩa “số chiều của kiểu”.
+- `getComponentType()` does not return **the element at index 0**; it returns a **Class** describing the component type.
+- `Array.get(data, 0)` returns the actual **Object** at slot 0, which in this example is an `int[]` array.
+- If a row has not been initialized yet, `Array.get(data, 0)` can return null, whereas `data.getClass().getComponentType()` still returns `int[].class`.
+- `Array.getLength(someArray)` takes an array object; passing an unsuitable scalar or null throws an exception per the API, and does not mean "number of dimensions of the type".
 
-Điều này quan trọng khi duyệt dữ liệu JSON, cấu trúc ma trận hoặc mảng răng cưa: thông tin từ `Class<?>` quyết định **kiểu**, còn muốn duyệt dữ liệu phải xem **mỗi mảng con**.
+This matters when traversing JSON data, matrix structures, or jagged arrays: information from `Class<?>` determines the **type**, whereas to traverse data you must inspect **each subarray**.
 
-## 6. Tạo mảng động với Array.newInstance và component type
+## 6. Creating Dynamic Arrays with Array.newInstance and Component Type
 
-API `Array.newInstance` có hai dạng thường dùng:
+The `Array.newInstance` API has two commonly used forms:
 
 ```java
 Object newInstance(Class<?> componentType, int length)
 Object newInstance(Class<?> componentType, int... dimensions)
 ```
 
-Đây là chữ ký rút gọn từ `java.lang.reflect.Array`; nó mô tả hai overload chứ không phải method cần tự khai báo. Cơ chế khác nhau:
+These are abbreviated signatures from `java.lang.reflect.Array`; they describe the two overloads rather than methods you need to declare yourself. Their mechanics differ:
 
-### Cung cấp kiểu phần tử gốc và nhiều chiều
+### Providing the Root Element Type and Multiple Dimensions
 
 ```java
 Object created = Array.newInstance(int.class, 2, 3);
 System.out.println(created.getClass().getTypeName()); // int[][]
 ```
 
-Một `componentType` là `int.class` và hai số chiều trong `dimensions` tạo mảng kiểu `int[][]`, với tất cả các tầng kích thước được cấp phát theo các giá trị truyền vào.
+A `componentType` of `int.class` and two dimension sizes in `dimensions` create an array of type `int[][]`, with all size layers allocated according to the passed values.
 
-### Cung cấp sẵn một kiểu mảng làm component
+### Providing an Existing Array Type as Component
 
 ```java
 Object created = Array.newInstance(int[].class, 2);
 System.out.println(created.getClass().getTypeName()); // int[][]
 ```
 
-Tình huống này cấp phát **một tầng bên ngoài** có hai phần tử, mỗi phần tử có kiểu `int[]` và được khởi tạo mặc định là null. Chỉ sau khi gán từng mảng con, các hàng mới có dữ liệu:
+This case allocates **one outer layer** with two elements, each of type `int[]` and initialized by default to null. Only after assigning each subarray do the rows hold data:
 
 ```java
 int[][] values = (int[][]) Array.newInstance(int[].class, 2);
@@ -270,46 +270,46 @@ values[0] = new int[3];
 values[1] = new int[1];
 ```
 
-Nếu dùng `Array.newInstance(int[].class, 2, 3)`, kết quả là **`int[][][]`**, không phải `int[][]`: kiểu component đã có một chiều, rồi lời gọi thêm hai chiều nữa.
+If you use `Array.newInstance(int[].class, 2, 3)`, the result is **`int[][][]`**, not `int[][]`: the component type already has one dimension, and then the call adds two more dimensions.
 
-Đây là lỗi hay gặp ở mã xử lý số chiều động. Công thức tổng quát cho kiểu:
+This is a common error in code handling dynamic dimension counts. General formula for the type:
 
-**Số chiều kiểu kết quả = số chiều vốn có của componentType + số chiều mới yêu cầu ở Array.newInstance.**
+**Resulting type dimension count = inherent dimension count of componentType + number of new dimensions requested in Array.newInstance.**
 
-Lưu ý: overload `Array.newInstance(componentType, int length)` luôn thêm một chiều kiểu. Overload có `int... dimensions` có thể thêm nhiều chiều; mảng `dimensions` phải không rỗng. Kích thước âm gây `NegativeArraySizeException`; số chiều kết quả vượt giới hạn JVM hoặc `void.class` làm component là không hợp lệ (`IllegalArgumentException`). Không được gọi `Array.newInstance` rồi tùy tiện ép sang một kiểu mảng khác với runtime class mà nó tạo.
+Note: the `Array.newInstance(componentType, int length)` overload always adds one type dimension. The overload with `int... dimensions` can add multiple dimensions; the `dimensions` array must be non-empty. Negative sizes cause `NegativeArraySizeException`; a resulting dimension count exceeding the JVM limit or `void.class` as component is invalid (`IllegalArgumentException`). Do not call `Array.newInstance` and arbitrarily cast to an array type different from the runtime class it created.
 
-## 7. Primitive arrays khác reference arrays
+## 7. Primitive Arrays Differ from Reference Arrays
 
-`int[]` là mảng **primitive**, trong khi `String[]` và `int[][]` đều có component trực tiếp là **reference type**:
+`int[]` is a **primitive** array, whereas `String[]` and `int[][]` both have a **reference type** as their immediate component:
 
-| Kiểu mảng | Component trực tiếp | Có thể cast toàn bộ mảng sang `Object[]`? |
+| Array Type | Immediate Component | Can Cast Entire Array to `Object[]`? |
 | --- | --- | --- |
-| `int[]` | `int` | Không |
-| `double[]` | `double` | Không |
-| `String[]` | `String` | Có |
-| `int[][]` | `int[]` (reference type) | Có |
-| `int[][][]` | `int[][]` (reference type) | Có |
+| `int[]` | `int` | No |
+| `double[]` | `double` | No |
+| `String[]` | `String` | Yes |
+| `int[][]` | `int[]` (reference type) | Yes |
+| `int[][][]` | `int[][]` (reference type) | Yes |
 
-Ví dụ:
+Example:
 
 ```java
 int[] numbers = {1, 2};
 int[][] rows = {{1, 2}, {3}};
 
-Object anyNumbers = numbers;  // Hợp lệ: mọi mảng đều là Object
-Object[] outerRows = rows;    // Hợp lệ: component trực tiếp là int[]
-// Object[] bad = numbers;     // Sai tại compile time
+Object anyNumbers = numbers;  // Valid: every array is an Object
+Object[] outerRows = rows;    // Valid: immediate component is int[]
+// Object[] bad = numbers;     // Invalid at compile time
 ```
 
-Mảng `int[]` không phải `Object[]` dù chính đối tượng mảng có thể gán vào biến `Object`. Trong khi đó `int[][]` là một mảng các reference `int[]`, nên tầng ngoài phù hợp với `Object[]`.
+An `int[]` array is not an `Object[]` even though the array object itself can be assigned to an `Object` variable. Meanwhile, `int[][]` is an array of `int[]` references, so the outer layer matches `Object[]`.
 
-Reflection API `Array.get(anyArray, index)` giúp viết logic dùng chung cho cả primitive và reference arrays. Khi cần gán phần tử, `Array.set(array, index, value)` kiểm tra kiểu hợp lệ và chuyển đổi primitive phù hợp; nó không làm phép chuyển tùy ý.
+The Reflection API `Array.get(anyArray, index)` helps write shared logic for both primitive and reference arrays. When assigning elements, `Array.set(array, index, value)` checks type validity and performs appropriate primitive conversions; it does not perform arbitrary conversions.
 
-Đối với primitive array, `Array.get(intArray, index)` trả wrapper object (ví dụ `Integer`), còn `Array.getInt(intArray, index)` trả giá trị int trực tiếp, miễn array và kiểu thành phần tương thích với getter đó.
+For a primitive array, `Array.get(intArray, index)` returns a wrapper object (e.g., `Integer`), whereas `Array.getInt(intArray, index)` returns an int value directly, provided the array and component type are compatible with that getter.
 
-## 8. Hỗ trợ số chiều chưa biết khi chạy
+## 8. Supporting Unknown Dimension Counts at Runtime
 
-Trong công cụ generic, ta có thể không biết trước đối tượng là `String[]`, `long[][]` hay `Customer[][][]`. Một utility lấy kiểu phần tử gốc và đếm chiều:
+In a generic tool, we might not know in advance whether an object is `String[]`, `long[][]`, or `Customer[][][]`. A utility to obtain the root element type and count dimensions:
 
 ```java
 public static Class<?> deepestElementType(Class<?> type) {
@@ -339,7 +339,7 @@ public static int dimensions(Class<?> type) {
 }
 ```
 
-Đây là hai hàm tiện ích minh họa để đặt bên trong một class Java, không phải chương trình `main` độc lập. Kết quả:
+These are two illustrative utility functions to place inside a Java class, not a standalone `main` program. Results:
 
 ```text
 deepestElementType(int[][][].class) = int.class
@@ -350,82 +350,82 @@ deepestElementType(String.class) = String.class
 dimensions(String.class) = 0
 ```
 
-Dòng minh họa ở đây thể hiện **giá trị logic trả về**, không phải stdout tự động in bởi hai hàm.
+The illustrative lines here show **logical return values**, not stdout automatically printed by the two functions.
 
-Với yêu cầu “đầu vào bắt buộc là array”, hãy kiểm tra `type.isArray()` ở ranh giới tiện ích và báo lỗi nếu false. Còn các hàm ở trên chấp nhận scalar và trả kiểu đó cùng số chiều 0: cách xử lý này có thể hữu ích khi bộ phân tích hỗ trợ cả hai nhóm kiểu.
+For a requirement where "input must be an array", check `type.isArray()` at the utility boundary and report an error if false. By contrast, the functions above accept scalars and return that type with 0 dimensions: this handling can be useful when an analyzer supports both categories of types.
 
-### Duyệt từng tầng và không tạo mảng vô hạn
+### Traversing Layer by Layer Without Creating Infinite Arrays
 
-Vòng lặp `while (type.isArray())` luôn kết thúc đối với một array class hợp lệ: mỗi bước `getComponentType()` bỏ đi đúng một chiều và cuối cùng đến kiểu phần tử gốc. Điều cần tránh là gọi `getComponentType()` mãi sau khi kiểu không còn là mảng, rồi thao tác với null.
+The `while (type.isArray())` loop always terminates for a valid array class: each step of `getComponentType()` strips away exactly one dimension and eventually reaches the root element type. What to avoid is calling `getComponentType()` repeatedly after the type is no longer an array, and then operating on null.
 
-Khi cần xây cấu trúc mới dựa trên số chiều được phát hiện, phải xác định rõ **kiểu thành phần dùng làm đầu vào Array.newInstance**. Nếu đưa nguyên kiểu mảng đã có vào đó mà lại yêu cầu thêm toàn bộ số chiều đếm được, kết quả sẽ thừa chiều.
+When needing to build a new structure based on the discovered dimension count, you must clearly determine **the component type used as input to Array.newInstance**. If you pass the entire existing array type into it while also requesting all the counted dimensions again, the result will have excess dimensions.
 
-## 9. Class.getComponentType không mang thông tin generic arguments
+## 9. Class.getComponentType Does Not Carry Generic Arguments Information
 
-`Class<?>` biểu thị **runtime type** theo Java type erasure. Nếu có khai báo:
+`Class<?>` represents the **runtime type** under Java type erasure. Given a declaration:
 
 ```java
 java.util.List<String>[] lists;
 ```
 
-thì runtime component class tương ứng của kiểu mảng là `java.util.List.class`, không phải một đối tượng `Class<List<String>>` bảo tồn `String` dưới dạng type argument.
+then the corresponding runtime component class of the array type is `java.util.List.class`, not a `Class<List<String>>` object preserving `String` as a type argument.
 
-Với một `Field` phản chiếu khai báo generic, `Field.getGenericType()` trả `java.lang.reflect.Type`, có thể là `GenericArrayType` hoặc loại `Type` khác để phân tích generic declaration tùy trường hợp. Trong khi đó, `Field.getType()` trả một `Class<?>` theo kiểu đã erasure; gọi `getComponentType()` trên nó cho biết các **tầng mảng của runtime class**, không giải mã đầy đủ kiểu generic.
+For a `Field` reflecting a generic declaration, `Field.getGenericType()` returns `java.lang.reflect.Type`, which may be a `GenericArrayType` or another `Type` kind for analyzing generic declarations depending on the case. Meanwhile, `Field.getType()` returns an erased `Class<?>`; calling `getComponentType()` on it reveals the **array layers of the runtime class**, without fully decoding the generic type.
 
-Vì vậy:
+Therefore:
 
-- Muốn biết số chiều mảng và kiểu phần tử runtime: dùng `Class.isArray()/getComponentType()`.
-- Muốn hiểu chữ ký generic đã khai báo trong source: xem `Field.getGenericType()` hoặc metadata generic tương ứng.
-- Đừng giả định runtime `Class` lưu sẵn type arguments của `List<String>`.
+- To know the number of array dimensions and runtime element type: use `Class.isArray()/getComponentType()`.
+- To understand the generic signature declared in source code: inspect `Field.getGenericType()` or the corresponding generic metadata.
+- Do not assume runtime `Class` pre-stores the type arguments of `List<String>`.
 
-Đây là ranh giới thông tin giữa Class và Type, không phải lỗi của `getComponentType()`.
+This is an information boundary between Class and Type, not a bug in `getComponentType()`.
 
-## 10. Lỗi thường gặp
+## 10. Common Mistakes
 
-| Nhầm lẫn | Vì sao sai | Cách hiểu đúng |
+| Mistake | Why It Is Wrong | Correct Understanding |
 | --- | --- | --- |
-| `int[][].class.getComponentType()` trả `int.class` | Chỉ bóc một tầng mỗi lần | Kết quả là `int[].class` |
-| `getComponentType()` trả số phần tử | Nó thao tác trên metadata của kiểu | Muốn độ dài của mảng cụ thể, dùng `Array.getLength(array)` |
-| `getComponentType()` luôn trả Class khác null | Kiểu không phải mảng cho kết quả null | Kiểm tra `isArray()` trước |
-| Mảng hai chiều luôn có các hàng dài bằng nhau | Java cho phép mảng răng cưa | Đo độ dài từng mảng con riêng |
-| `new int[2][]` đã tạo hai hàng `int[]` | Chỉ mảng ngoài được cấp phát | Ban đầu mỗi slot hàng là null |
-| `Array.newInstance(int[].class, 2, 3)` trả `int[][]` | Input `int[]` đã có một chiều | Kết quả là `int[][][]` |
-| `Object[] values = new int[3]` hợp lệ | Primitive array không là `Object[]` | `int[]` chỉ gán được vào `Object`; dùng `Array.get` cho logic chung |
-| `int[][]` không thể xem là `Object[]` | Component của tầng ngoài là `int[]`, một reference type | Toàn mảng hai chiều có thể gán cho `Object[]` |
-| `int[2][3]` và `int[2][1]` là hai class khác nhau | Độ dài không thuộc định danh kiểu mảng | Cả hai có class `int[][].class` |
-| Có thể lấy generic `String` từ `List<String>[]` bằng `getComponentType()` | Runtime erasure không lưu generic type argument trong Class | Dùng GenericType metadata của khai báo nếu cần |
-| `getName()` và `getTypeName()` luôn giống nhau | Tên array class có thể là descriptor | Ưu tiên `getTypeName()` khi hiển thị dễ đọc |
+| `int[][].class.getComponentType()` returns `int.class` | Peels only one layer at a time | The result is `int[].class` |
+| `getComponentType()` returns element count | It operates on type metadata | For the length of a specific array, use `Array.getLength(array)` |
+| `getComponentType()` always returns a non-null Class | Non-array types return null | Check `isArray()` first |
+| Two-dimensional arrays always have rows of equal length | Java allows jagged arrays | Measure the length of each subarray individually |
+| `new int[2][]` has already created two `int[]` rows | Only the outer array is allocated | Initially each row slot is null |
+| `Array.newInstance(int[].class, 2, 3)` returns `int[][]` | Input `int[]` already has one dimension | The result is `int[][][]` |
+| `Object[] values = new int[3]` is valid | Primitive arrays are not `Object[]` | `int[]` can only be assigned to `Object`; use `Array.get` for generic logic |
+| `int[][]` cannot be treated as `Object[]` | The outer layer's component is `int[]`, a reference type | The entire two-dimensional array can be assigned to `Object[]` |
+| `int[2][3]` and `int[2][1]` are two different classes | Length is not part of the array type identity | Both have class `int[][].class` |
+| You can get generic `String` from `List<String>[]` using `getComponentType()` | Runtime erasure does not store generic type arguments in Class | Use the declaration's GenericType metadata if needed |
+| `getName()` and `getTypeName()` are always identical | An array class name can be a descriptor | Prefer `getTypeName()` for human-readable display |
 
-## 11. Bài tập thực hành
+## 11. Practice Exercises
 
-**Bài 1.** Cho `byte[][][][]`. Hãy liệt kê kết quả của ba lần đầu gọi `getComponentType()` rồi xác định tầng cuối.
+**Exercise 1.** Given `byte[][][][]`. List the results of the first three calls to `getComponentType()` and then determine the final layer.
 
-**Đáp án:** `byte[][][]`, `byte[][]`, `byte[]`; lần thứ tư trả `byte.class`. Có bốn chiều.
+**Answer:** `byte[][][]`, `byte[][]`, `byte[]`; the fourth call returns `byte.class`. There are four dimensions.
 
-**Bài 2.** Cho `String[][] names = new String[2][];`. Tại sao `names.getClass().getComponentType()` vẫn trả `String[].class` dù `names[0] == null`?
+**Exercise 2.** Given `String[][] names = new String[2][];`. Why does `names.getClass().getComponentType()` still return `String[].class` even though `names[0] == null`?
 
-**Đáp án:** Component type là metadata của **kiểu mảng**, độc lập với việc một slot có chứa đối tượng mảng con hay còn null.
+**Answer:** Component type is metadata of the **array type**, independent of whether a slot holds a subarray object or is still null.
 
-**Bài 3.** `Array.newInstance(double[][].class, 4)` tạo kiểu gì?
+**Exercise 3.** What type does `Array.newInstance(double[][].class, 4)` create?
 
-**Đáp án:** `double[][][]`, gồm một tầng ngoài dài 4, các phần tử `double[][]` ban đầu là null.
+**Answer:** `double[][][]`, consisting of an outer layer of length 4, with the `double[][]` elements initially null.
 
-**Bài 4.** Vì sao `int[][] matrix` có thể gán cho `Object[]` nhưng `int[] row` thì không?
+**Exercise 4.** Why can `int[][] matrix` be assigned to `Object[]` whereas `int[] row` cannot?
 
-**Đáp án:** Component trực tiếp của `int[][]` là reference type `int[]`. Component của `int[]` là primitive `int`, nên `int[]` không là `Object[]`.
+**Answer:** The immediate component of `int[][]` is the reference type `int[]`. The component of `int[]` is primitive `int`, so `int[]` is not an `Object[]`.
 
-**Bài 5.** Có thể biết số hàng/cột của một mảng nhiều chiều chỉ từ `Class.getComponentType()` không?
+**Exercise 5.** Can you determine the number of rows/columns of a multidimensional array solely from `Class.getComponentType()`?
 
-**Đáp án:** Không. API này chỉ mô tả kiểu từng tầng. Cần có đối tượng mảng và dùng `Array.getLength()` ở từng tầng thực tế; các mảng con có thể null hoặc dài khác nhau.
+**Answer:** No. This API only describes the type of each layer. You need an array object and must use `Array.getLength()` at each actual layer; subarrays can be null or have different lengths.
 
-## 12. Tổng kết
+## 12. Summary
 
-**Quy tắc quan trọng nhất:** với mọi array class, **`getComponentType()` chỉ lấy một tầng thành phần trực tiếp**.
+**Most important rule:** for every array class, **`getComponentType()` retrieves only one immediate component layer**.
 
-1. Bắt đầu từ `Class<?>` của đối tượng hoặc kiểu đã biết.
-2. Trong khi `isArray() == true`, gọi `getComponentType()` để chuyển xuống một tầng và tăng số chiều đã đếm.
-3. Khi đến kiểu không phải mảng, đó là kiểu phần tử gốc; `getComponentType()` lúc này trả null.
-4. Khi tạo mảng, phân biệt `Array.newInstance(baseType, dimensions...)` với `Array.newInstance(existingArrayType, length)` để không thêm thừa chiều.
-5. Khi đọc dữ liệu, dùng `Array.getLength` và `Array.get` trên **đối tượng mảng thật**, không suy độ dài từ `Class<?>`.
+1. Start from the `Class<?>` of the object or known type.
+2. While `isArray() == true`, call `getComponentType()` to move down one layer and increment the counted dimensions.
+3. Upon reaching a non-array type, that is the root element type; `getComponentType()` now returns null.
+4. When creating arrays, distinguish `Array.newInstance(baseType, dimensions...)` from `Array.newInstance(existingArrayType, length)` so as not to add extra dimensions.
+5. When reading data, use `Array.getLength` and `Array.get` on an **actual array object**, without inferring lengths from `Class<?>`.
 
-**Tài liệu tham khảo:** [Java SE 17 — Class.getComponentType](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getComponentType()) · [Java SE 17 — java.lang.reflect.Array](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Array.html)
+**Reference materials:** [Java SE 17 — Class.getComponentType](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getComponentType()) · [Java SE 17 — java.lang.reflect.Array](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Array.html)

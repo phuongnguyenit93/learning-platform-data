@@ -1,22 +1,22 @@
-# Stream API là gì và giải quyết bài toán nào?
+# What Is the Stream API and What Problem Does It Solve?
 
-Trong ứng dụng Java, dữ liệu thường đi qua một chuỗi thao tác: lấy danh sách đơn hàng, bỏ đơn chưa thanh toán, chọn số tiền, tính tổng hoặc nhóm theo danh mục. **Java Stream API** giúp diễn đạt chuỗi xử lý đó dưới dạng một *pipeline* (đường ống xử lý dữ liệu) với các phép biến đổi và tổng hợp có thể kết hợp với nhau.
+In Java applications, data often passes through a sequence of operations: retrieving a list of orders, removing unpaid orders, selecting the amounts, calculating the total, or grouping by category. **Java Stream API** helps express that processing chain as a *pipeline* (a data-processing pipeline) with composable transformation and aggregation operations.
 
-Stream API xuất hiện từ **Java 8**, nằm chủ yếu trong gói `java.util.stream`. Nó cung cấp cách viết **khai báo**: mô tả *muốn lấy kết quả gì từ dữ liệu*, thay vì tự điều khiển từng bước duyệt bằng vòng lặp và biến tích lũy. Stream không phải cấu trúc lưu trữ mới, cũng không tự động làm chương trình nhanh hơn.
+The Stream API was introduced in **Java 8**, residing primarily in the `java.util.stream` package. It provides a **declarative** style: describing *what result you want from the data*, rather than manually controlling every iteration step with loops and accumulator variables. A Stream is not a new storage structure, nor does it automatically make a program faster.
 
-Sau bài này, bạn có thể nhận diện bài toán phù hợp với Stream API, đọc được pipeline từ nguồn đến kết quả, phân biệt phép toán trung gian và kết thúc, đồng thời biết các giới hạn quan trọng trước khi áp dụng.
+After this lesson, you will be able to identify problems well-suited for the Stream API, read a pipeline from source to result, distinguish between intermediate and terminal operations, and understand the important limitations before applying it.
 
-## 1. Bài toán thực tế: từ dữ liệu thô đến kết quả
+## 1. A practical problem: from raw data to results
 
-Giả sử một hệ thống bán hàng cần:
+Suppose a sales system needs to:
 
-- Chỉ lấy các đơn **đã thanh toán**.
-- Tính **tổng số tiền** của các đơn đó.
-- Đếm số đơn đã thanh toán **theo danh mục sản phẩm**.
+- Keep only **paid** orders.
+- Calculate the **total amount** of those orders.
+- Count the number of paid orders **by product category**.
 
-Với vòng lặp truyền thống, lập trình viên tự quản lý việc duyệt, điều kiện, biến tổng và bản đồ đếm. Với Stream API, mỗi yêu cầu được biểu diễn bằng một phép toán trong pipeline.
+With traditional loops, the developer manually manages iteration, conditions, total variables, and counting maps. With the Stream API, each requirement is represented by an operation in a pipeline.
 
-Ví dụ hoàn chỉnh dưới đây chạy trên **JDK 17 trở lên** (sử dụng `record` để biểu diễn dữ liệu mẫu). Các phép toán Stream cốt lõi trong ví dụ đã có từ Java 8.
+The complete example below runs on **JDK 17 or later** (using `record` to represent sample data). The core Stream operations in the example have been available since Java 8.
 
 ~~~java
 import java.util.List;
@@ -28,13 +28,13 @@ public class StreamOverviewDemo {
 
     public static void main(String[] args) {
         List<Order> orders = List.of(
-            new Order("DH01", "Sách", 120_000, true),
-            new Order("DH02", "Sách",  90_000, false),
-            new Order("DH03", "Bút",   30_000, true),
-            new Order("DH04", "Sách",  50_000, true)
+            new Order("DH01", "Books", 120_000, true),
+            new Order("DH02", "Books",  90_000, false),
+            new Order("DH03", "Pens",   30_000, true),
+            new Order("DH04", "Books",  50_000, true)
         );
 
-        // Cách viết mệnh lệnh: tự duyệt và cập nhật biến.
+        // Imperative style: manually iterate and update a variable.
         int totalWithLoop = 0;
         for (Order order : orders) {
             if (order.paid()) {
@@ -42,13 +42,13 @@ public class StreamOverviewDemo {
             }
         }
 
-        // Cách viết khai báo: mô tả chuỗi xử lý dữ liệu.
+        // Declarative style: describe the data-processing pipeline.
         int totalWithStream = orders.stream()
             .filter(Order::paid)
             .mapToInt(Order::amount)
             .sum();
 
-        // Một bài toán khác trên cùng nguồn: nhóm và đếm.
+        // Another problem on the same source: group and count.
         Map<String, Long> paidCountByCategory = orders.stream()
             .filter(Order::paid)
             .collect(Collectors.groupingBy(
@@ -56,67 +56,67 @@ public class StreamOverviewDemo {
                 Collectors.counting()
             ));
 
-        System.out.println(totalWithLoop);                 // 200000
-        System.out.println(totalWithStream);               // 200000
-        System.out.println(paidCountByCategory.get("Sách")); // 2
-        System.out.println(paidCountByCategory.get("Bút"));  // 1
+        System.out.println(totalWithLoop);                  // 200000
+        System.out.println(totalWithStream);                // 200000
+        System.out.println(paidCountByCategory.get("Books")); // 2
+        System.out.println(paidCountByCategory.get("Pens"));  // 1
     }
 }
 ~~~
 
-Điểm đáng chú ý không phải Stream giúp viết ít dòng trong mọi tình huống, mà là **ý nghĩa của từng bước được thể hiện rõ**:
+The notable point is not that Stream lets you write fewer lines in every situation, but that **the meaning of each step is clearly expressed**:
 
-1. `orders.stream()`: tạo Stream từ danh sách đơn hàng.
-2. `filter(Order::paid)`: giữ lại đơn đã thanh toán.
-3. `mapToInt(Order::amount)`: lấy số tiền ở dạng luồng số nguyên nguyên thủy (`IntStream`).
-4. `sum()`: tính tổng và trả về một giá trị `int`.
-5. Trong pipeline thứ hai, `collect(groupingBy(..., counting()))` tạo bản đồ số đơn theo danh mục.
+1. `orders.stream()`: creates a Stream from the list of orders.
+2. `filter(Order::paid)`: keeps paid orders.
+3. `mapToInt(Order::amount)`: extracts the amount as a primitive integer stream (`IntStream`).
+4. `sum()`: computes the total and returns an `int` value.
+5. In the second pipeline, `collect(groupingBy(..., counting()))` builds a map of order counts by category.
 
-Hai pipeline tạo **hai Stream độc lập** từ cùng `List`. Danh sách gốc không bị thay đổi bởi những phép toán này. `Map` kết quả từ `groupingBy` không có bảo đảm về thứ tự duyệt các khóa; ví dụ kiểm tra từng khóa để tránh phụ thuộc thứ tự hiển thị.
+The two pipelines create **two independent Streams** from the same `List`. The original list is not modified by these operations. The resulting `Map` from `groupingBy` provides no guarantee on key iteration order; the example checks each key individually to avoid depending on display order.
 
-> **Lưu ý về tiền tệ:** `int` chỉ làm ví dụ gọn và dễ đọc. Trong hệ thống thực tế cần xác định rõ đơn vị tiền, khả năng tràn số và quy tắc làm tròn; `BigDecimal` hoặc số nguyên biểu diễn đơn vị tiền nhỏ nhất thường phù hợp hơn tùy yêu cầu.
+> **Note on currency:** `int` is used only for a concise and readable example. In real systems, you must clearly define the currency unit, overflow potential, and rounding rules; `BigDecimal` or an integer representing the smallest currency unit is usually more appropriate depending on requirements.
 
-## 2. Stream thực chất là gì?
+## 2. What is a Stream, really?
 
-`Stream<T>` biểu diễn **một chuỗi phần tử để xử lý** (không nhất thiết là một danh sách đã lưu sẵn). Một Stream liên kết nguồn dữ liệu với các phép toán và thường chỉ duyệt nguồn khi cần kết quả.
+`Stream<T>` represents **a sequence of elements for processing** (not necessarily a pre-stored list). A Stream connects a data source to operations and typically traverses the source only when a result is needed.
 
-Một pipeline điển hình có ba phần:
+A typical pipeline has three parts:
 
 ~~~mermaid
 flowchart LR
-    A["Nguồn: List<Order>"] --> B["Trung gian: filter(paid)"]
-    B --> C["Trung gian: mapToInt(amount)"]
-    C --> D["Kết thúc: sum()"]
-    D --> E["Kết quả: 200000"]
+    A["Source: List<Order>"] --> B["Intermediate: filter(paid)"]
+    B --> C["Intermediate: mapToInt(amount)"]
+    C --> D["Terminal: sum()"]
+    D --> E["Result: 200000"]
 ~~~
 
-| Thành phần | Vai trò | Ví dụ |
+| Component | Role | Examples |
 |---|---|---|
-| **Nguồn (source)** | Cung cấp phần tử cho pipeline | `list.stream()`, `Arrays.stream(array)`, `Stream.of(...)` |
-| **Phép toán trung gian (intermediate)** | Trả về một Stream mới để tiếp tục mô tả việc xử lý | `filter`, `map`, `flatMap`, `distinct`, `sorted`, `limit` |
-| **Phép toán kết thúc (terminal)** | Kích hoạt việc tính toán cần thiết và tạo kết quả hoặc tác động cuối cùng | `sum`, `count`, `collect`, `reduce`, `findFirst`, `forEach` |
+| **Source** | Supplies elements to the pipeline | `list.stream()`, `Arrays.stream(array)`, `Stream.of(...)` |
+| **Intermediate operation** | Returns a new Stream to continue describing the processing | `filter`, `map`, `flatMap`, `distinct`, `sorted`, `limit` |
+| **Terminal operation** | Triggers the necessary computation and produces the final result or side effect | `sum`, `count`, `collect`, `reduce`, `findFirst`, `forEach` |
 
-Một số điểm cần ghi nhớ:
+A few points to remember:
 
-- Stream **không sở hữu dữ liệu** theo nghĩa của một `List` hay `Set`. Nguồn có thể là collection, mảng, dãy số được sinh ra hoặc dữ liệu đọc dần.
-- Những phép toán như `filter` và `map` nói chung **lazy**: tạo pipeline chưa có nghĩa là đã duyệt hết các phần tử.
-- Mỗi Stream chỉ được **tiêu thụ một lần**. Sau phép toán kết thúc, muốn chạy một pipeline mới phải tạo Stream mới từ nguồn.
-- Stream xử lý phần tử theo hợp đồng của từng phép toán; nó **không mặc nhiên sửa nguồn dữ liệu** và cũng không bảo đảm mọi phép toán đều không cần bộ nhớ trung gian.
+- A Stream **does not own data** in the sense that a `List` or `Set` does. The source can be a collection, an array, a generated sequence, or lazily read data.
+- Operations such as `filter` and `map` are generally **lazy**: building a pipeline does not mean all elements have already been traversed.
+- Each Stream can only be **consumed once**. After a terminal operation, to run a new pipeline you must create a new Stream from the source.
+- A Stream processes elements according to each operation's contract; it **does not inherently modify the data source** and does not guarantee that every operation requires no intermediate memory.
 
-### Stream khác Collection ở đâu?
+### How does a Stream differ from a Collection?
 
-| `Collection` (ví dụ `List`) | `Stream` |
+| `Collection` (e.g., `List`) | `Stream` |
 |---|---|
-| Quản lý một tập hợp phần tử | Mô tả quá trình xử lý phần tử |
-| Có thể đọc hoặc duyệt lại nhiều lần | Thông thường chỉ tiêu thụ một lần |
-| Hỗ trợ các thao tác lưu trữ như thêm, xóa | Cung cấp các phép toán biến đổi, lọc, tổng hợp |
-| Phần tử đang được chứa trong collection | Phần tử có thể được lấy hoặc sinh ra khi pipeline chạy |
+| Manages a group of elements | Describes a processing pipeline over elements |
+| Can be read or traversed multiple times | Typically consumed only once |
+| Supports storage operations such as add and remove | Provides transformation, filtering, and aggregation operations |
+| Elements are currently held in the collection | Elements may be fetched or generated when the pipeline runs |
 
-Có thể hiểu: **collection là nơi giữ dữ liệu; stream là cách diễn đạt công việc trên dữ liệu**. Một danh sách có thể tạo nhiều Stream khác nhau, còn kết quả của Stream có thể là một số, `Optional`, `Map`, `List` hoặc một kiểu khác.
+You can think of it this way: **a collection is where data is kept; a stream is how work on the data is expressed**. One list can create many different Streams, while the result of a Stream can be a number, an `Optional`, a `Map`, a `List`, or another type.
 
-## 3. Pipeline hoạt động: khai báo trước, xử lý khi cần
+## 3. How a pipeline works: declare first, process when needed
 
-Đây là đặc điểm giúp Stream API khác với việc gọi liên tiếp những hàm luôn tạo danh sách trung gian.
+This is the characteristic that distinguishes the Stream API from chaining functions that always allocate intermediate lists.
 
 ~~~java
 import java.util.Optional;
@@ -124,62 +124,62 @@ import java.util.stream.Stream;
 
 Stream<Integer> evenNumbers = Stream.of(1, 2, 3, 4)
     .filter(n -> {
-        System.out.println("Đang xét: " + n);
+        System.out.println("Checking: " + n);
         return n % 2 == 0;
     });
 
-System.out.println("Đã khai báo pipeline");
+System.out.println("Pipeline declared");
 
 Optional<Integer> firstEven = evenNumbers.findFirst();
 System.out.println(firstEven.orElse(-1));
 ~~~
 
-Kết quả quan sát trong trường hợp này:
+Observed output in this case:
 
 ~~~text
-Đã khai báo pipeline
-Đang xét: 1
-Đang xét: 2
+Pipeline declared
+Checking: 1
+Checking: 2
 2
 ~~~
 
-Khi khai báo `filter`, chưa có phần tử nào được kiểm tra. `findFirst()` là phép toán kết thúc; nó yêu cầu phần tử chẵn đầu tiên nên việc duyệt **dừng ngay khi tìm thấy số 2**. Đây là cơ chế *short-circuit* (dừng sớm) của một số phép toán, bao gồm `findFirst`, `anyMatch` và `limit` khi điều kiện áp dụng cho phép.
+When `filter` is declared, no elements have been checked yet. `findFirst()` is a terminal operation; it asks for the first even element, so traversal **stops immediately upon finding 2**. This is the *short-circuit* mechanism of certain operations, including `findFirst`, `anyMatch`, and `limit` when applicable conditions allow.
 
-Đoạn in log bên trong `filter` chỉ nhằm minh họa. Trong code nghiệp vụ, nên giữ hàm lọc và biến đổi **không có tác dụng phụ** để kết quả dễ hiểu, dễ kiểm thử và an toàn hơn khi thay đổi cách thực thi.
+Printing logs inside `filter` is only for illustration. In production code, keep filtering and transformation functions **side-effect-free** so results are easier to understand, easier to test, and safer when changing execution strategies.
 
-### Vì sao không thể tái sử dụng cùng Stream?
+### Why can't the same Stream be reused?
 
 ~~~java
 Stream<Integer> numbers = Stream.of(1, 2, 3);
 long quantity = numbers.count(); // 3
 
 // numbers.filter(n -> n > 1).count();
-// Không hợp lệ: Stream đã được tiêu thụ; thường ném IllegalStateException.
+// Invalid: Stream has already been consumed; typically throws IllegalStateException.
 
-// Cách đúng: tạo Stream khác từ nguồn có thể dùng lại.
+// Correct way: create another Stream from a reusable source.
 List<Integer> source = List.of(1, 2, 3);
 long all = source.stream().count();
 long greaterThanOne = source.stream().filter(n -> n > 1).count();
 ~~~
 
-Thực tế còn có những phép toán kết thúc cho kết quả rỗng một cách hợp lệ. Ví dụ, `findFirst()` trả về `Optional<T>` vì nguồn có thể không chứa phần tử phù hợp. Hãy dùng `orElse`, `orElseGet`, `ifPresent` hoặc xử lý trường hợp rỗng thay vì gọi `get()` một cách mặc định.
+In practice, there are also terminal operations that validly yield an empty result. For example, `findFirst()` returns `Optional<T>` because the source may contain no matching element. Use `orElse`, `orElseGet`, `ifPresent`, or handle the empty case explicitly instead of calling `get()` by default.
 
-## 4. Stream API giải quyết những dạng bài toán nào?
+## 4. What kinds of problems does the Stream API solve?
 
-| Dạng nhu cầu | Câu hỏi nghiệp vụ | Phép toán thường gặp |
+| Need type | Business question | Common operations |
 |---|---|---|
-| **Lọc** | Đơn nào đã thanh toán? | `filter` |
-| **Chiếu/biến đổi** | Lấy email từ danh sách khách hàng? | `map` |
-| **Làm phẳng** | Gom các mặt hàng từ nhiều đơn thành một luồng? | `flatMap` |
-| **Tìm kiếm/kiểm tra** | Có đơn nào quá hạn không? | `findFirst`, `anyMatch`, `allMatch` |
-| **Giới hạn/sắp xếp/khử trùng** | Lấy 10 mã sản phẩm khác nhau theo thứ tự? | `distinct`, `sorted`, `limit` |
-| **Tổng hợp** | Tổng doanh thu hoặc số lượng đơn là bao nhiêu? | `mapToInt`, `sum`, `count`, `reduce` |
-| **Gom nhóm** | Mỗi danh mục có bao nhiêu đơn? | `collect`, `Collectors.groupingBy` |
-| **Tạo kết quả** | Thu được `List`, `Set` hoặc `Map` nào? | `toList`, `collect` |
+| **Filtering** | Which orders are paid? | `filter` |
+| **Projection/transformation** | Extract emails from a customer list? | `map` |
+| **Flattening** | Combine items from multiple orders into one stream? | `flatMap` |
+| **Searching/checking** | Are there any overdue orders? | `findFirst`, `anyMatch`, `allMatch` |
+| **Limiting/sorting/deduplicating** | Get 10 distinct product codes in order? | `distinct`, `sorted`, `limit` |
+| **Aggregation** | What is the total revenue or order count? | `mapToInt`, `sum`, `count`, `reduce` |
+| **Grouping** | How many orders are in each category? | `collect`, `Collectors.groupingBy` |
+| **Result creation** | Which `List`, `Set`, or `Map` is produced? | `toList`, `collect` |
 
-Một pipeline thường kết hợp nhiều thao tác để trả lời một câu hỏi hoàn chỉnh. Ví dụ: “Lấy tên duy nhất của những khách đã thanh toán, sắp xếp theo bảng chữ cái” có thể được diễn đạt thành `filter → map → distinct → sorted → toList`.
+A pipeline often combines multiple operations to answer a complete question. For example: "Get the unique names of paid customers, sorted alphabetically" can be expressed as `filter → map → distinct → sorted → toList`.
 
-### Các nguồn dữ liệu phổ biến
+### Common data sources
 
 ~~~java
 import java.util.Arrays;
@@ -193,7 +193,7 @@ Stream<String> fromList = names.stream();
 Stream<String> fromArray = Arrays.stream(new String[] {"An", "Bình"});
 Stream<String> fromValues = Stream.of("An", "Bình");
 
-// Không phải tất cả Stream đều chứa object:
+// Not all Streams contain objects:
 IntStream numbers = IntStream.rangeClosed(1, 5); // 1, 2, 3, 4, 5
 
 System.out.println(fromList.count());           // 3
@@ -202,19 +202,19 @@ System.out.println(fromValues.count());         // 2
 System.out.println(numbers.sum());              // 15
 ~~~
 
-`IntStream`, `LongStream` và `DoubleStream` tránh chi phí boxing trong nhiều phép tính số học, đồng thời có các phép toán như `sum`, `average`, `max`. Với Stream đối tượng, `mapToInt` hoặc `mapToLong` thường là bước chuyển hợp lý trước khi tổng hợp số.
+`IntStream`, `LongStream`, and `DoubleStream` avoid boxing overhead in many arithmetic operations, and provide operations such as `sum`, `average`, and `max`. With object Streams, `mapToInt` or `mapToLong` is often the right conversion step before numeric aggregation.
 
-Nguồn không nhất thiết hữu hạn: `Stream.generate(...)` hoặc `Stream.iterate(...)` có thể tạo dãy dài không giới hạn. Phải thiết kế phép toán kết thúc và điều kiện dừng phù hợp; ví dụ dùng `limit` khi muốn lấy một số lượng hữu hạn.
+Sources do not have to be finite: `Stream.generate(...)` or `Stream.iterate(...)` can produce unbounded sequences. You must design appropriate terminal operations and stopping conditions; for example, use `limit` when you want a finite number of elements.
 
-## 5. Vì sao cách viết khai báo hữu ích?
+## 5. Why is the declarative style useful?
 
-### Diễn đạt sát yêu cầu
+### Expresses requirements closely
 
-`filter` đọc như “giữ các phần tử thỏa điều kiện”, `map` đọc như “chuyển từng phần tử”, còn `collect` đọc như “gom kết quả”. Khi chuỗi thao tác nhỏ, tách bạch và có tên tốt, người đọc có thể đi theo luồng dữ liệu mà ít phải theo dõi biến đếm hoặc trạng thái tạm.
+`filter` reads like "keep elements matching a condition", `map` reads like "transform each element", and `collect` reads like "gather the result". When the chain of operations is small, well-separated, and well-named, readers can follow the data flow without having to track counter variables or temporary state as much.
 
-### Dễ kết hợp và thay đổi quy tắc
+### Easy to compose and change rules
 
-Cùng nguồn đơn hàng có thể sinh các kết quả khác nhau:
+The same order source can produce different results:
 
 ~~~java
 long paidOrders = orders.stream()
@@ -229,57 +229,57 @@ List<String> paidCategories = orders.stream()
     .map(Order::category)
     .distinct()
     .sorted()
-    .toList(); // JDK 16+: List kết quả không cho phép sửa.
+    .toList(); // JDK 16+: the resulting List cannot be modified.
 ~~~
 
-Các đoạn trên được đặt trong ngữ cảnh lớp và biến `orders` của ví dụ đầu bài. Mỗi đoạn gọi `orders.stream()` riêng để bảo đảm vòng đời Stream hợp lệ.
+The snippets above are placed in the context of the class and `orders` variable from the opening example. Each snippet calls `orders.stream()` separately to ensure a valid Stream lifecycle.
 
-### Thể hiện rõ phép tổng hợp
+### Clearly expresses aggregations
 
-Thay vì duy trì một cấu trúc dữ liệu tạm bằng tay, `Collectors` có thể diễn đạt cách nhóm, đếm, nối chuỗi hoặc kết hợp nhiều kết quả. Đây là lý do Stream đặc biệt hữu ích trong xử lý báo cáo, danh sách, dữ liệu trả về từ API và các bước chuẩn hóa dữ liệu.
+Instead of manually maintaining a temporary data structure, `Collectors` can express grouping, counting, string joining, or combining multiple results. This is why Streams are especially useful for processing reports, lists, API responses, and data normalization steps.
 
-Tuy vậy, **cú pháp ngắn không tự động đồng nghĩa với mã dễ hiểu**. Một pipeline quá dài, lồng nhiều lambda hoặc che giấu tác dụng phụ có thể khó đọc hơn vòng lặp rõ ràng.
+However, **shorter syntax does not automatically mean more readable code**. A pipeline that is too long, nests multiple lambdas, or hides side effects can be harder to read than a clear loop.
 
-## 6. Các quy tắc và giới hạn phải biết từ đầu
+## 6. Rules and limitations you must know from the start
 
-### 6.1. Không nên thay đổi nguồn khi đang duyệt
+### 6.1. Do not modify the source while traversing
 
-Hàm truyền vào `filter`, `map` hay `reduce` thường cần **không can thiệp nguồn** (*non-interfering*) và, ở các thao tác thông thường, nên **không phụ thuộc trạng thái biến đổi bên ngoài** (*stateless*).
+Functions passed to `filter`, `map`, or `reduce` generally need to be **non-interfering** and, in typical operations, should not depend on mutable external state (**stateless**).
 
-Không nên làm như sau:
+Do not do the following:
 
 ~~~java
 List<Integer> values = new java.util.ArrayList<>(List.of(1, 2, 3));
 
-// Sai về thiết kế: sửa chính nguồn khi Stream đang duyệt.
+// Bad design: modifying the source itself while the Stream is traversing it.
 values.stream().forEach(values::remove);
 ~~~
 
-Cách này có thể tạo hành vi không xác định theo cách ta mong đợi, bỏ sót phần tử hoặc ném lỗi tùy nguồn và cách duyệt. Khi muốn lọc bỏ phần tử, hãy **tạo kết quả mới** hoặc dùng một thao tác cập nhật collection được thiết kế riêng như `removeIf` khi thực sự muốn thay đổi collection.
+This can produce unexpected behavior, skip elements, or throw exceptions depending on the source and traversal method. When you want to filter out elements, **create a new result** or use a dedicated collection update operation such as `removeIf` when you genuinely want to mutate the collection.
 
-Cũng tránh gộp kết quả bằng cách gọi `forEach(result::add)` lên một `ArrayList` bên ngoài, đặc biệt khi chạy song song; hãy ưu tiên `collect` hoặc `toList`.
+Also avoid accumulating results by calling `forEach(result::add)` on an external `ArrayList`, especially when running in parallel; prefer `collect` or `toList`.
 
-### 6.2. Thứ tự không phải lúc nào cũng được bảo đảm
+### 6.2. Order is not always guaranteed
 
-Nguồn như `List` thường có *encounter order* (thứ tự phần tử khi duyệt); một số nguồn như `HashSet` không cam kết thứ tự. `sorted` thiết lập thứ tự theo comparator, trong khi `findAny` có thể trả về một phần tử bất kỳ, nhất là khi chạy song song.
+Sources like `List` typically have an *encounter order*; some sources like `HashSet` do not commit to an order. `sorted` establishes an order using a comparator, whereas `findAny` may return any element, especially when running in parallel.
 
-Nếu đầu ra cần thứ tự xác định, hãy lựa chọn nguồn và phép toán thích hợp. Không suy ra thứ tự của `Map` tạo bởi `groupingBy` chỉ từ thứ tự của các phần tử đầu vào.
+If the output needs a deterministic order, choose an appropriate source and operation. Do not infer the order of a `Map` created by `groupingBy` solely from the order of the input elements.
 
-### 6.3. Lazy không có nghĩa là luôn dùng ít bộ nhớ
+### 6.3. Lazy does not always mean low memory
 
-Một số phép toán có trạng thái như `sorted` hoặc `distinct` có thể cần lưu thông tin về các phần tử đã gặp, trong khi các phép toán như `filter` và `map` thường xử lý theo từng phần tử. Vì vậy không thể kết luận mọi Stream đều hoạt động trong bộ nhớ hằng số.
+Some stateful operations like `sorted` or `distinct` may need to store information about elements already seen, whereas operations like `filter` and `map` typically process element by element. Therefore, you cannot conclude that every Stream operates in constant memory.
 
-Về thời gian, một pipeline đơn giản qua `n` phần tử thường vẫn có độ phức tạp tuyến tính tương tự vòng lặp. Stream có thể có chi phí tạo pipeline, gọi lambda hoặc boxing. Hãy đo trên dữ liệu và cấu hình thật nếu hiệu năng là yêu cầu trọng yếu.
+In terms of time, a simple pipeline over `n` elements still typically has linear complexity similar to a loop. Streams can incur overhead from pipeline creation, lambda invocation, or boxing. Measure on realistic data and configuration if performance is a critical requirement.
 
-### 6.4. Parallel Stream chỉ phù hợp trong một số điều kiện
+### 6.4. Parallel Streams are only suitable under certain conditions
 
-`parallelStream()` hoặc `stream().parallel()` cho phép framework phân phối việc xử lý qua nhiều luồng, nhưng **không bảo đảm nhanh hơn**. Việc phân chia dữ liệu, kết hợp kết quả, cạnh tranh tài nguyên, thứ tự và tác dụng phụ đều ảnh hưởng đến hiệu năng và tính đúng đắn.
+`parallelStream()` or `stream().parallel()` allows the framework to distribute processing across multiple threads, but **does not guarantee faster execution**. Data splitting, result combining, resource contention, ordering, and side effects all affect performance and correctness.
 
-Chỉ cân nhắc xử lý song song khi tác vụ đủ lớn, phép toán độc lập, nguồn dễ chia và phép tổng hợp tuân thủ hợp đồng. Không mặc định bật song song cho thao tác I/O chặn, pipeline rất nhỏ hoặc code dùng trạng thái chia sẻ có thể thay đổi.
+Only consider parallel processing when the task is large enough, operations are independent, the source is easy to split, and the aggregation obeys the contract. Do not enable parallelism by default for blocking I/O operations, very small pipelines, or code that uses shared mutable state.
 
-### 6.5. Một số Stream cần được đóng
+### 6.5. Some Streams need to be closed
 
-Phần lớn Stream tạo từ collection không giữ tài nguyên ngoài. Ngược lại, một Stream do `Files.lines(...)` mở có thể sở hữu tài nguyên I/O; nên dùng `try-with-resources`:
+Most Streams created from collections do not hold external resources. By contrast, a Stream opened by `Files.lines(...)` may own I/O resources; you should use `try-with-resources`:
 
 ~~~java
 import java.nio.file.Files;
@@ -295,33 +295,33 @@ try (Stream<String> lines = Files.lines(path)) {
 }
 ~~~
 
-Ví dụ dùng `Path.of` và `String.isBlank` (JDK 11+), giả định file `data.txt` tồn tại. Phép toán kết thúc **không tự thay thế** việc đóng nguồn I/O; khối `try` bảo đảm giải phóng tài nguyên.
+The example uses `Path.of` and `String.isBlank` (JDK 11+), assuming the file `data.txt` exists. A terminal operation **does not replace** closing the I/O source; the `try` block ensures resource release.
 
-### 6.6. Stream API không phải mọi loại “stream” trong Java
+### 6.6. The Stream API is not every kind of "stream" in Java
 
-- `java.util.stream.Stream`: mô hình xử lý các phần tử qua pipeline.
-- `java.io.InputStream` và `OutputStream`: luồng byte cho I/O.
-- Các mô hình reactive/`Flow.Publisher`: quan tâm đến việc phát dữ liệu bất đồng bộ và điều phối nhu cầu tiêu thụ (*backpressure*).
+- `java.util.stream.Stream`: a model for processing elements through a pipeline.
+- `java.io.InputStream` and `OutputStream`: byte streams for I/O.
+- Reactive/`Flow.Publisher` models: concerned with asynchronous data emission and regulating consumer demand (*backpressure*).
 
-Tên gọi giống nhau nhưng mục đích và hợp đồng lập trình khác nhau. Đừng dùng Stream API như một hệ thống truyền sự kiện bất đồng bộ chỉ vì nó có tên “Stream”.
+The names are similar, but the purposes and programming contracts are different. Do not use the Stream API as an asynchronous event-delivery system just because it has "Stream" in its name.
 
-## 7. Liên hệ với các chủ đề Stream nâng cao
+## 7. Relation to advanced Stream topics
 
-Khi đã hiểu pipeline cơ bản, bạn sẽ thấy các chủ đề nâng cao xuất phát từ những nhu cầu rất cụ thể:
+Once you understand a basic pipeline, you will see that advanced topics arise from very specific needs:
 
-| Nhu cầu phát triển | Chủ đề tiếp theo |
+| Development need | Next topic |
 |---|---|
-| Gộp nhiều phần tử thành một giá trị | `reduce`, quy tắc identity và associativity |
-| Thu thập dữ liệu thành cấu trúc tùy ý | `collect`, `Collector`, `groupingBy`, `partitioningBy` |
-| Kiểm soát cách chia và duyệt nguồn | `Spliterator` |
-| Tận dụng nhiều lõi CPU đúng cách | Parallel Stream, collector đồng thời, đo hiệu năng |
-| Biến đổi luồng phức tạp có trạng thái hoặc thay đổi số phần tử | **Stream Gatherers** (API chuẩn hóa ở JDK 24) |
+| Combining multiple elements into a single value | `reduce`, identity and associativity rules |
+| Collecting data into custom structures | `collect`, `Collector`, `groupingBy`, `partitioningBy` |
+| Controlling how a source is split and traversed | `Spliterator` |
+| Properly utilizing multiple CPU cores | Parallel Streams, concurrent collectors, performance measurement |
+| Complex stateful stream transformations or changing element counts | **Stream Gatherers** (standardized API in JDK 24) |
 
-Những công cụ này mở rộng cùng một mô hình nguồn → phép toán → kết quả. Không cần sử dụng chúng ngay từ bài đầu tiên; điều quan trọng là hiểu hợp đồng về vòng đời Stream, thứ tự, trạng thái và tài nguyên trước khi đi sâu.
+These tools extend the same source → operations → result model. You do not need to use them in the very first lesson; what matters is understanding the contracts around Stream lifecycle, ordering, state, and resources before going deeper.
 
-## 8. Bài thực hành ngắn
+## 8. Short practice exercise
 
-**Yêu cầu:** Từ danh sách tên ngôn ngữ lập trình có khoảng trắng, chữ hoa/chữ thường và phần tử rỗng, hãy chuẩn hóa, loại trùng, sắp xếp rồi tạo danh sách kết quả. Không sửa danh sách đầu vào.
+**Requirement:** From a list of programming language names with whitespace, mixed casing, and empty elements, normalize, deduplicate, sort, and build a result list. Do not modify the input list.
 
 ~~~java
 import java.util.List;
@@ -338,25 +338,25 @@ List<String> result = raw.stream()
     .toList();
 
 System.out.println(result); // [GO, JAVA, KOTLIN]
-System.out.println(raw.size()); // 5: nguồn vẫn giữ nguyên
+System.out.println(raw.size()); // 5: the source remains unchanged
 ~~~
 
-Hãy tự trả lời trước khi xem gợi ý:
+Try answering for yourself before looking at the hints:
 
-1. **Nguồn** của pipeline là gì? — Danh sách `raw`, được đưa vào pipeline bằng `raw.stream()`.
-2. **Phép toán trung gian** nào thay đổi giá trị? — Hai phép `map` lần lượt cắt khoảng trắng và chuyển thành chữ hoa.
-3. **Phép toán** nào loại phần tử hoặc loại trùng? — `filter` bỏ chuỗi rỗng; `distinct` bỏ giá trị trùng.
-4. **Khi nào pipeline thực sự được tiêu thụ?** — Khi gọi `toList()`, phép toán kết thúc.
-5. **Có thể gọi tiếp `count()` trên Stream đã dùng cho `toList()` không?** — Không; phải tạo Stream mới từ `raw`.
+1. What is the **source** of the pipeline? — The list `raw`, fed into the pipeline via `raw.stream()`.
+2. Which **intermediate operations** change the values? — The two `map` operations trim whitespace and convert to uppercase, respectively.
+3. Which **operations** remove elements or duplicates? — `filter` drops empty strings; `distinct` drops duplicate values.
+4. **When is the pipeline actually consumed?** — When `toList()`, the terminal operation, is called.
+5. **Can you then call `count()` on the Stream already used for `toList()`?** — No; you must create a new Stream from `raw`.
 
-`toList()` được giới thiệu ở **Java 16** và trả về `List` không thể sửa. Nếu cần tương thích Java 8, dùng `collect(Collectors.toList())`; tuy nhiên hợp đồng của collector này không bảo đảm tính có thể sửa của danh sách thu được. Chọn cách tạo kết quả theo phiên bản JDK và nhu cầu sử dụng thực tế.
+`toList()` was introduced in **Java 16** and returns an unmodifiable `List`. If you need Java 8 compatibility, use `collect(Collectors.toList())`; however, this collector's contract does not guarantee the mutability of the returned list. Choose the result-creation approach according to your JDK version and actual usage needs.
 
-## 9. Khi nào nên chọn Stream API?
+## 9. When should you choose the Stream API?
 
-**Ưu tiên Stream** khi dữ liệu cần được lọc, chiếu, tìm kiếm, nhóm hoặc tổng hợp; quy trình có thể viết thành các phép toán độc lập; và kết quả cần được xác định từ đầu vào mà ít phụ thuộc trạng thái bên ngoài.
+**Prefer Stream** when data needs to be filtered, projected, searched, grouped, or aggregated; the process can be written as independent operations; and the result can be determined from the inputs with minimal dependence on external state.
 
-**Cân nhắc vòng lặp hoặc cấu trúc điều khiển khác** khi thuật toán yêu cầu nhiều lần cập nhật trạng thái phức tạp, xử lý lỗi chi tiết cho từng bước, tương tác I/O tuần tự có nhiều tác dụng phụ, hoặc một pipeline sẽ làm ý định nghiệp vụ khó đọc. Tối ưu hiệu năng nên dựa trên phép đo, không dựa vào việc có dùng Stream hay không.
+**Consider loops or other control structures** when the algorithm requires multiple complex state updates, detailed per-step error handling, sequential I/O interactions with many side effects, or when a pipeline would make the business intent hard to read. Performance optimization should be based on measurement, not on whether a Stream is used.
 
-Trước khi viết pipeline, hãy xác định bốn điều: **nguồn dữ liệu**, **quy tắc biến đổi/lọc**, **kiểu kết quả cuối**, và **các ràng buộc về thứ tự, trạng thái, tài nguyên**. Đây là nền tảng để dùng Stream API đúng và mở rộng sang collector tùy chỉnh, xử lý song song hay Stream Gatherers về sau.
+Before writing a pipeline, identify four things: **the data source**, **the transformation/filtering rules**, **the final result type**, and **constraints on ordering, state, and resources**. This is the foundation for using the Stream API correctly and expanding to custom collectors, parallel processing, or Stream Gatherers later.
 
-**Ghi nhớ:** Stream API diễn đạt cách chuyển dữ liệu từ nguồn sang kết quả bằng pipeline. Sức mạnh chính của nó nằm ở cách tổ chức phép toán rõ nghĩa và khả năng kết hợp; tính lazy, vòng đời một lần sử dụng và các hợp đồng thực thi là những điều bắt buộc phải hiểu để viết code đúng.
+**Remember:** The Stream API expresses how to transform data from a source into a result using a pipeline. Its main strength lies in clear operation organization and composability; laziness, single-use lifecycle, and execution contracts are mandatory to understand in order to write correct code.

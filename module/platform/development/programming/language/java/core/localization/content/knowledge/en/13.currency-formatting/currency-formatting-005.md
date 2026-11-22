@@ -1,64 +1,64 @@
-# Vì sao đổi ký hiệu hoặc mã tiền không thực hiện quy đổi giá trị trong Java
+# Why Changing a Currency Symbol or Code Does Not Convert Value in Java
 
-## 1. Bài toán: cùng một con số nhưng hai loại tiền
+## 1. The problem: the same number, two different currencies
 
-Giả sử ứng dụng có một hóa đơn **100,00 USD**. Khi chuyển ngôn ngữ hoặc khu vực hiển thị, giao diện có thể dùng cách viết khác, chẳng hạn đổi vị trí ký hiệu, cách phân nhóm chữ số hay dấu thập phân. Nhưng **đổi cách viết không biến 100 USD thành 100 EUR**.
+Suppose an application has an invoice for **100.00 USD**. When switching the display language or region, the UI may use a different notation—for example, changing the symbol placement, digit grouping, or decimal separator. However, **changing the notation does not turn 100 USD into 100 EUR**.
 
-Một lỗi nguy hiểm là lấy formatter tiền tệ đang hiển thị USD, gọi `setCurrency(EUR)`, thấy chữ “€” xuất hiện rồi kết luận rằng hệ thống đã quy đổi. Giá trị số gốc vẫn là 100; không có tỷ giá nào được truy xuất hay phép nhân/chia nào được thực hiện.
+A dangerous bug is taking a currency formatter currently displaying USD, calling `setCurrency(EUR)`, seeing the “€” character appear, and concluding that the system has converted the amount. The underlying numeric value is still 100; no exchange rate was fetched and no multiplication or division was performed.
 
-Ba khái niệm phải giữ độc lập:
+Three concepts must be kept independent:
 
-1. **Amount (số tiền):** giá trị có thể tính toán, thường biểu diễn bằng `BigDecimal`, ví dụ `100.00`.
-2. **Currency (đơn vị tiền):** loại tiền mà giá trị đang biểu thị, ví dụ `USD` hoặc `EUR`, thường biểu diễn bằng `java.util.Currency` và mã ISO 4217.
-3. **Presentation (cách trình bày):** người dùng muốn nhìn số tiền như thế nào, ví dụ dạng ký hiệu `$`, `US$`, `€` hoặc mã `USD` tùy locale và formatter.
+1. **Amount:** a computable value, usually represented with `BigDecimal`, such as `100.00`.
+2. **Currency:** the unit of money that the value represents, such as `USD` or `EUR`, usually represented with `java.util.Currency` and an ISO 4217 code.
+3. **Presentation:** how the user wants to view the monetary amount, such as symbol form (`$`, `US$`, `€`) or code (`USD`) depending on the locale and formatter.
 
-**Quy đổi tiền (foreign-exchange conversion)** là một hành động nghiệp vụ riêng: nó cần biết loại tiền nguồn, loại tiền đích, tỷ giá đúng chiều, thời điểm báo giá, chính sách làm tròn và có thể cả phí. `Currency`, `Locale` và `NumberFormat` **không cung cấp tỷ giá hối đoái**.
+**Foreign-exchange conversion** is a separate business operation: it needs the source currency, target currency, correctly oriented exchange rate, quote timestamp, rounding policy, and possibly fees. `Currency`, `Locale`, and `NumberFormat` **do not provide exchange rates**.
 
-### Mục tiêu
+### Objectives
 
-Sau bài này, bạn có thể giải thích vì sao `NumberFormat.setCurrency` và `Currency.getSymbol` chỉ ảnh hưởng thông tin biểu diễn; viết mô hình số tiền có đủ amount + currency; thực hiện phép quy đổi rõ điều kiện bằng `BigDecimal`; xử lý fraction digits, rounding, locale và API contract; và tránh nhầm chuỗi đã format với số tiền thực.
+After this lesson, you can explain why `NumberFormat.setCurrency` and `Currency.getSymbol` only affect presentation metadata; model a monetary amount with both amount and currency; perform a well-specified conversion using `BigDecimal`; handle fraction digits, rounding, locale, and API contracts; and avoid confusing a formatted string with an actual monetary amount.
 
-## 2. Đổi nhãn không làm đổi đại lượng
+## 2. Changing the label does not change the quantity
 
-Hãy tưởng tượng một nhãn chai ghi **1 lít**. Nếu thay chữ “lít” bằng “gallon” nhưng **không đổi con số 1**, ta tạo ra một nhãn sai, chứ không chuyển đơn vị. Với tiền cũng vậy:
+Imagine a bottle label that reads **1 liter**. If you replace the word “liter” with “gallon” without **changing the number 1**, you have created a wrong label, not converted the unit. Money works the same way:
 
 ```text
-GIÁ TRỊ GỐC                     THAO TÁC                    KẾT QUẢ
+ORIGINAL VALUE                  OPERATION                   RESULT
 100.00 USD
     |
-    +-- Đổi Locale hiển thị ------------------------> "100,00 ..." 
-    |                                                (cách viết đổi)
+    +-- Change display Locale ----------------------> "100,00 ..."
+    |                                                (formatting changes)
     |
-    +-- Đổi symbol / Currency trong formatter ------> "€100.00" 
-    |                                                (số vẫn 100.00)
+    +-- Change symbol / Currency in formatter ------> "€100.00"
+    |                                                (number stays 100.00)
     |
-    +-- Quy đổi bằng tỷ giá 0.9150 EUR / USD -------> 91.50 EUR
-                                                     (giá trị đã tính lại)
+    +-- Convert at rate 0.9150 EUR / USD -----------> 91.50 EUR
+                                                     (recalculated value)
 ```
 
-Các chuỗi trong sơ đồ chỉ minh họa **ý nghĩa**, không định nghĩa chính xác dấu cách/ký hiệu của mọi locale và bản JDK.
+The strings in the diagram only illustrate **meaning**; they do not define the exact spacing or symbols for every locale and JDK version.
 
-Một đối tượng `Currency` mô tả **một loại tiền**, không mô tả một “khoản tiền có giá trị”. Ví dụ `Currency.getInstance("USD")` biết mã `USD`, tên/biểu tượng theo locale và số chữ số thập phân mặc định của tiền tệ; nó không biết “100 USD bằng bao nhiêu EUR hôm nay”.
+A `Currency` object describes **a currency unit**, not a “monetary amount with value.” For example, `Currency.getInstance("USD")` knows the code `USD`, locale-specific names/symbols, and the currency's default number of fraction digits; it does not know “how many EUR 100 USD is worth today.”
 
-Tương tự, `Locale.FRANCE` có thể khiến một currency formatter mặc định chọn EUR và cách viết của Pháp; nhưng từ đó không suy ra một số tiền USD trong hệ thống đã được đổi thành EUR. **Locale của người xem không phải đồng tiền của giao dịch.**
+Similarly, `Locale.FRANCE` may cause a default currency formatter to choose EUR and French formatting conventions; however, that does not imply a USD amount in the system has been converted to EUR. **The viewer's locale is not the transaction's currency.**
 
-## 3. Phân biệt các API Java thường gây hiểu nhầm
+## 3. Distinguishing commonly misunderstood Java APIs
 
-| API / thao tác | Nó làm gì? | Có quy đổi số tiền không? |
+| API / Operation | What does it do? | Does it convert the monetary amount? |
 | --- | --- | --- |
-| `Currency.getInstance("USD")` | Lấy đối tượng mô tả đơn vị tiền USD | **Không** |
-| `currency.getCurrencyCode()` | Lấy mã ISO 4217, ví dụ `USD` | **Không** |
-| `currency.getSymbol(locale)` | Lấy ký hiệu tiền tệ phù hợp locale | **Không** |
-| `currency.getDisplayName(locale)` | Lấy tên đơn vị tiền theo ngôn ngữ của locale | **Không** |
-| `Currency.getInstance(locale)` | Suy loại tiền mặc định gắn với lãnh thổ (khi có) | **Không** |
-| `NumberFormat.getCurrencyInstance(locale)` | Tạo formatter tiền với quy ước locale | **Không** |
-| `numberFormat.setCurrency(otherCurrency)` | Thay Currency được formatter sử dụng | **Không** |
-| `numberFormat.format(amount)` | Biến số thành **chuỗi** hiển thị | **Không** |
-| `amount.multiply(rate)` | Thực hiện phép nhân số học | **Có thể là bước quy đổi**, nếu rate đúng chiều và có policy nghiệp vụ |
+| `Currency.getInstance("USD")` | Retrieves the object describing the USD currency unit | **No** |
+| `currency.getCurrencyCode()` | Retrieves the ISO 4217 code, e.g. `USD` | **No** |
+| `currency.getSymbol(locale)` | Retrieves the currency symbol appropriate for the locale | **No** |
+| `currency.getDisplayName(locale)` | Retrieves the currency name in the locale's language | **No** |
+| `Currency.getInstance(locale)` | Infers the default currency associated with the territory (when available) | **No** |
+| `NumberFormat.getCurrencyInstance(locale)` | Creates a currency formatter using locale conventions | **No** |
+| `numberFormat.setCurrency(otherCurrency)` | Replaces the Currency used by the formatter | **No** |
+| `numberFormat.format(amount)` | Converts a number into a display **string** | **No** |
+| `amount.multiply(rate)` | Performs arithmetic multiplication | **Can be a conversion step**, if the rate is oriented properly and has a business policy |
 
-### 3.1. `Currency` là metadata về đơn vị
+### 3.1. `Currency` is unit metadata
 
-`java.util.Currency` là lớp mô tả tiền tệ. Những phương thức đáng nhớ:
+`java.util.Currency` is the class that describes a currency. Key methods to remember:
 
 ```java
 import java.util.Currency;
@@ -70,28 +70,28 @@ Currency eur = Currency.getInstance("EUR");
 System.out.println(usd.getCurrencyCode());       // USD
 System.out.println(eur.getCurrencyCode());       // EUR
 System.out.println(usd.getDefaultFractionDigits()); // 2
-System.out.println(usd.getSymbol(Locale.US));    // Ký hiệu theo Locale.US
+System.out.println(usd.getSymbol(Locale.US));    // Symbol for Locale.US
 ```
 
-Đây là **đoạn mã minh họa** nằm trong method; các comment chỉ diễn giải giá trị. `getDefaultFractionDigits()` cho biết số chữ số thập phân thông thường theo đơn vị tiền (ví dụ USD và EUR thường là 2, JPY là 0). Nó không nói tỷ giá hoặc bao nhiêu đơn vị tiền nguồn cần để mua một đơn vị tiền đích. Với một số mã đặc biệt, kết quả có thể là `-1`, nên cần kiểm tra trước khi dùng để đặt scale.
+This is an **illustrative snippet** inside a method; the comments only explain the values. `getDefaultFractionDigits()` indicates the standard number of decimal places for the currency (for example, USD and EUR are typically 2, JPY is 0). It does not tell you the exchange rate or how many units of the source currency are needed to buy one unit of the target currency. For certain special codes, the result can be `-1`, so you should check it before using it to set a scale.
 
-Ký hiệu không phải định danh duy nhất: dấu `$` được nhiều loại tiền sử dụng. Locale có thể trả ký hiệu khác như `US$` để phân biệt. Mã `USD` hoặc `CAD` thường thích hợp hơn cho **lưu trữ/API**, còn ký hiệu phù hợp hơn cho **hiển thị**.
+A symbol is not a unique identifier: the `$` sign is used by many currencies. A locale may return a distinct symbol such as `US$` to disambiguate. Codes like `USD` or `CAD` are usually better suited for **storage/APIs**, whereas symbols are better suited for **display**.
 
-### 3.2. `Locale` không phải tỷ giá
+### 3.2. `Locale` is not an exchange rate
 
-`Locale.forLanguageTag("vi-VN")` mô tả ngôn ngữ/vùng để định dạng và dịch thông điệp. Một người dùng ở Việt Nam vẫn có thể xem giao dịch USD hoặc JPY; một người dùng tiếng Anh có thể trả bằng VND. Múi giờ, địa chỉ, quốc gia cư trú và loại tiền thanh toán cũng không được tự suy duy nhất từ locale.
+`Locale.forLanguageTag("vi-VN")` describes the language/region for formatting and message translation. A user in Vietnam can still view a USD or JPY transaction; an English-speaking user can pay in VND. Time zone, address, country of residence, and settlement currency also must not be inferred solely from the locale.
 
-Có thể dùng `Currency.getInstance(Locale.US)` để lấy đơn vị tiền mặc định gắn với lãnh thổ Hoa Kỳ; điều đó **không biến tất cả giao dịch xem bằng `Locale.US` thành USD**. Với locale không có quốc gia hoặc lãnh thổ không có đơn vị tiền phù hợp, việc lấy currency theo locale cần xử lý ngoại lệ/kết quả không có tiền tệ tương ứng, không được mặc định luôn thành công.
+You can use `Currency.getInstance(Locale.US)` to obtain the default currency unit associated with the United States territory; that **does not turn all transactions viewed with `Locale.US` into USD**. For a locale without a country or a territory without a matching currency unit, retrieving a currency from a locale must handle exceptions or missing-currency results rather than assuming it always succeeds.
 
-### 3.3. `NumberFormat.setCurrency` không làm phép toán
+### 3.3. `NumberFormat.setCurrency` performs no math
 
-Với `NumberFormat.getCurrencyInstance(locale)`, `setCurrency(currency)` cấu hình currency của formatter để tạo chuỗi. Nó **không nhận tỷ giá**, **không biết tiền nguồn của số**, và **không sửa biến `BigDecimal`** đang được format.
+With `NumberFormat.getCurrencyInstance(locale)`, `setCurrency(currency)` configures the formatter's currency for generating strings. It **takes no exchange rate**, **does not know the source currency of the number**, and **does not modify the `BigDecimal` variable** being formatted.
 
-Một điểm tinh vi trong Java: `NumberFormat.setCurrency` **không tự điều chỉnh** `minimumFractionDigits` và `maximumFractionDigits` của formatter. Khi đổi từ tiền thường có 2 chữ số thập phân sang tiền thường không có phần lẻ như JPY, phải chủ động cấu hình precision phù hợp hoặc tạo formatter với chính sách đúng, không dựa vào `setCurrency` để “sửa hết”.
+One subtle detail in Java: `NumberFormat.setCurrency` **does not automatically adjust** the formatter's `minimumFractionDigits` and `maximumFractionDigits`. When switching from a currency that typically has 2 decimal places to one that typically has no minor units, such as JPY, you must explicitly configure the appropriate precision or create a formatter with the right policy rather than relying on `setCurrency` to “fix everything.”
 
-## 4. Ví dụ Java 17: thay ký hiệu nhưng số gốc giữ nguyên
+## 4. Java 17 example: changing the symbol keeps the original number intact
 
-Tệp `CurrencyLabelDemo.java`:
+File `CurrencyLabelDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -113,7 +113,7 @@ public class CurrencyLabelDemo {
         formatter.setCurrency(original.currency());
         String asUsd = formatter.format(original.amount());
 
-        // Chỉ đổi Currency của formatter; KHÔNG đổi Money.
+        // Only changes the formatter's Currency; does NOT change Money.
         formatter.setCurrency(Currency.getInstance("EUR"));
         String asEurLabel = formatter.format(original.amount());
 
@@ -132,14 +132,14 @@ public class CurrencyLabelDemo {
 }
 ```
 
-Biên dịch/chạy bằng JDK 17 trở lên:
+Compile/run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 CurrencyLabelDemo.java
 java CurrencyLabelDemo
 ```
 
-**Bốn dòng đầu có kết quả chính xác:**
+**The first four lines have exact output:**
 
 ```text
 amount=100.00
@@ -148,55 +148,55 @@ formatterCurrency=EUR
 sameAmount=true
 ```
 
-Với dữ liệu locale thông dụng của `Locale.US`, hai dòng tiếp theo thường hiển thị kiểu:
+With standard locale data for `Locale.US`, the next two lines typically display something like:
 
 ```text
 before=$100.00
 after=€100.00
 ```
 
-Dấu/khoảng trắng/ký hiệu hiển thị là dữ liệu locale có thể khác giữa các provider, vendor và phiên bản JDK; hai dòng này là ví dụ điển hình, **không phải contract chuỗi cho mọi môi trường**.
+Punctuation, whitespace, and displayed symbols come from locale data and may differ across providers, vendors, and JDK versions; these two lines are a typical example, **not a string contract for every environment**.
 
-Đây chính là một tình huống **nguy hiểm**: dòng `after` hiển thị ký hiệu EUR đi với số `100.00`, nhưng object `original` vẫn có đơn vị **USD**. Nếu đưa chuỗi này tới người dùng như “100 EUR” mà không quy đổi, ứng dụng đã gắn **nhãn sai lên một giá trị**. `setCurrency` không biến `100 USD` thành `100 EUR`, cũng không tạo một object `Money` mới với loại tiền hợp lệ.
+This is precisely the **dangerous** situation: the `after` line displays the EUR symbol next to the number `100.00`, yet the `original` object still has unit **USD**. If this string is shown to a user as “100 EUR” without conversion, the application has attached a **wrong label to a value**. `setCurrency` neither turns `100 USD` into `100 EUR` nor creates a new `Money` object with a valid currency.
 
-Nguyên tắc thực hành: **Đừng thay currency trong formatter để mô phỏng chức năng “Chuyển sang EUR”.** Formatter phải nhận đúng currency của *số tiền sau khi tính toán nghiệp vụ*.
+Practical rule: **Do not change the currency on a formatter to simulate a “Convert to EUR” feature.** The formatter must receive the currency of the *amount after business calculation*.
 
-## 5. Quy đổi thật cần những thành phần nào?
+## 5. What components does a real conversion require?
 
-Quy đổi từ USD sang EUR có thể được mô tả bằng phép toán:
+Converting from USD to EUR can be expressed by the formula:
 
 \[
 \text{amount}_{EUR} = \text{amount}_{USD} \times
     \left(\frac{\text{EUR}}{\text{USD}}\right)
 \]
 
-Trong đó tỷ giá phải được định nghĩa **theo đúng chiều**. Ví dụ tỷ giá `0.9150 EUR per 1 USD` có nghĩa là mỗi 1 USD được quy đổi thành 0,9150 EUR (trước phí và làm tròn). Số tiền 100,00 USD sẽ thành:
+Here, the exchange rate must be defined **in the right direction**. For example, a rate of `0.9150 EUR per 1 USD` means each 1 USD converts to 0.9150 EUR (before fees and rounding). An amount of 100.00 USD becomes:
 
 \[
 100.00 \times 0.9150 = 91.500000
 \]
 
-Nếu chính sách làm tròn cho EUR là 2 chữ số thập phân, kết quả lưu/chi trả trong ví dụ là **91.50 EUR**.
+If the rounding policy for EUR is 2 decimal places, the stored/settled result in this example is **91.50 EUR**.
 
-**Tỷ giá 0.9150 chỉ là dữ liệu giả định phục vụ học tập**, không phải tỷ giá thị trường được kiểm chứng, tỷ giá hiện hành hay lời khuyên giao dịch. Trong sản phẩm thực tế phải lấy báo giá từ nguồn đã được phê duyệt, gắn thời điểm và xác định tính hợp lệ của báo giá.
+**The rate 0.9150 is strictly hypothetical data for learning purposes**, not a verified market rate, live rate, or trading advice. In production, quotes must come from an approved source, carry a timestamp, and have their validity verified.
 
-Một phép quy đổi hoàn chỉnh thường cần:
+A complete conversion typically requires:
 
-| Thành phần | Ví dụ | Ý nghĩa |
+| Component | Example | Meaning |
 | --- | --- | --- |
-| Số tiền nguồn | `100.00` | Giá trị cần đổi |
-| Loại tiền nguồn (base) | `USD` | Đơn vị của amount nguồn |
-| Loại tiền đích (quote/counter) | `EUR` | Đơn vị của kết quả |
-| Tỷ giá có hướng | `0.9150 EUR/USD` | Số EUR trên mỗi USD |
-| Thời điểm báo giá | `2026-10-28T00:00:00Z` | Báo giá có hiệu lực lúc nào |
-| Precision và rounding | `scale=2, HALF_EVEN` | Quy tắc làm tròn tiền đích trong ví dụ |
-| Phí, spread, thuế (nếu có) | Theo hợp đồng | Phải có quy tắc riêng, không do formatter tính |
+| Source amount | `100.00` | Value to convert |
+| Source currency (base) | `USD` | Unit of the source amount |
+| Target currency (quote/counter) | `EUR` | Unit of the result |
+| Directed exchange rate | `0.9150 EUR/USD` | Number of EUR per USD |
+| Quote timestamp | `2026-10-28T00:00:00Z` | When the quote is valid |
+| Precision and rounding | `scale=2, HALF_EVEN` | Rounding rule for the target currency in the example |
+| Fees, spread, taxes (if any) | Per contract | Must have explicit rules; not computed by the formatter |
 
-Nếu tỷ giá được định nghĩa theo chiều ngược, ví dụ `USD per EUR`, không được nhân một cách máy móc: cần đảo chiều bằng phép chia thích hợp và quy định precision/rounding cho phép toán đó. Ngay cả tỷ giá nghịch đảo toán học cũng có thể **không phải tỷ giá giao dịch thực tế** vì mua/bán có spread và phí.
+If the rate is defined in the reverse direction, such as `USD per EUR`, you must not multiply blindly: you need to invert it with an appropriate division and define precision/rounding for that operation. Even the mathematical inverse of a rate may **not be the actual trading rate** because buy/sell rates involve spreads and fees.
 
-## 6. Ví dụ Java 17: tính số tiền mới bằng BigDecimal
+## 6. Java 17 example: computing a new amount with BigDecimal
 
-Tệp `FxConversionDemo.java` sau tạo **một kết quả mới** thay vì chỉ đổi label. Nó sử dụng tỷ giá giả định, xác minh cặp tiền tệ, thực hiện phép nhân với `BigDecimal` và quy định rounding cho số tiền đích.
+The following `FxConversionDemo.java` file produces **a new result** instead of merely swapping a label. It uses a hypothetical rate, validates the currency pair, multiplies with `BigDecimal`, and specifies rounding for the target amount.
 
 ```java
 import java.math.BigDecimal;
@@ -243,7 +243,7 @@ public class FxConversionDemo {
 
         Money source = new Money(new BigDecimal("100.00"), usd);
 
-        // Chỉ là TỶ GIÁ GIẢ ĐỊNH cho bài học.
+        // HYPOTHETICAL RATE for lesson purposes only.
         Quote quote = new Quote(
                 usd,
                 eur,
@@ -269,14 +269,14 @@ public class FxConversionDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac -encoding UTF-8 FxConversionDemo.java
 java FxConversionDemo
 ```
 
-**Stdout chính xác với JDK 17, currency USD/EUR và dữ liệu giả định trên:**
+**Exact stdout with JDK 17, USD/EUR currencies, and the hypothetical data above:**
 
 ```text
 source=100.00 USD
@@ -286,22 +286,22 @@ target=91.50 EUR
 sourceUnchanged=100.00 USD
 ```
 
-Điểm quan trọng:
+Key takeaways:
 
-1. `Money` luôn có **cả `BigDecimal` lẫn `Currency`**, không có trạng thái “100 nhưng chưa biết là USD hay EUR”.
-2. `Quote` ghi rõ base, counter, chiều tỷ giá và thời điểm. Nhân với 0.9150 có nghĩa vì tỷ giá được định nghĩa là **EUR trên một USD**.
-3. `convert` kiểm tra cặp tiền nhằm ngăn dùng nhầm tỷ giá `EUR→USD` cho giao dịch `USD→EUR`.
-4. Kết quả là `new Money(91.50, EUR)`, khác `Money(100.00, USD)`. Đó mới là **quy đổi giá trị**.
-5. `BigDecimal` tính số thập phân chính xác từ chuỗi; `setScale(2, HALF_EVEN)` là ví dụ **chính sách làm tròn nghiệp vụ**, không phải thứ gì `NumberFormat.format` tự quyết định thay doanh nghiệp.
-6. Chương trình không truy cập internet, không dùng tỷ giá thật và **chưa bao gồm spread, phí, thuế hoặc báo giá hết hạn**.
+1. `Money` always has **both `BigDecimal` and `Currency`**—there is no state of “100, but unknown whether USD or EUR.”
+2. `Quote` explicitly records base, counter, rate direction, and timestamp. Multiplying by 0.9150 makes sense because the rate is defined as **EUR per one USD**.
+3. `convert` checks the currency pair to prevent accidentally applying a `EUR→USD` rate to a `USD→EUR` transaction.
+4. The result is `new Money(91.50, EUR)`, distinct from `Money(100.00, USD)`. That is what **value conversion** actually is.
+5. `BigDecimal` performs exact decimal arithmetic from strings; `setScale(2, HALF_EVEN)` is an example of a **business rounding policy**, not something `NumberFormat.format` decides on behalf of the business.
+6. The program does not access the internet, does not use real market rates, and **does not include spread, fees, taxes, or expired quotes**.
 
-Trong sản phẩm, chính sách scale có thể phụ thuộc phương thức thanh toán, quy định pháp lý, đơn vị tiền, ngân hàng và nghiệp vụ; `Currency.getDefaultFractionDigits()` là điểm tham khảo về số chữ số thông thường, không phải quy tắc thanh toán bao quát mọi trường hợp.
+In production, the scale policy may depend on payment method, legal regulations, currency unit, bank, and business rules; `Currency.getDefaultFractionDigits()` is a reference point for standard digits, not a settlement rule covering every case.
 
-## 7. Vì sao BigDecimal quan trọng hơn double cho tiền?
+## 7. Why is BigDecimal more important than double for money?
 
-Phép tính trong hệ nhị phân bằng `double` không biểu diễn chính xác nhiều số thập phân như 0.1 hoặc 0.2. Với phép quy đổi, tích lũy phí, cộng tổng giao dịch và làm tròn theo chính sách, sai số có thể ảnh hưởng kết quả.
+Binary floating-point arithmetic with `double` cannot accurately represent many decimal numbers such as 0.1 or 0.2. For currency conversions, fee accumulation, transaction totals, and policy-based rounding, representation errors can alter results.
 
-**Ưu tiên:**
+**Prefer:**
 
 ```java
 BigDecimal amount = new BigDecimal("100.00");
@@ -309,39 +309,39 @@ BigDecimal rate = new BigDecimal("0.9150");
 BigDecimal result = amount.multiply(rate);
 ```
 
-Tránh khởi tạo `new BigDecimal(0.1)` khi mong muốn chính xác giá trị thập phân 0.1 vì constructor này nhận đúng xấp xỉ nhị phân của `double`. Nếu nguồn giá trị là chuỗi decimal có quy ước rõ hoặc cột DECIMAL trong DB, hãy bảo toàn dạng thập phân từ đầu.
+Avoid constructing `new BigDecimal(0.1)` when you want the exact decimal value 0.1, because this constructor takes the exact binary approximation of `double`. If the value comes from a well-specified decimal string or a DECIMAL column in a database, preserve the decimal representation from the start.
 
-`BigDecimal` còn có vấn đề scale:
+`BigDecimal` also involves scale considerations:
 
-- `new BigDecimal("1.0")` và `new BigDecimal("1.00")` có cùng giá trị số học, nhưng khác scale.
-- `equals` xét cả giá trị và scale, trong khi `compareTo` so sánh giá trị số học.
-- Khi chia `BigDecimal` để đảo tỷ giá, có thể gặp phép chia không có biểu diễn thập phân hữu hạn. Hãy truyền `MathContext` hoặc scale/`RoundingMode` phù hợp.
-- Quy tắc làm tròn **sau phép quy đổi** khác quy tắc **làm tròn sau mỗi bước tính phí**; phải được quy định tường minh để tránh sai lệch.
+- `new BigDecimal("1.0")` and `new BigDecimal("1.00")` have the same numeric value, but different scales.
+- `equals` checks both value and scale, whereas `compareTo` compares numeric value.
+- When dividing `BigDecimal` to invert a rate, you may encounter non-terminating decimal expansions. Pass an appropriate `MathContext` or scale/`RoundingMode`.
+- A rule that rounds **after conversion** differs from **rounding after each fee step**; this must be specified explicitly to avoid discrepancies.
 
-`NumberFormat` có thể làm tròn **chuỗi hiển thị** mà không thay `BigDecimal` ban đầu. Không dùng chuỗi đã format hoặc parse lại text để làm nguồn chân lý cho số dư hay giao dịch.
+`NumberFormat` may round the **display string** without modifying the original `BigDecimal`. Never use formatted strings or re-parsed text as the source of truth for balances or transactions.
 
-## 8. Fraction digits: đổi currency không tự sửa toàn bộ formatter
+## 8. Fraction digits: changing currency does not reconfigure the whole formatter
 
-Mỗi currency có số chữ số thập phân thông thường khác nhau. Ví dụ:
+Each currency has a different standard number of decimal places. For example:
 
-| Currency | `getDefaultFractionDigits()` điển hình | Ví dụ hiển thị |
+| Currency | Typical `getDefaultFractionDigits()` | Display example |
 | --- | ---: | --- |
 | `USD` | 2 | `100.00` |
 | `EUR` | 2 | `100.00` |
 | `JPY` | 0 | `100` |
 | `KWD` | 3 | `100.000` |
 
-Bảng nói về **chữ số thập phân mặc định của currency**, không phải tỷ giá hoặc số tiền sau quy đổi. Ví dụ số thuần trong cột phải, chưa tính ký hiệu và quy tắc dấu của locale.
+The table shows **default fraction digits of the currency**, not exchange rates or converted amounts. The right column shows raw numeric examples without currency symbols or locale punctuation rules.
 
-Một lỗi thường gặp:
+A common mistake:
 
 ```java
 NumberFormat f = NumberFormat.getCurrencyInstance(Locale.US);
 f.setCurrency(Currency.getInstance("JPY"));
-// Không giả định f đã tự đặt fraction digits = 0.
+// Do not assume f has automatically set fraction digits = 0.
 ```
 
-Để chủ động định dạng theo đơn vị tiền đích:
+To format explicitly according to the target currency:
 
 ```java
 import java.text.NumberFormat;
@@ -370,17 +370,17 @@ public class CurrencyDisplay {
 }
 ```
 
-Đây là **lớp tiện ích có thể biên dịch trên Java 17**, không có `main`; cần gọi từ chương trình khác. Quy tắc `digits >= 0` tránh dùng giá trị đặc biệt `-1` như một scale không hợp lệ. Với hệ thống tài chính, chính sách fraction digits và rounding nên xác định cùng nghiệp vụ, không chỉ sao chép mặc định.
+This is a **utility class compilable on Java 17** without `main`; it must be called from another program. The `digits >= 0` check avoids using the special value `-1` as an invalid scale. In financial systems, fraction digits and rounding policies should be defined with the business domain rather than merely copying defaults.
 
-Hàm `show` định dạng **amount và currency được truyền vào**, chứ không tính số tiền đích. Muốn hiển thị kết quả quy đổi, trước tiên gọi phép tính `convert` ở tầng nghiệp vụ rồi mới gọi `show(target.amount(), target.currency(), locale)`. Ngược lại, hiển thị số nguồn với currency đích **mà chưa convert** tạo ra thông tin sai.
+The `show` method formats the **amount and currency passed in**—it does not compute a target amount. To display a converted result, first call `convert` in the business layer, then call `show(target.amount(), target.currency(), locale)`. Conversely, displaying the source amount with the target currency **without converting first** produces false information.
 
-### Tại sao không đoán currency chỉ từ locale?
+### Why not guess currency from locale alone?
 
-Một người dùng có `displayLocale=vi-VN` có thể có hóa đơn `100 USD`, `100 EUR` hoặc `100 VND`. Hàm `show` vẫn nhận cả `Currency` để không đánh đồng lựa chọn ngôn ngữ với đơn vị tiền. Formatter của `Locale.US` có thể hiển thị ký hiệu khác cho EUR, nhưng đó vẫn là **đơn vị do đối số `currency` quyết định**.
+A user with `displayLocale=vi-VN` may have an invoice in `100 USD`, `100 EUR`, or `100 VND`. The `show` method still accepts a `Currency` so language preference is never equated with currency unit. A `Locale.US` formatter may render a different symbol for EUR, yet it is still the **unit determined by the `currency` argument**.
 
-## 9. Cách trình bày sau khi quy đổi
+## 9. Presentation after conversion
 
-Giả sử backend đã tạo hai thực thể:
+Suppose the backend has produced two entities:
 
 ```text
 sourceMoney  = 100.00 USD
@@ -388,26 +388,26 @@ targetMoney  = 91.50 EUR
 displayLocale = vi-VN
 ```
 
-Một màn hình đúng có thể thể hiện:
+A proper screen might display:
 
 ```text
-Số tiền gốc:        100,00 USD
-Tỷ giá minh họa:    1 USD = 0,9150 EUR
-Số tiền sau đổi:    91,50 EUR
-Báo giá tại:        2026-10-28T00:00:00Z
+Original amount:    100,00 USD
+Illustrative rate:  1 USD = 0,9150 EUR
+Converted amount:   91,50 EUR
+Quoted at:          2026-10-28T00:00:00Z
 ```
 
-Các cách viết trên là **minh họa nội dung người dùng**, không phải chuỗi output chắc chắn của `NumberFormat`/`DateTimeFormatter` ở mọi JDK. Locale có thể thay đổi ký hiệu, dấu cách và trật tự mã tiền. Ứng dụng nên dùng định dạng theo `Locale` và ghi rõ mã ISO 4217 khi ký hiệu dễ gây nhầm.
+These representations are **user-facing content illustrations**, not guaranteed `NumberFormat`/`DateTimeFormatter` output strings across every JDK. Locale can change symbols, spacing, and currency code placement. Applications should format according to `Locale` and explicitly show the ISO 4217 code whenever symbols might be ambiguous.
 
-Nếu màn hình chỉ thay thành “€100.00” mà không hiển thị tỷ giá hoặc kết quả số học, đó là **không thực hiện quy đổi**. Không nên báo “Converted successfully” chỉ vì UI xuất hiện ký hiệu khác.
+If a screen merely changes the output to “€100.00” without showing an exchange rate or arithmetic result, **no conversion was performed**. Never report “Converted successfully” just because a different symbol appeared in the UI.
 
-Một số thông tin khác nên có theo yêu cầu sản phẩm: tỷ giá mua/bán, phí, tổng khấu trừ, số tiền thực nhận, hạn hiệu lực báo giá, mã giao dịch và ghi chú rằng giá trị hiển thị là ước tính hay đã chốt.
+Other details to include depending on product requirements: buy/sell rate, fees, total deductions, net amount received, quote expiration, transaction ID, and an indicator of whether the displayed value is an estimate or locked in.
 
-## 10. Lưu trữ và API: số tiền là amount + currency
+## 10. Storage and APIs: money is amount + currency
 
-Để frontend và backend không phụ thuộc ngôn ngữ hay dấu phân nhóm, cần hợp đồng dữ liệu tường minh.
+To keep frontend and backend independent of language or grouping separators, an explicit data contract is required.
 
-Ví dụ JSON dưới đây dùng **chuỗi decimal chuẩn** để giữ độ chính xác khi đi qua hệ thống không bảo toàn decimal một cách tự nhiên:
+The JSON example below uses **canonical decimal strings** to preserve precision across systems that do not natively preserve decimals:
 
 ```json
 {
@@ -429,39 +429,39 @@ Ví dụ JSON dưới đây dùng **chuỗi decimal chuẩn** để giữ độ 
 }
 ```
 
-Đây là **ví dụ contract**, không phải định dạng JSON do Java/Jackson tự sinh mặc định. Một API có thể dùng JSON number nếu đã quy định chính xác precision/scale và giới hạn của client; cách dùng chuỗi decimal thường có lợi khi cần tương tác với JavaScript hoặc hệ thống kế toán.
+This is a **contract example**, not the default JSON format automatically generated by Java/Jackson. An API can use JSON numbers if precision/scale and client limits are strictly specified; decimal strings are often advantageous when interoperating with JavaScript or accounting systems.
 
-Không gửi giá trị máy cần tính toán ở dạng `"€91,50"` hoặc `"$100.00"` rồi yêu cầu backend đoán currency, dấu decimal hoặc số tiền thật từ văn bản. **Chuỗi hiển thị được tạo tại giao diện, không thay thế dữ liệu canonical.**
+Do not send machine-computable values as `"€91,50"` or `"$100.00"` and expect the backend to guess the currency, decimal separator, or real amount from text. **Display strings are produced at the UI layer and never replace canonical data.**
 
-Với cơ sở dữ liệu, một bản ghi tiền thường gồm `DECIMAL/NUMERIC` có precision và scale được chọn đúng cùng currency code. Khi có quy đổi, tùy yêu cầu kiểm toán cần giữ cả tiền nguồn, tiền đích, quote/rate đã áp dụng, thời điểm và các khoản phí. **Không tự ghi đè số tiền nguồn thành số tiền đích** nếu nghiệp vụ cần truy vết.
+In a database, a monetary record typically includes a `DECIMAL/NUMERIC` column with properly chosen precision and scale alongside a currency code. When a conversion occurs, audit requirements may require keeping the source amount, target amount, applied quote/rate, timestamp, and fees. **Do not silently overwrite the source amount with the target amount** if the business requires traceability.
 
-## 11. Currency symbol và mã tiền không thay thế tỷ giá
+## 11. Currency symbols and codes do not replace exchange rates
 
-### 11.1. Đổi ký hiệu
+### 11.1. Changing the symbol
 
-`currency.getSymbol(locale)` hoặc một formatter có thể cho ký hiệu `$`, `US$`, `€`, v.v. Đây chỉ là text đại diện cho đơn vị tiền. Nó có thể khác theo ngôn ngữ, thậm chí có trường hợp mã ISO được hiển thị thay ký hiệu.
+`currency.getSymbol(locale)` or a formatter can yield symbols such as `$`, `US$`, `€`, etc. This is merely text representing the currency unit. It can vary by language, and in some cases the ISO code itself is displayed instead of a symbol.
 
-**Không parse ký hiệu để tìm “mã tiền chuẩn”**: cùng ký hiệu `$` có thể dùng cho USD, CAD, AUD và những đồng tiền khác; người dùng có thể gõ ký hiệu không nhất quán với locale.
+**Do not parse symbols to determine the “canonical currency code”**: the same `$` symbol can be used for USD, CAD, AUD, and other currencies; users may also enter symbols inconsistently with the locale.
 
-### 11.2. Đổi mã ISO 4217
+### 11.2. Changing the ISO 4217 code
 
-Ngay cả khi chỉ đổi chuỗi `"USD"` thành `"EUR"` trong một DTO, hệ thống mới thay **đơn vị ghi nhãn**, chưa thay `amount`. Một đối tượng kiểu:
+Even if you only change the string `"USD"` to `"EUR"` in a DTO, the system has only changed the **label unit**, not the `amount`. An object like:
 
 ```json
 {"amount":"100.00","currency":"EUR"}
 ```
 
-có nghĩa là **100 EUR**, không phải “100 USD sẽ được quy đổi sang EUR sau”. Nếu ban đầu là 100 USD, sửa code mà giữ amount 100.00 khiến dữ liệu bị gán sai nghĩa.
+means **100 EUR**, not “100 USD to be converted to EUR later.” If the original value was 100 USD, changing the code while keeping the amount at 100.00 mislabels the data.
 
-Cần tạo **bản ghi kết quả mới** sau phép tính và chính sách làm tròn, đồng thời ghi được nguồn gốc của kết quả nếu cần.
+You must create a **new result record** after the calculation and rounding policy, and record the provenance of the result if needed.
 
-### 11.3. Chọn locale khác cũng không phải đổi mã tiền
+### 11.3. Choosing another locale does not change the currency code either
 
-Chuyển `Locale.US` sang `Locale.FRANCE` có thể làm `NumberFormat.getCurrencyInstance(...)` chọn currency mặc định khác, nhưng không có phép nhân tỷ giá nào. Vì vậy, trong giao diện hiển thị nhiều loại tiền, hãy truyền **đúng Currency của amount** vào formatter và cấu hình fraction digits phù hợp.
+Switching from `Locale.US` to `Locale.FRANCE` may cause `NumberFormat.getCurrencyInstance(...)` to pick a different default currency, but no rate multiplication occurs. Therefore, in UIs displaying multiple currencies, pass the **amount's actual Currency** to the formatter and configure appropriate fraction digits.
 
-## 12. Tỷ giá: chiều, thời điểm và sự thay đổi liên tục
+## 12. Exchange rates: direction, timestamp, and continuous change
 
-Một tỷ giá chỉ có ý nghĩa khi được gắn với **cặp tiền** và **chiều**. Ví dụ:
+An exchange rate is only meaningful when paired with a **currency pair** and **direction**. For example:
 
 ```text
 quote:
@@ -470,36 +470,36 @@ quote:
   rate = 0.9150 EUR / 1 USD
 ```
 
-Nếu nguồn là 100 USD, phép toán là `100 × 0.9150 = 91.50 EUR`. Nếu nguồn là EUR và cần USD, không được dùng phép nhân giống hệt: phải lấy một quote cho chiều EUR→USD hoặc dùng phép đảo tỷ giá **theo quy tắc nghiệp vụ**, có precision và rounding phù hợp. Tỷ giá mua/bán không nhất thiết là nghịch đảo chính xác.
+If the source is 100 USD, the calculation is `100 × 0.9150 = 91.50 EUR`. If the source is EUR and you need USD, you must not use the exact same multiplication: you need a quote for the EUR→USD direction or invert the rate **according to business rules**, with appropriate precision and rounding. Buy and sell rates are not necessarily exact reciprocals.
 
-Tỷ giá còn có tính thời điểm. Một giá trị `0.9150` không thể được coi là “mãi mãi đúng”. Phải nêu đó là giá tại lúc nào, nguồn nào, còn hiệu lực hay không, và loại tỷ giá nào (tham chiếu, mua, bán, giao dịch đã khóa).
+Exchange rates are also time-sensitive. A value of `0.9150` cannot be treated as “valid forever.” You must specify when it applied, what its source was, whether it is still valid, and what kind of rate it is (reference, bid, ask, or locked transaction rate).
 
-**Không tự biến formatter thành dịch vụ tỷ giá.** `Currency` trong JDK không lấy giá thị trường, `NumberFormat` không kết nối nguồn báo giá và `Locale` không cung cấp ngày/giờ hiệu lực FX.
+**Do not turn a formatter into an exchange-rate service.** `Currency` in the JDK does not fetch market prices, `NumberFormat` does not connect to quote providers, and `Locale` does not supply FX effective timestamps.
 
-## 13. Các vấn đề làm tròn trong nghiệp vụ
+## 13. Rounding considerations in business logic
 
-Việc làm tròn một giá trị trong UI khác với việc xác định khoản tiền hợp lệ để thanh toán:
+Rounding a value in the UI differs from determining a valid settlement amount:
 
-- `NumberFormat.setMaximumFractionDigits(2)` giới hạn **chuỗi hiển thị**, không cập nhật `BigDecimal` gốc.
-- `BigDecimal.setScale(2, RoundingMode.HALF_EVEN)` tạo **giá trị thập phân đã làm tròn** theo một chính sách rõ.
-- `Currency.getDefaultFractionDigits()` cho thông tin chữ số thập phân thông thường; một số giao dịch tiền mặt có quy tắc làm tròn bội số riêng, ví dụ 0,05 đơn vị, không thể suy chỉ từ scale.
-- Phí giao dịch và spread có thể được áp dụng trước hoặc sau conversion; thứ tự và thời điểm làm tròn phải được cố định bằng contract.
-- Tùy sản phẩm, số tiền hiển thị “ước tính” có thể khác số tiền được chốt khi báo giá hết hạn; phải phân biệt hai loại.
-- Hạn chế việc nhân/chia nhiều bước rồi làm tròn tùy tiện ở từng bước, vì các kết quả khác nhau có thể xuất hiện dù cùng một tỷ giá đầu vào.
+- `NumberFormat.setMaximumFractionDigits(2)` limits the **display string**; it does not update the original `BigDecimal`.
+- `BigDecimal.setScale(2, RoundingMode.HALF_EVEN)` produces a **rounded decimal value** according to an explicit policy.
+- `Currency.getDefaultFractionDigits()` provides standard decimal-place metadata; some cash transactions have specific increment rounding rules, such as 0.05 units, which cannot be inferred from scale alone.
+- Transaction fees and spreads may be applied before or after conversion; the order and timing of rounding must be fixed by contract.
+- Depending on the product, an “estimated” displayed amount may differ from the locked amount once a quote expires; both must be distinguished.
+- Avoid performing multi-step multiplications/divisions and rounding arbitrarily at each step, as different results can arise from the same input rate.
 
-`RoundingMode.UNNECESSARY` có thể dùng để phát hiện phép làm tròn không được phép khi giá trị có phần dư, nhưng thường sẽ ném `ArithmeticException` nếu dữ liệu yêu cầu làm tròn; chọn nó chỉ khi contract thực sự yêu cầu tính chính xác tuyệt đối ở scale đó.
+`RoundingMode.UNNECESSARY` can be used to detect disallowed rounding when a value has remaining fractional digits, though it throws `ArithmeticException` if the data requires rounding; choose it only when the contract strictly requires exactness at that scale.
 
-## 14. Thiết kế Java để hạn chế gắn nhãn sai
+## 14. Java design to prevent mislabeling
 
-Nếu chỉ lưu `BigDecimal amount` mà không lưu `Currency`, code dễ gắn nhầm formatter của quốc gia khác cho khoản tiền. Nên biểu diễn rõ:
+If you store only `BigDecimal amount` without storing `Currency`, code can easily pass the amount to the wrong country's formatter. Model it explicitly:
 
 ```java
 record Money(BigDecimal amount, Currency currency) {}
 ```
 
-Đây là khai báo record có thể đặt ở cấp package hoặc trong một class, không phải chương trình độc lập. Khi tạo object, cần bảo đảm `amount` và `currency` được kiểm tra không `null` nếu nghiệp vụ yêu cầu. Java record chỉ là cấu trúc lưu dữ liệu; nó **không tự thực hiện** bất kỳ phép conversion nào.
+This is a record declaration that can be placed at package level or inside a class, not a standalone program. When constructing the object, ensure `amount` and `currency` are validated against `null` if business rules require it. A Java record is only a data structure; it **does not automatically perform** any conversion.
 
-Một dịch vụ nên có API nghiệp vụ rõ nghĩa:
+A service should expose unambiguous business APIs:
 
 ```text
 convert(sourceMoney, quote, targetCurrency)
@@ -509,97 +509,97 @@ format(money, displayLocale)
     → String localizedLabel
 ```
 
-Không nên có API mơ hồ:
+Avoid ambiguous APIs such as:
 
 ```text
 changeCurrency(sourceMoney, "EUR")
     → ???
 ```
 
-Tên `changeCurrency` có thể bị hiểu là sửa nhãn hoặc thực hiện quy đổi. Nếu sản phẩm có một nghiệp vụ đổi tiền, nên đặt tên rõ như `convertCurrency`, kiểm soát dữ liệu quote và trả một object kết quả khác.
+The name `changeCurrency` could be interpreted as relabeling or performing a conversion. If a product has a currency-exchange operation, give it a clear name like `convertCurrency`, enforce quote validation, and return a separate result object.
 
-### NumberFormat trong ứng dụng đa người dùng
+### NumberFormat in multi-user applications
 
-`NumberFormat` mutable và không mặc nhiên an toàn khi nhiều luồng sử dụng đồng thời. Trên Java server, nên tạo instance riêng theo request/locale hoặc quản lý cache an toàn; không để hai request cùng gọi `setCurrency` trên một formatter global rồi hiển thị nhầm USD/EUR cho người khác.
+`NumberFormat` is mutable and not thread-safe by default when used concurrently by multiple threads. On a Java server, create a separate instance per request/locale or manage a thread-safe cache; never let two requests call `setCurrency` on a shared global formatter and accidentally display USD/EUR to the wrong user.
 
-Không gọi `Locale.setDefault` để lựa chọn vùng cho từng request. Locale mặc định là trạng thái JVM, có thể làm thay đổi cách định dạng của request khác.
+Do not call `Locale.setDefault` to choose a region per request. The default locale is JVM-wide state and can alter formatting for other concurrent requests.
 
-## 15. Những sai lầm dễ xảy ra
+## 15. Common mistakes
 
-| Sai lầm | Hậu quả | Hướng xử lý |
+| Mistake | Consequence | Mitigation |
 | --- | --- | --- |
-| Gọi `setCurrency(EUR)` trên formatter USD và xem đó là quy đổi | 100 USD có thể bị hiển thị thành 100 EUR | Tính `amount × rate` rồi tạo `Money` mới |
-| Đổi trường `currency` trong DTO mà giữ nguyên amount | Dữ liệu bị gắn sai đơn vị | Chỉ đổi currency cùng phép tính nghiệp vụ |
-| Suy tiền thanh toán từ `Locale.getDefault()` | Cùng giao dịch có thể thành loại tiền khác khi deploy | Lưu currency trong dữ liệu giao dịch |
-| Dùng ký hiệu `$` làm mã tiền | Mơ hồ giữa nhiều currency | Dùng mã ISO 4217 |
-| Dùng `double` cho giá trị tiền cần chính xác thập phân | Sai số nhị phân và làm tròn khó kiểm soát | Dùng `BigDecimal` từ chuỗi decimal |
-| Nhân rate sai chiều | Sai số tiền đích | Quote ghi base/counter và đơn vị của tỷ giá |
-| Dùng tỷ giá không có thời điểm | Khó truy vết và có thể đã hết hạn | Ghi nguồn và thời điểm báo giá |
-| Chỉ dùng `setCurrency(JPY)` và tin formatter tự đổi fraction digits | Hiển thị sai precision | Đặt min/max fraction digits theo policy |
-| Parse lại chuỗi `"€91,50"` để lưu tiền | Phụ thuộc locale và có thể mất chính xác | Truyền số và currency theo contract canonical |
-| So sánh hai chuỗi format để so giá trị | Hậu tố, dấu và rounding có thể khác | So sánh giá trị Money cùng đơn vị hoặc quy đổi có kiểm soát |
-| Dùng rate giả định làm tỷ giá hiện hành | Gây hiểu nhầm tính hợp lệ của giao dịch | Ghi rõ quote và xác minh nguồn thực tế |
-| Chia sẻ một formatter mutable cho nhiều request | Rủi ro đổi nhãn tiền giữa các request | Formatter riêng hoặc cơ chế an toàn luồng |
+| Calling `setCurrency(EUR)` on a USD formatter and treating it as conversion | 100 USD can be displayed as 100 EUR | Compute `amount × rate` and create a new `Money` |
+| Changing the `currency` field in a DTO while keeping the amount unchanged | Data is labeled with the wrong unit | Only change currency as part of a business calculation |
+| Inferring settlement currency from `Locale.getDefault()` | The same transaction may switch currencies across deployments | Store currency in transaction data |
+| Using the `$` symbol as a currency code | Ambiguity across multiple currencies | Use ISO 4217 codes |
+| Using `double` for monetary values requiring decimal accuracy | Binary representation errors and hard-to-control rounding | Use `BigDecimal` from decimal strings |
+| Multiplying by a rate in the wrong direction | Incorrect target amount | Have the quote specify base/counter and rate units |
+| Using an exchange rate without a timestamp | Hard to audit and may be expired | Record quote source and timestamp |
+| Only calling `setCurrency(JPY)` and trusting the formatter to update fraction digits | Wrong precision displayed | Set min/max fraction digits per policy |
+| Re-parsing `"€91,50"` to persist money | Locale-dependent and risks losing precision | Pass amount and currency in a canonical contract |
+| Comparing two formatted strings to compare values | Suffixes, separators, and rounding may differ | Compare `Money` values in the same unit or convert explicitly |
+| Treating a hypothetical rate as a live rate | Misleads about transaction validity | Clearly mark quotes and verify real sources |
+| Sharing a mutable formatter across multiple requests | Risk of swapping currency labels between requests | Use per-request formatters or thread-safe mechanisms |
 
-## 16. Kiểm thử cần kiểm tra cả số học lẫn hiển thị
+## 16. Testing both arithmetic and presentation
 
-Nên có **hai nhóm test độc lập**.
+There should be **two independent test groups**.
 
-### Nhóm A — xác minh conversion là phép toán có contract
+### Group A — verify conversion is a contracted calculation
 
-1. Khi source là `Money(100.00, USD)` và quote `0.9150 EUR per USD`, result phải là `Money(91.50, EUR)` với `HALF_EVEN`/scale 2.
-2. Source không bị thay đổi; quote không bị thay đổi.
-3. Nếu source là EUR nhưng quote base là USD, phải từ chối thay vì âm thầm nhân tỷ giá sai chiều.
-4. Phải kiểm tra các ranh giới như amount bằng 0, âm (nếu hỗ trợ refund), số rất lớn, rate bằng 0/âm hoặc quote hết hạn theo policy.
-5. Với tiền không có hai chữ số thập phân mặc định, phải dùng đúng scale/rounding của nghiệp vụ.
-6. Phải kiểm tra phép quy đổi hai chiều, phí và spread theo công thức thực tế; đừng giả định đổi đi đổi về chắc chắn giữ nguyên lượng tiền do làm tròn và chênh lệch tỷ giá.
+1. When source is `Money(100.00, USD)` and quote is `0.9150 EUR per USD`, result must be `Money(91.50, EUR)` with `HALF_EVEN`/scale 2.
+2. Source is not mutated; quote is not mutated.
+3. If source is EUR but quote base is USD, it must reject rather than silently multiply by the wrong rate direction.
+4. Boundary cases must be tested, such as zero amount, negative amount (if refunds are supported), very large numbers, zero/negative rates, or expired quotes per policy.
+5. For currencies without two default decimal places, the exact business scale/rounding must be used.
+6. Round-trip conversions, fees, and spreads must be tested against actual formulas; do not assume converting back and forth preserves the original amount due to rounding and spread differences.
 
-### Nhóm B — xác minh formatter chỉ trình bày
+### Group B — verify the formatter only handles presentation
 
-1. `NumberFormat.getCurrencyInstance(Locale.US)` và `getCurrencyInstance(Locale.FRANCE)` có thể biểu diễn khác nhau, nhưng object `Money` ban đầu không đổi.
-2. `setCurrency(EUR)` thay Currency của formatter, **không** đổi `Money.amount()` hoặc `Money.currency()`.
-3. Format cùng `Money` ở hai locale không được làm thay đổi tỷ giá hoặc currency code trong domain.
-4. Không chốt toàn bộ chuỗi Unicode của nhiều locale mà không pin JDK/CLDR/provider; có thể có khoảng trắng không ngắt dòng, ký hiệu và dấu khác.
-5. Với formatter dùng chung trong service nhiều luồng, có test concurrency hoặc thiết kế tách instance để tránh trộn cấu hình.
-6. UI nên hiển thị đúng tên/mã tiền nếu ký hiệu có thể mơ hồ.
+1. `NumberFormat.getCurrencyInstance(Locale.US)` and `getCurrencyInstance(Locale.FRANCE)` may render differently, yet the original `Money` object remains unchanged.
+2. `setCurrency(EUR)` changes the formatter's Currency, **not** `Money.amount()` or `Money.currency()`.
+3. Formatting the same `Money` in two locales must not alter the domain's exchange rate or currency code.
+4. Do not hardcode full Unicode strings for many locales without pinning JDK/CLDR/provider; non-breaking spaces, symbols, and signs may vary.
+5. For formatters used in multi-threaded services, include concurrency tests or isolate instances to prevent mixed configuration.
+6. The UI should display the proper currency name/code if the symbol could be ambiguous.
 
-### Bài tập tự kiểm tra
+### Self-check exercises
 
-**Câu 1.** Có `amount=100.00`, `currency=USD`. Sau khi gọi `formatter.setCurrency(EUR)`, amount bằng bao nhiêu?
+**Question 1.** Given `amount=100.00`, `currency=USD`. After calling `formatter.setCurrency(EUR)`, what is `amount`?
 
-**Đáp án:** Vẫn 100.00, nếu không có phép toán nào khác. Chuỗi có thể chứa ký hiệu EUR nhưng **đây không phải 100 EUR đã được quy đổi**.
+**Answer:** Still 100.00, if no other operation was performed. The string may contain the EUR symbol, but **this is not a converted 100 EUR**.
 
-**Câu 2.** Cho tỷ giá giả định `0.9150 EUR per USD`, đổi 100.00 USD trước phí ra EUR là bao nhiêu?
+**Question 2.** Given the hypothetical rate `0.9150 EUR per USD`, how much is 100.00 USD in EUR before fees?
 
-**Đáp án:** 91.500000 EUR trước làm tròn theo scale, thường thể hiện 91.50 EUR với scale 2 và policy đã định.
+**Answer:** 91.500000 EUR before scale rounding, typically represented as 91.50 EUR with scale 2 and the defined policy.
 
-**Câu 3.** Một người dùng `vi-VN` mua sản phẩm giá 50 USD. Đổi locale hiển thị thành `en-US` có nghĩa đổi đồng tiền thanh toán thành USD không?
+**Question 3.** A `vi-VN` user buys a product priced at 50 USD. Does changing the display locale to `en-US` mean changing the settlement currency to USD?
 
-**Đáp án:** Không; giao dịch vốn đã là USD. Chỉ quy ước trình bày có thể đổi. Nếu ban đầu bằng VND, đổi locale cũng không tự tạo USD.
+**Answer:** No; the transaction was already in USD. Only presentation conventions may change. If it were originally in VND, changing the locale would not create USD either.
 
-**Câu 4.** `Currency.getSymbol(Locale.US)` có thể dùng để xác định duy nhất mã ISO 4217 cho bất kỳ ký hiệu `$` nào không?
+**Question 4.** Can `Currency.getSymbol(Locale.US)` uniquely identify the ISO 4217 code for any `$` symbol?
 
-**Đáp án:** Không; nhiều currency có thể chia sẻ ký hiệu. Lưu và truyền currency code riêng.
+**Answer:** No; multiple currencies can share a symbol. Store and pass the currency code separately.
 
-**Câu 5.** Vì sao cặp tiền và chiều tỷ giá phải được lưu cùng con số `0.9150`?
+**Question 5.** Why must the currency pair and rate direction be stored alongside the number `0.9150`?
 
-**Đáp án:** Vì `0.9150 EUR/USD` có nghĩa khác `0.9150 USD/EUR`; phép nhân/chia và kết quả khác nhau. Cần cả thời điểm hiệu lực và chính sách xử lý phí/làm tròn.
+**Answer:** Because `0.9150 EUR/USD` means something different from `0.9150 USD/EUR`; the multiplication/division and result differ. Effective timestamp and fee/rounding policies are also needed.
 
-**Câu 6.** `NumberFormat.setCurrency(JPY)` có bảo đảm formatter hiển thị đúng 0 chữ số thập phân khi trước đó được tạo cho USD không?
+**Question 6.** Does `NumberFormat.setCurrency(JPY)` guarantee the formatter displays 0 decimal places when it was previously created for USD?
 
-**Đáp án:** Không; `setCurrency` không tự thay đổi minimum/maximum fraction digits. Cần cấu hình theo loại tiền đích hoặc policy ứng dụng.
+**Answer:** No; `setCurrency` does not automatically update minimum/maximum fraction digits. You must configure them according to the target currency or application policy.
 
-## 17. Ghi nhớ
+## 17. Key takeaways
 
-- **`Currency` là metadata đơn vị; `Locale` là bối cảnh trình bày; `NumberFormat` tạo chuỗi. Không thành phần nào trong ba thành phần này tự cung cấp hoặc áp dụng tỷ giá.**
-- Thay `$` thành `€` hoặc mã `USD` thành `EUR` mà giữ nguyên amount là **đổi nhãn**, không phải quy đổi.
-- Quy đổi đúng cần **amount nguồn + currency nguồn + currency đích + tỷ giá có hướng + thời điểm + rounding/fees policy**.
-- **`BigDecimal`** phù hợp tính toán tiền theo thập phân; **`NumberFormat`** phù hợp định dạng cho người dùng. Không dùng chuỗi đã format thay số tiền canonical.
-- Kết quả quy đổi phải là **giá trị mới đi cùng đơn vị mới**; object nguồn và lịch sử báo giá nên được giữ nếu nghiệp vụ cần.
-- Gửi API/DB bằng amount và mã currency rõ ràng; format theo locale khi hiển thị.
-- Với giao dịch thật, tỷ giá trong tài liệu là ví dụ, không phải giá thị trường. Hãy dùng quote được phê duyệt và lưu khả năng truy vết.
+- **`Currency` is unit metadata; `Locale` is presentation context; `NumberFormat` produces strings. None of these three provides or applies exchange rates.**
+- Replacing `$` with `€` or `"USD"` with `"EUR"` while keeping the amount unchanged is **relabeling**, not conversion.
+- Proper conversion requires **source amount + source currency + target currency + directed rate + timestamp + rounding/fees policy**.
+- **`BigDecimal`** is suited for decimal monetary calculations; **`NumberFormat`** is suited for user-facing formatting. Never use formatted strings in place of canonical monetary amounts.
+- A conversion result must be a **new value paired with a new unit**; source objects and quote history should be retained when required by the business.
+- Send explicit amount and currency code across APIs and databases; format by locale only at display time.
+- For real transactions, the rate in this guide is an example, not a market price. Use approved quotes and preserve auditability.
 
-**Tài liệu Java SE 17 chính thức:**
+**Official Java SE 17 documentation:**
 
 - [`Currency` — java.util.Currency](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Currency.html)
 - [`NumberFormat` — java.text.NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html)

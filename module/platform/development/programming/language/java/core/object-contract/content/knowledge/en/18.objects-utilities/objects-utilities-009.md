@@ -1,65 +1,65 @@
-# Tiện ích `Objects` không sửa được `equals()` hoặc `Comparator` đã vi phạm hợp đồng
+# `Objects` utilities cannot fix `equals()` or `Comparator` that already violate their contracts
 
-Lớp `java.util.Objects` cung cấp nhiều phương thức tĩnh tiện dụng để so sánh, tính mã băm, kiểm tra `null` và làm việc với comparator. Các tên như `Objects.equals()`, `Objects.deepEquals()`, `Objects.hash()` và `Objects.compare()` dễ khiến người học tưởng rằng thư viện sẽ tự bảo đảm tính đúng đắn của mọi phép bằng nhau hay thứ tự.
+The `java.util.Objects` class provides many handy static methods for comparing, computing hash codes, checking `null`, and working with comparators. Names like `Objects.equals()`, `Objects.deepEquals()`, `Objects.hash()`, and `Objects.compare()` easily lead learners to think the library will automatically guarantee the correctness of every equality or ordering check.
 
-**Thực tế:** tiện ích chỉ cung cấp cách gọi thuận tiện, xử lý một số trường hợp đặc biệt như `null` và mảng, hoặc kết hợp giá trị băm. Nó **không thể tự sửa** một `equals(Object)` thiếu đối xứng, một `hashCode()` không nhất quán với `equals()`, hoặc một `Comparator` không có tính bắc cầu.
+**Reality:** the utilities only provide convenient call patterns, handle certain special cases such as `null` and arrays, or combine hash values. They **cannot automatically fix** an `equals(Object)` lacking symmetry, a `hashCode()` inconsistent with `equals()`, or a `Comparator` lacking transitivity.
 
-## 1. Phân biệt rõ vai trò các phương thức
+## 1. Clearly distinguishing the roles of the methods
 
-| Tiện ích | Làm được gì? | Không tự làm được gì? |
+| Utility | What can it do? | What can it NOT do on its own? |
 | --- | --- | --- |
-| `Objects.equals(a, b)` | So sánh hai tham chiếu an toàn với `null`; nếu cần, gọi `a.equals(b)` | Không kiểm tra/sửa tính đối xứng, bắc cầu hay ý nghĩa nghiệp vụ của `equals()` |
-| `Objects.deepEquals(a, b)` | So sánh sâu nội dung khi **cả hai là mảng**; trường hợp khác dựa vào equality của đối tượng | Không tự sửa `equals()` bị lỗi của phần tử hay các lớp miền |
-| `Objects.hashCode(o)` | Trả `0` nếu `o == null`, ngược lại gọi `o.hashCode()` | Không tạo ra hash đúng nếu chính `o.hashCode()` sai |
-| `Objects.hash(values...)` | Kết hợp nhiều giá trị theo `Arrays.hashCode(Object[])` | Không tự biết thuộc tính nào được `equals()` dùng để định nghĩa bằng nhau |
-| `Objects.compare(a, b, c)` | Trả `0` nếu cùng tham chiếu; còn lại ủy quyền cho `c.compare(a, b)` | Không sửa comparator sai, không tự biến so sánh gần đúng thành thứ tự hợp lệ |
+| `Objects.equals(a, b)` | Compares two references null-safely; if needed, calls `a.equals(b)` | Does not check/fix symmetry, transitivity, or the business meaning of `equals()` |
+| `Objects.deepEquals(a, b)` | Deep-compares contents when **both are arrays**; otherwise relies on object equality | Does not automatically fix broken `equals()` on elements or domain classes |
+| `Objects.hashCode(o)` | Returns `0` if `o == null`, otherwise calls `o.hashCode()` | Does not produce a valid hash if `o.hashCode()` itself is wrong |
+| `Objects.hash(values...)` | Combines multiple values via `Arrays.hashCode(Object[])` | Does not know on its own which attributes `equals()` uses to define equality |
+| `Objects.compare(a, b, c)` | Returns `0` if same reference; otherwise delegates to `c.compare(a, b)` | Does not fix a broken comparator, nor turn approximate matching into a valid ordering |
 
-Các phương thức này đều hữu ích khi được áp dụng **trên một hợp đồng đúng**. Việc gọi thư viện chuẩn không khiến dữ liệu đầu vào, phép so sánh tùy chỉnh hoặc các quyết định thiết kế trở nên đúng một cách tự động.
+All of these methods are useful when applied **on top of a valid contract**. Calling the standard library does not automatically make input data, custom comparisons, or design decisions correct.
 
-## 2. Hợp đồng `equals()` và `hashCode()` vẫn do lớp của bạn chịu trách nhiệm
+## 2. The `equals()` and `hashCode()` contract remains your class's responsibility
 
-### Phép bằng nhau phải là quan hệ tương đương
+### Equality must be an equivalence relation
 
-Với các tham chiếu đối tượng khác `null`, hợp đồng `Object.equals(Object)` yêu cầu:
+For non-`null` object references, the `Object.equals(Object)` contract requires:
 
-- **Phản xạ:** `x.equals(x)` là `true`.
-- **Đối xứng:** `x.equals(y)` và `y.equals(x)` có cùng kết quả.
-- **Bắc cầu:** nếu `x.equals(y)` và `y.equals(z)` thì `x.equals(z)`.
-- **Nhất quán:** khi dữ liệu liên quan không đổi, các lần gọi trả kết quả giống nhau.
-- **Xử lý null:** `x.equals(null)` là `false`.
+- **Reflexive:** `x.equals(x)` is `true`.
+- **Symmetric:** `x.equals(y)` and `y.equals(x)` have the same result.
+- **Transitive:** if `x.equals(y)` and `y.equals(z)`, then `x.equals(z)`.
+- **Consistent:** when relevant data does not change, repeated calls return the same result.
+- **Null handling:** `x.equals(null)` is `false`.
 
-Ngoài ra, với bất kỳ `x` và `y` bằng nhau:
+Additionally, for any equal `x` and `y`:
 
 ~~~text
 x.equals(y) == true  =>  x.hashCode() == y.hashCode()
 ~~~
 
-Chiều ngược lại không bắt buộc: hai đối tượng khác nhau vẫn có thể có cùng mã băm (*collision*).
+The converse is not required: two distinct objects may still share the same hash code (*collision*).
 
-Một `equals()` không đối xứng có thể trả `true` theo chiều từ A tới B nhưng `false` theo chiều từ B tới A. `Objects.equals(A, B)` **không kiểm tra hai chiều**. Khi cả hai khác `null` và khác tham chiếu, nó sử dụng phép `A.equals(B)`, nên lỗi đối xứng vẫn tồn tại.
+An asymmetric `equals()` might return `true` from A to B yet `false` from B to A. `Objects.equals(A, B)` **does not check both directions**. When both are non-`null` and have different references, it uses `A.equals(B)`, so the symmetry bug remains.
 
-### `Objects.equals()` xử lý null, không kiểm định hợp đồng
+### `Objects.equals()` handles null, does not validate the contract
 
-Có thể hiểu hành vi của `Objects.equals(a, b)` theo đoạn gần tương đương:
+You can understand `Objects.equals(a, b)` behavior through the roughly equivalent snippet:
 
 ~~~java
 return a == b || (a != null && a.equals(b));
 ~~~
 
-Đây là **mảnh mã giải thích cơ chế** bên trong một phương thức trả `boolean`.
+This is an **explanatory code fragment** inside a method returning `boolean`.
 
-- Hai tham chiếu đều `null` → `true`.
-- Một bên `null` và bên còn lại không `null` → `false`.
-- Hai tham chiếu trỏ cùng object → `true` mà không cần gọi `equals()`.
-- Hai object khác tham chiếu → ủy quyền cho `a.equals(b)`.
+- Both references `null` → `true`.
+- One side `null` and the other non-`null` → `false`.
+- Both references point to the same object → `true` without calling `equals()`.
+- Two objects with different references → delegates to `a.equals(b)`.
 
-Điểm tinh tế: trường hợp cùng tham chiếu có thể trả `true` ngay cả khi lớp viết sai `x.equals(x)` thành `false`. Điều này **không** chứng minh lớp đã tuân thủ tính phản xạ. Khi kiểm thử hợp đồng, hãy kiểm tra trực tiếp `x.equals(x)` cùng các trường hợp hai instance riêng biệt, không chỉ gọi `Objects.equals()`.
+Subtle point: the identical-reference case can return `true` even if the class wrongly implemented `x.equals(x)` to return `false`. This **does not** prove the class obeys reflexivity. When testing the contract, test `x.equals(x)` directly alongside separate instances, rather than only calling `Objects.equals()`.
 
-## 3. `Objects.hash()` không tự chọn đúng các trường cho bạn
+## 3. `Objects.hash()` does not pick the right fields for you
 
-Giả sử hệ thống quyết định hai khách hàng bằng nhau khi cùng `customerId`, bất kể `displayName` khác nhau.
+Suppose the system decides two customers are equal when they share the same `customerId`, regardless of differing `displayName`.
 
-**Đúng về định nghĩa bằng nhau:**
+**Correct for equality definition:**
 
 ~~~java
 @Override
@@ -74,9 +74,9 @@ public boolean equals(Object obj) {
 }
 ~~~
 
-Đây là **mảnh mã trong lớp `Customer`**. `Objects.equals(customerId, other.customerId)` giúp xử lý trường nullable (nếu thiết kế cho phép), nhưng không tự quyết định rằng ID là khóa nghiệp vụ.
+This is a **code fragment inside the `Customer` class**. `Objects.equals(customerId, other.customerId)` helps handle a nullable field (if the design permits it), yet does not decide on its own that ID is the business key.
 
-**Sai khi tính hash:**
+**Wrong when computing hash:**
 
 ~~~java
 @Override
@@ -85,9 +85,9 @@ public int hashCode() {
 }
 ~~~
 
-Nếu hai khách hàng cùng ID nhưng tên hiển thị khác, `equals()` trả `true` còn `Objects.hash(customerId, displayName)` có thể trả hai mã khác nhau. Vì vậy lớp đã vi phạm hợp đồng, cho dù `Objects.hash(...)` là API chuẩn được dùng hoàn toàn đúng cú pháp.
+If two customers have the same ID yet different display names, `equals()` returns `true` while `Objects.hash(customerId, displayName)` can return two different codes. Thus the class has violated the contract, even though `Objects.hash(...)` is a standard API used with completely valid syntax.
 
-**Đúng khi chỉ ID quyết định bằng nhau:**
+**Correct when only ID determines equality:**
 
 ~~~java
 @Override
@@ -96,28 +96,28 @@ public int hashCode() {
 }
 ~~~
 
-Hoặc có thể dùng `Objects.hash(customerId)`; cùng một ID sẽ sinh cùng kết quả trong cả hai trường hợp. Chúng **không nhất thiết trả cùng con số**: `Objects.hashCode(x)` với `x != null` chính là `x.hashCode()`, còn `Objects.hash(x)` băm một mảng đối số có **một phần tử**, nên thông thường có công thức khác. Cần chọn **cùng chiến lược trong mọi instance của cùng lớp**, không so hai phương thức như thể chúng có nghĩa hoàn toàn giống nhau.
+Or you can use `Objects.hash(customerId)`; the same ID will generate the same result in both cases. They **do not necessarily return the same number**: `Objects.hashCode(x)` with `x != null` is literally `x.hashCode()`, whereas `Objects.hash(x)` hashes an argument array with **one element**, so it typically uses a different formula. Choose **the same strategy across all instances of the same class**, without comparing the two methods as if their numbers meant the exact same thing.
 
-`Objects.hashCode(null)` trả `0`, nhưng xử lý `null` an toàn cũng không cứu được trường hợp hai object bằng nhau mà dữ liệu được hash khác nhau.
+`Objects.hashCode(null)` returns `0`, yet safe `null` handling cannot save a case where two equal objects have different data hashed.
 
-## 4. `Objects.compare()` không kiểm định Comparator
+## 4. `Objects.compare()` does not validate the Comparator
 
-Một comparator hợp lệ phải tạo thứ tự có các tính chất nhất quán, đặc biệt tính bắc cầu:
+A valid comparator must establish an ordering with consistent properties, especially transitivity:
 
-- Nếu `compare(a, b) < 0` và `compare(b, c) < 0` thì `compare(a, c) < 0`.
-- Nếu `compare(a, b) == 0`, việc so `a` và `b` với mọi giá trị thứ ba phải cho **cùng dấu kết quả**.
-- Dấu của `compare(a, b)` đối xứng với dấu của `compare(b, a)`.
+- If `compare(a, b) < 0` and `compare(b, c) < 0`, then `compare(a, c) < 0`.
+- If `compare(a, b) == 0`, comparing `a` and `b` against any third value must yield **the same result sign**.
+- The sign of `compare(a, b)` is opposite the sign of `compare(b, a)`.
 
-Trả về `0` cho hai giá trị chỉ vì “gần nhau trong phạm vi epsilon” là một lỗi thường gặp. Giả sử `a=0`, `b=1`, `c=2` và ngưỡng gần là `1`:
+Returning `0` for two values simply because they are "close within epsilon" is a common bug. Suppose `a=0`, `b=1`, `c=2` and the closeness threshold is `1`:
 
 ~~~java
 Comparator<Integer> near = (a, b) ->
     Math.abs((long) a - b) <= 1 ? 0 : Integer.compare(a, b);
 ~~~
 
-Đây là một **mảnh mã minh họa comparator sai**, với `import java.util.Comparator;`. Ta có `near.compare(0, 1) == 0`, `near.compare(1, 2) == 0` nhưng `near.compare(0, 2) < 0`. Hai nhóm “bằng nhau theo comparator” không bắc cầu; thứ tự không hợp lệ. Việc dùng `long` trong phép trừ chỉ để tránh tràn số của hiệu `int`, **không sửa lỗi logic**.
+This is an **illustrative fragment of a broken comparator**, with `import java.util.Comparator;`. We have `near.compare(0, 1) == 0`, `near.compare(1, 2) == 0`, yet `near.compare(0, 2) < 0`. The "equal under comparator" groups are not transitive; the ordering is invalid. Using `long` in the subtraction only avoids `int` difference overflow, **not fixing the logic error**.
 
-Gọi:
+Calling:
 
 ~~~java
 Objects.compare(0, 1, near);
@@ -125,22 +125,22 @@ Objects.compare(1, 2, near);
 Objects.compare(0, 2, near);
 ~~~
 
-vẫn cho ba kết quả tương ứng `0`, `0`, số âm: utility đã chuyển công việc cho comparator có sẵn. Dùng comparator sai trong `List.sort()` có thể dẫn đến kết quả không đáng tin hoặc ngoại lệ ở một số dữ liệu/thuật toán; dùng trong `TreeSet`/`TreeMap` có thể khiến các khóa “trùng nhau” theo comparator được quản lý không nhất quán.
+still yields the three respective results `0`, `0`, and a negative number: the utility merely forwarded the work to the supplied comparator. Using a broken comparator in `List.sort()` can lead to unreliable results or exceptions on certain data/algorithms; using it in `TreeSet`/`TreeMap` can cause keys that are "duplicates" under the comparator to be managed inconsistently.
 
-Thêm một chi tiết: `Objects.compare(a, b, c)` trả ngay `0` nếu `a == b`, không gọi `c.compare(a, b)` trong trường hợp đó. Vì vậy kiểm thử bằng **cùng tham chiếu** có thể che khuất lỗi comparator không trả `0` cho chính một đối tượng. Khi kiểm định comparator, phải gọi trực tiếp `compare(...)` trên các cặp và bộ ba đại diện.
+One more detail: `Objects.compare(a, b, c)` returns `0` immediately if `a == b`, without calling `c.compare(a, b)` in that case. Therefore, testing with **the same reference** can mask a bug where a comparator fails to return `0` for an object with itself. When validating a comparator, call `compare(...)` directly on representative pairs and triples.
 
-### Không viết Comparator bằng phép trừ
+### Do not write a Comparator using subtraction
 
 ~~~java
 Comparator<Integer> broken = (a, b) -> a - b;
 Comparator<Integer> correct = Integer::compare;
 ~~~
 
-`broken.compare(Integer.MIN_VALUE, 1)` trả số dương do tràn `int`, trong khi `Integer.compare(Integer.MIN_VALUE, 1)` trả số âm như thứ tự tăng dần mong muốn. Đặt `broken` vào `Objects.compare(...)` **không** làm phép trừ an toàn hơn. Hãy sửa comparator bằng `Integer.compare`, `Comparator.comparingInt(...)` hoặc những phép so sánh kiểu phù hợp.
+`broken.compare(Integer.MIN_VALUE, 1)` returns a positive number due to `int` overflow, whereas `Integer.compare(Integer.MIN_VALUE, 1)` returns a negative number as expected for ascending order. Passing `broken` into `Objects.compare(...)` **does not** make subtraction safer. Fix the comparator using `Integer.compare`, `Comparator.comparingInt(...)`, or appropriate type-specific comparisons.
 
-## 5. Ví dụ Java 17 chạy được: ba loại lỗi và tiện ích tương ứng
+## 5. Runnable Java 17 example: three kinds of bugs and corresponding utilities
 
-Tạo tệp **`ObjectsContractDemo.java`**:
+Create the file **`ObjectsContractDemo.java`**:
 
 ~~~java
 import java.util.Arrays;
@@ -151,7 +151,7 @@ import java.util.Set;
 
 public class ObjectsContractDemo {
 
-    // Sai: equals chỉ xét ID, hashCode xét cả tên.
+    // Wrong: equals checks only ID, hashCode checks name as well.
     static final class BrokenCustomer {
         private final String id;
         private final String displayName;
@@ -178,7 +178,7 @@ public class ObjectsContractDemo {
         }
     }
 
-    // Đúng: cả equals và hashCode cùng dựa trên ID bất biến.
+    // Correct: both equals and hashCode are based on the immutable ID.
     static final class GoodCustomer {
         private final String id;
         private final String displayName;
@@ -205,7 +205,7 @@ public class ObjectsContractDemo {
         }
     }
 
-    // Sai: cùng ID nhưng chỉ phía allowMatch=true công nhận bên kia.
+    // Wrong: same ID, yet only the allowMatch=true side recognizes the other.
     static final class OneWay {
         private final String id;
         private final boolean allowMatch;
@@ -287,14 +287,14 @@ public class ObjectsContractDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac ObjectsContractDemo.java
 java ObjectsContractDemo
 ~~~
 
-**Kết quả:**
+**Output:**
 
 ~~~text
 broken equals: true
@@ -316,21 +316,21 @@ null equals: true
 null hashCode: 0
 ~~~
 
-Giải thích:
+Explanation:
 
-1. Hai `BrokenCustomer` có cùng ID nên `Objects.equals(...)` trả `true`. Tuy nhiên, hai tên `"A"` và `"B"` cho hai hash khác nhau bởi công thức `Objects.hash(id, displayName)`; việc dùng utility không cứu được hợp đồng `equals/hashCode`.
-2. Hai `GoodCustomer` có cùng ID và hash giống nhau. `HashSet` loại bản thể hiện trùng ID, nên kích thước là `1`.
-3. Hai instance `OneWay` cùng ID trả kết quả khác nhau theo chiều gọi. `Objects.equals(...)` bảo toàn lỗi thiếu đối xứng vì ủy quyền cho toán hạng bên trái.
-4. Hai `int[]` khác tham chiếu nên `Objects.equals(...)` trả `false`, nhưng `Objects.deepEquals(...)` so được nội dung mảng và trả `true`. Với hai `BrokenCustomer` (không phải mảng), `deepEquals` vẫn trả `true` qua phép `equals` theo ID, **không tự phát hiện hai mã băm khác nhau**.
-5. Comparator `near` cho `0` với `0,1` và `1,2` nhưng `-1` với `0,2`; đó là minh chứng thiếu nhất quán cho một quan hệ bằng nhau theo comparator.
-6. Phép trừ trên `int` bị tràn khiến dấu so sánh bị đảo; thay bằng `Integer.compare` sửa **comparator**, còn `Objects.compare` đơn thuần chuyển lời gọi.
-7. `Objects.equals(null, null)` và `Objects.hashCode(null)` thể hiện lợi ích xử lý null của utility.
+1. The two `BrokenCustomer` instances share the same ID, so `Objects.equals(...)` returns `true`. However, the two names `"A"` and `"B"` yield different hashes from `Objects.hash(id, displayName)`; using the utility does not rescue the `equals/hashCode` contract.
+2. The two `GoodCustomer` instances share the same ID and have matching hashes. `HashSet` deduplicates the identical-ID instance, so the size is `1`.
+3. The two `OneWay` instances with the same ID return different results depending on call direction. `Objects.equals(...)` preserves the asymmetry bug because it delegates to the left operand.
+4. The two `int[]` arrays have different references so `Objects.equals(...)` returns `false`, yet `Objects.deepEquals(...)` compares array contents and returns `true`. For two `BrokenCustomer` instances (not arrays), `deepEquals` still returns `true` via ID-based `equals`, **without detecting the two differing hash codes**.
+5. Comparator `near` gives `0` for `0,1` and `1,2` yet `-1` for `0,2`; that demonstrates inconsistency for a comparator-based equivalence relation.
+6. Subtraction on `int` overflows, inverting the comparison sign; replacing it with `Integer.compare` fixes **the comparator**, while `Objects.compare` merely forwards the call.
+7. `Objects.equals(null, null)` and `Objects.hashCode(null)` show the null-handling benefit of the utilities.
 
-Ví dụ cố tình dùng lớp sai để minh họa điều không nên làm; **không dùng `BrokenCustomer` hoặc `OneWay` làm khóa trong hệ thống thật**. Trái lại, `GoodCustomer` có khóa ID bất biến và đồng bộ `equals()/hashCode()`.
+The example intentionally uses broken classes to illustrate what not to do; **do not use `BrokenCustomer` or `OneWay` as keys in a real system**. By contrast, `GoodCustomer` has an immutable ID key and synchronized `equals()/hashCode()`.
 
-## 6. `deepEquals()` “sâu” đến đâu?
+## 6. How "deep" is `deepEquals()`?
 
-`Objects.deepEquals(a, b)` đặc biệt hữu ích khi **hai đối số là mảng**, bao gồm mảng lồng nhau. Ví dụ:
+`Objects.deepEquals(a, b)` is especially useful when **both arguments are arrays**, including nested arrays. Example:
 
 ~~~java
 Object[] x = {new int[] {1, 2}, new String[] {"A", "B"}};
@@ -339,48 +339,48 @@ Object[] y = {new int[] {1, 2}, new String[] {"A", "B"}};
 System.out.println(Objects.deepEquals(x, y)); // true
 ~~~
 
-Đây là **mảnh mã minh họa** với `import java.util.Objects;`. Hàm sẽ xử lý các mảng con theo nội dung thông qua cơ chế so sánh sâu của `Arrays`.
+This is an **illustrative code snippet** with `import java.util.Objects;`. The function handles inner arrays by content via `Arrays`' deep comparison mechanism.
 
-Tuy nhiên, `deepEquals()` **không phải một công cụ tự động phân tích mọi graph đối tượng**:
+However, `deepEquals()` **is not a tool that automatically inspects arbitrary object graphs**:
 
-- Với hai object thông thường không phải mảng, nó vẫn cần `equals()` của object để xác định bằng nhau. Nếu implementation sai, kết quả có thể sai.
-- Với `List<int[]>`, gọi `Objects.deepEquals(listA, listB)` trên hai list riêng biệt sẽ sử dụng `List.equals()`; ở tầng phần tử, hai mảng riêng biệt vẫn có identity equality. Utility không tự thay `List.equals()` bằng thuật toán so sâu cho các phần tử mảng.
-- Với mảng có tham chiếu vòng (*cyclic arrays*), không nên giả định phương thức so sâu có thể giải quyết đồ thị tùy ý; recursion có thể gây `StackOverflowError`.
+- For two ordinary non-array objects, it still relies on the object's `equals()` to determine equality. If the implementation is wrong, the result can be wrong.
+- For `List<int[]>`, calling `Objects.deepEquals(listA, listB)` on two separate lists uses `List.equals()`; at the element level, two separate arrays still have identity equality. The utility does not automatically replace `List.equals()` with a deep-comparison algorithm for array elements.
+- For arrays with cyclic references (*cyclic arrays*), do not assume the deep-comparison method can handle arbitrary graphs; recursion can cause `StackOverflowError`.
 
-Muốn kiểu miền chứa mảng có **value equality**, hãy thiết kế một lớp bọc với `equals()` gọi `Arrays.equals`/`Arrays.deepEquals` phù hợp và `hashCode()` tương ứng (`Arrays.hashCode`/`Arrays.deepHashCode`), kèm sao chép phòng vệ nếu dữ liệu có thể đổi. Utility không thể tự suy ra những quy tắc đó.
+If a domain type containing arrays needs **value equality**, design a wrapper class whose `equals()` calls the appropriate `Arrays.equals`/`Arrays.deepEquals` and whose `hashCode()` matches (`Arrays.hashCode`/`Arrays.deepHashCode`), with defensive copying if data can change. The utility cannot infer those rules on its own.
 
-## 7. Sửa ở gốc: thiết kế hợp đồng đúng và kiểm thử cụ thể
+## 7. Fixing at the root: designing proper contracts and concrete tests
 
-### Với `equals()`
+### For `equals()`
 
-1. Xác định “hai đối tượng bằng nhau” theo nghiệp vụ: cùng định danh hay cùng các trường giá trị?
-2. Cài đặt `public boolean equals(Object)` đúng chữ ký với `@Override`.
-3. Thử các cặp và bộ ba đối tượng **khác instance** để kiểm tra phản xạ, đối xứng và bắc cầu; kiểm tra `null` và sai kiểu.
-4. Nếu yêu cầu chỉ là “gần nhau trong ngưỡng”, hãy tách thành `isCloseTo(...)` hoặc API tương tự. So khớp gần đúng không bảo đảm tính bắc cầu và thường không thích hợp làm `equals()`.
+1. Define "two equal objects" according to business rules: same identity or same value fields?
+2. Implement `public boolean equals(Object)` with the exact signature and `@Override`.
+3. Test pairs and triples of **distinct instances** to verify reflexivity, symmetry, and transitivity; test `null` and wrong types.
+4. If the requirement is only "close within a threshold", extract it into `isCloseTo(...)` or a similar API. Approximate matching does not guarantee transitivity and is usually unsuitable as `equals()`.
 
-### Với `hashCode()`
+### For `hashCode()`
 
-1. Chọn trường/khóa tạo ra **cùng giá trị hash bất cứ khi nào `equals()` là `true`**.
-2. Đảm bảo khóa không đổi trong lúc object nằm trong `HashSet`/`HashMap`.
-3. Kiểm tra cụ thể hai instance có `equals()==true` và hash bằng nhau. Không yêu cầu mọi object khác nhau có hash khác nhau.
-4. Chọn `Objects.hashCode(singleKey)` hoặc `Objects.hash(key1, key2, ...)` khi phù hợp với định nghĩa bằng nhau. API lựa chọn không thay thế việc xác định trường nào hợp lệ.
+1. Choose fields/keys that produce **the same hash value whenever `equals()` is `true`**.
+2. Ensure keys do not change while the object is inside a `HashSet`/`HashMap`.
+3. Specifically test two instances with `equals()==true` and equal hashes. Do not require distinct objects to have distinct hashes.
+4. Choose `Objects.hashCode(singleKey)` or `Objects.hash(key1, key2, ...)` when matching the equality definition. Choosing an API does not replace deciding which fields are valid.
 
-### Với `Comparator`
+### For `Comparator`
 
-1. Dùng `Comparator.comparing(...)`, `comparingInt/Long/Double(...)` hoặc `Integer.compare`/`Long.compare` thay phép trừ thủ công có nguy cơ tràn.
-2. Kiểm tra đối xứng dấu, tính bắc cầu và quy tắc `compare(a,b)==0` đối với mọi giá trị thứ ba.
-3. Không đưa phép so gần đúng thiếu bắc cầu vào comparator phục vụ sắp xếp; nếu cần tìm “gần trong ngưỡng”, hãy dùng phương thức lọc/so khớp riêng.
-4. Xem xét `null`, NaN, dấu âm của zero và thứ tự nhiều tiêu chí. `Objects.compare(a,b,c)` **không tự xử lý một bên null**: nếu `a` khác `b`, comparator được gọi và có thể ném lỗi nếu nó không hỗ trợ `null`.
-5. Nếu dùng trong `TreeSet`/`TreeMap`, xác định `compare(a,b)==0` có đúng là “hai khóa trùng nhau” theo nhu cầu hay không. Dùng comparator khác quy tắc bằng nhau của object có thể khiến tập có thứ tự ứng xử khác `HashSet`.
+1. Use `Comparator.comparing(...)`, `comparingInt/Long/Double(...)`, or `Integer.compare`/`Long.compare` instead of manual subtraction prone to overflow.
+2. Test sign symmetry, transitivity, and the `compare(a,b)==0` rule against any third value.
+3. Do not put non-transitive approximate matching into a comparator used for sorting; if "close within threshold" lookup is needed, use a dedicated filtering/matching method.
+4. Account for `null`, NaN, negative zero, and multi-criteria ordering. `Objects.compare(a,b,c)` **does not automatically handle one-sided null**: if `a` differs from `b`, the comparator is called and may throw if it does not support `null`.
+5. If used in `TreeSet`/`TreeMap`, determine whether `compare(a,b)==0` properly represents "two duplicate keys" for your needs. Using a comparator different from the object's equality rule can cause ordered sets to behave differently from `HashSet`.
 
-### Bảng chẩn đoán nhanh
+### Quick diagnostic table
 
-| Triệu chứng | Nguyên nhân cần kiểm tra trước | Cách sửa |
+| Symptom | Cause to check first | Fix |
 | --- | --- | --- |
-| `Objects.equals(a,b)` khác `Objects.equals(b,a)` | `a.equals(b)` / `b.equals(a)` thiếu đối xứng | Sửa `equals()` của kiểu miền |
-| Hai đối tượng bằng nhau nhưng `HashSet` coi khác | `hashCode()` không nhất quán hoặc dữ liệu khóa đã bị sửa | Đồng bộ khóa dùng trong `equals()/hashCode()` và giữ bất biến khi lưu |
-| `Objects.deepEquals(...)` không so theo ý định | Dữ liệu không phải mảng hoặc phần tử có equality khác kỳ vọng | Định nghĩa equality ở đúng tầng dữ liệu |
-| `Objects.compare(...)` cho thứ tự lạ | Comparator bị tràn số, không bắc cầu, sai xử lý null/NaN | Sửa comparator, kiểm thử bộ ba và giá trị biên |
-| `TreeSet` bỏ các phần tử “khác nhau” | Comparator trả `0` cho các khóa muốn phân biệt | Bổ sung khóa phụ ổn định, đúng nghiệp vụ |
+| `Objects.equals(a,b)` differs from `Objects.equals(b,a)` | `a.equals(b)` / `b.equals(a)` lacks symmetry | Fix `equals()` on the domain type |
+| Two objects are equal yet `HashSet` treats them as different | `hashCode()` is inconsistent or key data was mutated | Align keys used in `equals()/hashCode()` and keep them immutable while stored |
+| `Objects.deepEquals(...)` does not compare as intended | Data is not an array or elements have different equality than expected | Define equality at the proper data layer |
+| `Objects.compare(...)` gives strange ordering | Comparator overflows, lacks transitivity, or mishandles null/NaN | Fix the comparator; test triples and edge values |
+| `TreeSet` drops "different" elements | Comparator returns `0` for keys meant to be distinct | Add a stable secondary tie-breaker key matching business rules |
 
-**Ghi nhớ:** `Objects` giúp code **ngắn hơn, dễ đọc hơn và an toàn với `null` ở những chỗ được thiết kế hỗ trợ**. Nó không có khả năng xác định hộ hợp đồng bằng nhau hay thứ tự của kiểu miền. Nếu `equals()`, `hashCode()` hoặc `Comparator` sai, phải **sửa ở nơi định nghĩa quy tắc và kiểm thử hợp đồng**; bọc lời gọi trong `Objects.equals()`, `Objects.hash()` hoặc `Objects.compare()` không khiến quy tắc sai trở thành đúng.
+**Key takeaway:** `Objects` makes code **shorter, more readable, and `null`-safe where designed to support it**. It cannot define domain equality or ordering contracts on your behalf. When `equals()`, `hashCode()`, or `Comparator` is wrong, you must **fix it where the rules are defined and test the contract**; wrapping calls in `Objects.equals()`, `Objects.hash()`, or `Objects.compare()` does not turn broken rules into right ones.

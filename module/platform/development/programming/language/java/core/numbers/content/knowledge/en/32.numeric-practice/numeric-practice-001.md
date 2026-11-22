@@ -1,53 +1,53 @@
-# Thực hành: Viết bảng kiểm chứng kiểu kết quả của các biểu thức số trong Java
+# Practice: Writing a Verification Table for Result Types of Numeric Expressions in Java
 
-## 1. Mục tiêu thực hành
+## 1. Practice Objectives
 
-Khi đọc một biểu thức Java như `byte + short`, `int / int`, `long + float` hoặc `1 << 33`, ta cần trả lời **hai câu hỏi khác nhau**:
+When reading a Java expression such as `byte + short`, `int / int`, `long + float`, or `1 << 33`, we need to answer **two different questions**:
 
-1. **Kiểu của biểu thức tại thời điểm biên dịch (*compile-time type*) là gì?**
-2. **Giá trị khi chạy (*runtime value*) là bao nhiêu**, và có khả năng mất dữ liệu, làm tròn hoặc tràn số không?
+1. **What is the expression's type at compile time (*compile-time type*)?**
+2. **What is its runtime value (*runtime value*)**, and is there a possibility of data loss, rounding, or overflow?
 
-Java không tự động giữ kiểu nhỏ nhất của các toán hạng. Nhiều phép toán trên `byte`, `short` hoặc `char` tạo kết quả `int`. Một phép chia số nguyên không bỗng trở thành số thực vì kết quả toán học có phần dư. Phép cộng có `float` và `long` có thể cho ra `float`, dù `long` chứa nhiều chữ số hơn. Việc hiểu chính xác **quy tắc suy ra kiểu** sẽ giúp bạn tránh lỗi biên dịch, chọn phép ép kiểu hợp lý và phát hiện bug số học.
+Java does not automatically keep the smallest type of the operands. Many operations on `byte`, `short`, or `char` produce an `int` result. Integer division does not suddenly become a floating-point number just because the mathematical result has a remainder. Addition involving `float` and `long` can produce `float`, even though `long` holds more digits. Understanding the exact **type inference rules** helps you avoid compile errors, choose appropriate casts, and detect arithmetic bugs.
 
-Bài thực hành này có:
+This practice covers:
 
-- Quy trình lập bảng kiểm chứng theo từng biểu thức.
-- Bảng tham chiếu các quy tắc numeric promotion và ngoại lệ thường gặp.
-- Chương trình **Java 17+ chạy độc lập**, trong đó mỗi kết quả được gán cho biến có **kiểu khai báo tường minh**, để trình biên dịch kiểm chứng.
-- Các biểu thức **không biên dịch**, phân tích lý do và cách sửa.
-- Bài tập tự điền bảng, kèm đáp án về cả kiểu lẫn giá trị.
+- A step-by-step process for building a verification table per expression.
+- A reference table of numeric promotion rules and common exceptions.
+- A **standalone Java 17+ program**, where each result is assigned to a variable with an **explicitly declared type**, so the compiler verifies it.
+- Expressions that **do not compile**, analyzing why and how to fix them.
+- Exercises to fill in the table yourself, with answers for both types and values.
 
-## 2. Định nghĩa bảng kiểm chứng
+## 2. Defining the Verification Table
 
-Một bảng hữu ích cần ít nhất các cột:
+A useful table needs at least these columns:
 
-| Biểu thức | Kiểu toán hạng | Quy tắc áp dụng | Kiểu kết quả | Giá trị khi chạy / lưu ý |
+| Expression | Operand types | Applied rule | Result type | Runtime value / notes |
 | --- | --- | --- | --- | --- |
-| `a + b` | `byte` + `short` | Binary numeric promotion | `int` | Tùy giá trị `a`, `b` |
-| `a / b` | `int` / `int` | Chia nguyên | `int` | Bỏ phần lẻ theo hướng về 0 |
-| `a + b` | `long` + `float` | Binary numeric promotion | `float` | Có thể mất chính xác khi chuyển `long` sang `float` |
+| `a + b` | `byte` + `short` | Binary numeric promotion | `int` | Depends on values of `a`, `b` |
+| `a / b` | `int` / `int` | Integer division | `int` | Discards fractional part toward 0 |
+| `a + b` | `long` + `float` | Binary numeric promotion | `float` | May lose precision when converting `long` to `float` |
 
-Không suy ra kiểu từ cách `System.out.println` hiển thị. Ví dụ giá trị in ra `3` có thể đến từ `byte`, `int`, `long`, `float` hoặc `double` (với dạng hiển thị khác nhau ở một số trường hợp). Hãy dựa vào **cú pháp biểu thức và quy tắc kiểu**; kết quả runtime chỉ là bước kiểm chứng bổ sung.
+Do not infer types from how `System.out.println` displays them. For example, a printed value `3` could come from `byte`, `int`, `long`, `float`, or `double` (with different display formats in some cases). Rely on **expression syntax and type rules**; the runtime result is only a supplementary verification step.
 
-Với `var`, Java cũng xác định một kiểu cụ thể lúc biên dịch. `var` không phải kiểu số động, và không khiến kết quả chọn kiểu dựa theo độ lớn giá trị lúc chạy.
+With `var`, Java also determines a concrete type at compile time. `var` is not a dynamic numeric type, and it does not choose the result type based on the magnitude of the runtime value.
 
-## 3. Quy tắc số 1: kiểu của literal và biến
+## 3. Rule 1: Types of Literals and Variables
 
-| Cú pháp | Kiểu | Giải thích |
+| Syntax | Type | Explanation |
 | --- | --- | --- |
-| `123` | `int` | Literal nguyên không hậu tố mặc định là `int` nếu hợp lệ |
-| `123L` | `long` | Hậu tố `L` hoặc `l`; ưu tiên `L` để dễ đọc |
-| `1.5` | `double` | Literal có dấu thập phân mặc định là `double` |
-| `1.5f` | `float` | Hậu tố `f` hoặc `F` |
-| `1.5d` | `double` | Hậu tố `d` hoặc `D` |
-| `1e3` | `double` | Ký pháp số mũ của literal floating point |
-| `'A'` | `char` | Literal ký tự; giá trị số Unicode code unit của `'A'` là 65 |
-| `true` | `boolean` | Không phải kiểu số |
-| `"123"` | `String` | Chuỗi, không phải số |
+| `123` | `int` | An integer literal without a suffix defaults to `int` if valid |
+| `123L` | `long` | Suffix `L` or `l`; prefer `L` for readability |
+| `1.5` | `double` | A literal with a decimal point defaults to `double` |
+| `1.5f` | `float` | Suffix `f` or `F` |
+| `1.5d` | `double` | Suffix `d` or `D` |
+| `1e3` | `double` | Scientific notation of a floating-point literal |
+| `'A'` | `char` | Character literal; the numeric Unicode code unit value of `'A'` is 65 |
+| `true` | `boolean` | Not a numeric type |
+| `"123"` | `String` | String, not a number |
 
-Dấu `-` ở `-123` là **toán tử một ngôi** áp dụng lên literal, không phải là một phần của literal nguyên thông thường. Hai giá trị đặc biệt `-2147483648` và `-9223372036854775808L` được ngôn ngữ hỗ trợ theo quy tắc về literal thập phân và unary minus; không suy luận rằng mọi số nguyên ngoài miền đều hợp lệ.
+The `-` sign in `-123` is a **unary operator** applied to the literal, not part of a regular integer literal. The two special values `-2147483648` and `-9223372036854775808L` are supported by the language under the rules for decimal literals and unary minus; do not infer that any out-of-range integer is valid.
 
-Ví dụ:
+Example:
 
 ~~~java
 int whole = 12;
@@ -55,22 +55,22 @@ long large = 12L;
 float measure = 12.5f;
 double ratio = 12.5;
 
-var inferredWhole = 10 / 4;  // int, giá trị 2
-var inferredRatio = 10 / 4.0; // double, giá trị 2.5
+var inferredWhole = 10 / 4;  // int, value 2
+var inferredRatio = 10 / 4.0; // double, value 2.5
 ~~~
 
-`var` được suy ra **`int`** và **`double`** ở hai câu lệnh cuối. Không có phép chuyển đổi tự động theo giá trị kết quả.
+`var` is inferred as **`int`** and **`double`** in the last two statements. There is no automatic conversion based on the result value.
 
-## 4. Quy tắc số 2: binary numeric promotion
+## 4. Rule 2: Binary Numeric Promotion
 
-Đối với các toán tử số học nhị phân thường gặp như `+`, `-`, `*`, `/` và `%`, Java dùng *binary numeric promotion*. Sau unboxing (nếu cần), quy tắc khái quát là:
+For common binary arithmetic operators such as `+`, `-`, `*`, `/`, and `%`, Java uses *binary numeric promotion*. After unboxing (if needed), the general rule is:
 
-1. Nếu có toán hạng `double` → kết quả thuộc kiểu `double`.
-2. Nếu không có `double` nhưng có `float` → kết quả thuộc kiểu `float`.
-3. Nếu không có hai kiểu trên nhưng có `long` → kết quả thuộc kiểu `long`.
-4. Nếu còn lại các kiểu nguyên nhỏ, kết quả thuộc kiểu **`int`**.
+1. If either operand is `double` → the result has type `double`.
+2. Otherwise, if either operand is `float` → the result has type `float`.
+3. Otherwise, if either operand is `long` → the result has type `long`.
+4. Otherwise, for the remaining smaller integer types, the result has type **`int`**.
 
-| Toán hạng trái | Toán hạng phải | Kiểu của `left + right` |
+| Left operand | Right operand | Type of `left + right` |
 | --- | --- | --- |
 | `byte` | `byte` | `int` |
 | `byte` | `short` | `int` |
@@ -81,24 +81,24 @@ var inferredRatio = 10 / 4.0; // double, giá trị 2.5
 | `float` | `double` | `double` |
 | `long` | `double` | `double` |
 
-Một chỗ dễ nhầm: **`long + float` trả `float`**, không phải `long` và cũng không nhất thiết là `double`. `float` là floating point 32-bit, có thể không giữ được tất cả chữ số của một `long` lớn. Kiểu kết quả do **quy tắc promotion**, không do việc kiểu nào “chứa nhiều số hơn”.
+A common pitfall: **`long + float` returns `float`**, not `long` and not necessarily `double`. `float` is a 32-bit floating-point type and may not preserve all digits of a large `long`. The result type is determined by **promotion rules**, not by which type "holds more numbers."
 
-Đối với `byte`, `short`, `char`, kết quả cộng thường là `int`:
+For `byte`, `short`, `char`, addition usually produces `int`:
 
 ~~~java
 byte b = 10;
 short s = 20;
 char c = 'A';
 
-int sum = b + s;    // int, giá trị 30
-int next = c + 1;   // int, giá trị 66
+int sum = b + s;    // int, value 30
+int next = c + 1;   // int, value 66
 ~~~
 
-Câu lệnh `byte bad = b + s;` không biên dịch nếu không có cast: kết quả là `int`, không thể gán ngầm vào `byte`.
+The statement `byte bad = b + s;` does not compile without a cast: the result is `int` and cannot be implicitly assigned to `byte`.
 
-## 5. Quy tắc số 3: unary promotion, bitwise và shift
+## 5. Rule 3: Unary Promotion, Bitwise, and Shift
 
-Các toán tử một ngôi `+`, `-`, `~` thực hiện **unary numeric promotion**. Với `byte`, `short` hoặc `char`, toán hạng được nâng thành `int`:
+The unary operators `+`, `-`, `~` perform **unary numeric promotion**. With `byte`, `short`, or `char`, the operand is promoted to `int`:
 
 ~~~java
 byte b = 10;
@@ -108,9 +108,9 @@ int negative = -b; // -10
 int bits = ~b;     // -11
 ~~~
 
-Toán tử shift (`<<`, `>>`, `>>>`) không sử dụng binary numeric promotion như phép cộng. Nó nâng kiểu từng toán hạng theo quy tắc riêng; **kiểu kết quả bằng kiểu toán hạng trái sau unary promotion**:
+Shift operators (`<<`, `>>`, `>>>`) do not use binary numeric promotion like addition. They promote each operand according to separate rules; **the result type equals the type of the left operand after unary promotion**:
 
-| Biểu thức | Kiểu kết quả | Giá trị |
+| Expression | Result type | Value |
 | --- | --- | --- |
 | `(byte) 3 << 1` | `int` | `6` |
 | `1 << 3` | `int` | `8` |
@@ -119,13 +119,13 @@ Toán tử shift (`<<`, `>>`, `>>>`) không sử dụng binary numeric promotion
 | `1L << 33` | `long` | `8589934592` |
 | `~(short) 0` | `int` | `-1` |
 
-Với kiểu `int`, Java chỉ sử dụng **5 bit thấp** của khoảng dịch; vì thế `1 << 33` tương đương `1 << 1`, kết quả là `2`. Với kiểu `long`, dùng **6 bit thấp** của khoảng dịch, nên `1L << 33` là `8589934592`.
+For `int`, Java only uses the **low 5 bits** of the shift distance; therefore `1 << 33` is equivalent to `1 << 1`, resulting in `2`. For `long`, it uses the **low 6 bits** of the shift distance, so `1L << 33` is `8589934592`.
 
-Đừng suy ra kiểu shift bằng kiểu toán hạng phải: `1 << 3L` vẫn có kiểu `int` vì toán hạng trái là `int`. Tuy nhiên, tốt nhất chỉ dùng khoảng dịch hợp lệ với thiết kế nghiệp vụ, không dựa vào việc Java bỏ qua các bit cao để làm *validation*.
+Do not infer the shift result type from the right operand's type: `1 << 3L` still has type `int` because the left operand is `int`. However, it is best to only use shift distances valid for your business logic, rather than relying on Java ignoring high bits for *validation*.
 
-## 6. Quy tắc số 4: phép chia nguyên và cách tạo số thực
+## 6. Rule 4: Integer Division and Creating Floating-Point Numbers
 
-| Biểu thức | Kiểu | Kết quả |
+| Expression | Type | Result |
 | --- | --- | --- |
 | `7 / 2` | `int` | `3` |
 | `-7 / 2` | `int` | `-3` |
@@ -135,7 +135,7 @@ Với kiểu `int`, Java chỉ sử dụng **5 bit thấp** của khoảng dịc
 | `(double) 7 / 2` | `double` | `3.5` |
 | `(double) (7 / 2)` | `double` | `3.0` |
 
-Điểm khác biệt ở hai dòng cuối là **thứ tự đánh giá**:
+The difference in the last two rows is **evaluation order**:
 
 ~~~java
 int numerator = 7;
@@ -145,13 +145,13 @@ double right = (double) numerator / denominator; // 3.5
 double tooLate = (double) (numerator / denominator); // 3.0
 ~~~
 
-Ở `tooLate`, `numerator / denominator` đã chia nguyên và ra 3 **trước khi cast**. Phép cast từ `3` thành `double` chỉ tạo `3.0`, không phục hồi phần dư.
+In `tooLate`, `numerator / denominator` has already performed integer division and produced 3 **before the cast**. Casting `3` to `double` only produces `3.0` and does not recover the remainder.
 
-Phép chia nguyên cho 0 ném `ArithmeticException` tại runtime. Phép chia floating point cho 0 có thể trả vô cực hoặc `NaN` theo ngữ nghĩa floating point; đừng coi hai trường hợp như nhau.
+Integer division by 0 throws `ArithmeticException` at runtime. Floating-point division by 0 may return infinity or `NaN` according to floating-point semantics; do not treat the two cases as the same.
 
-## 7. Quy tắc số 5: so sánh, điều kiện và toán tử ba ngôi
+## 7. Rule 5: Comparison, Conditional, and Ternary Operator
 
-Toán tử so sánh số học như `<`, `<=`, `>`, `>=` và `==` áp dụng các quy tắc chuyển đổi toán hạng cần thiết, nhưng **kiểu kết quả là `boolean`**.
+Arithmetic comparison operators such as `<`, `<=`, `>`, `>=`, and `==` apply the necessary operand conversion rules, but **the result type is `boolean`**.
 
 ~~~java
 int i = 7;
@@ -160,61 +160,61 @@ boolean smaller = i < l;  // true
 boolean equal = i == l;   // false
 ~~~
 
-Toán tử điều kiện `condition ? left : right` có nhiều quy tắc, **không phải lúc nào cũng áp dụng máy móc bảng binary numeric promotion**.
+The conditional operator `condition ? left : right` has multiple rules and **does not always mechanically apply the binary numeric promotion table**.
 
-| Biểu thức | Kiểu kết quả | Vì sao |
+| Expression | Result type | Why |
 | --- | --- | --- |
-| `true ? 7 : 0.5` | `double` | Hai nhánh có `int` và `double` |
-| `true ? 7 : 9L` | `long` | Hai nhánh có `int` và `long` |
-| `true ? (byte) 1 : 2` | `byte` | Quy tắc đặc biệt: literal `int` 2 là constant expression biểu diễn được trong `byte` |
-| `true ? 1 : 2.0f` | `float` | Hai nhánh có `int` và `float` |
+| `true ? 7 : 0.5` | `double` | Two branches have `int` and `double` |
+| `true ? 7 : 9L` | `long` | Two branches have `int` and `long` |
+| `true ? (byte) 1 : 2` | `byte` | Special rule: `int` literal `2` is a constant expression representable in `byte` |
+| `true ? 1 : 2.0f` | `float` | Two branches have `int` and `float` |
 
-Quy tắc nhánh `byte` và literal `int` có thể khiến kết quả trở thành `byte`, không phải `int`; đây là lý do cần học quy tắc riêng cho conditional expression thay vì áp dụng bảng promotion của `+`.
+The rule for a `byte` branch and an `int` literal can make the result `byte`, not `int`; this is why you need to learn the specific rules for conditional expressions rather than applying the `+` promotion table.
 
-Cũng phải phân biệt **kiểu của biểu thức** với **nhánh được đánh giá**: `condition` quyết định nhánh chạy, nhưng kiểu biểu thức được xác định ngay khi biên dịch từ kiểu hai nhánh và quy tắc của `?:`.
+You must also distinguish **the type of the expression** from **the evaluated branch**: `condition` determines which branch runs, but the expression type is determined at compile time from the types of both branches and the rules of `?:`.
 
-## 8. Ngoại lệ quan trọng: assignment, compound assignment, ++ và --
+## 8. Important Exceptions: Assignment, Compound Assignment, ++ and --
 
-Bản thân phép gán có kiểu tương ứng với kiểu biến bên trái nếu hợp lệ. Một số cú pháp còn có **narrowing conversion ngầm** mà phép cộng bình thường không có.
+An assignment itself has a type corresponding to the variable on the left if valid. Some syntax forms also have **implicit narrowing conversion** that normal addition does not have.
 
 ~~~java
 byte b = 127;
-b += 1; // Biên dịch; b trở thành -128 (overflow kiểu byte).
+b += 1; // Compiles; b becomes -128 (byte overflow).
 ~~~
 
-Đối với phép gán hợp thành, `b += 1` có ngữ nghĩa tương tự `b = (byte) (b + 1)`, ngoại trừ vế trái chỉ được đánh giá một lần. Vì thế:
+For compound assignment, `b += 1` has semantics similar to `b = (byte) (b + 1)`, except the left-hand side is evaluated only once. Therefore:
 
 ~~~java
 byte b = 100;
 
-// byte wrong = b + 1; // Không biên dịch: b + 1 là int.
-b += 1;                // Biên dịch, giá trị b là 101.
-b++;                   // Biên dịch, tăng b thêm 1.
+// byte wrong = b + 1; // Does not compile: b + 1 is int.
+b += 1;                // Compiles, value of b is 101.
+b++;                   // Compiles, increments b by 1.
 ~~~
 
-Tương tự, với một biến `byte`, biểu thức `b++` có **kiểu `byte`** (kết quả hậu tố là giá trị cũ) dù phép cộng số học trung gian được thực hiện theo quy tắc nâng kiểu.
+Similarly, for a `byte` variable, the expression `b++` has **type `byte`** (the postfix result is the old value) even though the intermediate arithmetic addition is performed according to promotion rules.
 
-| Cú pháp | Kiểu của biểu thức / hành vi |
+| Syntax | Expression type / behavior |
 | --- | --- |
-| `b + 1` với `b` là `byte` | `int` |
-| `b += 1` với `b` là `byte` | Phép gán hợp thành hợp lệ, kết quả có kiểu `byte` |
-| `b++` với `b` là `byte` | Kiểu `byte`, trả giá trị cũ rồi cập nhật |
-| `++b` với `b` là `byte` | Kiểu `byte`, trả giá trị mới |
-| `byte k = 1 + 2;` | Có thể biên dịch nhờ constant expression bằng 3 nằm trong miền `byte` |
-| `byte k = b + 2;` | Không biên dịch vì `b` là biến, biểu thức có kiểu `int` |
+| `b + 1` where `b` is `byte` | `int` |
+| `b += 1` where `b` is `byte` | Valid compound assignment, result has type `byte` |
+| `b++` where `b` is `byte` | Type `byte`, returns old value then updates |
+| `++b` where `b` is `byte` | Type `byte`, returns new value |
+| `byte k = 1 + 2;` | Compiles because constant expression equals 3 within `byte` range |
+| `byte k = b + 2;` | Does not compile because `b` is a variable, expression has type `int` |
 
-Không nên nghĩ `b += 1` kiểm tra tràn. Khi chạy quá `Byte.MAX_VALUE`, kết quả có thể wrap. Nếu nghiệp vụ yêu cầu phát hiện tràn, thiết kế kiểm tra/biểu diễn rộng hơn trước khi thu hẹp kiểu.
+Do not think `b += 1` checks for overflow. When exceeding `Byte.MAX_VALUE`, the result can wrap around. If business logic requires overflow detection, design a check or use a wider representation before narrowing the type.
 
-## 9. Autoboxing, unboxing và kiểu đối tượng số
+## 9. Autoboxing, Unboxing, and Numeric Object Types
 
-Java có các wrapper class như `Integer`, `Long`, `Float` và `Double`. Với toán tử số học, wrapper có thể bị **unbox** thành primitive trước khi promotion:
+Java has wrapper classes such as `Integer`, `Long`, `Float`, and `Double`. With arithmetic operators, wrappers can be **unboxed** into primitives before promotion:
 
 ~~~java
 Integer boxed = 5;
-int result = boxed + 1; // int, giá trị 6
+int result = boxed + 1; // int, value 6
 ~~~
 
-**Không** kết luận `Integer + int` tạo ra `Integer`; biểu thức cộng có kiểu `int`. Nếu một wrapper bằng `null`, biểu thức cần unboxing có thể ném `NullPointerException`:
+Do **not** conclude that `Integer + int` produces `Integer`; the addition expression has type `int`. If a wrapper is `null`, an expression requiring unboxing can throw `NullPointerException`:
 
 ~~~java
 Integer missing = null;
@@ -226,31 +226,31 @@ try {
 }
 ~~~
 
-Chuỗi `String` là trường hợp khác: toán tử `+` nối chuỗi khi một toán hạng được dùng trong string concatenation.
+`String` is a different case: the `+` operator performs string concatenation when one operand is used in string concatenation.
 
 ~~~java
-String message = "count=" + 7; // "count=7", kiểu String
+String message = "count=" + 7; // "count=7", type String
 ~~~
 
-Không dùng toán tử `+` trực tiếp giữa hai `BigDecimal` hoặc hai `BigInteger`. Đây là **đối tượng**, không phải primitive numeric:
+Do not use the `+` operator directly between two `BigDecimal` or two `BigInteger` values. These are **objects**, not numeric primitives:
 
 ~~~java
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
 BigDecimal decimal = new BigDecimal("0.1")
-        .add(new BigDecimal("0.2")); // BigDecimal, đúng 0.3
+        .add(new BigDecimal("0.2")); // BigDecimal, exact 0.3
 
 BigInteger integer = BigInteger.ONE.add(
         BigInteger.valueOf(2)
-); // BigInteger, giá trị 3
+); // BigInteger, value 3
 ~~~
 
-Kiểu của lời gọi `decimal.add(...)` do **chữ ký method** quyết định; không áp dụng binary numeric promotion cho hai object đó.
+The type of the call `decimal.add(...)` is determined by the **method signature**; binary numeric promotion is not applied to those two objects.
 
-## 10. Bảng kiểm chứng hoàn chỉnh: kiểu + giá trị cụ thể
+## 10. Complete Verification Table: Concrete Types + Values
 
-Giả định các biến ban đầu:
+Assume the initial variables:
 
 ~~~java
 byte b = 10;
@@ -263,36 +263,36 @@ double d = 0.5;
 Integer boxed = 5;
 ~~~
 
-Bảng điền sẵn:
+Completed table:
 
-| Biểu thức | Kiểu kết quả | Giá trị | Lý do ngắn |
+| Expression | Result type | Value | Short reason |
 | --- | --- | --- | --- |
-| `b + s` | `int` | `30` | `byte` và `short` nâng lên `int` |
-| `c + 1` | `int` | `66` | `char` nâng lên `int` |
-| `i + l` | `long` | `16` | Có `long` |
-| `l + f` | `float` | `11.5` | Có `float`, không có `double` |
-| `f + d` | `double` | `3.0` | Có `double` |
+| `b + s` | `int` | `30` | `byte` and `short` promoted to `int` |
+| `c + 1` | `int` | `66` | `char` promoted to `int` |
+| `i + l` | `long` | `16` | Has `long` |
+| `l + f` | `float` | `11.5` | Has `float`, no `double` |
+| `f + d` | `double` | `3.0` | Has `double` |
 | `-b` | `int` | `-10` | Unary numeric promotion |
-| `~b` | `int` | `-11` | Bitwise complement của `int` 10 |
-| `b << 1` | `int` | `20` | Shift dùng kiểu toán hạng trái sau promotion |
-| `1 << 33` | `int` | `2` | Khoảng shift `int` chỉ xét 5 bit thấp |
-| `1L << 33` | `long` | `8589934592` | Toán hạng trái là `long` |
-| `i / 2` | `int` | `3` | Chia nguyên |
-| `i / 2.0` | `double` | `3.5` | Có `double` |
-| `i < l` | `boolean` | `true` | So sánh |
-| `true ? i : d` | `double` | `7.0` | Hai nhánh `int` và `double` |
-| `true ? (byte) 1 : 2` | `byte` | `1` | Trường hợp đặc biệt của `?:` |
-| `Math.round(2.6f)` | `int` | `3` | Overload nhận `float` trả `int` |
-| `Math.round(2.6d)` | `long` | `3` | Overload nhận `double` trả `long` |
-| `"n=" + i` | `String` | `n=7` | Nối chuỗi |
-| `boxed + 1` | `int` | `6` | Unboxing rồi cộng |
-| `new BigDecimal("0.1").add(new BigDecimal("0.2"))` | `BigDecimal` | `0.3` | Method `add` trả `BigDecimal` |
+| `~b` | `int` | `-11` | Bitwise complement of `int` 10 |
+| `b << 1` | `int` | `20` | Shift uses left operand type after promotion |
+| `1 << 33` | `int` | `2` | `int` shift distance only uses low 5 bits |
+| `1L << 33` | `long` | `8589934592` | Left operand is `long` |
+| `i / 2` | `int` | `3` | Integer division |
+| `i / 2.0` | `double` | `3.5` | Has `double` |
+| `i < l` | `boolean` | `true` | Comparison |
+| `true ? i : d` | `double` | `7.0` | Two branches `int` and `double` |
+| `true ? (byte) 1 : 2` | `byte` | `1` | Special case of `?:` |
+| `Math.round(2.6f)` | `int` | `3` | Overload taking `float` returns `int` |
+| `Math.round(2.6d)` | `long` | `3` | Overload taking `double` returns `long` |
+| `"n=" + i` | `String` | `n=7` | String concatenation |
+| `boxed + 1` | `int` | `6` | Unbox then add |
+| `new BigDecimal("0.1").add(new BigDecimal("0.2"))` | `BigDecimal` | `0.3` | Method `add` returns `BigDecimal` |
 
-Giá trị và kiểu được xác định bằng ngữ nghĩa Java, không phải vì bảng liệt kê trùng tên wrapper. Phần kế tiếp có chương trình **biên dịch được**, dùng biến khai báo tường minh để buộc compiler kiểm chứng các kiểu trên.
+Values and types are determined by Java semantics, not because the table lists matching wrapper names. The next section has a **compilable** program that uses explicitly declared variables to force the compiler to verify the types above.
 
-## 11. Chương trình Java 17+ chạy độc lập để xác nhận bảng
+## 11. Standalone Java 17+ Program to Confirm the Table
 
-Tạo file `NumericExpressionTypeTable.java`:
+Create the file `NumericExpressionTypeTable.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -313,7 +313,7 @@ public class NumericExpressionTypeTable {
         double d = 0.5;
         Integer boxed = 5;
 
-        // Kiểu được kiểm tra thực sự khi javac gán kết quả cho biến.
+        // Type is actually checked when javac assigns the result to the variable.
         int sumSmall = b + s;
         int sumChar = c + 1;
         long sumLong = i + l;
@@ -368,7 +368,7 @@ public class NumericExpressionTypeTable {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac NumericExpressionTypeTable.java
@@ -403,66 +403,66 @@ nearLimit++ (old) | byte | 127
 nearLimit (new) | byte | -128
 ~~~
 
-### Tại sao chương trình kiểm chứng được kiểu?
+### Why Does the Program Verify the Types?
 
-Mỗi biến có kiểu tường minh như `long sumLong = i + l;`, `float sumFloat = l + f;` hoặc `byte specialConditional = true ? (byte) 1 : 2;`. Trình biên dịch bảo đảm **kết quả có thể gán** cho kiểu khai báo đó, còn quy tắc biểu thức xác định kiểu thật sự. Để phân biệt kiểu biểu thức với những chuyển đổi gán ngầm được phép (`int` sang `long` chẳng hạn), cần tiếp tục phân tích theo quy tắc trong các mục 3–9, không chỉ dựa trên việc lệnh gán biên dịch thành công.
+Each variable has an explicit type such as `long sumLong = i + l;`, `float sumFloat = l + f;`, or `byte specialConditional = true ? (byte) 1 : 2;`. The compiler ensures **the result is assignable** to that declared type, while expression rules determine the actual type. To distinguish an expression's type from allowed implicit assignment conversions (such as `int` to `long`), you still need to analyze according to the rules in sections 3–9, rather than relying solely on the assignment compiling successfully.
 
-Việc truyền biến primitive vào tham số `Object value` của `row` khiến nó được **boxing** để in. Vì vậy, nếu đổi hàm sang in `value.getClass()`, bạn đang xem **lớp wrapper sau boxing**, không phải cơ chế suy ra kiểu primitive gốc. Cột kiểu ở đây được viết tường minh theo phân tích compile-time.
+Passing a primitive variable into the `Object value` parameter of `row` causes it to be **boxed** for printing. Therefore, if you change the function to print `value.getClass()`, you are inspecting the **wrapper class after boxing**, not the original primitive type inference mechanism. The type column here is written explicitly based on compile-time analysis.
 
-## 12. Các trường hợp không biên dịch và cách sửa
+## 12. Cases That Do Not Compile and How to Fix Them
 
-Những ví dụ sau **cố ý sai**, không dán chung vào chương trình `NumericExpressionTypeTable.java`:
+The following examples are **intentionally wrong**; do not paste them into `NumericExpressionTypeTable.java`:
 
 ~~~java
 byte b = 10;
 short s = 20;
 
 byte sum = b + s;
-// ERROR: b + s có kiểu int, không thể chuyển ngầm về byte.
+// ERROR: b + s has type int, cannot be implicitly converted to byte.
 
 float f = 2.5;
-// ERROR: literal 2.5 là double, không chuyển ngầm về float.
+// ERROR: literal 2.5 is double, cannot be implicitly converted to float.
 
 int whole = 3 / 2.0;
-// ERROR: biểu thức có kiểu double, không chuyển ngầm về int.
+// ERROR: expression has type double, cannot be implicitly converted to int.
 
 BigDecimal decimal =
         new BigDecimal("1") + new BigDecimal("2");
-// ERROR: toán tử + không hỗ trợ hai BigDecimal.
+// ERROR: the + operator does not support two BigDecimals.
 ~~~
 
-Cách sửa:
+How to fix:
 
 ~~~java
 byte b = 10;
 short s = 20;
 
-int sum = b + s;                     // Tránh cast hẹp nếu không cần.
-float f = 2.5f;                      // Literal float.
-double quotient = 3 / 2.0;          // Giữ phần thập phân.
+int sum = b + s;                     // Avoid narrowing cast if not needed.
+float f = 2.5f;                      // float literal.
+double quotient = 3 / 2.0;          // Preserve fractional part.
 
 BigDecimal decimal = new BigDecimal("1")
-        .add(new BigDecimal("2"));   // Dùng phương thức add.
+        .add(new BigDecimal("2"));   // Use the add method.
 ~~~
 
-Đây là đoạn mã minh họa; cần đặt trong method/lớp phù hợp và thêm `import java.math.BigDecimal;` nếu dùng độc lập.
+This is an illustrative snippet; place it inside an appropriate method/class and add `import java.math.BigDecimal;` if used standalone.
 
-Một cast như `byte sum = (byte) (b + s);` sẽ giúp biên dịch, nhưng **không đảm bảo** tổng nằm trong phạm vi `byte`. Nếu điều quan trọng là giữ nguyên tổng, dùng kiểu rộng hơn (`int`); nếu điều quan trọng là giới hạn miền, kiểm tra trước khi cast.
+A cast like `byte sum = (byte) (b + s);` will make it compile, but **does not guarantee** the sum is within the `byte` range. If preserving the exact sum matters, use a wider type (`int`); if enforcing range limits matters, check before casting.
 
-## 13. Những góc khuất nâng cao khi xác định kiểu
+## 13. Advanced Edge Cases When Determining Types
 
-### `Math` có nhiều overload
+### `Math` Has Multiple Overloads
 
-`Math.round(float)` trả `int`, `Math.round(double)` trả `long`. Vì thế hậu tố của literal làm khác kiểu kết quả:
+`Math.round(float)` returns `int`, `Math.round(double)` returns `long`. Therefore, the literal suffix changes the return type:
 
 ~~~java
 int a = Math.round(2.6f);
 long b = Math.round(2.6);
 ~~~
 
-`Math.pow(2, 3)` trả `double` vì overload của `Math.pow` nhận hai `double` và trả `double`, dù các literal đầu vào có kiểu `int`. Cần tra **chữ ký method** thay vì tự áp dụng quy tắc toán tử số học.
+`Math.pow(2, 3)` returns `double` because the overload of `Math.pow` takes two `double`s and returns `double`, even though the input literals have type `int`. Check the **method signature** instead of applying arithmetic operator rules yourself.
 
-### Overflow không tự nâng kiểu
+### Overflow Does Not Automatically Promote Types
 
 ~~~java
 int overflowed = Integer.MAX_VALUE + 1;
@@ -472,63 +472,63 @@ long preserved = (long) Integer.MAX_VALUE + 1;
 System.out.println(preserved);  // 2147483648
 ~~~
 
-Trong phép cộng đầu tiên, hai toán hạng đều kiểu `int`, nên phép toán vẫn trả `int` và wrap. Việc **gán** kết quả của `Integer.MAX_VALUE + 1` sang biến `long` cũng không sửa được lỗi nếu phép cộng đã thực hiện ở `int`. Muốn thực hiện phép cộng với kiểu rộng hơn, phải chuyển ít nhất một toán hạng **trước phép cộng**.
+In the first addition, both operands are `int`, so the operation still returns `int` and wraps around. **Assigning** the result of `Integer.MAX_VALUE + 1` to a `long` variable also does not fix the bug if the addition was already performed in `int`. To perform addition in a wider type, convert at least one operand **before the addition**.
 
-### Loss of precision khi kiểu kết quả là floating point
+### Loss of Precision When the Result Type Is Floating-Point
 
 ~~~java
 long exact = 9_007_199_254_740_993L;
 float changed = exact + 0.0f;
-System.out.println(changed); // một xấp xỉ float, không giữ toàn bộ chữ số
+System.out.println(changed); // a float approximation, does not preserve all digits
 ~~~
 
-Quy tắc kiểu vẫn là `float`. `float` không thể giữ mọi số nguyên lớn biểu diễn được bằng `long`. Cũng không nên kết luận toán hạng nào “rộng” hơn chỉ từ số bit lưu trữ: floating point có phạm vi độ lớn rộng nhưng độ chính xác nguyên hữu hạn.
+The type rule still produces `float`. `float` cannot hold every large integer representable by `long`. You should also not conclude which operand is "wider" solely from storage bit count: floating-point has a wide magnitude range but finite integer precision.
 
-### `var` không chữa phép toán sai
+### `var` Does Not Fix a Wrong Operation
 
 ~~~java
-var quotient = 7 / 2;       // int, giá trị 3
-var precise = 7 / 2.0;      // double, giá trị 3.5
+var quotient = 7 / 2;       // int, value 3
+var precise = 7 / 2.0;      // double, value 3.5
 var joined = "n=" + 7;      // String
 ~~~
 
-`var` chỉ bỏ phần viết tên kiểu của biến local; các quy tắc kiểu của biểu thức vẫn không đổi.
+`var` only omits writing the type name of the local variable; expression type rules remain unchanged.
 
-### Constant expression có thể thu hẹp khi gán
+### Constant Expressions Can Narrow on Assignment
 
 ~~~java
-byte a = 1 + 2;   // Hợp lệ: biểu thức hằng int có giá trị 3.
+byte a = 1 + 2;   // Valid: constant int expression with value 3.
 
 int n = 1;
- // byte b = n + 2; // Không hợp lệ: n không phải constant variable.
+ // byte b = n + 2; // Invalid: n is not a constant variable.
 ~~~
 
-Quy tắc narrowing ngầm cho constant expression còn phụ thuộc dạng phép gán và miền giá trị. Nó **không đổi kiểu của biểu thức** `1 + 2` từ `int` thành `byte`; chỉ có nghĩa trình biên dịch cho phép chuyển kết quả hằng sang `byte` ở ngữ cảnh cụ thể.
+The implicit narrowing rule for constant expressions also depends on the assignment form and value range. It **does not change the type of the expression** `1 + 2` from `int` to `byte`; it only means the compiler allows converting the constant result to `byte` in that specific context.
 
-## 14. Cách tự tạo bảng để chẩn đoán lỗi thật
+## 14. How to Build Your Own Table to Diagnose Real Bugs
 
-Thực hiện theo quy trình:
+Follow this process:
 
-1. **Ghi kiểu của từng operand**: literal nguyên, literal thực, biến primitive, wrapper hay object?
-2. **Khoanh toán tử hoặc lời gọi method**: phép toán nhị phân, unary, shift, so sánh, `?:`, phép gán, hay overloaded method?
-3. **Áp dụng đúng quy tắc**: đừng dùng bảng `+` cho toán tử shift hay `?:`; đừng dùng numeric promotion cho `BigDecimal.add`.
-4. **Ghi kiểu compile-time** *trước khi* tính giá trị.
-5. **Tính giá trị** với quy tắc chia nguyên, overflow, cast, thứ tự đánh giá và giới hạn floating point.
-6. **Kiểm tra bằng mã biên dịch**: dùng assignment typed, tìm lỗi conversion không hợp lệ và dùng output để kiểm tra giá trị.
-7. **Ghi cảnh báo** khi phép tính có thể mất chữ số, overflow, unboxing null hoặc kết quả khác biểu thức toán học mong đợi.
+1. **Record the type of each operand**: integer literal, floating-point literal, primitive variable, wrapper, or object?
+2. **Identify the operator or method call**: binary operation, unary, shift, comparison, `?:`, assignment, or overloaded method?
+3. **Apply the right rule**: do not use the `+` table for shift operators or `?:`; do not use numeric promotion for `BigDecimal.add`.
+4. **Write down the compile-time type** *before* computing the value.
+5. **Compute the value** using integer division rules, overflow, casts, evaluation order, and floating-point limits.
+6. **Verify with compiled code**: use typed assignments, look for invalid conversion errors, and use output to check values.
+7. **Note warnings** when a calculation can lose digits, overflow, unbox null, or differ from the expected mathematical expression.
 
-Ví dụ mẫu:
+Sample example:
 
-| Biểu thức | Nhận diện | Kiểu | Giá trị | Cảnh báo |
+| Expression | Identification | Type | Value | Warning |
 | --- | --- | --- | --- | --- |
-| `(double) (7 / 2)` | Chia `int` trước, cast sau | `double` | `3.0` | Phần thập phân đã mất |
-| `(double) 7 / 2` | `double` chia `int` | `double` | `3.5` | Không bị chia nguyên |
+| `(double) (7 / 2)` | Divide `int` first, cast later | `double` | `3.0` | Fractional part already lost |
+| `(double) 7 / 2` | `double` divided by `int` | `double` | `3.5` | No integer division |
 | `Integer.MAX_VALUE + 1` | `int + int` | `int` | `-2147483648` | Overflow |
-| `Math.round(2.6f)` | Overload `float` | `int` | `3` | Không trả `float` |
+| `Math.round(2.6f)` | `float` overload | `int` | `3` | Does not return `float` |
 
-## 15. Bài tập: tự điền bảng kiểu và giá trị
+## 15. Exercise: Fill In the Type and Value Table Yourself
 
-Hãy xác định **kiểu của biểu thức** trước, sau đó mới tính giá trị. Giả sử:
+Determine **the expression's type** first, then compute the value. Assume:
 
 ~~~java
 byte b = 4;
@@ -541,7 +541,7 @@ double d = 2.0;
 Integer boxed = 3;
 ~~~
 
-| STT | Biểu thức | Kiểu bạn dự đoán | Giá trị bạn dự đoán |
+| No. | Expression | Your predicted type | Your predicted value |
 | ---: | --- | --- | --- |
 | 1 | `b + s` | ? | ? |
 | 2 | `c - 1` | ? | ? |
@@ -559,32 +559,32 @@ Integer boxed = 3;
 | 14 | `Math.round(3.6f)` | ? | ? |
 | 15 | `Math.pow(2, 3)` | ? | ? |
 
-Đáp án:
+Answers:
 
-| STT | Kiểu đúng | Giá trị | Quy tắc |
+| No. | Correct type | Value | Rule |
 | ---: | --- | --- | --- |
-| 1 | `int` | `10` | `byte + short` nâng lên `int` |
-| 2 | `int` | `65` | `char` nâng lên `int` |
-| 3 | `int` | `4` | Chia nguyên 9/2 |
-| 4 | `float` | `4.5` | Có toán hạng `float` |
-| 5 | `float` | `5.5` | `long + float` ra `float` |
-| 6 | `double` | `2.5` | Có `double` |
-| 7 | `int` | `-5` | Unary ~ trên `int` 4 |
-| 8 | `int` | `16` | Shift operand trái nâng thành `int` |
-| 9 | `long` | `32` | Dịch trái trên `long` |
-| 10 | `boolean` | `true` | So sánh `9 > 5` |
-| 11 | `double` | `4.0` | Hai nhánh `byte` và `double` |
-| 12 | `int` | `6` | Unbox `Integer` rồi nhân |
-| 13 | `String` | `value=9` | Nối chuỗi |
-| 14 | `int` | `4` | `Math.round(float)` trả `int` |
-| 15 | `double` | `8.0` | `Math.pow(double, double)` trả `double` |
+| 1 | `int` | `10` | `byte + short` promoted to `int` |
+| 2 | `int` | `65` | `char` promoted to `int` |
+| 3 | `int` | `4` | Integer division 9/2 |
+| 4 | `float` | `4.5` | Has `float` operand |
+| 5 | `float` | `5.5` | `long + float` produces `float` |
+| 6 | `double` | `2.5` | Has `double` |
+| 7 | `int` | `-5` | Unary `~` on `int` 4 |
+| 8 | `int` | `16` | Left shift operand promoted to `int` |
+| 9 | `long` | `32` | Left shift on `long` |
+| 10 | `boolean` | `true` | Comparison `9 > 5` |
+| 11 | `double` | `4.0` | Two branches `byte` and `double` |
+| 12 | `int` | `6` | Unbox `Integer` then multiply |
+| 13 | `String` | `value=9` | String concatenation |
+| 14 | `int` | `4` | `Math.round(float)` returns `int` |
+| 15 | `double` | `8.0` | `Math.pow(double, double)` returns `double` |
 
-### Thử thay đổi để hiểu sâu hơn
+### Try Modifying to Understand Deeper
 
-- Thay `l = 5L` bằng một số `long` rất lớn, thử `l + f` và quan sát sai số do `float`.
-- Thay `i / 2` bằng `(double) i / 2`, so sánh kiểu và giá trị.
-- Thay `b + s` bằng `b += s` và dự đoán kiểu biểu thức lẫn nguy cơ overflow.
-- Thay `Math.round(3.6f)` bằng `Math.round(3.6)`: giá trị vẫn là 4 nhưng **kiểu trả về đổi từ `int` sang `long`**.
-- Thử một wrapper `Integer` bằng `null` trong phép `boxed + 1` và giải thích ngoại lệ runtime.
+- Replace `l = 5L` with a very large `long`, try `l + f`, and observe the error caused by `float`.
+- Replace `i / 2` with `(double) i / 2`, compare the type and value.
+- Replace `b + s` with `b += s` and predict both the expression type and the overflow risk.
+- Replace `Math.round(3.6f)` with `Math.round(3.6)`: the value is still 4, but **the return type changes from `int` to `long`**.
+- Try an `Integer` wrapper equal to `null` in `boxed + 1` and explain the runtime exception.
 
-**Kết luận:** để kiểm chứng biểu thức số trong Java, luôn bắt đầu từ **kiểu của toán hạng và quy tắc của từng toán tử**, sau đó mới tính giá trị và đánh giá nguy cơ overflow/loss of precision. Bảng kết quả cần phân biệt rõ compile-time type, giá trị runtime và cách gán, để tránh suy ra kiểu từ một dòng output.
+**Conclusion:** to verify numeric expressions in Java, always start from **the operand types and the rules of each operator**, then compute the value and evaluate overflow/loss-of-precision risks. A verification table must clearly distinguish compile-time type, runtime value, and assignment style to avoid inferring types from a single output line.

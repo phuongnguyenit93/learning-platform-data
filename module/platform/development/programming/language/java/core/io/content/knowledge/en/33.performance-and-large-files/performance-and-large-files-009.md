@@ -1,48 +1,48 @@
-# Không mặc định NIO hoặc memory mapping luôn nhanh hơn
+# Do Not Assume NIO or Memory Mapping Is Always Faster
 
-## 1. Tư duy nền tảng: API không phải lời hứa về tốc độ
+## 1. Core Mindset: An API Is Not a Speed Promise
 
-Khi làm việc với **tệp lớn** trong Java, thường nghe những nhận định như:
+When working with **large files** in Java, you often hear claims like:
 
-- “`FileChannel` thuộc NIO nên luôn nhanh hơn `FileInputStream`.”
-- “`MappedByteBuffer` ánh xạ file vào bộ nhớ nên gần như không mất chi phí I/O.”
-- “`transferTo()` luôn là zero-copy nên chắc chắn nhanh nhất.”
-- “Direct `ByteBuffer` luôn tốt hơn heap `ByteBuffer`.”
-- “File lớn thì cứ map hết file vào RAM.”
+- “`FileChannel` is part of NIO, so it is always faster than `FileInputStream`.”
+- “`MappedByteBuffer` maps the file into memory, so it has almost zero I/O cost.”
+- “`transferTo()` is always zero-copy, so it is guaranteed fastest.”
+- “Direct `ByteBuffer` is always better than heap `ByteBuffer`.”
+- “For large files, just map the whole file into RAM.”
 
-**Không nhận định nào đúng trong mọi điều kiện.** Các API Java cung cấp **cách truy cập và khả năng tối ưu hóa khác nhau**. Hiệu năng thực tế phụ thuộc workload, OS, filesystem, thiết bị, caching, kiểu đọc, kích thước khối, chi phí khởi tạo, bộ nhớ sẵn có, CPU, thiết lập JVM và cách chương trình đo.
+**None of these statements holds under all conditions.** Java APIs offer **different access models and optimization opportunities**. Real-world performance depends on workload, OS, filesystem, device, caching, read pattern, block size, startup cost, available memory, CPU, JVM settings, and how the program measures.
 
-Cần đánh giá ít nhất ba câu hỏi độc lập:
+You must evaluate at least three independent questions:
 
-1. **Đúng chức năng không?** Copy xong dữ liệu có đầy đủ, đúng byte, không mất phần cuối, xử lý được EOF/partial read/write?
-2. **Dùng tài nguyên như thế nào?** Heap, native memory, page cache, file descriptor, CPU, số syscall, GC pressure, page faults, disk I/O?
-3. **Nhanh trong điều kiện nào?** File nhỏ hay lớn, đọc tuần tự hay ngẫu nhiên, đọc một lần hay lặp lại, cache nóng hay lạnh, một hay nhiều luồng, SSD hay network filesystem?
+1. **Is it functionally correct?** After copying, is the data complete, byte-identical, not missing the tail, and handling EOF/partial reads/writes properly?
+2. **How does it use resources?** Heap, native memory, page cache, file descriptors, CPU, syscall count, GC pressure, page faults, disk I/O?
+3. **Under what conditions is it fast?** Small or large files, sequential or random reads, one-off or repeated reads, warm or cold cache, single or multiple threads, SSD or network filesystem?
 
-**Kết luận của bài:** chọn cách tiếp cận phù hợp dựa trên đặc tính dữ liệu và phép đo có kiểm soát. Không thay vòng lặp stream bằng NIO/mmap chỉ vì tên API nghe “hiện đại” hơn.
+**Lesson takeaway:** choose the right approach based on data characteristics and controlled measurements. Do not replace a stream loop with NIO/mmap just because the API name sounds more “modern.”
 
-## 2. Phân biệt Java I/O, NIO và memory mapping
+## 2. Distinguishing Java I/O, NIO, and Memory Mapping
 
-Java có nhiều API I/O tồn tại song song, không có ranh giới “cũ chậm / mới nhanh” tuyệt đối:
+Java has multiple I/O APIs coexisting without an absolute “old slow / new fast” divide:
 
-| Cách làm | API đại diện | Cơ chế thường dùng | Thế mạnh thường gặp |
+| Approach | Representative APIs | Typical mechanism | Common strengths |
 | --- | --- | --- | --- |
-| Stream tuần tự | `InputStream`, `OutputStream` | Đọc/ghi byte theo thứ tự | Đơn giản, xử lý pipeline, dễ giới hạn dữ liệu |
-| Buffered stream | `BufferedInputStream`, `BufferedOutputStream` | Bộ đệm ứng dụng quanh stream | Giảm số lời gọi I/O nhỏ, xử lý tuần tự |
-| Files utilities | `Files.copy`, `Files.newInputStream` | Implementation chọn cơ chế | Code ngắn, biểu đạt ý định copy rõ |
-| NIO channel | `FileChannel` | Đọc/ghi với `ByteBuffer`, positional I/O | Truy cập theo offset, scattering/gathering, chuyển giữa channel |
-| Channel transfer | `FileChannel.transferTo`/`transferFrom` | Cơ hội sử dụng optimized transfer | Chuyển dữ liệu giữa channel, có thể tránh copy trung gian |
-| Memory-mapped file | `FileChannel.map` → `MappedByteBuffer` | Ánh xạ vùng tệp vào không gian địa chỉ | Truy cập nhiều vị trí bằng phép `get/put`, đọc ngẫu nhiên |
-| Asynchronous file | `AsynchronousFileChannel` | I/O biểu diễn bằng completion/Future | Tổ chức ứng dụng bất đồng bộ |
+| Sequential stream | `InputStream`, `OutputStream` | Read/write bytes sequentially | Simple, pipeline processing, easy data bounding |
+| Buffered stream | `BufferedInputStream`, `BufferedOutputStream` | Application buffer around stream | Reduces small I/O call overhead, sequential processing |
+| Files utilities | `Files.copy`, `Files.newInputStream` | Implementation picks mechanism | Concise code, expresses copy intent clearly |
+| NIO channel | `FileChannel` | Read/write with `ByteBuffer`, positional I/O | Offset access, scattering/gathering, channel transfers |
+| Channel transfer | `FileChannel.transferTo`/`transferFrom` | Opportunity for optimized transfer | Moves data between channels, may avoid intermediate copies |
+| Memory-mapped file | `FileChannel.map` → `MappedByteBuffer` | Maps file region into address space | Multi-location access via `get/put`, random reads |
+| Asynchronous file | `AsynchronousFileChannel` | I/O expressed via completion/`Future` | Asynchronous application structuring |
 
-**NIO** là tên một nhóm API (*New I/O*) chứ không phải một thuật toán nén, một kiểu bộ đệm hay bảo đảm giảm số syscall trên mọi JVM. Tương tự, “mmap” là kỹ thuật ánh xạ vào bộ nhớ ảo: **không đồng nghĩa toàn bộ file đã được tải lên RAM**.
+**NIO** is the name of an API group (*New I/O*), not a compression algorithm, a buffer type, or a guarantee of fewer syscalls on every JVM. Likewise, “mmap” is a virtual memory mapping technique: **it does not mean the entire file is already loaded into RAM**.
 
-Một chương trình dùng `FileChannel` có thể vẫn thực hiện **blocking file I/O**. `FileChannel` không phải `SelectableChannel`, không thể đăng ký `Selector` như một `SocketChannel`. Không nên nhầm NIO file channel với non-blocking socket.
+A program using `FileChannel` may still perform **blocking file I/O**. `FileChannel` is not a `SelectableChannel` and cannot be registered with a `Selector` like a `SocketChannel`. Do not confuse NIO file channels with non-blocking sockets.
 
-## 3. Cơ chế liên quan tới hiệu năng
+## 3. Mechanisms Related to Performance
 
-### 3.1. Bộ đệm ứng dụng và chi phí mỗi lời gọi
+### 3.1. Application Buffers and Per-Call Overhead
 
-Nếu đọc từng byte bằng:
+If you read byte by byte using:
 
 ```java
 int value;
@@ -51,73 +51,73 @@ while ((value = input.read()) != -1) {
 }
 ```
 
-thì khi stream không được buffer phù hợp, số lần gọi qua các tầng Java/OS có thể rất lớn. Một bước tối ưu thường hiệu quả hơn việc chuyển ngay sang API khác là **đọc theo khối**:
+then when the stream is not appropriately buffered, calls crossing Java/OS layers can be huge. An optimization step often more effective than immediately switching APIs is **block reading**:
 
 ```java
 byte[] buffer = new byte[64 * 1024];
 int n;
 while ((n = input.read(buffer)) != -1) {
     if (n == 0) {
-        continue; // Cần chính sách không tiến triển tùy nguồn.
+        continue; // Needs a no-progress policy depending on source.
     }
     output.write(buffer, 0, n);
 }
 ```
 
-Hai đoạn chỉ minh họa; cần khai báo input/output, kiểm soát quyền sở hữu stream và lỗi I/O. Với `InputStream` chuẩn và độ dài > 0, `read` thông thường trả số dương hoặc `-1`; nếu một nguồn đặc biệt liên tục trả 0 thì vòng lặp trên sẽ busy-spin và cần xử lý khác.
+Both snippets are illustrative only; you must declare input/output, manage stream ownership, and handle I/O errors. For standard `InputStream` with positive length, `read` normally returns a positive count or `-1`; if an unusual source keeps returning 0, the loop above will busy-spin and requires different handling.
 
-**Đọc theo khối** thường giúp giảm overhead so với đọc từng byte, nhưng từ “thường” quan trọng: kích thước khối tối ưu vẫn phải đo và phụ thuộc API/tầng buffer bên dưới.
+**Block reading** usually cuts overhead compared to byte-by-byte reading, yet the word “usually” matters: optimal block size must still be measured and depends on the underlying API/buffer layers.
 
-### 3.2. Page cache của hệ điều hành
+### 3.2. The OS Page Cache
 
-Với file thông thường, OS thường cache dữ liệu trang tệp trong **page cache**. Do đó:
+For regular files, the OS typically caches file page data in the **page cache**. Therefore:
 
-- Lần đọc đầu tiên (*cold-ish*) có thể cần đợi storage.
-- Lần đọc sau (*warm*) có thể lấy phần lớn byte từ RAM của hệ thống.
-- Hai chương trình dùng API khác nhau nhưng chạy liên tiếp trên cùng file có thể nhận mức cache **khác nhau**.
-- File lớn hơn dung lượng cache và workload tranh chấp có thể thay đổi kết quả rất mạnh.
+- The first read (*cold-ish*) may have to wait for storage.
+- Subsequent reads (*warm*) can fetch most bytes from system RAM.
+- Two programs using different APIs run consecutively on the same file can see **different** cache states.
+- Files larger than cache capacity and competing workloads can swing results dramatically.
 
-`Files.readAllBytes`, `FileChannel.read` và `MappedByteBuffer.get` đều có thể hưởng lợi từ page cache. Mapping **không loại bỏ** chi phí đưa trang từ storage vào cache. Nó thay cách truy cập dữ liệu, không vượt qua giới hạn vật lý của SSD/HDD/mạng.
+`Files.readAllBytes`, `FileChannel.read`, and `MappedByteBuffer.get` can all benefit from the page cache. Mapping **does not eliminate** the cost of bringing pages from storage into cache. It changes how data is accessed, not the physical limits of SSDs, HDDs, or networks.
 
-### 3.3. System call, memory copy và page fault
+### 3.3. System Calls, Memory Copies, and Page Faults
 
-Một `FileChannel.read(ByteBuffer)` có thể đi qua lời gọi hệ điều hành và sao chép byte tới buffer tương ứng. Memory mapping cho phép chương trình đọc vùng mapped bằng thao tác bộ nhớ sau khi mapping được thiết lập. Tuy nhiên, mapping có thể phát sinh **page faults**, chi phí ánh xạ và quản lý trang, TLB pressure, chi phí tạo/bỏ mapping, áp lực địa chỉ ảo và tương tác cache.
+A `FileChannel.read(ByteBuffer)` may go through an OS call and copy bytes into the corresponding buffer. Memory mapping lets the program read the mapped region via memory operations once the mapping is established. However, mapping can incur **page faults**, mapping setup and page management costs, TLB pressure, map/unmap overhead, virtual address pressure, and cache interactions.
 
-Giảm số lần copy **không có nghĩa tổng chi phí giảm** nếu chuyển khối nhỏ một lần rồi hủy mapping. Với truy cập ngẫu nhiên lặp đi lặp lại trên những trang đã có trong cache, mapping có thể thuận lợi; với một lần đọc tuần tự, buffer stream hoặc channel đôi khi dễ đạt throughput cao với ít phức tạp hơn.
+Reducing copy count **does not guarantee lower total cost** if you transfer one small chunk and tear down the mapping. For repeated random accesses on already-cached pages, mapping can be advantageous; for a single sequential scan, buffered streams or channels often achieve high throughput with less complexity.
 
-### 3.4. Chi phí allocation và GC
+### 3.4. Allocation and GC Overhead
 
-`ByteBuffer.allocate(n)` tạo heap buffer; `ByteBuffer.allocateDirect(n)` tạo direct buffer có backing memory ngoài Java heap. Direct buffer có thể thuận lợi cho một số đường I/O native, nhưng:
+`ByteBuffer.allocate(n)` creates a heap buffer; `ByteBuffer.allocateDirect(n)` creates a direct buffer with backing memory outside the Java heap. Direct buffers can suit certain native I/O paths, yet:
 
-- Cấp phát/thu hồi direct buffer có chi phí.
-- Native memory không hiện toàn bộ ở biểu đồ heap.
-- Tạo nhiều direct buffer ngắn hạn có thể gây áp lực tài nguyên.
-- Một số thao tác vẫn cần copy hoặc tạo view tùy API.
-- Không có hợp đồng “direct luôn nhanh hơn heap”.
+- Allocating/reclaiming direct buffers has cost.
+- Native memory is not fully visible in heap charts.
+- Creating many short-lived direct buffers can cause resource pressure.
+- Some operations still require copies or creating views depending on APIs.
+- There is no contract that “direct is always faster than heap.”
 
-**Đừng liên tục cấp phát buffer mới trong vòng copy nếu có thể tái sử dụng một buffer với vòng đời rõ ràng.**
+**Do not repeatedly allocate new buffers inside a copy loop if a buffer with a clear lifecycle can be reused.**
 
-## 4. Hiệu năng phụ thuộc workload
+## 4. Performance Depends on the Workload
 
-Một cách chọn hợp lý là mô tả workload trước:
+A sensible selection starts by describing the workload first:
 
-| Workload | Ứng viên thường đáng thử | Không nên kết luận sớm |
+| Workload | Reasonable candidates to test | Do not jump to conclusions |
 | --- | --- | --- |
-| File vài KiB, đọc một lần | `Files.readAllBytes` (nếu đã giới hạn), buffered stream | Mapping chắc chắn nhanh |
-| File rất lớn, đọc tuần tự | Buffered stream, `FileChannel` + buffer, `Files.copy` | NIO chắc chắn hơn buffered stream |
-| Sao chép nguyên file | `Files.copy`, `transferTo`/`transferFrom`, buffered copy | `transferTo` luôn zero-copy |
-| Truy cập ngẫu nhiên nhiều offset | Positional `FileChannel.read`, memory mapping | Mmap luôn tốt hơn positional read |
-| Truy cập lặp lại một vùng nhỏ | Cache ở ứng dụng, buffer reuse, mmap vùng nhỏ | Map toàn bộ file là tối ưu |
-| Đọc một lần và bỏ file | Streaming buffer cố định | Luôn map rồi GC |
-| Nhiều file nhỏ | Stream/`Files` đơn giản; đo overhead mở file | API tối ưu trên một file lớn vẫn tối ưu |
-| Dữ liệu chưa biết kích thước | Streaming + byte limit | `readAllBytes` rồi mới kiểm tra |
-| File luân phiên ghi, truncate, rotate | Channel đọc/ghi thường với state rõ | Mapping an toàn trước mọi thay đổi kích thước |
+| Multi-KiB file, single read | `Files.readAllBytes` (if bounded), buffered stream | Mapping is definitely fast |
+| Very large file, sequential read | Buffered stream, `FileChannel` + buffer, `Files.copy` | NIO definitely beats buffered streams |
+| Copy an entire file | `Files.copy`, `transferTo`/`transferFrom`, buffered copy | `transferTo` is always zero-copy |
+| Random access across many offsets | Positional `FileChannel.read`, memory mapping | Mmap always beats positional reads |
+| Repeated access to a small region | Application cache, buffer reuse, small-region mmap | Mapping the whole file is optimal |
+| Read once and discard file | Fixed-buffer streaming | Always map then let GC collect |
+| Many small files | Simple `Files`/streams; measure file open overhead | An API optimal for one huge file stays optimal |
+| Unknown data size | Streaming + byte limit | `readAllBytes` then check size afterward |
+| File rotated, truncated, or written concurrently | Regular read/write channel with clear state | Mapping is safe against all size changes |
 
-Các gợi ý trên chỉ để tạo **danh sách phương án benchmark**, không phải bảng xếp hạng tốc độ.
+These suggestions only form a **list of benchmark candidates**, not a speed ranking.
 
-## 5. Buffered stream: baseline đơn giản nhưng mạnh
+## 5. Buffered Streams: A Simple Yet Strong Baseline
 
-Một thiết kế dễ hiểu để copy file:
+A straightforward design to copy a file:
 
 ```java
 try (InputStream input = new BufferedInputStream(
@@ -133,27 +133,27 @@ try (InputStream input = new BufferedInputStream(
 }
 ```
 
-Đây là đoạn mã minh họa, giả định `source`/`target` là `Path` phù hợp và đã import lớp cần dùng. `close()` của buffered output sẽ flush dữ liệu còn trong buffer theo hợp đồng; lỗi trong close vẫn cần xử lý. Một số cách bố trí buffer ứng dụng có thể **thừa nhiều tầng đệm**, ví dụ có cả `BufferedInputStream` lẫn mảng đọc 64 KiB, nhưng vẫn là baseline dễ triển khai. Có thể thử `Files.newInputStream` + mảng lớn trực tiếp để xem buffered wrapper có lợi trong workload cụ thể hay không.
+This is an illustrative snippet, assuming `source`/`target` are valid `Path`s and required classes are imported. `close()` on buffered output flushes remaining buffered bytes per contract; errors during close still need handling. Some application buffer layouts can have **redundant buffering layers**, e.g. both `BufferedInputStream` and a 64 KiB read array, yet it remains an easy baseline to implement. You can try `Files.newInputStream` + a large array directly to see if the buffered wrapper helps in your specific workload.
 
-### Khi stream là lựa chọn tốt
+### When Streams Are a Good Choice
 
-- Dữ liệu xử lý **tuần tự**, không cần seek.
-- Input lớn hoặc không giới hạn: muốn kiểm soát bộ nhớ bằng bộ đệm cố định.
-- Dữ liệu cần xử lý qua pipeline nén, checksum, parser, encryption.
-- Cần tương thích rộng, code đơn giản, dễ bảo trì.
+- Data is processed **sequentially**, without needing seeks.
+- Input is large or unbounded: you want memory bounded by a fixed buffer.
+- Data flows through pipelines for compression, checksums, parsing, or encryption.
+- Broad compatibility and simple, maintainable code are priorities.
 
-### Khi stream chưa đủ
+### When Streams Are Not Enough
 
-- Cần đọc/ghi ở offset tuyệt đối mà không đổi file position.
-- Cần thao tác trên đoạn lớn hoặc nhiều vị trí của cùng file.
-- Có cơ hội tối ưu chuyển byte giữa hai channel.
-- Cần tính năng như `FileLock`, `force`, scattering/gathering.
+- You need to read/write at absolute offsets without changing file position.
+- You need to operate on large ranges or multiple positions of the same file.
+- There is an opportunity to optimize byte transfers between two channels.
+- You need features like `FileLock`, `force`, or scattering/gathering.
 
-Ngay cả khi nhu cầu dẫn đến NIO, vẫn phải xét **tổng chi phí** chứ không coi đó là bằng chứng tốc độ.
+Even when requirements lead to NIO, evaluate **total cost** rather than treating it as automatic proof of speed.
 
-## 6. `FileChannel` và `ByteBuffer`: linh hoạt không đồng nghĩa miễn phí
+## 6. `FileChannel` and `ByteBuffer`: Flexibility Is Not Free
 
-`FileChannel` hỗ trợ các overload điển hình:
+`FileChannel` supports typical overloads:
 
 ```java
 int read(ByteBuffer dst) throws IOException;
@@ -164,11 +164,11 @@ long position() throws IOException;
 FileChannel position(long newPosition) throws IOException;
 ```
 
-Đây là chữ ký API rút gọn để minh họa, không phải class hoàn chỉnh.
+These are abridged API signatures for illustration, not a complete class.
 
-`read` và `write` có thể hoàn tất **một phần** dữ liệu; không mặc định `read` lấp đầy `ByteBuffer` hoặc `write` tiêu thụ hết `remaining()` trong mọi tình huống. Với positional I/O, tham số `position` là offset **tuyệt đối trên file**; các overload có đối số offset **không sửa `channel.position()`**, nhưng vẫn thay đổi `ByteBuffer.position()` theo số byte truyền thực.
+`read` and `write` can complete **partially**; never assume `read` fills `ByteBuffer` or `write` drains all `remaining()` bytes in all situations. With positional I/O, the `position` parameter is an **absolute file offset**; overloads taking an offset **do not modify `channel.position()`**, though they still advance `ByteBuffer.position()` by the actual bytes transferred.
 
-Mẫu copy theo channel:
+Channel copy pattern:
 
 ```java
 ByteBuffer buffer = ByteBuffer.allocate(64 * 1024);
@@ -193,17 +193,17 @@ while (true) {
 }
 ```
 
-Đây là đoạn minh họa, giả định file channels đã mở và có import. Nó xử lý **partial write**, một yếu tố quan trọng về correctness. Với file thông thường trong chế độ blocking, không tiến triển thường là tình huống bất thường; chính sách cụ thể cần tùy loại channel.
+This is an illustrative snippet, assuming open file channels and imports. It handles **partial writes**, a critical correctness factor. For normal files in blocking mode, zero progress is abnormal; exact policy depends on channel type.
 
-Thêm một lớp buffer không tự đảm bảo tốc độ cao: nếu bạn chọn buffer quá nhỏ, phát sinh nhiều lời gọi; nếu chọn quá lớn, tăng chi phí cấp phát và ảnh hưởng cache/memory. Kích thước `4 KiB`, `64 KiB` hay `1 MiB` đều chỉ là **candidate cho phép đo**, không phải con số phổ quát.
+Adding another buffer layer does not guarantee high speed: too small a buffer incurs many calls; too large a buffer raises allocation cost and hurts cache/memory. Sizes like `4 KiB`, `64 KiB`, or `1 MiB` are only **measurement candidates**, not universal constants.
 
-## 7. `FileChannel.transferTo` và `transferFrom`: có thể tối ưu, không cam kết zero-copy
+## 7. `FileChannel.transferTo` and `transferFrom`: Optimizable, Not Guaranteed Zero-Copy
 
-`FileChannel.transferTo(long position, long count, WritableByteChannel target)` chuyển một vùng dữ liệu từ file source tới channel đích.
+`FileChannel.transferTo(long position, long count, WritableByteChannel target)` transfers a data range from the source file to a target channel.
 
-Ưu điểm tiềm năng: implementation có thể dùng cơ chế native để hạn chế các bước trung gian khi chuyển giữa file và socket hoặc giữa những channel được hỗ trợ. Nhưng Javadoc nói rõ số byte chuyển **có thể ít hơn `count`**, và tùy hệ thống/loại channel, implementation **có thể không chuyển được tất cả hoặc có giới hạn riêng**.
+Potential advantage: implementations can use native mechanisms to reduce intermediate steps when moving data between files and sockets or between supported channels. However, the Javadoc explicitly notes transferred bytes **may be fewer than `count`**, and depending on system/channel type, implementations **may fail to transfer everything or impose specific caps**.
 
-Mẫu đúng khi cần copy toàn bộ:
+Proper pattern when copying the entire file:
 
 ```java
 long size = source.size();
@@ -220,29 +220,29 @@ while (copied < size) {
 }
 ```
 
-Đoạn này cần khai báo `source` là `FileChannel` và `destination` là `WritableByteChannel`. Khi gặp 0, **không spin vô hạn**. Tùy API và thiết bị có thể chuyển sang buffer-based fallback, chờ điều kiện thích hợp hoặc báo lỗi; ví dụ ném ngoại lệ để không che lỗi copy thiếu.
+This snippet requires declaring `source` as `FileChannel` and `destination` as `WritableByteChannel`. Upon seeing 0, **do not spin forever**. Depending on API and device, switch to a buffer-based fallback, wait for readiness, or throw an error; this example throws an exception to avoid masking an incomplete copy.
 
-**Những điều không được suy diễn:**
+**Do not infer:**
 
-- Không có bảo đảm **mọi lần transferTo đều là zero-copy**.
-- “Zero-copy” không có nghĩa CPU bằng 0, I/O storage bằng 0 hoặc không có bộ nhớ kernel tham gia.
-- Không có bảo đảm lần truyền `count` sẽ chuyển đủ `count`.
-- Thay đổi OS, JDK, filesystem, loại đích hoặc kích thước file có thể thay đổi đường tối ưu.
-- Copy từ file vào **file khác** và truyền từ file vào **socket** có đường kernel khác nhau; không gộp thành một benchmark vô danh.
+- There is any guarantee **every `transferTo` call is zero-copy**.
+- “Zero-copy” means zero CPU, zero storage I/O, or no kernel memory involvement.
+- Passing `count` guarantees transferring all `count` bytes in one call.
+- Changing OS, JDK, filesystem, target type, or file size keeps the same optimal path.
+- Copying from a file to **another file** and sending from a file to a **socket** use identical kernel paths; do not lump them into one unnamed benchmark.
 
-Nếu hệ thống cần copy file theo `Path` mà không phải xử lý dữ liệu từng byte, **`Files.copy`** cũng là candidate quan trọng. Implementation của nó có thể chọn tối ưu riêng, nên không nên buộc mọi trường hợp đi qua mã `transferTo` tự viết.
+If the system needs to copy files by `Path` without inspecting bytes, **`Files.copy`** is also a strong candidate. Its implementation can choose its own optimizations, so do not force everything through hand-written `transferTo` code.
 
-## 8. Ví dụ Java 17 chạy được: ba cách copy, cùng dữ liệu
+## 8. Runnable Java 17 Example: Three Copy Approaches, Same Data
 
-Ví dụ này copy một file 8 KiB bằng ba kỹ thuật:
+This example copies an 8 KiB file using three techniques:
 
 1. Buffered stream.
 2. `FileChannel` + `ByteBuffer`.
 3. `FileChannel.transferTo`.
 
-Nó **không in thời gian** vì stdout cố định ở đây dùng để kiểm tra tính đúng đắn. Một lần chạy nhỏ trên file đã cache không đủ làm benchmark.
+It **does not print timings** because deterministic stdout here serves to check correctness. A single small run on a cached file does not make a benchmark.
 
-**Tệp `CopyStrategiesDemo.java`:**
+**File `CopyStrategiesDemo.java`:**
 
 ```java
 import java.io.BufferedInputStream;
@@ -357,14 +357,14 @@ public class CopyStrategiesDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac CopyStrategiesDemo.java
 java CopyStrategiesDemo
 ```
 
-**Stdout trong điều kiện I/O thành công:**
+**Stdout under successful I/O conditions:**
 
 ```text
 Buffered correct: true
@@ -373,22 +373,22 @@ Transfer correct: true
 Original size: 8192
 ```
 
-`Files.mismatch` (có từ Java 12) trả `-1` nếu hai file giống nhau về byte. Phép kiểm tra này xác minh **đầu ra**, không chứng minh phương thức nào nhanh hơn.
+`Files.mismatch` (since Java 12) returns `-1` if two files are byte-identical. This check verifies **outputs**, not which method is faster.
 
-### Phân tích ví dụ
+### Example Breakdown
 
-- Tệp nguồn được tạo với 8.192 byte có quy luật, không phụ thuộc dữ liệu mạng.
-- Buffered copy đọc/ghi theo khối 4.096 byte.
-- Channel copy dùng đúng chu kỳ `clear → read → flip → write hết remaining`.
-- Transfer copy dùng vòng lặp với `copied` để không bỏ phần nếu `transferTo` trả số nhỏ hơn `count`.
-- Các file đích có tên khác nhau; code không ghi đè nguồn.
-- `try-with-resources` đóng tất cả handle trước khi xóa file tạm.
+- Source file is generated with 8,192 deterministic bytes, independent of network data.
+- Buffered copy reads/writes in 4,096-byte blocks.
+- Channel copy follows the proper `clear → read → flip → drain remaining` cycle.
+- Transfer copy uses a loop with `copied` so nothing is skipped if `transferTo` returns less than `count`.
+- Target files have distinct names; code does not overwrite source.
+- `try-with-resources` closes all handles before deleting temp files.
 
-**Nếu thay thành file rất lớn:** bản mẫu `Files.mismatch` sẽ đọc tệp để đối chiếu, làm thay đổi tình trạng cache. Khi đo throughput, phải tách **thời gian copy** khỏi **thời gian verify** (hoặc báo rõ cả hai), và bảo đảm các phương án được so trên **cùng điều kiện đầu vào**. Mỗi lượt chạy có thể cần reset file đích, cache policy và chế độ lưu trữ.
+**If scaled to a very large file:** calling `Files.mismatch` reads the files to compare them, altering cache state. When measuring throughput, separate **copy time** from **verification time** (or report both clearly), and ensure approaches are compared under **identical input conditions**. Each run may require resetting target files, cache policy, and storage state.
 
-## 9. Memory mapping là gì — và không phải gì?
+## 9. What Memory Mapping Is — and What It Is Not
 
-`FileChannel.map` ánh xạ một vùng tệp vào bộ nhớ ảo của tiến trình, trả về `MappedByteBuffer` (API thông dụng trên Java 17):
+`FileChannel.map` maps a file region into the process's virtual memory, returning a `MappedByteBuffer` (the common API on Java 17):
 
 ```java
 MappedByteBuffer mapped = channel.map(
@@ -397,66 +397,66 @@ MappedByteBuffer mapped = channel.map(
         length);
 ```
 
-Đây là đoạn minh họa; `channel` phải mở đúng mode, `offset`/`length` hợp lệ. Sau khi map, `get(index)`/`getInt(index)` có thể truy cập vị trí trong vùng mapped mà không cần gọi `channel.read` cho mỗi phần tử.
+This is an illustrative snippet; `channel` must be opened in a compatible mode, and `offset`/`length` must be valid. Once mapped, `get(index)`/`getInt(index)` can access positions in the mapped region without calling `channel.read` for each element.
 
-**Nhưng mapping không có nghĩa:**
+**However, mapping does not mean:**
 
-- File đã được tải toàn bộ vào RAM ngay lúc `map()` trả về.
-- Truy cập byte đầu tiên không thể xảy ra page fault.
-- Dữ liệu luôn nằm trong CPU cache.
-- Không còn kernel, OS hoặc filesystem tham gia.
-- Không bao giờ gây lỗi nếu file bị truncate từ tiến trình khác.
-- Đã có API unmap đồng bộ tường minh trên `MappedByteBuffer` Java 17.
-- Luôn nhanh hơn `FileChannel.read`, kể cả file nhỏ, mở/đọc một lần rồi đóng.
+- The entire file is loaded into RAM the moment `map()` returns.
+- Accessing the first byte cannot incur a page fault.
+- Data always stays in CPU cache.
+- Kernel, OS, or filesystem are no longer involved.
+- Errors never happen if another process truncates the file.
+- A synchronous explicit unmap API exists on Java 17 `MappedByteBuffer`.
+- It is always faster than `FileChannel.read`, even for small files opened, read once, and closed.
 
-### Khi nào mapping đáng xem xét?
+### When Is Mapping Worth Considering?
 
-- Truy cập **nhiều lần** các vùng tệp khác nhau bằng offset.
-- Bảng tra cứu hoặc cấu trúc dữ liệu nhị phân có địa chỉ bản ghi dễ tính.
-- Nhiều lần random read trên vùng mapping có vòng đời đủ dài.
-- Dữ liệu phù hợp để xem như một **vùng byte trong bộ nhớ** với index và format rõ ràng.
+- Accessing different regions of a file **repeatedly** by offset.
+- Lookup tables or binary data structures with easily computed record addresses.
+- Many random reads over a mapping with a sufficiently long lifetime.
+- Data that fits being viewed as a **memory byte region** with clear indices and format.
 
-### Khi nào nên cân nhắc tránh?
+### When Should You Consider Avoiding It?
 
-- Tệp rất nhỏ, mở/đọc một lần.
-- File cần thay thế/truncate/xóa ngay và quan tâm tính portable giữa OS.
-- Pipeline tuần tự vốn đã đạt throughput phù hợp.
-- Ứng dụng tạo/hủy hàng nghìn mapping ngắn hạn.
-- Dữ liệu đầu vào có thể bị tiến trình khác thay đổi kích thước bất ngờ.
-- Môi trường có giới hạn address space, native memory hoặc mapping count chặt.
+- Very small files opened and read once.
+- Files needing immediate replacement/truncation/deletion where cross-OS portability matters.
+- Sequential pipelines already achieving suitable throughput.
+- Applications creating/destroying thousands of short-lived mappings.
+- Input data whose size may be altered unexpectedly by another process.
+- Environments with tight address space, native memory, or mapping count limits.
 
-**Map phù hợp workload, không phải “chế độ turbo” cho mọi I/O.**
+**Map to fit the workload; it is not a “turbo mode” for all I/O.**
 
-## 10. Không gian địa chỉ ảo, RAM và page faults là ba thứ khác nhau
+## 10. Virtual Address Space, RAM, and Page Faults Are Three Different Things
 
-Khi mmap một tệp, tiến trình có **vùng ánh xạ địa chỉ ảo** để truy cập trang tệp. Việc một vùng rộng được ánh xạ không đồng nghĩa bằng ấy byte đã được copy vào Java heap hoặc đều resident trong RAM.
+When mmapping a file, the process gets a **virtual address mapping** to access file pages. Having a wide mapped region does not mean that many bytes were copied into the Java heap or are all resident in RAM.
 
-Phân biệt:
+Distinguish:
 
-| Khái niệm | Ý nghĩa |
+| Concept | Meaning |
 | --- | --- |
-| Java heap | Nơi chứa object, array, một phần metadata do GC quản lý |
-| Virtual address space | Không gian địa chỉ process, nơi mapping đặt vùng truy cập |
-| Resident memory | Trang bộ nhớ vật lý hiện đang resident, phụ thuộc OS |
-| Page cache | Bộ nhớ đệm của OS cho trang tệp |
-| Page fault | Truy cập trang chưa sẵn sàng trong mapping hoặc cần thiết lập mapping/đọc từ storage |
-| MappedByteBuffer | Java view tới vùng file mapped, có giới hạn `int` index |
-| File descriptor/channel | Tài nguyên I/O để mở file; đóng channel không nhất thiết unmap vùng đã tạo |
+| Java heap | Where objects, arrays, and part of GC-managed metadata live |
+| Virtual address space | Process address space where the mapping places an access window |
+| Resident memory | Physical memory pages currently resident, OS-dependent |
+| Page cache | OS cache for file pages |
+| Page fault | Accessing a page not yet ready in the mapping or needing mapping setup/storage fetch |
+| `MappedByteBuffer` | Java view onto the mapped file region, constrained by `int` indexing |
+| File descriptor/channel | I/O resource for opening the file; closing the channel does not necessarily unmap created regions |
 
-Tốc độ có thể khác nhau tùy dữ liệu đã nằm trong page cache hay chưa. Đọc ngẫu nhiên qua mapping có thể phát sinh nhiều page faults không đều; đọc tuần tự qua buffered stream cho phép OS nhận diện pattern tốt và dùng prefetch/read-ahead. Với một workload khác, mapping có thể giảm overhead của nhiều thao tác positional read nhỏ.
+Speed varies depending on whether data is already in the page cache. Random reads through a mapping can trigger erratic page faults; sequential reads through buffered streams let the OS recognize the pattern well and apply prefetch/read-ahead. In another workload, mapping can cut the overhead of many tiny positional `read` calls.
 
-**Đo cả CPU, page faults và I/O latency**, không chỉ tổng số byte đọc trên lý thuyết.
+**Measure CPU, page faults, and I/O latency**, not just theoretical bytes read.
 
-## 11. Ví dụ Java 17: random access bằng FileChannel và mmap đều đúng
+## 11. Java 17 Example: Random Access via FileChannel and Mmap Are Both Correct
 
-Ví dụ sau tạo file nhị phân gồm bốn số nguyên big-endian và đọc số thứ ba (index 2) bằng:
+The example below creates a binary file of four big-endian integers and reads the third integer (index 2) using:
 
-1. `FileChannel.read(dst, offset)` từ vị trí tuyệt đối.
-2. `MappedByteBuffer.getInt(index)` từ mapping read-only.
+1. `FileChannel.read(dst, offset)` from an absolute position.
+2. `MappedByteBuffer.getInt(index)` from a read-only mapping.
 
-Mục tiêu: chứng minh **tính tương đương kết quả** trên dữ liệu này và phân biệt mô hình state. Không có khẳng định cách nào nhanh hơn từ vài byte.
+Goal: demonstrate **result equivalence** on this data and distinguish state models. No claim is made about which is faster from a few bytes.
 
-**Tệp `RandomAccessStrategiesDemo.java`:**
+**File `RandomAccessStrategiesDemo.java`:**
 
 ```java
 import java.io.IOException;
@@ -521,14 +521,14 @@ public class RandomAccessStrategiesDemo {
 }
 ```
 
-Biên dịch/chạy bằng JDK 17+:
+Compile/run on JDK 17+:
 
 ```bash
 javac RandomAccessStrategiesDemo.java
 java RandomAccessStrategiesDemo
 ```
 
-**Stdout khi I/O thành công:**
+**Stdout when I/O succeeds:**
 
 ```text
 FileChannel: 30
@@ -537,160 +537,160 @@ Same value: true
 Channel position: 1
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- Số thứ ba nằm từ offset 8 đến offset 11 (mỗi `int` dài 4 byte).
-- `readIntAt` lặp đến khi lấy đủ 4 byte và dùng `offset + received`; overload positional read không thay đổi `channel.position()`.
-- `mapped.getInt(8)` là truy cập tuyệt đối trong buffer mapped; không cần gọi `channel.read` cho lần `getInt`.
-- Trước thao tác, channel được đặt `position(1)`, và hai cách đọc không làm thay đổi giá trị này.
-- Cả hai trả 30 nhưng **không suy ra hiệu năng tương đương hay ưu việt** chỉ từ correctness.
+- The third integer sits from offset 8 to offset 11 (each `int` is 4 bytes).
+- `readIntAt` loops until all 4 bytes are read using `offset + received`; the positional read overload does not change `channel.position()`.
+- `mapped.getInt(8)` is an absolute access inside the mapped buffer; no `channel.read` call is needed for `getInt`.
+- Before the reads, the channel was set to `position(1)`, and neither read alters this value.
+- Both return 30, yet **correctness alone implies neither equal performance nor superiority**.
 
-**Lưu ý vòng đời:** ví dụ dùng `deleteOnExit()` thay vì yêu cầu xóa file tạm ngay sau khi tạo mapped buffer, vì trên một số nền tảng mapping còn sống có thể ảnh hưởng thao tác xóa/rename. `deleteOnExit` cũng chỉ là nỗ lực dọn dẹp khi JVM thoát, không bảo đảm file sẽ được xóa trong mọi tình huống; ứng dụng chạy lâu cần chính sách quản lý lifecycle phù hợp.
+**Lifecycle note:** the example uses `deleteOnExit()` instead of deleting the temp file immediately after creating a mapped buffer, because on some platforms live mappings affect delete/rename operations. `deleteOnExit` is also only a best-effort cleanup on JVM exit and does not guarantee file deletion in all scenarios; long-running applications need an explicit lifecycle management policy.
 
-### Vấn đề byte order
+### Byte Order Matters
 
-`MappedByteBuffer` và `ByteBuffer` có `ByteOrder`. Với dữ liệu định dạng big-endian, phải thiết lập/diễn giải nhất quán. Nếu sai endianness, hai cách đọc có thể trả giá trị khác nhau dù cả hai hoàn toàn đúng về byte. Đừng dùng kết quả parser sai để kết luận về API nhanh/chậm.
+`MappedByteBuffer` and `ByteBuffer` have a `ByteOrder`. For big-endian formatted data, configure/interpret consistently. With mismatched endianness, two reads can return different values even though both read the exact same bytes. Never use buggy parser results to conclude which API is fast or slow.
 
-## 12. Giới hạn riêng của `MappedByteBuffer` trên Java 17
+## 12. Specific Limits of `MappedByteBuffer` on Java 17
 
-`MappedByteBuffer` kế thừa `ByteBuffer`, mà `capacity`, `position` và `limit` được biểu diễn bằng `int`. Vì vậy **một mapping đơn theo API trả MappedByteBuffer không thể chứa tùy ý cả file nhiều terabyte**. Java SE 17 `FileChannel.map` ràng buộc `size` theo giới hạn kiểu buffer; thực tế thường giới hạn mỗi vùng mapping ở cỡ tối đa `Integer.MAX_VALUE` byte.
+`MappedByteBuffer` extends `ByteBuffer`, whose `capacity`, `position`, and `limit` are represented as `int`. Therefore, **a single mapping returning `MappedByteBuffer` cannot arbitrarily span a multi-terabyte file**. Java SE 17 `FileChannel.map` bounds `size` by buffer limits; practically, each mapped region is capped at up to `Integer.MAX_VALUE` bytes.
 
-**Muốn xử lý file lớn hơn giới hạn một buffer**, chia thành các cửa sổ (*windows*):
+**To process a file larger than one buffer's limit**, split it into windows:
 
 ```text
-File 10 GiB
+10 GiB File
    |
-   +-- map window #1 (ví dụ 256 MiB)
+   +-- map window #1 (e.g. 256 MiB)
    +-- map window #2 (256 MiB)
    +-- ...
-   +-- map window N (phần cuối)
+   +-- map window N (final part)
 ```
 
-Nhưng mapping nhiều cửa sổ có chi phí tạo/quản lý; không nên mặc định **càng nhiều mapping càng nhanh**. Hệ thống có thể giới hạn số mapping, file descriptors hoặc address space, đặc biệt trên môi trường 32-bit hoặc container bị hạn chế.
+Yet mapping many windows carries creation/management costs; never assume **more mappings is faster**. The system may cap mapping counts, file descriptors, or address space, especially in 32-bit environments or constrained containers.
 
-### Cleanup/unmap không do `FileChannel.close()` quyết định
+### Cleanup/Unmap Is Not Determined by `FileChannel.close()`
 
-Với API `FileChannel.map(MapMode, long, long)` truyền thống trên Java 17:
+With the traditional Java 17 `FileChannel.map(MapMode, long, long)` API:
 
-- Mapping có thể tiếp tục hợp lệ **sau khi FileChannel đóng**.
-- `MappedByteBuffer` không cung cấp `close()`/`unmap()` chuẩn công khai.
-- Thời gian unmap phụ thuộc lifecycle bộ nhớ/GC, không phải thao tác `clear()` hoặc `force()`.
-- Đổi tên/xóa/truncate file đang được map có thể gặp hành vi khác nhau giữa hệ điều hành và file system.
+- The mapping may remain valid **after `FileChannel` is closed**.
+- `MappedByteBuffer` does not expose a standard public `close()`/`unmap()`.
+- Unmap timing depends on memory/GC lifecycle, not `clear()` or `force()`.
+- Renaming/deleting/truncating an actively mapped file behaves differently across OSes and filesystems.
 
-Điều này ảnh hưởng trực tiếp tới benchmark và hệ thống sản xuất: nếu mỗi lượt benchmark map một vùng mới nhưng không kiểm soát được vòng đời các mapping cũ, phép đo có thể tích lũy tài nguyên và trở nên không công bằng.
+This directly impacts benchmarks and production systems: if each benchmark pass maps a new region without controlling old mapping lifetimes, measurements can accumulate resources and become unfair.
 
-**Ghi chú theo phiên bản:** Từ Java 22, API chuẩn có overload `FileChannel.map(..., Arena)` trả `MemorySegment`, cho phép quản lý vòng đời qua arena có thể đóng. Đó là **API khác**, không khiến `MappedByteBuffer` Java 17 tự có `close()`. Khi cần tương thích Java 17, không dùng overload chỉ có ở Java 22.
+**Version note:** Starting in Java 22, standard APIs added `FileChannel.map(..., Arena)` returning `MemorySegment`, enabling lifecycle management through a closeable arena. That is a **different API** and does not give Java 17 `MappedByteBuffer` a `close()` method. When Java 17 compatibility is required, do not use Java 22-only overloads.
 
-## 13. Memory mapping có thể làm công việc chậm hơn ra sao?
+## 13. How Can Memory Mapping Make Work Slower?
 
-Một số tình huống phản trực giác:
+Several counter-intuitive scenarios:
 
-### 13.1. Một file nhỏ được đọc một lần
+### 13.1. A Small File Read Once
 
-Chi phí thiết lập mapping, page faults và cleanup có thể lớn hơn lợi ích giảm số lời gọi `read`. Một lệnh `Files.readAllBytes` hoặc buffered stream có thể đơn giản và nhanh hơn trong bài đo cụ thể.
+Mapping setup, page faults, and cleanup costs can exceed the savings from fewer `read` calls. A single `Files.readAllBytes` or buffered stream can be simpler and faster in that specific test.
 
-### 13.2. Đọc tuần tự lượng rất lớn
+### 13.2. Very Large Sequential Reads
 
-OS có thể thực hiện read-ahead hiệu quả với các lệnh đọc tuần tự. Memory mapping cũng có thể được tối ưu theo pattern, nhưng nó phát sinh page faults và chịu cách CPU/OS xử lý truy cập. Không có kết quả cố định về bên thắng.
+The OS can perform effective read-ahead for sequential read calls. Memory mapping can also be optimized depending on pattern, yet incurs page faults and depends on how CPU/OS handle accesses. There is no fixed winner.
 
-### 13.3. Nhiều mapping ngắn hạn
+### 13.3. Many Short-Lived Mappings
 
-Thay vì tái sử dụng một mapping lâu dài, chương trình map/unmap liên tục có thể chịu overhead metadata và native memory. Với API legacy, khi nào unmap còn phụ thuộc GC. Do đó pattern “mở → map → đọc 1 byte → bỏ mapping” thường không phải cách dùng tối ưu.
+Instead of reusing a long-lived mapping, constantly mapping and unmapping incurs metadata and native memory overhead. With the legacy API, unmap timing also depends on GC. Thus “open → map → read 1 byte → drop mapping” is rarely optimal.
 
-### 13.4. File thường xuyên bị truncate hoặc rotate
+### 13.4. Files Frequently Truncated or Rotated
 
-Mapping sống trong lúc file bị thay đổi kích thước có thể làm một phần vùng không truy cập được; hành vi lỗi có thể phụ thuộc OS. Nếu hệ thống là log rotate, temp file hoặc spool thường xuyên xóa, buffered FileChannel/read có thể dễ quản lý vòng đời hơn.
+Keeping a mapping alive while a file changes size can make parts of the region inaccessible; failure behavior can be OS-dependent. For rotated logs, temp files, or spools deleted frequently, buffered `FileChannel`/reads can be easier to manage.
 
-### 13.5. Áp lực bộ nhớ và cạnh tranh tài nguyên
+### 13.5. Memory Pressure and Resource Contention
 
-Mapping không tự copy toàn bộ file lên heap nhưng có thể làm tăng pressure lên address space, page tables và cache. Trên máy nhiều service, một workload mmap có thể làm cache của workload khác bị đẩy ra, hoặc chính nó bị page faults nhiều hơn dự kiến.
+Mapping does not copy the whole file onto the heap, yet can increase pressure on address space, page tables, and caches. On multi-service hosts, an mmap workload may evict another service's cache or suffer more page faults itself than expected.
 
-**Đánh giá hiệu năng không chỉ nhìn time của một tác vụ mà còn nhìn ảnh hưởng tới toàn hệ thống.**
+**Performance evaluation looks not only at one task's duration, but also its impact on the whole system.**
 
-## 14. `Files.copy`: đừng bỏ qua API mức cao
+## 14. `Files.copy`: Do Not Overlook the High-Level API
 
-Nếu mục tiêu chỉ là copy tệp:
+If the goal is simply copying a file:
 
 ```java
 Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
 ```
 
-`Files.copy` thường đơn giản hơn code tự viết nhiều vòng `read`/`write`, với ý định rõ và hỗ trợ các option phù hợp. Implementation có thể tận dụng các tối ưu dựa trên filesystem/provider.
+`Files.copy` is usually simpler than writing multiple `read`/`write` loops, with clear intent and appropriate option support. Implementations can leverage filesystem/provider-based optimizations.
 
-**Nhưng**:
+**However**:
 
-- Đừng mặc định mọi provider xử lý copy giống nhau.
-- `COPY_ATTRIBUTES` và `REPLACE_EXISTING` liên quan hành vi metadata/xung đột tên, không phải bảo đảm tốc độ.
-- Đừng tính kết quả benchmark nếu không kiểm tra file đích đã hợp lệ.
-- Copy metadata, permission và symlink có khác biệt theo API/option và filesystem.
-- Một số thao tác copy có thể thất bại giữa chừng; code nghiệp vụ cần quyết định cleanup/rollback.
+- Do not assume all providers handle copying identically.
+- `COPY_ATTRIBUTES` and `REPLACE_EXISTING` govern metadata and name-collision behavior, not speed guarantees.
+- Never count benchmark results without verifying the target file is valid.
+- Copying metadata, permissions, and symlinks differs by API/options and filesystem.
+- Copy operations can fail mid-way; business code must decide cleanup/rollback.
 
-Với dữ liệu cần kiểm tra/checksum hoặc biến đổi, tự stream theo chunk có thể là lựa chọn rõ hơn. Với thao tác copy nguyên file bình thường, nên **đưa Files.copy vào danh sách phương án đo**.
+For data requiring inspection/checksums or transformation, streaming chunks yourself can be clearer. For ordinary full-file copies, **include `Files.copy` in your list of candidates to measure**.
 
-## 15. Cách thiết kế một benchmark công bằng
+## 15. How to Design a Fair Benchmark
 
-### 15.1. Xác định câu hỏi trước khi đo
+### 15.1. Define the Question Before Measuring
 
-Ví dụ câu hỏi có ý nghĩa:
+Example of a meaningful question:
 
-> “Trên SSD này, với file 4 GiB và đọc tuần tự vào một checksum, throughput của buffered stream 64 KiB, FileChannel 64 KiB và mapping cửa sổ 256 MiB như thế nào khi cache nóng và cache lạnh?”
+> “On this SSD, with a 4 GiB file read sequentially into a checksum, how do throughput of a 64 KiB buffered stream, 64 KiB `FileChannel`, and 256 MiB windowed mapping compare under warm cache and cold cache?”
 
-Một câu hỏi không rõ:
+An unclear question:
 
-> “NIO có nhanh hơn IO không?”
+> “Is NIO faster than IO?”
 
-Câu thứ hai thiếu workload, thiết bị, kích thước, tình trạng cache, điều kiện đo và tiêu chí thành công.
+The second lacks workload, device, size, cache state, test conditions, and success criteria.
 
-### 15.2. Kiểm soát các biến ảnh hưởng
+### 15.2. Control Influencing Variables
 
-| Biến | Tại sao cần kiểm soát |
+| Variable | Why it must be controlled |
 | --- | --- |
-| JVM/JDK và flags | JIT, GC, runtime implementation có thể khác |
-| OS, filesystem, storage | Ảnh hưởng native I/O path, page cache, throughput |
-| File size và phân bố dữ liệu | File nhỏ/ lớn và mức nén/file sparsity khác nhau |
-| Kiểu truy cập | Sequential vs random, tỷ lệ read/write |
-| Warm/cold cache | OS page cache có thể chi phối kết quả |
-| Số lần lặp và warmup | JIT/GC/OS scheduler tạo nhiễu |
-| Concurrency | I/O queue depth, contention và memory pressure |
-| Buffer size và allocation | Có thể biến kết quả từ lợi ích API thành khác biệt kích thước khối |
-| Đích copy | SSD cùng volume, volume khác, socket, network mount |
-| Độ bền ghi | `force/fsync` thay đổi rất mạnh latency |
-| Verification và setup | Tốn CPU/I/O, nên tách khỏi thời gian thao tác chính |
-| Error/partial I/O handling | Code sai nhưng nhanh không phải chiến thắng |
+| JVM/JDK and flags | JIT, GC, and runtime implementations can differ |
+| OS, filesystem, storage | Affects native I/O paths, page cache, throughput |
+| File size and data distribution | Small/large files, compression, and file sparsity differ |
+| Access pattern | Sequential vs. random, read/write ratio |
+| Warm/cold cache | OS page cache can dominate results |
+| Repetitions and warmup | JIT/GC/OS scheduler introduce noise |
+| Concurrency | I/O queue depth, contention, and memory pressure |
+| Buffer size and allocation | Can turn API differences into block-size differences |
+| Copy target | Same SSD volume, cross-volume, socket, network mount |
+| Write durability | `force/fsync` dramatically changes latency |
+| Verification and setup | Costs CPU/I/O; isolate from core operation timing |
+| Error/partial I/O handling | Broken fast code is not a win |
 
-Khi đo, chỉ nên thay **một chiều thiết kế** trong một nhóm so sánh (ví dụ thay cơ chế I/O, giữ kích thước block và input tương đương), rồi thử nghiệm thêm các chiều khác. So sánh một stream đọc từng byte với FileChannel buffer 1 MiB rồi kết luận “NIO nhanh hơn” là so sánh **hai thuật toán có số lần thao tác khác nhau**, không cô lập hiệu ứng của API.
+When measuring, vary **only one design dimension** within a comparison group (e.g. switch I/O mechanism while keeping block size and inputs equivalent), then test other dimensions separately. Comparing a byte-by-byte stream against a 1 MiB `FileChannel` and concluding “NIO is faster” compares **two algorithms with different operation counts**, failing to isolate the API's effect.
 
-### 15.3. Warmup và thứ tự chạy
+### 15.3. Warmup and Execution Order
 
-Một vài lần benchmark đầu có thể gồm:
-- Tải class và khởi tạo JVM/JIT.
-- Cấp phát buffer, mở file và tạo metadata.
-- Trang file chưa nằm trong cache.
-- Các background processes và GC.
+The first few benchmark runs may include:
+- Class loading and JVM/JIT initialization.
+- Buffer allocation, file opening, and metadata creation.
+- File pages not yet in cache.
+- Background processes and GC.
 
-Nếu luôn chạy Stream trước rồi Mmap sau, Mmap có thể hưởng cache đã được Stream làm nóng. Nếu luôn đảo lại, người chạy trước chịu bất lợi. Nên **thay đổi/đảo thứ tự chạy, lặp nhiều lượt và báo phân bố kết quả**. Khi benchmark cold cache, chỉ dùng phương pháp thực sự kiểm soát được trạng thái cache và báo rõ cách thực hiện; đọc file với một tên mới không chắc làm dữ liệu lạnh về mặt OS.
+If you always run Stream first and Mmap second, Mmap may enjoy cache warmed by Stream. If you always invert it, whichever runs first takes the hit. **Alternate/rotate execution order, repeat many passes, and report result distributions.** When benchmarking cold cache, only use methods that truly control cache state and document how; reading a file under a new name does not guarantee cold data at the OS level.
 
-**Không xóa cache toàn hệ thống trên môi trường đang chạy dịch vụ** chỉ để lấy một con số đo đẹp: tác động tới tác vụ khác và không phản ánh workload thực.
+**Never drop caches system-wide on an active service environment** just to get clean numbers: it disrupts other workloads and does not reflect real production conditions.
 
-### 15.4. Tách throughput và latency
+### 15.4. Separate Throughput and Latency
 
-Một phương pháp có thể đạt **throughput MB/s** cao khi copy file lớn nhưng có **latency per lookup** không tốt nếu mỗi lần lại map/unmap. Một phương pháp khác có thể tối ưu truy cập random khi mapping đã tồn tại nhưng không phù hợp startup lạnh.
+One approach may achieve high **MB/s throughput** copying big files yet have poor **per-lookup latency** if it maps/unmaps every time. Another may optimize random lookups once mapped yet perform poorly on cold startup.
 
-Các metric hữu ích:
+Useful metrics:
 
-- Tổng thời gian copy hoặc scan, đơn vị ms/s.
-- Throughput theo MiB/s: `bytes / elapsedSeconds / 2^20`.
-- Latency theo từng thao tác, median, p95, p99 khi phù hợp.
-- CPU user/system, page faults, số syscall, context switches.
-- GC pause/allocation rate, direct/native memory, resident memory.
-- Disk reads/writes thực tế, IOPS, filesystem cache hit/miss nếu đo được.
-- Tỷ lệ lỗi, số lần partial transfer, thời gian setup/cleanup.
+- Total copy or scan duration, in ms/s.
+- Throughput in MiB/s: `bytes / elapsedSeconds / 2^20`.
+- Per-operation latency, median, p95, p99 when appropriate.
+- User/system CPU, page faults, syscall counts, context switches.
+- GC pauses/allocation rate, direct/native memory, resident memory.
+- Actual disk reads/writes, IOPS, filesystem cache hits/misses if measurable.
+- Error rate, partial transfer count, setup/cleanup time.
 
-Đừng công bố “nhanh gấp 3” nếu không có số liệu lặp, điều kiện đo và correctness check.
+Never claim “3× faster” without repeated runs, test conditions, and correctness checks.
 
-## 16. Một ví dụ đo thời gian đơn giản — chỉ để khám phá, không phải kết luận
+## 16. A Simple Timing Snippet — Exploratory Only, Not Proof
 
-`System.nanoTime()` thích hợp để đo khoảng thời gian đã trôi qua trong JVM, không phải đồng hồ ngày giờ. Một hàm đo rất đơn giản:
+`System.nanoTime()` is suitable for measuring elapsed intervals inside the JVM, not wall-clock dates/times. A very simple timing helper:
 
 ```java
 long start = System.nanoTime();
@@ -701,237 +701,237 @@ double millis = elapsedNanos / 1_000_000.0;
 System.out.printf("Elapsed: %.3f ms%n", millis);
 ```
 
-Đây là đoạn **minh họa không độc lập**, giả định `copyOperation` là tác vụ đã khai báo. Con số `Elapsed` **không cố định** và tuyệt đối không được xem là kết quả hứa trước.
+This is a **non-standalone illustrative snippet**, assuming `copyOperation` is a declared task. The `Elapsed` number is **not fixed** and must never be treated as a guaranteed outcome.
 
-Nếu tự viết benchmark đơn giản:
+If writing a simple benchmark yourself:
 
-1. Tạo sẵn input ở ngoài vùng đo.
-2. Giữ mỗi phương án làm **cùng công việc**.
-3. Đưa setup/cấp phát/open/close vào hay ra vùng đo **theo mục tiêu đo**; nếu hai phương án được so end-to-end trong production, nên tính cả overhead của chúng.
-4. Tránh in log trong vùng đo.
-5. Sau mỗi lượt, verify dữ liệu (có thể ở ngoài vùng đo).
-6. Chạy nhiều vòng, xen kẽ thứ tự và thống kê median/dispersion.
-7. Theo dõi cache/GC/paging để giải thích outlier.
-8. Chỉ kết luận cho cấu hình đo, tránh tổng quát hóa.
+1. Create inputs outside the timed region.
+2. Keep every approach doing the **exact same work**.
+3. Place setup/allocation/open/close inside or outside the timer **according to your goal**; if comparing end-to-end in production, include their overhead.
+4. Avoid logging inside the timed section.
+5. After each pass, verify data (outside the timer if appropriate).
+6. Run multiple passes, interleave order, and compute medians/dispersion.
+7. Monitor cache/GC/paging to explain outliers.
+8. Conclude only for the measured configuration; avoid overgeneralizing.
 
-JMH (Java Microbenchmark Harness) rất hữu ích cho mã thuần CPU/JIT; nhưng với file I/O, dùng JMH cũng **không tự kiểm soát OS page cache, thiết bị, filesystem và cạnh tranh tài nguyên**. Cần thiết kế benchmark I/O ở cấp hệ thống, có thể kết hợp công cụ profiling như JFR, `jcmd` và counters của OS.
+JMH (Java Microbenchmark Harness) is very helpful for pure CPU/JIT code; yet for file I/O, JMH **does not automatically control OS page cache, devices, filesystems, or resource contention**. System-level I/O benchmarks are needed, optionally paired with profiling tools like JFR, `jcmd`, and OS counters.
 
-## 17. Một cách thử nghiệm có ích hơn câu “NIO nhanh hơn”
+## 17. A More Useful Testing Approach Than “Is NIO Faster?”
 
-Đặt ra ma trận đo, thay vì chỉ chọn 2 API:
+Set up a test matrix instead of picking only 2 APIs:
 
-| Workload | Cỡ dữ liệu | Kiểu | Candidates |
+| Workload | Data size | Pattern | Candidates |
 | --- | --- | --- | --- |
-| Rất nhỏ | 1–16 KiB | Copy nguyên file | `Files.copy`, buffered stream, channel |
-| Trung bình | 1–32 MiB | Copy tuần tự | buffered stream, channel, transferTo |
-| Lớn | 1–8 GiB | Copy tuần tự | buffer/transferTo/Files.copy |
-| Lookup ngẫu nhiên | 1 GiB | 8-byte records | positional FileChannel, mmap windows |
-| Truy cập lặp lại | 256 MiB | Hot random reads | channel với cache tự quản, mmap |
-| Nhiều file nhỏ | 10.000 file | Open+read+close | Files/stream, channel |
-| Đọc dữ liệu có transform | Tùy ý | Hash/parse | streaming buffer, channel với buffer |
+| Very small | 1–16 KiB | Full file copy | `Files.copy`, buffered stream, channel |
+| Medium | 1–32 MiB | Sequential copy | buffered stream, channel, `transferTo` |
+| Large | 1–8 GiB | Sequential copy | buffer/`transferTo`/`Files.copy` |
+| Random lookup | 1 GiB | 8-byte records | positional `FileChannel`, mmap windows |
+| Repeated access | 256 MiB | Hot random reads | channel with managed cache, mmap |
+| Many small files | 10,000 files | Open+read+close | `Files`/stream, channel |
+| Transformed reads | Arbitrary | Hash/parse | streaming buffer, channel with buffer |
 
-**Cần thử warm và cold-ish riêng**, và với file lớn phải có chiến lược không làm benchmark tự biến thành phép đo bộ nhớ cache (ví dụ dữ liệu quá nhỏ so với RAM có thể tạo kết quả “disk throughput” giả).
+**Test warm and cold-ish separately**, and for large files ensure the benchmark does not silently degrade into a RAM-cache test (e.g., datasets too small relative to RAM can produce misleading “disk throughput” numbers).
 
-Mỗi workload cần thước đo riêng: số file/s với nhiều file nhỏ, MiB/s với copy tuần tự, p95 latency với random lookup, memory/time-to-cleanup với mapping ngắn hạn.
+Each workload needs its own metric: files/s for many small files, MiB/s for sequential copies, p95 latency for random lookups, memory/cleanup time for short-lived mappings.
 
-## 18. Những yếu tố có thể làm benchmark sai lệch
+## 18. Factors That Can Skew Benchmarks
 
-### 18.1. Chạy nhanh hơn vì không đọc đủ byte
+### 18.1. Running Faster by Reading Too Few Bytes
 
-Một đoạn `FileChannel.read(buffer)` có thể trả ít hơn `remaining()`. Nếu code không loop và chỉ xử lý số byte đầu, nó sẽ nhanh hơn đơn giản vì **bỏ sót dữ liệu**. Tương tự, `transferTo` có thể chuyển một phần; code không loop có thể trả về nhanh trước khi file đích đủ.
+A `FileChannel.read(buffer)` call can return fewer bytes than `remaining()`. If code omits the loop and processes only the initial bytes, it runs faster simply by **skipping data**. Likewise, `transferTo` can transfer partially; non-looping code returns early before the target file is complete.
 
-Luôn verify byte count và checksum/`Files.mismatch` sau khi chạy.
+Always verify byte counts and checksums/`Files.mismatch` after running.
 
-### 18.2. Thay đổi tốc độ bằng cách vô tình thay kích thước buffer
+### 18.2. Changing Speed by Accidentally Changing Buffer Size
 
-`BufferedInputStream` với mặc định buffer, `FileChannel` với 1 MiB direct buffer và mmap toàn file có chi phí rất khác. Muốn quy phần lợi ích cho API, phải kiểm soát hoặc ít nhất báo rõ buffer sizes và allocation reuse.
+`BufferedInputStream` with a default buffer, `FileChannel` with a 1 MiB direct buffer, and full-file mmap have very different footprints. To attribute gains to an API, control or at least clearly report buffer sizes and allocation reuse.
 
-### 18.3. Trộn hot và cold cache
+### 18.3. Mixing Hot and Cold Caches
 
-Một phương án chạy sau hưởng lợi từ phương án chạy trước. Không dùng một lần chạy duy nhất để đại diện cho cả hệ thống.
+An approach run second benefits from the one run first. Never use a single run to represent an entire system.
 
-### 18.4. Đưa setup ra ngoài một cách thiên vị
+### 18.4. Biased Exclusion of Setup
 
-Nếu mapping được tạo trước vùng đo, còn stream phải mở file trong vùng đo, bài đo có thể thiên vị mmap. Nhưng nếu ứng dụng thực reuse mapping trong nhiều giờ, **bài đo steady-state không tính startup** lại có lý do chính đáng. Vấn đề không phải đúng/sai tuyệt đối, mà là **định nghĩa rõ câu hỏi** và đo cả startup/end-to-end nếu cần.
+If the mapping is created outside the timer while the stream must open the file inside the timer, the test can bias toward mmap. Conversely, if the real application reuses a mapping for hours, a **steady-state measurement excluding startup** is justified. It is not absolute right/wrong, but about **defining the question clearly** and measuring startup/end-to-end as well if needed.
 
-### 18.5. Đếm `write()` là durability
+### 18.5. Counting `write()` as Durability
 
-Khi `write` trả về, dữ liệu thường đi vào cache hoặc hàng đợi của OS, không nhất thiết đã xuống thiết bị lưu trữ bền vững. `FileChannel.force(...)` hoặc `MappedByteBuffer.force()` có thể cần thiết tùy yêu cầu durability.
+When `write` returns, data typically sits in OS caches or queues, not necessarily on durable storage. `FileChannel.force(...)` or `MappedByteBuffer.force()` may be needed depending on durability requirements.
 
-Nếu phương án A gọi `force` còn B không gọi, không thể kết luận B “nhanh hơn” cho cùng mức bảo đảm dữ liệu. Phải so theo cùng mức durability và error policy.
+If approach A calls `force` and B does not, you cannot declare B “faster” for the same data safety level. Compare at equal durability and error-handling guarantees.
 
-### 18.6. Bộ nhớ native không hiện đủ trong heap metric
+### 18.6. Native Memory Not Fully Visible in Heap Metrics
 
-Mmap và direct buffers có thể tiêu thụ native memory/virtual address, hoặc tăng page cache pressure, không hiện trực tiếp trong `Runtime.totalMemory()-freeMemory()`. Theo dõi RSS/process memory, Native Memory Tracking khi phù hợp, OS mapping statistics, page faults.
+Mmap and direct buffers can consume native memory/virtual addresses or add page cache pressure without appearing directly in `Runtime.totalMemory()-freeMemory()`. Track RSS/process memory, Native Memory Tracking when appropriate, OS mapping stats, and page faults.
 
-### 18.7. File bị nén, sparse hoặc copy-on-write
+### 18.7. Compressed, Sparse, or Copy-on-Write Files
 
-Một số filesystem có nén, sparse file hoặc *reflink/copy-on-write*. Lệnh copy có thể nhanh vì filesystem tối ưu metadata/copy semantics thay vì truyền toàn bộ byte qua storage. Điều này có giá trị trong workload thực, nhưng phải báo rõ bởi nó không chứng minh Java API đó luôn nhanh trên mọi filesystem.
+Some filesystems support compression, sparse files, or *reflink/copy-on-write*. A copy may finish fast because the filesystem optimizes metadata/copy semantics rather than transferring every byte through storage. That has real workload value, yet must be documented since it does not prove the Java API is equally fast on every filesystem.
 
-## 19. Vấn đề correctness riêng của mapping
+## 19. Mapping-Specific Correctness Issues
 
-### 19.1. Khi file bị truncate trong lúc mapped buffer còn sống
+### 19.1. When a File Is Truncated While a Mapped Buffer Is Alive
 
-Nếu file bị thay đổi kích thước hoặc truncate trong lúc chương trình đang truy cập mapping, một phần vùng mapped có thể trở nên không hợp lệ. Hành vi truy cập khi ấy có yếu tố phụ thuộc OS. Không mặc định `mapped.get(index)` luôn cho byte hợp lệ chỉ vì `index < mapped.capacity()`.
+If a file is resized or truncated while the program accesses a mapping, part of the mapped region can become invalid. Access behavior then has OS-dependent aspects. Do not assume `mapped.get(index)` always yields a valid byte merely because `index < mapped.capacity()`.
 
-Khi file có writer khác, cần cơ chế phối hợp, snapshot hoặc chính sách versioning/locking thích hợp; mapping không tự khóa nội dung file.
+When other writers exist, coordinate via snapshots, versioning, or locking; mapping does not automatically lock file contents.
 
-### 19.2. `force()` không phải `unmap()`
+### 19.2. `force()` Is Not `unmap()`
 
-`MappedByteBuffer.force()` yêu cầu đẩy thay đổi mapping (trong điều kiện phù hợp) theo hợp đồng, không giải phóng mapping. `clear()` chỉ đặt lại `position`/`limit` của buffer. `FileChannel.close()` đóng channel, không đảm bảo mapping legacy đã được tháo.
+`MappedByteBuffer.force()` requests flushing mapped changes (under suitable conditions) per contract; it does not release the mapping. `clear()` only resets buffer `position`/`limit`. `FileChannel.close()` closes the channel without guaranteeing legacy mappings are unmapped.
 
-Sự nhầm lẫn về vòng đời có thể gây vấn đề xóa file trên một số OS, làm leak tài nguyên địa chỉ ảo trong chương trình chạy dài và khiến benchmark ngắn hạn không đại diện cho production.
+Lifecycle confusion can cause file-deletion issues on some OSes, leak virtual address space in long-running processes, and make short benchmarks unrepresentative of production.
 
-### 19.3. Mapping không cho atomic update tùy ý
+### 19.3. Mapping Does Not Provide Arbitrary Atomic Updates
 
-Ghi một cấu trúc nhiều field qua mapped buffer không tự tạo giao dịch nguyên tử. Reader ở tiến trình khác có thể thấy trạng thái cập nhật dở nếu không có protocol phối hợp. Với file dữ liệu nhạy cảm hoặc đòi consistency, cần cơ chế lock, versioning, checksum, journal hoặc transactional storage phù hợp.
+Writing a multi-field structure through a mapped buffer does not create an atomic transaction. Readers in another process can observe half-updated state without a coordination protocol. For sensitive data or consistency-critical files, use locking, versioning, checksums, journaling, or transactional storage.
 
-Không nên chọn mmap chỉ để “ghi nhanh hơn” rồi bỏ qua tính nhất quán.
+Never pick mmap just to “write faster” while ignoring consistency.
 
-## 20. Chọn buffer size theo phép đo và giới hạn bộ nhớ
+## 20. Choosing Buffer Sizes from Measurements and Memory Limits
 
-Mỗi buffer tác động tới:
+Every buffer affects:
 
-- **Overhead mỗi lần read/write**: buffer nhỏ có thể gây nhiều lần gọi.
-- **Heap/native allocation**: buffer lớn chiếm tài nguyên nhiều hơn.
-- **CPU cache locality**: pattern có thể ảnh hưởng cache.
-- **Concurrency**: nếu mỗi kết nối/tác vụ giữ buffer riêng, buffer size nhân lên theo lượng đồng thời.
-- **Latency**: buffer quá lớn có thể tăng độ trễ xử lý một số pipeline.
-- **I/O scheduler/readahead**: OS và thiết bị có hành vi khác nhau.
+- **Per-read/write overhead**: small buffers can trigger many calls.
+- **Heap/native allocation**: larger buffers consume more resources.
+- **CPU cache locality**: patterns can impact cache efficiency.
+- **Concurrency**: if each connection/task holds its own buffer, buffer size multiplies by concurrency.
+- **Latency**: overly large buffers can raise processing latency in some pipelines.
+- **I/O scheduler/readahead**: OS and devices behave differently.
 
-Ví dụ ngân sách đơn giản: nếu 200 tác vụ mỗi tác vụ giữ một buffer 1 MiB thì chỉ riêng buffer đã khoảng **200 MiB**. Nếu là hai buffer mỗi tác vụ, khoảng 400 MiB, chưa tính parser và object khác. `ByteBuffer.allocateDirect` không biến tài nguyên thành miễn phí chỉ vì nó ngoài heap.
+Simple budget math: if 200 tasks each hold a 1 MiB buffer, buffers alone take roughly **200 MiB**. With two buffers per task, roughly 400 MiB, excluding parsers and other objects. `ByteBuffer.allocateDirect` does not make resources free just by living off-heap.
 
-**Kỹ thuật nên cân nhắc:** pool buffer có giới hạn, reuse buffer, bounded concurrency, admission control, chunked streaming; kết hợp đo GC/native memory.
+**Techniques to consider:** bounded buffer pools, buffer reuse, bounded concurrency, admission control, and chunked streaming; combined with GC/native memory measurements.
 
-## 21. Giới hạn đầu vào và khả năng chống resource exhaustion
+## 21. Input Bounds and Protection Against Resource Exhaustion
 
-Hiệu năng tốt không chỉ là copy nhanh trong điều kiện bình thường. Đầu vào lớn hoặc không tin cậy còn cần:
+Good performance is not just copying fast under normal conditions. Large or untrusted inputs also require:
 
-1. **Byte limit** trước và trong lúc đọc — không chỉ tin metadata.
-2. **Timeout/deadline** để tránh luồng vô hạn hoặc client gửi rất chậm.
-3. **Dung lượng file tạm và disk quota** nếu copy/giải nén ra đĩa.
-4. **Giới hạn concurrency và hàng đợi** để không tạo hàng nghìn buffer lớn.
-5. **Cơ chế rollback** khi copy chưa hoàn tất.
-6. **Kiểm tra integrity và publish** sau khi dữ liệu đầy đủ.
-7. **Giới hạn giải nén sau compression** nếu nguồn là ZIP/GZIP.
+1. **Byte limits** before and during reading — do not trust metadata alone.
+2. **Timeouts/deadlines** to prevent hung threads or ultra-slow senders.
+3. **Temp file size and disk quotas** when copying/extracting to disk.
+4. **Concurrency and queue bounds** to avoid creating thousands of huge buffers.
+5. **Rollback mechanisms** when a copy fails to complete.
+6. **Integrity checks and publishing** once data is complete.
+7. **Post-decompression limits** if sources are ZIP/GZIP.
 
-`Files.readAllBytes` thuận tiện nhưng cấp bộ nhớ tỷ lệ với kích thước file; không dùng trên đầu vào không có hạn mức rồi mới kiểm tra. Với memory mapping, không được xem file mmap là “không dùng RAM”: nó vẫn tham gia page cache, RSS, address-space management và page faults.
+`Files.readAllBytes` is convenient yet allocates memory proportional to file size; never run it on unbounded input and check size afterward. With memory mapping, never think mmapped files “use no RAM”: they still participate in page cache, RSS, address-space management, and page faults.
 
-Đôi khi phương án có benchmark trung bình chậm hơn chút nhưng **ổn định, dễ cleanup, memory bounded** lại phù hợp production hơn phương án đạt peak throughput cao nhưng có rủi ro tăng tài nguyên không kiểm soát.
+Often an approach with slightly lower average benchmark speed that is **stable, easy to clean up, and memory-bounded** suits production better than one hitting high peak throughput at the risk of uncontrolled resource growth.
 
-## 22. Những sai lầm thường gặp
+## 22. Common Mistakes
 
-| Sai lầm | Vì sao sai | Cách sửa |
+| Mistake | Why it is wrong | How to fix |
 | --- | --- | --- |
-| “NIO luôn nhanh hơn IO.” | API không quyết định mọi chi phí | Benchmark theo workload |
-| “mmap là đọc từ RAM, không dùng disk.” | Page fault có thể phải tải dữ liệu từ storage | Xem page cache, warm/cold |
-| “transferTo luôn zero-copy.” | Implementation/path/target có thể khác | Đo theo OS/channel, xử lý partial |
-| “Một lần transferTo copy đủ count.” | Có thể chuyển ít hơn yêu cầu | Vòng lặp cộng dồn bytes |
-| “Một lần FileChannel.write gửi hết buffer.” | Partial write có thể xảy ra | Loop theo `hasRemaining()` |
-| “Đổi heap ByteBuffer sang direct luôn nhanh.” | Allocation/native memory có chi phí | Đo, reuse, kiểm soát memory |
-| “Mmap cho file nhỏ sẽ nhanh hơn.” | Setup/map/page fault có thể chiếm ưu thế | Thử buffered/Files baseline |
-| “Map toàn bộ file nhiều terabyte bằng một buffer Java 17.” | `ByteBuffer` index `int` | Chia window hoặc API khác |
-| “Đóng channel là unmap.” | Mapping legacy còn vòng đời riêng | Quản lý mapping lifecycle |
-| “`mapped.force()` giải phóng mapping.” | Force là persistence, không phải release | Phân biệt flush/unmap |
-| “Đo file thứ hai nhanh hơn chứng minh API tốt.” | File thứ hai có thể cache nóng | Xen kẽ, kiểm soát cache |
-| “Đo 1 lần và in 1 số milliseconds là kết luận.” | Nhiễu JIT/GC/OS | Warmup, nhiều lần, thống kê |
-| “Không cần verify khi benchmark.” | Code thiếu dữ liệu có vẻ nhanh | So byte count/hash/mismatch |
-| “Chỉ xem Java heap là đủ.” | Native mapping/buffers dùng tài nguyên khác | Theo dõi RSS/page faults/native |
-| “Benchmark không tính cleanup nhưng production có.” | Đang đo workload khác | Báo cả steady-state và end-to-end |
-| “Write xong là chắc chắn durable.” | Cache/flush semantics khác nhau | So cùng mức force/durability |
-| “Cứ map file đang bị ghi/truncate liên tục.” | Rủi ro invalid mapping/OS khác nhau | Phối hợp writer, snapshot hoặc I/O thường |
-| “Buffer 1 MiB tốt cho mọi workload.” | Overhead/memory/concurrency khác nhau | Sweep kích thước buffer |
+| “NIO is always faster than IO.” | The API alone does not dictate all costs | Benchmark by workload |
+| “mmap reads from RAM, not disk.” | Page faults may still fetch data from storage | Account for page cache, warm/cold |
+| “`transferTo` is always zero-copy.” | Implementation/path/target may differ | Measure by OS/channel, handle partial |
+| “One `transferTo` copies the full `count`.” | Can transfer fewer bytes than requested | Loop accumulating bytes |
+| “One `FileChannel.write` sends the whole buffer.” | Partial writes can happen | Loop on `hasRemaining()` |
+| “Switching heap `ByteBuffer` to direct is always faster.” | Allocation/native memory has cost | Measure, reuse, bound memory |
+| “Mmap for small files will be faster.” | Setup/map/page faults can dominate | Try buffered/`Files` baseline |
+| “Map an entire multi-TB file into one Java 17 buffer.” | `ByteBuffer` uses `int` indexing | Split into windows or use another API |
+| “Closing the channel unmaps.” | Legacy mappings have independent lifecycles | Manage mapping lifecycles |
+| “`mapped.force()` frees the mapping.” | Force is persistence, not release | Distinguish flush from unmap |
+| “Second file measuring faster proves an API is better.” | Second run may hit a warm cache | Interleave order, control cache |
+| “Measuring once and printing one millisecond value proves it.” | JIT/GC/OS noise | Warm up, repeat passes, use statistics |
+| “Skipping verification during benchmarks.” | Buggy incomplete code looks fast | Check byte count/hash/mismatch |
+| “Checking Java heap alone is enough.” | Native mappings/buffers use other resources | Track RSS/page faults/native |
+| “Benchmark excludes cleanup while production pays it.” | Measures a different workload | Report both steady-state and end-to-end |
+| “`write` finished means guaranteed durable.” | Cache/flush semantics differ | Compare at equal force/durability |
+| “Always mmap files being written/truncated constantly.” | Invalid mapping/OS-dependent failure risk | Coordinate writers, snapshot, or regular I/O |
+| “A 1 MiB buffer is best for every workload.” | Overhead/memory/concurrency differ | Sweep buffer sizes |
 
-## 23. Bài tập thực hành
+## 23. Practice Exercises
 
-### Bài 1: một lần copy file 4 KiB
+### Exercise 1: Single 4 KiB File Copy
 
-Bạn đang copy một file 4 KiB, kết quả phải được ghi đúng byte. Có nên mở `MappedByteBuffer` mặc định?
+You are copying a 4 KiB file whose output must be byte-exact. Should you open a `MappedByteBuffer` by default?
 
-**Gợi ý:** bắt đầu với `Files.copy` hoặc buffered stream và đo nếu có nhu cầu tối ưu rõ ràng. Với file nhỏ, overhead thiết lập mapping có thể đáng kể so với lượng dữ liệu cần chuyển. Không khẳng định mmap luôn chậm; chỉ không mặc định chọn nó.
+**Hint:** start with `Files.copy` or a buffered stream and measure if there is a clear need to optimize. For small files, mapping setup overhead can be significant relative to transferred data. Do not claim mmap is always slow; just do not default to it.
 
-### Bài 2: kiểm tra đầu ra `transferTo`
+### Exercise 2: Checking `transferTo` Output
 
-Một lệnh `source.transferTo(0, 10_000, target)` trả về `4096`. File target đã có đủ 10.000 byte chưa?
+A call `source.transferTo(0, 10_000, target)` returns `4096`. Does the target file have all 10,000 bytes yet?
 
-**Chưa.** Chỉ có 4.096 byte được báo chuyển trong lần gọi ấy. Phải tiếp tục ở offset 4.096 và còn 5.904 byte, kiểm tra progress/lỗi và verify đích.
+**Not yet.** Only 4,096 bytes were reported transferred in that call. You must continue from offset 4,096 for the remaining 5,904 bytes, check progress/errors, and verify the target.
 
-### Bài 3: cache làm sai kết luận
+### Exercise 3: Cache Skewing Conclusions
 
-Bạn chạy buffered stream trước, lần sau chạy mapping và thấy mapping nhanh hơn nhiều. Có thể kết luận mapping tốt hơn không?
+You run buffered streams first, then mapping next and observe mapping is much faster. Can you conclude mapping is better?
 
-**Không.** Có thể file đã được stream đầu tiên làm nóng trong OS page cache, hoặc JIT/CPU/storage có trạng thái khác. Lặp, đảo thứ tự, kiểm soát cache và báo điều kiện.
+**No.** The first stream may have warmed the file in the OS page cache, or JIT/CPU/storage states differed. Repeat, invert order, control caches, and report conditions.
 
-### Bài 4: random lookup trên file đã mapped
+### Exercise 4: Random Lookup on a Large File
 
-Một ứng dụng đọc một record 8 byte ở 100.000 offset ngẫu nhiên của file dữ liệu lớn, lặp lại nhiều lần. Candidate nào đáng benchmark?
+An application reads an 8-byte record at 100,000 random offsets in a large data file repeatedly. Which candidates are worth benchmarking?
 
-**Positional FileChannel.read và memory mapping** đều đáng thử, có thể thêm application-level caching. Mapping có thể giảm overhead gọi `read` lặp lại nhưng có thể tăng page faults/cache pressure. Quyết định bằng kết quả đo trên workload thật.
+**Both positional `FileChannel.read` and memory mapping** are worth testing, potentially with application-level caching. Mapping can cut repeated `read` call overhead while possibly raising page faults/cache pressure. Decide based on measurements under your actual workload.
 
-### Bài 5: đóng channel sau map
+### Exercise 5: Closing Channel After Map
 
-`FileChannel.close()` đã gọi sau khi map read-only trên Java 17. Bạn có thể bảo đảm file có thể xóa ngay lập tức trên mọi OS không?
+`FileChannel.close()` was called after creating a read-only mapping on Java 17. Can you guarantee the file can be deleted immediately on every OS?
 
-**Không.** Legacy `MappedByteBuffer` có vòng đời mapping riêng, và Windows cùng một số môi trường có thể hạn chế xóa/rename file đang mapped. Thiết kế cleanup không được phụ thuộc giả định portable sai.
+**No.** Legacy `MappedByteBuffer` has an independent mapping lifecycle, and Windows plus certain environments may restrict deleting/renaming actively mapped files. Cleanup logic must not rely on flawed portability assumptions.
 
-### Bài 6: “chạy nhanh hơn” vì không fsync
+### Exercise 6: “Faster” by Skipping Fsync
 
-Hai phương án ghi file: A gọi `force(true)` sau ghi, B không gọi. B có thời gian ngắn hơn. Kết luận B tối ưu cho cùng yêu cầu durability được không?
+Two file write approaches: A calls `force(true)` after writing, B does not. B finishes sooner. Can you conclude B is optimal for the same durability requirement?
 
-**Không.** Hai phương án thực hiện **khác mức bảo đảm đồng bộ dữ liệu**. Cần so cùng hợp đồng durability.
+**No.** The two approaches provide **different levels of data synchronization guarantees**. Compare under the same durability contract.
 
-### Bài 7: FileChannel có phải non-blocking giống SocketChannel?
+### Exercise 7: Is FileChannel Non-Blocking Like SocketChannel?
 
-**Không.** `FileChannel` là channel tệp có các thao tác `read/write` bình thường và không có `configureBlocking(false)`/`Selector` như `SelectableChannel` mạng. NIO không đồng nghĩa non-blocking với mọi channel.
+**No.** `FileChannel` is a file channel with normal `read/write` operations and has no `configureBlocking(false)`/`Selector` support like network `SelectableChannel`s. NIO does not mean non-blocking for every channel.
 
-### Bài 8: Cùng throughput, RAM khác nhau
+### Exercise 8: Same Throughput, Different RAM
 
-Stream-copy 64 KiB buffer và `Files.readAllBytes` trên file 3 GiB có throughput gần tương đương trên máy thử nghiệm. Phương án nào thường dễ kiểm soát bộ nhớ hơn?
+64 KiB buffered stream-copy and `Files.readAllBytes` on a 3 GiB file achieve similar throughput on a test machine. Which approach usually keeps memory easier to control?
 
-**Streaming với buffer giới hạn**, vì `readAllBytes` cố tạo mảng chứa toàn bộ tệp, có thể không cấp phát được và chiếm heap lớn; còn stream-copy không phải giữ mọi byte đầu vào trong một mảng. Vẫn cần kiểm soát output và dữ liệu trung gian.
+**Streaming with bounded buffers**, because `readAllBytes` tries to allocate an array holding the entire file, which may fail to allocate and consumes huge heap; stream-copy never holds all input bytes in one array. You must still bound outputs and intermediate data.
 
-## 24. Checklist quyết định trong dự án thật
+## 24. Real-Project Decision Checklist
 
-**Trước khi tối ưu:**
+**Before optimizing:**
 
-- Mô tả workload: file size, số file, sequential/random, read/write, một lần hay lặp, concurrency.
-- Xác định correctness: byte count, integrity, EOF, partial reads, cleanup và data durability.
-- Xác định ràng buộc: RAM, address space, file descriptors, latency SLO, platform/JDK.
-- Chọn baseline đơn giản: `Files.copy`, buffered stream hoặc `Files.newInputStream`.
+- Describe the workload: file sizes, file counts, sequential/random, read/write, one-off or repeated, concurrency.
+- Define correctness: byte counts, integrity, EOF, partial reads, cleanup, and data durability.
+- Identify constraints: RAM, address space, file descriptors, latency SLOs, platform/JDK.
+- Choose a simple baseline: `Files.copy`, buffered streams, or `Files.newInputStream`.
 
-**Khi thử NIO và mmap:**
+**When testing NIO and mmap:**
 
-- Với channel: dùng buffer hợp lý, xử lý partial I/O, tránh cấp phát lại mỗi lần.
-- Với transfer: kiểm tra số byte thực chuyển, có fallback/error khi không tiến triển.
-- Với mmap: xem cả phí setup, page faults, unmap lifecycle, truncate/rename, window size.
-- So sánh theo cùng input và durability policy.
-- Đo cả total time, throughput, latency, CPU, heap/native memory, page cache/paging.
+- For channels: use sensible buffers, handle partial I/O, avoid reallocating per pass.
+- For transfers: check actual transferred bytes, implement fallback/error on zero progress.
+- For mmap: include setup cost, page faults, unmap lifecycle, truncate/rename behavior, and window sizes.
+- Compare with identical inputs and durability policies.
+- Measure total time, throughput, latency, CPU, heap/native memory, and page cache/paging.
 
-**Khi báo kết quả:**
+**When reporting results:**
 
-- Ghi version JDK, OS, filesystem, thiết bị, kích thước file, cache state, buffer size.
-- Công bố số lượt chạy, phương pháp warmup và thống kê kết quả.
-- Tách cold/warm, steady-state/end-to-end nếu cần.
-- Xác minh mọi phương án đều tạo kết quả giống nhau.
-- Chỉ khuyến nghị phương án “nhanh hơn” **cho workload đã đo**, không nâng thành quy luật chung.
+- Record JDK version, OS, filesystem, device, file size, cache state, and buffer size.
+- Disclose run counts, warm-up methodology, and summary statistics.
+- Separate cold/warm and steady-state/end-to-end when appropriate.
+- Verify all approaches yield identical outputs.
+- Recommend an option as “faster” **only for the measured workload**, without turning it into a universal law.
 
-## 25. Tổng kết
+## 25. Summary
 
-Không có một lựa chọn duy nhất luôn chiến thắng giữa **Buffered IO**, **FileChannel**, **`transferTo`**, **`Files.copy`** và **`MappedByteBuffer`**.
+No single choice always wins among **Buffered I/O**, **FileChannel**, **`transferTo`**, **`Files.copy`**, and **`MappedByteBuffer`**.
 
-- **Buffered stream** đơn giản, phù hợp tuần tự và có thể rất hiệu quả.
-- **FileChannel** hữu ích cho positional I/O và thao tác với `ByteBuffer`; không có bảo đảm nhanh hơn chỉ vì thuộc NIO.
-- **`transferTo`/`transferFrom`** mở cơ hội tối ưu chuyển dữ liệu; phải xử lý partial transfer và không giả định luôn zero-copy.
-- **Memory mapping** có thể thuận tiện, đặc biệt với random access lặp lại, nhưng có chi phí page faults, metadata, tài nguyên native và vòng đời mapping cần quản lý.
-- **Page cache, filesystem, OS, JVM và workload** là những biến chi phối thực tế; điều kiện warm/cold quan trọng.
-- **Benchmark có kiểm soát + correctness verification** là cơ sở lựa chọn, không phải tên API hoặc kết quả một lần chạy.
+- **Buffered streams** are simple, fit sequential access, and can be very effective.
+- **FileChannel** is useful for positional I/O and `ByteBuffer` operations; being NIO does not guarantee it is faster.
+- **`transferTo`/`transferFrom`** open opportunities to optimize data movement; handle partial transfers and do not assume zero-copy always happens.
+- **Memory mapping** can be convenient, especially for repeated random access, yet introduces page faults, metadata, native resource costs, and mapping lifecycles to manage.
+- **Page cache, filesystem, OS, JVM, and workload** are the true governing variables; warm/cold conditions matter.
+- **Controlled benchmarking + correctness verification** form the basis of selection, not API names or single-run timings.
 
-**Nguyên tắc thực tế:** bắt đầu bằng phương án **đúng, dễ hiểu và bounded**, xác định bottleneck bằng phép đo, rồi chỉ tăng độ phức tạp khi lợi ích có thể chứng minh và vẫn đáp ứng yêu cầu về độ ổn định, tính portable và khả năng bảo trì.
+**Practical rule:** start with a **correct, understandable, and bounded** solution, find bottlenecks through measurement, and only increase complexity when gains are provable while still meeting stability, portability, and maintainability goals.
 
-**Tài liệu Java SE 17:**
+**Java SE 17 Documentation:**
 
 1. [FileChannel](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/channels/FileChannel.html) — `read/write`, positional I/O, `transferTo`, `transferFrom`, `map`, `force`.
 2. [MappedByteBuffer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/MappedByteBuffer.html) — mapping semantics, `load/isLoaded/force`.
-3. [ByteBuffer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/ByteBuffer.html) — heap/direct buffer, `position/limit`.
+3. [ByteBuffer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/ByteBuffer.html) — heap/direct buffers, `position/limit`.
 4. [Files](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html) — `copy`, `newInputStream`, `mismatch`.
-5. [BufferedInputStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/BufferedInputStream.html) và [BufferedOutputStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/BufferedOutputStream.html).
+5. [BufferedInputStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/BufferedInputStream.html) and [BufferedOutputStream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/BufferedOutputStream.html).

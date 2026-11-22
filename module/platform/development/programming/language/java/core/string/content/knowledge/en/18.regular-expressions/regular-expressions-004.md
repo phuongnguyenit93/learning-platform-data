@@ -1,71 +1,71 @@
-# Lớp ký tự, lượng từ, neo và nhóm bắt trong Java Regex
+# Character Classes, Quantifiers, Anchors, and Capturing Groups in Java Regex
 
-Biểu thức chính quy (regular expression, regex) mô tả mẫu ký tự để **kiểm tra**, **tìm kiếm**, **trích xuất** hoặc **thay thế** chuỗi. Bốn thành phần quan trọng là: **lớp ký tự** quyết định một vị trí được phép chứa ký tự gì; **lượng từ** quyết định một đơn vị xuất hiện bao nhiêu lần; **neo/ranh giới** giới hạn vị trí khớp; và **nhóm bắt** gom mẫu, lưu đoạn đã khớp để truy xuất hoặc tham chiếu lại. Trong Java, các mẫu này được thực thi qua `java.util.regex.Pattern` và `Matcher`.
+A regular expression (regex) describes a character pattern for **validating**, **searching**, **extracting**, or **replacing** strings. Four key components are: **character classes**, which decide which characters are allowed at a position; **quantifiers**, which decide how many times a unit occurs; **anchors/boundaries**, which constrain where matches occur; and **capturing groups**, which group subpatterns and store matched text for retrieval or backreferencing. In Java, these patterns are executed via `java.util.regex.Pattern` and `Matcher`.
 
-## 1. Đọc regex đúng trong Java
+## 1. Reading Regexes Properly in Java
 
-Có hai lớp cú pháp cần phân biệt:
+There are two syntax layers to distinguish:
 
-- **Regex**: `\d{2}` nghĩa là hai chữ số; `\b` nghĩa là ranh giới từ.
-- **Java string literal**: dấu `\` phải được viết thành `\\`. Vì vậy regex `\d{2}` được truyền bằng chuỗi Java `"\\d{2}"`, regex `\b` bằng `"\\b"`. Nếu viết `"\b"`, Java tạo ký tự backspace thay cho ranh giới từ.
+- **Regex**: `\d{2}` means two digits; `\b` means a word boundary.
+- **Java string literal**: `\` must be written as `\\`. Therefore, the regex `\d{2}` is passed via the Java string `"\\d{2}"`, and the regex `\b` via `"\\b"`. If you write `"\b"`, Java creates a backspace character instead of a word boundary.
 
-| Mẫu regex thực tế | Chuỗi Java tương ứng | Ý nghĩa |
+| Actual regex pattern | Corresponding Java string | Meaning |
 | --- | --- | --- |
-| `\d+` | `"\\d+"` | Một hoặc nhiều chữ số |
-| `\bcat\b` | `"\\bcat\\b"` | Từ `cat` độc lập |
-| `^[A-Z]{2}\d{3}$` | `"^[A-Z]{2}\\d{3}$"` | Toàn chuỗi là hai chữ hoa rồi ba chữ số |
-| `\.` | `"\\."` | Dấu chấm thật, không phải ký hiệu `.` của regex |
+| `\d+` | `"\\d+"` | One or more digits |
+| `\bcat\b` | `"\\bcat\\b"` | Standalone word `cat` |
+| `^[A-Z]{2}\d{3}$` | `"^[A-Z]{2}\\d{3}$"` | Entire string is two uppercase letters then three digits |
+| `\.` | `"\\."` | A literal dot, not the regex `.` wildcard |
 
-`Pattern.compile(regex)` biên dịch mẫu; `pattern.matcher(input)` tạo `Matcher` cho một đầu vào. Ba cách kiểm tra thường gặp:
+`Pattern.compile(regex)` compiles a pattern; `pattern.matcher(input)` creates a `Matcher` for an input. Three common matching methods:
 
-- `matcher.matches()` yêu cầu **toàn bộ đầu vào** khớp mẫu.
-- `matcher.find()` tìm **đoạn con kế tiếp** khớp mẫu; gọi lặp để duyệt các đoạn khớp.
-- `matcher.lookingAt()` yêu cầu khớp **từ đầu vùng tìm kiếm**, nhưng không bắt buộc tới hết.
+- `matcher.matches()` requires the **entire input** to match the pattern.
+- `matcher.find()` finds the **next subsequence** matching the pattern; call repeatedly to iterate through matches.
+- `matcher.lookingAt()` requires a match **from the start of the search region**, without requiring it to reach the end.
 
-Ví dụ: với regex `\d+` và đầu vào `"abc123xyz"`, `find()` thành công và lấy `123`, còn `matches()` và `lookingAt()` đều trả về `false`. Chỉ gọi `group()`, `start()` hoặc `end()` sau khi một thao tác khớp thành công, nếu không có thể gặp `IllegalStateException`.
+For example, with regex `\d+` and input `"abc123xyz"`, `find()` succeeds and extracts `123`, whereas `matches()` and `lookingAt()` both return `false`. Only call `group()`, `start()`, or `end()` after a match operation succeeds; otherwise `IllegalStateException` may be thrown.
 
-## 2. Lớp ký tự (character classes)
+## 2. Character Classes
 
-Lớp ký tự thường khớp **một ký tự** trong tập cho phép; lượng từ phía sau mới làm nó lặp nhiều lần.
+A character class normally matches **one character** from an allowed set; a trailing quantifier is what makes it repeat multiple times.
 
-| Cú pháp regex | Ý nghĩa | Ví dụ khớp |
+| Regex syntax | Meaning | Match example |
 | --- | --- | --- |
-| `[abc]` | Một trong `a`, `b`, `c` | `b` |
-| `[^abc]` | Một ký tự không thuộc tập `a`, `b`, `c` | `x` |
-| `[a-z]` | Một ký tự trong khoảng từ `a` đến `z` | `m` |
-| `[A-Za-z0-9_]` | Một chữ Latin, chữ số ASCII hoặc `_` | `T`, `7`, `_` |
-| `[a-f&&[^b-d]]` | Giao của `a`–`f` với phần bù `b`–`d` | `a`, `e`, `f` |
-| `\d` / `\D` | Chữ số / không phải chữ số | `5` / `Z` |
-| `\s` / `\S` | Ký tự trắng / không phải ký tự trắng | dấu cách / `A` |
-| `\w` / `\W` | Ký tự thuộc nhóm *word* / không thuộc *word* | `a` / `!` |
-| `\p{L}` | Một ký tự Unicode thuộc nhóm chữ cái | `Đ`, `ê`, `A` |
+| `[abc]` | One of `a`, `b`, `c` | `b` |
+| `[^abc]` | One character not in `a`, `b`, `c` | `x` |
+| `[a-z]` | One character in the range from `a` to `z` | `m` |
+| `[A-Za-z0-9_]` | One Latin letter, ASCII digit, or `_` | `T`, `7`, `_` |
+| `[a-f&&[^b-d]]` | Intersection of `a`–`f` with the complement of `b`–`d` | `a`, `e`, `f` |
+| `\d` / `\D` | Digit / non-digit | `5` / `Z` |
+| `\s` / `\S` | Whitespace character / non-whitespace character | space / `A` |
+| `\w` / `\W` | *Word* character / non-*word* character | `a` / `!` |
+| `\p{L}` | One Unicode character in the Letter category | `Đ`, `ê`, `A` |
 
-Phủ định trong lớp ký tự là dấu `^` **ngay sau `[`**: `[^0-9]` nhận một ký tự không phải chữ số ASCII. Dấu `^` đứng ngoài lớp ký tự là neo đầu dòng/đầu vùng (phần 4), không phải phủ định. Dấu gạch nối `-` có thể tạo khoảng: `[a-z]`; nếu muốn dấu `-` thật, có thể đặt đầu/cuối như `[-+]` hoặc escape phù hợp. Các ký tự `]`, `\`, `^`, `-` có ý nghĩa tùy vị trí trong lớp, nên cần kiểm tra cách đặt/escape thay vì giả định chúng luôn là ký tự thường.
+Negation inside a character class is `^` **immediately after `[`**: `[^0-9]` accepts one character that is not an ASCII digit. A `^` outside a character class is a line/region start anchor (section 4), not negation. The hyphen `-` can form a range: `[a-z]`; if you want a literal `-`, you can place it at the start/end such as `[-+]` or escape it appropriately. Characters `]`, `\`, `^`, `-` have position-dependent meanings inside a class, so check placement/escaping rather than assuming they are always plain characters.
 
-**Chú ý về Unicode:** mặc định trong Java, `\d`, `\w` và nhiều lớp viết tắt theo cách dùng ASCII; đừng mặc nhiên cho rằng `\w+` bao trùm mọi tên tiếng Việt. Dùng `\p{L}` khi cần các chữ cái Unicode, hoặc bật `Pattern.UNICODE_CHARACTER_CLASS` (cờ nhúng `(?U)`) để các lớp viết tắt và POSIX class được diễn giải theo Unicode. Quy tắc dữ liệu còn quan trọng hơn regex: tên người có thể gồm dấu cách, dấu nháy, gạch nối hoặc dấu kết hợp; một lớp chữ cái đơn thuần chưa đủ làm bộ kiểm tra tên hoàn chỉnh.
+**Note on Unicode:** by default in Java, `\d`, `\w`, and many shorthand classes follow ASCII-oriented semantics; do not assume `\w+` covers all Vietnamese names. Use `\p{L}` when Unicode letters are needed, or enable `Pattern.UNICODE_CHARACTER_CLASS` (embedded flag `(?U)`) so shorthand and POSIX classes are interpreted according to Unicode. Data rules matter even more than regex: personal names can contain spaces, apostrophes, hyphens, or combining marks; a letter class alone is not enough to serve as a complete name validator.
 
-**Dấu chấm `.` không phải lớp `[.]`:** `.` khớp gần như mọi ký tự nhưng mặc định **không khớp ký tự kết thúc dòng**; cờ `Pattern.DOTALL` (`(?s)`) cho phép `.` khớp cả các ký tự đó. `\.` hoặc `[.]` mới khớp dấu chấm thật. Lớp `[\s\S]` có thể khớp cả ký tự trắng lẫn không trắng, nhưng thường khó đọc hơn một mẫu rõ ràng có `DOTALL`.
+**Dot `.` is not `[.]`:** `.` matches almost any character, but by default **does not match line terminators**; the `Pattern.DOTALL` flag (`(?s)`) allows `.` to match those characters as well. Only `\.` or `[.]` matches a literal dot. The class `[\s\S]` can match both whitespace and non-whitespace characters, but is usually harder to read than an explicit pattern with `DOTALL`.
 
-## 3. Lượng từ (quantifiers)
+## 3. Quantifiers
 
-Lượng từ tác động lên **đơn vị ngay trước nó**: một ký tự, một lớp ký tự hoặc một nhóm. Chẳng hạn `ab+` là `a` rồi một hoặc nhiều `b`, còn `(ab)+` lặp cả cặp `ab`.
+A quantifier applies to **the unit immediately preceding it**: a single character, a character class, or a group. For example, `ab+` is `a` followed by one or more `b`, whereas `(ab)+` repeats the pair `ab`.
 
-| Lượng từ | Số lần xuất hiện | Ví dụ |
+| Quantifier | Number of occurrences | Example |
 | --- | --- | --- |
-| `X?` | 0 hoặc 1 | `colou?r` nhận `color`, `colour` |
-| `X*` | 0 trở lên | `a*` nhận cả chuỗi rỗng |
-| `X+` | 1 trở lên | `a+` nhận `a`, `aaa` |
-| `X{n}` | Chính xác `n` | `\d{4}` nhận bốn chữ số |
-| `X{n,}` | Ít nhất `n` | `[A-Z]{2,}` |
-| `X{n,m}` | Từ `n` đến `m` (gồm hai đầu) | `\d{2,4}` |
+| `X?` | 0 or 1 | `colou?r` matches `color`, `colour` |
+| `X*` | 0 or more | `a*` matches even an empty string |
+| `X+` | 1 or more | `a+` matches `a`, `aaa` |
+| `X{n}` | Exactly `n` | `\d{4}` matches four digits |
+| `X{n,}` | At least `n` | `[A-Z]{2,}` |
+| `X{n,m}` | From `n` to `m` (inclusive) | `\d{2,4}` |
 
-Một lượng từ có ba chiến lược:
+A quantifier has three strategies:
 
-1. **Tham lam (greedy)**, ví dụ `.*`, `a+`, `a{2,4}`: thử lấy nhiều nhất có thể, **có thể quay lui** để phần còn lại khớp.
-2. **Tiết chế (reluctant/lazy)**, ví dụ `.*?`, `a+?`, `a{2,4}?`: thử lấy ít nhất trước, rồi mở rộng nếu cần.
-3. **Sở hữu (possessive)**, ví dụ `.*+`, `a++`, `a{2,4}+`: lấy nhiều nhất **và không trả lại ký tự** qua backtracking.
+1. **Greedy**, e.g., `.*`, `a+`, `a{2,4}`: tries to consume as much as possible, **and can backtrack** so the remainder matches.
+2. **Reluctant/lazy**, e.g., `.*?`, `a+?`, `a{2,4}?`: tries to consume as little as possible first, then expands if needed.
+3. **Possessive**, e.g., `.*+`, `a++`, `a{2,4}+`: consumes as much as possible **and never gives characters back** via backtracking.
 
-Đối với đầu vào `<a><b>`, mẫu `<.*>` nhận cả `<a><b>` do tham lam; mẫu `<.*?>` cho `find()` trả về `<a>` rồi `<b>`. Tuy nhiên cách tìm thẻ XML/HTML đúng nghĩa cần parser tương ứng: regex minh họa này không xử lý thẻ lồng nhau, dấu nháy và cấu trúc ngôn ngữ đánh dấu.
+For the input `<a><b>`, the pattern `<.*>` matches all of `<a><b>` because it is greedy; the pattern `<.*?>` causes `find()` to return `<a>` then `<b>`. However, properly parsing XML/HTML tags requires a corresponding parser: this illustrative regex does not handle nested tags, quoted strings, and markup language structure.
 
 ~~~java
 // QuantifierDemo.java
@@ -91,7 +91,7 @@ public class QuantifierDemo {
 }
 ~~~
 
-Chạy bằng `javac --release 17 QuantifierDemo.java` rồi `java QuantifierDemo`:
+Run with `javac --release 17 QuantifierDemo.java` then `java QuantifierDemo`:
 
 ~~~text
 Greedy: <a><b>
@@ -101,49 +101,49 @@ a+a on aaa: true
 a++a on aaa: false
 ~~~
 
-Ở hai dòng cuối, `a+a` có thể trả lại một `a` để phần `a` cuối khớp. `a++a` đã chiếm hết `aaa`, không backtrack nên thất bại. `*?` không có nghĩa là “không bao giờ lấy thêm”: nó vẫn mở rộng khi phần mẫu phía sau yêu cầu.
+In the last two lines, `a+a` can give back one `a` so the trailing `a` matches. `a++a` consumes all of `aaa` and does not backtrack, so it fails. `*?` does not mean "never take more": it still expands when the rest of the pattern requires it.
 
-## 4. Neo và ranh giới (anchors, boundaries)
+## 4. Anchors and Boundaries
 
-Neo kiểm tra **vị trí**, thường không tiêu thụ ký tự. Vì vậy `^\d+$` mô tả một dãy chữ số chiếm cả chuỗi trong cách kiểm tra thông thường; chỉ `\d+` có thể tìm một đoạn chữ số nằm giữa văn bản.
+Anchors check **positions** and normally consume no characters. Thus `^\d+$` describes a digit sequence spanning the entire string in typical checks; plain `\d+` can find a digit sequence sitting in the middle of text.
 
-| Ký hiệu regex | Vị trí được khớp |
+| Regex symbol | Matched position |
 | --- | --- |
-| `^` | Đầu đầu vào/vùng; với `MULTILINE`, còn là đầu từng dòng |
-| `$` | Cuối đầu vào/vùng, có quy tắc đặc biệt trước ký tự kết thúc dòng cuối; với `MULTILINE`, còn là cuối từng dòng |
-| `\A` | Đầu tuyệt đối của đầu vào theo vùng áp dụng |
-| `\z` | Cuối tuyệt đối của đầu vào theo vùng áp dụng |
-| `\Z` | Cuối đầu vào, có thể ngay trước ký tự kết thúc dòng cuối |
-| `\b` | Ranh giới từ: vị trí chuyển giữa ký tự *word* và không-*word* |
-| `\B` | Vị trí không phải ranh giới từ |
-| `\G` | Cuối lần khớp trước (hữu ích khi muốn các lần `find()` liền kề) |
+| `^` | Start of input/region; with `MULTILINE`, also the start of each line |
+| `$` | End of input/region, with special handling before a final line terminator; with `MULTILINE`, also the end of each line |
+| `\A` | Absolute start of input for the active region |
+| `\z` | Absolute end of input for the active region |
+| `\Z` | End of input, possibly just before a final line terminator |
+| `\b` | Word boundary: transition between a *word* character and a non-*word* character |
+| `\B` | Non-word-boundary position |
+| `\G` | End of the previous match (useful when requiring contiguous `find()` matches) |
 
-`Pattern.MULTILINE` (cờ `(?m)`) thay đổi cách `^` và `$` hoạt động quanh các dòng. Ví dụ `Pattern.compile("^foo$", Pattern.MULTILINE).matcher("foo\nbar").find()` là `true` vì khớp dòng `foo`; nhưng `matches()` trên toàn chuỗi đó vẫn là `false`. `DOTALL` thay đổi hành vi của **`.`**, không thay vai trò của `^` và `$`.
+`Pattern.MULTILINE` (flag `(?m)`) changes how `^` and `$` behave around lines. For example, `Pattern.compile("^foo$", Pattern.MULTILINE).matcher("foo\nbar").find()` is `true` because it matches the `foo` line; yet `matches()` on that entire string is still `false`. `DOTALL` alters the behavior of **`.`**, not the role of `^` and `$`.
 
-`\bcat\b` tìm từ `cat` độc lập trong `"a cat!"`, trong khi mẫu `cat` có thể khớp cả trong `"concatenate"`. Ranh giới từ **không giống dấu cách**: dấu câu, số, dấu gạch dưới, dấu kết hợp và Unicode có thể làm kết quả khác trực giác ngôn ngữ tự nhiên. Nếu quy tắc nghiệp vụ là “từ” trong một ngôn ngữ cụ thể, phải kiểm thử chuỗi thực tế.
+`\bcat\b` finds the standalone word `cat` in `"a cat!"`, whereas the pattern `cat` can also match inside `"concatenate"`. A word boundary **is not the same as a space**: punctuation, digits, underscores, combining marks, and Unicode can make results differ from natural-language intuition. If a business rule defines "word" in a specific language, test it on real strings.
 
-Khi kiểm tra **toàn chuỗi**, ưu tiên `matcher.matches()` vì ý định rõ; khi muốn đọc **từng dòng** bằng `find()`, dùng `MULTILINE` có chủ đích; khi cần neo kết thúc tuyệt đối trong mẫu có thể được dùng bằng `find()`, cân nhắc `\A` và `\z` thay vì giả định `$` luôn có cùng nghĩa.
+When validating an **entire string**, prefer `matcher.matches()` because the intent is explicit; when reading **line by line** with `find()`, use `MULTILINE` intentionally; when needing an absolute end anchor in a pattern that might be used with `find()`, consider `\A` and `\z` rather than assuming `$` always has the same meaning.
 
-## 5. Nhóm bắt (capturing groups) và nhóm không bắt
+## 5. Capturing Groups and Non-Capturing Groups
 
-Dấu ngoặc tròn làm hai việc: **gom các nhánh/đơn vị để lượng từ tác động** và, theo mặc định, **ghi nhớ đoạn đã khớp**.
+Parentheses do two things: **group branches/units for a quantifier to apply to** and, by default, **remember the matched text**.
 
-| Cú pháp | Công dụng |
+| Syntax | Purpose |
 | --- | --- |
-| `(ab)+` | Nhóm bắt `ab`, lặp ít nhất một lần |
-| `(?:ab)+` | Nhóm **không bắt**: gom `ab` để lặp nhưng không tạo chỉ số nhóm |
-| `(cat|dog)` | Nhóm bắt một trong hai nhánh |
-| `(?<day>\d{2})` | Nhóm bắt có tên `day` |
-| `\1` | Tham chiếu lại **nội dung** đã khớp ở nhóm bắt số 1 |
-| `\k<day>` | Tham chiếu lại nội dung nhóm tên `day` |
+| `(ab)+` | Capturing group for `ab`, repeated at least once |
+| `(?:ab)+` | **Non-capturing** group: groups `ab` for repetition without creating a group index |
+| `(cat|dog)` | Capturing group matching either branch |
+| `(?<day>\d{2})` | Named capturing group `day` |
+| `\1` | Backreference to the **content** matched by capturing group 1 |
+| `\k<day>` | Backreference to the content of the named group `day` |
 
-Các nhóm bắt được đánh số **1, 2, ...** theo thứ tự dấu `(` mở của nhóm bắt khi duyệt mẫu từ trái sang phải; nhóm `0` là **toàn bộ lần khớp**. `(?:...)` không tăng số nhóm. Sau khi `find()` hoặc `matches()` thành công, `group(1)`, `group("day")`, `start(1)`, `end(1)` truy xuất nội dung và vị trí; `end()` là chỉ số **exclusive**. Vị trí Java dùng chỉ số UTF-16, nên với ký tự bổ sung Unicode (ngoài BMP) không đồng nhất với chỉ số ký tự hiển thị. `groupCount()` cho biết số nhóm bắt, không tính nhóm `0`.
+Capturing groups are numbered **1, 2, ...** in the order of opening `(` parentheses of capturing groups when scanning the pattern left to right; group `0` is the **entire match**. `(?:...)` does not increment the group count. After `find()` or `matches()` succeeds, `group(1)`, `group("day")`, `start(1)`, `end(1)` retrieve the content and positions; `end()` is an **exclusive** index. Java positions use UTF-16 indices, so with supplementary Unicode characters (outside the BMP) they do not match visible character indices. `groupCount()` returns the number of capturing groups, excluding group `0`.
 
-Nếu một nhánh hoặc một nhóm tùy chọn không tham gia lần khớp, `group(n)` của nhóm đó là `null` (và `start(n)`, `end(n)` là `-1`). Phân biệt “không tham gia” với nhóm có khớp **chuỗi rỗng**. Nếu nhóm nằm dưới lượng từ và khớp nhiều lần, `group(n)` không phải danh sách tất cả lần bắt; thông thường nó giữ giá trị bắt sau cùng. Muốn lấy mọi lần xuất hiện, hãy thiết kế mẫu và lặp `find()` phù hợp.
+If a branch or optional group does not participate in a match, `group(n)` for that group is `null` (and `start(n)`, `end(n)` are `-1`). Distinguish "did not participate" from a group that matched the **empty string**. If a group sits under a quantifier and matches multiple times, `group(n)` is not a list of all captures; typically it retains the last captured value. To obtain all occurrences, design the pattern and `find()` loop accordingly.
 
-Tên nhóm trong Java có dạng tên chữ Latin bắt đầu bằng chữ, theo sau là chữ/số; ví dụ `day`, `year2`. Không dùng lại cùng một tên trong một mẫu. Nhóm không bắt phù hợp khi chỉ cần gom, ví dụ `(?:https?://)?`, giúp chỉ số nhóm bắt ổn định hơn.
+Group names in Java are Latin alphanumeric names starting with a letter, followed by letters/digits; e.g., `day`, `year2`. Do not reuse the same name within a single pattern. Non-capturing groups are appropriate when only grouping is needed, such as `(?:https?://)?`, keeping capturing group indices stable.
 
-### Ví dụ chạy được: kiểm tra, bắt nhóm có tên và vị trí
+### Runnable Example: Validation, Named Capturing Groups, and Positions
 
 ~~~java
 // RegexDemo.java
@@ -170,7 +170,7 @@ public class RegexDemo {
 }
 ~~~
 
-Chạy `javac --release 17 RegexDemo.java` và `java RegexDemo`:
+Run `javac --release 17 RegexDemo.java` and `java RegexDemo`:
 
 ~~~text
 an -> false
@@ -181,11 +181,11 @@ abc_DEF012 -> true
 25/12/2026 -> 25/12/2026 [17, 27)
 ~~~
 
-Mẫu tên đăng nhập dùng **lớp ký tự** và **lượng từ `{2,11}`**: ký tự đầu là chữ Latin, 2–11 ký tự còn lại là chữ/số/`_`, nghĩa là tổng cộng **3–12 ký tự**. `matches()` kiểm tra toàn bộ. Mẫu ngày dùng ba nhóm có tên; `find()` tìm từng đoạn con. Đây là ví dụ **trích xuất theo hình dạng `dd/MM/yyyy`**, không xác nhận ngày hợp lệ: `99/99/2026` vẫn khớp regex; hãy dùng `java.time` để kiểm tra giá trị ngày thực tế.
+The username pattern uses **character classes** and the **quantifier `{2,11}`**: the first character is a Latin letter, and the remaining 2–11 characters are letters/digits/`_`, meaning **3–12 characters** total. `matches()` checks the entire string. The date pattern uses three named groups; `find()` locates each subsequence. This is an example of **extracting by `dd/MM/yyyy` shape**, not validating calendar dates: `99/99/2026` still matches the regex; use `java.time` to check actual date values.
 
-### Tham chiếu ngược: tìm từ bị lặp
+### Backreferences: Finding Repeated Words
 
-Regex `\b(?<word>[A-Za-z]+)\s+\k<word>\b` tìm hai từ giống nhau ngăn bởi khoảng trắng. Từ thứ hai phải có **đúng nội dung nhóm `word` vừa bắt**, không đơn thuần là một từ bất kỳ. Cần cờ `CASE_INSENSITIVE` nếu muốn `Go go` khớp:
+The regex `\b(?<word>[A-Za-z]+)\s+\k<word>\b` finds two identical words separated by whitespace. The second word must have **the exact content just captured by group `word`**, not merely any arbitrary word. The `CASE_INSENSITIVE` flag is needed if `Go go` should match:
 
 ~~~java
 // BackreferenceDemo.java
@@ -205,46 +205,46 @@ public class BackreferenceDemo {
 }
 ~~~
 
-Chạy `javac --release 17 BackreferenceDemo.java` và `java BackreferenceDemo`:
+Run `javac --release 17 BackreferenceDemo.java` and `java BackreferenceDemo`:
 
 ~~~text
 Go go
 Java java
 ~~~
 
-**Phân biệt:** tham chiếu ngược `\1` hoặc `\k<word>` yêu cầu lặp lại **chính giá trị đã khớp**; còn `([A-Za-z]+)\s+([A-Za-z]+)` chỉ đòi hai từ bất kỳ. Trong Java string literal, viết tham chiếu số 1 là `"\\1"`, tham chiếu tên là `"\\k<word>"`.
+**Distinction:** backreferences `\1` or `\k<word>` require repeating **the exact value already matched**; whereas `([A-Za-z]+)\s+([A-Za-z]+)` only requires any two words. In a Java string literal, write group 1 backreference as `"\\1"` and named backreference as `"\\k<word>"`.
 
-## 6. Ghép các thành phần để giải bài toán
+## 6. Combining Components to Solve a Problem
 
-Quy trình xây mẫu dễ kiểm tra:
+A testable pattern-building workflow:
 
-1. Viết rõ **định dạng dữ liệu** và các chuỗi hợp lệ/không hợp lệ; quyết định cần so toàn chuỗi hay tìm đoạn con.
-2. Chọn **lớp ký tự** cho từng vị trí (`[A-Z]`, `\d`, `\p{L}`, ...), xét cả Unicode.
-3. Thêm **lượng từ** diễn tả độ dài (`{4}`, `{2,8}`, `+`), đặt ngoặc cho đơn vị cần lặp (`(?:ab){3}`).
-4. Thêm **neo/ranh giới** khi thực sự cần, rồi chọn `matches()` hay `find()` tương ứng.
-5. Chỉ tạo **nhóm bắt** cho dữ liệu cần lấy/so sánh; dùng `(?:...)` cho phần gom còn lại.
-6. Thử cả trường hợp rỗng, dài quá, ký tự lạ, xuống dòng, Unicode và chuỗi gây nhiều cách backtracking.
+1. Write down the **data format** and valid/invalid strings clearly; decide whether to match the full string or find substrings.
+2. Choose **character classes** for each position (`[A-Z]`, `\d`, `\p{L}`, ...), considering Unicode.
+3. Add **quantifiers** expressing lengths (`{4}`, `{2,8}`, `+`), wrapping units to repeat in parentheses (`(?:ab){3}`).
+4. Add **anchors/boundaries** when truly needed, then pick `matches()` or `find()` accordingly.
+5. Create **capturing groups** only for data to extract/compare; use `(?:...)` for remaining grouping.
+6. Test empty strings, overly long inputs, unusual characters, newlines, Unicode, and strings causing heavy backtracking.
 
-Ví dụ biểu diễn một mã có hai chữ Latin viết hoa, dấu `-` rồi bốn chữ số là `^[A-Z]{2}-\d{4}$` (Java string: `"^[A-Z]{2}-\\d{4}$"`). Mẫu cho phép `AB-1234`, bác bỏ `A-1234`, `AB_1234` và `AB-12345` khi dùng `matches()`. Nếu bắt phần mã để xử lý riêng: `^([A-Z]{2})-(\d{4})$`; lấy mã chữ qua `group(1)`, mã số qua `group(2)` sau khi khớp thành công.
+For example, expressing a code with two uppercase Latin letters, a `-`, and four digits is `^[A-Z]{2}-\d{4}$` (Java string: `"^[A-Z]{2}-\\d{4}$"`). The pattern accepts `AB-1234` and rejects `A-1234`, `AB_1234`, and `AB-12345` when using `matches()`. To capture the parts for separate processing: `^([A-Z]{2})-(\d{4})$`; retrieve the letter code via `group(1)` and the digits via `group(2)` after a successful match.
 
-## 7. Các lỗi thường gặp và cách tránh
+## 7. Common Mistakes and How to Avoid Them
 
-- **Quên hai mức escape**: Java `"\\d"` mới truyền regex `\d`; Java `"\b"` là backspace. Nếu regex viết ở tệp cấu hình hay được đọc từ đầu vào, quy tắc escape của **Java source** không còn áp dụng nguyên xi.
-- **Nhầm `find()` với `matches()`**: `find()` có thể chấp nhận một phần input. Với kiểm tra định dạng toàn chuỗi, dùng `matches()` để tránh lọt tiền tố/hậu tố không hợp lệ.
-- **Nhầm `.` với dấu chấm thật**, `^` trong/ngoài `[]`, hoặc `ab+` với `(ab)+`; cần xác định đơn vị regex mà toán tử tác động.
-- **Cho rằng lazy luôn nhận đúng cấu trúc**: `<.*?>` minh họa sự khác biệt với greedy, không thay parser HTML/XML/JSON. Regex không tự kiểm tra được cấu trúc lồng nhau phức tạp.
-- **Dùng quá nhiều nhóm bắt**: thay nhóm chỉ để gom bằng `(?:...)` để `group(1)`, `group(2)` không bị đổi nghĩa khi sửa mẫu.
-- **Không xử lý nhóm tùy chọn**: `group(n)` có thể là `null`; không gọi `group()` khi `find()`/`matches()` thất bại.
-- **Đồng nhất Unicode với ASCII**: `[A-Z]`, `\w`, `\d` có các phạm vi khác nhau; thử dữ liệu có dấu, ký tự bổ sung, dấu kết hợp và bật cờ Unicode khi phù hợp.
-- **Backtracking tốn kém**: các lượng từ lồng nhau mơ hồ như `(a+)+$` có thể rất chậm trên chuỗi dài gần khớp. Hạn chế đầu vào, dùng lớp ký tự cụ thể, cấu trúc không mơ hồ, hoặc lượng từ sở hữu khi bảo toàn đúng ý nghĩa. `Pattern` biên dịch tái sử dụng được và an toàn khi chia sẻ; mỗi `Matcher` giữ trạng thái riêng, không dùng chung đồng thời giữa các thread.
-- **Nhúng văn bản người dùng vào regex**: nếu cần tìm chuỗi **nguyên văn**, dùng `Pattern.quote(userText)` thay vì ghép trực tiếp các ký tự đặc biệt vào regex. Khi thay thế và muốn đưa chuỗi thay thế vào nguyên văn, xét `Matcher.quoteReplacement(replacementText)` vì `$` và `\` có nghĩa đặc biệt trong replacement.
+- **Forgetting two levels of escaping**: Java `"\\d"` passes the regex `\d`; Java `"\b"` is backspace. If a regex comes from a config file or is read from input, **Java source** escaping rules no longer apply directly.
+- **Confusing `find()` with `matches()`**: `find()` can accept part of the input. For full-string format validation, use `matches()` to avoid letting invalid prefixes/suffixes slip through.
+- **Confusing `.` with a literal dot**, `^` inside/outside `[]`, or `ab+` with `(ab)+`; identify the exact regex unit each operator applies to.
+- **Assuming lazy always captures structure cleanly**: `<.*?>` illustrates the difference from greedy, not a replacement for an HTML/XML/JSON parser. Regex cannot reliably validate complex nested structures on its own.
+- **Using too many capturing groups**: replace grouping-only parentheses with `(?:...)` so `group(1)` and `group(2)` do not shift meaning when editing the pattern.
+- **Not handling optional groups**: `group(n)` can be `null`; do not call `group()` when `find()`/`matches()` fails.
+- **Equating Unicode with ASCII**: `[A-Z]`, `\w`, and `\d` have different scopes; test accented data, supplementary characters, combining marks, and enable Unicode flags when appropriate.
+- **Expensive backtracking**: ambiguous nested quantifiers like `(a+)+$` can become very slow on long near-matching strings. Bound inputs, use specific character classes, unambiguous structure, or possessive quantifiers when preserving exact semantics. A compiled `Pattern` is reusable and thread-safe; each `Matcher` holds its own state and must not be shared concurrently across threads.
+- **Embedding user text into a regex**: if searching for a **literal** string, use `Pattern.quote(userText)` rather than concatenating special characters straight into the regex. When replacing and inserting replacement text literally, consider `Matcher.quoteReplacement(replacementText)` because `$` and `\` have special meaning in replacements.
 
-## 8. Tự kiểm tra hiểu bài
+## 8. Self-Check Questions
 
-1. Vì sao `Pattern.matches("a+", "baaa")` là `false` nhưng `Pattern.compile("a+").matcher("baaa").find()` là `true`?
-2. Với chuỗi `"abab"`, `(ab){2}` và `ab{2}` có cùng kết quả khi dùng `matches()` không? Lượng từ đang áp dụng lên đơn vị nào?
-3. Trên `<a><b>`, `.*` và `.*?` khiến `<...>` nhận đoạn khác nhau thế nào, và vì sao `.*+` có thể làm mẫu thất bại?
-4. Viết mẫu bắt riêng `year`, `month`, `day` trong chuỗi `"2026-10-23"` rồi kiểm tra vì sao regex định dạng vẫn chưa thay thế kiểm tra ngày lịch.
-5. Khi cần kiểm tra một chuỗi kết thúc **thực sự** tại vị trí cuối đầu vào, tại sao `\z` rõ ràng hơn `$`?
+1. Why is `Pattern.matches("a+", "baaa")` `false` while `Pattern.compile("a+").matcher("baaa").find()` is `true`?
+2. For the string `"abab"`, do `(ab){2}` and `ab{2}` give the same result with `matches()`? Which unit does the quantifier apply to?
+3. On `<a><b>`, how do `.*` and `.*?` cause `<...>` to capture different spans, and why can `.*+` make the pattern fail?
+4. Write a pattern that captures `year`, `month`, and `day` separately in `"2026-10-23"` and explain why a format regex still does not replace calendar date validation.
+5. When checking that a string ends **strictly** at the very end of the input, why is `\z` clearer than `$`?
 
-**Ghi nhớ:** lớp ký tự = *ký tự gì*; lượng từ = *bao nhiêu lần*; neo/ranh giới = *ở vị trí nào*; nhóm bắt = *phần nào cần gom/lấy lại*. Chọn `matches()` cho kiểm tra toàn chuỗi, `find()` cho tìm/trích xuất, và dùng ví dụ kiểm thử với dữ liệu thật để xác minh từng lớp quy tắc.
+**Takeaway:** character class = *what character*; quantifier = *how many times*; anchor/boundary = *at what position*; capturing group = *what part to group/capture*. Pick `matches()` for full-string validation, `find()` for searching/extracting, and test with real data examples to verify each layer of rules.

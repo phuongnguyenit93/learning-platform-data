@@ -1,12 +1,12 @@
-# `instanceof` kiểm tra kiểu và kết quả khi đối tượng là `null` trong Java
+# `instanceof` Type Checking and Results When the Object Is `null` in Java
 
-> **Java core — language-basics / Mẫu kiểm tra kiểu**  
-> **Môi trường:** Java 17+, không bật preview, chương trình một file và chỉ dùng JDK.  
-> **Mục tiêu:** Hiểu `instanceof` kiểm tra kiểu đối tượng khi chạy, biết `null instanceof T` luôn là `false`, dùng pattern matching `instanceof` để xử lý an toàn, và tránh lỗi ép kiểu, phạm vi biến mẫu cùng hạn chế generic.
+> **Java core — language-basics / Type Patterns**  
+> **Environment:** Java 17+, preview disabled, single-file program using only the JDK.  
+> **Goal:** Understand how `instanceof` checks an object's runtime type, know that `null instanceof T` is always `false`, use `instanceof` pattern matching for safe handling, and avoid casting errors, pattern variable scope issues, and generic limitations.
 
-## 1. `instanceof` kiểm tra điều gì?
+## 1. What Does `instanceof` Check?
 
-Toán tử `instanceof` trả về **`boolean`**, kiểm tra một tham chiếu có trỏ đến đối tượng thuộc kiểu tham chiếu cần kiểm tra hay không. Cú pháp cơ bản:
+The `instanceof` operator returns a **`boolean`**, checking whether a reference points to an object of the target reference type. Basic syntax:
 
 ~~~java
 Object value = "Java";
@@ -16,22 +16,22 @@ boolean isSequence = value instanceof CharSequence; // true
 boolean isNumber = value instanceof Number;    // false
 ~~~
 
-`value` được khai báo kiểu `Object` nhưng đối tượng **thực tế lúc chạy** là `String`. Vì `String` triển khai `CharSequence`, cả hai phép kiểm tra đầu đều true.
+`value` is declared with type `Object`, but the **actual runtime** object is `String`. Because `String` implements `CharSequence`, both of the first two checks are true.
 
-`instanceof` không kiểm tra nội dung hoặc tính bằng nhau của hai đối tượng; đây là phép **kiểm tra quan hệ kiểu runtime**. Đừng nhầm nó với `==`, `equals()` hoặc `getClass() == SomeType.class`.
+`instanceof` does not check the content or equality of two objects; it is a **runtime type relationship check**. Do not confuse it with `==`, `equals()`, or `getClass() == SomeType.class`.
 
-| Phép kiểm tra | Câu hỏi |
+| Check | Question |
 | --- | --- |
-| `x instanceof T` | `x` khác null và đối tượng runtime tương thích với `T`? |
-| `x == null` | Tham chiếu có đang null không? |
-| `x.getClass() == T.class` | Lớp runtime có **chính xác** là `T`, không tính lớp con? |
-| `x.equals(y)` | Hai đối tượng có bằng nhau theo ngữ nghĩa `equals` của lớp không? |
+| `x instanceof T` | Is `x` non-null and is its runtime object compatible with `T`? |
+| `x == null` | Is the reference currently null? |
+| `x.getClass() == T.class` | Is the runtime class **exactly** `T`, excluding subclasses? |
+| `x.equals(y)` | Are the two objects equal according to the class's `equals` semantics? |
 
-`getClass()` sẽ ném `NullPointerException` khi `x == null`; trái lại, `instanceof` **an toàn với null**.
+`getClass()` will throw `NullPointerException` when `x == null`; by contrast, `instanceof` is **null-safe**.
 
-## 2. `null instanceof T` luôn trả `false`
+## 2. `null instanceof T` Always Returns `false`
 
-`null` nghĩa là **không có đối tượng nào**. Vì vậy tham chiếu null không phải là instance của bất kỳ kiểu lớp, interface hoặc kiểu mảng nào.
+`null` means **no object**. Therefore, a null reference is not an instance of any class, interface, or array type.
 
 ~~~java
 Object value = null;
@@ -42,9 +42,9 @@ System.out.println(value instanceof Runnable); // false
 System.out.println(value instanceof int[]); // false
 ~~~
 
-Kết quả này quan trọng ngay cả với `Object`: `null instanceof Object` cũng là false. Toán tử **không ném `NullPointerException`**, và phép kiểm tra trả true đồng thời xác nhận tham chiếu khác null.
+This result holds even for `Object`: `null instanceof Object` is also false. The operator **does not throw `NullPointerException`**, and a check returning true simultaneously confirms that the reference is non-null.
 
-Ví dụ:
+Example:
 
 ~~~java
 Object maybeText = null;
@@ -54,10 +54,10 @@ if (maybeText instanceof String) {
 } else {
     System.out.println("Null or another type");
 }
-// In: Null or another type.
+// Prints: Null or another type.
 ~~~
 
-**Nhánh `else` không chứng minh đối tượng là null**: nó cũng nhận mọi đối tượng không phải `String`. Nếu cần phân biệt ba trạng thái, hãy kiểm tra null riêng:
+**The `else` branch does not prove the object is null**: it also receives every object that is not a `String`. If you need to distinguish three states, check for null separately:
 
 ~~~java
 if (maybeText == null) {
@@ -69,9 +69,9 @@ if (maybeText == null) {
 }
 ~~~
 
-## 3. Lớp con, interface và kiểu mảng
+## 3. Subclasses, Interfaces, and Array Types
 
-`instanceof` xem xét quan hệ kế thừa và triển khai interface, không chỉ lớp chính xác:
+`instanceof` considers inheritance and interface implementation relationships, not just the exact class:
 
 ~~~java
 class Animal {}
@@ -85,9 +85,9 @@ boolean isDog = pet instanceof Dog;       // true
 boolean isNamed = pet instanceof Named;   // true
 ~~~
 
-Đối tượng runtime là `Dog` nên nó cũng là `Animal` và `Named`. Nếu tham chiếu `Animal` trỏ tới một `Cat` không triển khai `Named`, phép kiểm tra `Dog` hoặc `Named` sẽ false.
+The runtime object is `Dog`, so it is also an `Animal` and a `Named`. If an `Animal` reference points to a `Cat` that does not implement `Named`, checking for `Dog` or `Named` will be false.
 
-Mảng cũng là đối tượng:
+Arrays are also objects:
 
 ~~~java
 Object data = new int[] {1, 2};
@@ -96,20 +96,20 @@ boolean object = data instanceof Object;          // true
 boolean referenceArray = data instanceof Object[]; // false
 ~~~
 
-`int[]` không phải `Object[]`: mảng primitive chứa các giá trị `int`, không phải tham chiếu đối tượng. Với `String[]`, phép kiểm tra `instanceof Object[]` lại true vì các phần tử là tham chiếu.
+`int[]` is not an `Object[]`: a primitive array holds `int` values, not object references. With `String[]`, checking `instanceof Object[]` is true because its elements are references.
 
-## 4. Kiểm tra kiểu trước khi ép kiểu
+## 4. Checking the Type Before Casting
 
-Ép kiểu tham chiếu **không kiểm tra an toàn giúp bạn trước khi cast**; nếu đối tượng runtime không tương thích, Java ném `ClassCastException`:
+Reference casting **does not perform a safety check for you before casting**; if the runtime object is incompatible, Java throws `ClassCastException`:
 
 ~~~java
 Object value = Integer.valueOf(7);
 
 // String text = (String) value;
-// Nếu chạy: ClassCastException.
+// If executed: ClassCastException.
 ~~~
 
-Mẫu cũ thường viết:
+The traditional pattern is written as:
 
 ~~~java
 Object value = "Java";
@@ -120,21 +120,21 @@ if (value instanceof String) {
 }
 ~~~
 
-`instanceof String` là **điều kiện bảo vệ** trước phép cast. Nếu `value` null thì nhánh không chạy; nếu giá trị không phải String thì cũng không cast.
+`instanceof String` is the **guard condition** before the cast. If `value` is null, the branch does not run; if the value is not a String, no cast happens either.
 
-Một chi tiết dễ nhầm: **ép kiểu tham chiếu null có thể hợp lệ**:
+A subtle detail: **casting a null reference can be valid**:
 
 ~~~java
 Object nothing = null;
-String text = (String) nothing; // text vẫn null; cast không ném CCE.
-// text.length(); // Nếu gọi: NullPointerException.
+String text = (String) nothing; // text remains null; cast does not throw CCE.
+// text.length(); // If called: NullPointerException.
 ~~~
 
-Nói cách khác, `instanceof` kiểm tra có đối tượng tương thích hay không; cast null không tạo ra đối tượng mới và không tự gọi phương thức.
+In other words, `instanceof` checks whether there is a compatible object; casting null does not create a new object and does not call methods on its own.
 
-## 5. Java 17: pattern matching với `instanceof`
+## 5. Java 17: Pattern Matching with `instanceof`
 
-Java 17 hỗ trợ cú pháp **type pattern** ngay trong phép kiểm tra:
+Java 17 supports **type pattern** syntax directly inside the check:
 
 ~~~java
 Object value = "hello";
@@ -144,9 +144,9 @@ if (value instanceof String text) {
 }
 ~~~
 
-Ở đây `text` là **biến mẫu** (*pattern variable*): khi kiểm tra true, Java tự thực hiện bước ràng buộc tham chiếu theo kiểu `String`. Nhờ đó không phải cast tường minh một lần nữa.
+Here `text` is a **pattern variable**: when the check is true, Java automatically binds the reference with type `String`. As a result, you do not have to write an explicit cast again.
 
-Biến mẫu chỉ được sử dụng nơi Java xác định rằng phép kiểm tra kiểu đã thành công (**flow scoping**):
+A pattern variable can only be used where Java determines that the type check succeeded (**flow scoping**):
 
 ~~~java
 Object value = " Java ";
@@ -156,38 +156,38 @@ if (value instanceof String text && !text.isBlank()) {
 }
 ~~~
 
-Với `&&`, vế phải chỉ được đánh giá khi kiểm tra kiểu true, nên `text` hợp lệ và không null ở vế phải. Trái lại:
+With `&&`, the right-hand side is evaluated only when the type check is true, so `text` is valid and non-null on the right-hand side. Conversely:
 
 ~~~java
-// KHÔNG BIÊN DỊCH: text không được đảm bảo đã có giá trị ở vế phải.
+// DOES NOT COMPILE: text is not guaranteed to have a value on the right-hand side.
 // if (value instanceof String text || text.isBlank()) { }
 ~~~
 
-Trong `||`, vế phải chỉ chạy khi vế trái false, tức chưa thể gán biến mẫu `text`. Không dùng biến mẫu ngoài phạm vi mà trình biên dịch xác nhận.
+In `||`, the right-hand side runs only when the left-hand side is false, meaning the pattern variable `text` cannot have been assigned yet. Do not use a pattern variable outside the scope confirmed by the compiler.
 
-## 6. Biến mẫu sau `return` và những giới hạn của kiểu
+## 6. Pattern Variables After `return` and Type Limitations
 
-Một cách viết Java 17 rõ ràng là thoát sớm khi không khớp:
+A clean Java 17 idiom is returning early when the pattern does not match:
 
 ~~~java
 static String uppercaseIfString(Object input) {
     if (!(input instanceof String text)) {
         return "NOT_TEXT";
     }
-    return text.toUpperCase(); // text được xác định đã khớp.
+    return text.toUpperCase(); // text is definitely matched.
 }
 ~~~
 
-Nếu điều kiện phủ định đúng, phương thức đã `return`. Khi luồng tới dòng cuối, Java biết `input instanceof String text` là true nên `text` có sẵn và khác null.
+If the negated condition is true, the method has already executed `return`. When control flow reaches the final line, Java knows `input instanceof String text` is true, so `text` is available and non-null.
 
-**Các giới hạn cần nhớ:**
+**Limitations to remember:**
 
-- `instanceof` dùng cho **tham chiếu** ở Java 17; không thể viết `int x = 3; x instanceof Integer`. Muốn đưa số nguyên vào `Object`, autoboxing có thể tạo `Integer`.
-- Kiểu bên phải phải phù hợp với ràng buộc kiểm tra runtime. Không thể thử trực tiếp `instanceof List<String>` vì thông tin tham số generic bị xóa (`type erasure`); có thể dùng `List<?>`.
-- Với **type pattern**, Java 17 từ chối một số trường hợp mà kiểu tĩnh của biểu thức đã là subtype của kiểu mẫu (kiểm tra vô điều kiện). Ví dụ `String s = "a"; if (s instanceof String t)` là lỗi biên dịch; nếu đã biết kiểu `String`, không cần pattern như vậy.
-- Pattern matching `instanceof` trong Java 17 chỉ giới thiệu type pattern; không phải cú pháp record pattern của các phiên bản Java mới.
+- `instanceof` applies to **reference types** in Java 17; you cannot write `int x = 3; x instanceof Integer`. To place an integer into an `Object`, autoboxing can create an `Integer`.
+- The type on the right-hand side must be compatible with runtime checking constraints. You cannot directly test `instanceof List<String>` because generic type argument information is erased (`type erasure`); you can use `List<?>`.
+- With a **type pattern**, Java 17 rejects certain cases where the static type of the expression is already a subtype of the pattern type (an unconditional check). For example, `String s = "a"; if (s instanceof String t)` is a compile error; if the type is already known to be `String`, such a pattern is unnecessary.
+- Pattern matching for `instanceof` in Java 17 only introduces type patterns, not the record pattern syntax from newer Java versions.
 
-Ví dụ với generic:
+Example with generics:
 
 ~~~java
 Object value = java.util.List.of("A", "B");
@@ -196,15 +196,15 @@ if (value instanceof java.util.List<?> list) {
     System.out.println(list.size()); // 2
 }
 
-// KHÔNG BIÊN DỊCH: type argument String không kiểm tra được tại runtime.
+// DOES NOT COMPILE: type argument String cannot be checked at runtime.
 // if (value instanceof java.util.List<String> list) { }
 ~~~
 
-Kiểm tra `List<?>` không chứng minh các phần tử đều là String. Nếu nghiệp vụ cần kiểm tra loại phần tử, phải xem xét phần tử riêng, không dựa vào `instanceof List<String>`.
+Checking `List<?>` does not prove that all elements are Strings. If business logic needs to verify the element type, you must inspect the elements individually rather than relying on `instanceof List<String>`.
 
-## 7. Chương trình Java 17+ chạy độc lập
+## 7. Standalone Java 17+ Program
 
-Tạo file **InstanceofNullDemo.java**:
+Create a file named **InstanceofNullDemo.java**:
 
 ~~~java
 import java.util.List;
@@ -294,14 +294,14 @@ public final class InstanceofNullDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 InstanceofNullDemo.java
 java InstanceofNullDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 nullObject=false
@@ -331,30 +331,30 @@ badCast=ClassCastException
 patternValue=JAVA
 ~~~
 
-Đặc biệt, **bốn dòng `null...=false`** cho thấy `instanceof` không ném NPE khi tham chiếu là null. `intObjectArray=false` là do `int[]` không phải `Object[]`; `strObjectArray=true` do `String[]` là mảng tham chiếu. Biến mẫu `text` chỉ được sử dụng khi đã khớp kiểu.
+In particular, the **four `null...=false` lines** show that `instanceof` does not throw NPE when the reference is null. `intObjectArray=false` occurs because `int[]` is not an `Object[]`; `strObjectArray=true` occurs because `String[]` is a reference array. The pattern variable `text` is only used once the type has matched.
 
-## 8. Sai lầm phổ biến và bài tập
+## 8. Common Mistakes and Exercises
 
-| Tình huống | Kết quả hoặc cách xử lý đúng |
+| Situation | Result or Correct Handling |
 | --- | --- |
-| `null instanceof Object` | **false**, không ném `NullPointerException` |
-| `x instanceof String` false | `x` có thể null **hoặc** thuộc kiểu khác |
-| Cast đối tượng sai kiểu | Có thể ném `ClassCastException` |
-| Cast `null` sang `String` | Hợp lệ, kết quả vẫn null |
-| `x instanceof String s && !s.isBlank()` | Hợp lệ: `s` có mặt khi vế phải chạy |
-| `x instanceof String s \|\| s.isBlank()` | Không hợp lệ về phạm vi biến mẫu |
-| `x instanceof List<String>` | Không hợp lệ do type erasure; dùng `List<?>` khi cần kiểm tra raw shape |
+| `null instanceof Object` | **false**, does not throw `NullPointerException` |
+| `x instanceof String` is false | `x` may be null **or** belong to another type |
+| Casting an object of the wrong type | Can throw `ClassCastException` |
+| Casting `null` to `String` | Valid, result remains null |
+| `x instanceof String s && !s.isBlank()` | Valid: `s` is available when the right-hand side runs |
+| `x instanceof String s \|\| s.isBlank()` | Invalid due to pattern variable scope |
+| `x instanceof List<String>` | Invalid due to type erasure; use `List<?>` when checking the raw shape |
 
-**Bài 1.** Cho `Object x = null;`, dự đoán `x instanceof Object`, `x instanceof String` và `x instanceof Runnable`. Khi nào nên thêm `x == null`?
+**Exercise 1.** Given `Object x = null;`, predict `x instanceof Object`, `x instanceof String`, and `x instanceof Runnable`. When should you add `x == null`?
 
-**Bài 2.** Cho `Object x = "Java";`, kiểm tra `String`, `CharSequence`, `Number`. Giải thích bằng quan hệ kiểu.
+**Exercise 2.** Given `Object x = "Java";`, check `String`, `CharSequence`, and `Number`. Explain using type relationships.
 
-**Bài 3.** Viết `if (x instanceof String text)` để chỉ gọi `text.length()` khi an toàn. Thử truyền null và một `Integer`.
+**Exercise 3.** Write `if (x instanceof String text)` so that `text.length()` is called only when safe. Test passing null and an `Integer`.
 
-**Bài 4.** Giải thích vì sao `List<?>` dùng được trong `instanceof` nhưng `List<String>` không; điều kiện đó có chứng minh mọi phần tử là String không?
+**Exercise 4.** Explain why `List<?>` works in `instanceof` while `List<String>` does not; does that check prove every element is a String?
 
-**Bài 5.** Viết phương thức nhận `Object` và trả một trong ba nhãn `"MISSING"`, `"TEXT"`, `"OTHER"` mà không cast sai kiểu và không làm mất sự phân biệt null.
+**Exercise 5.** Write a method that accepts an `Object` and returns one of three labels `"MISSING"`, `"TEXT"`, or `"OTHER"` without an unsafe cast and without losing the distinction for null.
 
-### Ghi nhớ
+### Key Takeaway
 
-**`instanceof` trả true chỉ khi tham chiếu khác null và đối tượng runtime tương thích với kiểu đích.** Vì vậy `null instanceof T` luôn false. Với Java 17, dùng `instanceof T name` để kiểm tra kiểu và lấy biến mẫu an toàn; chú ý phạm vi biến theo luồng, giới hạn generic, và đừng nhầm `instanceof` với ép kiểu hoặc kiểm tra null riêng.
+**`instanceof` returns true only when the reference is non-null and the runtime object is compatible with the target type.** Therefore, `null instanceof T` is always false. In Java 17, use `instanceof T name` to check the type and obtain a pattern variable safely; pay attention to flow scoping, generic limitations, and do not confuse `instanceof` with casting or separate null checks.

@@ -1,16 +1,16 @@
-# javac --module và compile một module
+# javac --module and Compiling a Single Module
 
-Từ Java 9, Java Platform Module System (JPMS) cho phép biên dịch và chạy ứng dụng theo từng module có tên. Khi compile một module, compiler cần biết ba điều: **source của module nằm ở đâu**, **module nào cần được biên dịch**, và **các module dependency đã biên dịch nằm ở đâu**.
+Since Java 9, the Java Platform Module System (JPMS) allows compiling and running applications by named modules. When compiling a module, the compiler needs to know three things: **where the module's source is located**, **which module needs to be compiled**, and **where the precompiled dependency modules are located**.
 
-Lệnh `javac --module` (viết tắt là `javac -m`) chọn module cần compile. Nó thường đi cùng `--module-source-path` để tìm source của các module và `--module-path` để tìm dependency đã biên dịch. Nắm rõ ba tùy chọn này giúp bạn compile riêng một module mà không phải đưa toàn bộ dự án vào classpath.
+The `javac --module` command (abbreviated as `javac -m`) selects the module to compile. It is usually paired with `--module-source-path` to locate module sources and `--module-path` to locate compiled dependencies. Understanding these three options clearly helps you compile a single module without putting the entire project on the classpath.
 
-Các ví dụ dưới đây dùng JDK 21 và một dự án gồm hai module: `com.acme.api` và `com.acme.app`.
+The examples below use JDK 21 and a project consisting of two modules: `com.acme.api` and `com.acme.app`.
 
-## 1. Cấu trúc source của dự án modular
+## 1. Source Structure of a Modular Project
 
-Mỗi module có một file `module-info.java` ở thư mục gốc của module. Các package Java nằm bên dưới thư mục đó.
+Each module has a `module-info.java` file in the module's root directory. Java packages reside underneath that directory.
 
-Ví dụ:
+Example:
 
 ~~~text
 project/
@@ -24,9 +24,9 @@ project/
 └── out/
 ~~~
 
-Tên thư mục module ở đây là `com.acme.api` và `com.acme.app`; chúng phải khớp với tên module khai báo trong `module-info.java`.
+The module directory names here are `com.acme.api` and `com.acme.app`; they must match the module names declared in `module-info.java`.
 
-Module API:
+API module:
 
 ~~~java
 module com.acme.api {
@@ -46,7 +46,7 @@ public class Greeter {
 }
 ~~~
 
-Module ứng dụng:
+Application module:
 
 ~~~java
 module com.acme.app {
@@ -69,61 +69,61 @@ public class Main {
 }
 ~~~
 
-Ở đây:
+Here:
 
-- `com.acme.api` export package `com.acme.api`, do đó module khác có thể dùng public API trong package này.
-- `com.acme.app` khai báo `requires com.acme.api`, tạo dependency module rõ ràng.
-- `com.acme.app` không cần copy source hoặc class của API vào package của mình.
+- `com.acme.api` exports the `com.acme.api` package, so other modules can use the public API in this package.
+- `com.acme.app` declares `requires com.acme.api`, creating an explicit module dependency.
+- `com.acme.app` does not need to copy the API's source files or classes into its own packages.
 
-Một module thông thường tự động đọc `java.base`; không cần viết `requires java.base`.
+A regular module automatically reads `java.base`; there is no need to write `requires java.base`.
 
-## 2. Ý nghĩa của javac --module
+## 2. Meaning of javac --module
 
-Cú pháp tổng quát:
+General syntax:
 
 ~~~bash
 javac --module-source-path <source-root> -d <output-directory> --module <module-name>
 ~~~
 
-Các tùy chọn:
+Options:
 
-| Tùy chọn | Ý nghĩa |
+| Option | Meaning |
 |---|---|
-| `--module` hoặc `-m` | Chọn module cần compile; có thể truyền nhiều tên module, phân cách bằng dấu phẩy |
-| `--module-source-path` | Chỉ định gốc source chứa các thư mục module |
-| `--module-path` hoặc `-p` | Chỉ định nơi tìm các module dependency đã biên dịch hoặc đóng gói |
-| `-d` | Chỉ định thư mục chứa class file đầu ra |
-| `--release` | Compile theo API và ngôn ngữ của một Java release cụ thể |
+| `--module` or `-m` | Selects the module(s) to compile; multiple module names can be passed, separated by commas |
+| `--module-source-path` | Specifies the source root containing module directories |
+| `--module-path` or `-p` | Specifies where to find compiled or packaged dependency modules |
+| `-d` | Specifies the directory for output class files |
+| `--release` | Compiles against the API and language level of a specific Java release |
 
-Ví dụ compile module độc lập:
+Example of compiling an independent module:
 
 ~~~bash
 javac --module-source-path src -d out --module com.acme.app
 ~~~
 
-Lệnh này yêu cầu javac tìm source của module `com.acme.app` trong `src` và ghi kết quả vào `out`. Ví dụ trên chỉ compile được nếu dependency của module đã có sẵn để resolve hoặc module không có dependency ứng dụng chưa được biên dịch.
+This command instructs `javac` to look for the source of module `com.acme.app` in `src` and write the output to `out`. The example above only compiles if the module's dependencies are already available to resolve or the module has no uncompiled application dependencies.
 
-`-m` là cách viết ngắn tương đương:
+`-m` is an equivalent short form:
 
 ~~~bash
 javac --module-source-path src -d out -m com.acme.app
 ~~~
 
-Tên sau `--module` là **tên module**, không phải tên package, tên class hay đường dẫn thư mục.
+The name after `--module` is the **module name**, not a package name, class name, or directory path.
 
-## 3. Compile một module có dependency
+## 3. Compiling a Module with Dependencies
 
-Trong ví dụ, `com.acme.app` yêu cầu `com.acme.api`. Có hai cách rõ ràng để compile.
+In the example, `com.acme.app` requires `com.acme.api`. There are two clear ways to compile.
 
-### Cách A: Compile các module cần thiết cùng lúc
+### Approach A: Compile the Required Modules Together
 
 ~~~bash
 javac --module-source-path src -d out --module com.acme.api,com.acme.app
 ~~~
 
-Javac tìm cả hai module trong source path, compile và ghi kết quả vào thư mục output. Đây là cách thuận tiện khi source của dependency và module đích đều đang có trong cùng dự án.
+`javac` finds both modules on the source path, compiles them, and writes the results to the output directory. This is convenient when the sources of both the dependency and the target module are in the same project.
 
-Kết quả có cấu trúc:
+The output has the structure:
 
 ~~~text
 out/
@@ -135,109 +135,109 @@ out/
     └── com/acme/app/Main.class
 ~~~
 
-Mỗi module được đặt trong một thư mục riêng bên dưới output directory. Không cần tự tạo thư mục output cho từng module.
+Each module is placed in its own directory under the output directory. There is no need to manually create an output directory for each module.
 
-### Cách B: Compile dependency trước, sau đó compile riêng module đích
+### Approach B: Compile the Dependency First, Then Compile the Target Module Separately
 
-Bước 1 — compile module API:
+Step 1 — compile the API module:
 
 ~~~bash
 javac --module-source-path src -d out --module com.acme.api
 ~~~
 
-Bước 2 — compile module ứng dụng, dùng output đã có làm module path:
+Step 2 — compile the application module, using the existing output as the module path:
 
 ~~~bash
 javac --module-path out --module-source-path src -d out --module com.acme.app
 ~~~
 
-Trong bước 2:
+In Step 2:
 
-- `--module-path out` cho javac biết module `com.acme.api` đã được compile nằm trong `out`.
-- `--module-source-path src` cho javac biết source của module `com.acme.app` nằm ở đâu.
-- `--module com.acme.app` chọn đúng module cần compile.
-- `-d out` ghi class file của ứng dụng vào `out/com.acme.app`.
+- `--module-path out` tells `javac` that the compiled `com.acme.api` module is in `out`.
+- `--module-source-path src` tells `javac` where the source of `com.acme.app` is located.
+- `--module com.acme.app` selects the exact module to compile.
+- `-d out` writes the application's class files into `out/com.acme.app`.
 
-Cách này hữu ích khi bạn chỉ thay đổi module ứng dụng, còn module API đã được compile hoặc được cung cấp dưới dạng modular JAR.
+This approach is useful when you only modify the application module while the API module is already compiled or provided as a modular JAR.
 
-Nếu dependency nằm trong file JAR, đặt file JAR đó trên module path, ví dụ:
+If the dependency is in a JAR file, place that JAR file on the module path, for example:
 
 ~~~bash
 javac --module-path "lib/com.acme.api.jar" --module-source-path src -d out --module com.acme.app
 ~~~
 
-Nếu có nhiều mục trên module path, phân cách chúng bằng dấu phân cách đường dẫn của hệ điều hành: dấu hai chấm trên Linux/macOS và dấu chấm phẩy trên Windows.
+If there are multiple entries on the module path, separate them with the operating system's path separator: a colon on Linux/macOS and a semicolon on Windows.
 
-## 4. Compile và chạy module trên Windows PowerShell
+## 4. Compiling and Running Modules on Windows PowerShell
 
-Trong PowerShell, cấu trúc lệnh giống nhau. Nếu đang ở thư mục gốc dự án:
+In PowerShell, the command structure is the same. If you are at the project root directory:
 
 ~~~powershell
 javac --module-source-path src -d out --module com.acme.api,com.acme.app
 ~~~
 
-Sau khi compile, chạy main class theo cú pháp module:
+After compiling, run the main class using module syntax:
 
 ~~~powershell
 java --module-path out --module com.acme.app/com.acme.app.Main
 ~~~
 
-Có thể viết ngắn:
+Short form:
 
 ~~~powershell
 java -p out -m com.acme.app/com.acme.app.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Hello, JPMS
 ~~~
 
-Cú pháp `module-name/main-class` chỉ rõ class main thuộc module nào. Nếu module có nhiều class cùng tên ở các package khác nhau, tên đầy đủ của main class loại bỏ sự mơ hồ.
+The `module-name/main-class` syntax specifies which module the main class belongs to. If a module has multiple classes with the same name in different packages, the fully qualified main class name eliminates ambiguity.
 
-Nếu module descriptor có khai báo main class trong metadata của JAR, một số cách khởi chạy có thể rút gọn; trong bài này, chỉ định rõ `module/main-class` giúp dễ hiểu và hoạt động nhất quán.
+If the module descriptor declares a main class in the JAR metadata, some launch forms can be shortened; in this lesson, explicitly specifying `module/main-class` makes it easy to understand and works consistently.
 
-## 5. Phân biệt module-source-path và module-path
+## 5. Distinguishing module-source-path and module-path
 
-Hai tùy chọn có tên gần giống nhưng phục vụ hai nguồn dữ liệu khác nhau:
+The two options have similar names, but serve two different data sources:
 
-| Tùy chọn | Chứa gì? | Dùng khi nào? |
+| Option | What Does It Contain? | When to Use? |
 |---|---|---|
-| `--module-source-path` | Source của các module, bao gồm `module-info.java` và file `.java` | Khi javac cần tìm module source để compile |
-| `--module-path` | Module đã biên dịch dạng exploded module hoặc modular JAR | Khi javac cần resolve dependency của module đang compile |
+| `--module-source-path` | Module sources, including `module-info.java` and `.java` files | When `javac` needs to locate module sources to compile |
+| `--module-path` | Compiled modules in exploded module or modular JAR form | When `javac` needs to resolve dependencies of the module being compiled |
 
-Ví dụ, với:
+For example, with:
 
 ~~~bash
 javac --module-path out --module-source-path src -d out --module com.acme.app
 ~~~
 
-- `src` là đầu vào source.
-- `out` là nơi javac tìm dependency đã compile và cũng là nơi ghi output.
-- `com.acme.app` là module được chọn để compile.
+- `src` is the source input.
+- `out` is where `javac` looks for precompiled dependencies and also where it writes output.
+- `com.acme.app` is the module selected to compile.
 
-Không dùng `--module-path` để trỏ vào thư mục source thô chưa được tổ chức thành module đã biên dịch. Ngược lại, không dùng `--module-source-path` thay cho nơi chứa modular JAR dependency.
+Do not use `--module-path` to point to a raw source directory that has not been built into compiled modules. Conversely, do not use `--module-source-path` in place of a directory containing modular JAR dependencies.
 
-### Module path khác classpath
+### Module Path vs. Classpath
 
-Classpath phục vụ class và JAR trên classpath, thường thuộc unnamed module. Module path cung cấp các named module có descriptor và dependency được kiểm tra theo JPMS.
+The classpath serves classes and JARs on the classpath, typically belonging to the unnamed module. The module path provides named modules with descriptors and dependencies checked by JPMS.
 
-Nếu `module-info.java` có:
+If `module-info.java` has:
 
 ~~~java
 requires com.acme.api;
 ~~~
 
-thì javac cần tìm module có tên `com.acme.api` trên module path hoặc trong các module source được chọn để compile. Một JAR chỉ đặt trên classpath không tự trở thành named module `com.acme.api`.
+then `javac` needs to find a module named `com.acme.api` on the module path or among the module sources selected for compilation. A JAR placed only on the classpath does not automatically become a named module `com.acme.api`.
 
-Với thư viện cũ chưa có module descriptor, Java có thể xử lý một số JAR như automatic module khi đặt trên module path. Tên automatic module phụ thuộc quy tắc suy ra tên từ JAR; hãy kiểm tra bằng công cụ JDK trước khi dùng trong `requires`.
+For legacy libraries without a module descriptor, Java can treat some JARs as automatic modules when placed on the module path. The automatic module name depends on naming rules derived from the JAR; inspect it with JDK tools before using it in `requires`.
 
-## 6. Compile một module duy nhất trong dự án lớn
+## 6. Compiling a Single Module in a Large Project
 
-Trong dự án có nhiều module, bạn thường không muốn compile tất cả module mỗi lần. Chỉ định một module bằng `--module` giúp giới hạn phạm vi compile.
+In a multi-module project, you often do not want to compile all modules every time. Specifying a single module with `--module` limits the compilation scope.
 
-Giả sử source tree có:
+Suppose the source tree has:
 
 ~~~text
 src/
@@ -247,29 +247,29 @@ src/
 └── com.acme.testkit/
 ~~~
 
-Nếu chỉ compile `com.acme.cli`, lệnh có thể là:
+If compiling only `com.acme.cli`, the command can be:
 
 ~~~bash
 javac --module-path out --module-source-path src -d out --module com.acme.cli
 ~~~
 
-Điều kiện là các dependency mà `com.acme.cli` khai báo trong `requires` đã có sẵn trên module path hoặc được cung cấp trong lần compile này. Nếu module CLI yêu cầu `com.acme.api` và `com.acme.testkit`, nhưng hai module đó chưa compile, hãy compile chúng trước hoặc chỉ định tất cả module cần thiết:
+The condition is that the dependencies declared by `com.acme.cli` in `requires` are already available on the module path or provided in this compilation pass. If the CLI module requires `com.acme.api` and `com.acme.testkit`, and those two modules have not been compiled yet, compile them first or specify all required modules:
 
 ~~~bash
 javac --module-source-path src -d out --module com.acme.api,com.acme.testkit,com.acme.cli
 ~~~
 
-Javac không nên được xem như một hệ thống build tự động suy ra toàn bộ thứ tự build của dự án. Trong dự án nhiều module, Gradle hoặc Maven thường quản lý dependency graph và incremental compilation; javac là compiler được build tool gọi với các đầu vào đã xác định.
+`javac` should not be treated as a build system that automatically infers the entire project's build order. In multi-module projects, Gradle or Maven typically manages the dependency graph and incremental compilation; `javac` is the compiler invoked by the build tool with predetermined inputs.
 
-## 7. Kiểm tra module descriptor và kết quả compile
+## 7. Inspecting the Module Descriptor and Compilation Output
 
-Sau khi compile, kiểm tra module đã tạo:
+After compiling, inspect the generated module:
 
 ~~~bash
 java --module-path out --describe-module com.acme.app
 ~~~
 
-Lệnh này yêu cầu runtime mô tả module `com.acme.app` tìm được trên module path. Đầu ra có thể cho thấy:
+This command asks the runtime to describe the `com.acme.app` module found on the module path. The output may show:
 
 ~~~text
 com.acme.app
@@ -277,60 +277,60 @@ requires com.acme.api
 requires java.base mandated
 ~~~
 
-Để kiểm tra file class của descriptor:
+To inspect the descriptor class file:
 
 ~~~bash
 javap -v out/com.acme.app/module-info.class
 ~~~
 
-Trong phần output chi tiết, chú ý thuộc tính `Module`: nó chứa module name, requires, exports, opens, uses và provides tương ứng.
+In the detailed output, look at the `Module` attribute: it contains the module name, `requires`, `exports`, `opens`, `uses`, and `provides` entries accordingly.
 
-Để xem các module có trong thư mục output:
+To see the modules present in the output directory:
 
 ~~~bash
 java --module-path out --list-modules
 ~~~
 
-Lưu ý: `--list-modules` liệt kê module mà runtime tìm thấy trên module path cùng các module hệ thống. Nếu chỉ muốn kiểm tra một descriptor cụ thể, `--describe-module` thường dễ đọc hơn.
+Note: `--list-modules` lists the modules that the runtime finds on the module path along with system modules. If you only want to inspect a specific descriptor, `--describe-module` is usually easier to read.
 
-## 8. Dùng --release khi cần cố định Java API mục tiêu
+## 8. Using --release to Pin the Target Java API
 
-Nếu dự án cần tương thích với một Java release cụ thể, có thể thêm `--release`:
+If the project needs compatibility with a specific Java release, you can add `--release`:
 
 ~~~bash
 javac --release 21 --module-source-path src -d out --module com.acme.api,com.acme.app
 ~~~
 
-`--release 21` yêu cầu compiler dùng quy tắc ngôn ngữ, bytecode và API nền tảng của Java 21. Chỉ dùng release mà JDK đang cài hỗ trợ.
+`--release 21` instructs the compiler to use the language rules, bytecode, and platform APIs of Java 21. Only use releases supported by the installed JDK.
 
-Không kết hợp `--release` với `--source` hoặc `--target` trong cùng lệnh. Khi đã dùng `--release`, compiler đã nhận đủ thông tin về mức Java mục tiêu.
+Do not combine `--release` with `--source` or `--target` in the same command. When using `--release`, the compiler already receives complete information about the target Java level.
 
-Nếu dự án dùng preview feature, cần thêm cấu hình preview tương ứng và đảm bảo compile/run cùng release; đó là trường hợp riêng, không cần bật cho module Java thông thường.
+If the project uses preview features, you need to add the corresponding preview configuration and ensure the same release is used for compile and run; that is a special case and does not need to be enabled for ordinary Java modules.
 
-## 9. Lỗi thường gặp và cách xử lý
+## 9. Common Errors and How to Handle Them
 
-**Module không tìm thấy trên module source path.** Kiểm tra cấu trúc thư mục: `src/com.acme.app/module-info.java`. Tên thư mục module phải tương ứng với tên khai báo trong descriptor và tên sau `--module`.
+**Module not found on the module source path.** Check the directory structure: `src/com.acme.app/module-info.java`. The module directory name must match the name declared in the descriptor and the name after `--module`.
 
-**Package không tồn tại hoặc không được đọc.** Kiểm tra module khai báo `requires` đúng module API chưa, và module API đã có trên `--module-path` hoặc được compile cùng lần hay chưa. Đồng thời kiểm tra package API đã được `exports` chưa.
+**Package does not exist or is not readable.** Check whether the module declares `requires` for the right API module, and whether the API module is on `--module-path` or compiled in the same pass. Also check whether the API package has been `exports`-ed.
 
-**`module not found: com.acme.api`.** Có thể module API chưa compile, module path trỏ nhầm thư mục, hoặc JAR không phải modular/automatic module với tên bạn yêu cầu. Chạy `java --module-path out --describe-module com.acme.api` để kiểm tra module path.
+**`module not found: com.acme.api`.** The API module may not be compiled yet, the module path may point to the wrong directory, or the JAR may not be a modular/automatic module with the name you requested. Run `java --module-path out --describe-module com.acme.api` to inspect the module path.
 
-**`package ... is not visible`.** Module có thể đã được resolve nhưng package chứa kiểu cần dùng chưa được export. Thêm `exports package.name` vào descriptor của module sở hữu package nếu đó là API công khai dự kiến.
+**`package ... is not visible`.** The module may have been resolved, but the package containing the needed type has not been exported. Add `exports package.name` to the descriptor of the module owning the package if it is intended to be public API.
 
-**Compile được nhưng không chạy được bằng `java -m`.** Kiểm tra module path lúc chạy có chứa tất cả module cần thiết không và chỉ định đúng `module/main-class`. Compile thành công không đảm bảo runtime path đã được cấu hình đúng.
+**Compiles successfully but cannot run with `java -m`.** Check whether the runtime module path contains all required modules and whether `module/main-class` is specified accurately. Successful compilation does not guarantee the runtime path is configured properly.
 
-**Dùng nhầm tên package sau `--module`.** `--module` nhận tên module như `com.acme.app`, không nhận `com.acme.app.Main`. Tên class main chỉ được đưa vào lệnh chạy sau dấu gạch chéo.
+**Passing a package name after `--module` by mistake.** `--module` accepts a module name such as `com.acme.app`, not `com.acme.app.Main`. The main class name is only passed in the run command after the slash.
 
-**Đặt nhiều module vào cùng một output package tree.** Với modular compilation, javac tạo thư mục output riêng theo tên module. Không tự gom class của nhiều module vào một thư mục package chung; điều đó làm mất ranh giới module và có thể gây split package.
+**Putting multiple modules into the same output package tree.** With modular compilation, `javac` creates separate output directories by module name. Do not manually merge classes from multiple modules into a shared package directory; doing so breaks module boundaries and can cause split packages.
 
-## 10. Thực hành
+## 10. Practice
 
-1. Tạo source tree cho `com.acme.api` và `com.acme.app` như ví dụ.
-2. Compile cả hai module bằng `javac --module-source-path src -d out --module com.acme.api,com.acme.app`.
-3. Xóa thư mục output, sau đó compile riêng API trước và compile riêng app bằng `--module-path out`.
-4. Chạy ứng dụng bằng `java --module-path out --module com.acme.app/com.acme.app.Main`.
-5. Thử đổi tên sau `--module` thành tên package hoặc tên class để quan sát lỗi, sau đó sửa lại bằng module name.
-6. Thử bỏ `exports com.acme.api` khỏi descriptor API và compile lại để thấy sự khác biệt về khả năng truy cập package.
-7. Dùng `java --describe-module com.acme.app` và `javap -v` để đối chiếu descriptor sau compile.
+1. Create the source tree for `com.acme.api` and `com.acme.app` as shown in the example.
+2. Compile both modules with `javac --module-source-path src -d out --module com.acme.api,com.acme.app`.
+3. Delete the output directory, then compile the API separately first and compile the app separately using `--module-path out`.
+4. Run the application with `java --module-path out --module com.acme.app/com.acme.app.Main`.
+5. Try changing the name after `--module` to a package name or class name to observe the error, then fix it back to the module name.
+6. Try removing `exports com.acme.api` from the API descriptor and recompiling to see the difference in package accessibility.
+7. Use `java --describe-module com.acme.app` and `javap -v` to compare the descriptor after compilation.
 
-Khi compile modular, hãy xác định module đích trước, bảo đảm source tree được tổ chức theo module name, rồi cung cấp dependency đã compile trên module path. `--module` giới hạn module cần biên dịch; `--module-source-path` tìm source; `--module-path` resolve dependency; `-d` giữ output của từng module trong thư mục riêng. Bốn phần đó tạo thành quy trình compile một module có thể lặp lại và kiểm tra được.
+When compiling modularly, identify the target module first, ensure the source tree is organized by module name, and provide compiled dependencies on the module path. `--module` limits which modules are compiled; `--module-source-path` locates sources; `--module-path` resolves dependencies; `-d` keeps each module's output in its own directory. Those four pieces form a repeatable and verifiable single-module compilation workflow.

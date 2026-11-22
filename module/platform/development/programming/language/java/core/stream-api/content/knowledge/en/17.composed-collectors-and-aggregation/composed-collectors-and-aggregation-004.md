@@ -1,14 +1,14 @@
-# Biến đổi đầu vào Collector bằng mapping
+# Transforming Collector Input with mapping
 
-Trong chương **Collector nhiều tầng và tổng hợp** của **Java Stream API**, một phép tổng hợp thường không chỉ trả về một danh sách. Chẳng hạn, từ danh sách nhân viên, ứng dụng muốn nhóm theo phòng ban rồi **chỉ thu tên nhân viên**, hoặc nhóm đơn hàng theo khách hàng rồi **chỉ cộng thành tiền**. Khi ấy, ta cần vừa giữ được thông tin để chia nhóm, vừa biến đổi mỗi phần tử trước khi đưa vào phép thu thập của từng nhóm.
+In the **Composed Collectors and Aggregation** chapter of **Java Stream API**, an aggregation often does not simply return a list of original objects. For instance, from a list of employees, an application might want to group by department and **collect only employee names**, or group orders by customer and **sum only line amounts**. In such cases, we need to retain the information required for grouping while transforming each element before passing it into each group's collection operation.
 
-`Collectors.mapping(mapper, downstream)` giải quyết nhu cầu đó. Nó là **collector thích ứng** (*downstream collector adapter*): nhận phần tử kiểu `T`, dùng `mapper` chuyển thành `U` rồi giao giá trị `U` cho một collector khác. Khả năng ghép collector này đặc biệt hữu ích với `groupingBy`, `partitioningBy` và các phép thống kê/tổng hợp nhiều tầng.
+`Collectors.mapping(mapper, downstream)` solves this need. It is a **collector adapter** (*downstream collector adapter*): it accepts elements of type `T`, applies `mapper` to turn each into `U`, and passes the `U` values to another collector. This collector composition is especially useful with `groupingBy`, `partitioningBy`, and multi-level statistics/aggregations.
 
-Bài học giải thích kiểu dữ liệu, cách ghép collector, các ví dụ có thể chạy, sự khác biệt với `Stream.map`, cách phối hợp với `filtering` và `flatMapping`, cùng các vấn đề về `null`, thứ tự, hiệu năng và xử lý song song.
+This lesson explains the types, collector composition, runnable examples, the difference from `Stream.map`, how it works together with `filtering` and `flatMapping`, as well as issues regarding `null`, ordering, performance, and parallel processing.
 
-## 1. Vấn đề: vừa chia nhóm theo dữ liệu gốc, vừa thu dữ liệu đã biến đổi
+## 1. Problem: grouping by original data while collecting transformed data
 
-Giả sử một nhân viên có mã, tên, phòng ban, trạng thái hoạt động và danh sách kỹ năng:
+Suppose an employee has an ID, name, department, active status, and a list of skills:
 
 ~~~java
 record Employee(
@@ -20,7 +20,7 @@ record Employee(
 ) {}
 ~~~
 
-Yêu cầu tạo kết quả kiểu:
+The goal is a result like:
 
 ~~~text
 DEV -> [Lan, An, Huy]
@@ -28,7 +28,7 @@ QA  -> [Minh, Hạnh]
 OPS -> [Bình]
 ~~~
 
-Ta cần giữ `department` để tạo khóa, nhưng chỉ cần `name` trong danh sách kết quả. Nếu làm việc với `Collectors.groupingBy`, cách biểu đạt trực tiếp là:
+We need to keep `department` to form keys, yet only want `name` in the resulting lists. Working with `Collectors.groupingBy`, the direct way to express this is:
 
 ~~~java
 Map<String, List<String>> namesByDepartment = employees.stream()
@@ -41,19 +41,19 @@ Map<String, List<String>> namesByDepartment = employees.stream()
         ));
 ~~~
 
-Đọc từ ngoài vào trong:
+Reading from outside in:
 
-1. `employees.stream()` phát các phần tử `Employee`.
-2. `groupingBy(Employee::department, ...)` xác định khóa nhóm từ **đối tượng Employee gốc**.
-3. Với mỗi nhóm, `mapping(Employee::name, ...)` biến Employee thành `String`.
-4. `Collectors.toList()` nhận những chuỗi tên và gom vào danh sách của nhóm.
-5. `collect(...)` là terminal operation, kích hoạt toàn bộ pipeline và trả về `Map<String, List<String>>`.
+1. `employees.stream()` emits `Employee` elements.
+2. `groupingBy(Employee::department, ...)` determines the group key from the **original Employee object**.
+3. Within each group, `mapping(Employee::name, ...)` turns `Employee` into `String`.
+4. `Collectors.toList()` receives those name strings and gathers them into the group's list.
+5. `collect(...)` is the terminal operation, triggering the entire pipeline and returning `Map<String, List<String>>`.
 
-Ở đây, **phép nhóm nhìn thấy `Employee`, còn collector bên trong nhận `String`**. Đó là giá trị thực tế của `mapping` trong collector nhiều tầng.
+Here, **the grouping step sees `Employee`, while the inner collector receives `String`**. That is the practical value of `mapping` in composed collectors.
 
-## 2. Chữ ký và hợp đồng của Collectors.mapping
+## 2. Signature and contract of Collectors.mapping
 
-Chữ ký tổng quát (có từ Java 8) là:
+The generic signature (available since Java 8) is:
 
 ~~~java
 public static <T, U, A, R> Collector<T, ?, R> mapping(
@@ -61,27 +61,27 @@ public static <T, U, A, R> Collector<T, ?, R> mapping(
         Collector<? super U, A, R> downstream)
 ~~~
 
-Các ký hiệu:
+Notation:
 
-| Ký hiệu | Ý nghĩa | Ví dụ |
+| Symbol | Meaning | Example |
 | --- | --- | --- |
-| `T` | Kiểu đầu vào mà collector ghép ngoài chuyển xuống | `Employee` |
-| `U` | Kiểu sau khi áp dụng mapper | `String` |
-| `A` | Kiểu vùng tích lũy nội bộ của downstream collector | Do collector quyết định |
-| `R` | Kiểu kết quả cuối của downstream collector | `List<String>` |
-| `mapper` | Hàm `T -> U`, được áp dụng cho từng phần tử | `Employee::name` |
-| `downstream` | Collector xử lý các giá trị kiểu `U` | `Collectors.toList()` |
+| `T` | Input element type passed down by the outer composed collector | `Employee` |
+| `U` | Type after applying the mapper | `String` |
+| `A` | Internal accumulation container type of the downstream collector | Determined by the collector |
+| `R` | Final result type of the downstream collector | `List<String>` |
+| `mapper` | Function `T -> U`, applied to each element | `Employee::name` |
+| `downstream` | Collector processing values of type `U` | `Collectors.toList()` |
 
-`mapping` **không phải terminal operation**. Nó tạo ra một đối tượng `Collector` để truyền vào `collect(...)` hoặc lồng vào collector khác. Chỉ khi pipeline chạy terminal operation, dữ liệu mới được chuyển đổi và tích lũy.
+`mapping` **is not a terminal operation**. It constructs a `Collector` object to pass to `collect(...)` or nest inside another collector. Only when the pipeline runs a terminal operation is data transformed and accumulated.
 
-Một cách hình dung:
+One way to visualize it:
 
 ~~~text
                 Employee
                    |
           groupingBy(department)
                    |
-            Theo từng nhóm
+            Within each group
                    |
           mapping(Employee::name)
                    |
@@ -94,11 +94,11 @@ Một cách hình dung:
      Map<Department, List<String>>
 ~~~
 
-Nhờ kiểu dữ liệu tổng quát, `mapping` có thể chuyển sang bất kỳ kiểu phù hợp với downstream collector: `Integer` để tính tổng độ dài tên, `BigDecimal` để tổng hợp tiền, một record DTO để xuất báo cáo hoặc khóa định danh để lấy tập giá trị phân biệt.
+Thanks to generics, `mapping` can convert to any type suited to the downstream collector: `Integer` to sum name lengths, `BigDecimal` to aggregate money, a DTO record to export reports, or an identifier key to collect a set of distinct values.
 
-## 3. Ví dụ hoàn chỉnh chạy được trên Java 17+
+## 3. Complete runnable example on Java 17+
 
-Ví dụ sau dùng `record` và `List.of`. `record` cần Java 16+, `List.of` có từ Java 9, còn `Collectors.mapping` đã có từ Java 8.
+The following example uses `record` and `List.of`. `record` requires Java 16+, `List.of` requires Java 9+, while `Collectors.mapping` has been available since Java 8.
 
 ~~~java
 import java.util.List;
@@ -132,7 +132,7 @@ public class MappingCollectorDemo {
                         List.of("Linux"))
         );
 
-        // Mỗi phòng ban chỉ nhận danh sách tên.
+        // Each department receives only a list of names.
         Map<String, List<String>> namesByDepartment = employees.stream()
                 .collect(Collectors.groupingBy(
                         Employee::department,
@@ -149,7 +149,7 @@ public class MappingCollectorDemo {
         System.out.println(namesByDepartment.get("OPS"));
         // [Bình]
 
-        // Mỗi phòng ban nhận tập tên phân biệt.
+        // Each department receives a set of distinct names.
         Map<String, Set<String>> uniqueNames = employees.stream()
                 .collect(Collectors.groupingBy(
                         Employee::department,
@@ -165,15 +165,15 @@ public class MappingCollectorDemo {
 }
 ~~~
 
-Để xem dữ liệu của từng nhóm, hãy truy cập bằng khóa như `get("DEV")`. Đừng phụ thuộc vào **thứ tự duyệt khóa** của `Map` do `groupingBy` mặc định tạo; API không cam kết một lớp Map hoặc thứ tự khóa cụ thể.
+To inspect each group's data, access it by key such as `get("DEV")`. Do not rely on the **key iteration order** of the `Map` created by default `groupingBy`; the API does not guarantee a specific Map class or key order.
 
-Trong ví dụ, dữ liệu `List` có encounter order và `toList` lưu thứ tự các phần tử được đưa vào nhóm, nên `DEV` thu được `[Lan, An, Huy]`. Ngược lại, `toSet` không cam kết thứ tự lặp của tập.
+In the example, the `List` source has encounter order and `toList` preserves the order in which elements enter each group, so `DEV` receives `[Lan, An, Huy]`. Conversely, `toSet` does not guarantee set iteration order.
 
-## 4. mapping khác gì Stream.map?
+## 4. How does mapping differ from Stream.map?
 
-Hai cách đều biến đổi dữ liệu theo một hàm ánh xạ, nhưng **vị trí của phép biến đổi trong pipeline khác nhau**.
+Both transform data using a mapping function, yet **the position of the transformation in the pipeline differs**.
 
-### 4.1. Stream.map biến đổi trước khi collector nhận phần tử
+### 4.1. Stream.map transforms before the collector receives elements
 
 ~~~java
 List<String> names = employees.stream()
@@ -181,20 +181,20 @@ List<String> names = employees.stream()
         .collect(Collectors.toList());
 ~~~
 
-Cách này phù hợp khi chỉ muốn danh sách tên của **toàn bộ** nhân viên. Sau `map`, kiểu phần tử của Stream là `String`; nó không còn trực tiếp cung cấp `Employee::department` cho bước nhóm phía sau.
+This works when you only want a list of names of **all** employees. After `map`, the Stream's element type is `String`; it no longer directly provides `Employee::department` for a subsequent grouping step.
 
-Ví dụ này **không thể** phân loại theo `Employee::department` sau khi Stream đã trở thành `Stream<String>`:
+This example **cannot** classify by `Employee::department` after the Stream has already become `Stream<String>`:
 
 ~~~java
-// Sai ý tưởng: sau map, phần tử chỉ còn là String.
+// Wrong idea: after map, elements are only String.
 // employees.stream()
 //         .map(Employee::name)
 //         .collect(Collectors.groupingBy(Employee::department));
 ~~~
 
-Tất nhiên, có thể tạo DTO chứa cả tên và phòng ban trước rồi nhóm DTO. Nhưng nếu chỉ cần một thuộc tính để chia nhóm và một giá trị khác để thu vào nhóm, downstream `mapping` thường gọn và rõ hơn.
+Of course, one could construct a DTO carrying both name and department first and then group the DTO. However, when you only need one property to group by and another value to collect into the group, downstream `mapping` is usually cleaner and clearer.
 
-### 4.2. Collectors.mapping biến đổi bên trong collector được ghép
+### 4.2. Collectors.mapping transforms inside the composed collector
 
 ~~~java
 Map<String, List<String>> namesByDepartment = employees.stream()
@@ -204,9 +204,9 @@ Map<String, List<String>> namesByDepartment = employees.stream()
         ));
 ~~~
 
-`groupingBy` nhìn thấy Employee trước khi gọi downstream; `mapping` chỉ chuyển đổi **giá trị được thu cho từng khóa**.
+`groupingBy` sees `Employee` before calling the downstream; `mapping` only transforms **the value collected for each key**.
 
-### 4.3. Khi không lồng collector, hai cách thường tương đương về nội dung
+### 4.3. Without nesting, the two approaches are usually equivalent in content
 
 ~~~java
 List<String> a = employees.stream()
@@ -220,21 +220,21 @@ List<String> b = employees.stream()
         ));
 ~~~
 
-Cả hai cho cùng dãy tên với nguồn và mapper đã nêu. Trong trường hợp này, cách `stream.map(...).collect(toList())` thường dễ đọc hơn. Giá trị lớn nhất của `Collectors.mapping` là **khả năng ghép nó vào downstream của collector khác**, ví dụ `groupingBy` hoặc `partitioningBy`.
+Both produce the same sequence of names for the given source and mapper. In this case, `stream.map(...).collect(toList())` is typically easier to read. The greatest value of `Collectors.mapping` is **its ability to be composed as the downstream of another collector**, such as `groupingBy` or `partitioningBy`.
 
-| Tiêu chí | `Stream.map` | `Collectors.mapping` |
+| Criterion | `Stream.map` | `Collectors.mapping` |
 | --- | --- | --- |
-| Vị trí | Intermediate operation trong pipeline | Collector adapter, thường nằm trong downstream |
-| Đầu ra trung gian | Một `Stream<U>` | Một `Collector<T, ?, R>` |
-| Dùng khi | Muốn đổi kiểu phần tử cho các bước sau | Muốn một collector cha vẫn thấy `T`, nhưng collector con thu `U` |
-| Tự kết thúc pipeline? | Không | Không; cần gọi `collect(...)` |
-| Hữu ích với `groupingBy` | Có, khi đã giữ đủ dữ liệu để phân nhóm | Đặc biệt hữu ích để phân nhóm theo `T`, thu kết quả từ `U` |
+| Position | Intermediate operation in the pipeline | Collector adapter, typically in a downstream |
+| Intermediate output | A `Stream<U>` | A `Collector<T, ?, R>` |
+| Use when | You want to change element type for later steps | You want the parent collector to still see `T`, while the child collector collects `U` |
+| Terminates pipeline itself? | No | No; requires calling `collect(...)` |
+| Useful with `groupingBy` | Yes, when enough data is retained for grouping | Especially useful to group by `T`, collecting results from `U` |
 
-## 5. mapping kết hợp với các downstream collector khác nhau
+## 5. Combining mapping with different downstream collectors
 
-`mapping` không giới hạn ở `toList`. Collector phía trong quyết định hình dạng kết quả và cách tổng hợp.
+`mapping` is not limited to `toList`. The inner collector determines the result shape and how aggregation works.
 
-### 5.1. Tập tên phân biệt
+### 5.1. Set of distinct names
 
 ~~~java
 Map<String, Set<String>> names = employees.stream()
@@ -244,9 +244,9 @@ Map<String, Set<String>> names = employees.stream()
         ));
 ~~~
 
-Đầu ra cho mỗi phòng ban là một `Set<String>`. Nếu hai nhân viên trùng tên, tập chỉ giữ một giá trị theo quy tắc bằng nhau của `Set`. Nếu muốn giữ cả hai nhân viên, hãy thu ID hoặc bản ghi có khóa duy nhất; không dùng tên người làm định danh khi tên có thể trùng.
+The output for each department is a `Set<String>`. If two employees share the same name, the set retains only one value according to `Set` equality rules. If you need to keep both employees, collect IDs or records with unique keys; do not use personal names as identifiers when names can collide.
 
-### 5.2. Chuỗi tên dùng dấu phẩy làm dấu phân cách
+### 5.2. Comma-separated string of names
 
 ~~~java
 Map<String, String> joinedNames = employees.stream()
@@ -262,9 +262,9 @@ System.out.println(joinedNames.get("DEV"));
 // Lan, An, Huy
 ~~~
 
-`joining` chỉ dùng trực tiếp với chuỗi (chính xác hơn là `CharSequence`). `mapping` biến `Employee` thành `String` để đáp ứng downstream.
+`joining` works directly only on strings (more precisely, `CharSequence`). `mapping` turns `Employee` into `String` to satisfy the downstream.
 
-### 5.3. Tính tổng độ dài tên theo phòng ban
+### 5.3. Summing name lengths by department
 
 ~~~java
 Map<String, Integer> charactersByDepartment = employees.stream()
@@ -280,13 +280,13 @@ System.out.println(charactersByDepartment.get("DEV"));
 // 8: Lan(3) + An(2) + Huy(3)
 ~~~
 
-Ở đây `T = Employee`, `U = String` và kết quả downstream là `Integer`. Ví dụ này nhấn mạnh `mapping` không nhất thiết tạo một collection: nó có thể đưa giá trị được ánh xạ vào **một collector tổng hợp**.
+Here `T = Employee`, `U = String`, and the downstream result is `Integer`. This example highlights that `mapping` does not have to produce a collection: it can feed mapped values into **an aggregating collector**.
 
-Với phép tính chỉ phụ thuộc trực tiếp vào Employee, có thể viết ngắn hơn bằng `Collectors.summingInt(employee -> employee.name().length())`. `mapping` phù hợp hơn khi muốn tái sử dụng collector của kiểu `U` hoặc làm rõ các bước biến đổi.
+For a calculation depending directly on `Employee`, you could write it more briefly as `Collectors.summingInt(employee -> employee.name().length())`. `mapping` fits better when you want to reuse a collector for type `U` or make transformation steps explicit.
 
-### 5.4. Thu vào một loại collection đã chọn
+### 5.4. Collecting into a chosen collection type
 
-Khi cần tập có thứ tự chèn trong từng nhóm và giữ tên phân biệt:
+When you need insertion order within each group while keeping distinct names:
 
 ~~~java
 import java.util.LinkedHashSet;
@@ -301,13 +301,13 @@ Map<String, LinkedHashSet<String>> orderedNames = employees.stream()
         ));
 ~~~
 
-Với nguồn `List` có encounter order và pipeline tuần tự, `LinkedHashSet` giữ thứ tự chèn của các tên trong mỗi nhóm. Việc dùng `Collectors.toSet()` sẽ **không** bảo đảm thứ tự lặp. Đừng nhầm thứ tự của collection **bên trong mỗi nhóm** với thứ tự các **khóa của Map ngoài**.
+With a `List` source having encounter order and a sequential pipeline, `LinkedHashSet` preserves insertion order of names within each group. Using `Collectors.toSet()` would **not** guarantee iteration order. Do not confuse the order of the collection **inside each group** with the order of **keys in the outer Map**.
 
-## 6. mapping trong partitioningBy và groupingBy nhiều tầng
+## 6. mapping inside partitioningBy and multi-level groupingBy
 
-### 6.1. Chia thành hai nhóm theo điều kiện
+### 6.1. Splitting into two groups by a condition
 
-`partitioningBy` phân chia dữ liệu theo predicate boolean. Downstream `mapping` cho phép mỗi nhánh chỉ giữ thông tin cần thiết:
+`partitioningBy` divides data by a boolean predicate. A `mapping` downstream lets each branch retain only the necessary data:
 
 ~~~java
 Map<Boolean, List<String>> namesByActivity = employees.stream()
@@ -325,9 +325,9 @@ System.out.println(namesByActivity.get(false));
 // [An, Hạnh, Bình]
 ~~~
 
-Khác với `groupingBy`, `partitioningBy` luôn trả cả hai khóa `true` và `false`, ngay cả khi một nhánh không có phần tử. Khi đó downstream tạo kết quả rỗng theo cách của collector tương ứng.
+Unlike `groupingBy`, `partitioningBy` always returns both `true` and `false` keys, even if one branch has no elements. In that case, the downstream creates an empty result according to the corresponding collector's behavior.
 
-### 6.2. Nhóm theo phòng ban, rồi theo trạng thái
+### 6.2. Grouping by department, then by status
 
 ~~~java
 Map<String, Map<Boolean, List<String>>> nested = employees.stream()
@@ -348,7 +348,7 @@ System.out.println(nested.get("DEV").get(false));
 // [An]
 ~~~
 
-Pipeline mang nhiều tầng collector:
+The pipeline has multiple collector layers:
 
 ~~~text
 Stream<Employee>
@@ -362,11 +362,11 @@ groupingBy(department)
                     +-- toList()
 ~~~
 
-Kết quả là `Map<String, Map<Boolean, List<String>>>`. Nhánh `groupingBy` bên trong chỉ tạo khóa boolean **nếu có phần tử thuộc nhánh đó**; nếu muốn luôn có cả hai khóa boolean, hãy dùng downstream `partitioningBy(Employee::active, ...)`.
+The result is `Map<String, Map<Boolean, List<String>>>`. The inner `groupingBy` branch only creates a boolean key **if there is an element in that branch**; if you always want both boolean keys present, use downstream `partitioningBy(Employee::active, ...)`.
 
-### 6.3. Thu kết quả theo khóa đã sắp xếp
+### 6.3. Collecting results with sorted keys
 
-Nếu cần thứ tự phòng ban được sắp xếp theo khóa, có thể chọn factory tạo Map ngoài:
+If department order needs to be sorted by key, you can supply an outer Map factory:
 
 ~~~java
 import java.util.TreeMap;
@@ -379,15 +379,15 @@ Map<String, List<String>> sortedDepartments = employees.stream()
         ));
 ~~~
 
-Trong ví dụ, `TreeMap` sắp xếp khóa phòng ban theo thứ tự tự nhiên của `String`. Collector `mapping` chỉ quyết định **giá trị của từng nhóm**, không quyết định cách sắp xếp các khóa.
+In the example, `TreeMap` sorts department keys by `String` natural ordering. The `mapping` collector only determines **each group's value**, not how keys are ordered.
 
-## 7. Kết hợp filtering với mapping: phân biệt vị trí của bộ lọc
+## 7. Combining filtering with mapping: distinguishing filter placement
 
-Từ **Java 9**, `Collectors.filtering(predicate, downstream)` cho phép lọc phần tử **bên trong một nhóm đã được tạo**.
+Since **Java 9**, `Collectors.filtering(predicate, downstream)` allows filtering elements **inside an already-created group**.
 
-Giả sử yêu cầu: “Mỗi phòng ban có danh sách tên nhân viên đang hoạt động; ngay cả phòng ban chỉ có nhân viên ngừng hoạt động vẫn phải xuất hiện với danh sách rỗng”.
+Suppose the requirement is: “Each department has a list of active employee names; even a department with only inactive employees must appear with an empty list”.
 
-Đưa `filter` lên trước `groupingBy` sẽ **loại hẳn** những phòng ban không còn nhân viên hoạt động:
+Moving `filter` before `groupingBy` will **completely omit** departments that have no active employees:
 
 ~~~java
 Map<String, List<String>> onlyActiveDepartments = employees.stream()
@@ -401,7 +401,7 @@ System.out.println(onlyActiveDepartments.containsKey("OPS"));
 // false
 ~~~
 
-Với downstream `Collectors.filtering`, classifier của `groupingBy` vẫn thấy mọi Employee. Nhóm `OPS` được tạo, rồi nhân viên không hoạt động không được đưa vào downstream `mapping`:
+With downstream `Collectors.filtering`, `groupingBy`'s classifier still sees every Employee. The `OPS` group is created, and then inactive employees are excluded from entering the downstream `mapping`:
 
 ~~~java
 Map<String, List<String>> allDepartments = employees.stream()
@@ -424,24 +424,24 @@ System.out.println(allDepartments.get("OPS"));
 // []
 ~~~
 
-Hai kết quả **không tương đương** vì yêu cầu “phải giữ tất cả khóa phòng ban” khác với “chỉ xét các nhân viên hoạt động”.
+The two results are **not equivalent** because “must keep all department keys” differs from “consider only active employees”.
 
-### mapping trước hay sau filtering?
+### mapping before or after filtering?
 
-Có thể chọn thứ tự dựa trên kiểu dữ liệu mà predicate cần:
+You can choose the order based on the data type the predicate needs:
 
 ~~~java
-// Lọc theo Employee trước khi chuyển thành String:
+// Filter on Employee before converting to String:
 Collectors.filtering(
         Employee::active,
         Collectors.mapping(Employee::name, Collectors.toList())
 )
 ~~~
 
-Ngược lại:
+Conversely:
 
 ~~~java
-// Chuyển thành String trước, lọc theo tên đã ánh xạ:
+// Convert to String first, filter on the mapped name:
 Collectors.mapping(
         Employee::name,
         Collectors.filtering(
@@ -451,16 +451,16 @@ Collectors.mapping(
 )
 ~~~
 
-Trong cách thứ hai, downstream của `mapping` nhận `String` nên predicate chỉ thấy tên, không còn truy cập trực tiếp trạng thái `active` của Employee. Thiết kế thứ tự collector cần phù hợp với **kiểu và ngữ nghĩa** của mỗi bước.
+In the second approach, the downstream of `mapping` receives `String`, so the predicate sees only the name and no longer has direct access to the Employee's `active` status. Collector ordering must match the **type and semantics** of each step.
 
-## 8. mapping và flatMapping: giữ nguyên một giá trị hay làm phẳng nhiều giá trị?
+## 8. mapping vs. flatMapping: keeping a single value or flattening multiple values?
 
-`Collectors.mapping` chuyển **mỗi phần tử `T` thành đúng một giá trị `U`** rồi chuyển tiếp cho downstream. Nếu `mapper` trả về một `List<String>`, downstream sẽ nhận **cả List**, không tự trải các phần tử của List.
+`Collectors.mapping` converts **each element `T` into exactly one value `U`** and forwards it to the downstream. If `mapper` returns a `List<String>`, the downstream receives **the whole List**, without automatically expanding the List's elements.
 
-Ví dụ sai mục tiêu nếu muốn tập kỹ năng riêng lẻ:
+An example that misses the goal if you want a set of individual skills:
 
 ~~~java
-// Tập các DANH SÁCH kỹ năng, không phải tập tên kỹ năng:
+// Set of LISTS of skills, not a set of skill names:
 Map<String, Set<List<String>>> skillListsByDepartment = employees.stream()
         .collect(Collectors.groupingBy(
                 Employee::department,
@@ -471,7 +471,7 @@ Map<String, Set<List<String>>> skillListsByDepartment = employees.stream()
         ));
 ~~~
 
-Nếu yêu cầu là “mỗi phòng ban có một tập các kỹ năng phân biệt”, dùng `Collectors.flatMapping` (Java 9+) để chuyển mỗi Employee thành một `Stream<String>` rồi làm phẳng vào downstream:
+If the requirement is “each department has a set of distinct skills”, use `Collectors.flatMapping` (Java 9+) to turn each Employee into a `Stream<String>` and flatten it into the downstream:
 
 ~~~java
 Map<String, Set<String>> skillsByDepartment = employees.stream()
@@ -484,24 +484,24 @@ Map<String, Set<String>> skillsByDepartment = employees.stream()
         ));
 
 System.out.println(skillsByDepartment.get("DEV"));
-// Tập gồm Java, SQL, Spring, Docker (thứ tự không bảo đảm).
+// Set containing Java, SQL, Spring, Docker (order not guaranteed).
 ~~~
 
-Bảng phân biệt:
+Comparison table:
 
-| Collector adapter | Hàm đầu vào | Số phần tử đưa xuống downstream cho mỗi đầu vào |
+| Collector adapter | Input function | Number of elements sent to downstream per input |
 | --- | --- | --- |
-| `mapping(mapper, downstream)` | `T -> U` | Đúng một giá trị `U`, kể cả khi đó là collection hoặc `null` |
-| `flatMapping(mapper, downstream)` | `T -> Stream<U>` | Không, một hoặc nhiều giá trị `U` |
-| `filtering(predicate, downstream)` | `T -> boolean` | Không hoặc một phần tử `T` |
+| `mapping(mapper, downstream)` | `T -> U` | Exactly one value `U`, even if it is a collection or `null` |
+| `flatMapping(mapper, downstream)` | `T -> Stream<U>` | Zero, one, or many values `U` |
+| `filtering(predicate, downstream)` | `T -> boolean` | Zero or one element `T` |
 
-Các adapter có thể lồng nhau, nhưng không nên dùng `mapping` để giả vờ thay cho `flatMapping`. Hãy nhìn **kiểu dữ liệu thật sự đi vào downstream** để biết kết quả có một tầng hay nhiều tầng.
+Adapters can be nested, but you should not use `mapping` to pretend to do `flatMapping`. Look at the **actual data type entering the downstream** to tell whether the result is single-level or nested.
 
-`flatMapping` có trách nhiệm đóng Stream do mapper trả về sau khi nội dung của Stream đó được chuyển xuống downstream. Tuy nhiên, nếu nguồn chính gắn với I/O như `Files.lines`, vẫn cần quản lý vòng đời nguồn chính bằng `try-with-resources`.
+`flatMapping` is responsible for closing the Stream returned by the mapper after that Stream's contents are forwarded to the downstream. However, if the primary source is tied to I/O such as `Files.lines`, you still must manage the primary source's lifecycle with `try-with-resources`.
 
-## 9. mapping với phép tính BigDecimal và tổng hợp chính xác
+## 9. mapping with BigDecimal calculations and exact aggregation
 
-Collector không chỉ thu tên hay danh sách. Trong một ứng dụng bán hàng, có thể dùng `mapping` để tính tổng tiền theo khách hàng trong cùng pipeline.
+Collectors do not only collect names or lists. In a sales application, `mapping` can be used to compute total revenue per customer within the same pipeline.
 
 ~~~java
 import java.math.BigDecimal;
@@ -534,22 +534,22 @@ System.out.println(exactRevenue.get("C-01")); // 32.20
 System.out.println(exactRevenue.get("C-02")); // 8.75
 ~~~
 
-Các bước:
+Steps:
 
-1. `groupingBy(Sale::customerId, ...)` phân loại theo mã khách.
-2. `mapping` biến mỗi `Sale` thành thành tiền kiểu `BigDecimal`.
-3. `reducing(BigDecimal.ZERO, BigDecimal::add)` cộng các khoản trong từng nhóm, không làm tròn trung gian.
-4. Kết quả là `Map<String, BigDecimal>`, mỗi khóa lưu một tổng tiền chính xác.
+1. `groupingBy(Sale::customerId, ...)` classifies by customer ID.
+2. `mapping` converts each `Sale` into a `BigDecimal` line total.
+3. `reducing(BigDecimal.ZERO, BigDecimal::add)` sums the amounts in each group without intermediate rounding.
+4. The result is `Map<String, BigDecimal>`, each key storing an exact monetary total.
 
-`2 × 12.50 + 3 × 2.40 = 25.00 + 7.20 = 32.20`. Trong các hệ thống tiền tệ, chính sách scale và làm tròn thuộc nghiệp vụ: nếu cần làm tròn tổng theo từng khách hoặc từng hóa đơn, hãy chỉ làm tròn **ở đúng ranh giới** đã quy định, không mặc định dùng `setScale` ở mỗi lần accumulator cộng tiền.
+`2 × 12.50 + 3 × 2.40 = 25.00 + 7.20 = 32.20`. In monetary systems, scale and rounding policies belong to the business domain: if totals must be rounded per customer or per invoice, round **only at the defined boundary**, rather than calling `setScale` on every accumulator addition by default.
 
-Nếu chỉ cần một phép tính đơn giản, `Collectors.reducing(identity, mapper, op)` cũng có thể kết hợp bước ánh xạ và reduction, nhưng `mapping(..., reducing(...))` đặc biệt dễ mở rộng khi muốn đổi downstream sang loại collector khác.
+If only a simple calculation is needed, `Collectors.reducing(identity, mapper, op)` can also combine the mapping and reduction steps, but `mapping(..., reducing(...))` is particularly easy to extend when switching the downstream to another collector type.
 
-## 10. Xử lý null và dữ liệu không hợp lệ
+## 10. Handling null and invalid data
 
-`Collectors.mapping` **không tự kiểm tra null**, không sửa dữ liệu nguồn và không đảm bảo downstream chấp nhận mọi giá trị mapper trả về.
+`Collectors.mapping` **does not check for null automatically**, does not fix source data, and does not guarantee that the downstream accepts every value the mapper returns.
 
-Ví dụ tên có thể `null`:
+Example where a name can be `null`:
 
 ~~~java
 record Person(String team, String name) {}
@@ -560,9 +560,9 @@ List<Person> persons = java.util.Arrays.asList(
 );
 ~~~
 
-Nếu dùng `Collectors.mapping(Person::name, Collectors.toList())`, một số triển khai collector danh sách có thể lưu `null`; hợp đồng về kiểu collection kết quả của `Collectors.toList` không nên được dùng để suy ra chính sách kiểm tra dữ liệu nghiệp vụ. Nếu dùng `Collectors.toUnmodifiableList()` (Java 10+), phần tử `null` **bị từ chối** và quá trình thu có thể ném `NullPointerException`.
+With `Collectors.mapping(Person::name, Collectors.toList())`, some list collector implementations may store `null`; the contract of the resulting collection type of `Collectors.toList` should not be relied upon to infer business data validation policies. With `Collectors.toUnmodifiableList()` (Java 10+), `null` elements **are rejected** and collection can throw `NullPointerException`.
 
-Cách xử lý nên xuất phát từ yêu cầu:
+How to handle it should follow requirements:
 
 ~~~java
 Map<String, List<String>> validNames = persons.stream()
@@ -575,10 +575,10 @@ Map<String, List<String>> validNames = persons.stream()
                         Collectors.toList()
                 )
         ));
-// Trường name null gây lỗi tường minh.
+// A null name field causes an explicit error.
 ~~~
 
-Nếu nghiệp vụ cho phép bỏ tên thiếu mà vẫn giữ khóa nhóm, dùng `Collectors.filtering` trước `mapping` trong downstream:
+If business rules allow skipping missing names while still keeping the group key, use `Collectors.filtering` before `mapping` in the downstream:
 
 ~~~java
 Map<String, List<String>> nonNullNames = persons.stream()
@@ -594,13 +594,13 @@ Map<String, List<String>> nonNullNames = persons.stream()
         ));
 ~~~
 
-Với cách thứ hai, nhóm `DEV` vẫn tồn tại, danh sách chỉ có `Lan`. Nếu tất cả thành viên trong một nhóm có tên `null`, nhóm vẫn có danh sách rỗng.
+With the second approach, the `DEV` group still exists, and the list contains only `Lan`. If every member in a group has a `null` name, the group still gets an empty list.
 
-Đặc biệt, `groupingBy` tiêu chuẩn không chấp nhận **khóa classifier bằng `null`**. Hãy chuẩn hóa hoặc kiểm tra giá trị `department`/`team` trước khi thu; đừng nhầm chính sách khóa ngoài của `groupingBy` với chính sách giá trị bên trong `mapping`.
+In particular, standard `groupingBy` does not accept a **`null` classifier key**. Normalize or validate `department`/`team` values before collecting; do not confuse `groupingBy`'s outer key policy with the value policy inside `mapping`.
 
-## 11. Hợp đồng thứ tự và khả năng sửa đổi của kết quả
+## 11. Ordering and mutability contracts of the result
 
-Một collector lồng nhau có **nhiều cấp cấu trúc dữ liệu**, mỗi cấp có hợp đồng riêng. Ví dụ:
+A nested collector produces **multiple levels of data structures**, each with its own contract. For example:
 
 ~~~java
 Map<String, List<String>> result = employees.stream()
@@ -610,14 +610,14 @@ Map<String, List<String>> result = employees.stream()
         ));
 ~~~
 
-- `Map` ngoài ánh xạ mỗi khóa phòng ban đến một danh sách.
-- `List` trong giữ các tên mà downstream collector thu được.
-- `groupingBy` mặc định không cam kết kiểu Map, thứ tự lặp hoặc tính thread-safe.
-- `Collectors.toList()` không cam kết lớp List, khả năng sửa đổi, serialization hay thread-safety.
-- Với Stream có encounter order và các collector không đánh dấu unordered, thứ tự gặp phần tử là yếu tố cần tôn trọng khi thu vào danh sách.
-- Nếu cần **một kiểu cụ thể** hoặc **thứ tự cụ thể**, hãy chọn supplier/collector phù hợp thay vì dựa vào triển khai mặc định.
+- The outer `Map` maps each department key to a list.
+- The inner `List` holds the names collected by the downstream collector.
+- Default `groupingBy` does not guarantee Map type, iteration order, or thread safety.
+- `Collectors.toList()` does not guarantee the List class, mutability, serializability, or thread safety.
+- On a Stream with encounter order and collectors not marked unordered, element encounter order is respected when collecting into lists.
+- If you need **a specific type** or **a specific order**, choose an appropriate supplier/collector rather than relying on default implementations.
 
-Ví dụ yêu cầu cả khóa nhóm theo thứ tự chèn và mỗi nhóm là một `ArrayList` có thể sửa:
+Example requiring both insertion-ordered group keys and a mutable `ArrayList` per group:
 
 ~~~java
 import java.util.ArrayList;
@@ -634,13 +634,13 @@ Map<String, ArrayList<String>> editableByDepartment =
         ));
 ~~~
 
-Ví dụ này dùng nguồn `List` tuần tự và `LinkedHashMap` nên giữ thứ tự xuất hiện lần đầu của phòng ban khi duyệt. Mỗi giá trị có kiểu `ArrayList<String>` rõ ràng. Nếu kết quả cần **không sửa đổi được** và không chấp nhận `null`, dùng `Collectors.toUnmodifiableList()` ở downstream, nhưng vẫn phải xem riêng cách bảo vệ Map ngoài.
+This example uses a sequential `List` source and `LinkedHashMap`, so it preserves first-seen order of departments during iteration. Each value explicitly has type `ArrayList<String>`. If the result needs to be **unmodifiable** and reject `null`, use `Collectors.toUnmodifiableList()` in the downstream, while separately considering how to protect the outer Map.
 
-Một danh sách không sửa đổi được cũng **không làm các đối tượng phần tử tự bất biến**: khi mapper trả về đối tượng mutable, tham chiếu bên ngoài vẫn có thể thay đổi nội dung đối tượng đó.
+An unmodifiable list also **does not make the element objects themselves immutable**: when a mapper returns mutable objects, external references can still mutate those objects' contents.
 
-## 12. Parallel stream: mapping không tự bảo đảm hiệu năng và thread safety
+## 12. Parallel streams: mapping does not guarantee performance or thread safety
 
-Một pipeline có thể dùng `parallelStream()`:
+A pipeline can use `parallelStream()`:
 
 ~~~java
 Map<String, List<String>> parallelNames = employees.parallelStream()
@@ -653,10 +653,10 @@ Map<String, List<String>> parallelNames = employees.parallelStream()
         ));
 ~~~
 
-Collector chuẩn phải hỗ trợ cách chia nguồn, tích lũy các phần riêng và kết hợp đúng hợp đồng. Tuy nhiên, **mapper do người viết cung cấp** phải tránh phụ thuộc vào trạng thái mutable dùng chung:
+Standard collectors must support splitting the source, accumulating partial results, and combining per contract. However, **user-supplied mappers** must avoid depending on shared mutable state:
 
 ~~~java
-// Sai ý tưởng: biến đếm dùng chung gây tác dụng phụ trong mapper.
+// Wrong idea: shared counter causes side effects in the mapper.
 int[] counter = {0};
 
 Map<String, List<String>> broken = employees.parallelStream()
@@ -669,49 +669,49 @@ Map<String, List<String>> broken = employees.parallelStream()
         ));
 ~~~
 
-Lời gọi `++counter[0]` không an toàn khi nhiều tác vụ chạy đồng thời, và nội dung tên có thể phụ thuộc lịch thực thi. Nếu cần thứ tự hoặc số thứ tự ổn định, hãy tạo chỉ số từ nguồn có thứ tự **trước khi** chạy pipeline, hoặc thiết kế bước đánh số riêng có hợp đồng rõ.
+Incrementing `++counter[0]` is unsafe when multiple tasks run concurrently, and the resulting name strings can depend on execution scheduling. If stable ordering or sequence numbers are needed, generate indices from an ordered source **before** running the pipeline, or design a separate numbering step with an explicit contract.
 
-Đối với `groupingBy` thông thường trên parallel stream, bước ghép các Map con có thể tốn chi phí; `groupingByConcurrent` có thể phù hợp khi xử lý không phụ thuộc thứ tự encounter và downstream đáp ứng yêu cầu. Nhưng `groupingByConcurrent` không phải cách tăng tốc mặc định: kết quả và hiệu năng phụ thuộc số lượng khóa, cạnh tranh giữa tác vụ, thứ tự, kích thước dữ liệu và phần tích lũy bên trong.
+For standard `groupingBy` on parallel streams, merging sub-Maps can be costly; `groupingByConcurrent` may fit when processing does not depend on encounter order and the downstream meets the requirements. Yet `groupingByConcurrent` is not an automatic speedup: results and performance depend on key count, task contention, ordering, data size, and inner accumulation.
 
-Với `mapping(..., reducing(...))`, phép gộp như `BigDecimal::add` chính xác có tính kết hợp và dễ chia song song; nếu làm tròn sau mỗi lần cộng, kết quả có thể phụ thuộc cách phân chia. Bảo đảm tính đúng đắn trước khi đo hiệu năng.
+With `mapping(..., reducing(...))`, exact operations like `BigDecimal::add` are associative and parallelize cleanly; if you round after every addition, results can depend on partitioning. Ensure correctness before benchmarking performance.
 
-## 13. Mẫu thiết kế và những lỗi hay gặp
+## 13. Design patterns and common mistakes
 
-| Nhu cầu hoặc triệu chứng | Nguyên nhân / lựa chọn | Hướng thực hiện |
+| Need or symptom | Cause / choice | Solution approach |
 | --- | --- | --- |
-| Muốn nhóm theo phòng ban nhưng chỉ giữ tên | `Stream.map` trước khi nhóm làm mất thông tin phòng ban | `groupingBy(Employee::department, mapping(Employee::name, toList()))`. |
-| `mapping(Employee::skills, toSet())` tạo tập danh sách | Một Employee sinh một `List<String>`, không có bước làm phẳng | Dùng `flatMapping(e -> e.skills().stream(), toSet())`. |
-| Không thấy khóa nhóm chỉ có phần tử bị lọc | `stream.filter` chạy trước `groupingBy` | Dùng `groupingBy(..., filtering(..., mapping(...)))` khi cần giữ nhóm rỗng. |
-| Muốn tập phần tử phân biệt | Downstream đang dùng `toList()` | Chọn `toSet()` hoặc `toCollection(LinkedHashSet::new)`. |
-| Muốn danh sách từng nhóm có thể sửa | `Collectors.toList()` không cam kết tính mutable | Dùng `toCollection(ArrayList::new)` ở downstream. |
-| Cần danh sách không sửa được và không có null | Mapper có thể trả `null` | Kiểm tra nguồn, dùng `toUnmodifiableList()` sau khi bảo đảm hợp lệ. |
-| Sai kiểu dữ liệu khi ghép nhiều collector | Mapper trả kiểu `U` khác kiểu downstream yêu cầu | Xem chữ ký `T -> U` và kiểu đầu vào của downstream. |
-| Tổng tiền khác khi chạy song song | Làm tròn trong combiner hoặc có side effect | Tổng hợp `BigDecimal` chính xác; làm tròn ở bước nghiệp vụ đã xác định. |
-| Thứ tự khóa Map bất ngờ | `groupingBy` không bảo đảm thứ tự khóa | Cung cấp `LinkedHashMap::new` hoặc `TreeMap::new` theo nhu cầu. |
-| Bộ nhớ cao với số nhóm lớn | Tích lũy nhiều danh sách/tập vào Map | Giảm số nhóm/giá trị lưu, tổng hợp trực tiếp hoặc xử lý theo lô. |
+| Want to group by department but keep only names | `Stream.map` before grouping loses department info | `groupingBy(Employee::department, mapping(Employee::name, toList()))`. |
+| `mapping(Employee::skills, toSet())` creates a set of lists | One Employee produces one `List<String>`, with no flattening step | Use `flatMapping(e -> e.skills().stream(), toSet())`. |
+| Missing group keys whose elements were all filtered out | `stream.filter` runs before `groupingBy` | Use `groupingBy(..., filtering(..., mapping(...)))` when empty groups must stay. |
+| Want a set of distinct elements | Downstream is using `toList()` | Choose `toSet()` or `toCollection(LinkedHashSet::new)`. |
+| Want mutable lists per group | `Collectors.toList()` does not guarantee mutability | Use `toCollection(ArrayList::new)` in the downstream. |
+| Need unmodifiable lists with no nulls | Mapper might return `null` | Validate source, use `toUnmodifiableList()` after guaranteeing validity. |
+| Type mismatch when composing collectors | Mapper returns `U` differing from what downstream expects | Check `T -> U` signature and downstream input type. |
+| Monetary total differs when running in parallel | Rounding inside combiner or side effects | Aggregate exact `BigDecimal`; round at a defined business step. |
+| Unexpected Map key order | `groupingBy` does not guarantee key order | Supply `LinkedHashMap::new` or `TreeMap::new` as needed. |
+| High memory usage with many groups | Accumulating many lists/sets in a Map | Reduce stored groups/values, aggregate directly, or process in batches. |
 
-Có thể sử dụng các collector adapter như các khối xây dựng nhỏ: `groupingBy` quyết định **cấp nhóm**, `filtering` quyết định **giữ phần tử nào trong nhóm**, `mapping` quyết định **biến đổi thành giá trị gì**, còn downstream cuối cùng quyết định **thu hoặc tổng hợp theo cách nào**. Mỗi tầng có vai trò độc lập và có thể kiểm tra bằng kiểu dữ liệu.
+Collector adapters can be used like small building blocks: `groupingBy` determines **the grouping level**, `filtering` determines **which elements stay in the group**, `mapping` determines **what value to transform into**, and the final downstream determines **how to collect or aggregate**. Each layer has an independent role and can be verified by its types.
 
-## 14. Hiệu năng, tài nguyên và tính lazy
+## 14. Performance, resources, and laziness
 
-`Collectors.mapping` là một phần mô tả phép thu thập; nó **không tự duyệt Stream**. Các thao tác trung gian như `filter` và `map` thường lazy. Chỉ khi gọi `collect(...)`, các phần tử mới được xử lý theo pipeline.
+`Collectors.mapping` is part of the collection specification; it **does not traverse the Stream by itself**. Intermediate operations like `filter` and `map` are typically lazy. Only when `collect(...)` is called are elements processed through the pipeline.
 
-Khả năng phối hợp không làm giảm chi phí vốn có của kết quả:
+Composability does not eliminate the inherent cost of the result:
 
-- `groupingBy(..., mapping(..., toList()))` cần lưu các phần tử được thu vào các danh sách của từng nhóm; bộ nhớ tăng theo số phần tử kết quả.
-- `groupingBy(..., mapping(..., toSet()))` cần lưu các giá trị phân biệt, có thể tiết kiệm phần tử trùng nhưng phải quản lý cấu trúc tập.
-- `groupingBy(..., mapping(..., reducing(...)))` chỉ lưu một kết quả tổng hợp cho mỗi nhóm (cùng các cấu trúc điều phối), phù hợp nếu không cần giữ mọi phần tử.
-- Mapper quá nặng, thao tác I/O trong mapper hoặc việc tạo nhiều DTO có thể chi phối thời gian chạy, bất kể lựa chọn collector.
-- Nguồn vô hạn không giới hạn không thể thu vào Map/danh sách hữu hạn nếu collector cần xử lý đến hết nguồn. Cần có giới hạn đầu vào hoặc luồng kết thúc đúng hợp đồng.
-- Với Stream từ tài nguyên như `Files.lines`, phải dùng `try-with-resources` để đóng nguồn; `collect` không tự bảo đảm đóng tài nguyên bên ngoài.
+- `groupingBy(..., mapping(..., toList()))` must store collected elements in each group's list; memory grows with the number of resulting elements.
+- `groupingBy(..., mapping(..., toSet()))` must store distinct values, saving duplicates at the cost of managing set structures.
+- `groupingBy(..., mapping(..., reducing(...)))` stores only one aggregated result per group (plus coordination structures), suitable when keeping every element is unnecessary.
+- Heavy mappers, I/O inside a mapper, or creating many DTOs can dominate runtime regardless of collector choice.
+- An unbounded infinite source cannot be collected into a finite Map/list if the collector must consume the entire source. Bound the input or ensure finite termination by contract.
+- For Streams backed by resources such as `Files.lines`, use `try-with-resources` to close the source; `collect` does not automatically guarantee closing external resources.
 
-Dù API còn hỗ trợ Spliterator, parallel stream và Stream Gatherers, việc dùng các tính năng đó không thay đổi nhiệm vụ chính của downstream `mapping`: chuyển từng phần tử sang kiểu mà collector tiếp theo có thể xử lý. Vòng đời nguồn, điều kiện kết thúc và giới hạn tài nguyên vẫn phải được xem xét riêng.
+Even though the API also supports Spliterator, parallel streams, and Stream Gatherers, using those features does not change the core job of downstream `mapping`: converting each element to a type the next collector can process. Source lifecycle, termination conditions, and resource limits must still be considered separately.
 
-## 15. Bài tập thực hành
+## 15. Practice exercises
 
-### Bài 1 — Đọc kiểu kết quả
+### Exercise 1 — Reading result types
 
-Cho:
+Given:
 
 ~~~java
 Map<String, Set<Integer>> lengths = employees.stream()
@@ -724,21 +724,21 @@ Map<String, Set<Integer>> lengths = employees.stream()
         ));
 ~~~
 
-**Câu hỏi:** `T`, `U` và kết quả nhóm `DEV` có ý nghĩa gì?
+**Question:** What do `T`, `U`, and the result for group `DEV` mean?
 
-**Đáp án:** `T = Employee`; `U = Integer` vì mapper lấy độ dài tên. Downstream tạo `Set<Integer>` gồm các độ dài tên **phân biệt** trong mỗi phòng ban. Với `Lan`, `An`, `Huy`, nhóm `DEV` có tập số `{2, 3}`; thứ tự in phần tử của Set không được bảo đảm.
+**Answer:** `T = Employee`; `U = Integer` because the mapper takes the name length. The downstream creates a `Set<Integer>` containing **distinct** name lengths in each department. With `Lan`, `An`, `Huy`, the `DEV` group has the set `{2, 3}`; Set element print order is not guaranteed.
 
-### Bài 2 — Giữ nhóm chỉ có người không hoạt động
+### Exercise 2 — Keeping a group with only inactive members
 
-Tập nhân viên có phòng `OPS` chỉ gồm `Bình` với `active = false`. Có nên dùng `employees.stream().filter(Employee::active).collect(groupingBy(...))` nếu phải giữ khóa `OPS`?
+The employee dataset has department `OPS` containing only `Bình` with `active = false`. Should you use `employees.stream().filter(Employee::active).collect(groupingBy(...))` if the `OPS` key must be preserved?
 
-**Đáp án:** Không. Dùng `groupingBy(Employee::department, filtering(Employee::active, mapping(Employee::name, toList())))` để giữ `OPS -> []`.
+**Answer:** No. Use `groupingBy(Employee::department, filtering(Employee::active, mapping(Employee::name, toList())))` to retain `OPS -> []`.
 
-### Bài 3 — Dữ liệu con nhiều phần tử
+### Exercise 3 — Multi-valued nested data
 
-Mỗi `Employee` có `List<String> skills`. Cần kết quả `Map<String, Set<String>>` gồm tập kỹ năng theo phòng ban, không cần giữ ranh giới từng người.
+Each `Employee` has `List<String> skills`. You need `Map<String, Set<String>>` containing the skill set by department, without keeping per-person boundaries.
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 Map<String, Set<String>> skills = employees.stream()
@@ -751,13 +751,13 @@ Map<String, Set<String>> skills = employees.stream()
         ));
 ~~~
 
-`mapping(Employee::skills, toSet())` sẽ thu các **List** thay vì từng kỹ năng.
+`mapping(Employee::skills, toSet())` would collect **Lists** instead of individual skills.
 
-### Bài 4 — Viết báo cáo tên nối chuỗi
+### Exercise 4 — Writing a joined-names report
 
-Yêu cầu `DEV -> "Lan, An, Huy"`. Dùng collector nào?
+Requirement: `DEV -> "Lan, An, Huy"`. Which collector should you use?
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 Map<String, String> names = employees.stream()
@@ -770,28 +770,28 @@ Map<String, String> names = employees.stream()
         ));
 ~~~
 
-`mapping` biến Employee thành String, còn `joining` ghép chuỗi trong từng nhóm theo encounter order.
+`mapping` converts `Employee` to `String`, and `joining` concatenates strings within each group in encounter order.
 
-### Bài 5 — Tổng hợp theo khóa
+### Exercise 5 — Keyed aggregation
 
-Cho `Stream<Sale>` có `customerId`, `quantity` và `unitPrice`. Cần tổng doanh thu chính xác theo từng khách, không cần danh sách `Sale`.
+Given `Stream<Sale>` with `customerId`, `quantity`, and `unitPrice`, compute exact total revenue per customer without retaining a list of `Sale` objects.
 
-**Đáp án:** Dùng `groupingBy(Sale::customerId, mapping(sale -> sale.unitPrice().multiply(BigDecimal.valueOf(sale.quantity())), reducing(BigDecimal.ZERO, BigDecimal::add)))`. Cách này gom các số tiền chính xác trong từng nhóm. Thêm bước làm tròn **sau khi** đã xác định chính sách tại cấp báo cáo phù hợp.
+**Answer:** Use `groupingBy(Sale::customerId, mapping(sale -> sale.unitPrice().multiply(BigDecimal.valueOf(sale.quantity())), reducing(BigDecimal.ZERO, BigDecimal::add)))`. This sums exact amounts per group. Add a rounding step **after** defining the policy at the appropriate reporting level.
 
-### Bài 6 — Kết quả của partitioningBy
+### Exercise 6 — Result of partitioningBy
 
-Nếu mọi nhân viên đều `active = true`, kết quả của `partitioningBy(Employee::active, mapping(Employee::name, toList()))` có chứa khóa `false` không?
+If every employee has `active = true`, does the result of `partitioningBy(Employee::active, mapping(Employee::name, toList()))` contain the `false` key?
 
-**Đáp án:** Có. `partitioningBy` luôn trả cả `true` và `false`. Khi không có nhân viên thuộc nhánh `false`, downstream `toList` tạo danh sách rỗng cho nhánh đó.
+**Answer:** Yes. `partitioningBy` always returns both `true` and `false`. When no employee belongs to the `false` branch, the downstream `toList` creates an empty list for that branch.
 
-## 16. Ghi nhớ
+## 16. Summary
 
-- `Collectors.mapping(mapper, downstream)` là một **Collector adapter** từ Java 8, biến từng phần tử `T` thành `U` trước khi downstream thu hoặc tổng hợp.
-- Khi lồng trong `groupingBy`, classifier có thể tiếp tục dùng dữ liệu gốc `T`, còn danh sách/tập/kết quả tổng hợp của từng nhóm được tạo từ `U`.
-- Chọn downstream theo mục đích: `toList` để giữ mọi giá trị, `toSet` để lấy giá trị phân biệt, `joining` để ghép chuỗi, `summingInt` hoặc `reducing` để tổng hợp.
-- `Collectors.filtering` có thể giữ khóa nhóm ngay cả khi mọi phần tử của nhóm bị loại bởi predicate ở downstream; `stream.filter` trước `groupingBy` không có tính chất đó.
-- `Collectors.flatMapping` nhận một Stream cho mỗi phần tử và làm phẳng; `mapping` chỉ chuyển một phần tử thành một giá trị, ngay cả khi giá trị đó là List.
-- Kiểm tra `null`, encounter order, kiểu collection cụ thể, side effect và khả năng kết hợp khi dùng collector trong pipeline song song.
-- `mapping` là bước thiết lập Collector, còn `collect` mới kích hoạt terminal operation; bộ nhớ và tài nguyên phải được quản lý theo kích thước và loại nguồn.
+- `Collectors.mapping(mapper, downstream)` is a **Collector adapter** since Java 8 that transforms each element `T` into `U` before the downstream collects or aggregates it.
+- When nested inside `groupingBy`, the classifier can continue using the original `T`, while each group's list/set/aggregate result is built from `U`.
+- Choose the downstream to match the goal: `toList` to keep all values, `toSet` for distinct values, `joining` to concatenate strings, `summingInt` or `reducing` to aggregate.
+- `Collectors.filtering` can preserve group keys even when every element in the group is rejected by the downstream predicate; `stream.filter` before `groupingBy` does not have this property.
+- `Collectors.flatMapping` takes a Stream per element and flattens it; `mapping` converts one element into one value, even when that value is a List.
+- Check `null`, encounter order, specific collection types, side effects, and associativity when using collectors in parallel pipelines.
+- `mapping` configures the Collector, while `collect` triggers the terminal operation; memory and resources must be managed according to source size and kind.
 
-**Ý chính:** Dùng `Collectors.mapping` khi muốn **giữ nguyên thông tin để nhóm ở tầng ngoài, nhưng chuyển đổi thành kiểu cần thu ở tầng trong**. Kết hợp rõ ràng các collector giúp pipeline vẫn khai báo, dễ đọc và dễ mở rộng từ danh sách đơn giản sang báo cáo tổng hợp nhiều tầng.
+**Main takeaway:** Use `Collectors.mapping` when you want to **keep the outer information for grouping, while converting into the type to collect at the inner level**. Clear collector composition keeps pipelines declarative, readable, and easy to scale from simple lists to multi-level summary reports.

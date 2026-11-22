@@ -1,47 +1,47 @@
-# Unnamed module của classpath
+# Unnamed module of the classpath
 
-Trong Java Platform Module System (JPMS), các class được nạp từ classpath thuộc về một **unnamed module** gắn với class loader đã nạp chúng. Unnamed module là module không có tên và không có `module-info.java`. Nó cho phép các ứng dụng Java truyền thống tiếp tục chạy mà không cần chuyển ngay sang mô hình named module.
+In the Java Platform Module System (JPMS), classes loaded from the classpath belong to an **unnamed module** associated with the class loader that loaded them. An unnamed module is a module without a name and without a `module-info.java`. It allows traditional Java applications to keep running without immediately migrating to the named module model.
 
-Khi chạy ứng dụng bằng `-cp` hoặc `--class-path`, Java không tạo một named module riêng cho từng JAR trên classpath. Những class do cùng một class loader nạp sẽ thuộc unnamed module của class loader đó. Vì vậy, các JAR trên classpath thường chia sẻ một vùng module không tên, dù chúng vẫn có thể nằm trong những file riêng biệt.
+When running an application with `-cp` or `--class-path`, Java does not create a separate named module for each JAR on the classpath. Classes loaded by the same class loader belong to the unnamed module of that class loader. Therefore, JARs on the classpath typically share an unnamed module space, even though they may still reside in separate files.
 
-## 1. Unnamed module được tạo như thế nào?
+## 1. How is an unnamed module created?
 
-Mỗi class loader có một unnamed module tương ứng. Với ứng dụng chạy thông thường, class loader ứng dụng nạp các class từ những thư mục và JAR được chỉ định trên classpath; các class đó thuộc unnamed module của class loader ứng dụng.
+Each class loader has a corresponding unnamed module. For a normally run application, the application class loader loads classes from the directories and JARs specified on the classpath; those classes belong to the unnamed module of the application class loader.
 
-Ví dụ:
+For example:
 
 ```shell
 java -cp "app.jar;lib-a.jar;lib-b.jar" com.acme.app.Main
 ```
 
-Trên Windows, dấu phân cách classpath là dấu chấm phẩy. Trên Linux và macOS, dùng dấu hai chấm:
+On Windows, the classpath separator is a semicolon. On Linux and macOS, use a colon:
 
 ```shell
 java -cp "app.jar:lib-a.jar:lib-b.jar" com.acme.app.Main
 ```
 
-Các class mà application class loader nạp từ `app.jar`, `lib-a.jar` và `lib-b.jar` đều thuộc unnamed module của class loader đó. Việc mỗi thư viện được đóng gói thành một JAR riêng không làm nó tự trở thành một named module.
+Classes that the application class loader loads from `app.jar`, `lib-a.jar`, and `lib-b.jar` all belong to that class loader's unnamed module. Packaging each library into a separate JAR does not automatically make it a named module.
 
-Nếu một ứng dụng tạo class loader riêng, class do loader đó nạp sẽ thuộc unnamed module gắn với loader riêng. Do đó, trong một JVM có thể có nhiều unnamed module, mỗi module gắn với một class loader khác nhau.
+If an application creates its own class loader, classes loaded by that loader belong to the unnamed module associated with that custom loader. Consequently, a single JVM can have multiple unnamed modules, each associated with a different class loader.
 
-## 2. Đặc điểm của unnamed module
+## 2. Characteristics of an unnamed module
 
-Unnamed module có một số đặc điểm quan trọng:
+An unnamed module has several important characteristics:
 
-- **Không có tên module:** không thể tham chiếu nó bằng tên trong directive `requires`.
-- **Không có module descriptor:** không có `module-info.java` để khai báo `requires`, `exports`, `opens`, `uses` hay `provides`.
-- **Đọc được các module khác:** unnamed module có khả năng đọc rộng tới các module trong cấu hình/layer liên quan, nên mã classpath có thể sử dụng API đã được export của named module.
-- **Export các package của mình:** các package trong unnamed module được export, vì vậy named module có thể truy cập chúng nếu named module có readability tới unnamed module.
-- **Là open module:** các package của unnamed module được mở cho deep reflection.
-- **Không tạo ranh giới encapsulation theo package như explicit module:** mã classpath tiếp tục dựa vào access modifier Java và các quy tắc class loader.
+- **No module name:** it cannot be referenced by name in a `requires` directive.
+- **No module descriptor:** there is no `module-info.java` to declare `requires`, `exports`, `opens`, `uses`, or `provides`.
+- **Reads other modules:** an unnamed module has broad readability to modules in the relevant configuration/layer, so classpath code can use exported APIs of named modules.
+- **Exports its packages:** packages in an unnamed module are exported, so named modules can access them if the named module has readability to the unnamed module.
+- **Is an open module:** packages of an unnamed module are open for deep reflection.
+- **Does not create package-level encapsulation boundaries like an explicit module:** classpath code continues to rely on Java access modifiers and class loader rules.
 
-Các đặc điểm này hỗ trợ tính tương thích với ứng dụng cũ. Tuy nhiên, unnamed module không cung cấp sự kiểm soát dependency và package boundary rõ ràng như explicit module.
+These characteristics support compatibility with legacy applications. However, an unnamed module does not provide clear dependency control and package boundaries like an explicit module.
 
-## 3. module-info.class bị bỏ qua trên classpath
+## 3. module-info.class is ignored on the classpath
 
-Một JAR có thể chứa `module-info.class` để trở thành explicit module khi đặt trên module path. Nhưng khi cùng JAR được đặt trên classpath, runtime không dùng descriptor đó để tạo named module. Các class được nạp vào unnamed module của class loader.
+A JAR can contain `module-info.class` to become an explicit module when placed on the module path. However, when the same JAR is placed on the classpath, the runtime does not use that descriptor to create a named module. The classes are loaded into the class loader's unnamed module.
 
-Ví dụ, JAR có descriptor:
+For example, a JAR has the descriptor:
 
 ```java
 module com.acme.library {
@@ -49,50 +49,50 @@ module com.acme.library {
 }
 ```
 
-Nếu chạy:
+If run as:
 
 ```shell
 java -cp "app.jar;library.jar" com.acme.app.Main
 ```
 
-thì ranh giới module và directive `exports` của `com.acme.library` không được áp dụng như khi JAR nằm trên module path. Classpath sử dụng mô hình unnamed module.
+then the module boundaries and `exports` directive of `com.acme.library` are not enforced as they are when the JAR is on the module path. The classpath uses the unnamed module model.
 
-Nếu chuyển sang:
+If switched to:
 
 ```shell
 java --module-path mods \
      --module com.acme.app/com.acme.app.Main
 ```
 
-thì các JAR modular trên module path được phân giải thành named module và descriptor của chúng được áp dụng. Một package không export có thể khiến consumer không truy cập được, dù class bên trong có modifier `public`.
+then modular JARs on the module path are resolved into named modules and their descriptors are enforced. A non-exported package can prevent a consumer from accessing it, even if the class inside has the `public` modifier.
 
-Vì vậy, một thư viện có thể hoạt động trên classpath nhưng phát sinh lỗi truy cập khi chuyển sang module path. Khi migration, cần kiểm tra descriptor, `requires`, `exports`, `opens` và vị trí thật của từng dependency.
+Therefore, a library might work on the classpath but raise access errors when moved to the module path. During migration, it is necessary to inspect descriptors, `requires`, `exports`, `opens`, and the actual location of each dependency.
 
-## 4. Phân biệt unnamed module và automatic module
+## 4. Distinguishing between an unnamed module and an automatic module
 
-Hai khái niệm này thường bị nhầm lẫn vì đều có thể xuất hiện khi làm việc với thư viện cũ không có `module-info.class`.
+These two concepts are often confused because both can appear when working with legacy libraries without `module-info.class`.
 
-| Đặc điểm | Unnamed module | Automatic module |
+| Characteristic | Unnamed module | Automatic module |
 |---|---|---|
-| Nguồn phổ biến | Class/JAR được nạp từ classpath | JAR không có descriptor đặt trên module path |
-| Có tên module | Không | Có |
-| Có module descriptor tường minh | Không | Không có descriptor do tác giả viết; tên và hành vi module được suy ra |
-| Đọc module khác | Rộng, không khai báo `requires` | Có khả năng đọc rộng để hỗ trợ migration |
-| Package được export | Tất cả package của unnamed module | Tất cả package của automatic module |
-| Có thể được named module `requires` | Không thể dùng tên vì không có tên module | Có thể khai báo `requires` bằng tên automatic module |
+| Common source | Classes/JARs loaded from the classpath | JAR without a descriptor placed on the module path |
+| Has a module name | No | Yes |
+| Has an explicit module descriptor | No | No author-written descriptor; module name and behavior are derived |
+| Reads other modules | Broadly, without declaring `requires` | Broad readability to support migration |
+| Exported packages | All packages of the unnamed module | All packages of the automatic module |
+| Can be `requires`-ed by a named module | Cannot be named because it has no module name | Can declare `requires` using the automatic module name |
 
-Ví dụ một thư viện cũ không có `module-info.class`:
+Consider a legacy library without `module-info.class`:
 
-- Đặt trên classpath: các class thuộc unnamed module của class loader.
-- Đặt trên module path: JAR được xem là automatic module, có tên lấy từ `Automatic-Module-Name` trong manifest nếu có, hoặc được suy ra từ tên JAR.
+- Placed on the classpath: classes belong to the class loader's unnamed module.
+- Placed on the module path: the JAR is treated as an automatic module, with a name taken from `Automatic-Module-Name` in the manifest if present, or derived from the JAR filename.
 
-Automatic module vẫn là named module và có thể được tham chiếu trong `requires`. Unnamed module không có tên nên không thể xuất hiện trong directive `requires` của một module descriptor.
+An automatic module is still a named module and can be referenced in `requires`. An unnamed module has no name, so it cannot appear in the `requires` directive of a module descriptor.
 
-## 5. Named module có đọc được unnamed module không?
+## 5. Can a named module read an unnamed module?
 
-Chiều readability rất quan trọng khi kết hợp module path và classpath. Unnamed module đọc được các named module, nhưng named module không tự động đọc unnamed module. Vì vậy, một ứng dụng modular có thể không truy cập được thư viện chỉ nằm trên classpath.
+The direction of readability is very important when combining the module path and classpath. An unnamed module reads named modules, but a named module does not automatically read unnamed modules. Therefore, a modular application might not be able to access a library that only resides on the classpath.
 
-Named module không thể viết:
+A named module cannot write:
 
 ```java
 module com.acme.app {
@@ -100,7 +100,7 @@ module com.acme.app {
 }
 ```
 
-Không có tên `unnamed` để tham chiếu. Trong tình huống migration cần named module truy cập classpath, có thể bổ sung quan hệ readability ở thời điểm biên dịch/chạy bằng `--add-reads`:
+There is no name `unnamed` to reference. In a migration scenario where a named module needs to access the classpath, a readability relationship can be added at compile/run time using `--add-reads`:
 
 ```shell
 java --module-path mods \
@@ -109,13 +109,13 @@ java --module-path mods \
      --module com.acme.app/com.acme.app.Main
 ```
 
-`ALL-UNNAMED` chỉ các unnamed module liên quan trong runtime. Sau khi bổ sung readability, module ứng dụng có thể tham chiếu các kiểu public trong package của unnamed module theo các quy tắc truy cập Java thông thường.
+`ALL-UNNAMED` refers to the relevant unnamed modules at runtime. After adding readability, the application module can reference public types in packages of the unnamed module according to standard Java access rules.
 
-Đây là giải pháp chuyển tiếp hữu ích khi chưa thể modularize thư viện cũ. Về lâu dài, nên đưa thư viện lên module path dưới dạng explicit hoặc automatic module, hoặc đóng gói dependency theo kiến trúc modular rõ ràng.
+This is a useful transitional solution when legacy libraries cannot yet be modularized. In the long term, libraries should be moved to the module path as explicit or automatic modules, or dependencies should be packaged following a clear modular architecture.
 
-## 6. Ví dụ kiểm tra class thuộc unnamed module
+## 6. Example of checking whether a class belongs to an unnamed module
 
-Có thể kiểm tra module của một class trong runtime bằng API `Class.getModule()`:
+You can check a class's module at runtime using the `Class.getModule()` API:
 
 ```java
 public class ModuleInfoExample {
@@ -130,15 +130,15 @@ public class ModuleInfoExample {
 }
 ```
 
-Khi class được nạp từ classpath bởi application class loader, kết quả thường cho biết:
+When the class is loaded from the classpath by the application class loader, the output typically shows:
 
-- `isNamed()` trả về `false`.
-- `getName()` trả về `null`.
-- Class loader là application class loader.
+- `isNamed()` returns `false`.
+- `getName()` returns `null`.
+- Class loader is the application class loader.
 
-Nếu class nằm trong named module trên module path, `isNamed()` trả về `true` và `getName()` trả về tên module, ví dụ `com.acme.app`.
+If the class is in a named module on the module path, `isNamed()` returns `true` and `getName()` returns the module name, for example `com.acme.app`.
 
-Có thể kiểm tra module của một thư viện cụ thể:
+You can check the module of a specific library:
 
 ```java
 Module libraryModule = com.acme.legacy.LegacyClient.class.getModule();
@@ -147,13 +147,13 @@ System.out.println(libraryModule.isNamed());
 System.out.println(libraryModule.getName());
 ```
 
-Cách kiểm tra này đáng tin cậy hơn việc chỉ nhìn tên file JAR, bởi cùng một JAR có thể được đặt ở classpath hoặc module path và được xử lý theo hai chế độ khác nhau.
+This check is more reliable than just looking at the JAR filename, because the same JAR can be placed on the classpath or module path and be handled in two different modes.
 
-## 7. ServiceLoader với classpath
+## 7. ServiceLoader with the classpath
 
-Cơ chế SPI truyền thống có thể hoạt động trên classpath bằng file cấu hình trong thư mục `META-INF/services`.
+The traditional SPI mechanism can work on the classpath using configuration files in the `META-INF/services` directory.
 
-Giả sử service interface là:
+Suppose the service interface is:
 
 ```java
 package com.acme.spi;
@@ -177,19 +177,19 @@ public class EnglishGreetingService implements GreetingService {
 }
 ```
 
-Trong JAR provider, tạo file:
+In the provider JAR, create the file:
 
 ```text
 META-INF/services/com.acme.spi.GreetingService
 ```
 
-Nội dung file:
+File contents:
 
 ```text
 com.acme.provider.EnglishGreetingService
 ```
 
-Consumer có thể tìm provider bằng:
+The consumer can discover the provider using:
 
 ```java
 ServiceLoader<GreetingService> loader =
@@ -200,59 +200,59 @@ for (GreetingService service : loader) {
 }
 ```
 
-Khi chạy trên classpath, `ServiceLoader` tìm provider thông qua file `META-INF/services` và class loader. Khi dùng named module, consumer khai báo `uses` và provider khai báo `provides ... with ...` trong `module-info.java`. Đây là hai hình thức đăng ký tương ứng với hai cách đóng gói.
+When running on the classpath, `ServiceLoader` finds providers via `META-INF/services` files and the class loader. When using named modules, the consumer declares `uses` and the provider declares `provides ... with ...` in `module-info.java`. These are the two corresponding registration forms for the two packaging approaches.
 
-## 8. Classpath và các giới hạn khi chuyển sang module path
+## 8. Classpath and limitations when migrating to the module path
 
-Classpath có tính linh hoạt và tương thích cao, nhưng không cung cấp các ranh giới module tường minh:
+The classpath offers high flexibility and compatibility, but does not provide explicit module boundaries:
 
-- Dependency không được khai báo bằng `requires`; JVM tìm class dựa trên class loader và thứ tự classpath.
-- Package có thể được đóng góp bởi nhiều JAR; việc nạp class phụ thuộc vào thứ tự và cơ chế class loader.
-- Không có `exports` để giới hạn package nào được module khác sử dụng.
-- Không có `opens` tường minh theo module; unnamed module mở package cho deep reflection.
-- Một JAR có `module-info.class` vẫn không áp dụng descriptor khi chạy trên classpath.
+- Dependencies are not declared with `requires`; the JVM locates classes based on class loaders and classpath order.
+- A package can be contributed by multiple JARs; class loading depends on ordering and class loader mechanisms.
+- There is no `exports` to restrict which packages can be used by other modules.
+- There is no explicit per-module `opens`; the unnamed module opens its packages for deep reflection.
+- A JAR with `module-info.class` still does not have its descriptor enforced when running on the classpath.
 
-Khi chuyển từ classpath sang module path, cần kiểm tra split package, duplicate class, service provider, resource lookup và framework dựa trên classpath scanning. Một số thư viện cũ giả định mọi dependency đều có thể tìm qua `java.class.path`; giả định đó có thể không đúng với module path.
+When migrating from the classpath to the module path, you need to check for split packages, duplicate classes, service providers, resource lookups, and frameworks that rely on classpath scanning. Some legacy libraries assume every dependency can be found via `java.class.path`; that assumption may not hold with the module path.
 
-## 9. Chẩn đoán và kiểm tra
+## 9. Diagnosis and verification
 
-Để xác định một JAR đang được sử dụng như unnamed module hay named module, trước hết kiểm tra lệnh chạy:
+To determine whether a JAR is being used as an unnamed module or a named module, first check the launch command:
 
 ```shell
-# Classpath: các class được nạp trong unnamed module của class loader
+# Classpath: classes are loaded into the class loader's unnamed module
 java -cp "app.jar;legacy.jar" com.acme.app.Main
 
-# Module path: phân giải các named/automatic modules
+# Module path: resolves named/automatic modules
 java --show-module-resolution --module-path mods \
      --module com.acme.app/com.acme.app.Main
 ```
 
-Có thể xem module descriptor của JAR:
+You can inspect the module descriptor of a JAR:
 
 ```shell
 jar --describe-module --file legacy.jar
 ```
 
-Nếu JAR không có descriptor nhưng đặt trên module path, công cụ có thể hiển thị tên automatic module được suy ra. Nếu chạy trên classpath, hãy dùng `Class.getModule()` để xác định class thực tế thuộc unnamed module nào.
+If the JAR has no descriptor but is placed on the module path, the tool can display the derived automatic module name. If running on the classpath, use `Class.getModule()` to determine which unnamed module the class actually belongs to.
 
-Khi một classpath library không truy cập được từ named module, hãy xác nhận module gọi có readability tới unnamed module chưa. Trong trường hợp chuyển tiếp, xem xét `--add-reads <module>=ALL-UNNAMED`. Khi một named module không truy cập được package của named module khác, kiểm tra `exports` hoặc qualified exports; nếu cần deep reflection, kiểm tra `opens`.
+When a classpath library is inaccessible from a named module, verify whether the calling module has readability to the unnamed module. In transitional cases, consider `--add-reads <module>=ALL-UNNAMED`. When a named module cannot access a package of another named module, check `exports` or qualified exports; if deep reflection is needed, check `opens`.
 
-## 10. Khi nào nên giữ classpath và khi nào nên modularize?
+## 10. When to keep the classpath and when to modularize?
 
-Classpath phù hợp với ứng dụng legacy, thư viện chưa hỗ trợ JPMS hoặc dự án chưa có nhu cầu đóng gói theo module. Nó cho phép tích hợp nhanh nhưng dependency và package boundary ít rõ ràng.
+The classpath is suitable for legacy applications, libraries that do not yet support JPMS, or projects that do not yet need modular packaging. It allows rapid integration, though dependencies and package boundaries are less explicit.
 
-Named module phù hợp khi muốn khai báo dependency rõ ràng, kiểm soát package API, phát hiện thiếu dependency sớm và hỗ trợ runtime image tối giản. Với thư viện chưa có `module-info.java`, automatic module có thể là bước chuyển tiếp trên module path. Khi đã sẵn sàng, tác giả có thể bổ sung explicit module descriptor.
+Named modules are suitable when you want explicit dependency declarations, control over package APIs, early detection of missing dependencies, and support for minimal runtime images. For libraries without `module-info.java`, an automatic module can serve as a transitional step on the module path. When ready, the author can add an explicit module descriptor.
 
-Không nên chuyển module path chỉ bằng cách đổi cờ JVM. Hãy kiểm tra toàn bộ dependency graph, tên module, package export, reflection, service registration và cách framework khám phá resource.
+Do not switch to the module path merely by changing JVM flags. Inspect the entire dependency graph, module names, package exports, reflection, service registration, and how frameworks discover resources.
 
-## 11. Nguyên tắc ghi nhớ
+## 11. Key takeaways
 
-- `public` không đồng nghĩa với package được công khai qua module boundary.
-- Classpath đưa class vào unnamed module của class loader; module descriptor trong JAR không được áp dụng ở chế độ này.
-- Unnamed module không có tên nên named module không thể `requires` nó.
-- Unnamed module đọc các named module và export các package của mình; chiều ngược lại cần readability phù hợp.
-- Automatic module có tên và xuất hiện trên module path; nó khác unnamed module.
-- `requires` tạo readability, `exports` công bố package, `opens` cấp quyền deep reflection.
-- Khi migration, kiểm tra artifact và lệnh chạy thực tế thay vì chỉ dựa vào mã nguồn.
+- `public` does not mean a package is exposed across module boundaries.
+- The classpath places classes into the class loader's unnamed module; a module descriptor in a JAR is not enforced in this mode.
+- An unnamed module has no name, so a named module cannot `requires` it.
+- An unnamed module reads named modules and exports its own packages; the reverse direction requires appropriate readability.
+- An automatic module has a name and appears on the module path; it is distinct from an unnamed module.
+- `requires` establishes readability, `exports` exposes packages, and `opens` grants deep reflection access.
+- During migration, inspect the actual artifacts and launch commands rather than relying solely on source code.
 
-Unnamed module là cầu nối để các ứng dụng classpath tiếp tục chạy trong nền tảng có JPMS. Hiểu đúng ranh giới của nó giúp giải thích vì sao một class public có thể truy cập được trong ứng dụng truyền thống nhưng bị giới hạn khi thư viện được đưa vào named module, đồng thời giúp chọn hướng migration phù hợp.
+The unnamed module serves as a bridge so classpath applications can continue running on a platform with JPMS. Understanding its boundaries helps explain why a public class can be accessible in a traditional application yet restricted when the library is placed in a named module, while also helping choose an appropriate migration path.

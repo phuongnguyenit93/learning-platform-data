@@ -1,19 +1,19 @@
-# abs, min, max, signum và clamp theo phiên bản JDK
+# abs, min, max, signum, and clamp by JDK Version
 
-> **Java core – numbers · Math và StrictMath**  
-> **Mục tiêu:** Dùng đúng các hàm trị tuyệt đối, chọn cực tiểu/cực đại, xác định dấu và giới hạn giá trị; xử lý tràn số nguyên, NaN, vô cực, số 0 có dấu; phân biệt API chạy được trên Java 17 với `Math.clamp`/`StrictMath.clamp` được bổ sung từ JDK 21.
+> **Java core – numbers · Math and StrictMath**  
+> **Goal:** Properly use absolute value, minimum/maximum selection, sign determination, and value clamping functions; handle integer overflow, NaN, infinity, and signed zero; distinguish APIs that run on Java 17 from `Math.clamp`/`StrictMath.clamp` added in JDK 21.
 
-## 1. Tổng quan: 5 thao tác nhìn đơn giản nhưng có nhiều bẫy
+## 1. Overview: 5 Operations That Look Simple but Have Many Traps
 
-Khi xử lý số, những câu hỏi thường gặp là:
+When working with numbers, common questions are:
 
-- **`abs(x)`:** độ lớn không âm của x là bao nhiêu?
-- **`min(a,b)`:** giá trị nào nhỏ hơn?
-- **`max(a,b)`:** giá trị nào lớn hơn?
-- **`signum(x)`:** x âm, bằng 0 hay dương?
-- **`clamp(x,low,high)`:** đưa x về **đoạn đóng** từ low đến high; nếu x thấp hơn low lấy low, nếu cao hơn high lấy high, nếu nằm trong đoạn thì giữ x.
+- **`abs(x)`:** what is the non-negative magnitude of x?
+- **`min(a,b)`:** which value is smaller?
+- **`max(a,b)`:** which value is larger?
+- **`signum(x)`:** is x negative, zero, or positive?
+- **`clamp(x,low,high)`:** bring x into the **closed interval** from low to high; if x is lower than low take low, if higher than high take high, if within the interval keep x.
 
-Ví dụ trực quan trên số nguyên:
+Visual example on integers:
 
 ```text
              -∞               0         10              +∞
@@ -24,40 +24,40 @@ clamp( 7,0,10) -> 7
 clamp(20,0,10) -> 10
 ```
 
-Nhưng Java không chỉ có một hệ số: kiểu nguyên có miền hữu hạn; kiểu floating-point IEEE 754 có NaN, ±Infinity và cả +0.0/-0.0. Một số API cũng **không có trên các JDK cũ**. Vì vậy cần đọc cả **kiểu tham số** lẫn **phiên bản JDK**.
+However, Java does not have only one number system: integer types have a finite range; IEEE 754 floating-point types have NaN, ±Infinity, and both +0.0/-0.0. Some APIs are also **not available on older JDKs**. Therefore, you must pay attention to both **parameter types** and **JDK version**.
 
-### Bảng định hướng API
+### API Reference Table
 
-| Thao tác | Java 17 | JDK 21+ | Lưu ý |
+| Operation | Java 17 | JDK 21+ | Notes |
 | --- | --- | --- | --- |
-| `Math.abs` / `StrictMath.abs` | Có | Có | `int/long MIN_VALUE` vẫn âm khi lấy abs thường |
-| `Math.absExact` / `StrictMath.absExact` | Có (từ 15) | Có | Ném `ArithmeticException` nếu trị tuyệt đối nguyên tràn |
-| `Math.min` / `StrictMath.min` | Có | Có | Có overload int, long, float, double |
-| `Math.max` / `StrictMath.max` | Có | Có | Truyền NaN cho overload float/double trả NaN |
-| `Math.signum` / `StrictMath.signum` | Có | Có | Chỉ có overload float/double |
-| `Integer.signum` / `Long.signum` | Có | Có | Trả int −1, 0 hoặc 1 |
-| `Math.clamp` / `StrictMath.clamp` | **Không** | **Có, từ 21** | Kiểm tra min/max hợp lệ, nhiều overload |
+| `Math.abs` / `StrictMath.abs` | Yes | Yes | `int/long MIN_VALUE` remains negative when taking regular abs |
+| `Math.absExact` / `StrictMath.absExact` | Yes (since 15) | Yes | Throws `ArithmeticException` if integer absolute value overflows |
+| `Math.min` / `StrictMath.min` | Yes | Yes | Has int, long, float, double overloads |
+| `Math.max` / `StrictMath.max` | Yes | Yes | Passing NaN to float/double overloads returns NaN |
+| `Math.signum` / `StrictMath.signum` | Yes | Yes | Only has float/double overloads |
+| `Integer.signum` / `Long.signum` | Yes | Yes | Returns int −1, 0, or 1 |
+| `Math.clamp` / `StrictMath.clamp` | **No** | **Yes, since 21** | Validates min/max, multiple overloads |
 
-**Điểm đặc biệt:** trên JDK 21, phương thức `clamp` cho số nguyên nhận `(long value,long min,long max)` hoặc `(long value,int min,int max)`; **không có riêng overload `clamp(int,int,int)` trong bảng API**. Lời gọi với ba biểu thức `int` vẫn có thể dùng overload `long,int,int` bằng cách mở rộng đối số đầu tiên sang `long`, và kiểu trả về khi đó là `int`.
+**Special note:** on JDK 21, the `clamp` method for integers takes `(long value,long min,long max)` or `(long value,int min,int max)`; **there is no separate `clamp(int,int,int)` overload in the API table**. A call with three `int` expressions can still use the `long,int,int` overload by widening the first argument to `long`, and the return type in that case is `int`.
 
-## 2. Math và StrictMath: nên chọn cái nào?
+## 2. Math vs. StrictMath: Which Should You Choose?
 
-Cả `java.lang.Math` và `java.lang.StrictMath` đều cung cấp những phép toán số học cơ bản. Hai lớp đều có phương thức **static** nên gọi trực tiếp:
+Both `java.lang.Math` and `java.lang.StrictMath` provide basic arithmetic operations. Both classes have **static** methods, so call them directly:
 
 ```java
 int magnitude = Math.abs(-12);
 double minimum = StrictMath.min(3.0, 5.0);
 ```
 
-Không tạo đối tượng `new Math()` hay `new StrictMath()`. Hai lớp này không được thiết kế để khởi tạo.
+Do not instantiate `new Math()` or `new StrictMath()`. These two classes are not designed to be instantiated.
 
-Với các phép đơn giản trong bài như `abs`, `min`, `max`, `signum`, quy tắc kết quả đặc biệt được mô tả rõ trong Javadoc và hai lớp có ngữ nghĩa tương ứng. `StrictMath` nổi bật ở những phép toán toán học nâng cao có yêu cầu đặc biệt về tính tái lập của thuật toán; **không cần chuyển mọi `Math.abs` thành `StrictMath.abs` để sửa lỗi tràn nguyên hay NaN**.
+For simple operations in this lesson like `abs`, `min`, `max`, and `signum`, special result rules are clearly documented in the Javadoc and both classes have corresponding semantics. `StrictMath` stands out in advanced mathematical operations with special requirements for algorithmic reproducibility; **you do not need to convert every `Math.abs` into `StrictMath.abs` to fix integer overflow or NaN bugs**.
 
-Từ Java 17, ngữ nghĩa biểu thức dấu phẩy động của Java được thống nhất theo chế độ *always-strict*; điều này **không làm biến mất** NaN, số 0 có dấu hoặc các giới hạn biểu diễn. `Math` và `StrictMath` vẫn là hai API được tài liệu hóa riêng, nhưng trong chủ đề này phải tập trung vào **contract từng phương thức** thay vì coi tên `StrictMath` như một cách đảm bảo phép toán nguyên tự kiểm tra tràn.
+Since Java 17, Java's floating-point expression semantics have been unified under the *always-strict* mode; this **does not eliminate** NaN, signed zero, or representation limits. `Math` and `StrictMath` remain two separately documented APIs, but in this topic you must focus on **each method's contract** rather than treating the name `StrictMath` as a guarantee that integer operations automatically check for overflow.
 
-## 3. Math.abs và StrictMath.abs: trị tuyệt đối
+## 3. Math.abs and StrictMath.abs: Absolute Value
 
-`abs` trả độ lớn của một số theo quy tắc của kiểu đầu vào:
+`abs` returns the magnitude of a number according to the rules of the input type:
 
 ```java
 System.out.println(Math.abs(-7));        // 7
@@ -66,18 +66,18 @@ System.out.println(Math.abs(-3.25));     // 3.25
 System.out.println(Math.abs(-3.25f));    // 3.25
 ```
 
-Các overload chuẩn:
+Standard overloads:
 
-| Hàm | Tham số | Kiểu trả về |
+| Function | Parameter | Return Type |
 | --- | --- | --- |
 | `Math.abs(int)` | int | int |
 | `Math.abs(long)` | long | long |
 | `Math.abs(float)` | float | float |
 | `Math.abs(double)` | double | double |
 
-`StrictMath.abs` cũng có bốn overload tương ứng.
+`StrictMath.abs` also has four corresponding overloads.
 
-Với `float`/`double`, cần nhớ ba trường hợp:
+With `float`/`double`, remember three cases:
 
 ```java
 System.out.println(Math.abs(-0.0));                    // 0.0
@@ -85,11 +85,11 @@ System.out.println(Math.abs(Double.NEGATIVE_INFINITY)); // Infinity
 System.out.println(Double.isNaN(Math.abs(Double.NaN)));  // true
 ```
 
-`Math.abs(-0.0)` trả **+0.0**, không giữ dấu âm của zero. Nếu phải giữ riêng bit dấu (ví dụ logic nhị phân đặc biệt), `abs` không phải thao tác thích hợp để lưu dấu.
+`Math.abs(-0.0)` returns **+0.0**, without preserving the negative sign of zero. If you must preserve the sign bit separately (for example, special binary logic), `abs` is not the appropriate operation to keep the sign.
 
-## 4. Bẫy quan trọng: abs của MIN_VALUE có thể vẫn âm
+## 4. Important Trap: abs of MIN_VALUE Can Still Be Negative
 
-Với số nguyên có dấu theo bù hai, miền âm có thêm **một** giá trị không có đối ứng dương cùng độ lớn:
+With signed two's complement integers, the negative range has **one** extra value with no positive counterpart of the same magnitude:
 
 ```text
 int:
@@ -101,21 +101,21 @@ MIN_VALUE = -9223372036854775808
 MAX_VALUE =  9223372036854775807
 ```
 
-Vì thế trị tuyệt đối toán học của `Integer.MIN_VALUE` là 2.147.483.648, **vượt miền `int`**.
+Therefore, the mathematical absolute value of `Integer.MIN_VALUE` is 2,147,483,648, **exceeding the `int` range**.
 
 ```java
 int minimum = Integer.MIN_VALUE;
 System.out.println(Math.abs(minimum)); // -2147483648
 ```
 
-Đây là kết quả của **overflow theo quy tắc số nguyên Java**: `Math.abs(int)` không tự ném ngoại lệ. Tương tự:
+This is the result of **overflow according to Java's integer rules**: `Math.abs(int)` does not throw an exception by itself. Similarly:
 
 ```java
 System.out.println(Math.abs(Long.MIN_VALUE));
 // -9223372036854775808
 ```
 
-Hậu quả rất thực tế:
+The consequence is very practical:
 
 ```java
 int hash = Integer.MIN_VALUE;
@@ -123,11 +123,11 @@ int bucket = Math.abs(hash) % 10;
 System.out.println(bucket); // -8
 ```
 
-Nếu sau đó dùng `bucket` làm chỉ số mảng, bạn có thể gặp lỗi. Không dùng công thức `Math.abs(x) % size` như cách **luôn bảo đảm chỉ số không âm**.
+If you subsequently use `bucket` as an array index, you may encounter an error. Do not use the formula `Math.abs(x) % size` as a way that **always guarantees a non-negative index**.
 
-### Cách xử lý tùy mục tiêu
+### How to Handle Depending on the Goal
 
-**Cần nhận biết overflow và báo lỗi:** từ Java 15 có `Math.absExact(int)`/`Math.absExact(long)` và các phương thức tương ứng của `StrictMath`:
+**Need to detect overflow and report an error:** since Java 15 there are `Math.absExact(int)`/`Math.absExact(long)` and the corresponding methods in `StrictMath`:
 
 ```java
 try {
@@ -137,16 +137,16 @@ try {
 }
 ```
 
-**Cần trị tuyệt đối của mọi giá trị int theo một kiểu đủ rộng:**
+**Need the absolute value of every int value in a sufficiently wide type:**
 
 ```java
 long exactMagnitude = Math.abs((long) Integer.MIN_VALUE);
 System.out.println(exactMagnitude); // 2147483648
 ```
 
-Cast sang `long` phải xảy ra **trước** khi gọi `abs`. Viết `(long) Math.abs(Integer.MIN_VALUE)` là quá muộn: phép `abs(int)` đã overflow.
+The cast to `long` must occur **before** calling `abs`. Writing `(long) Math.abs(Integer.MIN_VALUE)` is too late: the `abs(int)` call has already overflowed.
 
-**Với `Long.MIN_VALUE`**, ngay cả `long` cũng không đủ chứa độ lớn dương. Khi cần một số nguyên toán học chính xác, dùng `BigInteger`:
+**With `Long.MIN_VALUE`**, even `long` is not enough to hold the positive magnitude. When you need an exact mathematical integer, use `BigInteger`:
 
 ```java
 import java.math.BigInteger;
@@ -156,17 +156,17 @@ BigInteger magnitude =
 System.out.println(magnitude); // 9223372036854775808
 ```
 
-**Nếu mục tiêu là chỉ số 0..size−1**, cân nhắc `Math.floorMod(hash,size)` khi `size > 0`, thay vì ép trị tuyệt đối:
+**If the goal is an index 0..size−1**, consider `Math.floorMod(hash,size)` when `size > 0`, instead of forcing absolute value:
 
 ```java
 System.out.println(Math.floorMod(Integer.MIN_VALUE, 10)); // 2
 ```
 
-Công thức chọn phụ thuộc yêu cầu nghiệp vụ: `floorMod` mang nghĩa modulo không âm với môđun dương, **khác** việc lấy trị tuyệt đối rồi chia lấy dư.
+The chosen formula depends on business requirements: `floorMod` means non-negative modulo with a positive modulus, which is **different** from taking the absolute value and then taking the remainder.
 
-## 5. min và max cho số nguyên
+## 5. min and max for Integers
 
-Các phương thức `Math.min(a,b)` và `Math.max(a,b)` chọn phần tử nhỏ/lớn theo thứ tự số.
+The `Math.min(a,b)` and `Math.max(a,b)` methods select the smaller/larger element in numerical order.
 
 ```java
 System.out.println(Math.min(7, 12));   // 7
@@ -174,76 +174,76 @@ System.out.println(Math.max(7, 12));   // 12
 System.out.println(Math.min(-5L, 3L)); // -5
 ```
 
-Có overload int, long, float và double. Nếu có lẫn các kiểu, **numeric promotion** và khả năng chọn overload là vấn đề cần để ý:
+There are int, long, float, and double overloads. When mixing types, **numeric promotion** and overload resolution are things to watch out for:
 
 ```java
 int small = 5;
 long large = 9L;
-long result = Math.max(small, large); // chọn overload long
+long result = Math.max(small, large); // selects long overload
 ```
 
-Nếu bắt buộc kết quả giữ nguyên kiểu `int`, cần bảo đảm các toán hạng và miền giá trị phù hợp. Đừng ép thu hẹp một giá trị `long` về `int` trước khi chọn min/max nếu có thể mất bit.
+If the result is required to remain type `int`, ensure that the operands and value range are appropriate. Do not narrowing-cast a `long` value to `int` before choosing min/max if bits could be lost.
 
-### min/max không tự kiểm tra tràn phép tính đầu vào
+### min/max Do Not Automatically Check Input Expression Overflow
 
 ```java
 int a = Integer.MAX_VALUE;
 int b = 2;
-int chosen = Math.max(a + b, 0); // a+b tràn thành số âm
+int chosen = Math.max(a + b, 0); // a+b overflows to negative
 System.out.println(chosen);      // 0
 ```
 
-`Math.max` không thể biết biểu thức `a+b` từng có ý định biểu diễn số lớn hơn `Integer.MAX_VALUE`. Phải kiểm tra phép cộng từ trước, chẳng hạn bằng `Math.addExact(a,b)` hoặc chuyển sang `long` trước phép cộng nếu miền đủ rộng.
+`Math.max` cannot know that the expression `a+b` was intended to represent a number larger than `Integer.MAX_VALUE`. You must check the addition beforehand, such as with `Math.addExact(a,b)` or converting to `long` before the addition if the range is wide enough.
 
-## 6. min/max với float/double: NaN và số 0 có dấu
+## 6. min/max with float/double: NaN and Signed Zero
 
-Khác số nguyên, kiểu IEEE 754 có `NaN` và hai cách mã hóa số 0.
+Unlike integers, IEEE 754 types have `NaN` and two ways to encode zero.
 
-### 6.1. Khi một đối số là NaN
+### 6.1. When One Argument Is NaN
 
-Đối với overload `float`/`double`:
+For `float`/`double` overloads:
 
 ```java
 double result = Math.min(Double.NaN, 42.0);
 System.out.println(Double.isNaN(result)); // true
 ```
 
-Tương tự:
+Similarly:
 
 ```java
 System.out.println(Double.isNaN(
         Math.max(42.0, Double.NaN))); // true
 ```
 
-**Math.min/max truyền thống ở đây là NaN-propagating.** Không giả định rằng `Math.max(x,0.0)` “lọc bỏ NaN” hoặc trả giá trị 0 khi `x` là NaN.
+**Traditional Math.min/max here are NaN-propagating.** Do not assume that `Math.max(x,0.0)` "filters out NaN" or returns 0 when `x` is NaN.
 
-Nếu nghiệp vụ quy định bỏ qua mẫu đo NaN, hãy định nghĩa logic xử lý missing/invalid data trước, thay vì trông chờ `min/max` tự loại giá trị NaN. Quy tắc bỏ NaN khác với quy tắc làm phép toán đại số thông thường.
+If business logic dictates ignoring NaN measurement samples, define missing/invalid data handling logic beforehand, rather than expecting `min/max` to automatically discard NaN values. NaN-skipping rules differ from standard algebraic operation rules.
 
-### 6.2. Khi một đối số là +0.0, đối số kia -0.0
+### 6.2. When One Argument Is +0.0 and the Other Is -0.0
 
-Hai số 0 so sánh bằng nhau dưới `==`:
+The two zeros compare equal under `==`:
 
 ```java
 System.out.println(+0.0 == -0.0); // true
 ```
 
-Nhưng `Math.min` và `Math.max` phân biệt dấu của zero:
+However, `Math.min` and `Math.max` distinguish the sign of zero:
 
 ```java
 System.out.println(Math.min(+0.0, -0.0)); // -0.0
 System.out.println(Math.max(+0.0, -0.0)); // 0.0
 ```
 
-Trong thứ tự của các phương thức này, **−0.0 được coi là nhỏ hơn +0.0**. Điều này khác khi dùng toán tử `<`/`>` với zero vì `-0.0 < +0.0` là false.
+In the ordering of these methods, **−0.0 is considered smaller than +0.0**. This differs from using `<`/`>` operators on zero because `-0.0 < +0.0` is false.
 
-Các trường hợp tương tự áp dụng cho overload `float`:
+The same cases apply to the `float` overload:
 
 ```java
 float small = Math.min(+0.0f, -0.0f); // -0.0f
 float big = Math.max(+0.0f, -0.0f);   // +0.0f
 ```
 
-Khi debug dạng bit, kiểm tra:
+When debugging bit patterns, check:
 
 ```java
 long bits = Double.doubleToRawLongBits(
@@ -252,16 +252,16 @@ System.out.printf("%016x%n", bits);
 // 8000000000000000
 ```
 
-Số `0x8000000000000000` là mẫu IEEE 754 của `-0.0`. Dùng raw bits khi cần kiểm chứng chính xác dấu zero hoặc mã hóa nhị phân.
+The number `0x8000000000000000` is the IEEE 754 pattern for `-0.0`. Use raw bits when you need to verify the exact sign of zero or binary encoding.
 
-## 7. signum là dấu của số, không phải trị tuyệt đối
+## 7. signum Is the Sign of a Number, Not Its Absolute Value
 
-`Math.signum(float)` và `Math.signum(double)` trả:
+`Math.signum(float)` and `Math.signum(double)` return:
 
-- `-1.0` hoặc `-1.0f` nếu đối số là một số âm **khác 0**;
-- `+1.0` hoặc `+1.0f` nếu đối số là một số dương **khác 0**;
-- giữ nguyên `+0.0` hoặc `-0.0` nếu đầu vào là signed zero;
-- trả `NaN` nếu đối số là NaN.
+- `-1.0` or `-1.0f` if the argument is a **non-zero** negative number;
+- `+1.0` or `+1.0f` if the argument is a **non-zero** positive number;
+- preserves `+0.0` or `-0.0` if the input is signed zero;
+- returns `NaN` if the argument is NaN.
 
 ```java
 System.out.println(Math.signum(-12.5)); // -1.0
@@ -272,9 +272,9 @@ System.out.println(Double.isNaN(
         Math.signum(Double.NaN)));      // true
 ```
 
-Với `±Infinity`, dấu vẫn xác định: `signum(+Infinity)=+1.0`, `signum(-Infinity)=-1.0`.
+With `±Infinity`, the sign is still defined: `signum(+Infinity)=+1.0`, `signum(-Infinity)=-1.0`.
 
-**Không có overload `Math.signum(int)` hay `Math.signum(long)`.** Với số nguyên dùng:
+**There is no `Math.signum(int)` or `Math.signum(long)` overload.** For integers, use:
 
 ```java
 System.out.println(Integer.signum(-12)); // -1
@@ -282,11 +282,11 @@ System.out.println(Integer.signum(0));   // 0
 System.out.println(Long.signum(100L));   // 1
 ```
 
-Đừng mặc định kiểu trả về của `Math.signum(-12)` là `int`: đối số `int` có thể được chuyển sang `float` và chọn overload `float` (theo quy tắc overload của Java); kết quả **không** phải kiểu `int`. Khi cần xử lý số nguyên tường minh và đúng kiểu, chọn `Integer.signum`/`Long.signum`.
+Do not assume the return type of `Math.signum(-12)` is `int`: the `int` argument can be converted to `float` and select the `float` overload (according to Java's overload rules); the result is **not** type `int`. When you need explicit, properly typed integer handling, choose `Integer.signum`/`Long.signum`.
 
-### Tại sao signum(-0.0) không phải 0.0 dương?
+### Why Is signum(-0.0) Not Positive 0.0?
 
-Theo IEEE 754, `-0.0` và `+0.0` có dấu khác nhau dù `==` trả true. `Math.signum` trả **chính zero đầu vào** khi đối số bằng zero, nên:
+According to IEEE 754, `-0.0` and `+0.0` have different signs even though `==` returns true. `Math.signum` returns **the exact input zero** when the argument equals zero, so:
 
 ```java
 double negativeZero = -0.0;
@@ -294,11 +294,11 @@ double result = Math.signum(negativeZero);
 System.out.println(result); // -0.0
 ```
 
-Nếu bạn cần chỉ một phân loại 3 trạng thái `-1,0,+1` trong ứng dụng và **không muốn phân biệt dấu zero**, có thể kiểm tra `x == 0.0` trước để trả số nguyên 0 theo ý nghĩa nghiệp vụ. Nhưng phải xử lý NaN riêng vì phép so sánh `NaN == 0.0` và `NaN < 0.0` đều là false.
+If you only need a 3-state classification `-1,0,+1` in your application and **do not want to distinguish zero signs**, you can check `x == 0.0` first to return the integer 0 according to business meaning. However, you must handle NaN separately because both comparisons `NaN == 0.0` and `NaN < 0.0` are false.
 
-## 8. Clamp nghĩa là gì?
+## 8. What Does Clamp Mean?
 
-*Clamp* (giới hạn/bão hòa) đưa một giá trị vào đoạn đóng `[min,max]`:
+*Clamp* (bounding/saturation) brings a value into the closed interval `[min,max]`:
 
 \[
 \operatorname{clamp}(x,\ell,h)=
@@ -309,40 +309,40 @@ x,&\ell\le x\le h.
 \end{cases}
 \]
 
-Ví dụ ứng dụng:
+Application examples:
 
-- Khống chế mức âm lượng từ 0 đến 100.
-- Giới hạn chỉ số tiến độ từ 0.0 đến 1.0.
-- Đưa điểm số ngoài miền về biên hợp lệ **khi nghiệp vụ chấp nhận bão hòa**.
-- Chuyển một `long` thành `int` bằng cách **bão hòa** theo biên `int`, thay vì cắt bit.
+- Capping volume level from 0 to 100.
+- Bounding progress indicator from 0.0 to 1.0.
+- Bringing out-of-range scores to valid boundaries **when business rules accept saturation**.
+- Converting a `long` to an `int` by **saturating** to `int` bounds, instead of truncating bits.
 
-**Clamp không giống** phép chia lấy dư, thu hẹp bit hoặc chuẩn hóa (normalization). `clamp(150,0,100)` là 100; `150 % 101` là 49, còn ép `byte` có thể cho số khác nữa.
+**Clamp is not the same** as modulo division, bit narrowing, or normalization. `clamp(150,0,100)` is 100; `150 % 101` is 49, while casting to `byte` can yield yet another number.
 
-Đặc biệt, clamp cũng **không phải validate** theo nghĩa từ chối mọi giá trị ngoài miền; nó **chủ động thay** giá trị bằng cận. Nếu dữ liệu ngoài miền phải gây lỗi, kiểm tra biên và ném ngoại lệ thay vì âm thầm clamp.
+In particular, clamp is also **not validation** in the sense of rejecting any out-of-range value; it **actively replaces** the value with the bound. If out-of-range data must cause an error, check the bounds and throw an exception instead of silently clamping.
 
-## 9. Phiên bản JDK: Math.clamp/StrictMath.clamp được thêm từ 21
+## 9. JDK Versions: Math.clamp/StrictMath.clamp Added in 21
 
-Một bẫy tương thích rất phổ biến:
+A very common compatibility trap:
 
 ```java
-// Chỉ có từ JDK 21:
+// Available only since JDK 21:
 // int volume = Math.clamp(150L, 0, 100);
 ```
 
-Mã này **không biên dịch khi dùng `javac --release 17`** hoặc biên dịch trên JDK 17 vì ở đó không có phương thức `clamp` của `Math`.
+This code **does not compile when using `javac --release 17`** or compiling on JDK 17 because the `clamp` method does not exist on `Math` there.
 
-JDK 21 bổ sung bốn overload trong cả `Math` và `StrictMath`:
+JDK 21 added four overloads in both `Math` and `StrictMath`:
 
-| Chữ ký overload | Kiểu kết quả | Ý nghĩa |
+| Overload Signature | Result Type | Meaning |
 | --- | --- | --- |
-| `clamp(long value, int min, int max)` | `int` | Clamp một `long` vào miền `int` được chỉ rõ |
-| `clamp(long value, long min, long max)` | `long` | Clamp số nguyên 64 bit |
-| `clamp(float value, float min, float max)` | `float` | Clamp floating-point 32 bit |
-| `clamp(double value, double min, double max)` | `double` | Clamp floating-point 64 bit |
+| `clamp(long value, int min, int max)` | `int` | Clamps a `long` into the specified `int` range |
+| `clamp(long value, long min, long max)` | `long` | Clamps a 64-bit integer |
+| `clamp(float value, float min, float max)` | `float` | Clamps a 32-bit floating-point number |
+| `clamp(double value, double min, double max)` | `double` | Clamps a 64-bit floating-point number |
 
-Các overload này có cùng ý nghĩa cơ bản ở `Math` và `StrictMath`. Tài liệu Java 21 ghi rõ `Since: 21` cho chúng.
+These overloads have the same basic semantics in `Math` and `StrictMath`. Java 21 documentation explicitly notes `Since: 21` for them.
 
-Một lời gọi với ba `int` được giải quyết bằng overload nhận `long,int,int`:
+A call with three `int`s is resolved via the overload taking `long,int,int`:
 
 ```java
 // Java 21+:
@@ -350,30 +350,30 @@ int level = Math.clamp(150, 0, 100);
 System.out.println(level); // 100
 ```
 
-Tuy nhiên, nên viết `150L` nếu đang minh họa tính năng **thu hẹp long một cách bão hòa thành int**, để ý định về overload rõ ràng.
+However, you should write `150L` if illustrating the **saturating narrowing of long to int** feature, so the overload intent is clear.
 
-### Dùng khi code chạy nhiều phiên bản JDK
+### Usage When Code Runs Across Multiple JDK Versions
 
-Nếu dự án target Java 17 hoặc vẫn phát hành ứng dụng cho Java 17:
+If a project targets Java 17 or still ships applications for Java 17:
 
-- **Không gọi trực tiếp** `Math.clamp` trong code chung được biên dịch bằng `--release 17`.
-- Viết helper clamp cho kiểu cần thiết, với kiểm tra `min <= max`.
-- Khi nâng tối thiểu lên JDK 21+, cân nhắc chuyển helper về `Math.clamp` và kiểm thử lại các trường hợp NaN/±0.0.
+- **Do not call** `Math.clamp` directly in shared code compiled with `--release 17`.
+- Write a clamp helper for the required type, with a `min <= max` check.
+- When upgrading the minimum version to JDK 21+, consider migrating the helper to `Math.clamp` and re-testing NaN/±0.0 cases.
 
-Không đánh giá API chỉ bằng JDK đang chạy trên máy lập trình: một dự án có thể dùng JDK mới để build nhưng dùng `--release 17` cho mục tiêu tương thích.
+Do not evaluate API availability solely by the JDK running on the developer's machine: a project may use a newer JDK to build while passing `--release 17` for compatibility targets.
 
-## 10. Clamp số nguyên: từ long về int bằng bão hòa
+## 10. Integer Clamp: From long to int via Saturation
 
-Overload:
+The overload:
 
 ```java
 // Java 21+:
 int result = Math.clamp(hugeLong, lowInt, highInt);
 ```
 
-nhận giá trị đầu vào `long` và hai cận `int`, kết quả luôn nằm trong đoạn được xác định bởi hai cận, nên trả được kiểu `int` mà **không cắt mất các bit cao như narrowing cast**.
+takes a `long` input value and two `int` bounds; the result always lies within the interval defined by the two bounds, so it can return type `int` without **dropping high bits like a narrowing cast**.
 
-Ví dụ:
+Example:
 
 ```java
 // Java 21+:
@@ -383,42 +383,42 @@ int limited = Math.clamp(count, 0, 100);
 System.out.println(limited); // 100
 ```
 
-So sánh với cast:
+Compare with a cast:
 
 ```java
 long count = 5_000_000_000L;
-int truncated = (int) count; // làm hẹp theo bit, không clamp
+int truncated = (int) count; // bitwise narrowing, not clamping
 ```
 
-Hai thao tác thể hiện **hai hợp đồng hoàn toàn khác**:
+The two operations represent **two completely different contracts**:
 
-- `(int) longValue`: giữ 32 bit thấp và có thể thay đổi dấu/giá trị.
-- `Math.clamp(longValue, min, max)`: trả cận gần nhất nếu vượt, giữ giá trị khi nằm trong đoạn.
-- `Math.toIntExact(longValue)`: yêu cầu giá trị nằm trong miền `int`, nếu không sẽ **ném `ArithmeticException`**.
+- `(int) longValue`: keeps the low 32 bits and may change the sign/value.
+- `Math.clamp(longValue, min, max)`: returns the nearest bound if exceeded, keeps the value when within the interval.
+- `Math.toIntExact(longValue)`: requires the value to be within `int` range, otherwise **throws `ArithmeticException`**.
 
-Nếu yêu cầu là “giữ nguyên chính xác hoặc báo lỗi”, `Math.toIntExact` phù hợp hơn clamp. Nếu yêu cầu là “luôn cho ra một chỉ số hoặc mức trong giới hạn”, clamp đúng hơn.
+If the requirement is "keep exact or fail", `Math.toIntExact` is more suitable than clamp. If the requirement is "always produce an index or level within bounds", clamp is right.
 
-### Cận không hợp lệ phải bị từ chối
+### Invalid Bounds Must Be Rejected
 
 ```java
 // Java 21+:
-// Math.clamp(5L, 10, 0); // IllegalArgumentException vì 10 > 0
+// Math.clamp(5L, 10, 0); // IllegalArgumentException because 10 > 0
 ```
 
-Hàm clamp chuẩn **không tự tráo min và max**. Nếu ứng dụng cho phép hai cận bị đảo và muốn đảo chúng, đó là bước **chuẩn hóa dữ liệu nghiệp vụ** riêng; cần định nghĩa rõ trước khi gọi API.
+Standard clamp **does not swap min and max automatically**. If the application allows reversed bounds and wants to swap them, that is a separate **business data normalization** step; it must be explicitly defined before calling the API.
 
-## 11. Clamp float/double: NaN và signed zero không được bỏ qua
+## 11. Float/Double Clamp: NaN and Signed Zero Are Not Ignored
 
-Với JDK 21+:
+With JDK 21+:
 
 ```java
 double result = Math.clamp(1.4, 0.0, 1.0);
 System.out.println(result); // 1.0
 ```
 
-Tuy nhiên floating-point cần kiểm tra ràng buộc đặc biệt:
+However, floating-point requires checking special constraints:
 
-**1. Nếu chính `value` là NaN**, kết quả vẫn là NaN:
+**1. If `value` itself is NaN**, the result remains NaN:
 
 ```java
 // Java 21+:
@@ -426,50 +426,50 @@ double result = Math.clamp(Double.NaN, 0.0, 1.0);
 System.out.println(Double.isNaN(result)); // true
 ```
 
-**2. Nếu một trong hai cận là NaN**, hàm ném `IllegalArgumentException`:
+**2. If either bound is NaN**, the method throws `IllegalArgumentException`:
 
 ```java
 // Java 21+:
 // Math.clamp(0.5, Double.NaN, 1.0); // IllegalArgumentException
 ```
 
-**3. Nếu `min > max`**, hàm ném `IllegalArgumentException`. Đây là phần kiểm tra hợp đồng không nên bỏ qua khi tự viết helper cho Java 17.
+**3. If `min > max`**, the method throws `IllegalArgumentException`. This is a contract check that should not be omitted when writing your own helper for Java 17.
 
-**4. Zero có dấu được phân biệt theo thứ tự của clamp.**
+**4. Signed zero is distinguished according to clamp's ordering.**
 
 ```java
 // Java 21+:
 double z = Math.clamp(-0.0, +0.0, 1.0);
-System.out.println(z); // 0.0 (zero dương)
+System.out.println(z); // 0.0 (positive zero)
 ```
 
-Khi cận dưới là `+0.0` và giá trị là `-0.0`, việc clamp nâng lên `+0.0`. Đây là điểm khác với việc tự viết:
+When the lower bound is `+0.0` and the value is `-0.0`, clamping raises it to `+0.0`. This differs from writing it manually:
 
 ```java
 double naive = -0.0;
-if (naive < +0.0) naive = +0.0; // điều kiện false!
+if (naive < +0.0) naive = +0.0; // condition is false!
 ```
 
-Vì `-0.0 < +0.0` trả false, cách so sánh thuần `<`/`>` có thể **không tái tạo đúng** kết quả `Math.clamp`.
+Because `-0.0 < +0.0` returns false, pure `<`/`>` comparisons may **fail to reproduce** `Math.clamp` results accurately.
 
-**5. Một khoảng với `min=+0.0` và `max=-0.0` được xem là không hợp lệ**, dù `+0.0 == -0.0` là true theo phép so sánh số học:
+**5. An interval with `min=+0.0` and `max=-0.0` is considered invalid**, even though `+0.0 == -0.0` is true under arithmetic comparison:
 
 ```java
 // Java 21+:
 // Math.clamp(0.0, +0.0, -0.0); // IllegalArgumentException
 ```
 
-Với cận hợp lệ `min=-0.0`, `max=+0.0`, đoạn này cho phép cả hai dạng zero theo quy tắc signed-zero của floating-point API.
+With valid bounds `min=-0.0`, `max=+0.0`, this interval allows both forms of zero according to the signed-zero rules of the floating-point API.
 
-### Infinity cũng là đối số có quy tắc rõ ràng
+### Infinity Is Also an Argument with Clear Rules
 
-Cận có thể là ±Infinity nếu thứ tự hợp lệ; ví dụ `[-Infinity,+Infinity]` là đoạn đầy đủ theo thứ tự của số floating-point không phải NaN.
+Bounds can be ±Infinity if the order is valid; for example `[-Infinity,+Infinity]` is the full interval according to the ordering of non-NaN floating-point numbers.
 
-Nếu input là `+Infinity` và cận trên hữu hạn, clamp trả cận trên. Nhưng nếu application yêu cầu đầu vào **phải hữu hạn**, clamp không thay thế việc `Double.isFinite(x)` trước đó (đặc biệt nếu cận cho phép Infinity).
+If the input is `+Infinity` and the upper bound is finite, clamp returns the upper bound. However, if the application requires the input to **be finite**, clamp does not replace checking `Double.isFinite(x)` beforehand (especially if the bounds allow Infinity).
 
-## 12. Java 17: viết helper clamp khi API chưa có
+## 12. Java 17: Writing a Clamp Helper When the API Does Not Exist Yet
 
-Một helper cho số nguyên trên Java 17:
+An integer helper on Java 17:
 
 ```java
 static int clampInt17(int value, int min, int max) {
@@ -480,9 +480,9 @@ static int clampInt17(int value, int min, int max) {
 }
 ```
 
-Đây là **phương thức minh họa**, cần nằm trong class. Nó thực hiện bão hòa như định nghĩa clamp cho kiểu `int`, có kiểm tra cận hợp lệ.
+This is an **illustrative method** and must be placed inside a class. It performs saturation as defined by clamp for type `int`, with valid-bounds checking.
 
-Nếu cần thu hẹp `long` thành `int` có bão hòa trên Java 17, dùng helper phù hợp:
+If you need saturating narrowing from `long` to `int` on Java 17, use an appropriate helper:
 
 ```java
 static int clampLongToInt17(long value, int min, int max) {
@@ -491,43 +491,43 @@ static int clampLongToInt17(long value, int min, int max) {
     }
     if (value < min) return min;
     if (value > max) return max;
-    return (int) value; // an toàn: đã chứng minh nằm giữa cận int
+    return (int) value; // safe: proven to lie between int bounds
 }
 ```
 
-Đây là phiên bản dễ đọc của ý tưởng overload `Math.clamp(long,int,int)` trên Java 21+. Các phép so sánh mở rộng cận `int` lên `long`; cast cuối **chỉ xảy ra khi giá trị đã nằm trong miền cận int**.
+This is a readable version of the idea behind the `Math.clamp(long,int,int)` overload in Java 21+. The comparisons widen the `int` bounds to `long`; the final cast **only occurs once the value is within the int bounds range**.
 
-### Có nên tự viết float/double bằng Math.min/max?
+### Should You Write float/double Clamp Yourself Using Math.min/max?
 
-Có thể viết:
+You can write:
 
 ```java
 double candidate = Math.max(min, Math.min(value, max));
 ```
 
-trong ngữ cảnh đã bảo đảm cận hợp lệ, nhưng **không coi đây là drop-in replacement đầy đủ cho Math.clamp trên mọi trường hợp** nếu chưa thêm quy tắc kiểm tra NaN cận, cận đảo và signed zero. Với JDK 21+, ưu tiên API chuẩn khi cần chính xác ngữ nghĩa; với Java 17, xác định chính sách xử lý số thực đặc biệt một cách rõ ràng rồi kiểm thử.
+in contexts where bounds are already guaranteed valid, but **do not treat this as a complete drop-in replacement for Math.clamp in all cases** without adding checks for NaN bounds, reversed bounds, and signed zero. On JDK 21+, prefer the standard API when semantic accuracy is needed; on Java 17, explicitly define the policy for handling special floating-point values and test it.
 
-### Tránh bẫy clamp rồi đổi kiểu
+### Avoid the Clamp-Then-Cast Trap
 
 ```java
-// Cần thu hẹp long an toàn trên Java 17:
+// Need safe long narrowing on Java 17:
 long total = 5_000_000_000L;
 int limited = clampLongToInt17(total, 0, 100);
 // limited == 100
 ```
 
-Đừng làm:
+Do not do this:
 
 ```java
-// Sai thứ tự:
+// Wrong order:
 // int limited = clampInt17((int) total, 0, 100);
 ```
 
-Vì cast `long → int` có thể mất bit **trước** khi clamp, làm giá trị đi theo một nhánh sai.
+Because the `long → int` cast can lose bits **before** clamping, causing the value to take the wrong branch.
 
-## 13. Đọc overload cho đúng: literal, promotion và kiểu trả về
+## 13. Reading Overloads Correctly: Literals, Promotion, and Return Types
 
-Java chọn một overload dựa trên **kiểu compile-time của đối số**, không chỉ giá trị hiện tại.
+Java selects an overload based on the **compile-time types of the arguments**, not just their runtime values.
 
 ```java
 int i = 5;
@@ -537,7 +537,7 @@ int small = Math.abs(i);  // overload int -> int
 long big = Math.abs(l);   // overload long -> long
 ```
 
-Trong `min/max`, khi trộn `int` và `long`, overload `long` có thể được chọn:
+In `min/max`, when mixing `int` and `long`, the `long` overload can be selected:
 
 ```java
 int a = 100;
@@ -545,53 +545,53 @@ long b = 200L;
 long larger = Math.max(a, b); // 200L
 ```
 
-Với `signum`, chỉ overload `float` và `double` có trong `Math`/`StrictMath`. Muốn nhận lại số nguyên −1/0/1, dùng `Integer.signum` hoặc `Long.signum`.
+With `signum`, only `float` and `double` overloads exist in `Math`/`StrictMath`. To get back an integer −1/0/1, use `Integer.signum` or `Long.signum`.
 
-Với `clamp` trên JDK 21+:
+With `clamp` on JDK 21+:
 
 ```java
-// long, int, int => kết quả int:
+// long, int, int => int result:
 int first = Math.clamp(15L, 0, 10);  // 10
 
-// long, long, long => kết quả long:
+// long, long, long => long result:
 long second = Math.clamp(15L, 0L, 10L); // 10
 
-// double, double, double => kết quả double:
+// double, double, double => double result:
 double third = Math.clamp(1.5, 0.0, 1.0); // 1.0
 ```
 
-Nhấn mạnh: **kiểu literal** `0`, `0L` và `0.0` có thể ảnh hưởng phương thức nào được gọi và kiểu của biểu thức kết quả.
+To emphasize: **literal types** `0`, `0L`, and `0.0` can affect which method gets called and the type of the resulting expression.
 
-Tránh tạo code “linh hoạt” bằng nhiều cast tùy tiện như `Math.clamp((int) someLong,... )`: đoạn cast có thể đã mất dữ liệu trước khi lời gọi bắt đầu.
+Avoid writing "flexible" code with arbitrary casts like `Math.clamp((int) someLong,... )`: that cast may have already lost data before the call even starts.
 
-## 14. Chọn hàm đúng theo mục tiêu nghiệp vụ
+## 14. Choosing the Right Function for the Business Goal
 
-| Mục tiêu | Phương án |
+| Goal | Option |
 | --- | --- |
-| Trị tuyệt đối float/double, chấp nhận +0.0 và NaN | `Math.abs(x)` |
-| Trị tuyệt đối int/long nhưng không cho phép tràn | `Math.absExact(x)` (Java 15+) |
-| Trị tuyệt đối của mọi int theo miền long | `Math.abs((long) x)` |
-| Trị tuyệt đối của mọi long kể cả MIN_VALUE theo giá trị toán học | `BigInteger.valueOf(x).abs()` |
-| Chọn nhỏ nhất/lớn nhất giữa hai số nguyên | `Math.min/max` |
-| Chọn nhỏ/lớn floating-point theo quy tắc Java, NaN lan truyền | `Math.min/max` |
-| Phân loại dấu float/double, giữ ±0.0 | `Math.signum` |
-| Phân loại dấu int/long thành −1/0/1 | `Integer.signum`/`Long.signum` |
-| Bão hòa trong đoạn với JDK 21+ | `Math.clamp`/`StrictMath.clamp` |
-| Bão hòa trên Java 17 | Helper có kiểm tra cận |
-| Từ chối số ngoài miền thay vì sửa giá trị | So sánh cận rồi ném lỗi; dùng `Math.toIntExact` khi chuyển long → int |
-| Lấy chỉ số modulo không âm | `Math.floorMod(x,size)` với size dương |
+| Absolute value of float/double, accepting +0.0 and NaN | `Math.abs(x)` |
+| Absolute value of int/long without allowing overflow | `Math.absExact(x)` (Java 15+) |
+| Absolute value of any int within long range | `Math.abs((long) x)` |
+| Absolute value of any long including MIN_VALUE as mathematical value | `BigInteger.valueOf(x).abs()` |
+| Choose smallest/largest between two integers | `Math.min/max` |
+| Choose min/max floating-point per Java rules, NaN propagates | `Math.min/max` |
+| Classify sign of float/double, preserving ±0.0 | `Math.signum` |
+| Classify sign of int/long into −1/0/1 | `Integer.signum`/`Long.signum` |
+| Saturate within interval on JDK 21+ | `Math.clamp`/`StrictMath.clamp` |
+| Saturate on Java 17 | Helper with bounds check |
+| Reject out-of-range numbers instead of modifying value | Compare bounds and throw error; use `Math.toIntExact` when converting long → int |
+| Get non-negative modulo index | `Math.floorMod(x,size)` with positive size |
 
-Ba chiến lược **không tương đương** cần phân biệt:
+Three **non-equivalent** strategies to distinguish:
 
-1. **Clamp/saturation**: kéo về cận nếu vượt.
-2. **Checked conversion**: từ chối dữ liệu vượt miền.
-3. **Modulo/wraparound**: lấy phần dư hoặc giữ bit thấp.
+1. **Clamp/saturation**: pull back to the bound if exceeded.
+2. **Checked conversion**: reject out-of-range data.
+3. **Modulo/wraparound**: take remainder or keep low bits.
 
-Một giá trị ngoài miền có thể có cách xử lý hợp lý khác nhau tùy yêu cầu. Hãy ghi rõ hợp đồng dữ liệu thay vì chọn theo tên API “nghe an toàn”.
+An out-of-range value can have different valid treatments depending on requirements. Document the data contract clearly instead of choosing by an API name that "sounds safe".
 
-## 15. Chương trình Java 17+ chạy độc lập
+## 15. Standalone Java 17+ Program
 
-Tạo file **`MathBoundsJava17Demo.java`**:
+Create file **`MathBoundsJava17Demo.java`**:
 
 ```java
 public class MathBoundsJava17Demo {
@@ -664,14 +664,14 @@ public class MathBoundsJava17Demo {
 }
 ```
 
-Biên dịch theo API Java 17 ngay cả khi máy cài một JDK mới:
+Compile against Java 17 APIs even when a newer JDK is installed on the machine:
 
 ```bash
 javac --release 17 MathBoundsJava17Demo.java
 java MathBoundsJava17Demo
 ```
 
-**Stdout dự kiến:**
+**Expected stdout:**
 
 ```text
 abs(-7) = 7
@@ -695,18 +695,18 @@ invalid bounds = rejected
 floorMod(INT_MIN,10) = 2
 ```
 
-Giải thích:
+Explanation:
 
-- `Math.abs(Integer.MIN_VALUE)` không đủ miền dương và trả cùng số âm; `absExact` phát hiện trường hợp ấy.
-- Cast `int → long` trước khi `abs` giữ đủ miền để nhận `2147483648`.
-- `min/max` của floating-point xử lý signed zero và NaN khác phép so sánh số học thông thường.
-- `signum(-0.0)` giữ dấu zero, `Integer.signum` trả primitive int.
-- Hai helper cho Java 17 làm clamp nguyên có kiểm tra cận; helper `long→int` tránh cast thu hẹp quá sớm.
-- `floorMod` cho phần dư không âm khi môđun dương.
+- `Math.abs(Integer.MIN_VALUE)` lacks positive range and returns the same negative number; `absExact` detects that case.
+- Casting `int → long` before `abs` preserves enough range to obtain `2147483648`.
+- Floating-point `min/max` handles signed zero and NaN differently from regular arithmetic comparisons.
+- `signum(-0.0)` preserves the zero sign; `Integer.signum` returns primitive int.
+- Both Java 17 helpers perform integer clamping with bounds checking; the `long→int` helper avoids premature narrowing cast.
+- `floorMod` yields a non-negative remainder when the modulus is positive.
 
-## 16. Ví dụ riêng cho JDK 21+ với Math.clamp
+## 16. Separate Example for JDK 21+ with Math.clamp
 
-Chương trình này **không tương thích Java 17**. Tạo file **`MathClampJava21Demo.java`** và biên dịch với `--release 21` hoặc dùng JDK 21+:
+This program is **not compatible with Java 17**. Create file **`MathClampJava21Demo.java`** and compile with `--release 21` or use JDK 21+:
 
 ```java
 public class MathClampJava21Demo {
@@ -748,14 +748,14 @@ public class MathClampJava21Demo {
 }
 ```
 
-Lệnh:
+Commands:
 
 ```bash
 javac --release 21 MathClampJava21Demo.java
 java MathClampJava21Demo
 ```
 
-**Stdout dự kiến (JDK 21+):**
+**Expected stdout (JDK 21+):**
 
 ```text
 int from long = 100
@@ -769,86 +769,86 @@ NaN bound = rejected
 signed zero bounds = rejected
 ```
 
-Đây là hai bài demo **riêng biệt theo baseline JDK**, không trộn lẫn. Khi một dự án còn bắt buộc Java 17, hãy dùng chương trình thứ nhất hoặc helper tự viết; không gọi API clamp 21 rồi mong runtime 17 tự hiểu.
+These are two **separate demo files by JDK baseline**, not mixed together. When a project still requires Java 17, use the first program or custom helpers; do not call Java 21's clamp API expecting a Java 17 runtime to understand it.
 
-## 17. Lỗi phổ biến và cách sửa
+## 17. Common Mistakes and How to Fix Them
 
-| Nhầm lẫn | Điều đúng |
+| Misconception | What Is True |
 | --- | --- |
-| “`Math.abs` luôn không âm” | `abs(Integer.MIN_VALUE)` hoặc `abs(Long.MIN_VALUE)` vẫn âm do overflow |
-| “Ép kết quả abs int sang long sẽ sửa lỗi” | Phải ép **đầu vào** sang long trước khi `abs` |
-| “absExact có trên mọi JDK cũ” | Có từ Java 15; nếu target thấp hơn phải tự kiểm tra |
-| “`Math.signum(int)` là phương thức chuẩn” | Dùng `Integer.signum(int)`; Math.signum chỉ có float/double |
-| “`Math.min` với NaN trả số còn lại” | `Math.min/max` cho float/double có NaN thì trả NaN |
-| “+0.0 và -0.0 không thể phân biệt bởi min/max” | `min(+0,-0)=-0.0`, `max(+0,-0)=+0.0` |
-| “`Math.clamp` có trong Java 17” | API được bổ sung ở Java 21 |
-| “`Math.clamp` chỉ là viết tắt của một lệnh cast” | Clamp bão hòa theo biên, cast thu hẹp cắt bit |
-| “JDK 21 có overload clamp(int,int,int) riêng” | Overload nguyên là `(long,int,int)` và `(long,long,long)`; int có thể widen |
-| “Clamp số thực có thể dùng comparator < > mà không xét zero” | So sánh < > không phân biệt -0.0 và +0.0 |
-| “Clamp tự lọc NaN” | NaN ở **value** được giữ; NaN ở **bound** gây `IllegalArgumentException` |
-| “min lớn hơn max thì Java sẽ tự đảo” | `Math.clamp` ném `IllegalArgumentException` |
-| “Math.max(x,0) ngăn x là NaN” | Không; NaN lan truyền khi dùng overload float/double |
-| “StrictMath sẽ sửa overflow hoặc kiểu không hợp lệ” | StrictMath cũng tuân hợp đồng của phép toán được gọi |
-| “Clamp luôn là validation dữ liệu” | Nó thay giá trị ngoài miền bằng biên; nếu muốn từ chối cần validate riêng |
+| "`Math.abs` is always non-negative" | `abs(Integer.MIN_VALUE)` or `abs(Long.MIN_VALUE)` remains negative due to overflow |
+| "Casting the result of abs int to long fixes the bug" | You must cast the **input** to long before calling `abs` |
+| "absExact exists on all older JDKs" | Available since Java 15; if targeting lower, you must check manually |
+| "`Math.signum(int)` is a standard method" | Use `Integer.signum(int)`; Math.signum only has float/double |
+| "`Math.min` with NaN returns the other number" | `Math.min/max` for float/double returns NaN if given NaN |
+| "+0.0 and -0.0 cannot be distinguished by min/max" | `min(+0,-0)=-0.0`, `max(+0,-0)=+0.0` |
+| "`Math.clamp` exists in Java 17" | The API was added in Java 21 |
+| "`Math.clamp` is just shorthand for a cast" | Clamp saturates to bounds; narrowing cast truncates bits |
+| "JDK 21 has a separate clamp(int,int,int) overload" | Integer overloads are `(long,int,int)` and `(long,long,long)`; int can widen |
+| "Floating-point clamp can use < > comparators without checking zero" | `<` `>` comparisons do not distinguish -0.0 and +0.0 |
+| "Clamp automatically filters out NaN" | NaN in **value** is preserved; NaN in **bound** causes `IllegalArgumentException` |
+| "If min is greater than max, Java swaps them automatically" | `Math.clamp` throws `IllegalArgumentException` |
+| "Math.max(x,0) prevents x from being NaN" | No; NaN propagates when using float/double overloads |
+| "StrictMath will fix overflow or invalid types" | StrictMath also follows the contract of the called operation |
+| "Clamp is always data validation" | It replaces out-of-range values with bounds; to reject, validate separately |
 
-## 18. Bài tập có đáp án
+## 18. Exercises with Answers
 
-**Bài 1.** `Math.abs(Integer.MIN_VALUE)` trả gì? Tại sao?  
-**Lời giải:** `-2147483648` vì `+2147483648` vượt miền `int`. Dùng `Math.absExact` để phát hiện hoặc `Math.abs((long) x)` để nhận độ lớn đúng của mọi int.
+**Exercise 1.** What does `Math.abs(Integer.MIN_VALUE)` return? Why?  
+**Solution:** `-2147483648` because `+2147483648` exceeds the `int` range. Use `Math.absExact` to detect it or `Math.abs((long) x)` to get the true magnitude of any int.
 
-**Bài 2.** `Math.min(+0.0,-0.0)` và `Math.max(+0.0,-0.0)` có cùng kết quả không?  
-**Lời giải:** Không. Lần lượt là `-0.0` và `+0.0`, dù `+0.0 == -0.0` là true.
+**Exercise 2.** Do `Math.min(+0.0,-0.0)` and `Math.max(+0.0,-0.0)` produce the same result?  
+**Solution:** No. They are `-0.0` and `+0.0` respectively, even though `+0.0 == -0.0` is true.
 
-**Bài 3.** `Math.signum(-0.0)` và `Integer.signum(0)` trả gì?  
-**Lời giải:** `-0.0` kiểu double và `0` kiểu int. Hai phương thức không hoàn toàn cùng kiểu/hợp đồng signed zero.
+**Exercise 3.** What do `Math.signum(-0.0)` and `Integer.signum(0)` return?  
+**Solution:** `-0.0` of type double and `0` of type int. The two methods do not have completely identical types or signed-zero contracts.
 
-**Bài 4.** `Math.min(Double.NaN,5.0)` trả 5 hay NaN?  
-**Lời giải:** NaN. Dùng `Double.isNaN` để kiểm tra; không giả định NaN bị bỏ qua.
+**Exercise 4.** Does `Math.min(Double.NaN,5.0)` return 5 or NaN?  
+**Solution:** NaN. Use `Double.isNaN` to check; do not assume NaN is ignored.
 
-**Bài 5.** Một chương trình Java 17 viết `Math.clamp(150L,0,100)` có biên dịch với `--release 17` không?  
-**Lời giải:** Không. `Math.clamp` có từ JDK 21. Trên Java 17, dùng helper clamp kiểm tra cận.
+**Exercise 5.** Will a Java 17 program containing `Math.clamp(150L,0,100)` compile with `--release 17`?  
+**Solution:** No. `Math.clamp` was introduced in JDK 21. On Java 17, use a clamp helper with bounds checking.
 
-**Bài 6.** Trên JDK 21+, `Math.clamp(5_000_000_000L,0,100)` trả kiểu gì và giá trị nào?  
-**Lời giải:** Kiểu `int`, giá trị **100** qua overload `(long,int,int)`.
+**Exercise 6.** On JDK 21+, what type and value does `Math.clamp(5_000_000_000L,0,100)` return?  
+**Solution:** Type `int`, value **100** via the `(long,int,int)` overload.
 
-**Bài 7.** `Math.clamp(-0.0,+0.0,1.0)` trả zero nào trên JDK 21+?  
-**Lời giải:** `+0.0` vì clamp xét thứ tự signed zero và không để −0.0 thấp hơn cận dưới +0.0.
+**Exercise 7.** Which zero does `Math.clamp(-0.0,+0.0,1.0)` return on JDK 21+?  
+**Solution:** `+0.0` because clamp considers signed-zero ordering and does not allow −0.0 to be below the lower bound +0.0.
 
-**Bài 8.** Trên JDK 21+, `Math.clamp(0.0,+0.0,-0.0)` có hợp lệ không?  
-**Lời giải:** Không. Cặp cận +0.0 và −0.0 theo thứ tự này bị xem là đảo; ném `IllegalArgumentException`.
+**Exercise 8.** On JDK 21+, is `Math.clamp(0.0,+0.0,-0.0)` valid?  
+**Solution:** No. The bound pair +0.0 and −0.0 in this order is considered reversed; throws `IllegalArgumentException`.
 
-**Bài 9.** Với `long x = Long.MIN_VALUE` và cần độ lớn dương chính xác, có đủ dùng `Math.abs(x)` không?  
-**Lời giải:** Không. Cần `BigInteger.valueOf(x).abs()` hoặc một biểu diễn không bị giới hạn miền `long`.
+**Exercise 9.** Given `long x = Long.MIN_VALUE` and needing the exact positive magnitude, is `Math.abs(x)` sufficient?  
+**Solution:** No. You need `BigInteger.valueOf(x).abs()` or a representation not limited to the `long` range.
 
-**Bài 10.** Một hàm cần **từ chối** số lượng ngoài 0..100. Dùng clamp có phù hợp không?  
-**Lời giải:** Không nếu hợp đồng yêu cầu từ chối. Clamp sẽ thay mọi giá trị vượt miền bằng 0 hoặc 100; phải kiểm tra đầu vào và báo lỗi.
+**Exercise 10.** A method must **reject** quantities outside 0..100. Is using clamp appropriate?  
+**Solution:** No if the contract requires rejection. Clamp will replace any out-of-range value with 0 or 100; you must validate input and report an error.
 
-**Bài 11.** Khi `Integer.MIN_VALUE` được đưa vào công thức chỉ số `Math.abs(hash)%10`, điều gì xảy ra?  
-**Lời giải:** `Math.abs(hash)` còn là `Integer.MIN_VALUE`; toán tử `%` có thể cho kết quả âm `-8`. Dùng `Math.floorMod(hash,10)` nếu mục tiêu là modulo không âm.
+**Exercise 11.** When `Integer.MIN_VALUE` is passed into the index formula `Math.abs(hash)%10`, what happens?  
+**Solution:** `Math.abs(hash)` remains `Integer.MIN_VALUE`; the `%` operator can produce a negative result `-8`. Use `Math.floorMod(hash,10)` if the goal is a non-negative modulo.
 
-**Bài 12.** Vì sao một helper `Math.max(min,Math.min(value,max))` không hoàn toàn thay thế `Math.clamp` nếu thiếu kiểm tra cận?  
-**Lời giải:** Helper đó không tự ném lỗi khi min>max hoặc bound NaN theo hợp đồng của `Math.clamp`. Với floating-point còn phải chú ý ±0.0 và special values.
+**Exercise 12.** Why does a helper `Math.max(min,Math.min(value,max))` not completely replace `Math.clamp` if bounds checking is missing?  
+**Solution:** That helper does not automatically throw errors when min>max or when a bound is NaN as required by `Math.clamp`'s contract. For floating-point, you must also watch out for ±0.0 and special values.
 
-## 19. Checklist khi đọc code Math/StrictMath
+## 19. Checklist When Reading Math/StrictMath Code
 
-1. Xác định **JDK tối thiểu** mà code phải chạy: Java 17 không có `clamp`, Java 21+ có.
-2. Xác định **kiểu overload**: int, long, float, double; đặc biệt clamp nguyên có overload `long,int,int`.
-3. Với `abs(int/long)`, kiểm tra giá trị `MIN_VALUE` và quyết định **cho overflow, ném lỗi hay đổi kiểu**.
-4. Với `min/max(float/double)`, kiểm tra hành vi **NaN** và **signed zero** nếu chúng có thể xuất hiện.
-5. Với `signum`, phân biệt `Math.signum(float/double)` với `Integer/Long.signum`.
-6. Với `clamp`, kiểm tra ràng buộc **min <= max**, cộng thêm quy tắc NaN/signed zero cho floating-point.
-7. Không clamp sau khi đã **cast hẹp bị mất dữ liệu** hoặc sau phép tính tràn.
-8. Phân biệt **saturation, exact conversion và modulo**; chọn theo hợp đồng nghiệp vụ.
-9. Nếu dùng helper Java 17, kiểm thử biên, loại NaN và mô tả rõ cách xử lý bounds không hợp lệ.
-10. Kiểm thử ví dụ trên **đúng phiên bản Java mục tiêu** bằng `javac --release N` khi khả thi.
-11. Với API cần giữ giá trị nguyên vượt long, cân nhắc `BigInteger` thay vì cố ép về phạm vi.
-12. Trong code review, ưu tiên **ý định rõ ràng** hơn những biểu thức min/max lồng nhau rất khó đọc.
+1. Identify the **minimum JDK** the code must run on: Java 17 lacks `clamp`, Java 21+ has it.
+2. Identify the **overload types**: int, long, float, double; especially integer clamp has the `long,int,int` overload.
+3. With `abs(int/long)`, check for `MIN_VALUE` and decide **whether to allow overflow, throw an error, or widen types**.
+4. With `min/max(float/double)`, check **NaN** and **signed zero** behavior if they can appear.
+5. With `signum`, distinguish `Math.signum(float/double)` from `Integer/Long.signum`.
+6. With `clamp`, check the **min <= max** constraint, plus NaN/signed-zero rules for floating-point.
+7. Do not clamp after a **lossy narrowing cast** or after an overflowing calculation.
+8. Distinguish **saturation, exact conversion, and modulo**; choose according to the business contract.
+9. If using a Java 17 helper, test boundary values, NaN variants, and clearly document invalid-bounds handling.
+10. Test examples on the **exact target Java version** with `javac --release N` when feasible.
+11. For APIs that need to preserve integer values exceeding long, consider `BigInteger` instead of forcing into range.
+12. In code reviews, prefer **clear intent** over hard-to-read nested min/max expressions.
 
-### Tài liệu tham khảo theo phiên bản
+### Reference Documentation by Version
 
 - [Math – Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html)
 - [StrictMath – Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StrictMath.html)
-- [Math – Java SE 21 (bao gồm clamp)](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Math.html)
-- [StrictMath – Java SE 21 (bao gồm clamp)](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/StrictMath.html)
+- [Math – Java SE 21 (including clamp)](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Math.html)
+- [StrictMath – Java SE 21 (including clamp)](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/StrictMath.html)
 
-**Ghi nhớ:** `abs`, `min`, `max` và `signum` có mặt trên Java 17, nhưng phải tôn trọng các biên số nguyên và quy tắc IEEE 754. `Math.clamp`/`StrictMath.clamp` chỉ xuất hiện từ **JDK 21**, có kiểm tra bounds và đặc tả rõ cho NaN/±0.0. Khi chọn API, hãy kiểm tra **kiểu dữ liệu**, **mục tiêu xử lý vượt miền**, và **phiên bản JDK** thay vì đoán từ tên hàm.
+**Key takeaway:** `abs`, `min`, `max`, and `signum` are present in Java 17, but you must respect integer boundaries and IEEE 754 rules. `Math.clamp`/`StrictMath.clamp` only appeared in **JDK 21**, with bounds validation and clear specifications for NaN/±0.0. When choosing an API, check the **data types**, **out-of-range handling goal**, and **JDK version** instead of guessing from function names.

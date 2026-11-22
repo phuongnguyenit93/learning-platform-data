@@ -1,8 +1,8 @@
-# java.locale.providers và thứ tự nhà cung cấp trong JDK
+# java.locale.providers and Provider Ordering in the JDK
 
-## 1. Vấn đề: Locale không phải nguồn dữ liệu locale
+## 1. Problem: Locale is not a source of locale data
 
-Khi viết phần mềm Java đa ngôn ngữ, ta thường chọn locale tường minh rồi gọi:
+When writing multilingual Java software, we often choose a locale explicitly and call:
 
 ```java
 Locale fr = Locale.FRANCE;
@@ -11,213 +11,213 @@ DateFormat date = DateFormat.getDateInstance(
         DateFormat.LONG, fr);
 ```
 
-Các lệnh nằm trong phương thức Java, với import phù hợp. Chúng yêu cầu hiển thị số và ngày theo quy ước tiếng Pháp ở Pháp. Nhưng **mẫu ngày, dấu thập phân, ký hiệu nhóm nghìn và tên tháng lấy từ nguồn nào?**
+These statements reside in a Java method with appropriate imports. They request formatting numbers and dates according to French conventions in France. Yet **where do the date pattern, decimal separator, thousands grouping symbol, and month names come from?**
 
-Các JDK có **locale-sensitive service providers**. System property `java.locale.providers` điều khiển **thứ tự ưu tiên nguồn cung cấp dữ liệu/implementation cho các dịch vụ bản địa hóa**:
+JDKs have **locale-sensitive service providers**. The system property `java.locale.providers` controls the **priority order of data/implementation providers for localization services**:
 
 ```bash
 java -Djava.locale.providers=CLDR,SPI -jar app.jar
 ```
 
-Property này **không chọn locale người dùng**. Nó chỉ nói cho runtime thứ tự tìm provider, ví dụ CLDR trước rồi SPI. Với cùng `Locale.FRANCE`, kết quả format có thể thay đổi khi đổi provider hoặc nâng JDK vì dữ liệu nguồn thay đổi.
+This property **does not select the user's locale**. It only tells the runtime the lookup order of providers—for example, CLDR first and then SPI. With the same `Locale.FRANCE`, formatted outputs can change when changing providers or upgrading the JDK because the underlying data changes.
 
-Đây là vấn đề cốt lõi khi di chuyển từ JDK 8 sang JDK 17, hoặc từ JDK 17 lên JDK 23+: những bộ dữ liệu locale có vòng đời riêng và có thể thay đổi dấu câu, ký hiệu, Unicode whitespace hoặc chữ viết tắt. Nếu ứng dụng lưu chuỗi đã format thay vì dữ liệu có kiểu, thay đổi tưởng chừng chỉ là hiển thị có thể gây lỗi parse hoặc test.
+This is a core issue when migrating from JDK 8 to JDK 17, or from JDK 17 to JDK 23+: locale datasets have their own lifecycles and can alter punctuation, symbols, Unicode whitespace, or abbreviations. If an application stores formatted strings instead of typed data, what seems like a display-only change can break parsing or tests.
 
-### Kết quả cần đạt
+### Target outcomes
 
-Sau bài học, người đọc có thể:
+After this lesson, readers will be able to:
 
-1. Phân biệt `Locale`, locale provider và API sử dụng dữ liệu locale.
-2. Hiểu `CLDR`, `COMPAT`/`JRE`, `SPI` và `HOST`, bao gồm giới hạn phiên bản.
-3. Giải thích thứ tự provider được xét như thế nào và khi nào xảy ra fallback.
-4. Đặt `-Djava.locale.providers=...` đúng lúc **khởi động** JVM.
-5. Thử hai thứ tự trong hai Java processes độc lập và chẩn đoán mã Unicode khác biệt.
-6. Biết provider SPI được tạo và đăng ký bằng cơ chế nào.
-7. Tránh giả định thứ tự provider ảnh hưởng mọi thư viện hoặc mọi dịch vụ giống nhau.
-8. Lập kế hoạch kiểm thử khi nâng JDK, nhất là mốc loại bỏ COMPAT từ **JDK 23**.
+1. Distinguish `Locale`, locale providers, and APIs that consume locale data.
+2. Understand `CLDR`, `COMPAT`/`JRE`, `SPI`, and `HOST`, including version limitations.
+3. Explain how provider ordering is evaluated and when fallback occurs.
+4. Set `-Djava.locale.providers=...` properly at JVM **startup**.
+5. Test two orderings in two separate Java processes and diagnose Unicode code point differences.
+6. Understand how an SPI provider is created and registered.
+7. Avoid assuming provider ordering affects every library or every service identically.
+8. Plan testing when upgrading the JDK, especially around the removal of COMPAT starting in **JDK 23**.
 
-## 2. Ba khái niệm cần tách rời
+## 2. Three concepts to keep separate
 
-| Thành phần | Trả lời câu hỏi | Ví dụ |
+| Component | Answers the question | Example |
 | --- | --- | --- |
-| **Locale** | Cho người dùng/ngôn ngữ/vùng nào? | `Locale.FRANCE`, `Locale.forLanguageTag("vi-VN")` |
-| **Locale provider** | Ai cung cấp dữ liệu/implementation bản địa hóa? | `CLDR`, `SPI`, `HOST`, `COMPAT` trên JDK cũ |
-| **Locale-sensitive API** | Đang yêu cầu loại dịch vụ nào? | `NumberFormat`, `DateFormat`, `Currency`, `Locale` display names |
+| **Locale** | For which user/language/region? | `Locale.FRANCE`, `Locale.forLanguageTag("vi-VN")` |
+| **Locale provider** | Who supplies the localization data/implementation? | `CLDR`, `SPI`, `HOST`, `COMPAT` on older JDKs |
+| **Locale-sensitive API** | Which type of service is being requested? | `NumberFormat`, `DateFormat`, `Currency`, `Locale` display names |
 
-Ví dụ:
+Example:
 
 ```java
 NumberFormat formatter =
         NumberFormat.getNumberInstance(Locale.FRANCE);
 ```
 
-`Locale.FRANCE` là **locale đích**, `NumberFormat` là **loại dịch vụ**, còn runtime tra nguồn theo thứ tự property khi tạo formatter. Đổi property không có nghĩa đổi người dùng từ tiếng Việt sang tiếng Pháp.
+`Locale.FRANCE` is the **target locale**, `NumberFormat` is the **service type**, and the runtime queries sources in the property's order when creating the formatter. Changing the property does not mean switching a user from Vietnamese to French.
 
-Ngược lại, `Locale.getDefault()` và `Locale.setDefault(...)` liên quan **locale mặc định của JVM**. Nếu một factory không nhận locale tường minh, nó có thể dùng `Locale.getDefault(Locale.Category.FORMAT)`. Đây là trục khác với provider. Không đổi default locale theo từng web request, vì tác động JVM-wide có thể ảnh hưởng thread khác.
+Conversely, `Locale.getDefault()` and `Locale.setDefault(...)` govern the **JVM's default locale**. When a factory receives no explicit locale, it may use `Locale.getDefault(Locale.Category.FORMAT)`. This is an orthogonal axis from providers. Never change the default locale per web request, as JVM-wide side effects can affect other threads.
 
-`java.locale.providers` cũng **không phải charset**: UTF-8/UTF-16 là chuyện chuyển text thành byte. Nó không thay bằng `ResourceBundle` của ứng dụng, không xử lý thiếu bản dịch và không quyết định timezone của `Instant`.
+`java.locale.providers` is also **not a charset**: UTF-8/UTF-16 governs converting text to bytes. It does not substitute for the application's `ResourceBundle`, does not fix missing translations, and does not determine an `Instant`'s timezone.
 
-## 3. Bốn nhóm provider quan trọng
+## 3. Four important provider groups
 
-### 3.1. CLDR — dữ liệu bản địa hóa của Unicode
+### 3.1. CLDR — Unicode localization data
 
-`CLDR` là nguồn dựa trên **Common Locale Data Repository** của Unicode. JDK sử dụng dữ liệu này cho nhiều dịch vụ như quy tắc format ngày/giờ, số, ký hiệu tiền tệ và tên hiển thị, tùy API và phiên bản.
+`CLDR` is the source based on Unicode's **Common Locale Data Repository**. The JDK uses this data for many services such as date/time formatting rules, numbers, currency symbols, and display names, depending on the API and version.
 
-**Từ JDK 9, CLDR trở thành nguồn ưu tiên theo mặc định.** CLDR không bất biến: khi JDK nâng phiên bản dữ liệu CLDR, chuỗi hiển thị có thể thay đổi. Ví dụ dấu cách phân nhóm số có thể là U+202F (narrow no-break space) chứ không phải U+0020 (space) dù mắt thấy tương tự.
+**Starting with JDK 9, CLDR became the default prioritized source.** CLDR is not immutable: when a JDK upgrades its CLDR data version, display strings can change. For instance, a thousands grouping space might be U+202F (narrow no-break space) rather than U+0020 (space), even though visually they look similar.
 
-**Không kết luận mọi dịch vụ đều sử dụng đúng CLDR theo cùng cách.** Tài liệu Oracle JDK 17 có lưu ý riêng đối với dữ liệu `BreakIterator` và `Collator`. Các thư viện ngoài JDK như ICU4J hoặc engine trên trình duyệt cũng có pipeline và dữ liệu riêng.
+**Do not conclude that every service uses CLDR in the exact same way.** Oracle JDK 17 documentation includes specific caveats regarding `BreakIterator` and `Collator` data. Libraries outside the JDK such as ICU4J or browser engines also maintain their own pipelines and data.
 
 ### 3.2. COMPAT/JRE — legacy provider
 
-Với **JDK 17**, `COMPAT` là nguồn dữ liệu nhằm tương thích với quy tắc của các bản JDK cũ, đặc biệt trước JDK 9. `JRE` là tên alias lịch sử của `COMPAT` và đã bị deprecated.
+For **JDK 17**, `COMPAT` is a data source aimed at compatibility with the rules of older JDKs, particularly pre-JDK 9. `JRE` is a historical alias for `COMPAT` and has been deprecated.
 
-Ví dụ để **thử** độ tương thích trên JDK 17:
+Example to **test** compatibility on JDK 17:
 
 ```bash
 java -Djava.locale.providers=COMPAT,CLDR LocaleProvidersDemo
 ```
 
-Cấu hình này ưu tiên COMPAT trước CLDR cho các locale/dịch vụ phù hợp. Nó có thể tạo định dạng giống hệ thống cũ ở một số nơi, nhưng **không bảo đảm khôi phục mọi hành vi Java 8**.
+This configuration prioritizes COMPAT before CLDR for applicable locales/services. It may produce formats resembling legacy systems in some places, but **does not guarantee restoring every Java 8 behavior**.
 
-Mốc quan trọng:
+Key milestones:
 
-| Phiên bản | Bối cảnh |
+| Version | Context |
 | --- | --- |
-| JDK 8 | Nguồn JRE truyền thống được dùng mặc định; CLDR có thể là lựa chọn cấu hình. |
-| JDK 9–20 | CLDR là nguồn ưu tiên; COMPAT vẫn phục vụ chuyển tiếp trong các phiên bản có hỗ trợ. |
-| JDK 21–22 | Khi dùng JRE/COMPAT có cảnh báo chuẩn bị loại bỏ dữ liệu legacy. |
-| **JDK 23 trở lên** | **Đã loại bỏ dữ liệu legacy JRE/COMPAT.** Ghi tên này trong property không khôi phục dữ liệu cũ. |
+| JDK 8 | Traditional JRE source is used by default; CLDR can be configured optionally. |
+| JDK 9–20 | CLDR is the prioritized source; COMPAT remains for migration in supported releases. |
+| JDK 21–22 | Specifying JRE/COMPAT emits warnings ahead of legacy data removal. |
+| **JDK 23 and later** | **Legacy JRE/COMPAT data has been removed.** Listing it in the property does not restore legacy data. |
 
-Vì vậy, câu nói “cứ dùng COMPAT để giữ kết quả cũ” chỉ có thể là **biện pháp chuyển tiếp ở các JDK còn COMPAT**, không phải chiến lược cho toàn bộ Java 17+.
+Therefore, saying "just use COMPAT to keep old outputs" can only be a **transitional measure on JDKs that still ship COMPAT**, not a strategy for all of Java 17+.
 
 ### 3.3. SPI — Service Provider Interface
 
-`SPI` dành cho những implementation do nhà phát triển hoặc thư viện cung cấp thông qua các class kế thừa provider của `java.text.spi` và `java.util.spi`. Một số API:
+`SPI` is for implementations supplied by developers or libraries via subclasses of providers in `java.text.spi` and `java.util.spi`. Some APIs:
 
-- `NumberFormatProvider` — formatter số, phần trăm, tiền tệ, số nguyên.
-- `DateFormatProvider`, `DateFormatSymbolsProvider` — định dạng ngày và ký hiệu.
-- `DecimalFormatSymbolsProvider` — ký hiệu số.
-- `LocaleNameProvider`, `CurrencyNameProvider` — tên ngôn ngữ/vùng, tiền tệ.
-- `TimeZoneNameProvider` — tên múi giờ.
-- `CollatorProvider` và `BreakIteratorProvider` — các dịch vụ tương ứng.
+- `NumberFormatProvider` — number, percent, currency, and integer formatters.
+- `DateFormatProvider`, `DateFormatSymbolsProvider` — date formatting and symbols.
+- `DecimalFormatSymbolsProvider` — number symbols.
+- `LocaleNameProvider`, `CurrencyNameProvider` — language/region and currency names.
+- `TimeZoneNameProvider` — time zone names.
+- `CollatorProvider` and `BreakIteratorProvider` — corresponding services.
 
-Nếu muốn SPI được ưu tiên, đặt nó trước:
+If you want SPI prioritized, place it first:
 
 ```bash
 java -Djava.locale.providers=SPI,CLDR LocaleProvidersDemo
 ```
 
-**Không chỉ thêm chữ SPI rồi kỳ vọng có dữ liệu mới.** Runtime phải tìm thấy implementation tương ứng trên classpath/module path. Nếu không có implementation hoặc provider không hỗ trợ dịch vụ/locale đã yêu cầu, provider kế tiếp trong danh sách mới có cơ hội đáp ứng.
+**Do not just add the word SPI and expect new data to appear.** The runtime must locate a corresponding implementation on the classpath/module path. If no implementation exists or the provider does not support the requested service/locale, only then does the next provider in the list get a chance to respond.
 
-Ngược lại, `CLDR,SPI` thường ưu tiên CLDR ở nơi CLDR hỗ trợ, nên SPI tự viết có thể không được dùng cho những yêu cầu trùng phạm vi. Thứ tự đặt tên provider chính là phần cấu hình quan trọng.
+Conversely, `CLDR,SPI` typically prioritizes CLDR wherever CLDR has support, so a custom SPI might not be used for overlapping requests. The ordering of provider names is the crucial part of the configuration.
 
-### 3.4. HOST — dữ liệu từ OS khi khả dụng
+### 3.4. HOST — data from the OS when available
 
-`HOST` có thể phản ánh các tùy chỉnh locale của hệ điều hành người dùng, ví dụ quy tắc format ngày/giờ hoặc số. **Không phải hệ điều hành/JDK nào cũng hỗ trợ HOST như nhau**. Trong Oracle JDK 17, HOST có hỗ trợ trên Windows/macOS theo tài liệu locale tương ứng.
+`HOST` can reflect the operating system's user locale customizations, such as date/time or number formatting rules. **Not every OS/JDK supports HOST equally.** In Oracle JDK 17, HOST has support on Windows/macOS per the corresponding locale documentation.
 
-Cấu hình mẫu:
+Sample configuration:
 
 ```bash
 java -Djava.locale.providers=HOST,CLDR LocaleProvidersDemo
 ```
 
-Nếu HOST không khả dụng hoặc không hỗ trợ dịch vụ/locale cụ thể, runtime có thể tiếp tục nguồn sau. Do đó, **đặt HOST trong property không chứng minh kết quả thực tế đã đến từ OS**. Server chạy Linux/container có thể khác desktop Windows/macOS; đừng dùng HOST nếu yêu cầu reproducibility mà chưa kiểm tra môi trường.
+If HOST is unavailable or does not support a specific service/locale, the runtime may continue to the subsequent source. Therefore, **putting HOST in the property does not prove the actual result came from the OS**. Linux/container servers can behave differently from Windows/macOS desktops; do not use HOST when reproducibility is required without verifying the environment.
 
-## 4. Cơ chế ưu tiên và fallback
+## 4. Precedence and fallback mechanism
 
-Xét JDK 17 với property:
+Consider JDK 17 with the property:
 
 ```text
 java.locale.providers=SPI,CLDR,COMPAT
 ```
 
-Khi ứng dụng gọi `NumberFormat.getNumberInstance(localeX)`, thứ tự tìm **ở mức khái niệm** là:
+When the application calls `NumberFormat.getNumberInstance(localeX)`, the lookup order **conceptually** is:
 
 ```text
-Yêu cầu: NumberFormat cho localeX
+Request: NumberFormat for localeX
    |
    v
-SPI hỗ trợ NumberFormat + localeX?
-   | có -> dùng formatter SPI tương ứng
-   | không
+Does SPI support NumberFormat + localeX?
+   | yes -> use matching SPI formatter
+   | no
    v
-CLDR hỗ trợ dịch vụ + localeX?
-   | có -> dùng CLDR
-   | không
+Does CLDR support service + localeX?
+   | yes -> use CLDR
+   | no
    v
-COMPAT hỗ trợ? (chỉ trên JDK còn COMPAT)
-   | có -> dùng COMPAT
-   | không
+Does COMPAT support it? (only on JDKs still having COMPAT)
+   | yes -> use COMPAT
+   | no
    v
-Fallback locale/root và cơ chế JDK áp dụng
+Locale/root fallback and applicable JDK mechanism
 ```
 
-Đây là sơ đồ giảng giải, **không phải source code nội bộ**. Runtime có những quy tắc tra cứu locale cha, cấu hình service, caching và đặc tính implementation riêng. Nhưng nó cho thấy hai sự thật:
+This is a pedagogical diagram, **not internal source code**. The runtime has its own parent-locale lookup rules, service configuration, caching, and implementation details. Nevertheless, it reveals two truths:
 
-1. **Thứ tự có ý nghĩa:** `SPI,CLDR` và `CLDR,SPI` có thể tạo kết quả khác khi cả hai nguồn đáp ứng yêu cầu.
-2. **Fallback có ý nghĩa:** nếu provider đầu không có dịch vụ/locale được yêu cầu, runtime có thể dùng nguồn sau. Không có sự bảo đảm provider đứng đầu sẽ thắng mọi lời gọi.
+1. **Order matters:** `SPI,CLDR` and `CLDR,SPI` can produce different results when both sources can satisfy the request.
+2. **Fallback matters:** if the first provider lacks the requested service/locale, the runtime can consult subsequent sources. There is no guarantee the leading provider wins every call.
 
-### Phân biệt bốn loại fallback
+### Distinguish four kinds of fallback
 
-- **Provider fallback:** từ SPI sang CLDR khi SPI không có dữ liệu phù hợp.
-- **Locale fallback:** từ locale cụ thể sang locale cha/chung theo luật API.
-- **ResourceBundle fallback:** tìm bundle của ứng dụng, không đồng nghĩa property provider.
-- **Font fallback:** renderer tìm font/glyph, hoàn toàn khác dữ liệu format locale.
+- **Provider fallback:** from SPI to CLDR when SPI lacks suitable data.
+- **Locale fallback:** from a specific locale to a parent/generic locale per API rules.
+- **ResourceBundle fallback:** resolving application bundles, distinct from the provider property.
+- **Font fallback:** renderer searching for fonts/glyphs, completely separate from locale formatting data.
 
-Khi thấy output không đổi giữa các cấu hình, có thể vì hai nguồn có cùng quy tắc cho locale đó, service không hỗ trợ provider đang thử, hoặc fallback dẫn đến cùng dữ liệu. **Không có thay đổi không đồng nghĩa property bị bỏ qua.**
+When outputs do not change across configurations, it may be because both sources share the same rule for that locale, the service does not support the tested provider, or fallback leads to the same data. **No visible change does not mean the property was ignored.**
 
-### Default provider order theo JDK
+### Default provider order by JDK
 
-Với **Oracle/OpenJDK 17**, tài liệu công bố mặc định tương đương `CLDR,COMPAT`. Từ **JDK 23**, legacy COMPAT không còn, và mặc định trên Oracle JDK 23 tương đương `CLDR`. Vendor/JDK khác cần được kiểm tra theo tài liệu triển khai.
+For **Oracle/OpenJDK 17**, the documented default corresponds to `CLDR,COMPAT`. Starting in **JDK 23**, legacy COMPAT is gone, and the default on Oracle JDK 23 corresponds to `CLDR`. Other vendors/JDKs should be checked against their implementation docs.
 
-`System.getProperty("java.locale.providers")` trả `null` không có nghĩa không có provider. Nó chỉ cho thấy không có giá trị tường minh được đặt trong system properties tại thời điểm bạn đọc.
+`System.getProperty("java.locale.providers")` returning `null` does not mean there are no providers. It merely indicates no explicit value was set in system properties at the time you read it.
 
-## 5. Khởi động JVM đúng cách
+## 5. Starting the JVM properly
 
-### 5.1. Cú pháp system property
+### 5.1. System property syntax
 
-`-Djava.locale.providers=...` là một **JVM option**. Nó phải đứng trước main class, hoặc trước `-jar`:
+`-Djava.locale.providers=...` is a **JVM option**. It must appear before the main class or before `-jar`:
 
 ```bash
 java -Djava.locale.providers=CLDR,SPI -cp app.jar com.example.Main
 java -Djava.locale.providers=CLDR,SPI -jar app.jar
 ```
 
-Ví dụ sai:
+Incorrect example:
 
 ```text
 java com.example.Main -Djava.locale.providers=SPI,CLDR
 ```
 
-Trong lệnh sai, phần `-D...` thường đi vào `args[]` của ứng dụng, chứ không trở thành JVM system property. Cần kiểm tra JVM options của tiến trình chạy thật, không chỉ file cấu hình của công cụ build.
+In the incorrect command, `-D...` usually goes into the application's `args[]` rather than becoming a JVM system property. Inspect the JVM options of the actual running process, not just build tool configuration files.
 
-### 5.2. Property được đọc lúc startup
+### 5.2. The property is read at startup
 
-Theo tài liệu Java 17, thứ tự provider được đọc khi Java runtime khởi động; ở tài liệu JDK mới, giá trị cũng được đọc/cached trong quá trình khởi tạo dịch vụ. Vì vậy:
+Per Java 17 documentation, the provider order is read when the Java runtime starts up; in newer JDK docs, the value is also read/cached during service initialization. Therefore:
 
 ```java
 System.setProperty("java.locale.providers", "SPI,CLDR");
 ```
 
-**không phải cách đổi provider an toàn sau khi các dịch vụ locale đã khởi tạo**. Đừng tạo formatter trước, set property sau rồi suy luận rằng formatter mới sẽ dùng thứ tự mới. **So sánh bằng hai JVM processes riêng** với command-line options khác nhau.
+**is not a safe way to switch providers after locale services have initialized.** Do not create a formatter first, set the property afterward, and assume a new formatter will use the new order. **Compare using two separate JVM processes** with different command-line options.
 
-`Locale.setDefault(Locale.US)` cũng không giải quyết vấn đề: nó chỉ điều chỉnh locale mặc định, không phải provider order, và là trạng thái dùng chung JVM.
+`Locale.setDefault(Locale.US)` also does not solve this: it only adjusts the default locale, not provider order, and it is JVM-wide shared state.
 
-### 5.3. Điểm dễ sai trong hệ thống build
+### 5.3. Common pitfalls in build systems
 
-IDE, Maven, Gradle, application server, test fork, container và CLI có thể chạy bằng **những Java processes khác nhau**. Đặt system property cho Gradle daemon không tự bảo đảm test JVM hoặc application JVM đã nhận nó. Trong CI hãy ghi rõ:
+IDEs, Maven, Gradle, application servers, test forks, containers, and CLIs may run in **different Java processes**. Setting a system property on the Gradle daemon does not guarantee the test JVM or application JVM receives it. In CI, explicitly record:
 
-- Command line của process chạy ứng dụng hoặc test.
-- JDK vendor + version (không chỉ compiler version).
-- `java.locale.providers` thực tế trong process.
-- Locale, timezone, currency và style/pattern tại điểm format.
-- Bộ thử nghiệm trước/sau nâng cấp.
+- Command line of the process running the app or tests.
+- JDK vendor + version (not only compiler version).
+- Actual `java.locale.providers` inside the process.
+- Locale, timezone, currency, and style/pattern at formatting sites.
+- Pre/post-upgrade test suite results.
 
-Trong container có thể cần đưa property vào JVM options của container entrypoint; không cố đổi ở một thread khi service đã bắt đầu.
+In containers, pass the property in the container entrypoint's JVM options; do not try changing it on a thread once services have started.
 
-## 6. Ví dụ Java 17+ độc lập: kiểm tra số, ngày và Unicode code points
+## 6. Standalone Java 17+ example: checking numbers, dates, and Unicode code points
 
-Tạo file **`LocaleProvidersDemo.java`** dưới đây. Chương trình không cần file dữ liệu, không thay default locale JVM, dùng `Locale.FRANCE` và `UTC` tường minh. Nó hiển thị cấu hình property hiện tại, số phiên bản feature JDK và code point của chuỗi số để phát hiện các ký tự gần giống nhau.
+Create the file **`LocaleProvidersDemo.java`** below. The program needs no external data files, does not mutate the JVM default locale, and uses `Locale.FRANCE` and `UTC` explicitly. It prints the current property configuration, the JDK feature version number, and the code points of the number string to reveal near-identical whitespace characters.
 
 ```java
 import java.text.DateFormat;
@@ -264,13 +264,13 @@ public class LocaleProvidersDemo {
 }
 ```
 
-Biên dịch bằng JDK 17 trở lên:
+Compile with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 LocaleProvidersDemo.java
 ```
 
-Chạy **mỗi dòng trong một process riêng**:
+Run **each line in a separate process**:
 
 ```bash
 java LocaleProvidersDemo
@@ -278,16 +278,16 @@ java -Djava.locale.providers=CLDR LocaleProvidersDemo
 java -Djava.locale.providers=SPI,CLDR LocaleProvidersDemo
 ```
 
-Nếu bạn đang trên **JDK 17–22** và muốn kiểm tra dữ liệu legacy:
+If you are on **JDK 17–22** and want to inspect legacy data:
 
 ```bash
 java -Djava.locale.providers=COMPAT,CLDR LocaleProvidersDemo
 java -Djava.locale.providers=CLDR,COMPAT LocaleProvidersDemo
 ```
 
-Từ JDK 23 trở lên, COMPAT không còn là lựa chọn thực chất. **Không dùng kết quả test trên JDK 24 để giả định COMPAT của JDK 17 hoạt động như thế nào.**
+From JDK 23 onward, COMPAT is no longer an effective option. **Do not use test results on JDK 24 to infer how JDK 17's COMPAT behaves.**
 
-**Stdout quan sát trên máy thử Zulu OpenJDK 24, cấu hình mặc định:**
+**Observed stdout on a Zulu OpenJDK 24 test machine, default configuration:**
 
 ```text
 javaFeature=24
@@ -297,42 +297,42 @@ frNumberCodepoints=U+0031 U+0032 U+202F U+0033 U+0034 U+0035 U+002C U+0036 U+003
 frNumberLength=9
 ```
 
-Đây là **output cụ thể đã kiểm tra**, không phải hứa hẹn tất cả runtime Java 17+ đều trả đúng từng dòng. Trên JDK 17 `javaFeature` sẽ là 17; khi có `-D`, `configured` sẽ hiện giá trị đã đặt. Ngày/số có thể khác khi provider, CLDR version, JDK vendor hoặc dữ liệu locale thay đổi.
+This is a **specific verified output**, not a promise that every Java 17+ runtime returns every line identically. On JDK 17 `javaFeature` will be 17; when `-D` is passed, `configured` will show the configured value. Dates/numbers can vary when providers, CLDR version, JDK vendor, or locale data change.
 
-### Đọc các dòng kết quả
+### Reading the output lines
 
-1. `javaFeature` xác nhận phiên bản feature của process thật.
-2. `configured=<default>` nghĩa là không thấy property tường minh; runtime vẫn sử dụng thứ tự provider mặc định.
-3. `frDate` minh họa tên tháng tiếng Pháp nhờ `Locale.FRANCE` được truyền tường minh.
-4. `frNumberCodepoints` trong môi trường thử dùng `U+202F` làm dấu nhóm nghìn, còn `U+002C` là dấu phẩy thập phân.
-5. `frNumberLength=9` đếm **UTF-16 code units**, không phải byte UTF-8.
-6. Không thể suy tên provider thực sự dùng chỉ từ một chuỗi output; nhiều provider có thể cho kết quả giống nhau.
+1. `javaFeature` confirms the actual process's feature version.
+2. `configured=<default>` means no explicit property was seen; the runtime still uses its default provider order.
+3. `frDate` illustrates the French month name thanks to `Locale.FRANCE` being passed explicitly.
+4. `frNumberCodepoints` in the tested environment uses `U+202F` as the thousands grouping separator and `U+002C` as the decimal comma.
+5. `frNumberLength=9` counts **UTF-16 code units**, not UTF-8 bytes.
+6. You cannot deduce the actual provider name used from a single output string; multiple providers may produce identical output.
 
-### Vì sao kiểm tra bằng code point?
+### Why inspect using code points?
 
-Dấu cách ASCII `U+0020`, no-break space `U+00A0` và narrow no-break space `U+202F` có thể trông gần giống trên giao diện, nhưng **`String.equals`, parser hoặc snapshot test phân biệt chúng**. Việc in từng mã code point giúp truy đúng nguyên nhân sau khi nâng JDK, thay vì “sửa” chuỗi bằng cách loại bỏ mọi khoảng trắng mà không xét định dạng.
+ASCII space `U+0020`, no-break space `U+00A0`, and narrow no-break space `U+202F` can look nearly identical in the UI, yet **`String.equals`, parsers, and snapshot tests distinguish them**. Printing code points helps pinpoint the root cause after a JDK upgrade instead of blindly "fixing" strings by stripping all whitespace without checking formatting rules.
 
-## 7. SPI: đóng gói một provider do ứng dụng cung cấp
+## 7. SPI: packaging an application-supplied provider
 
-### 7.1. Cơ chế đăng ký
+### 7.1. Registration mechanism
 
-`java.util.spi.LocaleServiceProvider` là abstract base class cho các locale-sensitive SPIs. Một implementation có thể được đóng gói trên classpath với **service configuration file**:
+`java.util.spi.LocaleServiceProvider` is the abstract base class for locale-sensitive SPIs. An implementation can be packaged on the classpath with a **service configuration file**:
 
 ```text
 META-INF/services/java.text.spi.NumberFormatProvider
 ```
 
-Nếu implementation tên `demo.CustomNumberProvider`, nội dung file là:
+If the implementation is named `demo.CustomNumberProvider`, the file contents are:
 
 ```text
 demo.CustomNumberProvider
 ```
 
-File service configuration cần được mã hóa UTF-8. Với Java modules có thể khai báo `provides ... with ...` trong `module-info.java` theo hợp đồng Java module/service loader. Không chỉ tạo class rồi mong runtime tự quét mọi class trên classpath.
+The service configuration file must be UTF-8 encoded. With Java modules, you can declare `provides ... with ...` in `module-info.java` per the Java module/service loader contract. Do not simply create a class and expect the runtime to scan every class on the classpath automatically.
 
-### 7.2. Cấu trúc provider mẫu
+### 7.2. Sample provider structure
 
-Dưới đây là một ví dụ **minh họa cách mở rộng API**, không phải bộ formatter production đã hoàn thiện:
+Below is an example **illustrating how to extend the API**, not a production-ready formatter suite:
 
 ```java
 package demo;
@@ -355,8 +355,8 @@ public final class CustomNumberProvider
     }
 
     private NumberFormat make(String pattern) {
-        // Dùng US symbols ở đây để tránh tự gọi lại
-        // factory NumberFormat cho chính locale TEST.
+        // Use US symbols here to avoid recursively calling
+        // the NumberFormat factory for the TEST locale itself.
         return new DecimalFormat(pattern,
                 DecimalFormatSymbols.getInstance(Locale.US));
     }
@@ -385,123 +385,123 @@ public final class CustomNumberProvider
 }
 ```
 
-Với code trên cần bổ sung **kiểm tra tham số locale**, chính sách integer rounding/parsing, currency metadata, locale fallback, Unicode extensions và test các method contracts trước khi dùng thật. `NumberFormatProvider` đòi mỗi phương thức đáp ứng semantics của loại formatter tương ứng; ví dụ percent phải nhân input với 100 khi hiển thị chứ không chỉ thêm một dấu `%` literal. Phần ví dụ chỉ tập trung vào bộ khung SPI.
+In the code above, you must add **locale parameter validation**, integer rounding/parsing policy, currency metadata, locale fallback, Unicode extensions, and contract tests before production use. `NumberFormatProvider` requires each method to honor the semantics of its formatter type; for instance, percent must multiply inputs by 100 when displaying rather than merely appending a literal `%` sign. This example focuses solely on the SPI skeleton.
 
-Một provider thực phải khai báo đúng những locale nó hỗ trợ. Nếu khai báo hỗ trợ cả những locale không được triển khai đúng, kết quả có thể làm hỏng format ở nhiều nơi. Không tạo vòng đệ quy bằng cách gọi lại `NumberFormat.getNumberInstance(locale)` với chính locale mà provider đang phục vụ.
+A real provider must declare exactly the locales it supports. Declaring locales that are not properly implemented can break formatting across many areas. Never create an infinite recursion loop by calling `NumberFormat.getNumberInstance(locale)` for the very locale the provider is serving.
 
-### 7.3. Thứ tự SPI và classpath
+### 7.3. SPI order and classpath
 
-Đưa provider JAR vào classpath/module path của **tiến trình ứng dụng** rồi chạy với:
+Put the provider JAR on the **application process's** classpath/module path and run with:
 
 ```bash
 java -Djava.locale.providers=SPI,CLDR -cp "app.jar;provider.jar" demo.Main
 ```
 
-Dòng classpath trên minh họa **Windows** với dấu `;`. Trên Linux/macOS, dấu phân cách classpath thường là `:`. Các JAR và main class chỉ là tên minh họa; chúng phải tồn tại sau bước build và đăng ký provider đúng chuẩn.
+The classpath line above illustrates **Windows** with `;`. On Linux/macOS, the classpath separator is typically `:`. The JARs and main class are illustrative names; they must exist after your build step with properly registered providers.
 
-Khi một service/locale đã được CLDR hỗ trợ, `CLDR,SPI` có thể ưu tiên CLDR, còn `SPI,CLDR` giúp SPI có cơ hội được chọn trước. Nếu không có SPI artifact thực sự, thêm `SPI` vào order không tạo dữ liệu mới.
+When a service/locale is already supported by CLDR, `CLDR,SPI` may prioritize CLDR, whereas `SPI,CLDR` gives SPI the chance to be selected first. Without an actual SPI artifact, adding `SPI` to the order creates no new data.
 
-## 8. Chẩn đoán: property không chứng minh provider nào đã thắng
+## 8. Diagnostics: the property does not prove which provider won
 
-`System.getProperty("java.locale.providers")` chỉ cho biết **thứ tự được yêu cầu**, không phải lịch sử chính xác của mọi lần lookup. Không có một API chuẩn chung đơn giản để mọi formatter trả tên provider thực tế đã được dùng.
+`System.getProperty("java.locale.providers")` only tells you **the requested order**, not the exact history of every lookup. There is no single simple standard API for every formatter to return the actual provider name used.
 
-Để chẩn đoán, bạn nên thu thập:
+To diagnose issues, collect:
 
-- Phiên bản Java đầy đủ và nhà phân phối JDK.
-- JVM arguments/launcher thật (không chỉ test compile options).
-- Giá trị `java.locale.providers`.
-- Locale, style/pattern, timezone/currency và API format/parse.
-- Unicode code points của formatted result nếu lỗi ở dấu câu/khoảng trắng.
-- Kết quả khi chạy với **hai JVM process mới**.
-- Với SPI tự viết, log ngay trong provider methods và kiểm tra service registration.
+- Full Java version and JDK distribution/vendor.
+- Actual JVM arguments/launcher flags (not just compile options).
+- The value of `java.locale.providers`.
+- Locale, style/pattern, timezone/currency, and format/parse APIs.
+- Unicode code points of formatted results when punctuation/whitespace differs.
+- Outputs from running **two fresh JVM processes**.
+- For custom SPIs, log directly inside provider methods and verify service registration.
 
-`NumberFormat.getAvailableLocales()` hay `DateFormat.getAvailableLocales()` cho biết những locale có thể được hỗ trợ, **không phải bản đồ “mỗi locale được phục vụ bởi provider nào”**. Cùng một locale có thể được nhiều nguồn hỗ trợ.
+`NumberFormat.getAvailableLocales()` or `DateFormat.getAvailableLocales()` shows locales that may be supported, **not a map of "which provider serves each locale."** The same locale can be backed by multiple sources.
 
-### Không đánh đồng provider chain với ResourceBundle
+### Do not equate the provider chain with ResourceBundle
 
-`ResourceBundle.getBundle(...)` có cơ chế tìm và fallback bundle của ứng dụng. Nó không tự chuyển các file bản dịch `messages_vi.properties` thành nguồn CLDR hoặc SPI. Tương tự, ICU4J có cơ chế/dữ liệu riêng; đổi `java.locale.providers` không mặc nhiên thay format của ICU4J hay trình duyệt.
+`ResourceBundle.getBundle(...)` has its own mechanism for resolving and falling back across application bundles. It does not turn `messages_vi.properties` translation files into CLDR or SPI sources. Likewise, ICU4J has its own mechanisms/data; changing `java.locale.providers` does not implicitly change formatting in ICU4J or browsers.
 
-## 9. Nâng JDK: những thay đổi phải kiểm thử
+## 9. Upgrading the JDK: changes that must be tested
 
-Khi nâng từ JDK 8 lên 17 hoặc từ JDK 17/21 lên 23+, hãy tìm các đường code dùng locale-sensitive services:
+When upgrading from JDK 8 to 17 or from JDK 17/21 to 23+, audit code paths using locale-sensitive services:
 
-| Vùng | API thường gặp | Điều có thể thay đổi |
+| Area | Common APIs | What can change |
 | --- | --- | --- |
-| Ngày giờ | `DateFormat`, `SimpleDateFormat`, localized `DateTimeFormatter` | Tên tháng, thứ, dấu câu, AM/PM, style. |
-| Số | `NumberFormat`, `DecimalFormatSymbols` | Dấu grouping/decimal, chữ số, spacing. |
-| Tiền tệ | `NumberFormat.getCurrencyInstance`, `Currency` | Ký hiệu, vị trí, khoảng trắng, số chữ số phần lẻ. |
-| Display names | `Locale.getDisplayName` và locale-name services | Tên ngôn ngữ/vùng. |
-| Timezone text | `TimeZone.getDisplayName` | Tên/viết tắt của múi giờ. |
-| Sắp xếp/phân đoạn | `Collator`, `BreakIterator` | Dữ liệu và implementation cụ thể, không đồng nhất hoàn toàn với CLDR. |
+| Date/time | `DateFormat`, `SimpleDateFormat`, localized `DateTimeFormatter` | Month/weekday names, punctuation, AM/PM, styles. |
+| Numbers | `NumberFormat`, `DecimalFormatSymbols` | Grouping/decimal separators, digits, spacing. |
+| Currency | `NumberFormat.getCurrencyInstance`, `Currency` | Symbols, placement, whitespace, fractional digits. |
+| Display names | `Locale.getDisplayName` and locale-name services | Language/region names. |
+| Timezone text | `TimeZone.getDisplayName` | Timezone names/abbreviations. |
+| Sorting/segmentation | `Collator`, `BreakIterator` | Specific data and implementations, not completely uniform with CLDR. |
 
-### Một ma trận test ngắn nên có
+### A short test matrix to maintain
 
-- Dùng các locale thực sự được sản phẩm hỗ trợ, không chỉ `en-US`.
-- Cố định `Instant`, timezone, currency và input number khi so sánh.
-- In formatted text và code point/hex để thấy khoảng trắng khác.
-- Test parse sau format khi domain cần; kiểm tra parser tiêu thụ hết input.
-- Với ngày tháng, test năm hai chữ số, tên tháng, ngày không tồn tại, thứ tự ngày/tháng.
-- Với số, test grouping, phần lẻ, số âm, percent và currency.
-- Thử input thực tế mà người dùng đã lưu từ bản JDK cũ.
-- Chạy trên từng JDK/vendor và đúng `java.locale.providers` dự kiến deploy.
-- Khi có SPI, test trường hợp provider hỗ trợ locale và trường hợp phải fallback.
+- Use the locales actually supported by the product, not only `en-US`.
+- Fix `Instant`, timezone, currency, and input numbers when comparing.
+- Print formatted text and code points/hex to spot whitespace differences.
+- Test parsing after formatting where the domain requires it; verify the parser consumes the whole input.
+- For dates, test two-digit years, month names, invalid dates, and day/month order.
+- For numbers, test grouping, fractions, negative numbers, percentages, and currencies.
+- Test real inputs previously saved from the older JDK.
+- Run on each target JDK/vendor and the exact `java.locale.providers` planned for deployment.
+- When SPI is present, test both locales supported by the provider and locales that must fall back.
 
-### Vì sao COMPAT không phải giải pháp dài hạn?
+### Why is COMPAT not a long-term solution?
 
-Một hệ thống cũ có thể đã dựa vào `COMPAT` để trì hoãn thay đổi format từ JDK 9. Nhưng **từ JDK 23, dữ liệu legacy không còn**. Khi ứng dụng cần giao tiếp máy–máy, hãy dùng schema, ISO formatter hoặc định dạng decimal ổn định thay vì serialized display strings. Nếu hóa đơn/biểu mẫu phải theo quy tắc cố định, chủ động cấu hình format và version hóa hợp đồng; đừng trông chờ dữ liệu legacy tồn tại mãi trong runtime.
+A legacy system may have relied on `COMPAT` to defer formatting changes since JDK 9. However, **starting with JDK 23, legacy data no longer exists**. When applications communicate machine-to-machine, use schemas, ISO formatters, or stable decimal formats instead of serialized display strings. If invoices or forms must follow fixed rules, explicitly configure formats and version the contract rather than expecting legacy data to remain in the runtime forever.
 
-## 10. Lỗi phổ biến
+## 10. Common mistakes
 
-| Sai lầm | Hậu quả | Cách đúng |
+| Mistake | Consequence | Correct approach |
 | --- | --- | --- |
-| Nghĩ property chọn ngôn ngữ người dùng | CLDR/SPI không phải `Locale.FRANCE`. | Chọn Locale tường minh; provider là nguồn dữ liệu. |
-| Viết `-D` sau main class | Chỉ là tham số ứng dụng. | Đặt option trước class/`-jar`. |
-| Gọi `System.setProperty` sau khi init | Thứ tự có thể đã đọc/cached. | Restart process với JVM option. |
-| Dùng `COMPAT` trên mọi Java 17+ | JDK 23 đã bỏ legacy data. | Migrate CLDR hoặc provider/format riêng. |
-| Nghĩ `JRE` là nhà cung cấp hoàn toàn khác `COMPAT` | Tên alias lịch sử. | Hiểu timeline và loại bỏ từ JDK 23. |
-| Có SPI JAR nhưng không bật `SPI` | Custom provider có thể không được xét. | Đăng ký service và khai báo order. |
-| Đặt `CLDR,SPI` rồi kỳ vọng SPI luôn thắng | Provider đứng trước có thể hỗ trợ locale. | Dùng `SPI,CLDR` nếu cần ưu tiên tùy biến. |
-| Tin HOST luôn hoạt động trong container | HOST phụ thuộc OS/vendor. | Có fallback và test OS mục tiêu. |
-| Xem output format là protocol ổn định | Dữ liệu CLDR/JDK có thể đổi. | Lưu typed data, format ở UI. |
-| Bỏ qua U+202F/U+00A0 trong snapshot | Chuỗi trông giống nhưng khác code point. | Ghi mã Unicode khi chẩn đoán. |
-| Nghĩ mọi dịch vụ đều lấy data từ CLDR | Có ngoại lệ theo API/JDK. | Xem tài liệu từng service. |
-| Nghĩ `System.getProperty` là thông tin provider thực | Nó chỉ là cấu hình muốn dùng. | So sánh thực nghiệm và log SPI. |
-| Thay `Locale.setDefault` theo user | Ảnh hưởng nhiều request. | Factory nhận locale của mỗi user. |
+| Thinking the property picks the user's language | CLDR/SPI is not `Locale.FRANCE`. | Choose Locale explicitly; providers are data sources. |
+| Writing `-D` after the main class | Treated only as an application argument. | Place options before the class/`-jar`. |
+| Calling `System.setProperty` after init | Order may already be read/cached. | Restart the process with JVM options. |
+| Using `COMPAT` across all Java 17+ versions | JDK 23 removed legacy data. | Migrate to CLDR or a dedicated provider/format. |
+| Thinking `JRE` is a completely distinct provider from `COMPAT` | Historical alias name. | Understand the timeline and JDK 23 removal. |
+| Having an SPI JAR without enabling `SPI` | Custom provider might not be consulted. | Register the service and declare order. |
+| Setting `CLDR,SPI` and expecting SPI always wins | Earlier provider may support the locale. | Use `SPI,CLDR` if custom overrides must take precedence. |
+| Trusting HOST always works in containers | HOST depends on OS/vendor. | Have fallbacks and test on target OS. |
+| Treating formatted output as a stable protocol | CLDR/JDK data can change. | Store typed data, format in the UI. |
+| Ignoring U+202F/U+00A0 in snapshots | Strings look alike but differ in code points. | Log Unicode code points when diagnosing. |
+| Thinking every service pulls data from CLDR | Exceptions exist by API/JDK. | Check per-service documentation. |
+| Treating `System.getProperty` as actual provider used | It is only the requested configuration. | Compare empirically and log inside SPI. |
+| Changing `Locale.setDefault` per user | Affects concurrent requests. | Pass user Locale into factories. |
 
-## 11. Bài tập thực hành
+## 11. Hands-on exercises
 
-**Bài 1 — Thứ tự:** trên JDK 17, chạy `CLDR,COMPAT` và `COMPAT,CLDR` trong hai JVM processes. Ghi stdout chương trình `LocaleProvidersDemo` và nhận xét: vì sao không thấy khác biệt ở một locale không chứng minh thứ tự bị bỏ qua?
+**Exercise 1 — Ordering:** On JDK 17, run `CLDR,COMPAT` and `COMPAT,CLDR` in two separate JVM processes. Record `LocaleProvidersDemo` stdout and explain: why does seeing no difference for one locale not prove the ordering was ignored?
 
-**Bài 2 — So sánh version:** chạy cùng code trên JDK 17 và JDK 23+, thử cấu hình COMPAT trong môi trường test. Xác nhận phiên bản hỗ trợ legacy khác nhau và viết kế hoạch migrate.
+**Exercise 2 — Version comparison:** Run the same code on JDK 17 and JDK 23+, trying the COMPAT configuration in a test environment. Verify how legacy support differs across versions and draft a migration plan.
 
-**Bài 3 — Provider SPI:** tạo `NumberFormatProvider` cho locale thử nghiệm, đóng gói file `META-INF/services` và chạy `SPI,CLDR`. Thử một locale mà SPI hỗ trợ, một locale không hỗ trợ; ghi nơi fallback xảy ra.
+**Exercise 3 — SPI provider:** Create a `NumberFormatProvider` for a test locale, package `META-INF/services`, and run with `SPI,CLDR`. Test one locale supported by the SPI and one unsupported locale; document where fallback occurs.
 
-**Bài 4 — Unicode whitespace:** so sánh chuỗi số của `Locale.FRANCE` trên hai JDK; in code points, phân biệt `U+0020`, `U+00A0` và `U+202F`. Đừng tự thay toàn bộ dấu cách khi chưa hiểu hợp đồng.
+**Exercise 4 — Unicode whitespace:** Compare `Locale.FRANCE` number strings across two JDKs; print code points and distinguish `U+0020`, `U+00A0`, and `U+202F`. Never blindly strip all spaces without understanding the contract.
 
-**Bài 5 — Property timing:** tạo formatter, sau đó gọi `System.setProperty` rồi tạo lại formatter. Đối chiếu với process mới khởi động bằng `-D`. Giải thích vì sao test trong cùng JVM không đủ.
+**Exercise 5 — Property timing:** Create a formatter, then call `System.setProperty`, and create another formatter. Compare against a fresh process launched with `-D`. Explain why testing inside the same JVM is insufficient.
 
-**Bài 6 — Kiến trúc API:** một REST API đang xuất `"1 234,50 €"` làm dữ liệu giao dịch. Thiết kế lại với amount và currency code riêng, rồi format tại UI theo locale. Nêu vì sao cách này ít bị ảnh hưởng bởi thay đổi provider.
+**Exercise 6 — API architecture:** A REST API currently outputs `"1 234,50 €"` as transaction data. Redesign it with separate amount and currency code fields, formatting in the UI by locale. Explain why this design is resilient to provider changes.
 
-**Bài 7 — Phân tích lỗi nâng cấp:** sau đổi JDK, một ngày được viết với dấu câu hoặc ký hiệu AM/PM khác. Liệt kê JDK version, provider property, API, Locale, timezone và code point cần thu thập; tách lỗi hiển thị khỏi lỗi parse/protocol.
+**Exercise 7 — Upgrade failure analysis:** After a JDK upgrade, a date is rendered with different punctuation or AM/PM markers. List the JDK version, provider property, API, Locale, timezone, and code points to gather; separate display changes from parsing/protocol bugs.
 
 ### Checklist
 
-- [ ] Phân biệt `Locale`, locale provider và locale-sensitive service.
-- [ ] Biết cú pháp `-Djava.locale.providers` và cơ chế ưu tiên theo thứ tự.
-- [ ] Giải thích `CLDR`, `SPI`, `HOST`, `COMPAT/JRE` và giới hạn nền tảng/phiên bản.
-- [ ] Biết CLDR làm mặc định từ JDK 9 và COMPAT bị loại bỏ từ JDK 23.
-- [ ] Hiểu fallback theo service/locale, không suy source thực từ property.
-- [ ] Đặt system property khi launcher khởi động JVM, không dựa vào thay đổi runtime.
-- [ ] Biết file `META-INF/services` và vai trò của `SPI`.
-- [ ] Test exact Unicode code points khi output nhìn giống nhưng khác.
-- [ ] Truyền Locale/zone/currency rõ ràng và không dùng display strings làm protocol.
-- [ ] Có phương án kiểm thử migration khi nâng JDK/CLDR.
+- [ ] Distinguish `Locale`, locale providers, and locale-sensitive services.
+- [ ] Know `-Djava.locale.providers` syntax and priority-by-order semantics.
+- [ ] Explain `CLDR`, `SPI`, `HOST`, `COMPAT/JRE` and platform/version limits.
+- [ ] Know CLDR became default in JDK 9 and COMPAT was removed in JDK 23.
+- [ ] Understand per-service/locale fallback without inferring the real source from the property alone.
+- [ ] Set the system property when launching the JVM, not relying on runtime mutation.
+- [ ] Know `META-INF/services` files and the role of `SPI`.
+- [ ] Test exact Unicode code points when outputs look alike yet differ.
+- [ ] Pass Locale/zone/currency explicitly and avoid display strings as protocols.
+- [ ] Maintain a migration testing plan for JDK/CLDR upgrades.
 
-## 12. Tham khảo chính thức
+## 12. Official references
 
 - JDK 17 `LocaleServiceProvider`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/spi/LocaleServiceProvider.html
 - Oracle JDK 17 supported locales: https://www.oracle.com/java/technologies/javase/jdk17-suported-locales.html
 - JDK 23 removed legacy locale data: https://docs.oracle.com/en/java/javase/23/migrate/removed-tools-and-components.html
 - JDK 17 `NumberFormatProvider`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/spi/NumberFormatProvider.html
 
-**Kết luận:** `java.locale.providers` chỉ định **nguồn dữ liệu locale được ưu tiên tra cứu**, không tự thay ngôn ngữ của người dùng. CLDR là nguồn chính trên JDK hiện đại; SPI cho phép mở rộng; HOST phụ thuộc hệ thống; COMPAT/JRE là quá khứ của các JDK trước 23. Hãy đặt thứ tự khi khởi động Java, truyền locale cụ thể vào API, test trên runtime thực và không biến chuỗi đã bản địa hóa thành dữ liệu định danh.
+**Conclusion:** `java.locale.providers` specifies the **prioritized lookup order of locale data sources**, without changing the user's language on its own. CLDR is the primary source on modern JDKs; SPI enables extensibility; HOST is system-dependent; COMPAT/JRE belongs to the pre-23 past. Set the order at Java startup, pass explicit locales into APIs, test on real runtimes, and never turn localized strings into canonical data identifiers.

@@ -1,20 +1,20 @@
-# Bảng widening, narrowing và numeric promotion trong Java
+# Table of Widening, Narrowing, and Numeric Promotion in Java
 
-## 1. Ba khái niệm cần phân biệt
+## 1. Three Concepts to Distinguish
 
-Khi dùng các kiểu số nguyên thủy của Java, không chỉ có chuyện “số nhỏ gán cho số lớn”. Cần xác định **kiểu của từng toán hạng**, **kiểu phép toán được thực hiện**, và **kiểu của biến nhận kết quả**:
+When using Java's primitive numeric types, it is not just a matter of "assigning a smaller number to a larger number." You must identify **the type of each operand**, **the type in which the operation is performed**, and **the type of the variable receiving the result**:
 
-- **Widening primitive conversion**: chuyển sang một kiểu được phép mở rộng ngầm, ví dụ `int → long`. Không nhất thiết chính xác tuyệt đối khi kiểu đích là `float` hoặc `double`.
-- **Narrowing primitive conversion**: chuyển sang kiểu có thể mất miền giá trị/chữ số, ví dụ `int → byte` hoặc `double → int`. Thường phải cast tường minh.
-- **Numeric promotion**: tự nâng kiểu toán hạng trước khi tính, ví dụ `byte + byte` được tính bằng `int`.
+- **Widening primitive conversion**: converting to a type allowed to widen implicitly, for example `int → long`. It is not necessarily strictly exact when the target type is `float` or `double`.
+- **Narrowing primitive conversion**: converting to a type that may lose value range or digits, for example `int → byte` or `double → int`. Usually requires an explicit cast.
+- **Numeric promotion**: automatically promoting operand types before computing, for example `byte + byte` is computed as `int`.
 
-Bài học là tài liệu tra cứu cho `byte`, `short`, `char`, `int`, `long`, `float`, `double` trong Java 17+, gồm bảng chuyển đổi, các ngoại lệ, phép tính số nguyên và số thực, ví dụ chương trình độc lập, lỗi thường gặp và bài tập. `boolean` **không chuyển thành số hoặc ngược lại** theo cơ chế này.
+This lesson serves as a reference for `byte`, `short`, `char`, `int`, `long`, `float`, and `double` in Java 17+, including conversion tables, exceptions, integer and floating-point arithmetic, standalone program examples, common pitfalls, and exercises. `boolean` **does not convert to numbers or vice versa** under this mechanism.
 
-## 2. Bảng widening primitive conversion
+## 2. Widening Primitive Conversion Table
 
-Các phép gán sau hợp lệ mà **không cần cast**:
+The following assignments are valid **without a cast**:
 
-| Từ kiểu | Có thể widening sang |
+| From Type | Can Widen To |
 | --- | --- |
 | `byte` | `short`, `int`, `long`, `float`, `double` |
 | `short` | `int`, `long`, `float`, `double` |
@@ -22,10 +22,10 @@ Các phép gán sau hợp lệ mà **không cần cast**:
 | `int` | `long`, `float`, `double` |
 | `long` | `float`, `double` |
 | `float` | `double` |
-| `double` | Không có kiểu số nguyên thủy rộng hơn |
-| `boolean` | Không tham gia chuyển đổi số |
+| `double` | No wider primitive numeric type |
+| `boolean` | Does not participate in numeric conversion |
 
-Sơ đồ gợi nhớ:
+Mnemonic diagram:
 
 ~~~text
 byte → short → int → long → float → double
@@ -33,17 +33,17 @@ byte → short → int → long → float → double
 char ──────────┘
 ~~~
 
-**Không có widening `byte → char` hay `short → char`.** `char` là kiểu **không dấu 16 bit**, lưu mã UTF-16 code unit từ 0 đến 65535; `short` là kiểu **có dấu 16 bit**, từ -32768 đến 32767. Cùng độ rộng bit không có nghĩa hai kiểu tự chuyển đổi ngầm qua lại.
+**There is no widening `byte → char` or `short → char`.** `char` is a **16-bit unsigned** type storing UTF-16 code units from 0 to 65535; `short` is a **16-bit signed** type from -32768 to 32767. Having the same bit width does not mean the two types implicitly convert to each other.
 
-### Widening có luôn giữ nguyên giá trị không?
+### Does Widening Always Preserve the Exact Value?
 
-**Không.** Các widening giữa những kiểu nguyên phù hợp (`byte → short/int/long`, `short → int/long`, `char → int/long`, `int → long`) đều giữ chính xác giá trị. `int → double` cũng giữ chính xác mọi int, vì double có 53 bit significand, nhiều hơn 32 bit của int. `float → double` giữ chính xác *giá trị nhị phân float đang lưu* nhưng không khôi phục số decimal đã bị làm tròn trước đó.
+**No.** Widening between compatible integer types (`byte → short/int/long`, `short → int/long`, `char → int/long`, `int → long`) always preserves the exact value. `int → double` also preserves every `int` exactly, because `double` has a 53-bit significand, more than `int`'s 32 bits. `float → double` preserves the *stored binary float value* exactly, but does not recover a decimal number that was previously rounded.
 
-Ngược lại, `int → float`, `long → float` và `long → double` có thể mất các bit có nghĩa do kiểu đích không đủ độ chính xác. Trình biên dịch vẫn cho phép widening; nó không đảm bảo làm tròn sẽ không xảy ra.
+Conversely, `int → float`, `long → float`, and `long → double` can lose significant bits because the target type lacks sufficient precision. The compiler still permits widening; it does not guarantee that rounding will not occur.
 
-### Ví dụ Java 17: widening mất precision
+### Java 17 Example: Widening Loses Precision
 
-Tạo tệp `WideningDemo.java`:
+Create the file `WideningDemo.java`:
 
 ~~~java
 public class WideningDemo {
@@ -74,7 +74,7 @@ javac WideningDemo.java
 java WideningDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 long = 100
@@ -85,30 +85,30 @@ float back = 16777216
 long back = 9007199254740992
 ~~~
 
-`float` có 24 bit significand nên không thể biểu diễn chính xác mọi `int` trên mốc `2^24`. `double` không thể biểu diễn chính xác mọi `long` trên mốc `2^53`. Widening có thể an toàn về **kiểu** mà không an toàn về **precision**.
+`float` has a 24-bit significand, so it cannot represent every `int` above the `2^24` threshold exactly. `double` cannot represent every `long` above the `2^53` threshold exactly. Widening can be **type**-safe without being **precision**-safe.
 
-## 3. Bảng narrowing primitive conversion
+## 3. Narrowing Primitive Conversion Table
 
-Đường narrowing cần cast trong phần lớn tình huống:
+Narrowing paths require a cast in most situations:
 
-| Từ | Các đích narrowing tiêu biểu | Hậu quả cần xét |
+| From | Typical Narrowing Targets | Consequences to Consider |
 | --- | --- | --- |
-| `short` | `byte`, `char` | Mất bit cao, có thể đổi dấu |
-| `char` | `byte`, `short` | Mất bit hoặc đổi cách diễn giải dấu |
-| `int` | `byte`, `short`, `char` | Giữ các bit thấp theo độ rộng đích |
-| `long` | `byte`, `short`, `char`, `int` | Bỏ các bit cao |
-| `double` | `float` | Có thể làm tròn, underflow thành zero, overflow thành infinity |
-| `float/double` | `int`, `long` và các kiểu nguyên nhỏ hơn | Loại phần thập phân, có quy tắc riêng cho NaN/vượt miền |
+| `short` | `byte`, `char` | Loss of high bits, sign may change |
+| `char` | `byte`, `short` | Loss of bits or change in sign interpretation |
+| `int` | `byte`, `short`, `char` | Keeps low bits according to target width |
+| `long` | `byte`, `short`, `char`, `int` | Discards high bits |
+| `double` | `float` | May round, underflow to zero, or overflow to infinity |
+| `float/double` | `int`, `long` and smaller integer types | Truncates fractional part, special rules for NaN/out-of-range |
 
-Các kiểu nguyên có dấu sử dụng biểu diễn bù hai. Với narrowing từ `int` sang `byte`, Java giữ 8 bit thấp rồi diễn giải thành byte có dấu. Vì vậy `(byte) 130` bằng `-126`, không phải 127 và không ném exception. `(char) -1` giữ 16 bit thấp và thành code unit số `65535`.
+Signed integer types use two's complement representation. When narrowing from `int` to `byte`, Java keeps the low 8 bits and interprets them as a signed byte. Thus `(byte) 130` equals `-126`, not 127, and throws no exception. `(char) -1` keeps the low 16 bits and becomes code unit number `65535`.
 
-### Cast từ float/double sang nguyên không phải rounding gần nhất
+### Casting from float/double to Integer Is Not Nearest Rounding
 
-`(int) 3.99` là `3`; `(int) -3.99` là `-3`. Quy tắc loại phần thập phân **về 0**. Với `NaN`, chuyển sang `int`/`long` cho 0. Với giá trị vượt miền int/long, quá trình chuyển sang chính kiểu đó cho biên min/max theo hướng tương ứng; với `byte`/`short`/`char` còn có bước thu hẹp nguyên tiếp theo nên kết quả **không đơn giản là chặn tại biên kiểu nhỏ**.
+`(int) 3.99` is `3`; `(int) -3.99` is `-3`. The rule truncates the fractional part **toward 0**. For `NaN`, converting to `int`/`long` yields 0. For values exceeding the `int`/`long` range, converting directly to that type produces the min/max bound in the corresponding direction; for `byte`/`short`/`char`, there is a subsequent integer narrowing step, so the result **is not simply clamped at the smaller type's bounds**.
 
-### Ví dụ Java 17: narrowing và giá trị đặc biệt
+### Java 17 Example: Narrowing and Special Values
 
-Tạo tệp `NarrowingDemo.java`:
+Create the file `NarrowingDemo.java`:
 
 ~~~java
 public class NarrowingDemo {
@@ -134,7 +134,7 @@ javac NarrowingDemo.java
 java NarrowingDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 byte = -126
@@ -146,13 +146,13 @@ infinity -> int = 2147483647
 1000 -> byte = -24
 ~~~
 
-Khi cần làm tròn thực sự, sử dụng `Math.round` hoặc `BigDecimal.setScale` cùng rounding mode thích hợp; đừng thay bằng cast và kỳ vọng quy tắc giống nhau. Cũng không dùng cast để kiểm tra an toàn miền giá trị vì Java không tự ném lỗi khi các bit bị bỏ.
+When real rounding is needed, use `Math.round` or `BigDecimal.setScale` with an appropriate rounding mode; do not substitute a cast and expect the same rules. Also do not use a cast to check value-range safety, because Java does not automatically throw an error when bits are discarded.
 
-## 4. Unary numeric promotion
+## 4. Unary Numeric Promotion
 
-Các toán tử một ngôi số học `+x`, `-x` và toán tử bù bit `~x` (cho kiểu nguyên) áp dụng **unary numeric promotion**:
+The unary arithmetic operators `+x`, `-x`, and the bitwise complement operator `~x` (for integer types) apply **unary numeric promotion**:
 
-| Kiểu ban đầu | Kiểu sau promotion |
+| Original Type | Type After Promotion |
 | --- | --- |
 | `byte`, `short`, `char` | `int` |
 | `int` | `int` |
@@ -160,20 +160,20 @@ Các toán tử một ngôi số học `+x`, `-x` và toán tử bù bit `~x` (c
 | `float` | `float` |
 | `double` | `double` |
 
-Ví dụ `byte x = 5; int y = -x;` hợp lệ, vì `-x` có kiểu int. `byte y = -x;` không hợp lệ nếu `x` là biến byte runtime và không cast, dù giá trị `-5` có thể vừa byte.
+For example, `byte x = 5; int y = -x;` is valid, because `-x` has type `int`. `byte y = -x;` is invalid if `x` is a runtime `byte` variable without a cast, even though the value `-5` fits in a `byte`.
 
-`~charValue` cũng có kiểu int. Toán tử logic `!` áp dụng lên boolean, không phải numeric promotion. Tương tự, `boolean` không chuyển thành 0 hoặc 1 khi tính toán số học.
+`~charValue` also has type `int`. The logical operator `!` applies to `boolean`, not numeric promotion. Likewise, `boolean` does not convert to 0 or 1 in arithmetic calculations.
 
-## 5. Binary numeric promotion: bảng chọn kiểu hai toán hạng
+## 5. Binary Numeric Promotion: Type Selection Table for Two Operands
 
-Trong các phép toán hai ngôi số học như `+`, `-`, `*`, `/`, `%`, Java chọn kiểu tính toán theo thứ tự:
+In binary arithmetic operations such as `+`, `-`, `*`, `/`, and `%`, Java selects the computation type in order:
 
-1. Có `double` → dùng `double`.
-2. Không có double, có `float` → dùng `float`.
-3. Không có double/float, có `long` → dùng `long`.
-4. Còn lại → dùng `int`.
+1. If either is `double` → use `double`.
+2. Otherwise, if either is `float` → use `float`.
+3. Otherwise, if either is `long` → use `long`.
+4. Otherwise → use `int`.
 
-| Biểu thức | Kiểu tính toán/kết quả |
+| Expression | Computation/Result Type |
 | --- | --- |
 | `byte + byte` | `int` |
 | `byte + short` | `int` |
@@ -185,11 +185,11 @@ Trong các phép toán hai ngôi số học như `+`, `-`, `*`, `/`, `%`, Java c
 | `int / double` | `double` |
 | `char * byte` | `int` |
 
-Các toán tử so sánh số như `<` và `>=` cũng dùng numeric promotion để so, nhưng **kết quả của phép so sánh là boolean**. Đừng áp dụng bảng “kiểu kết quả số học” lên mọi toán tử một cách máy móc. Với phép nối chuỗi, toán tử `+` còn có ngữ nghĩa nối chuỗi khác phép cộng số.
+Numeric comparison operators such as `<` and `>=` also use numeric promotion to compare, but **the result of the comparison is boolean**. Do not mechanically apply the "arithmetic result type" table to every operator. For string concatenation, the `+` operator also has string concatenation semantics distinct from numeric addition.
 
-### Ví dụ Java 17: chia nguyên và kiểu của biểu thức
+### Java 17 Example: Integer Division and Expression Type
 
-Tạo tệp `NumericPromotionDemo.java`:
+Create the file `NumericPromotionDemo.java`:
 
 ~~~java
 public class NumericPromotionDemo {
@@ -216,7 +216,7 @@ javac NumericPromotionDemo.java
 java NumericPromotionDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 byte + short = 30
@@ -227,22 +227,22 @@ assigned double = 2.0
 5 / 2.0 = 2.5
 ~~~
 
-**Kiểu biến nhận kết quả không sửa kiểu của phép toán đã xảy ra.** `double d = 5 / 2;` thực hiện chia nguyên trước (cho 2), rồi widening từ int thành double (2.0). Muốn kết quả 2.5, chuyển **toán hạng trước phép chia**: `5 / 2.0` hoặc `(double) 5 / 2`.
+**The receiving variable's type does not retroactively change the type of an operation that already happened.** `double d = 5 / 2;` performs integer division first (yielding 2), then widens from `int` to `double` (2.0). To get 2.5, convert **an operand before the division**: `5 / 2.0` or `(double) 5 / 2`.
 
-## 6. Overflow trước khi widening sang biến đích
+## 6. Overflow Before Widening to the Target Variable
 
-Một bẫy:
+A trap:
 
 ~~~java
-// Đoạn minh họa: kết quả đã tràn int trước khi gán.
+// Demonstration snippet: the result already overflows int before assignment.
 long wrong = 50_000 * 50_000;
 ~~~
 
-Cả hai literal là `int`, nên `50_000 * 50_000` là phép nhân int, overflow trước khi được chuyển sang long. Để tránh, dùng literal long `50_000L * 50_000`, hoặc cast một toán hạng **trước khi nhân**.
+Both literals are `int`, so `50_000 * 50_000` is an `int` multiplication that overflows before being widened to `long`. To avoid this, use a `long` literal `50_000L * 50_000`, or cast one operand **before multiplying**.
 
-### Ví dụ Java 17: overflow do kiểu toán hạng
+### Java 17 Example: Overflow Due to Operand Types
 
-Tạo tệp `OverflowDemo.java`:
+Create the file `OverflowDemo.java`:
 
 ~~~java
 public class OverflowDemo {
@@ -267,7 +267,7 @@ javac OverflowDemo.java
 java OverflowDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 int first = -1794967296
@@ -275,20 +275,20 @@ long first = 2500000000
 overflow detected
 ~~~
 
-Phép `+`, `-`, `*` với `int`/`long` thường không ném lỗi overflow; kết quả bù hai quay vòng theo số bit. Khi không được phép tràn âm thầm, `Math.addExact`, `subtractExact`, `multiplyExact` giúp phát hiện lỗi đối với int/long.
+The `+`, `-`, and `*` operations on `int`/`long` do not normally throw an overflow error; the two's complement result wraps around modulo the bit width. When silent overflow is unacceptable, `Math.addExact`, `subtractExact`, and `multiplyExact` help detect errors for `int`/`long`.
 
-## 7. Phép dịch bit dùng quy tắc riêng
+## 7. Bit Shift Operations Use Their Own Rules
 
-Toán tử dịch bit `<<`, `>>`, `>>>` không dùng binary numeric promotion như phép cộng. **Từng toán hạng được unary numeric promotion** và kiểu kết quả theo toán hạng bên trái sau promotion (`int` hoặc `long`).
+The shift operators `<<`, `>>`, and `>>>` do not use binary numeric promotion like addition. **Each operand undergoes unary numeric promotion independently**, and the result type follows the promoted left-hand operand (`int` or `long`).
 
-- `byte b = 1; b << 8` cho kết quả kiểu int = 256.
-- `1L << 40` dịch long và cho 1099511627776.
-- `1 << 32` bằng `1 << 0` vì chỉ 5 bit thấp của khoảng dịch được dùng cho int.
-- `1L << 64` bằng `1L << 0` vì chỉ 6 bit thấp được dùng cho long.
+- `byte b = 1; b << 8` yields an `int` result = 256.
+- `1L << 40` shifts a `long` and gives 1099511627776.
+- `1 << 32` equals `1 << 0` because only the low 5 bits of the shift distance are used for `int`.
+- `1L << 64` equals `1L << 0` because only the low 6 bits are used for `long`.
 
-### Ví dụ Java 17: shift và promotion
+### Java 17 Example: Shift and Promotion
 
-Tạo tệp `ShiftDemo.java`:
+Create the file `ShiftDemo.java`:
 
 ~~~java
 public class ShiftDemo {
@@ -310,7 +310,7 @@ javac ShiftDemo.java
 java ShiftDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 byte shift = 256
@@ -319,14 +319,14 @@ long shift = 1099511627776
 -1 >>> 1 = 2147483647
 ~~~
 
-Các toán tử bitwise `&`, `|`, `^` giữa các số nguyên tuân quy tắc numeric promotion riêng phù hợp; khi hai toán hạng là boolean, chúng cũng có dạng toán tử boolean, **không có chuyển boolean sang int**.
+The bitwise operators `&`, `|`, and `^` between integers follow their own appropriate numeric promotion rules; when both operands are `boolean`, they also act as boolean operators, **with no conversion from `boolean` to `int`**.
 
-## 8. Ngoại lệ: narrowing hằng int trong assignment
+## 8. Exception: Narrowing Constant int in Assignment
 
-Trong **assignment conversion**, một *biểu thức hằng* có kiểu int có thể gán ngầm vào `byte`, `short` hoặc `char` nếu **giá trị hằng nằm trong miền** của kiểu đích:
+In **assignment conversion**, a *constant expression* of type `int` can be implicitly assigned to `byte`, `short`, or `char` if **the constant value fits in the range** of the target type:
 
 ~~~java
-// Minh họa cú pháp hợp lệ, không phải chương trình độc lập.
+// Valid syntax demonstration, not a standalone program.
 byte max = 127;
 short s = 1 + 2;
 char latinA = 65;
@@ -334,22 +334,22 @@ final int LIMIT = 100;
 byte fromConstant = LIMIT;
 ~~~
 
-Nhưng:
+However:
 
 ~~~java
-// Minh họa lỗi biên dịch, không được chạy nguyên khối này.
-byte invalid = 128;      // Hằng vượt miền byte
+// Compilation error demonstration, do not run this block as-is.
+byte invalid = 128;      // Constant exceeds byte range
 int value = 127;
-byte fromValue = value;   // value không phải constant expression
+byte fromValue = value;   // value is not a constant expression
 byte x = 10;
-byte result = x + 1;     // x + 1 có kiểu int
+byte result = x + 1;     // x + 1 has type int
 ~~~
 
-Một `final int` khởi tạo bằng biểu thức hằng phù hợp có thể tham gia quy tắc này; biến `int` thông thường không được narrowing ngầm chỉ vì giá trị lúc chạy đang vừa miền byte.
+A `final int` initialized with a suitable constant expression can participate in this rule; a regular `int` variable cannot be implicitly narrowed simply because its runtime value happens to fit within the `byte` range.
 
-### Ví dụ Java 17: hằng vừa miền và cast biến
+### Java 17 Example: In-Range Constant and Casting a Variable
 
-Tạo tệp `ConstantAssignmentDemo.java`:
+Create the file `ConstantAssignmentDemo.java`:
 
 ~~~java
 public class ConstantAssignmentDemo {
@@ -377,7 +377,7 @@ javac ConstantAssignmentDemo.java
 java ConstantAssignmentDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 byte = 127
@@ -387,15 +387,15 @@ final constant = 100
 cast variable = 127
 ~~~
 
-**Ngoại lệ gán hằng không áp dụng tự động cho method invocation.** Với phương thức `takeByte(byte x)`, gọi `takeByte(1)` không hợp lệ nếu đó là overload duy nhất; phải dùng `takeByte((byte) 1)` hoặc truyền biến byte.
+**The constant assignment exception does not automatically apply to method invocation.** Given a method `takeByte(byte x)`, calling `takeByte(1)` is invalid if that is the only overload; you must use `takeByte((byte) 1)` or pass a `byte` variable.
 
-## 9. Compound assignment và ++ có narrowing ngầm
+## 9. Compound Assignment and ++ Have Implicit Narrowing
 
-`byte b = 120; b += 10;` hợp lệ, dù biểu thức `b + 10` có kiểu int. Compound assignment có ngữ nghĩa gần giống `b = (byte) (b + 10)`, khác ở chỗ toán hạng trái chỉ được đánh giá một lần. Điều này cho phép **narrowing ngầm** và có thể tạo overflow. `++`, `--` với các kiểu số nguyên nhỏ cũng có thể đưa giá trị quay vòng.
+`byte b = 120; b += 10;` is valid, even though the expression `b + 10` has type `int`. Compound assignment has semantics similar to `b = (byte) (b + 10)`, except that the left-hand operand is evaluated only once. This permits **implicit narrowing** and can produce overflow. `++` and `--` on smaller integer types can also cause values to wrap around.
 
-### Ví dụ Java 17: += không bảo đảm an toàn miền
+### Java 17 Example: += Does Not Guarantee Range Safety
 
-Tạo tệp `CompoundAssignmentDemo.java`:
+Create the file `CompoundAssignmentDemo.java`:
 
 ~~~java
 public class CompoundAssignmentDemo {
@@ -421,7 +421,7 @@ javac CompoundAssignmentDemo.java
 java CompoundAssignmentDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 byte += = -126
@@ -429,15 +429,15 @@ short++ = -32768
 int += long = -2147483648
 ~~~
 
-Ngược lại, `b = b + 10` báo lỗi biên dịch nếu b là biến byte vì gán `int` runtime vào byte thiếu cast. Việc cú pháp `+=` biên dịch được không đồng nghĩa kết quả ở trong miền. Với dữ liệu cần an toàn, tính trên kiểu rộng và kiểm tra giới hạn trước khi cast.
+Conversely, `b = b + 10` reports a compilation error if `b` is a `byte` variable because assigning a runtime `int` to a `byte` lacks a cast. The fact that `+=` compiles does not mean the result stays in range. For data requiring safety, compute in a wider type and check bounds before casting.
 
-## 10. Method invocation, overload, boxing và toán tử ba ngôi
+## 10. Method Invocation, Overloading, Boxing, and the Ternary Operator
 
-**Method invocation conversion** cho phép widening primitive hợp lệ, nhưng **không áp dụng ngoại lệ narrowing hằng int trong assignment**. Phân giải overload còn phụ thuộc các quy tắc ưu tiên giữa phương thức có thể gọi, boxing/unboxing, varargs và mức độ cụ thể của chữ ký.
+**Method invocation conversion** allows valid primitive widening, but **does not apply the `int` constant narrowing exception from assignment**. Overload resolution also depends on precedence rules among applicable methods, boxing/unboxing, varargs, and signature specificity.
 
-### Ví dụ Java 17: widening khi chọn overload
+### Java 17 Example: Widening When Choosing an Overload
 
-Tạo tệp `OverloadDemo.java`:
+Create the file `OverloadDemo.java`:
 
 ~~~java
 public class OverloadDemo {
@@ -464,7 +464,7 @@ javac OverloadDemo.java
 java OverloadDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 int -> long
@@ -472,100 +472,100 @@ float -> float
 double -> double
 ~~~
 
-`choose(5)` có thể widening int sang long, float, double; trong các overload này long là lựa chọn cụ thể hơn. `Integer`, `Long`, `Double` là **wrapper reference types**, không phải primitive; có quy tắc boxing/unboxing riêng. Ví dụ `Integer i = 10; long x = i;` hợp lệ do unboxing int rồi widening long, nhưng `Long l = Integer.valueOf(10);` không phải widening giữa hai wrapper. Unboxing một wrapper `null` có thể ném `NullPointerException`.
+`choose(5)` can widen `int` to `long`, `float`, or `double`; among these overloads, `long` is the more specific choice. `Integer`, `Long`, and `Double` are **wrapper reference types**, not primitives; they have their own boxing/unboxing rules. For example, `Integer i = 10; long x = i;` is valid due to unboxing `int` and then widening to `long`, whereas `Long l = Integer.valueOf(10);` is not widening between two wrappers. Unboxing a `null` wrapper can throw `NullPointerException`.
 
-Toán tử ba ngôi `condition ? a : b` có quy tắc **numeric conditional expressions** riêng, với ngoại lệ liên quan byte/short/char và hằng int vừa miền. Vì vậy không thể áp dụng mù quáng bảng `a + b` cho tất cả toán tử ba ngôi. Hãy kiểm tra loại từng nhánh, các trường hợp hằng và phiên bản JLS khi cần suy luận kiểu kết quả chính xác.
+The ternary operator `condition ? a : b` has its own **numeric conditional expression** rules, with exceptions involving `byte`/`short`/`char` and in-range `int` constants. Therefore, you cannot blindly apply the `a + b` table to all ternary expressions. Check the types of each branch, constant cases, and the JLS version when you need to deduce the exact result type.
 
-## 11. BigDecimal không tự tham gia numeric promotion
+## 11. BigDecimal Does Not Automatically Participate in Numeric Promotion
 
-`BigDecimal` là **lớp**, không thuộc hệ primitive promotion:
+`BigDecimal` is a **class**, not part of the primitive promotion system:
 
-- `0.1 + 0.2` là phép tính double, không phải phép cộng decimal chính xác.
-- `new BigDecimal("0.1").add(new BigDecimal("0.2"))` thực hiện phép cộng BigDecimal thập phân.
-- Java không tự cho phép toán tử `BigDecimal + int`. Dùng `add` và tạo toán hạng BigDecimal tường minh.
-- Java cũng không tự chuyển một phép int/long bị overflow sang BigInteger hoặc BigDecimal.
-- `new BigDecimal(0.1)` giữ đúng giá trị double nhị phân gần đúng đã nhận, có thể khác số decimal 0.1 người dùng mong muốn; ưu tiên constructor chuỗi decimal chính xác khi bài toán cần điều đó.
+- `0.1 + 0.2` is a `double` operation, not exact decimal addition.
+- `new BigDecimal("0.1").add(new BigDecimal("0.2"))` performs decimal `BigDecimal` addition.
+- Java does not allow the `BigDecimal + int` operator. Use `add` and construct the `BigDecimal` operand explicitly.
+- Java also does not automatically convert an overflowed `int`/`long` operation to `BigInteger` or `BigDecimal`.
+- `new BigDecimal(0.1)` preserves the exact approximate binary `double` value received, which can differ from the decimal 0.1 the user intended; prefer the exact decimal string constructor when the problem requires it.
 
-Với tiền hoặc các giá trị decimal đòi độ chính xác, chọn kiểu số thích hợp **trước khi thực hiện phép toán**, không chờ mất dữ liệu rồi mới ép kiểu kết quả.
+For currency or decimal values requiring exactness, choose the appropriate numeric type **before performing operations**, rather than waiting until data is lost and casting the result afterward.
 
-## 12. Bảng quyết định nhanh
+## 12. Quick Decision Table
 
-| Code hoặc tình huống | Kết quả/quy tắc |
+| Code or Scenario | Result / Rule |
 | --- | --- |
-| `long l = someInt;` | Widening int→long, giữ nguyên giá trị |
-| `float f = someInt;` | Widening hợp lệ, có thể mất precision |
-| `byte b = 127;` | Hợp lệ do ngoại lệ hằng int trong assignment |
-| `byte b = 128;` | Lỗi compile: ngoài miền |
-| `int i = someLong;` | Lỗi compile nếu không cast |
-| `byte a = 1, b = 2; int c = a+b;` | Phép cộng dùng int |
-| `double d = 5/2;` | 2.0, vì chia int trước |
-| `double d = 5/2.0;` | 2.5, vì có toán hạng double |
-| `long r = 50000*50000;` | Tràn int trước khi widening sang long |
-| `long r = 50000L*50000;` | Nhân long, kết quả 2500000000 |
-| `byte b = 120; b += 10;` | Kết quả -126 do narrowing ngầm |
-| `int i = (int)3.99;` | 3, bỏ phần lẻ hướng về 0 |
-| `char c = (char)-1;` | Mã char = 65535 |
-| `int s = 1 << 32;` | 1 do chỉ dùng 5 bit thấp khoảng dịch |
-| `boolean b = (boolean)1;` | Không hợp lệ, boolean không tham gia chuyển đổi số |
+| `long l = someInt;` | Widening int→long, preserves value |
+| `float f = someInt;` | Valid widening, may lose precision |
+| `byte b = 127;` | Valid due to constant int assignment exception |
+| `byte b = 128;` | Compile error: out of range |
+| `int i = someLong;` | Compile error without cast |
+| `byte a = 1, b = 2; int c = a+b;` | Addition uses int |
+| `double d = 5/2;` | 2.0, because int division happens first |
+| `double d = 5/2.0;` | 2.5, because there is a double operand |
+| `long r = 50000*50000;` | Overflows int before widening to long |
+| `long r = 50000L*50000;` | long multiplication, result 2500000000 |
+| `byte b = 120; b += 10;` | Result -126 due to implicit narrowing |
+| `int i = (int)3.99;` | 3, truncates fraction toward 0 |
+| `char c = (char)-1;` | char code = 65535 |
+| `int s = 1 << 32;` | 1 because only low 5 bits of shift distance are used |
+| `boolean b = (boolean)1;` | Invalid, boolean does not participate in numeric conversion |
 
-Bảng áp dụng trực tiếp cho kiểu primitive. Những trường hợp boxing, wrapper, generic, overload, toán tử ba ngôi và hằng đặc biệt phải xét thêm quy tắc tương ứng.
+This table applies directly to primitive types. Cases involving boxing, wrappers, generics, overloading, the ternary operator, and special constants require checking their corresponding rules.
 
-## 13. Sai lầm thường gặp
+## 13. Common Mistakes
 
-1. **“Widening luôn chính xác.”** Không đúng với int→float hoặc long→double cho số lớn.
-2. **“Biến long nhận kết quả sẽ ép phép toán sang long.”** Không: int có thể tràn trước khi gán.
-3. **“byte + byte là byte.”** Không: binary promotion thành int.
-4. **“char tương đương short.”** Không: char không dấu, short có dấu.
-5. **“Cast double sang int làm tròn gần nhất.”** Không: cắt phần thập phân về 0.
-6. **“Cast narrowing tự kiểm tra vượt miền.”** Không: số nguyên có thể bị cắt các bit cao.
-7. **“`+=` an toàn hơn `= a+b`.”** Không: có narrowing ngầm.
-8. **“Hằng số int vừa miền được narrowing trong mọi ngữ cảnh.”** Ngoại lệ assignment không áp dụng với method invocation thông thường.
-9. **“Dịch bit dùng binary promotion như cộng.”** Không: kiểu kết quả dựa vào toán hạng trái đã unary promotion.
-10. **“Boolean có thể cast sang int.”** Java không hỗ trợ.
-11. **“Wrapper có thể chuyển ngầm như primitive.”** Boxing/unboxing và widening reference có quy tắc riêng.
-12. **“BigDecimal được Java tự chọn khi có số decimal.”** Không: phải dùng API BigDecimal tường minh.
+1. **"Widening is always exact."** Not true for int→float or long→double with large numbers.
+2. **"A receiving long variable forces the operation to long."** No: int can overflow before assignment.
+3. **"byte + byte is byte."** No: binary promotion produces int.
+4. **"char is equivalent to short."** No: char is unsigned, short is signed.
+5. **"Casting double to int rounds to nearest."** No: truncates the fractional part toward 0.
+6. **"A narrowing cast automatically checks for out-of-range values."** No: integers can silently have high bits truncated.
+7. **"`+=` is safer than `= a+b`."** No: it performs implicit narrowing.
+8. **"An in-range int constant is narrowed in every context."** The assignment exception does not apply to normal method invocation.
+9. **"Bit shifts use binary promotion like addition."** No: the result type is based on the unary-promoted left operand.
+10. **"Boolean can be cast to int."** Java does not support this.
+11. **"Wrappers can convert implicitly like primitives."** Boxing/unboxing and reference widening have separate rules.
+12. **"Java automatically chooses BigDecimal when decimal numbers appear."** No: you must use the BigDecimal API explicitly.
 
-## 14. Bài tập và đáp án
+## 14. Exercises and Answers
 
-**Câu 1.** `int i = 16_777_217; float f = i;` có cho cùng giá trị không?
+**Question 1.** Do `int i = 16_777_217; float f = i;` produce the exact same value?
 
-**Đáp án:** Không. Float có thể biểu diễn 16.777.216 mà không giữ chính xác 16.777.217.
+**Answer:** No. Float can represent 16,777,216 without keeping 16,777,217 exact.
 
-**Câu 2.** Vì sao `byte x=10, y=20; byte sum=x+y;` không biên dịch?
+**Question 2.** Why does `byte x=10, y=20; byte sum=x+y;` fail to compile?
 
-**Đáp án:** `x+y` có kiểu int; dùng `int sum=x+y` hoặc cast sau khi xác minh miền.
+**Answer:** `x+y` has type int; use `int sum=x+y` or cast after verifying the range.
 
-**Câu 3.** `double result=5/2;` bằng bao nhiêu và sửa thế nào?
+**Question 3.** What is `double result=5/2;` equal to, and how do you fix it?
 
-**Đáp án:** 2.0; dùng `5/2.0` hoặc `(double)5/2` để được 2.5.
+**Answer:** 2.0; use `5/2.0` or `(double)5/2` to get 2.5.
 
-**Câu 4.** `(byte)130`, `(char)-1` và `(int)-3.99` cho kết quả gì?
+**Question 4.** What do `(byte)130`, `(char)-1`, and `(int)-3.99` evaluate to?
 
-**Đáp án:** -126, char code 65535 và -3.
+**Answer:** -126, char code 65535, and -3.
 
-**Câu 5.** `byte b=120; b+=10;` và `short s=32767; s++;` cho giá trị gì?
+**Question 5.** What values do `byte b=120; b+=10;` and `short s=32767; s++;` produce?
 
-**Đáp án:** b là -126, s là -32768; compound assignment/increment có thể narrowing.
+**Answer:** b is -126, s is -32768; compound assignment/increment can narrow implicitly.
 
-**Câu 6.** `long p=50_000*50_000;` có bằng `2_500_000_000L` không?
+**Question 6.** Does `long p=50_000*50_000;` equal `2_500_000_000L`?
 
-**Đáp án:** Không; phép nhân int tràn trước. Dùng `50_000L*50_000`.
+**Answer:** No; int multiplication overflows first. Use `50_000L*50_000`.
 
-**Câu 7.** Tại sao `byte b=127;` hợp lệ nhưng `int n=127; byte b=n;` không?
+**Question 7.** Why is `byte b=127;` valid while `int n=127; byte b=n;` is not?
 
-**Đáp án:** Biểu thức hằng int vừa miền có ngoại lệ gán, còn biến int thông thường cần cast.
+**Answer:** An in-range int constant expression has an assignment exception, whereas a regular int variable requires a cast.
 
-**Câu 8.** `1 << 32` cho số nào?
+**Question 8.** What number does `1 << 32` produce?
 
-**Đáp án:** 1, vì dịch int chỉ xem 5 bit thấp của khoảng dịch, nên 32 tương đương 0.
+**Answer:** 1, because int shift only considers the low 5 bits of the shift distance, so 32 is equivalent to 0.
 
-## 15. Ghi nhớ
+## 15. Takeaways
 
-- **Widening** được phép ngầm nhưng có thể mất precision khi từ số nguyên lớn sang floating-point.
-- **Narrowing** thường cần cast; số nguyên bỏ bit cao, dấu phẩy động sang nguyên bỏ phần lẻ hướng về 0 và có quy tắc biên.
-- **Unary promotion** nâng byte/short/char lên int; **binary promotion** ưu tiên double, float, long rồi int trước phép tính.
-- **Kiểu toán hạng quyết định phép toán trước khi gán**, nên double nhận phép chia nguyên hoặc long nhận phép nhân int đã tràn vẫn giữ lỗi trung gian.
-- **Constant narrowing trong assignment**, compound assignment, toán tử dịch, overload, toán tử ba ngôi và boxing/unboxing là các ngoại lệ cần tra cứu riêng.
-- Với số học decimal chính xác hoặc số nguyên vượt long, dùng BigDecimal/BigInteger chủ động qua API, không mong primitive promotion tự giải quyết.
+- **Widening** is allowed implicitly, but can lose precision when converting from large integers to floating-point.
+- **Narrowing** usually requires a cast; integers discard high bits, floating-point to integer truncates the fraction toward 0 and has boundary rules.
+- **Unary promotion** promotes byte/short/char to int; **binary promotion** prioritizes double, float, long, then int before the operation.
+- **Operand types determine the operation before assignment**, so a double receiving integer division or a long receiving an overflowed int multiplication still retains the intermediate error.
+- **Constant narrowing in assignment**, compound assignment, shift operators, overloading, the ternary operator, and boxing/unboxing are exceptions that must be checked individually.
+- For exact decimal arithmetic or integers exceeding long, use BigDecimal/BigInteger proactively through the API rather than expecting primitive promotion to handle it automatically.
 
-Tài liệu chuẩn: Java Language Specification cho Java SE 17 — `5.1.2 Widening Primitive Conversion`, `5.1.3 Narrowing Primitive Conversion`, `5.2 Assignment Contexts`, `5.6 Numeric Contexts`, `15.15 Unary Operators`, `15.17 Multiplicative Operators`, `15.18 Additive Operators`, `15.19 Shift Operators`, `15.25 Conditional Operator` và `15.26 Assignment Operators`.
+Standard reference: Java Language Specification for Java SE 17 — `5.1.2 Widening Primitive Conversion`, `5.1.3 Narrowing Primitive Conversion`, `5.2 Assignment Contexts`, `5.6 Numeric Contexts`, `15.15 Unary Operators`, `15.17 Multiplicative Operators`, `15.18 Additive Operators`, `15.19 Shift Operators`, `15.25 Conditional Operator`, and `15.26 Assignment Operators`.

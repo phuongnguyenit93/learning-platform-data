@@ -1,29 +1,29 @@
-# Tên đơn giản và tên đầy đủ của lớp trong Java
+# Simple Names and Fully Qualified Class Names in Java
 
-## 1. Tên đơn giản (*simple name*) và tên đầy đủ (*fully qualified name*)
+## 1. Simple name and fully qualified name
 
-Java tổ chức các lớp, interface, enum, record và những kiểu khác trong các **package**. Với một kiểu top-level, có hai cách gọi tên phổ biến:
+Java organizes classes, interfaces, enums, records, and other types into **packages**. For a top-level type, there are two common ways to name it:
 
-- **Tên đơn giản** (*simple name*): tên khai báo ngay sau `class`, `interface`, `enum`, hoặc `record`; ví dụ `ArrayList`, `String`, `Student`.
-- **Tên đầy đủ** (*fully qualified name*, trong ngữ cảnh bài này là tên có package): tên package cộng dấu chấm và tên kiểu; ví dụ `java.util.ArrayList`, `java.lang.String`, `com.example.model.Student`.
+- **Simple name**: the name declared right after `class`, `interface`, `enum`, or `record`; for example `ArrayList`, `String`, `Student`.
+- **Fully qualified name** (in the context of this lesson, the name with its package): the package name plus a dot and the type name; for example `java.util.ArrayList`, `java.lang.String`, `com.example.model.Student`.
 
 ```java
-// Tên đơn giản:
+// Simple name:
 ArrayList<String> names;
 
-// Tên đầy đủ:
+// Fully qualified name:
 java.util.ArrayList<String> others;
 ```
 
-Hai cách có thể chỉ **cùng một kiểu**, nếu tên đơn giản `ArrayList` được Java phân giải đúng thành `java.util.ArrayList` (thường nhờ `import`).
+Both can refer to the **same type**, if the simple name `ArrayList` is resolved by Java to `java.util.ArrayList` (usually via `import`).
 
-Một **package** không phải đối tượng và cũng không phải nơi giữ trạng thái runtime; nó tạo không gian tên để tổ chức các kiểu và tránh va chạm tên. Theo quy ước Java, tên package thường là chữ thường, chẳng hạn `com.example.app`, còn tên lớp là PascalCase như `OrderService`.
+A **package** is neither an object nor a place holding runtime state; it creates a namespace to organize types and avoid name collisions. By Java convention, package names are usually lowercase, such as `com.example.app`, while class names are PascalCase like `OrderService`.
 
-**Phân biệt:** tên đầy đủ theo dấu chấm trong mã nguồn Java khác tên tệp `.java` hoặc tên lớp dạng nhị phân (*binary name*) cho kiểu lồng nhau. Với `java.util.Map.Entry`, tên canonical trong Java là `java.util.Map.Entry`, trong khi `Class.getName()` của kiểu này trả `java.util.Map$Entry`.
+**Distinction:** a dotted fully qualified name in Java source code differs from a `.java` file name or a *binary name* for nested types. For `java.util.Map.Entry`, the canonical name in Java is `java.util.Map.Entry`, whereas `Class.getName()` for this type returns `java.util.Map$Entry`.
 
-## 2. Package, khai báo lớp và vị trí tệp
+## 2. Packages, class declarations, and file locations
 
-Ví dụ:
+Example:
 
 ```java
 package com.example.model;
@@ -41,21 +41,21 @@ public class Student {
 }
 ```
 
-Đoạn trên là nội dung đầy đủ của **`Student.java`**. Tên đơn giản của lớp là `Student`; tên đầy đủ là `com.example.model.Student`. Trong một source file thông thường, `package` (nếu có) đứng đầu sau các nhận xét, trước các `import` và khai báo kiểu top-level.
+The snippet above is the complete content of **`Student.java`**. The class's simple name is `Student`; its fully qualified name is `com.example.model.Student`. In a typical source file, `package` (if present) goes at the top after comments and before `import` statements and top-level type declarations.
 
-Quy tắc cơ bản:
+Basic rules:
 
-- Một kiểu top-level `public class Student` phải được khai báo trong source file tên **`Student.java`**.
-- `package com.example.model;` xác định package theo **khai báo trong mã nguồn**, không tự được quyết định bởi tên thư mục.
-- Bố cục thư mục tương ứng với package, như `src/com/example/model/Student.java`, là quy ước và cách tổ chức thông thường giúp công cụ biên dịch, build và classpath tìm thấy lớp đúng vị trí.
-- Biên dịch bằng `javac -d out ...` đặt file lớp vào cấu trúc thư mục theo package, chẳng hạn `out/com/example/model/Student.class`.
-- Chạy một lớp có `main` trong package bằng **tên đầy đủ của lớp** như `java -cp out com.example.app.Main`; `java -cp out Main` sẽ không tìm đúng tên lớp đó.
+- A top-level `public class Student` must be declared in a source file named **`Student.java`**.
+- `package com.example.model;` sets the package based on the **source code declaration**, not automatically from the directory name.
+- A directory layout matching the package, such as `src/com/example/model/Student.java`, is a convention and standard organization that helps compilers, build tools, and the classpath locate classes in the right place.
+- Compiling with `javac -d out ...` places class files into a package-based directory structure, such as `out/com/example/model/Student.class`.
+- Run a class with `main` inside a package using the **fully qualified class name**, such as `java -cp out com.example.app.Main`; `java -cp out Main` will not find that class name.
 
-Không nên nhầm *tên đơn giản* của lớp `Student` với *tên biến* `student` khi tạo `Student student = new Student("An");`.
+Do not confuse the *simple name* of the class `Student` with the *variable name* `student` when writing `Student student = new Student("An");`.
 
-## 3. `import` cho phép viết tên đơn giản
+## 3. `import` enables writing simple names
 
-Nếu tệp nguồn nằm ở package khác với lớp muốn dùng, ta thường thêm một hoặc vài khai báo `import`:
+If a source file is in a different package from the class you want to use, you usually add one or more `import` declarations:
 
 ```java
 package com.example.app;
@@ -72,34 +72,34 @@ public class Demo {
 }
 ```
 
-Trong ví dụ này, `List` là tên đơn giản đại diện cho `java.util.List`; `ArrayList` đại diện cho `java.util.ArrayList`.
+In this example, `List` is a simple name standing for `java.util.List`; `ArrayList` stands for `java.util.ArrayList`.
 
-**`import` không tạo đối tượng, không sao chép mã và không nạp lớp theo nghĩa chạy chương trình.** Nó là khai báo giúp trình biên dịch nhận diện tên ngắn tại nơi có hiệu lực. Không cần `import` nếu viết tên đầy đủ ngay trong mã:
+**`import` does not create objects, copy code, or load classes in the runtime sense.** It is a declaration that helps the compiler recognize short names where applicable. No `import` is needed if you write the fully qualified name directly in code:
 
 ```java
 java.util.List<String> words = new java.util.ArrayList<>();
 words.add("Java");
 ```
 
-Cả hai cách viết đều dùng đúng các kiểu từ `java.util`.
+Both forms use the exact same types from `java.util`.
 
-Các dạng hay gặp:
+Common forms:
 
-| Cú pháp | Ý nghĩa |
+| Syntax | Meaning |
 | --- | --- |
-| `import java.util.List;` | Import một kiểu cụ thể; cho phép dùng `List` như tên đơn giản khi không bị xung đột |
-| `import java.util.*;` | Import theo yêu cầu các kiểu truy cập được trực tiếp thuộc package `java.util` |
-| `import static java.lang.Math.max;` | Cho phép gọi thành viên static `max` bằng tên ngắn |
-| `import static java.lang.Math.*;` | Static import theo yêu cầu các thành viên static truy cập được của `Math` |
-| `java.sql.Date` | Dùng tên đầy đủ tại vị trí cần; không phụ thuộc import `Date` của package nào |
+| `import java.util.List;` | Imports a specific type; lets you use `List` as a simple name when there is no conflict |
+| `import java.util.*;` | Imports on demand the directly accessible types in package `java.util` |
+| `import static java.lang.Math.max;` | Allows calling the static member `max` by its short name |
+| `import static java.lang.Math.*;` | Static import on demand for accessible static members of `Math` |
+| `java.sql.Date` | Uses the fully qualified name at the point of use; independent of any `Date` import |
 
-`import java.util.*;` **không import các package con** của `java.util`, chẳng hạn `java.util.concurrent`. Ký hiệu `*` cũng không có nghĩa tự import toàn bộ thư viện Java.
+`import java.util.*;` **does not import subpackages** of `java.util`, such as `java.util.concurrent`. The `*` symbol also does not mean importing the entire Java library.
 
-Các kiểu trong `java.lang` như `String`, `Object`, `System`, `Math` được import **ngầm định theo yêu cầu**; các kiểu thuộc **cùng package** cũng có thể được gọi theo tên đơn giản khi không có xung đột. Vì vậy không cần viết `import java.lang.String;` trong chương trình thông thường.
+Types in `java.lang` such as `String`, `Object`, `System`, and `Math` are **implicitly imported on demand**; types in the **same package** can also be referred to by their simple names when there is no conflict. Thus you do not need to write `import java.lang.String;` in ordinary programs.
 
-## 4. Khi tên đơn giản không đủ xác định kiểu
+## 4. When a simple name is not enough to identify a type
 
-`java.util.Date` và `java.sql.Date` có simple name `Date` giống nhau nhưng là hai kiểu khác nhau. Trong một compilation unit, có thể import một kiểu và viết tên đầy đủ cho kiểu còn lại:
+`java.util.Date` and `java.sql.Date` have the same simple name `Date` but are two different types. Within a compilation unit, you can import one type and write the fully qualified name for the other:
 
 ~~~java
 import java.util.Date;
@@ -110,27 +110,27 @@ class Dates {
 }
 ~~~
 
-Hai **single-type imports** cho hai kiểu khác nhau cùng simple name gây lỗi; hai wildcard imports có thể khiến tên ngắn mơ hồ ở nơi dùng. Bài về xung đột import phân tích sâu các trường hợp này. Ở đây chỉ cần nhớ tên đầy đủ giúp xác định kiểu chính xác.
+Two **single-type imports** for two different types with the same simple name cause an error; two wildcard imports can make the short name ambiguous where used. The lesson on import conflicts analyzes these cases in depth. Here it suffices to remember that the fully qualified name identifies a type unambiguously.
 
-## 5. Quy tắc tra cứu tên: vài tình huống quan trọng
+## 5. Name lookup rules: some important scenarios
 
-Trình biên dịch phân giải một tên kiểu đơn giản dựa trên **ngữ cảnh cú pháp và các khai báo/import đang có**, không đơn giản tìm một lớp ngẫu nhiên trùng tên trong toàn bộ classpath.
+The compiler resolves a simple type name based on **the syntactic context and active declarations/imports**, rather than simply searching for a random class with the same name across the entire classpath.
 
-Các tình huống thường gặp:
+Common scenarios:
 
-1. **Kiểu đã được khai báo hoặc nằm trong phạm vi phù hợp** có thể được nhắc bằng tên đơn giản theo quy tắc scope và khả năng truy cập.
-2. **Kiểu trong cùng package** có thể được dùng không cần import.
-3. **Single-type import** như `import java.util.List;` cung cấp tên ngắn cho một kiểu cụ thể; import trùng tên có thể gây lỗi biên dịch.
-4. **On-demand import** như `import java.util.*;` cung cấp các kiểu khi cần; nếu có nhiều ứng viên với cùng tên đơn giản, có thể phải chỉ rõ tên đầy đủ.
-5. **`java.lang`** được import ngầm; tuy nhiên vẫn có thể có những tên trùng với kiểu do chương trình tự khai báo trong ngữ cảnh thích hợp.
+1. **A type already declared or in an appropriate scope** can be referred to by its simple name according to scope and accessibility rules.
+2. **Types in the same package** can be used without an import.
+3. **A single-type import** such as `import java.util.List;` provides a short name for one specific type; conflicting imports can cause a compilation error.
+4. **An on-demand import** such as `import java.util.*;` provides types as needed; if multiple candidates share the same simple name, you may have to specify the fully qualified name.
+5. **`java.lang`** is implicitly imported; however, names may still collide with program-defined types in the relevant context.
 
-Đây là cách đọc thực dụng, **không thay thế toàn bộ thứ tự tra cứu tên** trong Java Language Specification. Khi một tên đơn giản đang trỏ tới kiểu không mong muốn, hãy kiểm tra package hiện tại, các khai báo cùng scope, import cụ thể và wildcard imports; sau đó dùng tên đầy đủ để xác nhận ý định.
+This is a practical reading guide and **does not replace the full name-resolution order** in the Java Language Specification. When a simple name points to an unintended type, check the current package, declarations in the same scope, explicit imports, and wildcard imports; then use the fully qualified name to confirm your intent.
 
-**Phân biệt quyền truy cập với việc import:** một lớp `package-private` không tự trở thành truy cập được từ package khác chỉ vì có `import`. Import không vượt qua giới hạn `public`, `protected`, package access hay `private`.
+**Distinguish access rights from importing:** a `package-private` class does not become accessible from another package merely by adding `import`. Imports do not bypass `public`, `protected`, package access, or `private` restrictions.
 
-## 6. Ví dụ Java 17+ chạy độc lập, chứng minh cả hai cách gọi
+## 6. Standalone Java 17+ example demonstrating both styles
 
-Tạo thư mục và tệp **`src/study/NameResolutionDemo.java`** theo nội dung:
+Create the directory and file **`src/study/NameResolutionDemo.java`** with the following content:
 
 ```java
 package study;
@@ -144,28 +144,28 @@ import static java.lang.Math.PI;
 
 public class NameResolutionDemo {
     public static void main(String[] args) {
-        // List và ArrayList là tên đơn giản nhờ import.
+        // List and ArrayList are simple names thanks to import.
         List<String> names = new ArrayList<>();
         names.add("An");
         names.add("Binh");
         System.out.println("Names: " + names);
 
-        // java.util.ArrayList là tên đầy đủ cho cùng kiểu.
+        // java.util.ArrayList is the fully qualified name for the same type.
         java.util.List<String> other = new java.util.ArrayList<>();
         other.add("Java");
         System.out.println("Other: " + other);
 
-        // Hai lớp Date khác package, tránh trùng tên đơn giản.
+        // Two Date classes from different packages, avoiding simple name collision.
         Date utilDate = new Date(0L);
         java.sql.Date sqlDate = new java.sql.Date(0L);
         System.out.println("Util Date class: " + utilDate.getClass().getName());
         System.out.println("SQL Date class: " + sqlDate.getClass().getName());
 
-        // Kiểu lồng nhau: Map.Entry có tên canonical nhiều thành phần.
+        // Nested type: Map.Entry has a multi-part canonical name.
         Map.Entry<String, Integer> entry = Map.entry("apple", 2);
         System.out.println("Entry: " + entry.getKey() + "=" + entry.getValue());
 
-        // java.lang tự có import ngầm; max và PI từ static import.
+        // java.lang is implicitly imported; max and PI come from static imports.
         System.out.println("Max: " + max(3, 5));
         System.out.println("PI > 3: " + (PI > 3.0));
         System.out.println("Simple class: " + names.getClass().getSimpleName());
@@ -174,18 +174,18 @@ public class NameResolutionDemo {
 }
 ```
 
-**Biên dịch và chạy** (JDK 17+, đứng ở thư mục gốc của ví dụ, có tệp `src/study/NameResolutionDemo.java`):
+**Compile and run** (JDK 17+, from the root directory of the example containing `src/study/NameResolutionDemo.java`):
 
-**Tạo sẵn thư mục gốc `out` trước lệnh `javac -d out` nếu chưa tồn tại**: Bash/Linux/macOS chạy `mkdir -p out`; Windows PowerShell chạy `New-Item -ItemType Directory -Force out | Out-Null`. `javac` có thể tạo các thư mục *bên trong* `out` theo package nhưng không tự tạo thư mục đích `out` còn thiếu.
+**Create the root `out` directory before `javac -d out` if it does not exist yet**: on Bash/Linux/macOS run `mkdir -p out`; on Windows PowerShell run `New-Item -ItemType Directory -Force out | Out-Null`. `javac` can create directories *inside* `out` according to the package, but will not create a missing target `out` directory itself.
 
 ```bash
 javac -encoding UTF-8 -d out src/study/NameResolutionDemo.java
 java -cp out study.NameResolutionDemo
 ```
 
-Hai dòng lệnh giống nhau trong PowerShell, CMD, bash hoặc zsh. Thư mục `out` là nơi `javac` tạo cây `study/NameResolutionDemo.class`; có thể để trình biên dịch tự tạo cấu trúc thư mục bên trong `out`. Dùng `study.NameResolutionDemo` vì lớp `NameResolutionDemo` nằm trong package `study`.
+These two commands are the same in PowerShell, CMD, bash, or zsh. The `out` directory is where `javac` creates the `study/NameResolutionDemo.class` tree; you can let the compiler create the directory structure inside `out`. Use `study.NameResolutionDemo` because the `NameResolutionDemo` class is in package `study`.
 
-**Stdout chính xác** (khi biên dịch thành công, `javac` không in gì):
+**Exact stdout** (when compilation succeeds, `javac` prints nothing):
 
 ```text
 Names: [An, Binh]
@@ -199,11 +199,11 @@ Simple class: ArrayList
 Full class: java.util.ArrayList
 ```
 
-Các kết quả `getClass().getSimpleName()` và `getClass().getName()` ở đây đọc từ đối tượng `ArrayList` thực tế. Đừng dùng `getSimpleName()` làm cơ chế xác minh duy nhất khi có hai lớp khác package cùng tên, vì thông tin package bị lược bỏ.
+The `getClass().getSimpleName()` and `getClass().getName()` results here are read from the actual `ArrayList` object. Do not rely on `getSimpleName()` as the sole verification mechanism when two classes in different packages share the same name, because package information is stripped.
 
-### Tên của kiểu lồng nhau và tên nhị phân
+### Nested type names and binary names
 
-Ví dụ `Map.Entry` là một interface lồng nhau có tên đơn giản `Entry`; trong mã Java, có thể viết `java.util.Map.Entry` mà không phải trực tiếp nhắc tới ký tự `$`.
+For example, `Map.Entry` is a nested interface with the simple name `Entry`; in Java code, you can write `java.util.Map.Entry` without ever directly referring to the `$` character.
 
 ```java
 System.out.println(java.util.Map.Entry.class.getCanonicalName());
@@ -213,31 +213,31 @@ System.out.println(java.util.Map.Entry.class.getName());
 // java.util.Map$Entry
 ```
 
-Đoạn này minh họa trong phương thức; chương trình hoàn chỉnh ở trên. `getCanonicalName()` và `getName()` khác nhau khi xử lý tên một số kiểu lồng nhau. Nếu dùng các API reflection như `Class.forName`, cần hiểu định dạng tên **nhị phân** mà API yêu cầu.
+This snippet illustrates the difference inside a method; the complete program is above. `getCanonicalName()` and `getName()` differ when handling names of certain nested types. If you use reflection APIs such as `Class.forName`, you need to understand the **binary** name format that the API expects.
 
-## 7. Không nên nhầm `import` với `classpath` hoặc module
+## 7. Do not confuse `import` with `classpath` or modules
 
-`import` chỉ giải quyết cách **viết tên kiểu** trong file source. Muốn biên dịch/chạy được, trình biên dịch và JVM còn phải tìm thấy định nghĩa lớp trên classpath hoặc module path tương ứng.
+`import` only resolves how **type names are written** in a source file. To compile and run, the compiler and JVM must still find the class definitions on the corresponding classpath or module path.
 
-- **`package`** xác định không gian tên của kiểu; chỉ khai báo `package study;` không tự cài đặt thư viện hoặc tải một `.jar` bên ngoài.
-- **`import`** giúp viết tên đơn giản; không chỉ định nơi tìm `.class`, không thêm thư viện vào classpath.
-- **`classpath`**, ví dụ `javac -cp libs/example.jar ...`, chỉ vị trí phụ thuộc khi biên dịch. `java -cp ...` chỉ vị trí lớp khi chạy.
-- Trong ứng dụng dùng **Java Platform Module System** (JPMS), khả năng sử dụng kiểu còn chịu quy tắc module như `requires` và `exports`; import không thay thế khai báo module.
-- Các kiểu trong **unnamed package** (không khai báo `package`) không thể được mã trong named package import theo cách thông thường; dự án thực tế nên dùng package có tên.
+- **`package`** defines a type's namespace; simply declaring `package study;` does not install a library or download an external `.jar`.
+- **`import`** lets you write simple names; it does not specify where to find `.class` files and does not add libraries to the classpath.
+- **`classpath`**, e.g., `javac -cp libs/example.jar ...`, specifies dependency locations at compile time. `java -cp ...` specifies class locations at runtime.
+- In applications using the **Java Platform Module System** (JPMS), the ability to use a type is also subject to module rules such as `requires` and `exports`; imports do not replace module declarations.
+- Types in the **unnamed package** (no `package` declaration) cannot be imported by code in a named package in the usual way; real projects should use named packages.
 
-Nếu báo lỗi `cannot find symbol`, `package ... does not exist` hoặc `ClassNotFoundException`, hãy phân biệt vấn đề **phân giải tên trong mã** với vấn đề **thiếu lớp/thư viện khi biên dịch hoặc chạy**.
+If you see errors like `cannot find symbol`, `package ... does not exist`, or `ClassNotFoundException`, distinguish **name resolution issues in code** from **missing classes/libraries at compile or run time**.
 
-## 8. Các nhầm lẫn phổ biến
+## 8. Common misconceptions
 
-| Nhầm lẫn | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| `List` và `java.util.List` luôn là hai kiểu khác nhau | Nếu `List` được phân giải đến `java.util.List`, chúng là cùng một kiểu |
-| Phải import để dùng một lớp ngoài package | Có thể viết tên đầy đủ mà không import |
-| `import java.util.*;` tự import luôn `java.util.concurrent.*` | Wildcard import chỉ áp dụng cho một package/kiểu theo quy tắc cụ thể, không mở rộng vào subpackage |
-| Hai lớp tên `Date` của hai package tự động tương đương | `java.util.Date` và `java.sql.Date` là hai lớp khác nhau |
-| Import giúp dùng lớp `private` hoặc package-private từ bất cứ đâu | Quy tắc truy cập vẫn có hiệu lực |
-| Đã import nghĩa là JVM chắc chắn tìm thấy lớp lúc chạy | Dependency phải có trên classpath/module path tương ứng |
-| `Class.getName()` luôn bằng tên canonical viết trong Java | Kiểu lồng nhau có thể dùng `$` trong binary name |
-| Chạy lớp trong package bằng tên đơn giản sau `java` | Dùng tên đầy đủ như `java -cp out study.NameResolutionDemo` |
+| `List` and `java.util.List` are always two different types | If `List` resolves to `java.util.List`, they are the same type |
+| You must import a class from another package to use it | You can write the fully qualified name without importing |
+| `import java.util.*;` also imports `java.util.concurrent.*` | Wildcard imports apply only to a single package/type according to specific rules and do not extend to subpackages |
+| Two classes named `Date` from two packages are automatically equivalent | `java.util.Date` and `java.sql.Date` are two different classes |
+| Importing lets you use `private` or package-private classes from anywhere | Access rules still apply |
+| Having an import means the JVM is guaranteed to find the class at runtime | The dependency must be on the corresponding classpath/module path |
+| `Class.getName()` always equals the canonical name written in Java | Nested types may use `$` in their binary name |
+| Running a packaged class using just its simple name after `java` | Use the fully qualified name, e.g., `java -cp out study.NameResolutionDemo` |
 
-**Ghi nhớ:** tên đơn giản giúp mã gọn; tên đầy đủ giúp xác định chính xác một kiểu. `package` tổ chức không gian tên, `import` hỗ trợ phân giải tên ngắn, còn classpath/module path quyết định nơi tìm định nghĩa lớp.
+**Key takeaway:** simple names keep code concise; fully qualified names identify a type unambiguously. `package` organizes namespaces, `import` assists short-name resolution, and classpath/module path determine where class definitions are found.

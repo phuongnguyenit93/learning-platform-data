@@ -1,76 +1,76 @@
-# MathContext trong Java: precision và RoundingMode
+# MathContext in Java: precision and RoundingMode
 
-## 1. Bài toán mà MathContext giải quyết
+## 1. The Problem MathContext Solves
 
-Khi tính toán với `BigDecimal`, có hai câu hỏi độc lập:
+When performing calculations with `BigDecimal`, there are two independent questions:
 
-- **Được giữ bao nhiêu chữ số có nghĩa?** Ví dụ kết quả phép chia `1 / 3` không thể biểu diễn hết bằng một số thập phân hữu hạn, nên cần quyết định mức chính xác.
-- **Nếu phải bỏ chữ số, làm tròn theo quy tắc nào?** Với `2.5`, có thể làm tròn thành `2` hoặc `3`, tùy quy tắc.
+- **How many significant digits should be kept?** For example, the result of the division `1 / 3` cannot be fully represented by a finite decimal number, so a precision level must be decided.
+- **If digits must be discarded, which rule should be used for rounding?** For `2.5`, it can be rounded to `2` or `3`, depending on the rule.
 
-`java.math.MathContext` gói hai quyết định này vào một đối tượng bất biến:
+`java.math.MathContext` encapsulates both decisions into an immutable object:
 
 ```java
 MathContext context = new MathContext(5, RoundingMode.HALF_EVEN);
 ```
 
-Ở đây `precision = 5` là **tối đa năm chữ số có nghĩa của kết quả**; `RoundingMode.HALF_EVEN` quyết định cách xử lý phần chữ số bị loại bỏ. `MathContext` được truyền vào các phép toán `BigDecimal` hoặc phương thức `round` để giới hạn độ chính xác của kết quả. `MathContext` không mô tả số chữ số sau dấu thập phân và cũng không tự động áp dụng cho mọi phép toán.
+Here, `precision = 5` is **the maximum of five significant digits of the result**; `RoundingMode.HALF_EVEN` decides how the discarded digits are handled. `MathContext` is passed into `BigDecimal` operations or the `round` method to limit the precision of the result. `MathContext` does not describe the number of digits after the decimal point and is not automatically applied to every operation.
 
-Ví dụ:
+Examples:
 
-| Số ban đầu | `MathContext(3, HALF_UP)` | Giải thích |
+| Original number | `MathContext(3, HALF_UP)` | Explanation |
 |---|---|---|
-| `12345.67` | `1.23E+4` (giá trị `12300`) | Giữ ba chữ số có nghĩa: 1, 2, 3; chữ số kế là 4 |
-| `12.345` | `12.3` | Giữ ba chữ số 1, 2, 3; chữ số kế là 4 |
-| `0.0012345` | `0.00123` | Các số 0 đứng trước 1 không chiếm chữ số có nghĩa |
-| `9.999` | `10.0` | Làm tròn gây nhớ sang hàng cao hơn nhưng vẫn có ba chữ số có nghĩa |
+| `12345.67` | `1.23E+4` (value `12300`) | Keep three significant digits: 1, 2, 3; the next digit is 4 |
+| `12.345` | `12.3` | Keep three digits 1, 2, 3; the next digit is 4 |
+| `0.0012345` | `0.00123` | Leading zeros before 1 do not occupy significant digits |
+| `9.999` | `10.0` | Rounding carries into a higher place, yet still has three significant digits |
 
-Để hiểu đúng kết quả, cần phân biệt **giá trị**, **precision** và **scale**.
+To understand the results correctly, it is necessary to distinguish **value**, **precision**, and **scale**.
 
-## 2. Precision của BigDecimal khác scale như thế nào?
+## 2. How Does BigDecimal's Precision Differ from Scale?
 
-`BigDecimal` mô tả số thập phân thông qua *unscaled value* và *scale*: về mặt toán học,
+`BigDecimal` describes a decimal number through an *unscaled value* and a *scale*: mathematically,
 
 ```text
-giá trị = unscaledValue × 10^(-scale)
+value = unscaledValue × 10^(-scale)
 ```
 
-- `BigDecimal.precision()`: số chữ số của giá trị không chia tỷ lệ (*unscaled value*), không tính dấu âm; các số 0 ở cuối biểu diễn có thể vẫn được tính.
-- `BigDecimal.scale()`: số chữ số được dời sang phải dấu thập phân theo biểu diễn của đối tượng; scale có thể bằng 0 hoặc âm.
-- `MathContext.getPrecision()`: số chữ số có nghĩa **tối đa** dùng khi một phép toán có context tạo ra kết quả; đây không phải thuộc tính cố định của mọi `BigDecimal` liên quan.
+- `BigDecimal.precision()`: the number of digits in the unscaled value (*unscaled value*), excluding the negative sign; trailing zeros in the representation may still be counted.
+- `BigDecimal.scale()`: the number of digits shifted to the right of the decimal point according to the object's representation; scale can be 0 or negative.
+- `MathContext.getPrecision()`: the **maximum** number of significant digits used when an operation with a context produces a result; this is not a fixed property of every `BigDecimal` involved.
 
-| Giá trị tạo từ chuỗi | `precision()` | `scale()` | Ý nghĩa |
+| Value created from string | `precision()` | `scale()` | Meaning |
 |---|---:|---:|---|
-| `"123.4500"` | 7 | 4 | Bốn chữ số sau dấu chấm, gồm hai số 0 cuối |
-| `"0.00123"` | 3 | 5 | Ba chữ số có nghĩa, năm chữ số sau dấu chấm |
-| `"100.00"` | 5 | 2 | Biểu diễn vẫn giữ hai số 0 cuối |
-| `"1E+3"` | 1 | -3 | Giá trị bằng `1000`, scale âm |
+| `"123.4500"` | 7 | 4 | Four digits after the decimal point, including two trailing zeros |
+| `"0.00123"` | 3 | 5 | Three significant digits, five digits after the decimal point |
+| `"100.00"` | 5 | 2 | The representation still keeps two trailing zeros |
+| `"1E+3"` | 1 | -3 | Value equals `1000`, negative scale |
 
-Ví dụ hai thao tác hoàn toàn khác nhau:
+Example of two completely different operations:
 
 ```java
 BigDecimal x = new BigDecimal("12.345");
 
 BigDecimal byPrecision = x.round(
     new MathContext(4, RoundingMode.HALF_UP)
-); // 12.35: tối đa 4 chữ số có nghĩa
+); // 12.35: at most 4 significant digits
 
 BigDecimal byScale = x.setScale(4, RoundingMode.HALF_UP);
-// 12.3450: đúng 4 chữ số sau dấu chấm
+// 12.3450: exactly 4 digits after the decimal point
 ```
 
-**Quy tắc chọn:** dùng `MathContext` để kiểm soát chữ số có nghĩa trong phép toán; dùng `setScale` để kiểm soát số chữ số thập phân của đầu ra hoặc đơn vị đo/tiền tệ. Một bài toán có thể cần cả hai, ở các bước khác nhau.
+**Selection rule:** use `MathContext` to control significant digits in operations; use `setScale` to control the number of decimal places of output or units of measurement/currency. A single problem may need both, at different steps.
 
-## 3. Tạo MathContext và chọn precision
+## 3. Creating a MathContext and Choosing Precision
 
 ```java
 import java.math.MathContext;
 import java.math.RoundingMode;
 
 MathContext a = new MathContext(6);
-// precision = 6, chế độ mặc định là HALF_UP
+// precision = 6, default mode is HALF_UP
 
 MathContext b = new MathContext(6, RoundingMode.HALF_EVEN);
-// precision = 6, chế độ HALF_EVEN
+// precision = 6, mode HALF_EVEN
 
 int digits = b.getPrecision();               // 6
 RoundingMode mode = b.getRoundingMode();     // HALF_EVEN
@@ -78,54 +78,54 @@ RoundingMode mode = b.getRoundingMode();     // HALF_EVEN
 MathContext unlimited = MathContext.UNLIMITED;
 ```
 
-`MathContext` bất biến: không có thao tác đổi `precision` hoặc `roundingMode` tại chỗ. Có thể tái sử dụng cùng context ở nhiều phép toán. Precision âm không hợp lệ; precision bằng `0` mang ý nghĩa **không giới hạn chữ số có nghĩa**.
+`MathContext` is immutable: there is no operation to change `precision` or `roundingMode` in place. The same context can be reused across multiple operations. A negative precision is invalid; a precision of `0` means **unlimited significant digits**.
 
-Java cung cấp một số context đặt sẵn:
+Java provides several predefined contexts:
 
-| Hằng số | Precision | RoundingMode |
+| Constant | Precision | RoundingMode |
 |---|---:|---|
-| `MathContext.UNLIMITED` | 0 | `HALF_UP` (thường không được dùng vì không làm tròn theo precision) |
+| `MathContext.UNLIMITED` | 0 | `HALF_UP` (usually not used because there is no precision-based rounding) |
 | `MathContext.DECIMAL32` | 7 | `HALF_EVEN` |
 | `MathContext.DECIMAL64` | 16 | `HALF_EVEN` |
 | `MathContext.DECIMAL128` | 34 | `HALF_EVEN` |
 
-Các tên `DECIMAL32/64/128` gợi đến định dạng thập phân IEEE 754, nhưng việc chọn hằng số không có nghĩa `BigDecimal` biến thành kiểu dấu phẩy động nhị phân như `float`/`double`. Context chỉ quy định precision và rounding cho các phép toán được áp dụng.
+The names `DECIMAL32/64/128` suggest the IEEE 754 decimal formats, but choosing a constant does not mean `BigDecimal` turns into a binary floating-point type like `float`/`double`. The context only specifies precision and rounding for the operations to which it is applied.
 
-**Lưu ý về `UNLIMITED`:** “không giới hạn precision” không đồng nghĩa “mọi phép chia đều thành công”. `1 / 8` có biểu diễn thập phân hữu hạn, còn `1 / 3` có khai triển vô hạn; `BigDecimal.divide(divisor)` hoặc `divide(divisor, MathContext.UNLIMITED)` sẽ ném `ArithmeticException` cho phép chia không thể biểu diễn chính xác hữu hạn. Chế độ làm tròn trong `UNLIMITED` không giải quyết vấn đề này.
+**Note on `UNLIMITED`:** "unlimited precision" does not mean "every division succeeds". `1 / 8` has a finite decimal representation, whereas `1 / 3` has an infinite expansion; `BigDecimal.divide(divisor)` or `divide(divisor, MathContext.UNLIMITED)` will throw `ArithmeticException` for a division that cannot be represented with exact finite digits. The rounding mode in `UNLIMITED` does not solve this issue.
 
-## 4. Các RoundingMode và ý nghĩa với số âm
+## 4. RoundingModes and Their Meaning with Negative Numbers
 
-Các chế độ thuộc enum `java.math.RoundingMode`, độc lập với `MathContext` và cũng dùng được với `setScale`, `divide`.
+The modes belong to the `java.math.RoundingMode` enum, independent of `MathContext` and also usable with `setScale` and `divide`.
 
-| Chế độ | Nguyên tắc | `2.5` → số nguyên | `-2.5` → số nguyên |
+| Mode | Rule | `2.5` → integer | `-2.5` → integer |
 |---|---|---:|---:|
-| `UP` | Bỏ phần dư theo hướng **xa 0** | `3` | `-3` |
-| `DOWN` | Bỏ phần dư theo hướng **về 0** | `2` | `-2` |
-| `CEILING` | Hướng về **+∞** | `3` | `-2` |
-| `FLOOR` | Hướng về **−∞** | `2` | `-3` |
-| `HALF_UP` | Gần nhất; nếu đúng giữa hai mức thì **xa 0** | `3` | `-3` |
-| `HALF_DOWN` | Gần nhất; nếu đúng giữa hai mức thì **về 0** | `2` | `-2` |
-| `HALF_EVEN` | Gần nhất; nếu đúng giữa thì chữ số cuối được giữ là **chẵn** | `2` | `-2` |
-| `UNNECESSARY` | Cấm làm tròn không chính xác; ném lỗi nếu buộc bỏ chữ số khác 0 | lỗi | lỗi |
+| `UP` | Discard remainder **away from 0** | `3` | `-3` |
+| `DOWN` | Discard remainder **toward 0** | `2` | `-2` |
+| `CEILING` | Toward **+∞** | `3` | `-2` |
+| `FLOOR` | Toward **−∞** | `2` | `-3` |
+| `HALF_UP` | Nearest; if equidistant, **away from 0** | `3` | `-3` |
+| `HALF_DOWN` | Nearest; if equidistant, **toward 0** | `2` | `-2` |
+| `HALF_EVEN` | Nearest; if equidistant, the last retained digit is **even** | `2` | `-2` |
+| `UNNECESSARY` | Forbids inexact rounding; throws if forced to drop a non-zero digit | error | error |
 
-Trong bảng, “→ số nguyên” tương đương `new BigDecimal("2.5").setScale(0, mode)` và phép tính tương tự với số âm.
+In the table, "→ integer" is equivalent to `new BigDecimal("2.5").setScale(0, mode)` and the analogous calculation with negative numbers.
 
-Với ba chế độ `HALF_*`, phần lớn giá trị không nằm đúng trung điểm sẽ cho cùng kết quả gần nhất. Khác biệt rõ nhất nằm ở trường hợp *tie*:
+With the three `HALF_*` modes, most values that do not lie exactly at the midpoint give the same nearest result. The clearest difference lies in *tie* cases:
 
 ```text
 2.5 → HALF_UP: 3     HALF_DOWN: 2     HALF_EVEN: 2
 3.5 → HALF_UP: 4     HALF_DOWN: 3     HALF_EVEN: 4
-2.25 (1 chữ số sau dấu chấm) → HALF_EVEN: 2.2
-2.35 (1 chữ số sau dấu chấm) → HALF_EVEN: 2.4
+2.25 (1 digit after decimal point) → HALF_EVEN: 2.2
+2.35 (1 digit after decimal point) → HALF_EVEN: 2.4
 ```
 
-Với `HALF_EVEN`, “chẵn” nói đến **chữ số cuối còn lại**, không phải kiểm tra xem toàn bộ số đã làm tròn có phải số nguyên chẵn hay không. Nó giúp giảm thiên lệch tích lũy khi có nhiều lần làm tròn đối xứng, nhưng không phải quy tắc bắt buộc cho mọi nghiệp vụ. `HALF_UP` cũng không phải “luôn làm tròn lên”: `2.41` về số nguyên vẫn bằng `2`.
+With `HALF_EVEN`, "even" refers to **the last remaining digit**, not checking whether the entire rounded number is an even integer. It helps reduce accumulated bias when there are many symmetric roundings, but it is not a mandatory rule for every business case. `HALF_UP` is also not "always round up": `2.41` rounded to an integer is still `2`.
 
-`UP` khác `CEILING` ở số âm; `DOWN` khác `FLOOR` ở số âm. Không suy luận chế độ theo tên tiếng Anh đơn lẻ mà bỏ qua hướng trục số.
+`UP` differs from `CEILING` on negative numbers; `DOWN` differs from `FLOOR` on negative numbers. Do not infer a mode from its English name alone while ignoring direction on the number line.
 
-## 5. MathContext áp dụng ở đâu trong BigDecimal?
+## 5. Where Does MathContext Apply in BigDecimal?
 
-Những cách dùng điển hình:
+Typical usages:
 
 ```java
 MathContext mc = new MathContext(4, RoundingMode.HALF_EVEN);
@@ -141,9 +141,9 @@ BigDecimal quotient = value.divide(new BigDecimal("7.89"), mc);
 BigDecimal constructed = new BigDecimal("123.456", mc);
 ```
 
-Các phương thức này trả về `BigDecimal` mới; `BigDecimal` là bất biến. Nếu muốn giữ kết quả, phải gán biến, ví dụ `value = value.round(mc)`; gọi `value.round(mc);` riêng lẻ sẽ không đổi `value`.
+These methods return a new `BigDecimal`; `BigDecimal` is immutable. If you want to keep the result, you must assign it to a variable, for example `value = value.round(mc)`; calling `value.round(mc);` alone will not modify `value`.
 
-Đặc biệt, **context không tự lan truyền**. Ví dụ:
+In particular, **a context does not automatically propagate**. For example:
 
 ```java
 MathContext mc = new MathContext(3, RoundingMode.HALF_UP);
@@ -154,9 +154,9 @@ BigDecimal exactSum = a.add(b);       // 11.3579
 BigDecimal roundedSum = a.add(b, mc); // 11.4
 ```
 
-Việc tạo `a`, `b` hoặc gọi một phép toán có `mc` không tạo “precision toàn cục” cho các phép toán tiếp theo. Phải truyền context rõ ràng ở những bước muốn giới hạn chữ số.
+Creating `a`, `b`, or calling an operation with `mc` does not create a "global precision" for subsequent operations. You must pass the context explicitly at the steps where you want to limit digits.
 
-### Phép chia: trường hợp đặc biệt dễ sai
+### Division: a Special Error-Prone Case
 
 ```java
 BigDecimal one = BigDecimal.ONE;
@@ -168,21 +168,21 @@ BigDecimal approximate = one.divide(
     three, new MathContext(4, RoundingMode.HALF_UP)
 ); // 0.3333
 
-// one.divide(three) ném ArithmeticException vì 1/3 vô hạn.
+// one.divide(three) throws ArithmeticException because 1/3 is non-terminating.
 ```
 
-Có hai API phổ biến, phục vụ hai nhu cầu khác nhau:
+There are two common APIs, serving two different needs:
 
-- `a.divide(b, mc)` yêu cầu kết quả theo **số chữ số có nghĩa** (`mc.precision`).
-- `a.divide(b, scale, roundingMode)` yêu cầu kết quả theo **số chữ số sau dấu thập phân** (`scale`).
+- `a.divide(b, mc)` requests a result by **number of significant digits** (`mc.precision`).
+- `a.divide(b, scale, roundingMode)` requests a result by **number of digits after the decimal point** (`scale`).
 
-Ví dụ `1 / 3`: precision 4 cho `0.3333`; scale 2 cho `0.33`. Nhưng với `12345 / 7`, precision 2 và scale 2 tạo kết quả có mức chi tiết rất khác nhau.
+For example `1 / 3`: precision 4 gives `0.3333`; scale 2 gives `0.33`. However, for `12345 / 7`, precision 2 and scale 2 produce results with very different levels of detail.
 
-Ngay cả khi truyền context, `RoundingMode.UNNECESSARY` vẫn có thể khiến phép tính ném `ArithmeticException` nếu kết quả chính xác cần nhiều chữ số hơn precision cho phép.
+Even when passing a context, `RoundingMode.UNNECESSARY` can still cause a calculation to throw `ArithmeticException` if the exact result requires more digits than the precision allows.
 
-## 6. Ví dụ Java 17+ hoàn chỉnh, có thể chạy
+## 6. Complete, Runnable Java 17+ Example
 
-Tạo file `MathContextDemo.java`:
+Create the file `MathContextDemo.java`:
 
 ```java
 import java.math.BigDecimal;
@@ -216,14 +216,14 @@ public class MathContextDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac MathContextDemo.java
 java MathContextDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 precision=3, rounding=HALF_UP
@@ -234,11 +234,11 @@ scale=2.34
 1/3 exact: ArithmeticException
 ```
 
-Giải thích: `amount` được rút về ba chữ số có nghĩa nên mang giá trị `12300`; `toPlainString()` hiển thị dạng thường thay cho ký pháp mũ có thể xuất hiện trong `toString()`. `1/3` được xấp xỉ dưới context; `1/8` biểu diễn được chính xác. `2.345` làm tròn `HALF_EVEN` ở hai chữ số sau dấu chấm thành `2.34` vì chữ số hàng phần trăm đang được giữ là 4 (chẵn). Cuối cùng, phép chia `1/3` không context ném ngoại lệ như đã bắt.
+Explanation: `amount` is reduced to three significant digits so it has the value `12300`; `toPlainString()` displays the plain form instead of the exponential notation that may appear in `toString()`. `1/3` is approximated under the context; `1/8` can be represented exactly. `2.345` rounded with `HALF_EVEN` to two digits after the decimal point becomes `2.34` because the hundredths digit being kept is 4 (even). Finally, the division `1/3` without a context throws an exception as caught.
 
-## 7. Trình tự làm tròn ảnh hưởng kết quả
+## 7. Rounding Order Affects the Result
 
-Sử dụng context sớm sẽ làm mất chữ số trước các bước sau. Trong chuỗi tính toán dài, điều này có thể tạo ra **double rounding** (làm tròn hai lần) và sai lệch tích lũy.
+Using a context early loses digits before subsequent steps. In a long calculation chain, this can produce **double rounding** and accumulated error.
 
 ```java
 BigDecimal x = new BigDecimal("1.249");
@@ -250,15 +250,15 @@ BigDecimal viaTwoSteps = x.round(mc)
 BigDecimal direct = x.setScale(1, RoundingMode.HALF_UP); // 1.2
 ```
 
-Vì sao? Bước đầu `1.249` → `1.25`; bước hai gặp đúng trung điểm nên `1.25` → `1.3`. Trong khi đó, làm tròn trực tiếp `1.249` ở một chữ số sau dấu chấm cho `1.2`.
+Why? The first step turns `1.249` → `1.25`; the second step hits an exact midpoint so `1.25` → `1.3`. Meanwhile, rounding `1.249` directly to one digit after the decimal point gives `1.2`.
 
-Khi bài toán cần tổng hợp nhiều phần tử, hãy xác định **thời điểm làm tròn** theo đặc tả. Nếu không bắt buộc làm tròn từng phép, thường nên duy trì đủ chữ số ở bước trung gian rồi thực hiện một lần làm tròn tại điểm được quy định. Trường hợp cần tính gần đúng khi chia vô hạn, chọn precision đủ lớn (có thể thêm *guard digits*) và đánh giá sai số, thay vì mặc định một context rất thấp cho mọi bước.
+When a problem needs to aggregate multiple items, determine **when rounding occurs** according to the specification. If rounding every operation is not mandatory, it is usually better to maintain enough digits in intermediate steps and then perform rounding once at the specified point. When an approximation is needed for non-terminating division, choose a sufficiently large precision (possibly adding *guard digits*) and evaluate the error, rather than defaulting to a very low context for every step.
 
-Không có một `MathContext` đúng cho mọi miền dữ liệu. Độ chính xác tài chính, đo lường, thống kê, giao dịch và làm tròn thuế có thể có quy tắc khác nhau.
+There is no single `MathContext` that is right for every data domain. Financial precision, measurement, statistics, trading, and tax rounding can each have different rules.
 
-## 8. Ví dụ nghiệp vụ: làm tròn số tiền cuối bước tính
+## 8. Business Example: Rounding Monetary Amount at the Final Calculation Step
 
-Giả sử một bài toán minh họa yêu cầu tiền thuế làm tròn đến hai chữ số thập phân bằng `HALF_UP` (đây chỉ là quy tắc giả định của ví dụ, không khẳng định quy định thuế thực tế):
+Suppose an illustrative problem requires tax to be rounded to two decimal places using `HALF_UP` (this is only a hypothetical rule for the example, not a statement of actual tax regulations):
 
 ```java
 BigDecimal subtotal = new BigDecimal("19.99");
@@ -272,9 +272,9 @@ System.out.println("tax=" + tax.toPlainString());     // tax=1.65
 System.out.println("total=" + total.toPlainString()); // total=21.64
 ```
 
-`19.99 × 0.0825 = 1.649175` chính xác trước khi chuyển thành `1.65`. Nếu nghiệp vụ yêu cầu làm tròn số tiền theo từng dòng hàng trước khi cộng, kết quả có thể khác làm tròn sau khi cộng cả hóa đơn. Quy tắc này phải được xác định ở cấp nghiệp vụ; `MathContext` không tự lựa chọn thay.
+`19.99 × 0.0825 = 1.649175` exactly before becoming `1.65`. If business logic requires rounding amounts per line item before summing, the result may differ from rounding after summing the entire invoice. This rule must be defined at the business level; `MathContext` does not choose it automatically.
 
-Khi phép chia tạo tỷ lệ hoặc đơn giá cần xấp xỉ, có thể định nghĩa context cho bước trung gian:
+When division produces a ratio or unit price that needs approximation, you can define a context for the intermediate step:
 
 ```java
 MathContext working = new MathContext(16, RoundingMode.HALF_EVEN);
@@ -288,11 +288,11 @@ BigDecimal displayPrice = approximateUnitPrice
 // approximateUnitPrice ~= 33.33333333333333; displayPrice = 33.33
 ```
 
-Trong hệ thống thật, precision trung gian phải được chọn theo độ lớn đầu vào, số phép tính và yêu cầu sai số. Precision 16 ở đây chỉ là ví dụ.
+In a real system, intermediate precision must be chosen based on input magnitude, number of operations, and error requirements. Precision 16 here is only an example.
 
-## 9. Khởi tạo BigDecimal đúng để precision có ý nghĩa
+## 9. Initializing BigDecimal Properly so Precision Is Meaningful
 
-`BigDecimal` có thể lưu trữ chính xác chữ số thập phân nhập dưới dạng chuỗi. Tránh đưa trực tiếp literal `double` vào constructor khi muốn số thập phân theo cách con người viết:
+`BigDecimal` can accurately store decimal digits entered as strings. Avoid passing a `double` literal directly into the constructor when you want a human-written decimal number:
 
 ```java
 BigDecimal recommended = new BigDecimal("0.1");
@@ -300,51 +300,51 @@ BigDecimal alternative = BigDecimal.valueOf(0.1);
 BigDecimal surprising = new BigDecimal(0.1);
 ```
 
-`recommended` và `alternative` có giá trị thập phân `0.1`. Đối tượng `surprising` mang giá trị chuyển đổi **chính xác từ số nhị phân `double`**, vốn không bằng đúng `0.1`; làm tròn nó bằng `MathContext` có thể che đi nguồn sai số nhưng không xóa được nguyên nhân. Với dữ liệu tiền hoặc dữ liệu đo yêu cầu biểu diễn thập phân kiểm soát được, ưu tiên chuỗi đầu vào hoặc parse chuỗi số thập phân có hợp đồng rõ ràng.
+`recommended` and `alternative` have the decimal value `0.1`. The object `surprising` holds the **exact converted value of the binary `double`**, which is not exactly equal to `0.1`; rounding it with `MathContext` may hide the source of error, but does not remove its cause. For monetary data or measurement data requiring controlled decimal representation, prefer string inputs or parsing decimal strings with a clear contract.
 
-Việc hiển thị cũng cần cân nhắc: `toString()` có thể dùng ký pháp mũ; `toPlainString()` không dùng ký pháp mũ; `setScale(2, ...)` bảo đảm đúng hai chữ số thập phân trong biểu diễn số dùng để hiển thị. Không nên suy ra yêu cầu đầu ra từ riêng `MathContext.precision`.
+Display also needs consideration: `toString()` may use scientific notation; `toPlainString()` does not use scientific notation; `setScale(2, ...)` guarantees exactly two decimal places in the numeric representation used for display. Output requirements should not be inferred from `MathContext.precision` alone.
 
-## 10. Lỗi phổ biến và cách kiểm tra
+## 10. Common Mistakes and How to Verify
 
-| Lỗi | Hậu quả | Cách làm đúng |
+| Mistake | Consequence | Correct approach |
 |---|---|---|
-| Hiểu `precision = 2` là hai số sau dấu chấm | `123.45` có thể thành `1.2E+2` | Dùng `setScale(2, mode)` khi cần hai chữ số thập phân |
-| Chia `1 / 3` không có rounding | `ArithmeticException` | Dùng `divide` với context hoặc scale và rounding phù hợp |
-| Nghĩ `UNLIMITED` chia số nào cũng được | Phép chia thập phân vô hạn vẫn lỗi | Xác định sai số cho phép và đặt context hữu hạn |
-| Dùng `HALF_UP` khi nghiệp vụ đòi `HALF_EVEN` | Khác kết quả ở các tie | Đưa mode vào đặc tả và test |
-| Nhầm `UP` với `CEILING`, `DOWN` với `FLOOR` | Làm tròn sai với số âm | Test đồng thời số dương và âm |
-| Gọi `x.round(mc)` mà không gán kết quả | `x` giữ giá trị cũ | Gán `x = x.round(mc)` nếu cần |
-| Áp dụng context quá thấp ở mọi phép toán | Sai lệch qua nhiều bước, double rounding | Quy định điểm làm tròn; giữ độ chính xác trung gian đủ lớn |
-| Tạo số bằng `new BigDecimal(0.1)` | Mang sai số biểu diễn nhị phân | Dùng `"0.1"` hoặc `BigDecimal.valueOf(0.1)` |
-| Dùng `equals` để so sánh giá trị số thập phân khác scale | `1.0` khác `1.00` với `equals` | Dùng `compareTo(...) == 0` nếu chỉ xét giá trị số; dùng `equals` khi scale cũng quan trọng |
-| Chọn rounding tùy tiện cho tiền/thuế | Có thể vi phạm yêu cầu nghiệp vụ | Ghi rõ loại phép tính, bước làm tròn, scale và rounding mode |
+| Interpreting `precision = 2` as two digits after the decimal point | `123.45` can become `1.2E+2` | Use `setScale(2, mode)` when two decimal places are needed |
+| Dividing `1 / 3` without rounding | `ArithmeticException` | Use `divide` with an appropriate context or scale and rounding |
+| Thinking `UNLIMITED` can divide any numbers | Non-terminating decimal division still errors | Determine allowed error and set a finite context |
+| Using `HALF_UP` when business rules require `HALF_EVEN` | Different results on ties | Put the mode in the specification and tests |
+| Confusing `UP` with `CEILING`, `DOWN` with `FLOOR` | Wrong rounding with negative numbers | Test both positive and negative numbers |
+| Calling `x.round(mc)` without assigning the result | `x` keeps its old value | Assign `x = x.round(mc)` if needed |
+| Applying too low a context on every operation | Drift across steps, double rounding | Define rounding points; keep intermediate precision large enough |
+| Creating numbers with `new BigDecimal(0.1)` | Carries binary representation error | Use `"0.1"` or `BigDecimal.valueOf(0.1)` |
+| Using `equals` to compare decimal values with different scales | `1.0` differs from `1.00` with `equals` | Use `compareTo(...) == 0` when only numeric value matters; use `equals` when scale also matters |
+| Choosing rounding arbitrarily for money/tax | May violate business requirements | Explicitly state operation type, rounding step, scale, and rounding mode |
 
-Để phát hiện làm tròn ngoài ý muốn trong các phép tính cần chính xác tuyệt đối, dùng `RoundingMode.UNNECESSARY` như một phép kiểm tra:
+To detect unintended rounding in calculations that require absolute exactness, use `RoundingMode.UNNECESSARY` as a check:
 
 ```java
 new BigDecimal("12.340").setScale(2, RoundingMode.UNNECESSARY);
-// Thành công: chỉ loại bỏ số 0 không làm đổi giá trị.
+// Succeeds: only removes a zero without changing the value.
 
 new BigDecimal("12.345").setScale(2, RoundingMode.UNNECESSARY);
-// Ném ArithmeticException vì phải bỏ chữ số 5 khác 0.
+// Throws ArithmeticException because it must drop the non-zero digit 5.
 ```
 
-Nếu hiển thị hoặc kiểm tra đầu ra bằng test, ưu tiên so sánh có chủ đích: dùng `compareTo` cho giá trị toán học, kiểm tra thêm `scale` hay chuỗi khi định dạng là một phần hợp đồng. `round(mc)` không bảo đảm tự chuẩn hóa scale: kết quả đã đủ precision có thể giữ nguyên các số 0 cuối.
+When displaying or checking outputs in tests, prefer intentional comparisons: use `compareTo` for mathematical value, and also check `scale` or strings when formatting is part of the contract. `round(mc)` does not guarantee automatic scale normalization: a result that already meets precision may keep trailing zeros.
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-Check Exercises
 
-1. `new BigDecimal("0.009876").round(new MathContext(2, HALF_UP))` nhận giá trị gì?
-2. `new BigDecimal("-2.1").setScale(0, CEILING)` và cùng phép tính với `FLOOR` khác nhau thế nào?
-3. Vì sao `new BigDecimal("100.00").precision()` bằng 5, còn `new BigDecimal("1E+2").precision()` bằng 1 dù cùng giá trị?
-4. Một bảng báo cáo cần đúng ba chữ số sau dấu thập phân: nên chỉ dùng `MathContext(3)` hay `setScale(3, mode)`?
-5. Phép chia `2 / 7` được yêu cầu bốn chữ số có nghĩa: lời gọi `BigDecimal` nào phù hợp?
+1. What value does `new BigDecimal("0.009876").round(new MathContext(2, HALF_UP))` get?
+2. How do `new BigDecimal("-2.1").setScale(0, CEILING)` and the same operation with `FLOOR` differ?
+3. Why is `new BigDecimal("100.00").precision()` equal to 5, while `new BigDecimal("1E+2").precision()` is equal to 1 even though they have the same value?
+4. A report table needs exactly three digits after the decimal point: should you only use `MathContext(3)` or `setScale(3, mode)`?
+5. The division `2 / 7` is required to have four significant digits: which `BigDecimal` call is appropriate?
 
-Đáp án và lập luận:
+Answers and reasoning:
 
-1. `0.0099`: hai chữ số có nghĩa là 9 và 8; chữ số tiếp theo là 7 nên làm tròn 8 lên 9.
-2. `CEILING` cho `-2` (hướng +∞), `FLOOR` cho `-3` (hướng −∞).
-3. `precision()` dựa trên biểu diễn không chia tỷ lệ: `100.00` có năm chữ số, `1E+2` có một; giá trị toán học giống nhau không buộc precision/scale giống nhau.
-4. Dùng `setScale(3, mode)`, bởi mục tiêu là vị trí dấu thập phân, không phải tổng chữ số có nghĩa.
-5. Ví dụ `BigDecimal.valueOf(2).divide(BigDecimal.valueOf(7), new MathContext(4, RoundingMode.HALF_UP))`, kết quả `0.2857`.
+1. `0.0099`: the two significant digits are 9 and 8; the next digit is 7 so 8 rounds up to 9.
+2. `CEILING` gives `-2` (toward +∞), `FLOOR` gives `-3` (toward −∞).
+3. `precision()` is based on the unscaled representation: `100.00` has five digits, `1E+2` has one; the same mathematical value does not force the same precision/scale.
+4. Use `setScale(3, mode)`, because the goal is the decimal point position, not total significant digits.
+5. For example `BigDecimal.valueOf(2).divide(BigDecimal.valueOf(7), new MathContext(4, RoundingMode.HALF_UP))`, resulting in `0.2857`.
 
-**Ghi nhớ:** `MathContext = (precision, RoundingMode)` điều khiển **số chữ số có nghĩa và cách làm tròn của kết quả phép toán có sử dụng context**. `setScale` điều khiển **vị trí thập phân**. Chọn mức chính xác, chế độ làm tròn và thời điểm áp dụng theo yêu cầu của phép tính; với `BigDecimal`, mọi thao tác đều phải được gọi rõ ràng.
+**Takeaway:** `MathContext = (precision, RoundingMode)` controls **the number of significant digits and the rounding rule of the result of an operation using the context**. `setScale` controls **the decimal place position**. Choose the precision level, rounding mode, and timing of application according to the calculation's requirements; with `BigDecimal`, every operation must be called explicitly.

@@ -1,50 +1,50 @@
-# Biến kiểu của phương thức khác biến kiểu của lớp trong Java Reflection
+# Method Type Variables vs. Class Type Variables in Java Reflection
 
-## 1. Mục tiêu và vấn đề cần phân biệt
+## 1. Goal and distinction to make
 
-Java Generics cho phép khai báo **biến kiểu** (*type variable*) trên **lớp/interface** hoặc trên **phương thức/constructor**. Hai biến kiểu có thể mang **cùng tên**, ví dụ đều là `T`, nhưng vẫn là hai khai báo độc lập với phạm vi và ràng buộc khác nhau.
+Java Generics allow declaring **type variables** on a **class/interface** or on a **method/constructor**. Two type variables can share the **same name**, such as both being `T`, yet remain two independent declarations with different scopes and constraints.
 
 ```java
 class Box<T extends Number> {
     T value;
 
-    // Đây là T của lớp Box.
+    // This is Box's T.
     T get() {
         return value;
     }
 
-    // Đây là T MỚI của riêng phương thức echo, che khuất tên T của lớp.
+    // This is a NEW T belonging only to echo, shadowing the class's T.
     <T extends CharSequence> T echo(T input) {
         return input;
     }
 
-    // U thuộc phương thức; T trong tham số đầu thuộc lớp.
+    // U belongs to the method; T in the first parameter belongs to the class.
     <U> String describe(T item, U extra) {
         return item + ":" + extra;
     }
 }
 ```
 
-Đoạn code trên minh họa cú pháp trong một lớp; chưa phải ứng dụng độc lập (ví dụ hoàn chỉnh ở mục 4).
+The code above illustrates syntax inside a class; it is not a standalone application (a complete example is in section 4).
 
-Trong `Box<Integer>`, biến kiểu `T` của lớp được liên kết với `Integer` tại điểm dùng kiểu có tham số. Tuy nhiên `<T extends CharSequence> T echo(T input)` **khai báo một `T` mới**, có phạm vi riêng của phương thức, vì vậy lời gọi `box.echo("hello")` vẫn hợp lệ. Không được suy ra rằng `echo` buộc phải nhận `Integer` chỉ vì `Box` sử dụng `Integer`.
+In `Box<Integer>`, the class type variable `T` is bound to `Integer` at the parameterized type usage site. However, `<T extends CharSequence> T echo(T input)` **declares a new `T`** scoped solely to the method, so calling `box.echo("hello")` is still valid. You must not infer that `echo` must accept `Integer` merely because `Box` uses `Integer`.
 
-Với Java Reflection, phân biệt này thể hiện trực tiếp ở `TypeVariable<?>` và nơi khai báo `GenericDeclaration`. Bài học giải thích cách quan sát, xác định nguồn gốc, phân giải và tránh nhầm lẫn giữa **biến kiểu của lớp** với **biến kiểu của phương thức**, kể cả khi hai biến đều tên `T`.
+In Java Reflection, this distinction appears directly in `TypeVariable<?>` and its `GenericDeclaration` owner. This lesson explains how to observe, identify the origin of, resolve, and avoid confusing **class type variables** with **method type variables**, even when both are named `T`.
 
-### Kết quả cần đạt
+### Expected outcomes
 
-Sau bài, bạn sẽ:
+After this lesson, you will:
 
-- Xác định `T` thuộc lớp hay phương thức bằng **vị trí khai báo**, không chỉ bằng tên.
-- Phân biệt `Class.getTypeParameters()` với `Method.getTypeParameters()` và `Constructor.getTypeParameters()`.
-- Dùng `TypeVariable.getGenericDeclaration()` để biết owner thực sự.
-- Đọc `getGenericReturnType()`, `getGenericParameterTypes()`, `getBounds()` và nhận biết type erasure.
-- Giải thích hiện tượng **shadowing** khi biến kiểu của phương thức cùng tên với biến kiểu của lớp.
-- Phân biệt việc Reflection nhìn thấy generic signature với việc biết kiểu cụ thể như `Integer` hoặc `String` ở runtime.
+- Determine whether `T` belongs to a class or a method by its **declaration site**, not just by name.
+- Distinguish `Class.getTypeParameters()` from `Method.getTypeParameters()` and `Constructor.getTypeParameters()`.
+- Use `TypeVariable.getGenericDeclaration()` to identify the true owner.
+- Read `getGenericReturnType()`, `getGenericParameterTypes()`, `getBounds()`, and recognize type erasure.
+- Explain **shadowing** when a method type variable has the same name as a class type variable.
+- Distinguish Reflection seeing a generic signature from knowing concrete runtime types like `Integer` or `String`.
 
-## 2. Biến kiểu được khai báo ở đâu?
+## 2. Where are type variables declared?
 
-### 2.1. Biến kiểu của lớp
+### 2.1. Class type variables
 
 ```java
 class Holder<T> {
@@ -60,11 +60,11 @@ class Holder<T> {
 }
 ```
 
-Trong `Holder<T>`, tên `T` được khai báo ở danh sách tham số kiểu **ngay sau tên lớp**. Trong các vị trí dùng `T` của lớp (nơi không bị che khuất), một instance có kiểu nguồn `Holder<String>` cho phép trình biên dịch kiểm tra `T` là `String`.
+In `Holder<T>`, the name `T` is declared in the type parameter list **right after the class name**. In positions using the class's `T` (where not shadowed), an instance whose source type is `Holder<String>` lets the compiler check `T` as `String`.
 
-Ví dụ, `Holder<String>` và `Holder<Integer>` là hai cách sử dụng generic class khác nhau; tại runtime, chúng thường cùng trỏ đến **một định nghĩa `Holder.class`** do type erasure. Object `Class` của `Holder` phản ánh **khai báo** `T`, không tự biết đối tượng cụ thể đã được tạo với tham số `String` hay `Integer`.
+For example, `Holder<String>` and `Holder<Integer>` are two different usages of the generic class; at runtime, they typically point to **a single `Holder.class` definition** due to type erasure. The `Class` object of `Holder` reflects the **declaration** of `T`, and does not automatically know whether a specific instance was created with `String` or `Integer`.
 
-### 2.2. Biến kiểu của phương thức
+### 2.2. Method type variables
 
 ```java
 class Converter {
@@ -78,26 +78,26 @@ class Converter {
 }
 ```
 
-Biến kiểu được khai báo **trước return type** trong khai báo phương thức: `<T>`, `<U extends Number>`. Nó thuộc riêng phương thức đó, cho dù lớp bên ngoài có generic hay không.
+Method type variables are declared **before the return type** in the method declaration: `<T>`, `<U extends Number>`. They belong specifically to that method, whether or not the enclosing class is generic.
 
-Một lớp không generic vẫn có thể chứa method generic, và một lớp generic vẫn có thể chứa method không generic hoặc method generic với biến kiểu riêng.
+A non-generic class can contain generic methods, and a generic class can contain non-generic methods or generic methods with their own type variables.
 
-**Phương thức static** không được tham chiếu trực tiếp tới biến kiểu thuộc instance của lớp generic, nhưng hoàn toàn có thể **tự khai báo** biến kiểu riêng:
+A **static method** cannot directly reference an instance-level type variable of a generic class, yet it can freely **declare** its own type variables:
 
 ```java
 class Factory<T> {
-    // Không dùng trực tiếp class T trong bối cảnh static.
+    // Cannot directly use class T in a static context.
     static <S> S identity(S value) {
         return value;
     }
 }
 ```
 
-Ở đây `S` thuộc method `identity`, không phải biến kiểu `T` của `Factory`. Không thể viết method static chỉ dùng `T` lớp trong chữ ký mà không có khai báo `<T>` riêng phù hợp.
+Here `S` belongs to the `identity` method, not `Factory`'s type variable `T`. You cannot write a static method that uses the class's `T` in its signature without an appropriate `<T>` declaration of its own.
 
-### 2.3. Biến kiểu của constructor
+### 2.3. Constructor type variables
 
-Constructor cũng có thể khai báo biến kiểu riêng:
+Constructors can also declare their own type variables:
 
 ```java
 class Sample<T> {
@@ -107,48 +107,48 @@ class Sample<T> {
 }
 ```
 
-`T` thuộc lớp, còn `U` thuộc constructor. Reflection cung cấp `Constructor.getTypeParameters()` để lấy `U`. Tương tự, `U.getGenericDeclaration()` trả về đối tượng `Constructor<?>`, không phải `Class<?>`.
+`T` belongs to the class, while `U` belongs to the constructor. Reflection provides `Constructor.getTypeParameters()` to retrieve `U`. Likewise, `U.getGenericDeclaration()` returns a `Constructor<?>` object, not `Class<?>`.
 
-Các ví dụ mục 2 là các đoạn minh họa cấu trúc Java riêng lẻ; ví dụ mục 4 gồm chương trình có `main` chạy được.
+The examples in section 2 are isolated Java syntax snippets; section 4 provides a runnable program with `main`.
 
-## 3. API Reflection cần dùng
+## 3. Reflection APIs to use
 
-| Câu hỏi | API | Trả về / ý nghĩa |
+| Question | API | Return value / meaning |
 | --- | --- | --- |
-| Lớp khai báo biến kiểu nào? | `Class.getTypeParameters()` | Mảng `TypeVariable<Class<T>>[]` (qua wildcard ở code dùng chung) của chính lớp/interface |
-| Phương thức khai báo biến kiểu nào? | `Method.getTypeParameters()` | `TypeVariable<Method>[]` của chính phương thức |
-| Constructor khai báo biến kiểu nào? | `Constructor.getTypeParameters()` | `TypeVariable<Constructor<T>>[]` của constructor |
-| Biến kiểu thuộc khai báo nào? | `TypeVariable.getGenericDeclaration()` | `GenericDeclaration`: thường là `Class`, `Method` hoặc `Constructor` |
-| Tên và cận trên của biến kiểu? | `TypeVariable.getName()`, `getBounds()` | Tên như `T`; các `Type` ràng buộc trên |
-| Kiểu trả về generic của method? | `Method.getGenericReturnType()` | `Type`; có thể là `TypeVariable`, `ParameterizedType`, `Class`... |
-| Các kiểu tham số generic? | `Method.getGenericParameterTypes()` | Mảng `Type[]` của khai báo generic |
-| Kiểu trả về sau erasure? | `Method.getReturnType()` | `Class<?>` đại diện kiểu runtime đã erasure |
-| Các kiểu tham số runtime sau erasure? | `Method.getParameterTypes()` | `Class<?>[]`, dùng để tra cứu chữ ký bằng `getDeclaredMethod` |
-| Generic superclass của một lớp? | `Class.getGenericSuperclass()` | `Type`, có thể là `ParameterizedType` như `Box<Integer>` |
+| Which type variables does a class declare? | `Class.getTypeParameters()` | Array `TypeVariable<Class<T>>[]` (often with wildcard in shared code) of the class/interface itself |
+| Which type variables does a method declare? | `Method.getTypeParameters()` | `TypeVariable<Method>[]` of the method itself |
+| Which type variables does a constructor declare? | `Constructor.getTypeParameters()` | `TypeVariable<Constructor<T>>[]` of the constructor |
+| Which declaration owns a type variable? | `TypeVariable.getGenericDeclaration()` | `GenericDeclaration`: typically `Class`, `Method`, or `Constructor` |
+| Name and upper bounds of a type variable? | `TypeVariable.getName()`, `getBounds()` | Name such as `T`; upper bound `Type`s |
+| Generic return type of a method? | `Method.getGenericReturnType()` | `Type`; may be `TypeVariable`, `ParameterizedType`, `Class`... |
+| Generic parameter types? | `Method.getGenericParameterTypes()` | `Type[]` array of the generic declaration |
+| Erased return type? | `Method.getReturnType()` | `Class<?>` representing the erased runtime type |
+| Erased runtime parameter types? | `Method.getParameterTypes()` | `Class<?>[]`, used to look up signatures via `getDeclaredMethod` |
+| Generic superclass of a class? | `Class.getGenericSuperclass()` | `Type`, possibly a `ParameterizedType` like `Box<Integer>` |
 
-**Phân biệt hai chữ “parameters”:**
+**Distinguishing the two "parameters" methods:**
 
-- `getTypeParameters()`: các biến kiểu được **khai báo mới** ở lớp hoặc phương thức (ví dụ `<T, U>`).
-- `getGenericParameterTypes()`: các **kiểu của tham số truyền vào** một phương thức (ví dụ `List<T> input, U extra`). Một phương thức không tự khai báo `<T>` vẫn có thể sử dụng biến kiểu `T` của lớp trong danh sách tham số và vì vậy trả mảng `getTypeParameters()` rỗng nhưng `getGenericParameterTypes()` không rỗng.
+- `getTypeParameters()`: type variables **newly declared** on the class or method (e.g., `<T, U>`).
+- `getGenericParameterTypes()`: the **types of parameters passed into** a method (e.g., `List<T> input, U extra`). A method that does not declare `<T>` itself can still use the class's type variable `T` in its parameter list and thus return an empty `getTypeParameters()` array while `getGenericParameterTypes()` is non-empty.
 
-Các `Type` đặc biệt trong `java.lang.reflect` gồm `TypeVariable<?>`, `ParameterizedType`, `WildcardType` và `GenericArrayType`. Không phải mọi `Type` đều là `Class<?>`; dùng `instanceof` trước khi ép kiểu sang một nhánh cụ thể.
+Special `Type` subtypes in `java.lang.reflect` include `TypeVariable<?>`, `ParameterizedType`, `WildcardType`, and `GenericArrayType`. Not every `Type` is a `Class<?>`; use `instanceof` before casting to a specific branch.
 
-### GenericDeclaration và danh tính của biến kiểu
+### GenericDeclaration and type variable identity
 
-`TypeVariable.getGenericDeclaration()` là điểm then chốt. Trong Reflection, hai biến cùng tên chỉ biểu diễn cùng một biến kiểu khi chúng **tương ứng với cùng khai báo generic**; tên đơn thuần không đủ xác nhận.
+`TypeVariable.getGenericDeclaration()` is the key. In Reflection, two variables with the same name represent the same type variable only when they **correspond to the same generic declaration**; name alone is insufficient.
 
-Ví dụ, ở `Box<T>` và `<T> T echo(T)`:
+For example, in `Box<T>` and `<T> T echo(T)`:
 
-- `classT.getName()` và `methodT.getName()` đều là `"T"`.
-- `classT.getGenericDeclaration()` là `Box.class`.
-- `methodT.getGenericDeclaration()` là `Method` biểu diễn `echo`.
-- Vì khai báo khác nhau, `classT.equals(methodT)` là `false`.
+- Both `classT.getName()` and `methodT.getName()` are `"T"`.
+- `classT.getGenericDeclaration()` is `Box.class`.
+- `methodT.getGenericDeclaration()` is the `Method` representing `echo`.
+- Because their declarations differ, `classT.equals(methodT)` is `false`.
 
-Dùng `getGenericDeclaration()` cùng vị trí/đối tượng khai báo khi lập trình resolver; **không** dùng một map chỉ khóa theo tên `"T"`, vì tên đó có thể được dùng lặp ở nhiều scope.
+Use `getGenericDeclaration()` along with the declaring site/object when implementing a resolver; **do not** use a map keyed solely by the name `"T"`, because that name can be reused across multiple scopes.
 
-## 4. Chương trình Java 17+ hoàn chỉnh: hai chữ T nhưng hai biến kiểu
+## 4. Complete Java 17+ program: two `T`s, two distinct type variables
 
-Lưu toàn bộ mã sau vào **`TypeVariableScopeDemo.java`**:
+Save all of the following code to **`TypeVariableScopeDemo.java`**:
 
 ```java
 import java.lang.reflect.Method;
@@ -167,17 +167,17 @@ public class TypeVariableScopeDemo {
             return value;
         }
 
-        // T riêng của method, che tên T của class Box.
+        // Method-local T, shadowing Box's T.
         public <T extends CharSequence> T echo(T input) {
             return input;
         }
 
-        // U riêng của method; T trong tham số đầu thuộc Box.
+        // Method-local U; T in the first parameter belongs to Box.
         public <U> String describe(T item, U extra) {
             return item + ":" + extra;
         }
 
-        // Method static được tự khai báo type variable S.
+        // Static method may declare its own type variable S.
         public static <S extends CharSequence> S identity(S value) {
             return value;
         }
@@ -249,14 +249,14 @@ public class TypeVariableScopeDemo {
 }
 ```
 
-Lệnh biên dịch/chạy:
+Compile/run commands:
 
 ```bash
 javac TypeVariableScopeDemo.java
 java TypeVariableScopeDemo
 ```
 
-**Output** (đã đối chiếu hoạt động Java Reflection trên JVM):
+**Output** (verified against Java Reflection behavior on the JVM):
 
 ```text
 class name: T
@@ -280,54 +280,54 @@ box get: 10
 echo: hello
 ```
 
-### Giải thích kết quả cốt lõi
+### Explaining the core results
 
-**1. Cùng tên nhưng khác identity.** Cả `Box<T>` và `echo<T>` đều có `getName() == "T"`, nhưng `classT.equals(methodT)` là `false`. Vì vậy resolver phải xác định **declaration owner**, thay vì map tất cả biến tên `T` sang một kiểu thực duy nhất.
+**1. Same name but different identity.** Both `Box<T>` and `echo<T>` have `getName() == "T"`, yet `classT.equals(methodT)` is `false`. Therefore a resolver must identify the **declaration owner** instead of mapping every variable named `T` to a single concrete type.
 
-**2. Bounds khác nhau.** `T` của lớp có bound `Number`; `T` của `echo` có bound `CharSequence`. Tức là `Box<Integer>` chấp nhận đối tượng Number làm class parameter, trong khi một lời gọi `echo("hello")` chấp nhận String do String triển khai CharSequence. Hai ràng buộc áp dụng cho hai biến kiểu độc lập.
+**2. Different bounds.** The class's `T` has bound `Number`; `echo`'s `T` has bound `CharSequence`. Thus `Box<Integer>` accepts a Number as the class parameter, while a call `echo("hello")` accepts String because String implements CharSequence. The two constraints apply to two independent type variables.
 
-**3. Return type generic khác return type sau erasure.** `get.getGenericReturnType()` là chính biến kiểu class `T`. `echo.getGenericReturnType()` là biến kiểu method `T`. Nhưng `echo.getReturnType()` là `CharSequence.class` do erasure sử dụng cận trên của biến kiểu method.
+**3. Generic return type differs from erased return type.** `get.getGenericReturnType()` is the class type variable `T`. `echo.getGenericReturnType()` is the method type variable `T`. Yet `echo.getReturnType()` is `CharSequence.class` because erasure uses the method type variable's upper bound.
 
-**4. Tra cứu phương thức dùng chữ ký erased.** `Box.class.getDeclaredMethod("echo", CharSequence.class)` thành công. Dùng `Object.class` hay `Number.class` thay cho `CharSequence.class` sẽ không tìm đúng method vì kiểu tham số erased của method này là `CharSequence`.
+**4. Method lookup uses erased signatures.** `Box.class.getDeclaredMethod("echo", CharSequence.class)` succeeds. Using `Object.class` or `Number.class` instead of `CharSequence.class` will fail to find the method because the erased parameter type of this method is `CharSequence`.
 
-**5. Phương thức dùng cả biến kiểu class và method.** `describe` tự khai báo `U`; tham số đầu `T item` vẫn liên kết với class `Box<T>`. Vì thế `getTypeParameters()` của `describe` chỉ chứa `U`, còn `getGenericParameterTypes()` cho thấy cả `T` của lớp lẫn `U` của method.
+**5. A method can use both class and method type variables.** `describe` declares `U` itself; its first parameter `T item` still refers to `Box<T>`. Thus `describe.getTypeParameters()` contains only `U`, while `getGenericParameterTypes()` shows both the class's `T` and the method's `U`.
 
-**6. Static method có biến kiểu riêng.** `identity` là static generic method với `S` do chính nó khai báo; đó không phải `T` của lớp.
+**6. Static methods have their own type variables.** `identity` is a static generic method with `S` declared by itself; it is not the class's `T`.
 
-**7. Generic superclass cho biết binding trong một nhánh cụ thể.** `IntegerBox extends Box<Integer>` khai báo rõ `Integer` trong generic superclass, vì vậy `IntegerBox.class.getGenericSuperclass()` trả một `ParameterizedType` chứa type argument `Integer`. Nhưng `Box.class.getTypeParameters()[0]` vẫn biểu diễn **khai báo `T`**, không tự đổi thành `Integer`.
+**7. Generic superclass reveals the binding in a concrete branch.** `IntegerBox extends Box<Integer>` explicitly declares `Integer` in its generic superclass, so `IntegerBox.class.getGenericSuperclass()` returns a `ParameterizedType` containing the `Integer` type argument. Yet `Box.class.getTypeParameters()[0]` still represents **the declaration `T`**, without automatically becoming `Integer`.
 
-## 5. Shadowing: method có thể khai báo T trùng tên T của class
+## 5. Shadowing: a method can declare a `T` with the same name as the class's `T`
 
-Giả sử:
+Suppose:
 
 ```java
 class Repository<T> {
     T current;
 
     T load() {
-        return current; // T của Repository
+        return current; // Repository's T
     }
 
     <T> T transform(T input) {
-        return input;   // T mới của transform
+        return input;   // transform's new T
     }
 
     <U> T update(U source) {
-        return current; // U của update; T của Repository
+        return current; // update's U; Repository's T
     }
 }
 ```
 
-Đây là đoạn minh họa về phạm vi tên; không cần chạy riêng. **Shadowing** xảy ra khi declaration `<T>` ở method che tên `T` của lớp trong phạm vi method đó. Nhờ phân biệt owner, Reflection có thể quan sát hai biến có tên giống nhau mà không nhập nhằng.
+This is an illustrative snippet about name scoping; it does not need to be run separately. **Shadowing** occurs when the method's `<T>` declaration hides the class's `T` name within that method's scope. By distinguishing owners, Reflection can observe two variables with the same name without ambiguity.
 
-| Thành phần | Biến kiểu khai báo trực tiếp ở thành phần đó | Ý nghĩa của T xuất hiện trong chữ ký |
+| Member | Type variable declared directly on that member | Meaning of `T` appearing in the signature |
 | --- | --- | --- |
-| `Repository<T>` | `T` của class | Class-level type variable |
-| `load()` | Không có | `T` return thuộc class |
-| `<T> T transform(T)` | `T` của method | `T` trong return và tham số thuộc method |
-| `<U> T update(U)` | `U` của method | `T` return thuộc class, `U` tham số thuộc method |
+| `Repository<T>` | Class's `T` | Class-level type variable |
+| `load()` | None | Return `T` belongs to the class |
+| `<T> T transform(T)` | Method's `T` | `T` in return and parameter belongs to the method |
+| `<U> T update(U)` | Method's `U` | Return `T` belongs to the class, parameter `U` belongs to the method |
 
-Khi làm resolver, nên giữ mô hình dữ liệu theo cả **scope của khai báo** lẫn biến kiểu:
+When writing a resolver, model data by both the **declaration scope** and the type variable:
 
 ```text
 Repository<T>              : key = (Repository.class, "T")
@@ -335,13 +335,13 @@ Repository.transform<T>(T)  : key = (Method transform, "T")
 Repository.update<U>(U)     : key = (Method update, "U")
 ```
 
-Đây là **mô hình minh họa**, không phải Java code runnable. Chính API `getGenericDeclaration()` và tính tương đương của `TypeVariable` giúp phân biệt những trường hợp trên.
+This is an **illustrative model**, not runnable Java code. It is the `getGenericDeclaration()` API and `TypeVariable` equality that distinguish these cases.
 
-Một lỗi phổ biến là lưu mapping dưới dạng `Map<String, Type>` với key chỉ là `"T"`. Khi resolver đi qua phương thức `transform`, mapping mới có thể **ghi đè** binding `T` của lớp. Kết quả giải thích generic trở nên sai dù code vẫn compile.
+A common bug is storing mappings in a `Map<String, Type>` keyed only by `"T"`. When the resolver inspects the `transform` method, the new mapping can **overwrite** the class's `T` binding. Generic resolution results then become wrong even though the code compiles.
 
-## 6. TypeVariable.getBounds() và erasure
+## 6. TypeVariable.getBounds() and erasure
 
-Khi khai báo:
+Given:
 
 ```java
 class Container<T extends Number> {
@@ -351,9 +351,9 @@ class Container<T extends Number> {
 }
 ```
 
-`T.getBounds()` của lớp trả bound `Number`; `U.getBounds()` của phương thức trả bound `CharSequence`. Với một biến kiểu không có bound tường minh như `<T>`, bound ngầm định là `Object`.
+The class's `T.getBounds()` returns bound `Number`; the method's `U.getBounds()` returns bound `CharSequence`. For a type variable with no explicit bound such as `<T>`, the implicit bound is `Object`.
 
-### Nhiều bound
+### Multiple bounds
 
 ```java
 class MultiBound<T extends Number & Comparable<T>> {
@@ -361,13 +361,13 @@ class MultiBound<T extends Number & Comparable<T>> {
 }
 ```
 
-`getBounds()` có thể trả một mảng `Type[]` gồm nhiều bound theo thứ tự khai báo. Khi thực hiện erasure của một biến kiểu, **bound bên trái** quyết định kiểu erasure; trong ví dụ là `Number`.
+`getBounds()` can return a `Type[]` array of multiple bounds in declaration order. When performing erasure of a type variable, the **leftmost bound** determines the erased type; in this example it is `Number`.
 
-Đừng lấy duy nhất `getBounds()[0]` nếu nhiệm vụ cần bảo toàn **mọi constraint**. Ví dụ runnable mục 4 chỉ dùng một bound để output dễ hiểu; resolver thực tế phải xử lý cả intersection bounds, tham chiếu generic trong bounds và trường hợp type variable sử dụng chính nó (chẳng hạn `Comparable<T>`).
+Do not read only `getBounds()[0]` if the task needs to preserve **all constraints**. The runnable example in section 4 uses a single bound for clear output; a real resolver must handle intersection bounds, generic references inside bounds, and cases where a type variable references itself (such as `Comparable<T>`).
 
-### Generic metadata và class runtime
+### Generic metadata vs. runtime class
 
-Hai API khác nhau có thể đưa kết quả khác nhau:
+Two different APIs can yield different views:
 
 ```java
 Method method = Box.class.getDeclaredMethod(
@@ -377,15 +377,15 @@ System.out.println(method.getReturnType());        // interface java.lang.CharSe
 System.out.println(method.getGenericReturnType()); // T
 ```
 
-Đoạn trên cần đặt trong một phương thức xử lý `NoSuchMethodException`, đã import `Method` và dùng lớp `Box` như ví dụ. `getReturnType()` xem return type **sau erasure** dưới dạng `Class<?>`; `getGenericReturnType()` giữ `TypeVariable` `T` của method. Cùng một phương thức, hai góc nhìn đều đúng.
+The snippet above must be placed in a method handling `NoSuchMethodException`, importing `Method` and using `Box` as in the example. `getReturnType()` views the **erased** return type as a `Class<?>`; `getGenericReturnType()` preserves the method's `TypeVariable` `T`. For the same method, both views are accurate.
 
-Với generic type dùng kiểu tham số hóa, như `List<T>`, `getGenericReturnType()` có thể là `ParameterizedType`. Khi xử lý, dùng `instanceof ParameterizedType` để lấy `getRawType()` và `getActualTypeArguments()`; một type argument có thể là `TypeVariable` của lớp, của method, một wildcard hoặc cấu trúc phức tạp khác. Không cast `Type` sang `Class<?>` một cách mặc định.
+For generic types using parameterized types, such as `List<T>`, `getGenericReturnType()` may be a `ParameterizedType`. When handling it, use `instanceof ParameterizedType` to obtain `getRawType()` and `getActualTypeArguments()`; a type argument may be a class `TypeVariable`, a method `TypeVariable`, a wildcard, or another complex structure. Never blindly cast `Type` to `Class<?>`.
 
-## 7. Vì sao Class.getTypeParameters() không trả biến kiểu của method?
+## 7. Why doesn't Class.getTypeParameters() return method type variables?
 
-`Class.getTypeParameters()` chỉ liệt kê biến kiểu **được class/interface tự khai báo**. Nó không tập hợp `T` hoặc `U` từ tất cả method thành viên.
+`Class.getTypeParameters()` only lists type variables **declared by the class/interface itself**. It does not aggregate `T` or `U` from member methods.
 
-Ví dụ:
+For example:
 
 ```java
 class Plain {
@@ -393,16 +393,16 @@ class Plain {
 }
 ```
 
-`Plain.class.getTypeParameters()` là mảng **rỗng**, vì `Plain` không phải generic class. Ngược lại:
+`Plain.class.getTypeParameters()` is an **empty** array, because `Plain` is not a generic class. Conversely:
 
 ```java
 Method m = Plain.class.getDeclaredMethod("echo", Object.class);
 TypeVariable<?>[] vars = m.getTypeParameters();
 ```
 
-Đây là đoạn trong một phương thức có xử lý ngoại lệ. `vars.length` là `1`, và biến ở `vars[0]` tên `X`. Chữ ký erased của method dùng `Object` do `X` không có bound tường minh.
+This snippet belongs inside a method with exception handling. `vars.length` is `1`, and the variable at `vars[0]` is named `X`. The method's erased signature uses `Object` because `X` has no explicit bound.
 
-Cũng vậy, `Method.getTypeParameters()` trả về **mảng rỗng** cho một method bình thường dùng type variable thuộc lớp nhưng không khai báo type variable mới:
+Likewise, `Method.getTypeParameters()` returns an **empty array** for an ordinary method that uses a class-level type variable without declaring any new type variables:
 
 ```java
 class GenericService<T> {
@@ -410,11 +410,11 @@ class GenericService<T> {
 }
 ```
 
-Khi inspect `fetch()`, `getTypeParameters()` rỗng dù `getGenericReturnType()` là `T` của class. Để biết owner của `T` này, kiểm tra `TypeVariable.getGenericDeclaration()`.
+When inspecting `fetch()`, `getTypeParameters()` is empty even though `getGenericReturnType()` is the class's `T`. To find the owner of this `T`, check `TypeVariable.getGenericDeclaration()`.
 
-## 8. Phân giải generic ở lớp con và giới hạn cần biết
+## 8. Generic resolution in subclasses and limits to know
 
-Giả sử:
+Suppose:
 
 ```java
 class Parent<T> {
@@ -425,20 +425,20 @@ class Child extends Parent<String> {
 }
 ```
 
-Ở lớp `Child`, generic superclass chứa binding `Parent<String>`. Nhưng đối tượng `Method` được khai báo ở `Parent` với return type `T` vẫn giữ metadata `T` của **Parent**. Reflection **không tự thay biến kiểu đó bằng String** chỉ vì caller nhận method thông qua `Child.class`.
+On `Child`, the generic superclass holds the binding `Parent<String>`. Yet the `Method` object declared on `Parent` with return type `T` still retains **Parent's** `T` metadata. Reflection **does not automatically replace that type variable with String** merely because the caller obtained the method through `Child.class`.
 
-Resolver muốn giải đúng return type theo ngữ cảnh `Child` phải:
+A resolver aiming to resolve the return type properly in the context of `Child` must:
 
-1. Xác định method được khai báo ở lớp/interface nào bằng `getDeclaringClass()`.
-2. Duyệt quan hệ `getGenericSuperclass()` và `getGenericInterfaces()` theo đúng phân cấp.
-3. Thu thập mapping từ biến kiểu **của từng declaration** sang type argument cụ thể, chẳng hạn `Parent<T> → String`.
-4. Thay thế biến kiểu bằng mapping đúng owner, có xử lý `ParameterizedType`, `WildcardType`, `GenericArrayType` và các biến kiểu trung gian nếu cần.
+1. Determine which class/interface declared the method via `getDeclaringClass()`.
+2. Traverse `getGenericSuperclass()` and `getGenericInterfaces()` along the hierarchy.
+3. Collect mappings from type variables **of each declaration** to concrete type arguments, such as `Parent<T> → String`.
+4. Substitute type variables using the mapping of the matching owner, handling `ParameterizedType`, `WildcardType`, `GenericArrayType`, and intermediate type variables as needed.
 
-**Điểm quan trọng:** mapping `Parent.T → String` **không được** tự áp lên `T` khác do một method `<T>` trong Parent khai báo. Hai `T` đó không phải cùng biến kiểu, dù chúng cùng tên.
+**Key rule:** the mapping `Parent.T → String` **must not** be applied automatically to another `T` declared by a `<T>` method inside `Parent`. Those two `T`s are not the same type variable, even though they share the same name.
 
-### Method type argument suy diễn tại compile time
+### Method type arguments inferred at compile time
 
-Ví dụ:
+Example:
 
 ```java
 class Tools {
@@ -451,15 +451,15 @@ String text = Tools.identity("hello");
 Integer count = Tools.identity(123);
 ```
 
-Hai câu lệnh sử dụng method generic với hai cách suy diễn khác nhau ở compile time. Nhưng Reflection trên `Tools.identity` chỉ nhìn thấy **một khai báo `<T> T identity(T)`**. Nó không lưu một binding method-T cố định là String hay Integer trên đối tượng `Method`.
+These two statements call the generic method with two different compile-time type inferences. Yet Reflection on `Tools.identity` only sees **a single declaration `<T> T identity(T)`**. It does not store a fixed method-T binding of String or Integer on the `Method` object.
 
-Khi gọi `Method.invoke(...)`, caller phải dùng các kiểu runtime thích hợp; thông tin về type argument suy diễn ở compile time không trở thành metadata “lời gọi method này dùng T = String” trong `Method`.
+When calling `Method.invoke(...)`, the caller must supply appropriate runtime types; compile-time inferred type argument information does not become metadata such as "this method call used T = String" inside `Method`.
 
-Nếu API của ứng dụng cần theo dõi binding từ một phương thức generic trong ngữ cảnh cụ thể, nó phải nhận đủ thông tin bổ sung (kiểu của tham số/return expected type/quy tắc resolver) và không suy diễn quá mức từ `Method.getTypeParameters()`.
+If an application API needs to track bindings from a generic method in a specific context, it must receive sufficient additional information (parameter types/expected return type/resolver rules) and not over-infer from `Method.getTypeParameters()`.
 
-## 9. Constructor type variable khác class type variable
+## 9. Constructor type variables differ from class type variables
 
-`Constructor<?>` cũng triển khai `GenericDeclaration`. Điều đó cho phép phân biệt biến kiểu ở constructor với biến kiểu ở class:
+`Constructor<?>` also implements `GenericDeclaration`. That allows distinguishing constructor type variables from class type variables:
 
 ```java
 class Factory<T> {
@@ -468,7 +468,7 @@ class Factory<T> {
 }
 ```
 
-Đoạn minh họa:
+Illustrative snippet:
 
 ```java
 Class<?> type = Factory.class;
@@ -479,47 +479,47 @@ Constructor<?> ctor =
 TypeVariable<?> ctorU = ctor.getTypeParameters()[0];
 ```
 
-Đây là code đặt trong một phương thức có xử lý/khai báo `NoSuchMethodException` và import `java.lang.reflect.Constructor`, `java.lang.reflect.TypeVariable`.
+This code is placed inside a method declaring/handling `NoSuchMethodException` and importing `java.lang.reflect.Constructor` and `java.lang.reflect.TypeVariable`.
 
-- `classT.getGenericDeclaration() == Factory.class` là `true`.
-- `ctorU.getGenericDeclaration().equals(ctor)` là `true`.
-- `ctorU.getName()` là `"U"`, và `getBounds()[0]` là `CharSequence`.
-- `getDeclaredConstructor(CharSequence.class)` tra cứu theo **erasure của bound**, không dùng một type argument suy diễn nào như `String.class`.
+- `classT.getGenericDeclaration() == Factory.class` is `true`.
+- `ctorU.getGenericDeclaration().equals(ctor)` is `true`.
+- `ctorU.getName()` is `"U"`, and `getBounds()[0]` is `CharSequence`.
+- `getDeclaredConstructor(CharSequence.class)` looks up by the **erasure of the bound**, not by an inferred type argument such as `String.class`.
 
-Với non-static inner class, constructor runtime còn có thể xuất hiện tham số outer-instance do compiler sinh. Đó là vấn đề về chữ ký constructor, **khác** việc constructor có khai báo `<U>` hay không.
+For non-static inner classes, the runtime constructor can also include a compiler-generated outer-instance parameter. That is a matter of the constructor signature, **separate** from whether the constructor declares `<U>`.
 
-## 10. Lỗi thường gặp khi xây dựng generic resolver
+## 10. Common mistakes when building a generic resolver
 
-| Sai lầm | Vì sao sai | Cách xử lý |
+| Mistake | Why it is wrong | Fix |
 | --- | --- | --- |
-| So sánh hai `TypeVariable` chỉ qua `getName()` | Class-T và method-T có thể cùng tên | So sánh identity/declaration owner |
-| Giả định class generic thì mọi method trả class-T | Method có thể khai báo T mới và shadow class-T | Đọc `Method.getTypeParameters()` và `getGenericReturnType()` |
-| Cho rằng `Class.getTypeParameters()` gồm cả generic methods | API chỉ trả biến kiểu khai báo ở class | Truy vấn trên từng `Method` |
-| Cho rằng `Method.getTypeParameters()` là kiểu các tham số runtime | Nó trả biến kiểu method khai báo, không phải argument types | Dùng `getGenericParameterTypes()` hoặc `getParameterTypes()` |
-| Dùng `getReturnType()` để hiểu đầy đủ generic | Erasure làm mất biểu thức generic | Dùng `getGenericReturnType()` |
-| Tra cứu `echo(T)` bằng `Object.class` khi `T extends CharSequence` | Erased parameter là CharSequence | Tra cứu bằng `CharSequence.class` |
-| Đổi mọi T thành Integer vì có `Box<Integer>` | Chỉ class-T được binding; method-T độc lập | Mapping theo `GenericDeclaration` |
-| Tin rằng mỗi call `identity("x")` giữ riêng method-T = String trong `Method` | Type inference compile-time không được lưu như vậy | Dùng context/hợp đồng kiểu riêng |
-| Ép mọi `Type` sang `Class<?>` | `TypeVariable` và `ParameterizedType` không phải `Class` | Phân nhánh `instanceof` |
-| Bỏ qua multi-bound và nested parameterized type | Resolver có thể chọn erasure hoặc constraint sai | Xử lý các loại `Type` và tất cả bounds |
-| Dựa vào tên biến để suy ra kiểu runtime object | Erasure và tính đa hình làm suy luận không đủ | Kiểm tra object thực nếu cần |
+| Comparing two `TypeVariable`s solely via `getName()` | Class-T and method-T can share the same name | Compare identity/declaration owner |
+| Assuming a generic class means every method returns class-T | A method can declare a new T that shadows class-T | Inspect `Method.getTypeParameters()` and `getGenericReturnType()` |
+| Thinking `Class.getTypeParameters()` includes generic methods | The API only returns type variables declared on the class | Query on each `Method` |
+| Thinking `Method.getTypeParameters()` returns runtime parameter types | It returns type variables declared by the method, not parameter types | Use `getGenericParameterTypes()` or `getParameterTypes()` |
+| Using `getReturnType()` to understand full generics | Erasure discards generic expressions | Use `getGenericReturnType()` |
+| Looking up `echo(T)` with `Object.class` when `T extends CharSequence` | The erased parameter is CharSequence | Look up with `CharSequence.class` |
+| Replacing every T with Integer because of `Box<Integer>` | Only class-T is bound; method-T is independent | Map by `GenericDeclaration` |
+| Believing each call `identity("x")` stores method-T = String in `Method` | Compile-time type inference is not stored that way | Use separate context/type contracts |
+| Casting every `Type` to `Class<?>` | `TypeVariable` and `ParameterizedType` are not `Class` | Branch with `instanceof` |
+| Ignoring multi-bounds and nested parameterized types | Resolver may pick the wrong erasure or constraint | Handle all `Type` kinds and all bounds |
+| Relying on variable names to infer runtime object types | Erasure and polymorphism make inference insufficient | Inspect actual objects if needed |
 
-### Thiết kế map thay thế an toàn
+### Safe substitution map design
 
-Một resolver nên sử dụng khóa có danh tính khai báo rõ ràng, ví dụ trực tiếp `TypeVariable<?>`:
+A resolver should use keys with explicit declaration identity, such as `TypeVariable<?>` directly:
 
 ```java
 Map<TypeVariable<?>, java.lang.reflect.Type> bindings =
         new java.util.HashMap<>();
 ```
 
-Đây là đoạn trong class/phương thức có import `java.util.Map`, `java.lang.reflect.TypeVariable`; ví dụ không cung cấp thuật toán resolver hoàn chỉnh. `TypeVariable.equals` được xác định theo generic declaration tương ứng, giúp tránh tình huống hai biến tên giống nhau ghi đè nhau.
+This is a snippet inside a class/method importing `java.util.Map` and `java.lang.reflect.TypeVariable`; the snippet does not provide a complete resolver algorithm. `TypeVariable.equals` is defined by its corresponding generic declaration, preventing two identically named variables from overwriting each other.
 
-Dù vậy, việc giải binding đầy đủ vẫn phức tạp khi có generic superclass nhiều tầng, wildcard, capture, interface, owner type và biến kiểu tự tham chiếu. Đừng dùng `getName()` rồi thay text trong `Type.getTypeName()`; hãy làm việc với cấu trúc `Type`.
+Even so, full binding resolution remains complex with multi-level generic superclasses, wildcards, captures, interfaces, owner types, and self-referential type variables. Do not use `getName()` and perform text replacement on `Type.getTypeName()`; work directly with the `Type` structure.
 
-## 11. Các bài thực hành nhỏ
+## 11. Short practice exercises
 
-**Bài 1.** Với:
+**Exercise 1.** Given:
 
 ```java
 class Service<T> {
@@ -529,17 +529,17 @@ class Service<T> {
 }
 ```
 
-Hãy trả lời:
+Answer:
 
-1. `Service.class.getTypeParameters()` có bao nhiêu phần tử?
-2. `read.getTypeParameters()` có bao nhiêu phần tử?
-3. `convert.getTypeParameters()` có bao nhiêu phần tử?
-4. `combine.getGenericReturnType()` thuộc class hay method?
-5. Hai chữ `T` của `Service<T>` và `convert<T>` có là một biến kiểu không?
+1. How many elements does `Service.class.getTypeParameters()` have?
+2. How many elements does `read.getTypeParameters()` have?
+3. How many elements does `convert.getTypeParameters()` have?
+4. Does `combine.getGenericReturnType()` belong to the class or the method?
+5. Are the two `T`s of `Service<T>` and `convert<T>` the same type variable?
 
-**Đáp án:** lần lượt là **1, 0, 1, class, không**. `combine` tự khai báo `U`, nhưng return type `T` là biến kiểu của class.
+**Answer:** respectively **1, 0, 1, class, no**. `combine` declares `U` itself, but its return type `T` is the class's type variable.
 
-**Bài 2.** Với:
+**Exercise 2.** Given:
 
 ```java
 class Numeric<T extends Number> {
@@ -549,46 +549,46 @@ class Numeric<T extends Number> {
 }
 ```
 
-**Câu hỏi:** Dùng API nào để lấy biến kiểu của method và Reflection phải dùng parameter class nào để tra cứu `text`?
+**Question:** Which API retrieves the method's type variable, and which parameter class must Reflection use to look up `text`?
 
-**Đáp án:** `Numeric.class.getDeclaredMethod("text", CharSequence.class)` rồi gọi `method.getTypeParameters()`. Dùng `CharSequence.class` vì bound của method-T là CharSequence; bound class-T là Number không liên quan đến chữ ký method này.
+**Answer:** `Numeric.class.getDeclaredMethod("text", CharSequence.class)` then call `method.getTypeParameters()`. Use `CharSequence.class` because the method-T bound is CharSequence; the class-T bound Number is unrelated to this method's signature.
 
-**Bài 3.** Cho `class Child extends Parent<String>`, trong đó `Parent<T>` có `T read()` và `<T> T echo(T input)`. Có thể thay cả hai T bằng String trong generic resolver không?
+**Exercise 3.** Given `class Child extends Parent<String>`, where `Parent<T>` has `T read()` and `<T> T echo(T input)`. Can a generic resolver replace both `T`s with String?
 
-**Đáp án:** Không. Binding trong quan hệ kế thừa chỉ áp dụng **Parent.class-T**. `echo` có method-T độc lập nên không được suy ra rằng nó bằng String.
+**Answer:** No. The binding from the inheritance relationship applies only to **Parent.class-T**. `echo` has an independent method-T, so it must not be inferred to equal String.
 
-**Bài 4.** Nếu `Method.getTypeParameters()` trả mảng rỗng, có kết luận method không sử dụng generic trong return/parameter được không?
+**Exercise 4.** If `Method.getTypeParameters()` returns an empty array, can we conclude the method does not use generics in its return/parameters?
 
-**Đáp án:** Không. Method có thể dùng biến kiểu khai báo ở class, như `T read()`, hoặc tham số `List<T>`. Kiểm tra `getGenericReturnType()` và `getGenericParameterTypes()`.
+**Answer:** No. The method can use a type variable declared on the class, such as `T read()`, or a `List<T>` parameter. Check `getGenericReturnType()` and `getGenericParameterTypes()`.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-check questions
 
-**Câu 1.** Hai biến kiểu đều tên `T` có nhất thiết cùng identity không?
+**Question 1.** Do two type variables both named `T` necessarily have the same identity?
 
-**Đáp án:** Không. Phải xét nơi khai báo `GenericDeclaration`. Class-T và method-T là hai biến độc lập.
+**Answer:** No. You must check their `GenericDeclaration` site. Class-T and method-T are two independent variables.
 
-**Câu 2.** API nào trả các biến kiểu do method tự khai báo, như `<U>`?
+**Question 2.** Which API returns type variables declared by the method itself, such as `<U>`?
 
-**Đáp án:** `Method.getTypeParameters()`. `getGenericParameterTypes()` lại trả kiểu của các tham số nhận vào.
+**Answer:** `Method.getTypeParameters()`. `getGenericParameterTypes()` instead returns the types of the parameters accepted by the method.
 
-**Câu 3.** Phương thức `<T extends CharSequence> T echo(T x)` có `Method.getReturnType()` và `getGenericReturnType()` khác nhau ra sao?
+**Question 3.** How do `Method.getReturnType()` and `getGenericReturnType()` differ for `<T extends CharSequence> T echo(T x)`?
 
-**Đáp án:** `getReturnType()` trả `CharSequence.class` sau erasure; `getGenericReturnType()` trả `TypeVariable` thuộc method (tên T).
+**Answer:** `getReturnType()` returns `CharSequence.class` after erasure; `getGenericReturnType()` returns the `TypeVariable` belonging to the method (named T).
 
-**Câu 4.** Vì sao biến kiểu của `<T>` ở phương thức static không phụ thuộc type argument của generic class?
+**Question 4.** Why does `<T>` on a static method not depend on the type argument of the generic class?
 
-**Đáp án:** Nó được method khai báo riêng; static context không sử dụng biến kiểu instance của generic class.
+**Answer:** It is declared by the method itself; a static context does not use instance type variables of the generic class.
 
-**Câu 5.** `Box<Integer>` có tự khiến `<T extends CharSequence> T echo(T)` trả Integer không?
+**Question 5.** Does `Box<Integer>` automatically cause `<T extends CharSequence> T echo(T)` to return Integer?
 
-**Đáp án:** Không. Method-T shadow class-T, bound của method-T là CharSequence nên có thể trả String.
+**Answer:** No. Method-T shadows class-T, and method-T's bound is CharSequence, so it can return String.
 
-**Câu 6.** `TypeVariable.getGenericDeclaration()` trả về những đối tượng nào?
+**Question 6.** What kinds of objects does `TypeVariable.getGenericDeclaration()` return?
 
-**Đáp án:** Một declaration như `Class`, `Method` hoặc `Constructor` tương ứng với nơi biến kiểu được khai báo.
+**Answer:** A declaration such as `Class`, `Method`, or `Constructor` corresponding to where the type variable was declared.
 
-**Câu 7.** Khi phân giải `Parent<T>` trong `Child extends Parent<String>`, vì sao nên dùng khóa `TypeVariable<?>` thay vì chuỗi `"T"`?
+**Question 7.** When resolving `Parent<T>` in `Child extends Parent<String>`, why should you use `TypeVariable<?>` as the key instead of the string `"T"`?
 
-**Đáp án:** Để binding String chỉ áp dụng Parent-T và không ghi đè các biến kiểu tên T ở method hay các class khác.
+**Answer:** So that the String binding applies only to Parent-T and does not overwrite type variables named T on methods or other classes.
 
-**Ghi nhớ:** Biến kiểu của **lớp** và biến kiểu của **phương thức** là các khai báo độc lập. Cùng tên `T` không tạo cùng identity; Reflection cho biết owner bằng `TypeVariable.getGenericDeclaration()`. Dùng `Class.getTypeParameters()` để xem biến kiểu lớp, `Method.getTypeParameters()` để xem biến kiểu method, và các API `getGeneric...` để giữ thông tin trước erasure. Khi giải generic, luôn gắn binding với **đúng declaration**, đặc biệt khi method khai báo một biến `T` mới che khuất `T` của lớp.
+**Remember:** **Class** type variables and **method** type variables are independent declarations. Sharing the name `T` does not create shared identity; Reflection reveals the owner via `TypeVariable.getGenericDeclaration()`. Use `Class.getTypeParameters()` to inspect class type variables, `Method.getTypeParameters()` to inspect method type variables, and `getGeneric...` APIs to preserve pre-erasure information. When resolving generics, always tie bindings to the **exact declaration**, especially when a method declares a new `T` shadowing the class's `T`.

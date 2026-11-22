@@ -1,65 +1,65 @@
-# Boot layer và module layer mặc định trong Java (JPMS)
+# Boot Layer and the Default Module Layer in Java (JPMS)
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Sau bài này, bạn có thể:
-- Giải thích `ModuleLayer` là gì và vì sao JVM cần boot layer khi khởi động ứng dụng có module.
-- Xác định module nào đã được phân giải vào boot layer; phân biệt module đang *có trên module path* với module đã *được đưa vào đồ thị module lúc chạy*.
-- Dùng `ModuleLayer.boot()`, `modules()`, `findModule()`, `configuration()` và `Module.getLayer()` để kiểm tra cấu trúc module.
-- Phân biệt boot layer với unnamed module trên classpath và với một module layer được tạo thêm tại thời điểm chạy.
-- Hiểu giới hạn của boot layer khi thiết kế hệ thống plugin hoặc nạp module động.
+After this lesson, you can:
+- Explain what `ModuleLayer` is and why the JVM needs a boot layer when starting an application with modules.
+- Determine which modules have been resolved into the boot layer; distinguish modules that are *present on the module path* from modules that have been *brought into the runtime module graph*.
+- Use `ModuleLayer.boot()`, `modules()`, `findModule()`, `configuration()`, and `Module.getLayer()` to inspect module structure.
+- Distinguish the boot layer from the unnamed module on the classpath and from an additional module layer created at runtime.
+- Understand the limitations of the boot layer when designing a plugin system or dynamic module loading.
 
-**Phạm vi:** Java 9 trở lên; các ví dụ lệnh và mã nguồn phù hợp với Java 21.
+**Scope:** Java 9 and later; command and source code examples are compatible with Java 21.
 
-## 2. Ba khái niệm nền tảng
+## 2. Three Foundational Concepts
 
-JPMS (Java Platform Module System) nhóm mã nguồn thành **module** với tên, phụ thuộc và các ranh giới truy cập được khai báo qua `module-info.java`. Khi chương trình chạy, các đối tượng sau liên quan nhưng không đồng nghĩa:
+JPMS (Java Platform Module System) groups source code into **modules** with names, dependencies, and access boundaries declared via `module-info.java`. When a program runs, the following entities are related but not synonymous:
 
-| Khái niệm | Vai trò | Ví dụ |
+| Concept | Role | Example |
 | --- | --- | --- |
-| **Module** (`java.lang.Module`) | Đại diện cho một module ở runtime; chứa thông tin tên, package, lớp nạp và lớp chứa module | `java.base`, `java.logging`, `vn.demo.boot` |
-| **Configuration** (`java.lang.module.Configuration`) | Kết quả phân giải quan hệ phụ thuộc của các module; tập các `ResolvedModule` và quan hệ đọc giữa chúng | Cấu hình giải được `vn.demo.boot → java.logging → java.base` |
-| **Module layer** (`java.lang.ModuleLayer`) | Gắn các module đã được phân giải với class loader tại runtime và liên kết với các layer cha | Boot layer hoặc một layer dành riêng cho plugin |
+| **Module** (`java.lang.Module`) | Represents a module at runtime; holds name, packages, loaded classes, and containing layer information | `java.base`, `java.logging`, `vn.demo.boot` |
+| **Configuration** (`java.lang.module.Configuration`) | The result of resolving module dependencies; a set of `ResolvedModule` objects and read relationships among them | A configuration resolving `vn.demo.boot → java.logging → java.base` |
+| **Module layer** (`java.lang.ModuleLayer`) | Binds resolved modules to class loaders at runtime and links to parent layers | The boot layer or a dedicated layer for plugins |
 
-Có thể hình dung mối quan hệ:
+You can visualize the relationship as:
 
 ~~~text
-module-info.java + module path + tập root modules
+module-info.java + module path + root modules set
                   |
                   v
-         Bộ phân giải module
+           Module resolver
                   |
                   v
-           Configuration
+            Configuration
                   |
                   v
-ModuleLayer (module + class loader + parent layers)
+ModuleLayer (modules + class loaders + parent layers)
                   |
                   v
-    Class được nạp / kiểm soát truy cập
+      Loaded classes / access control
 ~~~
 
-**Điểm cốt lõi:** `Configuration` mô tả đồ thị đã phân giải; `ModuleLayer` hiện thực đồ thị đó trong JVM. Một layer không đơn giản là một thư mục chứa các file JAR, và một class loader cũng không đồng nghĩa với một layer.
+**Core point:** `Configuration` describes the resolved graph; `ModuleLayer` realizes that graph inside the JVM. A layer is not simply a directory containing JAR files, and a class loader is not synonymous with a layer either.
 
-## 3. Boot layer là gì?
+## 3. What Is the Boot Layer?
 
-**Boot layer** là module layer do JVM thiết lập khi khởi động. Đây là layer ban đầu chứa những **named modules đã được phân giải trong giai đoạn startup**, bao gồm các module nền tảng cần thiết và các module ứng dụng được chọn làm root cùng các phụ thuộc được phân giải của chúng.
+The **boot layer** is the module layer set up by the JVM at startup. It is the initial layer containing **named modules resolved during startup**, including the required foundational modules and the application modules chosen as roots along with their resolved dependencies.
 
-Truy cập layer này qua:
+Access this layer via:
 
 ~~~java
 ModuleLayer boot = ModuleLayer.boot();
 ~~~
 
-Những tính chất cần nhớ:
+Properties to remember:
 
-1. Trong một JVM, `ModuleLayer.boot()` trả về boot layer đã được thiết lập trong quá trình khởi động. Ứng dụng có thể *tra cứu* layer này nhưng không gắn thêm module vào nó bằng cách sửa trực tiếp tập `modules()`.
-2. Boot layer có **empty layer** làm cha. `ModuleLayer.empty()` không chứa module nào và không có cha.
-3. `java.base` là module nền tảng bắt buộc và có mặt trong boot layer. Sự có mặt của các module JDK khác phụ thuộc cấu hình khởi chạy và môi trường runtime.
-4. Với ứng dụng được khởi chạy bằng `-m` / `--module`, module khởi chạy đã được phân giải nằm trong boot layer.
-5. Boot layer có thể chứa cả system modules và các named modules lấy từ application module path, nếu chúng thực sự được phân giải lúc startup.
+1. Within a JVM, `ModuleLayer.boot()` returns the boot layer established during startup. An application can *query* this layer, but cannot attach more modules to it by directly modifying the `modules()` set.
+2. The boot layer has the **empty layer** as its parent. `ModuleLayer.empty()` contains no modules and has no parent.
+3. `java.base` is the mandatory foundational module and is present in the boot layer. The presence of other JDK modules depends on launch configuration and the runtime environment.
+4. For applications launched with `-m` / `--module`, the resolved launch module resides in the boot layer.
+5. The boot layer can contain both system modules and named modules taken from the application module path, provided they are actually resolved at startup.
 
-Một cách nhìn đơn giản:
+A simple view:
 
 ~~~text
                  ModuleLayer.empty()
@@ -68,49 +68,49 @@ Một cách nhìn đơn giản:
                  Boot module layer
                  +------------------+
                  | java.base        |
-                 | java.logging     |  (khi được phân giải)
-                 | vn.demo.boot     |  (ứng dụng dạng module)
+                 | java.logging     |  (when resolved)
+                 | vn.demo.boot     |  (modular application)
                  | ...              |
                  +------------------+
                          |
-           Một layer mới có thể được
-            định nghĩa thêm tại runtime
+           A new layer can be
+            defined at runtime
 ~~~
 
-Sơ đồ là ví dụ minh họa: tập module thực tế phụ thuộc cấu hình khởi chạy. **Tên “module layer mặc định” trong ngữ cảnh JPMS thường chỉ boot layer**; nó không có nghĩa rằng mọi JAR hay mọi module khả dụng đều tự động thuộc layer này.
+The diagram is an illustrative example: the actual set of modules depends on the launch configuration. **The name “default module layer” in the context of JPMS usually refers to the boot layer**; it does not mean that every JAR or every available module automatically belongs to this layer.
 
-### Boot layer hình thành khi nào?
+### When Is the Boot Layer Formed?
 
-Trước khi gọi `main()`, runtime xác định tập module gốc (*root modules*), tìm các phụ thuộc theo khai báo `requires`, phân giải đồ thị và thiết lập boot layer. Tập root được ảnh hưởng bởi cách launch chương trình cùng các tùy chọn module.
+Before calling `main()`, the runtime determines the set of *root modules*, locates dependencies according to `requires` declarations, resolves the graph, and sets up the boot layer. The root set is influenced by how the program is launched together with module options.
 
-Ví dụ khi chạy:
+For example, when running:
 
 ~~~text
 java --module-path out --module vn.demo.boot/vn.demo.boot.Main
 ~~~
 
-`vn.demo.boot` là module gốc. Nếu `module-info.java` có `requires java.logging;`, module `java.logging` phải được phân giải cùng các phụ thuộc cần thiết. Module nào không được chọn hoặc không nằm trong đồ thị phân giải không tự động xuất hiện trong boot layer chỉ vì file JAR của nó có trên module path.
+`vn.demo.boot` is the root module. If `module-info.java` has `requires java.logging;`, the `java.logging` module must be resolved along with any required dependencies. Any module that is not selected or not in the resolution graph does not automatically appear in the boot layer just because its JAR file is on the module path.
 
-## 4. Các API quan sát boot layer
+## 4. APIs for Inspecting the Boot Layer
 
-| API | Ý nghĩa |
+| API | Meaning |
 | --- | --- |
-| `ModuleLayer.boot()` | Lấy boot layer của JVM hiện tại |
-| `boot.modules()` | Lấy tập **module nằm trực tiếp trong layer này** (`Set<Module>`) |
-| `boot.findModule("java.base")` | Tìm module theo tên, trả về `Optional<Module>`; cơ chế tìm cũng xét các layer cha |
-| `boot.configuration()` | Lấy `Configuration` tương ứng để kiểm tra các `ResolvedModule` |
-| `boot.parents()` | Lấy các layer cha; với boot layer, cha là empty layer |
-| `SomeClass.class.getModule()` | Lấy module chứa class đó |
-| `someModule.getLayer()` | Lấy layer chứa module, hoặc `null` nếu module không nằm trong layer nào |
-| `boot.findLoader(name)` | Tìm class loader được gắn với module có tên cho trước; bootstrap loader có thể biểu diễn bằng `null` |
+| `ModuleLayer.boot()` | Gets the boot layer of the current JVM |
+| `boot.modules()` | Gets the set of **modules directly in this layer** (`Set<Module>`) |
+| `boot.findModule("java.base")` | Looks up a module by name, returning `Optional<Module>`; lookup also checks parent layers |
+| `boot.configuration()` | Gets the corresponding `Configuration` to inspect `ResolvedModule` entries |
+| `boot.parents()` | Gets parent layers; for the boot layer, the parent is the empty layer |
+| `SomeClass.class.getModule()` | Gets the module containing that class |
+| `someModule.getLayer()` | Gets the layer containing the module, or `null` if the module is not in any layer |
+| `boot.findLoader(name)` | Finds the class loader associated with the module of a given name; the bootstrap loader may be represented by `null` |
 
-`modules()` chỉ liệt kê module thuộc **chính layer đó**. Trái lại, `findModule()` có thể tìm trong layer cha khi gọi từ layer con. Hai hành vi này đặc biệt quan trọng khi ứng dụng tự tạo thêm module layer.
+`modules()` only lists modules belonging to **that layer itself**. By contrast, `findModule()` can search in parent layers when called from a child layer. These two behaviors are especially important when an application creates additional module layers itself.
 
-Không dùng `findModule("x").get()` khi chưa xác nhận sự tồn tại: module `x` có thể không được phân giải tại lần khởi chạy hiện tại. Nên dùng `isPresent()`, `ifPresent(...)` hoặc `orElseThrow(...)` với thông báo phù hợp.
+Do not call `findModule("x").get()` without verifying existence: module `x` may not have been resolved in the current launch. Prefer `isPresent()`, `ifPresent(...)`, or `orElseThrow(...)` with an appropriate message.
 
-## 5. Ví dụ 1 — Khảo sát boot layer khi chạy trên classpath
+## 5. Example 1 — Inspecting the Boot Layer When Running on the Classpath
 
-Tạo file `BootInspector.java`:
+Create file `BootInspector.java`:
 
 ~~~java
 import java.lang.Module;
@@ -145,25 +145,25 @@ public class BootInspector {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac BootInspector.java
 java BootInspector
 ~~~
 
-Những điều có thể quan sát một cách ổn định:
+Things you can reliably observe:
 
 - `java.base present: true`.
-- `Current class in named module: false` vì `BootInspector` được chạy qua classpath, nên thuộc một **unnamed module**.
-- `Current module inside boot: false`: unnamed module của classpath không được đưa vào `boot.modules()`.
-- Boot layer có một layer cha rỗng; danh sách tên module và số lượng module phụ thuộc JDK và cách khởi chạy.
+- `Current class in named module: false` because `BootInspector` is run via the classpath, so it belongs to an **unnamed module**.
+- `Current module inside boot: false`: the classpath's unnamed module is not placed in `boot.modules()`.
+- The boot layer has one empty parent layer; the list of module names and module count depend on the JDK and launch configuration.
 
-**Chú ý:** Chạy trên classpath **không làm boot layer biến mất**. Các module JDK đã được phân giải vẫn nằm trong boot layer, còn lớp ứng dụng ví dụ này thuộc unnamed module.
+**Note:** Running on the classpath **does not make the boot layer disappear**. Resolved JDK modules still reside in the boot layer, while this example's application class belongs to the unnamed module.
 
-## 6. Ví dụ 2 — Module ứng dụng nằm trong boot layer
+## 6. Example 2 — An Application Module Inside the Boot Layer
 
-Tạo cấu trúc dự án:
+Create the project structure:
 
 ~~~text
 src/
@@ -215,14 +215,14 @@ public class Main {
 }
 ~~~
 
-Ở thư mục gốc dự án, biên dịch và chạy:
+At the project root directory, compile and run:
 
 ~~~bash
 javac --module-source-path src -d out -m vn.demo.boot
 java --module-path out -m vn.demo.boot/vn.demo.boot.Main
 ~~~
 
-Những dòng kết quả dự kiến:
+Expected output lines:
 
 ~~~text
 App module: vn.demo.boot
@@ -234,40 +234,40 @@ java.base found in boot: true
 Resolved name: vn.demo.boot
 ~~~
 
-Vì chương trình được launch như **named module**, `vn.demo.boot` thuộc boot layer. Khai báo `requires java.logging;` làm `java.logging` trở thành một phần của đồ thị cần phân giải. `java.base` là phụ thuộc cơ bản được mọi module sử dụng, kể cả khi không khai báo `requires java.base;` một cách tường minh.
+Because the program is launched as a **named module**, `vn.demo.boot` belongs to the boot layer. Declaring `requires java.logging;` makes `java.logging` part of the graph to be resolved. `java.base` is the foundational dependency used by every module, even when `requires java.base;` is not declared explicitly.
 
-Có thể bổ sung tùy chọn:
+You can add the option:
 
 ~~~bash
 java --show-module-resolution --module-path out -m vn.demo.boot/vn.demo.boot.Main
 ~~~
 
-Tùy chọn này hiển thị thông tin JVM đang phân giải module nào và quan hệ phụ thuộc nào trong lúc khởi chạy. Nội dung và thứ tự chi tiết có thể khác giữa các bản JDK.
+This option displays information about which modules and dependency relationships the JVM resolves during startup. Exact contents and ordering may vary across JDK versions.
 
-## 7. Điều gì quyết định thành phần boot layer?
+## 7. What Determines the Contents of the Boot Layer?
 
-**Module path** là nơi runtime tìm ứng viên module; **module resolution** mới quyết định module nào tham gia đồ thị ban đầu. Một module có mặt trên module path chưa chắc đã nằm trong boot layer.
+The **module path** is where the runtime finds module candidates; **module resolution** is what decides which modules enter the initial graph. A module present on the module path is not necessarily in the boot layer.
 
-| Cách chạy / tùy chọn | Ảnh hưởng chính |
+| Launch style / option | Main effect |
 | --- | --- |
-| `java -cp ... Main` | Lớp ứng dụng trên classpath thuộc unnamed module; boot layer vẫn chứa các named modules đã phân giải |
-| `java --module-path mods -m app.mod/pkg.Main` | `app.mod` là root module được phân giải vào boot layer cùng các phụ thuộc cần thiết |
-| `--add-modules m1,m2` | Bổ sung root modules vào quá trình phân giải lúc khởi chạy |
-| `--limit-modules m1,m2` | Giới hạn tập module có thể quan sát được khi phân giải; có thể ảnh hưởng graph được tạo |
-| `--show-module-resolution` | In thông tin giải module để quan sát quá trình khởi chạy |
+| `java -cp ... Main` | Application classes on the classpath belong to the unnamed module; the boot layer still contains resolved named modules |
+| `java --module-path mods -m app.mod/pkg.Main` | `app.mod` is the root module resolved into the boot layer along with required dependencies |
+| `--add-modules m1,m2` | Adds root modules to startup resolution |
+| `--limit-modules m1,m2` | Limits the set of observable modules during resolution; may affect the resulting graph |
+| `--show-module-resolution` | Prints module resolution info to observe the startup process |
 
-Một số lưu ý dễ nhầm:
+Commonly confused points:
 
-- `java --list-modules` chủ yếu liệt kê các system modules có trong runtime image, **không phải phép đo trực tiếp toàn bộ `ModuleLayer.boot().modules()` của ứng dụng**.
-- Một module của JDK như `java.sql` có thể có sẵn trong runtime image nhưng không được phân giải vào boot layer cho một cấu hình khởi chạy cụ thể.
-- Nếu dùng runtime image thu gọn được tạo bằng `jlink`, số module khả dụng còn phụ thuộc nội dung image đó.
-- Cùng một đoạn mã khảo sát boot layer có thể cho danh sách khác nhau giữa các lần chạy có tùy chọn module khác nhau; không nên hard-code số lượng module.
+- `java --list-modules` primarily lists system modules present in the runtime image, **not a direct measurement of the entire `ModuleLayer.boot().modules()` of an application**.
+- A JDK module such as `java.sql` may exist in the runtime image without being resolved into the boot layer for a specific launch configuration.
+- If using a slimmed-down runtime image created with `jlink`, the number of available modules also depends on what that image contains.
+- The same boot-layer inspection code can yield different lists across runs with different module options; do not hard-code module counts.
 
-## 8. Boot layer khác gì so với layer tạo động?
+## 8. How Does the Boot Layer Differ from a Dynamically Created Layer?
 
-Boot layer được thiết lập khi startup. Ứng dụng cần nạp một tập module mới sau khi đã chạy có thể **tạo layer con** từ một `Configuration` đã phân giải, thay vì cố thay đổi boot layer.
+The boot layer is established at startup. An application that needs to load a new set of modules after already running can **create a child layer** from a resolved `Configuration`, instead of trying to modify the boot layer.
 
-Ví dụ minh họa, giả sử thư mục `plugins/` đã chứa các module hợp lệ và có module tên `vn.demo.plugin`:
+As an illustration, suppose the `plugins/` directory already contains valid modules and has a module named `vn.demo.plugin`:
 
 ~~~java
 import java.lang.ModuleLayer;
@@ -295,51 +295,51 @@ System.out.println(
         boot.findModule("vn.demo.plugin").isPresent());
 ~~~
 
-Đây là đoạn mã minh họa cho phần thiết lập layer trong một phương thức; muốn chạy cần chuẩn bị module plugin và graph phụ thuộc hợp lệ. `pluginLayer` được định nghĩa với `boot` là layer cha. Module `vn.demo.plugin` nằm trong layer con; việc tạo layer con **không bổ sung module này vào boot layer**.
+This snippet illustrates the layer setup inside a method; to run it, you need to prepare the plugin module and a valid dependency graph. `pluginLayer` is defined with `boot` as its parent layer. The module `vn.demo.plugin` resides in the child layer; creating a child layer **does not add this module to the boot layer**.
 
-So sánh hai loại layer:
+Comparing the two kinds of layers:
 
-| Tiêu chí | Boot layer | Layer được ứng dụng tạo thêm |
+| Criterion | Boot layer | Application-created layer |
 | --- | --- | --- |
-| Thời điểm tạo | Khi JVM khởi động | Trong lúc chương trình chạy |
-| Cách truy cập | `ModuleLayer.boot()` | Giá trị trả về từ `defineModulesWithOneLoader`, `defineModulesWithManyLoaders` hoặc API liên quan |
-| Cấu hình | Dựa trên graph được phân giải lúc startup | Dựa trên `Configuration` do ứng dụng phân giải |
-| Quan hệ cha | Empty layer | Một hoặc nhiều layer cha được chỉ định |
-| Mục đích điển hình | Chạy module nền tảng và ứng dụng ban đầu | Plugin, thành phần mở rộng, tách biệt cách nạp module |
+| Creation time | At JVM startup | While the program is running |
+| How to access | `ModuleLayer.boot()` | Return value from `defineModulesWithOneLoader`, `defineModulesWithManyLoaders`, or related APIs |
+| Configuration | Based on the graph resolved at startup | Based on a `Configuration` resolved by the application |
+| Parent relationship | Empty layer | One or more specified parent layers |
+| Typical purpose | Running foundational modules and initial application | Plugins, extensions, separating how modules are loaded |
 
-Khi gọi `pluginLayer.findModule("java.base")`, API có thể tìm thấy `java.base` từ layer cha. Nhưng `pluginLayer.modules()` chỉ chứa các module **được định nghĩa trực tiếp** trong `pluginLayer`.
+When calling `pluginLayer.findModule("java.base")`, the API can find `java.base` from the parent layer. However, `pluginLayer.modules()` contains only the modules **directly defined** in `pluginLayer`.
 
-**Quan trọng về class loader:** layer và class loader là hai trục liên quan. Một layer có thể ánh xạ nhiều module tới cùng loader hoặc những loader khác nhau; lớp trong boot layer cũng có thể được nạp bởi bootstrap, platform hay application class loader. Vì thế “cùng layer” không đồng nghĩa “cùng class loader”.
+**Important about class loaders:** layers and class loaders are two related axes. A layer can map multiple modules to the same loader or to different loaders; classes in the boot layer can also be loaded by the bootstrap, platform, or application class loader. Therefore, “same layer” does not mean “same class loader”.
 
-## 9. Các hiểu lầm thường gặp
+## 9. Common Misunderstandings
 
-**“Tôi đặt JAR vào module path, vì sao `findModule()` trả về rỗng?”**  
-Vì module path chỉ cung cấp ứng viên. Module cần được phân giải bởi root module, quan hệ phụ thuộc hoặc tùy chọn khởi chạy thích hợp. Trước tiên kiểm tra cách chạy và `module-info.java`.
+**“I put a JAR on the module path, why does `findModule()` return empty?”**  
+Because the module path only provides candidates. A module must be resolved by a root module, dependency relationships, or appropriate launch options. First check how the app is launched and `module-info.java`.
 
-**“Chạy ứng dụng bằng `-cp` thì không có boot layer?”**  
-Không đúng. JVM vẫn tạo boot layer; chỉ có mã ứng dụng trên classpath thuộc unnamed module thay vì một named module ở boot layer.
+**“If I run an app with `-cp`, is there no boot layer?”**  
+Incorrect. The JVM still creates a boot layer; only the application code on the classpath belongs to an unnamed module rather than a named module in the boot layer.
 
-**“Boot layer là nơi chứa tất cả các module?”**  
-Không. Module được tải vào layer mới có thể nằm ở layer con. Module chưa được phân giải thì chưa nằm trong graph của boot layer.
+**“Is the boot layer where all modules are stored?”**  
+No. Modules loaded into a new layer can reside in a child layer. Modules that have not been resolved are not in the boot layer's graph.
 
-**“Một layer là một class loader?”**  
-Không. `ModuleLayer` tổ chức các module và quan hệ cha; mỗi module được ánh xạ với class loader phù hợp. Nhiều module có thể dùng chung một class loader.
+**“Is one layer one class loader?”**  
+No. `ModuleLayer` organizes modules and parent relationships; each module is mapped to an appropriate class loader. Multiple modules can share a single class loader.
 
-**“Tôi có thể thêm trực tiếp module vào tập trả về bởi `boot.modules()`?”**  
-Không. Tập trả về không phải cấu trúc cho phép sửa graph của boot layer. Muốn dùng module mới sau startup, cần xây dựng cấu hình và layer mới theo cơ chế JPMS.
+**“Can I add a module directly to the set returned by `boot.modules()`?”**  
+No. The returned set is not a structure that allows mutating the boot layer's graph. To use new modules after startup, you must build a new configuration and layer using JPMS mechanisms.
 
-**“`Module.getLayer()` luôn trả về boot layer?”**  
-Không. Với module ở layer con, nó trả về layer chứa module đó; với unnamed module có thể trả về `null` vì không thuộc layer nào.
+**“Does `Module.getLayer()` always return the boot layer?”**  
+No. For a module in a child layer, it returns the layer containing that module; for an unnamed module, it may return `null` because it does not belong to any layer.
 
-## 10. Bài tập thực hành
+## 10. Practice Exercises
 
-1. Chạy `BootInspector` bằng classpath, ghi lại số module được liệt kê và kết quả kiểm tra `current.isNamed()`. Giải thích vì sao lớp ứng dụng không thuộc boot layer.
-2. Chạy module `vn.demo.boot` ở ví dụ 2, sau đó bỏ khai báo `requires java.logging;` nhưng vẫn giữ các câu lệnh kiểm tra `java.logging`. Quan sát kết quả trong môi trường đang dùng và giải thích vì sao không thể kết luận cố định sự có mặt của mọi module JDK chỉ từ một lần chạy.
-3. Thêm tùy chọn `--show-module-resolution` rồi so sánh danh sách module được giải với kết quả `boot.modules()`. Chỉ ra vai trò của module gốc và phụ thuộc.
-4. Viết một hàm `boolean isInBootLayer(Class<?> type)` dựa trên `type.getModule()` và `ModuleLayer.boot().modules()`, rồi thử với class ứng dụng và `String.class`.
-5. Giải thích vì sao ứng dụng plugin có thể cần một module layer riêng khi các plugin chỉ được phát hiện sau khi chương trình đã chạy.
+1. Run `BootInspector` with the classpath, record the number of modules listed and the result of checking `current.isNamed()`. Explain why the application class does not belong to the boot layer.
+2. Run the `vn.demo.boot` module in Example 2, then remove `requires java.logging;` while keeping the statements that check `java.logging`. Observe the result in your environment and explain why you cannot draw a fixed conclusion about the presence of every JDK module from a single run.
+3. Add the `--show-module-resolution` option and compare the list of resolved modules against the result of `boot.modules()`. Point out the roles of root modules and dependencies.
+4. Write a method `boolean isInBootLayer(Class<?> type)` based on `type.getModule()` and `ModuleLayer.boot().modules()`, then test it with an application class and `String.class`.
+5. Explain why a plugin application might need a separate module layer when plugins are only discovered after the program has already started.
 
-Gợi ý cho bài 4:
+Hint for Exercise 4:
 
 ~~~java
 static boolean isInBootLayer(Class<?> type) {
@@ -347,18 +347,18 @@ static boolean isInBootLayer(Class<?> type) {
 }
 ~~~
 
-Với `String.class`, kết quả là `true` vì lớp này thuộc `java.base`. Với `BootInspector.class` chạy trên classpath, kết quả là `false`.
+With `String.class`, the result is `true` because this class belongs to `java.base`. With `BootInspector.class` run on the classpath, the result is `false`.
 
-## 11. Ghi nhớ
+## 11. Takeaways
 
-- **Boot layer** là module layer ban đầu do JVM tạo tại startup, truy cập bằng `ModuleLayer.boot()`.
-- Boot layer chứa **named modules đã được phân giải**, không tự động chứa mọi module tìm được trên module path.
-- Ứng dụng khởi chạy bằng `-m` có named module chính trong boot layer; ứng dụng chạy trên classpath dùng unnamed module.
-- `modules()` liệt kê module thuộc chính layer; `findModule()` tìm theo tên, kể cả qua các layer cha.
-- Boot layer không bị “mở rộng tại chỗ” khi định nghĩa layer con. Layer con là một đối tượng `ModuleLayer` khác với configuration và ánh xạ class loader riêng.
-- Khi cần chẩn đoán, kết hợp `--show-module-resolution`, `ModuleLayer.boot()`, `Class.getModule()` và `Module.getLayer()` để biết module thực sự nằm ở đâu.
+- **Boot layer** is the initial module layer created by the JVM at startup, accessed via `ModuleLayer.boot()`.
+- The boot layer contains **resolved named modules**, not automatically every module found on the module path.
+- Applications launched with `-m` have their main named module in the boot layer; applications run on the classpath use an unnamed module.
+- `modules()` lists modules belonging to the layer itself; `findModule()` searches by name, including through parent layers.
+- The boot layer is not “expanded in place” when defining a child layer. A child layer is a distinct `ModuleLayer` object with its own configuration and class loader mapping.
+- When troubleshooting, combine `--show-module-resolution`, `ModuleLayer.boot()`, `Class.getModule()`, and `Module.getLayer()` to see where a module actually resides.
 
-## Tài liệu tham khảo
+## References
 
 - [Java SE 21 — ModuleLayer](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ModuleLayer.html)
 - [Java SE 21 — Module](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Module.html)

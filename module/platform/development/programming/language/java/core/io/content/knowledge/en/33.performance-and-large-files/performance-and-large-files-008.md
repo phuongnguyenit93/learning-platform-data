@@ -1,14 +1,14 @@
-# Ảnh hưởng của cache hệ điều hành khi benchmark Java I/O
+# Effects of OS Caching When Benchmarking Java I/O
 
-Khi đo hiệu năng đọc/ghi tệp lớn bằng Java, kết quả có thể chênh lệch nhiều lần dù **không thay đổi một dòng code**. Nguyên nhân thường không nằm riêng ở `FileInputStream`, `BufferedInputStream`, `FileChannel` hay `MappedByteBuffer`, mà còn ở **page cache của hệ điều hành**, readahead, cơ chế write-back, cache của thiết bị lưu trữ, hoạt động của các tiến trình khác và trạng thái bộ nhớ tại thời điểm đo.
+When measuring large-file read/write performance in Java, results can vary several-fold without **changing a single line of code**. The cause often does not lie solely in `FileInputStream`, `BufferedInputStream`, `FileChannel`, or `MappedByteBuffer`, but also in the **OS page cache**, readahead, write-back mechanisms, storage device caches, activity from other processes, and memory state at the time of measurement.
 
-Ví dụ, đọc một tệp 2 GiB từ SSD ở lần đầu có thể phụ thuộc lượng dữ liệu phải thực sự tải từ thiết bị. Nếu dữ liệu đã nằm trong RAM của hệ điều hành, lượt đọc sau chủ yếu truyền dữ liệu từ page cache về ứng dụng. So sánh hai lượt này rồi tuyên bố “API A nhanh hơn API B” là sai nếu chúng không được đo trong **điều kiện cache tương đương**.
+For example, reading a 2 GiB file from an SSD on the first pass may depend on how much data must actually be fetched from the device. If the data already resides in OS RAM, a subsequent read mainly copies data from the page cache to the application. Comparing those two passes and claiming “API A is faster than API B” is wrong if they were not measured under **comparable cache conditions**.
 
-Bài học này tập trung vào cách cache hệ điều hành làm sai lệch benchmark, phân biệt **cold-cache** và **warm-cache**, các đặc điểm của đo đọc/ghi, cách thiết kế thử nghiệm Java I/O và cách diễn giải kết quả mà không nhầm tốc độ truy cập RAM với thông lượng thiết bị.
+This lesson focuses on how OS caching skews benchmarks, distinguishing **cold-cache** from **warm-cache**, characteristics of read/write measurements, designing Java I/O experiments, and interpreting results without mistaking RAM access speed for device throughput.
 
-## 1. Page cache nằm ở đâu trong đường đi I/O?
+## 1. Where Does the Page Cache Sit in the I/O Path?
 
-Trên hệ điều hành thông thường, hoạt động đọc một tệp nằm trên hệ thống tệp có thể đi qua các tầng:
+On a typical operating system, reading a file on a filesystem may traverse these layers:
 
 ```text
 Java application
@@ -18,7 +18,7 @@ Java application
 Kernel filesystem interface
    |
    v
-OS page cache (RAM dùng cache các trang dữ liệu tệp)
+OS page cache (RAM caching file data pages)
    |                         \
    | cache hit                 \ cache miss
    |                            v
@@ -30,39 +30,39 @@ OS page cache (RAM dùng cache các trang dữ liệu tệp)
    +<---------------------------+
    |
    v
-ByteBuffer / byte[] / ứng dụng
+ByteBuffer / byte[] / application
 ```
 
-Đây là mô hình **khái niệm**, không phải đường đi cố định của mọi hệ thống tệp, OS hoặc provider. Hệ điều hành có thể cache metadata, thực hiện readahead, copy hoặc map trang, gom nhiều yêu cầu I/O; thiết bị SSD/HDD cũng có cache riêng.
+This is a **conceptual** model, not a fixed path for every filesystem, OS, or provider. The OS may cache metadata, perform readahead, copy or map pages, and coalesce I/O requests; SSD/HDD devices also have their own internal caches.
 
-**Page cache** là RAM mà hệ điều hành tận dụng để lưu những trang dữ liệu của file. Khi một thao tác đọc cần những trang đã có trong cache (*cache hit*), kernel có thể phục vụ mà không phải đọc lại toàn bộ dữ liệu từ thiết bị lưu trữ. Khi chưa có trang phù hợp (*cache miss*), hệ thống phải lấy dữ liệu từ các tầng dưới, thường chậm hơn và biến động hơn.
+The **page cache** is RAM utilized by the OS to hold file data pages. When a read needs pages already present in cache (*cache hit*), the kernel can serve them without re-reading all data from the storage device. When the needed pages are absent (*cache miss*), the system must fetch data from lower layers, which is usually slower and more variable.
 
-Hai khái niệm cần phân biệt:
+Two concepts to distinguish:
 
-- **Cache của ứng dụng Java:** `byte[]`, `ByteBuffer`, `BufferedInputStream`, cache tự xây dựng hoặc cache của thư viện. Dữ liệu sống theo quy tắc của JVM/ứng dụng.
-- **Cache của hệ điều hành:** thường do kernel quản lý và chia sẻ giữa các tiến trình. Đóng `FileChannel` hoặc tạo lại đối tượng Java không có nghĩa kernel đã bỏ các trang tệp tương ứng khỏi cache.
+- **Java application cache:** `byte[]`, `ByteBuffer`, `BufferedInputStream`, custom caches, or library caches. Data lives by JVM/application rules.
+- **OS cache:** typically managed by the kernel and shared across processes. Closing `FileChannel` or recreating Java objects does not mean the kernel evicted the file's pages from cache.
 
-Đọc xong một file rồi đóng stream, mở một stream mới tới cùng file vẫn có thể **đọc từ cache kernel**. Vì thế việc “tạo `FileChannel` mới cho mỗi lượt benchmark” không phải cách bảo đảm mọi lượt bắt đầu trong trạng thái cold.
+Reading a file, closing the stream, and opening a new stream to the same file can still **read from the kernel cache**. Thus, “creating a new `FileChannel` for each benchmark pass” does not guarantee every pass starts cold.
 
-## 2. Cold cache và warm cache là hai bài toán khác nhau
+## 2. Cold Cache and Warm Cache Are Different Problems
 
-| Tình huống | Ý nghĩa thực tế | Đo được điều gì? |
+| Situation | Practical meaning | What is being measured? |
 | --- | --- | --- |
-| **Cold-ish read** | Phần lớn dữ liệu chưa nằm trong page cache cần thiết | Đọc có thể chịu chi phí thiết bị, metadata và readahead |
-| **Warm read** | Phần lớn dữ liệu đã có trong page cache | Chi phí kernel/cache, sao chép dữ liệu, xử lý Java, băng thông bộ nhớ |
-| **Mixed read** | Một số trang cache hit, một số phải tải lại | Hỗn hợp có thể khác nhau giữa từng lượt |
-| **Working set lớn hơn RAM cache khả dụng** | Có thể phát sinh eviction/cache thrashing | Bị chi phối bởi luồng I/O, lượng RAM và tác vụ cạnh tranh |
-| **Nhiều tiến trình đọc cùng tệp** | Một tiến trình làm cache nóng cho tiến trình khác | Phụ thuộc hoạt động hệ thống chung, không chỉ một JVM |
+| **Cold-ish read** | Most needed data is not yet in the page cache | Reads may incur device, metadata, and readahead costs |
+| **Warm read** | Most data is already in the page cache | Kernel/cache cost, data copying, Java processing, memory bandwidth |
+| **Mixed read** | Some pages hit cache, some must be fetched | Mix may differ from pass to pass |
+| **Working set larger than available cache RAM** | Eviction/cache thrashing may occur | Dominated by I/O stream, RAM size, and competing workloads |
+| **Multiple processes reading the same file** | One process warms cache for another | Depends on overall system activity, not just one JVM |
 
-Từ “cold” cần định nghĩa **theo phạm vi dữ liệu và trạng thái hệ thống**. Một file chưa từng được mở bởi chính chương trình chưa chắc cold: antivirus, trình index, tiến trình khác hoặc lệnh tạo file trước đó có thể đã đưa các trang của nó vào cache.
+“Cold” must be defined **by data scope and system state**. A file never opened by the program itself is not guaranteed cold: antivirus software, indexers, other processes, or the command that created the file may have placed its pages into cache.
 
-Ngược lại, “warm” không có nghĩa mọi byte luôn nằm trong RAM. Kernel có thể thu hồi trang bất cứ lúc nào để cấp RAM cho công việc khác. Nếu file lớn hoặc máy đang chịu memory pressure, lần đọc thứ hai vẫn có thể gặp nhiều cache miss.
+Conversely, “warm” does not guarantee every byte stays in RAM forever. The kernel can reclaim pages at any time to free RAM for other tasks. If a file is large or the machine is under memory pressure, even a second read can suffer many cache misses.
 
-**Không được lấy một phép đo cold và một phép đo warm làm hai mẫu tương đương để so sánh thư viện hoặc API.** Nếu sản phẩm đọc cùng file nhiều lần, warm-cache performance có thể là chỉ tiêu đúng. Nếu sản phẩm quét tệp mới sau khi khởi động hoặc đọc các tập dữ liệu vượt RAM, cần kiểm tra cold/mixed-cache và thông lượng lưu trữ thực tế.
+**Never treat one cold measurement and one warm measurement as comparable samples when comparing libraries or APIs.** If production repeatedly reads the same files, warm-cache performance may be the right target. If production scans new files after startup or datasets larger than RAM, test cold/mixed-cache and real storage throughput.
 
-## 3. Vì sao lần đọc đầu tiên chưa chắc là cold?
+## 3. Why Is the First Read Not Guaranteed Cold?
 
-Một quy trình nghe có vẻ hợp lý:
+A sequence that sounds logical:
 
 ```java
 Files.write(file, testData);
@@ -70,106 +70,106 @@ long first = timeRead(file);
 long second = timeRead(file);
 ```
 
-nhưng lại không tạo ra kết quả **cold versus warm** đúng nghĩa. Khi `Files.write()` vừa ghi `testData`, nhiều hệ điều hành giữ các trang đã ghi trong page cache. Ngay cả khi `first` là lần đầu ứng dụng **đọc**, dữ liệu có thể **đã warm do thao tác ghi**.
+still does not produce a true **cold versus warm** comparison. Because `Files.write()` just wrote `testData`, many OSes retain newly written pages in the page cache. Even though `first` is the application's first **read**, the data may **already be warm from the write**.
 
-Các lý do khác khiến lần đọc đầu không cold:
+Other reasons the first read is not cold:
 
-1. File đã được tạo, copy hoặc kiểm tra checksum ngay trước benchmark.
-2. Một tiến trình khác vừa đọc file, đưa dữ liệu vào cache chung.
-3. OS có cơ chế readahead: trong một lần đọc tuần tự, các trang **ở đoạn sau** có thể được tải sớm trước khi code gọi `read()` tới vị trí đó.
-4. Filesystem cache metadata/inode/dentry hoặc cache của storage device làm ảnh hưởng thời gian ngay cả khi data page chưa warm.
-5. Benchmark framework đã chạy một số vòng warmup, vô tình “làm nóng” dữ liệu cần dùng cho bài đo cold.
-6. Một container hoặc JVM mới dùng chung kernel với các workload trước đó; khởi động container mới **không đồng nghĩa xóa cache kernel**.
+1. The file was created, copied, or checksummed right before the benchmark.
+2. Another process recently read the file, populating the shared cache.
+3. The OS performs readahead: during a sequential read, **later** pages may be prefetched before code calls `read()` at those offsets.
+4. Filesystem metadata/inode/dentry caches or storage device caches affect timing even when data pages are not warm.
+5. The benchmark framework ran warm-up iterations, inadvertently warming the very data intended for a cold test.
+6. A new container or JVM shares the same kernel with prior workloads; starting a new container **does not clear the kernel cache**.
 
-Do đó, kết quả đo ban đầu chỉ nên được gọi là **first measured pass**, trừ khi có bằng chứng rằng working set bắt đầu ở điều kiện cache đã được kiểm soát.
+Therefore, an initial measurement should only be called the **first measured pass** unless there is proof that the working set started under controlled cache conditions.
 
-## 4. BufferedInputStream không phải page cache
+## 4. BufferedInputStream Is Not the Page Cache
 
-`BufferedInputStream` giữ một bộ đệm ở phía Java, giúp giảm số lần gọi xuống `InputStream` bên dưới khi ứng dụng đọc từng byte hoặc các đoạn nhỏ. `FileChannel.read(ByteBuffer)` có thể đọc một khối lớn trong một lời gọi. Nhưng **cả hai vẫn thường được phục vụ qua page cache của kernel** khi đọc file trên filesystem mặc định.
+`BufferedInputStream` holds a Java-side buffer, reducing calls down to the underlying `InputStream` when the application reads byte by byte or in tiny slices. `FileChannel.read(ByteBuffer)` can read a large block in one call. Yet **both are still typically served through the kernel's page cache** when reading files on a default filesystem.
 
-Ví dụ:
+Example:
 
 ```java
 try (InputStream input = new BufferedInputStream(
         Files.newInputStream(file), 64 * 1024)) {
     int value;
     while ((value = input.read()) != -1) {
-        consume(value); // Hàm nghiệp vụ minh họa.
+        consume(value); // Illustrative business method.
     }
 }
 ```
 
-Đoạn này **không phải chương trình độc lập**: cần khai báo `file` và hàm `consume`, import `java.io.*`, `java.nio.file.*` cùng xử lý `IOException`. Nó minh họa buffer tầng ứng dụng, không chứng minh rằng kernel sẽ không cache file.
+This snippet is **not a standalone program**: it requires declaring `file` and `consume`, importing `java.io.*`, `java.nio.file.*`, and handling `IOException`. It illustrates an application-layer buffer, not bypassing kernel caching.
 
-Thêm một tầng buffer **không luôn làm chương trình nhanh hơn**. Nếu ứng dụng vốn đã đọc mảng `byte[65536]` theo khối, bọc thêm `BufferedInputStream` có thể không mang lợi ích tương xứng. Nếu ứng dụng gọi `read()` từng byte, buffer có thể giảm overhead. Để kết luận cần đo với **kích thước buffer, trạng thái page cache, workload và thuật toán xử lý tương đương**.
+Adding another buffer layer **does not always make a program faster**. If the application already reads blocks into a `byte[65536]`, wrapping with `BufferedInputStream` may yield no commensurate benefit. If the application calls `read()` byte by byte, buffering can cut overhead. Conclusions require measuring with **comparable buffer sizes, page cache states, workloads, and processing logic**.
 
-### Direct ByteBuffer không tự bypass cache hệ điều hành
+### Direct ByteBuffer Does Not Automatically Bypass the OS Cache
 
-`ByteBuffer.allocateDirect()` tạo một buffer trực tiếp ở vùng bộ nhớ ngoài heap; nó có thể giảm chi phí copy giữa một số đường đi I/O native và JVM. Tuy nhiên **direct buffer không đồng nghĩa với `O_DIRECT` của Linux**, không bảo đảm bỏ qua OS page cache và cũng không bảo đảm “zero-copy” trong mọi tình huống.
+`ByteBuffer.allocateDirect()` creates a direct buffer outside the heap; it can reduce copy costs along some native I/O and JVM paths. However, **a direct buffer is not Linux `O_DIRECT`**, does not guarantee bypassing the OS page cache, and does not guarantee “zero-copy” in every scenario.
 
-So sánh heap `ByteBuffer` và direct `ByteBuffer` cần tách rõ chi phí cấp phát, reuse, số lần copy, mức cache hit và chi phí đọc trên thiết bị. Nếu không kiểm soát page cache, kết luận “direct nhanh hơn ổ đĩa” dễ là phép đo về cache/bộ nhớ thay vì thiết bị.
+Comparing heap `ByteBuffer` and direct `ByteBuffer` requires separating allocation cost, reuse, copy count, cache hit rate, and device read cost. Without controlling page cache state, concluding “direct is faster than disk” may simply be measuring cache/memory rather than the drive.
 
-## 5. Sequential read, random read và read-ahead
+## 5. Sequential Reads, Random Reads, and Read-Ahead
 
-Hệ điều hành thường tối ưu việc đọc tuần tự bằng **readahead**: khi phát hiện mẫu truy cập phù hợp, kernel có thể đọc trước những block chưa được yêu cầu. Vì thế hai benchmark đọc cùng dung lượng nhưng thứ tự khác nhau có thể cho kết quả rất khác:
+Operating systems typically optimize sequential reads with **readahead**: upon detecting a suitable access pattern, the kernel can prefetch blocks not yet requested. Thus, two benchmarks reading the same total bytes in different orders can produce vastly different results:
 
-- **Sequential scan:** Đi từ đầu tới cuối file, kích thước khối tương đối lớn, locality cao. Readahead có thể giúp che giấu độ trễ thiết bị.
-- **Random access:** Nhảy giữa các offset phân bố rộng, locality thấp. Có thể làm giảm hiệu quả readahead và tạo nhiều I/O nhỏ.
-- **Repeated hot small region:** Liên tục đọc vài MiB đầu của một file vài GiB. Dữ liệu có thể hoàn toàn nằm trong RAM ngay cả khi tổng file lớn hơn RAM.
-- **Many-file metadata walk:** Đọc thuộc tính và mở hàng nghìn tệp nhỏ. Cache metadata, đường dẫn và số syscall có thể quan trọng hơn throughput dữ liệu.
-- **Mixed read/write:** Workload thật có ghi, đọc lại, cạnh tranh RAM và background writeback; không thể suy ra trực tiếp từ một sequential read-only benchmark.
+- **Sequential scan:** proceeds from start to end with relatively large blocks and high locality. Readahead can hide device latency.
+- **Random access:** jumps across widely scattered offsets with low locality. Can reduce readahead effectiveness and trigger many small I/Os.
+- **Repeated hot small region:** repeatedly reads the first few MiB of a multi-GiB file. Data may sit completely in RAM even when the total file exceeds RAM.
+- **Many-file metadata walk:** reads attributes and opens thousands of small files. Metadata caches, path lookup, and syscall counts can outweigh data throughput.
+- **Mixed read/write:** real workloads combine writes, re-reads, RAM contention, and background writeback; cannot be inferred directly from a sequential read-only benchmark.
 
-Nếu muốn kiểm tra hành vi I/O cho file lớn, hãy định nghĩa **working set** là các byte thực sự được chạm tới trong cửa sổ đo; không chỉ nói file trên đĩa dài bao nhiêu. Một file 100 GiB mà bài đo chỉ chạm 4 MiB có working set truy cập khác hoàn toàn với quét đủ 100 GiB.
+To test I/O behavior for large files, define the **working set** as the bytes actually touched within the measurement window, not merely file length on disk. A 100 GiB file where a test touches only 4 MiB has an entirely different accessed working set from scanning the full 100 GiB.
 
-Khi đọc ngẫu nhiên, cũng cần cố định seed/nguyên tắc sinh offset để hai chiến lược đọc gặp cùng khối dữ liệu. Nếu mỗi lần chạy dùng offset tùy ý khác nhau, các mức cache hit không thể so trực tiếp.
+For random reads, also fix the seed/rule generating offsets so two strategies hit identical data blocks. If each run uses arbitrary differing offsets, cache hit rates cannot be compared directly.
 
-## 6. Write-back cache: ghi “xong” không đồng nghĩa dữ liệu đã bền vững
+## 6. Write-Back Cache: “Finished” Writing Does Not Mean Data Is Durable
 
-Khi `FileChannel.write()` hoặc `Files.write()` trả về thành công, nhiều hệ thống tệp đã chấp nhận dữ liệu vào các buffer/cache của hệ điều hành. Điều đó **không chứng minh các byte đã tới bộ nhớ lưu trữ bền vững**. Kernel có thể **write-back** các trang đã thay đổi (*dirty pages*) xuống thiết bị ở thời điểm sau.
+When `FileChannel.write()` or `Files.write()` returns successfully, many filesystems have accepted data into OS buffers/caches. That **does not prove the bytes reached durable storage**. The kernel can **write-back** modified pages (*dirty pages*) to the device later.
 
-Vì vậy một benchmark ghi đơn giản có thể đo chủ yếu tốc độ copy byte vào page cache, rồi kết thúc trước khi kernel hoàn tất ghi thiết bị. Nếu báo kết quả đó là “SSD write throughput” sẽ dễ phóng đại.
+Consequently, a naive write benchmark may primarily measure how fast bytes copy into the page cache and finish before the kernel completes writing to the device. Reporting that number as “SSD write throughput” easily exaggerates performance.
 
-| Kiểu đo | Điều đang đo | Điều chưa chắc đo |
+| Measurement type | What is measured | What is not necessarily measured |
 | --- | --- | --- |
-| `write()` đến khi hết buffer | Thời gian ứng dụng được OS chấp nhận byte | Dữ liệu đã ổn định trên thiết bị |
-| `Files.write(...)` rồi đóng stream | Hoàn thành đường ghi ở mức API và close | Độ bền qua mất điện theo mọi filesystem |
-| `FileChannel.force(false)` | Yêu cầu đồng bộ nội dung (và metadata cần để lấy lại nội dung) theo hợp đồng API | Không trực tiếp báo cache đã bị xóa |
-| `FileChannel.force(true)` | Yêu cầu đồng bộ nội dung và metadata liên quan | Không tự làm file cold cho lần đọc sau |
-| `StandardOpenOption.SYNC/DSYNC` | Thay chính sách đồng bộ lúc mở file để ghi | Không miễn phí về latency hoặc tương đương trong mọi filesystem |
+| `write()` until buffer drained | Time for OS to accept bytes from application | Whether data is stable on the device |
+| `Files.write(...)` then close stream | Completion of API write path and close | Power-loss durability across all filesystems |
+| `FileChannel.force(false)` | Request to sync content (and metadata needed to retrieve it) per API contract | Does not directly mean caches were cleared |
+| `FileChannel.force(true)` | Request to sync content and related metadata | Does not make the file cold for the next read |
+| `StandardOpenOption.SYNC/DSYNC` | Alters sync policy when opening a file for writing | Not free in latency or identical across all filesystems |
 
-`FileChannel.force(true)` là yêu cầu **đẩy cập nhật về thiết bị theo phạm vi cam kết của API**, không phải API xóa page cache. Trên các loại storage/provider khác nhau, bảo đảm thực tế và chi phí có thể khác nhau. Việc force không hứa đồng bộ mọi thay đổi thư mục, rename hoặc thiết bị trong mọi tình huống mất điện.
+`FileChannel.force(true)` requests **flushing updates to the device within the API's guaranteed scope**, not clearing the page cache. Across different storage/provider types, actual guarantees and costs vary. Calling `force` does not promise syncing all directory changes, renames, or device states across every power-loss scenario.
 
-Để benchmark **durable writes**, hãy mô tả rõ có tính thời gian của `force()`/close, có dùng `SYNC/DSYNC`, file đã tồn tại hay mới tạo, số byte và cách xử lý lỗi hay không. Để benchmark **write acceptance** của API, có thể không force nhưng phải gọi đúng tên chỉ số đó.
+To benchmark **durable writes**, state explicitly whether `force()`/close timing is included, whether `SYNC/DSYNC` is used, whether the file existed or was newly created, byte count, and error handling. To benchmark API **write acceptance**, you may omit `force`, provided you label the metric accurately.
 
-## 7. MappedByteBuffer và file memory mapping cũng chịu ảnh hưởng cache
+## 7. MappedByteBuffer and Memory Mapping Are Also Affected by Caching
 
-`FileChannel.map()` có thể ánh xạ vùng tệp vào không gian địa chỉ của tiến trình; đọc từ `MappedByteBuffer` có thể dẫn tới **page fault** khi trang tương ứng chưa sẵn có. Những truy cập sau có thể sử dụng các trang đã được ánh xạ/cached.
+`FileChannel.map()` maps a file region into the process address space; reading from `MappedByteBuffer` can trigger a **page fault** when the corresponding page is not yet available. Subsequent accesses can use the already mapped/cached pages.
 
-Những cách đo sai thường thấy:
+Common measurement mistakes:
 
-1. Map file ở ngoài timer, sau đó đo đọc trang trong timer cho chiến lược memory-mapped; nhưng với `FileChannel.read()` lại đo cả thời gian mở file và cấp phát buffer.
-2. Một bài benchmark gọi `mapped.load()` trước khi đo, bài kia không warmup dữ liệu tương đương.
-3. Đo một lượt mapping cold, lượt mapping khác warm mà không báo state.
-4. Xem `MappedByteBuffer.isLoaded()` là công cụ xác nhận chính xác rằng **mọi trang luôn nằm trong RAM**. API chỉ mang tính chỉ báo; hệ điều hành có thể thay đổi trạng thái sau kiểm tra.
-5. Gọi `mapped.force()` và cho rằng map đã bị loại khỏi cache. `force()` của mapped buffer là thao tác hướng về **đồng bộ thay đổi**, không phải eviction.
+1. Mapping the file outside the timer and timing only page reads for memory mapping, while timing file open and buffer allocation inside the timer for `FileChannel.read()`.
+2. One benchmark calls `mapped.load()` before measuring while the other lacks equivalent data warm-up.
+3. Measuring one mapping pass cold and another warm without stating cache state.
+4. Treating `MappedByteBuffer.isLoaded()` as definitive proof that **all pages always reside in RAM**. The API is only advisory; the OS can change residency right after the check.
+5. Calling `mapped.force()` and assuming the mapping was evicted from cache. `force()` on a mapped buffer aims to **synchronize changes**, not evict pages.
 
-Mapping có các đặc điểm riêng: page faults, độ hạt trang, truy cập ngẫu nhiên và chi phí quản lý vùng ánh xạ. Benchmark cần đo cả thời điểm mapping nếu workload thực tế trả giá đó và so sánh trong tình trạng cache ngang nhau.
+Mapping has its own traits: page faults, page granularity, random access behavior, and mapping management overhead. Benchmarks must include mapping time if real workloads pay that cost and compare under equal cache states.
 
-**Mapping không phải zero-cost I/O.** Với file khổng lồ, còn cần cân nhắc kích thước vùng map, giới hạn địa chỉ, bộ nhớ khả dụng, vòng đời mapping và việc file bị thay đổi/thu ngắn trong lúc đang truy cập.
+**Mapping is not zero-cost I/O.** For huge files, you must also consider mapped region size, address space limits, available memory, mapping lifecycle, and files being modified/truncated while mapped.
 
-## 8. Ví dụ Java 17+ hoàn chỉnh: đo nhiều lượt đọc nhưng không gọi lượt đầu là cold
+## 8. Complete Java 17+ Example: Measuring Multiple Read Passes Without Calling the First Pass Cold
 
-Ví dụ sau:
+The example below:
 
-- Tạo tệp tạm **8 MiB** chứa dữ liệu byte xác định (không đụng tới tệp người dùng).
-- Ghi bằng `FileChannel`, gọi `force(true)` để minh họa khác biệt giữa sync nội dung và cache eviction.
-- Đọc tuần tự cùng tệp **bốn lần**, mỗi lần mở `FileChannel` mới và đọc qua một `ByteBuffer` 64 KiB.
-- Đo thời gian bằng `System.nanoTime()`, tính throughput theo MiB/s và in lên **stderr** vì số đo phụ thuộc máy.
-- Kiểm tra tổng byte và checksum của các lượt đọc rồi in kết quả **cố định trên stdout**.
+- Creates an **8 MiB** temporary file containing deterministic bytes (without touching user files).
+- Writes using `FileChannel` and calls `force(true)` to illustrate the difference between content sync and cache eviction.
+- Reads the same file sequentially **four times**, opening a new `FileChannel` each pass and reading through a 64 KiB `ByteBuffer`.
+- Times each pass with `System.nanoTime()`, calculates MiB/s throughput, and prints it to **stderr** since timings are machine-dependent.
+- Verifies total bytes and checksums across passes and prints **deterministic** verification results on **stdout**.
 
-**Đây là demo quan sát warm-up/cache, không phải phép thử cold-cache có kiểm soát và không phải bằng chứng API I/O nào nhanh hơn.**
+**This is a warm-up/cache observation demo, not a controlled cold-cache test and not proof of which I/O API is faster.**
 
-Tạo file **`OsCacheBenchmarkDemo.java`**:
+Create **`OsCacheBenchmarkDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -241,7 +241,7 @@ public final class OsCacheBenchmarkDemo {
                     }
                 }
             }
-            out.force(true); // Sync request, KHÔNG evict page cache.
+            out.force(true); // Sync request, DOES NOT evict page cache.
         }
     }
 
@@ -277,14 +277,14 @@ public final class OsCacheBenchmarkDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac OsCacheBenchmarkDemo.java
 java OsCacheBenchmarkDemo
 ```
 
-**Stdout** khi tạo và đọc tệp thành công:
+**Stdout** when file creation and reads succeed:
 
 ```text
 file bytes=8388608
@@ -292,175 +292,175 @@ all passes have full size=true
 all passes have same checksum=true
 ```
 
-**Stderr** sẽ có bốn dòng `pass=1` đến `pass=4`, mỗi dòng chứa milliseconds và throughput tính từ số đo thực tế; **không có giá trị thời gian hoặc MiB/s cố định**. Khi chạy từ terminal, stderr có thể hiển thị xen kẽ stdout.
+**Stderr** will contain four lines `pass=1` through `pass=4`, each showing milliseconds and throughput computed from actual timings; **there is no fixed time or MiB/s value**. When run in a terminal, stderr output may interleave with stdout.
 
-### Demo chứng minh điều gì và không chứng minh điều gì?
+### What Does the Demo Prove and Not Prove?
 
-1. `Files.createTempFile()` cấp tệp mới; `generate()` ghi đúng 128 block × 65.536 byte = 8.388.608 byte. Dữ liệu mỗi block có pattern từ 0 đến 255.
-2. `out.force(true)` yêu cầu đồng bộ trước khi đo đọc; tuy nhiên dữ liệu vừa ghi **có thể vẫn ở page cache**. Lượt `pass=1` **không được gọi là cold**.
-3. Mỗi `readAndMeasure()` mở channel mới nhưng không yêu cầu OS loại các trang vừa đọc khỏi cache. Vì vậy nhiều lượt có thể được phục vụ từ RAM.
-4. Vòng `read()` đọc khối tối đa 64 KiB; checksum khiến nội dung thực sự được tiêu thụ, tránh một phép đo chỉ mở file rồi đóng.
-5. Thời gian bao gồm `FileChannel.read()`, các thao tác `ByteBuffer` và phép cộng checksum, nhưng **không bao gồm** khởi tạo buffer, mở/đóng channel hay thời gian tạo tệp. Như vậy nó **không đo riêng throughput thiết bị**.
-6. Các dòng stdout xác minh mọi pass đọc đủ file và cùng checksum. Dữ liệu đọc giống nhau không cho biết mỗi pass hit page cache bao nhiêu phần trăm.
+1. `Files.createTempFile()` creates a new file; `generate()` writes exactly 128 blocks × 65,536 bytes = 8,388,608 bytes. Each block follows a byte pattern from 0 to 255.
+2. `out.force(true)` requests synchronization before read measurements; however, the newly written data **may still sit in the page cache**. `pass=1` **must not be called cold**.
+3. Each `readAndMeasure()` opens a new channel without asking the OS to evict recently read pages from cache. Thus multiple passes may be served from RAM.
+4. The `read()` loop reads blocks up to 64 KiB; the checksum ensures contents are actually consumed instead of merely opening and closing the file.
+5. Elapsed time includes `FileChannel.read()`, `ByteBuffer` operations, and checksum additions, while **excluding** buffer allocation, channel open/close, and file generation time. Hence it **does not measure device throughput in isolation**.
+6. Stdout confirms every pass read the full file with matching checksums. Reading identical data does not tell you what percentage of each pass hit the page cache.
 
-Nếu muốn so sánh các API khác, phải áp dụng cùng cách tạo dữ liệu, trạng thái cache, lượng byte, mức xác minh, phần timer được bao gồm và số lần lặp. Đo thời gian dài hơn, báo median/p95/phân phối và quan sát disk I/O sẽ hữu ích hơn một lượt đo 8 MiB.
+To compare different APIs, enforce identical data generation, cache state, byte counts, verification level, timer boundaries, and repetition counts. Longer measurements, reporting medians/p95/distributions, and observing disk I/O are more informative than an 8 MiB pass.
 
-## 9. Thiết kế benchmark công bằng với trạng thái cache
+## 9. Designing Fair Benchmarks with Cache State in Mind
 
-### Bước 1: Xác định câu hỏi muốn trả lời
+### Step 1: Define the Question to Answer
 
-Hai mục tiêu thường khác nhau:
+Two goals often differ:
 
-**A. Người dùng thực tế đọc đi đọc lại một tập file đang nằm trong cache:** Hãy đo warm-cache workload vì nó phản ánh thực tế. Không cần cố gắng loại page cache nếu dịch vụ sản xuất luôn tận dụng cache.
+**A. Real users repeatedly read a working set of cached files:** Measure a warm-cache workload since it reflects reality. Do not try to eliminate the page cache if production always benefits from it.
 
-**B. Hệ thống phải xử lý nhiều file mới/lớn, vượt bộ nhớ và gây disk I/O:** Hãy xây dựng dữ liệu và chu kỳ truy cập sao cho đo được cold/mixed cache tương ứng, giám sát các chỉ số storage bên ngoài JVM và báo rõ các giới hạn tái lập.
+**B. The system processes many new/large files exceeding memory and causing disk I/O:** Construct datasets and access cycles that exercise cold/mixed caching, monitor storage metrics outside the JVM, and document reproducibility limits.
 
-Không nên đặt tiêu đề “đo hiệu năng ổ đĩa” khi bài đo chỉ lặp đọc cùng một buffer nhỏ từ RAM.
+Never title a benchmark “measuring disk performance” when it just re-reads one small buffer from RAM.
 
-### Bước 2: Kiểm soát working set
+### Step 2: Control the Working Set
 
-Ghi lại:
+Document:
 
-- Tổng kích thước tập dữ liệu cần chạm tới (không chỉ tên/kích thước một file).
-- RAM vật lý, RAM sẵn có, memory pressure và cache capacity trong thời gian đo.
-- Kiểu tệp và filesystem: local SSD/HDD, network share, tmpfs, filesystem ảo; nếu đo trên **tmpfs/RAM disk** thì dữ liệu vốn ở RAM, không thể suy diễn về SSD/HDD.
-- Sequential hay random, kích thước block, số luồng, mức song song, khoảng cách giữa các pass.
-- Có file nào vừa được tạo/copy/ghi/kiểm checksum làm warm cache trước khi đo không.
-- Có workload khác sử dụng RAM hoặc disk cùng lúc không.
+- Total dataset size touched (not just one file's name/size).
+- Physical RAM, available RAM, memory pressure, and cache capacity during measurement.
+- File and filesystem type: local SSD/HDD, network share, tmpfs, virtual filesystem; if testing on **tmpfs/RAM disk**, data already lives in RAM and cannot be extrapolated to SSD/HDD.
+- Sequential vs. random, block size, thread count, concurrency level, and interval between passes.
+- Whether any file was freshly created/copied/written/checksummed, warming the cache right before measuring.
+- Whether other workloads compete for RAM or disk concurrently.
 
-Một tập dữ liệu **lớn hơn RAM** làm khả năng hit page cache giảm trong nhiều tình huống, nhưng không bảo đảm hoàn toàn cold. OS vẫn có thể cache các vùng được chạm lặp lại, cache metadata hoặc tối ưu hóa đường đi truy cập. Không mô tả quy tắc “file > RAM ⇒ chắc chắn không có cache” như một định luật.
+A dataset **larger than RAM** lowers page cache hit likelihood in many cases, yet does not guarantee completely cold reads. The OS can still cache frequently touched regions, metadata, or optimize access paths. Do not state “file > RAM ⇒ guaranteed no caching” as a law.
 
-### Bước 3: Warm-up đúng mục đích
+### Step 3: Purpose-Built Warm-Up
 
-Đối với benchmark warm-cache:
+For warm-cache benchmarks:
 
-1. Chạy đủ lượt ban đầu để JIT/JVM, class loading và dữ liệu I/O có cơ hội ổn định.
-2. Tách số đo warm-up khỏi các số đo chính.
-3. Chạy nhiều lượt chính, tính phân phối, kiểm tra checksum/số byte.
-4. Nếu so sánh A/B, thay đổi thứ tự thử nghiệm (ví dụ ABBA hoặc randomized) nhằm hạn chế việc luôn cho B hưởng cache của A.
+1. Run enough initial iterations for JIT/JVM, class loading, and I/O data to stabilize.
+2. Separate warm-up measurements from main measurements.
+3. Run multiple measured passes, compute distributions, and verify checksums/byte counts.
+4. For A/B comparisons, alternate execution order (e.g., ABBA or randomized) to avoid always letting B ride on A's warm cache.
 
-Đối với **cold-cache**: warm-up Java code có thể cần thiết, nhưng không được dùng warm-up đọc chính tập file cần giữ cold cho lần đo. Có thể warm JIT bằng một tập dữ liệu khác tương đương mà không chạm vào tập đo chính. Ngay cả vậy, cache dùng chung và hoạt động bên ngoài JVM vẫn phải được quan sát.
+For **cold-cache**: warming Java code may still be needed, but warm-ups must not read the exact dataset that must remain cold for measurement. You can warm JIT on a separate equivalent dataset without touching the primary measurement set. Even then, shared caches and non-JVM activity must be monitored.
 
-### Bước 4: Phân biệt phép đo Java và thiết bị lưu trữ
+### Step 4: Separate Java Measurements from Storage Device Measurements
 
-Bên cạnh `System.nanoTime()`, hãy thu thập số liệu cấp OS phù hợp:
+Alongside `System.nanoTime()`, gather appropriate OS-level metrics:
 
-| Nhóm chỉ số | Vì sao hữu ích |
+| Metric group | Why it helps |
 | --- | --- |
-| Tổng byte ứng dụng đọc/ghi | Xác minh khối lượng công việc tương đương |
-| Disk I/O bytes thực tế, số request, queue và latency | Phân biệt throughput thiết bị với phục vụ từ page cache |
-| Page faults / major faults (khi liên quan) | Gợi ý hành vi memory mapping và truy cập trang |
-| CPU user/system, context switches | Thấy benchmark bị giới hạn bởi Java parsing/copy/syscalls |
-| Page cache/reclaim/memory pressure | Giải thích vì sao các pass có mức cache hit khác nhau |
-| Dirty pages và writeback activity | Phân biệt ghi vào RAM với ghi ra thiết bị |
-| Per-process và toàn hệ thống I/O | Tránh quy nhầm disk I/O của tiến trình khác cho benchmark |
+| Total bytes read/written by application | Verifies equivalent workload volume |
+| Actual disk I/O bytes, request count, queue, latency | Distinguishes device throughput from page-cache hits |
+| Page faults / major faults (when relevant) | Indicates memory-mapping and page-access behavior |
+| User/system CPU, context switches | Shows if benchmark is bottlenecked by Java parsing/copying/syscalls |
+| Page cache/reclaim/memory pressure | Explains why passes exhibit differing cache hit rates |
+| Dirty pages and writeback activity | Distinguishes writing to RAM from writing to device |
+| Per-process vs. system-wide I/O | Avoids blaming disk I/O from another process on the benchmark |
 
-Các số liệu này không phải lúc nào cũng trực tiếp ánh xạ từng page cache hit của Java sang một con số đơn giản. Trên Linux có thể sử dụng công cụ giám sát hệ thống như `iostat`, `pidstat`, `vmstat`, `perf` (nếu sẵn có và có quyền); trên Windows/macOS sử dụng công cụ đo tương ứng. Hãy ghi rõ công cụ, phiên bản OS và cách thu thập.
+These metrics do not always map each Java page-cache hit to one simple number. On Linux, system monitors like `iostat`, `pidstat`, `vmstat`, and `perf` (if available and permitted) can help; on Windows/macOS use equivalent tools. Record tools, OS version, and collection methods.
 
-## 10. Có thể “xóa page cache” để đo cold bằng Java không?
+## 10. Can Java “Clear the Page Cache” for Cold Tests?
 
-**Java chuẩn không cung cấp một API portable để xóa page cache của hệ điều hành cho một file hoặc toàn máy.** `FileChannel.close()`, `FileChannel.force()`, `Files.delete()`, `MappedByteBuffer.force()` hay `ByteBuffer.allocateDirect()` không tương đương thao tác xóa cache kernel.
+**Standard Java provides no portable API to clear the OS page cache for a file or the whole machine.** `FileChannel.close()`, `FileChannel.force()`, `Files.delete()`, `MappedByteBuffer.force()`, and `ByteBuffer.allocateDirect()` are not equivalent to dropping the kernel cache.
 
-Một số hệ điều hành có công cụ/hint native để điều chỉnh page cache, nhưng chúng:
+Some OSes expose native tools or hints to influence the page cache, but they:
 
-- Khác nhau giữa Linux, Windows, macOS và các filesystem.
-- Có thể yêu cầu quyền quản trị hoặc hỗ trợ ở cấp kernel/filesystem.
-- Có thể tác động tới toàn hệ thống, ảnh hưởng tiến trình khác, làm thay đổi điều kiện đo và gây gián đoạn không mong muốn.
-- Không đảm bảo trạng thái cold tuyệt đối vì còn cache của thiết bị, metadata, readahead hoặc workload khác.
+- Differ across Linux, Windows, macOS, and filesystems.
+- May require administrative privileges or kernel/filesystem support.
+- Can affect the entire host, disrupting other processes, altering test conditions, and causing unwanted interference.
+- Do not guarantee absolute cold state due to device caches, metadata, readahead, or other workloads.
 
-**Không dùng thao tác thô bạo xóa page cache toàn máy trên môi trường dùng chung hoặc production chỉ để tạo con số benchmark.** Nếu cần thử nghiệm cold có tính kiểm soát, sử dụng máy thử nghiệm riêng, dữ liệu/thiết bị được quản lý, quy trình thiết lập và giám sát được ghi chép; thao tác native phải do người có trách nhiệm hệ thống phê duyệt.
+**Never run crude host-wide page-cache drops on shared or production environments just for benchmark numbers.** If controlled cold tests are needed, use an isolated test machine, managed data/devices, and documented setup/monitoring procedures; any native actions must be approved by system owners.
 
-Một phương án giảm cache reuse là thử nghiệm với một tập file đủ lớn, được đọc theo mẫu đã thiết kế, đổi thứ tự dữ liệu và quan sát disk I/O thực. Dù vậy hãy gọi đây là **cache-mitigated/mixed-cache test** nếu chưa xác nhận điều kiện cold.
+One way to reduce cache reuse is testing across a sufficiently large set of files read in a controlled pattern, varying data order, and monitoring real disk I/O. Even so, call it a **cache-mitigated/mixed-cache test** unless cold conditions are verified.
 
-## 11. Những sai lệch benchmark Java thường đi cùng page cache
+## 11. Java Benchmark Biases That Often Accompany Page Cache Effects
 
-Page cache không phải tác nhân duy nhất. Khi số liệu thay đổi mạnh, kiểm tra thêm:
+Page cache is not the only factor. When numbers swing widely, also check:
 
-| Sai lệch | Ví dụ | Cách giảm |
+| Bias | Example | Mitigation |
 | --- | --- | --- |
-| **JIT warmup** | Lần đầu có class loading/JIT compilation | Chạy warm-up code tách khỏi tập dữ liệu cold nếu cần |
-| **GC/heap pressure** | Dùng `Files.readAllBytes()` làm tệp rất lớn thành array | Chọn khối đọc phù hợp, ghi nhận GC/heap và giữ bài test công bằng |
-| **Buffer allocation** | A cấp phát `allocateDirect()` trong timer, B reuse heap buffer ngoài timer | Định nghĩa có/không tính cấp phát giống nhau |
-| **Checksum/parsing** | Mỗi byte được xử lý bằng CPU, che mất khác biệt I/O | Đo cả tổng workload và đường đọc tối giản trong những phép thử riêng |
-| **JVM/OS background load** | Antivirus, indexing, cron backup, build/test khác | Cách ly thời gian thử, ghi nhận nhiễu |
-| **Thermal/power behavior** | CPU/SSD throttling, hiệu năng laptop theo chế độ pin | Ghi nhận power state, nhiệt độ và điều kiện ổn định |
-| **File allocation/compression** | Sparse file, compression filesystem, deduplication, zero-filled pattern | Dùng dữ liệu phản ánh thực tế; ghi đặc điểm filesystem |
-| **Disk cache/device cache** | Lần đầu đi qua cache của bộ điều khiển SSD | Không xem page cache là tầng cache duy nhất |
-| **Small sample** | Đọc 100 KiB và suy tốc độ GiB/s | Tăng khối lượng đo, báo variance và sai số |
-| **Measurement scope** | A tính `open()`, B không tính | Đặt timer cùng ranh giới |
-| **Contention** | Nhiều benchmark thread cùng đọc file | Kiểm soát concurrency và băng thông chung |
-| **Trộn state A/B** | Chạy A trước để warm file rồi B sau | Đảo thứ tự hoặc đưa cả hai vào các state tương đương |
+| **JIT warmup** | First pass includes class loading/JIT compilation | Warm up code separately from cold dataset if needed |
+| **GC/heap pressure** | Using `Files.readAllBytes()` on huge files into arrays | Pick appropriate read chunks, log GC/heap, keep tests fair |
+| **Buffer allocation** | A calls `allocateDirect()` inside timer, B reuses heap buffer outside | Include or exclude allocation identically |
+| **Checksum/parsing** | Every byte processed by CPU, masking I/O differences | Measure both full workload and minimal read path separately |
+| **JVM/OS background load** | Antivirus, indexing, cron backups, other builds/tests | Isolate test window and record noise |
+| **Thermal/power behavior** | CPU/SSD throttling, laptop power modes | Record power state, temperature, and steady conditions |
+| **File allocation/compression** | Sparse files, filesystem compression, deduplication, all-zero data | Use realistic data; document filesystem features |
+| **Disk cache/device cache** | First pass hits SSD controller cache | Do not treat page cache as the only cache layer |
+| **Small sample** | Reading 100 KiB and extrapolating GiB/s | Increase data volume, report variance and error bounds |
+| **Measurement scope** | A times `open()`, B does not | Align timer boundaries |
+| **Contention** | Multiple benchmark threads reading the same file | Control concurrency and shared bandwidth |
+| **Mixing A/B states** | Running A first to warm the file, then B | Alternate order or place both in equivalent states |
 
-Với microbenchmark thao tác I/O hoặc buffer, có thể dùng **JMH** để quản lý warm-up/measurement/fork và tránh nhiều lỗi liên quan JIT. Tuy nhiên **JMH không tự reset page cache hay biến benchmark storage thành cold-cache test**; cần cấu hình môi trường/working set ngoài harness.
+For I/O or buffer microbenchmarks, **JMH** can manage warm-up/measurement/forks and avoid many JIT pitfalls. However, **JMH does not reset the page cache or turn storage benchmarks into cold-cache tests**; environment and working set must be controlled outside the harness.
 
-### Đừng dùng tốc độ vượt ổ đĩa làm bằng chứng “benchmark lỗi”
+### Do Not Treat Speed Exceeding Disk Specs as Proof of a “Broken Benchmark”
 
-Nếu workload hoàn toàn warm, thông lượng quan sát được có thể vượt nhiều lần tốc độ đọc danh nghĩa của SSD vì phần lớn byte đang đến từ RAM. Điều đó **có thể đúng đối với warm-cache benchmark**. Lỗi là diễn giải kết quả thành băng thông vật lý của SSD hoặc dùng nó làm dự đoán cho ứng dụng thường xuyên đọc cold data.
+If a workload is completely warm, observed throughput can exceed an SSD's nominal read speed several times over because most bytes come from RAM. That **can be valid for a warm-cache benchmark**. The mistake is interpreting that number as physical SSD bandwidth or using it to predict an application frequently reading cold data.
 
-### Throughput và latency không thay thế nhau
+### Throughput and Latency Do Not Replace Each Other
 
-Thông lượng có thể tính theo `MiB/s = bytes / (1024×1024) / seconds`. Nhưng còn cần latency per operation và percentile khi workload gồm nhiều request nhỏ. Một hệ thống có throughput cao khi đọc file tuần tự vẫn có thể có p99 rất tệ do major page fault, queue dài hoặc writeback gây contention.
+Throughput can be computed as `MiB/s = bytes / (1024×1024) / seconds`. Yet per-operation latency and percentiles remain essential when workloads consist of many small requests. A system with high sequential read throughput can still have terrible p99 due to major page faults, long queues, or writeback contention.
 
-## 12. Ví dụ thiết kế phép thử A/B có chú giải
+## 12. Annotated Example of an A/B Experiment Design
 
-Giả sử muốn so sánh `Files.newInputStream()` + byte array với `FileChannel.read(ByteBuffer)`:
+Suppose you want to compare `Files.newInputStream()` + byte array against `FileChannel.read(ByteBuffer)`:
 
-**Không công bằng:**
+**Unfair:**
 
 ```text
-A: đọc file X ngay sau khi máy khởi động
-B: đọc lại file X sau A
-Kết luận: B luôn nhanh hơn A.
+A: read file X right after machine boot
+B: re-read file X right after A
+Conclusion: B is always faster than A.
 ```
 
-A gặp nhiều miss hơn B và có thể gánh thêm khởi tạo JIT. Dữ liệu không chứng minh API B tốt hơn.
+A suffers more misses than B and may also pay JIT startup costs. The data does not prove API B is better.
 
-**Thiết kế hợp lý hơn:**
+**A sounder design:**
 
-1. Mô tả câu hỏi: tốc độ đọc tuần tự **warm-cache** hay cold/mixed-cache? Chỉ công bố kết quả cho một điều kiện được kiểm soát.
-2. Chọn cùng tệp, cùng byte range, cùng block size hợp lý và cùng checksum/processing.
-3. Làm nóng code Java và dữ liệu theo mục tiêu; nếu là cold/mixed, thiết kế bộ dataset riêng và quy trình kiểm soát bên ngoài JVM.
-4. Chạy nhiều lượt với thứ tự hoán đổi, ví dụ A→B→B→A, không để một API luôn chạy trước.
-5. Ghi bytes, duration, throughput, CPU, disk I/O, GC và điều kiện test; báo median và phân phối thay vì chỉ tốc độ tốt nhất.
-6. Kiểm tra cache state có biến động giữa các lượt, cân nhắc bỏ những lượt bị nhiễu và công bố tiêu chí loại bỏ mẫu trước khi chạy.
-7. Khi triển khai thực tế dùng nhiều client, cần benchmark thêm sự cạnh tranh, file sizes và concurrency giống sản phẩm.
+1. State the question: **warm-cache** sequential read speed or cold/mixed-cache? Publish results only for the controlled condition.
+2. Use the same file, byte range, reasonable block size, and checksum/processing.
+3. Warm up Java code and data according to the goal; if cold/mixed, prepare separate datasets and external control procedures outside the JVM.
+4. Run multiple passes in alternating order, e.g. A→B→B→A, never letting one API always go first.
+5. Record bytes, duration, throughput, CPU, disk I/O, GC, and test conditions; report median and distribution rather than best speed alone.
+6. Check whether cache state drifted between passes, consider dropping noisy runs, and publish outlier rejection criteria before running.
+7. If production uses multiple clients, also benchmark contention, file sizes, and concurrency resembling production.
 
-Đừng thay đổi cả API, kích thước buffer, cách đọc random/sequential, số luồng và thời điểm flush trong một thử nghiệm rồi quy toàn bộ thay đổi vào API.
+Never change API, buffer size, random vs. sequential pattern, thread count, and flush timing all in one experiment and attribute the entire difference to the API.
 
-## 13. Những lỗi phổ biến và cách sửa
+## 13. Common Mistakes and Fixes
 
-| Ngộ nhận / lỗi | Hậu quả | Cách làm đúng |
+| Misconception / mistake | Consequence | Right approach |
 | --- | --- | --- |
-| Gọi lần đọc đầu tiên là cold vì đó là lần đọc đầu của Java | File có thể đã warm do thao tác tạo/copy | Mô tả first measured pass, kiểm soát dữ liệu và đo disk I/O |
-| Đóng `FileChannel` rồi tưởng xóa cache | Lượt đọc sau vẫn được kernel phục vụ từ RAM | Phân biệt vòng đời channel và page cache |
-| Gọi `force(true)` rồi tin lần đọc tiếp theo là cold | Force không có ngữ nghĩa eviction | Chỉ dùng force khi muốn đo sync/durability |
-| Dùng `allocateDirect()` để bỏ page cache | Direct buffer không tương đương O_DIRECT | Đo copy/alloc riêng, nêu cache path |
-| Chạy A trước, B sau trên cùng file | B thường hưởng warm-cache từ A | Đảo thứ tự hoặc tách cache state |
-| Chỉ tính thời gian `write()` rồi công bố disk write throughput bền vững | Đo chủ yếu write-back buffering | Công bố write acceptance hoặc tính `force()` khi phù hợp |
-| Tạo file test ngay trước “cold read” | Dữ liệu có thể được giữ trong page cache | Có cách thiết lập cold riêng và xác nhận bằng chỉ số |
-| Đọc vài MiB rồi suy cho file nhiều GiB | Working set nhỏ có thể nằm trong RAM | Đo theo working set của sản phẩm |
-| Dùng `MappedByteBuffer.load()` chỉ cho một chiến lược | Ưu đãi warm-up không công bằng | Giữ phạm vi warm-up tương đương |
-| Dùng JMH và giả định cache được reset ở mỗi fork | Fork JVM không reset kernel cache | Kiểm soát cache ngoài JMH |
-| Không đọc hết/không xác minh nội dung | Hai phương án không xử lý cùng khối lượng | Đếm bytes, dùng checksum hoặc blackhole hợp lý |
-| Dùng file nén/sparse/toàn zero không giống sản phẩm | Tốc độ file system/storage bị bóp méo | Sinh workload dữ liệu tương tự thực tế |
-| Chỉ công bố một số MiB/s đẹp nhất | Không biết variance, cold/warm hay nhiễu | Báo phân phối và cấu hình môi trường |
-| Thử xóa page cache toàn host đang hoạt động | Ảnh hưởng workload khác và làm biến dạng phép đo | Dùng môi trường thử riêng, quy trình có phê duyệt |
+| Calling the first read cold just because it is Java's first read | File may already be warm from creation/copying | Label as first measured pass, control data, measure disk I/O |
+| Closing `FileChannel` and thinking cache was cleared | Next read is still served from RAM by the kernel | Separate channel lifecycle from page cache |
+| Calling `force(true)` and trusting the next read is cold | Force has no eviction semantics | Use force only when measuring sync/durability |
+| Using `allocateDirect()` to bypass the page cache | Direct buffers are not `O_DIRECT` | Measure copy/alloc separately, state cache path |
+| Running A then B on the same file | B usually enjoys warm cache from A | Alternate order or separate cache states |
+| Timing only `write()` and reporting durable disk write throughput | Measures mostly write-back buffering | Report write acceptance or include `force()` as appropriate |
+| Creating the test file right before a “cold read” | Data may be retained in page cache | Use dedicated cold setup and verify with metrics |
+| Reading a few MiB and extrapolating to multi-GiB files | Small working set fits in RAM | Measure with a production-sized working set |
+| Calling `MappedByteBuffer.load()` for only one strategy | Unfair warm-up advantage | Keep warm-up scope equivalent |
+| Using JMH assuming cache resets per fork | Forking the JVM does not reset kernel cache | Control cache outside JMH |
+| Not reading fully / skipping content verification | Approaches do unequal amounts of work | Count bytes, use checksums or appropriate blackholes |
+| Using compressed/sparse/all-zero files unlike production | Distorts filesystem/storage speed | Generate realistic workload data |
+| Reporting only one best MiB/s figure | Hides variance, cold/warm state, and noise | Report distribution and environment configuration |
+| Dropping page cache across an active shared host | Disrupts other workloads and skews readings | Use an isolated test host and approved procedures |
 
-## 14. Checklist báo cáo benchmark có thể tái lập
+## 14. Checklist for a Reproducible Benchmark Report
 
-Một bản báo cáo đọc/ghi file đáng tin cậy nên trả lời:
+A trustworthy file read/write report should answer:
 
-1. **Mục tiêu:** Đọc tuần tự, ngẫu nhiên, metadata hay durable write? Đang kiểm tra API hay thiết bị?
-2. **Bộ dữ liệu:** Tổng byte thật sự đọc/ghi, số file, kích thước mỗi file, mức entropy/compression, file vừa tạo hay đã tồn tại.
-3. **Cache condition:** Warm, cold được xác nhận hay mixed/unknown? Trạng thái được chuẩn bị và xác minh bằng cách nào?
-4. **Môi trường:** OS/kernel, JVM/vendor/version, CPU, RAM, filesystem, storage device, container/VM hay máy vật lý.
-5. **Cấu hình Java:** API, heap/direct buffer, kích thước khối, số luồng, GC/heap size, cách mở/đóng file.
-6. **Timer:** Bao gồm open, allocation, read/write, parsing/checksum, force, close và cleanup hay không?
-7. **Phương pháp:** Số warm-up pass, số measured pass, cách thay đổi thứ tự A/B, seed random access.
-8. **Chỉ số:** Bytes, MiB/s, latency, median/p95, GC/CPU, disk I/O, bộ nhớ và mức biến động.
-9. **Độ chính xác:** Kiểm tra checksum/đếm byte, xử lý EOF, partial read/write, lỗi IOException.
-10. **Giới hạn:** Các giả định chưa kiểm soát, cache thiết bị hoặc tác vụ nền có thể làm kết quả biến động.
-11. **An toàn thử nghiệm:** Không xóa cache toàn máy sản xuất; không chạy benchmark phá dữ liệu thật.
-12. **Diễn giải:** Kết luận giới hạn theo workload và cache state đã đo, không khái quát thành tốc độ tuyệt đối của “Java I/O”.
+1. **Goal:** Sequential read, random read, metadata, or durable write? Testing API or device?
+2. **Dataset:** Total bytes actually read/written, file count, per-file size, entropy/compression level, newly created or pre-existing files.
+3. **Cache condition:** Warm, verified cold, or mixed/unknown? How was the state prepared and verified?
+4. **Environment:** OS/kernel, JVM/vendor/version, CPU, RAM, filesystem, storage device, container/VM or bare metal.
+5. **Java config:** API, heap/direct buffer, block size, thread count, GC/heap size, open/close handling.
+6. **Timer:** Does it include open, allocation, read/write, parsing/checksum, force, close, and cleanup?
+7. **Methodology:** Warm-up pass count, measured pass count, A/B ordering alternation, random access seed.
+8. **Metrics:** Bytes, MiB/s, latency, median/p95, GC/CPU, disk I/O, memory, and variance.
+9. **Correctness:** Checksum/byte-count checks, EOF handling, partial read/write handling, `IOException` handling.
+10. **Limitations:** Uncontrolled assumptions, device caches, or background tasks that could cause variance.
+11. **Test safety:** Never drop caches on production hosts; never run destructive benchmarks on real data.
+12. **Interpretation:** Scope conclusions to the measured workload and cache state; do not generalize into an absolute speed of “Java I/O.”
 
-**Ghi nhớ:** Page cache của hệ điều hành có thể biến phép thử đọc tệp thành phép đo truy cập RAM, còn write-back có thể làm phép thử ghi kết thúc trước khi dữ liệu nằm bền vững trên thiết bị. **Đóng file, gọi `force()`, khởi động JVM/container mới hoặc dùng direct `ByteBuffer` không tự xóa page cache**. Benchmark đúng cần định nghĩa mục tiêu cold/warm, kiểm soát working set, đo nhiều lượt công bằng, xác minh khối lượng byte và đối chiếu với số liệu I/O cấp hệ điều hành trước khi kết luận về hiệu năng file hoặc thiết bị.
+**Remember:** The OS page cache can turn a file-read test into a RAM-access measurement, while write-back can let a write test finish before data rests durably on the device. **Closing files, calling `force()`, starting a new JVM/container, or using direct `ByteBuffer` does not clear the page cache.** Sound benchmarks define cold/warm goals, control working sets, run fair multi-pass comparisons, verify byte volumes, and cross-check OS-level I/O counters before concluding anything about file or device performance.

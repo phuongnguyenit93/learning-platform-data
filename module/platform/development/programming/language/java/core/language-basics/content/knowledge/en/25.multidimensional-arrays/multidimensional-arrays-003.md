@@ -1,34 +1,34 @@
-# Khởi tạo từng mảng con và hàng chưa được tạo trong Java
+# Initializing Individual Subarrays and Uncreated Rows in Java
 
-> **Java core — language-basics / Mảng nhiều chiều**  
-> **Môi trường:** JDK 17+, không dùng preview hoặc thư viện ngoài.  
-> **Mục tiêu:** Phân biệt việc tạo **mảng ngoài** với việc tạo **mỗi hàng**, xử lý hàng còn `null`, cấp phát các hàng có độ dài khác nhau, và duyệt an toàn một mảng hai chiều không đều.
+> **Java core — language-basics / Multidimensional arrays**  
+> **Environment:** JDK 17+, no preview features or external libraries required.  
+> **Goal:** Distinguish creating **the outer array** from creating **each row**, handle rows that are still `null`, allocate rows of different lengths, and safely iterate over an uneven two-dimensional array.
 
-## 1. Mảng hai chiều là mảng chứa các tham chiếu tới mảng con
+## 1. A Two-Dimensional Array Is an Array Containing References to Subarrays
 
-Trong Java, `int[][]` không phải một khối hình chữ nhật bắt buộc. Nó là **mảng ngoài có kiểu thành phần `int[]`**: mỗi phần tử ở mảng ngoài lưu một tham chiếu tới một mảng `int[]`, hoặc `null`.
+In Java, `int[][]` is not a mandatory rectangular block. It is **an outer array with component type `int[]`**: each element in the outer array stores a reference to an `int[]` array, or `null`.
 
 ~~~java
 int[][] rows = new int[3][];
-System.out.println(rows.length); // 3: mảng ngoài có ba vị trí.
+System.out.println(rows.length); // 3: the outer array has three slots.
 System.out.println(java.util.Arrays.deepToString(rows));
 // [null, null, null]
 ~~~
 
-`new int[3][]` chỉ tạo **mảng ngoài** có ba vị trí. Vì kiểu thành phần của nó là `int[]` (kiểu tham chiếu), cả ba vị trí mặc định đều `null`: **chưa có hàng nào được tạo**.
+`new int[3][]` creates only **the outer array** with three slots. Because its component type is `int[]` (a reference type), all three slots default to `null`: **no rows have been created yet**.
 
-Điều này khác với `new int[3][2]`: khi có kích thước chiều thứ hai, Java tạo luôn ba mảng con `int[2]` và khởi tạo các phần tử số của mỗi hàng bằng 0.
+This differs from `new int[3][2]`: when the second dimension's size is provided, Java immediately creates three `int[2]` subarrays and initializes each row's numeric elements to 0.
 
-| Biểu thức tạo mảng | Mảng ngoài | Trạng thái hàng ngay sau tạo |
+| Array creation expression | Outer array | Row state immediately after creation |
 | --- | --- | --- |
-| `new int[3][]` | 3 vị trí | `null`, `null`, `null` |
-| `new int[3][2]` | 3 vị trí | Mỗi hàng là `int[2]`, chứa `[0, 0]` |
-| `new int[0][]` | 0 vị trí | Không có hàng nào để truy cập |
-| `new int[][] {{1, 2}, null, {}}` | 3 vị trí | Hàng dài 2, hàng null, hàng rỗng |
+| `new int[3][]` | 3 slots | `null`, `null`, `null` |
+| `new int[3][2]` | 3 slots | Each row is an `int[2]` containing `[0, 0]` |
+| `new int[0][]` | 0 slots | No rows to access |
+| `new int[][] {{1, 2}, null, {}}` | 3 slots | Row of length 2, null row, empty row |
 
-Vì hàng là mảng riêng, Java cho phép **các hàng dài khác nhau** (*ragged/jagged array*).
+Because rows are separate arrays, Java allows **rows of different lengths** (*ragged/jagged array*).
 
-## 2. Cấp phát từng mảng con sau khi tạo mảng ngoài
+## 2. Allocating Individual Subarrays After Creating the Outer Array
 
 ~~~java
 int[][] data = new int[4][];
@@ -42,38 +42,38 @@ System.out.println(java.util.Arrays.deepToString(data));
 // [[0, 0], [3, 4, 5], [], [0]]
 ~~~
 
-Ở trên, `data[0]` và `data[3]` mới được cấp phát với `new int[n]` nên có giá trị mặc định 0. `data[1]` dùng danh sách phần tử cụ thể. `data[2]` là **một đối tượng mảng rỗng hợp lệ**, không phải `null`.
+Above, `data[0]` and `data[3]` are newly allocated with `new int[n]`, so they hold the default value 0. `data[1]` uses an explicit element list. `data[2]` is **a valid empty array object**, not `null`.
 
-Có thể gán hàng bằng cú pháp ngắn `{...}` **khi khởi tạo trực tiếp biến mảng**, nhưng **không** viết `data[1] = {3,4,5};`: đây là phép gán cho vị trí của mảng đã tồn tại, nên cần `new int[] {3,4,5}`.
+You can assign rows using the shorthand `{...}` syntax **when directly initializing an array variable**, but you **cannot** write `data[1] = {3,4,5};`: that is an assignment to a slot of an existing array, so it requires `new int[] {3,4,5}`.
 
-Số hàng của mảng ngoài được cố định lúc tạo (`data.length == 4`), nhưng có thể **gán lại các tham chiếu hàng** trong từng vị trí, hoặc dùng mảng ngoài mới nếu cần số hàng khác.
+The number of rows in the outer array is fixed at creation time (`data.length == 4`), though you can **reassign row references** in each slot, or use a new outer array if a different row count is needed.
 
-## 3. Hàng `null` khác hàng rỗng `new int[0]`
+## 3. A `null` Row Differs from an Empty Row `new int[0]`
 
 ~~~java
 int[][] sample = new int[2][];
 sample[1] = new int[0];
 
-System.out.println(sample[0] == null); // true: chưa tạo hàng.
-System.out.println(sample[1] == null); // false: có hàng rỗng.
+System.out.println(sample[0] == null); // true: row not created yet.
+System.out.println(sample[1] == null); // false: empty row exists.
 System.out.println(sample[1].length);  // 0.
 ~~~
 
-| Biểu thức | Hàng chưa tạo `sample[0]` | Hàng rỗng `sample[1]` |
+| Expression | Uncreated row `sample[0]` | Empty row `sample[1]` |
 | --- | --- | --- |
-| Kiểm tra `row == null` | true | false |
+| Check `row == null` | true | false |
 | `row.length` | `NullPointerException` | 0 |
 | `row[0]` | `NullPointerException` | `ArrayIndexOutOfBoundsException` |
-| Duyệt `for (int x : row)` | `NullPointerException` | 0 lượt |
+| Iterate `for (int x : row)` | `NullPointerException` | 0 iterations |
 | `Arrays.toString(row)` | `"null"` | `"[]"` |
 
-`sample.length` vẫn là 2 vì mảng ngoài có hai vị trí; **không phản ánh số hàng đã cấp phát**. Chỉ số của mảng ngoài phải hợp lệ trước khi kiểm tra trạng thái của hàng: `sample[2]` vẫn vượt chỉ số.
+`sample.length` is still 2 because the outer array has two slots; **it does not reflect how many rows have been allocated**. The outer array index must be valid before checking the row's state: `sample[2]` is still out of bounds.
 
-Nếu cần phân biệt “chưa tải dữ liệu hàng” và “đã tải nhưng không có phần tử”, hãy giữ khác biệt `null`/rỗng. Nếu quy ước nghiệp vụ không cho phép hàng null, hãy **khởi tạo đủ hàng** hoặc kiểm tra rõ ràng tại ranh giới đầu vào.
+If you need to distinguish "row data not yet loaded" from "loaded with zero elements", preserve the `null`/empty distinction. If business rules forbid null rows, **initialize all rows** or validate explicitly at the input boundary.
 
-## 4. Cấp phát trong vòng lặp và mảng không đều
+## 4. Allocating in a Loop and Uneven Arrays
 
-Có thể tạo các hàng theo quy tắc:
+Rows can be created according to a rule:
 
 ~~~java
 int[][] triangle = new int[4][];
@@ -87,23 +87,23 @@ for (int row = 0; row < triangle.length; row++) {
 // [[0], [1, 2], [2, 3, 4], [3, 4, 5, 6]]
 ~~~
 
-Mỗi lần gán `triangle[row] = new int[row + 1]` tạo **một mảng con riêng**. Vòng trong dùng `triangle[row].length` thay vì lấy độ dài của một hàng cố định: với mảng không đều, số cột hợp lệ có thể khác nhau theo hàng.
+Each assignment `triangle[row] = new int[row + 1]` creates **a separate subarray**. The inner loop uses `triangle[row].length` instead of taking the length of a fixed row: in an uneven array, the valid column count can vary by row.
 
-Mảng hai chiều thông thường vẫn có thể tạo gọn:
+A standard two-dimensional array can still be created concisely:
 
 ~~~java
 int[][] rectangular = new int[2][3];
 // [[0, 0, 0], [0, 0, 0]]
 ~~~
 
-Với kiểu mảng nhiều chiều hơn, Java cũng có thể chỉ cấp phát một số chiều đầu; các chiều chưa cấp phát ở cấp sâu hơn chứa null. Chỉ định kích thước sau một chiều đã bỏ trống là không hợp lệ: `new int[][3]` **không biên dịch**.
+For higher-dimensional array types, Java can also allocate only a number of leading dimensions; unallocated dimensions at deeper levels contain null. Specifying a size after a dimension that has already been omitted is invalid: `new int[][3]` **does not compile**.
 
-## 5. Duyệt an toàn khi có hàng chưa tạo
+## 5. Safe Iteration When Uncreated Rows Exist
 
-Một vòng lặp nested `for-each` đơn giản có thể ném NPE nếu gặp hàng null:
+A simple nested `for-each` loop can throw an NPE if it encounters a null row:
 
 ~~~java
-// Không an toàn nếu data có hàng null:
+// Unsafe if data has a null row:
 // for (int[] row : data) {
 //     for (int number : row) {
 //         System.out.println(number);
@@ -111,18 +111,18 @@ Một vòng lặp nested `for-each` đơn giản có thể ném NPE nếu gặp 
 // }
 ~~~
 
-Hãy kiểm tra trước khi duyệt mảng con:
+Check before iterating over the subarray:
 
 ~~~java
 static long sumNonNullRows(int[][] values) {
     if (values == null) {
-        return 0; // Chỉ khi hợp đồng cho phép coi outer null như rỗng.
+        return 0; // Only when the contract allows treating a null outer array as empty.
     }
 
     long sum = 0;
     for (int[] row : values) {
         if (row == null) {
-            continue; // Hàng chưa tạo.
+            continue; // Uncreated row.
         }
         for (int number : row) {
             sum += number;
@@ -132,17 +132,17 @@ static long sumNonNullRows(int[][] values) {
 }
 ~~~
 
-Nếu cần **đếm số phần tử**, chỉ tăng bộ đếm khi thực sự duyệt một giá trị `int`, không dùng `values.length` như số phần tử. Với một mảng không đều, số phần tử là **tổng `row.length` của các hàng khác null**, không phải “số hàng × số cột”.
+If you need to **count elements**, increment the counter only when actually visiting an `int` value; do not use `values.length` as the element count. For an uneven array, the element count is **the sum of `row.length` across all non-null rows**, not "number of rows × number of columns".
 
-Một chính sách khác là ném `IllegalArgumentException` khi gặp hàng null, nhằm bảo đảm dữ liệu phải đầy đủ. Chọn và ghi rõ **một hợp đồng**; đừng âm thầm bỏ qua hàng thiếu nếu bài toán coi đó là lỗi.
+Another policy is to throw `IllegalArgumentException` when encountering a null row, to ensure the data is complete. Choose and clearly document **one contract**; do not silently skip missing rows if the problem treats them as errors.
 
-## 6. Phân biệt sửa ô với gán lại tham chiếu hàng
+## 6. Distinguishing Modifying a Cell from Reassigning a Row Reference
 
-Sau khi đã cấp phát một hàng, `data[0][1] = 9` cập nhật phần tử của hàng đang tồn tại; `data[0] = new int[]{9}` thay cả tham chiếu ở mảng ngoài. Nếu biến khác đang giữ hàng cũ, biến ấy vẫn thấy đối tượng cũ. Tương tự, `data.clone()` chỉ sao chép **mảng ngoài**, nên hai bản vẫn có thể dùng chung các hàng. Bài **Sao chép nông và chia sẻ các mảng con** đi sâu vào các cách tạo bản sao độc lập; phần demo dưới đây cũng cung cấp một hàm sao chép từng hàng có kiểm tra `null` để người đọc tự chạy thử.
+After a row has been allocated, `data[0][1] = 9` updates an element of the existing row; `data[0] = new int[]{9}` replaces the entire reference in the outer array. If another variable is still holding the old row, that variable continues to see the old object. Similarly, `data.clone()` only copies **the outer array**, so both copies can still share the rows. The lesson **Shallow Copying and Sharing Subarrays** explores ways to create independent copies in depth; the demo section below also provides a per-row copy method with a `null` check for readers to run and experiment with.
 
-## 7. Chương trình Java 17+ chạy độc lập
+## 7. Standalone Java 17+ Program
 
-Tạo file **PartialRowsDemo.java**:
+Create the file **PartialRowsDemo.java**:
 
 ~~~java
 import java.util.Arrays;
@@ -240,14 +240,14 @@ public final class PartialRowsDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 PartialRowsDemo.java
 java PartialRowsDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 outerLength=4
@@ -270,31 +270,31 @@ uncreatedRow=NullPointerException
 emptyRow=ArrayIndexOutOfBoundsException
 ~~~
 
-`initial` thể hiện chỉ tạo mảng ngoài; `allocated` thể hiện cấp phát từng hàng và độ dài không đều. `uncreatedRow` khác `emptyRow`: một bên là null, bên kia là đối tượng dài 0. `afterCopySource` và `afterCopyNew` cho thấy sao chép từng hàng tạo dữ liệu số độc lập.
+`initial` shows creating only the outer array; `allocated` shows per-row allocation and uneven lengths. `uncreatedRow` differs from `emptyRow`: one is null, while the other is an object of length 0. `afterCopySource` and `afterCopyNew` show that copying each row produces independent numeric data.
 
-## 8. Lỗi thường gặp và bài tập
+## 8. Common Mistakes and Exercises
 
-| Lỗi / hiểu lầm | Cách xử lý |
+| Mistake / misconception | How to handle it |
 | --- | --- |
-| `new int[3][]` tạo sẵn ba hàng `int[]` | Sai: ban đầu cả ba tham chiếu hàng đều null |
-| `matrix[i].length` khi `matrix[i] == null` | Guard hoặc khởi tạo hàng trước; nếu không sẽ NPE |
-| Cho rằng `new int[0]` là null | Sai: đó là một đối tượng mảng rỗng |
-| Lấy độ dài một hàng dùng cho mọi hàng | Dùng `matrix[i].length`, vì mỗi hàng có thể dài khác nhau |
-| `matrix[i] = {1, 2};` sau khi tạo outer | Dùng `matrix[i] = new int[]{1, 2};` |
-| `new int[][2]` | Sai: không được bỏ kích thước chiều trước rồi khai báo kích thước chiều sau |
-| `matrix.clone()` sao chép luôn từng hàng | Chỉ sao chép outer; muốn độc lập thì clone từng hàng |
-| Duyệt tất cả hàng mà không kiểm tra null | Có thể NPE; xử lý theo hợp đồng dữ liệu |
+| `new int[3][]` pre-creates three `int[]` rows | Wrong: initially all three row references are null |
+| `matrix[i].length` when `matrix[i] == null` | Guard or initialize the row first; otherwise NPE |
+| Assuming `new int[0]` is null | Wrong: it is an empty array object |
+| Using one row's length for all rows | Use `matrix[i].length`, because each row can have a different length |
+| `matrix[i] = {1, 2};` after creating the outer array | Use `matrix[i] = new int[]{1, 2};` |
+| `new int[][2]` | Wrong: you cannot omit an earlier dimension's size and then declare a later dimension's size |
+| `matrix.clone()` automatically copies each row | Only copies the outer array; clone each row to make them independent |
+| Iterating over all rows without checking for null | May throw NPE; handle according to the data contract |
 
-**Bài 1.** Tạo `int[][] rows = new int[3][];`, in `Arrays.deepToString(rows)`, sau đó cấp phát lần lượt các hàng có độ dài 2, 0 và 4.
+**Exercise 1.** Create `int[][] rows = new int[3][];`, print `Arrays.deepToString(rows)`, and then allocate rows of lengths 2, 0, and 4 respectively.
 
-**Bài 2.** Phân biệt đầu ra khi truy cập `rows[1].length` lúc hàng chưa cấp phát và sau khi gán `rows[1] = new int[0]`.
+**Exercise 2.** Distinguish the output when accessing `rows[1].length` before the row is allocated versus after assigning `rows[1] = new int[0]`.
 
-**Bài 3.** Dùng hai vòng `for` để tạo mảng tam giác bốn hàng, trong đó hàng `i` có độ dài `i + 1` và phần tử `[i][j] = i + j`.
+**Exercise 3.** Use two `for` loops to create a four-row triangular array where row `i` has length `i + 1` and element `[i][j] = i + j`.
 
-**Bài 4.** Viết hàm đếm số phần tử thật của mảng không đều có thể chứa hàng null; thử với `{{1, 2}, null, {}, {3}}`.
+**Exercise 4.** Write a method to count the actual number of elements in an uneven array that may contain null rows; test it with `{{1, 2}, null, {}, {3}}`.
 
-**Bài 5.** So sánh `Arrays.copyOf(matrix, matrix.length)` với việc sao chép từng hàng `matrix[i].clone()`. Khi sửa một ô số ở bản sao, bản gốc có đổi không?
+**Exercise 5.** Compare `Arrays.copyOf(matrix, matrix.length)` with copying each row via `matrix[i].clone()`. When modifying a numeric cell in the copy, does the original change?
 
-### Ghi nhớ
+### Key Takeaway
 
-**`new int[rows][]` chỉ tạo mảng ngoài; các hàng ban đầu là `null` cho tới khi được gán mảng con.** Mỗi hàng có thể có độ dài riêng, kể cả 0. **Hàng null không phải hàng rỗng**: phải cấp phát hoặc guard trước khi dùng `length`, truy cập chỉ số hay duyệt. Sao chép mảng ngoài không tự sao chép các hàng; muốn dữ liệu độc lập, sao chép từng mảng con.
+**`new int[rows][]` creates only the outer array; rows are initially `null` until subarrays are assigned.** Each row can have its own length, including 0. **A null row is not an empty row**: you must allocate or guard before using `length`, indexing, or iterating. Copying the outer array does not automatically copy the rows; to get independent data, copy each subarray.

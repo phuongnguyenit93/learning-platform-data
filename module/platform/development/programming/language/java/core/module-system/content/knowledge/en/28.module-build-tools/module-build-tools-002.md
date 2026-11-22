@@ -1,30 +1,30 @@
-# Module path trong Gradle Java Plugin
+# Module path in Gradle Java Plugin
 
-## 1. Gradle và JPMS giải quyết hai lớp dependency khác nhau
+## 1. Gradle and JPMS address two different dependency layers
 
-Gradle Java Plugin điều phối quá trình biên dịch, kiểm thử và đóng gói các ứng dụng Java. Java Platform Module System (JPMS) lại xác định cách các **named module** đọc nhau, package nào được export, package nào được mở cho reflection và module nào được phân giải khi chương trình chạy.
+The Gradle Java Plugin orchestrates compiling, testing, and packaging Java applications. The Java Platform Module System (JPMS), by contrast, defines how **named modules** read one another, which packages are exported, which packages are opened for reflection, and which modules are resolved when the program runs.
 
-Vì vậy, trong dự án Gradle có JPMS, tồn tại hai cách mô tả dependency bổ sung cho nhau:
+Therefore, in a Gradle project using JPMS, two complementary ways of describing dependencies exist:
 
-1. **Gradle dependency**: khai báo bằng implementation, api, compileOnly, runtimeOnly hoặc project(...), giúp Gradle lấy artifact và đưa chúng vào đúng configuration.
-2. **JPMS dependency**: khai báo trong module-info.java bằng requires, requires transitive, exports, opens, uses và provides, giúp javac/JVM xây dựng module graph và kiểm tra quyền truy cập.
+1. **Gradle dependencies**: declared with implementation, api, compileOnly, runtimeOnly, or project(...), helping Gradle fetch artifacts and place them into the appropriate configurations.
+2. **JPMS dependencies**: declared in module-info.java with requires, requires transitive, exports, opens, uses, and provides, helping javac/JVM construct the module graph and verify access permissions.
 
-Gradle không tự sinh requires chỉ vì bạn viết implementation. Ngược lại, viết requires trong module-info.java không khiến Gradle tự tải dependency từ Maven repository nếu chưa khai báo dependency cần thiết.
+Gradle does not automatically generate requires simply because you wrote implementation. Conversely, writing requires in module-info.java does not cause Gradle to automatically download dependencies from a Maven repository if the required dependency has not been declared.
 
-Mục tiêu của bài này là hiểu cách Gradle Java Plugin xác định **module path**, cách tổ chức dự án modular, và cách kiểm tra lỗi phát sinh khi dependency bị đặt nhầm trên classpath.
+The goal of this lesson is to understand how the Gradle Java Plugin determines the **module path**, how to organize a modular project, and how to troubleshoot errors that arise when dependencies are mistakenly placed on the classpath.
 
-## 2. Module path khác classpath như thế nào?
+## 2. How does the module path differ from the classpath?
 
-Trên classpath truyền thống, compiler và JVM tìm các class từ thư mục hoặc JAR. Mã trên classpath thuộc **unnamed module** của class loader tương ứng, không có module-info.java và không dùng requires để mô tả dependency.
+On the traditional classpath, the compiler and JVM locate classes from directories or JARs. Code on the classpath belongs to the **unnamed module** of the corresponding class loader, has no module-info.java, and does not use requires to describe dependencies.
 
-Với module path, compiler và JVM có thể tìm các named module:
+With the module path, the compiler and JVM can locate named modules:
 
 ~~~bash
 java --module-path mods \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Một named module có tên rõ ràng và descriptor mô tả mối quan hệ với các module khác:
+A named module has an explicit name and a descriptor describing its relationships with other modules:
 
 ~~~java
 module com.acme.app {
@@ -32,13 +32,13 @@ module com.acme.app {
 }
 ~~~
 
-Muốn app import kiểu public từ catalog, không chỉ cần đọc catalog qua requires mà catalog còn phải export package chứa kiểu đó.
+For app to import public types from catalog, not only must it read catalog via requires, but catalog must also export the package containing those types.
 
-Trong Gradle, cả classpath và module path đều có thể được tạo từ các dependency configuration. **Điều quyết định là Gradle tổ chức các artifact thành đối số nào của javac hoặc JVM**, chứ không phải việc người phát triển chỉ đặt tên configuration là compileClasspath hay runtimeClasspath.
+In Gradle, both the classpath and the module path can be constructed from dependency configurations. **What decides is which arguments Gradle passes the artifacts as to javac or the JVM**, not merely the fact that developers name configurations compileClasspath or runtimeClasspath.
 
-## 3. Cấu trúc source một named module trong dự án Gradle
+## 3. Source structure of a named module in a Gradle project
 
-Gradle Java Plugin mặc định nhận mã nguồn chính trong src/main/java và mã kiểm thử trong src/test/java. Đối với một named module, đặt module-info.java ở gốc source chính:
+The Gradle Java Plugin reads main sources from src/main/java and test sources from src/test/java by default. For a named module, place module-info.java at the root of the main source set:
 
 ~~~text
 catalog/
@@ -53,7 +53,7 @@ catalog/
         com/acme/catalog/api/CatalogTest.java
 ~~~
 
-Ví dụ descriptor:
+Example descriptor:
 
 ~~~java
 module com.acme.catalog {
@@ -61,7 +61,7 @@ module com.acme.catalog {
 }
 ~~~
 
-Và public API:
+And public API:
 
 ~~~java
 package com.acme.catalog.api;
@@ -76,11 +76,11 @@ public final class Catalog {
 }
 ~~~
 
-Một ứng dụng khác muốn dùng Catalog phải đọc com.acme.catalog và phải có quyền truy cập package com.acme.catalog.api. Tên project Gradle, tên file JAR và tên JPMS module có thể khác nhau; **module name là tên khai báo sau từ khóa module** trong module-info.java.
+Another application wanting to use Catalog must read com.acme.catalog and must have access to the package com.acme.catalog.api. The Gradle project name, JAR filename, and JPMS module name can differ; **the module name is the name declared after the module keyword** in module-info.java.
 
-## 4. Bật module-path inference trong Gradle
+## 4. Enabling module-path inference in Gradle
 
-Gradle hỗ trợ suy luận dependency nào cần nằm trên module path thông qua Java plugin extension:
+Gradle supports inferring which dependencies belong on the module path via the Java plugin extension:
 
 ~~~groovy
 plugins {
@@ -92,27 +92,27 @@ java {
 }
 ~~~
 
-Trong các phiên bản Gradle hiện đại, chế độ suy luận module path thường đã được bật theo mặc định cho Java Plugin; khai báo tường minh giúp ý định build rõ ràng.
+In modern Gradle versions, module-path inference is usually enabled by default for the Java Plugin; declaring it explicitly makes the build intent clear.
 
-Khi source set chứa module-info.java và bật inference, Gradle có thể cấu hình javac để biên dịch nó như một named module. Với các dependency là JAR, Gradle dựa vào bằng chứng module metadata để lựa chọn module path, đặc biệt:
+When a source set contains module-info.java and inference is enabled, Gradle can configure javac to compile it as a named module. For JAR dependencies, Gradle relies on module metadata evidence to select the module path, specifically:
 
-- JAR có module-info.class: **explicit named module**.
-- JAR có Automatic-Module-Name trong MANIFEST.MF: có tên automatic module ổn định và có thể được Gradle nhận diện cho module path.
-- JAR không có hai dấu hiệu trên: Gradle có thể giữ nó trên classpath, dù JVM có khả năng suy ra một automatic module name khi JAR được chủ động đặt trên module path.
+- JAR with module-info.class: **explicit named module**.
+- JAR with Automatic-Module-Name in MANIFEST.MF: has a stable automatic module name and can be recognized by Gradle for the module path.
+- JAR with neither indicator: Gradle may keep it on the classpath, even though the JVM could derive an automatic module name if the JAR were intentionally placed on the module path.
 
-Sự khác nhau giữa **JVM có thể coi JAR là automatic module** và **Gradle tự quyết định đưa JAR lên module path** là điểm dễ nhầm nhất. Đừng giả định mọi thư viện implementation đều tự động xuất hiện trong module graph.
+The difference between **the JVM being able to treat a JAR as an automatic module** and **Gradle automatically deciding to put the JAR on the module path** is the easiest point to misunderstand. Do not assume every implementation library automatically appears in the module graph.
 
-Nếu ứng dụng gặp module not found, trước hết kiểm tra metadata JAR và cách Gradle phân loại artifact. Không giải quyết bằng việc sao chép JAR ngẫu nhiên vào source folder.
+If an application encounters module not found, check the JAR metadata and how Gradle classifies the artifact first. Do not resolve it by randomly copying JARs into source folders.
 
-## 5. Ví dụ thực tế: Gradle multi-project với hai JPMS module
+## 5. Practical example: Gradle multi-project with two JPMS modules
 
-Ta tạo một build gồm:
+We create a build consisting of:
 
-- Project Gradle :catalog, sinh named module com.acme.catalog.
-- Project Gradle :app, sinh named module com.acme.app.
-- Module app đọc catalog và gọi public API của catalog.
+- Gradle project :catalog, producing named module com.acme.catalog.
+- Gradle project :app, producing named module com.acme.app.
+- Module app reads catalog and calls catalog's public API.
 
-Cấu trúc:
+Structure:
 
 ~~~text
 demo/
@@ -131,16 +131,16 @@ demo/
   gradlew.bat
 ~~~
 
-Trong settings.gradle:
+In settings.gradle:
 
 ~~~groovy
 rootProject.name = 'jpms-gradle-demo'
 include 'catalog', 'app'
 ~~~
 
-Gradle project path :catalog và :app là định danh trong build. JPMS không bắt buộc dùng đúng hai tên này làm module name.
+Gradle project paths :catalog and :app are identifiers within the build. JPMS does not require using those exact two names as module names.
 
-## 6. Cấu hình module thư viện bằng java-library
+## 6. Configuring a library module with java-library
 
 File catalog/build.gradle:
 
@@ -157,7 +157,7 @@ java {
 }
 ~~~
 
-Plugin java-library mở rộng Java Plugin và thêm configuration api, dùng khi thư viện có dependency xuất hiện trong public API của chính thư viện.
+The java-library plugin extends the Java Plugin and adds the api configuration, used when a library has dependencies that appear in the library's own public API.
 
 File catalog/src/main/java/module-info.java:
 
@@ -182,11 +182,11 @@ public final class Catalog {
 }
 ~~~
 
-Gradle biên dịch Java source và module descriptor, tạo module-info.class trong output. Khi đóng gói bằng task jar, descriptor sẽ nằm trong modular JAR cùng các class khác.
+Gradle compiles the Java source and module descriptor, producing module-info.class in the output. When packaged with the jar task, the descriptor is placed in the modular JAR along with the other classes.
 
-Module không cần viết requires java.base: mọi named module đều có readability ngầm tới java.base.
+A module does not need to write requires java.base: every named module has implicit readability to java.base.
 
-## 7. Cấu hình ứng dụng với Application Plugin
+## 7. Configuring an application with the Application Plugin
 
 File app/build.gradle:
 
@@ -212,7 +212,7 @@ application {
 }
 ~~~
 
-Application Plugin áp dụng Java Plugin và cung cấp task run cùng cấu hình launcher. Khi định nghĩa mainModule và mainClass, Gradle có thông tin để chạy ứng dụng modular theo cách phù hợp.
+The Application Plugin applies the Java Plugin and provides the run task along with launcher configuration. When mainModule and mainClass are defined, Gradle has the information to run the modular application appropriately.
 
 File app/src/main/java/module-info.java:
 
@@ -236,49 +236,49 @@ public final class Main {
 }
 ~~~
 
-Đây là điểm cần nhớ:
+Here is the key point to remember:
 
-- implementation project(':catalog') nói với **Gradle** rằng app cần artifact từ project catalog.
-- requires com.acme.catalog nói với **JPMS** rằng module app đọc named module catalog.
-- exports com.acme.catalog.api cho phép app sử dụng các public types trong package API của catalog.
+- implementation project(':catalog') tells **Gradle** that app needs the artifact from the catalog project.
+- requires com.acme.catalog tells **JPMS** that module app reads the named module catalog.
+- exports com.acme.catalog.api allows app to use public types in catalog's API package.
 
-Thiếu một trong các điều kiện quan trọng này có thể khiến compile thất bại. Các dependency configuration của Gradle không thay thế module descriptor.
+Missing any one of these key conditions can cause compilation to fail. Gradle's dependency configurations do not replace the module descriptor.
 
-## 8. Biên dịch và chạy ứng dụng modular
+## 8. Compiling and running the modular application
 
-Trong thư mục demo, chạy:
+In the demo directory, run:
 
 ~~~bash
 ./gradlew clean :app:compileJava
 ./gradlew :app:run
 ~~~
 
-Trên Windows:
+On Windows:
 
 ~~~powershell
 .\gradlew.bat clean :app:compileJava
 .\gradlew.bat :app:run
 ~~~
 
-Kết quả ứng dụng mong đợi:
+Expected application output:
 
 ~~~text
 Java Modules
 ~~~
 
-Có thể build toàn bộ:
+You can build everything:
 
 ~~~bash
 ./gradlew build
 ~~~
 
-Hoặc đóng gói từng module:
+Or package individual modules:
 
 ~~~bash
 ./gradlew :catalog:jar :app:jar
 ~~~
 
-Output thường gồm:
+Output typically includes:
 
 ~~~text
 catalog/build/classes/java/main/module-info.class
@@ -290,23 +290,23 @@ app/build/classes/java/main/com/acme/app/Main.class
 app/build/libs/...
 ~~~
 
-Tên JAR cuối cùng có thể bao gồm project name, version hoặc cấu hình archive. Kiểm tra đúng artifact thực tế; không đoán tên JAR chỉ dựa vào module name.
+The final JAR name may include the project name, version, or archive configuration. Inspect the exact actual artifact; do not guess the JAR name based solely on the module name.
 
-Application Plugin cũng có thể cung cấp task installDist và distZip để tạo bản phân phối. Hãy chạy và kiểm tra startup script thực tế của bản phân phối vì đây mới là cách chương trình sẽ khởi động bên ngoài Gradle.
+The Application Plugin can also provide installDist and distZip tasks to create a distribution. Run and verify the actual startup script of the distribution because that is how the program will launch outside Gradle.
 
-## 9. Gradle tự suy luận module path, nhưng không tự sửa descriptor
+## 9. Gradle infers the module path, but does not auto-fix descriptors
 
-Suy luận module path giúp Gradle quyết định vị trí dependency khi truyền cho compiler/runtime. Nó không tự động:
+Module-path inference helps Gradle decide where dependencies go when passing them to the compiler/runtime. It does not automatically:
 
-- Viết requires vào module-info.java.
-- Export package mà bạn chưa khai báo.
-- Mở package cho deep reflection.
-- Chuyển dependency JAR cũ thành explicit module.
-- Đăng ký service provider thay cho uses và provides.
-- Giải quyết dependency cycle hoặc split package.
-- Biến JAR đang trên classpath thành named module nếu Gradle không nhận diện metadata module.
+- Write requires into module-info.java.
+- Export packages you did not declare.
+- Open packages for deep reflection.
+- Turn legacy JAR dependencies into explicit modules.
+- Register service providers in place of uses and provides.
+- Resolve dependency cycles or split packages.
+- Turn a JAR on the classpath into a named module if Gradle does not recognize module metadata.
 
-Nếu app chứa:
+If app contains:
 
 ~~~java
 module com.acme.app {
@@ -314,17 +314,17 @@ module com.acme.app {
 }
 ~~~
 
-nhưng app/build.gradle không khai báo dependency tới catalog, Gradle không nhất thiết đưa catalog vào compile task.
+but app/build.gradle does not declare a dependency on catalog, Gradle will not necessarily include catalog in the compile task.
 
-Ngược lại, nếu build.gradle có implementation project(':catalog') nhưng module-info.java thiếu requires com.acme.catalog, compiler vẫn có thể báo module app không đọc module catalog.
+Conversely, if build.gradle has implementation project(':catalog') but module-info.java lacks requires com.acme.catalog, the compiler can still report that module app does not read module catalog.
 
-**Hãy coi dependency khai báo trong Gradle và dependency khai báo trong JPMS là hai bản đồ phải nhất quán.**
+**Treat Gradle dependency declarations and JPMS dependency declarations as two maps that must stay consistent.**
 
-## 10. api, implementation và requires transitive
+## 10. api, implementation, and requires transitive
 
-Trong một module thư viện, cần phân biệt loại dependency theo vai trò API.
+In a library module, dependency types should be distinguished by their API role.
 
-Ví dụ module com.acme.reports có public method trả về kiểu thuộc module com.acme.models:
+For example, module com.acme.reports has a public method returning a type belonging to module com.acme.models:
 
 ~~~java
 package com.acme.reports.api;
@@ -336,7 +336,7 @@ public interface ReportService {
 }
 ~~~
 
-Nếu consumer đọc reports và sử dụng ReportModel trong public signature, descriptor có thể dùng:
+If consumers read reports and use ReportModel in the public signature, the descriptor can use:
 
 ~~~java
 module com.acme.reports {
@@ -345,7 +345,7 @@ module com.acme.reports {
 }
 ~~~
 
-Trong build Gradle của reports, dùng java-library:
+In the Gradle build for reports, use java-library:
 
 ~~~groovy
 plugins {
@@ -357,12 +357,12 @@ dependencies {
 }
 ~~~
 
-Hai khai báo có vai trò liên quan nhưng không trùng nhau:
+The two declarations play related but non-identical roles:
 
-- api cho Gradle biết dependency là phần bề mặt API của thư viện và phải được công bố cho consumer Gradle.
-- requires transitive cho JPMS biết module đọc reports cũng được cấp readability tới models.
+- api tells Gradle that the dependency is part of the library's API surface and must be exposed to Gradle consumers.
+- requires transitive tells JPMS that modules reading reports are also granted readability to models.
 
-Nếu dependency chỉ dùng bên trong implementation, thường chọn implementation trong Gradle và requires thông thường trong module-info.java:
+If a dependency is only used inside the implementation, typically choose implementation in Gradle and regular requires in module-info.java:
 
 ~~~groovy
 dependencies {
@@ -377,33 +377,33 @@ module com.acme.reports {
 }
 ~~~
 
-Không tự động thay mọi implementation thành api hay mọi requires thành requires transitive. Hãy xem kiểu nào thực sự xuất hiện trong hợp đồng public.
+Do not automatically replace every implementation with api or every requires with requires transitive. Check which types actually appear in the public contract.
 
-## 11. Phân biệt compileClasspath và runtimeClasspath với module path
+## 11. Distinguishing compileClasspath and runtimeClasspath from the module path
 
-Gradle có các configuration quen thuộc:
+Gradle has familiar configurations:
 
-| Configuration | Vai trò thường gặp |
+| Configuration | Typical role |
 |---|---|
-| implementation | Dependency cần biên dịch module và thường có ở runtime |
-| api | Dependency được công bố qua API của thư viện khi dùng java-library |
-| compileOnly | Chỉ cần khi compile, không tự được mang tới runtime |
-| runtimeOnly | Không cần compile trực tiếp, nhưng cần ở runtime |
-| testImplementation | Dependency cho test compile/run |
-| testRuntimeOnly | Dependency chỉ cần khi chạy test |
+| implementation | Dependency needed to compile the module and usually present at runtime |
+| api | Dependency exposed through the library's API when using java-library |
+| compileOnly | Needed only at compile time, not automatically carried to runtime |
+| runtimeOnly | Not needed for direct compilation, but required at runtime |
+| testImplementation | Dependency for test compilation/execution |
+| testRuntimeOnly | Dependency needed only when running tests |
 
-Tên compileClasspath hoặc runtimeClasspath trong Gradle vẫn là khái niệm **dependency configuration**. Nó không đồng nghĩa tất cả artifact trong đó sẽ được truyền nguyên vẹn cho cờ --class-path của javac/java.
+The names compileClasspath or runtimeClasspath in Gradle remain **dependency configuration** concepts. They do not mean all artifacts in them will be passed verbatim to the --class-path flag of javac/java.
 
-Khi module-path inference hoạt động, Gradle tách dependency được nhận diện là module khỏi những thư viện vẫn dùng classpath. Vì vậy, lệnh Gradle in ra một compileClasspath chứa cả những dependency mà lúc gọi javac chúng được tổ chức vào module path.
+When module-path inference is active, Gradle separates dependencies recognized as modules from libraries that remain on the classpath. Thus, a Gradle command may print a compileClasspath that still includes dependencies that are organized onto the module path when invoking javac.
 
-Để xem dependency resolution từ góc nhìn Gradle:
+To inspect dependency resolution from Gradle's perspective:
 
 ~~~bash
 ./gradlew :app:dependencies --configuration compileClasspath
 ./gradlew :app:dependencies --configuration runtimeClasspath
 ~~~
 
-Để tìm lý do chọn phiên bản một dependency cụ thể:
+To find out why a specific version of a dependency was selected:
 
 ~~~bash
 ./gradlew :app:dependencyInsight \
@@ -411,107 +411,107 @@ Khi module-path inference hoạt động, Gradle tách dependency được nhậ
   --dependency some-library
 ~~~
 
-Các lệnh này giúp tìm artifact và phiên bản. Nhưng để biết compiler đã nhận classpath/module path nào, còn cần quan sát task compile và module metadata.
+These commands help locate artifacts and versions. However, to know which classpath/module path the compiler received, you still need to inspect the compile task and module metadata.
 
-## 12. Automatic module và thư viện JAR chưa modular hóa
+## 12. Automatic modules and unmodularized JAR libraries
 
-Một JAR chưa có module-info.class vẫn có thể trở thành automatic module nếu được đặt trên module path. JVM có thể suy ra module name từ tên JAR, còn Gradle không nhất thiết chọn đưa nó vào module path nếu JAR không có metadata nhận diện ổn định.
+A JAR without module-info.class can still become an automatic module if placed on the module path. The JVM can derive a module name from the JAR filename, whereas Gradle will not necessarily choose to place it on the module path if the JAR lacks stable identifying metadata.
 
-Một số thư viện hỗ trợ manifest entry:
+Some libraries support the manifest entry:
 
 ~~~text
 Automatic-Module-Name: com.acme.legacy
 ~~~
 
-Entry này cung cấp một module name ổn định khi JAR dùng trên module path, nhưng **không biến JAR thành explicit module**.
+This entry provides a stable module name when the JAR is used on the module path, but **does not turn the JAR into an explicit module**.
 
-Để kiểm tra metadata artifact:
+To inspect artifact metadata:
 
 ~~~bash
 jar --describe-module --file libs/legacy.jar
 ~~~
 
-Với thư viện bên ngoài, nên ưu tiên:
+For external libraries, prefer:
 
-1. Bản mới có module-info.class phù hợp.
-2. Bản có Automatic-Module-Name ổn định nếu cần giai đoạn chuyển tiếp.
-3. Thay thư viện hoặc điều chỉnh kiến trúc nếu nó không thể dùng an toàn trên module path.
+1. A newer version with an appropriate module-info.class.
+2. A version with a stable Automatic-Module-Name if a transition phase is needed.
+3. Replacing the library or adjusting architecture if it cannot be used safely on the module path.
 
-Không nên đổi tên JAR ngẫu nhiên chỉ để module name tạm thời khớp requires, vì việc nâng cấp artifact có thể phá cấu hình. Không nên mặc định Gradle sẽ chuyển JAR classpath sang module path chỉ vì bạn thêm requires tên dự đoán vào descriptor.
+Do not randomly rename JARs just to make a module name temporarily match requires, because upgrading the artifact can break the configuration. Do not assume Gradle will move a classpath JAR to the module path just because you added a guessed name in requires in the descriptor.
 
-## 13. Vì sao named module không tự đọc được thư viện trên classpath?
+## 13. Why can't a named module automatically read libraries on the classpath?
 
-Một vấn đề migration phổ biến:
+A common migration issue:
 
-- app là explicit named module với module-info.java.
-- lib-old.jar không có module metadata nên Gradle vẫn đặt nó trên classpath.
-- app cố requires một tên module được đoán từ tên lib-old.jar.
+- app is an explicit named module with module-info.java.
+- lib-old.jar has no module metadata, so Gradle keeps it on the classpath.
+- app tries to requires a module name guessed from the name lib-old.jar.
 
-Lúc compile, javac có thể báo module not found vì dependency không có trên module path dưới tên đó. Nếu app tham chiếu trực tiếp class thuộc unnamed module, module readability thông thường của JPMS cũng không cho phép named module phụ thuộc vào unnamed module như một named dependency hợp lệ.
+At compile time, javac may report module not found because the dependency is not on the module path under that name. If app directly references a class belonging to the unnamed module, standard JPMS module readability also does not allow a named module to depend on the unnamed module as a valid named dependency.
 
-Giải pháp không phải thêm đường dẫn classpath vào module-info.java. Có thể:
+The solution is not adding classpath paths into module-info.java. You can:
 
-- Nâng dependency lên bản modular hoặc bản có module metadata ổn định.
-- Giữ phần ứng dụng chưa sẵn sàng trên classpath cho tới khi dependency được chuẩn hóa.
-- Tách adapter hoặc process boundary để giảm direct dependency.
-- Dùng cấu hình module path thủ công có kiểm soát trong một bước migration ngắn hạn, kèm bài test thật.
+- Upgrade the dependency to a modular version or one with stable module metadata.
+- Keep the unready part of the application on the classpath until dependencies are standardized.
+- Separate an adapter or process boundary to reduce direct dependencies.
+- Use controlled manual module-path configuration in a short-term migration step, backed by real tests.
 
-Việc chuyển thư viện cũ thành automatic module không tự giải quyết mọi vấn đề của nó: split package, reflection, resource và service discovery vẫn phải được kiểm chứng.
+Converting a legacy library into an automatic module does not automatically solve all of its issues: split packages, reflection, resources, and service discovery must still be verified.
 
-## 14. Đánh giá split packages và dependency cycles
+## 14. Evaluating split packages and dependency cycles
 
-Classpath cho phép nhiều JAR cùng sở hữu class trong một package. Với JPMS, khi module graph tạo ra xung đột package giữa các module có quan hệ đọc, compilation hoặc resolution có thể thất bại.
+The classpath allows multiple JARs to own classes in the same package. With JPMS, when the module graph creates a package conflict between modules in a readability relationship, compilation or resolution can fail.
 
-Ví dụ:
+Example:
 
 ~~~text
 library-a.jar: com/acme/shared/Alpha.class
 library-b.jar: com/acme/shared/Beta.class
 ~~~
 
-Nếu đây là hai module độc lập nhưng cùng package com.acme.shared, hãy cân nhắc:
+If these are two independent modules sharing the package com.acme.shared, consider:
 
-- Gộp các class thực sự thuộc một module logic.
-- Tách package theo trách nhiệm của từng module.
-- Nâng cấp thư viện đã được nhà cung cấp sửa split package.
-- Kiểm tra JAR sau shading vì công cụ build có thể vô tình tạo ra split package mới.
+- Merging classes that genuinely belong to one logical module.
+- Separating packages according to each module's responsibility.
+- Upgrading to a library version where the vendor fixed the split package.
+- Inspecting shaded JARs because build tools can inadvertently create new split packages.
 
-Nếu hai module requires nhau theo chu trình, module graph cũng không hợp lệ theo thiết kế JPMS. Cần phá cycle bằng cách tách API interface, đảo hướng dependency hoặc gộp module đúng ranh giới.
+If two modules requires each other in a cycle, the module graph is also invalid by JPMS design. Break the cycle by extracting an API interface, inverting the dependency direction, or merging modules along proper boundaries.
 
-Gradle có thể sắp xếp task biên dịch theo project dependency, nhưng **task graph của Gradle không làm một JPMS requires cycle trở nên hợp lệ**.
+Gradle can order compile tasks according to project dependencies, but **Gradle's task graph does not make a JPMS requires cycle valid**.
 
-## 15. Kiểm tra task JavaCompile và compiler arguments
+## 15. Inspecting the JavaCompile task and compiler arguments
 
-Khi gặp lỗi module not found hoặc package not visible, cần xem cách Gradle gọi javac.
+When encountering module not found or package not visible errors, you need to see how Gradle invokes javac.
 
-Một bước đầu:
+A first step:
 
 ~~~bash
 ./gradlew :app:compileJava --info
 ~~~
 
-Để có log chi tiết hơn, có thể dùng:
+For more detailed logs, you can use:
 
 ~~~bash
 ./gradlew :app:compileJava --debug
 ~~~
 
-Đầu ra của từng phiên bản Gradle/toolchain có thể khác nhau, và không nhất thiết in đầy đủ mọi compiler argument dưới một dòng dễ đọc. Nếu cần kiểm tra cụ thể, dùng build diagnostics hoặc logging trong phạm vi dự án để xem compiler options và các file được phân loại vào module path.
+Output from different Gradle/toolchain versions may vary, and may not necessarily print every compiler argument on a single easily readable line. If specific inspection is needed, use build diagnostics or project-scoped logging to inspect compiler options and files classified onto the module path.
 
-Các điểm cần xác nhận:
+Points to confirm:
 
-- Có module-info.java trong source set thực sự được compile.
-- modularity.inferModulePath đang được bật.
-- Đúng JDK/toolchain được dùng cho JavaCompile.
-- Dependency có module-info.class hoặc Automatic-Module-Name khi cần được Gradle nhận diện.
-- Source module name trong requires khớp module name của dependency.
-- Package cần dùng được exports bởi dependency.
+- module-info.java exists in the source set actually being compiled.
+- modularity.inferModulePath is enabled.
+- The right JDK/toolchain is used for JavaCompile.
+- Dependencies have module-info.class or Automatic-Module-Name when Gradle needs to recognize them.
+- The source module name in requires matches the dependency's module name.
+- The required package is exported by the dependency.
 
-Nếu compiler không tìm thấy module, đừng thêm --add-exports trước khi xác nhận artifact có mặt ở module path. Export chỉ giải quyết package access, không tạo module bị thiếu.
+If the compiler cannot find a module, do not add --add-exports before confirming the artifact is present on the module path. Exporting only resolves package access, not missing modules.
 
-## 16. Java Toolchains và --release
+## 16. Java Toolchains and --release
 
-Dùng toolchain để cố định JDK compile:
+Use a toolchain to pin the compile JDK:
 
 ~~~groovy
 java {
@@ -522,7 +522,7 @@ java {
 }
 ~~~
 
-Nếu cần tạo bytecode tương thích Java 17 khi biên dịch trên JDK hỗ trợ target đó:
+If you need to produce Java 17-compatible bytecode while compiling on a JDK supporting that target:
 
 ~~~groovy
 tasks.withType(JavaCompile).configureEach {
@@ -530,15 +530,15 @@ tasks.withType(JavaCompile).configureEach {
 }
 ~~~
 
-Toolchain chọn JDK dùng để chạy compiler; --release chỉ định language level, class-file format và API nền tảng phù hợp với target release. Đây không phải cùng một cấu hình.
+The toolchain selects the JDK used to run the compiler; --release specifies the language level, class-file format, and platform APIs matching the target release. They are not the same setting.
 
-Nếu chạy CI hoặc application runtime trên Java 17, cần kiểm tra dependency có được biên dịch phù hợp và module descriptor không yêu cầu API chỉ xuất hiện trên Java mới hơn.
+If running CI or the application runtime on Java 17, verify that dependencies are compiled compatibly and the module descriptor does not require APIs introduced only in newer Java versions.
 
-Sử dụng module-info.java yêu cầu Java 9 trở lên. Không thể dùng --release 8 với source module descriptor theo cách biên dịch JPMS thông thường.
+Using module-info.java requires Java 9 or later. You cannot use --release 8 with a source module descriptor under normal JPMS compilation.
 
-## 17. Cấu hình chạy ứng dụng theo module identity
+## 17. Configuring application execution by module identity
 
-Với Application Plugin:
+With the Application Plugin:
 
 ~~~groovy
 application {
@@ -547,26 +547,26 @@ application {
 }
 ~~~
 
-Có thể chạy:
+You can run:
 
 ~~~bash
 ./gradlew :app:run
 ~~~
 
-Và tạo bản phân phối:
+And build a distribution:
 
 ~~~bash
 ./gradlew :app:installDist
 ~~~
 
-Sau khi build, nếu muốn kiểm tra thủ công bằng Java launcher, chỉ dùng các JAR thực sự đã tạo và kiểm tra module name:
+After building, if you want to verify manually with the Java launcher, use only the actual generated JARs and verify the module names:
 
 ~~~bash
 jar --describe-module --file catalog/build/libs/catalog.jar
 jar --describe-module --file app/build/libs/app.jar
 ~~~
 
-Nếu file JAR thực tế có hậu tố version, thay path trên bằng tên đúng trong build/libs. Sau đó dùng module path với các JAR tương ứng:
+If the actual JAR files have a version suffix, replace the paths above with the exact filenames in build/libs. Then use the module path with the corresponding JARs:
 
 ~~~bash
 java --module-path "catalog/build/libs:app/build/libs" \
@@ -574,22 +574,22 @@ java --module-path "catalog/build/libs:app/build/libs" \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Trên Windows, thay dấu phân cách path bằng dấu chấm phẩy và dùng dạng lệnh phù hợp shell.
+On Windows, replace the path separator with a semicolon and use shell-appropriate command formatting.
 
-Thông tin --show-module-resolution giúp kiểm tra những module đã được phân giải; tuy nhiên bản thân nó không chứng minh mọi provider hoặc class được tải động đều đã được khám phá.
+The --show-module-resolution output helps inspect which modules were resolved; however, by itself it does not prove that every provider or dynamically loaded class has been discovered.
 
-## 18. Testing trên module path cần xem riêng
+## 18. Testing on the module path requires separate attention
 
-Một ứng dụng modular có thể compile main source thành công nhưng test thất bại do cấu trúc test khác:
+A modular application may compile main sources successfully while tests fail due to different test structuring:
 
-- Test class nằm trên classpath, không ở cùng named module với production class.
-- Framework dùng reflection sâu để tạo test object hoặc truy cập private member.
-- Test cần truy cập implementation package chưa export.
-- Một số test framework có automatic module name hoặc module metadata khác với dự đoán.
+- Test classes sit on the classpath rather than in the same named module as production classes.
+- Frameworks use deep reflection to instantiate test objects or access private members.
+- Tests need to access unexported implementation packages.
+- Some test frameworks have automatic module names or module metadata different from expectations.
 
-Cấu hình Gradle test không thể suy ra một cách máy móc chỉ từ main source set. Với integration test, cần xác nhận JVM test thực tế sử dụng module path hay classpath và test code được nạp vào module nào.
+Gradle test configuration cannot be mechanically inferred solely from the main source set. For integration tests, verify whether the test JVM actually uses the module path or classpath and which module the test code is loaded into.
 
-Ví dụ khi test framework cần reflection sâu, có thể phải cấu hình JVM args có chủ đích:
+For example, when a test framework needs deep reflection, you may have to configure intentional JVM args:
 
 ~~~groovy
 tasks.named('test', Test) {
@@ -597,13 +597,13 @@ tasks.named('test', Test) {
 }
 ~~~
 
-Đây chỉ là ví dụ về một tình huống có thể dùng trong migration; nó chỉ có tác dụng nếu package và module thực sự tồn tại, có mặt trong graph, và test code ở unnamed module. Không nên thêm opens rộng khi chưa biết caller nào cần. Với test nằm trong named module, target của opens có thể là tên module test framework hoặc module khác thích hợp.
+This is only an example of a situation that might be used during migration; it only works if the package and module actually exist, are present in the graph, and the test code is in the unnamed module. Do not add broad opens without knowing which caller needs it. When tests are in a named module, the target of opens can be the test framework module name or another appropriate module.
 
-## 19. Reflection, resources và ServiceLoader
+## 19. Reflection, resources, and ServiceLoader
 
-Khi chuyển dependency lên module path, runtime access có thể khác so với classpath cũ.
+When moving dependencies onto the module path, runtime access can differ from the old classpath.
 
-**Reflection:** Package được exports cho regular code access không đồng nghĩa đã opens cho deep reflection. Framework serialization/ORM có thể cần qualified opens:
+**Reflection:** A package exported for regular code access is not automatically opened for deep reflection. Serialization/ORM frameworks may need qualified opens:
 
 ~~~java
 module com.acme.catalog {
@@ -612,11 +612,11 @@ module com.acme.catalog {
 }
 ~~~
 
-Tên com.fasterxml.jackson.databind phải khớp module identity thực tế của library. Nếu dùng phiên bản thư viện khác hoặc JAR chưa modular, cần xác nhận lại trước khi viết descriptor.
+The name com.fasterxml.jackson.databind must match the library's actual module identity. If using a different library version or an unmodularized JAR, re-verify before writing the descriptor.
 
-**Resources:** ClassLoader.getResource và Class.getResource có thể cho kết quả khác khi resource nằm trong package bị encapsulate. Thử đúng cách đóng gói và class loader dùng trong production.
+**Resources:** ClassLoader.getResource and Class.getResource can yield different results when resources live in encapsulated packages. Test with the exact packaging and class loader used in production.
 
-**ServiceLoader:** Consumer khai báo uses; provider khai báo provides ... with ...:
+**ServiceLoader:** The consumer declares uses; the provider declares provides ... with ...:
 
 ~~~java
 module com.acme.app {
@@ -635,11 +635,11 @@ module com.acme.catalog.provider {
 }
 ~~~
 
-Không phải cứ thêm runtimeOnly dependency là service provider chắc chắn được phân giải và tải trong mọi cấu hình. Hãy xác nhận module provider được đưa vào runtime graph hoặc cấu hình service binding thích hợp, và test ServiceLoader với artifact phát hành thật.
+Merely adding a runtimeOnly dependency does not guarantee that a service provider is resolved and loaded in every configuration. Verify that the provider module is included in the runtime graph or appropriate service binding is configured, and test ServiceLoader with the real release artifacts.
 
-## 20. Annotation processing và code generation
+## 20. Annotation processing and code generation
 
-Gradle Java Plugin có configuration annotationProcessor cho các thư viện processor:
+The Gradle Java Plugin has the annotationProcessor configuration for processor libraries:
 
 ~~~groovy
 dependencies {
@@ -647,87 +647,87 @@ dependencies {
 }
 ~~~
 
-Đây là configuration phục vụ compiler chạy annotation processor; không mặc định là module dependency của mã ứng dụng.
+This is a configuration for running annotation processors during compilation; it is not by default a module dependency of the application code.
 
-Nếu processor là một named module, Java compiler cũng có các cơ chế module path dành riêng cho processor. Tuy nhiên, cách Gradle cung cấp processor path và module path phụ thuộc cấu hình toolchain/plugin. Không nên đơn giản thêm requires tới module processor chỉ để kích hoạt annotation processing.
+If a processor is a named module, the Java compiler also has dedicated module path mechanisms for processors. However, how Gradle provides the processor path and module path depends on toolchain/plugin configuration. Do not simply add requires to the processor module just to trigger annotation processing.
 
-Khi code generation sinh class trong package của một named module, hãy xác nhận generated source được compile trong đúng module, không vô tình tạo split package hoặc source path bị ánh xạ sai.
+When code generation creates classes in a package of a named module, verify that generated sources are compiled in the right module, without inadvertently creating split packages or mis-mapped source paths.
 
-Các dự án dùng Lombok, MapStruct hoặc processor riêng cần kiểm thử compiler task trên module path thật thay vì chỉ dựa vào kết quả IDE.
+Projects using Lombok, MapStruct, or custom processors should test the compiler task on the real module path rather than relying solely on IDE results.
 
-## 21. jlink và module path của Gradle không giống nhau
+## 21. jlink and Gradle's module path are not the same thing
 
-Module-path inference giúp Gradle compile và run named module. Nó **không tự có nghĩa** Java Plugin đã tạo custom runtime image.
+Module-path inference helps Gradle compile and run named modules. It **does not automatically mean** the Java Plugin has created a custom runtime image.
 
-Nếu muốn dùng jlink, thông thường cần:
+If you want to use jlink, you typically need to:
 
-1. Build explicit modular JAR cho ứng dụng và các dependency có thể link.
-2. Cung cấp JDK jmods và các module application trên module path của jlink.
-3. Chọn root bằng --add-modules.
-4. Xem xét --bind-services nếu cần service provider.
-5. Kiểm tra image cuối cùng bằng image/bin/java --list-modules và chạy integration tests.
+1. Build explicit modular JARs for the application and linkable dependencies.
+2. Provide JDK jmods and application modules on jlink's module path.
+3. Select roots with --add-modules.
+4. Consider --bind-services if service providers are needed.
+5. Verify the final image with image/bin/java --list-modules and run integration tests.
 
-Một automatic module có thể được sử dụng như cầu nối trên module path trong giai đoạn migration, nhưng không phải đầu vào explicit-module phù hợp để link trực tiếp như một module ứng dụng bằng jlink.
+An automatic module can be used as a bridge on the module path during migration, but it is not a suitable explicit-module input for direct linking as an application module with jlink.
 
-Nếu build cần tự động hóa jlink, hãy dùng workflow/task/plugin chuyên biệt và kiểm thử trên môi trường mục tiêu. Đừng kỳ vọng task jar hoặc build của Java Plugin tự tạo runtime image.
+If the build needs to automate jlink, use dedicated workflows/tasks/plugins and test on the target environment. Do not expect the jar or build tasks of the Java Plugin to automatically create a runtime image.
 
-## 22. Bảng triệu chứng và hướng chẩn đoán
+## 22. Symptoms and diagnostic guide
 
-| Triệu chứng | Nguyên nhân thường gặp | Hướng kiểm tra |
+| Symptom | Common cause | Where to check |
 |---|---|---|
-| module not found: X | Dependency không nằm trong module path hoặc tên module không khớp | Kiểm tra jar --describe-module, Gradle dependency và compiler args |
-| package ... is not visible | Thiếu requires/readability hoặc package chưa export | Kiểm tra module-info.java của consumer và provider |
-| Cannot read unnamed module | Named module phụ thuộc vào code còn trên classpath | Xem lại tính modular của thư viện và Gradle inference |
-| Split package conflict | Nhiều module dùng cùng package | Kiểm kê JAR, đổi/gộp package hoặc nâng dependency |
-| Test báo InaccessibleObjectException | Reflection sâu vào package chưa mở | Kiểm tra opens và target module thực tế |
-| Code chạy trong IDE nhưng Gradle lỗi | IDE và Gradle chọn classpath/module path hoặc JDK khác nhau | Chạy Gradle wrapper, kiểm tra toolchain và compile task |
-| Compile qua nhưng runtime NoClassDefFoundError | Thiếu dependency/runtime module, hoặc khác class loader | Kiểm tra runtimeClasspath, module resolution, artifact |
-| ServiceLoader không thấy provider | Provider module không resolved hoặc registration thiếu | Kiểm tra uses/provides, runtime graph, module metadata |
-| Resource trả null sau migration | Resource lookup khác theo module/class loader | Kiểm tra đóng gói resource và module encapsulation |
-| Build thành công nhưng jlink lỗi | Dependency chưa là explicit module hoặc thiếu JMOD/module | Kiểm tra module graph riêng của jlink |
+| module not found: X | Dependency is not on the module path or module name mismatches | Check jar --describe-module, Gradle dependencies, and compiler args |
+| package ... is not visible | Missing requires/readability or package not exported | Check module-info.java of consumer and provider |
+| Cannot read unnamed module | Named module depends on code still on the classpath | Review library modularity and Gradle inference |
+| Split package conflict | Multiple modules use the same package | Audit JARs, rename/merge packages, or upgrade dependencies |
+| Tests throw InaccessibleObjectException | Deep reflection into an unopened package | Check opens and actual target module |
+| Code runs in IDE but fails in Gradle | IDE and Gradle select different classpath/module path or JDK | Run Gradle wrapper, check toolchain and compile task |
+| Compiles but throws NoClassDefFoundError at runtime | Missing runtime dependency/module, or different class loader | Check runtimeClasspath, module resolution, artifacts |
+| ServiceLoader finds no provider | Provider module not resolved or registration missing | Check uses/provides, runtime graph, module metadata |
+| Resource returns null after migration | Resource lookup differs by module/class loader | Check resource packaging and module encapsulation |
+| Build succeeds but jlink fails | Dependency is not an explicit module yet or JMOD/module missing | Check jlink's separate module graph |
 
-Đừng cố giải quyết tất cả triệu chứng bằng --add-exports hoặc --add-opens. Các cờ đó chỉ thay đổi một phần quyền truy cập, không sửa dependency thiếu, module name sai hoặc package ownership.
+Do not try to solve all symptoms with --add-exports or --add-opens. Those flags only alter partial access permissions; they do not fix missing dependencies, wrong module names, or package ownership.
 
-## 23. Quy trình chuyển một Gradle project sang module path
+## 23. Process for migrating a Gradle project to the module path
 
-Một trình tự thực hành hiệu quả:
+An effective practical sequence:
 
-1. **Chốt baseline:** build và test dự án classpath đang hoạt động, xác định JDK và Gradle Wrapper.
-2. **Kiểm kê dependency:** chạy dependencies, dependencyInsight và dùng jdeps để xác định JDK modules cùng internal APIs.
-3. **Đánh giá JAR:** kiểm tra explicit module-info.class, Automatic-Module-Name và tên module thực tế.
-4. **Thiết kế module boundary:** tách package API khỏi implementation, loại split packages và dependency cycles.
-5. **Thử module nhỏ:** thêm module-info.java vào một library có dependency ít.
-6. **Bật inference rõ ràng:** cấu hình modularity.inferModulePath cho project hoặc source set cần chuyển.
-7. **Đồng bộ khai báo:** Gradle dependencies cho artifact và requires/exports trong descriptor.
-8. **Build bằng wrapper:** chạy compileJava, test, jar và kiểm tra output module-info.class.
-9. **Chuyển ứng dụng chính:** thiết lập mainModule và mainClass trong Application Plugin.
-10. **Kiểm tra runtime:** chạy Gradle run, distribution startup script và Java launcher với --show-module-resolution.
-11. **Xử lý dynamic access:** kiểm thử reflection, resources, ServiceLoader, annotation processor và class loader.
-12. **Phát hành từng phần:** ghi lại cờ migration tạm thời, kiểm tra JDK mục tiêu và có kế hoạch rollback.
+1. **Establish a baseline:** build and test the working classpath project, pinning the JDK and Gradle Wrapper.
+2. **Audit dependencies:** run dependencies, dependencyInsight, and use jdeps to identify JDK modules and internal APIs.
+3. **Evaluate JARs:** check for explicit module-info.class, Automatic-Module-Name, and actual module names.
+4. **Design module boundaries:** separate API packages from implementations, eliminating split packages and dependency cycles.
+5. **Start with a small module:** add module-info.java to a library with few dependencies.
+6. **Enable inference explicitly:** configure modularity.inferModulePath for the project or source set being migrated.
+7. **Synchronize declarations:** Gradle dependencies for artifacts and requires/exports in the descriptor.
+8. **Build via wrapper:** run compileJava, test, jar, and check the module-info.class output.
+9. **Migrate the main application:** set mainModule and mainClass in the Application Plugin.
+10. **Verify runtime:** run Gradle run, the distribution startup script, and the Java launcher with --show-module-resolution.
+11. **Handle dynamic access:** test reflection, resources, ServiceLoader, annotation processors, and class loaders.
+12. **Release incrementally:** document temporary migration flags, test on the target JDK, and keep a rollback plan.
 
-Không cần chuyển toàn bộ dependency sang module path ngay lập tức nếu chúng chưa sẵn sàng. Một module boundary rõ ràng, ít cờ tạm thời và build ổn định thường hữu ích hơn việc chỉ di chuyển nhiều JAR cùng lúc.
+You do not need to move every dependency to the module path immediately if they are not ready. Clear module boundaries, minimal temporary flags, and a stable build are usually more valuable than moving many JARs at once.
 
-## 24. Checklist trước khi đóng gói và phát hành
+## 24. Checklist before packaging and release
 
-- [ ] JDK toolchain và Gradle Wrapper được cố định.
-- [ ] Source chính có module-info.java ở vị trí đúng.
-- [ ] modularity.inferModulePath được cấu hình theo chủ đích.
-- [ ] Gradle dependency tương ứng với requires trong module descriptor.
-- [ ] Đã xác minh module name thực tế của từng JAR quan trọng.
-- [ ] Public API nằm trong package được exports phù hợp.
-- [ ] Không có split packages hoặc requires cycles chưa xử lý.
-- [ ] Dependency chưa modular được phân loại và có hướng chuyển đổi.
-- [ ] Application Plugin dùng mainModule và mainClass đúng.
-- [ ] Task test chạy trên cấu hình tương thích JPMS.
-- [ ] Reflection và resource access đã được thử trong môi trường runtime thật.
-- [ ] ServiceLoader phát hiện provider đúng như mong đợi.
-- [ ] Artifact JAR cuối cùng có module-info.class và dependency cần thiết.
-- [ ] Startup script/distribution dùng đúng module graph.
-- [ ] Nếu tạo runtime image, đã kiểm tra riêng graph cho jlink.
-- [ ] Có test trên JDK và OS mục tiêu, không chỉ thành công trong IDE.
+- [ ] JDK toolchain and Gradle Wrapper are pinned.
+- [ ] Main source has module-info.java in the right location.
+- [ ] modularity.inferModulePath is intentionally configured.
+- [ ] Gradle dependencies align with requires in the module descriptor.
+- [ ] Actual module names of key JARs have been verified.
+- [ ] Public APIs reside in appropriately exported packages.
+- [ ] No unresolved split packages or requires cycles remain.
+- [ ] Unmodularized dependencies are categorized with a migration plan.
+- [ ] Application Plugin uses the right mainModule and mainClass.
+- [ ] Test tasks run under a JPMS-compatible configuration.
+- [ ] Reflection and resource access have been tested in a real runtime environment.
+- [ ] ServiceLoader discovers providers as expected.
+- [ ] Final JAR artifacts contain module-info.class and required dependencies.
+- [ ] Startup scripts/distributions use the correct module graph.
+- [ ] If creating a runtime image, the graph for jlink was verified separately.
+- [ ] Tested on the target JDK and OS, not only passing inside the IDE.
 
-## Kết luận
+## Conclusion
 
-**Module path trong Gradle Java Plugin** là kết quả của việc Gradle suy luận hoặc cấu hình nơi đặt các dependency khi compiler và JVM xử lý một ứng dụng dùng JPMS. Việc có module-info.java và bật modularity.inferModulePath giúp Gradle xử lý named modules tốt hơn, nhưng Gradle không thể tự tạo một module graph đúng nếu dependency descriptor, package visibility hoặc module metadata chưa phù hợp.
+**The module path in the Gradle Java Plugin** is the result of Gradle inferring or configuring where dependencies are placed when the compiler and JVM process a JPMS application. Having module-info.java and enabling modularity.inferModulePath helps Gradle handle named modules better, but Gradle cannot construct a valid module graph on its own if dependency descriptors, package visibility, or module metadata are misaligned.
 
-Trong một build modular ổn định, Gradle cung cấp đúng artifact, JPMS descriptor khai báo đúng readability và package access, còn Application Plugin khởi chạy bằng đúng module name. Hãy kiểm tra ba lớp đó cùng nhau, đặc biệt với automatic modules, test framework, ServiceLoader và thư viện legacy, để chuyển từ classpath sang module path có kiểm soát.
+In a stable modular build, Gradle supplies the right artifacts, the JPMS descriptor declares the right readability and package access, and the Application Plugin launches using the right module name. Verify those three layers together—especially with automatic modules, test frameworks, ServiceLoader, and legacy libraries—to migrate from the classpath to the module path under full control.

@@ -1,48 +1,48 @@
-# UP và DOWN trong Java: làm tròn ra xa hoặc về phía 0
+# UP and DOWN in Java: Rounding Away From or Toward 0
 
-## 1. Mục tiêu và ý nghĩa
+## 1. Goal and Meaning
 
-Khi phải giảm số chữ số thập phân hoặc số chữ số có nghĩa, Java cần biết phải xử lý phần bị loại bỏ như thế nào. Hai giá trị `RoundingMode.UP` và `RoundingMode.DOWN` của `java.math.RoundingMode` mô tả **hướng làm tròn so với số 0**, không mô tả hướng tăng hay giảm theo trục số.
+When having to reduce the number of decimal places or significant digits, Java needs to know how to handle the discarded part. The two values `RoundingMode.UP` and `RoundingMode.DOWN` of `java.math.RoundingMode` describe **the rounding direction relative to 0**, not the increasing or decreasing direction on the number line.
 
-- **UP — ra xa 0:** nếu phần bị bỏ có bất kỳ chữ số khác 0, tăng **độ lớn tuyệt đối** của kết quả lên một đơn vị ở vị trí giữ lại cuối cùng.
-- **DOWN — về phía 0:** bỏ phần vượt quá độ chính xác đã chọn, **không tăng** chữ số cuối cùng còn giữ; nói cách khác, cắt bớt phần lẻ theo hướng 0.
+- **UP — away from 0:** if the discarded part has any non-zero digit, increase the **absolute magnitude** of the result by one unit at the last retained position.
+- **DOWN — toward 0:** drop the part exceeding the chosen precision, **without increasing** the last retained digit; in other words, truncate the fractional part toward 0.
 
-Ví dụ, giữ **hai chữ số sau dấu thập phân**:
+For example, keeping **two digits after the decimal point**:
 
-| Số ban đầu | UP | DOWN | Vì sao? |
+| Original number | UP | DOWN | Why? |
 | --- | ---: | ---: | --- |
-| 1.231 | 1.24 | 1.23 | Phần bỏ đi là 1; UP tăng độ lớn, DOWN giữ nguyên phần đã giữ |
-| -1.231 | -1.24 | -1.23 | UP đi về phía âm hơn; DOWN đi gần 0 hơn |
-| 1.239 | 1.24 | 1.23 | UP không đợi chữ số bỏ đi đạt 5 |
-| -1.239 | -1.24 | -1.23 | Quy tắc dựa vào trị tuyệt đối, áp dụng đối xứng với số âm |
-| 1.230 | 1.23 | 1.23 | Chỉ bỏ số 0 nên không cần thay đổi giá trị |
-| 0.001 | 0.01 | 0.00 | Với số rất nhỏ khác 0, UP vẫn đi xa 0 |
-| -0.001 | -0.01 | 0.00 | DOWN có thể cho kết quả bằng 0 |
+| 1.231 | 1.24 | 1.23 | Discarded part is 1; UP increases magnitude, DOWN keeps the retained part as is |
+| -1.231 | -1.24 | -1.23 | UP moves more negative; DOWN moves closer to 0 |
+| 1.239 | 1.24 | 1.23 | UP does not wait for the discarded digit to reach 5 |
+| -1.239 | -1.24 | -1.23 | Rule is based on absolute value, applied symmetrically to negative numbers |
+| 1.230 | 1.23 | 1.23 | Only zeros discarded so no value change needed |
+| 0.001 | 0.01 | 0.00 | Even for very small non-zero numbers, UP still moves away from 0 |
+| -0.001 | -0.01 | 0.00 | DOWN can produce a result of 0 |
 
-Điểm cốt lõi: **UP không đồng nghĩa với số lớn hơn; DOWN không đồng nghĩa với số nhỏ hơn**. Với số âm, UP thường cho số nhỏ hơn về mặt thứ tự số học, trong khi DOWN cho số lớn hơn.
+Key point: **UP is not synonymous with a larger number; DOWN is not synonymous with a smaller number**. For negative numbers, UP typically gives a smaller number in arithmetic order, while DOWN gives a larger number.
 
-## 2. Cơ chế theo vị trí giữ lại
+## 2. Mechanism by Retained Position
 
-Giả sử chỉ giữ hai chữ số sau dấu thập phân. Với `3.141`, phần được giữ trước khi làm tròn là `3.14`, còn phần bỏ là `0.001`.
+Suppose only two digits after the decimal point are kept. For `3.141`, the part retained before rounding is `3.14`, and the discarded part is `0.001`.
 
-- Dùng UP: phần bỏ khác 0, tăng một bước `0.01` theo hướng **ra xa 0** → `3.15`.
-- Dùng DOWN: loại bỏ `0.001` theo hướng **về 0** → `3.14`.
-- Với `-3.141`: UP → `-3.15`, DOWN → `-3.14`.
+- Using UP: the discarded part is non-zero, increment by one step `0.01` **away from 0** → `3.15`.
+- Using DOWN: drop `0.001` **toward 0** → `3.14`.
+- With `-3.141`: UP → `-3.15`, DOWN → `-3.14`.
 
-Một bước ở đây được xác định bởi **độ phân giải của kết quả**: giữ hai chữ số thập phân thì bước bằng `0.01`; giữ một chữ số thập phân thì bước bằng `0.1`; giữ phần nguyên thì bước bằng `1`. UP **chỉ** tăng một bước ở mức kết quả khi có phần khác 0 phải bỏ, bất kể chữ số đầu tiên bị bỏ là `1` hay `9`.
+One step here is determined by **the resolution of the result**: keeping two decimal places gives a step of `0.01`; keeping one decimal place gives a step of `0.1`; keeping the integer part gives a step of `1`. UP **always** increases by one step at the result's resolution whenever there is a non-zero part to discard, regardless of whether the first discarded digit is `1` or `9`.
 
-Đối với một số khác 0 cần rút ngắn, có thể hình dung:
+For a non-zero number needing shortening, you can picture it as:
 
-- `DOWN`: lấy trị tuyệt đối → cắt tới độ phân giải đích → đặt lại dấu.
-- `UP`: lấy trị tuyệt đối → nếu có phần khác 0 bị cắt, tăng một bước ở độ phân giải đích → đặt lại dấu.
+- `DOWN`: take the absolute value → truncate to the target resolution → restore the sign.
+- `UP`: take the absolute value → if any non-zero part was truncated, increment by one step at the target resolution → restore the sign.
 
-Đây là cách hiểu khái niệm. Trong chương trình, hãy dùng `BigDecimal` cùng `RoundingMode` thay vì tự xử lý dấu hoặc nhân chia thủ công, đặc biệt ở biên độ lớn, giá trị âm và số có nhiều chữ số.
+This is a conceptual way to think about it. In programs, use `BigDecimal` with `RoundingMode` instead of manually handling signs or multiplying/dividing by hand, especially at large magnitudes, negative values, and numbers with many digits.
 
-## 3. Thực hành với BigDecimal trên Java 17+
+## 3. Practice with BigDecimal on Java 17+
 
-`BigDecimal` biểu diễn số thập phân chính xác theo hệ cơ số 10 và có các phương thức nhận `RoundingMode`. Dùng chuỗi như `new BigDecimal("1.231")` để bảo toàn đúng giá trị thập phân được viết ra; tránh lấy một giá trị `double` không chính xác rồi mới chuyển thành `BigDecimal`.
+`BigDecimal` represents decimal numbers accurately in base 10 and has methods accepting `RoundingMode`. Use strings such as `new BigDecimal("1.231")` to preserve the exact written decimal value; avoid taking an imprecise `double` value and converting it to `BigDecimal` afterward.
 
-Tạo tệp `RoundingUpDownDemo.java`:
+Create the file `RoundingUpDownDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -83,14 +83,14 @@ public class RoundingUpDownDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac RoundingUpDownDemo.java
 java RoundingUpDownDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 1.231 -> UP=1.24, DOWN=1.23
@@ -105,61 +105,61 @@ Precision 3 UP=17.9
 Precision 3 DOWN=17.8
 ~~~
 
-Các điểm quan sát:
+Observations:
 
-1. `setScale(2, mode)` giữ **hai chữ số sau dấu thập phân**, không phải hai chữ số có nghĩa.
-2. `1.230` thành `1.23` ở cả hai mode: số 0 cuối chỉ ảnh hưởng cách biểu diễn ban đầu, không làm thay đổi giá trị.
-3. `-0.001` với DOWN thành `0.00`; `BigDecimal` không duy trì một giá trị số âm riêng biệt cho zero.
-4. `7 / 3` có phần dư khác 0: tại scale 2, UP là `2.34`, DOWN là `2.33`.
-5. `MathContext(3, ...)` làm tròn theo **ba chữ số có nghĩa**. Với `17.89`, UP thành `17.9`, DOWN thành `17.8`.
+1. `setScale(2, mode)` keeps **two digits after the decimal point**, not two significant digits.
+2. `1.230` becomes `1.23` in both modes: the trailing zero only affected the initial representation, not changing the value.
+3. `-0.001` with DOWN becomes `0.00`; `BigDecimal` does not maintain a separate negative value for zero.
+4. `7 / 3` has a non-zero remainder: at scale 2, UP is `2.34`, DOWN is `2.33`.
+5. `MathContext(3, ...)` rounds by **three significant digits**. For `17.89`, UP becomes `17.9`, DOWN becomes `17.8`.
 
-## 4. Scale và precision là hai yêu cầu khác nhau
+## 4. Scale and Precision Are Two Different Requirements
 
-### Scale: số chữ số sau dấu thập phân
+### Scale: Number of Digits After the Decimal Point
 
-`BigDecimal.setScale(int newScale, RoundingMode mode)` thay đổi scale. Với `newScale = 2`:
+`BigDecimal.setScale(int newScale, RoundingMode mode)` changes the scale. With `newScale = 2`:
 
 - `new BigDecimal("123.456").setScale(2, UP)` → `123.46`.
 - `new BigDecimal("123.456").setScale(2, DOWN)` → `123.45`.
 - `new BigDecimal("-123.456").setScale(2, UP)` → `-123.46`.
 - `new BigDecimal("-123.456").setScale(2, DOWN)` → `-123.45`.
 
-Nếu **tăng scale**, ví dụ `1.2` thành scale 3, kết quả `1.200` chỉ được thêm số 0; không cần chọn lên hay xuống vì không mất chữ số khác 0. Nếu giảm scale nhưng phần bỏ toàn là 0, UP và DOWN cũng cho cùng giá trị.
+If **increasing the scale**, for example `1.2` to scale 3, the result `1.200` simply has zeros appended; there is no need to choose up or down since no non-zero digits are lost. If decreasing scale when all discarded digits are 0, UP and DOWN also yield the same value.
 
-Scale có thể âm: `new BigDecimal("124").setScale(-1, RoundingMode.DOWN)` đại diện cho `1.2E+2`, tức **120**; dùng UP cho **130**. Để hiển thị dạng thập phân thông thường, có thể gọi `toPlainString()`.
+Scale can be negative: `new BigDecimal("124").setScale(-1, RoundingMode.DOWN)` represents `1.2E+2`, i.e. **120**; using UP gives **130**. To display in plain decimal form, you can call `toPlainString()`.
 
-### Precision: tổng số chữ số có nghĩa
+### Precision: Total Number of Significant Digits
 
-`MathContext(precision, mode)` ràng buộc **tổng chữ số có nghĩa của kết quả**, được dùng với `round(context)` hoặc một phép toán nhận `MathContext`:
+`MathContext(precision, mode)` constrains **the total significant digits of the result**, used with `round(context)` or an operation taking `MathContext`:
 
-| Giá trị gốc | Đích | UP | DOWN |
+| Original value | Target | UP | DOWN |
 | --- | --- | ---: | ---: |
-| 17.89 | 3 chữ số có nghĩa | 17.9 | 17.8 |
-| 0.01234 | 3 chữ số có nghĩa | 0.0124 | 0.0123 |
-| -987.65 | 3 chữ số có nghĩa | -988 | -987 |
+| 17.89 | 3 significant digits | 17.9 | 17.8 |
+| 0.01234 | 3 significant digits | 0.0124 | 0.0123 |
+| -987.65 | 3 significant digits | -988 | -987 |
 
-Không nhầm `setScale(3, ...)` với `MathContext(3, ...)`: scale 3 giữ **ba chữ số sau dấu thập phân**, còn precision 3 giữ **ba chữ số có nghĩa** tùy độ lớn của số. `MathContext` có precision bằng 0 nghĩa là **không giới hạn precision**; khi đó quy tắc làm tròn không được dùng để cắt chữ số.
+Do not confuse `setScale(3, ...)` with `MathContext(3, ...)`: scale 3 keeps **three digits after the decimal point**, while precision 3 keeps **three significant digits** depending on the number's magnitude. A `MathContext` with precision 0 means **unlimited precision**; in that case the rounding rule is not used to truncate digits.
 
-## 5. UP/DOWN và CEILING/FLOOR khác nhau thế nào?
+## 5. How Do UP/DOWN and CEILING/FLOOR Differ?
 
-Các tên gần giống nhau dễ gây lỗi. `RoundingMode.CEILING` hướng về **dương vô cực**, `RoundingMode.FLOOR` hướng về **âm vô cực**; chúng được xác định theo trục số. UP và DOWN được xác định theo khoảng cách đến 0.
+Similar names easily cause bugs. `RoundingMode.CEILING` points toward **positive infinity**, `RoundingMode.FLOOR` points toward **negative infinity**; they are defined along the number line. UP and DOWN are defined by distance from 0.
 
-Ví dụ làm tròn về phần nguyên (scale 0):
+Example rounding to integer (scale 0):
 
-| Giá trị | UP (xa 0) | DOWN (gần 0) | CEILING (+∞) | FLOOR (-∞) |
+| Value | UP (away from 0) | DOWN (toward 0) | CEILING (+∞) | FLOOR (-∞) |
 | --- | ---: | ---: | ---: | ---: |
 | 2.1 | 3 | 2 | 3 | 2 |
 | -2.1 | -3 | -2 | -2 | -3 |
 | 2.0 | 2 | 2 | 2 | 2 |
 | -2.0 | -2 | -2 | -2 | -2 |
 
-Với số dương, UP giống CEILING và DOWN giống FLOOR **trong tình huống làm tròn cùng độ phân giải**. Với số âm, sự ghép cặp đảo lại. Vì vậy yêu cầu “luôn làm tròn lên trên trục số” phải dùng CEILING, trong khi yêu cầu “luôn đẩy độ lớn ra xa 0” mới dùng UP.
+For positive numbers, UP matches CEILING and DOWN matches FLOOR **when rounding at the same resolution**. For negative numbers, the pairing reverses. Therefore, a requirement to "always round up on the number line" must use CEILING, whereas a requirement to "always push magnitude away from 0" uses UP.
 
-`RoundingMode.HALF_UP` lại là quy tắc làm tròn **đến giá trị gần nhất**, với trường hợp đúng nửa bước thì đi ra xa 0. Ví dụ `1.231` giữ hai chữ số: UP → `1.24`, nhưng HALF_UP → `1.23`. Chữ UP trong HALF_UP **không** làm quy tắc này giống `RoundingMode.UP`.
+`RoundingMode.HALF_UP` is instead a rule for rounding **to the nearest value**, moving away from 0 in exact-half cases. For example, keeping two digits of `1.231`: UP → `1.24`, but HALF_UP → `1.23`. The word UP in HALF_UP does **not** make this rule behave like `RoundingMode.UP`.
 
-## 6. Áp dụng đúng vào phép chia và phép tính nhiều bước
+## 6. Applying Properly to Division and Multi-Step Calculations
 
-Một phép chia thập phân có thể không kết thúc: `1 / 3` không thể được biểu diễn bằng hữu hạn chữ số thập phân. Với `BigDecimal`, có thể chỉ định scale và rounding mode:
+A decimal division may not terminate: `1 / 3` cannot be represented in finitely many decimal digits. With `BigDecimal`, you can specify scale and rounding mode:
 
 ~~~java
 BigDecimal result = new BigDecimal("1")
@@ -167,60 +167,60 @@ BigDecimal result = new BigDecimal("1")
 // result = 0.34
 ~~~
 
-Nếu dùng `divide(BigDecimal divisor)` mà kết quả thập phân không kết thúc, `BigDecimal` có thể ném `ArithmeticException`. Việc chọn mode là một quyết định của nghiệp vụ: UP đảm bảo độ lớn không bị cắt giảm ở mức biểu diễn đích, còn DOWN cắt phần vượt quá.
+If using `divide(BigDecimal divisor)` when the decimal result does not terminate, `BigDecimal` may throw `ArithmeticException`. Choosing the mode is a business decision: UP ensures the magnitude is not cut short at the target representation level, whereas DOWN truncates the excess.
 
-Với giá trị âm, quy tắc vẫn như cũ: `-7 / 3` về scale 2 sẽ thành `-2.34` với UP và `-2.33` với DOWN. Không viết logic “cộng một phần nhỏ để làm tròn lên” áp dụng cho mọi dấu, vì với số âm hướng ra xa 0 chính là hướng âm hơn.
+For negative values, the rules remain the same: `-7 / 3` to scale 2 becomes `-2.34` with UP and `-2.33` with DOWN. Do not write logic like "add a small fraction to round up" across all signs, because for negative numbers, away from 0 is actually more negative.
 
-Hạn chế làm tròn sau **mọi bước trung gian** nếu bài toán yêu cầu kết quả chính xác ở cuối. Chẳng hạn:
+Avoid rounding after **every intermediate step** if the problem requires an exact result at the end. For instance:
 
-- Trước tiên lấy `1.234 + 1.234 = 2.468`, sau đó dùng DOWN ở scale 2 → `2.46`.
-- Nếu cắt mỗi số xuống `1.23` trước khi cộng, tổng thành `2.46`; cùng kết quả trong ví dụ này nhưng không phải luôn như vậy.
-- Với `1.239 + 1.239 = 2.478`, dùng UP **một lần ở cuối** được `2.48`, còn làm UP từng số thành `1.24 + 1.24 = 2.48`; cũng trùng nhau trong trường hợp này.
-- Trường hợp cho thấy khác biệt rõ: `1.231 + 1.231 = 2.462`; UP ở cuối cho `2.47`, còn UP mỗi số thành `1.24 + 1.24 = 2.48`.
+- First compute `1.234 + 1.234 = 2.468`, then use DOWN at scale 2 → `2.46`.
+- If each number is truncated down to `1.23` before adding, the sum becomes `2.46`; same result in this example, though not always so.
+- With `1.239 + 1.239 = 2.478`, applying UP **once at the end** gives `2.48`, while applying UP to each number gives `1.24 + 1.24 = 2.48`; also matching in this case.
+- A case showing a clear difference: `1.231 + 1.231 = 2.462`; UP at the end gives `2.47`, whereas UP on each number gives `1.24 + 1.24 = 2.48`.
 
-Do đó cần quy định **thời điểm làm tròn**, **độ phân giải** và **mode**. Các phép tính cộng, trừ, nhân giữa `BigDecimal` có thể giữ độ chính xác thập phân mà không bắt buộc làm tròn; chỉ làm tròn tại ranh giới được yêu cầu. Nếu truyền `MathContext` ngay vào phép toán, kết quả của chính phép toán đó sẽ bị làm tròn theo context.
+Therefore, you must specify **when rounding occurs**, **resolution**, and **mode**. Addition, subtraction, and multiplication between `BigDecimal` values can preserve decimal exactness without forced rounding; round only at the required boundaries. If you pass `MathContext` directly into an operation, the result of that specific operation will be rounded according to the context.
 
-## 7. Cách chọn UP hay DOWN trong thực tế
+## 7. How to Choose UP or DOWN in Practice
 
-Chọn mode từ đặc tả thay vì từ cảm giác tên gọi:
+Choose the mode from the specification rather than from how the name feels:
 
-- **UP** khi yêu cầu rõ rằng giá trị khác 0, sau khi rút gọn, phải có **độ lớn không nhỏ hơn** độ lớn ban đầu ở độ phân giải đích; ví dụ quy ước làm tròn số lượng tài nguyên để đủ chỗ. Kiểm tra cả dấu âm và ý nghĩa nghiệp vụ.
-- **DOWN** khi yêu cầu **cắt bớt** phần vượt quá để kết quả tiến về 0; hữu ích cho thuật toán cần loại bỏ các chữ số ngoài độ chính xác đích.
-- Nếu yêu cầu là **gần nhất**, hãy đánh giá các mode `HALF_UP`, `HALF_EVEN`, v.v. UP/DOWN đều có sai lệch một hướng về độ lớn nếu phải làm tròn nhiều lần.
-- Trong tài chính, tính phí và thuế, tuyệt đối không tự suy diễn rằng UP hoặc DOWN là chuẩn mặc định. Quy tắc làm tròn phải theo hợp đồng, chính sách hoặc quy định tương ứng; phép toán với giá trị âm (điều chỉnh, hoàn trả, ghi âm) đặc biệt dễ làm sai ý nghĩa.
+- **UP** when explicitly required that a non-zero value, after shortening, must have **magnitude no smaller than** the original magnitude at the target resolution; for example, a convention rounding resource quantities to ensure sufficient capacity. Verify both negative signs and business intent.
+- **DOWN** when required to **truncate** excess digits so the result moves toward 0; useful for algorithms that need to discard digits beyond target precision.
+- If the requirement is **nearest**, evaluate modes like `HALF_UP`, `HALF_EVEN`, etc. UP/DOWN both introduce a one-way bias in magnitude when rounding repeatedly.
+- In finance, billing, and taxes, never assume on your own that UP or DOWN is the default standard. The rounding rule must follow the corresponding contract, policy, or regulation; operations with negative values (adjustments, refunds, credits) are especially prone to inverting meaning.
 
-Một câu hỏi kiểm tra trước khi lập trình: **“Khi số bị loại bỏ có chữ số khác 0, muốn trị tuyệt đối của kết quả tăng hay giảm (hoặc giữ ở phía gần 0)?”** Nếu muốn tăng độ lớn chọn UP; muốn cắt về 0 chọn DOWN.
+A check question before coding: **"When the discarded digits contain a non-zero digit, should the absolute value of the result increase or decrease (stay on the side closer to 0)?"** If magnitude should increase, choose UP; if truncating toward 0, choose DOWN.
 
-## 8. Những lỗi thường gặp
+## 8. Common Mistakes
 
-**Lỗi 1 — Hiểu UP là luôn tăng giá trị số.** `-1.231` với UP scale 2 thành `-1.24`, là số **nhỏ hơn** `-1.231` trên trục số. Với yêu cầu tăng theo trục số, cân nhắc CEILING.
+**Mistake 1 — Assuming UP always increases the numeric value.** `-1.231` with UP at scale 2 becomes `-1.24`, which is **smaller** than `-1.231` on the number line. For increasing along the number line, consider CEILING.
 
-**Lỗi 2 — Tưởng UP chỉ làm tròn khi chữ số bỏ đi từ 5 trở lên.** UP áp dụng khi **bất kỳ** phần khác 0 nào bị loại. `2.001` scale 2 với UP vẫn là `2.01`. Quy tắc ngưỡng 5 thuộc các mode làm tròn gần nhất.
+**Mistake 2 — Thinking UP only rounds when the discarded digit is 5 or greater.** UP applies whenever **any** non-zero part is discarded. `2.001` at scale 2 with UP is still `2.01`. The threshold-5 rule belongs to nearest-rounding modes.
 
-**Lỗi 3 — Dùng `double` để lưu giá trị thập phân rồi giả định nó chính xác.** Nhiều số cơ số 10 không thể biểu diễn đúng dưới dạng nhị phân dấu phẩy động. Với giá trị thập phân nghiệp vụ, xây dựng `BigDecimal` từ chuỗi hoặc từ `BigDecimal.valueOf(double)` khi dữ liệu đã là `double`, rồi xác nhận yêu cầu về nguồn dữ liệu và độ chính xác.
+**Mistake 3 — Using `double` to store decimal values and assuming they are exact.** Many base-10 numbers cannot be represented accurately in binary floating-point. For business decimal values, construct `BigDecimal` from a string or from `BigDecimal.valueOf(double)` when the data is already a `double`, and confirm data source and precision requirements.
 
-**Lỗi 4 — Quên `BigDecimal` bất biến.** Phương thức `setScale` trả về **đối tượng kết quả**, không sửa đối tượng gốc:
+**Mistake 4 — Forgetting `BigDecimal` is immutable.** The `setScale` method returns **a result object**, without modifying the original object:
 
 ~~~java
 BigDecimal original = new BigDecimal("1.231");
-original.setScale(2, RoundingMode.UP); // Bỏ kết quả trả về.
+original.setScale(2, RoundingMode.UP); // Discards the returned result.
 System.out.println(original);          // 1.231
 
 BigDecimal rounded = original.setScale(2, RoundingMode.UP);
 System.out.println(rounded);           // 1.24
 ~~~
 
-**Lỗi 5 — Nhầm số chữ số thập phân với chữ số có nghĩa.** `setScale(2, ...)` và `round(new MathContext(2, ...))` có thể cho kết quả rất khác nhau. Chọn đúng API theo yêu cầu.
+**Mistake 5 — Confusing decimal places with significant digits.** `setScale(2, ...)` and `round(new MathContext(2, ...))` can give very different results. Choose the right API for the requirement.
 
-**Lỗi 6 — Không tính tới kết quả bằng 0.** DOWN có thể biến `-0.001` thành `0.00` khi giữ hai chữ số thập phân; nếu cần biết dấu của dữ liệu đầu vào, lưu thông tin đó **trước khi làm tròn**.
+**Mistake 6 — Not accounting for a zero result.** DOWN can turn `-0.001` into `0.00` when keeping two decimal places; if you need to know the sign of the input data, record that information **before rounding**.
 
-**Lỗi 7 — Làm tròn quá sớm hoặc lặp lại không nhất quán.** Áp dụng UP từng phần rồi cộng có thể lệch so với cộng chính xác rồi UP tổng. Hãy ghi rõ ranh giới tính toán nào được phép làm tròn.
+**Mistake 7 — Rounding too early or inconsistently across steps.** Applying UP to parts and then summing can diverge from summing exact values and applying UP to the total. Document clearly which calculation boundaries are permitted to round.
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-Thử tự tính trước khi chạy Java; mọi dòng đều đưa về scale 2:
+Try calculating by hand before running Java; every row rounds to scale 2:
 
-| Đầu vào | UP | DOWN |
+| Input | UP | DOWN |
 | --- | ---: | ---: |
 | 12.000 | 12.00 | 12.00 |
 | 12.001 | 12.01 | 12.00 |
@@ -228,6 +228,6 @@ Thử tự tính trước khi chạy Java; mọi dòng đều đưa về scale 2
 | 0.0001 | 0.01 | 0.00 |
 | -9.999 | -10.00 | -9.99 |
 
-Nếu còn phân vân với số âm, hãy so sánh **khoảng cách từ mỗi kết quả tới 0**: UP chọn kết quả xa 0 hơn, DOWN chọn kết quả gần 0 hơn. Nếu không loại bỏ chữ số khác 0 nào, hai mode cho cùng giá trị số.
+If still unsure with negative numbers, compare **the distance from each candidate to 0**: UP picks the result farther from 0, DOWN picks the result closer to 0. If no non-zero digits are discarded, both modes give the same numeric value.
 
-**Ghi nhớ:** Trong Java, `RoundingMode.UP` = **ra xa 0** và `RoundingMode.DOWN` = **về phía 0**. Quyết định độc lập với dấu, nhưng vị trí kết quả trên trục số phụ thuộc dấu. Luôn kết hợp mode với scale hoặc precision phù hợp và thời điểm làm tròn được xác định rõ.
+**Takeaway:** In Java, `RoundingMode.UP` = **away from 0** and `RoundingMode.DOWN` = **toward 0**. The decision is independent of sign, though the result's position on the number line depends on sign. Always pair the mode with an appropriate scale or precision and a clearly defined rounding point.

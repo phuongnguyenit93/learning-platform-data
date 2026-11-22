@@ -1,17 +1,17 @@
-# Khác biệt giữa String.lines() và String.split() với tham số limit trong Java
+# Differences Between String.lines() and String.split() with the limit Parameter in Java
 
 
 
-## 1. Mục tiêu bài học
+## 1. Lesson Objectives
 
-Java cung cấp hai cách phổ biến để xử lý một chuỗi có nhiều dòng:
+Java provides two common ways to process a multi-line string:
 
-- `String.lines()` (Java 11+) trả về `Stream<String>`, duyệt các dòng phân cách bằng **LF (`\n`), CR (`\r`) hoặc CRLF (`\r\n`)**. Đây là thao tác theo dòng; không có tham số `limit` kiểu `split`.
-- `String.split(regex)` và `String.split(regex, limit)` trả về **mảng `String[]`**, tách theo một **biểu thức chính quy**. Tham số `limit` điều khiển **số lần áp dụng regex** và **việc giữ hay bỏ các phần rỗng ở cuối**.
+- `String.lines()` (Java 11+) returns a `Stream<String>`, iterating over lines separated by **LF (`\n`), CR (`\r`), or CRLF (`\r\n`)**. This is a line-oriented operation; there is no `limit` parameter like `split`.
+- `String.split(regex)` and `String.split(regex, limit)` return a **`String[]` array**, splitting by a **regular expression**. The `limit` parameter controls **how many times the regex is applied** and **whether trailing empty strings are kept or discarded**.
 
-Sự khác biệt quan trọng nhất là **dữ liệu rỗng**, **cách giới hạn phần tử**, **bộ ký tự xuống dòng được nhận diện**, và **cách tiêu thụ kết quả**. Không nên coi `lines()` là cách viết khác hoàn toàn tương đương với `split("\\R")`.
+The most important differences are **empty data**, **how elements are limited**, **which newline characters are recognized**, and **how results are consumed**. You should not treat `lines()` as a completely equivalent shorthand for `split("\\R")`.
 
-Ví dụ nhanh:
+Quick example:
 
 ```java
 String text = "A\n\nB\n";
@@ -21,44 +21,44 @@ System.out.println(Arrays.toString(text.split("\\R")));    // [A, , B]
 System.out.println(Arrays.toString(text.split("\\R", -1))); // [A, , B, ]
 ```
 
-Dù hai dòng đầu trông giống nhau ở ví dụ này, chúng **khác về kiểu trả về và chế độ làm việc**. Dòng cuối có thêm một phần tử `""` biểu thị ô trống sau ký tự xuống dòng cuối cùng. Khi in trực tiếp `List` hay mảng, phần tử rỗng rất khó quan sát; bài này sẽ dùng cách hiển thị riêng `<...>`.
+Although the first two lines look similar in this example, they **differ in return type and operating mode**. The last line has an extra `""` element representing the empty slot after the final newline character. When printing a `List` or array directly, empty elements are hard to spot; this lesson will use a custom `<...>` display format.
 
-**Phạm vi bài này:** `String.lines()` xem LF, CR và CRLF là kết thúc dòng và không phát sinh dòng rỗng chỉ từ newline cuối. Phần giải thích chi tiết các terminator nằm ở bài **lines và các kiểu kết thúc dòng CR, LF, CRLF**, còn bảng ranh giới chuỗi rỗng/newline cuối nằm ở bài **Chuỗi rỗng và ký tự xuống dòng ở cuối**. Bài hiện tại tập trung vào chế độ `limit`, kiểu trả về và số phần tử.
+**Scope of this lesson:** `String.lines()` treats LF, CR, and CRLF as line endings and does not produce an empty line solely from a trailing newline. Detailed explanations of the terminators are in the lesson **lines and CR, LF, CRLF Line Endings**, and the boundary table for empty strings/trailing newlines is in the lesson **Empty Strings and Trailing Line Endings**. This lesson focuses on `limit` modes, return types, and element counts.
 
-**Khác biệt ký tự phân tách:** regex `\\R` nhận Unicode linebreak rộng hơn LF/CR/CRLF, ví dụ U+2028; `split("\\n")` chỉ tách LF nên có thể để lại CR ở chuỗi trước một CRLF. Chọn regex theo định dạng đầu vào.
+**Separator differences:** regex `\\R` recognizes Unicode linebreaks beyond LF/CR/CRLF, such as U+2028; `split("\\n")` only splits on LF and can therefore leave CR in the string before a CRLF. Choose the regex according to your input format.
 
-## 2. String.split(regex, limit): ba chế độ limit
+## 2. String.split(regex, limit): Three limit Modes
 
-Cú pháp:
+Syntax:
 
 ```java
-String[] parts = text.split(regex);         // Tương đương text.split(regex, 0)
-String[] all = text.split(regex, -1);       // Giữ phần rỗng cuối
-String[] atMostTwo = text.split(regex, 2); // Tối đa hai phần tử
+String[] parts = text.split(regex);         // Equivalent to text.split(regex, 0)
+String[] all = text.split(regex, -1);       // Keeps trailing empty parts
+String[] atMostTwo = text.split(regex, 2); // At most two elements
 ```
 
-`regex` là **regular expression** (không phải chuỗi phân cách literal). Để tách theo mọi kiểu ngắt dòng Unicode mà Java regex hỗ trợ, dùng `"\\R"` trong **mã nguồn Java**. Hai dấu `\\` trong Java source tạo một dấu `\` ở chuỗi runtime; `\R` là cú pháp regex biểu thị một chuỗi xuống dòng Unicode. Viết `"\R"` trực tiếp trong source sẽ không biên dịch vì `\R` không phải Java string escape.
+`regex` is a **regular expression** (not a literal separator string). To split on every Unicode linebreak supported by Java regex, use `"\\R"` in **Java source code**. Two backslashes `\\` in Java source produce a single `\` in the runtime string; `\R` is the regex syntax representing a Unicode linebreak sequence. Writing `"\R"` directly in source code will not compile because `\R` is not a Java string escape.
 
-| Giá trị `limit` | Cách tách | Phần rỗng ở cuối |
+| `limit` value | How splitting works | Trailing empty parts |
 | --- | --- | --- |
-| `limit > 0` | Pattern được áp dụng **tối đa `limit - 1` lần**; phần tử cuối chứa toàn bộ phần input còn lại | Được giữ nếu có trong các phần kết quả |
-| `limit = 0` | Pattern được áp dụng nhiều lần nhất có thể | **Bỏ tất cả** phần tử `""` ở cuối |
-| `limit < 0`, ví dụ `-1` | Pattern được áp dụng nhiều lần nhất có thể | **Giữ tất cả** phần tử `""` ở cuối |
+| `limit > 0` | The pattern is applied **at most `limit - 1` times**; the final element contains the entire remaining input | Kept if present in the resulting parts |
+| `limit = 0` | The pattern is applied as many times as possible | **Discards all** trailing `""` elements |
+| `limit < 0`, e.g., `-1` | The pattern is applied as many times as possible | **Keeps all** trailing `""` elements |
 
-`text.split(regex)` tương đương `text.split(regex, 0)`. Dấu `0` ở đây **không** có nghĩa là trả về không phần tử; nó là chế độ tách tối đa nhưng loại các chuỗi rỗng cuối.
+`text.split(regex)` is equivalent to `text.split(regex, 0)`. The `0` here does **not** mean returning zero elements; it is the mode that splits as much as possible while discarding trailing empty strings.
 
-Ví dụ cụ thể với `"A\n\nB\n"`:
+Concrete examples with `"A\n\nB\n"`:
 
-- `split("\\R", 0)` → `["A", "", "B"]`. Có dòng trống ở giữa, nhưng bỏ trường trống cuối.
-- `split("\\R", -1)` → `["A", "", "B", ""]`. Giữ cả trường rỗng sau dấu xuống dòng cuối.
-- `split("\\R", 2)` → `["A", "\nB\n"]`. Chỉ tách tại dấu xuống dòng **đầu tiên**; phần thứ hai còn nguyên một dấu xuống dòng trước `B` và dấu xuống dòng cuối.
-- `split("\\R", 1)` → mảng một phần tử duy nhất chứa toàn bộ `"A\n\nB\n"`. Không có lần tách nào được áp dụng vì `limit - 1 = 0`.
+- `split("\\R", 0)` → `["A", "", "B"]`. Keeps the blank line in the middle, but discards the trailing empty field.
+- `split("\\R", -1)` → `["A", "", "B", ""]`. Also keeps the empty field after the final newline.
+- `split("\\R", 2)` → `["A", "\nB\n"]`. Splits only at the **first** newline; the second element retains a newline before `B` and the trailing newline.
+- `split("\\R", 1)` → a single-element array containing the entire `"A\n\nB\n"`. No splits are applied because `limit - 1 = 0`.
 
-Điều này cho thấy `limit` dương của `split` **không tương đương** với số dòng cần lấy từ `lines().limit(n)`.
+This shows that a positive `limit` in `split` is **not equivalent** to the number of lines taken from `lines().limit(n)`.
 
-## 3. Ví dụ chạy được với Java 17+
+## 3. Runnable Example with Java 17+
 
-Tạo file **`LinesVsSplitDemo.java`**:
+Create the file **`LinesVsSplitDemo.java`**:
 
 ```java
 import java.util.Arrays;
@@ -66,8 +66,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class LinesVsSplitDemo {
-    // Bao mỗi phần tử trong <> và hiện ký tự xuống dòng dưới dạng \n, \r
-    // để phân biệt phần tử rỗng với mảng/danh sách không có phần tử.
+    // Wrap each element in <> and show newline characters as \n, \r
+    // to distinguish empty elements from an empty array/list.
     static String show(List<String> parts) {
         return parts.stream()
                 .map(s -> "<" + s
@@ -102,14 +102,14 @@ public class LinesVsSplitDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa file:
+Compile and run in the directory containing the file:
 
 ```bash
 javac --release 17 LinesVsSplitDemo.java
 java LinesVsSplitDemo
 ```
 
-**Stdout** (đã đối chiếu hành vi các biểu thức qua JShell/JDK):
+**Stdout** (behavior of expressions verified with JShell/JDK):
 
 ```text
 lines       = [<A>, <>, <B>]
@@ -124,19 +124,19 @@ unicode lines = 1
 unicode split = 2
 ```
 
-Các kết quả quan trọng:
+Key results:
 
-1. `lines()` giữ **dòng rỗng nội bộ** của `"A\n\nB\n"`, nhưng không tạo thêm dòng rỗng sau ký tự `\n` cuối.
-2. `split("\\R", -1)` giữ **cột trống cuối**, thích hợp khi phải phân biệt một bản ghi kết thúc bằng delimiter với bản ghi không có delimiter cuối.
-3. `split("\\R", 2)` giữ lại phần `"\nB\n"` trong token cuối; `lines().limit(2)` chỉ lấy **hai dòng đầu tiên** là `"A"` và `""`.
-4. Input rỗng là trường hợp khác biệt rõ: `lines()` cho `0` dòng, còn `split("\\R")` cho mảng có **một** phần tử `""`. Vì vậy in `Arrays.toString` trực tiếp có thể khiến cả hai trông như `[]` dù số phần tử khác nhau.
-5. Ký tự U+2028 được `\\R` nhận diện là line break, còn `lines()` **không** nhận diện nó như một trong ba line terminator LF/CR/CRLF.
+1. `lines()` keeps the **internal blank line** of `"A\n\nB\n"`, but does not create an extra blank line after the trailing `\n`.
+2. `split("\\R", -1)` keeps the **trailing empty column**, suitable when you must distinguish a delimiter-terminated record from one without a trailing delimiter.
+3. `split("\\R", 2)` retains `"\nB\n"` inside the last token; `lines().limit(2)` takes only the **first two lines**, `"A"` and `""`.
+4. Empty input is a stark difference: `lines()` yields `0` lines, whereas `split("\\R")` yields an array with **one** element `""`. Printing `Arrays.toString` directly can make both look like `[]` even though their element counts differ.
+5. The character U+2028 is recognized by `\\R` as a line break, whereas `lines()` does **not** recognize it as one of the three LF/CR/CRLF line terminators.
 
-## 4. Những khác biệt dễ nhầm khi dùng limit
+## 4. Easily Confused Differences When Using limit
 
-### 5.1. lines().limit(n) đếm dòng, split(regex, n) đếm phần tối đa
+### 5.1. lines().limit(n) Counts Lines, split(regex, n) Counts Maximum Parts
 
-Cho input `"red\ngreen\nblue"`:
+Given the input `"red\ngreen\nblue"`:
 
 ```java
 String colors = "red\ngreen\nblue";
@@ -148,16 +148,16 @@ String[] twoParts = colors.split("\\R", 2);
 // ["red", "green\nblue"]
 ```
 
-`lines().limit(2)` bỏ qua dòng `blue` vì terminal operation không yêu cầu đến đó. Ngược lại, `split("\\R", 2)` không bỏ dữ liệu phía sau dấu phân tách đầu tiên; toàn bộ phần dư `green\nblue` nằm trong phần tử cuối.
+`lines().limit(2)` skips the `blue` line because the terminal operation does not request beyond two elements. Conversely, `split("\\R", 2)` does not discard data after the first separator; the entire remainder `green\nblue` stays in the final element.
 
-**Khi nào dùng cách nào?**
+**When to use which?**
 
-- Chỉ cần hai dòng đầu để hiển thị, preview hoặc kiểm tra header: `lines().limit(2)`.
-- Muốn tách **phần đầu** và **phần thân còn lại**, ví dụ dòng đầu là header và phần còn lại là nội dung: `split("\\R", 2)`. Cần xử lý input rỗng và trường hợp không có delimiter phù hợp theo nghiệp vụ.
+- Only need the first two lines for display, preview, or checking a header: `lines().limit(2)`.
+- Want to split a **head** and the **remaining body**, for example first line as header and the rest as content: `split("\\R", 2)`. Handle empty input and the no-delimiter case according to your business logic.
 
-### 5.2. Không nhầm split(..., 0) với Stream.limit(0)
+### 5.2. Do Not Confuse split(..., 0) with Stream.limit(0)
 
-`split("\\R", 0)` yêu cầu tách với chế độ loại trường rỗng ở cuối; kết quả vẫn có thể chứa nhiều phần tử. `lines().limit(0)` là Stream không có phần tử nào. Hai số `0` ở hai API có ý nghĩa hoàn toàn khác:
+`split("\\R", 0)` requests splitting in the mode that discards trailing empty fields; the result can still contain multiple elements. `lines().limit(0)` is a Stream with no elements at all. The two `0` values in these two APIs have completely different meanings:
 
 ```java
 String data = "a\nb";
@@ -165,7 +165,7 @@ System.out.println(data.split("\\R", 0).length); // 2
 System.out.println(data.lines().limit(0).count()); // 0
 ```
 
-### 5.3. filter và limit thay đổi thứ tự logic
+### 5.3. filter and limit Change Logical Order
 
 ```java
 String input = "\nfirst\n\nsecond\nthird";
@@ -183,13 +183,13 @@ List<String> b = input.lines()
 // ["first"]
 ```
 
-Trong `a`, chương trình tìm hai dòng **không trống** đầu tiên; trong `b`, chỉ xét hai dòng gốc đầu tiên rồi lọc. Quy tắc tương tự áp dụng cho pipeline Stream nói chung.
+In `a`, the program finds the first two **non-blank** lines; in `b`, it examines only the first two original lines and then filters them. The same rule applies to Stream pipelines in general.
 
-## 5. Dòng rỗng: bảng các trường hợp biên
+## 5. Blank Lines: Table of Edge Cases
 
-Bảng dùng ký hiệu `<A>` cho chuỗi `"A"` và `<>` cho chuỗi rỗng. Dấu ngoặc vuông `[...]` biểu diễn danh sách các phần tử; `[]` nghĩa là không có phần tử nào. Tất cả chuỗi input sau đây đều sử dụng ký tự `\n` thật.
+The table uses `<A>` for the string `"A"` and `<>` for the empty string. Square brackets `[...]` represent a list of elements; `[]` means no elements at all. All input strings below use actual `\n` characters.
 
-| Input trong Java | `lines()` | `split("\\R", 0)` | `split("\\R", -1)` |
+| Input in Java | `lines()` | `split("\\R", 0)` | `split("\\R", -1)` |
 | --- | --- | --- | --- |
 | `""` | `[]` | `[<>]` | `[<>]` |
 | `"A"` | `[<A>]` | `[<A>]` | `[<A>]` |
@@ -199,28 +199,28 @@ Bảng dùng ký hiệu `<A>` cho chuỗi `"A"` và `<>` cho chuỗi rỗng. D�
 | `"\n"` | `[<>]` | `[]` | `[<>, <>]` |
 | `"A\nB"` | `[<A>, <B>]` | `[<A>, <B>]` | `[<A>, <B>]` |
 
-Không thể thay thế `lines()` bằng `split("\\R", 0)` và mong giữ nguyên 100% cấu trúc dòng trong mọi trường hợp. Hai API đặc biệt khác nhau với chuỗi rỗng và khi input kết thúc bằng nhiều delimiter. Nếu ứng dụng cần lưu chính xác một danh sách trường/record, phải định nghĩa rõ liệu dấu xuống dòng cuối có đại diện cho một trường rỗng mới hay chỉ là **dấu kết thúc dòng**.
+You cannot replace `lines()` with `split("\\R", 0)` and expect to preserve 100% of the line structure in all cases. The two APIs differ especially on empty strings and when the input ends with multiple delimiters. If an application needs to store an exact list of fields/records, you must clearly define whether a trailing newline represents a new empty field or merely a **line terminator**.
 
-Đối với `split`, mặc định các phần rỗng ở **giữa** vẫn được giữ; việc loại bỏ chỉ áp dụng với các phần rỗng ở **cuối** khi limit bằng 0.
+For `split`, empty parts in the **middle** are kept by default; discarding applies only to **trailing** empty parts when `limit` is 0.
 
-## 6. Lựa chọn API theo yêu cầu thực tế
+## 6. Choosing an API Based on Real Requirements
 
-| Nhu cầu | Cách nên cân nhắc | Lý do |
+| Requirement | Approach to Consider | Reason |
 | --- | --- | --- |
-| Đọc các dòng trong một chuỗi, lọc và lấy vài dòng đầu | `text.lines().filter(...).limit(n)` | Stream lười, `limit` cho phép dừng duyệt khi đã đủ |
-| Lấy toàn bộ các dòng LF/CR/CRLF thành `List` | `text.lines().toList()` | Dễ nối tiếp `map`/`filter`, xử lý theo dòng |
-| Cần `String[]` của các phần phân cách bằng Unicode newline, bỏ rỗng cuối | `text.split("\\R")` | Regex phân tách, `limit=0` mặc định |
-| Cần giữ trường rỗng ở cuối của dữ liệu delimiter | `text.split("\\R", -1)` | Bảo toàn vị trí phần tử trống sau delimiter cuối |
-| Cần chia một lần để lấy header và phần còn lại | `text.split("\\R", 2)` | Phần tử cuối giữ nguyên dữ liệu chưa tách |
-| Cần giữ mọi ký tự, không muốn hiểu regex | Chọn API literal phù hợp hoặc xử lý chỉ số trực tiếp | `split` nhận regex; phải escape delimiter đặc biệt |
+| Read lines from a string, filter, and take the first few lines | `text.lines().filter(...).limit(n)` | Lazy stream; `limit` stops iteration once enough elements are found |
+| Collect all LF/CR/CRLF lines into a `List` | `text.lines().toList()` | Easy to chain `map`/`filter` for line-based processing |
+| Need a `String[]` of parts separated by Unicode newlines, dropping trailing empties | `text.split("\\R")` | Regex splitting, default `limit=0` |
+| Need to keep trailing empty fields in delimiter-separated data | `text.split("\\R", -1)` | Preserves the empty element position after the final delimiter |
+| Need to split once to get header and remainder | `text.split("\\R", 2)` | Final element retains the unsplit remainder |
+| Need to keep every character without regex semantics | Choose an appropriate literal API or handle indices directly | `split` takes a regex; special delimiters must be escaped |
 
-**Lưu ý về hiệu năng:** `String.lines()` thường phù hợp hơn khi cần pipeline Stream và có thể dừng sớm. `split` trả mảng nên tạo các phần kết quả trước khi caller xử lý. Với input nhỏ hoặc khi cần đầy đủ mọi phần, hãy chọn theo semantics và kiểm chứng bằng benchmark nếu hiệu năng thật sự quan trọng. Tránh khẳng định Stream luôn nhanh hơn.
+**Performance note:** `String.lines()` is often better suited when you need a Stream pipeline and can stop early. `split` returns an array, creating all result parts before the caller processes them. For small inputs or when all parts are needed, choose based on semantics and verify with a benchmark if performance truly matters. Avoid claiming that Stream is always faster.
 
-**Lưu ý về phạm vi:** Cả hai API đang thao tác trên một `String` **đã có trong bộ nhớ**; `String.lines()` không tự đọc dữ liệu từ file hay mạng. Khi xử lý file rất lớn, `Files.lines(path)` (trả Stream đọc từ file) là API khác, với yêu cầu quản lý tài nguyên riêng.
+**Scope note:** Both APIs operate on a `String` **already in memory**; `String.lines()` does not read data from files or networks by itself. When processing very large files, `Files.lines(path)` (which returns a Stream reading from a file) is a different API with its own resource-management requirements.
 
-## 7. Bài tập tự kiểm tra
+## 7. Self-Check Exercises
 
-**Bài 1: Dự đoán số phần tử.** Với `String input = "\n\n";`, xét:
+**Exercise 1: Predict the element count.** Given `String input = "\n\n";`, consider:
 
 ```java
 System.out.println(input.lines().count());
@@ -228,9 +228,9 @@ System.out.println(input.split("\\R", 0).length);
 System.out.println(input.split("\\R", -1).length);
 ```
 
-Đáp án tương ứng là **2, 0, 3**. Hai dấu xuống dòng kết thúc hai dòng rỗng; `split` với limit 0 bỏ tất cả chuỗi rỗng cuối, còn limit âm giữ ba phần rỗng trước, giữa và sau hai delimiter.
+The respective answers are **2, 0, 3**. Two newlines terminate two empty lines; `split` with limit 0 discards all trailing empty strings, while a negative limit keeps all three empty parts before, between, and after the two delimiters.
 
-**Bài 2: Chỉ cần hai dòng hợp lệ đầu tiên.** Với `"\nalpha\n\nbeta\ngamma"`, viết:
+**Exercise 2: Only need the first two valid lines.** Given `"\nalpha\n\nbeta\ngamma"`, write:
 
 ```java
 List<String> result = "\nalpha\n\nbeta\ngamma"
@@ -241,23 +241,23 @@ List<String> result = "\nalpha\n\nbeta\ngamma"
 System.out.println(result); // [alpha, beta]
 ```
 
-Nếu chuyển `limit(2)` lên trước `filter`, kết quả chỉ còn `[alpha]`, vì chỉ xét hai dòng nguồn đầu.
+If you move `limit(2)` before `filter`, the result is only `[alpha]`, because only the first two source lines are examined.
 
-**Bài 3: Giữ nguyên phần nội dung sau dòng tiêu đề.** Với `"HEADER\nbody line 1\nbody line 2"`, dùng:
+**Exercise 3: Keep the body content intact after the header line.** Given `"HEADER\nbody line 1\nbody line 2"`, use:
 
 ```java
 String[] parts = "HEADER\nbody line 1\nbody line 2"
         .split("\\R", 2);
 System.out.println(parts[0]); // HEADER
-System.out.println(parts[1]); // in hai dòng body, còn dấu \n giữa chúng
+System.out.println(parts[1]); // prints two body lines, keeping the \n between them
 ```
 
-`split("\\R", 2)` phù hợp vì phần tử thứ hai giữ nguyên `"body line 1\nbody line 2"`. Nếu dùng `lines().limit(2)` sẽ mất dòng body thứ hai.
+`split("\\R", 2)` is appropriate because the second element preserves `"body line 1\nbody line 2"`. Using `lines().limit(2)` would lose the second body line.
 
-**Bài 4: Input rỗng.** Giải thích vì sao `"".lines().count()` bằng 0 nhưng `"".split("\\R").length` bằng 1: `lines` định nghĩa **dòng**, còn `split` khi không có delimiter khớp sẽ trả lại **toàn bộ input** làm một token, kể cả khi token đó là `""`.
+**Exercise 4: Empty input.** Explain why `"".lines().count()` equals 0 whereas `"".split("\\R").length` equals 1: `lines` defines **lines**, whereas `split`, when no delimiter matches, returns **the entire input** as a single token, even when that token is `""`.
 
-## 8. Ghi nhớ nhanh
+## 8. Quick Summary
 
-`String.lines()` là công cụ xử lý **dòng LF/CR/CRLF bằng Stream lười**, thích hợp cho pipeline và lấy một số dòng đầu. `String.split(regex, limit)` là công cụ **tách theo regex thành mảng**; `limit=0` bỏ trường rỗng cuối, `limit<0` giữ trường rỗng cuối, `limit>0` giới hạn số lần tách và giữ phần dư ở token cuối. `Stream.limit(n)` giới hạn **số dòng được phát ra**; nó không mang ý nghĩa `split(..., n)`. Hãy lựa chọn theo **dữ liệu rỗng cần giữ**, **loại newline thực tế**, **kiểu trả về** và **cách dùng phần dữ liệu còn lại**.
+`String.lines()` is a tool for processing **LF/CR/CRLF lines with a lazy Stream**, suitable for pipelines and taking the first few lines. `String.split(regex, limit)` is a tool for **regex splitting into an array**; `limit=0` drops trailing empty fields, `limit<0` keeps trailing empty fields, and `limit>0` limits the number of splits while keeping the remainder in the last token. `Stream.limit(n)` limits the **number of emitted lines**; it does not have the same meaning as `split(..., n)`. Choose based on **which empty data must be kept**, **the actual newline types**, **the return type**, and **how the remaining data is used**.
 
-**Tài liệu chính thức:** [Java SE 17 — String.lines()](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#lines()), [Java SE 17 — String.split(String, int)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#split(java.lang.String,int)), [Java SE 17 — Pattern](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html), [Java SE 17 — Stream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/Stream.html).
+**Official documentation:** [Java SE 17 — String.lines()](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#lines()), [Java SE 17 — String.split(String, int)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#split(java.lang.String,int)), [Java SE 17 — Pattern](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/regex/Pattern.html), [Java SE 17 — Stream](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/stream/Stream.html).

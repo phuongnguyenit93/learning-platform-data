@@ -1,18 +1,18 @@
-# Root modules và tập module ban đầu
+# Root modules and the initial module set
 
-## 1. Module path không đồng nghĩa với tập module đã được nạp
+## 1. The module path is not synonymous with the loaded module set
 
-Khi chạy một ứng dụng JPMS, thư mục module path có thể chứa rất nhiều modular JAR. Tuy nhiên, việc một JAR xuất hiện trên module path chỉ có nghĩa module system có thể tìm thấy nó. Module đó chưa chắc đã thuộc cấu hình module đang chạy.
+When running a JPMS application, the module path directory may contain many modular JARs. However, the presence of a JAR on the module path only means the module system can find it. That module is not necessarily part of the running module configuration.
 
-Cần phân biệt ba khái niệm:
+Three concepts should be distinguished:
 
-- **Observable module**: module mà các `ModuleFinder` đang dùng có thể tìm thấy, chẳng hạn module trên system module path hoặc application module path.
-- **Root module**: module được chọn làm điểm bắt đầu cho quá trình phân giải.
-- **Resolved module**: module đã được đưa vào `Configuration` sau khi module system phân giải các root và dependency liên quan.
+- **Observable module**: a module that the active `ModuleFinder` instances can locate, such as modules on the system module path or application module path.
+- **Root module**: a module selected as a starting point for the resolution process.
+- **Resolved module**: a module that has been included in the `Configuration` after the module system resolves the roots and their related dependencies.
 
-Module resolution bắt đầu từ một tập root module. Từ tập ban đầu đó, module system lần theo các chỉ thị `requires` để tìm và đưa dependency cần thiết vào cấu hình. Vì vậy, không phải mọi module có trên đĩa đều tự động được phân giải.
+Module resolution starts from a set of root modules. From that initial set, the module system follows `requires` directives to find and include the necessary dependencies in the configuration. Therefore, not every module present on disk is automatically resolved.
 
-Ví dụ module path có:
+For example, the module path contains:
 
 ~~~text
 mods/
@@ -22,7 +22,7 @@ mods/
   com.acme.tools.jar
 ~~~
 
-Nếu ứng dụng chỉ khai báo:
+If the application only declares:
 
 ~~~java
 module com.acme.app {
@@ -30,22 +30,22 @@ module com.acme.app {
 }
 ~~~
 
-thì `com.acme.app` và dependency `com.acme.api` được đưa vào graph cùng các dependency tiếp theo của chúng. `com.acme.impl` và `com.acme.tools` không tự động trở thành module đã phân giải chỉ vì chúng nằm trong thư mục `mods`.
+then `com.acme.app` and its dependency `com.acme.api` are placed into the graph along with their subsequent dependencies. `com.acme.impl` and `com.acme.tools` do not automatically become resolved modules just because they reside in the `mods` directory.
 
-## 2. Root module là điểm bắt đầu của module resolution
+## 2. A root module is the starting point of module resolution
 
-Root module là module mà quá trình resolution bắt đầu từ đó. Nó không phải một loại module riêng và cũng không phải khái niệm module cha trong cấu trúc thư mục.
+A root module is a module from which the resolution process begins. It is not a special kind of module, nor is it a parent-module concept in a directory structure.
 
-Với một ứng dụng được khởi chạy theo tên module:
+For an application launched by module name:
 
 ~~~bash
 java --module-path mods \
   --module com.acme.app/com.acme.app.Main
 ~~~
 
-module `com.acme.app` là root module chính của ứng dụng. Module system đọc descriptor của nó, tìm các module được yêu cầu, rồi tiếp tục xử lý dependency của những module đó.
+the module `com.acme.app` is the main root module of the application. The module system reads its descriptor, locates the required modules, and then continues processing the dependencies of those modules.
 
-Có thể bổ sung root module bằng tùy chọn `--add-modules`:
+Additional root modules can be added using the `--add-modules` option:
 
 ~~~bash
 java --module-path mods \
@@ -53,40 +53,40 @@ java --module-path mods \
   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Trong ví dụ này, cả `com.acme.app` và `com.acme.plugin` đều là điểm bắt đầu của quá trình resolution. Plugin được đưa vào cấu hình dù ứng dụng chính không khai báo `requires com.acme.plugin`.
+In this example, both `com.acme.app` and `com.acme.plugin` are starting points of the resolution process. The plugin is included in the configuration even though the main application does not declare `requires com.acme.plugin`.
 
-Cách này hữu ích khi ứng dụng cần module được nạp để dùng qua reflection, registry riêng hoặc một cơ chế plugin khác mà dependency không được thể hiện bằng `requires` trực tiếp.
+This approach is useful when an application needs a module to be loaded for use via reflection, a custom registry, or another plugin mechanism where the dependency is not expressed via a direct `requires`.
 
-## 3. Tập module ban đầu được hình thành như thế nào?
+## 3. How is the initial module set formed?
 
-Tập root ban đầu phụ thuộc cách ứng dụng được khởi chạy và những tùy chọn mà người chạy cung cấp.
+The initial root set depends on how the application is launched and what options the runner provides.
 
-### Khởi chạy modular application
+### Launching a modular application
 
-Khi dùng `-m` hoặc `--module` để chỉ định main module, module được chỉ định là root. Các module bổ sung có thể được đưa vào bằng `--add-modules`.
+When using `-m` or `--module` to specify the main module, the specified module is a root. Additional modules can be included with `--add-modules`.
 
 ~~~bash
 java --module-path mods \
   -m com.acme.app/com.acme.app.Main
 ~~~
 
-Trong trường hợp này, không cần đưa mọi module trong `mods` vào root set. Các dependency được khai báo sẽ được phân giải từ main module.
+In this case, there is no need to put every module in `mods` into the root set. Declared dependencies will be resolved starting from the main module.
 
-### Khởi chạy ứng dụng trên classpath
+### Launching an application on the classpath
 
-Khi chạy ứng dụng truyền thống bằng classpath, mã ứng dụng thuộc unnamed module. Để mã classpath có thể sử dụng các API module phù hợp, launcher mặc định chọn làm root các observable module export ít nhất một package unconditionally (không giới hạn bằng qualified export).
+When running a traditional application via the classpath, application code belongs to the unnamed module. So that classpath code can use appropriate module APIs, the launcher by default selects as roots the observable modules that export at least one package unconditionally (not restricted by a qualified export).
 
-Điều này có nghĩa một module chỉ export package cho một module cụ thể không tự động được chọn làm default root chỉ vì nó có mặt trên module path.
+This means a module that only exports packages to a specific module is not automatically selected as a default root just because it is present on the module path.
 
-Có thể bổ sung module cần thiết bằng `--add-modules` nếu ứng dụng classpath cần truy cập nó.
+Necessary modules can be added using `--add-modules` if the classpath application needs to access them.
 
-### java.base luôn là root
+### java.base is always a root
 
-`java.base` là module nền tảng chứa các API cốt lõi như `java.lang`, `java.util` và nhiều kiểu cơ bản. Mọi named module đều đọc `java.base`, và module này luôn được xem là root trong quá trình resolution. Không cần khai báo `requires java.base` trong từng descriptor.
+`java.base` is the foundational module containing core APIs such as `java.lang`, `java.util`, and many fundamental types. Every named module reads `java.base`, and this module is always considered a root during resolution. There is no need to declare `requires java.base` in individual descriptors.
 
-## 4. requires mở rộng tập module đã phân giải
+## 4. requires expands the resolved module set
 
-Giả sử có ba module:
+Suppose there are three modules:
 
 ~~~text
 com.acme.app
@@ -96,22 +96,22 @@ com.acme.service
   requires com.acme.domain
 
 com.acme.domain
-  (không có dependency ứng dụng)
+  (no application dependencies)
 ~~~
 
-Khi `com.acme.app` là root, module system phân giải theo chuỗi:
+When `com.acme.app` is the root, the module system resolves in a chain:
 
-1. Bắt đầu với root `com.acme.app`.
-2. Đọc descriptor và tìm `com.acme.service`.
-3. Đưa `com.acme.service` vào graph, sau đó đọc descriptor của nó.
-4. Tìm và đưa `com.acme.domain` vào graph.
-5. Tiếp tục cho tới khi không còn dependency bắt buộc nào cần được phân giải.
+1. Start with the root `com.acme.app`.
+2. Read the descriptor and locate `com.acme.service`.
+3. Include `com.acme.service` in the graph, then read its descriptor.
+4. Locate and include `com.acme.domain` in the graph.
+5. Continue until no required dependencies remain to be resolved.
 
-Kết quả là tập module đã phân giải chứa app, service, domain và các dependency nền tảng cần thiết.
+The result is a resolved module set containing app, service, domain, and the necessary foundational dependencies.
 
-Một cạnh `requires` tạo dependency và readability trực tiếp từ module khai báo tới module được yêu cầu. `requires transitive` còn làm cho các module đọc module trung gian cũng đọc được dependency được truyền qua API.
+A `requires` edge creates a direct dependency and readability from the declaring module to the required module. `requires transitive` further allows modules that read the intermediate module to also read the dependency passed through the API.
 
-Ví dụ:
+For example:
 
 ~~~java
 module com.acme.service {
@@ -119,11 +119,11 @@ module com.acme.service {
 }
 ~~~
 
-Nếu app chỉ khai báo `requires com.acme.service`, app có readability tới cả service và domain. Tuy nhiên, `requires transitive` không phải một root module mới; nó ảnh hưởng đến readability của những module phụ thuộc vào service. Domain vẫn được đưa vào cấu hình thông qua dependency của service.
+If app only declares `requires com.acme.service`, app has readability to both service and domain. However, `requires transitive` is not a new root module; it affects the readability of modules that depend on service. Domain is still included in the configuration through service's dependency.
 
-## 5. Module tùy chọn và requires static
+## 5. Optional modules and requires static
 
-Một module có thể khai báo dependency tùy chọn ở runtime:
+A module can declare an optional runtime dependency:
 
 ~~~java
 module com.acme.reporting {
@@ -131,26 +131,26 @@ module com.acme.reporting {
 }
 ~~~
 
-`requires static` yêu cầu module có mặt khi biên dịch. Ở runtime, nếu module tùy chọn không được cung cấp thì module system có thể tiếp tục mà không phân giải dependency đó. Nếu module có mặt và được tìm thấy, nó có thể được phân giải như dependency.
+`requires static` requires the module to be present at compile time. At runtime, if the optional module is not provided, the module system can proceed without resolving that dependency. If the module is present and found, it can be resolved as a dependency.
 
-Cần lưu ý:
+Keep in mind:
 
-- `requires static` không tự thêm một module không liên quan vào root set.
-- Nếu module tùy chọn không có mặt, mã chạy không được giả định rằng các lớp của nó luôn tồn tại.
-- Nếu tính năng thực sự cần module đó, ứng dụng phải bảo đảm module được cung cấp và được phân giải trong cấu hình tương ứng.
-- Nếu dependency chỉ được tải qua tên lớp hoặc reflection, hãy kiểm tra root set và runtime configuration thay vì chỉ dựa vào việc JAR nằm trong thư mục.
+- `requires static` does not automatically add an unrelated module to the root set.
+- If the optional module is absent, running code must not assume its classes always exist.
+- If the feature actually needs that module, the application must ensure the module is provided and resolved in the corresponding configuration.
+- If the dependency is only loaded by class name or reflection, check the root set and runtime configuration instead of relying solely on the JAR sitting in a directory.
 
-## 6. Dùng --add-modules để chọn root bổ sung
+## 6. Using --add-modules to select additional roots
 
-Tùy chọn launcher:
+The launcher option:
 
 ~~~bash
 --add-modules module[,module...]
 ~~~
 
-cho phép thêm một hoặc nhiều module vào root set. Các module phải quan sát được qua các module finder và có thể được phân giải cùng dependency của chúng.
+allows adding one or more modules to the root set. The modules must be observable through module finders and resolvable along with their dependencies.
 
-Ví dụ thêm hai module:
+Example adding two modules:
 
 ~~~bash
 java --module-path mods \
@@ -158,15 +158,15 @@ java --module-path mods \
   -m com.acme.app/com.acme.app.Main
 ~~~
 
-Các tên đặc biệt sau cũng có thể dùng với `--add-modules`:
+The following special names can also be used with `--add-modules`:
 
-| Giá trị | Ý nghĩa |
+| Value | Meaning |
 |---|---|
-| `ALL-DEFAULT` | Thêm toàn bộ default root modules |
-| `ALL-SYSTEM` | Thêm toàn bộ system modules quan sát được |
-| `ALL-MODULE-PATH` | Thêm tất cả module được tìm thấy trên module path |
+| `ALL-DEFAULT` | Adds all default root modules |
+| `ALL-SYSTEM` | Adds all observable system modules |
+| `ALL-MODULE-PATH` | Adds all modules found on the module path |
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --module-path mods \
@@ -174,19 +174,19 @@ java --module-path mods \
   -m com.acme.app/com.acme.app.Main
 ~~~
 
-Lệnh này yêu cầu resolution bắt đầu thêm từ tất cả module trên module path. Nó hữu ích cho một số môi trường thử nghiệm hoặc ứng dụng cần khám phá rộng module, nhưng không nên dùng như mặc định cho ứng dụng production nếu chỉ cần một số plugin cụ thể.
+This command instructs resolution to start additionally from all modules on the module path. It is useful for certain test environments or applications that need broad module discovery, but should not be used as a default for production applications if only specific plugins are needed.
 
-Khi đưa toàn bộ module path vào root set, các vấn đề như module trùng tên, split package hoặc dependency xung đột có thể làm resolution thất bại. Chọn root cụ thể thường giúp cấu hình dễ hiểu và ít phụ thuộc hơn.
+When putting the entire module path into the root set, issues such as duplicate module names, split packages, or conflicting dependencies can cause resolution to fail. Selecting specific roots usually keeps the configuration easier to understand and less dependent on extraneous modules.
 
-## 7. Phân biệt ALL-DEFAULT, ALL-SYSTEM và ALL-MODULE-PATH
+## 7. Distinguishing ALL-DEFAULT, ALL-SYSTEM, and ALL-MODULE-PATH
 
-Ba giá trị đặc biệt phục vụ ba phạm vi khác nhau:
+The three special values serve three different scopes:
 
-- `ALL-DEFAULT` liên quan tới tập root mặc định của launcher trong ngữ cảnh chạy hiện tại.
-- `ALL-SYSTEM` chọn các module thuộc system module finder, bao gồm những module nền tảng không nhất thiết là default root.
-- `ALL-MODULE-PATH` chọn module được tìm thấy trên application module path.
+- `ALL-DEFAULT` refers to the launcher's default root set in the current execution context.
+- `ALL-SYSTEM` selects modules belonging to the system module finder, including foundational modules that are not necessarily default roots.
+- `ALL-MODULE-PATH` selects modules found on the application module path.
 
-Ví dụ, một module ứng dụng có thể chỉ cần một module hệ thống nâng cao:
+For example, an application module may only need one advanced system module:
 
 ~~~bash
 java --module-path mods \
@@ -194,13 +194,13 @@ java --module-path mods \
   -m com.acme.app/com.acme.app.Main
 ~~~
 
-Nếu muốn thêm toàn bộ module hệ thống, có thể dùng `ALL-SYSTEM`; nếu muốn thêm các module do ứng dụng đóng gói trên module path, dùng `ALL-MODULE-PATH`.
+If you want to add all system modules, you can use `ALL-SYSTEM`; if you want to add application-packaged modules on the module path, use `ALL-MODULE-PATH`.
 
-Không nên nhầm `ALL-SYSTEM` với `ALL-MODULE-PATH`: module hệ thống thuộc JDK, còn module path thường chứa module của ứng dụng hoặc thư viện bên thứ ba. Một module nằm trên module path không trở thành system module chỉ vì nó có mặt trong runtime.
+Do not confuse `ALL-SYSTEM` with `ALL-MODULE-PATH`: system modules belong to the JDK, whereas the module path typically contains application modules or third-party libraries. A module residing on the module path does not become a system module just because it is present at runtime.
 
-## 8. Service provider có thể mở rộng graph bằng service binding
+## 8. Service providers can expand the graph via service binding
 
-Một ứng dụng có thể khai báo service bằng `uses`, còn module provider đăng ký implementation bằng `provides ... with ...`.
+An application can declare a service using `uses`, while a provider module registers an implementation with `provides ... with ...`.
 
 ~~~java
 module com.acme.app {
@@ -217,36 +217,36 @@ module com.acme.payment.card {
 }
 ~~~
 
-Nếu ứng dụng muốn module resolution liên kết service provider, launcher hỗ trợ:
+If the application wants module resolution to bind service providers, the launcher supports:
 
 ~~~bash
 java --bind-services --module-path mods \
   -m com.acme.app/com.acme.app.Main
 ~~~
 
-Với service binding, module provider phù hợp có thể được đưa vào graph dù không phải dependency `requires` trực tiếp của root. Dependency của provider cũng tiếp tục được phân giải.
+With service binding, matching provider modules can be brought into the graph even if they are not direct `requires` dependencies of the root. The provider's dependencies continue to be resolved as well.
 
-Trong API tạo module layer riêng, có thể dùng `Configuration.resolveAndBind(...)` thay cho `resolve(...)` khi cần liên kết provider tự động. Nếu chỉ dùng `resolve(...)`, đừng giả định mọi provider quan sát được đều được thêm vào graph.
+In the API for creating custom module layers, `Configuration.resolveAndBind(...)` can be used instead of `resolve(...)` when automatic provider binding is needed. If only `resolve(...)` is used, do not assume every observable provider will be added to the graph.
 
-Service binding không thay thế `uses`, `provides` hoặc việc cung cấp module trên module path. Consumer vẫn cần khai báo service mình sử dụng, provider cần khai báo implementation và artifact phải có mặt trong module finder phù hợp.
+Service binding does not replace `uses`, `provides`, or providing modules on the module path. The consumer still needs to declare the service it uses, the provider needs to declare its implementation, and the artifact must be present in an appropriate module finder.
 
-## 9. Module có trên module path nhưng không được phân giải
+## 9. A module is on the module path but is not resolved
 
-Đây là nguyên nhân thường gặp khi ứng dụng dùng plugin hoặc module tải theo tên:
+These are common causes when an application uses plugins or modules loaded by name:
 
-- JAR có trong thư mục nhưng không thuộc dependency closure của root.
-- Ứng dụng gọi `Class.forName` với tên lớp plugin nhưng module chứa lớp chưa được đưa vào configuration.
-- Consumer khai báo `uses` nhưng provider không được liên kết vì chưa bật service binding hoặc layer được tạo theo cách không resolve-and-bind.
-- Tên module truyền vào `--add-modules` không đúng với tên module thực tế.
-- Module bị giới hạn khỏi tập observable bởi cấu hình launcher.
+- The JAR is in the directory but does not belong to the dependency closure of the roots.
+- The application calls `Class.forName` with a plugin class name, but the module containing the class has not been included in the configuration.
+- The consumer declares `uses`, but the provider is not bound because service binding is not enabled or the layer was created without resolve-and-bind.
+- The module name passed to `--add-modules` does not match the actual module name.
+- The module is excluded from the observable set by launcher configuration.
 
-Nếu cần module luôn có mặt, hãy khai báo dependency `requires` khi đó là dependency thực sự, hoặc thêm module vào root set bằng `--add-modules`. Với SPI, dùng service binding phù hợp.
+If a module is always needed, declare a `requires` dependency when it is a true dependency, or add the module to the root set with `--add-modules`. For SPI, use appropriate service binding.
 
-## 10. --limit-modules không giống --add-modules
+## 10. --limit-modules is not the same as --add-modules
 
-`--add-modules` bổ sung root module. Ngược lại, `--limit-modules` giới hạn tập observable module mà launcher có thể xem xét.
+`--add-modules` adds root modules. Conversely, `--limit-modules` restricts the set of observable modules that the launcher can consider.
 
-Ví dụ:
+For example:
 
 ~~~bash
 java --limit-modules java.base,java.logging \
@@ -254,17 +254,17 @@ java --limit-modules java.base,java.logging \
   -m com.acme.app/com.acme.app.Main
 ~~~
 
-Nếu ứng dụng hoặc dependency cần module bị loại khỏi tập observable, quá trình resolution có thể thất bại với lỗi thiếu module.
+If the application or a dependency needs a module excluded from the observable set, resolution may fail with a missing module error.
 
-Do đó:
+Therefore:
 
-- Dùng `--add-modules` khi cần mở rộng tập root.
-- Dùng `--limit-modules` khi muốn thu hẹp tập module có thể quan sát, chẳng hạn tạo runtime nhỏ hơn hoặc kiểm tra dependency có thực sự cần thiết.
-- Không dùng `--limit-modules` để cố đưa plugin vào graph; tùy chọn này có mục tiêu ngược lại.
+- Use `--add-modules` when you need to expand the root set.
+- Use `--limit-modules` when you want to narrow the set of observable modules, such as creating a smaller runtime or verifying whether a dependency is genuinely needed.
+- Do not use `--limit-modules` to try to bring a plugin into the graph; this option serves the opposite purpose.
 
-## 11. Tự tạo module configuration và layer
+## 11. Creating a custom module configuration and layer
 
-Khi ứng dụng quản lý plugin bằng module layer riêng, code có thể chọn root rõ ràng:
+When an application manages plugins using a dedicated module layer, code can explicitly choose roots:
 
 ~~~java
 ModuleFinder finder = ModuleFinder.of(Path.of("plugins"));
@@ -280,64 +280,64 @@ ModuleLayer layer =
     );
 ~~~
 
-Trong ví dụ này:
+In this example:
 
-- `ModuleFinder.of(Path.of("plugins"))` tìm module plugin.
-- `Set.of("com.acme.plugin")` là root set cho configuration mới.
-- `resolve(...)` phân giải root và dependency theo các chỉ thị `requires`.
-- `defineModulesWithOneLoader(...)` tạo layer mới từ configuration đã phân giải.
+- `ModuleFinder.of(Path.of("plugins"))` locates plugin modules.
+- `Set.of("com.acme.plugin")` is the root set for the new configuration.
+- `resolve(...)` resolves the roots and dependencies according to `requires` directives.
+- `defineModulesWithOneLoader(...)` creates a new layer from the resolved configuration.
 
-Nếu muốn service provider được liên kết tự động, dùng overload `resolveAndBind(...)` thích hợp. Sau khi tạo layer, có thể tìm service từ layer đó bằng `ServiceLoader.load(layer, PaymentProcessor.class)`.
+If you want service providers to be bound automatically, use the appropriate `resolveAndBind(...)` overload. After creating the layer, services can be looked up from that layer using `ServiceLoader.load(layer, PaymentProcessor.class)`.
 
-Một module layer có configuration riêng. Module đã được phân giải trong boot layer không tự động có nghĩa plugin ở layer con đã được tạo; hãy kiểm tra đúng layer mà ứng dụng tải class hoặc service.
+Each module layer has its own configuration. Having a module resolved in the boot layer does not automatically mean plugins in a child layer have been created; verify the exact layer from which the application loads classes or services.
 
-## 12. Quan sát tập module được phân giải
+## 12. Observing the resolved module set
 
-Các lệnh sau giúp chẩn đoán:
+The following commands aid diagnostics:
 
 ~~~bash
 java --list-modules
 ~~~
 
-Liệt kê các module mà runtime quan sát được trong ngữ cảnh launcher.
+Lists the modules observable by the runtime in the launcher context.
 
 ~~~bash
 java --show-module-resolution --module-path mods \
   -m com.acme.app/com.acme.app.Main
 ~~~
 
-Hiển thị quá trình module resolution, bao gồm các module được chọn và quan hệ dependency được xử lý.
+Displays the module resolution process, including the selected modules and processed dependency relationships.
 
-Để kiểm tra module name của một JAR:
+To inspect the module name of a JAR:
 
 ~~~bash
 jar --describe-module --file mods/com.acme.plugin.jar
 ~~~
 
-Để phân tích dependency bytecode:
+To analyze bytecode dependencies:
 
 ~~~bash
 jdeps --print-module-deps --module-path mods app.jar
 ~~~
 
-Khi đọc kết quả, phân biệt module quan sát được với module thực sự được phân giải. Một JAR có tên trong danh sách module không chứng minh module đó đã thuộc graph của ứng dụng đang chạy.
+When reading the output, distinguish between observable modules and modules actually resolved. A JAR appearing in the module list does not prove that module is part of the running application's graph.
 
-## 13. Quy trình chọn root module có thể dự đoán
+## 13. A predictable root module selection workflow
 
-Với ứng dụng modular thông thường:
+For a typical modular application:
 
-1. Xác định main module và dùng nó làm root.
-2. Khai báo dependency trực tiếp bằng `requires` trong descriptor.
-3. Chỉ thêm `--add-modules` cho plugin hoặc module thực sự cần có mặt nhưng không được thể hiện qua dependency.
-4. Nếu dùng SPI, khai báo `uses` và `provides`, sau đó bật service binding khi cấu hình yêu cầu.
-5. Tránh thêm toàn bộ module path nếu chỉ cần vài module cụ thể.
-6. Dùng `--show-module-resolution` để xác nhận graph thực tế.
-7. Nếu tạo custom layer, ghi rõ root set và lựa chọn `resolve` hay `resolveAndBind`.
+1. Identify the main module and use it as a root.
+2. Declare direct dependencies using `requires` in the descriptor.
+3. Only add `--add-modules` for plugins or modules that genuinely need to be present without being expressed through dependencies.
+4. If using SPI, declare `uses` and `provides`, then enable service binding when the configuration requires it.
+5. Avoid adding the entire module path if only a few specific modules are needed.
+6. Use `--show-module-resolution` to confirm the actual graph.
+7. If creating a custom layer, explicitly specify the root set and choose between `resolve` and `resolveAndBind`.
 
-Cách chọn root minh bạch giúp tránh phụ thuộc ngầm vào module tình cờ có mặt trong môi trường phát triển. Build, test và production nên dùng module path cùng root selection tương ứng.
+Transparent root selection helps avoid implicit reliance on modules that happen to be present in the development environment. Build, test, and production should use matching module paths and root selections.
 
-## Kết luận
+## Conclusion
 
-Root module là tập hạt giống để JPMS bắt đầu module resolution. Từ các root, module system lần theo dependency `requires` để tạo graph đã phân giải. Module chỉ nằm trên module path chưa chắc được đưa vào graph; nếu ứng dụng cần module độc lập như plugin, hãy chọn nó làm root bằng `--add-modules` hoặc dùng service binding khi phù hợp.
+Root modules are the seed set from which JPMS begins module resolution. From the roots, the module system follows `requires` dependencies to build the resolved graph. A module merely residing on the module path is not guaranteed to be included in the graph; if the application needs a standalone module such as a plugin, select it as a root using `--add-modules` or use service binding where appropriate.
 
-Hiểu rõ observable modules, root modules và resolved modules giúp kiểm soát module configuration, thiết kế plugin layer và chẩn đoán lỗi thiếu module ở runtime.
+Clearly understanding observable modules, root modules, and resolved modules helps control module configurations, design plugin layers, and diagnose missing-module errors at runtime.

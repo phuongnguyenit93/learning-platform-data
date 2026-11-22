@@ -1,38 +1,38 @@
-# Chuyển vòng lặp lọc, ánh xạ và tính tổng thành pipeline
+# Converting Filtering, Mapping, and Summing Loops into Pipelines
 
-> **Chương:** Bài tập nền tảng và trung cấp  
-> **Module:** `JAVA_STREAM_API` — học xử lý dữ liệu khai báo bằng Java Stream API qua pipeline lazy, `filter`, `map`, `reduce`, `collect`; phát triển tới grouping, collector tùy chỉnh, `Spliterator`, xử lý song song và Stream Gatherers, đồng thời nhận diện các giới hạn về trạng thái, tài nguyên và hiệu năng.
+> **Chapter:** Beginner and Intermediate Exercises  
+> **Module:** `JAVA_STREAM_API` — learn declarative data processing with the Java Stream API through lazy pipelines, `filter`, `map`, `reduce`, and `collect`; progress to grouping, custom collectors, `Spliterator`, parallel processing, and Stream Gatherers, while recognizing limits related to state, resources, and performance.
 
-Trong nhiều chương trình Java, vòng lặp `for` được dùng để duyệt một danh sách, **chọn phần tử phù hợp**, **tính giá trị cần dùng** rồi **cộng dồn**. Đây là một cơ hội tốt để luyện Java Stream API: cùng một công việc có thể được mô tả bằng pipeline `filter → mapToInt/mapToLong → sum`. Mục tiêu của việc chuyển đổi không phải là bỏ mọi vòng lặp, mà là **giữ nguyên quy tắc nghiệp vụ và kết quả** trong khi làm rõ từng bước xử lý.
+In many Java programs, a `for` loop is used to iterate over a list, **select matching elements**, **compute the needed value**, and then **accumulate the total**. This is a great opportunity to practice the Java Stream API: the same task can be expressed with a `filter → mapToInt/mapToLong → sum` pipeline. The goal of converting is not to eliminate every loop, but to **preserve the exact business rules and results** while making each processing step explicit.
 
-Bài học gồm phần giải thích, chương trình Java 17+ đầy đủ, những biến thể thường gặp và bài tập có đáp án. Người học sẽ tự đối chiếu bản `for` và bản Stream trên cùng một tập dữ liệu để phát hiện thay đổi về giá trị, thứ tự hoặc cách xử lý dữ liệu rỗng.
+This lesson includes explanations, complete Java 17+ programs, common variations, and exercises with solutions. You will compare the `for` version and the Stream version on the same dataset to detect differences in values, ordering, or empty-data handling.
 
-## 1. Bài toán mẫu và tiêu chí đúng
+## 1. Sample Problem and Correctness Criteria
 
-Một hệ thống bán hàng lưu các dòng hàng có mã sản phẩm, trạng thái đã thanh toán, số lượng và đơn giá theo **đồng Việt Nam (VND)**. Cần tính **doanh thu của những dòng đã thanh toán có số lượng từ 3 trở lên**.
+A sales system stores line items with a product SKU, paid status, quantity, and unit price in **Vietnamese Dong (VND)**. We need to calculate the **revenue of paid lines with a quantity of 3 or more**.
 
-| Mã sản phẩm | Đã thanh toán | Số lượng | Đơn giá (VND) | Có tính? | Thành tiền được tính |
+| Product SKU | Paid | Quantity | Unit Price (VND) | Included? | Calculated Line Amount |
 | --- | --- | ---: | ---: | --- | ---: |
-| `PEN` | Có | 3 | 12.000 | Có | 36.000 |
-| `NOTE` | Không | 5 | 50.000 | Không | — |
-| `RULER` | Có | 2 | 8.000 | Không | — |
-| `ERASER` | Có | 4 | 7.000 | Có | 28.000 |
-| `PEN` | Có | 1 | 12.000 | Không | — |
+| `PEN` | Yes | 3 | 12.000 | Yes | 36.000 |
+| `NOTE` | No | 5 | 50.000 | No | — |
+| `RULER` | Yes | 2 | 8.000 | No | — |
+| `ERASER` | Yes | 4 | 7.000 | Yes | 28.000 |
+| `PEN` | Yes | 1 | 12.000 | No | — |
 
-**Đầu ra mong đợi:** `64_000L` VND, vì `3 × 12_000 + 4 × 7_000 = 64_000`. Mã `PEN` có thể xuất hiện nhiều lần; bài toán tính theo **dòng**, không tự gộp các dòng trước khi áp dụng điều kiện số lượng.
+**Expected output:** `64_000L` VND, because `3 × 12_000 + 4 × 7_000 = 64_000`. The SKU `PEN` can appear multiple times; the problem calculates **per line**, without merging lines before applying the quantity condition.
 
-Quy tắc cần giữ khi chuyển sang Stream:
+Rules to preserve when converting to a Stream:
 
-1. Duyệt đúng tập đầu vào.
-2. Chỉ chọn dòng **`paid == true` và `quantity >= 3`**.
-3. Mỗi dòng đạt điều kiện đóng góp **`quantity × unitPriceVnd`**.
-4. Cộng tất cả số tiền của những dòng đã chọn.
-5. Nếu không có dòng nào đạt điều kiện, tổng là **0**.
-6. Với phép cộng `long` thông thường, cả vòng lặp và `LongStream.sum()` đều có thể **tràn số**; phần sau giải thích khi cần kiểm tra overflow.
+1. Iterate over the exact input collection.
+2. Select only lines where **`paid == true` and `quantity >= 3`**.
+3. Each qualifying line contributes **`quantity × unitPriceVnd`**.
+4. Sum all amounts of the selected lines.
+5. If no line qualifies, the total is **0**.
+6. With standard `long` addition, both the loop and `LongStream.sum()` can **overflow**; a later section explains when overflow checks are needed.
 
-## 2. Giải bằng vòng lặp `for` trước
+## 2. Solving with a `for` Loop First
 
-Đây là lời giải theo lối mệnh lệnh (*imperative*):
+Here is the imperative solution:
 
 ```java
 long total = 0L;
@@ -47,25 +47,25 @@ for (SaleLine line : lines) {
 System.out.println(total); // 64000
 ```
 
-`SaleLine` và `lines` sẽ được định nghĩa đầy đủ ở mục 5. Ở đây hãy chú ý cấu trúc:
+`SaleLine` and `lines` will be fully defined in Section 5. For now, note the structure:
 
-- `for`: duyệt từng dòng.
-- `if`: giữ những dòng thỏa điều kiện.
-- `amount = ...`: ánh xạ từ dòng bán hàng sang số tiền của dòng.
-- `total += amount`: cộng dồn các số tiền.
+- `for`: iterates over each line.
+- `if`: keeps the lines matching the condition.
+- `amount = ...`: maps a sale line to its line amount.
+- `total += amount`: accumulates the amounts.
 
-Vòng lặp này hoàn toàn hợp lệ và dễ hiểu. Đổi sang Stream có lợi khi muốn **tách rõ các thao tác dữ liệu**, thuận tiện bổ sung `filter`, thay đổi phép biến đổi hoặc kết hợp với các collector.
+This loop is completely valid and easy to understand. Switching to a Stream is beneficial when you want to **clearly separate data operations**, making it convenient to add `filter` steps, change transformations, or combine with collectors.
 
-## 3. Chuyển từng bước sang `filter → mapToLong → sum`
+## 3. Converting Step by Step to `filter → mapToLong → sum`
 
-Mỗi phần trong vòng lặp có một thao tác Stream tương ứng:
+Each part of the loop corresponds to a Stream operation:
 
-| Vòng lặp | Pipeline | Tác dụng |
+| Loop | Pipeline | Effect |
 | --- | --- | --- |
-| `for (SaleLine line : lines)` | `lines.stream()` | Tạo nguồn phần tử. |
-| `if (line.paid() && line.quantity() >= 3)` | `.filter(line -> ...)` | Giữ phần tử thỏa điều kiện. |
-| `long amount = ...` | `.mapToLong(line -> ...)` | Chuyển dòng hàng thành số tiền kiểu `long`. |
-| `total += amount` | `.sum()` | Cộng các số đã ánh xạ; kết thúc pipeline. |
+| `for (SaleLine line : lines)` | `lines.stream()` | Creates the element source. |
+| `if (line.paid() && line.quantity() >= 3)` | `.filter(line -> ...)` | Keeps elements matching the condition. |
+| `long amount = ...` | `.mapToLong(line -> ...)` | Converts each sale line to a `long` amount. |
+| `total += amount` | `.sum()` | Sums the mapped numbers; terminates the pipeline. |
 
 ```java
 long total = lines.stream()
@@ -76,10 +76,10 @@ long total = lines.stream()
 System.out.println(total); // 64000
 ```
 
-Hình dung cách xử lý:
+Visualizing the flow:
 
 ```text
- List<SaleLine>                     Có 5 dòng
+ List<SaleLine>                     5 lines
        |
        v
     stream()                        Stream<SaleLine>
@@ -94,26 +94,26 @@ Hình dung cách xử lý:
       sum()                          64000 (long)
 ```
 
-### Vì sao dùng `mapToLong`?
+### Why Use `mapToLong`?
 
-`mapToLong` chuyển `Stream<SaleLine>` thành `LongStream`. `LongStream` có terminal operation `sum()` trả trực tiếp `long`, không cần boxing thành `Long` cho mỗi số.
+`mapToLong` converts `Stream<SaleLine>` into a `LongStream`. `LongStream` has a terminal operation `sum()` that returns a primitive `long` directly, avoiding boxing into `Long` for every number.
 
-Nếu dùng `map`, kết quả là `Stream<Long>` (đối tượng), **không có** phương thức `sum()` trực tiếp trên `Stream<T>`:
+If you use `map`, the result is a `Stream<Long>` (objects), which **does not have** a direct `sum()` method on `Stream<T>`:
 
 ```java
-// Không biên dịch vì Stream<Long> không có sum():
+// Does not compile because Stream<Long> has no sum():
 // long wrong = lines.stream()
 //         .map(line -> (long) line.quantity() * line.unitPriceVnd())
 //         .sum();
 ```
 
-Có thể viết `map(...).reduce(0L, Long::sum)`, nhưng khi phép biến đổi là số nguyên thủy, `mapToLong(...).sum()` diễn đạt mục tiêu ngắn gọn hơn.
+You can write `map(...).reduce(0L, Long::sum)`, but when the transformation produces a primitive number, `mapToLong(...).sum()` expresses the intent more concisely.
 
-**Cần chú ý kiểu phép nhân:** nếu cả hai toán hạng là `int`, phép nhân sẽ thực hiện dưới kiểu `int` **trước** khi chuyển sang `long`, nên có thể tràn. Ở ví dụ này `unitPriceVnd` là `long`; phép ép `(long) line.quantity()` nhấn mạnh ý định tính theo `long`.
+**Watch out for multiplication types:** if both operands are `int`, the multiplication is performed in `int` **before** converting to `long`, which can overflow. In this example `unitPriceVnd` is `long`; the cast `(long) line.quantity()` emphasizes the intent to compute in `long`.
 
-## 4. Phân biệt lazy và terminal operation
+## 4. Distinguishing Lazy and Terminal Operations
 
-`filter` và `mapToLong` là **intermediate operations**. Chúng thiết lập pipeline và thường **chưa duyệt nguồn ngay**. `sum()` là **terminal operation**, làm pipeline thực thi để có kết quả.
+`filter` and `mapToLong` are **intermediate operations**. They configure the pipeline and usually **do not traverse the source immediately**. `sum()` is a **terminal operation**, which triggers pipeline execution to produce a result.
 
 ```java
 import java.util.stream.LongStream;
@@ -122,17 +122,17 @@ LongStream pipeline = lines.stream()
         .filter(line -> line.paid())
         .mapToLong(line -> line.unitPriceVnd());
 
-// Đến đây pipeline được tạo; chưa có terminal operation.
-long sum = pipeline.sum(); // Bắt đầu duyệt và kết thúc Stream.
+// At this point the pipeline is built; no terminal operation yet.
+long sum = pipeline.sum(); // Starts traversal and closes the Stream.
 ```
 
-Vì Stream dùng một lần, gọi tiếp `pipeline.count()` sau `sum()` là không hợp lệ. Nếu cần tính chỉ số khác, tạo Stream mới từ một nguồn có thể duyệt lại như `List`, hoặc dùng một collector thống kê thích hợp.
+Because a Stream is single-use, calling `pipeline.count()` after `sum()` is invalid. If you need another metric, create a new Stream from a re-traversable source like a `List`, or use an appropriate statistics collector.
 
-Đừng đặt side effect bắt buộc trong `filter`, `map` hay `peek` với giả định rằng mọi phần tử luôn được gọi: một số terminal operation có thể ngắn mạch hoặc tối ưu để không gọi tất cả bước trung gian. Viết predicate và mapper **không can thiệp vào nguồn, không phụ thuộc trạng thái dùng chung** sẽ dễ kiểm thử hơn.
+Do not place required side effects inside `filter`, `map`, or `peek` assuming every element will always be visited: some terminal operations may short-circuit or optimize away intermediate steps. Writing predicates and mappers that **do not interfere with the source and do not depend on shared mutable state** makes code much easier to test.
 
-## 5. Chương trình Java 17+ đầy đủ, có đối chiếu kết quả
+## 5. Complete Java 17+ Program with Result Comparison
 
-Lưu thành tệp `LoopToStreamDemo.java`. Đây là ví dụ chạy độc lập: có dữ liệu, bản vòng lặp, bản Stream, một phép tạo danh sách kết quả và kiểm thử bằng cách ném `AssertionError` khi sai.
+Save this as `LoopToStreamDemo.java`. This is a standalone runnable example containing sample data, a loop version, a Stream version, a list-building transformation, and checks that throw `AssertionError` on failure.
 
 ```java
 import java.util.ArrayList;
@@ -145,10 +145,10 @@ public class LoopToStreamDemo {
         SaleLine {
             Objects.requireNonNull(sku, "sku");
             if (sku.isBlank()) {
-                throw new IllegalArgumentException("SKU không được rỗng");
+                throw new IllegalArgumentException("SKU must not be blank");
             }
             if (quantity <= 0 || unitPriceVnd < 0) {
-                throw new IllegalArgumentException("Số lượng/giá không hợp lệ");
+                throw new IllegalArgumentException("Invalid quantity/price");
             }
         }
     }
@@ -163,7 +163,7 @@ public class LoopToStreamDemo {
         );
     }
 
-    // Phiên bản 1: lọc, ánh xạ và tính tổng bằng vòng for.
+    // Version 1: filter, map, and sum using a for loop.
     static long totalWithLoop(List<SaleLine> lines) {
         long total = 0L;
         for (SaleLine line : lines) {
@@ -175,7 +175,7 @@ public class LoopToStreamDemo {
         return total;
     }
 
-    // Phiên bản 2: cùng quy tắc trên bằng Stream.
+    // Version 2: same rules using a Stream.
     static long totalWithStream(List<SaleLine> lines) {
         return lines.stream()
                 .filter(line -> line.paid() && line.quantity() >= 3)
@@ -184,7 +184,7 @@ public class LoopToStreamDemo {
                 .sum();
     }
 
-    // Ví dụ 3: cùng thao tác lọc nhưng ánh xạ sang nhãn.
+    // Example 3: same filter, but mapping to display labels.
     static List<String> labelsWithLoop(List<SaleLine> lines) {
         List<String> labels = new ArrayList<>();
         for (SaleLine line : lines) {
@@ -199,7 +199,7 @@ public class LoopToStreamDemo {
         return lines.stream()
                 .filter(line -> line.paid() && line.quantity() >= 3)
                 .map(line -> line.sku() + " x" + line.quantity())
-                .toList(); // Java 16+, danh sách trả về không sửa được.
+                .toList(); // Java 16+, returned list is unmodifiable.
     }
 
     static void check(boolean condition, String message) {
@@ -211,47 +211,47 @@ public class LoopToStreamDemo {
     static void selfTest() {
         List<SaleLine> data = sample();
 
-        // Cả hai lời giải phải cho cùng kết quả chính xác.
-        check(totalWithLoop(data) == 64_000L, "Tổng từ for sai");
-        check(totalWithStream(data) == 64_000L, "Tổng Stream sai");
+        // Both solutions must produce the same exact result.
+        check(totalWithLoop(data) == 64_000L, "Loop total is incorrect");
+        check(totalWithStream(data) == 64_000L, "Stream total is incorrect");
         check(totalWithLoop(data) == totalWithStream(data),
-                "Vòng lặp và pipeline khác nhau");
+                "Loop and pipeline differ");
 
-        // Lọc rồi map thành danh sách vẫn giữ encounter order của List.
+        // Filtering then mapping to a list preserves the List's encounter order.
         List<String> expectedLabels = List.of("PEN x3", "ERASER x4");
-        check(labelsWithLoop(data).equals(expectedLabels), "Nhãn từ for sai");
-        check(labelsWithStream(data).equals(expectedLabels), "Nhãn Stream sai");
+        check(labelsWithLoop(data).equals(expectedLabels), "Loop labels are incorrect");
+        check(labelsWithStream(data).equals(expectedLabels), "Stream labels are incorrect");
 
-        // Nguồn rỗng hoặc không có phần tử đạt điều kiện => tổng 0.
-        check(totalWithStream(List.of()) == 0L, "Nguồn rỗng");
+        // Empty source or no matching elements => total is 0.
+        check(totalWithStream(List.of()) == 0L, "Empty source");
         check(totalWithStream(List.of(
                 new SaleLine("A", false, 10, 100L),
                 new SaleLine("B", true, 1, 100L)
-        )) == 0L, "Không có dòng thỏa điều kiện");
+        )) == 0L, "No matching lines");
 
-        // Đảo nguồn: tổng không đổi, nhưng thứ tự nhãn có thể đổi.
+        // Reversed source: total is unchanged, but label order can change.
         List<SaleLine> reversed = new ArrayList<>(data);
         Collections.reverse(reversed);
-        check(totalWithStream(reversed) == 64_000L, "Tổng sau đảo nguồn");
+        check(totalWithStream(reversed) == 64_000L, "Total after reversing source");
         check(labelsWithStream(reversed).equals(
-                List.of("ERASER x4", "PEN x3")), "Thứ tự nhãn sau đảo");
+                List.of("ERASER x4", "PEN x3")), "Label order after reversal");
 
-        // Với dữ liệu trong miền long, tổng song song cũng phải đúng.
+        // For values within long range, parallel sum must also match.
         long parallelTotal = data.parallelStream()
                 .filter(line -> line.paid() && line.quantity() >= 3)
                 .mapToLong(line ->
                         (long) line.quantity() * line.unitPriceVnd())
                 .sum();
-        check(parallelTotal == 64_000L, "Tổng song song");
+        check(parallelTotal == 64_000L, "Parallel total");
 
-        // Kết quả Stream.toList() không sửa được.
+        // Stream.toList() result is unmodifiable.
         boolean rejected = false;
         try {
             labelsWithStream(data).add("OTHER x1");
         } catch (UnsupportedOperationException expected) {
             rejected = true;
         }
-        check(rejected, "Danh sách Stream.toList() phải không sửa được");
+        check(rejected, "Stream.toList() list must be unmodifiable");
     }
 
     public static void main(String[] args) {
@@ -260,21 +260,21 @@ public class LoopToStreamDemo {
         System.out.println("stream: " + totalWithStream(data));
         System.out.println("labels: " + labelsWithStream(data));
 
-        // Chạy kiểm tra dù không bật cờ -ea của Java.
+        // Run checks even without Java's -ea flag enabled.
         selfTest();
         System.out.println("TEST PASS");
     }
 }
 ```
 
-Nếu thực hành trên JDK 17+:
+To run on JDK 17+:
 
 ```text
 javac LoopToStreamDemo.java
 java LoopToStreamDemo
 ```
 
-Kết quả kỳ vọng:
+Expected output:
 
 ```text
 for: 64000
@@ -283,24 +283,24 @@ labels: [PEN x3, ERASER x4]
 TEST PASS
 ```
 
-Bài này cung cấp mã và phép kiểm tra để tự chạy khi học; chương trình không cần thư viện bên ngoài. `check(...)` ném `AssertionError` nếu một điều kiện sai, nên không cần bật cờ `-ea` như khi dùng câu lệnh `assert` của Java.
+This lesson provides the code and assertions so you can run it yourself while studying; the program requires no external libraries. `check(...)` throws `AssertionError` if a condition fails, so you do not need to enable the `-ea` flag as with Java's `assert` statement.
 
-## 6. Chọn `map`, `mapToInt`, `mapToLong` hay `reduce`?
+## 6. Choosing `map`, `mapToInt`, `mapToLong`, or `reduce`?
 
-Câu hỏi quan trọng khi chuyển vòng lặp là: **sau khi ánh xạ, ta cần kiểu giá trị nào và cần loại kết quả gì?**
+The key question when converting a loop is: **after mapping, what value type and result type do we need?**
 
-| Nhu cầu | Gợi ý pipeline | Kết quả |
+| Need | Suggested Pipeline | Result |
 | --- | --- | --- |
-| Lọc các đối tượng để giữ lại danh sách | `filter(...).toList()` | `List<T>` |
-| Lọc rồi tạo chuỗi hiển thị | `filter(...).map(...).toList()` | `List<String>` |
-| Lọc rồi cộng số lượng `int` | `filter(...).mapToInt(...).sum()` | `int` |
-| Lọc rồi cộng giá trị `long` | `filter(...).mapToLong(...).sum()` | `long` |
-| Lọc rồi cộng `BigDecimal` | `filter(...).map(...).reduce(BigDecimal.ZERO, BigDecimal::add)` | `BigDecimal` |
-| Chỉ đếm các dòng phù hợp | `filter(...).count()` | `long` |
+| Filter objects into a list | `filter(...).toList()` | `List<T>` |
+| Filter then build display strings | `filter(...).map(...).toList()` | `List<String>` |
+| Filter then sum `int` quantities | `filter(...).mapToInt(...).sum()` | `int` |
+| Filter then sum `long` values | `filter(...).mapToLong(...).sum()` | `long` |
+| Filter then sum `BigDecimal` | `filter(...).map(...).reduce(BigDecimal.ZERO, BigDecimal::add)` | `BigDecimal` |
+| Only count matching lines | `filter(...).count()` | `long` |
 
-### Ví dụ nền tảng với `IntStream`
+### Basic Example with `IntStream`
 
-Bài toán: từ các số `1` tới `6`, chọn các số chẵn, bình phương chúng rồi tính tổng.
+Problem: from numbers `1` through `6`, select the even numbers, square them, and compute the sum.
 
 ```java
 import java.util.stream.IntStream;
@@ -313,13 +313,13 @@ int result = IntStream.rangeClosed(1, 6)
 System.out.println(result); // 4 + 16 + 36 = 56
 ```
 
-`IntStream.rangeClosed(1, 6)` bao gồm cả hai đầu; sau `filter` còn `2, 4, 6`; sau `map` là `4, 16, 36`; `sum` trả `56`.
+`IntStream.rangeClosed(1, 6)` is inclusive at both ends; after `filter` we have `2, 4, 6`; after `map` we have `4, 16, 36`; `sum` returns `56`.
 
-Lưu ý `IntStream.map` khác `Stream<T>.map`: đây là phép ánh xạ **từ `int` sang `int`**, không tạo `Stream<Integer>`. Với `Stream<SaleLine>`, phải gọi `mapToInt` hoặc `mapToLong` nếu muốn có primitive stream để tính tổng.
+Note that `IntStream.map` differs from `Stream<T>.map`: it maps **from `int` to `int`**, without creating a `Stream<Integer>`. With `Stream<SaleLine>`, you must call `mapToInt` or `mapToLong` to get a primitive stream for summing.
 
-### Ví dụ với tiền thập phân
+### Example with Decimal Money
 
-Khi đơn giá là số thập phân cần chính xác theo nghiệp vụ, có thể dùng `BigDecimal` thay vì `double`:
+When unit prices are decimal numbers requiring exact business precision, you can use `BigDecimal` instead of `double`:
 
 ```java
 import java.math.BigDecimal;
@@ -338,17 +338,17 @@ BigDecimal total = prices.stream()
 System.out.println(total); // 0.60
 ```
 
-`BigDecimal` là đối tượng, nên không có primitive stream chuyên biệt cho nó; `reduce` dùng phép cộng của `BigDecimal`. Tránh `new BigDecimal(0.1)` nếu mong muốn đúng số thập phân `0.1`.
+`BigDecimal` is an object type, so there is no specialized primitive stream for it; `reduce` uses `BigDecimal` addition. Avoid `new BigDecimal(0.1)` when you want the exact decimal value `0.1`.
 
-## 7. Bài tập tăng dần: tự chuyển từng vòng lặp
+## 7. Progressive Exercises: Convert Loops Yourself
 
-Trong mỗi bài, hãy **viết bản vòng lặp trước**, ghi lại kết quả của dữ liệu mẫu rồi mới chuyển sang Stream. Tránh dự đoán kết quả chỉ từ tên phương thức.
+In each exercise, **write the loop version first**, record the result on the sample data, and then convert to a Stream. Avoid guessing results solely from method names.
 
-### Bài 1 — Lọc, biến đổi, cộng số nguyên
+### Exercise 1 — Filter, Transform, Sum Integers
 
-Cho `List<Integer> numbers = List.of(3, -2, 4, 0, 5)`. Chỉ lấy các số **dương và chẵn**, nhân mỗi số với 10 rồi tính tổng.
+Given `List<Integer> numbers = List.of(3, -2, 4, 0, 5)`. Keep only **positive and even** numbers, multiply each by 10, and sum them.
 
-Mẫu vòng lặp:
+Loop template:
 
 ```java
 int total = 0;
@@ -359,7 +359,7 @@ for (int n : numbers) {
 }
 ```
 
-**Đáp án pipeline:**
+**Pipeline solution:**
 
 ```java
 int total = numbers.stream()
@@ -370,11 +370,11 @@ int total = numbers.stream()
 System.out.println(total); // 40
 ```
 
-Chỉ số `4` thỏa điều kiện, nên kết quả `4 × 10 = 40`. Không nhầm số `-2` là số chẵn **dương**.
+Only `4` satisfies the condition, so the result is `4 × 10 = 40`. Do not mistake `-2` for a **positive** even number.
 
-### Bài 2 — Giữ danh sách thay vì tổng
+### Exercise 2 — Keep a List Instead of a Sum
 
-Cho `List<String> names = List.of(" An ", " ", "Bình", " Chi ")`. Bỏ tên chỉ gồm khoảng trắng, loại khoảng trắng hai đầu và viết hoa theo `Locale.ROOT`. Yêu cầu **giữ thứ tự**.
+Given `List<String> names = List.of(" An ", " ", "Bình", " Chi ")`. Remove names that are only whitespace, trim leading/trailing whitespace, and convert to uppercase using `Locale.ROOT`. You must **preserve order**.
 
 ```java
 import java.util.Locale;
@@ -388,11 +388,11 @@ List<String> cleaned = names.stream()
 System.out.println(cleaned); // [AN, BÌNH, CHI]
 ```
 
-Ở đây terminal operation là `toList()`, không phải `sum()`, vì mục tiêu là **một danh sách chuỗi**. `Stream.toList()` trên Java 16+ trả danh sách không sửa được; nó không cam kết một kiểu triển khai cụ thể như `ArrayList`.
+Here the terminal operation is `toList()`, not `sum()`, because the goal is **a list of strings**. `Stream.toList()` in Java 16+ returns an unmodifiable list; it does not promise a specific implementation class such as `ArrayList`.
 
-### Bài 3 — Chuyển một vòng lặp cộng tồn kho
+### Exercise 3 — Convert an Inventory Sum Loop
 
-Nguồn gồm các sản phẩm `Product(String code, boolean active, int stock)`. Chỉ tính tổng tồn kho của sản phẩm đang hoạt động. Chọn kiểu trả về phù hợp:
+The source contains products `Product(String code, boolean active, int stock)`. Sum the total stock of active products only. Choose an appropriate return type:
 
 ```java
 record Product(String code, boolean active, int stock) {}
@@ -411,11 +411,11 @@ long activeStock = products.stream()
 System.out.println(activeStock); // 19
 ```
 
-`mapToLong(Product::stock)` cho phép xử lý tổng lớn hơn `int`; khi dữ liệu đầu vào nhỏ, `mapToInt(Product::stock)` cũng cho kết quả đúng. Nhưng cả `long` lẫn `int` đều có giới hạn; nếu tổng có thể vượt `long`, cần giải pháp số lớn hoặc phát hiện overflow.
+`mapToLong(Product::stock)` handles totals larger than `int`; when input values are small, `mapToInt(Product::stock)` also gives the right result. Still, both `long` and `int` have limits; if the total can exceed `long`, use a big-number solution or overflow detection.
 
-### Bài 4 — Hai phép tính từ cùng danh sách
+### Exercise 4 — Two Calculations from the Same List
 
-Cần cả **tổng tiền** và **số dòng** thỏa điều kiện. Có dùng lại một `Stream` sau `sum()` được không?
+We need both the **total amount** and the **number of matching lines**. Can we reuse a single `Stream` after `sum()`?
 
 ```java
 long revenue = lines.stream()
@@ -429,41 +429,41 @@ long matchingLines = lines.stream()
         .count();
 ```
 
-**Đáp án:** Không được tái sử dụng cùng đối tượng Stream; hai lệnh `lines.stream()` tạo hai Stream mới từ một `List` có thể duyệt lại. Nếu nguồn chỉ đọc được một lần hoặc việc duyệt rất tốn kém, có thể tạo collector tính nhiều chỉ số trong một lần duyệt. Đây là bước phát triển ở các bài collector nâng cao.
+**Answer:** You cannot reuse the same Stream object; two calls to `lines.stream()` create two fresh Streams from a re-traversable `List`. If the source can only be read once or traversal is expensive, you can build a collector that computes multiple metrics in a single pass. That is covered in the advanced collector lessons.
 
-### Bài 5 — Lọc trước hay ánh xạ trước?
+### Exercise 5 — Filter First or Map First?
 
-Cần lấy danh sách SKU của những dòng `paid && quantity >= 3`. Hai phương án sau có tương đương không?
+We need the list of SKUs for lines where `paid && quantity >= 3`. Are these two approaches equivalent?
 
 ```java
-// ĐÚNG: vẫn có toàn bộ SaleLine ở bước kiểm tra.
+// CORRECT: the full SaleLine is still available during filtering.
 List<String> result = lines.stream()
         .filter(line -> line.paid() && line.quantity() >= 3)
         .map(SaleLine::sku)
         .toList();
 
-// SAI: sau map(SaleLine::sku), mỗi phần tử chỉ còn String.
-// Không thể gọi paid() hoặc quantity() trên String.
+// WRONG: after map(SaleLine::sku), each element is only a String.
+// You cannot call paid() or quantity() on a String.
 // lines.stream().map(SaleLine::sku).filter(sku -> sku.paid()) ...
 ```
 
-**Bài học:** thứ tự `filter` và `map` không tùy ý đổi được nếu phép ánh xạ **làm mất dữ liệu cần cho điều kiện lọc**. Nếu muốn lọc theo chuỗi SKU, hãy viết predicate tương ứng với kiểu `String`.
+**Lesson:** the order of `filter` and `map` cannot be swapped arbitrarily if the mapping **discards data needed by the filter predicate**. If you want to filter by the SKU string, write a predicate for `String`.
 
-## 8. Các trường hợp cần kiểm tra khi chuyển đổi
+## 8. Edge Cases to Check During Conversion
 
-| Trường hợp | Vòng `for` | Pipeline Stream | Điều cần khẳng định |
+| Case | `for` Loop | Stream Pipeline | What to Verify |
 | --- | --- | --- | --- |
-| Nguồn rỗng | Không vào thân vòng lặp | `sum()` không có số cần cộng | Cả hai trả 0 với biến tích lũy ban đầu là 0. |
-| Không có phần tử đạt điều kiện | Bỏ qua mọi lần cộng | `filter` tạo Stream rỗng | Tổng vẫn là 0. |
-| Có phần tử trùng SKU | Xử lý từng dòng | `filter`/`mapToLong` xử lý từng dòng | Không tự gọi `distinct()` nếu nghiệp vụ không yêu cầu. |
-| Đảo thứ tự nguồn | Tổng cộng không đổi khi không overflow | `sum` trên số nguyên cũng vậy | Danh sách nhãn theo encounter order có thể đổi. |
-| `unitPriceVnd` rất lớn | Có thể tràn `long` | `sum()` cũng có thể tràn `long` | Không đồng nhất Stream với cơ chế chống overflow. |
-| Phần tử nguồn `null` | Gọi getter trên null có thể lỗi | Lambda gọi getter trên null cũng có thể lỗi | Quy định chính sách xử lý null trước khi biến đổi. |
-| Stream song song | Không áp dụng tự động | Lambda có thể chạy trên nhiều thread | Tránh trạng thái mutable dùng chung và giữ phép gộp phù hợp. |
+| Empty source | Loop body never executes | `sum()` has no numbers to add | Both return 0 when initialized to 0. |
+| No element matches | Every addition is skipped | `filter` produces an empty Stream | Total remains 0. |
+| Duplicate SKUs | Processes each line | `filter`/`mapToLong` processes each line | Do not insert `distinct()` unless required by business rules. |
+| Reversed source order | Sum is unchanged without overflow | Integer `sum` behaves the same | Label list in encounter order can change. |
+| Very large `unitPriceVnd` | Can overflow `long` | `sum()` can also overflow `long` | Do not assume Stream prevents overflow. |
+| `null` element in source | Calling getter on null throws | Lambda calling getter on null throws | Define a null-handling policy before transforming. |
+| Parallel Stream | Not applied automatically | Lambdas can run on multiple threads | Avoid shared mutable state and keep reduction valid. |
 
-### Xử lý `null` có chủ đích
+### Intentional `null` Handling
 
-Nếu nguồn cho phép chứa phần tử `null`, hãy quyết định xem cần **loại bỏ** hay **báo lỗi**. Ví dụ lọc null trước:
+If the source is allowed to contain `null` elements, decide whether to **discard them** or **fail fast**. For example, filtering nulls first:
 
 ```java
 import java.util.Objects;
@@ -476,17 +476,17 @@ long total = lines.stream()
         .sum();
 ```
 
-Nếu null là lỗi nhập liệu, bỏ qua nó một cách âm thầm có thể che giấu vấn đề; khi đó nên validate hoặc dùng `Objects.requireNonNull` để báo lỗi rõ ràng. `List.of(...)` không cho phép phần tử null, nhưng các loại nguồn khác có thể có.
+If `null` represents invalid input data, silently skipping it can hide a bug; in that case, validate or use `Objects.requireNonNull` to report the error clearly. `List.of(...)` disallows null elements, but other source types may contain them.
 
-## 9. Tràn số nguyên và yêu cầu tính tổng an toàn
+## 9. Integer Overflow and Safe Summation Requirements
 
-Việc chuyển vòng lặp sang `sum()` không mặc nhiên thay đổi quy tắc số học. Ví dụ:
+Converting a loop to `sum()` does not automatically change arithmetic rules. For example:
 
 ```java
 int wrong = java.util.stream.IntStream
         .of(2_000_000_000, 2_000_000_000)
         .sum();
-System.out.println(wrong); // -294967296, tràn int
+System.out.println(wrong); // -294967296, int overflow
 
 long correct = java.util.stream.IntStream
         .of(2_000_000_000, 2_000_000_000)
@@ -495,7 +495,7 @@ long correct = java.util.stream.IntStream
 System.out.println(correct); // 4000000000
 ```
 
-`LongStream.sum()` cũng có thể tràn nếu kết quả vượt miền `long`. Nếu bài toán yêu cầu **phát hiện** thay vì âm thầm để tràn, có thể dùng `Math.addExact` trong `reduce`, và `Math.multiplyExact` khi tính thành tiền:
+`LongStream.sum()` can also overflow if the result exceeds the `long` range. If the problem requires **detecting** overflow rather than wrapping silently, you can use `Math.addExact` in `reduce`, and `Math.multiplyExact` when computing line amounts:
 
 ```java
 long totalExact = lines.stream()
@@ -505,23 +505,23 @@ long totalExact = lines.stream()
         .reduce(0L, Math::addExact);
 ```
 
-Với dữ liệu mẫu, `totalExact == 64_000L`. Khi phép nhân hoặc phép cộng vượt phạm vi `long`, `Math.multiplyExact`/`Math.addExact` ném `ArithmeticException`. Nếu đầu vào có thể vượt cả `long`, hãy cân nhắc `BigInteger` hoặc mô hình tiền tệ thích hợp, chứ không tự chuyển sang `double` để tránh overflow.
+With the sample data, `totalExact == 64_000L`. When multiplication or addition exceeds `long` bounds, `Math.multiplyExact`/`Math.addExact` throws `ArithmeticException`. If inputs can exceed `long` itself, consider `BigInteger` or an appropriate monetary model rather than switching to `double` to avoid overflow.
 
-### Chú ý phép ép kiểu ở vị trí nào
+### Mind Where the Cast Happens
 
 ```java
 int quantity = 100_000;
 int price = 100_000;
 
-long wrong = quantity * price;        // Tràn int TRƯỚC khi gán long.
-long right = (long) quantity * price; // Tính bằng long: 10000000000.
+long wrong = quantity * price;        // Overflows int BEFORE assigning to long.
+long right = (long) quantity * price; // Computed in long: 10000000000.
 ```
 
-Một lỗi tương tự có thể xảy ra trong `mapToLong(line -> line.quantity() * line.price())` khi cả hai getter trả `int`. Hãy kiểm tra kiểu của **các toán hạng** chứ không chỉ kiểu biến đích hoặc phương thức `mapToLong`.
+A similar bug can occur inside `mapToLong(line -> line.quantity() * line.price())` when both getters return `int`. Check the types of **the operands**, not just the target variable or `mapToLong`.
 
-## 10. Thứ tự kết quả và hiệu năng của pipeline
+## 10. Result Ordering and Pipeline Performance
 
-Với `List` là nguồn có encounter order, pipeline `filter(...).map(...).toList()` giữ thứ tự các phần tử còn lại. Nhưng **tính tổng** không cung cấp một danh sách có thứ tự; chỉ cần biết tổng số học trong miền số hợp lệ.
+With a `List` source that has encounter order, `filter(...).map(...).toList()` preserves the relative order of remaining elements. However, **summing** does not return an ordered list; only the arithmetic sum within valid numeric bounds matters.
 
 ```java
 List<String> labels = lines.stream()
@@ -531,9 +531,9 @@ List<String> labels = lines.stream()
 // [PEN x3, ERASER x4]
 ```
 
-Nếu thêm `sorted()`, danh sách sẽ được sắp theo thứ tự từ điển của nhãn, **không còn phản ánh thứ tự xuất hiện ban đầu**. Chỉ sắp xếp khi đây là yêu cầu; `distinct()` chỉ nên dùng khi nghiệp vụ cho phép bỏ các phần tử được xem là trùng.
+If you add `sorted()`, the list is ordered lexicographically by label, **no longer reflecting the original appearance order**. Sort only when required; `distinct()` should only be used when business rules allow dropping elements considered duplicates.
 
-### Có nên dùng `parallelStream()` để nhanh hơn?
+### Should You Use `parallelStream()` to Go Faster?
 
 ```java
 long totalParallel = lines.parallelStream()
@@ -543,30 +543,30 @@ long totalParallel = lines.parallelStream()
         .sum();
 ```
 
-Đây là phép tổng hợp có tính kết hợp trên `long` theo ngữ nghĩa Java, nên với dữ liệu mẫu kết quả là `64_000L`. Tuy nhiên, song song tạo chi phí chia nguồn, lập lịch và gộp; với danh sách nhỏ, nó thường không có lợi. Các phép biến đổi nên độc lập, không sửa danh sách nguồn hay một biến tổng dùng chung. Không thay thế `sum()` bằng `parallelStream().forEach(line -> sharedTotal += ...)` khi `sharedTotal` là biến chung: đó là race condition.
+This is an associative reduction on `long` under Java semantics, so on the sample data the result is `64_000L`. However, parallelism introduces splitting, scheduling, and merging overhead; for small lists, it usually offers no benefit. Transformations should be independent, modifying neither the source list nor a shared sum variable. Do not replace `sum()` with `parallelStream().forEach(line -> sharedTotal += ...)` when `sharedTotal` is a shared variable: that is a race condition.
 
-Độ phức tạp duyệt thông thường của cả vòng `for` và `filter → mapToLong → sum` trên một danh sách hữu hạn là **O(n)** thời gian, ngoài các chi phí của predicate và mapper. `sum` chỉ giữ trạng thái cộng dồn nhỏ; còn `filter(...).map(...).toList()` phải tạo danh sách kết quả với bộ nhớ tăng theo số phần tử được giữ.
+The standard traversal complexity of both the `for` loop and `filter → mapToLong → sum` on a finite list is **O(n)** time, aside from predicate and mapper costs. `sum` holds only a small accumulator state, whereas `filter(...).map(...).toList()` allocates a result list whose memory grows with the number of retained elements.
 
-Đừng chỉ nhìn số dòng mã để kết luận cách nào nhanh hơn. **Hãy chọn cách dễ kiểm tra tính đúng**, sau đó đo hiệu năng bằng dữ liệu thực tế nếu đây là một điểm nghẽn.
+Do not judge speed by line count alone. **Choose the approach that is easiest to verify for correctness**, then benchmark on realistic data if this becomes a bottleneck.
 
-## 11. Lỗi thường gặp khi chuyển vòng lặp sang Stream
+## 11. Common Mistakes When Converting Loops to Streams
 
-| Lỗi | Vì sao sai | Hướng khắc phục |
+| Mistake | Why It Is Wrong | Fix |
 | --- | --- | --- |
-| Viết `map(...).sum()` trên `Stream<Long>` | `Stream<T>` không có `sum()`. | Dùng `mapToLong(...).sum()` hoặc `reduce` phù hợp. |
-| `map` thành SKU trước khi lọc theo `paid` | Mất các trường cần để lọc. | `filter` khi còn `SaleLine`, rồi `map` ra SKU. |
-| Dùng `distinct()` trước `sum()` chỉ vì SKU trùng | Làm mất dòng bán hàng hợp lệ. | Không loại trùng nếu bài toán tính theo từng dòng. |
-| Nhân hai `int` rồi gán vào `long` | Có thể tràn trước khi ép kiểu. | Ép `long` trước phép nhân hoặc dùng `Math.multiplyExact`. |
-| Gọi `sum()` rồi cố dùng lại cùng Stream | Terminal operation tiêu thụ Stream. | Gọi `lines.stream()` mới hoặc chọn collector phù hợp. |
-| Dùng `findFirst()` để lấy tổng | Chỉ lấy tối đa một phần tử. | Dùng `sum()`/`reduce` cho phép cộng toàn bộ. |
-| Dùng `peek` để tăng biến tổng | Side effect khó kiểm soát, có thể bị tối ưu hoặc race. | Diễn đạt cộng dồn bằng terminal operation. |
-| Cho rằng Stream luôn nhanh hơn vòng `for` | Pipeline có chi phí tạo và vận hành; parallel còn thêm chi phí chia/gộp. | Đo trên dữ liệu đại diện nếu hiệu năng quan trọng. |
-| Không xét nguồn rỗng | Dự đoán sai giá trị mặc định. | `sum()` trả 0; với `average()`/`min()` cần xử lý `Optional`. |
-| Tự sửa collection nguồn trong `filter` | Vi phạm non-interference, có thể gây hành vi lỗi. | Duyệt nguồn ổn định, biến đổi đầu ra thay vì sửa đầu vào. |
+| Writing `map(...).sum()` on `Stream<Long>` | `Stream<T>` has no `sum()`. | Use `mapToLong(...).sum()` or an appropriate `reduce`. |
+| `map` to SKU before filtering by `paid` | Loses the fields needed for filtering. | `filter` while elements are `SaleLine`, then `map` to SKU. |
+| Using `distinct()` before `sum()` just because SKUs repeat | Drops valid sale lines. | Do not deduplicate when calculating line by line. |
+| Multiplying two `int`s and assigning to `long` | Can overflow before the widening conversion. | Cast to `long` before multiplying or use `Math.multiplyExact`. |
+| Calling `sum()` and trying to reuse the same Stream | Terminal operation consumes the Stream. | Call `lines.stream()` again or choose a single-pass collector. |
+| Using `findFirst()` to get a total | Returns at most one element. | Use `sum()`/`reduce` to combine all elements. |
+| Using `peek` to increment a sum variable | Hard-to-control side effect; risk of optimization or race. | Express accumulation with a terminal operation. |
+| Assuming Streams are always faster than `for` loops | Pipelines have setup/execution overhead; parallel adds split/merge cost. | Measure on representative data when performance matters. |
+| Ignoring empty sources | Wrong assumptions about default values. | `sum()` returns 0; `average()`/`min()` return `Optional`. |
+| Mutating the source collection inside `filter` | Violates non-interference; can cause broken behavior. | Traverse a stable source and transform outputs instead of mutating input. |
 
-## 12. Bài tập kiểm tra cuối bài
+## 12. End-of-Lesson Review Exercises
 
-**Câu 1.** Từ `IntStream.rangeClosed(1, 10)`, lấy số chia hết cho 3, nhân đôi rồi tính tổng. Kết quả?
+**Question 1.** From `IntStream.rangeClosed(1, 10)`, take numbers divisible by 3, double them, and compute the sum. What is the result?
 
 ```java
 int total = java.util.stream.IntStream.rangeClosed(1, 10)
@@ -576,19 +576,19 @@ int total = java.util.stream.IntStream.rangeClosed(1, 10)
 // (3 + 6 + 9) * 2 = 36
 ```
 
-**Câu 2.** Nếu tất cả `SaleLine` đều `paid == false`, pipeline ở mục 3 trả giá trị gì?
+**Question 2.** If all `SaleLine` elements have `paid == false`, what does the pipeline in Section 3 return?
 
-**Đáp án:** `0L`. Sau `filter` không còn phần tử, nên `LongStream.sum()` trả phần tử trung hòa của phép cộng.
+**Answer:** `0L`. After `filter` no elements remain, so `LongStream.sum()` returns the additive identity.
 
-**Câu 3.** Tại sao `lines.stream().map(SaleLine::sku).filter(line -> line.paid())` không biên dịch?
+**Question 3.** Why does `lines.stream().map(SaleLine::sku).filter(line -> line.paid())` fail to compile?
 
-**Đáp án:** Sau `map(SaleLine::sku)`, phần tử đã là `String`; `String` không có phương thức `paid()`. Muốn lọc theo trạng thái, làm trước bước `map`.
+**Answer:** After `map(SaleLine::sku)`, the elements are `String`; `String` has no `paid()` method. To filter by status, do it before the `map` step.
 
-**Câu 4.** Khi đã có vòng lặp tính tổng chính xác và pipeline cho cùng kết quả với dữ liệu mẫu, đã đủ chứng minh hai cách luôn tương đương chưa?
+**Question 4.** Once an accurate loop and a pipeline produce the same result on sample data, is that enough to prove they are always equivalent?
 
-**Đáp án:** Chưa. Cần thêm dữ liệu rỗng, không thỏa điều kiện, giá trị lớn, mã trùng và kiểm tra xem phiên bản Stream có vô tình thay đổi quy tắc lọc, kiểu số hay thứ tự khi trả danh sách không.
+**Answer:** No. You also need empty inputs, no-match inputs, large numbers, duplicate keys, and checks verifying the Stream version did not inadvertently alter filtering rules, numeric types, or list ordering.
 
-**Câu 5.** Khi cần giá trị trung bình của các dòng phù hợp thay vì tổng, đổi `sum()` thành gì và vì sao cần kiểm tra kết quả?
+**Question 5.** When you need the average of matching lines instead of the sum, what do you replace `sum()` with and why must you inspect the result?
 
 ```java
 var maybeAverage = lines.stream()
@@ -598,16 +598,16 @@ var maybeAverage = lines.stream()
         .average();
 ```
 
-**Đáp án:** `average()` trả `OptionalDouble`, vì không có giá trị trung bình khi không có phần tử đạt điều kiện. Không gọi `getAsDouble()` trên Optional rỗng mà chưa kiểm tra; chỉ dùng `orElse(0.0)` khi nghiệp vụ quy định 0 là giá trị mặc định thích hợp.
+**Answer:** `average()` returns `OptionalDouble`, because no average exists when no element qualifies. Do not call `getAsDouble()` on an empty Optional without checking; only use `orElse(0.0)` if business rules define 0 as an appropriate default.
 
-**Câu 6.** Có thể giữ nguyên một Stream rồi tính vừa tổng vừa số dòng bằng hai terminal operation trên cùng biến không?
+**Question 6.** Can you keep one Stream and compute both the sum and the line count using two terminal operations on the same variable?
 
-**Đáp án:** Không. Một đối tượng Stream chỉ dùng cho một terminal operation. Nếu nguồn là `List`, tạo hai Stream mới; nếu nguồn không tái duyệt được, cần cách tích lũy nhiều chỉ số trong một lượt.
+**Answer:** No. A Stream instance can only be used for one terminal operation. If the source is a `List`, create two new Streams; if the source cannot be re-traversed, use an approach that accumulates multiple metrics in one pass.
 
-## Ghi nhớ
+## Key Takeaways
 
-- Chuyển `for` sang Stream bằng cách **tách đúng thao tác**: điều kiện trong `if` thành `filter`, phép tính của từng dòng thành `map`/`mapToLong`, cộng dồn thành `sum` hoặc `reduce`.
-- `filter` và `map` thường lazy; `sum` là terminal operation và tiêu thụ Stream. Dùng `mapToInt`/`mapToLong` khi cần tổng số nguyên thủy.
-- Đặt đúng thứ tự các bước: lọc trước khi làm mất dữ liệu cần kiểm tra; không tự `distinct()` hay `sorted()` nếu nghiệp vụ không yêu cầu.
-- Trường hợp rỗng, kiểu số, nguy cơ overflow, nguồn có phần tử null và tính không can thiệp phải được xét **trong cả bản vòng lặp lẫn bản Stream**.
-- Đối chiếu hai lời giải bằng kiểm thử có thể lặp lại; ưu tiên **tính đúng và sự rõ ràng** trước khi tối ưu hoặc chuyển sang song song.
+- Convert `for` to Stream by **separating the operations cleanly**: the `if` condition becomes `filter`, per-line computation becomes `map`/`mapToLong`, and accumulation becomes `sum` or `reduce`.
+- `filter` and `map` are usually lazy; `sum` is a terminal operation and consumes the Stream. Use `mapToInt`/`mapToLong` when summing primitive numbers.
+- Order steps carefully: filter before discarding fields needed for checks; do not add `distinct()` or `sorted()` unless business rules require them.
+- Empty inputs, numeric types, overflow risk, null source elements, and non-interference must be considered **in both the loop and Stream versions**.
+- Verify equivalence between the two solutions with repeatable tests; prioritize **correctness and clarity** before optimizing or switching to parallel.

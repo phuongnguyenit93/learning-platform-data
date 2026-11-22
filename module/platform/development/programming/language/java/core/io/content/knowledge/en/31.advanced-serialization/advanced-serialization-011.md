@@ -1,74 +1,74 @@
-# Filter theo stream, cấu hình JVM và phụ thuộc phiên bản JDK trong Java Serialization
+# Stream-Specific Filters, JVM Configuration, and JDK Version Dependencies in Java Serialization
 
-Khi dùng `ObjectInputStream.readObject()`, ứng dụng đưa một luồng byte vào cơ chế **giải tuần tự hóa Java (deserialization)**. Một stream độc hại có thể yêu cầu khôi phục kiểu lớp không mong muốn hoặc đồ thị đối tượng rất lớn, lồng sâu, tiêu tốn tài nguyên. **`ObjectInputFilter`** (serialization filter) cho phép ứng dụng kiểm tra tên lớp và một số chỉ số của đồ thị trong quá trình đọc, rồi **`ALLOWED`**, **`REJECTED`** hoặc **`UNDECIDED`**.
+When calling `ObjectInputStream.readObject()`, an application feeds a byte stream into **Java deserialization**. A malicious stream can request reconstructing unwanted class types or huge, deeply nested object graphs that exhaust resources. **`ObjectInputFilter`** (serialization filter) lets the application inspect class names and certain graph metrics during reading, returning **`ALLOWED`**, **`REJECTED`**, or **`UNDECIDED`**.
 
-Có ba tầng cấu hình dễ bị nhầm:
+There are three configuration layers that are easily confused:
 
-1. **Stream-specific filter:** thiết lập trên **một** `ObjectInputStream`, ví dụ `input.setObjectInputFilter(filter)`.
-2. **JVM-wide/static filter:** cấu hình qua `-Djdk.serialFilter=...` hoặc `ObjectInputFilter.Config.setSerialFilter(...)`, áp dụng ở cấp JVM theo cơ chế chọn filter.
-3. **JVM-wide filter factory (từ JDK 17):** chọn hoặc kết hợp filter cho **từng stream** khi `ObjectInputStream` được tạo và khi một filter riêng được yêu cầu; cấu hình qua `jdk.serialFilterFactory` hoặc `setSerialFilterFactory`.
+1. **Stream-specific filter:** set on **one** `ObjectInputStream`, for example `input.setObjectInputFilter(filter)`.
+2. **JVM-wide/static filter:** configured via `-Djdk.serialFilter=...` or `ObjectInputFilter.Config.setSerialFilter(...)`, applied at JVM level per the filter selection mechanism.
+3. **JVM-wide filter factory (since JDK 17):** selects or combines filters for **each stream** when `ObjectInputStream` is created and when a stream-specific filter is requested; configured via `jdk.serialFilterFactory` or `setSerialFilterFactory`.
 
-Không nên nghĩ rằng chỉ cần bật một filter bất kỳ là việc deserialize dữ liệu không tin cậy đã an toàn. Bộ lọc là **lớp bảo vệ bổ sung**. Lựa chọn an toàn hơn vẫn là không dùng Java native deserialization cho dữ liệu không tin cậy, mà sử dụng định dạng dữ liệu được kiểm tra schema, xác thực và giới hạn tài nguyên.
+Do not assume that enabling just any filter makes deserializing untrusted data safe. A filter is an **additional defense layer**. The safer choice remains avoiding Java native deserialization for untrusted data, using instead a data format with schema validation, authentication, and resource limits.
 
-## 1. API cốt lõi và mối nguy cần giới hạn
+## 1. Core APIs and Risks to Bound
 
-Các lớp liên quan thuộc package `java.io`:
+Related classes belong to package `java.io`:
 
-| API | Vai trò |
+| API | Role |
 | --- | --- |
-| `ObjectInputStream` | Đọc đối tượng từ Java serialization stream |
-| `ObjectInputFilter` | Giao diện đánh giá các đối tượng/lớp và chỉ số đồ thị khi deserialize |
-| `ObjectInputFilter.FilterInfo` | Ngữ cảnh hiện tại: `serialClass()`, `arrayLength()`, `depth()`, `references()`, `streamBytes()` |
-| `ObjectInputFilter.Status` | Ba quyết định `ALLOWED`, `REJECTED`, `UNDECIDED` |
-| `ObjectInputFilter.Config` | Tạo filter từ chuỗi pattern, đọc/đặt filter tĩnh và filter factory cấp JVM |
-| `ObjectInputStream.setObjectInputFilter(...)` | Yêu cầu áp dụng filter cụ thể cho một stream |
-| `ObjectInputStream.getObjectInputFilter()` | Kiểm tra filter đang áp dụng trên stream theo cấu hình thực tế |
+| `ObjectInputStream` | Reads objects from a Java serialization stream |
+| `ObjectInputFilter` | Interface evaluating objects/classes and graph metrics during deserialization |
+| `ObjectInputFilter.FilterInfo` | Current context: `serialClass()`, `arrayLength()`, `depth()`, `references()`, `streamBytes()` |
+| `ObjectInputFilter.Status` | Three decisions: `ALLOWED`, `REJECTED`, `UNDECIDED` |
+| `ObjectInputFilter.Config` | Builds filters from pattern strings, reads/sets the JVM-wide static filter and filter factory |
+| `ObjectInputStream.setObjectInputFilter(...)` | Requests applying a specific filter to a stream |
+| `ObjectInputStream.getObjectInputFilter()` | Inspects the effective filter applied to the stream per actual configuration |
 
-Filter có thể kiểm soát **những loại class được dựng và những chỉ số tài nguyên**. Nó không phải trình phân tích giá trị nghiệp vụ; nó cũng không xác minh danh tính người gửi, không bảo đảm một object đã được tạo có trạng thái hợp lệ và không biến dữ liệu serialization thành sandbox an toàn.
+A filter can control **which class types are constructed and resource metrics**. It is not a business-value validator; nor does it verify sender identity, guarantee a constructed object has valid state, or turn serialization data into a safe sandbox.
 
-Một payload có thể nguy hiểm vì lớp được phép có `readObject()`/`readResolve()` tùy biến, vì đồ thị quá sâu, vì chuỗi tham chiếu nhiều hoặc vì dữ liệu không hợp lệ. Do đó cần cả **allowlist lớp theo use case**, **giới hạn đồ thị**, **giới hạn bytes/CPU** và **kiểm tra dữ liệu sau khi đọc**.
+A payload can be dangerous because an allowed class has custom `readObject()`/`readResolve()`, because the graph is too deep, because reference chains are excessive, or because field data is invalid. Hence you need **use-case class allowlists**, **graph limits**, **byte/CPU limits**, and **post-read data validation**.
 
-## 2. Vòng đời một stream với filter
+## 2. Lifecycle of a Filtered Stream
 
-Quy trình phổ biến:
+Typical flow:
 
 ```text
-Nguồn bytes đáng tin cậy hoặc đã kiểm soát
+Trusted or controlled byte source
           |
           v
 new ObjectInputStream(inputBytes)
-          |  (JVM-wide filter factory chọn filter ban đầu)
+          |  (JVM-wide filter factory selects initial filter)
           v
 setObjectInputFilter(streamPolicy)
-          |  (filter factory quyết định filter đang hiệu lực)
+          |  (filter factory decides effective filter)
           v
 readObject()
-          |  filter kiểm tra class / array / depth / refs / streamBytes
-          +--- REJECTED  --> thao tác đọc thất bại
-          +--- ALLOWED   --> tiếp tục theo quy trình giải tuần tự hóa
-          +--- UNDECIDED --> không xác nhận cho phép; xử lý theo chính sách kết hợp
+          |  filter checks class / array / depth / refs / streamBytes
+          +--- REJECTED  --> read operation fails
+          +--- ALLOWED   --> continue deserialization process
+          +--- UNDECIDED --> not confirmed allowed; handled per composition policy
           v
-Xác minh kiểu, tính hợp lệ nghiệp vụ, đóng stream
+Verify type, business validity, close stream
 ```
 
-Ở JDK 17, `ObjectInputStream` được tạo với một filter ban đầu thông qua factory. Khi gọi `setObjectInputFilter()`, **factory lại quyết định filter cuối cùng** dựa trên filter hiện tại và filter mới được yêu cầu. Vì vậy việc gọi phương thức này không nên được hiểu là "chắc chắn chỉ còn filter vừa truyền" hoặc "chắc chắn được merge với global" trong mọi ứng dụng: **hành vi phụ thuộc factory thực tế**.
+In JDK 17, `ObjectInputStream` is created with an initial filter via the factory. When calling `setObjectInputFilter()`, **the factory again determines the final filter** based on the current filter and the newly requested filter. Therefore calling this method should not be assumed to mean "definitely only the newly passed filter remains" or "definitely merged with global" in every application: **behavior depends on the active factory**.
 
-Các điểm giới hạn quan trọng:
+Important boundary points:
 
-- Filter có thể được gọi **không hoặc nhiều lần**, tùy loại nội dung stream và bước xử lý. Một số giá trị được mã hóa đặc biệt, chẳng hạn `String` và primitive ở những dạng nhất định, **không nhất thiết kích hoạt callback kiểm tra class cho từng giá trị**.
-- `FilterInfo.serialClass()` có thể `null` khi lần kiểm tra chỉ xét giới hạn đồ thị/tài nguyên, vì vậy không dereference tùy tiện.
-- Khi gặp array, filter có thể được gọi với class của array và có thể lấy `arrayLength()`. Pattern filter so khớp **kiểu phần tử** cho array, không đơn giản so tên `[Ljava.lang.String;`.
-- `arrayLength()` có thể là `-1` khi không phải kiểm tra một array; không so nó với kích thước thật của mọi loại collection.
-- Filter đánh giá **trước hoặc trong quá trình tạo graph**; nó không đảm bảo từ chối một object trước khi bất kỳ tác dụng phụ nào của thao tác deserialization khác xảy ra. Không dùng nó thay kiểm tra nguồn dữ liệu.
+- A filter may be invoked **zero or more times**, depending on stream content and processing steps. Some specially encoded values, such as `String` and primitives in certain forms, **do not necessarily trigger a class-check callback for every value**.
+- `FilterInfo.serialClass()` may be `null` when a check only evaluates graph/resource limits, so do not dereference it blindly.
+- When encountering an array, the filter can be called with the array class and can read `arrayLength()`. Pattern filters match the **element type** for arrays rather than simply matching names like `[Ljava.lang.String;`.
+- `arrayLength()` can be `-1` when not checking an array; do not compare it against the real size of arbitrary collections.
+- Filters evaluate **before or during graph construction**; they do not guarantee rejecting an object before any side effect of another deserialization step occurs. Do not use them in place of verifying the data source.
 
-## 3. Bộ lọc theo stream: tách chính sách cho từng luồng
+## 3. Stream-Specific Filters: Separating Policies per Stream
 
-Một dịch vụ có thể có nhiều đầu vào. Ví dụ một stream chỉ nên nhận `InvoiceDTO`, stream khác nhận `CacheSnapshot`. Dùng một danh sách lớp cho tất cả dễ khiến quyền giải tuần tự hóa trở nên rộng hơn nhu cầu.
+A service may have multiple inputs. For example, one stream should accept only `InvoiceDTO`, while another accepts `CacheSnapshot`. Using one class list for everything easily grants broader deserialization privileges than needed.
 
-Với JDK 9+ và JDK 17, bạn có thể tạo filter bằng pattern rồi yêu cầu gắn vào `ObjectInputStream`:
+With JDK 9+ and JDK 17, you can build a pattern filter and request attaching it to `ObjectInputStream`:
 
 ```java
-// Minh họa trong một phương thức đọc, trước readObject().
+// Illustrative inside a read method, before readObject().
 ObjectInputFilter policy = ObjectInputFilter.Config.createFilter(
         "maxdepth=10;maxrefs=200;maxbytes=1048576;maxarray=10000;" +
         "com.example.dto.**;java.base/java.util.*;!*");
@@ -76,20 +76,20 @@ ObjectInputFilter policy = ObjectInputFilter.Config.createFilter(
 try (ObjectInputStream in = new ObjectInputStream(source)) {
     in.setObjectInputFilter(policy);
     Object value = in.readObject();
-    // Kiểm tra kiểu cụ thể và validate cấu trúc dữ liệu.
+    // Check concrete type and validate data structure.
 }
 ```
 
-Đây là **đoạn minh họa**, chưa định nghĩa `source` và những lớp `com.example.dto`; không phải chương trình biên dịch độc lập. Nếu ứng dụng dùng `List`, `Map`, array hoặc class nội bộ khác, phải kiểm thử chính sách trên **toàn bộ object graph hợp lệ**, không mặc định pattern trên luôn phù hợp.
+This is an **illustrative snippet**, leaving `source` and `com.example.dto` classes undefined; it is not a standalone compilable program. If the application uses `List`, `Map`, arrays, or other internal classes, test the policy against the **entire valid object graph** rather than assuming the pattern above always fits.
 
-**Đặt filter trước lần đọc đầu tiên** là thói quen cần thiết. Với API chuẩn, không nên chờ đọc một phần object rồi mới quyết định cài filter. Nếu `ObjectInputStream` do framework/library sở hữu, việc gọi `setObjectInputFilter()` có thể không được phép hoặc đã quá muộn; cần phối hợp cấu hình ngay ở nơi tạo stream.
+**Setting the filter before the first read** is an essential habit. With the standard API, never wait until after reading part of an object to decide to install a filter. If `ObjectInputStream` is owned by a framework/library, calling `setObjectInputFilter()` might be disallowed or too late; coordinate configuration right where the stream is created.
 
-### Khi nào nên dùng custom filter thay vì pattern?
+### When to Use a Custom Filter Instead of Patterns?
 
-Khi cần kiểm tra logic ngoài tên class, viết lambda theo `ObjectInputFilter.FilterInfo`:
+When logic beyond class names is required, write a lambda against `ObjectInputFilter.FilterInfo`:
 
 ```java
-// Minh họa trong chương trình đã import java.io.ObjectInputFilter.
+// Illustrative inside a program that imported java.io.ObjectInputFilter.
 ObjectInputFilter policy = info -> {
     if (info.depth() > 12
             || info.references() > 1000
@@ -109,80 +109,80 @@ ObjectInputFilter policy = info -> {
 };
 ```
 
-Đây là **minh họa**, `ExampleDTO` là class ứng dụng giả định, không phải file độc lập. Bộ lọc này chỉ cho phép `ExampleDTO` ở các lần callback có class cụ thể: nếu `ExampleDTO` chứa field kiểu class/array khác cần deserialize, filter sẽ từ chối chúng. Với hệ thống thật, hãy xét toàn bộ kiểu hợp lệ và không bỏ quên primitive array, collection, proxy, nested class hay các object phụ thuộc.
+This is **illustrative**; `ExampleDTO` is a hypothetical application class, not a standalone file. This filter permits only `ExampleDTO` on callbacks with a concrete class: if `ExampleDTO` has fields of other classes/arrays requiring deserialization, the filter will reject them. In real systems, account for every valid type and do not overlook primitive arrays, collections, proxies, nested classes, or dependent objects.
 
-## 4. Ba kết quả ALLOWED, REJECTED, UNDECIDED
+## 4. Three Outcomes: ALLOWED, REJECTED, UNDECIDED
 
-| Kết quả | Ý nghĩa |
+| Outcome | Meaning |
 | --- | --- |
-| `ALLOWED` | Kiểm tra hiện tại vượt qua chính sách filter này; tiếp tục deserialization |
-| `REJECTED` | Từ chối; deserialization sẽ thất bại, thường thể hiện qua `InvalidClassException` |
-| `UNDECIDED` | Filter không đưa ra quyết định cho lần kiểm tra này; **không phải ALLOWED theo nghĩa allowlist** |
+| `ALLOWED` | Current check passes this filter policy; deserialization continues |
+| `REJECTED` | Denied; deserialization will fail, typically surfaced via `InvalidClassException` |
+| `UNDECIDED` | Filter makes no decision for this check; **not ALLOWED in the allowlist sense** |
 
-Với `ObjectInputFilter.Config.createFilter(pattern)`, hệ thống xét **giới hạn tài nguyên trước**, rồi xét pattern class **từ trái sang phải**. Pattern đầu tiên khớp quyết định ALLOWED/REJECTED; nếu không khớp và không vượt ngưỡng, kết quả là UNDECIDED.
+With `ObjectInputFilter.Config.createFilter(pattern)`, the system evaluates **resource limits first**, then evaluates class patterns **from left to right**. The first matching pattern decides ALLOWED/REJECTED; if none matches and no threshold is exceeded, the outcome is UNDECIDED.
 
-Trong trường hợp filter hiệu lực trả UNDECIDED cho một class và không có thành phần khác từ chối, quá trình đọc có thể tiếp tục. Bởi vậy **chỉ ghi tên các class được phép nhưng không thêm quy tắc từ chối phần còn lại không nhất thiết tạo ra allowlist "deny by default"**.
+If the effective filter returns UNDECIDED for a class and nothing else rejects it, reading can proceed. Thus **listing allowed classes without adding a reject rule for everything else does not necessarily yield a "deny by default" allowlist**.
 
-Một pattern phổ biến có dấu `!*` cuối chuỗi:
+A common pattern ends with `!*`:
 
 ```text
 com.example.api.**;java.base/java.util.*;!*
 ```
 
-Nghĩa là chấp nhận các class khớp hai pattern đầu, rồi từ chối những class còn lại khi có kiểm tra class. Tuy nhiên không được mở cả package lớn nếu ứng dụng chỉ cần vài DTO cụ thể; mọi class thuộc package/module được cho phép đều phải nằm trong mô hình tin cậy.
+This accepts classes matching the first two patterns, then rejects remaining classes when checked. Still, do not open entire large packages if the application only needs a few specific DTOs; every class in an allowed package/module must belong to your trust model.
 
-Trong JDK 17 có các công cụ `ObjectInputFilter.merge(...)` để kết hợp filter và `ObjectInputFilter.rejectUndecidedClass(...)` để xử lý kết quả chưa quyết định trên các lần kiểm tra class. Cách dùng phải được đánh giá theo từng hệ thống; không nên tự suy diễn rằng “merge” luôn bằng nối các pattern hay luôn giống phép giao của hai allowlist.
+JDK 17 provides utilities `ObjectInputFilter.merge(...)` to combine filters and `ObjectInputFilter.rejectUndecidedClass(...)` to handle undecided outcomes on class checks. Their usage must be evaluated per system; do not assume "merge" always equals pattern concatenation or always behaves like the intersection of two allowlists.
 
-## 5. Cấu hình JVM-wide bằng jdk.serialFilter
+## 5. JVM-Wide Configuration via jdk.serialFilter
 
-Nếu ứng dụng hoặc thư viện tạo `ObjectInputStream` tại nhiều vị trí khó sửa, bạn có thể cấu hình filter tĩnh **ngay lúc khởi động JVM**:
+If an application or library creates `ObjectInputStream` in many hard-to-modify places, you can configure a static filter **at JVM startup**:
 
 ```bash
 java '-Djdk.serialFilter=maxdepth=12;maxrefs=5000;maxbytes=10485760;maxarray=100000;com.example.dto.**;!*' com.example.Main
 ```
 
-Đây là lệnh **minh họa**: class `com.example.Main` và package DTO cần có thật trong ứng dụng. Trên hệ shell cụ thể, cách quote đối số có thể khác; hãy bảo đảm **toàn bộ chuỗi pattern có dấu `;` được truyền thành một JVM option duy nhất**, vì dấu chấm phẩy trong shell có thể là ký hiệu phân tách câu lệnh.
+This is an **illustrative command**: `com.example.Main` and the DTO package must exist in your application. On specific shells, argument quoting may differ; ensure the **entire pattern string containing `;` is passed as a single JVM option**, because semicolons in shells can act as command separators.
 
-Những ngưỡng cơ bản:
+Basic thresholds:
 
-| Pattern | Ý nghĩa |
+| Pattern | Meaning |
 | --- | --- |
-| `maxdepth=12` | Giới hạn độ sâu đồ thị khi deserialize |
-| `maxrefs=5000` | Giới hạn số tham chiếu được theo dõi |
-| `maxbytes=10485760` | Giới hạn số byte của serialization stream được theo dõi |
-| `maxarray=100000` | Giới hạn độ dài một array, **không phải kích thước mọi collection** |
-| `com.example.dto.**` | Cho phép class trong package và subpackage phù hợp |
-| `java.base/java.util.*` | Cho phép class trực tiếp trong package `java.util` của module `java.base` |
-| `!*` | Từ chối class còn lại khi được filter kiểm tra |
+| `maxdepth=12` | Caps graph depth during deserialization |
+| `maxrefs=5000` | Caps tracked references |
+| `maxbytes=10485760` | Caps tracked serialization stream bytes |
+| `maxarray=100000` | Caps single array length, **not the size of arbitrary collections** |
+| `com.example.dto.**` | Allows classes in matching package and subpackages |
+| `java.base/java.util.*` | Allows classes directly in package `java.util` of module `java.base` |
+| `!*` | Rejects remaining classes when checked by the filter |
 
-Filter tĩnh được cấu hình thông qua **system property `jdk.serialFilter`**; khi không có, JVM có thể dùng **security property cùng tên** từ cấu hình security. System property được ưu tiên so với security property theo thứ tự khởi tạo của `ObjectInputFilter.Config`.
+The static filter is configured via the **system property `jdk.serialFilter`**; when absent, the JVM can fall back to the **security property of the same name** from security configuration. The system property takes precedence over the security property during `ObjectInputFilter.Config` initialization.
 
-Có thể thiết lập bằng API **nếu filter tĩnh chưa được đặt/cấu hình**:
+It can be set via API **if the static filter has not yet been set/configured**:
 
 ```java
-// Minh họa cho bootstrap của ứng dụng trên Java 17.
+// Illustrative for application bootstrap on Java 17.
 ObjectInputFilter global = ObjectInputFilter.Config.createFilter(
         "maxdepth=12;maxrefs=5000;maxbytes=10485760;maxarray=100000");
 ObjectInputFilter.Config.setSerialFilter(global);
 ```
 
-`setSerialFilter()` là cấu hình **một lần ở cấp JVM**, không phải lời gọi để bật/tắt theo request. Nếu filter đã được đặt, có thể nhận `IllegalStateException`; nếu một Security Manager/permissions của phiên bản đang chạy chặn thao tác, có thể nhận ngoại lệ quyền truy cập.
+`setSerialFilter()` is a **one-time JVM-level** setting, not a call to toggle per request. If a filter has already been set, you may get `IllegalStateException`; if a running Security Manager/permission check blocks the operation, you may get a security exception.
 
-**Điều quan trọng:** Gọi `System.setProperty("jdk.serialFilter", "...")` sau khi cơ chế `ObjectInputFilter.Config` đã khởi tạo **không bảo đảm thay đổi bộ lọc tĩnh có hiệu lực**. Dùng JVM startup options hoặc bootstrap API đúng thời điểm.
+**Important:** Calling `System.setProperty("jdk.serialFilter", "...")` after `ObjectInputFilter.Config` has initialized **does not guarantee the static filter update takes effect**. Use JVM startup options or the bootstrap API at the proper time.
 
-### Cấu hình toàn JVM không giống “chắc chắn được áp dụng cùng per-stream”
+### JVM-Wide Configuration Does Not Mean "Guaranteed to Apply Alongside Per-Stream"
 
-Ở JDK 17, một **filter factory** được gọi để chọn filter cho từng stream. Built-in factory sử dụng global filter khi stream được tạo, nhưng khi code gọi `setObjectInputFilter(streamPolicy)`, built-in factory có thể **thay global filter bằng filter theo stream** thay vì tự động giao hai chính sách. Nếu chính sách bảo vệ toàn JVM bắt buộc luôn có hiệu lực, đừng chỉ suy diễn từ việc đã đặt `jdk.serialFilter`; cần kiểm soát/combine các filter ở factory phù hợp.
+In JDK 17, a **filter factory** is invoked to choose the filter for each stream. The built-in factory uses the global filter when the stream is created, yet when code calls `setObjectInputFilter(streamPolicy)`, the built-in factory can **replace the global filter with the stream-specific filter** rather than automatically intersecting both policies. If a JVM-wide baseline protection must always remain active, do not merely infer from having set `jdk.serialFilter`; control/combine filters inside an appropriate factory.
 
-## 6. JDK 17: filter factory theo ngữ cảnh (JEP 415)
+## 6. JDK 17: Context-Specific Filter Factories (JEP 415)
 
-Từ JDK 17, `ObjectInputFilter.Config` có filter factory cấp JVM để chọn **một filter hiệu lực cho mỗi `ObjectInputStream`**. Nó có thể dựa trên filter toàn JVM, filter mà code yêu cầu cho stream và ngữ cảnh gọi (module, ThreadLocal, call stack, service owner…).
+Since JDK 17, `ObjectInputFilter.Config` provides a JVM-level filter factory to select **the effective filter for each `ObjectInputStream`**. It can consider the JVM-wide filter, the filter requested by stream code, and the call context (module, ThreadLocal, call stack, service owner…).
 
-Đặt bằng API:
+Set via API:
 
 ```java
-// Phác thảo chỉ minh họa cách ghép hai filter.
-// Phải đặt ở bootstrap, trước bất kỳ ObjectInputStream nào được tạo.
+// Sketch illustrating only how to combine two filters.
+// Must be set at bootstrap, before any ObjectInputStream is created.
 ObjectInputFilter.Config.setSerialFilterFactory((current, requested) -> {
     if (current == null) return requested;
     if (requested == null) return current;
@@ -190,29 +190,29 @@ ObjectInputFilter.Config.setSerialFilterFactory((current, requested) -> {
 });
 ```
 
-Đây là **đoạn minh họa cấu hình toàn JVM**, không phải chính sách production hoàn chỉnh. `current` là filter hiện tại của stream (hoặc `null` ở lúc khởi tạo), `requested` là filter mà constructor hoặc `setObjectInputFilter` yêu cầu. Nếu `current` đã khác `null`, factory không được trả `null` để vô hiệu hóa filter đang tồn tại.
+This is an **illustrative JVM-wide configuration snippet**, not a complete production policy. `current` is the stream's current filter (or `null` at initialization), and `requested` is the filter requested by the constructor or `setObjectInputFilter`. If `current` is already non-`null`, the factory must not return `null` to disable an existing filter.
 
-Trong thực tế, cần có đội sở hữu cấu hình toàn JVM, kiểm thử hành vi merge/UNDECIDED/REJECTED, đo hiệu năng và đảm bảo policy per-stream không vô tình **nới rộng** hoặc **từ chối** các kiểu mà framework hợp lệ cần dùng.
+In practice, assign clear ownership of JVM-wide config, test merge/UNDECIDED/REJECTED behavior, measure performance, and ensure per-stream policies do not accidentally **widen** or **reject** types needed by legitimate frameworks.
 
-Có thể cấu hình một class factory bằng startup property:
+A factory class can be configured via a startup property:
 
 ```bash
 java -Djdk.serialFilterFactory=com.example.security.MyFilterFactory com.example.Main
 ```
 
-Class factory này phải do ứng dụng cung cấp, **public**, có public constructor không tham số, triển khai `BinaryOperator<ObjectInputFilter>` và được class loader phù hợp nạp được. Thuộc tính `jdk.serialFilterFactory` là **tên lớp factory**, không phải chuỗi pattern. Nó khác với `jdk.serialFilter`.
+This factory class must be application-supplied, **`public`**, have a public no-arg constructor, implement `BinaryOperator<ObjectInputFilter>`, and be loadable by the appropriate class loader. The `jdk.serialFilterFactory` property is a **factory class name**, not a pattern string. It differs from `jdk.serialFilter`.
 
-Theo Java 17, cấu hình factory chỉ được thay đổi **một lần** và trước khi bất kỳ `ObjectInputStream` nào được tạo. Cấu hình qua system/security property có quyền ưu tiên và không thể bị tùy tiện thay thế sau đó bằng API. `System.setProperty("jdk.serialFilterFactory", "...")` sau khi Config đã khởi tạo **không tự bật factory mới**.
+Under Java 17, the factory configuration can be set **only once** and before any `ObjectInputStream` is created. Configuration via system/security properties takes precedence and cannot be arbitrarily overridden afterward via API. Calling `System.setProperty("jdk.serialFilterFactory", "...")` after Config initializes **does not activate a new factory**.
 
-### Khi nào cần factory thay vì filter tĩnh?
+### When Do You Need a Factory Instead of a Static Filter?
 
-Một ứng dụng nhiều module có thể nhận những loại payload khác nhau: thanh toán chỉ dùng `PaymentDTO`, lưu cache dùng `CacheSnapshot`, công cụ nội bộ dùng `MigrationRecord`. Một JVM-wide allowlist đủ rộng cho tất cả có thể tăng diện tấn công. Factory theo ngữ cảnh có thể ghép **giới hạn nền bắt buộc** với **allowlist cho đúng đầu vào**. Nhưng ngữ cảnh phải đáng tin, không lấy tên class tùy ý từ payload hay request của bên gửi làm chính sách tự cho phép.
+A multi-module application may receive varied payloads: payments use only `PaymentDTO`, caching uses `CacheSnapshot`, internal tools use `MigrationRecord`. A single JVM-wide allowlist broad enough for all of them widens the attack surface. A context-specific factory can combine **mandatory baseline limits** with an **allowlist tailored to each input**. Still, the context itself must be trusted—never take arbitrary class names from the sender's payload or request as a self-allowing policy.
 
-## 7. Ví dụ Java 17 hoàn chỉnh: per-stream allowlist, chấp nhận một lớp và từ chối lớp khác
+## 7. Complete Java 17 Example: Per-Stream Allowlist Accepting One Class and Rejecting Another
 
-Chương trình này tự tạo hai serialization stream trong bộ nhớ. Nó không đọc dữ liệu từ mạng, nên an toàn để minh họa kiểm tra filter. Một lớp được cho phép là `AllowedMessage`, lớp còn lại là `BlockedMessage`. Mỗi lần đọc tạo **một ObjectInputStream riêng** và cài cùng một filter **trước `readObject()`**.
+This program constructs two serialization streams in memory. It reads no network data, making it safe to demonstrate filter checks. One class is allowed (`AllowedMessage`) and the other is `BlockedMessage`. Each read creates **a separate ObjectInputStream** and installs the same filter **before `readObject()`**.
 
-Tạo file **`SerialFilterDemo.java`**:
+Create the file **`SerialFilterDemo.java`**:
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -284,131 +284,131 @@ public final class SerialFilterDemo {
 }
 ```
 
-Biên dịch và chạy bằng **JDK 17**, với cấu hình JVM chuẩn không cài factory tùy biến:
+Compile and run with **JDK 17**, under standard JVM configuration without a custom factory:
 
 ```bash
 javac SerialFilterDemo.java
 java SerialFilterDemo
 ```
 
-Kết quả dự kiến:
+Expected output:
 
 ```text
 allowed=42
 rejected=InvalidClassException
 ```
 
-**Tại sao kết quả như vậy?**
+**Why does it produce this output?**
 
-1. `encode` dùng `ObjectOutputStream` để biến instance hợp lệ thành byte array trong bộ nhớ; nó chưa đọc lại object.
-2. `decode` tạo `ObjectInputStream` rồi cài filter bằng `setObjectInputFilter` trước khi đọc. Pattern giới hạn depth/references/bytes/array length và chỉ cho phép tên class binary `SerialFilterDemo$AllowedMessage`.
-3. Phần `!*` ở cuối từ chối các class còn lại khi được kiểm tra. `AllowedMessage` thuộc tập được phép, nên `readObject()` trả về đối tượng có `code=42`.
-4. `BlockedMessage` không khớp allowlist, nên khi deserialize bị `REJECTED`, thường thông qua `InvalidClassException`. Chương trình bắt đúng loại exception này và chỉ in tên exception, tránh phụ thuộc phần message/stacktrace có thể thay đổi theo JVM.
-5. Vì class chỉ lưu một trường primitive `int`, ví dụ không cần allowlist thêm các class lồng nhau như `ArrayList` hay các kiểu DTO khác. Nếu bổ sung field tham chiếu serializable, phải cập nhật filter và kiểm thử lại object graph.
+1. `encode` uses `ObjectOutputStream` to convert a valid instance into an in-memory byte array; it does not read objects back yet.
+2. `decode` creates `ObjectInputStream` and installs the filter via `setObjectInputFilter` before reading. The pattern caps depth/references/bytes/array length and allows only the binary class name `SerialFilterDemo$AllowedMessage`.
+3. The trailing `!*` rejects remaining classes when checked. `AllowedMessage` is in the allowed set, so `readObject()` returns the object with `code=42`.
+4. `BlockedMessage` does not match the allowlist, so deserialization yields `REJECTED`, typically via `InvalidClassException`. The program catches that exception type and prints only the exception name, avoiding dependence on messages/stack traces that can vary across JVMs.
+5. Because the class stores only a primitive `int` field, the example needs no extra allowlist entries for nested classes like `ArrayList` or other DTO types. If you add serializable reference fields, update the filter and re-test the object graph.
 
-Đây là ví dụ minh họa cơ chế lọc, **không phải bộ lọc dùng nguyên mẫu cho dữ liệu thực tế**. Với môi trường có JVM-wide filter/factory do ứng dụng hoặc framework đặt, filter hiệu lực có thể khác và cần được kiểm tra trước khi kết luận kết quả luôn giống demo.
+This is an illustrative filter example, **not a production-ready filter template for real data**. In environments where an application or framework configures a JVM-wide filter/factory, the effective filter may differ and must be tested before assuming identical demo behavior.
 
-## 8. Pattern syntax và các bẫy cấu hình
+## 8. Pattern Syntax and Configuration Traps
 
-Cú pháp pattern filter của `ObjectInputFilter.Config.createFilter` là tập các thành phần **phân tách bằng dấu chấm phẩy**. Với class pattern:
+The filter pattern syntax of `ObjectInputFilter.Config.createFilter` is a set of **semicolon-separated** components. For class patterns:
 
-| Pattern | Ý nghĩa |
+| Pattern | Meaning |
 | --- | --- |
-| `com.example.Foo` | Tên class đầy đủ chính xác |
-| `com.example.*` | Những class trực tiếp trong package `com.example` |
-| `com.example.**` | Những class trong package `com.example` và các package con |
-| `com.example.Foo*` | Class có tên bắt đầu bằng tiền tố tương ứng |
-| `java.base/java.util.*` | Class thuộc module `java.base` và package trực tiếp `java.util` |
-| `!com.example.Dangerous` | Từ chối class này |
-| `!*` | Từ chối mọi class còn lại có thể so khớp nếu đặt cuối danh sách |
+| `com.example.Foo` | Exact fully qualified class name |
+| `com.example.*` | Classes directly in package `com.example` |
+| `com.example.**` | Classes in package `com.example` and all subpackages |
+| `com.example.Foo*` | Classes whose names start with the given prefix |
+| `java.base/java.util.*` | Classes in module `java.base` and directly in package `java.util` |
+| `!com.example.Dangerous` | Rejects this class |
+| `!*` | Rejects all remaining matchable classes when placed at the end of the list |
 
-Các giới hạn nhận `maxdepth`, `maxrefs`, `maxbytes`, `maxarray`. Nếu một giới hạn xuất hiện nhiều lần, giá trị **sau cùng** của giới hạn đó có hiệu lực. Whitespace là một phần của pattern và có thể làm tên không khớp; nên tránh khoảng trắng thừa khi cấu hình qua property.
+Limits accept `maxdepth`, `maxrefs`, `maxbytes`, and `maxarray`. If a limit appears multiple times, the **last** value for that limit takes effect. Whitespace is part of the pattern and can cause names to fail to match; avoid stray spaces when configuring via properties.
 
-Một số bẫy:
+Several traps:
 
-- **Thứ tự pattern quan trọng.** Nếu đặt `!*` trước allowlist, các class tiếp theo không còn cơ hội được cho phép.
-- **Tên binary của lớp lồng nhau** dùng ký tự `$` (ví dụ `SerialFilterDemo$AllowedMessage`), không dùng tên nguồn `SerialFilterDemo.AllowedMessage`.
-- **Pattern theo class khác kiểm tra nội dung.** Cho phép `java.util.ArrayList` không ngăn danh sách chứa dữ liệu nghiệp vụ sai hoặc có quá nhiều phần tử khi giới hạn nào đó không bao phủ đúng tình huống.
-- **Giới hạn streamBytes không phải tổng ngân sách của tiến trình.** Mỗi `ObjectInputStream` có trạng thái theo dõi riêng; rất nhiều stream đồng thời vẫn có thể tiêu tốn nhiều tài nguyên.
-- **UNDECIDED không tạo bảo vệ deny-by-default.** Nếu mong muốn cấm class lạ, phải thiết kế chính sách reject rõ ràng.
-- **Không dùng filter kiểu "cho phép toàn bộ `java.base`" theo quán tính.** Mở rộng quyền đến nhiều class hơn nhu cầu thực tế.
-- **Không đọc payload rồi mới cài filter.** Chọn chính sách trước operation đầu tiên cần được bảo vệ.
+- **Pattern order matters.** Putting `!*` before the allowlist leaves subsequent classes no chance to be allowed.
+- **Binary names of nested classes** use `$` (e.g., `SerialFilterDemo$AllowedMessage`), not source syntax `SerialFilterDemo.AllowedMessage`.
+- **Class patterns differ from content validation.** Allowing `java.util.ArrayList` does not stop a list from holding invalid business data or too many elements when a limit does not cover that exact scenario.
+- **The `streamBytes` limit is not a process-wide budget.** Each `ObjectInputStream` tracks its own state; many concurrent streams can still consume huge resources.
+- **UNDECIDED does not provide deny-by-default protection.** If you want to forbid unknown classes, design an explicit reject policy.
+- **Do not use filters like "allow all of `java.base`" out of habit.** That exposes far more classes than actually needed.
+- **Never read payload first and install the filter afterward.** Pick the policy before the first operation requiring protection.
 
-## 9. Phụ thuộc phiên bản JDK: JEP 290 và JEP 415
+## 9. JDK Version Dependencies: JEP 290 and JEP 415
 
-| Dòng JDK | Khả năng và lưu ý |
+| JDK Line | Capabilities and Notes |
 | --- | --- |
-| Java 6/7/8 cũ trước các bản vá serialization filtering | Không thể giả định có API như JDK 9+ |
-| Một số bản cập nhật JDK 6/7/8 từ đợt Critical Patch Update 01/2017 | Có backport cơ chế lọc; API cũ có thể nằm ở `sun.misc.ObjectInputFilter`, khác đường import chuẩn của JDK 9+ |
-| JDK 9 (JEP 290) | Cơ chế `java.io.ObjectInputFilter`, filter theo stream và toàn JVM; giới hạn class/graph |
-| JDK 11 | Sử dụng `java.io.ObjectInputFilter` nhưng không giả định API filter factory như JDK 17 |
-| JDK 17 (JEP 415) | Bổ sung **context-specific filter factory**, `Config.setSerialFilterFactory` và `jdk.serialFilterFactory`; có helper API để ghép chính sách |
-| Các JDK về sau | Kiểm tra tài liệu API, release notes, flags cấu hình và hành vi thực tế của bản JDK/vendor cụ thể; không suy đoán hoàn toàn giống JDK 17 |
+| Old Java 6/7/8 before serialization filtering patches | Cannot assume JDK 9+ APIs exist |
+| Certain JDK 6/7/8 updates from the Jan 2017 Critical Patch Update | Have backported filtering; legacy API may live in `sun.misc.ObjectInputFilter`, differing from JDK 9+ standard imports |
+| JDK 9 (JEP 290) | `java.io.ObjectInputFilter`, per-stream and JVM-wide filters; class/graph limits |
+| JDK 11 | Uses `java.io.ObjectInputFilter` but cannot assume JDK 17 filter factory APIs |
+| JDK 17 (JEP 415) | Adds **context-specific filter factories**, `Config.setSerialFilterFactory`, and `jdk.serialFilterFactory`; includes policy composition helpers |
+| Later JDKs | Check API docs, release notes, config flags, and actual behavior of the specific JDK/vendor; do not assume complete equivalence to JDK 17 |
 
-Các mốc quan trọng:
+Key milestones:
 
-- **JEP 290 – Filter Incoming Serialization Data**: được đưa vào Java 9; các bản vá JDK 8u121, 7u131, 6u141 từng nhận backport. Không tự động suy ra mã nguồn dùng `java.io.ObjectInputFilter` biên dịch nguyên trạng trên các JDK cũ: package/API ở các backport có khác biệt.
-- **JEP 415 – Context-Specific Deserialization Filters**: được đưa vào JDK 17. Một chương trình cần `setSerialFilterFactory` nên khai báo và kiểm thử mức JDK tối thiểu là 17 (hoặc tính đến các backport đặc thù nếu vendor cung cấp, không mặc định).
-- Các tham số khởi động và API cài filter phải được xác minh theo **JDK đích**, không chỉ JDK build ở máy phát triển. Khi chạy ứng dụng/framework trên nhiều JVM, cần kiểm thử cả trường hợp không có filter mặc định và trường hợp môi trường vận hành đặt sẵn filter/factory.
+- **JEP 290 – Filter Incoming Serialization Data**: introduced in Java 9; JDK 8u121, 7u131, and 6u141 received backports. Do not assume source code importing `java.io.ObjectInputFilter` compiles unchanged on old JDKs: backport packages/APIs differ.
+- **JEP 415 – Context-Specific Deserialization Filters**: introduced in JDK 17. A program requiring `setSerialFilterFactory` should declare and test a minimum target of JDK 17 (or account for vendor-specific backports without assuming them).
+- Startup flags and filter-installation APIs must be verified against the **target JDK**, not just the development machine's build JDK. When running apps/frameworks across multiple JVMs, test both with no default filter and with operator-supplied preconfigured filters/factories.
 
-### Kiểm tra phiên bản chạy thực tế
+### Check the Actual Runtime Version
 
 ```bash
 java -version
 javac -version
 ```
 
-Không chỉ kiểm tra `java -version` của một terminal rồi tin rằng container, service, IDE hoặc máy chủ triển khai dùng đúng JVM đó. Theo dõi phiên bản và vendor của runtime thật sự chạy deserialize, đồng thời xem `jdk.serialFilter` / `jdk.serialFilterFactory` được truyền bằng startup arguments, system/security properties hay startup API.
+Do not check `java -version` in one terminal and assume containers, services, IDEs, or deployment servers run the exact same JVM. Track the version and vendor of the runtime actually executing deserialization, and inspect how `jdk.serialFilter` / `jdk.serialFilterFactory` are passed via startup arguments, system/security properties, or startup APIs.
 
-## 10. Triển khai filter trong ứng dụng lớn
+## 10. Deploying Filters in Large Applications
 
-Một chính sách khả thi thường có các lớp bảo vệ bổ sung:
+A viable policy typically includes layered safeguards:
 
-1. **Loại bỏ Java native serialization** ở điểm nhận payload không tin cậy khi có thể; dùng định dạng có schema và xác thực.
-2. **Inventory các điểm deserialize:** `ObjectInputStream` trực tiếp và những thư viện/framework có thể dùng nó ngầm.
-3. **Định nghĩa allowlist theo loại payload:** chỉ cho đúng class nghiệp vụ và phần phụ thuộc cần thiết, hạn chế package wildcard rộng.
-4. **Giới hạn tài nguyên:** depth, references, array length, stream bytes; bổ sung giới hạn ở tầng vận chuyển, thời gian xử lý, số lượng request/stream đồng thời.
-5. **Đặt chính sách sớm:** global tại khởi động, per-stream trước `readObject()`, factory trước khi tạo ObjectInputStream đầu tiên.
-6. **Kiểm thử kết hợp:** xác minh filter JVM và stream không vô tình thay thế/nới rộng nhau; thử payload hợp lệ, lớp lạ, mảng lớn, đồ thị sâu, EOF/corruption.
-7. **Xử lý lỗi có chủ đích:** khi `InvalidClassException` hoặc `IOException` xảy ra, đóng stream và báo dữ liệu không hợp lệ; không tự đọc lại bằng filter rộng hơn để "cố tương thích".
-8. **Logging/monitoring:** ghi lại class bị chặn hoặc nguyên nhân giới hạn khi an toàn, không log thẳng dữ liệu bí mật hay toàn bộ bytes serialization.
-9. **Kiểm soát version drift:** trong pipeline build/deploy, kiểm tra lớp nào đã thay đổi, dependency update có phát sinh class hợp lệ mới và chính sách có còn đúng.
-10. **Threat modeling và review:** filter có giới hạn, không thay thế kiểm soát quyền, xác thực, giới hạn bộ nhớ và tránh gadget deserialization.
+1. **Eliminate Java native serialization** at untrusted payload boundaries wherever possible; use schema-validated formats.
+2. **Inventory deserialization points:** direct `ObjectInputStream` calls and libraries/frameworks that may use it under the hood.
+3. **Define per-payload-type allowlists:** permit only necessary business classes and dependencies, avoiding broad package wildcards.
+4. **Bound resources:** depth, references, array length, stream bytes; add transport-layer limits, timeouts, and concurrency caps.
+5. **Apply policies early:** global at startup, per-stream before `readObject()`, factory before the first ObjectInputStream is constructed.
+6. **Test composition:** verify JVM and stream filters do not accidentally replace or widen each other; test valid payloads, unknown classes, huge arrays, deep graphs, and EOF/corruption.
+7. **Handle errors deliberately:** when `InvalidClassException` or `IOException` occurs, close the stream and reject the input; never retry with a broader filter to "force compatibility."
+8. **Logging/monitoring:** record blocked classes or limit triggers safely, without logging secrets or entire raw serialization bytes.
+9. **Control version drift:** in build/deploy pipelines, track changed classes, whether dependency updates introduce new legitimate classes, and whether policies remain accurate.
+10. **Threat modeling and review:** filters have limits and do not replace authorization, authentication, memory caps, or eliminating gadget deserialization.
 
-Trong ứng dụng nhiều nhóm cùng chạy trên một JVM, cấu hình `setSerialFilter` hoặc `setSerialFilterFactory` là tài nguyên **process-wide**: mỗi thư viện không thể tùy tiện thiết lập giá trị riêng một lần nữa. Tốt hơn là bộ phận sở hữu bootstrap chọn chiến lược hợp nhất và cung cấp giao diện cấu hình cho các module.
+In multi-team applications sharing one JVM, `setSerialFilter` or `setSerialFilterFactory` are **process-wide** resources: individual libraries cannot arbitrarily set their own values a second time. Preferably, the bootstrap owner selects a unified composition strategy and exposes configuration hooks to modules.
 
-## 11. Lỗi thường gặp và cách sửa
+## 11. Common Mistakes and How to Fix Them
 
-| Lỗi | Hệ quả | Hướng khắc phục |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Đặt filter cho một ObjectInputStream sau khi đã deserialize | Có thể đã xử lý lớp nguy hiểm trước khi bảo vệ | Đặt trước lần `readObject()` đầu tiên |
-| Cho rằng `UNDECIDED` bằng từ chối | Lớp không khớp vẫn có thể được đọc | Allowlist với quy tắc reject phần còn lại |
-| Cấu hình `jdk.serialFilter` nhưng stream-specific filter thay thế nó | Một số ngưỡng baseline không còn hiệu lực theo default factory | Dùng factory phối hợp và kiểm thử filter hiệu lực |
-| Coi `jdk.serialFilterFactory` là một pattern string | Không nạp được factory | Cung cấp tên class triển khai `BinaryOperator<ObjectInputFilter>` |
-| Gọi `setSerialFilterFactory` sau khi đã tạo ObjectInputStream | Có thể ném `IllegalStateException` | Cấu hình từ bootstrap |
-| Dùng `System.setProperty` sau lúc Config khởi tạo | Tưởng rằng thay chính sách đã chạy nhưng không có hiệu lực | Dùng startup property hoặc API đúng thời điểm |
-| Sao chép code JDK 17 sang JDK 8 | Lỗi import/API hoặc thiếu phương thức | Kiểm tra bản JDK/vendor và khác biệt backport |
-| Chỉ cho DTO nhưng quên array/nested/collection hợp lệ | `InvalidClassException` với input hợp lệ | Kiểm thử toàn bộ graph và các trường hợp biên |
-| Mở `java.base/*` quá rộng không cân nhắc | Cho nhiều class hơn nhu cầu | Giới hạn class/module theo trust model |
-| Chỉ đặt `maxarray` và nghĩ đã giới hạn RAM tổng | Có thể gặp nhiều object/stream hoặc cấu trúc không phải array | Kết hợp maxrefs/maxdepth/maxbytes và hạn mức ngoài stream |
-| Bắt `InvalidClassException` rồi deserialize lại không filter | Mất hàng rào bảo vệ | Reject payload, cảnh báo và đóng stream |
-| Tin filter thay được xác thực đầu vào | Gadget và lỗi dữ liệu nghiệp vụ vẫn có thể xảy ra | Tránh untrusted native deserialization, validate cấu trúc và nguồn |
+| Setting a filter on an ObjectInputStream after already deserializing | Dangerous classes may have already run before protection | Set before the first `readObject()` call |
+| Assuming `UNDECIDED` equals reject | Unmatched classes can still be read | Use an allowlist with an explicit reject rule for the rest |
+| Configuring `jdk.serialFilter` while a stream-specific filter replaces it | Baseline thresholds stop applying under the default factory | Use a composing factory and test the effective filter |
+| Treating `jdk.serialFilterFactory` as a pattern string | Fails to load factory | Supply the class name implementing `BinaryOperator<ObjectInputFilter>` |
+| Calling `setSerialFilterFactory` after an ObjectInputStream was created | May throw `IllegalStateException` | Configure during bootstrap |
+| Using `System.setProperty` after Config initialization | Appears to update running policy while having no effect | Use startup properties or bootstrap APIs at the right time |
+| Copying JDK 17 code onto JDK 8 | Missing import/API errors | Check target JDK/vendor and backport differences |
+| Allowing the DTO while forgetting valid arrays/nested/collections | `InvalidClassException` on valid inputs | Test the full graph and edge cases |
+| Opening `java.base/*` broadly without review | Exposes more classes than needed | Restrict classes/modules per trust model |
+| Setting only `maxarray` thinking total RAM is bounded | Many objects/streams or non-array structures bypass it | Combine maxrefs/maxdepth/maxbytes and external quotas |
+| Catching `InvalidClassException` and re-deserializing unfiltered | Destroys protection barrier | Reject payload, alert, and close stream |
+| Believing filters replace input authentication | Gadgets and invalid business data can still slip through | Avoid untrusted native deserialization; validate structure and source |
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-**1. Khi nào nên chọn stream-specific filter?**  
-Khi biết chính xác tập class hợp lệ của một đầu vào hoặc một loại dữ liệu; tạo `ObjectInputStream`, áp dụng filter trước lần đọc và xác minh tương tác với chính sách JVM-wide.
+**1. When should you choose a stream-specific filter?**  
+When you know the exact set of valid classes for a specific input or data kind; create `ObjectInputStream`, apply the filter before reading, and verify interaction with JVM-wide policies.
 
-**2. Nếu muốn bảo vệ mọi điểm tạo ObjectInputStream trong JVM mà không sửa từng call site, dùng gì?**  
-Có thể cấu hình `jdk.serialFilter` lúc khởi động. Tuy nhiên phải xác minh việc kết hợp với per-stream filter/factory của ứng dụng; không tự coi global filter luôn là lớp "bắt buộc" nếu factory cho phép thay thế.
+**2. If you want to protect every ObjectInputStream creation point in the JVM without editing each call site, what do you use?**  
+You can configure `jdk.serialFilter` at startup. However, verify its interaction with application per-stream filters/factories; never assume a global filter is "unconditionally enforced" if a factory allows replacement.
 
-**3. Tại sao pattern `com.example.**` chưa chắc là allowlist nghiêm ngặt?**  
-Những class không khớp có thể nhận `UNDECIDED`. Nếu cần deny-by-default, bổ sung pattern từ chối phù hợp (chẳng hạn `!*` cuối danh sách) và kiểm thử.
+**3. Why isn't the pattern `com.example.**` necessarily a strict allowlist?**  
+Unmatched classes can receive `UNDECIDED`. If deny-by-default is required, append an explicit reject pattern (such as `!*` at the end) and test it.
 
-**4. `maxarray` có ngăn được mọi collection khổng lồ không?**  
-Không. Nó giới hạn độ dài array được kiểm tra, không trực tiếp biểu diễn kích thước mọi collection hay tổng RAM của nhiều stream.
+**4. Does `maxarray` prevent all huge collections?**  
+No. It caps checked array lengths, not directly the size of arbitrary collections or total RAM across multiple streams.
 
-**5. Có thể gọi `setSerialFilterFactory` trên JDK 11 chuẩn như JDK 17 không?**  
-Không nên: API context-specific factory được bổ sung ở JDK 17. Với các runtime cũ, sử dụng khả năng được hỗ trợ ở JDK đích hoặc nâng cấp phiên bản khi thiết kế đòi hỏi factory.
+**5. Can `setSerialFilterFactory` be called on standard JDK 11 just like JDK 17?**  
+No: the context-specific factory API was added in JDK 17. On older runtimes, use capabilities supported by the target JDK or upgrade when the design requires a factory.
 
-**Ghi nhớ:** Filter theo stream giúp hạn chế đúng lớp và quy mô dữ liệu của **một ObjectInputStream**; `jdk.serialFilter` đặt chính sách toàn JVM; từ JDK 17, `jdk.serialFilterFactory` và `setSerialFilterFactory` quyết định cách chọn/kết hợp chúng. Nắm rõ `ALLOWED/REJECTED/UNDECIDED`, thời điểm đặt filter, cơ chế factory và phiên bản JDK là điều bắt buộc nếu dùng Java serialization trong hệ thống có yêu cầu bảo mật.
+**Key takeaway:** Stream-specific filters restrict exact classes and data scale for **one ObjectInputStream**; `jdk.serialFilter` sets JVM-wide policy; since JDK 17, `jdk.serialFilterFactory` and `setSerialFilterFactory` control how they are chosen/combined. Understanding `ALLOWED/REJECTED/UNDECIDED`, when filters are installed, factory mechanics, and JDK version dependencies is mandatory whenever Java serialization is used in security-sensitive systems.

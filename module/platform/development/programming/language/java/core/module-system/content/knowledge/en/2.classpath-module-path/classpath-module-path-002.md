@@ -1,45 +1,45 @@
-# Module path và cách module được phân giải
+# Module Path and How Modules Are Resolved
 
-Trong Java Platform Module System (JPMS), **module path** là nơi công cụ Java tìm các named module. Tuy nhiên, việc một modular JAR nằm trên module path không có nghĩa module ấy tự động xuất hiện trong ứng dụng đang chạy. Trước khi thực thi mã, Java cần chọn **root modules**, lần theo các dependency và tạo một **module graph** hợp lệ. Quá trình này được gọi là **module resolution**.
+In the Java Platform Module System (JPMS), the **module path** is where Java tools look for named modules. However, having a modular JAR sit on the module path does not mean that module automatically appears in the running application. Before executing code, Java needs to select **root modules**, trace dependencies, and build a valid **module graph**. This process is called **module resolution**.
 
-Hiểu module path và resolution giúp giải thích những tình huống thường gặp: JAR đã ở đúng thư mục nhưng Java vẫn báo module not found; một module được tìm thấy nhưng không thể truy cập package của module khác; thư viện chuyển từ classpath sang module path bỗng xuất hiện xung đột package; hoặc plugin chưa được phân giải dù JAR tồn tại.
+Understanding the module path and resolution helps explain common situations: a JAR is in the right directory yet Java still reports module not found; a module is found yet cannot access another module's package; a library moved from the classpath to the module path suddenly hits a package conflict; or a plugin is not resolved even though its JAR exists.
 
-Bài học này giới thiệu các khái niệm cốt lõi, một ví dụ build và chạy có thể thực hành, cách root modules và requires quyết định module graph, sự khác biệt giữa readability với package access, cùng công cụ kiểm tra và chẩn đoán cấu hình.
+This lesson introduces the core concepts, a hands-on build-and-run example, how root modules and `requires` determine the module graph, the difference between readability and package access, along with tools for inspecting and diagnosing configurations.
 
-## 1. Phân biệt classpath và module path
+## 1. Distinguishing Classpath and Module Path
 
-Hai đường tìm kiếm có vai trò khác nhau:
+The two search paths play different roles:
 
-| Khía cạnh | Classpath | Module path |
+| Aspect | Classpath | Module Path |
 | --- | --- | --- |
-| Tùy chọn phổ biến | --class-path hoặc -cp | --module-path hoặc -p |
-| Đơn vị tìm kiếm | Class và resource | Module và module descriptor |
-| Mô hình module | Unnamed module của class loader tương ứng | Named modules |
-| Dependency | Không khai báo requires ở cấp JAR | Explicit module dùng requires trong descriptor |
-| Encapsulation | Không có ranh giới named module giữa các JAR trên cùng classpath | exports và opens kiểm soát truy cập package |
-| Lựa chọn để chạy | Class main theo tên đầy đủ | Module chính và class main qua -m |
-| Rủi ro nổi bật | Trùng class, thứ tự classpath và dependency ngầm | Thiếu module, xung đột resolution, split package, quyền access |
+| Common option | --class-path or -cp | --module-path or -p |
+| Search unit | Classes and resources | Modules and module descriptors |
+| Module model | Unnamed module of the corresponding class loader | Named modules |
+| Dependencies | No JAR-level requires declarations | Explicit modules use requires in the descriptor |
+| Encapsulation | No named module boundaries between JARs on the same classpath | exports and opens control package access |
+| Selection to run | Main class by fully qualified name | Main module and main class via -m |
+| Notable risks | Duplicate classes, classpath order, and implicit dependencies | Missing modules, resolution conflicts, split packages, access permissions |
 
-Ví dụ chạy ứng dụng truyền thống:
+Example of running a traditional application:
 
 ~~~bash
 java --class-path "out:libs/*" com.example.app.Main
 ~~~
 
-Ví dụ chạy một named module:
+Example of running a named module:
 
 ~~~bash
 java --module-path mods \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Trên Windows, các entry trong một đường dẫn gồm nhiều thành phần thường phân cách bằng dấu chấm phẩy **;** thay vì dấu hai chấm **:** của Linux/macOS. Một thư mục chứa nhiều modular JAR có thể được truyền như một entry module path.
+On Windows, entries in a multi-component path are typically separated by a semicolon **;** instead of the colon **:** on Linux/macOS. A directory containing multiple modular JARs can be passed as a single module path entry.
 
-Classpath và module path có thể cùng tồn tại trong một lần khởi chạy. Khi đó các class thuộc JAR trên classpath nằm trong unnamed module, còn các module được chọn trên module path tham gia named module graph.
+The classpath and module path can coexist in a single launch. In that case, classes from JARs on the classpath reside in the unnamed module, while selected modules on the module path participate in the named module graph.
 
-## 2. Module path là nơi tìm module, không phải danh sách module phải chạy
+## 2. The Module Path Is Where Modules Are Found, Not a List of Modules That Must Run
 
-Giả sử có:
+Suppose we have:
 
 ~~~text
 project/
@@ -50,15 +50,15 @@ project/
     └── com.example.metrics.jar
 ~~~
 
-Với lệnh:
+With the command:
 
 ~~~bash
 java -p mods -m com.example.app/com.example.app.Main
 ~~~
 
-Java có thể tìm thấy các module trong thư mục mods. Nhưng Java không có nghĩa vụ đưa cả bốn module vào module graph chỉ vì bốn JAR cùng nằm trong thư mục đó.
+Java can locate the modules inside the `mods` directory. However, Java is not obligated to place all four modules into the module graph just because all four JARs sit in that directory.
 
-Nếu module app khai báo dependency trực tiếp đến catalog:
+If the `app` module declares a direct dependency on `catalog`:
 
 ~~~java
 module com.example.app {
@@ -66,25 +66,25 @@ module com.example.app {
 }
 ~~~
 
-thì ít nhất app, catalog và những dependency bắt buộc của chúng phải được xem xét để phân giải. Audit và metrics có thể vẫn là module **observable** nhưng không thuộc cấu hình được chọn nếu không có root hoặc dependency khác kéo chúng vào.
+then at least `app`, `catalog`, and their required dependencies must be considered for resolution. `audit` and `metrics` may remain **observable** modules without belonging to the selected configuration if no root or other dependency pulls them in.
 
-Đó là lý do cần tách ba câu hỏi:
+That is why three questions must be separated:
 
-1. Java có **tìm thấy descriptor** của module không?
-2. Module có được **chọn để phân giải** cùng root và dependency không?
-3. Một module consumer có **quyền đọc và truy cập package** cần sử dụng không?
+1. Does Java **find the descriptor** of the module?
+2. Is the module **selected for resolution** along with the roots and dependencies?
+3. Does a consumer module have **permission to read and access the package** it needs to use?
 
-Một câu trả lời "có" cho câu đầu không đủ để suy ra hai câu sau.
+A "yes" answer to the first question is not enough to imply the other two.
 
-## 3. Ba khái niệm: observable, root và resolved modules
+## 3. Three Concepts: Observable, Root, and Resolved Modules
 
-**Observable modules** là các module mà cơ chế tìm kiếm có thể quan sát được trong môi trường phân giải, thường gồm module của runtime image và module trên các đường module path được cấu hình.
+**Observable modules** are the modules visible to the search mechanism in the resolution environment, typically consisting of modules in the runtime image and modules on the configured module paths.
 
-**Root modules** là các module đầu vào của quá trình resolution. Khi chạy ứng dụng bằng **-m**, module chứa class main là một root. Có thể bổ sung root bằng **--add-modules**.
+**Root modules** are the entry points of the resolution process. When running an application with **-m**, the module containing the main class is a root. Additional roots can be added using **--add-modules**.
 
-**Resolved modules** là tập module được chọn sau khi JPMS đi từ roots, tìm các dependency bắt buộc và kiểm tra tính hợp lệ của configuration.
+**Resolved modules** are the set of modules selected after JPMS starts from the roots, locates mandatory dependencies, and verifies the validity of the configuration.
 
-Ví dụ:
+For example:
 
 ~~~text
 Observable modules:
@@ -101,16 +101,16 @@ Root:
 Dependencies:
     com.example.app -> com.example.catalog
     com.example.catalog -> java.logging
-    tất cả module thông thường -> java.base ngầm định
+    all ordinary modules -> implicit java.base
 ~~~
 
-Trong trường hợp chỉ có các quan hệ nêu trên, module graph được phân giải chứa app, catalog, java.logging và java.base; audit và metrics không tự tham gia.
+When only the relationships above exist, the resolved module graph contains `app`, `catalog`, `java.logging`, and `java.base`; `audit` and `metrics` do not participate on their own.
 
-Trong thực tế, một số cơ chế khác như service binding hoặc root bổ sung có thể làm tập resolved modules rộng hơn; nên kiểm tra bằng **--show-module-resolution** thay vì suy đoán từ số JAR.
+In practice, other mechanisms such as service binding or additional roots can widen the set of resolved modules; check using **--show-module-resolution** rather than guessing from the number of JARs.
 
-## 4. module-info.java quyết định dependency của explicit module
+## 4. module-info.java Determines Dependencies of an Explicit Module
 
-Explicit named module có file **module-info.java** nằm ở gốc source của module:
+An explicit named module has a **module-info.java** file at the root of the module's source:
 
 ~~~java
 module com.example.app {
@@ -118,29 +118,29 @@ module com.example.app {
 }
 ~~~
 
-Descriptor được compiler biên dịch thành **module-info.class**. Khi module được đóng gói thành modular JAR, file này nằm ở gốc JAR.
+The descriptor is compiled by the compiler into **module-info.class**. When the module is packaged into a modular JAR, this file sits at the root of the JAR.
 
-Các directive quan trọng:
+Important directives:
 
-| Directive | Tác dụng chính |
+| Directive | Primary effect |
 | --- | --- |
-| requires M | Module hiện tại cần đọc module M |
-| requires transitive M | Module hiện tại đọc M và truyền readability của M tới các module đọc module hiện tại |
-| requires static M | Dependency cần khi biên dịch nhưng có thể tùy chọn ở runtime |
-| exports p | Công bố package p cho các module khác có quan hệ đọc phù hợp |
-| exports p to M | Chỉ export package p cho một số module được nêu |
-| opens p | Mở package p cho deep reflection |
-| opens p to M | Chỉ mở package p cho module được nêu |
-| uses S | Module là consumer của service S |
-| provides S with I | Module cung cấp implementation I cho service S |
+| requires M | The current module needs to read module M |
+| requires transitive M | The current module reads M and passes readability of M to modules that read the current module |
+| requires static M | A dependency required at compile time but optional at runtime |
+| exports p | Exposes package p to other modules with an appropriate read relationship |
+| exports p to M | Exports package p only to the specified modules |
+| opens p | Opens package p for deep reflection |
+| opens p to M | Opens package p only to the specified modules |
+| uses S | The module is a consumer of service S |
+| provides S with I | The module provides implementation I for service S |
 
-**requires** ảnh hưởng trực tiếp đến việc tìm dependency trong resolution. **exports** và **opens** chủ yếu quyết định quyền truy cập package; chúng không được dùng thay cho requires.
+**requires** directly affects dependency lookup during resolution. **exports** and **opens** primarily determine package access permissions; they cannot be used in place of `requires`.
 
-Mọi ordinary named module có quan hệ đọc ngầm định tới **java.base**; không cần khai báo requires java.base trong module-info.java.
+Every ordinary named module has an implicit read relationship to **java.base**; there is no need to declare `requires java.base` in `module-info.java`.
 
-## 5. Ví dụ hoàn chỉnh với hai module
+## 5. Complete Example with Two Modules
 
-Tạo source tree:
+Create the source tree:
 
 ~~~text
 module-demo/
@@ -153,7 +153,7 @@ module-demo/
         └── com/example/app/Main.java
 ~~~
 
-Descriptor catalog:
+Catalog descriptor:
 
 ~~~java
 // src/com.example.catalog/module-info.java
@@ -162,7 +162,7 @@ module com.example.catalog {
 }
 ~~~
 
-Class catalog:
+Catalog class:
 
 ~~~java
 // src/com.example.catalog/com/example/catalog/api/Book.java
@@ -172,7 +172,7 @@ public record Book(String title) {
 }
 ~~~
 
-Descriptor app:
+App descriptor:
 
 ~~~java
 // src/com.example.app/module-info.java
@@ -181,7 +181,7 @@ module com.example.app {
 }
 ~~~
 
-Class main:
+Main class:
 
 ~~~java
 // src/com.example.app/com/example/app/Main.java
@@ -197,11 +197,11 @@ public final class Main {
 }
 ~~~
 
-Đây là hai explicit named modules: catalog cung cấp API và app tiêu thụ API. Module app khai báo **requires**, còn catalog khai báo **exports** để app sử dụng class Book.
+These are two explicit named modules: `catalog` provides the API and `app` consumes the API. The `app` module declares **requires**, while `catalog` declares **exports** so that `app` can use the `Book` class.
 
-## 6. Biên dịch theo module source path
+## 6. Compiling with Module Source Path
 
-Đứng tại thư mục module-demo, chạy:
+From the `module-demo` directory, run:
 
 ~~~bash
 javac \
@@ -210,13 +210,13 @@ javac \
   -m com.example.catalog,com.example.app
 ~~~
 
-Giải thích:
+Explanation:
 
-- **--module-source-path src** cho javac biết source được tổ chức theo thư mục module.
-- **-d mods** chọn thư mục output.
-- **-m** chỉ định các module source cần biên dịch.
+- **--module-source-path src** tells `javac` that the source code is organized by module directories.
+- **-d mods** selects the output directory.
+- **-m** specifies the source modules to compile.
 
-Sau khi biên dịch, kết quả thường có dạng:
+After compilation, the result typically looks like:
 
 ~~~text
 mods/
@@ -228,9 +228,9 @@ mods/
     └── com/example/app/Main.class
 ~~~
 
-Mỗi thư mục con là một **exploded module**: module đã biên dịch nhưng chưa được đóng gói JAR. Java launcher có thể sử dụng chúng trên module path.
+Each subdirectory is an **exploded module**: a compiled module that has not been packaged into a JAR. The Java launcher can use them on the module path.
 
-Chạy ứng dụng:
+Run the application:
 
 ~~~bash
 java \
@@ -238,17 +238,17 @@ java \
   -m com.example.app/com.example.app.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Effective Modular Java
 ~~~
 
-Java lấy com.example.app làm root, thấy descriptor của app yêu cầu com.example.catalog và phân giải catalog cùng các module hệ thống cần thiết. Vì package api đã được catalog export, Main có thể dùng Book.
+Java takes `com.example.app` as the root, sees that `app`'s descriptor requires `com.example.catalog`, and resolves `catalog` along with the required system modules. Because the `api` package is exported by `catalog`, `Main` can use `Book`.
 
-## 7. Đóng gói thành modular JAR
+## 7. Packaging into Modular JARs
 
-Nếu cần phân phối JAR, có thể đóng gói hai exploded modules:
+If you need to distribute JARs, you can package the two exploded modules:
 
 ~~~bash
 mkdir -p dist
@@ -266,7 +266,7 @@ jar --create \
     -C mods/com.example.app .
 ~~~
 
-Kiểm tra descriptor trong artifact:
+Inspect the descriptors inside the artifacts:
 
 ~~~bash
 jar --describe-module \
@@ -278,46 +278,46 @@ jar --describe-module \
     --file dist/com.example.app.jar
 ~~~
 
-Sau đó chạy:
+Then run:
 
 ~~~bash
 java -p dist \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Tên file JAR có thể khác tên module. Với explicit module, tên trong module-info.class mới là danh tính được JPMS dùng để phân giải **requires** và tên module truyền vào **-m**.
+The JAR filename can differ from the module name. For an explicit module, the name inside `module-info.class` is the identity JPMS uses to resolve **requires** and the module name passed to **-m**.
 
-Đảm bảo mỗi modular JAR chứa module-info.class ở gốc. Nếu build vô tình bỏ file này, JAR sẽ không còn được nhận diện như explicit named module như dự định.
+Ensure every modular JAR contains `module-info.class` at the root. If the build accidentally omits this file, the JAR will no longer be recognized as an explicit named module as intended.
 
-## 8. Resolution diễn ra theo các bước nào?
+## 8. What Steps Does Resolution Follow?
 
-Với lệnh:
+With the command:
 
 ~~~bash
 java --module-path dist \
      -m com.example.app/com.example.app.Main
 ~~~
 
-quá trình ở mức khái niệm là:
+the conceptual process is:
 
-1. **Xây dựng nguồn module quan sát được.** Java có thể tìm module hệ thống và module từ đường dẫn được cấu hình.
-2. **Xác định root modules.** Module com.example.app là root vì nó được chọn bằng -m; có thể có roots bổ sung.
-3. **Tìm descriptor của root.** Java lấy thông tin dependency từ module-info.class.
-4. **Theo các requires bắt buộc.** Nếu app yêu cầu catalog thì catalog phải được tìm thấy trong cấu hình có thể phân giải.
-5. **Phân giải tiếp dependency bắc cầu.** Nếu catalog yêu cầu module khác, resolution tiếp tục tìm module đó.
-6. **Kiểm tra các ràng buộc module.** Module system phát hiện một số xung đột về dependency, readability và package.
-7. **Tạo configuration hợp lệ.** Các module đã phân giải có thể được định nghĩa trong runtime layer.
-8. **Bắt đầu thực thi class main.** Class loading và initialization thực tế diễn ra theo nhu cầu của JVM.
+1. **Build the observable module sources.** Java can locate system modules and modules from the configured paths.
+2. **Determine root modules.** Module `com.example.app` is a root because it was selected with `-m`; additional roots may exist.
+3. **Read root descriptors.** Java obtains dependency information from `module-info.class`.
+4. **Follow mandatory requires.** If `app` requires `catalog`, then `catalog` must be found within a resolvable configuration.
+5. **Transitively resolve dependencies.** If `catalog` requires another module, resolution continues locating that module.
+6. **Verify module constraints.** The module system detects various dependency, readability, and package conflicts.
+7. **Create a valid configuration.** Resolved modules can be defined in a runtime layer.
+8. **Begin executing the main class.** Actual class loading and initialization occur on demand according to the JVM.
 
-Đây là mô hình khái quát; cơ chế chính xác còn tùy Java launcher, root selection, service binding và cấu hình cha.
+This is a high-level model; the exact mechanics also depend on the Java launcher, root selection, service binding, and parent configurations.
 
-Điều quan trọng là **resolution ở cấp module không đồng nghĩa JVM đã nạp tất cả class** trong mọi JAR được phân giải.
+Importantly, **module-level resolution does not mean the JVM has loaded all classes** across every resolved JAR.
 
-## 9. Readability khác với exports
+## 9. Readability Differs from Exports
 
-Một module được phép **đọc** module khác chưa chắc đã sử dụng được tất cả class public của module đó.
+A module that is allowed to **read** another module does not automatically gain access to all public classes in that module.
 
-Giả sử catalog khai báo:
+Suppose `catalog` declares:
 
 ~~~java
 module com.example.catalog {
@@ -325,13 +325,13 @@ module com.example.catalog {
 }
 ~~~
 
-Trong catalog có thêm package:
+Inside `catalog`, there is also a package:
 
 ~~~text
 com.example.catalog.internal
 ~~~
 
-Module app khai báo:
+The `app` module declares:
 
 ~~~java
 module com.example.app {
@@ -339,26 +339,26 @@ module com.example.app {
 }
 ~~~
 
-Lúc này:
+At this point:
 
-- App đọc được module catalog.
-- App truy cập được các kiểu public trong **com.example.catalog.api**.
-- App không được import các kiểu trong **com.example.catalog.internal** như một API thông thường vì package chưa export.
+- `app` reads the `catalog` module.
+- `app` can access public types in **com.example.catalog.api**.
+- `app` cannot import types in **com.example.catalog.internal** as a normal API because that package is not exported.
 
-Đó là hai lớp kiểm soát:
+These are two layers of control:
 
 ~~~text
 requires -> module readability
 exports  -> package accessibility
 ~~~
 
-Thêm catalog lên module path hoặc thêm catalog làm root không tự thay đổi exports của catalog. Nếu source app import package internal, javac có thể báo **package ... is not visible** dù resolution tìm đủ module.
+Adding `catalog` to the module path or adding `catalog` as a root does not alter `catalog`'s exports. If `app`'s source imports the internal package, `javac` can report **package ... is not visible** even when resolution finds all modules.
 
-Nếu framework cần reflection sâu, cần xem **opens**, vốn khác với exports. Không nên sửa lỗi module not found bằng opens, hoặc sửa lỗi thiếu quyền truy cập package bằng cách chỉ thêm --module-path.
+If a framework needs deep reflection, look at **opens**, which is distinct from `exports`. Do not try to fix a module-not-found error with `opens`, or fix missing package access permissions simply by adding `--module-path`.
 
-## 10. requires transitive và quan hệ đọc truyền tiếp
+## 10. requires transitive and Transitive Readability
 
-Giả sử có ba module:
+Suppose there are three modules:
 
 ~~~text
 com.example.app
@@ -370,7 +370,7 @@ com.example.service
 com.example.catalog
 ~~~
 
-Nếu service khai báo:
+If `service` declares:
 
 ~~~java
 module com.example.service {
@@ -379,7 +379,7 @@ module com.example.service {
 }
 ~~~
 
-App yêu cầu service:
+`app` requires `service`:
 
 ~~~java
 module com.example.app {
@@ -387,9 +387,9 @@ module com.example.app {
 }
 ~~~
 
-Catalog được phân giải vì service cần nó, nhưng app không mặc nhiên được quyền đọc trực tiếp catalog chỉ nhờ chuỗi requires thông thường.
+`catalog` is resolved because `service` needs it, but `app` does not implicitly gain permission to read `catalog` directly solely through an ordinary `requires` chain.
 
-Nếu public API của service đưa kiểu Book từ catalog vào method signature, service có thể khai báo:
+If `service`'s public API exposes the `Book` type from `catalog` in a method signature, `service` can declare:
 
 ~~~java
 module com.example.service {
@@ -398,13 +398,13 @@ module com.example.service {
 }
 ~~~
 
-Khi app đọc service, quan hệ readability tới catalog có thể được suy ra qua requires transitive. Điều này hữu ích khi dependency là một phần của API công khai mà consumer cần nhìn thấy.
+When `app` reads `service`, a readability relationship to `catalog` can be inferred via `requires transitive`. This is useful when a dependency is part of the public API that consumers need to see.
 
-Lưu ý: **requires transitive** truyền readability, không tự export package nội bộ của catalog. Catalog vẫn cần export package chứa kiểu API mà app sử dụng.
+Note: **requires transitive** propagates readability; it does not automatically export internal packages of `catalog`. `catalog` still needs to export the package containing the API types that `app` uses.
 
-## 11. requires static và dependency tùy chọn tại runtime
+## 11. requires static and Runtime-Optional Dependencies
 
-Với dependency chỉ cần lúc biên dịch hoặc có khả năng vắng mặt khi chạy:
+For a dependency only needed at compile time or potentially absent at runtime:
 
 ~~~java
 module com.example.app {
@@ -412,27 +412,27 @@ module com.example.app {
 }
 ~~~
 
-**requires static** cho phép biên dịch dựa trên module annotations nhưng không buộc runtime luôn phải phân giải module ấy chỉ vì directive này.
+**requires static** allows compilation against the `annotations` module without forcing the runtime to always resolve that module solely because of this directive.
 
-Nếu runtime có một đường code thực sự dùng class thuộc dependency tùy chọn, ứng dụng vẫn cần bảo đảm module và class đó có thể truy cập được khi thực thi. Chỉ viết requires static không bảo đảm mọi tình huống runtime đều chạy khi module vắng mặt.
+If the runtime has a code path that actually uses classes belonging to the optional dependency, the application still needs to ensure that module and its classes are accessible during execution. Merely writing `requires static` does not guarantee every runtime scenario works when the module is absent.
 
-Tùy mục đích, có thể đưa module tùy chọn vào graph bằng root bổ sung hoặc vì dependency khác yêu cầu nó. Nên thiết kế đường code fallback rõ ràng khi chức năng tùy chọn không sẵn có.
+Depending on the goal, an optional module can be brought into the graph via an additional root or because another dependency requires it. Design clear fallback code paths when the optional feature is unavailable.
 
-Điểm khác nhau:
+The differences:
 
-- **requires M**: dependency bắt buộc cần được đáp ứng trong resolution.
-- **requires transitive M**: dependency bắt buộc và truyền readability tới consumer.
-- **requires static M**: cần khi compile nhưng không bắt buộc phải có khi runtime resolution chỉ dựa vào directive đó.
+- **requires M**: mandatory dependency that must be satisfied during resolution.
+- **requires transitive M**: mandatory dependency that also propagates readability to consumers.
+- **requires static M**: required at compile time, but not mandatory during runtime resolution based solely on that directive.
 
-## 12. --add-modules bổ sung root modules
+## 12. --add-modules Adds Root Modules
 
-Giả sử thư mục dist còn có:
+Suppose the `dist` directory also contains:
 
 ~~~text
 com.example.audit.jar
 ~~~
 
-Module audit là observable nhưng không được app hoặc catalog requires. Nếu muốn đưa audit vào boot layer ngay lúc khởi chạy:
+The `audit` module is observable, but neither `app` nor `catalog` requires it. If you want to bring `audit` into the boot layer at startup:
 
 ~~~bash
 java --module-path dist \
@@ -440,25 +440,25 @@ java --module-path dist \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Tùy chọn **--add-modules** yêu cầu JPMS coi audit là root bổ sung. Các dependency của audit được phân giải theo descriptor của nó.
+The **--add-modules** option tells JPMS to treat `audit` as an additional root. `audit`'s dependencies are resolved according to its descriptor.
 
-Có thể chỉ định nhiều module:
+Multiple modules can be specified:
 
 ~~~bash
 --add-modules com.example.audit,com.example.metrics
 ~~~
 
-Nhưng **--add-modules không có nghĩa app tự động đọc audit**. Quan hệ reads và quyền package access vẫn tuân theo descriptor/module graph. Nếu mã của app cần import API từ audit, cách khai báo dependency bền vững thường là requires com.example.audit.
+However, **--add-modules does not mean `app` automatically reads `audit`**. Read relationships and package access permissions still obey the descriptors and module graph. If `app`'s code needs to import APIs from `audit`, the sustainable way to declare the dependency is usually `requires com.example.audit`.
 
-Một số giá trị đặc biệt:
+Some special values:
 
-| Giá trị | Ý nghĩa |
+| Value | Meaning |
 | --- | --- |
-| ALL-DEFAULT | Bổ sung nhóm module gốc mặc định do launcher xác định |
-| ALL-SYSTEM | Bổ sung các module hệ thống quan sát được làm roots |
-| ALL-MODULE-PATH | Bổ sung toàn bộ module quan sát được trên application module path làm roots |
+| ALL-DEFAULT | Adds the default root module group determined by the launcher |
+| ALL-SYSTEM | Adds observable system modules as roots |
+| ALL-MODULE-PATH | Adds all observable modules on the application module path as roots |
 
-Ví dụ:
+For example:
 
 ~~~bash
 java -p dist \
@@ -466,13 +466,13 @@ java -p dist \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Không nên lạm dụng ALL-MODULE-PATH chỉ để giải quyết lỗi module thiếu. Việc đưa quá nhiều module vào graph có thể làm lộ dependency không tương thích hoặc xung đột package vốn không xảy ra khi chỉ phân giải module cần thiết.
+Do not overuse `ALL-MODULE-PATH` just to work around missing module errors. Bringing too many modules into the graph can expose incompatible dependencies or package conflicts that would not happen when resolving only the required modules.
 
-## 13. --limit-modules giới hạn tập observable modules
+## 13. --limit-modules Restricts the Set of Observable Modules
 
-Ngoài thêm root, Java launcher còn hỗ trợ **--limit-modules** để giới hạn tập module quan sát được.
+Besides adding roots, the Java launcher also supports **--limit-modules** to restrict the set of observable modules.
 
-Ví dụ khái quát:
+Conceptual example:
 
 ~~~bash
 java -p dist \
@@ -480,28 +480,28 @@ java -p dist \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Tùy chọn này không chỉ giới hạn ở đúng hai tên được ghi. Java còn xét các dependency cần thiết theo quy tắc của nó để hình thành tập module quan sát được đã giới hạn.
+This option does not restrict the set strictly to the two listed names alone. Java also considers required dependencies according to its rules to form the limited set of observable modules.
 
-Nếu ứng dụng cần một module nằm ngoài tập còn quan sát được, resolution có thể báo module not found ngay cả khi artifact vật lý tồn tại trên module path.
+If the application needs a module outside the remaining observable set, resolution may report module not found even though the physical artifact exists on the module path.
 
-Do đó, khi debug lỗi thiếu module, cần kiểm tra cả module path, --add-modules và --limit-modules. Một lệnh chạy hoặc container entrypoint có thể đặt giới hạn module khác với môi trường IDE.
+Therefore, when debugging missing module errors, inspect the module path, `--add-modules`, and `--limit-modules`. A launch command or container entrypoint may set different module limits than an IDE environment.
 
-## 14. Automatic module trên module path
+## 14. Automatic Modules on the Module Path
 
-Không phải mọi JAR trên module path đều có file module-info.class. Với JAR không modular hóa nhưng được đặt trên module path, JPMS có thể nhận diện JAR đó thành **automatic module**.
+Not every JAR on the module path has a `module-info.class` file. For a non-modularized JAR placed on the module path, JPMS can recognize that JAR as an **automatic module**.
 
-Tên automatic module được lấy từ:
+The automatic module name is derived from:
 
-1. Thuộc tính manifest **Automatic-Module-Name**, nếu có và hợp lệ.
-2. Hoặc quy tắc suy ra tên từ tên JAR.
+1. The **Automatic-Module-Name** manifest attribute, if present and valid.
+2. Or rules inferring the name from the JAR filename.
 
-Ví dụ một thư viện legacy:
+For example, a legacy library:
 
 ~~~text
 dist/legacy-json-2.0.jar
 ~~~
 
-Nếu được nhận diện như automatic module mang tên **legacy.json**, explicit module khác có thể viết:
+If recognized as an automatic module named **legacy.json**, another explicit module can write:
 
 ~~~java
 module com.example.app {
@@ -509,20 +509,20 @@ module com.example.app {
 }
 ~~~
 
-Tên chính xác phải được xác nhận từ artifact:
+The exact name must be confirmed from the artifact:
 
 ~~~bash
 jar --describe-module \
     --file dist/legacy-json-2.0.jar
 ~~~
 
-Automatic module giúp thư viện cũ tham gia module graph trong giai đoạn chuyển đổi. Nó thường export các package của mình và có hành vi tương thích với mã chưa modular hóa.
+Automatic modules help older libraries participate in the module graph during a transition period. They typically export their packages and behave compatibly with non-modularized code.
 
-Tuy nhiên, automatic module không thay thế descriptor explicit được thiết kế rõ ràng. Việc chuyển nhiều JAR legacy lên module path cùng lúc có thể gây xung đột package hoặc phụ thuộc chưa được tổ chức tốt.
+However, an automatic module does not replace a well-designed explicit descriptor. Moving many legacy JARs onto the module path at once can cause package conflicts or poorly organized dependencies.
 
-## 15. Unnamed module trên classpath không được requires trực tiếp
+## 15. The Unnamed Module on the Classpath Cannot Be Directly Required
 
-Một JAR chưa modular hóa đặt trên **classpath** thuộc unnamed module của class loader tương ứng. Named module không thể khai báo:
+A non-modularized JAR placed on the **classpath** belongs to the unnamed module of the corresponding class loader. A named module cannot declare:
 
 ~~~java
 module com.example.app {
@@ -530,17 +530,17 @@ module com.example.app {
 }
 ~~~
 
-Vì ALL-UNNAMED không phải tên module hợp lệ trong directive requires.
+Because `ALL-UNNAMED` is not a valid module name in a `requires` directive.
 
-Trong giai đoạn migration, có thể tạm dùng:
+During migration, you can temporarily use:
 
 ~~~bash
 --add-reads com.example.app=ALL-UNNAMED
 ~~~
 
-khi module app cần tham chiếu thư viện classpath, đồng thời cấu hình classpath cho thư viện đó. Tùy chọn add-reads có thể cần ở compile-time và runtime tùy mã được biên dịch và chạy.
+when the `app` module needs to reference a classpath library while configuring the classpath for that library. The `add-reads` option may be needed at compile time and runtime depending on the code being compiled and executed.
 
-Ví dụ chạy:
+Example execution:
 
 ~~~bash
 java --module-path mods \
@@ -549,11 +549,11 @@ java --module-path mods \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Đây là giải pháp tương thích có kiểm soát, không phải thay thế lâu dài cho việc khai báo dependency rõ ràng. Thư viện được chuyển thành automatic hoặc explicit named module sẽ có danh tính module riêng; khi đó nên điều chỉnh module descriptor phù hợp.
+This is a controlled compatibility solution, not a long-term substitute for explicit dependency declarations. Once a library is converted into an automatic or explicit named module, it gets its own module identity; at that point, update the module descriptor accordingly.
 
-## 16. Resolution và service binding
+## 16. Resolution and Service Binding
 
-Module có thể khai báo service consumer:
+A module can declare a service consumer:
 
 ~~~java
 module com.example.app {
@@ -562,7 +562,7 @@ module com.example.app {
 }
 ~~~
 
-Một provider module:
+A provider module:
 
 ~~~java
 module com.example.report.csv {
@@ -572,11 +572,11 @@ module com.example.report.csv {
 }
 ~~~
 
-JPMS có cơ chế service binding giúp tìm thêm các provider module phù hợp trong một số quá trình resolution. Trong API lập trình, **Configuration.resolveAndBind** minh họa rõ điều này: ngoài dependency requires, quá trình còn có thể tìm module cung cấp service.
+JPMS has a service binding mechanism that helps locate additional matching provider modules during certain resolution processes. In the programmatic API, **Configuration.resolveAndBind** illustrates this clearly: beyond `requires` dependencies, the process can also locate modules providing services.
 
-Do đó, không nên khẳng định module provider chỉ có thể xuất hiện trong graph khi có requires trực tiếp hoặc --add-modules. Trong một cấu hình có service binding, nó có thể được đưa vào vì vai trò provider.
+Therefore, one should not claim that a provider module can only appear in the graph when directly required or added via `--add-modules`. In a configuration with service binding, it can be included due to its provider role.
 
-Khi ứng dụng dùng ServiceLoader:
+When an application uses `ServiceLoader`:
 
 ~~~java
 ServiceLoader<ReportProvider> loader =
@@ -587,45 +587,45 @@ for (ReportProvider provider : loader) {
 }
 ~~~
 
-nó cần bảo đảm service contract và module provider được cấu hình đúng. Nhưng việc module provider đã được phân giải không có nghĩa mọi provider instance đã được tạo: class loading và provider instantiation là công việc diễn ra sau theo nhu cầu sử dụng.
+it must ensure the service contract and provider modules are configured properly. However, the fact that a provider module was resolved does not mean every provider instance has been created: class loading and provider instantiation happen later on demand.
 
-## 17. Module graph khác ClassLoader và class loading
+## 17. Module Graph vs. ClassLoader and Class Loading
 
-Module resolution xác định tập module và quan hệ đọc. Quá trình nạp từng class diễn ra khi JVM cần sử dụng class đó.
+Module resolution determines the set of modules and read relationships. Loading individual classes happens when the JVM needs to use each class.
 
-Luồng khái quát:
+High-level flow:
 
 ~~~text
 module path
     |
     v
-Tìm module descriptor
+Find module descriptors
     |
     v
-Chọn roots và phân giải requires
+Select roots and resolve requires
     |
     v
 Configuration / module graph
     |
     v
-ModuleLayer định nghĩa module runtime
+ModuleLayer defines runtime modules
     |
     v
-ClassLoader nạp class cụ thể khi cần
+ClassLoader loads specific classes on demand
     |
     v
-Linking và initialization theo quy tắc JVM
+Linking and initialization per JVM rules
 ~~~
 
-Một module đã được phân giải có thể chứa hàng trăm class chưa từng được ứng dụng sử dụng. Ngược lại, một lỗi NoClassDefFoundError có thể xuất hiện muộn khi ứng dụng lần đầu cần class dependency không sẵn có, dù phần resolution ban đầu đã thành công.
+A resolved module may contain hundreds of classes never used by the application. Conversely, a `NoClassDefFoundError` can appear late when the application first needs an unavailable dependency class, even though initial resolution succeeded.
 
-Với custom plugin layer, các API **ModuleFinder**, **Configuration** và **ModuleLayer** cho phép ứng dụng chủ động tạo module graph khác với boot layer. Tuy nhiên, --module-path của Java launcher không tự tạo một layer độc lập cho từng JAR.
+For custom plugin layers, the **ModuleFinder**, **Configuration**, and **ModuleLayer** APIs allow an application to proactively build a module graph distinct from the boot layer. However, `--module-path` on the Java launcher does not automatically create an independent layer for each JAR.
 
-## 18. Các lỗi thường gặp và cách xác định nguyên nhân
+## 18. Common Errors and How to Identify Causes
 
 **Module not found**
 
-Ví dụ:
+For example:
 
 ~~~text
 Error occurred during initialization of boot layer
@@ -633,52 +633,52 @@ java.lang.module.FindException: Module com.example.catalog not found,
 required by com.example.app
 ~~~
 
-Cần kiểm tra tên module thật trong module-info.class, vị trí artifact trên module path, tên file JAR và dependency requires. Module chưa được tìm thấy là vấn đề khác với package chưa export.
+Check the real module name in `module-info.class`, the artifact's location on the module path, JAR filenames, and `requires` dependencies. A module not being found is a different issue from an unexported package.
 
 **Package is not visible**
 
-Module đã tìm thấy nhưng consumer không đọc được module sở hữu package hoặc package chưa được export cho consumer. Kiểm tra requires rồi exports/qualified exports.
+The module was found, but the consumer cannot read the module owning the package, or the package has not been exported to the consumer. Check `requires`, then `exports`/qualified exports.
 
 **Reads package ... from both ...**
 
-Một module đọc cùng package từ hai module export khác nhau. Đây là xung đột split package trong module graph. Kiểm tra các JAR chứa package trùng, đặc biệt khi chuyển nhiều automatic modules lên module path.
+A module reads the same package from two different exporting modules. This is a split package conflict in the module graph. Check the JARs containing duplicate packages, especially when moving multiple automatic modules onto the module path.
 
-**Module có trong thư mục mods nhưng không ở boot layer**
+**Module is in the mods directory but not in the boot layer**
 
-Module có thể chỉ observable và chưa được chọn làm root/dependency/provider cần thiết. Dùng --show-module-resolution và kiểm tra roots; không tự suy rằng module phải xuất hiện chỉ vì JAR hiện diện.
+The module might only be observable and not yet selected as a needed root/dependency/provider. Use `--show-module-resolution` and check roots; do not assume a module must appear merely because the JAR is present.
 
-**Java chạy được trong IDE nhưng không chạy trên terminal**
+**Java runs in the IDE but not in the terminal**
 
-IDE có thể tự thêm module path, --add-modules, classpath hoặc --add-reads. So sánh command line thực tế giữa hai môi trường.
+The IDE may automatically add module paths, `--add-modules`, classpaths, or `--add-reads`. Compare the actual command lines between the two environments.
 
-**NoClassDefFoundError sau khi resolution thành công**
+**NoClassDefFoundError after resolution succeeds**
 
-Kiểm tra dependency runtime, version library, class loader và code path lần đầu sử dụng class. Đây thường là lỗi ở tầng class loading/linking, không nhất thiết là lỗi tìm descriptor.
+Check runtime dependencies, library versions, class loaders, and the code path first using the class. This is typically an error at the class loading/linking layer, not necessarily a descriptor lookup error.
 
-**Framework reflection bị chặn**
+**Framework reflection is blocked**
 
-Nếu lỗi là InaccessibleObjectException, xem package có được opens đúng module framework không. Exports không tự cho phép deep reflection vào private field.
+If the error is `InaccessibleObjectException`, check whether the package has been opened via `opens` to the right framework module. `exports` does not automatically allow deep reflection into private fields.
 
-## 19. Công cụ quan sát module path và resolution
+## 19. Tools for Inspecting Module Path and Resolution
 
-### Kiểm tra descriptor của JAR
+### Inspect a JAR's Descriptor
 
 ~~~bash
 jar --describe-module \
     --file dist/com.example.catalog.jar
 ~~~
 
-Lệnh này cho biết tên module, requires, exports và thông tin descriptor liên quan.
+This command shows the module name, `requires`, `exports`, and related descriptor details.
 
-### Liệt kê các module có thể quan sát
+### List Observable Modules
 
 ~~~bash
 java --module-path dist --list-modules
 ~~~
 
-Lệnh này giúp xác nhận module có thể được tìm thấy; nó không phải danh sách tất cả module chắc chắn đã được phân giải cho một lần chạy ứng dụng.
+This command helps confirm which modules can be found; it is not a list of all modules guaranteed to be resolved for an application run.
 
-### Hiển thị quá trình resolution
+### Show the Resolution Process
 
 ~~~bash
 java --show-module-resolution \
@@ -686,9 +686,9 @@ java --show-module-resolution \
      -m com.example.app/com.example.app.Main
 ~~~
 
-Có thể so sánh hai lệnh có và không có --add-modules để thấy module nào được thêm vào graph và dependency nào được chọn.
+You can compare two commands with and without `--add-modules` to see which modules get added to the graph and which dependencies are chosen.
 
-### Kiểm tra module trong boot layer
+### Check Modules in the Boot Layer
 
 ~~~java
 ModuleLayer boot = ModuleLayer.boot();
@@ -699,7 +699,7 @@ boot.modules().stream()
     .forEach(System.out::println);
 ~~~
 
-Hoặc kiểm tra module cụ thể:
+Or check a specific module:
 
 ~~~java
 boolean catalogResolved =
@@ -708,59 +708,59 @@ boolean catalogResolved =
 System.out.println("Catalog in boot layer: " + catalogResolved);
 ~~~
 
-**ModuleLayer.findModule** trả về kết quả từ runtime layer; không đơn thuần kiểm tra sự tồn tại của một JAR trên ổ đĩa.
+**ModuleLayer.findModule** returns a result from the runtime layer; it does not simply check whether a JAR exists on disk.
 
-### Phân tích dependency với jdeps
+### Analyze Dependencies with jdeps
 
 ~~~bash
 jdeps --module-path dist \
       --module com.example.app
 ~~~
 
-jdeps giúp xem dependency ở cấp class/module. Kết quả phân tích bytecode nên được kết hợp với module descriptor và lệnh chạy thực tế, nhất là khi ứng dụng nạp class hoặc service bằng reflection.
+`jdeps` helps view dependencies at the class/module level. Bytecode analysis results should be combined with module descriptors and the actual launch command, especially when the application loads classes or services via reflection.
 
-## 20. Quy trình debug có thứ tự
+## 20. Ordered Debugging Workflow
 
-Khi gặp lỗi lúc chuyển sang module path, làm theo thứ tự:
+When encountering errors while switching to the module path, follow this order:
 
-1. Ghi lại JDK version, lệnh javac/java và toàn bộ JVM arguments.
-2. Kiểm tra JAR nằm trên classpath hay module path.
-3. Dùng jar --describe-module xác nhận tên module thực tế.
-4. Kiểm tra root module được chọn bằng -m và các roots do --add-modules bổ sung.
-5. Dùng --list-modules để xác nhận module có thể quan sát được.
-6. Dùng --show-module-resolution để xem module graph thực sự.
-7. Đọc requires, requires transitive và requires static trong descriptor.
-8. Nếu resolution đã qua nhưng compiler báo package không visible, kiểm tra readability và exports.
-9. Nếu framework reflection lỗi, kiểm tra opens đúng module caller.
-10. Nếu class loading lỗi, kiểm tra class loader, dependency runtime và log class loading.
-11. Khi dùng automatic module, kiểm tra package trùng và tên module suy ra.
-12. Xác minh kết quả trên JDK, build artifact và lệnh chạy tương đương production.
+1. Record the JDK version, `javac`/`java` commands, and all JVM arguments.
+2. Check whether the JAR is on the classpath or module path.
+3. Use `jar --describe-module` to confirm the actual module name.
+4. Check the root module selected with `-m` and additional roots from `--add-modules`.
+5. Use `--list-modules` to confirm the module is observable.
+6. Use `--show-module-resolution` to view the actual module graph.
+7. Read `requires`, `requires transitive`, and `requires static` in the descriptor.
+8. If resolution passed but the compiler reports package not visible, check readability and `exports`.
+9. If framework reflection fails, check `opens` for the right caller module.
+10. If class loading fails, check class loaders, runtime dependencies, and class loading logs.
+11. When using automatic modules, check duplicate packages and derived module names.
+12. Verify results on a JDK, build artifacts, and launch command equivalent to production.
 
-Một bảng giúp phân loại nhanh:
+A table for quick classification:
 
-| Hiện tượng | Tầng cần xem đầu tiên |
+| Symptom | First layer to inspect |
 | --- | --- |
-| Module not found | Module discovery và resolution |
-| Resolved module không có trong boot layer | Root selection hoặc runtime configuration |
-| Package is not visible | Readability và exports |
-| Reflection bị chặn | opens và module identity của caller |
-| ClassNotFoundException | ClassLoader và classpath/module path |
-| NoClassDefFoundError | Runtime dependency và linking |
-| Split package conflict | Dependency graph và package ownership |
+| Module not found | Module discovery and resolution |
+| Resolved module missing from boot layer | Root selection or runtime configuration |
+| Package is not visible | Readability and exports |
+| Reflection blocked | opens and caller module identity |
+| ClassNotFoundException | ClassLoader and classpath/module path |
+| NoClassDefFoundError | Runtime dependencies and linking |
+| Split package conflict | Dependency graph and package ownership |
 
-## 21. Bài tập củng cố
+## 21. Practice Exercises
 
-Từ dự án hai module ở phần trên:
+From the two-module project above:
 
-1. Chạy ứng dụng với --module-path và -m; xác nhận dòng tiêu đề sách được in ra.
-2. Dùng --show-module-resolution xác định các module đã được chọn.
-3. Tạo module com.example.audit độc lập, đặt artifact lên module path và kiểm tra module có xuất hiện trong boot layer không.
-4. Thử --add-modules com.example.audit, rồi quan sát sự khác biệt.
-5. Xóa **requires com.example.catalog** khỏi descriptor app nhưng vẫn giữ import Book; quan sát thông báo javac.
-6. Khôi phục requires, rồi xóa exports của package api trong catalog; so sánh lỗi với bước 5.
-7. Tạo module service có requires transitive tới catalog và kiểm tra tác động tới consumer.
-8. Thử dùng một JAR không có module-info.class trên module path; xác nhận tên automatic module bằng jar --describe-module.
-9. Đặt một JAR legacy trên classpath và phân biệt hành vi unnamed module với automatic module.
-10. Ghi lại lệnh nào thay đổi tập observable modules, lệnh nào thêm root và khai báo nào kiểm soát quyền truy cập package.
+1. Run the application with `--module-path` and `-m`; confirm the book title line is printed.
+2. Use `--show-module-resolution` to identify the selected modules.
+3. Create an independent `com.example.audit` module, place the artifact on the module path, and check whether the module appears in the boot layer.
+4. Try `--add-modules com.example.audit`, then observe the difference.
+5. Remove **requires com.example.catalog** from the `app` descriptor while keeping `import Book`; observe the `javac` message.
+6. Restore `requires`, then remove `exports` for the `api` package in `catalog`; compare the error with step 5.
+7. Create a `service` module with `requires transitive` to `catalog` and test the impact on consumers.
+8. Try using a JAR without `module-info.class` on the module path; confirm the automatic module name with `jar --describe-module`.
+9. Place a legacy JAR on the classpath and distinguish unnamed module behavior from automatic module behavior.
+10. Record which flags change the set of observable modules, which flags add roots, and which declarations control package access permissions.
 
-**Module path không phải danh sách lệnh tải mọi module vào JVM.** Nó là nguồn tìm module để JPMS tạo một cấu hình hợp lệ từ root modules và dependency. Khi phân biệt rõ observable modules, root selection, resolution, readability và package access, bạn có thể cấu hình ứng dụng modular chính xác hơn, xử lý lỗi dependency nhanh hơn và chuyển đổi thư viện classpath sang JPMS một cách có kiểm soát.
+**The module path is not a command list that loads every module into the JVM.** It is a module search source for JPMS to build a valid configuration from root modules and dependencies. By clearly distinguishing observable modules, root selection, resolution, readability, and package access, you can configure modular applications more accurately, resolve dependency errors faster, and migrate classpath libraries to JPMS in a controlled manner.

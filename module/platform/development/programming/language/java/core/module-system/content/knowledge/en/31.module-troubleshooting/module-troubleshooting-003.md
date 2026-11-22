@@ -1,35 +1,35 @@
-# ResolutionException do graph không hợp lệ
+# ResolutionException Due to Invalid Graph
 
-Khi biên dịch hoặc chạy một ứng dụng sử dụng Java Platform Module System (JPMS), Java không chỉ tìm các file JAR. Nó còn **resolve module graph**: chọn những module cần thiết, nối dependency qua `requires`, xác định readability, kiểm tra package được export và bảo đảm tập module có thể cùng tồn tại theo các quy tắc của JPMS.
+When compiling or running an application that uses the Java Platform Module System (JPMS), Java does not merely locate JAR files. It also **resolves the module graph**: selecting the necessary modules, linking dependencies via `requires`, determining readability, checking exported packages, and ensuring the set of modules can coexist under JPMS rules.
 
-Nếu các module có thể được tìm thấy nhưng **không thể tạo thành một graph hợp lệ**, quá trình resolve có thể thất bại với `java.lang.module.ResolutionException`. Một triệu chứng thường gặp là hai module cùng export một package cho một module tiêu thụ; một module khác không thể đọc cùng package đó từ hai nguồn mâu thuẫn.
+If the modules can be found yet **cannot form a valid graph**, resolution may fail with `java.lang.module.ResolutionException`. A common symptom is two modules both exporting the same package to a consuming module; a module cannot read the same package from two conflicting sources.
 
-Bài này giải thích bản chất của lỗi, phân biệt nó với các lỗi module khác, minh họa xung đột package, chỉ ra các nguồn gây lỗi như `requires transitive`, automatic module và service binding, rồi trình bày quy trình chẩn đoán và sửa thiết kế.
+This lesson explains the nature of the error, distinguishes it from other module errors, illustrates package conflicts, points out sources of error such as `requires transitive`, automatic modules, and service binding, and then presents a diagnostic and design-fix workflow.
 
-## 1. ResolutionException là gì?
+## 1. What is ResolutionException?
 
-`ResolutionException` nằm trong package `java.lang.module` và biểu thị lỗi được phát hiện khi giải quyết cấu hình module.
+`ResolutionException` resides in the `java.lang.module` package and represents an error detected while resolving a module configuration.
 
-Một cách nhìn tổng quát:
+An overview:
 
 ~~~text
 Module path / system modules / parent configuration
                        │
                        ▼
-                 Tìm module
+                 Find modules
                        │
                        ▼
-              Chọn root modules
+              Select root modules
                        │
                        ▼
-             Resolve dependency
+             Resolve dependencies
                        │
                        ▼
-        Kiểm tra tính hợp lệ module graph
+          Validate module graph rules
                        │
             ┌──────────┴──────────┐
             ▼                     ▼
-      Graph hợp lệ          Graph không hợp lệ
+       Valid graph          Invalid graph
             │                     │
             ▼                     ▼
      Configuration       ResolutionException
@@ -38,7 +38,7 @@ Module path / system modules / parent configuration
        ModuleLayer
 ~~~
 
-Trong API, quá trình resolve có thể diễn ra khi sử dụng:
+In the API, resolution can take place when using:
 
 ~~~java
 Configuration child = parentConfiguration.resolve(
@@ -48,7 +48,7 @@ Configuration child = parentConfiguration.resolve(
 );
 ~~~
 
-hoặc:
+or:
 
 ~~~java
 Configuration child = Configuration.resolve(
@@ -59,30 +59,30 @@ Configuration child = Configuration.resolve(
 );
 ~~~
 
-Java launcher cũng phải thực hiện module resolution trước khi khởi chạy một ứng dụng modular với `java --module ...`.
+The Java launcher must also perform module resolution before launching a modular application with `java --module ...`.
 
-**Có module trên module path không đồng nghĩa graph hợp lệ.** Bộ resolver còn phải bảo đảm các quan hệ giữa chúng không vi phạm quy tắc module.
+**Having modules on the module path does not mean the graph is valid.** The resolver must also ensure the relationships among them do not violate module rules.
 
-## 2. Phân biệt ResolutionException với lỗi khác
+## 2. Distinguishing ResolutionException from other errors
 
-Các lỗi liên quan đến JPMS thường có tên gần nhau nhưng xảy ra ở những giai đoạn khác nhau:
+JPMS-related errors often have similar names yet occur at different stages:
 
-| Lỗi | Ý nghĩa điển hình | Hướng điều tra |
+| Error | Typical meaning | Investigation direction |
 | --- | --- | --- |
-| `FindException` | Không tìm thấy module cần thiết hoặc phát sinh vấn đề khi khám phá module | Module path, module name, artifact và dependency thiếu |
-| `ResolutionException` | Các module có mặt nhưng không tạo được module graph hợp lệ | Readability, export xung đột, dependency graph |
-| `LayerInstantiationException` | Graph đã resolve nhưng việc định nghĩa module vào layer thất bại | Class loader mapping, package conflict trong layer, parent layer |
-| `IllegalAccessError` | Runtime truy cập kiểu/member không được cho phép | `exports`, access modifier và runtime options |
-| `InaccessibleObjectException` | Reflection không được phép vượt qua module encapsulation | `opens`, target module và `--add-opens` |
-| `ClassNotFoundException` | Class loader không tìm được class yêu cầu | Classpath/module path, tên class và class loader |
+| `FindException` | Required module not found or issue discovering modules | Module path, module name, artifacts, and missing dependencies |
+| `ResolutionException` | Modules are present but cannot form a valid module graph | Readability, conflicting exports, dependency graph |
+| `LayerInstantiationException` | Graph resolved, but defining modules into a layer failed | Class loader mapping, package conflict in layer, parent layers |
+| `IllegalAccessError` | Runtime access to a type/member not permitted | `exports`, access modifiers, and runtime options |
+| `InaccessibleObjectException` | Reflection not permitted across module encapsulation | `opens`, target module, and `--add-opens` |
+| `ClassNotFoundException` | Class loader cannot find the requested class | Classpath/module path, class name, and class loader |
 
-Thông điệp quan trọng: **không phải mọi lỗi có chữ “module” đều là `ResolutionException`**. Ví dụ JAR có tên module trùng nhau, module bị thiếu hoặc file JAR hỏng có thể dẫn đến lỗi ở bước khám phá module. Cần đọc đúng loại exception và nguyên văn thông báo thực tế.
+Key takeaway: **not every error containing the word "module" is a `ResolutionException`**. For example, JARs with duplicate module names, missing modules, or corrupted JAR files can lead to errors at the module discovery step. Read the exact exception type and the verbatim actual message.
 
-## 3. Ví dụ cơ bản: hai module export cùng một package
+## 3. Basic example: two modules export the same package
 
-Giả sử hai thư viện độc lập đều đặt public class vào package `com.acme.common`.
+Suppose two independent libraries both place public classes in the package `com.acme.common`.
 
-Module thứ nhất:
+First module:
 
 ~~~java
 // com.acme.left/module-info.java
@@ -102,7 +102,7 @@ public final class Left {
 }
 ~~~
 
-Module thứ hai:
+Second module:
 
 ~~~java
 // com.acme.right/module-info.java
@@ -122,7 +122,7 @@ public final class Right {
 }
 ~~~
 
-Ứng dụng yêu cầu cả hai:
+The application requires both:
 
 ~~~java
 // com.acme.app/module-info.java
@@ -132,7 +132,7 @@ module com.acme.app {
 }
 ~~~
 
-Sơ đồ:
+Diagram:
 
 ~~~text
                   com.acme.app
@@ -145,12 +145,12 @@ Sơ đồ:
             │                       │
             └── exports com.acme.common ──┘
                          ▲
-                    Xung đột
+                     Conflict
 ~~~
 
-`com.acme.app` đọc cả hai module, và cả hai cùng export package `com.acme.common` cho nó. JPMS không thể xem `com.acme.common` là một API package duy nhất có nguồn rõ ràng đối với app.
+`com.acme.app` reads both modules, and both export the `com.acme.common` package to it. JPMS cannot treat `com.acme.common` as a single API package with a clear source for the app.
 
-Thông báo runtime có thể tương tự:
+The runtime message might resemble:
 
 ~~~text
 Error occurred during initialization of boot layer
@@ -159,15 +159,15 @@ Modules com.acme.left and com.acme.right
 export package com.acme.common to module com.acme.app
 ~~~
 
-Đây là thông báo minh họa; thứ tự module và câu chữ cụ thể có thể khác theo JDK hoặc graph đang resolve.
+This is an illustrative message; module order and exact wording can vary by JDK or the graph being resolved.
 
-Trong project xây từ source, `javac` có thể phát hiện xung đột ngay khi biên dịch module consumer. Khi đó lỗi xuất hiện ở compile-time thay vì đợi tới Java launcher. **Dù phát hiện ở giai đoạn nào, nguyên nhân thiết kế vẫn là graph có hai nguồn export xung đột cho cùng một consumer.**
+In a project built from source, `javac` can detect the conflict while compiling the consumer module. In that case, the error appears at compile time rather than waiting for the Java launcher. **Regardless of which stage detects it, the design cause remains a graph with two conflicting export sources for the same consumer.**
 
-## 4. Vì sao split package làm graph khó hợp lệ?
+## 4. Why do split packages make a graph hard to validate?
 
-**Split package** nghĩa là cùng một tên package xuất hiện trong nhiều module khác nhau.
+A **split package** means the same package name appears in multiple different modules.
 
-Ví dụ:
+Example:
 
 ~~~text
 library-one.jar
@@ -177,20 +177,20 @@ library-two.jar
 └── com/acme/common/Beta.class
 ~~~
 
-Nếu hai JAR được biến thành named module và cùng công bố package `com.acme.common`, khả năng xung đột phụ thuộc vào quan hệ module, cách package được export và cách layer/class loader được tạo.
+If both JARs become named modules and both expose the package `com.acme.common`, whether a conflict occurs depends on module relationships, how packages are exported, and how layers/class loaders are created.
 
-Đối với module consumer, hai package export cùng tên từ hai module mà consumer đọc là một nguồn `ResolutionException` điển hình. Không nên suy rộng rằng **bất kỳ hai JAR trùng package ở bất kỳ đâu trên đĩa** đều lập tức tạo chính xác exception này: Java còn phải quan sát, chọn và resolve các module liên quan. Một số xung đột package có thể bị phát hiện ở giai đoạn định nghĩa layer và biểu hiện bằng exception khác.
+For a consumer module, two exported packages with the same name from two modules that the consumer reads are a classic source of `ResolutionException`. Do not overgeneralize that **any two JARs with overlapping packages anywhere on disk** immediately produce this exact exception: Java must still observe, select, and resolve the modules involved. Some package conflicts may be detected at the layer definition stage and manifest as a different exception.
 
-Nguyên tắc thiết kế cho explicit modules là **mỗi package nên có một chủ sở hữu rõ ràng trong module graph**. Không dùng package name trùng chỉ để gom nhóm class theo convention của tổ chức.
+The design principle for explicit modules is that **each package should have one clear owner in the module graph**. Do not share package names just to group classes by an organizational convention.
 
-Cách sửa thường là đổi package và phân tách trách nhiệm:
+The usual fix is to rename packages and separate responsibilities:
 
 ~~~text
 com.acme.left.api
 com.acme.right.api
 ~~~
 
-hoặc đưa API dùng chung vào một module độc lập:
+or extract the shared API into an independent module:
 
 ~~~text
 com.acme.shared.api
@@ -202,13 +202,13 @@ com.acme.left  com.acme.right
        com.acme.app
 ~~~
 
-Cách thứ hai phù hợp nếu hai thư viện thực sự cần cùng một bộ kiểu API, thay vì mỗi thư viện sở hữu một bản class có cùng tên package.
+The second approach fits if both libraries genuinely need the same set of API types, rather than each library owning its own copy of classes with the same package name.
 
-## 5. requires transitive có thể làm xung đột lan tới consumer
+## 5. requires transitive can propagate conflicts to consumers
 
-Một module có thể chỉ khai báo dependency trực tiếp tới hai module API, nhưng vẫn đọc một số dependency khác **gián tiếp** qua `requires transitive`.
+A module may declare direct dependencies on only two API modules, yet still read other dependencies **indirectly** via `requires transitive`.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.first.api {
@@ -224,7 +224,7 @@ module com.acme.second.api {
 }
 ~~~
 
-Nếu `com.vendor.first.model` và `com.vendor.second.model` cùng export package `com.vendor.common`, consumer:
+If `com.vendor.first.model` and `com.vendor.second.model` both export the package `com.vendor.common`, the consumer:
 
 ~~~java
 module com.acme.app {
@@ -233,9 +233,9 @@ module com.acme.app {
 }
 ~~~
 
-có thể gặp xung đột khi graph làm cho nó đọc cả hai model modules.
+can hit a conflict when the graph causes it to read both model modules.
 
-Sơ đồ:
+Diagram:
 
 ~~~text
 com.acme.app
@@ -247,17 +247,17 @@ com.acme.app
         └── exports com.vendor.common
 ~~~
 
-Chỉ nhìn hai dòng `requires` trong app có thể không phát hiện ra gốc vấn đề. Khi chẩn đoán, phải theo cả đường dependency được truyền readability, không chỉ dependency khai báo trực tiếp.
+Looking only at the two `requires` lines in the app may not reveal the root issue. When diagnosing, trace the entire path of dependencies with propagated readability, not just directly declared dependencies.
 
-Không nên tự đổi mọi `requires transitive` thành `requires` để che lỗi. Nếu public API của module trung gian trả về kiểu từ dependency, `transitive` có thể là một phần thiết kế đúng. Cần sửa package ownership hoặc kiến trúc API trước khi thay đổi readability.
+Do not blindly change every `requires transitive` to `requires` to hide the error. If the intermediate module's public API returns types from the dependency, `transitive` may be part of the right design. Fix package ownership or the API architecture before altering readability.
 
-## 6. Một module đọc package từ dependency và package của chính nó
+## 6. A module reading a package from a dependency and its own package
 
-Không chỉ hai dependency với nhau mới có thể gây xung đột.
+Conflicts do not happen only between two external dependencies.
 
-Nếu module `com.acme.app` tự chứa package `com.acme.shared`, trong khi nó đọc một module khác export cùng package đó, JPMS cũng có các ràng buộc để tránh một module vừa sở hữu package vừa nhìn thấy định nghĩa trùng từ nguồn khác.
+If module `com.acme.app` itself contains the package `com.acme.shared` while reading another module that exports the same package, JPMS also enforces constraints to prevent a module from both owning a package and seeing a duplicate definition from another source.
 
-Ví dụ khái niệm:
+Conceptual example:
 
 ~~~text
 com.acme.app
@@ -266,15 +266,15 @@ com.acme.app
                   └── exports com.acme.shared
 ~~~
 
-Đây là dấu hiệu cần xem lại ranh giới package và việc đóng gói class. Với module build theo chuẩn, package public API dùng chung nên được đặt tại một module sở hữu, không “copy” class của dependency vào module consumer.
+This is a sign to review package boundaries and class packaging. For properly built modules, shared public API packages should live in a single owning module, rather than "copying" a dependency's classes into the consumer module.
 
-Nếu cùng source được package vào nhiều JAR qua shading hoặc plugin build, hãy kiểm tra artifact cuối cùng chứ không chỉ cấu trúc source.
+If the same sources are packaged into multiple JARs via shading or build plugins, inspect the final artifacts rather than just the source layout.
 
-## 7. Automatic module có thể làm xung đột xuất hiện
+## 7. Automatic modules can surface conflicts
 
-Một JAR không có `module-info.class` khi đặt trên module path có thể được Java nhìn nhận là **automatic module**.
+A JAR without `module-info.class`, when placed on the module path, can be recognized by Java as an **automatic module**.
 
-Ví dụ:
+Example:
 
 ~~~text
 mods/
@@ -283,35 +283,35 @@ mods/
 └── com.acme.app.jar
 ~~~
 
-Automatic modules có cơ chế readability và exports thuận tiện cho quá trình migration. Khi đưa nhiều legacy JAR lên module path, những package trước đây cùng tồn tại trên classpath có thể bộc lộ vấn đề split package.
+Automatic modules have broad readability and export rules convenient for migration. When moving multiple legacy JARs onto the module path, packages that previously coexisted on the classpath can expose split package issues.
 
-Ví dụ hai JAR legacy đều chứa:
+For example, two legacy JARs both contain:
 
 ~~~text
 com/legacy/util/Helper.class
 ~~~
 
-Nếu cả hai trở thành modules và cùng nằm trong graph mà một module tiêu thụ đọc chúng, xung đột package có thể ngăn resolution hoặc gây lỗi ở bước layer definition, tùy cấu hình.
+If both become modules and both end up in the graph where a consuming module reads them, the package conflict can prevent resolution or cause an error at the layer definition step, depending on the configuration.
 
-Vì vậy, khi chuyển từ classpath sang module path:
+Therefore, when migrating from the classpath to the module path:
 
-1. Kiểm tra tên automatic modules được suy ra.
-2. Kiểm tra các package mỗi JAR chứa.
-3. Loại bỏ class trùng và dependency không cần thiết.
-4. Ưu tiên bản thư viện có explicit module descriptor và package ownership rõ ràng.
-5. Không giả định một bộ JAR hoạt động tốt trên classpath sẽ mặc nhiên thành một module graph hợp lệ.
+1. Check the derived automatic module names.
+2. Inspect the packages each JAR contains.
+3. Remove duplicate classes and unnecessary dependencies.
+4. Prefer library releases with explicit module descriptors and clear package ownership.
+5. Do not assume a set of JARs that worked on the classpath will automatically form a valid module graph.
 
-Để xem tên module của artifact:
+To check an artifact's module name:
 
 ~~~bash
 jar --describe-module --file mods/legacy-utils-1.0.jar
 ~~~
 
-Nếu output cho biết đây là automatic module, cần lưu ý tên module có thể phụ thuộc manifest `Automatic-Module-Name` hoặc tên JAR.
+If the output indicates it is an automatic module, note that the module name may depend on the `Automatic-Module-Name` manifest entry or the JAR filename.
 
-## 8. Module path chứa nhiều phiên bản cùng một module
+## 8. Module path containing multiple versions of the same module
 
-Một lỗi dependency phổ biến khác là đặt nhiều phiên bản của cùng thư viện lên module path:
+Another common dependency error is placing multiple versions of the same library on the module path:
 
 ~~~text
 mods/
@@ -319,23 +319,23 @@ mods/
 └── com.acme.data-2.0.jar
 ~~~
 
-Nếu cả hai cùng công bố module name `com.acme.data`, bộ tìm module có thể báo vấn đề khám phá/tên module trùng. Tùy công cụ và cách tổ chức module path, đó có thể là `FindException` hoặc lỗi module path khác, **không nhất thiết là `ResolutionException`**.
+If both declare the module name `com.acme.data`, the module finder may report a module discovery/duplicate module name issue. Depending on the tool and how the module path is organized, that can be a `FindException` or another module path error, **not necessarily a `ResolutionException`**.
 
-Điều cần làm:
+What to do:
 
-- Xác định phiên bản nào thực sự được chọn bởi dependency management.
-- Tránh copy toàn bộ các version của cùng một artifact vào thư mục `mods`.
-- Kiểm tra manifest hoặc descriptor để biết tên module thực tế.
-- Đồng bộ dependency giữa Maven/Gradle và thư mục phân phối.
-- Đừng chỉ đổi tên file JAR: explicit module name nằm trong `module-info.class`, không đổi theo filename.
+- Determine which version is actually selected by dependency management.
+- Avoid copying all versions of the same artifact into the `mods` directory.
+- Inspect the manifest or descriptor to know the actual module name.
+- Synchronize dependencies between Maven/Gradle and the distribution directory.
+- Do not merely rename the JAR file: an explicit module name lives in `module-info.class` and does not change with the filename.
 
-Việc duy trì nhiều phiên bản của module trong những `ModuleLayer` riêng là một bài toán khác. Nó cần cấu hình layer/class loader có chủ đích và không thể giải quyết chỉ bằng cách đưa hai JAR cùng tên module vào một thư mục module path thông thường.
+Maintaining multiple versions of a module in separate `ModuleLayer`s is a different problem. It requires intentional layer/class loader configuration and cannot be solved simply by placing two JARs with the same module name into a normal module path directory.
 
-## 9. Service binding làm graph có thêm module
+## 9. Service binding adds extra modules to the graph
 
-Khi dùng `Configuration.resolveAndBind(...)`, JPMS có thể đưa thêm provider modules phù hợp vào kết quả resolve.
+When using `Configuration.resolveAndBind(...)`, JPMS can add matching provider modules to the resolution result.
 
-Ví dụ:
+Example:
 
 ~~~java
 Configuration config = parentConfiguration.resolveAndBind(
@@ -345,7 +345,7 @@ Configuration config = parentConfiguration.resolveAndBind(
 );
 ~~~
 
-Nếu `com.acme.app` khai báo:
+If `com.acme.app` declares:
 
 ~~~java
 module com.acme.app {
@@ -353,9 +353,9 @@ module com.acme.app {
 }
 ~~~
 
-và module path có nhiều provider, service binding có thể kéo provider modules cùng dependency của chúng vào graph. Điều đó có thể làm lộ xung đột package vốn không xuất hiện khi chỉ resolve root modules ban đầu.
+and the module path has multiple providers, service binding can pull provider modules and their dependencies into the graph. That can expose package conflicts that did not appear when resolving only the initial root modules.
 
-Sơ đồ:
+Diagram:
 
 ~~~text
 com.acme.app
@@ -368,15 +368,15 @@ Service binding
          └── requires com.vendor.common.b
 ~~~
 
-Nếu graph bổ sung làm một module đọc hai nguồn export trùng package, resolver có thể báo lỗi.
+If the expanded graph causes a module to read two sources exporting overlapping packages, the resolver can report an error.
 
-Không nên kết luận ngay rằng service loader “bị hỏng”. Cần xem provider nào đã được thêm, dependency nào được kéo theo và package nào xung đột.
+Do not jump to the conclusion that the service loader is "broken". Check which providers were added, which dependencies were pulled in, and which package conflicts.
 
-Khi plugin architecture lớn dần, định nghĩa rõ provider discovery, root modules và module layer boundary sẽ giúp giảm xung đột bất ngờ.
+As a plugin architecture grows, clearly defining provider discovery, root modules, and module layer boundaries helps reduce unexpected conflicts.
 
-## 10. Đọc thông báo ResolutionException có hệ thống
+## 10. Reading ResolutionException messages systematically
 
-Ví dụ lỗi:
+Example error:
 
 ~~~text
 java.lang.module.ResolutionException:
@@ -384,14 +384,14 @@ Modules vendor.alpha and vendor.beta export package
 com.vendor.common to module com.acme.app
 ~~~
 
-Tách thông báo thành ba thành phần:
+Break the message into its components:
 
-- **Consumer:** `com.acme.app`, module bị ảnh hưởng bởi xung đột.
-- **Nguồn A:** `vendor.alpha`, một module export package.
-- **Nguồn B:** `vendor.beta`, module còn lại export cùng package.
-- **Package:** `com.vendor.common`, tên gây mâu thuẫn.
+- **Consumer:** `com.acme.app`, the module affected by the conflict.
+- **Source A:** `vendor.alpha`, one module exporting the package.
+- **Source B:** `vendor.beta`, the other module exporting the same package.
+- **Package:** `com.vendor.common`, the conflicting package name.
 
-Thông tin cần thu thập:
+Information to collect:
 
 ~~~text
 Consumer module:       com.acme.app
@@ -403,24 +403,24 @@ Module path:           ...
 Java version:          ...
 ~~~
 
-Thông báo lỗi là đầu mối, không phải lúc nào cũng là toàn bộ nguyên nhân. Ví dụ consumer chỉ phụ thuộc trực tiếp vào `com.acme.api`, còn dependency `requires transitive` kéo hai export trùng vào graph. Do đó cần truy nguồn từ consumer tới exporters.
+The error message is a clue, not always the entire root cause. For example, the consumer might depend directly only on `com.acme.api`, while `requires transitive` pulls both conflicting exports into the graph. Therefore, trace from the consumer to the exporters.
 
-Nếu exception xuất phát từ API `Configuration.resolve`, lưu lại cả `beforeFinder`, parent configurations, `afterFinder` và tập roots. Tên module và source finder là chìa khóa để tái tạo tình trạng.
+If the exception originates from the `Configuration.resolve` API, record `beforeFinder`, parent configurations, `afterFinder`, and the root set. The module names and source finders are key to reproducing the state.
 
-## 11. Quy trình chẩn đoán bằng công cụ JDK
+## 11. Diagnostic workflow with JDK tools
 
-### Bước 1: xác định đúng Java đang dùng
+### Step 1: verify the exact Java being used
 
 ~~~bash
 java --version
 javac --version
 ~~~
 
-Nếu ứng dụng chạy trong runtime image tùy chỉnh, dùng chính executable của image đó. Module availability phụ thuộc runtime image đang chạy.
+If the application runs in a custom runtime image, use that image's own executable. Module availability depends on the running runtime image.
 
-### Bước 2: kiểm tra module path thực tế
+### Step 2: check the actual module path
 
-Ví dụ lệnh khởi chạy:
+Example launch command:
 
 ~~~bash
 java \
@@ -428,23 +428,23 @@ java \
   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Trên Windows, separator module path thường là dấu chấm phẩy thay vì dấu hai chấm:
+On Windows, the module path separator is usually a semicolon instead of a colon:
 
 ~~~powershell
 java --module-path "mods;libs" --module com.acme.app/com.acme.app.Main
 ~~~
 
-Đảm bảo những đường dẫn thật sự được truyền tới launcher đúng như trong script/container.
+Ensure the paths actually passed to the launcher match what is intended in the script/container.
 
-### Bước 3: xem module có thể quan sát
+### Step 3: check observable modules
 
 ~~~bash
 java --module-path mods --list-modules
 ~~~
 
-Lệnh này hỗ trợ xác định các module được tìm thấy. Nó không chứng minh graph đã resolve hợp lệ, bởi `--list-modules` không đồng nghĩa với việc khởi chạy toàn bộ root modules cùng một graph.
+This command helps identify which modules are found. It does not prove the graph resolves validly, because `--list-modules` is not the same as launching all root modules together in one graph.
 
-### Bước 4: kiểm tra descriptor từng JAR liên quan
+### Step 4: inspect the descriptor of each relevant JAR
 
 ~~~bash
 jar --describe-module --file mods/vendor.alpha.jar
@@ -452,9 +452,9 @@ jar --describe-module --file mods/vendor.beta.jar
 jar --describe-module --file mods/com.acme.app.jar
 ~~~
 
-Xem tên module, `requires`, `requires transitive`, `exports` và service directives. Khi một JAR là automatic module, output của `jar --describe-module` cũng giúp xác định tên module mà Java sẽ dùng.
+Inspect the module name, `requires`, `requires transitive`, `exports`, and service directives. When a JAR is an automatic module, the output of `jar --describe-module` also helps determine the module name Java will use.
 
-### Bước 5: quan sát quá trình resolve
+### Step 5: observe the resolution process
 
 ~~~bash
 java \
@@ -463,43 +463,43 @@ java \
   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Lệnh yêu cầu launcher in thông tin resolution. Nếu graph thất bại, output có thể cung cấp các root/dependency đã được xử lý trước lỗi. Không bảo đảm mọi module đều được in khi resolver dừng sớm; hãy kết hợp với descriptor và exception.
+This asks the launcher to print resolution details. If the graph fails, the output may show roots/dependencies processed before the error. There is no guarantee every module is printed when the resolver stops early; combine it with descriptors and the exception.
 
-### Bước 6: phân tích dependency
+### Step 6: analyze dependencies
 
 ~~~bash
 jdeps --module-path mods --check com.acme.app
 ~~~
 
-`jdeps` có thể phân tích descriptor, dependency và mức readability theo khả năng của phiên bản JDK. Có thể tiếp tục kiểm tra các module trung gian có `requires transitive`.
+`jdeps` can analyze descriptors, dependencies, and readability according to the JDK version's capabilities. You can continue checking intermediate modules that use `requires transitive`.
 
-Với artifact cụ thể:
+For a specific artifact:
 
 ~~~bash
 jdeps --module-path mods --list-deps mods/com.acme.app.jar
 ~~~
 
-Phân tích tĩnh là công cụ chẩn đoán bổ sung. Nó không đảm bảo nhìn thấy provider được chọn động, bytecode tạo lúc runtime hoặc mọi tương tác reflection.
+Static analysis is a supplementary diagnostic tool. It is not guaranteed to see dynamically selected providers, bytecode generated at runtime, or all reflective interactions.
 
-## 12. Sửa xung đột bằng cách tái thiết kế package
+## 12. Fixing conflicts by redesigning packages
 
-Phương án bền vững nhất là làm rõ **module nào sở hữu package nào**.
+The most durable approach is clarifying **which module owns which package**.
 
-Giả sử ban đầu:
+Suppose initially:
 
 ~~~text
 vendor.alpha → exports com.acme.common
 vendor.beta  → exports com.acme.common
 ~~~
 
-Nếu hai module chứa API không liên quan, đổi package:
+If the two modules contain unrelated APIs, rename the packages:
 
 ~~~text
 vendor.alpha → exports com.acme.alpha.api
 vendor.beta  → exports com.acme.beta.api
 ~~~
 
-Nếu chúng chia sẻ cùng kiểu API, tách module sở hữu chung:
+If they share the same API types, extract a single shared owning module:
 
 ~~~java
 module com.acme.common.api {
@@ -507,7 +507,7 @@ module com.acme.common.api {
 }
 ~~~
 
-Rồi để hai module implementation phụ thuộc vào nó:
+Then have both implementation modules depend on it:
 
 ~~~java
 module com.acme.alpha {
@@ -523,13 +523,13 @@ module com.acme.beta {
 }
 ~~~
 
-Cách này không chỉ giải quyết lỗi resolution. Nó còn ngăn các module khác biên dịch nhầm với hai bản type có cùng tên nhị phân nhưng thuộc hai artifact khác nhau.
+This not only resolves the resolution error; it also prevents other modules from accidentally compiling against two versions of types that share binary names across two different artifacts.
 
-Nếu conflict đến từ dependency bên thứ ba, ưu tiên tìm các phiên bản thư viện đã sửa split package hoặc công bố JPMS metadata hợp lệ trước khi tự sửa class của vendor.
+If the conflict comes from third-party dependencies, prefer finding library versions that have fixed the split package or published valid JPMS metadata before modifying vendor classes yourself.
 
-## 13. Khi nào thay đổi requires transitive?
+## 13. When to change requires transitive?
 
-Đôi khi vấn đề nảy sinh vì module API truyền readability không cần thiết cho consumer:
+Sometimes the issue arises because an API module propagates readability unnecessarily to consumers:
 
 ~~~java
 module com.acme.facade {
@@ -538,7 +538,7 @@ module com.acme.facade {
 }
 ~~~
 
-Nếu public API của `com.acme.facade` không để lộ kiểu thuộc `com.vendor.legacy` và consumer không cần đọc vendor module, có thể xem xét:
+If the public API of `com.acme.facade` does not expose types from `com.vendor.legacy` and consumers do not need to read the vendor module, you can consider:
 
 ~~~java
 module com.acme.facade {
@@ -547,51 +547,51 @@ module com.acme.facade {
 }
 ~~~
 
-Nhưng thay đổi này phải dựa trên hợp đồng API thực tế. Nếu method signature public dùng type từ `com.vendor.legacy`, việc xóa `transitive` có thể làm consumer mất readability cần thiết.
+However, this change must be based on the actual API contract. If public method signatures use types from `com.vendor.legacy`, removing `transitive` can deprive consumers of necessary readability.
 
-Trường hợp hai module thực sự cần cùng package API, việc hạ `transitive` không phải giải pháp dài hạn. Hãy sửa package ownership thay vì che mâu thuẫn bằng cách giảm tầm nhìn module.
+When two modules genuinely need the same API package, downgrading `transitive` is not a long-term solution. Fix package ownership rather than masking the conflict by narrowing module visibility.
 
-## 14. Qualified exports không phải giải pháp tùy tiện
+## 14. Qualified exports are not an arbitrary workaround
 
-Một module có thể export package có giới hạn:
+A module can export a package selectively:
 
 ~~~java
 exports com.vendor.internal to com.acme.adapter;
 ~~~
 
-Qualified exports hữu ích khi package là integration API dành riêng cho một module. Nó có thể ảnh hưởng tới việc module consumer nào nhìn thấy package được export.
+Qualified exports are useful when a package is an integration API intended specifically for one module. They can affect which consumer modules see the exported package.
 
-Tuy nhiên, đừng thay `exports p` thành `exports p to some.module` chỉ để né `ResolutionException` nếu `p` vốn là API công khai dành cho các consumer khác. Việc đó thay đổi hợp đồng thư viện và có thể làm ứng dụng khác không biên dịch được.
+However, do not change `exports p` to `exports p to some.module` merely to dodge `ResolutionException` if `p` is actually a public API meant for other consumers. Doing so changes the library's contract and may break compilation for other applications.
 
-Các câu hỏi trước khi sửa:
+Questions to ask before fixing:
 
-- Package có thực sự là public API không?
-- Module nào đang sử dụng public type trong package đó?
-- Hai module có đang cung cấp cùng một API hay hai API trùng tên ngoài ý muốn?
-- Có thể đổi package hoặc tách shared API module thay vì thu hẹp export không?
+- Is the package genuinely a public API?
+- Which modules are using public types in that package?
+- Are two modules providing the same API or two unintentionally overlapping APIs?
+- Can we rename packages or extract a shared API module instead of narrowing exports?
 
-Cần sửa thiết kế đúng nguyên nhân, không tối ưu theo việc thông báo lỗi biến mất tạm thời.
+Fix the design at the root cause rather than optimizing to make the error message temporarily disappear.
 
-## 15. Những JVM flags thường không giải quyết được vấn đề
+## 15. JVM flags that usually do not solve the problem
 
-Một số tùy chọn hay xuất hiện khi chẩn đoán JPMS:
+Several options commonly come up during JPMS diagnostics:
 
-| Tùy chọn | Chức năng | Lưu ý với ResolutionException |
+| Option | Function | Note regarding ResolutionException |
 | --- | --- | --- |
-| `--add-modules` | Bổ sung root modules | Có thể làm nhiều module được resolve hơn, từ đó bộc lộ xung đột |
-| `--limit-modules` | Giới hạn module observable | Có thể che tạm vấn đề nhưng cũng làm mất dependency cần thiết |
-| `--add-reads` | Bổ sung quan hệ đọc module | Không sửa package ownership; có thể tạo thêm quan hệ đọc gây mâu thuẫn |
-| `--add-exports` | Cấp quyền truy cập API public từ package chưa export | Không phải phép hợp nhất hai package trùng tên |
-| `--add-opens` | Cho phép reflection sâu | Không giải quyết xung đột module graph khi resolve |
-| `--patch-module` | Bổ sung/thay nội dung module đã tồn tại | Cần kiểm soát chặt package; không phải cách sửa thiết kế split package |
+| `--add-modules` | Adds root modules | May resolve more modules, thereby exposing conflicts |
+| `--limit-modules` | Limits observable modules | May temporarily hide an issue, yet also drop needed dependencies |
+| `--add-reads` | Adds module read relationships | Does not fix package ownership; can introduce conflicting read edges |
+| `--add-exports` | Grants access to public API from unexported package | Not a merge operation for two identically named packages |
+| `--add-opens` | Allows deep reflection | Does not resolve module graph conflicts during resolution |
+| `--patch-module` | Supplements/replaces content of an existing module | Requires strict package control; not a design fix for split packages |
 
-Ví dụ `--add-opens` được dùng cho `InaccessibleObjectException`, không phải cách khắc phục hai module cùng export package.
+For example, `--add-opens` is meant for `InaccessibleObjectException`, not as a fix for two modules exporting the same package.
 
-Không nên thử ngẫu nhiên các flag với hy vọng launcher bỏ qua lỗi. Nếu graph vi phạm ràng buộc của JPMS, thay đổi dependency hoặc package boundary mới là hướng bền vững.
+Do not try random flags hoping the launcher will ignore the error. If the graph violates JPMS constraints, changing dependencies or package boundaries is the sustainable direction.
 
-## 16. ModuleLayer động: bắt và báo lỗi đúng lớp
+## 16. Dynamic ModuleLayer: catching and reporting at the right layer
 
-Ứng dụng plugin thường resolve configuration bằng API:
+Plugin applications often resolve configurations via the API:
 
 ~~~java
 import java.lang.module.Configuration;
@@ -628,34 +628,34 @@ try {
 }
 ~~~
 
-Lỗi `ResolutionException` được phát hiện khi tạo `Configuration`. Nếu graph đã tạo thành công nhưng việc định nghĩa module vào class loader thất bại, đó là một giai đoạn khác và có thể xuất hiện `LayerInstantiationException`.
+`ResolutionException` is detected when creating the `Configuration`. If the graph is created successfully yet defining the modules into class loaders fails, that is a separate stage and may produce `LayerInstantiationException`.
 
-Khi chạy production, tránh nuốt lỗi và tiếp tục coi plugin đã nạp thành công. Nên ghi context như plugin directory, module roots, danh sách artifact đang được cấu hình, version JDK và module name bị báo lỗi.
+In production, avoid swallowing the error and proceeding as if the plugin loaded successfully. Log context such as the plugin directory, module roots, list of configured artifacts, JDK version, and the reported module names.
 
-Nếu resolver đang dùng parent configurations, nhớ rằng dependency có thể được thỏa mãn từ parent layer. Điều đó làm graph phụ thuộc cả module mới và module đã tồn tại ở parent, không chỉ vào JAR trong thư mục plugin.
+If the resolver uses parent configurations, remember that dependencies can be satisfied from a parent layer. That makes the graph depend on both new modules and modules already present in the parent, not solely on JARs in the plugin directory.
 
-## 17. Checklist sửa ResolutionException
+## 17. Checklist for fixing ResolutionException
 
-Khi gặp thông báo graph không hợp lệ, có thể thực hiện theo trình tự:
+When encountering an invalid graph message, follow this sequence:
 
-1. **Ghi lại exception nguyên văn**, đặc biệt các module và package được nêu.
-2. **Xác định Java executable** và runtime image đang dùng.
-3. **Ghi lại chính xác module path** và root module khi khởi chạy.
-4. **Kiểm tra artifact** bằng `jar --describe-module`.
-5. **Phân biệt explicit/automatic module** trong tập dependency.
-6. **Truy dependency trực tiếp và transitive** từ module bị ảnh hưởng.
-7. **Tìm package trùng** trong hai module export cho cùng consumer.
-8. **Kiểm tra service binding và plugin modules** nếu graph được resolve động.
-9. **Sửa package/module ownership** hoặc thay dependency phiên bản phù hợp.
-10. **Biên dịch lại descriptor và artifact** thay vì chỉ sửa JVM flags.
-11. **Khởi chạy trên module path** và quan sát `--show-module-resolution`.
-12. **Kiểm tra luồng plugin/runtime thực tế** để bảo đảm lỗi không còn phát sinh khi module khác được nạp sau khởi động.
+1. **Record the verbatim exception**, especially the modules and package named.
+2. **Identify the Java executable** and runtime image being used.
+3. **Record the exact module path** and root modules at launch.
+4. **Inspect artifacts** using `jar --describe-module`.
+5. **Distinguish explicit/automatic modules** in the dependency set.
+6. **Trace direct and transitive dependencies** from the affected module.
+7. **Locate duplicate packages** in two modules exporting to the same consumer.
+8. **Check service binding and plugin modules** if the graph is resolved dynamically.
+9. **Fix package/module ownership** or switch to compatible dependency versions.
+10. **Recompile descriptors and artifacts** instead of only editing JVM flags.
+11. **Launch on the module path** and observe `--show-module-resolution`.
+12. **Test the actual plugin/runtime flow** to ensure the error does not reappear when other modules are loaded after startup.
 
-Đối với hệ thống dùng Maven/Gradle, kiểm tra dependency tree cũng quan trọng. Một transitive dependency hoặc bản thư viện cũ được kéo vào từ plugin khác có thể tạo package trùng mà project chính không hề khai báo trực tiếp.
+For systems using Maven/Gradle, inspecting the dependency tree is also critical. A transitive dependency or an older library version pulled in by another plugin can introduce duplicate packages that the main project never declared directly.
 
-## 18. Mẫu báo cáo sự cố để đội phát triển phối hợp
+## 18. Incident report template for team coordination
 
-Một báo cáo lỗi module resolution nên bao gồm:
+A module resolution bug report should include:
 
 ~~~text
 Symptom:
@@ -687,10 +687,10 @@ Proposed fix:
   move shared API to one owning module
 ~~~
 
-Nội dung có cấu trúc giúp tách nguyên nhân thiết kế khỏi triệu chứng môi trường. Khi xử lý hàng trăm artifact, việc biết **package nào bị export hai lần và consumer nào đọc cả hai** hữu ích hơn chỉ ghi “Java 17 không chạy”.
+Structured details help separate design causes from environmental symptoms. When dealing with hundreds of artifacts, knowing **which package is exported twice and which consumer reads both** is far more useful than merely writing "Java 17 fails to run".
 
-## Kết luận
+## Conclusion
 
-`ResolutionException` phản ánh một thất bại ở bước **xây dựng module graph hợp lệ**. Trường hợp điển hình là một consumer đọc hai module cùng export một package, nhưng xung đột cũng có thể đến từ các đường dependency gián tiếp, automatic modules hoặc provider modules được thêm qua service binding.
+`ResolutionException` reflects a failure at the step of **building a valid module graph**. The classic case is a consumer reading two modules that both export the same package, though conflicts can also arise from indirect dependency paths, automatic modules, or provider modules added through service binding.
 
-Hãy bắt đầu từ **exception message**, xác định module consumer và package xung đột, rồi dùng `jar --describe-module`, `java --list-modules`, `java --show-module-resolution` và `jdeps` để truy graph. Giải pháp bền vững là làm rõ một chủ sở hữu cho mỗi package, loại dependency trùng và quản lý hợp đồng `requires`/`exports` phù hợp. Các flag dành cho reflective access không thay thế được việc sửa một graph thực sự không hợp lệ.
+Start from the **exception message**, identify the consumer module and conflicting package, and then use `jar --describe-module`, `java --list-modules`, `java --show-module-resolution`, and `jdeps` to trace the graph. The lasting solution is establishing a single owner for each package, removing duplicate dependencies, and managing `requires`/`exports` contracts properly. Flags meant for reflective access cannot substitute for fixing a genuinely invalid graph.

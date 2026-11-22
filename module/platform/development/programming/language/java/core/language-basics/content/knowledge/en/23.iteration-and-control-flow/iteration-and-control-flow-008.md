@@ -1,17 +1,17 @@
-# Phân biệt `break`, `continue`, `return` và `yield` — Java 17+
+# Distinguishing `break`, `continue`, `return`, and `yield` — Java 17+
 
-Bốn từ khóa này đều **thay đổi luồng thực thi**, nhưng **khác nhau về nơi chúng chuyển điều khiển tới**. Không thể thay chúng cho nhau chỉ vì tất cả đều có thể kết thúc một đoạn lệnh.
+These four keywords all **alter execution flow**, yet they **differ in where they transfer control**. You cannot substitute them for one another just because all of them can end a block of statements.
 
-| Lệnh | Tác động chính | Nơi dùng điển hình | Sau lệnh, chương trình đi đâu? |
+| Statement | Primary Effect | Typical Context | Where Does the Program Go Afterward? |
 | --- | --- | --- | --- |
-| `break;` | Thoát **vòng lặp hoặc `switch` gần nhất** | `for`, `while`, `do-while`, switch statement | Lệnh sau cấu trúc vừa thoát |
-| `continue;` | Bỏ phần còn lại của **lượt lặp hiện tại** | Bên trong vòng lặp | Bước chuẩn bị lượt kế tiếp của vòng lặp gần nhất |
-| `return value;` / `return;` | Kết thúc **phương thức** hiện tại | Trong phương thức, nếu loại `return` phù hợp với kiểu trả về | Trở về nơi gọi, không chạy tiếp phần còn lại của phương thức |
-| `yield value;` | Tạo giá trị rồi kết thúc **switch expression** đang bao quanh | Nhánh hoặc khối bên trong switch expression | Tiếp tục ở biểu thức/câu lệnh đang sử dụng kết quả `switch` |
+| `break;` | Exits the **nearest loop or `switch`** | `for`, `while`, `do-while`, switch statement | Statement following the exited construct |
+| `continue;` | Skips the rest of the **current loop iteration** | Inside a loop | Preparation step for the next iteration of the nearest loop |
+| `return value;` / `return;` | Terminates the **current method** | Inside a method, when the `return` form matches the return type | Back to the call site, without executing the rest of the method |
+| `yield value;` | Produces a value and ends the enclosing **switch expression** | Branch or block inside a switch expression | Continues in the expression/statement consuming the `switch` result |
 
-**Quy tắc nhớ nhanh:** `break` thoát cấu trúc, `continue` sang lượt lặp kế tiếp, `return` thoát phương thức, còn `yield` trả giá trị **cho một biểu thức `switch`**, không tự thoát phương thức.
+**Quick rule of thumb:** `break` exits a construct, `continue` goes to the next loop iteration, `return` exits a method, and `yield` returns a value **for a `switch` expression**, without exiting the method on its own.
 
-## 1. `break`: dừng vòng lặp hoặc `switch` gần nhất
+## 1. `break`: Stops the Nearest Loop or `switch`
 
 ~~~java
 for (int i = 0; i < 5; i++) {
@@ -23,16 +23,16 @@ for (int i = 0; i < 5; i++) {
 System.out.println("after-loop");
 ~~~
 
-In `0`, `1`, `2` rồi `after-loop`. Khi `i == 3`, `break` bỏ phần còn lại của thân, **không** thực hiện phần cập nhật `i++` thêm một lần và thoát hẳn vòng.
+Prints `0`, `1`, `2`, and then `after-loop`. When `i == 3`, `break` skips the remainder of the body, does **not** run the `i++` update one more time, and completely exits the loop.
 
-Trong một `switch` nằm bên trong vòng lặp, `break;` thoát **`switch`**, không mặc nhiên thoát vòng lặp ngoài:
+In a `switch` inside a loop, `break;` exits **`switch`**, not the outer loop by default:
 
 ~~~java
 for (int i = 0; i < 2; i++) {
     switch (i) {
         case 0:
             System.out.println("zero");
-            break; // Chỉ ra khỏi switch.
+            break; // Only exits switch.
         default:
             System.out.println("other");
     }
@@ -40,9 +40,9 @@ for (int i = 0; i < 2; i++) {
 }
 ~~~
 
-Dù có `break` ở `case 0`, dòng `after-switch=0` vẫn được in và vòng `for` tiếp tục. Với các vòng lặp lồng nhau, `break;` không nhãn chỉ thoát **vòng gần nhất**. Cách thoát nhiều tầng bằng nhãn hoặc tách phương thức là vấn đề riêng, không phải hành vi mặc định.
+Even with `break` in `case 0`, the line `after-switch=0` is still printed and the `for` loop continues. With nested loops, unlabeled `break;` only exits the **nearest loop**. Exiting multiple levels via labels or method extraction is a separate topic, not the default behavior.
 
-## 2. `continue`: bỏ phần còn lại của lượt hiện tại
+## 2. `continue`: Skips the Remainder of the Current Iteration
 
 ~~~java
 for (int i = 0; i < 4; i++) {
@@ -51,25 +51,25 @@ for (int i = 0; i < 4; i++) {
     }
     System.out.println(i);
 }
-// In 1 rồi 3.
+// Prints 1 then 3.
 ~~~
 
-`continue` không kết thúc toàn bộ vòng. Trong basic `for`, nó chuyển tới **phần cập nhật** rồi mới kiểm tra điều kiện:
+`continue` does not end the entire loop. In a basic `for`, it transfers to the **update clause** before checking the condition:
 
 ~~~java
 for (int i = 0; i < 3; i++) {
     if (i == 1) {
-        continue; // Vẫn chạy i++ trước khi lặp tiếp.
+        continue; // Still runs i++ before the next iteration.
     }
     System.out.println("i=" + i);
 }
 ~~~
 
-Với `while`, `continue` chuyển tới **kiểm tra điều kiện**; với `do-while`, nó chuyển tới **lần kiểm tra ở cuối thân**. Nếu cập nhật biến đếm nằm sau `continue` trong `while`, vòng có thể **không tiến triển** và lặp vô hạn.
+With `while`, `continue` transfers to the **condition check**; with `do-while`, it transfers to **the check at the end of the body**. If updating the counter variable is placed after `continue` inside `while`, the loop can **fail to make progress** and loop infinitely.
 
-`continue;` không chuyển tới nhãn `case` tiếp theo của `switch`. Nếu một `switch` nằm trong vòng lặp, `continue;` bên trong `switch` sẽ tiếp tục **vòng lặp bao quanh**. Nếu `switch` không nằm trong vòng lặp, `continue;` là không hợp lệ.
+`continue;` does not jump to the next `case` label of a `switch`. If a `switch` is inside a loop, `continue;` inside the `switch` continues the **enclosing loop**. If the `switch` is not inside a loop, `continue;` is invalid.
 
-## 3. `return`: rời cả phương thức
+## 3. `return`: Exits the Entire Method
 
 ~~~java
 static String find(int wanted) {
@@ -82,16 +82,16 @@ static String find(int wanted) {
 }
 ~~~
 
-`return` kết thúc **toàn bộ lời gọi phương thức**, kể cả khi đang nằm trong vòng `for` hoặc `switch`. Nếu tìm thấy phần tử, Java không chạy các lượt lặp tiếp theo hoặc câu lệnh bình thường nằm sau `return`.
+`return` terminates **the entire method invocation**, even when executed inside a `for` loop or `switch`. If the element is found, Java does not run further loop iterations or normal statements following `return`.
 
-- Phương thức trả giá trị, như `String find(...)`, dùng `return expression;` có kiểu tương thích.
-- Phương thức `void` có thể dùng `return;` để rời phương thức sớm.
-- `return;` không được dùng để trả về từ một phương thức đòi giá trị; ngược lại, `return 5;` không hợp lệ trong phương thức `void`.
-- `return` của một phương thức không kết thúc cả chương trình: **nơi gọi** nhận kết quả rồi thực thi tiếp.
+- Value-returning methods, such as `String find(...)`, use `return expression;` with a compatible type.
+- `void` methods can use `return;` to leave the method early.
+- `return;` cannot be used to return from a method requiring a value; conversely, `return 5;` is invalid in a `void` method.
+- A method's `return` does not terminate the whole program: the **caller** receives the result and continues executing.
 
-## 4. `yield`: đưa giá trị ra khỏi `switch expression`
+## 4. `yield`: Produces a Value Out of a `switch expression`
 
-Từ Java 14, `switch` có thể là **biểu thức trả về một giá trị**. Khi nhánh dạng khối cần thực hiện nhiều lệnh, dùng `yield`:
+Since Java 14, `switch` can be an **expression returning a value**. When a block-bodied branch needs to run multiple statements, use `yield`:
 
 ~~~java
 static String classify(int n) {
@@ -108,9 +108,9 @@ static String classify(int n) {
 }
 ~~~
 
-Với `n == 1`, Java in `preparing` rồi **`after-expression`**, và phương thức mới kết thúc tại `return label`. Như vậy `yield "one";` kết thúc nhánh switch expression, **không** kết thúc `classify`.
+With `n == 1`, Java prints `preparing` then **`after-expression`**, and the method only finishes at `return label`. Thus `yield "one";` ends the switch expression branch, **not** `classify`.
 
-### Dạng dấu hai chấm cũng dùng `yield` được
+### Colon syntax can also use `yield`
 
 ~~~java
 int score = switch (level) {
@@ -123,12 +123,12 @@ int score = switch (level) {
 };
 ~~~
 
-Đây là **switch expression** có các nhãn `case:`, không phải switch statement truyền thống. `yield` cung cấp kết quả cho toàn bộ biểu thức. Không viết `break 20;` để tạo kết quả: Java 17 dùng `yield 20;`.
+This is a **switch expression** with `case:` labels, not a traditional switch statement. `yield` supplies the result for the entire expression. Do not write `break 20;` to produce a result: Java 17 uses `yield 20;`.
 
-### `switch statement` khác `switch expression`
+### `switch statement` vs. `switch expression`
 
 ~~~java
-// SWITCH STATEMENT: thực hiện hành động, không tạo giá trị.
+// SWITCH STATEMENT: performs an action, does not produce a value.
 switch (status) {
     case "ON":
         System.out.println("enabled");
@@ -137,22 +137,22 @@ switch (status) {
         System.out.println("unknown");
 }
 
-// SWITCH EXPRESSION: tạo giá trị.
+// SWITCH EXPRESSION: produces a value.
 String result = switch (status) {
     case "ON" -> "enabled";
     default -> "unknown";
 };
 ~~~
 
-- `yield` thuộc **switch expression**, không dùng như một lệnh thay `break` trong switch statement.
-- `return` không được phép dùng **bên trong switch expression** để thay việc cấp giá trị cho nhánh; dùng biểu thức sau `->` hoặc `yield`.
-- `case ->` không tự động đồng nghĩa với switch expression: Java 17 cũng cho phép **switch statement** có nhãn mũi tên.
-- Không nhất thiết mọi nhánh đều dùng `yield`: nhánh `case X -> expression` tự cung cấp kết quả.
-- Switch expression cần bao phủ đầy đủ (*exhaustive*) các giá trị chọn theo quy tắc của Java; thường dùng `default` khi cần.
+- `yield` belongs to **switch expressions**, and is not used as a replacement for `break` in a switch statement.
+- `return` is not allowed **inside a switch expression** as a substitute for yielding a branch's value; use an expression after `->` or `yield`.
+- `case ->` does not automatically mean a switch expression: Java 17 also allows **switch statements** with arrow labels.
+- Not every branch needs `yield`: a `case X -> expression` branch supplies its result directly.
+- A switch expression must be **exhaustive** over the selector values according to Java's rules; `default` is often used when needed.
 
-## 5. Chương trình Java 17+ hoàn chỉnh
+## 5. Complete Java 17+ Program
 
-Tạo file UTF-8 **`FlowTransferDemo.java`**:
+Create a UTF-8 file **`FlowTransferDemo.java`**:
 
 ~~~java
 public class FlowTransferDemo {
@@ -270,7 +270,7 @@ public class FlowTransferDemo {
 }
 ~~~
 
-Dùng **JDK 17 trở lên**, mở PowerShell hoặc Bash tại thư mục chứa file:
+Using **JDK 17 or higher**, open PowerShell or Bash in the directory containing the file:
 
 ~~~bash
 java -version
@@ -279,7 +279,7 @@ javac -encoding UTF-8 FlowTransferDemo.java
 java FlowTransferDemo
 ~~~
 
-**Exact expected stdout** của riêng lệnh `java FlowTransferDemo`:
+**Exact expected stdout** of the `java FlowTransferDemo` command alone:
 
 ~~~text
 == break ==
@@ -318,50 +318,50 @@ codeNull=missing
 done
 ~~~
 
-`java -version` và `javac -version` cho thông tin phụ thuộc bản JDK cài đặt, không thuộc khối stdout cố định. Ví dụ chỉ dùng API Java chuẩn.
+`java -version` and `javac -version` output information depending on the installed JDK version and are not part of the fixed stdout block. The example uses only standard Java APIs.
 
-## 6. Những trường hợp dễ nhầm
+## 6. Easy-to-Confuse Cases
 
-| Hiểu nhầm | Cách đúng |
+| Misconception | Correct Behavior |
 | --- | --- |
-| “`break` là thoát phương thức.” | Nó chỉ thoát vòng lặp hoặc switch gần nhất |
-| “`continue` thoát hẳn vòng.” | Nó bỏ phần còn lại của **lượt hiện tại** |
-| “`continue` trong basic `for` bỏ phần cập nhật.” | Vẫn chạy phần cập nhật khi tiếp tục vòng đó |
-| “`break` trong switch nằm trong vòng lặp sẽ thoát vòng ngoài.” | Nó thoát switch gần nhất |
-| “`continue` trong switch đi tới case sau.” | Nó hướng tới vòng lặp gần nhất, hoặc bị cấm nếu không có vòng |
-| “`return` và `yield` đều thoát phương thức.” | Chỉ `return` thoát phương thức; `yield` tạo kết quả switch expression |
-| “Switch expression dùng `break value;`.” | Dùng `yield value;` hoặc `case -> expression` |
-| “Dùng `return value;` thay `yield value;` trong switch expression.” | Không hợp lệ trong switch expression |
-| “Mọi `switch case ->` đều trả giá trị.” | Switch statement cũng có thể dùng dạng mũi tên |
+| "`break` exits the method." | It only exits the nearest loop or switch |
+| "`continue` exits the whole loop." | It skips the rest of the **current iteration** |
+| "`continue` in basic `for` skips the update part." | It still runs the update part when continuing that loop |
+| "`break` in a switch inside a loop exits the outer loop." | It exits the nearest switch |
+| "`continue` in a switch goes to the next case." | It targets the nearest loop, or is forbidden if there is no loop |
+| "`return` and `yield` both exit the method." | Only `return` exits the method; `yield` produces a switch expression's result |
+| "Switch expressions use `break value;`." | Use `yield value;` or `case -> expression` |
+| "Use `return value;` instead of `yield value;` in a switch expression." | Invalid inside a switch expression |
+| "Every `switch case ->` returns a value." | Switch statements can also use arrow syntax |
 
-### Thoát bất thường và `finally`
+### Abrupt Exit and `finally`
 
-Các lệnh chuyển luồng vẫn tuân thủ cơ chế `finally` của Java. Nếu đường thực thi đi ra khỏi một khối `try` qua `break`, `continue` hoặc `return`, khối `finally` thích hợp vẫn được thực hiện. Không nên dùng các lệnh này với giả định có thể bỏ qua việc dọn dẹp tài nguyên; với tài nguyên cần đóng, ưu tiên `try-with-resources`. Điều này không thay đổi **đích tác động về mặt ngữ nghĩa** của bốn từ khóa.
+Control-transfer statements still obey Java's `finally` mechanism. If execution exits a `try` block via `break`, `continue`, or `return`, the corresponding `finally` block still executes. Do not use these statements assuming resource cleanup can be skipped; for closeable resources, prefer `try-with-resources`. This does not change the **semantic targets** of the four keywords.
 
-## 7. Bài tập tự kiểm tra
+## 7. Self-Check Exercises
 
-1. `break;` trong `for` làm phần `i++` của lượt đó chạy tiếp không?  
-   *Đáp án:* Không.
-2. `continue;` trong basic `for` thì `i++` có chạy không?  
-   *Đáp án:* Có, nếu `continue` nhắm tới vòng `for` đó.
-3. `return "ok";` bên trong vòng lặp có chạy câu lệnh bình thường sau vòng trong cùng phương thức không?  
-   *Đáp án:* Không; phương thức đã kết thúc.
-4. `yield "ok";` bên trong switch expression có kết thúc luôn phương thức bao ngoài không?  
-   *Đáp án:* Không; nó cung cấp kết quả của switch expression.
-5. Khi `switch` nằm trong `while`, `break;` từ một nhánh `case:` thoát cấu trúc nào?  
-   *Đáp án:* Thoát switch; vòng while vẫn có thể tiếp tục.
-6. `continue;` trong một `switch` không có vòng lặp bao ngoài có biên dịch không?  
-   *Đáp án:* Không.
-7. Có thể viết `yield` trong switch statement thông thường để trả giá trị của statement không?  
-   *Đáp án:* Không; dùng switch expression nếu cần giá trị.
+1. Does `break;` in `for` let `i++` of that iteration run afterward?  
+   *Answer:* No.
+2. With `continue;` in basic `for`, does `i++` run?  
+   *Answer:* Yes, if `continue` targets that `for` loop.
+3. Does `return "ok";` inside a loop run normal statements after the loop in the same method?  
+   *Answer:* No; the method has terminated.
+4. Does `yield "ok";` inside a switch expression also terminate the enclosing method?  
+   *Answer:* No; it provides the switch expression's result.
+5. When a `switch` is inside a `while`, which construct does `break;` from a `case:` branch exit?  
+   *Answer:* Exits the switch; the while loop can still continue.
+6. Does `continue;` inside a `switch` with no enclosing loop compile?  
+   *Answer:* No.
+7. Can `yield` be written inside an ordinary switch statement to return a value from the statement?  
+   *Answer:* No; use a switch expression if a value is needed.
 
 ## Checklist
 
-- [ ] Xác định đúng **đích điều khiển**: vòng/switch gần nhất, lượt tiếp theo, phương thức hay switch expression.
-- [ ] Dùng `break` khi muốn **dừng** vòng/switch, `continue` khi muốn **bỏ qua một lượt**.
-- [ ] Dùng `return` để **kết thúc phương thức** đúng kiểu trả về.
-- [ ] Dùng `yield` khi cần **cung cấp giá trị** từ nhánh khối hoặc nhánh dấu hai chấm của switch expression.
-- [ ] Không nhầm switch statement với switch expression.
-- [ ] Kiểm tra cập nhật vòng lặp và xử lý tài nguyên khi đổi luồng.
+- [ ] Identify the exact **control target**: nearest loop/switch, next iteration, method, or switch expression.
+- [ ] Use `break` to **stop** a loop/switch, and `continue` to **skip one iteration**.
+- [ ] Use `return` to **terminate a method** matching its return type.
+- [ ] Use `yield` when needing to **supply a value** from a block or colon branch of a switch expression.
+- [ ] Do not confuse a switch statement with a switch expression.
+- [ ] Verify loop updates and resource handling when changing control flow.
 
-**Kết luận:** `break` dừng cấu trúc bao quanh gần nhất; `continue` chuyển đến lượt vòng lặp tiếp theo; `return` rời phương thức; `yield` rời nhánh **switch expression** với một giá trị. Nắm đúng điểm đến của mỗi lệnh giúp tránh lỗi dừng sai phạm vi và viết mã Java 17 rõ ràng.
+**Conclusion:** `break` stops the nearest enclosing construct; `continue` moves to the next loop iteration; `return` exits the method; `yield` exits a **switch expression** branch with a value. Knowing each statement's exact destination prevents exiting the wrong scope and leads to clear Java 17 code.

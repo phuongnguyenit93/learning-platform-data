@@ -1,57 +1,57 @@
-# Giữ trách nhiệm mã hóa và escape tại đúng ranh giới trong thiết kế API Java String
+# Keeping Encoding and Escaping Responsibilities at the Right Boundaries in Java String API Design
 
-## 1. Vấn đề cốt lõi
+## 1. The core problem
 
-Cùng một **String** có thể đi qua nhiều hệ thống: request HTTP, service Java, cơ sở dữ liệu, JSON, HTML, URL, log hay lệnh hệ điều hành. Giá trị nghiệp vụ có thể giống nhau ở mọi nơi, nhưng **cách biểu diễn an toàn và hợp lệ** tại từng ranh giới lại khác nhau.
+The same **String** can travel across many systems: HTTP requests, Java services, databases, JSON, HTML, URLs, logs, or OS commands. The business value may be identical everywhere, yet **its safe and valid representation** differs at each boundary.
 
-Ví dụ người dùng nhập:
+For example, a user enters:
 
 ~~~text
-Cà phê & trà "đặc biệt"
+Coffee & tea "special"
 ~~~
 
-Các thành phần có những quy tắc riêng:
+Each layer has its own rules:
 
-- Trên đường truyền dạng byte, ta cần biết **charset**, ví dụ UTF-8, để biến các ký tự thành byte và giải mã lại.
-- Trong nội dung JSON, dấu nháy kép và ký tự điều khiển cần được **JSON serializer** thể hiện theo cú pháp JSON.
-- Trong phần văn bản HTML, **&** và **<** cần được **HTML text encoder** xử lý theo quy tắc của HTML.
-- Trong giá trị một tham số truy vấn URL, dấu cách, **&**, **+** và các ký tự dành riêng cần được **component encoder** mã hóa theo đúng loại thành phần URL.
-- Trong câu lệnh SQL, giá trị dữ liệu nên đi qua **tham số truy vấn**, không nối chuỗi để tự escape SQL.
+- On a byte transport, we need a **charset**, such as UTF-8, to convert characters into bytes and decode them back.
+- Inside JSON content, double quotes and control characters must be represented according to JSON syntax by a **JSON serializer**.
+- Inside HTML text, **&** and **<** must be handled by an **HTML text encoder** according to HTML rules.
+- Inside a URL query parameter value, spaces, **&**, **+**, and reserved characters must be encoded by a **component encoder** according to the URL component type.
+- Inside a SQL statement, data values should pass through **query parameters**, not string concatenation with manual SQL escaping.
 
-**Không tồn tại một hàm escape chung an toàn cho mọi đích đến.** Lỗi thường gặp là escape quá sớm trong tầng nghiệp vụ, để một tầng khác escape thêm lần nữa, hoặc dùng phép escape dành cho ngữ cảnh này tại ngữ cảnh khác.
+**There is no single universal escape function safe for every destination.** Common bugs happen when escaping too early in the business layer, letting another layer escape a second time, or applying one context's escaping in a different context.
 
-Mục tiêu của bài: xác định **ai chịu trách nhiệm chuyển đổi**, **chuyển đổi tại ranh giới nào**, **giữ dạng dữ liệu gì trong API**, và **làm sao tránh mã hóa hai lần** mà không làm mất nội dung gốc.
+Lesson goals: determine **who is responsible for conversion**, **at which boundary conversion happens**, **what form of data the API holds**, and **how to avoid double encoding** without losing the original content.
 
-## 2. Phân biệt bốn khái niệm thường bị trộn lẫn
+## 2. Distinguishing four commonly conflated concepts
 
-| Khái niệm | Câu hỏi cần trả lời | Ví dụ Java và ứng dụng |
+| Concept | Question to Answer | Java & Application Examples |
 | --- | --- | --- |
-| **Charset encoding/decoding** | Ký tự được chuyển sang byte và ngược lại bằng charset nào? | **getBytes(StandardCharsets.UTF_8)**, **new String(bytes, UTF_8)** |
-| **Escaping theo cú pháp/ngữ cảnh** | Những ký tự nào phải được thể hiện khác khi nhúng vào ngôn ngữ đích? | JSON string escaping, HTML text/attribute escaping, Java string literal |
-| **Percent/form encoding của URL** | Dữ liệu chiếm vị trí nào trong URL và cần biểu diễn ký tự ra sao? | **URLEncoder.encode(value, UTF_8)** cho dữ liệu form |
-| **Ràng buộc tham số hoặc API có cấu trúc** | Có thể chuyển dữ liệu riêng khỏi phần cú pháp để khỏi ghép chuỗi hay không? | JDBC **PreparedStatement.setString(...)**, serializer JSON, HTML template engine |
+| **Charset encoding/decoding** | Which charset converts characters to bytes and back? | **getBytes(StandardCharsets.UTF_8)**, **new String(bytes, UTF_8)** |
+| **Syntax/context escaping** | Which characters must be represented differently when embedded in a target language? | JSON string escaping, HTML text/attribute escaping, Java string literals |
+| **URL percent/form encoding** | Which URL position does the data occupy and how must characters be represented? | **URLEncoder.encode(value, UTF_8)** for form data |
+| **Parameter binding or structured APIs** | Can data be passed separately from syntax to avoid string concatenation? | JDBC **PreparedStatement.setString(...)**, JSON serializers, HTML template engines |
 
-Cụ thể:
+Specifically:
 
-- **Encoding** có nhiều nghĩa tùy ngữ cảnh. “UTF-8 encoding” chuyển ký tự sang byte; “URL encoding” thường ám chỉ percent-encoding. Hai thao tác này không thể hoán đổi.
-- **Escaping** là biểu diễn ký tự theo quy tắc của cú pháp đích. Ví dụ Java source code viết **"A\nB"** để chứa ký tự xuống dòng trong một String, còn JSON serializer phải xuất một JSON string token với dấu nháy và escape phù hợp.
-- **Base64** là cách biểu diễn byte bằng bảng chữ cái ASCII, hữu ích cho vận chuyển dữ liệu nhị phân trong một số giao thức. **Base64 không phải cơ chế escape an toàn cho HTML/SQL/URL**, cũng không tự mã hóa bảo mật dữ liệu.
-- **Validation** kiểm tra giá trị có hợp lệ theo nghiệp vụ hay không. **Escaping/parameter binding** bảo đảm dữ liệu không trở thành cú pháp của ngôn ngữ đích. Hai trách nhiệm này bổ sung cho nhau, không thay thế nhau.
+- **Encoding** has multiple meanings depending on context. "UTF-8 encoding" converts characters to bytes; "URL encoding" usually refers to percent-encoding. These two operations are not interchangeable.
+- **Escaping** represents characters according to a target syntax's rules. For example, Java source code writes **"A\nB"** to include a newline character in a String, while a JSON serializer must emit a JSON string token with proper quotes and escapes.
+- **Base64** represents bytes using an ASCII alphabet, useful for transporting binary data in certain protocols. **Base64 is not a safe escaping mechanism for HTML/SQL/URL**, nor does it encrypt data for confidentiality.
+- **Validation** checks whether a value is valid under business rules. **Escaping/parameter binding** ensures data does not become syntax in the target language. These two responsibilities complement rather than replace each other.
 
-Ví dụ một tên hiển thị có dấu **<** có thể được cho phép theo nghiệp vụ nhưng vẫn phải được HTML-escape khi chèn vào **HTML text context**. Không cần biến giá trị nghiệp vụ thành chuỗi escape từ lúc nhận vào.
+For instance, a display name containing **<** may be permitted by business rules, yet still must be HTML-escaped when inserted into an **HTML text context**. There is no need to turn the business value into an escaped string upon ingestion.
 
-## 3. Nguyên tắc: giữ dữ liệu ngữ nghĩa, chuyển đổi khi đi qua ranh giới
+## 3. Principle: preserve semantic data, convert when crossing boundaries
 
-Một thiết kế dễ kiểm soát:
+A controllable design:
 
 ~~~text
-HTTP input (byte + quy tắc protocol)
+HTTP input (bytes + protocol rules)
         |
         v
-HTTP framework giải mã đúng lần vào String
+HTTP framework decodes once into String
         |
         v
-Controller -> Service -> Domain: String nguyên nghĩa
+Controller -> Service -> Domain: semantic String
         |
         +--> JDBC parameter binding -> Database
         |
@@ -59,26 +59,26 @@ Controller -> Service -> Domain: String nguyên nghĩa
         |
         +--> HTML template engine -> HTML text/attribute
         |
-        +--> URL component encoder -> giá trị query/path tương ứng
+        +--> URL component encoder -> corresponding query/path value
         |
-        +--> Logger với chính sách hiển thị/ghi log riêng
+        +--> Logger with dedicated display/logging policy
 ~~~
 
-**“Nguyên nghĩa”** không có nghĩa là bỏ mọi validation hoặc giữ nguyên byte thô. Nó có nghĩa String trong service đại diện cho giá trị của người dùng, ví dụ **Cà phê & trà**, thay vì mã escape phục vụ một output chưa được chọn.
+**"Semantic"** does not mean skipping validation or retaining raw bytes. It means the String inside the service represents the user's value, such as **Coffee & tea**, rather than escape sequences tailored to an unchosen output format.
 
-Trách nhiệm thường chia như sau:
+Responsibilities are typically divided as follows:
 
-1. **Input adapter** biết charset/protocol và giải mã input thành giá trị Java; kiểm tra giới hạn kích thước, hình thức dữ liệu và hợp đồng API.
-2. **Service/domain** xử lý ý nghĩa của giá trị. Đừng gắn HTML entities hoặc percent-encoded query component vào thuộc tính domain chỉ để “an toàn chung”.
-3. **Output adapter/serializer** biết ngữ cảnh đích và thực hiện escape/encode tương ứng tại thời điểm xuất.
-4. **Database adapter** dùng tham số truy vấn, không dựa vào dữ liệu đã được escape thủ công.
-5. **Giao diện API và tài liệu hợp đồng** phải nói rõ khi nào tham số là giá trị thô, khi nào là một chuỗi đã mã hóa theo chuẩn xác định.
+1. **Input adapter** knows the charset/protocol and decodes input into Java values; checks size limits, data format, and API contracts.
+2. **Service/domain** processes the meaning of the value. Do not embed HTML entities or percent-encoded query components into domain fields just for "general safety".
+3. **Output adapter/serializer** knows the target context and performs the corresponding escaping/encoding at output time.
+4. **Database adapter** uses query parameters rather than relying on manually escaped data.
+5. **API interfaces and contract docs** must state clearly when a parameter is a raw semantic value and when it is a string already encoded under a specific standard.
 
-Đây là **quy tắc thiết kế mặc định**, không phải cấm tuyệt đối mọi kiểu dữ liệu đã mã hóa. Một hệ thống có thể cố ý lưu **HTML sanitized** hoặc nội dung đã ở dạng **JSON document**; khi đó cần mô hình/kiểu API riêng, chính sách rõ ràng và không nhầm nó với văn bản thông thường.
+This is a **default design rule**, not an absolute ban on every encoded data type. A system may deliberately store **sanitized HTML** or content already formatted as a **JSON document**; in that case, use a dedicated model/API type, clear policies, and never confuse it with plain text.
 
-## 4. Java String khác byte: charset là trách nhiệm của ranh giới I/O
+## 4. Java String is not bytes: charset is an I/O boundary responsibility
 
-Một **String** Java biểu diễn nội dung ký tự bằng UTF-16 theo API của Java; không nên gọi nó là “String được UTF-8 hóa”. UTF-8 là cách biểu diễn khi chuyển nội dung ký tự sang byte.
+A Java **String** represents character content using UTF-16 per the Java API; it should not be called a "UTF-8-ified String". UTF-8 is a representation used when converting character content into bytes.
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -90,23 +90,23 @@ String restored = new String(bytes, StandardCharsets.UTF_8);
 System.out.println(restored.equals(value)); // true
 ~~~
 
-Đây là một vòng đi và về **giữa String và byte** qua UTF-8. Nếu lúc mã hóa dùng UTF-8 nhưng lúc giải mã dùng charset không tương ứng, các ký tự có dấu có thể bị lỗi (mojibake).
+This is a round trip **between String and bytes** via UTF-8. If encoding uses UTF-8 while decoding uses a mismatched charset, accented characters can become garbled (mojibake).
 
-**Quy tắc thực hành:**
+**Practical rules:**
 
-- Khi API nhận hoặc trả **byte[]**, chỉ rõ charset tại ranh giới chuyển từ/đến String.
-- Khi xử lý file text, dùng API có đối số charset, như **Files.readString(path, StandardCharsets.UTF_8)** và **Files.writeString(path, text, StandardCharsets.UTF_8)** khi hợp đồng yêu cầu UTF-8.
-- Với request/response HTTP, cấu hình và tuân theo Content-Type/charset cùng quy tắc framework; tránh giải mã một giá trị đã được framework giải mã.
-- Không gọi **new String(bytes)** hoặc **getBytes()** không đối số nếu tính đúng đắn của giao tiếp yêu cầu charset cụ thể.
-- Không giả định độ dài **String.length()** bằng số byte UTF-8 hoặc số code point Unicode. Java String tính theo đơn vị UTF-16.
+- When an API accepts or returns **byte[]**, explicitly specify the charset at the boundary converting to/from String.
+- When handling text files, use APIs with a charset argument, such as **Files.readString(path, StandardCharsets.UTF_8)** and **Files.writeString(path, text, StandardCharsets.UTF_8)** when the contract requires UTF-8.
+- For HTTP requests/responses, configure and follow Content-Type/charset and framework rules; avoid re-decoding a value the framework already decoded.
+- Do not call **new String(bytes)** or **getBytes()** without arguments when communication correctness requires a specific charset.
+- Do not assume **String.length()** equals UTF-8 byte count or Unicode code point count. Java String counts UTF-16 units.
 
-**Tách biệt:** chuyển sang UTF-8 **không** làm cho nội dung phù hợp để chèn thẳng vào HTML, JSON string, SQL hay URL. Đây là các ranh giới tiếp theo với ngữ pháp riêng.
+**Keep separate:** converting to UTF-8 does **not** make content suitable for direct insertion into HTML, JSON strings, SQL, or URLs. Those are subsequent boundaries with their own grammars.
 
-## 5. Mã hóa URL: chỉ mã hóa thành phần dữ liệu đúng vị trí
+## 5. URL encoding: encode only the data component in its proper position
 
-URL có nhiều thành phần: scheme, host, path, query, fragment. Cùng một ký tự có thể có ý nghĩa khác nhau trong từng thành phần. Ví dụ dấu **/** thường phân tách path segments; dấu **&** phân tách các cặp query parameters trong một số quy ước; dấu **+** có ý nghĩa đặc biệt khi xử lý **application/x-www-form-urlencoded**.
+URLs have multiple components: scheme, host, path, query, fragment. The same character can mean different things in different components. For example, **/** typically separates path segments; **&** separates query parameter pairs under common conventions; **+** has special meaning under **application/x-www-form-urlencoded**.
 
-Trong Java:
+In Java:
 
 ~~~java
 import java.net.URLEncoder;
@@ -118,27 +118,27 @@ String encoded = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
 String url = "https://example.org/search?q=" + encoded;
 ~~~
 
-**URLEncoder** được thiết kế cho quy tắc mã hóa **application/x-www-form-urlencoded**, thường dùng với **giá trị form/query parameter**. Nó thể hiện khoảng trắng dưới dạng **+**. Vì vậy, **không dùng URLEncoder để mã hóa toàn bộ URL**, URL path hoặc cả chuỗi query đã ghép sẵn.
+**URLEncoder** is designed for **application/x-www-form-urlencoded** rules, typically used for **form/query parameter values**. It encodes spaces as **+**. Therefore, **do not use URLEncoder to encode an entire URL**, a URL path, or an already-assembled query string.
 
-Ví dụ trên, chỉ **keyword** là giá trị dữ liệu cần mã hóa. Các ký tự cấu trúc của URL, như **?**, **=**, dấu **&** giữa nhiều tham số, phải được tạo ra bởi bộ xây dựng URL hoặc code có hợp đồng rõ.
+In the example above, only **keyword** is the data value to encode. Structural URL characters such as **?**, **=**, and **&** between parameters must be produced by a URL builder or code with an explicit contract.
 
-### 5.1. Giá trị query khác cả đường dẫn
+### 5.1. Query values differ from full paths
 
 ~~~text
-Đúng ý định:
-  https://example.org/search?q=<giá trị q đã form-encode>
+Intended:
+  https://example.org/search?q=<form-encoded value of q>
 
-Sai ý định:
-  form-encode toàn bộ "https://example.org/search?q=..." rồi coi đó là URL
+Unintended:
+  form-encode the entire "https://example.org/search?q=..." and treat it as a URL
 ~~~
 
-Đối với **path segment**, không đánh đồng dấu cách cần percent-encoding với dấu **+** theo form encoding. Nên dùng URI/URL builder của framework hoặc thư viện HTTP với phương thức **encode path segment** rõ ràng. Một hàm cho “mọi URL” dễ làm thay đổi dấu phân cách và semantics.
+For **path segments**, do not equate spaces needing percent-encoding with **+** from form encoding. Use a framework or HTTP library URI/URL builder with an explicit **encode path segment** method. A single function for "all of a URL" easily alters delimiters and semantics.
 
-Lưu ý: percent-encoding thể hiện dữ liệu cho URL, **không tự ngăn path traversal** hoặc cấp quyền truy cập. Đường dẫn tệp/tài nguyên vẫn phải được xác thực, chuẩn hóa và kiểm tra phạm vi được phép ở nơi sử dụng.
+Note: percent-encoding represents data for a URL; it **does not by itself prevent path traversal** or grant access permissions. File/resource paths must still be validated, normalized, and checked against allowed scopes where they are used.
 
-### 5.2. Mã hóa hai lần và giải mã hai lần
+### 5.2. Double encoding and double decoding
 
-Một lỗi thường gặp:
+A common bug:
 
 ~~~java
 String raw = "A&B";
@@ -149,29 +149,29 @@ System.out.println(once);  // A%26B
 System.out.println(twice); // A%2526B
 ~~~
 
-Trong **twice**, dấu **%** của dữ liệu đã percent-encode trước đó bị mã hóa thành **%25**. Nếu bên nhận giải mã một lần, giá trị còn **A%26B** thay vì **A&B**.
+In **twice**, the **%** from the already percent-encoded data gets encoded into **%25**. If the receiver decodes once, the value remains **A%26B** instead of **A&B**.
 
-Giải pháp thiết kế:
+Design solutions:
 
-- Phương thức nhận **rawQueryValue** và **chính nó** chịu trách nhiệm encode đúng một lần.
-- Hoặc phương thức nhận **encodedQueryComponent** với hợp đồng rõ và **không encode lại**. Tránh để cùng một tham số String mơ hồ có thể thuộc cả hai trạng thái.
-- Không tự động decode mọi chuỗi có **%**. Chuỗi **"50% off"** có dấu phần trăm hợp lệ như dữ liệu thông thường.
-- Không decode lặp để “đạt dạng dễ đọc” vì có thể thay đổi ý nghĩa, phá validation và gây lỗi tại các tầng khác.
+- The method accepts **rawQueryValue** and **takes responsibility itself** for encoding exactly once.
+- Or the method accepts **encodedQueryComponent** with a clear contract and **does not re-encode**. Avoid leaving a single String parameter ambiguous as to which state it is in.
+- Do not automatically decode every string containing **%**. The string **"50% off"** has a legitimate percent sign as normal data.
+- Do not decode repeatedly "until readable", as it can change meaning, bypass validation, and cause errors in other layers.
 
-## 6. JSON: giao cho serializer thay vì nối chuỗi thủ công
+## 6. JSON: delegate to a serializer rather than manual string concatenation
 
-Một JSON string là token có cú pháp riêng. Dữ liệu chứa dấu nháy kép, backslash, newline hoặc ký tự điều khiển phải được serializer thể hiện hợp lệ.
+A JSON string is a token with its own syntax. Data containing double quotes, backslashes, newlines, or control characters must be validly represented by a serializer.
 
-**Không nên ghép thủ công:**
+**Do not concatenate manually:**
 
 ~~~java
-// KHÔNG AN TOÀN/CHÍNH XÁC khi userName chứa quote hoặc xuống dòng:
+// UNSAFE/INCORRECT when userName contains quotes or newlines:
 String json = "{\"name\":\"" + userName + "\"}";
 ~~~
 
-Giả sử **userName** là **A" B**, việc nối trực tiếp có thể phá JSON string. Cách giải quyết không phải viết một danh sách thay thế ký tự đơn giản rồi dùng cho mọi trường hợp; hãy dùng serializer JSON của môi trường ứng dụng, ví dụ Jackson trong dự án có dependency tương ứng.
+Suppose **userName** is **A" B**; direct concatenation can break the JSON string. The solution is not writing a naive character-replacement list for all cases; use the application environment's JSON serializer, such as Jackson in projects with that dependency.
 
-Ví dụ **đoạn minh họa cần thư viện Jackson** (không phải chương trình Java SE chạy độc lập):
+Example **illustrative snippet requiring the Jackson library** (not a standalone Java SE program):
 
 ~~~java
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -182,71 +182,71 @@ ObjectMapper mapper = new ObjectMapper();
 Profile value = new Profile("A\"B\nC");
 String json = mapper.writeValueAsString(value);
 
-// Serializer chịu trách nhiệm dấu nháy, backslash và newline trong JSON.
+// The serializer handles quotes, backslashes, and newlines in JSON.
 ~~~
 
-Khi đọc JSON, **JSON parser** biến JSON string token trở về giá trị Java tương ứng. Service nên làm việc với **displayName** dạng String theo ngữ nghĩa, không cần tự thêm backslash escape để lưu dữ liệu thông thường.
+When reading JSON, a **JSON parser** turns the JSON string token back into the corresponding Java value. The service should work with semantic String **displayName** without manually adding backslash escapes to store ordinary data.
 
-**Phân biệt source literal với dữ liệu runtime:**
+**Distinguish source literals from runtime data:**
 
-- Trong **Java source code**, **"A\nB"** là cú pháp diễn tả một String có ký tự LF.
-- Trong **JSON text**, dấu xuống dòng trong một chuỗi JSON phải được thể hiện theo cú pháp JSON, ví dụ chuỗi ký tự **\n** trong JSON wire text.
-- Đừng tự lấy chuỗi source của Java và cho rằng nó đã trở thành JSON hợp lệ.
+- In **Java source code**, **"A\nB"** is syntax representing a String containing an LF character.
+- In **JSON text**, a newline inside a JSON string must be represented per JSON syntax, such as the character sequence **\n** in JSON wire text.
+- Never take a Java source literal and assume it is already valid JSON.
 
-Khi dữ liệu JSON được nhúng vào **HTML**, ranh giới HTML/script có thêm quy tắc riêng. Một JSON serializer đơn thuần không phải bảo đảm toàn bộ việc nhúng nội dung vào **<script>** an toàn. Thiết kế tốt là trả JSON qua response **application/json** và để frontend parse; nếu thật sự cần nhúng vào HTML, phải dùng giải pháp escape đúng ngữ cảnh nhúng đó.
+When JSON data is embedded into **HTML**, the HTML/script boundary introduces additional rules. A JSON serializer alone does not guarantee safety for embedding content inside **<script>**. Good design returns JSON via an **application/json** response and lets the frontend parse it; if embedding into HTML is genuinely required, use an escaping solution tailored to that exact embedding context.
 
-## 7. HTML: escape theo context, không có một “HTML escape” dùng mọi nơi
+## 7. HTML: escape by context; there is no one-size-fits-all "HTML escape"
 
-HTML có nhiều context: **text node**, **attribute**, **URL attribute**, JavaScript trong script, CSS trong style. Các quy tắc escape và rủi ro khác nhau.
+HTML has multiple contexts: **text node**, **attribute**, **URL attribute**, JavaScript inside script, CSS inside style. Escaping rules and risks differ.
 
-Ví dụ dữ liệu nghiệp vụ:
+Example business data:
 
 ~~~text
 A&B <Admin>
 ~~~
 
-Nếu đưa vào **HTML text node**, các ký tự mang ý nghĩa cú pháp như **&**, **<** cần được thể hiện an toàn để người dùng nhìn thấy đúng dữ liệu mà nội dung không trở thành thẻ HTML.
+If placed into an **HTML text node**, syntactically significant characters like **&** and **<** must be safely represented so users see the exact data without the content becoming an HTML tag.
 
-Nguyên tắc:
+Principles:
 
-1. Khi tạo HTML, dùng **template engine có auto-escaping phù hợp với vị trí chèn** hoặc API DOM với thao tác **textContent** khi chèn văn bản.
-2. Với **HTML attribute**, dùng cơ chế escape dành riêng cho attribute; không lấy hàm chỉ dành cho HTML text rồi mặc định dùng an toàn trong mọi trường hợp.
-3. Với **href/src**, ngoài escape HTML attribute, còn cần **kiểm soát URL scheme và nguồn đích**. Escape dấu nháy không vô hiệu hóa một URL có scheme nguy hiểm.
-4. Với **JavaScript/CSS context**, tránh nhúng chuỗi động trực tiếp; sử dụng cách truyền dữ liệu riêng hoặc encoder dành cho context chính xác.
-5. Nếu mục tiêu là **cho phép nội dung HTML có giới hạn**, cần quy trình **sanitization** theo allowlist và policy rõ ràng. Escaping toàn bộ thì hiển thị markup như văn bản; sanitization có mục tiêu khác.
+1. When generating HTML, use a **template engine with context-appropriate auto-escaping** or DOM APIs with **textContent** when inserting text.
+2. For **HTML attributes**, use escaping specifically meant for attributes; do not take a function meant only for HTML text and assume it is safe everywhere.
+3. For **href/src**, beyond HTML attribute escaping, you also must **restrict the URL scheme and target origin**. Escaping quotes does not neutralize a URL with a dangerous scheme.
+4. For **JavaScript/CSS contexts**, avoid embedding dynamic strings directly; use separate data-passing mechanisms or encoders dedicated to the exact context.
+5. If the goal is to **allow limited HTML content**, you need a **sanitization** pipeline using an explicit allowlist and policy. Full escaping renders markup as plain text; sanitization has a different goal.
 
-**Phòng XSS bằng output encoding là trách nhiệm của nơi render.** Một service Java không nên biến mọi tên người dùng thành chuỗi chứa HTML entities rồi dùng chuỗi ấy cho email, JSON, SQL và log.
+**Preventing XSS via output encoding is the renderer's responsibility.** A Java service should not turn every username into a string containing HTML entities and then use that string for email, JSON, SQL, and logs.
 
-### 7.1. Double escaping trong HTML
+### 7.1. Double escaping in HTML
 
-Nếu tầng service đã thay **&** bằng **&amp;**, rồi template engine escape tiếp dấu **&**, người dùng có thể nhìn thấy chữ **&amp;** thay vì dấu **&**.
+If the service layer replaces **&** with **&amp;**, and then the template engine escapes **&** again, the user may see **&amp;** instead of **&**.
 
-Đó không phải lỗi “thiếu unescape ở frontend”; lỗi thiết kế là **hai tầng cùng cho rằng mình sở hữu trách nhiệm escape**.
+That is not a "missing unescape on the frontend" bug; the design flaw is **two layers both assuming they own escaping responsibility**.
 
-Nên giữ mô hình:
+Maintain this model:
 
 ~~~text
 Domain String:       "A&B"
-Template nhận:       "A&B"
-HTML renderer xuất:  "A&amp;B"
-Trình duyệt hiển thị: A&B
+Template receives:   "A&B"
+HTML renderer emits: "A&amp;B"
+Browser displays:    A&B
 ~~~
 
-Nếu phải lưu rich HTML an toàn, hãy mô hình hóa nó khác với String văn bản thường, và khai báo rõ renderer có được xuất như markup hay phải escape như text.
+If safe rich HTML must be stored, model it distinctly from plain-text Strings, and explicitly declare whether the renderer may emit it as markup or must escape it as text.
 
-## 8. SQL: dùng parameter binding, không tự escape giá trị
+## 8. SQL: use parameter binding, never manually escape values
 
-Các toán tử và cú pháp SQL cần được giữ tách biệt khỏi dữ liệu do người dùng nhập. **Không** xây query bằng nối chuỗi:
+SQL operators and syntax must be kept separate from user-supplied data. **Do not** build queries by string concatenation:
 
 ~~~java
-// Ví dụ không nên dùng:
+// Example not to use:
 String sql = "SELECT id FROM users WHERE email = '" + email + "'";
 ~~~
 
-Đây là rủi ro SQL injection và lỗi xử lý dấu nháy. Cách đúng là dùng tham số JDBC:
+This creates SQL injection risk and quote-handling bugs. The right way is using JDBC parameters:
 
 ~~~java
-// Đoạn minh họa: giả định có java.sql.Connection connection.
+// Illustrative snippet: assumes java.sql.Connection connection exists.
 String sql = "SELECT id FROM users WHERE email = ?";
 
 try (java.sql.PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -254,25 +254,25 @@ try (java.sql.PreparedStatement ps = connection.prepareStatement(sql)) {
     try (java.sql.ResultSet rs = ps.executeQuery()) {
         while (rs.next()) {
             long id = rs.getLong("id");
-            // Xử lý bản ghi theo nghiệp vụ.
+            // Process the record per business logic.
         }
     }
 }
 ~~~
 
-**PreparedStatement.setString(...)** truyền giá trị như dữ liệu, không để dấu nháy trong **email** trở thành cú pháp SQL. Nó cũng giúp không phải viết cách escape thủ công phụ thuộc database.
+**PreparedStatement.setString(...)** passes the value as data, preventing quotes in **email** from becoming SQL syntax. It also avoids writing database-specific manual escaping.
 
-Cần nhớ:
+Remember:
 
-- Tham số có thể thay **giá trị dữ liệu**, không thay tên bảng, cột hoặc từ khóa SQL. Nếu tên cột cần chọn động, dùng **allowlist identifier** và dựng cú pháp từ các lựa chọn tin cậy.
-- Điều kiện **LIKE** còn có ký tự pattern của SQL như **%** và **_**. Parameter binding ngăn injection qua cú pháp SQL nhưng **không tự biến chúng thành ký tự literal trong LIKE pattern**; nếu muốn tìm dấu **%** thật, cần quy tắc escape LIKE và cú pháp **ESCAPE** thích hợp với database.
-- Dữ liệu trước khi gửi database vẫn có thể chứa **<**, **&** hoặc dấu nháy. Đừng HTML-escape để “chống SQL injection”; đây là hai ranh giới khác nhau.
+- Parameters can replace **data values**, not table names, column names, or SQL keywords. If a column name must be chosen dynamically, use an **identifier allowlist** and build syntax from trusted choices.
+- A **LIKE** condition also has SQL pattern characters such as **%** and **_**. Parameter binding prevents SQL syntax injection, but **does not automatically turn them into literal characters inside a LIKE pattern**; if you want to search for a literal **%**, apply LIKE escaping rules and database-appropriate **ESCAPE** syntax.
+- Data sent to the database may still contain **<**, **&**, or quotes. Do not HTML-escape to "prevent SQL injection"; those are two different boundaries.
 
-Một cột chứa tên người dùng nên lưu **tên người dùng theo ngữ nghĩa**. Khi ứng dụng đọc nó và đưa vào trang HTML, lúc đó renderer HTML chịu trách nhiệm HTML-escape.
+A column holding a username should store the **semantic username**. When the application reads it and places it into an HTML page, the HTML renderer handles HTML escaping.
 
-## 9. Regex, shell, CSV và log có ranh giới riêng
+## 9. Regex, shell, CSV, and logs have their own boundaries
 
-Khi nhập **từ khóa để tìm nguyên văn**, \`Pattern.compile(input)\` có thể biến dấu \`.\` hoặc \`*\` thành toán tử regex. Nếu vẫn dùng regex API, quote đúng phần dữ liệu:
+When accepting a **keyword for literal search**, \`Pattern.compile(input)\` can turn \`.\` or \`*\` into regex operators. If still using the regex API, quote the data portion properly:
 
 ~~~java
 String literalText = "a.b";
@@ -283,13 +283,13 @@ System.out.println(pattern.matcher("x a.b y").find()); // true
 System.out.println(pattern.matcher("x acb y").find()); // false
 ~~~
 
-Khi gọi tiến trình, truyền executable và các đối số riêng qua \`ProcessBuilder\`, kiểm soát argument được công cụ đích hiểu là option; tránh đưa input vào shell script ghép chuỗi. Khi ghi CSV, dùng CSV writer với quoting/escape đúng dialect, và xem xét **formula injection** nếu tệp sẽ mở trong spreadsheet. Khi ghi log, để logging sink quyết định escape cho cấu trúc log và kiểm soát CR/LF, ký tự điều khiển, dữ liệu nhạy cảm; parameterized log message không mặc nhiên loại mọi ký tự gây log injection.
+When invoking processes, pass the executable and individual arguments via \`ProcessBuilder\`, guarding against arguments interpreted as options by the target tool; avoid passing input into string-concatenated shell scripts. When writing CSV, use a CSV writer with dialect-appropriate quoting/escaping, and consider **formula injection** if the file will be opened in spreadsheets. When logging, let the logging sink handle structural log escaping and control CR/LF, control characters, and sensitive data; parameterized log messages do not implicitly strip every character that can cause log injection.
 
-Điểm chung: \`Pattern.quote\` chỉ phục vụ regex, CSV writer chỉ phục vụ CSV, logging formatter chỉ phục vụ log. Những phép chuyển đổi đó **không** phải giá trị để ghi ngược vào domain \`String\` và tái sử dụng ở một đích khác. Phần giải thích cú pháp chi tiết và ví dụ parser/serializer nằm tại hai bài về text có ngữ pháp và xử lý định dạng.
+Common thread: \`Pattern.quote\` is only for regex, a CSV writer is only for CSV, and a logging formatter is only for logs. Those transformations are **not** values to write back into a domain \`String\` and reuse for another destination. Detailed syntax explanations and parser/serializer examples are in the two lessons on structured text and format processing.
 
-## 10. Ví dụ Java 17+ độc lập: đúng ranh giới, tránh mã hóa hai lần
+## 10. Standalone Java 17+ example: right boundaries, avoiding double encoding
 
-Tạo tệp **EncodingBoundaryDemo.java**:
+Create the file **EncodingBoundaryDemo.java**:
 
 ~~~java
 import java.net.URLDecoder;
@@ -330,14 +330,14 @@ public class EncodingBoundaryDemo {
 }
 ~~~
 
-Biên dịch, chạy:
+Compile and run:
 
 ~~~bash
 javac EncodingBoundaryDemo.java
 java EncodingBoundaryDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 UTF-8 round trip: true
@@ -349,33 +349,33 @@ Regex literal matches dot: true
 Regex literal rejects wildcard match: true
 ~~~
 
-Giải thích:
+Explanation:
 
-1. **UTF-8** xử lý String thành byte và ngược lại. Nó không tự escape cho HTML/SQL.
-2. **URLEncoder** đổi giá trị của một form/query parameter; dấu cách trở thành **+**, dấu **&** trong giá trị thành **%26**.
-3. **URLDecoder** nhận đầu vào đúng loại **form-encoded value**, giải mã trở về String theo ngữ nghĩa.
-4. Encode lại **formValue** làm percent sign trong các chuỗi **%XX** thành **%25**: đây là dấu hiệu của tình huống mã hóa hai lần, không phải lớp bảo vệ bổ sung.
-5. **Base64** xử lý byte thành văn bản ASCII và giải mã lại. Nó không phải phép escape HTML/SQL.
-6. **Pattern.quote** bảo toàn ý nghĩa literal của dấu chấm trong regex.
+1. **UTF-8** converts String to bytes and back. It does not escape for HTML/SQL.
+2. **URLEncoder** converts a form/query parameter value; spaces become **+**, and **&** in the value becomes **%26**.
+3. **URLDecoder** accepts properly typed **form-encoded values** and decodes back to the semantic String.
+4. Re-encoding **formValue** turns percent signs in **%XX** sequences into **%25**: this is the signature of double encoding, not an extra layer of protection.
+5. **Base64** converts bytes into ASCII text and decodes back. It is not HTML/SQL escaping.
+6. **Pattern.quote** preserves the literal meaning of the dot in regex.
 
-**Chỉ đưa String đã encode vào đúng vị trí và đúng giao thức mà nó được tạo ra cho.** Không gán **formValue** vào domain field tên **displayName** và sau đó đem field đó lưu database hoặc trả JSON như tên người dùng.
+**Only pass an encoded String to the exact position and protocol it was created for.** Never assign **formValue** to a domain field named **displayName** and then persist it to a database or return it in JSON as a username.
 
-## 11. Một thiết kế API dễ mắc lỗi và cách sửa
+## 11. An error-prone API design and how to fix it
 
-### 11.1. Thiết kế dễ double escaping
+### 11.1. Design prone to double escaping
 
 ~~~java
-// Tình huống xấu mang tính minh họa:
+// Illustrative bad pattern:
 String saveDisplayName(String submittedName) {
     return submittedName.replace("&", "&amp;");
 }
 ~~~
 
-Nếu kết quả được lưu như tên hiển thị, trang HTML có thể escape lần nữa; JSON API có thể trả tên đã biến dạng thành **&amp;**; tìm kiếm tên người dùng cũng không còn so sánh trên dữ liệu nguyên nghĩa.
+If the result is stored as the display name, HTML pages may escape it a second time; JSON APIs may return names mangled into **&amp;**; and username searches will no longer match against semantic data.
 
-### 11.2. Thiết kế rõ trách nhiệm hơn
+### 11.2. Design with clearer responsibilities
 
-Giữ giá trị gốc trong API nghiệp vụ:
+Keep the original value in the business API:
 
 ~~~java
 record UserProfile(String displayName) {}
@@ -383,59 +383,59 @@ record UserProfile(String displayName) {}
 UserProfile profile = new UserProfile("A&B");
 ~~~
 
-Khi xuất dữ liệu:
+When outputting data:
 
-- HTTP JSON response: **JSON serializer** đọc **profile.displayName()** và tạo JSON text hợp lệ.
-- HTML view: **template engine** đặt giá trị vào text/attribute context với output encoding phù hợp.
-- Query đến dịch vụ khác: **HTTP client/URI builder** mã hóa giá trị trong thành phần URL chính xác.
-- JDBC: **PreparedStatement.setString(...)** truyền chuỗi dạng dữ liệu.
-- Logging: **logger** serialize/format theo sink, có quy tắc chống log injection và lộ thông tin riêng.
+- HTTP JSON response: **JSON serializer** reads **profile.displayName()** and produces valid JSON text.
+- HTML view: **template engine** places the value in a text/attribute context with appropriate output encoding.
+- Query to another service: **HTTP client/URI builder** encodes the value in the exact URL component.
+- JDBC: **PreparedStatement.setString(...)** passes the string as data.
+- Logging: **logger** serializes/formats per sink, with its own rules against log injection and data leakage.
 
-**Không phải tạo một biến tên escapedDisplayName dùng chung cho tất cả đích xuất.**
+**Do not create a single escapedDisplayName variable shared across all output destinations.**
 
-Nếu API thật sự nhận hoặc trả văn bản đã encode, hãy diễn tả điều đó trong tên và hợp đồng, ví dụ **rawQueryValue** khác **encodedFormComponent**, kèm quy định charset/dialect. Với dự án lớn có thể dùng các value object/wrapper type riêng để tránh trộn trạng thái.
+If an API genuinely accepts or returns encoded text, express that in its name and contract, such as distinguishing **rawQueryValue** from **encodedFormComponent**, along with charset/dialect rules. In large projects, dedicated value objects/wrapper types can prevent mixing states.
 
-## 12. Không giải mã quá mức ở input
+## 12. Do not over-decode on input
 
-Nguyên tắc “escape ở output” không đồng nghĩa “decode mọi thứ nhiều lần khi input”.
+The principle "escape on output" does not mean "decode everything multiple times on input".
 
-Hãy phân biệt:
+Distinguish clearly:
 
-- HTTP framework thường đã decode query parameter theo protocol. Controller nhận **String parameter** và không cần **URLDecoder.decode(...)** lần nữa.
-- JSON parser đã giải mã escape trong JSON string. Service nhận giá trị String đã parse và không cần tự **unescape JSON**.
-- HTML entities trong một chuỗi người dùng có thể là **văn bản họ muốn nhập**. Không tự chuyển **&amp;** thành **&** chỉ vì nhìn giống HTML entity.
-- Nếu một endpoint **cố ý** nhận toàn bộ form-encoded payload ở dạng raw, adapter xử lý việc parse/decode **đúng một lần** theo Content-Type và charset đã định nghĩa.
+- HTTP frameworks usually already decode query parameters per protocol. Controllers receive a **String parameter** and must not call **URLDecoder.decode(...)** again.
+- JSON parsers already decode escapes inside JSON strings. Services receive the parsed String value and must not manually **unescape JSON**.
+- HTML entities in a user string may be **the literal text they intended to enter**. Do not automatically turn **&amp;** into **&** just because it looks like an HTML entity.
+- If an endpoint **intentionally** accepts an entire form-encoded payload in raw form, the adapter handles parsing/decoding **exactly once** per the defined Content-Type and charset.
 
-Giải mã nhiều lần có thể phá validation hoặc tạo ra ký tự phân cách mới chỉ sau vòng decode thứ hai. Vì vậy, **hợp đồng API phải xác định trạng thái dữ liệu tại mỗi bước** và không dùng “thử decode đến khi hết ký tự đặc biệt”.
+Decoding multiple times can bypass validation or create new delimiter characters only after the second decode pass. Therefore, **the API contract must define the data state at every step** and never use "keep decoding until no special characters remain".
 
-Một ví dụ kiểm soát:
+A controlled example:
 
 ~~~text
 Raw HTTP request: q=A%26B
-Framework parse query: parameter q = "A&B"
-Service nhận: "A&B"
-Service KHÔNG tự URLDecode(q) nữa
+Framework parses query: parameter q = "A&B"
+Service receives: "A&B"
+Service does NOT call URLDecode(q) again
 ~~~
 
-Nếu dữ liệu thực sự chứa dấu phần trăm, nó vẫn là dữ liệu hợp lệ. Việc kiểm tra hợp lệ phải dựa trên giá trị theo hợp đồng của API, không dựa trên phỏng đoán rằng mọi ký hiệu percent luôn là escape.
+If the data genuinely contains a percent sign, it is still valid data. Validation must inspect the value according to the API contract, not guess that every percent symbol is always an escape.
 
-## 13. Validation, canonicalization và bảo vệ ranh giới
+## 13. Validation, canonicalization, and boundary defense
 
-Mã hóa/escape đúng context **không thể thay thế** các kiểm tra khác:
+Context-appropriate encoding/escaping **cannot replace** other checks:
 
-- **Giới hạn độ dài và kiểu dữ liệu:** kiểm tra trước khi xử lý để tránh input không hợp lệ và sử dụng tài nguyên quá mức.
-- **Unicode normalization:** đôi khi cần NFC/NFKC để so sánh danh tính/tìm kiếm nhất quán, nhưng phải có chính sách nghiệp vụ; normalization không phải một loại HTML escape.
-- **Authorization:** URL encoding không làm một đường dẫn hoặc ID trở thành tài nguyên người dùng có quyền truy cập.
-- **Path validation:** chuẩn hóa và kiểm tra đường dẫn trong thư mục gốc, xem xét symbolic link/race condition; percent-encoding không thay thế các kiểm tra này.
-- **HTML sanitization:** cần khi cho phép một phần markup từ bên ngoài; HTML escaping toàn bộ sẽ hiển thị markup thành văn bản.
-- **SQL parameterization:** dùng cho giá trị; tên bảng/cột động cần allowlist.
-- **Content-Type:** đặt đúng media type để bên nhận biết bộ parser và quy tắc encode/decode.
+- **Length and type limits:** check before processing to reject invalid input and prevent excessive resource usage.
+- **Unicode normalization:** sometimes NFC/NFKC is needed for consistent identity comparison/search, but it requires a business policy; normalization is not a form of HTML escaping.
+- **Authorization:** URL encoding does not make a path or ID a resource the user is authorized to access.
+- **Path validation:** normalize and verify paths within the root directory, accounting for symbolic links/race conditions; percent-encoding does not replace these checks.
+- **HTML sanitization:** required when allowing a subset of external markup; full HTML escaping displays markup as text.
+- **SQL parameterization:** used for values; dynamic table/column names require an allowlist.
+- **Content-Type:** set the proper media type so the receiver knows which parser and encode/decode rules apply.
 
-Trình tự kiểm soát có thể là: **parse đúng giao thức → xây dữ liệu có kiểu → validate ý nghĩa và quyền truy cập → xử lý nghiệp vụ → serialize/encode đúng output context**. Đừng gộp các thao tác này thành một hàm mang tên chung **sanitizeString** rồi gọi ở mọi tầng.
+A clean control sequence can be: **parse per protocol → construct typed data → validate meaning and authorization → execute business logic → serialize/encode for the exact output context**. Do not lump these operations into one generic function named **sanitizeString** called at every layer.
 
-## 14. Thiết kế test theo ranh giới
+## 14. Boundary-focused test design
 
-Để kiểm tra hệ thống thực sự phân công trách nhiệm đúng, hãy thử những String chứa các ký tự “khó”:
+To verify that the system truly assigns responsibilities properly, test with Strings containing "tricky" characters:
 
 ~~~text
 A&B
@@ -444,73 +444,73 @@ A"B
 A'B
 a+b
 a%2Bb
-Dòng 1
-Dòng 2
+Line 1
+Line 2
 cà phê
 中文
 😀
 ~~~
 
-Những test có giá trị:
+Valuable tests:
 
-1. **UTF-8 round-trip:** một String Unicode bất kỳ chuyển sang byte rồi về String vẫn bằng đầu vào.
-2. **Form encoding round-trip:** giá trị chứa **&**, **+**, dấu cách, dấu **%** được encode/decode **đúng một lần** tại đúng parser.
-3. **JSON round-trip:** serialize rồi parse lại cho ra cùng giá trị String, kể cả dấu nháy kép, backslash và newline.
-4. **HTML rendering:** giá trị chứa **<** được hiển thị như text, không tạo phần tử HTML ngoài ý định; attribute và URL được kiểm tra theo context riêng.
-5. **SQL parameter binding:** giá trị chứa dấu nháy đơn vẫn được lưu/tìm như dữ liệu và không thay đổi cấu trúc câu SQL.
-6. **No-double-escape:** renderer nhận **A&B** từ service và hiển thị **A&B**; không hiển thị **&amp;**.
-7. **Input framework:** endpoint không decode lần thứ hai một tham số mà framework đã parse.
-8. **Cross-layer contract:** giá trị đọc từ database, trả qua JSON và render HTML vẫn giữ cùng **ý nghĩa**, dù byte representation và escape representation khác nhau.
+1. **UTF-8 round-trip:** an arbitrary Unicode String converted to bytes and back to String equals the input.
+2. **Form encoding round-trip:** values containing **&**, **+**, spaces, and **%** are encoded/decoded **exactly once** at the right parser.
+3. **JSON round-trip:** serializing and parsing back produces the exact same String value, including double quotes, backslashes, and newlines.
+4. **HTML rendering:** values containing **<** render as text without creating unintended HTML elements; attributes and URLs are tested in their own contexts.
+5. **SQL parameter binding:** values containing single quotes are stored/queried as data without altering SQL statement structure.
+6. **No-double-escape:** the renderer receives **A&B** from the service and displays **A&B**, not **&amp;**.
+7. **Input framework:** endpoints do not decode a second time a parameter the framework already parsed.
+8. **Cross-layer contract:** a value read from the database, returned via JSON, and rendered in HTML retains the exact same **meaning**, even though byte and escape representations differ.
 
-Lưu ý: so sánh nội dung trên wire phải đối chiếu **đúng lớp**. Chuỗi JSON có thể chứa backslash escaping mà giá trị String sau parse không chứa backslash ấy. HTML source có thể chứa entities mà text hiển thị không chứa các chuỗi entity.
+Note: comparing wire content must inspect **the right layer**. A JSON string may contain backslash escaping that the parsed String value does not contain. HTML source may contain entities that the rendered visible text does not contain.
 
-## 15. Lỗi thường gặp và cách khắc phục
+## 15. Common mistakes and fixes
 
-| Lỗi | Hệ quả | Hướng xử lý |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Lưu tên người dùng đã HTML-escape vào domain/database | Double escaping hoặc tên bị biến dạng ở JSON/email | Lưu giá trị String theo ngữ nghĩa; escape tại HTML view |
-| Dùng **URLEncoder** cho cả URL | Các dấu phân cách cấu trúc bị mã hóa sai | Encode riêng query/form value hoặc path segment bằng builder phù hợp |
-| Encode một query value hai lần | **%** đổi thành **%25**, kết quả hiển thị sai | Quy định rõ raw value và encoded component |
-| Tự **URLDecoder** trên parameter đã được framework parse | Double decode, thay đổi ý nghĩa/validation | Để input adapter decode đúng một lần |
-| Ghép dấu nháy vào JSON bằng nối String | JSON không hợp lệ hoặc dữ liệu sai | Dùng serializer JSON |
-| Dùng HTML escape để chống SQL injection | Không xử lý rủi ro SQL | JDBC PreparedStatement/parameterized SQL |
-| Tự replace dấu nháy đơn trong SQL | Dễ sai theo dialect/cấu hình | Bind tham số, allowlist identifier |
-| Dùng JSON escape cho HTML text/attribute | Không bảo đảm an toàn ngữ cảnh HTML | HTML encoder/template engine đúng context |
-| Coi Base64 là mã hóa bảo mật | Không tạo tính bí mật hay xác thực | Dùng cơ chế bảo mật riêng nếu cần |
-| Coi Java **String.length()** là độ dài byte UTF-8 | Sai giới hạn kích thước truyền dẫn | Đo trên byte được encode đúng charset |
-| Dùng **Pattern.compile(userInput)** khi cần tìm literal | Ký tự regex biến thành toán tử | Dùng **Pattern.quote(userInput)** |
-| Dùng **escape()** chung cho mọi tầng | Không rõ context, dễ double-escape | API có tên/hợp đồng theo từng ranh giới |
+| Storing HTML-escaped usernames in domain/database | Double escaping or corrupted names in JSON/email | Store semantic String values; escape in the HTML view |
+| Using **URLEncoder** on an entire URL | Structural delimiters get wrongly encoded | Encode query/form values or path segments separately with an appropriate builder |
+| Encoding a query value twice | **%** turns into **%25**, displaying wrong results | Clearly distinguish raw values from encoded components |
+| Calling **URLDecoder** on a framework-parsed parameter | Double decode, altering meaning/validation | Let the input adapter decode exactly once |
+| Concatenating quotes into JSON via String concatenation | Invalid JSON or corrupted data | Use a JSON serializer |
+| Using HTML escaping to prevent SQL injection | Does not mitigate SQL risk | JDBC PreparedStatement/parameterized SQL |
+| Manually replacing single quotes in SQL | Error-prone across dialects/configs | Parameter binding, identifier allowlists |
+| Using JSON escaping for HTML text/attributes | Does not guarantee HTML context safety | Context-appropriate HTML encoder/template engine |
+| Treating Base64 as security encryption | Provides neither confidentiality nor authentication | Use dedicated security mechanisms when needed |
+| Treating Java **String.length()** as UTF-8 byte length | Wrong transmission size limits | Measure on bytes encoded with the right charset |
+| Using **Pattern.compile(userInput)** for literal search | Regex characters turn into operators | Use **Pattern.quote(userInput)** |
+| Using a generic **escape()** across all layers | Unclear context, prone to double escaping | APIs named and contracted per boundary |
 
-## 16. Checklist áp dụng trong code review
+## 16. Code review checklist
 
-- [ ] Dữ liệu ở tầng domain/service còn mang **giá trị theo ngữ nghĩa** hay đã bị mã hóa cho một output cụ thể?
-- [ ] API input ghi rõ dữ liệu là raw String hay đã ở một encoding/format cụ thể?
-- [ ] Charset tại ranh giới byte/String có được chỉ rõ và khớp hai đầu không?
-- [ ] JSON và HTML có serializer/renderer chịu trách nhiệm phù hợp với **context** không?
-- [ ] URL chỉ encode **component dữ liệu** cần thiết, không encode toàn chuỗi hoặc mã hóa trùng?
-- [ ] SQL có dùng parameter binding? Identifier động có được giới hạn bằng allowlist?
-- [ ] Các giá trị đã parse bởi framework có bị decode lặp lại không?
-- [ ] Có test round-trip và test nội dung chứa **&**, **+**, **%**, dấu nháy, newline, Unicode không?
-- [ ] Có kiểm tra validation, phân quyền và cấu trúc dữ liệu độc lập với output encoding không?
-- [ ] Nếu buộc phải giữ chuỗi encoded, kiểu/tên biến/hợp đồng có làm trạng thái ấy rõ ràng không?
+- [ ] Does data in the domain/service layer still carry **semantic values**, or has it already been encoded for a specific output?
+- [ ] Does the input API clearly state whether data is a raw String or already in a specific encoding/format?
+- [ ] Is the charset at the byte/String boundary explicitly specified and matched on both ends?
+- [ ] Do JSON and HTML have serializers/renderers responsible for the appropriate **context**?
+- [ ] Are URLs encoding only the required **data components**, without encoding the whole string or encoding twice?
+- [ ] Does SQL use parameter binding? Are dynamic identifiers restricted by an allowlist?
+- [ ] Are values already parsed by the framework protected from being decoded a second time?
+- [ ] Are there round-trip tests and tests for content containing **&**, **+**, **%**, quotes, newlines, and Unicode?
+- [ ] Are validation, authorization, and data structure checked independently of output encoding?
+- [ ] If an encoded string must be retained, do its type, variable name, and contract make that state unambiguous?
 
-## 17. Ghi nhớ
+## 17. Takeaways
 
-**Một String không tự “an toàn” cho mọi đích.** Giá trị ở tầng nghiệp vụ nên giữ nguyên ý nghĩa; khi chuyển sang byte, HTML, JSON, URL, SQL, regex hoặc log, dùng **bộ chuyển đổi dành riêng cho đích đến** tại ranh giới thực sự:
+**A String is not inherently "safe" for every destination.** Values in the business layer should preserve their semantic meaning; when crossing into bytes, HTML, JSON, URLs, SQL, regex, or logs, use **destination-specific converters** at the actual boundary:
 
-- **Byte/String:** charset đã định, ví dụ UTF-8.
-- **JSON:** serializer và parser JSON.
-- **HTML:** encoder/template đúng text, attribute, URL hoặc context tương ứng.
-- **URL:** encoder cho đúng query value/path segment; decode theo protocol một lần.
-- **SQL:** parameter binding và kiểm soát identifier.
-- **Regex:** **Pattern.quote** nếu dữ liệu là literal.
-- **Log/CSV/shell:** API cấu trúc hoặc serializer phù hợp với format/command đích.
+- **Bytes/String:** specified charset, e.g., UTF-8.
+- **JSON:** JSON serializer and parser.
+- **HTML:** encoder/template matching text, attribute, URL, or corresponding context.
+- **URL:** encoder for the specific query value/path segment; decode once per protocol.
+- **SQL:** parameter binding and identifier control.
+- **Regex:** **Pattern.quote** when data is literal.
+- **Log/CSV/shell:** structured APIs or serializers suited to the target format/command.
 
-Cách làm này vừa giữ đúng dữ liệu vừa hạn chế **double encoding**, **double escaping**, lỗi cú pháp và rủi ro injection do trách nhiệm bị đặt sai chỗ.
+This approach preserves accurate data while minimizing **double encoding**, **double escaping**, syntax errors, and injection risks caused by misplaced responsibilities.
 
-### Tài liệu tham khảo
+### References
 
-- Java SE 17, **java.lang.String** và **java.nio.charset.StandardCharsets**: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html
+- Java SE 17, **java.lang.String** and **java.nio.charset.StandardCharsets**: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html
 - Java SE 17, **java.net.URLEncoder**: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLEncoder.html
 - Java SE 17, **java.net.URLDecoder**: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/URLDecoder.html
 - Java SE 17, **java.sql.PreparedStatement**: https://docs.oracle.com/en/java/javase/17/docs/api/java.sql/java/sql/PreparedStatement.html

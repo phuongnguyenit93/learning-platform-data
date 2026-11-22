@@ -1,15 +1,15 @@
-# Chọn dừng khi có lỗi hoặc thu thập lỗi cùng kết quả
+# Choosing to Fail Fast or Collect Errors Alongside Results
 
-## 1. Một pipeline có lỗi nên dừng ngay hay tiếp tục?
+## 1. Should a Pipeline Stop Immediately on Error or Continue?
 
-Trong module **JAVA_STREAM_API**, các pipeline `filter`, `map`, `reduce` và `collect` giúp xử lý dữ liệu khai báo qua nhiều bước lazy. Khi một phần tử đầu vào không hợp lệ, có ít nhất hai chiến lược khác nhau:
+In the **JAVA_STREAM_API** module, pipelines built with `filter`, `map`, `reduce`, and `collect` process data declaratively across lazy stages. When an input element is invalid, there are at least two distinct strategies:
 
-- **Fail-fast (dừng khi có lỗi):** từ chối phần tử sai và làm cả thao tác thất bại, không trả báo cáo thành công từ dữ liệu thiếu.
-- **Error accumulation (thu thập lỗi cùng kết quả):** biến mỗi phần tử thành **kết quả hợp lệ hoặc lỗi có cấu trúc**, rồi gom cả giá trị thành công lẫn lỗi vào một báo cáo.
+- **Fail-fast (stop on error):** reject the invalid element and fail the entire operation rather than returning a success report from incomplete data.
+- **Error accumulation (collect errors alongside results):** transform each element into either a **valid value or a structured error**, then gather both valid values and errors into a single report.
 
-Hai chiến lược không có cái nào đúng trong mọi tình huống. Nếu làm việc với số tiền phải đối soát tuyệt đối, bỏ đi một dòng có thể khiến báo cáo sai nghiêm trọng. Nếu làm công cụ nhập 10.000 dòng để người dùng sửa nhiều lỗi một lượt, dừng ở dòng đầu tiên lại gây trải nghiệm kém.
+Neither strategy is right for every situation. When working with financial figures that require strict reconciliation, dropping a single row can corrupt the report severely. When building a 10,000-row import tool where users want to fix multiple errors in one pass, stopping on the first bad row creates a poor experience.
 
-Ví dụ tệp đơn hàng dạng CSV tối giản:
+Minimal CSV-like order file example:
 
 ```text
 1  O-101,1200,HN
@@ -21,57 +21,57 @@ Ví dụ tệp đơn hàng dạng CSV tối giản:
 7  O-105,100,HN
 ```
 
-Quy ước: mỗi dòng có ba trường `orderId,amountCents,region`; dòng trắng được đếm riêng và bỏ qua; ID có dạng `O-` theo sau ba chữ số; số tiền không âm; mã vùng có 2–3 chữ cái in hoa.
+Convention: each line has three fields `orderId,amountCents,region`; blank lines are counted separately and skipped; IDs follow `O-` plus three digits; amounts are non-negative; region codes are 2–3 uppercase letters.
 
-Đối với dữ liệu này:
+For this dataset:
 
-| Thống kê | Giá trị |
+| Metric | Value |
 | --- | ---: |
-| Tổng dòng vật lý | 7 |
-| Dòng hợp lệ | 4 |
-| Dòng trắng | 1 |
-| Dòng sai định dạng/giá trị | 2 |
-| Tổng tiền của bốn đơn hợp lệ | 2.500 cents |
-| Dòng lỗi đầu tiên | 3 — thiếu trường |
-| Dòng lỗi còn lại | 5 — số tiền âm |
+| Total physical lines | 7 |
+| Valid lines | 4 |
+| Blank lines | 1 |
+| Malformed/invalid lines | 2 |
+| Total amount of four valid orders | 2,500 cents |
+| First error line | 3 — wrong field count |
+| Remaining error line | 5 — negative amount |
 
-Nếu chọn fail-fast, kết quả là một **lỗi tại dòng 3**, không có `BatchReport` thành công. Nếu chọn thu thập lỗi, kết quả có thể gồm bốn `Order` hợp lệ, hai `RowIssue` và các bộ đếm. Tuy nhiên, **báo cáo thành công về kỹ thuật không tự có nghĩa được phép xuất bản hoặc ghi dữ liệu nghiệp vụ**.
+If you choose fail-fast, the result is an **error at line 3**, with no successful `BatchReport`. If you choose error accumulation, the result can contain four valid `Order`s, two `RowIssue`s, and counters. However, **a technically successful report does not automatically mean the data may be published or persisted**.
 
-### Mục tiêu học tập
+### Learning Objectives
 
-Sau bài thuộc chương **Ngoại lệ và tính an toàn**, bạn sẽ:
+After this lesson in the **Exceptions and Safety** chapter, you will be able to:
 
-1. Phân biệt lỗi dữ liệu có thể dự đoán với lỗi I/O, lỗi lập trình và lỗi dịch vụ ngoài.
-2. Chọn giữa fail-fast, collect-all, skip-with-count và chính sách kết hợp có giới hạn.
-3. Viết parser thuần trả `Accepted`, `Blank` hoặc `Rejected`, không dùng `null` để che lỗi.
-4. Giữ số dòng chính xác và thiết kế kiểu `BatchReport` tự kiểm chứng được.
-5. Viết collector tích lũy đồng thời **giá trị đúng, bộ đếm và mẫu lỗi** mà không sửa trạng thái bên ngoài pipeline.
-6. Hiểu đặc điểm của fail-fast trên stream tuần tự so với parallel và short-circuit.
-7. Ngăn việc gọi dịch vụ hoặc ghi database khi chưa quyết định chấp nhận dữ liệu.
-8. Kiểm thử nguồn rỗng, nhiều lỗi, giới hạn mẫu, thứ tự và các trường hợp dữ liệu biên trên Java 17.
+1. Distinguish predictable data errors from I/O errors, programming bugs, and external service failures.
+2. Choose among fail-fast, collect-all, skip-with-count, and bounded hybrid policies.
+3. Write a pure parser returning `Accepted`, `Blank`, or `Rejected`, without using `null` to hide errors.
+4. Preserve accurate line numbers and design a self-verifying `BatchReport` type.
+5. Write a collector that accumulates **valid values, counters, and error samples** concurrently without mutating external state outside the pipeline.
+6. Understand fail-fast behavior on sequential vs. parallel streams and short-circuiting.
+7. Prevent calling services or writing to databases before acceptance has been decided.
+8. Test empty sources, multiple errors, sample limits, ordering, and edge cases on Java 17.
 
-## 2. Hợp đồng phân loại lỗi phải có trước code
+## 2. Define the Error-Classification Contract Before Writing Code
 
-Một pipeline xử lý dữ liệu không thể chỉ nói “nếu lỗi thì bỏ qua”. Phải định nghĩa **loại lỗi**, **mức độ nghiêm trọng**, **quyền tiếp tục** và **sản phẩm đầu ra**.
+A data-processing pipeline cannot simply say “skip if there is an error.” You must define **error categories**, **severity**, **continuation rules**, and **output artifacts**.
 
-### 2.1. Phân loại theo nguồn gốc
+### 2.1. Classification by Origin
 
-| Loại | Ví dụ | Có nên xử lý như dòng sai thông thường? |
+| Category | Example | Handle like a normal bad row? |
 | --- | --- | --- |
-| **Lỗi schema** | Thiếu cột, mã vùng sai, số tiền âm | Có, nếu policy cho phép |
-| **Dòng trắng hợp lệ theo đặc tả** | Dòng trống xen giữa các bản ghi | Không phải lỗi; đếm riêng |
-| **Lỗi quy tắc liên bản ghi** | Hai đơn cùng ID, tổng vượt ngưỡng | Cần validation ở cấp batch, không đủ parser từng dòng |
-| **Lỗi I/O** | Không mở được file, mất kết nối khi đọc | **Không** lặng lẽ chuyển thành dòng sai |
-| **Lỗi lập trình** | `NullPointerException` do bug, sai invariant | Không bắt chung rồi coi là dữ liệu thiếu |
-| **Lỗi dịch vụ ngoài** | Timeout khi ghi đơn, database từ chối | Không nằm trong `ParseOutcome`; cần workflow/result riêng |
-| **Lỗi tài nguyên** | Hết bộ nhớ, hủy tác vụ | Không nên bỏ qua để báo thành công |
+| **Schema error** | Missing column, bad region code, negative amount | Yes, if policy permits |
+| **Spec-valid blank line** | Empty line between records | Not an error; count separately |
+| **Cross-record rule error** | Two orders with same ID, total exceeds cap | Needs batch-level validation, per-row parser is insufficient |
+| **I/O error** | Cannot open file, connection lost mid-read | **Do not** silently convert into a bad row |
+| **Programming bug** | `NullPointerException` from bug, broken invariant | Do not catch broadly and treat as missing data |
+| **External service error** | Timeout saving order, database rejection | Outside `ParseOutcome`; needs separate workflow/result |
+| **Resource error** | Out of memory, task cancellation | Should not be ignored to report success |
 
-Việc bắt `RuntimeException` hoặc `Exception` ở mọi chỗ rồi chuyển sang một trạng thái `INVALID_ROW` rất nguy hiểm: lỗi lập trình có thể bị ẩn thành “có vài dòng sai”.
+Catching `RuntimeException` or `Exception` everywhere and converting it into an `INVALID_ROW` state is dangerous: programming bugs can be disguised as “a few bad rows.”
 
-### 2.2. Ba trạng thái mỗi dòng
+### 2.2. Three States per Line
 
 ```text
-                  Dòng vật lý số N
+                  Physical line N
                          │
                          ▼
                   parse(N, raw)
@@ -82,68 +82,68 @@ Việc bắt `RuntimeException` hoặc `Exception` ở mọi chỗ rồi chuyể
            Order        number      RowIssue
               │          │           │
           valid++      blank++     invalid++
-          giữ Order                  policy?
+          keep Order                 policy?
 ```
 
-Với một lượt đọc đã hoàn tất bình thường, bất biến:
+For a normally completed read pass, the invariant is:
 
 \[
 \text{totalLines}=\text{validLines}+\text{blankLines}+\text{invalidLines}.
 \]
 
-Đây là một phép kiểm tra mạnh hơn việc chỉ đối chiếu `orders.size()`: nó ngăn các dòng sai âm thầm biến mất qua `filter`.
+This is a stronger check than merely inspecting `orders.size()`: it prevents invalid rows from quietly vanishing through `filter`.
 
-### 2.3. Dòng sai có thể có nhiều nguyên nhân
+### 2.3. A Bad Row May Have Multiple Causes
 
-Một dòng như `O-ABC,-2,?` có nhiều lỗi. Có hai chính sách:
+A row like `O-ABC,-2,?` has multiple errors. There are two policies:
 
-- **Một lỗi đầu tiên trên mỗi dòng:** parser kiểm tra theo thứ tự và trả mã lỗi đầu tiên. Bài này dùng cách đó; dễ dự đoán và tối ưu.
-- **Mọi lỗi trường trong một dòng:** parser tích lũy `List<FieldIssue>` cho một dòng rồi trả `Rejected` gồm nhiều chi tiết; phù hợp với giao diện chỉnh sửa biểu mẫu.
+- **First error per row:** the parser validates in sequence and returns the first error code. This lesson uses this approach; it is predictable and streamlined.
+- **All field errors in one row:** the parser accumulates a `List<FieldIssue>` for a line and returns a `Rejected` carrying multiple details; suitable for form-editing UIs.
 
-Đừng ngầm gọi một parser “thu thập tất cả lỗi” nếu mỗi dòng chỉ giữ **lỗi đầu tiên**. Bài sẽ thu thập nhiều **dòng lỗi** trên toàn bộ dữ liệu, không cam kết gom toàn bộ lỗi của mọi trường trong một dòng.
+Never casually describe a parser as “collecting all errors” if each row only keeps **the first error**. This lesson collects multiple **invalid rows** across the dataset, without claiming to gather every field error within a single row.
 
-## 3. Ma trận chọn chính sách dừng hoặc tiếp tục
+## 3. Policy Matrix for Halting vs. Continuing
 
-| Chính sách | Khi phát hiện dòng sai | Kết quả cuối nếu có lỗi dữ liệu | Phù hợp khi |
+| Policy | When an invalid row is found | Final outcome if data errors exist | Best suited when |
 | --- | --- | --- | --- |
-| **FAIL_FAST** | Ném lỗi, dừng pipeline tuần tự ở vị trí lỗi đầu tiên được gặp | Không trả kết quả thành công | Kiểm soát dữ liệu nghiêm ngặt |
-| **COLLECT_ALL** | Ghi một issue cho mỗi dòng sai, tiếp tục | Report chứa cả bản ghi hợp lệ lẫn mọi issue | Công cụ nhập dữ liệu nhỏ/vừa, cần sửa nhiều lỗi |
-| **SKIP_WITH_COUNT** | Tăng bộ đếm, không giữ chi tiết | Report có `invalidLines` nhưng `issues` rỗng | Telemetry best effort, lưu tối thiểu |
-| **COLLECT_BOUNDED** | Tăng bộ đếm và giữ tối đa `k` mẫu lỗi | Report có đủ tổng lỗi và tối đa `k` issue | Tệp lớn, muốn khống chế RAM |
-| **THRESHOLD** | Thu lỗi, sau đó áp dụng ngưỡng cho phép | Report kỹ thuật có thể bị đánh dấu “không xuất bản” | Nhập dữ liệu theo SLA/quality gate |
+| **FAIL_FAST** | Throws error, stops sequential pipeline at first encountered failure | Returns no successful result | Strict data enforcement |
+| **COLLECT_ALL** | Records one issue per bad row, continues | Report contains both valid records and all issues | Small/medium import tools needing multi-error fixes |
+| **SKIP_WITH_COUNT** | Increments counter, keeps no details | Report has `invalidLines` while `issues` is empty | Best-effort telemetry, minimal storage |
+| **COLLECT_BOUNDED** | Increments counter and keeps at most `k` samples | Report has exact error total and at most `k` issues | Large files where RAM must be bounded |
+| **THRESHOLD** | Collects errors, then applies an allowed threshold | Technical report may be marked “do not publish” | SLA / quality-gate data ingestion |
 
-Các lựa chọn **không thay thế chính sách lỗi I/O**: trong mọi chế độ, không thể đọc tệp thì không được tự diễn giải thành “nguồn rỗng”. Một báo cáo từng phần do lỗi đọc phải có loại kết quả riêng và số byte/dòng đã đọc được ghi rõ.
+These choices **do not replace I/O error policies**: in any mode, failing to read a file must never be interpreted as an “empty source.” A partial report caused by a read failure must use a distinct result type with bytes/lines read recorded explicitly.
 
-### 3.1. Quy tắc lựa chọn nhanh
+### 3.1. Quick Selection Rules
 
-Hãy hỏi:
+Ask:
 
-1. **Một dòng bị bỏ có làm sai nghĩa nghiệp vụ không?** Nếu có, ưu tiên fail-fast hoặc thu thập rồi **chặn bước ghi**.
-2. **Người dùng cần xem nhiều lỗi một lần không?** Nếu có, thu thập lỗi.
-3. **Tệp có thể rất lớn không?** Nếu có, dùng bộ đếm đầy đủ và mẫu lỗi có giới hạn, hoặc xuất lỗi theo luồng ra kho riêng có kiểm soát.
-4. **Có đang gọi thanh toán/gửi email/ghi DB không?** Nếu có, không thực hiện side effect trong mapper trước khi quality gate hoàn tất.
-5. **Chính sách cần “mọi lỗi” hay “một số ví dụ lỗi”?** Nếu chỉ lấy mẫu, phải ghi nhãn chính xác.
+1. **Would one dropped row corrupt business meaning?** If so, prefer fail-fast or collect errors and **block persistence**.
+2. **Do users need to see multiple errors at once?** If so, accumulate errors.
+3. **Can the file be very large?** If so, keep full counters with bounded error samples, or stream errors to a dedicated controlled store.
+4. **Are you charging payments / sending emails / writing to DB?** If so, never perform side effects in a mapper before the quality gate completes.
+5. **Does policy require “all errors” or “some sample errors”?** If sampling, label it accurately.
 
-### 3.2. Tạm dừng việc xuất bản khác với dừng parsing
+### 3.2. Stopping Publication Differs from Stopping Parsing
 
-Một công cụ import có thể **đọc hết file** để trả tất cả lỗi, nhưng **không ghi một đơn nào** khi `invalidLines > 0`. Đây là chính sách *validate all, commit none*:
+An import tool can **read the entire file** to return all errors, yet **write zero orders** when `invalidLines > 0`. This is the *validate all, commit none* policy:
 
 ```text
-Tệp → Parse toàn bộ → BatchReport
+File → Parse all rows → BatchReport
                          │
                     invalidLines > 0 ?
                       /          \
-                    Có           Không
+                    Yes           No
                     │              │
-             Trả lỗi để sửa    Cho phép ghi
-             (không ghi DB)        DB
+             Return errors     Allow DB
+             (no DB write)      write
 ```
 
-Điều này khác với “bỏ dòng sai, ghi những dòng đúng”. Cả hai có thể triển khai trên cùng `BatchReport`, nhưng quyết định **commit** phải là một bước nghiệp vụ tường minh.
+This differs from “drop bad rows, write valid rows.” Both can be built atop the same `BatchReport`, yet the **commit** decision must be an explicit business step.
 
-## 4. Vì sao `filter(Objects::nonNull)` không phải xử lý lỗi?
+## 4. Why `filter(Objects::nonNull)` Is Not Error Handling
 
-Phản mẫu:
+Anti-pattern:
 
 ```java
 List<Order> valid = rawLines.stream()
@@ -152,15 +152,15 @@ List<Order> valid = rawLines.stream()
     .toList();
 ```
 
-Nếu `parseOrNull` trả null cho dòng sai, kết quả chỉ gồm các bản ghi còn sót lại. Nó không trả:
+If `parseOrNull` returns null for bad rows, the result only holds surviving records. It does not tell you:
 
-- Số lượng dòng bị bỏ.
-- Vị trí vật lý của dòng sai.
-- Loại lỗi.
-- Có phải source I/O lỗi trước khi đọc hết không.
-- Dữ liệu này có được phép ghi hay chỉ được xem trước.
+- How many rows were dropped.
+- The physical position of bad rows.
+- The error category.
+- Whether source I/O failed before reading finished.
+- Whether this data is allowed to be persisted or previewed only.
 
-**`Optional<Order>` cũng chưa đủ** nếu miền nghiệp vụ cần phân biệt dòng trắng, sai schema và lỗi tạm thời. `Optional.empty()` chỉ diễn đạt “không có giá trị”; dùng kiểu có trạng thái rõ ràng sẽ giữ thông tin cần kiểm toán.
+**`Optional<Order>` is also insufficient** when the domain must distinguish blank lines, schema errors, and transient failures. `Optional.empty()` only expresses “no value”; using an explicit stateful type preserves audit information.
 
 ```java
 sealed interface ParseOutcome
@@ -174,11 +174,11 @@ record Blank(long lineNumber) implements ParseOutcome {}
 record Rejected(RowIssue issue) implements ParseOutcome {}
 ```
 
-Ở đây, các record là immutable ở mức thành phần đã chọn: `Order` nên là value object bất biến; `RowIssue` có số dòng và mã lỗi. Không cần trả toàn bộ raw line nếu dòng có thể chứa token hoặc dữ liệu nhạy cảm.
+Here, the records are immutable for the chosen components: `Order` should be an immutable value object; `RowIssue` holds line number and error code. You do not need to return the entire raw line if a line may contain tokens or sensitive data.
 
-## 5. Chọn fail-fast khi cần dữ liệu đầy đủ và hợp lệ
+## 5. Choosing Fail-Fast When Complete Valid Data Is Required
 
-Một parser thuần có thể trả `Rejected`; hàm fail-fast chuyển trường hợp này thành **ngoại lệ domain**:
+A pure parser can return `Rejected`; a fail-fast wrapper turns that case into a **domain exception**:
 
 ```java
 List<Order> accepted = java.util.stream.IntStream
@@ -196,44 +196,44 @@ List<Order> accepted = java.util.stream.IntStream
     .toList();
 ```
 
-Đoạn minh họa dùng `parse`, `lines` và các kiểu `ParseOutcome` sẽ được định nghĩa trong chương trình hoàn chỉnh ở mục 9.
+This illustration uses `parse`, `lines`, and the `ParseOutcome` types defined in the complete program in section 9.
 
-Với một **stream tuần tự có encounter order**, phép đánh giá này dừng khi gặp `Rejected` đầu tiên trong thứ tự duyệt: ví dụ là **dòng 3**. Không có danh sách `accepted` được trả thành công; các giá trị trước lỗi chỉ nằm trong trạng thái nội bộ của pipeline.
+With a **sequential stream with encounter order**, evaluation stops at the first `Rejected` in traversal order: here, **line 3**. No `accepted` list is returned normally; values prior to the error stay internal to the pipeline.
 
-### 5.1. “Fail-fast” không phải rollback
+### 5.1. “Fail-Fast” Is Not Rollback
 
-Nếu đặt một lệnh ghi trong mapper trước `Rejected`:
+If a write call is placed inside a mapper before `Rejected`:
 
 ```java
-// SAI với yêu cầu all-or-nothing:
+// WRONG for all-or-nothing requirements:
 // lines.stream()
 //     .map(parseAndSaveToDatabase)
 //     .toList();
 ```
 
-thì ngoại lệ ở dòng 3 **không tự hoàn tác** những dòng 1 và 2 đã ghi. Fail-fast chỉ mô tả **dừng đánh giá khi thấy lỗi**, không mô tả giao dịch giữa các hệ thống.
+then an exception at line 3 **does not undo** lines 1 and 2 already written. Fail-fast only describes **halting evaluation on error**, not cross-system transactions.
 
-### 5.2. Với parallel stream, “lỗi đầu tiên” không hẳn là dòng nhỏ nhất
+### 5.2. With Parallel Streams, the “First Error” Is Not Necessarily the Lowest Line Number
 
-`parallel()` có thể đánh giá các phân đoạn khác nhau đồng thời. Một lỗi ở dòng 50 có thể được quan sát trước lỗi ở dòng 3; công việc ở những phân đoạn khác có thể đã bắt đầu trước khi pipeline ngừng.
+`parallel()` can evaluate different segments concurrently. An error on line 50 may be observed before an error on line 3; work in other segments may already have begun before the pipeline stops.
 
-Nếu thông điệp lỗi **phải là lỗi ở số dòng nhỏ nhất**, các lựa chọn rõ ràng hơn là:
+If the error message **must report the error with the lowest line number**, clearer options are:
 
-- Dùng pipeline **tuần tự** với nguồn có encounter order.
-- Hoặc thu thập các lỗi rồi **sắp theo số dòng** và lấy lỗi đầu tiên về mặt dữ liệu.
+- Use a **sequential** pipeline on an encounter-ordered source.
+- Or collect errors and **sort by line number**, picking the first error in data order.
 
-Không dùng `parallelStream().findAny()` để khẳng định đã tìm “dòng lỗi đầu tiên” trong file.
+Never use `parallelStream().findAny()` to claim you found “the first failing line” in a file.
 
-### 5.3. Một lỗi parser thuần là khác lỗi đọc nguồn
+### 5.3. A Pure Parser Error Differs from a Source Read Error
 
-`InvalidRowException` nói **dòng đã đọc được** không hợp lệ. `IOException` khi mở file và `UncheckedIOException` khi duyệt file phải giữ ý nghĩa riêng. Nếu reader chỉ đọc được hai dòng rồi lỗi I/O, không thể trả `BatchReport(totalLines=2, invalidLines=0)` và nói rằng file hoàn toàn hợp lệ.
+`InvalidRowException` means **a line that was read** is invalid. `IOException` on opening a file and `UncheckedIOException` during traversal must retain distinct meanings. If a reader only read two lines before an I/O failure, you cannot return `BatchReport(totalLines=2, invalidLines=0)` and claim the file is completely valid.
 
-## 6. Thu thập lỗi cùng kết quả: không đánh mất dòng nào
+## 6. Collecting Errors Alongside Results: Losing Zero Lines
 
-Thay vì ném khi thấy `Rejected`, có thể gom mọi `ParseOutcome` thành **hai luồng dữ liệu logic**: giá trị hợp lệ và issue.
+Instead of throwing when seeing `Rejected`, we can route all `ParseOutcome`s into **two logical streams of data**: valid values and issues.
 
 ```text
-List<String> đã đọc đủ
+Fully read List<String>
           │
       stream/index
           │
@@ -245,13 +245,13 @@ List<String> đã đọc đủ
     │                             │
  List<Order>                 blankCount / invalidCount
                                   │
-                         List<RowIssue> (có giới hạn)
+                         List<RowIssue> (bounded)
     └──────────┬──────────────────┘
                ▼
            BatchReport
 ```
 
-Kết quả chứa **đủ bản ghi hợp lệ** và thông tin những gì không thể chuyển thành `Order`:
+The result contains **all valid records** and details of what could not become an `Order`:
 
 ```java
 record BatchReport(
@@ -264,11 +264,11 @@ record BatchReport(
 ) {}
 ```
 
-Lưu ý: `issueSamples` chỉ giữ tối đa `sampleLimit` lỗi. Nếu yêu cầu thật sự là **mọi lỗi**, đặt giới hạn đủ lớn hoặc thiết kế kho lỗi riêng; không gọi một danh sách bị cắt là “tất cả lỗi”.
+Note: `issueSamples` holds at most `sampleLimit` errors. If the true requirement is **all errors**, set a sufficiently high limit or design a dedicated error store; never label a truncated list as “all errors.”
 
-### 6.1. Bất biến quan trọng của báo cáo
+### 6.1. Key Report Invariants
 
-Nếu toàn bộ input được đọc và không có ngoại lệ ngoài dự kiến:
+If all input is read without unexpected exceptions:
 
 \[
 \begin{aligned}
@@ -278,50 +278,50 @@ Nếu toàn bộ input được đọc và không có ngoại lệ ngoài dự k
 \end{aligned}
 \]
 
-Khi `sampleLimit = 0`, chỉ có bộ đếm, không lưu chi tiết lỗi. Khi `sampleLimit` lớn hơn hoặc bằng tổng lỗi, danh sách chứa tất cả issue theo chính sách một issue/dòng của parser.
+When `sampleLimit = 0`, only counters are kept, with no error details stored. When `sampleLimit` is greater than or equal to total errors, the list contains all issues under the parser's one-issue-per-row policy.
 
-### 6.2. Số dòng phải được tạo từ nguồn, không từ side effect trong mapper
+### 6.2. Line Numbers Must Come from the Source, Not Mapper Side Effects
 
-Khi nguồn là `List<String>`, dùng:
+When the source is `List<String>`, use:
 
 ```java
 java.util.stream.IntStream.range(0, lines.size())
     .mapToObj(i -> parse(i + 1L, lines.get(i)));
 ```
 
-Số dòng được suy từ **chỉ số nguồn**, không phụ thuộc thứ tự thực thi lambda. Tránh:
+Line numbers derive from **the source index**, independent of lambda execution order. Avoid:
 
 ```java
-// Dễ sai với parallel stream và ngữ nghĩa điều khiển:
+// Error-prone with parallel streams and control semantics:
 // AtomicLong counter = new AtomicLong();
 // lines.parallelStream()
 //     .map(line -> parse(counter.incrementAndGet(), line));
 ```
 
-`AtomicLong` bảo đảm phép tăng atomic nhưng **không gắn số dòng đúng với vị trí nguồn** khi nhiều thread xử lý không theo thứ tự. Với nguồn I/O đọc lười, cần một source/iterator đánh số dòng theo thứ tự hoặc một `Spliterator` được thiết kế phù hợp; không đưa trách nhiệm đó vào mapper có shared mutable state.
+`AtomicLong` ensures atomic increments, yet **does not align line numbers with source positions** when multiple threads process out of order. For lazily read I/O sources, use an ordered line-numbering source/iterator or a properly designed `Spliterator`; never put that responsibility into a mapper with shared mutable state.
 
-## 7. Thu hai loại kết quả trong một lượt: collector tùy chỉnh
+## 7. Collecting Both Outcomes in One Pass: A Custom Collector
 
-Một cách ngây thơ là làm hai lần:
+A naive approach runs twice:
 
 ```java
-// parse bị chạy hai lần, và không thể dùng lại stream đã tiêu thụ:
+// parse runs twice, and a consumed stream cannot be reused:
 // var valid = outcomes.stream().filter(...).toList();
 // var invalid = outcomes.stream().filter(...).toList();
 ```
 
-Nếu `outcomes` là `List` đã materialize, hai lượt có thể chấp nhận được. Nhưng nếu nguồn là stream I/O chỉ duyệt một lần, hoặc parser đắt đỏ, **một collector** gom cả giá trị và lỗi sẽ rõ ràng hơn.
+If `outcomes` is an already-materialized `List`, two passes may be acceptable. However, if the source is a one-shot I/O stream or the parser is expensive, **a single collector** gathering both values and errors is cleaner.
 
-Một `Collector<ParseOutcome, Accumulator, BatchReport>` có bốn phần:
+A `Collector<ParseOutcome, Accumulator, BatchReport>` has four parts:
 
-| Phần | Vai trò |
+| Part | Role |
 | --- | --- |
-| `supplier` | Tạo `Accumulator` riêng cho một phân vùng |
-| `accumulator` | Nhận từng `Accepted`/`Blank`/`Rejected` và cập nhật counters/lists |
-| `combiner` | Gộp hai accumulator khi pipeline cần |
-| `finisher` | Trả `BatchReport` với collection snapshot |
+| `supplier` | Creates an isolated `Accumulator` for a partition |
+| `accumulator` | Accepts each `Accepted`/`Blank`/`Rejected` and updates counters/lists |
+| `combiner` | Merges two accumulators when the pipeline needs to |
+| `finisher` | Returns `BatchReport` with collection snapshots |
 
-Code minh họa:
+Illustrative code:
 
 ```java
 .collect(java.util.stream.Collector.of(
@@ -332,31 +332,31 @@ Code minh họa:
 ));
 ```
 
-Trạng thái mutable **nằm trong collector**, không nằm ở biến static hoặc `ArrayList` bên ngoài pipeline. Collector **không khai `CONCURRENT`**, nên framework phải bảo vệ ownership của từng container khi đánh giá song song.
+Mutable state **lives inside the collector**, not in static variables or an `ArrayList` outside the pipeline. The collector **does not declare `CONCURRENT`**, so the framework preserves per-container ownership during parallel evaluation.
 
-### 7.1. Combiner và thứ tự mẫu lỗi
+### 7.1. Combiner and Error Sample Ordering
 
-Nếu muốn lưu **N issue đầu theo encounter order** từ một ordered stream, combiner phải:
+If you want to keep **the first N issues in encounter order** from an ordered stream, the combiner must:
 
-1. Giữ phần kết quả bên trái trước phần bên phải.
-2. Nối các issue bên phải khi danh sách chưa đạt giới hạn.
-3. Không tự sắp theo thời điểm thread hoàn tất.
+1. Keep the left partial result before the right partial result.
+2. Append right-side issues while the list is still below the limit.
+3. Never order by thread completion time.
 
-Với `sampleLimit = 2`, đoạn trái có lỗi dòng 3, đoạn phải có lỗi dòng 5 và 9: khi gộp kết quả theo encounter order, chỉ giữ **3 và 5**. Cách lấy giới hạn đầu mỗi đoạn rồi nối có thể dùng để tạo đúng giới hạn đầu toàn tập nếu combiner tuân thứ tự và tính kết hợp.
+With `sampleLimit = 2`, if the left segment has an error at line 3 and the right segment has errors at lines 5 and 9, merging in encounter order retains **3 and 5**. Taking up to the limit from each segment and appending yields the exact overall prefix if the combiner respects order and associativity.
 
-### 7.2. Khi nào không nên dùng collector giữ mọi kết quả?
+### 7.2. When Should You Avoid a Collector That Retains Every Result?
 
-Nếu có hàng triệu dòng hợp lệ, `List<Order>` sẽ dùng bộ nhớ tỷ lệ với số phần tử. Dù danh sách lỗi được giới hạn, báo cáo vẫn có thể quá lớn. Khi đó:
+If there are millions of valid rows, `List<Order>` uses memory proportional to element count. Even with a bounded error list, the report may grow too large. In that case:
 
-- Thu **counters + aggregate** mà không giữ toàn bộ `Order` nếu chỉ cần thống kê.
-- Hoặc xử lý theo chunk, ghi staging và kiểm soát checkpoint.
-- Nếu bắt buộc xem mọi lỗi, streaming chúng vào một kho lỗi có retention/kiểm soát truy cập, thay vì dồn toàn bộ vào RAM.
+- Collect **counters + aggregates** without keeping every `Order` if only statistics are needed.
+- Or process in chunks, writing to staging with checkpoints.
+- If every error must be inspected, stream errors into a store with retention/access controls instead of buffering everything in RAM.
 
-Không vì muốn pipeline trông ngắn mà âm thầm tạo một `List` vượt giới hạn bộ nhớ có thể có.
+Never silently allocate an unbounded `List` that risks exceeding memory limits just to keep a pipeline short.
 
-## 8. Thiết kế API cho báo cáo có lỗi
+## 8. Designing an API for Error-Bearing Reports
 
-Ví dụ đầy đủ sẽ công khai hai phương thức:
+The complete example exposes two methods:
 
 ```java
 static List<Order> validateFailFast(List<String> lines);
@@ -367,9 +367,9 @@ static BatchReport collectIssues(
 );
 ```
 
-**`validateFailFast`** chỉ trả danh sách bản ghi đã được validate nếu toàn bộ nguồn đáp ứng chính sách. Khi gặp `Rejected`, nó ném `InvalidRowException` mang `RowIssue`. Dòng trắng được quy định là hợp lệ nhưng **không tạo Order**.
+**`validateFailFast`** returns the list of validated records only if the entire source satisfies the policy. Upon encountering `Rejected`, it throws `InvalidRowException` carrying `RowIssue`. Blank lines are valid per specification and **do not create an Order**.
 
-**`collectIssues`** không ném vì **lỗi dữ liệu được dự kiến**. Nó vẫn có thể ném vì lỗi lập trình/đầu vào không hợp lệ (ví dụ `lines == null`), hoặc vì overflow được kiểm tra bằng `Math.addExact`. Nó trả:
+**`collectIssues`** does not throw for **expected data errors**. It can still throw on programming bugs or invalid inputs (such as `lines == null`), or overflow detected by `Math.addExact`. It returns:
 
 ```text
 BatchReport
@@ -381,39 +381,39 @@ BatchReport
   issueSamples:  [line 3 FIELD_COUNT, line 5 NEGATIVE_AMOUNT]
 ```
 
-Ở đây, `issueSamples` không phải audit đầy đủ khi `sampleLimit` thấp hơn tổng lỗi. **Bộ đếm `invalidLines` mới là số dòng lỗi**, còn danh sách issue là phần chẩn đoán.
+Here, `issueSamples` is not a full audit when `sampleLimit` is smaller than total errors. **The `invalidLines` counter is the true error count**, while the issue list provides diagnostic samples.
 
-### 8.1. Không trả object chưa hoàn chỉnh khi fail-fast
+### 8.1. Do Not Return Partial Objects on Fail-Fast
 
-Một số code tạo `List<Order> values` bên ngoài stream rồi `map`/`forEach` thêm từng phần tử vào đó, sau đó gặp lỗi:
+Some code allocates `List<Order> values` outside the stream, appends in `map`/`forEach`, and then hits an error:
 
 ```java
-// Phản mẫu: caller có thể thấy một List chỉ có tiền tố các dòng hợp lệ.
+// Anti-pattern: caller could observe a List holding only a prefix of valid rows.
 // List<Order> values = new ArrayList<>();
 // lines.stream().map(OrderBatchValidation::parse)
 //     .forEach(o -> values.add(...));
 ```
 
-Trong phương thức fail-fast của bài, các kết quả trung gian là **nội bộ** và không được công bố nếu có exception. Điều đó tránh trả một danh sách không đầy đủ với tên gọi “valid orders”.
+In this lesson's fail-fast method, intermediate results are **internal** and never exposed if an exception occurs. This prevents returning an incomplete list labeled as “valid orders.”
 
-### 8.2. Không dùng report kỹ thuật để ngầm cho phép ghi
+### 8.2. Do Not Treat a Technical Report as Implicit Permission to Persist
 
-Một `BatchReport` có thể chứa dữ liệu hợp lệ ngay cả khi `invalidLines > 0`, nhưng caller phải quyết định:
+A `BatchReport` can contain valid data even when `invalidLines > 0`, yet the caller must decide:
 
 ```java
 BatchReport report = collectIssues(lines, 20);
 
 if (report.invalidLines() != 0L) {
-    // Trả báo cáo validation cho người dùng; chưa ghi database.
+    // Return validation report to user; do not write to database yet.
 } else {
-    // Đã qua bước validation theo dòng; còn có thể cần kiểm tra
-    // trùng ID, chính sách hạn mức, authorization và transaction.
+    // Passed per-row validation; may still need checks for
+    // duplicate IDs, credit limits, authorization, and transactions.
 }
 ```
 
-## 9. Chương trình Java 17 hoàn chỉnh: `OrderBatchValidation`
+## 9. Complete Java 17 Program: `OrderBatchValidation`
 
-Đoạn code sau có thể lưu thành `OrderBatchValidation.java` và chạy độc lập bằng Java 17+. Nó không phụ thuộc cơ sở dữ liệu, framework hoặc dịch vụ ngoài.
+The following code can be saved as `OrderBatchValidation.java` and run standalone on Java 17+. It has no database, framework, or external service dependencies.
 
 ```java
 import java.util.ArrayList;
@@ -443,13 +443,13 @@ public final class OrderBatchValidation {
             Objects.requireNonNull(id, "id");
             Objects.requireNonNull(region, "region");
             if (!id.matches("O-[0-9]{3}")) {
-                throw new IllegalArgumentException("ID không hợp lệ");
+                throw new IllegalArgumentException("Invalid ID");
             }
             if (amountCents < 0L) {
-                throw new IllegalArgumentException("Số tiền âm");
+                throw new IllegalArgumentException("Negative amount");
             }
             if (!region.matches("[A-Z]{2,3}")) {
-                throw new IllegalArgumentException("Mã vùng không hợp lệ");
+                throw new IllegalArgumentException("Invalid region code");
             }
         }
     }
@@ -457,7 +457,7 @@ public final class OrderBatchValidation {
     public record RowIssue(long lineNumber, ErrorCode code) {
         public RowIssue {
             if (lineNumber < 1L) {
-                throw new IllegalArgumentException("lineNumber phải >= 1");
+                throw new IllegalArgumentException("lineNumber must be >= 1");
             }
             Objects.requireNonNull(code, "code");
         }
@@ -480,8 +480,8 @@ public final class OrderBatchValidation {
         private final RowIssue issue;
 
         public InvalidRowException(RowIssue issue) {
-            super("Dòng " + issue.lineNumber() +
-                  " không hợp lệ: " + issue.code());
+            super("Line " + issue.lineNumber() +
+                  " invalid: " + issue.code());
             this.issue = issue;
         }
 
@@ -499,7 +499,7 @@ public final class OrderBatchValidation {
         List<RowIssue> issueSamples
     ) {
         public BatchReport {
-            // Chụp riêng cấu trúc collection để không lộ state collector.
+            // Take defensive collection snapshots so collector state stays private.
             orders = List.copyOf(orders);
             issueSamples = List.copyOf(issueSamples);
         }
@@ -515,11 +515,11 @@ public final class OrderBatchValidation {
         }
     }
 
-    // Hàm thuần: cùng (lineNumber, raw) cho cùng outcome hoặc lỗi input.
+    // Pure function: same (lineNumber, raw) produces same outcome or input error.
     public static ParseOutcome parse(long lineNumber, String raw) {
         if (lineNumber < 1L) {
             throw new IllegalArgumentException(
-                "lineNumber phải >= 1"
+                "lineNumber must be >= 1"
             );
         }
         Objects.requireNonNull(raw, "raw");
@@ -528,7 +528,7 @@ public final class OrderBatchValidation {
             return new Blank(lineNumber);
         }
 
-        // -1 giữ trường rỗng cuối, tránh bỏ sót lỗi thiếu giá trị.
+        // -1 keeps trailing empty fields, preventing missed missing-value errors.
         String[] fields = raw.split(",", -1);
         if (fields.length != 3) {
             return new Rejected(
@@ -573,7 +573,7 @@ public final class OrderBatchValidation {
         );
     }
 
-    // FAIL_FAST: chỉ dùng stream tuần tự để báo lỗi theo thứ tự dòng.
+    // FAIL_FAST: use sequential stream only to report errors in line order.
     public static List<Order> validateFailFast(List<String> lines) {
         Objects.requireNonNull(lines, "lines");
 
@@ -628,7 +628,7 @@ public final class OrderBatchValidation {
             blankLines = Math.addExact(blankLines, right.blankLines);
             invalidLines = Math.addExact(invalidLines, right.invalidLines);
 
-            // Với ordered source, nối các phần theo encounter order.
+            // For ordered sources, append parts in encounter order.
             orders.addAll(right.orders);
             for (RowIssue issue : right.issues) {
                 if (issues.size() >= sampleLimit) {
@@ -651,7 +651,7 @@ public final class OrderBatchValidation {
         }
     }
 
-    // COLLECT_BOUNDED: bộ đếm đầy đủ, số issue lưu có giới hạn.
+    // COLLECT_BOUNDED: full counters, bounded stored issue samples.
     public static BatchReport collectIssues(
         List<String> lines,
         int sampleLimit
@@ -659,7 +659,7 @@ public final class OrderBatchValidation {
         Objects.requireNonNull(lines, "lines");
         if (sampleLimit < 0) {
             throw new IllegalArgumentException(
-                "sampleLimit phải >= 0"
+                "sampleLimit must be >= 0"
             );
         }
 
@@ -692,7 +692,7 @@ public final class OrderBatchValidation {
             validateFailFast(input);
         } catch (InvalidRowException ex) {
             System.out.println(ex.getMessage());
-            // Dòng 3 không hợp lệ: FIELD_COUNT
+            // Line 3 invalid: FIELD_COUNT
         }
 
         BatchReport report = collectIssues(input, 2);
@@ -708,79 +708,79 @@ public final class OrderBatchValidation {
 }
 ```
 
-Biên dịch/chạy:
+Compile and run:
 
 ```bash
 javac --release 17 OrderBatchValidation.java
 java OrderBatchValidation
 ```
 
-### 9.1. Phân tách trách nhiệm của các thành phần
+### 9.1. Separation of Responsibilities Across Components
 
-| Thành phần | Nhiệm vụ | Có side effect nghiệp vụ? |
+| Component | Responsibility | Business side effects? |
 | --- | --- | --- |
-| `parse` | Kiểm tra một dòng và trả kiểu outcome | Không |
-| `validateFailFast` | Tạo đơn hợp lệ hoặc ném lỗi đầu tiên | Không |
-| `Accumulator.add` | Đếm loại outcome và lưu dữ liệu nội bộ | Không, chỉ sửa state nội bộ |
-| `Accumulator.combine` | Gộp hai state theo hợp đồng collector | Không, chỉ sửa state nội bộ |
-| `Accumulator.finish` | Tạo report không cho sửa collection | Không |
-| `BatchReport.acceptedTotalCents` | Tính tổng từ các Order đã parse | Không, có thể ném nếu overflow |
-| `main` | In kết quả minh họa | Có ghi console, không có giao dịch ngoài |
+| `parse` | Validate one line and return an outcome | No |
+| `validateFailFast` | Build valid list or throw first error | No |
+| `Accumulator.add` | Count outcome types and store internal data | No, mutates only internal state |
+| `Accumulator.combine` | Merge two states per collector contract | No, mutates only internal state |
+| `Accumulator.finish` | Produce report with unmodifiable collections | No |
+| `BatchReport.acceptedTotalCents` | Sum amounts from parsed Orders | No, may throw on overflow |
+| `main` | Print illustrative results | Console output only, no external transactions |
 
-**Lưu ý số học:** `long` có giới hạn. `Math.addExact` giúp phép cộng tổng tiền và các bộ đếm không âm thất bại rõ ràng nếu vượt miền giá trị. Nếu nghiệp vụ cho phép tổng vượt `Long.MAX_VALUE`, nên dùng `BigInteger`, không tự chuyển tràn số thành một issue dòng sai.
+**Arithmetic note:** `long` has limits. `Math.addExact` ensures total amount additions and non-negative counters fail loudly if they exceed range. If the domain allows totals exceeding `Long.MAX_VALUE`, use `BigInteger`, rather than turning overflow into a bad-row issue.
 
-### 9.2. Tại sao `List.copyOf` nằm trong record `BatchReport`?
+### 9.2. Why Is `List.copyOf` Inside the `BatchReport` Record?
 
-`Accumulator` giữ các `ArrayList` mutable để thêm dữ liệu khi collect. Nếu trả thẳng những list ấy, caller có thể sửa dữ liệu đã báo cáo. `List.copyOf` tạo **snapshot cấu trúc không sửa đổi được**.
+`Accumulator` maintains mutable `ArrayList`s to append items during collection. Returning those lists directly would let callers mutate reported data. `List.copyOf` creates **unmodifiable structural snapshots**.
 
-Trong ví dụ, `Order` và `RowIssue` là record chỉ chứa chuỗi, số và enum nên không có thành phần mutable. Trong một domain khác, `List.copyOf` vẫn **không deep-copy** các phần tử mutable.
+In this example, `Order` and `RowIssue` are records holding only strings, numbers, and enums, so they have no mutable fields. In another domain, `List.copyOf` still **does not deep-copy** mutable elements.
 
-### 9.3. Lỗi input null không bị coi là dòng sai
+### 9.3. Null Input Is Not Treated as a Malformed Row
 
-`parse(1L, null)` ném `NullPointerException` theo chủ ý vì chữ ký `String raw` được quy định phải khác null. Điều này phân biệt:
+`parse(1L, null)` intentionally throws `NullPointerException` because the `String raw` signature requires non-null input. This distinguishes:
 
-- **Dòng text thực sự đọc được nhưng sai schema** → `Rejected`.
-- **Caller truyền dữ liệu vi phạm precondition của API** → lỗi hợp đồng.
+- **A readable text line failing schema validation** → `Rejected`.
+- **Caller passing data violating API preconditions** → contract violation.
 
-Nếu hệ thống nhận một nguồn thực sự có phần tử null hợp lệ, phải thay đổi schema/policy và test rõ ràng; không nên tự bắt `NullPointerException` rộng rồi trả `INVALID_AMOUNT`.
+If a system receives a source where null elements are legitimately possible, update the schema/policy and test explicitly; do not broadly catch `NullPointerException` and return `INVALID_AMOUNT`.
 
-## 10. Phân tích sự khác biệt khi chạy chương trình
+## 10. Analyzing Differences When Running the Program
 
-### 10.1. Với `validateFailFast(sample())`
+### 10.1. With `validateFailFast(sample())`
 
-Luồng tuần tự đánh giá các dòng theo thứ tự vật lý:
+Sequential execution evaluates lines in physical order:
 
 ```text
-Dòng 1: Accepted(O-101)
-Dòng 2: Accepted(O-102)
-Dòng 3: Rejected(FIELD_COUNT)
+Line 1: Accepted(O-101)
+Line 2: Accepted(O-102)
+Line 3: Rejected(FIELD_COUNT)
           │
-          └── InvalidRowException, không trả List<Order> thành công
+          └── InvalidRowException, no List<Order> returned
 ```
 
-Các dòng 4–7 chưa cần parse. Nếu công việc duy nhất là validation, cách dừng sớm giúp tránh công việc thừa. Nhưng nếu mục tiêu là **trả mọi vấn đề để sửa cùng lúc**, đây không phải lựa chọn thích hợp.
+Lines 4–7 do not need to be parsed. If the only job is validation, early termination avoids extra work. Yet if the goal is **returning all issues to fix at once**, this is not the right choice.
 
-### 10.2. Với `collectIssues(sample(), 2)`
+### 10.2. With `collectIssues(sample(), 2)`
 
-Toàn bộ bảy dòng được parse:
+All seven lines are parsed:
 
 ```text
-Dòng 1: Accepted → valid=1, Order O-101
-Dòng 2: Accepted → valid=2, Order O-102
-Dòng 3: Rejected → invalid=1, sample [FIELD_COUNT @3]
-Dòng 4: Blank    → blank=1
-Dòng 5: Rejected → invalid=2, sample [FIELD_COUNT @3, NEGATIVE_AMOUNT @5]
-Dòng 6: Accepted → valid=3, Order O-104
-Dòng 7: Accepted → valid=4, Order O-105
+Line 1: Accepted → valid=1, Order O-101
+Line 2: Accepted → valid=2, Order O-102
+Line 3: Rejected → invalid=1, sample [FIELD_COUNT @3]
+Line 4: Blank    → blank=1
+Line 5: Rejected → invalid=2, sample [FIELD_COUNT @3, NEGATIVE_AMOUNT @5]
+Line 6: Accepted → valid=3, Order O-104
+Line 7: Accepted → valid=4, Order O-105
 
 total=7, valid=4, blank=1, invalid=2
 ```
 
-Danh sách Order giữ encounter order. `sampleLimit=2` đủ để chứa cả hai issue. Khi giảm xuống `1`, `invalidLines` **vẫn là 2** nhưng `issueSamples` chỉ còn lỗi dòng 3.
+The Order list preserves encounter order. `sampleLimit=2` suffices to hold both issues. Reducing it to `1` keeps `invalidLines` at **2**, while `issueSamples` holds only the error from line 3.
 
-### 10.3. Với `collectIssues(sample(), 0)`
+### 10.3. With `collectIssues(sample(), 0)`
 
-Kết quả vẫn có:
+The result still produces:
 
 ```text
 validLines=4
@@ -789,26 +789,26 @@ invalidLines=2
 issueSamples=[]
 ```
 
-Đây chính là cấu hình **SKIP_WITH_COUNT** cho lỗi dữ liệu: không lưu issue nào, nhưng không che việc có hai dòng bị loại. Còn `orders` vẫn giữ bốn bản ghi hợp lệ nên **không phải pipeline streaming với bộ nhớ O(1)**.
+This is the **SKIP_WITH_COUNT** configuration for data errors: no issues are stored, yet the existence of two rejected rows is never hidden. Note that `orders` still holds four valid records, so **this is not an O(1)-memory streaming pipeline**.
 
-### 10.4. Với file hoặc danh sách rỗng
+### 10.4. With an Empty File or List
 
-`List.<String>of()` tạo report có tất cả bộ đếm bằng 0, `orders=[]` và `issueSamples=[]`. Trong khi đó, một file không tồn tại hoặc không đọc được **không** được biến thành báo cáo rỗng: đó là lỗi của nguồn dữ liệu.
+`List.<String>of()` produces a report with all counters at 0, `orders=[]`, and `issueSamples=[]`. Meanwhile, a missing or unreadable file **must not** be turned into an empty report: that is a data-source error.
 
-## 11. Chính sách thu lỗi không thay thế xác thực ở cấp batch
+## 11. Error-Collection Policies Do Not Replace Batch-Level Validation
 
-Parser từng dòng chỉ biết ba trường của **một** dòng. Nó không phát hiện được tất cả lỗi liên quan đến **nhiều bản ghi**.
+A per-line parser only sees three fields of **one** line. It cannot catch all rules involving **multiple records**.
 
-### 11.1. ID trùng giữa hai dòng
+### 11.1. Duplicate IDs Across Two Lines
 
-Hai dòng sau đều hợp lệ riêng lẻ:
+Both lines below are valid individually:
 
 ```text
 O-101,1200,HN
 O-101,500,HCM
 ```
 
-Nhưng nếu `orderId` là khóa phải duy nhất trong batch, cần một bước kiểm tra toàn cục **sau khi** có danh sách Order hợp lệ. Có thể dùng một `Set` cục bộ trong hàm validation:
+Yet if `orderId` must be unique within a batch, you need a global check **after** obtaining the valid Order list. You can use a local `Set` in a validation helper:
 
 ```java
 static List<String> duplicateIds(List<OrderBatchValidation.Order> orders) {
@@ -823,22 +823,22 @@ static List<String> duplicateIds(List<OrderBatchValidation.Order> orders) {
 }
 ```
 
-Đây là **một phép kiểm tra bổ sung**; nó không tự thêm lỗi duplicate vào `BatchReport.issueSamples` của ví dụ chính. Nếu muốn báo lỗi theo **vị trí dòng** chính xác ở cấp batch, cần giữ `lineNumber` cùng `Order` trong `Accepted` hoặc cấu trúc tương đương cho tới khi xác thực xong.
+This is **an additional check**; it does not automatically add duplicate errors to the main example's `BatchReport.issueSamples`. If you want exact **line numbers** reported at the batch level, retain `lineNumber` alongside `Order` in `Accepted` or an equivalent structure until validation finishes.
 
-### 11.2. Tổng tiền, giới hạn batch và cross-field constraints
+### 11.2. Totals, Batch Limits, and Cross-Field Constraints
 
-Các lỗi khác có thể chỉ lộ ra sau khi gom nhiều dòng:
+Other errors only appear after aggregating multiple lines:
 
-- Số bản ghi vượt giới hạn được phép import.
-- Một khách hàng có tổng amount vượt hạn mức.
-- Hai trường hợp lệ riêng lẻ nhưng không tương thích khi kết hợp.
-- Tổng tiền `long` bị tràn mặc dù từng đơn nằm trong miền số.
+- Record count exceeding the permitted import limit.
+- A customer's cumulative amount exceeding their credit limit.
+- Two individually valid fields being incompatible in combination.
+- `long` sum overflowing even though each order fits within range.
 
-Không nên biến một lỗi **tổng tiền tràn** thành “dòng sai thứ N” nếu không có quy tắc xác định dòng chịu trách nhiệm. Hãy báo lỗi ở cấp **batch** hoặc thiết kế accumulator lớn như `BigInteger`.
+Do not turn a **total-sum overflow** error into “invalid row N” unless a rule identifies which row is responsible. Report it at the **batch** level or use a larger accumulator such as `BigInteger`.
 
-### 11.3. Hai cấp báo cáo
+### 11.3. Two-Tier Reporting
 
-Một hệ thống nghiêm túc có thể trả:
+A serious system can return:
 
 ```text
 ImportValidation
@@ -848,13 +848,13 @@ ImportValidation
    └── decision: ACCEPT / REJECT / PREVIEW_ONLY
 ```
 
-Nhờ vậy, “dòng nào sai schema” và “batch có vi phạm quy tắc nghiệp vụ không” không bị trộn vào một exception khó giải thích.
+This avoids mixing “which row failed schema validation” and “did the batch violate business rules” into one confusing exception.
 
-## 12. Dừng sớm, nguồn song song và tính xác định
+## 12. Short-Circuiting, Parallel Sources, and Determinism
 
-### 12.1. Laziness giúp dừng, nhưng không có nghĩa là đã kiểm tra hết
+### 12.1. Laziness Enables Early Stop, Not Exhaustive Inspection
 
-Trên nguồn tuần tự:
+On a sequential source:
 
 ```java
 boolean hasError = lines.stream()
@@ -862,37 +862,37 @@ boolean hasError = lines.stream()
     .anyMatch(outcome -> outcome instanceof Rejected);
 ```
 
-Đây là **mã phác thảo** với helper `parseOneWithoutLineNumber`, không phải phương thức của lớp hoàn chỉnh ở mục 9. `anyMatch` có thể dừng ở lỗi đầu tiên đủ làm kết quả `true`. Nó trả câu trả lời “**có ít nhất một lỗi hay không**”, không trả **số lỗi**, **toàn bộ lỗi** hoặc những giá trị hợp lệ phía sau.
+This is a **sketch** using a helper `parseOneWithoutLineNumber`, not a method from the complete class in section 9. `anyMatch` can stop at the first error that makes the result `true`. It answers “**is there at least one error?**”, not **how many errors**, **all errors**, or valid values beyond it.
 
-Nếu mục tiêu là “hiển thị mọi lỗi để sửa”, `anyMatch` không đáp ứng được dù kết quả `true` đúng.
+If the goal is “show all errors to fix,” `anyMatch` cannot satisfy it even when returning `true` is accurate.
 
-### 12.2. Chạy song song không có nghĩa dừng tuyệt đối tại một dòng
+### 12.2. Parallel Execution Does Not Mean Stopping Cleanly at One Line
 
-`parallelStream` và pipeline có thể đánh giá nhiều phần tử đang chạy dở khi đã biết có lỗi. Những lời gọi intermediate operation có thể đã bắt đầu trước khi một nhánh ném exception.
+`parallelStream` and pipelines may have multiple elements mid-evaluation when an error is discovered. Intermediate calls may already have started before one branch throws an exception.
 
-Hệ quả:
+Consequences:
 
-- **Không đặt tác dụng phụ không đảo ngược** như thanh toán trong `map` của fail-fast pipeline.
-- Không dùng bộ đếm dùng chung trong `peek` để khẳng định đã xử lý đúng N phần tử trước lỗi.
-- Không phụ thuộc thứ tự ngoại lệ xuất hiện theo thời gian trên parallel stream.
+- **Do not place irreversible side effects** like payments inside `map` of a fail-fast pipeline.
+- Do not use a shared counter in `peek` to claim exactly N elements ran before an error.
+- Do not depend on the temporal order in which exceptions surface on a parallel stream.
 
-Với bộ đếm và collector đúng hợp đồng, có thể tận dụng parallel stream cho các phép parse **thuần** khi có lợi ích hiệu năng. Nhưng nếu yêu cầu error samples theo **thứ tự số dòng**, cần bảo toàn encounter order hoặc sắp theo `lineNumber` ở cuối. Nếu báo cáo không đòi thứ tự, ta có thể đơn giản hơn nhưng vẫn phải bảo đảm không mất dữ liệu.
+With properly contracted counters and collectors, parallel streams can accelerate **pure** parsing when performance benefits exist. However, if error samples must follow **line number order**, preserve encounter order or sort by `lineNumber` afterward. When reports do not require ordering, logic can be simpler while still ensuring no data is lost.
 
-### 12.3. Tại sao collector không khai `CONCURRENT`?
+### 12.3. Why Doesn't the Collector Declare `CONCURRENT`?
 
-Trong chương trình mẫu, `Accumulator` dùng `ArrayList` mutable. Nếu khai `CONCURRENT` sai cách, nhiều thread có thể cùng gọi `add` trên **một container**, tạo race.
+In the sample program, `Accumulator` uses mutable `ArrayList`s. Misdeclaring `CONCURRENT` would let multiple threads call `add` on **the same container**, causing races.
 
-Collector mặc định **không concurrent** cho phép Stream framework tạo các container cục bộ rồi kết hợp qua `combine`, kể cả khi source được đánh giá song song. Không cần ép `Collections.synchronizedList` hoặc `AtomicLong` vào mọi trường chỉ vì pipeline có `parallel()`.
+A default **non-concurrent** collector lets the Stream framework allocate thread-local containers and merge them via `combine`, even when the source is evaluated in parallel. There is no need to force `Collections.synchronizedList` or `AtomicLong` onto every field just because a pipeline uses `parallel()`.
 
-### 12.4. Không hiểu nhầm “thứ tự kết quả” với “thứ tự side effect”
+### 12.4. Do Not Confuse “Result Order” with “Side-Effect Order”
 
-Một ordered stream có thể trả `List<Order>` theo encounter order, trong khi mapper của các phân vùng thực thi ở những thời điểm khác nhau. Vì vậy việc kết quả cuối giữ thứ tự **không chứng minh** những HTTP request trong mapper đã được gọi theo thứ tự đó.
+An ordered stream can return `List<Order>` in encounter order while partition mappers execute at arbitrary times. Thus, ordered final output **does not prove** HTTP requests inside a mapper executed in that order.
 
-Đối với nhập dữ liệu nhạy cảm, hãy parse/validate thuần trước, rồi quyết định gọi dịch vụ qua một coordinator riêng nếu cần.
+For sensitive imports, parse/validate purely first, then invoke external services through a separate coordinator if needed.
 
-## 13. Nguồn I/O: lỗi dòng dữ liệu không phải lỗi đọc tệp
+## 13. I/O Sources: Data Line Errors Are Not File Read Errors
 
-`Files.lines(path, charset)` đọc lười, thích hợp cho log/CSV nhưng có vòng đời tài nguyên riêng:
+`Files.lines(path, charset)` reads lazily, suitable for logs/CSVs, with its own resource lifecycle:
 
 ```java
 import java.io.IOException;
@@ -913,43 +913,43 @@ static OrderBatchValidation.BatchReport analyzeSmallFile(Path file)
 }
 ```
 
-Đoạn trên dành cho **tệp nhỏ/vừa** để dùng lại parser của bài:
+The snippet above targets **small/medium files** to reuse this lesson's parser:
 
-1. `Files.lines` mở tài nguyên I/O.
-2. `toList()` tiêu thụ stream nhưng **không tự đóng** stream.
-3. `try-with-resources` đóng stream kể cả khi có exception.
-4. Sau khi đã đọc hết và đóng file, `collectIssues` phân loại từng dòng trong bộ nhớ.
+1. `Files.lines` opens the I/O resource.
+2. `toList()` consumes the stream yet **does not close** it automatically.
+3. `try-with-resources` closes the stream even on exception.
+4. Once reading completes and the file closes, `collectIssues` classifies every line in memory.
 
-### 13.1. Khi file không mở được
+### 13.1. When a File Cannot Be Opened
 
-`Files.lines` có thể ném `IOException` trong bước mở file. Đây là **lỗi nguồn**, không phải lỗi một dòng CSV. Không trả một `BatchReport` rỗng với `invalidLines=0` rồi nói file hợp lệ.
+`Files.lines` can throw `IOException` while opening the file. This is a **source error**, not a bad CSV line. Never return an empty `BatchReport` with `invalidLines=0` and report the file as valid.
 
-### 13.2. Khi lỗi I/O xuất hiện giữa lúc duyệt
+### 13.2. When an I/O Error Occurs Mid-Iteration
 
-Một lỗi đọc xảy ra **sau khi stream đã mở** có thể được bọc thành `UncheckedIOException`. Trong ví dụ, lỗi lan ra khỏi `toList()`, và `try-with-resources` vẫn thực hiện đóng nguồn.
+A read error occurring **after the stream opened** can be wrapped in `UncheckedIOException`. In this example, the error propagates out of `toList()`, and `try-with-resources` still closes the source.
 
-**Không bắt toàn bộ `UncheckedIOException` để tự thêm một `RowIssue(INVALID_AMOUNT)`**; trong lỗi đọc, ta thậm chí không biết nội dung dòng chưa đọc là gì.
+**Do not catch all `UncheckedIOException`s to fabricate a `RowIssue(INVALID_AMOUNT)`**; on a read failure, you do not even know what the unread line contained.
 
-### 13.3. Tệp rất lớn: không materialize hết để giữ số dòng
+### 13.3. Very Large Files: Do Not Materialize Everything Just for Line Numbers
 
-`Files.lines(...).toList()` đưa mọi dòng vào RAM; không phù hợp với file có hàng trăm triệu bản ghi. Các lựa chọn:
+`Files.lines(...).toList()` loads all lines into RAM; unsuitable for files with hundreds of millions of records. Alternatives:
 
-- Dùng `BufferedReader.readLine()` trong một vòng lặp tuần tự có biến số dòng rõ ràng.
-- Xây nguồn `Stream<NumberedLine>` từ reader/iterator, không tăng số dòng trong shared-state mapper.
-- Thu **count và thống kê** mà không giữ mọi `Order`.
-- Xử lý chunk với staging và checkpoint, nhưng ghi nhận ranh giới partial progress.
+- Use `BufferedReader.readLine()` in a sequential loop with an explicit line counter.
+- Build a `Stream<NumberedLine>` source from a reader/iterator, avoiding incrementing line numbers inside shared-state mappers.
+- Collect **counts and statistics** without retaining every `Order`.
+- Process chunks with staging and checkpoints, explicitly tracking partial-progress boundaries.
 
-**Không khẳng định** rằng đưa mọi dòng vào một stream sẽ giúp pipeline tự quản lý tốc độ I/O, số lượng lỗi được giữ hay bộ nhớ. Những chính sách này phải được thiết kế.
+**Never assume** that feeding lines into a stream makes the pipeline automatically manage I/O backpressure, stored error bounds, or memory. Those policies must be engineered explicitly.
 
-### 13.4. Lỗi schema, lỗi encoding và dòng CSV có dấu phẩy
+### 13.4. Schema Errors, Encoding Errors, and CSV Lines Containing Commas
 
-Parser bài này dùng `String.split(",", -1)`, **không phải parser CSV chuẩn đầy đủ**. Nếu dữ liệu có dấu phẩy trong chuỗi được quote, escape, newline trong trường hoặc dấu BOM, cần dùng grammar/parser phù hợp.
+This lesson's parser uses `String.split(",", -1)`, **not a full standard CSV parser**. If data contains commas inside quoted strings, escapes, embedded newlines, or a BOM, use a proper grammar/parser.
 
-Nếu một dòng có ba trường nhưng chứa encoding sai, lỗi có thể phát sinh ở **tầng decoder**, không thể luôn quy thành `INVALID_REGION`. Hãy xác định nguồn, charset và schema trước khi chọn nơi xử lý lỗi.
+If a line has three fields yet contains malformed character encoding, the failure can occur at the **decoder layer** and cannot always be blamed on `INVALID_REGION`. Identify source, charset, and schema before choosing where to handle errors.
 
-## 14. Chính sách chất lượng dữ liệu sau bước thu thập
+## 14. Data Quality Policies After Collection
 
-Thu thập lỗi chỉ có ích nếu caller **dùng thông tin ấy để ra quyết định**. Ví dụ:
+Collecting errors is only useful if the caller **uses that information to make a decision**. Example:
 
 ```java
 OrderBatchValidation.BatchReport report =
@@ -958,49 +958,49 @@ OrderBatchValidation.BatchReport report =
 boolean publishable = !report.hasDataErrors();
 
 if (!publishable) {
-    // Trả report lỗi để sửa; tuyệt đối chưa gọi repository.save.
+    // Return error report for fixing; never call repository.save yet.
 } else {
-    // Tiếp tục validate cấp batch (duplicate ID, hạn mức...)
-    // rồi mới cấp quyền ghi dữ liệu.
+    // Proceed to batch-level validation (duplicate IDs, limits...)
+    // before authorizing data writes.
 }
 ```
 
-### 14.1. Ngưỡng lỗi không thay thế kiểm soát dữ liệu quan trọng
+### 14.1. Error Thresholds Do Not Replace Critical Data Controls
 
-Với telemetry không yêu cầu đầy đủ tuyệt đối, có thể cho phép tối đa 0,1% dòng có nội dung bị lỗi. Tỷ lệ tính trên những dòng **không trắng**:
+For telemetry that does not require 100% completeness, up to 0.1% invalid non-blank lines might be tolerated. The rate is computed over **non-blank** lines:
 
 \[
 \text{invalidRate}
 = \frac{\text{invalidLines}}{\text{validLines}+\text{invalidLines}}.
 \]
 
-Nếu mẫu số bằng 0, **không tự kết luận** tỷ lệ lỗi là 0% và nguồn đủ chất lượng; đó là trường hợp **không có dữ liệu để đánh giá**.
+If the denominator is 0, **do not automatically conclude** the error rate is 0% and the source is high quality; that case means **there is no data to evaluate**.
 
-### 14.2. Báo cáo kỹ thuật và quyết định nghiệp vụ là hai kết quả khác
+### 14.2. Technical Reports and Business Decisions Are Distinct Outcomes
 
-Một hệ thống import có thể cần:
+An import system may need:
 
-- `BatchReport`: số dòng, dữ liệu hợp lệ, ví dụ lỗi.
-- `ValidationDecision`: được ghi, chỉ xem trước hay bị từ chối.
-- `WriteReport`: đã lưu bao nhiêu, còn bao nhiêu, lỗi database/service nào.
+- `BatchReport`: line counts, valid records, error samples.
+- `ValidationDecision`: writable, preview-only, or rejected.
+- `WriteReport`: how many saved, how many remaining, any database/service errors.
 
-Đừng nhét mọi loại thành công/thất bại vào một `boolean success` duy nhất. Nếu không, caller rất dễ hiểu nhầm “đã parse 90%” thành “đã nhập 100%”.
+Do not cram all success/failure dimensions into a single `boolean success`. Otherwise callers can easily mistake “parsed 90%” for “imported 100%.”
 
-### 14.3. Giới hạn lỗi và cảnh báo phải đi đôi
+### 14.3. Error Limits and Warnings Must Go Together
 
-Với `sampleLimit=10`, nếu `invalidLines=1000` thì danh sách lỗi chứa 10 dòng **không cho thấy 990 lỗi còn lại**. Giao diện nên hiển thị:
+With `sampleLimit=10`, if `invalidLines=1000`, a 10-item error list **does not show the other 990 errors**. The UI should display:
 
 ```text
-Phát hiện 1.000 dòng không hợp lệ.
-Đang hiển thị 10 lỗi đầu tiên theo thứ tự dòng.
-Các lỗi còn lại không được đưa vào danh sách mẫu.
+Detected 1,000 invalid lines.
+Showing the first 10 errors in line order.
+Remaining errors are omitted from the sample list.
 ```
 
-Nếu người dùng cần xuất **đầy đủ mọi lỗi**, cung cấp một cơ chế xuất lỗi theo luồng/kho lưu trữ có giới hạn và kiểm soát truy cập; không tự nâng `sampleLimit` lên mức không giới hạn cho file cực lớn.
+If users need to export **every single error**, provide a streaming/storage export with bounded limits and access controls; never raise `sampleLimit` to unbounded levels for huge files.
 
-## 15. Thêm kết quả từng dòng nhưng không để lộ dữ liệu nhạy cảm
+## 15. Adding Per-Line Detail Without Leaking Sensitive Data
 
-`RowIssue` trong ví dụ chỉ có `lineNumber` và `ErrorCode`, đủ để biết cần mở lại vị trí nào trong nguồn. Một số công cụ nhập dữ liệu cần thêm tên trường:
+`RowIssue` in the example carries only `lineNumber` and `ErrorCode`, enough to locate the line in the source. Some import tools also need the field name:
 
 ```java
 record FieldIssue(
@@ -1010,24 +1010,24 @@ record FieldIssue(
 ) {}
 ```
 
-Ví dụ:
+Example:
 
 ```text
 FieldIssue(5, "amountCents", "NEGATIVE_AMOUNT")
 ```
 
-Không nhất thiết phải trả nguyên văn `rawLine`, vì một dòng nguồn có thể chứa email, token, địa chỉ hoặc dữ liệu thanh toán. Nếu cho phép preview, cần:
+You do not necessarily need to return the verbatim `rawLine`, since a source line may contain emails, tokens, addresses, or payment info. If previews are allowed:
 
-- Giới hạn độ dài preview và loại ký tự điều khiển.
-- Ẩn/sanitize dữ liệu nhạy cảm.
-- Đặt retention và phân quyền truy cập hợp lý.
-- Không đưa exception message từ thư viện ngoài thẳng ra API công khai nếu có nguy cơ chứa bí mật.
+- Bound preview length and strip control characters.
+- Mask/sanitize sensitive data.
+- Configure retention and access permissions properly.
+- Avoid exposing raw third-party exception messages in public APIs if they might leak secrets.
 
-Một `RowIssue` có mã rõ ràng và số dòng chính xác giúp UI/CLI hiển thị thông tin đáng tin mà không phải công khai toàn bộ raw data.
+A `RowIssue` with a clear code and accurate line number lets UIs/CLIs show reliable feedback without exposing raw data wholesale.
 
-## 16. Kiểm thử JUnit 5: kết quả, lỗi và chính sách giới hạn
+## 16. JUnit 5 Tests: Results, Errors, and Limit Policies
 
-Các test sau dùng chương trình `OrderBatchValidation` ở mục 9, chạy trên **JDK 17+** và JUnit Jupiter. Chúng xác minh **nội dung**, **số dòng**, **mã lỗi** và **quy tắc lưu lỗi mẫu**, không phụ thuộc vào thời gian của scheduler hay tên thread.
+The following tests use `OrderBatchValidation` from section 9, running on **JDK 17+** and JUnit Jupiter. They verify **content**, **line numbers**, **error codes**, and **sample-limit rules**, independent of scheduler timing or thread names.
 
 ```java
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -1197,7 +1197,7 @@ class OrderBatchValidationTest {
             OrderBatchValidation.ErrorCode.INVALID_ID,
             outcome.issue().code()
         );
-        // Không khẳng định parser đã thu cả 3 lỗi của cùng một dòng.
+        // Does not assert that the parser collected all 3 errors on the same line.
     }
 
     @Test
@@ -1270,42 +1270,42 @@ class OrderBatchValidationTest {
 }
 ```
 
-### 16.1. Test cần đánh giá đúng ý nghĩa, không chỉ không có exception
+### 16.1. Tests Must Evaluate Meaning, Not Just Absence of Exceptions
 
-Một unit test chỉ khẳng định `collectIssues(...)` không ném lỗi có thể bỏ qua các bug nghiêm trọng: số dòng sai bị đếm thiếu, issue đầu tiên bị ghi nhầm số dòng, danh sách lỗi bị cắt nhưng UI không cảnh báo.
+A unit test asserting only that `collectIssues(...)` does not throw can miss serious bugs: wrong line counts undercounted, wrong line number on the first issue, or a truncated error list with no UI warning.
 
-Các assertion nên đối chiếu ít nhất:
+Assertions should check at least:
 
-- Bất biến tổng số dòng.
-- Số bản ghi hợp lệ và tổng số lỗi.
-- Mã lỗi của từng trường hợp dự kiến.
-- Thứ tự issue khi yêu cầu hiển thị theo số dòng.
-- Giới hạn mẫu và bộ đếm đầy đủ.
-- Tính không sửa đổi của kết quả.
-- Sự khác nhau giữa file/nguồn rỗng và lỗi ở nguồn.
+- Total-line-count invariant.
+- Valid record count and total error count.
+- Expected error code for each case.
+- Issue order when display by line number is required.
+- Sample limit vs. full counter accuracy.
+- Immutability of returned collections.
+- Distinction between an empty file/source and a source error.
 
-### 16.2. Không viết test bắt parallel fail-fast luôn trả lỗi có số dòng nhỏ nhất
+### 16.2. Do Not Assert That Parallel Fail-Fast Always Returns the Lowest Line Number
 
-Một parallel pipeline có thể quan sát và ném ngoại lệ từ phân đoạn khác trước. Unit test muốn xác định **dòng lỗi đầu tiên theo số dòng** nên dùng pipeline tuần tự hoặc thu kết quả rồi sắp theo `lineNumber`. Đừng làm test phụ thuộc scheduling rồi coi nó là hợp đồng của API.
+A parallel pipeline may observe and throw an exception from another partition first. Unit tests checking **the first failing line by line number** should run sequentially or collect results and sort by `lineNumber`. Never make tests depend on scheduling and treat that as an API contract.
 
-### 16.3. Các phép thử tích hợp thêm
+### 16.3. Additional Integration Tests
 
-Khi chuyển ví dụ sang tệp thật, nên có test với thư mục tạm:
+When moving the example to real files, test with a temporary directory:
 
-- File rỗng hợp lệ.
-- File không tồn tại: lỗi I/O, không tạo báo cáo rỗng.
-- File có charset không đúng hoặc dòng CSV quoted phức tạp.
-- Một reader giả lập `IOException` giữa chừng.
-- File rất lớn với `sampleLimit` nhỏ để kiểm chứng giới hạn lưu issue.
-- Import không ghi database khi `invalidLines > 0` theo quality gate.
+- Valid empty file.
+- Non-existent file: I/O error, not an empty report.
+- File with wrong charset or complex quoted CSV lines.
+- A simulated reader throwing `IOException` mid-stream.
+- Very large file with small `sampleLimit` to verify bounded issue storage.
+- Import skipping database writes when `invalidLines > 0` per quality gate.
 
-Đây là những phép thử **ngoài code JUnit minh họa** nếu cần kết nối tới I/O hoặc repository thật.
+These are tests **outside the illustrative JUnit code** if connecting to real I/O or repositories.
 
-## 17. Khi nào dùng `partitioningBy`, `teeing` hoặc collector chuyên biệt?
+## 17. When to Use `partitioningBy`, `teeing`, or a Specialized Collector?
 
-### 17.1. `partitioningBy` trên một danh sách outcome đã materialize
+### 17.1. `partitioningBy` on a Materialized List of Outcomes
 
-Nếu đã có `List<ParseOutcome> outcomes`, có thể phân tách nhanh hai phía bằng:
+If you already have `List<ParseOutcome> outcomes`, you can split them quickly:
 
 ```java
 Map<Boolean, List<OrderBatchValidation.ParseOutcome>> parts =
@@ -1317,13 +1317,13 @@ Map<Boolean, List<OrderBatchValidation.ParseOutcome>> parts =
     );
 ```
 
-Phía `true` là accepted; phía `false` còn **cả Blank lẫn Rejected**. Vì vậy, không được kết luận `parts.get(false).size()` là số lỗi. Bạn vẫn phải phân loại Blank và Rejected ở bước sau.
+The `true` side is accepted; the `false` side contains **both Blank and Rejected**. Therefore, never conclude `parts.get(false).size()` is the error count. You still must separate Blank and Rejected afterward.
 
-`partitioningBy` ngắn gọn khi chỉ có hai trạng thái, nhưng trường hợp bài này có **ba loại outcome** và cần giữ counts/issues, nên collector tùy chỉnh rõ ràng hơn.
+`partitioningBy` is concise for two states, yet this lesson has **three outcome types** and tracks counts/issues, making a custom collector clearer.
 
-### 17.2. `teeing` khi hai downstream độc lập là đủ
+### 17.2. `teeing` When Two Independent Downstreams Suffice
 
-`Collectors.teeing` (Java 12+) gửi mỗi phần tử đến hai downstream collector rồi kết hợp kết quả. Ví dụ, từ một stream `Accepted` đã được validate:
+`Collectors.teeing` (Java 12+) sends each element to two downstream collectors and combines their results. For example, from a validated stream of `Accepted` orders:
 
 ```java
 record CountAndSum(long count, long sumCents) {}
@@ -1339,41 +1339,41 @@ CountAndSum stats = validOrders.stream().collect(
 );
 ```
 
-Đây là đoạn dùng biến `validOrders` có kiểu `List<OrderBatchValidation.Order>`. `teeing` phù hợp khi chỉ cần kết hợp hai phép tổng hợp, nhưng không tự định nghĩa đầy đủ ba trạng thái parse, số dòng hay chính sách mẫu lỗi. `summingLong` không tự phát hiện overflow; nếu cần số học kiểm tra tràn, dùng accumulator thích hợp như ví dụ `Math.addExact`.
+This snippet uses a `validOrders` variable of type `List<OrderBatchValidation.Order>`. `teeing` fits when combining two aggregations, yet does not define three parse states, line numbers, or error sampling policies. `summingLong` does not detect overflow automatically; if overflow-checked arithmetic is needed, use an accumulator with `Math.addExact`.
 
-### 17.3. Validation library khi số lượng quy tắc tăng mạnh
+### 17.3. Validation Libraries When Rules Multiply
 
-Khi dữ liệu có hàng chục trường và yêu cầu **gom mọi lỗi trên cùng một dòng**, một thư viện validation hoặc mô hình `Validated<T>` với `List<FieldIssue>` có thể diễn đạt tốt hơn một chuỗi `if` trong parser. Nhưng dù sử dụng thư viện nào, vẫn phải giữ ranh giới:
+When records have dozens of fields and require **collecting every error on the same row**, a validation library or `Validated<T>` model with `List<FieldIssue>` may express rules better than a chain of `if`s in a parser. Regardless of library, preserve the boundary:
 
 ```text
-Lỗi có thể dự đoán từ dữ liệu → validation issue
-Lỗi infrastructure/runtime      → failure riêng
-Kết quả đã validate             → có thể bước sang side effect
+Predictable data errors     → validation issue
+Infrastructure/runtime bugs → separate failure
+Validated results           → eligible for side effects
 ```
 
-Không để việc đổi abstraction khiến lỗi I/O hay lỗi lập trình bị nuốt thành “dữ liệu rỗng”.
+Never let changing abstractions cause I/O failures or programming bugs to be swallowed as “empty data.”
 
-## 18. Quyết định cuối: dừng ngay, báo mọi lỗi hay chấp nhận một phần?
+## 18. Final Decision: Halt Immediately, Report All Errors, or Accept Partially?
 
-Hai hệ thống có thể dùng **cùng một parser** nhưng quyết định khác nhau khi nhận `BatchReport`.
+Two systems can share **the exact same parser** yet make different decisions on receiving `BatchReport`.
 
-### 18.1. Thanh toán hoặc sổ cái: validate hết, chặn ghi nếu có lỗi
+### 18.1. Payments or Ledgers: Validate Everything, Block Writes on Error
 
-Giả sử nguồn chứa giao dịch tài chính. Một khoản bị bỏ qua có thể làm tổng không cân. Chính sách phù hợp có thể là:
+Suppose a source contains financial transactions. One skipped entry can unbalance totals. An appropriate policy can be:
 
 ```text
-Parse/validate tất cả dòng
+Parse/validate all lines
      │
-     ├─ Có issue?          → REJECT batch, không gọi payment API.
-     ├─ Có batch issue?    → REJECT batch, không ghi DB.
-     └─ Không có lỗi?      → Tạo kế hoạch và thực thi có transaction policy.
+     ├─ Row issues exist?    → REJECT batch, do not call payment API.
+     ├─ Batch issues exist?  → REJECT batch, do not write DB.
+     └─ Zero errors?         → Build plan and execute under transaction policy.
 ```
 
-Ở đây, **thu thập lỗi** giúp người dùng sửa nhiều vấn đề cùng lúc, còn **fail trước khi ghi** bảo vệ dữ liệu nghiệp vụ. Đây là hai quyết định ở hai ranh giới, không mâu thuẫn nhau.
+Here, **collecting errors** helps users fix multiple issues at once, while **failing before writing** protects business data. These are two decisions at two boundaries, not contradictory.
 
-### 18.2. Log vận hành: skip-with-count và cảnh báo
+### 18.2. Operational Logs: Skip-with-Count and Warn
 
-Với log không dùng làm sổ cái, có thể cho phép một tỷ lệ dòng lỗi nhưng phải báo:
+For non-ledger logs, a small error rate may be acceptable while still reporting:
 
 ```text
 valid=99.500
@@ -1383,18 +1383,18 @@ issueSamples=10
 quality=WARNING
 ```
 
-Báo cáo chỉ đại diện cho **99.500 sự kiện hợp lệ**; nó không phải một mô tả đầy đủ của mọi dòng. Không dùng số kết quả hợp lệ để khẳng định không có dòng mất do lỗi đọc file.
+The report represents **99,500 valid events**; it is not a complete description of every line. Never use the valid count to claim no lines were lost to file-reading failures.
 
-### 18.3. API đồng bộ: trả lỗi đầu tiên hay nhiều lỗi?
+### 18.3. Synchronous APIs: Return First Error or Multiple Errors?
 
-Một API nhập một bản ghi có thể trả lỗi đầu tiên dưới dạng:
+A single-record import API might return the first error as:
 
 ```text
 HTTP 400 / VALIDATION_ERROR
 field=amountCents, code=NEGATIVE_AMOUNT
 ```
 
-Một API nhập batch có thể trả nhiều lỗi:
+A batch import API might return multiple errors:
 
 ```text
 validationStatus=REJECTED
@@ -1403,170 +1403,170 @@ invalidLines=2
 issues=[line 3 FIELD_COUNT, line 5 NEGATIVE_AMOUNT]
 ```
 
-Mã HTTP, payload và số lỗi tối đa được công bố phải theo hợp đồng API cụ thể. Đừng âm thầm thay đổi một endpoint “lỗi đầu tiên” thành “trả partial success” chỉ vì mới dùng collector.
+HTTP status codes, payloads, and maximum returned errors must follow the specific API contract. Never silently change a “first-error” endpoint into “return partial success” merely because you switched to a collector.
 
-### 18.4. Khi nào cần hai lượt xác thực?
+### 18.4. When Is Two-Pass Validation Needed?
 
-Nếu hệ thống chỉ được ghi sau khi **toàn bộ tệp rất lớn** được kiểm tra, một lựa chọn là:
+If the system may write only after **an entire huge file** has been checked, one option is:
 
-1. **Pass 1:** parse để kiểm đếm và phát hiện lỗi, ghi kết quả validation vào staging, không gọi dịch vụ ngoài.
-2. **Quality gate:** yêu cầu không có lỗi và thỏa điều kiện batch.
-3. **Pass 2/execution:** đọc từ **snapshot/staging bất biến đã xác thực**, tạo command và ghi qua coordinator.
+1. **Pass 1:** parse to count and detect errors, writing validation results to staging with no external service calls.
+2. **Quality gate:** require zero errors and passing batch rules.
+3. **Pass 2 / execution:** read from **an immutable validated snapshot/staging**, generate commands, and persist via a coordinator.
 
-Không được đọc một file đang bị thay đổi giữa hai lượt rồi coi pass 1 đã xác thực chính xác dữ liệu pass 2. Cần snapshot, checksum, version hoặc cơ chế cố định nguồn phù hợp. Nếu không có khả năng cố định nguồn và yêu cầu all-or-nothing, thiết kế phải giải quyết rủi ro này trước khi thực thi.
+Never read a mutating file between passes and assume pass 1 validated pass 2's exact data. Use snapshots, checksums, versions, or appropriate source locking. If the source cannot be stabilized while requiring all-or-nothing guarantees, the design must address that risk before execution.
 
-## 19. Những phản mẫu thường gặp
+## 19. Common Anti-Patterns
 
-| Phản mẫu | Hậu quả | Hướng sửa |
+| Anti-pattern | Consequence | Fix |
 | --- | --- | --- |
-| `parseOrNull` rồi `filter(Objects::nonNull)` | Mất count và nguyên nhân lỗi | Trả `ParseOutcome` tường minh |
-| `catch (Exception) { return Optional.empty(); }` | Che lỗi lập trình, I/O và dịch vụ | Chỉ bắt lỗi dữ liệu dự kiến |
-| `anyMatch(isInvalid)` rồi báo đã thu mọi lỗi | Short-circuit bỏ phần tử còn lại | Dùng collector nếu cần mọi issue |
-| Fail-fast song song rồi tin exception là dòng lỗi nhỏ nhất | Phụ thuộc thứ tự thực thi | Dùng tuần tự hoặc sắp các issue |
-| Ghi DB trong `map` trước validation hoàn tất | Có thể ghi một phần rồi gặp dòng sai | Chuẩn bị/validate trước, ghi sau |
-| `peek(audit::save)` | Audit có thể không được gọi như mong đợi | Ghi tại ranh giới action tường minh |
-| Dùng chung `ArrayList` ngoài collector trong `parallelStream` | Race và dữ liệu không xác định | Collector sở hữu state cục bộ, combiner đúng |
-| Khai `CONCURRENT` cho collector có `ArrayList` thường | Nhiều thread có thể sửa cùng container | Không khai sai characteristic |
-| Giới hạn 10 issue rồi hiển thị “có 10 lỗi” | Che tổng số lỗi thực | Dùng `invalidLines`, ghi “10 mẫu” |
-| Bắt `UncheckedIOException` như dòng sai schema | Che việc file chưa đọc hết | Báo lỗi nguồn và trạng thái partial riêng |
-| Dùng `List.copyOf` rồi tin đã deep-copy mọi object | Phần tử mutable vẫn có thể đổi | Dùng value object/defensive copy |
-| Cho rằng tổng tiền bằng 0 nghĩa là không có đơn | Đơn hợp lệ có amount 0 | Giữ cả count và sum |
-| Chỉ kiểm tra duplicate trong parser một dòng | Không thấy trùng giữa hai dòng | Validation cấp batch |
-| Thu mọi `Order` và mọi lỗi của file vô hạn | Có thể hết bộ nhớ | Chunk/staging, accumulator gọn và giới hạn mẫu |
-| Đổi `sampleLimit` thành 0 rồi gọi “không có lỗi” | Nhầm danh sách rỗng với tổng lỗi bằng 0 | Kiểm tra `invalidLines` |
-| Chỉ kiểm thử “không có exception” | Bỏ qua tính đúng của số liệu và chính sách | Assert bất biến, codes, line numbers |
+| `parseOrNull` then `filter(Objects::nonNull)` | Loses error counts and causes | Return explicit `ParseOutcome` |
+| `catch (Exception) { return Optional.empty(); }` | Masks bugs, I/O, and service failures | Catch only expected data errors |
+| `anyMatch(isInvalid)` claiming all errors collected | Short-circuiting skips remaining items | Use a collector when all issues are needed |
+| Parallel fail-fast assuming lowest line number | Depends on execution order | Use sequential or sort collected issues |
+| DB writes inside `map` before validation completes | Partial writes before hitting bad row | Prepare/validate first, write afterward |
+| `peek(audit::save)` | Audit may not execute as expected | Write at explicit action boundary |
+| Shared external `ArrayList` in `parallelStream` | Races and non-deterministic data | Collector owns local state with proper combiner |
+| Declaring `CONCURRENT` on plain `ArrayList` collector | Multiple threads mutate same container | Do not declare incorrect characteristics |
+| Capping at 10 issues then showing “10 errors found” | Hides true total error count | Use `invalidLines`, label “10 samples” |
+| Catching `UncheckedIOException` as a schema row error | Hides incomplete file read | Report source error and partial state separately |
+| Using `List.copyOf` thinking everything is deep-copied | Mutable elements can still change | Use value objects / defensive copies |
+| Assuming total amount 0 means zero orders | Valid orders can have amount 0 | Track both count and sum |
+| Checking duplicates in a single-row parser | Misses duplicates across rows | Batch-level validation |
+| Collecting every `Order` and error of an unbounded file | Risk of out-of-memory | Chunking/staging, compact accumulators, bounded samples |
+| Setting `sampleLimit` to 0 and claiming “no errors” | Confuses empty list with zero total errors | Check `invalidLines` |
+| Testing only “no exception thrown” | Misses incorrect counts and policy bugs | Assert invariants, codes, and line numbers |
 
-### 19.1. Vì sao phải đặt tên chính sách rõ ràng?
+### 19.1. Why Name Policies Clearly?
 
-`skipInvalidRecords`, `bestEffort` và `tolerant` là những tên dễ gây hiểu nhầm nếu không mô tả:
+`skipInvalidRecords`, `bestEffort`, and `tolerant` are misleading names unless they document:
 
-- Dòng trắng có tính là lỗi không?
-- Có giữ mọi lỗi hay chỉ mẫu?
-- Có cho phép ghi những record hợp lệ khi còn lỗi không?
-- Có dừng ngay ở lỗi I/O không?
-- Có thu thập lỗi ở cấp batch không?
+- Are blank lines counted as errors?
+- Are all errors kept or only samples?
+- Are valid records allowed to persist when errors remain?
+- Does it stop immediately on I/O errors?
+- Are batch-level errors collected?
 
-Một API tốt có tài liệu về **giới hạn bảo đảm** thay vì dựa vào một tên ngắn mơ hồ.
+A well-designed API documents its **guarantee boundaries** instead of relying on a vague short name.
 
-## 20. Bài tập thực hành
+## 20. Practice Exercises
 
-### Bài 1 — Chọn chính sách cho ba nghiệp vụ
+### Exercise 1 — Choosing Policies for Three Domains
 
-Hãy đề xuất chính sách lỗi cho:
+Propose an error policy for:
 
-1. Import các bút toán kế toán bắt buộc cân bằng.
-2. Kiểm tra CSV cho người dùng chỉnh sửa trước khi import.
-3. Tổng hợp log vận hành với vài dòng lỗi nhưng cần cảnh báo.
+1. Importing accounting journal entries that must balance.
+2. Validating a CSV for users to edit before importing.
+3. Aggregating operational logs with occasional bad lines that still need warnings.
 
-Nêu loại báo cáo trả về, có được gọi repository khi `invalidLines > 0` hay không, và lý do.
+Specify the returned report type, whether the repository may be called when `invalidLines > 0`, and why.
 
-### Bài 2 — Mở rộng parser để thu mọi lỗi của một dòng
+### Exercise 2 — Extending the Parser to Collect All Errors on One Line
 
-Thay `Rejected(RowIssue)` bằng `Rejected(List<FieldIssue>)`. Với dòng `BAD,-1,?`, trả ít nhất ba lỗi trường tương ứng `id`, `amountCents` và `region`. Vẫn giữ một bộ đếm **invalidLines tăng một lần cho dòng ấy**, không tăng ba lần chỉ vì có ba field issues.
+Replace `Rejected(RowIssue)` with `Rejected(List<FieldIssue>)`. For `BAD,-1,?`, return at least three field issues for `id`, `amountCents`, and `region`. Keep the **`invalidLines` counter incrementing once per line**, not three times just because three field issues occurred.
 
-### Bài 3 — Fail-fast chính xác theo dòng
+### Exercise 3 — Line-Accurate Fail-Fast
 
-Tạo nguồn 100 dòng có lỗi tại dòng 10 và dòng 50. Dùng sequential stream và chứng minh `validateFailFast` báo dòng 10. Sau đó thử nghiệm một phiên bản parallel; giải thích vì sao **không** nên viết assertion bắt exception từ parallel version luôn là dòng 10.
+Create a 100-line source with errors at line 10 and line 50. Using a sequential stream, prove `validateFailFast` reports line 10. Then experiment with a parallel version; explain why you should **never** write an assertion expecting the parallel version's exception to always be line 10.
 
-### Bài 4 — Giới hạn 5 mẫu lỗi
+### Exercise 4 — Limiting to 5 Error Samples
 
-Tạo 10.000 dòng sai, chạy `collectIssues(lines, 5)`. Kiểm thử:
+Generate 10,000 invalid lines and run `collectIssues(lines, 5)`. Test:
 
 - `invalidLines == 10_000`.
 - `issueSamples.size() == 5`.
-- Số dòng của năm mẫu phù hợp thứ tự nguồn.
-- Các chỉ số khác vẫn chính xác.
+- Line numbers of the five samples match source order.
+- All other metrics remain accurate.
 
-Giải thích vì sao vấn đề bộ nhớ của **`orders`** vẫn còn nếu file có hàng triệu dòng hợp lệ.
+Explain why the memory concern for **`orders`** still exists if the file has millions of valid lines.
 
-### Bài 5 — Phân biệt nguồn rỗng, nguồn lỗi và dữ liệu sai
+### Exercise 5 — Distinguishing Empty Source, Source Error, and Invalid Data
 
-Viết test cho ba tình huống:
+Write tests for three cases:
 
-1. Một file trống nhưng đọc được.
-2. File không tồn tại.
-3. File đọc được và chỉ chứa các dòng sai.
+1. An empty yet readable file.
+2. A non-existent file.
+3. A readable file containing only invalid lines.
 
-Không để cả ba trường hợp trả một `BatchReport` rỗng giống nhau.
+Do not let all three cases return an identical empty `BatchReport`.
 
-### Bài 6 — Duplicate ID ở cấp batch
+### Exercise 6 — Batch-Level Duplicate IDs
 
-Cho hai dòng hợp lệ cùng `orderId` nhưng khác vùng. Bổ sung bước kiểm tra duplicate sau parsing, trả `BatchIssue` phù hợp. Nếu cần báo số dòng của cả hai bản ghi, sửa cấu trúc intermediate để giữ nguồn gốc `Accepted.lineNumber`.
+Provide two valid lines with the same `orderId` and different regions. Add a post-parse duplicate check returning an appropriate `BatchIssue`. If line numbers of both records must be reported, update the intermediate structure to retain `Accepted.lineNumber`.
 
-### Bài 7 — Tổng tiền và overflow
+### Exercise 7 — Totals and Overflow
 
-Tạo hai dòng hợp lệ: một có amount `Long.MAX_VALUE` và một có amount `1`. Kiểm chứng `parse` chấp nhận cả hai, nhưng `acceptedTotalCents` ném `ArithmeticException`. Viết phương án cộng bằng `BigInteger` nếu hệ thống thật yêu cầu phạm vi lớn hơn.
+Create two valid lines: one with amount `Long.MAX_VALUE` and one with `1`. Verify `parse` accepts both, yet `acceptedTotalCents` throws `ArithmeticException`. Implement a `BigInteger` summation variant if a real system requires a larger range.
 
-### Bài 8 — Chặn side effect trước quality gate
+### Exercise 8 — Blocking Side Effects Before the Quality Gate
 
-Tạo một fake repository ghi nhận số lần gọi `save`. Với `BatchReport.invalidLines > 0`, coordinator **không được** gọi repository. Với report sạch và qua validation cấp batch, gọi repository theo một policy rõ ràng. Test số lần gọi và phân biệt lỗi lưu với lỗi parser.
+Create a fake repository tracking `save` calls. When `BatchReport.invalidLines > 0`, the coordinator **must not** call the repository. When the report is clean and passes batch validation, call the repository under an explicit policy. Test invocation counts and separate persistence errors from parser errors.
 
-### Bài 9 — Hiển thị lỗi cho người dùng
+### Exercise 9 — Displaying Errors to Users
 
-Thiết kế DTO API có:
+Design an API DTO containing:
 
 ```text
 totalLines, validLines, blankLines, invalidLines,
 issueSamples, samplesTruncated, validationDecision
 ```
 
-Khi `invalidLines > issueSamples.size()`, yêu cầu hiển thị “Đang hiển thị N trên M lỗi” thay vì chỉ “có N lỗi”.
+When `invalidLines > issueSamples.size()`, require displaying “Showing N of M errors” instead of just “N errors found.”
 
-### Bài 10 — Dùng collector với nguồn không có thứ tự
+### Exercise 10 — Using the Collector with an Unordered Source
 
-Thử dùng một `Set` hoặc pipeline `unordered()` làm nguồn. Nếu báo cáo cần “năm issue đầu tiên”, hãy định nghĩa **tiêu chí thứ tự** (ví dụ `lineNumber` tăng dần) trước khi chọn mẫu. Giải thích tại sao khái niệm “đầu tiên” vô nghĩa nếu không có thứ tự đáng tin.
+Try using a `Set` or `unordered()` pipeline as the source. If the report needs “the first five issues,” define an **ordering criterion** (such as ascending `lineNumber`) before selecting samples. Explain why “first” is meaningless without reliable order.
 
-### Bài 11 — Validation hai pha cho file lớn
+### Exercise 11 — Two-Phase Validation for Large Files
 
-Mô tả hai pha validation và execution dùng staging:
+Describe a two-phase validation and execution flow using staging:
 
-- Làm sao bảo đảm dữ liệu không thay đổi giữa hai pha?
-- Khi parser gặp lỗi thì cleanup staging thế nào?
-- Nếu tiến trình crash sau validation nhưng trước execution, làm sao resume?
-- Nếu execution đã ghi một phần thì báo cáo trạng thái nào?
+- How do you guarantee data does not change between phases?
+- If parsing fails, how is staging cleaned up?
+- If the process crashes after validation but before execution, how do you resume?
+- If execution wrote partially, what status is reported?
 
-Không coi một phép `collect` thành transaction phân tán.
+Never treat a single `collect` call as a distributed transaction.
 
-### Bài 12 — So sánh `partitioningBy` và collector tùy chỉnh
+### Exercise 12 — Comparing `partitioningBy` and a Custom Collector
 
-Tạo `List<ParseOutcome>` trước, sau đó dùng `partitioningBy` để chia accepted với phần còn lại. Chỉ ra vì sao phía còn lại gồm **Blank + Rejected**. So sánh chi phí nhớ hai lượt duyệt với collector duy nhất chỉ giữ counters và mẫu lỗi.
+Materialize `List<ParseOutcome>` first, then use `partitioningBy` to split accepted from the rest. Show why the remaining bucket contains **Blank + Rejected**. Compare memory cost of two passes against a single collector keeping only counters and error samples.
 
-## 21. Checklist thiết kế và tổng kết
+## 21. Design Checklist and Summary
 
-Trước khi đưa logic import hoặc validation vào hệ thống thật, kiểm tra:
+Before shipping import or validation logic to production, verify:
 
-- [ ] Schema dữ liệu và cách phân biệt dòng trắng đã công bố.
-- [ ] Lỗi dữ liệu dự kiến có mã riêng, không bắt `Exception` quá rộng.
-- [ ] Có quyết định rõ **FAIL_FAST** hay **COLLECT/COUNT**.
-- [ ] Nếu thu lỗi, biết đang thu **mọi dòng lỗi** hay chỉ **lỗi mẫu**.
-- [ ] Có bộ đếm đầy đủ `total/valid/blank/invalid` và bất biến đối chiếu.
-- [ ] Gắn số dòng theo vị trí nguồn, không bằng shared-state mapper song song.
-- [ ] Đã xử lý quy tắc giữa nhiều dòng, ví dụ duplicate ID.
-- [ ] Có quality gate trước khi gọi dịch vụ hoặc ghi database.
-- [ ] Ngoại lệ I/O không bị chuyển thành dòng sai hoặc báo cáo rỗng.
-- [ ] Nguồn từ `Files.lines` được đóng bằng `try-with-resources`.
-- [ ] Bộ nhớ của `orders`, `issues` và kích thước tệp đã được cân nhắc.
-- [ ] Không dựa vào việc parallel fail-fast luôn trả lỗi có số dòng nhỏ nhất.
-- [ ] Collector không chia sẻ state mutable sai cách và có combiner hợp lệ.
-- [ ] Không để raw line/error message làm lộ dữ liệu nhạy cảm.
-- [ ] Đã kiểm thử cả trường hợp lỗi, nguồn rỗng, mẫu bị cắt và overflow.
+- [ ] Data schema and blank-line handling are explicitly documented.
+- [ ] Expected data errors have dedicated codes, without overly broad `catch (Exception)`.
+- [ ] A clear choice was made between **FAIL_FAST** and **COLLECT/COUNT**.
+- [ ] If collecting errors, it is explicit whether **all invalid rows** or **sample errors** are kept.
+- [ ] Full `total/valid/blank/invalid` counters exist with a reconciling invariant.
+- [ ] Line numbers come from source position, not parallel shared-state mappers.
+- [ ] Cross-row rules such as duplicate IDs are handled.
+- [ ] A quality gate sits before calling external services or writing to databases.
+- [ ] I/O exceptions are never turned into bad rows or empty reports.
+- [ ] Sources from `Files.lines` are closed with `try-with-resources`.
+- [ ] Memory footprint of `orders`, `issues`, and file size has been evaluated.
+- [ ] Logic never relies on parallel fail-fast returning the lowest line number.
+- [ ] Collectors do not improperly share mutable state and have valid combiners.
+- [ ] Raw lines or error messages do not leak sensitive data.
+- [ ] Tests cover error cases, empty sources, truncated samples, and overflow.
 
-| Câu hỏi | Lựa chọn phù hợp |
+| Question | Appropriate choice |
 | --- | --- |
-| Một dòng sai phải chặn ngay phép xử lý? | **Fail-fast** trên ordered sequential stream |
-| Muốn người dùng sửa nhiều lỗi trong một lần? | **Collect errors** và trả report có cấu trúc |
-| Tệp lớn, cần giới hạn bộ nhớ lỗi? | **Count all + bounded issue samples** |
-| Cần xem mọi lỗi trường trong một dòng? | `Rejected(List<FieldIssue>)` |
-| Có ba loại `Accepted/Blank/Rejected`? | Kiểu outcome riêng, không ép vào `Optional.empty()` |
-| Chỉ cần biết có lỗi hay không? | Short-circuit `anyMatch` có thể đủ, nhưng **không** liệt kê lỗi |
-| Cần giữ thứ tự số dòng chính xác? | Nguồn đánh số theo vị trí và collector ordered hoặc sort cuối |
-| Cần tránh ghi partial data? | Parse/validate và **quality gate** trước side effect |
-| Cần báo kết quả kỹ thuật và quyết định xuất bản? | Tách `BatchReport` và `ValidationDecision` |
-| Nguồn là file rất lớn? | Reader/chunk/staging, không tùy tiện `toList()` |
-| Có lỗi mở/đọc file? | Truyền lỗi I/O, không tạo report thành công giả |
+| Should one bad row abort processing immediately? | **Fail-fast** on an ordered sequential stream |
+| Want users to fix multiple errors at once? | **Collect errors** and return a structured report |
+| Large file needing bounded error memory? | **Count all + bounded issue samples** |
+| Need every field error within a single row? | `Rejected(List<FieldIssue>)` |
+| Have three states `Accepted/Blank/Rejected`? | Dedicated outcome type, not squeezed into `Optional.empty()` |
+| Only need to know if any error exists? | Short-circuiting `anyMatch` may suffice, though it **cannot** list errors |
+| Must preserve accurate line-number order? | Position-numbered source and ordered collector or final sort |
+| Must avoid writing partial data? | Parse/validate and apply a **quality gate** before side effects |
+| Need both technical stats and publish decision? | Separate `BatchReport` and `ValidationDecision` |
+| Source is a very large file? | Reader/chunk/staging, not an unchecked `toList()` |
+| File open/read error occurred? | Propagate I/O error, never fabricate an empty success report |
 
-### Kết luận
+### Conclusion
 
-**Chọn dừng khi có lỗi hoặc thu thập lỗi cùng kết quả** không đơn thuần là đổi từ `throw` sang `catch`. Đây là quyết định về **nghĩa của dữ liệu**: khi nào một kết quả được xem là đầy đủ, khi nào chỉ là preview, và khi nào có quyền tạo tác dụng phụ bên ngoài.
+**Choosing to fail fast or collect errors alongside results** is not simply switching from `throw` to `catch`. It is a decision about **the meaning of data**: when a result is considered complete, when it is preview-only, and when external side effects are permitted.
 
-Với **JAVA_STREAM_API**, hãy giữ parser thuần để chuyển từng phần tử thành một outcome rõ ràng; chọn fail-fast khi cần từ chối ngay trên nguồn tuần tự; dùng collector có state thuộc quyền sở hữu của pipeline khi cần gom cả giá trị hợp lệ, bộ đếm và lỗi mẫu. Sau bước thu thập, kiểm tra quy tắc cấp batch rồi đưa ra quyết định ghi dữ liệu tường minh. Nhờ vậy, các phép `filter`, `map`, `reduce` và `collect` vừa dễ kiểm thử, vừa không vô tình che lỗi hoặc biến một báo cáo thiếu thành thành công giả.
+With **JAVA_STREAM_API**, keep parsers pure to map each element into a clear outcome; choose fail-fast when immediate rejection on a sequential source is required; use a collector with pipeline-owned state when gathering valid values, counters, and sample errors together. After collection, verify batch-level rules and make the persistence decision explicit. Done well, `filter`, `map`, `reduce`, and `collect` stay easy to test while never accidentally hiding errors or turning an incomplete report into false success.

@@ -1,16 +1,16 @@
-# AnnotatedTypeVariable và các bound có annotation trong Java Reflection
+# AnnotatedTypeVariable and Annotated Bounds in Java Reflection
 
-## 1. Bài toán: annotation nằm ở vị trí nào của một type variable?
+## 1. The problem: where is an annotation placed on a type variable?
 
-Java hỗ trợ annotation trên **kiểu được sử dụng** (*type-use annotation*) và trên **khai báo tham số kiểu** (*type-parameter declaration*). Khi dùng Reflection để đọc generic, cần phân biệt ba vị trí:
+Java supports annotations on **used types** (*type-use annotation*) and on **type parameter declarations** (*type-parameter declaration*). When using Reflection to read generics, you must distinguish three positions:
 
-1. Annotation trên **khai báo biến kiểu**: `<@ParameterMark T ...>`.
-2. Annotation trên **bound của biến kiểu**: `T extends @BoundMark Number`.
-3. Annotation trên **lần sử dụng biến kiểu**: `@UseMark T value` hoặc `Comparable<@UseMark T>`.
+1. Annotation on **the type variable declaration**: `<@ParameterMark T ...>`.
+2. Annotation on **a bound of the type variable**: `T extends @BoundMark Number`.
+3. Annotation on **a use of the type variable**: `@UseMark T value` or `Comparable<@UseMark T>`.
 
-Chúng không tự động là cùng một annotation, cũng không nhất thiết nằm trên cùng đối tượng Reflection.
+They are not automatically the same annotation, nor do they necessarily live on the same Reflection object.
 
-Ví dụ:
+Example:
 
 ```java
 class Sample<@ParameterMark T extends @BoundMark Number
@@ -19,49 +19,49 @@ class Sample<@ParameterMark T extends @BoundMark Number
 }
 ```
 
-Ở đây:
+Here:
 
-- `@ParameterMark` gắn với chính **khai báo** `T`.
-- `@BoundMark` gắn với **kiểu Number được dùng làm upper bound** của `T`.
-- `@UseMark` bên trong `Comparable<@UseMark T>` gắn với **lần dùng `T` làm type argument**.
-- `@UseMark` trong `@UseMark T value` gắn với **kiểu của field**, không tự biến thành annotation khai báo của `T`.
+- `@ParameterMark` attaches to the **declaration** of `T` itself.
+- `@BoundMark` attaches to the **`Number` type used as an upper bound** of `T`.
+- `@UseMark` inside `Comparable<@UseMark T>` attaches to **the use of `T` as a type argument**.
+- `@UseMark` in `@UseMark T value` attaches to **the field's type**, without automatically becoming a declaration annotation of `T`.
 
-Để đọc đúng các vị trí ấy, Java cung cấp `TypeVariable`, `AnnotatedType`, `AnnotatedTypeVariable` và `AnnotatedParameterizedType`.
+To read these positions accurately, Java provides `TypeVariable`, `AnnotatedType`, `AnnotatedTypeVariable`, and `AnnotatedParameterizedType`.
 
-**Trọng tâm:** `AnnotatedTypeVariable` đại diện cho *một lần sử dụng kiểu là type variable* (chẳng hạn `@UseMark T`), đồng thời cho phép đọc các **annotated upper bounds** của biến kiểu đó bằng `getAnnotatedBounds()`. Đây không phải một `Class<?>` của `T`: generic type variable và class runtime là hai khái niệm khác nhau.
+**Core idea:** `AnnotatedTypeVariable` represents *a use of a type that is a type variable* (such as `@UseMark T`), while also letting you read the **annotated upper bounds** of that type variable via `getAnnotatedBounds()`. This is not a `Class<?>` of `T`: a generic type variable and a runtime class are two different concepts.
 
-## 2. Các API liên quan và quan hệ giữa chúng
+## 2. Related APIs and the relationships between them
 
-| API | Kiểu trả về | Công dụng |
+| API | Return type | Purpose |
 | --- | --- | --- |
-| `Class.getTypeParameters()` | `TypeVariable<?>[]` | Các biến kiểu được khai báo bởi class/interface |
-| `Method.getTypeParameters()` | `TypeVariable<Method>[]` | Các biến kiểu được khai báo bởi generic method |
-| `Constructor.getTypeParameters()` | `TypeVariable<Constructor<?>>[]` | Các biến kiểu được khai báo bởi generic constructor |
-| `TypeVariable.getName()` | `String` | Tên như `T`, `U` |
-| `TypeVariable.getBounds()` | `Type[]` | Các upper bounds, **không kèm annotation use-site** |
-| `TypeVariable.getAnnotatedBounds()` | `AnnotatedType[]` | Các upper bounds **có thể mang type-use annotation** |
-| `TypeVariable.getAnnotation(...)` | annotation hoặc `null` | Annotation trên **khai báo biến kiểu** |
-| `Field.getGenericType()` | `Type` | Kiểu generic của field (có thể là `TypeVariable`), chưa diễn tả vị trí type-use annotation |
-| `Field.getAnnotatedType()` | `AnnotatedType` | Kiểu của field cùng annotation tại vị trí sử dụng |
-| `Method.getAnnotatedReturnType()` | `AnnotatedType` | Kiểu trả về, kể cả annotation tại vị trí sử dụng |
-| `Executable.getAnnotatedParameterTypes()` | `AnnotatedType[]` | Các kiểu tham số cùng annotation |
-| `AnnotatedTypeVariable.getAnnotatedBounds()` | `AnnotatedType[]` | Các bound có annotation gắn với type variable được tham chiếu |
-| `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()` | `AnnotatedType[]` | Các type arguments có annotation nằm **bên trong** kiểu tham số hóa |
-| `AnnotatedType.getType()` | `Type` | Kiểu nền mà một `AnnotatedType` đại diện |
-| `AnnotatedType.getAnnotation(...)` | annotation hoặc `null` | Annotation tại **chính vị trí kiểu** mà đối tượng này đại diện |
+| `Class.getTypeParameters()` | `TypeVariable<?>[]` | Type variables declared by the class/interface |
+| `Method.getTypeParameters()` | `TypeVariable<Method>[]` | Type variables declared by a generic method |
+| `Constructor.getTypeParameters()` | `TypeVariable<Constructor<?>>[]` | Type variables declared by a generic constructor |
+| `TypeVariable.getName()` | `String` | Name such as `T`, `U` |
+| `TypeVariable.getBounds()` | `Type[]` | Upper bounds, **without use-site annotations** |
+| `TypeVariable.getAnnotatedBounds()` | `AnnotatedType[]` | Upper bounds **which may carry type-use annotations** |
+| `TypeVariable.getAnnotation(...)` | annotation or `null` | Annotation on **the type variable declaration** |
+| `Field.getGenericType()` | `Type` | Generic type of the field (may be `TypeVariable`), does not express type-use annotation positions |
+| `Field.getAnnotatedType()` | `AnnotatedType` | Field type along with annotations at the use site |
+| `Method.getAnnotatedReturnType()` | `AnnotatedType` | Return type, including annotations at the use site |
+| `Executable.getAnnotatedParameterTypes()` | `AnnotatedType[]` | Parameter types along with annotations |
+| `AnnotatedTypeVariable.getAnnotatedBounds()` | `AnnotatedType[]` | Annotated bounds associated with the referenced type variable |
+| `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()` | `AnnotatedType[]` | Annotated type arguments located **inside** a parameterized type |
+| `AnnotatedType.getType()` | `Type` | Underlying type represented by an `AnnotatedType` |
+| `AnnotatedType.getAnnotation(...)` | annotation or `null` | Annotation at **the exact type position** represented by this object |
 
-Lưu ý: `AnnotatedTypeVariable` là **interface con của `AnnotatedType`**, không phải một đối tượng có thể tạo tùy ý bằng `new AnnotatedTypeVariable(...)`. Ta nhận nó qua các API Reflection, rồi kiểm tra bằng `instanceof`.
+Note: `AnnotatedTypeVariable` is a **subinterface of `AnnotatedType`**, not an object you can instantiate arbitrarily with `new AnnotatedTypeVariable(...)`. You obtain it through Reflection APIs and check it with `instanceof`.
 
-### Phân biệt hai lối vào thường gặp
+### Distinguishing two common entry points
 
-**Lối vào từ khai báo:**
+**Entry from the declaration:**
 
 ```java
 TypeVariable<?> t = Sample.class.getTypeParameters()[0];
 AnnotatedType[] annotatedBounds = t.getAnnotatedBounds();
 ```
 
-**Lối vào từ vị trí dùng:**
+**Entry from the use site:**
 
 ```java
 Field field = Sample.class.getDeclaredField("value");
@@ -71,13 +71,13 @@ if (fieldType instanceof AnnotatedTypeVariable variableUse) {
 }
 ```
 
-Cả hai đều có thể giúp quan sát những bound thuộc khai báo `T`, nhưng **vị trí dùng** còn mang annotation riêng trên `@UseMark T`. Đừng đọc mỗi `getAnnotatedBounds()` rồi kết luận mọi annotation của field đã được lấy đủ.
+Both can help observe the bounds belonging to `T`'s declaration, yet **the use site** also carries its own annotations on `@UseMark T`. Do not read only `getAnnotatedBounds()` and conclude that all annotations of the field have been retrieved.
 
-Các mảnh code trong mục này minh họa API, cần được đặt trong phương thức có xử lý `NoSuchFieldException` và cùng khai báo class/annotation thích hợp. Chương trình đầy đủ ở mục 4.
+The code snippets in this section illustrate the APIs; they must be placed inside a method handling `NoSuchFieldException` together with suitable class/annotation declarations. The complete program is in section 4.
 
-## 3. Điều kiện để annotation có mặt khi Reflection chạy
+## 3. Conditions for annotations to be present when Reflection runs
 
-Cần khai báo annotation phù hợp:
+Appropriate annotation declarations are required:
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
@@ -93,19 +93,19 @@ Cần khai báo annotation phù hợp:
 @interface UseMark {}
 ```
 
-Đây là **đoạn minh họa**, yêu cầu import `java.lang.annotation.*`. Trong chương trình hoàn chỉnh bên dưới, các khai báo này nằm trong cùng file.
+This is an **illustrative snippet**, requiring `import java.lang.annotation.*`. In the complete program below, these declarations reside in the same file.
 
-- `ElementType.TYPE_PARAMETER` nhắm vào **khai báo** biến kiểu như `<@ParameterMark T>`.
-- `ElementType.TYPE_USE` nhắm vào **vị trí sử dụng kiểu**, gồm bound `extends @BoundMark Number`, type argument `Comparable<@UseMark T>` hoặc field `@UseMark T value`.
-- `RetentionPolicy.RUNTIME` cho phép Reflection nhìn thấy annotation ở runtime. Nếu annotation chỉ có `CLASS` retention hoặc `SOURCE` retention, các API runtime không cung cấp nó như trong ví dụ.
-- `@Inherited` không tự làm type-use annotation lan truyền qua giới hạn generic; không nên dùng nó để suy luận về annotated bounds.
-- Nếu dùng repeatable annotation, cân nhắc `getAnnotationsByType(...)` thay vì chỉ `getAnnotation(...)`.
+- `ElementType.TYPE_PARAMETER` targets **the declaration** of a type variable such as `<@ParameterMark T>`.
+- `ElementType.TYPE_USE` targets **type-use positions**, including the bound `extends @BoundMark Number`, type argument `Comparable<@UseMark T>`, or field `@UseMark T value`.
+- `RetentionPolicy.RUNTIME` lets Reflection see the annotation at runtime. If an annotation only has `CLASS` retention or `SOURCE` retention, runtime APIs will not provide it as in the example.
+- `@Inherited` does not automatically propagate type-use annotations across generic bounds; it should not be used to reason about annotated bounds.
+- If using repeatable annotations, consider `getAnnotationsByType(...)` instead of only `getAnnotation(...)`.
 
-**Nhớ phân biệt:** một annotation trên **khai báo T** không tự được copy vào từng lần dùng T; annotation trên **bound của T** cũng không có nghĩa là mọi field kiểu T có annotation ấy tại vị trí của field.
+**Remember to distinguish:** an annotation on **the declaration of `T`** is not automatically copied onto every use of `T`; nor does an annotation on **a bound of `T`** mean that every field of type `T` carries that annotation at the field's position.
 
-## 4. Ví dụ Java 17+ hoàn chỉnh và kiểm chứng được
+## 4. Complete and verifiable Java 17+ example
 
-Tạo file **`AnnotatedTypeVariableDemo.java`**:
+Create the file **`AnnotatedTypeVariableDemo.java`**:
 
 ```java
 import java.lang.annotation.*;
@@ -203,14 +203,14 @@ public class AnnotatedTypeVariableDemo {
 }
 ```
 
-Biên dịch/chạy từ thư mục chứa file bằng JDK 17 hoặc mới hơn:
+Compile/run from the directory containing the file using JDK 17 or newer:
 
 ```bash
 javac --release 17 AnnotatedTypeVariableDemo.java
 java AnnotatedTypeVariableDemo
 ```
 
-**Stdout thực tế (đã biên dịch và chạy bằng JDK 21 với `--release 17`):**
+**Actual stdout (compiled and run on JDK 21 with `--release 17`):**
 
 ```text
 Variable: T
@@ -236,15 +236,15 @@ Unbounded default: java.lang.Object
 Unbounded annotations: 0
 ```
 
-### Giải thích bốn phát hiện quan trọng
+### Explaining four key findings
 
-**(1) Khai báo `T` và bound `Number` là hai nơi khác nhau.**
+**(1) The declaration of `T` and the bound `Number` are two different places.**
 
-`variable.getAnnotation(ParameterMark.class)` trả annotation trên **khai báo type parameter** `T`. Trong khi đó, `bounds[0].getAnnotation(BoundMark.class)` trả annotation trên **kiểu Number đang làm bound**. Nếu dùng `variable.getAnnotation(BoundMark.class)` để hỏi “Number có annotation không?”, bạn đã hỏi sai đối tượng Reflection.
+`variable.getAnnotation(ParameterMark.class)` returns the annotation on **the type parameter declaration** `T`. Meanwhile, `bounds[0].getAnnotation(BoundMark.class)` returns the annotation on **the `Number` type serving as a bound**. If you use `variable.getAnnotation(BoundMark.class)` to ask "Does Number have an annotation?", you have queried the wrong Reflection object.
 
-**(2) Annotated bound có thể là generic/parameterized type.**
+**(2) An annotated bound can be a generic/parameterized type.**
 
-Bound thứ hai là `Comparable<T>`. Cờ `@UseMark` không nằm trên chính đối tượng `bounds[1]` (vỏ `Comparable`); nó nằm **bên trong type argument `T`**. Vì vậy cần cast đúng kiểu:
+The second bound is `Comparable<T>`. The `@UseMark` flag is not on the `bounds[1]` object itself (the `Comparable` shell); it sits **inside the type argument `T`**. Therefore you must cast to the proper type:
 
 ```java
 AnnotatedParameterizedType apt =
@@ -253,30 +253,30 @@ AnnotatedType inner = apt.getAnnotatedActualTypeArguments()[0];
 boolean marked = inner.isAnnotationPresent(UseMark.class);
 ```
 
-Với trường hợp này, `inner` còn là `AnnotatedTypeVariable` vì type argument được sử dụng là `T`. Nếu chỉ gọi `bounds[1].getAnnotations()` rồi dừng, bạn sẽ bỏ sót annotation lồng sâu.
+In this case, `inner` is also an `AnnotatedTypeVariable` because the type argument used is `T`. If you only call `bounds[1].getAnnotations()` and stop, you will miss nested annotations.
 
-**(3) Một field kiểu `T` vừa có generic type vừa có annotated type.**
+**(3) A field of type `T` has both a generic type and an annotated type.**
 
-`field.getType()` trả `Number.class` do **type erasure**: trong `T extends Number & Comparable<T>`, erasure của `T` là first bound `Number`. `field.getGenericType()` vẫn biểu diễn `T` dưới dạng `TypeVariable`. `field.getAnnotatedType()` trả một `AnnotatedTypeVariable` có annotation trên lần dùng `@UseMark T`.
+`field.getType()` returns `Number.class` due to **type erasure**: in `T extends Number & Comparable<T>`, the erasure of `T` is the first bound `Number`. `field.getGenericType()` still represents `T` as a `TypeVariable`. `field.getAnnotatedType()` returns an `AnnotatedTypeVariable` carrying the annotation on the use `@UseMark T`.
 
-Ba API nói về **ba tầng thông tin khác nhau**, không mâu thuẫn:
+The three APIs describe **three different layers of information**, with no contradiction:
 
-| Lệnh trên field `@UseMark T value` | Thông tin nhận được |
+| Call on field `@UseMark T value` | Information obtained |
 | --- | --- |
 | `field.getType()` | Runtime erased type: `Number.class` |
-| `field.getGenericType()` | Generic type: `TypeVariable` tên `T` |
-| `field.getAnnotatedType()` | `AnnotatedTypeVariable` biểu diễn `@UseMark T` |
-| `((AnnotatedTypeVariable) field.getAnnotatedType()).getAnnotatedBounds()` | Hai bound: `@BoundMark Number` và `Comparable<@UseMark T>` |
+| `field.getGenericType()` | Generic type: `TypeVariable` named `T` |
+| `field.getAnnotatedType()` | `AnnotatedTypeVariable` representing `@UseMark T` |
+| `((AnnotatedTypeVariable) field.getAnnotatedType()).getAnnotatedBounds()` | Two bounds: `@BoundMark Number` and `Comparable<@UseMark T>` |
 
-**(4) Generic method cũng có type variable riêng.**
+**(4) Generic methods also have their own type variables.**
 
-`echo` khai báo `<@ParameterMark U extends @BoundMark CharSequence>`. Do erasure của `U` là `CharSequence`, muốn tìm method bằng `getDeclaredMethod` phải truyền `CharSequence.class`, không phải `Object.class` hoặc một lớp bất kỳ của giá trị được gọi.
+`echo` declares `<@ParameterMark U extends @BoundMark CharSequence>`. Because the erasure of `U` is `CharSequence`, looking up the method with `getDeclaredMethod` requires passing `CharSequence.class`, not `Object.class` or an arbitrary class of a passed value.
 
-`method.getTypeParameters()[0]` đại diện cho **khai báo U**; `getAnnotatedParameterTypes()[0]` và `getAnnotatedReturnType()` đại diện cho **vị trí dùng U ở parameter/return**. Chương trình quan sát cả ba vị trí này.
+`method.getTypeParameters()[0]` represents **the declaration of `U`**; `getAnnotatedParameterTypes()[0]` and `getAnnotatedReturnType()` represent **the use positions of `U` in parameter/return**. The program observes all three of these positions.
 
-## 5. Cách dùng `AnnotatedTypeVariable.getAnnotatedBounds()`
+## 5. How to use `AnnotatedTypeVariable.getAnnotatedBounds()`
 
-Giả sử từ field, parameter hoặc return type có `AnnotatedType annotated`:
+Suppose from a field, parameter, or return type you have `AnnotatedType annotated`:
 
 ```java
 if (annotated instanceof AnnotatedTypeVariable variableUse) {
@@ -289,106 +289,106 @@ if (annotated instanceof AnnotatedTypeVariable variableUse) {
 }
 ```
 
-Đây là **đoạn minh họa** cần import `java.lang.annotation.Annotation` và `java.lang.reflect.*`; biến `annotated` do caller cung cấp.
+This is an **illustrative snippet** requiring `import java.lang.annotation.Annotation` and `java.lang.reflect.*`; the `annotated` variable is supplied by the caller.
 
-Quy trình đúng:
+Proper workflow:
 
-1. Kiểm tra bằng `instanceof AnnotatedTypeVariable` trước khi cast. Field có thể là `AnnotatedParameterizedType`, `AnnotatedArrayType`, `AnnotatedWildcardType` hoặc kiểu không generic chứ không phải type variable.
-2. Lấy `getType()`; với `AnnotatedTypeVariable`, đối tượng `Type` nền tương ứng là một `TypeVariable<?>`.
-3. Gọi `getAnnotatedBounds()` để lấy **từng upper bound**, theo đúng thứ tự khai báo.
-4. Trên mỗi bound, đọc annotation gắn **trực tiếp tại bound** bằng `getAnnotations()`, `getAnnotation(...)` hoặc `getAnnotationsByType(...)`.
-5. Nếu bound có generic type arguments, cast có kiểm tra sang `AnnotatedParameterizedType` rồi duyệt `getAnnotatedActualTypeArguments()` để tìm annotation lồng bên trong.
-6. Nếu cần biết annotation tại **lần dùng type variable**, đọc `variableUse.getAnnotations()`; chúng không được thay thế bằng annotation trên bound.
+1. Check with `instanceof AnnotatedTypeVariable` before casting. A field could be `AnnotatedParameterizedType`, `AnnotatedArrayType`, `AnnotatedWildcardType`, or a non-generic type rather than a type variable.
+2. Call `getType()`; for `AnnotatedTypeVariable`, the corresponding underlying `Type` object is a `TypeVariable<?>`.
+3. Call `getAnnotatedBounds()` to obtain **each upper bound**, in exact declaration order.
+4. On each bound, read annotations attached **directly to the bound** using `getAnnotations()`, `getAnnotation(...)`, or `getAnnotationsByType(...)`.
+5. If a bound has generic type arguments, cast safely to `AnnotatedParameterizedType` and traverse `getAnnotatedActualTypeArguments()` to find nested annotations inside.
+6. If you need annotations at **the type variable use site**, read `variableUse.getAnnotations()`; they are not replaced by annotations on bounds.
 
-### Bound nhiều thành phần
+### Multi-component bounds
 
-Java hỗ trợ upper bound dạng intersection:
+Java supports intersection upper bounds:
 
 ```java
 class Sample<T extends Number & Comparable<T>> {}
 ```
 
-`T` có hai upper bounds theo thứ tự `Number` và `Comparable<T>`. `TypeVariable.getBounds()` và `getAnnotatedBounds()` đều biểu diễn **hai vị trí**; khác nhau ở chỗ API annotated bảo tồn metadata annotation trên cách dùng từng kiểu bound.
+`T` has two upper bounds in order: `Number` and `Comparable<T>`. `TypeVariable.getBounds()` and `getAnnotatedBounds()` both represent **two positions**; the difference is that the annotated API preserves annotation metadata on each bound type use.
 
-Không được giả định chỉ có một bound. Đối với intersection, class bound (nếu có) phải đứng đầu, còn các interface bounds xuất hiện tiếp theo theo quy tắc Java. Các annotation tương ứng được gắn với đúng thành phần mà chúng đứng trước.
+Do not assume there is only a single bound. For intersections, a class bound (if present) must appear first, and interface bounds follow according to Java rules. Corresponding annotations attach to the exact component they precede.
 
-Nếu **không khai báo bound**:
+If **no bound is declared**:
 
 ```java
 class Plain<T> {}
 ```
 
-bound mặc định của `T` là `Object` và không có annotation. `getAnnotatedBounds()` trả mảng chứa một `AnnotatedType` cho `Object` không được annotate; nó **không** trả mảng rỗng. Điều này được chứng minh bởi `Unbounded<V>` trong ví dụ chạy ở mục 4.
+the default bound of `T` is `Object` with no annotations. `getAnnotatedBounds()` returns an array containing one `AnnotatedType` for unannotated `Object`; it does **not** return an empty array. This is demonstrated by `Unbounded<V>` in the runnable example in section 4.
 
-## 6. Đọc annotation khai báo khác đọc annotation trên kiểu
+## 6. Reading declaration annotations vs. reading type annotations
 
-| Cú pháp trong source | Nơi lấy annotation | Thực thể metadata |
+| Syntax in source | Where to read the annotation | Metadata entity |
 | --- | --- | --- |
-| `<@ParameterMark T>` | `typeVariable.getAnnotation(ParameterMark.class)` | Khai báo biến kiểu |
+| `<@ParameterMark T>` | `typeVariable.getAnnotation(ParameterMark.class)` | Type variable declaration |
 | `T extends @BoundMark Number` | `typeVariable.getAnnotatedBounds()[0].getAnnotation(BoundMark.class)` | Upper bound |
-| `Comparable<@UseMark T>` | Cast bound `AnnotatedParameterizedType` rồi lấy annotated argument | Type argument trong bound |
-| `@UseMark T value` | `field.getAnnotatedType().getAnnotation(UseMark.class)` | Lần dùng T trong field |
-| `@UseMark U echo(...)` | `method.getAnnotatedReturnType().getAnnotation(UseMark.class)` | Lần dùng U ở return type |
-| `echo(@UseMark U value)` | `method.getAnnotatedParameterTypes()[0].getAnnotation(UseMark.class)` | Lần dùng U ở parameter |
+| `Comparable<@UseMark T>` | Cast bound to `AnnotatedParameterizedType` then read annotated argument | Type argument inside bound |
+| `@UseMark T value` | `field.getAnnotatedType().getAnnotation(UseMark.class)` | Use of `T` in field |
+| `@UseMark U echo(...)` | `method.getAnnotatedReturnType().getAnnotation(UseMark.class)` | Use of `U` in return type |
+| `echo(@UseMark U value)` | `method.getAnnotatedParameterTypes()[0].getAnnotation(UseMark.class)` | Use of `U` in parameter |
 
-**Tránh nhầm:** `TypeVariable` là `AnnotatedElement` và có thể trả annotation từ khai báo type parameter; nhưng `AnnotatedTypeVariable` triển khai `AnnotatedType` và biểu diễn annotation gắn vào **type use cụ thể**. Cùng tên `getAnnotation(...)` nhưng câu hỏi đặt cho hai đối tượng là khác nhau.
+**Avoid confusion:** `TypeVariable` is an `AnnotatedElement` and can return annotations from the type parameter declaration; however, `AnnotatedTypeVariable` implements `AnnotatedType` and represents annotations attached to a **specific type use**. Both share the method name `getAnnotation(...)`, yet the question asked of the two objects is different.
 
-Một số annotation có `@Target` cho nhiều nơi, ví dụ vừa `TYPE_PARAMETER` vừa `TYPE_USE`. Khi ấy việc kiểm tra vị trí vẫn quan trọng; tên annotation giống nhau không có nghĩa runtime luôn lưu chúng tại cùng một loại target.
+Some annotations have `@Target` for multiple places, such as both `TYPE_PARAMETER` and `TYPE_USE`. In that case checking positions remains critical; identical annotation names do not mean the runtime always stores them under the same target kind.
 
-## 7. Generic erasure: Annotation trên bound không làm thay đổi runtime class
+## 7. Generic erasure: Annotations on bounds do not change the runtime class
 
-Có hai vấn đề độc lập:
+There are two independent concerns:
 
-- **Generic signature** mô tả `T extends Number & Comparable<T>`. Reflection truy cập qua `TypeVariable` và các `Type` con.
-- **Runtime erased type** của field `T value` là `Number` khi `Number` là bound đầu. Kiểu bị xóa không lưu “đối tượng này là một subtype cụ thể của T” ở runtime.
-- **TYPE_USE annotation** mô tả chú giải về những vị trí kiểu trong chữ ký, không tự thực thi ràng buộc kiểm tra dữ liệu khi runtime chạy.
+- **Generic signature** describes `T extends Number & Comparable<T>`. Reflection accesses it via `TypeVariable` and child `Type` instances.
+- **Runtime erased type** of field `T value` is `Number` when `Number` is the first bound. The erased type does not store "this object is a specific subtype of T" at runtime.
+- **TYPE_USE annotation** describes annotations on type positions in signatures; it does not automatically enforce data validation constraints at runtime.
 
-Ví dụ nếu `@BoundMark` mang nghĩa nghiệp vụ “đã được xác thực”, Reflection chỉ đọc được marker đó. Việc kiểm tra dữ liệu thật sự vẫn cần validator/framework riêng; JVM không thay thế code kiểm tra dựa chỉ vào type-use marker tùy chỉnh.
+For example, if `@BoundMark` carries the business meaning "validated", Reflection only reads that marker. Actually checking data still requires a separate validator/framework; the JVM does not replace validation code based solely on custom type-use markers.
 
-Một generic field chứa type variable không thể được dùng để suy ra tự động `T` là `Integer` hay `Long` trên một object cụ thể do type erasure. Nếu cần actual type arguments của một superclass/interface đã được parameterize, phải phân tích `ParameterizedType` từ vị trí khai báo sử dụng phù hợp và cân nhắc kế thừa; đó là bài toán khác với đọc annotation trên upper bound.
+A generic field containing a type variable cannot be used to automatically infer whether `T` is `Integer` or `Long` on a specific object due to type erasure. If you need actual type arguments of a parameterized superclass/interface, you must analyze `ParameterizedType` from the appropriate usage declaration and account for inheritance; that is a different problem from reading annotations on upper bounds.
 
-## 8. Khi bound là parameterized, array hoặc wildcard type
+## 8. When bounds are parameterized, array, or wildcard types
 
-`AnnotatedType` có các subtype chuyên biệt và mỗi subtype mở thêm tầng cấu trúc:
+`AnnotatedType` has specialized subtypes and each subtype opens another structural layer:
 
-| Hình dạng kiểu | Subtype nên kiểm tra | Cách đi sâu |
+| Type shape | Subtype to check | How to drill down |
 | --- | --- | --- |
 | `T` | `AnnotatedTypeVariable` | `getAnnotatedBounds()` |
 | `List<@A String>` | `AnnotatedParameterizedType` | `getAnnotatedActualTypeArguments()` |
-| `@A String[]` hoặc `String @A []` | `AnnotatedArrayType` | `getAnnotatedGenericComponentType()` |
+| `@A String[]` or `String @A []` | `AnnotatedArrayType` | `getAnnotatedGenericComponentType()` |
 | `? extends @A Number` | `AnnotatedWildcardType` | `getAnnotatedUpperBounds()` |
 | `? super @A Integer` | `AnnotatedWildcardType` | `getAnnotatedLowerBounds()` |
 
-Mỗi cấp có thể mang annotation riêng. Không nên chỉ gọi `getAnnotations()` ở nút ngoài cùng rồi kết luận đã lấy đủ mọi annotation lồng bên trong.
+Each level can carry its own annotations. You should not call only `getAnnotations()` at the outermost node and conclude you have retrieved all nested annotations.
 
-**Đặc biệt với recursive bounds:**
+**Especially with recursive bounds:**
 
 ```java
 interface Node<T extends Comparable<T>> {}
 ```
 
-Một type variable có thể xuất hiện lại bên trong bound của chính nó (*F-bounded polymorphism*). Nếu viết trình duyệt metadata đệ quy từ `T` → `Comparable<T>` → `T` → bound..., sẽ lặp vô hạn nếu không đánh dấu đã thăm.
+A type variable can reappear inside its own bound (*F-bounded polymorphism*). Writing a recursive metadata traverser from `T` → `Comparable<T>` → `T` → bound... will loop infinitely if visited items are not tracked.
 
-Khi viết trình duyệt tổng quát, cần lưu dấu các khai báo `TypeVariable<?>` đã đi qua theo ngữ cảnh (chẳng hạn tập các variable đã thăm); phân biệt **annotation trên lần dùng hiện tại** và **việc mở rộng bound khai báo**. Có thể vẫn ghi lại annotation của nút dùng trước khi quyết định không duyệt lại các bound của nó.
+When writing a general traverser, you must record the `TypeVariable<?>` declarations already traversed in context (e.g., a set of visited variables); distinguish **annotations on the current use** from **expanding the declared bounds**. You can still record the annotations on the use node before deciding not to re-traverse its bounds.
 
-`AnnotatedTypeVariable.getAnnotatedOwnerType()` trả `null` theo hợp đồng API; owner type dành cho những dạng nested member type khác, không phải cơ chế tìm khai báo của `T`. Nếu cần biết biến kiểu `T` được khai báo ở class/method/constructor nào, dùng `((TypeVariable<?>) annotated.getType()).getGenericDeclaration()`.
+`AnnotatedTypeVariable.getAnnotatedOwnerType()` returns `null` per the API contract; owner types apply to other nested member type forms, not as a mechanism to find where `T` is declared. If you need to know which class/method/constructor declared type variable `T`, use `((TypeVariable<?>) annotated.getType()).getGenericDeclaration()`.
 
-## 9. Áp dụng trong công cụ phân tích generic/annotation
+## 9. Applying this in generic/annotation analysis tools
 
-Một schema generator, validation framework hoặc API documentation tool có thể dùng annotated bounds để hiểu ràng buộc về dạng kiểu và metadata ở đúng vị trí. Quy trình thực tế:
+A schema generator, validation framework, or API documentation tool can use annotated bounds to understand type-shape constraints and metadata at exact positions. Practical workflow:
 
-1. Xác định nguồn: type variable khai báo của **class**, **method** hoặc **constructor**, hay type variable được dùng tại **field/parameter/return**.
-2. Lấy metadata khai báo qua `getTypeParameters()` khi cần type parameter annotations.
-3. Lấy annotated type của vị trí dùng qua `getAnnotatedType()`, `getAnnotatedReturnType()` hoặc `getAnnotatedParameterTypes()`.
-4. Phân nhánh theo subtype `AnnotatedType` bằng `instanceof`; với variable, đọc `getAnnotatedBounds()`; với parameterized bound, duyệt annotated type arguments.
-5. Phân biệt annotation trên khai báo type variable, trên bound và trên type use. Không chuyển annotation từ vị trí này sang vị trí khác khi chưa có quy tắc nghiệp vụ rõ ràng.
-6. Đối với classfile từ compiler khác hoặc thư viện không có RUNTIME retention, chấp nhận metadata annotation vắng mặt mà không tự suy diễn rằng annotation chưa từng tồn tại ở source.
-7. Chống vòng lặp khi F-bounded/recursive generics; xử lý `TypeNotPresentException` và `MalformedParameterizedTypeException` khi metadata generic hỏng hoặc tham chiếu kiểu không khả dụng.
-8. Viết test trên classfile thực tế để xác nhận cách khai báo annotation, thứ tự bound và vị trí nested annotation.
+1. Identify the source: type variable declared on a **class**, **method**, or **constructor**, or type variable used in a **field/parameter/return**.
+2. Retrieve declaration metadata via `getTypeParameters()` when type parameter annotations are needed.
+3. Retrieve the annotated type of the use site via `getAnnotatedType()`, `getAnnotatedReturnType()`, or `getAnnotatedParameterTypes()`.
+4. Branch by `AnnotatedType` subtype using `instanceof`; for variables, read `getAnnotatedBounds()`; for parameterized bounds, traverse annotated type arguments.
+5. Distinguish annotations on the type variable declaration, on bounds, and on type uses. Do not transfer annotations from one position to another without an explicit business rule.
+6. For class files from other compilers or libraries without `RUNTIME` retention, accept missing annotation metadata without inferring that the annotation never existed in source.
+7. Prevent cycles on F-bounded/recursive generics; handle `TypeNotPresentException` and `MalformedParameterizedTypeException` when generic metadata is broken or referenced types are unavailable.
+8. Write tests against real class files to confirm annotation placement, bound ordering, and nested annotation positions.
 
-### Một helper nhỏ để báo cáo annotated bounds
+### A small helper to report annotated bounds
 
-Đặt method sau trong class tiện ích có import `java.lang.reflect.*` và `java.lang.annotation.*`:
+Place the following method in a utility class with `import java.lang.reflect.*` and `java.lang.annotation.*`:
 
 ```java
 static void printDirectBoundAnnotations(TypeVariable<?> variable) {
@@ -401,45 +401,45 @@ static void printDirectBoundAnnotations(TypeVariable<?> variable) {
 }
 ```
 
-Đây là **mảnh code minh họa**, chỉ đọc annotation gắn trực tiếp vào từng **bound ở lớp ngoài**, không duyệt sâu type arguments. Với `Comparable<@UseMark T>`, nếu muốn nhận `@UseMark`, phải bổ sung bước duyệt `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()` như mục 4.
+This is an **illustrative snippet**, reading only annotations attached directly to each **outer-level bound**, without traversing deeper into type arguments. For `Comparable<@UseMark T>`, if you want to capture `@UseMark`, you must add the `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()` traversal step as in section 4.
 
-## 10. Những nhầm lẫn phổ biến
+## 10. Common confusions
 
-| Nhầm lẫn | Kết luận đúng |
+| Confusion | Correct conclusion |
 | --- | --- |
-| “`TypeVariable.getBounds()` trả cả annotation.” | `getBounds()` trả `Type[]`; dùng `getAnnotatedBounds()` để lấy annotation |
-| “`AnnotatedTypeVariable` là class runtime tương đương T.” | Đây là metadata của type-variable use; `getType()` là `TypeVariable`, không phải `Class<?>` cụ thể |
-| “Annotation của `<@P T>` là annotation của mọi bound T.” | Annotation trên khai báo và annotation trên bound nằm ở hai vị trí khác nhau |
-| “`T extends @A Number` làm mọi `@T` field có `@A`.” | Annotation trên bound không tự chuyển sang vị trí field |
-| “Đọc `bounds[1].getAnnotations()` là đủ lấy cả `Comparable<@A T>`.” | Annotation type argument lồng trong `AnnotatedParameterizedType` |
-| “Không khai báo `extends` thì annotated bounds rỗng.” | Có bound `Object` mặc định, không annotate |
-| “Một biến kiểu chỉ có một bound.” | Có thể có nhiều upper bounds nối bằng `&` |
-| “`field.getType()` trả TypeVariable.” | `getType()` trả erased `Class<?>`; dùng `getGenericType()` |
-| “Annotation TYPE_USE mặc định đọc được ở runtime.” | Muốn Reflection đọc được thì cần `RetentionPolicy.RUNTIME` |
-| “F-bound có thể mở rộng đệ quy không giới hạn.” | Dễ tạo vòng lặp; cần đánh dấu type variable đã duyệt |
-| “Metadata type-use tự validate dữ liệu.” | Marker được lưu để công cụ khác diễn giải, không tự chạy validator |
+| "`TypeVariable.getBounds()` also returns annotations." | `getBounds()` returns `Type[]`; use `getAnnotatedBounds()` to retrieve annotations |
+| "`AnnotatedTypeVariable` is the runtime class equivalent to `T`." | It is metadata for a type-variable use; `getType()` is `TypeVariable`, not a concrete `Class<?>` |
+| "An annotation on `<@P T>` is an annotation on every bound of `T`." | Annotations on the declaration and annotations on bounds sit at two different positions |
+| "`T extends @A Number` makes every `@T` field have `@A`." | Annotations on a bound do not automatically transfer to field positions |
+| "Reading `bounds[1].getAnnotations()` is enough to get `Comparable<@A T>`." | The type argument annotation is nested inside `AnnotatedParameterizedType` |
+| "If `extends` is not declared, annotated bounds are empty." | There is a default unannotated `Object` bound |
+| "A type variable has only one bound." | Multiple upper bounds joined by `&` are possible |
+| "`field.getType()` returns `TypeVariable`." | `getType()` returns erased `Class<?>`; use `getGenericType()` |
+| "`TYPE_USE` annotations are readable at runtime by default." | `RetentionPolicy.RUNTIME` is required for Reflection to read them |
+| "F-bounds can be expanded recursively without limit." | Easy to create cycles; you must track visited type variables |
+| "Type-use metadata validates data automatically." | Markers are stored for other tools to interpret, not self-running validators |
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-check questions
 
-1. Với `class Box<@ParameterMark T extends @BoundMark Number> {}`, muốn đọc `@ParameterMark` và `@BoundMark` dùng hai API nào?
-2. Vì sao `Field.getGenericType()` và `Field.getAnnotatedType()` cung cấp thông tin khác nhau?
-3. Với `Comparable<@UseMark T>` là upper bound, `@UseMark` nằm trên đối tượng `AnnotatedType` của `Comparable` hay trên type argument bên trong?
-4. Nếu một type variable không khai báo `extends`, `getAnnotatedBounds()` có bao nhiêu phần tử và đó là kiểu gì?
-5. `AnnotatedTypeVariable.getAnnotatedBounds()` có ý nghĩa gì khi `AnnotatedTypeVariable` được lấy từ field `@UseMark T value`?
-6. Vì sao cần `@Target(TYPE_USE)` và `@Retention(RUNTIME)` đối với annotation muốn đọc trên bound qua Reflection?
-7. Một field kiểu `T extends Number & Comparable<T>` có `getType()` là `T` hay `Number.class`? Làm thế nào đọc lại `T` ở mức generic?
-8. Điều gì có thể xảy ra nếu trình duyệt bound tự mở rộng `T extends Comparable<T>` mà không phát hiện chu trình?
+1. Given `class Box<@ParameterMark T extends @BoundMark Number> {}`, which two APIs read `@ParameterMark` and `@BoundMark`?
+2. Why do `Field.getGenericType()` and `Field.getAnnotatedType()` provide different information?
+3. With `Comparable<@UseMark T>` as an upper bound, does `@UseMark` sit on the `AnnotatedType` object for `Comparable` or on the inner type argument?
+4. If a type variable does not declare `extends`, how many elements does `getAnnotatedBounds()` have and what type is it?
+5. What does `AnnotatedTypeVariable.getAnnotatedBounds()` mean when `AnnotatedTypeVariable` is obtained from field `@UseMark T value`?
+6. Why are `@Target(TYPE_USE)` and `@Retention(RUNTIME)` needed for an annotation you want to read on a bound via Reflection?
+7. Does a field of type `T extends Number & Comparable<T>` have `getType()` as `T` or `Number.class`? How do you read `T` back at the generic level?
+8. What can happen if a bound traverser expands `T extends Comparable<T>` without cycle detection?
 
-**Đáp án:** (1) `TypeVariable.getAnnotation(...)` và `TypeVariable.getAnnotatedBounds()[0].getAnnotation(...)`; (2) một bên là loại generic nền, bên kia có type-use annotations; (3) type argument bên trong; (4) một `Object` không annotate; (5) trả annotated upper bounds của T, còn annotation trực tiếp tại field đọc trên chính `AnnotatedTypeVariable`; (6) đúng target và runtime visibility; (7) `Number.class`, dùng `getGenericType()`/`getAnnotatedType()`; (8) lặp vô hạn/stack overflow.
+**Answers:** (1) `TypeVariable.getAnnotation(...)` and `TypeVariable.getAnnotatedBounds()[0].getAnnotation(...)`; (2) one provides the underlying generic type, the other includes type-use annotations; (3) the inner type argument; (4) one unannotated `Object`; (5) returns the annotated upper bounds of `T`, whereas the annotation directly on the field is read from `AnnotatedTypeVariable` itself; (6) proper target and runtime visibility; (7) `Number.class`, use `getGenericType()`/`getAnnotatedType()`; (8) infinite loop/stack overflow.
 
-## 12. Kết luận
+## 12. Conclusion
 
-**AnnotatedTypeVariable giúp phân tích một lần sử dụng type variable có annotation và tìm các upper bounds có thể được annotate.** Để đọc chính xác, hãy tách ba tầng: *type-parameter declaration*, *bound type use* và *variable type use*. Sử dụng `TypeVariable.getAnnotatedBounds()` hoặc `AnnotatedTypeVariable.getAnnotatedBounds()` cho bound, và dùng các subtype `AnnotatedParameterizedType`, `AnnotatedArrayType`, `AnnotatedWildcardType` để tìm annotation bên trong cấu trúc kiểu phức tạp. Chỉ dữ liệu generic/annotation còn hiện diện ở classfile runtime mới đọc được; Reflection không tự loại bỏ type erasure hoặc thay thế kiểm tra nghiệp vụ.
+**`AnnotatedTypeVariable` helps analyze an annotated use of a type variable and inspect its potentially annotated upper bounds.** To read accurately, separate three layers: *type-parameter declaration*, *bound type use*, and *variable type use*. Use `TypeVariable.getAnnotatedBounds()` or `AnnotatedTypeVariable.getAnnotatedBounds()` for bounds, and use the `AnnotatedParameterizedType`, `AnnotatedArrayType`, and `AnnotatedWildcardType` subtypes to find annotations inside complex type structures. Only generic/annotation data still present in the runtime class file can be read; Reflection does not eliminate type erasure or replace business validation.
 
-Tài liệu chính thức:
+Official references:
 
 - [Java SE 21 — AnnotatedTypeVariable](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AnnotatedTypeVariable.html).
 - [Java SE 21 — TypeVariable](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/TypeVariable.html).
 - [Java SE 21 — AnnotatedType](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AnnotatedType.html).
 - [Java SE 21 — AnnotatedParameterizedType](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AnnotatedParameterizedType.html).
-- [JLS 17 `4.4 — Type Variables](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.4) và [JLS 17 `9.7.4 — Where Annotations May Appear](https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html#jls-9.7.4).
+- [JLS 17 `4.4 — Type Variables](https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.4) and [JLS 17 `9.7.4 — Where Annotations May Appear](https://docs.oracle.com/javase/specs/jls/se17/html/jls-9.html#jls-9.7.4).

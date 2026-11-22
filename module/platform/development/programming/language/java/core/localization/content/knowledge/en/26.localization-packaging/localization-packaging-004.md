@@ -1,8 +1,8 @@
-# ResourceBundle.Control: ứng viên, định dạng và thời gian sống trong Java
+# ResourceBundle.Control: Candidates, Formats, and Time-to-Live in Java
 
-## 1. ResourceBundle.Control điều khiển những gì?
+## 1. What Does ResourceBundle.Control Control?
 
-Trong Java, `ResourceBundle` chọn bản dịch và tài nguyên theo `Locale`. Nếu ứng dụng có các tệp như:
+In Java, `ResourceBundle` selects translations and resources based on `Locale`. If an application has files such as:
 
 ~~~text
 Messages.properties
@@ -10,51 +10,51 @@ Messages_fr.properties
 Messages_fr_CA.properties
 ~~~
 
-thì `ResourceBundle.getBundle("Messages", Locale.CANADA_FRENCH)` có thể tìm tài nguyên cho tiếng Pháp tại Canada và kế thừa các khóa từ tài nguyên tổng quát hơn.
+then `ResourceBundle.getBundle("Messages", Locale.CANADA_FRENCH)` can locate resources for Canadian French and inherit keys from more general resources.
 
-`java.util.ResourceBundle.Control` là lớp lồng `ResourceBundle.Control`, cho phép thay đổi chính sách **tìm**, **chọn định dạng**, **tải**, **fallback** và **cache** của một bundle khi gọi overload `ResourceBundle.getBundle` có tham số `Control`.
+`java.util.ResourceBundle.Control` is the nested class `ResourceBundle.Control`, which lets you customize the **lookup**, **format selection**, **loading**, **fallback**, and **caching** policies of a bundle when calling the `ResourceBundle.getBundle` overload that accepts a `Control`.
 
-Các câu hỏi chính:
+Key questions:
 
-1. **Ứng viên (candidate locales):** tìm `fr_CA`, `fr`, rồi root theo thứ tự nào?
-2. **Định dạng (formats):** thử bundle dạng class `.class` trước hay dạng file `.properties` trước; có cho phép nguồn `.xml` không?
-3. **Thời gian sống (TTL):** khi nào bundle trong cache phải được kiểm tra lại? Hết TTL có đồng nghĩa tải mới không?
-4. **Fallback:** không tìm được candidate theo locale yêu cầu thì có thử default locale của JVM không?
-5. **Tải lại (reload):** ai quyết định nguồn đã thay đổi và cần tạo instance mới?
+1. **Candidates (candidate locales):** in what order are `fr_CA`, `fr`, and root searched?
+2. **Formats:** try `.class`-based bundles first or `.properties` files first; should `.xml` sources be allowed?
+3. **Time-to-Live (TTL):** when must a cached bundle be revalidated? Does TTL expiration imply reloading?
+4. **Fallback:** if no candidate is found for the requested locale, should the JVM default locale be tried?
+5. **Reloading:** what determines that the source changed and a new instance is needed?
 
-**Giới hạn quan trọng ngay từ đầu:** `ResourceBundle.Control` được thiết kế cho ứng dụng chạy trên **classpath / unnamed module**. Khi code gọi overload `ResourceBundle.getBundle(..., Control)` **từ named module**, Java 9+ ném `UnsupportedOperationException`. Với ứng dụng Java Modules (JPMS), nên xem `java.util.spi.ResourceBundleProvider` và cơ chế provider thay vì xây giải pháp mới dựa trên `Control`.
+**Important limitation upfront:** `ResourceBundle.Control` is designed for applications running on the **classpath / unnamed module**. When code calls a `ResourceBundle.getBundle(..., Control)` overload **from a named module**, Java 9+ throws `UnsupportedOperationException`. For Java Modules (JPMS) applications, look at `java.util.spi.ResourceBundleProvider` and the provider mechanism instead of building new solutions on `Control`.
 
-Phần lớn ví dụ trong bài là **Java 17+ chạy trên classpath**, không có `module-info.java`. Đây là điều kiện cần để hiểu đúng hành vi và chạy các chương trình minh họa.
+Most examples in this article target **Java 17+ running on the classpath**, without `module-info.java`. This is a prerequisite to properly understand the behavior and run the demonstration programs.
 
-## 2. Bản đồ API ResourceBundle.Control
+## 2. ResourceBundle.Control API Map
 
-| Phương thức/hằng | Vai trò | Điều cần nhớ |
+| Method/Constant | Role | Key points to remember |
 | --- | --- | --- |
-| `getCandidateLocales(baseName, locale)` | Sinh danh sách locale ứng viên theo thứ tự ưu tiên | Danh sách càng đầu càng cụ thể; thường kết thúc bằng `Locale.ROOT` |
-| `getFormats(baseName)` | Trả thứ tự định dạng bundle được phép tải | Mặc định class trước, properties sau |
-| `getFallbackLocale(baseName, locale)` | Chọn một locale khác để tìm tiếp khi chưa có kết quả | Mặc định có thể dùng JVM default locale |
-| `newBundle(baseName, locale, format, loader, reload)` | Tạo bundle cụ thể từ class/file hoặc nguồn tùy chỉnh | `reload` phản ánh nhánh tải lại |
-| `getTimeToLive(baseName, locale)` | Quyết định TTL của cache theo millis hoặc hằng sentinel | Hết hạn thường dẫn đến `needsReload` |
-| `needsReload(..., bundle, loadTime)` | Xác định bundle hết TTL có thật sự cần tải lại | Mặc định kiểm tra thời điểm sửa nguồn khi làm được |
-| `toBundleName(baseName, locale)` | Đổi base name + locale thành tên bundle | Ví dụ `Messages_fr_CA` |
-| `toResourceName(bundleName, suffix)` | Đổi tên bundle thành đường dẫn resource | Ví dụ `com/example/Messages_fr.properties` |
-| `FORMAT_DEFAULT` | `["java.class","java.properties"]` | Thứ tự class → properties |
-| `FORMAT_CLASS` | Chỉ `["java.class"]` | Bỏ qua file properties |
-| `FORMAT_PROPERTIES` | Chỉ `["java.properties"]` | Bỏ qua class bundle |
-| `TTL_DONT_CACHE` | Không đưa bundle vào cache | Không đồng nghĩa TTL bằng 0 |
-| `TTL_NO_EXPIRATION_CONTROL` | Cache mà không có kiểm soát hết hạn | Giá trị mặc định của `getTimeToLive` |
+| `getCandidateLocales(baseName, locale)` | Generates the priority list of candidate locales | Earlier entries are more specific; usually ends with `Locale.ROOT` |
+| `getFormats(baseName)` | Returns the ordered list of allowed bundle formats | Defaults to class first, properties second |
+| `getFallbackLocale(baseName, locale)` | Picks another locale to try if no match is found | Default may use the JVM default locale |
+| `newBundle(baseName, locale, format, loader, reload)` | Instantiates a specific bundle from class/file or custom source | `reload` indicates the reload path |
+| `getTimeToLive(baseName, locale)` | Determines cache TTL in millis or sentinel constants | Expiration typically triggers `needsReload` |
+| `needsReload(..., bundle, loadTime)` | Determines whether an expired bundle truly needs reloading | Default checks source modification timestamp when possible |
+| `toBundleName(baseName, locale)` | Converts base name + locale into a bundle name | E.g., `Messages_fr_CA` |
+| `toResourceName(bundleName, suffix)` | Converts a bundle name into a resource path | E.g., `com/example/Messages_fr.properties` |
+| `FORMAT_DEFAULT` | `["java.class","java.properties"]` | Class -> properties order |
+| `FORMAT_CLASS` | Only `["java.class"]` | Ignores properties files |
+| `FORMAT_PROPERTIES` | Only `["java.properties"]` | Ignores class bundles |
+| `TTL_DONT_CACHE` | Do not store the bundle in the cache | Not equivalent to TTL equal to 0 |
+| `TTL_NO_EXPIRATION_CONTROL` | Cache without expiration control | Default return value of `getTimeToLive` |
 
-Đối tượng `Control` hợp tác với `ResourceBundle.getBundle`, chứ không phải “bundle chứa key/value”. `Control` chủ yếu quyết định **cách tìm và cách sống của bundle**, còn bản dịch thực tế nằm trong `PropertyResourceBundle`, `ListResourceBundle` hoặc bundle tùy chỉnh.
+A `Control` object collaborates with `ResourceBundle.getBundle`; it is not "a bundle holding key/value pairs." `Control` primarily governs **how a bundle is found and how long it lives**, while actual translations live inside `PropertyResourceBundle`, `ListResourceBundle`, or a custom bundle.
 
-## 3. getCandidateLocales: thứ tự từ cụ thể đến tổng quát
+## 3. getCandidateLocales: Order from Specific to General
 
-Với locale `fr-CA`, danh sách ứng viên mặc định thông thường là:
+For locale `fr-CA`, the default candidate list is typically:
 
 ~~~text
-fr-CA → fr → ROOT
+fr-CA -> fr -> ROOT
 ~~~
 
-Với base name `Messages`, tên các resource được suy ra:
+With base name `Messages`, the derived resource names are:
 
 ~~~text
 Messages_fr_CA.properties
@@ -62,11 +62,11 @@ Messages_fr.properties
 Messages.properties
 ~~~
 
-**Thứ tự candidate không phải thứ tự khóa được đọc:** bộ nạp trước tiên xác định các bundle có thể tồn tại, rồi xây chuỗi parent thích hợp. Khi gọi `getString(key)`, nếu khóa không có trong bundle cụ thể, nó có thể được tìm từ parent.
+**Candidate order is not the order in which keys are read:** the loader first identifies which bundles exist and constructs the appropriate parent chain. When `getString(key)` is called, if the key is missing from a specific bundle, it can be resolved from a parent.
 
-### Ví dụ 1 — In candidate locales và định dạng
+### Example 1 — Printing Candidate Locales and Formats
 
-Tạo `CandidatePolicyDemo.java`:
+Create `CandidatePolicyDemo.java`:
 
 ~~~java
 import java.util.List;
@@ -103,14 +103,14 @@ public class CandidatePolicyDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 CandidatePolicyDemo.java
 java CandidatePolicyDemo
 ~~~
 
-Đầu ra đã kiểm chứng trên JDK hiện đại:
+Verified output on a modern JDK:
 
 ~~~text
 Formats: [java.properties]
@@ -118,42 +118,42 @@ fr-CA: fr-CA -> fr -> ROOT
 sr-Latn-RS: sr-Latn-RS -> sr-Latn -> sr-RS -> sr -> ROOT
 ~~~
 
-### Đọc kết quả
+### Reading the Output
 
-- `fr-CA`: thử vùng Canada trước, sau đó tiếng Pháp chung, cuối cùng bundle root.
-- `sr-Latn-RS`: locale có **script Latin** và vùng Serbia nên Java có nhiều bước hơn. Đây là lý do không tự viết thuật toán bằng cách xóa phần cuối thẻ BCP 47 một cách ngây thơ.
-- `Locale.ROOT` đại diện cho bundle không suffix: `Messages.properties`.
-- Có các trường hợp đặc biệt trong Javadoc như tiếng Trung (`zh` với script `Hans`/`Hant` dựa trên vùng) và các mã ngôn ngữ lịch sử. **Không tự giả định mọi candidate chain luôn chỉ gồm language-country-root**.
+- `fr-CA`: tries the Canada region first, then general French, and finally the root bundle.
+- `sr-Latn-RS`: the locale has the **Latin script** and Serbia region, so Java has additional steps. This is why you should not hand-roll an algorithm by naively stripping trailing parts of a BCP 47 tag.
+- `Locale.ROOT` represents the unsuffixed bundle: `Messages.properties`.
+- There are special cases in the Javadoc such as Chinese (`zh` with `Hans`/`Hant` script derived from region) and legacy language codes. **Do not assume every candidate chain always consists only of language-country-root**.
 
-Trong chương trình, `getControl(FORMAT_PROPERTIES)` chỉ chọn **định dạng properties**, không làm mất quy tắc sinh candidate locale mặc định.
+In this program, `getControl(FORMAT_PROPERTIES)` only selects the **properties format**; it does not alter the default candidate locale generation rules.
 
-## 4. Candidate chain khác fallback locale
+## 4. Candidate Chain vs. Fallback Locale
 
-Hai khái niệm rất dễ nhầm:
+Two concepts that are easily confused:
 
-**Candidate chain** là chuỗi biến thể từ locale được yêu cầu, ví dụ:
+A **Candidate chain** is the sequence of variants derived from the requested locale, for example:
 
 ~~~text
-Yêu cầu: fr-CA
+Request: fr-CA
 Candidates: fr-CA -> fr -> ROOT
 ~~~
 
-**Fallback locale** là **một locale yêu cầu khác** mà `getBundle` có thể dùng để tìm tiếp khi các candidate liên quan không tạo được bundle kết quả theo điều kiện tìm kiếm; implementation mặc định thường thử default locale của JVM nếu khác locale vừa tìm.
+A **Fallback locale** is **another requested locale** that `getBundle` may use to continue searching when the associated candidates fail to yield a result bundle under the lookup conditions; the default implementation usually tries the JVM's default locale if it differs from the locale just searched.
 
-Ví dụ giả định default locale của JVM là `en-US`:
+Example assuming the JVM default locale is `en-US`:
 
 ~~~text
-Yêu cầu: ja-JP
+Request: ja-JP
   candidates: ja-JP -> ja -> ROOT
-Nếu không có bản dịch thích hợp theo nhánh yêu cầu,
-  có thể tìm fallback locale en-US
-  rồi candidates: en-US -> en -> ROOT
-Sau cùng có thể dùng root nếu có
+If no suitable translation is found along the requested branch,
+  fallback locale en-US may be tried
+  then candidates: en-US -> en -> ROOT
+Finally, root may be used if available
 ~~~
 
-**Lưu ý về thuật toán chính xác:** root bundle có vai trò đặc biệt trong quá trình chọn kết quả; không nên diễn giải sơ đồ trên là một vòng lặp “luôn trả root ngay ở bước thứ ba rồi chắc chắn không thử default locale”. Javadoc `ResourceBundle.getBundle` có thuật toán tìm kiếm và lựa chọn root/default cụ thể. Sơ đồ nhằm phân biệt hai **nguồn ứng viên**, không mô tả mọi tình huống parent chain.
+**Note on the exact algorithm:** the root bundle plays a special role during result selection; do not interpret the diagram above as a simple loop that "always returns root at the third step and never tries the default locale." The `ResourceBundle.getBundle` Javadoc specifies the exact search and root/default selection algorithm. The diagram is meant to distinguish the two **sources of candidates**, not to enumerate every parent-chain case.
 
-### getNoFallbackControl không có nghĩa không có parent
+### getNoFallbackControl Does Not Mean No Parent
 
 ~~~java
 ResourceBundle.Control control =
@@ -161,15 +161,15 @@ ResourceBundle.Control control =
                 ResourceBundle.Control.FORMAT_PROPERTIES);
 ~~~
 
-Đây là **mảnh mã trong method**, cần import `java.util.ResourceBundle`.
+This is a **code fragment inside a method**, requiring `import java.util.ResourceBundle`.
 
-`getNoFallbackControl` khiến `getFallbackLocale` trả `null`: không tự thử một locale fallback bổ sung như default locale. Nhưng danh sách **candidate theo locale gốc** vẫn có `fr-CA`, `fr` và `Locale.ROOT`. Do đó, parent/root của cùng chuỗi candidate **vẫn hoạt động**.
+`getNoFallbackControl` makes `getFallbackLocale` return `null`: it does not automatically try an additional fallback locale such as the default locale. However, the **candidate list for the original locale** still includes `fr-CA`, `fr`, and `Locale.ROOT`. Therefore, the parent/root within the same candidate chain **still works**.
 
-Điều này đặc biệt quan trọng khi kiểm thử: “không fallback” trong API ở đây không phải “chỉ được đọc chính xác một file `Messages_fr_CA.properties`”. Nếu muốn không có cả parent root, phải thiết kế candidate chain hoặc chính sách tra khóa khác, và hiểu nguy cơ làm mất tài nguyên tổng quát.
+This is especially important when testing: "no fallback" in this API does not mean "only ever read `Messages_fr_CA.properties`." If you want to omit even the root parent, you must design a different candidate chain or key lookup policy, and understand the risk of losing general fallback resources.
 
-## 5. Ví dụ 2 — Nạp bundle và kế thừa khóa theo candidate
+## 5. Example 2 — Loading Bundles and Key Inheritance Across Candidates
 
-Tạo bốn tệp trong **cùng một thư mục classpath**, ví dụ thư mục `bundle-demo`:
+Create four files in the **same classpath directory**, such as `bundle-demo`:
 
 ~~~text
 bundle-demo/
@@ -179,26 +179,26 @@ bundle-demo/
   Messages_fr_CA.properties
 ~~~
 
-Nội dung `Messages.properties`:
+Contents of `Messages.properties`:
 
 ~~~properties
 app=Base app
 origin=root
 ~~~
 
-Nội dung `Messages_fr.properties`:
+Contents of `Messages_fr.properties`:
 
 ~~~properties
 greeting=Bonjour
 ~~~
 
-Nội dung `Messages_fr_CA.properties`:
+Contents of `Messages_fr_CA.properties`:
 
 ~~~properties
 region=CA
 ~~~
 
-Tạo `BundleLookupDemo.java`:
+Create `BundleLookupDemo.java`:
 
 ~~~java
 import java.util.Locale;
@@ -228,14 +228,14 @@ public class BundleLookupDemo {
 }
 ~~~
 
-Từ thư mục `bundle-demo`, biên dịch/chạy trên classpath:
+From the `bundle-demo` directory, compile and run on the classpath:
 
 ~~~bash
 javac -encoding UTF-8 BundleLookupDemo.java
 java -cp . BundleLookupDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Resolved: fr-CA
@@ -245,34 +245,34 @@ App: Base app
 Fallback locale: null
 ~~~
 
-### Phân tích parent chain
+### Analyzing the Parent Chain
 
-- `region` có trong `Messages_fr_CA.properties`.
-- `greeting` không có ở mức `fr_CA` nhưng lấy từ `Messages_fr.properties`.
-- `app` không có ở hai bundle trên nên lấy từ `Messages.properties`.
-- `getFallbackLocale == null` không chặn **kế thừa khóa từ parent** trong cùng candidate chain.
+- `region` is in `Messages_fr_CA.properties`.
+- `greeting` is absent at the `fr_CA` level, so it is resolved from `Messages_fr.properties`.
+- `app` is absent in both bundles above, so it is resolved from `Messages.properties`.
+- `getFallbackLocale == null` does not block **key inheritance from parents** in the same candidate chain.
 
-Nếu file `Messages_fr_CA.properties` không tồn tại, kết quả có thể chọn `fr` làm locale của bundle; nếu khóa không có ở bất kỳ bundle/parent nào, `getString` ném `MissingResourceException`. Điều đó khác với trường hợp **không tìm được bundle nào** cho base name: `getBundle` có thể ném `MissingResourceException` từ bước nạp.
+If `Messages_fr_CA.properties` does not exist, the lookup may select `fr` as the bundle's locale; if a key does not exist in any bundle or parent, `getString` throws `MissingResourceException`. That differs from when **no bundle at all can be found** for the base name: `getBundle` throws `MissingResourceException` during loading.
 
-## 6. getFormats: class, properties và định dạng tùy chỉnh
+## 6. getFormats: Class, Properties, and Custom Formats
 
-Mặc định, `Control.FORMAT_DEFAULT` gồm:
+By default, `Control.FORMAT_DEFAULT` consists of:
 
 ~~~text
 [java.class, java.properties]
 ~~~
 
-Với mỗi candidate locale, Java có thể thử class-based resource trước, rồi properties. Các format có tên `java.class` và `java.properties` là định dạng được JDK định nghĩa, không phải tên extension file theo đúng nghĩa trong mọi tình huống.
+For each candidate locale, Java may try class-based resources first, then properties. Format names `java.class` and `java.properties` are JDK-defined format identifiers, not literal file extensions in every scenario.
 
-| Cấu hình | Ý nghĩa |
+| Configuration | Meaning |
 | --- | --- |
-| `FORMAT_DEFAULT` | Thử class `ListResourceBundle` trước, rồi `.properties` |
-| `FORMAT_CLASS` | Chỉ bundle dạng class |
-| `FORMAT_PROPERTIES` | Chỉ bundle dạng `.properties` |
-| `getControl(FORMAT_PROPERTIES)` | Factory tạo Control sẵn có cho properties-only |
-| Override `getFormats` | Cần khi định dạng khác, như `xml` |
+| `FORMAT_DEFAULT` | Try `ListResourceBundle` class first, then `.properties` |
+| `FORMAT_CLASS` | Class-based bundles only |
+| `FORMAT_PROPERTIES` | `.properties`-based bundles only |
+| `getControl(FORMAT_PROPERTIES)` | Factory returning a built-in Control for properties-only |
+| Override `getFormats` | Needed for other formats, such as `xml` |
 
-Ví dụ:
+Example:
 
 ~~~java
 ResourceBundle.Control propertiesOnly =
@@ -283,17 +283,17 @@ ResourceBundle bundle = ResourceBundle.getBundle(
         "Messages", Locale.FRENCH, propertiesOnly);
 ~~~
 
-Đây là **mảnh mã trong method**, cần import `ResourceBundle` và `Locale`.
+This is a **code fragment inside a method**, requiring imports of `ResourceBundle` and `Locale`.
 
-### Cảnh báo format order và cache
+### Format Order and Cache Warning
 
-`ResourceBundle` có **cache**, vì vậy nếu lần đầu tìm cùng base name/class loader bằng control chỉ cho `java.class`, một lần gọi sau dùng control chỉ cho `java.properties` không được bảo đảm “tự quên” bundle class trước đó. Javadoc nhấn mạnh rằng **danh sách formats và candidates phải nhất quán giữa các lời gọi cho cùng base bundle** để tránh kết quả ngoài ý muốn.
+`ResourceBundle` uses a **cache**, so if the first lookup for a base name and class loader uses a control permitting only `java.class`, a subsequent call using a control permitting only `java.properties` is not guaranteed to "forget" the earlier class bundle. The Javadoc stresses that **the formats and candidate lists must stay consistent across calls for the same base bundle** to avoid unexpected results.
 
-Các giá trị trả từ `getFormats` phải không rỗng, không chứa các format chưa được xử lý và **không bị mutate sau khi trả về**. Các format tùy chỉnh không được dùng tiền tố `"java."`, vì phần đó được Java dành riêng.
+Values returned from `getFormats` must be non-empty, contain no unsupported formats, and **not be mutated after returning**. Custom formats must not use the `"java."` prefix, as that namespace is reserved by Java.
 
-### Định dạng tùy chỉnh phải có newBundle phù hợp
+### Custom Formats Must Have a Matching newBundle
 
-Chỉ viết:
+Simply writing:
 
 ~~~java
 @Override
@@ -302,13 +302,13 @@ public List<String> getFormats(String baseName) {
 }
 ~~~
 
-là **mảnh mã trong subclass của Control**, không đủ để đọc XML. Bạn còn phải override `newBundle` để biết resource name, giải mã, parse file và tạo một `ResourceBundle`. Nếu không, implementation mặc định của `newBundle` có thể ném `IllegalArgumentException` khi gặp format lạ.
+is a **code fragment inside a `Control` subclass**, insufficient by itself to read XML. You must also override `newBundle` to build the resource name, decode, parse the file, and construct a `ResourceBundle`. Otherwise, the default `newBundle` implementation may throw `IllegalArgumentException` when encountering an unknown format.
 
-## 7. Ví dụ 3 — ResourceBundle từ XML bằng Control riêng
+## 7. Example 3 — ResourceBundle from XML via a Custom Control
 
-`java.util.Properties.loadFromXML(InputStream)` hỗ trợ format XML dành cho properties. Ví dụ này dùng nó làm nguồn dữ liệu rồi cung cấp một `ResourceBundle` với `handleGetObject` và `getKeys`.
+`java.util.Properties.loadFromXML(InputStream)` supports the XML format for properties. This example uses it as a data source and exposes a `ResourceBundle` with `handleGetObject` and `getKeys`.
 
-Chuẩn bị:
+Prepare:
 
 ~~~text
 xml-demo/
@@ -316,7 +316,7 @@ xml-demo/
   Messages.xml
 ~~~
 
-Nội dung `Messages.xml` (UTF-8):
+Contents of `Messages.xml` (UTF-8):
 
 ~~~xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -326,7 +326,7 @@ Nội dung `Messages.xml` (UTF-8):
 </properties>
 ~~~
 
-Tạo `XmlControlDemo.java`:
+Create `XmlControlDemo.java`:
 
 ~~~java
 import java.io.IOException;
@@ -409,54 +409,54 @@ public class XmlControlDemo {
 }
 ~~~
 
-Biên dịch/chạy từ thư mục `xml-demo`:
+Compile and run from the `xml-demo` directory:
 
 ~~~bash
 javac -encoding UTF-8 XmlControlDemo.java
 java -cp . XmlControlDemo
 ~~~
 
-Kết quả đã kiểm tra:
+Verified output:
 
 ~~~text
 Formats: [xml]
 Hello: Hello XML
 ~~~
 
-### Tại sao ví dụ xử lý reload riêng?
+### Why Does the Example Handle reload Separately?
 
-Nếu `reload == true`, ví dụ dùng `ClassLoader.getResource` → `URLConnection`, sau đó `setUseCaches(false)` trước khi mở stream. Điều này giúp tránh **cache tầng URL/connection** khi `ResourceBundle` yêu cầu tải lại. Nếu chỉ gọi `getResourceAsStream` ở nhánh reload, một số provider/file system có thể trả dữ liệu đã cache ở tầng thấp hơn.
+When `reload == true`, the example uses `ClassLoader.getResource` -> `URLConnection`, then calls `setUseCaches(false)` before opening the stream. This prevents **URL/connection-layer caching** when `ResourceBundle` requests a reload. If you only called `getResourceAsStream` in the reload branch, some providers or filesystems might return data cached at a lower layer.
 
-Đây là ví dụ **để học cơ chế**, chưa phải giải pháp reload XML production-ready cho mọi nguồn dữ liệu. Trong ứng dụng thực, phải kiểm tra:
+This example is **for learning the mechanism**, not a production-ready XML reload solution for all data sources. In real applications, you must verify:
 
-- Chính sách bảo vệ tài nguyên không đáng tin, kích cỡ và giới hạn parse.
-- Encoding/định dạng XML, lỗi I/O và quyền truy cập.
-- Behavior của ClassLoader, JAR, URLConnection, cache bên ngoài.
-- Phần mềm chạy trên **unnamed module**.
-- Thread safety của `Control` khi chia sẻ giữa nhiều request.
-- Việc nguồn cần được version/reload có thể phù hợp với hệ cấu hình riêng hơn là custom ResourceBundle.
+- Protection policies for untrusted resources, size limits, and parser restrictions.
+- XML encoding/format, I/O errors, and access permissions.
+- Behavior of `ClassLoader`, JARs, `URLConnection`, and external caches.
+- That the software runs in an **unnamed module**.
+- Thread safety of `Control` when shared across concurrent requests.
+- Whether sources requiring versioning/reloading are better suited to a dedicated configuration system than a custom `ResourceBundle`.
 
-Không dùng `Properties.load(InputStream)` để đọc XML. `loadFromXML` là API XML riêng, với đặc tả format properties XML.
+Do not use `Properties.load(InputStream)` to read XML. `loadFromXML` is the dedicated XML API matching the XML properties format specification.
 
-## 8. TTL của ResourceBundle.Control là gì?
+## 8. What Is ResourceBundle.Control TTL?
 
-`ResourceBundle` cache bundle để tránh đọc tài nguyên lặp lại. `Control.getTimeToLive(baseName, locale)` quyết định **mức thời gian bundle đã nạp có thể ở cache mà chưa cần kiểm tra lại nguồn**.
+`ResourceBundle` caches bundles to avoid reading resources repeatedly. `Control.getTimeToLive(baseName, locale)` determines **how long a loaded bundle may remain in the cache without revalidating the source**.
 
-Giá trị trả về:
+Return values:
 
-| Giá trị TTL | Ý nghĩa | Hành vi |
+| TTL Value | Meaning | Behavior |
 | --- | --- | --- |
-| `TTL_NO_EXPIRATION_CONTROL` (`-2`) | Không kiểm soát hết hạn | Mặc định; bundle có thể tiếp tục ở cache |
-| `TTL_DONT_CACHE` (`-1`) | Không lưu bundle vào cache | Mỗi lần cần có thể phải nạp mới |
-| `0` | Bundle hết TTL ngay, phải xét xác thực lại khi truy xuất cache | **Không tự bảo đảm reload** |
-| `N > 0` | `N` millisecond có thể dùng cache trước khi kiểm tra | Khi hết hạn, gọi `needsReload` để quyết định |
-| Âm khác hai sentinel | Giá trị không hợp lệ | Không trả các giá trị này |
+| `TTL_NO_EXPIRATION_CONTROL` (`-2`) | No expiration control | Default; bundle may remain in the cache |
+| `TTL_DONT_CACHE` (`-1`) | Do not store bundle in cache | Each lookup may need to load anew |
+| `0` | Bundle TTL expires immediately; must validate on cache access | **Does not guarantee reload automatically** |
+| `N > 0` | Cache can be used for `N` milliseconds before checking | Upon expiration, `needsReload` is called to decide |
+| Negative other than the two sentinels | Invalid value | Do not return such values |
 
-**Không nhầm:** `getTimeToLive` không phải thời gian “sống tối đa của object Java” và không bắt buộc huỷ mọi reference đến bundle cũ. Nó chỉ điều khiển cách `ResourceBundle.getBundle` sử dụng cache và xác thực lại khi truy xuất.
+**Do not confuse:** `getTimeToLive` is not a "maximum lifetime of a Java object" and does not force destroying existing references to an old bundle. It only controls how `ResourceBundle.getBundle` uses and revalidates its cache on lookup.
 
-Nếu một biến đã giữ `ResourceBundle old = ...`, thay đổi file resource và tải bundle mới **không** làm `old.getString(...)` tự chuyển sang dữ liệu mới. Bundle cũ vẫn là object được tham chiếu.
+If a variable already holds `ResourceBundle old = ...`, modifying the resource file and loading a new bundle **does not** make `old.getString(...)` switch to the new data. The old bundle remains the referenced object.
 
-### TTL mặc định và giá trị mẫu
+### Default TTL and Sample Constants
 
 ~~~java
 ResourceBundle.Control control =
@@ -475,38 +475,38 @@ long noExpiration =
 // -2
 ~~~
 
-Đây là **mảnh mã trong method**, cần import `java.util.ResourceBundle` và `java.util.Locale`.
+This is a **code fragment inside a method**, requiring imports of `java.util.ResourceBundle` and `java.util.Locale`.
 
-Ngay cả `TTL_NO_EXPIRATION_CONTROL` cũng **không bảo đảm cache tồn tại vĩnh viễn trong bộ nhớ**: implementation có thể loại entry do điều kiện bộ nhớ/cache. “Không hết hạn theo TTL” khác “không bao giờ bị loại”.
+Even `TTL_NO_EXPIRATION_CONTROL` **does not guarantee the cache stays in memory forever**: the implementation may evict entries due to memory/cache conditions. "Does not expire by TTL" is different from "never evicted."
 
-## 9. needsReload: hết TTL là kiểm tra, không mặc nhiên đọc lại
+## 9. needsReload: TTL Expiration Triggers a Check, Not an Automatic Re-read
 
-Khi một cache entry đã quá TTL, cơ chế mặc định của `ResourceBundle.getBundle` thường hỏi:
+When a cache entry exceeds its TTL, the default `ResourceBundle.getBundle` mechanism typically asks:
 
 ~~~java
 boolean changed = control.needsReload(
         baseName, locale, format, loader, bundle, loadTime);
 ~~~
 
-Đây là **mảnh mã mô tả chữ ký**; các biến được cung cấp trong callback, không phải lời gọi ứng dụng thông thường.
+This is a **signature-illustration snippet**; the variables are supplied in the callback, not a typical application call.
 
-- Nếu `needsReload(...)` trả **true**, entry cũ có thể bị loại và bundle mới được tải.
-- Nếu trả **false**, entry được giữ và thời gian kiểm tra TTL được cập nhật theo chính sách.
-- Implementation mặc định cố kiểm tra **thời điểm sửa của tài nguyên nguồn** so với thời gian load. Với URL/JAR/resource loader tùy chỉnh, metadata cập nhật không phải lúc nào cũng đủ đáng tin để phát hiện mọi thay đổi.
+- If `needsReload(...)` returns **true**, the old entry can be discarded and a new bundle is loaded.
+- If it returns **false**, the entry is retained and the TTL check timestamp is updated per policy.
+- The default implementation attempts to compare the **source resource's modification timestamp** against `loadTime`. With custom URLs/JARs/resource loaders, modification metadata is not always reliable enough to detect every change.
 
-Vì vậy, dùng TTL `0` mà không hiểu `needsReload` có thể khiến lập trình viên nghĩ file luôn được nạp lại. Thực tế, mặc định `needsReload` có thể trả false nếu thời điểm sửa không thay đổi hoặc không được phát hiện.
+Consequently, using TTL `0` without understanding `needsReload` can mislead developers into thinking files are always reloaded. In reality, the default `needsReload` may return false if the modification timestamp did not change or could not be detected.
 
-### Callback phải sử dụng thông tin nhất quán
+### Callbacks Must Use Consistent Information
 
-`needsReload` nhận `format`, `locale`, `loader`, `bundle` và `loadTime`. Khi custom `newBundle`, bạn phải bảo đảm đường dẫn nguồn và cách kiểm tra thay đổi phù hợp; nếu `newBundle` đọc từ API HTTP hoặc database nhưng `needsReload` vẫn chỉ kiểm tra last-modified của một file giả định, TTL có thể không phản ánh dữ liệu thật.
+`needsReload` receives `format`, `locale`, `loader`, `bundle`, and `loadTime`. When customizing `newBundle`, ensure the source path and change-detection logic match; if `newBundle` reads from an HTTP API or database while `needsReload` still checks the last-modified time of an assumed file, TTL will not reflect the real data.
 
-Để demo cơ chế rõ ràng, phần tiếp theo làm một `Control` chủ động trả `true` khi đến bước kiểm tra TTL, rồi đếm số lần tải.
+To demonstrate the mechanism clearly, the next section builds a `Control` that actively returns `true` at the TTL check step and counts the number of loads.
 
-## 10. Ví dụ 4 — TTL 0 và needsReload bằng một bundle trong bộ nhớ
+## 10. Example 4 — TTL 0 and needsReload with an In-Memory Bundle
 
-Ví dụ này không cần file resource, giúp loại ảnh hưởng của đồng hồ file system, cache JAR và thời điểm sửa resource. Đối tượng `Control` tạo `ListResourceBundle` mới trong `newBundle`, đồng thời đếm số lượt tải.
+This example requires no resource files, eliminating interference from filesystem clocks, JAR caches, and resource modification timestamps. The `Control` creates a fresh `ListResourceBundle` in `newBundle` while counting load invocations.
 
-Tạo `TtlReloadDemo.java`:
+Create `TtlReloadDemo.java`:
 
 ~~~java
 import java.util.List;
@@ -594,14 +594,14 @@ public class TtlReloadDemo {
 }
 ~~~
 
-Biên dịch và chạy trên classpath:
+Compile and run on the classpath:
 
 ~~~bash
 javac -encoding UTF-8 TtlReloadDemo.java
 java -cp . TtlReloadDemo
 ~~~
 
-Kết quả đã kiểm tra:
+Verified output:
 
 ~~~text
 First: 1
@@ -611,77 +611,77 @@ Loads: 2
 Reload checks: 1
 ~~~
 
-### Giải thích từng bước
+### Step-by-Step Explanation
 
-1. Lần gọi đầu nạp bundle `en`, biến `loads` tăng lên `1`. Không có file ngoài vì `newBundle` tự tạo bundle.
-2. `getTimeToLive == 0` khiến instance đã cache hết hạn ngay ở thời điểm truy xuất tiếp.
-3. Lần gọi sau kiểm tra cache, `needsReload(...)` trả `true`, nên `newBundle` tạo một instance khác với `version = 2`.
-4. Kết quả `first == second` bằng false, nhưng đối tượng `first` vẫn tồn tại và còn chứa giá trị `1`.
-5. `Reload checks == 1` chứng minh **bước kiểm tra** đã chạy trong kịch bản.
+1. The first call loads bundle `en`, incrementing `loads` to `1`. There are no external files because `newBundle` constructs the bundle directly.
+2. `getTimeToLive == 0` marks the cached instance as expired immediately upon the next access.
+3. The second call checks the cache, `needsReload(...)` returns `true`, so `newBundle` creates another instance with `version = 2`.
+4. `first == second` is false, yet the `first` object still exists and still holds the value `1`.
+5. `Reload checks == 1` proves that the **check step** ran in this scenario.
 
-**Không suy rằng TTL 0 luôn cho cùng kết quả này.** Nếu `needsReload` trả false, bộ nạp có thể tiếp tục dùng instance cũ. `TTL_DONT_CACHE` lại là một chính sách **khác**: không lưu entry vào cache ngay từ đầu.
+**Do not infer that TTL 0 always produces this exact result.** If `needsReload` returns false, the loader can keep reusing the old instance. `TTL_DONT_CACHE` is a **different** policy: it does not insert the entry into the cache in the first place.
 
-Ví dụ này chạy theo hành vi của JDK thông dụng trên unnamed module; trong ứng dụng có concurrent calls hoặc nhiều class loader, số callback/timing có thể khác. Không dùng bộ đếm mutable chưa đồng bộ của ví dụ làm Control toàn cục trong server. Với production, cần thread-safety rõ.
+This example follows standard JDK behavior on an unnamed module; in applications with concurrent calls or multiple class loaders, callback counts and timing can differ. Do not use the unsynchronized mutable counters from this example in a global server `Control`. Production requires explicit thread safety.
 
-## 11. TTL_DONT_CACHE khác TTL = 0 như thế nào?
+## 11. How Does TTL_DONT_CACHE Differ from TTL = 0?
 
 ### TTL_DONT_CACHE
 
-`TTL_DONT_CACHE` cho biết bundle mới **không được thêm vào cache**. Vì vậy khi tìm cùng một bundle lần sau, runtime không có cache entry của lần trước để hỏi `needsReload` theo nhánh expired.
+`TTL_DONT_CACHE` states that the new bundle **is not added to the cache**. Therefore, on the next lookup for the same bundle, the runtime has no previous cache entry on which to call `needsReload` along the expired branch.
 
-Thích hợp trong một số trường hợp:
+Suitable in certain cases:
 
-- Tài nguyên rất nhỏ và phải nạp lại thường xuyên.
-- Test muốn tránh cache gây tác động đến kịch bản.
-- Thử nghiệm một nguồn bundle thay đổi nhanh.
+- Very small resources that must be reloaded frequently.
+- Tests wanting to avoid cache side effects across scenarios.
+- Experimenting with a rapidly changing bundle source.
 
-Nhược điểm: có thể làm tăng I/O, tạo nhiều object, thậm chí lặp lại **tra cứu không tồn tại**. Không dùng cho mọi bundle chỉ vì muốn code “luôn mới” mà chưa đo hiệu năng.
+Drawbacks: can increase I/O, allocate many objects, and even repeat **non-existent resource lookups**. Do not use it for every bundle just to keep code "always fresh" without measuring performance.
 
 ### TTL = 0
 
-`0` cho phép cache nhưng bắt buộc **kiểm tra điều kiện reload** mỗi lần truy xuất cache. Tính mới phụ thuộc `needsReload`. Có thể ít tải dữ liệu lại hơn `TTL_DONT_CACHE` nếu nguồn không đổi, nhưng tốn chi phí kiểm tra.
+`0` allows caching, but requires **checking the reload condition** on every cache access. Freshness depends on `needsReload`. It can reload data less often than `TTL_DONT_CACHE` when the source has not changed, at the cost of performing the check.
 
 ### TTL > 0
 
-Một TTL dương như `5_000L` có nghĩa tối đa khoảng 5 giây cache có thể được dùng **không cần kiểm tra nguồn** trong điều kiện cache còn tồn tại. Khi hết hạn, mới xét reload.
+A positive TTL like `5_000L` means the cache may be used for up to roughly 5 seconds **without checking the source**, provided the cache entry still exists. Once expired, reloading is evaluated.
 
-Đây **không phải cam kết độ trễ cập nhật tối đa 5 giây tuyệt đối** cho toàn hệ thống: các tầng cache khác, reference cũ, tính khả dụng của nguồn, sự chậm trễ tại file system hay deployment đều có thể ảnh hưởng dữ liệu người dùng thấy.
+This is **not an absolute guarantee of a 5-second maximum update delay** for the whole system: other cache layers, old references, source availability, filesystem delays, or deployments can all affect what users see.
 
 ### TTL_NO_EXPIRATION_CONTROL
 
-Đây là mặc định `-2`. Bundle cache không có vòng kiểm tra hết hạn của Control. Một bundle đã nạp có thể vẫn được dùng sau khi file thay đổi cho đến khi cache bị loại, `clearCache`, môi trường reload class loader, hoặc cơ chế khác làm nạp lại.
+This is the default `-2`. The cached bundle has no `Control` expiration check cycle. A loaded bundle may continue being served after a file changes until the cache entry is evicted, `clearCache` is called, the class loader reloads, or another mechanism triggers a reload.
 
-## 12. clearCache: xoá cache không sửa nội dung bundle cũ
+## 12. clearCache: Clearing the Cache Does Not Mutate Old Bundles
 
-Java hỗ trợ:
+Java provides:
 
 ~~~java
 ResourceBundle.clearCache();
 ~~~
 
-và:
+and:
 
 ~~~java
 ResourceBundle.clearCache(loader);
 ~~~
 
-Đây là **các mảnh mã minh họa trong method**; bản thứ hai cần biến `loader` kiểu `ClassLoader`.
+These are **illustrative snippets inside a method**; the second requires a `loader` variable of type `ClassLoader`.
 
-- `clearCache()` xóa cache thuộc phạm vi class loader được API xác định đối với caller.
-- `clearCache(ClassLoader)` xóa cache gắn với class loader chỉ định.
-- Cache scope và lookup trong môi trường class loader/container/module phức tạp cần xem tài liệu overload đang gọi.
-- Xóa cache không làm mọi biến `ResourceBundle` đã trao cho mã khác tự đổi nội dung.
-- Nếu nguồn file/JAR/resource bị cache ở tầng khác, xóa cache `ResourceBundle` chưa chắc đủ để thấy byte mới.
+- `clearCache()` clears the cache within the class loader scope determined by the API for the caller.
+- `clearCache(ClassLoader)` clears the cache associated with the specified class loader.
+- Cache scope and lookup in complex class loader/container/module environments require consulting the documentation of the overload being called.
+- Clearing the cache does not make existing `ResourceBundle` variables held elsewhere in code change their contents.
+- If files/JARs/resources are cached at another layer, clearing the `ResourceBundle` cache alone may not be enough to observe new bytes.
 
-**Đừng gọi `clearCache()` liên tục trong request production để “ép cập nhật”** nếu chỉ muốn kiểm soát TTL. Việc xóa cache rộng có thể ảnh hưởng hiệu năng hoặc các bundle khác cùng class loader. Hãy định nghĩa policy cho đúng nguồn, chọn TTL/needsReload phù hợp và quản lý version/deployment khi cần.
+**Do not call `clearCache()` repeatedly on production requests to "force updates"** when you only want TTL control. Broad cache clearing can hurt performance or impact other bundles sharing the class loader. Define a policy suited to the source, pick an appropriate TTL/`needsReload`, and manage versions/deployments as needed.
 
-### Negative caching
+### Negative Caching
 
-Lookup không có bundle cho một locale cũng có thể được cache (dưới dạng kết quả không tìm thấy) để tránh tra cứu lặp. Điều này quan trọng khi bạn **thêm file mới** trong runtime: không chỉ entry bundle cũ, mà cả cache của việc “không tìm thấy” có thể làm cho việc hiển thị cập nhật chậm. Cần cân nhắc TTL, clearCache đúng scope và class loader.
+A lookup that finds no bundle for a locale can also be cached (as a not-found marker) to avoid repeated searches. This matters when you **add a new file** at runtime: not only old bundle entries, but also cached "not found" entries can delay updates from appearing. Consider TTL, properly scoped `clearCache`, and the class loader.
 
-## 13. getCandidateLocales tùy chỉnh: không thay theo cảm tính
+## 13. Custom getCandidateLocales: Do Not Alter Arbitrarily
 
-Bạn có thể override để thay thứ tự/loại locale ứng viên:
+You can override it to change the order or set of candidate locales:
 
 ~~~java
 @Override
@@ -694,27 +694,27 @@ public List<Locale> getCandidateLocales(
 }
 ~~~
 
-Đây là **mảnh mã trong subclass của `ResourceBundle.Control`**, cần import `java.util.List` và `java.util.Locale`.
+This is a **code fragment inside a subclass of `ResourceBundle.Control`**, requiring imports of `java.util.List` and `java.util.Locale`.
 
-Ví dụ này giữ behavior mặc định nhưng nhắc rằng **Locale.ROOT phải được xử lý đúng**. Nếu muốn dùng chuỗi ứng viên theo thiết kế riêng, cần:
+This example preserves default behavior while reminding you that **`Locale.ROOT` must be handled properly**. If you design a custom candidate chain, you must:
 
-- Trả danh sách locale **không null**, không chứa phần tử null.
-- Duy trì thứ tự cụ thể → tổng quát theo yêu cầu nghiệp vụ.
-- Quyết định có cần `Locale.ROOT` ở cuối chuỗi parent không.
-- Không thay đổi danh sách đã trả trong lúc `getBundle` xử lý.
-- Bảo đảm getFormats/getCandidateLocales **nhất quán giữa các lần gọi** cho cùng base bundle, đặc biệt khi có cache.
-- Tránh chuỗi fallback lặp vô hạn hoặc candidate không tạo ra được tên resource như dự kiến.
-- Kiểm tra các locale có script và biến thể đặc biệt, đừng áp logic “chỉ cắt country” cho mọi thẻ.
+- Return a **non-null** list of locales with no null elements.
+- Maintain specific -> general order according to business requirements.
+- Decide whether `Locale.ROOT` is needed at the end of the parent chain.
+- Never mutate the returned list while `getBundle` is processing it.
+- Ensure `getFormats` and `getCandidateLocales` stay **consistent across calls** for the same base bundle, especially when caching is active.
+- Avoid infinite fallback loops or candidates that do not produce the expected resource names.
+- Test locales with scripts and special variants; do not apply naive "strip country only" logic to all tags.
 
-### Không thay candidate để giải quyết thiếu translation key
+### Do Not Alter Candidates to Solve Missing Translation Keys
 
-Nếu `Messages_fr_CA.properties` không có một key nhưng `Messages_fr.properties` có, parent chain đã cung cấp hành vi kế thừa hữu ích. Đừng bỏ `fr` hoặc ROOT khỏi candidate chỉ vì muốn “bản dịch Canada độc lập”, trừ khi product chủ đích không cho fallback key và chấp nhận ném lỗi hoặc có chính sách khác.
+If `Messages_fr_CA.properties` lacks a key that `Messages_fr.properties` has, the parent chain already provides helpful inheritance. Do not strip `fr` or `ROOT` from candidates just to make "Canadian translations standalone," unless the product deliberately forbids key fallback and accepts throwing an exception or uses another policy.
 
-## 14. getFallbackLocale tùy chỉnh và sai lầm phổ biến
+## 14. Custom getFallbackLocale and Common Mistakes
 
-Mặc định, Control có thể trả default locale của JVM khi target locale khác default locale. Trong ứng dụng server nhiều người dùng, default locale thường là cấu hình server, **không phải ngôn ngữ người xem**. Điều này có thể làm kết quả bất ngờ khi thiếu bản dịch.
+By default, `Control` may return the JVM's default locale when the target locale differs from the default locale. In a multi-user server application, the default locale is typically a server setting, **not the viewer's language**. This can produce surprising results when translations are missing.
 
-Một cách ngăn fallback **sang default locale**:
+One way to prevent fallback **to the default locale**:
 
 ~~~java
 ResourceBundle.Control noDefaultFallback =
@@ -722,7 +722,7 @@ ResourceBundle.Control noDefaultFallback =
                 ResourceBundle.Control.FORMAT_PROPERTIES);
 ~~~
 
-Nếu cần chính sách cụ thể hơn, có thể override:
+If a more specific policy is needed, you can override:
 
 ~~~java
 @Override
@@ -732,123 +732,123 @@ public Locale getFallbackLocale(
 }
 ~~~
 
-Đây là **mảnh mã trong subclass của `Control`**, cần import `java.util.Locale`.
+This is a **code fragment inside a subclass of `Control`**, requiring `import java.util.Locale`.
 
-**Phân biệt lần nữa:**
+**Distinguish again:**
 
-- `getFallbackLocale() == null`: không tìm thêm một locale fallback khác.
-- `getCandidateLocales()` vẫn có thể sinh các locale cha và `ROOT`.
-- `getString(key)` vẫn có thể kế thừa giá trị từ **parent bundle**.
-- Khi không có bundle nào cho base name, `getBundle` vẫn có thể ném `MissingResourceException`.
+- `getFallbackLocale() == null`: do not search an additional fallback locale.
+- `getCandidateLocales()` can still generate parent locales and `ROOT`.
+- `getString(key)` can still inherit values from a **parent bundle**.
+- When no bundle exists at all for the base name, `getBundle` can still throw `MissingResourceException`.
 
-Nếu ứng dụng cần ngôn ngữ mặc định business là tiếng Anh, hãy quản lý chính sách ngôn ngữ ở tầng gọi hoặc provider một cách rõ ràng, thay vì trông đợi default locale JVM là bất biến trên mọi máy.
+If an application requires English as the default business language, manage that language policy explicitly at the calling layer or provider rather than relying on the JVM default locale being invariant across every machine.
 
-## 15. ResourceBundle.Control và Java Modules (JPMS)
+## 15. ResourceBundle.Control and Java Modules (JPMS)
 
-Đây là giới hạn rất quan trọng trong Java 9+:
+This is a critical restriction in Java 9+:
 
-**`ResourceBundle.Control` không được hỗ trợ khi gọi overload có Control từ code trong named module.** Việc gọi:
+**`ResourceBundle.Control` is not supported when calling an overload taking `Control` from code inside a named module.** Calling:
 
 ~~~java
 ResourceBundle.getBundle(
         "Messages", requestedLocale, customControl);
 ~~~
 
-từ một **named module** sẽ ném `UnsupportedOperationException` theo Javadoc. Việc thêm `requires java.base` hoặc sửa classpath một cách máy móc không phải là giải pháp hỗ trợ đầy đủ.
+from a **named module** throws `UnsupportedOperationException` per the Javadoc. Mechanically adding `requires java.base` or tweaking the classpath is not a complete solution.
 
-### Hướng phù hợp khi dùng named modules
+### The Right Direction When Using Named Modules
 
-Dùng cơ chế `java.util.spi.ResourceBundleProvider`, với quy ước provider theo base name và các khai báo module `uses`/`provides` theo tài liệu, để hỗ trợ bundle trong module khác và định dạng không tiêu chuẩn.
+Use the `java.util.spi.ResourceBundleProvider` mechanism, following the per-base-name provider convention and `uses`/`provides` module declarations per documentation, to support bundles across modules and non-standard formats.
 
-Khái quát:
+Overview:
 
 ~~~text
 Classpath / unnamed module:
   ResourceBundle.getBundle(baseName, locale, Control)
-  -> được hỗ trợ
+  -> supported
 
 Named module:
-  ResourceBundle.getBundle(...) theo cơ chế module/provider
-  -> dùng ResourceBundleProvider khi cần mở rộng
-  -> overload nhận Control không được hỗ trợ
+  ResourceBundle.getBundle(...) via module/provider mechanism
+  -> use ResourceBundleProvider when extension is needed
+  -> overloads accepting Control are not supported
 ~~~
 
-`ResourceBundleControlProvider` là một SPI khác có thể tác động Control trong trường hợp phù hợp, nhưng **bị bỏ qua trong named modules**. Đừng nhầm nó với `ResourceBundleProvider` dùng cho cơ chế module.
+`ResourceBundleControlProvider` is a different SPI that can affect `Control` in applicable cases, but **it is ignored in named modules**. Do not confuse it with `ResourceBundleProvider` used for the module mechanism.
 
-Không cố viết một demo named-module dùng `Control` rồi coi `UnsupportedOperationException` là “thiếu quyền module”. Đây là một hạn chế API có chủ đích.
+Do not try to write a named-module demo using `Control` and treat `UnsupportedOperationException` as "missing module permission." It is an intentional API restriction.
 
-## 16. Cache, class loader, nhiều luồng và triển khai thực tế
+## 16. Caching, Class Loaders, Multithreading, and Real-World Deployment
 
-Trong server, một số yếu tố có thể khiến quan sát cache khác với bài tập console:
+On a server, several factors can make cache behavior look different from console exercises:
 
-**Class loader.** Cùng base name nhưng class loader khác nhau có thể nhận bộ resource khác hoặc cache scope khác. Với application server hoặc plugin system, cần hiểu class loader đang tải bundles.
+**Class loader.** The same base name on different class loaders can yield different resource sets or separate cache scopes. In an application server or plugin system, understand which class loader is loading bundles.
 
-**Caller module.** Trong JPMS, các overload khác nhau có đường tìm kiếm khác nhau. Không áp dụng suy luận về `Control` của classpath cho mọi named module.
+**Caller module.** Under JPMS, different overloads follow different search paths. Do not apply classpath `Control` assumptions to every named module.
 
-**Consistency.** Không trả `getFormats` hoặc `getCandidateLocales` phụ thuộc ngẫu nhiên vào trạng thái request, thời gian hoặc user hiện tại rồi dùng chung base name và cache. Javadoc cảnh báo kết quả có thể không như mong đợi.
+**Consistency.** Never return `getFormats` or `getCandidateLocales` dependent arbitrarily on request state, time, or current user while sharing the same base name and cache. The Javadoc warns results may be unexpected.
 
-**Thread safety.** `ResourceBundle.getBundle` không đồng bộ hóa việc gọi callback của `Control` tùy chỉnh. Vì thế nếu Control được chia sẻ giữa nhiều luồng, các hàm `getFormats`, `getCandidateLocales`, `newBundle`, `needsReload`, `getTimeToLive` phải an toàn khi gọi song song. Ví dụ `TtlReloadDemo` dùng biến đếm mutable chỉ để học và chạy đơn luồng.
+**Thread safety.** `ResourceBundle.getBundle` does not synchronize calls to custom `Control` callbacks. Therefore, if a `Control` is shared across threads, `getFormats`, `getCandidateLocales`, `newBundle`, `needsReload`, and `getTimeToLive` must be safe under concurrent calls. `TtlReloadDemo` uses unsynchronized mutable counters solely for single-threaded learning.
 
-**Chi phí tải.** Cấu hình TTL quá ngắn và reload source qua network có thể làm tăng latency hoặc tải hệ thống. Với tài nguyên deployed cùng JAR và chỉ đổi mỗi release, để cache mặc định và thay class loader/restart khi release có thể đơn giản, ổn định hơn.
+**Loading cost.** Setting TTL too short and reloading from a remote source over the network can raise latency or system load. For resources deployed inside the JAR that only change per release, keeping the default cache and replacing the class loader/restarting on release is simpler and more stable.
 
-**Nguồn được version.** Nếu cần cập nhật bản dịch live từ database/remote config, hãy xác định version, ETag, lastModified, invalidate cache và quan hệ consistency. `Control` là cơ chế mở rộng resource lookup, **không tự giải quyết toàn bộ distributed cache**.
+**Versioned sources.** If live translation updates from a database or remote config are needed, define versioning, ETags, `lastModified`, cache invalidation, and consistency guarantees. `Control` is an extension hook for resource lookup; **it does not solve distributed caching on its own**.
 
-## 17. Xử lý lỗi và kiểm thử
+## 17. Error Handling and Testing
 
-| Tình huống | Biểu hiện | Cách kiểm tra |
+| Situation | Symptom | How to check |
 | --- | --- | --- |
-| Base name sai | `MissingResourceException` khi getBundle | Kiểm tra package, resource path, classpath |
-| Thiếu key | `MissingResourceException` từ getString | Kiểm tra khóa trong parent chain |
-| Thử `FORMAT_CLASS` khi chỉ có .properties | Không tìm file cần thiết | Chọn `FORMAT_PROPERTIES` |
-| Đổi formats giữa các lần gọi | Cache có thể giữ instance kiểu cũ | Duy trì policy nhất quán, kiểm thử cache scope |
-| `getCandidateLocales` trả null | Vi phạm hợp đồng Control | Trả danh sách hợp lệ |
-| `getFormats` trả danh sách rỗng | Vi phạm hợp đồng Control | Có ít nhất một format hợp lệ |
-| Khai báo format tùy chỉnh nhưng không override `newBundle` | `IllegalArgumentException`/không tải được | Cung cấp loader cho format mới |
-| Không hiểu fallback locale và parent | Thấy resource root dù đã “tắt fallback” | Phân biệt getFallbackLocale với candidate chain |
-| TTL=0 nhưng file không reload | `needsReload` trả false hoặc metadata không cho thấy thay đổi | Kiểm tra callback và nguồn dữ liệu |
-| Dùng `TTL_DONT_CACHE` cho mọi bundle | Nhiều I/O, lookup lặp, chậm | Đo chi phí, chọn TTL hợp lý |
-| Reload nguồn trong JAR không nhận bản cập nhật | URL/ClassLoader hoặc cache tầng thấp | Kiểm tra class loader, connection cache, deployment |
-| Giữ reference bundle cũ | Giá trị không thay đổi dù lần getBundle mới | Lấy instance mới ở điểm thích hợp |
-| Dùng Control trong named module | `UnsupportedOperationException` | Chuyển sang `ResourceBundleProvider` |
-| Code custom Control không thread-safe | Race condition khi server nhiều luồng | Control bất biến hoặc đồng bộ thích hợp |
-| Tệp properties UTF-8 sai byte | Bundle không nạp đúng Unicode | Kiểm tra Java 9+ PropertyResourceBundle và charset |
+| Wrong base name | `MissingResourceException` at `getBundle` | Check package, resource path, classpath |
+| Missing key | `MissingResourceException` from `getString` | Check key across parent chain |
+| Using `FORMAT_CLASS` when only `.properties` exist | Required files not found | Choose `FORMAT_PROPERTIES` |
+| Changing formats between calls | Cache may hold an old-format instance | Maintain consistent policy, test cache scope |
+| `getCandidateLocales` returns null | Violates `Control` contract | Return a valid list |
+| `getFormats` returns empty list | Violates `Control` contract | Include at least one valid format |
+| Custom format declared without overriding `newBundle` | `IllegalArgumentException`/fails to load | Provide loader logic for the new format |
+| Confusing fallback locale with parent | Root resource appears despite "disabling fallback" | Distinguish `getFallbackLocale` from candidate chain |
+| TTL=0 yet file does not reload | `needsReload` returns false or metadata shows no change | Check callback and data source |
+| Using `TTL_DONT_CACHE` for all bundles | High I/O, repeated lookups, slow | Measure cost, choose sensible TTL |
+| Reloading JAR source misses updates | URL/ClassLoader or lower-layer cache | Check class loader, connection cache, deployment |
+| Holding old bundle reference | Values unchanged despite new `getBundle` calls | Fetch fresh instance at appropriate boundaries |
+| Using `Control` in a named module | `UnsupportedOperationException` | Switch to `ResourceBundleProvider` |
+| Non-thread-safe custom `Control` | Race conditions on multithreaded server | Make `Control` immutable or synchronize properly |
+| UTF-8 properties file with bad bytes | Bundle fails to load Unicode properly | Check Java 9+ `PropertyResourceBundle` and charset |
 
-### Checklist QA trước khi dùng production
+### Pre-Production QA Checklist
 
-1. Xác định ứng dụng dùng **classpath/unnamed module** hay **named module**.
-2. Xác định base name, package và class loader dùng thực tế.
-3. Kiểm thử candidate locale có language/country/script, gồm `Locale.ROOT`.
-4. Kiểm thử thứ tự `FORMAT_DEFAULT`, `FORMAT_CLASS`, `FORMAT_PROPERTIES`.
-5. Kiểm thử getNoFallbackControl **vẫn cho phép parent root**.
-6. Kiểm thử key lấy từ bundle cụ thể và key lấy từ parent.
-7. Nếu dùng custom format, kiểm tra `newBundle` ở cả `reload=false` và `reload=true`.
-8. Nếu TTL dương hoặc 0, kiểm tra thời điểm gọi `needsReload` và dữ liệu có thật sự thay đổi.
-9. Kiểm tra `clearCache` không thay đổi reference đã giữ.
-10. Kiểm thử cache khi tài nguyên không tồn tại rồi được bổ sung.
-11. Kiểm thử nhiều luồng và các class loader khác nhau nếu ứng dụng có tính chất đó.
-12. Đối chiếu hành vi với Oracle Javadoc trên JDK đang triển khai, không chỉ dựa trên một bài viết cũ.
+1. Determine whether the application uses **classpath/unnamed module** or **named module**.
+2. Verify the actual base name, package, and class loader used.
+3. Test candidate locales with language/country/script, including `Locale.ROOT`.
+4. Test the order of `FORMAT_DEFAULT`, `FORMAT_CLASS`, and `FORMAT_PROPERTIES`.
+5. Verify `getNoFallbackControl` **still allows the root parent**.
+6. Test keys resolved from the specific bundle and keys inherited from parents.
+7. If using a custom format, test `newBundle` with both `reload=false` and `reload=true`.
+8. If TTL is positive or 0, test when `needsReload` is invoked and whether data truly updates.
+9. Verify `clearCache` does not alter already-held references.
+10. Test cache behavior when a resource is initially missing and later added.
+11. Test multiple threads and multiple class loaders if applicable to the app.
+12. Cross-check behavior against the Oracle Javadoc for the target JDK, not just an old blog post.
 
-## 18. Bài tập thực hành
+## 18. Practice Exercises
 
-1. Với `fr-CA`, hãy dùng `getCandidateLocales` in chain. Giải thích vì sao `Messages.properties` có thể là parent của `Messages_fr.properties`.
-2. Với `sr-Latn-RS`, giải thích vì sao danh sách có cả `sr-Latn` và `sr-RS` trước `sr`.
-3. Tạo ba file `Messages.properties`, `Messages_fr.properties` và `Messages_fr_CA.properties`. Cho mỗi file chứa một key riêng, kiểm tra `getString` lấy đúng parent.
-4. Dùng `getNoFallbackControl(FORMAT_PROPERTIES)` và thay đổi default locale của JVM trong test riêng. Vì sao `Messages.properties` vẫn có thể được đọc?
-5. Tạo class bundle và properties bundle có cùng tên. Khi dùng `FORMAT_DEFAULT`, điều gì quyết định ưu tiên? Dùng `FORMAT_PROPERTIES` có giải quyết nhu cầu của bạn không?
-6. Thay đổi ví dụ XML để dùng `Messages_fr.xml` và `Messages.xml`. Kiểm tra parent chain và giải thích vai trò `toBundleName`/`toResourceName`.
-7. Trong `TtlReloadDemo`, thay `getTimeToLive` từ `0` thành `TTL_DONT_CACHE`. Quan sát số lần gọi `needsReload` và `newBundle`.
-8. Trong `TtlReloadDemo`, giữ TTL=0 nhưng trả `false` từ `needsReload`. Giải thích vì sao lần gọi thứ hai không nhất thiết tạo version mới.
-9. Khi một file properties thay đổi lúc runtime, tại sao `ResourceBundle.clearCache()` có thể chưa đủ nếu ClassLoader/URL cache đang giữ dữ liệu?
-10. Vì sao `ResourceBundle.Control` không phù hợp khi code gọi overload có Control từ named module? Hướng mở rộng nào thay thế?
-11. Thiết kế một chính sách reload bản dịch từ database: xác định version, TTL, needsReload, thread-safety và hành vi khi nguồn tạm thời không khả dụng.
-12. Viết test bảo đảm các gọi `getBundle` khác nhau cho cùng base name sử dụng format/candidate policy nhất quán.
+1. For `fr-CA`, print the chain using `getCandidateLocales`. Explain why `Messages.properties` can be the parent of `Messages_fr.properties`.
+2. For `sr-Latn-RS`, explain why the list contains both `sr-Latn` and `sr-RS` before `sr`.
+3. Create three files: `Messages.properties`, `Messages_fr.properties`, and `Messages_fr_CA.properties`. Put a distinct key in each file and verify `getString` resolves from the right parent.
+4. Use `getNoFallbackControl(FORMAT_PROPERTIES)` and change the JVM default locale in a separate test. Why can `Messages.properties` still be read?
+5. Create both a class bundle and a properties bundle with the same name. When using `FORMAT_DEFAULT`, what determines precedence? Does `FORMAT_PROPERTIES` meet your need?
+6. Modify the XML example to use `Messages_fr.xml` and `Messages.xml`. Check the parent chain and explain the role of `toBundleName`/`toResourceName`.
+7. In `TtlReloadDemo`, change `getTimeToLive` from `0` to `TTL_DONT_CACHE`. Observe the call counts for `needsReload` and `newBundle`.
+8. In `TtlReloadDemo`, keep TTL=0 but return `false` from `needsReload`. Explain why the second call does not necessarily create a new version.
+9. When a properties file changes at runtime, why might `ResourceBundle.clearCache()` be insufficient if the `ClassLoader`/URL cache still holds old data?
+10. Why is `ResourceBundle.Control` unsuitable when code calls a `Control` overload from a named module? What extension mechanism replaces it?
+11. Design a policy for reloading translations from a database: define versioning, TTL, `needsReload`, thread safety, and behavior when the source is temporarily unavailable.
+12. Write a test ensuring different `getBundle` calls for the same base name use a consistent format/candidate policy.
 
-**Ghi nhớ:** `ResourceBundle.Control` quyết định **ứng viên locale**, **định dạng bundle**, **fallback locale** và **TTL/cache/reload** trong các ứng dụng classpath. `getCandidateLocales` tạo chain từ cụ thể tới tổng quát; `getFormats` quyết định class/properties/custom format; `getFallbackLocale` khác **kế thừa khóa qua parent**. `TTL_DONT_CACHE` là không cache, `TTL_NO_EXPIRATION_CONTROL` là cache không hết hạn theo TTL, còn TTL 0/dương chỉ dẫn đến kiểm tra `needsReload` khi entry hết hạn. Với **named modules**, không dùng overload `getBundle(..., Control)`; xem `ResourceBundleProvider`. Đừng tự thay đổi policy tùy request hoặc bỏ qua cache/class loader khi kiểm thử.
+**Key takeaway:** `ResourceBundle.Control` governs **candidate locales**, **bundle formats**, **fallback locale**, and **TTL/cache/reload** in classpath applications. `getCandidateLocales` produces a chain from specific to general; `getFormats` chooses class/properties/custom formats; `getFallbackLocale` is distinct from **parent key inheritance**. `TTL_DONT_CACHE` disables caching, `TTL_NO_EXPIRATION_CONTROL` caches without TTL expiration, and TTL 0 or positive values only trigger a `needsReload` check when the entry expires. With **named modules**, do not use `getBundle(..., Control)` overloads; use `ResourceBundleProvider`. Do not vary policies per request or ignore caching and class loaders during testing.
 
-### Tài liệu tham khảo
+### References
 
-- [Java SE 17 — ResourceBundle.Control](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.Control.html) — `getCandidateLocales`, `getFormats`, `getFallbackLocale`, `getTimeToLive`, `needsReload`, `newBundle` và cache.
-- [Java SE 17 — ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html) — thuật toán tìm bundle, parent, cache, clearCache, classloader và module.
-- [Java SE 17 — ResourceBundleProvider](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/spi/ResourceBundleProvider.html) — SPI thay thế cho mở rộng trong named modules.
-- [Java SE 17 — PropertyResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/PropertyResourceBundle.html) — bundle từ file properties và encoding.
-- [Java SE 17 — Properties](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Properties.html) — `loadFromXML` dùng trong ví dụ định dạng XML.
+- [Java SE 17 — ResourceBundle.Control](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.Control.html) — `getCandidateLocales`, `getFormats`, `getFallbackLocale`, `getTimeToLive`, `needsReload`, `newBundle`, and caching.
+- [Java SE 17 — ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html) — bundle lookup algorithm, parent chain, caching, `clearCache`, class loaders, and modules.
+- [Java SE 17 — ResourceBundleProvider](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/spi/ResourceBundleProvider.html) — SPI alternative for extensions in named modules.
+- [Java SE 17 — PropertyResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/PropertyResourceBundle.html) — bundles from properties files and encoding.
+- [Java SE 17 — Properties](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Properties.html) — `loadFromXML` used in the XML format example.

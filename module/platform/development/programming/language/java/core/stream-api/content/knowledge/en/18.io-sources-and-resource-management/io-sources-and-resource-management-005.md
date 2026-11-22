@@ -1,35 +1,35 @@
-# Đăng ký xử lý đóng bằng `onClose` trong Java Stream API
+# Registering Close Handlers with `onClose` in Java Stream API
 
-Khi xử lý dữ liệu với Java Stream API, một pipeline thường gồm **nguồn dữ liệu → các thao tác trung gian → thao tác kết thúc**. Tuy nhiên, việc hoàn tất một thao tác kết thúc như `count()`, `collect()` hay `forEach()` **không đồng nghĩa với việc đóng stream**. Điều này đặc biệt quan trọng khi nguồn dữ liệu giữ tài nguyên hệ thống, chẳng hạn tệp được đọc qua `Files.lines()`.
+When processing data with the Java Stream API, a pipeline typically consists of **data source -> intermediate operations -> terminal operation**. However, completing a terminal operation such as `count()`, `collect()`, or `forEach()` **does not mean the stream is closed**. This is especially important when the data source holds system resources, such as a file read via `Files.lines()`.
 
-`onClose(Runnable)` cho phép đăng ký một công việc sẽ được thực hiện **khi stream được đóng**. Kết hợp `onClose` với `try-with-resources` giúp việc giải phóng tài nguyên, ghi log và dọn dẹp trở nên rõ ràng, ngay cả khi xử lý gặp ngoại lệ.
+`onClose(Runnable)` lets you register an action to be executed **when the stream is closed**. Combining `onClose` with `try-with-resources` makes resource release, logging, and cleanup explicit, even when processing encounters an exception.
 
-## 1. `onClose` làm gì trong vòng đời stream?
+## 1. What Does `onClose` Do in the Stream Lifecycle?
 
-`Stream<T>` kế thừa phương thức từ `BaseStream<T, S>`:
+`Stream<T>` inherits this method from `BaseStream<T, S>`:
 
 ~~~java
 S onClose(Runnable closeHandler);
 ~~~
 
-Phương thức này trả về một stream tương đương, có thêm một **close handler** (hàm xử lý khi đóng). Đây không phải thao tác kết thúc; gọi `onClose` không duyệt phần tử, không đóng nguồn và không lập tức chạy handler.
+This method returns an equivalent stream with an additional **close handler**. It is not a terminal operation; calling `onClose` does not traverse elements, does not close the source, and does not immediately run the handler.
 
-Một pipeline có hai mốc cần phân biệt:
+A pipeline has two distinct milestones to distinguish:
 
-1. **Thực thi pipeline:** thao tác kết thúc yêu cầu lấy dữ liệu từ nguồn và xử lý các phần tử cần thiết.
-2. **Đóng pipeline:** gọi `close()` (trực tiếp hoặc thông qua `try-with-resources`), từ đó kích hoạt các handler đã đăng ký.
+1. **Pipeline execution:** the terminal operation pulls data from the source and processes the required elements.
+2. **Pipeline closing:** calling `close()` (directly or via `try-with-resources`), which triggers the registered handlers.
 
 ~~~text
-Stream nguồn ── filter/map/... ── count()/collect()/...  [xử lý dữ liệu]
+Source stream ── filter/map/... ── count()/collect()/...  [data processing]
       │
       └── onClose(handler A) ── onClose(handler B)
                     │                  │
-                    └──── close() ─────┘               [dọn dẹp]
+                    └──── close() ─────┘                  [cleanup]
 ~~~
 
-Không phải stream nào cũng cần đóng: với nguồn dữ liệu trong bộ nhớ như `Stream.of(...)` hoặc `list.stream()`, thường không có tài nguyên bên ngoài cần giải phóng. Ngược lại, stream đọc dữ liệu từ tệp có thể sở hữu tài nguyên I/O cần được đóng đúng lúc. `onClose` là điểm mở rộng của bước đóng, **không thay thế hành động gọi `close()`**.
+Not every stream needs to be closed: with in-memory data sources such as `Stream.of(...)` or `list.stream()`, there are usually no external resources to release. Conversely, a stream reading data from a file may own I/O resources that must be closed on time. `onClose` is an extension point of the closing step; **it does not replace calling `close()`**.
 
-## 2. Ví dụ cơ bản: handler chỉ chạy khi đóng
+## 2. Basic Example: Handler Runs Only on Close
 
 ~~~java
 import java.util.stream.Stream;
@@ -38,31 +38,31 @@ public class OnCloseDemo {
     public static void main(String[] args) {
         try (Stream<String> names = Stream.of("An", "Binh", "Chi")
                 .filter(name -> name.length() >= 3)
-                .onClose(() -> System.out.println("Da dong stream"))) {
+                .onClose(() -> System.out.println("Stream closed"))) {
 
             long count = names.count();
-            System.out.println("So ten hop le: " + count);
-            System.out.println("Da thuc thi terminal operation");
+            System.out.println("Valid name count: " + count);
+            System.out.println("Executed terminal operation");
         }
     }
 }
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-So ten hop le: 2
-Da thuc thi terminal operation
-Da dong stream
+Valid name count: 2
+Executed terminal operation
+Stream closed
 ~~~
 
-Handler được gọi sau khi rời khối `try`, bởi `try-with-resources` tự động gọi `close()` trên đối tượng `names`. Nếu bỏ `try-with-resources` và không gọi `close()`, lời gọi `count()` vẫn tính xong nhưng không tự kích hoạt handler.
+The handler is called after leaving the `try` block because `try-with-resources` automatically invokes `close()` on `names`. If you omit `try-with-resources` and do not call `close()`, calling `count()` still finishes computing, but does not automatically trigger the handler.
 
-Đăng ký `onClose` **trước** thao tác kết thúc. Stream không được dùng lại sau khi đã chạy thao tác kết thúc; việc cố tạo pipeline mới trên stream đã tiêu thụ có thể ném `IllegalStateException`.
+Register `onClose` **before** the terminal operation. A stream cannot be reused after a terminal operation has run; attempting to build a new pipeline on an already-consumed stream can throw `IllegalStateException`.
 
-## 3. Trường hợp quan trọng: đọc tệp bằng `Files.lines()`
+## 3. Important Case: Reading a File with `Files.lines()`
 
-`Files.lines(Path, Charset)` tạo stream các dòng văn bản. Dữ liệu được đọc khi pipeline yêu cầu, và stream này giữ tài nguyên I/O trong quá trình sử dụng. Cách triển khai an toàn là khai báo stream trong `try-with-resources`.
+`Files.lines(Path, Charset)` creates a stream of text lines. Data is read as the pipeline demands it, and this stream holds an I/O resource during use. The safe approach is to declare the stream in `try-with-resources`.
 
 ~~~java
 import java.io.IOException;
@@ -78,29 +78,29 @@ public class CountErrorLines {
 
         try (Stream<String> errorLines = Files.lines(logFile, StandardCharsets.UTF_8)
                 .filter(line -> line.contains("ERROR"))
-                .onClose(() -> System.out.println("Da dong stream doc log"))) {
+                .onClose(() -> System.out.println("Closed log-reading stream"))) {
 
             long errorCount = errorLines.count();
-            System.out.println("So dong ERROR: " + errorCount);
+            System.out.println("ERROR line count: " + errorCount);
         }
     }
 }
 ~~~
 
-Trong ví dụ này:
+In this example:
 
-- `Files.lines(...)` mở nguồn I/O và cài đặt cơ chế đóng nguồn khi stream đóng.
-- `filter(...)` chọn những dòng chứa `ERROR` mà không cần nạp toàn bộ tệp vào một danh sách.
-- `onClose(...)` thêm hành động ghi nhận quá trình đóng; nó không phải nơi thực hiện việc đọc hoặc lọc.
-- Khi rời `try` (kể cả khi xảy ra ngoại lệ), `close()` được gọi; cơ chế đóng của `Files.lines` và handler bổ sung đều được thực hiện.
+- `Files.lines(...)` opens the I/O source and installs the mechanism to close the source when the stream closes.
+- `filter(...)` selects lines containing `ERROR` without loading the entire file into a list.
+- `onClose(...)` adds an action recording the close step; it is not where reading or filtering takes place.
+- When leaving `try` (even if an exception occurs), `close()` is called; both the closing mechanism of `Files.lines` and the additional handler are executed.
 
-Việc mở tệp có thể ném `IOException`. Lỗi I/O xảy ra trong lúc stream đang được duyệt có thể xuất hiện dưới dạng `UncheckedIOException`; cần xử lý theo chính sách lỗi của ứng dụng. `onClose` không tự bắt hoặc bỏ qua những lỗi này.
+Opening the file can throw `IOException`. I/O errors occurring while the stream is being traversed can appear as `UncheckedIOException`; handle them according to your application's error policy. `onClose` does not catch or ignore these errors.
 
-**Quy tắc sở hữu:** thành phần tạo ra stream gắn với tài nguyên phải bảo đảm có người chịu trách nhiệm đóng nó. Nếu phương thức trả stream cho bên gọi, hãy quy định rõ bên gọi phải dùng `try-with-resources`.
+**Ownership rule:** the component that creates a resource-backed stream must ensure someone is responsible for closing it. If a method returns the stream to a caller, explicitly specify that the caller must use `try-with-resources`.
 
-## 4. Gắn `onClose` để đóng tài nguyên tự quản lý
+## 4. Attaching `onClose` to Close Self-Managed Resources
 
-Không phải mọi nguồn dữ liệu đều tự gắn hành động đóng. Ví dụ, `BufferedReader.lines()` tạo stream từ một reader, nhưng việc đóng stream đó không tự bảo đảm reader được đóng. Ta có thể nối vòng đời của chúng bằng `onClose`:
+Not every data source attaches a closing action automatically. For instance, `BufferedReader.lines()` creates a stream from a reader, but closing that stream does not automatically guarantee the reader is closed. You can link their lifecycles using `onClose`:
 
 ~~~java
 import java.io.BufferedReader;
@@ -120,7 +120,7 @@ public final class ReaderStreams {
             try {
                 reader.close();
             } catch (IOException ex) {
-                throw new UncheckedIOException("Khong the dong reader", ex);
+                throw new UncheckedIOException("Cannot close reader", ex);
             }
         });
     }
@@ -133,13 +133,13 @@ public final class ReaderStreams {
 }
 ~~~
 
-Ở đây, `reader.lines()` cung cấp các dòng; close handler chịu trách nhiệm gọi `reader.close()`. Vì `Runnable.run()` không khai báo checked exception, handler phải xử lý `IOException` tại chỗ hoặc chuyển thành `UncheckedIOException` để báo lỗi cho bên gọi. Bên gọi `openLines` vẫn **phải đóng stream** thì handler mới chạy.
+Here, `reader.lines()` supplies the lines; the close handler is responsible for calling `reader.close()`. Because `Runnable.run()` does not declare checked exceptions, the handler must handle `IOException` locally or wrap it in `UncheckedIOException` to report the failure to the caller. The caller of `openLines` still **must close the stream** for the handler to run.
 
-Nếu chỉ cần đọc tệp theo từng dòng, ưu tiên `Files.lines(...)` để sử dụng trực tiếp cơ chế quản lý tài nguyên sẵn có. Cách tự gắn `onClose` thích hợp khi xây dựng nguồn stream từ một tài nguyên do ứng dụng chủ động quản lý.
+If you simply need to read a file line by line, prefer `Files.lines(...)` to use the built-in resource management directly. Manually attaching `onClose` is appropriate when building a stream source from a resource actively managed by the application.
 
-## 5. Nhiều close handler: thứ tự và ngoại lệ
+## 5. Multiple Close Handlers: Order and Exceptions
 
-Một pipeline có thể đăng ký nhiều handler, kể cả ở các bước trung gian khác nhau:
+A pipeline can register multiple handlers, even at different intermediate steps:
 
 ~~~java
 import java.util.stream.Stream;
@@ -147,25 +147,25 @@ import java.util.stream.Stream;
 public class MultipleCloseHandlers {
     public static void main(String[] args) {
         try (Stream<Integer> numbers = Stream.of(1, 2, 3)
-                .onClose(() -> System.out.println("Dong A"))
+                .onClose(() -> System.out.println("Close A"))
                 .filter(number -> number > 1)
-                .onClose(() -> System.out.println("Dong B"))) {
+                .onClose(() -> System.out.println("Close B"))) {
 
-            System.out.println("So phan tu: " + numbers.count());
+            System.out.println("Element count: " + numbers.count());
         }
     }
 }
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-So phan tu: 2
-Dong A
-Dong B
+Element count: 2
+Close A
+Close B
 ~~~
 
-Các close handler được thực thi **theo thứ tự đã đăng ký**. Nếu một handler ném ngoại lệ, những handler còn lại **vẫn được gọi**. Ngoại lệ đầu tiên phát sinh trong lúc đóng được chuyển cho bên gọi; các ngoại lệ tiếp theo được gắn vào nó dưới dạng *suppressed exceptions*:
+Close handlers are executed **in the order they were registered**. If one handler throws an exception, the remaining handlers **are still called**. The first exception raised during closing is propagated to the caller; subsequent exceptions are attached to it as *suppressed exceptions*:
 
 ~~~java
 import java.util.stream.Stream;
@@ -174,18 +174,18 @@ public class CloseExceptionDemo {
     public static void main(String[] args) {
         try (Stream<Integer> stream = Stream.of(1, 2)
                 .onClose(() -> {
-                    throw new IllegalStateException("Loi dong A");
+                    throw new IllegalStateException("Close error A");
                 })
                 .onClose(() -> {
-                    System.out.println("Van chay handler B");
-                    throw new IllegalArgumentException("Loi dong B");
+                    System.out.println("Handler B still runs");
+                    throw new IllegalArgumentException("Close error B");
                 })) {
 
             System.out.println(stream.count());
         } catch (RuntimeException ex) {
-            System.out.println("Ngoai le chinh: " + ex.getMessage());
+            System.out.println("Primary exception: " + ex.getMessage());
             for (Throwable suppressed : ex.getSuppressed()) {
-                System.out.println("Ngoai le bi dinh kem: "
+                System.out.println("Suppressed exception: "
                         + suppressed.getMessage());
             }
         }
@@ -193,38 +193,38 @@ public class CloseExceptionDemo {
 }
 ~~~
 
-Trong ví dụ, handler B vẫn chạy dù handler A ném ngoại lệ. Ngoại lệ từ A là ngoại lệ chính của quá trình đóng, còn ngoại lệ từ B được đính kèm để không mất thông tin lỗi.
+In the example, handler B still runs even though handler A throws an exception. The exception from A is the primary exception of the close operation, while the exception from B is attached so no error information is lost.
 
-Có một tầng xử lý ngoại lệ khác khi dùng `try-with-resources`: nếu **phần thân khối `try` đã ném ngoại lệ**, ngoại lệ đó được ưu tiên làm ngoại lệ chính, còn ngoại lệ phát sinh từ `close()` được đính kèm dưới dạng suppressed. Vì vậy khi điều tra lỗi, nên kiểm tra cả `Throwable.getSuppressed()`.
+There is another layer of exception handling when using `try-with-resources`: if **the body of the `try` block already threw an exception**, that exception takes precedence as the primary exception, and any exception thrown by `close()` is attached as suppressed. Therefore, when investigating errors, inspect `Throwable.getSuppressed()` as well.
 
-## 6. Phân biệt các cơ chế liên quan
+## 6. Distinguishing Related Mechanisms
 
-| Cơ chế | Khi nào hoạt động? | Mục đích |
+| Mechanism | When does it act? | Purpose |
 |---|---|---|
-| `onClose(handler)` | Lúc đăng ký chỉ tạo thêm handler; handler chạy khi stream đóng | Bổ sung logic dọn dẹp, ghi log, giải phóng tài nguyên riêng |
-| `close()` | Khi được gọi trực tiếp hoặc bởi `try-with-resources` | Đóng pipeline và thực hiện các close handler |
-| `try-with-resources` | Tự gọi `close()` khi rời phạm vi `try` | Bảo đảm đóng cả lúc xử lý thất bại |
-| `count()`, `collect()`, `forEach()` | Khi thao tác kết thúc được gọi | Tiêu thụ hoặc xử lý phần tử; không tự động đóng stream |
-| `peek(action)` | Khi các phần tử thực sự đi qua bước đó trong quá trình thực thi | Quan sát phần tử; không phải callback khi đóng |
+| `onClose(handler)` | Registration only adds the handler; handler runs when the stream closes | Add cleanup logic, logging, or custom resource release |
+| `close()` | When called directly or by `try-with-resources` | Close the pipeline and run close handlers |
+| `try-with-resources` | Automatically calls `close()` when leaving the `try` scope | Ensure closing even when processing fails |
+| `count()`, `collect()`, `forEach()` | When the terminal operation is called | Consume or process elements; does not automatically close the stream |
+| `peek(action)` | When elements actually pass through that step during execution | Observe elements; not a close callback |
 
-`onClose` thường chỉ cần dùng khi có hành động bổ sung lúc đóng. Với stream I/O có sẵn cơ chế đóng như `Files.lines`, **`try-with-resources` mới là bước thiết yếu**; không bắt buộc phải thêm `onClose` chỉ để gọi `close()` lần nữa.
+`onClose` is typically only needed when an extra action is required at close time. For I/O streams that already have built-in closing behavior like `Files.lines`, **`try-with-resources` is the essential step**; you do not have to add `onClose` just to call `close()` again.
 
-## 7. Lỗi thường gặp và cách phòng tránh
+## 7. Common Mistakes and How to Avoid Them
 
-**Nhầm kết thúc pipeline với đóng tài nguyên.** Gọi `lines.count()` xong rồi bỏ biến `lines` không bảo đảm tài nguyên I/O được giải phóng ngay. Hãy bao quanh toàn bộ quá trình sử dụng stream bằng `try-with-resources`.
+**Confusing pipeline completion with resource closing.** Calling `lines.count()` and dropping the `lines` variable does not guarantee immediate release of I/O resources. Wrap the entire stream usage in `try-with-resources`.
 
-**Đăng ký handler nhưng không đóng stream.** `onClose` không hoạt động giống `finally` độc lập. Nếu không có `close()`, handler không được kích hoạt chỉ vì pipeline đã hoàn tất hoặc đối tượng không còn được tham chiếu.
+**Registering a handler without closing the stream.** `onClose` does not behave like a standalone `finally`. Without `close()`, the handler will not trigger merely because the pipeline finished or the object is no longer referenced.
 
-**Tự đóng stream trước khi trả về.** Phương thức trả `Stream<T>` để caller tiếp tục xử lý không nên đóng stream trước lúc trả về. Thay vào đó, chuyển quyền sở hữu việc đóng cho caller và nêu rõ hợp đồng sử dụng.
+**Closing the stream before returning it.** A method returning `Stream<T>` for the caller to process further must not close the stream before returning. Instead, transfer closing ownership to the caller and state the usage contract clearly.
 
-**Dùng `onClose` làm nơi xử lý từng phần tử.** Close handler gắn với vòng đời pipeline, không được gọi một lần cho mỗi phần tử. Công việc theo phần tử thuộc về `map`, `filter`, `forEach` hoặc các thao tác tương ứng.
+**Using `onClose` to process individual elements.** A close handler is tied to the pipeline lifecycle, not invoked once per element. Per-element work belongs in `map`, `filter`, `forEach`, or corresponding operations.
 
-**Bỏ qua lỗi khi dọn dẹp.** Nếu handler đóng tài nguyên có thể ném `IOException`, cần xử lý hoặc chuyển đổi ngoại lệ có chủ đích. Tránh nuốt lỗi âm thầm; kiểm tra suppressed exceptions khi có nhiều lỗi đồng thời.
+**Ignoring cleanup errors.** If a resource-closing handler can throw `IOException`, handle or convert the exception deliberately. Avoid swallowing errors silently; check suppressed exceptions when multiple failures happen together.
 
-## 8. Tự luyện tập
+## 8. Self-Practice Exercises
 
-1. Tạo stream bằng `Stream.of("a", "b")`, gắn hai `onClose` lần lượt in `A`, `B`, rồi gọi `count()`. Quan sát kết quả trước và sau khi gọi `close()` để kiểm chứng thời điểm handler chạy.
-2. Đọc một tệp UTF-8 qua `Files.lines`, lọc những dòng không rỗng và đếm chúng. Dùng `try-with-resources` và `onClose` để ghi log khi stream được đóng. Thử tạo ngoại lệ trong khối `try` và xác nhận handler vẫn chạy.
-3. Đăng ký hai handler đều ném ngoại lệ khác nhau. Dùng `getSuppressed()` để kiểm tra rằng thông tin lỗi từ cả hai handler được giữ lại.
+1. Create a stream with `Stream.of("a", "b")`, attach two `onClose` handlers that print `A` and `B` in order, then call `count()`. Observe the output before and after calling `close()` to verify when handlers execute.
+2. Read a UTF-8 file via `Files.lines`, filter non-empty lines, and count them. Use `try-with-resources` and `onClose` to log when the stream closes. Try throwing an exception inside the `try` block and verify the handler still runs.
+3. Register two handlers that each throw a different exception. Use `getSuppressed()` to verify that error information from both handlers is preserved.
 
-**Ghi nhớ:** `onClose` định nghĩa *việc cần làm khi đóng*; `close()` thực hiện *hành động đóng*; `try-with-resources` bảo đảm *hành động đóng xảy ra đúng lúc*. Kết hợp đúng ba cơ chế này giúp pipeline Java Stream xử lý nguồn I/O an toàn và dễ bảo trì.
+**Key takeaway:** `onClose` defines *what to do on close*; `close()` performs *the closing action*; `try-with-resources` guarantees *closing happens at the right time*. Combining these three mechanisms properly keeps Java Stream I/O pipelines safe and maintainable.

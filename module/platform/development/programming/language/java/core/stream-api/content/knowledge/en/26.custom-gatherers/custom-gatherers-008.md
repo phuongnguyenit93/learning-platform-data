@@ -1,33 +1,33 @@
-# Xây dựng toán tử gộp phần tử liên tiếp theo khóa
+# Building a Consecutive-Element Grouping Operator by Key
 
-## 1. Bài toán: gom các đoạn liên tiếp, không gom toàn cục
+## 1. Problem: Grouping Consecutive Segments, Not Globally
 
-Trong **Java Stream API**, `filter` và `map` phù hợp với xử lý từng phần tử; `groupingBy` gom những phần tử cùng khóa trên **toàn bộ** luồng. Tuy nhiên, nhiều bài toán nhật ký và chuỗi sự kiện yêu cầu gom **những phần tử liên tiếp có cùng khóa**, đồng thời **giữ ranh giới khi khóa thay đổi**.
+In the **Java Stream API**, `filter` and `map` are suited for per-element processing; `groupingBy` groups elements with the same key across the **entire** stream. However, many log and event-stream problems require grouping **consecutive elements sharing the same key**, while **preserving boundaries when the key changes**.
 
-Ví dụ một hệ thống nhận sự kiện theo trình tự:
+For example, a system receives events in sequence:
 
 ```text
-Đầu vào (theo thứ tự):
+Input (in order):
 A1  A2  A3  B1  B2  A4  C1  C2
 │        │  │    │  │   │    │
 └── A ───┘  └ B ─┘  A4  └ C ─┘
 
-Kết quả mong muốn:
+Desired result:
 Run(A, [A1, A2, A3])
 Run(B, [B1, B2])
 Run(A, [A4])
 Run(C, [C1, C2])
 ```
 
-Hai đoạn có khóa `A` **không được gộp làm một**, vì ở giữa có đoạn khóa `B`. Đây là phép *run-length grouping*, *group adjacent by key* hoặc *group consecutive elements by key*. Nó xuất hiện khi cần:
+The two segments with key `A` **must not be merged into one**, because a `B` segment lies in between. This is *run-length grouping*, *group adjacent by key*, or *group consecutive elements by key*. It arises when needing to:
 
-- Gom các trạng thái giống nhau liên tiếp trong chuỗi sự kiện.
-- Gộp các bản ghi log có cùng mức độ ưu tiên trong một khoảng liên tục.
-- Tạo những đợt hoạt động liên tiếp của một thiết bị.
-- Đếm số lần chuyển trạng thái hoặc tóm tắt từng đoạn của luồng dữ liệu.
-- Chuyển các bản ghi đã được sắp theo khóa thành từng khối để xử lý tiếp.
+- Group consecutive identical states in an event stream.
+- Merge log records having the same priority level over a contiguous interval.
+- Build consecutive activity bursts for a device.
+- Count state transitions or summarize each segment of a data stream.
+- Convert records already sorted by key into chunks for downstream processing.
 
-Bài này thuộc chương **Xây dựng Gatherer tùy biến** của module `JAVA_STREAM_API`. Chúng ta sẽ tự tạo một toán tử để dùng như sau:
+This lesson belongs to the **Building Custom Gatherers** chapter of the `JAVA_STREAM_API` module. We will build an operator to use like this:
 
 ```java
 List<Run<String, Event>> runs = events.stream()
@@ -35,28 +35,28 @@ List<Run<String, Event>> runs = events.stream()
         .toList();
 ```
 
-Ở đây `groupConsecutiveBy` là **hàm do chúng ta tự xây dựng**, trả về một `Gatherer`. Nó không phải phương thức dựng sẵn của `Gatherers` trong thư viện chuẩn.
+Here `groupConsecutiveBy` is a **function we write ourselves**, returning a `Gatherer`. It is not a built-in method on `Gatherers` in the standard library.
 
-**Phiên bản Java:** Stream Gatherers trở thành tính năng chính thức từ **Java 24** (JEP 485); chúng từng ở giai đoạn preview trong Java 22 và Java 23. Bài học và chương trình hoàn chỉnh dùng **JDK 24+** và không cần `--enable-preview` khi biên dịch trên JDK 24 trở lên. Trên Java 17/21, mã `Stream.gather` chưa phải API chuẩn sẵn có.
+**Java Version:** Stream Gatherers became an official feature in **Java 24** (JEP 485); they were previously in preview in Java 22 and Java 23. This lesson and the complete program use **JDK 24+** and do not require `--enable-preview` when compiling on JDK 24 or later. On Java 17/21, `Stream.gather` is not yet an available standard API.
 
-## 2. Phân biệt groupingBy và nhóm liên tiếp
+## 2. Distinguishing groupingBy and Consecutive Grouping
 
-Cho các phần tử có khóa:
+Given elements with keys:
 
 ```text
 A, A, B, A, B, B
 ```
 
-Hai yêu cầu có kết quả khác nhau:
+The two requirements produce different results:
 
-| Yêu cầu | Cách hiểu | Kết quả |
+| Requirement | Interpretation | Result |
 | --- | --- | --- |
-| Phân nhóm toàn cục | Mọi phần tử cùng khóa thuộc cùng nhóm | `A → [A,A,A]`; `B → [B,B,B]` |
-| Phân nhóm liên tiếp | Khóa đổi thì kết thúc nhóm hiện tại | `[A,A]`, `[B]`, `[A]`, `[B,B]` |
+| Global grouping | All elements with the same key belong to the same group | `A → [A,A,A]`; `B → [B,B,B]` |
+| Consecutive grouping | When the key changes, the current group ends | `[A,A]`, `[B]`, `[A]`, `[B,B]` |
 
-`Collectors.groupingBy(classifier)` là terminal collector trả về `Map<K, List<T>>`. Nó không giữ được **số lần một khóa xuất hiện ở các đoạn tách rời** nếu chỉ lưu một entry cho mỗi khóa.
+`Collectors.groupingBy(classifier)` is a terminal collector returning `Map<K, List<T>>`. It cannot retain **how many times a key appeared in separate segments** if it only stores one entry per key.
 
-Ngược lại, toán tử nhóm liên tiếp tạo một **Stream các nhóm**. Điều này cho phép nối tiếp các thao tác:
+Conversely, the consecutive-grouping operator produces a **Stream of groups**. This enables chaining operations:
 
 ```java
 events.stream()
@@ -66,30 +66,30 @@ events.stream()
         .forEachOrdered(System.out::println);
 ```
 
-Kết quả của `gather` vẫn là Stream và có thể dùng tiếp `map`, `filter`, `limit` hoặc `collect`. Mỗi nhóm được phát ra khi biết rằng nó đã kết thúc, hoặc khi nguồn đã hết.
+The output of `gather` remains a Stream and can continue with `map`, `filter`, `limit`, or `collect`. Each group is emitted as soon as it is known to have ended, or when the source finishes.
 
-### Tại sao distinct hay windowFixed không thay thế được?
+### Why Can't distinct or windowFixed Replace It?
 
-`distinct` loại phần tử trùng theo `equals` nhưng không gom phần tử thành đoạn. `Gatherers.windowFixed(n)` tạo cửa sổ cố định theo số lượng `n`, không căn cứ vào chỗ **khóa đổi**. `groupingBy` lại gộp trên toàn bộ nguồn. Vì thế, nhóm liên tiếp là một ví dụ thực tế cho **Gatherer có trạng thái** (*stateful Gatherer*).
+`distinct` removes duplicate elements via `equals` rather than grouping elements into segments. `Gatherers.windowFixed(n)` forms fixed windows of count `n`, not based on where **keys change**. `groupingBy` merges across the entire source. Hence, consecutive grouping is a practical example for a **stateful Gatherer**.
 
-## 3. Kiến trúc Gatherer trong Java 24
+## 3. Gatherer Architecture in Java 24
 
-`java.util.stream.Gatherer<T, A, R>` là giao thức cho thao tác trung gian có thể tích lũy trạng thái, phát ra không, một hoặc nhiều phần tử đầu ra cho các phần tử đầu vào. Ý nghĩa ba tham số kiểu:
+`java.util.stream.Gatherer<T, A, R>` is a protocol for an intermediate operation that can accumulate state and emit zero, one, or multiple output elements for input elements. Meaning of the three type parameters:
 
-| Tham số kiểu | Ý nghĩa trong bài |
+| Type Parameter | Meaning in This Lesson |
 | --- | --- |
-| `T` | Một phần tử đầu vào, ví dụ `Event`. |
-| `A` | Trạng thái tích lũy nội bộ, ví dụ khóa hiện tại và danh sách bản ghi của đoạn. |
-| `R` | Một phần tử đầu ra, ví dụ `Run<String, Event>`. |
+| `T` | One input element, e.g., `Event`. |
+| `A` | Internal accumulated state, e.g., current key and list of records in the segment. |
+| `R` | One output element, e.g., `Run<String, Event>`. |
 
-Các thành phần của một Gatherer:
+Components of a Gatherer:
 
-1. **Initializer:** tạo trạng thái `A` mới cho lượt đánh giá.
-2. **Integrator:** nhận `(state, element, downstream)`, cập nhật trạng thái và có thể phát phần tử mới bằng `downstream.push(...)`.
-3. **Combiner:** định nghĩa cách ghép trạng thái của các phần chia song song, nếu muốn Gatherer hỗ trợ xử lý song song tại bước này.
-4. **Finisher:** được gọi khi không còn đầu vào để tiêu thụ, có thể phát kết quả cuối còn giữ trong trạng thái.
+1. **Initializer:** creates a fresh state `A` for an evaluation pass.
+2. **Integrator:** receives `(state, element, downstream)`, updates state, and may emit new elements via `downstream.push(...)`.
+3. **Combiner:** defines how to merge states of parallel split segments if the Gatherer supports parallel processing at this stage.
+4. **Finisher:** invoked when no more input remains to consume; can emit final results still held in state.
 
-Đối với bài toán nhóm liên tiếp, ranh giới phụ thuộc **thứ tự phần tử**, nên ta chủ động dùng **Gatherer tuần tự**:
+For consecutive grouping, boundaries depend on **element order**, so we intentionally use a **sequential Gatherer**:
 
 ```java
 Gatherer.ofSequential(
@@ -99,7 +99,7 @@ Gatherer.ofSequential(
 )
 ```
 
-Chữ ký được sử dụng về mặt ý tưởng là:
+The conceptual signature used is:
 
 ```java
 static <T, A, R> Gatherer<T, A, R> ofSequential(
@@ -109,56 +109,56 @@ static <T, A, R> Gatherer<T, A, R> ofSequential(
 )
 ```
 
-Một Gatherer tạo bằng `ofSequential` không cung cấp combiner có khả năng ghép trạng thái ở ranh giới tùy ý. Đây là **lựa chọn đúng trước tiên**: việc chia luồng thành nhiều phần song song có thể cắt đôi một nhóm, và một phép kết hợp ngây thơ sẽ cho kết quả sai.
+A Gatherer built with `ofSequential` does not supply a combiner capable of merging state at arbitrary boundaries. This is **the right choice first**: splitting a stream in parallel can slice a group in half, and a naive merge yields wrong results.
 
-### Downstream.push và tín hiệu dừng
+### Downstream.push and Stop Signals
 
-Trong integrator, `downstream.push(output)` chuyển một nhóm hoàn chỉnh sang công đoạn sau. Giá trị `boolean` trả về cho biết downstream **còn chấp nhận thêm đầu ra hay không**. Khi nó trả `false`, integrator phải **ngừng yêu cầu xử lý đầu vào tiếp** bằng cách trả `false`.
+Inside the integrator, `downstream.push(output)` passes a completed group to the next stage. Its `boolean` return value indicates whether downstream **still accepts more output**. When it returns `false`, the integrator must **stop requesting further inputs** by returning `false`.
 
-Tín hiệu này quan trọng nếu pipeline phía sau dùng `limit(n)` hoặc một terminal operation dừng sớm. Không nên bỏ qua giá trị trả về của `push` rồi vẫn tiếp tục xử lý nguồn không cần thiết.
+This signal matters if the downstream pipeline uses `limit(n)` or another short-circuiting terminal operation. Never ignore the return value of `push` and keep processing the source needlessly.
 
-## 4. Trạng thái tối thiểu cần lưu
+## 4. Minimum State to Store
 
-Một toán tử nhóm liên tiếp cần biết:
+A consecutive-grouping operator needs to know:
 
-- **Đã mở nhóm chưa?** `active`, để phân biệt trạng thái chưa có phần tử với trường hợp khóa hiện tại thật sự bằng `null`.
-- **Khóa hiện tại:** `key`, dùng so sánh với khóa của phần tử mới.
-- **Các phần tử của nhóm hiện tại:** `items`, danh sách đang được tích lũy.
+- **Has a group started?** `active`, to distinguish the no-element-yet state from when the actual current key is `null`.
+- **Current key:** `key`, compared against the incoming element's key.
+- **Elements of the current group:** `items`, the list currently accumulating.
 
 ```text
-Trước khi nhận đầu vào:
-active=false, key=(chưa có), items=[]
+Before receiving input:
+active=false, key=(none), items=[]
 
-Nhận A1:
+Receive A1:
 active=true, key=A, items=[A1]
 
-Nhận A2:
-key vẫn A, items=[A1,A2]
+Receive A2:
+key still A, items=[A1,A2]
 
-Nhận B1:
-phát Run(A,[A1,A2])
-chuyển sang key=B, items=[B1]
+Receive B1:
+emit Run(A,[A1,A2])
+switch to key=B, items=[B1]
 
-Hết nguồn:
-phát Run(B,[B1])
+End of source:
+emit Run(B,[B1])
 ```
 
-**Invariant** cần giữ: khi `active=true`, `items` chứa **đúng các phần tử của đoạn đang mở**, theo encounter order, và tất cả có khóa bằng `key` theo quy tắc so sánh đã chọn.
+**Invariant** to uphold: whenever `active=true`, `items` contains **the exact elements of the currently open segment**, in encounter order, and all share `key` under the chosen equality rule.
 
-Không dùng `key == null` để nói "chưa có nhóm", vì classifier có thể hợp lệ trả `null`. Thay vào đó, `active` mô tả trạng thái riêng.
+Do not use `key == null` to mean "no group yet", because the classifier may validly return `null`. Instead, `active` represents that state separately.
 
-### Tại sao phải chụp bản sao trước khi phát?
+### Why Must a Copy Be Taken Before Emitting?
 
-Nếu phát thẳng `items` rồi gọi `items.clear()` để bắt đầu nhóm mới, **nhóm vừa phát cũng có thể thành rỗng**, vì downstream vẫn giữ tham chiếu tới cùng List.
+If you emit `items` directly and then call `items.clear()` to begin a new group, **the just-emitted group can become empty too**, because downstream still holds a reference to the same List.
 
-Sai:
+Wrong:
 
 ```java
 downstream.push(new Run<>(state.key, state.items));
-state.items.clear(); // Có thể xóa luôn dữ liệu của Run đã phát.
+state.items.clear(); // Can wipe out data of the emitted Run.
 ```
 
-Đúng: tạo **snapshot** của nhóm trước khi phát:
+Right: create a **snapshot** of the group before emitting:
 
 ```java
 List<T> snapshot = Collections.unmodifiableList(
@@ -167,53 +167,53 @@ List<T> snapshot = Collections.unmodifiableList(
 downstream.push(new Run<>(state.key, snapshot));
 ```
 
-`Collections.unmodifiableList` ngăn sửa **cấu trúc danh sách** qua kết quả, còn `new ArrayList<>(...)` cắt đứt chia sẻ với bộ đệm đang tái sử dụng. Đây vẫn chỉ là **bản sao nông**: đối tượng phần tử mutable cần được xử lý riêng nếu yêu cầu bất biến sâu.
+`Collections.unmodifiableList` prevents mutating **list structure** through the result, while `new ArrayList<>(...)` breaks sharing with the reused buffer. This is still a **shallow copy**: mutable element objects must be handled separately if deep immutability is required.
 
-## 5. Thuật toán integrator: ba trường hợp
+## 5. Integrator Algorithm: Three Cases
 
-Với phần tử mới `element`, ta tính:
+For each new element `element`, compute:
 
 ```java
 K nextKey = classifier.apply(element);
 ```
 
-Sau đó xét ba trường hợp:
+Then consider three cases:
 
-| Trạng thái | Hành động | Có phát nhóm ngay không? |
+| State | Action | Emit a group immediately? |
 | --- | --- | --- |
-| Chưa có nhóm (`!active`) | Mở nhóm mới với `nextKey` và `element` | Không |
-| `Objects.equals(key, nextKey)` | Thêm phần tử vào nhóm đang mở | Không |
-| Khóa khác | Phát snapshot nhóm cũ, rồi mở nhóm mới | Có |
+| No group open (`!active`) | Open a new group with `nextKey` and `element` | No |
+| `Objects.equals(key, nextKey)` | Append element to the open group | No |
+| Different key | Emit snapshot of old group, then open a new group | Yes |
 
 Pseudocode:
 
 ```text
 integrate(state, element, downstream):
     nextKey = classifier(element)
-    if chưa mở nhóm:
-        mở nhóm(nextKey, element)
+    if no group open:
+        open group(nextKey, element)
         return true
 
-    if key cũ bằng nextKey:
-        thêm element
+    if old key equals nextKey:
+        append element
         return true
 
-    phát snapshot của nhóm cũ
-    nếu downstream không nhận thêm:
-        đánh dấu nhóm đã đóng
+    emit snapshot of old group
+    if downstream accepts no more:
+        mark group closed
         return false
 
-    mở nhóm mới(nextKey, element)
+    open new group(nextKey, element)
     return true
 ```
 
-Nhìn vào điều kiện, ta thấy **không cần giữ toàn bộ dữ liệu nguồn**. Trong quá trình xử lý, Gatherer chỉ giữ **một nhóm đang mở**. Những nhóm trước đã được phát và có thể được pipeline tiếp tục xử lý ngay.
+Looking at the condition, **there is no need to buffer the entire source**. During processing, the Gatherer holds only **one open group**. Previous groups have already been emitted and can immediately flow through the rest of the pipeline.
 
-Đồng thời, có một sự đánh đổi: để biết một nhóm đã kết thúc, Gatherer phải **đọc phần tử đầu tiên của nhóm kế tiếp**. Vì thế khi downstream chỉ yêu cầu `limit(1)` nhóm, upstream có thể đã phải xử lý thêm phần tử đầu tiên của nhóm thứ hai để phát được nhóm thứ nhất.
+At the same time, there is a trade-off: to know a group has ended, the Gatherer must **read the first element of the next group**. Thus, when downstream only asks for `limit(1)` group, upstream may have had to process the first element of the second group in order to emit the first group.
 
-## 6. Finisher: đừng quên nhóm cuối cùng
+## 6. Finisher: Do Not Forget the Final Group
 
-Giả sử đầu vào là `[A,A,B]`. Khi gặp `B`, integrator phát nhóm `A`. Nhưng sau `B` không còn phần tử mới nào để kích hoạt "khóa đổi", nên nhóm `B` phải được phát ở **finisher**.
+Suppose input is `[A,A,B]`. Upon seeing `B`, the integrator emits group `A`. After `B`, however, no more elements arrive to trigger a "key change", so group `B` must be emitted in the **finisher**.
 
 ```java
 (state, downstream) -> {
@@ -228,17 +228,17 @@ Giả sử đầu vào là `[A,A,B]`. Khi gặp `B`, integrator phát nhóm `A`.
 }
 ```
 
-Trường hợp **nguồn rỗng**: `active=false`, finisher không phát nhóm giả. Nếu chỉ có một phần tử: finisher phát đúng một nhóm chứa phần tử ấy. Nếu nguồn kết thúc ngay sau lần đổi khóa, finisher phát nhóm mới đang mở.
+**Empty source** case: `active=false`, so finisher emits no spurious group. With a single element: finisher emits one group containing that element. If the source ends right after a key switch, finisher emits the newly opened group.
 
-`downstream.isRejecting()` giúp tránh cố phát thêm khi downstream không muốn nhận đầu ra nữa. Ngoài ra, nếu integrator đã dừng sau khi `push` trả `false`, ta sẽ **đóng nhóm trong trạng thái** để tránh finisher phát lặp.
+`downstream.isRejecting()` avoids trying to emit more when downstream no longer wants output. Furthermore, if the integrator already stopped after `push` returned `false`, we **close the group in state** to prevent the finisher from emitting redundantly.
 
-**Không coi finisher như một lần "xử lý lại" đầu vào:** nó chỉ chốt dữ liệu đã được tích lũy nhưng chưa phát ra. Không nên có thao tác đọc thêm nguồn hoặc quay lại phần tử đã xử lý.
+**Do not treat the finisher as another "pass" over inputs:** it solely finalizes data already accumulated and not yet emitted. It should never read more source items or revisit processed elements.
 
-## 7. Chương trình hoàn chỉnh Java 24+: groupConsecutiveBy
+## 7. Complete Java 24+ Program: groupConsecutiveBy
 
-Chương trình sau định nghĩa một Gatherer tái sử dụng được, không ràng buộc vào lớp sự kiện cụ thể. `Run<K,T>` biểu diễn một đoạn liên tiếp: khóa và danh sách phần tử của đoạn.
+The following program defines a reusable Gatherer, decoupled from any specific event class. `Run<K,T>` represents one consecutive segment: a key and the list of elements in that segment.
 
-Lưu dưới tên `ConsecutiveKeyGathererDemo.java`, biên dịch và chạy bằng **JDK 24+**.
+Save as `ConsecutiveKeyGathererDemo.java`, compile and run with **JDK 24+**.
 
 ```java
 import java.util.ArrayList;
@@ -268,7 +268,7 @@ public class ConsecutiveKeyGathererDemo {
                 (state, element, downstream) -> {
                     K nextKey = classifier.apply(element);
 
-                    // Bắt đầu nhóm đầu tiên.
+                    // Start the first group.
                     if (!state.active) {
                         state.active = true;
                         state.key = nextKey;
@@ -276,13 +276,13 @@ public class ConsecutiveKeyGathererDemo {
                         return true;
                     }
 
-                    // Vẫn trong một đoạn liên tiếp.
+                    // Still inside a consecutive segment.
                     if (Objects.equals(state.key, nextKey)) {
                         state.items.add(element);
                         return true;
                     }
 
-                    // Khóa thay đổi: phát snapshot của đoạn cũ.
+                    // Key changed: emit snapshot of the previous segment.
                     Run<K, T> completed = new Run<>(
                             state.key,
                             Collections.unmodifiableList(
@@ -291,13 +291,13 @@ public class ConsecutiveKeyGathererDemo {
                     );
 
                     if (!downstream.push(completed)) {
-                        // Downstream không nhận thêm; đừng mở nhóm mới.
+                        // Downstream accepts no more; do not open a new group.
                         state.active = false;
                         state.items.clear();
                         return false;
                     }
 
-                    // Bắt đầu một đoạn mới từ phần tử hiện tại.
+                    // Start a new segment from the current element.
                     state.key = nextKey;
                     state.items.clear();
                     state.items.add(element);
@@ -305,7 +305,7 @@ public class ConsecutiveKeyGathererDemo {
                 },
 
                 (state, downstream) -> {
-                    // Chốt đoạn cuối khi nguồn hết.
+                    // Flush the final segment when the source ends.
                     if (state.active && !downstream.isRejecting()) {
                         downstream.push(new Run<>(
                                 state.key,
@@ -355,7 +355,7 @@ public class ConsecutiveKeyGathererDemo {
                 || runs.get(2).items().size() != 1
                 || !runs.get(3).key().equals("C")
                 || runs.get(3).items().size() != 2) {
-            throw new AssertionError("Nhóm liên tiếp không đúng");
+            throw new AssertionError("Incorrect consecutive groups");
         }
 
         List<Run<String, Event>> firstTwo = events.stream()
@@ -366,7 +366,7 @@ public class ConsecutiveKeyGathererDemo {
         if (firstTwo.size() != 2
                 || !firstTwo.get(0).key().equals("A")
                 || !firstTwo.get(1).key().equals("B")) {
-            throw new AssertionError("Dừng sớm không đúng");
+            throw new AssertionError("Incorrect early termination");
         }
 
         System.out.println("PASS");
@@ -374,53 +374,53 @@ public class ConsecutiveKeyGathererDemo {
 }
 ```
 
-Nếu môi trường đã chọn đúng JDK 24 trở lên:
+If the environment uses JDK 24 or newer:
 
 ```text
 javac ConsecutiveKeyGathererDemo.java
 java ConsecutiveKeyGathererDemo
 ```
 
-Không cần thêm thư viện bên ngoài. Đoạn mã dùng `Stream.gather` và `java.util.stream.Gatherer` đã chính thức trong Java 24. Bài viết **không chạy biên dịch tại STEP 4**; khi áp dụng thật, cần dùng JDK đúng phiên bản và kiểm thử theo build của dự án.
+No external libraries are needed. The code uses `Stream.gather` and `java.util.stream.Gatherer`, which are official in Java 24. The lesson **does not run compilation at STEP 4**; when applying in practice, use the right JDK version and test against the project's build.
 
-## 8. Vì sao bản cài đặt này đúng?
+## 8. Why Is This Implementation Correct?
 
-Xem lại luồng:
+Review the trace:
 
 ```text
-Nhận A1: state=A/[A1], chưa phát
-Nhận A2: state=A/[A1,A2], chưa phát
-Nhận A3: state=A/[A1,A2,A3], chưa phát
-Nhận B1: phát A/[A1,A2,A3], state=B/[B1]
-Nhận B2: state=B/[B1,B2], chưa phát
-Nhận A4: phát B/[B1,B2], state=A/[A4]
-Nhận C1: phát A/[A4], state=C/[C1]
-Nhận C2: state=C/[C1,C2], chưa phát
-Nguồn hết: finisher phát C/[C1,C2]
+Receive A1: state=A/[A1], not emitted
+Receive A2: state=A/[A1,A2], not emitted
+Receive A3: state=A/[A1,A2,A3], not emitted
+Receive B1: emit A/[A1,A2,A3], state=B/[B1]
+Receive B2: state=B/[B1,B2], not emitted
+Receive A4: emit B/[B1,B2], state=A/[A4]
+Receive C1: emit A/[A4], state=C/[C1]
+Receive C2: state=C/[C1,C2], not emitted
+Source ends: finisher emits C/[C1,C2]
 ```
 
-Các tính chất cần kiểm tra:
+Properties to verify:
 
-1. **Đầy đủ:** mỗi phần tử được đưa vào đúng một nhóm, trừ khi downstream chủ động dừng sớm.
-2. **Không chồng lấn:** khi khóa đổi, nhóm cũ được phát xong trước khi tạo nhóm mới.
-3. **Tối đa:** trong một nhóm không có ranh giới khóa khác; hai nhóm kề nhau không thể có khóa bằng nhau nếu sử dụng cùng một classifier nhất quán.
-4. **Giữ thứ tự:** các phần tử trong nhóm giữ encounter order của Stream đầu vào; các nhóm được phát theo đúng trình tự.
-5. **Không tự quay lại:** khóa `A` xuất hiện sau đoạn `B` tạo một nhóm `A` mới.
-6. **Đóng cuối:** finisher phát nhóm cuối dù không có phần tử kế tiếp.
-7. **Không chia sẻ bộ đệm:** mỗi đầu ra chứa snapshot riêng, không bị `clear()` ở nhóm sau làm thay đổi.
-8. **Dừng sớm:** nếu downstream từ chối, integrator trả `false` và không cố tiếp tục tạo các nhóm mới.
+1. **Completeness:** every element is placed into exactly one group, unless downstream stops early.
+2. **Non-overlapping:** when the key changes, the old group finishes emitting before the new group is formed.
+3. **Maximality:** no key boundary exists within a group; two adjacent groups cannot have equal keys given a consistent classifier.
+4. **Order preservation:** elements inside a group preserve the input Stream's encounter order; groups are emitted in exact sequence.
+5. **No retroactive merging:** key `A` appearing after segment `B` creates a new group `A`.
+6. **Final closure:** finisher emits the last group even with no subsequent element.
+7. **No shared buffer:** each output holds its own snapshot, unaffected by `clear()` on later groups.
+8. **Early stop:** if downstream rejects, the integrator returns `false` and does not try to open new groups.
 
-### Vì sao trả true ở nhánh chưa phát đầu ra?
+### Why Return true in Branches That Emit Nothing?
 
-Integrator trả `true` có nghĩa là **có thể tiếp tục nhận đầu vào**, không phải "đã phát một đầu ra". Khi nhóm đang được tích lũy và chưa đóng, không phát gì vẫn là trường hợp bình thường. Một Gatherer có thể phát 0 hoặc nhiều phần tử cho một phần tử đầu vào.
+An integrator returning `true` means **able to keep receiving inputs**, not "an output was emitted". While a group is accumulating and not yet closed, emitting nothing is normal. A Gatherer can emit 0 or more elements per input element.
 
-### Vì sao không dùng state.key == nextKey?
+### Why Not Use state.key == nextKey?
 
-Với khóa kiểu `String`, `new String("A")` và `"A"` có thể là hai object khác tham chiếu nhưng có giá trị bằng nhau. `Objects.equals(state.key, nextKey)` dùng `equals`, đồng thời hỗ trợ khóa `null` nếu chính sách ứng dụng cho phép.
+For `String` keys, `new String("A")` and `"A"` can be two distinct object references with equal values. `Objects.equals(state.key, nextKey)` uses `equals`, while also supporting `null` keys if application policy permits.
 
-## 9. Xử lý downstream dừng sớm và limit
+## 9. Handling Downstream Early Stop and limit
 
-Ví dụ:
+Example:
 
 ```java
 List<Run<String, Event>> firstTwo = events.stream()
@@ -429,36 +429,36 @@ List<Run<String, Event>> firstTwo = events.stream()
         .toList();
 ```
 
-Trong dữ liệu mẫu, hai nhóm đầu là `A` và `B`. Để phát nhóm `B`, Gatherer phải nhận phần tử `A4` (mốc bắt đầu nhóm thứ ba). Khi đó downstream có thể báo không nhận thêm qua `push`, khiến integrator trả `false`.
+In the sample data, the first two groups are `A` and `B`. To emit group `B`, the Gatherer must receive element `A4` (the start of the third group). At that moment downstream can report no more wanted via `push`, causing the integrator to return `false`.
 
-Đây là tính chất của **toán tử phụ thuộc ranh giới**: một nhóm chỉ chắc chắn kết thúc khi gặp khóa khác hoặc biết rằng nguồn hết.
+This is a property of **boundary-dependent operators**: a group only surely ends upon seeing a different key or knowing the source has ended.
 
 ```text
-Nhận A1,A2,A3: chưa có nhóm hoàn chỉnh
-Nhận B1:      phát Run(A)
-Nhận B2:      chưa phát Run(B)
-Nhận A4:      phát Run(B); limit(2) có đủ kết quả
-               -> downstream từ chối thêm
-               -> integrator dừng
+Receive A1,A2,A3: no complete group yet
+Receive B1:       emit Run(A)
+Receive B2:       Run(B) not emitted yet
+Receive A4:       emit Run(B); limit(2) has enough results
+                   -> downstream rejects more
+                   -> integrator stops
 ```
 
-Một chi tiết quan trọng là không nên cho rằng `limit(2)` có nghĩa **chỉ đọc đúng hai phần tử nguồn**. Ở đây giới hạn áp dụng cho **số nhóm đầu ra**, không phải số sự kiện đầu vào.
+An important detail is never assuming `limit(2)` means **reading only two source elements**. Here the limit applies to **output group count**, not input event count.
 
-Ngoài ra, các callback khác trong một pipeline có thể đã xử lý một số phần tử tùy chiến lược thực thi. Vì thế không đặt tác dụng phụ bắt buộc, ví dụ gửi email hoặc ghi tiền, vào classifier để giả định nó sẽ chạy đúng một số lần đoán trước.
+Furthermore, other callbacks in a pipeline may have processed some elements depending on execution strategy. Hence, do not place mandatory side effects, such as sending emails or charging money, inside the classifier assuming it runs a predictable number of times.
 
-### Điều kiện dừng từ integrator
+### Stop Condition from the Integrator
 
-`Integrator.integrate` trả `false` để báo không muốn nhận thêm input. Trong triển khai của ta, điều này xảy ra khi `downstream.push(completed)` trả `false`. Khi đó:
+`Integrator.integrate` returns `false` to signal it wants no further input. In our implementation, this occurs when `downstream.push(completed)` returns `false`. When that happens:
 
-- Không tạo nhóm cho phần tử vừa gây chuyển khóa.
-- Đánh dấu `state.active=false` và xóa bộ đệm để tránh phát lại ở finisher.
-- Không tái sử dụng trạng thái cho một lần tiêu thụ Stream khác.
+- Do not open a group for the element that triggered the key change.
+- Set `state.active=false` and clear the buffer to prevent re-emission in the finisher.
+- Never reuse state for another Stream consumption.
 
-Nếu classifier hoặc downstream ném ngoại lệ, ngoại lệ sẽ lan truyền ra terminal operation. Không coi finisher là cơ chế tự động sửa lỗi hoặc bảo đảm rollback tác dụng phụ.
+If the classifier or downstream throws an exception, the exception propagates out to the terminal operation. Do not treat the finisher as an automatic error-recovery or side-effect rollback mechanism.
 
-## 10. Nguồn rỗng, một phần tử, null và kiểu khóa
+## 10. Empty Source, Single Element, Nulls, and Key Types
 
-### Nguồn rỗng
+### Empty Source
 
 ```java
 List<Run<String, Event>> noRuns =
@@ -469,9 +469,9 @@ List<Run<String, Event>> noRuns =
 System.out.println(noRuns.isEmpty()); // true
 ```
 
-Initializer tạo state với `active=false`, integrator không được gọi và finisher không phát gì.
+Initializer creates state with `active=false`, integrator is never called, and finisher emits nothing.
 
-### Một phần tử
+### Single Element
 
 ```java
 List<Run<String, Event>> oneRun =
@@ -483,11 +483,11 @@ System.out.println(oneRun.size());            // 1
 System.out.println(oneRun.get(0).items().size()); // 1
 ```
 
-Nhóm đơn được phát ở finisher.
+The single group is emitted in the finisher.
 
-### Khóa null
+### Null Keys
 
-`Objects.equals` cho phép hai khóa `null` được xem là bằng nhau:
+`Objects.equals` allows two `null` keys to be treated as equal:
 
 ```java
 record Label(String text) {}
@@ -506,11 +506,11 @@ System.out.println(groups.get(0).key()); // null
 System.out.println(groups.get(0).items().size()); // 2
 ```
 
-Trong hàm dựng Gatherer, `Objects.requireNonNull(classifier)` chỉ kiểm tra **hàm classifier không được null**, không bắt buộc **giá trị khóa trả về** phải khác null. Nếu sản phẩm không chấp nhận khóa null, nên kiểm tra đầu vào hoặc thay bằng giá trị đại diện có ngữ nghĩa rõ ràng.
+In the Gatherer factory, `Objects.requireNonNull(classifier)` only checks that **the classifier function is non-null**, not that **returned key values** must be non-null. If your product forbids null keys, validate inputs or map them to a sentinel value with clear semantics.
 
-### Phần tử null
+### Null Elements
 
-List snapshot từ `Collections.unmodifiableList(new ArrayList<>(...))` có thể chứa phần tử null, nhưng classifier như `Event::type` sẽ ném `NullPointerException` khi nhận `element=null`. Nếu nguồn chứa null, hãy xác định chính sách:
+A snapshot list from `Collections.unmodifiableList(new ArrayList<>(...))` can contain null elements, yet a classifier like `Event::type` throws `NullPointerException` upon receiving `element=null`. If the source contains nulls, define a policy:
 
 ```java
 List<Run<String, Event>> safe =
@@ -520,11 +520,11 @@ List<Run<String, Event>> safe =
                 .toList();
 ```
 
-Đoạn này minh họa với biến `possiblyNullEvents` được chuẩn bị ở tầng gọi. **Lọc phần tử null** có thể làm hai đoạn cùng khóa vốn bị ngăn cách bởi phần tử null trở thành liền nhau. Nếu null phải được xem là một **ranh giới**, đừng lọc nó mà hãy định nghĩa khóa/phần tử biểu diễn ranh giới rõ ràng.
+This snippet illustrates with a `possiblyNullEvents` variable prepared at the call site. **Filtering out null elements** can cause two segments of the same key previously separated by a null element to become adjacent. If null must act as a **boundary**, do not filter it out; instead define a key/element explicitly representing that boundary.
 
-## 11. Encounter order là điều kiện quan trọng
+## 11. Encounter Order Is an Essential Condition
 
-Một toán tử nhóm **liên tiếp** phụ thuộc trực tiếp vào encounter order. Với `List.stream()`, thứ tự các phần tử theo List nên có thể xác định duy nhất những ranh giới.
+A **consecutive** grouping operator directly depends on encounter order. With `List.stream()`, element order follows the List, so boundaries are uniquely defined.
 
 ```java
 List<String> keys = List.of("A", "A", "B", "A");
@@ -536,17 +536,17 @@ List<Run<String, String>> runs = keys.stream()
 // Run(A,[A,A]), Run(B,[B]), Run(A,[A])
 ```
 
-Nhưng nếu nguồn là `HashSet`, thứ tự duyệt **không được cam kết**, nên các đoạn "liên tiếp" không mang một ý nghĩa nghiệp vụ ổn định:
+However, if the source is a `HashSet`, traversal order **is not guaranteed**, so "consecutive" segments carry no stable business meaning:
 
 ```java
 Set<String> unorderedSource =
         new java.util.HashSet<>(List.of("A", "B", "C"));
 
-// Không nên xem kết quả nhóm liên tiếp từ nguồn này
-// như những đoạn lịch sử có thứ tự cố định.
+// Do not treat consecutive grouping results from this source
+// as historical segments with fixed order.
 ```
 
-Nếu dữ liệu có trường `sequence`, `timestamp` hoặc chỉ số, hãy **xác định thứ tự trước khi group**:
+If data has a `sequence`, `timestamp`, or index field, **establish order before grouping**:
 
 ```java
 List<Event> ordered = events.stream()
@@ -558,76 +558,76 @@ List<Run<String, Event>> sortedRuns = ordered.stream()
         .toList();
 ```
 
-Lưu ý: comparator theo `id` ở đây chỉ là minh họa kỹ thuật. Với nhật ký thực tế, phải chọn **thời gian, sequence và tie-break** đúng ngữ nghĩa; sắp dữ liệu theo khóa nhóm có thể **thay đổi yêu cầu** bằng cách biến các nhóm tách rời thành một nhóm lớn.
+Note: the comparator by `id` here is only a technical illustration. In real logs, choose **timestamp, sequence, and tie-breakers** with accurate semantics; sorting data by the grouping key itself would **change the requirement** by collapsing separate segments into one large group.
 
-### Đừng gọi unordered() khi cần các đoạn lịch sử
+### Do Not Call unordered() When Historical Segments Are Needed
 
-`unordered()` bỏ ràng buộc encounter order. Nó không có nghĩa "xáo trộn" một cách ngẫu nhiên, nhưng khiến một số thao tác không còn phải bảo toàn thứ tự nguồn. Đối với nhóm liên tiếp theo trình tự, bỏ order có thể làm **định nghĩa đầu ra không còn ổn định**.
+`unordered()` drops the encounter-order constraint. It does not mean "shuffle" randomly, yet allows operations to stop preserving source order. For sequential consecutive grouping, dropping order makes **the output definition unstable**.
 
-## 12. Tại sao chưa nên viết combiner song song?
+## 12. Why Not Write a Parallel Combiner Yet?
 
-Khó khăn nằm ở ranh giới giữa các phần tách. Ví dụ:
+The difficulty lies at boundaries between split segments. For example:
 
 ```text
-Đầu vào: A A A A B B C
+Input: A A A A B B C
 
-Chia phần việc:
-  Trái:  A A A
-  Phải:  A B B C
+Work split:
+  Left:  A A A
+  Right: A B B C
 
-Nhóm cục bộ:
-  Trái:  [A,A,A]
-  Phải:  [A], [B,B], [C]
+Local groups:
+  Left:  [A,A,A]
+  Right: [A], [B,B], [C]
 
-Ghép ngây thơ:
-  [A,A,A], [A], [B,B], [C]   <- SAI
+Naive merge:
+  [A,A,A], [A], [B,B], [C]   <- WRONG
 
-Ghép đúng:
+Correct merge:
   [A,A,A,A], [B,B], [C]
 ```
 
-Để hỗ trợ combiner song song đúng nghĩa, trạng thái của mỗi phân đoạn cần giữ đủ thông tin về **nhóm đầu**, **nhóm cuối** và các nhóm hoàn chỉnh ở giữa. Khi gộp hai phần, phải xét liệu nhóm cuối bên trái có cùng khóa với nhóm đầu bên phải để hợp nhất chúng mà vẫn giữ thứ tự. Đây không còn là phép `List.addAll` đơn giản.
+To support a true parallel combiner, each partition's state must retain enough information about **its first group**, **its last group**, and complete middle groups. When merging two parts, you must check whether the left's last group shares a key with the right's first group and fuse them while preserving order. That is no longer a simple `List.addAll`.
 
-`Gatherer.ofSequential` tránh vấn đề này bằng cách **không cung cấp combiner hỗ trợ chia/gộp trạng thái tại Gatherer**. Nếu pipeline bắt đầu từ `parallelStream()`, không nên cho rằng bước Gatherer này tự nhiên được song song hóa hiệu quả; ràng buộc thứ tự có thể làm giảm lợi ích của xử lý song song.
+`Gatherer.ofSequential` avoids this by **not supplying a combiner to split/merge Gatherer state**. If the pipeline starts from `parallelStream()`, do not assume this Gatherer stage is automatically parallelized effectively; ordering constraints can negate parallel gains.
 
-**Ưu tiên bài học:** viết Gatherer tuần tự chính xác, có test các ranh giới; chỉ thiết kế combiner khi thật sự cần và đã mô hình hóa toán học việc ghép hai phân đoạn, bao gồm đầu/cuối, nhóm rỗng và tính kết hợp (*associativity*).
+**Lesson priority:** write a correct sequential Gatherer with boundary tests; only design a combiner when truly needed and after mathematically modeling how two segments merge, including head/tail, empty groups, and *associativity*.
 
-## 13. Tính trạng thái, non-interference và an toàn bộ nhớ
+## 13. Statefulness, Non-Interference, and Memory Safety
 
-Gatherer có trạng thái nội bộ **không đồng nghĩa với một pipeline vi phạm stateless/non-interference**. Sự khác biệt là:
+A Gatherer having internal state **is not equivalent to a pipeline violating stateless/non-interference rules**. The difference is:
 
-- Gatherer dùng **state do initializer tạo riêng cho quá trình đánh giá**, theo hợp đồng của API.
-- Classifier nên là hàm **không sửa nguồn**, không ghi vào danh sách hay Map dùng chung.
-- Không nên giữ state tích lũy trong một biến global hoặc `static` rồi tái sử dụng qua nhiều lần gọi Stream.
-- Downstream phải nhận **snapshot tách biệt** nếu state sẽ bị sửa tiếp.
+- The Gatherer uses **state created specifically for the evaluation pass by its initializer**, per API contract.
+- The classifier should be a function that **does not mutate the source**, nor write to shared lists or Maps.
+- Never keep accumulated state in a global or `static` variable reused across multiple Stream invocations.
+- Downstream must receive an **isolated snapshot** if state will continue being mutated.
 
-Ví dụ sai về thiết kế:
+Flawed design example:
 
 ```java
 static List<Event> sharedBuffer = new ArrayList<>();
 
-// SAI: dùng sharedBuffer làm bộ đệm cho mọi lượt đánh giá
-// có thể gây dữ liệu còn sót và race condition.
+// WRONG: using sharedBuffer as the buffer for all evaluations
+// can cause leftover data and race conditions.
 ```
 
-Đúng hơn: tạo bộ đệm trong đối tượng `State` mới được khởi tạo bởi `State::new`.
+Better: create the buffer inside a fresh `State` object initialized by `State::new`.
 
-Một giới hạn khác: các phần tử của `Run` chỉ được **sao chép tham chiếu**, không tự deep-copy. Nếu `Event` chứa những trường mutable như `List<String>` hoặc một object có setter, phần tử vẫn có thể bị sửa từ nơi khác. Với DTO cần bất biến sâu, hãy ánh xạ hoặc sao chép các phần tử thành những giá trị bất biến trước khi gom nhóm.
+Another limitation: `Run` elements are only **reference-copied**, not automatically deep-copied. If `Event` holds mutable fields such as `List<String>` or an object with setters, elements can still be mutated externally. For DTOs needing deep immutability, map or copy elements into immutable values before grouping.
 
-### Bộ nhớ sử dụng
+### Memory Usage
 
-Với `n` phần tử và đoạn dài nhất có `m` phần tử:
+With `n` elements and longest segment of length `m`:
 
-- Bộ đệm tích lũy của Gatherer chứa tối đa khoảng `m` tham chiếu phần tử tại một thời điểm.
-- Snapshot một đoạn cần sao chép các tham chiếu của đoạn đó; tổng số tham chiếu được sao chép qua mọi đoạn là `n` nếu tiêu thụ toàn bộ nguồn.
-- Bản thân Gatherer không cần giữ lại mọi đoạn đã phát. Nếu gọi `toList()` sau `gather`, **kết quả cuối** vẫn lưu tất cả nhóm và các phần tử của chúng, dùng bộ nhớ tổng thể tăng theo `n`.
-- Nếu một đoạn rất dài hoặc nguồn không bao giờ đổi khóa, đầu ra đầu tiên bị trì hoãn và bộ đệm có thể rất lớn.
+- The Gatherer's accumulation buffer holds at most about `m` element references at a time.
+- Snapshotting a segment copies that segment's references; total references copied across all segments is `n` if the full source is consumed.
+- The Gatherer itself does not retain previously emitted segments. If you call `toList()` after `gather`, **the final result** still stores all groups and their elements, growing overall memory proportional to `n`.
+- If a segment is very long or the source never changes keys, the first output is delayed and the buffer can grow very large.
 
-Với luồng thực sự vô hạn mà khóa không bao giờ đổi, Gatherer này **không thể phát nhóm hoàn chỉnh**. Khi đó cần một quy tắc đóng đoạn khác, chẳng hạn số phần tử tối đa, timeout hoặc cửa sổ thời gian.
+On a truly infinite stream where the key never changes, this Gatherer **cannot emit a complete group**. In that case you need another segment-closing rule, such as maximum element count, timeout, or time window.
 
-## 14. Tổng hợp thống kê cho mỗi đoạn
+## 14. Aggregating Statistics for Each Segment
 
-Vì `gather` trả Stream các `Run`, ta có thể tiếp tục tạo báo cáo:
+Since `gather` returns a Stream of `Run`s, we can continue building reports:
 
 ```java
 record RunSummary(
@@ -647,7 +647,7 @@ List<RunSummary> summaries = events.stream()
 summaries.forEach(System.out::println);
 ```
 
-Kết quả theo dữ liệu mẫu:
+Output on sample data:
 
 ```text
 RunSummary[type=A, count=3, totalValue=60]
@@ -656,52 +656,52 @@ RunSummary[type=A, count=1, totalValue=60]
 RunSummary[type=C, count=2, totalValue=150]
 ```
 
-Điểm đáng chú ý: có **hai** `RunSummary` với type `A`, vì đây là hai đoạn khác nhau trong dòng sự kiện. Nếu dùng `groupingBy(Event::type, summingLong(...))`, ta sẽ có **một** entry `A` với tổng `120`, làm mất thông tin về các lần quay lại trạng thái `A`.
+Notably, there are **two** `RunSummary` entries with type `A`, because they are two separate segments in the event stream. Using `groupingBy(Event::type, summingLong(...))` would yield **one** `A` entry with sum `120`, losing information about returning to state `A`.
 
-### Tính số lần chuyển trạng thái
+### Counting State Transitions
 
-Nếu nguồn không rỗng và mọi lần đổi khóa tạo nhóm mới, thì:
+If the source is non-empty and every key change starts a new group, then:
 
 ```text
-Số lần chuyển khóa = Số nhóm liên tiếp - 1
+Number of key transitions = Number of consecutive groups - 1
 ```
 
-Với ví dụ có 4 nhóm, có 3 lần đổi khóa: `A→B`, `B→A`, `A→C`. Nếu nguồn rỗng, số lần chuyển là 0; trong code có thể dùng `Math.max(0, runs.size() - 1)`.
+In the example with 4 groups, there are 3 key transitions: `A→B`, `B→A`, `A→C`. If the source is empty, transition count is 0; in code you can write `Math.max(0, runs.size() - 1)`.
 
-Khi chỉ cần số lượng nhóm hoặc thống kê tích lũy, có thể phát `RunSummary` thay vì giữ toàn bộ List phần tử; đó là một hướng tối ưu cho dữ liệu lớn sau khi đã nắm vững cơ chế cơ bản.
+When only group counts or summary stats are needed, you can emit `RunSummary` directly instead of keeping the whole List of elements; that is an optimization direction for large datasets once you master the basic mechanism.
 
-## 15. Những lỗi thường gặp
+## 15. Common Mistakes
 
-| Triệu chứng | Nguyên nhân | Cách sửa |
+| Symptom | Cause | Fix |
 | --- | --- | --- |
-| Hai đoạn cùng khóa nhưng cách xa bị gộp làm một | Dùng `groupingBy` toàn cục | Dùng Gatherer có trạng thái và phát khi khóa đổi. |
-| Nhóm cuối cùng bị mất | Chỉ phát trong integrator khi thấy khóa mới | Thêm finisher để flush nhóm còn mở. |
-| Kết quả nhóm trước bỗng thành rỗng | Đẩy tham chiếu buffer rồi `clear()` | Tạo snapshot trước khi `push`. |
-| Nguồn rỗng nhưng phát một nhóm rỗng | Finisher phát dù chưa mở nhóm | Dùng cờ `active` và chỉ phát khi đúng. |
-| Khóa null bị coi là chưa khởi tạo | Dùng `key == null` để xác định state rỗng | Dùng `boolean active` riêng. |
-| Hai chuỗi cùng nội dung thành hai nhóm | So sánh khóa bằng `==` | Dùng `Objects.equals` hoặc comparator tương đương đã định nghĩa rõ. |
-| Phần tử không còn được tiêu thụ nhưng integrator vẫn chạy | Bỏ qua `downstream.push` trả `false` | Trả `false` từ integrator, tránh mở thêm nhóm. |
-| Finisher phát lặp sau khi dừng sớm | Không đóng trạng thái khi downstream từ chối | Đánh dấu `active=false` trước khi trả `false`. |
-| Nhóm bị thay đổi khi kết quả đã phát | Phần tử chứa object mutable và bị sửa bên ngoài | Chuyển sang giá trị bất biến/deep-copy nếu nghiệp vụ cần. |
-| Thứ tự nhóm không ổn định | Nguồn unordered hoặc bỏ order | Xác lập encounter order theo sự kiện trước khi gather. |
-| Chạy song song cho nhóm sai ở ranh giới phân đoạn | Combiner chỉ nối hai danh sách nhóm | Thiết kế combiner có xử lý hai nhóm giáp ranh, hoặc dùng `ofSequential`. |
-| Tốn nhiều bộ nhớ khi một khóa kéo dài | Bộ đệm giữ toàn bộ đoạn chưa đóng | Đặt quy tắc chia đoạn phụ, dùng đầu ra tổng hợp hoặc giới hạn đầu vào. |
-| Code không biên dịch trên JDK 17/21 | `Stream.gather` chưa là API chuẩn ở phiên bản đó | Dùng JDK 24+ hoặc giải pháp tuần tự khác phù hợp phiên bản. |
+| Two separated segments with the same key get merged into one | Using global `groupingBy` | Use a stateful Gatherer and emit when key changes. |
+| The last group is lost | Only emitting inside integrator upon seeing a new key | Add a finisher to flush the remaining open group. |
+| Previous group result suddenly turns empty | Pushed buffer reference then called `clear()` | Create a snapshot before `push`. |
+| Empty source emits one empty group | Finisher emits even when no group opened | Use an `active` flag and emit only when true. |
+| Null key treated as uninitialized | Using `key == null` to detect empty state | Use a separate `boolean active`. |
+| Two strings with equal content become two groups | Comparing keys with `==` | Use `Objects.equals` or a clearly defined equivalent comparator. |
+| Elements no longer consumed yet integrator keeps running | Ignoring `downstream.push` returning `false` | Return `false` from integrator, avoid opening new groups. |
+| Finisher emits redundantly after early stop | Did not close state when downstream rejected | Mark `active=false` before returning `false`. |
+| Group mutates after result is emitted | Elements contain mutable objects mutated outside | Convert to immutable values / deep-copy if required by business rules. |
+| Unstable group order | Unordered source or dropped order | Establish event encounter order before gathering. |
+| Parallel run produces wrong groups at split boundaries | Combiner merely concatenates two group lists | Design a combiner merging adjacent boundary groups, or use `ofSequential`. |
+| High memory usage when one key runs long | Buffer holds the entire unclosed segment | Add secondary split rules, emit summary stats, or bound input. |
+| Code fails to compile on JDK 17/21 | `Stream.gather` is not a standard API in that version | Use JDK 24+ or an alternative sequential solution for that version. |
 
-## 16. Bài tập thực hành và lời giải
+## 16. Practice Exercises and Solutions
 
-### Bài 1 — Đếm những đoạn liên tiếp
+### Exercise 1 — Count Consecutive Segments
 
-Cho dãy:
+Given sequence:
 
 ```java
 List<String> values =
         List.of("X", "X", "Y", "X", "X", "Z", "Z", "Z");
 ```
 
-**Yêu cầu:** nhóm các phần tử liên tiếp và cho biết số nhóm, số phần tử trong mỗi nhóm, số lần chuyển khóa.
+**Prompt:** group consecutive elements and print group count, element count per group, and number of key transitions.
 
-**Lời giải tham khảo:**
+**Reference Solution:**
 
 ```java
 List<Run<String, String>> runs = values.stream()
@@ -717,16 +717,16 @@ System.out.println(runs.size()); // 4
 System.out.println(Math.max(0, runs.size() - 1)); // 3
 ```
 
-### Bài 2 — Phân nhóm số theo dấu chẵn lẻ
+### Exercise 2 — Group Numbers by Parity
 
-Cho:
+Given:
 
 ```java
 List<Integer> numbers =
         List.of(2, 4, 7, 9, 12, 5, 3, 8);
 ```
 
-**Yêu cầu:** gom từng đoạn liên tiếp có cùng tính chẵn/lẻ.
+**Prompt:** group each consecutive run sharing the same even/odd parity.
 
 ```java
 List<Run<Boolean, Integer>> parityRuns = numbers.stream()
@@ -743,13 +743,13 @@ parityRuns.forEach(run ->
 // true  -> [8]
 ```
 
-### Bài 3 — Kiểm thử nguồn rỗng, một phần tử và nhóm cuối
+### Exercise 3 — Test Empty Source, Single Element, and Final Group
 
-**Yêu cầu:** tạo ba bộ test:
+**Prompt:** create three test cases:
 
-1. Nguồn rỗng → 0 nhóm.
-2. Một phần tử `A` → một nhóm chứa `A`.
-3. `[A, A, B]` → hai nhóm; nhóm `B` phải được finisher phát ra.
+1. Empty source → 0 groups.
+2. Single element `A` → one group containing `A`.
+3. `[A, A, B]` → two groups; group `B` must be emitted by the finisher.
 
 ```java
 List<Run<String, String>> empty =
@@ -772,13 +772,13 @@ System.out.println(single.get(0).items()); // [A]
 System.out.println(lastRun.get(1).items()); // [B]
 ```
 
-### Bài 4 — Kiểm thử snapshot và dừng sớm
+### Exercise 4 — Test Snapshots and Early Termination
 
-**Yêu cầu:** lấy kết quả từ `[A,A,B,B,C]` rồi xác nhận:
+**Prompt:** collect results from `[A,A,B,B,C]` and verify:
 
-- Mỗi danh sách nhóm vẫn giữ giá trị sau khi các nhóm sau được xử lý.
-- Không thể thêm vào List snapshot.
-- `limit(2)` chỉ phát hai nhóm hoàn chỉnh.
+- Each group list retains its values after subsequent groups are processed.
+- Elements cannot be added to the snapshot List.
+- `limit(2)` emits only two complete groups.
 
 ```java
 List<String> data = List.of("A", "A", "B", "B", "C");
@@ -802,9 +802,9 @@ List<Run<String, String>> firstTwo = data.stream()
 System.out.println(firstTwo.size()); // 2
 ```
 
-### Bài 5 — Tính tổng từng đoạn mà không gộp toàn cục
+### Exercise 5 — Sum Each Segment Without Merging Globally
 
-**Yêu cầu:** với dãy sự kiện `A(10), A(20), B(7), A(5)`, tính tổng cho **từng đoạn** theo đúng thứ tự.
+**Prompt:** given event sequence `A(10), A(20), B(7), A(5)`, compute the sum for **each segment** in order.
 
 ```java
 List<Event> input = List.of(
@@ -824,40 +824,40 @@ List<String> totals = input.stream()
 System.out.println(totals); // [A:30, B:7, A:5]
 ```
 
-### Bài 6 — Phân tích trường hợp đặc biệt
+### Exercise 6 — Analyze Special Cases
 
-Hãy trả lời:
+Answer:
 
-1. Nếu khóa `A` xuất hiện lần nữa sau khóa `B`, tại sao phải tạo nhóm `A` mới?
-2. Nếu classifier trả về `null` cho hai phần tử liên tiếp, cờ `active` giúp gì?
-3. Nếu gọi `sorted(Comparator.comparing(Event::type))` trước Gatherer, kết quả có còn biểu diễn các đoạn liên tiếp **theo lịch sử ban đầu** không?
-4. Vì sao combiner chỉ `addAll` hai danh sách nhóm không đúng khi hai phân đoạn có chung khóa ở ranh giới?
-5. Nếu nguồn là một Stream vô hạn toàn phần tử khóa `A`, Gatherer có phát được một nhóm hoàn chỉnh đầu tiên không?
+1. If key `A` appears again after key `B`, why must a new `A` group be created?
+2. If the classifier returns `null` for two consecutive elements, what does the `active` flag help with?
+3. If `sorted(Comparator.comparing(Event::type))` is called before the Gatherer, do the results still represent consecutive segments **in the original history**?
+4. Why is a combiner that only calls `addAll` on two group lists wrong when two segments share a key at the boundary?
+5. If the source is an infinite Stream of all key `A` elements, can the Gatherer emit a first complete group?
 
-**Định hướng trả lời:** (1) vì có ranh giới `B` ở giữa; (2) phân biệt "chưa bắt đầu" và "khóa thực tế bằng null"; (3) không, thứ tự đã bị thay đổi; (4) phải hợp nhất nhóm cuối bên trái và nhóm đầu bên phải nếu cùng khóa; (5) không, trừ khi thiết kế thêm điều kiện đóng nhóm.
+**Answer Guidance:** (1) because boundary `B` separates them; (2) distinguishes "not started yet" from "actual key is null"; (3) no, order was altered; (4) the left's last group and right's first group must be merged if keys match; (5) no, unless an additional group-closing condition is designed.
 
-## 17. Checklist trước khi sử dụng trong dự án
+## 17. Checklist Before Using in a Project
 
-1. **Phiên bản:** dùng JDK 24+ cho API chính thức của `Stream.gather` và `Gatherer`.
-2. **Hợp đồng khóa:** classifier có stateless, không can thiệp nguồn và quy tắc bằng nhau rõ ràng không?
-3. **Encounter order:** nguồn có thứ tự theo nghiệp vụ chưa? Có chỗ nào gọi `unordered()` không?
-4. **Trạng thái mới:** initializer có tạo một state độc lập cho mỗi lượt đánh giá không?
-5. **Nhóm đầu:** phần tử đầu có mở nhóm mà không tạo nhóm rỗng không?
-6. **Cùng khóa:** phần tử có được thêm đúng một lần vào bộ đệm không?
-7. **Đổi khóa:** nhóm cũ có được phát trước khi bắt đầu nhóm mới không?
-8. **Snapshot:** kết quả đã tách khỏi bộ đệm sẽ bị tái sử dụng chưa?
-9. **Finisher:** nhóm cuối có được phát, còn nguồn rỗng có không phát gì không?
-10. **Dừng sớm:** integrator có kiểm tra `push` trả false và ngừng đúng cách không?
-11. **Null:** khóa null và phần tử null có chính sách rõ ràng không?
-12. **Song song:** đã giải thích vì sao dùng `ofSequential`, không triển khai combiner sai chưa?
-13. **Tài nguyên:** với nguồn I/O, đã đóng Stream bằng `try-with-resources` thích hợp chưa?
-14. **Bộ nhớ:** đoạn dài nhất có thể lớn bao nhiêu? Có cần giới hạn thời gian/số phần tử không?
-15. **Kiểm thử:** đã kiểm nguồn rỗng, một phần tử, khóa quay lại, nhiều nhóm, limit, snapshot và đầu vào ordered/unordered chưa?
+1. **Version:** using JDK 24+ for official `Stream.gather` and `Gatherer` APIs.
+2. **Key contract:** is the classifier stateless, non-interfering, with clear equality semantics?
+3. **Encounter order:** does the source have business order? Is `unordered()` called anywhere?
+4. **Fresh state:** does initializer create an independent state for each evaluation pass?
+5. **First group:** does the first element open a group without creating an empty group?
+6. **Same key:** is each element appended exactly once to the buffer?
+7. **Key change:** is the old group emitted before starting the new group?
+8. **Snapshot:** is output isolated from the buffer that will be reused?
+9. **Finisher:** is the final group emitted, while an empty source emits nothing?
+10. **Early stop:** does the integrator check `push` returning false and stop cleanly?
+11. **Nulls:** do null keys and null elements have an explicit policy?
+12. **Parallel:** is it documented why `ofSequential` is used instead of writing a broken combiner?
+13. **Resources:** for I/O sources, is the Stream closed with proper `try-with-resources`?
+14. **Memory:** how big can the longest segment be? Are time/count limits needed?
+15. **Tests:** tested empty source, single element, returning keys, multiple groups, limit, snapshots, and ordered/unordered inputs?
 
-## Ghi nhớ
+## Takeaways
 
-Toán tử **gộp phần tử liên tiếp theo khóa** khác hẳn `Collectors.groupingBy`: chỉ những phần tử **kề nhau trong encounter order** và có khóa bằng nhau mới thuộc cùng một nhóm. Một khóa có thể xuất hiện ở nhiều nhóm nếu đã bị khóa khác ngắt quãng.
+The **consecutive grouping by key** operator differs fundamentally from `Collectors.groupingBy`: only elements **adjacent in encounter order** with equal keys belong to the same group. A single key can appear in multiple groups if interrupted by another key.
 
-Với **Java 24+**, `Gatherer.ofSequential` là điểm khởi đầu phù hợp để tự viết toán tử này. **Initializer** tạo trạng thái nhóm đang mở; **integrator** thêm phần tử hoặc phát nhóm cũ khi khóa đổi; **finisher** phát nhóm cuối khi nguồn kết thúc. Luôn sao chép bộ đệm trước `downstream.push`, tuân thủ tín hiệu từ chối của downstream và giữ classifier không can thiệp nguồn.
+With **Java 24+**, `Gatherer.ofSequential` is the right starting point to build this operator yourself. **Initializer** creates the open-group state; **integrator** appends elements or emits the old group when the key changes; **finisher** emits the final group when the source ends. Always copy the buffer before `downstream.push`, obey downstream rejection signals, and keep the classifier non-interfering.
 
-Khi đã đảm bảo đúng ranh giới, thứ tự, dừng sớm và trạng thái, mới cân nhắc tối ưu bộ nhớ hoặc thiết kế combiner song song. Trong trường hợp nhóm quá dài hoặc luồng không đổi khóa vô hạn, cần thêm điều kiện đóng nhóm thay vì chờ một ranh giới sẽ không bao giờ đến.
+Only after boundaries, order, early termination, and state are verified should you consider memory optimizations or designing a parallel combiner. When segments can grow too long or an infinite stream never changes keys, add an explicit segment-closing condition instead of waiting for a boundary that will never arrive.

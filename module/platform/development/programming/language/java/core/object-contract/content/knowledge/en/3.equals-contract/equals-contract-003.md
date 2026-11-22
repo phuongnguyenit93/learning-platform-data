@@ -1,36 +1,36 @@
-# Tính đối xứng khi đổi vị trí hai đối tượng trong hợp đồng `equals()`
+# Symmetry When Swapping Two Objects in the `equals()` Contract
 
-## 1. Khái niệm và yêu cầu của hợp đồng
+## 1. Concept and Contract Requirement
 
-Trong Java, `Object.equals(Object)` diễn tả việc hai đối tượng có được xem là **bằng nhau về mặt logic** hay không. Một yêu cầu bắt buộc của hợp đồng `equals` là **tính đối xứng (symmetry)**:
+In Java, `Object.equals(Object)` expresses whether two objects are considered **logically equal**. A mandatory requirement of the `equals` contract is **symmetry**:
 
-> Với hai tham chiếu `a` và `b` không null, `a.equals(b)` phải trả về cùng kết quả với `b.equals(a)`.
+> For any two non-null references `a` and `b`, `a.equals(b)` must return the same result as `b.equals(a)`.
 
-Công thức kiểm tra:
+Verification formula:
 
 ```java
 a.equals(b) == b.equals(a)
 ```
 
-Yêu cầu này đúng khi cả hai kết quả là `true` **hoặc** cả hai là `false`. Nếu `a.equals(b)` là `true` nhưng `b.equals(a)` là `false`, lớp đó vi phạm hợp đồng. “Đổi vị trí” tức là hoán đổi **đối tượng nhận lời gọi** và **đối số**, chứ không phải đổi thứ tự so sánh các thuộc tính trong cùng đối tượng.
+This requirement holds when both results are `true` **or** both are `false`. If `a.equals(b)` is `true` yet `b.equals(a)` is `false`, that class violates the contract. "Swapping positions" means swapping the **receiver object** and the **argument**, not changing the order in which fields are compared within the same object.
 
-Chẳng hạn, hai đối tượng cùng mô tả tọa độ (3, 4) phải thống nhất kết luận bằng nhau ở cả hai chiều. Nếu một đối tượng còn biểu diễn màu sắc mà đối tượng kia không có màu sắc, thiết kế quan hệ bằng nhau phải giải quyết rõ việc chúng có được coi là cùng một giá trị hay không.
+For instance, two objects both representing coordinates (3, 4) must agree on equality in both directions. If one object also represents a color while the other has no color, the equality relation design must clearly resolve whether they are considered the same value.
 
-Symmetry là một trong năm yêu cầu của hợp đồng `equals`, cùng với tính phản xạ, bắc cầu, nhất quán và so sánh với `null` luôn trả về `false`. Đạt symmetry **chưa đủ** để khẳng định `equals` hợp lệ toàn diện. Nếu ghi đè `equals`, cũng phải bảo đảm các đối tượng bằng nhau có cùng `hashCode()`.
+Symmetry is one of the five requirements of the `equals` contract, alongside reflexivity, transitivity, consistency, and returning `false` when compared to `null`. Satisfying symmetry is **not enough** to conclude `equals` is fully valid. If overriding `equals`, you must also ensure equal objects have the same `hashCode()`.
 
-## 2. Tại sao đổi chiều lại cho kết quả khác?
+## 2. Why Does Reversing the Direction Give a Different Result?
 
-Lỗi xuất hiện rõ nhất khi lớp cha và lớp con sử dụng **hai tiêu chí bằng nhau không tương thích**:
+The bug appears most clearly when a superclass and a subclass use **two incompatible equality criteria**:
 
-1. Lớp cha `Point` chỉ so sánh tọa độ `x`, `y` và sử dụng `instanceof Point`, nên chấp nhận cả `ColoredPoint` là một `Point`.
-2. Lớp con `ColoredPoint` bổ sung trường `color` và chỉ chấp nhận đối tượng `ColoredPoint`.
-3. Khi gọi `point.equals(coloredPoint)`, lớp cha nhìn thấy cùng tọa độ và trả về `true`; khi gọi theo chiều ngược lại, lớp con nhìn thấy kiểu không tương thích và trả về `false`.
+1. The superclass `Point` compares only coordinates `x` and `y` and uses `instanceof Point`, so it accepts `ColoredPoint` as a `Point`.
+2. The subclass `ColoredPoint` adds a `color` field and accepts only `ColoredPoint` objects.
+3. When calling `point.equals(coloredPoint)`, the superclass sees matching coordinates and returns `true`; when calling in the reverse direction, the subclass sees an incompatible type and returns `false`.
 
-Java cho phép mã này biên dịch, vì trình biên dịch không kiểm chứng được mọi tính chất của quan hệ bằng nhau.
+Java allows this code to compile because the compiler cannot verify every property of an equality relation.
 
-## 3. Ví dụ Java 17: sai ở đâu, sửa thế nào?
+## 3. Java 17 Example: Where It Breaks and How to Fix It
 
-Lưu chương trình đầy đủ sau trong tệp **`EqualsSymmetryDemo.java`**. Ví dụ đầu cố tình vi phạm đối xứng. Ví dụ sau biểu diễn điểm có màu bằng **composition**: một đối tượng chứa tọa độ và màu, thay vì kế thừa một lớp với định nghĩa bằng nhau khác.
+Save the following complete program in the file **`EqualsSymmetryDemo.java`**. The first example deliberately violates symmetry. The second represents a colored point via **composition**: an object holding coordinates and a color, instead of inheriting from a class with a different equality definition.
 
 ```java
 import java.util.Objects;
@@ -73,8 +73,8 @@ public class EqualsSymmetryDemo {
             return super.equals(p) && color.equals(p.color);
         }
 
-        // Kế thừa Point.hashCode() để tập trung minh họa
-        // lỗi symmetry; trùng hash giữa hai màu khác nhau là hợp lệ.
+        // Inherits Point.hashCode() to isolate and demonstrate
+        // the symmetry bug; hash collisions across different colors are valid.
     }
 
     record SafePoint(int x, int y) {}
@@ -119,14 +119,14 @@ public class EqualsSymmetryDemo {
 }
 ```
 
-Tại thư mục chứa tệp, thực thi:
+In the directory containing the file, run:
 
 ```bash
 javac EqualsSymmetryDemo.java
 java EqualsSymmetryDemo
 ```
 
-Kết quả trên Java 17+:
+Output on Java 17+:
 
 ```text
 base.equals(red) = true
@@ -137,27 +137,27 @@ colored.equals(copy) = true
 safe symmetry checks = PASS
 ```
 
-**Diễn giải:**
+**Explanation:**
 
-- `base.equals(red)` là `true` vì `red instanceof Point` đúng và cả hai tọa độ bằng nhau. Phương thức lớp cha bỏ qua màu.
-- `red.equals(base)` là `false` vì `base instanceof ColoredPoint` sai. Đây chính là vi phạm đối xứng: cùng một cặp nhưng hai chiều trái ngược.
-- `plain.equals(colored)` và `colored.equals(plain)` cùng `false`. Hai kiểu `record` độc lập biểu diễn hai loại giá trị khác nhau, nên hai phía không coi nhau là bằng nhau.
-- `colored.equals(copy)` là `true`: hai đối tượng `SafeColoredPoint` có điểm và màu tương ứng bằng nhau. `record` tự cung cấp `equals` và `hashCode` dựa trên các thành phần.
-- `assertSymmetric` kiểm tra hai hướng kể cả trường hợp `null`; nếu gọi `assertSymmetric(base, red)`, hàm sẽ ném `AssertionError`.
+- `base.equals(red)` is `true` because `red instanceof Point` is true and both coordinates match. The superclass method ignores the color.
+- `red.equals(base)` is `false` because `base instanceof ColoredPoint` is false. This is the exact symmetry violation: the same pair gives opposite results in the two directions.
+- `plain.equals(colored)` and `colored.equals(plain)` are both `false`. The two independent `record` types represent two different kinds of values, so neither side treats the other as equal.
+- `colored.equals(copy)` is `true`: the two `SafeColoredPoint` objects have matching point and color components. A `record` automatically provides `equals` and `hashCode` based on its components.
+- `assertSymmetric` checks both directions including the `null` case; calling `assertSymmetric(base, red)` would throw `AssertionError`.
 
-Trong phần mã lỗi, `ColoredPoint` giữ `hashCode` kế thừa chỉ dựa vào tọa độ. Hai điểm khác màu có thể cùng hash dù không bằng nhau, và **va chạm hash là hợp lệ**; việc đó giúp minh họa riêng lỗi symmetry. Tuy vậy, trong thiết kế hoàn chỉnh, hãy chọn thành phần hash theo mô hình bằng nhau hợp lệ và đảm bảo hai đối tượng bằng nhau luôn có cùng hash.
+In the flawed section, `ColoredPoint` keeps the inherited `hashCode` based only on coordinates. Two points with different colors can share the same hash even though they are not equal, and **hash collisions are valid**; this helps isolate the symmetry bug. Still, in a complete design, choose hash components according to a valid equality model and ensure equal objects always have the same hash.
 
-## 4. Thiết kế `equals` để bảo toàn tính đối xứng
+## 4. Designing `equals` to Preserve Symmetry
 
-### Giải pháp A: lớp giá trị `final`, `record` và composition
+### Solution A: `final` Value Classes, `record`, and Composition
 
-Nếu đối tượng là một giá trị có tập thuộc tính xác định, lớp `final` ngăn lớp con thay đổi cách hiểu quan hệ bằng nhau. `record` phù hợp với đối tượng dữ liệu bất biến theo các thành phần: Java tự sinh `equals`/`hashCode` theo thành phần và kiểu `record`. Trong ví dụ, `SafeColoredPoint` chứa `SafePoint` nên màu sắc không bị lẫn vào hợp đồng bằng nhau của `SafePoint`.
+If an object is a value with a fixed set of properties, a `final` class prevents subclasses from altering how the equality relation is interpreted. `record` fits immutable data objects defined by their components: Java automatically generates `equals`/`hashCode` from the components and the `record` type. In the example, `SafeColoredPoint` contains a `SafePoint` so color is not mixed into `SafePoint`'s equality contract.
 
-Composition đặc biệt hữu ích khi một kiểu mới **có thêm thuộc tính quyết định danh tính**. Nếu kế thừa kiểu cũ chỉ để tái sử dụng dữ liệu mà rồi sửa cách so sánh, có thể làm hỏng đối xứng hoặc bắc cầu.
+Composition is especially useful when a new type **adds a property that determines identity**. Inheriting from an old type just to reuse data and then modifying how comparison works can break symmetry or transitivity.
 
-### Giải pháp B: xác nhận cùng kiểu runtime bằng `getClass()`
+### Solution B: Verifying the Same Runtime Type with `getClass()`
 
-Nếu các đối tượng thuộc **hai lớp runtime khác nhau không được xem là bằng nhau**, có thể thay `Point.equals` trong chương trình trên bằng phương thức sau:
+If objects of **two different runtime classes must not be considered equal**, you can replace `Point.equals` in the program above with the following method:
 
 ```java
 @Override
@@ -169,19 +169,19 @@ public boolean equals(Object other) {
 }
 ```
 
-Đây là **đoạn thay thế trong lớp `Point`**, không phải chương trình độc lập. Khi ấy, `Point.equals(ColoredPoint)` và `ColoredPoint.equals(Point)` cùng trả về `false`. Với hai đối tượng đều là `ColoredPoint`, lời gọi `super.equals(p)` trong lớp con vẫn có thể so sánh tọa độ rồi kiểm tra màu.
+This is a **replacement snippet inside the `Point` class**, not a standalone program. Then `Point.equals(ColoredPoint)` and `ColoredPoint.equals(Point)` both return `false`. For two objects that are both `ColoredPoint`, calling `super.equals(p)` in the subclass can still compare the coordinates and then check the color.
 
-Cần lưu ý: `getClass()` coi lớp runtime là một phần của danh tính logic. Nếu bài toán thật sự yêu cầu đối tượng thuộc các lớp khác nhau có thể bằng nhau, kiểm tra chặt kiểu có thể không phù hợp. Không có một lệnh thay thế máy móc cho mọi mô hình phân cấp.
+Note: `getClass()` treats the runtime class as part of logical identity. If the problem genuinely requires objects of different classes to be equal, strict class checking may be inappropriate. There is no mechanical one-line replacement for every hierarchy model.
 
-### Giải pháp C: một quy tắc bằng nhau thống nhất trong toàn hệ phân cấp
+### Solution C: A Unified Equality Rule Across the Entire Hierarchy
 
-Nếu cần cho phép so sánh bằng nhau xuyên lớp, toàn bộ hệ phân cấp phải chia sẻ cách xác định danh tính và duy trì **cả tính đối xứng lẫn tính bắc cầu**. Không thể để lớp cha coi tọa độ là đủ, còn lớp con vừa yêu cầu thêm màu, vừa kỳ vọng so sánh qua lớp cha vẫn giữ hợp đồng trong mọi trường hợp.
+If cross-class equality must be allowed, the entire hierarchy must share how identity is defined and preserve **both symmetry and transitivity**. You cannot have the superclass treat coordinates as sufficient while the subclass both requires a color and expects comparisons via the superclass to uphold the contract in all cases.
 
-Một lựa chọn là đặt mọi thuộc tính quyết định bình đẳng vào cùng một mô hình giá trị thống nhất; lựa chọn khác là định nghĩa các kiểu giá trị độc lập và chuyển dữ liệu theo một chuẩn chung trước khi so sánh. Khi không có lý do nghiệp vụ rõ ràng để bằng nhau xuyên kiểu, `final`/`record` và composition thường dễ duy trì hơn.
+One option is to place all equality-determining properties into a single unified value model; another is to define independent value types and convert data to a common canonical form before comparing. When there is no clear business reason for cross-type equality, `final`/`record` and composition are usually easier to maintain.
 
-## 5. Cách kiểm thử và các lỗi thường gặp
+## 5. How to Test and Common Mistakes
 
-Kiểm thử theo cặp phải quan sát **hai lời gọi riêng biệt**:
+Pairwise testing must observe **two separate calls**:
 
 ```java
 boolean leftToRight = Objects.equals(a, b);
@@ -191,19 +191,19 @@ if (leftToRight != rightToLeft) {
 }
 ```
 
-Đoạn trên sử dụng `a`, `b` có sẵn; hàm `assertSymmetric` trong chương trình đầy đủ là phiên bản chạy được. `Objects.equals(a, b)` chỉ xử lý null an toàn rồi dựa vào `a.equals(b)`; **nó không tự sửa quan hệ bằng nhau thiếu đối xứng**. Vì thế cần so với `Objects.equals(b, a)`.
+The snippet above uses existing `a` and `b`; the `assertSymmetric` helper in the full program is the runnable version. `Objects.equals(a, b)` only handles `null` safely and then relies on `a.equals(b)`; **it does not fix an asymmetric equality relation**. Therefore, it must be compared against `Objects.equals(b, a)`.
 
-Nên lập bộ cặp gồm: cùng lớp/cùng giá trị; cùng lớp/khác giá trị; đối tượng cha–con ở cả hai hướng; hai lớp con khác nhau; đối tượng với `null`; và hai đối tượng trỏ cùng tham chiếu. Cặp cha–con rất quan trọng vì nó làm lộ tiêu chí kiểm tra kiểu không thống nhất. Ngoài symmetry, hãy kiểm tra phản xạ, bắc cầu, nhất quán và điều kiện hash của các đối tượng bằng nhau.
+Build a test suite of pairs including: same class/same value; same class/different value; superclass–subclass objects in both directions; two different subclasses; an object with `null`; and two references pointing to the same object. Superclass–subclass pairs are crucial because they expose inconsistent type-checking criteria. Beyond symmetry, verify reflexivity, transitivity, consistency, and the hash condition for equal objects.
 
-| Lỗi | Vì sao nguy hiểm | Cách xử lý |
+| Mistake | Why It Is Dangerous | How to Fix |
 | --- | --- | --- |
-| Cha dùng `instanceof` rộng, con chỉ nhận đúng lớp con | Một chiều `true`, chiều kia `false` | Thống nhất phạm vi kiểu được coi là bằng nhau |
-| Chỉ kiểm tra `a.equals(b)` | Bỏ sót kết quả trái chiều | Kiểm tra cả `b.equals(a)` |
-| Viết `equals(Point)` thay vì `equals(Object)` | Đây là overload, không ghi đè phương thức của `Object` | Dùng đúng chữ ký và `@Override` |
-| Ghi đè `equals` nhưng quên `hashCode` | Hai đối tượng bằng nhau có thể cho hash khác nhau | Xây dựng cả hai theo cùng quan hệ bằng nhau |
-| Dùng `==` để so đối tượng cần bằng nhau theo giá trị | So sánh cùng tham chiếu thay vì cùng giá trị | Xác định rõ so identity hay logical equality |
-| Dùng thuộc tính thay đổi được trong equality/hash của khóa `HashMap` | Có thể không tìm lại khóa sau khi thay đổi | Ưu tiên khóa giá trị bất biến |
+| Superclass uses broad `instanceof`, subclass accepts only the subclass | One direction is `true`, the other is `false` | Unify the type scope considered equal |
+| Testing only `a.equals(b)` | Misses asymmetric reverse results | Also test `b.equals(a)` |
+| Writing `equals(Point)` instead of `equals(Object)` | This is an overload, not overriding `Object`'s method | Use the exact signature and `@Override` |
+| Overriding `equals` but forgetting `hashCode` | Two equal objects may yield different hashes | Build both using the same equality relation |
+| Using `==` to compare objects that need value equality | Compares reference identity instead of value equality | Clarify whether identity or logical equality is intended |
+| Using mutable properties in equality/hash of `HashMap` keys | Keys may become unfindable after mutation | Prefer immutable value keys |
 
-**Bài tự kiểm tra:** `A.equals` chỉ xét `id` và chấp nhận `instanceof A`; lớp con `B.equals` chỉ chấp nhận `B`, xét cả `id` và `role`. Với `new A(7)` và `new B(7, "admin")`, chiều `A → B` sẽ là `true`, còn chiều `B → A` sẽ là `false`. Cách sửa phải làm cho cả hai chiều thống nhất và vẫn giữ các yêu cầu còn lại của `equals`.
+**Self-check exercise:** `A.equals` checks only `id` and accepts `instanceof A`; subclass `B.equals` accepts only `B`, checking both `id` and `role`. With `new A(7)` and `new B(7, "admin")`, the `A → B` direction will be `true`, while the `B → A` direction will be `false`. Any fix must make both directions agree while preserving the remaining `equals` contract requirements.
 
-Trước khi triển khai `equals`, hãy xác định rõ **hai kiểu nào được phép bằng nhau và dựa trên các thuộc tính nào**, sau đó kiểm tra mỗi cặp theo cả hai hướng.
+Before implementing `equals`, clearly define **which two types are allowed to be equal and based on which properties**, then test every pair in both directions.

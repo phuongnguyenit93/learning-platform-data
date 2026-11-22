@@ -1,45 +1,45 @@
-# Hai đối tượng `equals()` true nhưng `Comparator` phân biệt
+# Two Objects Where `equals()` Is True but `Comparator` Distinguishes Them
 
-Một tình huống dễ gây bất ngờ trong Java: **hai đối tượng được `equals()` coi là bằng nhau, nhưng `Comparator.compare(a, b)` lại trả về số khác `0`**. Khi đưa chúng vào `HashSet`, có thể chỉ còn một phần tử; khi đưa vào `TreeSet` dùng comparator đó, cả hai lại cùng tồn tại.
+A surprising situation in Java: **two objects considered equal by `equals()`, yet `Comparator.compare(a, b)` returns a non-`0` number**. When placed into a `HashSet`, only one element may remain; when placed into a `TreeSet` using that comparator, both coexist.
 
-Đây không phải vì `TreeSet` bỏ qua việc kiểm tra khóa trùng do lỗi. **`TreeSet` xác định phần tử tương đương bằng kết quả so sánh thứ tự**, còn `HashSet` xác định phần tử bằng `equals` và `hashCode`. Nếu hai định nghĩa về sự tương đương không thống nhất, hai cấu trúc có thể cho kết quả khác nhau. Với một `SortedSet` muốn tuân thủ đầy đủ hợp đồng chung của `Set`, thứ tự dùng để xác định trùng phần tử **phải nhất quán với `equals`**.
+This is not because `TreeSet` skips duplicate-key checks due to a bug. **`TreeSet` determines element equivalence by ordering comparison result**, whereas `HashSet` identifies elements by `equals` and `hashCode`. If the two definitions of equivalence do not agree, the two structures can yield different results. For a `SortedSet` intended to fully comply with the general `Set` contract, the ordering used to determine duplicate elements **must be consistent with `equals`**.
 
-Bài học này tập trung vào chiều dễ bỏ sót: **`a.equals(b) == true` nhưng `comparator.compare(a, b) != 0`**, lý do gây ra, hệ quả khi dùng tập hợp/bản đồ có thứ tự, và cách thiết kế để tránh lỗi nghiệp vụ.
+This lesson focuses on the easily overlooked direction: **`a.equals(b) == true` yet `comparator.compare(a, b) != 0`**, the reasons it arises, the consequences when using ordered sets/maps, and how to design to avoid business bugs.
 
-## 1. Hai quan hệ “bằng nhau” khác nhau
+## 1. Two different “equality” relations
 
-Trong Java có hai câu hỏi riêng:
+In Java there are two separate questions:
 
-- `a.equals(b)`: hai đối tượng có được kiểu dữ liệu xem là **cùng giá trị logic** không?
-- `comparator.compare(a, b)`: hai đối tượng **đứng trước, tương đương, hay đứng sau** nhau theo một quy tắc sắp xếp cụ thể?
+- `a.equals(b)`: are the two objects considered **the same logical value** by the data type?
+- `comparator.compare(a, b)`: do the two objects **come before, rank equivalent to, or come after** one another under a specific sorting rule?
 
-`Comparator<T>.compare(a, b)` trả về số âm nếu `a` đứng trước `b`, `0` nếu chúng tương đương theo **thứ tự**, hoặc số dương nếu `a` đứng sau `b`. Không phải mọi comparator đều phải dùng cùng các trường với `equals`. Điều đó có thể phù hợp khi **chỉ sắp xếp `List`**. Nhưng khi comparator làm quy tắc phân biệt key trong `TreeSet` hoặc `TreeMap`, sự khác biệt có thể thay đổi ý nghĩa của “trùng”.
+`Comparator<T>.compare(a, b)` returns a negative number if `a` precedes `b`, `0` if they are equivalent in **order**, or a positive number if `a` follows `b`. Not every comparator has to use the same fields as `equals`. That can be appropriate when **only sorting a `List`**. However, when a comparator serves as the key-distinguishing rule in `TreeSet` or `TreeMap`, the discrepancy can change the meaning of “duplicate”.
 
-Một quan hệ thứ tự **nhất quán với `equals`** khi, với hai đối tượng hợp lệ:
+An ordering relation is **consistent with `equals`** when, for two valid objects:
 
 ~~~text
 comparator.compare(a, b) == 0  ⇔  a.equals(b) == true
 ~~~
 
-Dấu `⇔` nghĩa là **hai chiều đều phải đúng**: `equals` bằng nhau thì `compare` bằng `0`, và `compare` bằng `0` thì `equals` bằng nhau. Bảng phân biệt:
+The `⇔` symbol means **both directions must hold**: if `equals` is true then `compare` is `0`, and if `compare` is `0` then `equals` is true. Distinction table:
 
-| `a.equals(b)` | `compare(a, b) == 0` | Diễn giải |
+| `a.equals(b)` | `compare(a, b) == 0` | Interpretation |
 | --- | --- | --- |
-| `true` | `true` | Hai quan hệ cùng coi đối tượng là tương đương. |
-| `false` | `false` | Hai quan hệ cùng phân biệt đối tượng. |
-| **`true`** | **`false`** | **Trường hợp trọng tâm:** `equals` gộp, comparator lại tách. |
-| `false` | `true` | Chiều ngược lại: comparator gộp hai đối tượng `equals` xem là khác. |
+| `true` | `true` | Both relations treat the objects as equivalent. |
+| `false` | `false` | Both relations distinguish the objects. |
+| **`true`** | **`false`** | **Focus case:** `equals` merges them, yet the comparator splits them. |
+| `false` | `true` | Opposite direction: the comparator merges two objects that `equals` treats as distinct. |
 
-Một comparator **không nhất quán với `equals`** chưa hẳn là comparator sai về thứ tự. Nó vẫn có thể hợp lệ cho việc sắp xếp danh sách. Sự rủi ro xuất hiện khi đem thứ tự đó làm cơ sở xác định **tính duy nhất** trong tập hợp có thứ tự hoặc key trong bản đồ có thứ tự.
+A comparator that is **inconsistent with `equals`** is not necessarily wrong in ordering. It can still be valid for sorting lists. The risk appears when that ordering is used as the basis for determining **uniqueness** in an ordered set or keys in an ordered map.
 
-## 2. Ví dụ Java 17+: `equals` true, `compare` khác 0
+## 2. Java 17+ example: `equals` true, `compare` non-zero
 
-Giả sử `Item` có `id` và `revision`:
+Suppose `Item` has `id` and `revision`:
 
-- Hai `Item` có **cùng `id`** được hệ thống coi là cùng thực thể logic. Vì thế `equals` và `hashCode` chỉ xét `id`.
-- Một màn hình lại muốn sắp xếp theo `id`, rồi theo `revision` để biết phiên bản nào đứng trước. Comparator này xét **cả hai trường**.
+- Two `Item`s with **the same `id`** are considered the same logical entity by the system. Therefore, `equals` and `hashCode` inspect only `id`.
+- A screen, however, wants to sort by `id`, then by `revision` to see which version comes first. This comparator inspects **both fields**.
 
-Tệp đầy đủ **`ComparatorEqualsMismatchDemo.java`**, biên dịch và chạy trên Java 17+:
+Complete file **`ComparatorEqualsMismatchDemo.java`**, compilable and runnable on Java 17+:
 
 ~~~java
 import java.util.Comparator;
@@ -126,14 +126,14 @@ public class ComparatorEqualsMismatchDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac ComparatorEqualsMismatchDemo.java
 java ComparatorEqualsMismatchDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 false
@@ -151,45 +151,45 @@ false
 true
 ~~~
 
-**Đọc kết quả theo ba phần:**
+**Reading the output in three parts:**
 
-1. `first == second` là `false`: chúng là hai đối tượng riêng. `first.equals(second)` là `true`: `equals` chỉ xét `id = 7`. Vì `hashCode` cũng dùng `id`, hai đối tượng bằng nhau có cùng hash, đáp ứng hợp đồng `equals`/`hashCode`.
-2. `byIdThenRevision.compare(first, second)` là `-1` vì `1 < 2` ở trường `revision`; chiều ngược lại là `1`. **Comparator phân biệt hai đối tượng mà `equals` coi là bằng nhau.**
-3. `HashSet` dùng ngữ nghĩa `equals`/`hashCode`, nên sau hai lần `add` chỉ có **1 phần tử**; `contains(query)` trả `true` vì `query.id` cũng là `7`.
-4. `TreeSet` sử dụng `byIdThenRevision`: vì `compare(first, second) != 0`, cả hai được giữ. Kích thước thành **2**; tập duyệt theo thứ tự `Item(7,1)`, rồi `Item(7,2)`.
-5. `treeSet.contains(second)` là `true`. Nhưng `treeSet.contains(query)` là **`false`** dù `query.equals(first)` và `query.equals(second)` đều là `true`: theo comparator, `Item(7,3)` là một giá trị thứ tự khác.
-6. Khi thay comparator bằng **`byIdOnly`**, hai `Item` cùng `id = 7` được so bằng `0`, trùng với cách `equals` định nghĩa sự bằng nhau. `TreeSet` khi đó chỉ có **1 phần tử**, và tìm `query` trả `true`.
+1. `first == second` is `false`: they are two distinct objects. `first.equals(second)` is `true`: `equals` checks only `id = 7`. Because `hashCode` also uses `id`, two equal objects have the same hash, satisfying the `equals`/`hashCode` contract.
+2. `byIdThenRevision.compare(first, second)` is `-1` because `1 < 2` on the `revision` field; the reverse direction is `1`. **The comparator distinguishes two objects that `equals` considers equal.**
+3. `HashSet` uses `equals`/`hashCode` semantics, so after two `add` calls there is only **1 element**; `contains(query)` returns `true` because `query.id` is also `7`.
+4. `TreeSet` uses `byIdThenRevision`: because `compare(first, second) != 0`, both are kept. Size becomes **2**; the set iterates in order `Item(7,1)`, then `Item(7,2)`.
+5. `treeSet.contains(second)` is `true`. Yet `treeSet.contains(query)` is **`false`** even though both `query.equals(first)` and `query.equals(second)` are `true`: according to the comparator, `Item(7,3)` is a different ordering value.
+6. When replacing the comparator with **`byIdOnly`**, two `Item`s with `id = 7` compare as `0`, matching how `equals` defines equality. `TreeSet` then has only **1 element**, and searching for `query` returns `true`.
 
-Ví dụ có `Item` là `final`, các trường `final` và `hashCode` ổn định; do đó sự khác biệt giữa hai tập ở đây **chỉ đến từ quy tắc tương đương của comparator**, không phải do sửa đổi đối tượng sau khi chèn hay do lỗi hash.
+In the example `Item` is `final`, its fields are `final`, and `hashCode` is stable; therefore the difference between the two sets here **comes solely from the comparator's equivalence rule**, not from mutating objects after insertion or a hashing bug.
 
-## 3. Vì sao `TreeSet` có thể chứa hai phần tử `equals() == true`?
+## 3. Why can `TreeSet` hold two elements where `equals() == true`?
 
-Giao diện `Set` mô tả tập hợp không có hai phần tử trùng nhau theo `equals`. Tuy nhiên, `SortedSet` và `TreeSet` cần dùng **thứ tự sắp xếp** để tìm đúng vị trí khi thêm, tìm hoặc xóa.
+The `Set` interface describes a collection with no two duplicate elements according to `equals`. However, `SortedSet` and `TreeSet` must use **sort order** to find the proper position when inserting, searching, or removing.
 
-Với `TreeSet`:
+For `TreeSet`:
 
-1. Nếu được truyền `Comparator`, tập dùng `comparator.compare(x, y)` để sắp xếp và phân biệt phần tử.
-2. Nếu không có `Comparator`, tập dùng thứ tự tự nhiên từ `Comparable.compareTo` của phần tử.
-3. Khi kết quả so sánh là `0`, tập coi hai đối tượng là **tương đương theo thứ tự**, nên thêm đối tượng sau không tăng kích thước.
-4. Khi kết quả so sánh khác `0`, tập có thể lưu hai phần tử ở hai vị trí phân biệt, **kể cả khi `equals` trả `true`**.
+1. If passed a `Comparator`, the set uses `comparator.compare(x, y)` to sort and distinguish elements.
+2. If no `Comparator` is given, the set uses natural ordering from the element's `Comparable.compareTo`.
+3. When the comparison result is `0`, the set treats the two objects as **equivalent in order**, so adding the subsequent object does not increase the size.
+4. When the comparison result is non-`0`, the set can store two elements at two distinct positions, **even when `equals` returns `true`**.
 
-Đây là lý do tài liệu của `SortedSet` yêu cầu **thứ tự phải nhất quán với `equals` nếu muốn cấu trúc tuân thủ đúng hợp đồng chung của `Set`**. Hành vi của một sorted set với comparator không nhất quán vẫn có thể được xác định rõ bởi comparator, nhưng các kỳ vọng từ `Set` thông thường sẽ bị vi phạm.
+This is why `SortedSet` documentation requires **the ordering to be consistent with `equals` if the structure is to obey the general `Set` contract properly**. The behavior of a sorted set with an inconsistent comparator is still well-defined by the comparator, but expectations from a standard `Set` are violated.
 
-### Minh họa sự khác nhau về “đơn vị duy nhất”
+### Illustrating the difference in “unit of uniqueness”
 
-| Cấu trúc | Hai `Item(7,1)` và `Item(7,2)` |
+| Structure | Two items `Item(7,1)` and `Item(7,2)` |
 | --- | --- |
-| `HashSet<Item>` | Coi trùng vì `equals` theo `id`; giữ một phần tử. |
-| `TreeSet<Item>` với comparator `id` rồi `revision` | Coi khác vì kết quả so sánh khác `0`; giữ hai phần tử. |
-| `TreeSet<Item>` với comparator chỉ theo `id` | Coi trùng vì kết quả so sánh bằng `0`; giữ một phần tử. |
+| `HashSet<Item>` | Treats as duplicate because `equals` is by `id`; keeps one element. |
+| `TreeSet<Item>` with comparator `id` then `revision` | Treats as distinct because comparison result is non-`0`; keeps two elements. |
+| `TreeSet<Item>` with comparator only by `id` | Treats as duplicate because comparison result is `0`; keeps one element. |
 
-Đừng giải thích hiện tượng bằng câu “`TreeSet` dùng `hashCode` khác `HashSet`”. `TreeSet` là cấu trúc dựa trên thứ tự, **không dùng `hashCode` để xác định phần tử tương đương**. Một `hashCode` hoàn toàn đúng vẫn không sửa được comparator sai so với ngữ nghĩa tập hợp.
+Do not explain this phenomenon with “`TreeSet` uses `hashCode` differently from `HashSet`”. `TreeSet` is an order-based structure and **does not use `hashCode` to determine equivalent elements**. A completely correct `hashCode` still cannot fix a comparator that mismatches set semantics.
 
-## 4. Điều gì xảy ra với `TreeMap` và các khóa `equals` bằng nhau?
+## 4. What happens with `TreeMap` and keys that are equal by `equals`?
 
-Tình huống tương tự xảy ra ở `TreeMap`: một `Comparator` không nhất quán với `equals` có thể khiến hai key logic bằng nhau trở thành **hai entry**.
+The same situation occurs in `TreeMap`: a `Comparator` inconsistent with `equals` can cause two logically equal keys to become **two entries**.
 
-Tệp **`TreeMapComparatorDemo.java`** có thể biên dịch độc lập trên Java 17+:
+File **`TreeMapComparatorDemo.java`**, independently compilable on Java 17+:
 
 ~~~java
 import java.util.Comparator;
@@ -235,14 +235,14 @@ public class TreeMapComparatorDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac TreeMapComparatorDemo.java
 java TreeMapComparatorDemo
 ~~~
 
-Kết quả chuẩn:
+Standard output:
 
 ~~~text
 null
@@ -257,19 +257,19 @@ new
 false
 ~~~
 
-Ở `HashMap`, `second` trùng khóa logic với `first`, nên `put(second, "new")` thay giá trị `"old"`, kích thước vẫn là `1`.
+In `HashMap`, `second` shares the logical key with `first`, so `put(second, "new")` replaces the value `"old"`, and the size stays `1`.
 
-Ở `TreeMap` dùng comparator `id` rồi `revision`, hai key khác nhau theo quan hệ thứ tự, nên `put(second, "new")` thêm entry mới, kích thước thành `2`. Truy vấn với `new Key(7,3)` không tìm thấy key có cùng vị trí thứ tự, dù key đó `equals` với cả hai key đã lưu.
+In `TreeMap` using comparator `id` then `revision`, the two keys differ under the ordering relation, so `put(second, "new")` adds a new entry, making the size `2`. Querying with `new Key(7,3)` does not find a key at the same ordering position, even though that key `equals` both stored keys.
 
-Điều này có thể ảnh hưởng đến chức năng cập nhật theo ID, chống trùng, tra cứu và xóa: **quy tắc chọn comparator cho `TreeMap` là một quyết định về danh tính khóa trong cấu trúc đó**, không chỉ là lựa chọn hiển thị.
+This can affect update-by-ID, deduplication, lookup, and removal features: **choosing the comparator rule for `TreeMap` is a decision about key identity in that structure**, not merely a display choice.
 
-Trong ví dụ, record `Key` đã **override cả `equals` lẫn `hashCode`** để dùng `id` làm khóa logic; đây là khác biệt có chủ đích so với `equals` tự sinh của record mặc định vốn xét cả `id` và `revision`.
+In the example, the `Key` record **overrode both `equals` and `hashCode`** to use `id` as the logical key; this is an intentional difference from the default record-generated `equals` that checks both `id` and `revision`.
 
-## 5. Khi nào comparator không nhất quán với `equals` vẫn hữu ích?
+## 5. When is a comparator inconsistent with `equals` still useful?
 
-Không có quy định rằng **mọi** comparator dùng để sắp xếp phải nhất quán với `equals`. Một comparator có thể sắp xếp theo nhiều tiêu chí để trình bày tốt hơn, miễn là nó đáp ứng hợp đồng về **thứ tự** như tính đối xứng về dấu, tính bắc cầu và tính nhất quán của các nhóm `compare == 0`.
+There is no rule that **every** comparator used for sorting must be consistent with `equals`. A comparator can sort by multiple criteria for better presentation, provided it satisfies the **ordering** contract such as sign symmetry, transitivity, and consistency of `compare == 0` groups.
 
-Chẳng hạn, nếu muốn hiển thị tất cả revision của những đối tượng có cùng `id`, bạn có thể sắp xếp **một danh sách** bằng comparator xét `id` và `revision`:
+For instance, if you want to display all revisions of objects having the same `id`, you can sort **a list** with a comparator checking `id` and `revision`:
 
 ~~~java
 List<Item> items = new ArrayList<>();
@@ -283,28 +283,28 @@ items.sort(
 System.out.println(items);
 ~~~
 
-Đoạn trên dùng lớp `Item` đã định nghĩa ở mục 2 và cần các import `java.util.List`, `java.util.ArrayList`, `java.util.Comparator`. Khi đặt trong phương thức `main` cùng lớp `Item`, đầu ra là:
+The snippet above uses the `Item` class defined in section 2 and needs imports `java.util.List`, `java.util.ArrayList`, `java.util.Comparator`. When placed in a `main` method alongside `Item`, the output is:
 
 ~~~text
 [Item(7,1), Item(7,2)]
 ~~~
 
-Danh sách **không xóa phần tử trùng theo `equals`**, nên việc giữ cả hai revision là hành vi bình thường và comparator nhiều tiêu chí giúp hiển thị đúng ý định. Vấn đề phát sinh khi **cũng chính comparator này** được đưa vào `TreeSet`/ `TreeMap` nhưng chương trình lại trông đợi tập hợp hoặc bản đồ thực thi khái niệm trùng theo `id`.
+A list **does not remove elements that are duplicates by `equals`**, so keeping both revisions is normal behavior and the multi-criteria comparator helps display as intended. The problem arises when **this very same comparator** is passed into `TreeSet`/`TreeMap` while the program expects the set or map to enforce duplication by `id`.
 
-### “Bằng nhau về đối tượng” và “phân biệt bản trình bày”
+### “Object equality” vs “presentation distinction”
 
-Nếu `id` xác định thực thể, còn `revision` là thuộc tính phiên bản, có thể hợp lý khi:
+If `id` identifies the entity while `revision` is a version attribute, it can be reasonable to:
 
-- Dùng `equals` theo `id` cho đối tượng thực thể.
-- Dùng `Comparator` theo `id` rồi `revision` để **xếp thứ tự các bản trình bày trong danh sách**.
-- Dùng `TreeSet`/ `TreeMap` **theo `id`** nếu cần lưu đúng một phần tử/key cho mỗi thực thể logic.
-- Hoặc thiết kế kiểu khóa riêng `(id, revision)` nếu mục tiêu thật sự là giữ **mỗi phiên bản như một khóa khác nhau**.
+- Use `equals` by `id` for the entity object.
+- Use a `Comparator` by `id` then `revision` to **order display representations in a list**.
+- Use `TreeSet`/`TreeMap` **by `id`** if you need to store exactly one element/key per logical entity.
+- Or design a separate key type `(id, revision)` if the real goal is to retain **each version as a distinct key**.
 
-Như vậy, cần tách việc “muốn nhìn các đối tượng theo thứ tự nào” khỏi việc “muốn lưu bao nhiêu giá trị khác nhau theo quy tắc nào”.
+Thus, you must separate “in what order do I want to view the objects” from “how many distinct values do I want to store under which rule”.
 
-## 6. Cách sửa khi cần một `TreeSet` nhất quán với `equals`
+## 6. How to fix when you need a `TreeSet` consistent with `equals`
 
-Với `Item.equals` chỉ xét `id`, comparator tương ứng có thể là:
+With `Item.equals` checking only `id`, the corresponding comparator can be:
 
 ~~~java
 Comparator<Item> byLogicalIdentity =
@@ -317,52 +317,52 @@ set.add(new Item(7, 2));
 System.out.println(set.size()); // 1
 ~~~
 
-Ở đây `compare(a, b) == 0` khi và chỉ khi hai đối tượng có cùng `id`, trùng với cách `equals` đã định nghĩa. Comparator không còn phân biệt các revision có cùng `id`.
+Here `compare(a, b) == 0` if and only if the two objects have the same `id`, matching how `equals` is defined. The comparator no longer distinguishes revisions that share the same `id`.
 
-Tùy yêu cầu nghiệp vụ, có ba hướng sửa hợp lý:
+Depending on business requirements, there are three reasonable fixes:
 
-1. **Giữ `equals` theo ID, sửa comparator của sorted set/map theo ID.** Thích hợp khi bạn muốn một entry cho mỗi thực thể.
-2. **Nếu revision thực sự là thành phần của danh tính**, đưa revision vào **cả `equals`, `hashCode` và comparator**. Khi đó `Item(7,1)` và `Item(7,2)` thực sự là hai giá trị khác nhau, phù hợp việc giữ cả hai.
-3. **Nếu chỉ cần thứ tự trình bày**, giữ comparator theo ID + revision cho thao tác sắp xếp `List`. Dùng collection khác cho việc khử trùng theo `equals`, hoặc tách kiểu khóa biểu diễn mỗi revision.
+1. **Keep `equals` by ID, adjust the sorted set/map comparator to ID.** Appropriate when you want one entry per entity.
+2. **If revision is truly part of identity**, include revision in **both `equals`, `hashCode`, and the comparator**. Then `Item(7,1)` and `Item(7,2)` truly are two distinct values, fitting keeping both.
+3. **If only display ordering is needed**, keep the ID + revision comparator for `List` sorting operations. Use another collection for deduplication by `equals`, or separate a key type representing each revision.
 
-Không nên vá bằng cách thay `hashCode` nhưng giữ `equals` và comparator cũ: `TreeSet` không dựa vào hash để quyết định trùng. Cũng không nên tự thêm `if (a.equals(b)) return 0;` vào đầu một comparator bất kỳ mà chưa chứng minh tính bắc cầu và nhất quán của các nhóm tương đương. Một comparator trộn quy tắc theo cách tùy tiện có thể phá hợp đồng so sánh.
+Do not patch by changing `hashCode` while keeping the old `equals` and comparator: `TreeSet` does not rely on hashes to decide duplicates. Also do not casually prepend `if (a.equals(b)) return 0;` to an arbitrary comparator without proving transitivity and consistency of equivalence groups. A comparator mixing rules arbitrarily can break the comparison contract.
 
-## 7. Hợp đồng `Comparator` vẫn bắt buộc dù không nhất quán với `equals`
+## 7. The `Comparator` contract is still mandatory even when inconsistent with `equals`
 
-Tính nhất quán với `equals` là điều rất nên có cho sorted set/map, nhưng `Comparator` vẫn phải thỏa các quy tắc về quan hệ thứ tự:
+Consistency with `equals` is strongly desirable for sorted sets/maps, yet `Comparator` must still satisfy the rules of an ordering relation:
 
-- **Đổi chiều đổi dấu:** `sgn(compare(a,b)) == -sgn(compare(b,a))`.
-- **Bắc cầu:** nếu `a > b` và `b > c` thì `a > c`.
-- **Nhóm tương đương nhất quán:** nếu `compare(a,b) == 0`, thì dấu so sánh của `a` với một đối tượng `z` phải bằng dấu so sánh của `b` với `z`.
-- **Tính ổn định:** kết quả nên không thay đổi khi những trường dùng để so sánh không đổi.
+- **Sign reversal:** `sgn(compare(a,b)) == -sgn(compare(b,a))`.
+- **Transitivity:** if `a > b` and `b > c`, then `a > c`.
+- **Consistent equivalence groups:** if `compare(a,b) == 0`, then the comparison sign of `a` with an object `z` must equal the comparison sign of `b` with `z`.
+- **Stability:** results should not change when the fields used for comparison do not change.
 
-`Comparator.comparingInt(Item::id).thenComparingInt(Item::revision)` ở ví dụ là một thứ tự hợp lý, không vi phạm các tính chất trên. Nó chỉ **không nhất quán với `Item.equals`** vì xét thêm `revision`.
+`Comparator.comparingInt(Item::id).thenComparingInt(Item::revision)` in the example is a valid ordering that does not violate the above properties. It is merely **inconsistent with `Item.equals`** because it additionally checks `revision`.
 
-Tránh viết `return a.id() - b.id();`: phép trừ số nguyên có thể tràn `int` và đảo dấu kết quả, khiến comparator bị sai. `Integer.compare` hoặc `Comparator.comparingInt` xử lý so sánh số nguyên an toàn hơn.
+Avoid writing `return a.id() - b.id();`: integer subtraction can overflow `int` and flip the sign of the result, breaking the comparator. `Integer.compare` or `Comparator.comparingInt` handles integer comparison more safely.
 
-Với đối tượng đặt trong `TreeSet` hoặc làm key của `TreeMap`, không thay đổi các trường tham gia comparator sau khi thêm vào cấu trúc. Nếu thứ tự bị đổi ngầm mà cây không được xây lại, thao tác `contains`, `get` hoặc `remove` có thể trả kết quả ngoài mong đợi. Các ví dụ trong bài dùng trường `final` để tránh hiện tượng này.
+For objects placed in `TreeSet` or used as `TreeMap` keys, do not mutate fields participating in the comparator after adding them to the structure. If the ordering changes silently without rebuilding the tree, `contains`, `get`, or `remove` operations may return unexpected results. The examples in this lesson use `final` fields to avoid this phenomenon.
 
-## 8. Nhận diện tình huống lỗi trong mã thực tế
+## 8. Spotting faulty situations in real code
 
-Một số dấu hiệu đáng kiểm tra:
+Several signs worth checking:
 
-- `HashSet.size()` khác `TreeSet.size()` dù chèn cùng các giá trị. Kiểm tra xem comparator có trả `0` đúng cho từng cặp `equals == true` hay không.
-- `TreeSet.contains(x)` là `false` dù bạn tìm được một phần tử `y` trong tập mà `x.equals(y) == true`. Có thể comparator phân biệt `x` và `y`.
-- `TreeMap.put(k2, v2)` tạo entry mới dù `k1.equals(k2) == true`. Nếu dùng comparator không nhất quán với `equals`, hai key có thể đứng ở hai vị trí khác nhau trong cây.
-- Một comparator `thenComparing(...)` được thêm “để phân biệt khi trùng tiêu chí” nhưng tiêu chí phụ lại **không có trong `equals`**. Đây là điểm cần xem lại khi comparator phục vụ sorted set/map.
-- Comparator chỉ so một trường trong khi `equals` so nhiều trường, tạo tình huống ngược lại: `compare == 0` dù `equals == false`, khiến sorted set/map gộp các giá trị khác nhau theo nghiệp vụ.
+- `HashSet.size()` differs from `TreeSet.size()` despite inserting the same values. Check whether the comparator properly returns `0` for every pair where `equals == true`.
+- `TreeSet.contains(x)` is `false` even though you find an element `y` in the set where `x.equals(y) == true`. The comparator may be distinguishing `x` and `y`.
+- `TreeMap.put(k2, v2)` creates a new entry even though `k1.equals(k2) == true`. If using a comparator inconsistent with `equals`, the two keys can reside at two different positions in the tree.
+- A `thenComparing(...)` comparator added “to break ties when criteria match”, yet the secondary criterion is **not in `equals`**. This is a point to review when the comparator serves a sorted set/map.
+- A comparator compares only one field while `equals` compares multiple fields, creating the reverse situation: `compare == 0` despite `equals == false`, causing the sorted set/map to merge business-distinct values.
 
-Không phải cứ thấy `equals == true` và `compare != 0` là phải chỉnh lại mọi comparator. Hãy kiểm tra comparator được dùng **chỉ để sắp xếp** hay còn được dùng để **quyết định tính duy nhất và tra cứu**.
+Seeing `equals == true` and `compare != 0` does not automatically mean every comparator must be rewritten. Check whether the comparator is used **only for sorting** or also used to **determine uniqueness and lookup**.
 
-## 9. Bài tập kiểm chứng
+## 9. Verification exercises
 
-Với `Item.equals` chỉ xét `id`, `hashCode` theo `id`, và comparator xét lần lượt `id`, `revision`, hãy tự trả lời trước khi chạy code:
+With `Item.equals` checking only `id`, `hashCode` by `id`, and a comparator checking `id` then `revision`, answer on your own before running code:
 
-1. `new Item(7,1).equals(new Item(7,2))` cho kết quả gì? Comparator của hai đối tượng trả dấu gì?
-2. Thêm hai `Item` trên vào `HashSet` rồi `TreeSet` dùng comparator hai trường. Kích thước từng tập là bao nhiêu? Vì sao?
-3. `TreeSet.contains(new Item(7,3))` trả gì nếu tập đang chứa `Item(7,1)` và `Item(7,2)`? Trong khi đó, `HashSet.contains(new Item(7,3))` trả gì?
-4. Nếu sửa `TreeSet` để so theo `id` duy nhất, kích thước có thay đổi không? Hành vi nào trở nên nhất quán với `equals`?
-5. Nếu nhu cầu thật là lưu từng revision như một phần tử độc lập, có nên thay `equals`/`hashCode` để cùng xét `id` và `revision` hay không? Điều này phụ thuộc quy tắc nghiệp vụ nào?
-6. Tại sao việc chỉ chỉnh `hashCode` không giải quyết được trường hợp `TreeSet` giữ hai đối tượng `equals == true`?
+1. What does `new Item(7,1).equals(new Item(7,2))` return? What sign does the comparator return for those two objects?
+2. Add the two `Item`s above to a `HashSet` and a `TreeSet` using the two-field comparator. What is the size of each set? Why?
+3. What does `TreeSet.contains(new Item(7,3))` return if the set holds `Item(7,1)` and `Item(7,2)`? Meanwhile, what does `HashSet.contains(new Item(7,3))` return?
+4. If you change `TreeSet` to compare by `id` alone, does the size change? Which behavior becomes consistent with `equals`?
+5. If the real requirement is to store each revision as an independent element, should `equals`/`hashCode` be updated to inspect both `id` and `revision`? Which business rule does this depend on?
+6. Why does changing only `hashCode` fail to solve the case where `TreeSet` keeps two objects with `equals == true`?
 
-**Ghi nhớ:** **`equals(a,b) == true` không tự buộc một comparator tùy biến phải trả `0`**. Nhưng `TreeSet` và `TreeMap` dùng **kết quả `compare == 0`** để xác định phần tử/key tương đương, nên comparator không nhất quán với `equals` có thể tạo ra “trùng theo `equals` nhưng khác trong cây”. Khi cần sorted set/map tuân thủ đúng ngữ nghĩa tập hợp/bản đồ theo giá trị, hãy bảo đảm **`compare(a,b) == 0` khi và chỉ khi `a.equals(b)`**; nếu chỉ cần sắp xếp khác biệt, hãy dùng comparator đó với danh sách.
+**Takeaway:** **`equals(a,b) == true` does not automatically force a custom comparator to return `0`**. However, `TreeSet` and `TreeMap` use **the `compare == 0` result** to determine equivalent elements/keys, so a comparator inconsistent with `equals` can produce “duplicates by `equals` yet distinct in the tree”. When a sorted set/map must adhere strictly to value-based set/map semantics, ensure **`compare(a,b) == 0` if and only if `a.equals(b)`**; if you only need finer sorting, use that comparator with a list.

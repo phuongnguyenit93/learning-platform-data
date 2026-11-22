@@ -1,35 +1,35 @@
-# Xử lý không có locale khớp bằng chính sách tường minh trong Java
+# Handling No Matching Locale with an Explicit Policy in Java
 
-Một hệ thống có thể nhận yêu cầu hiển thị bằng `ja-JP`, `fr-CA` hoặc `vi-VN`, trong khi thực tế chỉ có bản dịch và cấu hình định dạng cho `vi-VN`, `en-US`, `fr-FR`. Sau khi thương lượng ngôn ngữ, câu hỏi quan trọng là: **nếu không tìm được locale phù hợp, ứng dụng phải làm gì?**
+A system may receive requests to render in `ja-JP`, `fr-CA`, or `vi-VN`, while in reality it only has translations and formatting configuration for `vi-VN`, `en-US`, and `fr-FR`. After language negotiation, the critical question is: **if no matching locale is found, what must the application do?**
 
-Không nên để kết quả tùy thuộc ngẫu nhiên vào locale mặc định của JVM, thứ tự dữ liệu, hoặc hành vi fallback ẩn của một thư viện. Cần định nghĩa **chính sách không khớp (no-match policy)**, áp dụng nhất quán và kiểm thử được.
+You should not leave the outcome randomly dependent on the JVM's default locale, data ordering, or a library's hidden fallback behavior. You must define a **no-match policy**, apply it consistently, and make it testable.
 
-Bài học nằm trong chủ đề **Chọn locale** và tập trung vào xử lý tình huống không có kết quả khớp. Phần chọn thứ tự ưu tiên ngôn ngữ chỉ được nhắc đủ để hiểu điểm phát sinh no-match.
+This lesson belongs to the **Locale Selection** topic and focuses on handling the no-match situation. Language priority selection is mentioned only enough to understand where a no-match arises.
 
-## 1. “Không có locale khớp” nghĩa là gì?
+## 1. What Does “No Matching Locale” Mean?
 
-Một quy trình lựa chọn locale có ba đầu vào cơ bản:
+A locale selection workflow has three basic inputs:
 
-1. **Yêu cầu của người dùng hoặc client:** locale được chọn trong hồ sơ, tham số API, hoặc danh sách sở thích `Accept-Language`.
-2. **Danh sách locale được ứng dụng thực sự hỗ trợ:** chẳng hạn `[vi-VN, en-US, fr-FR]`.
-3. **Thuật toán lựa chọn:** có thể là đối chiếu chính xác, `Locale.lookup`, một bộ luật fallback tùy chỉnh, hoặc bộ thương lượng của framework.
+1. **User or client request:** the locale selected in a profile, API parameter, or `Accept-Language` preference list.
+2. **List of locales actually supported by the application:** for example, `[vi-VN, en-US, fr-FR]`.
+3. **Selection algorithm:** this may be exact matching, `Locale.lookup`, a custom fallback rule set, or a framework's negotiator.
 
-**Không khớp** nghĩa là thuật toán đã áp dụng lên dữ liệu hợp lệ và **không tìm thấy ứng viên nào đạt tiêu chí**. Đây khác với việc yêu cầu không được gửi, cú pháp đầu vào sai, hoặc kho tài nguyên dịch thuật bị thiếu.
+**No match** means the algorithm ran on valid data and **found no candidate meeting the criteria**. This differs from no request being sent, invalid input syntax, or a missing translation resource repository.
 
-| Tình huống | Ví dụ | Cách hiểu | Phản ứng cần quy định |
+| Situation | Example | Interpretation | Reaction to Define |
 | --- | --- | --- | --- |
-| Không cung cấp sở thích | Không có `Accept-Language`, chưa chọn ngôn ngữ | Thiếu input, không phải match thất bại | Dùng mặc định hoặc yêu cầu chọn |
-| Không có ứng viên hỗ trợ | Chỉ hỗ trợ `vi-VN`, `en-US`; client yêu cầu `ja-JP` | Không khớp | Fallback, yêu cầu chọn lại hoặc từ chối |
-| Cú pháp input không hợp lệ | Header `en_US` trong bộ phân tích language ranges | Input lỗi | Trả lỗi rõ ràng hoặc áp chính sách dữ liệu hỏng riêng |
-| Có match nhưng thiếu bản dịch | Đã chọn `fr-FR` nhưng thiếu một message key | Lỗi tài nguyên, không phải lỗi match | Fallback tài nguyên/khắc phục bản dịch theo quy định |
-| Cấu hình ứng dụng hỏng | Default `en-US` không nằm trong danh sách hỗ trợ | Lỗi vận hành | Báo lỗi cấu hình, không âm thầm tiếp tục |
-| Thẻ có syntax hợp lệ nhưng locale chưa hỗ trợ | `de-DE` được parser nhận, ứng dụng không có bản dịch | Hợp lệ về cú pháp, chưa được hỗ trợ | Áp dụng no-match policy |
+| No preference supplied | No `Accept-Language`, no language selected yet | Missing input, not a match failure | Use default or ask user to choose |
+| No supported candidate | Only `vi-VN`, `en-US` supported; client requests `ja-JP` | No match | Fall back, ask to re-select, or reject |
+| Invalid input syntax | Header `en_US` in a language-range parser | Malformed input | Return a clear error or apply a separate corrupted-data policy |
+| Matched, but translation missing | `fr-FR` selected, yet a message key is missing | Resource error, not a match error | Resource fallback / fix translation as specified |
+| Broken application configuration | Default `en-US` is not in the supported list | Operational error | Report configuration error, do not silently continue |
+| Tag has valid syntax, locale unsupported | `de-DE` accepted by parser, app has no translations | Syntactically valid, unsupported | Apply no-match policy |
 
-Sự phân biệt này quan trọng khi theo dõi lỗi, trả trạng thái HTTP và giải thích cho người dùng vì sao giao diện xuất hiện bằng ngôn ngữ khác.
+This distinction matters when monitoring errors, returning HTTP statuses, and explaining to users why the UI appears in another language.
 
-## 2. Bắt đầu bằng danh sách locale được hỗ trợ rõ ràng
+## 2. Start with an Explicit Supported Locales List
 
-Ví dụ một ứng dụng chỉ có ba ngôn ngữ/vùng:
+Example of an application with only three languages/regions:
 
 ~~~java
 import java.util.List;
@@ -43,23 +43,23 @@ List<Locale> supported = List.of(
 Locale applicationDefault = Locale.forLanguageTag("en-US");
 ~~~
 
-Đây là **đoạn mã minh họa**, đặt trong một phương thức của lớp đã import các kiểu. Danh sách trên là **cam kết hỗ trợ của ứng dụng**, không phải danh sách tất cả `Locale` mà JDK có thể phân tích.
+This is an **illustrative code snippet**, placed inside a method of a class that has imported the types. The list above is the **application's support commitment**, not the list of all `Locale`s the JDK can parse.
 
-`Locale.getAvailableLocales()` cung cấp các locale mà runtime và các locale service provider nhận biết; điều đó **không đồng nghĩa** ứng dụng đã có đầy đủ màn hình, message bundles, nội dung hoặc chính sách nghiệp vụ cho tất cả locale ấy.
+`Locale.getAvailableLocales()` provides the locales known to the runtime and locale service providers; that **does not mean** the application has complete screens, message bundles, content, or business policies for all of those locales.
 
-Cần xác định ba bất biến:
+Three invariants must be defined:
 
-- Danh sách `supported` không rỗng và có thứ tự/quy tắc lựa chọn được kiểm soát.
-- Default phải là locale đã được hỗ trợ, trừ khi thiết kế đặc biệt có lý do rõ ràng.
-- Các locale công bố là “được hỗ trợ” phải thực sự có đủ tài nguyên thiết yếu hoặc một chính sách fallback tài nguyên minh bạch.
+- The `supported` list is non-empty and has a controlled ordering/selection rule.
+- The default must be a supported locale, unless a special design has a clear reason.
+- Locales advertised as “supported” must genuinely have sufficient essential resources or a transparent resource fallback policy.
 
-Có thể dùng cấu hình để thay danh sách và default theo sản phẩm/tenant, nhưng nên kiểm tra hợp lệ khi khởi động thay vì đợi đến request đầu tiên gặp lỗi.
+Configuration can vary the list and default per product/tenant, but validity should be checked at startup rather than waiting until the first request fails.
 
-## 3. Nhận diện no-match từ các API Java
+## 3. Detecting No-Match from Java APIs
 
-### Locale.lookup() có thể trả null
+### `Locale.lookup()` Can Return `null`
 
-Java cung cấp `Locale.LanguageRange.parse()` để phân tích các dải ngôn ngữ có trọng số như `Accept-Language`, và `Locale.lookup()` để tìm kết quả theo cơ chế lookup của RFC 4647.
+Java provides `Locale.LanguageRange.parse()` to parse weighted language ranges like `Accept-Language`, and `Locale.lookup()` to find a result under RFC 4647 lookup mechanics.
 
 ~~~java
 List<Locale.LanguageRange> preferences =
@@ -67,78 +67,78 @@ List<Locale.LanguageRange> preferences =
 Locale matched = Locale.lookup(preferences, supported);
 
 if (matched == null) {
-    // Chưa có locale nào khớp: chuyển tới chính sách no-match.
+    // No locale matched yet: hand off to the no-match policy.
 }
 ~~~
 
-Đây là đoạn minh họa trong phạm vi đã khai báo `supported` và import `java.util.List`, `java.util.Locale`. **`null` là kết quả bình thường khi không tìm được match**, không nên dereference ngay bằng `matched.toLanguageTag()`.
+This is an illustrative snippet within a scope where `supported` is declared and `java.util.List`, `java.util.Locale` are imported. **`null` is a normal result when no match is found**, so do not immediately dereference it with `matched.toLanguageTag()`.
 
-Một tình huống dễ hiểu sai: `Locale.lookup(Locale.LanguageRange.parse("fr-CA"), supported)` có thể trả `null` dù danh sách có `fr-FR`. Thuật toán lookup không tự quyết định rằng “mọi biến thể vùng có cùng ngôn ngữ là tương đương”. Nếu sản phẩm muốn từ `fr-CA` chuyển sang `fr-FR`, phải có **quy tắc fallback cấp ngôn ngữ** được phê duyệt, hoặc thiết kế danh sách/thuật toán matching phù hợp. Không tự ý thay `CA` bằng `FR` rồi xem đó là kết quả khớp chính xác.
+An easily misunderstood case: `Locale.lookup(Locale.LanguageRange.parse("fr-CA"), supported)` can return `null` even if the list contains `fr-FR`. The lookup algorithm does not automatically decide that “all regional variants of the same language are equivalent”. If the product wants `fr-CA` to fall back to `fr-FR`, there must be an approved **language-level fallback rule**, or an appropriate matching list/algorithm design. Do not arbitrarily replace `CA` with `FR` and treat it as an exact match.
 
-Ngoài ra, giá trị chỉ chứa wildcard `*` có thể không đưa ra lựa chọn cụ thể từ `Locale.lookup`; trong Java, wildcard không được xử lý như một lệnh bắt buộc chọn locale đầu tiên. Khi yêu cầu là “chấp nhận bất kỳ”, hệ thống vẫn cần một lựa chọn mặc định hoặc quy tắc ưu tiên cụ thể.
+In addition, a value containing only the wildcard `*` may not yield a specific choice from `Locale.lookup`; in Java, the wildcard is not treated as a command forcing selection of the first locale. When the request is “accept any”, the system still needs a default choice or specific priority rule.
 
-### Locale.filter() khác Locale.lookup()
+### `Locale.filter()` Differs from `Locale.lookup()`
 
-`Locale.filter()` trả một **danh sách** các locale phù hợp theo cơ chế filtering; nó không có cùng hợp đồng với `lookup()`. Với filter, trường hợp không có kết quả thường cho danh sách rỗng. Cách xử lý tương ứng:
+`Locale.filter()` returns a **list** of matching locales per filtering mechanics; it does not share the same contract as `lookup()`. With filter, the no-result case normally produces an empty list. Corresponding handling:
 
 ~~~java
 List<Locale> matches = Locale.filter(preferences, supported);
 if (matches.isEmpty()) {
-    // Áp dụng no-match policy.
+    // Apply the no-match policy.
 }
 ~~~
 
-Không thay `lookup` bằng `filter` một cách máy móc: cơ chế đối chiếu, độ rộng của kết quả và hành vi language ranges khác nhau. Trước tiên xác định sản phẩm cần **một locale duy nhất** hay **tập những locale chấp nhận được**.
+Do not mechanically replace `lookup` with `filter`: matching rules, result breadth, and language-range behavior differ. First decide whether the product needs **a single locale** or **a set of acceptable locales**.
 
-### Lỗi cú pháp không phải no-match
+### Syntax Errors Are Not No-Match
 
-`Locale.LanguageRange.parse(...)` có thể ném `IllegalArgumentException` nếu giá trị không phải danh sách language ranges hợp lệ. Tránh bắt mọi exception rồi lặng lẽ coi tất cả là không khớp. Ví dụ cấu hình sai `"en_US"` cần được báo đúng lỗi nhập liệu hoặc xử lý theo chính sách dữ liệu hỏng đã tài liệu hóa.
+`Locale.LanguageRange.parse(...)` can throw `IllegalArgumentException` if the value is not a valid list of language ranges. Avoid catching every exception and silently treating them all as no-match. For instance, a misconfigured `"en_US"` should be reported properly as an input error or handled according to a documented corrupted-data policy.
 
-Đối với một **thẻ ngôn ngữ đơn lẻ** trong cấu hình, `Locale.forLanguageTag()` là parser khoan dung; nếu cần kiểm tra nghiêm ngặt có thể dùng `new Locale.Builder().setLanguageTag(tag).build()`. Với header chứa nhiều thẻ và trọng số, dùng parser `Locale.LanguageRange`, không truyền toàn bộ header vào `Locale.forLanguageTag()`.
+For a **single language tag** in configuration, `Locale.forLanguageTag()` is a lenient parser; if strict validation is required, use `new Locale.Builder().setLanguageTag(tag).build()`. For headers containing multiple tags and weights, use the `Locale.LanguageRange` parser, and do not pass the entire header into `Locale.forLanguageTag()`.
 
-## 4. Những chính sách xử lý no-match có thể chọn
+## 4. Selectable No-Match Handling Policies
 
-Không có một lựa chọn đúng tuyệt đối cho mọi sản phẩm. Chính sách phải xuất phát từ mức độ bắt buộc về ngôn ngữ và tính chất nội dung.
+There is no single universally right choice for every product. Policy must follow from how strict language requirements are and the nature of the content.
 
-| Chính sách | Hành vi khi không khớp | Phù hợp khi | Điều cần làm rõ |
+| Policy | Behavior When Unmatched | Suitable When | What to Clarify |
 | --- | --- | --- | --- |
-| **Dùng default đã công bố** | Chọn `en-US` hoặc locale sản phẩm đã cấu hình | Website, trang tài liệu nhiều ngôn ngữ, UI phổ thông | Giao diện có thể khác mong muốn; thông báo lựa chọn khi cần |
-| **Từ chối / yêu cầu lựa chọn lại** | Trả lỗi cụ thể hoặc hiển thị hộp chọn ngôn ngữ | API yêu cầu locale nghiêm ngặt, tài liệu pháp lý, nội dung buộc đúng ngôn ngữ | Mã lỗi, thông điệp, danh sách hỗ trợ và cách chọn lại |
-| **Thử fallback có kiểm soát** | Ví dụ `fr-CA` → `fr-FR` nếu bản dịch cho phép | Nội dung chỉ yêu cầu gần đúng theo ngôn ngữ | Quy tắc theo từng ngôn ngữ, vùng, loại nội dung |
-| **Dùng locale trung lập** | Dùng nội dung độc lập ngôn ngữ hoặc mã kỹ thuật | Dữ liệu máy không có bản dịch | Không được biến thành giao diện “vô ngôn ngữ” khó hiểu |
+| **Use published default** | Pick `en-US` or the configured product locale | Websites, multilingual documentation pages, general UIs | UI may differ from preference; notify user of choice when needed |
+| **Reject / prompt to re-select** | Return a specific error or show a language picker | APIs with strict locale requirements, legal documents, content bound to exact language | Error code, message, supported list, and how to re-select |
+| **Try controlled fallback** | E.g. `fr-CA` → `fr-FR` if translations permit | Content requiring only language-level approximation | Rules per language, region, and content type |
+| **Use neutral locale** | Use language-independent content or technical codes | Machine data without translations | Must not turn into a confusing “languageless” UI |
 
-Lưu ý: `Locale.ROOT` biểu diễn locale gốc/trung lập trong Java, nhưng không tự tạo ra bản dịch dự phòng phù hợp với con người. Khi phải trả thông điệp thân thiện, thường cần một **ngôn ngữ mặc định thực tế**.
+Note: `Locale.ROOT` represents the root/neutral locale in Java, but it does not automatically create human-friendly fallback translations. When friendly messages must be returned, a **real default language** is usually needed.
 
-### Thứ tự ưu tiên phải được viết thành hợp đồng
+### Priority Order Must Be Written as a Contract
 
-Một hợp đồng có thể là:
+A contract might be:
 
-1. Nếu người dùng đã chọn trực tiếp một locale **được hỗ trợ**, giữ lựa chọn đó.
-2. Nếu không có lựa chọn trực tiếp, thương lượng `Accept-Language` với danh sách hỗ trợ.
-3. Nếu không khớp, áp dụng chính sách của tính năng: dùng default, từ chối hoặc fallback có kiểm soát.
-4. Ghi nhận locale cuối cùng và lý do lựa chọn để phục vụ chẩn đoán.
+1. If the user explicitly chose a **supported** locale, keep that choice.
+2. If there is no explicit choice, negotiate `Accept-Language` against the supported list.
+3. If there is no match, apply the feature's policy: use default, reject, or controlled fallback.
+4. Record the final locale and selection reason for diagnostics.
 
-Đây là **ví dụ về chính sách**, không phải một thứ tự bắt buộc của Java. Với sản phẩm ưu tiên header hơn hồ sơ, thứ tự có thể khác; cần thống nhất giữa UI, API, tài liệu và kiểm thử.
+This is an **example policy**, not a mandatory Java order. For a product that prioritizes headers over profiles, the order may differ; align UI, API, documentation, and tests.
 
-Nếu một yêu cầu **chọn locale trực tiếp** đã được người dùng gửi rõ ràng nhưng không hỗ trợ, không nhất thiết nên lặng lẽ chuyển sang ngôn ngữ trong header. Sản phẩm phải định nghĩa liệu lựa chọn trực tiếp có quyền ưu tiên tuyệt đối, có được fallback hay phải trả lỗi.
+If a **direct locale selection** request was explicitly sent by the user but is unsupported, you should not necessarily switch silently to a language from the header. The product must define whether an explicit choice takes absolute precedence, falls back, or must return an error.
 
-## 5. Thiết kế kết quả chọn locale có lý do rõ ràng
+## 5. Designing Locale Selection Results with Clear Reasons
 
-Để tránh nhầm một match thực sự với một fallback, ngoài `Locale` cuối cùng, nên ghi nhận nguồn quyết định:
+To avoid confusing a true match with a fallback, record the decision source alongside the final `Locale`:
 
-- `MATCHED`: tìm được locale theo tiêu chí đã cấu hình.
-- `MISSING_FALLBACK`: client không cung cấp sở thích, đã dùng default.
-- `UNMATCHED_FALLBACK`: có sở thích hợp lệ nhưng không khớp, đã dùng default.
+- `MATCHED`: found a locale according to configured criteria.
+- `MISSING_FALLBACK`: client supplied no preference, default was used.
+- `UNMATCHED_FALLBACK`: valid preference existed but did not match, default was used.
 
-Khi hệ thống từ chối, phải cung cấp một lỗi có ý nghĩa thay vì tiếp tục trả `null`. Mô hình nguồn quyết định giúp đo số lượt fallback, nhận diện lỗ hổng hỗ trợ ngôn ngữ và kiểm tra UI có hiển thị đúng thông điệp hay không.
+When the system rejects, it must provide a meaningful error instead of continuing to return `null`. A decision-source model helps measure fallback counts, spot language support gaps, and verify whether the UI displays the right message.
 
-Không log nguyên mọi header hoặc thông tin người dùng mà không có mục đích. Có thể ghi các mã đã chuẩn hóa hoặc đếm theo loại kết quả, theo chính sách bảo vệ dữ liệu của sản phẩm.
+Do not log entire raw headers or user details without a clear purpose. Logging normalized codes or counting by result type, according to the product's data protection policy, is usually sufficient.
 
-## 6. Ví dụ Java 17+ hoàn chỉnh: USE_DEFAULT hoặc REJECT
+## 6. Complete Java 17+ Example: `USE_DEFAULT` or `REJECT`
 
-Chương trình dưới đây minh họa hai chính sách **được chọn tường minh**. Danh sách locale và default được đặt cố định để kết quả dễ kiểm chứng. Dữ liệu lỗi cú pháp được tách khỏi trường hợp không có match.
+The program below illustrates two **explicitly selected** policies. The locale list and default are fixed so results are easy to verify. Syntactically invalid data is separated from the no-match case.
 
-Tạo tệp **`LocaleNoMatchDemo.java`**:
+Create file **`LocaleNoMatchDemo.java`**:
 
 ~~~java
 import java.util.List;
@@ -235,14 +235,14 @@ public class LocaleNoMatchDemo {
 }
 ~~~
 
-Biên dịch bằng Java 17 hoặc cao hơn:
+Compile with Java 17 or higher:
 
 ~~~bash
 javac -encoding UTF-8 LocaleNoMatchDemo.java
 java LocaleNoMatchDemo
 ~~~
 
-Kết quả chuẩn của chương trình (đã đối chiếu hành vi API bằng Java):
+Standard output of the program (verified against Java API behavior):
 
 ~~~text
 Supported: vi-VN (MATCHED)
@@ -253,24 +253,24 @@ Rejected: No supported locale matches
 Malformed: Malformed language preference
 ~~~
 
-### Giải thích từng nhánh
+### Explanation of Each Branch
 
-- **Supported:** `vi-VN` khớp danh sách hỗ trợ và được ưu tiên hơn `fr-FR` có trọng số `q=0.8`. Quyết định `MATCHED`.
-- **Unsupported:** `ja-JP` hợp lệ nhưng không có trong tập hỗ trợ; với `USE_DEFAULT`, ứng dụng chọn `en-US`.
-- **Missing:** không có input; chính sách mặc định cũng chọn `en-US`, nhưng lý do là `MISSING_FALLBACK`, khác trường hợp có yêu cầu không được đáp ứng.
-- **Region differs:** `fr-CA` không mặc nhiên tương đương ứng viên `fr-FR` theo `Locale.lookup`; fallback chọn `en-US`. Nếu muốn chọn `fr-FR`, cần thêm quy tắc có chủ đích.
-- **Rejected:** chính sách `REJECT` báo lỗi rõ ràng khi input hợp lệ nhưng không match; caller có thể chuyển thành HTTP response hoặc yêu cầu người dùng chọn lại.
-- **Malformed:** `en_US` sai cú pháp language range; parser báo lỗi và chương trình không âm thầm coi đó là request không khớp.
+- **Supported:** `vi-VN` matches the supported list and takes precedence over `fr-FR` with weight `q=0.8`. Decision `MATCHED`.
+- **Unsupported:** `ja-JP` is valid but absent from the supported set; under `USE_DEFAULT`, the application selects `en-US`.
+- **Missing:** no input; the default policy also selects `en-US`, but the reason is `MISSING_FALLBACK`, differing from an unsatisfied request.
+- **Region differs:** `fr-CA` is not implicitly equivalent to candidate `fr-FR` under `Locale.lookup`; fallback selects `en-US`. To pick `fr-FR`, an intentional rule must be added.
+- **Rejected:** the `REJECT` policy reports a clear error when input is valid yet unmatched; the caller can map it to an HTTP response or prompt the user to choose again.
+- **Malformed:** `en_US` violates language range syntax; the parser throws an error and the program does not silently treat it as an unmatched request.
 
-Mẫu này sử dụng một `record Resolution` (hỗ trợ chính thức từ Java 16) để giữ locale cùng lý do lựa chọn. `Objects.requireNonNull` chặn một chính sách `null`; kiểm tra `SUPPORTED.contains(DEFAULT)` là bước bảo vệ cấu hình. Trong hệ thống sản xuất, nên kiểm tra bất biến này một lần khi khởi động, cấu hình lỗi HTTP tại lớp API và giới hạn độ dài header đầu vào.
+This pattern uses a `record Resolution` (officially supported since Java 16) to hold the locale along with the selection reason. `Objects.requireNonNull` blocks a `null` policy; checking `SUPPORTED.contains(DEFAULT)` is a configuration guard. In a production system, check this invariant once at startup, configure HTTP errors at the API layer, and limit input header length.
 
-**Phạm vi của ví dụ:** `resolve` nhận riêng nội dung header hoặc danh sách language ranges, chưa triển khai lựa chọn locale lưu trong hồ sơ người dùng. Nó cố ý từ chối đầu vào sai cú pháp cho cả hai chính sách. Nếu sản phẩm muốn coi header lỗi là “không gửi header”, cần viết rõ một chính sách khác và kiểm thử hành vi ấy.
+**Scope of the example:** `resolve` takes only the header content or language range list and does not implement user-profile locale preferences. It intentionally rejects syntactically invalid input for both policies. If a product wants to treat a malformed header as “no header sent”, a different policy must be written explicitly and tested.
 
-## 7. Nếu muốn fallback theo ngôn ngữ, hãy quy định rõ
+## 7. If You Want Language-Level Fallback, Specify It Explicitly
 
-Nhiều sản phẩm muốn hiển thị giao diện Pháp dù người dùng yêu cầu `fr-CA` mà ứng dụng mới có `fr-FR`. Đây có thể là lựa chọn hợp lý, nhưng không thể mặc định áp dụng cho mọi ngôn ngữ hoặc mọi dữ liệu.
+Many products want to display a French UI even when a user requests `fr-CA` and the app only has `fr-FR`. This can be a reasonable choice, yet it cannot be applied by default to every language or every dataset.
 
-Ví dụ một **quy tắc nghiệp vụ bổ sung** (không có trong chương trình chạy ở mục 6):
+Example of an **additional business rule** (not present in the runnable program in section 6):
 
 ~~~text
 request: fr-CA
@@ -280,103 +280,103 @@ final locale: fr-FR
 reason: LANGUAGE_POLICY_FALLBACK
 ~~~
 
-Khi bổ sung quy tắc, cần làm rõ:
+When adding rules, clarify:
 
-- Danh sách ánh xạ nào được phép, có thể áp dụng cho từng ngôn ngữ/vùng riêng.
-- Có được dùng cùng từ ngữ nhưng khác chính tả, đơn vị đo, tiền tệ, pháp luật hoặc tập quán hay không.
-- Có cần thông báo người dùng về sự thay đổi không.
-- Nếu ánh xạ đích cũng không được hỗ trợ thì chuyển sang default hay từ chối.
-- Thứ tự ưu tiên giữa exact match, language fallback, tenant default và global default.
+- Which mapping list is permitted, potentially scoped per language/region.
+- Whether differing spelling, units of measure, currency, legal terms, or conventions are acceptable.
+- Whether the user needs to be notified of the change.
+- If the target mapping is also unsupported, whether to fall back to default or reject.
+- Priority order among exact match, language fallback, tenant default, and global default.
 
-Ví dụ `pt-PT` và `pt-BR` cùng tiếng Bồ Đào Nha nhưng khác biến thể; văn bản pháp lý, tiền tệ hoặc nội dung y tế có thể không được thay thế tùy tiện. Tương tự, `zh-Hans` và `zh-Hant` khác hệ chữ. **Fallback phải được cho phép theo nội dung và ngữ cảnh**, không chỉ dựa vào mã ngôn ngữ giống nhau.
+For example, `pt-PT` and `pt-BR` are both Portuguese yet distinct variants; legal text, currency, or medical content may not be arbitrarily substituted. Likewise, `zh-Hans` and `zh-Hant` use different scripts. **Fallback must be permitted according to content and context**, not merely based on matching language codes.
 
-Không dùng `Locale.getLanguage()` để chọn bừa phần tử đầu tiên trong `supported` mà không kiểm soát thứ tự, vì khi danh sách thay đổi, kết quả có thể đổi âm thầm.
+Do not use `Locale.getLanguage()` to pick an arbitrary first element from `supported` without controlling order, because when the list changes, the outcome can silently change.
 
-## 8. Kết quả locale và ResourceBundle là hai lớp khác nhau
+## 8. Locale Outcome and `ResourceBundle` Are Two Separate Layers
 
-Chọn được locale không có nghĩa tất cả thông điệp bản dịch đã tồn tại. Ví dụ ứng dụng chọn `fr-FR`, nhưng resource bundle cho một số màn hình chỉ có tiếng Anh.
+Selecting a locale does not mean all translation messages already exist. For instance, the app selects `fr-FR`, yet the resource bundle for some screens only has English.
 
-`ResourceBundle.getBundle(...)` có cơ chế tìm tài nguyên và fallback riêng (bao gồm khả năng sử dụng locale mặc định JVM trong một số đường đi). Nếu chỉ dùng `Locale.lookup` mà không kiểm soát bước nạp tài nguyên, UI có thể không tuân thủ hoàn toàn chính sách đã công bố.
+`ResourceBundle.getBundle(...)` has its own resource search and fallback mechanism (including potentially using the JVM default locale on some paths). If you only call `Locale.lookup` without controlling resource loading, the UI may not fully obey the published policy.
 
-Nên phân biệt rõ:
+Clearly distinguish:
 
-1. **Locale resolution:** ứng dụng chọn một locale từ tập hỗ trợ theo sở thích người dùng.
-2. **Resource resolution:** ứng dụng tìm các thông điệp thực có cho locale đã chọn.
-3. **Missing-key policy:** khi thiếu một khóa, ứng dụng fallback theo thứ tự cho phép, log lỗi dữ liệu hoặc dừng render nếu nội dung bắt buộc đầy đủ.
+1. **Locale resolution:** the application chooses a locale from the supported set based on user preferences.
+2. **Resource resolution:** the application locates actual messages for the chosen locale.
+3. **Missing-key policy:** when a key is missing, the application falls back in a permitted order, logs a data error, or halts rendering if completeness is mandatory.
 
-Nếu cần tránh fallback theo locale mặc định của JVM khi dùng `ResourceBundle` trong mô hình classpath phù hợp, nghiên cứu `ResourceBundle.Control.getNoFallbackControl(...)` cùng cách sắp xếp bundle gốc. Cơ chế của `ResourceBundle.Control` có giới hạn theo cách bundle được nạp và module Java; không áp dụng máy móc cho mọi môi trường. Quan trọng là phải kiểm thử **văn bản cuối cùng** chứ không chỉ kiểm tra `locale.toLanguageTag()`.
+If you need to avoid JVM-default fallback when using `ResourceBundle` in a suitable classpath setup, study `ResourceBundle.Control.getNoFallbackControl(...)` alongside how base bundles are arranged. `ResourceBundle.Control` has limitations depending on how bundles are loaded and Java modules; do not apply it mechanically to every environment. Crucially, test the **final rendered text**, not just `locale.toLanguageTag()`.
 
-Cần thống nhất locale của thông điệp, định dạng số/ngày, và ngữ cảnh nghiệp vụ. Nếu mặc định `en-US`, UI không nên hiển thị nhãn tiếng Anh nhưng số/ngày tùy tiện theo `Locale.getDefault()` của server khi sản phẩm yêu cầu cùng một ngữ cảnh.
+Align the locale of messages, number/date formatting, and business context. If defaulting to `en-US`, the UI should not show English labels while arbitrarily formatting numbers/dates with the server's `Locale.getDefault()` when the product expects a single unified context.
 
-## 9. Hành vi ở tầng API và giao diện
+## 9. Behavior at the API and UI Layers
 
-### Trang web và nội dung phổ thông
+### Websites and General Content
 
-Thông thường có thể dùng default công khai khi client không gửi ngôn ngữ hoặc không có ngôn ngữ tương ứng. Nếu giao diện đã đăng nhập và có lựa chọn ngôn ngữ cá nhân, cần quyết định lựa chọn đó được ưu tiên trước header hay không. Khi fallback, có thể hiển thị language switcher để người dùng chủ động đổi sang một ngôn ngữ được hỗ trợ.
+Normally, the public default can be used when a client sends no language or no matching language exists. If the UI is authenticated and has a personal language setting, decide whether that choice takes precedence over headers. When falling back, a language switcher can be shown so the user can actively switch to a supported language.
 
-Nếu nội dung trả về thay đổi theo `Accept-Language`, caching cần được thiết kế phù hợp; với HTTP, header `Vary: Accept-Language` có thể cần thiết cho các phản hồi được cache và thương lượng theo header. Cũng cần xem các yếu tố như cookie/hồ sơ người dùng để tránh gửi nhầm bản dịch của người khác.
+If returned content varies by `Accept-Language`, caching must be designed accordingly; with HTTP, the `Vary: Accept-Language` header may be required for cached responses negotiated via headers. Also account for cookies/user profiles to avoid serving one user's translation to another.
 
-### API có yêu cầu locale nghiêm ngặt
+### APIs with Strict Locale Requirements
 
-Một endpoint tạo tài liệu theo ngôn ngữ pháp lý đã chọn có thể không được phép âm thầm dùng default. Khi không hỗ trợ, trả lỗi được định nghĩa trong hợp đồng API, ví dụ yêu cầu client chọn lại locale. Nếu lỗi là tham số không hợp lệ, có thể dùng `400 Bad Request`; nếu liên quan đến khả năng cung cấp representation theo thương lượng nội dung, `406 Not Acceptable` có thể phù hợp tùy hợp đồng. Không chọn mã trạng thái chỉ dựa vào việc `Locale.lookup()` trả `null`: HTTP `Accept-Language` là một sở thích của client, và không phải mọi tình huống không khớp đều phải trả 406.
+An endpoint generating documents in a chosen legal language may not be allowed to silently use a default. When unsupported, return an error defined in the API contract, such as asking the client to re-select a locale. If the error is an invalid parameter, `400 Bad Request` may be used; if it relates to providing a representation under content negotiation, `406 Not Acceptable` may fit depending on the contract. Do not choose a status code solely because `Locale.lookup()` returned `null`: HTTP `Accept-Language` is a client preference, and not every unmatched situation warrants 406.
 
-Response lỗi hữu ích nên cho biết locale đã yêu cầu (ở dạng được phép hiển thị), nguyên nhân và danh sách mã được hỗ trợ. Không trả exception stack trace cho người dùng cuối.
+A helpful error response should state the requested locale (in a form safe to display), the reason, and the list of supported codes. Never return exception stack traces to end users.
 
-### Nội dung nhạy cảm hoặc có ràng buộc pháp lý
+### Sensitive or Legally Bound Content
 
-Khi cần đúng ngôn ngữ/phiên bản vùng để tránh hiểu nhầm nội dung, chính sách `REJECT` hoặc yêu cầu xác nhận chuyển ngôn ngữ thường dễ kiểm soát hơn fallback ngầm. Quyết định phải theo nghiệp vụ và được kiểm thử, không phải mặc định chung cho mọi sản phẩm.
+When the exact language/regional version is required to prevent misinterpretation, a `REJECT` policy or requiring confirmation to switch languages is usually easier to control than silent fallback. The decision must follow business requirements and be tested, rather than being a blanket default for every product.
 
-## 10. Thiết kế kiểm thử bảng quyết định
+## 10. Designing Decision-Table Tests
 
-Hãy kiểm tra cả **locale được trả** và **lý do**. Với danh sách hỗ trợ `vi-VN`, `en-US`, `fr-FR`, default `en-US` và chính sách ví dụ ở mục 6:
+Test both the **returned locale** and the **reason**. With supported list `vi-VN`, `en-US`, `fr-FR`, default `en-US`, and the example policy from section 6:
 
-| Đầu vào | Chính sách | Kỳ vọng |
+| Input | Policy | Expected |
 | --- | --- | --- |
 | `vi-VN` | USE_DEFAULT | `vi-VN / MATCHED` |
 | `fr-FR,vi-VN;q=0.7` | USE_DEFAULT | `fr-FR / MATCHED` |
 | `ja-JP` | USE_DEFAULT | `en-US / UNMATCHED_FALLBACK` |
-| `ja-JP` | REJECT | Lỗi `No supported locale matches` |
-| `fr-CA` | USE_DEFAULT | `en-US / UNMATCHED_FALLBACK` với thuật toán hiện tại |
-| `null` hoặc `""` | USE_DEFAULT | `en-US / MISSING_FALLBACK` |
-| `null` hoặc `""` | REJECT | Lỗi `Missing locale preference` |
-| `en_US` | USE_DEFAULT | Lỗi `Malformed language preference` |
-| Default không thuộc danh sách hỗ trợ | Bất kỳ | Lỗi cấu hình trước khi thương lượng |
+| `ja-JP` | REJECT | Error `No supported locale matches` |
+| `fr-CA` | USE_DEFAULT | `en-US / UNMATCHED_FALLBACK` under the current algorithm |
+| `null` or `""` | USE_DEFAULT | `en-US / MISSING_FALLBACK` |
+| `null` or `""` | REJECT | Error `Missing locale preference` |
+| `en_US` | USE_DEFAULT | Error `Malformed language preference` |
+| Default not in supported list | Any | Configuration error before negotiation |
 
-Những kịch bản khác cần đưa vào kiểm thử khi áp dụng thực tế: ngôn ngữ mới được thêm vào hoặc bị gỡ; wildcard `*`; yêu cầu có trọng số `q`, kể cả loại trừ `q=0`; thẻ chỉ có ngôn ngữ; ngôn ngữ có script; tên vùng khác nhau; header dài/bất thường; locale trong hồ sơ người dùng đã hết hỗ trợ; và cache trả đúng biến thể ngôn ngữ.
+Other scenarios to include in real-world test suites: newly added or removed languages; wildcard `*`; requests with `q` weights, including `q=0` exclusions; language-only tags; languages with scripts; differing region names; long/unusual headers; a user profile locale that is no longer supported; and caches returning the right language variant.
 
-Với `q=0` (client đánh dấu một language range là không chấp nhận), cần kiểm thử hành vi của cơ chế thương lượng cụ thể và đảm bảo chính sách fallback cuối cùng không đi ngược các ràng buộc bắt buộc của ứng dụng. Nếu default không được người dùng chấp nhận nhưng API lại bắt buộc đúng ngôn ngữ, phải xem xét chọn `REJECT` thay vì mặc định một cách im lặng.
+With `q=0` (client marks a language range as unacceptable), test the behavior of the specific negotiation mechanism and verify the final fallback policy does not violate mandatory application constraints. If the default is rejected by the user yet the API mandates an exact language, consider choosing `REJECT` instead of silently defaulting.
 
-Đặt test chạy trong JVM có locale mặc định khác (ví dụ máy chủ cấu hình tiếng Anh và CI cấu hình tiếng Việt) để chứng minh rằng quyết định không phụ thuộc ngầm vào `Locale.getDefault()`.
+Run tests in JVMs with different default locales (for example, a server configured for English and CI configured for Vietnamese) to prove the decision does not implicitly depend on `Locale.getDefault()`.
 
-## 11. Các lỗi thiết kế thường gặp
+## 11. Common Design Mistakes
 
-| Sai lầm | Hậu quả | Cách xử lý |
+| Mistake | Consequence | How to Handle |
 | --- | --- | --- |
-| Gọi `Locale.lookup(...).toLanguageTag()` ngay | `NullPointerException` khi không khớp | Xử lý `null` bằng chính sách rõ ràng |
-| Dùng `Locale.getDefault()` vô điều kiện | Hành vi thay đổi theo server/container | Cấu hình default của sản phẩm |
-| Nhận mọi locale mà parser hiểu | UI được chọn nhưng thiếu bản dịch | Duy trì danh sách hỗ trợ thực tế |
-| Xem header sai cú pháp như không khớp | Che lỗi client, khó quan sát | Phân loại invalid/missing/unmatched |
-| Tự ánh xạ mọi locale cùng language | Sai vùng, hệ chữ hoặc ngữ cảnh | Bảng fallback được phê duyệt |
-| Chỉ kiểm tra locale match mà bỏ qua bundle | Kết quả UI lẫn ngôn ngữ | Kiểm thử resource resolution |
-| Trả `406` cho mọi header không khớp | Khó sử dụng với client chỉ nêu sở thích | Tùy hợp đồng, cho phép default khi phù hợp |
-| Dùng thứ tự ngẫu nhiên của tập locale | Kết quả không ổn định | Danh sách/quy tắc ưu tiên xác định |
-| Không ghi nguồn quyết định | Không biết có bao nhiêu lần fallback | Lưu loại quyết định có kiểm soát |
-| Thay đổi `Locale.setDefault` mỗi request | Trạng thái toàn cục gây ảnh hưởng lẫn nhau | Truyền locale riêng theo request |
+| Calling `Locale.lookup(...).toLanguageTag()` immediately | `NullPointerException` when unmatched | Handle `null` with an explicit policy |
+| Unconditionally using `Locale.getDefault()` | Behavior changes across servers/containers | Configure a product default |
+| Accepting every locale the parser understands | UI is selected yet lacks translations | Maintain an actual supported list |
+| Treating malformed headers as no-match | Hides client errors, hard to observe | Classify invalid/missing/unmatched |
+| Auto-mapping all locales with the same language | Wrong region, script, or context | Approved fallback table |
+| Testing only locale matching and skipping bundles | Mixed-language UI results | Test resource resolution |
+| Returning `406` for every unmatched header | Hard to use for clients merely stating preferences | Per contract, allow default when appropriate |
+| Relying on arbitrary order of a locale collection | Non-deterministic results | Deterministic priority list/rules |
+| Not recording the decision source | Unknown fallback rate | Store controlled decision categories |
+| Mutating `Locale.setDefault` per request | Global state causes cross-request interference | Pass per-request locale explicitly |
 
-## 12. Tự kiểm tra và thực hành
+## 12. Self-Check and Practice
 
-**Câu 1.** Ứng dụng chỉ hỗ trợ `vi-VN` và `en-US`. Client yêu cầu `ja-JP`, nhưng sản phẩm là website giới thiệu có default `vi-VN`. Có nên ném exception ngay?
+**Question 1.** An application supports only `vi-VN` and `en-US`. A client requests `ja-JP`, while the product is an informational website with default `vi-VN`. Should an exception be thrown immediately?
 
-**Gợi ý:** Nếu hợp đồng là ưu tiên sở thích nhưng cho phép default, trả `vi-VN` cùng lý do `UNMATCHED_FALLBACK`. Exception chỉ hợp lý khi chính sách bắt buộc phải match hoặc lý do nghiệp vụ khác yêu cầu từ chối.
+**Hint:** If the contract prioritizes preferences while allowing a default, return `vi-VN` with reason `UNMATCHED_FALLBACK`. An exception is only appropriate when policy strictly requires a match or another business rule demands rejection.
 
-**Câu 2.** Tại sao `fr-CA` không tự động được thay bằng `fr-FR` trong mọi hệ thống?
+**Question 2.** Why is `fr-CA` not automatically replaced with `fr-FR` in every system?
 
-**Đáp án:** Hai locale cùng ngôn ngữ nhưng khác vùng. Thuật toán `lookup` không bảo đảm một phép thay vùng tùy ý; lựa chọn tương đương về nội dung là quyết định nghiệp vụ cần định nghĩa riêng.
+**Answer:** The two locales share a language but differ in region. The `lookup` algorithm does not guarantee arbitrary region substitution; content equivalence is a business decision that must be defined separately.
 
-**Câu 3.** Trường hợp `Locale.lookup()` trả `null` và `Locale.LanguageRange.parse()` ném `IllegalArgumentException` có nên chung một mã lỗi không?
+**Question 3.** Should `Locale.lookup()` returning `null` and `Locale.LanguageRange.parse()` throwing `IllegalArgumentException` share the same error code?
 
-**Đáp án:** Không nên đánh đồng. Trường hợp đầu là không có match từ input đã phân tích; trường hợp thứ hai là input sai cú pháp. Có thể cùng kết thúc bằng fallback nếu được thiết kế rõ, nhưng cần phân loại để xử lý và chẩn đoán.
+**Answer:** They should not be conflated. The first is no match from parsed input; the second is syntactically invalid input. Both may end in a fallback if clearly designed, but they should be classified separately for handling and diagnostics.
 
-**Bài tập.** Sửa `LocaleNoMatchDemo` để thêm một cấu hình `TENANT_DEFAULT`, rồi viết test khẳng định default của tenant phải thuộc danh sách locale tenant hỗ trợ. Tạo thêm một nhánh `LANGUAGE_POLICY_FALLBACK` chỉ cho phép ánh xạ `fr-CA → fr-FR`, bảo đảm các locale còn lại giữ nguyên chính sách đã có. Viết test cho cả trước/sau thay đổi.
+**Exercise.** Modify `LocaleNoMatchDemo` to add a `TENANT_DEFAULT` configuration, then write a test asserting that the tenant's default must belong to the tenant's supported locales list. Add a `LANGUAGE_POLICY_FALLBACK` branch allowing only the mapping `fr-CA → fr-FR`, ensuring remaining locales retain the existing policy. Write tests both before and after the change.
 
-**Ghi nhớ:** No-match là một **kết quả hợp lệ của quá trình lựa chọn**, không phải lời mời dùng ngẫu nhiên cấu hình của máy chủ. Hãy định nghĩa danh sách hỗ trợ, default, luật fallback hoặc từ chối, lý do của quyết định và các trường hợp kiểm thử trước khi triển khai.
+**Remember:** No-match is a **valid outcome of the selection process**, not an invitation to randomly use the server's configuration. Define the supported list, default, fallback or rejection rules, decision reasons, and test cases before implementing.

@@ -1,20 +1,20 @@
-# Hàm không trạng thái, tác dụng phụ và khả năng quan sát kết quả
+# Stateless Functions, Side Effects, and Result Observability
 
-## 1. Vì sao đây là một phần của hợp đồng Stream?
+## 1. Why is this part of the Stream contract?
 
-Java Stream API cho phép mô tả **cần tính ra điều gì** bằng một pipeline gồm nguồn dữ liệu, các phép biến đổi trung gian và phép toán kết thúc. Thư viện có quyền trì hoãn, kết hợp, thực thi song song hoặc bỏ qua những bước không cần thiết, miễn là vẫn bảo toàn kết quả mà hợp đồng Stream quy định. Vì vậy, code bên trong `filter`, `map`, `flatMap`, `peek` hay các hàm xử lý phần tử không nên ngầm phụ thuộc vào việc nó được gọi bao nhiêu lần, trên luồng nào hoặc theo thứ tự nào.
+The Java Stream API lets you describe **what needs to be computed** using a pipeline consisting of a data source, intermediate transformations, and a terminal operation. The library has the right to defer, fuse, execute in parallel, or skip unnecessary steps, as long as it still preserves the result specified by the Stream contract. Therefore, code inside `filter`, `map`, `flatMap`, `peek`, or element-processing functions should not implicitly depend on how many times it is called, on which thread, or in what order.
 
-Đây là nội dung cốt lõi của chương **Hợp đồng và vòng đời pipeline** trong **JAVA_STREAM_API**: học cách xử lý dữ liệu khai báo bằng pipeline lazy, đồng thời biết ranh giới giữa kết quả của phép toán và tác dụng phụ có thể xảy ra khi chạy pipeline.
+This is core content of the **Pipeline Contracts and Lifecycle** chapter in **JAVA_STREAM_API**: learning how to process data declaratively with lazy pipelines, while knowing the boundary between an operation's result and side effects that may occur when running the pipeline.
 
 ```text
-Nguồn dữ liệu       Trung gian (lazy)                    Kết thúc (terminal)
+Data source         Intermediate (lazy)                   Terminal
 List<Order>  ────► filter(...) ────► map(...) ─────► collect(...)
                          │               │                 │
-                mô tả điều kiện   mô tả phép chiếu   kích hoạt xử lý,
-                                                   tạo kết quả quan sát được
+                describes condition  describes mapping  triggers processing,
+                                                    creates observable result
 ```
 
-Ví dụ sau chỉ tạo pipeline; khi chưa có terminal operation, hàm `map` chưa cần chạy:
+The following example only creates a pipeline; when there is no terminal operation yet, the `map` function does not need to run:
 
 ```java
 import java.util.List;
@@ -24,26 +24,26 @@ List<Integer> numbers = List.of(1, 2, 3, 4);
 
 Stream<Integer> pipeline = numbers.stream()
     .filter(n -> n % 2 == 0)
-    .map(n -> n * 10); // Mới mô tả pipeline, chưa xử lý phần tử.
+    .map(n -> n * 10); // Only describes the pipeline, has not processed elements yet.
 
-List<Integer> result = pipeline.toList(); // [20, 40]; terminal kích hoạt xử lý.
+List<Integer> result = pipeline.toList(); // [20, 40]; terminal triggers processing.
 ```
 
-Các ví dụ sử dụng Java 17+ (có `Stream.toList()`); mỗi Stream chỉ nên thực hiện **một** terminal operation. Sau terminal, Stream đã bị tiêu thụ, không được tái sử dụng để chạy terminal khác.
+The examples use Java 17+ (which has `Stream.toList()`); each Stream should perform only **one** terminal operation. After a terminal operation, the Stream has been consumed and cannot be reused to run another terminal operation.
 
-## 2. Phân biệt không trạng thái, không can thiệp và thuần hàm
+## 2. Distinguishing stateless, non-interfering, and pure functions
 
-Ba tính chất thường đi cùng nhau nhưng không đồng nghĩa:
+Three properties often go together yet are not synonymous:
 
-| Tính chất | Ý nghĩa trong pipeline | Ví dụ |
+| Property | Meaning in a pipeline | Example |
 | --- | --- | --- |
-| **Stateless (không trạng thái)** | Kết quả xử lý một phần tử không phụ thuộc vào trạng thái có thể thay đổi do xử lý phần tử khác của cùng pipeline. | `n -> n * 2`; `s -> s.trim()` |
-| **Non-interfering (không can thiệp)** | Hàm xử lý không sửa đổi nguồn dữ liệu đang được Stream duyệt, trừ những nguồn hỗ trợ sửa đổi đồng thời theo hợp đồng riêng. | Đọc `order.amount()` mà không thêm/xóa phần tử của danh sách nguồn. |
-| **Pure (thuần hàm)** | Với cùng đầu vào và cùng ngữ cảnh bất biến, trả cùng kết quả và không gây tác dụng phụ quan sát được. | `n -> Math.abs(n)` với giá trị `int`. |
+| **Stateless** | The result of processing one element does not depend on state that may change from processing other elements of the same pipeline. | `n -> n * 2`; `s -> s.trim()` |
+| **Non-interfering** | The processing function does not modify the data source being traversed by the Stream, except for sources supporting concurrent modification under their own contract. | Reading `order.amount()` without adding/removing elements of the source list. |
+| **Pure** | Given the same input and the same immutable context, returns the same result and causes no observable side effects. | `n -> Math.abs(n)` for an `int` value. |
 
-Tài liệu Stream yêu cầu các *behavioral parameters* (lambda/method reference truyền vào các operation) nhìn chung phải **không can thiệp** và **không trạng thái**. Một lambda không trạng thái vẫn có thể có tác dụng phụ, chẳng hạn `n -> { logger.info("{}", n); return n * 2; }`; do đó chỉ kiểm tra tính stateless là chưa đủ để dựa vào hành vi an toàn, dễ kiểm thử.
+The Stream documentation requires that *behavioral parameters* (lambdas/method references passed to operations) generally be **non-interfering** and **stateless**. A stateless lambda can still have side effects, such as `n -> { logger.info("{}", n); return n * 2; }`; hence checking statelessness alone is not enough to rely on safe, easily testable behavior.
 
-### 2.1. Lambda không trạng thái
+### 2.1. Stateless lambdas
 
 ```java
 import java.util.List;
@@ -60,7 +60,7 @@ List<String> normalized = names.stream()
 // [AN, BÌNH, CHI]
 ```
 
-Mỗi phép biến đổi chỉ phụ thuộc vào phần tử hiện tại và hằng số `Locale.ROOT`. Một biến được capture cũng có thể an toàn **nếu nội dung được dùng là bất biến trong suốt lần thực thi**:
+Each transformation depends only on the current element and the constant `Locale.ROOT`. A captured variable can also be safe **if the contents used remain immutable throughout execution**:
 
 ```java
 int minLength = 3;
@@ -70,9 +70,9 @@ List<String> selected = names.stream()
     .toList();
 ```
 
-Java yêu cầu biến cục bộ được lambda capture phải `final` hoặc *effectively final*, nhưng quy tắc biên dịch này **không làm mọi đối tượng được capture trở nên bất biến**. Ví dụ, biến tham chiếu `Set` có thể không đổi trong khi nội dung `Set` liên tục bị sửa.
+Java requires local variables captured by a lambda to be `final` or *effectively final*, yet this compilation rule **does not make every captured object immutable**. For example, a `Set` reference variable may stay unchanged while the `Set`'s contents are constantly mutated.
 
-### 2.2. Lambda có trạng thái: một kết quả phụ thuộc phần tử trước
+### 2.2. Stateful lambdas: one result depending on previous elements
 
 ```java
 import java.util.HashSet;
@@ -82,13 +82,13 @@ Set<String> seen = new HashSet<>();
 
 List<String> unique = names.stream()
     .map(String::trim)
-    .filter(name -> seen.add(name)) // SAI CÁCH: phụ thuộc và thay đổi seen.
+    .filter(name -> seen.add(name)) // WRONG APPROACH: depends on and mutates seen.
     .toList();
 ```
 
-`seen.add(name)` vừa kiểm tra vừa sửa trạng thái được chia sẻ qua các lần gọi `filter`. Trên Stream tuần tự, kết quả có thể trông đúng trong một tình huống cụ thể, nhưng lambda không còn stateless. Chuyển sang `.parallel()` có thể tạo race condition vì `HashSet` không an toàn cho truy cập đồng thời. Việc dùng một tập hợp đồng bộ cũng không biến phép lọc thành hàm không trạng thái; thứ tự phần tử được nhận còn phụ thuộc lịch chạy.
+`seen.add(name)` both checks and mutates state shared across `filter` invocations. On a sequential Stream, the result may look right in a specific scenario, yet the lambda is no longer stateless. Switching to `.parallel()` can create race conditions because `HashSet` is not safe for concurrent access. Using a synchronized collection still does not turn the filter into a stateless function; which element gets accepted also depends on scheduling.
 
-Hãy giao phần loại bỏ trùng lặp cho operation có hợp đồng rõ ràng:
+Delegate deduplication to an operation with a clear contract:
 
 ```java
 List<String> unique = names.stream()
@@ -97,9 +97,9 @@ List<String> unique = names.stream()
     .toList();
 ```
 
-**Lưu ý:** `distinct()`, `sorted()`, `limit()` và `skip()` là những *stateful intermediate operations*: bản thân thư viện có thể cần nhớ phần tử đã gặp, giữ bộ đệm hoặc theo dõi vị trí. Điều này **không mâu thuẫn** với yêu cầu lambda do người lập trình truyền vào phải stateless. Trạng thái được quản lý bên trong operation theo đúng hợp đồng; một số operation này có chi phí bộ nhớ hoặc giảm hiệu quả khi chạy song song, nhất là khi cần giữ encounter order.
+**Note:** `distinct()`, `sorted()`, `limit()`, and `skip()` are *stateful intermediate operations*: the library itself may need to remember seen elements, hold a buffer, or track position. This **does not contradict** the requirement that lambdas passed by the programmer must be stateless. State is managed internally inside the operation according to its contract; some of these operations have memory overhead or reduced efficiency in parallel execution, especially when encounter order must be preserved.
 
-### 2.3. Không can thiệp vào nguồn
+### 2.3. Non-interference with the source
 
 ```java
 import java.util.ArrayList;
@@ -107,7 +107,7 @@ import java.util.List;
 
 List<Integer> source = new ArrayList<>(List.of(1, 2, 3));
 
-// KHÔNG LÀM: sửa nguồn khi chính Stream đang duyệt nó.
+// DO NOT DO THIS: mutating the source while the Stream itself is traversing it.
 source.stream()
     .filter(n -> {
         if (n == 2) source.add(4);
@@ -116,11 +116,11 @@ source.stream()
     .forEach(System.out::println);
 ```
 
-Kết quả có thể là `ConcurrentModificationException`, hành vi bất thường hoặc lỗi khác tùy nguồn và thời điểm; **không được dựa vào việc ngoại lệ luôn xuất hiện**. Nếu cần bổ sung hoặc loại bỏ phần tử, hãy tạo danh sách kết quả rồi cập nhật nguồn sau khi pipeline hoàn tất, hoặc dùng cấu trúc/thuật toán có hợp đồng concurrency riêng.
+The outcome may be `ConcurrentModificationException`, abnormal behavior, or other errors depending on the source and timing; **do not rely on an exception always being thrown**. If elements need to be added or removed, produce a result list first and update the source after the pipeline completes, or use a structure/algorithm with an explicit concurrency contract.
 
-## 3. Tác dụng phụ: giá trị trả về khác với điều xảy ra bên ngoài
+## 3. Side effects: return value differs from what happens externally
 
-**Tác dụng phụ (side effect)** là thay đổi trạng thái hoặc tương tác quan sát được ngoài giá trị mà lambda trả về: thêm phần tử vào danh sách bên ngoài, tăng bộ đếm, ghi log, gửi request, cập nhật cơ sở dữ liệu, ghi file hoặc thay đổi object dùng chung.
+A **side effect** is an observable state change or interaction beyond the value a lambda returns: adding an element to an external list, incrementing a counter, writing logs, sending requests, updating a database, writing files, or mutating a shared object.
 
 ```java
 import java.util.ArrayList;
@@ -130,20 +130,20 @@ List<Integer> output = new ArrayList<>();
 
 List<Integer> doubled = List.of(1, 2, 3).stream()
     .map(n -> {
-        output.add(n);        // Tác dụng phụ lên trạng thái bên ngoài.
-        return n * 2;         // Kết quả của phép biến đổi.
+        output.add(n);        // Side effect on external state.
+        return n * 2;         // Result of the transformation.
     })
     .toList();
 
-// doubled là kết quả khai báo cần lấy: [2, 4, 6].
-// Không nên thiết kế thuật toán dựa trên output.
+// doubled is the declarative result to obtain: [2, 4, 6].
+// Do not design algorithms relying on output.
 ```
 
-Ngay cả khi ví dụ tuần tự có thể tạo `output = [1, 2, 3]`, kết quả phụ này không nằm trong hợp đồng của `map`. Khi áp dụng tối ưu hóa, short-circuit hoặc song song hóa, ta không nên suy luận về số lần gọi, thứ tự và thread thực hiện callback chỉ từ kết quả cuối.
+Even though the sequential example might produce `output = [1, 2, 3]`, this side result is not part of `map`'s contract. When optimizations, short-circuiting, or parallelization are applied, we should not infer invocation counts, order, or callback execution threads solely from the final result.
 
-Tác dụng phụ **không bị cấm tuyệt đối**. Ví dụ `forEach` là terminal operation dùng để thực thi hành động đối với phần tử. Vấn đề là phải đặt tác dụng phụ tại nơi thật sự cần chúng, hiểu giới hạn về thứ tự/thread, và không sử dụng chúng như một phần ngầm định của phép tính mà Stream được phép tối ưu.
+Side effects are **not strictly forbidden**. For example, `forEach` is a terminal operation used to perform an action on elements. The point is to place side effects where they are genuinely needed, understand ordering/thread limitations, and avoid using them as an implicit part of a computation that the Stream is permitted to optimize away.
 
-### 3.1. `count()` có thể không chạy `map()` hoặc `peek()`
+### 3.1. `count()` may skip running `map()` or `peek()`
 
 ```java
 import java.util.List;
@@ -157,73 +157,73 @@ long count = items.stream()
     })
     .count();
 
-// count == 3, nhưng không được kỳ vọng 3 dòng "map".
+// count == 3, but do not expect 3 "map" lines.
 ```
 
-Với nguồn có kích thước đã biết như `List`, và các operation không làm thay đổi số phần tử như `map`, Stream có thể tính `count()` trực tiếp từ kích thước nguồn mà **không duyệt các phần tử**. Do vậy `map` (và `peek` trong trường hợp tương tự) có thể không chạy. Đây là tối ưu hóa hợp lệ, không phải lỗi của JDK. Với `filter`, thư viện thường cần xét điều kiện để biết còn bao nhiêu phần tử, vì `filter` có thể thay đổi số lượng.
+With a known-size source such as `List`, and operations that do not change element count such as `map`, the Stream can compute `count()` directly from the source size **without traversing elements**. Consequently `map` (and `peek` in a similar case) may not run. This is a valid optimization, not a JDK bug. With `filter`, the library usually needs to evaluate the predicate to know how many elements remain, because `filter` can change the count.
 
-Không dùng `map`, `filter` hoặc `peek` để ép thực hiện một công việc bên ngoài rồi chỉ gọi `count()` để kích hoạt nó. Tốt hơn là xác định rõ cần **đếm**, **biến đổi**, hay **thực hiện hành động** và chọn terminal tương ứng.
+Do not use `map`, `filter`, or `peek` to force external work to execute and then just call `count()` to trigger it. It is better to clearly determine whether you need to **count**, **transform**, or **perform an action** and pick the corresponding terminal operation.
 
-### 3.2. Short-circuit chỉ cần xử lý một phần nguồn
+### 3.2. Short-circuiting only needs to process part of the source
 
 ```java
 boolean hasNegative = List.of(4, 8, -3, 10, 12).stream()
     .anyMatch(n -> n < 0);
 
-// true; không cần xét hết các phần tử sau khi đã tìm thấy phần tử phù hợp.
+// true; no need to examine remaining elements once a matching element is found.
 ```
 
-`anyMatch`, `allMatch`, `noneMatch`, `findFirst`, `findAny`, các phép toán kết hợp `limit`... có thể kết thúc khi đã đủ thông tin. Trong pipeline song song, một số tác vụ đang chạy vẫn có thể xử lý thêm phần tử trước khi nhận tín hiệu dừng. Vì thế không có lời hứa rằng một callback sẽ chạy với **đúng N phần tử** chỉ vì ta quan sát một kết quả ở lần chạy trước.
+`anyMatch`, `allMatch`, `noneMatch`, `findFirst`, `findAny`, operations combined with `limit`, and so on can terminate once enough information is available. In a parallel pipeline, some running tasks may still process additional elements before receiving the stop signal. Thus there is no promise that a callback will run for **exactly N elements** just because you observed a result on a previous run.
 
-## 4. Khả năng quan sát kết quả: điều gì được bảo đảm?
+## 4. Result observability: what is guaranteed?
 
-Trong Stream, nên phân biệt ba lớp quan sát:
+In Streams, three layers of observability should be distinguished:
 
-1. **Giá trị terminal trả về**: ví dụ `List` từ `toList()`, `Map` từ `collect(...)`, `long` từ `count()`; đây là đầu ra để kiểm tra.
-2. **Tác dụng phụ có chủ đích của terminal**: ví dụ `forEach(System.out::println)`; việc hành động diễn ra là mục đích của operation, nhưng thứ tự và thread vẫn phụ thuộc hợp đồng cụ thể.
-3. **Tác dụng phụ nằm bên trong bước trung gian**: log, tăng biến đếm, thay đổi state trong `map`/`filter`/`peek`; có thể bị tối ưu bỏ qua hoặc thực thi ở luồng/thứ tự khác nên không phải bằng chứng đầy đủ cho việc phần tử đã được xử lý thế nào.
+1. **Terminal return value**: for example `List` from `toList()`, `Map` from `collect(...)`, `long` from `count()`; this is the output to assert against.
+2. **Intentional terminal side effect**: for example `forEach(System.out::println)`; executing the action is the purpose of the operation, though order and thread still depend on the specific contract.
+3. **Side effects inside intermediate steps**: logging, incrementing counters, mutating state inside `map`/`filter`/`peek`; can be optimized away or executed on different threads/orders and therefore are not complete proof of how elements were processed.
 
-| Pipeline | Có thể khẳng định | Không được suy ra |
+| Pipeline | Can be asserted | Cannot be inferred |
 | --- | --- | --- |
-| `list.stream().map(f).toList()` | Danh sách trả về chứa kết quả phép biến đổi theo encounter order nếu nguồn có thứ tự. | Mọi side effect bên trong `f` đều an toàn hoặc có thể dùng để đồng bộ. |
-| `list.stream().map(f).count()` | Số phần tử theo hợp đồng `count()`. | `f` đã được gọi đúng một lần cho mọi phần tử. |
-| `stream.anyMatch(p)` | Có ít nhất một phần tử thỏa `p` nếu trả `true`. | `p` đã xét toàn bộ nguồn. |
-| `stream.parallel().forEach(action)` | `action` được thực hiện cho các phần tử mà terminal duyệt theo hợp đồng. | Thứ tự tương ứng thứ tự nguồn, hoặc các action chạy trên cùng một thread. |
-| `stream.forEachOrdered(action)` | Nếu Stream có encounter order, action được thực hiện theo thứ tự đó. | Mọi action đều chạy trên cùng một thread hoặc chi phí tương đương `forEach`. |
+| `list.stream().map(f).toList()` | Returned list contains the transformation results in encounter order if the source is ordered. | All side effects inside `f` are safe or usable for synchronization. |
+| `list.stream().map(f).count()` | Element count per `count()` contract. | `f` was called exactly once for every element. |
+| `stream.anyMatch(p)` | At least one element satisfies `p` if it returns `true`. | `p` examined the entire source. |
+| `stream.parallel().forEach(action)` | `action` is executed for the elements traversed by the terminal per contract. | Order matches source order, or actions run on the same thread. |
+| `stream.forEachOrdered(action)` | If the Stream has encounter order, actions are executed in that order. | All actions run on the same thread or have the same cost as `forEach`. |
 
-`forEachOrdered` còn bảo đảm việc thực hiện action trên một phần tử *happens-before* action trên phần tử tiếp theo. Nó hữu ích khi thật sự cần thứ tự, nhưng có thể hạn chế khả năng thực thi song song. `forEach` không cam kết giữ encounter order, đặc biệt khi dùng parallel stream.
+`forEachOrdered` also guarantees that executing the action on one element *happens-before* the action on the next element. It is useful when order is genuinely needed, though it can limit parallel execution capability. `forEach` makes no promise to preserve encounter order, especially when using a parallel stream.
 
-### 4.1. `peek()` để quan sát tạm thời, không phải cơ chế audit
+### 4.1. `peek()` is for temporary observation, not an audit mechanism
 
 ```java
 List<Integer> result = List.of(1, 2, 3, 4, 5).stream()
     .filter(n -> n % 2 == 0)
-    .peek(n -> System.out.println("sau filter: " + n))
+    .peek(n -> System.out.println("after filter: " + n))
     .map(n -> n * n)
     .toList();
 
-// result == [4, 16]. peek có ích khi kiểm tra luồng dữ liệu trong lúc debug.
+// result == [4, 16]. peek is useful for inspecting data flow during debugging.
 ```
 
-`peek` là phép toán trung gian, chỉ có cơ hội chạy khi phần tử thực sự đi qua đoạn pipeline đó. Nó không bảo đảm một lần log cho mỗi phần tử nguồn, không bảo đảm trật tự log trên parallel stream và có thể bị loại khỏi quá trình thực thi khi tối ưu hóa không làm đổi kết quả terminal. Vì thế `peek` không phù hợp để ghi sự kiện nghiệp vụ bắt buộc, kiểm toán, tính phí, cập nhật tồn kho hay thống kê chính thức.
+`peek` is an intermediate operation that only gets a chance to run when elements actually pass through that pipeline segment. It does not guarantee one log per source element, does not guarantee log order on a parallel stream, and can be elided from execution when optimizations do not alter the terminal result. Hence `peek` is unsuitable for mandatory business event logging, auditing, billing, inventory updates, or official statistics.
 
-Nếu sự kiện cần ghi **chính xác theo những phần tử đã chọn**, hãy xác định chúng bằng phép tính thuần trước, sau đó thực hiện bước ghi có chủ đích, cùng chiến lược xử lý lỗi/nhắc lại phù hợp với hệ thống:
+If events must be recorded **strictly for the selected elements**, determine them with a pure computation first, then perform an intentional recording step along with an error-handling/retry strategy suited to the system:
 
 ```java
 List<Integer> selected = List.of(1, 2, 3, 4, 5).stream()
     .filter(n -> n % 2 == 0)
     .toList();
 
-selected.forEach(n -> System.out.println("Đã chọn: " + n));
+selected.forEach(n -> System.out.println("Selected: " + n));
 ```
 
-Trong hệ thống thực, quy trình ghi sự kiện còn cần quản lý giao dịch và idempotency; Stream API không tự cung cấp các bảo đảm đó.
+In real systems, event recording workflows also require transaction and idempotency management; the Stream API does not provide those guarantees by itself.
 
-## 5. Thay mutation bên ngoài bằng kết quả của terminal
+## 5. Replace external mutation with terminal results
 
-Với phần lớn bài toán, cách xử lý dễ hiểu và an toàn là dùng `filter` để chọn, `map` để biến đổi, `reduce` để gộp bằng phép toán kết hợp, hoặc `collect` để gom phần tử thành cấu trúc kết quả.
+For most problems, the clear and safe way to process data is using `filter` to select, `map` to transform, `reduce` to combine with an associative operation, or `collect` to gather elements into a result structure.
 
-### 5.1. Tránh dùng `forEach` để tự đắp kết quả
+### 5.1. Avoid using `forEach` to manually assemble results
 
 ```java
 import java.util.ArrayList;
@@ -234,7 +234,7 @@ List<Integer> numbers = List.of(1, 2, 3, 4, 5);
 List<Integer> bad = new ArrayList<>();
 numbers.stream()
     .filter(n -> n % 2 == 0)
-    .forEach(n -> bad.add(n * n)); // Gắn việc tạo kết quả với state ngoài.
+    .forEach(n -> bad.add(n * n)); // Couples result creation to external state.
 
 List<Integer> good = numbers.stream()
     .filter(n -> n % 2 == 0)
@@ -242,9 +242,9 @@ List<Integer> good = numbers.stream()
     .toList(); // [4, 16]
 ```
 
-Ở luồng tuần tự, `bad` có thể hoạt động nhưng làm chương trình phụ thuộc vào mutation. Nếu chuyển sang `parallelStream()`, `ArrayList.add` đồng thời có thể gây race và hỏng kết quả. `good` thể hiện mục tiêu ngay trong pipeline; Stream tự quản lý việc gom kết quả. `Stream.toList()` trả về danh sách không sửa đổi được; nếu cần một danh sách có thể thay đổi, có thể dùng `collect(Collectors.toCollection(ArrayList::new))`.
+In a sequential stream, `bad` may work yet ties the program to mutation. If switched to `parallelStream()`, concurrent `ArrayList.add` calls can cause races and corrupt results. `good` expresses the intent right in the pipeline; the Stream manages gathering the result itself. `Stream.toList()` returns an unmodifiable list; if a mutable list is needed, `collect(Collectors.toCollection(ArrayList::new))` can be used.
 
-### 5.2. `reduce` cho phép gộp, `collect` cho tích lũy có quản lý
+### 5.2. `reduce` for combining, `collect` for managed accumulation
 
 ```java
 import java.util.List;
@@ -253,7 +253,7 @@ long sum = List.of(10L, 20L, 30L).stream()
     .reduce(0L, Long::sum); // 60
 ```
 
-Hàm dùng với `reduce` cần tuân theo tính kết hợp (*associativity*) và giá trị khởi tạo phù hợp. Không dùng một `ArrayList` chia sẻ làm identity của `reduce` rồi thêm phần tử vào đó: khi pipeline song song, các nhánh cần có khả năng kết hợp kết quả đúng đắn mà không phụ thuộc mutation chung.
+Functions used with `reduce` must obey *associativity* and have an appropriate identity value. Do not use a shared `ArrayList` as the identity of `reduce` and append elements to it: in a parallel pipeline, branches must be able to combine results properly without relying on shared mutation.
 
 ```java
 import java.util.ArrayList;
@@ -262,20 +262,20 @@ import java.util.stream.Collector;
 
 List<Integer> collected = List.of(1, 2, 3, 4).parallelStream()
     .collect(Collector.of(
-        ArrayList::new,                    // supplier: tạo container tích lũy mới
-        ArrayList::add,                    // accumulator: thêm vào container của nhánh
-        (left, right) -> {                 // combiner: gộp kết quả hai nhánh
+        ArrayList::new,                    // supplier: creates a new accumulation container
+        ArrayList::add,                    // accumulator: adds to the branch's container
+        (left, right) -> {                 // combiner: merges results of two branches
             left.addAll(right);
             return left;
         }
     ));
 
-// [1, 2, 3, 4] với nguồn có encounter order này.
+// [1, 2, 3, 4] with this source having encounter order.
 ```
 
-Đây là mutation **bên trong cơ chế `Collector`**, được thiết kế qua `supplier`, `accumulator` và `combiner`, thay vì các lambda cùng ghi vào một danh sách ngoài. Một collector có thể dùng container mutable một cách an toàn trong parallel stream nếu tuân thủ các ràng buộc identity, associativity, cách phân tách/kết hợp và các characteristics khai báo. Khi không cần logic riêng, ưu tiên collector có sẵn như `toList`, `groupingBy`, `counting`, `summingLong`.
+This is mutation **inside the `Collector` mechanism**, designed via `supplier`, `accumulator`, and `combiner`, rather than lambdas concurrently writing into an external list. A collector can safely use a mutable container in a parallel stream if it satisfies the identity, associativity, splitting/combining constraints, and declared characteristics. When custom logic is not needed, prefer built-in collectors such as `toList`, `groupingBy`, `counting`, and `summingLong`.
 
-### 5.3. Ví dụ nghiệp vụ: tính doanh thu theo khách hàng
+### 5.3. Business example: calculating revenue by customer
 
 ```java
 import java.util.List;
@@ -300,14 +300,14 @@ Map<String, Long> revenueByCustomer = orders.stream()
         Collectors.summingLong(Order::amount)
     ));
 
-// {An=220, Bình=80} (Map không mặc định bảo đảm thứ tự duyệt).
+// {An=220, Bình=80} (Map does not guarantee traversal order by default).
 ```
 
-Ở đây không có bộ đếm/doanh thu mutable bên ngoài để `filter` hay `map` cập nhật. Kết quả được biểu diễn bằng `Map<String, Long>`, nên ta có thể kiểm tra trực tiếp theo key, dùng lại cho xử lý tiếp theo hoặc so sánh với kết quả mong đợi. Nếu cần collector tùy chỉnh, vẫn giữ nguyên nguyên tắc: không chia sẻ container tích lũy tùy ý giữa các nhánh song song.
+Here there is no external mutable counter/revenue variable for `filter` or `map` to update. The result is represented as a `Map<String, Long>`, so we can inspect it directly by key, reuse it for downstream processing, or compare it against expected output. If a custom collector is needed, keep the same principle: do not arbitrarily share an accumulation container across parallel branches.
 
-## 6. Thực thi song song làm lộ rõ những giả định sai
+## 6. Parallel execution exposes flawed assumptions
 
-`parallel()` cho phép Stream phân chia công việc, nhưng **không tự biến callback có state thành thread-safe** và cũng không cam kết chúng chạy trên thread cụ thể. Chẳng hạn:
+`parallel()` lets a Stream split work, yet **does not automatically make stateful callbacks thread-safe** and does not promise they run on specific threads. For example:
 
 ```java
 import java.util.ArrayList;
@@ -318,12 +318,12 @@ List<Integer> shared = new ArrayList<>();
 
 IntStream.range(0, 100_000)
     .parallel()
-    .forEach(shared::add); // KHÔNG AN TOÀN: ArrayList bị ghi đồng thời.
+    .forEach(shared::add); // UNSAFE: ArrayList is written concurrently.
 
-// Không thể tin shared.size() luôn là 100_000.
+// Cannot trust shared.size() to always be 100_000.
 ```
 
-Sửa bằng cách để terminal tạo kết quả:
+Fix it by letting the terminal operation produce the result:
 
 ```java
 List<Integer> values = IntStream.range(0, 100_000)
@@ -331,24 +331,24 @@ List<Integer> values = IntStream.range(0, 100_000)
     .boxed()
     .toList();
 
-// values.size() == 100_000; giữ encounter order của IntStream.range.
+// values.size() == 100_000; preserves encounter order of IntStream.range.
 ```
 
-Đổi `shared` sang `Collections.synchronizedList(...)` chỉ xử lý một phần vấn đề an toàn truy cập; nó không khiến thứ tự hoàn thành các lời gọi `forEach` tương ứng với thứ tự nguồn, và vẫn buộc các worker cạnh tranh khóa. Tương tự, dùng `AtomicInteger` cho bộ đếm chỉ tránh mất cập nhật đồng thời, **không** bảo đảm số lần callback chạy khi pipeline có short-circuit hoặc tối ưu hóa bỏ qua bước trung gian.
+Changing `shared` to `Collections.synchronizedList(...)` only addresses part of access safety; it does not make the completion order of `forEach` calls match source order, and still forces workers to contend on a lock. Similarly, using `AtomicInteger` for a counter only prevents lost concurrent updates; it does **not** guarantee how many times the callback runs when a pipeline short-circuits or optimizes away intermediate steps.
 
-Nếu bắt buộc thực hiện hành động theo encounter order:
+If actions must execute strictly in encounter order:
 
 ```java
 IntStream.rangeClosed(1, 5)
     .parallel()
-    .forEachOrdered(System.out::println); // In 1, 2, 3, 4, 5 theo thứ tự.
+    .forEachOrdered(System.out::println); // Prints 1, 2, 3, 4, 5 in order.
 ```
 
-Đừng mặc định parallel sẽ nhanh hơn: tác vụ nhỏ, operation có trạng thái, đòi hỏi encounter order, I/O hoặc tranh chấp tài nguyên có thể khiến chi phí chia nhánh/kết hợp vượt quá lợi ích. Trước khi song song hóa, cần chứng minh phép tính độc lập, collector phù hợp và đo hiệu năng với khối lượng dữ liệu thật.
+Do not assume parallel will be faster: small tasks, stateful operations, encounter order requirements, I/O, or resource contention can make splitting/combining overhead outweigh the benefit. Before parallelizing, verify that computations are independent, collectors are appropriate, and measure performance with realistic data volumes.
 
-## 7. Hệ quả đối với vòng đời, tài nguyên và kiểm thử
+## 7. Implications for lifecycle, resources, and testing
 
-**Vòng đời.** Intermediate operations là lazy; terminal operation kích hoạt việc xử lý nhưng có thể kết thúc sớm hoặc bỏ qua một số stage nhờ tối ưu hóa. Khi đã tiêu thụ, Stream không tái sử dụng được. Một số nguồn I/O như `Files.lines` sở hữu tài nguyên và cần đóng Stream bằng `try-with-resources`:
+**Lifecycle.** Intermediate operations are lazy; a terminal operation triggers processing yet may terminate early or skip some stages due to optimization. Once consumed, a Stream cannot be reused. Some I/O sources like `Files.lines` own resources and require closing the Stream with `try-with-resources`:
 
 ```java
 import java.nio.file.Files;
@@ -366,7 +366,7 @@ static List<String> nonBlankLines(Path path) throws IOException {
 }
 ```
 
-**Kiểm thử.** Thay vì dùng số dòng log hoặc giá trị biến ngoài để chứng minh một stage chạy, hãy so sánh kết quả terminal:
+**Testing.** Instead of using log line counts or external variable values to prove a stage ran, compare the terminal result:
 
 ```java
 List<Integer> actual = List.of(1, 2, 3, 4).stream()
@@ -379,25 +379,25 @@ if (!actual.equals(List.of(4, 16))) {
 }
 ```
 
-Với pipeline có yếu tố ngẫu nhiên, thời gian, I/O hoặc cập nhật trạng thái ngoài, hãy tách logic tính toán thành hàm có thể kiểm thử độc lập; quản lý side effect ở lớp thực thi tương ứng. Nếu yêu cầu quan trọng là xử lý mỗi sự kiện đúng một lần, lưu bền và khôi phục khi lỗi, cần thiết kế riêng các bảo đảm giao dịch/idempotency ở tầng ứng dụng.
+For pipelines involving randomness, time, I/O, or external state updates, separate computational logic into independently testable functions; manage side effects in the corresponding execution layer. If a critical requirement is processing each event exactly once, persisting durably, and recovering on failure, design dedicated transactional/idempotency guarantees at the application layer.
 
-### Bảng tự rà soát khi viết Stream
+### Self-review checklist when writing Streams
 
-| Câu hỏi | Dấu hiệu nên sửa |
+| Question | Sign that refactoring is needed |
 | --- | --- |
-| Lambda có đọc/ghi biến mutable dùng chung giữa các phần tử không? | `seen.add(...)`, `counter++`, `result.add(...)` trong `map`/`filter`. |
-| Lambda có sửa nguồn đang được duyệt không? | `source.add(...)`, `source.remove(...)` trong callback. |
-| Có đang dựa vào việc stage trung gian chắc chắn chạy không? | Ghi log bắt buộc trong `peek`, xử lý nghiệp vụ trong `map` rồi chỉ gọi `count`. |
-| Có đang dựa vào thứ tự hoặc thread callback không? | `parallel().forEach(...)` để tạo danh sách có thứ tự hay cập nhật state không đồng bộ. |
-| Có thể biểu diễn yêu cầu bằng giá trị trả về không? | Dùng `map` + `toList`, `reduce`, `groupingBy`, `summingLong` thay mutation bên ngoài. |
-| Có quản lý vòng đời nguồn/tài nguyên không? | Stream từ file chưa đóng, hoặc cố tái sử dụng Stream sau terminal. |
+| Does the lambda read/write a mutable variable shared across elements? | `seen.add(...)`, `counter++`, `result.add(...)` inside `map`/`filter`. |
+| Does the lambda modify the source being traversed? | `source.add(...)`, `source.remove(...)` inside a callback. |
+| Is code relying on an intermediate stage definitely running? | Mandatory logging in `peek`, business processing in `map` followed only by `count`. |
+| Is code relying on callback order or thread? | `parallel().forEach(...)` to build an ordered list or update unsynchronized state. |
+| Can the requirement be expressed via a return value? | Use `map` + `toList`, `reduce`, `groupingBy`, `summingLong` instead of external mutation. |
+| Are source/resource lifecycles managed? | Unclosed Stream from a file, or attempting to reuse a Stream after a terminal operation. |
 
-## 8. Tự kiểm tra hiểu biết
+## 8. Check your understanding
 
-1. Một pipeline gọi `.map(x -> { log(x); return x; }).count()` trên `List` có buộc ghi log cho từng phần tử không? **Không**: `count` có thể biết trước kích thước và bỏ qua `map`.
-2. Vì sao `filter(x -> seen.add(x))` có thể chạy "đúng" tuần tự mà vẫn sai hợp đồng? **Vì lambda phụ thuộc vào và thay đổi trạng thái chia sẻ giữa các lần gọi**; kết quả phụ thuộc thứ tự xử lý và không an toàn khi song song.
-3. `distinct()` có state, vậy có vi phạm yêu cầu stateless không? **Không**: đó là stateful operation do Stream quản lý; điều cần tránh là tự đưa state mutable giữa các lần gọi lambda.
-4. Muốn gom danh sách từ parallel stream nên dùng `forEach(shared::add)` hay `collect`/`toList`? **Dùng terminal trả kết quả** để Stream quản lý quá trình tích lũy và kết hợp.
-5. `forEachOrdered` có đồng nghĩa callback luôn chạy trên cùng một thread không? **Không**: nó bảo đảm encounter order khi có và quan hệ happens-before giữa các action liên tiếp, không bảo đảm thread cố định.
+1. Does a pipeline calling `.map(x -> { log(x); return x; }).count()` on a `List` guarantee logging for every element? **No**: `count` can know the size in advance and skip `map`.
+2. Why can `filter(x -> seen.add(x))` run "correctly" sequentially yet still violate the contract? **Because the lambda depends on and mutates shared state across calls**; the result depends on processing order and is unsafe in parallel.
+3. `distinct()` has state, so does it violate the stateless requirement? **No**: that is a stateful operation managed by the Stream; what must be avoided is introducing mutable state across lambda invocations yourself.
+4. To collect a list from a parallel stream, should you use `forEach(shared::add)` or `collect`/`toList`? **Use a result-returning terminal operation** so the Stream manages accumulation and combining.
+5. Does `forEachOrdered` mean the callback always runs on the same thread? **No**: it guarantees encounter order when present and a happens-before relationship between consecutive actions, not a fixed thread.
 
-**Nguyên tắc áp dụng:** hãy coi kết quả terminal là hợp đồng chính của pipeline, giữ lambda không trạng thái và không can thiệp vào nguồn, dùng collector để gom dữ liệu, và đưa side effect bắt buộc vào một bước thực thi được kiểm soát rõ ràng. Khi đó pipeline vẫn dễ hiểu nếu JDK tối ưu khác đi hoặc chương trình chuyển từ tuần tự sang song song.
+**Practical principle:** treat the terminal result as the primary contract of the pipeline, keep lambdas stateless and non-interfering with the source, use collectors to gather data, and move mandatory side effects into a clearly controlled execution step. That way the pipeline remains easy to reason about even if the JDK optimizes differently or the program switches from sequential to parallel.

@@ -1,41 +1,41 @@
-# Layer parent và khả năng đọc module
+# Parent Layers and Module Readability
 
-Trong Java Platform Module System (JPMS), `ModuleLayer` cho phép một ứng dụng định nghĩa thêm các named module sau khi JVM đã khởi động. Một layer mới có thể có một hoặc nhiều parent layers. Cách tổ chức này rất hữu ích cho hệ thống plugin, công cụ phát triển, ứng dụng mở rộng chức năng theo yêu cầu và hệ thống cần tách module thành các nhóm runtime.
+In the Java Platform Module System (JPMS), `ModuleLayer` allows an application to define additional named modules after the JVM has started. A new layer can have one or more parent layers. This organization is very useful for plugin systems, developer tools, applications that extend functionality on demand, and systems that need to separate modules into runtime groups.
 
-Một điểm quan trọng thường bị hiểu nhầm là: **Có parent layer không đồng nghĩa mọi module ở child layer đều tự động đọc mọi module của parent.**
+An important point that is often misunderstood is: **Having a parent layer does not mean every module in the child layer automatically reads every module in the parent.**
 
-Hãy phân biệt ba loại quan hệ:
+Let us distinguish three kinds of relationships:
 
-- **Layer parent:** child layer được xây dựng dựa trên configuration của những layer cha nào?
-- **Module readability:** module A có quan hệ đọc với module B hay không?
-- **Class loader và accessibility:** class được nạp từ đâu, package đã được export hoặc opens đúng cách chưa?
+- **Parent layer:** which parent layers' configurations is the child layer built on top of?
+- **Module readability:** does module A have a read relationship to module B?
+- **Class loader and accessibility:** where are classes loaded from, and have packages been properly exported or opened?
 
-Quan hệ parent giúp module ở child layer tham chiếu các module đã được định nghĩa trong ancestor layers khi graph cho phép. Nhưng quyền đọc không được quyết định chỉ bằng việc hai module thuộc layer cha và con.
+The parent relationship enables modules in the child layer to reference modules already defined in ancestor layers when the graph permits. However, read permission is not determined merely by two modules belonging to parent and child layers.
 
-## Mục tiêu
+## Objectives
 
-Sau bài học, bạn có thể:
+After this lesson, you can:
 
-- Giải thích `ModuleLayer.boot()` và sự khác nhau giữa parent/child layer.
-- Phân biệt `layer.parents()`, `layer.modules()` và `layer.findModule()`.
-- Hiểu `Configuration.resolve()` và readability graph có cạnh đọc đến module ở parent configuration.
-- Phân biệt lookup thành công với quyền đọc thực tế qua `Module.canRead()`.
-- Tạo plugin layer với `defineModulesWithOneLoader()`.
-- Sử dụng `ModuleLayer.Controller.addReads()` đúng phạm vi.
-- Tách biệt vai trò của `requires`, `requires transitive`, `exports`, `opens` và class loader.
-- Chẩn đoán lỗi xảy ra khi nạp module từ một layer khác.
+- Explain `ModuleLayer.boot()` and the difference between parent and child layers.
+- Distinguish `layer.parents()`, `layer.modules()`, and `layer.findModule()`.
+- Understand `Configuration.resolve()` and a readability graph with read edges to modules in parent configurations.
+- Distinguish a successful lookup from actual read permission via `Module.canRead()`.
+- Create a plugin layer with `defineModulesWithOneLoader()`.
+- Use `ModuleLayer.Controller.addReads()` within its proper scope.
+- Separate the roles of `requires`, `requires transitive`, `exports`, `opens`, and class loaders.
+- Diagnose errors that occur when loading modules from another layer.
 
-## 1. ModuleLayer là gì?
+## 1. What Is a ModuleLayer?
 
-Một `ModuleLayer` chứa các đối tượng `Module` được định nghĩa từ một `Configuration` đã được resolve. Mỗi named module thuộc một layer cụ thể tại runtime.
+A `ModuleLayer` contains `Module` objects defined from a resolved `Configuration`. Each named module belongs to a specific layer at runtime.
 
-JVM có boot layer được tạo lúc khởi động:
+The JVM has a boot layer created at startup:
 
 ~~~java
 ModuleLayer boot = ModuleLayer.boot();
 ~~~
 
-Boot layer chứa `java.base` và các module khác được resolve cho lần khởi chạy. Khi ứng dụng cần nạp một plugin, nó có thể tạo layer mới dùng boot layer làm cha:
+The boot layer contains `java.base` and other modules resolved for that launch. When an application needs to load a plugin, it can create a new layer using the boot layer as its parent:
 
 ~~~text
               BOOT LAYER (parent)
@@ -54,19 +54,19 @@ Boot layer chứa `java.base` và các module khác được resolve cho lần k
           +-------------------------+
 ~~~
 
-Sơ đồ trên chỉ mô tả **vị trí** các module. Nó chưa nói `com.acme.plugin` có thể đọc những module nào.
+The diagram above only describes the **placement** of modules. It does not yet say which modules `com.acme.plugin` can read.
 
-### 1.1. Vì sao cần parent layer?
+### 1.1. Why Do We Need a Parent Layer?
 
-Một plugin có thể phụ thuộc API đã tồn tại trong boot layer, chẳng hạn `java.logging` hoặc một module SPI do ứng dụng chính cung cấp. Khi resolve plugin, Java có thể sử dụng các module đã có ở parent configuration, thay vì định nghĩa lại chúng trong child.
+A plugin may depend on APIs that already exist in the boot layer, such as `java.logging` or an SPI module provided by the main application. When resolving the plugin, Java can reuse the modules already present in the parent configuration instead of redefining them in the child.
 
-Parent layer cũng cung cấp quan hệ tìm kiếm ancestor để ứng dụng có thể tra cứu module theo tên.
+The parent layer also provides an ancestor lookup chain so the application can query modules by name.
 
-### 1.2. Layer là tập module, không phải class loader
+### 1.2. A Layer Is a Set of Modules, Not a Class Loader
 
-Một layer có thể định nghĩa tất cả module bằng một loader hoặc ánh xạ mỗi module sang loader riêng. Ngược lại, class loader không phải một module layer.
+A layer can define all modules with a single loader or map each module to its own loader. Conversely, a class loader is not a module layer.
 
-Ba factory phổ biến là:
+The three common factories are:
 
 ~~~java
 parent.defineModulesWithOneLoader(configuration, parentLoader);
@@ -76,13 +76,13 @@ parent.defineModulesWithManyLoaders(configuration, parentLoader);
 parent.defineModules(configuration, moduleNameToLoader);
 ~~~
 
-Dùng chung loader không gộp các module thành một module duy nhất. Mỗi module vẫn có descriptor, tên và quyền truy cập riêng.
+Sharing a loader does not merge modules into a single module. Each module still has its own descriptor, name, and access permissions.
 
-## 2. Từ Configuration đến ModuleLayer
+## 2. From Configuration to ModuleLayer
 
-`Configuration` là kết quả module resolution và mô tả readability graph giữa các resolved modules. Graph này có các node là `ResolvedModule` và các cạnh chỉ quan hệ đọc.
+`Configuration` is the result of module resolution and describes the readability graph among resolved modules. This graph has `ResolvedModule` nodes and edges indicating read relationships.
 
-Một cách resolve plugin dựa trên boot configuration:
+One way to resolve a plugin based on the boot configuration:
 
 ~~~java
 import java.lang.module.Configuration;
@@ -103,18 +103,18 @@ Configuration childConfig =
     );
 ~~~
 
-Các thành phần:
+The components:
 
-- `boot.configuration()` là parent configuration.
-- `pluginFinder` tìm module mới từ thư mục JAR.
-- `ModuleFinder.of()` trong ví dụ là finder rỗng ở vị trí `after`.
-- `Set.of("com.acme.plugin")` chứa root module mới cần resolve.
+- `boot.configuration()` is the parent configuration.
+- `pluginFinder` locates new modules from the JAR directory.
+- `ModuleFinder.of()` in the example is an empty finder in the `after` position.
+- `Set.of("com.acme.plugin")` contains the new root module to resolve.
 
-Nếu plugin khai báo `requires java.logging;` và logging đã có trong parent configuration, resolver tạo quan hệ đọc từ plugin đến logging ở parent. Java không cần tạo bản sao của module logging trong child configuration.
+If the plugin declares `requires java.logging;` and logging is already in the parent configuration, the resolver creates a read edge from the plugin to logging in the parent. Java does not need to create a duplicate copy of the logging module in the child configuration.
 
-### 2.1. Đọc graph ở mức configuration
+### 2.1. Inspecting the Graph at the Configuration Level
 
-Trước khi tạo layer, có thể liệt kê module mới và các cạnh đọc:
+Before creating the layer, you can list the new modules and their read edges:
 
 ~~~java
 childConfig.modules().forEach(module -> {
@@ -126,11 +126,11 @@ childConfig.modules().forEach(module -> {
 });
 ~~~
 
-Những module được đọc có thể nằm trong child configuration **hoặc** parent configuration.
+The modules being read may reside in the child configuration **or** in a parent configuration.
 
-### 2.2. Parent configuration phải tương ứng với parent layer
+### 2.2. Parent Configuration Must Match Parent Layer
 
-Khi định nghĩa layer bằng static API:
+When defining a layer with the static API:
 
 ~~~java
 ModuleLayer.Controller controller =
@@ -141,13 +141,13 @@ ModuleLayer.Controller controller =
     );
 ~~~
 
-`List.of(boot)` phải tương ứng với parent configuration đã dùng trong lần resolve. Nếu configuration có nhiều parent, thứ tự các parent layers phải khớp thứ tự parent configurations.
+`List.of(boot)` must correspond to the parent configuration used during resolution. If a configuration has multiple parents, the order of parent layers must match the order of parent configurations.
 
-Nếu parent layers không khớp, API có thể ném `IllegalArgumentException`.
+If the parent layers do not match, the API may throw `IllegalArgumentException`.
 
-## 3. Layer parent và read edge là hai thứ khác nhau
+## 3. Parent Layer and Read Edge Are Two Different Things
 
-Giả sử:
+Suppose:
 
 ~~~text
 Parent configuration:
@@ -159,7 +159,7 @@ Child configuration:
   com.acme.plugin
 ~~~
 
-Plugin descriptor là:
+The plugin descriptor is:
 
 ~~~java
 module com.acme.plugin {
@@ -167,7 +167,7 @@ module com.acme.plugin {
 }
 ~~~
 
-Graph đọc ở runtime về cơ bản là:
+The runtime read graph is essentially:
 
 ~~~text
 com.acme.plugin  --->  java.logging
@@ -175,9 +175,9 @@ com.acme.plugin  --->  java.logging
          +------->     java.base
 ~~~
 
-Còn `java.sql` có thể thuộc boot layer nhưng plugin **không** có cạnh đọc tới SQL.
+Meanwhile `java.sql` may belong to the boot layer, yet the plugin does **not** have a read edge to SQL.
 
-Điều này không mâu thuẫn. Parent nói về **cấu trúc layer**; readability nói về **module graph**.
+There is no contradiction here. Parent refers to **layer structure**; readability refers to the **module graph**.
 
 ### 3.1. ModuleLayer.findModule()
 
@@ -186,9 +186,9 @@ Module sql = childLayer.findModule("java.sql")
     .orElseThrow();
 ~~~
 
-`findModule` tìm trong layer hiện tại rồi tới các parent layers. Nếu SQL nằm ở boot layer và boot là parent của child, lời gọi trên có thể thành công.
+`findModule` searches the current layer and then the parent layers. If SQL is in the boot layer and boot is the parent of child, the call above can succeed.
 
-Nhưng việc tìm ra module không có nghĩa module plugin được phép tham chiếu các kiểu của SQL trong bytecode Java thông thường.
+However, finding the module does not mean the plugin module is allowed to reference SQL types in ordinary Java bytecode.
 
 ### 3.2. Module.canRead()
 
@@ -196,9 +196,9 @@ Nhưng việc tìm ra module không có nghĩa module plugin được phép tham
 boolean readable = pluginModule.canRead(sqlModule);
 ~~~
 
-`canRead()` kiểm tra readability từ module gọi tới module đích tại runtime.
+`canRead()` checks readability from the calling module to the target module at runtime.
 
-Ví dụ:
+Example:
 
 ~~~text
 child.findModule("java.sql").isPresent()  -> true
@@ -206,31 +206,31 @@ child.findModule("java.sql").isPresent()  -> true
 plugin.canRead(javaSqlModule)             -> false
 ~~~
 
-Đây là ví dụ cốt lõi: **module được tìm thấy từ parent nhưng không được child module đọc**.
+This is the core example: **a module is found from the parent, yet is not read by the child module**.
 
-### 3.3. Readability có hướng
+### 3.3. Readability Is Directional
 
-`A.canRead(B)` là quan hệ có hướng; không kéo theo `B.canRead(A)`.
+`A.canRead(B)` is a directional relationship; it does not imply `B.canRead(A)`.
 
 ~~~text
 com.acme.plugin ---> java.logging
 
 plugin.canRead(logging)  = true
-logging.canRead(plugin)  = false (nếu không có quan hệ ngược)
+logging.canRead(plugin)  = false (unless there is a reverse relationship)
 ~~~
 
-Một parent module không tự động đọc module mới được định nghĩa ở child layer.
+A parent module does not automatically read new modules defined in a child layer.
 
-## 4. Ví dụ chạy được: plugin layer đọc một phần boot layer
+## 4. Runnable Example: A Plugin Layer Reading Part of the Boot Layer
 
-Ví dụ sử dụng:
+The example uses:
 
-- Host chạy trên classpath, không import trực tiếp class plugin.
-- Một explicit named module `com.acme.plugin` được đóng gói thành JAR.
-- Boot layer chứa `java.logging` và `java.sql`.
-- Plugin yêu cầu logging nhưng không yêu cầu SQL.
+- A host running on the classpath, without directly importing plugin classes.
+- An explicit named module `com.acme.plugin` packaged as a JAR.
+- The boot layer containing `java.logging` and `java.sql`.
+- The plugin requiring logging, but not requiring SQL.
 
-Cấu trúc thư mục:
+Directory structure:
 
 ~~~text
 layer-demo/
@@ -243,7 +243,7 @@ layer-demo/
 └── out/
 ~~~
 
-### 4.1. Module descriptor của plugin
+### 4.1. Plugin Module Descriptor
 
 File `src/com.acme.plugin/module-info.java`:
 
@@ -254,9 +254,9 @@ module com.acme.plugin {
 }
 ~~~
 
-Plugin được phép đọc module `java.logging`, và package API của nó được export. Không có dòng `requires java.sql;`.
+The plugin is permitted to read the `java.logging` module, and its API package is exported. There is no `requires java.sql;` line.
 
-### 4.2. Mã PluginEntry
+### 4.2. PluginEntry Code
 
 File `src/com.acme.plugin/com/acme/plugin/api/PluginEntry.java`:
 
@@ -276,11 +276,11 @@ public final class PluginEntry {
 }
 ~~~
 
-Class này cho thấy plugin thật sự phụ thuộc public API của logging.
+This class shows that the plugin genuinely depends on logging's public API.
 
 ### 4.3. Host.java
 
-Tạo file `Host.java` ở thư mục `layer-demo`:
+Create file `Host.java` in the `layer-demo` directory:
 
 ~~~java
 import java.lang.module.Configuration;
@@ -347,59 +347,59 @@ public class Host {
 }
 ~~~
 
-Ứng dụng sử dụng `child.findModule()` và `Module.canRead()` để tách biệt hai loại kiểm tra. Cuối ví dụ, controller bổ sung một cạnh đọc từ plugin tới SQL.
+The application uses `child.findModule()` and `Module.canRead()` to separate the two kinds of checks. At the end of the example, the controller adds a read edge from the plugin to SQL.
 
-### 4.4. Biên dịch và đóng gói
+### 4.4. Compiling and Packaging
 
-Đứng tại thư mục `layer-demo`:
+From the `layer-demo` directory:
 
 ~~~bash
 javac --module-source-path src -d out -m com.acme.plugin
 ~~~
 
-Tạo thư mục plugin nếu chưa có:
+Create the plugin directory if it does not exist yet:
 
 ~~~bash
 mkdir plugins
 ~~~
 
-Đóng gói module JAR:
+Package the modular JAR:
 
 ~~~bash
 jar --create --file plugins/com.acme.plugin.jar \
     -C out/com.acme.plugin .
 ~~~
 
-Nếu dùng Windows PowerShell, có thể viết một dòng:
+If using Windows PowerShell, you can write it on one line:
 
 ~~~powershell
 jar --create --file plugins/com.acme.plugin.jar -C out/com.acme.plugin .
 ~~~
 
-Biên dịch Host:
+Compile Host:
 
 ~~~bash
 javac -d host-out Host.java
 ~~~
 
-### 4.5. Chạy ví dụ
+### 4.5. Running the Example
 
 ~~~bash
 java --add-modules java.logging,java.sql \
      -cp host-out Host
 ~~~
 
-Trên Windows PowerShell:
+On Windows PowerShell:
 
 ~~~powershell
 java --add-modules java.logging,java.sql -cp host-out Host
 ~~~
 
-`--add-modules java.logging,java.sql` đảm bảo hai module JDK được resolve vào boot layer, để `boot.findModule()` tìm thấy chúng.
+`--add-modules java.logging,java.sql` ensures the two JDK modules are resolved into the boot layer, so `boot.findModule()` can find them.
 
-Plugin JAR **không** được đưa lên module path của lệnh khởi chạy này. Host sẽ tìm plugin trong thư mục `plugins` bằng `ModuleFinder.of()` rồi định nghĩa layer mới trong runtime.
+The plugin JAR is **not** placed on the module path of this launch command. Host will locate the plugin in the `plugins` directory using `ModuleFinder.of()` and define the new layer at runtime.
 
-### 4.6. Kết quả minh họa
+### 4.6. Illustrative Output
 
 ~~~text
 Parent is boot: true
@@ -411,21 +411,21 @@ Logging reads plugin: false
 Plugin reads SQL after: true
 ~~~
 
-Diễn giải:
+Interpretation:
 
-1. Child có boot làm parent.
-2. Child tìm được SQL do `findModule()` tìm trong parent.
-3. Boot không tự tìm ngược xuống child.
-4. Plugin đọc được logging nhờ `requires java.logging;`.
-5. Plugin không tự đọc SQL dù SQL nằm trong parent.
-6. Logging không tự đọc ngược plugin.
-7. `addReads(plugin, sql)` thêm một cạnh đọc ở runtime.
+1. Child has boot as its parent.
+2. Child finds SQL because `findModule()` searches in the parent.
+3. Boot does not automatically look downward into child.
+4. Plugin reads logging thanks to `requires java.logging;`.
+5. Plugin does not automatically read SQL even though SQL is in the parent.
+6. Logging does not automatically read back to plugin.
+7. `addReads(plugin, sql)` adds a read edge at runtime.
 
-Kết quả này cho thấy chính xác tại sao phải phân biệt **tìm thấy module** với **module readability**.
+This output shows precisely why you must distinguish **finding a module** from **module readability**.
 
-## 5. ModuleLayer.Controller.addReads() hoạt động ra sao?
+## 5. How Does ModuleLayer.Controller.addReads() Work?
 
-Khi tạo layer bằng static factory, kết quả trả về là `ModuleLayer.Controller`:
+When creating a layer via a static factory, the return value is `ModuleLayer.Controller`:
 
 ~~~java
 ModuleLayer.Controller controller =
@@ -438,37 +438,37 @@ ModuleLayer.Controller controller =
 ModuleLayer layer = controller.layer();
 ~~~
 
-Controller có thể điều chỉnh một số quan hệ runtime của các module được định nghĩa trong layer mà nó điều khiển.
+The controller can adjust certain runtime relationships of the modules defined in the layer it controls.
 
-Các API quan trọng:
+Important APIs:
 
-| API | Ý nghĩa |
+| API | Meaning |
 |---|---|
-| `controller.layer()` | Lấy layer mới |
-| `controller.addReads(source, target)` | Bổ sung cạnh đọc từ source tới target |
-| `controller.addExports(source, packageName, target)` | Export package của source cho target |
-| `controller.addOpens(source, packageName, target)` | Mở package của source cho deep reflection từ target |
+| `controller.layer()` | Gets the new layer |
+| `controller.addReads(source, target)` | Adds a read edge from source to target |
+| `controller.addExports(source, packageName, target)` | Exports a package of source to target |
+| `controller.addOpens(source, packageName, target)` | Opens a package of source for deep reflection from target |
 
-`source` phải là module thuộc layer được controller quản lý khi thực hiện các thay đổi tương ứng. Controller của child layer không tự có quyền chỉnh sửa tất cả module nằm trong boot layer.
+`source` must be a module belonging to the layer managed by the controller when making the corresponding changes. A child layer's controller does not automatically have permission to modify every module in the boot layer.
 
-### 5.1. addReads không thay đổi module-info.java
+### 5.1. addReads Does Not Modify module-info.java
 
-Ví dụ:
+Example:
 
 ~~~java
 controller.addReads(plugin, sql);
 ~~~
 
-Có thể làm `plugin.canRead(sql)` chuyển từ `false` sang `true`.
+This can flip `plugin.canRead(sql)` from `false` to `true`.
 
-Tuy nhiên:
+However:
 
-- File `module-info.class` trong JAR không thay đổi.
-- Compiler không được chạy lại.
-- Dependency mới không được tự động thêm vào bản build.
-- Code import API của SQL lúc compile vẫn cần readability hợp lệ ở compile-time.
+- The `module-info.class` file inside the JAR does not change.
+- The compiler is not re-run.
+- New dependencies are not automatically added to the build.
+- Code importing SQL APIs at compile time still requires valid compile-time readability.
 
-Nếu SQL là dependency cố định mà plugin dùng trực tiếp, cách thiết kế bền vững là khai báo:
+If SQL is a fixed dependency that the plugin uses directly, the sustainable design is to declare:
 
 ~~~java
 module com.acme.plugin {
@@ -476,30 +476,30 @@ module com.acme.plugin {
 }
 ~~~
 
-thay vì dựa vào runtime patch cho một dependency đáng lẽ nên nằm trong descriptor.
+rather than relying on a runtime patch for a dependency that belongs in the descriptor.
 
-### 5.2. addReads không giải quyết mọi lỗi
+### 5.2. addReads Does Not Fix Every Error
 
-Một cạnh đọc mới không tự động:
+A new read edge does not automatically:
 
-- Tìm và resolve module không tồn tại trong configuration.
-- Export package nội bộ của module đích.
-- Mở private field cho deep reflection.
-- Sửa lỗi class loader hoặc thiếu class/JAR.
-- Thay thế cơ chế bảo mật để chạy plugin không tin cậy.
+- Find and resolve a module that does not exist in the configuration.
+- Export internal packages of the target module.
+- Open private fields for deep reflection.
+- Fix class loader errors or missing classes/JARs.
+- Replace a security mechanism for running untrusted plugins.
 
-Đó là lý do `addReads` nên dùng cho các tình huống tích hợp động có chủ đích.
+That is why `addReads` should be used for intentional dynamic integration scenarios.
 
-## 6. Requires và requires transitive qua ranh giới layer
+## 6. Requires and requires transitive Across Layer Boundaries
 
-Giả sử parent layer chứa:
+Suppose the parent layer contains:
 
 ~~~text
 com.acme.spi
 com.acme.model
 ~~~
 
-Module SPI có descriptor:
+The SPI module has the descriptor:
 
 ~~~java
 module com.acme.spi {
@@ -508,7 +508,7 @@ module com.acme.spi {
 }
 ~~~
 
-Plugin ở child layer có:
+The plugin in the child layer has:
 
 ~~~java
 module com.acme.plugin {
@@ -516,7 +516,7 @@ module com.acme.plugin {
 }
 ~~~
 
-Readability có thể lan từ plugin tới model nhờ `requires transitive` trong descriptor SPI.
+Readability can propagate from plugin to model thanks to `requires transitive` in the SPI descriptor.
 
 ~~~text
 com.acme.plugin
@@ -530,15 +530,15 @@ com.acme.spi
 com.acme.model
 ~~~
 
-Sự lan truyền có thể đi qua parent configuration; nó không đòi hỏi mọi module phải ở cùng một layer.
+The propagation can cross into the parent configuration; it does not require all modules to be in the same layer.
 
-### 6.1. Điều kiện bổ sung: exports
+### 6.1. Additional Condition: exports
 
-Nếu plugin dùng một public type của `com.acme.model`, package chứa kiểu đó vẫn cần được export phù hợp. `requires transitive` cho phép đọc module, **không tự export mọi package** của module được đọc.
+If the plugin uses a public type from `com.acme.model`, the package containing that type must still be appropriately exported. `requires transitive` grants readability to the module, **not automatic export of every package** in the read module.
 
 ### 6.2. requires static
 
-Với:
+With:
 
 ~~~java
 module com.acme.plugin {
@@ -546,13 +546,13 @@ module com.acme.plugin {
 }
 ~~~
 
-module optional cần cho compile-time, nhưng có thể không được resolve ở runtime nếu không thực sự cần đến. Parent layer không bắt buộc chứa module optional. Kiểm tra graph thực tế thay vì suy rằng parent luôn cung cấp mọi dependency đã thấy trong môi trường build.
+the optional module is needed at compile time, but may not be resolved at runtime if not actually required. The parent layer is not guaranteed to contain the optional module. Inspect the actual graph rather than assuming the parent always provides every dependency seen in the build environment.
 
-## 7. Quan hệ đọc khác exports và opens
+## 7. Read Relationships Differ from exports and opens
 
-Hai module có thể có cạnh đọc nhưng việc truy cập class vẫn thất bại.
+Two modules can have a read edge and still fail class access.
 
-Giả sử contract module ở parent:
+Suppose a contract module in the parent has:
 
 ~~~java
 module com.acme.contract {
@@ -568,11 +568,11 @@ module com.acme.plugin {
 }
 ~~~
 
-Plugin có thể sử dụng public type đủ điều kiện trong `com.acme.contract.api`. Nhưng nếu nó import class từ `com.acme.contract.internal` mà contract không export package đó, compiler có thể từ chối.
+The plugin can use eligible public types in `com.acme.contract.api`. However, if it imports a class from `com.acme.contract.internal` and contract does not export that package, the compiler can reject it.
 
 ### 7.1. Qualified export
 
-Parent module có thể export một package chỉ cho plugin:
+A parent module can export a package only to the plugin:
 
 ~~~java
 module com.acme.contract {
@@ -580,11 +580,11 @@ module com.acme.contract {
 }
 ~~~
 
-Danh sách sau `to` là **module name**, không phải tên layer hay class loader. Qualified export không tự tạo readability, nên plugin vẫn cần một quan hệ đọc hợp lệ.
+The list after `to` consists of **module names**, not layer names or class loaders. A qualified export does not automatically create readability, so the plugin still needs a valid read relationship.
 
-### 7.2. Opens cho deep reflection
+### 7.2. Opens for Deep Reflection
 
-Nếu một framework cần truy cập member không public:
+If a framework needs to access non-public members:
 
 ~~~java
 module com.acme.contract {
@@ -592,24 +592,24 @@ module com.acme.contract {
 }
 ~~~
 
-`opens` phục vụ reflective access; `exports` phục vụ public API access. Cả hai độc lập với cấu trúc parent/child layer.
+`opens` serves reflective access; `exports` serves public API access. Both are independent of the parent/child layer structure.
 
-### 7.3. Bảng phân biệt
+### 7.3. Comparison Table
 
-| Câu hỏi | Cơ chế trả lời |
+| Question | Mechanism that answers it |
 |---|---|
-| Layer A có cha nào? | `ModuleLayer.parents()` |
-| Module tên X ở layer này/ancestor không? | `ModuleLayer.findModule(name)` |
-| Module A đọc B được không? | `Module.canRead(B)` |
-| Package được công bố cho module dùng không? | `exports` và access modifiers |
-| Deep reflection vào package có được phép không? | `opens` hoặc mở package phù hợp |
-| Class được tải bởi loader nào? | `Module.getClassLoader()` / `ModuleLayer.findLoader()` |
+| Which parents does layer A have? | `ModuleLayer.parents()` |
+| Is module named X in this layer/ancestor? | `ModuleLayer.findModule(name)` |
+| Can module A read B? | `Module.canRead(B)` |
+| Is a package exposed for modules to use? | `exports` and access modifiers |
+| Is deep reflection into a package allowed? | `opens` or opening the package appropriately |
+| Which loader loaded a class? | `Module.getClassLoader()` / `ModuleLayer.findLoader()` |
 
-Không nên thay thế một phép kiểm tra bằng phép kiểm tra khác.
+Do not substitute one check for another.
 
-## 8. Parent layer khác parent class loader
+## 8. Parent Layer Differs from Parent Class Loader
 
-Trong factory:
+In the factory:
 
 ~~~java
 ModuleLayer.defineModulesWithOneLoader(
@@ -619,42 +619,42 @@ ModuleLayer.defineModulesWithOneLoader(
 );
 ~~~
 
-Hai tham số cuối có mục đích khác nhau:
+The last two arguments serve different purposes:
 
-- `List.of(boot)` xác định parent layer.
-- `ClassLoader.getSystemClassLoader()` xác định class loader cha của loader mới được tạo.
+- `List.of(boot)` specifies the parent layer.
+- `ClassLoader.getSystemClassLoader()` specifies the parent class loader of the newly created loader.
 
-Layer hierarchy thuộc mô hình JPMS. Class-loader delegation thuộc cơ chế nạp class. Hai cơ chế có liên hệ trong runtime nhưng không phải cùng một graph.
+The layer hierarchy belongs to the JPMS model. Class-loader delegation belongs to the class-loading mechanism. The two mechanisms interact at runtime, but they are not the same graph.
 
-Ví dụ, một class loader có thể tìm đến class thuộc parent loader, song điều này không có nghĩa module đang chạy luôn có quyền truy cập class đó theo JPMS.
+For example, a class loader may locate a class belonging to a parent loader, yet that does not mean the running module always has permission to access that class under JPMS.
 
-### 8.1. One-loader và many-loaders
+### 8.1. One-loader and many-loaders
 
-| Phương thức | Cách ánh xạ module |
+| Method | Module mapping |
 |---|---|
-| `defineModulesWithOneLoader` | Các module mới dùng chung một class loader |
-| `defineModulesWithManyLoaders` | Mỗi module mới có class loader riêng |
-| `defineModules` | Ứng dụng cung cấp ánh xạ module name → loader |
+| `defineModulesWithOneLoader` | New modules share one class loader |
+| `defineModulesWithManyLoaders` | Each new module has its own class loader |
+| `defineModules` | Application provides a module name → loader mapping |
 
-Dù dùng một loader hay nhiều loader, các module vẫn giữ ranh giới readability và package access của riêng mình.
+Whether using one loader or many loaders, modules still preserve their own readability and package access boundaries.
 
-### 8.2. Lỗi class loading không đồng nhất với thiếu read edge
+### 8.2. Class Loading Errors Are Not the Same as Missing Read Edges
 
-`ClassNotFoundException` có thể đến từ loader không tìm thấy class. `NoClassDefFoundError` có thể xuất hiện khi runtime không thể nạp/link class phụ thuộc. `IllegalAccessError` lại có thể liên quan tới quyền truy cập module hoặc Java access.
+`ClassNotFoundException` can come from a loader failing to find a class. `NoClassDefFoundError` can appear when the runtime cannot load/link a dependent class. `IllegalAccessError` can relate to module access rights or Java access modifiers.
 
-Khi debug, hãy tách thứ tự:
+When debugging, separate the order:
 
-1. Module có được resolve chưa?
-2. Class có tồn tại trong đúng artifact chưa?
-3. Loader nào được dùng?
-4. Module có readability phù hợp không?
-5. Package có export/open phù hợp không?
+1. Was the module resolved?
+2. Does the class exist in the right artifact?
+3. Which loader is being used?
+4. Does the module have appropriate readability?
+5. Is the package appropriately exported/opened?
 
-## 9. Instance method và static method tạo layer
+## 9. Instance Method vs Static Method for Creating a Layer
 
-Có hai cách phổ biến khi chỉ dùng một parent.
+There are two common ways when using only one parent.
 
-### 9.1. Instance method
+### 9.1. Instance Method
 
 ~~~java
 ModuleLayer child =
@@ -664,9 +664,9 @@ ModuleLayer child =
     );
 ~~~
 
-Phương thức này trả về trực tiếp một `ModuleLayer`, và receiver `boot` là parent layer.
+This method returns a `ModuleLayer` directly, and the receiver `boot` is the parent layer.
 
-### 9.2. Static method
+### 9.2. Static Method
 
 ~~~java
 ModuleLayer.Controller controller =
@@ -679,13 +679,13 @@ ModuleLayer.Controller controller =
 ModuleLayer child = controller.layer();
 ~~~
 
-Static method cho phép truyền danh sách parent layers và trả về controller để quản lý quan hệ module runtime.
+The static method lets you pass a list of parent layers and returns a controller for managing runtime module relationships.
 
-Nếu không cần chỉnh read/export/open, instance method thường ngắn gọn hơn trong trường hợp một parent.
+If you do not need to adjust reads/exports/opens, the instance method is usually more concise in the single-parent case.
 
-## 10. Layer nhiều cấp và nhiều parent
+## 10. Multi-Level and Multi-Parent Layers
 
-Layer graph có thể có nhiều cấp:
+The layer graph can have multiple levels:
 
 ~~~text
         Boot
@@ -697,43 +697,43 @@ Layer graph có thể có nhiều cấp:
       Plugin layer
 ~~~
 
-Trong trường hợp này plugin có thể tìm module từ cả shared API layer và boot layer bằng `findModule()` vì phép tìm đi qua chuỗi ancestor layers.
+In this case, the plugin can look up modules from both the shared API layer and the boot layer using `findModule()` because the lookup traverses the chain of ancestor layers.
 
-Nhưng việc plugin có đọc một module ancestor cụ thể hay không vẫn dựa vào readability graph hoặc một thay đổi runtime hợp lệ.
+However, whether the plugin reads a specific ancestor module still depends on the readability graph or a valid runtime change.
 
-### 10.1. Parent nhiều hơn một
+### 10.1. More Than One Parent
 
-Các static factory chấp nhận:
+The static factories accept:
 
 ~~~java
 List<ModuleLayer> parents =
     List.of(firstParent, secondParent);
 ~~~
 
-Khi có nhiều parent, phải tạo configuration bằng những parent configurations tương ứng, theo đúng thứ tự. Không thể tự thêm một parent layer ở thời điểm define nếu configuration không được resolve từ parent đó.
+When there are multiple parents, the configuration must be created with the corresponding parent configurations in the exact same order. You cannot arbitrarily add a parent layer at define time if the configuration was not resolved from that parent.
 
-Một layer có nhiều parent không khiến tất cả module của các parent được hợp nhất thành một module.
+A layer with multiple parents does not cause all modules of those parents to be merged into one module.
 
-### 10.2. Search đi từ con lên cha
+### 10.2. Search Goes from Child Up to Parent
 
 ~~~java
 child.findModule("com.acme.plugin");
 child.findModule("java.logging");
 ~~~
 
-Có thể tìm module plugin và logging nếu chúng nằm trong child/ancestor phù hợp.
+This can find the plugin and logging modules if they lie in the appropriate child/ancestor.
 
-Ngược lại:
+Conversely:
 
 ~~~java
 boot.findModule("com.acme.plugin");
 ~~~
 
-không tự tìm tất cả descendant layers. Một ứng dụng quản lý plugin nên giữ tham chiếu tới layer mà nó tạo.
+does not automatically search all descendant layers. An application managing plugins should retain references to the layers it creates.
 
-## 11. ServiceLoader trong child layer
+## 11. ServiceLoader in a Child Layer
 
-Một mô hình thực tế là module SPI nằm ở parent layer, còn implementation nằm ở child layer:
+A practical pattern is placing the SPI module in the parent layer and the implementation in the child layer:
 
 ~~~text
 Parent layer:
@@ -754,36 +754,36 @@ module com.acme.greeter.impl {
 }
 ~~~
 
-Host có thể dùng:
+The host can use:
 
 ~~~java
 ServiceLoader<Greeter> providers =
     ServiceLoader.load(childLayer, Greeter.class);
 ~~~
 
-Với thiết kế phù hợp, ServiceLoader có thể tìm provider được định nghĩa trong child layer mà host không cần import trực tiếp implementation class.
+With an appropriate design, ServiceLoader can discover providers defined in the child layer without the host needing to import the implementation class directly.
 
-Các điều kiện cần chú ý:
+Conditions to watch:
 
-- SPI API được export từ module sở hữu nó.
-- Provider module có quan hệ đọc tới SPI.
-- Provider được định nghĩa trong layer phù hợp.
-- Module của caller khai báo `uses` nếu là named module và sử dụng service qua API tương ứng.
-- Tránh nhầm việc “parent không đọc child” với việc không thể khám phá provider thông qua ServiceLoader.
+- The SPI API is exported by the module that owns it.
+- The provider module has a read relationship to the SPI.
+- The provider is defined in the appropriate layer.
+- The caller's module declares `uses` if it is a named module and consumes the service via the corresponding API.
+- Avoid confusing “parent does not read child” with not being able to discover providers via ServiceLoader.
 
-## 12. Lỗi thường gặp khi tạo parent/child layer
+## 12. Common Errors When Creating Parent/Child Layers
 
-### 12.1. Configuration không khớp parent
+### 12.1. Configuration Does Not Match Parent
 
-Triệu chứng: `IllegalArgumentException` khi gọi factory.
+Symptom: `IllegalArgumentException` when calling the factory.
 
-Nguyên nhân: configuration được resolve với parent configuration A nhưng khi define lại truyền layer có configuration khác.
+Cause: the configuration was resolved with parent configuration A, yet at define time a layer with a different configuration was passed.
 
-Cách xử lý: theo dõi chính xác parent configuration lúc resolve và truyền parent layer tương ứng, giữ đúng thứ tự nếu có nhiều parent.
+Fix: track the exact parent configurations at resolution time and pass the corresponding parent layers, preserving order if there are multiple parents.
 
-### 12.2. Module không tìm thấy lúc resolve
+### 12.2. Module Not Found During Resolution
 
-Ví dụ:
+Example:
 
 ~~~text
 java.lang.module.FindException:
@@ -791,47 +791,47 @@ Module com.acme.contract not found,
 required by com.acme.plugin
 ~~~
 
-Kiểm tra:
+Check:
 
-- Module contract có ở parent configuration không?
-- Finder có tìm contract trong module path/thư mục được cung cấp không?
-- Tên module có chính xác không?
-- Artifact có chứa `module-info.class` đúng không?
+- Is the contract module in the parent configuration?
+- Does the finder search the contract in the supplied module path/directory?
+- Is the module name exact?
+- Does the artifact contain a valid `module-info.class`?
 
-Không thể dùng `addReads()` để sửa lỗi khi configuration chưa resolve thành công.
+You cannot use `addReads()` to fix an error when the configuration has not resolved successfully.
 
-### 12.3. findModule có kết quả nhưng canRead false
+### 12.3. findModule Succeeds but canRead Is False
 
-Đây không nhất thiết là lỗi. Nó chỉ cho thấy module có thể được tìm thấy qua cấu trúc layer nhưng chưa có quan hệ đọc theo graph hiện hành.
+This is not necessarily a bug. It simply shows that the module can be located through the layer structure, yet has no read edge in the current graph.
 
-Kiểm tra `requires`, `requires transitive` và nhu cầu bổ sung runtime read edge.
+Check `requires`, `requires transitive`, and whether a runtime read edge needs to be added.
 
-### 12.4. Đọc module nhưng không truy cập được package
+### 12.4. Reading the Module but Unable to Access the Package
 
-Nếu module đích không export package cho plugin, `canRead() == true` chưa đủ.
+If the target module does not export the package to the plugin, `canRead() == true` is not enough.
 
-Kiểm tra descriptor và access modifiers. Nếu cần deep reflection, xác định package/module được mở bằng `opens` hoặc cơ chế tương ứng.
+Check descriptors and access modifiers. If deep reflection is needed, verify the package/module is opened via `opens` or an equivalent mechanism.
 
-### 12.5. Module loader không thấy class
+### 12.5. Module Loader Cannot Find Class
 
-Nếu factory tạo layer thành công nhưng không nạp được entry point:
+If the factory creates the layer successfully but cannot load the entry point:
 
-- Kiểm tra file JAR có chứa class theo đường dẫn package không.
-- Kiểm tra loader trả về bởi `child.findLoader("com.acme.plugin")`.
-- Kiểm tra sử dụng đúng layer/loader thay vì nhầm system class loader.
-- Phân biệt lỗi class loading với lỗi readability và package accessibility.
+- Check whether the JAR file contains the class under the package path.
+- Check the loader returned by `child.findLoader("com.acme.plugin")`.
+- Check that you are using the right layer/loader instead of accidentally using the system class loader.
+- Distinguish class loading errors from readability and package accessibility errors.
 
-## 13. Công cụ và API chẩn đoán
+## 13. Diagnostic Tools and APIs
 
-### 13.1. Xem descriptor của plugin JAR
+### 13.1. Inspecting the Descriptor of a Plugin JAR
 
 ~~~bash
 jar --describe-module --file plugins/com.acme.plugin.jar
 ~~~
 
-Công cụ giúp xác nhận tên module, các `requires` và `exports` mà artifact thực sự chứa.
+This tool helps confirm the module name, `requires`, and `exports` actually contained in the artifact.
 
-### 13.2. Xem module resolution ở boot layer
+### 13.2. Viewing Module Resolution in the Boot Layer
 
 ~~~bash
 java --show-module-resolution \
@@ -839,9 +839,9 @@ java --show-module-resolution \
      -cp host-out Host
 ~~~
 
-Tùy chọn này hiển thị graph trong quá trình khởi chạy. Graph được tạo thêm bên trong `Host.main()` không tự động xuất hiện đầy đủ trong output khởi động ban đầu.
+This option displays the graph during startup. Graphs created later inside `Host.main()` do not automatically appear in full in the initial startup output.
 
-### 13.3. Xem các module thuộc child trực tiếp
+### 13.3. Viewing Modules Belonging Directly to Child
 
 ~~~java
 child.modules().forEach(module ->
@@ -849,9 +849,9 @@ child.modules().forEach(module ->
 );
 ~~~
 
-`child.modules()` chỉ trả module được định nghĩa trực tiếp trong child, không phải toàn bộ module ở parent.
+`child.modules()` only returns modules defined directly in child, not all modules in the parent.
 
-### 13.4. Xem các module mà child configuration đọc
+### 13.4. Viewing Modules Read by the Child Configuration
 
 ~~~java
 child.configuration().modules().forEach(module -> {
@@ -863,9 +863,9 @@ child.configuration().modules().forEach(module -> {
 });
 ~~~
 
-Đây là graph từ quá trình resolution, hữu ích để đối chiếu với `Module.canRead()` ở runtime.
+This is the graph from the resolution phase, useful for comparing against `Module.canRead()` at runtime.
 
-### 13.5. Xem class loader và layer
+### 13.5. Viewing Class Loader and Layer
 
 ~~~java
 System.out.println(plugin.getLayer());
@@ -873,87 +873,87 @@ System.out.println(plugin.getClassLoader());
 System.out.println(child.parents());
 ~~~
 
-Các API giúp xác định module thuộc layer nào và dùng class loader nào. Chúng không thay thế phép kiểm tra readability.
+These APIs help determine which layer a module belongs to and which class loader it uses. They do not replace readability checks.
 
-## 14. Quy trình thiết kế plugin layer
+## 14. Workflow for Designing a Plugin Layer
 
-Để thiết kế một hệ thống module layer dễ kiểm soát:
+To design a manageable module layer system:
 
-1. Xác định các API/SPI dùng chung và đặt chúng trong module được quản lý ổn định ở parent layer.
-2. Viết descriptor cho plugin với `requires` tới đúng API module.
-3. Chỉ export package plugin API thật sự cần công bố.
-4. Đóng gói plugin thành modular JAR có tên module rõ ràng.
-5. Tạo `ModuleFinder` từ thư mục chứa plugin.
-6. Resolve child configuration dựa trên configuration của parent layer dự kiến.
-7. Define layer bằng factory phù hợp và parent layers tương ứng.
-8. Kiểm tra `layer.modules()`, `layer.parents()` và `Module.canRead()`.
-9. Kiểm tra exports/opens và cách host tìm entry point hoặc service provider.
-10. Chỉ dùng Controller để chỉnh quan hệ runtime khi có lý do kiến trúc rõ ràng.
+1. Identify shared APIs/SPIs and place them in stably managed modules in a parent layer.
+2. Write the plugin descriptor with `requires` pointing to the right API modules.
+3. Export only the plugin API packages that truly need to be exposed.
+4. Package the plugin as a modular JAR with a clear module name.
+5. Create a `ModuleFinder` from the directory containing plugins.
+6. Resolve the child configuration based on the intended parent layer's configuration.
+7. Define the layer using the appropriate factory and corresponding parent layers.
+8. Verify `layer.modules()`, `layer.parents()`, and `Module.canRead()`.
+9. Check exports/opens and how the host locates the entry point or service providers.
+10. Only use Controller to adjust runtime relationships when there is a clear architectural reason.
 
-Không nên tạo layer chỉ với mục đích né module encapsulation. Layer giúp tổ chức và nạp module động; nó không phải sandbox bảo mật.
+Do not create layers solely to bypass module encapsulation. Layers help organize and dynamically load modules; they are not a security sandbox.
 
-## 15. Các hiểu lầm cần tránh
+## 15. Misconceptions to Avoid
 
-| Hiểu lầm | Cách hiểu đúng |
+| Misconception | Correct understanding |
 |---|---|
-| Child layer đọc mọi module trong parent | Không. Readability theo graph hoặc runtime change |
-| `findModule()` thành công nghĩa `canRead()` true | Không. Lookup khác readability |
-| Class loader tìm thấy class nghĩa có quyền sử dụng | Không. Accessibility vẫn có thể bị JPMS từ chối |
-| Một class loader cho nhiều module nghĩa module graph mất ý nghĩa | Không. Named modules vẫn có descriptor riêng |
-| `addReads()` sửa được mọi lỗi module path | Không. Nó không tìm module còn thiếu |
-| `addReads()` tự export toàn bộ package | Không. Exports/opens là cơ chế riêng |
-| Parent module tự động đọc child module | Không. Readability có hướng |
-| ModuleLayer tự cô lập plugin không tin cậy | Không. Cần kiến trúc bảo mật phù hợp |
+| Child layer reads every module in parent | No. Readability follows the graph or runtime changes |
+| `findModule()` succeeding means `canRead()` is true | No. Lookup differs from readability |
+| Class loader finding a class means permission to use it | No. Accessibility can still be denied by JPMS |
+| One class loader for multiple modules makes the module graph meaningless | No. Named modules still have their own descriptors |
+| `addReads()` fixes every module path error | No. It cannot find missing modules |
+| `addReads()` automatically exports all packages | No. Exports/opens are separate mechanisms |
+| Parent module automatically reads child modules | No. Readability is directional |
+| ModuleLayer automatically isolates untrusted plugins | No. Proper security architecture is needed |
 
-## 16. Câu hỏi tự kiểm tra
+## 16. Self-Check Questions
 
-**Câu 1.** Child layer có boot làm parent, `child.findModule("java.sql")` trả về một module. Plugin có chắc đọc được SQL không?
+**Question 1.** A child layer has boot as its parent, and `child.findModule("java.sql")` returns a module. Can the plugin definitely read SQL?
 
-**Trả lời:** Không. `findModule()` tìm module; `plugin.canRead(sql)` kiểm tra readability.
+**Answer:** No. `findModule()` looks up the module; `plugin.canRead(sql)` checks readability.
 
-**Câu 2.** Plugin khai báo `requires java.logging;` và logging nằm ở parent configuration. Plugin có thể đọc logging không?
+**Question 2.** A plugin declares `requires java.logging;` and logging is in the parent configuration. Can the plugin read logging?
 
-**Trả lời:** Có. Graph resolution tạo quan hệ đọc tới module logging ở parent.
+**Answer:** Yes. Graph resolution creates a read relationship to the logging module in the parent.
 
-**Câu 3.** Plugin đọc được logging có nghĩa logging đọc ngược plugin?
+**Question 3.** Does the plugin being able to read logging mean logging reads the plugin back?
 
-**Trả lời:** Không. Readability là quan hệ có hướng.
+**Answer:** No. Readability is a directional relationship.
 
-**Câu 4.** Muốn lấy tập module thuộc trực tiếp child layer, nên dùng gì?
+**Question 4.** To get the set of modules belonging directly to the child layer, what should you use?
 
-**Trả lời:** `child.modules()`, thay vì `child.findModule()` vì findModule có thể tìm cả ancestor.
+**Answer:** `child.modules()`, rather than `child.findModule()`, because findModule can also search ancestors.
 
-**Câu 5.** Static factory `ModuleLayer.defineModulesWithOneLoader` trả về gì?
+**Question 5.** What does the static factory `ModuleLayer.defineModulesWithOneLoader` return?
 
-**Trả lời:** `ModuleLayer.Controller`; gọi `controller.layer()` để lấy layer được tạo.
+**Answer:** `ModuleLayer.Controller`; call `controller.layer()` to obtain the created layer.
 
-**Câu 6.** `controller.addReads(plugin, sql)` có thay đổi `module-info.java` của plugin không?
+**Question 6.** Does `controller.addReads(plugin, sql)` modify the plugin's `module-info.java`?
 
-**Trả lời:** Không. Nó tạo read edge ở runtime, không sửa descriptor và không giúp source vốn thiếu `requires` tự compile trước đó.
+**Answer:** No. It creates a read edge at runtime, does not modify the descriptor, and does not make source that originally lacked `requires` compile beforehand.
 
-**Câu 7.** Plugin đọc được contract nhưng compiler/runtime từ chối package internal. Vì sao?
+**Question 7.** The plugin can read contract, yet the compiler/runtime rejects an internal package. Why?
 
-**Trả lời:** Contract có thể chưa export package đó cho plugin hoặc class/member chưa đủ quyền truy cập. Readability không thay thế exports.
+**Answer:** Contract may not have exported that package to the plugin, or the class/member may lack sufficient access permissions. Readability does not replace exports.
 
-**Câu 8.** Parent class loader và parent layer có giống nhau không?
+**Question 8.** Are parent class loader and parent layer the same?
 
-**Trả lời:** Không. Parent layer liên quan structure của module configurations; parent class loader liên quan tới delegation khi nạp class.
+**Answer:** No. Parent layer relates to the structure of module configurations; parent class loader relates to delegation when loading classes.
 
-**Câu 9.** Vì sao cần giữ đúng thứ tự parent layers khi tạo layer có nhiều parent?
+**Question 9.** Why must you keep the exact order of parent layers when creating a multi-parent layer?
 
-**Trả lời:** Vì danh sách phải tương ứng với parent configurations đã dùng khi resolve.
+**Answer:** Because the list must correspond to the parent configurations used during resolution.
 
-**Câu 10.** Module provider ở child có thể cung cấp service cho host dùng SPI ở parent mà host import trực tiếp provider class không?
+**Question 10.** Can a provider module in a child supply a service to a host using an SPI in the parent without the host directly importing the provider class?
 
-**Trả lời:** Có thể thiết kế thông qua `ServiceLoader.load(childLayer, ServiceType.class)` với đúng module/SPI/provider configuration.
+**Answer:** It can be designed via `ServiceLoader.load(childLayer, ServiceType.class)` with proper module/SPI/provider configuration.
 
-## Tổng kết
+## Summary
 
-Khi làm việc với nhiều `ModuleLayer` trong JPMS, hãy phân biệt rõ:
+When working with multiple `ModuleLayer` instances in JPMS, clearly distinguish:
 
-- **Parent layer:** tổ chức các nhóm module và cho phép tìm kiếm qua ancestor.
-- **Readability graph:** quyết định module nào có cạnh đọc tới module nào, kể cả các cạnh đi từ child tới parent.
-- **Package accessibility:** `exports`, `opens` và các quy tắc Java quyết định sử dụng API và reflection.
-- **Class loading:** xác định nơi nạp class, nhưng không tự thay thế các quy tắc module access.
+- **Parent layer:** organizes groups of modules and allows searching across ancestors.
+- **Readability graph:** determines which module has read edges to which modules, including edges from child to parent.
+- **Package accessibility:** `exports`, `opens`, and Java rules govern API usage and reflection.
+- **Class loading:** determines where classes are loaded from, without automatically replacing module access rules.
 
-Quy trình chẩn đoán hữu ích là: **xác định layer chứa module → kiểm tra parent configurations → xem module có được resolve → kiểm tra `findModule()` → kiểm tra `canRead()` → kiểm tra exports/opens → kiểm tra class loader**. Hiểu đúng các tầng này giúp xây dựng plugin layer hoạt động ổn định mà không dựa vào các giả định sai về quan hệ layer cha–con.
+A useful diagnostic workflow is: **identify the layer containing the module → check parent configurations → check whether the module is resolved → check `findModule()` → check `canRead()` → check exports/opens → check class loader**. Understanding these layers properly helps build stable plugin layers without relying on false assumptions about parent–child layer relationships.

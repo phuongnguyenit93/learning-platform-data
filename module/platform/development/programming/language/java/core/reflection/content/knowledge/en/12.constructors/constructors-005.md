@@ -1,8 +1,8 @@
-# Constructor private và điều kiện truy cập trong Java Reflection
+# Private Constructors and Access Conditions in Java Reflection
 
-## 1. Private constructor giải quyết vấn đề gì?
+## 1. What Problem Does a Private Constructor Solve?
 
-Constructor là thành viên đặc biệt dùng để khởi tạo một instance. Khai báo một constructor `private` giúp **hạn chế nơi có thể gọi constructor theo ngôn ngữ Java**, thường được dùng để kiểm soát quá trình tạo đối tượng, buộc đi qua factory method hoặc ngăn tạo đối tượng của lớp tiện ích.
+A constructor is a special member used to initialize an instance. Declaring a constructor `private` **restricts where the constructor can be called according to the Java language**, commonly used to control object creation, force callers through a factory method, or prevent instantiating a utility class.
 
 ~~~java
 final class SecretBox {
@@ -18,41 +18,41 @@ final class SecretBox {
 }
 ~~~
 
-Đây là đoạn minh họa ngắn: code thông thường ở ngoài phạm vi được phép không thể viết `new SecretBox("abc")` vì constructor là private; thay vào đó gọi `SecretBox.of("abc")`. Tuy nhiên Java Reflection **có thể tra cứu metadata của private constructor**, và trong một số điều kiện có thể yêu cầu bỏ qua kiểm tra truy cập khi gọi. Khả năng đó phụ thuộc caller, phạm vi package/module và quyền deep reflection.
+This is a short illustrative snippet: ordinary code outside the permitted scope cannot write `new SecretBox("abc")` because the constructor is private; instead it calls `SecretBox.of("abc")`. However, Java Reflection **can look up the metadata of a private constructor**, and under certain conditions can request bypassing access checks when invoking it. That capability depends on the caller, package/module scope, and deep reflection permissions.
 
-Vì vậy cần phân biệt rõ ba câu hỏi:
+Therefore, three questions must be clearly distinguished:
 
-1. **Constructor có được khai báo trong lớp không?** Kiểm tra bằng `getDeclaredConstructor(...)` hoặc `getDeclaredConstructors()`.
-2. **Caller có quyền gọi constructor đang tìm được không?** Kiểm tra quyền khi dùng `Constructor.newInstance(...)`; `Constructor.canAccess(null)` giúp thăm dò quyền hiện tại.
-3. **Có được phép bật access-check override không?** `trySetAccessible()` hoặc `setAccessible(true)` chỉ hoạt động khi những ranh giới truy cập cho phép.
+1. **Is the constructor declared in the class?** Check via `getDeclaredConstructor(...)` or `getDeclaredConstructors()`.
+2. **Does the caller have permission to invoke the constructor found?** Permission is checked when using `Constructor.newInstance(...)`; `Constructor.canAccess(null)` probes current permission.
+3. **Is enabling the access-check override allowed?** `trySetAccessible()` or `setAccessible(true)` only works when access boundaries allow it.
 
-**Tìm thấy constructor không đồng nghĩa gọi được constructor.** Đây là trọng tâm khi làm việc với private constructor bằng Reflection.
+**Finding a constructor does not mean being able to invoke the constructor.** This is the central point when working with private constructors via Reflection.
 
-## 2. `getConstructor` khác `getDeclaredConstructor`
+## 2. `getConstructor` vs. `getDeclaredConstructor`
 
-| API của `Class<T>` | Phạm vi tra cứu | Có lấy private constructor không? |
+| API of `Class<T>` | Lookup scope | Retrieves private constructors? |
 | --- | --- | --- |
-| `getConstructor(Class<?>... parameterTypes)` | Chỉ public constructor được khai báo trên chính lớp | Không |
-| `getConstructors()` | Mảng các public constructor của chính lớp | Không |
-| `getDeclaredConstructor(Class<?>... parameterTypes)` | Constructor được khai báo trên chính lớp, bất kể modifier | Có |
-| `getDeclaredConstructors()` | Mọi constructor khai báo trên chính lớp: public, protected, package-private và private | Có |
+| `getConstructor(Class<?>... parameterTypes)` | Only public constructors declared on the class itself | No |
+| `getConstructors()` | Array of public constructors of the class itself | No |
+| `getDeclaredConstructor(Class<?>... parameterTypes)` | Constructors declared on the class itself, regardless of modifier | Yes |
+| `getDeclaredConstructors()` | All constructors declared on the class itself: public, protected, package-private, and private | Yes |
 
-Khác với nhiều public method/field, **constructor không được kế thừa**. Ví dụ `Child extends Parent` không làm constructor `Parent(int)` trở thành constructor `Child(int)`. Cả hai nhóm API trên đều tra cứu constructor của **lớp đang xét**, không tìm constructor kế thừa.
+Unlike many public methods/fields, **constructors are not inherited**. For example, `Child extends Parent` does not make constructor `Parent(int)` a constructor `Child(int)`. Both API groups above look up constructors of **the class under examination**, not inherited constructors.
 
-Hai API tra cứu một constructor yêu cầu **danh sách kiểu tham số chính xác**, theo đúng thứ tự, bằng đối tượng `Class`:
+The two single-constructor lookup APIs require the **exact list of parameter types**, in exact order, as `Class` objects:
 
 ~~~java
 Constructor<SecretBox> ctor =
         SecretBox.class.getDeclaredConstructor(String.class);
 ~~~
 
-Nếu constructor thực tế nhận `String` thì truyền `String.class`; nếu nhận primitive `int` thì truyền `int.class`, không thay bằng `Integer.class`. Tra cứu không thực hiện overload resolution giống cú pháp `new` và không tự chuyển đổi kiểu cho bạn. Sai chữ ký sẽ ném `NoSuchMethodException`, còn `getDeclaredConstructor` không cần constructor phải public.
+If the constructor actually takes `String`, pass `String.class`; if it takes primitive `int`, pass `int.class`, do not substitute `Integer.class`. Lookup does not perform overload resolution like `new` syntax and does not automatically convert types for you. A wrong signature throws `NoSuchMethodException`, while `getDeclaredConstructor` does not require the constructor to be public.
 
-**Modifier và vị trí khai báo:** Có thể kiểm tra `Modifier.isPrivate(ctor.getModifiers())`, `ctor.getDeclaringClass()`, `ctor.getParameterTypes()` và `ctor.isVarArgs()` để biết metadata. Những phép đọc metadata này tự thân không cấp quyền chạy constructor.
+**Modifiers and declaring location:** You can check `Modifier.isPrivate(ctor.getModifiers())`, `ctor.getDeclaringClass()`, `ctor.getParameterTypes()`, and `ctor.isVarArgs()` to inspect metadata. Reading this metadata does not by itself grant permission to run the constructor.
 
-## 3. Ví dụ Java 17+: tra cứu, bị chặn, mở quyền, khởi tạo
+## 3. Java 17+ Example: Lookup, Blocked Call, Opening Access, Instantiation
 
-Tạo tệp **`PrivateCtorDemo.java`**, trong đó có **hai top-level class tách biệt**. Đặt `PrivateCtorDemo` và `SecretBox` trong cùng tệp/package giúp ví dụ đơn giản, nhưng chúng **không phải nested class/nestmate** nên private constructor của `SecretBox` không tự nhiên truy cập được từ `PrivateCtorDemo`.
+Create the file **`PrivateCtorDemo.java`**, containing **two separate top-level classes**. Placing `PrivateCtorDemo` and `SecretBox` in the same file/package keeps the example simple, yet they **are not nested classes/nestmates**, so `SecretBox`'s private constructor is not naturally accessible from `PrivateCtorDemo`.
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -115,14 +115,14 @@ class SecretBox {
 }
 ~~~
 
-Biên dịch bằng trình biên dịch tương thích Java 17, rồi chạy trên classpath:
+Compile with a Java 17-compatible compiler, then run on the classpath:
 
 ~~~bash
 javac --release 17 PrivateCtorDemo.java
 java PrivateCtorDemo
 ~~~
 
-Output dự kiến của ví dụ khi chạy trong unnamed module/classpath thông thường:
+Expected output of the example when run in an ordinary unnamed module/classpath:
 
 ~~~text
 public lookup: NoSuchMethodException
@@ -136,69 +136,69 @@ target error: IllegalArgumentException
 canAccess reset: false
 ~~~
 
-### Giải thích từng giai đoạn
+### Step-by-Step Explanation
 
-**Giai đoạn 1 — Chỉ tìm constructor công khai.** `type.getConstructor(String.class)` ném `NoSuchMethodException` vì constructor `SecretBox(String)` là private. Điều này **không nói** constructor không tồn tại, mà nói nó không nằm trong tập public constructor theo cách tra cứu đó.
+**Stage 1 — Searching only for public constructors.** `type.getConstructor(String.class)` throws `NoSuchMethodException` because `SecretBox(String)` is private. This **does not say** the constructor does not exist, rather that it is not in the set of public constructors for that lookup method.
 
-**Giai đoạn 2 — Tìm đúng khai báo.** `type.getDeclaredConstructor(String.class)` trả về `Constructor<SecretBox>`. `Modifier.isPrivate(...)` là `true`. `canAccess(null)` lúc này là `false` do caller ở một top-level class khác và constructor private chưa được mở quyền.
+**Stage 2 — Finding the exact declaration.** `type.getDeclaredConstructor(String.class)` returns `Constructor<SecretBox>`. `Modifier.isPrivate(...)` is `true`. `canAccess(null)` is currently `false` because the caller is in a different top-level class and the private constructor has not been opened.
 
-**Giai đoạn 3 — Gọi khi chưa có quyền.** `ctor.newInstance("alpha")` thực hiện access check và ném `IllegalAccessException`. Constructor body chưa chạy, nên không có object nào được tạo từ lời gọi bị chặn này.
+**Stage 3 — Invoking without permission.** `ctor.newInstance("alpha")` performs the access check and throws `IllegalAccessException`. The constructor body has not run, so no object is created from this blocked call.
 
-**Giai đoạn 4 — Bật override hợp lệ.** `ctor.trySetAccessible()` trả `true` trong môi trường classpath của ví dụ. Khi đó access check ngôn ngữ Java được bỏ qua **cho reflection object `ctor`**, `canAccess(null)` trở thành `true` và `ctor.newInstance("alpha")` tạo đối tượng, truy cập `code()` nhận `alpha`.
+**Stage 4 — Enabling valid override.** `ctor.trySetAccessible()` returns `true` in the example's classpath environment. Then Java language access checks are bypassed **for the reflection object `ctor`**, `canAccess(null)` becomes `true`, and `ctor.newInstance("alpha")` creates the object; accessing `code()` yields `alpha`.
 
-**Giai đoạn 5 — Lỗi từ logic constructor.** `ctor.newInstance("")` đã qua bước kiểm tra quyền, nhưng constructor body tự ném `IllegalArgumentException` khi chuỗi trống. Reflection bọc lỗi của target trong `InvocationTargetException`; `getCause()` cho thấy nguyên nhân gốc là `IllegalArgumentException`. Trường hợp này **khác** lỗi `IllegalAccessException` ở giai đoạn 3.
+**Stage 5 — Error from constructor logic.** `ctor.newInstance("")` passed the permission check, but the constructor body itself throws `IllegalArgumentException` on a blank string. Reflection wraps the target's error in `InvocationTargetException`; `getCause()` shows the root cause is `IllegalArgumentException`. This case **differs from** the `IllegalAccessException` in stage 3.
 
-**Giai đoạn 6 — Trả về kiểm tra truy cập bình thường.** `ctor.setAccessible(false)` tắt override trên object `Constructor`; `canAccess(null)` trở lại `false` với caller này.
+**Stage 6 — Restoring normal access checks.** `ctor.setAccessible(false)` turns off the override on the `Constructor` object; `canAccess(null)` goes back to `false` for this caller.
 
-Đây là bài tập phân tích hành vi, **không phải lời khuyên luôn bật private access trong mã sản xuất**. Kết quả `opened: true` chỉ là kết quả trong điều kiện chạy của ví dụ, không phải bảo đảm cho tất cả named module hoặc thư viện.
+This is a behavioral analysis exercise, **not advice to always enable private access in production code**. The `opened: true` result is only an outcome under the example's execution conditions, not a guarantee for all named modules or libraries.
 
-## 4. Khi nào `Constructor.newInstance` được gọi mà không cần override?
+## 4. When Can `Constructor.newInstance` Be Invoked Without Override?
 
-Điều kiện của `Constructor.newInstance` tùy **ngữ cảnh caller thực sự**, không chỉ tùy modifier:
+The condition for `Constructor.newInstance` depends on **the actual caller context**, not only the modifier:
 
-- `public` constructor của kiểu truy cập được từ caller có thể được gọi trực tiếp hoặc qua Reflection mà không mở override.
-- Constructor `private` thường chỉ truy cập được từ code bên trong chính lớp khai báo hoặc những **nestmates** được ngôn ngữ Java cho phép; caller bên ngoài như `PrivateCtorDemo` trong ví dụ trên bị chặn.
-- Constructor package-private có thể được code cùng package gọi khi các điều kiện khác thỏa; `protected` có quy tắc về package/subclass và ngữ cảnh truy cập.
-- Class bản thân không truy cập được (ví dụ top-level class package-private thuộc package khác, hoặc public class ở package không được export cho named module gọi) có thể ngăn truy cập dù constructor có modifier public.
+- A `public` constructor of a type accessible to the caller can be invoked directly or via Reflection without enabling an override.
+- A `private` constructor is normally only accessible from code inside the declaring class itself or **nestmates** permitted by the Java language; outside callers like `PrivateCtorDemo` in the example above are blocked.
+- A package-private constructor can be called by code in the same package when other conditions are satisfied; `protected` follows rules for package/subclass and access context.
+- An inaccessible class itself (for example, a package-private top-level class in another package, or a public class in a package not exported to the calling named module) can block access even if the constructor has a public modifier.
 
-Vì thế, `getDeclaredConstructor` chỉ chứng minh tìm được metadata. **Không suy từ `getModifiers()` rằng việc gọi luôn thành công.** Access check còn xét lớp khai báo, quan hệ caller, module và trạng thái override.
+Therefore, `getDeclaredConstructor` only proves that metadata was found. **Do not infer from `getModifiers()` that invocation will always succeed.** The access check also considers the declaring class, caller relationship, module, and override state.
 
-Một chi tiết dễ gây nhầm trong bài thực hành: nếu đặt private constructor trong **nested class** và gọi Reflection từ outer class cùng nest, Java có thể coi các lớp đó là **nestmates** với quyền truy cập private theo ngôn ngữ. Khi đó `canAccess(null)` có thể đã `true`, và lời gọi không bị `IllegalAccessException`. Muốn minh họa lời gọi bị chặn rõ ràng, dùng caller ở một **top-level class tách biệt** như chương trình trên.
+One easily confusing detail in practice: if you place a private constructor in a **nested class** and invoke Reflection from the outer class in the same nest, Java may treat those classes as **nestmates** with language-level private access. Then `canAccess(null)` may already be `true`, and the call will not suffer `IllegalAccessException`. To demonstrate a blocked call clearly, place the caller in a **separate top-level class** as in the program above.
 
-## 5. `canAccess(null)`, `trySetAccessible` và `setAccessible`
+## 5. `canAccess(null)`, `trySetAccessible`, and `setAccessible`
 
-`Constructor<T>` kế thừa `AccessibleObject` nên cung cấp các API:
+`Constructor<T>` inherits from `AccessibleObject`, so it provides these APIs:
 
-| API | Ý nghĩa | Hành vi chính |
+| API | Meaning | Key behavior |
 | --- | --- | --- |
-| `ctor.canAccess(null)` | Kiểm tra quyền dùng constructor từ caller hiện tại | Trả `boolean`, không tự bật quyền |
-| `ctor.trySetAccessible()` | Thử bật override access check ngôn ngữ | Trả `true` nếu bật được, `false` nếu ranh giới truy cập không cho phép |
-| `ctor.setAccessible(true)` | Yêu cầu bật override | Có thể ném `InaccessibleObjectException` khi không mở được |
-| `ctor.setAccessible(false)` | Tắt override | Lần gọi tiếp theo phải tuân thủ kiểm tra quyền thông thường |
+| `ctor.canAccess(null)` | Checks permission to use the constructor from the current caller | Returns `boolean`, does not enable access itself |
+| `ctor.trySetAccessible()` | Attempts to enable the language access-check override | Returns `true` if enabled, `false` if access boundaries forbid it |
+| `ctor.setAccessible(true)` | Requests enabling the override | May throw `InaccessibleObjectException` when it cannot be opened |
+| `ctor.setAccessible(false)` | Disables the override | Subsequent calls must obey normal permission checks |
 
-Constructor **không có receiver đã tồn tại**; vì vậy với `canAccess` dùng đúng `null`. Không nhầm với `Method.canAccess(receiver)` hoặc `Field.canAccess(receiver)` của instance member. `Constructor.newInstance(...)` nhận **đối số truyền vào constructor**, không nhận receiver; số lượng/kiểu đối số phải tương thích với signature.
+A constructor **has no pre-existing receiver**; therefore use `null` for `canAccess`. Do not confuse this with `Method.canAccess(receiver)` or `Field.canAccess(receiver)` for instance members. `Constructor.newInstance(...)` takes **arguments passed to the constructor**, not a receiver; argument count/types must match the signature.
 
-Quy tắc kiểm tra trước khi gọi:
+Pre-invocation check pattern:
 
 ~~~java
 Constructor<SecretBox> constructor =
         SecretBox.class.getDeclaredConstructor(String.class);
 if (!constructor.canAccess(null) && !constructor.trySetAccessible()) {
     throw new IllegalStateException(
-            "Không được phép gọi constructor của SecretBox");
+            "Not allowed to invoke constructor of SecretBox");
 }
 SecretBox instance = constructor.newInstance("alpha");
 ~~~
 
-Đây là **mảnh code minh họa** dùng lại định nghĩa `SecretBox` ở ví dụ; không phải một file độc lập. Nó thể hiện thao tác kiểm tra và xử lý nhánh mở quyền bị từ chối. Đoạn code không giải quyết mọi lỗi: `newInstance` vẫn có thể lỗi nếu constructor tự ném exception, tham số sai kiểu hoặc khởi tạo lớp gặp vấn đề.
+This is an **illustrative code snippet** reusing the `SecretBox` definition from the example; not a standalone file. It shows the check and handling when the access-opening branch is denied. The snippet does not solve all errors: `newInstance` can still fail if the constructor itself throws an exception, arguments have wrong types, or class initialization fails.
 
-`setAccessible(true)`/`trySetAccessible()` **không sửa modifier `private` trong class file**, không biến constructor thành public cho mọi code và không bỏ qua kiểm tra kiểu đối số hoặc logic validation bên trong constructor. Override thuộc reflection object đang được sử dụng.
+`setAccessible(true)`/`trySetAccessible()` **does not modify the `private` modifier in the class file**, does not turn the constructor public for all code, and does not skip argument type checking or validation logic inside the constructor. The override belongs to the specific reflection object being used.
 
-## 6. JPMS: vì sao cùng một code hoạt động trên classpath nhưng thất bại ở named module?
+## 6. JPMS: Why Does the Same Code Work on the Classpath Yet Fail in a Named Module?
 
-Khi Java Platform Module System (Java 9+) được dùng với **named module**, public API và deep reflection có ranh giới riêng. Một private constructor nằm trong package của named module không nhất thiết được mở cho một module khác chỉ vì có thể tìm metadata.
+When the Java Platform Module System (Java 9+) is used with **named modules**, public API and deep reflection have separate boundaries. A private constructor located in a package of a named module is not necessarily open to another module merely because its metadata can be looked up.
 
-Xét hai module `com.example.domain` (chứa class đích) và `com.example.framework` (cần Reflection). Descriptor của module domain có thể công bố:
+Consider two modules `com.example.domain` (containing the target class) and `com.example.framework` (needing Reflection). The domain module's descriptor might declare:
 
 ~~~java
 module com.example.domain {
@@ -207,40 +207,40 @@ module com.example.domain {
 }
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-- `exports com.example.domain.api;` cho phép các module phù hợp truy cập public type/member trong package API theo quy tắc Java. **`exports` không tự cho phép deep reflection vào private constructor**.
-- `opens com.example.domain.internal to com.example.framework;` cho phép module framework dùng deep reflection trong package internal, nếu các điều kiện khác phù hợp. Package được `opens` không vì vậy trở thành public API có thể import tùy ý ở compile time.
-- Nếu package không được mở cho module gọi và caller không thuộc trường hợp JPMS cho phép, `ctor.trySetAccessible()` có thể trả `false`; `ctor.setAccessible(true)` có thể ném `java.lang.reflect.InaccessibleObjectException` (unchecked).
-- Caller ở **cùng module** với declaring class có những khả năng khác caller xuyên module. Với các class trên classpath thuộc unnamed module, package thường mở cho deep reflection nên ví dụ đơn giản có thể bật override.
+- `exports com.example.domain.api;` allows eligible modules to access public types/members in the API package per Java rules. **`exports` does not automatically permit deep reflection into private constructors**.
+- `opens com.example.domain.internal to com.example.framework;` allows the framework module to use deep reflection in the internal package, provided other conditions match. A package that is `opens` does not thereby become public API that can be arbitrarily imported at compile time.
+- If a package is not opened to the calling module and the caller is not in a JPMS-permitted case, `ctor.trySetAccessible()` can return `false`; `ctor.setAccessible(true)` can throw `java.lang.reflect.InaccessibleObjectException` (unchecked).
+- A caller in the **same module** as the declaring class has different capabilities than a cross-module caller. For classes on the classpath belonging to the unnamed module, packages are typically open for deep reflection, so simple examples can enable overrides.
 
-Nếu chương trình thật sự cần framework được gọi private constructor ở module khác, người thiết kế module có thể chủ động mở đúng package, ví dụ `opens ... to ...`, hoặc cung cấp một public factory API để tránh phụ thuộc vào private implementation. Trong quá trình triển khai, JVM option `--add-opens module/package=caller-module` cũng có thể cấp quyền mở tương ứng, nhưng cấu hình đó phải được quản lý rõ ràng và không nên dùng như cách “sửa nhanh” cho một API thiếu thiết kế.
+If a program genuinely needs a framework to invoke a private constructor in another module, the module designer can intentionally open the right package, e.g., `opens ... to ...`, or provide a public factory API to avoid depending on private implementation details. During deployment, the JVM option `--add-opens module/package=caller-module` can also grant matching open access, but that configuration must be managed explicitly and should not be used as a "quick fix" for an under-designed API.
 
-**Đừng chuyển logic từ ví dụ trên thành “private constructor luôn gọi được bằng setAccessible(true)”.** Đó không phải cam kết của JPMS.
+**Do not generalize the logic from the example above into "a private constructor can always be invoked with setAccessible(true)".** That is not a JPMS guarantee.
 
-## 7. Các ngoại lệ thường gặp theo từng bước
+## 7. Common Exceptions Step by Step
 
-| Bước | Lỗi/kết quả | Cách hiểu |
+| Step | Error/Result | How to understand |
 | --- | --- | --- |
-| `getConstructor(String.class)` | `NoSuchMethodException` | Không có **public** constructor với signature yêu cầu; private constructor có thể vẫn tồn tại |
-| `getDeclaredConstructor(...)` | `NoSuchMethodException` | Không có constructor khai báo trực tiếp với danh sách kiểu tham số chính xác |
-| `ctor.newInstance(...)` khi access check từ chối | `IllegalAccessException` | Caller không được phép gọi constructor trong trạng thái hiện tại |
-| `ctor.trySetAccessible()` | `false` | Không thể bật access-check override cho caller, thường do ranh giới JPMS |
-| `ctor.setAccessible(true)` | `InaccessibleObjectException` | Yêu cầu mở quyền vượt khả năng được JPMS cho phép |
-| `ctor.newInstance(...)` sai số lượng/kiểu tham số | `IllegalArgumentException` | Không tương thích signature hoặc receiver/đối số theo contract |
-| `ctor.newInstance(...)` khi constructor body ném | `InvocationTargetException` | Xem `getCause()` để lấy lỗi gốc do constructor đích ném |
-| `ctor.newInstance(...)` với abstract class | `InstantiationException` | Kiểu không thể trực tiếp khởi tạo thành instance |
-| Khởi tạo class thất bại trong quá trình thực thi | Có thể có `ExceptionInInitializerError` | Lỗi xảy ra khi JVM chạy phần khởi tạo static, tách khỏi quyền constructor |
+| `getConstructor(String.class)` | `NoSuchMethodException` | No **public** constructor with the requested signature; a private constructor may still exist |
+| `getDeclaredConstructor(...)` | `NoSuchMethodException` | No constructor directly declared with the exact parameter type list |
+| `ctor.newInstance(...)` when access check denies | `IllegalAccessException` | Caller is not allowed to invoke the constructor in its current state |
+| `ctor.trySetAccessible()` | `false` | Cannot enable access-check override for the caller, often due to JPMS boundaries |
+| `ctor.setAccessible(true)` | `InaccessibleObjectException` | Request to open access exceeds what JPMS permits |
+| `ctor.newInstance(...)` wrong argument count/type | `IllegalArgumentException` | Incompatible signature or receiver/arguments per contract |
+| `ctor.newInstance(...)` when constructor body throws | `InvocationTargetException` | Inspect `getCause()` to obtain the original error thrown by the target constructor |
+| `ctor.newInstance(...)` with abstract class | `InstantiationException` | Type cannot be directly instantiated |
+| Class initialization fails during execution | Possibly `ExceptionInInitializerError` | Error occurred when JVM ran static initialization, separate from constructor access |
 
-`IllegalAccessException` và `InvocationTargetException` là hai tình huống khác nhau: tình huống đầu tiên thường có nghĩa chưa được phép chạy constructor; tình huống thứ hai cho biết constructor đích đã được gọi và logic bên trong ném lỗi. Một chương trình xử lý Reflection tốt không nên bắt hết `Exception` rồi báo “không có quyền”.
+`IllegalAccessException` and `InvocationTargetException` are two different situations: the first typically means you are not allowed to run the constructor yet; the second indicates the target constructor was invoked and internal logic threw an error. Well-written Reflection code should not catch all `Exception`s and report "no permission".
 
-Các constructor của **enum** còn có ràng buộc riêng: Reflection không được dùng `Constructor.newInstance` để tạo enum constant mới, ngay cả khi đã tìm được metadata của constructor. Constructor thuộc **non-static inner class** cũng có thể chứa tham số ẩn đại diện instance của outer class; signature tra cứu phải phù hợp với thực tế do compiler tạo. Đây là lý do xem `getParameterTypes()` thay vì đoán signature.
+Constructors of **enums** also have special constraints: Reflection cannot use `Constructor.newInstance` to create new enum constants, even if constructor metadata has been found. Constructors belonging to a **non-static inner class** may also contain a hidden parameter representing the outer class instance; the lookup signature must match what the compiler actually generated. This is why inspecting `getParameterTypes()` rather than guessing the signature matters.
 
-## 8. Private constructor trong singleton, utility class và framework
+## 8. Private Constructors in Singletons, Utility Classes, and Frameworks
 
-### Utility class
+### Utility Classes
 
-Một lớp chỉ có các static method thường dùng private constructor để ngăn khởi tạo thông thường:
+A class with only static methods often uses a private constructor to prevent ordinary instantiation:
 
 ~~~java
 public final class TextUtils {
@@ -254,56 +254,56 @@ public final class TextUtils {
 }
 ~~~
 
-Mẫu này không biến lớp thành “bất khả khởi tạo dưới mọi hình thức”. Nếu code có quyền Reflection hợp lệ để vào constructor private, lời gọi `newInstance()` sẽ chạy thân constructor và ném `AssertionError`, được bọc qua `InvocationTargetException`. Vì vậy private constructor không nên được xem như một ranh giới bảo mật độc lập.
+This pattern does not make the class "impossible to instantiate under all circumstances". If code has valid Reflection permission to enter the private constructor, calling `newInstance()` will run the constructor body and throw `AssertionError`, wrapped in `InvocationTargetException`. Therefore, a private constructor should not be viewed as a standalone security boundary.
 
-### Singleton/factory
+### Singletons/Factories
 
-Một lớp singleton hoặc factory có thể dựa vào private constructor để kiểm soát số instance và validation. Deep reflection có thể vượt qua **rào cản truy cập ngôn ngữ** khi package được mở, nhưng không tự bỏ qua validation bên trong constructor. Nếu dự án cần bảo đảm invariant hoặc identity tuyệt đối, phải thiết kế bất biến, lifecycle và cơ chế quản lý phù hợp; không đặt toàn bộ tính đúng đắn vào modifier `private`.
+A singleton or factory class can rely on a private constructor to control instance count and validation. Deep reflection can bypass the **language access barrier** when a package is open, yet it does not automatically skip validation inside the constructor. If a project needs to guarantee invariants or strict identity, it must design immutability, lifecycle, and management mechanisms appropriately; do not place all correctness guarantees on the `private` modifier.
 
-### Framework và dependency injection
+### Frameworks and Dependency Injection
 
-Một số framework cần tạo object từ constructor non-public. Chúng thường:
+Some frameworks need to create objects from non-public constructors. They typically:
 
-1. Tìm constructor phù hợp qua `getDeclaredConstructors()` hoặc `getDeclaredConstructor(...)`.
-2. Chọn constructor theo annotation/signature hoặc quy tắc thiết kế cụ thể.
-3. Kiểm tra khả năng truy cập; nếu cần deep reflection thì yêu cầu `opens` cho framework module.
-4. Gọi `Constructor.newInstance(...)` với đối số đúng và báo lỗi có phân biệt quyền truy cập, chữ ký sai, hoặc exception từ body.
+1. Find a matching constructor via `getDeclaredConstructors()` or `getDeclaredConstructor(...)`.
+2. Select a constructor based on annotations/signatures or specific design rules.
+3. Check accessibility; if deep reflection is needed, require `opens` for the framework module.
+4. Invoke `Constructor.newInstance(...)` with valid arguments and report errors distinguishing access permissions, wrong signatures, or body exceptions.
 
-Không nên mặc định framework nào cũng có thể mở private constructor của mọi library/JDK class; trong named module, cấu hình mở package là một phần của hợp đồng vận hành.
+Do not assume every framework can open private constructors of every library/JDK class; in named modules, package-opening configuration is part of the operational contract.
 
-## 9. So sánh `Constructor.newInstance` với `Class.newInstance`
+## 9. Comparing `Constructor.newInstance` with `Class.newInstance`
 
-`Class.newInstance()` là API cũ và đã **deprecated**. Nó yêu cầu constructor không đối số phù hợp và cách xử lý exception từ constructor không rõ ràng như API `Constructor.newInstance`.
+`Class.newInstance()` is an old API and is **deprecated**. It requires a matching no-arg constructor and handles exceptions from the constructor less clearly than `Constructor.newInstance`.
 
-Cách hiện đại nên dùng khi có yêu cầu Reflection:
+Modern approach to use when Reflection is needed:
 
 ~~~java
 Constructor<MyType> ctor = MyType.class.getDeclaredConstructor();
 MyType item = ctor.newInstance();
 ~~~
 
-Đây là mảnh mã minh họa, giả định `MyType` tồn tại và có constructor không đối số; không phải chương trình độc lập. Nếu constructor đó private và caller không có quyền, vẫn cần xét `canAccess(null)` và khả năng mở quyền. `Constructor.newInstance` bọc exception từ constructor body trong `InvocationTargetException`, giúp phân biệt lỗi logic đích với lỗi truy cập.
+This is an illustrative snippet, assuming `MyType` exists and has a no-arg constructor; not a standalone program. If that constructor is private and the caller lacks access, `canAccess(null)` and the ability to open access still need evaluation. `Constructor.newInstance` wraps exceptions from the constructor body in `InvocationTargetException`, helping distinguish target logic errors from access errors.
 
-Trong mã ứng dụng bình thường, nếu public factory hoặc cú pháp `new` đáp ứng được mục tiêu, cách gọi trực tiếp vẫn dễ đọc và dễ kiểm soát hơn. Chỉ dùng Reflection khi có lý do kỹ thuật rõ ràng như DI, serialization, testing hoặc tooling.
+In normal application code, if a public factory or `new` syntax meets the goal, direct invocation remains easier to read and control. Use Reflection only when there is a clear technical reason such as DI, serialization, testing, or tooling.
 
-## 10. Checklist thực hành và tự kiểm tra
+## 10. Practical Checklist and Self-Check
 
-1. **Biết chính xác class đích:** constructor không kế thừa; dùng đúng `Class<?>` của lớp muốn tạo.
-2. **Biết signature:** dùng `getDeclaredConstructor(int.class, String.class)` nếu constructor thực tế nhận `int, String`; `Integer.class` không tương đương `int.class` trong bước tìm.
-3. **Phân biệt public lookup và declared lookup:** `getConstructor` không thấy private; `getDeclaredConstructor` có thể thấy nhưng không mở quyền.
-4. **Kiểm tra quyền từ caller thực tế:** `ctor.canAccess(null)` và khả năng `trySetAccessible()`; không đoán kết quả chỉ từ modifier.
-5. **Tôn trọng package và JPMS:** nếu cần truy cập non-public xuyên module, kiểm tra `opens` có đích và dùng API được phép.
-6. **Xử lý lỗi tách biệt:** `NoSuchMethodException` là tra cứu; `IllegalAccessException` là truy cập; `InvocationTargetException.getCause()` là lỗi từ constructor body; `IllegalArgumentException` thường liên quan signature/arguments.
-7. **Tránh coi private là bảo mật tuyệt đối:** Reflection hợp lệ có thể vượt rào cản truy cập ngôn ngữ; invariants của object cần được bảo vệ ngay trong thiết kế.
+1. **Know the exact target class:** constructors are not inherited; use the exact `Class<?>` of the class you want to create.
+2. **Know the signature:** use `getDeclaredConstructor(int.class, String.class)` if the constructor actually takes `int, String`; `Integer.class` is not equivalent to `int.class` during lookup.
+3. **Distinguish public lookup and declared lookup:** `getConstructor` does not see private; `getDeclaredConstructor` can see it but does not grant access.
+4. **Check permission from the actual caller:** `ctor.canAccess(null)` and whether `trySetAccessible()` succeeds; do not guess the outcome solely from modifiers.
+5. **Respect packages and JPMS:** if non-public access across modules is needed, check targeted `opens` and use permitted APIs.
+6. **Handle errors separately:** `NoSuchMethodException` is lookup; `IllegalAccessException` is access; `InvocationTargetException.getCause()` is an error from the constructor body; `IllegalArgumentException` usually relates to signature/arguments.
+7. **Avoid treating private as absolute security:** legitimate Reflection can bypass language access barriers; object invariants need protection within the design itself.
 
-**Câu hỏi 1.** `getDeclaredConstructor(String.class)` trả về `Constructor` của private constructor. Có được gọi `newInstance("x")` ngay không? **Chưa chắc**: phải xét quyền của caller và trạng thái access-check override.
+**Question 1.** `getDeclaredConstructor(String.class)` returns a `Constructor` for a private constructor. Can `newInstance("x")` be called immediately? **Not necessarily**: caller permissions and access-check override status must be considered.
 
-**Câu hỏi 2.** Vì sao `getConstructor(String.class)` ném `NoSuchMethodException` còn `getDeclaredConstructor(String.class)` thành công? **Vì thứ nhất chỉ tìm public constructor, thứ hai tìm constructor khai báo trực tiếp ở mọi mức truy cập.**
+**Question 2.** Why does `getConstructor(String.class)` throw `NoSuchMethodException` while `getDeclaredConstructor(String.class)` succeeds? **Because the first searches only public constructors, while the second searches directly declared constructors at any access level.**
 
-**Câu hỏi 3.** `trySetAccessible()` trả `false` khi framework khác module truy cập private constructor. Cách xử lý? **Dùng API hợp lệ hoặc mở chính xác package qua `opens` theo thiết kế module; không tiếp tục gọi như thể override đã bật.**
+**Question 3.** `trySetAccessible()` returns `false` when a framework in another module accesses a private constructor. How to handle it? **Use a permitted API or explicitly open the package via `opens` per module design; do not proceed as if the override were enabled.**
 
-**Câu hỏi 4.** Constructor tự ném `IllegalArgumentException`. Lúc `Constructor.newInstance` chạy, caller quan sát loại exception nào? **`InvocationTargetException`**, và exception gốc được lấy qua `getCause()`.
+**Question 4.** A constructor itself throws `IllegalArgumentException`. When `Constructor.newInstance` runs, what exception type does the caller observe? **`InvocationTargetException`**, and the original exception is retrieved via `getCause()`.
 
-**Câu hỏi 5.** Có cần `canAccess(someObject)` trước khi gọi constructor không? **Không.** Constructor chưa có receiver; gọi `canAccess(null)`.
+**Question 5.** Do you need `canAccess(someObject)` before invoking a constructor? **No.** A constructor has no receiver yet; call `canAccess(null)`.
 
-Khi thao tác private constructor bằng Java Reflection, hãy theo đúng trình tự **tìm constructor → xác định quyền và ranh giới module → cân nhắc mở quyền → gọi với tham số hợp lệ → xử lý exception từ constructor**. Sự phân tách này giúp code Reflection đúng về ngữ nghĩa, minh bạch về quyền và dễ bảo trì.
+When working with private constructors via Java Reflection, follow the exact sequence **find constructor → determine permissions and module boundaries → consider opening access → invoke with valid arguments → handle exceptions from the constructor**. This separation keeps Reflection code semantically accurate, transparent about permissions, and easy to maintain.

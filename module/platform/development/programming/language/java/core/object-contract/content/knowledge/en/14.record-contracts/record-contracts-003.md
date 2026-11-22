@@ -1,67 +1,67 @@
-# So sánh thành phần float hoặc double theo quy tắc lớp bao trong Java record
+# Comparing float or double Components Using Wrapper Class Rules in Java Records
 
-## Mục tiêu
+## Objectives
 
-Trong Java 17+, `record` được sinh sẵn `equals(Object)`, `hashCode()` và `toString()` từ các thành phần (record components). Với thành phần kiểu nguyên thủy `float` hoặc `double`, **phép so sánh bằng nhau của record tuân theo ngữ nghĩa so sánh của lớp bao tương ứng** (`Float.compare` hoặc `Double.compare`), thay vì áp dụng trực tiếp toán tử số học `==`.
+In Java 17+, a `record` comes with generated `equals(Object)`, `hashCode()`, and `toString()` from its components (record components). For a primitive `float` or `double` component, **the record's equality comparison follows the comparison semantics of the corresponding wrapper class** (`Float.compare` or `Double.compare`), rather than applying the arithmetic `==` operator directly.
 
-Bài học giúp bạn:
+This lesson helps you:
 
-- Hiểu vì sao hai record chứa `NaN` vẫn có thể `equals` nhau, dù `NaN == NaN` là `false`.
-- Hiểu vì sao `+0.0` và `-0.0` **khác nhau theo `record.equals`**, dù `+0.0 == -0.0` là `true`.
-- Nắm cách so sánh thành phần nguyên thủy `float`/`double` và thành phần tham chiếu `Float`/`Double`.
-- Hiểu ý nghĩa của `hashCode`, tính nhất quán của quan hệ bằng nhau, và cách dùng record trong `HashSet`/`HashMap`.
-- Biết khi nào cần chính sách bằng nhau riêng của miền nghiệp vụ, như coi hai zero khác dấu là một giá trị hay so sánh gần đúng.
+- Understand why two records containing `NaN` can still be `equals` to each other, even though `NaN == NaN` is `false`.
+- Understand why `+0.0` and `-0.0` **differ according to `record.equals`**, even though `+0.0 == -0.0` is `true`.
+- Grasp how primitive `float`/`double` components and reference `Float`/`Double` components are compared.
+- Understand the meaning of `hashCode`, consistency of the equality relation, and using records in `HashSet`/`HashMap`.
+- Know when a custom domain equality policy is needed, such as treating both signed zeros as one value or performing approximate comparisons.
 
-## 1. Hợp đồng equals của record
+## 1. The Record equals Contract
 
-Với một khai báo:
+Given a declaration:
 
 ```java
 record Measurement(float level, double precision) {}
 ```
 
-trình biên dịch cung cấp mặc định các phương thức quan trọng, gồm `equals(Object)` và `hashCode()`. Theo đặc tả `java.lang.Record`, một phép so sánh bằng nhau mặc định giữa hai record yêu cầu:
+the compiler provides essential methods by default, including `equals(Object)` and `hashCode()`. According to the `java.lang.Record` specification, a default equality comparison between two records requires:
 
-1. Đối tượng so sánh thuộc **cùng lớp record**.
-2. Các thành phần tương ứng đều bằng nhau theo quy tắc cho **kiểu** của mỗi thành phần.
-3. Với thành phần kiểu tham chiếu, kết quả tương đương `Objects.equals(componentA, componentB)`.
-4. Với thành phần kiểu nguyên thủy, kết quả tương đương việc phương thức `compare` của **lớp bao tương ứng** trả `0`. Với `float` và `double`, đây là `Float.compare(a, b) == 0` hoặc `Double.compare(a, b) == 0`.
+1. The compared object belongs to **the same record class**.
+2. Corresponding components are all equal according to the rule for the **type** of each component.
+3. For reference-type components, the result is equivalent to `Objects.equals(componentA, componentB)`.
+4. For primitive-type components, the result is equivalent to the `compare` method of the **corresponding wrapper class** returning `0`. For `float` and `double`, this is `Float.compare(a, b) == 0` or `Double.compare(a, b) == 0`.
 
-Mô tả ở trên là **quy tắc ngữ nghĩa**; JVM không bắt buộc phải thực sự tạo đối tượng bao (boxing) hay gọi đúng các phương thức đó trong quá trình thực thi. Thuật toán nội bộ có thể được tối ưu hoặc thay đổi, miễn kết quả đúng hợp đồng.
+The description above is the **semantic rule**; the JVM is not required to actually allocate wrapper objects (boxing) or literally call those exact methods at runtime. The internal algorithm may be optimized or changed, as long as the result conforms to the contract.
 
-Vì hai thành phần có kiểu `float` và `double`, có thể hình dung logic của `equals` như sau:
+Because the two components have types `float` and `double`, you can picture the `equals` logic like this:
 
 ```java
-// MÃ GIẢ để giải thích ngữ nghĩa; không phải mã compiler bắt buộc sinh ra.
+// PSEUDOCODE to explain semantics; not code the compiler is required to emit.
 boolean equivalent(Measurement a, Measurement b) {
     return Float.compare(a.level(), b.level()) == 0
             && Double.compare(a.precision(), b.precision()) == 0;
 }
 ```
 
-Đoạn trên giả định `a` và `b` đều khác `null` và cùng lớp `Measurement`. Trong thực tế, `record.equals` còn xử lý trường hợp chính đối tượng, `null` và khác lớp đúng hợp đồng `Object.equals`.
+The snippet above assumes `a` and `b` are both non-`null` and of the same `Measurement` class. In practice, `record.equals` also handles the same-object, `null`, and different-class cases according to the `Object.equals` contract.
 
-**Tại sao không dùng `==` cho hai thành phần số thực?** Vì `==` không tạo thành một quan hệ tương đương cho mọi giá trị IEEE 754, đặc biệt với `NaN`. `equals` cần giữ tính phản xạ (một đối tượng bằng chính nó), tính đối xứng và tính bắc cầu. Cách so sánh theo lớp bao xử lý các trường hợp biên một cách nhất quán.
+**Why not use `==` for two floating-point components?** Because `==` does not form an equivalence relation for all IEEE 754 values, particularly with `NaN`. `equals` must preserve reflexivity (an object equals itself), symmetry, and transitivity. Wrapper-style comparison handles edge cases consistently.
 
-## 2. So sánh `==` khác `Float.compare` và `Double.compare`
+## 2. How `==` Differs from `Float.compare` and `Double.compare`
 
-Java có các giá trị dấu phẩy động đặc biệt:
+Java has special floating-point values:
 
-- `Float.NaN` và `Double.NaN`: không phải số (Not a Number).
-- `+0.0` và `-0.0`: hai giá trị zero có dấu khác nhau.
-- `Float.POSITIVE_INFINITY`, `Float.NEGATIVE_INFINITY` và các giá trị tương ứng của `Double`.
+- `Float.NaN` and `Double.NaN`: Not a Number.
+- `+0.0` and `-0.0`: two zero values with different signs.
+- `Float.POSITIVE_INFINITY`, `Float.NEGATIVE_INFINITY`, and the corresponding `Double` values.
 
-So sánh theo toán tử số học và theo quy tắc lớp bao khác nhau ở những trường hợp quan trọng:
+Comparing with the arithmetic operator and with wrapper class rules differs in important cases:
 
-| Hai giá trị | Toán tử nguyên thủy `a == b` | `Float.compare` / `Double.compare` trả `0`? | Hai record cùng lớp chỉ chứa giá trị này `equals` nhau? |
+| Two Values | Primitive Operator `a == b` | `Float.compare` / `Double.compare` returns `0`? | Two same-class records holding only this value `equals` each other? |
 | --- | --- | --- | --- |
-| `1.5` và `1.5` | `true` | Có | Có |
-| `+0.0` và `-0.0` | `true` | **Không** | **Không** |
-| `NaN` và `NaN` | **`false`** | Có | Có |
-| `+Infinity` và `+Infinity` | `true` | Có | Có |
-| `-Infinity` và `+Infinity` | `false` | Không | Không |
+| `1.5` and `1.5` | `true` | Yes | Yes |
+| `+0.0` and `-0.0` | `true` | **No** | **No** |
+| `NaN` and `NaN` | **`false`** | Yes | Yes |
+| `+Infinity` and `+Infinity` | `true` | Yes | Yes |
+| `-Infinity` and `+Infinity` | `false` | No | No |
 
-### 2.1. NaN: `==` không bằng chính nó, nhưng record equals có
+### 2.1. NaN: `==` Does Not Equal Itself, Yet Record equals Does
 
 ```java
 double a = Double.NaN;
@@ -71,11 +71,11 @@ System.out.println(a == b);                  // false
 System.out.println(Double.compare(a, b) == 0); // true
 ```
 
-Với toán tử `==`, một NaN luôn **không bằng** bất kỳ giá trị nào, kể cả NaN. Với `Double.compare`, các NaN được xem là cùng nhóm giá trị cho quan hệ bằng nhau của lớp bao; do đó so sánh trả `0`. `Float.compare` cũng có đặc tính tương ứng.
+With the `==` operator, a NaN is always **unequal** to any value, including NaN. With `Double.compare`, NaNs are treated as the same value group for the wrapper class's equality relation; hence the comparison returns `0`. `Float.compare` shares the corresponding property.
 
-Đối với record, điều này là quan trọng: record chứa NaN vẫn bằng chính nó và có thể bằng một record khác cùng lớp với các thành phần tương ứng là NaN.
+For records, this is important: a record containing NaN still equals itself and can equal another record of the same class whose corresponding components are NaN.
 
-### 2.2. Signed zero: `==` coi bằng nhau, record equals phân biệt
+### 2.2. Signed Zero: `==` Treats Them as Equal, Record equals Distinguishes Them
 
 ```java
 double positiveZero = +0.0;
@@ -85,19 +85,19 @@ System.out.println(positiveZero == negativeZero);              // true
 System.out.println(Double.compare(positiveZero, negativeZero)); // 1
 ```
 
-`Double.compare(+0.0, -0.0)` trả một số **dương**; ở đây ví dụ cho `1`. Tương tự, `Double.compare(-0.0, +0.0)` trả số âm. Quy tắc lớp bao đặt `-0.0` thấp hơn `+0.0`.
+`Double.compare(+0.0, -0.0)` returns a **positive** number; here the example produces `1`. Similarly, `Double.compare(-0.0, +0.0)` returns a negative number. The wrapper rule orders `-0.0` lower than `+0.0`.
 
-Hai zero có thể tạo hành vi khác nhau trong phép toán: `1.0 / +0.0` là dương vô cực, còn `1.0 / -0.0` là âm vô cực. Việc phân biệt chúng trong quan hệ bằng nhau có ý nghĩa khi cần giữ đúng biểu diễn số thực.
+The two zeros can produce different behavior in arithmetic operations: `1.0 / +0.0` is positive infinity, while `1.0 / -0.0` is negative infinity. Distinguishing them in the equality relation makes sense when preserving exact floating-point representation matters.
 
-### 2.3. Đây là so sánh đại diện, không phải so sánh gần đúng
+### 2.3. This Is Representation Comparison, Not Approximate Comparison
 
-`Float.compare` và `Double.compare` **không** kiểm tra “hai số gần nhau đủ nhỏ”. Chúng có thứ tự và quy tắc bằng nhau cụ thể cho các giá trị IEEE 754, gồm NaN và hai signed zero.
+`Float.compare` and `Double.compare` do **not** check whether "two numbers are close enough". They have a specific ordering and equality rule for IEEE 754 values, including NaN and the two signed zeros.
 
-Ví dụ, hai số `0.1 + 0.2` và `0.3` có thể khác nhau do cách biểu diễn nhị phân; record mặc định **không tự áp dụng epsilon** để coi chúng bằng nhau. Muốn chính sách “gần bằng nhau”, cần kiểm tra riêng theo quy tắc phù hợp với bài toán số học; không nên giả định record áp dụng cơ chế làm tròn.
+For example, `0.1 + 0.2` and `0.3` can differ due to binary representation; a record by default **does not automatically apply an epsilon** to treat them as equal. If you want an "approximately equal" policy, check separately using rules appropriate for the numerical problem; do not assume records apply rounding mechanisms.
 
-## 3. Ví dụ Java 17+ hoàn chỉnh: record với float và double
+## 3. Complete Java 17+ Example: Records with float and double
 
-Tạo tệp **`RecordFloatingEqualityDemo.java`**:
+Create the file **`RecordFloatingEqualityDemo.java`**:
 
 ```java
 import java.util.HashSet;
@@ -149,14 +149,14 @@ public class RecordFloatingEqualityDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac RecordFloatingEqualityDemo.java
 java RecordFloatingEqualityDemo
 ```
 
-**Đầu ra chính xác:**
+**Exact output:**
 
 ```text
 Float.NaN == Float.NaN: false
@@ -171,36 +171,36 @@ set size: 3
 set contains equal NaN record: true
 ```
 
-Giải thích theo trình tự:
+Step-by-step explanation:
 
-1. `nanA` và `nanB` là **hai đối tượng record riêng**, nhưng chúng có cùng lớp và các thành phần đều tương đương theo `Float.compare`/`Double.compare`. `equals` trả `true`.
-2. Khi `equals` là `true`, hợp đồng yêu cầu `hashCode` bằng nhau. Vì vậy, `nanA.hashCode() == nanB.hashCode()` là `true`. Không cần biết con số hash cụ thể.
-3. `positive` và `negative` chỉ khác dấu của giá trị zero trong `level`. Vì `Float.compare(+0.0f, -0.0f) != 0`, chúng **không bằng nhau** theo `equals`.
-4. `HashSet` chỉ giữ một trong hai record `nanA`/`nanB` tương đương, nhưng giữ cả record zero dương và zero âm. Tổng số phần tử là **3**.
-5. `HashSet.contains` dùng `hashCode` và `equals` của record, do đó tìm được record mới có các thành phần NaN tương đương.
+1. `nanA` and `nanB` are **two separate record objects**, yet they belong to the same class and their components are equivalent per `Float.compare`/`Double.compare`. `equals` returns `true`.
+2. When `equals` is `true`, the contract requires equal `hashCode`s. Therefore, `nanA.hashCode() == nanB.hashCode()` is `true`. There is no need to know the specific hash number.
+3. `positive` and `negative` differ only in the sign of zero in `level`. Because `Float.compare(+0.0f, -0.0f) != 0`, they are **not equal** according to `equals`.
+4. `HashSet` retains only one of the two equivalent `nanA`/`nanB` records, while retaining both the positive-zero and negative-zero records. Total element count is **3**.
+5. `HashSet.contains` uses the record's `hashCode` and `equals`, thereby finding a new record with equivalent NaN components.
 
-Điểm cần nhớ: **không nên thay việc so sánh record bằng cách so sánh riêng các thành phần nguyên thủy với `==`**, vì điều đó có thể cho câu trả lời khác.
+Point to remember: **do not replace record comparison by separately comparing primitive components with `==`**, because that can yield a different answer.
 
-## 4. Thành phần Float/Double là đối tượng: cùng quy tắc lớp bao
+## 4. Float/Double Object Components: Same Wrapper Class Rules
 
-Một record cũng có thể khai báo thành phần **kiểu tham chiếu** `Float` hoặc `Double`:
+A record can also declare a **reference-type** component `Float` or `Double`:
 
 ```java
 record WrappedMeasurement(Float level, Double precision) {}
 ```
 
-Với thành phần tham chiếu, `record.equals` dùng ngữ nghĩa tương đương `Objects.equals`. Vì `Float.equals(Object)` và `Double.equals(Object)` tuân theo quy tắc tương tự `Float.compare`/`Double.compare` về NaN và signed zero, ta vẫn có:
+For reference components, `record.equals` uses semantics equivalent to `Objects.equals`. Because `Float.equals(Object)` and `Double.equals(Object)` follow rules similar to `Float.compare`/`Double.compare` regarding NaN and signed zero, we still have:
 
-- Hai đối tượng bao chứa NaN tương đương: **bằng nhau**.
-- Một đối tượng bao chứa `+0.0` và một đối tượng bao chứa `-0.0`: **không bằng nhau**.
-- Hai thành phần đều `null`: bằng nhau đối với riêng thành phần đó.
-- Một bên `null`, bên kia khác `null`: khác nhau.
+- Two wrapper objects containing NaN are equivalent: **equal**.
+- One wrapper object containing `+0.0` and one containing `-0.0`: **not equal**.
+- Both components `null`: equal with respect to that component.
+- One side `null`, the other non-`null`: different.
 
-**Khác biệt quan trọng:** Thành phần `float`/`double` nguyên thủy không thể `null`; thành phần `Float`/`Double` có thể `null`. Nếu dùng wrapper làm record component, hãy quyết định rõ liệu `null` có được phép trong miền nghiệp vụ hay không.
+**Important difference:** Primitive `float`/`double` components cannot be `null`; `Float`/`Double` components can be `null`. If using wrappers as record components, decide clearly whether `null` is allowed in the business domain.
 
-### 4.1. Ví dụ chạy được: wrapper và null
+### 4.1. Runnable Example: Wrappers and null
 
-**Tệp `RecordWrappedFloatingDemo.java`:**
+**File `RecordWrappedFloatingDemo.java`:**
 
 ```java
 import java.util.Objects;
@@ -249,7 +249,7 @@ javac RecordWrappedFloatingDemo.java
 java RecordWrappedFloatingDemo
 ```
 
-**Đầu ra chính xác:**
+**Exact output:**
 
 ```text
 nan wrapped equal: true
@@ -261,7 +261,7 @@ Double.equals for signed zeros: false
 Objects.equals(null, null): true
 ```
 
-Nếu tham số không được phép `null`, có thể kiểm tra trong compact constructor:
+If parameters are not allowed to be `null`, you can validate in a compact constructor:
 
 ```java
 record StrictMeasurement(Float level, Double precision) {
@@ -272,38 +272,38 @@ record StrictMeasurement(Float level, Double precision) {
 }
 ```
 
-Đoạn khai báo này chỉ minh họa cách kiểm tra trong constructor. Nó có thể đặt vào một tệp Java phù hợp; với compact constructor, các thành phần được gán tự động sau khi chạy thân constructor thành công.
+This declaration snippet only illustrates validation in a constructor. It can be placed in an appropriate Java file; with a compact constructor, the components are assigned automatically after the constructor body runs successfully.
 
-## 5. NaN có nhiều biểu diễn bit nhưng được so tương đương
+## 5. NaN Has Multiple Bit Representations Yet Compares as Equivalent
 
-Dữ liệu IEEE 754 có thể có nhiều **bit pattern** mang ý nghĩa NaN. Khi `Float.equals`/`Double.equals` và `Float.compare`/`Double.compare` so sánh, NaN được đối xử theo dạng **chuẩn hóa** cho mục đích bình đẳng. Vì vậy các NaN có payload khác nhau vẫn được xem là tương đương theo `record.equals` mặc định.
+IEEE 754 data can have many **bit patterns** meaning NaN. When `Float.equals`/`Double.equals` and `Float.compare`/`Double.compare` compare, NaNs are treated in a **canonical** form for equality purposes. Thus NaNs with different payloads are still considered equivalent under default `record.equals`.
 
-Có thể liên hệ với những phương thức chuẩn:
+You can relate this to standard methods:
 
-- `Float.floatToIntBits(value)` chuẩn hóa các bit pattern NaN thành một dạng chuẩn; `Double.doubleToLongBits(value)` tương tự.
-- `Float.floatToRawIntBits(value)` và `Double.doubleToRawLongBits(value)` cho truy cập bit thô, không chủ động chuẩn hóa NaN; việc giữ nguyên payload cụ thể qua phép toán/chuyển đổi có thể phụ thuộc môi trường và cách giá trị được xử lý.
-- `Float.compare`/`Double.compare` có quy tắc bằng nhau nhất quán với lớp bao, trong đó tất cả NaN được xem là bằng nhau.
+- `Float.floatToIntBits(value)` normalizes NaN bit patterns into a single canonical form; `Double.doubleToLongBits(value)` does similarly.
+- `Float.floatToRawIntBits(value)` and `Double.doubleToRawLongBits(value)` provide raw bit access without actively normalizing NaN; preserving a specific payload across operations/conversions can depend on the environment and how the value is processed.
+- `Float.compare`/`Double.compare` have equality rules consistent with the wrapper classes, in which all NaNs are considered equal.
 
-**Đừng suy ra record mặc định giữ hoặc phân biệt payload NaN.** Record có thành phần `float`/`double` so theo ngữ nghĩa lớp bao. Nếu dữ liệu nghiệp vụ cần phân biệt từng bit pattern, cần **mô hình biểu diễn riêng** (chẳng hạn lưu bit trong thành phần `int`/`long`) và định nghĩa rõ cách dữ liệu được thu thập, lưu trữ.
+**Do not infer that default records preserve or distinguish NaN payloads.** Records with `float`/`double` components compare using wrapper class semantics. If business data requires distinguishing individual bit patterns, you need a **separate representation model** (such as storing bits in an `int`/`long` component) and clearly define how the data is collected and stored.
 
-## 6. HashCode của record tương thích với equals, nhưng không cố định công thức
+## 6. A Record's hashCode Is Compatible with equals, Yet Has No Fixed Formula
 
-`record` sinh sẵn `hashCode()` dựa trên các thành phần. Vì record sinh `equals` cho NaN và signed zero theo quy tắc lớp bao, `hashCode` phải phù hợp với cùng quan hệ bằng nhau:
+`record` comes with generated `hashCode()` based on the components. Because a record generates `equals` for NaN and signed zero using wrapper class rules, `hashCode` must align with the same equality relation:
 
 ```text
-Nếu a.equals(b) == true
-thì a.hashCode() == b.hashCode() bắt buộc true.
+If a.equals(b) == true
+then a.hashCode() == b.hashCode() must be true.
 ```
 
-Do đó, hai record chứa NaN tương đương có cùng hash. Ngược lại, hai record có một thành phần zero khác dấu không `equals` nhau; hash của chúng **được phép** khác, nhưng không bắt buộc phải khác (collision vẫn hợp lệ).
+Consequently, two records containing NaN are equivalent and have the same hash. Conversely, two records differing in a signed zero component are not `equals` to each other; their hashes **may** differ, though they are not required to differ (collisions are still valid).
 
-Không nên phụ thuộc vào một **giá trị hash chính xác** hay giả định thuật toán sinh hash của record luôn là `Objects.hash(component1, component2, ...)`. Đặc tả cho phép triển khai record dùng thuật toán khác miễn tuân thủ hợp đồng. Hash cũng không phải địa chỉ bộ nhớ, khóa bảo mật hoặc định danh duy nhất.
+Do not rely on an **exact hash value** or assume the record's hash generation algorithm is always `Objects.hash(component1, component2, ...)`. The specification permits record implementations to use another algorithm as long as it obeys the contract. Nor is a hash a memory address, security key, or unique identifier.
 
-### 6.1. Vì sao HashMap và HashSet nhận ra NaN?
+### 6.1. Why Do HashMap and HashSet Recognize NaN?
 
-`HashSet`/`HashMap` sử dụng `hashCode` cùng `equals` của khóa. Nếu record được tạo với NaN ở các thành phần số thực, hai record có cùng các thành phần tương đương theo quy tắc của record sẽ được nhận diện như cùng khóa/giá trị. Đây là lợi ích của việc record dùng quan hệ bằng nhau có tính phản xạ và nhất quán.
+`HashSet`/`HashMap` use the key's `hashCode` together with `equals`. If a record is created with NaN in floating-point components, two records with the same components equivalent under record rules will be recognized as the same key/value. This is the benefit of records using a reflexive and consistent equality relation.
 
-Không áp dụng quy tắc nhầm lẫn:
+Do not apply a confused rule:
 
 ```java
 record Reading(double value) {}
@@ -311,19 +311,19 @@ record Reading(double value) {}
 Reading x = new Reading(Double.NaN);
 Reading y = new Reading(Double.NaN);
 
-// x.equals(y) là true.
-// x.value() == y.value() lại là false.
+// x.equals(y) is true.
+// x.value() == y.value() is false.
 ```
 
-Đoạn trên là mã minh họa đặt trong ngữ cảnh có khai báo record và phương thức phù hợp. Sự khác biệt không làm vi phạm hợp đồng: **đối tượng record** và **phép so sánh toán học trên nguyên thủy** theo hai chính sách bằng nhau khác nhau.
+The snippet above is illustrative code placed in a context with an appropriate record declaration and method. The difference does not violate the contract: **record objects** and **mathematical comparison on primitives** follow two different equality policies.
 
-## 7. Khi nào cần chính sách “+0.0 bằng -0.0”?
+## 7. When Is a "+0.0 Equals -0.0" Policy Needed?
 
-Nhiều miền nghiệp vụ xem `+0.0` và `-0.0` là **cùng giá trị zero**, không quan tâm dấu của nó. Nếu vậy, hành vi mặc định của record có thể không phù hợp. Thay vì ghi đè `equals` tùy tiện, một cách đơn giản là **chuẩn hóa đầu vào** tại constructor rồi giữ nguyên `equals/hashCode` được sinh.
+Many business domains treat `+0.0` and `-0.0` as **the same zero value**, ignoring its sign. If so, the record's default behavior may not fit. Instead of overriding `equals` arbitrarily, a simple approach is to **normalize inputs** in the constructor and keep the generated `equals/hashCode` intact.
 
-### 7.1. Chuẩn hóa zero trong compact constructor
+### 7.1. Normalizing Zero in a Compact Constructor
 
-**Tệp `NormalizedZeroRecordDemo.java`:**
+**File `NormalizedZeroRecordDemo.java`:**
 
 ```java
 import java.util.HashSet;
@@ -333,10 +333,10 @@ public class NormalizedZeroRecordDemo {
     record Reading(float value, double correction) {
         Reading {
             if (value == 0.0f) {
-                value = 0.0f; // Chuẩn hóa cả -0.0f thành +0.0f.
+                value = 0.0f; // Normalize -0.0f to +0.0f as well.
             }
             if (correction == 0.0d) {
-                correction = 0.0d; // Chuẩn hóa cả -0.0d thành +0.0d.
+                correction = 0.0d; // Normalize -0.0d to +0.0d as well.
             }
         }
     }
@@ -379,7 +379,7 @@ javac NormalizedZeroRecordDemo.java
 java NormalizedZeroRecordDemo
 ```
 
-**Đầu ra chính xác:**
+**Exact output:**
 
 ```text
 zeros equal after normalization: true
@@ -390,36 +390,36 @@ NaN values remain equal: true
 set size: 2
 ```
 
-Vì điều kiện `value == 0.0f` đúng cho cả zero dương và zero âm, phép gán `value = 0.0f` đưa cả hai về zero dương. Thân compact constructor thay đổi biến tham số trước khi Java gán chúng cho trường thành phần; record sau đó sử dụng `equals/hashCode` mặc định một cách nhất quán.
+Because the condition `value == 0.0f` is true for both positive zero and negative zero, the assignment `value = 0.0f` brings both to positive zero. The compact constructor body mutates the parameter variables before Java assigns them to the component fields; the record then uses the default `equals/hashCode` consistently.
 
-**Đánh đổi:** Chuẩn hóa này **loại bỏ thông tin dấu của zero**. Nó phù hợp khi ứng dụng quyết định dấu zero không có ý nghĩa, nhưng không phù hợp nếu cần phân biệt chúng trong phép toán, phân tích tín hiệu hoặc lưu dữ liệu IEEE 754 chính xác.
+**Trade-off:** This normalization **discards the sign information of zero**. It is appropriate when the application decides zero's sign has no meaning, but inappropriate if they must be distinguished in arithmetic, signal analysis, or exact IEEE 754 data storage.
 
-### 7.2. Nếu cần chuẩn hóa các trường khác thì sao?
+### 7.2. What If Other Fields Need Normalization?
 
-Có thể áp dụng chuẩn hóa khác trong constructor (ví dụ kiểm tra `Double.isFinite` để cấm NaN/vô cực, hoặc lượng tử hóa theo đơn vị miền nghiệp vụ) nếu yêu cầu ứng dụng rõ ràng. Điều kiện quan trọng là **cùng một trạng thái chuẩn hóa phải sinh ra cùng quan hệ `equals`/`hashCode`**.
+Other normalizations can be applied in the constructor (e.g., checking `Double.isFinite` to forbid NaN/infinity, or quantizing to domain units) if application requirements are clear. The critical condition is that **the same normalized state must produce the same `equals`/`hashCode` relation**.
 
-Không nên tự ghi đè `equals` để coi hai zero bằng nhau nhưng để `hashCode` mặc định: nếu hash của hai zero khác dấu khác nhau, record sẽ vi phạm hợp đồng “bằng nhau thì hash bằng nhau”. Chuẩn hóa trong constructor giúp duy trì nguyên cặp phương thức mặc định.
+Do not override `equals` to treat both zeros as equal while leaving the default `hashCode`: if the hashes of two differently signed zeros differ, the record violates the "equal implies equal hash" contract. Normalizing in the constructor preserves the default pair of methods intact.
 
-## 8. So sánh gần đúng không nên tự biến thành equals
+## 8. Approximate Comparison Should Not Be Turned into equals
 
-Trong tính toán số, người ta đôi khi dùng ngưỡng sai số:
+In numerical computation, people sometimes use an error tolerance:
 
 ```java
 Math.abs(a - b) <= epsilon
 ```
 
-Đây là một cách kiểm tra gần đúng đơn giản, **không phải** quan hệ bằng nhau lý tưởng cho `equals(Object)`. Nó có thể **không bắc cầu**: với `epsilon = 1.0`, ta có `0.0` gần `0.6`, `0.6` gần `1.2` nhưng `0.0` không gần `1.2`.
+This is a simple approximate check, **not** an ideal equivalence relation for `equals(Object)`. It can be **non-transitive**: with `epsilon = 1.0`, `0.0` is close to `0.6`, `0.6` is close to `1.2`, yet `0.0` is not close to `1.2`.
 
-Nếu đưa quan hệ gần đúng đó vào `equals`, hai giá trị mà ứng dụng coi là bằng nhau có thể khó gán hash một cách hợp lệ, và quan hệ `equals` có thể mất tính bắc cầu — ảnh hưởng tới các collection dùng khóa.
+If that approximate relation is put into `equals`, two values the application treats as equal can be difficult to assign a valid hash to, and `equals` can lose transitivity — affecting key-based collections.
 
-Nên tách:
+Separate them:
 
-- `record.equals`: đồng nhất theo quy tắc rõ ràng, có tính phản xạ, đối xứng và bắc cầu.
-- Một phương thức riêng như `approximatelyEquals`: phép kiểm tra số học theo dung sai dành cho ứng dụng, không dùng thay `equals` trong `HashMap`/`HashSet`.
+- `record.equals`: consistent according to clear rules, reflexive, symmetric, and transitive.
+- A separate method like `approximatelyEquals`: a tolerance-based numerical check for the application, not used in place of `equals` in `HashMap`/`HashSet`.
 
-### 8.1. Ví dụ kiểm tra riêng phép gần bằng nhau
+### 8.1. Example of a Separate Approximate Equality Check
 
-**Tệp `ApproximateComparisonDemo.java`:**
+**File `ApproximateComparisonDemo.java`:**
 
 ```java
 public class ApproximateComparisonDemo {
@@ -455,7 +455,7 @@ javac ApproximateComparisonDemo.java
 java ApproximateComparisonDemo
 ```
 
-**Đầu ra chính xác:**
+**Exact output:**
 
 ```text
 a approximately b: true
@@ -464,52 +464,52 @@ a approximately c: false
 a.equals(b): false
 ```
 
-Phép kiểm tra đơn giản này chỉ phù hợp cho ví dụ hữu hạn có quy mô số hợp lý. Với các đại lượng rất lớn/nhỏ, có thể cần công thức dựa trên dung sai tuyệt đối và tương đối, kiểm soát overflow/underflow, tùy miền bài toán. Chính sách xấp xỉ vẫn nên **tách khỏi `equals`**.
+This simple check is only suitable for finite examples of reasonable numeric scale. For very large/small quantities, a formula based on absolute and relative tolerances and overflow/underflow control may be needed, depending on the problem domain. The approximation policy should still remain **separate from `equals`**.
 
-## 9. Những điều dễ nhầm khi dùng record chứa số thực
+## 9. Common Pitfalls When Using Records with Floating-Point Numbers
 
-| Nhầm lẫn | Giải thích đúng |
+| Misconception | Correct Explanation |
 | --- | --- |
-| “`record.equals` so thành phần `double` bằng `==`.” | Nó theo ngữ nghĩa tương đương `Double.compare`, phân biệt signed zero và công nhận các NaN tương đương. |
-| “Vì `Double.NaN == Double.NaN` là `false`, record chứa NaN không bằng chính nó.” | `record.equals` phải phản xạ và dùng quy tắc lớp bao, nên record chứa NaN vẫn bằng chính nó. |
-| “`+0.0 == -0.0` nên hai record chứa hai zero này bằng nhau.” | Theo record mặc định, `+0.0` và `-0.0` **khác nhau**. |
-| “`Double.compare` là kiểm tra gần đúng.” | Không; nó là phép so sánh có thứ tự, với quy tắc đặc biệt cho NaN và signed zero. |
-| “Có thể so sánh hash để chứng minh hai record bằng nhau.” | Không; va chạm hash được phép xảy ra. |
-| “Record có thành phần `Double` và `double` hoạt động hoàn toàn giống nhau.” | Ngữ nghĩa so giá trị đặc biệt tương tự, nhưng kiểu `Double` cho phép `null` còn `double` thì không. |
-| “Muốn zero khác dấu bằng nhau, chỉ cần ghi đè equals.” | Phải đồng bộ `hashCode`; thường dễ kiểm chứng hơn nếu chuẩn hóa đầu vào và giữ phương thức mặc định. |
-| “So sánh sai số nhỏ hơn epsilon dùng được như equals cho khóa hash.” | Quan hệ gần đúng có thể không bắc cầu, không phù hợp làm `equals` tổng quát. |
-| “Có thể dựa vào đúng con số hash của record ở mọi JDK.” | Đặc tả không cam kết thuật toán hash cố định giữa các triển khai/chạy chương trình. |
+| "`record.equals` compares `double` components using `==`." | It follows semantics equivalent to `Double.compare`, distinguishing signed zero and recognizing NaNs as equivalent. |
+| "Because `Double.NaN == Double.NaN` is `false`, a record containing NaN does not equal itself." | `record.equals` must be reflexive and uses wrapper class rules, so a record containing NaN still equals itself. |
+| "`+0.0 == -0.0` so two records holding these zeros are equal." | Under default record behavior, `+0.0` and `-0.0` **differ**. |
+| "`Double.compare` is an approximate check." | No; it is an ordered comparison, with special rules for NaN and signed zero. |
+| "You can compare hashes to prove two records are equal." | No; hash collisions are permitted to occur. |
+| "Records with `Double` and `double` components behave identically." | Special value comparison semantics are similar, but `Double` allows `null` while `double` does not. |
+| "To make differently signed zeros equal, just override equals." | `hashCode` must be synchronized; it is usually easier to verify by normalizing inputs and keeping default methods. |
+| "Comparing difference less than epsilon works as equals for hash keys." | An approximate relation can be non-transitive, making it unsuitable as general `equals`. |
+| "You can rely on the exact hash number of a record across all JDKs." | The specification does not guarantee a fixed hash algorithm across implementations/runs. |
 
-### Checklist khi thiết kế một record có float hoặc double
+### Checklist When Designing a Record with float or double
 
-1. Thành phần đó có thể nhận `NaN`, `+Infinity`, `-Infinity` hoặc signed zero không?
-2. Miền nghiệp vụ muốn **phân biệt** zero khác dấu, hay muốn chuẩn hóa cả hai về một giá trị?
-3. Nếu có thể nhận NaN, toàn bộ NaN có nên được coi tương đương không? Mặc định của record là **có**.
-4. Có cần kiểm tra gần đúng trong một **phương thức riêng** không?
-5. Record có thành phần kiểu `Float`/`Double` cần xử lý `null` không?
-6. Nếu ghi đè `equals`, đã chứng minh `hashCode` tương thích, tính phản xạ, đối xứng và bắc cầu chưa?
-7. Nếu lưu trong `HashSet` hoặc `HashMap`, đã kiểm tra trường hợp zero khác dấu và NaN chưa?
+1. Can that component receive `NaN`, `+Infinity`, `-Infinity`, or signed zero?
+2. Does the business domain want to **distinguish** differently signed zeros, or normalize both to one value?
+3. If NaN can be received, should all NaNs be treated as equivalent? The record default is **yes**.
+4. Is an approximate check needed in a **separate method**?
+5. Does a record with a `Float`/`Double` component need `null` handling?
+6. If overriding `equals`, have `hashCode` compatibility, reflexivity, symmetry, and transitivity been proven?
+7. If storing in a `HashSet` or `HashMap`, have signed zero and NaN cases been tested?
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-**Câu 1.** Cho `record R(double x) {}`. Hai đối tượng `new R(Double.NaN)` có `equals` nhau không?  
-**Đáp án:** Có. Ngữ nghĩa bằng nhau mặc định của record đối với `double` tương đương `Double.compare`; NaN được xem là bằng nhau.
+**Question 1.** Given `record R(double x) {}`. Are two `new R(Double.NaN)` objects `equals` to each other?  
+**Answer:** Yes. A record's default equality semantics for `double` are equivalent to `Double.compare`; NaNs are considered equal.
 
-**Câu 2.** `new R(+0.0).equals(new R(-0.0))` trả gì?  
-**Đáp án:** `false`. `Double.compare(+0.0, -0.0)` không trả `0`.
+**Question 2.** What does `new R(+0.0).equals(new R(-0.0))` return?  
+**Answer:** `false`. `Double.compare(+0.0, -0.0)` does not return `0`.
 
-**Câu 3.** Tại sao `Double.NaN == Double.NaN` trả `false` nhưng record chứa NaN lại có thể trả `equals == true`?  
-**Đáp án:** Toán tử nguyên thủy `==` tuân theo quy tắc so sánh số thực IEEE 754. Record mặc định sử dụng ngữ nghĩa so sánh của lớp bao để tạo quan hệ bằng nhau hợp lệ theo hợp đồng `equals`.
+**Question 3.** Why does `Double.NaN == Double.NaN` return `false`, yet records containing NaN can return `equals == true`?  
+**Answer:** The primitive `==` operator follows IEEE 754 floating-point comparison rules. Default records use wrapper class comparison semantics to form a valid equality relation under the `equals` contract.
 
-**Câu 4.** Nếu một record chứa `Float f` và cả hai đối tượng đều có `f == null`, thành phần đó có được coi là bằng nhau không?  
-**Đáp án:** Có. Thành phần tham chiếu được so tương đương `Objects.equals(null, null)`. Tuy nhiên record còn phải xét mọi thành phần còn lại và đúng lớp record.
+**Question 4.** If a record contains `Float f` and both objects have `f == null`, is that component considered equal?  
+**Answer:** Yes. Reference components are compared equivalently to `Objects.equals(null, null)`. However, the record must still consider all remaining components and the exact record class.
 
-**Câu 5.** Làm cách nào để record coi `+0.0` và `-0.0` là bằng nhau mà vẫn dùng `equals/hashCode` được sinh?  
-**Đáp án:** Chuẩn hóa cả hai về cùng zero (ví dụ `+0.0`) trong compact constructor, khi đó các trường thực tế lưu vào record giống nhau về quy tắc mặc định.
+**Question 5.** How can a record treat `+0.0` and `-0.0` as equal while still using generated `equals/hashCode`?  
+**Answer:** Normalize both to the same zero (e.g., `+0.0`) in the compact constructor, so the actual fields stored in the record are identical under default rules.
 
-**Câu 6.** `approximatelyEquals` với dung sai cố định có nên được cài làm `equals(Object)` không?  
-**Đáp án:** Không. Quan hệ gần bằng nhau có thể vi phạm bắc cầu, khiến cấu trúc dữ liệu dựa vào `equals/hashCode` không có hành vi đúng theo hợp đồng.
+**Question 6.** Should `approximatelyEquals` with a fixed tolerance be implemented as `equals(Object)`?  
+**Answer:** No. Approximate equality can violate transitivity, causing data structures relying on `equals/hashCode` to behave contrary to their contract.
 
-## Ghi nhớ
+## Key Takeaway
 
-**Record so thành phần `float` và `double` theo quy tắc tương đương `Float.compare`/`Double.compare`, không theo toán tử `==` nguyên thủy.** Vì vậy NaN tương đương NaN, còn `+0.0` khác `-0.0` trong `record.equals` mặc định. Thành phần `Float`/`Double` dùng quy tắc `Objects.equals` và hỗ trợ thêm `null`. Đặc tả yêu cầu `hashCode` nhất quán với `equals` nhưng không ấn định con số hash cụ thể. Nếu ứng dụng muốn quy tắc khác, hãy xác định ngữ nghĩa miền nghiệp vụ, ưu tiên chuẩn hóa đầu vào và giữ quan hệ `equals/hashCode` nhất quán; dùng phương thức riêng cho so sánh gần đúng.
+**Records compare `float` and `double` components using rules equivalent to `Float.compare`/`Double.compare`, not the primitive `==` operator.** Therefore, NaN is equivalent to NaN, while `+0.0` differs from `-0.0` in default `record.equals`. `Float`/`Double` components use `Objects.equals` rules and additionally support `null`. The specification requires `hashCode` to be consistent with `equals` without fixing a specific hash number. If the application wants different rules, define the business domain semantics, prefer normalizing inputs and keeping `equals/hashCode` consistent; use a separate method for approximate comparisons.

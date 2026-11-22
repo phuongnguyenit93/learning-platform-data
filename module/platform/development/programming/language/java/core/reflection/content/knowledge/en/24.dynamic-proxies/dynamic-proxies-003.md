@@ -1,8 +1,8 @@
-# Chọn class loader nhìn thấy đúng các interface khi tạo Java dynamic proxy
+# Choosing a Class Loader That Sees the Right Interfaces When Creating a Java Dynamic Proxy
 
-## 1. Vấn đề thực tế
+## 1. The practical problem
 
-Trong Java Reflection, `java.lang.reflect.Proxy` tạo đối tượng triển khai một hoặc nhiều **interface tại runtime**, rồi chuyển lời gọi phương thức tới `InvocationHandler`. API chính là:
+In Java Reflection, `java.lang.reflect.Proxy` creates an object implementing one or more **interfaces at runtime**, then routes method calls to an `InvocationHandler`. The primary API is:
 
 ~~~java
 Object proxy = Proxy.newProxyInstance(
@@ -11,70 +11,70 @@ Object proxy = Proxy.newProxyInstance(
         handler);
 ~~~
 
-*Đây là đoạn mã minh họa, giả định các kiểu và biến đã được khai báo.*
+*This is an illustrative snippet, assuming types and variables have already been declared.*
 
-Tham số `loader` rất quan trọng: JVM dùng nó để định nghĩa lớp proxy được sinh ra, và **loader đó phải nhìn thấy đúng từng interface** mà proxy triển khai. Một interface có thể tồn tại trong chương trình nhưng không nhìn thấy từ loader được chọn; hai lớp/interface có tên giống hệt nhau vẫn có thể là **hai kiểu khác nhau** nếu được định nghĩa bởi hai class loader khác nhau.
+The `loader` parameter is critical: the JVM uses it to define the generated proxy class, and **that loader must see each interface** the proxy implements. An interface may exist in the program yet not be visible from the chosen loader; two classes/interfaces with identical names can still be **two different types** if defined by two different class loaders.
 
-**Mục tiêu bài học:** biết chọn loader phù hợp trong chương trình thông thường và môi trường plugin/module; hiểu phép kiểm tra danh tính `Class` của `Proxy`; kiểm chứng trước khi tạo proxy; nhận biết lỗi do loader, do quy tắc interface, và do ép kiểu.
+**Lesson goal:** know how to choose the right loader in regular programs and plugin/module environments; understand `Proxy`'s `Class` identity check; verify before creating a proxy; recognize errors caused by the loader, interface rules, and casting.
 
-## 2. “Nhìn thấy interface” nghĩa chính xác là gì?
+## 2. What does "seeing the interface" mean precisely?
 
-Với từng interface `i` và class loader `cl`, một điều kiện bắt buộc của `Proxy.newProxyInstance` là:
+For each interface `i` and class loader `cl`, a mandatory condition of `Proxy.newProxyInstance` is:
 
 ~~~java
 Class.forName(i.getName(), false, cl) == i
 ~~~
 
-Ý nghĩa của từng phần:
+Meaning of each part:
 
-- `i` là **chính đối tượng `Class<?>`** của interface được truyền trong mảng `interfaces`.
-- `i.getName()` là tên nhị phân (*binary name*) của interface.
-- `Class.forName(name, false, cl)` thử phân giải kiểu có tên đó bằng loader `cl`, với `initialize=false` để không chủ động khởi tạo lớp.
-- `== i` yêu cầu trả về **đúng cùng một đối tượng `Class`**, chứ không đơn thuần là hai kiểu có cùng tên.
+- `i` is **the exact `Class<?>` object** of the interface passed in the `interfaces` array.
+- `i.getName()` is the *binary name* of the interface.
+- `Class.forName(name, false, cl)` attempts to resolve the type with that name using loader `cl`, with `initialize=false` so the class is not actively initialized.
+- `== i` requires returning **the exact same `Class` object**, not merely two types with the same name.
 
-Nếu `Class.forName` không tìm được kiểu, nó ném `ClassNotFoundException`. Nếu tìm được **một interface khác có cùng tên**, phép so sánh `==` vẫn sai. `Proxy.newProxyInstance` sẽ từ chối trường hợp vi phạm quy tắc nhìn thấy kiểu, thường bằng `IllegalArgumentException`. Lưu ý: lớp có thể được phân giải qua cơ chế **ủy quyền** (*delegation*) của loader; không đòi hỏi `i.getClassLoader() == cl`.
+If `Class.forName` cannot find the type, it throws `ClassNotFoundException`. If it finds **another interface with the same name**, the `==` comparison is still false. `Proxy.newProxyInstance` rejects cases violating this visibility rule, typically with `IllegalArgumentException`. Note: the class may be resolved through the loader's **delegation** mechanism; `i.getClassLoader() == cl` is not required.
 
-Đây là phân biệt then chốt:
+Here is the key distinction:
 
-| Câu hỏi | Phép kiểm tra | Ý nghĩa |
+| Question | Check | Meaning |
 | --- | --- | --- |
-| Hai interface có tên giống nhau? | `a.getName().equals(b.getName())` | Chỉ so sánh tên |
-| Hai interface là cùng một kiểu runtime? | `a == b` | So sánh định danh `Class` |
-| Loader `cl` thấy đúng interface `i`? | `Class.forName(i.getName(), false, cl) == i` | Điều kiện bắt buộc của dynamic proxy |
-| Một đối tượng có triển khai `i`? | `i.isInstance(object)` | Kiểm tra tương thích kiểu lúc chạy |
+| Do two interfaces have the same name? | `a.getName().equals(b.getName())` | Compares names only |
+| Are two interfaces the same runtime type? | `a == b` | Compares `Class` identity |
+| Does loader `cl` see the exact interface `i`? | `Class.forName(i.getName(), false, cl) == i` | Mandatory condition for dynamic proxy |
+| Does an object implement `i`? | `i.isInstance(object)` | Runtime type compatibility check |
 
-Java xác định kiểu tham chiếu theo **tên nhị phân cùng class loader định nghĩa kiểu**, không chỉ dựa vào tên. Loader được chọn cho proxy vì thế phải thấy **đúng `Class`** của mọi interface đầu vào.
+Java identifies a reference type by its **binary name together with its defining class loader**, not by name alone. The loader chosen for a proxy must therefore see **the exact `Class`** of every input interface.
 
-## 3. Hình dung class loader trong môi trường ứng dụng và plugin
+## 3. Visualizing class loaders in application and plugin environments
 
-Ví dụ có một class loader ứng dụng `AppLoader` và loader plugin `PluginLoader` ủy quyền về `AppLoader`:
+Suppose there is an application class loader `AppLoader` and a plugin loader `PluginLoader` delegating to `AppLoader`:
 
 ~~~text
                   Bootstrap / Platform
                            ↑
                         AppLoader
                        (SharedApi)
-                           ↑ ủy quyền về cha
+                           ↑ delegates to parent
                        PluginLoader
                        (PluginOnlyApi)
 
-AppLoader:   thường thấy SharedApi; không tự động thấy PluginOnlyApi
-PluginLoader: có thể thấy cả SharedApi (qua cha) và PluginOnlyApi (do mình nạp)
+AppLoader:    typically sees SharedApi; does not automatically see PluginOnlyApi
+PluginLoader: can see both SharedApi (via parent) and PluginOnlyApi (loaded by itself)
 ~~~
 
-Trong cấu hình này, khi cần proxy cho `SharedApi` **và** `PluginOnlyApi`, loader plugin có thể là lựa chọn hợp lý **nếu** kiểm tra `Class.forName(..., false, PluginLoader) == i` đúng với *cả hai* interface. Loader ứng dụng thường không thể nhìn thấy interface chỉ có trong plugin. Ngược lại, trong hệ thống dùng loader riêng không ủy quyền chuẩn, một loader có thể nạp lại `SharedApi` thành **bản sao cùng tên nhưng khác kiểu**; khi đó không dùng nó để triển khai interface `SharedApi` của ứng dụng.
+In this setup, when a proxy is needed for `SharedApi` **and** `PluginOnlyApi`, the plugin loader can be a reasonable choice **if** `Class.forName(..., false, PluginLoader) == i` holds for *both* interfaces. The application loader typically cannot see interfaces that only exist inside the plugin. Conversely, in a system using custom loaders without standard delegation, a loader might reload `SharedApi` into a **same-named copy that is a different type**; in that case do not use it to implement the application's `SharedApi` interface.
 
-Không có quy tắc “cứ loader con là đúng”. Cấu trúc ủy quyền, chính sách child-first, JPMS và danh tính thực của mỗi `Class<?>` mới quyết định khả năng tương thích.
+There is no rule that "the child loader is always right." Delegation structure, child-first policies, JPMS, and the actual identity of each `Class<?>` determine compatibility.
 
-## 4. Quy trình chọn loader
+## 4. Process for choosing a loader
 
-1. **Thu thập chính các `Class<?>` của interface cần triển khai.** Ví dụ `Service.class` của API dùng chung hoặc `pluginApiClass` nhận từ loader plugin. Tránh tải lại interface chỉ bằng tên nếu đã có `Class<?>` đáng tin cậy.
-2. **Chọn ứng viên dựa trên nơi các interface được định nghĩa và cơ chế ủy quyền.** Nếu chỉ có một interface thông thường, `Service.class.getClassLoader()` là điểm xuất phát đơn giản. Với nhiều interface của plugin, xem loader plugin có nhìn thấy toàn bộ interface, kể cả API dùng chung, hay không.
-3. **Kiểm tra danh tính của tất cả interface**, bằng phép so sánh ở mục 2. Nếu một interface không đạt, đổi kiến trúc nạp lớp hoặc chọn loader khác có thể thấy đồng thời các kiểu thực sự cần dùng.
-4. **Kiểm tra giới hạn khác của dynamic proxy.** Các interface phải hợp lệ, khả năng truy cập qua module/package phải cho phép, các kiểu xuất hiện trong chữ ký phương thức `public` cũng phải nhìn thấy; proxy có thể bị từ chối dù bước 3 đã đạt.
-5. **Tạo proxy bằng đúng loader và mảng interface đã kiểm tra**, sau đó dùng proxy thông qua interface được chia sẻ giữa phía gọi và proxy.
+1. **Collect the exact `Class<?>` objects of the interfaces to implement.** For example `Service.class` from the shared API or `pluginApiClass` received from the plugin loader. Avoid reloading an interface by name alone if you already have a trustworthy `Class<?>`.
+2. **Select a candidate based on where the interfaces are defined and the delegation mechanism.** If there is only a single regular interface, `Service.class.getClassLoader()` is a simple starting point. With multiple plugin interfaces, check whether the plugin loader sees all interfaces, including shared APIs.
+3. **Verify the identity of all interfaces**, using the comparison in section 2. If any interface fails, change the class loading architecture or choose another loader that can see all required types simultaneously.
+4. **Check other dynamic proxy constraints.** The interfaces must be valid, module/package access must be permitted, and types appearing in `public` method signatures must also be visible; the proxy may still be rejected even if step 3 passes.
+5. **Create the proxy with the verified loader and interface array**, then use the proxy through an interface shared between the caller and the proxy.
 
-Có thể viết phép kiểm tra sơ bộ như sau:
+A preliminary check can be written as follows:
 
 ~~~java
 static boolean seesAllInterfaces(ClassLoader loader, Class<?>... interfaces) {
@@ -94,15 +94,15 @@ static boolean seesAllInterfaces(ClassLoader loader, Class<?>... interfaces) {
 }
 ~~~
 
-*Đây là phương thức minh họa, cần đặt trong một lớp Java; ví dụ hoàn chỉnh ở mục 5.*
+*This is an illustrative method that must be placed inside a Java class; a complete example is in section 5.*
 
-Hàm trên xác nhận **từng interface đầu vào nhìn thấy được và có cùng định danh**, nhưng **chưa chứng minh proxy chắc chắn tạo được**: quy tắc về kiểu của tham số/giá trị trả về, method trùng chữ ký, interface không công khai, module, interface `sealed` hoặc `hidden` vẫn cần được `Proxy` xác thực. Các lỗi nạp/liên kết lớp khác `ClassNotFoundException` cũng có thể phát sinh và không nên che giấu như một kết quả `false` thông thường.
+The method above confirms **each input interface is visible and has the same identity**, but **does not prove a proxy can definitely be created**: rules for parameter/return types, methods with matching signatures, non-public interfaces, modules, and `sealed` or `hidden` interfaces still need to be validated by `Proxy`. Class loading/linking errors other than `ClassNotFoundException` may also occur and should not be masked as a plain `false` result.
 
-## 5. Ví dụ Java 17+ chạy độc lập: một loader thấy đủ, một loader chỉ thấy một interface
+## 5. Standalone Java 17+ example: one loader sees all, another sees only one interface
 
-Trong chương trình dưới đây, `Greeter` và `Tag` đều do loader ứng dụng nhìn thấy. `MaskingLoader` được tạo ra để **cố ý từ chối nạp `Tag`**, mô phỏng tình huống chọn loader không nhìn thấy đầy đủ interface. Đây là loader phục vụ bài thực nghiệm; trong ứng dụng thật, lỗi thường đến từ ranh giới giữa các module/plugin hoặc classpath khác nhau.
+In the program below, both `Greeter` and `Tag` are visible to the application loader. `MaskingLoader` is created to **intentionally refuse loading `Tag`**, simulating the scenario of choosing a loader that does not see all interfaces. This loader is for demonstration purposes; in real applications, errors usually come from boundaries between modules/plugins or different classpaths.
 
-Tạo tệp `ProxyLoaderChoiceDemo.java`:
+Create the file `ProxyLoaderChoiceDemo.java`:
 
 ~~~java
 import java.lang.reflect.InvocationHandler;
@@ -169,7 +169,7 @@ public class ProxyLoaderChoiceDemo {
                 };
             }
             if (method.getName().equals("greet")) {
-                return "Xin chào, " + values[0];
+                return "Hello, " + values[0];
             }
             throw new UnsupportedOperationException(method.toString());
         };
@@ -193,47 +193,47 @@ public class ProxyLoaderChoiceDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac ProxyLoaderChoiceDemo.java
 java ProxyLoaderChoiceDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 good sees all: true
 masked sees Greeter: true
 masked sees Tag: false
-Xin chào, Linh
+Hello, Linh
 implements Tag: true
 proxy loader == good: true
 masked rejected: IllegalArgumentException
 ~~~
 
-Giải thích:
+Explanation:
 
-- `good` nhìn thấy cả hai interface nên có thể tạo lớp proxy triển khai `Greeter` và `Tag`.
-- `masked` vẫn nhìn thấy `Greeter` nhờ ủy quyền cho `good` nhưng từ chối `Tag`. **Chỉ cần một interface không nhìn thấy** là mảng interface không hợp lệ với loader đó.
-- Proxy được tạo bằng `good` có thể ép về `Greeter` và kiểm tra bằng `instanceof Tag`.
-- `InvocationHandler` nhận các lời gọi qua proxy; ví dụ cũng xử lý `equals`, `hashCode` và `toString` thừa hưởng từ `Object` để tránh trả sai kiểu dữ liệu. Logic nghiệp vụ của `greet` độc lập với quy tắc chọn loader.
+- `good` sees both interfaces, so it can generate a proxy class implementing `Greeter` and `Tag`.
+- `masked` still sees `Greeter` by delegating to `good`, but rejects `Tag`. **Just one invisible interface** makes the interface array invalid for that loader.
+- The proxy created with `good` can be cast to `Greeter` and checked with `instanceof Tag`.
+- `InvocationHandler` receives calls through the proxy; the example also handles `equals`, `hashCode`, and `toString` inherited from `Object` to avoid returning wrong data types. The business logic of `greet` is independent of the loader selection rules.
 
-Trong ứng dụng thực, đừng sửa loader để “giấu” interface như `MaskingLoader`. Hãy chọn một loader **thật sự thấy đúng tất cả kiểu** hoặc thiết kế một API dùng chung qua ranh giới plugin.
+In real applications, do not modify a loader to "hide" an interface like `MaskingLoader`. Choose a loader that **actually sees every exact type**, or design a shared API across the plugin boundary.
 
-## 6. Chọn `getClassLoader()`, context class loader hay system loader?
+## 6. Choosing `getClassLoader()`, context class loader, or system loader?
 
-| Ứng viên | Khi nào cân nhắc | Giới hạn |
+| Candidate | When to consider | Limitations |
 | --- | --- | --- |
-| `MyApi.class.getClassLoader()` | Một hoặc nhiều interface thuộc API dùng chung, loader này thấy đủ tất cả | Không tự động thấy interface chỉ có trong plugin |
-| `pluginInterface.getClassLoader()` | Interface do plugin nạp; loader plugin có thể ủy quyền thấy các API chung | Phải xác minh từng interface, kể cả API từ phía ứng dụng |
-| `Thread.currentThread().getContextClassLoader()` (TCCL) | Framework/container đặt loader ngữ cảnh để khám phá kiểu theo yêu cầu hiện tại | Có thể là `null`, bị thay đổi, hoặc thấy bản sao không đúng của interface |
-| `ClassLoader.getSystemClassLoader()` | Ứng dụng classpath đơn giản và tất cả interface đều có thể tìm bởi system loader | Không phải loader chung cho mọi môi trường plugin/container |
-| `null` (bootstrap loader) | Interface có thể phân giải thông qua bootstrap loader và các quy tắc khác cho phép | Không phù hợp với interface ứng dụng thông thường |
+| `MyApi.class.getClassLoader()` | One or more interfaces belong to a shared API, and this loader sees all of them | Does not automatically see interfaces that exist only in plugins |
+| `pluginInterface.getClassLoader()` | Interface loaded by a plugin; the plugin loader may delegate to see shared APIs | Must verify every interface, including APIs from the application side |
+| `Thread.currentThread().getContextClassLoader()` (TCCL) | A framework/container sets a context loader to discover types for the current request | May be `null`, mutated, or see a wrong copy of an interface |
+| `ClassLoader.getSystemClassLoader()` | Simple classpath application where all interfaces can be found by the system loader | Not a universal loader for all plugin/container environments |
+| `null` (bootstrap loader) | Interfaces can be resolved through the bootstrap loader and other rules permit it | Not suitable for ordinary application interfaces |
 
-**TCCL là một gợi ý về ngữ cảnh nạp lớp, không phải đảm bảo tính đúng.** Ví dụ một plugin có thể cần TCCL để nạp lớp triển khai hoặc tài nguyên, nhưng loader dùng cho `Proxy` vẫn phải vượt qua bài kiểm tra danh tính interface. Nếu framework tạm đổi TCCL, hãy bảo đảm khôi phục đúng loader cũ sau khi hoàn tất công việc.
+**TCCL is a hint about loading context, not a guarantee of correctness.** For example, a plugin may need TCCL to load implementation classes or resources, but the loader used for `Proxy` must still pass the interface identity check. If a framework temporarily switches TCCL, ensure the previous loader is properly restored when work finishes.
 
-Đoạn kiểm tra khi cần xem xét TCCL:
+Check snippet when considering TCCL:
 
 ~~~java
 ClassLoader context = Thread.currentThread().getContextClassLoader();
@@ -244,13 +244,13 @@ if (!seesAllInterfaces(context, interfaces)) {
 Object proxy = Proxy.newProxyInstance(context, interfaces, handler);
 ~~~
 
-*Fragment này giả định hàm `seesAllInterfaces`, biến `interfaces` và `handler` đã được định nghĩa; vẫn cần xử lý các giới hạn proxy khác.*
+*This fragment assumes `seesAllInterfaces`, `interfaces`, and `handler` are already defined; other proxy constraints must still be handled.*
 
-Khi có sẵn interface `Class<?>`, ưu tiên truyền chúng trực tiếp thay vì ghép tên để tải qua TCCL rồi hy vọng nhận đúng kiểu.
+When interface `Class<?>` objects are already available, prefer passing them directly rather than assembling names to load through TCCL and hoping to get the right type.
 
-## 7. Cùng tên nhưng khác `ClassLoader`: lỗi khó tìm trong hệ plugin
+## 7. Same name, different `ClassLoader`: a hard-to-spot bug in plugin systems
 
-Giả sử ứng dụng và plugin **đều nạp riêng** bytecode của `com.example.api.Service`:
+Suppose both the application and a plugin **separately load** the bytecode of `com.example.api.Service`:
 
 ~~~text
 AppLoader    → Class A: com.example.api.Service
@@ -260,41 +260,41 @@ A.getName().equals(B.getName()) == true
 A == B                             == false
 ~~~
 
-Đây là **minh họa hai kiểu runtime khác nhau**, không phải tên lớp của một chương trình ví dụ độc lập. Nếu `PluginLoader` tìm thấy `B` khi yêu cầu `Service`, nhưng bạn truyền `A` vào `Proxy.newProxyInstance`, điều kiện `Class.forName(A.getName(), false, PluginLoader) == A` thất bại. Ngay cả khi tạo được proxy triển khai `B`, mã ứng dụng đang mong `A` vẫn không thể ép proxy thành `A`: việc trùng tên không tạo quan hệ kiểu.
+This **illustrates two distinct runtime types**, not class names from a standalone example program. If `PluginLoader` finds `B` when looking up `Service`, while you pass `A` into `Proxy.newProxyInstance`, the condition `Class.forName(A.getName(), false, PluginLoader) == A` fails. Even if a proxy implementing `B` is created, application code expecting `A` still cannot cast that proxy to `A`: sharing a name does not create a type relationship.
 
-Cách tổ chức thường dùng:
+Common organizational approaches:
 
-- Đặt interface hợp đồng chung vào một thư viện/API được nạp **một lần** bởi loader dùng chung; loader plugin ủy quyền tới bản chung thay vì chứa một bản riêng.
-- Nếu plugin có interface riêng, truyền `Class<?>` thực tế mà plugin đang dùng, rồi chọn một loader phân giải chính xác cả interface riêng và hợp đồng chung.
-- Nếu các interface bắt buộc nằm trong hai vùng loader không thể nhìn thấy lẫn nhau, **không có một tham số `loader` thần kỳ** để tạo proxy cho cả hai. Cần điều chỉnh cấu trúc loader, tách proxy hoặc dùng một lớp chuyển tiếp qua API chung.
+- Place the shared contract interface in a library/API loaded **once** by a shared loader; the plugin loader delegates to the shared copy rather than bundling its own copy.
+- If the plugin has its own interface, pass the actual `Class<?>` that the plugin uses, then choose a loader that resolves both the plugin interface and the shared contract accurately.
+- If the required interfaces live in two loader regions that cannot see each other, **there is no magic `loader` parameter** that can create a proxy for both. You need to adjust the loader structure, split proxies, or use a forwarding layer via a shared API.
 
-Một `ClassLoader` được đưa vào `Proxy.newProxyInstance` **có thể khác** loader trực tiếp định nghĩa một số interface trong danh sách: ủy quyền có thể trả về đúng `Class` của loader cha. Điều kiện là **danh tính được phân giải trùng khớp**, không phải mọi `getClassLoader()` đều bằng nhau.
+The `ClassLoader` passed to `Proxy.newProxyInstance` **can differ** from the loader that directly defined some interfaces in the list: delegation can return the parent loader's exact `Class`. The requirement is that **resolved identities match**, not that all `getClassLoader()` values be identical.
 
-## 8. Những ràng buộc khác thường bị nhầm thành lỗi class loader
+## 8. Other constraints often mistaken for class loader errors
 
-Theo API `Proxy.newProxyInstance` của Java 17+:
+According to the Java 17+ `Proxy.newProxyInstance` API:
 
-- Mỗi phần tử của mảng `interfaces` phải là **interface hợp lệ**, không phải class, primitive, interface `sealed` hoặc `hidden`; không được truyền trùng cùng đối tượng `Class<?>`.
-- **Mọi kiểu tham chiếu được dùng trong chữ ký của các phương thức `public`** của các interface (kể cả phương thức kế thừa) cũng phải nhìn thấy theo tên qua loader đã chọn. Không đủ nếu chỉ kiểm tra tên của chính interface.
-- Với nhiều interface **không `public`**, tất cả phải thuộc **cùng package và module**, được định nghĩa bởi loader được cung cấp và thỏa các điều kiện truy cập. Một loader nhìn thấy chúng chưa đủ để vượt qua hạn chế này.
-- Các phương thức của nhiều interface có cùng tên và danh sách tham số phải có **kiểu trả về tương thích** theo quy tắc proxy. Thứ tự các interface còn có ý nghĩa khi có những chữ ký phương thức trùng nhau.
-- Trong ứng dụng dùng **Java Platform Module System (JPMS)**, Java có quy tắc xác định package/module chứa lớp proxy, đôi khi sinh proxy trong *dynamic module*. Tránh mặc định rằng có thể truy cập `public` constructor của lớp proxy bằng Reflection từ module bất kỳ; sử dụng `Proxy.newProxyInstance` như API được thiết kế.
+- Every element of the `interfaces` array must be a **valid interface**, not a class, primitive, or `sealed` or `hidden` interface; duplicate entries of the same `Class<?>` are forbidden.
+- **Every reference type used in the signatures of `public` methods** of the interfaces (including inherited methods) must also be visible by name through the chosen loader. Checking only the name of the interface itself is not enough.
+- With multiple **non-`public`** interfaces, all must belong to **the same package and module**, be defined by the supplied loader, and satisfy access conditions. A loader merely seeing them is not enough to bypass this restriction.
+- Methods from multiple interfaces with the same name and parameter list must have **compatible return types** under proxy rules. Interface order also matters when there are matching method signatures.
+- In applications using the **Java Platform Module System (JPMS)**, Java has rules determining the package/module containing the proxy class, sometimes generating the proxy in a *dynamic module*. Avoid assuming you can reflectively access a `public` constructor of the proxy class from an arbitrary module; use `Proxy.newProxyInstance` as the designed API.
 
-Lỗi phổ biến:
+Common errors:
 
-| Biểu hiện | Hướng chẩn đoán |
+| Symptom | Diagnostic direction |
 | --- | --- |
-| `IllegalArgumentException` từ `newProxyInstance` | Kiểm tra interface có hợp lệ, có trùng, có thấy đúng danh tính qua loader, kiểu trong chữ ký và giới hạn package/module |
-| `ClassNotFoundException` khi thử `Class.forName` | Loader không tìm được kiểu bằng tên đó |
-| `ClassCastException` sau khi tạo proxy | Phía gọi có thể đang dùng một `Class` khác, hoặc proxy không triển khai interface mong đợi |
-| `IllegalAccessException` khi tìm cách tự khởi tạo lớp proxy | Có thể do quy tắc truy cập proxy trong module; dùng `newProxyInstance` |
-| `NoClassDefFoundError` hoặc lỗi liên kết khác | Kiểm tra dependency và khả năng nạp/liên kết các kiểu tham chiếu; đây không nhất thiết là lỗi so sánh interface |
+| `IllegalArgumentException` from `newProxyInstance` | Check whether interfaces are valid, non-duplicate, identity-visible through the loader, types in signatures, and package/module restrictions |
+| `ClassNotFoundException` when testing `Class.forName` | The loader cannot find a type by that name |
+| `ClassCastException` after proxy creation | Caller may be using a different `Class`, or the proxy does not implement the expected interface |
+| `IllegalAccessException` when trying to instantiate the proxy class manually | May be due to module access rules on the proxy; use `newProxyInstance` |
+| `NoClassDefFoundError` or other linkage errors | Check dependencies and loading/linking of referenced types; this is not necessarily an interface identity comparison error |
 
-Đừng khắc phục một cách máy móc bằng `setAccessible(true)`, thay đổi thứ tự interface hoặc ép kiểu không kiểm tra. Những thao tác đó không làm hai đối tượng `Class` khác nhau trở thành một.
+Do not apply mechanical workarounds like `setAccessible(true)`, reordering interfaces arbitrarily, or unchecked casts. Those actions do not make two distinct `Class` objects become one.
 
-## 9. Cách chẩn đoán khi proxy không tạo được
+## 9. How to diagnose when a proxy fails to be created
 
-Khi gặp lỗi ở ranh giới framework/plugin, ghi nhận các giá trị sau cho **từng interface**:
+When hitting an error at a framework/plugin boundary, record the following values for **each interface**:
 
 ~~~java
 for (Class<?> i : interfaces) {
@@ -311,24 +311,24 @@ for (Class<?> i : interfaces) {
 }
 ~~~
 
-*Fragment dùng biến `loader` và `interfaces` đã có. Tên do `getName()` trả về không đủ để kết luận kiểu giống nhau; kết quả `same Class` mới trả lời câu hỏi quan trọng.*
+*This fragment uses existing `loader` and `interfaces` variables. The name returned by `getName()` is insufficient to conclude types are identical; the `same Class` result answers the critical question.*
 
-Đồng thời kiểm tra loader của các kiểu xuất hiện trong tham số/kiểu trả về của phương thức `public`, mối quan hệ giữa các module, tính `public` của interface và xem trong classpath/plugin có nhiều bản thư viện hợp đồng hay không. Chỉ bật log/diagnostics phù hợp; đừng phụ thuộc vào tên tự sinh của lớp proxy như một API ổn định.
+Also inspect the loaders of types appearing in parameters/return types of `public` methods, module relationships, whether interfaces are `public`, and whether multiple copies of the contract library exist in the classpath/plugin. Enable only appropriate logging/diagnostics; do not depend on generated proxy class names as a stable API.
 
-## 10. Tự kiểm tra kiến thức
+## 10. Knowledge self-check
 
-1. `Proxy.newProxyInstance` yêu cầu điều gì ở mỗi interface `i` với loader `cl`? **`Class.forName(i.getName(), false, cl) == i`.**
-2. Nếu `AppLoader` định nghĩa API chung, `PluginLoader` ủy quyền về cha và tự nạp interface plugin, loader nào có khả năng tạo proxy cho cả hai? **`PluginLoader`, khi kiểm tra danh tính và các ràng buộc khác đều đạt.**
-3. `interfaceA.getName().equals(interfaceB.getName())` là `true` nhưng `interfaceA == interfaceB` là `false`. Có thể coi chúng là cùng kiểu không? **Không.** Tên giống nhau không bảo đảm định danh cùng loader.
-4. TCCL có phải luôn là lựa chọn đúng? **Không.** Phải xác minh nó thấy đúng mọi interface.
-5. Một loader thấy đúng tất cả interface, có chắc tạo được proxy? **Chưa chắc.** Còn kiểu trong public method signatures, ràng buộc `non-public` interface/module, method trùng chữ ký, `sealed`/`hidden`, v.v.
-6. Vì sao có thể gặp `ClassCastException` sau khi tạo proxy thành công? **Mã ép kiểu có thể tham chiếu interface khác danh tính hoặc interface không được proxy triển khai.**
+1. What does `Proxy.newProxyInstance` require for each interface `i` with loader `cl`? **`Class.forName(i.getName(), false, cl) == i`.**
+2. If `AppLoader` defines the shared API, and `PluginLoader` delegates to its parent and loads the plugin interface itself, which loader is likely able to create a proxy for both? **`PluginLoader`, provided the identity check and other constraints all pass.**
+3. `interfaceA.getName().equals(interfaceB.getName())` is `true`, but `interfaceA == interfaceB` is `false`. Can they be treated as the same type? **No.** Matching names do not guarantee the same loader identity.
+4. Is TCCL always the right choice? **No.** You must verify it sees every exact interface.
+5. If a loader sees all exact interfaces, is proxy creation guaranteed to succeed? **Not necessarily.** There are still types in public method signatures, `non-public` interface/module constraints, methods with matching signatures, `sealed`/`hidden`, and so on.
+6. Why can `ClassCastException` occur after a proxy is successfully created? **The casting code may reference an interface with a different identity or an interface not implemented by the proxy.**
 
-## 11. Kết luận
+## 11. Conclusion
 
-Khi tạo dynamic proxy, hãy chọn **một class loader phân giải được đúng mọi interface với cùng định danh `Class`**, rồi xác minh thêm các ràng buộc kiểu, package và module. Trong chương trình đơn giản, loader của API interface thường đủ. Trong framework/plugin, quyết định phải dựa trên cấu trúc nạp lớp thực tế và cơ chế ủy quyền. Điều kiện `Class.forName(i.getName(), false, loader) == i` là phép kiểm tra xuất phát đáng tin cậy để tránh nhầm “cùng tên” với “cùng kiểu”.
+When creating a dynamic proxy, choose **a class loader that resolves every interface to the exact same `Class` identity**, then verify type, package, and module constraints. In simple programs, the API interface's loader is usually sufficient. In frameworks/plugins, the decision must be based on the actual class loading structure and delegation mechanism. The condition `Class.forName(i.getName(), false, loader) == i` is a reliable starting check to avoid confusing "same name" with "same type".
 
-Tài liệu tham khảo:
-- [Java SE 21 — `Proxy.newProxyInstance` và các hạn chế đối với interface](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Proxy.html)
-- [Java SE 21 — `Class.forName` và danh tính lớp](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html)
-- [Java SE 21 — `ClassLoader` và cơ chế nạp lớp](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ClassLoader.html)
+References:
+- [Java SE 21 — `Proxy.newProxyInstance` and interface restrictions](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Proxy.html)
+- [Java SE 21 — `Class.forName` and class identity](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html)
+- [Java SE 21 — `ClassLoader` and class loading mechanism](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/ClassLoader.html)

@@ -1,25 +1,25 @@
-# Float.isNaN, Double.isNaN, isInfinite và isFinite trong Java
+# Float.isNaN, Double.isNaN, isInfinite, and isFinite in Java
 
-## 1. Vì sao phải phân loại giá trị số thực?
+## 1. Why Classify Floating-Point Values?
 
-Trong Java, `float` và `double` tuân theo biểu diễn số thực nhị phân IEEE 754. Ngoài các giá trị hữu hạn (*finite*), chúng còn có các giá trị đặc biệt:
+In Java, `float` and `double` follow IEEE 754 binary floating-point representation. Besides finite values, they also have special values:
 
-- **NaN** (*Not a Number*): biểu diễn kết quả không phải số thực thông thường, chẳng hạn `0.0 / 0.0`.
-- **+Infinity**: vô cực dương, chẳng hạn `1.0 / 0.0`.
-- **-Infinity**: vô cực âm, chẳng hạn `-1.0 / 0.0`.
-- **Giá trị hữu hạn**: số thông thường (kể cả +0.0, -0.0, số dưới chuẩn và số cực lớn nhưng còn hữu hạn).
+- **NaN** (*Not a Number*): represents a result that is not a normal real number, such as `0.0 / 0.0`.
+- **+Infinity**: positive infinity, such as `1.0 / 0.0`.
+- **-Infinity**: negative infinity, such as `-1.0 / 0.0`.
+- **Finite values**: ordinary numbers (including +0.0, -0.0, subnormal numbers, and very large numbers that are still finite).
 
-Để kiểm tra đúng từng loại, Java cung cấp ba nhóm phương thức tĩnh trên cả hai lớp bao:
+To check each category properly, Java provides three groups of static methods on both wrapper classes:
 
-| Phương thức | Trả `true` khi nào? | Không trả `true` với |
+| Method | When does it return `true`? | Does not return `true` for |
 |---|---|---|
-| `Float.isNaN(float)` / `Double.isNaN(double)` | Giá trị là NaN | ±Infinity, mọi số hữu hạn |
-| `Float.isInfinite(float)` / `Double.isInfinite(double)` | Giá trị là +Infinity hoặc -Infinity | NaN, mọi số hữu hạn |
-| `Float.isFinite(float)` / `Double.isFinite(double)` | Giá trị hữu hạn, bao gồm ±0 và số dưới chuẩn | NaN, +Infinity, -Infinity |
+| `Float.isNaN(float)` / `Double.isNaN(double)` | The value is NaN | ±Infinity, all finite numbers |
+| `Float.isInfinite(float)` / `Double.isInfinite(double)` | The value is +Infinity or -Infinity | NaN, all finite numbers |
+| `Float.isFinite(float)` / `Double.isFinite(double)` | A finite value, including ±0 and subnormal numbers | NaN, +Infinity, -Infinity |
 
-Các phương thức này trả `boolean` và **không thay đổi** số được kiểm tra. Nếu một số `double` đã là NaN hoặc vô cực do bước tính trước đó, gọi `isFinite` chỉ phát hiện trạng thái ấy; phương thức không tự sửa kết quả.
+These methods return a `boolean` and **do not modify** the checked number. If a `double` has already become NaN or infinity from a previous computation step, calling `isFinite` only detects that state; the method does not fix the result on its own.
 
-Ví dụ ngắn:
+Short example:
 
 ```java
 double a = 12.5;
@@ -31,20 +31,20 @@ System.out.println(Double.isNaN(b));      // true
 System.out.println(Double.isInfinite(c)); // true
 ```
 
-**Điểm cần nhớ:** một giá trị thuộc đúng một trong ba loại **NaN**, **vô cực**, hoặc **hữu hạn**. Riêng dấu của Infinity có thể xác định bằng so sánh với `Double.POSITIVE_INFINITY` và `Double.NEGATIVE_INFINITY` (hoặc các hằng tương ứng của `Float`).
+**Point to remember:** a value belongs to exactly one of the three categories **NaN**, **infinity**, or **finite**. The sign of Infinity can be determined separately by comparing with `Double.POSITIVE_INFINITY` and `Double.NEGATIVE_INFINITY` (or the corresponding constants on `Float`).
 
-## 2. Dấu phẩy động có khác số nguyên ở phép chia cho 0
+## 2. Floating-Point Differs from Integers in Division by Zero
 
-Trong số học nguyên, chia cho 0 bằng toán tử `/` ném `ArithmeticException`:
+In integer arithmetic, dividing by 0 with the `/` operator throws `ArithmeticException`:
 
 ```java
-// int bad = 1 / 0; // nếu được thực thi, ném ArithmeticException
+// int bad = 1 / 0; // if executed, throws ArithmeticException
 int numerator = 1;
 int denominator = 0;
-// int result = numerator / denominator; // lúc chạy: ArithmeticException
+// int result = numerator / denominator; // at runtime: ArithmeticException
 ```
 
-Với `float`/`double`, phép chia cho 0 tuân theo quy tắc dấu phẩy động:
+For `float`/`double`, division by 0 follows floating-point rules:
 
 ```java
 double positiveInfinity = 1.0 / 0.0; // Infinity
@@ -52,9 +52,9 @@ double negativeInfinity = -1.0 / 0.0; // -Infinity
 double notANumber = 0.0 / 0.0;       // NaN
 ```
 
-Đây là những giá trị có thể lưu trong biến `double`; **phép chia số thực không tự ném `ArithmeticException` vì mẫu 0.0**.
+These are values that can be stored in a `double` variable; **floating-point division does not automatically throw `ArithmeticException` because of a 0.0 denominator**.
 
-NaN cũng có thể xuất hiện từ phép toán không có kết quả số thực hữu hạn:
+NaN can also arise from operations that have no finite real-number result:
 
 ```java
 double a = Math.sqrt(-1.0); // NaN
@@ -63,24 +63,24 @@ double b = Double.POSITIVE_INFINITY
 double c = Double.POSITIVE_INFINITY * 0.0; // NaN
 ```
 
-Vô cực có thể xuất hiện từ phép toán hữu hạn bị **tràn miền số thực**:
+Infinity can arise from finite operations that **overflow the floating-point range**:
 
 ```java
 double tooLarge = Double.MAX_VALUE * 2.0; // Infinity
 float alsoTooLarge = Float.MAX_VALUE * 2.0f; // Infinity
 ```
 
-Ngược lại, số rất nhỏ có thể **underflow** thành 0.0 hoặc còn là số dưới chuẩn; cả hai vẫn là **hữu hạn** theo `isFinite`.
+Conversely, very small numbers can **underflow** to 0.0 or remain subnormal numbers; both are still **finite** according to `isFinite`.
 
-## 3. NaN: tại sao không dùng `==` để kiểm tra?
+## 3. NaN: Why Not Use `==` to Check for It?
 
-NaN có quy tắc so sánh đặc biệt. Theo toán tử so sánh số thực Java:
+NaN has special comparison rules. Under Java's floating-point comparison operators:
 
-- `NaN == NaN` trả **false**, kể cả khi hai vế là cùng một biến.
-- `NaN != NaN` trả **true**.
-- `NaN < x`, `NaN <= x`, `NaN > x` và `NaN >= x` đều **false** với mọi giá trị số thực `x`, kể cả NaN.
+- `NaN == NaN` returns **false**, even when both sides are the exact same variable.
+- `NaN != NaN` returns **true**.
+- `NaN < x`, `NaN <= x`, `NaN > x`, and `NaN >= x` are all **false** for every floating-point value `x`, including NaN.
 
-Ví dụ:
+Example:
 
 ```java
 double x = Double.NaN;
@@ -91,23 +91,23 @@ System.out.println(x < 0);  // false
 System.out.println(x > 0);  // false
 ```
 
-Do đó, cách đúng, rõ ràng và ổn định để phát hiện NaN là:
+Therefore, the correct, clear, and reliable way to detect NaN is:
 
 ```java
 boolean invalid = Double.isNaN(x);
 ```
 
-Không viết:
+Do not write:
 
 ```java
-// boolean invalid = (x == Double.NaN); // luôn false
+// boolean invalid = (x == Double.NaN); // always false
 ```
 
-Đôi khi bạn thấy mẹo `x != x` để nhận diện NaN. Mẹo này đúng với primitive floating-point theo quy tắc trên, nhưng **`Double.isNaN(x)` nói rõ ý định**, dễ đọc và ít gây nhầm hơn.
+Sometimes you will see the `x != x` trick to detect NaN. This trick works for primitive floating-point numbers by the rules above, but **`Double.isNaN(x)` states the intent clearly**, is easier to read, and is less error-prone.
 
-### NaN lan truyền qua phép toán
+### NaN Propagates Through Operations
 
-Với các phép cộng/trừ/nhân/chia số thực thông thường, nếu một toán hạng là NaN thì kết quả cũng thường là NaN:
+For ordinary floating-point addition/subtraction/multiplication/division, if one operand is NaN, the result is usually also NaN:
 
 ```java
 double x = Double.NaN;
@@ -115,11 +115,11 @@ System.out.println(Double.isNaN(x + 1.0)); // true
 System.out.println(Double.isNaN(x * 0.0)); // true
 ```
 
-Không nên áp dụng một quy tắc này một cách máy móc cho **mọi API toán học**: mỗi phương thức `Math` có hợp đồng riêng cho các trường hợp đặc biệt. Khi cần đảm bảo dữ liệu đầu vào hợp lệ, kiểm tra `isFinite` **trước** khi đưa vào chuỗi tính toán.
+Do not apply this single rule mechanically to **every math API**: each `Math` method has its own contract for special cases. When you need to ensure valid input data, check `isFinite` **before** passing it into a calculation chain.
 
-## 4. Infinity: có cả dấu dương và dấu âm
+## 4. Infinity: Has Both Positive and Negative Signs
 
-`Float.isInfinite` và `Double.isInfinite` trả `true` cho **cả hai dấu**:
+`Float.isInfinite` and `Double.isInfinite` return `true` for **both signs**:
 
 ```java
 double plus = Double.POSITIVE_INFINITY;
@@ -130,47 +130,47 @@ System.out.println(Double.isInfinite(minus)); // true
 System.out.println(Double.isNaN(plus));       // false
 ```
 
-Khi cần phân biệt dấu:
+When you need to distinguish the sign:
 
 ```java
 if (value == Double.POSITIVE_INFINITY) {
-    // giá trị là vô cực dương
+    // value is positive infinity
 } else if (value == Double.NEGATIVE_INFINITY) {
-    // giá trị là vô cực âm
+    // value is negative infinity
 }
 ```
 
-Đây là **đoạn mã minh họa** với biến `double value` đã khai báo trong phạm vi thích hợp, không phải chương trình độc lập.
+This is an **illustrative code snippet** assuming a `double value` variable declared in an appropriate scope, not a standalone program.
 
-Với toán tử so sánh số học:
+With arithmetic comparison operators:
 
-- `Double.POSITIVE_INFINITY > Double.MAX_VALUE` là `true`.
-- `Double.NEGATIVE_INFINITY < -Double.MAX_VALUE` là `true`.
-- Vô cực không phải NaN, và không phải số hữu hạn.
+- `Double.POSITIVE_INFINITY > Double.MAX_VALUE` is `true`.
+- `Double.NEGATIVE_INFINITY < -Double.MAX_VALUE` is `true`.
+- Infinity is not NaN, and is not a finite number.
 
-**Sai lầm thường gặp:** kiểm tra `!Double.isNaN(value)` rồi kết luận giá trị hữu hạn. Điều này **sai** vì ±Infinity không phải NaN.
+**Common mistake:** checking `!Double.isNaN(value)` and concluding that the value is finite. This is **wrong** because ±Infinity is not NaN.
 
-## 5. isFinite: kiểm tra một giá trị có hữu hạn không
+## 5. isFinite: Checking Whether a Value Is Finite
 
-`Double.isFinite(value)` tương đương về ý nghĩa với:
+`Double.isFinite(value)` is semantically equivalent to:
 
 ```java
 !Double.isNaN(value) && !Double.isInfinite(value)
 ```
 
-Tương tự:
+Similarly:
 
 ```java
 Float.isFinite(value)
 ```
 
-tương đương với:
+is equivalent to:
 
 ```java
 !Float.isNaN(value) && !Float.isInfinite(value)
 ```
 
-Ví dụ:
+Examples:
 
 ```java
 System.out.println(Double.isFinite(100.0)); // true
@@ -184,15 +184,15 @@ System.out.println(Double.isFinite(Double.POSITIVE_INFINITY)); // false
 System.out.println(Double.isFinite(Double.NEGATIVE_INFINITY)); // false
 ```
 
-**`Double.MIN_VALUE` không phải số âm nhỏ nhất!** Hằng này là số **dương khác 0 nhỏ nhất** biểu diễn được (số dưới chuẩn). `-Double.MAX_VALUE` gần vùng hữu hạn âm thấp nhất. Việc nhầm `MIN_VALUE` trong số thực với `Integer.MIN_VALUE` trong số nguyên là lỗi rất phổ biến.
+**`Double.MIN_VALUE` is not the smallest negative number!** This constant is the **smallest positive non-zero** representable number (a subnormal number). `-Double.MAX_VALUE` is near the lowest negative finite bound. Confusing floating-point `MIN_VALUE` with integer `Integer.MIN_VALUE` is a very common bug.
 
-Tương tự cho `Float.MIN_VALUE` và `Float.MAX_VALUE`.
+The same applies to `Float.MIN_VALUE` and `Float.MAX_VALUE`.
 
-### Phân biệt “hữu hạn” với “hợp lệ theo nghiệp vụ”
+### Distinguishing "Finite" from "Business-Valid"
 
-`Double.isFinite(1.0e300)` là `true`, dù số ấy có thể quá lớn đối với số tiền, cân nặng hay số lượng sản phẩm. `isFinite` **chỉ loại NaN và vô cực**, không tự kiểm tra giá trị dương, không kiểm tra giới hạn min/max, và không khẳng định số có độ chính xác thập phân mong muốn.
+`Double.isFinite(1.0e300)` is `true`, even though that number may be far too large for an amount of money, a weight, or a product quantity. `isFinite` **only excludes NaN and infinity**; it does not check for positivity, does not check min/max bounds, and does not assert that the number has the desired decimal precision.
 
-Muốn đảm bảo số trong đoạn [0, 100], cần **cả tính hữu hạn và giới hạn**:
+To ensure a number is in the interval [0, 100], you need **both finiteness and bounds**:
 
 ```java
 boolean valid = Double.isFinite(value)
@@ -200,11 +200,11 @@ boolean valid = Double.isFinite(value)
         && value <= 100.0;
 ```
 
-Nếu cần số nguyên chính xác, còn phải kiểm tra phần lẻ và độ chính xác của dữ liệu, không chỉ `isFinite`.
+If an exact integer is required, you must also check the fractional part and data precision, not just `isFinite`.
 
-## 6. Chương trình chạy được: phân loại đầy đủ
+## 6. Runnable Program: Full Classification
 
-Tạo file `FloatingClassificationDemo.java`:
+Create the file `FloatingClassificationDemo.java`:
 
 ```java
 public class FloatingClassificationDemo {
@@ -242,14 +242,14 @@ public class FloatingClassificationDemo {
 }
 ```
 
-Biên dịch và chạy bằng Java 17+:
+Compile and run with Java 17+:
 
 ```bash
 javac FloatingClassificationDemo.java
 java FloatingClassificationDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 +0.0: NaN=false, Infinite=false, Finite=true
@@ -264,11 +264,11 @@ Float NaN: true
 Float +Infinity: true
 ```
 
-Dấu `+` trong `+0.0` hoặc `+Infinity` ở cột nhãn là văn bản do mảng `labels` cung cấp, không phải dấu tự thêm bởi `printf`. Ba cột boolean là kết quả kiểm tra thực tế bằng API.
+The `+` sign in `+0.0` or `+Infinity` in the label column is text supplied by the `labels` array, not a sign automatically added by `printf`. The three boolean columns are the actual API check results.
 
-## 7. So sánh NaN và hai giá trị ±0.0
+## 7. Comparing NaN and the Two ±0.0 Values
 
-Ngoài NaN, số thực còn có **+0.0** và **-0.0**. Hai giá trị bằng nhau với toán tử `==` nhưng khác bit dấu:
+Besides NaN, floating-point numbers also have **+0.0** and **-0.0**. These two values are equal under the `==` operator but differ in their sign bit:
 
 ```java
 double a = 0.0;
@@ -281,20 +281,20 @@ System.out.println(Double.isFinite(a)); // true
 System.out.println(Double.isFinite(b)); // true
 ```
 
-Cả hai số 0 đều **hữu hạn**; `isNaN` và `isInfinite` đều trả false.
+Both zeros are **finite**; `isNaN` and `isInfinite` both return false.
 
-### `Double.compare` và `Double.equals` có quy tắc khác `==`
+### `Double.compare` and `Double.equals` Have Different Rules from `==`
 
-Đối với primitive, `NaN == NaN` false. Nhưng khi sử dụng `Double.compare` hoặc phương thức `Double.equals` của wrapper, Java đặt ra một thứ tự/quan hệ bằng nhau **nhằm làm việc nhất quán với sắp xếp và collections**:
+For primitives, `NaN == NaN` is false. However, when using `Double.compare` or the wrapper's `Double.equals` method, Java establishes an ordering/equality relation **designed to work consistently with sorting and collections**:
 
-- `Double.compare(Double.NaN, Double.NaN)` trả **0**.
-- `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))` trả **true**.
-- `Double.compare(+0.0, -0.0)` trả **số dương**.
-- `Double.valueOf(+0.0).equals(Double.valueOf(-0.0))` trả **false**.
+- `Double.compare(Double.NaN, Double.NaN)` returns **0**.
+- `Double.valueOf(Double.NaN).equals(Double.valueOf(Double.NaN))` returns **true**.
+- `Double.compare(+0.0, -0.0)` returns a **positive number**.
+- `Double.valueOf(+0.0).equals(Double.valueOf(-0.0))` returns **false**.
 
-Điều này không mâu thuẫn: `==` trên primitive áp dụng quan hệ số học IEEE 754, còn `compare`/`equals` được đặc tả riêng cho wrapper. Khi so sánh cho mục đích nghiệp vụ, phải biết rõ bạn muốn **so sánh số học** hay **phân biệt các biểu diễn đặc biệt**.
+This is not a contradiction: primitive `==` applies the IEEE 754 arithmetic relation, while `compare`/`equals` are specified specifically for wrappers. When comparing for business purposes, you must know clearly whether you want **arithmetic comparison** or **distinguishing special representations**.
 
-Chương trình minh họa:
+Illustrative program:
 
 ```java
 public class FloatingComparisonDemo {
@@ -320,14 +320,14 @@ public class FloatingComparisonDemo {
 }
 ```
 
-Lưu file `FloatingComparisonDemo.java`, biên dịch và chạy:
+Save to `FloatingComparisonDemo.java`, compile, and run:
 
 ```bash
 javac FloatingComparisonDemo.java
 java FloatingComparisonDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 NaN == NaN: false
@@ -342,11 +342,11 @@ Double.compare(+0, -0): 1
 Double.equals(+0, -0): false
 ```
 
-Nếu mục tiêu là **phát hiện NaN**, vẫn nên gọi `Double.isNaN`/`Float.isNaN`, thay vì tìm cách kiểm tra bằng wrapper `equals` hoặc thao tác so sánh bit.
+If the goal is to **detect NaN**, you should still call `Double.isNaN`/`Float.isNaN`, rather than trying to check via wrapper `equals` or bit comparisons.
 
-## 8. Một biểu thức kiểm tra phạm vi có thể lọt NaN
+## 8. A Range-Check Expression Can Let NaN Slip Through
 
-Đây là lỗi logic quan trọng. Xem cách kiểm tra một giá trị phải ở trong đoạn từ 0 đến 100:
+This is an important logic bug. Look at checking whether a value must be in the range 0 to 100:
 
 ```java
 double value = Double.NaN;
@@ -355,9 +355,9 @@ boolean outside = value < 0.0 || value > 100.0;
 System.out.println(outside); // false
 ```
 
-Vì **mọi so sánh quan hệ với NaN đều false**, `outside` trở thành false. Nếu ứng dụng chỉ bác bỏ giá trị khi `outside == true`, NaN sẽ bị **lọt qua** như một giá trị “không nằm ngoài phạm vi”, dù thực ra không hợp lệ.
+Because **every relational comparison with NaN is false**, `outside` becomes false. If the application only rejects a value when `outside == true`, NaN will **slip through** as a value that is "not out of range," even though it is actually invalid.
 
-Cách an toàn:
+Safe approach:
 
 ```java
 boolean accepted = Double.isFinite(value)
@@ -365,7 +365,7 @@ boolean accepted = Double.isFinite(value)
         && value <= 100.0;
 ```
 
-Hoặc muốn kiểm tra điều kiện bị từ chối:
+Or if you want to check the rejection condition:
 
 ```java
 boolean rejected = !Double.isFinite(value)
@@ -373,13 +373,13 @@ boolean rejected = !Double.isFinite(value)
         || value > 100.0;
 ```
 
-Nhờ kiểm tra `isFinite` trước, cả NaN và ±Infinity đều bị loại. Tính short-circuit của `&&`/`||` giúp biểu thức thể hiện rõ các bước kiểm tra; không phải vì việc so sánh NaN ném ngoại lệ (nó không ném).
+By checking `isFinite` first, both NaN and ±Infinity are excluded. The short-circuit behavior of `&&`/`||` makes the validation steps clear in the expression; it is not because comparing NaN throws an exception (it does not).
 
-Nếu chỉ kiểm tra `value >= 0.0 && value <= 100.0`, NaN cũng bị loại vì hai so sánh đều false. Tuy nhiên thêm `isFinite` giúp **diễn đạt trực tiếp yêu cầu** và tránh các lỗi khi tái cấu trúc biểu thức theo dạng “không ở ngoài miền”.
+If you only check `value >= 0.0 && value <= 100.0`, NaN is also excluded because both comparisons are false. However, adding `isFinite` **expresses the requirement directly** and avoids bugs when refactoring expressions into a "not outside the domain" form.
 
-## 9. Cần phân loại trước hay sau chuyển từ `double` sang `float`?
+## 9. Classify Before or After Converting from `double` to `float`?
 
-`double` có miền độ lớn rộng hơn `float`. Một số đang hữu hạn với `double` có thể thành Infinity sau khi ép hẹp sang `float`:
+`double` has a wider magnitude range than `float`. A number that is finite as a `double` can become Infinity after narrowing to `float`:
 
 ```java
 double big = 1.0e40;
@@ -390,15 +390,15 @@ System.out.println(Float.isFinite(narrowed));  // false
 System.out.println(Float.isInfinite(narrowed)); // true
 ```
 
-Tương tự, giá trị `double` rất nhỏ có thể bị làm tròn thành `0.0f` khi chuyển sang `float`. Số 0 vẫn hữu hạn, nhưng thông tin độ lớn đã mất.
+Similarly, a very small `double` value can be rounded to `0.0f` when converted to `float`. Zero is still finite, but magnitude information has been lost.
 
-Do đó cần đặt kiểm tra **ở đúng biên dữ liệu**:
+Therefore, place checks **at the appropriate data boundaries**:
 
-- Nếu API nhận `double` và yêu cầu dữ liệu `double` hữu hạn, kiểm tra `Double.isFinite` trước.
-- Nếu API **phải lưu thành `float`**, kiểm tra thêm **`Float.isFinite` sau chuyển đổi** khi không cho phép Infinity ở đích.
-- Nếu cần chống mất chính xác do ép kiểu hoặc làm tròn, phải dùng kiểm tra khác; `isFinite` không đủ để chứng minh dữ liệu được bảo toàn chính xác.
+- If an API accepts `double` and requires finite `double` data, check `Double.isFinite` upfront.
+- If the API **must store the value as `float`**, also check **`Float.isFinite` after conversion** when Infinity is not permitted in the destination.
+- If you need to prevent precision loss from casting or rounding, use other checks; `isFinite` is not enough to prove data was preserved accurately.
 
-### Ví dụ ngắn về chuyển đổi
+### Short Conversion Example
 
 ```java
 double finiteDouble = 1.0e40;
@@ -412,7 +412,7 @@ System.out.println("float infinite: "
         + Float.isInfinite(overflowedFloat));
 ```
 
-Kết quả:
+Output:
 
 ```text
 double finite: true
@@ -420,13 +420,13 @@ float finite: false
 float infinite: true
 ```
 
-Đây là **đoạn minh họa đặt bên trong phương thức Java** (không có class/`main` độc lập). Nó nhấn mạnh rằng không nên kiểm tra một lần ở kiểu nguồn rồi mặc định mọi chuyển đổi về sau đều an toàn.
+This is an **illustrative snippet placed inside a Java method** (without a standalone class/`main`). It emphasizes that you should not check once on the source type and assume every subsequent conversion is safe.
 
-## 10. Kiểm tra chuỗi đầu vào và API trước khi tính toán
+## 10. Validating String Input and APIs Before Computing
 
-Một số API parse số thực của Java có thể chấp nhận chuỗi biểu diễn giá trị đặc biệt, chẳng hạn `"NaN"`, `"Infinity"` và `"-Infinity"`. Vì thế parse thành công **không** có nghĩa dữ liệu hữu hạn.
+Some Java floating-point parsing APIs can accept strings representing special values, such as `"NaN"`, `"Infinity"`, and `"-Infinity"`. Therefore, successful parsing does **not** mean the data is finite.
 
-Thiết kế phương thức parse chấp nhận **chỉ số hữu hạn**:
+Designing a parse method that accepts **only finite numbers**:
 
 ```java
 static double parseFiniteDouble(String text) {
@@ -438,11 +438,11 @@ static double parseFiniteDouble(String text) {
 }
 ```
 
-`Double.parseDouble` có thể ném `NumberFormatException` với chuỗi sai cú pháp; phương thức trên dùng `IllegalArgumentException` để từ chối đầu vào đã parse được nhưng không hữu hạn. Nếu đầu vào do người dùng cung cấp, cần chuyển những lỗi này thành thông báo phù hợp giao diện/API, thay vì đưa nguyên stack trace ra ngoài.
+`Double.parseDouble` can throw `NumberFormatException` on syntactically invalid strings; the method above uses `IllegalArgumentException` to reject parsed input that is non-finite. If the input comes from a user, translate these errors into appropriate UI/API messages instead of exposing raw stack traces.
 
-### Chương trình chạy được
+### Runnable Program
 
-Tạo file `FiniteInputDemo.java`:
+Create the file `FiniteInputDemo.java`:
 
 ```java
 public class FiniteInputDemo {
@@ -474,14 +474,14 @@ public class FiniteInputDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac FiniteInputDemo.java
 java FiniteInputDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 1.25 -> accepted: 1.25
@@ -493,28 +493,28 @@ Infinity -> non-finite
 abc -> invalid format
 ```
 
-Chuỗi `"1e309"` có cú pháp số khoa học hợp lệ, nhưng độ lớn vượt miền hữu hạn `double` và được parse thành +Infinity. Vì vậy cần kiểm tra **sau parse**, không chỉ kiểm tra cú pháp chuỗi.
+The string `"1e309"` has valid scientific notation syntax, but its magnitude exceeds the finite range of `double` and is parsed as +Infinity. Therefore, you must validate **after parsing**, not only validate string syntax.
 
-Nếu giá trị là đơn giá, tỷ lệ phần trăm, khoảng thời gian hoặc một đại lượng có miền xác định, bổ sung kiểm tra miền **sau** bước `isFinite`.
+If the value is a unit price, percentage, time interval, or a quantity with a defined domain, add range validation **after** the `isFinite` step.
 
-## 11. Lưu ý với `null`, wrapper và dữ liệu thiếu
+## 11. Notes on `null`, Wrappers, and Missing Data
 
-Các phương thức `Float.isNaN(float)`, `Double.isNaN(double)`, `isInfinite` và `isFinite` nhận **primitive**, không nhận giá trị `null` trực tiếp. Nếu bạn truyền một biến kiểu wrapper có thể null, Java có thể **unbox** trước:
+The methods `Float.isNaN(float)`, `Double.isNaN(double)`, `isInfinite`, and `isFinite` take **primitives**, not `null` values directly. If you pass a nullable wrapper variable, Java will **unbox** it first:
 
 ```java
 Double nullable = null;
 
 // boolean ok = Double.isFinite(nullable);
-// sẽ ném NullPointerException khi unbox null
+// will throw NullPointerException when unboxing null
 ```
 
-Đừng nhầm “thiếu dữ liệu” với “NaN”:
+Do not confuse "missing data" with "NaN":
 
-- **`null`** là tham chiếu không có đối tượng, có thể dùng trong `Double`/`Float`.
-- **`Double.NaN`/`Float.NaN`** là một giá trị dấu phẩy động đặc biệt, **không phải null**.
-- **Infinity** cũng là giá trị số thực đặc biệt, không phải null.
+- **`null`** is a reference pointing to no object, usable with `Double`/`Float`.
+- **`Double.NaN`/`Float.NaN`** is a special floating-point value, **not null**.
+- **Infinity** is also a special floating-point value, not null.
 
-Một đoạn kiểm tra an toàn, có chính sách rõ ràng:
+A safe check with an explicit policy:
 
 ```java
 static boolean isPresentAndFinite(Double value) {
@@ -522,13 +522,13 @@ static boolean isPresentAndFinite(Double value) {
 }
 ```
 
-Đây là đoạn **phương thức minh họa**, đặt trong class. Nhờ short-circuit `&&`, khi `value == null`, Java không đánh giá vế phải nên không unbox null.
+This is an **illustrative method snippet**, placed inside a class. Thanks to `&&` short-circuiting, when `value == null`, Java does not evaluate the right-hand side and thus does not unbox null.
 
-Nếu dữ liệu thiếu cần được coi là lỗi bắt buộc nhập, đừng âm thầm đổi null thành 0.0; nên phân biệt lỗi thiếu dữ liệu và lỗi giá trị không hữu hạn để xử lý chính xác.
+If missing data must be treated as a required-input error, do not silently turn null into 0.0; distinguish missing-data errors from non-finite-value errors for accurate handling.
 
-## 12. isFinite không phải bộ kiểm tra tính chính xác
+## 12. isFinite Is Not an Accuracy Checker
 
-Một số `double` hữu hạn vẫn có thể là kết quả của sai số do biểu diễn nhị phân:
+A finite `double` number can still carry error due to binary representation:
 
 ```java
 double sum = 0.1 + 0.2;
@@ -537,17 +537,17 @@ System.out.println(Double.isFinite(sum)); // true
 System.out.println(sum == 0.3);          // false
 ```
 
-`Double.isFinite(sum)` trả true vì sum không phải NaN hoặc Infinity; nó **không** chứng minh sum bằng 0.3 theo cách so sánh bit hoặc biểu diễn thập phân mong muốn.
+`Double.isFinite(sum)` returns true because `sum` is neither NaN nor Infinity; it does **not** prove `sum` equals 0.3 under bit comparison or intended decimal representation.
 
-Với số thực, một kiểm tra so sánh gần đúng có thể dùng **ngưỡng sai số phù hợp miền ứng dụng** khi mục đích là so sánh kết quả tính toán gần nhau. Chỉ dùng ngưỡng cố định mà không xem xét độ lớn có thể gây sai cho nhiều bài toán.
+For floating-point numbers, an approximate comparison check can use an **error threshold appropriate to the application domain** when the goal is comparing nearby computed results. Using only a fixed threshold without considering magnitude can fail for many problems.
 
-Khi xử lý tiền hoặc số thập phân cần chính xác theo quy tắc nghiệp vụ, cân nhắc `BigDecimal` với nguồn dữ liệu thập phân thích hợp và chính sách làm tròn rõ ràng. `BigDecimal` không có khái niệm giá trị NaN hay Infinity như `double`; vì vậy một số phép chuyển đầu vào đặc biệt sẽ phải được từ chối.
+When handling money or decimals that require exactness under business rules, consider `BigDecimal` with an appropriate decimal source and an explicit rounding policy. `BigDecimal` has no concept of NaN or Infinity like `double`; therefore, certain special input conversions must be rejected.
 
-Ngoài ra, `-0.0` là hữu hạn nhưng khác `+0.0` ở bit dấu; nếu thuật toán liên quan đến nghịch đảo hoặc bảo toàn biểu diễn, cần cân nhắc dấu của 0.
+Additionally, `-0.0` is finite but differs from `+0.0` in its sign bit; if an algorithm involves reciprocals or representation preservation, consider the sign of zero.
 
-## 13. Thực hành phát hiện kết quả không hợp lệ sau phép toán
+## 13. Detecting Invalid Results After Operations
 
-Nếu đầu vào đều hữu hạn, kết quả **không được bảo đảm** vẫn hữu hạn. Có thể tràn khi nhân/cộng hoặc tạo NaN từ phép toán không xác định:
+Even if all inputs are finite, the result is **not guaranteed** to stay finite. Multiplication/addition can overflow, or an indeterminate operation can produce NaN:
 
 ```java
 double a = Double.MAX_VALUE;
@@ -559,9 +559,9 @@ System.out.println(Double.isFinite(b)); // true
 System.out.println(Double.isFinite(product)); // false
 ```
 
-Vì vậy trong đoạn tính toán quan trọng, kiểm tra tính hữu hạn ở **các ranh giới có ý nghĩa**: khi nhận dữ liệu đầu vào, sau những phép có thể tạo giá trị đặc biệt, và trước khi lưu/trả kết quả nếu hợp đồng API không cho phép các giá trị ấy.
+Therefore, in critical calculations, check finiteness at **meaningful boundaries**: when receiving input, after operations that can produce special values, and before storing/returning results if the API contract forbids such values.
 
-Ví dụ chức năng nghiệp vụ chỉ chấp nhận kết quả hữu hạn:
+Example business function that accepts only finite results:
 
 ```java
 static double multiplyFinite(double a, double b) {
@@ -576,70 +576,70 @@ static double multiplyFinite(double a, double b) {
 }
 ```
 
-Đây là **phương thức minh họa**, đặt trong class để sử dụng. Nó phát hiện NaN và Infinity, nhưng không ngăn mọi vấn đề: kết quả có thể **underflow về 0** hoặc có **sai số làm tròn** mà vẫn hữu hạn. Nếu những tình huống ấy cũng quan trọng, bạn phải đặt thêm quy tắc kiểm tra.
+This is an **illustrative method**, placed inside a class for use. It catches NaN and Infinity, though it does not prevent every issue: the result can still **underflow to 0** or have **rounding error** while remaining finite. If those cases also matter, you must add further validation rules.
 
-## 14. Những lỗi phổ biến
+## 14. Common Mistakes
 
-| Nhầm lẫn | Kết quả thực tế | Cách xử lý |
+| Misconception | Actual result | How to handle it |
 |---|---|---|
-| `x == Double.NaN` kiểm tra NaN | Luôn false | Dùng `Double.isNaN(x)` |
-| `x != Double.NaN` nghĩa là không phải NaN | Luôn true, kể cả x là NaN | Dùng `!Double.isNaN(x)` |
-| `!isNaN(x)` nghĩa là hữu hạn | Infinity không phải NaN | Dùng `isFinite(x)` |
-| `isInfinite(x)` phân biệt dấu vô cực | Trả true cho cả ±Infinity | So sánh với hằng dấu tương ứng nếu cần |
-| `x < min || x > max` sẽ loại mọi dữ liệu sai | NaN làm cả hai vế false | Dùng `!isFinite(x) || x < min || x > max` |
-| `isFinite` loại số cực lớn | `Double.MAX_VALUE` vẫn hữu hạn | Kiểm tra giới hạn nghiệp vụ |
-| `isFinite` phát hiện mất độ chính xác | Sai số làm tròn vẫn hữu hạn | Kiểm tra độ chính xác theo mục tiêu |
-| Kiểm tra `double` hữu hạn là đủ trước khi cast `float` | Cast có thể tạo Infinity | Kiểm tra `Float.isFinite` sau cast |
-| `Double.MIN_VALUE` là số âm nhỏ nhất | Đây là số dương khác 0 nhỏ nhất | Dùng `-Double.MAX_VALUE` cho cận âm hữu hạn |
-| Parse thành công nghĩa là số bình thường | Có thể parse NaN/Infinity | Kiểm tra `isFinite` sau parse |
-| `Double.isFinite(nullWrapper)` trả false | Unboxing null ném NPE | Kiểm tra `wrapper != null` trước |
-| Đầu vào hữu hạn thì đầu ra cũng hữu hạn | Phép toán có thể tràn hoặc tạo NaN | Kiểm tra kết quả khi cần |
+| `x == Double.NaN` checks for NaN | Always false | Use `Double.isNaN(x)` |
+| `x != Double.NaN` means not NaN | Always true, even when x is NaN | Use `!Double.isNaN(x)` |
+| `!isNaN(x)` means finite | Infinity is not NaN | Use `isFinite(x)` |
+| `isInfinite(x)` distinguishes infinity sign | Returns true for both ±Infinity | Compare with the corresponding signed constant if needed |
+| `x < min || x > max` rejects all bad data | NaN makes both sides false | Use `!isFinite(x) || x < min || x > max` |
+| `isFinite` rejects huge numbers | `Double.MAX_VALUE` is still finite | Check business bounds |
+| `isFinite` detects precision loss | Rounding errors are still finite | Check accuracy according to the goal |
+| Checking finite `double` is enough before casting to `float` | Cast can produce Infinity | Check `Float.isFinite` after cast |
+| `Double.MIN_VALUE` is the smallest negative number | It is the smallest positive non-zero number | Use `-Double.MAX_VALUE` for the finite negative bound |
+| Successful parsing means a normal number | Can parse NaN/Infinity | Check `isFinite` after parsing |
+| `Double.isFinite(nullWrapper)` returns false | Unboxing null throws NPE | Check `wrapper != null` first |
+| Finite inputs guarantee finite output | Operations can overflow or produce NaN | Check the result when needed |
 
-## 15. Bài tập tự kiểm tra
+## 15. Self-Check Exercises
 
-**Câu 1.** `Double.isNaN(0.0 / 0.0)` bằng gì?  
-**Đáp án:** `true`.
+**Question 1.** What is `Double.isNaN(0.0 / 0.0)`?  
+**Answer:** `true`.
 
-**Câu 2.** `Double.isInfinite(1.0 / 0.0)` và `Double.isInfinite(-1.0 / 0.0)` bằng gì?  
-**Đáp án:** Cả hai đều `true` vì phương thức nhận biết cả hai dấu vô cực.
+**Question 2.** What are `Double.isInfinite(1.0 / 0.0)` and `Double.isInfinite(-1.0 / 0.0)`?  
+**Answer:** Both are `true` because the method detects both signs of infinity.
 
-**Câu 3.** `Double.isFinite(Double.NaN)` có đúng không?  
-**Đáp án:** Không, là `false`.
+**Question 3.** Is `Double.isFinite(Double.NaN)` true?  
+**Answer:** No, it is `false`.
 
-**Câu 4.** `Double.isFinite(Double.MIN_VALUE)` có đúng không?  
-**Đáp án:** Có. `MIN_VALUE` là số dưới chuẩn dương nhỏ nhất, nhưng vẫn hữu hạn.
+**Question 4.** Is `Double.isFinite(Double.MIN_VALUE)` true?  
+**Answer:** Yes. `MIN_VALUE` is the smallest positive subnormal number, and it is still finite.
 
-**Câu 5.** Vì sao `double x = Double.NaN; x == x` trả false?  
-**Đáp án:** Theo quy tắc so sánh dấu phẩy động, NaN không bằng bất kỳ giá trị nào, kể cả chính nó, khi dùng `==` primitive.
+**Question 5.** Why does `double x = Double.NaN; x == x` return false?  
+**Answer:** By floating-point comparison rules, NaN is not equal to any value, including itself, when using primitive `==`.
 
-**Câu 6.** Có thể dùng `value < 0 || value > 100` để từ chối mọi giá trị sai không?  
-**Đáp án:** Không. NaN khiến cả hai phép so sánh đều false. Cần kiểm tra `!Double.isFinite(value)` hoặc xác minh cả hữu hạn và thuộc miền.
+**Question 6.** Can `value < 0 || value > 100` be used to reject every invalid value?  
+**Answer:** No. NaN makes both comparisons false. You must check `!Double.isFinite(value)` or verify both finiteness and domain membership.
 
-**Câu 7.** `Double.compare(Double.NaN, Double.NaN)` bằng bao nhiêu?  
-**Đáp án:** 0. `compare` dành cho thứ tự/so sánh wrapper, khác quan hệ `==` primitive.
+**Question 7.** What is `Double.compare(Double.NaN, Double.NaN)`?  
+**Answer:** 0. `compare` is for wrapper ordering/comparison, which differs from the primitive `==` relation.
 
-**Câu 8.** `+0.0 == -0.0` có đúng không, và `isFinite` của chúng thế nào?  
-**Đáp án:** `==` là true; cả hai đều hữu hạn. Chúng vẫn có bit dấu khác nhau.
+**Question 8.** Is `+0.0 == -0.0` true, and what is `isFinite` for them?  
+**Answer:** `==` is true; both are finite. They still have different sign bits.
 
-**Câu 9.** Nếu `double x = 1e40` rồi ép `float y = (float) x` thì `Double.isFinite(x)` và `Float.isFinite(y)` cho gì?  
-**Đáp án:** Lần lượt true và false vì x hữu hạn dưới `double` nhưng y trở thành Infinity dưới `float`.
+**Question 9.** If `double x = 1e40` and then `float y = (float) x`, what do `Double.isFinite(x)` and `Float.isFinite(y)` return?  
+**Answer:** True and false, respectively, because `x` is finite as a `double` while `y` becomes Infinity as a `float`.
 
-**Câu 10.** Dữ liệu `Double nullable = null` truyền vào `Double.isNaN(nullable)` có an toàn không?  
-**Đáp án:** Không. Java cần unbox để lấy `double` và sẽ ném `NullPointerException`.
+**Question 10.** Is passing `Double nullable = null` to `Double.isNaN(nullable)` safe?  
+**Answer:** No. Java needs to unbox it to `double` and will throw `NullPointerException`.
 
-**Câu 11.** `double x = 0.1 + 0.2` có hữu hạn không, và có chắc bằng `0.3` qua `==` không?  
-**Đáp án:** Hữu hạn, nhưng `x == 0.3` thường false trong Java vì x là 0.30000000000000004.
+**Question 11.** Is `double x = 0.1 + 0.2` finite, and is it guaranteed to equal `0.3` via `==`?  
+**Answer:** Finite, but `x == 0.3` is false in Java because `x` is 0.30000000000000004.
 
-**Câu 12.** Hai toán hạng `double` đều hữu hạn có bảo đảm tích hữu hạn không?  
-**Đáp án:** Không. `Double.MAX_VALUE * 2.0` cho Infinity; cần kiểm tra kết quả nếu ứng dụng yêu cầu giá trị hữu hạn.
+**Question 12.** Do two finite `double` operands guarantee a finite product?  
+**Answer:** No. `Double.MAX_VALUE * 2.0` gives Infinity; check the result if the application requires a finite value.
 
-## 16. Tóm tắt và tài liệu tham khảo
+## 16. Summary and References
 
-- **`isNaN(x)`**: nhận biết chính xác trường hợp NaN.
-- **`isInfinite(x)`**: nhận biết +Infinity và -Infinity.
-- **`isFinite(x)`**: chỉ true khi x không phải NaN và không phải ±Infinity.
-- **NaN không dùng `==` để phát hiện**; các phép `<`, `>`, `<=`, `>=` với NaN đều false.
-- **Hữu hạn không đồng nghĩa hợp lệ hay chính xác**: vẫn cần kiểm tra miền, sai số, chính sách null và kết quả sau phép tính.
-- **`float` và `double` có miền khác nhau**; một `double` hữu hạn có thể thành Infinity khi ép sang `float`.
+- **`isNaN(x)`**: accurately detects the NaN case.
+- **`isInfinite(x)`**: detects +Infinity and -Infinity.
+- **`isFinite(x)`**: true only when x is neither NaN nor ±Infinity.
+- **Do not use `==` to detect NaN**; `<`, `>`, `<=`, and `>=` with NaN are all false.
+- **Finite does not mean valid or accurate**: you still need to check domain bounds, error tolerance, null policy, and post-operation results.
+- **`float` and `double` have different ranges**; a finite `double` can become Infinity when cast to `float`.
 
-Tra cứu API chính thức: [Float — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html), [Double — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html), và [Java Language Specification — Floating-Point Operations](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html).
+Official API references: [Float — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html), [Double — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html), and [Java Language Specification — Floating-Point Operations](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html).

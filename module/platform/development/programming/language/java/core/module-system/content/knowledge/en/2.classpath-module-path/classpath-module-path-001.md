@@ -1,12 +1,12 @@
-# Classpath và cách class được tìm kiếm truyền thống
+# Classpath and Traditional Class Lookup
 
-Trong Java truyền thống, **classpath** là tập các thư mục và tệp lưu trữ mà trình biên dịch hoặc runtime sử dụng để tìm class và tài nguyên của ứng dụng. Trước Java Platform Module System (JPMS), phần lớn ứng dụng Java chỉ cần sắp xếp các file **.class** và **.jar** trên classpath rồi chạy một class chứa phương thức **main**. Kể cả từ Java 9 trở đi, cách chạy classpath vẫn được hỗ trợ và đặc biệt phổ biến trong các dự án sử dụng thư viện chưa modular hóa.
+In traditional Java, the **classpath** is the set of directories and archive files that the compiler or runtime uses to locate application classes and resources. Before the Java Platform Module System (JPMS), most Java applications only needed to organize **.class** and **.jar** files on the classpath and then run a class containing a **main** method. Even from Java 9 onward, running with the classpath remains supported and is especially common in projects that use non-modularized libraries.
 
-Bài học này giải thích classpath thực sự là gì, tên package được chuyển thành đường dẫn bytecode ra sao, class loader tìm và định nghĩa class như thế nào, vì sao classpath lúc biên dịch có thể khác lúc chạy, và cách xử lý lỗi khi thiếu hoặc trùng phiên bản thư viện.
+This lesson explains what the classpath actually is, how package names are mapped to bytecode paths, how class loaders locate and define classes, why the compile-time classpath can differ from the runtime classpath, and how to handle errors when library versions are missing or duplicated.
 
-## 1. Classpath chứa những gì?
+## 1. What Does the Classpath Contain?
 
-Một mục classpath có thể là thư mục gốc của cây package hoặc một JAR chứa bytecode và resource:
+A classpath entry can be the root directory of a package tree or a JAR containing bytecode and resources:
 
 ~~~text
 demo/
@@ -18,33 +18,33 @@ demo/
     logging.jar
 ~~~
 
-Nếu classpath chứa thư mục **out**, runtime có thể tìm class **com.example.app.Main** từ file:
+If the classpath contains the **out** directory, the runtime can locate the **com.example.app.Main** class from the file:
 
 ~~~text
 out/com/example/app/Main.class
 ~~~
 
-Đối với tên class **com.example.util.Printer**, đường dẫn tương ứng là:
+For the class name **com.example.util.Printer**, the corresponding path is:
 
 ~~~text
 out/com/example/util/Printer.class
 ~~~
 
-Các mục classpath không phải module descriptor. Chúng không nói thư viện nào phụ thuộc vào thư viện nào và không giới hạn các package public theo chỉ thị **exports** của JPMS. Vì vậy, classpath dễ dùng nhưng ít thể hiện được cấu trúc dependency ở cấp kiến trúc.
+Classpath entries are not module descriptors. They do not state which library depends on which library and do not restrict public packages according to the JPMS **exports** directive. Therefore, the classpath is easy to use, but expresses very little dependency structure at the architectural level.
 
-Các dạng thường gặp:
+Common entry forms:
 
-| Mục classpath | Cách sử dụng |
+| Classpath entry | Usage |
 |---|---|
-| **out** | Thư mục gốc chứa các class đã biên dịch. |
-| **lib/util.jar** | JAR chứa class và resource của một thư viện. |
-| **lib/*** | Wildcard được Java launcher hỗ trợ để đưa các JAR trực tiếp trong thư mục lib vào classpath. |
-| **.** | Thư mục làm việc hiện tại. |
-| **config** | Thư mục có thể chứa resource và các file class nếu tổ chức đúng đường dẫn. |
+| **out** | Root directory containing compiled classes. |
+| **lib/util.jar** | JAR containing a library's classes and resources. |
+| **lib/*** | Wildcard supported by the Java launcher to include JARs directly inside the lib directory on the classpath. |
+| **.** | Current working directory. |
+| **config** | Directory that can contain resources and class files if organized with the proper paths. |
 
-## 2. Tên class và đường dẫn bytecode
+## 2. Class Names and Bytecode Paths
 
-Xét source:
+Consider the source:
 
 ~~~java
 package com.example.util;
@@ -59,26 +59,26 @@ public final class Printer {
 }
 ~~~
 
-Tên đầy đủ của class là **com.example.util.Printer**. Đó là **binary name** dùng bởi các API nạp class. Trong một layout package thông thường, class loader tìm resource có tên:
+The fully qualified name of the class is **com.example.util.Printer**. That is the **binary name** used by class-loading APIs. In a standard package layout, the class loader searches for a resource named:
 
 ~~~text
 com/example/util/Printer.class
 ~~~
 
-Đây là đường dẫn tương đối so với gốc classpath. Do đó, nếu file class nằm dưới thư mục **out**, mục classpath phải là **out**, không phải **out/com/example/util**.
+This is the path relative to the classpath root. Therefore, if the class file resides under the **out** directory, the classpath entry must be **out**, not **out/com/example/util**.
 
-Phân biệt bốn khái niệm:
+Distinguish four concepts:
 
 - **Package:** com.example.util.
 - **Simple name:** Printer.
 - **Binary name:** com.example.util.Printer.
-- **Đường dẫn .class tương đối:** com/example/util/Printer.class.
+- **Relative .class path:** com/example/util/Printer.class.
 
-Sự nhầm lẫn giữa classpath root và package directory là nguyên nhân phổ biến của lỗi **Could not find or load main class**.
+Confusing the classpath root with the package directory is a common cause of the **Could not find or load main class** error.
 
-## 3. Ví dụ biên dịch và chạy chương trình
+## 3. Example of Compiling and Running a Program
 
-Tạo hai file:
+Create two files:
 
 ~~~text
 src/
@@ -100,7 +100,7 @@ public final class Main {
 }
 ~~~
 
-File **Printer.java** là class ở ví dụ trước. Biên dịch cả hai:
+The **Printer.java** file is the class from the previous example. Compile both:
 
 ~~~bash
 javac -d out \
@@ -108,38 +108,38 @@ javac -d out \
       src/com/example/app/Main.java
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 java -cp out com.example.app.Main
 ~~~
 
-Kết quả dự kiến:
+Expected output:
 
 ~~~text
 Hello classpath
 ~~~
 
-Ở đây:
+Here:
 
-1. **javac** dịch source thành bytecode và đặt output trong cây thư mục phù hợp với package.
-2. **-cp out** yêu cầu runtime sử dụng **out** làm một nguồn tìm class.
-3. **com.example.app.Main** là binary name của main class.
-4. JVM nạp class cần thiết và gọi phương thức main.
-5. Khi Main sử dụng Printer, runtime phải tìm được Printer trong phạm vi của class loader.
+1. **javac** compiles the source into bytecode and places the output in a directory tree matching the packages.
+2. **-cp out** instructs the runtime to use **out** as a class search source.
+3. **com.example.app.Main** is the binary name of the main class.
+4. The JVM loads the required classes and invokes the main method.
+5. When Main uses Printer, the runtime must be able to locate Printer within the class loader's scope.
 
-Không cần biên dịch mọi class vào cùng một thư mục, nhưng những thư mục và JAR cần thiết phải được đưa vào classpath hiệu lực khi chạy.
+It is not necessary to compile all classes into the same directory, but the required directories and JARs must be included on the effective classpath at runtime.
 
-## 4. Classpath khi biên dịch khác classpath khi chạy
+## 4. Compile-Time Classpath vs. Runtime Classpath
 
-Cả **javac** và **java** đều có tùy chọn **-cp** hoặc **-classpath**, nhưng mỗi công cụ dùng danh sách này vào mục đích khác nhau:
+Both **javac** and **java** have the **-cp** or **-classpath** option, but each tool uses this list for a different purpose:
 
-| Công cụ | Vai trò |
+| Tool | Role |
 |---|---|
-| **javac** | Tìm các class và thư viện để phân tích kiểu, kiểm tra tham chiếu và biên dịch source. |
-| **java** | Tìm bytecode và resource khi chương trình được thực thi. |
+| **javac** | Locates classes and libraries to perform type analysis, check references, and compile source code. |
+| **java** | Locates bytecode and resources when the program is executed. |
 
-Giả sử **Printer** đã được đóng gói trong **lib/util.jar**. Khi biên dịch Main:
+Suppose **Printer** has been packaged in **lib/util.jar**. When compiling Main:
 
 ~~~bash
 javac -cp lib/util.jar \
@@ -147,27 +147,27 @@ javac -cp lib/util.jar \
       src/com/example/app/Main.java
 ~~~
 
-Khi chạy, cần cả output của app và thư viện:
+At runtime, both the app output and the library are needed:
 
 ~~~bash
 java -cp "app-out:lib/util.jar" com.example.app.Main
 ~~~
 
-Nếu runtime chỉ nhận:
+If the runtime only receives:
 
 ~~~bash
 java -cp app-out com.example.app.Main
 ~~~
 
-thì Main có thể được tìm thấy nhưng JVM vẫn không tìm được Printer khi cần. Trường hợp này có thể dẫn tới **NoClassDefFoundError**.
+then Main can be found, but the JVM still cannot find Printer when needed. This situation can lead to **NoClassDefFoundError**.
 
-**Biên dịch thành công không có nghĩa runtime classpath đã đủ.** Build tool cũng không tự bảo đảm mọi JAR từng có lúc biên dịch được đưa vào tiến trình Java thực tế.
+**A successful compilation does not mean the runtime classpath is complete.** Nor do build tools automatically guarantee that every JAR present at compile time is included in the actual Java process.
 
-## 5. Dấu phân cách trên Windows và Unix
+## 5. Path Separators on Windows and Unix
 
-Các mục classpath được ngăn cách bằng ký tự phụ thuộc hệ điều hành.
+Classpath entries are separated by an operating-system-dependent character.
 
-Linux hoặc macOS:
+Linux or macOS:
 
 ~~~bash
 java -cp "out:lib/a.jar:lib/b.jar" com.example.app.Main
@@ -179,37 +179,37 @@ Windows PowerShell:
 java -cp "out;lib/a.jar;lib/b.jar" com.example.app.Main
 ~~~
 
-| Hệ điều hành | Ký tự phân cách giữa các mục |
+| Operating System | Separator between entries |
 |---|---|
-| Linux | Dấu hai chấm |
-| macOS | Dấu hai chấm |
-| Windows | Dấu chấm phẩy |
+| Linux | Colon |
+| macOS | Colon |
+| Windows | Semicolon |
 
-Đường dẫn trong chuỗi classpath có thể là tương đối hoặc tuyệt đối. Đối với đường dẫn tương đối, hãy chú ý **working directory** của tiến trình chạy Java.
+Paths in a classpath string can be relative or absolute. For relative paths, pay attention to the **working directory** of the running Java process.
 
-Dấu nháy kép giúp shell truyền cả chuỗi classpath làm một đối số. Đây là điều đặc biệt hữu ích khi đường dẫn có khoảng trắng hoặc ký tự đặc biệt.
+Double quotes help the shell pass the entire classpath string as a single argument. This is especially useful when paths contain spaces or special characters.
 
-Không nên nhầm dấu chấm trong tên Java package với ký tự phân cách giữa các mục classpath.
+Do not confuse the dots in a Java package name with the separator character between classpath entries.
 
-## 6. Classpath mặc định và biến môi trường CLASSPATH
+## 6. Default Classpath and the CLASSPATH Environment Variable
 
-Khi chạy theo chế độ classpath mà không chỉ định **-cp**, Java launcher có thể dùng biến môi trường **CLASSPATH** nếu biến này được đặt. Nếu không có cấu hình classpath tường minh hoặc biến môi trường có hiệu lực, mặc định thông thường là thư mục làm việc hiện hành (**.**).
+When running in classpath mode without specifying **-cp**, the Java launcher may use the **CLASSPATH** environment variable if it is set. If no explicit classpath configuration or effective environment variable is present, the usual default is the current working directory (**.**).
 
-Ví dụ:
+For example:
 
 ~~~bash
 java com.example.app.Main
 ~~~
 
-Lệnh trên chỉ thành công nếu classpath hiệu lực chứa đúng class file của **com.example.app.Main**.
+The command above only succeeds if the effective classpath contains the exact class file of **com.example.app.Main**.
 
-Để tránh phụ thuộc máy đang chạy, nên viết rõ:
+To avoid depending on the machine running the command, write it explicitly:
 
 ~~~bash
 java -cp out com.example.app.Main
 ~~~
 
-Nếu cần thêm thư mục hiện hành, hãy thêm nó vào danh sách theo cách tường minh:
+If the current directory also needs to be included, add it to the list explicitly:
 
 ~~~bash
 java -cp ".:lib/util.jar" com.example.app.Main
@@ -221,11 +221,11 @@ Windows:
 java -cp ".;lib/util.jar" com.example.app.Main
 ~~~
 
-Khi truyền **-cp**, đừng mặc định biến **CLASSPATH** hoặc dấu chấm được tự động nối thêm. Trong CI, IDE và môi trường triển khai, cấu hình tường minh giúp lệnh chạy dễ tái hiện hơn.
+When passing **-cp**, do not assume the **CLASSPATH** variable or the dot is automatically appended. In CI, IDEs, and deployment environments, explicit configuration makes execution commands much more reproducible.
 
-## 7. Wildcard và thư mục chứa JAR
+## 7. Wildcards and Directories Containing JARs
 
-Java launcher hỗ trợ wildcard classpath:
+The Java launcher supports classpath wildcards:
 
 ~~~bash
 java -cp "out:lib/*" com.example.app.Main
@@ -237,20 +237,20 @@ Windows:
 java -cp "out;lib/*" com.example.app.Main
 ~~~
 
-Wildcard đưa các JAR được hỗ trợ nằm **trực tiếp** trong thư mục **lib** vào danh sách classpath.
+The wildcard adds supported JARs located **directly** inside the **lib** directory to the classpath list.
 
-Điều cần nhớ:
+Things to remember:
 
-- **-cp lib** chỉ đưa thư mục lib vào classpath; nó không có nghĩa quét tất cả JAR trong đó.
-- **-cp lib/*** là cú pháp wildcard cho các JAR trực tiếp bên trong lib.
-- Wildcard không tự tìm đệ quy xuống các thư mục con.
-- Thứ tự mở rộng các JAR qua wildcard không nên được xem là một hợp đồng ổn định để quyết định chọn version thư viện.
+- **-cp lib** only adds the `lib` directory to the classpath; it does not mean scanning all JARs inside it.
+- **-cp lib/*** is the wildcard syntax for JARs directly inside `lib`.
+- The wildcard does not recursively search subdirectories.
+- The expansion order of JARs via a wildcard should not be treated as a stable contract for deciding library version selection.
 
-Nếu hai JAR có cùng class, việc dựa vào thứ tự wildcard để chọn JAR nào thắng sẽ khiến ứng dụng khó tái hiện và khó kiểm soát.
+If two JARs contain the same class, relying on wildcard order to pick which JAR wins makes the application hard to reproduce and hard to control.
 
-## 8. JAR lưu class như thế nào?
+## 8. How Do JARs Store Classes?
 
-JAR là archive chứa các mục được tổ chức theo đường dẫn. Sau khi biên dịch **Printer.class** vào **out**, đóng gói:
+A JAR is an archive containing entries organized by path. After compiling **Printer.class** into **out**, package it:
 
 ~~~bash
 jar --create \
@@ -258,7 +258,7 @@ jar --create \
     -C out com/example/util
 ~~~
 
-Bên trong archive có thể gồm:
+Inside the archive, contents may include:
 
 ~~~text
 META-INF/
@@ -266,55 +266,55 @@ META-INF/MANIFEST.MF
 com/example/util/Printer.class
 ~~~
 
-Java không cần giải nén JAR trước khi tìm class: class loader thích hợp có thể đọc class và resource từ archive.
+Java does not need to extract the JAR before searching for classes: an appropriate class loader can read classes and resources directly from the archive.
 
-Kiểm tra thành phần JAR:
+Inspect JAR contents:
 
 ~~~bash
 jar --list --file lib/util.jar
 ~~~
 
-Nếu file bị đóng gói sai thành:
+If the file was packaged incorrectly as:
 
 ~~~text
 out/com/example/util/Printer.class
 ~~~
 
-trong khi runtime cần:
+while the runtime expects:
 
 ~~~text
 com/example/util/Printer.class
 ~~~
 
-thì class loader thông thường có thể không tìm thấy Printer, dù JAR vẫn mở được.
+then a normal class loader may not find Printer, even though the JAR can still be opened.
 
-Khi gặp lỗi thiếu class, luôn kiểm tra **tên class**, **vị trí classpath root** và **đường dẫn entry bên trong JAR**.
+When encountering a missing class error, always check the **class name**, **classpath root location**, and **entry paths inside the JAR**.
 
-## 9. java -cp khác java -jar
+## 9. java -cp vs. java -jar
 
-Có hai cách khởi chạy phổ biến.
+There are two common ways to launch an application.
 
-Chỉ định classpath và main class:
+Specifying the classpath and main class:
 
 ~~~bash
 java -cp "app.jar:lib/*" com.example.app.Main
 ~~~
 
-Hoặc dùng một executable JAR có manifest:
+Or using an executable JAR with a manifest:
 
 ~~~bash
 java -jar app.jar
 ~~~
 
-Trong kiểu thứ hai, manifest thường có dòng:
+In the second approach, the manifest usually contains the line:
 
 ~~~text
 Main-Class: com.example.app.Main
 ~~~
 
-Với **java -jar**, launcher dùng JAR làm nguồn ứng dụng và không xử lý **-cp** hoặc **CLASSPATH** như cơ chế bổ sung classpath thường dùng cho cách chạy bằng tên main class.
+With **java -jar**, the launcher uses the JAR as the application source and does not process **-cp** or **CLASSPATH** as the supplementary classpath mechanism normally used when running by main class name.
 
-Nếu cần dependency nằm ngoài executable JAR, manifest có thể khai báo **Class-Path**:
+If dependencies outside the executable JAR are needed, the manifest can declare **Class-Path**:
 
 ~~~text
 Manifest-Version: 1.0
@@ -322,24 +322,24 @@ Main-Class: com.example.app.Main
 Class-Path: lib/util.jar lib/logging.jar
 ~~~
 
-Các mục manifest Class-Path dùng quy tắc URL của manifest, thường được giải quyết tương đối từ JAR chứa manifest. Chúng không dùng cách phân tách các mục như chuỗi truyền vào **-cp**.
+Manifest Class-Path entries follow manifest URL rules, typically resolved relative to the JAR containing the manifest. They do not use the same entry-splitting conventions as the string passed to **-cp**.
 
-Khi điều tra lỗi chỉ xuất hiện với **java -jar**, hãy kiểm tra manifest và cách đóng gói dependency, thay vì chỉ thêm **-cp** rồi giả định launcher sẽ dùng nó.
+When investigating errors that only appear with **java -jar**, check the manifest and how dependencies are packaged, rather than just adding **-cp** and assuming the launcher will use it.
 
-## 10. Class loader là thành phần thực sự tìm bytecode
+## 10. The Class Loader Actually Locates Bytecode
 
-Classpath mô tả **nguồn tìm kiếm**; **class loader** thực hiện việc tìm và nạp class từ những nguồn nó quản lý.
+The classpath describes the **search sources**; the **class loader** performs the lookup and loading of classes from the sources it manages.
 
-Một số loader tiêu biểu trong Java hiện đại:
+Some typical loaders in modern Java:
 
-| Loader | Vai trò chính |
+| Loader | Primary role |
 |---|---|
-| Bootstrap loader | Nạp các class nền tảng cốt lõi của Java runtime. |
-| Platform loader | Phục vụ các phần của nền tảng Java theo thiết kế runtime. |
-| Application/system loader | Thường chịu trách nhiệm nạp class của ứng dụng từ application classpath. |
-| Custom loader | Được framework hoặc ứng dụng triển khai để nạp plugin, bytecode động hoặc nguồn tùy biến. |
+| Bootstrap loader | Loads the core foundational classes of the Java runtime. |
+| Platform loader | Serves parts of the Java platform according to the runtime design. |
+| Application/system loader | Typically responsible for loading application classes from the application classpath. |
+| Custom loader | Implemented by frameworks or applications to load plugins, dynamic bytecode, or custom sources. |
 
-Ví dụ xem loader:
+Example to inspect loaders:
 
 ~~~java
 public final class LoaderInfo {
@@ -352,49 +352,48 @@ public final class LoaderInfo {
 }
 ~~~
 
-Đối với những class được bootstrap loader nạp, **getClassLoader()** có thể trả về **null**. Điều này là biểu diễn của API, không phải bằng chứng rằng JVM không có bootstrap loader.
+For classes loaded by the bootstrap loader, **getClassLoader()** may return **null**. This is an API representation, not proof that the JVM lacks a bootstrap loader.
 
-Từ Java 9 trở đi, cấu trúc runtime và triển khai loader không hoàn toàn giống Java 8. Đừng giả định app class loader luôn là **URLClassLoader** hoặc mọi class JDK đều đến từ file **rt.jar**.
+From Java 9 onward, the runtime structure and loader implementations are not identical to Java 8. Do not assume the app class loader is always a **URLClassLoader** or that all JDK classes come from an **rt.jar** file.
 
-## 11. Parent delegation: cơ chế ủy quyền truyền thống
+## 11. Parent Delegation: The Traditional Delegation Mechanism
 
-Nhiều class loader sử dụng mô hình **parent-first** qua **ClassLoader.loadClass(...)**. Quy trình mặc định được diễn giải đơn giản:
+Many class loaders use the **parent-first** model via **ClassLoader.loadClass(...)**. The default process can be summarized simply:
 
-1. Kiểm tra class đã được nạp bởi loader hiện tại chưa.
-2. Nếu chưa, thử ủy quyền cho parent loader.
-3. Nếu parent không tìm được, loader tìm trong nguồn của chính nó, thường qua **findClass(...)**.
-4. Nếu tìm được bytecode phù hợp, loader định nghĩa class.
-5. Nếu không tìm được, quá trình có thể kết thúc bằng **ClassNotFoundException**.
+1. Check whether the class has already been loaded by the current loader.
+2. If not, try delegating to the parent loader.
+3. If the parent cannot find it, the loader searches its own sources, usually via **findClass(...)**.
+4. If suitable bytecode is found, the loader defines the class.
+5. If not found, the process may end with a **ClassNotFoundException**.
 
-Sơ đồ:
+Diagram:
 
 ~~~text
 loadClass("com.example.util.Printer")
                  |
                  v
-         Đã được nạp chưa?
+           Already loaded?
             /          \
-          Có           Chưa
+          Yes           No
           |             |
-       Trả về      Hỏi parent loader
+       Return      Ask parent loader
                         |
-                 Parent không tìm được
+                 Parent did not find it
                         |
                    findClass(...)
                      /     \
-                  Thành    Không
-                  công     tìm thấy
+                 Success   Not found
                     |         |
                  Class<?>   ClassNotFoundException
 ~~~
 
-Parent delegation hỗ trợ tái sử dụng các class của nền tảng Java và tránh tình trạng class ở application classpath vô tình thay thế các class cốt lõi.
+Parent delegation supports reusing Java platform classes and prevents classes on the application classpath from accidentally replacing core classes.
 
-Tuy nhiên, custom class loader không bắt buộc luôn áp dụng đúng thứ tự parent-first. Framework plugin, application server hoặc container có thể sử dụng chiến lược riêng. Khi gặp trùng class, cần xác định loader cụ thể đang thực hiện việc tìm class.
+However, custom class loaders are not required to always follow strict parent-first ordering. Plugin frameworks, application servers, or containers may use their own strategies. When duplicate classes occur, identify the specific loader performing the class lookup.
 
-## 12. loadClass, Class.forName và defineClass
+## 12. loadClass, Class.forName, and defineClass
 
-Ba API/cơ chế này có liên quan nhưng khác mục đích.
+These three APIs/mechanisms are related but serve different purposes.
 
 **ClassLoader.loadClass(String)**:
 
@@ -405,7 +404,7 @@ Class<?> type = loader.loadClass("com.example.util.Printer");
 System.out.println(type.getName());
 ~~~
 
-Nó yêu cầu loader trả về hoặc nạp class theo tên nhị phân; thao tác này thông thường không tự khởi tạo class chỉ vì được gọi.
+It asks the loader to return or load a class by binary name; this operation normally does not initialize the class solely by being called.
 
 **Class.forName(String)**:
 
@@ -413,9 +412,9 @@ Nó yêu cầu loader trả về hoặc nạp class theo tên nhị phân; thao 
 Class<?> type = Class.forName("com.example.util.Printer");
 ~~~
 
-Overload một tham số có hành vi tìm class và thường dẫn đến khởi tạo class theo quy tắc của API.
+The single-parameter overload searches for the class and typically triggers class initialization according to the API rules.
 
-Nếu muốn trì hoãn initialization:
+If you want to defer initialization:
 
 ~~~java
 Class<?> type = Class.forName(
@@ -425,15 +424,15 @@ Class<?> type = Class.forName(
 );
 ~~~
 
-**defineClass(...)** là thao tác nội bộ phù hợp của class loader để biến bytecode thành định nghĩa class được JVM quản lý. Code ứng dụng thông thường không cần gọi trực tiếp.
+**defineClass(...)** is the appropriate internal class loader operation to turn bytecode into a class definition managed by the JVM. Ordinary application code does not need to call it directly.
 
-Việc class được tìm thấy, được định nghĩa, được liên kết (**linking**) và được khởi tạo (**initialization**) là các giai đoạn có thể xảy ra ở những thời điểm khác nhau. Một class không nhất thiết được khởi tạo ngay khi class loader đã trả về đối tượng **Class<?>**.
+Finding a class, defining it, **linking** it, and **initializing** it are stages that can occur at different times. A class is not necessarily initialized immediately when the class loader returns the **Class<?>** object.
 
-## 13. Class loading thường diễn ra theo nhu cầu
+## 13. Class Loading Usually Happens On Demand
 
-JVM không nhất thiết nạp mọi class từ tất cả JAR có trên classpath khi khởi động.
+The JVM does not necessarily load every class from all JARs on the classpath at startup.
 
-Ví dụ:
+For example:
 
 ~~~java
 public final class Main {
@@ -447,15 +446,15 @@ public final class Main {
 }
 ~~~
 
-Nếu nhánh sử dụng OptionalFeature không được thực thi, runtime có thể chưa cần nạp hoặc giải quyết toàn bộ class và dependency của tính năng này.
+If the branch using OptionalFeature is not executed, the runtime may not yet need to load or resolve all classes and dependencies of that feature.
 
-Vì vậy, một ứng dụng có thể chạy đến main thành công dù một thư viện chỉ được dùng ở chức năng hiếm gặp đang thiếu khỏi runtime classpath. Khi chức năng đó được gọi, ứng dụng mới báo lỗi.
+Therefore, an application can start and reach `main` successfully even if a library used only in a rarely invoked feature is missing from the runtime classpath. Only when that feature is called does the application fail.
 
-Để kiểm tra dependency đầy đủ, không chỉ khởi động main: phải chạy các đường nghiệp vụ sử dụng những thư viện quan trọng.
+To thoroughly verify dependencies, do not just launch `main`: exercise the business paths that use important libraries.
 
-## 14. Class trùng và thứ tự tìm class
+## 14. Duplicate Classes and Lookup Order
 
-Giả sử:
+Suppose:
 
 ~~~text
 lib/
@@ -463,45 +462,45 @@ lib/
   new-client.jar
 ~~~
 
-Cả hai chứa:
+Both contain:
 
 ~~~text
 com/example/client/Client.class
 ~~~
 
-Trong một class loader tìm theo danh sách classpath có thứ tự, nguồn được tìm trước có thể **che khuất** class cùng tên ở nguồn được tìm sau.
+In a class loader that searches an ordered classpath list, a source searched earlier can **shadow** a class with the same name in a source searched later.
 
-Ví dụ:
+For example:
 
 ~~~bash
 java -cp "lib/old-client.jar:lib/new-client.jar:app.jar" \
      com.example.app.Main
 ~~~
 
-Khi thay đổi thứ tự, class có thể được nạp từ phiên bản khác trong mô hình loader tương ứng. Khi có wildcard, manifest dependency hoặc custom loader, không nên suy luận một quy tắc duy nhất áp dụng cho mọi môi trường.
+When changing the order, the class may be loaded from a different version within that loader model. When wildcards, manifest dependencies, or custom loaders are involved, do not infer a single rule that applies to every environment.
 
-Hệ quả có thể là:
+Consequences can include:
 
-- **NoSuchMethodError** vì code được compile với API mới nhưng runtime lấy class cũ.
-- **NoSuchFieldError** vì field dự kiến không còn trong binary runtime.
-- **AbstractMethodError** do class/interface không còn tương thích.
-- Behavior thay đổi theo JAR được chọn ngoài ý muốn.
+- **NoSuchMethodError** because code was compiled against a new API, but runtime picks up an old class.
+- **NoSuchFieldError** because an expected field no longer exists in the runtime binary.
+- **AbstractMethodError** due to an incompatible class/interface.
+- Behavior changing unintentionally depending on which JAR gets selected.
 
-Không nên coi việc đảo thứ tự JAR là sửa lỗi dài hạn. Hãy xác định dependency trùng và loại bỏ xung đột ở cấu hình build hoặc phân phối.
+Reordering JARs should not be treated as a long-term fix. Identify duplicate dependencies and eliminate conflicts in the build or distribution configuration.
 
-## 15. Định danh class còn phụ thuộc class loader
+## 15. Class Identity Also Depends on the Class Loader
 
-Trong JVM, cùng một tên binary class vẫn có thể đại diện cho hai kiểu khác nhau nếu chúng được **định nghĩa bởi hai class loader khác nhau**.
+In the JVM, the same binary class name can still represent two different types if they are **defined by two different class loaders**.
 
-Ví dụ host và plugin đều có file:
+For example, both the host and a plugin contain the file:
 
 ~~~text
 com/acme/plugin/Widget.class
 ~~~
 
-Nếu hai loader độc lập định nghĩa riêng class này, các đối tượng **Class<?>** không phải cùng một runtime type, dù **getName()** trả về cùng chuỗi.
+If two independent loaders each define this class separately, the **Class<?>** objects are not the same runtime type, even though **getName()** returns the same string.
 
-Hiện tượng có thể dẫn đến lỗi cast hoặc linkage khó hiểu. Để quan sát:
+This phenomenon can lead to confusing cast or linkage errors. To observe it:
 
 ~~~java
 System.out.println(obj.getClass().getName());
@@ -509,13 +508,13 @@ System.out.println(obj.getClass().getClassLoader());
 System.out.println(ExpectedType.class.getClassLoader());
 ~~~
 
-Khi thiết kế plugin, nên đặt các interface dùng chung vào một loader được host và plugin chia sẻ, thay vì đóng gói riêng một bản API trong mỗi plugin loader.
+When designing plugins, place shared interfaces in a loader shared by both host and plugin, rather than packaging a separate copy of the API in each plugin loader.
 
-## 16. Resource cũng được tìm trên classpath
+## 16. Resources Are Also Searched on the Classpath
 
-Classpath không chỉ dành cho bytecode. Nó có thể chứa các file cấu hình, template và dữ liệu được ứng dụng đọc như resource.
+The classpath is not only for bytecode. It can hold configuration files, templates, and data read by the application as resources.
 
-Ví dụ:
+For example:
 
 ~~~text
 out/
@@ -523,7 +522,7 @@ out/
   config/default.properties
 ~~~
 
-Đọc resource:
+Reading a resource:
 
 ~~~java
 import java.io.InputStream;
@@ -536,7 +535,7 @@ public final class ConfigReader {
         try (InputStream input =
                  loader.getResourceAsStream("config/default.properties")) {
             if (input == null) {
-                throw new IllegalStateException("Thiếu default.properties");
+                throw new IllegalStateException("Missing default.properties");
             }
 
             Properties result = new Properties();
@@ -547,35 +546,35 @@ public final class ConfigReader {
 }
 ~~~
 
-**getResourceAsStream(...)** tìm resource theo quy tắc của loader, không tìm tùy ý trên toàn bộ ổ đĩa.
+**getResourceAsStream(...)** searches for resources according to the loader's rules, not arbitrarily across the entire disk.
 
-Cần phân biệt API của **ClassLoader.getResourceAsStream(...)** với **Class.getResourceAsStream(...)**: cách hiểu đường dẫn tương đối và đường dẫn bắt đầu bằng dấu gạch chéo có thể khác nhau.
+Distinguish between the **ClassLoader.getResourceAsStream(...)** and **Class.getResourceAsStream(...)** APIs: how relative paths and paths starting with a leading slash are interpreted can differ.
 
-Khi build JAR, phải xác nhận resource thật sự được copy vào output; có file trong cây source chưa đủ để runtime tìm thấy nó.
+When building a JAR, confirm that resources are actually copied into the output; having the file in the source tree is not enough for the runtime to find it.
 
-## 17. ServiceLoader trong thế giới classpath
+## 17. ServiceLoader in the Classpath World
 
-Classpath còn hỗ trợ các quy ước tìm metadata. Một ví dụ là **ServiceLoader**.
+The classpath also supports metadata discovery conventions. One example is **ServiceLoader**.
 
-Nếu service interface là:
+If the service interface is:
 
 ~~~text
 com.example.spi.Plugin
 ~~~
 
-JAR provider trên classpath có thể chứa:
+A provider JAR on the classpath can contain:
 
 ~~~text
 META-INF/services/com.example.spi.Plugin
 ~~~
 
-với nội dung:
+with the content:
 
 ~~~text
 com.example.impl.DefaultPlugin
 ~~~
 
-Khi code gọi:
+When code calls:
 
 ~~~java
 ServiceLoader<Plugin> loader = ServiceLoader.load(Plugin.class);
@@ -585,64 +584,64 @@ for (Plugin plugin : loader) {
 }
 ~~~
 
-ServiceLoader có thể đọc các cấu hình service phù hợp từ phạm vi tìm kiếm của class loader để khám phá provider.
+ServiceLoader can read matching service configurations from the class loader's search scope to discover providers.
 
-Trong ứng dụng có custom loader, provider JAR nằm ngoài classpath của loader đang dùng có thể không được tìm thấy, dù file JAR có mặt trên đĩa. Đây là vấn đề về **nguồn tìm của loader**, không phải tên service interface.
+In applications with custom loaders, a provider JAR outside the classpath of the active loader may not be found, even if the JAR file exists on disk. This is an issue of **the loader's search sources**, not the service interface name.
 
-JPMS bổ sung hình thức khai báo **uses** và **provides ... with ...** trong module descriptor, giúp quản lý service ở cấp named module.
+JPMS adds the **uses** and **provides ... with ...** declarations in module descriptors, enabling service management at the named module level.
 
-## 18. Chẩn đoán ClassNotFoundException và NoClassDefFoundError
+## 18. Diagnosing ClassNotFoundException and NoClassDefFoundError
 
-Hai lỗi thường gặp nhất khi classpath bị thiếu hoặc khác dự kiến là:
+The two most common errors when the classpath is incomplete or differs from expectations are:
 
-**ClassNotFoundException:** API nạp class theo tên, chẳng hạn **Class.forName(...)**, không tìm được định nghĩa class phù hợp.
+**ClassNotFoundException:** An API loading a class by name, such as **Class.forName(...)**, cannot find a matching class definition.
 
 ~~~java
 Class.forName("com.example.driver.MissingDriver");
 ~~~
 
-**NoClassDefFoundError:** JVM cần một class tại runtime nhưng không thể có định nghĩa class cần thiết, hoặc class từng gặp vấn đề khi khởi tạo; lỗi có thể xuất hiện khi liên kết một class đã biên dịch.
+**NoClassDefFoundError:** The JVM needs a class at runtime but cannot obtain the required class definition, or the class previously encountered a problem during initialization; the error can appear when linking an already-compiled class.
 
-Ví dụ code Main đã compile với:
+For example, Main code was compiled with:
 
 ~~~java
 Printer.print("Test");
 ~~~
 
-nhưng runtime classpath không có Printer.
+but the runtime classpath lacks Printer.
 
-| Lỗi | Điểm cần kiểm tra |
+| Error | Things to check |
 |---|---|
-| **ClassNotFoundException** | Tên binary có đúng? Loader nào tìm? JAR có nằm trong nguồn loader quản lý? |
-| **NoClassDefFoundError** | Dependency runtime còn thiếu? Có cause liên quan initialization không? |
-| **UnsupportedClassVersionError** | Class được biên dịch cho Java mới hơn runtime? |
-| **NoSuchMethodError** | Runtime đang dùng bản class khác bản lúc compile? |
-| **ClassCastException** lạ | Hai class trùng tên có cùng defining loader không? |
-| **Could not find or load main class** | Classpath root, package, main class và output directory có chính xác không? |
+| **ClassNotFoundException** | Is the binary name correct? Which loader is searching? Is the JAR within the sources managed by that loader? |
+| **NoClassDefFoundError** | Is a runtime dependency missing? Is there a cause related to initialization? |
+| **UnsupportedClassVersionError** | Was the class compiled for a newer Java version than the runtime? |
+| **NoSuchMethodError** | Is the runtime using a different version of the class than compile time? |
+| **Weird ClassCastException** | Do two classes with the same name share the same defining loader? |
+| **Could not find or load main class** | Are the classpath root, package, main class, and output directory accurate? |
 
-Đọc toàn bộ stack trace và phần **Caused by** để tránh chẩn đoán nhầm.
+Read the full stack trace and the **Caused by** sections to avoid misdiagnosis.
 
-## 19. Các công cụ kiểm tra classpath
+## 19. Tools for Inspecting the Classpath
 
-**Kiểm tra JAR có chứa class không:**
+**Check whether a JAR contains a class:**
 
 ~~~bash
 jar --list --file lib/util.jar
 ~~~
 
-Tìm file class đúng đường dẫn:
+Look for the class file at the proper path:
 
 ~~~text
 com/example/util/Printer.class
 ~~~
 
-**Dùng javap để quan sát class đã biên dịch:**
+**Use javap to inspect a compiled class:**
 
 ~~~bash
 javap -classpath out com.example.app.Main
 ~~~
 
-**Bật log nạp class trên JDK hiện đại:**
+**Enable class loading logs on a modern JDK:**
 
 ~~~bash
 java -Xlog:class+load=info \
@@ -650,9 +649,9 @@ java -Xlog:class+load=info \
      com.example.app.Main
 ~~~
 
-Tùy chọn **-verbose:class** cũng có thể giúp quan sát hoạt động tải class trên các phiên bản Java hỗ trợ.
+The **-verbose:class** option can also help observe class loading activity on supported Java versions.
 
-**In loader và nguồn code khi có class:**
+**Print the loader and code source once a class is available:**
 
 ~~~java
 Class<?> type = Class.forName("com.example.util.Printer");
@@ -665,69 +664,69 @@ if (domain != null) {
 }
 ~~~
 
-Thông tin **CodeSource** có thể hỗ trợ tìm vị trí class đến từ đâu nếu loader cung cấp metadata tương ứng; giá trị này không phải lúc nào cũng hiện diện.
+**CodeSource** information can help locate where a class came from if the loader provides the corresponding metadata; this value is not always present.
 
-**Đối chiếu build configuration:** Kiểm tra runtime dependency graph của Maven/Gradle và lệnh JVM thực tế do IDE, script hoặc container chạy.
+**Cross-check build configuration:** Inspect the runtime dependency graph of Maven/Gradle and the actual JVM command executed by the IDE, script, or container.
 
-## 20. Classpath khác module path ở điểm nào?
+## 20. How Does Classpath Differ from Module Path?
 
-Java 9 đưa **JPMS** vào nền tảng và bổ sung **module path**. Classpath vẫn tồn tại, nhưng hai cơ chế có mục tiêu khác nhau.
+Java 9 introduced **JPMS** to the platform and added the **module path**. The classpath still exists, but the two mechanisms have different goals.
 
-| Khía cạnh | Classpath truyền thống | Module path / JPMS |
+| Aspect | Traditional Classpath | Module Path / JPMS |
 |---|---|---|
-| Đơn vị chính | Class và resource được tìm qua class loader. | Named module có descriptor và module graph. |
-| Dependency | Do build tool và classpath thực tế quyết định. | **requires**, **requires transitive**, **requires static**. |
-| Công bố package | Không có module directive riêng để giới hạn package public giữa các JAR trên classpath. | **exports** công bố API package cho module khác. |
-| Deep reflection | Chịu quy tắc Java access và các giới hạn runtime. | **opens** điều khiển deep reflection giữa named modules. |
-| JAR truyền thống | Nằm trong unnamed module khi chạy trên classpath trong môi trường JPMS. | Có thể được coi là automatic module trên module path nếu không có module-info.class. |
-| Resolution | Chủ yếu dựa trên nguồn tìm class của loader. | Giải module graph trước khi chương trình chạy. |
+| Primary unit | Classes and resources located via class loaders. | Named modules with descriptors and a module graph. |
+| Dependencies | Determined by build tools and the actual classpath. | **requires**, **requires transitive**, **requires static**. |
+| Package exposure | No dedicated module directive to restrict public packages between JARs on the classpath. | **exports** exposes API packages to other modules. |
+| Deep reflection | Subject to Java access rules and runtime restrictions. | **opens** controls deep reflection between named modules. |
+| Traditional JARs | Belong to the unnamed module when run on the classpath in a JPMS environment. | Can be treated as an automatic module on the module path if lacking module-info.class. |
+| Resolution | Primarily based on the loader's class search sources. | Resolves the module graph before the program runs. |
 
-Chạy theo classpath:
+Running via classpath:
 
 ~~~bash
 java -cp "out:lib/*" com.example.app.Main
 ~~~
 
-Chạy theo named module:
+Running as a named module:
 
 ~~~bash
 java --module-path mods \
      --module com.example.app/com.example.app.Main
 ~~~
 
-Không nên xem việc đổi **-cp** thành **--module-path** chỉ là một thay đổi cú pháp. Named module có cơ chế resolution và kiểm soát exports/opens ở cấp module mà các JAR trên classpath truyền thống không có.
+Switching **-cp** to **--module-path** should not be viewed as a mere syntax change. Named modules have resolution mechanisms and module-level exports/opens controls that JARs on the traditional classpath do not have.
 
-## 21. Những hiểu nhầm phổ biến
+## 21. Common Misconceptions
 
-**“Classpath phải trỏ đến thư mục chứa trực tiếp Main.class.”** Không đúng nếu Main có package: phải trỏ vào gốc cây package để binary name ánh xạ đúng.
+**"The classpath must point directly to the directory containing Main.class."** Incorrect if Main has a package: it must point to the root of the package tree so the binary name maps properly.
 
-**“Đưa lib vào classpath sẽ tự động nhận tất cả JAR dưới lib.”** Không đúng; cần liệt kê JAR hoặc dùng wildcard do launcher hỗ trợ.
+**"Putting lib on the classpath will automatically pick up all JARs under lib."** Incorrect; you must list the JARs or use the wildcard supported by the launcher.
 
-**“Class có mặt trong một JAR thì mọi class loader đều tìm thấy.”** Không đúng; JAR phải thuộc phạm vi tìm kiếm của loader phù hợp.
+**"If a class is present in a JAR, every class loader can find it."** Incorrect; the JAR must be within the search scope of the appropriate loader.
 
-**“Javac thành công nghĩa là runtime đủ dependency.”** Không đúng; classpath của hai giai đoạn có thể khác nhau.
+**"If javac succeeds, the runtime has all dependencies."** Incorrect; the classpaths for the two phases can differ.
 
-**“JVM nạp mọi class của tất cả JAR lúc bắt đầu.”** Không đúng; nhiều class chỉ được nạp khi cần.
+**"The JVM loads every class from all JARs at startup."** Incorrect; many classes are only loaded when needed.
 
-**“Hai class có cùng binary name luôn tương đương.”** Không đúng nếu defining class loader khác nhau.
+**"Two classes with the same binary name are always equivalent."** Incorrect if their defining class loaders are different.
 
-**“java -jar luôn sử dụng -cp để bổ sung các thư viện ngoài.”** Không đúng; cần hiểu quy tắc của JAR manifest hoặc cách đóng gói.
+**"java -jar always uses -cp to add external libraries."** Incorrect; you need to understand JAR manifest rules or how packaging works.
 
-**“Classpath và module path giống nhau.”** Không đúng; module path là nguồn tham gia JPMS resolution, còn classpath truyền thống không tự tạo named module riêng cho mỗi JAR.
+**"Classpath and module path are the same."** Incorrect; the module path is a source participating in JPMS resolution, whereas the traditional classpath does not automatically create a separate named module for each JAR.
 
-## 22. Checklist thực hành
+## 22. Practical Checklist
 
-- Xác định đúng binary name và package của main class.
-- Đặt classpath tại gốc cây thư mục chứa package của class.
-- Kiểm tra cả compile classpath và runtime classpath.
-- Dùng đúng dấu phân tách classpath theo hệ điều hành.
-- Phân biệt thư mục **lib** với wildcard cho các JAR bên trong.
-- Đóng gói JAR sao cho entry class có đúng đường dẫn tương ứng binary name.
-- Phân biệt chạy bằng **java -cp ... Main** và **java -jar app.jar**.
-- Không phụ thuộc vào thứ tự JAR để giải quyết dependency xung đột.
-- Quan sát class loader khi class trùng hoặc cast lỗi bất thường.
-- Xem stack trace để phân biệt lỗi không tìm thấy class với lỗi liên kết.
-- Kiểm tra classpath của JVM thực tế do IDE hoặc build tool khởi tạo.
-- Khi chuyển sang JPMS, tìm hiểu thêm module resolution, **module-info.java** và ranh giới API.
+- Identify the correct binary name and package of the main class.
+- Point the classpath at the root directory tree containing the class packages.
+- Check both the compile classpath and the runtime classpath.
+- Use the correct classpath separator for the operating system.
+- Distinguish the **lib** directory from the wildcard for the JARs inside it.
+- Package JARs so class entries have the exact paths corresponding to their binary names.
+- Distinguish running via **java -cp ... Main** from **java -jar app.jar**.
+- Do not rely on JAR ordering to resolve conflicting dependencies.
+- Inspect the class loader when duplicate classes or unusual cast errors occur.
+- Read the stack trace to distinguish class-not-found errors from linkage errors.
+- Check the actual JVM classpath launched by the IDE or build tool.
+- When migrating to JPMS, learn more about module resolution, **module-info.java**, and API boundaries.
 
-**Classpath** giải quyết việc tìm kiếm bytecode và resource trong mô hình Java truyền thống. Từ tên binary class, class loader tìm dữ liệu trong những nguồn mà nó quản lý, thường theo cơ chế parent delegation, rồi định nghĩa class để JVM liên kết và sử dụng. Nắm chắc classpath root, các lệnh **javac/java**, JAR packaging và class loader giúp chẩn đoán lỗi dependency chính xác hơn, đồng thời tạo nền tảng để hiểu sự khác biệt khi dùng **module path** của JPMS.
+**Classpath** solves bytecode and resource lookup in the traditional Java model. From a class binary name, a class loader searches for data in the sources it manages, typically following parent delegation, and then defines the class for the JVM to link and use. Mastering the classpath root, **javac/java** commands, JAR packaging, and class loaders helps diagnose dependency errors more accurately, while building a solid foundation for understanding the differences when using JPMS's **module path**.

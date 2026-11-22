@@ -1,22 +1,22 @@
-# Số âm với phép chia, lấy dư và làm tròn trong Java
+# Negative Numbers with Division, Remainder, and Rounding in Java
 
-## 1. Vì sao số âm là một bài kiểm thử bắt buộc?
+## 1. Why Are Negative Numbers a Mandatory Test Case?
 
-Với số dương, nhiều cách chia và làm tròn vô tình cho kết quả giống nhau. Khi xuất hiện số âm, những khác biệt trước đó trở nên rõ ràng:
+With positive numbers, many ways of dividing and rounding happen to produce the same result. Once negative numbers appear, previously hidden differences become clear:
 
-- Phép chia nguyên `/` trong Java **cắt phần lẻ về 0** (*truncate toward zero*), không làm tròn xuống âm vô cực.
-- Phép dư `%` là **remainder**, không nhất thiết là modulo không âm; nếu khác 0, nó có **cùng dấu với số bị chia**.
-- `Math.floorDiv` và `Math.floorMod` áp dụng phép chia theo hướng **âm vô cực**, giúp tính các chu kỳ với mẫu số dương.
-- Làm tròn `UP`/`DOWN` khác `CEILING`/`FLOOR`. Với số âm, chữ “up” không luôn có nghĩa là “giá trị số học lớn hơn”.
-- `Math.round` và `BigDecimal.setScale(..., HALF_UP)` **không dùng cùng quy tắc khi gặp điểm giữa âm**.
+- Integer division `/` in Java **truncates toward zero**, rather than rounding down toward negative infinity.
+- The remainder operator `%` is **remainder**, not necessarily a non-negative modulo; when nonzero, it has the **same sign as the dividend**.
+- `Math.floorDiv` and `Math.floorMod` apply division toward **negative infinity**, which helps compute periodic cycles with a positive modulus.
+- Rounding `UP`/`DOWN` differs from `CEILING`/`FLOOR`. For negative numbers, the word “up” does not always mean “arithmetically larger”.
+- `Math.round` and `BigDecimal.setScale(..., HALF_UP)` **do not use the same rule at negative midpoints**.
 
-Nếu phần mềm xử lý số dư tài khoản, ngày trước mốc tham chiếu, chỉ số vòng tròn, nhiệt độ âm, tiền hoàn trả, lợi nhuận âm hoặc sai số âm, chọn nhầm phép toán có thể tạo lỗi khó thấy ở bộ test chỉ có đầu vào dương.
+If software handles account balances, dates before a reference epoch, circular indices, negative temperatures, refunds, negative profits, or negative offsets, choosing the wrong operation can introduce bugs that are hard to notice in a test suite with only positive inputs.
 
-Bài này thuộc nhóm **Kiểm thử và chẩn đoán**: ngoài giải thích công thức, mỗi phần chỉ ra cách dựng phản ví dụ, tính kết quả kỳ vọng và kiểm chứng hành vi bằng Java 17+.
+This lesson belongs to **Testing and Diagnostics**: besides explaining formulas, each section shows how to construct counterexamples, compute expected results, and verify behavior in Java 17+.
 
-## 2. Chia nguyên trong Java: cắt phần thập phân về 0
+## 2. Integer Division in Java: Truncation Toward Zero
 
-Toán tử `/` với hai toán hạng kiểu nguyên (`int`, `long` và các kiểu được nâng lên thành `int`) cho **thương nguyên được cắt về 0**. Đối với số âm, đây không phải luôn là giá trị floor.
+The `/` operator with two integral operands (`int`, `long`, and types promoted to `int`) yields an **integer quotient truncated toward zero**. For negative numbers, this is not always the floor value.
 
 ```java
 System.out.println( 7 /  3); //  2
@@ -25,34 +25,34 @@ System.out.println( 7 / -3); // -2
 System.out.println(-7 / -3); //  2
 ```
 
-Ví dụ quan trọng: phép chia thực `-7 / 3 = -2.333...`, nhưng chia nguyên Java nhận `-2`, không phải `-3`.
+Key example: real division `-7 / 3 = -2.333...`, yet Java integer division produces `-2`, not `-3`.
 
-| Biểu thức | Thương thực | `int / int` của Java | `floor(thương thực)` |
+| Expression | Real quotient | Java `int / int` | `floor(real quotient)` |
 | --- | ---: | ---: | ---: |
-| `7 / 3` | khoảng 2.333 | 2 | 2 |
-| `-7 / 3` | khoảng -2.333 | -2 | -3 |
-| `7 / -3` | khoảng -2.333 | -2 | -3 |
-| `-7 / -3` | khoảng 2.333 | 2 | 2 |
+| `7 / 3` | approx. 2.333 | 2 | 2 |
+| `-7 / 3` | approx. -2.333 | -2 | -3 |
+| `7 / -3` | approx. -2.333 | -2 | -3 |
+| `-7 / -3` | approx. 2.333 | 2 | 2 |
 
-Vì toán tử có các overload theo kiểu dữ liệu, `-7 / 3` và `-7.0 / 3` cũng không tương đương:
+Because operators have overloads by data type, `-7 / 3` and `-7.0 / 3` are also not equivalent:
 
 ```java
 System.out.println(-7 / 3);     // -2
 System.out.println(-7.0 / 3);   // -2.3333333333333335
 ```
 
-Câu hỏi chẩn đoán đầu tiên là: **Các toán hạng là số nguyên hay số dấu phẩy động?** Nếu phải có thương thực, dùng kiểu hoặc phương pháp số học phù hợp và đừng vô tình chia nguyên trước khi ép kiểu.
+The first diagnostic question is: **Are the operands integers or floating-point numbers?** If a real quotient is required, use the appropriate numeric type or arithmetic method and do not accidentally perform integer division before casting.
 
-## 3. Toán tử % là remainder, không phải modulo không âm
+## 3. The `%` Operator Is Remainder, Not Non-Negative Modulo
 
-Với toán hạng nguyên thông thường và mẫu số khác 0, Java xác định `q = a / b` bằng cách cắt thương về 0, sau đó:
+For ordinary integer operands and a nonzero denominator, Java determines `q = a / b` by truncating the quotient toward 0, then:
 
 ```text
 r = a - q * b
 a = q * b + r
 ```
 
-Toán tử `a % b` trả `r`. Khi `r != 0`, dấu của `r` giống dấu của **`a` (số bị chia)**, không phải dấu của `b`.
+The `a % b` operator returns `r`. When `r != 0`, the sign of `r` matches the sign of **`a` (the dividend)**, not the sign of `b`.
 
 ```java
 System.out.println( 7 %  3); //  1
@@ -61,7 +61,7 @@ System.out.println( 7 % -3); //  1
 System.out.println(-7 % -3); // -1
 ```
 
-Kiểm tra đẳng thức với `a = -7`, `b = 3`:
+Checking the identity with `a = -7`, `b = 3`:
 
 ```text
 q = -7 / 3 = -2
@@ -69,21 +69,21 @@ r = -7 % 3 = -1
 q*b + r = (-2)*3 + (-1) = -7
 ```
 
-Trong nhiều tài liệu toán học, **modulo với modulus dương** lại được quy ước nằm trong `[0, m)`. Do đó `-7 mod 3` thường được viết là `2`; Java `-7 % 3` lại là `-1`. Hai phép toán phục vụ các quy ước chia khác nhau.
+In many mathematical texts, **modulo with a positive modulus** is conventionally defined in `[0, m)`. Thus `-7 mod 3` is often written as `2`; Java's `-7 % 3` is `-1`. The two operations serve different division conventions.
 
-Điều này làm xuất hiện bug phổ biến:
+This causes a common bug:
 
 ```java
 int size = 5;
 int previous = -1;
-int index = previous % size; // -1, không thể dùng làm index!
+int index = previous % size; // -1, cannot be used as an index!
 ```
 
-Nếu nghiệp vụ cần một chỉ số vòng trong `[0, size)`, không dùng `%` một cách trực tiếp khi `previous` có thể âm. Dùng `Math.floorMod(previous, size)` sau khi kiểm tra `size > 0`.
+If business logic needs a circular index in `[0, size)`, do not use `%` directly when `previous` can be negative. Use `Math.floorMod(previous, size)` after checking `size > 0`.
 
-## 4. Math.floorDiv và Math.floorMod: chia làm tròn xuống
+## 4. `Math.floorDiv` and `Math.floorMod`: Floor Division
 
-Java cung cấp `Math.floorDiv(int, int)` / `Math.floorDiv(long, long)` và `Math.floorMod(...)`. Chúng dùng **thương lấy floor** thay cho thương cắt về 0.
+Java provides `Math.floorDiv(int, int)` / `Math.floorDiv(long, long)` and `Math.floorMod(...)`. They use the **floored quotient** instead of the quotient truncated toward zero.
 
 ```java
 System.out.println(Math.floorDiv(-7, 3));  // -3
@@ -94,13 +94,13 @@ System.out.println(Math.floorDiv(-7, -3)); //  2
 System.out.println(Math.floorMod(-7, -3)); // -1
 ```
 
-Các giá trị thoả hệ thức:
+The values satisfy the identity:
 
 ```text
 a = floorDiv(a,b) * b + floorMod(a,b)
 ```
 
-với lưu ý riêng cho trường hợp tràn số nguyên ở phép chia `MIN_VALUE / -1` sẽ được bàn ở phần 10.
+with a special note for integer overflow in `MIN_VALUE / -1` discussed in section 10.
 
 | `a` | `b` | `a / b` | `a % b` | `floorDiv(a,b)` | `floorMod(a,b)` |
 | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -110,9 +110,9 @@ với lưu ý riêng cho trường hợp tràn số nguyên ở phép chia `MIN_
 | -7 | -3 | 2 | -1 | 2 | -1 |
 | -6 | 3 | -2 | 0 | -2 | 0 |
 
-**Với `b > 0`, `floorMod(a,b)` luôn nằm trong `[0,b)`.** Khi `b < 0`, kết quả khác 0 có dấu của `b`, tức có thể âm. Bởi vậy, nếu cần modulo **không âm**, phải bảo đảm modulus **dương**, không chỉ thay `%` bằng `floorMod` rồi bỏ qua validation.
+**For `b > 0`, `floorMod(a,b)` is always in `[0,b)`.** When `b < 0`, a nonzero result has the sign of `b`, meaning it can be negative. Therefore, if you need a **non-negative** modulo, you must ensure the modulus is **positive**, rather than merely replacing `%` with `floorMod` and skipping validation.
 
-### Tình huống 1: chỉ số tuần hoàn
+### Scenario 1: Circular Indexing
 
 ```java
 int numberOfSlots = 7;
@@ -120,11 +120,11 @@ int previousSlot = Math.floorMod(-1, numberOfSlots);
 System.out.println(previousSlot); // 6
 ```
 
-`-1` có thể biểu thị bước lùi một vị trí trước chỉ số 0. Kết quả 6 hợp lệ trong một mảng độ dài 7.
+`-1` can represent stepping backward one position before index 0. The result 6 is valid in an array of length 7.
 
-### Tình huống 2: chia thành các khoảng thời gian
+### Scenario 2: Partitioning into Time Intervals
 
-Giả sử tính offset mili giây tương đối với một mốc, âm nghĩa là thời điểm trước mốc. Với mỗi đoạn dài `1_000 ms`:
+Suppose you compute a millisecond offset relative to an epoch, where negative means before the epoch. With each bucket having length `1_000 ms`:
 
 ```java
 long offsetMillis = -1L;
@@ -135,20 +135,20 @@ System.out.println(bucket);       // -1
 System.out.println(withinBucket); // 999
 ```
 
-Đây là ví dụ về cách phân ô thời gian: offset `-1 ms` nằm ở ô thời gian `-1` và vị trí `999 ms` bên trong ô đó. Nếu dùng `/` và `%`, sẽ ra bucket 0 và vị trí -1, không theo quy ước chia thành các khoảng `[k*1000, (k+1)*1000)`.
+This is an example of time bucketing: an offset of `-1 ms` falls in time bucket `-1` at position `999 ms` inside that bucket. Using `/` and `%` would give bucket 0 and position -1, violating the convention of partitioning into `[k*1000, (k+1)*1000)`.
 
-## 5. Phân biệt bốn hướng làm tròn với số âm
+## 5. Distinguishing Four Rounding Directions with Negative Numbers
 
-`java.math.RoundingMode` định nghĩa các chính sách áp dụng cho `BigDecimal`. Những tên dễ gây hiểu nhầm nhất là:
+`java.math.RoundingMode` defines policies applied to `BigDecimal`. The most easily misunderstood names are:
 
-| Mode | Quy tắc | Ví dụ làm tròn `-1.26` thành 1 chữ số sau dấu phẩy |
+| Mode | Rule | Example rounding `-1.26` to 1 decimal place |
 | --- | --- | --- |
-| `DOWN` | Hướng **về 0**: bỏ chữ số lẻ vượt scale | `-1.2` |
-| `UP` | Hướng **ra xa 0** nếu có phần bị bỏ khác 0 | `-1.3` |
-| `CEILING` | Hướng về **dương vô cực** | `-1.2` |
-| `FLOOR` | Hướng về **âm vô cực** | `-1.3` |
+| `DOWN` | **Toward 0**: discard digits beyond scale | `-1.2` |
+| `UP` | **Away from 0** if discarded part is nonzero | `-1.3` |
+| `CEILING` | Toward **positive infinity** | `-1.2` |
+| `FLOOR` | Toward **negative infinity** | `-1.3` |
 
-Với số dương `1.26`, `UP` và `CEILING` cùng thành `1.3`; `DOWN` và `FLOOR` cùng thành `1.2`. **Với số âm, hai cặp này tách ra**. Đây là lý do cần test số dương và số âm khi viết chung một hàm rounding.
+For the positive number `1.26`, `UP` and `CEILING` both give `1.3`; `DOWN` and `FLOOR` both give `1.2`. **For negative numbers, these two pairs split**. This is why you must test both positive and negative numbers when writing a shared rounding function.
 
 ```java
 BigDecimal x = new BigDecimal("-1.26");
@@ -158,15 +158,15 @@ System.out.println(x.setScale(1, RoundingMode.CEILING)); // -1.2
 System.out.println(x.setScale(1, RoundingMode.FLOOR));   // -1.3
 ```
 
-Các đoạn mã rời về `BigDecimal` trong bài cần `import java.math.BigDecimal;` và `import java.math.RoundingMode;`; chúng minh họa lệnh trong thân phương thức. Phần 11 có lớp Java đầy đủ, biên dịch và chạy độc lập.
+Standalone `BigDecimal` snippets in this lesson require `import java.math.BigDecimal;` and `import java.math.RoundingMode;`; they illustrate statements inside a method body. Section 11 provides a complete Java class that compiles and runs standalone.
 
-### Các chế độ HALF có quy tắc riêng khi đúng điểm giữa
+### HALF Modes Have Specific Rules at Exact Midpoints
 
-Với `-1.25` làm tròn còn 1 chữ số sau dấu phẩy, hai kết quả gần nhất là `-1.2` và `-1.3`. Giá trị gốc nằm chính giữa:
+For `-1.25` rounded to 1 decimal place, the two nearest results are `-1.2` and `-1.3`. The original value lies squarely at the midpoint:
 
-- `HALF_UP`: khi đúng điểm giữa, chọn **xa 0** → `-1.3`.
-- `HALF_DOWN`: khi đúng điểm giữa, chọn **gần 0** → `-1.2`.
-- `HALF_EVEN`: khi đúng điểm giữa, chọn chữ số còn giữ ở vị trí cuối là số **chẵn** → `-1.2` (chữ số 2 chẵn).
+- `HALF_UP`: at an exact midpoint, choose **away from 0** → `-1.3`.
+- `HALF_DOWN`: at an exact midpoint, choose **toward 0** → `-1.2`.
+- `HALF_EVEN`: at an exact midpoint, choose the kept digit in the last place to be **even** → `-1.2` (digit 2 is even).
 
 ```java
 BigDecimal x = new BigDecimal("-1.25");
@@ -175,19 +175,19 @@ System.out.println(x.setScale(1, RoundingMode.HALF_DOWN)); // -1.2
 System.out.println(x.setScale(1, RoundingMode.HALF_EVEN)); // -1.2
 ```
 
-Đừng diễn giải `HALF_UP` là “đi về dương vô cực ở điểm .5”. Trong `BigDecimal`, với số âm, `HALF_UP` ở điểm giữa **đi ra xa 0**. Nếu bài toán thuế, phí hoặc hoàn tiền có yêu cầu làm tròn, chính sách phải được mô tả bằng tên mode và ranh giới áp dụng, thay vì chỉ viết “làm tròn lên”.
+Do not interpret `HALF_UP` as “go toward positive infinity at .5”. In `BigDecimal`, for negative numbers, `HALF_UP` at a midpoint **goes away from 0**. If a tax, fee, or refund requirement involves rounding, the policy must be specified by mode name and boundary of application, rather than simply writing “round up”.
 
-## 6. Math.round, floor, ceil, rint: khác rounding của BigDecimal
+## 6. `Math.round`, `floor`, `ceil`, `rint`: Different from `BigDecimal` Rounding
 
-`java.lang.Math` cung cấp các phép toán trên `float`/`double`:
+`java.lang.Math` provides operations on `float`/`double`:
 
-- `Math.floor(x)`: số nguyên lớn nhất **không lớn hơn** `x`, trả về `double`.
-- `Math.ceil(x)`: số nguyên nhỏ nhất **không nhỏ hơn** `x`, trả về `double`.
-- `Math.round(double)`: trả về `long`, chọn giá trị nguyên gần nhất; điểm đúng giữa được làm tròn về **dương vô cực** (tương ứng quy tắc `floor(x + 0.5)` cho các đầu vào hữu hạn thông thường).
-- `Math.round(float)`: tương tự, nhưng trả `int`.
-- `Math.rint(x)`: trả về `double` nguyên theo nghĩa số học; ở điểm giữa chọn số nguyên **chẵn**.
+- `Math.floor(x)`: largest integer **not greater than** `x`, returned as `double`.
+- `Math.ceil(x)`: smallest integer **not less than** `x`, returned as `double`.
+- `Math.round(double)`: returns `long`, choosing the nearest integer; exact midpoints round toward **positive infinity** (corresponding to `floor(x + 0.5)` for ordinary finite inputs).
+- `Math.round(float)`: similar, but returns `int`.
+- `Math.rint(x)`: returns an integral `double` in the mathematical sense; at exact midpoints chooses the **even** integer.
 
-Thử các giá trị âm:
+Testing negative values:
 
 ```java
 System.out.println(Math.floor(-1.5)); // -2.0
@@ -198,7 +198,7 @@ System.out.println(Math.rint(-1.5));  // -2.0
 System.out.println(Math.rint(-2.5));  // -2.0
 ```
 
-Vì `Math.round(-1.5)` cho `-1`, nó **khác** `BigDecimal("-1.5").setScale(0, HALF_UP)` cho `-2`:
+Because `Math.round(-1.5)` gives `-1`, it **differs** from `BigDecimal("-1.5").setScale(0, HALF_UP)` which gives `-2`:
 
 ```java
 System.out.println(Math.round(-1.5)); // -1
@@ -206,26 +206,26 @@ System.out.println(new BigDecimal("-1.5")
         .setScale(0, RoundingMode.HALF_UP)); // -2
 ```
 
-Lưu ý: `Math.round` trên các giá trị `NaN` và ±`Infinity` có xử lý đặc biệt, không phải phép chuyển chính xác tùy ý; số dấu phẩy động cũng có thể chứa `-0.0`. Đừng tự xây hợp đồng cho dữ liệu nhạy cảm bằng một câu “round to nearest” thiếu giải thích điểm giữa, kiểu trả về, miền và đầu vào đặc biệt.
+Note: `Math.round` on `NaN` and ±`Infinity` has special handling and is not an arbitrary exact conversion; floating-point numbers can also hold `-0.0`. Do not define a contract for sensitive data with a bare phrase like “round to nearest” without specifying midpoint rules, return type, range, and special inputs.
 
-### Quy tắc chọn API
+### API Selection Rules
 
-- Muốn **chia chỉ số/bucket** với bội số nguyên và số âm: `floorDiv`/`floorMod`.
-- Muốn **làm tròn một giá trị double** tới số nguyên với quy tắc Java của `round`: `Math.round`.
-- Muốn **chính sách decimal explicit** về scale và rounding: `BigDecimal.setScale(scale, mode)`.
-- Muốn **định dạng đầu ra** có số chữ số sau dấu chấm: tính và làm tròn theo chính sách trước, sau đó dùng `toPlainString()` hoặc formatter theo locale.
+- Want to **compute index/bucket division** with integer multiples and negative numbers: `floorDiv`/`floorMod`.
+- Want to **round a double value** to an integer using Java's `round` rule: `Math.round`.
+- Want an **explicit decimal policy** for scale and rounding: `BigDecimal.setScale(scale, mode)`.
+- Want to **format output** with a fixed number of decimal places: compute and round according to the policy first, then use `toPlainString()` or a locale-aware formatter.
 
-## 7. Chia và lấy dư với BigDecimal
+## 7. Division and Remainder with `BigDecimal`
 
-`BigDecimal` không dùng toán tử `/` hay `%`. Nó cung cấp các phương thức có hợp đồng riêng:
+`BigDecimal` does not use `/` or `%` operators. It provides methods with their own contracts:
 
-| Phương thức | Ý nghĩa |
+| Method | Meaning |
 | --- | --- |
-| `divide(divisor)` | Chia **chính xác** nếu có biểu diễn thập phân hữu hạn; nếu kết quả vô hạn như 1/3, có thể ném `ArithmeticException`. |
-| `divide(divisor, scale, roundingMode)` | Chia và trả kết quả có scale yêu cầu, áp dụng mode khi cần. |
-| `divideToIntegralValue(divisor)` | Lấy **phần nguyên của thương theo hướng về 0**, không phải floor với số âm. |
-| `remainder(divisor)` | Lấy remainder theo thương nguyên cắt về 0; khác modulo không âm. |
-| `divideAndRemainder(divisor)` | Trả về mảng gồm thương nguyên và remainder theo cùng quy ước. |
+| `divide(divisor)` | **Exact** division if a finite decimal representation exists; if non-terminating like 1/3, may throw `ArithmeticException`. |
+| `divide(divisor, scale, roundingMode)` | Divides and returns a result with the requested scale, applying the mode when needed. |
+| `divideToIntegralValue(divisor)` | Takes the **integer part of the quotient toward 0**, not floor for negative numbers. |
+| `remainder(divisor)` | Computes remainder using the quotient truncated toward 0; differs from non-negative modulo. |
+| `divideAndRemainder(divisor)` | Returns an array containing the integral quotient and remainder under the same convention. |
 
 ```java
 BigDecimal a = new BigDecimal("-7");
@@ -236,9 +236,9 @@ System.out.println(a.remainder(b));             // -1
 System.out.println(a.divide(b, 2, RoundingMode.HALF_UP)); // -2.33
 ```
 
-Với `BigDecimal.divideToIntegralValue`, cách biểu diễn `scale` của thương có thể phụ thuộc đầu vào và phép toán; hãy xét trị số và hợp đồng biểu diễn riêng. Phép `remainder` với số bị chia âm có thể trả giá trị âm, bởi nó **không giống `Math.floorMod`**.
+With `BigDecimal.divideToIntegralValue`, the quotient's `scale` representation can depend on the inputs and operation; examine numerical value and representation contracts separately. Calling `remainder` with a negative dividend can return a negative value, because it is **not the same as `Math.floorMod`**.
 
-Nếu một ứng dụng thực sự yêu cầu **modulo không âm trên decimal với modulus dương**, có thể chuẩn hóa remainder:
+If an application truly requires **non-negative modulo on decimals with a positive modulus**, you can normalize the remainder:
 
 ```java
 static BigDecimal positiveModulo(BigDecimal value, BigDecimal modulus) {
@@ -250,11 +250,11 @@ static BigDecimal positiveModulo(BigDecimal value, BigDecimal modulus) {
 }
 ```
 
-Đây là **phương thức minh họa**, cần đặt trong một lớp Java. Ví dụ `positiveModulo(new BigDecimal("-7.5"), new BigDecimal("3"))` cho `1.5`. Không cần `Math.floorMod` vì API đó chỉ nhận số nguyên primitive.
+This is an **illustrative method**, to be placed in a Java class. For example, `positiveModulo(new BigDecimal("-7.5"), new BigDecimal("3"))` gives `1.5`. `Math.floorMod` is not applicable because that API accepts only primitive integers.
 
-### Chia BigDecimal cũng có thể mất chính xác theo rounding mode
+### `BigDecimal` Division Can Also Lose Precision According to Rounding Mode
 
-`-7 / 3` có decimal vô hạn. Phép:
+`-7 / 3` is a non-terminating decimal. The operation:
 
 ```java
 BigDecimal q = new BigDecimal("-7")
@@ -262,48 +262,48 @@ BigDecimal q = new BigDecimal("-7")
 System.out.println(q); // -2.33
 ```
 
-được làm tròn hai chữ số sau dấu chấm. Đây là **làm tròn có chủ đích**, không phải đồng nghĩa với chia nguyên `-7 / 3 = -2`. Nếu không được phép bỏ chữ số, `RoundingMode.UNNECESSARY` giúp phát hiện giá trị không thể biểu diễn ở scale được yêu cầu bằng cách ném `ArithmeticException`.
+is rounded to two decimal places. This is **intentional rounding**, not equivalent to integer division `-7 / 3 = -2`. If dropping digits is not allowed, `RoundingMode.UNNECESSARY` helps detect values not representable at the requested scale by throwing `ArithmeticException`.
 
-Với `BigDecimal`, không sử dụng `new BigDecimal(0.1)` nếu mong chính xác decimal `0.1`; tạo từ chuỗi hoặc nguồn decimal chính xác. Dù dữ liệu gốc âm hay dương, sai số `double` đầu vào không được tự sửa nhờ một lần `setScale`.
+With `BigDecimal`, do not use `new BigDecimal(0.1)` if you expect exact decimal `0.1`; construct from a string or an exact decimal source. Whether the original data is negative or positive, an input `double` error is not automatically repaired by a subsequent `setScale`.
 
-## 8. Quy tắc làm tròn âm trong nghiệp vụ
+## 8. Negative Rounding Rules in Business Logic
 
-Không có một chính sách rounding đúng cho mọi bài toán. Hãy xác định:
+There is no single rounding policy right for every problem. You must clarify:
 
-1. **Tọa độ/giá trị mang dấu có ý nghĩa gì?** Số dư âm, độ dịch chuyển, hoàn tiền, nợ, sai lệch hay số ngày trước mốc?
-2. **Muốn chia phân đoạn theo trục số nào?** Nếu bucket `[kL, (k+1)L)`, dùng `floorDiv`; nếu loại bỏ phần lẻ của chỉ số về 0, dùng `/`.
-3. **Muốn remainder giữ dấu số bị chia hay thuộc khoảng không âm?** `%` và `floorMod` không giống nhau với đầu vào âm.
-4. **Rounding theo hướng nào?** Hướng về 0 (`DOWN`), xa 0 (`UP`), dương vô cực (`CEILING`), âm vô cực (`FLOOR`), hay gần nhất kèm quy tắc điểm giữa?
-5. **Làm tròn ở ranh giới nào?** Từng dòng, từng giao dịch, tổng cuối hoặc chỉ lúc xuất dữ liệu?
-6. **Độ chính xác nào phải được giữ?** Decimal chính xác, đo lường gần đúng hay floating-point theo chuẩn số học?
+1. **What does a signed coordinate/value mean?** Negative balance, displacement, refund, debt, error offset, or days before an epoch?
+2. **How do you want to partition the number line?** For `[kL, (k+1)L)` buckets, use `floorDiv`; to drop the fractional part of an index toward 0, use `/`.
+3. **Should the remainder keep the dividend's sign or lie in a non-negative range?** `%` and `floorMod` differ for negative inputs.
+4. **Which rounding direction?** Toward 0 (`DOWN`), away from 0 (`UP`), positive infinity (`CEILING`), negative infinity (`FLOOR`), or nearest with a midpoint rule?
+5. **At which boundary is rounding applied?** Per line item, per transaction, final total, or only when formatting output?
+6. **What precision must be preserved?** Exact decimal, approximate measurement, or floating-point arithmetic per standard?
 
-Ví dụ: giá trị hoàn tiền `-1.25` được làm tròn về một chữ số. Nếu quy định “làm tròn gần nhất, điểm giữa ra xa 0”, `HALF_UP` cho `-1.3`; nếu quy định “làm tròn gần nhất, điểm giữa lấy số chẵn”, `HALF_EVEN` cho `-1.2`. Chênh lệch `0.1` có thể mang ý nghĩa kế toán. Không diễn giải từ tên “HALF_UP” mà bỏ kiểm tra thực tế với âm.
+For example: a refund amount of `-1.25` rounded to one decimal place. If the rule is “round to nearest, midpoint away from 0”, `HALF_UP` yields `-1.3`; if the rule is “round to nearest, midpoint to even”, `HALF_EVEN` yields `-1.2`. A difference of `0.1` can have accounting significance. Do not guess from the name “HALF_UP” and skip testing actual negative cases.
 
-Đối với số tiền, scale cuối và mode cần được quy định theo loại tiền, luật hoặc hợp đồng nghiệp vụ. Không tự giả định hai chữ số thập phân áp dụng được cho mọi currency. Với đo đạc, rounding hiển thị không làm giảm sai số vật lý của phép đo.
+For monetary amounts, the final scale and mode must be specified by currency, regulation, or business contract. Do not assume two decimal places apply to every currency. For measurements, display rounding does not reduce the physical error of the measurement.
 
-## 9. Những lỗi dễ bị che giấu bởi test chỉ có số dương
+## 9. Bugs Easily Hidden by Positive-Only Tests
 
-### Lỗi A — Chỉ số vòng bị âm
+### Bug A — Negative Circular Index
 
 ```java
 int size = 5;
 int result = -1 % size; // -1
-// access array[result] có thể ném ArrayIndexOutOfBoundsException
+// accessing array[result] may throw ArrayIndexOutOfBoundsException
 int fixed = Math.floorMod(-1, size); // 4
 ```
 
-**Test cần có:** `-1`, `-size`, `-size-1`, `0`, `size-1`, `size` và `size+1`, đồng thời validate `size > 0`.
+**Required tests:** `-1`, `-size`, `-size-1`, `0`, `size-1`, `size`, and `size+1`, while also validating `size > 0`.
 
-### Lỗi B — Dùng / thay floorDiv cho thời điểm trước epoch
+### Bug B — Using `/` Instead of `floorDiv` for Pre-Epoch Times
 
 ```java
 System.out.println(-1 / 1000);                 // 0
 System.out.println(Math.floorDiv(-1, 1000));   // -1
 ```
 
-Nếu code phân chia thành các bucket 1000 đơn vị bắt đầu ở mốc 0, bucket của `-1` phải là `-1` chứ không phải bucket 0. Với ngày/giờ thực tế, ưu tiên `java.time` khi nghiệp vụ có múi giờ, lịch và quy tắc DST; ví dụ ở đây chỉ nói về phân đoạn số học.
+If code partitions into 1000-unit buckets starting at 0, the bucket for `-1` should be `-1` rather than bucket 0. For real-world dates/times, prefer `java.time` when business logic involves time zones, calendars, and DST rules; the example here addresses only arithmetic partitioning.
 
-### Lỗi C — Nhầm HALF_UP với Math.round
+### Bug C — Confusing `HALF_UP` with `Math.round`
 
 ```java
 System.out.println(Math.round(-1.5)); // -1
@@ -311,31 +311,31 @@ System.out.println(new BigDecimal("-1.5")
         .setScale(0, RoundingMode.HALF_UP)); // -2
 ```
 
-Chúng khác nhau ở điểm giữa âm. Đọc yêu cầu thực sự thay vì tự thay API với niềm tin rằng hai lời gọi “làm tròn” tương đương.
+They differ at negative midpoints. Read the actual requirement instead of swapping APIs under the belief that two “rounding” calls are equivalent.
 
-### Lỗi D — Tái sử dụng modulus âm
+### Bug D — Reusing a Negative Modulus
 
 ```java
 System.out.println(Math.floorMod(-7, 3));  //  2
 System.out.println(Math.floorMod(-7, -3)); // -1
 ```
 
-Nếu đích là chỉ số từ 0 đến `size - 1`, phải kiểm tra `size > 0`. Một phép `floorMod` đúng về mặt Java có thể vẫn sai về miền nghiệp vụ khi modulus âm.
+If the target is an index from 0 to `size - 1`, you must check `size > 0`. A `floorMod` call that is valid in Java can still violate the business domain when the modulus is negative.
 
-### Lỗi E — Dấu âm biến mất sau làm tròn về 0
+### Bug E — Negative Sign Disappears After Rounding to 0
 
 ```java
 BigDecimal small = new BigDecimal("-0.004");
 System.out.println(small.setScale(2, RoundingMode.HALF_UP)); // 0.00
 ```
 
-Đó là giá trị số học 0 theo scale 2, không phải chứng minh đầu vào đã dương. Nếu nghiệp vụ cần giữ **dấu gốc** hoặc phân biệt “âm nhưng bị làm tròn về 0”, phải lưu thông tin đó riêng; `BigDecimal` không lưu số 0 âm như một giá trị có dấu riêng. Ngược lại, `double` có `-0.0` theo IEEE 754 nên logic so sánh và serialize cần được thiết kế rõ nếu phụ thuộc dấu của zero.
+That is numerical value 0 at scale 2, not proof that the input was positive. If business logic needs to preserve the **original sign** or distinguish “negative but rounded to 0”, store that information separately; `BigDecimal` does not store negative zero as a distinct signed value. Conversely, `double` has `-0.0` under IEEE 754, so comparison and serialization logic must be explicitly designed if dependent on zero's sign.
 
-## 10. Những cạnh nguy hiểm: chia 0, overflow, MIN_VALUE và floating-point
+## 10. Dangerous Edges: Division by 0, Overflow, `MIN_VALUE`, and Floating-Point
 
-### 10.1. Phép chia nguyên cho 0
+### 10.1. Integer Division by 0
 
-`int` và `long` chia hoặc lấy dư cho 0 đều ném `ArithmeticException` khi chạy:
+Dividing or taking the remainder by 0 on `int` and `long` both throw `ArithmeticException` at runtime:
 
 ```java
 int zero = 0;
@@ -343,11 +343,11 @@ int zero = 0;
 // System.out.println(7 % zero); // ArithmeticException: / by zero
 ```
 
-`Math.floorDiv` và `Math.floorMod` cũng không nhận divisor 0. Hãy validate trước khi chia, đặc biệt khi modulus là kích thước collection hoặc độ dài bucket do người dùng cung cấp.
+`Math.floorDiv` and `Math.floorMod` also do not accept a 0 divisor. Validate before dividing, especially when the modulus is a collection size or user-supplied bucket length.
 
-### 10.2. Trường hợp Integer.MIN_VALUE / -1
+### 10.2. The `Integer.MIN_VALUE / -1` Case
 
-`Integer.MIN_VALUE` là `-2147483648`. Giá trị toán học của thương khi chia `-1` là `2147483648`, vượt miền `int`. Trong Java, phép chia nguyên đặc biệt này **không ném exception**; nó trả lại `Integer.MIN_VALUE` vì overflow. `Math.floorDiv` không tự sửa được giới hạn kiểu:
+`Integer.MIN_VALUE` is `-2147483648`. The mathematical quotient when dividing by `-1` is `2147483648`, which exceeds the `int` range. In Java, this special integer division **does not throw an exception**; it returns `Integer.MIN_VALUE` due to overflow. `Math.floorDiv` does not automatically fix type bounds:
 
 ```java
 int min = Integer.MIN_VALUE;
@@ -357,18 +357,18 @@ System.out.println(Math.floorDiv(min, -1)); // -2147483648
 System.out.println(Math.floorMod(min, -1)); // 0
 ```
 
-Nếu cần thương toán học chính xác, **mở rộng kiểu trước khi chia**:
+If you need the exact mathematical quotient, **widen the type before dividing**:
 
 ```java
 long exact = (long) Integer.MIN_VALUE / -1L;
 System.out.println(exact); // 2147483648
 ```
 
-Với `Long.MIN_VALUE / -1L`, ngay cả `long` cũng không chứa thương; cân nhắc `BigInteger` hoặc kiểm tra overflow tường minh. Đừng vô tình gọi `Math.abs(Integer.MIN_VALUE)` để làm modulus dương: giá trị trả về vẫn âm vì trị tuyệt đối toán học vượt miền `int`.
+With `Long.MIN_VALUE / -1L`, even `long` cannot hold the quotient; consider `BigInteger` or an explicit overflow check. Do not accidentally call `Math.abs(Integer.MIN_VALUE)` to make a modulus positive: the returned value remains negative because the mathematical absolute value exceeds the `int` range.
 
-### 10.3. Floating-point / và % không giống integer
+### 10.3. Floating-Point `/` and `%` Are Not Like Integers
 
-`double` chia 0 không dùng cùng quy tắc ngoại lệ như số nguyên: theo IEEE 754, `1.0 / 0.0` là dương vô cực, còn `0.0 / 0.0` là `NaN`. Phép `%` với toán hạng floating point theo quy tắc remainder kiểu Java, không phải `Math.floorMod`, và không phải toán tử `Math.IEEEremainder`:
+`double` division by 0 does not follow the same exception rule as integers: under IEEE 754, `1.0 / 0.0` is positive infinity, while `0.0 / 0.0` is `NaN`. The `%` operator with floating-point operands follows Java's remainder rule, not `Math.floorMod`, and not `Math.IEEEremainder`:
 
 ```java
 System.out.println(-7.5 % 3.0); // -1.5
@@ -376,11 +376,11 @@ System.out.println(1.0 / 0.0);  // Infinity
 System.out.println(0.0 / 0.0);  // NaN
 ```
 
-Trong xử lý số học thực tế, phải nêu rõ việc cho phép `NaN`/vô cực, quy tắc chuyển về decimal, cũng như sai số nhị phân của các giá trị không biểu diễn chính xác bằng `double`. Không tạo modulo không âm cho số thực bằng cách ép `(int) (a % b)` tùy tiện: conversion làm mất phần lẻ và có thể sai hoàn toàn với miền lớn.
+In real numeric processing, explicitly specify whether `NaN`/infinity is allowed, rules for converting to decimal, and binary representation errors for values not exact in `double`. Do not create a non-negative modulo for floating-point numbers by arbitrarily casting `(int) (a % b)`: conversion drops the fractional part and can be completely wrong for large ranges.
 
-## 11. Ví dụ Java 17+ hoàn chỉnh với stdout xác định
+## 11. Complete Java 17+ Example with Deterministic Stdout
 
-Lưu chương trình sau vào **`NegativeArithmeticDemo.java`**. Nó không phụ thuộc locale và chỉ in các kết quả dự đoán được.
+Save the following program into **`NegativeArithmeticDemo.java`**. It is locale-independent and prints only predictable results.
 
 ```java
 import java.math.BigDecimal;
@@ -454,14 +454,14 @@ public class NegativeArithmeticDemo {
 }
 ```
 
-Chạy bằng JDK 17 trở lên, trong thư mục chứa file:
+Run with JDK 17 or later, in the directory containing the file:
 
 ```bash
 javac NegativeArithmeticDemo.java
 java NegativeArithmeticDemo
 ```
 
-Đầu ra kỳ vọng:
+Expected output:
 
 ```text
 -7 / 3 = -2
@@ -494,24 +494,24 @@ MIN / -1 = -2147483648
 wide MIN / -1 = 2147483648
 ```
 
-Cần quan sát bốn nhóm kết quả:
+Observe four groups of results:
 
-1. `/` và `%` theo quy tắc **truncation toward zero**, nên `-7 / 3 = -2` và `-7 % 3 = -1`.
-2. `floorDiv` và `floorMod` cùng dùng thương floor, nên `-7` chia theo ô kích thước 3 thành thương `-3` và phần dư `2`.
-3. `Math.round(-1.5)` trả `-1` còn `HALF_UP` decimal ở điểm giữa âm làm tròn ra xa 0 thành `-2` nếu scale 0; chương trình thể hiện sự khác biệt tương ứng ở scale 1 cho `-1.25`.
-4. `Integer.MIN_VALUE / -1` không ném exception dù thương toán học vượt kiểu `int`; nới rộng kiểu trước khi chia để nhận thương chính xác.
+1. `/` and `%` follow **truncation toward zero**, so `-7 / 3 = -2` and `-7 % 3 = -1`.
+2. `floorDiv` and `floorMod` both use the floored quotient, so `-7` divided into buckets of size 3 gives quotient `-3` and remainder `2`.
+3. `Math.round(-1.5)` returns `-1` while decimal `HALF_UP` at a negative midpoint rounds away from 0 to `-2` at scale 0; the program shows the corresponding difference at scale 1 for `-1.25`.
+4. `Integer.MIN_VALUE / -1` does not throw an exception even though the mathematical quotient exceeds `int`; widen the type before dividing to get the exact quotient.
 
-## 12. Viết test chẩn đoán theo bất biến thay vì kiểm tra vài ví dụ
+## 12. Writing Diagnostic Property Tests Instead of Checking Just a Few Examples
 
-Ngoài test đầu ra cố định, có thể viết các kiểm tra **bất biến** cho hàng loạt cặp số:
+Beyond fixed-output tests, you can write **invariant** checks across many pairs of numbers:
 
-- Với `b != 0` và tránh trường hợp overflow phép chia đặc biệt, `a == (a / b) * b + (a % b)`.
-- Với `b > 0`, `Math.floorMod(a, b)` luôn thỏa `0 <= r < b`.
-- Với `b > 0` và `a < 0` không chia hết `b`, thương floor nhỏ hơn thương trunc đúng 1.
-- Với `BigDecimal`, kiểm tra `divideToIntegralValue` và `remainder` tái tạo đúng `a` về **trị số**, dùng `compareTo() == 0` thay vì `equals()` nếu scale có thể khác.
-- Với `RoundingMode`, so sánh âm và dương tại các điểm `±1.25`, `±1.26`, và quanh 0.
+- For `b != 0` and avoiding the special division overflow case, `a == (a / b) * b + (a % b)`.
+- For `b > 0`, `Math.floorMod(a, b)` always satisfies `0 <= r < b`.
+- For `b > 0` and `a < 0` not divisible by `b`, the floor quotient is 1 less than the truncated quotient.
+- For `BigDecimal`, verify that `divideToIntegralValue` and `remainder` reconstruct `a` in **numerical value**, using `compareTo() == 0` instead of `equals()` if scales may differ.
+- For `RoundingMode`, compare negative and positive inputs at `±1.25`, `±1.26`, and around 0.
 
-Một bộ test không cần thư viện ngoài, chạy độc lập dưới tên **`SignedDivisionChecks.java`**:
+A standalone test suite requiring no external libraries, named **`SignedDivisionChecks.java`**:
 
 ```java
 public class SignedDivisionChecks {
@@ -558,121 +558,121 @@ public class SignedDivisionChecks {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac SignedDivisionChecks.java
 java SignedDivisionChecks
 ```
 
-Đầu ra:
+Output:
 
 ```text
 checked cases = 574
 all properties passed
 ```
 
-Tại đây có 41 giá trị `a` từ `-20` đến `20` và 14 giá trị `b` khác 0 từ `-7` đến `7`: `41 × 14 = 574` cặp. Miền nhỏ tránh tràn ở tích `quotient * b`; nếu viết property test trên toàn miền `int`, phải xử lý riêng `Integer.MIN_VALUE / -1` và overflow của phép tính kiểm tra, ví dụ bằng `long` hoặc `BigInteger`.
+Here there are 41 values of `a` from `-20` to `20` and 14 nonzero values of `b` from `-7` to `7`: `41 × 14 = 574` pairs. The small range avoids overflow in the product `quotient * b`; if writing a property test over the full `int` range, you must separately handle `Integer.MIN_VALUE / -1` and overflow in the verification arithmetic, for example with `long` or `BigInteger`.
 
-Test này không thay cho kiểm thử theo đặc tả nghiệp vụ. Nó chỉ kiểm tra các quy tắc số học mà chương trình dựa vào.
+This test does not replace business-specification testing. It only verifies the arithmetic rules that the program relies upon.
 
-## 13. Ma trận test tối thiểu cho số âm
+## 13. Minimum Test Matrix for Negative Numbers
 
-Một bộ test tốt phải cắt theo **dấu của số bị chia**, **dấu của mẫu số**, **chia hết hay không**, **điểm đúng giữa khi làm tròn** và **giá trị biên**:
+A good test suite must slice across **dividend sign**, **divisor sign**, **exact divisibility vs remainder**, **exact rounding midpoints**, and **boundary values**:
 
-| Nhóm | Đầu vào gợi ý | Mục tiêu |
+| Group | Suggested input | Objective |
 | --- | --- | --- |
-| Chia số dương | `7 / 3`, `7 % 3` | Mốc so sánh cơ bản. |
-| Số bị chia âm | `-7 / 3`, `-7 % 3` | Phân biệt trunc và floor, remainder âm. |
-| Mẫu số âm | `7 / -3`, `7 % -3` | Kiểm tra dấu quotient và remainder. |
-| Cả hai âm | `-7 / -3`, `-7 % -3` | Không mặc định remainder cùng dấu divisor. |
-| Chia hết | `-6 / 3`, `-6 % 3` | Remainder bằng 0. |
-| Sát 0 | `-1 / 3`, `-1 % 3` | Phát hiện bucket sai gần mốc. |
-| Modulo tuần hoàn | `-1`, `-5`, `-6` với modulus 5 | Giữ index trong `[0, 5)`. |
-| Modulus âm | `floorMod(-7, -3)` | Không tự cho rằng modulo luôn không âm. |
-| Số âm ở điểm giữa | `-1.25` về scale 1, `-1.5` về số nguyên | Phân biệt HALF_UP, HALF_EVEN, Math.round. |
-| Phần lẻ nhỏ âm | `-0.004` về scale 2 | Rounding thành zero và chuyện lưu dấu gốc. |
-| Mẫu số bằng 0 | `7 / 0`, `floorMod(7,0)` | Xử lý lỗi một cách có chủ đích. |
-| Overflow chia nguyên | `Integer.MIN_VALUE / -1` | Phát hiện thương toán học vượt miền. |
-| Decimal không kết thúc | `-7 / 3` trong BigDecimal | Chọn scale và rounding mode rõ. |
-| Floating point đặc biệt | `-0.0`, `NaN`, ±`Infinity` | Xác định chính sách dữ liệu đầu vào/đầu ra. |
+| Positive division | `7 / 3`, `7 % 3` | Baseline comparison point. |
+| Negative dividend | `-7 / 3`, `-7 % 3` | Distinguish trunc and floor, negative remainder. |
+| Negative divisor | `7 / -3`, `7 % -3` | Check quotient and remainder signs. |
+| Both negative | `-7 / -3`, `-7 % -3` | Do not assume remainder has the divisor's sign. |
+| Divisible | `-6 / 3`, `-6 % 3` | Remainder equals 0. |
+| Near 0 | `-1 / 3`, `-1 % 3` | Detect wrong bucket near origin. |
+| Circular modulo | `-1`, `-5`, `-6` with modulus 5 | Keep index within `[0, 5)`. |
+| Negative modulus | `floorMod(-7, -3)` | Do not assume modulo is always non-negative. |
+| Negative midpoint | `-1.25` to scale 1, `-1.5` to integer | Distinguish HALF_UP, HALF_EVEN, Math.round. |
+| Small negative fraction | `-0.004` to scale 2 | Rounding to zero and preserving original sign. |
+| Zero divisor | `7 / 0`, `floorMod(7,0)` | Intentional error handling. |
+| Integer division overflow | `Integer.MIN_VALUE / -1` | Detect mathematical quotient out of range. |
+| Non-terminating decimal | `-7 / 3` in BigDecimal | Choose scale and rounding mode explicitly. |
+| Special floating point | `-0.0`, `NaN`, ±`Infinity` | Define input/output data policy. |
 
-### Lộ trình chẩn đoán bug ngoài thực tế
+### Roadmap for Diagnosing Real-World Bugs
 
-Khi log cho thấy một kết quả âm “không đúng ý”:
+When logs reveal an “unexpected” negative result:
 
-1. **Ghi lại kiểu số** của mọi toán hạng: `int`, `long`, `double`, `BigDecimal`?
-2. **Ghi lại quy tắc thương** kỳ vọng: trunc về 0 hay floor về âm vô cực?
-3. **Ghi lại ràng buộc remainder** kỳ vọng: có được âm không, modulus có luôn dương không?
-4. **Ghi lại chính sách rounding**: scale, mode và thời điểm áp dụng.
-5. **Tái hiện bằng ca nhỏ nhất**: `-7 / 3`, `-1 % 5`, `-1.25`.
-6. **Kiểm tra giá trị biên**: chia 0, overflow, số 0 âm, độ chính xác decimal/floating point.
-7. **Bổ sung regression test** từ ca đã tái hiện để thay đổi code về sau không tái gây lỗi.
+1. **Record the numeric type** of every operand: `int`, `long`, `double`, `BigDecimal`?
+2. **Record the expected quotient rule**: truncate toward 0 or floor toward negative infinity?
+3. **Record the expected remainder constraint**: can it be negative, must the modulus always be positive?
+4. **Record the rounding policy**: scale, mode, and when it is applied.
+5. **Reproduce with the smallest case**: `-7 / 3`, `-1 % 5`, `-1.25`.
+6. **Check boundary values**: division by 0, overflow, negative zero, decimal/floating-point precision.
+7. **Add a regression test** from the reproduced case so future code changes do not reintroduce the bug.
 
-Nếu thay một phép `%` bằng `floorMod`, phải kiểm thử cả dữ liệu dương cũ, dữ liệu âm mới và mọi đường dẫn mà modulus bằng 0 hoặc âm. Nếu thay `Math.round` bằng `BigDecimal.setScale`, phải kiểm thử chính sách điểm giữa và conversion trước khi coi đó là một refactor “không đổi hành vi”.
+If replacing `%` with `floorMod`, test both old positive data, new negative data, and every path where the modulus is 0 or negative. If replacing `Math.round` with `BigDecimal.setScale`, test midpoint policies and conversions before treating it as a “behavior-preserving” refactor.
 
-## 14. Các nhầm lẫn thường gặp
+## 14. Common Misconceptions
 
-1. **“`-7 / 3` là `-3`.”** Sai đối với chia `int` Java; kết quả là `-2`. `Math.floorDiv(-7,3)` mới là `-3`.
-2. **“`a % b` luôn không âm.”** Sai khi `a` âm. `-7 % 3 == -1`.
-3. **“`Math.floorMod` luôn dương.”** Không đúng khi divisor âm; `floorMod(7,-3) == -2`.
-4. **“`Math.round` tương đương `HALF_UP`.”** Không ở điểm giữa âm; `round(-1.5) == -1` trong khi `HALF_UP` decimal về số nguyên là `-2`.
-5. **“`UP` nghĩa là càng lớn trên trục số.”** Không. `RoundingMode.UP` là **xa 0**; với âm nó có thể làm số **âm hơn**.
-6. **“`DOWN` nghĩa là âm vô cực.”** Không. `DOWN` là **về 0**; `FLOOR` mới về âm vô cực.
-7. **“BigDecimal.remainder là modulo không âm.”** Sai; với dividend âm, remainder có thể âm.
-8. **“Phép chia nguyên luôn phát hiện overflow.”** Sai ở `MIN_VALUE / -1`.
-9. **“Mọi phép chia cho 0 trong Java đều ném ngoại lệ.”** Sai với `double`/`float` trong các trường hợp IEEE 754 như `1.0/0.0`.
-10. **“Có thể dùng `Math.abs(size)` để đảm bảo modulus dương.”** Nguy hiểm với `Integer.MIN_VALUE`/`Long.MIN_VALUE`; phải validate miền và xử lý ngoại lệ biên.
-11. **“Một vài test số dương chứng minh modulo hoạt động đúng.”** Không. Các test số âm mới thường bộc lộ khác biệt trunc và floor.
-12. **“Scale và rounding mode chỉ ảnh hưởng hiển thị.”** Không. Nếu áp dụng chúng vào giá trị trung gian của công thức, kết quả cuối có thể thay đổi.
+1. **“`-7 / 3` is `-3`.”** False for Java `int` division; the result is `-2`. `Math.floorDiv(-7,3)` is `-3`.
+2. **“`a % b` is always non-negative.”** False when `a` is negative. `-7 % 3 == -1`.
+3. **“`Math.floorMod` is always positive.”** Not true when the divisor is negative; `floorMod(7,-3) == -2`.
+4. **“`Math.round` is equivalent to `HALF_UP`.”** Not at negative midpoints; `round(-1.5) == -1` whereas decimal `HALF_UP` to integer is `-2`.
+5. **“`UP` means larger on the number line.”** No. `RoundingMode.UP` means **away from 0**; for negative numbers it can make the number **more negative**.
+6. **“`DOWN` means toward negative infinity.”** No. `DOWN` is **toward 0**; `FLOOR` is toward negative infinity.
+7. **“`BigDecimal.remainder` is non-negative modulo.”** False; with a negative dividend, the remainder can be negative.
+8. **“Integer division always detects overflow.”** False at `MIN_VALUE / -1`.
+9. **“Every division by 0 in Java throws an exception.”** False for `double`/`float` in IEEE 754 cases such as `1.0/0.0`.
+10. **“You can use `Math.abs(size)` to ensure a positive modulus.”** Dangerous for `Integer.MIN_VALUE`/`Long.MIN_VALUE`; validate the domain and handle boundary exceptions.
+11. **“A few positive tests prove modulo works properly.”** No. Negative tests are what typically expose differences between trunc and floor.
+12. **“Scale and rounding mode only affect display.”** No. Applying them to intermediate values in a formula can change the final result.
 
-## 15. Câu hỏi tự kiểm tra
+## 15. Self-Check Questions
 
-**Câu 1.** Java trả gì cho `-8 / 3` và `-8 % 3`?
+**Question 1.** What does Java return for `-8 / 3` and `-8 % 3`?
 
-**Đáp án:** `-2` và `-2` vì thương nguyên bị cắt về 0: `-8 = (-2)*3 + (-2)`.
+**Answer:** `-2` and `-2` because the integer quotient is truncated toward 0: `-8 = (-2)*3 + (-2)`.
 
-**Câu 2.** `Math.floorDiv(-8, 3)` và `Math.floorMod(-8, 3)` là gì?
+**Question 2.** What are `Math.floorDiv(-8, 3)` and `Math.floorMod(-8, 3)`?
 
-**Đáp án:** `-3` và `1` vì `-8 = (-3)*3 + 1`.
+**Answer:** `-3` and `1` because `-8 = (-3)*3 + 1`.
 
-**Câu 3.** Khi modulus là `5`, vì sao index `-1 % 5` sai cho mảng?
+**Question 3.** When the modulus is `5`, why is index `-1 % 5` wrong for an array?
 
-**Đáp án:** Nó là `-1`. `Math.floorMod(-1,5)` cho `4`, một index trong `[0,5)`.
+**Answer:** It is `-1`. `Math.floorMod(-1,5)` gives `4`, an index in `[0,5)`.
 
-**Câu 4.** `Math.floorMod(8, -3)` có phải số không âm không?
+**Question 4.** Is `Math.floorMod(8, -3)` non-negative?
 
-**Đáp án:** Không; kết quả `-1` do floor quotient `-3` và `8 = (-3)*(-3) + (-1)`. Với modulus âm, floor remainder có thể âm.
+**Answer:** No; the result is `-1` because the floor quotient is `-3` and `8 = (-3)*(-3) + (-1)`. With a negative modulus, the floor remainder can be negative.
 
-**Câu 5.** Cho `BigDecimal("-1.25")`, làm tròn còn một chữ số với `HALF_UP` và `HALF_EVEN` được bao nhiêu?
+**Question 5.** For `BigDecimal("-1.25")`, what do you get when rounding to one decimal place with `HALF_UP` and `HALF_EVEN`?
 
-**Đáp án:** `-1.3` và `-1.2`.
+**Answer:** `-1.3` and `-1.2`.
 
-**Câu 6.** Vì sao `Math.round(-2.5)` là `-2`?
+**Question 6.** Why is `Math.round(-2.5)` equal to `-2`?
 
-**Đáp án:** `Math.round` chọn điểm giữa về phía dương vô cực; giữa `-3` và `-2` nó chọn `-2`.
+**Answer:** `Math.round` resolves midpoints toward positive infinity; between `-3` and `-2` it chooses `-2`.
 
-**Câu 7.** `Math.floor(-1.2)` và `BigDecimal("-1.2").setScale(0, DOWN)` là gì?
+**Question 7.** What are `Math.floor(-1.2)` and `BigDecimal("-1.2").setScale(0, DOWN)`?
 
-**Đáp án:** `Math.floor(-1.2) == -2.0`, còn `DOWN` về 0 cho `-1`.
+**Answer:** `Math.floor(-1.2) == -2.0`, whereas `DOWN` toward 0 gives `-1`.
 
-**Câu 8.** Với `BigDecimal("-7")` chia `BigDecimal("3")`, `divideToIntegralValue` và `remainder` là gì?
+**Question 8.** For `BigDecimal("-7")` divided by `BigDecimal("3")`, what are `divideToIntegralValue` and `remainder`?
 
-**Đáp án:** Trị số `-2` và `-1`. Chúng dùng quotient cắt về 0, không phải quotient floor.
+**Answer:** Numerically `-2` and `-1`. They use the quotient truncated toward 0, not the floor quotient.
 
-**Câu 9.** Tại sao `Integer.MIN_VALUE / -1` nguy hiểm dù divisor khác 0?
+**Question 9.** Why is `Integer.MIN_VALUE / -1` dangerous even though the divisor is nonzero?
 
-**Đáp án:** Thương toán học `2147483648` không nằm trong miền `int`; phép chia Java trả lại `Integer.MIN_VALUE` do overflow. Hãy nới kiểu trước khi chia hoặc kiểm tra rõ.
+**Answer:** The mathematical quotient `2147483648` is outside the `int` range; Java division returns `Integer.MIN_VALUE` due to overflow. Widen the type before dividing or check explicitly.
 
-**Câu 10.** Muốn test hàm làm tròn dùng cho số âm, những nhóm ca nào bắt buộc có?
+**Question 10.** To test a rounding function used for negative numbers, which test groups are mandatory?
 
-**Đáp án:** Dương/âm, gần 0, đúng midpoint và sát hai phía midpoint, nhiều rounding mode, giá trị quá lớn/quá nhỏ, và thứ tự làm tròn trong pipeline.
+**Answer:** Positive/negative, near 0, exact midpoint and just on both sides of the midpoint, multiple rounding modes, overly large/small values, and rounding order in the pipeline.
 
-## 16. Tham khảo API Java 17
+## 16. Java 17 API References
 
-- [Java Language Specification `15.17 — Multiplicative Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.17): quy tắc `/`, `%` của kiểu nguyên và floating-point, chia 0 và overflow.
-- [Java SE 17 — Math.floorDiv, floorMod, round](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html): phép chia theo floor, modulo, rounding và hành vi biên.
-- [Java SE 17 — RoundingMode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html): định nghĩa `UP`, `DOWN`, `CEILING`, `FLOOR` và các chế độ `HALF_*`.
-- [Java SE 17 — BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): `divide`, `divideToIntegralValue`, `remainder`, `setScale` và `MathContext`.
+- [Java Language Specification `15.17 — Multiplicative Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.17): rules for `/`, `%` on integral and floating-point types, division by 0, and overflow.
+- [Java SE 17 — Math.floorDiv, floorMod, round](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html): floor division, modulo, rounding, and boundary behavior.
+- [Java SE 17 — RoundingMode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/RoundingMode.html): definitions of `UP`, `DOWN`, `CEILING`, `FLOOR`, and `HALF_*` modes.
+- [Java SE 17 — BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): `divide`, `divideToIntegralValue`, `remainder`, `setScale`, and `MathContext`.
 
-**Ghi nhớ:** Với số âm, trước hết phải chọn **ngữ nghĩa thương** (trunc hay floor), rồi chọn **quy ước phần dư** (`%` hay `floorMod` với modulus dương), sau đó mới chọn **quy tắc làm tròn** cho thập phân. Đừng coi `Math.round`, `RoundingMode.HALF_UP`, `Math.floorDiv` và `BigDecimal.remainder` là các cách viết thay thế cho nhau. Các phản ví dụ nhỏ như `-7 / 3`, `-1 % 5` và `-1.25` sẽ bắt được đa số sai lầm từ rất sớm.
+**Takeaway:** With negative numbers, first choose the **quotient semantics** (trunc or floor), then choose the **remainder convention** (`%` or `floorMod` with positive modulus), and only then choose the **rounding rule** for decimals. Do not treat `Math.round`, `RoundingMode.HALF_UP`, `Math.floorDiv`, and `BigDecimal.remainder` as interchangeable alternatives. Small counterexamples like `-7 / 3`, `-1 % 5`, and `-1.25` will catch most mistakes very early.

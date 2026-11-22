@@ -1,22 +1,22 @@
-# Chuyển tham chiếu theo quan hệ assignability trong Java Reflection
+# Reference Conversion by Assignability in Java Reflection
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Khi gọi một phương thức hay constructor bằng Java Reflection, lập trình viên truyền đối số qua các API như `Method.invoke(...)` hoặc `Constructor.newInstance(...)`. Các API này nhận `Object` ở phía người gọi, nhưng **tham số thật** của phương thức đích có thể là `Animal`, `Serializable`, `Object[]`, một interface, hoặc một kiểu tham chiếu bất kỳ. JVM phải xác định đối tượng thực tế có thể được sử dụng tại vị trí tham số đó hay không.
+When invoking a method or constructor using Java Reflection, developers pass arguments through APIs such as `Method.invoke(...)` or `Constructor.newInstance(...)`. These APIs accept `Object` on the caller side, but the **actual parameter** of the target method can be `Animal`, `Serializable`, `Object[]`, an interface, or any reference type. The JVM must determine whether the actual object can be used at that parameter position.
 
-Quy tắc cốt lõi của bài là **assignability**: một giá trị tham chiếu có thể đi vào nơi yêu cầu kiểu tham chiếu đích nếu đối tượng có kiểu runtime tương thích với kiểu đích theo quan hệ kế thừa/triển khai; `null` cũng hợp lệ cho tham số kiểu tham chiếu. Đây là cơ sở của **widening reference conversion** và kiểm tra đối số phản chiếu.
+The core rule of this lesson is **assignability**: a reference value can enter a place requiring a target reference type if the object has a runtime type compatible with the target type via inheritance/implementation relationships; `null` is also valid for a reference-type parameter. This is the basis of **widening reference conversion** and reflective argument checking.
 
-Sau bài này, bạn sẽ:
+After this lesson, you will:
 
-- Hiểu chính xác chiều kiểm tra `Target.class.isAssignableFrom(Source.class)`.
-- Phân biệt chuyển tham chiếu mở rộng (*widening*), ép kiểu thu hẹp (*narrowing*) và chuyển đổi primitive.
-- Áp dụng vào `Method.invoke`, `Constructor.newInstance` và `Field.set`.
-- Xử lý interface, mảng, `null`, generic type erasure, class loader và ngoại lệ đúng cách.
-- Tránh nhầm lẫn giữa đối số runtime của phương thức đích và mảng varargs `Object...` của chính API Reflection.
+- Understand the exact checking direction of `Target.class.isAssignableFrom(Source.class)`.
+- Distinguish widening reference conversion (*widening*), narrowing casts (*narrowing*), and primitive conversions.
+- Apply this to `Method.invoke`, `Constructor.newInstance`, and `Field.set`.
+- Properly handle interfaces, arrays, `null`, generic type erasure, class loaders, and exceptions.
+- Avoid confusing the runtime arguments of the target method with the `Object...` varargs array of the Reflection API itself.
 
-## 2. “Có thể gán” nghĩa là gì?
+## 2. What does "assignable" mean?
 
-Giả sử có hệ kiểu:
+Suppose we have a type hierarchy:
 
 ```java
 interface Pet {}
@@ -28,49 +28,49 @@ class Dog extends Animal implements Pet {}
 class Cat extends Animal {}
 ```
 
-Đây là **các khai báo minh họa**, chưa phải chương trình độc lập.
+These are **illustrative declarations**, not a standalone program.
 
-Ở mã Java thông thường:
+In normal Java code:
 
 ```java
 Dog dog = new Dog();
-Animal animal = dog; // Hợp lệ: Dog -> Animal
-Pet pet = dog;       // Hợp lệ: Dog -> Pet
-Object object = dog; // Hợp lệ: Dog -> Object
+Animal animal = dog; // Valid: Dog -> Animal
+Pet pet = dog;       // Valid: Dog -> Pet
+Object object = dog; // Valid: Dog -> Object
 ```
 
-Khi truyền `dog` tới một phương thức khai báo `accept(Animal animal)`, không cần tạo bản sao đối tượng và cũng không cần thay đổi runtime class. Vẫn là **cùng một đối tượng `Dog`**, chỉ được sử dụng qua một kiểu tham chiếu rộng hơn.
+When passing `dog` to a method declared as `accept(Animal animal)`, no object copy is needed and the runtime class does not need to change. It is still the **same `Dog` object**, merely used through a wider reference type.
 
-Chiều ngược lại:
+In the opposite direction:
 
 ```java
 Animal animal = new Animal();
-// Dog dog = animal; // Lỗi biên dịch: không thể thu hẹp ngầm.
+// Dog dog = animal; // Compile error: cannot implicitly narrow.
 ```
 
-Một phép cast viết rõ `(Dog) animal` mới là yêu cầu kiểm tra thu hẹp tại runtime; với đối tượng có kiểu thực `Animal`, phép cast thất bại bằng `ClassCastException`. **Reflection không tự đoán, không tự downcast một đối tượng không tương thích và không tạo một `Dog` mới.**
+Only an explicitly written cast `(Dog) animal` requests a narrowing check at runtime; for an object whose actual type is `Animal`, the cast fails with `ClassCastException`. **Reflection does not guess, does not automatically downcast an incompatible object, and does not create a new `Dog`.**
 
-Phân biệt ba ý:
+Distinguish three points:
 
-| Tình huống | Có thể truyền vào tham số `Dog`? | Lý do |
+| Situation | Can be passed to a `Dog` parameter? | Reason |
 | --- | --- | --- |
-| Giá trị runtime là `new Dog()` | Có | Đối tượng đúng kiểu đích |
-| Biến khai báo `Animal` nhưng đang trỏ tới `new Dog()` | Có, khi truyền qua Reflection | Kiểm tra đối số runtime thấy đối tượng thực sự là `Dog` |
-| Giá trị runtime là `new Cat()` | Không | `Cat` không là subtype của `Dog` dù có cùng lớp cha `Animal` |
-| `null` | Có | `null` hợp lệ với mọi tham số kiểu tham chiếu |
-| Chuỗi `"Dog"` | Không | Không có phép chuyển chuỗi thành đối tượng `Dog` tự động |
+| Runtime value is `new Dog()` | Yes | Object has the exact target type |
+| Variable declared as `Animal` but pointing to `new Dog()` | Yes, when passed via Reflection | Runtime argument check sees the object is actually a `Dog` |
+| Runtime value is `new Cat()` | No | `Cat` is not a subtype of `Dog` despite sharing superclass `Animal` |
+| `null` | Yes | `null` is valid for any reference-type parameter |
+| String `"Dog"` | No | No automatic conversion from a string to a `Dog` object |
 
-**Điểm đặc biệt của Reflection:** tham số của `invoke` được nhận dưới dạng `Object` nên mã nguồn gọi Reflection không có kiểm tra tĩnh như một lời gọi `accept(Dog)` thông thường. Khả năng tương thích của **giá trị thực** được kiểm tra khi Reflection chuẩn bị gọi phương thức đích.
+**Special point about Reflection:** parameters of `invoke` are received as `Object`, so Reflection-calling source code has no static check like a normal `accept(Dog)` call. Compatibility of the **actual value** is checked when Reflection prepares to invoke the target method.
 
-## 3. `Class.isAssignableFrom`: chiều kiểm tra không được đảo
+## 3. `Class.isAssignableFrom`: the checking direction must not be reversed
 
 ```java
 boolean allowed = TargetType.class.isAssignableFrom(SourceType.class);
 ```
 
-Phát biểu tương đương: “Một giá trị có kiểu `SourceType` có thể được đặt vào biến/tham số có kiểu `TargetType` hay không?” Với kiểu tham chiếu, kiểm tra dựa vào cùng kiểu, quan hệ superclass, interface được triển khai và một số quan hệ mảng.
+Equivalent statement: "Can a value of type `SourceType` be placed into a variable/parameter of type `TargetType`?" For reference types, the check is based on identical type, superclass relationships, implemented interfaces, and certain array relationships.
 
-Ví dụ:
+Examples:
 
 ```java
 Animal.class.isAssignableFrom(Dog.class); // true
@@ -81,34 +81,34 @@ Dog.class.isAssignableFrom(Cat.class);    // false
 Dog.class.isAssignableFrom(Dog.class);    // true
 ```
 
-Đoạn này dùng những kiểu đã khai báo ở mục 2, mang tính minh họa.
+This snippet uses the types declared in section 2 and is illustrative.
 
-### 3.1. Ba API rất dễ nhầm
+### 3.1. Three easily confused APIs
 
-| API | Câu hỏi thực tế | Lưu ý |
+| API | Actual question | Notes |
 | --- | --- | --- |
-| `targetType.isAssignableFrom(sourceType)` | Quan hệ giữa **hai `Class<?>`** có cho phép gán kiểu nguồn vào kiểu đích không? | `sourceType` phải khác `null`; truyền `null` làm phát sinh `NullPointerException`. |
-| `targetType.isInstance(value)` | **Đối tượng runtime** này có phải instance của kiểu đích không? | Trả `false` khi `value == null`, dù `null` vẫn được truyền hợp lệ vào tham số tham chiếu. |
-| `targetType.cast(value)` | Cast đối tượng theo kiểu `Class` tại runtime | Trả lại `null` nếu `value == null`; ném `ClassCastException` nếu đối tượng không tương thích. |
+| `targetType.isAssignableFrom(sourceType)` | Does the relationship between **two `Class<?>` objects** allow assigning the source type to the target type? | `sourceType` must be non-`null`; passing `null` raises `NullPointerException`. |
+| `targetType.isInstance(value)` | Is this **runtime object** an instance of the target type? | Returns `false` when `value == null`, even though `null` can still be validly passed to a reference parameter. |
+| `targetType.cast(value)` | Casts the object according to the `Class` type at runtime | Returns `null` if `value == null`; throws `ClassCastException` if the object is incompatible. |
 
-Vì thế, nếu muốn **kiểm tra một đối số trước khi gọi Reflection**, phép kiểm tra kiểu tham chiếu thường có dạng:
+Therefore, if you want to **check an argument before calling Reflection**, a reference type check typically takes the form:
 
 ```java
 static boolean acceptsReference(Class<?> targetType, Object value) {
     if (targetType.isPrimitive()) {
-        throw new IllegalArgumentException("Cần tham số tham chiếu");
+        throw new IllegalArgumentException("Reference parameter required");
     }
     return value == null || targetType.isInstance(value);
 }
 ```
 
-Đây là **hàm minh họa**, không phải chương trình chạy độc lập. Nó xử lý `null` tường minh thay vì dùng mỗi `isInstance`. Cũng có thể lấy `value.getClass()` rồi gọi `targetType.isAssignableFrom(...)` khi `value` khác `null`.
+This is an **illustrative helper**, not a standalone runnable program. It handles `null` explicitly instead of using only `isInstance`. You can also obtain `value.getClass()` and call `targetType.isAssignableFrom(...)` when `value` is non-`null`.
 
-Không được lấy kiểu khai báo của **biến Java phía gọi** để quyết định, vì Reflection nhận giá trị đối tượng thật. Ví dụ biến `Animal candidate = new Dog();` vẫn có runtime class là `Dog`.
+You must not take the declared type of the **caller-side Java variable** to decide, because Reflection receives the actual object value. For example, a variable `Animal candidate = new Dog();` still has runtime class `Dog`.
 
-### 3.2. Quan hệ primitive khác quan hệ tham chiếu
+### 3.2. Primitive relationships differ from reference relationships
 
-`Class.isAssignableFrom` đối với primitive đòi hỏi **cùng đúng kiểu primitive**:
+`Class.isAssignableFrom` for primitives requires the **exact same primitive type**:
 
 ```java
 int.class.isAssignableFrom(int.class);   // true
@@ -116,11 +116,11 @@ long.class.isAssignableFrom(int.class);  // false
 Object.class.isAssignableFrom(int.class);// false
 ```
 
-Điều này không có nghĩa Reflection không hỗ trợ primitive widening trong mọi API: `Method.invoke` và `Constructor.newInstance` có thể **unbox wrapper** và áp dụng **widening primitive conversion** thích hợp cho tham số primitive. Đó là một cơ chế khác, cần học riêng. **Không dùng `isAssignableFrom` để mô phỏng toàn bộ quy tắc đối số primitive**.
+This does not mean Reflection does not support primitive widening in any API: `Method.invoke` and `Constructor.newInstance` can **unbox wrappers** and apply appropriate **widening primitive conversion** for primitive parameters. That is a different mechanism and should be studied separately. **Do not use `isAssignableFrom` to simulate all primitive argument rules**.
 
-Trong bài này, ta chỉ phân tích **chuyển kiểu tham chiếu** giữa object/array/interface và đối số `null`.
+In this lesson, we analyze only **reference type conversion** between objects/arrays/interfaces and `null` arguments.
 
-## 4. Assignability ở ba nơi sử dụng Reflection
+## 4. Assignability in three Reflection usage sites
 
 ### 4.1. `Method.invoke`
 
@@ -129,11 +129,11 @@ Method method = Example.class.getDeclaredMethod("accept", Animal.class);
 method.invoke(null, new Dog());
 ```
 
-Đây là **mã minh họa**, giả định `Example.accept(Animal)` là static, đã import `java.lang.reflect.Method` và các kiểu `Animal`, `Dog` có sẵn. Đối số `new Dog()` phù hợp với tham số khai báo `Animal`; Reflection thực hiện lời gọi.
+This is **illustrative code**, assuming `Example.accept(Animal)` is static, `java.lang.reflect.Method` is imported, and `Animal`, `Dog` types exist. The argument `new Dog()` is compatible with the declared parameter `Animal`; Reflection executes the call.
 
-Nếu truyền đối tượng `new Object()` vào tham số `Animal` thì đối số không hợp lệ: `Method.invoke` ném `IllegalArgumentException` **trước khi chạy thân phương thức đích**. Không có chuyển đổi tự động `Object` thành `Animal`.
+If you pass a `new Object()` to an `Animal` parameter, the argument is invalid: `Method.invoke` throws `IllegalArgumentException` **before running the target method body**. There is no automatic conversion from `Object` to `Animal`.
 
-Nếu một phương thức đích **tự ném ngoại lệ sau khi được gọi**, `Method.invoke` thường bao ngoại lệ đó trong `InvocationTargetException`; đừng nhầm với `IllegalArgumentException` do **không khớp đối số** tại bước chuẩn bị gọi.
+If a target method **itself throws an exception after being called**, `Method.invoke` typically wraps that exception in `InvocationTargetException`; do not confuse it with `IllegalArgumentException` caused by **argument mismatch** during call preparation.
 
 ### 4.2. `Constructor.newInstance`
 
@@ -143,17 +143,17 @@ Constructor<Example> constructor =
 Example instance = constructor.newInstance(new Dog());
 ```
 
-Đoạn này minh họa, giả sử `Example` có constructor thích hợp và đã import `java.lang.reflect.Constructor`. Quy tắc tương thích đối số tương tự lời gọi method: `Dog` có thể đáp ứng `Animal`; một đối tượng không tương thích sẽ bị từ chối.
+This snippet is illustrative, assuming `Example` has the appropriate constructor and `java.lang.reflect.Constructor` is imported. Argument compatibility rules are similar to method invocation: `Dog` can satisfy `Animal`; an incompatible object is rejected.
 
-Lưu ý: `getDeclaredConstructor(...)` tìm constructor bằng **kiểu tham số khai báo chính xác**. Nó không tìm constructor theo quan hệ assignability:
+Note: `getDeclaredConstructor(...)` looks up a constructor by **exact declared parameter types**. It does not find constructors by assignability:
 
 ```java
-// Nếu lớp chỉ có constructor Example(Animal), truy vấn dưới đây
-// không tìm được constructor Example(Dog):
+// If the class only has constructor Example(Animal), the query below
+// cannot find constructor Example(Dog):
 // Example.class.getDeclaredConstructor(Dog.class);
 ```
 
-**Tra cứu thành viên** và **kiểm tra đối số lúc invoke** là hai giai đoạn tách biệt.
+**Member lookup** and **argument checking at invocation** are two separate phases.
 
 ### 4.3. `Field.set`
 
@@ -163,13 +163,13 @@ field.setAccessible(true);
 field.set(example, new Dog());
 ```
 
-Đây là đoạn minh họa với field khai báo `Animal animal` trong object `example`. `Field.set` kiểm tra rằng đối tượng gán hợp lệ với **kiểu field**. Nếu field là `Animal`, nhận `Dog` hoặc `Cat`, nhưng từ chối `String` bằng `IllegalArgumentException`.
+This is an illustrative snippet with a field declared as `Animal animal` in object `example`. `Field.set` checks that the assigned object is valid for the **field type**. If the field is `Animal`, it accepts `Dog` or `Cat`, but rejects `String` with `IllegalArgumentException`.
 
-`setAccessible(true)` chỉ giải quyết một phần quyền truy cập; nó **không làm kiểu của field thành `Object`**. Ngoài ra, field `final` hoặc ranh giới module có thể mang ràng buộc riêng về khả năng sửa, độc lập với assignability. Đừng dùng `Field.set` như một lối tắt để ép kiểu không hợp lệ.
+`setAccessible(true)` only addresses part of access control; it **does not turn the field's type into `Object`**. In addition, `final` fields or module boundaries may carry their own constraints on mutability, independent of assignability. Do not use `Field.set` as a shortcut to force invalid types.
 
-## 5. Chương trình Java 17+ hoàn chỉnh và kết quả chính xác
+## 5. Complete Java 17+ program and exact output
 
-Lưu mã sau vào file **`AssignabilityDemo.java`**:
+Save the following code to **`AssignabilityDemo.java`**:
 
 ```java
 import java.lang.reflect.Constructor;
@@ -282,14 +282,14 @@ public class AssignabilityDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac --release 17 AssignabilityDemo.java
 java AssignabilityDemo
 ```
 
-**Stdout đã được kiểm chứng bằng JDK 21 với `--release 17`:**
+**Stdout verified with JDK 21 using `--release 17`:**
 
 ```text
 Animal<-Dog=true
@@ -310,59 +310,59 @@ wrong-field=IllegalArgumentException
 generic-size=2
 ```
 
-### 5.1. Diễn giải các kết quả
+### 5.1. Interpreting the results
 
-- `Animal<-Dog=true` và `Pet<-Dog=true` cho thấy một object `Dog` có thể phục vụ cả tham số lớp cha và tham số interface mà nó triển khai.
-- `Dog<-Animal=false` cho thấy hướng ngược lại không được phép khi chỉ biết **kiểu `Animal`**. Tuy nhiên, giá trị runtime thực tế là `Dog` vẫn có thể đi vào tham số `Dog` khi truyền qua Reflection.
-- `Object[]<-String[]=true` cho thấy **array covariance** đối với kiểu phần tử tham chiếu.
-- `Animal.isInstance(null)=false` không mâu thuẫn với `null=true`: API `isInstance` nhận xét về một **instance**, còn `null` được phép vào **tham số tham chiếu**.
-- Constructor và hai lời gọi method đều nhận `Dog` tương thích với `Animal`/`Pet`; không cần tự chuyển đối tượng thành lớp khác.
-- `Field.set` nhận `Dog` khi field khai báo kiểu `Animal`. Với `String`, nó từ chối bằng `IllegalArgumentException`.
-- Method `requireDog(Dog)` không nhận được `Cat`, dù `Cat` cũng là `Animal`.
-- `generic-size=2` cố ý chứng minh giới hạn type erasure, được giải thích ở phần 7.
+- `Animal<-Dog=true` and `Pet<-Dog=true` show that a `Dog` object can serve both a superclass parameter and an interface parameter it implements.
+- `Dog<-Animal=false` shows the reverse direction is not allowed when only the **`Animal` type** is known. However, an actual runtime value of `Dog` can still be passed into a `Dog` parameter via Reflection.
+- `Object[]<-String[]=true` shows **array covariance** for reference element types.
+- `Animal.isInstance(null)=false` does not contradict `null=true`: the `isInstance` API evaluates an **instance**, whereas `null` is permitted for a **reference parameter**.
+- The constructor and two method calls all accept `Dog` compatible with `Animal`/`Pet`; there is no need to manually convert the object to another class.
+- `Field.set` accepts `Dog` when the field is declared as type `Animal`. With `String`, it rejects with `IllegalArgumentException`.
+- Method `requireDog(Dog)` cannot accept `Cat`, even though `Cat` is also an `Animal`.
+- `generic-size=2` intentionally demonstrates the limitation of type erasure, explained in section 7.
 
-## 6. Ba tình huống dễ bỏ sót: `null`, interface và mảng
+## 6. Three easily overlooked cases: `null`, interfaces, and arrays
 
-### 6.1. Đối số `null`
+### 6.1. The `null` argument
 
-`null` tương thích với **mọi kiểu tham chiếu**, kể cả `String`, interface, array và class do người dùng khai báo. Nó **không thể truyền vào tham số primitive** `int` hay `boolean` theo cơ chế invoke chuẩn.
+`null` is compatible with **every reference type**, including `String`, interfaces, arrays, and user-declared classes. It **cannot be passed to a primitive parameter** such as `int` or `boolean` under standard invoke mechanics.
 
-Đối với `Method.invoke`, bản thân signature của API là `invoke(Object obj, Object... args)`. Để tránh nhập nhằng giữa một đối số `null` và mảng tham số varargs `null`, hãy truyền rõ:
+For `Method.invoke`, the API signature itself is `invoke(Object obj, Object... args)`. To avoid ambiguity between one `null` argument and a `null` varargs argument array, pass explicitly:
 
 ```java
 method.invoke(targetObject, new Object[] { null });
 ```
 
-Đây là mã minh họa: `method` có **đúng một tham số kiểu tham chiếu**, còn `targetObject` là receiver hợp lệ; nếu method static, target có thể là `null`. Nếu truyền mảng đối số `null` trực tiếp vào varargs của API, Reflection có thể hiểu là **không có mảng chứa đối số**, dẫn đến sai số lượng tham số. Khai báo `new Object[]{null}` làm ý định rõ ràng.
+This is illustrative code: `method` has **exactly one reference-type parameter**, and `targetObject` is a valid receiver; if the method is static, target can be `null`. If you pass a `null` argument array directly into the API's varargs, Reflection may interpret it as **having no array containing arguments**, leading to an argument count mismatch. Declaring `new Object[]{null}` makes the intent clear.
 
-### 6.2. Interface và nhiều nhánh kế thừa
+### 6.2. Interfaces and multiple inheritance branches
 
-Một lớp có thể implement nhiều interface. Vì thế một object có thể assignable tới nhiều kiểu đích **không có quan hệ lớp cha/con trực tiếp với nhau**. Ví dụ `Dog implements Pet`: kiểm tra `Pet.class.isAssignableFrom(Dog.class)` trả `true`.
+A class can implement multiple interfaces. Therefore, an object can be assignable to multiple target types **that have no direct superclass/subclass relationship with each other**. For example, `Dog implements Pet`: checking `Pet.class.isAssignableFrom(Dog.class)` returns `true`.
 
-Với `Class<?>`, sử dụng quan hệ subtype/runtime type. Tránh so sánh chuỗi `getSimpleName()` hoặc giả định chỉ cần nhìn `getSuperclass()`; đường đi hợp lệ có thể xuất phát từ **interface**.
+With `Class<?>`, use subtype/runtime type relationships. Avoid comparing `getSimpleName()` strings or assuming you only need to inspect `getSuperclass()`; a valid path may come from an **interface**.
 
-### 6.3. Array covariance và kiểm tra phần tử lúc ghi
+### 6.3. Array covariance and element checks on write
 
-Với mảng phần tử tham chiếu, `String[]` là subtype của `Object[]`, nên:
+For reference-element arrays, `String[]` is a subtype of `Object[]`, so:
 
 ```java
 Object[] values = new String[1];
-values[0] = "ok";  // hợp lệ
-// values[0] = 42; // biên dịch được nhưng runtime ném ArrayStoreException
+values[0] = "ok";  // valid
+// values[0] = 42; // compiles, but throws ArrayStoreException at runtime
 ```
 
-Đây là mã minh họa. Mảng **vẫn là `String[]` thật ở runtime**, nên JVM kiểm tra mỗi thao tác lưu phần tử. Ghi một `Integer` vào mảng `String[]` gây `ArrayStoreException` dù biến có kiểu `Object[]`.
+This is illustrative code. The array **is still a real `String[]` at runtime**, so the JVM checks every element-store operation. Writing an `Integer` into a `String[]` array causes `ArrayStoreException` even though the variable has type `Object[]`.
 
-**Mảng primitive khác:** `int[]` là subtype của `Object`, `Cloneable` và `java.io.Serializable`, nhưng **không phải** subtype của `Object[]` (vì phần tử `int` không phải tham chiếu). Tức là:
+**Primitive arrays differ:** `int[]` is a subtype of `Object`, `Cloneable`, and `java.io.Serializable`, but **is not** a subtype of `Object[]` (because `int` elements are not references). That is:
 
 ```java
 Object.class.isAssignableFrom(int[].class);      // true
 Object[].class.isAssignableFrom(int[].class);    // false
 ```
 
-## 7. Generic type erasure: assignability không kiểm tra `T`
+## 7. Generic type erasure: assignability does not check `T`
 
-Java generic phần lớn bị xóa tham số kiểu ở runtime (*type erasure*). Ví dụ phương thức:
+Java generics mostly have their type parameters erased at runtime (*type erasure*). For example, the method:
 
 ```java
 static void generic(List<String> values) {
@@ -370,54 +370,54 @@ static void generic(List<String> values) {
 }
 ```
 
-Đây là đoạn cắt từ chương trình `AssignabilityDemo`. Kiểu tham số thô ở runtime của phương thức này là **`List.class`**, nên lệnh:
+This is an excerpt from the `AssignabilityDemo` program. The raw runtime parameter type of this method is **`List.class`**, so the call:
 
 ```java
 Method m = Receiver.class.getDeclaredMethod("generic", List.class);
 m.invoke(null, List.of(10, 20));
 ```
 
-được Reflection chấp nhận, dù danh sách giá trị chứa `Integer`. Ở ví dụ này, method chỉ gọi `size()` nên in `generic-size=2` mà không truy cập phần tử dưới giả định `String`.
+is accepted by Reflection, even though the list of values contains `Integer`. In this example, the method only calls `size()`, so it prints `generic-size=2` without accessing elements under the assumption of `String`.
 
-**Hậu quả quan trọng:**
+**Important consequences:**
 
-- `List.class.isAssignableFrom(ArrayList.class)` có thể trả `true`, nhưng `Class<?>` không mang thông tin `List<String>` hay `List<Integer>` để kiểm tra từng phần tử.
-- `Method.getParameterTypes()` cho kiểu raw `Class<?>`; `Method.getGenericParameterTypes()` có thể cho metadata `ParameterizedType` mô tả khai báo `List<String>`.
-- Metadata generic **không tự biến thành kiểm tra runtime đầy đủ** cho từng phần tử trong lời gọi Reflection.
-- Nếu thân method đọc phần tử dưới dạng `String`, phép cast do compiler chèn có thể ném `ClassCastException` **bên trong** method. Khi gọi qua Reflection, ngoại lệ đó thường bị bọc bởi `InvocationTargetException`.
+- `List.class.isAssignableFrom(ArrayList.class)` can return `true`, but `Class<?>` carries no information about `List<String>` vs. `List<Integer>` to check individual elements.
+- `Method.getParameterTypes()` gives raw `Class<?>` types; `Method.getGenericParameterTypes()` can provide `ParameterizedType` metadata describing the `List<String>` declaration.
+- Generic metadata **does not automatically turn into a full runtime check** for every element during a Reflection call.
+- If the method body reads an element as `String`, the compiler-inserted cast can throw `ClassCastException` **inside** the method. When invoked via Reflection, that exception is typically wrapped in `InvocationTargetException`.
 
-Nếu chương trình đòi hỏi xác minh phần tử, phải có kiểm tra nghiệp vụ/runtime thích hợp; `isAssignableFrom` trên mỗi raw `Class<?>` không đủ.
+If the program requires element verification, appropriate business/runtime checks must be implemented; `isAssignableFrom` on raw `Class<?>` alone is not enough.
 
-## 8. Class loader và danh tính kiểu
+## 8. Class loaders and type identity
 
-Assignability kiểm tra **đối tượng `Class<?>` runtime thật**, không đơn thuần chuỗi tên lớp. Hai kiểu có cùng binary name do **hai class loader khác nhau định nghĩa** không tự động là một kiểu hoặc subtype của nhau.
+Assignability checks the **actual runtime `Class<?>` object**, not merely the class name string. Two types with the same binary name defined by **two different class loaders** are not automatically the same type or subtypes of each other.
 
-Ví dụ lý thuyết: plugin A và plugin B đều nạp một định nghĩa `com.example.PluginData` nhưng qua các class loader độc lập. Nếu class ở B không có quan hệ kế thừa hợp lệ với class ở A, thì:
+Theoretical example: plugin A and plugin B both load a definition of `com.example.PluginData` but via independent class loaders. If the class in B has no valid inheritance relationship with the class in A, then:
 
 ```text
 typeFromA.getName().equals(typeFromB.getName()) -> true
 typeFromA.isAssignableFrom(typeFromB)           -> false
 ```
 
-Đây là **kịch bản minh họa**, không phải chương trình đầy đủ để dựng hai class loader. Trong framework plugin, app server hoặc môi trường hot reload, kiểm tra tên class là chưa đủ. Hãy xem cả `getClassLoader()`, nguồn nạp kiểu và các loader delegation boundaries.
+This is an **illustrative scenario**, not a complete program setting up two class loaders. In plugin frameworks, app servers, or hot-reload environments, checking class names is not enough. Inspect `getClassLoader()`, the type loading source, and loader delegation boundaries as well.
 
-## 9. Bài tập tự kiểm tra
+## 9. Self-check exercises
 
-1. Thêm `interface Trainable {}` rồi để `Dog implements Pet, Trainable`. Dự đoán `Trainable.class.isAssignableFrom(Dog.class)` và thử lời gọi method nhận `Trainable`.
-2. Giữ biến `Animal value = new Dog();`, gọi method đích nhận `Dog` bằng Reflection. Giải thích tại sao **runtime value** phù hợp dù static type của biến là `Animal`.
-3. Gọi `Receiver.array(Object[])` bằng `String[]` rồi so sánh ba cách: ép `(Object)`, bọc `new Object[]{...}` và truyền array trực tiếp.
-4. Đổi `generic(List<String>)` để đọc `values.get(0)` vào biến `String`; thử truyền `List.of(10)` qua Reflection và quan sát `InvocationTargetException.getCause()`.
-5. Tạo field khai báo `Pet` rồi thử `Field.set` với `new Dog()`, `new Cat()` và `null`. Dự đoán hành vi theo assignability.
-6. Tự giải thích tại sao `Object.class.isAssignableFrom(int.class)` là `false` nhưng `Object.class.isAssignableFrom(Integer.class)` là `true`.
+1. Add `interface Trainable {}` and have `Dog implements Pet, Trainable`. Predict `Trainable.class.isAssignableFrom(Dog.class)` and try calling a method accepting `Trainable`.
+2. Keep the variable `Animal value = new Dog();`, and invoke a target method accepting `Dog` via Reflection. Explain why the **runtime value** is compatible even though the variable's static type is `Animal`.
+3. Call `Receiver.array(Object[])` with `String[]` and compare three approaches: casting `(Object)`, wrapping in `new Object[]{...}`, and passing the array directly.
+4. Change `generic(List<String>)` to read `values.get(0)` into a `String` variable; try passing `List.of(10)` via Reflection and observe `InvocationTargetException.getCause()`.
+5. Create a field declared as `Pet` and try `Field.set` with `new Dog()`, `new Cat()`, and `null`. Predict the behavior based on assignability.
+6. Explain for yourself why `Object.class.isAssignableFrom(int.class)` is `false` whereas `Object.class.isAssignableFrom(Integer.class)` is `true`.
 
-## 10. Checklist trước khi gọi Reflection
+## 10. Checklist before calling Reflection
 
-- Xác định **formal parameter type** bằng `getParameterTypes()` hoặc `Field.getType()`.
-- Với giá trị khác `null`, kiểm tra `targetType.isInstance(value)` hoặc `targetType.isAssignableFrom(value.getClass())` **khi target là reference type**.
-- Với `null`, xác nhận tham số đích là kiểu tham chiếu và đóng gói `Object[]` đúng số lượng.
-- Không tự thêm downcast, parse, conversion primitive hoặc generic verification vào phạm vi **reference assignability**.
-- Với một đối số là array, kiểm tra cách Java đóng gói `Object...` của `invoke`.
-- Khi có lỗi, phân biệt **tra cứu thành viên**, **quyền truy cập**, **sai đối số**, và **ngoại lệ do thân method**.
-- Trong môi trường plugin/multi-class-loader, dựa vào danh tính `Class<?>` thật thay vì chuỗi tên.
+- Identify the **formal parameter type** using `getParameterTypes()` or `Field.getType()`.
+- For non-`null` values, check `targetType.isInstance(value)` or `targetType.isAssignableFrom(value.getClass())` **when target is a reference type**.
+- For `null`, confirm the target parameter is a reference type and package `Object[]` with the right count.
+- Do not mix downcasting, parsing, primitive conversion, or generic verification into the scope of **reference assignability**.
+- For an argument that is an array, check how Java packages `Object...` of `invoke`.
+- When errors occur, distinguish **member lookup**, **access permissions**, **invalid arguments**, and **exceptions from the method body**.
+- In plugin/multi-class-loader environments, rely on true `Class<?>` identity rather than name strings.
 
-**Ghi nhớ:** Chuyển tham chiếu qua Reflection dựa trên **kiểu runtime thực sự** và quan hệ **assignability** với kiểu tham số/field đích. `Target.class.isAssignableFrom(Source.class)` là câu hỏi về hai kiểu; `Target.class.isInstance(value)` là câu hỏi về một giá trị khác `null`. Nếu kiểm tra đúng chiều, xử lý `null` rõ ràng và phân biệt tầng varargs của `Method.invoke`, bạn có thể chẩn đoán hầu hết lỗi chuyển tham chiếu trong Reflection.
+**Takeaway:** Reference conversion via Reflection is based on the **actual runtime type** and the **assignability** relationship with the target parameter/field type. `Target.class.isAssignableFrom(Source.class)` is a question about two types; `Target.class.isInstance(value)` is a question about a non-`null` value. By checking in the right direction, handling `null` explicitly, and distinguishing the varargs layer of `Method.invoke`, you can diagnose most reference conversion errors in Reflection.

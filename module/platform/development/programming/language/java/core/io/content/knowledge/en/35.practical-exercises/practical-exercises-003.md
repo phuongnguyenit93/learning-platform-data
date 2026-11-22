@@ -1,28 +1,28 @@
-# Đọc file lớn theo dòng và thống kê dữ liệu trong Java
+# Reading Large Files Line by Line and Aggregating Data Statistics in Java
 
-Khi xử lý log, dữ liệu giao dịch, kết quả đo hoặc một file CSV có dung lượng hàng trăm MB đến nhiều GB, cách làm `Files.readAllLines(path)` rồi duyệt danh sách có thể tạo áp lực heap rất lớn: mỗi dòng là một chuỗi, còn có danh sách tham chiếu, đối tượng trung gian và chi phí giải mã. Đa số bài toán thống kê **không cần giữ toàn bộ dòng trong bộ nhớ**. Chúng chỉ cần đọc từng dòng, kiểm tra bản ghi rồi cập nhật vài bộ đếm, tổng, giá trị nhỏ nhất/lớn nhất hoặc thống kê theo nhóm.
+When processing logs, transaction data, measurement results, or a CSV file ranging from hundreds of MB to many GB, calling `Files.readAllLines(path)` and then iterating over the list can create massive heap pressure: each line is a string, plus there is the list of references, intermediate objects, and decoding overhead. Most statistical problems **do not need to keep all lines in memory**. They only need to read one line at a time, validate the record, and update a few counters, sums, min/max values, or per-group statistics.
 
-Bài thực hành này hướng dẫn đọc một file lớn theo dòng bằng `BufferedReader` và `Files.lines()`, thiết kế phép thống kê theo kiểu **streaming / one-pass**, xử lý dòng lỗi, encoding, tràn số, tài nguyên và hiệu năng. Một chương trình Java 17 hoàn chỉnh sẽ đọc dữ liệu định dạng `level,durationMs`, đếm các bản ghi hợp lệ/không hợp lệ, số lượng theo mức log, tổng, min, max, average mà không tạo danh sách tất cả dòng.
+This exercise walks through reading a large file line by line with `BufferedReader` and `Files.lines()`, designing **streaming / one-pass** aggregation, and handling malformed lines, encoding, numeric overflow, resources, and performance. A complete Java 17 program will read data in the `level,durationMs` format, count valid/invalid records, per-log-level counts, total, min, max, and average without creating a list of all lines.
 
-**Mục tiêu:** Chi phí bộ nhớ chủ yếu phụ thuộc kích thước **dòng lớn nhất** và lượng trạng thái thống kê đang giữ, không tỷ lệ tuyến tính với tổng số dòng nếu chỉ lưu các bộ đếm và nhóm cố định.
+**Goal:** Memory cost mainly depends on the size of the **largest line** and the amount of statistical state retained, rather than scaling linearly with total line count when only fixed counters and groups are stored.
 
-## 1. Phân biệt đọc toàn bộ file với đọc từng dòng
+## 1. Distinguishing Whole-File Reading from Line-by-Line Reading
 
-| Cách đọc | Hành vi | Phù hợp |
+| Reading Approach | Behavior | Best For |
 | --- | --- | --- |
-| `Files.readString(path)` | Đọc nội dung file thành một `String` | File nhỏ, cần nội dung nguyên vẹn trong RAM |
-| `Files.readAllLines(path, charset)` | Đọc tất cả dòng và tạo `List<String>` | File nhỏ/vừa, muốn truy cập lại mọi dòng |
-| `Files.newBufferedReader(path, charset)` | Đọc tuần tự bằng `BufferedReader.readLine()` | File lớn, xử lý từng dòng, kiểm soát luồng và lỗi |
-| `Files.lines(path, charset)` | Trả về `Stream<String>` lười, đọc khi terminal operation chạy | Xử lý pipeline filter/map, vẫn phải đóng stream |
-| `FileChannel.read(ByteBuffer)` | Đọc các khối byte, **không tự tách dòng hoặc giải mã charset** | Giao thức nhị phân, parser tùy biến hoặc cần kiểm soát byte buffer |
+| `Files.readString(path)` | Reads file content into a single `String` | Small files where the entire content is needed in RAM |
+| `Files.readAllLines(path, charset)` | Reads all lines and builds a `List<String>` | Small/medium files when every line must be revisited |
+| `Files.newBufferedReader(path, charset)` | Reads sequentially via `BufferedReader.readLine()` | Large files, line-by-line processing, flow and error control |
+| `Files.lines(path, charset)` | Returns a lazy `Stream<String>`, read when a terminal operation runs | Filter/map pipelines; the stream must still be closed |
+| `FileChannel.read(ByteBuffer)` | Reads byte blocks, **does not split lines or decode charsets automatically** | Binary protocols, custom parsers, or when byte-buffer control is needed |
 
-Đối với file văn bản lớn, `BufferedReader` là điểm khởi đầu tốt: dễ quản lý dòng, xử lý ngoại lệ checked `IOException`, kiểm soát vòng đời. `Files.lines()` hợp lý khi pipeline rõ ràng và không vô tình gom mọi dòng vào bộ nhớ bằng `collect(toList())`.
+For large text files, `BufferedReader` is a solid starting point: easy to manage lines, handle checked `IOException`, and control lifecycle. `Files.lines()` is appropriate when the pipeline is clear and you do not accidentally collect every line into memory with `collect(toList())`.
 
-Độ lớn file **không đồng nghĩa** với việc phải dùng `MappedByteBuffer` hoặc tự viết bộ giải mã byte: streaming text qua `BufferedReader` thường đủ đúng, dễ bảo trì và dễ benchmark.
+Large file size **does not automatically mean** you must use `MappedByteBuffer` or write a custom byte decoder: streaming text through `BufferedReader` is usually sufficient, maintainable, and easy to benchmark.
 
-## 2. Bộ dữ liệu đầu vào và yêu cầu thống kê
+## 2. Input Dataset and Statistical Requirements
 
-Giả sử mỗi dòng dữ liệu là một bản ghi có hai cột, phân cách bởi dấu phẩy:
+Suppose each data line is a record with two comma-separated columns:
 
 ```text
 level,durationMs
@@ -36,23 +36,23 @@ INFO,-1
 ERROR,150
 ```
 
-Quy tắc nghiệp vụ của bài thực hành:
+Business rules for this exercise:
 
-1. Dòng đầu tiên **phải đúng** `level,durationMs`, là header và không tính vào thống kê.
-2. Mỗi dòng tiếp theo phải có đúng một dấu phẩy, hai trường không rỗng.
-3. `level` thuộc ba giá trị `INFO`, `WARN`, `ERROR`; so khớp phân biệt chữ hoa/thường sau khi bỏ khoảng trắng đầu/cuối mỗi trường.
-4. `durationMs` phải là số nguyên kiểu `long` **không âm**.
-5. Dòng không hợp lệ được **đếm vào `invalid`** và bỏ qua khi tính tổng/min/max/trung bình. Không bỏ cả file vì một dòng bẩn.
-6. Các chỉ số cần in: tổng số dòng dữ liệu, valid, invalid, số dòng của từng level, tổng thời lượng, min, max, average.
-7. File có thể rất lớn; chương trình không lưu `List<String>`, không giữ toàn bộ bản ghi hợp lệ và không cần tạo file trung gian.
+1. The first line **must be exactly** `level,durationMs`, which is the header and is not included in statistics.
+2. Each subsequent line must have exactly one comma and two non-empty fields.
+3. `level` must be one of `INFO`, `WARN`, or `ERROR`; matched case-sensitively after trimming leading/trailing whitespace on each field.
+4. `durationMs` must be a **non-negative** `long` integer.
+5. Invalid lines are **counted in `invalid`** and skipped when computing sum/min/max/average. Do not reject the entire file because of one dirty line.
+6. Metrics to print: total data lines, valid, invalid, line count per level, total duration, min, max, average.
+7. The file can be very large; the program does not store a `List<String>`, does not retain all valid records, and does not need to create intermediate files.
 
-Với dữ liệu mẫu: có **8 dòng dữ liệu**, 6 dòng hợp lệ, 2 dòng không hợp lệ (`broken` và `INFO,-1`). Mỗi level có 2 dòng hợp lệ; tổng thời lượng là **1300 ms**, min **80 ms**, max **450 ms**, trung bình **1300 / 6 = 216,67 ms**.
+With the sample data: there are **8 data lines**, 6 valid lines, and 2 invalid lines (`broken` and `INFO,-1`). Each level has 2 valid lines; total duration is **1300 ms**, min **80 ms**, max **450 ms**, and average **1300 / 6 = 216.67 ms**.
 
-Đây là **CSV đơn giản do bài thực hành quy định**, **không phải parser CSV tổng quát theo RFC 4180**: nó không hỗ trợ dấu phẩy nằm trong field được quote, newline bên trong field hoặc quy tắc escape. Khi xử lý CSV thực tế có quoted fields, dùng một parser CSV chuyên dụng hoặc triển khai state machine có giới hạn tài nguyên, không sử dụng `split(",")` một cách mù quáng.
+This is a **simple CSV format defined by this exercise**, **not a general RFC 4180 CSV parser**: it does not support commas inside quoted fields, newlines inside fields, or escaping rules. When processing real-world CSVs with quoted fields, use a dedicated CSV parser or implement a resource-bounded state machine instead of blindly calling `split(",")`.
 
-## 3. BufferedReader.readLine(): đọc dòng mà không gom cả file
+## 3. `BufferedReader.readLine()`: Reading Lines Without Loading the Whole File
 
-Mẫu cơ bản:
+Basic pattern:
 
 ```java
 import java.io.BufferedReader;
@@ -66,80 +66,80 @@ try (BufferedReader reader =
         Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
     String line;
     while ((line = reader.readLine()) != null) {
-        // Xử lý ngay từng line, cập nhật các accumulator.
+        // Process each line immediately, updating the accumulators.
     }
 }
 ```
 
-Đây là **đoạn minh họa**: file đầu vào cần tồn tại và ứng dụng phải xử lý `IOException`; code chưa có phương thức `main`. Điểm chính:
+This is an **illustrative snippet**: the input file must exist and the application must handle `IOException`; the code does not include a `main` method. Key points:
 
-- `readLine()` trả về một chuỗi chứa nội dung dòng, **không gồm ký tự kết thúc dòng**; hoặc `null` khi kết thúc file.
-- Các dạng xuống dòng thông dụng như LF (`\n`), CRLF (`\r\n`) và CR được nhận diện làm dấu kết thúc dòng theo hợp đồng `BufferedReader`.
-- **Dòng rỗng là `""`, không phải `null`.** Nếu dữ liệu có dòng rỗng, cần quyết định bỏ qua, đếm lỗi hay coi là bản ghi trống.
-- `readLine()` có thể ném `IOException`, ví dụ lỗi thiết bị hoặc decode input không hợp lệ.
-- `try-with-resources` đóng reader ngay cả khi vòng xử lý dừng vì lỗi. Nó cũng đóng stream bên dưới do `Files.newBufferedReader()` tạo.
+- `readLine()` returns a string containing the line content, **excluding line-termination characters**; or `null` at end of file.
+- Common line endings such as LF (`\n`), CRLF (`\r\n`), and CR are recognized as line terminators per the `BufferedReader` contract.
+- **An empty line is `""`, not `null`.** If the data contains empty lines, decide whether to skip them, count them as errors, or treat them as blank records.
+- `readLine()` can throw `IOException`, for example on device errors or invalid input decoding.
+- `try-with-resources` closes the reader even if the processing loop stops due to an error. It also closes the underlying stream created by `Files.newBufferedReader()`.
 
-**Cần phân biệt “không nạp cả file” với “giới hạn tuyệt đối RAM”.** `readLine()` phải tạo chuỗi cho **toàn bộ một dòng**. Nếu file có **một dòng dài hàng GB** mà không có newline, chương trình vẫn có nguy cơ thiếu bộ nhớ. Đọc theo dòng an toàn về bộ nhớ **khi độ dài từng dòng được kiểm soát**; với đầu vào không tin cậy phải có parser có giới hạn số ký tự/byte trước khi dựng chuỗi quá dài.
+**Distinguish "not loading the whole file" from "an absolute RAM cap".** `readLine()` must construct a string for **an entire line**. If a file contains **a single GB-long line** with no newline, the program still risks running out of memory. Line-by-line reading is memory-safe **when individual line length is bounded**; for untrusted input, use a parser that limits character/byte count before building an overly long string.
 
-### Mã hóa ký tự và charset
+### Character Encoding and Charset
 
-Dùng charset rõ ràng:
+Specify the charset explicitly:
 
 ```java
 Files.newBufferedReader(path, StandardCharsets.UTF_8);
 ```
 
-Không dựa vào default charset khi file là dữ liệu chia sẻ giữa máy. Một file thực tế có thể dùng UTF-8, UTF-16 hoặc encoding khác; **chỉ định đúng encoding của nguồn**. `UTF-8 BOM` ở đầu file có thể xuất hiện trong nội dung đọc như ký tự `\uFEFF`, khiến kiểm tra header bằng `equals()` thất bại. Nếu quy ước chấp nhận BOM, xử lý rõ ràng đúng **đầu file**, không tự xóa ký tự đầu của mọi dòng.
+Do not rely on the default charset when files are shared across machines. A real file may use UTF-8, UTF-16, or another encoding; **specify the source's exact encoding**. A `UTF-8 BOM` at the start of a file may appear in the read content as the `\uFEFF` character, causing a header check with `equals()` to fail. If your convention accepts BOMs, handle it explicitly right at the **start of the file**, rather than stripping the first character from every line.
 
-## 4. One-pass aggregation: giữ trạng thái nhỏ và cập nhật tăng dần
+## 4. One-Pass Aggregation: Keeping Small State and Updating Incrementally
 
-Thay vì:
+Instead of:
 
 ```java
 List<String> lines = Files.readAllLines(path);
 long valid = lines.stream().filter(...).count();
 ```
 
-(đoạn này chỉ minh họa anti-pattern, `...` không phải Java code chạy được), hãy duy trì accumulator:
+(this snippet only illustrates an anti-pattern; `...` is not runnable Java code), maintain accumulators:
 
 ```text
-rows           = 0      // Tổng số dòng sau header
-valid          = 0      // Số dòng được chấp nhận
-invalid        = 0      // Số dòng bị loại
-sumDurationMs  = 0      // Tổng thời lượng hợp lệ
-minDurationMs  = +∞     // Min của các dòng hợp lệ
-maxDurationMs  = -∞     // Max của các dòng hợp lệ
+rows           = 0      // Total lines after the header
+valid          = 0      // Number of accepted lines
+invalid        = 0      // Number of rejected lines
+sumDurationMs  = 0      // Total valid duration
+minDurationMs  = +∞     // Min of valid lines
+maxDurationMs  = -∞     // Max of valid lines
 count[INFO]    = 0
 count[WARN]    = 0
 count[ERROR]   = 0
 ```
 
-Với mỗi dòng:
+For each line:
 
-1. Tăng `rows`.
-2. Kiểm tra số cột, level và duration.
-3. Nếu sai: tăng `invalid`, xử lý dòng kế tiếp.
-4. Nếu đúng: tăng `valid`, tăng bộ đếm level, cộng duration vào tổng, cập nhật min/max.
-5. Khi tới EOF: tính average nếu `valid > 0`; nếu không có dòng hợp lệ, dùng `n/a` để tránh chia cho 0.
+1. Increment `rows`.
+2. Validate column count, level, and duration.
+3. If invalid: increment `invalid`, move to the next line.
+4. If valid: increment `valid`, increment the level counter, add duration to the sum, update min/max.
+5. At EOF: compute the average if `valid > 0`; if there are no valid lines, use `n/a` to avoid division by zero.
 
-**Không cần biết trước tổng số dòng hoặc dung lượng file** để tính các thống kê này. Với ba level cố định, số bộ đếm cũng cố định. Chi phí thời gian gần tương ứng tổng số ký tự/byte được đọc cộng chi phí parse, còn bộ nhớ không phải một `List` phình to cùng kích thước file.
+**There is no need to know the total line count or file size in advance** to compute these statistics. With three fixed levels, the number of counters is also fixed. Time cost roughly corresponds to the total characters/bytes read plus parsing overhead, while memory is not a `List` growing with file size.
 
-### Tràn số và độ chính xác
+### Overflow and Precision
 
-Không nên dùng `int` cho tổng duration khi file có thể chứa hàng triệu bản ghi. Dùng `long` và nếu tổng có thể vượt `Long.MAX_VALUE`, kiểm tra bằng `Math.addExact()` (ném `ArithmeticException` khi overflow) hoặc dùng `BigInteger` nếu nghiệp vụ thực sự cần dải số lớn hơn.
+Do not use `int` for total duration when a file may contain millions of records. Use `long`, and if the sum could exceed `Long.MAX_VALUE`, check with `Math.addExact()` (throws `ArithmeticException` on overflow) or use `BigInteger` if business logic truly requires a larger range.
 
-Với trung bình:
+For the average:
 
 ```java
 double average = valid == 0 ? Double.NaN
         : (double) sumDurationMs / valid;
 ```
 
-Đây là công thức minh họa, biến phải khai báo ở context ứng dụng. `double` phù hợp cho báo cáo trung bình; nếu là tiền hoặc nghiệp vụ cần decimal precision tuyệt đối, dùng `BigDecimal` với chính sách làm tròn. Không cộng giá trị `long` vào `int` rồi mong phép chia cuối sửa được overflow đã xảy ra.
+This is an illustrative formula; variables must be declared in the application context. `double` is suitable for reporting averages; for monetary values or business requirements needing exact decimal precision, use `BigDecimal` with an explicit rounding policy. Do not accumulate `long` values into an `int` and expect the final division to fix an overflow that already occurred.
 
-## 5. Chương trình Java 17 hoàn chỉnh: thống kê file lớn bằng một lượt đọc
+## 5. Complete Java 17 Program: One-Pass Large File Statistics
 
-Tạo file **`LargeFileStatsDemo.java`**. Nếu chạy **không có đối số**, chương trình tạo dữ liệu mẫu trong file tạm, phân tích và xóa file mẫu. Nếu truyền **một đường dẫn**, chương trình đọc file đó và **không sửa/xóa file do người dùng chỉ định**.
+Create the file **`LargeFileStatsDemo.java`**. If run **with no arguments**, the program generates sample data in a temporary file, analyzes it, and deletes the sample file. If passed **one path**, the program reads that file and **does not modify or delete the user-specified file**.
 
 ```java
 import java.io.BufferedReader;
@@ -224,7 +224,7 @@ public final class LargeFileStatsDemo {
                     "INFO,-1",
                     "ERROR,150") + "\n";
 
-            // Chỉ ghi đè file tạm vừa được chính chương trình tạo.
+            // Only overwrite the temporary file just created by this program.
             Files.writeString(example, sample, StandardCharsets.UTF_8);
             analyze(example).print();
         } finally {
@@ -282,14 +282,14 @@ public final class LargeFileStatsDemo {
 }
 ```
 
-Biên dịch và chạy bằng **JDK 17 trở lên**:
+Compile and run with **JDK 17 or later**:
 
 ```bash
 javac LargeFileStatsDemo.java
 java LargeFileStatsDemo
 ```
 
-**Stdout chính xác cho dữ liệu mẫu tích hợp:**
+**Exact stdout for the built-in sample data:**
 
 ```text
 rows=8
@@ -304,33 +304,33 @@ maxMs=450
 avgMs=216.67
 ```
 
-Để đọc file của bạn:
+To read your own file:
 
 ```bash
 java LargeFileStatsDemo /path/to/events.csv
 ```
 
-Đây chỉ là ví dụ cú pháp đường dẫn trên hệ Unix; hãy thay bằng đường dẫn thật phù hợp hệ điều hành của bạn. File phải tuân thủ định dạng `level,durationMs` nêu trên; output sẽ phản ánh dữ liệu của file được truyền vào.
+This is only a Unix-style path syntax example; replace it with a real path appropriate for your operating system. The file must follow the `level,durationMs` format described above; output will reflect the data of the passed-in file.
 
-### Phân tích cách ví dụ hoạt động
+### Analyzing How the Example Works
 
-- `Files.newBufferedReader()` chỉ giữ một buffer đọc và chuỗi của dòng hiện tại, thay vì danh sách mọi dòng.
-- Header được kiểm tra trước để tránh nhầm cột hoặc thống kê một file hoàn toàn sai định dạng.
-- `line.indexOf(',')` xác định dấu phẩy duy nhất và kiểm tra không có dấu phẩy thứ hai; phù hợp **định dạng hai cột đơn giản**, không có quoted CSV.
-- `Level.valueOf()` kiểm tra level hợp lệ; `Long.parseLong()` kiểm tra duration; cả hai có thể ném `IllegalArgumentException` (bao gồm `NumberFormatException` là lớp con) và được ghi nhận như dòng không hợp lệ.
-- `stats.accept()` chỉ chạy với bản ghi hợp lệ; `Math.addExact()` ngăn số tổng im lặng tràn `long`.
-- `minMs/maxMs` khởi tạo bằng các sentinel nhưng **không in sentinel nếu valid=0**.
-- `Locale.ROOT` giữ dấu thập phân `.` trong kết quả mẫu, tránh phụ thuộc thiết lập vùng địa lý trên máy.
-- Nhánh chạy với tham số chỉ **đọc** file người dùng, còn nhánh không tham số chỉ tạo và xóa **file tạm do chương trình sở hữu**.
+- `Files.newBufferedReader()` only holds a read buffer and the string of the current line, instead of a list of all lines.
+- The header is checked upfront to avoid mistaking columns or aggregating a completely malformed file.
+- `line.indexOf(',')` locates the single comma and verifies there is no second comma; suited for a **simple two-column format**, without quoted CSV.
+- `Level.valueOf()` validates the level; `Long.parseLong()` validates the duration; both can throw `IllegalArgumentException` (including `NumberFormatException` as a subclass) and are recorded as invalid lines.
+- `stats.accept()` only runs for valid records; `Math.addExact()` prevents the sum from silently overflowing `long`.
+- `minMs/maxMs` are initialized with sentinels, but **sentinels are not printed if valid=0**.
+- `Locale.ROOT` keeps the `.` decimal separator in the sample output, avoiding dependence on the machine's regional locale settings.
+- The argument branch only **reads** the user's file, while the no-argument branch only creates and deletes a **temporary file owned by the program**.
 
-Bài tập cố ý đếm dòng sai nhưng không in toàn bộ nội dung dòng vì file lớn có thể làm log lỗi phình to hoặc lộ dữ liệu. Với dịch vụ thật, có thể xuất **một số lượng chẩn đoán có giới hạn**, ví dụ tối đa 10 lỗi đầu, kèm số dòng, nguyên nhân và không lộ field nhạy cảm.
+The exercise intentionally counts bad lines without printing the full line content, because large files can bloat error logs or leak data. In a real service, you can emit **a bounded number of diagnostics**, such as at most the first 10 errors, with line number and reason, without exposing sensitive fields.
 
-## 6. Files.lines(): cùng mục tiêu nhưng dùng Stream API
+## 6. `Files.lines()`: Same Goal Using the Stream API
 
-`Files.lines(path, StandardCharsets.UTF_8)` trả `Stream<String>` đọc lười. Một ví dụ đơn giản đếm những dòng chứa từ khóa:
+`Files.lines(path, StandardCharsets.UTF_8)` returns a lazily read `Stream<String>`. A simple example counting lines containing a keyword:
 
 ```java
-// Minh họa trong phương thức cho phép ném IOException.
+// Illustrative snippet inside a method that allows throwing IOException.
 try (java.util.stream.Stream<String> lines =
         Files.lines(file, StandardCharsets.UTF_8)) {
     long errors = lines.filter(s -> s.startsWith("ERROR,")).count();
@@ -338,29 +338,29 @@ try (java.util.stream.Stream<String> lines =
 }
 ```
 
-Đây là **đoạn minh họa**, không phải chương trình độc lập: `file` phải là `Path` hợp lệ, có import `Files` và xử lý ngoại lệ. `Files.lines()` không có nhu cầu tạo danh sách trước khi `count()`. Nó đọc và kiểm tra các dòng khi terminal operation chạy.
+This is an **illustrative snippet**, not a standalone program: `file` must be a valid `Path`, with `Files` imported and exceptions handled. `Files.lines()` does not need to build a list before `count()`. It reads and checks lines as the terminal operation executes.
 
-**Đóng stream là bắt buộc.** Stream trả về từ `Files.lines()` gắn với tài nguyên file đang mở; không trả nó ra khỏi khối `try-with-resources` rồi để caller sử dụng sau khi file đã bị đóng.
+**Closing the stream is mandatory.** The stream returned by `Files.lines()` is tied to an open file resource; do not return it out of a `try-with-resources` block and let the caller consume it after the file has been closed.
 
-Trong quá trình stream vận hành, lỗi I/O phát sinh sau khi stream được tạo có thể được đóng gói thành `UncheckedIOException` bởi pipeline. Điều này khác cách `BufferedReader.readLine()` khai báo checked `IOException`. Hãy lựa chọn cách xử lý lỗi phù hợp và không nuốt exception trong terminal operation.
+During stream execution, an I/O error arising after the stream is created can be wrapped into an `UncheckedIOException` by the pipeline. This differs from `BufferedReader.readLine()`, which declares checked `IOException`. Choose an appropriate error-handling strategy and do not swallow exceptions in terminal operations.
 
-### Không biến streaming thành eager collection
+### Do Not Turn Streaming into Eager Collection
 
-Một anti-pattern:
+An anti-pattern:
 
 ```java
 try (var lines = Files.lines(path)) {
     var all = lines.toList();
-    // all bây giờ chứa mọi dòng trong RAM!
+    // all now holds every line in RAM!
 }
 ```
 
-Đoạn này là **minh họa**, cần biến `path` kiểu `Path` và xử lý `IOException`. `Files.lines()` chỉ có tính chất lazy **cho đến khi** bạn dùng terminal operation. `toList()`, `collect(toList())` hoặc `groupingBy(..., toList())` có thể tích lũy lượng dữ liệu lớn, đánh mất lợi ích bộ nhớ.
+This snippet is **illustrative**, requiring a `Path` variable `path` and `IOException` handling. `Files.lines()` is only lazy **until** you use a terminal operation. `toList()`, `collect(toList())`, or `groupingBy(..., toList())` can accumulate massive amounts of data, forfeiting the memory advantage.
 
-Có thể dùng collector để đếm nhóm:
+You can use a collector to count groups:
 
 ```java
-// Đoạn minh họa: chỉ phù hợp sau khi đã xác thực dữ liệu dòng.
+// Illustrative snippet: only suitable after validating line data.
 try (var lines = Files.lines(path, StandardCharsets.UTF_8)) {
     var counts = lines
             .filter(s -> !s.isBlank())
@@ -370,29 +370,29 @@ try (var lines = Files.lines(path, StandardCharsets.UTF_8)) {
 }
 ```
 
-Nhưng **mã này không an toàn với input thiếu dấu phẩy**, và header sẽ bị đếm nếu không bỏ qua. Nó chỉ minh họa collector, **không thay thế code hoàn chỉnh đã kiểm tra dữ liệu**. Hơn nữa, bộ nhớ của `groupingBy()` tăng theo số nhóm khác nhau. Nếu mỗi dòng có một khóa duy nhất, map có thể tăng gần bằng tổng số dòng; khi đó cần giới hạn cardinality hoặc external aggregation.
+However, **this code is unsafe for input missing a comma**, and the header will be counted unless skipped. It only illustrates collectors and **does not replace complete, validated code**. Moreover, the memory of `groupingBy()` grows with the number of distinct groups. If every line has a unique key, the map can grow close to the total line count; in that case, you need cardinality limits or external aggregation.
 
-## 7. Thiết kế thống kê theo nhóm trong file lớn
+## 7. Designing Per-Group Statistics for Large Files
 
-Bộ đếm ba level cố định của bài thực hành giữ bộ nhớ O(1) theo số dòng. Với dữ liệu thực tế thường cần thống kê theo ngày, khu vực hoặc mã trạng thái:
+This exercise's fixed three-level counters keep memory O(1) relative to line count. Real data often requires grouping by date, region, or status code:
 
-| Bài toán | State tối thiểu | Bộ nhớ |
+| Problem | Minimum State | Memory |
 | --- | --- | --- |
-| Đếm toàn bộ dòng và dòng sai | Một vài bộ đếm `long` | Gần O(1) |
-| Tổng, min, max, average | `sum, count, min, max` | Gần O(1) |
-| Đếm theo level có 3 giá trị | Mảng ba phần tử / `EnumMap` | Gần O(1) |
-| Đếm theo mã trạng thái HTTP có miền hữu hạn | Mảng hoặc map giới hạn số mã | Tỷ lệ số mã có thể xuất hiện |
-| Đếm theo user ID không giới hạn | `Map<userId, count>` | Tỷ lệ số user ID khác nhau, có thể rất lớn |
-| Tính số giá trị phân biệt chính xác | `HashSet` | Tỷ lệ số giá trị khác nhau |
-| Top-K với độ lớn K cố định | Min-heap và bộ đếm thích hợp | Thường O(K) cho lựa chọn top-K khi đã có tần suất, nhưng tính chính xác tần suất mọi khóa còn cần state khác |
-| Median/p95 chính xác | Thường cần dữ liệu hoặc cấu trúc chỉ mục/thuật toán thích hợp | Không phải luôn O(1) |
-| Median/p95 gần đúng | Sketch/histogram phù hợp | Có thể giới hạn bộ nhớ nhưng có sai số |
+| Count total lines and invalid lines | A few `long` counters | Near O(1) |
+| Sum, min, max, average | `sum, count, min, max` | Near O(1) |
+| Count by level with 3 values | Three-element array / `EnumMap` | Near O(1) |
+| Count by HTTP status code with finite domain | Array or map bounded by code count | Proportional to codes that may appear |
+| Count by unbounded user ID | `Map<userId, count>` | Proportional to distinct user IDs, potentially very large |
+| Compute exact distinct value count | `HashSet` | Proportional to distinct values |
+| Top-K with fixed size K | Min-heap and appropriate counters | Usually O(K) for top-K selection once frequencies exist, though exact per-key frequency counting still needs other state |
+| Exact median/p95 | Usually requires data or suitable index/algorithm structure | Not always O(1) |
+| Approximate median/p95 | Suitable sketch/histogram | Can bound memory at the cost of error margin |
 
-Không nên tuyên bố “đọc từng dòng ⇒ mọi thống kê đều O(1) memory”. Điều đúng là **cơ chế đọc không tự lưu toàn bộ file**; phần aggregation vẫn có thể giữ nhiều dữ liệu tùy yêu cầu. Nếu cardinality cao, cân nhắc chia bucket theo khóa, external sort, cơ sở dữ liệu hoặc công cụ xử lý dữ liệu theo khối.
+Do not claim "line-by-line reading ⇒ every statistic is O(1) memory". What is true is that **the reading mechanism itself does not store the entire file**; aggregation can still retain lots of data depending on requirements. If cardinality is high, consider bucketing by key, external sort, a database, or chunked data processing tools.
 
-### Giữ đủ thông tin để tính trung bình đúng
+### Retaining Enough Information to Compute Averages Correctly
 
-Muốn tổng hợp trung bình giữa nhiều file, không lưu và cộng trung bình mỗi file một cách trực tiếp, vì file có số dòng hợp lệ khác nhau. Hãy lưu **`sum` và `count`**, sau đó gộp:
+To aggregate averages across multiple files, do not directly store and average each file's average, because files have different valid line counts. Store **`sum` and `count`**, then combine:
 
 ```text
 File A: sum=100, count=1      --> avg=100
@@ -400,7 +400,7 @@ File B: sum=300, count=3      --> avg=100
 Combined: (100+300)/(1+3)    --> avg=100
 ```
 
-Trường hợp khác sẽ cho thấy rõ lỗi “average of averages”:
+Another case clearly exposes the "average of averages" bug:
 
 ```text
 File A: sum=100, count=1       --> avg=100
@@ -409,138 +409,138 @@ Incorrect: (100+0)/2          --> 50
 Correct:   (100+0)/(1+9)      --> 10
 ```
 
-Nếu gộp trên nhiều máy, phải định nghĩa overflow, thứ tự kết hợp và chính sách xử lý dòng không hợp lệ trước khi tổng hợp.
+When merging across machines, define overflow handling, combination order, and invalid-line policies before aggregating.
 
-## 8. Tối ưu I/O: buffer, số lần cấp phát và charset decoder
+## 8. I/O Optimization: Buffer, Allocations, and Charset Decoder
 
-`Files.newBufferedReader()` dùng buffered character reader phù hợp nhiều trường hợp. Nếu cần kích thước buffer cụ thể, có thể kết hợp:
+`Files.newBufferedReader()` uses a buffered character reader suitable for many cases. If a specific buffer size is needed, you can combine:
 
 ```java
-// Minh họa, file là Path hợp lệ; IOException được xử lý ở caller.
+// Illustrative snippet, file is a valid Path; IOException is handled by the caller.
 try (BufferedReader reader = new BufferedReader(
         new java.io.InputStreamReader(
                 Files.newInputStream(file), StandardCharsets.UTF_8),
         64 * 1024)) {
     String line;
     while ((line = reader.readLine()) != null) {
-        // Thống kê trực tiếp.
+        // Aggregate directly.
     }
 }
 ```
 
-Không nên kết luận tăng buffer từ 8 KiB lên 64 KiB luôn nhanh hơn. Kết quả phụ thuộc chiều dài dòng, ổ đĩa, page cache, giải mã charset, số lượng file và chi phí parse.
+Do not assume increasing the buffer from 8 KiB to 64 KiB is always faster. Results depend on line length, disk, page cache, charset decoding, file count, and parsing cost.
 
-Một số lựa chọn tối ưu cần benchmark có kiểm soát:
+Several optimization choices require controlled benchmarking:
 
-1. **Hạn chế tạo đối tượng không cần thiết.** `String.split(regex)` tạo mảng và nhiều chuỗi; nếu định dạng chỉ có một dấu phân cách, `indexOf()` và `substring()` có thể đơn giản hơn. Tuy nhiên đừng đánh đổi tính đúng của CSV phức tạp để lấy tốc độ.
-2. **Đếm bằng `long` thay vì `int`** cho file rất lớn.
-3. **Tách I/O và parsing trong benchmark.** Đo đọc đơn thuần khác đo đọc + kiểm tra logic + tạo bản ghi + tổng hợp.
-4. **Làm nóng JVM/JIT và file cache công bằng.** Lượt thứ hai có thể nhanh hơn do OS page cache dù API không đổi; không so một lượt cold với một lượt warm rồi kết luận thuật toán tốt hơn.
-5. **Không tạo `StringBuilder` khổng lồ cho tất cả dòng** chỉ để thống kê vài chỉ số.
-6. **Không parallelize bừa `Files.lines()`**: splitting dòng và thứ tự, tài nguyên chung và mutable accumulator có thể làm code phức tạp mà không tăng tốc.
-7. **Tránh ghi log trên mỗi dòng** khi xử lý file hàng trăm triệu dòng; bản thân stdout/log có thể chậm hơn I/O đọc.
-8. **Chọn charset đúng** và xử lý encoding error; tốc độ không quan trọng nếu dữ liệu bị parse sai.
+1. **Minimize unnecessary object creation.** `String.split(regex)` allocates an array and multiple strings; if the format has only one delimiter, `indexOf()` and `substring()` can be simpler. However, never trade away correctness on complex CSVs for speed.
+2. **Count with `long` instead of `int`** for very large files.
+3. **Separate I/O from parsing in benchmarks.** Measuring raw reads differs from measuring read + validation logic + record allocation + aggregation.
+4. **Warm up JVM/JIT and file cache fairly.** A second run may be faster due to the OS page cache even with the same API; do not compare a cold run against a warm run and conclude one algorithm is better.
+5. **Do not build a giant `StringBuilder` for all lines** just to compute a few metrics.
+6. **Do not blindly parallelize `Files.lines()`**: line splitting, ordering, shared resources, and mutable accumulators can complicate code without speeding it up.
+7. **Avoid logging on every line** when processing hundreds of millions of lines; stdout/logging itself can be slower than read I/O.
+8. **Pick the right charset** and handle encoding errors; speed does not matter if data is parsed wrongly.
 
-Có thể benchmark với JMH cho những bước thuần CPU/parse, nhưng **JMH không tự kiểm soát cache hệ điều hành**. Nếu muốn đánh giá throughput end-to-end, còn cần đo thời gian mở file, đọc, decode, parse, GC và đóng tài nguyên theo phạm vi thật của ứng dụng.
+You can benchmark pure CPU/parsing steps with JMH, but **JMH does not automatically control the operating system cache**. To evaluate end-to-end throughput, also measure file open, read, decode, parse, GC, and resource close times across your application's real scope.
 
-## 9. Xử lý dữ liệu lỗi và giới hạn an toàn
+## 9. Handling Dirty Data and Safety Limits
 
-File lớn thường không hoàn toàn sạch. Chính sách **skip, fail-fast, quarantine** cần được thống nhất trước khi chạy:
+Large files are rarely completely clean. A **skip, fail-fast, or quarantine** policy should be agreed upon before running:
 
-| Tình huống | Gợi ý xử lý |
+| Situation | Suggested Handling |
 | --- | --- |
-| Header sai hoặc file trống | Fail-fast, vì có thể đọc nhầm loại dữ liệu |
-| Dòng sai số cột | Đếm invalid, ghi một số diagnostic được giới hạn |
-| Level lạ | Đếm invalid hoặc map sang nhóm OTHER nếu nghiệp vụ cho phép |
-| Duration không phải số nguyên | Đếm invalid hoặc fail-fast tùy yêu cầu |
-| Duration âm | Từ chối nếu miền hợp lệ bắt buộc không âm |
-| Giá trị duration gây tràn tổng | Dừng với lỗi rõ ràng hoặc dùng `BigInteger` |
-| File có charset sai | Báo lỗi decode; không tự chuyển encoding và tiếp tục mà không có quy tắc |
-| Một dòng cực dài | Áp dụng giới hạn ký tự/byte trong parser trước khi cấp phát quá nhiều bộ nhớ |
-| File thay đổi trong lúc đang đọc | Kết quả có thể không phản ánh snapshot nhất quán |
-| Ổ đĩa/network filesystem lỗi | `IOException`; không báo hoàn thành với thống kê một phần nếu không có checkpoint |
+| Invalid header or empty file | Fail-fast, as you may be reading the wrong kind of data |
+| Line with wrong column count | Count invalid, log a bounded number of diagnostics |
+| Unknown level | Count invalid or map to OTHER if business logic allows |
+| Non-integer duration | Count invalid or fail-fast depending on requirements |
+| Negative duration | Reject if the valid domain requires non-negative values |
+| Duration value causing sum overflow | Stop with a clear error or use `BigInteger` |
+| File with wrong charset | Report decode error; do not auto-switch encoding and continue without rules |
+| Extremely long line | Enforce character/byte limit inside the parser before allocating too much memory |
+| File modified while reading | Results may not reflect a consistent snapshot |
+| Disk/network filesystem error | `IOException`; do not report completion with partial stats without a checkpoint |
 
-Nếu thống kê phục vụ nghiệp vụ nhạy cảm (tài chính, kiểm toán), cần lưu cả policy parse, schema version, checksum của file đầu vào và cách xử lý lỗi để kết quả có thể truy vết. Không nên tự động bỏ dòng lỗi rồi công bố thống kê như thể toàn bộ dữ liệu đã được xử lý.
+If statistics serve sensitive domains (finance, auditing), also store the parse policy, schema version, input file checksum, and error-handling behavior so results remain traceable. Do not automatically discard bad lines and publish statistics as if all data had been processed.
 
-### Không chấp nhận một dòng vô hạn chỉ vì đã streaming
+### Do Not Accept Unbounded Lines Just Because You Stream
 
-`BufferedReader.readLine()` không cung cấp tham số “maximum line length”. Nếu đầu vào do bên thứ ba không tin cậy tạo, bộ giới hạn phải chạy **trong lúc tiêu thụ ký tự/byte**, không chỉ:
+`BufferedReader.readLine()` does not provide a "maximum line length" parameter. If input comes from an untrusted third party, the limiter must run **while consuming characters/bytes**, not just:
 
 ```java
 String line = reader.readLine();
 if (line.length() > 10000) { ... }
 ```
 
-vì tại thời điểm kiểm tra, `readLine()` **đã tạo chuỗi rất dài**. Một parser giới hạn an toàn hơn có thể đọc từng chunk/chữ cái, dừng/đánh dấu khi vượt ngưỡng và tiếp tục bỏ phần còn lại tới newline mà không tích lũy. Nếu cần dữ liệu CSV đúng chuẩn, nên chọn thư viện parser có khả năng giới hạn chiều dài record/field.
+because by the time the check runs, `readLine()` **has already constructed a very long string**. A safer bounded parser can read in chunks/characters, stop/flag when the threshold is exceeded, and continue discarding the remainder up to the newline without accumulating it. If proper standard CSV is needed, choose a parser library capable of bounding record/field lengths.
 
-## 10. Xử lý file có nhiều GB, nhiều ngày hoặc nhiều nguồn
+## 10. Handling Multi-GB, Multi-Day, or Multi-Source Files
 
-Đối với **một file lớn**, streaming one-pass thường đủ. Với **nhiều file**, có thể chạy vòng lặp từng file, đóng `BufferedReader` sau mỗi file, cộng thống kê vào accumulator tổng bằng phép cộng có kiểm tra overflow. Không cần mở hàng nghìn file descriptor đồng thời.
+For **one large file**, one-pass streaming is usually enough. For **multiple files**, you can loop over each file, close `BufferedReader` after each one, and merge statistics into a total accumulator using overflow-checked addition. There is no need to open thousands of file descriptors concurrently.
 
-Với file được cập nhật liên tục như log đang chạy, một lượt đọc có thể gặp EOF trước khi log writer ghi tiếp. **Đọc file tới EOF khác với theo dõi file (tail -f).** Nếu ứng dụng cần nhận dữ liệu mới theo thời gian thực, phải có cơ chế polling, rotation handling hoặc watcher theo thiết kế, không để `readLine()` quay trong vòng lặp busy-wait vô hạn.
+For continuously updated files like a live log, a single pass may hit EOF before the log writer writes more. **Reading a file to EOF is different from tailing a file (`tail -f`).** If the application needs to receive new data in real time, use a designed polling, rotation handling, or watcher mechanism rather than spinning `readLine()` in an infinite busy-wait loop.
 
-Khi file đang bị ghi cùng lúc, không mặc nhiên có ảnh chụp (snapshot) nhất quán. Có thể lựa chọn:
+When a file is being written concurrently, you do not automatically get a consistent snapshot. Options include:
 
-- Chỉ xử lý file được producer **đóng hoàn toàn** rồi publish bằng đổi tên phù hợp.
-- Tạo bản snapshot/immutable input với checksum hoặc version rõ ràng.
-- Nếu phải đọc file live, quy định khi nào một dòng dở chưa kết thúc newline được coi là hoàn chỉnh, xử lý log rotation và retry.
-- Nếu muốn đọc song song nhiều phần của cùng file, phải tìm **ranh giới dòng thật** tại các điểm chia; chia chỉ theo byte offset rồi mỗi worker đọc tùy ý dễ đếm thiếu hoặc trùng dòng.
+- Process only files that the producer has **fully closed** and published via an appropriate rename.
+- Create a snapshot/immutable input with an explicit checksum or version.
+- If a live file must be read, define when an incomplete line without a trailing newline is considered complete, and handle log rotation and retries.
+- To read different parts of the same file in parallel, find **actual line boundaries** at split points; splitting purely by byte offset and letting workers read arbitrarily risks undercounting or duplicating lines.
 
-**Lưu ý:** Java `BufferedReader.readLine()` có thể trả về dòng cuối ngay cả khi file không kết thúc bằng newline. Với file bất biến, đây là dòng hợp lệ theo quy tắc đọc văn bản; với log đang ghi, nó có thể là **bản ghi dở**. Nên định nghĩa giao thức publish/snapshot thay vì suy đoán.
+**Note:** Java's `BufferedReader.readLine()` can return the last line even if the file does not end with a newline. For an immutable file, this is a valid line under text-reading rules; for a file actively being written, it may be an **incomplete record**. Define a publish/snapshot protocol instead of guessing.
 
-## 11. Kiểm thử thống kê trước khi dùng trên dữ liệu thật
+## 11. Testing Statistics Before Using on Real Data
 
-Các ca cần có:
+Cases to include:
 
-1. **File chỉ có header:** `rows=0`, `valid=0`, `invalid=0`, min/max/average là `n/a`.
-2. **File rỗng:** Báo lỗi header, không chấp nhận thành tập dữ liệu hợp lệ.
-3. **Dòng malformed:** Thiếu dấu phẩy, thừa dấu phẩy, chỉ có một cột, level lạ, duration không phải số.
-4. **Dòng trống:** Với chính sách ví dụ, dòng trống là `invalid`.
-5. **Duration âm:** Bị loại, không ảnh hưởng `sum` hay average.
-6. **Duration bằng 0:** Là hợp lệ, ảnh hưởng `count` và có thể ảnh hưởng `minMs`.
-7. **Duration lớn:** Kiểm tra parsing `long`, xử lý tổng vượt `Long.MAX_VALUE`.
-8. **UTF-8/BOM:** Kiểm tra encoding và chính sách BOM của file thực tế.
-9. **CRLF/LF:** Đảm bảo cách đếm dòng không phụ thuộc kiểu newline.
-10. **Không có newline cuối file:** Dòng cuối vẫn được đọc.
-11. **File rất lớn:** Theo dõi heap/GC, tránh tăng memory theo số dòng.
-12. **File bị thay đổi giữa lượt:** Đảm bảo có chính sách snapshot/retry hoặc ghi rõ kết quả không phải snapshot.
-13. **Lỗi giữa quá trình đọc:** Không xuất một báo cáo “thành công” khi `IOException` xảy ra.
-14. **File do người dùng chỉ định:** Chương trình không xóa hoặc sửa nội dung đầu vào.
+1. **Header-only file:** `rows=0`, `valid=0`, `invalid=0`, min/max/average are `n/a`.
+2. **Empty file:** Reports header error, not accepted as a valid dataset.
+3. **Malformed lines:** Missing comma, extra comma, single column only, unknown level, non-numeric duration.
+4. **Blank lines:** Under the example policy, blank lines are `invalid`.
+5. **Negative duration:** Rejected, does not affect `sum` or average.
+6. **Zero duration:** Valid, affects `count` and can affect `minMs`.
+7. **Large durations:** Test `long` parsing and handling sums exceeding `Long.MAX_VALUE`.
+8. **UTF-8/BOM:** Check encoding and BOM policy on real files.
+9. **CRLF/LF:** Ensure line counting does not depend on newline style.
+10. **No trailing newline at EOF:** The last line is still read.
+11. **Very large file:** Monitor heap/GC, avoiding memory growth with line count.
+12. **File modified mid-pass:** Ensure there is a snapshot/retry policy or clearly note results are not a snapshot.
+13. **Mid-read error:** Do not output a "success" report when `IOException` occurs.
+14. **User-specified file:** Program does not delete or modify the input content.
 
-Với bài mẫu ở mục 5, sáu bản ghi hợp lệ có duration `120, 300, 450, 80, 200, 150`. Kiểm tra thủ công: tổng bằng `1300`, min `80`, max `450`, average `216.666...` nên in `216.67`. Mỗi level xuất hiện đúng hai lần, còn tổng số dòng sau header là tám.
+In the sample from section 5, the six valid records have durations `120, 300, 450, 80, 200, 150`. Manual check: sum is `1300`, min `80`, max `450`, average `216.666...` so it prints `216.67`. Each level appears exactly twice, and total lines after the header is eight.
 
-## 12. Bài tập mở rộng
+## 12. Extension Exercises
 
-Sau khi chạy được chương trình, có thể tự mở rộng theo các hướng sau:
+After getting the program running, you can extend it in the following directions:
 
-**Bài 1 — Thống kê theo ngày.** Thêm cột `date` theo ISO `yyyy-MM-dd`, đếm theo ngày và level. Dùng `LocalDate.parse()` để xác minh ngày, rồi cân nhắc `Map<LocalDate, Stats>`. Phân tích bộ nhớ nếu file có hàng triệu giá trị ngày/khóa khác nhau.
+**Exercise 1 — Per-day statistics.** Add an ISO `yyyy-MM-dd` `date` column, counting by date and level. Use `LocalDate.parse()` to validate dates, then consider `Map<LocalDate, Stats>`. Analyze memory if the file has millions of distinct date/key values.
 
-**Bài 2 — Đọc nhiều file.** Truyền danh sách đường dẫn từ CLI, xử lý từng file qua cùng một phương thức `analyze()` rồi tổng hợp. Có chính sách đối với một file thất bại: dừng tất cả hay báo trạng thái từng file; đừng im lặng bỏ file lỗi.
+**Exercise 2 — Reading multiple files.** Pass a list of paths from the CLI, process each file through the same `analyze()` method, then merge. Define a policy when one file fails: halt all or report per-file status; do not silently skip failed files.
 
-**Bài 3 — Báo tỷ lệ lỗi.** Tính `invalid / rows × 100%` nếu `rows > 0`, in bằng `Locale.ROOT`. Đặt ngưỡng (ví dụ tỷ lệ lỗi vượt 1%) để cảnh báo hoặc làm job thất bại.
+**Exercise 3 — Reporting error rate.** Compute `invalid / rows × 100%` if `rows > 0`, printed with `Locale.ROOT`. Set a threshold (for example error rate above 1%) to warn or fail the job.
 
-**Bài 4 — Phân biệt thống kê exact và approximate.** Với hàng tỷ duration, thử thiết kế histogram cố định các bucket `0–99`, `100–499`, `500+`. Bộ đếm các bucket có bộ nhớ gần O(1), nhưng percentile từ bucket là **ước lượng**, không phải giá trị chính xác.
+**Exercise 4 — Distinguishing exact and approximate statistics.** With billions of durations, try designing a fixed histogram with buckets `0–99`, `100–499`, `500+`. Bucket counters use near-O(1) memory, but percentiles derived from buckets are **estimates**, not exact values.
 
-**Bài 5 — So sánh hai phương án.** Viết thêm bản dùng `Files.lines()`, đảm bảo đóng stream, parse giống hệt và so sánh tổng byte/dòng, checksum, số dòng lỗi; benchmark nhiều lượt với trạng thái page cache công bằng. Đừng chỉ đo một lần rồi kết luận API nào nhanh hơn.
+**Exercise 5 — Comparing two approaches.** Write another version using `Files.lines()`, ensure the stream is closed, parse identically, and compare byte/line totals, checksums, and invalid line counts; benchmark multiple runs with fair page cache states. Do not measure once and conclude which API is faster.
 
-## 13. Lỗi phổ biến và cách tránh
+## 13. Common Mistakes and How to Avoid Them
 
-| Lỗi | Hậu quả | Khắc phục |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| `Files.readAllLines()` với file nhiều GB | Heap tăng mạnh, GC/OutOfMemoryError | Dùng `BufferedReader.readLine()` |
-| `Files.lines().toList()` | Gom toàn bộ dòng vào RAM | Dùng terminal operation không materialize mọi dòng |
-| Quên đóng `Stream` từ `Files.lines()` | Rò rỉ file descriptor/tài nguyên | `try-with-resources` |
-| So sánh `line == null` với dòng rỗng | Nhầm EOF và bản ghi trống | `null` chỉ ở EOF |
-| Mặc định một file lớn chỉ có dòng ngắn | Một dòng cực dài vẫn làm tăng RAM | Parser có giới hạn record length |
-| Không chỉ định charset | Đọc sai tiếng Việt/cột header | Dùng charset phù hợp, thường UTF-8 |
-| `split(",")` cho CSV có quoted commas | Tách sai bản ghi | Dùng CSV parser đúng chuẩn |
-| Cộng duration trong `int` | Tràn số im lặng | `long` + kiểm tra overflow |
-| Tính average khi `count=0` | Chia 0 hoặc output không đúng | Quy ước `n/a` |
-| Dùng `groupingBy()` với khóa duy nhất cho mỗi dòng | Map tăng gần số dòng | Giới hạn cardinality hoặc external aggregation |
-| In log mỗi bản ghi | I/O ghi log lấn át công việc thống kê | Aggregate lỗi và giới hạn diagnostics |
-| Dùng `parallel()` với accumulator dùng chung không đồng bộ | Race, tổng đếm sai | Aggregator thread-safe hoặc thiết kế partition/merge |
-| Không kiểm tra header và số cột | Đọc nhầm schema nhưng vẫn có “kết quả” | Validate cấu trúc đầu vào |
-| Đọc file đang thay đổi mà coi như snapshot bất biến | Số liệu thiếu/không nhất quán | Publish immutable file hoặc snapshot |
-| Cho rằng một `readLine()` luôn đọc nguyên vẹn bản ghi nghiệp vụ | CSV quoted multiline có thể trải nhiều dòng vật lý | Parser CSV có state đúng chuẩn |
+| `Files.readAllLines()` on multi-GB files | Heap spikes, GC/OutOfMemoryError | Use `BufferedReader.readLine()` |
+| `Files.lines().toList()` | Collects all lines into RAM | Use terminal operations that do not materialize every line |
+| Forgetting to close `Stream` from `Files.lines()` | File descriptor/resource leak | `try-with-resources` |
+| Comparing `line == null` for blank lines | Confuses EOF and blank records | `null` only occurs at EOF |
+| Assuming a large file only has short lines | A single extremely long line still spikes RAM | Parser with record length limit |
+| Not specifying charset | Misreads Vietnamese/header columns | Use appropriate charset, usually UTF-8 |
+| `split(",")` for CSV with quoted commas | Splits records incorrectly | Use a compliant CSV parser |
+| Summing durations in `int` | Silent overflow | `long` + overflow check |
+| Computing average when `count=0` | Division by zero or wrong output | Convention `n/a` |
+| Using `groupingBy()` with a unique key per line | Map grows near line count | Bound cardinality or use external aggregation |
+| Logging every record | Logging I/O overwhelms aggregation work | Aggregate errors and cap diagnostics |
+| Using `parallel()` with unsynchronized shared accumulators | Race conditions, wrong totals | Thread-safe aggregator or partition/merge design |
+| Skipping header and column count checks | Reads wrong schema yet still yields "results" | Validate input structure |
+| Reading a changing file as an immutable snapshot | Incomplete/inconsistent metrics | Publish immutable files or snapshots |
+| Assuming one `readLine()` always reads a full business record | Multiline quoted CSV can span multiple physical lines | Compliant stateful CSV parser |
 
-**Ghi nhớ:** Với file văn bản lớn, hãy **đọc từng dòng bằng `BufferedReader` hoặc `Files.lines()`**, kiểm tra schema và dữ liệu ngay, cập nhật accumulator thay vì tích lũy mọi bản ghi. Bộ nhớ có thể giữ gần cố định khi chỉ tính count/sum/min/max và số nhóm được giới hạn, nhưng vẫn phải kiểm soát **độ dài dòng, cardinality của nhóm, charset, lỗi I/O, overflow và vòng đời stream**. Đó là nền tảng của một job thống kê Java vừa có khả năng mở rộng vừa kiểm chứng được kết quả.
+**Remember:** For large text files, **read line by line with `BufferedReader` or `Files.lines()`**, validate schema and data immediately, and update accumulators instead of accumulating all records. Memory can stay nearly constant when only computing count/sum/min/max and when group count is bounded, but you must still control **line length, group cardinality, charset, I/O errors, overflow, and stream lifecycle**. That is the foundation of a Java statistics job that is both scalable and verifiable.

@@ -1,11 +1,11 @@
-# Float.toString, Double.toString và tính chất round-trip trong Java
+# `Float.toString`, `Double.toString`, and the Round-Trip Property in Java
 
-> **Java core – numbers · Biểu diễn và định dạng**  
-> **Mục tiêu:** Hiểu vì sao một giá trị `float`/`double` được in thành chuỗi thập phân ngắn nhưng vẫn đọc lại chính xác cùng giá trị nhị phân; phân biệt *round-trip* với biểu diễn thập phân toán học chính xác; xử lý số 0 có dấu, subnormal, Infinity, NaN và lựa chọn định dạng phù hợp khi lưu, trao đổi hoặc hiển thị dữ liệu.
+> **Java core – numbers · Representation and Formatting**  
+> **Goal:** Understand why a `float`/`double` value is printed as a short decimal string yet still parses back to the exact same binary value; distinguish *round-trip* from exact mathematical decimal representation; handle signed zero, subnormals, Infinity, NaN, and choose appropriate formatting when storing, exchanging, or displaying data.
 
-## 1. Câu hỏi trung tâm: vì sao Java in 0.1 thay vì một dãy chữ số dài?
+## 1. Central question: why does Java print 0.1 instead of a long sequence of digits?
 
-Hãy chạy:
+Run:
 
 ```java
 double value = 0.1;
@@ -14,11 +14,11 @@ System.out.println(Double.toHexString(value));
 // 0x1.999999999999ap-4
 ```
 
-Giá trị `double` ở đây **không phải chính xác phân số toán học 1/10**. Nó là một trong các số nhị phân có thể biểu diễn được bằng IEEE 754 *binary64* và nằm rất gần 0.1.
+The `double` value here is **not the exact mathematical fraction 1/10**. It is one of the binary numbers representable in IEEE 754 *binary64* that lies very close to 0.1.
 
-Vậy tại sao `Double.toString(value)` chỉ trả `"0.1"` thay vì in ra toàn bộ phần thập phân của số nhị phân đã lưu? Vì mục tiêu của `toString` là tạo một **chuỗi thập phân gọn, đủ nhận diện giá trị floating-point ban đầu khi parse trở lại**, không phải xuất mọi chữ số của giá trị hữu tỉ nhị phân chính xác.
+So why does `Double.toString(value)` return only `"0.1"` instead of printing the entire decimal expansion of the stored binary number? Because the goal of `toString` is to produce a **compact decimal string sufficient to identify the original floating-point value when parsed back**, not to output every digit of the exact binary rational value.
 
-Chính xác hơn, với một giá trị hữu hạn `double`:
+More precisely, for a finite `double` value:
 
 ```java
 double original = 0.1;
@@ -29,16 +29,16 @@ System.out.println(text);                 // 0.1
 System.out.println(recovered == original); // true
 ```
 
-Chuỗi `"0.1"` mô tả số thực toán học 0.1. Khi `Double.parseDouble` làm tròn số thực ấy về `double` gần nhất, nó thu được **đúng giá trị binary64 đã lưu**.
+The string `"0.1"` describes the mathematical real number 0.1. When `Double.parseDouble` rounds that real number to the nearest `double`, it obtains the **exact stored binary64 value**.
 
-**Phân biệt hai phát biểu:**
+**Distinguish these two statements:**
 
-- “In ra rồi parse lại giữ được *giá trị `double` ban đầu*” — đây là tính chất *round-trip*.
-- “Chuỗi in ra mô tả *chính xác mọi chữ số thập phân của giá trị nhị phân*” — **không phải** điều `Double.toString` hứa.
+- "Printing and parsing back preserves the *original `double` value*" — this is the *round-trip* property.
+- "The printed string describes *every exact decimal digit of the binary value*" — this is **not** what `Double.toString` promises.
 
-## 2. toString và parse tạo thành một cặp round-trip
+## 2. `toString` and `parse` form a round-trip pair
 
-Hai cặp API điển hình là:
+The two typical API pairs are:
 
 ```java
 String floatText = Float.toString(floatValue);
@@ -48,31 +48,31 @@ String doubleText = Double.toString(doubleValue);
 double restoredDouble = Double.parseDouble(doubleText);
 ```
 
-*Round-trip* là hành trình:
+A *round-trip* is the journey:
 
 ```text
-float bits (32 bit)
+float bits (32 bits)
     └── Float.toString(float)
-             └── văn bản decimal
+             └── decimal text
                       └── Float.parseFloat(text)
-                               └── giá trị float ban đầu
+                               └── original float value
 
-double bits (64 bit)
+double bits (64 bits)
     └── Double.toString(double)
-             └── văn bản decimal
+             └── decimal text
                       └── Double.parseDouble(text)
-                               └── giá trị double ban đầu
+                               └── original double value
 ```
 
-Với các giá trị **hữu hạn không phải NaN**, việc parse đúng chuỗi do `toString` tạo ra bằng **parser cùng kiểu** khôi phục giá trị dấu phẩy động ban đầu; điều này bao gồm các số normal, subnormal và cả hai số 0 có dấu.
+For **finite non-NaN** values, parsing the exact string produced by `toString` with the **same-type parser** restores the original floating-point value; this includes normal numbers, subnormals, and both signed zeros.
 
-Với `+Infinity` và `-Infinity`, chuỗi đặc biệt được parse lại thành đúng vô cực tương ứng.
+For `+Infinity` and `-Infinity`, the special strings parse back to the corresponding infinities.
 
-Với **NaN**, `toString` trả `"NaN"` và parser tạo một NaN, nhưng **không được hứa bảo toàn dấu hay các bit payload của từng NaN**. Có nhiều mẫu bit IEEE 754 biểu diễn NaN và chúng bị gom lại thành một chuỗi chung.
+For **NaN**, `toString` returns `"NaN"` and the parser produces a NaN, but **it is not guaranteed to preserve the sign or payload bits of each individual NaN**. There are many IEEE 754 bit patterns representing NaN, and they collapse into one common string.
 
-### Kiểm tra round-trip theo raw bits
+### Checking round-trip via raw bits
 
-Với số hữu hạn, nên dùng các phép quan sát bit để kiểm tra chính xác:
+For finite numbers, bit-inspection operations should be used for an exact check:
 
 ```java
 double before = -0.0;
@@ -84,37 +84,37 @@ boolean sameBits = Double.doubleToRawLongBits(before)
 System.out.println(sameBits); // true
 ```
 
-`before == after` không đủ mạnh để xác nhận dấu zero, vì `+0.0 == -0.0` là `true` trong so sánh số học Java. Với `float`, dùng `Float.floatToRawIntBits` và `Float.intBitsToFloat` khi cần quan sát/mã hóa bit.
+`before == after` is not strong enough to verify the sign of zero, because `+0.0 == -0.0` is `true` in Java arithmetic comparisons. For `float`, use `Float.floatToRawIntBits` and `Float.intBitsToFloat` when inspecting/encoding bits.
 
-## 3. Quy tắc chữ số của toString trong Java 17
+## 3. Digit rules of `toString` in Java 17
 
-Tài liệu Java 17 mô tả việc in các chữ số thập phân sao cho **đủ để phân biệt giá trị đang in với các giá trị floating-point kề bên**, với số chữ số thêm vào được giữ ở mức cần thiết.
+The Java 17 documentation describes printing decimal digits so that they are **just enough to distinguish the value being printed from adjacent floating-point values**, with extra digits kept to the minimum necessary.
 
-Với giá trị hữu hạn, khác 0, một biểu diễn thập phân phù hợp phải tròn về giá trị gốc khi parse theo quy tắc *round to nearest, ties to even*. Định dạng cũng bắt buộc có **ít nhất một chữ số phía sau dấu chấm thập phân**, kể cả khi giá trị là một số nguyên biểu diễn được.
+For a finite, non-zero value, an appropriate decimal representation must round back to the original value when parsed under *round to nearest, ties to even*. The format also requires **at least one digit after the decimal point**, even when the value is a representable integer.
 
-Ví dụ:
+Examples:
 
 ```java
 System.out.println(Float.toString(1.0f));  // 1.0
 System.out.println(Double.toString(1.0)); // 1.0
 ```
 
-`"1"` có thể được parse thành cùng giá trị số, nhưng định dạng `toString` của Java chọn `"1.0"`. Vì thế, gọi nó là “chuỗi ngắn nhất” nên hiểu là **biểu diễn thập phân ngắn theo quy tắc định dạng đã quy định, đủ để phân biệt giá trị**, không nhất thiết là chuỗi có ít ký tự nhất trong mọi ngữ pháp văn bản tùy ý.
+`"1"` could be parsed into the same numeric value, but Java's `toString` format chooses `"1.0"`. Therefore, calling it the "shortest string" should be understood as a **short decimal representation following the specified formatting rules, sufficient to distinguish the value**, not necessarily the string with the fewest characters in every arbitrary text grammar.
 
-**Không có số chữ số thập phân cố định** cho mọi `float` hay `double`. Mỗi giá trị có thể cần số chữ số khác nhau để phân biệt với giá trị có thể biểu diễn ngay bên cạnh. Đó là lý do đôi khi Java in `0.1`, đôi khi in một số dài hơn như `0.30000000000000004`.
+**There is no fixed number of decimal digits** for all `float` or `double` values. Each value may need a different number of digits to distinguish it from its immediate representable neighbors. That is why Java sometimes prints `0.1`, and other times prints a longer number like `0.30000000000000004`.
 
-**Cảnh báo phiên bản:** thuật toán chọn/định dạng chữ số của `toString` đã được cải tiến qua các phiên bản JDK. Khi kiểm thử đòi **đúng từng ký tự**, hãy dùng đúng phiên bản Java mục tiêu và tuân thủ hợp đồng API của phiên bản đó. Thuộc tính cần bảo vệ trong bài này là khả năng parse về **cùng giá trị nhị phân**, không phải coi mọi chuỗi của mọi JDK là bất biến theo thời gian.
+**Version warning:** the digit-selection/formatting algorithm of `toString` has been improved across JDK versions. When tests require **exact character-by-character output**, target the specific Java version and follow that version's API contract. The property to protect in this lesson is the ability to parse back to the **same binary value**, rather than treating every output string across all JDK versions as immutable over time.
 
-## 4. Khi nào Java dùng dạng thập phân thông thường, khi nào dùng E?
+## 4. When does Java use plain decimal notation, and when does it use E?
 
-Theo cách định dạng trong Java 17, với **độ lớn dương hữu hạn khác 0**:
+According to formatting rules in Java 17, for a **finite non-zero positive magnitude**:
 
-- Từ `10^-3` (bao gồm) đến dưới `10^7`: hiển thị theo dạng decimal thông thường.
-- Nhỏ hơn `10^-3` hoặc từ `10^7` trở lên: hiển thị bằng *computerized scientific notation*, có ký tự `E` viết hoa và số mũ thập phân.
+- From `10^-3` (inclusive) up to strictly less than `10^7`: displayed in plain decimal notation.
+- Less than `10^-3` or `10^7` and above: displayed in *computerized scientific notation*, with an uppercase `E` and a decimal exponent.
 
-Ví dụ:
+Examples:
 
-| Giá trị đầu vào `double` | `Double.toString` |
+| Input `double` value | `Double.toString` |
 | --- | --- |
 | `0.0` | `"0.0"` |
 | `-0.0` | `"-0.0"` |
@@ -124,25 +124,25 @@ Ví dụ:
 | `1_000_000.0` | `"1000000.0"` |
 | `10_000_000.0` | `"1.0E7"` |
 
-Lưu ý:
+Notes:
 
-- Chuỗi `"1.0E7"` và `"10000000.0"` mô tả cùng số thực toán học; đây là **lựa chọn định dạng**.
-- Chuỗi `E7` có nghĩa **nhân 10^7**, không phải mũ nhị phân.
-- `toString` không dùng dấu phân nhóm hàng nghìn, ký hiệu tiền tệ hay dấu phẩy thập phân phụ thuộc vùng.
-- Dấu chấm thập phân của định dạng mặc định là dấu `.`, giúp chuỗi dễ dùng để trao đổi trong các hệ thống có cùng quy ước.
+- `"1.0E7"` and `"10000000.0"` describe the same mathematical real number; this is a **formatting choice**.
+- `E7` means **times 10^7**, not a binary exponent.
+- `toString` does not use thousands grouping separators, currency symbols, or locale-dependent decimal commas.
+- The decimal point of the default format is `.`, making the string easy to exchange across systems sharing the same convention.
 
-**Không dùng** `Float.toString` hoặc `Double.toString` như định dạng dành cho người dùng ở mọi quốc gia: giao diện bản địa hóa cần `NumberFormat` hoặc API định dạng với `Locale` được chỉ định.
+**Do not use** `Float.toString` or `Double.toString` as user-facing formatting across all countries: localized UIs require `NumberFormat` or a formatting API with a specified `Locale`.
 
-## 5. Float và Double: cùng giá trị chữ viết nhưng khác bit
+## 5. `Float` and `Double`: same written value, different bits
 
-`float` và `double` có độ chính xác khác nhau:
+`float` and `double` have different precisions:
 
-| Kiểu | Định dạng IEEE 754 | Bit phần trị chính xác hiệu dụng (normal) |
+| Type | IEEE 754 Format | Effective significand precision bits (normal) |
 | --- | --- | --- |
-| `float` | binary32, 32 bit | 24 |
-| `double` | binary64, 64 bit | 53 |
+| `float` | binary32, 32 bits | 24 |
+| `double` | binary64, 64 bits | 53 |
 
-Xem:
+Observe:
 
 ```java
 float f = 0.1f;
@@ -155,14 +155,14 @@ System.out.println(Double.toString(widened));
 // 0.10000000149011612
 ```
 
-Tại sao `f` và `d` đều in `"0.1"`, nhưng `widened` khác?
+Why do `f` and `d` both print `"0.1"`, yet `widened` is different?
 
-1. `0.1f` được làm tròn đến một giá trị **binary32** gần 0.1.
-2. `0.1` được làm tròn trực tiếp đến một giá trị **binary64** gần 0.1, chính xác hơn.
-3. Khi chuyển `float f` lên `double`, giá trị binary32 được giữ chính xác trong binary64, **không tự trở thành giá trị của literal `double 0.1`**.
-4. Chuỗi `"0.10000000149011612"` đủ để phân biệt giá trị double đã mở rộng ấy.
+1. `0.1f` is rounded to a **binary32** value near 0.1.
+2. `0.1` is rounded directly to a **binary64** value near 0.1, which is more accurate.
+3. When converting `float f` to `double`, the binary32 value is preserved exactly in binary64; it **does not turn into the value of the `double 0.1` literal**.
+4. The string `"0.10000000149011612"` is sufficient to distinguish that widened `double` value.
 
-Điều này cũng giải thích một cạm bẫy:
+This also explains a pitfall:
 
 ```java
 float f = 0.1f;
@@ -172,13 +172,13 @@ double parsedAsDouble = Double.parseDouble(Float.toString(f));
 System.out.println(fromFloatBits == parsedAsDouble); // false
 ```
 
-`Float.toString(f)` bảo đảm round-trip **khi dùng `Float.parseFloat`**. Nếu bạn đọc chuỗi đó bằng `Double.parseDouble`, bạn đang parse một giá trị thập phân thành một **định dạng khác**, không phải giải mã lại trực tiếp mọi bit của `float`.
+`Float.toString(f)` guarantees round-trip **when using `Float.parseFloat`**. If you read that string with `Double.parseDouble`, you are parsing a decimal value into a **different format**, not directly decoding all bits of `float`.
 
-**Quy tắc:** Khi cần giữ giá trị `float`, lưu và parse với đúng kiểu `float`; khi cần giữ giá trị `double`, dùng cặp API `double`. Đừng âm thầm thay parser đích bằng kiểu khác rồi suy rằng mọi chuyển đổi vẫn giống nhau.
+**Rule:** When you need to preserve a `float` value, store and parse with the `float` type; when you need to preserve a `double` value, use the `double` API pair. Do not silently swap the target parser to a different type and assume all conversions remain identical.
 
-## 6. Phân biệt chuỗi round-trip và giá trị thập phân chính xác
+## 6. Distinguishing a round-trip string from an exact decimal value
 
-Giá trị `double 0.1` thực ra là một số hữu tỉ nhị phân hữu hạn, có biểu diễn thập phân đầy đủ dài hơn `"0.1"`:
+The `double 0.1` value is actually a finite binary rational number whose full decimal representation is much longer than `"0.1"`:
 
 ```java
 import java.math.BigDecimal;
@@ -191,30 +191,30 @@ System.out.println(new BigDecimal(d));
 // 0.1000000000000000055511151231257827021181583404541015625
 ```
 
-Hai chuỗi khác nhau vì:
+The two strings differ because:
 
-- `Double.toString(d)` chọn văn bản **gọn đủ để parse lại `d`**.
-- `new BigDecimal(d)` xây dựng giá trị thập phân mô tả **chính xác giá trị binary64 hiện có**, có thể cần rất nhiều chữ số.
+- `Double.toString(d)` picks text **compact enough to parse back to `d`**.
+- `new BigDecimal(d)` constructs the decimal value describing the **exact existing binary64 value**, which may require many digits.
 
-Tương tự:
+Similarly:
 
 ```java
 System.out.println(BigDecimal.valueOf(0.1)); // 0.1
 ```
 
-`BigDecimal.valueOf(double)` sử dụng biểu diễn thập phân canonical của `double` (theo `Double.toString`) để tạo `BigDecimal`. Đây là lựa chọn chuyển đổi hợp lý trong nhiều tình huống, **nhưng không thể khôi phục ý định số học hay bit đã mất** ở các phép tính trước đó.
+`BigDecimal.valueOf(double)` uses the canonical decimal representation of `double` (per `Double.toString`) to create a `BigDecimal`. This is a reasonable conversion choice in many situations, **but it cannot recover arithmetic intent or bits already lost** in earlier calculations.
 
-Nếu nguồn nghiệp vụ gốc là chuỗi decimal cần chính xác (như tiền), nên cân nhắc tạo:
+If the original business source is a decimal string requiring exactness (such as money), consider constructing:
 
 ```java
 BigDecimal exact = new BigDecimal("0.1");
 ```
 
-Không lấy một kết quả `double` đã tính xong rồi mặc định `BigDecimal.valueOf(result)` biến toàn bộ lịch sử phép tính thành chính xác vô hạn.
+Do not take an already-computed `double` result and assume `BigDecimal.valueOf(result)` turns the entire calculation history infinitely exact.
 
-## 7. Subnormal và các biên: chuỗi có thể rất ngắn dù số rất nhỏ
+## 7. Subnormals and boundaries: strings can be very short even for tiny numbers
 
-Ví dụ:
+Example:
 
 ```java
 System.out.println(Float.toString(Float.MIN_VALUE));
@@ -223,7 +223,7 @@ System.out.println(Double.toString(Double.MIN_VALUE));
 // 4.9E-324
 ```
 
-`Float.MIN_VALUE` và `Double.MIN_VALUE` là **số dương khác 0 nhỏ nhất** biểu diễn được bởi kiểu tương ứng, thuộc miền *subnormal*. Giá trị nhị phân chính xác của chúng:
+`Float.MIN_VALUE` and `Double.MIN_VALUE` are the **smallest non-zero positive numbers** representable by their respective types, belonging to the *subnormal* range. Their exact binary values are:
 
 \[
 \mathrm{Float.MIN\_VALUE} = 2^{-149}
@@ -232,9 +232,9 @@ System.out.println(Double.toString(Double.MIN_VALUE));
 \mathrm{Double.MIN\_VALUE} = 2^{-1074}
 \]
 
-Chuỗi `"1.4E-45"` và `"4.9E-324"` không hiển thị đủ mọi chữ số của hai giá trị này dưới hệ thập phân. Chúng đủ để parser làm tròn về **đúng bit subnormal nhỏ nhất** của kiểu đích.
+The strings `"1.4E-45"` and `"4.9E-324"` do not display all decimal digits of these two values. They are sufficient for the parser to round back to the **exact smallest subnormal bit** of the target type.
 
-Các giá trị biên lớn nhất:
+Largest boundary values:
 
 ```java
 System.out.println(Float.toString(Float.MAX_VALUE));
@@ -243,15 +243,15 @@ System.out.println(Double.toString(Double.MAX_VALUE));
 // 1.7976931348623157E308
 ```
 
-Điều quan trọng khi serialize:
+Important points when serializing:
 
-- Không đặt một giới hạn cố định như “số thực phải có tối đa 6 chữ số sau dấu chấm” rồi kỳ vọng round-trip cho mọi `double`.
-- Giá trị rất lớn/rất nhỏ cần **số mũ E**, parser nhận lại đúng chuỗi chuẩn nếu dùng API tương ứng.
-- Các giá trị thuộc miền subnormal thường nhạy với việc làm tròn thêm; đừng định dạng ngắn hơn một cách tùy ý.
+- Do not impose a fixed limit like "real numbers must have at most 6 digits after the decimal point" and expect round-trip for every `double`.
+- Very large/very small values require an **E exponent**; the parser reads the canonical string back accurately if the matching API is used.
+- Values in the subnormal range are sensitive to additional rounding; do not arbitrarily format them shorter.
 
-## 8. Số 0 có dấu: +0.0 và -0.0 phải được phân biệt nếu xét bit
+## 8. Signed zeros: `+0.0` and `-0.0` must be distinguished when inspecting bits
 
-IEEE 754 có hai biểu diễn số 0:
+IEEE 754 has two representations of zero:
 
 ```java
 double positiveZero = +0.0;
@@ -262,7 +262,7 @@ System.out.println(Double.toString(positiveZero)); // 0.0
 System.out.println(Double.toString(negativeZero)); // -0.0
 ```
 
-Toán tử `==` coi hai số 0 bằng nhau về **giá trị số học**, nhưng chuỗi `Double.toString` vẫn giữ dấu âm.
+The `==` operator treats both zeros as equal in **numeric value**, yet `Double.toString` preserves the minus sign.
 
 ```java
 double recovered = Double.parseDouble("-0.0");
@@ -270,9 +270,9 @@ System.out.println(Double.doubleToRawLongBits(recovered)
         == Double.doubleToRawLongBits(-0.0)); // true
 ```
 
-Khi ký số dữ liệu, phân biệt biểu diễn bit hoặc kiểm thử exact, dấu `-0.0` có thể mang thông tin hữu ích. Nhưng trong nhiều phép so sánh toán học, hai số 0 tương đương về giá trị.
+When digitally signing data, distinguishing bit representations, or running exact tests, the `-0.0` sign can carry useful information. In many mathematical comparisons, however, both zeros are equivalent in value.
 
-Tương tự với `float`:
+Similarly for `float`:
 
 ```java
 float negativeZero = -0.0f;
@@ -280,19 +280,19 @@ String text = Float.toString(negativeZero); // "-0.0"
 float restored = Float.parseFloat(text);
 ```
 
-Nếu cần bảo toàn **toàn bộ mẫu bit của các số không phải NaN**, dùng round-trip đúng kiểu và kiểm tra qua `floatToRawIntBits`/`doubleToRawLongBits`.
+If you need to preserve **the entire bit pattern of non-NaN numbers**, use a same-type round-trip and verify with `floatToRawIntBits`/`doubleToRawLongBits`.
 
-## 9. NaN và Infinity: trường hợp đặc biệt của round-trip
+## 9. `NaN` and `Infinity`: special cases of round-trip
 
-Ba chuỗi quan trọng:
+Three important strings:
 
-| Giá trị | Chuỗi từ `Double.toString` / `Float.toString` |
+| Value | String from `Double.toString` / `Float.toString` |
 | --- | --- |
 | `Double.POSITIVE_INFINITY` | `"Infinity"` |
 | `Double.NEGATIVE_INFINITY` | `"-Infinity"` |
 | `Double.NaN` | `"NaN"` |
 
-Ví dụ:
+Example:
 
 ```java
 double pos = Double.parseDouble("Infinity");
@@ -304,30 +304,30 @@ System.out.println(neg < 0.0);              // true
 System.out.println(Double.isNaN(nan));      // true
 ```
 
-### Vì sao NaN không có round-trip raw bits như số hữu hạn?
+### Why doesn't `NaN` have raw-bit round-trip like finite numbers?
 
-IEEE 754 có nhiều bit pattern NaN, với sign và payload khác nhau. Nhưng `Double.toString` trả cùng chữ `"NaN"` cho NaN, nên **văn bản này không mang thông tin về payload và bit dấu**. Khi parse lại, kết quả là một NaN, không phải một cam kết tái tạo đúng mọi raw bit của NaN ban đầu.
+IEEE 754 has many NaN bit patterns, with different signs and payloads. However, `Double.toString` returns the same text `"NaN"` for NaN, so **this text carries no information about the payload or sign bit**. When parsed back, the result is a NaN, not a guarantee to reproduce the exact raw bits of the original NaN.
 
-Ví dụ khái niệm:
+Conceptual example:
 
 ```java
-long raw = 0x7ff8000000000001L; // NaN có payload khác giá trị canonical
+long raw = 0x7ff8000000000001L; // NaN with a payload different from the canonical value
 double customNan = Double.longBitsToDouble(raw);
 
 String text = Double.toString(customNan); // "NaN"
 double parsed = Double.parseDouble(text);
 
 System.out.println(Double.isNaN(parsed)); // true
-// Không suy ra Double.doubleToRawLongBits(parsed) == raw.
+// Do not infer that Double.doubleToRawLongBits(parsed) == raw.
 ```
 
-Nếu cần truyền tải hoặc ghi lại **mọi raw bit IEEE 754**, kể cả NaN payload, sử dụng mã hóa bit rõ ràng (ví dụ `Double.doubleToRawLongBits` và một dạng hex có chiều rộng cố định) cùng API ngược `Double.longBitsToDouble`. Cũng cần thống nhất thứ tự byte, signedness và quy tắc JSON/transport nếu trao đổi qua mạng.
+If you need to transmit or record **all IEEE 754 raw bits**, including NaN payloads, use explicit bit encoding (such as `Double.doubleToRawLongBits` and a fixed-width hex format) along with the reverse API `Double.longBitsToDouble`. Byte order, signedness, and JSON/transport rules must also be agreed upon when exchanging over a network.
 
-**Lưu ý:** Chuẩn JSON thông thường **không có literal NaN hoặc Infinity**. Chuỗi `"NaN"` của Java phù hợp cho parser Java, nhưng việc nhét trực tiếp token `NaN` không có dấu ngoặc kép vào JSON chuẩn sẽ làm dữ liệu không hợp lệ.
+**Note:** Standard JSON **does not have `NaN` or `Infinity` literals**. Java's `"NaN"` string suits Java parsers, but putting an unquoted `NaN` token directly into standard JSON makes the data invalid.
 
-## 10. toString, String.valueOf và println liên quan với nhau thế nào?
+## 10. How are `toString`, `String.valueOf`, and `println` related?
 
-Các cách in phổ biến:
+Common ways to print:
 
 ```java
 double x = 12.5;
@@ -336,14 +336,14 @@ String b = String.valueOf(x);
 System.out.println(x);
 ```
 
-Với `double` primitive thông thường, `String.valueOf(double)` dùng cách chuyển tương ứng với `Double.toString` và `println(double)` cũng cung cấp chuỗi hiển thị theo ngữ nghĩa chuyển đổi của Java. Với wrapper `Double`, lời gọi `wrapper.toString()` trả chuỗi của giá trị bên trong.
+For a regular primitive `double`, `String.valueOf(double)` uses the conversion corresponding to `Double.toString`, and `println(double)` also provides a display string according to Java's conversion semantics. For the `Double` wrapper, calling `wrapper.toString()` returns the string of the underlying value.
 
 ```java
 Double wrapper = Double.valueOf(12.5);
 String text = wrapper.toString(); // "12.5"
 ```
 
-Nhưng:
+However:
 
 ```java
 Double maybe = null;
@@ -351,13 +351,13 @@ Double maybe = null;
 String text = String.valueOf(maybe); // "null"
 ```
 
-Hai phương thức trên khác nhau khi tham chiếu đối tượng là `null`: `String.valueOf(Object)` có thể trả `"null"`. Chuỗi `"null"` **không** phải một số hợp lệ để `Double.parseDouble` đọc thành numeric value; thiết kế API phải biểu diễn null riêng.
+The two methods differ when the object reference is `null`: `String.valueOf(Object)` can return `"null"`. The string `"null"` is **not** a valid number for `Double.parseDouble` to read as a numeric value; API designs must represent null separately.
 
-Tương tự, khi `Float wrapper = null` thì `wrapper.toString()` cũng ném NPE, còn `String.valueOf(wrapper)` có thể trả `"null"`.
+Similarly, when `Float wrapper = null`, `wrapper.toString()` also throws NPE, whereas `String.valueOf(wrapper)` can return `"null"`.
 
-## 11. Round-trip không giống định dạng hiển thị có số chữ số cố định
+## 11. Round-trip is not the same as fixed-digit display formatting
 
-Ví dụ một giao diện muốn in đúng 2 chữ số sau dấu chấm:
+For example, a UI wants to print exactly 2 digits after the decimal point:
 
 ```java
 import java.util.Locale;
@@ -371,9 +371,9 @@ double parsed = Double.parseDouble(display);
 System.out.println(parsed == pi); // false
 ```
 
-Định dạng cố định hai chữ số đã **làm tròn thông tin** về độ chính xác, nên không thể khôi phục đúng `Math.PI` ban đầu.
+Two-decimal fixed formatting has **rounded away precision information**, so the original `Math.PI` cannot be recovered.
 
-So sánh với cách round-trip:
+Compare with the round-trip approach:
 
 ```java
 String canonical = Double.toString(Math.PI);
@@ -381,22 +381,22 @@ System.out.println(canonical); // 3.141592653589793
 System.out.println(Double.parseDouble(canonical) == Math.PI); // true
 ```
 
-**Dùng đúng mục đích:**
+**Use the right tool for the purpose:**
 
-| Mục tiêu | API thường phù hợp |
+| Goal | Usually suitable API |
 | --- | --- |
-| Chuỗi Java có thể parse trở lại cùng `float` | `Float.toString` ↔ `Float.parseFloat` |
-| Chuỗi Java có thể parse trở lại cùng `double` | `Double.toString` ↔ `Double.parseDouble` |
-| In số cho con người, nhóm hàng nghìn, dấu thập phân theo vùng | `NumberFormat` với `Locale` đã chọn |
-| Cố định 2 chữ số để hiển thị báo cáo | `String.format(Locale.ROOT, "%.2f", x)` hoặc format theo nghiệp vụ |
-| Cần chính xác thập phân theo scale/rounding | `BigDecimal` và quy tắc tạo/round được định nghĩa |
-| Bảo toàn bit IEEE 754 kể cả payload NaN | Raw bits + mã hóa nhị phân/hex được đặc tả rõ |
+| Java string that parses back to the same `float` | `Float.toString` ↔ `Float.parseFloat` |
+| Java string that parses back to the same `double` | `Double.toString` ↔ `Double.parseDouble` |
+| Printing numbers for humans, thousands grouping, regional decimal separator | `NumberFormat` with a chosen `Locale` |
+| Fixed 2 decimal places for report display | `String.format(Locale.ROOT, "%.2f", x)` or business formatting |
+| Decimal precision by scale/rounding needed | `BigDecimal` with defined construction/rounding rules |
+| Preserving IEEE 754 bits including NaN payloads | Raw bits + explicitly specified binary/hex encoding |
 
-Tránh dùng `String.format("%.2f", x)` để serialize số thực cần exact round-trip. Ngược lại, `Double.toString` không tự đáp ứng yêu cầu xuất hóa đơn “luôn có đúng 2 số lẻ”.
+Avoid using `String.format("%.2f", x)` to serialize floating-point numbers needing an exact round-trip. Conversely, `Double.toString` does not automatically satisfy an invoice requirement of "always having exactly 2 decimal places".
 
-## 12. Làm sao kiểm thử round-trip cho đúng?
+## 12. How to test round-trip properly?
 
-### 12.1. Dùng bits cho số hữu hạn và signed zero
+### 12.1. Use bits for finite numbers and signed zero
 
 ```java
 static boolean doubleRoundTrips(double x) {
@@ -410,9 +410,9 @@ static boolean doubleRoundTrips(double x) {
 }
 ```
 
-Đây là phương thức minh họa cần đặt trong một lớp. Nó kiểm tra bit cho mọi giá trị **không phải NaN**, kể cả hai số 0 và Infinity; đối với NaN, nó kiểm tra **giữ được trạng thái NaN**, không yêu cầu payload giống nhau.
+This is an illustrative method to be placed inside a class. It checks bits for every **non-NaN** value, including both zeros and Infinity; for NaN, it checks that **NaN status is preserved**, without requiring identical payloads.
 
-Với `float`, mẫu kiểm tra tương tự:
+For `float`, a similar test pattern:
 
 ```java
 static boolean floatRoundTrips(float x) {
@@ -426,23 +426,23 @@ static boolean floatRoundTrips(float x) {
 }
 ```
 
-Nếu dùng `Double.doubleToLongBits` thay vì `Double.doubleToRawLongBits`, các mẫu NaN sẽ được **canonicalize**. Điều đó hữu ích trong một số phép so sánh giá trị nhưng **không phản ánh raw payload** ban đầu. Hãy xác định rõ bạn muốn kiểm tra “cùng giá trị floating-point” hay “cùng mẫu bit”.
+If `Double.doubleToLongBits` is used instead of `Double.doubleToRawLongBits`, NaN patterns will be **canonicalized**. That is useful in certain value comparisons but **does not reflect the original raw payload**. Clarify whether you want to test "same floating-point value" or "same bit pattern".
 
-### 12.2. Bộ dữ liệu test nên có gì?
+### 12.2. What should the test dataset include?
 
 - `+0.0`, `-0.0`;
-- số normal như `1.0`, `0.1`, `Math.PI`;
-- số subnormal như `Double.MIN_VALUE`, `Float.MIN_VALUE`;
-- biên normal như `Float.MIN_NORMAL`, `Double.MIN_NORMAL`;
-- biên hữu hạn lớn nhất như `Float.MAX_VALUE`, `Double.MAX_VALUE`;
-- `Infinity` dương/âm và NaN;
-- số lớn có ULP > 1 để kiểm tra mất thông tin khi chuyển qua loại dữ liệu khác.
+- normal numbers like `1.0`, `0.1`, `Math.PI`;
+- subnormal numbers like `Double.MIN_VALUE`, `Float.MIN_VALUE`;
+- normal boundaries like `Float.MIN_NORMAL`, `Double.MIN_NORMAL`;
+- largest finite boundaries like `Float.MAX_VALUE`, `Double.MAX_VALUE`;
+- positive/negative `Infinity` and `NaN`;
+- large numbers with ULP > 1 to check for information loss when converting through other data types.
 
-Một kiểm thử tốt không chỉ nhìn chuỗi bằng mắt; nó **parse bằng đúng kiểu** và kiểm tra kết quả theo tiêu chí cần giữ.
+A good test does not just inspect strings visually; it **parses with the exact matching type** and checks the result against the criteria to preserve.
 
-## 13. Tránh nhầm giữa định dạng decimal và biểu diễn hex floating-point
+## 13. Avoid confusing decimal formatting with hex floating-point representation
 
-Ngoài `toString` thập phân, Java còn có:
+Besides decimal `toString`, Java also has:
 
 ```java
 System.out.println(Double.toHexString(0.1));
@@ -451,25 +451,25 @@ System.out.println(Float.toHexString(0.1f));
 // 0x1.99999ap-4
 ```
 
-Đây là cách mô tả **giá trị nhị phân** bằng phần trị hệ 16 và số mũ **của 2** (ký tự `p`/`P`).
+This describes the **binary value** using a base-16 significand and an exponent **of 2** (character `p`/`P`).
 
-Ví dụ `0x1.8p1` biểu diễn `1.5 × 2^1 = 3.0`, không phải `1.8 × 10^1`.
+For example, `0x1.8p1` represents `1.5 × 2^1 = 3.0`, not `1.8 × 10^1`.
 
-`Double.parseDouble` và `Float.parseFloat` chấp nhận cú pháp hex floating-point hợp lệ, nên dạng `toHexString` cũng hữu ích khi cần ghi số học nhị phân chính xác ở dạng văn bản.
+`Double.parseDouble` and `Float.parseFloat` accept valid hex floating-point syntax, so `toHexString` is also useful when exact binary arithmetic needs to be written in text form.
 
-Nhưng `toHexString` vẫn in `"NaN"` đối với NaN; do đó nó **không phải** cách serializing payload NaN qua một chuỗi biểu diễn giá trị. Dùng API raw bits khi cần điều ấy.
+However, `toHexString` still prints `"NaN"` for NaN; thus it is **not** a way to serialize NaN payloads via a value-representation string. Use raw-bits APIs when that is needed.
 
-**So sánh:**
+**Comparison:**
 
-- `Double.toString(0.1)` → `"0.1"`: dễ đọc dạng decimal, đủ cho round-trip.
-- `Double.toHexString(0.1)` → `"0x1.999999999999ap-4"`: thể hiện giá trị nhị phân một cách tường minh.
-- `Long.toHexString(Double.doubleToRawLongBits(0.1))` → chuỗi hex của **64 bit lưu trữ**, phản ánh bit dấu, exponent và fraction chứ không phải công thức trị số `0x...p...`.
+- `Double.toString(0.1)` → `"0.1"`: readable decimal form, sufficient for round-trip.
+- `Double.toHexString(0.1)` → `"0x1.999999999999ap-4"`: explicitly reveals the stored binary value.
+- `Long.toHexString(Double.doubleToRawLongBits(0.1))` → hex string of the **64 storage bits**, reflecting sign bit, exponent, and fraction rather than the `0x...p...` numeric formula.
 
-Ba dạng có mục đích khác nhau. Không trộn chúng khi định nghĩa giao thức dữ liệu hoặc so sánh output.
+The three forms serve different purposes. Do not mix them when defining a data protocol or comparing output.
 
-## 14. Chương trình Java 17+ hoàn chỉnh
+## 14. Complete Java 17+ program
 
-Tạo tệp **`FloatingPointRoundTripDemo.java`**:
+Create the file **`FloatingPointRoundTripDemo.java`**:
 
 ```java
 import java.util.Locale;
@@ -549,14 +549,14 @@ public class FloatingPointRoundTripDemo {
 }
 ```
 
-Chạy từ thư mục chứa tệp:
+Run from the directory containing the file:
 
 ```bash
 javac FloatingPointRoundTripDemo.java
 java FloatingPointRoundTripDemo
 ```
 
-**Kết quả dự kiến trên Java 17:**
+**Expected output on Java 17:**
 
 ```text
 float text = 0.1
@@ -582,82 +582,82 @@ display Pi = 3.14
 display round-trip = false
 ```
 
-**Những điều chương trình xác minh:**
+**What the program verifies:**
 
-1. `0.1f` và `0.1` đều có biểu diễn decimal ngắn `0.1` nhưng là các giá trị nhị phân khác nhau; mở rộng `float` thành `double` làm sự khác biệt hiện rõ.
-2. `toString` → `parseXxx` cùng kiểu giữ nguyên raw bits của `0.1f`/`0.1`.
-3. Parse văn bản `Float.toString(f)` bằng `Double.parseDouble` có thể thu được một `double` khác với giá trị `double` chuyển từ `f`.
-4. Các giá trị cực nhỏ/cực lớn có biểu diễn khoa học gọn và có thể parse ngược bằng parser tương ứng.
-5. Chuỗi `"-0.0"` giữ bit dấu qua round-trip; so sánh số học `+0.0 == -0.0` vẫn true.
-6. NaN được khôi phục theo **loại giá trị**, không cam kết payload; định dạng cố định hai chữ số mất độ chính xác của `Math.PI`.
+1. `0.1f` and `0.1` both have the short decimal representation `0.1`, yet are different binary values; widening `float` to `double` makes the difference visible.
+2. `toString` → `parseXxx` of the same type preserves the raw bits of `0.1f`/`0.1`.
+3. Parsing the text of `Float.toString(f)` with `Double.parseDouble` can yield a `double` different from the `double` converted from `f`.
+4. Extremely small/large values have compact scientific representations and can be parsed back by the corresponding parser.
+5. The string `"-0.0"` preserves the sign bit across a round-trip; the arithmetic comparison `+0.0 == -0.0` remains true.
+6. `NaN` is restored by **value kind**, without guaranteeing payload; fixed two-digit formatting loses precision on `Math.PI`.
 
-## 15. Lỗi phổ biến cần tránh
+## 15. Common mistakes to avoid
 
-| Hiểu lầm | Giải thích đúng |
+| Misconception | Correct explanation |
 | --- | --- |
-| “`Double.toString(0.1)` ra 0.1 nghĩa là double lưu chính xác 1/10” | Chuỗi được chọn để parse lại cùng giá trị nhị phân; giá trị lưu vẫn là số gần 1/10 |
-| “Float và Double cùng in 0.1 thì raw bits có cùng giá trị số” | Hai kiểu có độ chính xác khác nhau; widen `0.1f` cho `0.10000000149011612` |
-| “Chuỗi round-trip có thể chứa số chữ số tùy ý và vẫn giữ nguyên” | Rút ngắn/làm tròn thêm có thể biến thành giá trị khác khi parse |
-| “Round-trip nghĩa là giữ toàn bộ bit của mọi NaN” | Chuỗi `NaN` không bảo toàn payload/dấu NaN |
-| “Dùng `==` kiểm tra round-trip là đủ cả với -0.0” | `+0.0 == -0.0`; cần so raw bits nếu quan tâm signed zero |
-| “Double.toString luôn in số thập phân không có E” | Java dùng `E` khi độ lớn nằm ngoài khoảng hiển thị decimal thường |
-| “String.format("%.2f") cho phép round-trip nguyên vẹn” | Format này giới hạn chữ số nên có thể mất độ chính xác |
-| “Double.toHexString là raw 64-bit hex” | `0x...p...` biểu diễn giá trị nhị phân; raw bits cần `doubleToRawLongBits` |
-| “String.valueOf(null Double) luôn giống gọi wrapper.toString” | `String.valueOf(Object)` trả `"null"`; gọi phương thức trên null gây NPE |
-| “Tăng số chữ số in ra có thể sửa lỗi số học đã xảy ra” | Format không khôi phục thông tin mất do phép tính/làm tròn trước đó |
-| “Locale không ảnh hưởng định dạng hiển thị” | `NumberFormat`/`String.format` có thể chịu locale; `Double.toString` là định dạng Java độc lập locale |
-| “Chuỗi Infinity và NaN hợp lệ như số trong JSON chuẩn” | JSON chuẩn không có các literal này; giao thức phải định nghĩa cách xử lý |
-| “Mọi JDK phải in giống từng ký tự từ mọi thuật toán chuyển số” | Khi cần so sánh literal output, phải biết hợp đồng/phiên bản JDK; mục tiêu chính là round-trip đúng giá trị |
+| "`Double.toString(0.1)` returning 0.1 means double stores exact 1/10" | The string is chosen to parse back to the same binary value; the stored value is still an approximation near 1/10 |
+| "If Float and Double both print 0.1, their raw bits have the same numeric value" | The two types have different precisions; widening `0.1f` gives `0.10000000149011612` |
+| "A round-trip string can have any number of digits and still stay intact" | Further shortening/rounding can turn it into a different value when parsed |
+| "Round-trip means preserving all bits of every NaN" | The `"NaN"` string does not preserve NaN payload/sign |
+| "Using `==` to test round-trip is enough even for -0.0" | `+0.0 == -0.0`; raw bit comparison is needed if signed zero matters |
+| "`Double.toString` always prints decimal without E" | Java uses `E` when the magnitude is outside the plain decimal display range |
+| "`String.format("%.2f")` allows an exact round-trip" | This format restricts digits and can lose precision |
+| "`Double.toHexString` is raw 64-bit hex" | `0x...p...` represents the binary value; raw bits require `doubleToRawLongBits` |
+| "`String.valueOf(null Double)` is always the same as calling `wrapper.toString`" | `String.valueOf(Object)` returns `"null"`; calling a method on null throws NPE |
+| "Increasing the number of printed digits can fix arithmetic errors that already occurred" | Formatting cannot restore information lost during prior arithmetic/rounding |
+| "Locale never affects display formatting" | `NumberFormat`/`String.format` can be locale-sensitive; `Double.toString` is a locale-independent Java format |
+| "`Infinity` and `NaN` are valid as numbers in standard JSON" | Standard JSON lacks these literals; protocols must define how to handle them |
+| "Every JDK must print identical characters across all number-conversion algorithms" | When comparing literal output, you must know the JDK contract/version; the primary goal is a value-preserving round-trip |
 
-## 16. Bài tập có lời giải
+## 16. Exercises with solutions
 
-**Bài 1.** Tại sao `Double.toString(0.1)` trả `"0.1"` dù `new BigDecimal(0.1)` in nhiều chữ số hơn?  
-**Lời giải:** `toString` tìm văn bản thập phân ngắn đủ để parse về cùng `double`; `new BigDecimal(double)` mô tả chính xác giá trị nhị phân đã lưu trong thập phân.
+**Exercise 1.** Why does `Double.toString(0.1)` return `"0.1"` even though `new BigDecimal(0.1)` prints many more digits?  
+**Solution:** `toString` finds decimal text short enough to parse back to the same `double`; `new BigDecimal(double)` describes the exact stored binary value in decimal.
 
-**Bài 2.** Với `float f = 0.1f;`, `Float.parseFloat(Float.toString(f))` có lấy lại giá trị `float` ban đầu không?  
-**Lời giải:** Có. Đây là đúng cặp API bảo đảm round-trip cho `float`, bao gồm mẫu bit của các giá trị không phải NaN.
+**Exercise 2.** With `float f = 0.1f;`, does `Float.parseFloat(Float.toString(f))` recover the original `float` value?  
+**Solution:** Yes. That is the proper API pair guaranteeing round-trip for `float`, including the bit pattern of non-NaN values.
 
-**Bài 3.** Vì sao `Double.parseDouble(Float.toString(0.1f))` không nhất thiết bằng `(double)0.1f`?  
-**Lời giải:** Chuỗi `"0.1"` được chọn để parse **về `float`**. Khi parse trực tiếp thành `double`, nó thành giá trị binary64 gần 0.1 chứ không phải binary64 biểu diễn chính xác giá trị binary32 đã widen.
+**Exercise 3.** Why is `Double.parseDouble(Float.toString(0.1f))` not necessarily equal to `(double)0.1f`?  
+**Solution:** The string `"0.1"` was chosen to parse **back to `float`**. When parsed directly into `double`, it becomes the binary64 value nearest 0.1 rather than the binary64 value representing the exact widened binary32 value.
 
-**Bài 4.** `Double.toString(-0.0)` in gì? `Double.parseDouble` có giữ dấu zero không?  
-**Lời giải:** In `"-0.0"` và parse lại thành zero âm. Kiểm tra raw bits bằng `Double.doubleToRawLongBits`; phép `==` không phân biệt được ±0.
+**Exercise 4.** What does `Double.toString(-0.0)` print? Does `Double.parseDouble` preserve the sign of zero?  
+**Solution:** It prints `"-0.0"` and parses back to negative zero. Verify raw bits with `Double.doubleToRawLongBits`; `==` cannot distinguish ±0.
 
-**Bài 5.** `Double.toString(Double.MIN_VALUE)` trả chuỗi nào và có phải in toàn bộ thập phân chính xác của `2^-1074` không?  
-**Lời giải:** `"4.9E-324"` trên Java 17. Đó là chuỗi đủ để parse trở lại `Double.MIN_VALUE`, không phải mọi chữ số thập phân của giá trị hữu tỉ nhị phân chính xác.
+**Exercise 5.** What string does `Double.toString(Double.MIN_VALUE)` return, and does it print the entire exact decimal expansion of `2^-1074`?  
+**Solution:** `"4.9E-324"` on Java 17. It is a string sufficient to parse back to `Double.MIN_VALUE`, not every decimal digit of the exact binary rational value.
 
-**Bài 6.** Khi `Double.toString(Double.NaN)` trả `"NaN"`, có thể tái tạo mọi payload NaN ban đầu bằng `parseDouble` không?  
-**Lời giải:** Không. Ta chỉ bảo đảm parse ra một NaN. Nếu phải bảo toàn payload, cần serializing raw bits.
+**Exercise 6.** Since `Double.toString(Double.NaN)` returns `"NaN"`, can any original NaN payload be recreated with `parseDouble`?  
+**Solution:** No. It is only guaranteed to parse into a NaN. If payloads must be preserved, raw bits must be serialized.
 
-**Bài 7.** Giải thích tại sao `String.format(Locale.ROOT, "%.2f", Math.PI)` không bảo đảm round-trip.  
-**Lời giải:** Nó tạo `"3.14"`, đã bỏ các chữ số cần thiết để phân biệt `Math.PI` với các `double` lân cận. Parse lại thành một `double` khác.
+**Exercise 7.** Explain why `String.format(Locale.ROOT, "%.2f", Math.PI)` does not guarantee round-trip.  
+**Solution:** It produces `"3.14"`, dropping the digits needed to distinguish `Math.PI` from neighboring `double`s. Parsing it back yields a different `double`.
 
-**Bài 8.** Giá trị `10_000_000.0` được `Double.toString` in dạng nào trong Java 17?  
-**Lời giải:** `"1.0E7"`, vì miền dùng dạng thập phân thông thường chỉ bao gồm độ lớn nhỏ hơn `10^7`.
+**Exercise 8.** In what form does `Double.toString` print `10_000_000.0` in Java 17?  
+**Solution:** `"1.0E7"`, because the range using plain decimal notation only includes magnitudes strictly less than `10^7`.
 
-**Bài 9.** API nào thích hợp để ghi nguyên mẫu bit của NaN có payload khác nhau?  
-**Lời giải:** `Double.doubleToRawLongBits` hoặc `Float.floatToRawIntBits`, sau đó tự mã hóa bit theo định dạng dữ liệu; khi đọc dùng `Double.longBitsToDouble` hoặc `Float.intBitsToFloat`.
+**Exercise 9.** Which API is suitable for writing the exact bit pattern of NaNs with different payloads?  
+**Solution:** `Double.doubleToRawLongBits` or `Float.floatToRawIntBits`, then encode the bits yourself per your data format; when reading, use `Double.longBitsToDouble` or `Float.intBitsToFloat`.
 
-**Bài 10.** Có thể dùng `Double.toString` thay cho định dạng hóa đơn luôn đúng hai chữ số phần lẻ không?  
-**Lời giải:** Không. Nó được tối ưu cho chuỗi giá trị floating-point có thể parse lại, không bảo đảm độ dài phần thập phân hay quy tắc làm tròn tài chính. Chọn `BigDecimal` và định dạng theo hợp đồng.
+**Exercise 10.** Can `Double.toString` replace invoice formatting that always requires exactly two fractional digits?  
+**Solution:** No. It is optimized for parseable floating-point value strings, and does not guarantee fractional length or financial rounding rules. Choose `BigDecimal` and format according to the contract.
 
-## 17. Checklist khi xuất/nhập float và double
+## 17. Checklist for float and double I/O
 
-1. **Xác định mục tiêu:** xuất để con người đọc, để lưu/trao đổi có round-trip, hay để bảo toàn raw bits?
-2. **Dùng đúng cặp kiểu:** `Float.toString` ↔ `Float.parseFloat`; `Double.toString` ↔ `Double.parseDouble`.
-3. **Đừng suy ngược từ văn bản:** một chuỗi `0.1` không có nghĩa binary floating-point lưu chính xác thập phân 0.1.
-4. **Đừng dùng định dạng ít chữ số** nếu cần bảo toàn giá trị bit; đặc biệt với số có ULP nhỏ hoặc chuỗi đã tính toán phức tạp.
-5. **Kiểm tra signed zero:** `-0.0` có thể cần được giữ; raw bit comparison đáng dùng khi test serialization.
-6. **Xử lý NaN riêng:** round-trip văn bản giữ trạng thái NaN nhưng không cam kết payload; Infinity cũng cần được giao thức cho phép.
-7. **Nhận biết scientific notation:** `E` là lũy thừa của 10; `p` trong `toHexString` là lũy thừa của 2.
-8. **Kiểm tra locale/giao thức:** `toString` ổn định theo quy tắc Java, còn UI và JSON/CSV có ràng buộc định dạng riêng.
-9. **Nếu cần decimal exact**, lưu từ nguồn `String` hoặc dùng `BigDecimal` theo quy tắc nghiệp vụ, không đổi kiểu sau khi `double` đã làm tròn để mong “lấy lại dữ liệu”.
-10. **Kiểm thử biên:** ±0, subnormal, max, infinity, NaN và sự khác nhau giữa widening `float → double` và parse decimal thành `double`.
+1. **Determine the goal:** outputting for human reading, storing/exchanging with round-trip, or preserving raw bits?
+2. **Use matching type pairs:** `Float.toString` ↔ `Float.parseFloat`; `Double.toString` ↔ `Double.parseDouble`.
+3. **Do not infer backward from text:** a string `0.1` does not mean binary floating-point stores exact decimal 0.1.
+4. **Do not use few-digit formatting** if bit values must be preserved; especially for numbers with small ULP or complex computation chains.
+5. **Check signed zero:** `-0.0` may need to be preserved; raw bit comparison is worthwhile when testing serialization.
+6. **Handle `NaN` separately:** text round-trip preserves NaN status but does not guarantee payload; `Infinity` must also be allowed by the protocol.
+7. **Recognize scientific notation:** `E` is a power of 10; `p` in `toHexString` is a power of 2.
+8. **Check locale/protocol:** `toString` is stable per Java rules, while UIs and JSON/CSV have their own formatting constraints.
+9. **If decimal exactness is needed**, store from a `String` source or use `BigDecimal` per business rules, rather than converting types after `double` has already rounded in hopes of "recovering data".
+10. **Test boundaries:** ±0, subnormals, max, infinity, NaN, and the difference between widening `float → double` and parsing decimal into `double`.
 
-### Tài liệu Java 17
+### Java 17 Documentation
 
 - [Float – toString, parseFloat, toHexString, floatToRawIntBits](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Float.html)
 - [Double – toString, parseDouble, toHexString, doubleToRawLongBits](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Double.html)
-- [BigDecimal – constructor từ double và valueOf](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html)
+- [BigDecimal – constructor from double and valueOf](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html)
 
-**Ghi nhớ:** `Float.toString` và `Double.toString` chọn một văn bản thập phân **đủ để parse lại đúng giá trị floating-point**, không phải xuất đầy đủ thập phân toán học của bit pattern. Hãy dùng parser **cùng kiểu**, kiểm tra bit khi cần phân biệt số 0 có dấu, xử lý NaN riêng và chọn định dạng chuyên biệt nếu yêu cầu là giao diện, tiền hoặc bảo toàn raw bits.
+**Takeaway:** `Float.toString` and `Double.toString` choose decimal text **sufficient to parse back to the exact floating-point value**, rather than outputting the full mathematical decimal of the bit pattern. Use the **same-type** parser, inspect bits when distinguishing signed zeros, handle `NaN` separately, and choose dedicated formats when the requirement is UI display, currency, or preserving raw bits.

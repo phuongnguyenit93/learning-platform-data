@@ -1,38 +1,38 @@
-# Đối tượng giá trị và đối tượng có danh tính nghiệp vụ: chọn quan hệ bằng nhau trong Java
+# Value Objects and Entities with Business Identity: Choosing Equality Semantics in Java
 
-## 1. Câu hỏi trước khi viết `equals`: “bằng nhau” theo nghĩa nào?
+## 1. The Question Before Writing `equals`: "Equal" in What Sense?
 
-Trong Java, `==` giữa hai biến tham chiếu cho biết chúng có trỏ đến **cùng một đối tượng** hay không. `equals(Object)` thể hiện **quy tắc bằng nhau về mặt logic** do lớp quyết định. Mặc định, `Object.equals` so sánh theo danh tính tham chiếu, nhưng lớp có thể ghi đè để diễn đạt ý nghĩa của miền nghiệp vụ.
+In Java, `==` between two reference variables indicates whether they point to **the same object**. `equals(Object)` expresses **logical equality rules** decided by the class. By default, `Object.equals` compares by reference identity, but a class can override it to express domain meaning.
 
-Khi thiết kế mô hình, cần phân biệt hai khái niệm:
+When designing a model, distinguish between two concepts:
 
-- **Value Object (đối tượng giá trị):** điều quan trọng là **giá trị và các thuộc tính có ý nghĩa**; hai thể hiện riêng biệt vẫn được coi là bằng nhau nếu các giá trị thành phần cần so sánh bằng nhau. Ví dụ: tọa độ, khoảng tiền đi kèm đơn vị tiền tệ, khoảng ngày, địa chỉ dùng như một thuộc tính đơn thuần.
-- **Entity (thực thể có danh tính nghiệp vụ):** điều quan trọng là **đó có phải cùng một thực thể xuyên suốt vòng đời hay không**; hai bản biểu diễn cùng một thực thể vẫn được xem là bằng nhau khi trạng thái thay đổi. Ví dụ: khách hàng được nhận diện bằng `CustomerId`, đơn hàng bằng `OrderId`.
+- **Value Object:** what matters is **the value and meaningful attributes**; two separate instances are still considered equal if the component values to be compared are equal. Examples: coordinates, a monetary amount with its currency, a date range, an address used purely as an attribute.
+- **Entity (with business identity):** what matters is **whether they are the same entity across its lifecycle**; two representations of the same entity are still considered equal when state changes. Examples: a customer identified by `CustomerId`, an order by `OrderId`.
 
-**Cùng thuộc tính không nhất thiết là cùng entity.** Hai khách hàng tên “Lan” không vì thế mà là một khách hàng. Ngược lại, một khách hàng đổi tên vẫn là chính khách hàng đó.
+**Having the same attributes does not necessarily make two objects the same entity.** Two customers named “Lan” are not one customer just because of that. Conversely, a customer who changes their name is still that same customer.
 
-Đây là quyết định mô hình hóa theo ngữ cảnh. Chẳng hạn một địa chỉ giao hàng chỉ dùng để mô tả vị trí có thể là Value Object; nhưng một điểm giao nhận có mã quản lý, lịch sử và vòng đời riêng có thể là Entity.
+This is a context-dependent modeling decision. For instance, a shipping address used only to describe a location can be a Value Object; however, a pickup/delivery point with its own management code, history, and lifecycle can be an Entity.
 
-## 2. So sánh bản chất và các hệ quả
+## 2. Comparing Nature and Consequences
 
-| Khía cạnh | Value Object | Entity có danh tính nghiệp vụ |
+| Aspect | Value Object | Entity with Business Identity |
 | --- | --- | --- |
-| Câu hỏi chính | “Chúng có cùng giá trị không?” | “Chúng có phải cùng thực thể không?” |
-| Tiêu chí `equals` | Các thành phần giá trị có ý nghĩa | Định danh ổn định trong phạm vi đã xác định |
-| Hai instance riêng biệt | Có thể `equals == true` nếu giá trị giống nhau | Có thể `equals == true` nếu cùng định danh |
-| Trạng thái thay đổi | Thường tạo Value Object mới, tránh sửa tại chỗ | Cho phép trạng thái thay đổi mà danh tính giữ nguyên |
-| Dữ liệu không nên dùng làm khóa bằng nhau | Trường không thuộc ngữ nghĩa giá trị | Trường thường xuyên đổi như tên, địa chỉ liên hệ, trạng thái |
-| Ví dụ | `Address("Lê Lợi", "Đà Nẵng")` | `Customer("C001", "Lan")` |
+| Primary question | “Do they have the same value?” | “Are they the same entity?” |
+| `equals` criteria | Meaningful value components | Stable identifier within a defined scope |
+| Two separate instances | Can have `equals == true` if values match | Can have `equals == true` if identifiers match |
+| Mutable state | Usually create a new Value Object, avoid mutating in place | Allows state changes while identity remains unchanged |
+| Data not to use as equality key | Fields outside value semantics | Frequently changing fields such as name, contact address, status |
+| Example | `Address("Lê Lợi", "Đà Nẵng")` | `Customer("C001", "Lan")` |
 
-Trong Java, một **`record`** thường phù hợp để biểu diễn Value Object nhỏ vì nó sinh `equals`, `hashCode` và accessor theo các component. Nhưng record không mặc nhiên đúng mọi quy tắc miền nghiệp vụ và chỉ bất biến ở mức các trường tham chiếu (`final`), **không đảm bảo bất biến sâu** nếu bên trong giữ `List`, mảng hoặc đối tượng có thể sửa.
+In Java, a **`record`** is often suitable for representing a small Value Object because it generates `equals`, `hashCode`, and accessors based on its components. However, a record does not automatically satisfy every domain rule and is only immutable at the level of its reference fields (`final`), **not guaranteeing deep immutability** if it holds a `List`, array, or mutable object inside.
 
-Entity thường cần một lớp có thuộc tính `id` biểu diễn danh tính ổn định, bên cạnh các thuộc tính trạng thái có thể cập nhật. Không phải mọi đối tượng có trường `id` đều là entity; điều quyết định là ý nghĩa tồn tại và vòng đời của đối tượng trong miền nghiệp vụ.
+An Entity typically needs a class with an `id` attribute representing a stable identity, alongside updatable state attributes. Not every object with an `id` field is an entity; what decides is the object's existential meaning and lifecycle in the business domain.
 
-## 3. Ví dụ Java 17+ có thể biên dịch và chạy
+## 3. Compilable and Runnable Java 17+ Example
 
-Ví dụ dùng `Address` là Value Object: hai bản địa chỉ có cùng đường và thành phố được coi là bằng nhau. `Customer` là Entity: hai bản có cùng `customerId` biểu diễn cùng khách hàng, dù tên hiển thị khác nhau. Ở đây `customerId` được cấp **trước khi tạo đối tượng**, luôn không rỗng và không thay đổi.
+The example uses `Address` as a Value Object: two address instances with the same street and city are considered equal. `Customer` is an Entity: two instances with the same `customerId` represent the same customer, even if their display names differ. Here `customerId` is assigned **before creating the object**, is always non-empty, and never changes.
 
-Lưu mã sau trong `ValueVsEntityDemo.java`:
+Save the following code in `ValueVsEntityDemo.java`:
 
 ```java
 import java.util.HashSet;
@@ -105,14 +105,14 @@ public class ValueVsEntityDemo {
 }
 ```
 
-Chạy trong thư mục chứa tệp:
+Run in the directory containing the file:
 
 ```bash
 javac ValueVsEntityDemo.java
 java ValueVsEntityDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 same address reference: false
@@ -126,58 +126,58 @@ found by same ID: true
 equals null: false
 ```
 
-Ở đây `Address` do `record` tạo ra so sánh từng thành phần; hai lời gọi `new` tạo hai đối tượng riêng nhưng `addressA.equals(addressB)` trả `true`. `Customer` dùng `customerId` trong cả `equals` và `hashCode`: hai đối tượng Java khác nhau đại diện cho khách hàng `C001` vẫn bằng nhau, còn tên chỉ là trạng thái. Việc đổi `displayName` không làm thay đổi mã băm, nên `HashSet` vẫn tìm được đối tượng đã thêm trước khi đổi tên.
+Here `Address`, generated by `record`, compares component by component; two `new` calls create two separate objects, yet `addressA.equals(addressB)` returns `true`. `Customer` uses `customerId` in both `equals` and `hashCode`: two distinct Java objects representing customer `C001` are still equal, while the name is merely state. Changing `displayName` does not alter the hash code, so `HashSet` still finds the object added before renaming.
 
-## 4. Hợp đồng `equals` và `hashCode` vẫn bắt buộc
+## 4. The `equals` and `hashCode` Contract Remains Mandatory
 
-Bất kể chọn Value Object hay Entity, triển khai `equals` phải thỏa các nguyên tắc:
+Regardless of whether you choose a Value Object or an Entity, the `equals` implementation must satisfy these rules:
 
-1. **Phản xạ:** `x.equals(x)` là `true` với `x` khác `null`.
-2. **Đối xứng:** `x.equals(y)` và `y.equals(x)` cho cùng kết quả.
-3. **Bắc cầu:** nếu `x.equals(y)` và `y.equals(z)` thì `x.equals(z)`.
-4. **Nhất quán:** nếu thông tin dùng để so sánh không đổi thì kết quả không đổi giữa các lần gọi.
-5. **So với `null`:** với `x` khác `null`, `x.equals(null)` phải là `false`.
+1. **Reflexive:** `x.equals(x)` is `true` for non-`null` `x`.
+2. **Symmetric:** `x.equals(y)` and `y.equals(x)` give the same result.
+3. **Transitive:** if `x.equals(y)` and `y.equals(z)`, then `x.equals(z)`.
+4. **Consistent:** if the information used for comparison does not change, the result does not change across invocations.
+5. **Comparison with `null`:** for non-`null` `x`, `x.equals(null)` must be `false`.
 
-Đặc biệt, nếu `a.equals(b)` là `true`, **bắt buộc** `a.hashCode() == b.hashCode()`. Chiều ngược lại không bắt buộc: hai đối tượng không bằng nhau vẫn có thể cùng mã băm. `HashMap` và `HashSet` dựa trên cả `hashCode` lẫn `equals`, nên sửa một phương thức mà bỏ phương thức còn lại sẽ gây hành vi sai.
+In particular, if `a.equals(b)` is `true`, it is **mandatory** that `a.hashCode() == b.hashCode()`. The converse is not required: two unequal objects may still have the same hash code. `HashMap` and `HashSet` rely on both `hashCode` and `equals`, so modifying one method while ignoring the other will cause incorrect behavior.
 
-Với Value Object, các thành phần tham gia `equals` cũng phải tương thích với `hashCode`. Với Entity, ID dùng để so sánh phải ổn định trong thời gian đối tượng nằm trong cấu trúc băm. Ví dụ trên sử dụng `final customerId` và tránh đưa `displayName` vào hai phương thức.
+For a Value Object, the components participating in `equals` must also be compatible with `hashCode`. For an Entity, the ID used for comparison must remain stable while the object is stored in a hash-based structure. The example above uses `final customerId` and avoids including `displayName` in both methods.
 
-## 5. Các bẫy phổ biến khi quyết định quan hệ bằng nhau
+## 5. Common Pitfalls When Choosing Equality Semantics
 
-### 5.1. Dùng trạng thái thay đổi được làm danh tính Entity
+### 5.1. Using Mutable State as Entity Identity
 
-Giả sử viết `equals` của `Customer` dựa trên `displayName`. Khi đổi tên, thực thể bỗng “không bằng chính bản cũ”; hai khách hàng trùng tên cũng có nguy cơ bị xem là một. Nếu dùng các trường này để tính `hashCode`, thay đổi tên khi đối tượng đang nằm trong `HashSet`/`HashMap` có thể khiến việc tìm hoặc xóa theo đối tượng thất bại.
+Suppose you write `Customer`'s `equals` based on `displayName`. When renamed, the entity suddenly “is not equal to its old self”; two customers with the same name also risk being treated as one. If these fields are used to compute `hashCode`, changing the name while the object is inside a `HashSet`/`HashMap` can cause lookup or removal by the object to fail.
 
-Không tự động dùng `email`, số điện thoại, tên đăng nhập hay trạng thái để nhận diện Entity: các dữ liệu này có thể đổi, tái sử dụng hoặc không duy nhất tùy miền nghiệp vụ. Chỉ một **khóa nghiệp vụ thật sự ổn định, duy nhất trong phạm vi xác định** mới phù hợp.
+Do not automatically use `email`, phone number, username, or status to identify an Entity: such data can change, be reused, or fail to be unique depending on the business domain. Only a **truly stable business key, unique within a defined scope**, is suitable.
 
-### 5.2. Dùng ID sinh khi lưu database mà bỏ qua vòng đời
+### 5.2. Using Database-Generated IDs While Ignoring the Lifecycle
 
-Ví dụ một Entity mới tạo có `id == null`, sau khi `INSERT` mới nhận ID từ database. Một mẫu cài đặt sơ sài là `Objects.equals(this.id, other.id)`: nếu không xử lý, **hai Entity mới khác nhau cùng có ID `null`** bị coi là bằng nhau. Ngoài ra, nếu `hashCode()` dựa trên ID thì mã băm thay đổi sau khi lưu, dễ làm hỏng thao tác tìm kiếm trong tập hợp băm.
+For example, a newly created Entity has `id == null` and only receives an ID from the database after `INSERT`. A naive implementation pattern is `Objects.equals(this.id, other.id)`: if unhandled, **two distinct new Entities that both have `null` ID** are treated as equal. In addition, if `hashCode()` is based on the ID, the hash code changes after saving, easily breaking lookups in hash collections.
 
-Có các hướng xử lý tùy kiến trúc: cấp ID bất biến ngay khi tạo Entity (ví dụ UUID do ứng dụng cấp); hoặc nếu ID chỉ có sau khi lưu, xác định rõ quy tắc so sánh Entity chưa lưu (thường chỉ cùng tham chiếu mới bằng nhau), đồng thời giữ `hashCode` phù hợp và ổn định theo vòng đời cần hỗ trợ. Không copy nguyên ví dụ `Customer` ở trên cho một Entity JPA có ID được sinh sau `persist` mà chưa xem lại chiến lược.
+There are different approaches depending on architecture: assign an immutable ID immediately upon Entity creation (such as an application-assigned UUID); or if the ID is only available after saving, clearly define the comparison rule for unsaved Entities (typically equal only by same reference), while keeping `hashCode` appropriate and stable for the lifecycle that needs to be supported. Do not copy the `Customer` example above verbatim for a JPA Entity whose ID is generated after `persist` without reviewing the strategy.
 
-**ID kỹ thuật không luôn đồng nghĩa danh tính nghiệp vụ.** Nếu dùng ID database làm tiêu chí, phải xác định phạm vi duy nhất (một bảng, tenant, hệ thống) và việc Entity chưa được lưu, tách/gộp hoặc xuất sang hệ thống khác có làm thay đổi ý nghĩa danh tính hay không.
+**A technical ID does not always equate to business identity.** If using a database ID as the criterion, you must determine its scope of uniqueness (single table, tenant, system) and whether unsaved Entities, splitting/merging, or exporting to another system changes the identity semantics.
 
-### 5.3. Dùng `==` để so sánh bản biểu diễn thay vì ý nghĩa
+### 5.3. Using `==` to Compare Representations Instead of Meaning
 
-Hai đối tượng `new Customer("C001", ...)` được tạo riêng sẽ cho `a == b` là `false`, dù chúng cùng nhận diện khách hàng `C001` và `a.equals(b)` là `true` theo mô hình này. `==` vẫn hữu ích để so sánh tham chiếu hoặc kiểm tra `null`, nhưng không tự thay được phép so sánh logic.
+Two separately created `new Customer("C001", ...)` objects will evaluate `a == b` as `false`, even though both identify customer `C001` and `a.equals(b)` is `true` under this model. `==` remains useful for reference comparison or `null` checks, but it does not replace logical equality comparison.
 
-### 5.4. Value Object chứa cấu trúc mutable hoặc so sánh số tiền sai ngữ nghĩa
+### 5.4. Value Objects Containing Mutable Structures or Incorrect Monetary Comparison Semantics
 
-`record` không bảo vệ nội dung một component kiểu mảng hoặc danh sách có thể sửa. Nếu phần tử đổi sau khi Value Object đã là khóa `HashMap`, giá trị băm có thể thay đổi. Hãy ưu tiên thành phần bất biến; sao chép phòng vệ với đối tượng mutable, và xác định cách so sánh thích hợp (ví dụ `Arrays.equals` khi nội dung mảng mới là ý nghĩa giá trị).
+`record` does not protect the contents of an array or mutable list component. If elements change after the Value Object has become a `HashMap` key, the hash value can change. Prefer immutable components; make defensive copies of mutable objects, and define the appropriate comparison method (such as `Arrays.equals` when array contents represent the value meaning).
 
-Với giá trị tiền tệ, không chỉ so sánh số mà quên đơn vị tiền. Ngoài ra, `BigDecimal.equals` phân biệt cả `scale`: `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` là `false`, dù `compareTo` trả `0`. Nếu miền nghiệp vụ coi hai lượng tiền đó là một giá trị, phải định nghĩa và chuẩn hóa quy tắc giá trị nhất quán cho **cả `equals` và `hashCode`**, thay vì sửa mỗi `equals` bằng `compareTo`.
+For monetary values, do not compare only the numeric amount and forget the currency unit. Also, `BigDecimal.equals` distinguishes `scale`: `new BigDecimal("1.0").equals(new BigDecimal("1.00"))` is `false`, even though `compareTo` returns `0`. If the domain treats those two amounts as the same value, you must define and normalize a consistent value rule for **both `equals` and `hashCode`**, rather than patching only `equals` with `compareTo`.
 
-### 5.5. Kế thừa, lớp proxy và phạm vi danh tính
+### 5.5. Inheritance, Proxy Classes, and Identity Scope
 
-Khi có kế thừa, cách so sánh lớp (`getClass()` hay `instanceof`) ảnh hưởng đến tính đối xứng/bắc cầu và ý nghĩa ID. Không để hai kiểu Entity khác nhau trở thành bằng nhau chỉ vì cùng chuỗi `"C001"` nếu chúng thuộc hai loại danh tính khác nhau. Với ORM/JPA, proxy có thể khiến so sánh lớp trực tiếp cần cân nhắc; quy tắc `equals` phải tương thích với công nghệ ánh xạ và vòng đời Entity thực tế. Ví dụ dùng lớp `Customer final` thuần Java nên không có vấn đề proxy.
+When inheritance is involved, how classes are compared (`getClass()` vs `instanceof`) affects symmetry/transitivity and the meaning of the ID. Do not let two different Entity types become equal simply because they share the string `"C001"` if they belong to two different identity types. With ORM/JPA, proxies can make direct class comparison require careful consideration; the `equals` rule must be compatible with the mapping technology and actual Entity lifecycle. The example uses a plain Java `final` `Customer` class, so there is no proxy issue.
 
-## 6. Quy trình chọn `equals` khi thiết kế lớp
+## 6. Workflow for Choosing `equals` When Designing a Class
 
-1. Hỏi: đối tượng đại diện cho **một giá trị** hay **một thực thể có lịch sử và vòng đời riêng**? Không quyết định chỉ bằng việc nó có ID hay có nhiều trường.
-2. Nếu là Value Object, chọn các thành phần tạo nên giá trị; ưu tiên bất biến, cân nhắc dùng `record` khi quy tắc so sánh theo component phù hợp.
-3. Nếu là Entity, xác định danh tính duy nhất theo miền nghiệp vụ, phạm vi định danh và thời điểm được cấp; bảo đảm thay đổi trạng thái không làm thay đổi danh tính.
-4. Triển khai `equals` và `hashCode` cùng một ngữ nghĩa; xét `null`, lớp con/proxy, đối tượng chưa lưu và việc đặt trong `HashMap`/`HashSet`.
-5. Kiểm thử hai instance khác nhau nhưng cùng giá trị/ID, hai instance có dữ liệu giống nhau nhưng khác ID, thay đổi trạng thái, các trường hợp `null` và sự ổn định của mã băm.
+1. Ask: does the object represent **a value** or **an entity with its own history and lifecycle**? Do not decide solely by whether it has an ID or how many fields it has.
+2. If it is a Value Object, select the components that constitute the value; prefer immutability, and consider using `record` when component-based comparison rules fit.
+3. If it is an Entity, identify the unique business identity, the identifier scope, and when it is assigned; ensure state changes do not alter identity.
+4. Implement `equals` and `hashCode` with the same semantics; consider `null`, subclasses/proxies, unsaved objects, and placement in `HashMap`/`HashSet`.
+5. Test two different instances with the same value/ID, two instances with identical data but different IDs, state mutations, `null` cases, and hash code stability.
 
-**Nguyên tắc sử dụng:** Value Object trả lời “giá trị có giống nhau?”; Entity trả lời “có phải cùng thực thể?”. Thiết kế `equals` theo câu hỏi đúng giúp các tập hợp, cache và quy tắc nghiệp vụ không nhầm trạng thái với danh tính.
+**Guiding rule:** a Value Object answers “do they have the same value?”; an Entity answers “are they the same entity?”. Designing `equals` around the right question keeps collections, caches, and business rules from confusing state with identity.

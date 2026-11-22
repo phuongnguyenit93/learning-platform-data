@@ -1,21 +1,21 @@
-# ServiceLoader discovery và lazy provider
+# ServiceLoader Discovery and Lazy Providers
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích ServiceLoader tìm provider từ classpath và named module như thế nào.
-- Chọn overload `ServiceLoader.load(...)` phù hợp với class loader hoặc ModuleLayer.
-- Phân biệt discovery provider với việc tạo instance provider.
-- Dùng `iterator()` và `stream()` để tiêu thụ provider theo nhu cầu.
-- Dùng `Provider.type()` để kiểm tra metadata trước khi gọi `Provider.get()`.
-- Hiểu cache, `reload()`, `ServiceConfigurationError` và giới hạn thread-safety.
+- Explain how ServiceLoader discovers providers from the classpath and named modules.
+- Choose the appropriate `ServiceLoader.load(...)` overload for a class loader or ModuleLayer.
+- Distinguish provider discovery from provider instantiation.
+- Use `iterator()` and `stream()` to consume providers on demand.
+- Use `Provider.type()` to inspect metadata before calling `Provider.get()`.
+- Understand caching, `reload()`, `ServiceConfigurationError`, and thread-safety limitations.
 
-## 1. Discovery và instantiation là hai bước khác nhau
+## 1. Discovery and Instantiation Are Two Different Steps
 
-`ServiceLoader<S>` là cơ chế tìm và sử dụng các implementation của service type `S`. Ứng dụng chỉ phụ thuộc vào service interface; provider có thể được bổ sung khi đóng gói hoặc triển khai.
+`ServiceLoader<S>` is a mechanism for finding and using implementations of a service type `S`. The application depends only on the service interface; providers can be added at packaging or deployment time.
 
-Ví dụ, service API:
+For example, a service API:
 
 ~~~java
 package com.example.codec;
@@ -26,44 +26,44 @@ public interface Codec {
 }
 ~~~
 
-Có thể có nhiều provider như `JsonCodec`, `XmlCodec` hoặc `BinaryCodec`. Consumer không cần tạo các class cụ thể trực tiếp. Nó yêu cầu `ServiceLoader` tìm provider cho `Codec`:
+There may be multiple providers such as `JsonCodec`, `XmlCodec`, or `BinaryCodec`. The consumer does not need to instantiate concrete classes directly. It asks `ServiceLoader` to find providers for `Codec`:
 
 ~~~java
 ServiceLoader<Codec> loader =
         ServiceLoader.load(Codec.class);
 ~~~
 
-Tạo `ServiceLoader` chưa có nghĩa là tất cả provider đã được khởi tạo. ServiceLoader tìm provider theo cơ chế phù hợp với môi trường, sau đó tạo instance khi ứng dụng tiêu thụ provider. Cách làm này giúp ứng dụng tránh khởi tạo những implementation không cần dùng.
+Creating a `ServiceLoader` does not mean all providers have been instantiated. ServiceLoader locates providers using a mechanism suited to the environment, then creates instances when the application consumes providers. This approach lets the application avoid instantiating implementations it does not need.
 
-Hai khái niệm cần tách biệt:
+Two concepts to keep separate:
 
-- **Discovery:** xác định provider nào được cấu hình và có thể được nhìn thấy trong phạm vi tìm kiếm.
-- **Instantiation:** tạo một instance của provider để ứng dụng gọi service method.
+- **Discovery:** determining which providers are configured and visible within the search scope.
+- **Instantiation:** creating an instance of a provider so the application can invoke service methods.
 
-Discovery cũng không đồng nghĩa với việc mọi provider đều chắc chắn khởi tạo thành công. Một provider có thể được phát hiện nhưng lỗi khi class được nạp hoặc khi constructor/factory method chạy.
+Discovery also does not guarantee that every provider will succeed during instantiation. A provider may be discovered yet fail when the class is loaded or when the constructor/factory method runs.
 
-## 2. Provider được khai báo ở đâu?
+## 2. Where Are Providers Declared?
 
-Cách đăng ký provider phụ thuộc vào cách ứng dụng được triển khai.
+How providers are registered depends on how the application is deployed.
 
-### 2.1. Provider trên classpath
+### 2.1. Providers on the Classpath
 
-Với provider nằm trong unnamed module, thư viện đăng ký tên class trong service configuration file:
+For providers residing in an unnamed module, the library registers class names in a service configuration file:
 
 ~~~text
 META-INF/services/com.example.codec.Codec
 ~~~
 
-Nội dung file là tên đầy đủ của từng provider class, mỗi tên trên một dòng:
+The file contents are the fully qualified names of each provider class, one name per line:
 
 ~~~text
 com.example.codec.json.JsonCodec
 com.example.codec.xml.XmlCodec
 ~~~
 
-Có thể ghi chú bằng ký tự `#`. Dòng trống được bỏ qua và tên provider trùng lặp không tạo thêm một provider khác.
+Comments can be added using the `#` character. Blank lines are ignored, and duplicate provider names do not create an additional provider.
 
-Ví dụ, JAR provider JSON chứa:
+For example, a JSON provider JAR contains:
 
 ~~~text
 codec-json.jar
@@ -72,11 +72,11 @@ codec-json.jar
         └── com.example.codec.Codec
 ~~~
 
-Khi service configuration file có mặt trên classpath được dùng để tìm kiếm, ServiceLoader đọc file này để phát hiện provider. Provider class theo cơ chế classpath phải đáp ứng quy tắc provider class, trong đó có public class và public constructor không tham số.
+When the service configuration file is present on the classpath used for lookup, ServiceLoader reads this file to discover providers. Provider classes under the classpath mechanism must satisfy the provider class rules, including being a public class with a public no-argument constructor.
 
-### 2.2. Provider trong named module
+### 2.2. Providers in a Named Module
 
-Với JPMS, provider được khai báo trong module descriptor bằng directive `provides`:
+With JPMS, a provider is declared in the module descriptor using the `provides` directive:
 
 ~~~java
 module com.example.codec.json {
@@ -87,7 +87,7 @@ module com.example.codec.json {
 }
 ~~~
 
-Module consumer khai báo service mà nó sử dụng:
+The consumer module declares the service it uses:
 
 ~~~java
 module com.example.codec.app {
@@ -97,29 +97,29 @@ module com.example.codec.app {
 }
 ~~~
 
-Trong named module, `uses` và `provides` là metadata mà hệ thống module dùng để xác định quan hệ service. Không cần tạo `META-INF/services` cho provider đã được đăng ký bằng module descriptor.
+In a named module, `uses` and `provides` are metadata that the module system uses to determine service relationships. There is no need to create `META-INF/services` for providers already registered via a module descriptor.
 
-Có thể có nhiều provider module cùng cung cấp một service. ServiceLoader sẽ tìm các provider phù hợp trong phạm vi module layer hoặc class loader được yêu cầu.
+Multiple provider modules may provide the same service. ServiceLoader locates matching providers within the requested module layer or class loader scope.
 
-## 3. Chọn phạm vi discovery bằng ServiceLoader.load
+## 3. Choosing Discovery Scope with ServiceLoader.load
 
-ServiceLoader có nhiều overload để chỉ rõ nơi tìm provider.
+ServiceLoader has several overloads to specify where to look for providers.
 
-| Cách gọi | Phạm vi tìm kiếm |
+| Call | Search Scope |
 |---|---|
-| `ServiceLoader.load(Service.class)` | Dùng thread context class loader của thread hiện tại |
-| `ServiceLoader.load(Service.class, classLoader)` | Dùng class loader được truyền vào |
-| `ServiceLoader.load(layer, Service.class)` | Tìm provider trong ModuleLayer được chỉ định và các parent layer của nó |
-| `ServiceLoader.loadInstalled(Service.class)` | Dùng extension/platform class loader theo cơ chế của API này |
+| `ServiceLoader.load(Service.class)` | Uses the current thread's thread context class loader |
+| `ServiceLoader.load(Service.class, classLoader)` | Uses the passed-in class loader |
+| `ServiceLoader.load(layer, Service.class)` | Looks up providers in the specified ModuleLayer and its parent layers |
+| `ServiceLoader.loadInstalled(Service.class)` | Uses the extension/platform class loader according to this API's mechanism |
 
-Ví dụ với context class loader:
+Example with context class loader:
 
 ~~~java
 ServiceLoader<Codec> loader =
         ServiceLoader.load(Codec.class);
 ~~~
 
-Ví dụ với class loader tường minh:
+Example with explicit class loader:
 
 ~~~java
 ClassLoader pluginLoader =
@@ -129,20 +129,20 @@ ServiceLoader<Codec> loader =
         ServiceLoader.load(Codec.class, pluginLoader);
 ~~~
 
-Ví dụ với custom module layer:
+Example with custom module layer:
 
 ~~~java
 ServiceLoader<Codec> loader =
         ServiceLoader.load(pluginLayer, Codec.class);
 ~~~
 
-Overload nhận `ModuleLayer` phù hợp khi ứng dụng tạo plugin layer bằng `ModuleLayer.defineModules...` và muốn tìm provider thuộc layer đó. Nó tránh việc vô tình chỉ tìm provider theo một class loader không đại diện cho layer plugin.
+The overload accepting `ModuleLayer` is appropriate when the application creates a plugin layer via `ModuleLayer.defineModules...` and wants to find providers belonging to that layer. It avoids accidentally searching only via a class loader that does not represent the plugin layer.
 
-Trong named module, module gọi ServiceLoader cần khai báo `uses` cho service tương ứng. Nếu thiếu directive này, việc gọi API trong ngữ cảnh named module có thể thất bại với `ServiceConfigurationError`.
+In a named module, the module calling ServiceLoader must declare `uses` for the corresponding service. If this directive is missing, calling the API in a named module context can fail with `ServiceConfigurationError`.
 
-## 4. Lazy loading khi dùng iterator()
+## 4. Lazy Loading When Using iterator()
 
-Có thể duyệt provider bằng iterator:
+You can iterate over providers using an iterator:
 
 ~~~java
 ServiceLoader<Codec> loader =
@@ -157,18 +157,18 @@ while (iterator.hasNext()) {
 }
 ~~~
 
-Iterator của ServiceLoader có hai đặc điểm:
+ServiceLoader's iterator has two characteristics:
 
-1. Những provider instance đã được cache được trả về trước theo thứ tự chúng đã được thêm vào cache.
-2. Các provider chưa được nạp sẽ được tìm và khởi tạo khi iterator cần phần tử tiếp theo; instance mới được thêm vào cache.
+1. Previously cached provider instances are returned first in the order they were added to the cache.
+2. Providers not yet loaded are located and instantiated when the iterator needs the next element; the new instance is added to the cache.
 
-Vì vậy, ứng dụng có thể xử lý từng provider một thay vì buộc phải khởi tạo tất cả provider ngay từ đầu. Tuy nhiên, nếu vòng lặp duyệt hết iterator thì cuối cùng tất cả provider được tìm thấy trong phạm vi đó sẽ được tiêu thụ và khởi tạo.
+Therefore, the application can process providers one by one instead of being forced to instantiate all providers upfront. However, if the loop traverses the entire iterator, all providers discovered within that scope will eventually be consumed and instantiated.
 
-Nếu chỉ cần provider đầu tiên, hãy dừng iteration sớm. Đừng chuyển iterator thành danh sách đầy đủ nếu mục tiêu là tránh khởi tạo các provider còn lại.
+If you only need the first provider, stop iteration early. Do not convert the iterator into a full list if your goal is to avoid instantiating the remaining providers.
 
-## 5. Lazy loading với stream() và Provider<S>
+## 5. Lazy Loading with stream() and Provider<S>
 
-`ServiceLoader.stream()` trả về stream của `ServiceLoader.Provider<S>`, không phải stream của instance service `S`:
+`ServiceLoader.stream()` returns a stream of `ServiceLoader.Provider<S>`, not a stream of service instances `S`:
 
 ~~~java
 ServiceLoader<Codec> loader =
@@ -178,16 +178,16 @@ Stream<ServiceLoader.Provider<Codec>> providers =
         loader.stream();
 ~~~
 
-`Provider<S>` cung cấp hai phương thức quan trọng:
+`Provider<S>` provides two key methods:
 
-| Phương thức | Kết quả | Vai trò |
+| Method | Result | Role |
 |---|---|---|
-| `type()` | `Class<? extends S>` | Xem kiểu provider |
-| `get()` | `S` | Lấy instance service |
+| `type()` | `Class<? extends S>` | Inspect the provider type |
+| `get()` | `S` | Obtain the service instance |
 
-Điểm hữu ích của `stream()` là ứng dụng có thể xem metadata của provider trước khi yêu cầu tạo instance.
+The useful feature of `stream()` is that the application can inspect provider metadata before requesting instance creation.
 
-Ví dụ, chỉ chọn provider có tên class thuộc package JSON:
+For example, selecting only providers whose class belongs to the JSON package:
 
 ~~~java
 List<Codec> codecs = loader.stream()
@@ -198,9 +198,9 @@ List<Codec> codecs = loader.stream()
         .toList();
 ~~~
 
-Pipeline được thực thi khi có terminal operation như `toList()`. `filter` kiểm tra `type()` trước; `map(Provider::get)` chỉ được thực hiện với provider vượt qua điều kiện lọc. Nhờ đó, provider không phù hợp có thể bị loại mà không cần gọi `get()`.
+The pipeline executes when a terminal operation such as `toList()` is invoked. `filter` inspects `type()` first; `map(Provider::get)` is only executed for providers passing the filter condition. As a result, unsuitable providers can be excluded without calling `get()`.
 
-Có thể sắp xếp dựa trên tên class trước khi khởi tạo:
+You can sort based on class name before instantiation:
 
 ~~~java
 List<Codec> codecs = loader.stream()
@@ -210,13 +210,13 @@ List<Codec> codecs = loader.stream()
         .toList();
 ~~~
 
-Thứ tự provider được phát hiện không nên được xem là thứ tự ưu tiên nghiệp vụ. Nếu ứng dụng cần ưu tiên JSON hơn XML, hãy định nghĩa metadata hoặc contract ưu tiên rõ ràng rồi sắp xếp theo quy tắc đó.
+The order in which providers are discovered should not be treated as business priority order. If the application needs to prioritize JSON over XML, define explicit metadata or a priority contract and sort according to that rule.
 
-## 6. Provider factory method trong named module
+## 6. Provider Factory Method in a Named Module
 
-Named module có thể khai báo provider thông qua public static method tên `provider`, không có tham số và có kiểu trả về tương thích với service.
+A named module can declare a provider via a public static method named `provider` with no parameters and a return type compatible with the service.
 
-Ví dụ:
+Example:
 
 ~~~java
 package com.example.codec.json;
@@ -245,66 +245,66 @@ module com.example.codec.json {
 }
 ~~~
 
-Trong cách này, class được liệt kê sau `with` là factory class. Nó không nhất thiết phải implement `Codec`; method `provider()` tạo và trả về implementation thực sự.
+In this approach, the class listed after `with` is a factory class. It does not necessarily have to implement `Codec`; the `provider()` method creates and returns the actual implementation.
 
-Khi sử dụng `ServiceLoader.Provider`:
+When using `ServiceLoader.Provider`:
 
-- `Provider.get()` gọi factory method để lấy service instance.
-- `Provider.type()` trả về kiểu trả về được khai báo của factory method.
-- Vì vậy, `type()` có thể trả về `Codec.class` thay vì `JsonCodecFactory.class`.
+- `Provider.get()` invokes the factory method to obtain the service instance.
+- `Provider.type()` returns the declared return type of the factory method.
+- Therefore, `type()` may return `Codec.class` instead of `JsonCodecFactory.class`.
 
-Điều này quan trọng nếu ứng dụng lọc provider theo annotation hoặc package. Hãy đặt metadata trên kiểu mà `Provider.type()` thực sự trả về và kiểm tra module descriptor để biết provider đang dùng constructor hay factory method.
+This matters if the application filters providers by annotation or package. Place metadata on the type that `Provider.type()` actually returns and check the module descriptor to see whether a provider uses a constructor or a factory method.
 
-## 7. Cache và reload()
+## 7. Cache and reload()
 
-ServiceLoader lưu cache các provider instance được tìm thấy qua iterator. Khi iterator tiếp theo được tạo, các instance đã cache được trả về trước; sau đó ServiceLoader tiếp tục tìm provider chưa được nạp.
+ServiceLoader caches provider instances discovered through the iterator. When a subsequent iterator is created, cached instances are returned first; then ServiceLoader continues finding providers not yet loaded.
 
-Khi ứng dụng cần nạp lại cấu hình provider, có thể gọi:
+When the application needs to reload provider configuration, it can call:
 
 ~~~java
 loader.reload();
 ~~~
 
-`reload()` xóa cache hiện tại và đặt lại trạng thái tìm kiếm provider. Những lần duyệt tiếp theo có thể phát hiện provider mới nếu class loader hoặc môi trường cấu hình đã thay đổi theo cách ServiceLoader có thể nhìn thấy.
+`reload()` clears the current cache and resets the provider lookup state. Subsequent traversals can detect new providers if the class loader or configuration environment has changed in a way visible to ServiceLoader.
 
-Một số điểm cần chú ý:
+Several points to note:
 
-- `reload()` không tự cài thêm JAR hoặc module vào class loader/module layer.
-- Nếu class loader không thể nhìn thấy provider mới, gọi `reload()` cũng không làm provider đó xuất hiện.
-- Không gọi `reload()` khi một iterator của cùng loader đang được duyệt; kết quả của việc reload trong lúc iteration đang diễn ra không được xác định.
-- `reload()` không thay thế việc tạo class loader hoặc ModuleLayer mới khi plugin deployment yêu cầu một phạm vi nạp module khác.
+- `reload()` does not itself install additional JARs or modules into a class loader/module layer.
+- If the class loader cannot see the new provider, calling `reload()` will not make that provider appear.
+- Do not call `reload()` while an iterator of the same loader is being traversed; the result of reloading during active iteration is undefined.
+- `reload()` does not replace creating a new class loader or ModuleLayer when plugin deployment requires a different module loading scope.
 
-Ví dụ:
+Example:
 
 ~~~java
 ServiceLoader<Codec> loader =
         ServiceLoader.load(Codec.class, pluginLoader);
 
-// Nạp và sử dụng provider hiện có
+// Load and use existing providers
 loader.forEach(codec ->
         System.out.println(codec.name()));
 
-// Xóa cache trước lần duyệt tiếp theo
+// Clear cache before the next traversal
 loader.reload();
 
 loader.forEach(codec ->
         System.out.println(codec.name()));
 ~~~
 
-Nếu plugin được triển khai theo từng phiên bản hoặc cần unload độc lập, hãy cân nhắc tạo class loader hoặc module layer riêng cho từng vòng đời plugin thay vì chỉ dựa vào `reload()`.
+If plugins are deployed by version or need to be unloaded independently, consider creating a dedicated class loader or module layer per plugin lifecycle rather than relying solely on `reload()`.
 
-## 8. Lỗi khi discovery hoặc khởi tạo provider
+## 8. Errors During Provider Discovery or Instantiation
 
-ServiceLoader có thể ném `ServiceConfigurationError` khi phát hiện cấu hình provider không hợp lệ hoặc không thể sử dụng provider. Một số nguyên nhân thường gặp:
+ServiceLoader may throw `ServiceConfigurationError` when it detects an invalid provider configuration or cannot use a provider. Common causes include:
 
-- Service configuration file sai định dạng hoặc tên provider class không hợp lệ.
-- Provider class không tìm thấy được bằng class loader đang dùng.
-- Provider không phải subtype của service.
-- Provider class không đáp ứng quy tắc constructor hoặc factory method.
-- Constructor hoặc factory method ném exception.
-- Named module thiếu directive `uses` hoặc provider declaration không hợp lệ.
+- Malformed service configuration file or invalid provider class name.
+- Provider class cannot be found by the active class loader.
+- Provider is not a subtype of the service.
+- Provider class does not satisfy constructor or factory method rules.
+- Constructor or factory method throws an exception.
+- Named module is missing the `uses` directive or has an invalid provider declaration.
 
-Ví dụ xử lý lỗi tại ranh giới nạp plugin:
+Example error handling at a plugin loading boundary:
 
 ~~~java
 try {
@@ -316,43 +316,43 @@ try {
 }
 ~~~
 
-Không nên bắt lỗi rồi bỏ qua hoàn toàn. Hãy ghi lại provider hoặc cấu hình gây lỗi để người vận hành biết vì sao một implementation không xuất hiện. Nếu ứng dụng có thể tiếp tục khi thiếu một provider tùy chọn, hãy quyết định rõ chính sách fallback.
+Do not catch the error and ignore it silently. Log the offending provider or configuration so operators know why an implementation did not appear. If the application can continue when an optional provider is missing, decide on an explicit fallback policy.
 
-Lỗi có thể xuất hiện trong lúc tiêu thụ iterator/stream, không nhất thiết ngay khi gọi `ServiceLoader.load(...)`. Vì vậy, đặt xử lý lỗi quanh đoạn thực sự duyệt hoặc lấy instance.
+Errors can occur while consuming the iterator/stream, not necessarily immediately upon calling `ServiceLoader.load(...)`. Therefore, place error handling around the code that actually traverses or retrieves instances.
 
-## 9. Thread-safety và vòng đời loader
+## 9. Thread-Safety and Loader Lifecycle
 
-Các instance `ServiceLoader` không an toàn cho việc sử dụng đồng thời từ nhiều thread. Cache nội bộ và trạng thái discovery của loader không được thiết kế như một concurrent collection.
+`ServiceLoader` instances are not safe for concurrent use from multiple threads. The loader's internal cache and discovery state are not designed as a concurrent collection.
 
-Nếu nhiều thread cần truy cập service, có thể:
+If multiple threads need to access services, you can:
 
-- Tạo loader riêng theo thread hoặc theo thành phần, nếu phạm vi discovery cho phép.
-- Hoàn tất discovery ở một bước khởi tạo có kiểm soát, sau đó công bố danh sách service instance bất biến cho các thread.
-- Dùng cơ chế đồng bộ bên ngoài nếu buộc phải chia sẻ một loader.
-- Quản lý rõ vòng đời class loader/module layer để tránh giữ tham chiếu tới plugin đã ngừng hoạt động.
+- Create a separate loader per thread or per component, if the discovery scope allows.
+- Complete discovery during a controlled initialization step, then publish an immutable list of service instances to threads.
+- Use external synchronization if sharing a single loader is unavoidable.
+- Explicitly manage class loader/module layer lifecycles to avoid retaining references to stopped plugins.
 
-Cũng không nên giả định mọi lần gọi `Provider.get()` đều trả về cùng một singleton instance. Provider có thể tạo instance theo constructor hoặc factory method. Nếu ứng dụng yêu cầu singleton, hãy định nghĩa và quản lý vòng đời instance trong chính ứng dụng hoặc provider contract.
+Also do not assume every call to `Provider.get()` returns the same singleton instance. A provider may create an instance via its constructor or factory method. If the application requires a singleton, define and manage instance lifecycle within the application itself or the provider contract.
 
-## 10. Chọn iterator hay stream?
+## 10. Choosing iterator or stream?
 
-| Nhu cầu | Cách phù hợp |
+| Need | Suitable Approach |
 |---|---|
-| Duyệt từng service instance theo thứ tự discovery | `iterator()` hoặc enhanced for |
-| Xử lý tuần tự và dừng khi tìm thấy kết quả đầu tiên | `iterator()` hoặc stream có short-circuit terminal operation |
-| Lọc theo class, package hoặc annotation trước khi tạo instance | `stream()` và `Provider.type()` |
-| Sắp xếp theo metadata của provider | `stream().sorted(...)` rồi mới gọi `get()` |
-| Cần tất cả instance để xử lý hàng loạt | `stream().map(Provider::get).toList()` |
-| Nạp lại cache sau khi cấu hình class loader thay đổi | `reload()` rồi duyệt lại |
+| Traverse each service instance in discovery order | `iterator()` or enhanced for |
+| Process sequentially and stop at the first match | `iterator()` or stream with a short-circuit terminal operation |
+| Filter by class, package, or annotation before creating instances | `stream()` and `Provider.type()` |
+| Sort by provider metadata | `stream().sorted(...)` and only then call `get()` |
+| Need all instances for batch processing | `stream().map(Provider::get).toList()` |
+| Reload cache after class loader configuration changes | `reload()` and traverse again |
 
-Hãy nhớ rằng terminal operation có thể làm pipeline tiêu thụ provider. Một pipeline không có terminal operation chưa thực hiện toàn bộ công việc discovery và instantiation.
+Remember that a terminal operation can cause a pipeline to consume providers. A pipeline without a terminal operation has not performed the full discovery and instantiation work yet.
 
-## 11. Tóm tắt
+## 11. Summary
 
-ServiceLoader phát hiện provider từ service configuration file trên classpath hoặc từ directive `provides` trong named module. Phạm vi tìm kiếm được chọn bằng overload `load(...)`, chẳng hạn context class loader, class loader tường minh hoặc ModuleLayer.
+ServiceLoader discovers providers from service configuration files on the classpath or from `provides` directives in named modules. The search scope is chosen via the `load(...)` overload, such as context class loader, explicit class loader, or ModuleLayer.
 
-Discovery và instantiation diễn ra lazy. Iterator tạo instance khi cần phần tử tiếp theo; stream trả về `Provider<S>` để ứng dụng kiểm tra `type()` trước khi gọi `get()`. Cache giúp tái sử dụng provider instance trong các lần duyệt iterator, còn `reload()` xóa cache và khởi động lại việc tìm kiếm. Ứng dụng cần xử lý `ServiceConfigurationError`, quản lý vòng đời loader và tránh chia sẻ một ServiceLoader giữa nhiều thread mà không có đồng bộ.
+Discovery and instantiation happen lazily. The iterator creates instances when the next element is needed; stream returns `Provider<S>` so the application can inspect `type()` before calling `get()`. Caching allows reusing provider instances across iterator traversals, while `reload()` clears the cache and restarts lookup. Applications must handle `ServiceConfigurationError`, manage loader lifecycles, and avoid sharing a single ServiceLoader across multiple threads without synchronization.
 
-Tài liệu tham khảo:
+References:
 
 - [ServiceLoader — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ServiceLoader.html)
 - [ServiceLoader.Provider — Java SE 21 API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ServiceLoader.Provider.html)

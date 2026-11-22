@@ -1,16 +1,16 @@
-# Định dạng phần trăm và quan hệ với giá trị gốc trong Java
+# Percentage Formatting and Its Relationship to the Raw Value in Java
 
-## 1. Bản chất: tỷ lệ được lưu khác với chuỗi phần trăm được hiển thị
+## 1. Core Principle: Stored Ratios Differ from Displayed Percentage Strings
 
-Một tỷ lệ (*ratio*, *rate*, *proportion*) thường được lưu trong chương trình dưới dạng **giá trị số gốc**. Khi biểu diễn nó dưới dạng phần trăm, quy ước toán học là:
+A rate (*ratio*, *rate*, *proportion*) is typically stored in a program as a **raw numeric value**. When representing it as a percentage, the mathematical convention is:
 
 \[
-\text{phần trăm hiển thị} = \text{giá trị tỷ lệ gốc} \times 100
+\text{displayed percentage} = \text{raw ratio value} \times 100
 \]
 
-Vì thế, **`0.125` tương đương `12.5%`**, không phải `0.125%`. Dấu phần trăm biểu thị đơn vị “trên một trăm”.
+Therefore, **`0.125` corresponds to `12.5%`**, not `0.125%`. The percent sign denotes units of "per hundred."
 
-| Giá trị gốc (ratio) | Giá trị theo đơn vị % | Chuỗi phần trăm ví dụ |
+| Raw value (ratio) | Value in % units | Example percentage string |
 | ---: | ---: | --- |
 | `0` | 0 | `0%` |
 | `0.025` | 2.5 | `2.5%` |
@@ -20,52 +20,52 @@ Vì thế, **`0.125` tương đương `12.5%`**, không phải `0.125%`. Dấu p
 | `1.25` | 125 | `125%` |
 | `-0.075` | -7.5 | `-7.5%` |
 
-**Hai điều không được nhầm:**
+**Two things must never be confused:**
 
-1. **Giá trị gốc** trong phép tính vẫn là `0.125`. Khi format phần trăm, Java tạo **chuỗi** biểu diễn `12.5%`; nó không sửa giá trị biến gốc.
-2. `12.5`, nếu được đưa như *ratio* cho bộ định dạng phần trăm, nghĩa là **1.250%**, không phải **12.5%**. Muốn hiển thị 12.5%, hãy đưa vào `0.125`.
+1. The **raw value** in calculations remains `0.125`. When formatting a percentage, Java produces a **string** representing `12.5%`; it does not modify the original variable's value.
+2. `12.5`, if passed as a *ratio* to a percentage formatter, means **1,250%**, not **12.5%**. To display 12.5%, pass `0.125`.
 
-Một tỷ lệ không nhất thiết luôn nằm trong khoảng 0–1. Với tỷ lệ sử dụng tài nguyên, mức tăng trưởng hoặc phần trăm chênh lệch, giá trị có thể âm hoặc lớn hơn 1. Giới hạn phạm vi là quy tắc nghiệp vụ, **không phải đặc tính bắt buộc của bộ định dạng**.
+A ratio does not necessarily always lie in the range 0–1. For resource utilization rates, growth rates, or percentage differences, values can be negative or greater than 1. Range limits are a business rule, **not a mandatory property of the formatter**.
 
-## 2. `NumberFormat.getPercentInstance(Locale)` làm gì?
+## 2. What Does `NumberFormat.getPercentInstance(Locale)` Do?
 
-Java có API chuyên dùng cho phần trăm trong `java.text.NumberFormat`:
+Java provides a dedicated API for percentages in `java.text.NumberFormat`:
 
 ~~~java
 NumberFormat percent = NumberFormat.getPercentInstance(Locale.US);
 String text = percent.format(0.125);
 ~~~
 
-Đây là **đoạn mã minh họa trong method**, cần import `java.text.NumberFormat` và `java.util.Locale`.
+This is an **illustrative code snippet inside a method**, requiring imports of `java.text.NumberFormat` and `java.util.Locale`.
 
-Bộ định dạng phần trăm đảm nhận hai việc chính:
+The percentage formatter handles two main tasks:
 
-- **Quy đổi đơn vị biểu diễn:** nhân giá trị ratio với 100 khi format.
-- **Áp dụng quy ước của locale:** dấu thập phân, dấu nhóm, vị trí và khoảng cách quanh ký hiệu phần trăm cùng chữ số phù hợp dữ liệu locale/provider.
+- **Unit scaling for display:** multiplies the ratio value by 100 when formatting.
+- **Applying locale conventions:** decimal separator, grouping separator, position and spacing around the percent sign, and digits appropriate to the locale/provider data.
 
-Khi phân tích ngược bằng `parse` của bộ định dạng phần trăm, kết quả lại được **chia cho 100**. Ví dụ, chuỗi `"12.5%"` trong locale `en-US` tương ứng tỷ lệ `0.125`.
+When parsing back with the percentage formatter's `parse`, the result is **divided by 100** again. For example, the string `"12.5%"` in locale `en-US` corresponds to the ratio `0.125`.
 
-### Vì sao cần truyền `Locale` tường minh?
+### Why Pass `Locale` Explicitly?
 
 ~~~java
 NumberFormat us = NumberFormat.getPercentInstance(Locale.US);
 NumberFormat de = NumberFormat.getPercentInstance(Locale.GERMANY);
 ~~~
 
-Cùng một tỷ lệ có thể được hiển thị như:
+The same ratio can be displayed as:
 
-| Locale | Minh họa với ratio `0.125` (một chữ số phần thập phân) |
+| Locale | Illustration with ratio `0.125` (one fractional digit) |
 | --- | --- |
 | `Locale.US` | `12.5%` |
-| `Locale.GERMANY` | `12,5 %` — thường có khoảng trắng không ngắt trước `%` |
+| `Locale.GERMANY` | `12,5 %` — typically has a non-breaking space before `%` |
 
-Khoảng cách trước `%` tại locale Đức có thể là ký tự **NBSP** (`U+00A0`), trông giống dấu cách thông thường nhưng không phải ASCII space. Dữ liệu locale có thể được cập nhật giữa các JDK/provider. Đừng tự nối `"%”` hay thay `"."` bằng `","` để mô phỏng locale; nên dùng API chuyên dụng và kiểm thử trong môi trường triển khai.
+The space before `%` in the German locale can be an **NBSP** character (`U+00A0`), which looks like a regular space but is not an ASCII space. Locale data may be updated across JDKs/providers. Do not manually append `"%"` or replace `"."` with `","` to simulate a locale; use the dedicated API and test in your deployment environment.
 
-**Lưu ý:** Nếu gọi `NumberFormat.getPercentInstance()` **không truyền locale**, API dùng locale mặc định theo ngữ cảnh FORMAT của JVM. Trong ứng dụng nhiều người dùng, nên truyền locale nhận từ hồ sơ/yêu cầu của người xem thay vì trông đợi cấu hình máy chủ là đúng.
+**Note:** If you call `NumberFormat.getPercentInstance()` **without passing a locale**, the API uses the JVM's default locale for the FORMAT context. In multi-user applications, pass the locale obtained from the viewer's profile/request rather than hoping the server configuration matches.
 
-## 3. Ví dụ Java 17+ hoàn chỉnh: ratio và cách hiển thị phần trăm
+## 3. Complete Java 17+ Example: Ratio and Percentage Display
 
-Tạo tệp `PercentFormatDemo.java`:
+Create the file `PercentFormatDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -99,14 +99,14 @@ public class PercentFormatDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 PercentFormatDemo.java
 java PercentFormatDemo
 ~~~
 
-Đầu ra trong JDK hỗ trợ locale `en-US`:
+Output on a JDK supporting the `en-US` locale:
 
 ~~~text
 Original ratio: 0.125
@@ -117,21 +117,21 @@ Wrong input: 1,250.0%
 Ratio after formatting: 0.125
 ~~~
 
-### Đọc kết quả
+### Reading the Output
 
-- Dòng 1 và dòng cuối đều là `0.125`: định dạng **không làm thay đổi** đối tượng `BigDecimal` đầu vào.
-- `percent.format(ratio)` nhân tỷ lệ với 100 về mặt định dạng và thêm ký hiệu phần trăm; `0.125 → 12.5%`.
-- `BigDecimal.ONE` tức `1`, nên là `100.0%`.
-- Giá trị âm `-0.075` hiển thị `-7.5%`. Tương tự, ratio lớn hơn 1 có thể hiển thị lớn hơn 100%.
-- `new BigDecimal("12.5")` là tỷ lệ 12.5, tức `1250%`. Chữ số phân nhóm tạo ra `1,250.0%` theo `Locale.US`.
+- The first and last lines are both `0.125`: formatting **does not mutate** the input `BigDecimal` object.
+- `percent.format(ratio)` multiplies the ratio by 100 for formatting and adds the percent sign; `0.125 → 12.5%`.
+- `BigDecimal.ONE` is `1`, so it is `100.0%`.
+- The negative value `-0.075` displays as `-7.5%`. Similarly, ratios greater than 1 can display above 100%.
+- `new BigDecimal("12.5")` is a ratio of 12.5, i.e., `1250%`. Grouping produces `1,250.0%` under `Locale.US`.
 
-**Quy tắc thiết kế API:** Hãy chọn một hợp đồng dữ liệu nhất quán. Ví dụ, trường `conversionRate` luôn lưu tỷ lệ `0.125`, còn UI hiển thị `12.5%`. Nếu hệ thống khác gửi giá trị “12.5” với ý nghĩa **đơn vị phần trăm**, cần đổi sang ratio bằng phép chia 100 ở ranh giới dữ liệu, không đưa thẳng vào `getPercentInstance`.
+**API design rule:** Choose a consistent data contract. For example, a `conversionRate` field always stores the ratio `0.125`, while the UI displays `12.5%`. If another system sends `"12.5"` meaning **percentage units**, convert it to a ratio by dividing by 100 at the data boundary—do not pass it straight into `getPercentInstance`.
 
-## 4. Fraction digits và rounding: phần thập phân của phần trăm, không phải của ratio
+## 4. Fraction Digits and Rounding: Fractional Digits of the Percentage, Not of the Ratio
 
-Factory `getPercentInstance` có cấu hình số chữ số thập phân tùy locale/provider. Đặc biệt, trong nhiều cấu hình thông dụng, formatter mặc định **không hiển thị chữ số thập phân cho phần trăm**. Điều đó có thể làm tỷ lệ `0.125` hiện thành một số nguyên phần trăm đã được làm tròn.
+The `getPercentInstance` factory has a fractional digit configuration that depends on the locale/provider. In particular, in many common configurations, the default formatter **displays no fractional digits for percentages**. That can cause a ratio of `0.125` to appear as a rounded whole percentage.
 
-Muốn hiển thị 1 hoặc 2 chữ số thập phân theo yêu cầu sản phẩm, hãy đặt rõ:
+To display 1 or 2 fractional digits as required by the product, set them explicitly:
 
 ~~~java
 NumberFormat percent = NumberFormat.getPercentInstance(Locale.US);
@@ -140,27 +140,27 @@ percent.setMaximumFractionDigits(2);
 percent.setRoundingMode(RoundingMode.HALF_UP);
 ~~~
 
-Đây là **mảnh mã trong method**, cần import `java.text.NumberFormat`, `java.util.Locale`, `java.math.RoundingMode`.
+This is a **code snippet inside a method**, requiring imports of `java.text.NumberFormat`, `java.util.Locale`, and `java.math.RoundingMode`.
 
-- `setMinimumFractionDigits(2)`: ít nhất hai chữ số sau dấu thập phân **ở kết quả phần trăm**. Ví dụ 12.5% thành `12.50%`.
-- `setMaximumFractionDigits(2)`: không hiển thị quá hai chữ số thập phân, làm tròn khi cần.
-- `setRoundingMode(...)`: quyết định quy tắc làm tròn như `HALF_UP`, `HALF_EVEN`… khi implementation hỗ trợ.
-- Các lựa chọn trên chi phối **chuỗi hiển thị**, không đổi tỷ lệ số gốc.
+- `setMinimumFractionDigits(2)`: at least two digits after the decimal point **in the percentage result**. For example, 12.5% becomes `12.50%`.
+- `setMaximumFractionDigits(2)`: display no more than two fractional digits, rounding when needed.
+- `setRoundingMode(...)`: determines the rounding rule such as `HALF_UP`, `HALF_EVEN`, etc. when supported by the implementation.
+- These choices govern the **display string**; they do not alter the raw numeric ratio.
 
-Ví dụ minh họa:
+Illustrative examples:
 
-| Ratio | Phần trăm trước khi giới hạn precision | Hiển thị hai chữ số, `HALF_UP` |
+| Ratio | Percentage before precision limit | Two-digit display, `HALF_UP` |
 | --- | --- | --- |
 | `0.125` | 12.5% | `12.50%` |
 | `0.12495` | 12.495% | `12.50%` |
 | `0.1234` | 12.34% | `12.34%` |
 | `0.1` | 10% | `10.00%` |
 
-Cùng một giá trị gốc có thể hiển thị khác nhau khi đổi precision hoặc rounding mode. Chẳng hạn, tỷ lệ `0.12495` tương đương `12.495%`, nếu hiển thị hai chữ số với `HALF_UP` thì là `12.50%`. Nhưng **giá trị gốc vẫn là `0.12495`**; đừng ghi đè chuỗi hiển thị đã làm tròn về cơ sở dữ liệu rồi nghĩ rằng đã bảo toàn độ chính xác.
+The same raw value can display differently when precision or rounding mode changes. For instance, the ratio `0.12495` equals `12.495%`, which displays as `12.50%` with two digits and `HALF_UP`. However, the **raw value is still `0.12495`**; do not overwrite the database with the rounded display string thinking you preserved precision.
 
-### Vì sao nên dùng BigDecimal với tiền và tỷ lệ nghiệp vụ?
+### Why Use BigDecimal for Money and Business Rates?
 
-`double` là số dấu chấm động nhị phân; nhiều phân số thập phân (ví dụ `0.1`) không có biểu diễn nhị phân chính xác. Với tỷ lệ tài chính hoặc phép tính cần kiểm soát rounding, hãy cân nhắc:
+`double` is a binary floating-point number; many decimal fractions (such as `0.1`) have no exact binary representation. For financial rates or calculations requiring controlled rounding, consider:
 
 ~~~java
 BigDecimal ratio = new BigDecimal("0.12495");
@@ -171,23 +171,23 @@ System.out.println(percentage.toPlainString()); // 12.49500
 System.out.println(shown.toPlainString());      // 12.50
 ~~~
 
-Đây là **mảnh mã trong method**, cần import `java.math.BigDecimal` và `java.math.RoundingMode`. Phép tính theo `BigDecimal` biểu diễn đúng giá trị thập phân nhập từ chuỗi; không tạo `BigDecimal` từ literal `double` kiểu `new BigDecimal(0.1)` nếu mục tiêu là giá trị thập phân 0.1 chính xác. Dùng `new BigDecimal("0.1")` hoặc `BigDecimal.valueOf(0.1)`.
+This is a **code snippet inside a method**, requiring imports of `java.math.BigDecimal` and `java.math.RoundingMode`. `BigDecimal` arithmetic accurately represents decimal values parsed from strings; do not construct `BigDecimal` from a `double` literal like `new BigDecimal(0.1)` if the goal is the exact decimal value 0.1. Use `new BigDecimal("0.1")` or `BigDecimal.valueOf(0.1)`.
 
-**Không làm tròn ở mỗi bước trung gian nếu nghiệp vụ chưa yêu cầu.** Thường nên bảo toàn ratio chính xác, chỉ chọn rounding tại điểm hiển thị hoặc điểm hạch toán có quy tắc riêng.
+**Do not round at every intermediate step unless the business rules require it.** It is usually better to preserve the exact ratio and apply rounding only at display time or at accounting checkpoints with dedicated rules.
 
-## 5. Phân tích ngược phần trăm: chuỗi 12.5% phải trở lại ratio 0.125
+## 5. Reverse-Parsing Percentages: The String 12.5% Must Return to Ratio 0.125
 
-Khi nhập liệu, nhiều người nhập `12.5%` trên biểu mẫu nhưng ứng dụng lưu `0.125`. Một parser theo locale có thể thực hiện chuyển đổi ngược:
+When entering data, many users type `12.5%` in a form while the application stores `0.125`. A locale-aware parser can perform the inverse conversion:
 
 \[
-\text{ratio} = \frac{\text{giá trị số được viết theo %}}{100}
+\text{ratio} = \frac{\text{numeric value written in \%}}{100}
 \]
 
-`NumberFormat.getPercentInstance(locale).parse(...)` phân tích chuỗi phần trăm theo quy ước tương ứng và trả về giá trị **ratio**, không phải đơn vị phần trăm.
+`NumberFormat.getPercentInstance(locale).parse(...)` parses a percentage string according to the corresponding convention and returns the **ratio** value, not percentage units.
 
-### Ví dụ đầy đủ với ParsePosition và BigDecimal
+### Complete Example with ParsePosition and BigDecimal
 
-Tạo tệp `PercentParseDemo.java`:
+Create the file `PercentParseDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -222,14 +222,14 @@ public class PercentParseDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 PercentParseDemo.java
 java PercentParseDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 Input: 12.5%
@@ -237,24 +237,24 @@ Parsed ratio: 0.125
 As percent number: 12.5
 ~~~
 
-**Tại sao kiểm tra `end.getIndex()`?** Một số parser chấp nhận phần đầu hợp lệ của chuỗi rồi dừng lại khi gặp ký tự không liên quan. Nếu chỉ xét `parsed != null`, input như `"12.5%abc"` có thể bị chấp nhận một cách thiếu nghiêm ngặt. Việc kiểm tra parser đã tiêu thụ **hết chuỗi** giúp từ chối ký tự dư.
+**Why check `end.getIndex()`?** Some parsers accept a valid prefix of the string and stop when they hit unrelated characters. If you only check `parsed != null`, an input like `"12.5%abc"` could be accepted too leniently. Checking that the parser consumed the **entire string** helps reject trailing characters.
 
-Tuy nhiên, **tiêu thụ hết chuỗi không đủ để bảo đảm mọi quy tắc biểu mẫu nghiêm ngặt** (ví dụ vị trí dấu nhóm, khoảng trắng đặc biệt hoặc giới hạn tỷ lệ). Nếu nhập liệu quan trọng, kết hợp parser theo locale với validation riêng cho cấu trúc và phạm vi.
+However, **consuming the entire string is not enough to guarantee all strict form rules** (such as grouping separator positions, special spaces, or ratio bounds). If input accuracy is critical, combine the locale-aware parser with custom structural and range validation.
 
-### Format rồi parse không phải lúc nào hoàn trả nguyên giá trị
+### Formatting Then Parsing Does Not Always Return the Exact Original Value
 
-Giả sử ratio gốc là `0.12495`, nhưng bạn chỉ hiển thị `12.50%`. Khi người dùng parse ngược chuỗi hiển thị này, giá trị nhận được là `0.125`, **khác** `0.12495`. Sự khác biệt đến từ việc **đã làm tròn khi hiển thị**.
+Suppose the original ratio is `0.12495`, but you only display `12.50%`. When you parse this displayed string back, the resulting value is `0.125`, which is **different** from `0.12495`. The difference comes from **rounding during display**.
 
-Do đó:
+Therefore:
 
-- Giữ giá trị gốc chưa làm tròn trong model/dữ liệu lưu trữ.
-- Xem chuỗi phần trăm là **một biểu diễn dành cho người đọc**.
-- Không thiết kế luồng “format → parse → lưu đè” rồi kỳ vọng bảo toàn mọi chữ số gốc.
-- Nếu người dùng chủ động sửa giá trị hiển thị, hãy coi đó là dữ liệu đầu vào mới và parse/validate theo chính sách.
+- Keep the unrounded raw value in the model/persistent storage.
+- Treat the percentage string as a **representation for human readers**.
+- Do not design a "format → parse → overwrite" flow expecting to preserve all original digits.
+- If the user actively edits the displayed value, treat it as new input and parse/validate it according to policy.
 
-## 6. `DecimalFormat`: ký hiệu % trong pattern có ý nghĩa nhân 100
+## 6. `DecimalFormat`: The `%` Symbol in a Pattern Means Multiply by 100
 
-`NumberFormat.getPercentInstance(locale)` thường tạo đối tượng thuộc loại `DecimalFormat` trong các implementation JDK thông dụng. Khi cần kiểm soát pattern, có thể dùng `DecimalFormat` và `DecimalFormatSymbols`:
+`NumberFormat.getPercentInstance(locale)` typically returns an instance of `DecimalFormat` in common JDK implementations. When you need pattern control, you can use `DecimalFormat` and `DecimalFormatSymbols`:
 
 ~~~java
 import java.text.DecimalFormat;
@@ -274,21 +274,21 @@ public class PercentPatternDemo {
 }
 ~~~
 
-Lệnh chạy:
+Run command:
 
 ~~~bash
 javac -encoding UTF-8 PercentPatternDemo.java
 java PercentPatternDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 12.50%
 100.00%
 ~~~
 
-Trong pattern `"0.00%"`, ký hiệu phần trăm là **ký tự đặc biệt của DecimalFormat**, có ý nghĩa chọn multiplier **100**, không chỉ thêm suffix. Vì vậy, không tự nhân 100 rồi truyền vào formatter có pattern `%`:
+In the pattern `"0.00%"`, the percent sign is a **special `DecimalFormat` character** that selects a multiplier of **100**, not merely a suffix. Therefore, do not multiply by 100 yourself before passing to a formatter with a `%` pattern:
 
 ~~~java
 double ratio = 0.125;
@@ -296,50 +296,50 @@ double alreadyScaled = ratio * 100; // 12.5
 String wrong = format.format(alreadyScaled); // 1250.00%
 ~~~
 
-Đây là **mảnh mã minh họa** trong phạm vi có biến `format` là `DecimalFormat` pattern `"0.00%"` ở trên. Đây là lỗi **nhân 100 hai lần**.
+This is an **illustrative code snippet** in scope where `format` is the `DecimalFormat` with pattern `"0.00%"` above. This is the **double-multiplication by 100** bug.
 
-Muốn hiển thị chỉ một ký tự `%` theo nghĩa literal sau một giá trị đã tự quy đổi, phải thiết kế pattern/chuỗi riêng và kiểm soát việc quote trong `DecimalFormat`; trong ứng dụng thông thường, nên để **formatter phần trăm thực hiện toàn bộ phép tỷ lệ và định dạng** để tránh lỗi.
+If you want to display only a literal `%` character after a value you scaled yourself, you must design a custom pattern/string and control quoting in `DecimalFormat`; in typical applications, let the **percentage formatter perform the entire scaling and formatting** to avoid bugs.
 
-### Phân biệt ký hiệu % của ba API
+### Distinguishing `%` Across Three APIs
 
-| API | Ví dụ | Có tự nhân 100 không? |
+| API | Example | Multiplies by 100 automatically? |
 | --- | --- | --- |
-| `NumberFormat.getPercentInstance(Locale.US)` | `percent.format(0.125)` → `12.5%` nếu cấu hình một chữ số | **Có** |
-| `DecimalFormat("0.0%")` | `format(0.125)` → `12.5%` | **Có** |
-| `String.format(Locale.US, "%.1f%%", 0.125)` | `0.1%` | **Không**; `%%` chỉ là literal `%` |
-| `String.format(Locale.US, "%.1f%%", 0.125 * 100)` | `12.5%` | Đã nhân 100 **trong code** |
+| `NumberFormat.getPercentInstance(Locale.US)` | `percent.format(0.125)` → `12.5%` if configured for one digit | **Yes** |
+| `DecimalFormat("0.0%")` | `format(0.125)` → `12.5%` | **Yes** |
+| `String.format(Locale.US, "%.1f%%", 0.125)` | `0.1%` | **No**; `%%` is only a literal `%` |
+| `String.format(Locale.US, "%.1f%%", 0.125 * 100)` | `12.5%` | Multiplied by 100 **in code** |
 
-Khi dùng `String.format`, cú pháp `%%` chỉ xuất ký tự phần trăm. Nó **không** thực hiện phép chia/nhân theo đơn vị phần trăm. Đây là khác biệt lớn so với `DecimalFormat` và `NumberFormat.getPercentInstance`.
+When using `String.format`, the `%%` syntax only outputs a percent character. It does **not** perform percentage division/multiplication. This is a major difference compared to `DecimalFormat` and `NumberFormat.getPercentInstance`.
 
-**Lưu ý**: Ví dụ dòng `String.format("%.1f%%", 0.125)` cho ra `0.1%` vì chính tham số là `0.125` được in với một chữ số thập phân theo quy tắc `Formatter` (trường hợp 0.125 không ở đúng dạng thập phân nhị phân hoàn hảo). Trọng tâm là **không có phép nhân 100 tự động**; đừng coi cách làm tròn số `double` của `Formatter` như một cơ chế lưu trữ tỷ lệ chính xác.
+**Note**: The example line `String.format("%.1f%%", 0.125)` outputs `0.1%` because the argument itself is `0.125`, printed to one decimal place according to `Formatter` rules (in this case 0.125 is exact in binary, though many decimals are not). The key point is that there is **no automatic multiplication by 100**; do not treat `Formatter`'s `double` rounding as an exact ratio storage mechanism.
 
-## 7. Phần trăm thay đổi, điểm phần trăm và tỷ lệ tăng trưởng
+## 7. Percentage Change, Percentage Points, and Relative Growth Rate
 
-Trong phân tích kinh doanh, câu “tăng 5%” có thể bị nhầm với “tăng 5 điểm phần trăm”. Hai phép tính **khác nhau**.
+In business analysis, the phrase "increased by 5%" can be confused with "increased by 5 percentage points." The two calculations are **different**.
 
-Giả sử tỷ lệ chuyển đổi tăng từ `0.20` (20%) lên `0.23` (23%).
+Suppose the conversion rate increases from `0.20` (20%) to `0.23` (23%).
 
-### 7.1. Chênh lệch theo điểm phần trăm (*percentage points*)
-
-\[
-\text{Chênh lệch điểm %}=(0.23-0.20)\times100=3\text{ điểm phần trăm}
-\]
-
-Nên diễn đạt: “Tỷ lệ chuyển đổi tăng **3 điểm phần trăm**: từ 20% lên 23%”.
-
-Ở đây, `newRatio.subtract(oldRatio)` bằng `0.03`. `NumberFormat.getPercentInstance(...).format(0.03)` có thể in `3%`, nhưng nhãn nghiệp vụ phải là **“3 điểm phần trăm”**; bản thân formatter không hiểu loại so sánh bạn đang biểu diễn.
-
-### 7.2. Tăng trưởng tương đối (*relative percent change*)
+### 7.1. Difference in Percentage Points (*percentage points*)
 
 \[
-\text{Tăng trưởng tương đối}=\frac{0.23-0.20}{0.20}=0.15=15\%
+\text{Percentage point difference}=(0.23-0.20)\times100=3\text{ percentage points}
 \]
 
-Nên diễn đạt: “Tỷ lệ chuyển đổi tăng **15% so với mức ban đầu**”. Mẫu số là tỷ lệ cũ, nên phải phân biệt với chênh lệch tuyệt đối.
+You should state: "The conversion rate increased by **3 percentage points**: from 20% to 23%."
 
-Nếu tỷ lệ gốc bằng 0, công thức tương đối có phép chia cho 0 và cần chính sách nghiệp vụ thay vì tự hiển thị `Infinity%` hoặc ném lỗi không kiểm soát.
+Here, `newRatio.subtract(oldRatio)` equals `0.03`. `NumberFormat.getPercentInstance(...).format(0.03)` may print `3%`, but the business label must be **"3 percentage points"**; the formatter itself does not understand what type of comparison you are expressing.
 
-### 7.3. Ví dụ BigDecimal chính xác
+### 7.2. Relative Growth (*relative percent change*)
+
+\[
+\text{Relative growth}=\frac{0.23-0.20}{0.20}=0.15=15\%
+\]
+
+You should state: "The conversion rate increased by **15% compared to the baseline**." The denominator is the old rate, so it must be distinguished from the absolute difference.
+
+If the baseline rate is 0, the relative formula divides by 0 and needs a business policy instead of printing `Infinity%` or throwing an unhandled error.
+
+### 7.3. Exact BigDecimal Example
 
 ~~~java
 import java.math.BigDecimal;
@@ -373,14 +373,14 @@ public class PercentageChangeDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 PercentageChangeDemo.java
 java PercentageChangeDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 Old: 20%
@@ -389,15 +389,15 @@ Difference: 3 percentage points
 Relative change: 15%
 ~~~
 
-Đoạn code tạo chuỗi số theo phép tính chính xác để làm rõ đơn vị. Trong giao diện đa ngôn ngữ, nên format theo `Locale` và dịch cả nhãn `percentage points` hoặc `relative change` bằng `ResourceBundle`/i18n, không giữ nguyên tiếng Anh cho mọi người dùng.
+This code formats numeric strings from exact calculations to make the units clear. In a multilingual UI, format numbers with `Locale` and translate labels such as `percentage points` or `relative change` using `ResourceBundle`/i18n rather than keeping English text for all users.
 
-### Điểm cơ bản (*basis points*)
+### Basis Points (*basis points*)
 
-Trong tài chính, **1 basis point** (1 bp) tương đương **0.01 điểm phần trăm** hay **0.0001** theo ratio. Ví dụ 2.5% = 250 bps. Đây là đơn vị khác với ký hiệu `%`; không chỉ thay suffix mà phải chuyển đổi đúng đơn vị.
+In finance, **1 basis point** (1 bp) equals **0.01 percentage points**, or **0.0001** as a ratio. For example, 2.5% = 250 bps. This is a different unit from the `%` symbol; do not merely swap the suffix—convert the unit properly.
 
-## 8. Locale, dấu phân cách, ký tự Unicode và parsing ngược
+## 8. Locale, Separators, Unicode Characters, and Reverse Parsing
 
-Giả sử một ứng dụng ở Việt Nam xử lý dữ liệu của người dùng Đức:
+Suppose an application in Vietnam processes data for a German user:
 
 ~~~java
 Locale locale = Locale.GERMANY;
@@ -407,42 +407,42 @@ format.setMaximumFractionDigits(1);
 String output = format.format(0.125);
 ~~~
 
-Đây là mảnh mã cần import `java.util.Locale` và `java.text.NumberFormat`. Kết quả dự kiến với dữ liệu locale Đức phổ biến là chuỗi có dấu phẩy thập phân và có thể có khoảng trắng không ngắt trước ký hiệu phần trăm, chẳng hạn `12,5 %`.
+This is a code snippet requiring imports of `java.util.Locale` and `java.text.NumberFormat`. The expected result with common German locale data is a string with a decimal comma and possibly a non-breaking space before the percent sign, such as `12,5 %`.
 
-Để đọc lại chuỗi đó, dùng **percent parser theo cùng locale**:
+To read that string back, use a **percent parser with the same locale**:
 
 ~~~java
 NumberFormat parser = NumberFormat.getPercentInstance(locale);
 Number ratio = parser.parse(output);
 ~~~
 
-Đây là mảnh mã trong method có `throws ParseException` hoặc xử lý lỗi; biến `locale` và `output` phải có sẵn.
+This is a code snippet inside a method with `throws ParseException` or error handling; the variables `locale` and `output` must be in scope.
 
-**Đừng thay dấu phẩy/thập phân bằng thao tác chuỗi thô** nếu phải xử lý nhiều locale: dấu nhóm, khoảng trắng, chữ số Unicode, tiền tố/hậu tố và quy tắc dấu âm có thể khác nhau. Nếu cần trao đổi số giữa dịch vụ, gửi tỷ lệ dưới dạng số theo **định dạng giao thức nhất quán** (ví dụ JSON number `0.125`) thay vì chuỗi phần trăm đã bản địa hóa.
+**Do not replace commas/decimal points with raw string manipulation** if you must support multiple locales: grouping separators, whitespace, Unicode digits, prefixes/suffixes, and negative-sign rules may vary. If you need to exchange numbers between services, send the ratio as a number in a **consistent protocol format** (e.g., JSON number `0.125`) rather than a localized percentage string.
 
-**Kiểm thử Unicode:** `"12,5 %"` có thể dùng NBSP `U+00A0`, khác `"12,5 %"` (dấu cách ASCII). Khi so sánh đầu ra trong test, cần hiểu rõ đang kiểm tra semantics hay khóa chặt ký tự theo CLDR của một phiên bản JDK. Không tự trim/replace không kiểm soát trong logic nghiệp vụ.
+**Unicode testing:** `"12,5 %"` may use NBSP `U+00A0`, which differs from `"12,5 %"` (ASCII space). When comparing output in tests, be clear about whether you are checking semantics or locking down exact CLDR characters of a specific JDK version. Do not perform uncontrolled `trim`/`replace` in business logic.
 
-## 9. Các sai lầm phổ biến
+## 9. Common Pitfalls
 
-| Sai lầm | Hậu quả | Cách làm đúng |
+| Pitfall | Consequence | Right approach |
 | --- | --- | --- |
-| Đưa `12.5` vào `getPercentInstance` để biểu diễn 12.5% | Hiện `1,250%` | Đưa `0.125` theo hợp đồng ratio |
-| Nhân `100` trong code rồi lại gọi percent formatter | Nhân 100 **hai lần** | Để percent formatter tự scale |
-| Dùng `String.format("%.1f%%", ratio)` và mong ra 12.5% | Chỉ thêm ký hiệu %, không scale | Dùng `NumberFormat`, hoặc nhân 100 có chủ đích |
-| Dùng formatter không truyền `Locale` trong hệ thống đa người dùng | Kết quả phụ thuộc JVM mặc định | Truyền locale tường minh cho từng request |
-| Nghĩ `setMaximumFractionDigits(2)` giữ nguyên ratio | Có thể làm tròn **chuỗi** hiển thị | Giữ raw value, chọn precision ở tầng giao diện |
-| Lưu lại tỷ lệ bằng cách parse chuỗi đã làm tròn | Mất độ chính xác gốc | Lưu ratio trực tiếp, parse chỉ cho input mới |
-| Parse `"12.5%"` bằng number formatter thông thường | Không đảm bảo tự chia 100 | Dùng percent formatter/parser với locale phù hợp |
-| Chỉ kiểm tra parser trả non-null | Có thể chấp nhận phần tiền tố không hợp lệ | Kiểm tra `ParsePosition` và validation bổ sung |
-| Dùng `double` cho nghiệp vụ cần thập phân chính xác | Rủi ro sai số/rounding | Dùng `BigDecimal` và quy tắc làm tròn |
-| Gọi hiệu 20%→23% là “tăng 3%” mà không làm rõ | Nhầm điểm phần trăm và tăng trưởng tương đối | Ghi “3 điểm phần trăm” hoặc “15% tương đối” |
-| Cho rằng mọi tỷ lệ phải trong `[0,1]` | Chặn nhầm tỷ lệ tăng trưởng âm hoặc lớn hơn 100% | Kiểm tra miền hợp lệ theo nghiệp vụ |
+| Passing `12.5` to `getPercentInstance` to represent 12.5% | Displays `1,250%` | Pass `0.125` per the ratio contract |
+| Multiplying by `100` in code and also calling a percent formatter | Multiplies by 100 **twice** | Let the percent formatter handle scaling |
+| Using `String.format("%.1f%%", ratio)` expecting 12.5% | Only appends `%`, does not scale | Use `NumberFormat`, or multiply by 100 intentionally |
+| Using a formatter without passing `Locale` in a multi-user system | Result depends on JVM default | Pass locale explicitly for each request |
+| Assuming `setMaximumFractionDigits(2)` preserves the ratio | May round the displayed **string** | Keep raw value, choose precision at the UI layer |
+| Saving a rate back by parsing the rounded display string | Loses original precision | Store the ratio directly; parse only new input |
+| Parsing `"12.5%"` with a general number formatter | Not guaranteed to divide by 100 | Use a percent formatter/parser with the matching locale |
+| Only checking that the parser returns non-null | May accept an invalid prefix | Check `ParsePosition` and additional validation |
+| Using `double` for business logic requiring exact decimals | Risk of precision/rounding errors | Use `BigDecimal` and explicit rounding rules |
+| Calling a 20%→23% difference a "3% increase" without clarifying | Confuses percentage points with relative growth | Write "3 percentage points" or "15% relative" |
+| Assuming every ratio must be in `[0,1]` | Wrongly blocks negative growth rates or rates above 100% | Validate domain bounds per business rules |
 
-## 10. Quy tắc thiết kế ứng dụng
+## 10. Application Design Rules
 
-### 10.1. Đặt tên và kiểu dữ liệu rõ nghĩa
+### 10.1. Use Clear Names and Data Types
 
-Sử dụng các tên thể hiện **đơn vị lưu trữ**:
+Use names that indicate the **stored unit**:
 
 ~~~java
 BigDecimal conversionRatio = new BigDecimal("0.125"); // 12.5%
@@ -450,55 +450,55 @@ BigDecimal percentNumber =
         conversionRatio.multiply(BigDecimal.valueOf(100)); // 12.5
 ~~~
 
-Đây là mảnh mã trong method, cần import `java.math.BigDecimal`. Nếu một API sử dụng tỷ lệ `0..1`, ghi hợp đồng rõ trong tên trường, schema và tài liệu. Nếu API nhận đơn vị **percentage points** hoặc “giá trị số phần trăm” `12.5`, hãy đặt tên khác và chuyển đổi tại boundary, không trộn hai đơn vị.
+This is a code snippet inside a method, requiring `import java.math.BigDecimal`. If an API uses a `0..1` ratio, document the contract clearly in field names, schemas, and documentation. If an API receives **percentage points** or a "percentage number" like `12.5`, name it differently and convert at the boundary—never mix the two units.
 
-### 10.2. Tách dữ liệu, tính toán và trình bày
+### 10.2. Separate Data, Calculation, and Presentation
 
 ~~~text
-Dữ liệu gốc: 0.125 (ratio)
+Raw data: 0.125 (ratio)
          |
-         +--> Tính toán: BigDecimal, công thức nghiệp vụ
+         +--> Calculation: BigDecimal, business formulas
          |
-         +--> Trình bày: NumberFormat.getPercentInstance(locale)
+         +--> Presentation: NumberFormat.getPercentInstance(locale)
          |             -> "12.5%" (en-US)
-         |             -> "12,5 %" (de-DE, ví dụ)
+         |             -> "12,5 %" (de-DE, e.g.)
          |
-         +--> Lưu trữ / API: 0.125, theo định dạng máy đã thỏa thuận
+         +--> Storage / API: 0.125, in an agreed machine format
 ~~~
 
-Không dùng chuỗi định dạng để làm nguồn cho các phép tính tiếp theo, trừ khi đang xử lý **input mới** do người dùng nhập.
+Do not use formatted strings as the source for subsequent calculations, unless processing **new input** entered by a user.
 
-### 10.3. Xác định chính sách precision
+### 10.3. Define a Precision Policy
 
-Một số hệ thống chỉ muốn nguyên phần trăm, một số yêu cầu 1–4 chữ số. Hãy định nghĩa:
+Some systems only want whole percentages, while others require 1–4 digits. Define:
 
-- Số chữ số thập phân của **phần trăm hiển thị**.
-- Quy tắc làm tròn (HALF_UP, HALF_EVEN, v.v.).
-- Có cho phép ratio âm hoặc trên 1 không.
-- Ngưỡng hiển thị như `<0.01%` có phải diễn đạt đặc biệt không (nếu có, đừng dùng literal thay cho giá trị gốc).
-- Khi nhập phần trăm, parse theo locale nào; chấp nhận ký hiệu `%` bắt buộc hay cho phép input chỉ có số?
-- Đơn vị lưu trữ: ratio, percentage points hay basis points.
+- Number of fractional digits of the **displayed percentage**.
+- Rounding rule (`HALF_UP`, `HALF_EVEN`, etc.).
+- Whether negative ratios or ratios above 1 are allowed.
+- Whether display thresholds like `<0.01%` need special phrasing (if so, do not use that literal in place of the raw value).
+- When parsing percentage input, which locale to parse with; whether the `%` sign is required or numeric-only input is allowed.
+- Storage unit: ratio, percentage points, or basis points.
 
-### 10.4. Giới hạn đa luồng
+### 10.4. Thread-Safety Limits
 
-`NumberFormat` và `DecimalFormat` là các đối tượng có trạng thái thay đổi và nhìn chung **không thread-safe** khi được dùng chung không có kiểm soát. Trong server nhiều request, tạo formatter theo request hoặc dùng cơ chế cache/tạo bản sao/đồng bộ phù hợp. `Locale` là immutable, nhưng formatter không nhất thiết immutable.
+`NumberFormat` and `DecimalFormat` are stateful objects and generally **not thread-safe** when shared without synchronization. On a multi-request server, create a formatter per request or use an appropriate caching/cloning/synchronization mechanism. `Locale` is immutable, but formatters are not necessarily immutable.
 
-## 11. Bài tập củng cố
+## 11. Reinforcement Exercises
 
-1. Với các ratio `0`, `0.005`, `0.125`, `1`, `1.2` và `-0.03`, định dạng bằng `NumberFormat.getPercentInstance(Locale.US)`. Thiết lập hai chữ số phần thập phân và ghi nhận kết quả.
-2. Nếu một API đưa đến giá trị `"12.5"` nhưng tài liệu nói đó là **đơn vị phần trăm**, hãy viết phép chuyển sang ratio để bộ định dạng nhận đúng `0.125`.
-3. Hiển thị `0.12495` dưới dạng phần trăm với hai chữ số và `HALF_UP`. Giải thích vì sao không nên parse ngược chuỗi đã làm tròn rồi lưu đè giá trị nguồn.
-4. Chạy `PercentParseDemo` với `"12.5%abc"` và `"12.5%"`; giải thích giá trị `ParsePosition.getIndex()` và chính sách loại bỏ ký tự thừa.
-5. Dùng `Locale.GERMANY` để định dạng `0.125`. Kiểm tra từng Unicode code point của chuỗi xuất ra, đặc biệt khoảng trắng và dấu thập phân.
-6. Tỷ lệ tăng từ 4% lên 5%. Tính mức tăng theo **điểm phần trăm** và **phần trăm tương đối**. Đáp án: tăng **1 điểm phần trăm** và **25% so với mức cũ**.
-7. Giải thích khác biệt giữa `String.format(Locale.US, "%.1f%%", 0.125)` và `NumberFormat.getPercentInstance(Locale.US).format(0.125)`.
-8. Thiết kế unit test bảo đảm formatter không làm thay đổi `BigDecimal` đầu vào, kết quả đúng locale và không rò trạng thái giữa hai request.
+1. For the ratios `0`, `0.005`, `0.125`, `1`, `1.2`, and `-0.03`, format them with `NumberFormat.getPercentInstance(Locale.US)`. Set two fractional digits and record the output.
+2. If an API delivers `"12.5"` and its documentation states that it is in **percentage units**, write the conversion to a ratio so the formatter receives `0.125`.
+3. Display `0.12495` as a percentage with two digits and `HALF_UP`. Explain why you should not parse the rounded string back and overwrite the source value.
+4. Run `PercentParseDemo` with `"12.5%abc"` and `"12.5%"`; explain the value of `ParsePosition.getIndex()` and the policy for rejecting trailing characters.
+5. Use `Locale.GERMANY` to format `0.125`. Inspect every Unicode code point of the output string, especially the space and decimal separator.
+6. A rate increases from 4% to 5%. Compute the increase in **percentage points** and **relative percentage**. Answer: an increase of **1 percentage point** and **25% relative to the old rate**.
+7. Explain the difference between `String.format(Locale.US, "%.1f%%", 0.125)` and `NumberFormat.getPercentInstance(Locale.US).format(0.125)`.
+8. Design unit tests ensuring the formatter does not mutate the input `BigDecimal`, results match the locale, and state does not leak between two requests.
 
-**Ghi nhớ:** `NumberFormat.getPercentInstance(locale)` nhận **ratio gốc**, tự thực hiện quy đổi `×100` để hiển thị phần trăm, đồng thời định dạng dấu và vị trí ký hiệu theo locale; khi parse, nó quy đổi ngược `÷100`. **Formatting không sửa giá trị gốc**, nhưng việc làm tròn ở chuỗi có thể làm mất chi tiết nếu bạn parse ngược. Luôn phân biệt ratio `0.125`, giá trị phần trăm `12.5`, chuỗi `"12.5%"` và khái niệm **điểm phần trăm**.
+**Takeaway:** `NumberFormat.getPercentInstance(locale)` takes a **raw ratio**, automatically performs `×100` scaling to display a percentage, and formats separators and symbol placement according to the locale; when parsing, it reverses this with `÷100`. **Formatting does not modify the original value**, though rounding in the string can lose detail if parsed back. Always distinguish the ratio `0.125`, the percentage value `12.5`, the string `"12.5%"`, and the concept of **percentage points**.
 
-### Tài liệu tham khảo
+### References
 
-- [Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html) — `getPercentInstance`, format, parse, fraction digits và locale.
-- [Java SE 17 — DecimalFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormat.html) — pattern `%`/multiplier, rounding và `setParseBigDecimal`.
-- [Java SE 17 — BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html) — tính toán thập phân và làm tròn.
-- [Java SE 17 — Formatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Formatter.html) — `%` literal trong `printf` và các conversion dạng số.
+- [Java SE 17 — NumberFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html) — `getPercentInstance`, format, parse, fraction digits, and locale.
+- [Java SE 17 — DecimalFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/DecimalFormat.html) — `%` pattern/multiplier, rounding, and `setParseBigDecimal`.
+- [Java SE 17 — BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html) — decimal arithmetic and rounding.
+- [Java SE 17 — Formatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Formatter.html) — literal `%` in `printf` and numeric conversions.

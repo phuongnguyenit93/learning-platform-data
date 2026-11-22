@@ -1,28 +1,28 @@
-# Provider module được kéo vào module graph thế nào?
+# How are provider modules pulled into the module graph?
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Trong Java Platform Module System (JPMS), một module sử dụng service có thể không khai báo `requires` trực tiếp tới module triển khai service đó. Đây là chủ ý của cơ chế Service Binding: module tiêu thụ khai báo **service mà nó cần**, module provider khai báo **service mà nó cung cấp**, rồi bộ phân giải module có thể tự đưa provider module phù hợp vào module graph.
+In the Java Platform Module System (JPMS), a module using a service does not have to declare `requires` directly on the module implementing that service. This is intentional in the Service Binding mechanism: the consuming module declares **the service it needs**, the provider module declares **the service it provides**, and the module resolver can automatically bring matching provider modules into the module graph.
 
-Cần phân biệt ba việc:
+Three things must be distinguished:
 
-1. **Khai báo service contract:** consumer dùng `uses`, provider dùng `provides ... with ...`.
-2. **Service binding:** bộ phân giải tìm các provider module phù hợp và bổ sung chúng vào cấu hình/module graph.
-3. **Sử dụng service:** `ServiceLoader` tìm provider và tạo service instance khi ứng dụng yêu cầu.
+1. **Declaring the service contract:** the consumer uses `uses`, and the provider uses `provides ... with ...`.
+2. **Service binding:** the resolver locates matching provider modules and adds them to the configuration/module graph.
+3. **Using the service:** `ServiceLoader` locates providers and creates service instances when the application requests them.
 
-Service binding giải quyết việc module nào có mặt trong graph. Nó không tự tạo instance của implementation.
+Service binding determines which modules are present in the graph. It does not instantiate implementations by itself.
 
-Sau bài này, bạn có thể giải thích vì sao consumer không cần `requires` provider, phân biệt `resolve()` với `resolveAndBind()`, và kiểm tra provider module đã được đưa vào một configuration hay chưa.
+After this lesson, you will be able to explain why a consumer does not need to `requires` a provider, distinguish `resolve()` from `resolveAndBind()`, and check whether a provider module has been brought into a configuration.
 
-## 2. Ví dụ gồm ba module
+## 2. Three-module example
 
-Giả sử có ba module:
+Suppose there are three modules:
 
-- `com.example.greeting.api`: định nghĩa service interface.
-- `com.example.greeting.app`: tiêu thụ service.
-- `com.example.greeting.provider`: cung cấp implementation.
+- `com.example.greeting.api`: defines the service interface.
+- `com.example.greeting.app`: consumes the service.
+- `com.example.greeting.provider`: supplies the implementation.
 
-Quan hệ mong muốn:
+Desired relationship:
 
 ```text
 com.example.greeting.app
@@ -36,13 +36,13 @@ GreetingService (API contract)
 com.example.greeting.provider
 ```
 
-Consumer phụ thuộc vào API contract. Nó không cần biết tên implementation cụ thể. Provider module phụ thuộc vào API để triển khai interface.
+The consumer depends on the API contract. It does not need to know the concrete implementation name. The provider module depends on the API to implement the interface.
 
-## 3. Hai directive tạo nên service binding
+## 3. Two directives that enable service binding
 
-### Module API
+### API module
 
-`module-info.java` của module API:
+`module-info.java` of the API module:
 
 ```java
 module com.example.greeting.api {
@@ -60,9 +60,9 @@ public interface GreetingService {
 }
 ```
 
-### Module consumer
+### Consumer module
 
-`module-info.java` của ứng dụng:
+`module-info.java` of the application:
 
 ```java
 module com.example.greeting.app {
@@ -72,11 +72,11 @@ module com.example.greeting.app {
 }
 ```
 
-Directive `uses` nói rằng module app cần tìm implementation của `GreetingService`. Nó không chỉ định implementation class hoặc provider module cụ thể.
+The `uses` directive states that the app module needs to find implementations of `GreetingService`. It does not specify a concrete implementation class or provider module.
 
-### Module provider
+### Provider module
 
-`module-info.java` của provider:
+`module-info.java` of the provider:
 
 ```java
 module com.example.greeting.provider {
@@ -107,56 +107,56 @@ public final class FormalGreetingService implements GreetingService {
 }
 ```
 
-Directive `provides S with P` đăng ký class `P` làm provider cho service type `S`. Provider module cần đọc được module chứa service API, vì vậy nó khai báo `requires com.example.greeting.api`.
+The `provides S with P` directive registers class `P` as a provider for service type `S`. The provider module needs to read the module containing the service API, so it declares `requires com.example.greeting.api`.
 
-Package chứa implementation không cần được export chỉ để ServiceLoader phát hiện provider được khai báo bằng `provides`. Module descriptor đã công bố mối liên hệ giữa service và provider.
+The package containing the implementation does not need to be exported merely for `ServiceLoader` to discover the provider declared with `provides`. The module descriptor has already published the relationship between the service and the provider.
 
-## 4. Vì sao requires thông thường chưa đủ?
+## 4. Why is normal requires not enough?
 
-Module resolver bắt đầu từ các root modules rồi giải quyết những module được chúng yêu cầu bằng directive `requires`, tiếp tục theo các dependency của chúng.
+The module resolver starts from the root modules and resolves the modules they require via `requires` directives, continuing along their dependencies.
 
-Nếu app chỉ khai báo:
+If the app only declares:
 
 ```java
 requires com.example.greeting.api;
 uses com.example.greeting.api.GreetingService;
 ```
 
-thì dependency graph thông thường có API module, nhưng không có cạnh `requires` nào dẫn tới `com.example.greeting.provider`.
+then the normal dependency graph contains the API module, but there is no `requires` edge leading to `com.example.greeting.provider`.
 
-Directive `uses` không tương đương `requires`. Nó khai báo nhu cầu về một service, để cơ chế service binding có thể tìm module cung cấp service đó. Nhờ vậy, app không bị gắn cứng vào một implementation và có thể thay provider mà không phải sửa module descriptor của app.
+The `uses` directive is not equivalent to `requires`. It declares a need for a service so that the service binding mechanism can find modules providing that service. As a result, the app is not tightly coupled to a single implementation and providers can be swapped without modifying the app's module descriptor.
 
-Điều này cũng có nghĩa là việc đặt provider JAR trên module path chưa tự động bảo đảm provider module sẽ nằm trong configuration. Provider phải được bộ phân giải nhìn thấy và service binding phải được thực hiện.
+This also means that placing a provider JAR on the module path does not automatically guarantee the provider module will be in the configuration. The provider must be visible to the resolver and service binding must be performed.
 
-## 5. resolve() và resolveAndBind() khác nhau thế nào?
+## 5. How do resolve() and resolveAndBind() differ?
 
-Hai phương thức đều giải quyết module roots và các dependency cần thiết. Khác biệt nằm ở bước service binding.
+Both methods resolve root modules and their required dependencies. The difference lies in the service binding step.
 
-| Phương thức | Cách tạo module graph |
+| Method | How the module graph is built |
 | --- | --- |
-| `Configuration.resolve(...)` | Giải quyết roots cùng dependency closure theo các directive `requires`. |
-| `Configuration.resolveAndBind(...)` | Thực hiện resolution thông thường, sau đó bổ sung các provider module cho service được dùng trong graph; tiếp tục cho đến khi không còn provider module mới. |
+| `Configuration.resolve(...)` | Resolves the roots along with the dependency closure following `requires` directives. |
+| `Configuration.resolveAndBind(...)` | Performs normal resolution, then adds provider modules for services used in the graph; continues until no new provider modules remain. |
 
-Nếu provider module đã được kéo vào graph bằng `requires` hoặc được chỉ định làm root, nó vẫn có mặt khi dùng `resolve()`. Service binding hữu ích khi provider không phải dependency tường minh của consumer.
+If a provider module is already pulled into the graph by `requires` or specified as a root, it is still present when using `resolve()`. Service binding is useful when providers are not explicit dependencies of the consumer.
 
-### Thuật toán service binding
+### Service binding algorithm
 
-Có thể hình dung quá trình như sau:
+The process can be pictured as follows:
 
-1. Resolver giải quyết các root modules và toàn bộ dependency `requires` của chúng.
-2. Resolver xem các module đã giải quyết để thu thập những service type được khai báo trong directive `uses`.
-3. Resolver tìm các module có thể quan sát được và có directive `provides` cho những service type đó.
-4. Các provider module phù hợp được thêm vào graph; dependency `requires` của chúng cũng được giải quyết.
-5. Resolver tiếp tục kiểm tra các module mới được thêm. Nếu provider module cũng khai báo `uses` service khác, các provider tương ứng có thể tiếp tục được bổ sung.
-6. Quá trình dừng khi không còn provider module mới nào được thêm.
+1. The resolver resolves the root modules and all of their `requires` dependencies.
+2. The resolver inspects the resolved modules to collect the service types declared in `uses` directives.
+3. The resolver finds observable modules that have `provides` directives for those service types.
+4. Matching provider modules are added to the graph; their `requires` dependencies are also resolved.
+5. The resolver continues inspecting the newly added modules. If a provider module also declares `uses` for other services, corresponding providers can continue to be added.
+6. The process stops when no more new provider modules are added.
 
-Đây là một dạng closure: graph mở rộng từ roots, dependency thông thường và các provider được phát hiện qua service binding.
+This is a form of closure: the graph expands from roots, regular dependencies, and providers discovered through service binding.
 
-Nếu có nhiều provider module khả kiến cùng cung cấp một service được sử dụng, service binding có thể đưa tất cả các provider phù hợp vào graph. Việc lựa chọn hoặc sử dụng một hay nhiều implementation là quyết định ở tầng ứng dụng thông qua ServiceLoader và logic của ứng dụng.
+If multiple visible provider modules provide the same used service, service binding can bring all matching providers into the graph. Choosing or using one or more implementations is an application-level decision made via `ServiceLoader` and application logic.
 
-## 6. Tự tạo module layer với resolveAndBind()
+## 6. Creating a custom module layer with resolveAndBind()
 
-Giả sử các module đã được biên dịch thành JAR trong thư mục `mods/`. Ta muốn tạo một layer con có root là `com.example.greeting.app`.
+Suppose the modules have been compiled into JARs in the `mods/` directory. We want to create a child layer with `com.example.greeting.app` as the root.
 
 ```java
 import java.lang.module.Configuration;
@@ -193,19 +193,19 @@ public class LayerBootstrap {
 }
 ```
 
-Giải thích các tham số:
+Explanation of parameters:
 
-- `finder`: nơi resolver tìm các module có thể quan sát, bao gồm app, API và provider trong ví dụ.
-- `ModuleFinder.of()`: finder rỗng ở vị trí tìm kiếm sau các parent configuration.
-- `Set.of("com.example.greeting.app")`: root module cần khởi chạy.
-- `resolveAndBind`: giải quyết dependency và bổ sung provider module phù hợp.
-- `defineModulesWithOneLoader`: tạo layer mới từ configuration đã giải quyết, dùng một class loader cho các module trong layer theo chính sách của API.
+- `finder`: where the resolver looks for observable modules, including the app, API, and provider in the example.
+- `ModuleFinder.of()`: empty finder in the search position after the parent configurations.
+- `Set.of("com.example.greeting.app")`: root module to launch.
+- `resolveAndBind`: resolves dependencies and adds matching provider modules.
+- `defineModulesWithOneLoader`: creates a new layer from the resolved configuration, using a single class loader for the modules in the layer per the API's policy.
 
-Dòng `configuration.findModule(...).isPresent()` kiểm tra provider module có trong configuration hay không. Đây là bằng chứng ở cấp module graph; nó chưa chứng minh constructor của provider đã chạy.
+The line `configuration.findModule(...).isPresent()` checks whether the provider module is in the configuration. This is evidence at the module graph level; it does not prove that the provider's constructor has run.
 
-## 7. Dùng ServiceLoader sau khi layer đã được tạo
+## 7. Using ServiceLoader after the layer has been created
 
-Khi module layer đã chứa provider module, ứng dụng có thể tìm service trong layer đó:
+Once the module layer contains the provider module, the application can look up the service in that layer:
 
 ```java
 import com.example.greeting.api.GreetingService;
@@ -221,56 +221,56 @@ services.stream()
     );
 ```
 
-Trong module app, directive `uses com.example.greeting.api.GreetingService` vẫn cần được khai báo để module có quyền sử dụng service type đó qua ServiceLoader.
+In the app module, the `uses com.example.greeting.api.GreetingService` directive still must be declared so the module is permitted to use that service type via `ServiceLoader`.
 
-Có hai giai đoạn riêng:
+There are two separate stages:
 
-- Khi gọi `resolveAndBind`, resolver tìm provider module và đưa module đó vào configuration.
-- Khi gọi `ServiceLoader` và yêu cầu provider instance bằng `Provider.get()` hoặc duyệt instance qua iterator, implementation mới được yêu cầu khởi tạo.
+- When `resolveAndBind` is called, the resolver locates provider modules and adds them to the configuration.
+- Only when `ServiceLoader` is called and a provider instance is requested with `Provider.get()` or iterated through an iterator is the implementation instantiated.
 
-Nếu chỉ muốn xem loại provider trước khi khởi tạo, có thể dùng `services.stream()` và `Provider.type()`. Bản thân service binding không gọi constructor của provider.
+If you only want to inspect the provider type before instantiation, you can use `services.stream()` and `Provider.type()`. Service binding itself does not invoke provider constructors.
 
-## 8. Điều kiện để provider module được kéo vào graph
+## 8. Conditions for a provider module to be pulled into the graph
 
-Provider module chỉ có thể được thêm khi các điều kiện cần thiết được đáp ứng:
+A provider module can only be added when the necessary conditions are met:
 
-- **Consumer khai báo `uses`:** service type phải xuất hiện trong module descriptor của một module đã được giải quyết.
-- **Provider khai báo `provides`:** provider module phải đăng ký đúng service type bằng directive `provides S with P`.
-- **Provider có thể được tìm thấy:** module phải nằm trong phạm vi mà các `ModuleFinder` và cấu hình parent cho phép resolver quan sát. Có file JAR ở một vị trí mà finder không tìm kiếm thì chưa đủ.
-- **Provider module hợp lệ:** các dependency của provider phải được giải quyết và descriptor/provider declaration phải hợp lệ.
-- **Dùng cơ chế có service binding:** cần gọi `resolveAndBind` hoặc dùng công cụ khởi chạy/đóng gói có bật service binding phù hợp. `resolve()` đơn thuần không thực hiện bước bổ sung provider này.
+- **Consumer declares `uses`:** the service type must appear in the module descriptor of an already resolved module.
+- **Provider declares `provides`:** the provider module must register the exact service type using the `provides S with P` directive.
+- **Provider can be found:** the module must be within the scope that the `ModuleFinder` instances and parent configurations allow the resolver to observe. Having a JAR file in a location that no finder searches is not enough.
+- **Valid provider module:** the provider's dependencies must be resolvable and the descriptor/provider declaration must be valid.
+- **Using a mechanism with service binding:** you must call `resolveAndBind` or use a launcher/packaging tool with appropriate service binding enabled. Plain `resolve()` does not perform this provider-adding step.
 
-Nếu không tìm thấy provider phù hợp, resolver không tự tạo implementation và service có thể không có provider nào. Ứng dụng nên xác định service đó là bắt buộc hay tùy chọn và xử lý trường hợp không có provider ở tầng sử dụng.
+If no matching provider is found, the resolver does not synthesize an implementation and the service may have no providers. The application should decide whether that service is mandatory or optional and handle the zero-provider case at the usage layer.
 
-## 9. Module path, classpath và jlink
+## 9. Module path, classpath, and jlink
 
-Với named modules, provider được công bố trong `module-info.java` bằng `provides ... with ...`; service consumer khai báo `uses`. Đây là metadata mà module resolver dùng cho service binding.
+With named modules, providers are published in `module-info.java` using `provides ... with ...`; service consumers declare `uses`. This is the metadata the module resolver uses for service binding.
 
-Với provider đặt trên classpath, cách đăng ký truyền thống là file:
+For providers placed on the classpath, the traditional registration mechanism is the file:
 
 ```text
 META-INF/services/com.example.greeting.api.GreetingService
 ```
 
-File chứa tên đầy đủ của các provider class. ServiceLoader có thể đọc cấu hình này qua class loader, nhưng classpath provider không phải một named provider module để resolver bổ sung vào module graph theo cùng cơ chế `provides` của JPMS.
+The file contains the fully qualified names of the provider classes. `ServiceLoader` can read this configuration via the class loader, but a classpath provider is not a named provider module for the resolver to add to the module graph via JPMS's `provides` mechanism.
 
-Ở bước tạo runtime image, công cụ `jlink` có tùy chọn `--bind-services` để đưa các module provider cần thiết và dependency của chúng vào image dựa trên service được các module đã chọn sử dụng. Đây là bước liên kết service khi đóng gói runtime image; nó không phải thao tác khởi tạo service instance lúc chạy ứng dụng.
+During runtime image creation, the `jlink` tool has the `--bind-services` option to include needed provider modules and their dependencies in the image based on services used by selected modules. This is a service linking step when packaging the runtime image; it is not an operation that instantiates service objects when running the application.
 
-## 10. Những nhầm lẫn thường gặp
+## 10. Common misconceptions
 
-- **`uses` không phải `requires`:** `uses` khai báo service dependency. Nó không tạo một dependency tường minh từ consumer tới provider module.
-- **Có trên module path không có nghĩa là có trong graph:** resolver chỉ dùng các module quan sát được trong phạm vi finder và quy tắc resolution hiện hành.
-- **`resolve()` không tự động bind provider:** nếu cần kéo provider module theo service usage, dùng `resolveAndBind()`.
-- **Service binding không chọn duy nhất một provider:** nhiều provider phù hợp có thể cùng được thêm vào graph. Ứng dụng quyết định provider nào sẽ được sử dụng.
-- **Có trong graph không có nghĩa là đã khởi tạo:** configuration và module layer mô tả module đã được giải quyết. Service instance chỉ được yêu cầu ở bước sử dụng service.
-- **Không cần consumer đọc package implementation:** app phụ thuộc vào API contract; provider module công bố implementation bằng descriptor và có thể giữ package triển khai ở trạng thái encapsulated.
+- **`uses` is not `requires`:** `uses` declares a service dependency. It does not create an explicit dependency from the consumer to the provider module.
+- **Being on the module path does not mean being in the graph:** the resolver only uses modules observable within the current finders and resolution rules.
+- **`resolve()` does not automatically bind providers:** if you need to pull in provider modules based on service usage, use `resolveAndBind()`.
+- **Service binding does not select a single provider:** multiple matching providers can be added to the graph together. The application decides which provider(s) will be used.
+- **Being in the graph does not mean being instantiated:** configurations and module layers describe resolved modules. Service instances are only requested in the service usage step.
+- **Consumers do not need to read implementation packages:** the app depends on the API contract; the provider module publishes its implementation via its descriptor and can keep the implementation package encapsulated.
 
-## 11. Ghi nhớ
+## 11. Key Takeaways
 
-- Consumer khai báo service cần dùng bằng `uses`.
-- Provider module công bố implementation bằng `provides S with P`.
-- Resolver thông thường theo `requires`; service binding mở rộng graph theo các service được sử dụng.
-- `Configuration.resolveAndBind()` lặp việc tìm provider và giải quyết dependency cho đến khi không còn module mới.
-- `ServiceLoader` sử dụng provider trong layer; `Provider.get()` mới yêu cầu service instance.
+- Consumers declare needed services with `uses`.
+- Provider modules publish implementations with `provides S with P`.
+- Normal resolution follows `requires`; service binding expands the graph according to used services.
+- `Configuration.resolveAndBind()` repeats finding providers and resolving dependencies until no new modules remain.
+- `ServiceLoader` consumes providers in a layer; `Provider.get()` is what requests a service instance.
 
-Khi cần chẩn đoán một provider không xuất hiện, hãy kiểm tra lần lượt: consumer có `uses` đúng service type không, provider có `provides` đúng type không, module finder có nhìn thấy provider không, và configuration được tạo bằng `resolveAndBind` hay chỉ `resolve`.
+When diagnosing why a provider does not appear, check in order: whether the consumer declares `uses` for the right service type, whether the provider declares `provides` for the right type, whether the module finder can see the provider, and whether the configuration was created with `resolveAndBind` rather than just `resolve`.

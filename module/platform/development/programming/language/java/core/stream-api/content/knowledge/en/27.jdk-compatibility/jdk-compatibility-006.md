@@ -1,71 +1,71 @@
-# Phân biệt Gatherer thử nghiệm và API chính thức từ Java 24
+# Distinguishing Preview Gatherers from the Official API Since Java 24
 
-**Stream Gatherers** mở rộng Java Stream API bằng khả năng định nghĩa **thao tác trung gian tùy chỉnh** (*custom intermediate operation*). Nếu `filter` và `map` xử lý từng phần tử, còn `collect` tổng hợp ở cuối pipeline, một `Gatherer` có thể duy trì trạng thái, tạo cửa sổ, phát nhiều kết quả, dừng sớm hoặc biến đổi đầu ra theo một cách không thuận tiện với các thao tác trung gian có sẵn.
+**Stream Gatherers** extend the Java Stream API with the ability to define **custom intermediate operations**. Whereas `filter` and `map` process individual elements and `collect` aggregates at the end of a pipeline, a `Gatherer` can maintain state, create windows, emit multiple results, stop early, or transform outputs in ways that are awkward with built-in intermediate operations.
 
-Tuy nhiên, khi học hoặc triển khai `Stream.gather(...)`, **phiên bản JDK là một phần của tính đúng**. Stream Gatherers xuất hiện dưới dạng **preview API trong Java 22**, được đưa vào **preview lần hai trong Java 23**, rồi trở thành **API chính thức trong Java 24**. Ba giai đoạn này không có cùng yêu cầu biên dịch, chạy chương trình và bảo đảm tương thích.
+However, when learning or deploying `Stream.gather(...)`, **the JDK version is part of correctness**. Stream Gatherers appeared as a **preview API in Java 22**, entered a **second preview in Java 23**, and became an **official API in Java 24**. These three stages do not share the same compilation, execution, and compatibility guarantees.
 
-Bài thuộc chương **Khả năng tương thích JDK** của mô-đun **JAVA_STREAM_API**. Ngoài phân biệt các mốc JDK, chúng ta sẽ xây các pipeline với `Gatherers.windowFixed`, `windowSliding`, `scan`, `fold` và `mapConcurrent`; xem cách viết custom Gatherer; xác định chiến lược triển khai cho ứng dụng vẫn chạy Java 17/21; đồng thời đánh giá tính lazy, xử lý song song, tài nguyên, trạng thái và hiệu năng.
+This lesson belongs to the **JDK Compatibility** chapter of the **JAVA_STREAM_API** module. Besides distinguishing JDK milestones, we will build pipelines with `Gatherers.windowFixed`, `windowSliding`, `scan`, `fold`, and `mapConcurrent`; see how to write a custom Gatherer; determine deployment strategies for applications still running Java 17/21; and evaluate laziness, parallel processing, resources, state, and performance.
 
-## 1. Bản đồ phiên bản: Java 22, 23 và 24
+## 1. Version Map: Java 22, 23, and 24
 
-| JDK | Trạng thái Stream Gatherers | JEP | Biên dịch mã sử dụng Gatherer | Chạy chương trình |
+| JDK | Stream Gatherers Status | JEP | Compiling Code Using Gatherer | Running the Program |
 | --- | --- | --- | --- | --- |
-| Java 8–21 | **Chưa có API Stream Gatherers chuẩn** | — | Không thể sử dụng trực tiếp `java.util.stream.Gatherer` từ JDK này | Cần giải pháp thay thế hoặc nâng JDK |
-| Java 22 | **Preview lần đầu** | [JEP 461](https://openjdk.org/jeps/461) | JDK 22, bật `--enable-preview` với `--release 22` | JDK 22, bật `--enable-preview` |
-| Java 23 | **Second preview** | [JEP 473](https://openjdk.org/jeps/473) | JDK 23, bật `--enable-preview` với `--release 23` | JDK 23, bật `--enable-preview` |
-| Java 24 | **API chính thức, không còn preview** | [JEP 485](https://openjdk.org/jeps/485) | JDK 24, biên dịch bình thường | JDK 24, chạy bình thường |
-| Java 25 | **Tiếp tục có API chính thức** | Được chuẩn hóa từ JDK 24 | Dùng JDK và cấu hình build phù hợp với target | Runtime phải hỗ trợ API mà ứng dụng dùng |
+| Java 8–21 | **No standard Stream Gatherers API** | — | Cannot directly use `java.util.stream.Gatherer` from this JDK | Needs an alternative or JDK upgrade |
+| Java 22 | **First preview** | [JEP 461](https://openjdk.org/jeps/461) | JDK 22, enable `--enable-preview` with `--release 22` | JDK 22, enable `--enable-preview` |
+| Java 23 | **Second preview** | [JEP 473](https://openjdk.org/jeps/473) | JDK 23, enable `--enable-preview` with `--release 23` | JDK 23, enable `--enable-preview` |
+| Java 24 | **Official API, no longer preview** | [JEP 485](https://openjdk.org/jeps/485) | JDK 24, normal compilation | JDK 24, normal execution |
+| Java 25 | **Continues as official API** | Standardized since JDK 24 | Use JDK and build config matching target | Runtime must support the APIs the app uses |
 
-Từ Java 24, `Stream.gather`, `Gatherer` và `Gatherers` trở thành một phần chính thức của thư viện chuẩn `java.base`. **Không cần `--enable-preview` chỉ để sử dụng Stream Gatherers trên Java 24.** Nếu một ứng dụng Java 24 đồng thời dùng **tính năng preview khác**, yêu cầu bật preview của tính năng đó là chuyện riêng.
+Starting in Java 24, `Stream.gather`, `Gatherer`, and `Gatherers` are an official part of the `java.base` standard library. **No `--enable-preview` flag is needed just to use Stream Gatherers on Java 24.** If a Java 24 application simultaneously uses **another preview feature**, that feature's preview requirement is a separate matter.
 
-Ba điểm dễ nhầm cần phân biệt:
+Three easily confused points to distinguish:
 
-1. **“Có API”**: JDK chứa các lớp và phương thức cần dùng.
-2. **“Được phép gọi API”**: ở JDK 22/23 cần bật preview; ở JDK 24 thì không.
-3. **“Chạy được trên máy khác”**: phụ thuộc phiên bản JDK runtime và bytecode mà ứng dụng được biên dịch ra; một JDK mới **không tự làm ứng dụng tương thích ngược với JDK cũ**.
+1. **"API exists"**: the JDK contains the needed classes and methods.
+2. **"Calling the API is permitted"**: on JDK 22/23 preview must be enabled; on JDK 24 it does not.
+3. **"Runs on another machine"**: depends on the runtime JDK version and the bytecode version compiled for the app; a newer JDK **does not automatically make an application backward-compatible with older JDKs**.
 
-### Dòng thời gian
+### Timeline
 
 ```text
 Java 21         Java 22               Java 23               Java 24
    |               |                     |                     |
    |      JEP 461: Preview       JEP 473: Preview 2    JEP 485: Final
    |               |                     |                     |
-Không có      --enable-preview     --enable-preview      Không cần flag
-Gatherer      lúc compile/run      lúc compile/run      cho Gatherer
+No Gatherer   --enable-preview     --enable-preview      No flag needed
+              at compile/run       at compile/run        for Gatherer
    |               |                     |                     |
    +---------------+---------------------+--------------------->
-            Chuyển từ thử nghiệm sang API chính thức
+            Transition from preview to official API
 ```
 
-**Kết luận về phạm vi phiên bản:** Người học dùng **Java 17/21** có thể học lý thuyết và các phép Stream thông thường, nhưng **không thể chạy trực tiếp ví dụ `Stream.gather` chuẩn** nếu chưa chuyển sang một JDK cung cấp API đó.
+**Scope conclusion:** Learners using **Java 17/21** can study the theory and standard Stream operations, but **cannot directly run standard `Stream.gather` examples** without moving to a JDK that provides that API.
 
-## 2. Preview API có nghĩa gì?
+## 2. What Does Preview API Mean?
 
-Trong Java, *preview feature* là một cơ chế cho phép lập trình viên trải nghiệm tính năng đã có thiết kế và triển khai nhưng **chưa được chuẩn hóa vĩnh viễn**. Mục tiêu của preview là nhận phản hồi thực tế trước khi API được hoàn thiện hoặc thay đổi.
+In Java, a *preview feature* is a mechanism allowing developers to try a feature whose design and implementation are complete yet **not yet permanently standardized**. The goal of preview is to gather real-world feedback before the API is finalized or changed.
 
-Điểm quan trọng: **preview không đồng nghĩa API thử nghiệm tùy tiện không có hợp đồng**. JDK vẫn có tài liệu API và quy tắc sử dụng. Tuy nhiên, người dùng preview cần chấp nhận khả năng những phiên bản tiếp theo có thay đổi về bề mặt API, cách hoạt động hoặc khả năng tồn tại của tính năng.
+Crucial point: **preview does not mean an arbitrary experimental API without a contract**. The JDK still provides API documentation and usage rules. However, preview users must accept that subsequent releases may change the API surface, behavior, or even whether the feature persists.
 
-| Khái niệm | Ý nghĩa đối với Gatherer |
+| Concept | Meaning for Gatherers |
 | --- | --- |
-| `preview` (Java 22/23) | API có trong JDK nhưng phải được bật tường minh; chưa là phần ổn định vĩnh viễn của nền tảng |
-| `second preview` (Java 23) | Thêm một vòng lấy phản hồi trước khi chuẩn hóa; **vẫn** cần bật preview |
-| `final` (Java 24) | API trở thành thành phần chính thức của Java SE; không cần flag preview riêng |
-| `incubator` | Cơ chế thử nghiệm khác của Java; **không phải** trạng thái của Stream Gatherers trong các JDK 22/23 |
-| `deprecated` | API được đánh dấu hạn chế/khuyến nghị tránh dùng; **không đồng nghĩa** với preview |
-| `LTS` | Chính sách hỗ trợ một bản JDK, **khác** với trạng thái preview/final của API |
+| `preview` (Java 22/23) | API exists in the JDK but must be enabled explicitly; not yet a permanently stable platform part |
+| `second preview` (Java 23) | An additional feedback round before standardization; **still** requires enabling preview |
+| `final` (Java 24) | API becomes an official component of Java SE; no separate preview flag needed |
+| `incubator` | Another experimental Java mechanism; **not** the status of Stream Gatherers in JDK 22/23 |
+| `deprecated` | API marked discouraged/recommended against; **not synonymous** with preview |
+| `LTS` | Support policy for a JDK release, **distinct** from an API's preview/final status |
 
-Đặc biệt, “Java 24 đã final Gatherers” **không có nghĩa** mọi thao tác Gatherer tùy chỉnh của ứng dụng đều tự động đúng, tối ưu hoặc an toàn khi song song. Đây là khẳng định về **trạng thái API trong nền tảng**, không phải kết quả kiểm thử mã nghiệp vụ.
+Specifically, "Java 24 finalized Gatherers" **does not mean** every custom Gatherer operation in an application is automatically correct, optimal, or parallel-safe. It is a statement about **the API's status in the platform**, not a test result for business code.
 
-### 2.1. Tại sao có hai vòng preview?
+### 2.1. Why Were There Two Preview Rounds?
 
-Java 22 đưa Stream Gatherers vào để người dùng thử cách định nghĩa thao tác trung gian có trạng thái. Java 23 giữ tính năng ở trạng thái preview lần hai để thu thập thêm phản hồi và tiếp tục hoàn thiện. Java 24 chuẩn hóa cơ chế này thành API chính thức.
+Java 22 introduced Stream Gatherers so users could test defining stateful intermediate operations. Java 23 kept the feature in a second preview to collect more feedback and refine it further. Java 24 standardized the mechanism into an official API.
 
-Ngay cả khi một ví dụ sử dụng các factory có cùng tên giữa Java 22 và Java 24, không nên suy rằng **mọi mã dùng triển khai custom Gatherer hoặc mọi file class preview cũ** có thể được tái sử dụng nguyên trạng mà không kiểm tra.
+Even when an example uses factories with identical names between Java 22 and Java 24, do not assume **all code using custom Gatherer implementations or old preview class files** can be reused as-is without verification.
 
-## 3. Lệnh biên dịch và chạy đúng theo từng phiên bản
+## 3. Correct Compile and Run Commands by Version
 
-Ta sử dụng một chương trình nhỏ tên `GathererVersionDemo.java`. Chương trình dùng `windowFixed(3)` để gom các số thành cửa sổ ba phần tử.
+We will use a small program named `GathererVersionDemo.java`. The program uses `windowFixed(3)` to group numbers into three-element windows.
 
 ```java
 import java.util.List;
@@ -85,153 +85,153 @@ public class GathererVersionDemo {
 }
 ```
 
-Ví dụ này dùng những tên API cơ bản đã có ở các vòng preview và trong JDK 24. Tuy nhiên, **phải biên dịch riêng với JDK của phiên bản đích** và áp dụng flags theo từng trường hợp.
+This example uses basic API names that existed across the preview rounds and in JDK 24. However, **it must be compiled separately with the target version's JDK** and the flags applied per case.
 
-### 3.1. Java 22 — Preview theo JEP 461
+### 3.1. Java 22 — Preview per JEP 461
 
-Dùng đúng `javac` và `java` của **JDK 22**:
+Use `javac` and `java` from **JDK 22**:
 
 ```bash
 javac --enable-preview --release 22 GathererVersionDemo.java
 java --enable-preview GathererVersionDemo
 ```
 
-Ở đây:
+Here:
 
-- `--release 22` chỉ định API và bytecode mục tiêu của Java 22.
-- `--enable-preview` cho phép sử dụng các preview feature thuộc **bản phát hành 22**.
-- Khi chạy, `java --enable-preview` phải được cung cấp cùng môi trường JDK 22 thích hợp.
+- `--release 22` specifies Java 22's target API and bytecode.
+- `--enable-preview` permits using preview features belonging to **release 22**.
+- At runtime, `java --enable-preview` must be supplied with the matching JDK 22 environment.
 
-Không thử thay `--release 22` bằng `--release 21` để “vẫn dùng API của Java 22 nhưng chạy trên Java 21”: Java 21 chưa có các API đó.
+Do not try replacing `--release 22` with `--release 21` to "still use Java 22 APIs while running on Java 21": Java 21 does not have those APIs.
 
-### 3.2. Java 23 — Second preview theo JEP 473
+### 3.2. Java 23 — Second Preview per JEP 473
 
-Dùng JDK 23:
+Use JDK 23:
 
 ```bash
 javac --enable-preview --release 23 GathererVersionDemo.java
 java --enable-preview GathererVersionDemo
 ```
 
-**Preview lần hai không tự bật.** Các lớp `Gatherer` và `Gatherers` trong JDK 23 vẫn được đánh dấu preview. Không được bỏ `--enable-preview` chỉ vì API đã trải qua một vòng xem xét.
+**Second preview is not enabled automatically.** The `Gatherer` and `Gatherers` classes in JDK 23 are still marked preview. Do not drop `--enable-preview` merely because the API has already undergone one review round.
 
-Khi nâng dự án từ Java 22 lên 23, hãy **biên dịch lại** bằng JDK 23 và kiểm tra tất cả cách dùng preview API, đặc biệt nếu dự án tự triển khai `Gatherer<T,A,R>`, `Integrator`, `combiner` hoặc `finisher`. Không dựa vào việc có tên API giống nhau để bảo đảm tương thích nhị phân.
+When upgrading a project from Java 22 to 23, **recompile** with JDK 23 and inspect all uses of preview APIs, especially if the project implements custom `Gatherer<T,A,R>`, `Integrator`, `combiner`, or `finisher`. Do not rely on identical API names to guarantee binary compatibility.
 
-### 3.3. Java 24 — API chính thức theo JEP 485
+### 3.3. Java 24 — Official API per JEP 485
 
-Dùng JDK 24:
+Use JDK 24:
 
 ```bash
 javac --release 24 GathererVersionDemo.java
 java GathererVersionDemo
 ```
 
-Hoặc, khi đã chắc chắn `javac` và `java` thuộc đúng JDK 24:
+Or, once certain that `javac` and `java` belong to JDK 24:
 
 ```bash
 javac GathererVersionDemo.java
 java GathererVersionDemo
 ```
 
-**Không cần** `--enable-preview` cho Stream Gatherers. Nếu thử biên dịch bằng JDK 21 hoặc cấu hình `--release 21` thì mã vẫn không tương thích, bởi `Gatherer` chưa có trong Java 21.
+**No** `--enable-preview` is needed for Stream Gatherers. Attempting to compile with JDK 21 or setting `--release 21` remains incompatible, because `Gatherer` does not exist in Java 21.
 
-### 3.4. Bảng lệnh đối chiếu
+### 3.4. Comparison Command Table
 
-| Môi trường | Lệnh `javac` | Lệnh `java` | Có dùng Gatherer chuẩn? |
+| Environment | `javac` Command | `java` Command | Uses Standard Gatherer? |
 | --- | --- | --- | --- |
-| JDK 21 | `javac --release 21 ...` | `java ...` | Không |
-| JDK 22 | `javac --enable-preview --release 22 ...` | `java --enable-preview ...` | Có, bản preview |
-| JDK 23 | `javac --enable-preview --release 23 ...` | `java --enable-preview ...` | Có, bản preview 2 |
-| JDK 24 | `javac --release 24 ...` | `java ...` | Có, bản chính thức |
+| JDK 21 | `javac --release 21 ...` | `java ...` | No |
+| JDK 22 | `javac --enable-preview --release 22 ...` | `java --enable-preview ...` | Yes, preview |
+| JDK 23 | `javac --enable-preview --release 23 ...` | `java --enable-preview ...` | Yes, preview 2 |
+| JDK 24 | `javac --release 24 ...` | `java ...` | Yes, official |
 
-Ba dấu chấm `...` trong bảng là tên tệp nguồn hoặc tên lớp cụ thể của ứng dụng, không phải tham số shell cần nhập nguyên văn.
+The ellipsis `...` in the table represents the application's specific source file or class name, not a literal shell argument.
 
-## 4. Vì sao `--enable-preview` không giải quyết mọi lỗi phiên bản?
+## 4. Why `--enable-preview` Does Not Solve Every Version Error
 
-`--enable-preview` chỉ bật **những preview feature được cung cấp trong JDK đang dùng**, không phải một công tắc tải thêm bất kỳ tính năng nào từ phiên bản Java tương lai.
+`--enable-preview` only enables **preview features provided by the JDK currently in use**; it is not a switch that downloads features from a future Java release.
 
-Các trường hợp cần phân biệt:
+Cases to distinguish:
 
-- **JDK 21 + `--enable-preview`:** vẫn không có `Gatherers` chuẩn. Java 21 không cung cấp JEP 461.
-- **JDK 22 + không bật preview:** sử dụng Gatherers sẽ bị compiler từ chối do API đang ở trạng thái preview.
-- **JDK 23 + `--release 22` và bật preview:** không phải cách dùng preview Java 22 trên compiler JDK 23. Preview được gắn với **bản phát hành hiện tại** của compiler.
-- **JDK 24 + `--release 21`:** không thể dùng `Stream.gather` của Java 24 để tạo artifact tuyên bố tương thích Java 21.
-- **JDK 24 + `--release 24`:** dùng API Gatherer chính thức mà không cần flag preview.
+- **JDK 21 + `--enable-preview`:** still no standard `Gatherers`. Java 21 does not ship JEP 461.
+- **JDK 22 + preview disabled:** using Gatherers is rejected by the compiler because the API is in preview status.
+- **JDK 23 + `--release 22` and preview enabled:** not a way to run Java 22 previews on JDK 23's compiler. Preview is tied to the compiler's **current release**.
+- **JDK 24 + `--release 21`:** cannot use Java 24's `Stream.gather` to produce an artifact claiming Java 21 compatibility.
+- **JDK 24 + `--release 24`:** uses the official Gatherer API with no preview flag required.
 
-### 4.1. Preview bytecode cần được xem là ràng buộc triển khai
+### 4.1. Preview Bytecode Must Be Treated as a Deployment Constraint
 
-Các phiên bản Java có cách đánh dấu và kiểm tra class file sử dụng preview feature. Khi nâng từ JDK preview cũ, **đừng chuyển thẳng các class file/build artifact cũ sang JDK mới rồi cho rằng chúng sẽ chạy**. Chiến lược an toàn là:
+Java versions mark and verify class files that use preview features. When upgrading from an older preview JDK, **do not move old class files/build artifacts directly to the new JDK expecting them to run**. The safe strategy is:
 
-1. Chọn JDK mục tiêu mới.
-2. Làm sạch output biên dịch cũ.
-3. Biên dịch lại toàn bộ phần mã dùng Gatherer dưới JDK đó.
-4. Chạy kiểm thử ngữ nghĩa, bao gồm trường hợp rỗng, dừng sớm và song song.
-5. Kiểm tra runtime thật của môi trường deploy.
+1. Choose the new target JDK.
+2. Clean old compilation outputs.
+3. Recompile all Gatherer-using code under that JDK.
+4. Run semantic tests, including empty, short-circuit, and parallel cases.
+5. Verify the actual runtime of the deployment environment.
 
-Các source file dùng preview API ở JDK 22/23 có thể cần điều chỉnh khi chuyển sang JDK 24, nhất là phần custom Gatherer; **không khẳng định tương thích nhị phân chỉ từ việc chương trình biên dịch được tại một mốc trước đó**.
+Source files using preview APIs on JDK 22/23 may need adjustments when moving to JDK 24, especially custom Gatherers; **do not assume binary compatibility merely because the program compiled at an earlier milestone**.
 
-### 4.2. JDK, Java runtime và `--release` không phải một thứ
+### 4.2. JDK, Java Runtime, and `--release` Are Not the Same Thing
 
-Chạy:
+Run:
 
 ```bash
 java -version
 javac -version
 ```
 
-để xác định hai chương trình có thuộc cùng phiên bản JDK mong muốn hay không. `--release` điều khiển mục tiêu biên dịch, nhưng **không cài đặt JDK/runtime trên máy chủ**.
+to verify whether both tools belong to the intended JDK version. `--release` controls the compilation target, yet **does not install a JDK/runtime on the server**.
 
-Một ứng dụng được biên dịch ra bytecode Java 24 cũng không chạy được trên runtime Java 17 hoặc 21 chỉ bằng cách điều chỉnh flags. Điều này độc lập với logic Gatherer.
+An application compiled to Java 24 bytecode also cannot run on a Java 17 or 21 runtime simply by tweaking flags. This holds independently of Gatherer logic.
 
-## 5. API chính thức từ Java 24 gồm những gì?
+## 5. What Does the Official Java 24 API Include?
 
-Ba điểm vào quan trọng nằm trong `java.base`, package `java.util.stream`:
+Three main entry points live in `java.base`, package `java.util.stream`:
 
-| Thành phần | Vai trò |
+| Component | Role |
 | --- | --- |
-| `Stream.gather(Gatherer)` | Áp dụng một thao tác trung gian Gatherer cho pipeline |
-| `Gatherer<T, A, R>` | Hợp đồng của một thao tác trung gian có thể có trạng thái, phát đầu ra và xử lý cuối nguồn |
-| `Gatherers` | Các Gatherer dựng sẵn cho cửa sổ, tổng tích lũy, fold và ánh xạ đồng thời |
+| `Stream.gather(Gatherer)` | Applies a Gatherer intermediate operation to a pipeline |
+| `Gatherer<T, A, R>` | Contract of an intermediate operation that can hold state, emit outputs, and handle end-of-stream |
+| `Gatherers` | Built-in Gatherers for windows, running scans, folds, and concurrent mapping |
 
-Các factory quan trọng của `Gatherers` trên Java 24:
+Key `Gatherers` factories in Java 24:
 
-| Factory | Kết quả | Bài toán |
+| Factory | Output | Problem |
 | --- | --- | --- |
-| `windowFixed(k)` | `Stream<List<T>>` gồm các lô không chồng lấn | Gom mỗi `k` phần tử, kể cả lô cuối ngắn |
-| `windowSliding(k)` | `Stream<List<T>>` gồm các cửa sổ trượt | Theo dõi `k` phần tử gần nhất |
-| `scan(initial, scanner)` | Phát **kết quả tích lũy sau từng phần tử** | Running total, prefix scan |
-| `fold(initial, folder)` | Phát **một kết quả** sau khi giảm toàn bộ nguồn | Gom về một giá trị với quy tắc có trạng thái/thứ tự |
-| `mapConcurrent(maxConcurrency, mapper)` | Ánh xạ với mức đồng thời giới hạn và giữ thứ tự kết quả | Các công việc có thể thực hiện song song bằng virtual threads |
+| `windowFixed(k)` | `Stream<List<T>>` of non-overlapping batches | Groups every `k` elements, including a shorter final batch |
+| `windowSliding(k)` | `Stream<List<T>>` of sliding windows | Tracks the most recent `k` elements |
+| `scan(initial, scanner)` | Emits **accumulated result after each element** | Running totals, prefix scans |
+| `fold(initial, folder)` | Emits **one result** after reducing the entire source | Reduces to a single value with stateful/ordered rules |
+| `mapConcurrent(maxConcurrency, mapper)` | Maps with bounded concurrency while preserving result order | Tasks executable concurrently using virtual threads |
 
-Java 24 có thêm các phương thức hỗ trợ định nghĩa Gatherer tùy chỉnh, như `Gatherer.of(...)`, `Gatherer.ofSequential(...)`, `Gatherer.Integrator`, `Gatherer.Downstream` và `Gatherer.andThen(...)`.
+Java 24 also provides methods supporting custom Gatherers, such as `Gatherer.of(...)`, `Gatherer.ofSequential(...)`, `Gatherer.Integrator`, `Gatherer.Downstream`, and `Gatherer.andThen(...)`.
 
-### 5.1. `Gatherer` không thay thế `Collector`
+### 5.1. `Gatherer` Does Not Replace `Collector`
 
-Ví dụ:
+Example:
 
 ```text
 Stream<Order>
    |
-   +-- filter(...)     : chọn phần tử
+   +-- filter(...)     : select elements
    |
-   +-- map(...)        : biến đổi từng phần tử
+   +-- map(...)        : transform each element
    |
-   +-- gather(...)     : thao tác TRUNG GIAN tùy chỉnh
-   |                     có thể nhận nhiều phần tử,
-   |                     duy trì trạng thái và phát nhiều kết quả
+   +-- gather(...)     : custom INTERMEDIATE operation
+   |                     may accept multiple elements,
+   |                     maintain state and emit multiple results
    |
-   +-- collect(...)    : TERMINAL operation tổng hợp kết quả cuối
+   +-- collect(...)    : TERMINAL operation aggregating final result
    v
 Report
 ```
 
-`Collector` (đã có từ Java 8) là cơ chế thu thập ở **cuối pipeline**. `Gatherer` (preview 22/23, chính thức 24) mở rộng danh mục **thao tác trung gian**. Một Gatherer có thể tạo ra `Stream<List<Order>>` trước khi một collector nhóm hoặc tổng hợp các chỉ số.
+`Collector` (available since Java 8) is the aggregation mechanism at the **end of a pipeline**. `Gatherer` (preview 22/23, final 24) expands the catalog of **intermediate operations**. A Gatherer can produce `Stream<List<Order>>` before a collector groups or aggregates metrics.
 
-Không nên thay `reduce` hoặc `collect` bằng custom Gatherer khi công cụ có sẵn đã diễn đạt trực tiếp kết quả và đơn giản hơn.
+Do not replace `reduce` or `collect` with a custom Gatherer when built-in tools express the result directly and more simply.
 
-## 6. Ví dụ Java 24 hoàn chỉnh: hai loại cửa sổ và tổng chạy
+## 6. Complete Java 24 Example: Two Window Types and Running Sum
 
-Chương trình sau biên dịch bằng **JDK 24** mà không bật preview:
+The following program compiles with **JDK 24** without enabling preview:
 
 ```java
 import java.util.List;
@@ -274,7 +274,7 @@ public class GatherersFinalDemo {
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
 fixed = [[10, 20, 30], [40, 50]]
@@ -283,28 +283,28 @@ running = [10, 30, 60, 100, 150]
 fold = ABC
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 24 GatherersFinalDemo.java
 java GatherersFinalDemo
 ```
 
-Ví dụ cho thấy:
+The example shows:
 
-- `windowFixed(3)` có lô cuối **ít hơn ba phần tử**.
-- `windowSliding(3)` tạo các cửa sổ chồng lấn theo encounter order.
-- `scan` phát giá trị tích lũy **sau mỗi phần tử**; nó không loại phần tử cũ khỏi tổng như cửa sổ trượt.
-- `fold` tạo một kết quả từ toàn bộ nguồn, khác với `scan` phát chuỗi kết quả trung gian.
-- Mỗi lời gọi `numbers.stream()` tạo một Stream mới vì một Stream đã đi qua terminal operation **không sử dụng lại được**.
+- `windowFixed(3)` produces a final batch with **fewer than three elements**.
+- `windowSliding(3)` produces overlapping windows in encounter order.
+- `scan` emits the accumulated value **after every element**; it does not drop old elements from the total like a sliding window.
+- `fold` produces a single result from the whole source, unlike `scan`, which emits a stream of intermediate results.
+- Each `numbers.stream()` call creates a new Stream because a Stream that has passed through a terminal operation **cannot be reused**.
 
-Các quy tắc dữ liệu và phiên bản JDK là hai chuyện riêng: khi chuyển từ preview sang final, vẫn phải kiểm thử giá trị đầu ra, xử lý nguồn rỗng và thứ tự.
+Data rules and JDK versions are separate concerns: when moving from preview to final, still test output values, empty-source handling, and ordering.
 
-## 7. Các trường hợp biên quan trọng của cửa sổ
+## 7. Important Edge Cases of Windows
 
-Đặc tả Java 24 có các quy tắc cụ thể cần đưa vào test. Với `k = 3`:
+The Java 24 specification defines concrete rules that must be covered in tests. For `k = 3`:
 
-| Dữ liệu đầu vào | `windowFixed(3)` | `windowSliding(3)` |
+| Input Data | `windowFixed(3)` | `windowSliding(3)` |
 | --- | --- | --- |
 | `[]` | `[]` | `[]` |
 | `[1]` | `[[1]]` | `[[1]]` |
@@ -313,16 +313,16 @@ Các quy tắc dữ liệu và phiên bản JDK là hai chuyện riêng: khi chu
 | `[1,2,3,4]` | `[[1,2,3],[4]]` | `[[1,2,3],[2,3,4]]` |
 | `[1,2,3,4,5]` | `[[1,2,3],[4,5]]` | `[[1,2,3],[2,3,4],[3,4,5]]` |
 
-Hai factory đều yêu cầu kích thước dương; truyền `k < 1` gây `IllegalArgumentException`.
+Both factories require a positive size; passing `k < 1` throws `IllegalArgumentException`.
 
-Trên nguồn có thứ tự:
+On an ordered source:
 
-- `windowFixed(k)` phát cửa sổ cuối ngắn nếu tổng số phần tử không chia hết cho `k`.
-- `windowSliding(k)` với `0 < N < k` phát **một** cửa sổ ngắn chứa toàn bộ nguồn.
-- Khi `N >= k`, `windowSliding(k)` phát `N-k+1` cửa sổ đầy đủ.
-- Mỗi danh sách cửa sổ của các factory chuẩn là **không thể sửa**, không nên gọi `add` hoặc `remove`.
+- `windowFixed(k)` emits a shorter final window if total elements are not divisible by `k`.
+- `windowSliding(k)` with `0 < N < k` emits **one** shorter window containing the entire source.
+- When `N >= k`, `windowSliding(k)` emits `N-k+1` full windows.
+- Each window list from standard factories is **unmodifiable**; do not call `add` or `remove`.
 
-Đây là ngữ nghĩa của API, không phải đặc điểm riêng của giai đoạn preview. Nếu ứng dụng yêu cầu chỉ xử lý các cửa sổ đủ kích thước, hãy bổ sung điều kiện nghiệp vụ:
+This is API semantics, not an artifact of the preview phase. If the application requires processing only full-size windows, add a business filter:
 
 ```java
 List<List<Integer>> fullWindows = Stream.of(1, 2)
@@ -333,26 +333,26 @@ List<List<Integer>> fullWindows = Stream.of(1, 2)
 System.out.println(fullWindows); // []
 ```
 
-## 8. Custom Gatherer trên Java 24: cách đọc hợp đồng
+## 8. Custom Gatherers on Java 24: Reading the Contract
 
-Một `Gatherer<T, A, R>` có ba kiểu:
+A `Gatherer<T, A, R>` has three type parameters:
 
-- **`T`**: kiểu phần tử đầu vào.
-- **`A`**: kiểu trạng thái tích lũy bên trong (*state*).
-- **`R`**: kiểu phần tử được phát ra downstream.
+- **`T`**: input element type.
+- **`A`**: internal accumulation state type (*state*).
+- **`R`**: type of elements emitted downstream.
 
-Các vai trò thường gặp:
+Common roles:
 
-| Thành phần | Mục đích |
+| Component | Purpose |
 | --- | --- |
-| `initializer` | Tạo trạng thái mới cho một lượt tích lũy |
-| `integrator` | Nhận phần tử, cập nhật trạng thái và có thể phát kết quả |
-| `combiner` | Ghép trạng thái các nhánh nếu Gatherer được thiết kế để parallelize |
-| `finisher` | Phát kết quả bổ sung ở cuối nguồn nếu cần |
+| `initializer` | Creates fresh state for a traversal pass |
+| `integrator` | Receives an element, updates state, and may emit results |
+| `combiner` | Merges branch states if the Gatherer is designed to parallelize |
+| `finisher` | Emits additional results at end-of-stream if needed |
 
-Trong các tình huống chỉ có một trạng thái **phụ thuộc thứ tự**, thường bắt đầu với `Gatherer.ofSequential(...)`. Nếu muốn Gatherer có thể phân chia song song, cần **một combiner hợp lệ**, không chỉ thêm `parallel()` bên ngoài.
+In cases with a single **order-dependent** state, usually start with `Gatherer.ofSequential(...)`. If you want the Gatherer to split in parallel, **a valid combiner** is required, not just adding `.parallel()` outside.
 
-### 8.1. Ví dụ custom Gatherer phát tổng sau từng phần tử
+### 8.1. Custom Gatherer Example Emitting Sum After Each Element
 
 ```java
 import java.util.List;
@@ -381,41 +381,41 @@ public class CustomGatherer24Demo {
 }
 ```
 
-Ví dụ có chủ đích dùng `int[]` làm trạng thái mutable nội bộ để thấy rõ vai trò của `initializer` và `integrator`. Trạng thái **không được lưu vào biến static dùng chung** giữa các lượt xử lý.
+This example deliberately uses `int[]` as internal mutable state to highlight the roles of `initializer` and `integrator`. State **must never be stored in a shared static variable** across runs.
 
-Trong nghiệp vụ chỉ cần tổng chạy thông thường, `Gatherers.scan(() -> 0, Integer::sum)` thường ngắn và dễ bảo trì hơn. Custom Gatherer có ích khi phép chuyển đổi hoặc quy tắc dừng/phát kết quả không được mô tả trực tiếp bởi factory sẵn có.
+In business code that only needs an ordinary running sum, `Gatherers.scan(() -> 0, Integer::sum)` is shorter and easier to maintain. Custom Gatherers help when the transformation or stop/emit rule cannot be expressed directly by built-in factories.
 
-### 8.2. Tại sao mã custom cần được kiểm tra lại khi nâng JDK?
+### 8.2. Why Must Custom Code Be Re-Checked When Upgrading JDKs?
 
-Bản preview cung cấp hợp đồng và công cụ để xây Gatherer, nhưng chi tiết API có thể được hoàn thiện qua các vòng preview. Vì thế khi chuyển lên Java 24 cần:
+Preview releases supplied the contract and tools for building Gatherers, yet API details could be refined across preview rounds. Thus when moving to Java 24:
 
-1. Đọc lại chữ ký trong Java 24 `Gatherer`/`Gatherer.Integrator`.
-2. Kiểm tra có dùng initializer/combiner/finisher theo hợp đồng mới hay không.
-3. Đảm bảo integrator tôn trọng tín hiệu `downstream.push(...)` trả về.
-4. So sánh kết quả tuần tự/song song và trường hợp short-circuit.
-5. Dùng `ofSequential` khi thao tác không có combiner đúng.
+1. Re-read signatures in Java 24 `Gatherer`/`Gatherer.Integrator`.
+2. Check whether initializer/combiner/finisher match the finalized contract.
+3. Ensure the integrator respects the boolean return signal from `downstream.push(...)`.
+4. Compare sequential vs. parallel results and short-circuiting cases.
+5. Use `ofSequential` when an operation lacks a valid combiner.
 
-Việc mã dùng `Gatherers.windowFixed(3)` vẫn gần như y hệt qua các bản JDK **không bảo đảm** tất cả custom Gatherer đã viết lúc preview đều có hành vi đúng mà không cần thử lại.
+The fact that `Gatherers.windowFixed(3)` looks nearly identical across JDKs **does not guarantee** every custom Gatherer written during preview behaves correctly without retesting.
 
-## 9. Có thể giữ Java 17/21 mà dùng Gatherer chính thức không?
+## 9. Can You Keep Java 17/21 and Use Official Gatherers?
 
-**Không thể gọi trực tiếp Stream Gatherers chuẩn trên Java 17/21.** Cả `java.util.stream.Gatherer`, `Gatherers` và `Stream.gather` đều không thuộc API của những bản phát hành đó. Bật `--enable-preview` không làm chúng xuất hiện.
+**You cannot directly call standard Stream Gatherers on Java 17/21.** Neither `java.util.stream.Gatherer`, `Gatherers`, nor `Stream.gather` belongs to the API of those releases. Enabling `--enable-preview` will not make them appear.
 
-Nếu hệ thống buộc phải hỗ trợ Java 17/21, có các hướng thiết kế:
+If a system must support Java 17/21, design options include:
 
-| Hướng | Ưu điểm | Đánh đổi |
+| Approach | Pros | Trade-off |
 | --- | --- | --- |
-| Tiếp tục dùng `filter/map/reduce/collect` | Tương thích JDK cũ, ít thay đổi | Một số biến đổi có trạng thái khó biểu diễn |
-| Dùng vòng lặp, `Iterator` hoặc `Spliterator` tự viết | Chủ động quản lý cửa sổ/trạng thái | Phải tự kiểm thử edge cases và tài nguyên |
-| Tách một mô-đun yêu cầu Java 24+ | Cho phép dùng Gatherer chính thức trong phần mới | Có yêu cầu triển khai/runtime riêng |
-| Nâng minimum supported JDK lên 24+ | Dùng API chính thức trực tiếp | Ảnh hưởng máy chủ, CI, thư viện và vận hành |
-| Sử dụng thư viện bên ngoài cung cấp cơ chế tương đương | Có thể giảm công viết tay | Không đồng nhất với `java.util.stream.Gatherer` chuẩn, phụ thuộc nhà cung cấp |
+| Continue using `filter/map/reduce/collect` | Compatible with older JDKs, minimal change | Some stateful transformations are awkward to express |
+| Use loops, custom `Iterator`, or custom `Spliterator` | Full control over windows/state | Must test edge cases and resources yourself |
+| Isolate a module requiring Java 24+ | Allows official Gatherers in newer component | Separate deployment/runtime requirements |
+| Upgrade minimum supported JDK to 24+ | Uses official API directly | Affects servers, CI, libraries, and operations |
+| Use an external library offering a similar mechanism | May reduce hand-written code | Not identical to standard `java.util.stream.Gatherer`; vendor dependency |
 
-Đừng gọi API của một thư viện hỗ trợ khác là “chính là Java 24 Gatherer” nếu hợp đồng của thư viện chỉ mô phỏng ý tưởng. Tên gần giống không tạo tương thích kiểu hoặc hành vi tự động.
+Do not call another library's helper API "the exact Java 24 Gatherer" if that library only mimics the concept. Similar names do not create automatic type or behavioral compatibility.
 
-### 9.1. Ví dụ thay `windowFixed` bằng vòng lặp trên Java 17
+### 9.1. Example Replacing `windowFixed` with a Loop on Java 17
 
-Với dữ liệu đã nằm trong `List`, có thể gom thành nhóm không chồng lấn bằng code tương thích Java 17:
+For data already in a `List`, non-overlapping batches can be built with Java 17-compatible code:
 
 ```java
 import java.util.ArrayList;
@@ -447,11 +447,11 @@ public class FixedWindows17 {
 }
 ```
 
-Đây là **giải pháp tương đương theo kết quả cho nguồn `List` hữu hạn**, không phải phiên bản `Gatherer` của Java 17. Cách làm vật hóa toàn bộ danh sách cửa sổ và không tự trở thành intermediate operation lazy.
+This is a **result-equivalent solution for a finite `List` source**, not a Java 17 version of `Gatherer`. It materializes the entire list of windows and does not become a lazy intermediate operation.
 
-**Lưu ý độ an toàn số học:** Ví dụ tính cận cuối bằng `start + Math.min(width, data.size() - start)` để tránh cộng một `width` quá lớn rồi tràn `int`; đồng thời dùng `start = end` để luôn tiến về phía trước. Với chương trình ứng dụng thực, cần kiểm tra kích thước đầu vào, kiểu dữ liệu và trường hợp chứa `null`; `List.copyOf` không chấp nhận phần tử `null`.
+**Arithmetic safety note:** the example computes the upper bound via `start + Math.min(width, data.size() - start)` to avoid overflowing `int` if `width` is huge; it also advances via `start = end`. In real applications, check input size, element types, and `null` handling; `List.copyOf` rejects `null` elements.
 
-### 9.2. Ví dụ thay `windowSliding` bằng vòng lặp trên Java 17
+### 9.2. Example Replacing `windowSliding` with a Loop on Java 17
 
 ```java
 import java.util.ArrayList;
@@ -490,55 +490,55 @@ public class SlidingWindows17 {
 }
 ```
 
-Bản thay thế này mô phỏng **ngữ nghĩa đầu ra** của `windowSliding` với nguồn hữu hạn, có thứ tự, không chứa `null`. Nó **không** mang tất cả bảo đảm về laziness, short-circuiting, xử lý song song hoặc loại danh sách triển khai của Gatherer chuẩn. Điều đó phải được ghi rõ trong tài liệu tương thích.
+This replacement mimics the **output semantics** of `windowSliding` for a finite, ordered, `null`-free source. It **does not** carry all guarantees of laziness, short-circuiting, parallelism, or concrete list behavior of the standard Gatherer. That must be documented clearly in compatibility notes.
 
-## 10. Chiến lược nâng cấp dự án từ preview sang Java 24
+## 10. Strategy for Upgrading a Project from Preview to Java 24
 
-Khi dự án đã thử Stream Gatherers ở Java 22 hoặc 23, không nên xem nâng cấp như việc “xóa một flag” đơn lẻ. Có ba lớp công việc:
+When a project already tried Stream Gatherers on Java 22 or 23, do not view upgrading as merely "removing one flag". There are three layers of work:
 
-### 10.1. Cập nhật toolchain và runtime
+### 10.1. Updating Toolchain and Runtime
 
-- Chọn JDK 24 hoặc bản JDK mới hơn có Gatherer chính thức và phù hợp chính sách hỗ trợ của dự án.
-- Kiểm tra phiên bản thực của `javac`, `java`, IDE và CI.
-- Cập nhật cấu hình `--release` hoặc Java toolchain theo phiên bản đích.
-- Bỏ flag `--enable-preview` **nếu không còn dùng tính năng preview khác**.
-- Đảm bảo server, container và image deploy chạy một runtime đáp ứng version target.
+- Choose JDK 24 or a newer JDK that includes official Gatherers and aligns with the project's support policy.
+- Verify the actual versions of `javac`, `java`, IDE, and CI.
+- Update `--release` or Java toolchain settings to match the target version.
+- Remove `--enable-preview` **if no other preview features remain in use**.
+- Ensure servers, containers, and deployment images run a runtime meeting the target version.
 
-Nếu môi trường CI vẫn dùng JDK 23 trong khi máy phát triển dùng JDK 24, việc mã chạy cục bộ không chứng minh bản build trên CI sẽ thành công.
+If CI still runs JDK 23 while developer machines run JDK 24, local execution does not prove CI builds will succeed.
 
-### 10.2. Biên dịch lại và xử lý API
+### 10.2. Recompiling and Handling APIs
 
-- Biên dịch sạch thay vì dùng class file hoặc JAR đã tạo bởi compiler preview cũ.
-- Kiểm tra import `java.util.stream.Gatherer` và `java.util.stream.Gatherers`.
-- Kiểm tra overload `Gatherer.of`/`ofSequential` và kiểu của các lambda.
-- Loại bỏ code workaround chỉ còn cần thiết cho preview nếu đã có API chính thức thay thế.
-- So sánh API mục tiêu với bản preview nếu ứng dụng tự cài đặt Gatherer nhiều trạng thái.
+- Clean-compile instead of reusing class files or JARs built by an older preview compiler.
+- Check imports of `java.util.stream.Gatherer` and `java.util.stream.Gatherers`.
+- Verify `Gatherer.of`/`ofSequential` overloads and lambda types.
+- Remove workarounds only needed during preview if official APIs now supersede them.
+- Compare target APIs against preview versions if the application implements stateful custom Gatherers.
 
-Không sửa mã chỉ để “đúng cú pháp” mà bỏ qua điều kiện phải giữ hành vi cũ cho nghiệp vụ.
+Do not change code merely to make syntax compile while ignoring business requirements to preserve prior behavior.
 
-### 10.3. Kiểm thử ngữ nghĩa và hiệu năng
+### 10.3. Semantic and Performance Testing
 
-Các test quan trọng:
+Key tests:
 
-1. Stream rỗng và nguồn chỉ có một phần tử.
-2. Kích thước nguồn nhỏ hơn, bằng, lớn hơn `windowSize`.
-3. `windowFixed` có lô cuối thiếu phần tử.
-4. `windowSliding` với cửa sổ chồng lấn và encounter order.
-5. Integrator có điều kiện dừng sớm, downstream ngừng nhận.
-6. Tác dụng phụ, trạng thái chia sẻ và hoạt động song song.
-7. Nguồn `Files.lines` hoặc cursor I/O có trách nhiệm đóng rõ ràng.
-8. Số học tràn và sai số dấu phẩy động.
-9. Chi phí cấp phát bộ nhớ cho cửa sổ lớn và throughput khi chạy thật.
+1. Empty streams and single-element sources.
+2. Source size less than, equal to, and greater than `windowSize`.
+3. `windowFixed` with an incomplete final batch.
+4. `windowSliding` with overlapping windows and encounter order.
+5. Integrators with early stopping when downstream stops accepting.
+6. Side effects, shared state, and parallel execution.
+7. `Files.lines` or I/O cursors with explicit closing responsibilities.
+8. Arithmetic overflow and floating-point rounding error.
+9. Memory allocation costs for large windows and throughput in real runs.
 
-**Tình trạng final của API không thay thế kiểm thử phần mềm.**
+**Final API status does not replace software testing.**
 
-## 11. Cấu hình Maven và Gradle: phải phản ánh đúng JDK đích
+## 11. Maven and Gradle Configuration: Must Reflect the Target JDK
 
-Không chạy build trong bước soạn bài này; các đoạn dưới đây chỉ minh họa cách cấu hình một dự án Java khi chuyển sang Gatherer chính thức.
+No builds were run while authoring this lesson; the snippets below merely illustrate how to configure a Java project when moving to official Gatherers.
 
-### 11.1. Maven — mục tiêu Java 24
+### 11.1. Maven — Java 24 Target
 
-Trong `pom.xml`:
+In `pom.xml`:
 
 ```xml
 <properties>
@@ -546,13 +546,13 @@ Trong `pom.xml`:
 </properties>
 ```
 
-Phải dùng một Maven runtime/compiler hoặc toolchain có **JDK hỗ trợ Java 24**. Thuộc tính `maven.compiler.release` không tự cài JDK 24. Các phiên bản plugin Maven Compiler và cấu hình toolchain cũng cần phù hợp môi trường.
+You must use a Maven runtime/compiler or toolchain with a **JDK supporting Java 24**. The `maven.compiler.release` property does not install JDK 24 automatically. Maven Compiler Plugin versions and toolchain settings must also suit the environment.
 
-Nếu trước đây sử dụng các flag preview cho JDK 23, hãy rà lại cấu hình cả **compiler, test runner, JVM của IDE và môi trường deploy**. Không giữ `--enable-preview` một cách máy móc nếu dự án đã chuyển hoàn toàn sang các API chính thức.
+If preview flags were previously configured for JDK 23, audit **compiler, test runner, IDE JVM, and deployment environment** settings alike. Do not leave `--enable-preview` enabled mechanically once the project has fully moved to official APIs.
 
-### 11.2. Gradle — Java toolchain 24
+### 11.2. Gradle — Java 24 Toolchain
 
-Ví dụ bằng Gradle Groovy DSL:
+Example using Gradle Groovy DSL:
 
 ```groovy
 plugins {
@@ -570,42 +570,42 @@ tasks.withType(JavaCompile).configureEach {
 }
 ```
 
-Phiên bản Gradle đang dùng phải hỗ trợ toolchain Java đã chọn. Cần bảo đảm JDK phù hợp có sẵn hoặc được cấu hình tải qua cơ chế toolchain.
+The Gradle version in use must support the chosen Java toolchain. Ensure an appropriate JDK is available locally or configured for download via the toolchain mechanism.
 
-**Lưu ý:** `toolchain` chọn trình biên dịch/runtime cho tác vụ build, còn `options.release` hạn chế API/bytecode mục tiêu. Thiết lập `release = 21` trên công cụ JDK 24 **không** cho phép tham chiếu các API Stream Gatherers của Java 24 trong đoạn mã được biên dịch với release 21.
+**Note:** `toolchain` selects the compiler/runtime for build tasks, whereas `options.release` restricts target APIs/bytecode. Setting `release = 21` on JDK 24 tooling **forbids** referencing Java 24 Stream Gatherers APIs in code compiled with release 21.
 
-### 11.3. Nếu vẫn phải xây cho Java 22/23 preview
+### 11.3. If You Still Must Build for Java 22/23 Preview
 
-Các hệ thống build tương ứng phải truyền đúng `--enable-preview` vào compiler **và** JVM thực thi bài test/ứng dụng trên chính phiên bản JDK preview đó. Không nên copy đoạn cấu hình preview từ Java 22 sang môi trường Java 24 mà không rà lại toàn bộ flags.
+The respective build systems must pass `--enable-preview` to both the compiler **and** the JVM running tests/applications on that exact preview JDK version. Do not copy preview configuration from Java 22 to a Java 24 environment without auditing all flags.
 
-## 12. Khi cần một mã nguồn hỗ trợ nhiều JDK
+## 12. When One Codebase Must Support Multiple JDKs
 
-Giả sử thư viện có khách hàng dùng Java 17 và khách hàng dùng Java 24. Có hai yêu cầu khác nhau:
+Suppose a library has customers on Java 17 and customers on Java 24. There are two different requirements:
 
-- **Khả năng chạy trên Java 17:** phần code được nạp ở runtime Java 17 không được yêu cầu API vắng mặt.
-- **Khả năng tận dụng Gatherer trên Java 24:** có thể cung cấp một implementation mới ở module/biến thể phù hợp.
+- **Ability to run on Java 17:** code loaded on a Java 17 runtime must not require absent APIs.
+- **Ability to leverage Gatherers on Java 24:** a newer implementation can be provided in an appropriate module/variant.
 
-Một kiến trúc tương đối rõ ràng:
+A relatively clear architecture:
 
 ```text
-API nghiệp vụ chung
+Common business API
       |
-      +-- Implementation Java 17
-      |      vòng lặp, Iterator hoặc Stream/Collector có sẵn
+      +-- Java 17 Implementation
+      |      loops, Iterator, or built-in Stream/Collector
       |
-      +-- Implementation Java 24+
-             Stream.gather / Gatherers chính thức
+      +-- Java 24+ Implementation
+             official Stream.gather / Gatherers
 ```
 
-Dùng test chung để so sánh kết quả hai implementation. Có thể đóng gói thành các artifact riêng và chọn dependency theo runtime hỗ trợ, hoặc cân nhắc cấu trúc phát hành nâng cao nếu đội ngũ thật sự có nhu cầu.
+Use shared tests to compare outputs of both implementations. You can package them into separate artifacts and select the dependency by supported runtime, or consider advanced packaging structures if the team truly needs them.
 
-**Đừng chỉ biên dịch JAR trên JDK 24 rồi tuyên bố “hỗ trợ Java 17”** nếu các class bắt buộc có liên kết tới `Stream.gather` hoặc `Gatherers`. Việc bytecode được target xuống phiên bản thấp nhưng sử dụng API mới cũng không được giải quyết bằng tùy chọn `--release`.
+**Do not simply compile a JAR on JDK 24 and claim "Java 17 support"** if required classes link to `Stream.gather` or `Gatherers`. Targeting bytecode down to an older version while using newer APIs is likewise not solved by `--release`.
 
-Nếu dùng reflection để dò API mới, cần thiết kế rất kỹ thời điểm liên kết/nạp class, kiểu dữ liệu ở public API và cách fallback; reflection không tự biến một chương trình yêu cầu Java 24 thành tương thích Java 17. Với dự án học tập hoặc ứng dụng thông thường, hai implementation rõ ràng thường dễ bảo trì hơn.
+If using reflection to probe for newer APIs, carefully design class loading/linking timing, public API types, and fallbacks; reflection does not magically make a Java 24-dependent program compatible with Java 17. For learning projects or typical applications, two explicit implementations are usually easier to maintain.
 
-## 13. `mapConcurrent` trong Gatherers khác với `parallelStream`
+## 13. `mapConcurrent` in Gatherers Differs from `parallelStream`
 
-`Gatherers.mapConcurrent(maxConcurrency, mapper)` là một Gatherer dựng sẵn sử dụng **virtual threads** để thực hiện mapper đồng thời tới giới hạn được chỉ định. Nó cố gắng bảo toàn **thứ tự kết quả** của Stream.
+`Gatherers.mapConcurrent(maxConcurrency, mapper)` is a built-in Gatherer using **virtual threads** to run the mapper concurrently up to a specified limit. It attempts to preserve **result ordering** of the Stream.
 
 ```java
 import java.util.List;
@@ -626,7 +626,7 @@ public class ConcurrentGatherer24Demo {
 }
 ```
 
-Điều này khác với:
+This differs from:
 
 ```java
 List<Integer> lengths = List.of("A", "Java", "Stream")
@@ -635,30 +635,30 @@ List<Integer> lengths = List.of("A", "Java", "Stream")
     .toList();
 ```
 
-Hai cách có thể cho **cùng kết quả** trong ví dụ, nhưng mô hình lập lịch, giới hạn đồng thời và tác động hiệu năng **không đồng nhất**.
+Both approaches may produce **the same result** in this example, yet their scheduling model, concurrency bounds, and performance impact are **not identical**.
 
-- `mapConcurrent` có tham số giới hạn `maxConcurrency` và sử dụng virtual threads theo hợp đồng API.
-- `parallelStream` sử dụng cơ chế thực thi song song của Stream, không có tham số `maxConcurrency` tương đương ngay trong `parallel()`.
-- Giữ thứ tự đầu ra **không có nghĩa** các tác vụ con thực thi theo thứ tự tuần tự.
-- Mỗi mapper vẫn phải có hợp đồng an toàn cho trạng thái, ngoại lệ, I/O và tài nguyên.
-- Không mặc định rằng tăng concurrency luôn nhanh, đặc biệt với tải CPU-bound hoặc khi hệ thống đích có giới hạn kết nối.
+- `mapConcurrent` takes a `maxConcurrency` bound and uses virtual threads per API contract.
+- `parallelStream` uses Stream's parallel execution mechanism, without an equivalent `maxConcurrency` parameter directly on `parallel()`.
+- Preserving output order **does not mean** subtasks execute sequentially.
+- Every mapper must still obey safety contracts for state, exceptions, I/O, and resources.
+- Do not assume higher concurrency is always faster, especially for CPU-bound workloads or when target systems have connection limits.
 
-Một chương trình chuyển từ preview sang Java 24 nên đo lại `mapConcurrent` trên tải đại diện, không chỉ nhìn kết quả của ví dụ nhỏ.
+A program migrating from preview to Java 24 should re-measure `mapConcurrent` on representative workloads rather than looking only at small example results.
 
-## 14. Gatherer, trạng thái và xử lý song song
+## 14. Gatherers, State, and Parallel Processing
 
-Bản final không loại bỏ các quy tắc nền tảng của Stream:
+Finalizing the API does not remove foundational Stream rules:
 
-- **Non-interference:** không sửa nguồn trong khi pipeline đang duyệt, trừ trường hợp nguồn hỗ trợ theo hợp đồng.
-- **Stateless behavior:** với `map`, `filter` và nhiều lambda xử lý phần tử, tránh phụ thuộc trạng thái mutable bên ngoài.
-- **Confinement:** trạng thái nội bộ của một Gatherer tuần tự không được biến thành biến global có nhiều pipeline cùng sửa.
-- **Combiner correctness:** nếu tự thiết kế Gatherer có thể song song, combiner phải hợp nhất trạng thái đúng theo thứ tự và ý nghĩa nghiệp vụ.
-- **Short-circuit:** một terminal operation như `findFirst` hoặc `limit` có thể không yêu cầu toàn bộ phần tử đầu vào.
+- **Non-interference:** do not mutate the source while the pipeline traverses it, unless the source supports it by contract.
+- **Stateless behavior:** for `map`, `filter`, and most element-processing lambdas, avoid depending on external mutable state.
+- **Confinement:** internal state of a sequential Gatherer must not become a global variable mutated by multiple pipelines simultaneously.
+- **Combiner correctness:** if designing a parallelizable Gatherer, the combiner must merge state accurately with respect to ordering and business semantics.
+- **Short-circuiting:** a terminal operation like `findFirst` or `limit` may not request all input elements.
 
-Ví dụ nên tránh:
+Example to avoid:
 
 ```java
-// Không nên làm: dùng List mutable bên ngoài để thu mọi kết quả.
+// Do not do this: using an external mutable List to collect all results.
 List<Integer> shared = new java.util.ArrayList<>();
 
 Stream.of(1, 2, 3, 4)
@@ -667,7 +667,7 @@ Stream.of(1, 2, 3, 4)
     .forEach(shared::add);
 ```
 
-`ArrayList` không an toàn cho nhiều luồng cùng ghi; thêm nữa, `forEach` trên Stream song song không bảo đảm encounter order của side effect. Cách phù hợp là:
+`ArrayList` is not safe for concurrent writes from multiple threads; moreover, `forEach` on a parallel Stream does not guarantee encounter order for side effects. The proper way is:
 
 ```java
 List<Integer> running = Stream.of(1, 2, 3, 4)
@@ -677,11 +677,11 @@ List<Integer> running = Stream.of(1, 2, 3, 4)
 System.out.println(running); // [1, 3, 6, 10]
 ```
 
-Một phần có thể được xử lý tuần tự do đặc tính của Gatherer. Điều đó **không nên được dùng** để biện hộ cho side effect vào trạng thái ngoài pipeline: khi thay đổi implementation hoặc loại Gatherer, lỗi có thể xuất hiện trở lại.
+Some parts may execute sequentially due to Gatherer characteristics. That **must not be used** as an excuse for side effects on state outside the pipeline: changing the implementation or Gatherer type can re-expose the bug.
 
-## 15. Tài nguyên I/O và tính lazy không thay đổi vì API đã final
+## 15. I/O Resources and Laziness Do Not Change Just Because the API Is Final
 
-`Stream.gather(...)` là intermediate operation. Nếu nguồn là `Files.lines(path)`, tài nguyên tệp vẫn phải được đóng ở đúng phạm vi sở hữu, kể cả khi chương trình chạy Java 24.
+`Stream.gather(...)` is an intermediate operation. If the source is `Files.lines(path)`, file resources must still be closed in the proper ownership scope, even when running on Java 24.
 
 ```java
 import java.io.IOException;
@@ -706,32 +706,32 @@ public class FileGatherer24Demo {
 }
 ```
 
-**Lưu ý:**
+**Notes:**
 
-- `try-with-resources` đóng `Files.lines` khi thoát khối, kể cả khi `map`/`filter`/terminal operation ném ngoại lệ.
-- `gather` và `toList()` không tự thay `close()` cho nguồn I/O.
-- `toList()` lưu toàn bộ cửa sổ kết quả, có thể gây tốn bộ nhớ nếu tệp rất lớn.
-- `filter` trước `gather` làm thay đổi cách các phần tử được phân chia cửa sổ. Nếu mục tiêu là nhóm **100 dòng gốc** thay vì 100 dòng không trống, phải đổi thứ tự thao tác.
+- `try-with-resources` closes `Files.lines` upon exiting the block, even if `map`/`filter`/terminal operations throw exceptions.
+- `gather` and `toList()` do not replace calling `close()` on I/O sources.
+- `toList()` stores all resulting windows in memory, which can cause high memory usage for huge files.
+- Placing `filter` before `gather` changes how elements are grouped into windows. If the goal is batching **100 raw lines** instead of 100 non-blank lines, change the order of operations.
 
-Trong ứng dụng vừa nâng từ preview, cần kiểm tra thêm các nguồn I/O tự viết, close handlers và behavior khi dừng sớm. Việc chuẩn hóa API không làm cho tài nguyên tự được giải phóng.
+In applications freshly upgraded from preview, also check custom I/O sources, close handlers, and early-termination behavior. Standardizing the API does not automatically free resources.
 
-## 16. Bộ kiểm tra tương thích tối thiểu trước khi phát hành
+## 16. Minimum Compatibility Verification Suite Before Release
 
-Một ma trận kiểm thử giúp tránh nhầm “compile được trên một máy” với “sản phẩm hỗ trợ đúng bản JDK”.
+A test matrix avoids confusing "compiles on one machine" with "product supports the target JDK properly".
 
-| Hạng mục | JDK 22 preview | JDK 23 preview | JDK 24 final |
+| Item | JDK 22 preview | JDK 23 preview | JDK 24 final |
 | --- | --- | --- | --- |
-| Dùng đúng JDK compiler | Kiểm tra | Kiểm tra | Kiểm tra |
-| Bật preview khi biên dịch | **Có** | **Có** | **Không** cho Gatherer |
-| Bật preview khi chạy | **Có** | **Có** | **Không** cho Gatherer |
-| Kiểm tra `windowFixed`/`windowSliding` | Có | Có | Có |
-| Kiểm tra custom `Gatherer` | Theo JDK 22 | Theo JDK 23 | Theo JDK 24 |
-| Kiểm tra input rỗng/thiếu mẫu | Có | Có | Có |
-| Kiểm tra thứ tự và parallel behavior | Có | Có | Có |
-| Kiểm tra cleanup nguồn I/O | Có | Có | Có |
-| Kiểm tra artifact build mới, không dùng class preview cũ | Có | Có | Có |
+| Correct compiler JDK | Verify | Verify | Verify |
+| Enable preview at compile time | **Yes** | **Yes** | **No** for Gatherer |
+| Enable preview at runtime | **Yes** | **Yes** | **No** for Gatherer |
+| Test `windowFixed`/`windowSliding` | Yes | Yes | Yes |
+| Test custom `Gatherer` | Per JDK 22 | Per JDK 23 | Per JDK 24 |
+| Test empty/short inputs | Yes | Yes | Yes |
+| Test ordering and parallel behavior | Yes | Yes | Yes |
+| Test I/O source cleanup | Yes | Yes | Yes |
+| Verify fresh build artifacts, no old preview classes | Yes | Yes | Yes |
 
-### 16.1. Bộ test minh họa trên JDK 24
+### 16.1. Illustrative Test Suite on JDK 24
 
 ```java
 import java.util.List;
@@ -782,44 +782,44 @@ public class GathererContractCheck24 {
 }
 ```
 
-Các assertion kiểm tra **ngữ nghĩa công khai** của các Gatherer dựng sẵn. Không kiểm tra tên lớp nội bộ hoặc số lần gọi integrator, vì việc triển khai có quyền tối ưu pipeline.
+Assertions verify **public semantics** of built-in Gatherers. Do not assert internal class names or how many times an integrator is invoked, since implementations are allowed to optimize the pipeline.
 
-### 16.2. Quy tắc đối chiếu kết quả giữa hai implementation
+### 16.2. Rules for Cross-Checking Results Between Two Implementations
 
-Nếu duy trì đồng thời fallback Java 17 và Gatherer Java 24:
+If maintaining both a Java 17 fallback and a Java 24 Gatherer:
 
-1. Kiểm tra cùng một bộ dữ liệu đầu vào có thứ tự.
-2. Kiểm tra cùng kích thước cửa sổ và cùng quy tắc với phần cuối ngắn.
-3. So sánh **danh sách kết quả**, không so sánh tên lớp Map/List cụ thể.
-4. Kiểm tra cả giá trị `null` hoặc trường hợp đầu vào không hợp lệ theo hợp đồng mỗi implementation.
-5. Kiểm tra việc tiêu thụ bộ nhớ và lượng dữ liệu được vật hóa.
-6. Chỉ kết luận tương đương nếu các điều kiện nghiệp vụ thật sự giống nhau.
+1. Test on the exact same ordered input dataset.
+2. Test with the same window size and the same trailing-short-batch rule.
+3. Compare **result lists**, not specific Map/List implementation class names.
+4. Test `null` values or invalid-input cases per each implementation's contract.
+5. Check memory consumption and how much data gets materialized.
+6. Only declare equivalence if business conditions genuinely match.
 
-Một fallback dùng vòng lặp trên `List` có thể cho kết quả giống Gatherer trên dữ liệu mẫu nhưng khác về tính lazy và xử lý nguồn vô hạn. **Tương đương kết quả trên tập hữu hạn không đồng nghĩa tương đương mọi đặc tính API.**
+A loop-based fallback over a `List` may yield identical results to a Gatherer on sample data while differing in laziness and handling of infinite sources. **Result equivalence on finite sets does not imply equivalence across all API properties.**
 
-## 17. Bảng lỗi thường gặp khi di chuyển giữa các JDK
+## 17. Common Error Table When Moving Across JDKs
 
-| Hiện tượng | Nguyên nhân có thể | Cách xử lý |
+| Symptom | Possible Cause | How to Fix |
 | --- | --- | --- |
-| `cannot find symbol: Gatherers` trên JDK 17/21 | API chưa tồn tại | Nâng JDK hoặc dùng giải pháp thay thế |
-| Compiler nói Gatherer là preview API | Dùng JDK 22/23 nhưng chưa bật preview | Bật `--enable-preview` và release đúng cùng JDK |
-| Chạy trên JDK 22/23 báo preview bị tắt | Runtime chưa bật preview hoặc build sai cấu hình | Chạy `java --enable-preview` trên đúng JDK |
-| Cố biên dịch preview 22 bằng JDK 23 với `--release 22` | Preview gắn với bản JDK hiện hành | Biên dịch bằng đúng JDK 22 hoặc nâng target lên 23 và kiểm thử |
-| Java 24 vẫn mang flag preview cũ khắp CI/test | Cấu hình chưa dọn sạch hoặc còn dùng preview khác | Rà từng tính năng và chỉ giữ flag khi thật sự cần |
-| Biên dịch `--release 21` mà dùng `Stream.gather` | API Java 24 không thuộc release 21 | Nâng target hoặc tách implementation |
-| Build chạy ở IDE nhưng CI thất bại | JDK/toolchain khác nhau | Khóa và kiểm tra toolchain ở mọi môi trường |
-| Artifact tạo bằng preview cũ gặp lỗi khi nâng runtime | Không bảo đảm tương thích artifact preview xuyên JDK | Clean build và biên dịch lại ở JDK đích |
-| `windowFixed(k)` còn cửa sổ ngắn cuối | Hợp đồng bình thường của API | Lọc cửa sổ đủ mẫu nếu bài toán yêu cầu |
-| `windowSliding(k)` trên nguồn ngắn vẫn phát một cửa sổ | Hợp đồng bình thường của API | Chọn chính sách warm-up/full-window |
-| Thử gọi `gather` trực tiếp trên `IntStream` | API `gather` ở `Stream<T>` đối tượng | Chuyển sang `boxed()` hoặc chọn thuật toán primitive phù hợp |
-| Custom Gatherer tự sửa biến global | State sharing không an toàn | Dùng initializer tạo trạng thái riêng |
-| Thêm `parallel()` rồi mặc định nhanh | Chi phí chia/gộp/trạng thái có thể lớn | Benchmark và kiểm tra thứ tự |
-| Bỏ `close()` của nguồn tệp sau `gather` | Rò rỉ tài nguyên | Đóng bằng `try-with-resources` |
-| Gọi API final và cho rằng nó tự “chuẩn hóa” dữ liệu | Nhầm ổn định API với tính đúng nghiệp vụ | Kiểm tra quy tắc lọc, trạng thái, kiểu số và kết quả |
+| `cannot find symbol: Gatherers` on JDK 17/21 | API does not exist yet | Upgrade JDK or use an alternative |
+| Compiler says Gatherer is a preview API | Using JDK 22/23 without preview enabled | Enable `--enable-preview` and release matching that JDK |
+| Running on JDK 22/23 reports preview disabled | Runtime lacks preview flag or misconfigured build | Run `java --enable-preview` on the matching JDK |
+| Trying to compile Java 22 preview with JDK 23 and `--release 22` | Preview is bound to the active JDK release | Compile with JDK 22 itself or raise target to 23 and test |
+| Java 24 still carries old preview flags across CI/tests | Uncleaned config or another preview feature in use | Audit each feature and keep flags only when genuinely needed |
+| Compiling `--release 21` while using `Stream.gather` | Java 24 API is not in release 21 | Raise target or separate implementations |
+| Build passes in IDE but fails in CI | Different JDKs/toolchains | Pin and verify toolchain across all environments |
+| Artifacts built under old preview fail after runtime upgrade | No cross-JDK preview artifact compatibility guarantee | Clean build and recompile on target JDK |
+| `windowFixed(k)` leaves a short trailing window | Normal API contract | Filter for full-size windows if required |
+| `windowSliding(k)` on short source still emits one window | Normal API contract | Choose warm-up vs. full-window policy |
+| Trying to call `gather` directly on `IntStream` | `gather` API is on object `Stream<T>` | Convert via `boxed()` or choose a suitable primitive algorithm |
+| Custom Gatherer mutates a global variable | Unsafe state sharing | Use initializer to create per-execution state |
+| Adding `parallel()` and assuming it is faster | Splitting/merging/state overhead can be large | Benchmark and verify ordering |
+| Skipping `close()` on file sources after `gather` | Resource leak | Close using `try-with-resources` |
+| Calling the final API and assuming it "validates" data | Confusing API stability with business correctness | Verify filtering rules, state, numeric types, and outputs |
 
-### 17.1. Trường hợp Primitive Stream
+### 17.1. Primitive Stream Case
 
-`Stream.gather` được khai báo trên `Stream<T>` (đối tượng). Nếu có một `IntStream`, có thể chuyển sang `Stream<Integer>` để dùng Gatherer:
+`Stream.gather` is declared on `Stream<T>` (object stream). Given an `IntStream`, you can convert to `Stream<Integer>` to use a Gatherer:
 
 ```java
 import java.util.List;
@@ -834,78 +834,78 @@ List<List<Integer>> windows = IntStream.rangeClosed(1, 5)
 System.out.println(windows); // [[1, 2], [3, 4], [5]]
 ```
 
-`boxed()` có thể tạo chi phí boxing; với khối lượng dữ liệu số rất lớn cần benchmark và cân nhắc giải pháp primitive tùy chỉnh nếu Gatherer thực sự là điểm nghẽn.
+`boxed()` can introduce boxing cost; for very large numeric volumes, benchmark and consider a custom primitive solution if Gatherers become a bottleneck.
 
-## 18. Bài tập thực hành
+## 18. Practice Exercises
 
-### Bài 1: Xác định trạng thái API
+### Exercise 1: Identifying API Status
 
-Hãy lập bảng cho Java 17, 21, 22, 23 và 24: có `Stream.gather` không, có cần bật preview không, nên dùng JEP nào làm tài liệu gốc? Giải thích vì sao Java 23 vẫn không được coi là bản final.
+Build a table for Java 17, 21, 22, 23, and 24: does `Stream.gather` exist, must preview be enabled, and which JEP serves as the primary specification? Explain why Java 23 is still not considered the final release.
 
-### Bài 2: Viết đúng lệnh CLI
+### Exercise 2: Writing Exact CLI Commands
 
-Với `GathererVersionDemo.java`, viết lệnh compile/run ở JDK 22, JDK 23 và JDK 24. Giải thích vai trò khác nhau của `--enable-preview` và `--release`.
+For `GathererVersionDemo.java`, write the compile/run commands on JDK 22, JDK 23, and JDK 24. Explain the different roles of `--enable-preview` and `--release`.
 
-### Bài 3: Phát hiện lỗi tương thích ngược
+### Exercise 3: Spotting Backward-Compatibility Bugs
 
-Một thư viện build với JDK 24 và gọi `Gatherers.windowFixed` nhưng vẫn tuyên bố hỗ trợ runtime Java 17. Phân tích điểm mâu thuẫn và đề xuất hai chiến lược khắc phục.
+A library builds with JDK 24 and calls `Gatherers.windowFixed` yet still claims Java 17 runtime support. Analyze the contradiction and propose two mitigation strategies.
 
-### Bài 4: So sánh fallback
+### Exercise 4: Comparing Fallbacks
 
-Viết vòng lặp Java 17 tạo cửa sổ cố định ba phần tử và so sánh đầu ra với `windowFixed(3)` trong Java 24. Thử `N=0`, `N=2`, `N=3`, `N=5`. Vì sao hai giải pháp vẫn có thể khác về laziness?
+Write a Java 17 loop producing three-element fixed windows and compare outputs with `windowFixed(3)` in Java 24. Test `N=0`, `N=2`, `N=3`, and `N=5`. Why can the two solutions still differ in laziness?
 
-### Bài 5: Chính sách cửa sổ trượt
+### Exercise 5: Sliding Window Policy
 
-Với dữ liệu `[10, 20]` và `k=3`, `windowSliding` phát gì? Viết pipeline chỉ phát cửa sổ đầy đủ. Giải thích khi nào cho phép một chỉ số “warm-up” và khi nào phải chờ đủ mẫu.
+For data `[10, 20]` and `k=3`, what does `windowSliding` emit? Write a pipeline emitting only full windows. Explain when a "warm-up" metric is acceptable vs. when full samples must be awaited.
 
-### Bài 6: `scan` và `fold`
+### Exercise 6: `scan` and `fold`
 
-Dùng `Gatherers.scan` tạo tổng chạy của `[2, 3, 5]`. Dùng `Gatherers.fold` tạo một tổng cuối. Phân biệt số phần tử đầu ra và thời điểm phát kết quả; kiểm tra cả Stream rỗng.
+Use `Gatherers.scan` to produce the running sum of `[2, 3, 5]`. Use `Gatherers.fold` to produce a single final sum. Distinguish output element counts and emission timing; test an empty Stream too.
 
-### Bài 7: Custom Gatherer và trạng thái
+### Exercise 7: Custom Gatherers and State
 
-Tạo `Gatherer.ofSequential` phát tổng sau mỗi phần tử. Vì sao trạng thái không được đặt trong một `int[]` static dùng chung? Khi nào cần một combiner để xử lý song song?
+Create a `Gatherer.ofSequential` emitting the sum after each element. Why must state not be placed in a shared static `int[]`? When is a combiner needed for parallel processing?
 
-### Bài 8: Cấu hình CI
+### Exercise 8: CI Configuration
 
-Giả sử máy dev dùng JDK 24, runner CI dùng JDK 23 và server dùng Java 21. Viết một kế hoạch nâng cấp có thứ tự: chọn target, điều chỉnh flags, nâng runtime, clean build và kiểm thử hồi quy.
+Suppose developer machines use JDK 24, CI runners use JDK 23, and servers run Java 21. Write an ordered upgrade plan: choosing target, adjusting flags, upgrading runtimes, clean builds, and regression testing.
 
-### Bài 9: `mapConcurrent` và thứ tự
+### Exercise 9: `mapConcurrent` and Ordering
 
-Trên Java 24, dùng `Gatherers.mapConcurrent` để ánh xạ danh sách chuỗi thành độ dài. So sánh kết quả với `parallelStream().map(...)`. Giải thích vì sao cùng kết quả không có nghĩa cùng mô hình concurrency hoặc cùng hiệu năng.
+On Java 24, use `Gatherers.mapConcurrent` to map a list of strings to lengths. Compare results with `parallelStream().map(...)`. Explain why identical outputs do not mean identical concurrency models or performance.
 
-### Bài 10: Bản phát hành chính thức có thay logic nghiệp vụ không?
+### Exercise 10: Does an Official Release Change Business Logic?
 
-Giả sử một custom Gatherer preview dùng để tạo alert từ cửa sổ nhiệt độ. Sau khi nâng JDK 24 và bỏ `--enable-preview`, những kiểm thử nào vẫn cần thực hiện? Nhấn mạnh ngưỡng cảnh báo, dữ liệu rỗng, cửa sổ ngắn, nguồn không có thứ tự và ngoại lệ I/O.
+Suppose a preview custom Gatherer generates alerts from temperature windows. After upgrading to JDK 24 and removing `--enable-preview`, which tests must still run? Emphasize alert thresholds, empty data, short windows, unordered sources, and I/O exceptions.
 
-## 19. Tự kiểm tra kiến thức
+## 19. Self-Check Questions
 
-- Gatherers ra mắt preview ở JDK nào và được chuẩn hóa ở JDK nào?
-- JEP 461, 473 và 485 tương ứng với ba giai đoạn gì?
-- Vì sao `--enable-preview` cần thiết trên JDK 22/23 nhưng không cần cho Gatherers trên JDK 24?
-- Vì sao bật preview ở JDK 21 không tạo ra `java.util.stream.Gatherers`?
-- `--release 21` có cho phép dùng API Java 24 khi compiler chạy trên JDK 24 không?
-- `Stream.gather` là intermediate hay terminal operation?
-- `Gatherers.windowFixed` và `windowSliding` có xử lý nguồn ngắn giống nhau không?
-- `Gatherers.scan` khác `Gatherers.fold` ở số lượng đầu ra như thế nào?
-- Khi nào nên ưu tiên `Gatherer.ofSequential` thay vì tự khai báo combiner?
-- Vì sao class file preview cũ cần được rebuild và kiểm thử lại khi nâng JDK?
-- Có nên dùng một `ArrayList` global để nhận kết quả của Gatherer trong parallel Stream không?
-- Vì sao `mapConcurrent` khác `parallelStream` dù cả hai có thể chạy nhiều tác vụ?
-- Nếu ứng dụng phải hỗ trợ Java 17, có những lựa chọn nào ngoài việc nâng toàn bộ hệ thống?
-- Tại sao API đã final không tự đảm bảo code chính xác, thread-safe hay hiệu năng cao?
+- In which JDK did Gatherers debut in preview, and in which JDK were they standardized?
+- Which three stages do JEP 461, 473, and 485 correspond to?
+- Why is `--enable-preview` required on JDK 22/23 but not needed for Gatherers on JDK 24?
+- Why does enabling preview on JDK 21 not create `java.util.stream.Gatherers`?
+- Does `--release 21` allow using Java 24 APIs when the compiler runs on JDK 24?
+- Is `Stream.gather` an intermediate or terminal operation?
+- Do `Gatherers.windowFixed` and `windowSliding` handle short sources the same way?
+- How does `Gatherers.scan` differ from `Gatherers.fold` in output count?
+- When should `Gatherer.ofSequential` be preferred over declaring a custom combiner?
+- Why must old preview class files be rebuilt and retested when upgrading JDKs?
+- Should a global `ArrayList` be used to collect Gatherer outputs in a parallel Stream?
+- Why does `mapConcurrent` differ from `parallelStream` even though both can run multiple tasks?
+- If an application must support Java 17, what options exist besides upgrading the whole system?
+- Why does a finalized API not automatically guarantee code correctness, thread safety, or high performance?
 
-## 20. Tài liệu tham khảo chính thức
+## 20. Official References
 
-1. [JEP 461 — Stream Gatherers (Preview)](https://openjdk.org/jeps/461): lần preview đầu tiên trong JDK 22.
-2. [JEP 473 — Stream Gatherers (Second Preview)](https://openjdk.org/jeps/473): lần preview thứ hai trong JDK 23.
-3. [JEP 485 — Stream Gatherers](https://openjdk.org/jeps/485): chuẩn hóa API trong JDK 24.
-4. [Oracle Java SE 22 — Gatherers API](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/util/stream/Gatherers.html): tài liệu đánh dấu preview và các factory trong JDK 22.
-5. [Oracle Java SE 23 — Gatherers API](https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/util/stream/Gatherers.html): tài liệu API vẫn được đánh dấu preview.
-6. [Oracle Java SE 24 — Gatherers API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherers.html): các factory chính thức.
-7. [Oracle Java SE 24 — Gatherer API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.html): hợp đồng initializer/integrator/combiner/finisher.
-8. [Oracle Java SE 24 — Stream Gatherers Guide](https://docs.oracle.com/en/java/javase/24/core/stream-gatherers.html): ví dụ và cách áp dụng Gatherer.
-9. [Oracle Java SE 22 — Preview Features](https://docs.oracle.com/en/java/javase/22/language/preview-language-and-vm-features.html): quy tắc bật preview ở compiler và runtime.
-10. [Oracle JDK 24 Release Notes](https://www.oracle.com/java/technologies/javase/24-relnote-issues.html): thông tin Stream Gatherers được đưa vào nhóm thư viện chuẩn.
+1. [JEP 461 — Stream Gatherers (Preview)](https://openjdk.org/jeps/461): first preview in JDK 22.
+2. [JEP 473 — Stream Gatherers (Second Preview)](https://openjdk.org/jeps/473): second preview in JDK 23.
+3. [JEP 485 — Stream Gatherers](https://openjdk.org/jeps/485): API standardization in JDK 24.
+4. [Oracle Java SE 22 — Gatherers API](https://docs.oracle.com/en/java/javase/22/docs/api/java.base/java/util/stream/Gatherers.html): Javadoc marked preview with factories in JDK 22.
+5. [Oracle Java SE 23 — Gatherers API](https://docs.oracle.com/en/java/javase/23/docs/api/java.base/java/util/stream/Gatherers.html): API documentation still marked preview.
+6. [Oracle Java SE 24 — Gatherers API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherers.html): official factories.
+7. [Oracle Java SE 24 — Gatherer API](https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/util/stream/Gatherer.html): initializer/integrator/combiner/finisher contract.
+8. [Oracle Java SE 24 — Stream Gatherers Guide](https://docs.oracle.com/en/java/javase/24/core/stream-gatherers.html): examples and applying Gatherers.
+9. [Oracle Java SE 22 — Preview Features](https://docs.oracle.com/en/java/javase/22/language/preview-language-and-vm-features.html): rules for enabling preview in compiler and runtime.
+10. [Oracle JDK 24 Release Notes](https://www.oracle.com/java/technologies/javase/24-relnote-issues.html): details on Stream Gatherers entering the standard library.
 
-**Ghi nhớ:** **Java 22 = preview (JEP 461), Java 23 = second preview (JEP 473), Java 24 = API chính thức (JEP 485).** Trên Java 22/23 phải bật preview khi biên dịch và chạy đúng JDK; trên Java 24 không cần flag này chỉ để dùng Gatherers. **API đã chính thức không có nghĩa mã chạy được trên JDK cũ, không loại bỏ trách nhiệm quản lý trạng thái/tài nguyên và không thay thế kiểm thử.** Khi nâng phiên bản, hãy chọn một toolchain nhất quán, clean build, xác minh runtime đích và kiểm tra đầy đủ ngữ nghĩa pipeline.
+**Key takeaway:** **Java 22 = preview (JEP 461), Java 23 = second preview (JEP 473), Java 24 = official API (JEP 485).** On Java 22/23, enable preview at compile time and run on the matching JDK; on Java 24, this flag is not required just to use Gatherers. **An official API does not mean code runs on older JDKs, does not remove state/resource management duties, and does not replace testing.** When upgrading versions, choose a consistent toolchain, clean build, verify the target runtime, and thoroughly test pipeline semantics.

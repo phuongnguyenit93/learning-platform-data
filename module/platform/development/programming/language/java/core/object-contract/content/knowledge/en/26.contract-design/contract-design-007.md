@@ -1,79 +1,79 @@
-# Rà soát mã được IDE sinh thay vì coi là tự động đúng
+# Reviewing IDE-Generated Code Instead of Assuming It Is Automatically Correct
 
-**Bối cảnh:** Java Core → Object Contract → Thiết kế hợp đồng.
+**Context:** Java Core → Object Contract → Contract Design.
 
-Các IDE như IntelliJ IDEA, Eclipse và NetBeans có chức năng sinh `equals()`, `hashCode()`, `toString()`, constructor và getter/setter từ danh sách trường. Mã được sinh có thể hợp lệ về **cú pháp** nhưng chưa chắc đúng về **hợp đồng nghiệp vụ**, **tính ổn định** hay **an toàn khi sử dụng**. IDE biết tên và kiểu trường; nó không thể tự suy ra trường nào xác định giá trị, danh tính, trạng thái thay đổi được hoặc dữ liệu bí mật.
+IDEs such as IntelliJ IDEA, Eclipse, and NetBeans can generate `equals()`, `hashCode()`, `toString()`, constructors, and getters/setters from a list of fields. Generated code can be **syntactically** valid without necessarily being right for the **business contract**, **stability**, or **safety in use**. An IDE knows field names and types; it cannot infer which fields define values, identity, mutable state, or secret data.
 
-Mục tiêu của bài: biết cách đọc và kiểm tra từng quyết định trong mã sinh tự động, phát hiện trường hợp có thể làm hỏng `HashSet` / `HashMap`, gây mất tính đối xứng của `equals`, rò rỉ dữ liệu qua `toString` hoặc thay đổi hợp đồng khi class phát triển.
+Goal of this article: know how to read and verify every decision in auto-generated code, detect cases that could break `HashSet` / `HashMap`, violate `equals` symmetry, leak data via `toString`, or alter contracts as a class evolves.
 
-## 1. Trước khi bấm Generate: phải định nghĩa hợp đồng
+## 1. Before Clicking Generate: Define the Contract
 
-Hãy trả lời ba câu hỏi độc lập trước khi yêu cầu IDE sinh mã:
+Answer three independent questions before asking the IDE to generate code:
 
-1. **Hai instance được coi là bằng nhau khi nào?** Ví dụ `Money(10, "USD")` và một instance khác cùng số tiền, tiền tệ có thể là cùng *giá trị*; hai đơn hàng có cùng tổng tiền vẫn có thể là *hai thực thể* khác nhau.
-2. **Những dữ liệu nào được tham gia so sánh?** Trường `id`, `currency`, `amount`, `version`, `lastUpdated`, cache, mật khẩu hoặc trạng thái giao diện đóng vai trò rất khác nhau. Không có quy tắc “chọn tất cả trường” áp dụng cho mọi class.
-3. **Giá trị được dùng làm khóa có ổn định hay không?** Nếu các trường tham gia `equals/hashCode` thay đổi sau khi thêm đối tượng vào collection dựa trên hash, thao tác tìm hoặc xóa có thể không còn thành công.
+1. **When are two instances considered equal?** For example, `Money(10, "USD")` and another instance with the same amount and currency can be the same *value*; two orders with the same total amount can still be *two different entities*.
+2. **Which data participates in comparison?** Fields such as `id`, `currency`, `amount`, `version`, `lastUpdated`, caches, passwords, or UI state play very different roles. No rule like "select all fields" applies to every class.
+3. **Is the value used as a key stable?** If fields participating in `equals/hashCode` change after adding an object to a hash-based collection, lookup or removal operations may no longer succeed.
 
-Một lựa chọn mô hình hợp lý phải được mô tả bằng câu văn dễ kiểm chứng, ví dụ: “Hai `CustomerKey` bằng nhau nếu cùng mã quốc gia, mã khách hàng và tập quyền theo thứ tự đã quy định; token xác thực không xác định khóa”. Sau đó mới sinh mã và so từng điều kiện với câu này.
+A sound model choice should be expressible as a testable sentence, for example: "Two `CustomerKey` instances are equal if they have the same country code, customer code, and permission set in the specified order; the auth token does not define the key." Only then generate code and verify each condition against that sentence.
 
-**Phân biệt value object và entity:** value object thường có `equals` theo các thành phần giá trị đã chọn. Entity thường có danh tính miền nghiệp vụ; nếu ID do cơ sở dữ liệu cấp sau khi lưu, việc đưa thẳng ID có thể thay đổi vào `hashCode` cần được thiết kế đặc biệt. IDE không biết vòng đời entity, proxy ORM hoặc yêu cầu ổn định khóa.
+**Distinguishing value objects and entities:** value objects typically define `equals` over chosen value components. Entities typically have a business domain identity; if the ID is assigned by the database after saving, putting an ID that can change directly into `hashCode` requires dedicated design. The IDE knows nothing about entity lifecycles, ORM proxies, or key stability requirements.
 
-## 2. Bốn mối liên hệ cần luôn giữ đúng
+## 2. Four Relationships That Must Always Hold True
 
-### Hợp đồng `equals(Object)`
+### The `equals(Object)` Contract
 
-Đối với các đối tượng không `null`, theo đặc tả Java, quan hệ bằng nhau phải:
+For non-`null` objects, per the Java specification, the equality relation must be:
 
-- **Phản xạ:** `x.equals(x)` là `true`.
-- **Đối xứng:** `x.equals(y)` và `y.equals(x)` có cùng kết quả.
-- **Bắc cầu:** nếu `x.equals(y)` và `y.equals(z)` đều `true` thì `x.equals(z)` phải `true`.
-- **Nhất quán:** khi những dữ liệu liên quan không đổi, gọi lặp phải cho cùng kết quả.
-- **Không bằng `null`:** `x.equals(null)` là `false`.
+- **Reflexive:** `x.equals(x)` is `true`.
+- **Symmetric:** `x.equals(y)` and `y.equals(x)` return the same result.
+- **Transitive:** if `x.equals(y)` and `y.equals(z)` are both `true`, then `x.equals(z)` must be `true`.
+- **Consistent:** when relevant data does not change, repeated calls must yield the same result.
+- **Not equal to `null`:** `x.equals(null)` is `false`.
 
-Câu lệnh do IDE thường sinh:
+The statement commonly generated by IDEs:
 
 ```java
 if (this == obj) return true;
 ```
 
-là **tối ưu hợp lệ**: cùng một đối tượng đương nhiên bằng chính nó. Nhưng nếu phần còn lại chỉ dùng `==` để so sánh các trường kiểu `String` hoặc object, đó thường là lỗi so sánh theo danh tính tham chiếu thay vì giá trị.
+is a **valid optimization**: the same object naturally equals itself. However, if the rest of the method uses `==` to compare `String` or object fields, that is usually a bug comparing by reference identity instead of value.
 
-### Hợp đồng `hashCode()`
+### The `hashCode()` Contract
 
-Nếu `a.equals(b)` là `true`, **bắt buộc** `a.hashCode() == b.hashCode()`. Chiều ngược lại **không bắt buộc**; va chạm hash là điều bình thường. Nếu override `equals` theo giá trị, gần như luôn phải override `hashCode` tương ứng.
+If `a.equals(b)` is `true`, **`a.hashCode() == b.hashCode()` is mandatory**. The converse is **not required**; hash collisions are normal. If you override `equals` by value, you almost always need to override `hashCode` to match.
 
-Các trường đưa vào hash phải khớp quan hệ bằng nhau: nếu hai instance bằng nhau khi bỏ qua `description`, thì `hashCode` cũng không được thay đổi theo `description`. Nếu `equals` coi `BigDecimal("1.0")` và `BigDecimal("1.00")` bằng nhau về số học nhưng hash vẫn gọi `BigDecimal.hashCode()` gốc, sẽ vi phạm hợp đồng vì `BigDecimal.equals` phân biệt scale.
+Fields included in the hash must match the equality relation: if two instances are equal while ignoring `description`, then `hashCode` must not vary with `description` either. If `equals` treats `BigDecimal("1.0")` and `BigDecimal("1.00")` as numerically equal yet hash still calls the raw `BigDecimal.hashCode()`, it violates the contract because `BigDecimal.equals` distinguishes scale.
 
-### Hợp đồng `toString()`
+### The `toString()` Contract
 
-`toString` chủ yếu phục vụ quan sát và chẩn đoán. Không nên tự động đưa tất cả trường vào chuỗi log: password, token, khóa bí mật, thông tin riêng tư, object graph có vòng tham chiếu và quan hệ ORM tải lười đều cần xét riêng. Không nên viết logic nghiệp vụ dựa vào định dạng `toString` vì đó không phải serialization ổn định.
+`toString` is primarily for observation and diagnostics. Do not automatically put every field into log strings: passwords, tokens, secret keys, private data, object graphs with circular references, and lazy-loaded ORM relationships all need separate consideration. Do not write business logic that depends on `toString` formatting, as it is not a stable serialization format.
 
-### Sự ổn định khi làm khóa
+### Stability as a Key
 
-Các class `HashMap` và `HashSet` dùng `hashCode` để chọn vùng tìm kiếm rồi dùng `equals` để xác định phần tử/khóa. Một object có thể hợp đồng `equals/hashCode` hợp lệ tại mỗi thời điểm nhưng **không thích hợp làm khóa** nếu trường tham gia hash bị sửa sau khi chèn.
+`HashMap` and `HashSet` use `hashCode` to pick a bucket and then `equals` to identify the element/key. An object can have a valid `equals/hashCode` contract at each point in time yet still be **unsuitable as a key** if a field participating in hashing is mutated after insertion.
 
-## 3. Bảng rà soát mã IDE tạo
+## 3. Checklist Table for Reviewing IDE-Generated Code
 
-| Câu hỏi khi review | Dấu hiệu cần chú ý | Cách xử lý |
+| Review Question | Warning Sign | How to Handle |
 | --- | --- | --- |
-| Những trường nào quyết định bằng nhau? | IDE tích chọn tất cả, gồm timestamp, cache, token hoặc trạng thái tạm | Viết trước định nghĩa bằng nhau; chỉ dùng những trường thuộc hợp đồng |
-| So sánh reference hay value? | `==` ở trường `String` / object | Dùng `Objects.equals` hoặc `equals` theo miền; `==` phù hợp với primitive và enum |
-| Có override cả hai phương thức không? | Chỉ có `equals` hoặc hash dùng bộ trường khác | Đối chiếu `equals/hashCode` cùng một lần review |
-| Có trường mutable không? | `List`, array hoặc setter sửa khóa sau khi đưa vào `HashMap` | Dùng dữ liệu khóa ổn định; sao chép phòng vệ mutable input/output |
-| Array được so sánh thế nào? | `Objects.equals(a, b)` hoặc `Objects.hash(array)` | `Arrays.equals/hashCode` với mảng 1 chiều, `Arrays.deepEquals/deepHashCode` khi cần so nested arrays |
-| `BigDecimal` có cùng tiêu chí ở equals/hash? | So số bằng `compareTo`, hash lại theo scale gốc | Xác định liệu scale có thuộc giá trị; chuẩn hóa cả equals và hash nếu không |
-| Kế thừa có ảnh hưởng không? | `getClass()`, `instanceof` và `super.equals()` được chọn máy móc | Xét đối xứng/bắc cầu, phân cấp class và hợp đồng của superclass |
-| Null và kiểu trường đặc biệt? | Gọi `field.equals(...)` khi `field` nullable; float/double so không chủ đích | Dùng so sánh null-safe; xác định quy tắc cho NaN, +0.0/-0.0 và precision |
-| `toString` có an toàn không? | In secret, toàn bộ graph hoặc dữ liệu tải lười | Chỉ in trường phục vụ chẩn đoán và được phép hiển thị |
-| Có thay đổi contract khi sửa class? | Bổ sung trường rồi bấm “Regenerate all” | Review diff, kiểm tra hành vi collections và compatibility trước khi chấp nhận |
+| Which fields determine equality? | IDE selects everything, including timestamps, caches, tokens, or transient state | Write the equality definition first; use only fields in the contract |
+| Comparing reference or value? | `==` on `String` / object fields | Use `Objects.equals` or domain `equals`; `==` fits primitives and enums |
+| Are both methods overridden? | Only `equals` exists, or hash uses a different field set | Cross-check `equals/hashCode` together in one review pass |
+| Are there mutable fields? | `List`, arrays, or setters mutating a key after adding to `HashMap` | Use stable key data; defensively copy mutable input/output |
+| How are arrays compared? | `Objects.equals(a, b)` or `Objects.hash(array)` | `Arrays.equals/hashCode` for 1D arrays, `Arrays.deepEquals/deepHashCode` when comparing nested arrays |
+| Does `BigDecimal` use the same criteria in equals/hash? | Comparing numerically with `compareTo`, yet hashing by raw scale | Decide whether scale belongs to the value; normalize both equals and hash if not |
+| Does inheritance interfere? | `getClass()`, `instanceof`, and `super.equals()` picked mechanically | Evaluate symmetry/transitivity, class hierarchy, and superclass contract |
+| Nulls and special field types? | Calling `field.equals(...)` when `field` is nullable; unguarded float/double comparisons | Use null-safe comparison; define rules for NaN, +0.0/-0.0, and precision |
+| Is `toString` safe? | Prints secrets, whole graphs, or lazy-loaded data | Print only diagnostic fields permitted for display |
+| Did modifying the class change the contract? | Adding a field then clicking "Regenerate all" | Review diff, check collection behavior and compatibility before accepting |
 
-Bảng là bộ câu hỏi review, không phải checklist buộc mọi class phải override cả ba phương thức: class dùng danh tính mặc định của `Object` có thể chủ ý giữ mặc định.
+This table is a set of review questions, not a checklist forcing every class to override all three methods: a class using `Object`'s default identity may intentionally keep the default.
 
-## 4. Ví dụ Java 17: bản hợp đồng có chủ đích
+## 4. Java 17 Example: An Intentional Contract
 
-Giả sử `CustomerKey` dùng mã quốc gia, mã khách và mảng cấp quyền để xác định một **khóa logic**. Trường `token` là dữ liệu nhạy cảm, không góp phần vào quan hệ bằng nhau và không được lộ qua `toString`. Mảng đầu vào có thể bị bên gọi sửa; constructor phải tự sao chép.
+Suppose `CustomerKey` uses country code, customer code, and a permission array to identify a **logical key**. The `token` field is sensitive data, does not contribute to equality, and must not be exposed via `toString`. The input array can be mutated by the caller; the constructor must copy it.
 
-Lưu **toàn bộ** ví dụ sau thành `ContractReviewDemo.java`:
+Save **the entire** following example as `ContractReviewDemo.java`:
 
 ```java
 import java.util.Arrays;
@@ -126,7 +126,7 @@ public class ContractReviewDemo {
         System.out.println("Equal value: " + a.equals(b));
         System.out.println("Equal hashes: " + (a.hashCode() == b.hashCode()));
 
-        input[0] = 99; // Chỉ sửa mảng của bên gọi.
+        input[0] = 99; // Only modifies the caller's array.
         System.out.println("Stable after input change: " + a.equals(b));
 
         Set<CustomerKey> keys = new HashSet<>();
@@ -140,14 +140,14 @@ public class ContractReviewDemo {
 }
 ```
 
-Biên dịch và chạy với **JDK 17+**:
+Compile and run with **JDK 17+**:
 
 ```bash
 javac ContractReviewDemo.java
 java ContractReviewDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 Equal value: true
@@ -159,39 +159,39 @@ Token hidden: true
 Not equal to null: true
 ```
 
-Các quyết định cần review trong mã:
+Decisions to review in the code:
 
-- `CustomerKey` là `final`, nên phép kiểm `instanceof CustomerKey other` không phải xử lý chuyện subclass bổ sung trạng thái bằng nhau.
-- `country`, `customerId` và nội dung `scopes` là toàn bộ quan hệ bằng nhau; `token` cố ý không tham gia. Nếu nghiệp vụ thực tế đòi hỏi token phân biệt khóa, phải sửa định nghĩa hợp đồng trước.
-- `Arrays.equals(scopes, other.scopes)` so các phần tử của mảng `int[]`; `Objects.equals(scopes, other.scopes)` sẽ dựa vào `equals` của chính đối tượng mảng, tức kiểm tra cùng mảng.
-- `hashCode` dùng cùng bộ trường với `equals`, trong đó mảng được băm theo nội dung bằng `Arrays.hashCode`.
-- `scopes.clone()` ngăn bên gọi sửa trạng thái nội bộ sau khi tạo khóa. Vì ví dụ không cung cấp getter xuất mảng nên không có đường sửa ngược; nếu bổ sung getter thì cũng phải trả về bản sao.
-- `toString` in dữ liệu có ích nhưng không in token. Trong hệ thống thật, ngay cả `customerId` hoặc scopes cũng có thể cần ẩn/bỏ bớt tùy phân loại dữ liệu.
+- `CustomerKey` is `final`, so the `instanceof CustomerKey other` check does not have to deal with subclasses adding equality state.
+- `country`, `customerId`, and the contents of `scopes` form the entire equality relation; `token` is intentionally excluded. If the real business logic requires tokens to distinguish keys, update the contract definition first.
+- `Arrays.equals(scopes, other.scopes)` compares elements of the `int[]` array; `Objects.equals(scopes, other.scopes)` would rely on the array object's own `equals`, which checks for the same array instance.
+- `hashCode` uses the same field set as `equals`, hashing the array by content via `Arrays.hashCode`.
+- `scopes.clone()` prevents callers from mutating internal state after creating the key. Since the example provides no getter exposing the array, there is no reverse mutation path; if you add a getter, it must also return a copy.
+- `toString` prints useful diagnostic data without printing the token. In real systems, even `customerId` or scopes might need masking/omission depending on data classification.
 
-**Không nên máy móc áp dụng mẫu này cho entity ORM:** logic này phù hợp với kiểu khóa giá trị bất biến do ví dụ xác định. Với entity có vòng đời riêng, lazy field, proxy hay ID được cấp muộn, cần thiết kế một hợp đồng khác.
+**Do not mechanically apply this pattern to ORM entities:** this logic suits immutable value-key types as defined in the example. For entities with their own lifecycle, lazy fields, proxies, or late-assigned IDs, design a different contract.
 
-## 5. Phản ví dụ: ba lỗi dễ xuất hiện trong kết quả Generate
+## 5. Counterexamples: Three Bugs That Easily Appear in Generated Output
 
-### 5.1. Mảng tưởng là đã so theo nội dung
+### 5.1. Arrays Thought to Be Compared by Content
 
-IDE có thể sinh phiên bản không như bạn mong muốn, tùy cách chọn mẫu và tùy phiên bản:
+An IDE may generate a version different from what you intended, depending on template choices and IDE version:
 
 ```java
-// Ví dụ không đúng nếu yêu cầu mảng được so theo PHẦN TỬ.
+// Incorrect example if arrays are required to be compared ELEMENT-WISE.
 return Objects.equals(this.scopes, other.scopes);
 
-// Và cách băm tương ứng theo danh tính mảng, không theo nội dung.
+// And the corresponding hash is by array identity, not by content.
 return Objects.hash((Object) scopes);
 ```
 
-Hai mảng `new int[] {1, 2}` khác tham chiếu dù có cùng phần tử. Thay bằng `Arrays.equals(scopes, other.scopes)` và `Arrays.hashCode(scopes)`. Với mảng nhiều chiều, xác định xem cần so từng mảng con theo nội dung hay nhận diện từng tham chiếu; nếu cần nội dung lồng nhau, cân nhắc `Arrays.deepEquals` và `Arrays.deepHashCode`.
+Two `new int[] {1, 2}` arrays have different references even when they hold identical elements. Replace with `Arrays.equals(scopes, other.scopes)` and `Arrays.hashCode(scopes)`. For multidimensional arrays, decide whether each sub-array should be compared by content or reference identity; if nested content is needed, consider `Arrays.deepEquals` and `Arrays.deepHashCode`.
 
-Đừng sửa mỗi `equals` mà quên `hashCode`. Một cặp phương thức có thể tạo mã băm nhất quán theo **danh tính mảng**, nhưng vẫn không đạt hợp đồng nghiệp vụ **giá trị mảng**.
+Do not fix only `equals` and forget `hashCode`. A pair of methods might produce consistent hashes by **array identity**, yet still fail the **array value** business contract.
 
-### 5.2. Trường mutable phá khả năng tìm khóa
+### 5.2. Mutable Fields Breaking Key Lookup
 
 ```java
-// Minh họa rủi ro, không phải mẫu khóa nên sử dụng.
+// Risk illustration, not a key pattern to use.
 class MutableKey {
     String code;
     MutableKey(String code) { this.code = code; }
@@ -205,13 +205,13 @@ class MutableKey {
 }
 ```
 
-Nếu thêm `MutableKey("A")` vào `HashSet` rồi gán `key.code = "B"`, hash của khóa thay đổi trong khi vị trí lưu ở bảng băm không được tổ chức lại. Sau đó, `contains(key)` hoặc `remove(key)` **có thể** không tìm được khóa. Không khẳng định lỗi xảy ra trong mọi kích thước bảng và mọi tổ hợp hash; điều phải bảo đảm là **không thay đổi các trường dùng cho hash khi object đang làm khóa**.
+If you insert `MutableKey("A")` into a `HashSet` and then assign `key.code = "B"`, the key's hash changes while its storage slot in the hash table is not reorganized. Afterward, `contains(key)` or `remove(key)` **may** fail to find the key. Do not claim the bug happens for every table size and every hash combination; what must be guaranteed is **never mutating fields used for hashing while the object is acting as a key**.
 
-Các cách xử lý: dùng khóa bất biến; dùng ID ổn định; hoặc xóa khỏi collection trước khi thay đổi rồi thêm lại theo quy trình được kiểm soát (nếu thiết kế collection cho phép). Việc trường được khai báo `final` chưa đủ nếu nó tham chiếu đến `List` hay mảng có thể bị sửa.
+Ways to handle this: use immutable keys; use a stable ID; or remove from the collection before mutating and re-insert under a controlled workflow (if the collection design permits). Declaring a field `final` is not enough if it references a mutable `List` or array.
 
-### 5.3. Thêm mọi trường vào `toString`
+### 5.3. Adding Every Field to `toString`
 
-Một kết quả kiểu:
+Output like:
 
 ```java
 return "Account{email='" + email
@@ -219,36 +219,36 @@ return "Account{email='" + email
         + "', accessToken='" + accessToken + "'}";
 ```
 
-có thể làm lộ thông tin qua log ứng dụng, exception message và công cụ quan sát. Review các trường nhạy cảm, mảng byte chứa khóa, quan hệ vòng và các collection lớn trước khi merge. Dùng danh sách trường cho phép in; đừng trông chờ người gọi luôn tránh log `toString()`.
+can leak sensitive information through application logs, exception messages, and observability tools. Review sensitive fields, byte arrays containing keys, circular relationships, and large collections before merging. Use an allowlist of printable fields; do not expect callers to always avoid logging `toString()`.
 
-## 6. Kế thừa, superclass và chiến lược so sánh kiểu
+## 6. Inheritance, Superclasses, and Type-Comparison Strategies
 
-IDE thường hỏi: dùng `getClass()` hay `instanceof`? Gọi `super.equals()` không? Không có một lựa chọn đúng cho mọi mô hình.
+IDEs often ask: use `getClass()` or `instanceof`? Call `super.equals()`? There is no single right choice for every model.
 
-- `getClass() == obj.getClass()` yêu cầu **đúng cùng runtime class**. Điều này thường hợp lý nếu equality chỉ định nghĩa trong một lớp cụ thể, nhưng có thể xung đột với proxy do framework tạo hoặc yêu cầu so sánh đa hình.
-- `obj instanceof Base` chấp nhận subclass. Nếu subclass thêm trường vào `equals`, dễ có `base.equals(sub) == true` nhưng `sub.equals(base) == false`. Một cách “sửa nhanh” có thể làm hỏng tính bắc cầu.
-- `super.equals(obj)` chỉ đúng nếu superclass đã có hợp đồng bằng nhau tương thích; nếu superclass chỉ dùng `Object.equals`, gọi nó có thể khiến mọi instance khác tham chiếu đều không bằng nhau, dù trường của subclass trùng nhau.
-- Class value object không cần kế thừa thường nên được thiết kế `final` để giới hạn rủi ro equality theo phân cấp. Nếu cần kế thừa thực sự, quyết định cách biểu diễn equality ngay trong mô hình loại, đồng thời viết kiểm thử đối xứng/bắc cầu giữa cả các kiểu.
+- `getClass() == obj.getClass()` requires **the exact same runtime class**. This is often reasonable when equality is defined within one concrete class, yet can conflict with framework-generated proxies or polymorphic comparison requirements.
+- `obj instanceof Base` accepts subclasses. If a subclass adds a field to `equals`, it is easy to get `base.equals(sub) == true` while `sub.equals(base) == false`. A "quick fix" can break transitivity.
+- `super.equals(obj)` is only right if the superclass already has a compatible equality contract; if the superclass only uses `Object.equals`, calling it can make every distinct instance unequal even when subclass fields match.
+- Value object classes that do not need inheritance should usually be designed as `final` to limit hierarchy-related equality risks. If genuine inheritance is needed, decide how equality is expressed directly in the type model, and write symmetry/transitivity tests across all types.
 
-Một số IDE hoặc thư viện còn cho tùy chọn “include superclass fields”, “call super”, “use getters”. Getter bị override, có side effect hoặc lazy-loading có thể khiến `equals/hashCode/toString` gọi hành vi ngoài dự tính. Cần hiểu lựa chọn được tick làm thay đổi điều gì.
+Some IDEs or libraries also offer options like "include superclass fields", "call super", or "use getters". Overridden getters, side effects, or lazy loading can cause `equals/hashCode/toString` to trigger unintended behavior. Understand what each checked option changes.
 
-## 7. Lưu ý với record, Lombok và `BigDecimal`
+## 7. Notes on `record`, Lombok, and `BigDecimal`
 
-### Record vẫn cần review hợp đồng
+### Records Still Need Contract Review
 
-Với Java 17, `record` tự sinh constructor chuẩn, accessor, `equals`, `hashCode` và `toString` từ các component. Điều này giảm mã lặp, nhưng **không tự giải quyết các quyết định nghiệp vụ**:
+With Java 17, `record` auto-generates the canonical constructor, accessors, `equals`, `hashCode`, and `toString` from components. This reduces boilerplate, yet **does not resolve business decisions on its own**:
 
 ```java
 record ImageKey(byte[] digest) { }
 ```
 
-Hai mảng `byte[]` có cùng bytes nhưng là hai đối tượng khác nhau không được record mặc định so bằng nhau theo nội dung mảng. Record cũng không tự sao chép `digest` hoặc ngăn sửa qua accessor. Nếu component là token/mật khẩu, `toString` tự sinh có thể đưa giá trị nhạy cảm vào chuỗi. Cân nhắc mô hình component bất biến thích hợp hoặc override có chủ đích, giữ ba hợp đồng nhất quán.
+Two `byte[]` arrays with the same bytes that are two distinct objects are not compared equal by array content by a default record. Nor does a record automatically copy `digest` or prevent mutation via the accessor. If a component is a token/password, the auto-generated `toString` can expose sensitive values in strings. Consider an appropriate immutable component model or intentional overrides, keeping all three contracts consistent.
 
-### Lombok sinh mã ở lúc biên dịch
+### Lombok Generates Code at Compile Time
 
-Các annotation như `@EqualsAndHashCode` và `@ToString` (Lombok) cũng cần review tương đương mã IDE tạo. Kiểm tra `onlyExplicitlyIncluded` / `@Include` / `@Exclude`, `callSuper`, getter vs field, và dữ liệu mật. Tự động sinh mã không khiến quyết định chọn trường trở nên đúng; phải kiểm thử hành vi thực tế sau biên dịch.
+Annotations such as `@EqualsAndHashCode` and `@ToString` (Lombok) also require review equivalent to IDE-generated code. Check `onlyExplicitlyIncluded` / `@Include` / `@Exclude`, `callSuper`, getters vs. fields, and sensitive data. Automatic code generation does not make field-selection decisions right; test the actual post-compilation behavior.
 
-### `BigDecimal`: giá trị số hay giá trị cả scale?
+### `BigDecimal`: Numeric Value or Value Including Scale?
 
 ```java
 import java.math.BigDecimal;
@@ -260,45 +260,45 @@ System.out.println(a.equals(b));       // false
 System.out.println(a.compareTo(b) == 0); // true
 ```
 
-Nếu domain coi **scale** là một phần của giá trị, dùng nhất quán `BigDecimal.equals/hashCode` có thể là đúng. Nếu domain chỉ quan tâm độ lớn số học, bạn phải định nghĩa biểu diễn chuẩn trước khi so và băm, rồi áp dụng nhất quán cho cả hai; `stripTrailingZeros()` là một công cụ có thể dùng với hiểu biết đầy đủ về hành vi trả về của nó. Không sửa riêng so sánh `equals` sang `compareTo == 0` khi `hashCode` vẫn do IDE sinh theo raw `BigDecimal`.
+If the domain treats **scale** as part of the value, consistently using `BigDecimal.equals/hashCode` may be correct. If the domain only cares about numeric magnitude, you must define a canonical representation before comparing and hashing, and apply it consistently to both; `stripTrailingZeros()` is a tool you can use with a full understanding of what it returns. Do not change `equals` alone to `compareTo == 0` while `hashCode` remains IDE-generated over the raw `BigDecimal`.
 
-### Floating point và collection
+### Floating Point and Collections
 
-Với `double`/`float`, `==`, `Double.compare` và `Double.equals` khác nhau ở một số ca như NaN và signed zero. Nếu IDE sinh so sánh `Double.compare(...) == 0`, cần xác định điều đó có đúng với miền nghiệp vụ không. Với giá trị đo có sai số, biểu thức “bằng nhau nếu |a-b| < epsilon” thường **không bắc cầu**, nên không thể tùy tiện dùng làm `equals` và khóa hash. Cân nhắc lượng tử hóa/chuẩn hóa từ trước hoặc một phép so gần đúng riêng không phải `equals`.
+For `double`/`float`, `==`, `Double.compare`, and `Double.equals` differ in certain cases such as NaN and signed zero. If an IDE generates `Double.compare(...) == 0`, determine whether that matches the business domain. For measured values with error margins, an expression like "equal if |a-b| < epsilon" is generally **not transitive**, so it cannot be arbitrarily used for `equals` and hash keys. Consider pre-quantization/normalization or a separate approximate comparison method instead of `equals`.
 
-## 8. Quy trình review sau khi Generate
+## 8. Post-Generate Review Process
 
-1. **Viết một câu định nghĩa equality.** Chỉ rõ lớp này so theo giá trị, ID thực thể hay danh tính tham chiếu; xác định quy tắc về `null` và kiểu runtime.
-2. **Đọc từng nhánh của `equals`.** Kiểm tra lớp đối tượng, superclass, danh sách trường, array, cách so object, thứ tự/ý nghĩa collection, chuẩn hóa và quy tắc số đặc biệt.
-3. **So lại `hashCode` ngay bên cạnh.** Tất cả quyết định làm hai object “bằng nhau” phải cho cùng hash; xem trường mutable và cách xử lý array, `BigDecimal`, nested data.
-4. **Kiểm tra `toString`.** Bỏ hoặc ẩn thông tin nhạy cảm; tránh đi qua object graph sâu, collection rất lớn, lazy property hoặc phép tính có side effect.
-5. **Xem constructor/getter/setter được sinh.** Chỉ `final` cho tham chiếu chưa đủ: cần copy phòng vệ nếu giữ dữ liệu mutable. Setter làm đổi khóa có thể phá cách dùng trong collection.
-6. **Chạy các kiểm thử hợp đồng và tình huống thực tế.** Dùng hai instance độc lập nhưng có cùng giá trị, đối tượng khác giá trị, `null`, subclass nếu có, collection `HashSet/HashMap`, tình huống thay đổi dữ liệu, log có bí mật.
-7. **Review diff khi sinh lại.** Sau khi thêm/đổi tên trường, IDE có thể đưa trường mới vào so sánh hoặc log. Đó là thay đổi hành vi có thể ảnh hưởng serialization, cache, collection và các caller khác.
+1. **Write a one-sentence equality definition.** Specify whether this class compares by value, entity ID, or reference identity; define rules for `null` and runtime types.
+2. **Read every branch of `equals`.** Check class checks, superclass, field list, arrays, object comparisons, collection order/meaning, normalization, and special numeric rules.
+3. **Check `hashCode` right alongside it.** Every decision making two objects "equal" must yield the same hash; check mutable fields and handling of arrays, `BigDecimal`, and nested data.
+4. **Inspect `toString`.** Remove or mask sensitive information; avoid traversing deep object graphs, huge collections, lazy properties, or computations with side effects.
+5. **Inspect generated constructors/getters/setters.** Making a reference `final` is not enough: defensive copying is needed if holding mutable data. Setters that alter a key can break collection usage.
+6. **Run contract and real-world scenario tests.** Use two independently created instances with equal values, unequal objects, `null`, subclasses if any, `HashSet/HashMap` collections, data mutation cases, and logs containing secrets.
+7. **Review the diff when regenerating.** After adding/renaming a field, the IDE may pull the new field into comparisons or logs. That is a behavior change that can affect serialization, caches, collections, and other callers.
 
-**Kiểm thử tối thiểu nên có** (viết theo từng class, không chỉ copy nguyên xi):
+**Minimum tests to include** (tailored to each class, not merely copy-pasted):
 
-- `x.equals(x)`; `!x.equals(null)`; hai thể hiện cùng giá trị được tạo độc lập; hai giá trị khác nhau.
-- `x.equals(y) == y.equals(x)`, kiểm tra bộ ba `x, y, z` khi có logic phức tạp hoặc kế thừa.
-- Nếu `x.equals(y)` thì `x.hashCode() == y.hashCode()`.
-- Thêm `x` vào `HashSet`; tìm bằng `y` cùng giá trị. Nếu dùng `HashMap`, truy vấn bằng khóa tương đương.
-- Thử sửa input, collection hoặc mảng được truyền vào/nhận từ getter để chắc giá trị khóa không bị thay đổi ngoài ý muốn.
-- `toString()` không chứa bí mật và không kích hoạt hành vi ngoài dự định.
+- `x.equals(x)`; `!x.equals(null)`; two independently created instances with the same value; two distinct values.
+- `x.equals(y) == y.equals(x)`, plus triples `x, y, z` when there is complex logic or inheritance.
+- If `x.equals(y)` then `x.hashCode() == y.hashCode()`.
+- Add `x` to a `HashSet`; look up with `y` having the same value. If used in a `HashMap`, query using an equivalent key.
+- Try mutating inputs, collections, or arrays passed in or retrieved from getters to confirm the key's value cannot be altered unintentionally.
+- `toString()` contains no secrets and triggers no unintended behavior.
 
-**Không kiểm thử bằng cách đòi hash khác nhau đối với hai giá trị khác nhau:** va chạm hash hợp lệ. Cũng không so với một giá trị hash cố định do một lần IDE sinh ra nếu không có cam kết thuật toán hash là một phần của API.
+**Do not write tests asserting that two unequal values must have different hashes:** hash collisions are valid. Nor should you assert against a hardcoded hash number produced by one IDE run unless a specific hash algorithm is promised as part of the API.
 
-## 9. Hai câu hỏi review để chặn lỗi phổ biến
+## 9. Two Review Questions to Catch Common Bugs
 
-**Tình huống A:** Sau khi thêm trường `updatedAt`, IDE gợi ý sinh lại `equals/hashCode` và tự chọn cả trường mới. Chỉ chấp nhận nếu thời điểm cập nhật thật sự là một phần định nghĩa bằng nhau. Nếu đó là metadata thay đổi thường xuyên, đưa vào equality có thể khiến object cùng thực thể bị xem là khác, hoặc làm mất khả năng tìm trong `HashMap`.
+**Scenario A:** After adding an `updatedAt` field, the IDE offers to regenerate `equals/hashCode` and auto-selects the new field. Accept this only if the update timestamp is genuinely part of the equality definition. If it is frequently changing metadata, putting it into equality can cause objects of the same entity to be treated as different, or break `HashMap` lookup.
 
-**Tình huống B:** IDE sinh `toString` có `orders` và `customer` trong một quan hệ hai chiều. Việc in log có thể duyệt vòng tham chiếu, phát sinh nhiều truy vấn lazy-loading hoặc lộ dữ liệu lớn. Hãy giới hạn `toString` vào vài trường chẩn đoán an toàn (ví dụ một ID đã được phép log), không in toàn bộ đồ thị.
+**Scenario B:** The IDE generates a `toString` containing `orders` and `customer` in a bidirectional relationship. Logging it can traverse a reference cycle, trigger numerous lazy-loading queries, or dump massive data. Restrict `toString` to a few safe diagnostic fields (such as a log-safe ID), rather than printing the entire graph.
 
-**Quy tắc quyết định:** Sinh mã giúp tiết kiệm thao tác gõ. Người review phải kiểm chứng rằng phép bằng nhau mô tả đúng miền nghiệp vụ, hash luôn tương thích, trạng thái của khóa không thay đổi ngoài ý muốn và chuỗi debug an toàn. Code “Generate…” là điểm bắt đầu để kiểm tra, không phải bằng chứng rằng hợp đồng đã đúng.
+**Decision rule:** Code generation saves typing. Reviewers must verify that equality accurately expresses the business domain, hashing is always compatible, key state cannot change unintentionally, and debug strings are safe. "Generate..." code is the starting point for inspection, not proof that the contract is correct.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 — Object.equals](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#equals(java.lang.Object)): năm tính chất của quan hệ bằng nhau.
-- [Java SE 17 — Object.hashCode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#hashCode()): quan hệ bắt buộc giữa `equals` và hash.
-- [Java SE 17 — Arrays](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Arrays.html): `equals`, `hashCode` và các biến thể deep.
-- [Java SE 17 — BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): phân biệt `equals` với `compareTo`.
-- [Java SE 17 — Record](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Record.html): hợp đồng phương thức mặc định cho record.
+- [Java SE 17 — Object.equals](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#equals(java.lang.Object)): the five properties of the equality relation.
+- [Java SE 17 — Object.hashCode](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#hashCode()): the mandatory relationship between `equals` and hashing.
+- [Java SE 17 — Arrays](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Arrays.html): `equals`, `hashCode`, and deep variants.
+- [Java SE 17 — BigDecimal](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigDecimal.html): distinguishing `equals` from `compareTo`.
+- [Java SE 17 — Record](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Record.html): default method contracts for records.

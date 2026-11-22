@@ -1,8 +1,8 @@
-# Lấy đối tượng `Class` bằng class literal trong Java
+# Getting a `Class` Object Using a Class Literal in Java
 
-## 1. Class literal là gì?
+## 1. What is a class literal?
 
-Trong Java, **class literal** là biểu thức `TênKiểu.class`, dùng để lấy đối tượng `java.lang.Class` đại diện cho **một kiểu đã biết ngay trong mã nguồn**. Nó mô tả một lớp, interface, enum, annotation, kiểu nguyên thủy hoặc kiểu mảng. Toán tử `.class` không tạo instance của lớp.
+In Java, a **class literal** is an expression of the form `TypeName.class`, used to obtain the `java.lang.Class` object representing **a type already known in the source code**. It describes a class, interface, enum, annotation, primitive type, or array type. The `.class` operator does not create an instance of the class.
 
 ```java
 Class<String> stringClass = String.class;
@@ -11,45 +11,45 @@ Class<?> primitiveClass = int.class;
 Class<?> arrayClass = String[].class;
 ```
 
-Với cùng một kiểu do cùng class loader định nghĩa, JVM sử dụng cùng một đối tượng `Class`. Class literal hữu ích khi cần truyền một kiểu đã biết cho API, thay vì tìm lớp từ chuỗi ký tự tại runtime.
+For the same type defined by the same class loader, the JVM uses the same `Class` object. Class literals are useful when you need to pass a known type to an API instead of looking up the class from a character string at runtime.
 
-- `new String("Java")` tạo **đối tượng dữ liệu** thuộc lớp `String`.
-- `String.class` lấy **đối tượng mô tả kiểu** `String`; không tạo `String` mới.
-- `text.getClass()` lấy **kiểu runtime của instance `text`**; cần `text` không phải `null`.
+- `new String("Java")` creates a **data object** of class `String`.
+- `String.class` obtains the **object describing the `String` type**; it does not create a new `String`.
+- `text.getClass()` obtains the **runtime type of the `text` instance**; `text` must not be `null`.
 
-## 2. Cú pháp và loại kiểu có thể dùng
+## 2. Syntax and supported types
 
-| Biểu thức | Kiểu được mô tả | Lưu ý |
+| Expression | Described type | Notes |
 | --- | --- | --- |
-| `String.class` | Lớp `java.lang.String` | Gán cho `Class<String>`. |
-| `Runnable.class` | Interface `Runnable` | Interface cũng có đối tượng `Class`. |
-| `Override.class` | Annotation `Override` | Annotation là kiểu interface đặc biệt. |
-| `Thread.State.class` | Enum `Thread.State` | Áp dụng cho kiểu enum và kiểu lồng. |
-| `int.class`, `boolean.class` | Kiểu nguyên thủy | Khác wrapper `Integer.class`, `Boolean.class`. |
-| `void.class` | Kiểu `void` | Dùng để biểu diễn kiểu trả về `void`. |
-| `String[].class` | Mảng `String[]` | Khác kiểu phần tử `String.class`. |
-| `int[][].class` | Mảng hai chiều `int[][]` | Mỗi số chiều là một kiểu mảng khác nhau. |
-| `java.util.List.class` | Interface `List` | Không mang tham số generic `String`. |
+| `String.class` | Class `java.lang.String` | Assignable to `Class<String>`. |
+| `Runnable.class` | Interface `Runnable` | Interfaces also have a `Class` object. |
+| `Override.class` | Annotation `Override` | Annotations are a special kind of interface type. |
+| `Thread.State.class` | Enum `Thread.State` | Applies to enum types and nested types. |
+| `int.class`, `boolean.class` | Primitive types | Different from wrappers `Integer.class`, `Boolean.class`. |
+| `void.class` | The `void` type | Used to represent the `void` return type. |
+| `String[].class` | Array `String[]` | Different from the element type `String.class`. |
+| `int[][].class` | Two-dimensional array `int[][]` | Each dimension count is a distinct array type. |
+| `java.util.List.class` | Interface `List` | Does not carry the generic argument `String`. |
 
-**Không hợp lệ:** `List<String>.class`, vì đối số kiểu generic không tạo một `Class` riêng ở runtime. Dùng `List.class`; nếu cần mô tả tham số `String`, cần cơ chế `Type`/`ParameterizedType` tương ứng, không thể lấy từ `List.class` đơn thuần.
+**Invalid:** `List<String>.class`, because generic type arguments do not create a separate `Class` at runtime. Use `List.class`; if you need to describe the `String` argument, you need the corresponding `Type`/`ParameterizedType` mechanism—it cannot be obtained from `List.class` alone.
 
-Cũng không thể dùng `myObject.class` để lấy kiểu của biến. Dùng `myObject.getClass()` đối với instance, hoặc `MyType.class` khi biết tên kiểu từ trước.
+You also cannot use `myObject.class` to get the type of a variable. Use `myObject.getClass()` for an instance, or `MyType.class` when the type name is known in advance.
 
-## 3. Phân biệt class literal với cách lấy `Class` khác
+## 3. Distinguishing class literals from other ways to get `Class`
 
-| Cách lấy `Class` | Kiểu được quyết định khi nào? | Cần instance? | Đặc điểm |
+| Way to get `Class` | When is the type decided? | Requires an instance? | Characteristics |
 | --- | --- | --- | --- |
-| `Animal.class` | Lúc biên dịch | Không | Luôn là `Animal`, đúng kiểu ghi trong source. |
-| `animal.getClass()` | Lúc chạy | Có | Có thể là lớp con `Dog` nếu `animal` đang trỏ đến `Dog`. |
-| `Class.forName("pkg.Animal")` | Lúc chạy, theo tên chuỗi | Không | Có thể ném `ClassNotFoundException`; bản một tham số mặc định yêu cầu khởi tạo lớp. |
+| `Animal.class` | At compile time | No | Always `Animal`, the exact type written in source. |
+| `animal.getClass()` | At runtime | Yes | Can be a subclass `Dog` if `animal` points to a `Dog`. |
+| `Class.forName("pkg.Animal")` | At runtime, by string name | No | Can throw `ClassNotFoundException`; the single-parameter overload triggers class initialization by default. |
 
-Với `Animal animal = new Dog();`, `Animal.class` đại diện `Animal`, còn `animal.getClass()` đại diện `Dog`. Chúng đều là đối tượng `Class`, nhưng chỉ trường hợp thứ hai phụ thuộc instance thực tế.
+With `Animal animal = new Dog();`, `Animal.class` represents `Animal`, while `animal.getClass()` represents `Dog`. Both are `Class` objects, but only the second depends on the actual instance.
 
-Một điểm quan trọng: **chỉ tham chiếu `SomeType.class` không kích hoạt khởi tạo lớp**, nên không chạy `static initializer` chỉ vì lấy literal. Những hành động khác, như gọi phương thức `static`, có thể kích hoạt khởi tạo lớp. Phân biệt ba việc: lấy metadata kiểu, khởi tạo lớp và tạo instance.
+An important point: **merely referencing `SomeType.class` does not trigger class initialization**, so it does not run the `static initializer` just for obtaining the literal. Other actions, such as calling a `static` method, can trigger class initialization. Distinguish three things: obtaining type metadata, class initialization, and instance creation.
 
-## 4. Ví dụ Java 17+ biên dịch/chạy độc lập
+## 4. Standalone compilable/runnable Java 17+ example
 
-Lưu mã sau thành `ClassLiteralDemo.java`:
+Save the following code as `ClassLiteralDemo.java`:
 
 ```java
 import java.util.List;
@@ -61,7 +61,7 @@ public class ClassLiteralDemo {
 
     static class Lazy {
         static {
-            System.out.println("Lazy đã khởi tạo");
+            System.out.println("Lazy initialized");
         }
 
         static void ping() {}
@@ -92,14 +92,14 @@ public class ClassLiteralDemo {
 }
 ```
 
-Chạy từ thư mục chứa tệp:
+Run from the directory containing the file:
 
 ```bash
 javac ClassLiteralDemo.java
 java ClassLiteralDemo
 ```
 
-Stdout dự kiến:
+Expected stdout:
 
 ```text
 declared=Animal
@@ -112,83 +112,83 @@ wrapper=false
 array=java.lang.String[][]
 interface=java.util.List
 literal=Lazy
-Lazy đã khởi tạo
+Lazy initialized
 ```
 
-Giải thích:
+Explanation:
 
-1. `declared=Animal` và `runtime=Dog` chứng minh `.class` chỉ rõ kiểu ở source, còn `getClass()` phản ánh lớp runtime của instance.
-2. `isInstance=true`: đối tượng `Dog` là một `Animal`. `isAssignableFrom=true`: một `Dog` có thể gán cho biến kiểu `Animal`. Luôn chú ý hướng `Animal.class.isAssignableFrom(Dog.class)`.
-3. `String.class == "Java".getClass()` là `true` vì cùng đại diện `String`.
-4. `int.class == Integer.TYPE` là `true` vì `TYPE` đại diện primitive `int`. Nhưng `int.class == Integer.class` là `false`, bởi primitive khác wrapper.
-5. `String[][].class.getTypeName()` mô tả kiểu mảng hai chiều; `List.class` mô tả interface `List`.
-6. `Lazy.class` chưa chạy khối `static`. Dòng `Lazy đã khởi tạo` chỉ xuất hiện sau khi gọi `Lazy.ping()`.
+1. `declared=Animal` and `runtime=Dog` demonstrate that `.class` specifies the type in the source code, while `getClass()` reflects the runtime class of the instance.
+2. `isInstance=true`: the `Dog` object is an `Animal`. `isAssignableFrom=true`: a `Dog` can be assigned to a variable of type `Animal`. Always pay attention to the direction `Animal.class.isAssignableFrom(Dog.class)`.
+3. `String.class == "Java".getClass()` is `true` because both represent `String`.
+4. `int.class == Integer.TYPE` is `true` because `TYPE` represents the primitive `int`. However, `int.class == Integer.class` is `false`, because a primitive differs from its wrapper.
+5. `String[][].class.getTypeName()` describes the two-dimensional array type; `List.class` describes the `List` interface.
+6. `Lazy.class` has not yet run the `static` block. The line `Lazy initialized` only appears after calling `Lazy.ping()`.
 
-## 5. Tính an toàn kiểu: `Class<T>` và `Class<?>`
+## 5. Type safety: `Class<T>` and `Class<?>`
 
-`Class<T>` ghi nhận kiểu `T` ở mức khai báo, còn `Class<?>` thích hợp khi kiểu cụ thể chưa biết hoặc không cần ràng buộc.
+`Class<T>` records the type `T` at the declaration level, whereas `Class<?>` is suitable when the concrete type is unknown or does not need to be constrained.
 
 ```java
 Class<String> exact = String.class;
 Class<?> unknown = int[].class;
 Class<? extends Number> numeric = Integer.class;
 
-// Lỗi biên dịch vì kiểu không tương thích:
+// Compile error due to incompatible types:
 // Class<String> wrong = Integer.class;
 ```
 
-Ví dụ `Class<String>` giúp compiler ngăn gán nhầm metadata của `Integer` cho biến muốn đại diện `String`.
+For example, `Class<String>` helps the compiler prevent accidentally assigning `Integer` metadata to a variable meant to represent `String`.
 
-**Bẫy primitive:** về generic, Java gán cho `int.class` kiểu `Class<Integer>` ở compile time, nhưng đối tượng đó **vẫn đại diện primitive `int`**. Vì vậy `int.class` và `Integer.class` không phải cùng `Class`. Có thể phân biệt bằng `int.class.isPrimitive()` (`true`) và `Integer.class.isPrimitive()` (`false`).
+**Primitive trap:** in terms of generics, Java gives `int.class` the type `Class<Integer>` at compile time, yet that object **still represents the primitive `int`**. Therefore `int.class` and `Integer.class` are not the same `Class`. They can be distinguished using `int.class.isPrimitive()` (`true`) and `Integer.class.isPrimitive()` (`false`).
 
-## 6. Ứng dụng khi dùng API reflection
+## 6. Applications when using reflection APIs
 
-**Truyền type token cho API.** Một hàm nhận `Class<T>` để biết rõ kiểu kết quả có thể được gọi bằng `String.class`, `User.class`, v.v. Compiler kiểm tra tên lớp, IDE hỗ trợ điều hướng và đổi tên.
+**Passing a type token to an API.** A function that takes `Class<T>` to know the exact result type can be called with `String.class`, `User.class`, etc. The compiler checks the class name, and the IDE supports navigation and refactoring/renaming.
 
-Ví dụ dưới đây chỉ minh họa cách dùng `Class.cast` để kiểm tra/ép kiểu đối tượng đã phù hợp; đây **không phải** bộ chuyển đổi dữ liệu giữa hai kiểu bất kỳ:
+The example below only illustrates using `Class.cast` to check/cast an already compatible object; it is **not** a data converter between arbitrary types:
 
 ```java
 static <T> T asType(Object value, Class<T> targetType) {
     return targetType.cast(value);
 }
 
-// Đặt trong một phương thức khi sử dụng:
+// Placed inside a method when used:
 String result = asType("Java", String.class);
 ```
 
-Nếu `value` không tương thích với `targetType`, `cast` ném `ClassCastException`. Ví dụ trên có minh họa từng đoạn, **không phải** một chương trình `main` độc lập.
+If `value` is not compatible with `targetType`, `cast` throws `ClassCastException`. The snippet above illustrates individual fragments and is **not** a standalone `main` program.
 
-**Kiểm tra quan hệ kiểu và metadata.** Sau khi có `Class`, bạn có thể gọi:
+**Checking type relationships and metadata.** Once you have a `Class`, you can call:
 
-- `SomeType.class.isInstance(object)` để kiểm tra một instance thuộc kiểu hoặc kiểu con phù hợp.
-- `Base.class.isAssignableFrom(Sub.class)` để kiểm tra kiểu `Sub` có thể gán cho biến kiểu `Base`.
-- `SomeType.class.getDeclaredMethods()` để lấy các phương thức khai báo trực tiếp trong lớp, không mặc định gồm phương thức kế thừa.
+- `SomeType.class.isInstance(object)` to check whether an instance belongs to that type or a compatible subtype.
+- `Base.class.isAssignableFrom(Sub.class)` to check whether type `Sub` can be assigned to a variable of type `Base`.
+- `SomeType.class.getDeclaredMethods()` to retrieve methods declared directly in the class, not including inherited methods by default.
 
-Class literal cung cấp **đối tượng mô tả kiểu**; các API sử dụng nó để thực hiện tra cứu hay kiểm tra. Các kỹ thuật truy cập thành viên và thực thi reflection chi tiết thuộc các bài khác.
+A class literal provides the **object describing the type**; APIs use it to perform lookups or checks. Techniques for accessing members and executing detailed reflection belong to other lessons.
 
-## 7. Lỗi hay gặp
+## 7. Common mistakes
 
-- **Nhầm `.class` với `new`:** `Person.class` không gọi constructor, không tạo `Person` mới.
-- **Nhầm kiểu khai báo với kiểu runtime:** `Base.class` không thay đổi theo instance được gán vào biến `Base`; `base.getClass()` thì có.
-- **Nhầm primitive và wrapper:** `int.class != Integer.class` dù `Integer.TYPE == int.class`.
-- **Dùng tham số generic trong literal:** `List<String>.class` không hợp lệ; `List.class` chỉ mô tả `List` chưa mang `<String>`.
-- **Gọi `getClass()` trên `null`:** phát sinh `NullPointerException`; `SomeType.class` không cần instance.
-- **Suy luận tên mảng từ `getName()`:** `String[].class.getName()` cho dạng JVM `[Ljava.lang.String;`, còn `getTypeName()` cho `java.lang.String[]`.
-- **So sánh tên mà bỏ qua class loader:** danh tính class trong JVM phụ thuộc tên nhị phân **và class loader định nghĩa**. Hai loader khác nhau có thể định nghĩa hai class khác nhau cùng tên.
-- **Tưởng class literal chạy khối `static`:** lấy `SomeType.class` không tự khởi tạo lớp.
+- **Confusing `.class` with `new`:** `Person.class` does not call a constructor and does not create a new `Person`.
+- **Confusing the declared type with the runtime type:** `Base.class` does not change based on the instance assigned to a `Base` variable; `base.getClass()` does.
+- **Confusing primitives and wrappers:** `int.class != Integer.class` even though `Integer.TYPE == int.class`.
+- **Using generic arguments in a literal:** `List<String>.class` is invalid; `List.class` only describes `List` without `<String>`.
+- **Calling `getClass()` on `null`:** throws `NullPointerException`; `SomeType.class` does not require an instance.
+- **Inferring array names from `getName()`:** `String[].class.getName()` yields the JVM form `[Ljava.lang.String;`, whereas `getTypeName()` yields `java.lang.String[]`.
+- **Comparing names while ignoring the class loader:** class identity in the JVM depends on the binary name **and the defining class loader**. Two different loaders can define two distinct classes with the same name.
+- **Assuming a class literal runs the `static` block:** obtaining `SomeType.class` does not initialize the class by itself.
 
-## 8. Tự kiểm tra
+## 8. Self-check
 
-**Câu 1.** Với `Object value = "abc";`, `Object.class` và `value.getClass()` có giống nhau không?
+**Question 1.** Given `Object value = "abc";`, are `Object.class` and `value.getClass()` the same?
 
-**Đáp án:** Không. Cái thứ nhất đại diện `Object`, cái thứ hai là `String`.
+**Answer:** No. The first represents `Object`, while the second is `String`.
 
-**Câu 2.** `int[].class == int.class` trả về `true` hay `false`?
+**Question 2.** Does `int[].class == int.class` return `true` or `false`?
 
-**Đáp án:** `false`, vì mảng `int[]` và primitive `int` là hai kiểu khác nhau.
+**Answer:** `false`, because the array `int[]` and the primitive `int` are two different types.
 
-**Câu 3.** Vì sao không thể viết `List<String>.class`?
+**Question 3.** Why can't you write `List<String>.class`?
 
-**Đáp án:** Class literal mô tả `Class` của một kiểu được biểu diễn trực tiếp tại runtime; tham số generic `<String>` không tạo lớp runtime riêng vì type erasure. Dùng `List.class` và cơ chế `Type` khi cần thông tin tham số hóa.
+**Answer:** A class literal describes the `Class` of a type represented directly at runtime; the generic argument `<String>` does not create a separate runtime class due to type erasure. Use `List.class` and the `Type` mechanism when parameterized type information is needed.
 
-**Ghi nhớ:** Dùng `TênKiểu.class` khi **biết sẵn tên kiểu trong mã nguồn** và cần metadata của chính kiểu đó. Dùng `instance.getClass()` khi cần **kiểu runtime thực tế của đối tượng**.
+**Remember:** Use `TypeName.class` when **the type name is already known in the source code** and you need the metadata of that exact type. Use `instance.getClass()` when you need **the actual runtime type of the object**.

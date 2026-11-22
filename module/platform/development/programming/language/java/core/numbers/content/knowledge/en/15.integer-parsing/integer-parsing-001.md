@@ -1,17 +1,17 @@
-# parseInt, parseLong và các phương thức parse số nguyên tương ứng trong Java
+# parseInt, parseLong, and Corresponding Integer Parsing Methods in Java
 
-Khi dữ liệu từ form, tệp cấu hình hoặc CSV chứa `"125"`, giá trị đang là `String`. Muốn cộng, so sánh hay lưu thành số, chương trình cần **parse** chuỗi thành primitive phù hợp, đồng thời kiểm tra cú pháp và phạm vi giá trị. Bài nhập môn này tập trung vào các parser **có dấu** của `Byte`, `Short`, `Integer` và `Long`; những biến thể về wrapper, unsigned, prefix và `BigInteger` được triển khai sâu ở các bài kế tiếp.
+When data from a form, configuration file, or CSV contains `"125"`, the value is currently a `String`. To add, compare, or store it as a number, the program needs to **parse** the string into an appropriate primitive while validating its syntax and value range. This introductory lesson focuses on the **signed** parsers of `Byte`, `Short`, `Integer`, and `Long`; variants involving wrappers, unsigned values, prefixes, and `BigInteger` are covered in depth in subsequent lessons.
 
-## 1. Bốn parser signed chính và kiểu trả về
+## 1. The four main signed parsers and return types
 
-| API | Kiểu primitive | Phạm vi |
+| API | Primitive type | Range |
 | --- | --- | --- |
-| `Byte.parseByte("127")` | `byte` | -128 đến 127 |
-| `Short.parseShort("32767")` | `short` | -32768 đến 32767 |
-| `Integer.parseInt("42")` | `int` | -2147483648 đến 2147483647 |
-| `Long.parseLong("3000000000")` | `long` | -9223372036854775808 đến 9223372036854775807 |
+| `Byte.parseByte("127")` | `byte` | -128 to 127 |
+| `Short.parseShort("32767")` | `short` | -32768 to 32767 |
+| `Integer.parseInt("42")` | `int` | -2147483648 to 2147483647 |
+| `Long.parseLong("3000000000")` | `long` | -9223372036854775808 to 9223372036854775807 |
 
-Ví dụ trong một phương thức Java:
+Example inside a Java method:
 
 ```java
 byte flag = Byte.parseByte("100");
@@ -20,44 +20,44 @@ int count = Integer.parseInt("125");
 long total = Long.parseLong("3000000000");
 ```
 
-Bốn lời gọi trên trả về **primitive**. Phương thức `Integer.valueOf("42")` trả về wrapper `Integer`, không phải `int`; bài kế tiếp giải thích boxing/unboxing. Đừng chọn parser nhỏ chỉ vì biến nhận rộng hơn:
+The four calls above return **primitives**. The method `Integer.valueOf("42")` returns the wrapper `Integer`, not `int`; the next lesson explains boxing/unboxing. Do not pick a smaller parser just because the receiving variable is wider:
 
 ```java
 long valid = Long.parseLong("3000000000");
 // long invalid = Integer.parseInt("3000000000");
-// Integer.parseInt vẫn ném NumberFormatException trước khi gán cho long.
+// Integer.parseInt still throws NumberFormatException before assigning to long.
 ```
 
-**Chọn kiểu từ miền nghiệp vụ trước khi parse.** Nếu trường có thể lớn hơn `int` nhưng vừa `long`, dùng `Long.parseLong`. Nếu vượt `long`, chọn `BigInteger` khi cần giá trị số học chính xác. Nếu là mã định danh cần giữ số 0 đầu, hãy giữ `String`.
+**Choose the type from the business domain before parsing.** If a field can be larger than `int` but fits in `long`, use `Long.parseLong`. If it exceeds `long`, choose `BigInteger` when an exact numeric value is needed. If it is an identifier that must preserve leading zeros, keep it as a `String`.
 
-## 2. Cú pháp chuỗi và ký tự không hợp lệ
+## 2. String syntax and invalid characters
 
-Các overload chỉ nhận một `String` mặc định parse **decimal**, có thể có một dấu cộng/trừ ASCII ở đầu rồi đến ít nhất một chữ số hợp lệ. Ví dụ:
+The single-`String` overloads default to parsing **decimal**, optionally starting with an ASCII plus or minus sign followed by at least one valid digit. For example:
 
 ```java
 int a = Integer.parseInt("+42"); // 42
 int b = Integer.parseInt("-42"); // -42
 int c = Integer.parseInt("-0");  // 0
-int d = Integer.parseInt("077"); // 77, không tự chuyển sang hệ 8
+int d = Integer.parseInt("077"); // 77, not automatically interpreted as base 8
 ```
 
-Parser kiểm tra toàn bộ chuỗi và miền giá trị. Bảng sau cho các input không hợp lệ với `Integer.parseInt(String)`:
+The parser validates the entire string and the value range. The following table gives invalid inputs for `Integer.parseInt(String)`:
 
-| Input | Lý do từ chối |
+| Input | Reason for rejection |
 | --- | --- |
-| `""`, `"+"`, `"-"` | Không có chữ số |
-| `"12x"`, `"4 2"` | Ký tự không hợp lệ giữa chuỗi |
-| `"1.5"`, `"1e3"` | Không phải chuỗi số nguyên decimal |
-| `" 42 "` | Không tự bỏ khoảng trắng |
-| `"1_000"`, `"42L"` | Ký hiệu literal thuộc mã Java, không thuộc parser chuỗi |
-| `"0x2A"` | Không tự nhận prefix hex |
-| `"2147483648"` | Vượt `Integer.MAX_VALUE` |
+| `""`, `"+"`, `"-"` | No digits |
+| `"12x"`, `"4 2"` | Invalid character in the middle of the string |
+| `"1.5"`, `"1e3"` | Not a decimal integer string |
+| `" 42 "` | Does not automatically strip whitespace |
+| `"1_000"`, `"42L"` | Literal notation belongs to Java source code, not the string parser |
+| `"0x2A"` | Does not automatically recognize hex prefix |
+| `"2147483648"` | Exceeds `Integer.MAX_VALUE` |
 
-Java có thể chấp nhận một số chữ số Unicode qua `Character.digit`. Nếu giao thức yêu cầu ASCII `0..9`, kiểm tra ASCII riêng. Việc gọi `strip()` trước parser chỉ phù hợp khi chính sách dữ liệu cho phép bỏ khoảng trắng ngoài. Các bài sau phân tích đầy đủ Unicode, `trim`/`strip`, lỗi `NumberFormatException` và literal so với String.
+Java may accept certain Unicode digits via `Character.digit`. If a protocol requires ASCII `0..9`, validate ASCII separately. Calling `strip()` before the parser is only appropriate when the data policy allows ignoring leading/trailing whitespace. Later lessons analyze Unicode, `trim`/`strip`, `NumberFormatException` errors, and literals versus Strings in full detail.
 
-## 3. Cơ số là tham số, không phải prefix
+## 3. The radix is a parameter, not a prefix
 
-Các parser có overload `parse...(String, int radix)` hỗ trợ radix từ 2 đến 36:
+The parsers have `parse...(String, int radix)` overloads supporting radices from 2 to 36:
 
 ```java
 int binary = Integer.parseInt("101101", 2); // 45
@@ -66,23 +66,23 @@ int hex = Integer.parseInt("FF", 16);      // 255
 long limit = Long.parseLong("7FFFFFFFFFFFFFFF",16); // Long.MAX_VALUE
 ```
 
-`Integer.parseInt("0xFF", 16)` ném `NumberFormatException`: `x` không phải chữ số hex hợp lệ trong API này. Nếu định dạng input quy định prefix hex hoặc số 0 đầu mang nghĩa octal, hãy đọc bài `decode` để chọn parser thích hợp. Radix không tăng kích thước số nguyên mà kiểu đích có thể chứa.
+`Integer.parseInt("0xFF", 16)` throws `NumberFormatException`: `x` is not a valid hex digit in this API. If the input format specifies a hex prefix or a leading zero meaning octal, read the `decode` lesson to choose the appropriate parser. The radix does not increase the integer size that the target type can hold.
 
-## 4. Lỗi parse khác tràn phép toán
+## 4. Parse errors differ from arithmetic overflow
 
-`NumberFormatException` phát sinh với chuỗi sai, radix sai hoặc số vượt miền. Parser từ chối thay vì âm thầm tràn vòng như một phép cộng kiểu `int`:
+`NumberFormatException` occurs for malformed strings, invalid radices, or out-of-range numbers. The parser rejects the input instead of silently wrapping around like `int` addition:
 
 ```java
-int max = Integer.parseInt("2147483647");  // Thành công.
+int max = Integer.parseInt("2147483647");  // Success.
 // Integer.parseInt("2147483648");         // NumberFormatException.
 int wrapped = Integer.MAX_VALUE + 1;       // Integer.MIN_VALUE.
 ```
 
-Khi nhận dữ liệu từ người dùng, không nên bắt mọi exception rồi trả 0, vì `"0"` là giá trị hợp lệ. Có thể bắt riêng `NumberFormatException` và trả trạng thái lỗi hoặc thông báo validation. Một số nghiệp vụ như số lượng dương còn cần kiểm tra `n > 0` sau khi parse thành công.
+When receiving input from users, you should not catch every exception and return 0, because `"0"` is a valid value. You can catch `NumberFormatException` specifically and return an error status or validation message. Some business rules, such as a positive quantity, also require checking `n > 0` after parsing succeeds.
 
-## 5. Chương trình Java 17 chạy độc lập
+## 5. Standalone runnable Java 17 program
 
-Lưu thành `SignedParsingBasics.java`:
+Save as `SignedParsingBasics.java`:
 
 ```java
 public class SignedParsingBasics {
@@ -115,7 +115,7 @@ javac --release 17 -encoding UTF-8 SignedParsingBasics.java
 java SignedParsingBasics
 ```
 
-Kết quả:
+Output:
 
 ```text
 byte=127
@@ -130,16 +130,16 @@ decimalZero=77
  42 =INVALID
 ```
 
-Ba dòng `INVALID` do chương trình tự bắt đúng loại exception; chúng không phụ thuộc thông điệp ngoại lệ của JDK.
+The three `INVALID` lines come from the program itself catching the exact exception type; they do not depend on the JDK's exception message.
 
-## 6. Tự kiểm tra
+## 6. Self-check
 
-1. Vì sao `Integer.parseInt("3000000000")` lỗi, còn `Long.parseLong("3000000000")` chạy được?
-2. `Byte.parseByte("128")` có tự tràn vòng thành -128 không?
-3. `Integer.parseInt("077")` cho 77 hay 63? Vì sao?
-4. Phân biệt `Integer.parseInt("FF",16)` và `Integer.parseInt("0xFF",16)`.
-5. Có nên chuyển mã định danh `"00042"` thành số nguyên để lưu không?
+1. Why does `Integer.parseInt("3000000000")` fail, while `Long.parseLong("3000000000")` works?
+2. Does `Byte.parseByte("128")` automatically wrap around to -128?
+3. Does `Integer.parseInt("077")` return 77 or 63? Why?
+4. Distinguish between `Integer.parseInt("FF",16)` and `Integer.parseInt("0xFF",16)`.
+5. Should an identifier `"00042"` be converted to an integer for storage?
 
-**Ghi nhớ:** chọn primitive theo miền cần hỗ trợ; xác định radix, dấu, chữ số, giới hạn và cách báo lỗi. Các bài kế tiếp đào sâu từng khía cạnh thay vì coi một phương thức parse là đủ cho mọi định dạng.
+**Key takeaway:** choose the primitive based on the range to support; specify the radix, sign, digits, bounds, and error reporting strategy. Subsequent lessons dive deeper into each aspect rather than treating a single parse method as sufficient for all formats.
 
-**Tài liệu chuẩn:** [Integer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html), [Long](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html), [Byte](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Byte.html), [Short](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Short.html).
+**Standard documentation:** [Integer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html), [Long](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html), [Byte](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Byte.html), [Short](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Short.html).

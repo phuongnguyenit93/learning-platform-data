@@ -1,18 +1,18 @@
-# Provider module không export implementation package
+# Provider Module Without Exporting Implementation Packages
 
-Java Platform Module System (JPMS) cho phép một module công bố dịch vụ mà không phải công khai package chứa class triển khai dịch vụ đó. Đây là một điểm quan trọng của cơ chế **ServiceLoader**: module tiêu thụ biết hợp đồng dịch vụ, module cung cấp đăng ký implementation bằng chỉ thị **provides ... with ...**, còn package implementation có thể giữ kín bằng cách không khai báo **exports**.
+The Java Platform Module System (JPMS) allows a module to publish a service without exposing the package that contains the service's implementation class. This is a key aspect of the **ServiceLoader** mechanism: the consuming module knows the service contract, the supplying module registers the implementation using the **provides ... with ...** directive, and the implementation package can remain hidden by omitting **exports**.
 
-Cách tổ chức này tách API khỏi implementation. Người dùng dịch vụ phụ thuộc vào interface ổn định; nhà cung cấp có thể thay class triển khai hoặc cấu trúc package nội bộ mà không buộc module tiêu thụ tham chiếu trực tiếp đến các class đó.
+This organization separates the API from the implementation. Service consumers depend on a stable interface; providers can change implementation classes or internal package structure without forcing consuming modules to reference those classes directly.
 
-## 1. Ba vai trò trong một kiến trúc dịch vụ
+## 1. Three Roles in a Service Architecture
 
-Một ứng dụng modular dùng service provider thường có ba vai trò:
+A modular application using service providers typically has three roles:
 
-- **Service API module** định nghĩa interface hoặc abstract service type và export package API.
-- **Provider module** cài đặt service và đăng ký implementation trong module descriptor bằng **provides**.
-- **Consumer module** khai báo **uses** để cho biết nó cần dịch vụ và tìm provider bằng **ServiceLoader**.
+- **Service API module** defines the interface or abstract service type and exports the API package.
+- **Provider module** implements the service and registers the implementation in its module descriptor using **provides**.
+- **Consumer module** declares **uses** to indicate it needs the service and locates providers via **ServiceLoader**.
 
-Luồng phụ thuộc có dạng:
+The dependency flow looks like this:
 
 ~~~text
              requires
@@ -28,11 +28,11 @@ Consumer -----------------> Service API
                       (not exported)
 ~~~
 
-Consumer cần biết interface dịch vụ, nhưng không cần biết tên class triển khai hoặc package nội bộ của provider. Provider phụ thuộc vào service API để triển khai hợp đồng. Việc đăng ký provider được thực hiện qua module descriptor.
+The consumer needs to know the service interface, but does not need to know the implementation class name or internal packages of the provider. The provider depends on the service API to implement the contract. Provider registration is performed through the module descriptor.
 
-## 2. Tạo service API module
+## 2. Creating the Service API Module
 
-Giả sử dịch vụ cần cung cấp lời chào. Tạo module **com.acme.greeter.api** với cấu trúc:
+Suppose the service needs to provide greetings. Create module **com.acme.greeter.api** with the structure:
 
 ~~~text
 src/
@@ -49,7 +49,7 @@ module com.acme.greeter.api {
 }
 ~~~
 
-Interface dịch vụ:
+Service interface:
 
 ~~~java
 package com.acme.greeter.api;
@@ -59,13 +59,13 @@ public interface GreetingService {
 }
 ~~~
 
-Package API phải được export để các module consumer và provider có thể tham chiếu interface **GreetingService** trong mã nguồn. Đây là hợp đồng công khai của dịch vụ; nó không chứa class triển khai cụ thể.
+The API package must be exported so consumer and provider modules can reference the **GreetingService** interface in source code. This is the public contract of the service; it contains no concrete implementation classes.
 
-Nên giữ API nhỏ và ổn định. Các module tiêu thụ chỉ cần phụ thuộc vào những kiểu được công bố trong package này, nhờ vậy provider có thể thay đổi nội bộ mà không làm lộ cấu trúc implementation.
+Keep the API small and stable. Consuming modules only need to depend on the types published in this package, allowing providers to change internally without exposing implementation structure.
 
-## 3. Tạo provider module với package implementation kín
+## 3. Creating the Provider Module with an Encapsulated Implementation Package
 
-Tạo module **com.acme.greeter.provider**:
+Create module **com.acme.greeter.provider**:
 
 ~~~text
 src/
@@ -75,7 +75,7 @@ src/
         └── VietnameseGreetingService.java
 ~~~
 
-Descriptor provider:
+Provider descriptor:
 
 ~~~java
 module com.acme.greeter.provider {
@@ -86,7 +86,7 @@ module com.acme.greeter.provider {
 }
 ~~~
 
-Class triển khai:
+Implementation class:
 
 ~~~java
 package com.acme.greeter.provider.internal;
@@ -101,24 +101,24 @@ public final class VietnameseGreetingService
 
     @Override
     public String greet(String name) {
-        return "Xin chào, " + name + "!";
+        return "Xin chao, " + name + "!";
     }
 }
 ~~~
 
-Điểm cần chú ý là descriptor provider **không có** dòng:
+Notice that the provider descriptor **does not** contain the line:
 
 ~~~java
 exports com.acme.greeter.provider.internal;
 ~~~
 
-Package **com.acme.greeter.provider.internal** vẫn là package nội bộ của provider module. Class triển khai có thể là **public** và có public constructor không tham số để đáp ứng quy tắc provider class của ServiceLoader, nhưng các module khác không thể import class này qua module boundary vì package chưa được export.
+The **com.acme.greeter.provider.internal** package remains an internal package of the provider module. The implementation class can be **public** and have a public no-argument constructor to satisfy ServiceLoader's provider class rules, yet other modules cannot import this class across the module boundary because the package is not exported.
 
-Chỉ thị **provides ... with ...** đăng ký class implementation làm provider cho service type đã nêu. JPMS và ServiceLoader sử dụng khai báo này để phát hiện và tạo provider. Việc đăng ký không yêu cầu export package implementation.
+The **provides ... with ...** directive registers the implementation class as a provider for the stated service type. JPMS and ServiceLoader use this declaration to discover and instantiate the provider. Registration does not require exporting the implementation package.
 
-## 4. Tạo consumer module
+## 4. Creating the Consumer Module
 
-Consumer chỉ cần biết service API. Cấu trúc:
+The consumer only needs to know the service API. Structure:
 
 ~~~text
 src/
@@ -136,9 +136,9 @@ module com.acme.app {
 }
 ~~~
 
-**requires** cho phép consumer đọc module chứa interface dịch vụ. **uses** khai báo rằng module này tiêu thụ service type **GreetingService**. Chỉ thị **uses** không phải dependency đến một provider cụ thể.
+**requires** allows the consumer to read the module containing the service interface. **uses** declares that this module consumes the **GreetingService** service type. The **uses** directive is not a dependency on a specific provider.
 
-Lớp main tìm và gọi các provider:
+The main class locates and invokes providers:
 
 ~~~java
 package com.acme.app;
@@ -161,55 +161,55 @@ public final class Main {
 }
 ~~~
 
-Consumer không import **VietnameseGreetingService**, không gọi constructor của implementation và không cần khai báo **requires com.acme.greeter.provider**. Nó làm việc với interface và để ServiceLoader tìm provider đã đăng ký trong module layer.
+The consumer does not import **VietnameseGreetingService**, does not call the implementation's constructor, and does not need to declare **requires com.acme.greeter.provider**. It works with the interface and lets ServiceLoader locate registered providers in the module layer.
 
-## 5. Biên dịch và chạy ví dụ
+## 5. Compiling and Running the Example
 
-Từ thư mục dự án, biên dịch cả ba module bằng JDK 21:
+From the project directory, compile all three modules with JDK 21:
 
 ~~~bash
 javac -d out --module-source-path src \
     -m com.acme.greeter.api,com.acme.greeter.provider,com.acme.app
 ~~~
 
-Có thể biên dịch trên một dòng trong terminal nếu môi trường không hỗ trợ dấu nối dòng như ví dụ.
+You can compile on a single line in the terminal if your environment does not support line continuation as shown in the example.
 
-Khi chạy, provider module phải được phân giải vào module layer cùng với consumer. Với các module provider nằm trên module path, dùng tùy chọn **--bind-services** để yêu cầu launcher phân giải các module cung cấp dịch vụ mà những module đã chọn sử dụng:
+At runtime, the provider module must be resolved into the module layer along with the consumer. With provider modules on the module path, use the **--bind-services** option to instruct the launcher to resolve modules providing services used by the selected modules:
 
 ~~~bash
 java --module-path out --bind-services \
     --module com.acme.app/com.acme.app.Main
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-Xin chào, Java Module System!
+Xin chao, Java Module System!
 ~~~
 
-Nếu provider không được đưa vào module layer, ServiceLoader không thể phát hiện nó trong layer đó. **--bind-services** hỗ trợ launcher liên kết các provider trên module path cho service mà module gốc khai báo **uses**. Trong cấu hình module layer tự tạo bằng API, ứng dụng hoặc bootstrap code cần thực hiện service binding phù hợp khi resolve configuration.
+If the provider is not included in the module layer, ServiceLoader cannot discover it in that layer. **--bind-services** helps the launcher bind providers on the module path for services declared with **uses** by root modules. In configurations where module layers are created programmatically via the API, the application or bootstrap code must perform appropriate service binding when resolving the configuration.
 
-Điểm quan trọng là consumer không cần compile-time dependency vào provider module. Provider được chọn thông qua service contract và cơ chế binding của module system.
+The key point is that the consumer does not need a compile-time dependency on the provider module. Providers are selected through the service contract and the module system's binding mechanism.
 
-## 6. Vì sao implementation package không cần export?
+## 6. Why Does the Implementation Package Not Need to Be Exported?
 
-Trong cách gọi class thông thường, một module khác muốn import kiểu từ package của provider phải đọc module provider và package đó phải được export. Tuy nhiên, ServiceLoader dùng metadata đăng ký provider trong module descriptor để tìm implementation.
+In regular class calls, another module wanting to import a type from a provider's package must read the provider module and that package must be exported. However, ServiceLoader uses provider registration metadata in the module descriptor to locate implementations.
 
-JPMS cho phép provider class được khai báo trong **provides ... with ...** dù package chứa class không export. Cơ chế service provider là một điểm tích hợp được module system hỗ trợ trực tiếp; nó không yêu cầu công khai implementation package thành API.
+JPMS allows a provider class declared in **provides ... with ...** even when its containing package is not exported. The service provider mechanism is an integration point directly supported by the module system; it does not require exposing the implementation package as an API.
 
-Điều này mang lại một số lợi ích:
+This yields several benefits:
 
-- **Ẩn chi tiết triển khai:** consumer không thể import class implementation qua module boundary.
-- **Tự do thay đổi nội bộ:** provider có thể đổi class, chia package hoặc tái cấu trúc implementation mà không đổi service API.
-- **Giảm coupling:** consumer chỉ phụ thuộc interface, không phụ thuộc nhà cung cấp cụ thể.
-- **Hỗ trợ nhiều provider:** nhiều module có thể đăng ký implementation cho cùng một service type.
-- **Kiểm soát bề mặt API:** chỉ package contract được export; package nội bộ vẫn được encapsulate.
+- **Hide implementation details:** consumers cannot import implementation classes across module boundaries.
+- **Freedom to refactor internally:** providers can rename classes, split packages, or restructure implementations without changing the service API.
+- **Reduce coupling:** consumers depend only on interfaces, not on specific suppliers.
+- **Support multiple providers:** multiple modules can register implementations for the same service type.
+- **Control API surface:** only contract packages are exported; internal packages stay encapsulated.
 
-Đừng nhầm việc class provider được khai báo **public** với việc package chứa nó đã được export. Modifier **public** điều khiển khả năng truy cập theo Java language access rules; module descriptor tiếp tục kiểm soát package visibility qua module boundary.
+Do not confuse a provider class being declared **public** with its containing package being exported. The **public** modifier governs accessibility under Java language access rules; the module descriptor continues to enforce package visibility across module boundaries.
 
-## 7. Quy tắc đối với provider class
+## 7. Rules for Provider Classes
 
-Với provider class truyền thống được khai báo trong **provides ... with ...**, class phải là public và có public constructor không tham số để ServiceLoader có thể tạo instance:
+For a traditional provider class declared in **provides ... with ...**, the class must be public and have a public no-argument constructor so ServiceLoader can create an instance:
 
 ~~~java
 public final class DefaultGreetingService
@@ -225,14 +225,14 @@ public final class DefaultGreetingService
 }
 ~~~
 
-Class có thể nằm trong package không export. Provider module chỉ cần khai báo:
+The class can live in an unexported package. The provider module only needs to declare:
 
 ~~~java
 provides com.acme.greeter.api.GreetingService
     with com.acme.greeter.provider.internal.DefaultGreetingService;
 ~~~
 
-Một lựa chọn khác là dùng provider method. Class provider được liệt kê trong descriptor có thể khai báo một phương thức **public static provider()** không tham số, trả về service type hoặc subtype:
+Another option is to use a provider method. The provider class listed in the descriptor can declare a parameterless **public static provider()** method returning the service type or a subtype:
 
 ~~~java
 package com.acme.greeter.provider.internal;
@@ -249,18 +249,18 @@ public final class GreetingProviderFactory {
 }
 ~~~
 
-Descriptor khi đó tham chiếu factory:
+The descriptor then references the factory:
 
 ~~~java
 provides com.acme.greeter.api.GreetingService
     with com.acme.greeter.provider.internal.GreetingProviderFactory;
 ~~~
 
-Provider method hữu ích khi việc tạo service cần factory, cấu hình hoặc chọn implementation. Package factory vẫn có thể không export. Khi dùng provider method, lớp được khai báo trong **with** không cần trực tiếp implement service type; ServiceLoader gọi provider method theo quy tắc của nó.
+A provider method is useful when service creation requires a factory, configuration, or implementation selection. The factory package can still remain unexported. When using a provider method, the class declared in **with** does not have to directly implement the service type; ServiceLoader invokes the provider method according to its rules.
 
-## 8. Nhiều provider cho cùng một service
+## 8. Multiple Providers for the Same Service
 
-JPMS cho phép nhiều module cung cấp cùng một service API. Ví dụ:
+JPMS allows multiple modules to supply the same service API. For example:
 
 ~~~java
 module com.acme.greeter.english {
@@ -271,7 +271,7 @@ module com.acme.greeter.english {
 }
 ~~~
 
-Và provider tiếng Việt:
+And a Vietnamese provider:
 
 ~~~java
 module com.acme.greeter.vietnamese {
@@ -282,17 +282,17 @@ module com.acme.greeter.vietnamese {
 }
 ~~~
 
-Mỗi provider giữ implementation package riêng tư. Consumer vẫn chỉ khai báo:
+Each provider keeps its implementation package private. The consumer still only declares:
 
 ~~~java
 uses com.acme.greeter.api.GreetingService;
 ~~~
 
-ServiceLoader có thể trả về nhiều provider. Thứ tự provider không nên được dùng làm cơ chế chọn ngôn ngữ hoặc ưu tiên nghiệp vụ nếu ứng dụng cần một lựa chọn xác định. Hãy thêm metadata/cấu hình hoặc một lớp điều phối rõ ràng khi cần chọn provider cụ thể.
+ServiceLoader may return multiple providers. Provider ordering should not be used as a mechanism for language selection or business priority if the application requires a deterministic choice. Add metadata/configuration or an explicit coordinator class when a specific provider must be selected.
 
-## 9. Provider module và consumer module không cần phụ thuộc trực tiếp nhau
+## 9. Provider and Consumer Modules Do Not Need Direct Dependencies on Each Other
 
-Trong thiết kế service, provider module phụ thuộc vào service API; consumer module cũng phụ thuộc vào service API. Không cần tạo dependency trực tiếp từ consumer đến từng provider:
+In a service design, the provider module depends on the service API; the consumer module also depends on the service API. There is no need to create direct dependencies from the consumer to individual providers:
 
 ~~~text
 com.acme.app
@@ -304,48 +304,48 @@ com.acme.greeter.provider
     provides GreetingService with InternalImplementation
 ~~~
 
-Nếu consumer khai báo **requires com.acme.greeter.provider** chỉ để gọi implementation, nó làm mất lợi ích thay thế provider và buộc ứng dụng biết chi tiết nhà cung cấp. Khi service contract đủ cho nhu cầu, hãy để ServiceLoader thực hiện discovery.
+If the consumer declares **requires com.acme.greeter.provider** just to invoke the implementation, it defeats provider substitutability and forces the application to know supplier details. When the service contract suffices, let ServiceLoader perform discovery.
 
-Trong hệ thống plugin, provider module có thể được cài đặt hoặc thêm vào module path theo cấu hình triển khai. Ứng dụng có thể mở rộng tập provider mà không phải thay đổi mã nguồn consumer, miễn là provider đáp ứng service contract và được resolve vào module layer.
+In a plugin system, provider modules can be installed or added to the module path according to deployment configuration. The application can expand its set of providers without modifying consumer source code, as long as providers conform to the service contract and are resolved into the module layer.
 
-## 10. Kiểm tra provider registration
+## 10. Verifying Provider Registration
 
-Có thể kiểm tra descriptor của provider JAR:
+You can inspect the provider JAR's descriptor:
 
 ~~~bash
 jar --describe-module --file mods/com.acme.greeter.provider.jar
 ~~~
 
-Kết quả cần thể hiện:
+The output should show:
 
-- Tên module provider.
-- Dependency **requires com.acme.greeter.api**.
-- Dòng **provides com.acme.greeter.api.GreetingService with ...**.
-- Không có package implementation trong danh sách **exports**.
+- The provider module name.
+- The **requires com.acme.greeter.api** dependency.
+- The **provides com.acme.greeter.api.GreetingService with ...** line.
+- No implementation package in the **exports** list.
 
-Có thể bật log phân giải module khi chạy:
+You can enable module resolution logging when running:
 
 ~~~bash
 java --show-module-resolution --module-path mods --bind-services \
     --module com.acme.app/com.acme.app.Main
 ~~~
 
-Nếu ServiceLoader không tìm thấy provider, kiểm tra lần lượt:
+If ServiceLoader does not find the provider, check in order:
 
-1. Provider module có nằm trên module path hoặc trong nguồn module finder phù hợp không.
-2. Module provider có được resolve vào cùng module layer với consumer không.
-3. Consumer descriptor đã khai báo **uses** đúng service type chưa.
-4. Provider descriptor đã khai báo **provides ... with ...** đúng tên service và implementation chưa.
-5. Provider class có public constructor không tham số hoặc provider method hợp lệ không.
-6. Provider có phụ thuộc đúng module service API và service type có cùng định danh module/class với consumer không.
+1. Whether the provider module is on the module path or in the appropriate module finder source.
+2. Whether the provider module is resolved into the same module layer as the consumer.
+3. Whether the consumer descriptor declares **uses** for the exact service type.
+4. Whether the provider descriptor declares **provides ... with ...** with the exact service and implementation names.
+5. Whether the provider class has a valid public no-argument constructor or provider method.
+6. Whether the provider depends on the right service API module and the service type has the same module/class identity as the consumer's.
 
-Nếu class implementation bị lỗi package visibility khi consumer cố import trực tiếp, đó có thể là dấu hiệu consumer đang phụ thuộc vào implementation thay vì dùng service contract. Trong kiến trúc này, consumer không cần truy cập package nội bộ.
+If an implementation class triggers a package visibility error when the consumer tries to import it directly, that is a sign the consumer is depending on the implementation instead of using the service contract. In this architecture, the consumer does not need access to internal packages.
 
-## 11. Phân phối và runtime image
+## 11. Distribution and Runtime Images
 
-Khi đóng gói các modular JAR, cần phát hành service API, consumer và các provider được chọn cho ứng dụng. Provider module có thể không nằm trong dependency khai báo trực tiếp của consumer, vì vậy cấu hình chạy và bước resolve cần bảo đảm các provider được liên kết.
+When packaging modular JARs, ship the service API, consumer, and selected providers for the application. Provider modules may not appear in the consumer's directly declared dependencies, so runtime configuration and resolution must ensure providers are bound.
 
-Khi tạo runtime image bằng **jlink**, có thể dùng **--bind-services** để đưa các module provider cần thiết vào image:
+When building a runtime image with **jlink**, you can use **--bind-services** to include the necessary provider modules in the image:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" \
@@ -354,32 +354,32 @@ jlink --module-path "$JAVA_HOME/jmods:mods" \
     --output runtime
 ~~~
 
-Trên Windows, module path dùng dấu chấm phẩy làm dấu phân cách:
+On Windows, the module path uses a semicolon as the separator:
 
 ~~~powershell
 jlink --module-path "$env:JAVA_HOME\jmods;mods" --add-modules com.acme.app --bind-services --output runtime
 ~~~
 
-Chạy ứng dụng trong runtime image:
+Run the application in the runtime image:
 
 ~~~bash
 runtime/bin/java --module com.acme.app/com.acme.app.Main
 ~~~
 
-Khi phân phối, hãy kiểm tra provider thật sự được resolve và service discovery hoạt động trong image cuối cùng. Một ứng dụng chạy thành công trong IDE chưa chứng minh rằng các provider đã được đưa vào gói phát hành.
+When distributing, verify that providers are actually resolved and service discovery works in the final image. An application running successfully inside an IDE does not prove that providers have been included in the release package.
 
-## 12. Checklist thiết kế provider kín
+## 12. Encapsulated Provider Design Checklist
 
-Khi tạo service provider module, hãy kiểm tra:
+When creating a service provider module, check:
 
-- Service interface nằm trong package API được export từ service API module.
-- Consumer khai báo **uses** đúng service type.
-- Provider module khai báo **requires** service API module.
-- Provider module đăng ký implementation bằng **provides ... with ...**.
-- Provider class tuân thủ quy tắc public class/public no-arg constructor, hoặc dùng provider method hợp lệ.
-- Package implementation không có **exports** nếu consumer không cần truy cập trực tiếp.
-- Consumer không import implementation class và không khai báo dependency trực tiếp vào provider khi không cần.
-- Provider module được resolve vào module layer khi chạy; dùng **--bind-services** khi launcher cần liên kết các provider trên module path.
-- Runtime image hoặc gói phân phối cuối cùng chứa các provider cần thiết.
+- The service interface resides in an API package exported from the service API module.
+- The consumer declares **uses** for the exact service type.
+- The provider module declares **requires** on the service API module.
+- The provider module registers the implementation with **provides ... with ...**.
+- The provider class follows the public class/public no-arg constructor rules, or uses a valid provider method.
+- The implementation package has no **exports** unless consumers need direct access.
+- The consumer does not import implementation classes and does not declare direct dependencies on providers unnecessarily.
+- The provider module is resolved into the module layer at runtime; use **--bind-services** when the launcher needs to bind providers on the module path.
+- The runtime image or final distribution package contains the required providers.
 
-Một provider module tốt công bố service contract và giữ implementation package ở phạm vi nội bộ. **provides ... with ...** là cơ chế đăng ký chính thức cho phép ServiceLoader tìm implementation mà không cần export package chứa nó. Nhờ đó, consumer chỉ phụ thuộc API, provider có thể thay đổi cách triển khai và module system vẫn giữ được ranh giới đóng gói.
+A well-designed provider module publishes via the service contract and keeps implementation packages internal. **provides ... with ...** is the official registration mechanism that allows ServiceLoader to locate implementations without exporting the containing package. As a result, consumers depend only on the API, providers can change their implementations, and the module system preserves encapsulation boundaries.

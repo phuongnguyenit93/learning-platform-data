@@ -1,14 +1,14 @@
-# Đọc object graph bằng Reflection và kiểm soát vòng tham chiếu
+# Reading an Object Graph with Reflection and Controlling Reference Cycles
 
-Một **object graph** (đồ thị đối tượng) gồm các đối tượng Java là **đỉnh**, còn tham chiếu từ field, phần tử mảng hoặc collection là **cạnh**. Một đối tượng có thể được nhiều đối tượng khác trỏ tới, tự trỏ tới chính mình, hoặc nằm trong vòng tham chiếu như `A.next = B` và `B.next = A`.
+An **object graph** consists of Java objects as **vertices**, and references from fields, array elements, or collections as **edges**. One object can be pointed to by many other objects, point to itself, or sit inside a reference cycle such as `A.next = B` and `B.next = A`.
 
-Khi viết trình duyệt object graph, debugger, công cụ tạo snapshot, serializer hay bộ chẩn đoán sử dụng Reflection, không thể đơn giản gọi đệ quy trên mọi field đến vô hạn. Phải đồng thời bảo vệ **tính đúng đắn của định danh đối tượng**, **độ sâu**, **số node/phần tử**, **quyền truy cập**, **tính ổn định** và **dữ liệu nhạy cảm**.
+When writing an object graph walker, debugger, snapshot tool, serializer, or diagnostic inspector using Reflection, you cannot simply recurse across every field indefinitely. You must simultaneously protect **object identity accuracy**, **depth**, **node/element counts**, **access permissions**, **determinism**, and **sensitive data**.
 
-Nguyên tắc quan trọng nhất: dùng **định danh tham chiếu (`==`)** thay vì `equals()` để nhận ra một đối tượng đã gặp; ghi nhận nó **trước khi** đi sâu vào các field. Khi thấy lại đối tượng đó, chỉ in tham chiếu đến node đã ghi nhận, không đi tiếp.
+The single most important principle: use **reference identity (`==`)** rather than `equals()` to recognize a previously seen object; record it **before** descending into its fields. When encountering that object again, only print a reference to the recorded node without traversing further.
 
-## 1. Đồ thị khác cây như thế nào?
+## 1. How Is a Graph Different from a Tree?
 
-Ví dụ:
+Example:
 
 ~~~text
 A ──next──> B
@@ -18,63 +18,63 @@ A ──next──> B
 A ──items[0]──> B
 ~~~
 
-Ở đây:
+Here:
 
-- `A` và `B` là **hai instance** độc lập.
-- `A.next` và `A.items[0]` cùng tham chiếu đến **một instance B**. Đây là **shared reference/alias**.
-- `B.next` tham chiếu ngược đến `A`. Đây là một **chu trình**.
-- Nếu chỉ xem từng cạnh riêng lẻ rồi gọi đệ quy, traversal sẽ lặp mãi `A → B → A → B ...`.
+- `A` and `B` are **two independent instances**.
+- `A.next` and `A.items[0]` both reference **the same instance B**. This is a **shared reference/alias**.
+- `B.next` references back to `A`. This is a **cycle**.
+- If you only look at each edge in isolation and recurse, traversal will loop forever `A → B → A → B ...`.
 
-Cần phân biệt **đã từng gặp** với **nằm trong chu trình hiện tại**:
+We must distinguish **already seen** from **in the current cycle**:
 
-| Trạng thái | Ý nghĩa |
+| State | Meaning |
 | --- | --- |
-| Chưa gặp instance | Có thể cấp ID và đi sâu nếu còn ngân sách |
-| Đã gặp trong đường đi đệ quy hiện tại | Có đường vòng (*cycle*) quay lại node đang xử lý |
-| Đã gặp nhưng không ở đường đi hiện tại | Tham chiếu dùng chung (*alias*) đến node đã xử lý |
-| Chạm ngưỡng độ sâu/số node | Không kết luận phần còn lại có hay không có chu trình; chỉ đánh dấu **bị cắt** |
+| Unseen instance | Can be assigned an ID and explored if budget remains |
+| Already seen on the current recursion path | There is a loop (*cycle*) returning to an active node |
+| Already seen, not on the current path | Shared reference (*alias*) to an already processed node |
+| Hit depth/node threshold | Cannot conclude whether the remaining portion has a cycle or not; merely mark as **truncated** |
 
-Với mục tiêu **in đồ thị không lặp và giữ cấu trúc chia sẻ**, một bảng `seen` toàn cục cho *một lượt duyệt* là đủ: mọi lần gặp lại đều in `ref #id`. Nếu muốn **phân loại riêng cycle và alias**, cần thêm tập các node *đang ở trên stack* (thường gọi `active`, `gray` hay DFS recursion stack). Bài thực hành bên dưới chọn biểu diễn `ref #id` để bảo toàn identity đơn giản; không gọi tất cả tham chiếu lặp là “cycle”.
+For the goal of **printing a graph without looping while preserving shared structure**, a global `seen` table for *a single traversal* suffices: every repeat encounter prints `ref #id`. If you want to **distinguish cycles from aliases separately**, you also need a set of nodes *currently on the stack* (often called `active`, `gray`, or DFS recursion stack). The practice code below chooses `ref #id` to preserve identity simply; do not call every repeated reference a "cycle".
 
-## 2. Vì sao phải dùng `IdentityHashMap`?
+## 2. Why Must You Use `IdentityHashMap`?
 
-Có hai khái niệm dễ bị nhầm:
+Two concepts are easily confused:
 
-- **Bằng nhau về nội dung:** `x.equals(y)` có thể là `true` ngay cả khi `x` và `y` là hai instance khác nhau. Ngược lại, một số lớp định nghĩa `equals()`/`hashCode()` dựa trên dữ liệu thay đổi được.
-- **Cùng một đối tượng:** `x == y`. Đây là identity cần cho đồ thị object, vì hai instance có nội dung giống nhau vẫn là hai node riêng.
+- **Content equality:** `x.equals(y)` can be `true` even when `x` and `y` are two distinct instances. Conversely, some classes define `equals()`/`hashCode()` based on mutable data.
+- **Same object:** `x == y`. This is the identity needed for an object graph, because two instances with identical content are still two separate nodes.
 
-Nếu dùng `HashSet<Object> visited` hoặc `HashMap<Object, Integer>`, Java gọi `equals()` và `hashCode()` của chính đối tượng cần duyệt. Điều này có thể gây kết luận sai, side effect hoặc đệ quy vô hạn nếu hai phương thức ấy lại duyệt graph.
+If you use `HashSet<Object> visited` or `HashMap<Object, Integer>`, Java calls `equals()` and `hashCode()` on the objects being traversed. That can produce wrong conclusions, side effects, or infinite recursion if those methods themselves walk the graph.
 
-`IdentityHashMap<Object, Integer> seen` sử dụng **reference equality (`==`)** cho khóa. Nó tránh phụ thuộc vào cài đặt `equals()`/`hashCode()` của object.
+`IdentityHashMap<Object, Integer> seen` uses **reference equality (`==`)** for keys. It avoids depending on an object's `equals()`/`hashCode()` implementation.
 
 ~~~java
 IdentityHashMap<Object, Integer> seen = new IdentityHashMap<>();
 seen.put(node, 1);
-Integer previousId = seen.get(node); // 1 khi cùng instance node
+Integer previousId = seen.get(node); // 1 when it is the same node instance
 ~~~
 
-Đoạn trên chỉ minh họa cách dùng trong một method; cần `import java.util.IdentityHashMap;`. Không dùng `System.identityHashCode(obj)` làm **ID duy nhất** vì hash có thể va chạm. Trong ví dụ hoàn chỉnh, ta cấp ID số nguyên tăng dần theo thứ tự thăm và lưu trong `IdentityHashMap`.
+The snippet above only illustrates usage inside a method; it requires `import java.util.IdentityHashMap;`. Do not use `System.identityHashCode(obj)` as a **unique ID** because hashes can collide. In the complete example, we assign sequentially increasing integer IDs in visit order and store them in `IdentityHashMap`.
 
-**Thứ tự đúng:** khi thấy node mới, cấp ID và đưa vào `seen` **trước khi** duyệt children. Nếu chờ đến khi xử lý xong children mới đánh dấu, chu trình `A → B → A` vẫn có thể lặp vô hạn.
+**Correct order:** upon seeing a new node, assign its ID and put it into `seen` **before** traversing its children. If you wait until finishing children to mark it, a cycle `A → B → A` can still loop infinitely.
 
-## 3. Quy định phạm vi và ngân sách của công cụ
+## 3. Defining the Tool's Scope and Budgets
 
-Trước khi quét, phải quyết định những gì được phép đọc. Ví dụ của bài áp dụng các chính sách rõ ràng:
+Before scanning, you must decide what is permitted to be read. This lesson's example enforces explicit policies:
 
-1. **Đối tượng lá:** `null`, `String`, `Number`, `Boolean`, `Character`, `enum`, `Class` được in giá trị, không mở sâu các field. Có thể mở rộng tập leaf theo domain; trong môi trường không tin cậy, ngay cả `toString()` của một subclass `Number` có thể gây side effect, nên chỉ in các kiểu được phép rõ ràng.
-2. **Mảng:** dùng `Array.getLength`/`Array.get` để đọc cả mảng primitive và reference. Cắt sau `maxArrayItems` phần tử.
-3. **Đối tượng application:** duyệt instance fields từ class tới superclass, bỏ `static` và `synthetic`; gắn **declaring class** vào tên field để phân biệt field bị hide bởi lớp con.
-4. **Đối tượng JDK không phải leaf/mảng:** trong demo, dừng như node **opaque** và không phản xạ vào internal fields thuộc package `java.*`. Đây là chính sách mẫu, không thay thế allowlist package/type cần có cho production.
-5. **Quyền đọc:** thử `Field.canAccess(receiver)`; khi chưa có quyền, `trySetAccessible()` chỉ được thực hiện nếu đó là chính sách cho phép. Nếu vẫn không được, in `<inaccessible>`. Không giả định module nào cũng cho deep reflection.
-6. **Giới hạn:** `maxDepth` giới hạn số lớp lồng nhau, `maxNodes` giới hạn số object/array mới được mở, `maxArrayItems` giới hạn số phần tử mảng được xem.
-7. **Thứ tự:** sắp xếp field theo tên rồi theo declaring class. `getDeclaredFields()` không cam kết thứ tự; không dùng kết quả tự nhiên của mảng để xây snapshot có tính lặp lại.
-8. **Không gọi getter tự động:** ví dụ chỉ đọc field. Getter và `toString()` tùy ý có thể chạy logic nghiệp vụ, thực hiện I/O, thay đổi trạng thái hoặc ném exception.
+1. **Leaf objects:** `null`, `String`, `Number`, `Boolean`, `Character`, `enum`, and `Class` are printed by value without expanding their fields. The leaf set can be extended per domain; in untrusted environments, even `toString()` on a `Number` subclass could have side effects, so only print explicitly allowed types.
+2. **Arrays:** use `Array.getLength`/`Array.get` to read both primitive and reference arrays. Truncate after `maxArrayItems` elements.
+3. **Application objects:** walk instance fields from the class up through superclasses, skipping `static` and `synthetic`; attach the **declaring class** to the field name to distinguish fields hidden by subclasses.
+4. **JDK objects that are neither leaves nor arrays:** in the demo, stop as an **opaque** node and do not reflect into internal fields in `java.*` packages. This is a sample policy, not a substitute for a package/type allowlist needed in production.
+5. **Read permissions:** check `Field.canAccess(receiver)`; when inaccessible, `trySetAccessible()` is attempted only if permitted by policy. If still inaccessible, print `<inaccessible>`. Do not assume every module permits deep reflection.
+6. **Limits:** `maxDepth` caps nesting depth, `maxNodes` caps the number of new objects/arrays expanded, and `maxArrayItems` caps array elements inspected.
+7. **Ordering:** sort fields by name and then by declaring class. `getDeclaredFields()` makes no order guarantee; never rely on raw array order to build repeatable snapshots.
+8. **Do not call getters automatically:** the example only reads fields. Arbitrary getters and `toString()` can run business logic, perform I/O, mutate state, or throw exceptions.
 
-Lưu ý: **giới hạn độ sâu/số node/phần tử chưa phải sandbox chống dữ liệu thù địch**. Một class có quá nhiều field, một lời gọi `toString()` không an toàn, getter hoặc traversal collection tùy ý vẫn có thể tốn tài nguyên. Production cần thêm ngân sách thời gian, số field, độ dài chuỗi, bytes đầu ra, cancellation và allowlist adapters.
+Note: **depth/node/element limits are not a sandbox against adversarial data**. A class with too many fields, an unsafe `toString()` call, a getter, or arbitrary collection traversal can still exhaust resources. Production requires additional budgets for time, field count, string length, output bytes, cancellation, and allowlisted adapters.
 
-## 4. Ví dụ Java 17+ đầy đủ: `IdentityHashMap`, mảng và cycle
+## 4. Complete Java 17+ Example: `IdentityHashMap`, Arrays, and Cycles
 
-Tạo một tệp **`ObjectGraphDemo.java`** và sao chép toàn bộ chương trình:
+Create a file **`ObjectGraphDemo.java`** and copy the entire program:
 
 ~~~java
 import java.lang.reflect.Array;
@@ -211,14 +211,14 @@ public class ObjectGraphDemo {
 }
 ~~~
 
-Trong terminal tại thư mục chứa tệp, dùng JDK 17+:
+In a terminal inside the directory containing the file, using JDK 17+:
 
 ~~~bash
 javac --release 17 ObjectGraphDemo.java
 java ObjectGraphDemo
 ~~~
 
-Kết quả được kiểm chứng bằng biên dịch và chạy Java:
+Output verified by compiling and running with Java:
 
 ~~~text
 == graph ==
@@ -238,77 +238,77 @@ root: #1 Node
   Node.next: <max depth>
 ~~~
 
-Chương trình này sử dụng `Node` là nested class trong cùng top-level class với `Walker`; theo quy tắc **nestmate** của Java 17+, code có thể đọc các field private của `Node` khi đủ điều kiện. Với lớp của thư viện khác hoặc named module không mở package, việc đọc private có thể bị chặn và output `<inaccessible>` là kết quả hợp lệ.
+This program defines `Node` as a nested class within the same top-level class as `Walker`; under Java 17+ **nestmate** rules, the code can read `Node`'s private fields when permitted. For classes from other libraries or named modules that do not open their packages, private reads may be blocked and `<inaccessible>` is a valid outcome.
 
-### Giải thích output theo thứ tự
+### Explaining the Output in Order
 
-- `root: #1 Node`: lần đầu gặp instance `A`, cấp ID 1 và đưa ngay vào `seen`.
-- `Node.items: #2 Object[]`: mảng là **một đối tượng** có identity riêng, được đánh số #2 và duyệt các phần tử.
-- `[0]: #3 Node`: đối tượng `B` chưa gặp nên nhận ID 3.
-- `Node.next: ref #1` bên dưới B: `B.next` quay về A đã ghi nhận, nên dừng tại tham chiếu này và không đi vào vô hạn.
-- `Node.next: ref #3` bên dưới A: `A.next` dùng lại đúng B; không tạo thêm một bản B. Đây là shared reference; không nhất thiết là một vòng mới.
-- Lượt `new Walker(0, 1, 10)` dùng **bảng visited mới**, chỉ mở root ở depth 0; các object ở depth 1 bị cắt bằng `<max depth>`. Field leaf `Node.name` vẫn đọc được giá trị `A`.
+- `root: #1 Node`: first encounter with instance `A`, assigned ID 1 and inserted into `seen` immediately.
+- `Node.items: #2 Object[]`: an array is **an object** with its own identity, numbered #2 and walked element by element.
+- `[0]: #3 Node`: object `B` has not been seen yet, so it receives ID 3.
+- `Node.next: ref #1` under B: `B.next` points back to the already recorded `A`, so traversal stops at this reference instead of looping infinitely.
+- `Node.next: ref #3` under A: `A.next` reuses the exact same `B`; it does not create another copy of `B`. This is a shared reference; not necessarily a new cycle.
+- The `new Walker(0, 1, 10)` pass uses a **fresh visited table**, expanding only the root at depth 0; objects at depth 1 are cut off with `<max depth>`. The leaf field `Node.name` still reads its value `A`.
 
-Điểm thiết kế quan trọng: `seen` là state của **một lần walk**, không dùng `static` hoặc chia sẻ giữa các request. Một walker mới bắt đầu với namespace ID mới; đồng thời `IdentityHashMap` không an toàn khi nhiều thread cùng thay đổi nó.
+Important design point: `seen` is state for **a single walk**, never `static` or shared across requests. Each new walker starts with a fresh ID namespace; furthermore, `IdentityHashMap` is not safe for concurrent mutation by multiple threads.
 
-## 5. Phân biệt kiểm soát vòng tham chiếu và kiểm soát giới hạn
+## 5. Distinguishing Cycle Control from Budget Limits
 
-Một đoạn đệ quy kiểu `walk(field.get(value))` chỉ an toàn khi biết graph là cây không chu trình. Trong graph tổng quát, phải theo dõi identity và áp giới hạn:
+A recursive snippet like `walk(field.get(value))` is only safe when the graph is known to be an acyclic tree. In a general graph, you must track identity and enforce limits:
 
-| Biện pháp | Ngăn được | Chưa giải quyết |
+| Safeguard | Prevents | Does not solve |
 | --- | --- | --- |
-| `IdentityHashMap` visited | Duyệt lặp cùng instance, bao gồm cycle/alias | Graph có vô số node khác nhau hoặc traversal trên nguồn dữ liệu không ổn định |
-| Đánh dấu *trước khi* đi vào children | Cycle ngay lập tức `A → A` hoặc `A → B → A` | Hạn mức bộ nhớ/thời gian |
-| `maxDepth` | Stack quá sâu và traversal theo chiều sâu quá dài | Graph rất rộng ở độ sâu nhỏ |
-| `maxNodes` | Mở quá nhiều object/array độc lập | Mỗi object có quá nhiều field, string quá lớn |
-| `maxArrayItems` | Mảng lớn gây quá nhiều lần đọc phần tử | Collection/map lớn và dữ liệu ngoài array |
-| Lọc field và kiểu | Truy cập nhầm static/synthetic, JDK internals | Private access hợp lệ, dữ liệu nhạy cảm, hiệu ứng phụ |
-| Sắp xếp field | Snapshot lệ thuộc thứ tự mảng Reflection | Graph thay đổi trong lúc duyệt do concurrent mutation |
+| `IdentityHashMap` visited | Re-traversing the same instance, including cycles/aliases | Graphs with unbounded distinct nodes or traversal over unstable data sources |
+| Marking *before* entering children | Immediate cycles `A → A` or `A → B → A` | Memory/time quotas |
+| `maxDepth` | Excessive stack depth and overly deep traversals | Very wide graphs at shallow depth |
+| `maxNodes` | Expanding too many independent objects/arrays | Objects with huge numbers of fields or huge strings |
+| `maxArrayItems` | Large arrays causing excessive element reads | Large collections/maps and non-array data |
+| Field and type filtering | Accidentally touching static/synthetic fields or JDK internals | Legitimate private access, sensitive data, side effects |
+| Sorting fields | Snapshots depending on Reflection array order | Graph changing mid-walk due to concurrent mutation |
 
-**Thứ tự các kiểm tra cũng có ý nghĩa:** trong mã, null/leaf được xử lý trước; đối tượng đã nằm trong `seen` được in `ref`; node mới sau đó mới bị xét giới hạn depth/node. Vì thế một tham chiếu lặp tới node đã mở có thể vẫn hiện `ref #id` ngay cả khi sâu hơn `maxDepth`, trong khi node chưa mở tại độ sâu đó hiện `<max depth>`.
+**The order of checks also matters:** in the code, null/leaf values are handled first; objects already in `seen` print `ref`; new nodes are checked against depth/node limits afterward. Thus a repeat reference to an already expanded node can still print `ref #id` even deeper than `maxDepth`, while an unexpanded node at that depth prints `<max depth>`.
 
-Các chuỗi `<max depth>`/`<max nodes>` có nghĩa **“chưa duyệt”**, không có nghĩa con trỏ null hoặc object không tồn tại. Đừng dùng snapshot bị cắt làm căn cứ khẳng định graph không có chu trình.
+Strings like `<max depth>` / `<max nodes>` mean **"not yet explored"**, not a null pointer or non-existent object. Do not use a truncated snapshot as proof that a graph is acyclic.
 
-### Muốn phân biệt cycle với alias thật sự
+### When You Need to Truly Distinguish Cycles from Aliases
 
-Mở rộng DFS bằng hai cấu trúc:
+Extend DFS with two structures:
 
-- `seen`: instance đã được phát hiện trong cả lượt duyệt (để cấp ID và ngăn duyệt trùng).
-- `active`: instance đang nằm trên đường đệ quy hiện tại.
+- `seen`: instances discovered across the entire walk (to assign IDs and prevent duplicate traversal).
+- `active`: instances currently on the active recursion path.
 
-Khi duyệt child, nếu nó ở `active` thì đó là **back-edge/cycle**; nếu chỉ ở `seen` nhưng không ở `active` thì đó là **shared reference**. Xóa instance khỏi `active` trong `finally` khi hoàn tất duyệt nhánh, nhưng **không xóa khỏi `seen`**. Khi traversal bị cắt vì giới hạn, phải giữ trạng thái “truncated” để không suy luận thiếu dữ liệu là bằng chứng về việc không có vòng.
+When visiting a child, if it is in `active`, it is a **back-edge/cycle**; if it is only in `seen` and not in `active`, it is a **shared reference**. Remove the instance from `active` in a `finally` block once its branch finishes, but **never remove it from `seen`**. When traversal is cut off by a limit, preserve a "truncated" flag so missing data is not mistaken for proof of acyclicity.
 
-Với snapshot/debug output, chỉ cần `ref #id` thường đã đủ; việc phân biệt alias/cycle tùy mục tiêu ứng dụng.
+For snapshot/debug output, `ref #id` alone is usually enough; distinguishing aliases from cycles depends on the application's goal.
 
-## 6. Mảng, collection, map và kiểu đặc biệt
+## 6. Arrays, Collections, Maps, and Special Types
 
-Ví dụ hỗ trợ **mảng** trực tiếp bằng `java.lang.reflect.Array`:
+The example supports **arrays** directly via `java.lang.reflect.Array`:
 
-- `int[]` chứa primitive nhưng toàn bộ mảng vẫn là **object** có identity; `Array.get(array, i)` trả giá trị boxed như `Integer`.
-- `Object[]` có thể chứa null, phần tử chia sẻ instance, hoặc tham chiếu ngược về chính mảng đó. `seen` xử lý được nếu đánh dấu mảng trước khi duyệt.
-- Với mảng nhiều chiều, mỗi mảng con có identity riêng. Không giả định mọi hàng có cùng độ dài.
+- `int[]` holds primitives, yet the array itself is still an **object** with identity; `Array.get(array, i)` returns boxed values such as `Integer`.
+- `Object[]` can contain nulls, shared-instance elements, or a reference back to the array itself. `seen` handles this provided the array is marked before walking its elements.
+- For multidimensional arrays, each sub-array has its own identity. Do not assume all rows have the same length.
 
-**Collection và map cần adapter chuyên biệt**, chẳng hạn duyệt `List` theo index, `Map` theo key/value hoặc `Optional` theo giá trị. Không nên tự do reflect các field nội bộ của `ArrayList`/`HashMap`: cấu trúc bên trong là chi tiết implementation và có thể bị JPMS chặn.
+**Collections and maps need dedicated adapters**, such as iterating a `List` by index, a `Map` by key/value, or an `Optional` by its value. Do not freely reflect on the internal fields of `ArrayList`/`HashMap`: their internal layout is an implementation detail and may be blocked by JPMS.
 
-Khi thêm adapter:
+When adding adapters:
 
-1. Áp dụng **cùng một bảng identity** cho container và các phần tử; container cũng có thể tham chiếu chính nó (ví dụ `list.add(list)`).
-2. Đặt hạn mức phần tử để tránh dữ liệu quá lớn.
-3. Định nghĩa thứ tự biểu diễn; `HashMap`/`HashSet` không cam kết insertion order. Nếu sắp xếp key, chỉ dùng comparator an toàn cho key tương ứng và tránh gọi tùy tiện `toString`/`compareTo` trên dữ liệu không tin cậy.
-4. Không gọi các getter, lazy collections hoặc iterators có side effect trong snapshot chẩn đoán nếu chưa có chính sách/ủy quyền rõ.
-5. Đặt chính sách với `WeakReference`, `AtomicReference`, proxy, records và ORM lazy proxies; tham chiếu logic có thể khác field vật lý.
+1. Apply the **same identity table** to containers and elements; a container can also reference itself (e.g., `list.add(list)`).
+2. Set element limits to avoid oversized data.
+3. Define presentation order; `HashMap`/`HashSet` do not guarantee insertion order. If sorting keys, use only safe comparators for the key type and avoid arbitrarily calling `toString`/`compareTo` on untrusted data.
+4. Do not invoke side-effecting getters, lazy collections, or iterators in diagnostic snapshots without explicit policy/authorization.
+5. Define policies for `WeakReference`, `AtomicReference`, proxies, records, and ORM lazy proxies; logical references can differ from physical fields.
 
-Các đối tượng như `Thread`, `ClassLoader`, `Socket` hoặc dữ liệu nội bộ JDK không phải mặc nhiên là những nút nên mở sâu; tốt hơn là in kiểu, trạng thái được cho phép hoặc marker `opaque`.
+Objects like `Thread`, `ClassLoader`, `Socket`, or JDK internals are not nodes you should expand deeply by default; it is better to print the type, allowed state, or an `opaque` marker.
 
-## 7. Quyền truy cập Reflection và bảo vệ thông tin
+## 7. Reflection Access Permissions and Protecting Information
 
-`getDeclaredFields()` trả metadata của field private/protected/package-private nhưng **không bảo đảm caller có quyền đọc giá trị**. Mã có thể cần `Field.canAccess(receiver)`, `trySetAccessible()` và xử lý `IllegalAccessException`; trong named modules, package chưa `opens` cho caller có thể ngăn `trySetAccessible()`. Không ép tất cả package dùng `--add-opens` chỉ để debugger chạy được.
+`getDeclaredFields()` returns metadata for private/protected/package-private fields, yet **does not guarantee the caller has permission to read their values**. Code may need `Field.canAccess(receiver)`, `trySetAccessible()`, and `IllegalAccessException` handling; in named modules, packages not `opens` to the caller can block `trySetAccessible()`. Do not force every package to use `--add-opens` just to make a debugger work.
 
-Trong ứng dụng thực, cân nhắc chính sách **public only** hoặc explicit allowlist thay cho việc luôn thử nâng quyền. Ví dụ này có `trySetAccessible()` để minh họa kỹ thuật trong phạm vi được phép; không có nghĩa mọi field private đều nên bị đọc trong hệ thống sản xuất.
+In real applications, consider a **public-only** policy or an explicit allowlist rather than always attempting privilege escalation. This example includes `trySetAccessible()` to demonstrate the technique where permitted; it does not mean every private field should be read in production systems.
 
-Cần **redact hoặc bỏ qua** mật khẩu, token, khóa bí mật, thông tin cá nhân, connection strings, nội dung body HTTP nhạy cảm, bất kể field có modifier gì. Việc reflection đọc được dữ liệu không tạo ra quyền công bố dữ liệu đó.
+You must **redact or skip** passwords, tokens, secret keys, personal information, connection strings, and sensitive HTTP bodies, regardless of field modifiers. Being able to read data via reflection does not grant permission to disclose that data.
 
-Một cây output an toàn có thể dùng các marker:
+A safe output tree might use markers like:
 
 ~~~text
 user.password: <redacted>
@@ -319,28 +319,28 @@ internalField: <inaccessible>
 largeGraph: <max nodes>
 ~~~
 
-Khi logging, cũng cần chặn escape/control characters, giới hạn độ dài string và tổng dung lượng output; ví dụ minh họa chưa thực hiện tất cả các biện pháp này.
+When logging, you also need to neutralize escape/control characters and cap string length and total output size; the illustrative example does not implement all of these safeguards yet.
 
-## 8. Tính nhất quán và giới hạn thực tế
+## 8. Consistency and Practical Limitations
 
-- **Độ phức tạp:** nếu xét mỗi node/cạnh không bị cắt đúng một lần, duyệt graph có độ phức tạp gần `O(V + E)` cho phần được duyệt, ngoài chi phí phản xạ/sắp xếp field. `seen` cần `O(V)` bộ nhớ theo số instance đã gặp. Bộ giới hạn chỉ đặt trần cho một số tài nguyên cụ thể, không tự chứng minh toàn bộ công cụ đạt giới hạn thời gian.
-- **Mutable graph:** graph thay đổi trong lúc đang đọc có thể cho snapshot bất nhất, thậm chí gặp null/giá trị khác giữa hai lần truy cập. `IdentityHashMap` không tạo ra atomic snapshot hoặc thread safety cho object graph. Muốn snapshot nhất quán, cần cơ chế snapshot/locking thích hợp hoặc đọc immutable DTO.
-- **Hiệu ứng phụ:** `Field.get` không gọi getter, nhưng xử lý một object bằng `toString()`, iterator hoặc adapter do người dùng định nghĩa có thể chạy logic; cần kiểm soát. Trong demo, leaf `Number` được in bằng phép nối chuỗi; ở hệ thống không tin cậy nên thu hẹp whitelist và chuẩn hóa giá trị.
-- **Class loader/proxy:** hai object từ các class loader khác nhau có thể có cùng class name; không nên nhận diện object chỉ bằng tên class hoặc `System.identityHashCode`. Identity dựa trên reference là yếu tố quyết định.
-- **Field hiding:** hai field tên giống nhau trong cha/con là hai vị trí lưu trữ độc lập; demo gắn `getDeclaringClass()` vào nhãn để không nhập nhằng. Ở production nên dùng cả tên package/declaring class nếu tên class đơn giản có thể trùng nhau.
-- **Ngoại lệ:** `trySetAccessible()` có thể bị từ chối, `Field.get` có thể ném `IllegalAccessException`, phản xạ trên kiểu lạ hoặc class bị nạp động có thể thất bại. Không được nuốt lỗi rồi coi mọi field bị lỗi là null.
-- **Truy cập kiểu primitive:** Reflection có thể trả wrapper khi dùng `Field.get`; nếu cần phân biệt primitive declared type hãy xét `field.getType()` thay vì chỉ `value.getClass()`.
-- **Bảo toàn output:** khi serializing JSON, không thể tự biểu diễn chu trình bằng đối tượng lồng nhau thông thường. Cần schema xác định (`$id`/`$ref` hoặc equivalent), hoặc chính sách từ chối cycle rõ ràng.
+- **Complexity:** if each un-truncated node/edge is examined once, graph traversal is roughly `O(V + E)` for the visited portion, aside from reflection and field-sorting costs. `seen` requires `O(V)` memory proportional to encountered instances. Budget caps bound specific resources, without by themselves proving the whole tool meets a time bound.
+- **Mutable graphs:** a graph mutating while being read can yield an inconsistent snapshot, or even encounter null or different values between accesses. `IdentityHashMap` does not create an atomic snapshot or thread safety for the object graph. For consistent snapshots, use appropriate snapshotting/locking or read immutable DTOs.
+- **Side effects:** `Field.get` does not call getters, but formatting an object via `toString()`, iterators, or user-defined adapters can run arbitrary logic; keep it controlled. In the demo, `Number` leaves are printed via string concatenation; in untrusted systems, narrow the whitelist and normalize values.
+- **Class loaders/proxies:** two objects from different class loaders can share the same class name; do not identify objects solely by class name or `System.identityHashCode`. Reference-based identity is what is decisive.
+- **Field hiding:** two identically named fields in parent and child are two independent storage slots; the demo prefixes labels with `getDeclaringClass()` to avoid ambiguity. In production, include package/declaring class names if simple class names can collide.
+- **Exceptions:** `trySetAccessible()` can be denied, `Field.get` can throw `IllegalAccessException`, and reflecting on exotic or dynamically loaded classes can fail. Never swallow errors and treat failed fields as null.
+- **Primitive access:** Reflection may return a wrapper from `Field.get`; if you need to distinguish a primitive declared type, inspect `field.getType()` instead of only `value.getClass()`.
+- **Preserving output:** when serializing to JSON, cycles cannot be represented natively as ordinary nested objects. You need a defined schema (`$id`/`$ref` or equivalent), or an explicit cycle-rejection policy.
 
-## 9. Các câu hỏi tự kiểm tra
+## 9. Self-Check Questions
 
-1. Nếu hai instance có `equals() == true` nhưng `a != b`, có nên coi chúng là cùng một node khi duyệt object graph? **Không**; dùng identity.
-2. Vì sao phải `seen.put(value, id)` trước khi duyệt field con? Để chu trình quay lại node hiện tại nhận ra ngay.
-3. Nếu `A.child` và `B.child` trỏ tới cùng `C` nhưng graph không có cycle, lần xuất hiện thứ hai của `C` nên là gì? **`ref` đến cùng ID**, vì đây là alias.
-4. Nếu một object không thể đọc private field do module chưa open, có phải field ấy không tồn tại? **Không**; có metadata nhưng không có quyền truy cập giá trị.
-5. Nếu dừng ở `<max depth>`, có thể khẳng định subgraph đã bị cắt không có chu trình không? **Không**.
-6. Nếu có `List` chứa chính nó, nên xử lý ra sao khi thêm List adapter? Cấp ID cho List, đánh dấu vào `seen` trước, rồi duyệt phần tử và gặp lại dưới dạng `ref`.
+1. If two instances have `equals() == true` yet `a != b`, should they be treated as the same node when walking an object graph? **No**; use identity.
+2. Why must `seen.put(value, id)` happen before walking child fields? So a cycle returning to the current node is recognized immediately.
+3. If `A.child` and `B.child` point to the same `C` and the graph has no cycle, what should the second occurrence of `C` be? **`ref` to the same ID**, because this is an alias.
+4. If a private field cannot be read because a module is not open, does that mean the field does not exist? **No**; metadata exists, but access to the value is denied.
+5. If traversal stops at `<max depth>`, can you conclude the truncated subgraph has no cycles? **No**.
+6. If a `List` contains itself, how should it be handled when adding a List adapter? Assign the List an ID, mark it in `seen` first, then iterate elements and encounter it again as a `ref`.
 
-**Ghi nhớ:** đọc object graph bằng Reflection là **duyệt một đồ thị theo identity với giới hạn và quyền truy cập cụ thể**. `IdentityHashMap` + đánh dấu sớm ngăn vòng tham chiếu; depth/node/array budgets giới hạn phạm vi; chính sách kiểu, field, access, redaction và snapshot nhất quán quyết định công cụ có thực sự an toàn và đáng tin hay không.
+**Key takeaway:** reading an object graph with Reflection means **traversing a graph by identity with explicit budgets and access permissions**. `IdentityHashMap` + early marking prevent reference cycles; depth/node/array budgets bound the scope; policies for types, fields, access, redaction, and snapshot consistency determine whether the tool is truly safe and reliable.
 
-**Tài liệu Java SE 21:** [`IdentityHashMap`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/IdentityHashMap.html), [`Class.getDeclaredFields`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getDeclaredFields()), [`Field`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Field.html), [`Array`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Array.html), [`AccessibleObject`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AccessibleObject.html).
+**Java SE 21 Documentation:** [`IdentityHashMap`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/IdentityHashMap.html), [`Class.getDeclaredFields`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getDeclaredFields()), [`Field`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Field.html), [`Array`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Array.html), [`AccessibleObject`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AccessibleObject.html).

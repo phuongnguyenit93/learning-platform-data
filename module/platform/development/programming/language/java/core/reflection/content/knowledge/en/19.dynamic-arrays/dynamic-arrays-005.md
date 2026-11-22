@@ -1,8 +1,8 @@
-# Boxing khi đọc mảng primitive bằng `Array.get` trong Java Reflection
+# Boxing When Reading Primitive Arrays with `Array.get` in Java Reflection
 
-## 1. Tình huống cần hiểu
+## 1. The Situation to Understand
 
-`java.lang.reflect.Array.get(Object array, int index)` có kiểu trả về **`Object`**, kể cả khi phần tử của mảng là primitive như `int` hoặc `double`. Với mảng primitive, Reflection phải biểu diễn giá trị vừa đọc bằng wrapper tương ứng; với mảng tham chiếu, nó trả lại chính reference đang nằm ở ô đó.
+`java.lang.reflect.Array.get(Object array, int index)` has return type **`Object`**, even when the array element is primitive such as `int` or `double`. For primitive arrays, Reflection must represent the read value with the corresponding wrapper; for reference arrays, it returns the exact reference stored in that slot.
 
 ~~~java
 int[] scores = {42};
@@ -12,20 +12,20 @@ System.out.println(item);                    // 42
 System.out.println(item.getClass().getName()); // java.lang.Integer
 ~~~
 
-Hình dung luồng dữ liệu:
+Visualize the data flow:
 
 ~~~text
-int[] -- đọc một ô --> int 42 -- boxing --> Integer(42) -- trả về Object
-Integer[] -- đọc một ô --> reference Integer(42) --------> trả về Object
+int[] -- read a slot --> int 42 -- boxing --> Integer(42) -- return Object
+Integer[] -- read a slot --> reference Integer(42) --------> return Object
 ~~~
 
-Hai trường hợp có thể cùng cho kết quả quan sát là một đối tượng `Integer`, nhưng **nguồn gốc khác nhau**: trong `int[]`, số nằm dưới dạng primitive; trong `Integer[]`, mảng lưu một reference tới object `Integer` đã có. Bài này tập trung vào ý nghĩa đó, khả năng gặp `null`, cách phân biệt nguồn và lúc nào nên dùng getter primitive chuyên biệt.
+Both cases can yield the same observed result of an `Integer` object, but **their origins differ**: in `int[]`, the number is stored in primitive form; in `Integer[]`, the array stores a reference to an existing `Integer` object. This lesson focuses on that distinction, the possibility of encountering `null`, how to distinguish origins, and when to use a specialized primitive getter.
 
-## 2. Quy tắc dựa vào component type trực tiếp
+## 2. Rule Based on the Direct Component Type
 
-Bảng dưới mô tả **kiểu phần tử trực tiếp** của mảng và kiểu object trả về từ `Array.get`:
+The table below describes the **direct element type** of the array and the object type returned from `Array.get`:
 
-| Kiểu mảng | Component type | Kết quả khi đọc phần tử hợp lệ |
+| Array Type | Component Type | Result When Reading a Valid Element |
 | --- | --- | --- |
 | `boolean[]` | `boolean` | `Boolean` |
 | `byte[]` | `byte` | `Byte` |
@@ -35,11 +35,11 @@ Bảng dưới mô tả **kiểu phần tử trực tiếp** của mảng và ki
 | `long[]` | `long` | `Long` |
 | `float[]` | `float` | `Float` |
 | `double[]` | `double` | `Double` |
-| `Integer[]` | `Integer` | Reference `Integer` hoặc `null` |
-| `String[]` | `String` | Reference `String` hoặc `null` |
-| `int[][]` | `int[]` | Reference tới một `int[]` hoặc `null` |
+| `Integer[]` | `Integer` | Reference `Integer` or `null` |
+| `String[]` | `String` | Reference `String` or `null` |
+| `int[][]` | `int[]` | Reference to an `int[]` or `null` |
 
-Để kiểm tra *cơ chế đọc*, dùng:
+To inspect the *reading mechanism*, use:
 
 ~~~java
 Object unknown = new int[] {42};
@@ -49,9 +49,9 @@ System.out.println(component == int.class);  // true
 System.out.println(component.isPrimitive()); // true
 ~~~
 
-`getComponentType()` chỉ bỏ **một tầng**. Chẳng hạn, `int[][].class.getComponentType() == int[].class`; vì `int[]` cũng là object, `int[][].class.getComponentType().isPrimitive()` trả `false`. Đọc tầng ngoài bằng `Array.get` cho một mảng con `int[]`; khi tiếp tục đọc **trong mảng con** thì mới boxing một số `int` thành `Integer`.
+`getComponentType()` strips only **one layer**. For example, `int[][].class.getComponentType() == int[].class`; because `int[]` is also an object, `int[][].class.getComponentType().isPrimitive()` returns `false`. Reading the outer layer with `Array.get` yields an `int[]` subarray; only when continuing to read **inside the subarray** is an `int` number boxed into `Integer`.
 
-## 3. Khi hai object giống nhau về class nhưng khác ngữ nghĩa
+## 3. When Two Objects Share the Same Class but Have Different Semantics
 
 ~~~java
 Object primitiveArray = new int[] {7};
@@ -64,7 +64,7 @@ System.out.println(a.getClass() == b.getClass()); // true
 System.out.println(a.equals(b));                  // true
 ~~~
 
-Các kết quả trên **không cho phép kết luận** cả hai mảng có cùng loại. Kiểm tra thành phần sẽ cho `int.class` và `Integer.class`. Điều này quan trọng với serializer hoặc bộ ánh xạ dữ liệu: một mảng primitive không thể có phần tử `null`, trong khi một mảng wrapper có thể.
+The results above **do not allow concluding** that both arrays have the same kind. Checking the component gives `int.class` and `Integer.class`. This matters for a serializer or data mapper: a primitive array cannot have a `null` element, whereas a wrapper array can.
 
 ~~~java
 int[] primitive = new int[1];
@@ -74,15 +74,15 @@ System.out.println(java.lang.reflect.Array.get(primitive, 0)); // 0
 System.out.println(java.lang.reflect.Array.get(reference, 0)); // null
 ~~~
 
-Không gọi `getClass()` trực tiếp trên một phần tử chưa kiểm tra `null`. Ngoài ra, **`Character` và `Boolean` không kế thừa `Number`**. Nếu công cụ phân loại kết quả với `item instanceof Number`, nó bỏ sót hai wrapper này. Khi cần hỗ trợ đủ tám primitive, hãy dựa vào **component type của mảng nguồn**, rồi chọn chính sách chuyển đổi phù hợp.
+Do not call `getClass()` directly on an element without checking `null` first. In addition, **`Character` and `Boolean` do not extend `Number`**. If a tool classifies results with `item instanceof Number`, it misses these two wrappers. When needing to support all eight primitives, rely on **the component type of the source array**, then choose the appropriate conversion policy.
 
-### Boxing không có nghĩa mảng đã được chuyển đổi
+### Boxing Does Not Mean the Array Was Converted
 
-Dù `Array.get(new int[]{7}, 0)` trả `Integer`, đối tượng mảng nguồn vẫn là `int[]`. Nó không trở thành `Integer[]` và không thể ép sang `Object[]`. Nếu API thực sự cần một mảng reference, phải **cấp phát mảng mới và copy/boxing từng giá trị**. Một phép cast không thực hiện chuyển đổi toàn bộ mảng.
+Even though `Array.get(new int[]{7}, 0)` returns `Integer`, the source array object is still `int[]`. It does not become `Integer[]` and cannot be cast to `Object[]`. If an API truly needs a reference array, you must **allocate a new array and copy/box each value**. A cast does not perform an entire-array conversion.
 
-## 4. Chương trình độc lập: so sánh bốn trường hợp
+## 4. Standalone Program: Comparing Four Cases
 
-Lưu thành `ArrayBoxingFocusDemo.java`, chạy bằng JDK 17+:
+Save as `ArrayBoxingFocusDemo.java`, run with JDK 17+:
 
 ~~~java
 import java.lang.reflect.Array;
@@ -127,7 +127,7 @@ javac --release 17 ArrayBoxingFocusDemo.java
 java ArrayBoxingFocusDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 primitive: component=int, primitive=true, value=42, resultType=java.lang.Integer
@@ -140,58 +140,58 @@ getLong(int[])=7
 getInt(wrapperArray)=rejected
 ~~~
 
-Khi chạy, hãy đối chiếu `primitive` và `wrapper`: `resultType` giống nhau, nhưng `component` và `primitive` khác. Ở `nested`, giá trị đọc được là mảng con, chưa phải một số; `nested-leaf` mới đọc giá trị primitive. Kết quả `null` của `empty-reference` là hợp lệ, không phải lỗi Reflection.
+When running, compare `primitive` and `wrapper`: `resultType` is the same, but `component` and `primitive` differ. In `nested`, the read value is a subarray, not yet a number; `nested-leaf` is what reads the primitive value. The `null` result of `empty-reference` is valid, not a Reflection error.
 
-## 5. Vì sao `getInt` khác `get`?
+## 5. Why Does `getInt` Differ from `get`?
 
-Các getter chuyên biệt (`getBoolean`, `getByte`, `getShort`, `getChar`, `getInt`, `getLong`, `getFloat`, `getDouble`) có kiểu trả về **primitive** trên chữ ký API. Chẳng hạn:
+Specialized getters (`getBoolean`, `getByte`, `getShort`, `getChar`, `getInt`, `getLong`, `getFloat`, `getDouble`) have a **primitive** return type on the API signature. For instance:
 
 ~~~java
 int[] source = {10};
-Object boxed = Array.get(source, 0);   // Object tham chiếu Integer.
-int exact = Array.getInt(source, 0);   // Giá trị int.
-long wider = Array.getLong(source, 0); // int -> long hợp lệ.
+Object boxed = Array.get(source, 0);   // Object referencing Integer.
+int exact = Array.getInt(source, 0);   // int value.
+long wider = Array.getLong(source, 0); // int -> long valid.
 ~~~
 
-Đoạn trên cần import `java.lang.reflect.Array` và được đặt bên trong một method.
+The snippet above requires importing `java.lang.reflect.Array` and is placed inside a method.
 
-Typed getter cho phép **identity hoặc widening primitive** từ component type của mảng **sang kiểu trả về**. `getInt` nhận `byte[]`, `short[]`, `char[]`, `int[]`, nhưng không đọc `long[]` vì đó là narrowing. `getDouble` nhận các mảng primitive số hợp lệ (không nhận `boolean[]`), tuy widening `long -> double` vẫn có thể mất độ chính xác. Typed getter **không tự unbox reference array**: `Array.getInt(new Integer[]{10}, 0)` bị từ chối.
+Typed getters allow **identity or primitive widening** from the array's component type **to the return type**. `getInt` accepts `byte[]`, `short[]`, `char[]`, `int[]`, but does not read `long[]` because that is narrowing. `getDouble` accepts valid numeric primitive arrays (not `boolean[]`), though `long -> double` widening can still lose precision. Typed getters **do not automatically unbox reference arrays**: `Array.getInt(new Integer[]{10}, 0)` is rejected.
 
-Để tìm đầy đủ chiều conversion cho mọi getter/setter, xem bài `Array.get, Array.set và các biến thể primitive`; ở đây cần giữ một quy tắc: **`get` đóng hộp theo kiểu phần tử thực, còn `getXxx` trả primitive theo đường widening mà API cho phép**.
+To find the full conversion directions for all getters/setters, see the lesson `Array.get, Array.set, and Primitive Variants`; here keep one rule: **`get` boxes according to the actual element type, whereas `getXxx` returns a primitive along the widening path permitted by the API**.
 
-## 6. Khi nào boxing có tác động thực tế?
+## 6. When Does Boxing Have Practical Impact?
 
-**API tổng quát:** Một inspector/serializer xử lý `Object unknownArray` có thể dùng `Array.get` để nhận phần tử dưới dạng `Object` mà không cần biết trước kiểu số. Đây là cách đơn giản, nhưng phải phân biệt wrapper vừa boxing với object tham chiếu vốn đã tồn tại.
+**General APIs:** An inspector/serializer handling `Object unknownArray` can use `Array.get` to receive elements as `Object` without knowing the numeric type in advance. This is simple, but you must distinguish a freshly boxed wrapper from an already-existing reference object.
 
-**Hot loop:** Nếu mã biết nguồn là `int[]` và cần cộng hàng triệu số, truy cập `typedArray[i]` thường hợp lý hơn việc đọc thành `Object`, cast/unbox rồi cộng. `Array.getInt` làm rõ kiểu trả về `int`, song chi phí thực tế còn phụ thuộc JVM, JIT và cách người gọi sử dụng kết quả. Không suy đoán số object được cấp phát chỉ từ cú pháp; hãy đo ở đúng môi trường khi có vấn đề hiệu năng.
+**Hot loops:** If code knows the source is `int[]` and needs to sum millions of numbers, accessing `typedArray[i]` is usually more reasonable than reading as `Object`, casting/unboxing, and then adding. `Array.getInt` makes the `int` return type explicit, though actual cost still depends on the JVM, JIT, and how the caller uses the result. Do not guess allocated object counts from syntax alone; measure in the actual environment when performance issues arise.
 
-**So sánh:** Không dựa vào `==` giữa hai kết quả boxing; wrapper có thể được tái sử dụng/cached và việc đồng nhất object không phải hợp đồng để so giá trị mảng. So sánh giá trị bằng `equals` hoặc unbox với kiểu phù hợp; đừng ép mọi phần tử sang `Integer` khi nguồn có thể là `long[]` hay `char[]`.
+**Comparisons:** Do not rely on `==` between two boxed results; wrappers may be reused/cached and object identity is not a contract for comparing array values. Compare values with `equals` or unbox with the appropriate type; do not cast every element to `Integer` when the source could be `long[]` or `char[]`.
 
-**Đọc và ghi:** Khi `Array.set` ghi vào mảng primitive, `Object value` được xem xét theo wrapper nguồn, unboxing và widening hợp lệ trước khi lưu. Hướng conversion đó **khác hướng đọc** của `getXxx`; một giá trị `Integer` không tự chuyển thành object `Long` để ghi vào `Long[]`. Bài về điều kiện widening khi gán giải thích sâu phần này.
+**Reading and writing:** When `Array.set` writes to a primitive array, `Object value` is evaluated based on the source wrapper, unboxing, and valid widening before storing. That conversion direction **differs from the read direction** of `getXxx`; an `Integer` value does not automatically convert into a `Long` object to be written into `Long[]`. The lesson on widening conditions during assignment explains this part in depth.
 
-## 7. Ranh giới lỗi nên phân biệt
+## 7. Error Boundaries to Distinguish
 
-| Tình huống | Hậu quả | Bài học |
+| Situation | Consequence | Lesson |
 | --- | --- | --- |
-| `Array.get(new int[]{7}, 0)` | `Integer` | Boxing đúng kiểu primitive |
-| `Array.get(new Integer[]{null}, 0)` | `null` | Mảng reference cho phép phần tử null |
-| `(Integer) Array.get(new long[]{7}, 0)` | `ClassCastException` | Kết quả thật là `Long` |
-| `Array.getInt(new Integer[]{7}, 0)` | `IllegalArgumentException` | Typed getter không dùng cho reference array |
-| `Array.get(new int[0], 0)` | `ArrayIndexOutOfBoundsException` | Mảng hợp lệ nhưng không có chỉ số 0 |
-| `Array.get(null, 0)` | `NullPointerException` | Không có đối tượng mảng |
-| `Array.get("text", 0)` | `IllegalArgumentException` | Đối tượng không phải mảng |
+| `Array.get(new int[]{7}, 0)` | `Integer` | Boxing matches the primitive type |
+| `Array.get(new Integer[]{null}, 0)` | `null` | Reference arrays allow null elements |
+| `(Integer) Array.get(new long[]{7}, 0)` | `ClassCastException` | Actual result is `Long` |
+| `Array.getInt(new Integer[]{7}, 0)` | `IllegalArgumentException` | Typed getters do not work on reference arrays |
+| `Array.get(new int[0], 0)` | `ArrayIndexOutOfBoundsException` | Valid array, but index 0 does not exist |
+| `Array.get(null, 0)` | `NullPointerException` | No array object |
+| `Array.get("text", 0)` | `IllegalArgumentException` | Object is not an array |
 
-Nếu nhận đầu vào không rõ kiểu, kiểm tra `array != null`, `array.getClass().isArray()` và `Array.getLength(array)` trước khi truy cập phần tử. Sau đó kiểm tra `component.isPrimitive()` hoặc `item == null` trước khi xử lý kết quả. Việc này bảo vệ ranh giới dữ liệu nhưng không thay thế bước kiểm tra kiểu trong logic nghiệp vụ.
+If receiving input of unknown type, check `array != null`, `array.getClass().isArray()`, and `Array.getLength(array)` before accessing elements. Then check `component.isPrimitive()` or `item == null` before processing the result. This protects data boundaries, though it does not replace type validation in business logic.
 
-## 8. Câu hỏi tự kiểm tra
+## 8. Self-Check Questions
 
-1. Vì sao `Array.get(new int[]{1}, 0)` và `Array.get(new Integer[]{1}, 0)` đều trả `Integer` nhưng có nguồn gốc khác nhau?
-2. Vì sao đọc tầng ngoài `int[][]` qua `Array.get` **không boxing `int`**?
-3. Kết quả của `Array.get(new boolean[]{false}, 0)` là wrapper nào? Tại sao `instanceof Number` không nhận diện được nó?
-4. `Array.getLong(new int[]{10}, 0)` có hợp lệ không? `Array.getInt(new long[]{10}, 0)` thì sao?
-5. Tại sao `getInt` không làm việc với `Integer[]`, dù phần tử đầu đang chứa `Integer(10)`?
-6. Trong framework tổng quát, tại sao kiểm tra `component.isPrimitive()` đáng tin cậy hơn đoán nguồn mảng qua class của đối tượng trả về từ `Array.get`?
+1. Why do `Array.get(new int[]{1}, 0)` and `Array.get(new Integer[]{1}, 0)` both return `Integer` yet have different origins?
+2. Why does reading the outer layer of `int[][]` via `Array.get` **not box `int`**?
+3. What wrapper is the result of `Array.get(new boolean[]{false}, 0)`? Why does `instanceof Number` fail to detect it?
+4. Is `Array.getLong(new int[]{10}, 0)` valid? What about `Array.getInt(new long[]{10}, 0)`?
+5. Why doesn't `getInt` work with `Integer[]`, even though the first element currently holds `Integer(10)`?
+6. In a general framework, why is checking `component.isPrimitive()` more reliable than guessing the array origin from the class of the object returned by `Array.get`?
 
-**Đáp án cốt lõi:** Quyết định boxing của `Array.get` phụ thuộc **component type trực tiếp của mảng**. Getter primitive chuyên biệt trả primitive qua identity/widening hợp lệ; một mảng reference vẫn là mảng reference, bất kể nó lưu wrapper gì.
+**Core answer:** `Array.get`'s boxing decision depends on **the array's direct component type**. Specialized primitive getters return primitives via valid identity/widening; a reference array remains a reference array, regardless of what wrappers it stores.
 
-Tài liệu chuẩn: [Java SE 17 — `java.lang.reflect.Array`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Array.html), [JLS §5.1.7 — Boxing](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.7).
+Standard references: [Java SE 17 — `java.lang.reflect.Array`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Array.html), [JLS §5.1.7 — Boxing](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.7).

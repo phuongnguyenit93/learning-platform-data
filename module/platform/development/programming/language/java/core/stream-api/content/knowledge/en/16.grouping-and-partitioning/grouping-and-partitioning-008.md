@@ -1,41 +1,41 @@
-# Phân biệt groupingBy, partitioningBy và toMap
+# Distinguishing groupingBy, partitioningBy, and toMap
 
-> **Chương:** Phân nhóm và phân hoạch  
+> **Chapter:** Grouping and Partitioning  
 > **Module:** JAVA_STREAM_API  
-> **Mục tiêu:** Lựa chọn đúng giữa `Collectors.groupingBy`, `Collectors.partitioningBy` và `Collectors.toMap` dựa trên cấu trúc dữ liệu đầu ra, số giá trị trên một khóa, yêu cầu xử lý trùng khóa và cách tổng hợp kết quả.
+> **Goal:** Choose correctly among `Collectors.groupingBy`, `Collectors.partitioningBy`, and `Collectors.toMap` based on the output data structure, number of values per key, duplicate-key handling requirements, and aggregation strategy.
 
-Khi viết pipeline **Java Stream API**, các phép `filter`, `map` và `sorted` mô tả cách dữ liệu đi qua luồng; còn `collect` thường được dùng để đưa kết quả vào một cấu trúc như `List`, `Set` hay `Map`. Trong nhóm các collector trả về Map, ba API dễ bị nhầm nhất là **`groupingBy`**, **`partitioningBy`** và **`toMap`**.
+When writing a **Java Stream API** pipeline, operations like `filter`, `map`, and `sorted` describe how data flows through the stream, while `collect` is commonly used to gather results into a structure such as `List`, `Set`, or `Map`. Among the collectors that return a Map, the three most frequently confused APIs are **`groupingBy`**, **`partitioningBy`**, and **`toMap`**.
 
-Cả ba đều có thể tạo một `Map`, nhưng **ý nghĩa hoàn toàn khác nhau**:
+All three can produce a `Map`, yet their **meanings are completely different**:
 
-- `groupingBy` chia các phần tử theo **một khóa phân loại**, mặc định giữ **danh sách nhiều phần tử** cho mỗi khóa.
-- `partitioningBy` chia phần tử theo **một điều kiện boolean**, luôn có **hai khóa `true` và `false`**.
-- `toMap` ánh xạ từng phần tử thành **một cặp khóa–giá trị**; khi khóa trùng, phải quyết định **từ chối, chọn một giá trị hay gộp các giá trị**.
+- `groupingBy` splits elements by a **classification key**, defaulting to holding a **list of multiple elements** per key.
+- `partitioningBy` splits elements by a **boolean condition**, always containing **two keys: `true` and `false`**.
+- `toMap` maps each element into **one key–value pair**; when keys collide, you must decide whether to **reject, pick one value, or merge the values**.
 
-Bài này đi từ cách đọc chữ ký API đến ví dụ nghiệp vụ, downstream collector, dữ liệu rỗng, thứ tự, `null`, xử lý song song và hiệu năng. Đó cũng là nền tảng để tiếp tục học grouping nhiều tầng, collector tùy chỉnh, `Spliterator` và Stream Gatherers trong module **JAVA_STREAM_API**.
+This lesson walks from reading the API signatures to business examples, downstream collectors, empty data, ordering, `null`, parallel execution, and performance. It also builds the foundation for learning multi-level grouping, custom collectors, `Spliterator`, and Stream Gatherers in the **JAVA_STREAM_API** module.
 
-Các ví dụ sử dụng Java 17+ để hỗ trợ `record`, `List.of` và `Stream.toList()`. Ba collector chính đã có từ Java 8; `Collectors.filtering` được bổ sung từ Java 9.
+Examples use Java 17+ to support `record`, `List.of`, and `Stream.toList()`. All three main collectors have been available since Java 8; `Collectors.filtering` was added in Java 9.
 
-## 1. Nhìn nhanh: cùng là Map nhưng khác hợp đồng
+## 1. Quick Overview: Same Map Return Type, Different Contracts
 
-Giả sử có một tập giao dịch bán hàng với mã, vùng, số tiền và trạng thái thanh toán. Ta có ba yêu cầu:
+Suppose we have a set of sales transactions with ID, region, amount, and payment status. We have three requirements:
 
-1. **Theo vùng:** vùng “Bắc” chứa những giao dịch nào?
-2. **Theo trạng thái:** các giao dịch đã thanh toán và chưa thanh toán là những giao dịch nào?
-3. **Theo mã giao dịch:** lấy giao dịch có mã “S03” nhanh bằng cách nào?
+1. **By region:** which transactions belong to region "Bắc"?
+2. **By status:** which transactions are paid and which are unpaid?
+3. **By transaction ID:** how do we quickly look up the transaction with ID "S03"?
 
-Ba yêu cầu ấy dẫn đến ba cách thu thập:
+These three requirements lead to three collection approaches:
 
 ```java
-// Map<String, List<Sale>>: một vùng có thể chứa nhiều giao dịch.
+// Map<String, List<Sale>>: one region can contain multiple transactions.
 Map<String, List<Sale>> byRegion = sales.stream()
     .collect(Collectors.groupingBy(Sale::region));
 
-// Map<Boolean, List<Sale>>: chỉ có nhóm true và false.
+// Map<Boolean, List<Sale>>: only true and false groups exist.
 Map<Boolean, List<Sale>> byPaid = sales.stream()
     .collect(Collectors.partitioningBy(Sale::paid));
 
-// Map<String, Sale>: một mã giao dịch ứng với một Sale.
+// Map<String, Sale>: one transaction ID maps to one Sale.
 Map<String, Sale> byId = sales.stream()
     .collect(Collectors.toMap(
         Sale::id,
@@ -43,30 +43,30 @@ Map<String, Sale> byId = sales.stream()
     ));
 ```
 
-Các biến và kiểu `Sale` được khai báo đầy đủ trong ví dụ ở mục 2. Cần import `java.util.List`, `java.util.Map`, `java.util.function.Function` và `java.util.stream.Collectors`.
+The variables and `Sale` type are fully declared in the example in Section 2. Imports needed are `java.util.List`, `java.util.Map`, `java.util.function.Function`, and `java.util.stream.Collectors`.
 
-| Tiêu chí | `groupingBy` | `partitioningBy` | `toMap` |
+| Criterion | `groupingBy` | `partitioningBy` | `toMap` |
 | --- | --- | --- | --- |
-| Câu hỏi chính | “Phần tử thuộc nhóm nào?” | “Điều kiện đúng hay sai?” | “Phần tử tạo ra khóa và giá trị nào?” |
-| Hàm đầu vào | `Function<T,K>` | `Predicate<T>` | `keyMapper` và `valueMapper` |
-| Kiểu khóa điển hình | `K` bất kỳ, khác `null` | `Boolean` | `K` tùy ý theo Map được tạo |
-| Kiểu kết quả mặc định | `Map<K,List<T>>` | `Map<Boolean,List<T>>` | `Map<K,U>` |
-| Nhiều phần tử cùng khóa | Được gom vào một nhóm | Được gom vào một trong hai nhánh | Lỗi ở overload không có merge function |
-| Có downstream collector? | Có | Có | Không theo cú pháp downstream; có merge function |
-| Nguồn rỗng | Map rỗng | Vẫn có `true` và `false` | Map rỗng |
-| Số khóa | 0 đến nhiều khóa đã phát sinh | Luôn đúng 2 khóa boolean | 0 đến nhiều khóa sau ánh xạ |
+| Primary question | "Which group does the element belong to?" | "Is the condition true or false?" | "Which key and value does the element produce?" |
+| Input function | `Function<T,K>` | `Predicate<T>` | `keyMapper` and `valueMapper` |
+| Typical key type | Any non-`null` `K` | `Boolean` | Any `K` supported by the created Map |
+| Default result type | `Map<K,List<T>>` | `Map<Boolean,List<T>>` | `Map<K,U>` |
+| Multiple elements with the same key | Gathered into one group | Gathered into one of the two branches | Fails in the overload without a merge function |
+| Has downstream collector? | Yes | Yes | Not via downstream syntax; has a merge function |
+| Empty source | Empty Map | Still has `true` and `false` | Empty Map |
+| Number of keys | 0 up to the number of generated keys | Always exactly 2 boolean keys | 0 up to the number of mapped keys |
 
-**Quy tắc nhận diện nhanh:** nếu muốn giữ **tập phần tử cho mỗi khóa**, dùng `groupingBy`; nếu chỉ có **hai nhánh theo điều kiện**, dùng `partitioningBy`; nếu cần **một giá trị cho mỗi khóa**, xem `toMap` và xác định chính sách khóa trùng.
+**Quick identification rule:** if you want to keep a **collection of elements per key**, use `groupingBy`; if there are only **two branches from a condition**, use `partitioningBy`; if you need **one value per key**, consider `toMap` and define the duplicate-key policy.
 
-## 2. Dữ liệu mẫu thống nhất cho cả bài
+## 2. Consistent Sample Data for the Entire Lesson
 
-Ta dùng record `Sale`:
+We use the `Sale` record:
 
 ```java
 record Sale(String id, String region, long amount, boolean paid) {}
 ```
 
-Danh sách đầu vào:
+Input list:
 
 ```java
 List<Sale> sales = List.of(
@@ -79,9 +79,9 @@ List<Sale> sales = List.of(
 );
 ```
 
-Bảng dữ liệu:
+Data table:
 
-| Mã | Vùng | Số tiền | Đã thanh toán |
+| ID | Region | Amount | Paid |
 | --- | --- | ---: | --- |
 | S01 | Bắc | 120.000 | true |
 | S02 | Nam | 60.000 | false |
@@ -90,25 +90,25 @@ Bảng dữ liệu:
 | S05 | Bắc | 50.000 | false |
 | S06 | Tây | 200.000 | true |
 
-Từ bảng này, các kết quả mong đợi là:
+From this table, the expected results are:
 
-- Theo vùng: **Bắc có 3**, **Nam có 2**, **Tây có 1** giao dịch.
-- Theo thanh toán: **true có 4**, **false có 2** giao dịch.
-- Doanh thu gộp theo vùng **chưa lọc trạng thái**: Bắc **250.000**, Nam **200.000**, Tây **200.000**.
-- Doanh thu **chỉ các giao dịch đã thanh toán** theo vùng: Bắc **200.000**, Nam **140.000**, Tây **200.000**.
+- By region: **Bắc has 3**, **Nam has 2**, **Tây has 1** transaction.
+- By payment status: **true has 4**, **false has 2** transactions.
+- Gross revenue by region **without filtering status**: Bắc **250.000**, Nam **200.000**, Tây **200.000**.
+- Revenue **for paid transactions only** by region: Bắc **200.000**, Nam **140.000**, Tây **200.000**.
 
-Việc phân biệt “tổng tiền mọi giao dịch” với “doanh thu đã thanh toán” là một phần của yêu cầu nghiệp vụ, không phải tính năng tự quyết định của collector.
+Distinguishing "total amount of all transactions" from "paid revenue" is part of the business requirement, not an automatic decision made by the collector.
 
-## 3. groupingBy: nhóm nhiều phần tử theo một khóa
+## 3. groupingBy: Grouping Multiple Elements by a Key
 
-Overload đơn giản nhất:
+Simplest overload:
 
 ```java
 Map<String, List<Sale>> salesByRegion = sales.stream()
     .collect(Collectors.groupingBy(Sale::region));
 ```
 
-`Sale::region` là *classifier* – một hàm nhận `Sale` và trả khóa `String`. Với mỗi khóa, collector tạo nhóm những phần tử có cùng giá trị phân loại:
+`Sale::region` is the *classifier* — a function taking a `Sale` and returning a `String` key. For each key, the collector builds a group of elements sharing the same classification value:
 
 ```text
 Stream<Sale>
@@ -121,7 +121,7 @@ groupingBy(Sale::region)
       └── "Tây" ──► [S06]
 ```
 
-Có thể truy cập nhóm:
+Accessing a group:
 
 ```java
 List<Sale> northern = salesByRegion.get("Bắc");
@@ -129,11 +129,11 @@ List<Sale> northern = salesByRegion.get("Bắc");
 System.out.println(northern.size()); // 3
 ```
 
-### 3.1. groupingBy không giới hạn số nhóm
+### 3.1. groupingBy does not limit the number of groups
 
-Hàm phân loại có thể trả chuỗi, số, enum, record hoặc khóa nghiệp vụ khác, miễn đáp ứng yêu cầu của collector và Map. Số nhóm phụ thuộc **những khóa thực sự xuất hiện trong nguồn**, không phụ thuộc số giá trị có thể có về mặt kiểu.
+The classifier function can return strings, numbers, enums, records, or other domain keys, as long as they satisfy the collector and Map requirements. The number of groups depends on **the keys that actually appear in the source**, not the number of theoretically possible values of the key type.
 
-Ví dụ phân nhóm theo năm:
+Example grouping by year:
 
 ```java
 record Invoice(String id, int year, long amount) {}
@@ -147,14 +147,14 @@ List<Invoice> invoices = List.of(
 Map<Integer, List<Invoice>> byYear = invoices.stream()
     .collect(Collectors.groupingBy(Invoice::year));
 
-// byYear có 2 khóa: 2025 và 2026.
+// byYear has 2 keys: 2025 and 2026.
 ```
 
-Nếu không có hóa đơn năm 2024, Map không tự tạo nhóm 2024 với danh sách rỗng.
+If there are no invoices for year 2024, the Map does not automatically create a 2024 group with an empty list.
 
-### 3.2. groupingBy không bắt buộc trả danh sách
+### 3.2. groupingBy does not have to return a list
 
-Mặc định, `groupingBy(classifier)` có thể hiểu như gom bằng downstream `toList()`. Nhưng overload nhận **downstream collector** cho phép kết quả của mỗi nhóm là số đếm, tổng tiền, tập mã hoặc báo cáo riêng:
+By default, `groupingBy(classifier)` can be understood as collecting with downstream `toList()`. However, the overload taking a **downstream collector** lets each group's result be a count, total amount, set of IDs, or custom summary:
 
 ```java
 Map<String, Long> counts = sales.stream()
@@ -166,20 +166,20 @@ Map<String, Long> counts = sales.stream()
 // Bắc -> 3; Nam -> 2; Tây -> 1.
 ```
 
-`Collectors.counting()` xử lý phần tử trong từng nhóm rồi tạo `Long`. Vì vậy kết quả trở thành `Map<String, Long>`, không phải `Map<String, List<Sale>>`.
+`Collectors.counting()` processes elements in each group and produces a `Long`. Thus the result becomes `Map<String, Long>`, not `Map<String, List<Sale>>`.
 
-### 3.3. groupingBy và khóa phân loại null
+### 3.3. groupingBy and null classification keys
 
-`Collectors.groupingBy` không chấp nhận kết quả classifier là `null`. Nếu `region` là `null`, lời gọi:
+`Collectors.groupingBy` does not accept `null` as a classifier result. If `region` is `null`, the call:
 
 ```java
-// Có thể gây NullPointerException khi một Sale có region == null.
+// Can cause NullPointerException when a Sale has region == null.
 // sales.stream().collect(Collectors.groupingBy(Sale::region));
 ```
 
-sẽ thất bại. Không nên cho rằng vì `HashMap` có thể chứa khóa `null`, `groupingBy` cũng tự chấp nhận.
+will fail. Do not assume that because `HashMap` can hold a `null` key, `groupingBy` also accepts it automatically.
 
-Cần xác định ý nghĩa nghiệp vụ của dữ liệu thiếu vùng. Nếu muốn có nhóm “Chưa xác định”:
+Determine the business meaning of records missing a region. If you want an "Unknown" ("Chưa xác định") group:
 
 ```java
 Map<String, List<Sale>> safeGroups = sales.stream()
@@ -190,7 +190,7 @@ Map<String, List<Sale>> safeGroups = sales.stream()
     ));
 ```
 
-Nếu chuỗi “Chưa xác định” có thể là giá trị hợp lệ thực sự, nên dùng một kiểu khóa phân biệt rõ hai trường hợp, chẳng hạn một record hoặc `Optional<String>` phù hợp:
+If the string "Chưa xác định" could also be a valid real value, use a key type that cleanly separates the two cases, such as a dedicated record or `Optional<String>`:
 
 ```java
 Map<Optional<String>, List<Sale>> byOptionalRegion = sales.stream()
@@ -199,18 +199,18 @@ Map<Optional<String>, List<Sale>> byOptionalRegion = sales.stream()
     ));
 ```
 
-Ví dụ cần import `java.util.Optional`. Khóa `Optional.empty()` đại diện cho vùng thiếu, còn khóa `Optional.of("Bắc")` đại diện cho vùng có giá trị.
+This example requires importing `java.util.Optional`. The key `Optional.empty()` represents a missing region, while `Optional.of("Bắc")` represents a present region.
 
-## 4. partitioningBy: một điều kiện, hai nhóm boolean
+## 4. partitioningBy: One Condition, Two Boolean Groups
 
-`Collectors.partitioningBy` không nhận classifier tùy ý mà nhận **`Predicate<T>`**, tức điều kiện trả `boolean`:
+`Collectors.partitioningBy` does not take an arbitrary classifier; it takes a **`Predicate<T>`**, i.e., a condition returning `boolean`:
 
 ```java
 Map<Boolean, List<Sale>> paidPartition = sales.stream()
     .collect(Collectors.partitioningBy(Sale::paid));
 ```
 
-Kết quả:
+Result:
 
 ```text
 Stream<Sale>
@@ -222,7 +222,7 @@ partitioningBy(Sale::paid)
      └── false ──► [S02, S05]
 ```
 
-Ví dụ lấy hai nhánh:
+Retrieving both branches:
 
 ```java
 List<Sale> paid = paidPartition.get(true);
@@ -232,9 +232,9 @@ System.out.println(paid.size());   // 4
 System.out.println(unpaid.size()); // 2
 ```
 
-### 4.1. partitioningBy luôn có hai khóa, kể cả khi một nhóm trống
+### 4.1. partitioningBy always has two keys, even when one group is empty
 
-Đây là khác biệt quan trọng nhất so với `groupingBy`:
+This is the most important difference from `groupingBy`:
 
 ```java
 Map<Boolean, List<Integer>> emptyPartition =
@@ -247,9 +247,9 @@ System.out.println(emptyPartition.get(true));           // []
 System.out.println(emptyPartition.get(false));          // []
 ```
 
-`partitioningBy` bảo đảm một kết quả ứng với `true` và một kết quả ứng với `false`. Với downstream collector, **cả hai nhánh vẫn có kết quả downstream**, kể cả khi không có phần tử trong nhánh đó.
+`partitioningBy` guarantees one result for `true` and one result for `false`. With a downstream collector, **both branches still receive a downstream result**, even when there are no elements in that branch.
 
-So với `groupingBy` trên nguồn rỗng:
+Compare with `groupingBy` on an empty source:
 
 ```java
 Map<String, List<String>> emptyGroup =
@@ -259,24 +259,24 @@ Map<String, List<String>> emptyGroup =
 System.out.println(emptyGroup.isEmpty()); // true
 ```
 
-`groupingBy` không tạo khóa “giả định” cho những nhóm không xuất hiện; `partitioningBy` tạo sẵn hai nhánh boolean.
+`groupingBy` does not fabricate keys for groups that never appeared; `partitioningBy` pre-creates both boolean branches.
 
-### 4.2. Khi nào dùng partitioningBy thay vì groupingBy?
+### 4.2. When to use partitioningBy instead of groupingBy?
 
-Có thể viết:
+You could write:
 
 ```java
 Map<Boolean, List<Sale>> groupedBoolean = sales.stream()
     .collect(Collectors.groupingBy(Sale::paid));
 ```
 
-Với tập `sales` hiện tại có cả `true` và `false`, kết quả về nhóm phần tử giống nhau. Nhưng nếu tất cả giao dịch đều đã thanh toán, `groupingBy(Sale::paid)` chỉ chứa khóa `true`, trong khi `partitioningBy(Sale::paid)` vẫn có khóa `false` với danh sách rỗng.
+On the current `sales` dataset which has both `true` and `false`, the grouped element lists look the same. However, if all transactions happened to be paid, `groupingBy(Sale::paid)` would contain only the `true` key, whereas `partitioningBy(Sale::paid)` still includes the `false` key with an empty list.
 
-Vì vậy, **khi miền kết quả phải bao gồm đủ hai trạng thái**, dùng `partitioningBy` để diễn đạt hợp đồng đó ngay trong API.
+Therefore, **when the result domain must always include both states**, use `partitioningBy` to express that contract directly in the API.
 
-### 4.3. Hai nhánh không bắt buộc là đúng/sai về nghiệp vụ
+### 4.3. The two branches do not have to represent business right/wrong
 
-Predicate có thể kiểm tra bất kỳ điều kiện nào:
+The predicate can test any condition:
 
 ```java
 Map<Boolean, List<Sale>> largeOrders = sales.stream()
@@ -285,11 +285,11 @@ Map<Boolean, List<Sale>> largeOrders = sales.stream()
     ));
 ```
 
-`true` nghĩa là “đơn đạt ngưỡng”; `false` nghĩa là “đơn dưới ngưỡng”. Khi trả Map cho thành phần khác, nên đặt tên biến hoặc chuyển sang một kiểu kết quả có tên trường rõ ràng để tránh người đọc phải đoán ý nghĩa của khóa boolean.
+`true` means "orders meeting the threshold"; `false` means "orders below the threshold". When passing the Map to other components, choose descriptive variable names or convert to a result type with named fields so readers do not have to guess what the boolean keys mean.
 
-## 5. toMap: ánh xạ một khóa sang một giá trị
+## 5. toMap: Mapping One Key to One Value
 
-`Collectors.toMap` nhận **hai hàm** quan trọng:
+`Collectors.toMap` takes **two essential functions**:
 
 ```java
 Collectors.toMap(
@@ -298,7 +298,7 @@ Collectors.toMap(
 );
 ```
 
-Trong ví dụ bán hàng, mỗi giao dịch có mã `id` duy nhất:
+In the sales example, each transaction has a unique `id`:
 
 ```java
 Map<String, Sale> byId = sales.stream()
@@ -311,14 +311,14 @@ Sale found = byId.get("S03");
 System.out.println(found.amount()); // 80000
 ```
 
-Với `toMap`, mỗi khóa ứng với **một giá trị**. Kết quả có thể là đối tượng đầy đủ, thuộc tính số, chuỗi hoặc record thống kê.
+With `toMap`, each key maps to **a single value**. That value can be the full object, a numeric attribute, a string, or a summary record.
 
-### 5.1. Khóa trùng sẽ ra sao?
+### 5.1. What happens on duplicate keys?
 
-Nếu thay `Sale::id` bằng `Sale::region` thì nhiều giao dịch cùng khóa “Bắc”:
+If we replace `Sale::id` with `Sale::region`, multiple transactions share the "Bắc" key:
 
 ```java
-// Ném IllegalStateException vì region không duy nhất:
+// Throws IllegalStateException because region is not unique:
 // Map<String, Sale> byRegion = sales.stream()
 //     .collect(Collectors.toMap(
 //         Sale::region,
@@ -326,13 +326,13 @@ Nếu thay `Sale::id` bằng `Sale::region` thì nhiều giao dịch cùng khóa
 //     ));
 ```
 
-Overload hai tham số của `toMap` **không mặc định giữ đầu, giữ cuối hay gom thành danh sách**. Nó báo lỗi khi hai phần tử tạo cùng khóa.
+The two-parameter overload of `toMap` **does not default to keeping the first, keeping the last, or collecting into a list**. It fails when two elements produce the same key.
 
-Đây là hành vi phù hợp nếu khóa được kỳ vọng duy nhất, vì dữ liệu trùng có thể là lỗi cần phát hiện thay vì bị âm thầm ghi đè.
+This is the right behavior when keys are expected to be unique, because duplicate keys may indicate a data error that should be caught rather than silently overwritten.
 
-### 5.2. Cho phép khóa trùng bằng mergeFunction
+### 5.2. Allowing duplicate keys with mergeFunction
 
-Overload ba tham số bổ sung **`BinaryOperator<U> mergeFunction`**:
+The three-parameter overload adds **`BinaryOperator<U> mergeFunction`**:
 
 ```java
 Map<String, Long> amountByRegion = sales.stream()
@@ -345,12 +345,12 @@ Map<String, Long> amountByRegion = sales.stream()
 // Bắc -> 250000, Nam -> 200000, Tây -> 200000.
 ```
 
-Tại mỗi xung đột khóa, `Long::sum` gộp giá trị tiền. Kết quả là **một số `Long` cho mỗi vùng**, không phải danh sách các `Sale`.
+At each key collision, `Long::sum` merges the amounts. The result is **one `Long` per region**, not a list of `Sale` objects.
 
-Hai chính sách khác:
+Two other policies:
 
 ```java
-// Giữ phần tử xuất hiện đầu theo thứ tự gặp phần tử có bảo đảm.
+// Keep the first encountered element when encounter order is guaranteed.
 Map<String, Sale> firstByRegion = sales.stream()
     .collect(Collectors.toMap(
         Sale::region,
@@ -358,7 +358,7 @@ Map<String, Sale> firstByRegion = sales.stream()
         (first, next) -> first
     ));
 
-// Giữ phần tử xuất hiện cuối theo thứ tự gặp phần tử có bảo đảm.
+// Keep the last encountered element when encounter order is guaranteed.
 Map<String, Sale> lastByRegion = sales.stream()
     .collect(Collectors.toMap(
         Sale::region,
@@ -367,72 +367,72 @@ Map<String, Sale> lastByRegion = sales.stream()
     ));
 ```
 
-Với `sales` là một `List` có thứ tự, vùng Bắc giữ `S01` ở chính sách đầu và `S05` ở chính sách cuối. Nhưng **gặp sau không mặc định là cập nhật mới nhất theo thời gian nghiệp vụ**; nếu cần chọn theo timestamp, hãy so sánh timestamp.
+Because `sales` is an ordered `List`, region Bắc keeps `S01` under the first-wins policy and `S05` under the last-wins policy. However, **encountered later does not automatically mean newest in business time**; if you need to select by timestamp, compare timestamps explicitly.
 
-### 5.3. Khi nào dùng toMap thay groupingBy?
+### 5.3. When to use toMap instead of groupingBy?
 
-Câu hỏi quan trọng là **mỗi khóa cần giữ bao nhiêu thông tin**:
+The key question is **how much information each key needs to retain**:
 
-| Yêu cầu | Hướng chọn |
+| Requirement | Recommended direction |
 | --- | --- |
-| Giữ toàn bộ giao dịch của vùng | `groupingBy(Sale::region)` |
-| Tính tổng tiền của vùng | `groupingBy(Sale::region, summingLong(...))` **hoặc** `toMap(..., Long::sum)` |
-| Tra cứu giao dịch theo mã duy nhất | `toMap(Sale::id, identity())` |
-| Giữ một đại diện mỗi vùng theo quy tắc rõ ràng | `toMap(..., mergeFunction)` |
-| Cần nhiều thống kê có cấu trúc cho từng vùng | `groupingBy` với downstream collector thường dễ mở rộng |
+| Keep all transactions of a region | `groupingBy(Sale::region)` |
+| Compute total amount of a region | `groupingBy(Sale::region, summingLong(...))` **or** `toMap(..., Long::sum)` |
+| Look up transaction by unique ID | `toMap(Sale::id, identity())` |
+| Keep one representative per region by an explicit rule | `toMap(..., mergeFunction)` |
+| Need multiple structured statistics per region | `groupingBy` with a downstream collector is usually easier to extend |
 
-Không nên viết `groupingBy` chỉ để sau đó gọi `list.get(0)` nếu nhu cầu thực là chọn một đại diện theo quy tắc rõ ràng; đồng thời không nên dùng `toMap` làm mất lịch sử nếu nghiệp vụ cần toàn bộ các phần tử.
+Do not write `groupingBy` only to call `list.get(0)` afterward when the real requirement is picking one representative by a clear rule; conversely, do not use `toMap` and discard history if business rules require all elements.
 
-## 6. Chữ ký API và cách đọc các kiểu trả về
+## 6. API Signatures and How to Read Return Types
 
-Viết dưới dạng tổng quát, rút gọn wildcard để tập trung vào ý nghĩa:
+Written in general form, omitting wildcards to focus on meaning:
 
 ```java
-// Một khóa -> danh sách phần tử:
+// One key -> list of elements:
 groupingBy(Function<T, K> classifier)
     // Collector<T, ?, Map<K, List<T>>>
 
-// Một khóa -> kết quả từ downstream:
+// One key -> result from downstream:
 groupingBy(Function<T, K> classifier,
            Collector<T, A, D> downstream)
     // Collector<T, ?, Map<K, D>>
 
-// Hai nhánh boolean -> danh sách:
+// Two boolean branches -> lists:
 partitioningBy(Predicate<T> predicate)
     // Collector<T, ?, Map<Boolean, List<T>>>
 
-// Hai nhánh boolean -> kết quả từ downstream:
+// Two boolean branches -> result from downstream:
 partitioningBy(Predicate<T> predicate,
                Collector<T, A, D> downstream)
     // Collector<T, ?, Map<Boolean, D>>
 
-// Một khóa -> một giá trị U; trùng khóa sẽ bị từ chối:
+// One key -> one value U; duplicate keys are rejected:
 toMap(Function<T, K> keyMapper,
       Function<T, U> valueMapper)
     // Collector<T, ?, Map<K, U>>
 
-// Có quy tắc gộp U khi trùng khóa:
+// With a merge rule for U on duplicate keys:
 toMap(Function<T, K> keyMapper,
       Function<T, U> valueMapper,
       BinaryOperator<U> mergeFunction)
     // Collector<T, ?, Map<K, U>>
 ```
 
-Các dòng trên là **sơ đồ chữ ký**, không phải mã Java độc lập có thể biên dịch. Trong Java thực, generic có wildcard như `? super T` và `? extends K` để hỗ trợ các kiểu tương thích.
+The lines above are **signature diagrams**, not standalone compilable Java code. In real Java, generics include wildcards such as `? super T` and `? extends K` to support compatible types.
 
-Chú ý sự khác nhau:
+Note the differences:
 
-- **Classifier** của `groupingBy` tạo khóa nhóm; từng phần tử sau đó đi vào downstream collector.
-- **Predicate** của `partitioningBy` quyết định đúng một nhánh `true` hay `false`.
-- **Key mapper + value mapper** của `toMap` tạo trực tiếp cặp `K,V`; khi trùng khóa, `mergeFunction` quyết định giá trị `V` kết hợp.
+- The **classifier** of `groupingBy` generates the group key; each element then flows into the downstream collector.
+- The **predicate** of `partitioningBy` decides between the single `true` or `false` branch.
+- The **key mapper + value mapper** of `toMap` produce `K,V` pairs directly; on key collisions, `mergeFunction` determines the combined `V` value.
 
-Bản thân `collect` là phép kết thúc của Stream; ba collector chỉ khác **cách thiết kế việc tích lũy**.
+`collect` itself is the Stream's terminal operation; the three collectors differ only in **how accumulation is structured**.
 
-## 7. Downstream collector: điểm mạnh của groupingBy và partitioningBy
+## 7. Downstream Collectors: The Strength of groupingBy and partitioningBy
 
-Downstream collector cho phép sau khi phân nhóm/phân hoạch, ta tính ngay một kết quả cho mỗi nhóm thay vì bắt buộc giữ toàn bộ danh sách.
+Downstream collectors allow you to immediately compute a per-group result after grouping or partitioning rather than having to retain entire lists.
 
-### 7.1. Đếm phần tử theo vùng
+### 7.1. Counting elements by region
 
 ```java
 Map<String, Long> countByRegion = sales.stream()
@@ -442,9 +442,9 @@ Map<String, Long> countByRegion = sales.stream()
     ));
 ```
 
-Kết quả: Bắc = 3, Nam = 2, Tây = 1.
+Result: Bắc = 3, Nam = 2, Tây = 1.
 
-### 7.2. Tổng số tiền theo vùng
+### 7.2. Total amount by region
 
 ```java
 Map<String, Long> totalByRegion = sales.stream()
@@ -456,11 +456,11 @@ Map<String, Long> totalByRegion = sales.stream()
 // Bắc=250000, Nam=200000, Tây=200000.
 ```
 
-Kết quả này tương đương về giá trị với `toMap(Sale::region, Sale::amount, Long::sum)` trong bộ dữ liệu hiện tại.
+This produces the same values as `toMap(Sale::region, Sale::amount, Long::sum)` on the current dataset.
 
-Khi cần thống kê nhiều chiều, `groupingBy` thường dễ mở rộng bằng các downstream khác như `summarizingLong`, `mapping`, `maxBy`, `filtering`, `collectingAndThen` hoặc một collector tùy chỉnh.
+When multidimensional statistics are needed, `groupingBy` is usually easier to extend with other downstream collectors such as `summarizingLong`, `mapping`, `maxBy`, `filtering`, `collectingAndThen`, or a custom collector.
 
-### 7.3. Đếm số giao dịch theo hai nhánh
+### 7.3. Counting transactions across both branches
 
 ```java
 Map<Boolean, Long> countByPayment = sales.stream()
@@ -473,11 +473,11 @@ System.out.println(countByPayment.get(true));  // 4
 System.out.println(countByPayment.get(false)); // 2
 ```
 
-Với nguồn rỗng, kết quả vẫn có `true -> 0L` và `false -> 0L`. Giá trị 0 đến từ hành vi của downstream `counting()` trên nhánh rỗng.
+On an empty source, the result still has `true -> 0L` and `false -> 0L`. The 0 value comes from the behavior of downstream `counting()` on an empty branch.
 
-### 7.4. Thu danh sách mã thay vì đối tượng
+### 7.4. Collecting a list of IDs instead of objects
 
-`Collectors.mapping` biến phần tử trước khi downstream thu thập:
+`Collectors.mapping` transforms each element before the downstream collects it:
 
 ```java
 Map<String, List<String>> idsByRegion = sales.stream()
@@ -492,7 +492,7 @@ Map<String, List<String>> idsByRegion = sales.stream()
 // "Bắc" -> ["S01", "S03", "S05"]
 ```
 
-Với phân hoạch:
+With partitioning:
 
 ```java
 Map<Boolean, List<String>> idsByPaid = sales.stream()
@@ -508,9 +508,9 @@ Map<Boolean, List<String>> idsByPaid = sales.stream()
 // false -> [S02, S05]
 ```
 
-So với chuyển cả Stream sang mã `Sale::id` trước khi grouping, cách đặt `mapping` downstream giữ khả năng phân nhóm theo các thuộc tính của đối tượng gốc.
+Compared to mapping the entire Stream to `Sale::id` before grouping, placing `mapping` in the downstream preserves the ability to group by attributes of the original object.
 
-### 7.5. Chọn phần tử lớn nhất trong mỗi nhóm
+### 7.5. Picking the largest element in each group
 
 ```java
 Map<String, Optional<Sale>> largestByRegion = sales.stream()
@@ -522,26 +522,26 @@ Map<String, Optional<Sale>> largestByRegion = sales.stream()
     ));
 ```
 
-`Collectors.maxBy` trả `Optional<Sale>` trong mỗi nhóm theo hợp đồng collector. Trong `groupingBy` thông thường, các khóa phát sinh từ phần tử đầu vào nên mỗi nhóm có ít nhất một phần tử, nhưng kiểu Optional vẫn được giữ vì collector `maxBy` có thể xử lý đầu vào rỗng.
+`Collectors.maxBy` returns `Optional<Sale>` in each group by collector contract. In standard `groupingBy`, keys arise from input elements so each group has at least one element, yet the `Optional` type is retained because the `maxBy` collector can handle empty inputs.
 
-Để lấy giá trị theo vùng:
+Retrieving the value for a region:
 
 ```java
 Optional<Sale> largestNorthern =
     largestByRegion.getOrDefault("Bắc", Optional.empty());
 
 System.out.println(
-    largestNorthern.map(Sale::id).orElse("Không có")
+    largestNorthern.map(Sale::id).orElse("None")
 ); // S01
 ```
 
-Ví dụ cần import `java.util.Comparator` và `java.util.Optional`.
+This example requires importing `java.util.Comparator` and `java.util.Optional`.
 
-## 8. Kết hợp nhóm và phân hoạch nhiều tầng
+## 8. Combining Multi-Level Grouping and Partitioning
 
-Không có quy tắc rằng một báo cáo chỉ được dùng một collector. `groupingBy` và `partitioningBy` có thể đóng vai trò downstream của nhau.
+There is no rule restricting a report to a single collector. `groupingBy` and `partitioningBy` can act as each other's downstream collector.
 
-### 8.1. Theo vùng, sau đó chia đã/chưa thanh toán
+### 8.1. By region, then split into paid/unpaid
 
 ```java
 Map<String, Map<Boolean, List<Sale>>> byRegionAndPaid =
@@ -552,7 +552,7 @@ Map<String, Map<Boolean, List<Sale>>> byRegionAndPaid =
         ));
 ```
 
-Cấu trúc:
+Structure:
 
 ```text
 "Bắc" ──► true  : [S01, S03]
@@ -565,11 +565,11 @@ Cấu trúc:
            false : []
 ```
 
-**Đặc tính quan trọng:** vùng “Tây” đã xuất hiện nên có một nhóm `groupingBy`. Bên trong nhóm đó, `partitioningBy` vẫn tạo **đủ hai nhánh**; nhánh chưa thanh toán là danh sách rỗng.
+**Important property:** region "Tây" appeared, so it gets a `groupingBy` group. Inside that group, `partitioningBy` still creates **both branches**; the unpaid branch is an empty list.
 
-Nhưng một vùng không hề xuất hiện, chẳng hạn “Đông”, sẽ **không** được tạo tự động ở Map lớp ngoài.
+However, a region that never appeared, such as "Đông", will **not** be automatically created in the outer Map.
 
-### 8.2. Theo trạng thái, sau đó nhóm doanh thu theo vùng
+### 8.2. By status, then group revenue by region
 
 ```java
 Map<Boolean, Map<String, Long>> amountByPaymentAndRegion =
@@ -583,18 +583,18 @@ Map<Boolean, Map<String, Long>> amountByPaymentAndRegion =
         ));
 ```
 
-Kết quả:
+Result:
 
-| Trạng thái | Bắc | Nam | Tây |
+| Status | Bắc | Nam | Tây |
 | --- | ---: | ---: | ---: |
-| true (đã thanh toán) | 200.000 | 140.000 | 200.000 |
-| false (chưa thanh toán) | 50.000 | 60.000 | Không có khóa Tây |
+| true (paid) | 200.000 | 140.000 | 200.000 |
+| false (unpaid) | 50.000 | 60.000 | No Tây key |
 
-Bên trong nhánh `false` không có vùng Tây vì không có giao dịch chưa thanh toán ở vùng đó. Hai **nhánh boolean** luôn tồn tại, nhưng các **khóa vùng ở downstream groupingBy** chỉ xuất hiện khi có dữ liệu tương ứng.
+Inside the `false` branch there is no Tây region because there are no unpaid transactions in that region. Both **boolean branches** always exist, whereas **region keys in the downstream `groupingBy`** appear only when corresponding data exists.
 
-### 8.3. Phân nhóm theo khóa tổng hợp bằng record
+### 8.3. Grouping by a composite key using a record
 
-Nếu chỉ cần mỗi cặp *(vùng, trạng thái)* là một nhóm riêng, có thể dùng record làm khóa:
+If you simply want each *(region, status)* pair as its own group, you can use a record as the key:
 
 ```java
 record GroupKey(String region, boolean paid) {}
@@ -606,15 +606,15 @@ Map<GroupKey, Long> counts = sales.stream()
     ));
 ```
 
-`record` cung cấp `equals` và `hashCode` dựa trên các thành phần, thuận tiện khi khóa gồm nhiều trường.
+`record` provides `equals` and `hashCode` based on its components, which is convenient when keys span multiple fields.
 
-Khác với lồng `partitioningBy`, cách `GroupKey` chỉ tạo các cặp thực sự xuất hiện: không có khóa `GroupKey("Tây", false)` trừ khi có phần tử phù hợp.
+Unlike nesting `partitioningBy`, the `GroupKey` approach creates only pairs that actually appear: there is no `GroupKey("Tây", false)` entry unless a matching element exists.
 
-## 9. Lọc trước grouping khác filtering bên trong downstream
+## 9. Filtering Before Grouping vs. Filtering Inside the Downstream
 
-Đây là khác biệt dễ bị bỏ qua khi xây báo cáo cần hiển thị đủ nhóm.
+This distinction is easily overlooked when building reports that must display all groups.
 
-### 9.1. Lọc trước: nhóm không có phần tử đạt điều kiện sẽ biến mất
+### 9.1. Pre-filtering: groups with no qualifying elements vanish
 
 ```java
 Map<String, Long> paidCount = sales.stream()
@@ -625,11 +625,11 @@ Map<String, Long> paidCount = sales.stream()
     ));
 ```
 
-Ở bộ dữ liệu hiện tại, cả ba vùng đều có giao dịch đã thanh toán nên Map vẫn chứa ba vùng. Nhưng nếu có vùng chỉ chứa các giao dịch chưa thanh toán, vùng đó **không xuất hiện**.
+In the current dataset, all three regions have paid transactions so the Map still contains all three regions. However, if a region had only unpaid transactions, that region **would not appear**.
 
-### 9.2. filtering downstream: giữ nhóm đã được tạo
+### 9.2. Downstream filtering: keeps already-created groups
 
-`Collectors.filtering` (Java 9+) áp dụng điều kiện **sau khi đã xác định khóa grouping**:
+`Collectors.filtering` (Java 9+) applies the condition **after the grouping key has been determined**:
 
 ```java
 Map<String, Long> paidCountIncludingZero = sales.stream()
@@ -642,18 +642,18 @@ Map<String, Long> paidCountIncludingZero = sales.stream()
     ));
 ```
 
-Giả sử thêm giao dịch `new Sale("S07", "Đông", 30_000L, false)`:
+Suppose we add `new Sale("S07", "Đông", 30_000L, false)`:
 
-- Với `filter(Sale::paid)` **trước** `groupingBy`, khóa “Đông” sẽ không xuất hiện.
-- Với `filtering(Sale::paid, counting())` **trong downstream**, khóa “Đông” vẫn xuất hiện và có giá trị **0L**.
+- With `filter(Sale::paid)` **before** `groupingBy`, the "Đông" key does not appear.
+- With `filtering(Sale::paid, counting())` **in the downstream**, the "Đông" key still appears with a value of **0L**.
 
-Điều này hữu ích khi một báo cáo phải giữ các nhóm có trong dữ liệu đầu vào kể cả khi không có phần tử đạt tiêu chí phụ.
+This is useful when a report must preserve groups present in the input data even when no elements satisfy the secondary condition.
 
-`Collectors.filtering` không hoàn toàn thay thế `Stream.filter`; chúng diễn đạt **vị trí của phép lọc trong quá trình phân nhóm** và vì vậy có thể tạo cấu trúc kết quả khác nhau.
+`Collectors.filtering` is not a full replacement for `Stream.filter`; they express **where filtering occurs in the grouping process** and can therefore produce different result structures.
 
-### 9.3. partitioningBy vẫn bảo đảm cả hai nhóm
+### 9.3. partitioningBy still guarantees both groups
 
-Tương tự, trên một tập giao dịch chỉ có trạng thái `paid=true`:
+Similarly, on a dataset containing only `paid=true` transactions:
 
 ```java
 Map<Boolean, Long> counts = Stream.of(
@@ -668,13 +668,13 @@ System.out.println(counts.get(true));  // 1
 System.out.println(counts.get(false)); // 0
 ```
 
-Không cần tự thêm khóa `false`. Đây là lợi thế của `partitioningBy` khi bài toán đúng là phân đôi theo boolean.
+You do not need to manually add the `false` key. That is the advantage of `partitioningBy` when the problem is strictly a boolean dichotomy.
 
-## 10. Map factory và thứ tự duyệt kết quả
+## 10. Map Factories and Result Iteration Order
 
-Thứ tự phần tử trong Stream và thứ tự lặp qua các **khóa Map** là hai khái niệm khác nhau.
+Element order in a Stream and iteration order over **Map keys** are two different concepts.
 
-### 10.1. groupingBy có overload chỉ định loại Map
+### 10.1. groupingBy has an overload specifying the Map type
 
 ```java
 Map<String, List<Sale>> sortedRegionKeys = sales.stream()
@@ -685,9 +685,9 @@ Map<String, List<Sale>> sortedRegionKeys = sales.stream()
     ));
 ```
 
-`TreeMap::new` làm khóa vùng được duyệt theo thứ tự tự nhiên của `String`.
+`TreeMap::new` causes region keys to be iterated in the natural order of `String`.
 
-Có thể dùng `LinkedHashMap` khi muốn bảo toàn thứ tự chèn khóa theo một quy trình có encounter order rõ ràng:
+You can use `LinkedHashMap` when you want to preserve key insertion order in a pipeline with clear encounter order:
 
 ```java
 Map<String, List<Sale>> encounterRegionKeys = sales.stream()
@@ -698,9 +698,9 @@ Map<String, List<Sale>> encounterRegionKeys = sales.stream()
     ));
 ```
 
-Trong ví dụ tuần tự với `List`, khóa được đưa vào lần đầu theo thứ tự gặp vùng. Không suy luận rằng mọi Map do `groupingBy` tạo mặc định là `LinkedHashMap`; loại Map mặc định và thứ tự duyệt của nó không được API cam kết.
+In this sequential example over a `List`, keys are inserted in the order regions are first encountered. Do not assume that every Map created by default `groupingBy` is a `LinkedHashMap`; the default Map class and its iteration order are not guaranteed by the API.
 
-### 10.2. toMap cũng có mapFactory
+### 10.2. toMap also has a mapFactory
 
 ```java
 Map<String, Long> sortedAmountByRegion = sales.stream()
@@ -712,13 +712,13 @@ Map<String, Long> sortedAmountByRegion = sales.stream()
     ));
 ```
 
-Overload bốn tham số chọn chính sách gộp `Long::sum` và loại Map `TreeMap`. **`mapFactory` không thay thế merge function**: nếu có khóa trùng, quy tắc gộp vẫn phải đúng.
+The four-parameter overload selects the `Long::sum` merge policy and the `TreeMap` Map type. **`mapFactory` does not replace `mergeFunction`**: if duplicate keys occur, a merge rule is still required.
 
-### 10.3. partitioningBy không cần mapFactory
+### 10.3. partitioningBy does not need a mapFactory
 
-`Collectors.partitioningBy` không cung cấp overload `mapFactory` vì miền khóa đã cố định ở hai giá trị boolean. Đừng dựa vào thứ tự duyệt nội bộ của Map kết quả.
+`Collectors.partitioningBy` provides no `mapFactory` overload because the key domain is fixed to the two boolean values. Do not rely on the internal iteration order of the returned Map.
 
-Nếu cần trình bày đúng thứ tự:
+If you need to present them in a specific order:
 
 ```java
 Map<Boolean, List<Sale>> partitions = sales.stream()
@@ -728,13 +728,13 @@ List<Sale> paidFirst = partitions.get(true);
 List<Sale> unpaidSecond = partitions.get(false);
 ```
 
-Việc truy cập theo khóa rõ ràng và không cần suy đoán thứ tự `entrySet()`.
+Key-based access is explicit and avoids guessing `entrySet()` order.
 
-### 10.4. TreeMap và quy tắc bằng khóa
+### 10.4. TreeMap and key equality rules
 
-Với `HashMap`, khóa tương đương theo `equals`/`hashCode`. Với `TreeMap`, thứ tự và việc xác định khóa trùng dựa trên Comparator hoặc thứ tự tự nhiên của khóa.
+With `HashMap`, keys are equivalent according to `equals`/`hashCode`. With `TreeMap`, ordering and key-duplicate detection rely on a Comparator or the keys' natural ordering.
 
-Nếu Comparator coi hai khóa khác nhau là bằng nhau (`compare(a,b) == 0`), `TreeMap` có thể xem chúng là cùng khóa. Khi cần mã không phân biệt hoa thường, nên quyết định rõ việc chuẩn hóa khóa thay vì vô tình làm mất phân biệt:
+If a Comparator treats two distinct keys as equal (`compare(a,b) == 0`), `TreeMap` treats them as the same key. When case-insensitive codes are needed, normalize keys explicitly rather than inadvertently losing distinction:
 
 ```java
 Map<String, Long> normalized = sales.stream()
@@ -746,11 +746,11 @@ Map<String, Long> normalized = sales.stream()
     ));
 ```
 
-Ví dụ cần import `java.util.Locale`. Việc chuẩn hóa chuỗi phải theo quy tắc dữ liệu; với một số mã, chữ hoa và chữ thường có thể mang ý nghĩa khác nhau.
+This example requires importing `java.util.Locale`. String normalization must follow data rules; for some codes, uppercase and lowercase letters can carry different meanings.
 
-## 11. Các trường hợp biên: nguồn rỗng, null và khóa trùng
+## 11. Edge Cases: Empty Sources, Nulls, and Duplicate Keys
 
-### 11.1. So sánh ba collector trên nguồn rỗng
+### 11.1. Comparing all three collectors on an empty source
 
 ```java
 List<Sale> empty = List.of();
@@ -774,13 +774,13 @@ System.out.println(partitions.get(false));     // []
 System.out.println(map.isEmpty());             // true
 ```
 
-Đây là bài kiểm tra nhanh giúp phân biệt hợp đồng của ba API.
+This is a quick check that highlights the contracts of the three APIs.
 
-### 11.2. null ở khóa và giá trị
+### 11.2. null in keys and values
 
-Với `groupingBy`, classifier trả `null` gây `NullPointerException`. Với `toMap`, cần tránh dựa vào hành vi chấp nhận khóa `null` của một triển khai Map cụ thể; hãy định nghĩa chính sách dữ liệu hợp lệ.
+For `groupingBy`, a classifier returning `null` causes `NullPointerException`. For `toMap`, avoid relying on whether a specific Map implementation allows `null` keys; define a valid data policy instead.
 
-Giá trị tạo bởi `valueMapper` của `toMap` nên khác `null`. Trên các triển khai JDK phổ biến, giá trị `null` sẽ dẫn đến `NullPointerException`:
+Values produced by `toMap`'s `valueMapper` should be non-`null`. On common JDK implementations, a `null` value causes `NullPointerException`:
 
 ```java
 record User(String id, String email) {}
@@ -790,11 +790,11 @@ List<User> users = List.of(
     new User("U2", null)
 );
 
-// Không thu trực tiếp bằng toMap(User::id, User::email)
-// khi email có thể null và không có chính sách xử lý.
+// Do not collect directly with toMap(User::id, User::email)
+// when email can be null and there is no handling policy.
 ```
 
-Nếu nghiệp vụ cho phép bỏ qua bản ghi thiếu email:
+If business rules allow skipping records missing an email:
 
 ```java
 Map<String, String> emailsById = users.stream()
@@ -805,11 +805,11 @@ Map<String, String> emailsById = users.stream()
     ));
 ```
 
-Nếu việc thiếu email là trạng thái cần bảo toàn, dùng một kiểu giá trị khác `null` để biểu diễn, chẳng hạn record hoặc `Optional<String>`, và xem xét yêu cầu API tiêu thụ Map sau đó.
+If a missing email is a state that must be preserved, use a non-`null` value type to represent it, such as a record or `Optional<String>`, and check the requirements of APIs consuming the Map downstream.
 
-### 11.3. null từ mergeFunction có thể loại bỏ mục
+### 11.3. null from mergeFunction can remove an entry
 
-`Map.merge` có quy tắc: nếu hàm gộp trả `null`, ánh xạ đang tồn tại có thể bị xóa. Vì `toMap` dùng cơ chế gộp Map, **không trả null để có nghĩa “giữ giá trị hiện có”**.
+`Map.merge` has a rule: if the merge function returns `null`, an existing mapping can be removed. Because `toMap` uses Map merging mechanics, **do not return null to mean "keep the existing value"**.
 
 ```java
 Map<String, Long> map = new HashMap<>();
@@ -820,42 +820,42 @@ map.merge("Bắc", 20L, (oldValue, newValue) -> null);
 System.out.println(map.containsKey("Bắc")); // false
 ```
 
-Ví dụ cần import `java.util.HashMap`. Với nghiệp vụ muốn giữ giá trị đầu, trả `oldValue` rõ ràng.
+This example requires importing `java.util.HashMap`. When business rules call for keeping the first value, return `oldValue` explicitly.
 
-### 11.4. Phân biệt null với nhóm trống
+### 11.4. Distinguishing null from empty groups
 
-- **Khóa không tồn tại trong Map groupingBy:** không có phần tử nào phân loại ra khóa đó.
-- **Khóa `true/false` của partitioningBy có danh sách rỗng:** nhánh được bảo đảm tồn tại nhưng không có phần tử.
-- **Một Map toMap không chứa khóa:** không có phần tử tạo khóa đó, hoặc quy tắc gộp đặc biệt đã loại bỏ ánh xạ.
+- **Key absent from a `groupingBy` Map:** no element classified to that key.
+- **`true`/`false` key of `partitioningBy` with an empty list:** the branch is guaranteed to exist, yet has no elements.
+- **A `toMap` Map lacking a key:** no element produced that key, or a special merge rule removed the mapping.
 
-Không nên đồng nhất các ý nghĩa này khi viết API trả báo cáo cho người dùng.
+Do not conflate these meanings when designing APIs that return reports to users.
 
-## 12. Thứ tự, tính kết hợp và chế độ song song
+## 12. Ordering, Associativity, and Parallel Mode
 
-### 12.1. Collector có thể tích lũy theo nhiều nhánh
+### 12.1. Collectors can accumulate across multiple branches
 
-Một pipeline `parallelStream()` có thể chia nguồn thành các phần, tích lũy từng phần và kết hợp các kết quả trung gian.
+A `parallelStream()` pipeline can split the source into parts, accumulate each part, and combine intermediate results.
 
 ```text
-Nguồn [S01, S02, S03, S04, S05, S06]
+Source [S01, S02, S03, S04, S05, S06]
                    │
                trySplit(...)
              ┌─────┴──────┐
              ▼            ▼
-         phần A         phần B
+         part A         part B
              │            │
-         Map tạm A      Map tạm B
+       temp Map A     temp Map B
              └────┬───────┘
                   ▼
-              gộp Map
+              merge Map
                   │
                   ▼
-             kết quả cuối
+             final result
 ```
 
-Cách chia nguồn và số lần gọi các hàm nội bộ phụ thuộc framework, không được dùng làm quy tắc nghiệp vụ. Để `collect` đúng trong song song, các phép tích lũy và gộp phải tuân thủ hợp đồng collector, bao gồm **identity, associativity, tương đương kết quả** và tránh trạng thái mutable dùng chung không an toàn.
+How the source is split and how many times internal functions are invoked depend on the framework and must not be relied upon as business rules. For `collect` to work correctly in parallel, accumulation and combination must satisfy the collector contract, including **identity, associativity, result equivalence**, and avoiding unsafe shared mutable state.
 
-### 12.2. groupingBy có thể dùng trên parallelStream
+### 12.2. groupingBy can be used on parallelStream
 
 ```java
 Map<String, Long> parallelCounts = sales.parallelStream()
@@ -865,13 +865,13 @@ Map<String, Long> parallelCounts = sales.parallelStream()
     ));
 ```
 
-Kết quả số đếm vẫn phải tương đương về mặt nghiệp vụ với xử lý tuần tự. Nhưng `groupingBy` thông thường **không phải concurrent collector**. Framework có thể phải gộp Map của các nhánh; nếu có rất nhiều khóa, việc gộp gây chi phí.
+Count results must still be business-equivalent to sequential execution. However, standard `groupingBy` **is not a concurrent collector**. The framework may need to merge branch Maps; when there are many keys, merging incurs overhead.
 
-`Collectors.groupingByConcurrent` là một lựa chọn khác khi phù hợp, nhưng kết quả không bảo đảm thứ tự gặp phần tử như collector ordered. Nếu cần danh sách trong mỗi nhóm theo thứ tự nguồn, đừng tự ý thay bằng `groupingByConcurrent` chỉ để tăng tốc.
+`Collectors.groupingByConcurrent` is another option when appropriate, but its result does not guarantee element encounter order like an ordered collector. If lists inside each group must follow source order, do not blindly switch to `groupingByConcurrent` just for speed.
 
-### 12.3. partitioningBy không cần tranh chấp nhiều khóa
+### 12.3. partitioningBy does not contend over many keys
 
-`partitioningBy` chỉ có hai nhánh; điều đó không đồng nghĩa mặc định an toàn để nhiều luồng ghi trực tiếp vào cùng một `ArrayList`. Collector tiêu chuẩn chịu trách nhiệm tổ chức các container tích lũy và gộp chúng theo hợp đồng khi chạy song song.
+`partitioningBy` has only two branches; that does not mean it is safe for multiple threads to write directly into the same `ArrayList`. Standard collectors are responsible for organizing accumulation containers and combining them according to contract in parallel execution.
 
 ```java
 Map<Boolean, Long> parallelPaidCounts = sales.parallelStream()
@@ -881,64 +881,64 @@ Map<Boolean, Long> parallelPaidCounts = sales.parallelStream()
     ));
 ```
 
-Không cần tạo biến `long[]` chia sẻ rồi tăng đếm trong `forEach`; cách đó có thể tạo race condition.
+Do not create a shared `long[]` variable and increment it inside `forEach`; doing so can introduce race conditions.
 
-### 12.4. toMap và mergeFunction phải có tính kết hợp
+### 12.4. toMap and mergeFunction must be associative
 
-`Long::sum`, `Long::max`, `Long::min` là những quy tắc gộp thường phù hợp cho các bài toán tổng hợp số nguyên, với lưu ý tràn số. Phép trừ không có tính kết hợp:
+`Long::sum`, `Long::max`, and `Long::min` are merge rules that generally fit integer aggregation problems, keeping overflow in mind. Subtraction is not associative:
 
 ```text
 (100 - 40) - 10 = 50
 100 - (40 - 10) = 70
 ```
 
-Vì vậy:
+Therefore:
 
 ```java
-// Không dùng phép trừ như merge function tổng quát khi
-// cần kết quả không phụ thuộc cách chia/gộp:
+// Do not use subtraction as a general merge function when
+// the result must not depend on split/merge order:
 // (left, right) -> left - right
 ```
 
-Nếu `mergeFunction` có tác động phụ, ví dụ ghi log vào một `ArrayList` dùng chung, số lần gọi và thứ tự gọi có thể thay đổi khi chạy song song. Một collector đúng nên biểu diễn kết quả bằng **dữ liệu tích lũy**, không đặt tác vụ nghiệp vụ bắt buộc bên trong merge function.
+If `mergeFunction` has side effects—such as logging to a shared `ArrayList`—the invocation count and call order can change in parallel execution. A proper collector expresses its result through **accumulated data**, not mandatory business side effects placed inside the merge function.
 
-### 12.5. "Giữ đầu" và "giữ cuối" phụ thuộc thứ tự nguồn
+### 12.5. "Keep first" and "keep last" depend on source order
 
-Với một `List` có thứ tự gặp phần tử, `(first,next)->first` và `(first,next)->next` có thể diễn đạt việc chọn phần tử đầu/cuối cho mỗi khóa theo thứ tự đó khi dùng `toMap` thông thường.
+With a `List` that has encounter order, `(first,next)->first` and `(first,next)->next` can express picking the first/last element per key in that order when using standard `toMap`.
 
-Nhưng với nguồn không có encounter order, khái niệm đầu/cuối không được bảo đảm. Nếu yêu cầu là **đơn mới nhất theo thời gian**, nên gộp bằng `BinaryOperator.maxBy(Comparator.comparing(...))` với tie-breaker ổn định, thay vì giả định phần tử được xử lý cuối cùng là mới nhất.
+However, on a source without encounter order, first/last is not guaranteed. If the requirement is the **newest order by time**, merge using `BinaryOperator.maxBy(Comparator.comparing(...))` with a stable tie-breaker rather than assuming the last-processed element is the newest.
 
-`toConcurrentMap` là concurrent, unordered collector. Dùng nó cùng chính sách first/last dựa trên thứ tự nguồn có thể chọn giá trị tùy lịch thực thi; nó không phải lựa chọn phù hợp nếu thứ tự là yêu cầu nghiệp vụ.
+`toConcurrentMap` is a concurrent, unordered collector. Using it with a first/last policy based on source order can pick values depending on execution scheduling; it is not suitable when ordering is a business requirement.
 
-## 13. Hiệu năng và cấu trúc dữ liệu trung gian
+## 13. Performance and Intermediate Data Structures
 
-Không có collector nào luôn nhanh nhất. Hiệu quả phụ thuộc mục tiêu, số khóa phân biệt, kích thước nguồn và lượng dữ liệu cần giữ.
+No single collector is always fastest. Efficiency depends on the goal, number of distinct keys, source size, and how much data must be retained.
 
-### 13.1. Bộ nhớ khác nhau
+### 13.1. Memory differences
 
-Với `n` phần tử và `k` khóa phân biệt:
+Given `n` elements and `k` distinct keys:
 
-| Cách thu | Đặc trưng bộ nhớ cần lưu |
+| Collection method | Memory profile |
 | --- | --- |
-| `groupingBy(key)` mặc định | Giữ danh sách phần tử; tổng số tham chiếu có thể tỷ lệ với `n`, cộng chi phí nhóm. |
-| `groupingBy(key, counting())` | Chủ yếu giữ trạng thái đếm cho `k` nhóm. |
-| `partitioningBy(predicate)` mặc định | Giữ phần tử trong hai danh sách; tổng số tham chiếu tỷ lệ với `n`. |
-| `partitioningBy(predicate, counting())` | Chỉ cần hai bộ đếm kết quả và trạng thái tích lũy phù hợp. |
-| `toMap(key, value, merge)` | Một giá trị cuối cho mỗi khóa, thường tỷ lệ với `k`. |
+| Default `groupingBy(key)` | Holds lists of elements; total references can scale with `n`, plus group overhead. |
+| `groupingBy(key, counting())` | Primarily holds count state for `k` groups. |
+| Default `partitioningBy(predicate)` | Holds elements in two lists; total references scale with `n`. |
+| `partitioningBy(predicate, counting())` | Requires only two result counters and appropriate accumulation state. |
+| `toMap(key, value, merge)` | One final value per key, typically scaling with `k`. |
 
-Nếu chỉ cần số lượng theo vùng, không cần thu mọi giao dịch vào danh sách rồi gọi `size()`. Nếu chỉ cần doanh thu theo vùng, `summingLong` hoặc `Long::sum` tránh giữ toàn bộ giao dịch.
+If you only need counts by region, there is no need to collect all transactions into lists just to call `size()`. If you only need revenue by region, `summingLong` or `Long::sum` avoids retaining all transactions.
 
-### 13.2. Thời gian và chi phí gộp
+### 13.2. Time and merge overhead
 
-Thu Map trên nền hash thông thường thường có chi phí trung bình gần tuyến tính với số phần tử, nhưng phụ thuộc chất lượng hash, phân phối khóa, việc trích khóa, merge function và số lượng va chạm.
+Collecting into a standard hash-based Map usually has average cost close to linear in the number of elements, though it depends on hash quality, key distribution, key extraction, the merge function, and collisions.
 
-`TreeMap` thường có chi phí thao tác `O(log k)` theo số khóa `k` và cung cấp thứ tự duyệt khóa theo comparator. `LinkedHashMap` cần thêm cấu trúc lưu thứ tự. Khi chạy song song, chi phí chia/gộp Map có thể vượt lợi ích tính toán nếu dữ liệu không đủ lớn hoặc phép tích lũy quá nhẹ.
+`TreeMap` typically has `O(log k)` operation cost in the number of keys `k` and provides comparator-based key iteration order. `LinkedHashMap` needs extra structure to track insertion order. In parallel execution, Map split/merge overhead can outweigh computation gains if the dataset is not large enough or the accumulation work is too light.
 
-### 13.3. Dữ liệu vô hạn và tài nguyên I/O
+### 13.3. Infinite data and I/O resources
 
-Các phép `collect` tổng hợp toàn bộ nguồn thường cần nguồn **có điểm kết thúc**. Trên `Stream.generate(...)` vô hạn mà không giới hạn, pipeline có thể không hoàn thành, và collector giữ danh sách có thể tăng bộ nhớ không giới hạn.
+Full-source `collect` aggregations generally require a **finite, bounded** source. On an unbounded `Stream.generate(...)`, the pipeline may never terminate, and a collector keeping lists can grow memory without bound.
 
-Nếu dữ liệu đến từ tệp:
+If the data comes from a file:
 
 ```java
 import java.io.IOException;
@@ -968,11 +968,11 @@ class PaidStateFromFile {
 }
 ```
 
-Ví dụ minh họa giả định mỗi dòng là một trạng thái, và mọi trạng thái không phải `PAID` đều được xếp vào `false`. Với dữ liệu sản xuất, cần chính sách cho trạng thái không hợp lệ. `Files.lines` phải được đóng bằng `try-with-resources`: **`collect` không tự động đóng tài nguyên tệp**.
+The sample assumes each line is a status, and any status other than `PAID` goes into `false`. For production data, define a policy for invalid statuses. `Files.lines` must be closed with `try-with-resources`: **`collect` does not automatically close file resources**.
 
-## 14. Ví dụ Java hoàn chỉnh: cả ba collector trên một nguồn
+## 14. Complete Java Example: All Three Collectors on One Source
 
-Chương trình dưới đây minh họa grouping, partitioning, toMap và downstream nhiều tầng trong một lần chạy. Lưu thành `GroupingPartitioningMapDemo.java` và sử dụng Java 17+.
+The program below demonstrates grouping, partitioning, toMap, and multi-level downstream collectors in a single run. Save as `GroupingPartitioningMapDemo.java` and run with Java 17+.
 
 ```java
 import java.util.List;
@@ -994,22 +994,22 @@ public class GroupingPartitioningMapDemo {
             new Sale("S06", "Tây", 200_000L, true)
         );
 
-        // 1. Nhiều phần tử cho mỗi khóa region.
+        // 1. Multiple elements per region key.
         Map<String, List<Sale>> byRegion = sales.stream()
             .collect(Collectors.groupingBy(Sale::region));
 
-        // 2. Luôn có đủ hai nhánh true và false.
+        // 2. Always has both true and false branches.
         Map<Boolean, List<Sale>> byPayment = sales.stream()
             .collect(Collectors.partitioningBy(Sale::paid));
 
-        // 3. Một Sale cho mỗi ID duy nhất.
+        // 3. One Sale per unique ID.
         Map<String, Sale> byId = sales.stream()
             .collect(Collectors.toMap(
                 Sale::id,
                 Function.identity()
             ));
 
-        // 4. Một tổng long cho mỗi vùng, khóa được sắp.
+        // 4. One long total per region, keys sorted.
         Map<String, Long> totalAmountByRegion = sales.stream()
             .collect(Collectors.toMap(
                 Sale::region,
@@ -1018,7 +1018,7 @@ public class GroupingPartitioningMapDemo {
                 TreeMap::new
             ));
 
-        // 5. Hai nhánh boolean, mỗi nhánh lại nhóm theo vùng.
+        // 5. Two boolean branches, each grouped by region.
         Map<Boolean, Map<String, Long>> amountByPaymentAndRegion =
             sales.stream()
                 .collect(Collectors.partitioningBy(
@@ -1046,104 +1046,104 @@ public class GroupingPartitioningMapDemo {
 
         System.out.println(
             amountByPaymentAndRegion.get(false).containsKey("Tây")
-        ); // false: không có giao dịch chưa thanh toán ở Tây.
+        ); // false: there are no unpaid transactions in Tây.
     }
 }
 ```
 
-### 14.1. Ý nghĩa từng kết quả
+### 14.1. Meaning of each result
 
-| Biến | Kiểu Map | Ý nghĩa |
+| Variable | Map type | Meaning |
 | --- | --- | --- |
-| `byRegion` | `Map<String, List<Sale>>` | Mỗi vùng giữ nhiều `Sale`. |
-| `byPayment` | `Map<Boolean, List<Sale>>` | Hai tập đã/chưa thanh toán. |
-| `byId` | `Map<String, Sale>` | Tra cứu theo mã duy nhất. |
-| `totalAmountByRegion` | `Map<String, Long>` | Tổng tiền theo vùng, gồm cả giao dịch chưa thanh toán. |
-| `amountByPaymentAndRegion` | `Map<Boolean, Map<String, Long>>` | Tổng tiền theo trạng thái, rồi theo vùng. |
+| `byRegion` | `Map<String, List<Sale>>` | Each region holds multiple `Sale`s. |
+| `byPayment` | `Map<Boolean, List<Sale>>` | Two sets: paid and unpaid. |
+| `byId` | `Map<String, Sale>` | Lookup by unique ID. |
+| `totalAmountByRegion` | `Map<String, Long>` | Total amount by region, including unpaid transactions. |
+| `amountByPaymentAndRegion` | `Map<Boolean, Map<String, Long>>` | Total amount by status, then by region. |
 
-Không có phép thu thập nào trên đây làm thay đổi nội dung `sales`.
+None of the collection operations above modify the contents of `sales`.
 
-### 14.2. Vì sao phải tạo Stream mới cho mỗi phép collect?
+### 14.2. Why must a new Stream be created for each collect?
 
-`Stream` chỉ được tiêu thụ một lần. Vì `sales` là một `List` có thể duyệt lại, mỗi lời gọi `sales.stream()` tạo một Stream mới:
+A `Stream` can be consumed only once. Because `sales` is a re-traversable `List`, each `sales.stream()` call creates a new Stream:
 
 ```java
 var stream = sales.stream();
 long count = stream.count();
 
-// Không dùng lại:
+// Do not reuse:
 // Map<String, List<Sale>> wrong = stream.collect(
 //     Collectors.groupingBy(Sale::region)
 // );
 ```
 
-Nếu nguồn gốc là một iterator chỉ dùng một lần hoặc một Stream đọc tệp, cần thiết kế để tính các kết quả cần thiết trong một lần duyệt, ví dụ một collector tổng hợp riêng hoặc `Collectors.teeing` khi thích hợp.
+If the original source is a single-use iterator or a file-reading Stream, design the pipeline to compute all needed results in one pass—for example, with a custom composite collector or `Collectors.teeing` when appropriate.
 
-### 14.3. Nếu chỉ cần ba kết quả khác nhau?
+### 14.3. What if you only need three different results?
 
-Việc thu thập nhiều lần từ List nhỏ có thể đủ đơn giản. Nhưng nếu nguồn rất lớn hoặc việc duyệt đắt đỏ, cần cân nhắc một bản tóm tắt kết hợp nhiều phép đếm và tổng để chỉ duyệt một lần. Cách làm đó thuộc thiết kế collector tùy chỉnh hoặc `teeing`, không phải lý do để lạm dụng một `Map<String, List<Sale>>` chứa tất cả dữ liệu nếu chỉ cần thống kê.
+Collecting multiple times from a small List can be simple enough. However, if the source is very large or traversal is expensive, consider a combined summary that computes multiple counts and sums in a single pass. That belongs to custom collector design or `teeing`, rather than misusing a `Map<String, List<Sale>>` holding all records when only statistics are needed.
 
-## 15. Bảng quyết định lựa chọn collector
+## 15. Collector Decision Table
 
-| Yêu cầu thực tế | Collector nên cân nhắc | Lý do |
+| Practical requirement | Collector to consider | Reason |
 | --- | --- | --- |
-| Danh sách giao dịch theo vùng | `groupingBy(Sale::region)` | Mỗi khóa giữ nhiều phần tử. |
-| Đếm giao dịch theo vùng | `groupingBy(Sale::region, counting())` | Không cần giữ từng phần tử. |
-| Tổng tiền theo vùng | `groupingBy(..., summingLong(...))` hoặc `toMap(..., Long::sum)` | Mỗi khóa chỉ cần tổng. |
-| Tách đơn đã thanh toán/chưa thanh toán | `partitioningBy(Sale::paid)` | Hai nhánh boolean, kể cả nhánh rỗng. |
-| Đếm đơn đạt/chưa đạt ngưỡng | `partitioningBy(predicate, counting())` | Hai giá trị đếm cho đủ hai trạng thái. |
-| Tra giao dịch theo mã duy nhất | `toMap(Sale::id, identity())` | Một đối tượng cho mỗi khóa. |
-| Chọn bản ghi tốt nhất theo khóa | `toMap(key, identity(), BinaryOperator.maxBy(comparator))` | Quy tắc chọn một đại diện rõ ràng. |
-| Giữ mọi bản ghi theo từng tổ hợp vùng/trạng thái | `groupingBy(compositeKey)` hoặc nhóm lồng `partitioningBy` | Tùy yêu cầu có cần hai nhánh luôn tồn tại. |
-| Theo vùng nhưng tính riêng các đơn đạt tiêu chí | `groupingBy(region, filtering(predicate, downstream))` | Giữ cả vùng chỉ có phần tử không đạt. |
-| Khóa cần sắp theo thứ tự từ điển | `groupingBy(key, TreeMap::new, downstream)` hoặc `toMap(..., TreeMap::new)` | Quyết định thứ tự duyệt Map. |
-| Xử lý song song với nhiều nhóm | `groupingByConcurrent` nếu chấp nhận kết quả không bảo đảm thứ tự | Cần cân nhắc tính đúng và đo hiệu năng. |
+| List of transactions by region | `groupingBy(Sale::region)` | Each key holds multiple elements. |
+| Count transactions by region | `groupingBy(Sale::region, counting())` | No need to retain individual elements. |
+| Total amount by region | `groupingBy(..., summingLong(...))` or `toMap(..., Long::sum)` | Each key needs only a sum. |
+| Split paid/unpaid orders | `partitioningBy(Sale::paid)` | Two boolean branches, including empty ones. |
+| Count orders above/below threshold | `partitioningBy(predicate, counting())` | Two counts covering both statuses. |
+| Look up transaction by unique ID | `toMap(Sale::id, identity())` | One object per key. |
+| Pick best record per key | `toMap(key, identity(), BinaryOperator.maxBy(comparator))` | Explicit rule for picking one representative. |
+| Keep all records per region/status combination | `groupingBy(compositeKey)` or nested `partitioningBy` | Depends on whether both branches must always exist. |
+| By region, counting only qualifying orders | `groupingBy(region, filtering(predicate, downstream))` | Keeps regions whose elements all fail the predicate. |
+| Keys need lexicographical sorting | `groupingBy(key, TreeMap::new, downstream)` or `toMap(..., TreeMap::new)` | Controls Map iteration order. |
+| Parallel processing with many groups | `groupingByConcurrent` if unordered result is acceptable | Must evaluate correctness and measure performance. |
 
-Nếu không thể chọn trong vài giây, hãy viết trước **kiểu dữ liệu kết quả mong muốn**. Ví dụ `Map<String, List<Sale>>` thường gợi `groupingBy`; `Map<Boolean, Long>` gợi `partitioningBy(predicate, counting())`; `Map<String, Sale>` gợi `toMap` với chính sách khóa trùng.
+If you cannot decide within a few seconds, write down the **desired result data type** first. For example, `Map<String, List<Sale>>` usually points to `groupingBy`; `Map<Boolean, Long>` points to `partitioningBy(predicate, counting())`; `Map<String, Sale>` points to `toMap` with a duplicate-key policy.
 
-## 16. Sai lầm phổ biến và cách tránh
+## 16. Common Mistakes and How to Avoid Them
 
-| Sai lầm | Hệ quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Dùng `toMap(region, identity())` khi một vùng có nhiều bản ghi | `IllegalStateException` vì khóa trùng. | `groupingBy(region)` hoặc cung cấp merge function. |
-| Dùng `groupingBy(Sale::paid)` rồi giả định luôn có cả `true`/`false` | Nhánh không xuất hiện có thể thiếu khóa. | `partitioningBy(Sale::paid)`. |
-| Coi `partitioningBy` như grouping tùy ý nhiều nhóm | Chỉ phân chia theo boolean. | Dùng `groupingBy(classifier)` cho nhiều nhãn. |
-| Cần tổng tiền nhưng giữ toàn bộ `List<Sale>` trong Map | Dùng bộ nhớ không cần thiết. | `summingLong`, `counting` hoặc `toMap` với merge. |
-| Nhầm `filter` trước grouping với `Collectors.filtering` downstream | Nhóm không có bản ghi hợp lệ có thể biến mất. | Chọn vị trí lọc theo hợp đồng báo cáo. |
-| Mong Map của `groupingBy` hoặc `toMap` mặc định giữ thứ tự Stream | Không có bảo đảm loại Map hay thứ tự duyệt. | Dùng `mapFactory` phù hợp nếu cần. |
-| Mong `partitioningBy` có overload `mapFactory` | Không có overload như vậy. | Truy cập rõ khóa `true` và `false`. |
-| Cho rằng `groupingBy` chấp nhận khóa `null` vì `HashMap` cho phép | `NullPointerException` ở classifier trả null. | Chuẩn hóa hoặc dùng khóa biểu diễn thiếu dữ liệu. |
-| Giá trị của `toMap` là `null` | Có thể ném `NullPointerException`. | Lọc/xác thực hoặc dùng kiểu giá trị khác null. |
-| Dùng `(a,b)->a-b` để gộp doanh thu | Không có tính kết hợp khi chia/gộp. | `Long::sum` hoặc phép tổng phù hợp. |
-| Khai báo `parallelStream()` rồi cập nhật chung một `ArrayList` trong lambda | Race condition. | Sử dụng collector đúng hợp đồng. |
-| Dùng first/last với nguồn unordered | Không bảo đảm phần tử nào thắng. | Chọn bằng Comparator theo trường nghiệp vụ. |
-| Quên xử lý tràn `long` trong tổng tiền | Kết quả sai khi vượt miền số. | Chọn `Math.addExact` hoặc kiểu số đủ rộng theo chính sách. |
-| Tạo `collect` từ Stream vô hạn không dừng | Không kết thúc hoặc cạn bộ nhớ. | Giới hạn nguồn phù hợp. |
-| Gọi `collect` trên Stream lấy từ tệp mà không đóng | Rò rỉ tài nguyên I/O. | `try-with-resources`. |
+| Using `toMap(region, identity())` when a region has multiple records | `IllegalStateException` due to duplicate keys. | Use `groupingBy(region)` or provide a merge function. |
+| Using `groupingBy(Sale::paid)` and assuming both `true`/`false` exist | An unseen branch may be missing its key. | Use `partitioningBy(Sale::paid)`. |
+| Treating `partitioningBy` as arbitrary multi-group grouping | Splits only by boolean. | Use `groupingBy(classifier)` for multiple labels. |
+| Needing total amount yet keeping full `List<Sale>` in the Map | Consumes unnecessary memory. | Use `summingLong`, `counting`, or `toMap` with merge. |
+| Confusing `filter` before grouping with downstream `Collectors.filtering` | Groups with no qualifying records may vanish. | Place filtering according to the report contract. |
+| Expecting default `groupingBy` or `toMap` Map to keep Stream order | No guarantee on Map type or iteration order. | Use an appropriate `mapFactory` if needed. |
+| Expecting `partitioningBy` to have a `mapFactory` overload | No such overload exists. | Access `true` and `false` keys explicitly. |
+| Assuming `groupingBy` accepts `null` keys because `HashMap` does | `NullPointerException` when classifier returns null. | Normalize or use a key representing missing data. |
+| Returning `null` values in `toMap` | Can throw `NullPointerException`. | Filter/validate or use a non-null value type. |
+| Using `(a,b)->a-b` to merge revenue | Not associative across split/merge. | Use `Long::sum` or a suitable associative sum. |
+| Using `parallelStream()` and mutating a shared `ArrayList` inside a lambda | Race condition. | Use a contract-compliant collector. |
+| Using first/last on an unordered source | No guarantee which element wins. | Choose with a Comparator over domain fields. |
+| Forgetting `long` overflow in amount totals | Wrong results when exceeding numeric bounds. | Use `Math.addExact` or a wider numeric type per policy. |
+| Calling `collect` on an unbounded infinite Stream | Never terminates or exhausts memory. | Bound the source appropriately. |
+| Calling `collect` on a file-backed Stream without closing it | I/O resource leak. | Use `try-with-resources`. |
 
-## 17. Bài tập tự thực hành
+## 17. Practice Exercises
 
-**Bài 1 — Ba dạng Map.** Với danh sách `Sale` ở mục 2, tạo lần lượt `Map<String,List<Sale>>` theo vùng, `Map<Boolean,List<Sale>>` theo thanh toán và `Map<String,Sale>` theo ID. Giải thích khi nào mỗi Map phù hợp hơn hai Map còn lại.
+**Exercise 1 — Three Map shapes.** Using the `Sale` list from Section 2, create `Map<String,List<Sale>>` by region, `Map<Boolean,List<Sale>>` by payment status, and `Map<String,Sale>` by ID. Explain when each Map is a better fit than the other two.
 
-**Bài 2 — Nguồn rỗng.** Cho `List<Sale> empty = List.of()`. Thu ba Map bằng `groupingBy`, `partitioningBy` và `toMap`. Kiểm tra số khóa và giá trị của hai nhánh boolean.
+**Exercise 2 — Empty source.** Given `List<Sale> empty = List.of()`, collect three Maps using `groupingBy`, `partitioningBy`, and `toMap`. Check the key count and the values of both boolean branches.
 
-**Bài 3 — Tổng theo khóa.** Tính số tiền theo vùng bằng hai cách: `groupingBy(..., summingLong(...))` và `toMap(..., Long::sum)`. So sánh các giá trị của từng khóa.
+**Exercise 3 — Per-key totals.** Compute amounts by region in two ways: `groupingBy(..., summingLong(...))` and `toMap(..., Long::sum)`. Compare the values for each key.
 
-**Bài 4 — Nhóm rỗng sau lọc.** Bổ sung vùng “Đông” chỉ có giao dịch chưa thanh toán. So sánh kết quả giữa lọc trước `groupingBy` và `Collectors.filtering` ở downstream.
+**Exercise 4 — Empty group after filtering.** Add a "Đông" region that has only unpaid transactions. Compare the result of filtering before `groupingBy` vs. `Collectors.filtering` in the downstream.
 
-**Bài 5 — Nhiều cấp.** Tạo `Map<String, Map<Boolean, Long>>` với tổng tiền theo vùng rồi theo trạng thái. Kiểm tra nhánh `false` của vùng Tây vẫn tồn tại và có tổng `0L`.
+**Exercise 5 — Multi-level.** Create `Map<String, Map<Boolean, Long>>` with total amounts by region and then by status. Verify that the `false` branch for region Tây still exists and has total `0L`.
 
-**Bài 6 — Chọn bản ghi đại diện.** Với các giao dịch trùng mã vùng, chọn giao dịch có `amount` cao nhất bằng `toMap` và `BinaryOperator.maxBy`. Bổ sung tie-breaker theo `id` nếu nhiều giao dịch có cùng số tiền.
+**Exercise 6 — Choosing a representative record.** For transactions sharing the same region key, pick the transaction with the highest `amount` using `toMap` and `BinaryOperator.maxBy`. Add a tie-breaker by `id` if multiple transactions have the same amount.
 
-**Bài 7 — Kiểm tra khóa null.** Thêm giao dịch có `region = null`. Quan sát cách `groupingBy` xử lý; đề xuất một quy tắc giữ thông tin vùng thiếu mà không trộn với tên vùng có thật.
+**Exercise 7 — Null key check.** Add a transaction with `region = null`. Observe how `groupingBy` behaves; propose a rule that preserves missing-region information without colliding with real region names.
 
-**Bài 8 — Parallel.** Tính số giao dịch theo vùng bằng `stream()` và `parallelStream()`. So sánh hai Map theo giá trị, không phụ thuộc thứ tự duyệt Map. Giải thích tại sao một collector có thể song song mà vẫn phải gộp Map trung gian.
+**Exercise 8 — Parallel.** Count transactions by region using `stream()` and `parallelStream()`. Compare both Maps by value, independent of Map iteration order. Explain why a collector can run in parallel yet still have to merge intermediate Maps.
 
-**Bài 9 — Lựa chọn độ chính xác.** Nếu tổng số tiền có thể vượt giới hạn `long`, đề xuất kiểu tích lũy hoặc chính sách phát hiện lỗi thay cho việc tin tuyệt đối vào `Long::sum`.
+**Exercise 9 — Precision choices.** If total amounts can exceed `long` limits, propose an accumulation type or error-detection policy instead of blindly trusting `Long::sum`.
 
-**Bài 10 — Thiết kế báo cáo.** Một hệ thống cần đồng thời đếm tổng số giao dịch, đếm số đã thanh toán và tổng tiền đã thanh toán theo vùng. Đề xuất kiểu kết quả và cách xây downstream collector phù hợp, chỉ rõ những nơi có thể cần collector tùy chỉnh.
+**Exercise 10 — Report design.** A system needs the total transaction count, paid transaction count, and paid total amount by region simultaneously. Propose a result type and how to build an appropriate downstream collector, pointing out where a custom collector might be needed.
 
-Gợi ý Bài 5:
+Hint for Exercise 5:
 
 ```java
 Map<String, Map<Boolean, Long>> totals = sales.stream()
@@ -1158,16 +1158,16 @@ Map<String, Map<Boolean, Long>> totals = sales.stream()
 System.out.println(totals.get("Tây").get(false)); // 0
 ```
 
-Vì `groupingBy` đã tạo nhóm “Tây”, downstream `partitioningBy` dành cho nhóm đó vẫn có đủ `true` và `false`, kể cả khi danh sách của một nhánh rỗng.
+Because `groupingBy` already created the "Tây" group, the downstream `partitioningBy` for that group still contains both `true` and `false`, even though one branch's list is empty.
 
-## 18. Ghi nhớ cốt lõi
+## 18. Core Takeaways
 
-- **`groupingBy`** phân nhóm theo một khóa `K` và mặc định trả `Map<K,List<T>>`. Với downstream collector, mỗi nhóm có thể trở thành số đếm, tổng tiền, tập mã hoặc báo cáo riêng.
-- **`partitioningBy`** phân nhóm theo `Predicate<T>` và luôn cung cấp **đúng hai khóa `true`, `false`**, kể cả khi nguồn hoặc một nhánh rỗng.
-- **`toMap`** tạo **một giá trị cho mỗi khóa**. Overload không có merge function từ chối khóa trùng; overload có merge function cho phép giữ đầu, giữ cuối, cộng, chọn lớn nhất hoặc áp dụng quy tắc nghiệp vụ.
-- **Downstream collector quyết định cấu trúc đầu ra** của `groupingBy`/`partitioningBy`. Có thể lồng hai collector để tạo báo cáo nhiều cấp và chú ý sự khác biệt giữa nhóm không tồn tại với nhánh rỗng.
-- **Lọc trước `groupingBy` có thể làm mất một khóa nhóm**, còn `Collectors.filtering` trong downstream vẫn giữ nhóm đã được tạo và trả kết quả downstream cho nhóm không có phần tử đạt điều kiện.
-- **Thứ tự duyệt Map không đồng nghĩa encounter order của Stream**. Dùng `TreeMap` hoặc `LinkedHashMap` theo mục tiêu; truy cập rõ hai khóa boolean khi dùng partitioning.
-- **Collector phải tuân thủ hợp đồng tích lũy và kết hợp**, nhất là trong song song. Không dựa vào tác động phụ, thứ tự thực thi hay phép gộp không có tính kết hợp.
-- **Độ đúng phụ thuộc dữ liệu và nguồn:** tránh classifier `null`, xem xét khóa trùng, tràn số, chi phí lưu nhiều danh sách, Stream vô hạn và tài nguyên I/O.
-- Phân biệt rõ ba cách thu Map là nền tảng để thiết kế grouping sâu hơn, collector tùy chỉnh, tối ưu `Spliterator` và các pipeline khai báo nâng cao trong **JAVA_STREAM_API**.
+- **`groupingBy`** groups by a key `K` and defaults to returning `Map<K,List<T>>`. With a downstream collector, each group can become a count, total amount, set of IDs, or custom summary.
+- **`partitioningBy`** groups by a `Predicate<T>` and always provides **exactly two keys, `true` and `false`**, even when the source or one branch is empty.
+- **`toMap`** produces **one value per key**. The overload without a merge function rejects duplicate keys; the overload with a merge function allows keeping first, keeping last, summing, picking the max, or applying business rules.
+- **The downstream collector determines the output structure** of `groupingBy`/`partitioningBy`. You can nest two collectors for multi-level reports and must pay attention to the difference between an absent group and an empty branch.
+- **Filtering before `groupingBy` can drop a group key**, whereas `Collectors.filtering` in the downstream preserves already-created groups and returns the downstream result for groups with no matching elements.
+- **Map iteration order is not the same as Stream encounter order.** Use `TreeMap` or `LinkedHashMap` according to your goal; access both boolean keys explicitly when partitioning.
+- **Collectors must obey accumulation and combination contracts**, especially in parallel execution. Do not rely on side effects, execution order, or non-associative merge operations.
+- **Correctness depends on data and source characteristics:** avoid `null` classifiers, consider duplicate keys, numeric overflow, the cost of retaining many lists, infinite Streams, and I/O resources.
+- Clearly distinguishing these three Map collectors is the foundation for designing deeper grouping, custom collectors, `Spliterator` optimizations, and advanced declarative pipelines in **JAVA_STREAM_API**.

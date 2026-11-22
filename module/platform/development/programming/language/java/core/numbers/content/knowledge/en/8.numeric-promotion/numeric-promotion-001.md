@@ -1,54 +1,54 @@
-# Unary numeric promotion trong Java
+# Unary numeric promotion in Java
 
-## 1. Khái niệm và mục tiêu
+## 1. Concept and goal
 
-**Unary numeric promotion** (nâng kiểu số một ngôi) là quy tắc chuyển đổi kiểu số mà Java áp dụng cho **một toán hạng tại một thời điểm** trong những ngữ cảnh được Java Language Specification (JLS) quy định. Mục đích là tạo ra kiểu dữ liệu phù hợp để toán tử hay biểu thức có thể thực hiện phép tính.
+**Unary numeric promotion** is the numeric type conversion rule that Java applies to **one operand at a time** in contexts specified by the Java Language Specification (JLS). Its goal is to produce an appropriate data type so that the operator or expression can perform the operation.
 
-Điểm cần nhớ: **byte, short và char được nâng thành int** trong unary numeric promotion. Điều này thường khiến kết quả của **+b**, **-s**, **~c** hoặc **b << 1** có kiểu **int**, dù biến ban đầu chỉ là byte, short hay char. Quy tắc cũng có thể **unbox** các kiểu wrapper như **Byte** hoặc **Long**.
+Key point to remember: **byte, short, and char are promoted to int** in unary numeric promotion. This often causes the result of **+b**, **-s**, **~c**, or **b << 1** to have type **int**, even if the original variable is only a byte, short, or char. The rule can also **unbox** wrapper types such as **Byte** or **Long**.
 
-Ví dụ:
+Example:
 
 ~~~java
 byte b = 5;
-int x = +b;       // Hợp lệ: +b có kiểu int và giá trị 5
-int y = -b;       // Hợp lệ: -b có kiểu int và giá trị -5
-int z = ~b;       // Hợp lệ: ~b tính trên 32 bit kiểu int
-// byte bad = +b; // Lỗi biên dịch: kết quả int không tự thu hẹp về byte
+int x = +b;       // Valid: +b has type int and value 5
+int y = -b;       // Valid: -b has type int and value -5
+int z = ~b;       // Valid: ~b is computed over 32-bit int
+// byte bad = +b; // Compile error: int result is not automatically narrowed to byte
 ~~~
 
-Trong ngữ cảnh trên, dấu **+** là toán tử dương một ngôi, không phải phép cộng hai số. Mọi ví dụ ở bài này dùng quy tắc của **Java 17+**.
+In the context above, the **+** sign is the unary plus operator, not binary addition. All examples in this lesson use **Java 17+** rules.
 
-## 2. Quy tắc chuyển kiểu
+## 2. Type conversion rules
 
-Bảng dưới đây áp dụng khi một toán hạng thực sự nằm trong **ngữ cảnh unary numeric promotion**:
+The table below applies when an operand is actually in a **unary numeric promotion context**:
 
-| Kiểu ban đầu của toán hạng | Chuyển đổi | Kiểu sau promotion |
+| Original operand type | Conversion | Type after promotion |
 | --- | --- | --- |
 | **byte** | Widening primitive conversion | **int** |
 | **short** | Widening primitive conversion | **int** |
 | **char** | Widening primitive conversion | **int** |
-| **int** | Giữ nguyên | **int** |
-| **long** | Giữ nguyên | **long** |
-| **float** | Giữ nguyên | **float** |
-| **double** | Giữ nguyên | **double** |
-| **Byte**, **Short**, **Character**, **Integer** | Unboxing, rồi nâng lên int nếu cần | **int** |
+| **int** | Unchanged | **int** |
+| **long** | Unchanged | **long** |
+| **float** | Unchanged | **float** |
+| **double** | Unchanged | **double** |
+| **Byte**, **Short**, **Character**, **Integer** | Unboxing, then widening to int if needed | **int** |
 | **Long** | Unboxing | **long** |
 | **Float** | Unboxing | **float** |
 | **Double** | Unboxing | **double** |
 
-**boolean**, **Boolean** và **String** không phải toán hạng số hợp lệ cho unary numeric promotion. Các toán tử còn có ràng buộc riêng: chẳng hạn **~** chỉ chấp nhận kiểu nguyên sau promotion (**int** hoặc **long**), nên **~1.5f** không hợp lệ dù **float** là một kiểu số.
+**boolean**, **Boolean**, and **String** are not valid numeric operands for unary numeric promotion. Operators also have their own constraints: for example, **~** only accepts integral types after promotion (**int** or **long**), so **~1.5f** is invalid even though **float** is a numeric type.
 
-Không phải mọi giá trị được chuyển thành **int**. **long**, **float** và **double** giữ kiểu của mình nếu không có quy tắc khác từ ngữ cảnh bao quanh. Unary numeric promotion cũng **không tự nâng int lên long vì biến nhận kết quả là long**.
+Not every value is converted to **int**. **long**, **float**, and **double** keep their types unless another rule from the surrounding context applies. Unary numeric promotion also **does not automatically widen int to long just because the receiving variable is long**.
 
-### Thứ tự áp dụng
+### Order of application
 
-1. Xét kiểu của biểu thức toán hạng tại thời điểm biên dịch.
-2. Nếu đó là wrapper số, thực hiện **unboxing**. Khi giá trị wrapper là **null**, thao tác unbox phát sinh **NullPointerException** lúc chạy.
-3. Nếu kết quả có kiểu **byte**, **short** hoặc **char**, nâng lên **int**; nếu đã là **int**, **long**, **float**, **double**, giữ nguyên.
-4. Thực hiện toán tử hoặc sử dụng biểu thức theo ngữ nghĩa của ngữ cảnh.
-5. Sau đó, nếu kết quả được gán cho một biến, áp dụng **quy tắc phép gán** riêng; không tự động đảo ngược bước promotion.
+1. Inspect the compile-time type of the operand expression.
+2. If it is a numeric wrapper, perform **unboxing**. When the wrapper value is **null**, unboxing throws a **NullPointerException** at runtime.
+3. If the result has type **byte**, **short**, or **char**, widen it to **int**; if it is already **int**, **long**, **float**, or **double**, leave it unchanged.
+4. Execute the operator or use the expression according to the context's semantics.
+5. Afterward, if the result is assigned to a variable, apply the separate **assignment conversion rules**; the promotion step is not automatically reversed.
 
-Sơ đồ:
+Diagram:
 
 ~~~text
 byte / short / char -------------> int
@@ -63,28 +63,28 @@ Float -----------------------------unboxing--> float
 Double ----------------------------unboxing--> double
 ~~~
 
-**Widening** ở bước này không mất giá trị số nguyên của byte/short/char. Tuy nhiên, nếu một phép tính tiếp theo tràn giới hạn **int** hoặc **long**, đó là vấn đề số học sau promotion, không phải mất dữ liệu ngay trong bước mở rộng.
+**Widening** in this step does not lose the integer value of byte/short/char. However, if a subsequent calculation overflows the limits of **int** or **long**, that is an arithmetic issue after promotion, not data loss during the widening step itself.
 
-## 3. Các ngữ cảnh áp dụng
+## 3. Applicable contexts
 
-Theo JLS, unary numeric promotion xuất hiện trong các trường hợp sau:
+According to the JLS, unary numeric promotion occurs in the following cases:
 
-| Ngữ cảnh | Ví dụ | Điều quan trọng |
+| Context | Example | Key point |
 | --- | --- | --- |
-| Toán tử dương một ngôi **+** | **+someByte** | Kết quả có kiểu đã promotion |
-| Toán tử âm một ngôi **-** | **-someShort** | Đổi dấu sau khi promotion |
-| Toán tử bù bit **~** | **~someByte** | Toán hạng phải là int/long sau promotion |
-| Toán tử dịch bit **<<**, **>>**, **>>>** | **someByte << distance** | **Mỗi toán hạng được promotion riêng** |
-| Biểu thức kích thước khi tạo mảng | **new int[someByte]** | Kích thước phải có kiểu **int** sau promotion |
-| Biểu thức chỉ số mảng | **array[someChar]** | Chỉ số phải có kiểu **int** sau promotion |
+| Unary plus operator **+** | **+someByte** | Result has the promoted type |
+| Unary minus operator **-** | **-someShort** | Negates after promotion |
+| Bitwise complement operator **~** | **~someByte** | Operand must be int/long after promotion |
+| Bitwise shift operators **<<**, **>>**, **>>>** | **someByte << distance** | **Each operand is promoted independently** |
+| Array creation size expression | **new int[someByte]** | Size must have type **int** after promotion |
+| Array index expression | **array[someChar]** | Index must have type **int** after promotion |
 
-Các trường hợp tạo/truy cập mảng có kiểm tra bổ sung: **new int[1L]** và **array[1L]** không hợp lệ vì **long** không được tự chuyển thành **int** chỉ để làm kích thước hoặc chỉ số.
+Array creation/access cases have an additional check: **new int[1L]** and **array[1L]** are invalid because **long** is not automatically converted to **int** just to serve as a size or index.
 
-Lưu ý rằng một toán tử trông giống “một ngôi” **không nhất thiết** dùng cùng quy tắc. **++**, **--** là các toán tử có ngữ nghĩa cập nhật biến riêng; không được đánh đồng kiểu kết quả của chúng với toán tử **+**, **-**, **~**. Phần 8 giải thích trường hợp này.
+Note that an operator that looks "unary" **does not necessarily** use the same rules. **++** and **--** are operators with their own variable-update semantics; their result types must not be equated with **+**, **-**, or **~**. Section 8 explains this case.
 
-## 4. Toán tử dương một ngôi: +x
+## 4. Unary plus operator: +x
 
-**+x** tính toán giá trị sau khi promotion và giữ nguyên dấu, độ lớn của nó. Nó có thể **thay đổi kiểu tĩnh** của biểu thức:
+**+x** computes the value after promotion and preserves its sign and magnitude. It can **change the static type** of the expression:
 
 ~~~java
 byte b = 12;
@@ -93,73 +93,73 @@ char c = 'A';
 
 int a = +b;  // 12
 int q = +s;  // 300
-int r = +c;  // 65 (mã UTF-16 của 'A')
+int r = +c;  // 65 (UTF-16 code of 'A')
 ~~~
 
-**+b** và **b** cùng giá trị nhưng khác kiểu biểu thức: **b** là byte, **+b** là int. Điều này ảnh hưởng đến phép gán, overload của phương thức, suy luận kiểu của **var**, và những phép toán tiếp theo.
+**+b** and **b** have the same value but different expression types: **b** is byte, **+b** is int. This affects assignments, method overloading, type inference with **var**, and subsequent operations.
 
 ~~~java
 byte b = 12;
-var raw = b;        // raw có kiểu byte
-var promoted = +b;  // promoted có kiểu int
+var raw = b;        // raw has type byte
+var promoted = +b;  // promoted has type int
 ~~~
 
-Toán tử cộng hai ngôi **a + b** có quy tắc **binary numeric promotion**, khác với **+a** ở đây. Khi có chuỗi ký tự, **"x" + a** lại có thể là phép nối chuỗi, không phải unary numeric promotion.
+The binary addition operator **a + b** follows **binary numeric promotion** rules, which differ from **+a** here. When strings are involved, **"x" + a** can instead be string concatenation, not unary numeric promotion.
 
-## 5. Toán tử âm một ngôi: -x
+## 5. Unary minus operator: -x
 
-Với **-x**, Java promotion toán hạng trước rồi lấy giá trị đối. Đây là lý do một byte nhỏ nhất có thể đổi dấu mà không bị tràn ở kiểu byte:
+With **-x**, Java promotes the operand first and then takes its negation. This is why the smallest byte value can be negated without overflowing the byte type:
 
 ~~~java
 byte b = -128;
-int opposite = -b;  // 128, kiểu int
+int opposite = -b;  // 128, type int
 ~~~
 
-Phép trừ trên đã diễn ra trong int nên kết quả **128** hợp lệ. **char** là kiểu nguyên 16 bit không dấu, giá trị từ **0** đến **65535**, nhưng vẫn nâng thành int có dấu:
+The negation above takes place in int, so the result **128** is valid. **char** is a 16-bit unsigned integer type with values from **0** to **65535**, yet it is still promoted to a signed int:
 
 ~~~java
-char c = '\uFFFF';   // giá trị số 65535
+char c = '\uFFFF';   // numeric value 65535
 int value = +c;      // 65535
 int negative = -c;   // -65535
 ~~~
 
-Ở đây không có “mã char âm”: **-c** là **int** âm sau phép tính. Giá trị char gốc không đổi.
+There is no "negative char code" here: **-c** is a negative **int** after the operation. The original char value is unchanged.
 
-### Tràn khi lấy dấu âm của int/long nhỏ nhất
+### Overflow when negating the smallest int/long
 
-Độ rộng int hoặc long là hữu hạn. Giá trị đối của **Integer.MIN_VALUE** (−2³¹) không biểu diễn được trong int. Java dùng kết quả tràn theo số học bù hai:
+The width of int or long is finite. The negation of **Integer.MIN_VALUE** (−2³¹) cannot be represented in int. Java produces the overflow result using two's complement arithmetic:
 
 ~~~java
 int x = Integer.MIN_VALUE;
 System.out.println(-x); // -2147483648
 ~~~
 
-**-x** vẫn là int và vẫn bằng **Integer.MIN_VALUE**; không phát sinh ArithmeticException. **-Long.MIN_VALUE** có hiện tượng tương tự với long. Nếu thật sự cần giá trị dương của số int nhỏ nhất, có thể mở rộng **trước khi** lấy dấu âm:
+**-x** is still int and still equals **Integer.MIN_VALUE**; no ArithmeticException is thrown. **-Long.MIN_VALUE** exhibits the same behavior for long. If you genuinely need the positive value of the smallest int, you can widen **before** negating:
 
 ~~~java
 long positive = -(long) Integer.MIN_VALUE; // 2147483648L
 ~~~
 
-Còn **long wide = -Integer.MIN_VALUE;** đã thực hiện phép đổi dấu trong int rồi mới gán sang long, nên nhận giá trị âm, không giải quyết tràn.
+Whereas **long wide = -Integer.MIN_VALUE;** already performs the negation in int before assigning to long, so it receives a negative value and does not prevent overflow.
 
-Với **float/double**, unary minus có ngữ nghĩa dấu của số chấm động, bao gồm **+0.0** và **-0.0**. Ví dụ **1.0 / -0.0** là **-Infinity**, khác với chia số nguyên cho 0.
+For **float/double**, unary minus follows floating-point sign semantics, including **+0.0** and **-0.0**. For example, **1.0 / -0.0** is **-Infinity**, unlike integer division by 0.
 
-## 6. Toán tử bù bit: ~x
+## 6. Bitwise complement operator: ~x
 
-**~** đảo từng bit của toán hạng **sau khi** promotion. Kết quả có kiểu **int** hoặc **long**; **~byte**, **~short** và **~char** đều tạo ra int 32 bit.
+**~** inverts every bit of the operand **after** promotion. The result has type **int** or **long**; **~byte**, **~short**, and **~char** all produce a 32-bit int.
 
-Với **byte b = -5**, việc nâng từ byte sang int sẽ kéo dài bit dấu:
+For **byte b = -5**, promoting from byte to int sign-extends the value:
 
 ~~~text
-byte -5 (8 bit):          1111 1011
-int -5  (32 bit): 11111111 11111111 11111111 11111011
-~int -5:          00000000 00000000 00000000 00000100
-Giá trị cuối:      4
+byte -5 (8 bits):         1111 1011
+int -5  (32 bits): 11111111 11111111 11111111 11111011
+~int -5:           00000000 00000000 00000000 00000100
+Final value:       4
 ~~~
 
-Vì vậy **~b** cho ra **4**, không phải một byte âm hay giá trị có 8 bit được giữ nguyên. Với mọi int, đẳng thức số học **~x == -x - 1** đúng theo ngữ nghĩa int 32 bit.
+Therefore **~b** produces **4**, not a negative byte or an 8-bit preserved value. For any int, the arithmetic identity **~x == -x - 1** holds under 32-bit int semantics.
 
-Nếu muốn tính phép đảo trong **8 bit không dấu**, hãy **mask** kết quả trở lại 8 bit:
+If you want to compute the complement within **8 unsigned bits**, **mask** the result back to 8 bits:
 
 ~~~java
 byte b = 5;
@@ -167,40 +167,40 @@ int complement32 = ~b;           // -6
 int complement8 = (~b) & 0xFF;  // 250 (0xFA)
 ~~~
 
-Phép **& 0xFF** ở đây dùng toán tử bitwise AND; nó giới hạn mẫu kết quả còn 8 bit. Không nên coi việc này là chuyển kiểu byte có dấu, vì **250** không thuộc phạm vi **byte** của Java.
+The **& 0xFF** operation here uses the bitwise AND operator; it limits the resulting bit pattern to 8 bits. Do not treat this as converting to a signed byte type, because **250** is outside Java's **byte** range.
 
 ~~~java
-// Hợp lệ
+// Valid
 int result = ~((short) 0x00FF);
 
-// Không hợp lệ: ~ yêu cầu kiểu nguyên sau promotion
+// Invalid: ~ requires an integral type after promotion
 // float f = ~1.5f;
 ~~~
 
-## 7. Dịch bit: mỗi toán hạng được promotion độc lập
+## 7. Bitwise shifts: each operand is promoted independently
 
-Java hỗ trợ ba toán tử dịch bit: **<<** (dịch trái), **>>** (dịch phải giữ bit dấu) và **>>>** (dịch phải chèn 0). Với từng biểu thức **left << distance**, **left >> distance**, **left >>> distance**, Java áp dụng unary numeric promotion **riêng cho left và distance**.
+Java supports three shift operators: **<<** (left shift), **>>** (signed right shift), and **>>>** (unsigned right shift). For each expression **left << distance**, **left >> distance**, and **left >>> distance**, Java applies unary numeric promotion **separately to left and distance**.
 
-- Nếu toán hạng trái là **byte**, **short**, **char** hoặc **int**, kết quả phép dịch có kiểu **int**.
-- Nếu toán hạng trái là **long**, kết quả có kiểu **long**.
-- Toán hạng phải chỉ định khoảng dịch và có thể là int/long sau promotion. **long ở bên phải không khiến bên trái thành long**.
-- Hai toán hạng, sau promotion, bắt buộc là kiểu nguyên; **float** hoặc **double** không hợp lệ để dịch bit.
-- Với bên trái kiểu **int**, chỉ 5 bit thấp của khoảng dịch được xét: khoảng thực tế từ 0 đến 31 (**distance & 31**).
-- Với bên trái kiểu **long**, chỉ 6 bit thấp của khoảng dịch được xét: khoảng thực tế từ 0 đến 63 (**distance & 63**).
+- If the left operand is **byte**, **short**, **char**, or **int**, the shift result has type **int**.
+- If the left operand is **long**, the result has type **long**.
+- The right operand specifies the shift distance and can be int/long after promotion. **A long on the right does not turn the left side into long**.
+- Both operands, after promotion, must be integral types; **float** or **double** are invalid for bitwise shifts.
+- With an **int** left operand, only the lowest 5 bits of the shift distance are used: the effective distance is 0 to 31 (**distance & 31**).
+- With a **long** left operand, only the lowest 6 bits of the shift distance are used: the effective distance is 0 to 63 (**distance & 63**).
 
-Ví dụ:
+Example:
 
 ~~~java
 byte b = 1;
-int a = b << 1;         // 2, kiểu int
-int c = b << 33L;       // 2, do 33 & 31 == 1
-long d = 1L << 33L;     // 8589934592L, kiểu long
-long e = b << 33L;      // giá trị 2, int được mở rộng sang long SAU phép dịch
+int a = b << 1;         // 2, type int
+int c = b << 33L;       // 2, because 33 & 31 == 1
+long d = 1L << 33L;     // 8589934592L, type long
+long e = b << 33L;      // value 2, int is widened to long AFTER the shift
 ~~~
 
-Đừng suy luận kiểu phép dịch từ biến **long e** ở vế trái dấu bằng: bản thân **b << 33L** vẫn là **int**.
+Do not infer the type of the shift expression from the **long e** variable on the left side of the equals sign: **b << 33L** itself is still **int**.
 
-### Dịch phải một byte âm: bẫy sign extension
+### Right-shifting a negative byte: the sign extension trap
 
 ~~~java
 byte b = -5;
@@ -208,38 +208,38 @@ int x = b >>> 1;           // 2147483645
 int y = (b & 0xFF) >>> 1;  // 125
 ~~~
 
-Trong phép đầu tiên, **b** được mở rộng dấu từ **0xFB** thành int **0xFFFFFFFB** trước khi dịch phải logic 1 bit, được **0x7FFFFFFD** = **2147483645**. Trong phép thứ hai, **b & 0xFF** tạo ra int **251** (0x000000FB), dịch phải được **125**. Mục tiêu xử lý giá trị byte không dấu cần được nêu rõ và mask trước khi áp dụng phép dịch.
+In the first operation, **b** is sign-extended from **0xFB** to int **0xFFFFFFFB** before the 1-bit logical right shift, yielding **0x7FFFFFFD** = **2147483645**. In the second operation, **b & 0xFF** produces int **251** (0x000000FB), which right-shifts to **125**. The intent to process an unsigned byte value should be explicit and masked before applying the shift.
 
-**Lưu ý**: phép **&** trong ví dụ là toán tử hai ngôi có cơ chế numeric promotion riêng; nó tạo ra giá trị int để thao tác tiếp. Còn toán tử dịch áp dụng unary numeric promotion cho từng toán hạng.
+**Note**: the **&** in the example is a binary operator with its own numeric promotion mechanism; it produces an int value for further manipulation. Meanwhile, the shift operator applies unary numeric promotion to each operand.
 
-## 8. Kích thước và chỉ số mảng
+## 8. Array sizes and indices
 
-Kích thước trong **new T[size]** và chỉ số trong **array[index]** là các ngữ cảnh sử dụng unary numeric promotion. Vì vậy byte, short, char và các wrapper tương ứng có thể được dùng làm chỉ số hoặc kích thước sau khi chuyển sang int:
+The size in **new T[size]** and the index in **array[index]** are contexts that use unary numeric promotion. Thus byte, short, char, and their corresponding wrappers can be used as an index or size after being promoted to int:
 
 ~~~java
 byte size = 3;
 char index = 1;
-int[] data = new int[size]; // size được nâng thành int
-data[index] = 42;           // index được nâng thành int
+int[] data = new int[size]; // size is promoted to int
+data[index] = 42;           // index is promoted to int
 ~~~
 
-Không nên hiểu là Java cho phép mọi số thực hoặc số nguyên không giới hạn ở đây:
+Do not assume that Java allows arbitrary floating-point or unrestricted integer types here:
 
 ~~~java
-// Không biên dịch:
+// Does not compile:
 // int[] data = new int[3L];
 // int value = data[1L];
 // int[] other = new int[2.0];
 // int element = data[1.5f];
 ~~~
 
-Chỉ số phải là **int** sau promotion. Với giá trị nhỏ hơn 0 hoặc vượt độ dài mảng, mã vẫn có thể biên dịch nhưng sẽ thất bại ở lúc chạy (**NegativeArraySizeException** khi tạo mảng với kích thước âm; **ArrayIndexOutOfBoundsException** khi truy cập sai chỉ số).
+The index must be **int** after promotion. For values less than 0 or exceeding the array length, the code may still compile but will fail at runtime (**NegativeArraySizeException** when creating an array with a negative size; **ArrayIndexOutOfBoundsException** when accessing an out-of-bounds index).
 
-## 9. Unary promotion khác binary promotion, phép gán và ++/--
+## 9. Unary promotion differs from binary promotion, assignment, and ++/--
 
-Ba cơ chế này liên quan nhau nhưng không thay thế được nhau.
+These three mechanisms are related but not interchangeable.
 
-### Unary và binary numeric promotion
+### Unary and binary numeric promotion
 
 ~~~java
 byte a = 10;
@@ -249,54 +249,54 @@ int first = +a;    // unary promotion: byte -> int
 int second = a + b; // binary promotion: byte + short -> int
 ~~~
 
-Với binary numeric promotion, Java xét hai toán hạng để xác định kiểu phép tính chung; có thể có **double**, **float** hoặc **long** tùy toán hạng. Với unary numeric promotion, Java chuyển **một toán hạng tại một thời điểm**; không có việc tìm kiểu chung giữa hai phía của phép dịch bit.
+With binary numeric promotion, Java inspects both operands to determine a common operation type; it can be **double**, **float**, or **long** depending on the operands. With unary numeric promotion, Java converts **one operand at a time**; there is no common type resolution between the two sides of a bitwise shift.
 
-### Phép gán không tự thu hẹp kết quả int
+### Assignment does not automatically narrow an int result
 
 ~~~java
 byte b = 10;
-int ok = +b;         // Hợp lệ
+int ok = +b;         // Valid
 
-// Không biên dịch:
+// Does not compile:
 // byte invalid1 = +b;
 // byte invalid2 = -b;
 // byte invalid3 = b << 1;
 
-byte explicit = (byte) (+b); // Có ép kiểu tường minh
+byte explicit = (byte) (+b); // With explicit cast
 ~~~
 
-Việc ép kết quả int về byte có thể làm mất các bit cao hoặc khiến số dương thành âm khi vượt giới hạn −128..127. Chỉ cast khi quy tắc miền giá trị đã được xác nhận.
+Casting an int result to byte can discard high bits or turn a positive number negative when it exceeds the range −128..127. Only cast when the range rules have been verified.
 
-**Ngoại lệ liên quan hằng số:** một biểu thức **constant expression** có kiểu int và giá trị nằm trong phạm vi byte/short/char có thể được gán nhờ **constant narrowing**:
+**Constant-related exception:** an **int** **constant expression** whose value falls within the byte/short/char range can be assigned thanks to **constant narrowing**:
 
 ~~~java
-byte a = +12;             // Hợp lệ: hằng int 12 nằm trong phạm vi byte
+byte a = +12;             // Valid: int constant 12 is within byte range
 final byte b = 12;
-byte c = +b;              // Hợp lệ: +b là constant expression có giá trị 12
+byte c = +b;              // Valid: +b is a constant expression with value 12
 byte d = 12;
-// byte e = +d;           // Lỗi: d không phải biến hằng final
-// byte f = +128;         // Lỗi: hằng 128 vượt phạm vi byte
+// byte e = +d;           // Error: d is not a final constant variable
+// byte f = +128;         // Error: constant 128 exceeds byte range
 ~~~
 
-Không rút ra kết luận “unary plus giữ kiểu byte” từ ví dụ **byte a = +12**: biểu thức **+12** vẫn có kiểu int, chỉ được phép thu hẹp trong ngữ cảnh gán hằng.
+Do not conclude that "unary plus preserves the byte type" from the example **byte a = +12**: the expression **+12** still has type int, and narrowing is only permitted in a constant assignment context.
 
-### ++, -- và phép gán kết hợp
+### ++, --, and compound assignment
 
-Toán tử **++**, **--** làm thay đổi **biến** và có kiểu kết quả bằng kiểu biến đó. Chúng sử dụng quy tắc cập nhật và chuyển kết quả về kiểu của biến, khác với **+b** hoặc **-b** chỉ tạo ra một giá trị mới.
+The **++** and **--** operators mutate a **variable** and have a result type equal to that variable's type. They use update semantics and convert the result back to the variable's type, unlike **+b** or **-b** which simply produce a new value.
 
 ~~~java
 byte b = 127;
-b++;                     // Hợp lệ; b thành -128 do thu hẹp và tràn
-byte after = b;          // Hợp lệ
-b += 1;                  // Hợp lệ; phép gán kết hợp tự chuyển kết quả về byte
-// b = b + 1;            // Lỗi: b + 1 có kiểu int
+b++;                     // Valid; b becomes -128 due to narrowing and overflow
+byte after = b;          // Valid
+b += 1;                  // Valid; compound assignment automatically converts result to byte
+// b = b + 1;            // Error: b + 1 has type int
 ~~~
 
-**b++** không phải là “unary numeric promotion khiến byte vẫn là byte”; toán tử cập nhật có đặc tả riêng, phép cộng trung gian và bước thu hẹp khi lưu lại biến. Cần phân biệt **giá trị cũ** của hậu tố **b++** với **giá trị mới** của tiền tố **++b**.
+**b++** is not "unary numeric promotion keeping byte as byte"; update operators have their own specification, involving an intermediate addition and a narrowing step when storing back into the variable. Be sure to distinguish the **old value** of postfix **b++** from the **new value** of prefix **++b**.
 
-## 10. Wrapper và NullPointerException
+## 10. Wrappers and NullPointerException
 
-Unary numeric promotion có thể thực hiện **unboxing**:
+Unary numeric promotion can perform **unboxing**:
 
 ~~~java
 Byte b = (byte) 12;
@@ -316,18 +316,18 @@ float r = -f;   // -2.5f
 double t = -d;  // -3.5
 ~~~
 
-Nếu wrapper là null, unboxing xảy ra trước khi toán tử có thể tính giá trị:
+If the wrapper is null, unboxing occurs before the operator can compute a value:
 
 ~~~java
 Byte missing = null;
-// int x = +missing; // Biên dịch được, khi chạy ném NullPointerException
+// int x = +missing; // Compiles, throws NullPointerException at runtime
 ~~~
 
-Cần làm rõ sự khác biệt giữa **lỗi biên dịch do kiểu không phù hợp** và **lỗi runtime khi unbox null**. Nếu dữ liệu cho phép null, hãy kiểm tra điều kiện hoặc dùng giá trị mặc định phù hợp nghiệp vụ trước phép toán. Đừng mặc nhiên giả sử có giá trị 0.
+Clarify the distinction between a **compile-time error due to incompatible types** and a **runtime error when unboxing null**. If data is nullable, check conditions or use a business-appropriate default value before the operation. Never implicitly assume a value of 0.
 
-## 11. Ví dụ tổng hợp Java 17+ có kết quả kiểm chứng
+## 11. Comprehensive Java 17+ example with verified output
 
-Lưu nguyên văn mã dưới đây thành **UnaryPromotionDemo.java**:
+Save the exact code below as **UnaryPromotionDemo.java**:
 
 ~~~java
 public class UnaryPromotionDemo {
@@ -381,14 +381,14 @@ public class UnaryPromotionDemo {
 }
 ~~~
 
-Biên dịch với JDK 17 trở lên:
+Compile with JDK 17 or higher:
 
 ~~~bash
 javac UnaryPromotionDemo.java
 java UnaryPromotionDemo
 ~~~
 
-Kết quả stdout:
+Stdout output:
 
 ~~~text
 +byte: -5 / int
@@ -410,62 +410,62 @@ byte after ++: -128
 1.0 / (-0.0): -Infinity
 ~~~
 
-Trong ví dụ, các phương thức **type(int)**, **type(long)**, **type(float)**, **type(double)** được overload để cho thấy **kiểu tĩnh** mà trình biên dịch chọn cho kết quả; đây không phải cách kiểm tra kiểu cần dùng trong ứng dụng bình thường. Chuỗi in có dấu **+byte** chỉ là nhãn, còn phép promotion thực sự nằm trong **(+b)**.
+In the example, the **type(int)**, **type(long)**, **type(float)**, and **type(double)** methods are overloaded to reveal the **static type** that the compiler chooses for the result; this is not a type-checking technique to use in regular applications. The printed string containing **+byte** is just a label, while the actual promotion happens inside **(+b)**.
 
-Các điểm nên tự giải thích sau khi chạy:
+Points to explain to yourself after running:
 
-- **-char** cho **-65 / int**, vì char 'A' được nâng thành int 65 trước khi lấy dấu âm.
-- **~byte** cho **4 / int**, vì byte -5 được mở rộng dấu lên int trước khi đảo 32 bit.
-- **byte << 33L** cho **2 / int**; kiểu long của khoảng dịch không làm bên trái thành long.
-- **byte after ++** cho **-128**, vì phép tăng lưu kết quả thu hẹp vào biến byte.
-- **-Integer.MIN_VALUE** vẫn là số âm nhỏ nhất của int; phép tính không tự mở rộng thành long.
+- **-char** produces **-65 / int**, because char 'A' is promoted to int 65 before negation.
+- **~byte** produces **4 / int**, because byte -5 is sign-extended to int before inverting all 32 bits.
+- **byte << 33L** produces **2 / int**; the long type of the shift distance does not make the left side long.
+- **byte after ++** produces **-128**, because the increment stores a narrowed result back into the byte variable.
+- **-Integer.MIN_VALUE** remains the smallest negative int; the operation does not automatically widen to long.
 
-## 12. Các lỗi phổ biến và cách khắc phục
+## 12. Common pitfalls and fixes
 
-| Lỗi thường gặp | Nguyên nhân | Hướng xử lý |
+| Common mistake | Cause | Resolution |
 | --- | --- | --- |
-| Gán **+byte**, **-short** hoặc **~char** vào biến cùng kiểu nhỏ | Kết quả expression đã được nâng thành **int** | Dùng biến int hoặc cast có kiểm tra phạm vi |
-| Nghĩ **+x** luôn giữ kiểu của **x** | Unary plus thực hiện numeric promotion | Xét kiểu toán hạng trước khi đoán kiểu biểu thức |
-| Thấy **byte b = +12** chạy được rồi kết luận **+b** trả byte | Hằng int được thu hẹp nhờ constant narrowing | Phân biệt kiểu biểu thức và phép chuyển đổi khi gán |
-| Nghĩ **byte << long** có kết quả long | Hai toán hạng dịch bit được promotion riêng | Xét kiểu toán hạng **bên trái** |
-| Dịch phải **>>>** byte âm và gặp số dương rất lớn | Sign extension trước phép dịch 32 bit | Với byte không dấu, cân nhắc **b & 0xFF** |
-| Dùng **~byte** và chỉ mong 8 bit | Toán tử bù áp dụng trên **int 32 bit** | Mask **& 0xFF** khi cần mẫu bit 8 bit |
-| Truyền long vào kích thước hoặc chỉ số mảng | Quy tắc yêu cầu int sau promotion | Chuyển đổi có kiểm tra giới hạn trước khi truy cập |
-| Dùng wrapper null với unary + hoặc - | Unboxing ném **NullPointerException** | Xử lý null trước thao tác số |
-| Nghĩ **++byte** luôn trả int như **+byte** | **++** có quy tắc cập nhật biến riêng | Phân biệt phép toán đọc giá trị và phép toán cập nhật |
-| Nghĩ **-Integer.MIN_VALUE** là số dương | Tràn trong phạm vi int | Mở rộng sang long **trước** khi đổi dấu |
+| Assigning **+byte**, **-short**, or **~char** to a variable of the same small type | The expression result has been promoted to **int** | Use an int variable or cast with range checking |
+| Thinking **+x** always preserves the type of **x** | Unary plus performs numeric promotion | Check the operand type before guessing the expression type |
+| Seeing **byte b = +12** compile and concluding **+b** returns byte | An int constant is narrowed via constant narrowing | Distinguish expression type from assignment conversion |
+| Thinking **byte << long** has a long result | Both shift operands are promoted independently | Inspect the **left** operand's type |
+| Right-shifting **>>>** a negative byte and getting a very large positive number | Sign extension before the 32-bit shift | For unsigned bytes, consider **b & 0xFF** |
+| Using **~byte** and expecting only 8 bits | Complement operator applies to **32-bit int** | Mask with **& 0xFF** when an 8-bit pattern is needed |
+| Passing long as an array size or index | Rules require int after promotion | Convert with bounds checking before access |
+| Using a null wrapper with unary + or - | Unboxing throws **NullPointerException** | Handle null before numeric operations |
+| Thinking **++byte** always returns int like **+byte** | **++** has its own variable-update rules | Distinguish value-reading operations from update operations |
+| Thinking **-Integer.MIN_VALUE** is a positive number | Overflow within the int range | Widen to long **before** negating |
 
-Khi đọc một biểu thức số, hãy theo thứ tự: **kiểu gốc của từng toán hạng → có unboxing hay promotion không → kiểu phép toán → giá trị phép toán → chuyển đổi trong phép gán**. Cách phân tích này đặc biệt có ích khi gặp lỗi “possible lossy conversion from int to byte” hoặc kết quả dịch bit khác kỳ vọng.
+When reading a numeric expression, follow this order: **original type of each operand → whether unboxing or promotion occurs → operation type → operation value → conversion in assignment**. This analysis is especially helpful when encountering errors like "possible lossy conversion from int to byte" or unexpected shift results.
 
-## 13. Bài tập tự kiểm tra (kèm đáp án)
+## 13. Self-check exercises (with answers)
 
-**Bài 1.** Cho **byte b = 100;**. Các biểu thức **+b**, **-b**, **~b** lần lượt có kiểu gì? Giá trị là gì?
+**Exercise 1.** Given **byte b = 100;**. What are the types and values of **+b**, **-b**, and **~b** respectively?
 
-Đáp án: đều kiểu **int**; giá trị lần lượt **100**, **-100**, **-101**. Với int, **~100 == -101**.
+Answer: all have type **int**; values are **100**, **-100**, and **-101** respectively. For int, **~100 == -101**.
 
-**Bài 2.** **byte a = 5; byte x = +a;** có biên dịch được không? **byte x = +5;** thì sao?
+**Exercise 2.** Does **byte a = 5; byte x = +a;** compile? What about **byte x = +5;**?
 
-Đáp án: câu đầu **không**, vì **+a** là int không phải constant expression; câu thứ hai **có**, vì **+5** là hằng int nằm trong miền byte và được thu hẹp khi gán.
+Answer: the first **does not**, because **+a** is an int and not a constant expression; the second **does**, because **+5** is an int constant within the byte range and is narrowed upon assignment.
 
-**Bài 3.** **short s = 1; long result = s << 32L;** cho giá trị nào?
+**Exercise 3.** What value does **short s = 1; long result = s << 32L;** produce?
 
-Đáp án: **1**. Kiểu trái sau promotion là int, nên khoảng dịch thực tế **32 & 31 = 0**; biểu thức trả int 1 rồi mới mở rộng sang long để gán.
+Answer: **1**. The promoted left type is int, so the effective shift distance is **32 & 31 = 0**; the expression returns int 1 before being widened to long for assignment.
 
-**Bài 4.** **char c = '\uFFFF'; int x = -c;** cho giá trị nào?
+**Exercise 4.** What value does **char c = '\uFFFF'; int x = -c;** produce?
 
-Đáp án: **-65535**. Char được chuyển thành int 65535 rồi đổi dấu; không có bước diễn giải char như short có dấu.
+Answer: **-65535**. The char is converted to int 65535 and then negated; there is no step interpreting char as a signed short.
 
-**Bài 5.** **Byte x = null; int y = +x;** thất bại ở biên dịch hay lúc chạy?
+**Exercise 5.** Does **Byte x = null; int y = +x;** fail at compile time or at runtime?
 
-Đáp án: biên dịch **hợp lệ**, lúc chạy ném **NullPointerException** khi unboxing x.
+Answer: it compiles **validly**, and throws **NullPointerException** at runtime when unboxing x.
 
-**Bài 6.** Vì sao **byte b = 127; b++;** hợp lệ, còn **b = b + 1;** không?
+**Exercise 6.** Why is **byte b = 127; b++;** valid, whereas **b = b + 1;** is not?
 
-Đáp án: **++** cập nhật và chuyển kết quả về kiểu byte theo quy tắc riêng; **b + 1** có kiểu int do binary numeric promotion nên phép gán thường vào byte bị từ chối.
+Answer: **++** updates and converts the result back to byte according to its own rules; **b + 1** has type int due to binary numeric promotion, so a normal assignment to byte is rejected.
 
-## 14. Tài liệu gốc
+## 14. References
 
-- [Java Language Specification, Java SE 17 — §5.6 Numeric Contexts](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.6): định nghĩa unary numeric promotion, unboxing, widening và các ngữ cảnh áp dụng.
-- [JLS Java SE 17 — §15.15 Unary Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.15): ngữ nghĩa unary +, -, ~ và sự khác biệt của ++/--.
-- [JLS Java SE 17 — §15.19 Shift Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.19): kiểu kết quả, promotion riêng của hai toán hạng và giới hạn khoảng dịch.
-- [JLS Java SE 17 — §5.2 Assignment Contexts](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.2): trường hợp gán hằng số int sang byte/short/char.
+- [Java Language Specification, Java SE 17 — §5.6 Numeric Contexts](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.6): defines unary numeric promotion, unboxing, widening, and applicable contexts.
+- [JLS Java SE 17 — §15.15 Unary Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.15): semantics of unary +, -, ~ and how ++/-- differ.
+- [JLS Java SE 17 — §15.19 Shift Operators](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.19): result types, independent promotion of both operands, and shift distance masking.
+- [JLS Java SE 17 — §5.2 Assignment Contexts](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.2): assigning constant int expressions to byte/short/char.

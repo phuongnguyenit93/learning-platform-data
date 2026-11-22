@@ -1,10 +1,10 @@
-# `float` và `double` theo mô hình dấu phẩy động nhị phân — Java 17+
+# `float` and `double` in the Binary Floating-Point Model — Java 17+
 
-## 1. Vì sao số thực trong máy tính không luôn chính xác?
+## 1. Why Are Real Numbers in Computers Not Always Exact?
 
-Trong Java, `float` và `double` là **kiểu nguyên thủy dấu phẩy động nhị phân** (*binary floating-point*), phù hợp với mô hình IEEE 754. Chúng lưu một **giá trị nhị phân hữu hạn số bit**, không lưu mọi số thập phân theo đúng dạng con người viết.
+In Java, `float` and `double` are **binary floating-point primitive types**, conforming to the IEEE 754 model. They store a **binary value with a finite number of bits**, not every decimal number in the exact form humans write.
 
-Chẳng hạn:
+For example:
 
 ~~~java
 double sum = 0.1 + 0.2;
@@ -12,73 +12,73 @@ System.out.println(sum);
 System.out.println(sum == 0.3);
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 0.30000000000000004
 false
 ~~~
 
-Lý do không phải Java cộng sai. Các giá trị thập phân như `0.1` và `0.2` không có biểu diễn nhị phân hữu hạn chính xác, nên được làm tròn sang giá trị gần nhất có thể lưu trong `double`. Sau phép cộng và làm tròn, kết quả khác giá trị `double` gần nhất đại diện cho literal `0.3`.
+The reason is not that Java adds incorrectly. Decimal values such as `0.1` and `0.2` have no exact finite binary representation, so they are rounded to the nearest value storable in `double`. After addition and rounding, the result differs from the nearest `double` value representing the literal `0.3`.
 
-**Thông điệp quan trọng:** `float` và `double` biểu diễn **các số thực xấp xỉ hữu hạn độ chính xác**; không nên mặc định mọi phép so sánh bằng `==` sẽ phản ánh đẳng thức toán học trên số thập phân.
+**Key message:** `float` and `double` represent **approximate real numbers with finite precision**; you should not assume every `==` equality comparison reflects mathematical equality on decimal numbers.
 
-## 2. Cấu trúc bit: dấu, số mũ và phần trị
+## 2. Bit Structure: Sign, Exponent, and Significand
 
-Về mặt biểu diễn, cả hai kiểu gồm một **bit dấu**, phần **số mũ** (*exponent*) và phần **fraction/significand**.
+In terms of representation, both types consist of a **sign bit**, an **exponent** field, and a **fraction/significand** field.
 
-| Đặc tính | `float` | `double` |
+| Characteristic | `float` | `double` |
 |---|---:|---:|
-| Tổng số bit | 32 | 64 |
-| Bit dấu | 1 | 1 |
-| Bit trường số mũ | 8 | 11 |
-| Bit fraction được lưu | 23 | 52 |
-| Độ chính xác significand hiệu dụng của số normal | 24 bit | 53 bit |
-| Chữ số thập phân có nghĩa thường dùng để ước lượng | khoảng 6–7 | khoảng 15–16 |
-| Giá trị hữu hạn dương lớn nhất | khoảng `3.4028235E38` | khoảng `1.7976931348623157E308` |
+| Total bits | 32 | 64 |
+| Sign bit | 1 | 1 |
+| Exponent field bits | 8 | 11 |
+| Stored fraction bits | 23 | 52 |
+| Effective significand precision for normal numbers | 24 bits | 53 bits |
+| Commonly used estimate of significant decimal digits | about 6–7 | about 15–16 |
+| Largest finite positive value | about `3.4028235E38` | about `1.7976931348623157E308` |
 
-Đối với số **normal** khác 0, giá trị mang dạng khái quát:
+For a non-zero **normal** number, the value takes the general form:
 
 \[
 (-1)^{sign}\times(1.fraction)_2\times2^{exponent-bias}.
 \]
 
-- `sign` cho biết dấu dương/âm.
-- `fraction` là các bit phần lẻ sau dấu phẩy nhị phân.
-- `exponent` xác định thang độ lớn dựa trên lũy thừa của 2.
-- Với số normal, có một bit dẫn đầu `1` được hiểu ngầm, vì vậy độ chính xác hiệu dụng là 24 hoặc 53 bit.
+- `sign` indicates positive/negative sign.
+- `fraction` is the fractional bits after the binary point.
+- `exponent` determines the magnitude scale based on powers of 2.
+- For normal numbers, there is an implicit leading `1` bit, so the effective precision is 24 or 53 bits.
 
-Số **subnormal**, số 0, vô cực và NaN dùng các dạng biểu diễn đặc biệt, không áp dụng công thức số normal một cách nguyên xi.
+**Subnormal** numbers, zero, infinities, and NaN use special representation forms and do not apply the normal-number formula verbatim.
 
-Từ Java 17, ngữ nghĩa dấu phẩy động được xác định theo hướng **always-strict**: lập trình viên có thể dựa vào các quy tắc làm tròn/độ rộng của ngôn ngữ thay vì giả định JVM tùy tiện giữ kết quả trung gian với độ chính xác mở rộng. Không cần gắn `strictfp` chỉ để bật điều đó trong Java 17.
+Since Java 17, floating-point semantics are defined as **always-strict**: developers can rely on the language's rounding and width rules rather than assuming the JVM arbitrarily keeps intermediate results in extended precision. You do not need to add `strictfp` just to enable that in Java 17.
 
-## 3. Literal, hậu tố F và kiểu mặc định
+## 3. Literals, the `F` Suffix, and the Default Type
 
-Một literal có dấu chấm thập phân hoặc số mũ như `1.25` thường có kiểu **`double`** nếu không có hậu tố. Muốn literal kiểu `float`, viết hậu tố `f` hoặc `F`.
-
-~~~java
-double distanceKm = 12.5;     // Literal double
-double large = 1.23e6;       // 1_230_000.0, kiểu double
-float temperature = 26.5f;   // Literal float
-float ratio = 1.25F;         // Literal float
-double fromFloat = 1.25f;    // float literal được mở rộng sang double
-~~~
-
-Không hợp lệ:
+A literal with a decimal point or exponent such as `1.25` typically has type **`double`** if it has no suffix. To make a `float` literal, write the `f` or `F` suffix.
 
 ~~~java
-// float bad = 0.1; // Lỗi compile: double không tự thu hẹp sang float
+double distanceKm = 12.5;     // double literal
+double large = 1.23e6;       // 1_230_000.0, type double
+float temperature = 26.5f;   // float literal
+float ratio = 1.25F;         // float literal
+double fromFloat = 1.25f;    // float literal widened to double
 ~~~
 
-Nếu muốn `float`, hãy viết `0.1f` thay vì cast tùy tiện. Nếu bài toán không có lý do đặc biệt chọn `float`, **`double` thường là lựa chọn mặc định** cho phép tính số thực trên Java.
+Invalid:
 
-**Đừng nhầm hậu tố:** `L` dành cho literal số nguyên kiểu `long`; `F` dành cho literal dấu phẩy động kiểu `float`; `D` có thể viết cho `double` nhưng thường không cần.
+~~~java
+// float bad = 0.1; // Compile error: double does not automatically narrow to float
+~~~
 
-Độ rộng 64 bit của `double` không có nghĩa nó biểu diễn **mọi** số nguyên 64 bit chính xác: khi các số đủ lớn, các số nguyên liên tiếp có thể cùng làm tròn về một `double`.
+If you want `float`, write `0.1f` instead of casting arbitrarily. Unless the problem has a specific reason to choose `float`, **`double` is usually the default choice** for floating-point calculations in Java.
 
-## 4. Sai số biểu diễn bắt đầu từ bước lưu giá trị
+**Do not confuse suffixes:** `L` is for `long` integer literals; `F` is for `float` floating-point literals; `D` can be written for `double` but is usually unnecessary.
 
-Trong hệ thập phân, `1/10 = 0.1` có một chữ số sau dấu phẩy. Trong hệ nhị phân, `1/10` lặp vô hạn, nên `float`/`double` phải cắt làm tròn trong giới hạn số bit.
+The 64-bit width of `double` does not mean it represents **every** 64-bit integer accurately: once numbers are large enough, consecutive integers can round to the same `double`.
+
+## 4. Representation Error Begins When Storing the Value
+
+In decimal, `1/10 = 0.1` has one digit after the decimal point. In binary, `1/10` repeats infinitely, so `float`/`double` must round it within the bit limit.
 
 ~~~java
 float f = 0.1f;
@@ -89,7 +89,7 @@ System.out.println((double) f);
 System.out.println(d);
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 0.1
@@ -97,56 +97,56 @@ System.out.println(d);
 0.1
 ~~~
 
-Giải thích:
+Explanation:
 
-- `System.out.println(f)` hiển thị một **chuỗi thập phân ngắn đủ để tái tạo** cùng giá trị `float` theo quy tắc chuyển sang chuỗi. Việc in `0.1` không chứng minh giá trị nhị phân được lưu bằng chính xác 1/10.
-- Ép `float` sang `double` giữ đúng **giá trị xấp xỉ đã lưu ở float**, vì mọi giá trị `float` hữu hạn đều biểu diễn chính xác được ở `double`. Nó không khôi phục số thập phân gốc `0.1`.
-- `double d = 0.1;` chọn một xấp xỉ khác, thường chính xác hơn do có 53 bit significand.
+- `System.out.println(f)` displays a **short decimal string sufficient to reconstruct** the same `float` value under string-conversion rules. Printing `0.1` does not prove the stored binary value equals exact 1/10.
+- Casting `float` to `double` preserves the exact **approximate value already stored in `float`**, because every finite `float` value is representable exactly in `double`. It does not restore the original decimal `0.1`.
+- `double d = 0.1;` chooses a different approximation, usually more accurate due to having 53 significand bits.
 
-Nếu cần phân tích sâu có thể dùng `Float.floatToRawIntBits` và `Double.doubleToRawLongBits` để nhìn mẫu bit; còn khi học ứng dụng, chỉ cần hiểu `float`/ `double` không phải kiểu thập phân chính xác.
+If deeper analysis is needed, you can use `Float.floatToRawIntBits` and `Double.doubleToRawLongBits` to inspect the bit patterns; in application development, you only need to understand that `float`/`double` are not exact decimal types.
 
-## 5. Miền giá trị, MIN_VALUE và số subnormal
+## 5. Value Range, `MIN_VALUE`, and Subnormal Numbers
 
-Hai kiểu có miền giá trị rất lớn, nhưng có **độ chính xác hữu hạn**. Java cung cấp các hằng:
+Both types have huge value ranges, yet **finite precision**. Java provides the constants:
 
-| Hằng | Ý nghĩa | Giá trị xấp xỉ |
+| Constant | Meaning | Approximate value |
 |---|---|---:|
-| `Float.MAX_VALUE` | Số hữu hạn dương lớn nhất của float | `3.4028235E38` |
-| `Float.MIN_NORMAL` | Số normal dương nhỏ nhất của float | `1.17549435E-38` |
-| `Float.MIN_VALUE` | Số subnormal dương nhỏ nhất khác 0 của float | `1.4E-45` |
-| `Double.MAX_VALUE` | Số hữu hạn dương lớn nhất của double | `1.7976931348623157E308` |
-| `Double.MIN_NORMAL` | Số normal dương nhỏ nhất của double | `2.2250738585072014E-308` |
-| `Double.MIN_VALUE` | Số subnormal dương nhỏ nhất khác 0 của double | `4.9E-324` |
+| `Float.MAX_VALUE` | Largest finite positive `float` | `3.4028235E38` |
+| `Float.MIN_NORMAL` | Smallest positive normal `float` | `1.17549435E-38` |
+| `Float.MIN_VALUE` | Smallest positive non-zero subnormal `float` | `1.4E-45` |
+| `Double.MAX_VALUE` | Largest finite positive `double` | `1.7976931348623157E308` |
+| `Double.MIN_NORMAL` | Smallest positive normal `double` | `2.2250738585072014E-308` |
+| `Double.MIN_VALUE` | Smallest positive non-zero subnormal `double` | `4.9E-324` |
 
-**Bẫy quan trọng:** `Float.MIN_VALUE` và `Double.MIN_VALUE` **không phải số âm nhỏ nhất**. Chúng là **số dương nhỏ nhất khác 0** có thể biểu diễn. Số hữu hạn âm có độ lớn lớn nhất lần lượt là `-Float.MAX_VALUE` và `-Double.MAX_VALUE`.
+**Important trap:** `Float.MIN_VALUE` and `Double.MIN_VALUE` **are not the smallest negative numbers**. They are the **smallest positive non-zero numbers** representable. The finite negative numbers with the largest magnitude are `-Float.MAX_VALUE` and `-Double.MAX_VALUE`, respectively.
 
-**Subnormal** cho phép biểu diễn các giá trị gần 0 hơn `MIN_NORMAL` bằng cách hy sinh dần các bit có nghĩa hiệu dụng. Nếu phép tính tạo ra giá trị có độ lớn quá nhỏ, kết quả có thể **underflow** về một giá trị subnormal hoặc thành số 0 (có dấu). Nếu độ lớn vượt miền hữu hạn, kết quả có thể thành **Infinity**.
+**Subnormals** allow representing values closer to 0 than `MIN_NORMAL` by gradually sacrificing effective significant bits. If a calculation yields a value with too small a magnitude, the result may **underflow** to a subnormal value or to (signed) zero. If the magnitude exceeds the finite range, the result can become **Infinity**.
 
-Không nhầm “miền rộng” với “độ chính xác cao ở mọi giá trị”. Khoảng cách giữa hai số dấu phẩy động liên tiếp **tăng khi độ lớn của số tăng**.
+Do not confuse "wide range" with "high precision at every value." The spacing between two consecutive floating-point numbers **increases as the magnitude of the number increases**.
 
-## 6. Độ chính xác, ULP và bước nhảy giữa hai số
+## 6. Precision, ULP, and the Step Between Two Numbers
 
-**ULP** (*unit in the last place*) giúp mô tả khoảng cách giữa các giá trị biểu diễn gần một số cụ thể. Gần `1.0`:
+**ULP** (*unit in the last place*) helps describe the spacing between representable values near a specific number. Near `1.0`:
 
 ~~~java
 System.out.println(Math.ulp(1.0f)); // 1.1920929E-7
 System.out.println(Math.ulp(1.0d)); // 2.220446049250313E-16
 ~~~
 
-Đối với `float`, số nguyên `16_777_216` (2²⁴) đã đủ lớn để **không thể phân biệt** giá trị đó với giá trị cộng thêm 1 sau khi làm tròn về `float`:
+For `float`, the integer `16_777_216` (2²⁴) is already large enough that it **cannot be distinguished** from adding 1 after rounding to `float`:
 
 ~~~java
 float base = 16_777_216f;
 System.out.println(base + 1f == base); // true
 ~~~
 
-Trong `double`, số nguyên liên tiếp được biểu diễn chính xác đến `2^53`, sau đó không còn bảo đảm mọi bước tăng 1 đều được phân biệt.
+In `double`, consecutive integers are represented accurately up to `2^53`, after which every increment by 1 is no longer guaranteed to be distinguishable.
 
-Như vậy, khả năng lưu **giá trị rất lớn** không có nghĩa vẫn giữ được **sai khác rất nhỏ** trên cùng thang giá trị. Chọn `double` hay `float` phải xét cả độ lớn và độ phân giải cần thiết.
+Thus, the ability to store **very large values** does not mean **very small differences** are preserved on the same value scale. Choosing between `double` and `float` must consider both magnitude and required resolution.
 
-## 7. So sánh: ==, epsilon và giới hạn của dung sai
+## 7. Comparisons: `==`, Epsilon, and the Limits of Tolerance
 
-So sánh trực tiếp:
+Direct comparison:
 
 ~~~java
 double a = 0.1 + 0.2;
@@ -155,7 +155,7 @@ double b = 0.3;
 System.out.println(a == b); // false
 ~~~
 
-Nếu một bài toán cho phép sai số gần đúng, bạn có thể định nghĩa **dung sai có ý nghĩa**:
+If a problem allows approximate error, you can define a **meaningful tolerance**:
 
 ~~~java
 static boolean nearlyEqual(double a, double b, double tolerance) {
@@ -167,25 +167,25 @@ static boolean nearlyEqual(double a, double b, double tolerance) {
 }
 ~~~
 
-Ví dụ `nearlyEqual(0.1 + 0.2, 0.3, 1e-9)` trả `true`.
+For example, `nearlyEqual(0.1 + 0.2, 0.3, 1e-9)` returns `true`.
 
-Nhưng **không có một epsilon cố định đúng cho mọi bài toán**: dung sai tuyệt đối `1e-9` có thể quá lớn nếu đo nano-đơn vị và quá nhỏ nếu so sánh hai giá trị rất lớn. Khi cần, xét kết hợp dung sai tuyệt đối và tương đối theo miền dữ liệu.
+However, **there is no single fixed epsilon right for every problem**: an absolute tolerance of `1e-9` might be too large when measuring nano-units and too small when comparing very large values. When needed, consider combining absolute and relative tolerances based on the data domain.
 
-Đặc biệt, **đừng dùng phép so sánh gần đúng** để thay thế định danh, khóa, dữ liệu tiền tệ, hoặc những phép kiểm tra cần sự bằng nhau chính xác theo quy ước nghiệp vụ. Với `NaN` và `Infinity`, cần xác định riêng chính sách chấp nhận giá trị.
+In particular, **do not use approximate comparisons** in place of identifiers, keys, monetary data, or checks that require exact equality under business rules. For `NaN` and `Infinity`, define a separate policy on whether those values are accepted.
 
-## 8. Các giá trị đặc biệt: NaN, Infinity, +0.0 và -0.0
+## 8. Special Values: `NaN`, `Infinity`, `+0.0`, and `-0.0`
 
-IEEE 754 cho phép nhiều trạng thái ngoài số hữu hạn bình thường:
+IEEE 754 allows several states beyond ordinary finite numbers:
 
-| Giá trị | Sinh ra như thế nào (ví dụ) | Điều cần nhớ |
+| Value | How it is produced (example) | What to remember |
 |---|---|---|
-| `Double.POSITIVE_INFINITY` | `1.0 / 0.0` | Dương vô cực, không phải số hữu hạn |
-| `Double.NEGATIVE_INFINITY` | `-1.0 / 0.0` | Âm vô cực |
+| `Double.POSITIVE_INFINITY` | `1.0 / 0.0` | Positive infinity, not a finite number |
+| `Double.NEGATIVE_INFINITY` | `-1.0 / 0.0` | Negative infinity |
 | `Double.NaN` | `0.0 / 0.0` | Not a Number |
-| `+0.0` | `0.0` | Zero dấu dương |
-| `-0.0` | `-0.0` | Zero dấu âm, có mẫu bit khác +0.0 |
+| `+0.0` | `0.0` | Positive zero |
+| `-0.0` | `-0.0` | Negative zero, has a different bit pattern from +0.0 |
 
-Ví dụ:
+Example:
 
 ~~~java
 double nan = 0.0 / 0.0;
@@ -196,18 +196,18 @@ System.out.println(1.0 / -0.0);        // -Infinity
 System.out.println(0.0 == -0.0);       // true
 ~~~
 
-**Phân biệt quan trọng:**
+**Important distinctions:**
 
-- Mọi phép so sánh số học `==` với NaN đều trả `false`, kể cả `nan == nan`. Dùng `Double.isNaN` hoặc `Float.isNaN` khi cần phát hiện NaN.
-- `0.0 == -0.0` là `true` theo toán tử `==`, nhưng dấu có thể ảnh hưởng kết quả phép chia nghịch đảo và mẫu bit lưu trữ.
-- Dùng `Double.isInfinite` hoặc `Double.isFinite` để kiểm tra các trường hợp ngoài miền hữu hạn.
-- Khác phép chia số nguyên cho 0, phép chia dấu phẩy động `1.0 / 0.0` **không ném `ArithmeticException`**; nó tạo Infinity theo quy tắc floating-point.
+- Every numeric `==` comparison with NaN returns `false`, including `nan == nan`. Use `Double.isNaN` or `Float.isNaN` when you need to detect NaN.
+- `0.0 == -0.0` is `true` under the `==` operator, but the sign can affect reciprocal division results and the stored bit pattern.
+- Use `Double.isInfinite` or `Double.isFinite` to check for cases outside the finite range.
+- Unlike integer division by 0, floating-point division `1.0 / 0.0` **does not throw `ArithmeticException`**; it produces Infinity according to floating-point rules.
 
-Nếu dữ liệu đầu vào không được phép chứa NaN/Infinity, hãy validation **trước** khi tính hoặc lưu dữ liệu vào hệ thống.
+If input data must not contain NaN/Infinity, validate it **before** computing or storing data in the system.
 
-## 9. Chương trình Java 17 đầy đủ và kết quả chạy
+## 9. Complete Java 17 Program and Run Results
 
-Tạo đúng tệp **`BinaryFloatingDemo.java`**:
+Create the exact file **`BinaryFloatingDemo.java`**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -261,7 +261,7 @@ public final class BinaryFloatingDemo {
 }
 ~~~
 
-Yêu cầu: **JDK 17+**, terminal mở tại thư mục chứa tệp.
+Requirement: **JDK 17+**, terminal opened in the directory containing the file.
 
 **Bash (Linux/macOS):**
 
@@ -306,20 +306,20 @@ zero equality=true
 decimal exact sum=0.3
 ~~~
 
-Trong phần đầu ra, dấu `E` nghĩa là số mũ cơ số 10 của **chuỗi hiển thị**; nó không đổi bản chất dữ liệu nhị phân bên dưới. Chuỗi hiển thị và mẫu bit trong JVM là hai khía cạnh khác nhau của cùng giá trị.
+In the output, the `E` indicates the base-10 exponent of the **display string**; it does not change the underlying binary data nature. The display string and the bit pattern in the JVM are two different aspects of the same value.
 
-## 10. Khi nào dùng float, double và BigDecimal?
+## 10. When to Use `float`, `double`, and `BigDecimal`?
 
-| Nhu cầu | Thường chọn | Lý do |
+| Need | Typical choice | Reason |
 |---|---|---|
-| Tính toán khoa học/thống kê thông thường có dung sai | `double` | Khoảng 15–16 chữ số thập phân có nghĩa; độ chính xác cao hơn `float` |
-| Mảng rất lớn, dữ liệu hình ảnh/đồ họa, giao diện yêu cầu 32 bit | `float` khi phù hợp | Dung lượng dữ liệu thấp hơn, nhưng sai số lớn hơn |
-| Tiền tệ/quy tắc làm tròn thập phân chặt chẽ | `BigDecimal` hoặc số nguyên đơn vị nhỏ nhất | Cần tính toán và làm tròn theo nghiệp vụ, không theo xấp xỉ nhị phân |
-| Chỉ số đếm nguyên | `int` hoặc `long` | Số đếm nguyên không cần dấu phẩy động |
+| General scientific/statistical calculations with tolerance | `double` | About 15–16 significant decimal digits; higher accuracy than `float` |
+| Very large arrays, image/graphics data, interfaces requiring 32 bits | `float` when suitable | Lower data footprint, but larger error |
+| Currency/strict decimal rounding rules | `BigDecimal` or integer smallest units | Requires business-rule arithmetic and rounding, not binary approximation |
+| Integer counts | `int` or `long` | Integer counts do not need floating-point |
 
-**BigDecimal không phải một hậu tố của float/double.** Nó là kiểu đối tượng trong `java.math`, có quy tắc và API số học riêng.
+**`BigDecimal` is not a suffix of `float`/`double`.** It is an object type in `java.math`, with its own rules and arithmetic API.
 
-Khi bạn cần biểu diễn **chính xác các số thập phân trong bài toán tiền tệ**, tạo `BigDecimal` từ **chuỗi thập phân** hoặc từ biểu diễn đã biết, ví dụ:
+When you need to represent **exact decimal numbers in monetary problems**, create `BigDecimal` from a **decimal string** or from a known representation, for example:
 
 ~~~java
 BigDecimal price = new BigDecimal("0.1");
@@ -327,28 +327,28 @@ BigDecimal tax = new BigDecimal("0.2");
 System.out.println(price.add(tax)); // 0.3
 ~~~
 
-Tránh `new BigDecimal(0.1)` nếu mục đích là lấy **chính xác giá trị thập phân 0.1**: constructor này nhận giá trị `double` đã xấp xỉ nhị phân và giữ lại sai khác đó. `BigDecimal.valueOf(0.1)` cũng là lựa chọn hợp lý cho nhiều trường hợp chuyển `double` theo chuỗi biểu diễn chuẩn, nhưng **không thể khôi phục độ chính xác đã mất trong phép tính trước đó**.
+Avoid `new BigDecimal(0.1)` if the goal is to get the **exact decimal value 0.1**: this constructor receives the binary-approximated `double` value and preserves that discrepancy. `BigDecimal.valueOf(0.1)` is also a reasonable option in many cases to convert a `double` via its canonical string representation, but it **cannot recover precision already lost in prior calculations**.
 
-Với phép chia thập phân có kết quả vô hạn, `BigDecimal` có thể yêu cầu quy tắc làm tròn/`MathContext` phù hợp. Chọn `BigDecimal` không làm bạn hết phải xác định chính sách làm tròn.
+For non-terminating decimal division, `BigDecimal` may require an appropriate rounding rule/`MathContext`. Choosing `BigDecimal` does not remove the need to define a rounding policy.
 
-## 11. Lỗi thường gặp và cách kiểm tra
+## 11. Common Mistakes and How to Check
 
-| Hiện tượng | Nguyên nhân | Cách xử lý |
+| Symptom | Cause | How to handle |
 |---|---|---|
-| `float f = 0.1;` không compile | Literal mặc định `double` | `float f = 0.1f;` |
-| `0.1 + 0.2 == 0.3` là false | Làm tròn nhị phân | Dùng dung sai phù hợp hoặc mô hình decimal chính xác |
-| `Float.MIN_VALUE` bị hiểu là số âm cực tiểu | Tên hằng dễ gây nhầm | Nhớ đây là số dương khác 0 nhỏ nhất |
-| `float` mất một bước cộng 1 ở số lớn | Khoảng cách giữa các giá trị float đã lớn | Chọn `double` hoặc kiểu nguyên nếu bài toán đếm |
-| `1.0 / 0.0` cho Infinity | Ngữ nghĩa IEEE 754 | Dùng `isFinite`/validation |
-| `NaN == NaN` là false | NaN có quy tắc so sánh đặc biệt | Dùng `isNaN` |
-| `0.0 == -0.0` là true | So sánh giá trị không phân biệt dấu zero | Kiểm tra bit/dấu nếu bài toán cần phân biệt |
-| `new BigDecimal(0.1)` có số lẻ dài | Nhận binary double gần 0.1 | Dùng chuỗi decimal hoặc `valueOf` đúng mục đích |
-| Dùng epsilon tuyệt đối cố định cho mọi thang số | Dung sai không theo miền dữ liệu | Định nghĩa sai số tuyệt đối/tương đối theo yêu cầu |
-| Trông đợi `double` giữ nguyên mọi số nguyên 64 bit | Significand chỉ 53 bit | Dùng `long`/`BigInteger` khi cần số nguyên chính xác |
+| `float f = 0.1;` fails to compile | Default literal is `double` | `float f = 0.1f;` |
+| `0.1 + 0.2 == 0.3` is false | Binary rounding | Use an appropriate tolerance or an exact decimal model |
+| `Float.MIN_VALUE` is mistaken for the most negative number | Misleading constant name | Remember this is the smallest non-zero positive number |
+| `float` loses an increment of 1 at large numbers | Spacing between float values is already large | Choose `double` or an integer type if counting |
+| `1.0 / 0.0` gives Infinity | IEEE 754 semantics | Use `isFinite`/validation |
+| `NaN == NaN` is false | NaN has special comparison rules | Use `isNaN` |
+| `0.0 == -0.0` is true | Value comparison does not distinguish zero sign | Check bits/sign if the problem needs to distinguish them |
+| `new BigDecimal(0.1)` has long trailing digits | Receives binary double near 0.1 | Use a decimal string or `valueOf` appropriately |
+| Using a fixed absolute epsilon for all number scales | Tolerance does not fit the data domain | Define absolute/relative error per requirements |
+| Expecting `double` to preserve all 64-bit integers | Significand is only 53 bits | Use `long`/`BigInteger` when exact integers are needed |
 
-## 12. Bài tập ngắn kèm đáp án
+## 12. Short Exercises with Answers
 
-### Bài A — kiểu của literal
+### Exercise A — Literal Types
 
 ~~~java
 double a = 1.25;
@@ -356,9 +356,9 @@ float b = 1.25f;
 // float c = 1.25;
 ~~~
 
-**Đáp án:** `a` và `b` hợp lệ. Dòng `c` lỗi compile vì `1.25` là literal `double` không có hậu tố `f`. Dù giá trị này biểu diễn chính xác được bằng nhị phân, quy tắc kiểu literal vẫn áp dụng.
+**Answer:** `a` and `b` are valid. Line `c` fails to compile because `1.25` is a `double` literal without the `f` suffix. Even though this value can be represented exactly in binary, the literal type rule still applies.
 
-### Bài B — giá trị in ra khác với giá trị thật
+### Exercise B — Printed Value Differs from True Value
 
 ~~~java
 float value = 0.1f;
@@ -366,22 +366,22 @@ System.out.println(value);
 System.out.println((double) value);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 0.1
 0.10000000149011612
 ~~~
 
-`println(float)` và `println(double)` dùng cách chuyển giá trị thành chuỗi theo từng kiểu. Ép `float` thành `double` không biến giá trị thành 0.1 thập phân chính xác.
+`println(float)` and `println(double)` use per-type value-to-string conversion. Casting `float` to `double` does not turn the value into exact decimal 0.1.
 
-### Bài C — so sánh số thực
+### Exercise C — Comparing Floating-Point Numbers
 
-Tại sao `0.1 + 0.2 == 0.3` trả false? Cần làm gì nếu bài toán cho phép sai số 1e-9?
+Why does `0.1 + 0.2 == 0.3` return false? What should be done if the problem allows an error of 1e-9?
 
-**Đáp án:** các giá trị đã làm tròn ở dạng nhị phân nên sau phép cộng có thể không trùng đúng mẫu bit của `0.3`. Có thể so sánh `Math.abs((0.1 + 0.2) - 0.3) <= 1e-9` nếu dung sai này hợp với miền dữ liệu, đồng thời có quy tắc riêng với NaN/Infinity.
+**Answer:** the values are rounded in binary, so after addition the result may not match the exact bit pattern of `0.3`. You can compare `Math.abs((0.1 + 0.2) - 0.3) <= 1e-9` if this tolerance fits the data domain, while also having separate rules for NaN/Infinity.
 
-### Bài D — số đặc biệt
+### Exercise D — Special Numbers
 
 ~~~java
 double x = 0.0 / 0.0;
@@ -389,30 +389,30 @@ System.out.println(Double.isNaN(x));
 System.out.println(x == x);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 true
 false
 ~~~
 
-### Bài E — tiền tệ
+### Exercise E — Currency
 
-Cần cộng hai giá trị tiền theo thập phân là 0.1 và 0.2 để được 0.3 đúng tuyệt đối. Chọn gì?
+You need to add two monetary values in decimal, 0.1 and 0.2, to get exactly 0.3. What should you choose?
 
-**Đáp án:** `new BigDecimal("0.1").add(new BigDecimal("0.2"))` cho kết quả `0.3` đúng theo biểu diễn decimal; với đơn vị nhỏ nhất hữu hạn có thể cân nhắc số nguyên. Tránh coi `double` cộng thập phân là phép tính decimal chính xác.
+**Answer:** `new BigDecimal("0.1").add(new BigDecimal("0.2"))` yields `0.3` accurately in decimal representation; for finite smallest units, integers can be considered. Avoid treating `double` addition as exact decimal arithmetic.
 
-## 13. Checklist kết thúc
+## 13. Completion Checklist
 
-- [ ] Biết `float` có 32 bit, `double` có 64 bit; significand hiệu dụng tương ứng 24/53 bit.
-- [ ] Hiểu vì sao `0.1` không biểu diễn chính xác bằng một số hữu hạn bit nhị phân.
-- [ ] Nhớ literal dấu phẩy động mặc định là `double`, dùng `f`/`F` cho `float`.
-- [ ] Phân biệt chuỗi in `0.1` với giá trị nhị phân được lưu.
-- [ ] Hiểu `MIN_VALUE` là số dương khác 0 nhỏ nhất, khác `MIN_NORMAL`.
-- [ ] Biết độ phân giải giảm khi độ lớn tăng, có thể quan sát qua `Math.ulp`.
-- [ ] Biết phát hiện NaN/Infinity bằng API chuyên dụng và phân biệt `+0.0`/`-0.0`.
-- [ ] Không dùng epsilon chung cho mọi bài toán mà không xét thang đo.
-- [ ] Biết khi nào chuyển sang `BigDecimal` hoặc số nguyên.
-- [ ] Biên dịch/chạy `BinaryFloatingDemo.java` bằng `javac`/`java` và đối chiếu từng dòng.
+- [ ] Know that `float` has 32 bits and `double` has 64 bits; effective significands are 24/53 bits respectively.
+- [ ] Understand why `0.1` cannot be represented exactly with a finite number of binary bits.
+- [ ] Remember that floating-point literals default to `double`; use `f`/`F` for `float`.
+- [ ] Distinguish the printed string `0.1` from the stored binary value.
+- [ ] Understand that `MIN_VALUE` is the smallest non-zero positive number, distinct from `MIN_NORMAL`.
+- [ ] Know that resolution decreases as magnitude increases, observable via `Math.ulp`.
+- [ ] Know how to detect NaN/Infinity using dedicated APIs and distinguish `+0.0`/`-0.0`.
+- [ ] Do not apply a universal epsilon to every problem without considering scale.
+- [ ] Know when to switch to `BigDecimal` or integers.
+- [ ] Compile/run `BinaryFloatingDemo.java` with `javac`/`java` and verify each line.
 
-**Kết luận:** `float` và `double` biểu diễn số thực bằng **dấu phẩy động nhị phân**, có phạm vi rất rộng nhưng chỉ giữ hữu hạn bit có nghĩa. Hãy dự đoán sai số làm tròn, chọn kiểu theo yêu cầu độ chính xác, kiểm tra các giá trị đặc biệt và dùng mô hình thập phân thích hợp khi nghiệp vụ đòi kết quả decimal chính xác.
+**Conclusion:** `float` and `double` represent real numbers using **binary floating-point**, offering a very wide range while retaining only a finite number of significant bits. Anticipate rounding errors, choose types according to precision requirements, check special values, and use an appropriate decimal model when business logic demands exact decimal results.

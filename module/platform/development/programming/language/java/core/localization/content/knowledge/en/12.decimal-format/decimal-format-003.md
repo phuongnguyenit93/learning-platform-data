@@ -1,53 +1,53 @@
-# DecimalFormat: Mẫu số dương, số âm, phần tiền tố và hậu tố trong Java
+# DecimalFormat: Positive/Negative Subpatterns, Prefixes, and Suffixes in Java
 
-## 1. Mục tiêu và bối cảnh
+## 1. Objectives and context
 
-`java.text.DecimalFormat` là lớp định dạng/đọc số có thể tùy biến bằng **pattern** và ký hiệu theo `Locale`. Khi ứng dụng muốn hiển thị số âm trong ngoặc kế toán, thêm từ chỉ đơn vị vào sau số, hoặc đặt nhãn khác nhau trước giá trị dương và âm, người học cần nắm **hai phần mẫu số dương/số âm** và **prefix/suffix**.
+`java.text.DecimalFormat` is a number formatting/parsing class customizable via **patterns** and `Locale`-specific symbols. When an application needs to display negative numbers in accounting parentheses, append a unit word after a number, or place different labels before positive and negative values, developers must master **positive/negative subpatterns** and **prefixes/suffixes**.
 
-Ví dụ cùng một độ lớn 1.234,5 có thể được biểu diễn theo quy ước:
+For example, the same magnitude 1,234.5 can be represented by convention as:
 
-- Số dương: `1,234.50`
-- Số âm: `-1,234.50`
-- Số âm theo kiểu kế toán: `(1,234.50)`
-- Có nhãn: `Amount: 1,234.5 units` hoặc `Loss: 1,234.5 units`
+- Positive number: `1,234.50`
+- Negative number: `-1,234.50`
+- Accounting-style negative number: `(1,234.50)`
+- With labels: `Amount: 1,234.5 units` or `Loss: 1,234.5 units`
 
-Trong các ví dụ trên, dấu phẩy, dấu chấm và ký hiệu nhóm phụ thuộc bộ ký hiệu đã chọn; văn bản `Amount`, `Loss` và `units` là **phần tiền tố/hậu tố do ứng dụng quy định**, không phải giá trị bản thân của số.
+In the examples above, the comma, period, and grouping characters depend on the chosen symbol set; the text `Amount`, `Loss`, and `units` are **application-defined prefixes/suffixes**, not the number's own value.
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-1. Đọc và viết cú pháp `positiveSubpattern;negativeSubpattern`.
-2. Hiểu sự khác biệt giữa các ký hiệu cú pháp `0`, `#`, `,`, `.`, `;`, `'` và các literal của prefix/suffix.
-3. Dùng mẫu âm để hiển thị dấu trừ hoặc dấu ngoặc, hiểu hành vi khi không khai báo mẫu âm.
-4. Phân biệt **mẫu chữ số** với **prefix/suffix**, tránh lỗi khi cấu hình số dương và âm theo độ chính xác khác nhau.
-5. Sử dụng `DecimalFormatSymbols`/`Locale`, định dạng currency/percent và API setter một cách có kiểm soát.
-6. Xử lý các trường hợp 0, âm 0, làm tròn, parse, chia sẻ formatter giữa thread và kiểm thử.
+1. Read and write the `positiveSubpattern;negativeSubpattern` syntax.
+2. Understand the difference between syntax symbols `0`, `#`, `,`, `.`, `;`, `'` and prefix/suffix literals.
+3. Use negative subpatterns to show a minus sign or parentheses, and understand behavior when no negative subpattern is declared.
+4. Distinguish **digit patterns** from **prefixes/suffixes**, avoiding bugs when configuring positive and negative numbers with different precisions.
+5. Use `DecimalFormatSymbols`/`Locale`, format currency/percent, and use setter APIs in a controlled manner.
+6. Handle zero, negative zero, rounding, parsing, sharing formatters across threads, and testing.
 
-## 2. Cấu trúc tổng quát của pattern
+## 2. General pattern structure
 
-Một pattern `DecimalFormat` thông thường có cấu trúc:
+A typical `DecimalFormat` pattern has the structure:
 
 ```text
 positiveSubpattern[;negativeSubpattern]
 ```
 
-Mỗi subpattern có thể chứa ba vùng:
+Each subpattern can contain three regions:
 
 ```text
 [prefix] number-pattern [suffix]
 ```
 
-Ví dụ:
+Example:
 
 ```text
 #,##0.00;(#,##0.00)
 │           │
-│           └── âm: prefix "("; phần số "#,##0.00"; suffix ")"
-└────────────── dương: prefix/suffix rỗng; phần số "#,##0.00"
+│           └── negative: prefix "("; number part "#,##0.00"; suffix ")"
+└────────────── positive: empty prefix/suffix; number part "#,##0.00"
 ```
 
-Với ký hiệu theo `Locale.US`:
+With `Locale.US` symbols:
 
-| Giá trị | Pattern | Hiển thị |
+| Value | Pattern | Output |
 | ---: | --- | --- |
 | `1234.5` | `#,##0.00` | `1,234.50` |
 | `-1234.5` | `#,##0.00` | `-1,234.50` |
@@ -55,15 +55,15 @@ Với ký hiệu theo `Locale.US`:
 | `-1234.5` | `#,##0.00;(#,##0.00)` | `(1,234.50)` |
 | `0` | `#,##0.00;(#,##0.00)` | `0.00` |
 
-**Chỉ có một subpattern?** Nếu không khai báo mẫu âm, formatter sẽ suy ra kiểu âm từ mẫu dương, thường thêm dấu trừ theo `DecimalFormatSymbols` vào trước prefix của nhánh dương. Không cần viết thủ công nhánh âm chỉ để được dấu trừ thông thường.
+**Only one subpattern?** If no negative subpattern is declared, the formatter derives the negative style from the positive pattern, typically prepending the minus sign from `DecimalFormatSymbols` before the positive branch's prefix. You do not need to write a negative subpattern manually just to get a standard minus sign.
 
-**Có hai subpattern?** Dấu chấm phẩy `;` phân tách mẫu dương và âm; ký tự này không được in ra kết quả. Nếu muốn dấu `;` là văn bản hiển thị trong prefix/suffix, phải quote như literal.
+**Two subpatterns?** The semicolon `;` separates positive and negative subpatterns; this character is not printed in the output. If you want `;` as literal display text in a prefix/suffix, quote it as a literal.
 
-### Điều thường bị hiểu sai: mẫu chữ số trong nhánh âm
+### A common misconception: the digit pattern in the negative branch
 
-Trong `DecimalFormat`, các quy tắc **số chữ số, dấu nhóm, độ chính xác** được lấy từ **nhánh dương**. Phần số trong negative subpattern được dùng để xác định cấu trúc, nhưng **không thể dùng nhánh âm để có một số chữ số thập phân khác nhánh dương**. Nhánh âm chủ yếu quyết định prefix/suffix của giá trị âm.
+In `DecimalFormat`, rules for **digit counts, grouping, and precision** are taken from the **positive branch**. The numeric part in the negative subpattern is parsed structurally, but **you cannot use the negative branch to get a different number of decimal places than the positive branch**. The negative branch primarily determines the prefix/suffix for negative values.
 
-Ví dụ:
+Example:
 
 ```java
 DecimalFormat df = new DecimalFormat(
@@ -73,30 +73,30 @@ DecimalFormat df = new DecimalFormat(
 System.out.println(df.format(-12.3)); // (12.30)
 ```
 
-Dù phần số trong nhánh âm viết `0`, kết quả vẫn có hai chữ số thập phân theo phần dương `0.00`. Nếu sản phẩm thật sự cần số âm và dương có quy tắc chữ số khác nhau, hãy chọn **hai formatter** hoặc cấu hình riêng trong code dựa trên nghiệp vụ, không kỳ vọng hai subpattern giải quyết vấn đề đó.
+Even though the numeric part in the negative branch says `0`, the result still has two decimal places according to the positive part `0.00`. If a product truly needs different digit rules for positive and negative numbers, choose **two formatters** or configure separately in code based on business logic rather than expecting two subpatterns to solve it.
 
-## 3. Các ký hiệu quan trọng trong phần số
+## 3. Important symbols in the numeric part
 
-| Ký hiệu | Vai trò trong pattern | Cần nhớ |
+| Symbol | Role in pattern | Remember |
 | --- | --- | --- |
-| `0` | Chữ số bắt buộc; thiếu thì điền `0`. | `0.00` luôn thể hiện hai chữ số phần thập phân. |
-| `#` | Chữ số tùy chọn; không thêm số 0 không cần thiết. | `#,##0` vẫn có ít nhất một chữ số nguyên vì có `0`. |
-| `.` | Ký hiệu phân cách phần nguyên/thập phân **trong pattern không localized**. | Dấu hiển thị tùy `DecimalFormatSymbols`. |
-| `,` | Ký hiệu grouping trong pattern. | Vị trí và ký hiệu hiển thị do pattern + locale. |
-| `;` | Tách positive/negative subpattern. | Không phải dấu ngăn cách dữ liệu thực. |
-| `'... '` | Quote literal trong pattern. | Cho phép đưa ký hiệu đặc biệt thành chữ hiển thị. |
-| `%` | Biểu thị percent và áp hệ số nhân 100. | Không phải chỉ đơn thuần chữ “%”. |
-| `‰` | Biểu thị per-mille và áp hệ số nhân 1000. | Không tương đương percent. |
-| `¤` | Placeholder cho ký hiệu tiền tệ; `¤¤` thường đại diện mã ISO currency. | Currency thực phải lấy từ dữ liệu giao dịch. |
-| `E` | Ký hiệu dạng số mũ khi dùng theo cú pháp khoa học. | Không phải literal khi đứng trong khuôn số. |
+| `0` | Required digit; padded with `0` if missing. | `0.00` always shows two fractional digits. |
+| `#` | Optional digit; does not add unnecessary zeros. | `#,##0` still has at least one integer digit because of `0`. |
+| `.` | Integer/fraction separator symbol **in non-localized patterns**. | Display character depends on `DecimalFormatSymbols`. |
+| `,` | Grouping symbol in pattern. | Position and displayed character depend on pattern + locale. |
+| `;` | Separates positive/negative subpatterns. | Not an actual data separator. |
+| `'... '` | Quotes a literal in the pattern. | Turns special symbols into displayed text. |
+| `%` | Represents percent and applies a multiplier of 100. | Not merely the character "%". |
+| `‰` | Represents per-mille and applies a multiplier of 1000. | Not equivalent to percent. |
+| `¤` | Currency symbol placeholder; `¤¤` typically represents ISO currency code. | Actual currency must come from transaction data. |
+| `E` | Exponent notation symbol when used in scientific syntax. | Not a literal when inside the number skeleton. |
 
-Các ký hiệu trên là **cú pháp pattern chuẩn**, thường dùng với `applyPattern(...)` hoặc constructor `DecimalFormat(pattern, symbols)`. Cách hiển thị dấu phân cách, dấu âm, ký hiệu % và tiền tệ có thể khác giữa các locale.
+The symbols above belong to **standard pattern syntax**, typically used with `applyPattern(...)` or the `DecimalFormat(pattern, symbols)` constructor. Display of separators, minus signs, % symbols, and currencies can vary between locales.
 
-Chẳng hạn, pattern `#,##0.00` theo ký hiệu Hoa Kỳ có thể in `1,234.50`, trong khi theo một locale khác dấu thập phân và dấu nhóm có thể đảo vị trí. Không được suy luận từ dấu `.` và `,` trong pattern rằng dữ liệu đầu ra bắt buộc sử dụng đúng các ký tự ấy.
+For instance, the pattern `#,##0.00` with US symbols prints `1,234.50`, whereas in another locale the decimal and grouping separators may swap positions. Do not infer from `.` and `,` in the pattern that the output data must use those exact characters.
 
-## 4. Mẫu số dương và số âm
+## 4. Positive and negative subpatterns
 
-### 4.1. Định dạng âm mặc định
+### 4.1. Default negative formatting
 
 ```java
 DecimalFormat df = new DecimalFormat(
@@ -106,9 +106,9 @@ DecimalFormat df = new DecimalFormat(
 System.out.println(df.format(-1234.5)); // -1,234.50
 ```
 
-Vì không cung cấp nhánh âm, `DecimalFormat` dùng số theo nhánh dương và thêm dấu âm mặc định của bộ ký hiệu. Đây là lựa chọn thường đủ cho số lượng, giá trị thông thường hoặc nhãn kỹ thuật.
+Because no negative branch is provided, `DecimalFormat` formats the number using the positive branch and adds the symbol set's default minus sign. This is usually sufficient for quantities, ordinary values, or technical labels.
 
-### 4.2. Âm bằng ngoặc theo quy ước kế toán
+### 4.2. Negatives in parentheses by accounting convention
 
 ```java
 DecimalFormat df = new DecimalFormat(
@@ -119,39 +119,39 @@ System.out.println(df.format(1234.5));  // 1,234.50
 System.out.println(df.format(-1234.5)); // (1,234.50)
 ```
 
-Các dấu `(` và `)` là prefix/suffix của nhánh âm. Không có dấu trừ `-` trong kết quả vì ta chủ động thay cách hiển thị dấu âm.
+The `(` and `)` characters are the prefix/suffix of the negative branch. There is no `-` minus sign in the output because we explicitly replaced how the negative sign is displayed.
 
-Đây chỉ là **quy ước trình bày**. Độ lớn của số không thay đổi: `df.format(-1234.5)` vẫn định dạng một giá trị âm; chỉ chuỗi được hiển thị khác.
+This is only a **presentation convention**. The sign/magnitude of the number does not change: `df.format(-1234.5)` still formats a negative value; only the displayed string differs.
 
-### 4.3. Prefix/suffix riêng cho từng dấu
+### 4.3. Distinct prefix/suffix for each sign
 
-Có thể đặt văn bản trước và sau vùng số:
+You can place text before and after the numeric region:
 
 ```text
 'Amount: '#,##0.0' units';'Loss: '#,##0.0' units'
 ```
 
-Theo `Locale.US`:
+Under `Locale.US`:
 
 - `1234.5` → `Amount: 1,234.5 units`
 - `-1234.5` → `Loss: 1,234.5 units`
 
-Tại đây, `Amount: ` và `Loss: ` là prefix; ` units` là suffix. Dùng literal được quote để parser phân biệt văn bản với ký hiệu đặc biệt trong pattern.
+Here, `Amount: ` and `Loss: ` are prefixes; ` units` is the suffix. Use quoted literals so the parser distinguishes text from special pattern symbols.
 
-Đừng dùng kiểu ghép `"Loss: " + format.format(-number)` để biểu diễn mọi dạng âm: ứng dụng có thể cần âm bằng ngoặc, đổi trật tự chữ, hoặc một ngôn ngữ sử dụng cách diễn đạt khác. Tuy nhiên, **DecimalFormat không phải hệ thống dịch cả câu**; với văn bản giàu ngữ pháp, hãy dùng `ResourceBundle`/`MessageFormat` cho thông điệp, còn `DecimalFormat` chỉ định dạng con số.
+Do not use manual concatenation like `"Loss: " + format.format(-number)` to represent all negative forms: an application may need accounting parentheses, reordered words, or another language using different phrasing. However, **DecimalFormat is not a full-sentence translation system**; for grammatically rich text, use `ResourceBundle`/`MessageFormat` for the message and `DecimalFormat` strictly for formatting the number.
 
-## 5. Cách đọc và thay đổi prefix/suffix qua API
+## 5. Reading and modifying prefixes/suffixes via API
 
-`DecimalFormat` cung cấp các getter/setter tương ứng:
+`DecimalFormat` provides corresponding getters/setters:
 
-| Getter | Setter | Chức năng |
+| Getter | Setter | Function |
 | --- | --- | --- |
-| `getPositivePrefix()` | `setPositivePrefix(String)` | Chuỗi trước số dương. |
-| `getPositiveSuffix()` | `setPositiveSuffix(String)` | Chuỗi sau số dương. |
-| `getNegativePrefix()` | `setNegativePrefix(String)` | Chuỗi trước số âm. |
-| `getNegativeSuffix()` | `setNegativeSuffix(String)` | Chuỗi sau số âm. |
+| `getPositivePrefix()` | `setPositivePrefix(String)` | String before positive numbers. |
+| `getPositiveSuffix()` | `setPositiveSuffix(String)` | String after positive numbers. |
+| `getNegativePrefix()` | `setNegativePrefix(String)` | String before negative numbers. |
+| `getNegativeSuffix()` | `setNegativeSuffix(String)` | String after negative numbers. |
 
-Ví dụ minh họa:
+Illustrative example:
 
 ```java
 DecimalFormat df = new DecimalFormat(
@@ -166,46 +166,46 @@ System.out.println(df.format(8));  // +8.00 units
 System.out.println(df.format(-8)); // (8.00 units)
 ```
 
-Đoạn mã này đặt trong phương thức Java với import phù hợp; nó thể hiện việc thay đổi **chuỗi affix**, không thay đổi bản thân số. Các setter dùng literal string, không yêu cầu người gọi tự bọc chuỗi bằng dấu quote trong Java như pattern.
+This snippet belongs in a Java method with proper imports; it demonstrates changing **affix strings**, without altering the number itself. The setters take literal strings, without requiring the caller to wrap strings in quote marks in Java as in patterns.
 
-**Đổi pattern sau setter:** `applyPattern(...)` phân tích lại pattern và có thể thay thế prefix/suffix trước đó. Hãy xác định rõ thứ tự cấu hình; nếu dùng pattern làm nguồn chuẩn, áp dụng pattern trước rồi mới ghi đè affix cần thiết.
+**Changing patterns after setters:** `applyPattern(...)` re-parses the pattern and can overwrite previous prefixes/suffixes. Establish a clear configuration order; if using a pattern as the base, apply the pattern first and then override affixes as needed.
 
-**Lưu pattern lại:** `toPattern()` là dạng biểu diễn pattern; nếu đã tùy biến các ký hiệu/affix bằng setter, không nên lấy chuỗi từ `toPattern()` rồi suy đoán toàn bộ semantics của các thao tác tùy biến. Kiểm thử formatter theo các giá trị thực quan trọng.
+**Saving patterns:** `toPattern()` returns a pattern representation; if you have customized symbols/affixes via setters, do not take the string from `toPattern()` and assume it captures all semantics of custom mutations. Test the formatter against important real values.
 
-**Điểm cần chú ý về tính phân biệt:** positive và negative subpattern không nên có prefix/suffix giống hệt khiến bộ parse không thể phân biệt dấu. Khi cần đọc số từ chuỗi, phải thiết kế cú pháp không mơ hồ và kiểm thử việc parse âm/dương.
+**Note on distinguishability:** positive and negative subpatterns should not have identical prefixes/suffixes that make the parser unable to distinguish the sign. When parsing numbers from strings, design unambiguous syntax and test both positive and negative parsing.
 
-## 6. Literal, dấu nháy đơn và các ký tự đặc biệt
+## 6. Literals, single quotes, and special characters
 
-Trong cú pháp `DecimalFormat`, **quote bằng dấu nháy đơn** cho phép đưa ký hiệu vốn có ý nghĩa đặc biệt thành phần chữ hiển thị. Ví dụ:
+In `DecimalFormat` syntax, **quoting with single quotes** allows turning symbols that have special meaning into literal display text. For example:
 
 ```text
 'Total: '#,##0.00' USD'
 ```
 
-Nó thể hiện một số có prefix `Total: ` và suffix ` USD`, không nhân hay đổi giá trị số. Nếu cần hiển thị **dấu nháy đơn** trong literal, viết hai nháy đơn `''` theo quy tắc quoting của `DecimalFormat`.
+This renders a number with prefix `Total: ` and suffix ` USD`, without multiplying or altering the numeric value. If you need to display a **single quote** inside a literal, write two single quotes `''` per `DecimalFormat` quoting rules.
 
-Các ký hiệu như `%` và `¤` cần được phân biệt cẩn thận:
+Symbols like `%` and `¤` must be distinguished carefully:
 
-- **Không quote `%` trong pattern** → nó là percent formatting, nhân giá trị số với 100 trước khi hiển thị.
-- **Quote `'%'`** → thể hiện ký tự percent như một chữ literal; nó **không nhân 100**. Việc dùng đúng cái nào phụ thuộc đơn vị của giá trị nguồn.
-- **Dùng `¤`** → placeholder tiền tệ do `DecimalFormatSymbols` và `Currency` quyết định.
-- **Dùng `'USD '` hoặc `' VND'`** → chữ literal cố định; nó không tự đảm bảo đơn vị tiền tệ của dữ liệu.
+- **Unquoted `%` in a pattern** → percentage formatting, multiplying the numeric value by 100 before display.
+- **Quoted `'%'`** → renders the percent character as a literal; it **does not multiply by 100**. Which one is right depends on the source value's unit.
+- **Using `¤`** → currency placeholder determined by `DecimalFormatSymbols` and `Currency`.
+- **Using `'USD '` or `' VND'`** → fixed literal text; it does not guarantee the underlying currency unit of the data.
 
-Nếu một thông điệp người dùng cần diễn giải như “Số dư âm”, “Khoản hoàn”, “Khoản ghi có”, hãy để lớp localization quyết định câu văn phù hợp. Prefix/suffix nên phục vụ các trường hợp gắn chặt với cách **biểu diễn số**, tránh nhồi cả câu hoặc cấu trúc ngữ pháp vào pattern số.
+If a user message needs phrasing like "Negative balance", "Refund", or "Credit", let the localization layer choose the appropriate sentence. Prefixes/suffixes should serve cases tightly coupled to **numeric representation**, avoiding stuffing entire sentences or grammatical structures into number patterns.
 
-### Dấu chấm phẩy literal
+### Literal semicolons
 
-Dấu `;` không quote có vai trò tách hai subpattern; nếu muốn prefix hiển thị chứa `;`, dùng cú pháp quote để parser hiểu đó là ký tự văn bản, thay vì mở nhánh âm không chủ ý.
+An unquoted `;` separates two subpatterns; if you want a display prefix containing `;`, use quoting syntax so the parser treats it as literal text instead of unintentionally starting a negative branch.
 
-### Dấu âm theo Locale
+### Locale-specific minus signs
 
-Ký hiệu dấu trừ trong chuỗi có thể do `DecimalFormatSymbols.getMinusSign()` cung cấp. Đừng mặc định mọi locale dùng đúng ASCII `-`, cũng đừng tự thay ký tự trên chuỗi kết quả sau khi format. Nếu sản phẩm cần dấu âm đặc biệt, hãy cấu hình symbols hoặc prefix/negative pattern một cách chủ đích và test.
+The minus sign in a string can be supplied by `DecimalFormatSymbols.getMinusSign()`. Do not assume every locale uses ASCII `-`, and do not manually replace characters on the formatted string afterward. If the product requires a specific minus sign, configure symbols or prefix/negative pattern intentionally and test it.
 
-## 7. Percent, per-mille và currency trong prefix/suffix
+## 7. Percent, per-mille, and currency in prefixes/suffixes
 
-### 7.1. Percent và hệ số nhân
+### 7.1. Percent and multiplier
 
-`DecimalFormat` hiểu `%` trong pattern là ký hiệu đặc biệt: nó đặt percent sign vào affix **và nhân giá trị với 100**.
+`DecimalFormat` treats `%` in a pattern as a special symbol: it places the percent sign in the affix **and multiplies the value by 100**.
 
 ```java
 DecimalFormat ratio = new DecimalFormat(
@@ -216,21 +216,21 @@ System.out.println(ratio.format(0.125));  // 12.5%
 System.out.println(ratio.format(-0.125)); // (12.5%)
 ```
 
-Nếu dữ liệu nghiệp vụ đã lưu giá trị `12.5` với nghĩa “12,5 phần trăm”, dùng pattern percent mà không chuyển đơn vị sẽ thành `1,250.0%`. Hãy thống nhất đầu vào là fraction (0.125) hay phần trăm đã nhân 100 (12.5).
+If business data already stores `12.5` meaning "12.5 percent", using a percent pattern without scaling the unit yields `1,250.0%`. Standardize whether inputs are fractions (0.125) or already-scaled percentages (12.5).
 
-Tương tự, ký hiệu per-mille `‰` áp hệ số nhân 1000. Khi chỉ muốn thêm một ký hiệu literal không quy đổi số, cần quote đúng cách.
+Similarly, the per-mille symbol `‰` applies a multiplier of 1000. When you only want to append a literal symbol without scaling the number, quote it properly.
 
-### 7.2. Currency chỉ là định dạng
+### 7.2. Currency is formatting only
 
-Pattern:
+The pattern:
 
 ```text
 ¤#,##0.00;(¤#,##0.00)
 ```
 
-có thể hiển thị một khoản tiền dương/âm, với nhánh âm dùng ngoặc. Ký hiệu `¤` được thay thành ký hiệu tiền tệ theo cấu hình; `¤¤` có thể thể hiện mã ISO 4217 như `USD`. Một số locale và bản JDK có dữ liệu/ký hiệu currency khác nhau.
+can display a positive/negative monetary amount, with the negative branch in parentheses. The `¤` symbol is replaced with the currency symbol per configuration; `¤¤` can render the ISO 4217 code such as `USD`. Different locales and JDK versions have different currency data/symbols.
 
-Khi tiền tệ của giao dịch khác currency thông thường của locale, hãy thiết lập currency **theo dữ liệu nghiệp vụ**:
+When a transaction's currency differs from the locale's usual currency, set the currency **according to business data**:
 
 ```java
 Locale locale = Locale.US;
@@ -241,17 +241,17 @@ DecimalFormat money = new DecimalFormat(
 money.setCurrency(Currency.getInstance("EUR"));
 ```
 
-Đoạn này nằm trong phương thức Java, cần import `java.text.DecimalFormat`, `java.text.DecimalFormatSymbols`, `java.util.Locale` và `java.util.Currency`. Hãy kiểm tra ký hiệu tiền tệ thực được hiển thị nếu ứng dụng phụ thuộc vào một nhãn cụ thể.
+This snippet belongs in a Java method and requires importing `java.text.DecimalFormat`, `java.text.DecimalFormatSymbols`, `java.util.Locale`, and `java.util.Currency`. Check the actual displayed currency symbol if the application relies on a specific label.
 
-**`setCurrency(...)` không chuyển đổi tỷ giá.** Nó thay thông tin dùng để định dạng đơn vị tiền, không nhân/chia số tiền để đổi EUR sang USD hoặc ngược lại. Phép chuyển đổi phải nằm trong tầng nghiệp vụ và có tỷ giá được xác định rõ.
+**`setCurrency(...)` does not convert exchange rates.** It changes the metadata used to format the monetary unit, without multiplying/dividing amounts to convert EUR to USD or vice versa. Conversion must live in the business layer with an explicitly defined exchange rate.
 
-### 7.3. Khi nào dùng literal “USD” thay vì currency placeholder?
+### 7.3. When to use literal "USD" instead of a currency placeholder?
 
-Nếu pattern có `' USD'` thì đây chỉ là chuỗi văn bản luôn hiện ra. Nó có thể phù hợp với báo cáo cố định USD nhưng sẽ sai nếu tái sử dụng với giao dịch bằng EUR. Với phần mềm thanh toán nhiều currency, nên truyền currency động qua dữ liệu, không lưu toàn bộ thông tin đơn vị vào literal của pattern.
+If a pattern has `' USD'`, that is simply fixed literal text that always appears. It may fit a USD-only fixed report, but will be wrong if reused for EUR transactions. For multi-currency payment software, pass currency dynamically from data rather than hardcoding unit metadata into pattern literals.
 
-## 8. Ví dụ hoàn chỉnh Java 17+: định dạng dương, âm, affix và hậu tố
+## 8. Complete Java 17+ example: formatting positives, negatives, affixes, and suffixes
 
-Tạo tệp **`DecimalFormatAffixDemo.java`** với nội dung sau. Các ví dụ sử dụng ký hiệu của `Locale.US` để kết quả số có thể dự đoán, không thay đổi mặc định toàn JVM.
+Create the file **`DecimalFormatAffixDemo.java`** with the following content. The examples use `Locale.US` symbols so numeric outputs are predictable without changing the JVM-wide default.
 
 ```java
 import java.text.DecimalFormat;
@@ -300,8 +300,8 @@ public class DecimalFormatAffixDemo {
         System.out.println("percentNegative="
                 + ratio.format(-0.125));
 
-        // Phần số của nhánh âm không đổi precision của
-        // nhánh dương "0.00".
+        // The numeric part of the negative branch does not change
+        // the precision of the positive branch "0.00".
         DecimalFormat sameDigits = new DecimalFormat(
                 "0.00;(0)", symbols);
         System.out.println("negativeDigits="
@@ -310,14 +310,14 @@ public class DecimalFormatAffixDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên trong thư mục chứa tệp:
+Compile and run with JDK 17 or newer in the directory containing the file:
 
 ```bash
 javac -encoding UTF-8 DecimalFormatAffixDemo.java
 java DecimalFormatAffixDemo
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 positive=1,234.50
@@ -334,36 +334,36 @@ percentNegative=(12.5%)
 negativeDigits=(12.30)
 ```
 
-### Đọc kết quả từng bước
+### Reading the output step by step
 
-1. `positive` và `negative` được định dạng cùng hai chữ số thập phân, cùng grouping. Nhánh âm dùng `(` và `)` thay dấu trừ.
-2. `zero` sử dụng quy tắc nhánh dương: `0.00`. `DecimalFormat` không có “zero subpattern” thứ ba trong cú pháp positive/negative thông thường.
-3. `negativeZero` cho `(0.00)` vì số `double` có thể mang dấu âm dù trị tuyệt đối bằng 0. Đây là **negative zero**; xem thêm mục 9.
-4. `getNegativePrefix()` và `getNegativeSuffix()` phản ánh affix thực đã được phân tích từ pattern.
-5. `ordinary` không khai báo nhánh âm, nên cho `autoNegative=-1,234.50`.
-6. `labeled` sử dụng nhãn prefix `Amount: ` / `Loss: ` và suffix ` units` cho hai dấu.
-7. `ratio` nhân giá trị với 100 và thêm percent sign; phần âm lại dùng ngoặc.
-8. `negativeDigits=(12.30)` chứng tỏ quy tắc chữ số được lấy từ nhánh dương `0.00`, dù nhánh âm chứa `0`.
+1. `positive` and `negative` are formatted with the same two decimal places and grouping. The negative branch uses `(` and `)` instead of a minus sign.
+2. `zero` uses the positive branch rule: `0.00`. `DecimalFormat` has no third "zero subpattern" in standard positive/negative syntax.
+3. `negativeZero` outputs `(0.00)` because a `double` can carry a negative sign even when its magnitude is 0. This is **negative zero**; see section 9.
+4. `getNegativePrefix()` and `getNegativeSuffix()` reflect the actual affixes parsed from the pattern.
+5. `ordinary` does not declare a negative branch, so it yields `autoNegative=-1,234.50`.
+6. `labeled` uses prefix labels `Amount: ` / `Loss: ` and suffix ` units` for the two signs.
+7. `ratio` multiplies the value by 100 and adds the percent sign; the negative side again uses parentheses.
+8. `negativeDigits=(12.30)` proves that digit rules are taken from the positive branch `0.00`, even though the negative branch contains `0`.
 
-Các giá trị dùng để kiểm chứng là ví dụ biểu diễn số; không xem các chữ “Amount”/“Loss” là bản dịch tự động của mọi locale.
+The verification values are numeric formatting examples; do not treat the words "Amount"/"Loss" as automatic translations for all locales.
 
-## 9. Số 0, âm 0, làm tròn và các giá trị đặc biệt
+## 9. Zero, negative zero, rounding, and special values
 
-### 9.1. Số 0 thông thường
+### 9.1. Regular zero
 
-Pattern `#,##0.00;(#,##0.00)` không định nghĩa một nhánh cho số 0 riêng biệt. Với số 0 không âm, formatter dùng positive subpattern và in `0.00`. Nếu ứng dụng muốn hiển thị số 0 bằng dấu gạch ngang hay chữ “Không”, cần một chính sách riêng ở tầng trình bày hoặc nghiệp vụ; đừng đoán rằng thứ ba `;zeroPattern` là cú pháp của `DecimalFormat`.
+The pattern `#,##0.00;(#,##0.00)` does not define a separate branch for zero. For non-negative zero, the formatter uses the positive subpattern and prints `0.00`. If an application wants to display zero as a dash or the word "None", handle that with a separate policy in the presentation or business layer; do not guess that a third `;zeroPattern` is valid `DecimalFormat` syntax.
 
-### 9.2. Âm 0
+### 9.2. Negative zero
 
-`double` và `float` theo IEEE 754 có thể mang `-0.0` khác với `+0.0` về dấu. `DecimalFormat` có thể giữ dấu khi format, nên nhánh âm có thể được chọn cho `-0.0`, khiến ứng dụng in `(0.00)`.
+Under IEEE 754, `double` and `float` can hold `-0.0`, which differs in sign from `+0.0`. `DecimalFormat` preserves the sign when formatting, so the negative branch can be selected for `-0.0`, causing the application to print `(0.00)`.
 
-Nếu quy định nghiệp vụ yêu cầu cả `-0.0` và `0.0` xuất ra `0.00`, hãy chuẩn hóa đầu vào **theo hợp đồng nghiệp vụ** trước khi format; lưu ý việc chuẩn hóa có thể làm mất thông tin dấu mà những ứng dụng tính toán khoa học cần giữ.
+If business rules require both `-0.0` and `0.0` to output `0.00`, normalize the input **according to the business contract** before formatting; note that normalization can discard sign information that scientific calculations may need to preserve.
 
-Tương tự, một giá trị âm rất nhỏ có thể bị làm tròn thành dạng số 0 nhưng vẫn mang dấu âm trong chuỗi hiển thị. Cần kiểm thử các ngưỡng làm tròn nếu số âm bằng ngoặc có ý nghĩa kế toán.
+Similarly, a very small negative value may round to zero while still carrying a negative sign in the display string. Test rounding thresholds if negative values in parentheses carry accounting significance.
 
-### 9.3. RoundingMode và số thập phân
+### 9.3. RoundingMode and decimal places
 
-`DecimalFormat` có thể làm tròn khi số chữ số hiển thị ít hơn số chữ số của nguồn. Việc hiển thị `1.234` thành `1.23` không có nghĩa số gốc đã bị thay đổi. Nếu kết quả là tiền tệ hoặc số liệu chính xác cao, nên dùng `BigDecimal` cho đầu vào cùng `RoundingMode` phù hợp hợp đồng, ví dụ:
+`DecimalFormat` can round when fewer display digits are requested than the source has. Displaying `1.234` as `1.23` does not mean the original number was modified. If the result is currency or high-precision data, use `BigDecimal` for the input with a contract-appropriate `RoundingMode`, for example:
 
 ```java
 DecimalFormat df = new DecimalFormat(
@@ -373,26 +373,26 @@ df.setRoundingMode(RoundingMode.HALF_UP);
 String view = df.format(new BigDecimal("-12.345"));
 ```
 
-Đoạn nằm trong phương thức Java với import `java.math.BigDecimal`, `java.math.RoundingMode`. `setRoundingMode(...)` chỉ điều khiển **quy tắc làm tròn trong formatter**; không tự tạo quy tắc tài chính hợp lệ cho mọi tiền tệ và tình huống.
+This snippet belongs in a Java method with imports `java.math.BigDecimal`, `java.math.RoundingMode`. `setRoundingMode(...)` only controls the **rounding rule inside the formatter**; it does not automatically establish valid financial rules for every currency and scenario.
 
-### 9.4. Infinity và NaN
+### 9.4. Infinity and NaN
 
-Các giá trị `Double.NaN` hoặc vô cực có cách hiển thị đặc biệt theo `DecimalFormatSymbols`. Không nên kỳ vọng chúng được xử lý như những số thập phân hữu hạn thông thường, hay luôn tuân đúng mọi quy tắc precision và grouping. Đầu vào phục vụ giao dịch, bảng lương hoặc hóa đơn nên được xác thực và có chính sách rõ ràng đối với số không hữu hạn.
+`Double.NaN` or infinity values have special display forms governed by `DecimalFormatSymbols`. Do not expect them to be handled like ordinary finite decimal numbers or to follow all precision and grouping rules. Inputs for transactions, payroll, or invoices should be validated and have an explicit policy for non-finite numbers.
 
-## 10. Parse số đã định dạng: các lưu ý quan trọng
+## 10. Parsing formatted numbers: important caveats
 
-`DecimalFormat` cũng có khả năng phân tích chuỗi thông qua `parse(...)`. Ví dụ formatter kế toán `#,##0.00;(#,##0.00)` có thể nhận diện giá trị âm từ dấu ngoặc nếu pattern và symbols tương thích.
+`DecimalFormat` can also parse strings via `parse(...)`. For example, the accounting formatter `#,##0.00;(#,##0.00)` can recognize a negative value from parentheses if the pattern and symbols match.
 
-Tuy nhiên, format và parse không phải lúc nào cũng đối xứng tuyệt đối cho mọi trường hợp:
+However, formatting and parsing are not always strictly symmetric in every case:
 
-- **Phần thập phân đã bị làm tròn** trong chuỗi hiển thị thì không thể tự phục hồi độ chính xác ban đầu.
-- Một mẫu chỉ phân biệt âm/dương bằng affix phải bảo đảm **affix đủ khác nhau**, nếu không parser có thể không biết dấu.
-- `parse(String)` có thể chấp nhận một tiền tố hợp lệ của chuỗi; nếu dùng để kiểm tra input người dùng, nên dùng `ParsePosition` để xác minh đã tiêu thụ **toàn bộ** chuỗi.
-- `parseBigDecimal` trên `DecimalFormat` hữu ích khi cần giá trị thập phân chính xác hơn cho đầu vào, nhưng nó không biến parser thành bộ xác thực nghiệp vụ hay một phép chuyển đổi currency.
-- Các dấu phân cách, dấu âm, suffix và ký hiệu tiền tệ phải khớp với `DecimalFormatSymbols`/pattern của bộ parse.
-- Không dùng kết quả format để làm “mã định danh số” hoặc serialization cho API/database. Định dạng hiển thị có thể đổi theo locale, yêu cầu sản phẩm và phiên bản dữ liệu locale.
+- **Fractional digits that were rounded off** in the display string cannot automatically recover their original precision.
+- A pattern that distinguishes positive/negative solely by affixes must ensure **the affixes are sufficiently distinct**, otherwise the parser cannot determine the sign.
+- `parse(String)` can accept a valid prefix of the string; when validating user input, use `ParsePosition` to verify **the entire** string was consumed.
+- `parseBigDecimal` on `DecimalFormat` is useful when needing more accurate decimal values for input, but it does not turn the parser into a business validator or a currency converter.
+- Separators, minus signs, suffixes, and currency symbols must match the parser's `DecimalFormatSymbols`/pattern.
+- Do not use formatted output as a "numeric identifier" or for API/database serialization. Display formats can change across locales, product requirements, and locale data versions.
 
-Ví dụ cách kiểm tra tiêu thụ hết chuỗi (mã minh họa đặt trong phương thức Java):
+Example of verifying full string consumption (illustrative code inside a Java method):
 
 ```java
 DecimalFormat df = new DecimalFormat(
@@ -407,11 +407,11 @@ boolean valid = value != null
         && pos.getIndex() == input.length();
 ```
 
-Cần import `java.text.ParsePosition`. Điều kiện `valid` ở đây chỉ kiểm tra mức parser đã đọc trọn chuỗi; các kiểm tra như giới hạn giá trị, kiểu nghiệp vụ, độ chính xác và currency vẫn phải thực hiện riêng.
+Requires importing `java.text.ParsePosition`. The `valid` condition here only checks that the parser read the whole string; checks such as value bounds, business type, precision, and currency must still be performed separately.
 
-## 11. Locale và DecimalFormatSymbols: pattern không đồng nghĩa chuỗi cố định
+## 11. Locale and DecimalFormatSymbols: patterns are not fixed strings
 
-`DecimalFormatSymbols` cung cấp các ký hiệu thực tế cho chữ số, dấu grouping, dấu thập phân, dấu trừ, phần trăm, currency và các giá trị đặc biệt. Khi muốn kết quả ổn định, nên tạo symbols từ locale tường minh:
+`DecimalFormatSymbols` provides the actual symbols for digits, grouping separators, decimal points, minus signs, percentages, currency, and special values. When predictable output is desired, create symbols from an explicit locale:
 
 ```java
 Locale locale = Locale.US;
@@ -420,71 +420,71 @@ DecimalFormatSymbols symbols =
 DecimalFormat df = new DecimalFormat("#,##0.00", symbols);
 ```
 
-Đây là các câu lệnh minh họa trong phương thức Java.
+These are illustrative statements inside a Java method.
 
-**`applyPattern(...)` và `applyLocalizedPattern(...)` không giống nhau:**
+**`applyPattern(...)` and `applyLocalizedPattern(...)` are not the same:**
 
-- `applyPattern(...)` đọc cú pháp pattern chuẩn (`.`, `,`, `#`, `0`...) và sau đó sử dụng symbols để hiển thị.
-- `applyLocalizedPattern(...)` đọc pattern với ký hiệu đã bản địa hóa theo bộ `DecimalFormatSymbols`. Chỉ dùng khi đầu vào thực sự là localized pattern; tránh chuyển tùy tiện giữa hai dạng.
+- `applyPattern(...)` reads standard pattern syntax (`.`, `,`, `#`, `0`...) and then uses symbols for display.
+- `applyLocalizedPattern(...)` reads a pattern with symbols already localized according to `DecimalFormatSymbols`. Use it only when the input is genuinely a localized pattern; avoid switching arbitrarily between the two forms.
 
-Ví dụ một pattern chuẩn `#,##0.00` không nên bị dịch thủ công bằng việc thay `.` thành `,` rồi đưa vào `applyPattern(...)` chỉ vì locale muốn dùng dấu phẩy thập phân. Thay vào đó, cấu hình symbols/locale. Pattern nói về **cấu trúc định dạng**; symbols nói về **ký tự hiển thị**.
+For example, a standard pattern `#,##0.00` should not be manually translated by replacing `.` with `,` and passed to `applyPattern(...)` just because a locale uses a decimal comma. Instead, configure symbols/locale. The pattern defines **formatting structure**; symbols define **display characters**.
 
-### Dữ liệu locale không phải currency giao dịch
+### Locale data is not transaction currency
 
-Locale giúp quyết định ký hiệu/format mặc định, nhưng giá trị tiền tệ, số chữ số thập phân bắt buộc, cách âm bằng ngoặc hoặc dấu trừ và quy tắc rounding thường là yêu cầu sản phẩm. Có thể cần chọn `Currency` riêng và kiểm thử từng thị trường. Không suy ra mã tiền từ quốc tịch hoặc chỉ từ `getCountry()` trong dữ liệu người dùng.
+Locale determines default symbols/formats, while currency values, required decimal digits, parentheses vs. minus signs for negatives, and rounding rules are usually product requirements. You may need to select `Currency` separately and test each market. Never infer a currency code from nationality or solely from `getCountry()` in user profile data.
 
-## 12. Thread safety và tái sử dụng formatter
+## 12. Thread safety and reusing formatters
 
-`DecimalFormat` là đối tượng **mutable**, không được bảo đảm thread-safe khi nhiều thread sử dụng đồng thời. Các phương thức `applyPattern(...)`, `setPositivePrefix(...)`, `setRoundingMode(...)` và các setter khác có thể thay đổi cấu hình mà request khác đang dùng.
+`DecimalFormat` is a **mutable** object and is not guaranteed thread-safe when used concurrently across multiple threads. Methods such as `applyPattern(...)`, `setPositivePrefix(...)`, `setRoundingMode(...)`, and other setters can mutate configuration while another request is using it.
 
-Những lựa chọn thực tế:
+Practical options:
 
-1. **Tạo formatter theo lần gọi/request** khi yêu cầu đơn giản và chi phí chấp nhận được.
-2. **Tạo formatter mẫu và `clone()` cho từng luồng/lần dùng** khi cấu hình nhiều và việc clone đã được kiểm thử.
-3. **Đồng bộ hóa đúng phạm vi** nếu buộc phải chia sẻ instance; tránh khoá cục bộ không có tác dụng với các thread khác.
-4. **Không dùng một static DecimalFormat mutable** rồi cập nhật prefix/suffix theo request hoặc locale khác nhau.
+1. **Create a formatter per call/request** when requirements are simple and the cost is acceptable.
+2. **Create a template formatter and `clone()` it per thread/use** when configuration is heavy and cloning has been tested.
+3. **Synchronize with proper scope** if an instance must be shared; avoid ineffective local locks across threads.
+4. **Do not use a mutable static DecimalFormat** and update its prefix/suffix per request or locale.
 
-Ngay cả nếu chỉ gọi `format(...)` trong nhiều thread, hợp đồng của `DecimalFormat` không bảo đảm việc chia sẻ là an toàn; đừng dựa vào may mắn test đơn luồng.
+Even if only calling `format(...)` from multiple threads, `DecimalFormat`'s contract does not guarantee safe sharing; do not rely on luck from single-threaded tests.
 
-## 13. Lỗi phổ biến và cách tránh
+## 13. Common mistakes and how to avoid them
 
-| Lỗi | Hệ quả | Cách xử lý |
+| Mistake | Consequence | How to handle |
 | --- | --- | --- |
-| Viết `positive;negative` để định dạng âm có số chữ số khác dương | Numeric pattern của nhánh âm không điều khiển precision riêng. | Dùng hai formatter khi cần chính sách số khác nhau. |
-| Thiếu negative subpattern nhưng kỳ vọng có ngoặc | Mặc định sẽ dùng dấu âm thông thường. | Khai báo negative prefix/suffix, ví dụ `(#,##0.00)`. |
-| Ghép thủ công dấu trừ vào chuỗi sau `format` | Dễ sai với locale, âm 0 và những affix đã có. | Đặt pattern/negative prefix đúng ngay từ đầu. |
-| Quên quote ký tự `;`, `%` hoặc literal đặc biệt | Parser hiểu là cú pháp, thay đổi nhánh hoặc multiplier. | Dùng quote đúng hoặc API setter cho chuỗi literal. |
-| Dùng `0.0%` với giá trị đã nhân 100 | Kết quả sai một bậc 100 lần. | Xác định đơn vị ratio trước khi format. |
-| Dùng `'USD'` cố định cho nhiều currency | Nhãn tiền bị sai khi giao dịch đổi đơn vị. | Cấp `Currency` theo nghiệp vụ. |
-| Coi `¤` có tác dụng đổi tỷ giá | Chỉ biểu diễn tiền tệ, không chuyển giá trị. | Tách format khỏi phép đổi tiền. |
-| Quên test `-0.0` | Kết quả có thể thành `(0.00)`. | Định nghĩa policy với negative zero. |
-| Đặt nhánh âm sau khi thêm setter rồi gọi `applyPattern` | Pattern có thể ghi đè cấu hình affix trước đó. | Cấu hình theo thứ tự nhất quán, test output cuối. |
-| Parse chuỗi có hậu tố mà không kiểm tra phần dư | Chấp nhận input sai khi parser dừng giữa chừng. | Dùng `ParsePosition` và kiểm tra độ dài tiêu thụ. |
-| Dùng một static mutable formatter cho nhiều thread | Nguy cơ trạng thái chéo, kết quả khó tái hiện. | Clone hoặc tạo formatter theo request. |
-| Chỉ test số dương | Bỏ sót nhánh âm, âm 0, zero, rounding và affix. | Tạo test matrix đủ các dấu và các biên. |
+| Writing `positive;negative` to give negatives a different digit count | The negative branch's numeric pattern does not control separate precision. | Use two formatters when different digit policies are required. |
+| Omitting the negative subpattern yet expecting parentheses | Default uses the ordinary minus sign. | Declare negative prefix/suffix, e.g. `(#,##0.00)`. |
+| Manually prepending a minus sign after `format` | Breaks easily with locales, negative zero, and existing affixes. | Set the pattern/negative prefix properly from the start. |
+| Forgetting to quote `;`, `%`, or special literals | Parser treats them as syntax, changing branches or multipliers. | Use proper quoting or setter APIs for literal strings. |
+| Using `0.0%` with values already multiplied by 100 | Result is off by a factor of 100. | Determine the ratio unit before formatting. |
+| Using fixed `'USD'` across multiple currencies | Wrong currency label when transactions change units. | Supply `Currency` from business logic. |
+| Treating `¤` as an exchange-rate converter | Only displays currency, does not convert values. | Separate formatting from currency conversion. |
+| Forgetting to test `-0.0` | Output can become `(0.00)`. | Define a policy for negative zero. |
+| Setting negative branch via setters then calling `applyPattern` | Pattern can overwrite earlier affix configuration. | Configure in consistent order and test final output. |
+| Parsing strings with suffixes without checking remainder | Accepts invalid input when parser stops partway. | Use `ParsePosition` and check consumed length. |
+| Sharing a mutable static formatter across threads | Risk of cross-request state corruption and irreproducible results. | Clone or instantiate per request. |
+| Testing only positive numbers | Misses negative branches, negative zero, zero, rounding, and affixes. | Build a test matrix covering all signs and boundaries. |
 
-## 14. Bài tập tự luyện
+## 14. Practice exercises
 
-**Bài 1 — Mẫu âm theo kế toán:** dùng `#,##0.00;(#,##0.00)` để in `1234.5`, `-1234.5`, `0`, `-0.0`. Giải thích vì sao `-0.0` có thể ra ngoặc, và nếu sản phẩm muốn khác thì nên xử lý ở đâu.
+**Exercise 1 — Accounting negative pattern:** use `#,##0.00;(#,##0.00)` to print `1234.5`, `-1234.5`, `0`, `-0.0`. Explain why `-0.0` can output parentheses, and where to handle it if the product wants otherwise.
 
-**Bài 2 — Prefix/suffix:** thiết kế format có nhãn `Credit: ` cho dương, `Debit: ` cho âm, cùng suffix ` units`. Thực hiện một lần bằng pattern quote literal và một lần bằng setter. Kiểm tra `getPositivePrefix()`/`getNegativeSuffix()` rồi gọi `applyPattern(...)` để quan sát cấu hình bị thay đổi.
+**Exercise 2 — Prefix/suffix:** design a format labeled `Credit: ` for positives, `Debit: ` for negatives, with suffix ` units`. Implement it once using pattern quoted literals and once using setters. Inspect `getPositivePrefix()`/`getNegativeSuffix()`, then call `applyPattern(...)` to observe the configuration being overwritten.
 
-**Bài 3 — Precision nhánh âm:** thử `0.00;(0)` với `-12.3`. Giải thích tại sao không ra `(12)`. Thiết kế hai formatter riêng nếu yêu cầu nghiệp vụ thực sự muốn hiển thị số dương với hai chữ số phần lẻ, số âm không có phần lẻ.
+**Exercise 3 — Negative branch precision:** try `0.00;(0)` with `-12.3`. Explain why it does not output `(12)`. Design two separate formatters if business requirements truly want positives shown with two fractional digits and negatives with none.
 
-**Bài 4 — Percent và currency:** thử `0.0%;(0.0%)` với `0.125` và `-0.125`; so sánh với pattern có dấu `'%'` literal. Tiếp theo, phân biệt `¤`, `¤¤` và `'USD'` khi locale/`Currency` thay đổi. Không thực hiện phép quy đổi tỷ giá trong formatter.
+**Exercise 4 — Percent and currency:** try `0.0%;(0.0%)` with `0.125` and `-0.125`; compare with a pattern having a literal `'%'`. Next, distinguish `¤`, `¤¤`, and `'USD'` when locale/`Currency` changes. Do not perform exchange-rate conversion in the formatter.
 
-**Bài 5 — Parse kế toán:** dùng `parse(String, ParsePosition)` với `(1,234.50)`, `1,234.50`, chuỗi có ký tự thừa ở cuối và chuỗi sai prefix. Chỉ nhận input khi parse thành công **và** đọc hết toàn bộ string. Thêm validation về miền giá trị.
+**Exercise 5 — Accounting parse:** use `parse(String, ParsePosition)` with `(1,234.50)`, `1,234.50`, a string with trailing characters, and a string with an invalid prefix. Accept input only when parsing succeeds **and** consumes the entire string. Add range validation.
 
-**Bài 6 — Hai locale:** tạo formatter `#,##0.00;(#,##0.00)` với `Locale.US` và một locale khác được sản phẩm hỗ trợ. Quan sát cách ký hiệu thập phân/grouping thay đổi mà cấu trúc pattern vẫn như nhau; giải thích khi nào dùng `applyLocalizedPattern`.
+**Exercise 6 — Two locales:** create a `#,##0.00;(#,##0.00)` formatter with `Locale.US` and another supported product locale. Observe how decimal/grouping symbols change while the pattern structure remains the same; explain when to use `applyLocalizedPattern`.
 
-### Checklist hoàn thành
+### Completion checklist
 
-- [ ] Biết đọc `positiveSubpattern;negativeSubpattern` và phân biệt dấu `;` với dấu ngăn thập phân.
-- [ ] Hiểu negative subpattern đổi **prefix/suffix**, không đặt riêng precision cho số âm.
-- [ ] Biết dùng `get/setPositivePrefix`, `get/setNegativeSuffix` và quote literal.
-- [ ] Phân biệt percent multiplier, per-mille, currency symbol với chữ literal.
-- [ ] Kiểm thử đúng `0`, `-0.0`, số dương/âm, làm tròn và parse.
-- [ ] Truyền `Locale`/`DecimalFormatSymbols` tường minh và quản lý currency theo dữ liệu nghiệp vụ.
-- [ ] Không chia sẻ `DecimalFormat` mutable giữa nhiều thread nếu không có cơ chế an toàn.
+- [ ] Can read `positiveSubpattern;negativeSubpattern` and distinguish `;` from decimal separators.
+- [ ] Understands that negative subpatterns change **prefixes/suffixes**, not negative-specific precision.
+- [ ] Knows how to use `get/setPositivePrefix`, `get/setNegativeSuffix`, and quoted literals.
+- [ ] Distinguishes percent multipliers, per-mille, and currency symbols from literal text.
+- [ ] Properly tests `0`, `-0.0`, positive/negative numbers, rounding, and parsing.
+- [ ] Passes `Locale`/`DecimalFormatSymbols` explicitly and manages currency via business data.
+- [ ] Does not share mutable `DecimalFormat` instances across threads without safety mechanisms.
 
-**Ghi nhớ:** pattern `DecimalFormat` quyết định cách thể hiện **giá trị số và affix**. Đừng dùng nhánh âm để đổi precision, đừng coi currency symbol là chuyển đổi tiền, và đừng biến định dạng số thành nơi cất toàn bộ logic bản dịch/nghiệp vụ.
+**Takeaway:** `DecimalFormat` patterns determine how **numeric values and affixes** are rendered. Do not use the negative branch to change precision, do not mistake currency symbols for currency conversion, and do not turn number formatting into a dumping ground for full translation or business logic.

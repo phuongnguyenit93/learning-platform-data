@@ -1,16 +1,16 @@
-# Mẫu chuẩn so với mẫu được bản địa hóa trong Java `DecimalFormat`
+# Standard Patterns vs. Localized Patterns in Java `DecimalFormat`
 
-## 1. Hai loại mẫu, một mục tiêu: định dạng số đúng locale
+## 1. Two kinds of patterns, one goal: locale-accurate number formatting
 
-`java.text.DecimalFormat` biến một giá trị số thành chuỗi hoặc phân tích chuỗi thành số dựa trên **pattern** (mẫu định dạng) và **`DecimalFormatSymbols`** (bộ ký hiệu). Khi định dạng số cho nhiều ngôn ngữ, cần phân biệt:
+`java.text.DecimalFormat` turns a numeric value into a string or parses a string into a number based on a **pattern** and **`DecimalFormatSymbols`** (the symbol set). When formatting numbers across multiple languages, distinguish:
 
-- **Mẫu chuẩn / không bản địa hóa (standard hoặc non-localized pattern):** các ký tự cú pháp như `.` cho vị trí thập phân và `,` cho phân nhóm được hiểu theo **quy tắc cố định của `DecimalFormat`**, bất kể locale đang dùng. Ví dụ `#,##0.00`.
-- **Mẫu được bản địa hóa (localized pattern):** các ký tự cú pháp tương ứng được biểu diễn bằng ký hiệu trong `DecimalFormatSymbols` của formatter. Với locale Đức `de-DE`, mẫu cùng ý nghĩa thường được viết `#.##0,00`: `.` là ký hiệu grouping, `,` là dấu thập phân.
+- **Standard / non-localized pattern:** syntax characters such as `.` for the decimal position and `,` for grouping are interpreted by **`DecimalFormat`'s fixed rules**, regardless of the active locale. For example, `#,##0.00`.
+- **Localized pattern:** the corresponding syntax characters are represented using the symbols inside the formatter's `DecimalFormatSymbols`. For the German locale `de-DE`, the pattern with the same meaning is typically written `#.##0,00`: `.` is the grouping symbol, `,` is the decimal separator.
 
-Đừng nhầm **cú pháp của pattern** với **dấu phân cách trong chuỗi kết quả**. Đặt locale Đức không buộc bạn phải tự đổi mẫu chuẩn sang `#.##0,00` nếu dùng `applyPattern` hay constructor `DecimalFormat(String, DecimalFormatSymbols)`. `DecimalFormat` sẽ dùng ký hiệu Đức để tạo ra kết quả `1.234.567,89` từ mẫu chuẩn `#,##0.00`.
+Do not confuse **pattern syntax** with **separators in the output string**. Setting a German locale does not force you to rewrite a standard pattern to `#.##0,00` when using `applyPattern` or the `DecimalFormat(String, DecimalFormatSymbols)` constructor. `DecimalFormat` will use German symbols to produce `1.234.567,89` from the standard pattern `#,##0.00`.
 
 ```text
-Pattern chuẩn:       #,##0.00
+Standard pattern:     #,##0.00
          |                         DecimalFormatSymbols(de-DE)
          +--- applyPattern(...)  --------------------------+
                                                           |
@@ -18,68 +18,68 @@ Pattern chuẩn:       #,##0.00
                                                           |
                                                "1.234.567,89"
 
-Pattern bản địa hóa de-DE: #.##0,00
+Localized pattern de-DE: #.##0,00
          |
-         +--- applyLocalizedPattern(...), symbols(de-DE) -- cùng ý nghĩa
+         +--- applyLocalizedPattern(...), symbols(de-DE) -- same meaning
 ```
 
-**Quy tắc vàng:** pattern dùng cho **mã nguồn/cấu hình chung** thường nên ở dạng chuẩn; pattern người dùng **nhập bằng ký hiệu địa phương** cần được giải mã bằng `applyLocalizedPattern` và đúng bộ `DecimalFormatSymbols`.
+**Golden rule:** patterns used in **source code / shared config** should normally be in standard form; patterns that users **enter using local symbols** must be decoded via `applyLocalizedPattern` and the matching `DecimalFormatSymbols`.
 
-## 2. Các API dễ bị dùng nhầm
+## 2. APIs commonly misused
 
-| API | Ý nghĩa | Lưu ý |
+| API | Meaning | Note |
 | --- | --- | --- |
-| `new DecimalFormat(pattern, symbols)` | Tạo formatter từ **pattern chuẩn**, dùng `symbols` để hiển thị | Không truyền pattern đã bản địa hóa vào constructor này |
-| `applyPattern(String)` | Áp dụng **pattern chuẩn** | Không tự suy luận nghĩa của `.`/`,` theo locale |
-| `applyLocalizedPattern(String)` | Áp dụng **pattern đã bản địa hóa** theo symbols hiện tại | Cần thiết lập đúng symbols **trước** khi gọi |
-| `toPattern()` | Trả về biểu diễn pattern **chuẩn** của formatter | Có thể là dạng được chuẩn hóa, không phải đúng từng ký tự đầu vào |
-| `toLocalizedPattern()` | Trả về biểu diễn pattern theo **symbols hiện tại** | Không phù hợp để dùng nguyên xi cho locale khác |
-| `DecimalFormatSymbols.getInstance(locale)` | Lấy các ký hiệu địa phương cho số, tiền, phần trăm... | Cung cấp ký hiệu; không có nghĩa locale tự chọn nghiệp vụ |
-| `setDecimalFormatSymbols(symbols)` | Thay bộ ký hiệu của formatter | Ảnh hưởng output và cách diễn giải các **localized pattern** tiếp theo |
+| `new DecimalFormat(pattern, symbols)` | Creates a formatter from a **standard pattern**, using `symbols` for display | Do not pass a localized pattern to this constructor |
+| `applyPattern(String)` | Applies a **standard pattern** | Does not infer meanings of `.`/`,` from locale |
+| `applyLocalizedPattern(String)` | Applies a **localized pattern** using current symbols | Must set the right symbols **before** calling |
+| `toPattern()` | Returns the formatter's **standard** pattern representation | May be a normalized form, not character-for-character identical to input |
+| `toLocalizedPattern()` | Returns the pattern representation using **current symbols** | Not suitable to reuse verbatim for another locale |
+| `DecimalFormatSymbols.getInstance(locale)` | Retrieves local symbols for numbers, currency, percent, etc. | Supplies symbols; does not mean locale chooses business logic |
+| `setDecimalFormatSymbols(symbols)` | Replaces the formatter's symbol set | Affects output and how subsequent **localized patterns** are interpreted |
 
-Hai chiều chuyển đổi quan trọng là:
+The two important conversion directions are:
 
 ```text
 String canonical = formatter.toPattern();
 String localized = formatter.toLocalizedPattern();
 
-formatter.applyPattern(canonical);             // đọc cú pháp chuẩn
-formatter.applyLocalizedPattern(localized);    // đọc cú pháp địa phương
+formatter.applyPattern(canonical);             // reads standard syntax
+formatter.applyLocalizedPattern(localized);    // reads local syntax
 ```
 
-Hai thao tác `apply...` này **không hoán đổi cho nhau**. Đặc biệt, `applyLocalizedPattern` đọc theo symbols của **chính formatter tại thời điểm gọi**, không dựa vào việc chuỗi có trông “giống” tiếng Đức, Pháp hay Mỹ.
+These two `apply...` operations are **not interchangeable**. In particular, `applyLocalizedPattern` reads using the symbols on **the formatter itself at the moment of the call**, not by guessing whether the string "looks" German, French, or US.
 
-## 3. Cú pháp pattern chuẩn: `.` và `,` chỉ có nghĩa cấu trúc
+## 3. Standard pattern syntax: `.` and `,` carry structural meaning only
 
-Trong **pattern chuẩn** của `DecimalFormat`:
+In a **standard pattern** of `DecimalFormat`:
 
-| Ký hiệu | Vai trò chính |
+| Symbol | Primary role |
 | --- | --- |
-| `0` | Vị trí chữ số bắt buộc; thêm chữ số 0 khi cần |
-| `#` | Vị trí chữ số tùy chọn |
-| `.` | Dấu **định vị phần thập phân trong pattern** |
-| `,` | Dấu **định vị nhóm chữ số trong pattern** |
-| `%` | Nhân giá trị với 100 và biểu thị phần trăm |
-| `‰` | Nhân giá trị với 1000 và biểu thị phần nghìn |
-| `¤` | Ký hiệu tiền tệ trong pattern, phụ thuộc symbols/currency |
-| `E` | Thành phần ký hiệu dạng số khoa học |
-| `;` | Phân tách phần mẫu số dương và số âm |
-| `'` | Quote các ký tự literal trong phần tiền tố/hậu tố mẫu |
+| `0` | Required digit position; pads with 0 when needed |
+| `#` | Optional digit position |
+| `.` | **Decimal position marker in the pattern** |
+| `,` | **Digit grouping marker in the pattern** |
+| `%` | Multiplies value by 100 and represents percent |
+| `‰` | Multiplies value by 1000 and represents per-mille |
+| `¤` | Currency symbol in the pattern, depending on symbols/currency |
+| `E` | Scientific notation exponent component |
+| `;` | Separates positive and negative subpatterns |
+| `'` | Quotes literal characters in pattern prefixes/suffixes |
 
-Ví dụ `#,##0.00` có ý nghĩa: dùng phân nhóm hàng nghìn, tối thiểu một chữ số phần nguyên và đúng hai chữ số phần thập phân.
+For example, `#,##0.00` means: use thousands grouping, at least one integer digit, and exactly two fractional digits.
 
-**Cực kỳ quan trọng:** dấu `.` trong pattern chuẩn **không cam kết** output có dấu chấm thập phân. Đầu ra dùng dấu thập phân thực tế từ `DecimalFormatSymbols`, chẳng hạn:
+**Crucial:** a `.` in a standard pattern **does not guarantee** the output has a period decimal point. Output uses the actual decimal separator from `DecimalFormatSymbols`, for instance:
 
-| Giá trị | Pattern chuẩn | Symbols | Đầu ra |
+| Value | Standard pattern | Symbols | Output |
 | ---: | --- | --- | --- |
 | `1234567.89` | `#,##0.00` | `Locale.US` | `1,234,567.89` |
 | `1234567.89` | `#,##0.00` | `Locale.GERMANY` | `1.234.567,89` |
 
-Các ví dụ chỉ nói về **ký hiệu phân cách**, không chuyển đổi đơn vị đo hoặc tiền tệ. `1234567.89` vẫn là cùng giá trị số; ngôn ngữ/vùng chỉ tác động cách trình bày.
+The examples only illustrate **separators**, not unit or currency conversion. `1234567.89` remains the same numeric value; language/region only affects presentation.
 
-## 4. Chương trình Java 17+: cùng pattern chuẩn, hai locale
+## 4. Java 17+ program: same standard pattern, two locales
 
-Tạo tệp **`StandardPatternDemo.java`**:
+Create the file **`StandardPatternDemo.java`**:
 
 ```java
 import java.text.DecimalFormat;
@@ -108,14 +108,14 @@ public class StandardPatternDemo {
 }
 ```
 
-Chạy bằng JDK 17+:
+Run with JDK 17+:
 
 ```bash
 javac -encoding UTF-8 StandardPatternDemo.java
 java -cp . StandardPatternDemo
 ```
 
-Kết quả trên JDK có dữ liệu locale Đức/Mỹ thông dụng:
+Output on JDKs with standard German/US locale data:
 
 ```text
 US=1,234,567.89
@@ -125,20 +125,20 @@ DE standard=#,##0.00
 DE localized=#.##0,00
 ```
 
-Quan sát hai dòng `US standard` và `DE standard`: chúng giống nhau vì **pattern chuẩn không đổi theo locale**. Chỉ `toLocalizedPattern()` phản ánh ký hiệu `de-DE`. Dòng output khác nhau nhờ symbols.
+Observe the two lines `US standard` and `DE standard`: they match because **the standard pattern does not change with locale**. Only `toLocalizedPattern()` reflects `de-DE` symbols. Output lines differ thanks to symbols.
 
-Ở đây constructor nhận `DecimalFormatSymbols.getInstance(locale)` để tách bạch rõ cấu hình. `new DecimalFormat("#,##0.00")` không nhận locale mà dùng ký hiệu mặc định của môi trường; tránh dùng kiểu đó khi cần kết quả ổn định theo ngôn ngữ người dùng.
+Here the constructor accepts `DecimalFormatSymbols.getInstance(locale)` to cleanly isolate configuration. `new DecimalFormat("#,##0.00")` takes no locale and uses the environment's default symbols; avoid that style when stable per-user-language output is required.
 
-## 5. `applyLocalizedPattern`: đọc cú pháp theo locale đã chọn
+## 5. `applyLocalizedPattern`: reading syntax for the selected locale
 
-Một biểu mẫu cấu hình tại Đức có thể cho người dùng nhập trực tiếp pattern `#.##0,00`. Chuỗi đó **không phải** pattern chuẩn. Khi cần nạp nó:
+A configuration form in Germany might let users type the pattern `#.##0,00` directly. That string is **not** a standard pattern. When loading it:
 
-1. Khởi tạo `DecimalFormat`.
-2. Thiết lập `DecimalFormatSymbols` cho locale Đức.
-3. Gọi `applyLocalizedPattern("#.##0,00")`.
-4. Dùng `toPattern()` để lấy phiên bản chuẩn cho lưu trữ/chia sẻ hoặc kiểm tra.
+1. Instantiate `DecimalFormat`.
+2. Set `DecimalFormatSymbols` for the German locale.
+3. Call `applyLocalizedPattern("#.##0,00")`.
+4. Use `toPattern()` to obtain the standard version for storage/sharing or inspection.
 
-Tạo **`LocalizedPatternDemo.java`**:
+Create **`LocalizedPatternDemo.java`**:
 
 ```java
 import java.text.DecimalFormat;
@@ -162,7 +162,7 @@ public class LocalizedPatternDemo {
                 DecimalFormatSymbols.getInstance(Locale.GERMANY));
 
         try {
-            // Sai: pattern tiếng Đức lại đưa vào parser chuẩn.
+            // Wrong: German pattern passed into the standard parser.
             wrong.applyPattern("#.##0,00");
             System.out.println("wrong accepted");
         } catch (IllegalArgumentException ex) {
@@ -172,14 +172,14 @@ public class LocalizedPatternDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 LocalizedPatternDemo.java
 java -cp . LocalizedPatternDemo
 ```
 
-Kết quả với cú pháp ví dụ trên:
+Output with the example syntax above:
 
 ```text
 canonical=#,##0.00
@@ -188,38 +188,38 @@ number=1.234.567,89
 wrong: IllegalArgumentException
 ```
 
-**Phân tích:** khi dùng `applyLocalizedPattern`, dấu `.` trong chuỗi Đức được hiểu là grouping, dấu `,` là decimal. Khi gọi sai `applyPattern("#.##0,00")`, parser chuẩn phải hiểu dấu `.` là decimal và `,` là grouping; tổ hợp này không hợp lệ trong ví dụ, nên ném `IllegalArgumentException`.
+**Analysis:** when using `applyLocalizedPattern`, `.` in the German string is understood as grouping and `,` as decimal. When erroneously calling `applyPattern("#.##0,00")`, the standard parser must interpret `.` as decimal and `,` as grouping; that combination is invalid in the example, throwing `IllegalArgumentException`.
 
-Không được suy rộng rằng **mọi** pattern bản địa hóa đưa sai API đều ném exception. Một số chuỗi có thể **được chấp nhận nhưng mang ý nghĩa sai**, nhất là khi dấu và ký hiệu trong hai cú pháp trùng nhau một phần. Bởi vậy, luôn ghi rõ nguồn gốc pattern và kiểm thử kết quả; không coi việc không có exception là bằng chứng cấu hình đúng.
+Do not generalize that **every** localized pattern passed to the wrong API throws an exception. Some strings may **be accepted yet carry the wrong meaning**, especially when separators and symbols in the two dialects partially overlap. Therefore, always record pattern provenance and test the output; never treat the absence of an exception as proof of valid configuration.
 
-## 6. `toPattern()` và `toLocalizedPattern()`: biểu diễn, không phải hai formatter khác nhau
+## 6. `toPattern()` and `toLocalizedPattern()`: representations, not two different formatters
 
-Hai phương thức trả về cách viết **cùng cấu hình pattern đang được formatter nắm giữ**:
+Both methods return ways of writing the **same pattern configuration held by the formatter**:
 
 ```text
 formatter:
-  pattern logic  = phân nhóm + 2 chữ số thập phân
+  pattern logic  = grouping + 2 decimal digits
   symbols        = de-DE
 
   toPattern()          => "#,##0.00"
   toLocalizedPattern() => "#.##0,00"
 ```
 
-**Không nên lưu localized pattern như một mẫu “dùng chung mọi locale”.** Ví dụ `#.##0,00` khi đọc bằng symbols Mỹ sẽ có cú pháp/nghĩa khác hoặc bị từ chối. Nếu ứng dụng cho phép người dùng chỉnh pattern theo locale riêng, nên:
+**Do not store a localized pattern as a "universal cross-locale pattern".** For example, `#.##0,00` parsed with US symbols will have different syntax/meaning or be rejected. If an application lets users edit patterns in their own locale:
 
-- Lưu **pattern chuẩn** bằng `toPattern()` sau khi nạp và xác thực.
-- Lưu **locale/symbol-set liên quan** khi bản thân quy tắc định dạng có ý nghĩa địa phương.
-- Khi mở lại giao diện cấu hình cho người dùng, tạo formatter với symbols của locale hiện hành, `applyPattern(storedCanonical)`, rồi gọi `toLocalizedPattern()` để hiển thị trong cú pháp địa phương.
+- Store the **standard pattern** using `toPattern()` after loading and validating.
+- Store the **associated locale/symbol-set** when the formatting rule itself has regional significance.
+- When reopening the configuration UI for the user, create a formatter with the active locale's symbols, call `applyPattern(storedCanonical)`, and then call `toLocalizedPattern()` to display it in local syntax.
 
-**Lưu ý về round-trip:** `toPattern()` và `toLocalizedPattern()` có thể trả **mẫu được chuẩn hóa**. Chúng không cam kết trả lại y nguyên từng ký tự, khoảng trắng hay biểu diễn đồng nghĩa mà người dùng nhập ban đầu. Kiểm thử **ý nghĩa định dạng và đầu ra** thay vì so sánh chuỗi nhập nguyên bản trong mọi trường hợp.
+**Note on round-tripping:** `toPattern()` and `toLocalizedPattern()` may return **normalized patterns**. They do not guarantee preserving exact characters, whitespace, or synonymous forms originally typed by the user. Test **formatting semantics and outputs** rather than comparing raw input strings in every case.
 
-## 7. Format output khác pattern input
+## 7. Format output differs from pattern input
 
-Có ba tầng thường bị đánh đồng:
+Three layers are often conflated:
 
 ```text
              Pattern logic
-     standard hoặc localized syntax
+     standard or localized syntax
                    |
         DecimalFormatSymbols
        (decimal, grouping, %, ...)
@@ -228,12 +228,12 @@ Có ba tầng thường bị đánh đồng:
                    |
               format(number)
                    |
-         Chuỗi số đã bản địa hóa
+         Localized numeric string
 ```
 
-Vì `DecimalFormat` có cả `format` và `parse`, lưu ý thêm một tầng thứ tư khi **đọc ngược chuỗi do người dùng nhập**: parser phải biết symbols và các thiết lập tương ứng.
+Because `DecimalFormat` supports both `format` and `parse`, keep a fourth layer in mind when **parsing user-entered strings**: the parser must know the matching symbols and settings.
 
-Ví dụ:
+Example:
 
 ```java
 DecimalFormat de = new DecimalFormat(
@@ -244,44 +244,44 @@ String output = de.format(1234567.89);
 // output: "1.234.567,89"
 ```
 
-Đây là **đoạn mã minh họa**, cần import `java.text.DecimalFormat`, `java.text.DecimalFormatSymbols`, `java.util.Locale`. Nếu dùng để parse dữ liệu người dùng, `DecimalFormat.parse(...)` có thể phân tích được **một phần** chuỗi rồi dừng; để bắt lỗi dữ liệu dư, nên dùng `ParsePosition` và kiểm tra vị trí đã tiêu thụ hết chuỗi.
+This is an **illustrative snippet**, requiring imports `java.text.DecimalFormat`, `java.text.DecimalFormatSymbols`, and `java.util.Locale`. When parsing user data, `DecimalFormat.parse(...)` can parse **part** of a string and stop; to catch trailing garbage, use `ParsePosition` and verify the index consumed the whole string.
 
-Đừng nhầm:
+Do not confuse:
 
-- `applyPattern` phân tích **cú pháp mô tả cách format**.
-- `format` tạo **văn bản số**.
-- `parse` đọc **văn bản số** thành giá trị số.
-- `toLocalizedPattern` không tự định dạng giá trị; nó chỉ diễn tả lại pattern bằng ký hiệu địa phương.
+- `applyPattern` parses **syntax describing how to format**.
+- `format` generates **numeric text**.
+- `parse` reads **numeric text** into a numeric value.
+- `toLocalizedPattern` does not format values itself; it only expresses the pattern using local symbols.
 
-Một con số như `1.234` có thể mang nghĩa một nghìn hai trăm ba mươi bốn ở Đức hoặc một phẩy hai ba bốn ở Mỹ. Cần biết locale của **văn bản số**, không phỏng đoán bằng cách đếm dấu chấm và dấu phẩy.
+A number like `1.234` can mean one thousand two hundred thirty-four in Germany or one point two three four in the US. You must know the locale of the **numeric text**, not guess by counting periods and commas.
 
-## 8. Mẫu chuẩn và mẫu bản địa hóa khi có phần trăm, tiền tệ và hậu tố
+## 8. Standard vs. localized patterns with percent, currency, and suffixes
 
-Quy tắc khác biệt không chỉ nằm ở dấu thập phân và grouping. `DecimalFormatSymbols` có các ký hiệu về phần trăm, phần nghìn, dấu âm, ký hiệu số 0, dấu phân cách mẫu âm và ký hiệu tiền tệ; mức độ bản địa hóa cụ thể tùy dữ liệu và cấu hình.
+Differences are not limited to decimal and grouping separators. `DecimalFormatSymbols` holds symbols for percent, per-mille, minus sign, zero digit, negative pattern separator, and currency symbol; exact localization details depend on data and configuration.
 
-### 8.1. Phần trăm
+### 8.1. Percent
 
-Pattern chuẩn:
+Standard pattern:
 
 ```text
 #,##0.0%
 ```
 
-Với symbols Đức, `format(0.1234)` cho:
+With German symbols, `format(0.1234)` gives:
 
 ```text
 12,3%
 ```
 
-Và `toLocalizedPattern()` trong ví dụ tương ứng là:
+And `toLocalizedPattern()` in the corresponding example is:
 
 ```text
 #.##0,0%
 ```
 
-Ký hiệu `%` trong `DecimalFormat` không chỉ là một hậu tố để in: nó **nhân giá trị số với 100 khi format** và có hệ quả tương ứng khi parse. Đừng tự nhân 100 trong dữ liệu rồi áp pattern có `%`, nếu không sẽ nhân hai lần.
+The `%` symbol in `DecimalFormat` is not just a printed suffix: it **multiplies the numeric value by 100 when formatting** and has the corresponding inverse effect when parsing. Do not multiply by 100 in data and also apply a `%` pattern, or you will scale twice.
 
-Ví dụ chương trình độc lập **`PercentPatternDemo.java`**:
+Standalone example program **`PercentPatternDemo.java`**:
 
 ```java
 import java.text.DecimalFormat;
@@ -301,14 +301,14 @@ public class PercentPatternDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 PercentPatternDemo.java
 java -cp . PercentPatternDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 12,3%
@@ -316,21 +316,21 @@ java -cp . PercentPatternDemo
 #.##0,0%
 ```
 
-### 8.2. Tiền tệ
+### 8.2. Currency
 
-`¤` là ký hiệu đặc biệt của currency pattern, ví dụ `¤#,##0.00`. Kết quả hiển thị có thể thay đổi theo `Currency` và `DecimalFormatSymbols` (ký hiệu đồng tiền, dấu phân cách, cách trình bày). **Pattern không thực hiện chuyển đổi tỷ giá.** Nếu số đầu vào là 12.5 USD, thay locale sang Đức không biến 12.5 USD thành EUR.
+`¤` is the special currency pattern symbol, e.g., `¤#,##0.00`. Displayed results vary with `Currency` and `DecimalFormatSymbols` (currency symbol, separators, layout). **Patterns do not perform exchange-rate conversion.** If the input is 12.5 USD, switching the locale to Germany does not turn 12.5 USD into EUR.
 
-Một ứng dụng thanh toán nên quản lý **mã tiền tệ** và **độ chính xác/rounding theo nghiệp vụ** riêng, không đoán tiền chỉ từ ngôn ngữ giao diện. Với yêu cầu hiển thị tiền theo quy tắc locale mặc định, `NumberFormat.getCurrencyInstance(locale)` thường là điểm khởi đầu thích hợp; nếu custom `DecimalFormat`, cần cấu hình currency đúng.
+A payment application should manage the **currency code** and **business precision/rounding** separately, never inferring currency solely from UI language. For displaying money according to default locale conventions, `NumberFormat.getCurrencyInstance(locale)` is typically a good starting point; if customizing `DecimalFormat`, configure currency properly.
 
-### 8.3. Quoting cho chữ literal
+### 8.3. Quoting literals
 
-Pattern `DecimalFormat` có cơ chế quote bằng dấu nháy đơn cho các ký tự literal trong tiền tố/hậu tố, ví dụ một nhãn đơn vị đứng sau số. Không tự coi các ký tự đặc biệt của `DecimalFormat` là văn bản bình thường khi thêm đơn vị, phần trăm hoặc ký hiệu tiền.
+`DecimalFormat` patterns provide single-quote quoting for literal characters in prefixes/suffixes, such as a unit label after a number. Do not assume `DecimalFormat`'s special characters act as plain text when appending units, percentages, or currency symbols.
 
-Cũng không đánh đồng cú pháp quote của `DecimalFormat` với `MessageFormat`: cả hai có khái niệm dấu nháy đơn, nhưng chúng là **hai parser và hai hợp đồng pattern khác nhau**. Nếu đặt `DecimalFormat` bên trong một hệ thống tạo thông báo, cần kiểm tra đúng từng tầng.
+Likewise, do not conflate `DecimalFormat` quoting syntax with `MessageFormat`: both share the concept of single quotes, but they are **two different parsers and two different pattern contracts**. When embedding `DecimalFormat` inside a message-formatting system, verify each layer independently.
 
-## 9. Dùng `DecimalFormatSymbols` có chủ đích
+## 9. Using `DecimalFormatSymbols` intentionally
 
-`DecimalFormatSymbols.getInstance(Locale.GERMANY)` là cách đơn giản tạo symbols theo locale. Có thể kiểm tra:
+`DecimalFormatSymbols.getInstance(Locale.GERMANY)` is a straightforward way to obtain locale symbols. You can inspect them:
 
 ```java
 DecimalFormatSymbols german =
@@ -340,57 +340,57 @@ System.out.println(german.getDecimalSeparator());  // ,
 System.out.println(german.getGroupingSeparator()); // .
 ```
 
-Đây là trích đoạn cần import các class tương ứng; với dữ liệu Đức thông dụng, in ra dấu phẩy và dấu chấm. `DecimalFormatSymbols` còn có phương thức cấu hình ký hiệu, ví dụ `setDecimalSeparator`, `setGroupingSeparator`, `setMinusSign`, `setPercent`...
+This is a snippet requiring importing the corresponding classes; with standard German data, it prints a comma and a period. `DecimalFormatSymbols` also has setter methods such as `setDecimalSeparator`, `setGroupingSeparator`, `setMinusSign`, `setPercent`, etc.
 
-Khi **tự chỉnh symbols**, phải xem pattern bản địa hóa theo **symbols tùy chỉnh đó**, không mặc định theo tiếng Đức hay tiếng Anh. Ví dụ cùng locale `de-DE` nhưng grouping separator đã được chỉnh, `toLocalizedPattern()` phản ánh ký hiệu hiện đang cấu hình.
+When **customizing symbols manually**, interpret localized patterns according to **those custom symbols**, not assuming standard German or English defaults. For example, with `de-DE` where the grouping separator was modified, `toLocalizedPattern()` reflects the currently configured symbol.
 
-**Trình tự đúng nếu nhận localized pattern từ người dùng:**
+**Proper sequence if accepting localized patterns from users:**
 
 ```text
-Xác định locale / bộ ký hiệu của người nhập
+Identify the user's locale / symbol set
       ↓
-Tạo DecimalFormat + DecimalFormatSymbols phù hợp
+Create DecimalFormat + matching DecimalFormatSymbols
       ↓
 applyLocalizedPattern(userPattern)
       ↓
-Kiểm tra pattern hợp lệ và format các giá trị mẫu
+Validate pattern and format sample values
       ↓
-toPattern() để có biểu diễn chuẩn dùng nội bộ
+toPattern() for internal canonical representation
 ```
 
-Nếu muốn cho cùng một mẫu chuẩn hiển thị với bộ ký hiệu khác, **không cần** chuyển sang localized pattern bằng thao tác thay thế `String.replace`. Chỉ cần dùng đúng symbols trong formatter.
+If you want the same standard pattern rendered with a different symbol set, **do not** convert it to a localized pattern via `String.replace`. Simply configure the right symbols on the formatter.
 
-## 10. Các lỗi thường gặp và cách sửa
+## 10. Common mistakes and fixes
 
-| Sai lầm | Hậu quả | Cách làm đúng |
+| Mistake | Consequence | Right approach |
 | --- | --- | --- |
-| Đưa `#.##0,00` của Đức vào `applyPattern` | Đọc sai dấu hoặc lỗi `IllegalArgumentException` | Dùng `applyLocalizedPattern` với symbols Đức |
-| Đưa `#,##0.00` chuẩn vào `applyLocalizedPattern` của Đức | Các dấu có thể bị diễn giải ngược | Dùng `applyPattern` cho mẫu chuẩn |
-| Lưu `toLocalizedPattern()` làm mẫu chung | Đọc sai khi runtime/locale khác | Lưu biểu diễn chuẩn `toPattern()`, kèm metadata locale khi cần |
-| Dùng `new DecimalFormat(pattern)` cho mọi user | Phụ thuộc default locale của môi trường | Chọn `DecimalFormatSymbols` theo locale người dùng |
-| Tự replace mọi `,` thành `.` và ngược lại | Dễ hỏng syntax, hậu tố, phần trăm, literal | Dùng parser/API pattern tương ứng |
-| Thấy pattern `.` rồi kết luận output có chấm thập phân | Pattern chuẩn và output dùng hai bộ quy tắc khác nhau | Tách `applyPattern` khỏi symbols dùng khi `format` |
-| Nhân 100 trước khi dùng pattern `%` | Hiển thị phần trăm gấp 100 lần nữa | Dùng giá trị tỷ lệ gốc, để `DecimalFormat` xử lý |
-| Đổi locale rồi tự cho rằng đổi được tiền tệ | Locale không thực hiện chuyển tỷ giá | Quản lý `Currency`, số tiền, FX độc lập |
-| Chỉ kiểm tra pattern không ném lỗi | Có thể format sai ý định | Kiểm thử output với 0, số âm, số thập phân, số lớn |
-| Dùng một `DecimalFormat` mutable cho nhiều thread | `DecimalFormat` không đồng bộ/an toàn để chia sẻ tùy ý | Tạo instance riêng cho tác vụ/thread hoặc kiểm soát đồng bộ |
-| Giả định mọi JDK cho mọi locale cùng ký hiệu/chuẩn | Dữ liệu locale provider/CLDR có thể thay đổi | Cố định/ghi nhận runtime và kiểm thử các locale mục tiêu |
+| Passing German `#.##0,00` to `applyPattern` | Misreads separators or throws `IllegalArgumentException` | Use `applyLocalizedPattern` with German symbols |
+| Passing standard `#,##0.00` to German `applyLocalizedPattern` | Separators may be interpreted backwards | Use `applyPattern` for standard patterns |
+| Storing `toLocalizedPattern()` as a universal pattern | Fails/misreads on other runtimes/locales | Store standard `toPattern()`, plus locale metadata when needed |
+| Using `new DecimalFormat(pattern)` for all users | Depends on environment's default locale | Pick `DecimalFormatSymbols` for the user's locale |
+| Manually replacing all `,` with `.` and vice versa | Easily breaks syntax, suffixes, percent, literals | Use the appropriate pattern parser/API |
+| Seeing `.` in pattern and assuming output has a decimal dot | Standard pattern and output follow two separate rules | Separate `applyPattern` from symbols used during `format` |
+| Multiplying by 100 before using a `%` pattern | Displays percentage 100× too large | Use the raw ratio value and let `DecimalFormat` handle scaling |
+| Changing locale assuming it converts currency | Locale does not convert exchange rates | Manage `Currency`, amount, and FX independently |
+| Only checking that pattern throws no exception | Can still format unintended output | Test output with 0, negatives, decimals, and large numbers |
+| Sharing one mutable `DecimalFormat` across threads | `DecimalFormat` is unsynchronized/unsafe for arbitrary sharing | Create per-task/thread instances or control synchronization |
+| Assuming all JDKs share identical locale symbols/defaults | Locale provider/CLDR data can change | Pin/document runtime and test target locales |
 
-## 11. Kiểm thử đúng cả pattern lẫn kết quả
+## 11. Testing both patterns and results
 
-Trong một ứng dụng có phần cấu hình mẫu số, nên kiểm thử:
+In an application that configures number patterns, test:
 
-1. **Pattern chuẩn:** nạp `#,##0.00` vào `applyPattern` với ít nhất hai locale; khẳng định `toPattern()` đúng ý nghĩa.
-2. **Pattern localized:** nạp `#.##0,00` với symbols Đức bằng `applyLocalizedPattern`; khẳng định kết quả format và pattern chuẩn thu được.
-3. **Thứ tự khởi tạo:** symbols phải được thiết lập trước khi phân tích localized pattern. Nếu symbols bị đổi sau đó, cần quyết định liệu phần cấu hình localized có phải được phân tích lại hay không.
-4. **Round-trip:** đọc localized pattern → `toPattern()` → khôi phục formatter khác cùng symbols → so kết quả format trên bộ số mẫu. Không yêu cầu chuỗi pattern ban đầu giữ nguyên từng ký tự.
-5. **Giá trị biên:** 0, số âm, số nhỏ, giá trị có grouping, số lớn, giá trị cần rounding; nếu ứng dụng có yêu cầu chính xác cao, dùng `BigDecimal` và chọn `RoundingMode` rõ ràng.
-6. **Locale khác:** ký hiệu ở Đức, Mỹ và các locale khác có thể khác. Với một số hệ chữ số, localized pattern còn có ký hiệu chữ số và phân cách không quen thuộc với ASCII.
-7. **Đọc dữ liệu nhập:** nếu dùng `parse`, kiểm tra toàn bộ chuỗi đã được tiêu thụ; không hiểu `NumberFormat` như trình kiểm tra văn bản nghiêm ngặt mặc định.
-8. **Cấu hình không hợp lệ:** bắt `IllegalArgumentException` từ `applyPattern`/`applyLocalizedPattern` và hiển thị hướng dẫn phù hợp, không cố đoán/đảo dấu bằng replace.
-9. **Môi trường:** ghi nhận phiên bản JDK, locale-data provider và symbols tùy chỉnh để tránh kết luận sai khi output thay đổi.
+1. **Standard patterns:** load `#,##0.00` via `applyPattern` across at least two locales; assert `toPattern()` preserves intent.
+2. **Localized patterns:** load `#.##0,00` with German symbols via `applyLocalizedPattern`; assert formatted output and resulting standard pattern.
+3. **Initialization order:** symbols must be set before parsing a localized pattern. If symbols change later, decide whether localized configs must be re-parsed.
+4. **Round-trip:** read localized pattern → `toPattern()` → restore another formatter with the same symbols → compare formatted outputs on sample numbers. Do not require the original pattern string to stay character-identical.
+5. **Boundary values:** 0, negatives, small numbers, grouped values, large numbers, values needing rounding; when high precision is required, use `BigDecimal` and an explicit `RoundingMode`.
+6. **Other locales:** symbols in Germany, the US, and other locales differ. In some numbering systems, localized patterns also use non-ASCII digits and separators.
+7. **Parsing user input:** when using `parse`, verify full string consumption; do not treat `NumberFormat` as a strict text validator by default.
+8. **Invalid configs:** catch `IllegalArgumentException` from `applyPattern`/`applyLocalizedPattern` and show appropriate guidance rather than guessing/swapping characters with replace.
+9. **Environment:** record JDK version, locale-data provider, and custom symbols to avoid false conclusions when outputs shift.
 
-Có thể viết kiểm thử Java nhỏ kiểm tra hợp đồng theo locale:
+You can write a small Java test verifying the locale contract:
 
 ```java
 import java.text.DecimalFormat;
@@ -426,25 +426,25 @@ public class DecimalPatternAssertions {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 DecimalPatternAssertions.java
 java -cp . DecimalPatternAssertions
 ```
 
-Kết quả nếu các quy tắc và symbols tương ứng đúng:
+Output when rules and symbols match properly:
 
 ```text
 5 checks passed
 ```
 
-Chương trình tự kiểm tra bằng `AssertionError`, không cần bật Java `-ea`. Đây là kiểm thử pattern/symbols có chủ đích; nếu ứng dụng hỗ trợ nhiều locale và nhu cầu định dạng nghiệp vụ riêng, cần mở rộng bộ ca.
+The program self-checks via `AssertionError`, without needing Java `-ea`. This is intentional pattern/symbol testing; if an application supports multiple locales and custom business formatting rules, expand the test suite accordingly.
 
-## 12. Ghi nhớ
+## 12. Key takeaways
 
-- **Mẫu chuẩn** dùng cú pháp cố định của `DecimalFormat` như `#,##0.00`, bất kể kết quả số có dấu phẩy hay dấu chấm.
-- **Mẫu được bản địa hóa** dùng ký hiệu trong `DecimalFormatSymbols`, ví dụ `#.##0,00` cho ký hiệu Đức.
-- `applyPattern` chỉ dùng cho mẫu **chuẩn**; `applyLocalizedPattern` chỉ dùng cho mẫu **localized** đúng symbols.
-- `toPattern()` trả một biểu diễn chuẩn nên thích hợp cho cấu hình dùng chung; `toLocalizedPattern()` thích hợp để **hiển thị** mẫu theo ký hiệu của người dùng.
-- **Cú pháp pattern, cách in số và cách parse số là ba việc khác nhau.** Hãy kiểm thử với locale, symbols và runtime thực tế; không đảo dấu bằng xử lý chuỗi tùy tiện.
+- **Standard patterns** use `DecimalFormat`'s fixed syntax such as `#,##0.00`, regardless of whether the formatted number uses commas or periods.
+- **Localized patterns** use the symbols in `DecimalFormatSymbols`, such as `#.##0,00` for German symbols.
+- `applyPattern` is strictly for **standard** patterns; `applyLocalizedPattern` is strictly for **localized** patterns matching the active symbols.
+- `toPattern()` returns a standard representation suited for shared configuration; `toLocalizedPattern()` is suited for **displaying** patterns in the user's symbols.
+- **Pattern syntax, number formatting, and number parsing are three distinct tasks.** Test with real locales, symbols, and runtimes; never swap separators with arbitrary string manipulation.

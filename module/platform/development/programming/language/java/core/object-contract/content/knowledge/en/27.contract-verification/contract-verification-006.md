@@ -1,68 +1,68 @@
-# Kiểm thử bộ ba cho `compareTo()` và `Comparator`
+# Triple Testing for `compareTo()` and `Comparator`
 
-## Mục tiêu và phạm vi
+## Goal and Scope
 
-Một phép so sánh có vẻ đúng khi thử riêng hai giá trị vẫn có thể **sai khi xét ba giá trị**. Bài này hướng dẫn kiểm chứng hợp đồng sắp thứ tự của `Comparable.compareTo()` và `Comparator.compare()` trong Java: đối dấu khi đảo hai toán hạng, tính bắc cầu, và tính nhất quán của những giá trị được coi là bằng nhau theo thứ tự. Trọng tâm là cách tạo và kiểm thử các **bộ ba `(a, b, c)`**, tìm phản ví dụ, rồi sửa bộ so sánh để các thao tác sort, `TreeSet` và `TreeMap` hoạt động có thể dự đoán.
+A comparison that looks right when testing two values in isolation can still **fail when considering three values**. This lesson guides you through verifying the ordering contract of `Comparable.compareTo()` and `Comparator.compare()` in Java: sign reversal when swapping operands, transitivity, and consistency of values considered equal in ordering. The focus is on constructing and testing **triples `(a, b, c)`**, finding counterexamples, and fixing the comparator so sorting, `TreeSet`, and `TreeMap` behave predictably.
 
-Các kiểm thử ở đây kiểm chứng **hợp đồng thứ tự**, không thay thế kiểm thử `equals()`/`hashCode()`; tuy vậy phải hiểu quan hệ giữa `compare(x, y) == 0` và `equals()` khi dùng tập hoặc map có sắp xếp.
+The tests here verify the **ordering contract**, not replacing `equals()`/`hashCode()` tests; nevertheless, you must understand the relationship between `compare(x, y) == 0` and `equals()` when using sorted sets or maps.
 
-## 1. Hiểu đúng kết quả so sánh
+## 1. Interpreting Comparison Results Properly
 
-Với hai đối tượng `x`, `y`:
+For two objects `x`, `y`:
 
-- `x.compareTo(y) < 0` hoặc `comparator.compare(x, y) < 0`: `x` đứng trước `y`.
-- Kết quả bằng `0`: `x` và `y` **tương đương theo thứ tự** đang xét.
-- Kết quả `> 0`: `x` đứng sau `y`.
+- `x.compareTo(y) < 0` or `comparator.compare(x, y) < 0`: `x` comes before `y`.
+- Result equal to `0`: `x` and `y` are **equivalent under the ordering** being evaluated.
+- Result `> 0`: `x` comes after `y`.
 
-Hợp đồng **chỉ quy định dấu**, không bắt trả về chính xác `-1`, `0` hay `1`. Vì vậy các phép thử nên chuẩn hóa với `Integer.signum(result)`, tránh viết `compare(x, y) == -1` hoặc lấy số đối của kết quả thô (có thể tràn số khi kết quả là `Integer.MIN_VALUE`).
+The contract **only specifies the sign**, not requiring exact values `-1`, `0`, or `1`. Therefore, tests should normalize with `Integer.signum(result)`, avoiding `compare(x, y) == -1` or negating the raw result (which can overflow when the result is `Integer.MIN_VALUE`).
 
-`Comparable<T>` định nghĩa **thứ tự tự nhiên** của một kiểu thông qua `compareTo(T other)`. `Comparator<T>` cho phép định nghĩa thứ tự bên ngoài đối tượng, như sắp `Person` theo tuổi, rồi theo mã. Hai cơ chế có cùng các quy tắc kiểm chứng quan trọng dưới đây. Một `Comparator` có thể chấp nhận `null` nếu chủ động định nghĩa cách xử lý; `compareTo(null)` của đối tượng khác `null` phải ném `NullPointerException` theo hợp đồng `Comparable`.
+`Comparable<T>` defines the **natural ordering** of a type via `compareTo(T other)`. `Comparator<T>` allows defining an ordering external to the object, such as sorting `Person` by age, then by code. Both mechanisms share the essential verification rules below. A `Comparator` may accept `null` if it explicitly defines how to handle it; calling `compareTo(null)` on a non-`null` object must throw `NullPointerException` per the `Comparable` contract.
 
-Ký hiệu dùng trong bài: `c(x,y)` là kết quả `x.compareTo(y)` hoặc `comparator.compare(x,y)`; `sgn(v)` là dấu của số nguyên `v`.
+Notation used in this lesson: `c(x,y)` is the result of `x.compareTo(y)` or `comparator.compare(x,y)`; `sgn(v)` is the sign of integer `v`.
 
-## 2. Ba nhóm điều kiện phải kiểm chứng
+## 2. Three Groups of Conditions to Verify
 
-### 2.1. Đảo toán hạng: cặp `(a, b)`
+### 2.1. Swapping Operands: Pair `(a, b)`
 
-Với mọi phần tử thuộc miền so sánh hợp lệ:
+For all elements in the valid comparison domain:
 
 ```text
 sgn(c(a,b)) == -sgn(c(b,a))
 c(a,a) == 0
 ```
 
-Nếu `a < b` thì chiều ngược lại phải là `b > a`. Nếu `a` và `b` được xem là cùng vị trí (`c(a,b)==0`) thì chiều ngược lại cũng bằng `0`. Kiểm tra `c(a,a)==0` là phép thử đơn giản, bổ trợ cho tính đối dấu.
+If `a < b`, then the reversed direction must be `b > a`. If `a` and `b` are considered to occupy the same rank (`c(a,b)==0`), then the reversed direction also equals `0`. Checking `c(a,a)==0` is a simple check complementing antisymmetry of signs.
 
-**Lỗi dễ gặp:** dùng `return a - b;` với số nguyên; phép trừ có thể tràn và làm hai chiều đều âm. Hãy dùng `Integer.compare(a,b)`, `Long.compare(a,b)` hoặc `Comparator.comparingInt(...)` tùy ngữ cảnh.
+**Common mistake:** using `return a - b;` on integers; subtraction can overflow and cause both directions to be negative. Use `Integer.compare(a,b)`, `Long.compare(a,b)`, or `Comparator.comparingInt(...)` depending on context.
 
-### 2.2. Bắc cầu: bộ ba `(a, b, c)`
+### 2.2. Transitivity: Triple `(a, b, c)`
 
-Nếu `a > b` và `b > c`, bắt buộc `a > c`; tương tự với chiều nhỏ hơn:
+If `a > b` and `b > c`, then `a > c` must hold; similarly for the less-than direction:
 
 ```text
 c(a,b) > 0  &&  c(b,c) > 0   =>   c(a,c) > 0
 c(a,b) < 0  &&  c(b,c) < 0   =>   c(a,c) < 0
 ```
 
-Đây là lý do cần **kiểm thử bộ ba**: kiểm tra mỗi cặp đơn lẻ không phát hiện được vòng mâu thuẫn.
+This is why **triple testing** is needed: testing each pair individually does not catch a contradictory cycle.
 
-Ví dụ bộ so sánh tùy biến mô tả vòng `0 < 1`, `1 < 2`, nhưng `2 < 0`. Mỗi cặp đều có một chiều trước/sau rõ ràng và đối dấu đúng. Tuy nhiên bộ ba `(0,1,2)` chứng minh sai: từ `0 < 1` và `1 < 2` phải suy ra `0 < 2`, trái với kết quả `0 > 2`. Một bộ so sánh như vậy không tạo ra thứ tự nhất quán.
+For example, a custom comparator describes the cycle `0 < 1`, `1 < 2`, yet `2 < 0`. Each pair has a clear before/after direction and proper opposite signs. However, the triple `(0,1,2)` proves it wrong: from `0 < 1` and `1 < 2` it must follow that `0 < 2`, contradicting the result `0 > 2`. Such a comparator does not produce a consistent ordering.
 
-### 2.3. Bằng 0 phải nhất quán với phần tử thứ ba
+### 2.3. Zero Equivalence Must Be Consistent With a Third Element
 
-Nếu `a` và `b` được xem là tương đương theo thứ tự, thì đối với **mọi `c`** chúng phải có cùng quan hệ đứng trước/đứng sau/đồng hạng:
+If `a` and `b` are considered order-equivalent, then relative to **any `c`** they must share the same before/after/tied relationship:
 
 ```text
 c(a,b) == 0  =>  sgn(c(a,c)) == sgn(c(b,c))
 ```
 
-Kết hợp với quy tắc đảo toán hạng, quan hệ này cũng đúng khi phần tử thứ ba đứng ở phía bên trái. Nó bảo đảm các nhóm đồng hạng (`compare == 0`) hành xử như các lớp tương đương hợp lệ; chẳng hạn nếu `a ~ b` và `b ~ c`, thì `a ~ c`.
+Combined with the operand-swapping rule, this relation also holds when the third element is on the left side. It guarantees that tied groups (`compare == 0`) behave as valid equivalence classes; for instance, if `a ~ b` and `b ~ c`, then `a ~ c`.
 
-Phản ví dụ: bộ so sánh coi `0` và `2` là bằng nhau, nhưng những cặp còn lại so theo thứ tự số nguyên. Khi xét `(a,b,c)=(0,2,1)`, ta có `c(0,2)==0`, nhưng `c(0,1)<0` trong khi `c(2,1)>0`. Nhóm đồng hạng này không nhất quán. Kiểm thử chỉ tính bắc cầu ở các cặp **so sánh khác 0** là chưa đủ để giải thích toàn bộ hợp đồng.
+Counterexample: a comparator treats `0` and `2` as equal, while comparing other pairs by integer order. Examining `(a,b,c)=(0,2,1)`, we get `c(0,2)==0`, yet `c(0,1)<0` while `c(2,1)>0`. This equivalence class is inconsistent. Testing transitivity only on pairs where **comparison is non-zero** is insufficient to cover the entire contract.
 
-## 3. Viết bộ kiểm chứng độc lập bằng Java 17+
+## 3. Writing a Standalone Verifier in Java 17+
 
-Ví dụ hoàn chỉnh dưới đây duyệt toàn bộ cặp và bộ ba trên một tập mẫu nhỏ. Nó dùng **cùng một hàm kiểm chứng** cho cả `compareTo()` (truyền method reference) lẫn `Comparator`. Bốn tình huống thể hiện hai thứ tự đúng và hai thứ tự cố ý sai.
+The complete example below iterates over all pairs and triples on a small sample set. It uses the **same verification function** for both `compareTo()` (passing a method reference) and `Comparator`. Four scenarios demonstrate two valid orderings and two intentionally broken orderings.
 
 ```java
 // OrderingTriplesDemo.java
@@ -77,7 +77,7 @@ public final class OrderingTriplesDemo {
     private static <T> void checkContract(
             List<T> samples, Comparator<? super T> comparator) {
 
-        // Kiểm tra phản xạ và tính đối dấu trên mọi cặp.
+        // Check reflexivity and opposite signs on all pairs.
         for (T a : samples) {
             if (sign(comparator.compare(a, a)) != 0) {
                 throw new AssertionError("reflexivity");
@@ -91,7 +91,7 @@ public final class OrderingTriplesDemo {
             }
         }
 
-        // Kiểm tra mọi bộ ba có thứ tự (a, b, c).
+        // Check all ordered triples (a, b, c).
         for (T a : samples) {
             for (T b : samples) {
                 for (T c : samples) {
@@ -127,7 +127,7 @@ public final class OrderingTriplesDemo {
         Comparator<Integer> byAbsoluteValue =
                 Comparator.comparingLong(x -> Math.abs((long) x));
 
-        // Phản ví dụ 1: 0 < 1 < 2 < 0, vi phạm bắc cầu.
+        // Counterexample 1: 0 < 1 < 2 < 0, violates transitivity.
         Comparator<Integer> cyclic = (a, b) -> {
             if (a.equals(b)) {
                 return 0;
@@ -135,7 +135,7 @@ public final class OrderingTriplesDemo {
             return (a + 1) % 3 == b ? -1 : 1;
         };
 
-        // Phản ví dụ 2: coi 0 ~ 2 nhưng so cặp khác theo số học.
+        // Counterexample 2: treats 0 ~ 2 while comparing other pairs numerically.
         Comparator<Integer> merged = (a, b) -> {
             if ((a == 0 && b == 2) || (a == 2 && b == 0)) {
                 return 0;
@@ -153,14 +153,14 @@ public final class OrderingTriplesDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 OrderingTriplesDemo.java
 java OrderingTriplesDemo
 ```
 
-Đầu ra chính xác:
+Exact output:
 
 ```text
 Integer.compareTo: PASS
@@ -169,22 +169,22 @@ Comparator cycle: FAIL - transitivity
 Comparator merged: FAIL - zero-class consistency
 ```
 
-**Cách đọc kết quả:**
+**How to read the output:**
 
-- `Integer::compareTo` dùng thứ tự tự nhiên, nên vượt qua các mẫu kiểm thử.
-- So sánh theo trị tuyệt đối tạo ra nhóm `-2 ~ 2`, `-1 ~ 1`. Đây vẫn là thứ tự hợp lệ: các phần tử bằng nhau theo trị tuyệt đối có quan hệ giống nhau với mọi phần tử thứ ba. Nhóm đồng hạng **không buộc** các đối tượng phải `equals()`.
-- `cyclic` giữ tính đối dấu cho từng cặp nhưng tạo chu trình so sánh.
-- `merged` coi `0` và `2` đồng hạng không đúng cách; chọn thứ tự mẫu `[0,2,1]` để bộ kiểm tra đưa ra phản ví dụ `zero-class consistency` trước các dạng vi phạm khác.
+- `Integer::compareTo` uses natural ordering, so it passes the test samples.
+- Comparing by absolute value creates groups `-2 ~ 2`, `-1 ~ 1`. This is still a valid ordering: elements tied by absolute value have the exact same relationship to every third element. Tied groups **do not force** objects to be `equals()`.
+- `cyclic` preserves opposite signs for every pair yet forms a comparison cycle.
+- `merged` improperly treats `0` and `2` as tied; choosing the sample order `[0,2,1]` causes the verifier to report the `zero-class consistency` counterexample before other violation forms.
 
-Các comparator `cyclic` và `merged` **chỉ dùng để minh họa lỗi**, không sử dụng để sắp xếp dữ liệu thực. Hàm `checkContract` kiểm tra hữu hạn các mẫu, nên `PASS` không chứng minh đúng với mọi giá trị có thể có; cần cả lập luận về logic sắp thứ tự và tập test đại diện.
+The `cyclic` and `merged` comparators are **for demonstrating bugs only**, not for sorting real data. `checkContract` checks a finite set of samples, so `PASS` does not prove correctness for all possible values; both reasoning about the ordering logic and a representative test set are needed.
 
-## 4. Phân biệt tính nhất quán với `equals()`
+## 4. Distinguishing Consistency With `equals()`
 
-Hợp đồng trên không yêu cầu `compare(a,b)==0` luôn đồng nghĩa `a.equals(b)`: đây là khuyến nghị rất mạnh của `Comparable` và điều cần xét cho `Comparator`, **không phải yêu cầu bắt buộc trong mọi thiết kế thứ tự**. Một bộ so sánh theo độ dài chuỗi, theo tuổi hoặc trị tuyệt đối có thể hợp lệ mà vẫn nhóm nhiều đối tượng `equals()` khác nhau vào một vị trí.
+The contract above does not require `compare(a,b)==0` to always imply `a.equals(b)`: that is a very strong recommendation of `Comparable` and something to examine for `Comparator`, **not a mandatory requirement in every ordering design**. A comparator by string length, by age, or by absolute value can be valid while still grouping multiple `equals()`-distinct objects into the same position.
 
-Tuy nhiên `TreeSet` và `TreeMap` dùng **kết quả comparator hoặc `compareTo` để quyết định tính trùng khóa/phần tử**. Vì thế khi comparator trả về 0 cho hai đối tượng khác nhau, collection có thể giữ một phần tử hay một entry cho cả hai khóa. Đây không phải lỗi của collection mà là hệ quả của thứ tự đã chọn.
+However, `TreeSet` and `TreeMap` use the **result of the comparator or `compareTo` to determine duplicate keys/elements**. Therefore, when a comparator returns 0 for two different objects, the collection may retain a single element or entry for both keys. This is not a bug in the collection, but a consequence of the chosen ordering.
 
-Ví dụ Java 17+:
+Java 17+ example:
 
 ```java
 // TreeSetOrderingDemo.java
@@ -229,88 +229,88 @@ false
 2
 ```
 
-`record Member` có `equals()` xét cả tuổi và mã. Comparator chỉ theo tuổi coi hai phần tử đồng hạng; comparator có `thenComparing(Member::code)` dùng thêm tiêu chí phân biệt. Phải chọn khóa và tiêu chí phụ theo yêu cầu nghiệp vụ: đôi khi cố ý gộp nhiều phần tử là đúng, nhưng phải biết rõ tác động lên cấu trúc có sắp xếp.
+`record Member` has an `equals()` checking both age and code. The age-only comparator treats the two elements as tied; the comparator with `thenComparing(Member::code)` adds a distinguishing tie-breaker criterion. You must select keys and secondary criteria according to business requirements: sometimes intentionally merging multiple elements is right, provided you clearly understand the impact on sorted structures.
 
-## 5. Cách chọn bộ ba để kiểm thử có giá trị
+## 5. Choosing Triples for Valuable Testing
 
-Một tập dữ liệu thử nên gồm **nhiều lớp tương đương, điểm biên và những giá trị dễ tạo mâu thuẫn**. Chọn không chỉ các chuỗi tăng đều `(1,2,3)` mà cả bộ ba có một hoặc nhiều cặp `compare==0`.
+A test dataset should include **multiple equivalence classes, boundary points, and values prone to contradictions**. Choose not just strictly increasing sequences `(1,2,3)` but also triples containing one or more `compare==0` pairs.
 
-| Nhóm mẫu | Ví dụ | Vấn đề cần bắt |
+| Sample group | Example | Issue to catch |
 | --- | --- | --- |
-| Ba phần tử khác nhau | `(a,b,c)` với `a<b<c` và mọi hoán vị | Bắc cầu ở cả hai hướng, vòng so sánh |
-| Hai phần tử đồng hạng | `compare(a,b)==0` nhưng `a` và `b` là hai đối tượng khác nhau | Quan hệ với `c` phải giống nhau |
-| Ba phần tử đồng hạng | `a~b`, `b~c` | Tính bắc cầu của lớp đồng hạng |
-| Biên số nguyên | `Integer.MIN_VALUE`, `-1`, `0`, `Integer.MAX_VALUE` | Tràn số khi trừ, đổi dấu `MIN_VALUE` |
-| Nhiều khóa sắp xếp | Cùng điểm, khác tuổi/mã; hoặc cùng khóa chính và khóa phụ | `thenComparing`, xử lý tie |
-| Chuỗi, chữ hoa/thường | `"a"`, `"A"`, chuỗi rỗng, chữ có dấu | Chuẩn hóa, locale, phép so sánh có tính bắc cầu |
-| `null` (nếu comparator hỗ trợ) | `(null,a,b)` | Chính sách `nullsFirst`/`nullsLast` nhất quán |
-| Số thực | `-0.0`, `+0.0`, `NaN`, vô cực | Ngữ nghĩa của `Double.compare` khác các phép toán `<`/`>` thông thường |
+| Three distinct elements | `(a,b,c)` with `a<b<c` and all permutations | Transitivity in both directions, comparison cycles |
+| Two tied elements | `compare(a,b)==0` while `a` and `b` are different objects | Relationship with `c` must be identical |
+| Three tied elements | `a~b`, `b~c` | Transitivity of the tied equivalence class |
+| Integer boundaries | `Integer.MIN_VALUE`, `-1`, `0`, `Integer.MAX_VALUE` | Overflow on subtraction, negating `MIN_VALUE` |
+| Multiple sort keys | Same score, different age/code; or same primary and secondary key | `thenComparing`, tie-breaking |
+| Strings, upper/lower case | `"a"`, `"A"`, empty string, accented characters | Normalization, locale, transitive comparison |
+| `null` (if comparator supports it) | `(null,a,b)` | Consistent `nullsFirst`/`nullsLast` policy |
+| Floating-point | `-0.0`, `+0.0`, `NaN`, infinities | Semantics of `Double.compare` differ from standard `<`/`>` operators |
 
-Khi kiểm thử `Comparable`, chỉ tạo bộ ba gồm các đối tượng thực sự có thể so sánh theo hợp đồng kiểu dữ liệu. Khi kiểm thử một comparator có thể ném exception theo thiết kế với một số input, tách rõ nhóm input hợp lệ và trường hợp phải ném lỗi. Không “sửa” phép kiểm bằng cách nuốt mọi exception rồi đánh dấu PASS.
+When testing `Comparable`, only construct triples from objects that are actually mutually comparable under the type's contract. When testing a comparator that may throw an exception by design on certain inputs, cleanly separate valid input groups from cases expected to throw. Never "fix" a test by swallowing all exceptions and marking it PASS.
 
-### Quy trình thực hành
+### Practical Workflow
 
-1. **Xác định miền hợp lệ và chính sách tie:** trường nào được so sánh, có cho `null` không, comparator có được nhóm đối tượng khác `equals()` không.
-2. **Kiểm tra từng cặp:** `c(a,a)==0`; hai chiều có dấu đối nhau. Dùng `signum`, không so khớp giá trị trả về cụ thể.
-3. **Kiểm tra mọi bộ ba có thứ tự:** cả hai hướng bắc cầu và trường hợp `c(a,b)==0`. Không chỉ kiểm tra một cách sắp `(a,b,c)`: đổi vị trí có thể làm lộ lỗi mới.
-4. **Giữ lại bộ ba phản ví dụ tối giản:** ghi ba giá trị đầu vào, dấu `c(a,b)`, `c(b,c)`, `c(a,c)` và lý do sai. Điều này giúp sửa điều kiện so sánh chính xác.
-5. **Bổ sung phép thử dài hạn:** khi thêm một trường vào `compareTo`, đổi comparator, hoặc thay đổi chính sách `null`, chạy lại test với tập mẫu biên và các trường hợp từng gây lỗi.
+1. **Define the valid domain and tie policy:** which fields are compared, whether `null` is allowed, and whether the comparator may group objects that are not `equals()`.
+2. **Test each pair:** `c(a,a)==0`; both directions have opposite signs. Use `signum`, not exact return values.
+3. **Test all ordered triples:** both transitivity directions and the `c(a,b)==0` case. Do not test only one ordering `(a,b,c)`: permuting positions can reveal new bugs.
+4. **Preserve a minimal counterexample triple:** record the three input values, the signs of `c(a,b)`, `c(b,c)`, `c(a,c)`, and why it failed. This helps fix the comparison condition accurately.
+5. **Add regression tests:** whenever adding a field to `compareTo`, changing a comparator, or changing the `null` policy, re-run tests against boundary samples and previously failing cases.
 
-Với `n` phần tử mẫu, kiểm tra mọi cặp cần khoảng `O(n²)` phép thử, mọi bộ ba cần `O(n³)` lần duyệt. Thích hợp để chạy đầy đủ trên **tập mẫu nhỏ có chọn lọc**. Với miền lớn, có thể phát sinh nhiều bộ ba ngẫu nhiên bằng seed cố định và sử dụng property-based testing; khi có lỗi, thu nhỏ (shrink) về bộ ba dễ hiểu. Phương pháp ngẫu nhiên là bổ sung, không thay thế các mẫu biên hay lập luận về tính đúng đắn.
+With `n` sample elements, checking all pairs takes about `O(n²)` checks, and all triples take `O(n³)` iterations. This is well suited to running exhaustively on a **small curated sample set**. For large domains, you can generate many random triples with a fixed seed and use property-based testing; upon failure, shrink to an understandable triple. Random generation is a supplement, not a replacement for boundary samples or correctness reasoning.
 
-## 6. Những cách viết comparator dễ phá hợp đồng
+## 6. Ways of Writing a Comparator That Easily Break the Contract
 
-### Dùng phép trừ thay `Integer.compare`
+### Using Subtraction Instead of `Integer.compare`
 
 ```java
-// Sai khi tràn int:
+// Wrong on int overflow:
 Comparator<Integer> unsafe = (a, b) -> a - b;
 
-// An toàn với toàn miền int:
+// Safe across the entire int range:
 Comparator<Integer> safe = Integer::compare;
 ```
 
-Với `a = Integer.MAX_VALUE`, `b = -1`, cả `a-b` và `b-a` đều có thể nhận `Integer.MIN_VALUE` vì tràn số; hai chiều cùng âm, vi phạm đối dấu. Đừng dùng `Math.abs(a-b)` hay lấy `-compare(b,a)` trực tiếp để xác định dấu kỳ vọng.
+With `a = Integer.MAX_VALUE`, `b = -1`, both `a-b` and `b-a` can yield `Integer.MIN_VALUE` due to overflow; both directions turn negative, violating opposite signs. Do not use `Math.abs(a-b)` or negate `-compare(b,a)` directly to determine the expected sign.
 
-### Lắp ghép quy tắc ưu tiên tạo vòng
+### Chaining Priority Rules That Form a Cycle
 
-Các câu điều kiện kiểu “A ưu tiên B, B ưu tiên C, C ưu tiên A” có thể thỏa mãn mọi kiểm thử cặp và vẫn phá bắc cầu. Nếu thứ tự nghiệp vụ thực sự tuần hoàn, nó **không thích hợp làm Comparator** cho một thứ tự tổng quát. Cần mô hình hóa luật xếp lịch/ưu tiên dưới dạng quan hệ riêng, hoặc chọn một khóa có thứ tự toàn phần để sort.
+Conditional logic like "A takes precedence over B, B takes precedence over C, C takes precedence over A" can satisfy every pairwise test and still break transitivity. If the business priority is genuinely cyclic, it is **unsuitable as a Comparator** for a total order. Model scheduling/priority rules as a separate relation, or pick a key with a total order for sorting.
 
-### Trả về 0 tùy tiện cho “không biết so thế nào”
+### Arbitrarily Returning 0 for "Don't Know How to Compare"
 
-`0` phải biểu thị cùng hạng theo quan hệ thứ tự nhất quán, **không có nghĩa là bỏ qua phép so sánh**. Nếu chỉ đôi lúc trả 0 cho hai giá trị để “tránh xử lý”, bộ ba với phần tử thứ ba có thể mâu thuẫn. Hãy định nghĩa tiêu chí phụ hợp lệ hoặc chính sách cho input không thể so sánh.
+`0` must signify equal rank under a consistent ordering relation, **not skipping the comparison**. If you occasionally return 0 for two values just to "avoid handling them", triples involving a third element can contradict each other. Define a valid secondary criterion or an explicit policy for incomparable inputs.
 
-### Phụ thuộc trạng thái thay đổi theo thời gian
+### Depending on Time-Varying State
 
-Nếu comparator đọc `System.currentTimeMillis()`, `Random`, dữ liệu có thể thay đổi, hoặc trường mutable bị chỉnh trong lúc phần tử đang nằm trong `TreeSet`/`TreeMap`, hai lần so sánh cùng cặp có thể cho kết quả khác nhau. Các phép kiểm bộ ba giả định **cùng trạng thái so sánh ổn định**. Nên sắp theo khóa bất biến, tạo snapshot, hoặc xây lại collection khi khóa ảnh hưởng thứ tự đã thay đổi.
+If a comparator reads `System.currentTimeMillis()`, `Random`, mutable data, or a mutable field modified while the element sits in a `TreeSet`/`TreeMap`, two comparisons of the same pair can yield different results. Triple checks assume **a stable comparison state**. Sort by immutable keys, take a snapshot, or rebuild the collection when order-affecting keys have changed.
 
-### Thiếu tiêu chí phụ hoặc xử lý kiểu đặc biệt
+### Missing Tie-Breakers or Special-Type Handling
 
-Với sắp xếp nhiều khóa, dùng `Comparator.comparing(...).thenComparing(...)` để tạo thứ tự từ các phép so sánh hợp lệ. Với số thực, dùng `Double.compare` hoặc `comparingDouble` và kiểm thử rõ `NaN`/`±0.0`; không tự suy diễn chỉ từ các biểu thức boolean `a < b`, `a > b`. Với chuỗi quốc tế, nếu dùng `Collator` thì thống nhất locale, quy tắc chuẩn hóa và cấu hình trong suốt quá trình so sánh.
+For multi-key sorting, use `Comparator.comparing(...).thenComparing(...)` to build an ordering out of valid comparisons. For floating-point numbers, use `Double.compare` or `comparingDouble` and explicitly test `NaN`/`±0.0`; do not improvise solely from boolean expressions `a < b`, `a > b`. For internationalized strings, if using `Collator`, keep locale, normalization rules, and configuration uniform throughout comparison.
 
-## 7. Đưa bộ kiểm chứng vào unit test
+## 7. Putting the Verifier into Unit Tests
 
-Hàm `checkContract` ở ví dụ có thể đưa vào tiện ích test và gọi trong test case bằng một tập mẫu cố định. Khi dùng JUnit, chỉ cần để `AssertionError` lan ra; test runner sẽ báo FAIL. Nên có **ít nhất một bộ ba đã biết sẽ thất bại** cho mỗi loại comparator lỗi được sửa, nhằm tránh chỉ kiểm thử tình huống dễ.
+The `checkContract` function in the example can be placed in a test utility and invoked in a test case with a fixed sample set. With JUnit, simply let `AssertionError` propagate; the test runner will report FAIL. Include **at least one triple known to fail** for each kind of broken comparator fixed, to avoid testing only easy scenarios.
 
-Có thể kiểm tra thêm các thuộc tính ở mức dữ liệu thực:
+You can also check additional properties on realistic data:
 
-- Kết quả so sánh lặp lại cùng cặp không đổi khi khóa chưa đổi.
-- Sau khi sort, mọi cặp liên tiếp không giảm theo comparator; đồng thời kiểm tra bộ ba vì thứ tự đầu ra “trông đã sort” không chứng minh comparator hợp lệ.
-- Nếu ứng dụng yêu cầu `compare(a,b)==0` tương đương `a.equals(b)`, kiểm tra **điều kiện nghiệp vụ bổ sung này** riêng biệt. Một comparator đúng hợp đồng thứ tự vẫn có thể cố ý không nhất quán với `equals()`.
+- Repeated comparison results on the same pair do not change while keys remain unchanged.
+- After sorting, every adjacent pair is non-decreasing under the comparator; still run triple checks because output that "looks sorted" does not prove the comparator is valid.
+- If the application requires `compare(a,b)==0` to match `a.equals(b)`, test **this additional business condition** separately. A contract-valid comparator can still intentionally be inconsistent with `equals()`.
 
-Khi một bộ ba thất bại, sửa chính thuật toán so sánh: quy tắc so khóa, tie-breaker, xử lý `null`, tràn số, hoặc nguồn dữ liệu mutable. Thay đổi thứ tự duyệt mẫu để “test xanh” không giải quyết lỗi.
+When a triple fails, fix the comparison algorithm itself: key comparison rules, tie-breaker, `null` handling, overflow, or mutable data source. Changing the sample iteration order to make the test "green" does not solve the bug.
 
-## 8. Checklist tự kiểm tra
+## 8. Self-Check Checklist
 
-- Nếu `compare(a,b)=42` thì có hợp lệ không? **Có**, miễn là dấu và tất cả điều kiện hợp đồng đúng; không cần là `1`.
-- Nếu `a<b`, `b<c` nhưng `a>c`, vi phạm gì? **Bắc cầu**, cần bộ ba để phát hiện.
-- Nếu `compare(a,b)==0`, có bắt buộc `a.equals(b)` không? **Không trong mọi trường hợp**, nhưng quan hệ so sánh của cả hai với `c` phải cùng dấu; `TreeSet`/`TreeMap` xem chúng là cùng khóa theo thứ tự.
-- Tại sao dùng `Integer.signum`? Để kiểm chứng **dấu**, tránh giả định giá trị `±1` và tránh tràn khi đổi dấu số nguyên thô.
-- Vì sao `PASS` với 5 phần tử chưa đủ kết luận comparator luôn đúng? Tất cả bộ ba chỉ được kiểm tra trong **tập 5 mẫu**; lỗi có thể xuất hiện tại giá trị biên hoặc lớp dữ liệu chưa xét.
+- If `compare(a,b)=42`, is that valid? **Yes**, as long as the sign and all contract conditions hold; it does not need to be `1`.
+- If `a<b`, `b<c`, yet `a>c`, what is violated? **Transitivity**, which requires triples to detect.
+- If `compare(a,b)==0`, must `a.equals(b)` hold? **Not in every case**, though both elements' comparisons against any `c` must share the same sign; `TreeSet`/`TreeMap` treat them as the same key under the ordering.
+- Why use `Integer.signum`? To verify the **sign**, avoiding assumptions of `±1` values and avoiding overflow when negating raw integers.
+- Why is `PASS` on 5 elements insufficient to conclude a comparator is always right? All triples were only checked within the **set of 5 samples**; bugs may appear at boundary values or untested data classes.
 
-**Ghi nhớ:** để tin cậy một `compareTo()` hay `Comparator`, hãy kiểm tra cả **cặp đảo chiều** và **mọi bộ ba đại diện**, đặc biệt những bộ ba chứa hai phần tử `compare == 0`. Kết quả sắp xếp nhìn hợp lý trên vài ví dụ là chưa đủ để chứng minh hợp đồng thứ tự.
+**Remember:** to trust a `compareTo()` or `Comparator`, test both **reversed pairs** and **all representative triples**, especially triples containing two elements with `compare == 0`. Plausible-looking sorted output on a few examples is not enough to prove the ordering contract.
 
-## Tham khảo
+## References
 
 - [Java SE 17 — Comparable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Comparable.html)
 - [Java SE 17 — Comparator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Comparator.html)

@@ -1,77 +1,77 @@
-# Tránh gọi lại chính proxy gây đệ quy vô hạn trong Java Dynamic Proxy
+# Avoiding Calling Back Into the Proxy That Causes Infinite Recursion in Java Dynamic Proxies
 
-## 1. Mục tiêu và bối cảnh
+## 1. Objective and context
 
-Khi sử dụng **JDK Dynamic Proxy**, mỗi lời gọi phương thức trên proxy được chuyển đến `InvocationHandler.invoke(...)`. Lỗi thường gặp là trong handler, lập trình viên lại gọi phương thức **trên chính đối tượng proxy** để “thực thi phương thức gốc”. Lệnh này kích hoạt handler thêm lần nữa; vòng lặp có thể tiếp diễn đến khi cạn ngăn xếp và phát sinh `StackOverflowError`.
+When using a **JDK Dynamic Proxy**, every method call on the proxy is routed to `InvocationHandler.invoke(...)`. A common mistake is that inside the handler, a developer invokes the method **on the proxy object itself** to "execute the original method." That call triggers the handler again; the loop can continue until the call stack is exhausted and `StackOverflowError` occurs.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Phân biệt `proxy` (đối tượng trung gian) với `target` (đối tượng triển khai thật).
-- Nhận diện đệ quy trực tiếp qua `method.invoke(proxy, args)` và đệ quy gián tiếp qua logging, `toString()`, `equals()` hay `hashCode()`.
-- Chuyển tiếp lời gọi đúng sang `target`, xử lý ngoại lệ phản chiếu và các phương thức của `Object`.
-- Hiểu khi nào một lời gọi lại proxy là **có chủ đích** và khi nào nó tạo chu trình không mong muốn.
+- Distinguish `proxy` (the intermediary object) from `target` (the real implementation object).
+- Recognize direct recursion via `method.invoke(proxy, args)` and indirect recursion via logging, `toString()`, `equals()`, or `hashCode()`.
+- Properly forward calls to `target`, handle reflective exceptions, and handle `Object` methods.
+- Understand when calling back into a proxy is **intentional** and when it creates an unwanted cycle.
 
-Bài này tập trung vào **JDK Dynamic Proxy** (`java.lang.reflect.Proxy`), vốn tạo proxy cho **interface**. Cơ chế proxy dựa trên subclass của các thư viện khác có thể khác về cách chuyển tiếp lời gọi.
+This article focuses on **JDK Dynamic Proxy** (`java.lang.reflect.Proxy`), which creates proxies for **interfaces**. Subclass-based proxy mechanisms from other libraries may differ in how they forward calls.
 
-## 2. Cơ chế gây đệ quy
+## 2. Mechanism that causes recursion
 
-Một handler được khai báo theo giao diện `InvocationHandler`:
+A handler is declared according to the `InvocationHandler` interface:
 
 ```java
 Object invoke(Object proxy, Method method, Object[] args) throws Throwable;
 ```
 
-Trong đó:
+Where:
 
-- `proxy` là **chính đối tượng proxy** mà bên gọi vừa sử dụng, không phải đối tượng nghiệp vụ thật.
-- `method` mô tả phương thức mà bên gọi đang yêu cầu; có thể là phương thức của interface hoặc `equals`, `hashCode`, `toString` từ `Object`.
-- `args` chứa tham số của lời gọi; có thể là `null` nếu phương thức không có tham số.
+- `proxy` is **the proxy object itself** that the caller just used, not the real business object.
+- `method` describes the method the caller requested; it may be an interface method or `equals`, `hashCode`, `toString` from `Object`.
+- `args` contains the call's arguments; may be `null` if the method has no parameters.
 
-**Ví dụ sai**, chỉ là mảnh code đặt trong ngữ cảnh đã import `InvocationHandler`:
+**Wrong example**, merely a code fragment placed in a context where `InvocationHandler` is imported:
 
 ```java
 InvocationHandler badHandler = (proxy, method, args) -> {
-    System.out.println("Gọi " + method.getName());
-    return method.invoke(proxy, args); // SAI: gọi lại chính proxy
+    System.out.println("Call " + method.getName());
+    return method.invoke(proxy, args); // WRONG: calls back into the proxy itself
 };
 ```
 
-Nếu client gọi `service.greet("An")`, luồng thực hiện sẽ thành:
+If a client calls `service.greet("An")`, the execution flow becomes:
 
 ```text
-client gọi proxy.greet("An")
+client calls proxy.greet("An")
     -> InvocationHandler.invoke(proxy, greet, ["An"])
        -> method.invoke(proxy, ["An"])
           -> InvocationHandler.invoke(proxy, greet, ["An"])
              -> method.invoke(proxy, ["An"])
-                -> ... lặp lại ...
+                -> ... repeats ...
 ```
 
-`Method.invoke(...)` không “bỏ qua” handler khi receiver là proxy. Đây vẫn là lời gọi vào một phương thức của proxy, nên cơ chế chuyển tiếp lại hoạt động. Kết cục thường là `StackOverflowError`; dấu vết có thể xen kẽ giữa phương thức proxy, handler và Java Reflection. **Không nên chạy đoạn sai như một bài thử tải**, vì việc tràn ngăn xếp không mang thêm giá trị học tập.
+`Method.invoke(...)` does not "bypass" the handler when the receiver is a proxy. It is still a call to a method on the proxy, so the dispatch mechanism activates again. The outcome is typically `StackOverflowError`; the stack trace may alternate between proxy methods, the handler, and Java Reflection. **Do not run the wrong snippet as a stress test**, because overflowing the stack provides no additional learning value.
 
-Quy tắc chính: **`proxy` là điểm tiếp nhận lời gọi; `target` mới là nơi thực hiện công việc nếu đang xây dựng proxy ủy quyền.**
+Core rule: **`proxy` is the entry point receiving calls; `target` is where the work happens if you are building a delegating proxy.**
 
-## 3. Cách sửa: chuyển tiếp vào đối tượng thật
+## 3. How to fix: forward to the real object
 
-Với trường hợp proxy dùng để đo thời gian, ghi log, kiểm tra quyền hoặc bổ sung hành vi quanh một đối tượng có sẵn, cấu trúc đúng là:
+When a proxy is used for timing, logging, permission checks, or adding behavior around an existing object, the right structure is:
 
 ```text
 caller -> proxy -> InvocationHandler
                        |
-                       +-> ghi log / kiểm tra
+                       +-> log / validate
                        +-> method.invoke(target, args)
-                       +-> trả kết quả cho caller
+                       +-> return result to caller
 ```
 
-Cần bảo đảm:
+Make sure that:
 
-1. `target` là một đối tượng **khác proxy**, triển khai interface có phương thức được gọi.
-2. Handler dùng `method.invoke(target, args)` thay cho `method.invoke(proxy, args)`.
-3. Nếu thao tác trên `target` lại gọi ngược vào proxy, phải xem xét luồng gọi thật để loại bỏ **chu trình phụ thuộc**. Chỉ thay receiver bằng `target` không tự động giải quyết mọi vòng lặp gián tiếp.
+1. `target` is an object **distinct from the proxy**, implementing the interface containing the invoked method.
+2. The handler uses `method.invoke(target, args)` instead of `method.invoke(proxy, args)`.
+3. If an operation on `target` calls back into the proxy, inspect the actual call flow to eliminate **cyclic dependencies**. Simply replacing the receiver with `target` does not automatically resolve every indirect cycle.
 
-### Chương trình Java 17+ chạy độc lập
+### Standalone runnable Java 17+ program
 
-Tạo tệp `SafeProxyDemo.java`:
+Create the file `SafeProxyDemo.java`:
 
 ```java
 import java.lang.reflect.InvocationHandler;
@@ -86,7 +86,7 @@ public class SafeProxyDemo {
     static final class RealGreetingService implements GreetingService {
         @Override
         public String greet(String name) {
-            return "Xin chào, " + name + "!";
+            return "Hello, " + name + "!";
         }
     }
 
@@ -104,7 +104,7 @@ public class SafeProxyDemo {
                 };
             }
 
-            System.out.println("Gọi: " + method.getName());
+            System.out.println("Calling: " + method.getName());
             try {
                 return method.invoke(target, arguments);
             } catch (InvocationTargetException e) {
@@ -125,66 +125,66 @@ public class SafeProxyDemo {
 }
 ```
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ```bash
 javac SafeProxyDemo.java
 java SafeProxyDemo
 ```
 
-Kết quả (chương trình này đã được chạy để xác minh):
+Output (this program was run to verify):
 
 ```text
-Gọi: greet
-Xin chào, An!
+Calling: greet
+Hello, An!
 true
 true
 true
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- `target` là `RealGreetingService` và thực sự xử lý `greet`.
-- Handler ghi tên phương thức bằng `method.getName()`; thao tác trên metadata này không gọi lại proxy.
-- `method.invoke(target, arguments)` thực thi phương thức trên `target`. Kết quả trả về qua handler rồi về client, không tạo vòng lặp.
-- Ba phép thử cuối xác minh hành vi của `toString`, `equals` và `hashCode`. `toString()` được gọi thật trên proxy, nhưng nhánh dành cho `Object` trả chuỗi tự tạo **mà không gọi lại** `proxy.toString()`.
-- `System.identityHashCode(proxy)` lấy mã băm định danh trực tiếp, không gọi `proxy.hashCode()`.
-- `InvocationTargetException` gói ngoại lệ do phương thức đích ném; `throw e.getCause()` truyền nguyên nhân gốc qua `InvocationHandler`. Việc proxy chuyển tiếp checked exception vẫn tuân theo khai báo `throws` của interface.
+- `target` is `RealGreetingService` and actually handles `greet`.
+- The handler logs the method name using `method.getName()`; reading this metadata does not call back into the proxy.
+- `method.invoke(target, arguments)` executes the method on `target`. The result returns through the handler to the client without creating a loop.
+- The last three checks verify the behavior of `toString`, `equals`, and `hashCode`. `toString()` is genuinely called on the proxy, but the `Object` branch returns a synthesized string **without calling** `proxy.toString()` again.
+- `System.identityHashCode(proxy)` obtains the identity hash code directly without calling `proxy.hashCode()`.
+- `InvocationTargetException` wraps exceptions thrown by the target method; `throw e.getCause()` propagates the root cause through `InvocationHandler`. Proxy forwarding of checked exceptions still adheres to the interface's `throws` declaration.
 
-Ví dụ dùng quy ước equality theo **identity của proxy** để bảo đảm `service.equals(service)` là `true`. Đây là một lựa chọn có chủ đích: nếu ứng dụng yêu cầu equality dựa trên nghiệp vụ, hãy thiết kế cả `equals`/`hashCode` một cách nhất quán thay vì ủy quyền tùy tiện.
+The example uses **proxy identity** equality to ensure `service.equals(service)` is `true`. This is a deliberate choice: if the application requires business-based equality, design both `equals` and `hashCode` consistently rather than delegating arbitrarily.
 
-## 4. Bẫy gián tiếp: logging cũng có thể gọi lại proxy
+## 4. Indirect trap: logging can also call back into the proxy
 
-Ngay cả khi đã dùng `method.invoke(target, args)`, handler vẫn có thể tự gây đệ quy:
+Even when already using `method.invoke(target, args)`, a handler can still trigger self-recursion:
 
 ```java
-// Mảnh code minh họa lỗi bên trong một handler.
-System.out.println("Proxy: " + proxy); // SAI trong handler chung
+// Code fragment illustrating a bug inside a handler.
+System.out.println("Proxy: " + proxy); // WRONG in a general handler
 return method.invoke(target, args);
 ```
 
-Toán tử nối chuỗi biến `proxy` thành chuỗi, dẫn đến `proxy.toString()`. Với JDK dynamic proxy, `toString()` cũng đi qua `InvocationHandler`. Lời gọi mới lại chạy chính dòng logging đó, rồi tiếp tục gọi `toString()`.
+The string concatenation operator converts `proxy` into a string, invoking `proxy.toString()`. With a JDK dynamic proxy, `toString()` also goes through `InvocationHandler`. The new call runs that exact same logging line, then calls `toString()` again.
 
-Các tình huống cần phân biệt:
+Cases to distinguish:
 
-| Biểu thức trong handler | Có thể gọi lại handler? | Cách thay thế hoặc lưu ý |
+| Expression inside handler | Can it re-invoke handler? | Alternative or note |
 | --- | --- | --- |
-| `method.invoke(proxy, args)` | **Có**, với phương thức được proxy điều phối | Chuyển tiếp vào `target` thật, nếu đang làm delegation |
-| `proxy.toString()`, `"proxy=" + proxy`, `System.out.println(proxy)` | **Có**, qua `toString` | Ghi `method.getName()` hoặc `System.identityHashCode(proxy)` |
-| `proxy.hashCode()` | **Có**, qua `hashCode` | Dùng `System.identityHashCode(proxy)` khi cần identity |
-| `proxy.equals(other)` | **Có**, qua `equals` | Dùng `proxy == other` nếu mục tiêu là so sánh tham chiếu |
-| `proxy.getClass()` | **Không** đối với lời gọi `Object.getClass()` thông thường | `getClass` là `final`, không được override để chuyển đến handler |
-| `method.getName()`, `method.getDeclaringClass()` | **Không** | Chỉ đọc metadata của `Method` |
+| `method.invoke(proxy, args)` | **Yes**, for proxy-dispatched methods | Forward to the real `target` if delegating |
+| `proxy.toString()`, `"proxy=" + proxy`, `System.out.println(proxy)` | **Yes**, via `toString` | Log `method.getName()` or `System.identityHashCode(proxy)` |
+| `proxy.hashCode()` | **Yes**, via `hashCode` | Use `System.identityHashCode(proxy)` when identity is needed |
+| `proxy.equals(other)` | **Yes**, via `equals` | Use `proxy == other` if reference comparison is intended |
+| `proxy.getClass()` | **No** for normal `Object.getClass()` calls | `getClass` is `final`, not overridden to dispatch to handler |
+| `method.getName()`, `method.getDeclaringClass()` | **No** | Only reads `Method` metadata |
 
-Không nên viết `logger.info("proxy={}", proxy)` và mặc nhiên nghĩ rằng cách log có placeholder sẽ tránh gọi `toString()`. Nhiều logger định dạng đối tượng tại thời điểm phát log; việc gọi `toString()` có thể xảy ra sau đó. Khi debug handler, ưu tiên một nhãn cố định, tên phương thức và identity hash.
+Do not write `logger.info("proxy={}", proxy)` and assume placeholder-based logging avoids calling `toString()`. Many loggers format objects when emitting the log; calling `toString()` can still happen afterward. When debugging a handler, prefer a fixed label, method name, and identity hash.
 
-## 5. Vì sao phải chú ý các phương thức của Object?
+## 5. Why must Object methods be handled carefully?
 
-Trên JDK dynamic proxy, các lời gọi `equals(Object)`, `hashCode()` và `toString()` được gửi đến `InvocationHandler`. Do đó, một handler chỉ biết gọi `method.invoke(target, args)` có thể gây ra **lỗi ngữ nghĩa** dù không tràn ngăn xếp.
+On a JDK dynamic proxy, calls to `equals(Object)`, `hashCode()`, and `toString()` are sent to `InvocationHandler`. Therefore, a handler that only knows how to call `method.invoke(target, args)` can cause **semantic errors** even without overflowing the stack.
 
-Ví dụ, nếu `target` dùng `Object.equals` mặc định, chuyển tiếp `proxy.equals(proxy)` thành `target.equals(proxy)` có thể trả về `false`. Khi đó tính chất phản xạ của `equals` (`x.equals(x) == true`) bị vi phạm. Tương tự, `proxy.hashCode()` có thể trả mã băm của target trong khi `equals` được định nghĩa bằng identity proxy, khiến hợp đồng `equals/hashCode` thiếu nhất quán nếu không cân nhắc.
+For example, if `target` uses the default `Object.equals`, forwarding `proxy.equals(proxy)` into `target.equals(proxy)` can return `false`. That violates the reflexivity property of `equals` (`x.equals(x) == true`). Similarly, `proxy.hashCode()` might return the target's hash code while `equals` is defined by proxy identity, breaking `equals/hashCode` consistency if overlooked.
 
-Một cách xử lý an toàn cho proxy dùng identity là:
+A safe handling approach for identity-based proxies is:
 
 ```java
 if (method.getDeclaringClass() == Object.class) {
@@ -198,56 +198,56 @@ if (method.getDeclaringClass() == Object.class) {
 }
 ```
 
-Đây là mảnh code bên trong `invoke`; `args[0]` được sử dụng trong nhánh `equals(Object)` có một tham số. Nếu interface có yêu cầu đặc biệt về identity hoặc equality, hãy thay đổi chính sách này có chủ đích và kiểm thử.
+This is a code fragment inside `invoke`; `args[0]` is used in the single-parameter `equals(Object)` branch. If the interface has special identity or equality requirements, change this policy intentionally and test it.
 
-## 6. Phân biệt recursion ngoài ý muốn với lời gọi lồng nhau hợp lệ
+## 6. Distinguishing unintended recursion from valid nested calls
 
-Không phải cứ `InvocationHandler.invoke` chạy lại là lỗi. Chẳng hạn, khi triển khai một default method của interface, phương thức này có thể gọi phương thức khác trên `this`, và lời gọi thứ hai hợp lệ nếu cuối cùng được xử lý xong.
+Not every re-entry into `InvocationHandler.invoke` is a bug. For instance, when implementing an interface's default method, that method may call another method on `this`, and the second call is valid as long as it eventually terminates.
 
-Với Java 17, API `InvocationHandler.invokeDefault(proxy, method, args)` cho phép gọi phần triển khai mặc định của một phương thức interface **mà không gọi lại handler để thực thi chính phương thức default đó**:
+In Java 17, the `InvocationHandler.invokeDefault(proxy, method, args)` API allows invoking the default implementation of an interface method **without calling back into the handler to execute that default method itself**:
 
 ```java
-// Mảnh code trong InvocationHandler.invoke(...), dùng khi phù hợp:
+// Code fragment inside InvocationHandler.invoke(...), used when appropriate:
 if (method.isDefault()) {
     return InvocationHandler.invokeDefault(proxy, method, args);
 }
 ```
 
-Cần lưu ý rằng **thân default method vẫn có thể gọi các phương thức khác trên proxy**. Nếu các lời gọi đó quay về chính default method mà không có điểm dừng, chu trình vẫn tồn tại. `invokeDefault` không phải cơ chế chống đệ quy tổng quát.
+Note that **the default method body can still call other methods on the proxy**. If those calls loop back to the same default method without a termination condition, a cycle still exists. `invokeDefault` is not a general recursion-prevention mechanism.
 
-Tương tự, proxy có thể bọc thêm một proxy khác để xây dựng chuỗi interceptor hợp lệ. Điều cần loại bỏ là **chu trình gọi** như `proxyA -> handlerA -> proxyB -> handlerB -> proxyA`, không phải toàn bộ lời gọi lồng nhau.
+Similarly, a proxy can wrap another proxy to form a valid interceptor chain. What must be eliminated is a **call cycle** such as `proxyA -> handlerA -> proxyB -> handlerB -> proxyA`, not all nested calls.
 
-## 7. Chẩn đoán và khắc phục khi gặp StackOverflowError
+## 7. Diagnosing and fixing StackOverflowError
 
-Khi thấy `StackOverflowError` trong quá trình gọi dynamic proxy:
+When seeing `StackOverflowError` during dynamic proxy invocation:
 
-1. **Đọc chuỗi frame lặp lại** trong stack trace. Tìm các frame của `InvocationHandler.invoke`, `Method.invoke`, lớp proxy và các hàm logging. Chuỗi này giúp xác định lời gọi nào quay lại điểm xuất phát.
-2. **Tìm mọi vị trí dùng `proxy` bên trong handler**, đặc biệt là receiver của lời gọi phương thức, phép chuyển thành chuỗi và callback do target thực hiện. Đừng chỉ tìm đúng dòng `method.invoke(proxy, args)`.
-3. **Xác định đối tượng nhận lời gọi thật**: nếu handler được thiết kế để ủy quyền, `target` phải triển khai interface cần gọi và không được trỏ về proxy vừa tạo. Nếu dùng nhiều tầng proxy, vẽ thứ tự các tầng để phát hiện chu trình.
-4. **Sửa đường đi của lời gọi**: gọi target thật, cung cấp cách xử lý riêng cho `Object`, hoặc dùng API dành riêng cho default method khi thích hợp.
-5. **Kiểm thử hành vi**: gọi một phương thức nghiệp vụ, `toString`, `equals`, `hashCode`, trường hợp không có tham số, đường đi ném ngoại lệ và một target được bọc bởi nhiều interceptor nếu ứng dụng có dùng.
+1. **Read the repeating frame sequence** in the stack trace. Look for frames of `InvocationHandler.invoke`, `Method.invoke`, the proxy class, and logging functions. This sequence reveals which call loops back to the starting point.
+2. **Find every use of `proxy` inside the handler**, especially method call receivers, string conversions, and callbacks executed by the target. Do not search only for the exact line `method.invoke(proxy, args)`.
+3. **Identify the real call receiver**: if the handler is designed to delegate, `target` must implement the target interface and must not point back to the newly created proxy. If using multiple proxy layers, draw the layer order to spot cycles.
+4. **Fix the call path**: invoke the real target, provide explicit handling for `Object`, or use the dedicated default-method API when appropriate.
+5. **Test behavior**: invoke a business method, `toString`, `equals`, `hashCode`, a zero-parameter case, an exception-throwing path, and a target wrapped by multiple interceptors if the application uses them.
 
-Một lời chặn re-entry như `ThreadLocal<Boolean>` có thể hữu ích trong trường hợp ứng dụng **cố ý cấm** một luồng đi vào handler lần hai; phải xóa trạng thái trong `finally`. Tuy nhiên, đặt chặn chung cho mọi lời gọi lồng nhau có thể từ chối cả tương tác hợp lệ giữa các phương thức. Cách giải quyết chính vẫn là thiết kế lại đường chuyển tiếp để không tạo chu trình.
+A re-entry guard such as `ThreadLocal<Boolean>` can be useful when the application **intentionally forbids** a thread from entering the handler a second time; the state must be cleared in `finally`. However, placing a blanket guard on all nested calls can reject valid interactions between methods. The primary fix remains redesigning the forwarding path so it forms no cycles.
 
-Đừng cố “chữa” bằng cách tăng kích thước stack (`-Xss`) hoặc bắt và bỏ qua `StackOverflowError`. Những cách đó không sửa luồng gọi sai, đồng thời có thể khiến ứng dụng hỏng theo cách khó theo dõi hơn.
+Do not try to "fix" it by increasing stack size (`-Xss`) or catching and ignoring `StackOverflowError`. Those do not fix the broken call flow and can cause the application to fail in harder-to-trace ways.
 
-## 8. Lỗi phổ biến và bài tập tự kiểm tra
+## 8. Common mistakes and self-check exercises
 
-**Lỗi phổ biến:**
+**Common mistakes:**
 
-- Dùng nhầm `proxy` thay vì `target` làm receiver của `Method.invoke`.
-- Ghi log nguyên proxy bên trong handler và vô tình kích hoạt `toString`.
-- Bỏ qua `equals/hashCode/toString` hoặc chuyển tiếp chúng sang target mà không kiểm tra hợp đồng đối tượng.
-- Giữ tham chiếu đến proxy làm target khi cấu hình nhiều interceptor.
-- Bọc thêm `InvocationTargetException` mà không kiểm tra nguyên nhân gốc; cách này làm khó chẩn đoán ngoại lệ thật của phương thức nghiệp vụ.
-- Coi mọi lời gọi lồng nhau là lỗi và dùng chặn re-entry quá rộng.
+- Accidentally using `proxy` instead of `target` as the receiver of `Method.invoke`.
+- Logging the raw proxy inside the handler and inadvertently triggering `toString`.
+- Ignoring `equals/hashCode/toString` or forwarding them to the target without checking object contracts.
+- Holding a reference to the proxy as the target when configuring multiple interceptors.
+- Wrapping `InvocationTargetException` again without checking the root cause; this makes diagnosing real business-method exceptions harder.
+- Treating every nested call as an error and adding an overly broad re-entry block.
 
-**Tự kiểm tra:**
+**Self-check:**
 
-1. Vì sao `method.invoke(proxy, args)` có thể gọi `InvocationHandler.invoke` lần nữa? Vì receiver vẫn là proxy, nên lời gọi được điều phối qua handler.
-2. Nếu handler in `"Đang xử lý: " + proxy`, điều gì có thể xảy ra? Phép nối chuỗi gọi `toString` của proxy, thường kích hoạt chính handler đó.
-3. Làm sao lấy một mã băm định danh để log mà không đi qua `hashCode` của proxy? Dùng `System.identityHashCode(proxy)`.
-4. Khi nào `method.invoke(target, args)` vẫn không an toàn? Khi `target` lại là proxy đó, có chu trình qua những proxy khác hoặc target callback quay ngược về proxy vô hạn.
-5. `InvocationHandler.invokeDefault` có bảo đảm không còn vòng lặp không? Không; nó chỉ gọi trực tiếp phần thân default method, còn thân này có thể phát sinh lời gọi khác và tạo chu trình.
+1. Why can `method.invoke(proxy, args)` call `InvocationHandler.invoke` again? Because the receiver is still the proxy, so the call is dispatched through the handler.
+2. If a handler prints `"Processing: " + proxy`, what can happen? String concatenation calls the proxy's `toString`, usually triggering that same handler.
+3. How do you obtain an identity hash code for logging without going through the proxy's `hashCode`? Use `System.identityHashCode(proxy)`.
+4. When is `method.invoke(target, args)` still unsafe? When `target` is itself that proxy, forms a cycle through other proxies, or the target calls back into the proxy infinitely.
+5. Does `InvocationHandler.invokeDefault` guarantee no loops remain? No; it only calls the default method body directly, while that body can issue other calls and form a cycle.
 
-**Ghi nhớ:** Trong `InvocationHandler`, biến `proxy` đại diện cho đầu vào của lời gọi đã bị chặn. Muốn ủy quyền, hãy gọi **đối tượng đích thật** và kiểm soát các đường gọi gián tiếp, nhất là logging và ba phương thức `equals/hashCode/toString`.
+**Takeaway:** Inside `InvocationHandler`, the `proxy` variable represents the entry point of the intercepted call. To delegate, invoke **the real target object** and control indirect call paths, especially logging and the three methods `equals/hashCode/toString`.

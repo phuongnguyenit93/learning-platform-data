@@ -1,24 +1,24 @@
-# Tổng hợp đơn hàng theo khách hàng và khoảng thời gian
+# Aggregating Orders by Customer and Time Period
 
-> **Chương:** Mẫu xử lý dữ liệu thực tế  
-> **Module:** `JAVA_STREAM_API` — xử lý dữ liệu khai báo với pipeline lazy, `filter`, `map`, `reduce`, `collect`; thực hành grouping, collector tùy chỉnh, `Spliterator`, xử lý song song và Stream Gatherers, đồng thời hiểu giới hạn về trạng thái, tài nguyên và hiệu năng.
+> **Chapter:** Practical Data Processing Patterns  
+> **Module:** `JAVA_STREAM_API` — declarative data processing with lazy pipelines, `filter`, `map`, `reduce`, and `collect`; practicing grouping, custom collectors, `Spliterator`, parallel processing, and Stream Gatherers, while understanding state, resource, and performance limits.
 
-Báo cáo bán hàng thường không chỉ hỏi **“tổng doanh thu là bao nhiêu?”** mà còn hỏi **“khách hàng nào đã mua trong quý này, mỗi tháng có bao nhiêu đơn và tổng tiền của từng khách là bao nhiêu?”**. Để trả lời đúng, chương trình phải giải quyết đồng thời việc lọc trạng thái, xác định ranh giới thời gian, chuyển múi giờ, phân nhóm nhiều chiều và cộng tiền chính xác.
+Sales reports rarely ask only **"what is total revenue?"**; they ask **"which customers purchased this quarter, how many orders did each have per month, and what was each customer's total spend?"**. To answer accurately, a program must handle status filtering, time-window boundaries, time-zone conversion, multi-dimensional grouping, and exact monetary summation simultaneously.
 
-Bài thực hành này hướng dẫn xây dựng một báo cáo tự chứa trên **Java 17+**. Nguồn là danh sách đơn hàng có `customerId`, thời điểm ghi nhận dưới dạng `Instant`, trạng thái và tiền thanh toán. Kết quả gồm thống kê **theo từng khách hàng và từng tháng**, thống kê **tổng của mỗi khách**, cùng **tổng toàn kỳ**. Chương trình có kiểm thử ranh giới ngày, đơn hủy, nguồn rỗng, đảo thứ tự nguồn và xử lý song song.
+This hands-on lesson guides you through building a self-contained report on **Java 17+**. The source is a list of orders containing `customerId`, timestamp as an `Instant`, status, and payment amount. The output includes breakdowns **by customer and month**, **customer totals**, and a **period grand total**. The program includes tests for date boundaries, cancelled orders, empty sources, reversed input order, and parallel execution.
 
-## 1. Xác định hợp đồng nghiệp vụ trước khi viết Stream
+## 1. Define the Business Contract Before Writing Streams
 
-Giả sử báo cáo có các điều kiện:
+Suppose the report has these conditions:
 
-1. Chỉ tính đơn có trạng thái `PAID`; đơn `CANCELLED` không đóng góp vào doanh thu hoặc số lượng.
-2. Mỗi đối tượng `Order` đại diện **một đơn hàng duy nhất**; mã `id` được giả định không trùng. Nếu nguồn chứa nhiều sự kiện của cùng một đơn thì cần khử trùng hoặc tính trạng thái cuối theo quy tắc riêng.
-3. Thời điểm `recordedAt` là một `Instant` (mốc thời gian tuyệt đối). Ngày và tháng báo cáo được xác định **theo múi giờ nghiệp vụ**.
-4. Khoảng thời gian báo cáo là **nửa mở**: `[startInclusive, endExclusive)`. Lấy đúng thời điểm bắt đầu và **không** lấy thời điểm bắt đầu kỳ kế tiếp.
-5. Doanh thu cộng bằng `BigDecimal`, không dùng `double` để đại diện tiền.
-6. Đầu ra sắp theo **mã khách hàng tăng dần**, rồi **tháng tăng dần** để không phụ thuộc thứ tự duyệt của `HashMap`.
+1. Count only orders with status `PAID`; `CANCELLED` orders contribute neither revenue nor order count.
+2. Each `Order` object represents **one distinct order**; `id` values are assumed unique. If the source contains multiple events for the same order, deduplicate or compute final state using separate rules.
+3. `recordedAt` is an `Instant` (an absolute point in time). Reporting day and month are determined **in the business time zone**.
+4. The reporting interval is **half-open**: `[startInclusive, endExclusive)`. Include the exact start instant and **exclude** the start instant of the next period.
+5. Sum revenue using `BigDecimal`; do not use `double` to represent money.
+6. Sort output by **customer ID ascending**, then **month ascending**, so it never depends on `HashMap` iteration order.
 
-Ví dụ cần báo cáo từ **01/01/2026 đến hết 31/03/2026** theo múi giờ `Asia/Ho_Chi_Minh`. Thay vì biểu diễn ngày cuối là `31/03 23:59:59` (có thể bỏ sót phần mili giây/nano giây), hãy dùng:
+For example, suppose you need a report from **2026-01-01 through 2026-03-31** in `Asia/Ho_Chi_Minh`. Instead of expressing the end as `03/31 23:59:59` (which can miss fractional milliseconds/nanoseconds), use:
 
 ```java
 import java.time.Instant;
@@ -33,14 +33,14 @@ Instant end = LocalDate.of(2026, 4, 1)
         .atStartOfDay(zone)
         .toInstant();
 
-// Bao gồm: start <= recordedAt < end.
+// Inclusive: start <= recordedAt < end.
 ```
 
-Thời gian tuyệt đối của hai biên trên là `2025-12-31T17:00:00Z` và `2026-03-31T17:00:00Z`. Nhờ sử dụng `LocalDate.atStartOfDay(zone)`, cách tính vẫn phù hợp với những múi giờ có quy tắc thay đổi độ lệch theo ngày; không nên giả định mọi ngày ở mọi múi giờ luôn dài đúng 24 giờ.
+The absolute UTC times of those two boundaries are `2025-12-31T17:00:00Z` and `2026-03-31T17:00:00Z`. Using `LocalDate.atStartOfDay(zone)` handles time zones whose offset changes by date; never assume every day in every time zone is always 24 hours long.
 
-## 2. Thiết kế dữ liệu và khóa phân nhóm
+## 2. Data Model and Grouping Key Design
 
-Mô hình dữ liệu dùng các kiểu:
+The data model uses these types:
 
 ```java
 enum Status { PAID, CANCELLED }
@@ -57,16 +57,16 @@ record CustomerMonth(String customerId, YearMonth month) {}
 record Stats(long orderCount, BigDecimal revenue) {}
 ```
 
-Các kiểu này được khai báo đầy đủ, kèm kiểm tra dữ liệu đầu vào, trong chương trình ở mục 5.
+These types are declared in full, with input validation, in the program in section 5.
 
-**Tại sao dùng `CustomerMonth` thay vì một chuỗi ghép kiểu `"C-A_2026-01"`?**
+**Why use `CustomerMonth` instead of a concatenated string like `"C-A_2026-01"`?**
 
-- Record làm khóa có cấu trúc rõ: `customerId` và `YearMonth` là hai trường khác nhau.
-- `equals`/`hashCode` được tạo theo giá trị của từng trường, phù hợp cho `groupingBy`.
-- Không cần tự thiết kế dấu phân cách hoặc xử lý trường hợp ID chứa dấu `_`.
-- Có thể viết comparator rõ ràng theo khách rồi theo tháng.
+- A record key has explicit structure: `customerId` and `YearMonth` are distinct fields.
+- `equals`/`hashCode` are generated from each field's value, ideal for `groupingBy`.
+- No need to invent a delimiter or handle IDs containing `_`.
+- A clear comparator by customer then month is straightforward to write.
 
-Khi phân nhóm:
+When grouping:
 
 ```java
 CustomerMonth key = new CustomerMonth(
@@ -75,11 +75,11 @@ CustomerMonth key = new CustomerMonth(
 );
 ```
 
-**Tháng phải được xác định sau khi chuyển sang `zone`.** Một đơn ghi nhận lúc `2026-01-31T17:00:00Z` là **00:00 ngày 01/02/2026** tại Việt Nam, nên thuộc **tháng 2** của báo cáo địa phương, không phải tháng 1.
+**The month must be determined after converting to `zone`.** An order recorded at `2026-01-31T17:00:00Z` is **00:00 on 2026-02-01** in Vietnam, so it belongs to **February** in the local report, not January.
 
-## 3. Pipeline xử lý theo các giai đoạn
+## 3. Staged Processing Pipeline
 
-Ta chia bài toán thành ba bước chính:
+We split the problem into three main stages:
 
 ```text
 List<Order>
@@ -95,50 +95,50 @@ List<Order> eligible
     +---- groupingBy(CustomerMonth, reducing(Stats)) ----> Map<CustomerMonth, Stats>
     |                                                       |
     |                                                       v
-    |                                               Tổng theo khách+tháng
+    |                                               Totals by customer+month
     |                                                       |
     |                                                       v
     |                                        toMap(customerId, Stats::plus)
     |                                                       |
     |                                                       v
-    |                                               Tổng theo khách
+    |                                               Totals by customer
     |                                                       |
     |                                                       v
     +----------------------------------------------- reduce(Stats::plus)
                                                             |
                                                             v
-                                                       Tổng toàn kỳ
+                                                    Period grand total
 ```
 
-Những quyết định quan trọng:
+Key design decisions:
 
-- `filter` chỉ giữ `PAID` trong đúng khoảng thời gian.
-- `groupingBy` nhận khóa gồm **khách hàng + tháng địa phương**.
-- Downstream `reducing` trả `Stats` chứa cả **số đơn** và **doanh thu**, giúp không phải nhóm và cộng hai lần độc lập.
-- `Stats::plus` gộp các thống kê trung gian; nó cần có phần tử trung hòa và tính kết hợp để hoạt động đúng khi Stream được chia nhánh song song.
-- `TreeMap` được chọn để duyệt kết quả theo thứ tự xác định; đặc tính thứ tự này là yêu cầu của báo cáo, không phải hiệu ứng phụ của một `HashMap`.
+- `filter` keeps only `PAID` orders within the exact time interval.
+- `groupingBy` keys by **customer + local month**.
+- The downstream `reducing` produces a `Stats` holding both **order count** and **revenue**, avoiding two separate grouping/summing passes.
+- `Stats::plus` combines intermediate statistics; it needs an identity element and associativity to work correctly when a Stream splits across parallel branches.
+- `TreeMap` is chosen to iterate results in deterministic order; this ordering is a report requirement, not an accidental side effect of a `HashMap`.
 
-## 4. Dữ liệu mẫu và kết quả mong đợi
+## 4. Sample Data and Expected Results
 
-Các thời điểm trong bảng dưới đây hiển thị theo **giờ Việt Nam (UTC+07:00)** để thấy rõ ranh giới:
+Timestamps in the table below are shown in **Vietnam local time (UTC+07:00)** to make boundaries clear:
 
-| Đơn | Khách | Ngày giờ địa phương | Trạng thái | Thành tiền | Có tính? |
+| Order | Customer | Local Date & Time | Status | Amount | Included? |
 | --- | --- | --- | --- | ---: | --- |
-| O-01 | C-A | 01/01/2026 00:00:00 | PAID | 100.10 | Có, biên bắt đầu |
-| O-02 | C-A | 15/01/2026 17:00:00 | PAID | 200.20 | Có |
-| O-03 | C-B | 31/01/2026 23:59:59 | PAID | 40.00 | Có, tháng 1 |
-| O-04 | C-A | 01/02/2026 00:00:00 | PAID | 70.00 | Có, tháng 2 |
-| O-05 | C-B | 10/02/2026 09:00:00 | PAID | 10.50 | Có |
-| O-06 | C-A | 25/02/2026 19:00:00 | PAID | 90.20 | Có |
-| O-07 | C-B | 31/03/2026 23:59:59 | PAID | 30.00 | Có |
-| O-08 | C-A | 01/04/2026 00:00:00 | PAID | 300.00 | Không, đúng biên kết thúc |
-| O-09 | C-B | 05/02/2026 12:00:00 | CANCELLED | 999.00 | Không, đơn hủy |
-| O-10 | C-C | 12/02/2026 10:00:00 | PAID | 0.30 | Có |
-| O-11 | C-B | 31/12/2025 23:59:59 | PAID | 600.00 | Không, trước biên bắt đầu |
+| O-01 | C-A | 01/01/2026 00:00:00 | PAID | 100.10 | Yes, start boundary |
+| O-02 | C-A | 15/01/2026 17:00:00 | PAID | 200.20 | Yes |
+| O-03 | C-B | 31/01/2026 23:59:59 | PAID | 40.00 | Yes, month 1 |
+| O-04 | C-A | 01/02/2026 00:00:00 | PAID | 70.00 | Yes, month 2 |
+| O-05 | C-B | 10/02/2026 09:00:00 | PAID | 10.50 | Yes |
+| O-06 | C-A | 25/02/2026 19:00:00 | PAID | 90.20 | Yes |
+| O-07 | C-B | 31/03/2026 23:59:59 | PAID | 30.00 | Yes |
+| O-08 | C-A | 01/04/2026 00:00:00 | PAID | 300.00 | No, exact end boundary |
+| O-09 | C-B | 05/02/2026 12:00:00 | CANCELLED | 999.00 | No, cancelled order |
+| O-10 | C-C | 12/02/2026 10:00:00 | PAID | 0.30 | Yes |
+| O-11 | C-B | 31/12/2025 23:59:59 | PAID | 600.00 | No, before start boundary |
 
-Từ đó, kết quả kỳ vọng:
+From this, the expected results are:
 
-| Khách | Tháng | Số đơn | Doanh thu |
+| Customer | Month | Orders | Revenue |
 | --- | --- | ---: | ---: |
 | C-A | 2026-01 | 2 | 300.30 |
 | C-A | 2026-02 | 2 | 160.20 |
@@ -146,13 +146,13 @@ Từ đó, kết quả kỳ vọng:
 | C-B | 2026-02 | 1 | 10.50 |
 | C-B | 2026-03 | 1 | 30.00 |
 | C-C | 2026-02 | 1 | 0.30 |
-| **Toàn kỳ** | **01–03/2026** | **8** | **541.30** |
+| **Grand Total** | **01–03/2026** | **8** | **541.30** |
 
-Tổng theo từng khách là: **C-A = 460.50 (4 đơn)**; **C-B = 80.50 (3 đơn)**; **C-C = 0.30 (1 đơn)**. Các con số này dùng để viết kiểm thử độc lập với phương thức tổng hợp.
+Per-customer totals are: **C-A = 460.50 (4 orders)**; **C-B = 80.50 (3 orders)**; **C-C = 0.30 (1 order)**. These numbers serve to write checks independent of the aggregation implementation.
 
-## 5. Chương trình Java 17+ tự chứa, có kiểm thử
+## 5. Self-Contained Java 17+ Program with Tests
 
-Lưu mã sau vào `CustomerPeriodReportDemo.java`. Chương trình dùng duy nhất API có sẵn trong JDK 17; `main` vừa in báo cáo vừa gọi các phép kiểm tra tự động.
+Save the following code to `CustomerPeriodReportDemo.java`. The program uses only standard JDK 17 APIs; `main` both prints the report and runs automated self-checks.
 
 ```java
 import java.math.BigDecimal;
@@ -188,10 +188,10 @@ public class CustomerPeriodReportDemo {
             Objects.requireNonNull(amount, "amount");
             Objects.requireNonNull(status, "status");
             if (id.isBlank() || customerId.isBlank()) {
-                throw new IllegalArgumentException("ID không được rỗng");
+                throw new IllegalArgumentException("ID must not be blank");
             }
             if (amount.signum() < 0) {
-                throw new IllegalArgumentException("Tiền âm chưa được hỗ trợ");
+                throw new IllegalArgumentException("Negative amounts are not yet supported");
             }
         }
     }
@@ -220,7 +220,7 @@ public class CustomerPeriodReportDemo {
             Stats grandTotal
     ) {
         Report {
-            // Map không sửa được, vẫn có thứ tự duyệt ổn định.
+            // Unmodifiable maps with deterministic iteration order.
             TreeMap<CustomerMonth, Stats> months =
                     new TreeMap<>(CUSTOMER_MONTH_ORDER);
             months.putAll(monthly);
@@ -248,13 +248,13 @@ public class CustomerPeriodReportDemo {
         Objects.requireNonNull(zone, "zone");
         if (!fromInclusive.isBefore(toExclusive)) {
             throw new IllegalArgumentException(
-                    "Khoảng ngày phải có from < to");
+                    "Date range must satisfy from < to");
         }
 
         Instant start = fromInclusive.atStartOfDay(zone).toInstant();
         Instant end = toExclusive.atStartOfDay(zone).toInstant();
 
-        // Chỉ nhận đơn PAID và trong khoảng [start, end).
+        // Accept only PAID orders within [start, end).
         List<Order> eligible = streamOf(source, parallel)
                 .map(o -> Objects.requireNonNull(o, "order"))
                 .filter(o -> o.status() == Status.PAID)
@@ -262,7 +262,7 @@ public class CustomerPeriodReportDemo {
                 .filter(o -> o.recordedAt().isBefore(end))
                 .toList();
 
-        // Khóa ghép (khách hàng, tháng) được tính trong zone nghiệp vụ.
+        // Composite key (customer, month) is computed in the business zone.
         Map<CustomerMonth, Stats> monthly = streamOf(eligible, parallel)
                 .collect(Collectors.groupingBy(
                         o -> new CustomerMonth(
@@ -275,7 +275,7 @@ public class CustomerPeriodReportDemo {
                                 Stats::plus)
                 ));
 
-        // Tổng theo khách được cộng từ các nhóm tháng, tránh tính lại nguồn.
+        // Customer totals sum monthly groups, avoiding re-scanning the source.
         Map<String, Stats> byCustomer = monthly.entrySet().stream()
                 .collect(Collectors.toMap(
                         entry -> entry.getKey().customerId(),
@@ -337,7 +337,7 @@ public class CustomerPeriodReportDemo {
     static void checkMoney(String name, BigDecimal actual, String expected) {
         check(actual != null
                         && actual.compareTo(new BigDecimal(expected)) == 0,
-                "Sai tiền " + name + ": " + actual);
+                "Wrong amount for " + name + ": " + actual);
     }
 
     static Stats at(Report report, String id, int year, int month) {
@@ -352,34 +352,34 @@ public class CustomerPeriodReportDemo {
         List<Order> data = sample();
 
         Report sequential = build(data, from, end, zone, false);
-        check(sequential.monthly().size() == 6, "Số nhóm khách/tháng");
-        check(sequential.byCustomer().size() == 3, "Số khách");
-        check(sequential.grandTotal().orderCount() == 8, "Số đơn toàn kỳ");
-        checkMoney("Toàn kỳ", sequential.grandTotal().revenue(), "541.30");
+        check(sequential.monthly().size() == 6, "Customer/month group count");
+        check(sequential.byCustomer().size() == 3, "Customer count");
+        check(sequential.grandTotal().orderCount() == 8, "Period order count");
+        checkMoney("Grand total", sequential.grandTotal().revenue(), "541.30");
 
         check(at(sequential, "C-A", 2026, 1).orderCount() == 2,
-                "C-A tháng 1");
-        checkMoney("C-A tháng 1",
+                "C-A month 1");
+        checkMoney("C-A month 1",
                 at(sequential, "C-A", 2026, 1).revenue(), "300.30");
-        checkMoney("C-A tháng 2",
+        checkMoney("C-A month 2",
                 at(sequential, "C-A", 2026, 2).revenue(), "160.20");
-        checkMoney("C-B tháng 1",
+        checkMoney("C-B month 1",
                 at(sequential, "C-B", 2026, 1).revenue(), "40.00");
-        checkMoney("C-B tháng 2",
+        checkMoney("C-B month 2",
                 at(sequential, "C-B", 2026, 2).revenue(), "10.50");
-        checkMoney("C-B tháng 3",
+        checkMoney("C-B month 3",
                 at(sequential, "C-B", 2026, 3).revenue(), "30.00");
-        checkMoney("C-C tháng 2",
+        checkMoney("C-C month 2",
                 at(sequential, "C-C", 2026, 2).revenue(), "0.30");
 
         check(sequential.byCustomer().get("C-A").orderCount() == 4,
-                "C-A phải có 4 đơn");
+                "C-A should have 4 orders");
         checkMoney("C-A", sequential.byCustomer().get("C-A").revenue(),
                 "460.50");
         checkMoney("C-B", sequential.byCustomer().get("C-B").revenue(),
                 "80.50");
 
-        // Comparator xác định thứ tự, không dựa vào HashMap.
+        // Comparator defines order, not relying on HashMap.
         List<CustomerMonth> expectedKeys = List.of(
                 new CustomerMonth("C-A", YearMonth.of(2026, 1)),
                 new CustomerMonth("C-A", YearMonth.of(2026, 2)),
@@ -389,40 +389,40 @@ public class CustomerPeriodReportDemo {
                 new CustomerMonth("C-C", YearMonth.of(2026, 2))
         );
         check(new ArrayList<>(sequential.monthly().keySet())
-                .equals(expectedKeys), "Thứ tự nhóm");
+                .equals(expectedKeys), "Group ordering");
 
-        // Cùng dữ liệu: parallel và sequential phải cho báo cáo tương đương.
+        // Same data: parallel and sequential must yield equivalent reports.
         Report parallel = build(data, from, end, zone, true);
-        check(sequential.equals(parallel), "Khác kết quả parallel");
+        check(sequential.equals(parallel), "Parallel result mismatch");
 
-        // Đảo thứ tự đầu vào: phép cộng và nhóm không được thay đổi.
+        // Reversed input order: sums and groups must not change.
         List<Order> reversed = new ArrayList<>(data);
         Collections.reverse(reversed);
         check(sequential.equals(build(reversed, from, end, zone, true)),
-                "Khác kết quả khi đảo đầu vào");
+                "Result changed when input was reversed");
 
-        // Nguồn rỗng và chỉ gồm đơn không được tính.
+        // Empty source and source with only excluded orders.
         Report empty = build(List.of(), from, end, zone, false);
-        check(empty.monthly().isEmpty(), "Nhóm rỗng");
-        check(empty.byCustomer().isEmpty(), "Khách rỗng");
-        check(empty.grandTotal().orderCount() == 0, "Số đơn rỗng");
-        checkMoney("Doanh thu rỗng", empty.grandTotal().revenue(), "0");
+        check(empty.monthly().isEmpty(), "Empty groups");
+        check(empty.byCustomer().isEmpty(), "Empty customers");
+        check(empty.grandTotal().orderCount() == 0, "Empty order count");
+        checkMoney("Empty revenue", empty.grandTotal().revenue(), "0");
         check(build(List.of(data.get(7), data.get(8), data.get(10)),
                 from, end, zone, false).equals(empty),
-                "Đơn ngoài kỳ hoặc hủy vẫn được tính");
+                "Out-of-range or cancelled orders were still counted");
 
-        // Đơn O-04 ở 01/02 theo giờ Việt Nam, không ở nhóm tháng 1.
-        checkMoney("Ranh giới tháng 2",
+        // Order O-04 is on 02/01 in Vietnam time, not in January's group.
+        checkMoney("Month 2 boundary",
                 at(sequential, "C-A", 2026, 2).revenue(), "160.20");
 
-        // Sửa ngoài không được làm biến đổi kết quả báo cáo.
+        // External edits must not mutate the report results.
         boolean rejected = false;
         try {
             sequential.byCustomer().put("C-Z", Stats.zero());
         } catch (UnsupportedOperationException expected) {
             rejected = true;
         }
-        check(rejected, "Báo cáo phải không cho sửa Map");
+        check(rejected, "Report Map must be unmodifiable");
     }
 
     public static void main(String[] args) {
@@ -436,49 +436,49 @@ public class CustomerPeriodReportDemo {
         report.monthly().forEach((key, stats) ->
                 System.out.println(key.customerId() + " | "
                         + key.month() + ": " + stats.orderCount()
-                        + " đơn / " + stats.revenue()));
+                        + " orders / " + stats.revenue()));
         report.byCustomer().forEach((id, stats) ->
-                System.out.println("Khách " + id + ": "
-                        + stats.orderCount() + " đơn / " + stats.revenue()));
-        System.out.println("Toàn kỳ: "
-                + report.grandTotal().orderCount() + " đơn / "
+                System.out.println("Customer " + id + ": "
+                        + stats.orderCount() + " orders / " + stats.revenue()));
+        System.out.println("Grand total: "
+                + report.grandTotal().orderCount() + " orders / "
                 + report.grandTotal().revenue());
 
-        // Các kiểm tra không phụ thuộc cờ -ea của lệnh java.
+        // Checks do not depend on the java -ea flag.
         selfTest();
         System.out.println("TEST PASS");
     }
 }
 ```
 
-Chạy thử khi thực hành trên JDK 17+:
+Try running it on JDK 17+:
 
 ```text
 javac CustomerPeriodReportDemo.java
 java CustomerPeriodReportDemo
 ```
 
-Đầu ra kỳ vọng (rút gọn):
+Expected output (abbreviated):
 
 ```text
-C-A | 2026-01: 2 đơn / 300.30
-C-A | 2026-02: 2 đơn / 160.20
-C-B | 2026-01: 1 đơn / 40.00
-C-B | 2026-02: 1 đơn / 10.50
-C-B | 2026-03: 1 đơn / 30.00
-C-C | 2026-02: 1 đơn / 0.30
-Khách C-A: 4 đơn / 460.50
-Khách C-B: 3 đơn / 80.50
-Khách C-C: 1 đơn / 0.30
-Toàn kỳ: 8 đơn / 541.30
+C-A | 2026-01: 2 orders / 300.30
+C-A | 2026-02: 2 orders / 160.20
+C-B | 2026-01: 1 orders / 40.00
+C-B | 2026-02: 1 orders / 10.50
+C-B | 2026-03: 1 orders / 30.00
+C-C | 2026-02: 1 orders / 0.30
+Customer C-A: 4 orders / 460.50
+Customer C-B: 3 orders / 80.50
+Customer C-C: 1 orders / 0.30
+Grand total: 8 orders / 541.30
 TEST PASS
 ```
 
-Kết quả trên được tính từ dữ liệu mẫu; mã kiểm tra được cung cấp để người học tự chạy. Việc ghi tài liệu **không đồng nghĩa** chương trình đã được biên dịch hoặc kiểm định tự động trong bước viết bài.
+The results above are computed from the sample data; test code is provided for learners to run themselves. Documentation **does not imply** the program was compiled or automatically verified as part of authoring this article.
 
-## 6. Tại sao dùng `groupingBy` cùng `reducing`?
+## 6. Why Pair `groupingBy` with `reducing`?
 
-Phần lõi của bài toán là:
+The core of the solution is:
 
 ```java
 Map<CustomerMonth, Stats> monthly = eligible.stream()
@@ -494,88 +494,88 @@ Map<CustomerMonth, Stats> monthly = eligible.stream()
         ));
 ```
 
-Đoạn trên dùng các kiểu, biến và comparator được định nghĩa trong chương trình ở mục 5.
+This snippet uses the types, variables, and comparator defined in the program in section 5.
 
-Thành phần có ý nghĩa:
+Meaningful components:
 
-| Thành phần | Vai trò |
+| Component | Role |
 | --- | --- |
-| `o -> new CustomerMonth(...)` | Phân loại theo **hai chiều**, khách hàng và tháng. |
-| `() -> new TreeMap<>(CUSTOMER_MONTH_ORDER)` | Chọn Map có thứ tự khóa theo comparator nghiệp vụ. |
-| `Stats.zero()` | Trạng thái trung hòa: `0` đơn, `BigDecimal.ZERO` tiền. |
-| `o -> new Stats(1L, o.amount())` | Chuyển một đơn thành thống kê của một đơn. |
-| `Stats::plus` | Gộp hai thống kê bằng cách cộng số đơn và doanh thu. |
+| `o -> new CustomerMonth(...)` | Classifies across **two dimensions**: customer and month. |
+| `() -> new TreeMap<>(CUSTOMER_MONTH_ORDER)` | Selects a Map whose keys are ordered by the business comparator. |
+| `Stats.zero()` | Identity state: `0` orders, `BigDecimal.ZERO` revenue. |
+| `o -> new Stats(1L, o.amount())` | Maps a single order to single-order stats. |
+| `Stats::plus` | Combines two stats by summing order counts and revenues. |
 
-`reducing(identity, mapper, op)` là **downstream collector**: mỗi nhóm nhận các phần tử của nhóm đó, rồi được giảm thành một `Stats`.
+`reducing(identity, mapper, op)` is a **downstream collector**: each group receives the elements belonging to that group and reduces them into a single `Stats`.
 
-### Vì sao không dùng `summingDouble` cho tiền?
+### Why Not Use `summingDouble` for Money?
 
-`Collectors.summingDouble(Order::amount)` không phù hợp ở đây vì `amount` là `BigDecimal`, và việc chuyển sang `double` có thể tạo sai số. Với tiền, nên giữ kiểu chính xác hoặc một mô hình đơn vị nhỏ nhất dạng số nguyên được quy định.
+`Collectors.summingDouble(Order::amount)` does not fit here because `amount` is a `BigDecimal`, and converting to `double` can introduce precision errors. For money, keep an exact type or a well-defined integer minor-unit model.
 
-### Vì sao `Stats::plus` phù hợp với song song?
+### Why Does `Stats::plus` Work Well with Parallelism?
 
-Phép gộp hoạt động trên **bản ghi bất biến**:
+Combining operates on **immutable records**:
 
 ```java
 Stats left = new Stats(2, new BigDecimal("100.10"));
 Stats right = new Stats(1, new BigDecimal("20.20"));
 Stats total = left.plus(right);
-// 3 đơn, 120.30
+// 3 orders, 120.30
 ```
 
-Trạng thái trung hòa `Stats.zero()` không thay đổi giá trị khi cộng. Phép cộng số đếm và tiền có tính kết hợp trong miền dữ liệu hợp lệ, nên dù `groupingBy` tạo nhiều Map trung gian để xử lý song song, kết quả số học vẫn tương đương. `Math.addExact` báo lỗi nếu tổng số đơn vượt `long`; ví dụ không làm tròn tiền ở các bước trung gian.
+The identity `Stats.zero()` leaves values unchanged when added. Addition of counts and money is associative within the valid data domain, so even if `groupingBy` builds multiple intermediate Maps during parallel execution, the arithmetic result stays equivalent. `Math.addExact` fails if total orders exceed `long`; the example does not round money at intermediate steps.
 
-## 7. Ranh giới thời gian: lỗi thường gặp trong báo cáo
+## 7. Time Boundaries: Common Reporting Bugs
 
-### Khoảng nửa mở `[start, end)`
+### Half-Open Interval `[start, end)`
 
-Điều kiện an toàn:
+Safe condition:
 
 ```java
 boolean within = !order.recordedAt().isBefore(start)
         && order.recordedAt().isBefore(end);
 ```
 
-Với khoảng **01/01–01/04**, đơn đúng `01/01 00:00` được tính, đơn đúng `01/04 00:00` không tính. Nếu ngày kế tiếp là một kỳ khác, hai kỳ cạnh nhau có thể ghép lại **không chồng lắp, không bỏ trống ranh giới**.
+For **01/01–04/01**, an order at exact `01/01 00:00` is included, while an order at exact `04/01 00:00` is excluded. When the next period starts on the following date, adjacent periods tile cleanly **without overlap or boundary gaps**.
 
-Không nên viết `<= LocalDate.atTime(23,59,59)` cho mốc kết thúc nếu dữ liệu có phần lẻ mili giây/nano giây. Cũng không nên lấy `Instant.now()` nhiều lần ở từng predicate nếu yêu cầu báo cáo phải lặp lại và kiểm thử được.
+Avoid writing `<= LocalDate.atTime(23,59,59)` for the end boundary when data has millisecond/nanosecond precision. Also avoid calling `Instant.now()` repeatedly inside predicates if reports must be repeatable and testable.
 
-### Khác nhau giữa `Instant` và `LocalDate`
+### Difference Between `Instant` and `LocalDate`
 
-- `Instant` mô tả một thời điểm tuyệt đối, phù hợp lưu trữ và so sánh các sự kiện.
-- `LocalDate` mô tả **ngày theo lịch**, không gắn múi giờ; cần `ZoneId` khi chuyển thành biên `Instant`.
-- `YearMonth` mô tả tháng báo cáo; phải chọn tháng sau khi chuyển `Instant` sang múi giờ nghiệp vụ.
+- `Instant` represents an absolute point in time, suited for storing and comparing events.
+- `LocalDate` represents a **calendar date** without a time zone; it requires a `ZoneId` when converting to `Instant` boundaries.
+- `YearMonth` represents a reporting month; choose the month only after converting `Instant` to the business time zone.
 
-Nếu tạo nhóm bằng `YearMonth.from(order.recordedAt().atZone(ZoneOffset.UTC))` trong khi báo cáo dùng `Asia/Ho_Chi_Minh`, những đơn sát ranh giới có thể bị phân vào **tháng khác** với yêu cầu.
+If you group by `YearMonth.from(order.recordedAt().atZone(ZoneOffset.UTC))` when the report uses `Asia/Ho_Chi_Minh`, orders near boundaries can land in the **wrong month**.
 
-### Múi giờ và giờ mùa hè
+### Time Zones and Daylight Saving Time
 
-Với những múi giờ có DST, khoảng thời gian từ đầu ngày địa phương này đến đầu ngày địa phương kế tiếp có thể ngắn hoặc dài hơn 24 giờ. Cách chuyển **hai mốc ngày theo cùng `ZoneId`** rồi so sánh `Instant` tránh lỗi cộng cố định `Duration.ofDays(1)` cho mọi ngày.
+In zones with DST, the span from one local start-of-day to the next can be shorter or longer than 24 hours. Converting **both boundary dates in the same `ZoneId`** and comparing `Instant` values avoids the bug of adding a fixed `Duration.ofDays(1)` for every day.
 
-Nếu hệ thống báo cáo theo tháng, hãy dùng `YearMonth.atDay(1)` và `plusMonths(1)` để tạo biên kỳ tháng ở múi giờ được chọn, thay vì dùng số ngày cố định như 30 ngày.
+If a system reports monthly, use `YearMonth.atDay(1)` and `plusMonths(1)` to construct month boundaries in the chosen time zone instead of assuming fixed lengths like 30 days.
 
-## 8. Kiểm thử tính đúng, thứ tự và sự ổn định
+## 8. Testing Correctness, Ordering, and Stability
 
-Một báo cáo có thể đúng tổng toàn kỳ nhưng **sai phân nhóm tháng**. Vì thế, nên kiểm tra cả kết quả tổng và những trường hợp biên.
+A report can have the right grand total yet **wrong monthly grouping**. Therefore, test both summary totals and boundary cases.
 
-| Nhóm kiểm thử | Dữ liệu | Điều cần khẳng định |
+| Test Group | Data | Assertion Needed |
 | --- | --- | --- |
-| Biên bắt đầu | O-01 đúng `01/01 00:00` địa phương | Được đưa vào thống kê tháng 1. |
-| Biên kết thúc | O-08 đúng `01/04 00:00` địa phương | Không thuộc báo cáo quý 1. |
-| Trước kỳ | O-11 ngay trước mốc bắt đầu | Không được tính. |
-| Ranh giới tháng | O-04 đúng `01/02 00:00` địa phương | Thuộc tháng 2, không thuộc tháng 1. |
-| Đơn hủy | O-09 có tiền rất lớn | Không được tính vào bất kỳ tổng nào. |
-| Nhiều đơn một khách/tháng | C-A tháng 1 và tháng 2 | Đúng số đơn và tổng tiền từng tháng. |
-| Nhiều khách | C-A, C-B, C-C | Tách nhóm chính xác, không cộng lẫn. |
-| Nguồn rỗng | `List.of()` | Map rỗng, count 0, revenue 0. |
-| Tiền thập phân | O-10 có `0.30` | Không mất độ chính xác do `double`. |
-| Đảo thứ tự đầu vào | `Collections.reverse(...)` | Tổng và các nhóm vẫn bằng nhau. |
-| Stream song song | `parallel = true` | Kết quả bằng bản tuần tự. |
-| Thứ tự bản báo cáo | `TreeMap` và comparator | Khách tăng dần, tháng tăng dần. |
+| Start boundary | O-01 at exact `01/01 00:00` local | Included in January stats. |
+| End boundary | O-08 at exact `04/01 00:00` local | Excluded from Q1 report. |
+| Before period | O-11 right before start instant | Excluded. |
+| Month boundary | O-04 at exact `02/01 00:00` local | Belongs to February, not January. |
+| Cancelled order | O-09 with very large amount | Excluded from all totals. |
+| Multiple orders per customer/month | C-A months 1 and 2 | Exact order counts and revenues per month. |
+| Multiple customers | C-A, C-B, C-C | Cleanly separated groups, no cross-contamination. |
+| Empty source | `List.of()` | Empty maps, count 0, revenue 0. |
+| Decimal money | O-10 with `0.30` | No precision loss from `double`. |
+| Reversed input order | `Collections.reverse(...)` | Totals and groups remain identical. |
+| Parallel stream | `parallel = true` | Result matches sequential run. |
+| Report ordering | `TreeMap` and comparator | Customer ascending, month ascending. |
 
-### Kiểm thử bất biến theo hoán vị
+### Permutation-Invariance Test
 
-Khi phép gộp không phụ thuộc thứ tự, một phép thử có ích là đảo ngược dữ liệu:
+When aggregation is order-independent, reversing the input is a helpful check:
 
 ```java
 List<Order> reversed = new ArrayList<>(source);
@@ -583,24 +583,24 @@ Collections.reverse(reversed);
 
 Report a = build(source, from, to, zone, false);
 Report b = build(reversed, from, to, zone, true);
-check(a.equals(b), "Khác báo cáo sau khi đảo nguồn");
+check(a.equals(b), "Report changed after reversing input");
 ```
 
-Phép thử này dựa trên ngữ nghĩa nghiệp vụ **tổng hợp theo khóa, không theo vị trí xuất hiện**. Nếu về sau báo cáo bổ sung trường như “đơn đầu tiên” và dùng encounter order, kiểm thử phải được điều chỉnh: “đầu tiên” cần định nghĩa bằng timestamp/ID hoặc thứ tự nguồn rõ ràng.
+This test relies on business semantics of **aggregating by key, not occurrence position**. If the report later adds a field like "first order" using encounter order, adjust the test: "first" must be defined by timestamp/ID or explicit source order.
 
-### `Map.equals` không xác minh thứ tự
+### `Map.equals` Does Not Verify Ordering
 
-`Map.equals` so sánh ánh xạ khóa–giá trị, **không xác minh thứ tự duyệt khóa**. Bởi vậy `selfTest()` còn tạo danh sách `new ArrayList<>(monthly.keySet())` và so sánh với thứ tự mong đợi. Nếu thứ tự là một phần của hợp đồng báo cáo, cần kiểm tra nó riêng.
+`Map.equals` compares key–value mappings, **not key iteration order**. That is why `selfTest()` also builds `new ArrayList<>(monthly.keySet())` and compares it against the expected order. If ordering is part of the report contract, test it separately.
 
-### `BigDecimal.equals` và `compareTo`
+### `BigDecimal.equals` vs `compareTo`
 
-`new BigDecimal("1.0").equals(new BigDecimal("1.00"))` trả `false` vì khác scale; `compareTo(...) == 0` cho biết hai giá trị tiền bằng nhau **về số học**. Hàm `checkMoney` trong bài sử dụng `compareTo` để kiểm tra tiền, tránh phụ thuộc cách biểu diễn số chữ số thập phân. Nếu nghiệp vụ yêu cầu luôn đúng hai chữ số, phải bổ sung quy tắc scale hoặc formatter ở ranh giới xuất báo cáo.
+`new BigDecimal("1.0").equals(new BigDecimal("1.00"))` returns `false` because scales differ; `compareTo(...) == 0` indicates two monetary values are **numerically equal**. `checkMoney` in this lesson uses `compareTo` so assertions do not depend on trailing fractional zeros. If business rules require always showing two decimal places, enforce scale rules or formatting at the report output boundary.
 
-## 9. Hiệu năng, tính lặp lại và giới hạn nguồn
+## 9. Performance, Reusability, and Source Limits
 
-### Có cần giữ danh sách `eligible`?
+### Is Keeping the `eligible` List Necessary?
 
-Ví dụ dùng:
+The example uses:
 
 ```java
 List<Order> eligible = streamOf(source, parallel)
@@ -610,33 +610,33 @@ List<Order> eligible = streamOf(source, parallel)
         .toList();
 ```
 
-Danh sách này giúp việc kiểm thử và tái sử dụng tập đã lọc rõ ràng. Tuy nhiên, nó tốn bộ nhớ theo số đơn đủ điều kiện. Với nguồn lớn, có thể nối `filter` trực tiếp vào `groupingBy` trong **một lần collect**, giảm việc vật hóa danh sách. Tùy mục tiêu cần đo xem cách nào thích hợp hơn.
+This intermediate list keeps testing and reuse of the filtered set clear. However, it consumes memory proportional to the number of eligible orders. For large sources, you can chain `filter` directly into `groupingBy` in a **single collect pass** to avoid materializing the list. Benchmark to see which suits your goals.
 
-Lưu ý trong bài, việc tổng hợp từ `monthly` lên `byCustomer` và `grandTotal` không đọc lại toàn bộ danh sách đơn hàng; nó chỉ duyệt các **nhóm đã thu thập**.
+Note that here, rolling up from `monthly` to `byCustomer` and `grandTotal` does not re-scan the entire order list; it iterates only the **collected groups**.
 
-### Một Stream chỉ dùng cho một terminal operation
+### A Stream Supports Only One Terminal Operation
 
-Sau `collect(...)`, đối tượng Stream đã được tiêu thụ. Nếu có danh sách `source`, gọi `source.stream()` lần khác sẽ tạo nguồn Stream mới. Với nguồn I/O chỉ đọc được một lần, phải thiết kế collector tích lũy đủ chỉ số cần thiết trong **một lượt** và tuân thủ cách đóng tài nguyên nguồn.
+After `collect(...)`, the Stream instance is consumed. Given a `List` `source`, calling `source.stream()` again opens a fresh Stream. For single-pass I/O sources, design collectors that accumulate all needed metrics in **one pass** and obey resource-closing rules.
 
-### Xử lý song song không tự nhanh hơn
+### Parallel Execution Is Not Automatically Faster
 
-`groupingBy` không phải concurrent collector: khi chạy song song, framework có thể thu thập vào nhiều Map trung gian và gộp chúng; việc này có chi phí. `groupingByConcurrent` có thể hữu ích khi không cần đảm bảo encounter order, nhưng không nên đổi khi chưa hiểu yêu cầu thứ tự và khả năng đồng thời của downstream collector.
+`groupingBy` is not a concurrent collector: in parallel mode, the framework may collect into multiple intermediate Maps and merge them, which carries overhead. `groupingByConcurrent` can help when encounter order is not needed, but do not switch without understanding ordering requirements and downstream collector concurrency.
 
-Với tập dữ liệu nhỏ, `parallelStream()` thường không đem lại lợi ích rõ rệt. Hãy đo tốc độ và bộ nhớ trên dữ liệu thực tế; việc chuyển sang parallel **không thay thế** chính sách truy cập CSDL, timeout hoặc backpressure nếu nguồn thao tác I/O.
+On small datasets, `parallelStream()` rarely yields clear gains. Measure speed and memory on real data; switching to parallel **does not replace** database access policies, timeouts, or backpressure when sources involve I/O.
 
-### Quản lý dữ liệu lỗi
+### Handling Bad Data
 
-Hệ thống thật cần quyết định cách xử lý:
+Production systems must decide how to handle:
 
-- **Đơn trùng `id`:** nếu một hóa đơn xuất hiện nhiều lần trong dữ liệu, bài đang tính **mỗi record là một đơn**. Muốn đếm hóa đơn duy nhất phải kiểm tra trùng và chọn bản ghi hợp lệ; không tự `distinct()` toàn đối tượng nếu chúng có trường khác nhau.
-- **Đơn hoàn tiền/đổi trả:** ví dụ chỉ có `PAID` và `CANCELLED`. Giá trị âm không được chấp nhận; cần thiết kế mô hình hoàn tiền riêng nếu nghiệp vụ yêu cầu.
-- **Thiếu mã khách hàng:** record kiểm tra null và chuỗi rỗng. Tên hiển thị khách hàng nên tra ở nguồn khác có hợp đồng rõ, không trộn việc tổng hợp định danh với việc lấy tên.
-- **Nhiều loại tiền:** không cộng trực tiếp USD, VND và EUR trong cùng một `BigDecimal`. Hãy nhóm theo currency hoặc chuyển đổi theo tỷ giá và kỳ có quy tắc.
-- **Kỳ báo cáo rất dài:** số nhóm có thể tăng theo số khách nhân số tháng; bộ nhớ của `Map` phụ thuộc số khóa phân biệt, không chỉ số đơn đầu vào.
+- **Duplicate order `id`s:** if an invoice appears multiple times in the source, this lesson counts **each record as an order**. To count unique invoices, check for duplicates and select valid records; do not simply call `distinct()` across whole objects if fields differ.
+- **Refunds/returns:** this example has only `PAID` and `CANCELLED`. Negative amounts are rejected; design an explicit refund model if business rules require it.
+- **Missing customer IDs:** the record validates against null and blank strings. Customer display names should be looked up from another contracted source rather than mixing identity aggregation with name resolution.
+- **Multiple currencies:** never add USD, VND, and EUR together in the same `BigDecimal`. Group by currency or convert using governed exchange rates and periods.
+- **Very long reporting spans:** group count grows with customers × months; `Map` memory depends on distinct key count, not just raw order count.
 
-## 10. Bài tập mở rộng
+## 10. Extended Exercises
 
-**Bài 1 — Báo cáo theo ngày.** Thay `YearMonth` bằng `LocalDate`:
+**Exercise 1 — Daily report.** Replace `YearMonth` with `LocalDate`:
 
 ```java
 record CustomerDay(String customerId, LocalDate day) {}
@@ -647,11 +647,11 @@ CustomerDay key = new CustomerDay(
 );
 ```
 
-Chọn comparator theo `customerId` rồi `day`; giữ nguyên khoảng nửa mở và cách cộng tiền.
+Order by `customerId` then `day`; keep the half-open interval and monetary summation unchanged.
 
-**Bài 2 — Báo cáo một tháng.** Viết hàm nhận `YearMonth month`, `ZoneId zone`; xây dựng `from = month.atDay(1)` và `to = month.plusMonths(1).atDay(1)`, sau đó gọi `build(...)`. Kiểm tra với đơn đúng 00:00 ngày đầu tháng kế tiếp.
+**Exercise 2 — Single-month report.** Write a function accepting `YearMonth month` and `ZoneId zone`; construct `from = month.atDay(1)` and `to = month.plusMonths(1).atDay(1)`, then call `build(...)`. Test with an order at exact 00:00 on the first day of the next month.
 
-**Bài 3 — Top khách hàng.** Từ `byCustomer`, tạo danh sách khách có doanh thu giảm dần và phá hòa bằng mã khách tăng dần:
+**Exercise 3 — Top customers.** From `byCustomer`, build a list of customers sorted by revenue descending, breaking ties by customer ID ascending:
 
 ```java
 List<Map.Entry<String, Stats>> ranking =
@@ -664,18 +664,18 @@ List<Map.Entry<String, Stats>> ranking =
                 .toList();
 ```
 
-Không dựa vào thứ tự duyệt Map để suy ra thứ hạng doanh thu.
+Do not infer revenue ranking from Map iteration order.
 
-**Bài 4 — Kiểm tra tính nhất quán.** Với từng khách, chứng minh tổng `Stats` của các tháng bằng `byCustomer.get(customerId)` cả về số đơn và số tiền. Thêm bộ dữ liệu có một khách không có đơn hợp lệ và xác định có hiển thị khách đó trong báo cáo hay không.
+**Exercise 4 — Consistency check.** For each customer, verify that summing monthly `Stats` equals `byCustomer.get(customerId)` in both order count and revenue. Add a dataset containing a customer with no eligible orders and decide whether that customer should appear in the report.
 
-**Bài 5 — Dữ liệu trùng đơn.** Thêm hai record có cùng `id` nhưng khác thời điểm. Thiết kế chính sách hợp lệ: từ chối, lấy phiên bản mới nhất, hay tính theo lịch sử giao dịch? Sau đó mới viết pipeline `toMap` có merge function; không mặc định rằng `distinct()` sẽ giải quyết đúng nghiệp vụ.
+**Exercise 5 — Duplicate order data.** Add two records with the same `id` but different timestamps. Design a valid policy: reject, pick newest version, or treat as transaction history? Only then write a `toMap` pipeline with a merge function; never assume `distinct()` satisfies the business rule.
 
-**Bài 6 — Kiểm thử múi giờ khác.** Chạy cùng dữ liệu với `ZoneId.of("UTC")`. So sánh đơn `O-04` giữa tháng 1 UTC và tháng 2 Việt Nam; giải thích vì sao một thời điểm có thể thuộc hai tháng báo cáo khác nhau mà vẫn là cùng một `Instant`.
+**Exercise 6 — Testing another time zone.** Run the same data with `ZoneId.of("UTC")`. Compare order `O-04` between January in UTC and February in Vietnam; explain why one instant can belong to two different reporting months while remaining the exact same `Instant`.
 
-## 11. Ghi nhớ
+## 11. Key Takeaways
 
-- Xác định rõ **trạng thái hợp lệ, khóa khách hàng, múi giờ và khoảng nửa mở `[start, end)`** trước khi xây dựng pipeline.
-- Lọc bằng `filter`, tạo khóa ghép `(customerId, YearMonth)`, dùng `groupingBy` và downstream `reducing` để tính số đơn cùng doanh thu trong mỗi nhóm.
-- Dùng `BigDecimal` cho tiền và phép gộp có tính kết hợp, có giá trị trung hòa; không làm tròn giữa các phép cộng, không phụ thuộc thứ tự nhánh song song.
-- Thứ tự duyệt báo cáo cần được **thiết kế bằng comparator/`TreeMap`**, không suy ra từ `HashMap`. Kiểm thử thứ tự riêng, không chỉ so sánh `Map.equals`.
-- Kiểm thử cả **đơn ở ranh giới ngày/tháng, đơn hủy, nguồn rỗng, đảo thứ tự và parallel**; chỉ tối ưu khi kết quả nghiệp vụ đã được chứng minh đúng trên dữ liệu đại diện.
+- Clarify **eligible statuses, customer keys, time zone, and the half-open interval `[start, end)`** before building the pipeline.
+- Filter with `filter`, construct composite `(customerId, YearMonth)` keys, and pair `groupingBy` with downstream `reducing` to compute order counts and revenue per group.
+- Use `BigDecimal` for money and associative combine operations with an identity element; avoid rounding between additions or relying on parallel branch ordering.
+- Report iteration order must be **designed with comparators/`TreeMap`**, never inferred from `HashMap`. Test ordering explicitly rather than relying solely on `Map.equals`.
+- Test **date/month boundary orders, cancelled orders, empty sources, reversed order, and parallel execution**; optimize only after business correctness is proven on representative data.

@@ -1,74 +1,74 @@
-# Quy ước đặt tên biến, tham số và hằng trong Java 17+
+# Naming Conventions for Variables, Parameters, and Constants in Java 17+
 
-## 1. Vì sao quy ước đặt tên quan trọng?
+## 1. Why Naming Conventions Matter
 
-Tên biến, tham số và hằng là một phần của cách diễn đạt ý nghĩa chương trình. Java **kiểm tra tên có hợp lệ về cú pháp**, còn **quy ước đặt tên** giúp người khác hiểu dữ liệu, giảm nhầm lẫn và dễ tìm kiếm khi bảo trì.
+Variable, parameter, and constant names are part of how a program expresses its meaning. Java **checks whether names are syntactically valid**, while **naming conventions** help others understand the data, reduce confusion, and make searching easier during maintenance.
 
 ~~~java
-int x = 3;                   // Hợp lệ nhưng khó biết x là gì
-int itemCount = 3;           // Cùng kiểu dữ liệu, rõ nghĩa hơn
+int x = 3;                   // Valid but hard to know what x is
+int itemCount = 3;           // Same data type, clearer meaning
 
-int p = 120_000;             // Không thấy đơn vị hoặc vai trò
-int unitPriceDong = 120_000; // Cho biết đây là đơn giá tính bằng đồng
+int p = 120_000;             // Unit or role is not visible
+int unitPriceDong = 120_000; // Indicates this is the unit price in dong
 ~~~
 
-Ba nguyên tắc thực dụng:
+Three practical principles:
 
-1. **Đúng cú pháp Java**: tên không được là từ khóa hoặc literal bị dành riêng, không bắt đầu bằng chữ số và phải tuân theo quy tắc định danh.
-2. **Rõ vai trò**: tên nêu dữ liệu hoặc ý định nghiệp vụ thay vì chỉ lặp lại tên kiểu.
-3. **Nhất quán trong toàn dự án**: cùng một khái niệm nên được gọi thống nhất, tránh đổi giữa `amount`, `value`, `money` mà không có lý do.
+1. **Syntactically valid in Java**: names cannot be keywords or reserved literals, cannot start with a digit, and must follow identifier rules.
+2. **Clear role**: names state the data or business intent instead of merely repeating the type name.
+3. **Consistent across the entire project**: the same concept should be named uniformly, avoiding switching between `amount`, `value`, and `money` without a reason.
 
-Tên “đúng chuẩn” không bảo đảm chương trình đúng nghiệp vụ; nhưng tên kém rõ ràng có thể che khuất lỗi ngay cả khi chương trình vẫn biên dịch.
+A "standard-compliant" name does not guarantee the program's business logic is right; however, unclear names can hide bugs even when the program compiles.
 
-## 2. Bảng quy ước thường dùng
+## 2. Table of Commonly Used Conventions
 
-| Thành phần | Phong cách thông dụng | Ví dụ nên dùng | Tránh khi không có lý do |
+| Element | Common style | Recommended examples | Avoid without good reason |
 |---|---|---|---|
-| Biến cục bộ | `lowerCamelCase` | `itemCount`, `totalPriceDong` | `ItemCount`, `item_count` |
-| Tham số method | `lowerCamelCase` | `unitPriceDong`, `discountPercent` | `UnitPrice`, `arg1` |
-| Field instance | `lowerCamelCase` | `customerName`, `isActive` | `CUSTOMER_NAME` cho field thông thường |
-| Field static thay đổi được | `lowerCamelCase` | `requestCount` | `REQUEST_COUNT` nếu không phải hằng |
-| Hằng được đặt tên | `UPPER_SNAKE_CASE` | `MAX_ITEMS`, `DEFAULT_TIMEOUT_MS` | `max_items`, `DefaultTimeoutMs` |
-| Biến cục bộ `final` | Thường vẫn `lowerCamelCase` | `final int maxAllowed = 5;` | Mặc định đổi mọi final local thành `MAX_ALLOWED` |
-| Hằng enum | Thường `UPPER_SNAKE_CASE` | `PENDING`, `IN_PROGRESS` | Viết mỗi giá trị một kiểu tên |
+| Local variable | `lowerCamelCase` | `itemCount`, `totalPriceDong` | `ItemCount`, `item_count` |
+| Method parameter | `lowerCamelCase` | `unitPriceDong`, `discountPercent` | `UnitPrice`, `arg1` |
+| Instance field | `lowerCamelCase` | `customerName`, `isActive` | `CUSTOMER_NAME` for ordinary fields |
+| Mutable static field | `lowerCamelCase` | `requestCount` | `REQUEST_COUNT` if not a constant |
+| Named constant | `UPPER_SNAKE_CASE` | `MAX_ITEMS`, `DEFAULT_TIMEOUT_MS` | `max_items`, `DefaultTimeoutMs` |
+| `final` local variable | Usually still `lowerCamelCase` | `final int maxAllowed = 5;` | Converting every final local to `MAX_ALLOWED` by default |
+| Enum constant | Usually `UPPER_SNAKE_CASE` | `PENDING`, `IN_PROGRESS` | Mixing naming styles across values |
 
-Đây là **convention**, không phải bộ quy tắc được `javac` ép buộc. Ví dụ `int ItemCount = 3;` có thể biên dịch nhưng phá vỡ phong cách chung. Các công cụ lint/style có thể áp dụng quy ước chặt hơn theo dự án.
+These are **conventions**, not rules enforced by `javac`. For instance, `int ItemCount = 3;` can compile while breaking standard style. Lint/style tools may enforce stricter project-specific rules.
 
-**`lowerCamelCase`**: từ đầu viết thường, các từ tiếp theo viết hoa chữ cái đầu: `maxRetryCount`.
+**`lowerCamelCase`**: the first word is lowercase, and subsequent words start with an uppercase letter: `maxRetryCount`.
 
-**`UPPER_SNAKE_CASE`**: các từ viết hoa, phân cách bằng `_`: `MAX_RETRY_COUNT`.
+**`UPPER_SNAKE_CASE`**: words are all uppercase, separated by `_`: `MAX_RETRY_COUNT`.
 
-## 3. Phân biệt tên hợp lệ và tên nên dùng
+## 3. Distinguishing Valid Names from Recommended Names
 
-Java phân biệt chữ hoa/chữ thường, do đó `count`, `Count` và `COUNT` là **ba định danh khác nhau**. Nhưng dùng cả ba trong cùng phạm vi rất dễ gây hiểu nhầm.
+Java is case-sensitive, so `count`, `Count`, and `COUNT` are **three distinct identifiers**. Yet using all three in the same scope is very confusing.
 
 ~~~java
 int count = 3;
-// int Count = 4; // Có thể hợp lệ, nhưng không nên tạo cặp tên quá giống nhau
+// int Count = 4; // May be valid, but avoid creating overly similar pairs
 ~~~
 
-Các trường hợp đáng nhớ:
+Cases worth remembering:
 
-| Định danh | Hợp lệ làm tên biến? | Đánh giá |
+| Identifier | Valid as a variable name? | Assessment |
 |---|---|---|
-| `itemCount` | Có | Đúng quy ước và rõ nghĩa |
-| `_itemCount` | Có | Thường không cần dấu `_` ở đầu |
-| `$itemCount` | Có | Java cho phép `$`, nhưng nên tránh dùng tùy tiện |
-| `sốLượng` | Có | Java hỗ trợ Unicode; dự án cần quy ước nhất quán |
-| `2items` | Không | Bắt đầu bằng chữ số |
-| `item-count` | Không phải một định danh | Dấu `-` là toán tử |
-| `item count` | Không | Có khoảng trắng |
-| `class` | Không | Từ khóa Java |
-| `true` | Không | Boolean literal dành riêng |
-| `_` | Không trên Java 17 | Dấu gạch dưới đơn lẻ bị dành riêng |
+| `itemCount` | Yes | Follows convention and clear |
+| `_itemCount` | Yes | Leading `_` is usually unnecessary |
+| `$itemCount` | Yes | Java allows `$`, but avoid using arbitrarily |
+| `sốLượng` | Yes | Java supports Unicode; projects need a consistent convention |
+| `2items` | No | Starts with a digit |
+| `item-count` | Not a single identifier | `-` is an operator |
+| `item count` | No | Contains whitespace |
+| `class` | No | Java keyword |
+| `true` | No | Reserved boolean literal |
+| `_` | No in Java 17 | Single underscore is reserved |
 
-Một tên hợp lệ vẫn phải được đặt **đúng phạm vi** và **không trùng khai báo trái quy tắc**. Trong một block không thể khai báo hai biến cục bộ cùng tên.
+A valid name still must be placed in the **proper scope** and **not redeclared illegally**. Two local variables with the same name cannot be declared in the same block.
 
-`String` và `string` không phải cùng định danh; khi đặt tên nên tránh phụ thuộc vào người đọc “đoán” chữ hoa/chữ thường.
+`String` and `string` are not the same identifier; when naming, avoid forcing readers to "guess" casing.
 
-## 4. Đặt tên biến theo nghĩa, đơn vị và trạng thái
+## 4. Naming Variables by Meaning, Unit, and State
 
-Tên biến nên trả lời được câu hỏi “giá trị này biểu thị điều gì?”:
+A variable name should answer "what does this value represent?":
 
 ~~~java
 int itemCount = 3;
@@ -78,22 +78,22 @@ double distanceKilometers = 12.5;
 String customerEmail = "lan@example.com";
 ~~~
 
-Nếu hai giá trị cùng kiểu nhưng khác **đơn vị**, tên nên chỉ ra đơn vị:
+If two values share a type but have different **units**, the names should indicate the units:
 
 ~~~java
 long timeoutMillis = 500;
 long timeoutSeconds = 2;
 
-// Không được xem 500 và 2 là cùng một đơn vị chỉ vì đều là long.
+// Do not treat 500 and 2 as the same unit just because both are long.
 ~~~
 
-Với những miền quan trọng như thời gian và tiền tệ, có thể dùng kiểu chuyên biệt (ví dụ `Duration`, `BigDecimal`) thay cho một con số trần. Nhưng khi dùng primitive, tên có đơn vị vẫn giúp giảm lỗi.
+For important domains like time and currency, dedicated types (such as `Duration`, `BigDecimal`) can be used instead of raw numbers. Still, when using primitives, unit-bearing names help reduce errors.
 
-**Tránh những tên không mang nội dung**: `data`, `value`, `obj`, `temp`, `str` khi bạn có thể dùng một danh từ cụ thể hơn. Biến vòng lặp ngắn `i` có thể chấp nhận trong đoạn 2–3 dòng rất rõ ngữ cảnh; với vòng lặp dài, `itemIndex` hoặc `orderIndex` dễ hiểu hơn.
+**Avoid content-free names**: `data`, `value`, `obj`, `temp`, `str` when a more specific noun can be used. A short loop variable `i` can be acceptable in a very clear 2–3 line context; for longer loops, `itemIndex` or `orderIndex` is easier to follow.
 
-### Tên boolean như một câu hỏi đúng/sai
+### Boolean Names as True/False Questions
 
-Biến `boolean` thường nên đọc như một mệnh đề:
+`boolean` variables should generally read like a predicate:
 
 ~~~java
 boolean isActive = true;
@@ -102,7 +102,7 @@ boolean canSubmit = isActive && hasPermission;
 boolean isEmpty = itemCount == 0;
 ~~~
 
-Các tiền tố `is`, `has`, `can`, `should` giúp người đọc hiểu phép kiểm tra:
+Prefixes like `is`, `has`, `can`, `should` help readers understand the check:
 
 ~~~java
 if (hasPermission && isActive) {
@@ -110,13 +110,13 @@ if (hasPermission && isActive) {
 }
 ~~~
 
-Đừng đặt `isActive` cho một biến số lượng hoặc một chuỗi; tên phải khớp với kiểu và ý nghĩa thực.
+Do not name a count or string variable `isActive`; the name must match the type and actual meaning.
 
-Không bắt buộc mọi boolean phải bắt đầu bằng `is`. Các tên tự nhiên như `enabled`, `valid` có thể vẫn rõ nghĩa khi thống nhất trong codebase.
+Not every boolean has to start with `is`. Natural names like `enabled` or `valid` can still be clear when used consistently in the codebase.
 
-## 5. Tên tham số: diễn tả hợp đồng của method
+## 5. Parameter Names: Expressing the Method's Contract
 
-Tham số giúp người gọi hiểu **đầu vào** của phương thức. Chọn tên bộc lộ vai trò, miền giá trị và đơn vị:
+Parameters help callers understand a method's **inputs**. Choose names that reveal role, value domain, and unit:
 
 ~~~java
 static long calculateTotalDong(
@@ -133,13 +133,13 @@ static long calculateTotalDong(
 }
 ~~~
 
-`unitPriceDong`, `itemCount` và `discountPercent` giúp người đọc phân biệt **đơn giá**, **số lượng** và **phần trăm giảm**, dù tất cả đều là `int`.
+`unitPriceDong`, `itemCount`, and `discountPercent` help readers distinguish **unit price**, **quantity**, and **discount percentage**, even though all are `int`.
 
-Nếu tham số được đặt tên `a`, `b`, `c`, chữ ký có thể vẫn biên dịch nhưng người gọi phải mở thân method mới hiểu ý nghĩa.
+If parameters are named `a`, `b`, `c`, the signature may still compile, but callers must open the method body to understand what they mean.
 
-### Tránh tên tham số che khuất field nếu không có chủ đích
+### Avoid Unintentional Shadowing of Fields by Parameter Names
 
-Một tình huống hợp lệ:
+A valid situation:
 
 ~~~java
 class Order {
@@ -151,13 +151,13 @@ class Order {
 }
 ~~~
 
-Tham số và field cùng tên là lựa chọn phổ biến; `this.itemCount` giúp nói rõ field, còn `itemCount` chỉ tham số. Không cần đổi thành `theItemCount` hay `pItemCount` chỉ để né việc dùng `this`.
+Sharing the same name between parameter and field is common; `this.itemCount` specifies the field, while `itemCount` refers to the parameter. There is no need to rename to `theItemCount` or `pItemCount` just to avoid using `this`.
 
-Tuy nhiên, ngoài những trường hợp có chủ đích như constructor/setter, cần tránh che khuất tên khiến mã trở nên khó hiểu.
+However, outside intentional cases like constructors/setters, avoid name shadowing that makes code hard to understand.
 
-## 6. Hằng: tên in hoa và dấu gạch dưới
+## 6. Constants: Uppercase Names and Underscores
 
-Khi một giá trị cố định có ý nghĩa và được dùng lại, đặt tên hằng giúp tránh **magic numbers**:
+When a meaningful fixed value is reused, naming a constant helps avoid **magic numbers**:
 
 ~~~java
 private static final int MAX_ITEMS = 5;
@@ -165,7 +165,7 @@ private static final int DEFAULT_DISCOUNT_PERCENT = 10;
 private static final String CURRENCY_CODE = "VND";
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~java
 if (itemCount > MAX_ITEMS) {
@@ -173,35 +173,35 @@ if (itemCount > MAX_ITEMS) {
 }
 ~~~
 
-Tên `MAX_ITEMS` mô tả vai trò của số `5`; tên `DEFAULT_DISCOUNT_PERCENT` nhắc rằng giá trị `10` là **phần trăm**, không phải số tiền.
+`MAX_ITEMS` describes the role of the number `5`; `DEFAULT_DISCOUNT_PERCENT` reminds readers that `10` is a **percentage**, not a currency amount.
 
-### `final` không đồng nghĩa mọi biến phải viết hoa
+### `final` Does Not Mean Every Variable Must Be Uppercase
 
 ~~~java
 final int selectedItemCount = 3;   // final local: lowerCamelCase
 private static final int MAX_ITEMS = 5; // named constant: UPPER_SNAKE_CASE
 ~~~
 
-`final` là **quy tắc ngôn ngữ** giới hạn việc gán lại biến; còn `UPPER_SNAKE_CASE` là **quy ước tên** cho các hằng được đặt tên.
+`final` is a **language rule** restricting variable reassignment; whereas `UPPER_SNAKE_CASE` is a **naming convention** for named constants.
 
-Với `static final` là tham chiếu đến đối tượng mutable, việc không gán lại biến **không** khiến trạng thái của object bất biến. Vì thế, không nên chỉ nhìn tên viết hoa rồi suy đoán dữ liệu chắc chắn bất biến.
+For a `static final` reference to a mutable object, preventing variable reassignment **does not** make the object's state immutable. Therefore, do not judge data immutability solely by seeing an uppercase name.
 
-Các framework/nhóm có thể có ngoại lệ (ví dụ một `static final Logger logger` đặt `lowerCamelCase`). Hãy tuân theo style đã thống nhất thay vì áp dụng bảng một cách máy móc.
+Frameworks or teams may have exceptions (e.g., `static final Logger logger` in `lowerCamelCase`). Follow the agreed style rather than applying a table mechanically.
 
-### Hằng liên quan đến đơn vị
+### Unit-Related Constants
 
-Tên rõ đơn vị giúp người đọc tự kiểm tra khi dùng API:
+Unit-explicit names help readers self-check when using APIs:
 
 ~~~java
 private static final long REQUEST_TIMEOUT_MILLIS = 3_000L;
 private static final int MAX_RETRY_COUNT = 3;
 ~~~
 
-Tránh tên `TIMEOUT` khi không rõ là giây hay mili-giây. Hãy dùng cùng một từ cho cùng một khái niệm trong toàn hệ thống.
+Avoid naming something `TIMEOUT` when it is unclear whether it is seconds or milliseconds. Use the same term for the same concept across the system.
 
-## 7. Chương trình Java 17 chạy được
+## 7. Runnable Java 17 Program
 
-Lưu toàn bộ mã dưới đây vào **`NamingConventionDemo.java`**:
+Save all the code below into **`NamingConventionDemo.java`**:
 
 ~~~java
 public final class NamingConventionDemo {
@@ -251,7 +251,7 @@ public final class NamingConventionDemo {
 }
 ~~~
 
-Mở terminal tại thư mục chứa tệp và sử dụng **JDK 17 hoặc mới hơn**.
+Open a terminal in the directory containing the file and use **JDK 17 or newer**.
 
 **Bash (Linux/macOS):**
 
@@ -280,19 +280,19 @@ canCheckout=true
 maxItems=5
 ~~~
 
-Lý do:
+Explanation:
 
-- `itemCount`, `unitPriceDong`, `discountPercent`, `totalDong` là các tên biến `lowerCamelCase` có ý nghĩa.
-- Các tham số của `calculateTotalDong` cũng sử dụng `lowerCamelCase`.
-- `MAX_ITEMS`, `DEFAULT_DISCOUNT_PERCENT`, `CURRENCY_CODE` là các hằng được đặt tên theo `UPPER_SNAKE_CASE`.
-- `isActive`, `hasPermission`, `canCheckout` diễn đạt trạng thái/điều kiện boolean.
-- `totalDong = 120000 × 3 × (100 - 10) / 100 = 324000` được tính bằng `long` trước khi chia.
+- `itemCount`, `unitPriceDong`, `discountPercent`, `totalDong` are meaningful `lowerCamelCase` variable names.
+- The parameters of `calculateTotalDong` also use `lowerCamelCase`.
+- `MAX_ITEMS`, `DEFAULT_DISCOUNT_PERCENT`, `CURRENCY_CODE` are constants named in `UPPER_SNAKE_CASE`.
+- `isActive`, `hasPermission`, `canCheckout` express boolean states/conditions.
+- `totalDong = 120000 × 3 × (100 - 10) / 100 = 324000` is computed in `long` before division.
 
-Ví dụ tập trung vào quy ước đặt tên. Trong ứng dụng thật, hãy kiểm thử cả dữ liệu biên và xác định quy tắc làm tròn tiền theo hợp đồng nghiệp vụ.
+This example focuses on naming conventions. In a real application, also test boundary data and define currency rounding rules per the business contract.
 
-## 8. Nhất quán tên trong API và lúc đổi tên
+## 8. Name Consistency Across APIs and When Renaming
 
-Giả sử nhiều method dùng chung khái niệm “số lượng sản phẩm”:
+Suppose multiple methods share the concept "number of items":
 
 ~~~java
 int itemCount = 3;
@@ -300,82 +300,82 @@ void updateItemCount(int itemCount) { /* ... */ }
 int getItemCount() { return itemCount; }
 ~~~
 
-Đoạn trên chỉ nhằm minh họa tên: các method cần được đặt trong một class hợp lệ, với field thích hợp nếu muốn dùng chúng như code hoàn chỉnh.
+The snippet above only illustrates naming: methods need to be placed in a valid class with appropriate fields if used as complete code.
 
-Nhất quán `itemCount` tốt hơn dùng `num`, `qty`, `size` và `count` lẫn lộn khi tất cả cùng chỉ số món hàng. Tuy nhiên, `itemCount` và `cartSize` có thể là hai khái niệm khác nhau nếu mô hình nghiệp vụ thật sự khác.
+Consistently using `itemCount` is better than mixing `num`, `qty`, `size`, and `count` when they all refer to item quantity. However, `itemCount` and `cartSize` can be two distinct concepts if the business model actually differs.
 
-### Khi rename
+### When Renaming
 
-- Đổi tên biến cục bộ và tham số bằng chức năng **Rename Refactor** của IDE khi có thể.
-- Nếu đổi tên hằng `MAX_ITEMS`, cập nhật mọi nơi tham chiếu tương ứng.
-- Nếu đổi tên public method/field trong API, kiểm tra tác động đến caller, test, reflection, serialization và tài liệu.
-- Java phân biệt hoa/thường nên `maxItems` không tự biến thành `MAX_ITEMS`; thay đổi chỉ một chữ hoa cũng là đổi định danh.
+- Rename local variables and parameters using your IDE's **Rename Refactor** feature when possible.
+- If renaming a constant like `MAX_ITEMS`, update every corresponding reference.
+- If renaming a public method/field in an API, check impacts on callers, tests, reflection, serialization, and documentation.
+- Java is case-sensitive so `maxItems` does not automatically become `MAX_ITEMS`; changing a single letter's case changes the identifier.
 
-Tên không cần hoàn hảo ngay lần đầu, nhưng nên cải thiện khi hiểu chính xác ý nghĩa dữ liệu và trước khi tên trở thành API mà nhiều nơi phụ thuộc.
+Names do not need to be perfect on the first try, but should be improved once the data meaning is accurately understood and before the name becomes a widely depended-upon API.
 
-## 9. Các tên dễ gây nhầm và phương án tốt hơn
+## 9. Confusing Names and Better Alternatives
 
-| Tên kém rõ | Tên tốt hơn | Điều được làm rõ |
+| Unclear name | Better name | What is clarified |
 |---|---|---|
-| `n` | `itemCount` | Đại lượng được đếm |
-| `p` | `unitPriceDong` | Đơn giá và đơn vị |
-| `t` | `timeoutMillis` | Thời lượng và đơn vị |
-| `flag` | `isActive` | Trạng thái boolean |
-| `x1` | `discountPercent` | Vai trò trong phép tính |
-| `MAX` | `MAX_ITEMS` | Giới hạn cái gì |
-| `DEFAULT` | `DEFAULT_DISCOUNT_PERCENT` | Giá trị mặc định của trường nào |
-| `list` | `customerEmails` | Kiểu dữ liệu/chứa gì ở mức nghiệp vụ |
-| `result` | `totalDong` | Kết quả có ý nghĩa gì |
+| `n` | `itemCount` | Quantity being counted |
+| `p` | `unitPriceDong` | Unit price and currency unit |
+| `t` | `timeoutMillis` | Duration and time unit |
+| `flag` | `isActive` | Boolean state |
+| `x1` | `discountPercent` | Role in the calculation |
+| `MAX` | `MAX_ITEMS` | Limit on what |
+| `DEFAULT` | `DEFAULT_DISCOUNT_PERCENT` | Default value of which field |
+| `list` | `customerEmails` | Business-level content/type |
+| `result` | `totalDong` | What the result means |
 
-Các tên ngắn không phải lúc nào cũng sai. Biến `i` trong vòng lặp hai dòng có thể đủ rõ. Nhưng một tham số thuộc public API tên `x` nên được xem xét kỹ hơn vì người đọc cần hiểu hợp đồng khi gọi method.
+Short names are not always wrong. A loop variable `i` in a two-line loop can be clear enough. However, a public API parameter named `x` deserves closer scrutiny because callers need to understand the contract when invoking the method.
 
-**Tránh tên khiến người đọc suy luận sai kiểu hoặc hành vi**: đừng gọi biến số `isReady` nếu nó chứa `int`, đừng gọi timeout tính bằng mili-giây là `timeoutSeconds`.
+**Avoid names that mislead readers about type or behavior**: do not name an `int` variable `isReady`, and do not name a millisecond timeout `timeoutSeconds`.
 
-## 10. Một số lỗi về naming convention cần phân biệt
+## 10. Naming Convention Errors to Distinguish
 
-| Hiện tượng | Là lỗi compiler hay lỗi convention? | Cách xử lý |
+| Symptom | Compiler error or convention issue? | How to handle |
 |---|---|---|
-| `int 2count = 3;` | Lỗi cú pháp | `int count2 = 3;` |
-| `int class = 1;` | Lỗi cú pháp vì từ khóa | `int classCount = 1;` |
-| `int count_value = 3;` | Có thể biên dịch, sai style thông dụng | `int countValue = 3;` |
-| `int Count = 3;` | Có thể biên dịch, tên biến không theo convention | `int count = 3;` |
-| `static final int maxItems = 5;` | Có thể biên dịch, tên hằng không nhất quán | `MAX_ITEMS` nếu thực sự là named constant |
-| `MAX_ITEMS` và `maxItems` dùng lẫn | Hai định danh khác nhau | Thống nhất ý nghĩa và rename chính xác |
-| Đặt `isEnabled` cho `int` | Có thể biên dịch nhưng đánh lừa người đọc | Tên như `enabledItemCount` |
-| `TIMEOUT_MS` nhưng giá trị tính bằng giây | Lỗi ý nghĩa, compiler khó phát hiện | Đổi đơn vị/giá trị và tên đồng bộ |
+| `int 2count = 3;` | Syntax error | `int count2 = 3;` |
+| `int class = 1;` | Syntax error due to keyword | `int classCount = 1;` |
+| `int count_value = 3;` | Compiles, breaks standard style | `int countValue = 3;` |
+| `int Count = 3;` | Compiles, variable name breaks convention | `int count = 3;` |
+| `static final int maxItems = 5;` | Compiles, inconsistent constant naming | `MAX_ITEMS` if truly a named constant |
+| Mixing `MAX_ITEMS` and `maxItems` | Two distinct identifiers | Unify meaning and rename accurately |
+| Naming an `int` as `isEnabled` | Compiles, but misleads readers | Name like `enabledItemCount` |
+| `TIMEOUT_MS` with a value in seconds | Semantic bug, hard for compiler to catch | Synchronize the unit/value and name |
 
-**Compiler báo “cannot find symbol”** có thể xuất phát từ gõ sai chữ hoa/thường khi tham chiếu tên, chứ không phải vì Java bắt `lowerCamelCase`.
+**Compiler errors like "cannot find symbol"** can stem from casing typos when referencing a name, not because Java requires `lowerCamelCase`.
 
-## 11. Bài tập có đáp án
+## 11. Exercises with Answers
 
-### Bài A — đổi tên theo lowerCamelCase
+### Exercise A — rename to lowerCamelCase
 
-Đổi các tên biến `Total_Price`, `customer_name`, `numberOf_Items` thành tên theo quy ước, giả sử ý nghĩa tương ứng không đổi.
+Rename `Total_Price`, `customer_name`, and `numberOf_Items` according to convention, assuming their corresponding meanings stay unchanged.
 
-**Đáp án gợi ý:** `totalPrice`, `customerName`, `numberOfItems`. Nếu giá có đơn vị cụ thể, có thể tốt hơn nữa: `totalPriceDong`.
+**Suggested answer:** `totalPrice`, `customerName`, `numberOfItems`. If the price has a specific unit, even better: `totalPriceDong`.
 
-### Bài B — phân biệt final local và named constant
+### Exercise B — distinguishing final local and named constant
 
 ~~~java
 final int retryCount = 3;
 static final int MAX_RETRIES = 3;
 ~~~
 
-**Đáp án:** tên `retryCount` theo `lowerCamelCase` phù hợp cho final local; `MAX_RETRIES` theo `UPPER_SNAKE_CASE` phù hợp cho hằng `static final` của class. Dòng thứ hai phải được đặt ở vị trí khai báo field hợp lệ, không đặt `static` trong block method.
+**Answer:** `retryCount` in `lowerCamelCase` fits a `final` local; `MAX_RETRIES` in `UPPER_SNAKE_CASE` fits a `static final` class constant. The second line must be placed in a valid field declaration location, not `static` inside a method block.
 
-### Bài C — tên boolean
+### Exercise C — boolean names
 
-Chọn tên rõ ràng cho ba trạng thái: người dùng đã đăng nhập, tài khoản bị khóa, có thể gửi đơn.
+Choose clear names for three states: user is logged in, account is locked, order can be submitted.
 
-**Đáp án gợi ý:** `isLoggedIn`, `isAccountLocked`, `canSubmitOrder`; dùng kiểu `boolean`.
+**Suggested answer:** `isLoggedIn`, `isAccountLocked`, `canSubmitOrder`; use type `boolean`.
 
-### Bài D — đơn vị không được bỏ qua
+### Exercise D — units must not be omitted
 
-Một tham số nhận thời gian chờ tính bằng mili-giây tên `timeout`. Tên nào rõ hơn?
+A parameter receiving a timeout in milliseconds is named `timeout`. Which name is clearer?
 
-**Đáp án:** `timeoutMillis` hoặc `timeoutMilliseconds`, nhất quán với quy ước của dự án. Nếu dùng kiểu `Duration`, tên `timeout` có thể đủ rõ vì kiểu đã mang ý nghĩa thời lượng.
+**Answer:** `timeoutMillis` or `timeoutMilliseconds`, consistent with project conventions. If using `Duration`, `timeout` can be clear enough because the type already conveys duration.
 
-### Bài E — tên hợp lệ nhưng khó đọc
+### Exercise E — valid but hard-to-read names
 
 ~~~java
 int a = 3;
@@ -383,9 +383,9 @@ int b = 120000;
 long c = (long) a * b;
 ~~~
 
-Hãy đổi tên để người đọc hiểu đơn vị và vai trò.
+Rename them so readers understand the units and roles.
 
-**Đáp án gợi ý:**
+**Suggested answer:**
 
 ~~~java
 int itemCount = 3;
@@ -393,19 +393,19 @@ int unitPriceDong = 120000;
 long subtotalDong = (long) itemCount * unitPriceDong;
 ~~~
 
-Không đổi công thức; chỉ dùng tên giúp giải thích điều đang được tính.
+Do not change the formula; only use names to explain what is being calculated.
 
-## 12. Checklist và kết luận
+## 12. Checklist and Conclusion
 
-- [ ] Phân biệt quy tắc cú pháp bắt buộc với naming convention.
-- [ ] Dùng `lowerCamelCase` nhất quán cho biến và tham số.
-- [ ] Dùng `UPPER_SNAKE_CASE` cho hằng có tên khi phù hợp với style của nhóm.
-- [ ] Hiểu `final` không tự buộc mọi tên biến phải in hoa.
-- [ ] Đặt tên thể hiện đại lượng, đơn vị và trạng thái boolean.
-- [ ] Không dùng tên quá giống nhau chỉ khác chữ hoa/thường.
-- [ ] Phân biệt tên tham số và field có chủ đích bằng `this`.
-- [ ] Tránh magic numbers bằng tên hằng có ý nghĩa.
-- [ ] Biên dịch và chạy `NamingConventionDemo.java` trên JDK 17+, đối chiếu output.
-- [ ] Dùng rename refactoring để thay đổi tên nhất quán và kiểm tra tác động đến API.
+- [ ] Distinguish mandatory syntax rules from naming conventions.
+- [ ] Consistently use `lowerCamelCase` for variables and parameters.
+- [ ] Use `UPPER_SNAKE_CASE` for named constants when matching team style.
+- [ ] Understand that `final` does not force every variable name to be uppercase.
+- [ ] Choose names that express quantity, unit, and boolean state.
+- [ ] Avoid overly similar names differing only by letter case.
+- [ ] Intentionally distinguish parameter and field names using `this`.
+- [ ] Avoid magic numbers using meaningful constant names.
+- [ ] Compile and run `NamingConventionDemo.java` on JDK 17+, matching the output.
+- [ ] Use rename refactoring to update names consistently and check API impact.
 
-**Kết luận:** Tên biến và tham số nên mô tả **dữ liệu hoặc vai trò** theo `lowerCamelCase`; hằng được đặt tên thường dùng `UPPER_SNAKE_CASE`. Đây là quy ước giúp mã rõ ràng và nhất quán, không phải phép màu làm chương trình tự đúng. Hãy kết hợp tên dễ đọc với kiểu phù hợp, đơn vị minh bạch và kiểm thử hành vi thực tế.
+**Conclusion:** Variable and parameter names should describe **data or role** in `lowerCamelCase`; named constants usually use `UPPER_SNAKE_CASE`. These are conventions that keep code clear and consistent, not magic that makes a program automatically correct. Combine readable names with appropriate types, transparent units, and real behavior testing.

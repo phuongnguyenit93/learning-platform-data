@@ -1,37 +1,37 @@
-# Số trong switch và giới hạn theo phiên bản ngôn ngữ (Java)
+# Numbers in switch and language version limits (Java)
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Bài này tập trung vào **kiểu của biểu thức điều kiện trong `switch`**, những kiểu số được Java hỗ trợ ở từng phiên bản, và tác động của **nâng kiểu số (numeric promotion)** lên tính hợp lệ của `switch`/`case`. Sau bài học, bạn có thể:
+This lesson focuses on the **type of the selector expression in `switch`**, which numeric types Java supports in each version, and the impact of **numeric promotion** on the validity of `switch`/`case`. After this lesson, you will be able to:
 
-- Chọn kiểu `byte`, `short`, `char`, `int` hoặc lớp bọc tương ứng cho `switch` ổn định trên Java 17.
-- Giải thích vì sao `byte + byte` tạo `int`, vì sao `case` phải là hằng hợp lệ và tại sao `long`/`double` không được dùng trực tiếp làm selector trên Java 17/21.
-- Phân biệt `switch` statement và expression, kể cả quy tắc `break`, `yield` và tính đầy đủ của các nhánh.
-- Đọc đúng giới hạn lịch sử: `String`/`enum`, pattern matching từ Java 21 và mở rộng selector primitive ở các bản Java 23–27 dưới dạng **preview**.
-- Tránh ép kiểu làm tràn hoặc mất độ chính xác chỉ để dùng `switch`.
+- Choose `byte`, `short`, `char`, `int`, or their corresponding wrappers reliably for `switch` on Java 17.
+- Explain why `byte + byte` produces `int`, why `case` labels must be valid constants, and why `long`/`double` cannot be used directly as selectors on Java 17/21.
+- Distinguish `switch` statements and expressions, including `break`, `yield`, and branch exhaustiveness rules.
+- Read historical version boundaries accurately: `String`/`enum`, pattern matching from Java 21, and expanded primitive selectors in Java 23–27 as a **preview** feature.
+- Avoid casts that cause overflow or precision loss just to use `switch`.
 
-**Phạm vi mã chạy chính:** Java 17 trở lên, không cần preview. Những ví dụ dùng tính năng của Java 21 hoặc preview Java 27 được ghi rõ và tách riêng.
+**Primary runnable scope:** Java 17 and above, without preview flags. Examples using Java 21 features or Java 27 preview are clearly labeled and separated.
 
-## 2. Selector là gì? Những kiểu được chấp nhận trên Java 17
+## 2. What is a selector? Accepted types on Java 17
 
-Trong `switch (expression) { ... }`, `expression` gọi là **selector**. Trước khi xét các nhánh `case`, trình biên dịch kiểm tra *kiểu của toàn bộ biểu thức selector*. Nó không chỉ nhìn kiểu của một biến xuất hiện bên trong biểu thức.
+In `switch (expression) { ... }`, `expression` is called the **selector**. Before inspecting any `case` branches, the compiler checks the *type of the entire selector expression*. It does not just look at the type of one variable inside the expression.
 
-Với Java 17 và các bản Java 21 ở phần switch số nguyên cổ điển, các selector số primitive được hỗ trợ ổn định là:
+In Java 17 and in Java 21 for classic integer switches, the stably supported primitive numeric selectors are:
 
-| Selector | Java 17 | Ghi chú |
+| Selector | Java 17 | Notes |
 | --- | --- | --- |
-| `byte` | Có | Giá trị −128..127 |
-| `short` | Có | Giá trị −32768..32767 |
-| `char` | Có | Giá trị 0..65535 |
-| `int` | Có | Giá trị −2³¹..2³¹−1 |
-| `Byte`, `Short`, `Character`, `Integer` | Có | Lớp bọc được xử lý qua unboxing; `null` có thể gây `NullPointerException` |
-| `long` | Không | Kể cả literal `1L` và kết quả `int + long` |
-| `float`, `double` | Không | Không được mặc định làm tròn để so khớp `case` |
-| `boolean` | Không | Không phải selector của `switch` số nguyên cổ điển |
+| `byte` | Yes | Values −128..127 |
+| `short` | Yes | Values −32768..32767 |
+| `char` | Yes | Values 0..65535 |
+| `int` | Yes | Values −2³¹..2³¹−1 |
+| `Byte`, `Short`, `Character`, `Integer` | Yes | Wrappers handled via unboxing; `null` can cause `NullPointerException` |
+| `long` | No | Including `1L` literals and `int + long` results |
+| `float`, `double` | No | Not implicitly rounded to match `case` labels |
+| `boolean` | No | Not a valid selector for classic integer `switch` |
 
-`enum` cũng được hỗ trợ kể từ Java 5, `String` kể từ Java 7, nhưng chúng không phải kiểu số. Java 21 còn hỗ trợ **selector có kiểu tham chiếu** khi sử dụng pattern matching cho `switch`; chi tiết ở phần 9. Bản Java 27 có tính năng **preview** cho primitive selector rộng hơn; xem phần 10.
+`enum` has also been supported since Java 5 and `String` since Java 7, though they are not numeric types. Java 21 also supports **selectors of reference types** when using pattern matching for `switch`; see section 9 for details. Java 27 has a **preview** feature for broader primitive selectors; see section 10.
 
-Ví dụ hợp lệ trên Java 17:
+Valid examples on Java 17:
 
 ~~~java
 byte b = 2;
@@ -47,18 +47,18 @@ String f = switch (i) { case 10 -> "int"; default -> "?"; };
 String g = switch (boxed) { case 2 -> "Integer"; default -> "?"; };
 ~~~
 
-Đây là các câu lệnh minh họa *bên trong một phương thức*. Chúng không khai báo chương trình Java hoàn chỉnh; chương trình đầy đủ có tại phần 8.
+These are illustrative statements *inside a method*. They do not form a complete Java program; a full program is in section 8.
 
-## 3. Nâng kiểu biểu thức: byte + byte không còn là byte
+## 3. Expression promotion: byte + byte is no longer byte
 
-Java áp dụng **binary numeric promotion** cho nhiều toán tử số học, bao gồm `+`, `-`, `*`, `/`, `%`. Khi cả hai toán hạng là `byte`, `short` hoặc `char`, chúng thường được nâng lên `int` trước khi phép toán diễn ra; kết quả có kiểu `int`.
+Java applies **binary numeric promotion** to many arithmetic operators, including `+`, `-`, `*`, `/`, and `%`. When both operands are `byte`, `short`, or `char`, they are normally promoted to `int` before the operation occurs; the result has type `int`.
 
 ~~~java
 byte left = 4;
 byte right = 3;
 
-int sum = left + right;      // kiểu của (left + right) là int
-// byte impossible = left + right; // lỗi biên dịch: int không tự thu hẹp thành byte
+int sum = left + right;      // type of (left + right) is int
+// byte impossible = left + right; // compile error: int does not auto-narrow to byte
 
 String text = switch (left + right) {
     case 7 -> "seven";
@@ -67,25 +67,25 @@ String text = switch (left + right) {
 System.out.println(text); // seven
 ~~~
 
-`switch (left + right)` **hợp lệ**, vì selector có kiểu `int`, cũng là kiểu được Java 17 hỗ trợ. Không cần ép về `byte` để dùng `switch`.
+`switch (left + right)` is **valid**, because the selector has type `int`, which is also supported on Java 17. There is no need to cast back to `byte` to use `switch`.
 
-Nếu một toán hạng là `long`, biểu thức cộng sẽ được nâng lên `long` (trừ trường hợp có `float`/`double` với cấp cao hơn) và không dùng trực tiếp làm selector Java 17:
+If one operand is `long`, the addition expression is promoted to `long` (unless `float`/`double` with higher precedence is present) and cannot be used directly as a Java 17 selector:
 
 ~~~java
 int count = 2;
 long offset = 1L;
 
-// Không biên dịch trên Java 17 hoặc Java 21:
+// Does not compile on Java 17 or Java 21:
 // switch (count + offset) {
 //     case 3L -> System.out.println("three");
 // }
 ~~~
 
-Cùng logic đó, `switch (a * b)` với `int` hay `byte` được chấp nhận về *kiểu*, nhưng phép toán có thể **tràn** theo số học Java trước khi so khớp `case`. Chỉ vì selector hợp lệ không có nghĩa giá trị tính toán nằm trong miền dự kiến.
+By the same logic, `switch (a * b)` with `int` or `byte` is accepted by *type*, yet the operation can **overflow** under Java arithmetic before matching any `case`. Just because a selector compiles does not mean the computed value stays in the expected range.
 
-### Toán tử một ngôi và chuyển đổi tự động
+### Unary operators and automatic conversions
 
-`+b`, `-b` và `~b` với `b` kiểu `byte` cũng có kết quả `int` (unary numeric promotion):
+`+b`, `-b`, and `~b` with `b` of type `byte` also produce an `int` result (unary numeric promotion):
 
 ~~~java
 byte b = 1;
@@ -96,11 +96,11 @@ System.out.println(negated); // -1
 System.out.println(inverted); // -2
 ~~~
 
-Điều cần xem khi viết `switch` là **kiểu tĩnh sau khi áp dụng các quy tắc biểu thức**, không phải trực giác từ kiểu khai báo của toán hạng ban đầu.
+What matters when writing a `switch` is the **static type after applying expression rules**, not intuition from the original operands' declared types.
 
-## 4. Case phải là hằng hợp lệ và nằm trong miền kiểu selector
+## 4. Case labels must be valid constants within the selector type's range
 
-Trong `switch` hằng số truyền thống (Java 17), `case` cho selector số nguyên phải là **biểu thức hằng tại thời điểm biên dịch** và phải tương thích gán với kiểu selector; một hằng `int` được phép thu hẹp sang `byte`, `short` hoặc `char` khi giá trị nằm trong miền có thể biểu diễn.
+In a traditional constant `switch` (Java 17), a `case` label for an integer selector must be a **compile-time constant expression** and must be assignment-compatible with the selector type; an `int` constant may be narrowed to `byte`, `short`, or `char` when its value lies in the representable range.
 
 ~~~java
 byte level = 100;
@@ -115,33 +115,33 @@ String category = switch (level) {
 System.out.println(category); // second
 ~~~
 
-`FIRST`/`SECOND` là `final int` được gán bằng biểu thức hằng. Chúng vẫn dùng được với `byte` vì 50 và 100 nằm trong khoảng −128..127.
+`FIRST`/`SECOND` are `final int` variables initialized with constant expressions. They still work with `byte` because 50 and 100 lie within −128..127.
 
-Ngược lại:
+Conversely:
 
 ~~~java
 byte b = 1;
 
-// Không biên dịch Java 17:
+// Does not compile on Java 17:
 // String x = switch (b) {
-//     case 128 -> "too large"; // 128 không biểu diễn được bởi byte
+//     case 128 -> "too large"; // 128 cannot be represented by byte
 //     default -> "other";
 // };
 
-// Không biên dịch Java 17:
+// Does not compile on Java 17:
 // int dynamic = Integer.parseInt("1");
 // String y = switch (b) {
-//     case dynamic -> "one";    // dynamic không phải compile-time constant
+//     case dynamic -> "one";    // dynamic is not a compile-time constant
 //     default -> "other";
 // };
 ~~~
 
-Các hằng số có cùng giá trị không được lặp lại giữa các nhánh của cùng một `switch`:
+Constants with the same value cannot be repeated across branches of the same `switch`:
 
 ~~~java
 int n = 2;
 
-// Không biên dịch: trùng giá trị case
+// Does not compile: duplicate case value
 // switch (n) {
 //     case 2 -> System.out.println("two");
 //     case 1 + 1 -> System.out.println("also two");
@@ -149,17 +149,17 @@ int n = 2;
 // }
 ~~~
 
-`case 1 + 1` là một biểu thức hằng **có giá trị 2** nên trùng `case 2`. Lỗi này được phát hiện lúc biên dịch.
+`case 1 + 1` is a constant expression **with value 2**, so it duplicates `case 2`. This error is caught at compile time.
 
-### Khác biệt giữa kiểu hằng và kiểu giá trị runtime
+### Difference between constant types and runtime value types
 
-Một biến `int` thường, dù có giá trị 7 lúc chạy, không trở thành hằng `case`. `final` cũng chưa đủ nếu giá trị được tính bằng lời gọi phương thức. Ví dụ `final int x = Integer.parseInt("7")` vẫn **không** phải *constant variable* theo đặc tả Java.
+An ordinary `int` variable, even if it has value 7 at runtime, never becomes a `case` constant. `final` alone is also insufficient if the value is computed by a method call. For example, `final int x = Integer.parseInt("7")` is still **not** a *constant variable* under the Java specification.
 
-Khi cần phân loại theo phạm vi động (ví dụ `n >= min && n <= max`), dùng `if/else` trên Java 17, hoặc pattern/guard khi dùng Java 21+ đúng ngữ cảnh. Không nên cố nhồi điều kiện runtime vào nhãn `case` hằng số.
+When you need to classify by dynamic ranges (e.g., `n >= min && n <= max`), use `if/else` on Java 17, or patterns/guards when using Java 21+ in the appropriate context. Do not try to force runtime conditions into constant `case` labels.
 
-## 5. Char là số nguyên không dấu 16 bit, nhưng case có quy tắc miền giá trị
+## 5. Char is a 16-bit unsigned integer, yet case labels have range rules
 
-`char` có thể xuất hiện trong `switch` và đại diện một đơn vị mã UTF-16 từ 0 đến 65535. Một hằng ký tự như `'A'` có giá trị 65; Java cho phép viết `case 'A'` hoặc `case 65` khi selector là `char`:
+`char` can appear in a `switch` and represents a UTF-16 code unit from 0 to 65535. A character constant like `'A'` has value 65; Java allows writing either `case 'A'` or `case 65` when the selector is `char`:
 
 ~~~java
 char letter = 'A';
@@ -171,13 +171,13 @@ String result = switch (letter) {
 System.out.println(result); // Latin capital A
 ~~~
 
-Nhưng `case -1` hoặc `case 65536` không hợp lệ cho selector `char`: các hằng đó ngoài miền 0..65535.
+However, `case -1` or `case 65536` is invalid for a `char` selector: those constants are outside the 0..65535 range.
 
-`char` không biểu diễn mọi ký tự Unicode thành **một** giá trị duy nhất: ký tự bổ sung nằm ngoài BMP dùng cặp surrogate UTF-16. Nếu yêu cầu phân loại **code point** Unicode, hãy lấy giá trị `int` code point (ví dụ `String.codePointAt(...)`), rồi dùng `switch (intCodePoint)`. Không nên coi mọi ký tự Unicode đều là một `char`.
+`char` does not represent every Unicode character as **one** single value: supplementary characters outside the BMP use a UTF-16 surrogate pair. If you need to classify Unicode **code points**, obtain the `int` code point (for example `String.codePointAt(...)`), and then use `switch (intCodePoint)`. Do not assume every Unicode character is a single `char`.
 
-## 6. Switch statement, switch expression và các nhánh số
+## 6. Switch statements, switch expressions, and numeric branches
 
-### Statement với dấu hai chấm (cú pháp truyền thống)
+### Statement with colons (traditional syntax)
 
 ~~~java
 int code = 2;
@@ -193,11 +193,11 @@ switch (code) {
 }
 ~~~
 
-Đoạn trên in `two`. Với dạng `case ...:`, nếu thiếu `break`, luồng chạy có thể **fall through** sang các nhánh tiếp theo. Đây là hành vi của câu lệnh, không liên quan đến tự động chuyển đổi kiểu số.
+The snippet above prints `two`. With the `case ...:` form, if `break` is missing, execution can **fall through** into subsequent branches. This is statement control-flow behavior, unrelated to automatic numeric type conversion.
 
-### Switch rule với mũi tên
+### Switch rule with arrow
 
-Từ Java 14, dạng `case ... ->` là cú pháp ổn định; không fall through:
+Since Java 14, the `case ... ->` form is standard syntax and does not fall through:
 
 ~~~java
 int code = 2;
@@ -208,11 +208,11 @@ switch (code) {
 }
 ~~~
 
-Dạng này in `two or three`. Trong **switch statement**, biểu thức ngay sau mũi tên phải là statement expression, khối lệnh hoặc `throw`; không thể viết bừa một biểu thức số không có tác dụng và coi nó là câu lệnh hợp lệ.
+This form prints `two or three`. In a **switch statement**, what follows the arrow must be a statement expression, a block, or `throw`; you cannot arbitrarily write a side-effect-free numeric expression and expect it to be a valid statement.
 
-### Switch expression tạo ra giá trị
+### Switch expression produces a value
 
-`switch` **expression** là tính năng chuẩn từ Java 14. Nó phải tạo ra một giá trị cho mọi khả năng có thể đi đến nhánh và cần **exhaustive**; với selector `int` thường thêm `default`.
+A `switch` **expression** has been a standard feature since Java 14. It must produce a value for every possible path reaching a branch and must be **exhaustive**; with an `int` selector, `default` is normally required.
 
 ~~~java
 int level = 3;
@@ -229,13 +229,13 @@ int score = switch (level) {
 System.out.println(score); // 25
 ~~~
 
-Trong khối `case 3 -> { ... }`, từ khóa `yield` chuyển **giá trị kết quả của switch expression** ra ngoài. `break` trong switch statement truyền thống chỉ thoát khỏi câu lệnh; không dùng `break value` để trả giá trị trong cú pháp Java 17. 
+Inside the `case 3 -> { ... }` block, the `yield` keyword returns the **result value of the switch expression**. `break` in a traditional switch statement only exits the statement; you do not use `break value` to return a value in Java 17 syntax.
 
-Ngoài ra, **kiểu của kết quả switch expression** là vấn đề riêng so với **kiểu của selector**. Các nhánh trả kết quả phải tương thích với ngữ cảnh gán/return; đừng suy rằng vì selector là `byte` nên kết quả luôn có kiểu `byte`.
+Additionally, **the result type of a switch expression** is a separate question from **the type of the selector**. The values yielded by branches must be compatible with the assignment/return context; do not assume that because the selector is `byte`, the result always has type `byte`.
 
-## 7. Wrapper, unboxing, null và giới hạn của kiểu Number
+## 7. Wrappers, unboxing, null, and Number type limits
 
-Java 17 hỗ trợ `Byte`, `Short`, `Character` và `Integer` làm selector bằng cách unbox. Giá trị trong wrapper hợp lệ, nhưng **đối tượng null không thể unbox**.
+Java 17 supports `Byte`, `Short`, `Character`, and `Integer` as selectors via unboxing. Valid values inside wrappers work, yet **a null object cannot be unboxed**.
 
 ~~~java
 Integer status = Integer.valueOf(2);
@@ -247,23 +247,23 @@ String message = switch (status) {
 System.out.println(message); // accepted
 ~~~
 
-Nếu `status = null`, `switch (status)` theo dạng hằng số Java 17 sẽ ném `NullPointerException` trước khi chọn nhánh. `default` **không** phải cơ chế xử lý `null`.
+If `status = null`, a traditional constant `switch (status)` on Java 17 throws `NullPointerException` before choosing any branch. `default` is **not** a mechanism for handling `null`.
 
-`Long`, `Float`, `Double` và `Number` **không** phải selector cho switch theo hằng số truyền thống của Java 17. Ví dụ:
+`Long`, `Float`, `Double`, and `Number` are **not** selectors for traditional constant switches in Java 17. Example:
 
 ~~~java
 Number numeric = Integer.valueOf(2);
-// Không biên dịch trên Java 17:
+// Does not compile on Java 17:
 // switch (numeric) {
 //     case 2 -> System.out.println("two");
 // }
 ~~~
 
-Nếu hợp đồng API bảo đảm đầu vào đúng `Integer`, có thể lấy `numeric.intValue()` sau khi xác nhận kiểu/miền; nhưng nếu `numeric` là `Long` rất lớn hoặc `BigDecimal` có phần lẻ, `intValue()` có thể làm mất dữ liệu. Trường hợp tổng quát nên dùng cách phân loại khác hoặc tận dụng pattern matching trên Java 21+.
+If the API contract guarantees the input is an `Integer`, you can take `numeric.intValue()` after confirming type/range; however, if `numeric` is a huge `Long` or a `BigDecimal` with a fractional part, `intValue()` can lose data. In general cases, use another classification approach or take advantage of pattern matching on Java 21+.
 
-## 8. Chương trình Java 17+ hoàn chỉnh và output
+## 8. Complete Java 17+ program and output
 
-Lưu thành tệp `NumericSwitchDemo.java`:
+Save as `NumericSwitchDemo.java`:
 
 ~~~java
 public class NumericSwitchDemo {
@@ -323,14 +323,14 @@ public class NumericSwitchDemo {
 }
 ~~~
 
-Biên dịch và chạy trên JDK 17 hoặc mới hơn:
+Compile and run on JDK 17 or newer:
 
 ~~~bash
 javac --release 17 NumericSwitchDemo.java
 java NumericSwitchDemo
 ~~~
 
-Stdout chính xác:
+Exact stdout:
 
 ~~~text
 sum=7, label=seven
@@ -341,20 +341,20 @@ code 3 score=25
 outside int range
 ~~~
 
-Giải thích:
+Explanation:
 
-1. `left + right` có kiểu `int`, nên `switch (sum)` hợp lệ.
-2. `byteLabel((byte) -1)` so khớp `case -1` hợp lệ trong miền `byte`.
-3. Selector `char` so khớp hằng số nguyên `65` vì giá trị có thể biểu diễn bởi `char`.
-4. `Integer boxed` tự unbox thành `int` khi truyền cho `score(int)`; giá trị 2 nhận 10 điểm.
-5. Nhánh `case 3` dùng `yield` để trả 25 điểm.
-6. `Math.toIntExact` phát hiện 2.147.483.648 vượt miền `int`. Không có phép ép ngầm nguy hiểm từ `long` xuống `int`.
+1. `left + right` has type `int`, so `switch (sum)` is valid.
+2. `byteLabel((byte) -1)` matches `case -1` validly within the `byte` range.
+3. The `char` selector matches integer constant `65` because the value is representable by `char`.
+4. `Integer boxed` unboxes automatically to `int` when passed to `score(int)`; value 2 receives 10 points.
+5. The `case 3` branch uses `yield` to return 25 points.
+6. `Math.toIntExact` detects that 2,147,483,648 exceeds the `int` range. There is no dangerous silent cast from `long` to `int`.
 
-## 9. Hạn chế theo phiên bản: Java 21 mở rộng switch theo kiểu tham chiếu
+## 9. Version limits: Java 21 expands switch to reference types
 
-**Java 21** đưa *pattern matching for switch* thành tính năng chuẩn. Điều này mở rộng `switch` cho các **kiểu tham chiếu** như `Object`, `Number` hoặc `Long` khi dùng pattern hợp lệ trong `case`. Nó **không** làm cho `long`, `float`, `double`, `boolean` dạng primitive trở thành selector hợp lệ trực tiếp trong Java 21.
+**Java 21** made *pattern matching for switch* a standard feature. This expands `switch` to **reference types** such as `Object`, `Number`, or `Long` when using valid patterns in `case` branches. It **does not** make primitive `long`, `float`, `double`, or `boolean` directly valid selectors in Java 21.
 
-Ví dụ dưới đây yêu cầu JDK 21+, không dùng preview:
+The example below requires JDK 21+, with no preview needed:
 
 ~~~java
 public class ReferenceNumberSwitch {
@@ -375,7 +375,7 @@ public class ReferenceNumberSwitch {
 }
 ~~~
 
-Biên dịch/chạy bằng JDK 21 hoặc mới hơn:
+Compile/run with JDK 21 or newer:
 
 ~~~bash
 javac --release 21 ReferenceNumberSwitch.java
@@ -390,9 +390,9 @@ missing
 other number
 ~~~
 
-`case Long l` là **type pattern** áp dụng cho một đối tượng `Long`, không phải hằng `case 42L` cho primitive `long`. `case null` xuất hiện trong switch pattern hiện đại, cho phép xử lý null có chủ đích; Java 17 ổn định không hỗ trợ cùng cú pháp đó. Phân biệt **selector tham chiếu `Long`** với **selector primitive `long`** là then chốt khi đọc code đa phiên bản.
+`case Long l` is a **type pattern** matching a `Long` object, not a `case 42L` constant for primitive `long`. `case null` appears in modern pattern switches, allowing intentional null handling; stable Java 17 does not support that same syntax. Distinguishing a **reference `Long` selector** from a **primitive `long` selector** is crucial when reading multi-version code.
 
-Trong Java 21, có thể thêm guard `when`:
+In Java 21, you can add a `when` guard:
 
 ~~~java
 static String classify(Number n) {
@@ -405,28 +405,28 @@ static String classify(Number n) {
 }
 ~~~
 
-Đây là một *phương thức minh họa* dành cho Java 21+, chưa phải chương trình độc lập. Guard là điều kiện runtime của **pattern case**, khác với yêu cầu nhãn `case` số truyền thống phải là hằng tại thời điểm biên dịch.
+This is an *illustrative method* for Java 21+, not a standalone program. A guard is a runtime condition on a **pattern case**, unlike traditional numeric `case` labels which must be compile-time constants.
 
-## 10. Từ Java 23 đến Java 27: các selector primitive mới đang ở preview
+## 10. From Java 23 to Java 27: new primitive selectors remain in preview
 
-Lịch sử phát triển quan trọng:
+Important version history:
 
-| Phiên bản | Thay đổi đáng nhớ |
+| Version | Notable change |
 | --- | --- |
-| Java 1.0 | `switch` trên `byte`, `short`, `char`, `int` |
-| Java 5 | Thêm enum và các wrapper `Byte`, `Short`, `Character`, `Integer` |
-| Java 7 | `String` làm selector |
-| Java 12–13 | `switch expression` và rule `->` thử nghiệm (preview) |
-| Java 14 | `switch expression` và rule `->` trở thành chuẩn |
-| Java 17 | Các kiểu selector số truyền thống vẫn giới hạn đến `int`; pattern switch chỉ là preview, không phải cú pháp chuẩn |
-| Java 21 | Pattern matching cho `switch` trở thành chuẩn; mở rộng selector sang kiểu tham chiếu |
-| Java 23 | *Primitive Types in Patterns, instanceof, and switch*: preview lần đầu |
-| Java 24 | Preview lần hai |
-| Java 25 | Preview lần ba (JEP 507) |
-| Java 26 | Preview lần bốn (JEP 530) |
-| Java 27 | Preview lần năm (JEP 532); **chưa phải tính năng ngôn ngữ chuẩn** |
+| Java 1.0 | `switch` on `byte`, `short`, `char`, `int` |
+| Java 5 | Added `enum` and wrappers `Byte`, `Short`, `Character`, `Integer` |
+| Java 7 | `String` as selector |
+| Java 12–13 | `switch expression` and `->` rule experimental (preview) |
+| Java 14 | `switch expression` and `->` rule became standard |
+| Java 17 | Traditional numeric selector types still limited up to `int`; pattern switch only preview, not standard syntax |
+| Java 21 | Pattern matching for `switch` became standard; expanded selectors to reference types |
+| Java 23 | *Primitive Types in Patterns, instanceof, and switch*: first preview |
+| Java 24 | Second preview |
+| Java 25 | Third preview (JEP 507) |
+| Java 26 | Fourth preview (JEP 530) |
+| Java 27 | Fifth preview (JEP 532); **not yet a standard language feature** |
 
-Trong phiên bản Java 27 có bật preview, phạm vi selector primitive được mở rộng, bao gồm `long` và các kiểu primitive trước đó không dùng trực tiếp được. Ví dụ **chỉ dành cho JDK 27 preview**:
+In Java 27 with preview enabled, the scope of primitive selectors is expanded to include `long` and primitive types not previously usable directly. Example **for JDK 27 preview only**:
 
 ~~~java
 public class PreviewLongSwitch {
@@ -442,30 +442,30 @@ public class PreviewLongSwitch {
 }
 ~~~
 
-Chỉ khi môi trường đã cài đúng **JDK 27** có hỗ trợ tính năng preview tương ứng, biên dịch/chạy bằng:
+Only when the environment has **JDK 27** installed with support for the corresponding preview feature, compile/run with:
 
 ~~~bash
 javac --enable-preview --release 27 PreviewLongSwitch.java
 java --enable-preview PreviewLongSwitch
 ~~~
 
-Dự kiến stdout:
+Expected stdout:
 
 ~~~text
 five billion
 ~~~
 
-**Không** dùng ví dụ preview làm bằng chứng rằng `switch (long)` chạy được dưới `--release 17` hoặc `--release 21`. Preview phụ thuộc **đúng phiên bản JDK và cờ biên dịch/chạy**; hành vi/cú pháp có thể thay đổi hoặc chưa bao giờ trở thành tính năng chuẩn. Đối với module Java 17 hoặc hệ thống cần chạy lâu dài, nên giữ các ví dụ chính ở phạm vi `switch` ổn định.
+**Do not** use the preview example as proof that `switch (long)` runs under `--release 17` or `--release 21`. Preview features depend on the **exact JDK version and compile/run flags**; behavior/syntax may change or never become a standard feature. For Java 17 modules or long-lived systems, keep main examples within the stable `switch` scope.
 
-## 11. Cách giải quyết khi đầu vào thật sự là long, double hoặc số lớn
+## 11. Workarounds when input is genuinely long, double, or a big number
 
-### 11.1. long nhưng miền giá trị chắc chắn thuộc int
+### 11.1. `long` whose value range is guaranteed to fit in `int`
 
-Nếu dữ liệu luôn nằm trong miền `int`, hãy **kiểm tra** trước khi chuyển:
+If the data always fits within `int`, **check** before converting:
 
 ~~~java
 static String classifyLongSafely(long value) {
-    int small = Math.toIntExact(value); // ném ArithmeticException nếu ngoài int
+    int small = Math.toIntExact(value); // throws ArithmeticException if outside int
     return switch (small) {
         case 0 -> "zero";
         case 1 -> "one";
@@ -474,11 +474,11 @@ static String classifyLongSafely(long value) {
 }
 ~~~
 
-Đây là phương thức minh họa cho Java 17. Không dùng ép kiểu mù `(int) value` nếu ngoài miền: ví dụ `(int) 4_294_967_296L` là `0`, dễ bị nhầm thành giá trị `case 0` dù dữ liệu đầu vào khác xa số 0.
+This is an illustrative method for Java 17. Do not blindly cast `(int) value` if it could be out of range: for example, `(int) 4_294_967_296L` is `0`, which could mistakenly match `case 0` even though the input is nowhere near zero.
 
-### 11.2. long có miền lớn hơn int
+### 11.2. `long` with a range larger than `int`
 
-Nếu ứng dụng chạy Java 17/21 với primitive `long` tùy ý, có thể dùng `if/else if` trực tiếp:
+If an application runs Java 17/21 with arbitrary primitive `long` values, you can use `if/else if` directly:
 
 ~~~java
 static String classifyLargeLong(long value) {
@@ -492,13 +492,13 @@ static String classifyLargeLong(long value) {
 }
 ~~~
 
-Không cần chuyển qua `String` rồi `switch` chỉ để lách kiểm tra kiểu; cách đó dễ tạo chi phí chuyển đổi và có thể làm mờ ý nghĩa dữ liệu. Nếu đã xử lý một giao thức chuỗi hoặc có enum trạng thái, `switch` trên chuỗi/enum có thể phù hợp vì hợp đồng dữ liệu vốn là loại đó.
+There is no need to convert to `String` and then `switch` just to bypass type checking; that adds conversion overhead and can obscure data semantics. If you are already processing a string protocol or have a status enum, switching on string/enum can be appropriate because the data contract is naturally that type.
 
-### 11.3. double và vấn đề độ chính xác
+### 11.3. `double` and precision concerns
 
-Trên Java 17/21, `switch (double)` không được hỗ trợ. Không dùng ép sang `int` để phân loại số thực khi phần thập phân còn có ý nghĩa: `(int) 2.9` cho 2, khiến 2.9 vô tình trùng nhánh của 2.0.
+On Java 17/21, `switch (double)` is not supported. Do not cast to `int` to classify floating-point numbers when the fractional part still matters: `(int) 2.9` gives 2, causing 2.9 to accidentally match the 2.0 branch.
 
-Nếu dữ liệu là phép đo, chọn logic phạm vi hoặc ngưỡng sai số đã được định nghĩa cho nghiệp vụ:
+If the data represents measurements, use range logic or error tolerances defined for the domain:
 
 ~~~java
 static String temperatureBand(double celsius) {
@@ -515,30 +515,30 @@ static String temperatureBand(double celsius) {
 }
 ~~~
 
-Đây là một phương thức Java 17 minh họa. Ngưỡng chỉ để trình bày kỹ thuật; ứng dụng thực phải đặt giới hạn theo nghiệp vụ. `NaN` cần kiểm tra riêng vì mọi so sánh thứ tự với `NaN` đều false; `+Infinity` ở ví dụ trên đi vào nhánh `hot` và `-Infinity` vào `freezing`, nên hãy quy định chính sách dữ liệu vô hạn nếu đầu vào có thể gặp các giá trị này.
+This is an illustrative Java 17 method. Thresholds are merely for technical demonstration; real applications must set domain-appropriate limits. `NaN` needs a separate check because all ordering comparisons with `NaN` are false; `+Infinity` in the example above enters the `hot` branch and `-Infinity` enters `freezing`, so define an explicit infinity policy if inputs may contain these values.
 
-### 11.4. BigInteger, BigDecimal và Number
+### 11.4. BigInteger, BigDecimal, and Number
 
-Các lớp số lớn có thể được so sánh bằng `BigInteger.compareTo`, `BigDecimal.compareTo` hoặc bằng API kiểu miền cụ thể. Với Java 21+, type pattern `switch (Number n)` giúp **phân loại lớp đối tượng**, nhưng không biến một `BigInteger` bất kỳ thành hằng `case 123`. Nếu muốn phân nhánh theo giá trị, hãy kiểm tra/so sánh giá trị hoặc đổi sang kiểu nhỏ hơn **sau khi xác nhận miền và độ chính xác**.
+Big number classes can be compared using `BigInteger.compareTo`, `BigDecimal.compareTo`, or domain-specific APIs. With Java 21+, a `switch (Number n)` type pattern helps **classify the object's runtime class**, but does not turn an arbitrary `BigInteger` into a `case 123` constant. If you want to branch by value, compare values or convert to a narrower type **after verifying range and precision**.
 
-## 12. Lỗi hay gặp
+## 12. Common pitfalls
 
-| Cách viết hoặc suy nghĩ | Vấn đề | Hướng xử lý |
+| Code or assumption | Issue | How to handle |
 | --- | --- | --- |
-| `switch (byteValue + byteValue2)` luôn là switch của byte | Phép cộng nâng thành `int` | Đọc kiểu của toàn biểu thức; case theo miền `int` |
-| `switch (longValue)` trên Java 17 | Lỗi biên dịch selector type | `Math.toIntExact` nếu bảo đảm miền; nếu không dùng `if/else` |
-| `switch (doubleValue)` trên Java 17 | Lỗi biên dịch | Dùng điều kiện theo miền, tránh làm mất phần thập phân |
-| `case 128` với selector `byte` | Hằng ngoài miền byte | Dùng hằng thuộc miền hoặc đổi mô hình selector |
-| `case variable` với biến runtime | Không phải constant expression | Dùng hằng tại compile time; điều kiện động qua `if` hoặc guard ở Java 21+ |
-| `case 2` và `case 1 + 1` | Nhãn trùng giá trị | Loại bỏ nhãn trùng |
-| `switch ((int) hugeLong)` | Có thể tràn thu hẹp | Kiểm tra bằng `Math.toIntExact` trước |
-| `default` sẽ bắt được wrapper null | Java 17 ném `NullPointerException` | Kiểm tra null trước; hoặc `case null` với Java 21+ phù hợp |
-| Switch expression chỉ có vài `case` của `int`, không có `default` | Không exhaustive | Thêm `default` hoặc các nhánh đầy đủ |
-| Lấy code Java 27 preview dùng với Java 21 | Cú pháp không được hỗ trợ | Dùng API chuẩn của phiên bản mục tiêu |
+| `switch (byteValue + byteValue2)` is still a switch on byte | Addition promotes to `int` | Read the type of the whole expression; write cases within `int` range |
+| `switch (longValue)` on Java 17 | Compile error on selector type | Use `Math.toIntExact` if range is guaranteed; otherwise use `if/else` |
+| `switch (doubleValue)` on Java 17 | Compile error | Use range conditions, avoiding loss of fractional parts |
+| `case 128` with a `byte` selector | Constant outside byte range | Use an in-range constant or change the selector model |
+| `case variable` with a runtime variable | Not a constant expression | Use compile-time constants; dynamic conditions via `if` or guards on Java 21+ |
+| `case 2` and `case 1 + 1` | Duplicate case label value | Remove duplicate labels |
+| `switch ((int) hugeLong)` | Can overflow when narrowing | Check with `Math.toIntExact` beforehand |
+| `default` will catch a null wrapper | Java 17 throws `NullPointerException` | Check null beforehand; or `case null` on Java 21+ where applicable |
+| Switch expression with only a few `int` cases and no `default` | Not exhaustive | Add `default` or cover all cases |
+| Using Java 27 preview code with Java 21 | Unsupported syntax | Stick to standard features of the target version |
 
-## 13. Bài tập tự kiểm tra
+## 13. Self-check exercises
 
-**Bài 1.** Đoạn sau hợp lệ hay không trên Java 17?
+**Exercise 1.** Is the following snippet valid on Java 17?
 
 ~~~java
 byte x = 10, y = 20;
@@ -548,29 +548,29 @@ String label = switch (x + y) {
 };
 ~~~
 
-**Đáp án:** Hợp lệ. `x + y` là `int` do binary numeric promotion, và `case 30` là hằng `int` hợp lệ. Giá trị `label` bằng `"thirty"`.
+**Answer:** Valid. `x + y` is `int` due to binary numeric promotion, and `case 30` is a valid `int` constant. The value of `label` is `"thirty"`.
 
-**Bài 2.** Vì sao `case 500` không hợp lệ trong `switch (short s)`?
+**Exercise 2.** Why is `case 500` invalid in `switch (short s)`?
 
-**Đáp án:** Thực ra **hợp lệ**: 500 nằm trong miền `short`. `case 40000` mới không hợp lệ vì vượt 32767. Cần kiểm tra đúng miền của **kiểu selector**, không suy từ cách viết literal `int`.
+**Answer:** Actually it is **valid**: 500 is within the `short` range. `case 40000` is the one that is invalid because it exceeds 32767. Always check the range of the **selector type**, rather than judging from how an `int` literal is written.
 
-**Bài 3.** Vì sao khai báo `final int id = Integer.parseInt("2")` vẫn không cho phép `case id`?
+**Exercise 3.** Why does declaring `final int id = Integer.parseInt("2")` still not allow `case id`?
 
-**Đáp án:** `parseInt` là lời gọi phương thức, không phải biểu thức hằng theo Java Language Specification. `final` chỉ ngăn gán lại biến; không tự biến kết quả runtime thành hằng lúc biên dịch.
+**Answer:** `parseInt` is a method call, not a constant expression per the Java Language Specification. `final` only prevents reassigning the variable; it does not turn a runtime result into a compile-time constant.
 
-**Bài 4.** Mã Java 21 `switch (Number n) { case Long l -> ... }` có chứng tỏ `switch (long l)` đã được hỗ trợ không?
+**Exercise 4.** Does the Java 21 code `switch (Number n) { case Long l -> ... }` prove that `switch (long l)` is now supported?
 
-**Đáp án:** Không. Trường hợp đầu là **pattern matching theo kiểu tham chiếu** `Long`, còn trường hợp sau dùng **primitive** `long`. Mở rộng selector primitive là một preview riêng ở các JDK mới hơn.
+**Answer:** No. The first case is **pattern matching on the reference type** `Long`, whereas the second uses **primitive** `long`. Expanding primitive selectors is a separate preview feature in newer JDKs.
 
-**Bài 5.** Khi có `long value = 4_294_967_296L`, điều gì nguy hiểm trong `switch ((int) value)`?
+**Exercise 5.** Given `long value = 4_294_967_296L`, what is dangerous about `switch ((int) value)`?
 
-**Đáp án:** `(int) value` bằng 0 do lấy 32 bit thấp, nên `case 0` có thể khớp sai ý định. Nếu giá trị phải thuộc miền `int`, `Math.toIntExact(value)` sẽ báo lỗi thay vì lặng lẽ đổi thành 0.
+**Answer:** `(int) value` equals 0 because it keeps only the low 32 bits, so `case 0` could match unintentionally. If the value must stay within the `int` range, `Math.toIntExact(value)` will report an error instead of silently turning it into 0.
 
-## 14. Nguồn tham khảo và điểm cần nhớ
+## 14. References and key takeaways
 
-- [Java Language Specification, Java SE 17 — switch statements](https://docs.oracle.com/javase/specs/jls/se17/html/jls-14.html#jls-14.11) và [switch expressions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.28): quy tắc selector, nhãn case, tính exhaustive, kết quả biểu thức.
-- [Dev.java — Using preview features](https://dev.java/learn/first-steps/using-preview/): `switch expression` thành tính năng chuẩn trong Java 14.
-- [Java SE 21 — Pattern Matching for switch](https://docs.oracle.com/en/java/javase/21/language/pattern-matching-switch.html): kiểu tham chiếu và nhánh pattern.
-- [Java SE 27 — Primitive Types in Patterns, instanceof, and switch](https://docs.oracle.com/en/java/javase/27/language/primitive-types-patterns-instanceof-switch.html): JEP 532, preview lần năm.
+- [Java Language Specification, Java SE 17 — switch statements](https://docs.oracle.com/javase/specs/jls/se17/html/jls-14.html#jls-14.11) and [switch expressions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.28): selector rules, case labels, exhaustiveness, expression results.
+- [Dev.java — Using preview features](https://dev.java/learn/first-steps/using-preview/): `switch expression` became a standard feature in Java 14.
+- [Java SE 21 — Pattern Matching for switch](https://docs.oracle.com/en/java/javase/21/language/pattern-matching-switch.html): reference types and pattern branches.
+- [Java SE 27 — Primitive Types in Patterns, instanceof, and switch](https://docs.oracle.com/en/java/javase/27/language/primitive-types-patterns-instanceof-switch.html): JEP 532, fifth preview.
 
-**Ghi nhớ:** Trước hết xét **kiểu tĩnh của selector sau numeric promotion**. Với Java 17, switch số nguyên truyền thống nhận `byte`/`short`/`char`/`int` và bốn wrapper tương ứng; case là hằng compile time tương thích miền. Java 21 mở rộng switch theo **kiểu tham chiếu** bằng pattern, còn mở rộng trực tiếp `switch (long/float/double/boolean)` vẫn là **preview trong Java 27**. Khi ép kiểu để dùng switch, luôn xác minh miền và sự chính xác của giá trị.
+**Key takeaway:** First inspect the **static type of the selector after numeric promotion**. On Java 17, traditional integer switch accepts `byte`/`short`/`char`/`int` and their four corresponding wrappers; `case` labels are compile-time constants compatible with the selector's range. Java 21 expands `switch` to **reference types** via patterns, while direct `switch (long/float/double/boolean)` remains a **preview feature in Java 27**. Whenever casting to use `switch`, always verify value range and precision.

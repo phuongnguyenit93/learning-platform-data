@@ -1,40 +1,40 @@
-# Phân biệt `--add-exports` với `--add-opens` trong Java Module System
+# Distinguishing `--add-exports` from `--add-opens` in the Java Module System
 
-## 1. Vì sao cần hai tùy chọn này?
+## 1. Why Are These Two Options Needed?
 
-Từ Java 9, Java Platform Module System (JPMS) quản lý cả **phụ thuộc module** và **mức độ hiển thị package**. Một class được khai báo `public` vẫn chưa chắc sử dụng được từ module khác: package của class ấy có thể chưa được `exports`. Mặt khác, một framework dùng Reflection đôi khi cần đọc constructor, field hoặc method không public, mà quyền truy cập thông thường vẫn không cho phép.
+Since Java 9, the Java Platform Module System (JPMS) manages both **module dependencies** and **package visibility**. A class declared `public` is still not guaranteed to be usable from another module: its package may not have been `exports`-ed. On the other hand, a framework using Reflection sometimes needs to read non-public constructors, fields, or methods that normal access permissions still disallow.
 
-Hai tùy chọn dòng lệnh cho phép thêm ngoại lệ vào cấu hình module:
+Two command-line options let you add exceptions to module configuration:
 
-- **`--add-exports`**: xuất một package của module nguồn cho module đích, để module đích có thể sử dụng **kiểu public và thành viên truy cập được theo quy tắc Java**, bao gồm truy cập trực tiếp khi biên dịch và khi chạy. Nó **không tự mở quyền vào private field/method**.
-- **`--add-opens`**: mở một package cho module đích thực hiện **deep reflection tại runtime**, ví dụ `getDeclaredField(...)` rồi `trySetAccessible()` / `setAccessible(true)`. Nó **không biến package đó thành package được export cho trình biên dịch**.
+- **`--add-exports`**: exports a package of a source module to a target module, so the target module can use **public types and accessible members under Java rules**, including direct access at compile time and runtime. It **does not automatically open access to private fields/methods**.
+- **`--add-opens`**: opens a package to a target module to perform **deep reflection at runtime**, such as `getDeclaredField(...)` followed by `trySetAccessible()` / `setAccessible(true)`. It **does not turn that package into an exported package for the compiler**.
 
-Cả hai đều là ngoại lệ đối với tính đóng gói mạnh (*strong encapsulation*). Khi thiết kế một module mình sở hữu, nên cân nhắc khai báo `exports` / `opens` có chủ đích trong `module-info.java` trước khi cần đến cờ dòng lệnh. Khi phải tương thích với thư viện cũ, hãy mở đúng package cho đúng module cần dùng.
+Both are exceptions to *strong encapsulation*. When designing a module you own, consider declaring `exports` / `opens` intentionally in `module-info.java` before reaching for command-line flags. When compatibility with legacy libraries is required, open only the right package to the right module that needs it.
 
-## 2. So sánh nhanh
+## 2. Quick Comparison
 
-| Tiêu chí | `--add-exports` | `--add-opens` |
+| Criterion | `--add-exports` | `--add-opens` |
 | --- | --- | --- |
-| Mục đích chính | Cho phép sử dụng API `public` của package bị đóng gói | Cho phép Reflection truy cập sâu tới cả thành viên không public |
-| Truy cập trực tiếp từ mã nguồn Java bên ngoài module | **Có**, đối với các kiểu/thành viên mà Java visibility cho phép | **Không cấp quyền biên dịch** cho import hoặc gọi trực tiếp |
-| Dùng với `javac` | **Có tác dụng** trong biên dịch | Không mở quyền biên dịch; `javac` cảnh báo tùy chọn không có hiệu lực ở compile time |
-| Dùng với `java` | **Có tác dụng** tại runtime | **Có tác dụng** tại runtime |
-| Cho phép `trySetAccessible()` với private member ở package đích | **Không**, chỉ export chưa đủ | **Có thể**, nếu package đã mở cho module của caller và không có giới hạn khác |
-| Giữ các quy tắc `private`, package-private, `protected` khi truy cập trực tiếp | **Có** | **Có**; deep reflection vẫn phải dùng Reflection API |
-| Tương ứng trong `module-info.java` | `exports some.package;` hoặc `exports some.package to target.module;` | `opens some.package;` hoặc `opens some.package to target.module;` |
+| Primary purpose | Allows using the `public` API of an encapsulated package | Allows Reflection deep access even to non-public members |
+| Direct access from Java source outside the module | **Yes**, for types/members permitted by Java visibility | **Does not grant compile permission** for imports or direct calls |
+| Use with `javac` | **Effective** during compilation | Does not open compile permission; `javac` warns the option has no effect at compile time |
+| Use with `java` | **Effective** at runtime | **Effective** at runtime |
+| Allows `trySetAccessible()` on private members in target package | **No**, exporting alone is not enough | **Possible**, if the package is open to the caller's module and no other restrictions apply |
+| Preserves `private`, package-private, `protected` rules on direct access | **Yes** | **Yes**; deep reflection still requires using the Reflection API |
+| Equivalent in `module-info.java` | `exports some.package;` or `exports some.package to target.module;` | `opens some.package;` or `opens some.package to target.module;` |
 
-**Không nên rút gọn thành “exports cho public, opens cho private”**: `opens` cũng cho phép Reflection với member public, còn `exports` cho phép những kiểu/thành viên public đã đủ điều kiện truy cập phản chiếu thông thường. Khác biệt thực tế là **quyền truy cập API theo Java language rules** so với **quyền deep reflection**.
+**Do not oversimplify to "exports for public, opens for private"**: `opens` also allows Reflection on public members, while `exports` enables regular reflective access to public types/members that already meet access conditions. The real difference is **API access under Java language rules** versus **deep reflection permission**.
 
-## 3. Cú pháp và ý nghĩa từng phần
+## 3. Syntax and Meaning of Each Part
 
-Cả hai tùy chọn đều nhận mẫu:
+Both options follow the pattern:
 
 ~~~text
 --add-exports <source-module>/<package>=<target-module>[,<target-module>...]
 --add-opens   <source-module>/<package>=<target-module>[,<target-module>...]
 ~~~
 
-Ví dụ:
+Examples:
 
 ~~~bash
 java --add-exports=demo.vault/internal.api=demo.client ...
@@ -42,22 +42,22 @@ java --add-opens=demo.vault/internal.api=demo.framework ...
 java --add-opens=demo.vault/internal.api=ALL-UNNAMED ...
 ~~~
 
-- `demo.vault` là **module chứa package** cần xuất/mở.
-- `internal.api` là **tên package đầy đủ**, không phải tên class hay method.
-- `demo.client` hoặc `demo.framework` là **module được cấp quyền**.
-- `ALL-UNNAMED` là mục tiêu đặc biệt dành cho **tất cả unnamed modules** (thông thường là mã nạp từ classpath, kể cả các thư viện JAR trên classpath). Nó có phạm vi rộng hơn một named module cụ thể.
-- Có thể chỉ định nhiều named module ở vế phải, cách nhau bằng dấu phẩy.
-- Dạng `--add-opens=module/package=target` và `--add-opens module/package=target` đều được Java launcher hỗ trợ; dạng có `=` sau tên tùy chọn thuận tiện khi cấu hình JVM arguments trong một số công cụ.
+- `demo.vault` is the **module containing the package** to export/open.
+- `internal.api` is the **full package name**, not a class or method name.
+- `demo.client` or `demo.framework` is the **module granted permission**.
+- `ALL-UNNAMED` is the special target for **all unnamed modules** (typically code loaded from the classpath, including JAR libraries on the classpath). Its scope is broader than a specific named module.
+- Multiple named modules can be listed on the right-hand side, separated by commas.
+- Both `--add-opens=module/package=target` and `--add-opens module/package=target` forms are supported by the Java launcher; the form with `=` after the option name is convenient when configuring JVM arguments in certain tools.
 
-Hai cờ này **không tự thêm quan hệ module readability**. Với named module muốn sử dụng dependency, vẫn cần `requires demo.vault;` trong `module-info.java` hoặc cơ chế thích hợp như `--add-reads`. Với ứng dụng trên classpath, nếu `demo.vault` nằm trên module path nhưng chưa được giải quyết vào module graph, có thể cần `--add-modules demo.vault`.
+These two flags **do not automatically add module readability**. For a named module wanting to use a dependency, `requires demo.vault;` in `module-info.java` or an appropriate mechanism like `--add-reads` is still needed. For applications on the classpath, if `demo.vault` is on the module path without being resolved into the module graph, `--add-modules demo.vault` may be needed.
 
-Lưu ý: tên target trong lệnh là **module của mã tiêu thụ API hoặc mã thực hiện Reflection**, không nhất thiết là module chứa class mà ứng dụng đang xử lý dữ liệu.
+Note: the target name in the command is the **module of the code consuming the API or performing Reflection**, not necessarily the module containing the class whose data the application is processing.
 
-## 4. Ví dụ Java 17+ có thể biên dịch và chạy
+## 4. Compilable and Runnable Java 17+ Example
 
-Ta sẽ tự tạo một named module `demo.vault` chứa public class nhưng **không export package**. Hai chương trình ở classpath sẽ lần lượt thử **gọi trực tiếp public method** và **Reflection vào private method**. Cách này cho phép quan sát chính xác tác dụng từng flag, không cần phụ thuộc vào lớp nội bộ không ổn định của JDK.
+We will create a named module `demo.vault` containing a public class, **without exporting its package**. Two programs on the classpath will separately attempt **calling a public method directly** and **using Reflection on a private method**. This lets us observe the exact effect of each flag without relying on unstable internal JDK classes.
 
-### 4.1. Cấu trúc thư mục
+### 4.1. Directory Structure
 
 ~~~text
 project/
@@ -70,15 +70,15 @@ project/
 ├── client-src/
 │   ├── DirectMain.java
 │   └── ReflectMain.java
-├── mods/                 (sinh khi biên dịch)
-└── out/                  (sinh khi biên dịch)
+├── mods/                 (generated on compile)
+└── out/                  (generated on compile)
 ~~~
 
 File `src/demo.vault/module-info.java`:
 
 ~~~java
 module demo.vault {
-    // Không có exports hay opens cho internal.api.
+    // No exports or opens for internal.api.
 }
 ~~~
 
@@ -132,23 +132,23 @@ public class ReflectMain {
 }
 ~~~
 
-`ReflectMain` không import `PublicTool`: nó chỉ biết tên lớp dạng chuỗi. Phương thức `secret` là `private static`, nên `method.invoke(null)` là đúng kiểu receiver sau khi được mở quyền. `trySetAccessible()` trả `false` khi package chưa được mở cho unnamed module của caller.
+`ReflectMain` does not import `PublicTool`: it knows the class name only as a string. The `secret` method is `private static`, so `method.invoke(null)` uses the proper receiver type once permission is opened. `trySetAccessible()` returns `false` when the package is not opened to the caller's unnamed module.
 
-### 4.2. Tạo thư mục đầu ra và biên dịch
+### 4.2. Creating Output Directories and Compiling
 
-Trong thư mục `project`, tạo trước các thư mục đầu ra. Ví dụ Bash (Linux/macOS):
+Inside the `project` directory, create the output directories first. Bash example (Linux/macOS):
 
 ~~~bash
 mkdir -p mods/demo.vault out
 ~~~
 
-Trong PowerShell (Windows), có thể dùng:
+In PowerShell (Windows), you can use:
 
 ~~~powershell
 New-Item -ItemType Directory -Force -Path mods/demo.vault,out
 ~~~
 
-Các lệnh `javac` tiếp theo áp dụng như nhau trên cả hai môi trường:
+The following `javac` commands apply identically in both environments:
 
 ~~~bash
 javac -d mods/demo.vault src/demo.vault/module-info.java src/demo.vault/internal/api/PublicTool.java
@@ -156,11 +156,11 @@ javac -d mods/demo.vault src/demo.vault/module-info.java src/demo.vault/internal
 javac --module-path mods --add-modules demo.vault --add-exports demo.vault/internal.api=ALL-UNNAMED -d out client-src/DirectMain.java client-src/ReflectMain.java
 ~~~
 
-Ở lần biên dịch thứ hai, `DirectMain` **import trực tiếp** class từ package chưa xuất. Vì vậy phải cung cấp `--add-exports` cho **`javac`**. Nếu bỏ cờ này, trình biên dịch sẽ báo package `internal.api` không hiển thị từ module `demo.vault`.
+In the second compilation, `DirectMain` **directly imports** a class from an unexported package. Therefore `--add-exports` must be passed to **`javac`**. If you omit this flag, the compiler reports that package `internal.api` is not visible from module `demo.vault`.
 
-`--add-modules demo.vault` đảm bảo named module trên module path được giải quyết. Cờ `--add-exports` ở đây chỉ cấp quyền cho unnamed modules, đúng với vị trí của `DirectMain` trên classpath.
+`--add-modules demo.vault` ensures the named module on the module path is resolved. Here `--add-exports` grants permission only to unnamed modules, matching `DirectMain`'s location on the classpath.
 
-### 4.3. Chạy ví dụ truy cập trực tiếp: cần `--add-exports` lúc chạy
+### 4.3. Running the Direct Access Example: `--add-exports` Needed at Runtime
 
 ~~~bash
 java --module-path mods --add-modules demo.vault --add-exports demo.vault/internal.api=ALL-UNNAMED -cp out DirectMain
@@ -172,13 +172,13 @@ Stdout:
 direct: hello
 ~~~
 
-**Vì sao vẫn cần cờ tại runtime?** Cờ `javac --add-exports` chỉ ảnh hưởng quá trình biên dịch. Nó không tự ghi một quyền export vĩnh viễn vào `demo.vault`. Nếu chạy chương trình đã biên dịch nhưng bỏ cờ runtime, việc liên kết/truy cập class không được export có thể dẫn đến `IllegalAccessError`.
+**Why is the flag still needed at runtime?** The `javac --add-exports` flag affects only compilation. It does not permanently write an export permission into `demo.vault`. If you run the compiled program without the runtime flag, linking/accessing the unexported class can result in `IllegalAccessError`.
 
-Dùng **chỉ `--add-opens` ở `javac` không giải quyết lỗi import**, vì mở package để Reflection tại runtime không phải xuất package cho mã nguồn compile time.
+Using **only `--add-opens` on `javac` does not solve the import error**, because opening a package for runtime Reflection is not exporting the package for compile-time source code.
 
-### 4.4. Chạy ví dụ Reflection: cần `--add-opens`
+### 4.4. Running the Reflection Example: `--add-opens` Needed
 
-Chạy trước **không cấp quyền mở package**:
+Run first **without granting package-opening permission**:
 
 ~~~bash
 java --module-path mods --add-modules demo.vault -cp out ReflectMain
@@ -190,9 +190,9 @@ Stdout:
 private opened: false
 ~~~
 
-Reflection vẫn tìm được metadata phương thức qua `getDeclaredMethod("secret")`, nhưng không được bật quyền gọi method `private` trong package chưa mở cho caller.
+Reflection still finds the method metadata via `getDeclaredMethod("secret")`, yet cannot enable permission to invoke a `private` method in a package not opened to the caller.
 
-Thêm **`--add-opens`**:
+Add **`--add-opens`**:
 
 ~~~bash
 java --module-path mods --add-modules demo.vault --add-opens demo.vault/internal.api=ALL-UNNAMED -cp out ReflectMain
@@ -205,22 +205,22 @@ private opened: true
 reflect: hidden
 ~~~
 
-Bây giờ package `internal.api` được mở cho unnamed module; `trySetAccessible()` có thể bật cờ bỏ qua kiểm tra quyền và `Method.invoke` gọi được phương thức `private`. **Không cần `--add-exports`** cho đoạn `ReflectMain` này, bởi nó không import hay tham chiếu tĩnh đến `PublicTool`.
+Now package `internal.api` is opened to the unnamed module; `trySetAccessible()` can set the flag suppressing access checks and `Method.invoke` invokes the `private` method. **`--add-exports` is not needed** for `ReflectMain`, because it does not import or statically reference `PublicTool`.
 
-### 4.5. Kết quả tổng hợp
+### 4.5. Summary Results
 
-| Tác vụ | Chỉ `--add-exports` | Chỉ `--add-opens` |
+| Task | `--add-exports` Only | `--add-opens` Only |
 | --- | --- | --- |
-| Biên dịch `DirectMain` có `import internal.api.PublicTool` | Có, nếu module được resolve và quyền đọc phù hợp | Không |
-| Chạy `DirectMain` đã được biên dịch hợp lệ | Đủ quyền truy cập public API ở runtime | Không phải cấu hình cho quyền biên dịch ban đầu; đừng dùng thay `--add-exports` |
-| Bật `trySetAccessible()` cho `private secret()` từ `ReflectMain` | Không, nếu không có quyền mở khác | Có trong ví dụ này |
-| Truy cập phương thức `public` bằng Reflection thông thường | Có thể, theo quy tắc truy cập Java | Có thể, theo cơ chế reflective access |
+| Compile `DirectMain` with `import internal.api.PublicTool` | Yes, if the module is resolved and proper readability exists | No |
+| Run validly compiled `DirectMain` | Sufficient for public API access at runtime | Not the right configuration for original compile permission; do not use instead of `--add-exports` |
+| Enable `trySetAccessible()` for `private secret()` from `ReflectMain` | No, unless another open permission exists | Yes in this example |
+| Access `public` methods via normal Reflection | Possible, under Java access rules | Possible, under reflective access rules |
 
-Ví dụ được kiểm tra với OpenJDK 21 (mã và tùy chọn tương thích JDK 17): `direct: hello`; `private opened: false`; `private opened: true` rồi `reflect: hidden`.
+The example was verified on OpenJDK 21 (code and options JDK 17 compatible): `direct: hello`; `private opened: false`; `private opened: true` then `reflect: hidden`.
 
-## 5. So sánh với `exports` và `opens` trong `module-info.java`
+## 5. Comparing with `exports` and `opens` in `module-info.java`
 
-Một tác giả module có thể khai báo quyền một cách chủ đích:
+A module author can declare permissions intentionally:
 
 ~~~java
 module demo.library {
@@ -231,76 +231,76 @@ module demo.library {
 }
 ~~~
 
-Đây là **minh họa cấu hình**; muốn biên dịch phải có các package tương ứng và target modules phù hợp.
+This is a **configuration illustration**; compiling requires the corresponding packages and target modules.
 
-- `exports demo.library.api;`: mọi module có quyền đọc module này được dùng public API của package.
-- `exports ... to demo.plugin;`: chỉ `demo.plugin` có quyền export được chỉ định.
-- `opens ... to demo.framework;`: mở package để framework dùng Reflection vào các thành viên, kể cả non-public, ở runtime. Nó không cho phép code của framework import trực tiếp những kiểu trước đó chưa được export lúc biên dịch.
-- Có thể **vừa `exports` vừa `opens` một package** khi cần cả API công khai lẫn deep reflection.
-- `open module demo.library { ... }` mở mọi package trong module đó cho Reflection. Cách này rộng hơn mở từng package; một `open module` không khai báo thêm các `opens` riêng.
+- `exports demo.library.api;`: every module that can read this module may use the package's public API.
+- `exports ... to demo.plugin;`: only `demo.plugin` receives the specified export permission.
+- `opens ... to demo.framework;`: opens the package so the framework can use Reflection on members, including non-public ones, at runtime. It does not let the framework's code directly import types that were not exported at compile time.
+- You can **both `exports` and `opens` a package** when both public API and deep reflection are needed.
+- `open module demo.library { ... }` opens every package in that module for Reflection. This is broader than opening individual packages; an `open module` does not declare additional individual `opens`.
 
-Cờ dòng lệnh thêm các cạnh export/open tương ứng **cho tiến trình đang biên dịch hoặc chạy**, dù module gốc không khai báo như vậy. Chúng không sửa file `module-info.java` đã phát hành.
+Command-line flags add the corresponding export/open edges **for the compiling or running process**, even if the original module does not declare them. They do not modify the published `module-info.java` file.
 
-## 6. Chẩn đoán lỗi và chọn đúng cờ
+## 6. Diagnosing Errors and Choosing the Right Flag
 
-### Trường hợp A: lỗi import ở compile time
+### Case A: Import Error at Compile Time
 
-Thông báo thường có ý như:
+Messages typically read like:
 
 ~~~text
 package ... is not visible
 (package ... is declared in module ..., which does not export it)
 ~~~
 
-Nếu mã **thực sự phải tham chiếu trực tiếp public API** ở package ấy, xét `--add-exports` cho `javac` và lệnh chạy. Kiểm tra trước xem có API public được hỗ trợ ở package khác không. `--add-opens` không giúp import compile thành công.
+If the code **truly must directly reference the public API** in that package, consider `--add-exports` for `javac` and the launch command. First check if a supported public API exists in another package. `--add-opens` will not make the import compile.
 
-### Trường hợp B: `IllegalAccessError` tại runtime
+### Case B: `IllegalAccessError` at Runtime
 
-Thường xảy ra khi mã đã compile với quyền truy cập nhưng JVM chạy không có cùng quyền export, hoặc môi trường module khác bản build. Đối chiếu cấu hình `--add-exports` giữa **compile** và **runtime** và kiểm tra module graph. Đừng vội thêm `--add-opens` chỉ vì thấy chữ “Access”.
+Often happens when code compiled with access permission runs on a JVM without the same export permission, or when the module environment differs from the build. Compare `--add-exports` configuration between **compile** and **runtime** and inspect the module graph. Do not rush to add `--add-opens` just because you see the word "Access".
 
-### Trường hợp C: `InaccessibleObjectException` hoặc `trySetAccessible() == false`
+### Case C: `InaccessibleObjectException` or `trySetAccessible() == false`
 
-Nếu stack trace/điều kiện báo package chưa được **opened** cho module gọi Reflection, cờ phù hợp thường là:
+If the stack trace/condition indicates the package is not **opened** to the module calling Reflection, the appropriate flag is usually:
 
 ~~~bash
 java --add-opens=source.module/source.package=target.module ...
 ~~~
 
-Với một ứng dụng legacy chạy ở classpath, target có thể là `ALL-UNNAMED`. Dù đã mở package, vẫn phải tuân thủ các ràng buộc API khác: kiểu receiver hợp lệ, hành vi `final`, khả năng sửa field và chính sách môi trường.
+For a legacy application running on the classpath, the target may be `ALL-UNNAMED`. Even after opening the package, other API constraints still apply: valid receiver type, `final` behavior, field mutability, and environment policies.
 
-### Trường hợp D: không tìm được class/module
+### Case D: Class/Module Not Found
 
-`ClassNotFoundException` hoặc thông báo không tìm thấy module **không tự động được giải quyết** bằng `--add-exports` / `--add-opens`. Kiểm tra đường dẫn `--module-path`, `-cp`, tên module và việc resolve module (ví dụ `--add-modules`) trước. Nếu named module cần đọc một module khác mà chưa có quan hệ readability, xét `requires` hoặc `--add-reads` thích hợp.
+`ClassNotFoundException` or module-not-found messages are **not automatically solved** by `--add-exports` / `--add-opens`. Check `--module-path`, `-cp`, module names, and module resolution (e.g., `--add-modules`) first. If a named module needs to read another module without an existing readability edge, consider `requires` or appropriate `--add-reads`.
 
-## 7. Quy tắc dùng an toàn, bền vững
+## 7. Safe, Sustainable Usage Rules
 
-1. **Ưu tiên API được hỗ trợ.** Package nội bộ của JDK/thư viện có thể thay đổi giữa các bản nâng cấp; có thể thay code Reflection bằng API chính thức để khỏi duy trì cờ.
-2. **Mở quyền tối thiểu.** Chọn một package và target named module cụ thể khi có thể. `ALL-UNNAMED` cấp quyền rộng cho mọi mã trên classpath.
-3. **Đặt cờ ở đúng JVM.** Với `java -jar app.jar`, JVM argument cần xuất hiện **trước `-jar`**. Test runner, IDE, Gradle/Maven test fork hoặc ứng dụng trong container có JVM riêng thì cần cấu hình vào tiến trình Java thực sự chạy code.
-4. **Phân biệt compile và run.** `--add-exports` có thể cần ở cả hai; `--add-opens` chỉ phục vụ runtime Reflection. Đặt `--add-opens` vào `javac` không tạo quyền compile time.
-5. **Không biến cờ thành hợp đồng API.** Có quyền Reflection không đảm bảo thao tác sẽ thành công: còn kiểu đối tượng đích, `final` field, kiểu dữ liệu, exception từ method được gọi và các giới hạn khác.
-6. **Kiểm tra phiên bản Java.** Ở JDK 17, cơ chế đóng gói mạnh của JDK được áp dụng mặc định; tùy chọn legacy `--illegal-access` không còn tác dụng mở quyền như ở các phiên bản cũ.
+1. **Prefer supported APIs.** Internal JDK/library packages can change across upgrades; replacing Reflection code with official APIs avoids maintaining flags.
+2. **Open minimal permissions.** Choose a specific package and target named module whenever possible. `ALL-UNNAMED` grants broad permission to all code on the classpath.
+3. **Place flags on the right JVM.** With `java -jar app.jar`, JVM arguments must appear **before `-jar`**. Test runners, IDEs, Gradle/Maven test forks, or containerized apps have their own JVMs and need the configuration on the Java process actually running the code.
+4. **Distinguish compile and run.** `--add-exports` may be needed for both; `--add-opens` serves only runtime Reflection. Passing `--add-opens` to `javac` grants no compile-time permission.
+5. **Do not treat flags as an API contract.** Having Reflection permission does not guarantee the operation succeeds: target object types, `final` fields, data types, exceptions from invoked methods, and other restrictions still apply.
+6. **Check the Java version.** In JDK 17, strong encapsulation of JDK internals is enforced by default; the legacy `--illegal-access` option no longer opens permissions as in older versions.
 
-## 8. Tự kiểm tra
+## 8. Self-Check
 
-**Câu 1.** Một package không export chứa `public class InternalApi`; client dùng `import` để gọi public method. Cần loại quyền nào?  
-**Đáp án:** `--add-exports` hoặc một export phù hợp trong `module-info.java`, đồng thời đáp ứng readability. Đối với lựa chọn cờ dòng lệnh, cấp quyền ở cả bước cần biên dịch và bước chạy.
+**Question 1.** An unexported package contains `public class InternalApi`; client uses `import` to call a public method. Which permission is needed?  
+**Answer:** `--add-exports` or an appropriate export in `module-info.java`, along with satisfying readability. For command-line flags, grant permission at both compile time and runtime.
 
-**Câu 2.** Thư viện dùng `getDeclaredField("secret")` và `trySetAccessible()`, nhưng package trong named module chưa được mở. Cờ nào đúng trọng tâm?  
-**Đáp án:** `--add-opens` từ module chứa package sang module thực hiện Reflection; `--add-exports` không đủ để mở private field.
+**Question 2.** A library uses `getDeclaredField("secret")` and `trySetAccessible()`, yet the package in the named module is not opened. Which flag targets the issue?  
+**Answer:** `--add-opens` from the module containing the package to the module performing Reflection; `--add-exports` is not enough to open private fields.
 
-**Câu 3.** `--add-opens` có làm `import internal.api.PublicTool` compile được không?  
-**Đáp án:** Không. `--add-opens` không cấp quyền truy cập trực tiếp lúc compile.
+**Question 3.** Does `--add-opens` allow `import internal.api.PublicTool` to compile?  
+**Answer:** No. `--add-opens` does not grant direct access at compile time.
 
-**Câu 4.** `ALL-UNNAMED` có nghĩa là cấp quyền cho một JAR duy nhất?  
-**Đáp án:** Không. Nó bao gồm mọi unnamed module, thường là các thư viện/app trên classpath.
+**Question 4.** Does `ALL-UNNAMED` mean granting permission to a single JAR?  
+**Answer:** No. It covers all unnamed modules, typically libraries/apps on the classpath.
 
-**Câu 5.** Dùng `--add-opens` rồi mọi thao tác ghi `final` field đều hợp lệ?  
-**Đáp án:** Không. Mở package để Reflection không xóa các giới hạn về thao tác trên field và những quy tắc API khác.
+**Question 5.** Once `--add-opens` is used, are all writes to `final` fields valid?  
+**Answer:** No. Opening a package for Reflection does not remove restrictions on field modifications or other API rules.
 
-**Ghi nhớ:** cần **gọi trực tiếp public API bị che bởi ranh giới module** → xét `--add-exports`; cần **Reflection sâu vào thành viên không public** → xét `--add-opens`. Luôn xác định đúng module nguồn, package, module đích, giai đoạn compile/run và quan hệ module readability.
+**Takeaway:** need to **directly call a public API hidden by a module boundary** → consider `--add-exports`; need **deep Reflection into non-public members** → consider `--add-opens`. Always identify the exact source module, package, target module, compile/run phase, and module readability relationship.
 
-### Tài liệu chính thức
+### Official Documentation
 
 - [Dev.java — Circumventing Strong Encapsulation with `--add-exports` and `--add-opens`](https://dev.java/learn/organizing/modules/add-exports-opens/)
 - [Dev.java — Reflective Access with Open Modules and Open Packages](https://dev.java/learn/modules/opening-for-reflection/)

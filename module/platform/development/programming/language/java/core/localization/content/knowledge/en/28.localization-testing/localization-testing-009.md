@@ -1,63 +1,63 @@
-# Đối chiếu thay đổi đầu ra khi nâng JDK, CLDR hoặc runtime image
+# Diffing Output Changes When Upgrading JDK, CLDR, or Runtime Images
 
-Nâng phiên bản JDK không nhất thiết làm hỏng mã Java, nhưng có thể khiến **cùng dữ liệu đầu vào tạo ra chuỗi hiển thị khác trước**. Điều này đặc biệt quan trọng với module **Java core - localization**, nơi ứng dụng dùng `Locale`, `NumberFormat`, `DateFormat`, `DateTimeFormatter`, `MessageFormat`, `Currency`, `ResourceBundle`, tên múi giờ hoặc quy tắc lịch địa phương.
+Upgrading a JDK version does not necessarily break Java code, yet it can cause **identical input data to produce different display strings than before**. This is especially important in the **Java core - localization** module, where applications rely on `Locale`, `NumberFormat`, `DateFormat`, `DateTimeFormatter`, `MessageFormat`, `Currency`, `ResourceBundle`, time-zone names, or regional calendar rules.
 
-Ví dụ, một dấu phân nhóm số có thể đổi từ **U+00A0 NO-BREAK SPACE** sang **U+202F NARROW NO-BREAK SPACE**; tên tháng, định dạng ngày dài, ký hiệu tiền tệ, cách viết giờ hay thông điệp theo locale cũng có thể thay đổi khi **dữ liệu CLDR** hoặc cách lựa chọn locale provider của JDK được cập nhật. Hai chuỗi có thể **trông giống nhau** trong giao diện nhưng không bằng nhau theo `String.equals`. Đôi khi thay đổi hoàn toàn hợp lệ theo dữ liệu ngôn ngữ mới; đôi khi là regression của ứng dụng.
+For example, a numeric grouping separator can change from **U+00A0 NO-BREAK SPACE** to **U+202F NARROW NO-BREAK SPACE**; month names, long date formats, currency symbols, time formatting, or locale messages can also shift when **CLDR data** or the JDK's locale provider selection is updated. Two strings may **look identical** in the UI while failing `String.equals`. Sometimes the change is completely valid under updated linguistic data; sometimes it is an application regression.
 
-Với **runtime image** tạo bằng `jlink`, vấn đề còn rộng hơn: image tối giản có thể **không chứa cùng tập module và dữ liệu locale** như full JDK. Một test chạy trên máy phát triển thành công không chứng minh image triển khai sẽ dùng dữ liệu định dạng tương đương.
+With **`jlink` runtime images**, the scope is broader still: a minimal image may **not include the same set of modules and locale data** as a full JDK. A test passing on a developer laptop does not prove the deployed image has equivalent formatting data.
 
-Bài này hướng dẫn cách xây một **đường chuẩn đầu ra (baseline)**, chạy cùng **bộ input cố định** trên **JDK cũ/mới và runtime image thực tế**, xuất bằng chứng ở mức Unicode code point, phân loại thay đổi và chỉ chấp thuận những khác biệt đã được review. Mục tiêu là **đối chiếu kết quả khi nâng cấp**, không phải cưỡng ép mọi phiên bản JDK mãi trả cùng câu chữ.
+This lesson shows how to establish an **output baseline**, run the same **fixed input set** across **old/new JDKs and actual runtime images**, emit evidence at the Unicode code-point level, classify changes, and approve only reviewed differences. The goal is **diffing upgrade outcomes**, not forcing every JDK release to forever return identical phrasing.
 
-## 1. Những thành phần có thể làm đầu ra thay đổi
+## 1. Components That Can Alter Output
 
-| Thành phần được nâng/thay | Ảnh hưởng có thể quan sát | Ví dụ cần thử |
+| Upgraded / changed component | Observable impact | Examples to test |
 | --- | --- | --- |
-| **JDK feature/update/build** | Triển khai API, locale data, Unicode, TZDB, bug fixes | Tháng/ngày, ký số, currency |
-| **CLDR data** | Tên tháng, ngày, số, ký hiệu, mẫu locale, chữ viết tắt | `NumberFormat`, `DateTimeFormatter` |
-| **`java.locale.providers`** | Thứ tự chọn nguồn locale data | `CLDR`, `SPI`, `HOST`; legacy `COMPAT` trong JDK cũ |
-| **Vendor/distribution** | Dữ liệu build và cấu hình đóng gói có thể khác | Hai JDK cùng feature number |
-| **`jdk.localedata`** | Khả dụng của dữ liệu locale mở rộng | Image `jlink` có/không module |
-| **`--include-locales`** | Tập locale được giữ lại trong image | `fr-FR`, `vi-VN`, `ja-JP` |
-| **Time-zone database (TZDB)** | Offset lịch sử/tương lai, tên vùng, quy tắc DST | `ZoneId`, `ZonedDateTime` |
-| **Default locale/timezone** | Đầu ra phụ thuộc máy chạy | `Locale.getDefault`, `ZoneId.systemDefault` |
-| **Ứng dụng và bundle** | Pattern, tài nguyên, provider dịch tự viết | `ResourceBundle`, `MessageFormat` |
+| **JDK feature/update/build** | API implementation, locale data, Unicode, TZDB, bug fixes | Months/days, digits, currencies |
+| **CLDR data** | Month/day names, numbers, symbols, locale patterns, abbreviations | `NumberFormat`, `DateTimeFormatter` |
+| **`java.locale.providers`** | Provider lookup precedence | `CLDR`, `SPI`, `HOST`; legacy `COMPAT` in older JDKs |
+| **Vendor/distribution** | Build data and packaging configs may differ | Two JDKs with the same feature number |
+| **`jdk.localedata`** | Availability of extended locale data | `jlink` image with/without the module |
+| **`--include-locales`** | Subset of locales retained in the image | `fr-FR`, `vi-VN`, `ja-JP` |
+| **Time-zone database (TZDB)** | Historical/future offsets, zone names, DST rules | `ZoneId`, `ZonedDateTime` |
+| **Default locale/timezone** | Host-dependent output | `Locale.getDefault`, `ZoneId.systemDefault` |
+| **Application and bundles** | Patterns, resources, custom providers | `ResourceBundle`, `MessageFormat` |
 
-**Điểm phân loại:** Không phải mọi thay đổi định dạng là lỗi. Dữ liệu CLDR phản ánh quy ước bản địa hóa được cập nhật; trong một số trường hợp **mới đúng hơn cũ**. Quy trình kiểm thử phải cho thấy **thay đổi gì, vì sao và nó ảnh hưởng người dùng/hợp đồng thế nào**.
+**Classification point:** Not every formatting change is a bug. CLDR data reflects updated localization conventions; in some cases **newer output is more accurate than older output**. Your test process must reveal **what changed, why, and how it affects users or contracts**.
 
-## 2. Phân biệt JDK, CLDR, Unicode, TZDB và ứng dụng
+## 2. Distinguishing JDK, CLDR, Unicode, TZDB, and Application Code
 
-Không nên gộp tất cả vào cụm “lỗi Java mới”:
+Do not lump everything together as a "new Java bug":
 
-- **JDK/runtime** chứa mã triển khai API và phiên bản các tập dữ liệu đi kèm.
-- **CLDR (Common Locale Data Repository)** cung cấp nhiều mẫu định dạng và dữ liệu ngôn ngữ được Java sử dụng qua locale provider.
-- **Unicode character data** ảnh hưởng những hàm như `Character.isLetter`, `isDigit`, case mappings, normalization và tên code point.
-- **TZDB** là cơ sở dữ liệu quy tắc múi giờ, được `java.time` sử dụng cho `ZoneId` và các phép chuyển thời gian.
-- **Resource bundles của ứng dụng** có thể độc lập với CLDR. Một bản `Messages_vi.properties` do dự án quản lý không tự dịch lại vì nâng CLDR.
-- **Default environment** như locale mặc định, timezone mặc định hoặc charset có thể đổi khi container, OS hoặc cấu hình chạy đổi.
+- **JDK/runtime** ships the API implementations and bundled dataset versions.
+- **CLDR (Common Locale Data Repository)** supplies formatting patterns and linguistic data used by Java via its locale provider.
+- **Unicode character data** affects functions like `Character.isLetter`, `isDigit`, case mappings, normalization, and code-point names.
+- **TZDB** is the time-zone rules database used by `java.time` for `ZoneId` and time conversions.
+- **Application resource bundles** can be independent of CLDR. A project-maintained `Messages_vi.properties` does not retranslate itself on a CLDR upgrade.
+- **Default environment** settings such as default locale, default time zone, or charset can change when containers, OSes, or launch configs change.
 
-Khi diff xuất hiện, trước tiên hãy hỏi **nó đến từ dữ liệu locale, time zone, Unicode hay bản dịch của ứng dụng**, sau đó mới quyết định sửa.
+When a diff appears, ask first **whether it originates from locale data, time-zone rules, Unicode data, or application translations**, and only then decide on a fix.
 
-## 3. CLDR trong JDK: dữ liệu ngôn ngữ không phải hằng số bất biến
+## 3. CLDR in the JDK: Linguistic Data Is Not an Immutable Constant
 
-Từ **JDK 9**, CLDR là nguồn dữ liệu locale mặc định trong Java. Ở **JDK 17**, `java.locale.providers` có thể chọn thứ tự những provider như `CLDR`, `COMPAT`, `SPI`, `HOST` tùy môi trường và provider có sẵn.
+Since **JDK 9**, CLDR is the default locale data source in Java. On **JDK 17**, `java.locale.providers` can specify provider precedence such as `CLDR`, `COMPAT`, `SPI`, and `HOST` depending on the environment and installed providers.
 
-Ví dụ khởi động:
+Startup example:
 
 ~~~bash
 java -Djava.locale.providers=CLDR -cp out LocaleSnapshot
 ~~~
 
-Dòng trên minh họa chạy một class đã biên dịch ở `out`, **không phải lệnh chạy một thư viện chung của JDK**. Property này cần được thiết lập **khi khởi động JVM**, không nên gọi `System.setProperty` sau khi các locale-sensitive services đã khởi tạo rồi mong toàn bộ provider selection thay đổi.
+The line above illustrates running a compiled class in `out`, **not launching a general JDK library**. This property must be set **at JVM startup**; do not call `System.setProperty` after locale-sensitive services have initialized and expect all provider selection to change.
 
-**Mốc migration cần nhớ:** legacy `JRE`/`COMPAT` locale data **bị loại bỏ từ JDK 23**. Vì vậy lời khuyên “cứ cấu hình `COMPAT` để giữ kết quả cũ” **chỉ có thể là giải pháp tạm cho các JDK còn hỗ trợ**, không phải chiến lược nâng cấp lâu dài.
+**Key migration milestone:** legacy `JRE`/`COMPAT` locale data **was removed in JDK 23**. Consequently, advice like "just set `COMPAT` to preserve old output" can **only be a temporary stopgap on JDKs that still support it**, never a long-term upgrade strategy.
 
-Tài liệu Oracle:
+Oracle documentation:
 - [Internationalization Enhancements, JDK 17](https://docs.oracle.com/en/java/javase/17/intl/internationalization-enhancements1.html).
 - [Removed Tools and Components, JDK 23](https://docs.oracle.com/en/java/javase/23/migrate/removed-tools-and-components.html).
 
-### Provider order là một biến độc lập phải ghi nhận
+### Provider Order Is an Independent Variable to Record
 
-Với runtime hỗ trợ, các cấu hình:
+On runtimes that support them, the configurations:
 
 ~~~text
 -Djava.locale.providers=CLDR
@@ -65,41 +65,41 @@ Với runtime hỗ trợ, các cấu hình:
 -Djava.locale.providers=HOST,CLDR
 ~~~
 
-có thể dẫn đến các nguồn dữ liệu khác nhau. `HOST` phụ thuộc nền tảng và cấu hình người dùng; `SPI` phụ thuộc các service provider được cài đặt. Không phải mọi provider đều cung cấp mọi locale hay mọi service; JDK có thể chuyển sang provider tiếp theo.
+can pull from different data sources. `HOST` depends on the OS platform and user settings; `SPI` depends on installed service providers. Not every provider supplies every locale or service; the JDK can fall through to the next provider.
 
-Trong phép đối chiếu có kiểm soát, **giữ nguyên provider order giữa hai lần chạy** trừ khi chính sự thay đổi provider là đối tượng cần kiểm thử.
+In a controlled comparison, **keep provider order identical across both runs** unless testing a provider change itself.
 
-## 4. Không chỉ số phiên bản `17` hay `21`
+## 4. Beyond Just Major Version `17` or `21`
 
-Hai runtime cùng feature version có thể có khác biệt vì:
-- khác patch/update;
-- khác vendor;
-- khác dữ liệu CLDR/TZDB đi kèm;
-- một bên là **full JDK**, bên kia là **jlink image**;
-- khác provider selection và service providers;
-- khác cấu hình khởi động, locale mặc định, timezone.
+Two runtimes sharing the same feature version can still differ due to:
+- different patch/update releases;
+- different vendors;
+- different bundled CLDR/TZDB data;
+- one being a **full JDK** and the other a **`jlink` image**;
+- different provider selection and service providers;
+- different startup flags, default locale, or time zone.
 
-Đối với mỗi kết quả baseline, cần gắn **fingerprint môi trường**:
+Attach an **environment fingerprint** to every baseline result:
 
-| Metadata | Lấy từ đâu |
+| Metadata | Where to obtain it |
 | --- | --- |
 | Version/build | `java -version`, `java.runtime.version` |
 | Vendor | `java.vendor` |
-| Runtime image | `java.home` hoặc image identifier/hash trong pipeline |
-| Locale provider order | Startup flag và `java.locale.providers` |
-| Default FORMAT locale | `Locale.getDefault(Locale.Category.FORMAT)` |
-| Default DISPLAY locale | `Locale.getDefault(Locale.Category.DISPLAY)` |
-| Default timezone | `ZoneId.systemDefault()` |
-| TZDB version | `ZoneRulesProvider.getVersions(zoneId).lastKey()` khi provider hỗ trợ |
-| Module/locale coverage | `java --list-modules`, `jdk.localedata` và `jlink` configuration |
+| Runtime image | `java.home` or image identifier/hash in the pipeline |
+| Locale provider order | Startup flags and `java.locale.providers` |
+| Default `FORMAT` locale | `Locale.getDefault(Locale.Category.FORMAT)` |
+| Default `DISPLAY` locale | `Locale.getDefault(Locale.Category.DISPLAY)` |
+| Default time zone | `ZoneId.systemDefault()` |
+| TZDB version | `ZoneRulesProvider.getVersions(zoneId).lastKey()` when supported by provider |
+| Module/locale coverage | `java --list-modules`, `jdk.localedata`, and `jlink` configuration |
 
-Metadata giúp giải thích diff; nó **không tự cho biết chuỗi mới có đúng ngữ nghĩa hay không**.
+Metadata helps explain diffs; it **does not by itself tell you whether the new string is semantically right**.
 
-Không đưa các đường dẫn máy chứa tài khoản, hostname, API token hoặc dữ liệu người dùng thật vào artifact CI công khai. Có thể ghi **image digest/ID** thay cho toàn bộ `java.home`.
+Never publish machine paths containing usernames, hostnames, API tokens, or real user data in public CI artifacts. Record an **image digest/ID** instead of the full `java.home` path.
 
-## 5. Mỗi phép thử phải có input ổn định
+## 5. Every Probe Must Use Stable Inputs
 
-Nếu test viết:
+If a test writes:
 
 ~~~java
 NumberFormat.getInstance().format(12345.67);
@@ -108,9 +108,9 @@ ZoneId.systemDefault();
 Locale.getDefault();
 ~~~
 
-thì kết quả chịu ảnh hưởng bởi locale, ngày giờ và timezone của máy. Diff có thể đến từ môi trường, **không phải nâng JDK**.
+results depend on the host machine's locale, clock, and time zone. A diff may come from the environment, **not the JDK upgrade**.
 
-Hãy cố định đầu vào:
+Fix all inputs:
 
 ~~~java
 Locale locale = Locale.forLanguageTag("fr-FR");
@@ -120,37 +120,37 @@ ZoneId zone = ZoneId.of("Europe/Paris");
 Instant instant = Instant.parse("2024-03-31T01:30:00Z");
 ~~~
 
-Đây là snippet trong method, cần import `Locale`, `LocalDate`, `BigDecimal`, `ZoneId`, `Instant`.
+This is a snippet inside a method, requiring imports for `Locale`, `LocalDate`, `BigDecimal`, `ZoneId`, and `Instant`.
 
-**Tách hai loại phép thử:**
-1. **Locale explicitly specified:** dùng locale/timezone/amount cố định để phát hiện thay đổi từ data/provider/runtime.
-2. **Default environment behavior:** cố tình dùng default locale/timezone để kiểm chứng container hay command line đã đặt cấu hình đúng.
+**Separate two kinds of tests:**
+1. **Locale explicitly specified:** use fixed locale/timezone/amount to detect data/provider/runtime changes.
+2. **Default environment behavior:** intentionally rely on default locale/timezone to verify that container or CLI configuration was applied properly.
 
-Không trộn hai mục tiêu vào một snapshot rồi cho rằng mọi khác biệt là do CLDR.
+Never mix both goals in one snapshot and blame every discrepancy on CLDR.
 
-## 6. Các điểm đo có giá trị cao
+## 6. High-Value Measurement Probes
 
-Một bộ probes có thể bao gồm:
+A probe suite can include:
 
-- `NumberFormat.getNumberInstance(locale)`: grouping, decimal separator, rounding và digit symbols.
-- `NumberFormat.getCurrencyInstance(locale)`: ký hiệu tiền, vị trí ký hiệu, khoảng trắng đặc biệt.
-- `DecimalFormatSymbols.getInstance(locale)`: ký tự decimal/grouping.
-- `DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT/MEDIUM/LONG/FULL)`: mẫu và tên ngày/tháng.
-- `DateFormat.getDateInstance(...)`: so sánh API `java.text` với `java.time`.
-- `Month.getDisplayName(TextStyle.FULL, locale)`: tên tháng.
-- `DayOfWeek.getDisplayName(...)`: tên thứ.
-- `WeekFields.of(locale)`: ngày đầu tuần và số ngày tối thiểu của tuần đầu (cũng có thể khác khi dữ liệu locale đổi).
-- `Currency.getInstance(locale)`: mã và ký hiệu.
-- `MessageFormat(pattern, locale)`: mẫu số/ngày áp dụng locale.
-- `ResourceBundle`: locale thực tế tìm thấy và fallback.
-- `ZoneId`/`ZonedDateTime`: offset và tên vùng tại những instant cụ thể.
-- `Character`/`Normalizer`: các code point liên quan khi Unicode data cập nhật.
+- `NumberFormat.getNumberInstance(locale)`: grouping, decimal separators, rounding, and digit symbols.
+- `NumberFormat.getCurrencyInstance(locale)`: currency symbol, symbol placement, special spaces.
+- `DecimalFormatSymbols.getInstance(locale)`: decimal/grouping characters.
+- `DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT/MEDIUM/LONG/FULL)`: patterns and day/month names.
+- `DateFormat.getDateInstance(...)`: comparing `java.text` APIs against `java.time`.
+- `Month.getDisplayName(TextStyle.FULL, locale)`: month names.
+- `DayOfWeek.getDisplayName(...)`: weekday names.
+- `WeekFields.of(locale)`: first day of week and minimal days in first week (can also change with locale data).
+- `Currency.getInstance(locale)`: code and symbol.
+- `MessageFormat(pattern, locale)`: locale-applied number/date subformats.
+- `ResourceBundle`: actually resolved locale and fallback.
+- `ZoneId`/`ZonedDateTime`: offsets and zone names at specific instants.
+- `Character`/`Normalizer`: relevant code points when Unicode data updates.
 
-Không cần snapshot **mọi** locale và API ngay từ đầu. Nên ưu tiên **locale sản phẩm thực sự hỗ trợ** cùng các màn hình quan trọng: thanh toán, đơn hàng, thời gian giao dịch, email, thông báo và lịch.
+You do not need to snapshot **every** locale and API on day one. Prioritize **product-supported locales** and critical screens: checkout, orders, transaction timestamps, emails, notifications, and calendars.
 
-## 7. Dấu cách Unicode: nhìn giống, giá trị khác
+## 7. Unicode Spaces: Visually Alike, Different Values
 
-Một ví dụ quan trọng là khoảng trắng phân nhóm của tiếng Pháp:
+A key example is the French grouping space:
 
 ~~~text
 U+0020  SPACE
@@ -158,28 +158,28 @@ U+00A0  NO-BREAK SPACE
 U+202F  NARROW NO-BREAK SPACE
 ~~~
 
-Trong giao diện, chúng có thể trông giống dấu cách. Nhưng:
+In the UI, they can all look like ordinary spaces. Yet:
 
 ~~~java
 "12 345".equals("12\u202F345");
 ~~~
 
-có kết quả `false` vì code point khác nhau. Đây là snippet hợp lệ của biểu thức Java, không phải chương trình độc lập.
+evaluates to `false` because the code points differ. This is a valid Java expression snippet, not a standalone program.
 
-Một test dùng chuỗi hiển thị:
+A test printing display strings:
 
 ~~~text
 expected: 12 345,67
 actual:   12 345,67
 ~~~
 
-có thể khiến người review bỏ sót thay đổi. Vì vậy **đừng chỉ chụp màn hình** hoặc xem output trên console; phải xuất Unicode code points hoặc escape các ký tự có khả năng gây nhầm lẫn.
+can cause reviewers to miss the change. Therefore, **never rely solely on screenshots** or console rendering; output Unicode code points or escape ambiguous characters.
 
-**Không thay mọi khoảng trắng Unicode thành U+0020 trước khi diff** nếu nhiệm vụ là kiểm tra chính xác hành vi bản địa hóa; làm vậy sẽ che một thay đổi có thể ảnh hưởng layout, copy/paste hoặc parser của hệ khác.
+**Do not normalize all Unicode whitespace to U+0020 before diffing** when your goal is checking exact localization behavior; doing so hides changes that can affect line wrapping, copy/paste, or downstream parsers.
 
-## 8. Xây phép đo Unicode có thể so sánh byte-for-byte
+## 8. Building a Byte-for-Byte Comparable Unicode Measurement
 
-Tạo helper Java 17+ hiển thị mọi code point dưới dạng `U+XXXX`:
+Create a Java 17+ helper that prints every code point as `U+XXXX`:
 
 ~~~java
 import java.util.Locale;
@@ -210,26 +210,26 @@ javac -encoding UTF-8 CodePoints.java
 java CodePoints
 ~~~
 
-Kết quả **ổn định**:
+**Deterministic** output:
 
 ~~~text
 U+0041 U+00A0 U+0042
 U+0041 U+202F U+0042
 ~~~
 
-Code point notation cũng làm rõ khác biệt giữa chữ dựng sẵn `é` và `e + COMBINING ACUTE ACCENT`. Một phép diff có thể ghi rõ **giá trị code point** thay vì buộc người đọc phân biệt bằng mắt.
+Code-point notation also highlights the difference between precomposed `é` and `e + COMBINING ACUTE ACCENT`. A diff tool can display **exact code-point values** instead of forcing humans to tell them apart visually.
 
-`String.length()` đếm UTF-16 code units, không phải Unicode code points. Phương thức `codePoints()` thích hợp hơn cho báo cáo Unicode.
+`String.length()` counts UTF-16 code units, not Unicode code points. `codePoints()` is better suited for Unicode reporting.
 
-## 9. Chương trình snapshot chạy được trên Java 17+
+## 9. A Runnable Java 17+ Snapshot Program
 
-Ví dụ sau tạo hai loại dòng:
-- **`META`** ghi fingerprint môi trường.
-- **`DATA`** ghi kết quả của các phép định dạng **với input cố định**.
+The example below emits two record types:
+- **`META`** records the environment fingerprint.
+- **`DATA`** records formatting results **for fixed inputs**.
 
-Các trường `DATA` được chuyển thành chuỗi `U+XXXX`, nên dễ so sánh chính xác bằng công cụ diff và không phụ thuộc cách console render glyph.
+`DATA` fields are serialized as `U+XXXX` strings, making exact diffing easy and independent of how a console renders glyphs.
 
-Lưu thành **`LocaleSnapshot.java`**:
+Save as **`LocaleSnapshot.java`**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -354,48 +354,48 @@ javac -encoding UTF-8 LocaleSnapshot.java
 java -Djava.locale.providers=CLDR LocaleSnapshot
 ~~~
 
-**Output là dữ liệu đo, không được hardcode một bảng expected cho mọi JDK.** Mỗi dòng có định dạng:
+**Output is measured data; do not hard-code one expected table for every JDK.** Each line has the format:
 
 ~~~text
-META\tjava.runtime.version\t<version của runtime>
+META\tjava.runtime.version\t<runtime version>
 META\tjava.locale.providers\tCLDR
-DATA\ten-US.number\t<dãy Unicode code points>
-DATA\tfr-FR.currency\t<dãy Unicode code points>
+DATA\ten-US.number\t<Unicode code-point sequence>
+DATA\tfr-FR.currency\t<Unicode code-point sequence>
 ...
 ~~~
 
-Trong đoạn mô tả trên, `\t` thể hiện dấu TAB để dễ đọc; chương trình xuất đúng tab (xem lưu ý ngay dưới đây).
+In the description above, `\t` represents a TAB character for readability; the program outputs actual tabs (see the note immediately below).
 
-**Lưu ý khi copy mã:** Trong Java source, hãy dùng `"\t"` để tạo tab. Nếu sao chép code hiển thị trong một môi trường tự escape backslash, phải kiểm tra chuỗi thực tế và điều chỉnh; đặc biệt các dòng `META`/`DATA` phải dùng delimiter thống nhất để chương trình diff bên dưới đọc được.
+**Note when copying code:** in Java source, use `"\t"` to emit a tab. If copying code displayed in an environment that auto-escapes backslashes, verify the actual string and adjust; in particular, `META`/`DATA` lines must use a consistent delimiter for the diff program below to parse them.
 
-Có thể kiểm tra nhanh file được biên dịch bằng chạy thử và nhìn output: đầu dòng phải bắt đầu `META` hoặc `DATA`, sau đó là **tab**, key, **tab** và nội dung.
+You can quickly verify the compiled file by running it and inspecting output: each line must start with `META` or `DATA`, followed by a **tab**, key, **tab**, and payload.
 
-## 10. Snapshot không nên ngầm chứa dữ liệu động
+## 10. Snapshots Should Not Implicitly Contain Dynamic Data
 
-Chương trình ở trên giữ ngày test là `2024-01-02` và instant là `2024-03-31T01:30:00Z` để tránh phụ thuộc vào lúc test được chạy. `DateFormat` cũ còn được đặt timezone UTC riêng, và các phép `DateTimeFormatter` được cho locale cụ thể.
+The program above pins the test date to `2024-01-02` and instant to `2024-03-31T01:30:00Z` to avoid depending on when the test runs. The legacy `DateFormat` is also set to UTC explicitly, and `DateTimeFormatter` calls specify explicit locales.
 
-Nếu snapshot dùng:
+If a snapshot uses:
 - `LocalDate.now()`;
 - `new Date()`;
-- `NumberFormat.getInstance()` không truyền locale;
-- `DateFormat.getDateInstance()` không truyền locale;
-- timezone mặc định;
-- dữ liệu lấy trực tiếp từ môi trường production;
+- `NumberFormat.getInstance()` without a locale;
+- `DateFormat.getDateInstance()` without a locale;
+- the default time zone;
+- live data pulled from production;
 
-thì diff dễ bị “nhiễu”, không cô lập được tác động của JDK/CLDR.
+diffs become noisy and fail to isolate JDK/CLDR impacts.
 
-**Nguyên tắc:** Chỉ để metadata thay đổi theo runtime; phần `DATA` nên xuất phát từ input được định nghĩa rõ. Nếu chủ đích thử default behavior, đưa default locale/timezone vào tên test riêng và ghi chúng vào baseline.
+**Rule:** let only metadata vary with the runtime; `DATA` should come from well-defined inputs. If intentionally testing default behavior, put the default locale/time zone in a separate test name and record them in the baseline.
 
-## 11. Chạy baseline/candidate trên hai JDK
+## 11. Running Baseline/Candidate Across Two JDKs
 
-Giả sử đã có class `LocaleSnapshot.class` được biên dịch theo Java 17; có hai runtime:
+Assume `LocaleSnapshot.class` was compiled for Java 17, and two runtimes exist:
 
 ~~~text
 /path/to/jdk-old/bin/java
 /path/to/jdk-new/bin/java
 ~~~
 
-Một quy trình shell minh họa trên Linux/macOS:
+An illustrative shell workflow on Linux/macOS:
 
 ~~~bash
 /path/to/jdk-old/bin/java -Djava.locale.providers=CLDR \
@@ -407,27 +407,27 @@ Một quy trình shell minh họa trên Linux/macOS:
 diff -u baseline.txt candidate.txt
 ~~~
 
-Đường dẫn JDK là **placeholder mô tả cấu hình cần có**, không phải file có sẵn trên máy người học. Thay bằng đường dẫn thực của hai runtime. Trên Windows, dùng `java.exe` theo đường dẫn tương ứng và công cụ so sánh file UTF-8.
+The JDK paths are **configuration placeholders**, not files guaranteed on the learner's machine. Substitute the actual paths of your two runtimes. On Windows, use `java.exe` at the corresponding paths and a UTF-8-aware file comparison tool.
 
-Trong CI, cố định:
-1. JDK feature/update/vendor hoặc image digest;
-2. đối số `-Djava.locale.providers`;
-3. timezone/default locale nếu thử default;
-4. cùng `LocaleSnapshot.class`, input và module/classpath;
-5. cùng cách ghi file UTF-8 và newline nếu cần so sánh bytes.
+In CI, pin:
+1. JDK feature/update/vendor or image digest;
+2. `-Djava.locale.providers` flag;
+3. time zone / default locale if testing defaults;
+4. the exact same `LocaleSnapshot.class`, inputs, and module/classpath;
+5. identical UTF-8 file writing and newlines if comparing raw bytes.
 
-**Không kết luận chỉ từ lệnh `diff` rằng lỗi thuộc về CLDR.** Cần đọc từng key khác biệt và kiểm tra provenance: provider, locale coverage, TZDB, hoặc code ứng dụng.
+**Do not conclude from `diff` alone that a discrepancy belongs to CLDR.** Inspect every changed key and trace its provenance: provider, locale coverage, TZDB, or application code.
 
-## 12. Tách metadata drift khỏi data drift
+## 12. Separating Metadata Drift from Data Drift
 
-Nếu version JDK thay, dòng `META java.runtime.version` **đương nhiên khác**. Đây là thông tin cần ghi, nhưng không phải regression của định dạng.
+When the JDK version changes, `META java.runtime.version` **naturally differs**. That belongs in the record, yet is not a formatting regression.
 
-Tách báo cáo:
-- **Environment drift**: Java version, vendor, tzdb, image id, provider.
-- **Behavior drift**: `DATA` về số/ngày/tiền/format/zone offset.
-- **Product acceptance**: khác biệt đó có được phê duyệt hay không.
+Separate your report into:
+- **Environment drift**: Java version, vendor, tzdb, image ID, provider.
+- **Behavior drift**: `DATA` for numbers/dates/money/formats/zone offsets.
+- **Product acceptance**: whether each difference is approved or rejected.
 
-Một báo cáo tốt:
+A clear report:
 
 ~~~text
 ENVIRONMENT:
@@ -446,13 +446,13 @@ DECISION:
   fr-FR.date.long: requires translator/UI review
 ~~~
 
-Đây là **mẫu báo cáo minh họa**, không phải kết quả khẳng định từ một cặp JDK cụ thể. Không gắn nhãn `accepted` trước khi review có bằng chứng.
+This is an **illustrative report template**, not an asserted result from a specific pair of JDKs. Never label a change `accepted` before evidence-backed review.
 
-## 13. Công cụ so sánh hai snapshot bằng Java
+## 13. A Java Tool to Diff Two Snapshots
 
-Có thể viết tiện ích nhỏ so sánh **chỉ các dòng `DATA`**, bỏ qua dòng `META` vốn được ghi để truy vết. Dữ liệu được xuất dưới dạng code points nên không cần so sánh font/console.
+You can write a small utility that compares **only `DATA` lines**, ignoring `META` lines kept for traceability. Since data is emitted as code points, there is no dependence on font/console rendering.
 
-Tạo **`SnapshotDiff.java`**:
+Create **`SnapshotDiff.java`**:
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -536,9 +536,9 @@ javac -encoding UTF-8 SnapshotDiff.java
 java SnapshotDiff baseline.txt candidate.txt
 ~~~
 
-Trả `exit code 0` khi không có khác biệt `DATA`, `exit code 1` khi có khác biệt; `exit code 2` khi sai số tham số. Nếu file đọc lỗi hoặc duplicate key, Java báo lỗi và không được xem là PASS.
+Returns `exit code 0` when no `DATA` differences exist, `exit code 1` when differences exist, and `exit code 2` for wrong argument count. On file read errors or duplicate keys, Java throws and does not count as PASS.
 
-Ví dụ, với một key khác dấu phân nhóm:
+For example, with a changed grouping separator:
 
 ~~~text
 CHANGED fr-FR.number
@@ -547,37 +547,37 @@ CHANGED fr-FR.number
 DIFF count=1
 ~~~
 
-Đây là **kịch bản mô phỏng**, không phải đầu ra được khẳng định cho mọi bản JDK. Chương trình báo thay đổi, **không quyết định thay đổi đó đúng hay sai**.
+This is a **simulated scenario**, not guaranteed output for every JDK release. The program reports changes; it **does not decide whether a change is right or wrong**.
 
-### Một lưu ý về mã nguồn snapshot
+### A Note on Snapshot Source Code
 
-Khi viết literal delimiter trong `LocaleSnapshot.java`, các dòng `System.out.println` cần dùng `"\t"` với **một escape Java cho tab**. Nếu copy trong hệ thống có thêm một lớp escaping, có thể thay cách viết bằng:
+When writing literal delimiters in `LocaleSnapshot.java`, `System.out.println` lines require `"\t"` with **a single Java tab escape**. If copying through a system that adds another escaping layer, you can rewrite it as:
 
 ~~~java
 System.out.println("DATA" + (char) 9
         + name + (char) 9 + points(value));
 ~~~
 
-Đây là **snippet thay thế toàn bộ thân phương thức `data`**. Nó giúp tránh nhầm nhiều lớp `\` khi code đi qua Markdown, JSON hay template.
+This **snippet replaces the entire body of `data`**. It avoids multiple layers of `\` confusion when code travels through Markdown, JSON, or templates.
 
-## 14. So sánh ở mức code point và so sánh ngữ nghĩa
+## 14. Code-Point Comparison vs. Semantic Comparison
 
-Có ít nhất ba mức chấp nhận thay đổi:
+There are at least three levels of accepting changes:
 
-**Mức A — Exact string parity**
+**Level A — Exact string parity**
 
 ~~~text
 String.equals / Unicode code points identical
 ~~~
 
-Phù hợp khi:
-- Giao thức yêu cầu chính xác ký pháp;
-- Snapshot định dạng phải ổn định vì hợp đồng;
-- Có người chủ động phê duyệt mọi thay đổi hiển thị.
+Appropriate when:
+- A protocol mandates exact notation;
+- A formatted snapshot must remain stable by contract;
+- A human explicitly approves every presentation change.
 
-**Mức B — Structural/semantic parity**
+**Level B — Structural/semantic parity**
 
-Ví dụ hai chuỗi ngày khác thứ tự tháng/ngày nhưng vẫn biểu diễn **cùng LocalDate** theo locale. Kiểm bằng parse với formatter thích hợp và so giá trị:
+For example, two date strings swap month/day order yet still represent the **same `LocalDate`** for their locale. Verify by parsing back with the corresponding formatter and comparing values:
 
 ~~~java
 LocalDate parsed = LocalDate.parse(
@@ -587,30 +587,30 @@ boolean sameDate =
         parsed.equals(LocalDate.of(2024, 1, 2));
 ~~~
 
-Đây là **snippet** với `formatted` và `formatter` đã có. Với formatter locale không thuận nghịch ở một số style hoặc dữ liệu mơ hồ, parse cũng có thể không hoàn hảo; phải chọn tình huống test thích hợp.
+This is a **snippet** assuming `formatted` and `formatter` exist. With locale formatters that are not lossless round-trips in certain styles or ambiguous formats, parsing may be imperfect; choose appropriate test cases.
 
-**Mức C — UX/linguistic acceptance**
+**Level C — UX/linguistic acceptance**
 
-Ví dụ dấu cách hẹp, tên tháng mới hoặc ký hiệu tiền thay đổi nhưng đúng quy ước CLDR. Cần review:
-- bản địa hóa có đúng kỳ vọng người dùng;
-- UI còn đủ chiều rộng;
-- accessibility/screen reader đọc được;
-- copy/paste sang hệ thống khác có an toàn;
-- biểu diễn có ảnh hưởng báo cáo/CSV/log hay không.
+For example, a narrow space, updated month name, or changed currency symbol that conforms to updated CLDR rules. Review:
+- whether localization meets user expectations;
+- whether UI width remains sufficient;
+- whether accessibility/screen readers read cleanly;
+- whether copy/paste into external systems stays safe;
+- whether representation affects reports, CSVs, or logs.
 
-Không nên **normalize mọi Unicode whitespace trước exact diff** rồi mất tín hiệu cần review ở mức C.
+Do not **normalize all Unicode whitespace before exact diffing** and lose the signal needed for Level C review.
 
-## 15. NumberFormat: grouping, decimal và tiền tệ
+## 15. NumberFormat: Grouping, Decimals, and Currency
 
-Các nhóm thay đổi đáng thử:
-- U+00A0 và U+202F khi phân nhóm hoặc giữa số và ký hiệu;
-- dấu thập phân và dấu nhóm;
-- cách đặt ký hiệu tiền trước/sau số;
-- chữ số bản địa (ví dụ ASCII vs chữ số Ả Rập nếu locale/numbering system thay đổi);
-- số chữ số sau dấu thập phân và rounding mặc định;
-- dấu âm, ký hiệu phần trăm, khoảng trắng không ngắt.
+Change categories worth probing:
+- U+00A0 and U+202F in grouping or between numbers and symbols;
+- decimal and grouping marks;
+- currency symbol placement before/after numbers;
+- localized digits (e.g., ASCII vs. Arabic digits if locale/numbering system changes);
+- fraction digit counts and default rounding;
+- minus signs, percent symbols, and non-breaking spaces.
 
-Không dùng `NumberFormat.getInstance()` thiếu locale trong test so CLDR. Hãy dùng:
+Do not use locale-less `NumberFormat.getInstance()` in CLDR comparison tests. Use:
 
 ~~~java
 Locale fr = Locale.FRANCE;
@@ -621,15 +621,15 @@ String amountText = number.format(12345.67);
 String currencyText = money.format(12345.67);
 ~~~
 
-Đây là **snippet**, cần import `Locale` và `NumberFormat`. Giá trị nội dung chính xác là **dữ liệu cần đo trên JDK**, không nên ghi đè expected bằng ví dụ “nhìn gần giống”.
+This is a **snippet**, requiring imports for `Locale` and `NumberFormat`. Exact values are **data to measure on the JDK**, never overwritten by "close enough" expected examples.
 
-Nếu cần **ký pháp chính xác để trao đổi dữ liệu giữa hệ thống**, hãy dùng định dạng có hợp đồng rõ (JSON numbers, decimal canonical) thay vì lấy chuỗi UI phụ thuộc CLDR làm protocol.
+When **exact notation is required for inter-system data exchange**, use explicitly contracted formats (JSON numbers, canonical decimals) instead of treating CLDR-dependent UI strings as a protocol.
 
-## 16. DateTimeFormatter và java.text.DateFormat không nhất thiết có cùng output
+## 16. DateTimeFormatter and java.text.DateFormat Do Not Necessarily Produce Identical Output
 
-`DateTimeFormatter` và `DateFormat` là hai họ API khác nhau. Cả hai có locale-sensitive formatting, nhưng không nên suy luận chúng có cùng pattern hay luôn hiển thị giống nhau.
+`DateTimeFormatter` and `DateFormat` are two separate API families. Both perform locale-sensitive formatting, yet you should not assume they share identical patterns or always render identically.
 
-Ví dụ:
+Example:
 
 ~~~java
 DateTimeFormatter modern =
@@ -642,19 +642,19 @@ DateFormat legacy =
 legacy.setTimeZone(TimeZone.getTimeZone("UTC"));
 ~~~
 
-Đây là **snippet** với imports `java.time.format.DateTimeFormatter`, `FormatStyle`, `java.text.DateFormat`, `Locale` và `TimeZone`.
+This is a **snippet** importing `java.time.format.DateTimeFormatter`, `FormatStyle`, `java.text.DateFormat`, `Locale`, and `TimeZone`.
 
-Khi snapshot:
-- Dùng một `LocalDate` cố định với `DateTimeFormatter`;
-- Dùng một instant cố định cùng timezone rõ ràng với `DateFormat`;
-- Không so hai API trên hai **ngày khác nhau** rồi kết luận có lỗi;
-- Kiểm tra tên tháng/thứ, thứ tự các thành phần và dấu câu.
+When taking snapshots:
+- Use a fixed `LocalDate` with `DateTimeFormatter`;
+- Use a fixed instant with an explicit time zone for `DateFormat`;
+- Never compare the two APIs on two **different dates** and conclude a bug exists;
+- Inspect month/weekday names, component ordering, and punctuation.
 
-Đặc biệt, phép parse một ngày ngắn có thể mơ hồ nếu thiếu năm hoặc dùng thứ tự `dd/MM` vs `MM/dd`. Đừng biến snapshot hiển thị thành nguồn dữ liệu chuẩn của giao thức.
+In particular, parsing a short date can be ambiguous if the year is missing or `dd/MM` vs. `MM/dd` ordering applies. Never turn display snapshots into canonical protocol data sources.
 
-## 17. Timezone và TZDB: một nguồn drift độc lập
+## 17. Time Zones and TZDB: An Independent Source of Drift
 
-Khi quốc gia điều chỉnh DST hoặc offset, bản cập nhật TZDB có thể làm thay đổi kết quả chuyển:
+When a country adjusts DST or UTC offsets, a TZDB update can alter conversion outcomes:
 
 ~~~java
 Instant event =
@@ -664,11 +664,11 @@ ZonedDateTime local =
         event.atZone(ZoneId.of("Europe/Paris"));
 ~~~
 
-Đây là snippet; cần import `Instant`, `ZonedDateTime` và `ZoneId`.
+This is a snippet requiring imports for `Instant`, `ZonedDateTime`, and `ZoneId`.
 
-**Phải giữ `Instant` và `ZoneId` cố định.** Nếu thay `ZoneId` theo timezone của CI host, phép thử không còn cô lập được thay đổi TZDB.
+**Keep both `Instant` and `ZoneId` fixed.** If `ZoneId` varies with the CI host's time zone, the test can no longer isolate TZDB changes.
 
-Có thể truy vấn version mà provider cung cấp:
+You can query the version supplied by the provider:
 
 ~~~java
 String tzdbVersion =
@@ -676,48 +676,48 @@ String tzdbVersion =
                 "Europe/Paris").lastKey();
 ~~~
 
-Đây là snippet; cần import `ZoneRulesProvider`. Thông thường JDK TZDB provider cung cấp map version. Với provider khác, hãy xử lý việc version info không có/khác theo hợp đồng của provider.
+This is a snippet importing `ZoneRulesProvider`. Normally the JDK TZDB provider populates the version map. For custom providers, handle missing or differing version metadata per the provider's contract.
 
-Test nên bao gồm:
-- instant trong giai đoạn DST chuyển mùa;
-- instant lịch sử quan trọng với nghiệp vụ;
-- instant tương lai nếu dùng đặt lịch dài hạn;
-- vùng cụ thể như `Asia/Ho_Chi_Minh`, `Europe/Paris`, `America/New_York` khi liên quan.
+Tests should cover:
+- instants around DST transitions;
+- historically significant business instants;
+- future instants if long-term scheduling is used;
+- specific zones such as `Asia/Ho_Chi_Minh`, `Europe/Paris`, and `America/New_York` where relevant.
 
-**Không gọi mọi khác biệt timezone là lỗi CLDR.** TZDB và CLDR phục vụ những loại dữ liệu khác nhau.
+**Do not call every time-zone difference a CLDR bug.** TZDB and CLDR serve different data domains.
 
-## 18. `MessageFormat` và bản dịch của ứng dụng
+## 18. `MessageFormat` and Application Translations
 
-Một thông điệp:
+A message:
 
 ~~~text
 Order {0}: {1,number,currency}
 ~~~
 
-được `MessageFormat` format theo `Locale`. Khi nâng JDK/CLDR, phần định dạng `{1,number,currency}` có thể thay đổi dù pattern bản dịch không đổi.
+is formatted by `MessageFormat` using `Locale`. When upgrading JDK/CLDR, the `{1,number,currency}` subformat output can change even while the translation pattern stays untouched.
 
-Để xác định nguồn:
-1. Giữ nguyên `ResourceBundle` và phiên bản message pattern.
-2. Chạy cùng locale, amount, rounding.
-3. Snapshot **pattern** và **formatted output**.
-4. Nếu chỉ output đổi, điều tra dữ liệu locale/formatter.
-5. Nếu pattern đổi, điều tra bản dịch/build/version của ứng dụng.
+To pinpoint the source:
+1. Keep `ResourceBundle` and the message pattern version unchanged.
+2. Run with identical locale, amount, and rounding.
+3. Snapshot both the **pattern** and the **formatted output**.
+4. If only output changed, investigate locale data / formatter behavior.
+5. If the pattern changed, investigate application translations, build, or version.
 
-Không trộn `MessageFormat` từ JDK với cú pháp ICU `plural/select`. Nếu dự án dùng ICU4J, phiên bản thư viện và dữ liệu ICU là **một biến độc lập** cần ghi nhận, không thể gộp chung vào JDK version.
+Do not mix JDK `MessageFormat` with ICU `plural`/`select` syntax. If the project uses ICU4J, the library version and ICU data are an **independent variable** to track separately from the JDK version.
 
-## 19. Runtime image `jlink` có thể cắt dữ liệu locale
+## 19. A `jlink` Runtime Image Can Strip Locale Data
 
-Full JDK và runtime image do `jlink` tạo không mặc nhiên có tập module/dữ liệu giống nhau.
+A full JDK and a `jlink`-built runtime image do not automatically share the same modules and data.
 
-Một image tối giản:
+A minimal image:
 
 ~~~bash
 jlink --add-modules java.base --output image-min
 ~~~
 
-có thể hoạt động với các service thuộc `java.base` nhưng **không chứa module dữ liệu locale mở rộng `jdk.localedata`**. Kết quả cho những locale ngoài tập dữ liệu cơ bản có thể khác hoặc được fallback theo provider/rules của runtime.
+works for services inside `java.base` yet **lacks the extended locale-data module `jdk.localedata`**. Output for locales outside the base dataset can differ or fall back according to the runtime's providers/rules.
 
-Một image có locale mở rộng:
+An image with extended locales:
 
 ~~~bash
 jlink --add-modules java.base,jdk.localedata \
@@ -725,20 +725,20 @@ jlink --add-modules java.base,jdk.localedata \
   --output image-localized
 ~~~
 
-Đây là **lệnh minh họa** trên shell hỗ trợ `\` nối dòng. `--include-locales` là plugin `jlink` để chỉ giữ những locale khớp danh sách language tag theo cơ chế matching hỗ trợ; cần **bao gồm module `jdk.localedata`** khi dùng plugin.
+This is an **illustrative command** for shells supporting `\` line continuation. `--include-locales` is a `jlink` plugin retaining only locales matching the tag list per supported matching rules; you must **include the `jdk.localedata` module** when using this plugin.
 
-Không coi việc dùng `--include-locales=fr,vi` là bảo đảm toàn bộ mọi locale extension, calendar/numbering system hoặc provider riêng đều tồn tại. Kiểm tra **các language tag và chức năng thật** của ứng dụng trên image đã build.
+Do not treat `--include-locales=fr,vi` as guaranteeing every locale extension, calendar/numbering system, or custom provider exists. Verify the **actual language tags and features** of your app on the built image.
 
-Tài liệu: [jlink Tool](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jlink.html).
+Documentation: [jlink Tool](https://docs.oracle.com/en/java/javase/17/docs/specs/man/jlink.html).
 
-## 20. Kiểm tra module có sẵn và module đã được resolve
+## 20. Checking Available Modules vs. Resolved Modules
 
-Hai khái niệm khác nhau:
+Two distinct concepts:
 
-- **Module available in image**: hệ thống có artifact module.
-- **Module resolved into boot layer**: module được đưa vào cấu hình chạy cụ thể.
+- **Module available in image**: the image contains the module artifact.
+- **Module resolved into boot layer**: the module is included in the active runtime configuration.
 
-Ví dụ snippet:
+Example snippet:
 
 ~~~java
 boolean available = ModuleFinder.ofSystem()
@@ -748,41 +748,41 @@ boolean resolved = ModuleLayer.boot()
         .findModule("jdk.localedata").isPresent();
 ~~~
 
-Cần import `java.lang.module.ModuleFinder`; `ModuleLayer` nằm trong `java.lang`.
+Import `java.lang.module.ModuleFinder`; `ModuleLayer` is in `java.lang`.
 
-Có thể kiểm tra modules trong image:
+You can inspect modules inside an image:
 
 ~~~bash
 ./image-localized/bin/java --list-modules
 ~~~
 
-Với Windows, đường dẫn file chạy dùng `image-localized\bin\java.exe`. Không dùng thông tin “JDK trên máy dev có `jdk.localedata`” để suy luận image container production cũng có.
+On Windows, the executable path uses `image-localized\bin\java.exe`. Never infer from "the dev machine's JDK has `jdk.localedata`" that the production container image has it too.
 
-**Đặc biệt quan trọng:** Một test chạy trên `java` nằm trong PATH có thể vô tình dùng full JDK, thay vì chính `image-localized/bin/java` vừa tạo. CI phải chạy **binary của image ứng dụng triển khai**.
+**Especially important:** a test invoking `java` from `PATH` may accidentally run the full JDK instead of the newly built `image-localized/bin/java`. CI must execute the **exact binary of the deployed application image**.
 
-## 21. So sánh hai runtime images công bằng
+## 21. Comparing Two Runtime Images Fairly
 
-Ma trận kiểm thử nên tách:
+Separate your test matrix:
 
-| Run | JDK | Runtime image | Locale data | Mục tiêu |
+| Run | JDK | Runtime image | Locale data | Purpose |
 | --- | --- | --- | --- | --- |
-| A | Cũ | Full JDK | Full/expected | Baseline |
-| B | Mới | Full JDK | Full/expected | Đo drift do nâng JDK/dữ liệu |
-| C | Mới | `jlink` image đầy đủ locale cần dùng | Có `jdk.localedata`/include-locale | Đo ảnh hưởng image |
-| D | Mới | `jlink` image tối giản | Không đủ locale coverage | Negative/compatibility test |
+| A | Old | Full JDK | Full/expected | Baseline |
+| B | New | Full JDK | Full/expected | Measure JDK/data upgrade drift |
+| C | New | `jlink` image with all needed locales | Has `jdk.localedata`/include-locale | Measure image packaging impact |
+| D | New | Minimal `jlink` image | Incomplete locale coverage | Negative/compatibility test |
 
-Không so A trực tiếp với D rồi kết luận “nâng JDK làm định dạng sai” khi **đồng thời** thay JDK, module graph, dữ liệu locale và image packaging.
+Never compare A directly against D and conclude "upgrading the JDK broke formatting" when you **simultaneously** changed the JDK, module graph, locale data, and image packaging.
 
-Thay từng biến nếu có thể:
-- A → B cô lập JDK/distribution;
-- B → C cô lập khác biệt full JDK vs target image;
-- C → D xác định tác động của dữ liệu locale bị lược bớt.
+Change one variable at a time when possible:
+- A → B isolates JDK/distribution changes;
+- B → C isolates full JDK vs. target image differences;
+- C → D identifies the impact of stripped locale data.
 
-Nếu không thể giữ nguyên mọi biến (ví dụ vendor khác), phải ghi nhận và **không quy nguyên nhân quá tự tin**.
+When all variables cannot be held constant (e.g., switching vendors), document it and **avoid overconfident attribution**.
 
-## 22. Tập locale khả dụng và fallback cần đo riêng
+## 22. Available Locales and Fallback Must Be Measured Separately
 
-Các API như:
+APIs such as:
 
 ~~~java
 NumberFormat.getAvailableLocales();
@@ -790,22 +790,22 @@ DateFormat.getAvailableLocales();
 Locale.getAvailableLocales();
 ~~~
 
-trả những danh sách khả dụng theo **service**, và có thể không giống nhau. Một locale xuất hiện trong một danh sách không bảo đảm **mọi API dịch/ngày/số** đều có cùng mức hỗ trợ.
+return availability lists **per service**, which need not be identical. A locale appearing in one list does not guarantee **every translation/date/number API** has the same coverage.
 
-`Locale.forLanguageTag("vi-VN")` luôn có thể tạo đối tượng `Locale` hợp lệ ngay cả khi runtime không có đầy đủ dữ liệu riêng cho locale đó. Việc tạo object **không chứng minh** có sẵn format data bản địa.
+`Locale.forLanguageTag("vi-VN")` can always construct a valid `Locale` object even if the runtime lacks dedicated data for that locale. Constructing the object **does not prove** native formatting data is present.
 
-Để kiểm tra runtime image, phải:
-1. Tạo formatter cho locale sản phẩm sử dụng.
-2. Chạy các phép đo date/number/currency/message.
-3. Kiểm tra output và metadata.
-4. Xác nhận locale/provider cụ thể đã được included/resolved.
-5. Có **negative test** về thiếu locale data nếu cần bảo đảm image build đúng.
+To verify a runtime image, you must:
+1. Construct formatters for product-used locales.
+2. Run date/number/currency/message probes.
+3. Inspect outputs and metadata.
+4. Confirm specific locales/providers are included/resolved.
+5. Include a **negative test** for missing locale data if verifying image minimization.
 
-`ResourceBundle.getBundle` có cơ chế fallback riêng. Không dùng kết quả fallback của ResourceBundle để kết luận dữ liệu CLDR của `NumberFormat` đã được đóng gói đầy đủ.
+`ResourceBundle.getBundle` has its own fallback chain. Never use `ResourceBundle` fallback behavior to conclude that CLDR data for `NumberFormat` was packaged completely.
 
-## 23. Startup properties và môi trường là một phần của snapshot
+## 23. Startup Properties and Environment Are Part of the Snapshot
 
-Các thuộc tính như:
+Properties such as:
 
 ~~~text
 -Djava.locale.providers=CLDR
@@ -814,17 +814,17 @@ Các thuộc tính như:
 -Duser.timezone=Asia/Ho_Chi_Minh
 ~~~
 
-có thể ảnh hưởng các default values ở startup. Trong phép so sánh có kiểm soát, tốt nhất là **truyền `Locale` và `ZoneId` trực tiếp cho API** thay vì phụ thuộc các defaults.
+can affect startup defaults. In controlled comparisons, it is best to **pass `Locale` and `ZoneId` directly to APIs** rather than relying on defaults.
 
-Nếu có lý do để test default locale, hãy thiết lập chúng khi startup và ghi lại **cả FORMAT/DISPLAY locale**. `Locale.getDefault()` không luôn phản ánh mọi trường hợp phân biệt category nếu ứng dụng thay đổi default cho từng category.
+If you have a reason to test default locales, configure them at startup and record **both `FORMAT` and `DISPLAY` locales**. `Locale.getDefault()` does not always reflect category distinctions if the app modifies defaults per category.
 
-Đừng gọi `System.setProperty("java.locale.providers", ...)` ở giữa chương trình rồi so hai kết quả trong cùng JVM như thể provider được thay nóng. **Provider selection cần được thử bằng những JVM process độc lập**, với cờ startup khác nhau.
+Do not call `System.setProperty("java.locale.providers", ...)` mid-program and compare two results in the same JVM as if providers hot-swapped. **Provider selection must be tested in separate JVM processes** with distinct startup flags.
 
-## 24. So sánh hành vi parser, không chỉ formatter
+## 24. Compare Parser Behavior Too, Not Just Formatters
 
-Nâng CLDR/JDK cũng có thể làm thay đổi **những chuỗi được parser chấp nhận** hoặc cách parser diễn giải ký tự phân nhóm/thập phân.
+CLDR/JDK upgrades can also alter **which strings parsers accept** or how parsers interpret grouping/decimal characters.
 
-Ví dụ người dùng gửi:
+For instance, a user submits:
 
 ~~~text
 12 345,67
@@ -832,16 +832,16 @@ Ví dụ người dùng gửi:
 12 345,67
 ~~~
 
-Ba dòng có thể chứa **U+0020**, **U+00A0** và **U+202F**. Đừng xem chúng giống nhau chỉ vì font render gần giống.
+These three lines can contain **U+0020**, **U+00A0**, and **U+202F**. Never assume they are identical just because a font renders them similarly.
 
-Một phép thử parse nên kiểm:
-- `NumberFormat.parse` có trả kết quả?
-- Parser tiêu thụ **toàn bộ chuỗi** hay chỉ tiền tố?
-- Giá trị số sau parse có đúng không?
-- Locale/provider được dùng là gì?
-- Mọi ký tự không hợp lệ có bị bỏ qua âm thầm không?
+A parser probe should check:
+- Does `NumberFormat.parse` return a result?
+- Did the parser consume **the entire string** or only a prefix?
+- Is the parsed numeric value correct?
+- Which locale/provider was used?
+- Were any invalid characters silently ignored?
 
-`ParsePosition` giúp kiểm tra độ dài đã tiêu thụ:
+`ParsePosition` verifies consumed length:
 
 ~~~java
 ParsePosition pos = new ParsePosition(0);
@@ -851,44 +851,44 @@ boolean complete = value != null
         && pos.getIndex() == input.length();
 ~~~
 
-Đây là snippet; cần import `ParsePosition`, `NumberFormat`; `numberFormat` và `input` đã được khởi tạo.
+This is a snippet requiring imports for `ParsePosition` and `NumberFormat`, assuming `numberFormat` and `input` are initialized.
 
-**Không coi parse thành công là tương đương với chuỗi hợp lệ toàn phần**: một parser có thể chỉ đọc tiền tố. Khi nâng JDK, test cần theo dõi cả **giá trị** và **chỉ số tiêu thụ**, không chỉ exception.
+**Do not equate a non-throwing parse with a fully valid string**: a parser may read only a prefix. Across JDK upgrades, tests must track both **parsed values** and **consumed indexes**, not just exceptions.
 
-## 25. Cách xử lý golden tests khi có khác biệt hợp lệ
+## 25. Handling Golden Tests When Valid Differences Occur
 
-Một snapshot vàng (*golden file*) giúp phát hiện thay đổi không mong muốn, nhưng nếu máy móc bắt output mới giống byte-for-byte vĩnh viễn sẽ gây khó nâng cấp CLDR.
+A *golden file* snapshot catches unexpected changes, yet rigidly forcing new outputs to match byte-for-byte forever blocks legitimate CLDR upgrades.
 
-Quy trình review:
+Review workflow:
 
-1. **Tạo baseline có metadata** từ runtime production hiện tại.
-2. **Tạo candidate** trên runtime/image mới.
-3. **Diff theo Unicode code point** cho tất cả `DATA`.
-4. **Phân nhóm**: number, currency, date/time, week/calendar, timezone, ResourceBundle, message.
-5. **Xác định nguyên nhân** dựa vào CLDR/provider/TZDB/image, không đoán từ chuỗi đơn lẻ.
-6. **Review tác động**: UI, parser, serialization, test, báo cáo, khách hàng.
-7. **Chấp thuận hoặc sửa** với lý do có thể truy vết.
-8. **Chỉ cập nhật golden sau khi đã review**, lưu cả baseline cũ/diff và quyết định.
+1. **Generate a metadata-tagged baseline** from the current production runtime.
+2. **Generate a candidate** on the new runtime/image.
+3. **Diff by Unicode code points** across all `DATA` entries.
+4. **Group by category**: number, currency, date/time, week/calendar, timezone, `ResourceBundle`, message.
+5. **Identify root cause** from CLDR/provider/TZDB/image evidence rather than guessing from a lone string.
+6. **Review impact**: UI, parsers, serialization, tests, reports, customers.
+7. **Approve or fix** with traceable rationale.
+8. **Update golden files only after review**, archiving old baseline/diff and decision notes.
 
-Nếu một dấu phân nhóm đổi U+00A0 sang U+202F và đó là định dạng địa phương được dữ liệu CLDR mới khuyến nghị, có thể chấp nhận cập nhật snapshot UI. Nếu cùng định dạng này đang được ghi vào CSV làm mã máy đọc và gây lỗi parser, giải pháp đúng là **không sử dụng định dạng UI làm protocol**, thay vì ép Java mãi dùng ký tự cũ ở mọi nơi.
+If a grouping separator shifts from U+00A0 to U+202F and that matches updated CLDR locale conventions, updating UI snapshots may be acceptable. If that same format was written into CSVs as machine-readable data and broke parsers, the right fix is **stopping the use of UI formats as protocols**, not forcing Java to emit the old character everywhere forever.
 
-## 26. Kiểm thử định dạng giao thức khác kiểm thử giao diện
+## 26. Protocol Formatting Tests Differ from UI Formatting Tests
 
-**Giao thức dữ liệu** thường cần ký pháp ổn định độc lập locale: ISO 8601 cho thời gian, JSON number, hoặc định dạng số/currency được định nghĩa rõ.
+**Data protocols** normally require stable, locale-independent notation: ISO 8601 for timestamps, JSON numbers, or explicitly specified number/currency schemas.
 
-**Giao diện** cần theo quy ước từng locale và có thể thay đổi khi dữ liệu CLDR cập nhật.
+**UIs** follow per-locale conventions and may evolve when CLDR data updates.
 
-Ví dụ:
-- Gửi timestamp giữa các service: dùng `Instant` và chuẩn serialization rõ ràng.
-- Hiển thị timestamp trong email tiếng Việt: dùng `DateTimeFormatter` với locale/timezone phù hợp.
-- Lưu số tiền: lưu `BigDecimal` cùng currency code, không lưu kết quả `NumberFormat.getCurrencyInstance` làm giá trị nguồn.
-- Hiển thị giá tiền: format `BigDecimal` theo locale và currency đã chọn.
+Examples:
+- Sending timestamps between services: use `Instant` and an explicit serialization standard.
+- Displaying timestamps in Vietnamese emails: use `DateTimeFormatter` with the right locale/time zone.
+- Storing monetary amounts: store `BigDecimal` plus ISO currency code, never `NumberFormat.getCurrencyInstance` output as source data.
+- Displaying prices: format `BigDecimal` for the chosen locale and currency.
 
-Đừng giải quyết test snapshot thay đổi bằng cách đặt một locale cho toàn ứng dụng. Cần phân biệt **contract ổn định** và **presentation thay đổi hợp lệ**.
+Never "solve" changing snapshot tests by locking the entire application to one locale. Keep **stable contracts** separate from **valid presentation updates**.
 
-## 27. Kiểm thử Unicode và nguồn dữ liệu Character
+## 27. Testing Unicode and Character Data Sources
 
-Bản nâng JDK có thể cập nhật Unicode data. Một code point được nhận diện là `UNASSIGNED` ở phiên bản cũ có thể trở thành chữ cái/biểu tượng ở phiên bản mới. Những hàm cần xem nếu ứng dụng phụ thuộc chúng:
+A JDK upgrade can update Unicode data. A code point classified as `UNASSIGNED` in an older release can become a letter or symbol in a newer release. Methods to check if your app relies on them:
 
 ~~~java
 Character.isLetter(codePoint);
@@ -898,160 +898,160 @@ Character.UnicodeScript.of(codePoint);
 Normalizer.normalize(text, Normalizer.Form.NFC);
 ~~~
 
-Đây là snippet, `codePoint` và `text` đã có.
+This is a snippet assuming `codePoint` and `text` exist.
 
-Nếu validation username, tìm kiếm, phân loại chữ số hoặc chuyển case dựa trên Unicode properties, cần test **các code point ở ranh giới chính sách**. Không nhầm một thay đổi Unicode property với thay đổi CLDR locale formatting.
+If username validation, search, digit classification, or case folding relies on Unicode properties, test **boundary code points** in your policy. Never confuse a Unicode property change with a CLDR locale formatting change.
 
-**An toàn:** Không được tự động nới chính sách định danh bảo mật chỉ vì runtime mới nhận diện thêm nhiều code point. Quy tắc ứng dụng phải có profile/phiên bản được quyết định chủ động, rồi mới nâng dữ liệu khi thích hợp.
+**Safety:** never automatically relax security identifier policies simply because a newer runtime recognizes more code points. Application rules should adopt an explicitly chosen profile/version, upgrading data intentionally when appropriate.
 
-## 28. Trường hợp `jlink` image thiếu provider hoặc resource bundle
+## 28. When a `jlink` Image Lacks Providers or Resource Bundles
 
-Khi chuyển sang runtime image:
-- `jdk.localedata` có thể vắng mặt;
-- service provider tùy biến có thể chưa được đưa vào module graph;
-- resource `.properties` có thể bị loại khỏi artifact;
-- ứng dụng dùng `ResourceBundleProvider`/SPI có thể cần binding/configuration;
-- locale fallback có thể trả chuỗi khác mà không ném exception.
+When moving to a runtime image:
+- `jdk.localedata` may be absent;
+- custom service providers may be missing from the module graph;
+- `.properties` resources may be omitted from the artifact;
+- apps using `ResourceBundleProvider`/SPI may need module bindings/config;
+- locale fallback may return a different string without throwing an exception.
 
-Đối với `ResourceBundle`, test phải xác nhận **file/provider được đóng gói** và **key/locale đang được tìm đúng nguồn**. Đối với CLDR, test phải xác nhận **formatter output** trên runtime image.
+For `ResourceBundle`, tests must verify **files/providers are packaged** and **keys/locales resolve from the right source**. For CLDR, tests must verify **formatter output** on the runtime image itself.
 
-**Không chữa mọi lỗi bằng `--add-modules jdk.localedata`** nếu nguyên nhân là ứng dụng quên copy `Messages_vi.properties`. Và không chữa file thiếu bằng cách chỉnh `java.locale.providers`. Hai lớp tài nguyên này liên quan nhưng **không phải một loại**.
+**Do not "fix" everything with `--add-modules jdk.localedata`** if the real bug is forgetting to copy `Messages_vi.properties`. Conversely, do not fix a missing properties file by tweaking `java.locale.providers`. These two resource layers are related yet **not the same mechanism**.
 
-## 29. Các bài test nên có trong CI
+## 29. Tests to Include in CI
 
-Tổ chức test thành ba nhóm:
+Organize tests into three groups:
 
-**Nhóm 1 — Behavioral contract, chạy mọi PR**
-- `Locale`/`ZoneId` cố định.
-- Input ngày/số/tiền/mẫu cố định.
-- Parser round-trip và tiêu thụ đầy đủ.
-- Resource bundle keys và MessageFormat arguments.
-- Các quy tắc sản phẩm **bắt buộc bất biến**.
+**Group 1 — Behavioral contract, run on every PR**
+- Fixed `Locale`/`ZoneId`.
+- Fixed date/number/money/pattern inputs.
+- Parser round-trip and full consumption.
+- `ResourceBundle` keys and `MessageFormat` arguments.
+- Product rules that are **strictly invariant**.
 
-**Nhóm 2 — Snapshot drift, chạy khi nâng JDK/image**
-- Golden output codepoints cho locale chính.
-- Metadata Java vendor/build/provider/TZDB/module.
-- Diff nguyên chuỗi, phân loại theo service/locale.
-- Các màn hình quan trọng: invoice, email, payment, lịch.
-- Review thủ công trước khi cập nhật expected.
+**Group 2 — Snapshot drift, run on JDK/image upgrades**
+- Golden code-point outputs for core locales.
+- Metadata for Java vendor/build/provider/TZDB/modules.
+- String-exact diffs categorized by service/locale.
+- Critical templates: invoices, emails, payments, calendars.
+- Manual review before updating expected snapshots.
 
-**Nhóm 3 — Image integration, chạy trên artifact deploy**
-- Binary `bin/java` của image `jlink` thật.
+**Group 3 — Image integration, run on the deployed artifact**
+- Actual `bin/java` binary of the `jlink` image.
 - Module list, `jdk.localedata`, provider availability.
-- ResourceBundle module/provider lookup.
-- Định dạng và parse locale chính.
-- Kiểm tra root fallback hoặc missing locale theo policy.
+- `ResourceBundle` module/provider lookup.
+- Formatting and parsing for key locales.
+- Root fallback or missing-locale behavior per policy.
 
-Nên giữ kết quả baseline/candidate/diff dưới dạng CI artifacts có version. Đừng chỉ xuất screenshot của UI hoặc xóa metadata khiến lần so sau không biết môi trường nào tạo ra output.
+Archive baseline/candidate/diff results as versioned CI artifacts. Never save only UI screenshots or strip metadata so future diffs cannot tell which environment produced the output.
 
-## 30. Khi test thất bại, làm thế nào để phân loại?
+## 30. How to Triage Failures When Tests Break
 
-| Quan sát | Khả năng cần kiểm | Bước tiếp theo |
+| Observation | Likely area to check | Next step |
 | --- | --- | --- |
-| `fr-FR.number` đổi dấu nhóm | CLDR/provider | So code points, provider order |
-| `fr-FR.currency` đổi vị trí/ký hiệu | Locale/currency data | Review UI và số tiền |
-| Date/time text khác | CLDR/format provider | So locale, style, pattern |
-| Zoned date offset khác | TZDB | So fixed instant, zone, TZDB version |
-| Chỉ `jlink` image khác full JDK | Module/locale coverage | Kiểm `jdk.localedata` và include-locales |
-| Mọi locale khác do default | Cấu hình startup | Ghi FORMAT locale/timezone, truyền explicit |
-| `MessageFormat` khác nhưng raw pattern giống | Formatter locale/provider | So fixed args và format data |
-| Bản dịch text khác và raw bundle cũng khác | Ứng dụng/package | So bundle version và key |
-| Lỗi parser sau nâng | Number/date parsing rules | Kiểm `ParsePosition`, locale |
-| Lỗi test chỉ xuất hiện trên CI | Environment hoặc image khác | Dùng chính binary runtime của CI |
+| `fr-FR.number` changed grouping mark | CLDR/provider | Compare code points, provider order |
+| `fr-FR.currency` changed symbol/placement | Locale/currency data | Review UI and amounts |
+| Date/time text differs | CLDR/format provider | Compare locale, style, pattern |
+| Zoned date offset differs | TZDB | Compare fixed instant, zone, TZDB version |
+| Only `jlink` image differs from full JDK | Module/locale coverage | Check `jdk.localedata` and `--include-locales` |
+| Every locale differs due to default | Startup config | Log `FORMAT` locale/timezone; pass explicitly |
+| `MessageFormat` differs while raw pattern matches | Formatter locale/provider | Compare fixed args and format data |
+| Translated text differs and raw bundle differs too | Application/packaging | Compare bundle version and keys |
+| Parser fails after upgrade | Number/date parsing rules | Check `ParsePosition`, locale |
+| Failure appears only in CI | Different environment or image | Run the exact CI runtime binary |
 
-Đây là các **giả thuyết kiểm tra**, không phải kết luận tự động. Một key có thể thay đổi vì nhiều nguyên nhân cùng lúc, đặc biệt khi nâng container và JDK đồng thời.
+These are **investigation hypotheses**, not automatic diagnoses. A single key can change for multiple reasons at once, especially when upgrading container base images and the JDK together.
 
-## 31. Tránh những lỗi thường gặp
+## 31. Common Mistakes to Avoid
 
-1. **Chỉ snapshot `String` bằng mắt**: bỏ sót NBSP, NNBSP, combining mark.
-2. **Không ghi JDK vendor/update**: không tái hiện được nguồn dữ liệu.
-3. **Không ghi provider order**: không biết test dùng CLDR, HOST hay SPI.
-4. **So full JDK cũ với jlink image mới rồi quy hết cho JDK**: thay nhiều biến.
-5. **Dùng ngày hôm nay/default timezone**: snapshot thay đổi vì thời gian chạy.
-6. **Dùng default locale ngầm**: khác máy developer/CI.
-7. **Chỉ kiểm `Locale.forLanguageTag` tạo được object**: không chứng minh có locale data.
-8. **Lấy số locale available làm bằng chứng đủ mọi API**: mỗi service có coverage riêng.
-9. **Coi `COMPAT` là lựa chọn lâu dài**: legacy data đã bị loại bỏ từ JDK 23.
-10. **Coi mọi diff là regression**: cập nhật CLDR hợp lệ vẫn có thể đổi output.
-11. **Coi mọi diff là chấp nhận được**: có thể phá hợp đồng giao thức/UI.
-12. **Tự normalize Unicode whitespace trước exact diff**: che khác biệt thực.
-13. **Tự cập nhật golden theo candidate**: loại bỏ cơ hội review.
-14. **Quên kiểm parser**: hiển thị đúng chưa chắc parse input cũ được.
-15. **Quên kiểm TZDB**: offset DST có thể thay đổi độc lập CLDR.
-16. **Quên module `jdk.localedata` khi tạo image**: thiếu coverage locale.
-17. **Test PATH `java` thay vì image thực**: kết quả không đại diện production.
-18. **Đánh đồng ResourceBundle của app với CLDR**: gây chẩn đoán sai.
-19. **Snapshot dữ liệu người dùng thật**: có thể rò rỉ PII/secret.
-20. **Cố đóng băng mọi định dạng UI**: cản trở cập nhật ngôn ngữ có lợi.
+1. **Snapshotting `String` by eye alone**: misses NBSP, NNBSP, combining marks.
+2. **Omitting JDK vendor/update**: makes data provenance unreproducible.
+3. **Omitting provider order**: hides whether CLDR, HOST, or SPI ran.
+4. **Comparing an old full JDK with a new `jlink` image and blaming the JDK**: changes multiple variables at once.
+5. **Using today's date / default time zone**: snapshots shift with wall-clock time.
+6. **Relying on implicit default locale**: diverges between developer laptops and CI.
+7. **Checking only that `Locale.forLanguageTag` constructs an object**: proves nothing about locale data availability.
+8. **Treating available-locale count as coverage for every API**: each service has its own coverage.
+9. **Treating `COMPAT` as a permanent option**: legacy data was removed in JDK 23.
+10. **Treating every diff as a regression**: valid CLDR updates can legitimately change output.
+11. **Treating every diff as acceptable**: may silently break protocol or UI contracts.
+12. **Normalizing Unicode whitespace before exact diffing**: hides real differences.
+13. **Auto-updating golden files to match candidates**: eliminates human review.
+14. **Forgetting parser checks**: valid rendering does not prove legacy inputs still parse.
+15. **Forgetting TZDB checks**: DST offsets can shift independently of CLDR.
+16. **Omitting `jdk.localedata` when building images**: leaves locale coverage incomplete.
+17. **Testing `PATH` `java` instead of the real image**: results fail to represent production.
+18. **Conflating app `ResourceBundle`s with CLDR**: leads to misdiagnosis.
+19. **Snapshotting real user data**: risks leaking PII or secrets.
+20. **Trying to freeze every UI format forever**: blocks beneficial linguistic updates.
 
-## 32. Câu hỏi ôn tập kèm đáp án
+## 32. Review Questions and Answers
 
-**Câu 1.** Vì sao cùng code Java mà đầu ra `NumberFormat` có thể đổi khi nâng JDK?
+**Question 1.** Why can identical Java code produce different `NumberFormat` output after a JDK upgrade?
 
-**Đáp án:** Dữ liệu CLDR/provider, cấu hình locale hoặc triển khai JDK có thể thay đổi mà không cần sửa code.
+**Answer:** CLDR/provider data, locale configuration, or JDK implementations can change without any application code edits.
 
-**Câu 2.** `java.locale.providers=COMPAT` có dùng được mãi để giữ output cũ?
+**Question 2.** Can `java.locale.providers=COMPAT` be used indefinitely to preserve legacy output?
 
-**Đáp án:** Không. Legacy `COMPAT/JRE` locale data bị loại bỏ từ JDK 23; phải migrate sang CLDR và test lại.
+**Answer:** No. Legacy `COMPAT`/`JRE` locale data was removed in JDK 23; migrate to CLDR and re-test.
 
-**Câu 3.** Tại sao so chuỗi phân nhóm số bằng mắt không đủ?
+**Question 3.** Why is visually comparing formatted number grouping insufficient?
 
-**Đáp án:** U+0020, U+00A0 và U+202F có thể trông giống nhau nhưng khác code point.
+**Answer:** U+0020, U+00A0, and U+202F can look alike yet have different code points.
 
-**Câu 4.** Một `jlink` image không có `jdk.localedata` có nhất thiết giống full JDK không?
+**Question 4.** Does a `jlink` image without `jdk.localedata` necessarily match a full JDK?
 
-**Đáp án:** Không. Image có thể thiếu dữ liệu locale mở rộng nên cần kiểm thử trên chính image thật.
+**Answer:** No. The image may lack extended locale data, so test directly on the real built image.
 
-**Câu 5.** `--include-locales` cần chú ý gì?
+**Question 5.** What must you watch out for with `--include-locales`?
 
-**Đáp án:** Cần module `jdk.localedata` khi dùng plugin và xác minh các locale/service ứng dụng thật sự cần đã được giữ lại.
+**Answer:** Include the `jdk.localedata` module when using the plugin and verify the locales/services your app actually needs are retained.
 
-**Câu 6.** Vì sao nên ghi `TZDB version` khi test múi giờ?
+**Question 6.** Why record `TZDB version` when testing time zones?
 
-**Đáp án:** Quy tắc DST/offset có thể được cập nhật độc lập với CLDR và thay đổi kết quả tại một instant cố định.
+**Answer:** DST/offset rules can update independently of CLDR and alter conversions at a fixed instant.
 
-**Câu 7.** Có nên dùng `LocalDate.now()` trong golden test nâng JDK?
+**Question 7.** Should JDK upgrade golden tests use `LocalDate.now()`?
 
-**Đáp án:** Không, nếu muốn cô lập thay đổi runtime. Dùng một `LocalDate` cố định.
+**Answer:** No, if you want to isolate runtime changes. Use a fixed `LocalDate`.
 
-**Câu 8.** Nếu chỉ metadata Java version khác nhưng mọi dòng `DATA` giống nhau, có regression formatting không?
+**Question 8.** If only Java version metadata differs while all `DATA` lines match, is there a formatting regression?
 
-**Đáp án:** Chưa có bằng chứng regression trong tập probes được đo; không thể suy ra mọi hành vi đều giống nhau ngoài phạm vi test.
+**Answer:** There is no evidence of regression within the measured probe set; you still cannot extrapolate beyond what the probes cover.
 
-**Câu 9.** Nếu một parser chỉ đọc tiền tố của chuỗi mới, `parse` không ném exception thì đã đạt chưa?
+**Question 9.** If a parser reads only a prefix of a new string without throwing an exception, does it pass?
 
-**Đáp án:** Chưa. Kiểm tra `ParsePosition.getIndex() == input.length()` để biết toàn bộ input được tiêu thụ.
+**Answer:** No. Check `ParsePosition.getIndex() == input.length()` to ensure the entire input was consumed.
 
-**Câu 10.** Vì sao không được cập nhật golden tự động cho mọi khác biệt?
+**Question 10.** Why must golden files never be auto-updated for every difference?
 
-**Đáp án:** Có thể che regression. Cần phân loại nguyên nhân, review tác động và chấp nhận theo quyết định sản phẩm.
+**Answer:** Doing so can mask regressions. Classify the cause, review impact, and approve intentionally per product decision.
 
-## 33. Checklist nâng cấp thực tế
+## 33. Practical Upgrade Checklist
 
-- [ ] Liệt kê các locale, currency, calendar và timezone sản phẩm hỗ trợ.
-- [ ] Ghi version/build/vendor của runtime baseline và candidate.
-- [ ] Ghi `java.locale.providers`, default FORMAT/DISPLAY locale và timezone.
-- [ ] Ghi TZDB version, image ID và module/locale coverage.
-- [ ] Biên dịch cùng nguồn/cùng bộ probe tương thích hai runtime.
-- [ ] Cố định input `BigDecimal`, `LocalDate`, `Instant` và sample args.
-- [ ] Xuất formatted text dưới dạng Unicode code points.
-- [ ] So sánh `NumberFormat`, `DateTimeFormatter`, `DateFormat`, `MessageFormat`, `ResourceBundle` và parser.
-- [ ] Chạy riêng trên full JDK và **runtime image deploy thật**.
-- [ ] Xác minh `jdk.localedata` và `--include-locales` nếu dùng `jlink`.
-- [ ] Phân loại differences theo CLDR/provider, TZDB, app resources hoặc environment.
-- [ ] Review ảnh hưởng UI/format/protocol và tính đúng ngôn ngữ.
-- [ ] Chỉ sau review mới cập nhật golden và ghi lý do.
-- [ ] Giữ bản so sánh làm artifact cho lần migration tiếp theo.
+- [ ] List all product-supported locales, currencies, calendars, and time zones.
+- [ ] Record version/build/vendor for both baseline and candidate runtimes.
+- [ ] Record `java.locale.providers`, default `FORMAT`/`DISPLAY` locales, and default time zone.
+- [ ] Record TZDB version, image ID, and module/locale coverage.
+- [ ] Compile the same source/probe suite compatible with both runtimes.
+- [ ] Pin `BigDecimal`, `LocalDate`, `Instant`, and sample argument inputs.
+- [ ] Emit formatted text as Unicode code points.
+- [ ] Compare `NumberFormat`, `DateTimeFormatter`, `DateFormat`, `MessageFormat`, `ResourceBundle`, and parsers.
+- [ ] Run separately on the full JDK and the **actual deployed runtime image**.
+- [ ] Verify `jdk.localedata` and `--include-locales` if using `jlink`.
+- [ ] Classify diffs by CLDR/provider, TZDB, app resources, or environment.
+- [ ] Review UI/format/protocol impact and linguistic accuracy.
+- [ ] Update golden files only after review, recording the rationale.
+- [ ] Archive comparison artifacts for the next migration.
 
-## 34. Kết luận
+## 34. Conclusion
 
-Một phép nâng JDK, CLDR hoặc runtime image **không được đánh giá chỉ bằng “code còn compile”**. Phần localization cần các phép đo có thể tái hiện: **cùng input, cùng locale, cùng timezone, cùng provider policy, khác runtime một cách có kiểm soát**.
+A JDK, CLDR, or runtime image upgrade **cannot be judged merely by "the code still compiles."** Localization requires reproducible measurements: **identical inputs, identical locales, identical time zones, identical provider policy, with only the runtime varying under control**.
 
-Hãy xây **snapshot có fingerprint môi trường**, xuất cả **Unicode code points** của kết quả và dùng một **diff được review**. Tách lỗi **định dạng giao diện** khỏi **hợp đồng dữ liệu máy đọc**; tách **CLDR** khỏi **TZDB**; tách dữ liệu locale của JDK khỏi **resource bundle của ứng dụng**. Với `jlink`, chạy test trên chính image triển khai, không chỉ full JDK ở máy phát triển.
+Build **snapshots tagged with environment fingerprints**, export **Unicode code points** of the output, and run a **reviewed diff**. Keep **UI formatting bugs** separate from **machine-readable data contracts**; separate **CLDR** from **TZDB**; separate JDK locale data from **application resource bundles**. For `jlink`, test directly on the deployed image, not only on a developer machine's full JDK.
 
-**Ghi nhớ:** **Khác biệt đầu ra là tín hiệu cần điều tra**, không mặc định là bug cũng không mặc định được phép bỏ qua. Quy trình migration tốt là **phát hiện → tái hiện → xác định nguyên nhân → đánh giá tác động → chấp thuận hoặc sửa → cập nhật baseline có kiểm soát**.
+**Key takeaway:** **An output difference is a signal to investigate**, neither automatically a bug nor automatically safe to ignore. A sound migration workflow is **detect → reproduce → isolate root cause → assess impact → approve or fix → update baseline under control**.
 
-**Nguồn tham khảo Java và Oracle:**
+**Java and Oracle References:**
 - [Oracle JDK 17 Internationalization Enhancements](https://docs.oracle.com/en/java/javase/17/intl/internationalization-enhancements1.html).
 - [Java 17 LocaleServiceProvider](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/spi/LocaleServiceProvider.html).
 - [JDK 23 Removed Tools and Components](https://docs.oracle.com/en/java/javase/23/migrate/removed-tools-and-components.html).

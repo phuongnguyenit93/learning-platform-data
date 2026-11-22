@@ -1,28 +1,28 @@
-# Public member kế thừa khác member được khai báo tại chính lớp
+# Inherited Public Members Differ from Members Declared on the Class Itself
 
-## 1. Hai câu hỏi khác nhau khi tra cứu member
+## 1. Two Different Questions When Looking Up a Member
 
-Trong Java Reflection, **public** mô tả khả năng truy cập theo access modifier, còn **declared** mô tả **nơi member được khai báo**. Đây là hai tiêu chí khác nhau. Với một lớp con, có thể có member `public` được thừa kế từ lớp cha nhưng không xuất hiện trong tập member được khai báo trực tiếp tại lớp con.
+In Java Reflection, **public** describes accessibility according to the access modifier, whereas **declared** describes **where the member is declared**. These are two different criteria. For a subclass, there may be `public` members inherited from a superclass that do not appear in the set of members declared directly on the subclass.
 
-Ví dụ, `Parent` khai báo phương thức `public void read()` và `Child extends Parent` không override `read()`. Khi nhìn từ `Child.class`:
+For example, `Parent` declares the method `public void read()` and `Child extends Parent` does not override `read()`. When viewed from `Child.class`:
 
-- `getMethod("read")` tìm thấy phương thức `read` vì đây là phương thức public được thừa kế.
-- `getDeclaredMethod("read")` ném `NoSuchMethodException` vì `Child` không khai báo phương thức đó.
-- `getMethod("read").getDeclaringClass()` trả về `Parent.class`, cho biết lớp thực sự khai báo method.
+- `getMethod("read")` finds the `read` method because it is an inherited public method.
+- `getDeclaredMethod("read")` throws `NoSuchMethodException` because `Child` does not declare that method.
+- `getMethod("read").getDeclaringClass()` returns `Parent.class`, indicating the class that actually declares the method.
 
-**Quy tắc cốt lõi:** API không có chữ `Declared` dùng phép tra cứu công khai có xét thành viên thừa kế (đối với method/field); API có chữ `Declared` chỉ xét member khai báo tại `Class` đang khảo sát, bất kể public/protected/package-private/private. Quy tắc này cần áp dụng **đúng theo loại member**, vì constructor là trường hợp đặc biệt không được thừa kế.
+**Core rule:** APIs without the word `Declared` perform a public lookup that considers inherited members (for methods/fields); APIs with `Declared` consider only members declared on the `Class` under inspection, regardless of public/protected/package-private/private. This rule must be applied **according to the member kind**, because constructors are a special case that is not inherited.
 
-## 2. Chọn phép tra cứu phù hợp với nơi khai báo
+## 2. Choosing the Lookup Matching the Declaration Site
 
-- **Cần public method/field đang nhìn thấy qua lớp con:** `getMethod`/`getMethods` hoặc `getField`/`getFields`, có thể bao gồm thành viên kế thừa từ lớp cha hoặc interface.
-- **Cần đúng phần khai báo của lớp con, kể cả private:** `getDeclaredMethod`/`getDeclaredMethods` hoặc `getDeclaredField`/`getDeclaredFields`; kết quả không cộng thêm phần khai báo ở superclass.
-- **Cần constructor:** `getConstructor`/`getConstructors` chỉ lấy constructor `public` của chính lớp; họ `getDeclaredConstructor`/`getDeclaredConstructors` lấy mọi mức truy cập của chính lớp. Constructor không kế thừa.
+- **Need public methods/fields visible through a subclass:** `getMethod`/`getMethods` or `getField`/`getFields`, which may include members inherited from superclasses or interfaces.
+- **Need only the declarations of the subclass itself, including private:** `getDeclaredMethod`/`getDeclaredMethods` or `getDeclaredField`/`getDeclaredFields`; the result does not add declarations from superclasses.
+- **Need constructors:** `getConstructor`/`getConstructors` retrieve only `public` constructors of the class itself; the `getDeclaredConstructor`/`getDeclaredConstructors` family retrieves all access levels of the class itself. Constructors are not inherited.
 
-Đối với method, tra tên và danh sách **kiểu tham số chính xác**, không truyền kiểu trả về. Những API lấy một thành viên ném `NoSuchMethodException` hoặc `NoSuchFieldException` nếu không tìm được. Khi `getMethods()` có thêm method từ `Object` hoặc `getDeclaredMethods()` chứa bridge/synthetic methods, hãy xét `getDeclaringClass()` và các cờ metadata trước khi kết luận nguồn khai báo. Mảng kết quả không có thứ tự bảo đảm.
+For methods, look up by name and the **exact parameter type** list, without passing the return type. Single-member lookup APIs throw `NoSuchMethodException` or `NoSuchFieldException` if not found. When `getMethods()` includes methods from `Object` or `getDeclaredMethods()` contains bridge/synthetic methods, inspect `getDeclaringClass()` and metadata flags before concluding the declaration source. Resulting arrays have no guaranteed order.
 
-## 3. Ví dụ Java 17+ có thể biên dịch và chạy
+## 3. Compilable and Runnable Java 17+ Example
 
-Tạo tệp `MemberLookupDemo.java`:
+Create the file `MemberLookupDemo.java`:
 
 ~~~java
 import java.lang.reflect.Field;
@@ -78,14 +78,14 @@ public class MemberLookupDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ~~~bash
 javac --release 17 MemberLookupDemo.java
 java MemberLookupDemo
 ~~~
 
-Kết quả chuẩn (đã kiểm tra với Java 21 và chế độ biên dịch Java 17):
+Expected output (verified with Java 21 and Java 17 compilation mode):
 
 ~~~text
 getMethod inherited: Parent
@@ -99,36 +99,36 @@ getDeclaredFields private: true
 getMethods protected: false
 ~~~
 
-**Giải thích từng nhóm kết quả:**
+**Explanation of each group of results:**
 
-1. `inheritedMethod` được khai báo ở `Parent` và có modifier `public`. `Child` thừa kế nó nên `getMethod` và `getMethods` tìm được; `getDeclaredMethods` của `Child` không có.
-2. `overridden` ban đầu ở `Parent` nhưng `Child` override bằng một method của chính mình. Vì vậy `Child.class.getDeclaredMethod("overridden")` thành công và `getDeclaringClass()` là `Child`. Một method có thể **vừa public vừa declared**.
-3. `internalMethod` là `private` và được khai báo ở `Child`. `getDeclaredMethods` nhìn thấy metadata của nó, còn `getMethods` không đưa nó vào tập public.
-4. `inheritedField` là field public khai báo ở `Parent`, nên `getField` từ `Child` tìm ra nhưng `getDeclaredFields` của `Child` không chứa nó. Field `secret` là private nhưng vẫn có trong `getDeclaredFields`.
-5. `protectedMethod` không phải public nên không xuất hiện trong `getMethods()`; nó có thể được xem qua `Parent.class.getDeclaredMethod("protectedMethod")`.
+1. `inheritedMethod` is declared in `Parent` and has the `public` modifier. `Child` inherits it, so `getMethod` and `getMethods` find it; `Child`'s `getDeclaredMethods` does not include it.
+2. `overridden` originates in `Parent`, but `Child` overrides it with its own method. Therefore `Child.class.getDeclaredMethod("overridden")` succeeds and `getDeclaringClass()` is `Child`. A method can be **both public and declared**.
+3. `internalMethod` is `private` and declared in `Child`. `getDeclaredMethods` sees its metadata, whereas `getMethods` does not include it in the public set.
+4. `inheritedField` is a public field declared in `Parent`, so `getField` from `Child` finds it while `Child`'s `getDeclaredFields` does not contain it. The `secret` field is private but still present in `getDeclaredFields`.
+5. `protectedMethod` is not public so it does not appear in `getMethods()`; it can be inspected via `Parent.class.getDeclaredMethod("protectedMethod")`.
 
-Mảng Reflection không cam kết một thứ tự member cố định. Ví dụ trên kiểm tra **sự tồn tại theo tên**, không phụ thuộc vị trí phần tử; trong code thực tế, nếu cần trình bày có thứ tự thì hãy tự sắp xếp.
+Reflection arrays do not guarantee a fixed member order. The example above checks **existence by name**, independent of element position; in production code, if ordered presentation is needed, sort explicitly.
 
-## 4. Phân biệt “thừa kế”, “được khai báo” và “có thể truy cập”
+## 4. Distinguishing "Inherited", "Declared", and "Accessible"
 
-- **Inherited:** member của superclass hoặc interface được kế thừa theo quy tắc ngôn ngữ Java. Method/field public của cha thường là trường hợp dễ thấy nhất. Constructor **không bao giờ được kế thừa**.
-- **Declared:** member có khai báo nằm trực tiếp trong kiểu đang được phản chiếu. Một method override tại `Child` là declared tại `Child`, dù cùng signature với method cha.
-- **Accessible:** khả năng code hiện tại đọc, ghi hoặc invoke một member. Việc Reflection **liệt kê được** member private qua `getDeclared...` không đồng nghĩa code được phép sử dụng member đó.
+- **Inherited:** a member of a superclass or interface inherited according to Java language rules. Public methods/fields of a parent are the most obvious case. Constructors are **never inherited**.
+- **Declared:** a member whose declaration lies directly in the type being reflected. An overridden method in `Child` is declared in `Child`, even with the same signature as the parent method.
+- **Accessible:** the ability of current code to read, write, or invoke a member. That Reflection **can list** a private member via `getDeclared...` does not mean code is permitted to use that member.
 
-Vì vậy, đừng suy từ `getDeclaredMethods()` rằng “đây là danh sách các method public”, và cũng đừng suy từ `getMethods()` rằng “toàn bộ method này được viết trong lớp đang xét”.
+Therefore, do not infer from `getDeclaredMethods()` that "this is the list of public methods", and do not infer from `getMethods()` that "all of these methods were written in the class under inspection".
 
-### Override và hiding thay đổi kết quả như thế nào?
+### How Do Overriding and Hiding Change the Result?
 
-- **Override instance method:** nếu `Child` khai báo method override public của `Parent`, method của `Child` nằm trong `getDeclaredMethods()`; dùng `getMethod(...)` thường cho method áp dụng ở `Child`. Quan sát `getDeclaringClass()` để xác định nguồn khai báo.
-- **Field hiding:** nếu `Child` khai báo field trùng tên với field của `Parent`, đó là **hai field khác nhau**, không phải override field. `getDeclaredFields()` của từng lớp cho thấy field riêng; khi xử lý field trùng tên phải xét `getDeclaringClass()`, đừng giả định tên field là duy nhất trong cả hierarchy.
-- **Static method hiding:** method static cũng có thể bị che khuất theo quy tắc Java; static method không tham gia polymorphic override như instance method.
-- **Interface:** method public (kể cả default method phù hợp) có thể tham gia tập phương thức public của lớp triển khai, nhưng không vì thế trở thành member “declared” trực tiếp trong lớp.
+- **Instance method overriding:** if `Child` declares a method overriding a public method of `Parent`, `Child`'s method is in `getDeclaredMethods()`; using `getMethod(...)` typically gives the method applicable on `Child`. Inspect `getDeclaringClass()` to identify the declaration source.
+- **Field hiding:** if `Child` declares a field with the same name as a field of `Parent`, those are **two distinct fields**, not field overriding. Each class's `getDeclaredFields()` shows its own field; when processing same-named fields you must inspect `getDeclaringClass()` and not assume field names are unique across the hierarchy.
+- **Static method hiding:** static methods can also be hidden under Java rules; static methods do not participate in polymorphic overriding like instance methods.
+- **Interfaces:** public methods (including eligible default methods) can participate in the public method set of an implementing class, but do not thereby become members "declared" directly in the class.
 
-Phân biệt này đặc biệt quan trọng với thư viện tạo JSON, mapper, dependency injection, framework quét annotation, hoặc công cụ sinh tài liệu: lựa chọn API tra cứu sẽ quyết định có nhìn thấy member từ superclass/interface hay không.
+This distinction is especially important for JSON libraries, mappers, dependency injection, annotation scanning frameworks, or documentation generators: the choice of lookup API determines whether members from superclasses/interfaces are visible.
 
-## 5. Khi cần toàn bộ member ở nhiều tầng kế thừa
+## 5. When All Members Across Multiple Inheritance Levels Are Needed
 
-`getDeclaredMethods()` không tự duyệt superclass. Nếu ứng dụng cần thống kê **mọi khai báo của từng lớp** (ví dụ private method ở lớp cha), duyệt lần lượt `getSuperclass()` và gọi `getDeclaredMethods()` trên từng lớp:
+`getDeclaredMethods()` does not automatically traverse superclasses. If an application needs to inventory **every declaration of each class** (e.g., private methods in superclasses), walk `getSuperclass()` step by step and call `getDeclaredMethods()` on each class:
 
 ~~~java
 for (Class<?> current = Child.class;
@@ -140,26 +140,26 @@ for (Class<?> current = Child.class;
 }
 ~~~
 
-Đây là **đoạn code minh họa dùng các lớp `Child`/`Parent` ở ví dụ trên**, không phải một chương trình độc lập. Nó duyệt chuỗi superclass; nếu cần cả khai báo thuộc interface, phải duyệt thêm `getInterfaces()` và xử lý các đường kế thừa trùng lặp. Nếu cần duy nhất các phương thức public của kiểu, `getMethods()` thường phù hợp và ngắn hơn.
+This is an **illustrative code snippet using the `Child`/`Parent` classes from the example above**, not a standalone program. It traverses the superclass chain; if declarations belonging to interfaces are also needed, you must additionally traverse `getInterfaces()` and handle duplicate inheritance paths. If only the type's public methods are needed, `getMethods()` is usually more suitable and shorter.
 
-Khi đọc metadata và lọc member, có thể dùng `Modifier.isPublic(member.getModifiers())` để kiểm tra modifier, `member.getDeclaringClass()` để tìm kiểu sở hữu, cùng `Method.isBridge()`/`isSynthetic()` hoặc `Field.isSynthetic()` để xử lý artifact do compiler tạo. Kiểm tra từng trường hợp thay vì suy đoán bằng tên hay số lượng phần tử.
+When reading metadata and filtering members, you can use `Modifier.isPublic(member.getModifiers())` to check modifiers, `member.getDeclaringClass()` to find the owning type, along with `Method.isBridge()`/`isSynthetic()` or `Field.isSynthetic()` to handle compiler-generated artifacts. Inspect each case rather than guessing by name or element count.
 
-## 6. Lưu ý về invoke và đóng gói module
+## 6. Notes on Invocation and Module Encapsulation
 
-`getDeclaredMethod("internalMethod")` có thể trả về đối tượng `Method` đại diện cho method private của `Child`. Tuy nhiên, thao tác `invoke(...)` vẫn phải tuân thủ kiểm tra quyền truy cập. `setAccessible(true)` không phải đường tắt được bảo đảm luôn thành công: Java Platform Module System có thể chặn deep reflection qua package chưa `opens`, dẫn đến `InaccessibleObjectException`. Hãy ưu tiên API public hợp lệ, chỉ mở truy cập khi thiết kế và quyền của module cho phép.
+`getDeclaredMethod("internalMethod")` can return a `Method` object representing `Child`'s private method. However, the `invoke(...)` operation must still comply with access checks. `setAccessible(true)` is not a guaranteed shortcut: the Java Platform Module System can block deep reflection on packages that are not `opens`, leading to `InaccessibleObjectException`. Prefer valid public APIs, and only open access when design and module permissions allow it.
 
-Đừng nhầm kết quả “không tìm thấy bằng `getMethod`” với “method không tồn tại”: method protected/private có thể tồn tại ở `getDeclaredMethods` của đúng lớp khai báo, còn method public kế thừa có thể tồn tại ở `getMethods` nhưng không ở `getDeclaredMethods` của lớp con.
+Do not confuse "not found by `getMethod`" with "method does not exist": a protected/private method may exist in `getDeclaredMethods` of the exact declaring class, while an inherited public method may exist in `getMethods` but not in `getDeclaredMethods` of the subclass.
 
-## 7. Những lỗi thường gặp và cách chọn API
+## 7. Common Mistakes and How to Choose the API
 
-| Tình huống | Chọn API/cách xử lý |
+| Situation | API / Handling Choice |
 | --- | --- |
-| Cần method public mà object của `Child` có thể cung cấp, kể cả từ cha | `Child.class.getMethod(name, parameterTypes...)` hoặc `getMethods()` |
-| Cần đúng method khai báo tại `Child`, dù private | `getDeclaredMethod(...)` hoặc `getDeclaredMethods()` |
-| Cần field public được thừa kế từ cha | `getField(name)` hoặc `getFields()` |
-| Cần field private của `Parent` | `Parent.class.getDeclaredField(name)`, kèm kiểm tra quyền nếu đọc/ghi |
-| Cần toàn bộ khai báo từng lớp trong hierarchy | Duyệt `getSuperclass()`, gọi `getDeclaredFields()/getDeclaredMethods()` từng lớp; xử lý interface nếu cần |
-| Cần constructor kế thừa của cha | Không có: constructor không kế thừa; tra cứu constructor trên đúng lớp muốn khởi tạo |
-| Cần gọi method private sau khi tìm bằng Reflection | Kiểm tra access checks và giới hạn của module, không mặc định `setAccessible(true)` sẽ thành công |
+| Need a public method that an instance of `Child` can provide, including from parent | `Child.class.getMethod(name, parameterTypes...)` or `getMethods()` |
+| Need the exact method declared on `Child`, even if private | `getDeclaredMethod(...)` or `getDeclaredMethods()` |
+| Need a public field inherited from parent | `getField(name)` or `getFields()` |
+| Need a private field of `Parent` | `Parent.class.getDeclaredField(name)`, with permission check if reading/writing |
+| Need all declarations per class in the hierarchy | Traverse `getSuperclass()`, calling `getDeclaredFields()/getDeclaredMethods()` on each class; handle interfaces if needed |
+| Need an inherited constructor of parent | None: constructors are not inherited; look up constructor on the exact class to instantiate |
+| Need to call a private method after finding it via Reflection | Check access checks and module restrictions; do not assume `setAccessible(true)` will succeed |
 
-**Tự kiểm tra:** `Child.class.getMethod("inheritedMethod")` thành công, nhưng `Child.class.getDeclaredMethod("inheritedMethod")` ném `NoSuchMethodException`; ngược lại `Child.class.getDeclaredMethod("internalMethod")` tìm thấy metadata method private nhưng `Child.class.getMethod("internalMethod")` không tìm được. Cả hai khác biệt đều xuất phát từ lựa chọn **public lookup** hay **declared-only lookup**, không phải mâu thuẫn của Reflection.
+**Self-check:** `Child.class.getMethod("inheritedMethod")` succeeds, whereas `Child.class.getDeclaredMethod("inheritedMethod")` throws `NoSuchMethodException`; conversely `Child.class.getDeclaredMethod("internalMethod")` finds the private method metadata whereas `Child.class.getMethod("internalMethod")` does not. Both differences stem from choosing **public lookup** versus **declared-only lookup**, not a contradiction in Reflection.

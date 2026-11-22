@@ -1,46 +1,46 @@
-# Ưu tiên khóa bất biến trong HashMap và HashSet
+# Prefer Immutable Keys in HashMap and HashSet
 
-## 1. Vì sao nên dùng khóa bất biến?
+## 1. Why use immutable keys?
 
-Với các cấu trúc dựa trên băm như `HashMap`, `HashSet` và `LinkedHashMap`, cách an toàn nhất là dùng **khóa bất biến** (*immutable key*): những dữ liệu quyết định `equals()` và `hashCode()` của khóa không thay đổi trong suốt thời gian khóa nằm trong cấu trúc.
+For hash-based structures such as `HashMap`, `HashSet`, and `LinkedHashMap`, the safest approach is to use an **immutable key**: the data that determines the key's `equals()` and `hashCode()` does not change throughout the time the key resides in the structure.
 
-Điểm cốt lõi là khóa được **tra cứu lại** bằng mã băm và tính bằng nhau của nó:
+The core point is that a key is **looked up again** using its hash code and equality:
 
-1. Khi đưa khóa `k` vào `HashMap`, bản đồ xác định vị trí lưu trữ từ `k.hashCode()`, sau đó dùng `equals()` để phân biệt các khóa tương ứng khi cần.
-2. Nếu thông tin dùng trong `hashCode()` của chính `k` thay đổi sau khi thêm, vị trí đã lưu **không được tự động cập nhật** để khớp với mã băm mới.
-3. Lần gọi `map.get(k)`, `map.containsKey(k)`, `map.remove(k)` hoặc tra cứu bằng một khóa khác bằng nhau theo giá trị **có thể không tìm được mục đã lưu**.
-4. `HashSet` cũng có nguy cơ tương tự: `add`, `contains` và `remove` phụ thuộc vào ngữ nghĩa băm của phần tử.
+1. When placing key `k` into a `HashMap`, the map determines its storage location from `k.hashCode()`, then uses `equals()` to distinguish matching keys when needed.
+2. If the information used in `k`'s own `hashCode()` changes after insertion, the stored location **is not automatically updated** to match the new hash code.
+3. Calling `map.get(k)`, `map.containsKey(k)`, `map.remove(k)`, or looking up with another value-equal key **may fail to find the stored entry**.
+4. `HashSet` faces the same risk: `add`, `contains`, and `remove` depend on the element's hashing semantics.
 
-Đây là **lý do ưu tiên khóa bất biến**, chứ Java không cấm hoàn toàn khóa có trường thay đổi. Điều bắt buộc đối với một khóa đang nằm trong bảng băm là **những thông tin tham gia so sánh bằng nhau và tính mã băm phải giữ ổn định**. Một đối tượng vẫn có thể có trường thay đổi phục vụ ghi log, số lần truy cập hoặc giao diện nếu các trường đó không tham gia `equals()`/`hashCode()` và không làm thay đổi ý nghĩa khóa.
+This is **the reason to prefer immutable keys**, rather than Java strictly forbidding keys with mutable fields. What is mandatory for a key residing in a hash table is that **the information participating in equality comparisons and hash code computation must remain stable**. An object may still have mutable fields for logging, access counts, or UI purposes if those fields do not participate in `equals()`/`hashCode()` and do not alter the key's meaning.
 
-### Phân biệt hai hợp đồng
+### Distinguishing two contracts
 
-- **Hợp đồng giữa `equals()` và `hashCode()`:** nếu `a.equals(b)` là `true` thì `a.hashCode() == b.hashCode()`. Các mã băm bằng nhau không bắt buộc dẫn đến `equals()` bằng nhau.
-- **Tính ổn định khi khóa đã được lưu:** nếu thuộc tính quyết định sự bằng nhau của khóa bị sửa đổi sau khi đưa vào bảng băm, việc tra cứu có thể sai. Một cặp `equals()`/`hashCode()` dù nhất quán ở từng thời điểm cũng **không đủ** để bảo đảm khóa có thể thay đổi an toàn.
+- **The contract between `equals()` and `hashCode()`:** if `a.equals(b)` is `true`, then `a.hashCode() == b.hashCode()`. Equal hash codes do not require `equals()` to be equal.
+- **Stability once the key is stored:** if an attribute determining key equality is modified after insertion into a hash table, lookups can break. An `equals()`/`hashCode()` pair, even if consistent at every individual instant, is **not enough** to guarantee a key can safely mutate.
 
-Mã băm không phải địa chỉ bộ nhớ hoặc mã định danh duy nhất. Đối tượng có thể va chạm băm; vấn đề nguy hiểm ở đây là **thay đổi các giá trị liên quan đến băm và bằng nhau sau khi lưu khóa**, không phải bản thân va chạm.
+A hash code is neither a memory address nor a unique identifier. Objects can have hash collisions; the dangerous problem here is **changing values related to hashing and equality after storing the key**, not collisions themselves.
 
-## 2. “Bất biến” có nghĩa gì?
+## 2. What does "immutable" mean?
 
-Một khóa *bất biến thực sự* không cho phép quan sát sự thay đổi ở trạng thái dùng để định nghĩa giá trị của nó sau khi tạo. Ví dụ:
+A *truly immutable* key allows no observable change to the state used to define its value after creation. Examples:
 
-- Khóa `String` có nội dung không thay đổi; Java đã cung cấp `equals()` và `hashCode()` nhất quán.
-- Một `record` chứa các giá trị `String` hoặc kiểu bất biến khác thường là lựa chọn đơn giản cho khóa nhiều trường.
-- Một lớp `final` có các trường `private final`, không có setter và không làm rò rỉ tham chiếu đến dữ liệu có thể sửa thường phù hợp để làm khóa.
+- A `String` key has unchangeable contents; Java already provides consistent `equals()` and `hashCode()`.
+- A `record` holding `String` values or other immutable types is usually a simple choice for multi-field keys.
+- A `final` class with `private final` fields, no setters, and no leaked references to modifiable data is usually suitable as a key.
 
-**Lưu ý:** `final` chỉ ngăn gán lại biến hoặc trường tham chiếu, không làm đối tượng được tham chiếu bất biến. Ví dụ `private final List<String> parts` vẫn có thể bị thay đổi qua `parts.add(...)` nếu danh sách là loại có thể sửa. Khi đó `List.equals()`/`List.hashCode()` cũng thay đổi theo các phần tử, dẫn đến rủi ro như khóa thông thường bị sửa.
+**Note:** `final` only prevents reassigning the variable or reference field; it does not make the referenced object immutable. For instance, `private final List<String> parts` can still be modified via `parts.add(...)` if the list is mutable. When that happens, `List.equals()`/`List.hashCode()` also change with the elements, leading to the same risks as a normal mutable key.
 
-Java `record` giúp thành phần của record là `final` và tự sinh `equals()`/`hashCode()` từ các thành phần, nhưng **chỉ bất biến ở mức nông** (*shallow immutability*). Với thành phần kiểu `List`, `Set`, mảng hay một đối tượng mutable khác, phải cân nhắc sao chép phòng vệ (*defensive copy*) và kiểm soát tham chiếu bị lộ ra ngoài.
+A Java `record` makes record components `final` and auto-generates `equals()`/`hashCode()` from the components, yet **provides only shallow immutability**. For components of type `List`, `Set`, array, or another mutable object, you must consider **defensive copying** and controlling references exposed outside.
 
-### Khi khóa chỉ cần “bất biến về mặt hiệu lực”
+### When a key only needs to be "effectively immutable"
 
-Một đối tượng không nhất thiết hoàn toàn bất biến mới có thể làm khóa: nó có thể có trạng thái phụ thay đổi, miễn những thuộc tính tham gia `equals()` và `hashCode()` giữ nguyên khi khóa nằm trong `Map` hoặc `Set`. Tuy nhiên, kiểu bất biến toàn diện thường dễ kiểm tra, dễ chia sẻ và ít rủi ro hơn.
+An object does not have to be completely immutable to serve as a key: it may have mutable auxiliary state, as long as the properties participating in `equals()` and `hashCode()` remain unchanged while the key is in a `Map` or `Set`. However, fully immutable types are generally easier to test, easier to share, and less error-prone.
 
-## 3. Ví dụ hoàn chỉnh với Java 17+
+## 3. Complete example with Java 17+
 
-Chương trình dưới đây minh họa ba trường hợp: sửa thuộc tính khóa sau khi lưu, dùng `record` có thành phần bất biến, và sao chép danh sách mutable để tạo khóa ổn định.
+The program below illustrates three cases: modifying a key attribute after storing it, using a `record` with immutable components, and copying a mutable list to create a stable key.
 
-Tạo tệp **`ImmutableKeyDemo.java`**:
+Create the file **`ImmutableKeyDemo.java`**:
 
 ~~~java
 import java.util.ArrayList;
@@ -84,7 +84,7 @@ public class ImmutableKeyDemo {
 
     record PartsKey(List<String> parts) {
         PartsKey {
-            parts = List.copyOf(parts); // Tạo bản sao không cho sửa.
+            parts = List.copyOf(parts); // Create an unmodifiable copy.
         }
     }
 
@@ -129,14 +129,14 @@ public class ImmutableKeyDemo {
 }
 ~~~
 
-Biên dịch và chạy trên JDK 17 trở lên:
+Compile and run on JDK 17 or later:
 
 ~~~bash
 javac ImmutableKeyDemo.java
 java ImmutableKeyDemo
 ~~~
 
-Đầu ra tiêu biểu trên **OpenJDK 17+**:
+Typical output on **OpenJDK 17+**:
 
 ~~~text
 hash before mutation: 1
@@ -150,21 +150,21 @@ snapshot contents: [north, retail]
 snapshot lookup: active
 ~~~
 
-**Giải thích cụ thể:**
+**Detailed explanation:**
 
-1. `MutableKey` dùng `id` để thực hiện cả `equals()` và `hashCode()`. Ban đầu `id = 1`, sau `changeId(2)` mã băm thành `2`. Trong cách triển khai `HashMap` của OpenJDK 17 với bảng mặc định, thao tác tra cứu tìm ở vùng tương ứng với mã băm mới, trong khi khóa được lưu tại vị trí của mã cũ: `get(mutable)` cho `null`.
-2. Khi đổi `id` về `1`, mã băm tương ứng với khóa lúc chèn nên lời gọi trong ví dụ lại tìm được `"stored"`. **Đừng sử dụng việc “đổi lại rồi tìm lại” làm giải pháp ứng dụng.** Java API không cam kết mọi biểu hiện chi tiết trong ví dụ đối với mọi cách triển khai bảng băm, và sửa đổi khóa còn có thể gây xung đột ngữ nghĩa với khóa khác.
-3. `OrderKey` là record gồm hai chuỗi bất biến. Hai record khác tham chiếu nhưng có cùng `tenant` và `orderNumber` được xem là bằng nhau, có mã băm bằng nhau, nên `HashMap` tra cứu được và `HashSet` chỉ giữ một phần tử logic.
-4. `PartsKey` nhận một danh sách từ bên ngoài nhưng dùng `List.copyOf(parts)` trong compact constructor. Sau khi `external` bị sửa, bản chụp trong khóa vẫn giữ `[north, retail]` và tra cứu bằng khóa tương đương vẫn thành công. Các phần tử ở đây là `String` bất biến.
+1. `MutableKey` uses `id` to implement both `equals()` and `hashCode()`. Initially `id = 1`; after `changeId(2)` the hash code becomes `2`. In OpenJDK 17's `HashMap` implementation with default table sizing, lookup searches the region corresponding to the new hash code, while the key is stored at the old code's location: `get(mutable)` yields `null`.
+2. When `id` is changed back to `1`, the hash code matches the key at insertion time, so the call in this example finds `"stored"` again. **Do not use "revert and look up again" as an application solution.** The Java API does not guarantee every detailed behavior shown in the example across all hash table implementations, and mutating keys can also cause semantic collisions with other keys.
+3. `OrderKey` is a record consisting of two immutable strings. Two records with different references but the same `tenant` and `orderNumber` are considered equal, have equal hash codes, so `HashMap` finds the entry and `HashSet` keeps only one logical element.
+4. `PartsKey` accepts an external list but uses `List.copyOf(parts)` in its compact constructor. After `external` is modified, the snapshot inside the key still holds `[north, retail]`, and lookup with an equivalent key still succeeds. The elements here are immutable `String` values.
 
-Không nên hiểu rằng mọi lời gọi `get` với khóa bị thay đổi đều **bắt buộc** trả về `null`. Kết quả quan sát phụ thuộc mã băm mới, va chạm và triển khai cấu trúc băm; quy tắc chung là **hành vi tra cứu không còn được bảo đảm** khi dữ liệu liên quan đến so sánh khóa thay đổi.
+Do not assume that every `get` call with a mutated key **must** return `null`. The observed result depends on the new hash code, collisions, and hash structure implementation; the general rule is that **lookup behavior is no longer guaranteed** once key-comparison data changes.
 
-## 4. Mẫu thiết kế khóa bất biến thông dụng
+## 4. Common immutable key design patterns
 
-### Trường hợp 1: record chỉ chứa thành phần bất biến
+### Case 1: record containing only immutable components
 
 ~~~java
-// Đoạn minh họa, không phải một tệp chạy độc lập.
+// Illustrative snippet, not a standalone runnable file.
 record CustomerKey(String tenantId, long customerNumber) {
     CustomerKey {
         java.util.Objects.requireNonNull(tenantId);
@@ -172,12 +172,12 @@ record CustomerKey(String tenantId, long customerNumber) {
 }
 ~~~
 
-Java tự tạo `equals()` và `hashCode()` theo cả hai thành phần. Một cặp khóa có cùng `tenantId` và `customerNumber` sẽ bằng nhau và có mã băm bằng nhau. Cả `String` và `long` đều không gây nguy cơ bị sửa qua tham chiếu.
+Java automatically generates `equals()` and `hashCode()` across both components. A pair of keys with the same `tenantId` and `customerNumber` will be equal and have the same hash code. Neither `String` nor `long` poses a risk of being modified through a reference.
 
-### Trường hợp 2: lớp thông thường với `private final`
+### Case 2: regular class with `private final`
 
 ~~~java
-// Đoạn minh họa dùng riêng, không phải chương trình độc lập.
+// Standalone illustrative snippet, not an independent program.
 final class CustomerKey {
     private final String tenantId;
     private final long customerNumber;
@@ -202,93 +202,93 @@ final class CustomerKey {
 }
 ~~~
 
-Tính bất biến của những trường tham gia `equals()`/`hashCode()` giúp giá trị băm ổn định. Không cần ghi đè `toString()` để bảo đảm hợp đồng băm; phương thức hiển thị khác với tính bằng nhau.
+The immutability of the fields participating in `equals()`/`hashCode()` keeps the hash value stable. You do not need to override `toString()` to satisfy the hash contract; display formatting is separate from equality.
 
-### Trường hợp 3: khóa chứa collection hoặc mảng
+### Case 3: key containing a collection or array
 
-Cần **sao chép phòng vệ khi nhận dữ liệu**, đồng thời không trả ra tham chiếu mutable nội bộ qua getter.
+You must **defensively copy when receiving data**, while also not returning internal mutable references through getters.
 
-- Với `List<String>`: `List.copyOf(source)` tạo danh sách không cho sửa và bảo toàn thứ tự, đồng thời từ chối `null` trong danh sách và phần tử `null`. Bản thân các `String` đã bất biến.
-- Với `Set<String>`: `Set.copyOf(source)` phù hợp nếu thứ tự không tham gia ý nghĩa khóa. Với `Map` có thể dùng `Map.copyOf(source)` khi dữ liệu phù hợp.
-- Với mảng `byte[]` hoặc `int[]`: sao chép bằng `array.clone()` ở đầu vào, trả về bản sao từ accessor. Vì `array.equals()` và `array.hashCode()` mặc định so sánh theo danh tính, nếu cần bình đẳng theo nội dung, tự triển khai cặp `Arrays.equals(...)` và `Arrays.hashCode(...)` nhất quán. Với mảng nhiều chiều, cân nhắc `Arrays.deepEquals(...)` và `Arrays.deepHashCode(...)`.
-- **Sao chép nông không đủ** nếu phần tử cũng có thể thay đổi. Ví dụ `List<MutableItem>` sao chép bằng `List.copyOf` vẫn chứa các `MutableItem` cũ; sửa trường của phần tử có thể làm thay đổi `List.equals()` và `List.hashCode()`. Hãy chuyển từng phần tử về giá trị bất biến hoặc sao chép sâu phù hợp với mô hình dữ liệu.
+- For `List<String>`: `List.copyOf(source)` creates an unmodifiable list that preserves order while rejecting a `null` list and `null` elements. `String` instances themselves are immutable.
+- For `Set<String>`: `Set.copyOf(source)` fits if order does not participate in key meaning. For `Map`, `Map.copyOf(source)` can be used when data fits.
+- For `byte[]` or `int[]` arrays: copy with `array.clone()` on input, and return a copy from the accessor. Because default `array.equals()` and `array.hashCode()` compare by identity, if content equality is needed, implement a consistent pair of `Arrays.equals(...)` and `Arrays.hashCode(...)`. For multidimensional arrays, consider `Arrays.deepEquals(...)` and `Arrays.deepHashCode(...)`.
+- **Shallow copying is not enough** if elements can also change. For example, a `List<MutableItem>` copied via `List.copyOf` still holds the old `MutableItem` instances; modifying an element's fields can change `List.equals()` and `List.hashCode()`. Convert each element to an immutable value or deep copy appropriately for the data model.
 
-Không thay thế việc sao chép phòng vệ bằng mỗi từ khóa `final`: tham chiếu được giữ cố định nhưng nội dung bên trong vẫn có thể thay đổi.
+Do not substitute the `final` keyword alone for defensive copying: the reference is held fixed, yet internal contents can still change.
 
-## 5. “Map bất biến” có đồng nghĩa “khóa bất biến” không?
+## 5. Does "immutable Map" mean "immutable key"?
 
-**Không.** Có ba khái niệm riêng:
+**No.** There are three separate concepts:
 
-| Khái niệm | Bảo đảm chính | Điều không được tự động bảo đảm |
+| Concept | Primary guarantee | What is not automatically guaranteed |
 | --- | --- | --- |
-| Khóa bất biến | Trạng thái xác định tính bằng nhau và mã băm của khóa ổn định | Bản đồ không bị chỉnh sửa |
-| `Map.of(...)` hoặc `Map.copyOf(...)` | Không cho thêm, xóa hoặc thay thế mục qua bản đồ trả về | Đối tượng khóa/giá trị bên trong đều bất biến |
-| `Collections.unmodifiableMap(map)` | Chặn phép sửa thông qua view trả về | Bản đồ gốc ngừng thay đổi hoặc đối tượng khóa bất biến |
+| Immutable key | State determining the key's equality and hash code is stable | That the map cannot be edited |
+| `Map.of(...)` or `Map.copyOf(...)` | Disallows adding, removing, or replacing entries through the returned map | That key/value objects inside are immutable |
+| `Collections.unmodifiableMap(map)` | Blocks modifications through the returned view | That the underlying map stops changing or that key objects are immutable |
 
-Ví dụ tạo `Map.of(mutableKey, value)` không khiến `mutableKey` trở thành bất biến. Ngay cả bản đồ không cho sửa cấu trúc vẫn có thể gặp vấn đề khi trạng thái xác định `hashCode()`/`equals()` của khóa bị thay đổi từ bên ngoài.
+For example, creating `Map.of(mutableKey, value)` does not make `mutableKey` immutable. Even a structurally unmodifiable map can still run into issues when the state determining a key's `hashCode()`/`equals()` is modified externally.
 
-Tương tự, việc đổi **giá trị** `map.put(key, newValue)` trong bản đồ có thể sửa được là bình thường; điều cần ổn định là **khóa**, đặc biệt các thuộc tính dùng để tính băm và so sánh khóa.
+Similarly, changing a **value** via `map.put(key, newValue)` in a modifiable map is normal; what must stay stable is the **key**, especially the attributes used to compute the hash and compare keys.
 
-## 6. Nếu dữ liệu nghiệp vụ buộc phải thay đổi?
+## 6. What if business data truly has to change?
 
-Không phải mọi đối tượng nghiệp vụ đều nên bất biến hoàn toàn. Thường nên tách **danh tính ổn định của khóa** khỏi **trạng thái có thể cập nhật**:
+Not every business object should be completely immutable. Usually you should separate **stable key identity** from **updatable state**:
 
-- Dùng mã ổn định như `orderId`, `customerId` hoặc cặp `tenantId` + `entityId` để làm khóa.
-- Lưu đối tượng nghiệp vụ có trạng thái thay đổi ở **giá trị** của `Map`, thay vì đưa toàn bộ trạng thái thay đổi vào `hashCode()` của khóa.
-- Nếu chính tiêu chí định danh khóa thay đổi (chẳng hạn chuyển mã), dùng thao tác có kiểm soát: xóa mục theo **khóa cũ còn hợp lệ**, tạo khóa bất biến mới rồi chèn lại. Cần xử lý va chạm khóa và tính nguyên tử của thao tác khi ứng dụng yêu cầu.
+- Use a stable code such as `orderId`, `customerId`, or a `(tenantId, entityId)` pair as the key.
+- Store the business object with mutable state as the `Map` **value**, instead of putting all mutable state into the key's `hashCode()`.
+- If the key identity criterion itself changes (such as changing a code), use a controlled operation: remove the entry under the **old valid key**, create a new immutable key, and reinsert. Key collisions and operation atomicity must be handled when the application requires it.
 
-Ví dụ mô hình:
+Model example:
 
 ~~~java
-// Đoạn minh họa, cần đặt trong một phương thức có map và dữ liệu phù hợp.
+// Illustrative snippet, to be placed inside a method with an appropriate map and data.
 record ProductKey(String sku) {}
 
 Map<ProductKey, String> names = new java.util.HashMap<>();
 ProductKey oldKey = new ProductKey("SKU-01");
 names.put(oldKey, "Widget");
 
-String name = names.remove(oldKey); // Xóa bằng khóa cũ còn hợp lệ.
-names.put(new ProductKey("SKU-02"), name); // Tạo khóa mới bất biến.
+String name = names.remove(oldKey); // Remove using the still-valid old key.
+names.put(new ProductKey("SKU-02"), name); // Create a new immutable key.
 ~~~
 
-Đối với ứng dụng nhiều luồng, bản thân khóa bất biến **không biến `HashMap` thành thread-safe**. Nếu nhiều luồng cùng chỉnh sửa bản đồ, cần đồng bộ hoặc cấu trúc phù hợp như `ConcurrentHashMap`, bên cạnh việc giữ khóa ổn định.
+For multithreaded applications, immutable keys by themselves **do not make `HashMap` thread-safe**. If multiple threads modify the map concurrently, synchronization or an appropriate structure like `ConcurrentHashMap` is needed, in addition to keeping keys stable.
 
-## 7. Lỗi thường gặp và cách tránh
+## 7. Common mistakes and how to avoid them
 
-1. **Sửa trường tham gia `hashCode()` sau khi `put`.** Bảng băm không tự di chuyển mục đã lưu; hãy dùng khóa bất biến hoặc giữ các trường đó ổn định.
-2. **Dùng `final List` rồi gọi `add`/`remove`.** `final` chỉ cố định tham chiếu. Dùng bản sao không cho sửa, và bảo đảm phần tử thích hợp.
-3. **Tin rằng record luôn bất biến sâu.** Record có thành phần là `List`, mảng hoặc đối tượng mutable vẫn có thể để lộ trạng thái qua accessor; cần defensive copy và ngữ nghĩa `equals()`/`hashCode()` đúng.
-4. **Đặt trường ngẫu nhiên hoặc số lần cập nhật trong `hashCode()` nhưng không trong `equals()`.** Hai khóa `equals()` bằng nhau có thể nhận mã băm khác, vi phạm hợp đồng.
-5. **Dùng `System.identityHashCode()` để “chữa” khóa thay đổi theo giá trị.** Mã băm danh tính bỏ qua `hashCode()` ghi đè và không tương thích với ngữ nghĩa bình đẳng theo giá trị khi hai thể hiện khác nhau được xem là bằng nhau.
-6. **Nghĩ rằng chỉ cần mã băm không đổi là đủ.** Nếu `equals()` thay đổi trong thời gian lưu khóa, khóa vẫn có thể có hành vi tra cứu bất ngờ. Hãy giữ nguyên cả những dữ liệu tham gia định nghĩa bằng nhau.
-7. **Tự động sử dụng khóa bất biến để giải quyết đa luồng.** Độ ổn định khóa giúp tránh một nhóm lỗi logic, còn thao tác đồng thời trên map phải được kiểm soát riêng.
+1. **Modifying a field participating in `hashCode()` after `put`.** The hash table does not automatically relocate the stored entry; use immutable keys or keep those fields stable.
+2. **Using `final List` and then calling `add`/`remove`.** `final` only fixes the reference. Use an unmodifiable copy, and ensure appropriate elements.
+3. **Believing a record is always deeply immutable.** A record with `List`, array, or mutable object components can still expose state through its accessor; defensive copying and proper `equals()`/`hashCode()` semantics are needed.
+4. **Putting a random field or update counter in `hashCode()` but not in `equals()`.** Two keys equal under `equals()` may receive different hash codes, violating the contract.
+5. **Using `System.identityHashCode()` to "fix" value-mutable keys.** Identity hash codes bypass overridden `hashCode()` and are incompatible with value-based equality semantics when two distinct instances are considered equal.
+6. **Thinking keeping the hash code constant is enough.** If `equals()` changes while the key is stored, the key can still exhibit unexpected lookup behavior. Keep the data participating in equality unchanged as well.
+7. **Automatically relying on immutable keys to solve multithreading.** Key stability prevents one class of logic bugs, while concurrent operations on the map must be controlled separately.
 
-### Checklist khi thiết kế và kiểm thử
+### Checklist during design and testing
 
-- Xác định rõ các trường tham gia `equals()` và `hashCode()`.
-- Các trường đó có thể thay đổi hoặc bị thay đổi gián tiếp qua tham chiếu không?
-- Nếu khóa chứa collection hoặc mảng, constructor và getter đã xử lý defensive copy đúng cách chưa?
-- Tạo hai thể hiện khóa cùng dữ liệu: `equals()` trả về `true` và mã băm bằng nhau chứ?
-- Khi thêm một khóa rồi tra cứu bằng thể hiện tương đương mới, `HashMap.get` và `HashSet.contains` có đúng không?
-- Đã tránh sửa dữ liệu xác định bằng nhau khi khóa đang có mặt trong cấu trúc băm chưa?
-- Nếu cần đổi định danh, có quy trình xóa khóa cũ và chèn khóa mới đúng thứ tự không?
+- Clearly identify the fields participating in `equals()` and `hashCode()`.
+- Can those fields change or be modified indirectly through a reference?
+- If the key contains a collection or array, do the constructor and getter handle defensive copying properly?
+- Create two key instances with the same data: does `equals()` return `true` and are their hash codes equal?
+- After inserting a key and looking it up with a new equivalent instance, do `HashMap.get` and `HashSet.contains` work properly?
+- Have you avoided modifying equality-defining data while the key is present in a hash structure?
+- If an identifier must change, is there a workflow that removes the old key and inserts the new key in the right order?
 
-## 8. Câu hỏi tự kiểm tra
+## 8. Self-check questions
 
-**Câu 1.** `record Key(List<String> parts) {}` có bảo đảm khóa bất biến chỉ vì `parts` là thành phần của record không?
+**Question 1.** Does `record Key(List<String> parts) {}` guarantee an immutable key just because `parts` is a record component?
 
-**Đáp án:** Không. Record bất biến ở mức tham chiếu thành phần; nếu danh sách truyền vào có thể sửa, giá trị băm của record có thể đổi khi nội dung danh sách đổi. Nên sao chép phòng vệ và dùng phần tử bất biến.
+**Answer:** No. A record is immutable at the component reference level; if the list passed in is mutable, the record's hash value can change when the list contents change. Defensively copy it and use immutable elements.
 
-**Câu 2.** Lớp có trường `private final String id` và trường `int viewCount` tăng dần. Có thể dùng làm khóa không?
+**Question 2.** A class has a `private final String id` field and an incrementing `int viewCount` field. Can it be used as a key?
 
-**Đáp án:** Có thể, nếu `equals()` và `hashCode()` chỉ dựa vào `id` và mọi dữ liệu liên quan đến định nghĩa khóa vẫn ổn định. Đó là khóa *bất biến về mặt hiệu lực*, dù đối tượng có trạng thái phụ thay đổi.
+**Answer:** Yes, if `equals()` and `hashCode()` rely solely on `id` and all data relevant to the key definition remains stable. That is an *effectively immutable* key, even though the object has mutable auxiliary state.
 
-**Câu 3.** Nếu một khóa đã bị sửa khiến `map.get(key)` thất bại, gọi `map.put(key, value)` để cập nhật có chắc sửa lỗi không?
+**Question 3.** If a key was modified causing `map.get(key)` to fail, will calling `map.put(key, value)` to update it reliably fix the bug?
 
-**Đáp án:** Không. Lần `put` có thể chèn một mục mới theo mã băm mới, để lại mục cũ khó truy cập và làm hỏng tính nhất quán logic của bản đồ. Thiết kế đúng là tránh sửa khóa khi đang được lưu; nếu cần đổi định danh, xóa bằng khóa cũ hợp lệ và thêm khóa mới.
+**Answer:** No. The `put` call may insert a new entry under the new hash code, leaving behind an old hard-to-reach entry and breaking the map's logical consistency. The proper design is to avoid modifying keys while stored; if changing an identifier is required, remove with the valid old key and add a new key.
 
-**Câu 4.** `Map.of(...)` có làm đối tượng khóa mutable trở thành immutable không?
+**Question 4.** Does `Map.of(...)` make mutable key objects immutable?
 
-**Đáp án:** Không. `Map.of` bảo vệ cấu trúc bản đồ trả về khỏi bị thay đổi, không đóng băng trạng thái các đối tượng được truyền vào.
+**Answer:** No. `Map.of` protects the returned map structure from being modified; it does not freeze the state of the objects passed into it.
 
-**Ghi nhớ:** Hãy **ưu tiên khóa bất biến**, đặc biệt trong `HashMap` và `HashSet`. Điều cần bảo vệ là tính ổn định của các dữ liệu dùng trong `equals()` và `hashCode()` từ lúc thêm khóa đến lúc xóa. Với trạng thái mutable trong khóa, phải chủ động sao chép phòng vệ và ngăn các tham chiếu bên ngoài thay đổi ý nghĩa khóa.
+**Takeaway:** **Prefer immutable keys**, especially in `HashMap` and `HashSet`. What must be protected is the stability of the data used in `equals()` and `hashCode()` from the moment the key is added until it is removed. For mutable state inside keys, proactively perform defensive copying and prevent external references from altering the key's meaning.

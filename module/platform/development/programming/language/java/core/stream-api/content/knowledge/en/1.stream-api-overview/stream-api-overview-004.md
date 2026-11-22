@@ -1,29 +1,29 @@
-# Viết pipeline đầu tiên với `filter`, `map` và `collect`
+# Writing Your First Pipeline with `filter`, `map`, and `collect`
 
-## 1. Mục tiêu bài học
+## 1. Lesson objectives
 
-**Java Stream API** cho phép xử lý dữ liệu theo lối **khai báo**: mô tả dữ liệu cần chọn, cách biến đổi và kết quả cần thu về. Thay vì tự quản lý vòng lặp, danh sách tạm và thao tác thêm phần tử, ta ghép các phép xử lý thành một **pipeline** (chuỗi xử lý).
+**Java Stream API** allows processing data in a **declarative** style: describing which data to select, how to transform it, and what result to collect. Instead of manually managing loops, temporary lists, and add operations, we compose processing steps into a **pipeline** (a processing chain).
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Tạo một `Stream` từ `List` và viết pipeline đầu tiên theo cấu trúc **nguồn dữ liệu → `filter` → `map` → `collect`**.
-- Phân biệt `filter` (giữ hoặc loại phần tử), `map` (biến đổi phần tử) và `collect` (tạo kết quả cuối).
-- Giải thích vì sao `filter` và `map` chưa chạy ngay khi được khai báo, còn `collect` kích hoạt việc xử lý.
-- Đọc kiểu dữ liệu, dự đoán kết quả và nhận ra các lỗi cơ bản khi viết pipeline.
+- Create a `Stream` from a `List` and write your first pipeline with the structure **data source → `filter` → `map` → `collect`**.
+- Distinguish `filter` (keep or drop elements), `map` (transform elements), and `collect` (build the final result).
+- Explain why `filter` and `map` do not run immediately when declared, whereas `collect` triggers execution.
+- Read data types, predict outputs, and spot basic mistakes when writing pipelines.
 
-Đây là điểm bắt đầu cho các kỹ thuật Stream API rộng hơn như `reduce`, `groupingBy`, collector tùy chỉnh hoặc xử lý song song. Bài này tập trung vào một pipeline tuần tự, dễ hiểu và kiểm chứng.
+This is the starting point for broader Stream API techniques such as `reduce`, `groupingBy`, custom collectors, or parallel processing. This lesson focuses on a sequential pipeline that is easy to understand and verify.
 
-## 2. Bài toán: lấy tên các khóa học Java và viết hoa
+## 2. Problem: extract Java course names and convert to uppercase
 
-Giả sử hệ thống có các khóa học:
+Suppose a system has the following courses:
 
 ```text
 Java Core, Python Basics, Java Stream API, Kotlin, Java Spring
 ```
 
-Ta muốn **chỉ giữ khóa học có tên bắt đầu bằng `Java`**, chuyển tên của chúng thành chữ in hoa và tạo một `List<String>` mới.
+We want to **keep only courses whose names start with `Java`**, convert their names to uppercase, and produce a new `List<String>`.
 
-Nếu dùng vòng lặp, ta phải duyệt từng phần tử, kiểm tra điều kiện, biến đổi chuỗi rồi thêm vào danh sách kết quả. Với Stream API, ba ý đó xuất hiện trực tiếp trong pipeline:
+If we use a loop, we have to iterate through each element, check the condition, transform the string, and add it to a result list. With the Stream API, those three ideas appear directly in the pipeline:
 
 ```java
 import java.util.Arrays;
@@ -52,62 +52,62 @@ public class StreamPipelineDauTien {
 }
 ```
 
-Kết quả:
+Output:
 
 ```text
 [JAVA CORE, JAVA STREAM API, JAVA SPRING]
 [Java Core, Python Basics, Java Stream API, Kotlin, Java Spring]
 ```
 
-Ví dụ dùng `Collectors.toList()`, có từ **Java 8**. Dòng thứ hai xác nhận danh sách nguồn `khoaHoc` vẫn giữ nguyên: pipeline trên tạo kết quả mới, không sửa các chuỗi trong danh sách ban đầu.
+The example uses `Collectors.toList()`, available since **Java 8**. The second line confirms that the source list `khoaHoc` remains unchanged: the pipeline creates a new result without modifying the strings in the original list.
 
-## 3. Đọc từng bước của pipeline
+## 3. Reading each step of the pipeline
 
 ```text
 List<String> khoaHoc
         │
         ▼
-     stream()       tạo Stream<String> từ danh sách
+     stream()        creates Stream<String> from the list
         │
         ▼
-  filter(điều kiện) giữ tên bắt đầu bằng "Java"
+  filter(condition)  keeps names starting with "Java"
         │
         ▼
-    map(biến đổi)   đổi từng tên còn lại thành chữ in hoa
+    map(transform)   converts each remaining name to uppercase
         │
         ▼
- collect(toList())  thu các phần tử thành List<String>
+ collect(toList())   collects elements into List<String>
 ```
 
-| Thành phần | Vai trò | Đầu vào → đầu ra trong ví dụ |
+| Component | Role | Input → output in the example |
 | --- | --- | --- |
-| `khoaHoc.stream()` | Mở luồng xử lý từ danh sách | `List<String>` → `Stream<String>` |
-| `.filter(ten -> ten.startsWith("Java"))` | Chỉ giữ phần tử thỏa điều kiện | `Stream<String>` → `Stream<String>` |
-| `.map(ten -> ten.toUpperCase(Locale.ROOT))` | Biến đổi mỗi phần tử còn lại | `Stream<String>` → `Stream<String>` |
-| `.collect(Collectors.toList())` | Kích hoạt pipeline và thu kết quả | `Stream<String>` → `List<String>` |
+| `khoaHoc.stream()` | Opens a processing stream from the list | `List<String>` → `Stream<String>` |
+| `.filter(ten -> ten.startsWith("Java"))` | Keeps only elements matching the condition | `Stream<String>` → `Stream<String>` |
+| `.map(ten -> ten.toUpperCase(Locale.ROOT))` | Transforms each remaining element | `Stream<String>` → `Stream<String>` |
+| `.collect(Collectors.toList())` | Triggers the pipeline and collects the result | `Stream<String>` → `List<String>` |
 
-### 3.1. `filter`: chọn phần tử
+### 3.1. `filter`: selecting elements
 
-`filter` nhận một **`Predicate<T>`**, tức hàm kiểm tra một phần tử kiểu `T` và trả về `boolean`:
+`filter` accepts a **`Predicate<T>`**, a function that tests an element of type `T` and returns a `boolean`:
 
 ```java
 .filter(ten -> ten.startsWith("Java"))
 ```
 
-- `true`: phần tử được đưa tiếp sang bước sau.
-- `false`: phần tử bị loại khỏi pipeline, nên sẽ không được `map` xử lý.
+- `true`: the element is passed along to the next step.
+- `false`: the element is dropped from the pipeline, so it will not be processed by `map`.
 
-Ở ví dụ trên, `"Python Basics"` và `"Kotlin"` không qua được bộ lọc. Điều kiện `startsWith("Java")` **phân biệt chữ hoa và chữ thường**: tên bắt đầu bằng `"java"` sẽ không được giữ lại.
+In the example above, `"Python Basics"` and `"Kotlin"` do not pass the filter. The condition `startsWith("Java")` is **case-sensitive**: a name starting with `"java"` will not be kept.
 
-### 3.2. `map`: biến đổi phần tử
+### 3.2. `map`: transforming elements
 
-`map` nhận một **`Function<T, R>`**, tức hàm biến một phần tử kiểu `T` thành một giá trị kiểu `R`:
+`map` accepts a **`Function<T, R>`**, a function that turns an element of type `T` into a value of type `R`:
 
 ```java
 .map(ten -> ten.toUpperCase(Locale.ROOT))
 ```
 
-Ở đây `T` và `R` đều là `String`, nhưng `map` **có thể đổi kiểu dữ liệu**. Chẳng hạn, sau khi chọn tên khóa học Java, ta lấy độ dài của từng tên:
+Here both `T` and `R` are `String`, but `map` **can change the data type**. For instance, after selecting Java course names, we take the length of each name:
 
 ```java
 List<Integer> doDaiTen = khoaHoc.stream()
@@ -118,34 +118,34 @@ List<Integer> doDaiTen = khoaHoc.stream()
 System.out.println(doDaiTen); // [9, 15, 11]
 ```
 
-Lúc này `map(String::length)` biến `Stream<String>` thành `Stream<Integer>`. Cú pháp `String::length` là **method reference**, cách viết gọn tương đương `ten -> ten.length()` trong trường hợp này.
+At this point `map(String::length)` turns `Stream<String>` into `Stream<Integer>`. The syntax `String::length` is a **method reference**, a concise equivalent to `ten -> ten.length()` in this case.
 
-### 3.3. `collect`: thu kết quả
+### 3.3. `collect`: gathering the result
 
-`collect` là một **terminal operation** (phép toán kết thúc). Nó tiêu thụ stream để tạo kết quả theo chiến lược của một `Collector`:
+`collect` is a **terminal operation**. It consumes the stream to build a result according to the strategy of a `Collector`:
 
 ```java
 .collect(Collectors.toList())
 ```
 
-`Collectors.toList()` thu các phần tử thành danh sách, giữ thứ tự gặp phần tử đối với nguồn có thứ tự như `List` ở pipeline tuần tự này. Có thể thu theo cách khác tùy nhu cầu:
+`Collectors.toList()` gathers the elements into a list, preserving encounter order for an ordered source such as `List` in this sequential pipeline. You can collect in other ways depending on your needs:
 
 ```java
-// Thu các tên thành một chuỗi, ngăn cách bởi dấu phẩy.
+// Collect the names into a single string, separated by commas.
 String chuoiTen = khoaHoc.stream()
     .filter(ten -> ten.startsWith("Java"))
     .collect(Collectors.joining(", "));
 
-// Kết quả: "Java Core, Java Stream API, Java Spring"
+// Result: "Java Core, Java Stream API, Java Spring"
 ```
 
-Một chi tiết hữu ích về phiên bản Java: từ **Java 16**, có thể viết `stream.toList()` thay cho `collect(Collectors.toList())` khi chỉ cần thu về danh sách. Tuy nhiên, `Stream.toList()` trả về danh sách **không cho phép sửa đổi**, còn `Collectors.toList()` **không cam kết** kiểu cụ thể hoặc khả năng sửa đổi của danh sách trả về. Nếu thực sự cần một `ArrayList` có thể sửa, hãy dùng `collect(Collectors.toCollection(ArrayList::new))`.
+A useful detail about Java versions: since **Java 16**, you can write `stream.toList()` instead of `collect(Collectors.toList())` when you just want a list. However, `Stream.toList()` returns an **unmodifiable** list, whereas `Collectors.toList()` **makes no guarantees** about the concrete type or mutability of the returned list. If you genuinely need a mutable `ArrayList`, use `collect(Collectors.toCollection(ArrayList::new))`.
 
-## 4. Pipeline chạy khi nào? Hiểu tính lazy
+## 4. When does the pipeline run? Understanding laziness
 
-`filter` và `map` là **intermediate operations** (phép toán trung gian): việc gọi chúng chỉ xây dựng các bước xử lý. Chúng **chưa duyệt dữ liệu ngay**. Khi có terminal operation như `collect`, pipeline mới được thực thi.
+`filter` and `map` are **intermediate operations**: calling them only builds the processing steps. They **do not traverse data immediately**. When a terminal operation like `collect` is present, the pipeline is executed.
 
-Quan sát đoạn mã sau (dùng lại danh sách `khoaHoc` ở ví dụ đầu):
+Observe the following code (reusing the `khoaHoc` list from the first example):
 
 ```java
 import java.util.stream.Stream;
@@ -160,23 +160,23 @@ Stream<String> pipeline = khoaHoc.stream()
         return ten.toUpperCase(Locale.ROOT);
     });
 
-System.out.println("Pipeline đã được khai báo");
+System.out.println("Pipeline has been declared");
 
 List<String> ketQua = pipeline.collect(Collectors.toList());
 System.out.println(ketQua);
 ```
 
-Đầu tiên chỉ in `Pipeline đã được khai báo`. Sau đó, lời gọi `collect` mới làm xuất hiện các dòng `filter:` và `map:`. Trong pipeline tuần tự đơn giản này, Java thường xử lý **từng phần tử đi qua các bước**: nếu `filter` loại một tên, `map` không được gọi cho tên đó. Đây không phải hai vòng lặp tách biệt bắt buộc quét toàn bộ danh sách.
+First, only `Pipeline has been declared` is printed. Afterwards, calling `collect` causes the `filter:` and `map:` lines to appear. In this simple sequential pipeline, Java typically processes **each element through the steps**: if `filter` drops a name, `map` is not called for that name. These are not two separate loops forced to scan the entire list.
 
-Các lệnh `println` chỉ phục vụ việc quan sát. Khi viết mã thực tế, nên dùng `filter`/`map` như những hàm không có tác dụng phụ, tránh sửa dữ liệu bên ngoài hoặc dựa vào thứ tự log để quyết định logic chương trình.
+The `println` statements are only for observation. In real code, treat `filter`/`map` as side-effect-free functions, avoiding mutating external data or relying on log order to drive program logic.
 
-**Lưu ý:** Mỗi `Stream` chỉ được tiêu thụ một lần. Sau khi đã gọi `pipeline.collect(...)`, không tiếp tục dùng chính `pipeline` cho một phép kết thúc khác; muốn xử lý lại, hãy tạo stream mới từ nguồn bằng `khoaHoc.stream()`.
+**Note:** Each `Stream` can be consumed only once. After calling `pipeline.collect(...)`, do not continue using the same `pipeline` for another terminal operation; to process again, create a new stream from the source using `khoaHoc.stream()`.
 
-## 5. Thứ tự các bước ảnh hưởng kết quả
+## 5. Step order affects the result
 
-Với dữ liệu đã sạch, `filter` trước `map` giúp bỏ qua việc biến đổi những phần tử chắc chắn bị loại. Nhưng nếu điều kiện lọc phụ thuộc vào **giá trị đã chuẩn hóa**, cần `map` trước `filter`.
+With clean data, `filter` before `map` skips transforming elements that are guaranteed to be dropped. However, if the filtering condition depends on a **normalized value**, you need `map` before `filter`.
 
-Ví dụ dữ liệu nhập từ biểu mẫu có khoảng trắng dư và cách viết hoa không thống nhất:
+For example, form input data with extra whitespace and inconsistent casing:
 
 ```java
 List<String> tenNhap = Arrays.asList(
@@ -194,13 +194,13 @@ System.out.println(tenJava);
 // [JAVA CORE, JAVA STREAM API]
 ```
 
-Ở đây, `trim` phải chạy trước bước kiểm tra tên bắt đầu bằng `java`; nếu lọc ngay trên chuỗi gốc, `"  Java Core  "` sẽ bị bỏ sót. Việc `filter` và `map` xuất hiện nhiều lần trong cùng một pipeline là hoàn toàn bình thường.
+Here, `trim` must run before checking whether the name starts with `java`; if you filtered directly on the raw string, `"  Java Core  "` would be missed. Having `filter` and `map` appear multiple times in the same pipeline is completely normal.
 
-Khi dữ liệu có thể chứa `null`, cần xử lý trước khi gọi `startsWith`, `trim` hoặc `toUpperCase`, chẳng hạn dùng `.filter(java.util.Objects::nonNull)` trước các bước đó. Nếu không, pipeline có thể phát sinh `NullPointerException` khi được thực thi.
+When data may contain `null`, handle it before calling `startsWith`, `trim`, or `toUpperCase`, such as using `.filter(java.util.Objects::nonNull)` before those steps. Otherwise, the pipeline may throw a `NullPointerException` when executed.
 
-## 6. Ví dụ nghiệp vụ: lọc giá sản phẩm và tính giá sau giảm
+## 6. Business example: filtering product prices and calculating discounted prices
 
-Ta có danh sách giá tính bằng đồng và muốn lấy các sản phẩm **có giá từ 100.000 đồng trở lên**, giảm **10%** rồi thu thành danh sách mới:
+We have a list of prices in VND and want to select products **priced at 100,000 VND or more**, apply a **10%** discount, and collect them into a new list:
 
 ```java
 List<Integer> giaGoc = Arrays.asList(90_000, 150_000, 300_000, 60_000);
@@ -214,32 +214,32 @@ System.out.println(giaSauGiam); // [135000, 270000]
 System.out.println(giaGoc);      // [90000, 150000, 300000, 60000]
 ```
 
-Đọc theo yêu cầu nghiệp vụ:
+Reading in business terms:
 
-1. `stream()` lấy từng giá từ danh sách nguồn.
-2. `filter` giữ `150_000` và `300_000`, loại hai giá thấp hơn ngưỡng.
-3. `map` trừ đi 10% của từng giá được giữ lại.
-4. `collect` thu hai giá mới thành `List<Integer>`.
+1. `stream()` draws each price from the source list.
+2. `filter` keeps `150_000` and `300_000`, dropping the two prices below the threshold.
+3. `map` subtracts 10% from each retained price.
+4. `collect` gathers the two new prices into a `List<Integer>`.
 
-Ví dụ dùng phép chia số nguyên để dễ học; bài toán tiền tệ thực tế cần quy tắc làm tròn rõ ràng, kiểu dữ liệu phù hợp (thường là `BigDecimal`) và kiểm tra tràn số khi tính toán.
+The example uses integer division for ease of learning; real-world monetary calculations require clear rounding rules, an appropriate data type (usually `BigDecimal`), and overflow checks during computation.
 
-## 7. Những lỗi thường gặp
+## 7. Common mistakes
 
-| Tình huống | Nguyên nhân | Cách xử lý |
+| Situation | Cause | How to handle |
 | --- | --- | --- |
-| Gọi `stream().filter(...).map(...)` nhưng không thấy kết quả | Chưa có phép toán kết thúc; các bước trung gian là lazy | Thêm `collect`, `count` hoặc terminal operation phù hợp |
-| Dùng `map(ten -> ten.startsWith("Java"))` để lọc | `map` biến tên thành `Boolean`, không loại phần tử | Dùng `filter(ten -> ten.startsWith("Java"))` |
-| Dùng `forEach` rồi cố gán kết quả vào `List` | `forEach` trả về `void`, chủ yếu để thực hiện hành động với từng phần tử | Dùng `collect(Collectors.toList())` để thu danh sách |
-| Cố gọi `collect` hai lần trên cùng một `Stream` | Stream đã bị tiêu thụ | Tạo stream mới từ nguồn |
-| Điều kiện `startsWith("Java")` bỏ sót `"java Core"` | So sánh phân biệt hoa/thường | Chuẩn hóa hoặc dùng phép so sánh phù hợp |
-| Gọi phương thức chuỗi trên phần tử `null` | Truy cập vào đối tượng không tồn tại | Lọc `null` trước khi xử lý |
-| Cố sửa danh sách do `Stream.toList()` trả về | Danh sách này không cho phép sửa đổi | Chọn collector tạo danh sách có thể sửa nếu thật sự cần |
+| Calling `stream().filter(...).map(...)` and seeing no result | Missing a terminal operation; intermediate steps are lazy | Add `collect`, `count`, or an appropriate terminal operation |
+| Using `map(ten -> ten.startsWith("Java"))` to filter | `map` turns the name into a `Boolean` instead of removing elements | Use `filter(ten -> ten.startsWith("Java"))` |
+| Using `forEach` and trying to assign the result to a `List` | `forEach` returns `void`, mainly for performing an action per element | Use `collect(Collectors.toList())` to collect a list |
+| Trying to call `collect` twice on the same `Stream` | The Stream has already been consumed | Create a new stream from the source |
+| Condition `startsWith("Java")` misses `"java Core"` | Case-sensitive comparison | Normalize or use an appropriate comparison |
+| Calling string methods on a `null` element | Accessing a non-existent object | Filter out `null` before processing |
+| Trying to modify the list returned by `Stream.toList()` | That list is unmodifiable | Choose a collector that produces a mutable list if truly needed |
 
-Stream API giúp diễn đạt ý định xử lý rõ ràng, nhưng **không mặc nhiên nhanh hơn vòng lặp**. Với dữ liệu nhỏ hoặc logic đơn giản, ưu tiên khả năng đọc và bảo trì; chưa cần dùng `parallelStream()` cho pipeline đầu tiên.
+The Stream API helps express processing intent clearly, but is **not inherently faster than a loop**. For small datasets or simple logic, prioritize readability and maintainability; there is no need to use `parallelStream()` for your first pipeline.
 
-## 8. Tự thực hành
+## 8. Practice on your own
 
-Cho danh sách:
+Given the list:
 
 ```java
 List<String> ngonNgu = Arrays.asList(
@@ -247,10 +247,10 @@ List<String> ngonNgu = Arrays.asList(
 );
 ```
 
-Hãy viết pipeline dùng `filter`, `map` và `collect` để **giữ các tên có ít nhất 5 ký tự**, **chuyển sang chữ thường** và **thu thành `List<String>`**. Trước khi chạy, thử dự đoán kết quả. Các giá trị trùng nhau có còn không?
+Write a pipeline using `filter`, `map`, and `collect` to **keep names with at least 5 characters**, **convert them to lowercase**, and **collect them into a `List<String>`**. Before running it, try predicting the output. Do duplicate values remain?
 
 <details>
-<summary>Gợi ý lời giải</summary>
+<summary>Solution hint</summary>
 
 ```java
 List<String> ketQua = ngonNgu.stream()
@@ -261,13 +261,13 @@ List<String> ketQua = ngonNgu.stream()
 System.out.println(ketQua); // [javascript, python, kotlin, python]
 ```
 
-Các phần tử `"Java"`, `"Go"` không đủ 5 ký tự nên bị loại. `filter`, `map`, `collect(toList())` **không tự xóa phần tử trùng**: hai lần xuất hiện của `"Python"` đều được giữ trong danh sách kết quả.
+The elements `"Java"` and `"Go"` have fewer than 5 characters, so they are dropped. `filter`, `map`, and `collect(toList())` **do not automatically remove duplicates**: both occurrences of `"Python"` are kept in the result list.
 
 </details>
 
-## 9. Ghi nhớ
+## 9. Remember
 
-Một pipeline Stream API đầu tiên có dạng:
+A first Stream API pipeline has the form:
 
 ```java
 List<R> ketQua = nguon.stream()
@@ -276,4 +276,4 @@ List<R> ketQua = nguon.stream()
     .collect(Collectors.toList());
 ```
 
-Trong đó, `filter` trả lời **giữ phần tử nào**, `map` trả lời **biến thành giá trị gì**, còn `collect` trả lời **lấy kết quả dưới dạng nào**. `filter` và `map` chỉ mô tả xử lý; `collect` kích hoạt việc chạy pipeline. Khi đã hiểu ba bước này, bạn có nền tảng để tiếp tục học `reduce`, `Collectors.groupingBy` và các pipeline phức tạp hơn.
+Here, `filter` answers **which elements to keep**, `map` answers **what value to transform them into**, and `collect` answers **what form to gather the result in**. `filter` and `map` only describe the processing; `collect` triggers pipeline execution. Once you understand these three steps, you have the foundation to move on to `reduce`, `Collectors.groupingBy`, and more complex pipelines.

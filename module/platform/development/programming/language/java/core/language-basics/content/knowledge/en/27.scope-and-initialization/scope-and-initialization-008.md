@@ -1,33 +1,33 @@
-# Giữ phạm vi biến nhỏ và khai báo gần nơi sử dụng trong Java
+# Keeping Variable Scope Small and Declaring Near First Use in Java
 
-> **Java core — language-basics / Phạm vi và khởi tạo**  
-> **Môi trường:** Java 17+, ví dụ trong một file, chỉ cần JDK.  
-> **Mục tiêu:** Khai báo biến tại nơi bắt đầu cần dùng, giới hạn phạm vi của chúng trong khối/nhánh/vòng lặp phù hợp, tránh sử dụng nhầm trạng thái cũ và phân biệt phạm vi (*scope*) với quy tắc phải gán giá trị trước khi đọc (*definite assignment*).
+> **Java core — language-basics / Scope and Initialization**  
+> **Environment:** Java 17+, single-file example, JDK only.  
+> **Objective:** Declare variables where they first begin to be needed, restrict their scope to the appropriate block/branch/loop, avoid accidentally reusing stale state, and distinguish scope (*scope*) from the rule requiring assignment before reading (*definite assignment*).
 
-## 1. Nguyên tắc: phạm vi nhỏ nhất nhưng đủ dùng
+## 1. Principle: smallest sufficient scope
 
-*Scope* là vùng mã nguồn mà tên biến có hiệu lực. Với biến cục bộ khai báo trong khối `{ ... }`, tên thường có hiệu lực từ vị trí khai báo đến cuối khối. Vì vậy, **khai báo gần lần dùng đầu tiên** giúp người đọc thấy rõ ý nghĩa và tránh kéo dài phạm vi của biến không cần thiết.
+*Scope* is the region of source code where a variable name is in effect. For a local variable declared in a block `{ ... }`, the name is normally in effect from its declaration position to the end of the block. Therefore, **declaring close to first use** helps readers see the intent clearly and avoids unnecessarily extending a variable's scope.
 
 ~~~java
 static void example(int score) {
     System.out.println("received=" + score);
 
     if (score >= 60) {
-        String message = "PASS"; // Chỉ cần trong nhánh này.
+        String message = "PASS"; // Only needed in this branch.
         System.out.println(message);
     }
 
-    // System.out.println(message); // Không biên dịch: hết scope.
+    // System.out.println(message); // Does not compile: out of scope.
 }
 ~~~
 
-**Quy tắc thực hành:** Nếu một giá trị chỉ được dùng trong một nhánh, đặt biến trong nhánh. Nếu chỉ dùng trong một lần lặp, đặt nó trong thân lặp. Nếu kết quả phải được dùng sau vòng lặp, khai báo **biến tích lũy/kết quả** ngoài vòng lặp.
+**Practical rule:** If a value is used only in one branch, place the variable inside that branch. If it is used only in a single iteration, place it inside the loop body. If a result must be used after the loop, declare an **accumulator/result variable** outside the loop.
 
-Không nên biến quy tắc này thành “nhồi mọi thứ vào một dòng”. Cần đủ chỗ cho tên có nghĩa, các bước kiểm tra rõ ràng, và không ép một biểu thức phức tạp trở nên khó đọc.
+Do not turn this rule into "cramming everything onto one line." Leave enough room for meaningful names, clear validation steps, and avoid forcing a complex expression to become unreadable.
 
-## 2. Trước và sau: tránh khai báo quá sớm
+## 2. Before and after: avoid declaring too early
 
-**Trước — biến sống trong phạm vi rộng hơn nhu cầu:**
+**Before — variables live in a wider scope than needed:**
 
 ~~~java
 static String oldStatus(boolean enabled, int score) {
@@ -43,7 +43,7 @@ static String oldStatus(boolean enabled, int score) {
 }
 ~~~
 
-**Sau — đưa biến vào nhánh cần dùng, trả kết quả sớm:**
+**After — move variables into the branch where needed, return early:**
 
 ~~~java
 static String status(boolean enabled, int score) {
@@ -56,13 +56,13 @@ static String status(boolean enabled, int score) {
 }
 ~~~
 
-Hai phiên bản trả cùng kết quả ở các đầu vào ví dụ, nhưng bản sau không phải duy trì `result` và `label` từ trước khi biết có dùng chúng hay không.
+Both versions return the same results for the example inputs, but the latter does not have to maintain `result` and `label` before knowing whether they will be used.
 
-- `label` chỉ tồn tại trong phần còn lại của phương thức sau nhánh `return` sớm; nó không xuất hiện trong nhánh không kích hoạt.
-- Nếu giá trị trung gian được dùng ở nhiều nhánh, nên chọn khối chung phù hợp thay vì sao chép tính toán vô ích.
-- Một phương thức ngắn, tên biến có nghĩa và kiểm tra đầu vào rõ ràng quan trọng hơn việc giảm số ký tự.
+- `label` exists only in the remainder of the method after the early `return` branch; it does not appear in the inactive branch.
+- If an intermediate value is used in multiple branches, choose an appropriate common block instead of pointlessly duplicating computation.
+- A short method, meaningful variable names, and clear input checks are more important than reducing character count.
 
-## 3. Khối `if`/`else`: đặt biến nơi thật sự cần
+## 3. `if`/`else` blocks: place variables where truly needed
 
 ~~~java
 static String classify(int number) {
@@ -78,9 +78,9 @@ static String classify(int number) {
 }
 ~~~
 
-`result` phải ở ngoài các nhánh vì dùng sau chuỗi `if`/`else`. Đây là **phạm vi rộng có lý do**, không phải lỗi thiết kế. Mỗi nhánh gán giá trị nên Java có thể chứng minh `result` đã được gán trước `return`.
+`result` must be outside the branches because it is used after the `if`/`else` chain. This is **justifiably wide scope**, not a design flaw. Each branch assigns a value so Java can prove `result` is assigned before `return`.
 
-Nếu mỗi nhánh có thể trả về ngay, ta có thể tránh biến `result`:
+If each branch can return immediately, we can avoid the `result` variable:
 
 ~~~java
 static String classifyDirect(int number) {
@@ -90,59 +90,59 @@ static String classifyDirect(int number) {
 }
 ~~~
 
-Trường hợp không biên dịch vì thiếu gán:
+Case that does not compile due to missing assignment:
 
 ~~~java
-// KHÔNG BIÊN DỊCH:
+// DOES NOT COMPILE:
 // static int broken(boolean flag) {
 //     int value;
 //     if (flag) value = 5;
-//     return value; // flag=false nên value chưa chắc đã gán.
+//     return value; // flag=false so value is not guaranteed assigned.
 // }
 ~~~
 
-**Phân biệt:** Biến `value` đã nằm trong *scope* tại `return`, nhưng **chưa đạt definite assignment**. Thêm `else` hợp lý, giá trị mặc định có chủ đích hoặc thay đổi cấu trúc trả về để sửa.
+**Distinction:** Variable `value` is already in *scope* at `return`, but **has not satisfied definite assignment**. Add an appropriate `else`, an intentional default value, or change the return structure to fix it.
 
-## 4. Vòng `for`: giới hạn biến điều khiển và biến tạm
+## 4. `for` loops: limit control variables and temporary variables
 
-Khi không cần sử dụng chỉ số sau vòng lặp, khai báo nó ngay trong phần khởi tạo `for`:
+When you do not need to use the index after the loop, declare it directly in the `for` initialization part:
 
 ~~~java
-int sum = 0; // Kết quả cần sau vòng, nên đặt ngoài.
+int sum = 0; // Result needed after the loop, so placed outside.
 for (int i = 1; i <= 4; i++) {
-    int square = i * i; // Chỉ phục vụ lần lặp hiện tại.
+    int square = i * i; // Only serves the current iteration.
     sum += square;
 }
 System.out.println(sum); // 30.
-// System.out.println(i);      // Lỗi: i ngoài scope.
-// System.out.println(square); // Lỗi: square ngoài scope.
+// System.out.println(i);      // Error: i is out of scope.
+// System.out.println(square); // Error: square is out of scope.
 ~~~
 
-Mỗi lần lặp chạy thân, phép khởi tạo `square = i * i` được thực hiện với chỉ số hiện tại. Không nên đưa `square` ra ngoài `for` nếu không có nhu cầu sử dụng ngoài vòng.
+Each iteration runs the body, executing the initialization `square = i * i` with the current index. Do not move `square` outside `for` if there is no need to use it outside the loop.
 
-Enhanced `for` cũng có biến phần tử chỉ có hiệu lực trong thân vòng:
+Enhanced `for` also has an element variable valid only inside the loop body:
 
 ~~~java
 static int sumPositiveTwice(int[] values) {
-    int total = 0; // Cần qua nhiều lần lặp.
+    int total = 0; // Needed across multiple iterations.
     for (int number : values) {
         if (number <= 0) {
             continue;
         }
-        int contribution = number * 2; // Dùng cho lần lặp này.
+        int contribution = number * 2; // Used for this iteration.
         total += contribution;
     }
     return total;
 }
 ~~~
 
-Với `{2, -1, 3, 0, 5}`, tổng là `(2 + 3 + 5) * 2 = 20`. Biến `contribution` chỉ được khởi tạo khi số dương; tránh tạo một biến trống rồi gán lại ở mọi nhánh.
+With `{2, -1, 3, 0, 5}`, the sum is `(2 + 3 + 5) * 2 = 20`. Variable `contribution` is only initialized when the number is positive; avoid creating an empty variable and reassigning it across every branch.
 
-**Ngoại lệ hợp lý:** Nếu cần dùng chỉ số sau vòng để báo vị trí kết thúc hoặc tái sử dụng một đối tượng có chi phí tạo lớn, có thể khai báo bên ngoài; nhưng cần nói rõ lý do và không vô tình giữ trạng thái cũ giữa các lần lặp.
+**Reasonable exception:** If you need the index after the loop to report the stopping position or reuse an expensive-to-create object, you may declare it outside; however, make the reason clear and do not accidentally carry stale state across iterations.
 
-## 5. `while`, duyệt mảng và kiểm tra đầu vào
+## 5. `while`, array traversal, and input checks
 
-Với vòng `while`, biến điều khiển có thể cần dùng cả sau vòng:
+With a `while` loop, the control variable may need to be used after the loop as well:
 
 ~~~java
 int steps = 0;
@@ -154,9 +154,9 @@ while (steps < 3) {
 System.out.println("done=" + steps);
 ~~~
 
-`steps` ở ngoài vì dùng trong điều kiện và sau vòng. `nextStep` chỉ phục vụ phần thân, nên khai báo trong thân.
+`steps` is outside because it is used in the condition and after the loop. `nextStep` only serves the body, so it is declared inside the body.
 
-Khi duyệt mảng chuỗi, đặt biến chuyển đổi **sau kiểm tra null**, ngay trước khi sử dụng:
+When traversing a string array, place the transformation variable **after the null check**, right before using it:
 
 ~~~java
 static String firstNonBlank(String[] values) {
@@ -173,13 +173,13 @@ static String firstNonBlank(String[] values) {
 }
 ~~~
 
-`normalized` không bị tạo khi `value == null`; nó chỉ tồn tại trong thân vòng lặp sau điểm khai báo. `firstNonBlank` ở trên yêu cầu đối số mảng khác null; nếu hợp đồng cho phép mảng null, hãy kiểm tra thêm ở đầu phương thức.
+`normalized` is not created when `value == null`; it exists only in the loop body after its declaration point. `firstNonBlank` above requires a non-null array argument; if the contract permits a null array, add a check at the start of the method.
 
-Để lấy thông tin sau vòng, trả trực tiếp khi tìm được là hợp lý; không cần giữ biến `found` từ đầu nếu chỉ cần kết quả đầu tiên.
+To retrieve information after a loop, returning directly when found is reasonable; there is no need to keep a `found` variable from the start if only the first match is needed.
 
-## 6. Scope nhỏ không tự làm khai báo trùng tên hợp lệ
+## 6. Small scope does not automatically make duplicate names valid
 
-Hai khối ngang hàng có thể dùng lại local `attempt`; khai báo `attempt` lần nữa trong khối lồng khi local bên ngoài còn trong scope vẫn là lỗi:
+Two sibling blocks can reuse local `attempt`; declaring `attempt` again in a nested block while the outer local is still in scope remains an error:
 
 ~~~java
 {
@@ -187,16 +187,16 @@ Hai khối ngang hàng có thể dùng lại local `attempt`; khai báo `attempt
     System.out.println(attempt);
 }
 {
-    int attempt = 2; // Hợp lệ: phạm vi trước đã hết.
+    int attempt = 2; // Valid: the previous scope has ended.
     System.out.println(attempt);
 }
 ~~~
 
-Khi local trùng tên field, Java cho phép *shadowing*, nhưng phải phân biệt tên ngắn với `this.field` hoặc `ClassName.staticField`. Trong mã dễ bảo trì, ưu tiên tên thể hiện đúng mục đích và phạm vi nhỏ; các quy tắc khai báo trùng và shadowing vẫn phải được tuân thủ.
+When a local shares a field's name, Java allows *shadowing*, but you must distinguish the short name from `this.field` or `ClassName.staticField`. In maintainable code, prefer names that reflect intent and keep scopes small; duplicate declaration and shadowing rules must still be obeyed.
 
-## 7. `final`, `var` và ranh giới của lời khuyên
+## 7. `final`, `var`, and boundaries of the advice
 
-Trong Java 17, `final` và `var` có thể giúp ý định của biến rõ hơn nhưng **không thay đổi quy tắc phạm vi**:
+In Java 17, `final` and `var` can make a variable's intent clearer, but they **do not change scope rules**:
 
 ~~~java
 static String upper(String raw) {
@@ -210,16 +210,16 @@ static String upper(String raw) {
 }
 ~~~
 
-- `final` cấm gán lại `cleaned` sau khi đã gán, không tự làm đối tượng được tham chiếu trở nên bất biến và không nới rộng scope.
-- `var` suy luận kiểu biến cục bộ từ biểu thức khởi tạo; `result` vẫn có phạm vi như local thông thường. Không thể dùng `var x;` mà không có initializer.
-- Nếu kiểu không rõ khi đọc biểu thức khởi tạo, khai báo tường minh như `String result = ...` thường dễ hiểu hơn.
-- Không đưa mọi kết quả trung gian thành field hay biến static chỉ để “dùng được ở khắp nơi”: đó là thay đổi trạng thái/chế độ chia sẻ dữ liệu, không phải đơn giản hóa phạm vi.
+- `final` forbids reassigning `cleaned` after it has been assigned; it does not by itself make the referenced object immutable and does not widen scope.
+- `var` infers the local variable type from the initializer expression; `result` still has normal local scope. You cannot write `var x;` without an initializer.
+- If the type is not obvious when reading the initializer expression, an explicit declaration such as `String result = ...` is often clearer.
+- Do not promote every intermediate result to a field or static variable just to "make it usable everywhere": that changes state and data sharing, rather than simplifying scope.
 
-*Scope* chỉ nói **vị trí tên có thể được tham chiếu**. Đối tượng được biến local trỏ tới vẫn có thể sống tiếp nếu có tham chiếu khác sau khi local hết scope; dấu `}` không quyết định thời điểm garbage collection.
+*Scope* only states **where a name can be referenced**. The object a local variable points to can still live on if another reference exists after the local leaves scope; a closing brace `}` does not determine garbage collection timing.
 
-## 8. Chương trình Java 17+ chạy độc lập
+## 8. Standalone Java 17+ program
 
-Tạo file **SmallScopeDemo.java**:
+Create the file **SmallScopeDemo.java**:
 
 ~~~java
 import java.util.Locale;
@@ -335,14 +335,14 @@ public final class SmallScopeDemo {
 }
 ~~~
 
-Biên dịch/chạy tại thư mục chứa file (PowerShell, Command Prompt hoặc Bash):
+Compile/run in the directory containing the file (PowerShell, Command Prompt, or Bash):
 
 ~~~bash
 javac -encoding UTF-8 SmallScopeDemo.java
 java SmallScopeDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 statusOff=SKIPPED
@@ -367,31 +367,31 @@ step=3
 done=3
 ~~~
 
-Các phương thức `status`, `firstNonBlank` và `upper` chỉ khai báo biến khi thực sự cần. `sumPositiveTwice` và `squareSum` đặt biến tích lũy bên ngoài vòng nhưng biến tạm bên trong. `attempt` được phép khai báo hai lần ở hai khối không chồng scope. `steps` vẫn có thể đọc sau vòng vì đã khai báo bên ngoài.
+The methods `status`, `firstNonBlank`, and `upper` declare variables only when truly needed. `sumPositiveTwice` and `squareSum` place the accumulator outside the loop but the temporary variable inside. `attempt` is allowed to be declared twice in two blocks with non-overlapping scopes. `steps` can still be read after the loop because it was declared outside.
 
-## 9. Lỗi phổ biến, checklist và bài tập
+## 9. Common errors, checklist, and exercises
 
-| Dấu hiệu | Điều chỉnh phù hợp |
+| Symptom | Appropriate adjustment |
 | --- | --- |
-| Khai báo nhiều biến ở đầu phương thức, mãi sau mới dùng | Đưa khai báo về gần lần dùng đầu |
-| Biến chỉ dùng trong một nhánh `if` nhưng nằm ngoài | Đưa vào nhánh nếu không cần kết quả sau nhánh |
-| Biến tạm chỉ dùng cho một lượt lặp nhưng đặt ngoài `for` | Khai báo và khởi tạo bên trong thân vòng |
-| Cần tổng/số đếm sau vòng nhưng khai báo bên trong | Đưa accumulator ra khối bao ngoài |
-| Dùng biến `i` sau `for (int i = ...)` | Nếu thật sự cần, khai báo `i` trước vòng; nếu không, dùng kết quả riêng |
-| Local còn scope bị khai báo lại trong khối con | Đổi tên hoặc bố trí lại các khối |
-| Biến đã trong scope nhưng chưa chắc có giá trị | Sửa *definite assignment* ở mọi đường đi |
-| Dùng field/static để tránh giới hạn scope của local | Cân nhắc tham số/giá trị trả về trước khi mở rộng trạng thái chia sẻ |
+| Declaring many variables at the top of a method, used much later | Move declarations closer to first use |
+| Variable only used in one `if` branch but placed outside | Move inside the branch if the result is not needed afterward |
+| Temporary variable used only for one iteration placed outside `for` | Declare and initialize inside the loop body |
+| Sum/count needed after the loop but declared inside | Move the accumulator to an enclosing block |
+| Using `i` after `for (int i = ...)` | If truly needed, declare `i` before the loop; otherwise, use a separate result |
+| In-scope local redeclared in an inner block | Rename or restructure the blocks |
+| Variable in scope but not guaranteed to have a value | Fix *definite assignment* on all paths |
+| Using a field/static to bypass local scope limits | Consider parameters/return values before expanding shared state |
 
-**Bài 1.** Viết hàm đếm số chẵn trong `int[]`, chỉ khai báo biến `even` ở nơi cần dùng và giữ biến `count` đủ rộng để trả về cuối vòng.
+**Exercise 1.** Write a function counting even numbers in `int[]`, declaring variable `even` only where needed and keeping `count` wide enough to return after the loop.
 
-**Bài 2.** Viết hàm tìm chuỗi đầu tiên không trống trong `String[]`, tránh giữ biến `normalized` ngoài vòng lặp. Vì sao cần kiểm tra null trước `trim()`?
+**Exercise 2.** Write a function finding the first non-blank string in `String[]`, avoiding keeping `normalized` outside the loop. Why check for null before calling `trim()`?
 
-**Bài 3.** Với hai nhánh `if` gán cho một kết quả chung, thử đặt biến `result` trong nhánh và giải thích lỗi khi `return result` sau nhánh. Viết lại có definite assignment hợp lệ hoặc return sớm.
+**Exercise 3.** Given two `if` branches assigning to a shared result, try placing `result` inside a branch and explain the error when doing `return result` afterward. Rewrite with valid definite assignment or early return.
 
-**Bài 4.** Biến `int i` cần in sau vòng `for`. Hãy so sánh `for (int i = ...)` với `int i = 0; for (; ...)` để chọn phạm vi phù hợp.
+**Exercise 4.** Variable `int i` needs to be printed after a `for` loop. Compare `for (int i = ...)` with `int i = 0; for (; ...)` to choose the right scope.
 
-**Bài 5.** Viết hai khối anh em cùng dùng local `temp`; sau đó lồng khối thứ hai trong khối thứ nhất để quan sát lỗi khai báo trùng tên. Giải thích vì sao field có thể bị shadow bởi local nhưng local-local chồng lấn thì không.
+**Exercise 5.** Write two sibling blocks both using local `temp`; then nest the second block inside the first to observe the duplicate-name error. Explain why a field can be shadowed by a local while overlapping local-local declarations cannot.
 
-### Ghi nhớ
+### Key Takeaway
 
-**Khai báo local gần nơi sử dụng và giữ phạm vi hẹp nhất đủ nhu cầu.** Biến tạm thuộc nhánh hoặc lượt lặp nên ở trong khối đó; accumulator dùng sau vòng cần ở ngoài vòng. Scope nhỏ giúp giảm dùng nhầm tên và trạng thái, nhưng không thay thế quy tắc definite assignment, khả năng đọc hiểu hay thiết kế API rõ ràng.
+**Declare locals close to where they are used and keep scope as narrow as sufficient.** Temporary variables belonging to a branch or loop iteration should stay inside that block; accumulators used after the loop belong outside the loop. Small scope reduces accidental misuse of names and state, but does not replace definite assignment rules, readability, or clean API design.

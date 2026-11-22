@@ -1,28 +1,28 @@
-# `String.getChars()`: sao chép một vùng của chuỗi sang `char[]`
+# `String.getChars()`: Copying a Region of a String to `char[]`
 
-## 1. Mục tiêu
+## 1. Objectives
 
-`String.getChars(int srcBegin, int srcEnd, char[] dst, int dstBegin)` sao chép **một vùng liên tiếp của `String` vào mảng ký tự `char[]` do người gọi cung cấp**. API hữu ích khi bạn cần đưa một phần văn bản vào bộ đệm có sẵn, giữ nguyên phần khác của bộ đệm, hoặc tích hợp với một API nhận `char[]`.
+`String.getChars(int srcBegin, int srcEnd, char[] dst, int dstBegin)` copies **a contiguous region of a `String` into a caller-provided `char[]` character array**. This API is useful when you need to place a portion of text into an existing buffer, keep the rest of the buffer intact, or integrate with an API that accepts `char[]`.
 
-Điểm quan trọng nhất: các chỉ số của `String` và độ dài vùng sao chép được tính bằng **UTF-16 code unit** (`char`), không phải bằng số Unicode code point hay số ký tự người dùng nhìn thấy. Cần biết điều này để không vô tình chia đôi một ký tự ngoài BMP như `🚀`.
+Most important point: the `String` indices and the copy region length are measured in **UTF-16 code units** (`char`), not in Unicode code points or user-visible characters. You need to know this so you do not accidentally split a non-BMP character such as `🚀` in half.
 
-Sau bài này, bạn sẽ biết:
-- Ý nghĩa chính xác của bốn tham số và ranh giới **`[srcBegin, srcEnd)`**.
-- Cách kiểm tra vùng nguồn, vị trí đích và dung lượng mảng.
-- Vì sao `getChars` có thể sao chép *một nửa surrogate pair*.
-- Cách sao chép theo ranh giới code point một cách có chủ đích.
-- Khi nào nên dùng `getChars` thay vì `toCharArray()`, `substring()` hoặc `getBytes()`.
+After this lesson, you will know:
+- The exact meaning of the four parameters and the **`[srcBegin, srcEnd)`** boundary.
+- How to check the source range, destination position, and array capacity.
+- Why `getChars` can copy *one half of a surrogate pair*.
+- How to intentionally copy along code point boundaries.
+- When to use `getChars` instead of `toCharArray()`, `substring()`, or `getBytes()`.
 
-## 2. Cú pháp và cơ chế
+## 2. Syntax and mechanism
 
-Phương thức trên đối tượng `String`:
+Method on a `String` object:
 
 ```java
 public void getChars(int srcBegin, int srcEnd,
                      char[] dst, int dstBegin)
 ```
 
-Ví dụ ngắn:
+Short example:
 
 ```java
 String source = "Java Core";
@@ -32,57 +32,57 @@ source.getChars(0, 4, buffer, 2);
 System.out.println(new String(buffer)); // "__Java__"
 ```
 
-Giải thích:
-1. Từ chuỗi nguồn `"Java Core"`, lấy vùng **`[0, 4)`**, tức bốn code unit `J`, `a`, `v`, `a`.
-2. Ghi bắt đầu ở phần tử **`buffer[2]`**. Các phần tử `buffer[2]` đến `buffer[5]` được thay bằng `J`, `a`, `v`, `a`.
-3. Các phần tử `buffer[0]`, `buffer[1]`, `buffer[6]`, `buffer[7]` giữ nguyên dấu `_`.
-4. Phương thức trả về **`void`**: nó **sửa nội dung mảng đích**; không trả về một mảng mới và không sửa `String` nguồn.
+Explanation:
+1. From the source string `"Java Core"`, take the range **`[0, 4)`**, i.e., four code units `J`, `a`, `v`, `a`.
+2. Write starting at element **`buffer[2]`**. Elements `buffer[2]` through `buffer[5]` are replaced with `J`, `a`, `v`, `a`.
+3. Elements `buffer[0]`, `buffer[1]`, `buffer[6]`, `buffer[7]` keep their `_` characters.
+4. The method returns **`void`**: it **mutates the destination array's contents**; it does not return a new array and does not modify the source `String`.
 
-### Ý nghĩa bốn tham số
+### Meaning of the four parameters
 
-| Tham số | Ý nghĩa | Ví dụ |
+| Parameter | Meaning | Example |
 | --- | --- | --- |
-| `srcBegin` | Chỉ số UTF-16 đầu tiên trong chuỗi nguồn, **bao gồm**. | `0` lấy từ đầu chuỗi. |
-| `srcEnd` | Chỉ số UTF-16 ngay sau phần cuối cần lấy, **không bao gồm**. | `4` lấy đến trước vị trí 4. |
-| `dst` | Mảng `char[]` đích đã tồn tại; các phần tử được ghi đè trong vùng nhận. | `buffer` |
-| `dstBegin` | Chỉ số trong mảng đích để bắt đầu ghi. | `2` ghi từ `buffer[2]`. |
+| `srcBegin` | First UTF-16 index in the source string, **inclusive**. | `0` starts from the beginning of the string. |
+| `srcEnd` | UTF-16 index immediately after the last element to copy, **exclusive**. | `4` copies up to before position 4. |
+| `dst` | Existing destination `char[]` array; elements are overwritten in the target range. | `buffer` |
+| `dstBegin` | Index in the destination array where writing begins. | `2` writes starting at `buffer[2]`. |
 
-Số phần tử được sao chép là:
+The number of elements copied is:
 
 \[
 n = \text{srcEnd} - \text{srcBegin}
 \]
 
-Với `i` chạy từ `0` đến `n - 1`, hiệu ứng tương đương về mặt nội dung:
+With `i` running from `0` to `n - 1`, the effect on content is equivalent to:
 
 ```java
 dst[dstBegin + i] = source.charAt(srcBegin + i);
 ```
 
-Đây là diễn giải thao tác, **không phải** yêu cầu phải tự viết vòng lặp. Dùng trực tiếp `getChars` giúp thể hiện rõ ý định sao chép một vùng.
+This is an explanation of the operation, **not** a requirement to write a manual loop. Using `getChars` directly clearly expresses the intent to copy a region.
 
-## 3. Chỉ số đầu/cuối và vị trí đích
+## 3. Start/end indices and destination position
 
-Hãy nhìn vào ví dụ `"Java Core"` theo từng vị trí `char`:
+Look at the example `"Java Core"` at each `char` position:
 
-| Chỉ số UTF-16 | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+| UTF-16 index | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Ký tự | J | a | v | a | dấu cách | C | o | r | e |
+| Character | J | a | v | a | space | C | o | r | e |
 
-Gọi `source.getChars(5, 9, buffer, 0)` sẽ lấy **`"Core"`** bởi `srcEnd = 9` là ranh giới **sau** chữ `e`. Với nguồn dài `9`, `srcEnd == source.length()` hoàn toàn hợp lệ.
+Calling `source.getChars(5, 9, buffer, 0)` extracts **`"Core"`** because `srcEnd = 9` is the boundary **after** the letter `e`. For a source of length `9`, `srcEnd == source.length()` is completely valid.
 
-### Những trường hợp biên thường gặp
+### Common boundary cases
 
-- `source.getChars(0, source.length(), dst, 0)`: sao chép toàn bộ chuỗi, với điều kiện `dst` có đủ chỗ.
-- `source.getChars(2, 2, dst, 0)`: vùng nguồn rỗng, **không ghi ký tự nào**.
-- `source.getChars(source.length(), source.length(), dst, dst.length)`: vùng rỗng tại cuối chuỗi và cuối mảng cũng hợp lệ.
-- `source.getChars(2, 5, dst, 4)`: sao chép `3` `char` vào các vị trí đích `4, 5, 6`; mảng đích phải có tối thiểu `7` phần tử.
+- `source.getChars(0, source.length(), dst, 0)`: copies the entire string, provided `dst` has enough room.
+- `source.getChars(2, 2, dst, 0)`: empty source region, **writes no characters**.
+- `source.getChars(source.length(), source.length(), dst, dst.length)`: an empty region at the end of the string and end of the array is also valid.
+- `source.getChars(2, 5, dst, 4)`: copies `3` `char`s into destination positions `4, 5, 6`; the destination array must have at least `7` elements.
 
-Đừng nhầm `srcEnd` là số phần tử cần sao chép. Nếu muốn sao chép `count` phần tử bắt đầu từ `start`, dùng `srcBegin = start` và `srcEnd = start + count`, sau khi kiểm tra phạm vi.
+Do not mistake `srcEnd` for the number of elements to copy. If you want to copy `count` elements starting from `start`, use `srcBegin = start` and `srcEnd = start + count`, after validating the range.
 
-## 4. Điều kiện hợp lệ và ngoại lệ
+## 4. Validity conditions and exceptions
 
-Với `int n = srcEnd - srcBegin`, các điều kiện về chỉ số là:
+With `int n = srcEnd - srcBegin`, the index conditions are:
 
 ```text
 0 <= srcBegin <= srcEnd <= source.length()
@@ -90,26 +90,26 @@ Với `int n = srcEnd - srcBegin`, các điều kiện về chỉ số là:
 n <= dst.length - dstBegin
 ```
 
-Trong đó, `n` được tính theo số **`char` UTF-16** cần ghi. Điều kiện cuối tránh ghi vượt kích thước mảng đích.
+Here, `n` is measured in the number of **UTF-16 `char`s** to write. The final condition prevents writing past the destination array's size.
 
-| Tình huống | Ví dụ | Kết quả |
+| Scenario | Example | Result |
 | --- | --- | --- |
-| Vùng nguồn hợp lệ | `"abc".getChars(0, 2, new char[2], 0)` | Sao chép `a`, `b`. |
-| `srcBegin` âm | `"abc".getChars(-1, 2, new char[3], 0)` | `IndexOutOfBoundsException`. |
+| Valid source region | `"abc".getChars(0, 2, new char[2], 0)` | Copies `a`, `b`. |
+| Negative `srcBegin` | `"abc".getChars(-1, 2, new char[3], 0)` | `IndexOutOfBoundsException`. |
 | `srcBegin > srcEnd` | `"abc".getChars(2, 1, new char[3], 0)` | `IndexOutOfBoundsException`. |
-| `srcEnd` vượt độ dài | `"abc".getChars(0, 4, new char[4], 0)` | `IndexOutOfBoundsException`. |
-| `dstBegin` âm | `"abc".getChars(0, 1, new char[3], -1)` | `IndexOutOfBoundsException`. |
-| Thiếu chỗ ở đích | `"abc".getChars(0, 3, new char[3], 1)` | `IndexOutOfBoundsException`. |
-| Mảng đích `null` | `"abc".getChars(0, 1, null, 0)` | `NullPointerException`. |
-| Sao chép rỗng | `"abc".getChars(3, 3, new char[0], 0)` | Không sao chép; hợp lệ. |
+| `srcEnd` exceeds length | `"abc".getChars(0, 4, new char[4], 0)` | `IndexOutOfBoundsException`. |
+| Negative `dstBegin` | `"abc".getChars(0, 1, new char[3], -1)` | `IndexOutOfBoundsException`. |
+| Insufficient space in destination | `"abc".getChars(0, 3, new char[3], 1)` | `IndexOutOfBoundsException`. |
+| `null` destination array | `"abc".getChars(0, 1, null, 0)` | `NullPointerException`. |
+| Empty copy | `"abc".getChars(3, 3, new char[0], 0)` | Copies nothing; valid. |
 
-Khi **nhiều điều kiện cùng sai**, không nên dựa vào thông báo ngoại lệ cụ thể hoặc thứ tự kiểm tra nội bộ. Tài liệu API nêu hợp đồng; chương trình của bạn nên xác thực cả giới hạn vùng nguồn và dung lượng đích.
+When **multiple conditions are invalid at once**, do not rely on a specific exception message or internal check order. The API documentation states the contract; your program should validate both the source bounds and destination capacity.
 
-Lưu ý: nếu tính `start + count` từ dữ liệu nguyên rất lớn, phép cộng kiểu `int` có thể tràn. Có thể kiểm tra không tràn bằng `Objects.checkFromIndexSize(start, count, source.length())` (Java 9+) trước khi tính ranh giới, rồi kiểm tra vùng đích tương tự.
+Note: if computing `start + count` from very large integer data, `int` addition can overflow. You can check without overflow using `Objects.checkFromIndexSize(start, count, source.length())` (Java 9+) before computing boundaries, then validate the destination region similarly.
 
-## 5. Chương trình Java 17+ chạy độc lập
+## 5. Standalone Java 17+ program
 
-Lưu mã sau vào file `GetCharsDemo.java`:
+Save the following code to `GetCharsDemo.java`:
 
 ```java
 import java.util.Arrays;
@@ -119,7 +119,7 @@ public class GetCharsDemo {
         String text = "A🚀B";
         char[] target = {'_', '_', '_', '_', '_', '_'};
 
-        // Chép toàn bộ emoji, gồm hai code unit UTF-16.
+        // Copy the entire emoji, consisting of two UTF-16 code units.
         text.getChars(1, 3, target, 2);
 
         System.out.println("original = " + text);
@@ -129,13 +129,13 @@ public class GetCharsDemo {
         System.out.printf("dst[2] = U+%04X%n", (int) target[2]);
         System.out.printf("dst[3] = U+%04X%n", (int) target[3]);
 
-        // Một vùng không an toàn: chỉ chép high surrogate.
+        // An unsafe range: copies only the high surrogate.
         char[] partial = new char[1];
         text.getChars(1, 2, partial, 0);
         System.out.println("partial high surrogate = "
                 + Character.isHighSurrogate(partial[0]));
 
-        // Khoảng rỗng không thay đổi mảng đích.
+        // An empty range does not modify the destination array.
         char[] unchanged = {'?', '?', '?'};
         text.getChars(2, 2, unchanged, 1);
         System.out.println("empty region = "
@@ -144,14 +144,14 @@ public class GetCharsDemo {
 }
 ```
 
-Biên dịch và chạy trong terminal hỗ trợ Unicode:
+Compile and run in a terminal that supports Unicode:
 
 ```bash
 javac -encoding UTF-8 GetCharsDemo.java
 java GetCharsDemo
 ```
 
-Đầu ra kỳ vọng:
+Expected output:
 
 ```text
 original = A🚀B
@@ -164,44 +164,44 @@ partial high surrogate = true
 empty region = [?, ?, ?]
 ```
 
-**Vì sao kết quả như vậy?**
-- Chuỗi hiển thị là `A🚀B`, nhưng `length() == 4` vì emoji `🚀` là code point `U+1F680`, có hai code unit UTF-16: **high surrogate `U+D83D`** ở chỉ số `1` và **low surrogate `U+DE80`** ở chỉ số `2`.
-- `getChars(1, 3, target, 2)` lấy vùng `[1, 3)`, tức **hai `char`** của emoji, đặt vào `target[2]` và `target[3]`. Hai dấu gạch dưới đầu và hai dấu gạch dưới cuối vẫn nguyên vẹn.
-- `getChars(1, 2, partial, 0)` chỉ lấy **high surrogate**. Phương thức sao chép theo code unit nên không tự ghép hoặc bổ sung low surrogate còn thiếu.
-- Khi `srcBegin == srcEnd`, số phần tử sao chép là `0`; `unchanged` vẫn giữ ba dấu hỏi.
+**Why does it produce this output?**
+- The displayed string is `A🚀B`, yet `length() == 4` because the emoji `🚀` is code point `U+1F680`, which has two UTF-16 code units: **high surrogate `U+D83D`** at index `1` and **low surrogate `U+DE80`** at index `2`.
+- `getChars(1, 3, target, 2)` takes the range `[1, 3)`, i.e., **two `char`s** of the emoji, and puts them into `target[2]` and `target[3]`. The first two underscores and last two underscores remain intact.
+- `getChars(1, 2, partial, 0)` copies only the **high surrogate**. The method copies by code unit, so it does not automatically pair or supply the missing low surrogate.
+- When `srcBegin == srcEnd`, the number of elements copied is `0`; `unchanged` still holds three question marks.
 
-Chương trình cố ý kiểm tra code unit bằng `%04X` thay vì in riêng từng nửa surrogate, vì một surrogate đơn lẻ có thể hiển thị như ký tự thay thế hoặc dấu hỏi tùy môi trường.
+The program intentionally inspects code units using `%04X` instead of printing each surrogate half separately, because a lone surrogate may display as a replacement character or question mark depending on the environment.
 
-## 6. `getChars` sao chép `char`, không tự sao chép theo code point
+## 6. `getChars` copies `char`s, not automatically by code point
 
-Để hiểu quy tắc chỉ số, xét chuỗi `"A🚀B"`:
+To understand the indexing rule, examine the string `"A🚀B"`:
 
 | UTF-16 index | `0` | `1` | `2` | `3` |
 | --- | --- | --- | --- | --- |
 | `charAt(index)` | `'A'` | `'\uD83D'` | `'\uDE80'` | `'B'` |
 
-Ranh giới code point đầy đủ là `0, 1, 3, 4`. Vị trí `2` nằm **giữa** surrogate pair của emoji.
+The complete code point boundaries are `0, 1, 3, 4`. Position `2` lies **between** the emoji's surrogate pair.
 
-`String.getChars` **không xác thực ranh giới surrogate pair** và không có chế độ tự dịch chỉ số code point:
+`String.getChars` **does not validate surrogate pair boundaries** and has no mode to automatically translate code point indices:
 
 ```java
 String text = "A🚀B";
 
 char[] correct = new char[2];
-text.getChars(1, 3, correct, 0); // Cả hai char của 🚀.
+text.getChars(1, 3, correct, 0); // Both chars of 🚀.
 
 char[] broken = new char[1];
-text.getChars(1, 2, broken, 0); // Chỉ high surrogate.
+text.getChars(1, 2, broken, 0); // High surrogate only.
 ```
 
-Bởi vậy:
-- Dùng chỉ số trực tiếp nếu mục tiêu thực sự là **UTF-16 code unit**.
-- Nếu mục tiêu là **Unicode code point**, trước tiên tính ra ranh giới UTF-16 đúng.
-- Nếu mục tiêu là một **ký tự hiển thị** (grapheme cluster) gồm nhiều code point, thao tác theo code point vẫn có thể tách cụm; cần quy tắc phân đoạn văn bản phù hợp.
+Therefore:
+- Use indices directly if your target truly is **UTF-16 code units**.
+- If your target is **Unicode code points**, compute the proper UTF-16 boundaries first.
+- If your target is a **visible character** (grapheme cluster) made of multiple code points, code-point-level operations can still split the cluster; use appropriate text segmentation rules.
 
-### Chuyển khoảng code point thành khoảng UTF-16 rồi mới gọi `getChars`
+### Converting a code point range to a UTF-16 range before calling `getChars`
 
-Đoạn sau là một **phương thức hỗ trợ** đặt trong lớp Java:
+The following is a **helper method** placed inside a Java class:
 
 ```java
 static char[] copyCodePoints(String text, int from, int count) {
@@ -219,7 +219,7 @@ static char[] copyCodePoints(String text, int from, int count) {
 }
 ```
 
-Ví dụ gọi từ một `main`:
+Example call from a `main`:
 
 ```java
 String text = "A🚀B";
@@ -228,13 +228,13 @@ System.out.println(new String(rocket)); // 🚀
 System.out.println(rocket.length);       // 2
 ```
 
-Giải thích: `from = 1` bắt đầu tại code point thứ hai (`🚀`). `offsetByCodePoints` đổi vị trí code point sang chỉ số UTF-16: đầu `1`, cuối `3`. Mảng cần `3 - 1 = 2` `char` để giữ trọn emoji.
+Explanation: `from = 1` starts at the second code point (`🚀`). `offsetByCodePoints` converts code point positions to UTF-16 indices: start `1`, end `3`. The array needs `3 - 1 = 2` `char`s to hold the entire emoji.
 
-**Giới hạn:** `codePointCount` và `offsetByCodePoints` xem surrogate đơn lẻ có trong chuỗi là một code point theo cách xử lý của `String`. Chúng không tự sửa văn bản Unicode vốn đã có surrogate không ghép cặp và cũng không phân đoạn grapheme cluster.
+**Limitation:** `codePointCount` and `offsetByCodePoints` treat a lone surrogate present in the string as one code point according to `String`'s handling. They do not automatically repair Unicode text that already contains unpaired surrogates, nor do they segment grapheme clusters.
 
-## 7. Bộ đệm đích: ghi đè đúng vùng, phần khác giữ nguyên
+## 7. Destination buffer: overwrite the exact region, keep the rest untouched
 
-`getChars` có lợi khi bạn cần tái sử dụng một mảng hoặc tạo thông điệp gồm nhiều phần. Ví dụ:
+`getChars` is advantageous when you need to reuse an array or build a message from multiple parts. For example:
 
 ```java
 String source = "học Java";
@@ -244,15 +244,15 @@ source.getChars(4, 8, destination, 2);
 System.out.println(new String(destination)); // "..Java.."
 ```
 
-Mảng đích ban đầu gồm tám dấu chấm. Bốn code unit của `"Java"` ghi vào các ô `2, 3, 4, 5`; các ô khác không bị ghi đè.
+The destination array initially contains eight dots. The four code units of `"Java"` are written into cells `2, 3, 4, 5`; the other cells are not overwritten.
 
-Để tránh lỗi khi tái sử dụng:
-1. Tính `n = srcEnd - srcBegin` (sau khi kiểm tra chỉ số hợp lệ).
-2. Bảo đảm `dstBegin + n` không vượt `dst.length` (có thể kiểm tra bằng `n <= dst.length - dstBegin` để tránh tràn số).
-3. Theo dõi riêng **độ dài dữ liệu thật** đang nằm trong buffer. `new String(dst)` tạo chuỗi từ **toàn bộ** mảng, kể cả `char` chưa ghi (`'\u0000'` trong mảng vừa tạo bằng `new char[size]`).
-4. Nếu chỉ muốn chuyển phần vừa ghi thành `String`, dùng `new String(dst, dstBegin, n)` hoặc quản lý các đoạn hợp lệ theo nhu cầu.
+To avoid bugs when reusing a buffer:
+1. Compute `n = srcEnd - srcBegin` (after checking valid indices).
+2. Ensure `dstBegin + n` does not exceed `dst.length` (you can check `n <= dst.length - dstBegin` to avoid integer overflow).
+3. Track the **actual data length** currently inside the buffer separately. `new String(dst)` builds a string from the **entire** array, including unwritten `char`s (`'\u0000'` in an array freshly created with `new char[size]`).
+4. If you only want to turn the newly written portion into a `String`, use `new String(dst, dstBegin, n)` or manage valid slices as needed.
 
-Ví dụ:
+Example:
 
 ```java
 char[] buffer = new char[10];
@@ -263,49 +263,49 @@ String copiedOnly = new String(buffer, 3, text.length());
 System.out.println(copiedOnly); // Hello
 ```
 
-`new String(buffer, 3, 5)` lấy đúng năm code unit đã ghi vào mảng. Trái lại, `new String(buffer)` sẽ chứa cả những phần tử `'\u0000'` chưa được ghi; chúng thường không hiển thị rõ trên console.
+`new String(buffer, 3, 5)` takes the exact five code units written into the array. By contrast, `new String(buffer)` would also include the unwritten `'\u0000'` elements; they often do not show up clearly on the console.
 
-Mảng `char[]` **mutable**. Nếu nhiều luồng cùng viết vào cùng mảng, các luồng cần đồng bộ hoặc phân chia vùng không xung đột và kiểm soát việc công bố/kết hợp dữ liệu. Việc `String` nguồn bất biến **không** làm cho bộ đệm đích an toàn đa luồng.
+A `char[]` array is **mutable**. If multiple threads write to the same array, the threads must synchronize or partition non-conflicting regions and coordinate publishing/combining data. The immutability of the source `String` does **not** make the destination buffer thread-safe.
 
-## 8. So sánh với các API thường dùng
+## 8. Comparison with commonly used APIs
 
-| API | Đầu ra hoặc tác động | Khi nên dùng |
+| API | Output or effect | When to use |
 | --- | --- | --- |
-| `text.getChars(begin, end, dst, dstBegin)` | Ghi `end - begin` code unit vào mảng **có sẵn**; trả `void`. | Cần sao chép một vùng vào buffer tại vị trí xác định. |
-| `text.toCharArray()` | Trả về `char[]` **mới** chứa toàn bộ code unit UTF-16 của chuỗi. | Muốn một bản mảng của toàn bộ chuỗi. |
-| `text.substring(begin, end)` | Trả về một `String` chứa vùng chỉ định theo chỉ số UTF-16. | Muốn tiếp tục xử lý kết quả dạng `String`. |
-| `text.getBytes(StandardCharsets.UTF_8)` | Trả về `byte[]` với dữ liệu **đã mã hóa UTF-8**. | Ghi file/gửi dữ liệu byte với charset được chỉ định. |
-| `text.codePoints().toArray()` | Trả về `int[]` theo code point (kết hợp surrogate pair hợp lệ). | Cần giá trị code point thay vì các đơn vị `char`. |
+| `text.getChars(begin, end, dst, dstBegin)` | Writes `end - begin` code units into an **existing** array; returns `void`. | Need to copy a region into a buffer at a specific position. |
+| `text.toCharArray()` | Returns a **new** `char[]` containing all UTF-16 code units of the string. | Want an array copy of the entire string. |
+| `text.substring(begin, end)` | Returns a `String` containing the specified range by UTF-16 indices. | Want to continue processing the result as a `String`. |
+| `text.getBytes(StandardCharsets.UTF_8)` | Returns a `byte[]` with **UTF-8 encoded** data. | Writing files/sending byte data with a specified charset. |
+| `text.codePoints().toArray()` | Returns an `int[]` by code point (combining valid surrogate pairs). | Need code point values instead of `char` units. |
 
-Ví dụ đối chiếu:
+Side-by-side example:
 
 ```java
 String text = "A🚀B";
 
-char[] chars = text.toCharArray(); // 4 char UTF-16.
-int[] points = text.codePoints().toArray(); // 3 code point.
+char[] chars = text.toCharArray(); // 4 UTF-16 chars.
+int[] points = text.codePoints().toArray(); // 3 code points.
 
 System.out.println(chars.length);  // 4
 System.out.println(points.length); // 3
 ```
 
-Đừng dùng `getChars` để “giải mã UTF-8”: nó không nhận `byte[]` và cũng không thực hiện chuyển đổi charset. Đối với byte, hãy sử dụng API mã hóa/giải mã thích hợp.
+Do not use `getChars` to “decode UTF-8”: it does not accept `byte[]` and performs no charset conversion. For bytes, use appropriate encoding/decoding APIs.
 
-Về hiệu năng, `getChars` tránh yêu cầu tạo một `char[]` mới **nếu bạn đã có mảng đích**. Nó không bảo đảm lúc nào cũng nhanh hơn các API khác; nên chọn theo yêu cầu về kiểu kết quả, phân bổ bộ nhớ, khả năng bảo trì và đo hiệu năng trong bối cảnh thực tế.
+Regarding performance, `getChars` avoids allocating a new `char[]` **if you already have a destination array**. It is not guaranteed to always be faster than other APIs; choose based on return-type requirements, memory allocation, maintainability, and measure performance in your actual context.
 
-## 9. Lỗi phổ biến và cách khắc phục
+## 9. Common mistakes and how to fix them
 
-**Lỗi 1: Nhầm `srcEnd` với số lượng.**
+**Mistake 1: Confusing `srcEnd` with count.**
 
 ```java
 String text = "abcdef";
 char[] dst = new char[3];
-text.getChars(2, 5, dst, 0); // Đúng: "cde", 3 char.
+text.getChars(2, 5, dst, 0); // Correct: "cde", 3 chars.
 ```
 
-`srcEnd = 5` là **chỉ số cuối loại trừ**; số lượng bằng `5 - 2 = 3`, không phải `5`.
+`srcEnd = 5` is the **exclusive end index**; the count is `5 - 2 = 3`, not `5`.
 
-**Lỗi 2: Tạo mảng nhỏ hơn đoạn cần chép.**
+**Mistake 2: Creating an array smaller than the slice to copy.**
 
 ```java
 String text = "Hello";
@@ -313,41 +313,41 @@ char[] tooSmall = new char[3];
 // text.getChars(0, 5, tooSmall, 0); // IndexOutOfBoundsException.
 ```
 
-Mảng cần ít nhất **5 phần tử trống** từ `dstBegin = 0` để chứa cả `"Hello"`.
+The array needs at least **5 free elements** from `dstBegin = 0` to hold all of `"Hello"`.
 
-**Lỗi 3: Dùng số code point làm số `char`.**
+**Mistake 3: Using the code point count as the `char` count.**
 
 ```java
 String text = "A🚀B";
 int pointCount = text.codePointCount(0, text.length()); // 3
 char[] tooShortForWholeString = new char[pointCount];  // 3
 // text.getChars(0, text.length(), tooShortForWholeString, 0);
-// Không đủ: đoạn nguồn có 4 code unit.
+// Not enough: the source slice has 4 code units.
 ```
 
-Nếu chép toàn chuỗi, mảng cần `text.length()` phần tử, **không nhất thiết bằng** `codePointCount`.
+If copying the whole string, the array needs `text.length()` elements, **which does not necessarily equal** `codePointCount`.
 
-**Lỗi 4: Cắt đôi surrogate pair.**
+**Mistake 4: Splitting a surrogate pair in half.**
 
 ```java
 String text = "A🚀B";
 char[] half = new char[1];
-text.getChars(1, 2, half, 0); // Chỉ high surrogate.
+text.getChars(1, 2, half, 0); // High surrogate only.
 ```
 
-Nếu muốn trọn một code point ngoài BMP, phải xác định khoảng UTF-16 bao gồm cả high và low surrogate, chẳng hạn `[1, 3)` trong ví dụ.
+If you want a complete code point outside the BMP, you must specify a UTF-16 range that includes both the high and low surrogates, such as `[1, 3)` in the example.
 
-**Lỗi 5: In toàn bộ mảng đích rồi hiểu nhầm phần chưa ghi.**
+**Mistake 5: Printing the entire destination array and misunderstanding unwritten slots.**
 
-`new char[10]` chứa mười ký tự `'\u0000'` trước khi gán giá trị. Nếu chỉ chép ba code unit, các phần tử còn lại không tự biến mất. Lưu số ký tự hợp lệ hoặc tạo chuỗi từ đúng đoạn dữ liệu đã ghi bằng `new String(dst, offset, count)`.
+`new char[10]` contains ten `'\u0000'` characters before values are assigned. If you only copy three code units, the remaining elements do not vanish on their own. Track the valid character count or construct the string from only the written slice using `new String(dst, offset, count)`.
 
-**Lỗi 6: Giả định nội dung `String` bị thay đổi.**
+**Mistake 6: Assuming the `String` content is modified.**
 
-`getChars` ghi vào **mảng đích**. Ghi đè một phần tử của `dst` sau đó cũng không làm thay đổi `String` đã dùng làm nguồn hoặc chuỗi mới đã được tạo độc lập từ mảng.
+`getChars` writes into the **destination array**. Overwriting an element of `dst` afterward does not change the `String` used as the source or a new string created independently from the array.
 
-## 10. Bài tập tự kiểm tra
+## 10. Self-check exercises
 
-### Bài 1: Dự đoán vùng đích
+### Exercise 1: Predict the destination region
 
 ```java
 String text = "abcdef";
@@ -356,9 +356,9 @@ text.getChars(1, 4, out, 2);
 System.out.println(new String(out));
 ```
 
-**Đáp án:** `"--bcd-"`. Nguồn `[1, 4)` lấy `"bcd"` (3 `char`), ghi vào các phần tử `2..4`; hai phần tử đầu và phần tử cuối vẫn là `'-'`.
+**Answer:** `"--bcd-"`. Source `[1, 4)` takes `"bcd"` (3 `char`s), writing into elements `2..4`; the first two elements and the last element remain `'-'`.
 
-### Bài 2: Sao chép chuỗi có emoji
+### Exercise 2: Copying a string with emoji
 
 ```java
 String text = "Hi😀!";
@@ -367,9 +367,9 @@ text.getChars(2, 4, out, 0);
 System.out.println(new String(out));
 ```
 
-**Đáp án:** `"😀"`. Emoji `😀` chiếm hai `char` UTF-16 ở vị trí `2` và `3`, nên vùng `[2, 4)` lấy trọn.
+**Answer:** `"😀"`. The emoji `😀` occupies two UTF-16 `char`s at positions `2` and `3`, so the range `[2, 4)` captures it completely.
 
-### Bài 3: Đủ dung lượng hay không?
+### Exercise 3: Enough capacity or not?
 
 ```java
 String text = "Hello";
@@ -377,9 +377,9 @@ char[] out = new char[5];
 text.getChars(1, 5, out, 2);
 ```
 
-**Đáp án:** Không đủ. Cần chép `4` code unit bắt đầu từ `dstBegin = 2`, tức cần vị trí đích `2, 3, 4, 5`, nhưng mảng dài `5` chỉ có các vị trí `0..4`. Lời gọi ném `IndexOutOfBoundsException`.
+**Answer:** Not enough. Copying `4` code units starting from `dstBegin = 2` requires destination indices `2, 3, 4, 5`, whereas an array of length `5` only has indices `0..4`. The call throws `IndexOutOfBoundsException`.
 
-### Bài 4: Sao chép rỗng
+### Exercise 4: Empty copy
 
 ```java
 char[] out = {'x', 'y'};
@@ -387,25 +387,25 @@ char[] out = {'x', 'y'};
 System.out.println(java.util.Arrays.toString(out));
 ```
 
-**Đáp án:** `[x, y]`. Cả vị trí nguồn `3` và vị trí đích `2` là ranh giới hợp lệ tại cuối; số phần tử cần chép bằng `0`.
+**Answer:** `[x, y]`. Both source position `3` and destination position `2` are valid boundaries at the end; the number of elements to copy is `0`.
 
-### Bài 5: Chép theo code point
+### Exercise 5: Copying by code point
 
-Cho `String text = "A🚀B";`. Muốn chép **code point thứ hai** (đếm từ 1) vào `char[]` mà không viết cứng chỉ số UTF-16 thì làm gì?
+Given `String text = "A🚀B";`. If you want to copy the **second code point** (1-based) into a `char[]` without hardcoding UTF-16 indices, what do you do?
 
-**Đáp án:** Lấy `int from = text.offsetByCodePoints(0, 1);`, `int to = text.offsetByCodePoints(from, 1);`, cấp phát `char[] out = new char[to - from];` rồi gọi `text.getChars(from, to, out, 0);`. Kết quả là mảng dài `2` lưu cả hai đơn vị của `🚀`.
+**Answer:** Get `int from = text.offsetByCodePoints(0, 1);`, `int to = text.offsetByCodePoints(from, 1);`, allocate `char[] out = new char[to - from];`, and then call `text.getChars(from, to, out, 0);`. The result is an array of length `2` holding both units of `🚀`.
 
-## 11. Ghi nhớ
+## 11. Remember
 
-- `getChars(srcBegin, srcEnd, dst, dstBegin)` sao chép **`srcEnd - srcBegin` code unit UTF-16** vào mảng đã có.
-- Đoạn nguồn là **`[srcBegin, srcEnd)`**: có đầu, không có cuối.
-- Việc ghi bắt đầu tại `dst[dstBegin]`; phần đích nằm ngoài đoạn ghi không bị thay đổi.
-- Phương thức trả `void`, sửa `char[]` đích và **không làm thay đổi `String` nguồn**.
-- Kiểm tra cả **giới hạn nguồn** lẫn **dung lượng đích**; vùng rỗng là hợp lệ nếu chỉ số hợp lệ.
-- Với ký tự ngoài BMP, một code point có thể chiếm **hai `char`**. Nếu xử lý theo code point, chuyển ranh giới bằng `offsetByCodePoints` trước khi sao chép.
+- `getChars(srcBegin, srcEnd, dst, dstBegin)` copies **`srcEnd - srcBegin` UTF-16 code units** into an existing array.
+- The source slice is **`[srcBegin, srcEnd)`**: inclusive start, exclusive end.
+- Writing begins at `dst[dstBegin]`; destination elements outside the written slice are not modified.
+- The method returns `void`, mutates the destination `char[]`, and **does not modify the source `String`**.
+- Check both **source bounds** and **destination capacity**; an empty range is valid if the indices are valid.
+- For characters outside the BMP, one code point can occupy **two `char`s**. When working by code point, convert boundaries using `offsetByCodePoints` before copying.
 
-## Tài liệu tham khảo
+## References
 
 - [Java SE 17 — `String.getChars(int, int, char[], int)`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#getChars(int,int,char%5B%5D,int))
-- [Java SE 17 — `String`, các phương thức `length` và `offsetByCodePoints`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
-- [Java SE 17 — `Character` và UTF-16 surrogate](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html)
+- [Java SE 17 — `String`, `length` and `offsetByCodePoints` methods](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html)
+- [Java SE 17 — `Character` and UTF-16 surrogates](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html)

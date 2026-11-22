@@ -1,34 +1,34 @@
-# Di chuyển package để sửa split package trong Java Module System
+# Moving Packages to Fix Split Packages in the Java Module System
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Trong dự án Java chạy trên classpath, nhiều JAR có thể cùng chứa class thuộc một package. Khi chuyển sang Java Platform Module System (JPMS), cách tổ chức này có thể tạo ra **split package**: cùng một tên package xuất hiện trong nhiều module.
+In a Java project running on the classpath, multiple JARs can contain classes belonging to the same package. When migrating to the Java Platform Module System (JPMS), this organization can create a **split package**: the same package name appears in multiple modules.
 
-Một split package trở thành vấn đề khi module graph khiến một module đọc được nhiều module cùng chứa hoặc export package đó. Resolver không thể tạo một cách nhìn package nhất quán cho module tiêu thụ, vì vậy quá trình resolution có thể thất bại với lỗi dạng:
+A split package becomes a problem when the module graph causes one module to read multiple modules that contain or export that package. The resolver cannot provide a consistent package view to the consuming module, so resolution can fail with an error like:
 
 ~~~text
 Module com.example.app reads package com.example.shared
 from both com.example.alpha and com.example.beta
 ~~~
 
-Cách xử lý bền vững là xác định module sở hữu package, sau đó di chuyển toàn bộ phần package liên quan về một module duy nhất hoặc đổi tên package nếu các phần thực sự thuộc hai miền độc lập. Cần cập nhật cả source tree, module descriptor và các tham chiếu đi kèm.
+A sustainable approach is to identify the module that owns the package, then move all related parts of the package into a single module or rename packages if the parts genuinely belong to two independent domains. Both the source tree, module descriptors, and accompanying references must be updated.
 
-Sau bài này, bạn có thể:
+After this article, you will be able to:
 
-- Nhận diện split package và hiểu điều kiện khiến module resolution xung đột.
-- Chọn module sở hữu package dựa trên trách nhiệm và dependency.
-- Di chuyển source mà không bỏ sót package declaration, module descriptor, resource và test.
-- Xử lý dependency mới mà không tạo vòng phụ thuộc.
-- Biên dịch và kiểm tra lại module graph sau khi refactor.
+- Identify a split package and understand the conditions that cause module resolution conflicts.
+- Choose the owning module of a package based on responsibilities and dependencies.
+- Move source files without missing package declarations, module descriptors, resources, and tests.
+- Handle new dependencies without creating dependency cycles.
+- Compile and re-verify the module graph after refactoring.
 
-## 2. Split package là gì?
+## 2. What Is a Split Package?
 
-Giả sử có hai module:
+Suppose there are two modules:
 
 - `com.example.alpha`
 - `com.example.beta`
 
-Cả hai đều chứa class trong package `com.example.shared`:
+Both contain classes in the package `com.example.shared`:
 
 ~~~text
 src/
@@ -40,7 +40,7 @@ src/
     └── com/example/shared/BetaHelper.java
 ~~~
 
-Module descriptor có thể đang export cùng package:
+The module descriptors may be exporting the same package:
 
 ~~~java
 // com.example.alpha/module-info.java
@@ -56,7 +56,7 @@ module com.example.beta {
 }
 ~~~
 
-Ứng dụng tiêu thụ cả hai:
+The application consumes both:
 
 ~~~java
 module com.example.app {
@@ -65,39 +65,39 @@ module com.example.app {
 }
 ~~~
 
-Khi app đọc cả hai module và cả hai module đều export `com.example.shared`, resolver gặp hai nguồn cùng cung cấp một package cho cùng module tiêu thụ. Đây là trường hợp split package điển hình và có thể khiến configuration không resolve được.
+When app reads both modules and both export `com.example.shared`, the resolver encounters two sources providing the same package to the same consuming module. This is a classic split package case and can prevent the configuration from resolving.
 
-Không nên hiểu rằng chỉ cần nhìn thấy cùng tên package ở bất kỳ hai module nào là mọi cấu hình đều lập tức lỗi. Quy tắc resolution quan trọng là một module không thể đọc nhiều module cùng export package đó. Dù vậy, việc chia một package thành nhiều module thường làm ranh giới sở hữu và quyền truy cập khó hiểu; nên thiết kế để package có một module owner rõ ràng.
+You should not assume that merely seeing the same package name in any two modules immediately causes every configuration to fail. The key resolution rule is that a module cannot read multiple modules that both export that package. Even so, splitting a package across multiple modules often makes ownership boundaries and access permissions hard to reason about; you should design so each package has one clear module owner.
 
-## 3. Vì sao classpath có thể chạy nhưng named modules lại gặp lỗi?
+## 3. Why Can the Classpath Run While Named Modules Fail?
 
-Trên classpath, các JAR thường được nạp vào unnamed module. Class loader có thể tìm class cùng package từ nhiều JAR, miễn là không phát sinh vấn đề khác như trùng class name hoặc thứ tự classpath.
+On the classpath, JARs are typically loaded into the unnamed module. The class loader can find classes of the same package from multiple JARs, as long as no other issues arise such as duplicate class names or classpath ordering issues.
 
-Với named modules, module descriptor xác định module nào sở hữu package và module nào được đọc package đó. Module system kiểm tra quan hệ này khi xây dựng configuration. Việc một package bị chia giữa nhiều module có thể làm một consumer đọc nhiều nguồn package trùng tên, tạo ra sự mơ hồ.
+With named modules, the module descriptor specifies which module owns a package and which modules are allowed to read that package. The module system checks these relationships when building a configuration. Having a package split across multiple modules can cause a consumer to read multiple identically named package sources, creating ambiguity.
 
-Ngoài lỗi resolution, package-private access cũng cần chú ý. Hai class cùng khai báo `package com.example.shared;` nhưng nằm trong hai named module khác nhau không mặc nhiên thuộc cùng một runtime package để truy cập package-private members của nhau. Cùng tên package trong source không xóa ranh giới module.
+Beyond resolution errors, package-private access also requires attention. Two classes both declaring `package com.example.shared;` yet residing in two different named modules do not automatically belong to the same runtime package to access each other's package-private members. Sharing a package name in source code does not erase module boundaries.
 
-Vì vậy, split package không chỉ là vấn đề đặt file trong thư mục nào. Nó liên quan đến module ownership, readability, exports và encapsulation.
+Therefore, a split package is not merely an issue of which directory files are placed in. It involves module ownership, readability, exports, and encapsulation.
 
-## 4. Chọn module sở hữu package trước khi di chuyển
+## 4. Choosing the Package-Owning Module Before Moving
 
-Trước khi sửa file, xác định package thuộc trách nhiệm nào.
+Before editing files, determine which responsibility the package belongs to.
 
-Có ba hướng thường dùng:
+There are three common approaches:
 
-1. **Chuyển toàn bộ package vào một module hiện có:** phù hợp khi các class thực sự là một phần của module đó. Module còn lại sẽ phụ thuộc vào module owner.
-2. **Tạo module dùng chung có trách nhiệm rõ ràng:** phù hợp khi package là API hoặc capability được nhiều module dùng độc lập. Tránh biến module này thành một kho chứa các class tiện ích không liên quan.
-3. **Tách thành hai package có tên riêng:** phù hợp khi class cùng package hiện tại thực ra thuộc hai miền nghiệp vụ khác nhau. Đổi package để mỗi miền có namespace riêng, rồi đặt từng package trong module sở hữu tương ứng.
+1. **Move the entire package into an existing module:** suitable when the classes are genuinely part of that module. The other module will depend on the owning module.
+2. **Create a shared module with a clear responsibility:** suitable when the package is an API or capability used independently by multiple modules. Avoid turning this module into a dumping ground for unrelated utility classes.
+3. **Split into two distinctly named packages:** suitable when classes currently in the same package actually belong to two different business domains. Rename the packages so each domain has its own namespace, then place each package in its corresponding owning module.
 
-Không chọn module chỉ vì nó đang có sẵn một vài class trong package. Hãy xét dependency của class, API công khai, vòng đời, quyền sở hữu và khả năng tránh dependency cycle.
+Do not pick a module merely because it already happens to have a few classes in the package. Consider class dependencies, public APIs, lifecycles, ownership, and avoiding dependency cycles.
 
-Nếu alpha cần beta và beta lại cần alpha sau khi di chuyển, không nên thêm hai chiều `requires` để ép build. Hãy tách contract ổn định sang một module API nhỏ hoặc điều chỉnh ranh giới trách nhiệm.
+If alpha needs beta and beta needs alpha after moving, do not add bidirectional `requires` to force a build. Extract a stable contract into a small API module or adjust responsibility boundaries.
 
-## 5. Ví dụ: gom package vào một module owner
+## 5. Example: Consolidating a Package into One Owning Module
 
-Giả sử `com.example.shared` là package dùng chung thật sự. Ta tạo module owner `com.example.shared` và chuyển cả hai class về đó.
+Suppose `com.example.shared` is a genuinely shared package. We create an owning module `com.example.shared` and move both classes there.
 
-Trước khi di chuyển:
+Before moving:
 
 ~~~text
 src/
@@ -112,7 +112,7 @@ src/
     └── com/example/app/Main.java
 ~~~
 
-Sau khi di chuyển:
+After moving:
 
 ~~~text
 src/
@@ -130,7 +130,7 @@ src/
     └── com/example/app/Main.java
 ~~~
 
-Module owner khai báo:
+The owning module declares:
 
 ~~~java
 module com.example.shared {
@@ -138,7 +138,7 @@ module com.example.shared {
 }
 ~~~
 
-Hai module alpha và beta khai báo dependency:
+Both alpha and beta modules declare the dependency:
 
 ~~~java
 module com.example.alpha {
@@ -152,7 +152,7 @@ module com.example.beta {
 }
 ~~~
 
-Module app vẫn yêu cầu alpha và beta nếu nó dùng API của cả hai:
+The app module still requires alpha and beta if it uses APIs from both:
 
 ~~~java
 module com.example.app {
@@ -161,47 +161,47 @@ module com.example.app {
 }
 ~~~
 
-Nếu app cần gọi trực tiếp class trong `com.example.shared`, app cũng cần khai báo `requires com.example.shared;`. Readability không tự động truyền từ alpha sang app theo cách khiến app đọc mọi dependency của alpha; `requires` thông thường không có tính transitive.
+If app needs to directly call classes in `com.example.shared`, app also needs to declare `requires com.example.shared;`. Readability does not automatically propagate from alpha to app in a way that lets app read all of alpha's dependencies; plain `requires` is not transitive.
 
-Sau thay đổi, chỉ module `com.example.shared` chứa và export package `com.example.shared`. Alpha và beta sử dụng package đó qua dependency tới owner.
+After the change, only the `com.example.shared` module contains and exports the package `com.example.shared`. Alpha and beta use that package via a dependency on the owner.
 
-Nếu các helper chỉ phục vụ nội bộ alpha hoặc beta, hãy cân nhắc chuyển chúng vào package riêng của module tương ứng thay vì tạo module shared. Mục tiêu là một package có một owner hợp lý, không phải tạo thêm module cho mọi nhóm class.
+If the helpers only serve internal needs of alpha or beta, consider moving them into each respective module's own package instead of creating a shared module. The goal is for one package to have one logical owner, not to create an extra module for every group of classes.
 
-## 6. Các bước di chuyển source
+## 6. Steps for Moving Source Files
 
-Thực hiện di chuyển theo trình tự có thể kiểm soát:
+Perform the move in a controllable sequence:
 
-1. **Liệt kê class trong package:** tìm mọi file có khai báo `package com.example.shared;` trong các source root của module. Xác định class, `package-info.java`, file test và resource liên quan.
-2. **Chọn owner:** quyết định module sẽ chứa package sau refactor. Kiểm tra dependency của class để tránh tạo vòng `requires`.
-3. **Di chuyển file:** đưa các source file vào đúng thư mục package dưới source root của owner. Nếu đổi tên package, cập nhật cả thư mục và câu lệnh `package` trong source.
-4. **Cập nhật module descriptor:** thêm `exports` hoặc qualified `exports` ở owner khi consumer cần truy cập API. Thêm `requires` ở consumer; xóa export cũ khỏi module không còn sở hữu package.
-5. **Cập nhật tham chiếu:** sửa import nếu package name đổi. Nếu giữ nguyên package name nhưng đổi module owner, import Java có thể không đổi, nhưng module descriptor và dependency build phải đổi.
-6. **Di chuyển test và resource:** đặt test theo module mới; kiểm tra resource path, `module-info.java`, test fixture và cấu hình đóng gói.
-7. **Build toàn bộ consumer:** biên dịch module owner trước hoặc trong cùng lượt modular compilation, sau đó biên dịch mọi module phụ thuộc và chạy test.
+1. **List classes in the package:** find every file declaring `package com.example.shared;` across module source roots. Identify classes, `package-info.java`, test files, and related resources.
+2. **Choose an owner:** decide which module will contain the package after refactoring. Check class dependencies to avoid creating `requires` cycles.
+3. **Move files:** place source files into the right package directory under the owner's source root. If renaming the package, update both the directory and the `package` statement in source files.
+4. **Update module descriptors:** add `exports` or qualified `exports` in the owner when consumers need API access. Add `requires` in consumers; remove old exports from modules that no longer own the package.
+5. **Update references:** fix imports if the package name changed. If the package name stays the same while the owning module changed, Java imports might not change, yet module descriptors and build dependencies must change.
+6. **Move tests and resources:** place tests according to the new module; verify resource paths, `module-info.java`, test fixtures, and packaging configs.
+7. **Build all consumers:** compile the owning module first or in the same modular compilation pass, then compile all dependent modules and run tests.
 
-Không để lại một phần class của package trong module cũ. Sau khi di chuyển, module cũ không còn source hoặc package output thuộc package đó.
+Do not leave a subset of classes from the package in the old module. After moving, the old module should no longer have source files or package outputs belonging to that package.
 
-## 7. Những tham chiếu thường bị bỏ sót
+## 7. References Frequently Missed
 
-Di chuyển package không chỉ ảnh hưởng các file Java có import trực tiếp.
+Moving a package does not only affect Java files with direct imports.
 
-- **`package-info.java`:** annotation và Javadoc gắn với package phải đi cùng package owner hoặc được cập nhật khi đổi tên.
-- **`module-info.java`:** cập nhật `exports`, `opens`, `uses`, `provides` nếu package chứa service type hoặc provider implementation.
-- **Reflection:** chuỗi tên class/package trong `Class.forName`, cấu hình framework, dependency injection, serialization hoặc mapping cần được cập nhật nếu package name đổi.
-- **Resource:** kiểm tra file được nạp bằng `Class.getResource`, `ClassLoader.getResource` hoặc đường dẫn resource tương đối với package.
-- **Service provider:** nếu implementation được khai báo bằng `provides Service with Provider`, bảo đảm provider class vẫn ở module phù hợp và descriptor đã cập nhật. Nếu dùng classpath service configuration, cập nhật file `META-INF/services`.
-- **Test và build:** cập nhật source set, test module descriptor, module path, cấu hình plugin, Javadoc và script chạy.
-- **API consumers:** nếu class công khai chuyển sang module khác, các module tiêu thụ phải đọc module mới và module owner phải export package cần thiết.
+- **`package-info.java`:** annotations and Javadoc attached to the package must move with the package owner or be updated when renamed.
+- **`module-info.java`:** update `exports`, `opens`, `uses`, `provides` if the package contains service types or provider implementations.
+- **Reflection:** class/package name strings in `Class.forName`, framework configs, dependency injection, serialization, or mappings must be updated if the package name changes.
+- **Resources:** check files loaded via `Class.getResource`, `ClassLoader.getResource`, or resource paths relative to the package.
+- **Service providers:** if an implementation is declared with `provides Service with Provider`, ensure the provider class stays in an appropriate module and the descriptor is updated. If using classpath service configuration, update `META-INF/services` files.
+- **Tests and builds:** update source sets, test module descriptors, module paths, plugin configs, Javadoc, and launch scripts.
+- **API consumers:** if public classes move to a different module, consuming modules must read the new module and the owning module must export the required package.
 
-Nếu package name không đổi, các import có thể vẫn biên dịch như cũ sau khi module dependency được cập nhật. Tuy nhiên, điều đó không có nghĩa migration đã hoàn tất: module graph, resource và reflection vẫn cần được kiểm tra.
+If the package name does not change, imports may still compile as before once module dependencies are updated. However, that does not mean migration is complete: the module graph, resources, and reflection still need verification.
 
-## 8. Khi cần đổi tên package thay vì gom chung
+## 8. When to Rename a Package Instead of Consolidating
 
-Không phải hai nhóm class cùng tên package đều nên đặt trong một module. Ví dụ, một thư viện bên thứ ba và code nội bộ cùng sử dụng package `com.example.util`, nhưng chúng không chia sẻ trách nhiệm hoặc API.
+Not every two groups of classes sharing a package name should be placed in one module. For example, a third-party library and internal code both use the package `com.example.util`, yet they do not share responsibilities or APIs.
 
-Có thể đổi package của code nội bộ thành namespace riêng:
+You can rename the internal code's package to a dedicated namespace:
 
-Trước:
+Before:
 
 ~~~java
 package com.example.util;
@@ -211,7 +211,7 @@ public final class InternalDateParser {
 }
 ~~~
 
-Sau:
+After:
 
 ~~~java
 package com.example.app.internal.date;
@@ -221,7 +221,7 @@ public final class InternalDateParser {
 }
 ~~~
 
-Cấu trúc thư mục tương ứng:
+Corresponding directory structure:
 
 ~~~text
 com.example.app/
@@ -230,20 +230,20 @@ com.example.app/
     └── InternalDateParser.java
 ~~~
 
-Cách này giữ code nội bộ trong module app và tránh tranh chấp package với thư viện. Đổi package name là thay đổi tên đầy đủ của class (fully qualified name), vì vậy cần cập nhật consumer, cấu hình reflection, serialization và các dữ liệu lưu tên class.
+This keeps internal code inside the app module and avoids package contention with the library. Renaming a package changes the class's fully qualified name, so you must update consumers, reflection configurations, serialization, and data storing class names.
 
-Đối với API công khai đã phát hành, đổi package có thể là breaking change. Cần có kế hoạch versioning, migration guide hoặc lớp facade/adapter trong giai đoạn chuyển tiếp nếu tương thích ngược là yêu cầu.
+For published public APIs, renaming a package can be a breaking change. You need a versioning plan, migration guide, or facade/adapter layer during a transition period if backward compatibility is required.
 
-## 9. Biên dịch và kiểm tra sau khi di chuyển
+## 9. Compiling and Verifying After Moving
 
-Với source tree modular, có thể biên dịch các module liên quan bằng:
+With a modular source tree, you can compile the involved modules using:
 
 ~~~bash
 javac --module-source-path src -d out \
     -m com.example.shared,com.example.alpha,com.example.beta,com.example.app
 ~~~
 
-Nếu owner đã được build thành modular JAR, đặt JAR đó trên module path khi biên dịch consumer:
+If the owner has already been built into a modular JAR, place that JAR on the module path when compiling consumers:
 
 ~~~bash
 javac --module-path libs -d out \
@@ -251,59 +251,59 @@ javac --module-path libs -d out \
     -m com.example.alpha,com.example.beta,com.example.app
 ~~~
 
-Chạy ứng dụng:
+Run the application:
 
 ~~~bash
 java --module-path out -m com.example.app/com.example.app.Main
 ~~~
 
-Có thể kiểm tra descriptor của owner:
+You can inspect the owner's descriptor:
 
 ~~~bash
 java --module-path out --describe-module com.example.shared
 ~~~
 
-Và quan sát graph khi chạy:
+And observe the graph at runtime:
 
 ~~~bash
 java --show-module-resolution --module-path out \
     --module com.example.app/com.example.app.Main
 ~~~
 
-Khi xác nhận migration:
+When confirming the migration:
 
-- Build tất cả module có dependency tới package.
-- Chạy unit test và integration test của owner cùng các consumer.
-- Xác nhận module owner export đúng package cần thiết.
-- Xác nhận module cũ không còn chứa package đó trong output hoặc JAR.
-- Tìm lại package declaration để bảo đảm không còn bản sao ngoài dự kiến.
-- Kiểm tra cấu hình reflection, service provider và resource.
-- Kiểm tra artifact phát hành cuối cùng, không chỉ source tree trong IDE.
+- Build all modules that have dependencies on the package.
+- Run unit tests and integration tests of the owner and consumers.
+- Confirm the owning module exports the right required packages.
+- Confirm the old module no longer contains that package in its output or JAR.
+- Search for package declarations again to ensure no unexpected duplicates remain.
+- Verify reflection, service provider, and resource configurations.
+- Inspect the final release artifacts, not just the source tree in the IDE.
 
-Nếu dùng modular JAR, có thể xem nội dung module bằng:
+If using modular JARs, you can inspect module contents with:
 
 ~~~bash
 jar --describe-module --file libs/com.example.shared.jar
 ~~~
 
-## 10. Vì sao không nên dùng workaround để che split package?
+## 10. Why Workarounds Should Not Be Used to Mask Split Packages
 
-Một số tùy chọn runtime có thể giúp xử lý vấn đề module access, nhưng chúng không phải giải pháp tổng quát cho split package:
+Some runtime options can help handle module access issues, but they are not general solutions for split packages:
 
-- `--add-reads` bổ sung readability, không hợp nhất package từ hai module.
-- `--add-exports` cấp quyền truy cập package, không chuyển quyền sở hữu package.
-- `--add-opens` phục vụ deep reflection, không sửa package conflict trong module graph.
-- `--patch-module` thêm class/resource vào một module cụ thể và có thể dùng trong test hoặc compatibility workaround; nó không thay thế việc xác định module owner và đóng gói source đúng cách.
+- `--add-reads` adds readability; it does not merge packages from two modules.
+- `--add-exports` grants package access; it does not transfer package ownership.
+- `--add-opens` serves deep reflection; it does not fix package conflicts in the module graph.
+- `--patch-module` adds classes/resources to a specific module and can be used in tests or compatibility workarounds; it does not replace identifying the owning module and packaging source properly.
 
-Nếu lỗi resolution nói một consumer đọc cùng package từ hai module, hãy sửa cấu trúc package/module hoặc quan hệ module sao cho consumer chỉ còn một nguồn package. Thêm quyền truy cập không loại bỏ nguyên nhân.
+If a resolution error says a consumer reads the same package from two modules, fix the package/module structure or module relationships so the consumer has only one source for the package. Adding access permissions does not remove the root cause.
 
-## 11. Ghi nhớ
+## 11. Key Takeaways
 
-- Split package là tình trạng cùng tên package xuất hiện trong nhiều module.
-- Xung đột điển hình xảy ra khi một module đọc hai module cùng export package đó.
-- Chọn một module owner cho package; chuyển toàn bộ class liên quan về owner hoặc đổi tên package khi hai nhóm code thuộc các miền độc lập.
-- Cập nhật `requires`, `exports`, `opens`, `uses`, `provides` và các consumer phù hợp.
-- Kiểm tra package-private access, reflection, resource, service provider, test và build script sau khi di chuyển.
-- Build toàn bộ module graph và xác nhận module cũ không còn chứa package đã chuyển.
+- A split package is the condition where the same package name appears in multiple modules.
+- A typical conflict occurs when one module reads two modules that both export that package.
+- Choose one owning module for the package; move all related classes to the owner or rename the package when the two code groups belong to independent domains.
+- Update `requires`, `exports`, `opens`, `uses`, `provides`, and consumers accordingly.
+- Check package-private access, reflection, resources, service providers, tests, and build scripts after moving.
+- Build the entire module graph and verify the old module no longer contains the moved package.
 
-Hãy bắt đầu bằng việc xác định package nào đang có nhiều owner và module nào thực sự cần sở hữu nó. Một lần di chuyển có kiểm soát, đi kèm cập nhật descriptor và consumer, sẽ loại bỏ xung đột tận gốc và giữ cho ranh giới module rõ ràng.
+Start by identifying which package has multiple owners and which module truly needs to own it. A single controlled migration, paired with updating descriptors and consumers, eliminates the conflict at the root and keeps module boundaries clear.

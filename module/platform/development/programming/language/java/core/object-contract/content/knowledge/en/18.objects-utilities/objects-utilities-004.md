@@ -1,8 +1,8 @@
-# Objects.hash() cho nhiều giá trị và tình huống truyền mảng
+# Objects.hash() for multiple values and passing arrays
 
-## 1. Objects.hash() dùng để làm gì?
+## 1. What is Objects.hash() used for?
 
-`java.util.Objects.hash(Object... values)` là phương thức tiện ích tính **một giá trị `int` từ nhiều đối số**. Nó thường xuất hiện khi một class override `hashCode()` và cần kết hợp các trường tham gia quan hệ bằng nhau:
+`java.util.Objects.hash(Object... values)` is a utility method that computes **a single `int` value from multiple arguments**. It commonly appears when a class overrides `hashCode()` and needs to combine the fields participating in the equality relation:
 
 ```java
 @Override
@@ -11,41 +11,41 @@ public int hashCode() {
 }
 ```
 
-Đoạn trên là phần thân phương thức minh họa bên trong một class có ba trường tương ứng, không phải tệp Java độc lập. Các đối số được xử lý theo đúng thứ tự; số lượng và giá trị của từng đối số ảnh hưởng đến hash được tính.
+The snippet above is an illustrative method body inside a class with those three fields, not a standalone Java file. The arguments are processed in exact order; the count and value of each argument affect the computed hash.
 
-**Định nghĩa chính xác:** Javadoc Java 17 của `Objects.hash(Object... values)` quy định kết quả tương đương với `Arrays.hashCode(Object[])` áp dụng trên **mảng đối số thực sự được truyền cho tham số varargs**. Nghĩa là có thể hình dung:
+**Exact definition:** The Java 17 Javadoc for `Objects.hash(Object... values)` specifies that the result is equivalent to `Arrays.hashCode(Object[])` applied to **the actual argument array passed to the varargs parameter**. That means you can picture it as:
 
 ```java
-// Ý tưởng tương đương, không phải khai báo lại phương thức JDK:
+// Equivalent idea, not a redeclaration of the JDK method:
 static int hashMany(Object... values) {
     return java.util.Arrays.hashCode(values);
 }
 ```
 
-Điểm thường bị bỏ sót nằm ở dấu ba chấm `...`: trong Java, một lời gọi varargs có thể truyền **nhiều giá trị riêng lẻ** hoặc truyền **một mảng tương thích với kiểu tham số mảng**. Nếu đối số cuối cùng vốn là một mảng, compiler có thể coi nó là chính mảng varargs, thay vì một giá trị duy nhất bên trong mảng varargs.
+The commonly overlooked detail lies in the ellipsis `...`: in Java, a varargs call can pass **multiple individual values** or pass **an array compatible with the array parameter type**. If the last argument is already an array, the compiler may treat it as the varargs array itself, rather than as a single value inside the varargs array.
 
-Bài học cần phân biệt:
+Key cases to distinguish in this lesson:
 
-- `Objects.hash(a, b, c)`: kết hợp ba giá trị.
-- `Objects.hash(a)`: tạo hash của **một danh sách có một phần tử**, không nhất thiết giống `a.hashCode()`.
-- `Objects.hash((Object[]) array)`: khi `array` là `Object[]` hoặc mảng tham chiếu con như `String[]`, truyền chính nó làm mảng varargs.
-- `Objects.hash((Object) array)`: ép compiler coi cả mảng là **một đối tượng duy nhất**, rồi dùng hash của chính đối tượng mảng đó.
-- `Objects.hash(primitiveArray)`: mảng nguyên thủy như `int[]` không phải `Object[]`, nên là một phần tử `Object` trong varargs.
+- `Objects.hash(a, b, c)`: combines three values.
+- `Objects.hash(a)`: computes the hash of **a one-element list**, not necessarily equal to `a.hashCode()`.
+- `Objects.hash((Object[]) array)`: when `array` is `Object[]` or a subtype reference array like `String[]`, passes the array itself as the varargs array.
+- `Objects.hash((Object) array)`: forces the compiler to treat the entire array as **a single object**, then uses the hash of that array object itself.
+- `Objects.hash(primitiveArray)`: primitive arrays such as `int[]` are not `Object[]`, so they become a single `Object` element inside varargs.
 
-Đừng nhầm `Objects.hash` với thuật toán băm mật mã, mã định danh duy nhất, hoặc phương thức tự động so sánh sâu mọi cấu trúc mảng. Nó là tiện ích tính hash cho hợp đồng `Object.hashCode`, vốn cho phép va chạm.
+Do not confuse `Objects.hash` with a cryptographic hash algorithm, a unique identifier, or a method that automatically deep-compares every array structure. It is a utility for computing hashes for the `Object.hashCode` contract, which allows collisions.
 
-## 2. Nhiều đối số: kết hợp theo thứ tự
+## 2. Multiple arguments: combining in order
 
-`Objects.hash("A", 7)` được tính như `Arrays.hashCode(new Object[] {"A", Integer.valueOf(7)})`. Với công thức cho `Object[]`, bắt đầu từ `result = 1`, rồi theo từng phần tử thực hiện `result = 31 * result + elementHash`. Phần tử `null` đóng góp giá trị `0`; các phép toán `int` có thể tràn theo ngữ nghĩa Java.
+`Objects.hash("A", 7)` is computed as `Arrays.hashCode(new Object[] {"A", Integer.valueOf(7)})`. Using the `Object[]` formula, it starts with `result = 1`, then for each element performs `result = 31 * result + elementHash`. A `null` element contributes `0`; `int` arithmetic can overflow under Java semantics.
 
-Với `"A".hashCode() == 65` và `Integer.valueOf(7).hashCode() == 7`:
+With `"A".hashCode() == 65` and `Integer.valueOf(7).hashCode() == 7`:
 
-1. Sau `"A"`: `31 * 1 + 65 = 96`.
-2. Sau `7`: `31 * 96 + 7 = 2983`.
+1. After `"A"`: `31 * 1 + 65 = 96`.
+2. After `7`: `31 * 96 + 7 = 2983`.
 
-Đổi thứ tự có thể đổi hash vì `Objects.hash("A", 7)` không có cùng mảng đối số với `Objects.hash(7, "A")`. Tuy vậy, không thể khẳng định mọi dãy đối số khác nhau luôn cho hash khác nhau: miền kết quả chỉ là `int` 32-bit và **hash collision được phép**.
+Changing the order can change the hash because `Objects.hash("A", 7)` does not have the same argument array as `Objects.hash(7, "A")`. However, you cannot claim that every distinct sequence of arguments always produces a different hash: the result range is only 32-bit `int` and **hash collisions are permitted**.
 
-### Ví dụ Java 17 chạy được
+### Runnable Java 17 example
 
 ```java
 import java.util.Arrays;
@@ -65,14 +65,14 @@ public class ObjectsHashBasics {
 }
 ```
 
-Lưu thành `ObjectsHashBasics.java` rồi chạy:
+Save as `ObjectsHashBasics.java` and run:
 
 ```bash
 javac ObjectsHashBasics.java
 java ObjectsHashBasics
 ```
 
-Kết quả:
+Output:
 
 ```text
 2983
@@ -82,31 +82,31 @@ true
 1
 ```
 
-Giải thích: `Objects.hash("A")` không đơn thuần trả `"A".hashCode()`. Nó tính `Arrays.hashCode` trên mảng varargs có **một** phần tử `"A"`, nên kết quả là `31 + 65 = 96`. Không có đối số thì mảng varargs rỗng và kết quả là `1`.
+Explanation: `Objects.hash("A")` does not simply return `"A".hashCode()`. It computes `Arrays.hashCode` on a varargs array containing **one** element `"A"`, so the result is `31 + 65 = 96`. With no arguments, the varargs array is empty and the result is `1`.
 
-Nếu chỉ muốn lấy hash của **một object riêng lẻ**, `Objects.hashCode(value)` thường rõ ý định hơn `Objects.hash(value)`. Phương thức `Objects.hashCode(Object)` trả `0` nếu giá trị là `null`, còn không thì trả `value.hashCode()`. Hai overload này không có cùng công thức chung.
+If you only want the hash of **a single individual object**, `Objects.hashCode(value)` usually expresses the intent better than `Objects.hash(value)`. The `Objects.hashCode(Object)` method returns `0` if the value is `null`, and `value.hashCode()` otherwise. These two overloads do not share the same formula.
 
-## 3. Truyền Object[]: trải thành các phần tử hay coi cả mảng là một object?
+## 3. Passing Object[]: spread into elements or treat the array as one object?
 
-Đây là tình huống dễ nhầm nhất của `Objects.hash`.
+This is the most confusing case for `Objects.hash`.
 
-Cho:
+Given:
 
 ```java
 String[] codes = {"A", "B"};
 ```
 
-`String[]` là một kiểu con của `Object[]`. Bởi vậy, khi gọi `Objects.hash(codes)`, compiler có thể chọn lời gọi varargs ở **dạng không đóng gói thêm mảng**, sử dụng chính `codes` làm mảng đối số. Trình biên dịch Java thường cảnh báo khi một lời gọi như vậy dễ gây nhầm về varargs.
+`String[]` is a subtype of `Object[]`. Therefore, when calling `Objects.hash(codes)`, the compiler can select the **non-wrapping varargs invocation form**, using `codes` itself as the argument array. The Java compiler often issues a warning when such a call is ambiguous with respect to varargs.
 
-Hãy dùng cast để nói rõ ý muốn:
+Use a cast to state your intent clearly:
 
-- `Objects.hash((Object[]) codes)`: coi `codes` là **mảng varargs**; hash các phần tử `"A"` và `"B"`.
-- `Objects.hash((Object) codes)`: coi **nguyên đối tượng mảng** là một đối số; mã băm dùng `codes.hashCode()`, tức hash theo identity của mảng.
-- `Arrays.hashCode(codes)`: trực tiếp hash nội dung mảng tham chiếu một chiều; với hai chuỗi ví dụ sẽ tương ứng với trường hợp trải mảng.
+- `Objects.hash((Object[]) codes)`: treats `codes` as the **varargs array**; hashes the elements `"A"` and `"B"`.
+- `Objects.hash((Object) codes)`: treats **the entire array object** as a single argument; the hash code uses `codes.hashCode()`, which is the array's identity hash.
+- `Arrays.hashCode(codes)`: directly hashes the contents of a one-dimensional reference array; for these two example strings it matches the spread-array case.
 
-Vì `String.hashCode` cho `"A"` là `65` và `"B"` là `66`, kết quả khi trải mảng sẽ là `31 * (31 + 65) + 66 = 3042`.
+Because `String.hashCode` for `"A"` is `65` and `"B"` is `66`, the result when spreading the array is `31 * (31 + 65) + 66 = 3042`.
 
-### Ví dụ chứng minh hai cách truyền khác nhau
+### Example demonstrating the difference between the two ways of passing
 
 ```java
 import java.util.Arrays;
@@ -133,14 +133,14 @@ public class ObjectArrayVarargsDemo {
 }
 ```
 
-Lưu `ObjectArrayVarargsDemo.java` rồi chạy:
+Save `ObjectArrayVarargsDemo.java` and run:
 
 ```bash
 javac ObjectArrayVarargsDemo.java
 java ObjectArrayVarargsDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 3042
@@ -150,30 +150,30 @@ true
 true
 ```
 
-Dòng thứ tư là `true` vì `codes` là mảng Java, `codes.hashCode()` có ngữ nghĩa identity hash như `System.identityHashCode(codes)`, và hash của **một** phần tử trong `Object[]` là `31 + elementHash` (với quy tắc tràn `int` thông thường).
+The fourth line is `true` because `codes` is a Java array, `codes.hashCode()` has identity hash semantics like `System.identityHashCode(codes)`, and the hash of **one** element in `Object[]` is `31 + elementHash` (under normal `int` overflow rules).
 
-Không in `byOneArrayObject` thành một hằng số mong đợi: giá trị identity hash của mảng không được đặc tả cụ thể và có thể thay đổi giữa các lần chạy. Hai cách truyền có **ngữ nghĩa khác nhau**, dù trong trường hợp hiếm hoi vẫn có thể cho cùng số do va chạm hash.
+Do not print `byOneArrayObject` expecting a constant value: an array's identity hash value is not specifically prescribed and can vary across runs. The two ways of passing have **different semantics**, even though in rare cases they might yield the same number due to a hash collision.
 
-Điều quan trọng không phải thuộc lòng một giá trị số mà là hiểu **cấu trúc mảng varargs compiler đã truyền cho phương thức**.
+What matters is not memorizing a numeric value, but understanding **the varargs array structure the compiler passed to the method**.
 
-## 4. Mảng nguyên thủy: int[] không tự trải thành Object...
+## 4. Primitive arrays: int[] does not automatically spread into Object...
 
-`int[]` là một object trong Java, nhưng **không phải** kiểu con của `Object[]`. Vì vậy lời gọi:
+`int[]` is an object in Java, yet it is **not** a subtype of `Object[]`. Therefore, the call:
 
 ```java
 int[] numbers = {1, 2};
 int hash = Objects.hash(numbers);
 ```
 
-được hiểu như băm **một đối số là chính mảng `numbers`**, không phải hai đối số `Integer.valueOf(1)` và `Integer.valueOf(2)`.
+is interpreted as hashing **a single argument which is the `numbers` array itself**, not two arguments `Integer.valueOf(1)` and `Integer.valueOf(2)`.
 
-Mảng `int[]` không override `Object.hashCode` để hash nội dung, nên `Objects.hash(numbers)` dựa vào identity hash của mảng. Muốn hash **nội dung một chiều của mảng nguyên thủy**, hãy dùng:
+An `int[]` array does not override `Object.hashCode` to hash its contents, so `Objects.hash(numbers)` relies on the array's identity hash. To hash **the one-dimensional contents of a primitive array**, use:
 
 `Arrays.hashCode(numbers)`
 
-Ví dụ, `Arrays.hashCode(new int[]{1, 2})` là `994`, vì tính `31 * (31 * 1 + 1) + 2`.
+For example, `Arrays.hashCode(new int[]{1, 2})` is `994`, because it computes `31 * (31 * 1 + 1) + 2`.
 
-### Ví dụ đối chiếu hai mục đích
+### Example contrasting the two purposes
 
 ```java
 import java.util.Arrays;
@@ -198,14 +198,14 @@ public class PrimitiveArrayHashDemo {
 }
 ```
 
-Lưu `PrimitiveArrayHashDemo.java` rồi chạy:
+Save `PrimitiveArrayHashDemo.java` and run:
 
 ```bash
 javac PrimitiveArrayHashDemo.java
 java PrimitiveArrayHashDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 994
@@ -215,50 +215,50 @@ true
 994
 ```
 
-Kết quả `1025` giải thích thêm một bẫy: `Objects.hash(Arrays.hashCode(data))` băm **một giá trị int đã được boxing**, nên tạo `31 + 994 = 1025`, thay vì trả nguyên `994`. Nó vẫn là một hàm hash có thể hợp lệ nếu được dùng nhất quán, nhưng không đồng nghĩa về công thức với `Arrays.hashCode(data)`.
+The result `1025` explains another trap: `Objects.hash(Arrays.hashCode(data))` hashes **a single boxed int value**, producing `31 + 994 = 1025`, rather than returning `994` as-is. It is still a potentially valid hash function if used consistently, but it is not formula-equivalent to `Arrays.hashCode(data)`.
 
-Dòng cuối `Objects.hash(1, 2)` cũng cho `994`, do hai phần tử đóng góp hash lần lượt `1` và `2`. Đây là sự trùng nhau **theo đúng công thức áp dụng cho hai chuỗi phần tử số**, không chứng minh `Objects.hash(data)` tự trải `int[]`.
+The last line `Objects.hash(1, 2)` also produces `994`, because the two elements contribute hashes `1` and `2` respectively. This is a coincidence **by the exact formula applied to two numeric element sequences**, not proof that `Objects.hash(data)` automatically spreads `int[]`.
 
-## 5. Null và lời gọi một đối số: cast rất quan trọng
+## 5. Null and single-argument calls: casting matters
 
-Vì kiểu khai báo là `Object...`, một lời gọi với `null` có thể diễn giải ở hai cấp: **mảng varargs là `null`** hoặc **mảng varargs có một phần tử `null`**.
+Because the declared type is `Object...`, a call with `null` can be interpreted at two levels: **the varargs array is `null`** or **the varargs array has one `null` element**.
 
-| Cách gọi | Mảng đối số mà Objects.hash nhận | Kết quả |
+| Call | Argument array received by Objects.hash | Result |
 | --- | --- | --- |
-| `Objects.hash()` | Mảng `Object[]` rỗng | `1` |
-| `Objects.hash((Object) null)` | Mảng một phần tử `[null]` | `31` |
-| `Objects.hash((Object[]) null)` | Chính mảng varargs là `null` | `0` |
-| `Objects.hash("A")` | Mảng một phần tử `["A"]` | `96` |
-| `Objects.hashCode(null)` | Một object `null` | `0` |
+| `Objects.hash()` | Empty `Object[]` array | `1` |
+| `Objects.hash((Object) null)` | One-element array `[null]` | `31` |
+| `Objects.hash((Object[]) null)` | The varargs array itself is `null` | `0` |
+| `Objects.hash("A")` | One-element array `["A"]` | `96` |
+| `Objects.hashCode(null)` | One `null` object | `0` |
 
-Kết quả `0` của trường hợp mảng varargs `null` đến từ `Arrays.hashCode((Object[]) null)`. Khi có một phần tử `null`, thuật toán bắt đầu từ `1` rồi tính `31 * 1 + 0 = 31`.
+The result `0` for the `null` varargs array case comes from `Arrays.hashCode((Object[]) null)`. When there is one `null` element, the algorithm starts from `1` and computes `31 * 1 + 0 = 31`.
 
-Việc gọi thẳng `Objects.hash(null)` không truyền tải rõ ý định, có thể gây cảnh báo compiler vì biểu thức `null` phù hợp với nhiều cách hiểu của varargs. Nên ép kiểu tường minh khi cần phân biệt hai trường hợp; trong mã ứng dụng, tránh thiết kế phụ thuộc vào sự mơ hồ này.
+Calling `Objects.hash(null)` directly does not convey clear intent and can trigger a compiler warning because the `null` expression fits multiple varargs interpretations. Cast explicitly when you need to distinguish the two cases; in application code, avoid designs that depend on this ambiguity.
 
-Hãy phân biệt `null` là **một trường trong object** với `null` là **toàn bộ mảng đối số**. Nếu class của bạn dùng `Objects.hash(name, nullableCode)`, giá trị `nullableCode == null` chỉ đóng góp 0 cho phần tử tương ứng; đó không phải mảng varargs `null`.
+Distinguish `null` as **a field inside an object** from `null` as **the entire argument array**. If your class uses `Objects.hash(name, nullableCode)`, a value `nullableCode == null` merely contributes 0 for that element; it is not a `null` varargs array.
 
-## 6. Object[] có mảng lồng: không tự so sánh hoặc hash sâu
+## 6. Object[] with nested arrays: does not automatically deep-compare or deep-hash
 
-Xét:
+Consider:
 
 ```java
 Object[] nested = {new int[] {1, 2}};
 ```
 
-`Objects.hash((Object[]) nested)` đi qua các **phần tử cấp ngoài**. Nhưng phần tử duy nhất lại là một `int[]`, mà `hashCode()` của nó theo identity. Nó **không tự đi sâu** để băm hai số `1` và `2`.
+`Objects.hash((Object[]) nested)` iterates over the **outer-level elements**. However, the sole element is an `int[]`, whose `hashCode()` is identity-based. It **does not automatically descend** to hash the two numbers `1` and `2`.
 
-Vì thế:
+Therefore:
 
-- `Arrays.hashCode(nested)`: tính hash cấp ngoài theo hash của từng phần tử; mảng con đóng góp identity hash.
-- `Arrays.deepHashCode(nested)`: áp dụng quy tắc băm sâu với các mảng lồng, trong ví dụ này dùng nội dung `{1, 2}`.
-- `Objects.hash((Object) nested)`: coi **toàn bộ mảng ngoài** là một giá trị, rồi dùng identity hash của chính mảng ngoài.
+- `Arrays.hashCode(nested)`: computes the outer-level hash from each element's hash; the inner array contributes its identity hash.
+- `Arrays.deepHashCode(nested)`: applies deep hashing rules to nested arrays, in this example using the contents `{1, 2}`.
+- `Objects.hash((Object) nested)`: treats **the entire outer array** as a single value, then uses the identity hash of the outer array itself.
 
-Tương tự với equality:
+Similarly for equality:
 
-- `Arrays.equals(nestedA, nestedB)` so sánh từng phần tử cấp ngoài bằng `equals`; hai mảng con khác tham chiếu không tự bằng nhau.
-- `Arrays.deepEquals(nestedA, nestedB)` hỗ trợ so sánh sâu nội dung mảng con.
+- `Arrays.equals(nestedA, nestedB)` compares each outer-level element using `equals`; two inner arrays with different references are not automatically equal.
+- `Arrays.deepEquals(nestedA, nestedB)` supports deep comparison of nested array contents.
 
-Để kiểm tra ổn định sự khác biệt về ngữ nghĩa, không nên khẳng định hai giá trị hash phải khác nhau; collision là hợp lệ. Thay vào đó, dùng các điều kiện có bảo đảm:
+To reliably test semantic differences, do not assert that two hash values must be different; collisions are valid. Instead, use guaranteed conditions:
 
 ```java
 import java.util.Arrays;
@@ -282,14 +282,14 @@ public class NestedArrayHashDemo {
 }
 ```
 
-Lưu `NestedArrayHashDemo.java` và chạy:
+Save `NestedArrayHashDemo.java` and run:
 
 ```bash
 javac NestedArrayHashDemo.java
 java NestedArrayHashDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 false
@@ -298,15 +298,15 @@ true
 true
 ```
 
-Hai cấu trúc có nội dung sâu giống nhau nhưng mảng con là hai đối tượng riêng. `Arrays.deepHashCode` cho kết quả bằng nhau với hai cấu trúc sâu bằng nhau. `Objects.hash` không tự chuyển thành `deepHashCode` chỉ vì phần tử bên trong là mảng.
+Both structures have the same deep contents, yet their inner arrays are two separate objects. `Arrays.deepHashCode` yields equal results for the two deeply equal structures. `Objects.hash` does not automatically turn into `deepHashCode` just because an element inside is an array.
 
-## 7. Dùng Objects.hash() trong equals/hashCode đúng cách
+## 7. Using Objects.hash() properly in equals/hashCode
 
-Nguyên tắc căn bản của `Object` là:
+The fundamental rule of `Object` is:
 
 `a.equals(b) ⇒ a.hashCode() == b.hashCode()`
 
-Nếu một class so sánh theo nhiều trường, `Objects.hash` là lựa chọn tiện khi mọi trường có `hashCode()` phù hợp với cách `equals` của chính trường đó. Ví dụ với `String`, `Integer` và các value object bất biến có hợp đồng equality/hash đúng, mã thường rất gọn:
+If a class compares across multiple fields, `Objects.hash` is a convenient choice when every field has a `hashCode()` compatible with that field's own `equals`. For example, with `String`, `Integer`, and immutable value objects that have proper equality/hash contracts, the code is usually very clean:
 
 ```java
 @Override
@@ -315,11 +315,11 @@ public int hashCode() {
 }
 ```
 
-Đây là ví dụ phương thức trong class có hai trường, không phải chương trình độc lập.
+This is an example method inside a class with two fields, not a standalone program.
 
-Nhưng có bẫy quan trọng khi các trường là **mảng**. Nếu `equals` dùng `Arrays.equals(data, other.data)` để so **nội dung**, còn `hashCode` trả `Objects.hash(data)` với `data` là `byte[]`, mã băm sẽ dựa theo identity mảng, **không tương thích chắc chắn** với equality theo nội dung.
+However, there is an important trap when fields are **arrays**. If `equals` uses `Arrays.equals(data, other.data)` to compare **contents**, while `hashCode` returns `Objects.hash(data)` with `data` as `byte[]`, the hash code will be based on array identity, **not reliably compatible** with content-based equality.
 
-Cách chuẩn cho một mảng đơn:
+Standard approach for a single array:
 
 ```java
 @Override
@@ -328,7 +328,7 @@ public int hashCode() {
 }
 ```
 
-Khi kết hợp với các trường khác, có thể đưa **hash nội dung của mảng** vào `Objects.hash` như một giá trị:
+When combining with other fields, you can pass the **content hash of the array** into `Objects.hash` as a single value:
 
 ```java
 @Override
@@ -337,9 +337,9 @@ public int hashCode() {
 }
 ```
 
-Đây là một chiến lược hợp lệ vì hai đối tượng cùng `type` và cùng nội dung `data` thì `type.hashCode()` và `Arrays.hashCode(data)` tương ứng cũng bằng nhau. Nhưng kết quả số **không bắt buộc giống** `Arrays.hashCode(data)` một mình, và phân bố/collision của hash là vấn đề riêng.
+This is a valid strategy because if two objects have the same `type` and the same `data` contents, their corresponding `type.hashCode()` and `Arrays.hashCode(data)` are also equal. However, the numeric result **does not have to match** `Arrays.hashCode(data)` alone, and hash distribution/collisions are a separate consideration.
 
-### Ví dụ Java 17 hoàn chỉnh: value object có trường mảng
+### Complete Java 17 example: value object with an array field
 
 ```java
 import java.util.Arrays;
@@ -398,14 +398,14 @@ public class MixedFieldsHashDemo {
 }
 ```
 
-Lưu `MixedFieldsHashDemo.java` rồi chạy:
+Save `MixedFieldsHashDemo.java` and run:
 
 ```bash
 javac MixedFieldsHashDemo.java
 java MixedFieldsHashDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 true
@@ -416,31 +416,31 @@ true
 true
 ```
 
-Ở đây `equals` xét `kind` theo equality của chuỗi và `bytes` theo nội dung từng byte. `hashCode` sử dụng `Objects.hash(kind, Arrays.hashCode(bytes))` để kết hợp các giá trị phù hợp với cùng quy tắc.
+Here `equals` checks `kind` by string equality and `bytes` by byte-by-byte content. `hashCode` uses `Objects.hash(kind, Arrays.hashCode(bytes))` to combine values matching the same rules.
 
-Constructor copy mảng đầu vào, accessor trả bản sao, nên caller không dễ làm thay đổi mảng định nghĩa equality sau khi object được thêm vào `HashSet`. Với mảng nhiều chiều, sao chép mảng ngoài đơn thuần sẽ không bảo vệ các mảng con; cần thiết kế deep copy tương ứng.
+The constructor copies the input array and the accessor returns a copy, so callers cannot easily mutate the array defining equality after the object has been added to a `HashSet`. For multidimensional arrays, simply copying the outer array will not protect inner arrays; an appropriate deep copy must be designed.
 
-**Lưu ý:** Generated `equals`/`hashCode` mặc định của một record chứa mảng không tự so sánh/hash theo nội dung mảng. Vì vậy ví dụ đã override cả hai phương thức. Chỉ override `equals` theo nội dung mà để `hashCode` theo identity có thể phá hợp đồng với `HashSet`/`HashMap`.
+**Note:** Default generated `equals`/`hashCode` of a record containing an array does not automatically compare/hash by array content. That is why the example overrode both methods. Overriding only `equals` by content while leaving `hashCode` by identity can break the contract with `HashSet`/`HashMap`.
 
-## 8. Đâu là cách chọn phương thức hash cho mảng?
+## 8. How to choose the right hash method for arrays?
 
-| Mục đích | Công cụ thường phù hợp | Cần nhớ |
+| Purpose | Usually suitable tool | Keep in mind |
 | --- | --- | --- |
-| Băm nhiều giá trị độc lập | `Objects.hash(a, b, c)` | Varargs là một `Object[]` |
-| Băm một object, có thể `null` | `Objects.hashCode(obj)` | Với `null` trả 0; với array vẫn là hash identity |
-| Băm nội dung `int[]`, `byte[]` một chiều | `Arrays.hashCode(array)` | Không dùng `Objects.hash(array)` nếu muốn nội dung |
-| Băm nội dung `String[]` một chiều | `Arrays.hashCode(array)` | `Objects.hash((Object[]) array)` có cùng kết quả nhưng dễ gây nhầm |
-| Băm nội dung mảng lồng | `Arrays.deepHashCode(array)` | Ghép với `Arrays.deepEquals` theo đúng cấu trúc |
-| Kết hợp String và mảng theo nội dung | `Objects.hash(name, Arrays.hashCode(array))` | Equality cũng phải xét name và nội dung array |
-| Cố ý băm identity của một mảng | `System.identityHashCode(array)` hoặc hash theo identity theo thiết kế | Không coi đó là content hash hay ID duy nhất |
+| Hashing multiple independent values | `Objects.hash(a, b, c)` | Varargs is an `Object[]` |
+| Hashing a single object, possibly `null` | `Objects.hashCode(obj)` | For `null` returns 0; for arrays still identity hash |
+| Hashing contents of one-dimensional `int[]`, `byte[]` | `Arrays.hashCode(array)` | Do not use `Objects.hash(array)` if content hash is wanted |
+| Hashing contents of one-dimensional `String[]` | `Arrays.hashCode(array)` | `Objects.hash((Object[]) array)` gives the same result but is easily misunderstood |
+| Hashing contents of nested arrays | `Arrays.deepHashCode(array)` | Pair with `Arrays.deepEquals` matching the structure |
+| Combining String and array by content | `Objects.hash(name, Arrays.hashCode(array))` | Equality must also check name and array contents |
+| Intentionally hashing an array's identity | `System.identityHashCode(array)` or identity hash by design | Do not treat it as a content hash or unique ID |
 
-`Objects.hash` không tự bảo đảm mọi giá trị hash là duy nhất, không phải thuật toán bảo mật, cũng không cam kết một giá trị ổn định giữa mọi lần chạy cho mọi kiểu object. Với yêu cầu checksum hoặc lưu trữ lâu dài, nên đặc tả thuật toán và biểu diễn dữ liệu riêng.
+`Objects.hash` does not guarantee that all hash values are unique, is not a security algorithm, and does not promise a stable value across runs for every object type. For checksum or long-term storage requirements, specify a dedicated algorithm and data representation.
 
-## 9. Hiệu năng và khả năng đọc mã
+## 9. Performance and code readability
 
-`Objects.hash(a, b, c)` tiện và dễ bảo trì, nhất là với class có một vài trường. Nhưng vì varargs tạo hoặc sử dụng một mảng `Object[]` và các giá trị nguyên thủy có thể cần boxing, nó có thể tạo thêm chi phí phân bổ bộ nhớ và tính toán.
+`Objects.hash(a, b, c)` is convenient and easy to maintain, especially for classes with a few fields. However, because varargs allocates or uses an `Object[]` array and primitive values may require boxing, it can add memory allocation and computation overhead.
 
-Với mã được gọi rất thường xuyên trong đường nóng (*hot path*), có thể cân nhắc:
+For code called very frequently on a *hot path*, consider:
 
 ```java
 @Override
@@ -451,64 +451,64 @@ public int hashCode() {
 }
 ```
 
-Đoạn này là phương thức minh họa trong class có `int id` và `String name` khác `null`. Một thuật toán phối hợp thủ công cũng có thể đúng nếu giữ yêu cầu bằng nhau thì cùng hash; Java **không bắt buộc** dùng `Objects.hash` hay hệ số 31 trong mọi class.
+This snippet is an illustrative method inside a class with `int id` and non-`null` `String name`. A manually written combining algorithm can also be correct as long as equal objects produce equal hashes; Java **does not require** using `Objects.hash` or multiplier 31 in every class.
 
-Không nên tối ưu khi chưa đo đạc. Đối với bài học cơ bản, **đúng ngữ nghĩa equality**, xử lý `null` và hiểu varargs quan trọng hơn việc tiết kiệm một lời gọi tiện ích. Nếu hiệu năng thực tế là vấn đề, hãy đo bằng công cụ benchmark phù hợp với JIT, khởi động và tải ứng dụng.
+Do not optimize prematurely without measuring. For foundational lessons, **correct equality semantics**, `null` handling, and understanding varargs matter more than saving a utility call. If actual performance is an issue, measure with a benchmark tool that accounts for JIT, warmup, and application load.
 
-## 10. Các lỗi thường gặp và cách sửa
+## 10. Common mistakes and fixes
 
-**Lỗi 1 — hiểu `Objects.hash(array)` luôn là content hash.** Với `int[]`, lời gọi xử lý mảng như một object; với `String[]`, nó có thể dùng mảng làm danh sách varargs. Cách sửa là nêu mục đích bằng `Arrays.hashCode(array)` khi cần hash nội dung một chiều.
+**Mistake 1 — assuming `Objects.hash(array)` is always a content hash.** For `int[]`, the call treats the array as a single object; for `String[]`, it may use the array as the varargs list. The fix is to express intent with `Arrays.hashCode(array)` when a one-dimensional content hash is needed.
 
-**Lỗi 2 — bỏ qua cast khi truyền Object[].** `Objects.hash((Object[]) array)` và `Objects.hash((Object) array)` có hai ngữ nghĩa khác nhau. Hãy viết cast tường minh hoặc gọi trực tiếp `Arrays.hashCode` cho dễ đọc.
+**Mistake 2 — omitting the cast when passing Object[].** `Objects.hash((Object[]) array)` and `Objects.hash((Object) array)` have two different meanings. Write the cast explicitly or call `Arrays.hashCode` directly for readability.
 
-**Lỗi 3 — tưởng `Objects.hash(x) == x.hashCode()`.** Với một `x` bình thường khác `null`, `Objects.hash(x)` băm mảng một phần tử, theo công thức `31 + x.hashCode()`; `Objects.hashCode(x)` mới trả nguyên hash của object.
+**Mistake 3 — thinking `Objects.hash(x) == x.hashCode()`.** For an ordinary non-`null` `x`, `Objects.hash(x)` hashes a one-element array using the formula `31 + x.hashCode()`; `Objects.hashCode(x)` is what returns the object's raw hash.
 
-**Lỗi 4 — dùng `Objects.hash(data)` khi `equals` so nội dung byte[].** Phải chọn hash nội dung tương thích, như `Arrays.hashCode(data)`, và xử lý bất biến của mảng khi làm khóa.
+**Mistake 4 — using `Objects.hash(data)` when `equals` compares byte[] contents.** Choose a compatible content hash, such as `Arrays.hashCode(data)`, and manage array immutability when used as a key.
 
-**Lỗi 5 — chỉ xét mảng ngoài khi dữ liệu lồng nhiều cấp.** `Arrays.hashCode(Object[])` và `Objects.hash((Object[]) outer)` không tự deep-hash các mảng con. Nếu equality sâu, dùng `Arrays.deepEquals` cùng `Arrays.deepHashCode` theo mô hình phù hợp.
+**Mistake 5 — considering only the outer array when data has multiple nested levels.** `Arrays.hashCode(Object[])` and `Objects.hash((Object[]) outer)` do not automatically deep-hash inner arrays. If equality is deep, use `Arrays.deepEquals` with `Arrays.deepHashCode` according to the appropriate model.
 
-**Lỗi 6 — hiểu hash trùng nghĩa là object bằng nhau.** Hai object khác nhau được phép có cùng mã băm. Hash giúp tổ chức/tra cứu; `equals` mới là quy tắc nhận diện giá trị bằng nhau.
+**Mistake 6 — thinking equal hashes mean equal objects.** Two different objects are allowed to share the same hash code. Hashing helps organize/look up buckets; `equals` is the rule for identifying equal values.
 
-**Lỗi 7 — sửa mảng sau khi dùng object làm hash key.** Nếu hash/equality dựa trên nội dung mảng, sửa phần tử trong lúc object thuộc `HashSet` có thể khiến tra cứu không còn đáng tin. Ưu tiên defensive copy và dữ liệu định nghĩa equality bất biến.
+**Mistake 7 — mutating an array after using the object as a hash key.** If hash/equality depends on array contents, modifying elements while the object is in a `HashSet` can make lookups unreliable. Prefer defensive copies and immutable data defining equality.
 
-## 11. Câu hỏi tự luyện
+## 11. Practice questions
 
-**Câu 1.** `Objects.hash("A")` có bằng `"A".hashCode()` không?
+**Question 1.** Does `Objects.hash("A")` equal `"A".hashCode()`?
 
-**Đáp án:** Không. Với `"A"`, hai số là `96` và `65`. `Objects.hash` băm một mảng varargs có một phần tử.
+**Answer:** No. For `"A"`, the two numbers are `96` and `65`. `Objects.hash` hashes a one-element varargs array.
 
-**Câu 2.** `String[] codes = {"A", "B"};`. Khác nhau giữa `Objects.hash((Object[]) codes)` và `Objects.hash((Object) codes)` là gì?
+**Question 2.** `String[] codes = {"A", "B"};`. What is the difference between `Objects.hash((Object[]) codes)` and `Objects.hash((Object) codes)`?
 
-**Đáp án:** Cách đầu truyền chính mảng làm danh sách đối số, hash nội dung các phần tử cấp một; cách sau xem cả mảng như một Object duy nhất và dùng identity hash của mảng.
+**Answer:** The first passes the array itself as the argument list, hashing the first-level element contents; the second treats the whole array as a single Object and uses the array's identity hash.
 
-**Câu 3.** `Objects.hash(new int[]{1, 2})` có buộc bằng `Arrays.hashCode(new int[]{1, 2})` không?
+**Question 3.** Must `Objects.hash(new int[]{1, 2})` equal `Arrays.hashCode(new int[]{1, 2})`?
 
-**Đáp án:** Không. Mảng nguyên thủy được xử lý như một object duy nhất trong varargs và dùng identity hash; `Arrays.hashCode(int[])` tính theo nội dung mảng.
+**Answer:** No. A primitive array is treated as a single object in varargs and uses identity hash; `Arrays.hashCode(int[])` computes from the array's contents.
 
-**Câu 4.** Tại sao `Objects.hash(Arrays.hashCode(data))` có thể khác `Arrays.hashCode(data)`?
+**Question 4.** Why can `Objects.hash(Arrays.hashCode(data))` differ from `Arrays.hashCode(data)`?
 
-**Đáp án:** Vì băm **một giá trị int** còn thêm bước `31 + valueHash`. Với `data = {1, 2}`, kết quả tương ứng là `1025` và `994`.
+**Answer:** Because hashing **a single int value** adds the `31 + valueHash` step. For `data = {1, 2}`, the corresponding results are `1025` and `994`.
 
-**Câu 5.** Hai object có mảng khác tham chiếu nhưng cùng nội dung được `equals` xem là bằng nhau. `hashCode` nên chọn cách nào?
+**Question 5.** Two objects have arrays with different references but the same contents and are considered equal by `equals`. How should `hashCode` be chosen?
 
-**Đáp án:** Phải tính hash từ cùng nội dung mà equality xét, ví dụ `Arrays.hashCode` cho mảng nguyên thủy một chiều, hoặc `Objects.hash(type, Arrays.hashCode(data))` nếu có thêm trường khác. Đồng thời kiểm soát việc mảng có thể thay đổi.
+**Answer:** It must compute the hash from the same contents examined by equality, such as `Arrays.hashCode` for a one-dimensional primitive array, or `Objects.hash(type, Arrays.hashCode(data))` if there are other fields. Also control whether the array can be mutated.
 
-**Câu 6.** Với `Object[] outer = {new int[]{1, 2}};`, `Objects.hash((Object[]) outer)` có băm sâu hai số nguyên không?
+**Question 6.** Given `Object[] outer = {new int[]{1, 2}};`, does `Objects.hash((Object[]) outer)` deep-hash the two integers?
 
-**Đáp án:** Không. Phần tử cấp ngoài là mảng `int[]` và đóng góp identity hash. Nếu muốn băm sâu cấu trúc lồng, cân nhắc `Arrays.deepHashCode(outer)`.
+**Answer:** No. The outer element is an `int[]` array and contributes its identity hash. To deep-hash a nested structure, consider `Arrays.deepHashCode(outer)`.
 
-**Câu 7.** Vì sao kết quả `Objects.hash((Object[]) null)` khác `Objects.hash((Object) null)`?
+**Question 7.** Why does `Objects.hash((Object[]) null)` produce a different result from `Objects.hash((Object) null)`?
 
-**Đáp án:** Trường hợp đầu truyền mảng varargs `null` và cho `0`; trường hợp sau tạo một mảng chứa đúng một phần tử `null` và cho `31`.
+**Answer:** The first passes a `null` varargs array and yields `0`; the second creates an array containing one `null` element and yields `31`.
 
-## 12. Ghi nhớ
+## 12. Key takeaways
 
-1. `Objects.hash(Object... values)` tương đương `Arrays.hashCode` trên **mảng varargs thực tế**.
-2. `Objects.hash(a, b)` băm hai phần tử theo thứ tự; `Objects.hash(a)` **không nhất thiết** bằng `Objects.hashCode(a)` hoặc `a.hashCode()`.
-3. `Object[]` (ví dụ `String[]`) có thể được truyền **trực tiếp làm mảng varargs**; cast `(Object[])` và `(Object)` biểu đạt hai ý nghĩa khác nhau.
-4. `int[]` và các mảng nguyên thủy **không phải** `Object[]`; `Objects.hash(primitiveArray)` băm identity của mảng, không băm phần tử.
-5. Cần **content hash** thì dùng `Arrays.hashCode` (một chiều) hoặc `Arrays.deepHashCode` (lồng), đi cùng equality tương ứng.
-6. Với class có nhiều trường gồm mảng, có thể kết hợp `Objects.hash(name, Arrays.hashCode(array))` nếu `equals` cũng xét name và nội dung mảng.
-7. Bảo đảm hợp đồng `equals`/`hashCode` và tính ổn định của khóa quan trọng hơn hình thức viết hash ngắn hay dài.
+1. `Objects.hash(Object... values)` is equivalent to `Arrays.hashCode` on **the actual varargs array**.
+2. `Objects.hash(a, b)` hashes two elements in order; `Objects.hash(a)` **does not necessarily** equal `Objects.hashCode(a)` or `a.hashCode()`.
+3. `Object[]` (for example `String[]`) can be passed **directly as the varargs array**; `(Object[])` and `(Object)` casts express two different meanings.
+4. `int[]` and primitive arrays are **not** `Object[]`; `Objects.hash(primitiveArray)` hashes the array's identity, not its elements.
+5. When a **content hash** is needed, use `Arrays.hashCode` (one-dimensional) or `Arrays.deepHashCode` (nested), paired with the corresponding equality.
+6. For classes with multiple fields including an array, you can combine `Objects.hash(name, Arrays.hashCode(array))` if `equals` also inspects name and array contents.
+7. Preserving the `equals`/`hashCode` contract and key stability matters more than whether the hash expression is written short or long.
 
-Tài liệu chính thức: [`Objects.hash` / `Objects.hashCode` (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Objects.html), [`Arrays.hashCode` và `Arrays.deepHashCode` (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Arrays.html), [`Object.equals/hashCode` (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html).
+Official documentation: [`Objects.hash` / `Objects.hashCode` (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Objects.html), [`Arrays.hashCode` and `Arrays.deepHashCode` (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Arrays.html), [`Object.equals/hashCode` (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html).

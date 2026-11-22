@@ -1,6 +1,6 @@
-# Type pattern kết hợp kiểm tra kiểu và khai báo biến — Java 17+
+# Type Pattern Combining Type Check and Variable Declaration — Java 17+
 
-**Type pattern** của `instanceof` cho phép Java vừa kiểm tra kiểu runtime, vừa khai báo **biến có kiểu tĩnh phù hợp** khi phép kiểm tra thành công. Đây là tính năng chuẩn từ Java 16, dùng được trên Java 17 **không cần bật preview**.
+A **type pattern** with `instanceof` lets Java both check the runtime type and declare a **variable with the appropriate static type** when the check succeeds. This has been a standard feature since Java 16 and works on Java 17 **without enabling preview**.
 
 ~~~java
 Object value = "Hello";
@@ -10,11 +10,11 @@ if (value instanceof String text) {
 }
 ~~~
 
-Cú pháp `expression instanceof Type variable` thực hiện ba việc: kiểm tra đối tượng có tương thích với `Type`; nếu đúng, ràng buộc đối tượng với biến `variable`; cho phép dùng biến trong **phạm vi mà compiler chắc chắn pattern đã khớp** (*flow scoping*).
+The syntax `expression instanceof Type variable` performs three things: checks whether the object is compatible with `Type`; if so, binds the object to `variable`; and allows using the variable in the **scope where the compiler is certain the pattern matched** (*flow scoping*).
 
-## 1. Khác gì với `instanceof` truyền thống?
+## 1. How Does It Differ from Traditional `instanceof`?
 
-Cách cũ phải ép kiểu rõ ràng sau khi kiểm tra:
+The old approach required an explicit cast after the check:
 
 ~~~java
 Object obj = "Java";
@@ -24,7 +24,7 @@ if (obj instanceof String) {
 }
 ~~~
 
-Cách dùng type pattern:
+Using a type pattern:
 
 ~~~java
 Object obj = "Java";
@@ -33,19 +33,19 @@ if (obj instanceof String text) {
 }
 ~~~
 
-Cả hai đều in `JAVA`. Type pattern bỏ phép cast lặp lại nhưng **không tạo đối tượng mới**, không biến `obj` thành một biến khai báo `String`, và không thay đổi giá trị đối tượng.
+Both print `JAVA`. A type pattern removes the repetitive cast, **creates no new object**, does not turn `obj` into a variable declared as `String`, and does not alter the object's value.
 
-| Khía cạnh | Kiểm tra cũ | Type pattern |
+| Aspect | Old Check | Type Pattern |
 | --- | --- | --- |
-| Kiểm tra kiểu | `obj instanceof String` | `obj instanceof String text` |
-| Dùng như `String` | `(String) obj` | Biến `text` đã có kiểu `String` |
-| Đối tượng mới? | Không | Không |
-| `obj == null` | Kết quả false | Kết quả false |
-| Tính an toàn | Phải cast đúng | Compiler xác định phạm vi biến mẫu |
+| Type check | `obj instanceof String` | `obj instanceof String text` |
+| Use as `String` | `(String) obj` | Variable `text` already has type `String` |
+| New object? | No | No |
+| `obj == null` | Result is false | Result is false |
+| Safety | Must cast correctly | Compiler determines pattern variable scope |
 
-## 2. Chương trình Java 17+ chạy độc lập
+## 2. Standalone Java 17+ Program
 
-Tạo tệp UTF-8 tên **`TypePatternDemo.java`**:
+Create a UTF-8 file named **`TypePatternDemo.java`**:
 
 ~~~java
 import java.util.List;
@@ -143,7 +143,7 @@ public class TypePatternDemo {
 }
 ~~~
 
-Chạy với **JDK 17 trở lên** trong PowerShell hoặc Bash tại thư mục chứa file:
+Run with **JDK 17 or later** in PowerShell or Bash from the directory containing the file:
 
 ~~~bash
 java -version
@@ -152,7 +152,7 @@ javac -encoding UTF-8 TypePatternDemo.java
 java TypePatternDemo
 ~~~
 
-**Expected stdout chính xác** của riêng lệnh `java TypePatternDemo`:
+**Exact expected stdout** of the `java TypePatternDemo` command alone:
 
 ~~~text
 == old versus pattern ==
@@ -184,11 +184,11 @@ then=ready
 done
 ~~~
 
-Các lệnh `java -version` và `javac -version` hiển thị thông tin phiên bản phụ thuộc môi trường, không thuộc phần stdout cố định.
+`java -version` and `javac -version` display environment-dependent version information and are not part of the fixed stdout.
 
-## 3. Flow scoping qua ví dụ ngắn
+## 3. Flow Scoping Through Short Examples
 
-Biến mẫu chỉ dùng được ở những nhánh mà trình biên dịch chứng minh kiểm tra kiểu đã thành công. Với `&&`, vế phải chỉ chạy khi `input instanceof String text` đúng; với `||` đặt ngay sau phép kiểm tra dương, vế phải lại chạy khi mẫu không khớp nên không được dùng `text` ở đó.
+A pattern variable can only be used in branches where the compiler proves the type check succeeded. With `&&`, the right-hand side runs only when `input instanceof String text` is true; with `||` placed directly after a positive check, the right-hand side runs when the pattern does not match, so `text` cannot be used there.
 
 ~~~java
 static String normalize(Object input) {
@@ -199,18 +199,18 @@ static String normalize(Object input) {
 }
 ~~~
 
-Ở guard phủ định, nếu Java phải tính `text.isBlank()`, điều kiện `!(...)` đã false nên `text` được ràng buộc. Sau guard `return`, mọi đường đi còn lại cũng chắc chắn khớp String. Trái lại, `text` không dùng được ở nhánh `else` của phép kiểm tra dương. Bài về phạm vi biến mẫu sẽ phân tích đầy đủ `if/else`, `!`, `&&`, `||` và toán tử ba ngôi.
+In a negated guard, if Java has to evaluate `text.isBlank()`, the condition `!(...)` was false, so `text` is bound. After a `return` guard, every remaining path is also guaranteed to match String. Conversely, `text` cannot be used in the `else` branch of a positive check. The lesson on pattern variable scope analyzes `if/else`, `!`, `&&`, `||`, and the ternary operator in full.
 
-## 4. `null`, kiểu cha và interface
+## 4. `null`, Supertypes, and Interfaces
 
 ~~~java
 Object value = null;
 boolean matched = value instanceof String text; // false.
 ~~~
 
-`instanceof` type pattern với `null` **trả false**, không tự ném `NullPointerException`. Trái lại, nếu sau đó gọi phương thức trên `value` mà chưa kiểm tra, vẫn có thể gặp lỗi null.
+An `instanceof` type pattern with `null` **returns false** and does not throw `NullPointerException` on its own. Conversely, if you later call a method on `value` without checking, a null error can still occur.
 
-Pattern kiểm tra **kiểu đối tượng tại runtime** theo quan hệ lớp kế thừa/interface:
+A pattern checks the **runtime object type** along class inheritance and interface relationships:
 
 ~~~java
 Object value = "abc";
@@ -219,59 +219,59 @@ if (value instanceof CharSequence chars) {
 }
 ~~~
 
-`String` triển khai `CharSequence` nên pattern khớp. Biến `chars` có kiểu tĩnh `CharSequence`; chỉ dùng trực tiếp các phương thức có trong kiểu đó, không tự có toàn bộ phương thức chuyên biệt của `String`.
+`String` implements `CharSequence`, so the pattern matches. The variable `chars` has static type `CharSequence`; you can only call methods declared on that type directly, and do not automatically have all methods specific to `String`.
 
-Trong chuỗi `if/else if`, pattern kiểu cha được đặt trước có thể bắt cả đối tượng kiểu con. Chọn thứ tự theo nghiệp vụ, tránh nhánh con không bao giờ đạt tới do kiểu cha đã xử lý trước.
+In an `if/else if` chain, a supertype pattern placed earlier can catch subtype objects as well. Choose the order according to business logic so a subtype branch is never made unreachable because a supertype handled it first.
 
-## 5. Giới hạn và lỗi biên dịch thường gặp
+## 5. Limitations and Common Compile Errors
 
-| Tình huống | Đúng hay sai? |
+| Situation | Valid or Invalid? |
 | --- | --- |
-| `Object o; o instanceof String s` | Hợp lệ khi `o` đã được khởi tạo |
-| `o instanceof String s && s.length() > 0` | Hợp lệ theo flow scoping |
-| `o instanceof String s || s.length() > 0` | **Sai**: s có thể chưa ràng buộc ở vế phải |
-| `String s = "x"; s instanceof String t` | **Sai khi biên dịch**: kiểu tĩnh luôn là subtype của kiểu pattern |
-| `o instanceof List<?> items` | Hợp lệ với kiểu wildcard có thể kiểm tra |
-| `o instanceof List<String> items` | Không hợp lệ với `Object o`: type erasure |
-| `null instanceof String s` | Không dùng literal `null` làm biểu thức mẫu trực tiếp; dùng biến tham chiếu có giá trị null như ví dụ trên |
+| `Object o; o instanceof String s` | Valid when `o` has been initialized |
+| `o instanceof String s && s.length() > 0` | Valid under flow scoping |
+| `o instanceof String s \|\| s.length() > 0` | **Invalid**: `s` may not be bound on the right-hand side |
+| `String s = "x"; s instanceof String t` | **Compile error**: static type is always a subtype of the pattern type |
+| `o instanceof List<?> items` | Valid with a reifiable wildcard type |
+| `o instanceof List<String> items` | Invalid for `Object o`: type erasure |
+| `null instanceof String s` | Do not use literal `null` directly as the pattern expression; use a reference variable with a null value as in the example above |
 
-**Generic:** Do *type erasure*, Java không thể xác thực đối tượng là `List<String>` chỉ từ thông tin runtime `List`. Pattern `List<?> items` là hợp lệ, nhưng `items.get(0)` trả `Object` theo kiểu tĩnh; muốn coi phần tử là String thì cần kiểm tra từng phần tử riêng.
+**Generics:** Because of *type erasure*, Java cannot verify that an object is a `List<String>` from runtime `List` information alone. The pattern `List<?> items` is valid, but `items.get(0)` returns `Object` as its static type; if you want to treat elements as Strings, you need to check each element individually.
 
-**Kiểu nguyên thủy:** `instanceof` type pattern dùng cho **kiểu tham chiếu**, không viết `instanceof int x`. Một giá trị `int` được gán vào `Object` sẽ được boxing thành `Integer`, và có thể kiểm tra bằng `instanceof Integer number`.
+**Primitive types:** An `instanceof` type pattern works on **reference types**; you do not write `instanceof int x`. An `int` value assigned to `Object` is boxed into an `Integer`, and can be checked with `instanceof Integer number`.
 
-**Pattern quá hiển nhiên:** Nếu biểu thức trái có kiểu tĩnh `String` và kiểm tra `instanceof String text`, Java 17 từ chối vì phép kiểm tra luôn đúng theo quan hệ subtype; hãy sử dụng chính biến đã có kiểu String.
+**Overly obvious patterns:** If the left-hand expression has static type `String` and you check `instanceof String text`, Java 17 rejects it because the check is always true by subtyping; use the variable that already has type String.
 
-## 6. Java 17 so với các loại pattern mới hơn
+## 6. Java 17 vs. Newer Pattern Types
 
-`instanceof Type variable` là tính năng **chuẩn** của Java 17. Nhưng `case String s -> ...` trong **pattern matching for switch** chưa là tính năng chuẩn ở Java 17 (chỉ có preview với điều kiện bật riêng); không tự suy ra có thể dùng type pattern `case` trong switch Java 17 thông thường.
+`instanceof Type variable` is a **standard** feature in Java 17. However, `case String s -> ...` in **pattern matching for switch** is not yet standard in Java 17 (it is only available as preview when explicitly enabled); do not assume you can use type pattern `case` labels in standard Java 17 switch statements.
 
-**Record patterns** cũng chưa được chuẩn hóa ở Java 17. Đây là các tính năng khác với kiểm tra kiểu và ràng buộc một biến qua `instanceof`.
+**Record patterns** are also not yet standardized in Java 17. Those are different features from checking a type and binding a single variable with `instanceof`.
 
-## 7. Bài tập tự kiểm tra
+## 7. Self-Check Exercises
 
-1. `Object x = "abc"; if (x instanceof String s) ...` thì `s.length()` bằng mấy?  
-   *Đáp án:* 3.
-2. `Object x = null; x instanceof String s` cho gì?  
-   *Đáp án:* false.
-3. Vì sao `x instanceof String s && s.isBlank()` có thể biên dịch?  
-   *Đáp án:* `&&` chỉ đánh giá vế phải khi pattern khớp.
-4. Vì sao thay `&&` bằng `||` ở ví dụ trên thường sai?  
-   *Đáp án:* Vế phải của `||` có thể chạy khi pattern không khớp và s chưa được ràng buộc.
-5. Sau `if (!(x instanceof String s)) return;`, có thể dùng `s` ở lệnh tiếp không?  
-   *Đáp án:* Có, vì trường hợp không khớp đã thoát phương thức.
-6. `Object x = List.of("a"); x instanceof List<String> items` có hợp lệ không?  
-   *Đáp án:* Không; thay bằng `List<?>` và kiểm tra phần tử nếu cần.
-7. Có thể dùng `instanceof Integer n` cho giá trị chứa trong `Object` không?  
-   *Đáp án:* Có nếu thực tế đối tượng là `Integer`.
+1. For `Object x = "abc"; if (x instanceof String s) ...`, what is `s.length()`?  
+   *Answer:* 3.
+2. What does `Object x = null; x instanceof String s` produce?  
+   *Answer:* false.
+3. Why does `x instanceof String s && s.isBlank()` compile?  
+   *Answer:* `&&` evaluates the right-hand side only when the pattern matches.
+4. Why is replacing `&&` with `||` in the example above usually wrong?  
+   *Answer:* The right-hand side of `||` can run when the pattern fails to match and `s` is not bound.
+5. After `if (!(x instanceof String s)) return;`, can `s` be used in the next statement?  
+   *Answer:* Yes, because the non-matching case has already exited the method.
+6. Is `Object x = List.of("a"); x instanceof List<String> items` valid?  
+   *Answer:* No; replace with `List<?>` and check elements if needed.
+7. Can `instanceof Integer n` be used for a value stored in `Object`?  
+   *Answer:* Yes, if the actual runtime object is an `Integer`.
 
 ## Checklist
 
-- [ ] `instanceof Type variable` vừa kiểm tra kiểu vừa khai báo biến mẫu có kiểu tĩnh phù hợp.
-- [ ] Biến mẫu chỉ được dùng theo **flow scoping**, không tự tồn tại trong nhánh thất bại.
-- [ ] Nắm cách dùng `&&` và guard với `!` để bảo đảm đã khớp.
-- [ ] `null` không khớp type pattern.
-- [ ] Hiểu quan hệ kế thừa và interface khi chọn kiểu pattern.
-- [ ] Không dùng generic cụ thể như `List<String>` trong `instanceof` theo cách không thể kiểm tra runtime.
-- [ ] Không nhầm type pattern `instanceof` với pattern-switch/record pattern của Java mới.
+- [ ] `instanceof Type variable` both checks the type and declares a pattern variable with the matching static type.
+- [ ] A pattern variable is only usable via **flow scoping** and does not exist automatically in the failing branch.
+- [ ] Know how to use `&&` and guards with `!` to guarantee a match.
+- [ ] `null` does not match a type pattern.
+- [ ] Understand inheritance and interface relationships when choosing a pattern type.
+- [ ] Do not use concrete generics like `List<String>` in `instanceof` in a way that cannot be checked at runtime.
+- [ ] Do not confuse `instanceof` type patterns with pattern-switch/record patterns from newer Java releases.
 
-**Kết luận:** Type pattern giúp mã Java 17 giảm cast thủ công, nhưng điều quan trọng nhất là **trạng thái kiểm tra kiểu và phạm vi biến đi theo luồng điều khiển**. Dùng `instanceof` với `&&`, kiểm tra null và guard clause đúng cách để viết mã rõ ràng, an toàn.
+**Conclusion:** Type patterns help Java 17 code reduce manual casts, but the most important aspect is that **type-check state and variable scope follow control flow**. Use `instanceof` with `&&`, null checks, and guard clauses properly to write clear and safe code.

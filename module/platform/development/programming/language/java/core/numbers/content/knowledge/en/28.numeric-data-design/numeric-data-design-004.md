@@ -1,41 +1,41 @@
-# Quy ước xử lý null, NaN, vô cực và giá trị thiếu trong thiết kế dữ liệu số Java
+# Conventions for Handling null, NaN, Infinity, and Missing Values in Java Numeric Data Design
 
-## 1. Một con số không phải lúc nào cũng chỉ là một giá trị
+## 1. A Number Is Not Always Just a Value
 
-Dữ liệu số đi qua API, form nhập liệu, cơ sở dữ liệu, tệp CSV, JSON, phép đo hoặc phép tính trong Java có thể ở nhiều trạng thái khác nhau. Trước khi chọn `int`, `double` hay `BigDecimal`, cần thống nhất **mỗi trạng thái mang ý nghĩa gì** và **ứng dụng phải xử lý ra sao**.
+Numeric data passing through APIs, input forms, databases, CSV files, JSON, measurements, or calculations in Java can exist in several distinct states. Before choosing `int`, `double`, or `BigDecimal`, you must agree on **what each state means** and **how the application must handle it**.
 
-Ví dụ một cảm biến gửi dữ liệu nhiệt độ:
+For example, a sensor sending temperature data:
 
-- `0.0`: thiết bị thực sự đo được 0 độ.
-- `null`: không có giá trị được cung cấp trong một trường cho phép null.
-- Trường bị **thiếu** trong JSON: phía gửi không đưa trường đó vào; không nhất thiết cùng nghĩa với trường được gửi rõ ràng là `null`.
-- `"N/A"`: nguồn gửi chuỗi không có số; có thể là một marker "không áp dụng" hoặc dữ liệu sai, tùy hợp đồng.
-- `Double.NaN`: giá trị số chấm động thuộc loại *Not a Number*; không đồng nghĩa với null.
-- `Double.POSITIVE_INFINITY` hoặc `Double.NEGATIVE_INFINITY`: giá trị chấm động dương/âm vô cực, có thể xuất hiện từ một số phép toán hay quá trình parse.
-- `-0.0`: số 0 âm theo IEEE 754; trong nhiều phép so sánh số học bằng `0.0` nhưng vẫn có khác biệt về biểu diễn và một số phép toán.
+- `0.0`: the device actually measured 0 degrees.
+- `null`: no value was provided in a nullable field.
+- **Missing** field in JSON: the sender omitted the field; not necessarily identical in meaning to a field explicitly sent as `null`.
+- `"N/A"`: the source sent a non-numeric string; could be a "not applicable" marker or invalid data, depending on the contract.
+- `Double.NaN`: a floating-point *Not a Number* value; not synonymous with null.
+- `Double.POSITIVE_INFINITY` or `Double.NEGATIVE_INFINITY`: positive/negative floating-point infinity, which can arise from certain operations or parsing.
+- `-0.0`: IEEE 754 negative zero; equal to `0.0` in many arithmetic comparisons, yet differs in representation and certain operations.
 
-**Không có quy tắc phổ quát rằng null = NaN = Infinity = 0 = giá trị thiếu.** Chúng là những trạng thái khác nhau, và quyết định gộp chúng phải xuất phát từ nghiệp vụ.
+**There is no universal rule that null = NaN = Infinity = 0 = missing value.** They are distinct states, and any decision to conflate them must come from business requirements.
 
-Mục tiêu của bài này là thiết kế *hợp đồng dữ liệu số* (*numeric data contract*): quy tắc tiếp nhận, biểu diễn, kiểm tra hợp lệ, tính toán, tổng hợp, lưu trữ và xuất dữ liệu khi gặp giá trị đặc biệt.
+The goal of this article is to design a *numeric data contract*: rules for ingesting, representing, validating, calculating, aggregating, storing, and outputting data when encountering special values.
 
-## 2. Phân biệt các trạng thái quan trọng
+## 2. Distinguishing Important States
 
-| Trạng thái | Ví dụ | Trong Java | Ý nghĩa cần xác định |
+| State | Example | In Java | Meaning to Define |
 |---|---|---|---|
-| Số hữu hạn hợp lệ (*finite*) | `12.5`, `0.0`, `-0.0` | `double`, `Double`, `BigDecimal` | Giá trị đo/tính có thể dùng theo đơn vị và precision quy định |
-| Thiếu giá trị (*missing*) | Không có trường, `null` theo contract | Wrapper `Double` có thể null; `OptionalDouble.empty()` | Chưa nhận dữ liệu hay không áp dụng? |
-| Đầu vào không hợp lệ (*invalid*) | `"abc"` khi bắt buộc là số | Parse ném `NumberFormatException` | Báo lỗi, từ chối hoặc cách ly dữ liệu |
-| NaN | `0.0 / 0.0` | `Double.NaN`, `Float.NaN` | Kết quả đặc biệt của số thực, **không** phải missing mặc định |
-| Vô cực dương | `1.0 / 0.0` | `Double.POSITIVE_INFINITY` | Có cho phép theo miền bài toán không? |
-| Vô cực âm | `-1.0 / 0.0` | `Double.NEGATIVE_INFINITY` | Có cho phép theo miền bài toán không? |
-| Giá trị sentinel | `-9999` để chỉ dữ liệu thiếu | `int`/`long`/`double` | Chỉ an toàn nếu sentinel ngoài miền hợp lệ và contract rõ |
-| Giá trị mặc định | `0` khi chưa nhập | Do ứng dụng tự tạo | Có phân biệt được "chưa nhập" với "thực sự bằng 0" không? |
+| Valid finite number (*finite*) | `12.5`, `0.0`, `-0.0` | `double`, `Double`, `BigDecimal` | Measured/computed value usable per defined unit and precision |
+| Missing value (*missing*) | Absent field, `null` per contract | Nullable `Double` wrapper; `OptionalDouble.empty()` | Data not yet received or not applicable? |
+| Invalid input (*invalid*) | `"abc"` when a number is required | Parsing throws `NumberFormatException` | Report error, reject, or quarantine data |
+| NaN | `0.0 / 0.0` | `Double.NaN`, `Float.NaN` | Special floating-point result, **not** missing by default |
+| Positive infinity | `1.0 / 0.0` | `Double.POSITIVE_INFINITY` | Permitted by the problem domain? |
+| Negative infinity | `-1.0 / 0.0` | `Double.NEGATIVE_INFINITY` | Permitted by the problem domain? |
+| Sentinel value | `-9999` to indicate missing data | `int`/`long`/`double` | Safe only if sentinel is outside valid range and contract is explicit |
+| Default value | `0` when unentered | Generated by application | Can "not entered" be distinguished from "actually 0"? |
 
-Một ứng dụng có thể phân chia khác bảng này, nhưng **phải công bố và thực thi nhất quán**. Ví dụ trong đo lường khoa học, vô cực đôi khi được giữ để phân tích; trong nghiệp vụ tiền tệ, cả NaN lẫn Infinity phải bị từ chối.
+An application may categorize differently from this table, but it **must publish and enforce the rules consistently**. For instance, in scientific measurement, infinities are sometimes kept for analysis; in monetary business logic, both NaN and Infinity must be rejected.
 
-### Trường thiếu và trường có giá trị null có giống nhau không?
+### Are an Absent Field and a `null`-Valued Field the Same?
 
-Không nhất thiết. Xét hai payload minh họa:
+Not necessarily. Consider two illustrative payloads:
 
 ~~~json
 {"sensorId":"T-01"}
@@ -45,52 +45,52 @@ Không nhất thiết. Xét hai payload minh họa:
 {"sensorId":"T-01","temperature":null}
 ~~~
 
-Payload thứ nhất không có khóa `temperature`; payload thứ hai có khóa nhưng giá trị là JSON `null`. Một thư viện deserialize vào DTO có thể biến cả hai thành trường Java `null`, vì vậy **mất khả năng phân biệt trạng thái** nếu không lưu thông tin về sự hiện diện của trường. Nếu API phân biệt "không cập nhật trường" và "xóa giá trị trường" (ví dụ partial update), lớp DTO hoặc bộ đọc phải giữ được sự khác biệt đó.
+The first payload has no `temperature` key; the second has the key with a JSON `null` value. A library deserializing into a DTO may turn both into a Java `null` field, thereby **losing the ability to distinguish states** unless field presence is tracked. If the API distinguishes "do not update field" from "clear field value" (e.g., partial updates), the DTO class or reader must preserve that distinction.
 
-Tương tự, chuỗi rỗng `""`, chuỗi toàn khoảng trắng, marker `"NA"` và JSON `null` không tự động tương đương. Hãy viết quy tắc chuẩn hóa đầu vào cụ thể, có kiểm thử.
+Similarly, an empty string `""`, a whitespace-only string, an `"NA"` marker, and JSON `null` are not automatically equivalent. Write concrete, tested input normalization rules.
 
-## 3. null và wrapper: có thể lưu, nhưng không thể unbox như một số
+## 3. null and Wrappers: Can Store Null, Cannot Unbox as a Number
 
-Các kiểu primitive `int`, `long`, `double` không thể nhận `null`. Nếu đầu vào thật sự có thể thiếu, lớp wrapper `Integer`, `Long`, `Double`, `BigDecimal` hoặc một kiểu mô hình hóa trạng thái phù hợp hơn.
+Primitive types `int`, `long`, and `double` cannot hold `null`. If an input can genuinely be absent, wrapper classes `Integer`, `Long`, `Double`, `BigDecimal`, or a state-modeling type are more appropriate.
 
 ~~~java
-Double measurement = null; // Hợp lệ: chưa có giá trị.
-double actual = 0.0;       // Hợp lệ: có giá trị số 0.
+Double measurement = null; // Valid: no value yet.
+double actual = 0.0;       // Valid: numeric value 0.
 ~~~
 
-Điểm nguy hiểm là **unboxing tự động**:
+The danger is **automatic unboxing**:
 
 ~~~java
 Double measurement = null;
 
-// Có thể biên dịch, nhưng khi chạy sẽ ném NullPointerException:
+// May compile, but throws NullPointerException at runtime:
 // double x = measurement;
 // double y = measurement + 1.0;
 // boolean ok = measurement > 0.0;
 ~~~
 
-Unboxing tương đương gọi `measurement.doubleValue()`. Vì receiver là null, chương trình không thể lấy giá trị primitive.
+Unboxing is equivalent to calling `measurement.doubleValue()`. Because the receiver is null, the program cannot obtain a primitive value.
 
-Phải chọn chính sách:
+You must choose a policy:
 
 ~~~java
 Double measurement = null;
 
-// Cách A: thiếu dữ liệu được hiểu là 0 (chỉ dùng khi nghiệp vụ cho phép).
+// Option A: missing data is interpreted as 0 (use only if business allows).
 double valueOrZero = measurement == null ? 0.0 : measurement;
 
-// Cách B: bắt buộc có dữ liệu, thiếu thì từ chối.
+// Option B: data is required; reject if missing.
 double required = java.util.Objects.requireNonNull(
         measurement, "measurement is required");
 ~~~
 
-Trong cách B, `requireNonNull` ném `NullPointerException` có thông điệp rõ khi dữ liệu null. Nếu API cần lỗi hợp đồng, có thể kiểm tra và ném exception nghiệp vụ (ví dụ `IllegalArgumentException`) ở ranh giới xử lý.
+In Option B, `requireNonNull` throws a `NullPointerException` with a clear message when data is null. If the API needs a contract error, you can validate and throw a domain exception (e.g., `IllegalArgumentException`) at the processing boundary.
 
-**Không nên thay mọi null bằng 0 theo thói quen**: thao tác đó khiến báo cáo "có 10 phép đo, một lần bằng 0" không thể phân biệt với "có 9 phép đo, một lần thiếu".
+**Do not habitually replace every null with 0**: doing so makes a report of "10 measurements, one equal to 0" indistinguishable from "9 measurements, one missing."
 
-## 4. IEEE 754: NaN và hai dạng vô cực trong double/float
+## 4. IEEE 754: NaN and Two Forms of Infinity in double/float
 
-`double` và `float` trong Java theo mô hình số thực chấm động IEEE 754, nên có các giá trị đặc biệt mà `int`/`long` không có.
+Java's `double` and `float` follow the IEEE 754 floating-point model, so they have special values that `int`/`long` do not.
 
 ~~~java
 double nan = 0.0 / 0.0;
@@ -102,16 +102,16 @@ System.out.println(positiveInfinity); // Infinity
 System.out.println(negativeInfinity); // -Infinity
 ~~~
 
-Đây là phép chia **số thực** vì các toán hạng là `double`. Phân biệt với phép chia số nguyên:
+This is **floating-point** division because the operands are `double`. Contrast with integer division:
 
 ~~~java
-// int invalid = 1 / 0; // Biểu thức hằng bị compiler từ chối trong một số ngữ cảnh;
-// với phép chia số nguyên tại runtime, chia cho 0 gây ArithmeticException.
+// int invalid = 1 / 0; // Constant expression rejected by compiler in some contexts;
+// for integer division at runtime, dividing by 0 causes ArithmeticException.
 ~~~
 
-Với các biến số nguyên và mẫu số bằng 0 ở runtime, phép chia ném `ArithmeticException`. Đừng kỳ vọng nó tạo ra `Infinity` như số thực.
+With integer variables and a zero denominator at runtime, division throws `ArithmeticException`. Do not expect it to produce `Infinity` like floating-point numbers.
 
-### 4.1. Kiểm tra bằng API chính thức
+### 4.1. Checking with Official APIs
 
 ~~~java
 double v = Double.NaN;
@@ -121,14 +121,14 @@ System.out.println(Double.isInfinite(v)); // false
 System.out.println(Double.isFinite(v));   // false
 ~~~
 
-Quy tắc phân loại:
+Classification rules:
 
-- `Double.isNaN(x)` đúng nếu x là NaN.
-- `Double.isInfinite(x)` đúng nếu x là vô cực dương hoặc âm.
-- `Double.isFinite(x)` đúng nếu x **không phải NaN và không phải vô cực**.
-- `Float` có các phương thức kiểm tra tương tự cho `float`.
+- `Double.isNaN(x)` is true if x is NaN.
+- `Double.isInfinite(x)` is true if x is positive or negative infinity.
+- `Double.isFinite(x)` is true if x is **neither NaN nor infinite**.
+- `Float` provides equivalent check methods for `float`.
 
-Một phép xác thực đầu vào `double` thường bắt đầu bằng:
+Input validation for `double` often starts with:
 
 ~~~java
 static double requireFinite(double value) {
@@ -139,7 +139,7 @@ static double requireFinite(double value) {
 }
 ~~~
 
-Nếu miền hợp lệ còn có giới hạn (ví dụ phần trăm từ 0 đến 100), phải kiểm tra cả **độ hữu hạn** và **range**:
+If the valid domain also has bounds (such as a percentage from 0 to 100), check both **finiteness** and **range**:
 
 ~~~java
 static double requirePercent(double value) {
@@ -150,7 +150,7 @@ static double requirePercent(double value) {
 }
 ~~~
 
-### 4.2. NaN không so sánh như số thông thường
+### 4.2. NaN Does Not Compare Like Ordinary Numbers
 
 ~~~java
 double x = Double.NaN;
@@ -162,7 +162,7 @@ System.out.println(x > 100);     // false
 System.out.println(x >= 100);    // false
 ~~~
 
-So sánh quan hệ `<`, `>`, `<=`, `>=` với NaN trả false; so sánh bằng `==` cũng false, kể cả khi so NaN với chính nó. Do đó **không** sử dụng `x == Double.NaN` để phát hiện NaN:
+Relational comparisons `<`, `>`, `<=`, `>=` with NaN return false; equality `==` is also false, even when comparing NaN with itself. Therefore, **never** use `x == Double.NaN` to detect NaN:
 
 ~~~java
 double x = Double.NaN;
@@ -170,9 +170,9 @@ boolean wrong = x == Double.NaN; // false
 boolean right = Double.isNaN(x); // true
 ~~~
 
-Quy tắc đặc biệt này áp dụng cho phép so sánh primitive. `Double.equals` và `Double.compare` dùng những quy tắc phục vụ object equality/sắp xếp, không hoàn toàn giống `==` với primitive.
+This special rule applies to primitive comparisons. `Double.equals` and `Double.compare` use rules designed for object equality/sorting, not strictly identical to primitive `==`.
 
-### 4.3. Vô cực không tự động nghĩa là lỗi parse
+### 4.3. Infinity Does Not Automatically Mean a Parse Error
 
 ~~~java
 double huge = Double.parseDouble("1e400");
@@ -180,13 +180,13 @@ System.out.println(huge);                 // Infinity
 System.out.println(Double.isInfinite(huge)); // true
 ~~~
 
-Chuỗi có cú pháp hợp lệ nhưng nằm ngoài phạm vi hữu hạn của `double` có thể được parse thành vô cực. Vì vậy `try/catch NumberFormatException` **chưa đủ** để bảo đảm bạn có một số hữu hạn hợp lệ. Sau parse, vẫn phải gọi `Double.isFinite` nếu nghiệp vụ không cho phép Infinity/NaN.
+A syntactically valid string that falls outside `double`'s finite range can parse into infinity. Thus, `try/catch NumberFormatException` **is not enough** to guarantee you have a valid finite number. After parsing, you still must call `Double.isFinite` if the business forbids Infinity/NaN.
 
-Java còn nhận chuỗi đặc biệt `"NaN"`, `"Infinity"` và `"-Infinity"` trong `Double.parseDouble`. Có cho phép các chuỗi này xuất hiện ở API của bạn hay không là một quyết định thiết kế, không phải mặc định rằng "parse thành công thì hợp lệ".
+Java also accepts the special strings `"NaN"`, `"Infinity"`, and `"-Infinity"` in `Double.parseDouble`. Whether to allow these strings at your API boundary is a design decision, not a default assumption that "successful parse means valid."
 
-## 5. -0.0 và +0.0: gần giống về toán học, vẫn khác trong vài trường hợp
+## 5. -0.0 and +0.0: Mathematically Alike, Yet Different in Some Cases
 
-IEEE 754 có dấu cho số 0:
+IEEE 754 has signed zero:
 
 ~~~java
 double positiveZero = 0.0;
@@ -198,14 +198,14 @@ System.out.println(1.0 / negativeZero);           // -Infinity
 System.out.println(Double.compare(-0.0, 0.0));    // -1
 ~~~
 
-- Phép so sánh primitive `==` coi hai dạng 0 bằng nhau.
-- Phép lấy nghịch đảo phân biệt dấu nên cho hai vô cực khác nhau.
-- `Double.compare` định nghĩa thứ tự có thể phân biệt `-0.0` và `+0.0`, phục vụ sắp xếp.
-- `Double.valueOf(-0.0).equals(Double.valueOf(0.0))` trả false.
+- Primitive `==` treats both forms of zero as equal.
+- Taking the reciprocal distinguishes the sign, producing opposite infinities.
+- `Double.compare` defines an ordering that distinguishes `-0.0` and `+0.0` for sorting.
+- `Double.valueOf(-0.0).equals(Double.valueOf(0.0))` returns false.
 
-Trong nhiều ứng dụng kinh doanh, có thể chuẩn hóa `-0.0` về `+0.0` sau khi xác định rằng dấu của 0 **không có ý nghĩa nghiệp vụ**. Trong tính toán số hoặc khoa học, việc giữ dấu 0 có thể quan trọng.
+In many business applications, you can normalize `-0.0` to `+0.0` after confirming that the sign of zero **has no business meaning**. In numerical or scientific computing, preserving the sign of zero can be important.
 
-Ví dụ chuẩn hóa tự nguyện:
+Optional normalization example:
 
 ~~~java
 static double normalizeZero(double x) {
@@ -213,23 +213,23 @@ static double normalizeZero(double x) {
 }
 ~~~
 
-Hàm trên giữ mọi giá trị khác 0, bao gồm NaN/Infinity, nên **không** phải bộ lọc số hữu hạn; cần kiểm tra riêng `Double.isFinite` khi cần.
+This function leaves every non-zero value intact, including NaN/Infinity, so it is **not** a finite-number filter; check `Double.isFinite` separately when needed.
 
-## 6. BigDecimal, BigInteger không có giá trị NaN hoặc Infinity
+## 6. BigDecimal and BigInteger Have No NaN or Infinity Values
 
-`BigDecimal` và `BigInteger` mô hình hóa số chính xác theo miền của chúng; chúng **không định nghĩa hằng NaN hay ±Infinity**. Giá trị thiếu vẫn có thể được biểu diễn ở mức **tham chiếu `null`**, nhưng không phải là một giá trị số bên trong đối tượng.
+`BigDecimal` and `BigInteger` model exact numbers within their domains; they **define neither NaN nor ±Infinity constants**. Missing values can still be represented at the **`null` reference** level, but not as a numeric value inside the object.
 
 ~~~java
 import java.math.BigDecimal;
 
 BigDecimal valid = new BigDecimal("123.45");
 
-// Hai dòng sau gây NumberFormatException nếu được thực thi:
+// The following two lines cause NumberFormatException if executed:
 // BigDecimal invalidNaN = BigDecimal.valueOf(Double.NaN);
 // BigDecimal invalidInfinity = BigDecimal.valueOf(Double.POSITIVE_INFINITY);
 ~~~
 
-Khi chuyển từ `double` sang `BigDecimal`, nên kiểm tra đầu vào:
+When converting from `double` to `BigDecimal`, validate the input:
 
 ~~~java
 static BigDecimal fromFiniteDouble(double source) {
@@ -240,38 +240,38 @@ static BigDecimal fromFiniteDouble(double source) {
 }
 ~~~
 
-Phương thức `BigDecimal.valueOf(double)` dùng biểu diễn thập phân từ `Double.toString(double)` và chỉ thích hợp khi yêu cầu chấp nhận ý nghĩa của giá trị `double` ban đầu. Đối với số tiền hoặc dữ liệu cần chính xác thập phân từ đầu, parse trực tiếp từ chuỗi là lựa chọn rõ ràng hơn:
+`BigDecimal.valueOf(double)` uses the decimal representation from `Double.toString(double)` and is only suitable when requirements accept the meaning of the original `double` value. For money or data needing decimal exactness from the start, parsing directly from a string is the clearer choice:
 
 ~~~java
 BigDecimal price = new BigDecimal("0.10");
 ~~~
 
-Dùng `new BigDecimal(0.1)` sẽ lưu chính xác giá trị nhị phân của `double 0.1`, không phải chính xác 0,1 theo ý nghĩa thập phân. Đây là vấn đề về độ chính xác, **độc lập** với xử lý null/NaN/Infinity.
+Using `new BigDecimal(0.1)` stores the exact binary value of `double 0.1`, not exact decimal 0.1. This is a precision issue, **independent** of null/NaN/Infinity handling.
 
-### Thiết kế phép chia
+### Designing Division
 
 ~~~java
 BigDecimal one = BigDecimal.ONE;
 BigDecimal zero = BigDecimal.ZERO;
 
-// one.divide(zero) -> ArithmeticException, không sinh Infinity.
+// one.divide(zero) -> ArithmeticException, does not produce Infinity.
 ~~~
 
-`BigDecimal.divide` có thể ném `ArithmeticException` khi chia cho 0 hoặc khi yêu cầu biểu diễn thập phân chính xác của phân số vô hạn mà không cung cấp chế độ làm tròn. Không nên tự biến lỗi này thành `null` hoặc NaN nếu đặc tả không yêu cầu.
+`BigDecimal.divide` can throw `ArithmeticException` when dividing by 0 or when an exact decimal representation of a non-terminating fraction is requested without supplying a rounding mode. Do not automatically turn this error into `null` or NaN unless the specification requires it.
 
-## 7. Giá trị thiếu: không nên dùng sentinel nếu có mô hình rõ hơn
+## 7. Missing Values: Avoid Sentinels When a Clearer Model Exists
 
-Một hệ thống cũ có thể lưu số đo thiếu bằng `-1`, `-9999`, `Double.NaN` hoặc chuỗi `"N/A"`. Đó là **sentinel** — giá trị đặc biệt được quy ước thay cho trạng thái.
+A legacy system may store missing measurements as `-1`, `-9999`, `Double.NaN`, or `"N/A"`. Those are **sentinels** — special values agreed upon to stand in for a state.
 
-Rủi ro:
+Risks:
 
-- Sentinel `-1` có thể trở thành giá trị hợp lệ khi miền dữ liệu thay đổi.
-- Sentinel `0` trùng với số 0 thật.
-- Sentinel NaN bị bỏ qua ở một số phép so sánh nhưng lan truyền sang các phép số học, dễ làm hỏng toàn bộ kết quả.
-- Khi trộn nhiều nguồn dữ liệu, các sentinel khác nhau dễ bị hiểu sai.
-- Sentinel có thể bị ghi qua hệ thống khác mà không còn metadata mô tả.
+- Sentinel `-1` can become a valid value when the data domain changes.
+- Sentinel `0` collides with an actual zero.
+- Sentinel NaN is ignored by some comparisons yet propagates through arithmetic, easily corrupting entire results.
+- When merging multiple data sources, different sentinels are easily misinterpreted.
+- Sentinels can be passed to another system without the descriptive metadata.
 
-Nếu cần biểu diễn "có hoặc không có một số", Java có:
+When you need to represent "presence or absence of a number," Java offers:
 
 ~~~java
 import java.util.OptionalDouble;
@@ -283,7 +283,7 @@ System.out.println(missing.isPresent()); // false
 System.out.println(present.isPresent()); // true
 ~~~
 
-`OptionalDouble` biểu diễn **có hoặc không có** giá trị primitive; `OptionalDouble.of(Double.NaN)` vẫn là **có một giá trị NaN**, không phải rỗng:
+`OptionalDouble` represents **presence or absence** of a primitive value; `OptionalDouble.of(Double.NaN)` still **has a NaN value**, so it is not empty:
 
 ~~~java
 OptionalDouble nanPresent = OptionalDouble.of(Double.NaN);
@@ -291,58 +291,58 @@ System.out.println(nanPresent.isPresent()); // true
 System.out.println(Double.isNaN(nanPresent.orElseThrow())); // true
 ~~~
 
-Vì vậy, `OptionalDouble` **không thay thế chính sách kiểm soát NaN/Infinity**. Nó chỉ tách trạng thái vắng mặt khỏi trạng thái hiện diện. Với API hoặc DTO phức tạp, một kiểu `record`/sealed type/enum status có thể biểu đạt nhiều trạng thái hơn.
+Thus, `OptionalDouble` **does not replace a NaN/Infinity validation policy**. It only separates the absent state from the present state. For complex APIs or DTOs, a `record`/sealed type/status enum can express more states cleanly.
 
-## 8. Đề xuất hợp đồng dữ liệu số nhất quán
+## 8. Proposing a Consistent Numeric Data Contract
 
-Một quy tắc thiết kế hiệu quả là phân biệt rõ ít nhất bốn nhóm:
+An effective design rule clearly distinguishes at least four groups:
 
-1. **FINITE**: đã parse thành công, là số hữu hạn, nằm trong miền cho phép và có đơn vị/precision hợp lệ.
-2. **MISSING**: không nhận dữ liệu, theo đúng các marker mà hợp đồng quy định.
-3. **INVALID**: có dữ liệu nhưng cú pháp hoặc giá trị không hợp lệ; cần báo lỗi hoặc cách ly.
-4. **NON_FINITE**: đã parse thành `double` nhưng là NaN hoặc Infinity; xử lý theo chính sách riêng.
+1. **FINITE**: successfully parsed, finite number, within permitted range, and valid unit/precision.
+2. **MISSING**: no data received, matching the markers specified by the contract.
+3. **INVALID**: data present, but syntax or value is invalid; must report an error or quarantine.
+4. **NON_FINITE**: parsed into `double`, yet is NaN or Infinity; handled by a separate policy.
 
-Nếu ứng dụng có nhu cầu phân tích kỹ thuật, nhóm NON_FINITE có thể được tách thành `NAN`, `POS_INFINITY` và `NEG_INFINITY`.
+If the application has technical analysis needs, the NON_FINITE group can be split into `NAN`, `POS_INFINITY`, and `NEG_INFINITY`.
 
-Điều này tránh sai lầm "mọi thứ parse không thành công hoặc không finite thì đổi thành 0".
+This prevents the mistake of "converting everything that fails to parse or is non-finite into 0."
 
-### Ma trận chính sách cần quyết định
+### Policy Matrix to Decide
 
-| Trường hợp | Ví dụ | Chính sách đề xuất khi chỉ chấp nhận số hữu hạn |
+| Case | Example | Recommended Policy When Accepting Only Finite Numbers |
 |---|---|---|
-| Thiếu trường | JSON không có khóa | MISSING; báo dữ liệu thiếu, hoặc giữ trạng thái nếu optional |
-| JSON null | `"temperature": null` | MISSING hoặc yêu cầu khác được công bố |
-| Chuỗi trống | `""`, `" "` | Có thể MISSING nếu hợp đồng chấp nhận, không ngầm định |
-| Chuỗi không parse được | `"hello"` | INVALID, thông báo lỗi |
-| NaN | `"NaN"`, `0.0/0.0` | Từ chối hoặc lưu trạng thái NAN |
-| Vô cực | `"Infinity"`, `1e400` | Từ chối hoặc lưu trạng thái vô cực |
-| Số 0 | `"0"` | FINITE; không coi là missing |
-| Số âm | `"-7.5"` | FINITE nếu miền cho phép; INVALID nếu đặc tả không cho âm |
-| Số ngoài range | `250` cho phần trăm | INVALID, không âm thầm ép về 100 |
-| Số hợp lệ nhưng sai đơn vị | `1000` mA khi API yêu cầu A | Chuẩn hóa bằng quy tắc đổi đơn vị hoặc từ chối |
+| Absent field | JSON missing the key | MISSING; report missing data, or retain state if optional |
+| JSON null | `"temperature": null` | MISSING or other published requirement |
+| Blank string | `""`, `" "` | May be MISSING if contract accepts it, never implicit |
+| Unparseable string | `"hello"` | INVALID, report error |
+| NaN | `"NaN"`, `0.0/0.0` | Reject or store NAN state |
+| Infinity | `"Infinity"`, `1e400` | Reject or store infinity state |
+| Zero | `"0"` | FINITE; do not treat as missing |
+| Negative number | `"-7.5"` | FINITE if domain allows; INVALID if spec forbids negatives |
+| Out-of-range number | `250` for a percentage | INVALID, do not silently clamp to 100 |
+| Valid number, wrong unit | `1000` mA when API expects A | Normalize via unit conversion rule or reject |
 
-Các ô "đề xuất" chỉ là ví dụ cho một hệ thống **chỉ nhận số hữu hạn**; ứng dụng thật phải ghi rõ dữ liệu nào được phép và trạng thái được giữ ở tầng nào. Đặc biệt với thao tác cập nhật một phần, phân biệt "không gửi trường" và "gửi null để xóa" có thể là yêu cầu bắt buộc.
+The "recommended" cells are merely examples for a system **accepting only finite numbers**; a real application must document which data is permitted and which layer holds each state. Particularly for partial updates, distinguishing "field not sent" from "null sent to clear" can be a mandatory requirement.
 
-### Định nghĩa rõ tại ranh giới
+### Defining Clearly at the Boundary
 
-Hợp đồng nên trả lời:
+The contract should answer:
 
-- Chuỗi có được `trim()`, cho phép dấu cộng, ký hiệu mũ `E` hoặc khoảng trắng không?
-- Có chấp nhận chuỗi `"NaN"`/`"Infinity"` không?
-- Số ngoài miền hữu hạn thì từ chối, đánh dấu hay clamp? Không tự clamp nếu chưa có quy định.
-- Null và field missing có khác nhau không?
-- Giá trị thiếu có tham gia mẫu số của phép tính trung bình không?
-- Lỗi parse có làm hỏng cả batch hay chỉ một bản ghi?
-- Kết quả sẽ xuất qua JSON, cơ sở dữ liệu, CSV, giao thức nhị phân bằng biểu diễn nào?
-- Nếu số tiền, precision/scale và RoundingMode là gì?
+- Are strings `trim()`-med, and are plus signs, exponent notation `E`, or whitespace allowed?
+- Are `"NaN"`/`"Infinity"` strings accepted?
+- Are numbers outside the finite range rejected, flagged, or clamped? Never clamp automatically without a specification.
+- Are `null` and a missing field different?
+- Do missing values count in the denominator of averages?
+- Does a parse error fail the whole batch or only one record?
+- What representation will results use over JSON, databases, CSV, and binary protocols?
+- For money, what are precision/scale and `RoundingMode`?
 
-Một câu trả lời nhất quán cho các câu hỏi này quan trọng hơn lựa chọn một sentinel "tiện tay".
+Consistent answers to these questions matter far more than picking a "convenient" sentinel.
 
-## 9. Ví dụ Java 17+: phân loại đầu vào mà không đánh đồng các trạng thái
+## 9. Java 17+ Example: Classifying Inputs Without Conflating States
 
-Ví dụ sau mô phỏng một chính sách được định nghĩa cụ thể: `null` hoặc chuỗi chỉ chứa khoảng trắng được coi là `MISSING`; đầu vào không parse được là `INVALID`; NaN và mỗi loại vô cực được **giữ trạng thái riêng**; số hữu hạn mới được đưa vào phép tổng hợp.
+The following example simulates a concrete policy: `null` or whitespace-only strings are treated as `MISSING`; unparseable inputs are `INVALID`; NaN and each kind of infinity **keep separate states**; only finite numbers enter aggregation.
 
-Tạo tệp `NumericPolicyDemo.java`:
+Create the file `NumericPolicyDemo.java`:
 
 ~~~java
 import java.util.ArrayList;
@@ -432,14 +432,14 @@ public class NumericPolicyDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac NumericPolicyDemo.java
 java NumericPolicyDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 "12.5" => FINITE(12.5)
@@ -462,28 +462,28 @@ Double.compare(-0.0, 0.0): -1
 0.0/0.0: NaN
 ~~~
 
-**Giải thích thiết kế:**
+**Design explanation:**
 
-- `Reading.state` nói rõ trạng thái thay vì sử dụng một giá trị sentinel.
-- `Reading.value` chỉ khác null đối với trạng thái `FINITE` theo quy tắc của hàm `parse`. Đây là invariant nội bộ của ví dụ; khi dùng trong production, có thể kiểm tra invariant trong constructor hoặc dùng các kiểu dữ liệu riêng biệt để không thể tạo tổ hợp sai như `FINITE + null`.
-- `Double.parseDouble` chấp nhận cú pháp `NaN` và `Infinity`; vì vậy code kiểm tra ngay sau parse chứ không chỉ bắt exception.
-- `"oops"` là `INVALID`, còn `null`/`" "` là `MISSING` bởi **chính sách của ví dụ**, không phải quy luật Java.
-- Ba giá trị hữu hạn là 12.5, 0.0 và -0.0; trung bình là 12.5 / 3, hiển thị với hai chữ số thập phân thành 4.17. Số lần thiếu/không hợp lệ/không hữu hạn được **báo riêng**.
-- Lambda `r -> r.value()` có unboxing từ `Double` sang `double`. Trong ví dụ, dữ liệu đã được lọc và do `parse` tạo ra nên chỉ các bản ghi `FINITE` có giá trị khác null mới được đưa vào. Nếu cho phép tạo `Reading` tùy ý ngoài bộ phân loại, cần cưỡng chế invariant để tránh NPE.
+- `Reading.state` states the status explicitly instead of using a sentinel value.
+- `Reading.value` is non-null only for the `FINITE` state by the rules of `parse`. This is an internal invariant of the example; in production, enforce the invariant in the constructor or use distinct data types so invalid combinations like `FINITE + null` cannot be constructed.
+- `Double.parseDouble` accepts `NaN` and `Infinity` syntax; therefore the code checks immediately after parsing rather than only catching exceptions.
+- `"oops"` is `INVALID`, while `null`/`" "` are `MISSING` due to **this example's policy**, not a Java rule.
+- The three finite values are 12.5, 0.0, and -0.0; the average is 12.5 / 3, displayed with two decimal places as 4.17. Counts of missing/invalid/non-finite items are **reported separately**.
+- The lambda `r -> r.value()` unboxes `Double` to `double`. In the example, the data is filtered and produced by `parse`, so only `FINITE` records with non-null values enter. If arbitrary `Reading` construction outside the classifier is allowed, enforce the invariant to prevent an NPE.
 
-Đây là một mô hình minh họa, không phải chuẩn bắt buộc cho mọi dự án. Với nghiệp vụ chỉ chấp nhận số hữu hạn, có thể đơn giản hóa `State` còn `FINITE`, `MISSING`, `INVALID` rồi từ chối Non-finite tại ranh giới theo quy tắc được công bố.
+This is an illustrative model, not a mandatory standard for every project. For business logic accepting only finite numbers, you can simplify `State` to `FINITE`, `MISSING`, `INVALID` and reject non-finite inputs at the boundary per published rules.
 
-## 10. Tổng hợp số: quyết định số nào được tính vào mẫu số
+## 10. Aggregating Numbers: Deciding Which Values Enter the Denominator
 
-Giả sử nhận bốn bản ghi: `10.0`, `null`, `20.0`, `30.0`.
+Suppose four records are received: `10.0`, `null`, `20.0`, `30.0`.
 
-- Nếu bỏ qua bản ghi thiếu: trung bình là `(10 + 20 + 30) / 3 = 20`.
-- Nếu thay null bằng 0: trung bình là `(10 + 0 + 20 + 30) / 4 = 15`.
-- Nếu một bản ghi thiếu phải làm phép tính không hợp lệ: không xuất trung bình mà trả trạng thái lỗi.
+- If missing records are skipped: the average is `(10 + 20 + 30) / 3 = 20`.
+- If null is replaced with 0: the average is `(10 + 0 + 20 + 30) / 4 = 15`.
+- If a single missing record must invalidate the calculation: do not output an average; return an error state.
 
-Ba kết quả là ba **quy tắc nghiệp vụ khác nhau**. Không có một quy tắc mặc định đúng cho mọi báo cáo.
+Three results represent three **different business rules**. There is no single default rule that is right for every report.
 
-Một pipeline chỉ tổng hợp số hữu hạn:
+A pipeline aggregating only finite numbers:
 
 ~~~java
 import java.util.List;
@@ -502,11 +502,11 @@ System.out.println(stats.getSum());     // 60.0
 System.out.println(stats.getAverage()); // 20.0
 ~~~
 
-Phép lọc `Objects::nonNull` ngăn NPE khi unbox. Phép lọc `Double::isFinite` loại NaN/Infinity khỏi **phép tính thống kê**. Nhưng nếu chỉ có thống kê cuối, ta không còn biết bao nhiêu bản ghi bị loại và vì lý do gì. Nếu số lượng thiếu/không hợp lệ quan trọng, phải đếm và lưu lý do riêng trước khi tính.
+Filtering with `Objects::nonNull` prevents NPEs during unboxing. Filtering with `Double::isFinite` excludes NaN/Infinity from **statistical calculation**. Yet if you only keep final statistics, you lose visibility into how many records were excluded and why. If missing/invalid counts matter, count and record reasons separately before aggregating.
 
-Đừng gọi `getAverage()` rồi khẳng định luôn có giá trị trung bình: với `DoubleSummaryStatistics`, hãy kiểm tra `getCount()` khi cần phân biệt tập rỗng. Với `DoubleStream.average()`, kết quả là `OptionalDouble`; stream rỗng cho `OptionalDouble.empty()`.
+Do not call `getAverage()` and assume an average always exists: with `DoubleSummaryStatistics`, check `getCount()` when you need to distinguish an empty set. With `DoubleStream.average()`, the result is `OptionalDouble`; an empty stream returns `OptionalDouble.empty()`.
 
-### Nếu không lọc NaN thì sao?
+### What If NaN Is Not Filtered Out?
 
 ~~~java
 double sum = java.util.stream.DoubleStream.of(
@@ -515,13 +515,13 @@ double sum = java.util.stream.DoubleStream.of(
 System.out.println(Double.isNaN(sum)); // true
 ~~~
 
-NaN có thể lan truyền khiến tổng/trung bình trở thành NaN. Đây không phải cơ chế đáng tin cậy để "tự bỏ qua dữ liệu thiếu": nó khiến kết quả bị nhiễm NaN, và nếu phía sau dùng phép so sánh thông thường, có thể sinh thêm lỗi logic.
+NaN can propagate and turn sums/averages into NaN. This is not a reliable mechanism for "automatically skipping missing data": it poisons the result with NaN, and if downstream code uses ordinary comparisons, it can cause further logic bugs.
 
-Tương tự, có cả vô cực dương và vô cực âm trong một phép tổng sẽ tạo tình huống kết quả NaN. Một hệ thống nên quyết định trước rằng kết quả không hữu hạn được xem là lỗi, được lưu như trạng thái đặc biệt, hay được phép trong một loại phép tính khoa học.
+Similarly, having both positive infinity and negative infinity in a sum produces NaN. A system should decide upfront whether non-finite results are treated as errors, stored as a special state, or allowed in a particular scientific calculation.
 
-## 11. Sắp xếp và so sánh: Double.compare không giống ==
+## 11. Sorting and Comparison: Double.compare Is Not Like ==
 
-Một số thư viện dùng `Double.compare`, comparator hoặc `Double.equals` thay vì toán tử so sánh primitive. Đây là khác biệt rất quan trọng trong thiết kế dữ liệu.
+Some libraries use `Double.compare`, comparators, or `Double.equals` instead of primitive comparison operators. This is a critical difference in data design.
 
 ~~~java
 double a = Double.NaN;
@@ -532,46 +532,46 @@ System.out.println(Double.compare(a, b));  // 0
 System.out.println(Double.valueOf(a).equals(Double.valueOf(b))); // true
 ~~~
 
-`Double.compare` định nghĩa thứ tự tổng quát để phục vụ so sánh/sắp xếp; nó coi NaN bằng nhau trong phép compare và phân biệt hai dấu của số 0. NaN được xếp lớn hơn các giá trị `double` còn lại theo thứ tự này. Đây là **quy tắc sắp xếp của API**, không phải một mệnh đề rằng NaN bằng NaN trong số học IEEE 754.
+`Double.compare` defines a total order for comparison/sorting; it considers NaNs equal to each other in `compare` and distinguishes the two signs of zero. NaN is ordered greater than all other `double` values under this ordering. This is **an API sorting rule**, not a statement that NaN equals NaN in IEEE 754 arithmetic.
 
-Các hệ quả:
+Consequences:
 
-- Không dùng `x == Double.NaN` để lọc NaN; dùng `Double.isNaN(x)`.
-- Không dựa vào `Double.compare` như phép so sánh số học thông thường khi dữ liệu chứa NaN và dấu của 0.
-- Khi sắp xếp dữ liệu, hãy xác định liệu dữ liệu thiếu/NaN phải lên đầu, xuống cuối hay bị tách riêng; nếu cần thứ tự theo nghiệp vụ, viết comparator dựa trên trạng thái thay vì dựa hoàn toàn vào thứ tự mặc định.
-- `DoubleStream.min()`/`max()` có xử lý NaN theo API; nếu đầu vào có NaN và muốn cực trị của số **hữu hạn**, lọc `Double.isFinite` trước.
+- Do not use `x == Double.NaN` to filter NaN; use `Double.isNaN(x)`.
+- Do not rely on `Double.compare` as ordinary arithmetic comparison when data contains NaN and signed zeros.
+- When sorting data, determine whether missing/NaN items go first, last, or are separated out; if business ordering is needed, write a state-based comparator rather than relying solely on the default order.
+- `DoubleStream.min()`/`max()` handle NaN per API rules; if inputs contain NaN and you want extrema of **finite** numbers, filter `Double.isFinite` first.
 
-Với `null`, `Comparator.naturalOrder()` không tự xử lý mọi trường hợp an toàn; có thể dùng `Comparator.nullsFirst(...)`/`nullsLast(...)` khi danh sách wrapper thật sự cho phép null và contract đã xác định vị trí của null. Tuy nhiên, một đối tượng có trạng thái riêng thường rõ hơn nếu cần phân biệt null, invalid và nhiều loại non-finite.
+For `null`, `Comparator.naturalOrder()` does not automatically handle all cases safely; you can use `Comparator.nullsFirst(...)`/`nullsLast(...)` when a wrapper list genuinely allows null and the contract defines null's placement. However, a dedicated status-bearing object is clearer when needing to distinguish null, invalid, and various non-finite states.
 
-## 12. Lưu trữ và truyền qua JSON, CSV, cơ sở dữ liệu
+## 12. Storing and Transmitting via JSON, CSV, and Databases
 
-### 12.1. JSON: null hợp lệ, NaN/Infinity không phải số JSON chuẩn
+### 12.1. JSON: null Is Valid, NaN/Infinity Are Not Standard JSON Numbers
 
-Cú pháp JSON chuẩn hỗ trợ `null` và các số hữu hạn theo cú pháp JSON; các token `NaN`, `Infinity`, `-Infinity` **không phải literal số hợp lệ** trong JSON chuẩn. Ví dụ:
+Standard JSON syntax supports `null` and finite numbers per JSON grammar; the tokens `NaN`, `Infinity`, `-Infinity` **are not valid numeric literals** in standard JSON. For example:
 
 ~~~json
 {"temperature": null}
 ~~~
 
-là JSON hợp lệ. Nhưng chuỗi ký tự không đặt dấu nháy như:
+is valid JSON. However, unquoted tokens such as:
 
 ~~~text
 {"temperature": NaN}
 ~~~
 
-không phải JSON chuẩn. Một thư viện có thể có tùy chọn không chuẩn hoặc chuyển các giá trị đặc biệt thành chuỗi, nhưng không nên dựa vào hành vi đó giữa các hệ thống.
+are not standard JSON. A library may offer non-standard options or convert special values to strings, yet you should not rely on that behavior across systems.
 
-Nếu ứng dụng cần truyền trạng thái không hữu hạn, cân nhắc mô hình có nhãn:
+If the application needs to transmit non-finite states, consider a tagged model:
 
 ~~~json
 {"temperature":{"state":"NAN","value":null}}
 ~~~
 
-hoặc nếu hợp đồng chỉ cho phép số hữu hạn thì **từ chối trước khi serialize**. Tránh gửi `"NaN"` như một số rồi kỳ vọng client tự hiểu giống server; chuỗi `"NaN"` là một **string**, không phải JSON number.
+or, if the contract allows only finite numbers, **reject before serializing**. Avoid sending `"NaN"` as a number and expecting clients to interpret it identically to the server; `"NaN"` is a **string**, not a JSON number.
 
-### 12.2. CSV: cần quy ước từng cột
+### 12.2. CSV: Per-Column Conventions Required
 
-CSV không có kiểu null bẩm sinh. Một ô rỗng, `NA`, `NaN` hay `-9999` chỉ mang nghĩa khi có schema:
+CSV has no native null type. An empty cell, `NA`, `NaN`, or `-9999` only has meaning when backed by a schema:
 
 ~~~text
 timestamp,reading,status
@@ -580,59 +580,59 @@ timestamp,reading,status
 2026-01-01T00:02:00Z,,NAN
 ~~~
 
-Tách cột `status` khỏi cột `reading` giúp phân biệt "giá trị thực sự là 0" với "không có giá trị" và "phép đo không hợp lệ". Với batch ingestion, cũng nên lưu dòng/số thứ tự lỗi để có thể truy vết.
+Separating a `status` column from the `reading` column distinguishes "actual value is 0" from "no value" and "invalid measurement." For batch ingestion, also record line/row numbers of errors for traceability.
 
-### 12.3. Cơ sở dữ liệu: NULL không đồng nghĩa NaN
+### 12.3. Databases: NULL Is Not Synonymous with NaN
 
-SQL `NULL` thường biểu diễn trạng thái unknown/absent theo ngữ nghĩa SQL, không phải số 0 hay NaN. Hành vi lưu NaN/Infinity phụ thuộc hệ quản trị cơ sở dữ liệu, driver JDBC và kiểu cột. Không giả định mọi hệ đều lưu được mọi giá trị IEEE 754.
+SQL `NULL` typically represents an unknown/absent state under SQL semantics, not 0 or NaN. Behavior when storing NaN/Infinity depends on the DBMS, JDBC driver, and column type. Do not assume every system can store every IEEE 754 value.
 
-Ví dụ khi đọc một cột nullable bằng JDBC `ResultSet.getDouble(...)`: nếu cột là SQL NULL, giá trị primitive trả về có thể là 0.0, và cần gọi `wasNull()` ngay sau phép đọc liên quan để phân biệt 0 thật với NULL. Có thể dùng API đọc đối tượng phù hợp driver và kiểm tra null tường minh.
+For example, when reading a nullable column via JDBC `ResultSet.getDouble(...)`: if the column is SQL NULL, the returned primitive value may be 0.0, and you must call `wasNull()` immediately after the read to distinguish an actual 0 from NULL. You can use a driver-appropriate object-reading API and check for null explicitly.
 
-Trong hệ thống có bản ghi trạng thái, nên quyết định schema ngay từ đầu: một cột số hữu hạn nullable, thêm cột trạng thái, hoặc một bảng lỗi riêng. Các quyết định này giúp tránh sentinel không được tài liệu hóa lan giữa các dịch vụ.
+In systems with status records, decide the schema upfront: a nullable finite numeric column, an additional status column, or a separate error table. These decisions prevent undocumented sentinels from spreading across services.
 
-## 13. Null, NaN và missing trong API: thiết kế kết quả rõ ràng
+## 13. Null, NaN, and Missing in APIs: Designing Clear Results
 
-Đối với một API đo lường, các câu hỏi thiết kế quan trọng gồm:
+For a measurement API, key design questions include:
 
-1. Trường số có **bắt buộc** không? Khi không có giá trị, server trả trạng thái riêng, `null`, bỏ trường hay lỗi?
-2. Nếu nhận `NaN`/Infinity, server trả lỗi `400`/mã nghiệp vụ, lưu trạng thái đặc biệt hay chấp nhận?
-3. Có cần phân biệt input sai cú pháp với input thiếu?
-4. Nếu giá trị vượt range nhưng vẫn hữu hạn, trả INVALID hay có quy tắc điều chỉnh?
-5. Khi tính trung bình, tổng, min/max, mẫu số và số bản ghi bị bỏ qua được công bố ra sao?
-6. Việc làm tròn và định dạng thập phân diễn ra ở tầng nào, và có làm mất khác biệt giữa missing và 0 không?
+1. Is the numeric field **required**? When no value exists, does the server return a separate status, `null`, omit the field, or return an error?
+2. If `NaN`/Infinity is received, does the server return a `400`/business error code, store a special state, or accept it?
+3. Is it necessary to distinguish malformed input from missing input?
+4. If a value is out of range yet finite, return INVALID or apply an adjustment rule?
+5. When computing averages, sums, min/max, how are the denominator and excluded record count published?
+6. At which layer do rounding and decimal formatting occur, and do they erase the distinction between missing and 0?
 
-Một kiểu miền rõ ràng có thể tách trạng thái khỏi giá trị, chẳng hạn `Reading(State status, Double finiteValue)`. Đối với ứng dụng cần bảo đảm **không thể có trạng thái FINITE với null**, nên áp dụng kiểm tra trong constructor hoặc dùng mô hình kiểu phân biệt với các lớp/record riêng cho mỗi trạng thái. Ví dụ Java 17 có `sealed interface` để mô hình hóa các trạng thái dữ liệu; không cần bắt mọi trường hợp dùng duy nhất `Double` nullable.
+A clear domain type can separate state from value, such as `Reading(State status, Double finiteValue)`. For applications needing to guarantee **a FINITE state can never hold null**, validate in the constructor or use a discriminated model with distinct classes/records for each state. For example, Java 17 provides `sealed interface` to model data states; not every case needs to rely solely on a nullable `Double`.
 
-### Ghi lại lý do thay vì chỉ loại bản ghi
+### Record Reasons Instead of Just Dropping Records
 
-Nếu ingest 1.000 bản ghi và chỉ có 960 bản ghi hữu hạn, thống kê phải có khả năng nói 40 bản ghi còn lại thuộc nhóm thiếu, sai cú pháp, NaN hay vượt miền. Nếu chỉ làm `filter(Double::isFinite)` rồi trả một số trung bình, hệ thống có thể che khuất sự cố chất lượng dữ liệu.
+If 1,000 records are ingested and only 960 are finite, statistics must be able to tell whether the remaining 40 were missing, malformed, NaN, or out of range. Simply doing `filter(Double::isFinite)` and returning an average can mask data quality incidents.
 
-Các chỉ số hữu ích: tổng số bản ghi, số hữu hạn, số missing, số invalid, số NaN, số vô cực, số ngoài range, tỷ lệ các nhóm theo nguồn. Không nên tự gộp chúng nếu các trạng thái có quy trình khắc phục khác nhau.
+Useful metrics: total records, finite count, missing count, invalid count, NaN count, infinity count, out-of-range count, and group ratios by source. Avoid merging them if those states have different remediation workflows.
 
-## 14. Kiểm thử ranh giới bắt buộc
+## 14. Mandatory Boundary Testing
 
-Một tập test tối thiểu cho parser số hữu hạn có thể gồm:
+A minimal test suite for a finite-number parser might include:
 
-| Đầu vào | Kỳ vọng nếu chọn chính sách ở mục 9 |
+| Input | Expected Under the Policy in Section 9 |
 |---|---|
 | `null` | MISSING |
-| `""` và `" "` | MISSING |
+| `""` and `" "` | MISSING |
 | `"0"` | FINITE(0.0) |
-| `"-0.0"` | FINITE(-0.0), giữ dấu nếu contract yêu cầu |
+| `"-0.0"` | FINITE(-0.0), preserve sign if contract requires |
 | `"12.5"` | FINITE(12.5) |
 | `"NaN"` | NAN |
 | `"Infinity"` | POS_INFINITY |
 | `"-Infinity"` | NEG_INFINITY |
-| `"1e400"` | POS_INFINITY do `double` overflow hữu hạn |
+| `"1e400"` | POS_INFINITY due to `double` finite overflow |
 | `"abc"` | INVALID |
-| `"-3.5"` | FINITE nếu miền nghiệp vụ cho phép âm |
-| `"101"` ở trường phần trăm 0..100 | INVALID theo bước validation miền |
-| JSON bỏ trường | MISSING hoặc khác `null` theo hợp đồng API |
-| JSON trường `null` | MISSING hoặc yêu cầu riêng |
+| `"-3.5"` | FINITE if business range allows negatives |
+| `"101"` in a 0..100 percentage field | INVALID at the range-validation step |
+| JSON omitting field | MISSING or distinct from `null` per API contract |
+| JSON field `null` | MISSING or specific requirement |
 
-Các test phải đối chiếu **trạng thái và dữ liệu**, không chỉ tránh ném exception. Thêm các test round-trip qua JSON/CSV/database khi những tầng đó tham gia đường đi của dữ liệu.
+Tests must assert both **state and value**, not just absence of exceptions. Add round-trip tests through JSON/CSV/database whenever those layers are part of the data path.
 
-Ví dụ JUnit (mã minh họa phụ thuộc JUnit 5, không biên dịch độc lập chỉ bằng JDK):
+JUnit example (illustrative snippet depending on JUnit 5; does not compile standalone with JDK alone):
 
 ~~~java
 // assertEquals(State.MISSING, NumericPolicyDemo.parse(null).state());
@@ -641,69 +641,69 @@ Ví dụ JUnit (mã minh họa phụ thuộc JUnit 5, không biên dịch độc
 // assertEquals(State.POS_INFINITY, NumericPolicyDemo.parse("1e400").state());
 ~~~
 
-Khi test số thực hữu hạn có làm tròn, phải chọn dung sai phù hợp thay vì dùng phép `==` cho mọi kết quả tính toán. Khi phân biệt `-0.0` và `+0.0` là yêu cầu, cần test theo bit hoặc `Double.compare`, không dùng duy nhất `==`.
+When testing finite floating-point numbers with rounding, choose an appropriate tolerance instead of using `==` for all computed results. When distinguishing `-0.0` and `+0.0` is required, test by bits or `Double.compare`, not solely `==`.
 
-## 15. Lỗi thiết kế phổ biến
+## 15. Common Design Pitfalls
 
-| Sai lầm | Vì sao nguy hiểm | Cách xử lý |
+| Mistake | Why It Is Dangerous | Solution |
 |---|---|---|
-| "Null bằng 0" | Mất thông tin thiếu dữ liệu | Chọn default có chủ đích hoặc giữ trạng thái |
-| "NaN chính là missing" | NaN là giá trị chấm động đặc biệt, có thể sinh bởi phép toán lỗi | Phân biệt NAN và MISSING khi cần |
-| "Parse double thành công thì số hữu hạn" | `"NaN"`, `"Infinity"` và `"1e400"` vẫn parse được | Gọi `Double.isFinite` |
-| Kiểm tra `x == Double.NaN` | Luôn false | `Double.isNaN(x)` |
-| Gọi `mapToDouble(Double::doubleValue)` trên list có null | Auto-unboxing gây NPE | Kiểm tra/lọc null đúng chính sách |
-| Coi `OptionalDouble.of(NaN)` là empty | Presence và tính hữu hạn khác nhau | Kiểm tra cả `isPresent` và `Double.isFinite` |
-| Bỏ missing trong trung bình mà không nói rõ | Người đọc không biết mẫu số | Công bố công thức và số bản ghi được tính |
-| Dùng sentinel có thể là số hợp lệ | Không phân biệt thực và thiếu | Status/nullable type được mô tả rõ |
-| Gửi NaN/Infinity làm JSON number | Không hợp lệ theo JSON chuẩn | Chuyển thành trạng thái, chuỗi được đặc tả, hoặc từ chối |
-| Cho BigDecimal nhận NaN | BigDecimal không hỗ trợ non-finite | Validate trước khi chuyển |
-| Giả sử mọi database hỗ trợ NaN giống nhau | Driver/kiểu cột/hệ quản trị khác nhau | Xác minh contract của storage |
-| Cho rằng `-0.0` hoàn toàn không khác `0.0` | Có thể khác khi chia và sắp xếp | Giữ hoặc chuẩn hóa dấu 0 có chủ đích |
-| Chỉ kiểm tra giá trị cuối, không lưu lý do lỗi | Khó phát hiện suy giảm chất lượng nguồn | Thống kê missing/invalid/non-finite riêng |
-| Dùng toán tử điều kiện với wrapper null và primitive | Có thể auto-unbox null gây NPE | Kiểm tra null và kiểu biểu thức |
+| "Null equals 0" | Loses missing-data information | Choose an intentional default or preserve state |
+| "NaN just means missing" | NaN is a special floating-point value, potentially produced by erroneous math | Distinguish NAN and MISSING when needed |
+| "Successful double parse means finite number" | `"NaN"`, `"Infinity"`, and `"1e400"` still parse | Call `Double.isFinite` |
+| Checking `x == Double.NaN` | Always false | `Double.isNaN(x)` |
+| Calling `mapToDouble(Double::doubleValue)` on a list with null | Auto-unboxing causes NPE | Check/filter null per policy |
+| Treating `OptionalDouble.of(NaN)` as empty | Presence and finiteness are different | Check both `isPresent` and `Double.isFinite` |
+| Skipping missing values in an average without stating so | Readers do not know the denominator | Publish the formula and counted records |
+| Using a sentinel that can be a valid number | Cannot distinguish real values from missing | Explicitly documented status/nullable type |
+| Sending NaN/Infinity as a JSON number | Invalid under standard JSON | Convert to state, specified string, or reject |
+| Passing NaN to BigDecimal | BigDecimal does not support non-finite values | Validate before converting |
+| Assuming all databases support NaN identically | Drivers/column types/DBMSs differ | Verify the storage contract |
+| Assuming `-0.0` is completely identical to `0.0` | Can differ in division and sorting | Intentionally preserve or normalize the sign of 0 |
+| Checking only final values without recording error reasons | Hard to detect source quality degradation | Track missing/invalid/non-finite counts separately |
+| Using conditional operator with nullable wrapper and primitive | Can auto-unbox null and throw NPE | Check null and expression types |
 
-## 16. Câu hỏi tự kiểm tra
+## 16. Self-Check Questions
 
-**Câu 1.** `Double.NaN == Double.NaN` trả gì? Kiểm tra NaN đúng cách ra sao?
+**Question 1.** What does `Double.NaN == Double.NaN` return? How do you check for NaN properly?
 
-**Đáp án:** Trả `false`. Dùng `Double.isNaN(value)`.
+**Answer:** Returns `false`. Use `Double.isNaN(value)`.
 
-**Câu 2.** `Double.parseDouble("1e400")` có nhất thiết ném `NumberFormatException` không?
+**Question 2.** Does `Double.parseDouble("1e400")` necessarily throw `NumberFormatException`?
 
-**Đáp án:** Không. Nó có thể cho `Infinity` vì giá trị vượt phạm vi hữu hạn của `double`. Cần kiểm tra `Double.isFinite` sau parse.
+**Answer:** No. It can return `Infinity` because the value exceeds `double`'s finite range. Check `Double.isFinite` after parsing.
 
-**Câu 3.** `OptionalDouble.of(Double.NaN).isPresent()` là true hay false?
+**Question 3.** Is `OptionalDouble.of(Double.NaN).isPresent()` true or false?
 
-**Đáp án:** `true`. Optional có chứa một giá trị primitive NaN; NaN không đồng nghĩa với missing.
+**Answer:** `true`. The Optional contains a primitive NaN value; NaN is not synonymous with missing.
 
-**Câu 4.** Có nên dùng `new BigDecimal("0")` để thay mọi `null` của cột số tiền không?
+**Question 4.** Should `new BigDecimal("0")` replace every `null` in an amount column?
 
-**Đáp án:** Chỉ khi hợp đồng xác nhận thiếu tiền được hiểu là 0. Thông thường phải phân biệt "không có dữ liệu" với "số tiền đúng bằng 0", rồi quyết định chính sách rõ ràng.
+**Answer:** Only when the contract confirms missing money means 0. Normally you must distinguish "no data" from "amount equal to exactly 0," then define a clear policy.
 
-**Câu 5.** Trong bốn phép đo `10.0`, `null`, `20.0`, `30.0`, trung bình là 20 hay 15?
+**Question 5.** Among four measurements `10.0`, `null`, `20.0`, `30.0`, is the average 20 or 15?
 
-**Đáp án:** Nếu bỏ qua missing, trung bình là 20 trên ba phép đo hợp lệ. Nếu thay missing bằng 0, trung bình là 15 trên bốn bản ghi. Chính sách nghiệp vụ quyết định kết quả; không có mặc định đúng phổ quát.
+**Answer:** If missing is skipped, the average is 20 across three valid measurements. If missing is replaced by 0, the average is 15 across four records. Business policy determines the result; there is no universal default.
 
-**Câu 6.** Vì sao `Double.compare(-0.0, 0.0)` trả giá trị âm dù `-0.0 == 0.0` là true?
+**Question 6.** Why does `Double.compare(-0.0, 0.0)` return a negative value even though `-0.0 == 0.0` is true?
 
-**Đáp án:** `Double.compare` sử dụng thứ tự cho giá trị `double` có phân biệt dấu của 0. Toán tử `==` tuân theo so sánh số học IEEE 754.
+**Answer:** `Double.compare` uses an ordering for `double` values that distinguishes the sign of zero. The `==` operator follows IEEE 754 arithmetic comparison.
 
-**Câu 7.** `BigDecimal.valueOf(Double.POSITIVE_INFINITY)` trả BigDecimal mang Infinity không?
+**Question 7.** Does `BigDecimal.valueOf(Double.POSITIVE_INFINITY)` return a BigDecimal representing Infinity?
 
-**Đáp án:** Không. `BigDecimal` không có giá trị vô cực; chuyển non-finite vào `BigDecimal` không hợp lệ và gây `NumberFormatException`.
+**Answer:** No. `BigDecimal` has no infinity value; passing non-finite values into `BigDecimal` is invalid and causes `NumberFormatException`.
 
-**Câu 8.** Khi serialize JSON, được ghi `{"x":NaN}` như một JSON number chuẩn không?
+**Question 8.** When serializing JSON, can `{"x":NaN}` be written as a standard JSON number?
 
-**Đáp án:** Không. JSON chuẩn không có literal số NaN/Infinity. Cần định nghĩa cách chuyển trạng thái hoặc từ chối theo contract.
+**Answer:** No. Standard JSON has no NaN/Infinity numeric literals. Define how to convert states or reject per contract.
 
-**Câu 9.** Vì sao `List<Double>` chứa null, sau đó `mapToDouble(Double::doubleValue)` có thể ném NPE?
+**Question 9.** Why can a `List<Double>` containing null followed by `mapToDouble(Double::doubleValue)` throw an NPE?
 
-**Đáp án:** Mapping cần `double` primitive, nên cố unbox phần tử null. Phải xử lý null trước theo quy tắc nhập dữ liệu.
+**Answer:** The mapping requires a primitive `double`, so it attempts to unbox the null element. Handle null beforehand according to data ingestion rules.
 
-**Câu 10.** Tại sao chỉ trả giá trị trung bình sau khi lọc số không hữu hạn là chưa đủ cho giám sát chất lượng dữ liệu?
+**Question 10.** Why is returning only an average after filtering non-finite numbers insufficient for data quality monitoring?
 
-**Đáp án:** Không biết bao nhiêu giá trị bị loại và lý do nào. Nên trả/báo thêm số bản ghi missing, invalid, NaN, Infinity cùng mẫu số thực được dùng cho thống kê.
+**Answer:** You do not know how many values were excluded or why. Also return/report counts of missing, invalid, NaN, and Infinity records along with the actual denominator used for statistics.
 
 ---
 
-**Ghi nhớ:** Trong Java, `null`/missing mô tả sự hiện diện của dữ liệu; `NaN` và ±Infinity là các giá trị đặc biệt của `float`/`double`; `0` là một giá trị hợp lệ; `BigDecimal`/`BigInteger` chỉ đại diện cho số hữu hạn trong miền của chúng. **Thiết kế chính sách dữ liệu trước khi tính toán**: phân biệt trạng thái, kiểm tra finite/range, định nghĩa ý nghĩa của thiếu dữ liệu, kiểm soát phép tổng hợp và công bố cách serialize. Đừng để unboxing, phép lọc hay một giá trị sentinel tự quyết định nghiệp vụ thay bạn.
+**Key takeaway:** In Java, `null`/missing describes data presence; `NaN` and ±Infinity are special values of `float`/`double`; `0` is a valid value; `BigDecimal`/`BigInteger` represent only finite numbers in their domains. **Design the data policy before calculating**: distinguish states, check finiteness/range, define the meaning of missing data, control aggregations, and publish serialization rules. Never let unboxing, filtering, or a sentinel value decide business semantics for you.

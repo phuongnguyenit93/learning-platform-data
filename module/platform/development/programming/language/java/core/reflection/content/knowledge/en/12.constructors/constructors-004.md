@@ -1,91 +1,91 @@
-# Constructor mặc định khác constructor không tham số được khai báo tường minh
+# Default Constructors vs. Explicitly Declared No-Argument Constructors
 
-## 1. Hai khái niệm dễ nhầm
+## 1. Two Easily Confused Concepts
 
-Trong Java, **default constructor** (constructor mặc định theo Java Language Specification, JLS `8.8.9) là constructor được **trình biên dịch khai báo ngầm định** khi một class không khai báo **bất kỳ constructor nào**. Đối với class top-level hoặc class lồng `static` thông thường, nó không nhận tham số và gọi constructor không tham số của superclass bằng `super()`. Trường hợp inner member class không `private` có thêm tham số ngầm định cho enclosing instance, sẽ xét riêng.
+In Java, a **default constructor** (according to the Java Language Specification, JLS §8.8.9) is a constructor **implicitly declared by the compiler** when a class declares **no constructors at all**. For a top-level class or a typical `static` nested class, it takes no parameters and calls the superclass's no-argument constructor with `super()`. The case of a non-`private` inner member class having an implicit parameter for the enclosing instance will be examined separately.
 
-**Constructor không tham số được khai báo tường minh** (explicit no-argument constructor) là constructor do người lập trình **thực sự viết trong source** với danh sách tham số rỗng, ví dụ `User() {}`. Nó cũng có thể được gọi bằng `new User()`, nhưng **không phải default constructor do compiler tự sinh**. Khi đã có một khai báo constructor bất kỳ, Java không tự sinh default constructor cho class đó nữa.
+An **explicitly declared no-argument constructor** (explicit no-argument constructor) is a constructor **actually written in source code** by the programmer with an empty parameter list, such as `User() {}`. It can also be invoked via `new User()`, but **it is not a compiler-generated default constructor**. Once any constructor declaration is present, Java no longer generates a default constructor for that class.
 
-Ví dụ tối giản:
+Minimal example:
 
 ~~~java
-// Trích đoạn minh họa: ba class top-level trong cùng package.
+// Illustrative snippet: three top-level classes in the same package.
 class Auto {
-    // Không khai báo constructor: compiler tạo default Auto().
+    // No constructor declared: compiler creates default Auto().
 }
 
 class Written {
     Written() {
-        // Constructor không tham số được viết tường minh.
+        // Explicitly written no-argument constructor.
     }
 }
 
 class ParamsOnly {
     ParamsOnly(int value) {
-        // Đã khai báo một constructor => không có default ParamsOnly().
+        // One constructor already declared => no default ParamsOnly().
     }
 }
 ~~~
 
-Do đó:
+Therefore:
 
-- `new Auto()` hợp lệ nhờ default constructor ngầm định.
-- `new Written()` hợp lệ nhờ constructor không tham số được khai báo tường minh.
-- `new ParamsOnly()` **không hợp lệ khi biên dịch**; chỉ `new ParamsOnly(5)` hợp lệ trong phạm vi ví dụ.
-- Constructor không được kế thừa từ superclass. `Child` không tự “có” constructor của `Parent`.
+- `new Auto()` is valid thanks to the implicit default constructor.
+- `new Written()` is valid thanks to the explicitly declared no-argument constructor.
+- `new ParamsOnly()` **does not compile**; only `new ParamsOnly(5)` is valid within the example scope.
+- Constructors are not inherited from a superclass. `Child` does not automatically "have" `Parent`'s constructors.
 
-**Phân biệt thêm hai nghĩa của “default”:** Trong cụm “default constructor”, từ “default” là thuật ngữ JLS dành cho việc compiler tạo constructor. Trong cụm “default access” hoặc “package-private”, “default” nói về **mức truy cập không ghi modifier**. Một constructor `Written() {}` ở class package-private có *package access*, nhưng vẫn là constructor **tường minh** chứ không phải constructor mặc định do compiler sinh.
+**Further distinguishing two meanings of "default":** In the phrase "default constructor", the word "default" is a JLS term for the compiler generating a constructor. In "default access" or "package-private", "default" refers to **the access level when no modifier is written**. A constructor `Written() {}` in a package-private class has *package access*, yet it is still an **explicit** constructor rather than a compiler-generated default constructor.
 
-## 2. Điều kiện hình thành và tính chất của default constructor
+## 2. Formation Conditions and Properties of a Default Constructor
 
-Quy tắc cho class thông thường (không xét đặc thù enum/record/anonymous class):
+Rules for ordinary classes (excluding specifics of enum/record/anonymous classes):
 
-1. Nếu **không có constructor declaration** nào trong phần thân class, compiler ngầm khai báo một default constructor.
-2. Nếu class có **dù chỉ một** constructor được khai báo (`A()`, `A(int)`, `A(String)`, private constructor…), compiler **không** tạo default constructor.
-3. Default constructor không có mệnh đề `throws`. Đối với class thông thường không phải `Object`, thân constructor tương đương lời gọi `super()` tới superclass không tham số.
-4. Quyền truy cập của default constructor được suy từ modifier truy cập của class: ví dụ class `public` thì constructor mặc định `public`; class package-private thì constructor mặc định package-private. Member class có thể là `protected` hoặc `private` và quy tắc tương ứng được áp dụng. Không suy rằng tất cả default constructors đều `public`.
-5. Với **non-private inner member class**, default constructor có thêm tham số ngầm định đại diện cho enclosing instance. Vì thế ở mức Reflection/bytecode, không thể mặc định rằng mọi constructor ngầm sinh đều có `getParameterCount() == 0`.
+1. If **there is no constructor declaration** in the class body, the compiler implicitly declares a default constructor.
+2. If the class has **even one** declared constructor (`A()`, `A(int)`, `A(String)`, private constructor…), the compiler **does not** create a default constructor.
+3. A default constructor has no `throws` clause. For an ordinary class other than `Object`, the constructor body is equivalent to calling `super()` on the no-arg superclass constructor.
+4. The access level of a default constructor is derived from the class's access modifier: for example, a `public` class gets a `public` default constructor; a package-private class gets a package-private default constructor. A member class may be `protected` or `private` and the corresponding rule applies. Do not assume all default constructors are `public`.
+5. For a **non-private inner member class**, the default constructor has an additional implicit parameter representing the enclosing instance. Thus at the Reflection/bytecode level, one cannot assume every implicitly generated constructor has `getParameterCount() == 0`.
 
-Bảng đối chiếu:
+Comparison table:
 
-| Thuộc tính | Default constructor ngầm định | Constructor không tham số tường minh |
+| Property | Implicit default constructor | Explicit no-argument constructor |
 | --- | --- | --- |
-| Ai tạo khai báo? | Compiler, khi class không có constructor declaration. | Lập trình viên viết `ClassName()`. |
-| Có trong source? | Không có constructor declaration. | Có declaration trong source. |
-| Có thể tùy chọn modifier truy cập? | Suy từ mức truy cập của class theo JLS. | `public`/`protected`/package-private/`private` theo khai báo hợp lệ. |
-| Có thể viết thân tùy ý? | Không; hành vi ngầm định gọi `super()` (cùng cơ chế khởi tạo instance). | Có thể viết logic, kiểm tra đầu vào, `this(...)` hoặc `super(...)`. |
-| Có thể khai báo `throws`? | Không. | Có. |
-| Có thể gắn annotation constructor trong source? | Không có vị trí khai báo constructor để gắn trực tiếp. | Có thể dùng annotation có `@Target(CONSTRUCTOR)`. |
-| Có thể dùng `new X()`? | Thường có nếu constructor truy cập được và class khởi tạo được. | Có nếu constructor truy cập được và phần thân hoàn thành bình thường. |
-| `getDeclaredConstructor()` tìm thấy? | Có, với class thông thường có đúng zero-arg ở cấp Reflection. | Có, nếu thật sự không có tham số ở cấp Reflection. |
-| `isSynthetic()` phân biệt được? | Không: mặc định không nên coi nó là dấu nhận dạng “do compiler sinh”. | Không: cùng có thể trả `false`. |
+| Who creates the declaration? | Compiler, when the class has no constructor declaration. | Programmer writes `ClassName()`. |
+| Present in source? | No constructor declaration. | Has a declaration in source. |
+| Can choose access modifier freely? | Derived from the class's access level per JLS. | `public`/`protected`/package-private/`private` per valid declaration. |
+| Can write custom body? | No; implicit behavior calls `super()` (along with instance initialization mechanics). | Can write logic, validate inputs, `this(...)` or `super(...)`. |
+| Can declare `throws`? | No. | Yes. |
+| Can attach constructor annotations in source? | No constructor declaration site to attach directly. | Can use annotations with `@Target(CONSTRUCTOR)`. |
+| Can use `new X()`? | Usually yes if constructor is accessible and class can initialize. | Yes if constructor is accessible and body completes normally. |
+| Found by `getDeclaredConstructor()`? | Yes, for ordinary classes with true zero-arg at the Reflection level. | Yes, if truly parameterless at the Reflection level. |
+| Can `isSynthetic()` distinguish them? | No: by default should not be treated as a "compiler-generated" marker. | No: can also return `false`. |
 
-**Điểm chung:** cả hai dẫn đến một phương thức khởi tạo thực tế trong class file mà JVM dùng; chỉ nhìn số tham số rỗng không chứng minh nguồn gốc constructor.
+**Common point:** both result in an actual initialization method in the class file used by the JVM; merely seeing zero parameters does not prove the constructor's origin.
 
-## 3. Compiler còn tự làm gì khi có constructor tường minh?
+## 3. What Else Does the Compiler Do When an Explicit Constructor Exists?
 
-Đối với constructor tường minh không bắt đầu bằng lời gọi constructor khác (`this(...)` hoặc `super(...)`), compiler cũng chèn lời gọi `super()` ngầm định theo quy tắc constructor invocation. Vì vậy, **có `super()` ngầm trong body không đồng nghĩa là default constructor được sinh**.
+For an explicit constructor that does not begin with another constructor invocation (`this(...)` or `super(...)`), the compiler also inserts an implicit `super()` call according to constructor invocation rules. Therefore, **having an implicit `super()` in the body does not mean a default constructor was generated**.
 
 ~~~java
-// Hai constructor minh họa, cú pháp tương đương ở phần gọi superclass.
+// Two illustrative constructors, syntactically equivalent regarding the superclass call.
 class A {
     A() {
-        // compiler chèn super() trước phần body này
+        // compiler inserts super() before this body
     }
 }
 
 class B {
     B() {
-        super(); // được viết tường minh
+        super(); // explicitly written
     }
 }
 ~~~
 
-Trong cả hai class, `A()` và `B()` là các constructor **đã được khai báo tường minh**. Không có default constructor khác được bổ sung. Java cho phép chỉ một constructor invocation dẫn đầu phù hợp, và `this(...)`/`super(...)` không thể tùy tiện gọi ở cuối body.
+In both classes, `A()` and `B()` are **explicitly declared** constructors. No extra default constructor is added. Java allows only one leading constructor invocation as appropriate, and `this(...)`/`super(...)` cannot be arbitrarily called at the end of the body.
 
-### Field initializer và instance initializer vẫn chạy
+### Field Initializers and Instance Initializers Still Run
 
-Việc constructor mặc định không chứa logic tùy biến trong source **không có nghĩa** đối tượng không được khởi tạo giá trị.
+The fact that a default constructor contains no custom logic in source **does not mean** the object receives no initialized values.
 
 ~~~java
 class Counter {
@@ -93,28 +93,28 @@ class Counter {
     {
         count++;     // instance initializer block
     }
-    // Compiler tạo constructor mặc định.
+    // Compiler generates default constructor.
 }
 ~~~
 
-`new Counter().count` bằng `13`. Field initializers và instance initializer blocks thực thi trong quá trình tạo đối tượng theo thứ tự khởi tạo do ngôn ngữ quy định (sau chuỗi khởi tạo superclass, trước phần thân constructor của class). Vì thế không kết luận mọi field có giá trị mặc định `0` chỉ vì không có constructor tường minh.
+`new Counter().count` equals `13`. Field initializers and instance initializer blocks execute during object creation according to the language-specified initialization order (after the superclass initialization chain, before the class's constructor body). Therefore, do not conclude every field defaults to `0` merely because there is no explicit constructor.
 
-Constructor tường minh có thể chứa thêm logic khác:
+An explicit constructor can contain additional logic:
 
 ~~~java
 class Account {
     private int balance;
     Account() {
-        this.balance = 100; // Không thể thêm lệnh tùy ý vào constructor mặc định.
+        this.balance = 100; // Arbitrary statements cannot be added to a default constructor.
     }
 }
 ~~~
 
-`Account()` vẫn là zero-arg constructor, nhưng vì được viết trực tiếp nên không phải default constructor.
+`Account()` is still a zero-arg constructor, but because it is written directly, it is not a default constructor.
 
-## 4. Ví dụ Java 17+ biên dịch và chạy được
+## 4. Compilable and Runnable Java 17+ Example
 
-Tạo một file `ConstructorKindsDemo.java`:
+Create a file `ConstructorKindsDemo.java`:
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -122,7 +122,7 @@ import java.lang.reflect.Modifier;
 
 public class ConstructorKindsDemo {
     public static class Auto {
-        int value = 10; // Có field initializer, không khai báo constructor.
+        int value = 10; // Has field initializer, no constructor declared.
     }
 
     public static class Written {
@@ -150,13 +150,13 @@ public class ConstructorKindsDemo {
 
     public static class Child extends Base {
         public Child() {
-            super(99); // Phải gọi constructor hiện có của Base.
+            super(99); // Must call an existing constructor of Base.
         }
     }
 
     public static class Outer {
         public class Inner {
-            // Constructor mặc định cần enclosing instance.
+            // Default constructor requires enclosing instance.
         }
     }
 
@@ -205,14 +205,14 @@ public class ConstructorKindsDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 ConstructorKindsDemo.java
 java ConstructorKindsDemo
 ~~~
 
-Kết quả với JDK 17/21:
+Output on JDK 17/21:
 
 ~~~text
 Auto: count=1, public=true, synthetic=false
@@ -225,19 +225,19 @@ Child created=true
 Inner: parameterCount=1, enclosingType=Outer, created=true
 ~~~
 
-Giải thích:
+Explanation:
 
-- `Auto` không khai báo constructor nên compiler tạo một default constructor `public` do `Auto` là `public static class`. `Written` có đúng một constructor `public Written()` do lập trình viên viết.
-- Reflection thấy `count=1` và constructor `public` cho cả hai. `isSynthetic() == false` trong trường hợp này cho thấy **không thể** dùng `isSynthetic` để phát hiện constructor default.
-- `ParamsOnly` chỉ có `ParamsOnly(int)`, vì vậy gọi `getDeclaredConstructor()` (không truyền parameter types) không tìm thấy.
-- `Overloaded` có constructor zero-arg **tường minh** và một constructor một tham số; compiler không tạo thêm bản khác.
-- Field initializer làm `Auto.value == 10` dù không viết body constructor. `Written` gán `20` trong body tường minh.
-- `Child` gọi `Base(int)` một cách tường minh nên biên dịch được dù `Base` không có constructor zero-arg.
-- `Outer.Inner` là **non-private inner member class**. Ở Reflection, constructor nhận tham số `Outer` là enclosing instance. `Outer.Inner.class.getDeclaredConstructor()` không phải phép tìm kiếm đúng ở ví dụ này.
+- `Auto` declares no constructor, so the compiler generates a `public` default constructor because `Auto` is a `public static class`. `Written` has exactly one `public Written()` constructor written by the programmer.
+- Reflection sees `count=1` and a `public` constructor for both. `isSynthetic() == false` in this case shows that `isSynthetic` **cannot** be used to detect a default constructor.
+- `ParamsOnly` only has `ParamsOnly(int)`, so calling `getDeclaredConstructor()` (passing no parameter types) does not find it.
+- `Overloaded` has an **explicit** zero-arg constructor and a one-parameter constructor; the compiler does not generate another one.
+- The field initializer sets `Auto.value == 10` even without a written constructor body. `Written` assigns `20` in its explicit body.
+- `Child` explicitly calls `Base(int)`, so it compiles even though `Base` has no zero-arg constructor.
+- `Outer.Inner` is a **non-private inner member class**. In Reflection, the constructor takes parameter `Outer` as the enclosing instance. `Outer.Inner.class.getDeclaredConstructor()` is not the right lookup in this example.
 
-## 5. Vì sao subclass có thể không biên dịch khi trông như “chẳng cần constructor”?
+## 5. Why Can a Subclass Fail to Compile When It Looks Like It "Needs No Constructor"?
 
-Xét fragment **cố ý không biên dịch** sau (để hiểu quy tắc, không đưa chung vào file demo):
+Consider the following **intentionally uncompilable** fragment (to understand the rule, do not put it into the demo file):
 
 ~~~java
 class Parent {
@@ -245,13 +245,13 @@ class Parent {
 }
 
 class Child extends Parent {
-    // Không khai báo constructor.
+    // No constructor declared.
 }
 ~~~
 
-Compiler muốn sinh default constructor `Child()`, mà constructor mặc định đó gọi `super()`. Nhưng `Parent` chỉ có `Parent(int)`; không tồn tại `Parent()` thích hợp, nên `Child` bị lỗi biên dịch. Java **không** tự biến `super()` thành `super(0)`.
+The compiler wants to generate default constructor `Child()`, and that default constructor calls `super()`. However, `Parent` only has `Parent(int)`; no suitable `Parent()` exists, so `Child` gets a compile error. Java **does not** automatically turn `super()` into `super(0)`.
 
-Cách sửa là khai báo constructor cho `Child` và chọn đúng constructor superclass:
+The fix is to declare a constructor for `Child` and pick the right superclass constructor:
 
 ~~~java
 class Parent {
@@ -265,14 +265,14 @@ class Child extends Parent {
 }
 ~~~
 
-Lúc này `Child()` là constructor không tham số **tường minh**, không còn default constructor ngầm định.
+Now `Child()` is an **explicit** no-argument constructor, no longer an implicit default constructor.
 
-### Trường hợp superclass constructor ném checked exception
+### Case Where the Superclass Constructor Throws a Checked Exception
 
-Default constructor không khai báo `throws`, vì thế nếu constructor zero-arg được chọn ở superclass ném checked exception, class con không tự giải quyết được:
+A default constructor does not declare `throws`, so if the selected zero-arg constructor in the superclass throws a checked exception, the subclass cannot handle it automatically:
 
 ~~~java
-// Fragment minh họa lỗi biên dịch do checked exception.
+// Fragment illustrating a compile error due to a checked exception.
 import java.io.IOException;
 
 class Parent {
@@ -280,14 +280,14 @@ class Parent {
 }
 
 class Child extends Parent {
-    // Default Child() ngầm định không có throws IOException.
+    // Implicit default Child() does not have throws IOException.
 }
 ~~~
 
-Có thể sửa bằng cách viết constructor rõ ràng và khai báo/giải quyết checked exception:
+This can be fixed by writing an explicit constructor and declaring/handling the checked exception:
 
 ~~~java
-// Fragment thay thế hợp lệ khi đặt vào file Java có import IOException.
+// Valid replacement fragment when placed in a Java file with IOException imported.
 class Child extends Parent {
     Child() throws IOException {
         super();
@@ -295,108 +295,108 @@ class Child extends Parent {
 }
 ~~~
 
-Điều này chỉ có thể làm trong constructor **tường minh**, không thể “thêm `throws`” vào default constructor do compiler sinh.
+This can only be done in an **explicit** constructor; you cannot "add `throws`" to a compiler-generated default constructor.
 
-## 6. Tác động của access modifier
+## 6. Impact of Access Modifiers
 
-Default constructor **kế thừa mức truy cập của class theo quy tắc JLS**, trong khi constructor tường minh có thể dùng modifier khác miễn hợp lệ.
+A default constructor **inherits the access level of the class per JLS rules**, whereas an explicit constructor can use any other valid modifier.
 
 ~~~java
 public class PublicAuto {
-    // Compiler tạo public PublicAuto().
+    // Compiler generates public PublicAuto().
 }
 ~~~
 
 ~~~java
 public class PublicLocked {
     private PublicLocked() {
-        // Ngăn việc khởi tạo trực tiếp từ bên ngoài.
+        // Prevents direct instantiation from outside.
     }
 }
 ~~~
 
-Đây là hai source minh họa **ở hai file riêng** (không để cả hai public top-level classes trong một file). `PublicAuto` có default public constructor; `PublicLocked` có constructor private được viết tường minh và không có default constructor. Kể cả Reflection nhìn thấy `PublicLocked()` qua `getDeclaredConstructors()`, việc gọi `newInstance()` phải tuân quyền truy cập/module.
+These are two illustrative sources **in two separate files** (do not put both public top-level classes in one file). `PublicAuto` has a public default constructor; `PublicLocked` has an explicitly written private constructor and no default constructor. Even though Reflection sees `PublicLocked()` via `getDeclaredConstructors()`, calling `newInstance()` must obey access/module permissions.
 
-Một class `abstract` cũng có thể có default constructor nhưng không thể tạo instance trực tiếp bằng `new AbstractClass()`, dù Reflection có thể đọc metadata constructor. “Constructor tồn tại” và “class khởi tạo được” là hai điều khác nhau.
+An `abstract` class can also have a default constructor yet cannot be instantiated directly with `new AbstractClass()`, even though Reflection can read constructor metadata. "Constructor exists" and "class can be instantiated" are two different things.
 
-## 7. Quan sát bằng Reflection: điều gì biết được, điều gì không?
+## 7. Observing via Reflection: What Can Be Known, What Cannot?
 
-Các API quan trọng:
+Key APIs:
 
-| API | Ý nghĩa |
+| API | Meaning |
 | --- | --- |
-| `getDeclaredConstructors()` | Trả tất cả constructor được class khai báo ở cấp Reflection, kể cả private và constructor mặc định do compiler tạo; **không** trả constructor kế thừa vì constructor không được kế thừa. Thứ tự mảng không được bảo đảm. |
-| `getConstructors()` | Trả các constructor `public` của class, không phải constructor kế thừa từ cha. |
-| `getDeclaredConstructor(Class<?>... types)` | Tìm constructor theo đúng danh sách kiểu tham số ở mức Reflection. Không tham số `getDeclaredConstructor()` tìm zero-arg constructor nếu có. |
-| `getConstructor(Class<?>... types)` | Tìm constructor `public` theo danh sách kiểu tham số. |
-| `Constructor.getParameterCount()` | Số tham số Reflection quan sát; inner member class có thể có enclosing-instance parameter. |
-| `Constructor.isSynthetic()` | Cho biết constructor có đánh dấu synthetic theo metadata JVM hay không; **không** trả lời chắc chắn constructor được viết trong source hay là default. |
-| `Constructor.newInstance(args...)` | Gọi constructor và tạo instance khi class/constructor có quyền, tham số hợp lệ và quá trình khởi tạo thành công; có thể ném exception. |
+| `getDeclaredConstructors()` | Returns all constructors declared by the class at the Reflection level, including private and compiler-generated default constructors; **does not** return inherited constructors because constructors are not inherited. Array order is not guaranteed. |
+| `getConstructors()` | Returns `public` constructors of the class, not constructors inherited from parent. |
+| `getDeclaredConstructor(Class<?>... types)` | Looks up a constructor by exact parameter type list at the Reflection level. With no arguments, `getDeclaredConstructor()` finds the zero-arg constructor if present. |
+| `getConstructor(Class<?>... types)` | Looks up a `public` constructor by parameter type list. |
+| `Constructor.getParameterCount()` | Parameter count observed by Reflection; an inner member class may have an enclosing-instance parameter. |
+| `Constructor.isSynthetic()` | Indicates whether the constructor is marked synthetic in JVM metadata; **does not** reliably tell whether a constructor was written in source or is a default constructor. |
+| `Constructor.newInstance(args...)` | Invokes the constructor and creates an instance when the class/constructor is accessible, arguments are valid, and initialization succeeds; may throw exceptions. |
 
-**Không có API Reflection chuẩn dạng `isDefaultConstructor()` hoặc `isDeclaredExplicitlyInSource()`.** Một constructor ngầm định `public Auto()` và một constructor tường minh `public Written() {}` có thể trông giống nhau ở metadata: cùng số tham số, modifier, tên `<init>` trong bytecode và `isSynthetic()==false`. Không nên suy đoán nguồn gốc chỉ từ Reflection.
+**There is no standard Reflection API like `isDefaultConstructor()` or `isDeclaredExplicitlyInSource()`.** An implicit `public Auto()` and an explicit `public Written() {}` can look identical in metadata: same parameter count, modifier, `<init>` name in bytecode, and `isSynthetic()==false`. Do not guess the origin solely from Reflection.
 
-Biên dịch sang class file vẫn tạo phương thức khởi tạo `<init>`. Dùng `javap -p -c` để xem bytecode (ví dụ với các nested classes trong demo) có thể thấy các lệnh khởi tạo và gọi superclass, nhưng **sự hiện diện của `<init>()V` không chứng minh** constructor được viết hay được compiler sinh. Một số chi tiết như annotation hoặc debug metadata có thể cung cấp gợi ý trong trường hợp cụ thể, không phải dấu nhận dạng tổng quát. Muốn phân biệt một cách đáng tin cậy, cần biết **source declaration** hoặc metadata riêng của công cụ biên dịch/source parser.
+Compiling to a class file still creates an initialization method `<init>`. Using `javap -p -c` to inspect bytecode (for example with the nested classes in the demo) shows initialization instructions and the superclass call, yet **the presence of `<init>()V` does not prove** whether the constructor was written or compiler-generated. Certain details such as annotations or debug metadata may offer hints in specific cases, not a general identifier. To distinguish reliably, one needs the **source declaration** or dedicated metadata from a compiler tool/source parser.
 
-Đối với framework, đa số nhu cầu chỉ là “có constructor phù hợp để gọi hay không?” thay vì “nó xuất phát từ source hay compiler?”. Khi chọn constructor, hãy xét accessibility, module, signature, annotation, exception và mục đích nghiệp vụ, thay vì tự đoán nguồn gốc.
+For frameworks, most needs are simply "is there a suitable constructor to call?" rather than "did it come from source or the compiler?". When selecting a constructor, examine accessibility, module, signature, annotations, exceptions, and business intent, rather than guessing its origin.
 
-## 8. Ngoại lệ quan trọng: inner class, enum, record, anonymous class
+## 8. Important Exceptions: Inner Class, Enum, Record, Anonymous Class
 
-Quy tắc default constructor phải được hiểu trong đúng ngữ cảnh loại class.
+The default constructor rule must be understood in the right class-kind context.
 
-### Non-static inner member class
+### Non-Static Inner Member Class
 
-Một inner member class không `private` cần enclosing instance. Constructor mà `Outer.Inner.class.getDeclaredConstructor(...)` nhìn thấy có thể nhận tham số `Outer` mặc dù source không viết tham số nào. Vì vậy, công cụ Reflection không nên suy ra “không có default constructor” chỉ do `getDeclaredConstructor()` không tồn tại khi truyền zero parameters. Ví dụ chạy ở trên đã chứng minh constructor có `parameterCount=1`.
+A non-`private` inner member class needs an enclosing instance. The constructor seen by `Outer.Inner.class.getDeclaredConstructor(...)` may take an `Outer` parameter even though source code wrote no parameters. Thus, a Reflection tool should not infer "no default constructor" just because `getDeclaredConstructor()` does not exist when passing zero parameters. The runnable example above proved the constructor has `parameterCount=1`.
 
 ### Enum
 
-Enum có quy tắc constructor đặc biệt trong JLS `8.9.2. Constructor khai báo trong enum không thể là `public` hoặc `protected`; các giá trị enum được tạo theo cơ chế do compiler/JVM quản lý. Không áp dụng trực tiếp quy tắc class thường để dùng `Constructor.newInstance()` tạo thêm enum constant: Reflection không cho tạo enum object bằng cách đó. Các tham số nội bộ trong constructor enum cũng không nên được diễn giải như API constructor thông thường.
+Enums have special constructor rules in JLS §8.9.2. Constructors declared in an enum cannot be `public` or `protected`; enum values are created by a mechanism managed by the compiler/JVM. Do not directly apply ordinary class rules to use `Constructor.newInstance()` to create additional enum constants: Reflection forbids creating enum objects that way. Internal parameters in enum constructors should also not be interpreted as ordinary constructor APIs.
 
 ### Record (Java 16+)
 
-Record có **canonical constructor** gắn với record components. Khi không viết canonical constructor, Java có thể sinh **implicit canonical constructor** theo quy tắc record, **khác khái niệm default constructor của class thông thường**. Ví dụ `record Point(int x, int y) {}` có canonical constructor nhận `int, int`, chứ không tự có `Point()`. Với `record Empty() {}`, canonical constructor tình cờ có zero parameters nhưng bản chất vẫn là **canonical constructor**.
+A record has a **canonical constructor** tied to its record components. When no canonical constructor is written, Java may generate an **implicit canonical constructor** under record rules, **which differs from the default constructor concept of ordinary classes**. For example, `record Point(int x, int y) {}` has a canonical constructor taking `int, int`, rather than automatically having `Point()`. With `record Empty() {}`, the canonical constructor happens to have zero parameters, yet in essence it is still a **canonical constructor**.
 
 ~~~java
-// Các record declaration minh họa, có thể đặt trong file Java 17 thích hợp.
+// Illustrative record declarations, can be placed in an appropriate Java 17 file.
 record Point(int x, int y) {}
 record Empty() {}
 ~~~
 
-Lời gọi `new Point()` không hợp lệ trừ khi người lập trình có thêm constructor không tham số hợp lệ tự ủy quyền cho canonical constructor.
+Calling `new Point()` is invalid unless the programmer adds a valid no-argument constructor that delegates to the canonical constructor.
 
-### Anonymous class
+### Anonymous Class
 
-Anonymous class không có cú pháp đặt tên constructor trong source; constructor của nó tuân quy tắc riêng ở JLS `15.9.5.1. Đừng lấy metadata constructor của anonymous class làm ví dụ đơn giản để xác định default constructor của một class đặt tên.
+An anonymous class has no syntax to declare a named constructor in source; its constructor follows separate rules in JLS §15.9.5.1. Do not treat an anonymous class's constructor metadata as a simple example for determining the default constructor of a named class.
 
-## 9. Sai lầm thường gặp
+## 9. Common Mistakes
 
-1. **“Class nào cũng có default constructor.”** Sai: có một constructor tường minh bất kỳ là compiler không sinh default constructor khác.
-2. **“Constructor zero-arg là default constructor.”** Sai: zero-arg có thể do lập trình viên khai báo; record zero-component còn có canonical constructor zero-arg.
-3. **“Nếu khai báo `A(int)` thì Java vẫn giữ `A()`.”** Sai: muốn cả hai phải viết cả `A()` lẫn `A(int)`.
-4. **“Default constructor luôn public.”** Sai: mức truy cập phụ thuộc class (và các quy tắc riêng của loại class).
-5. **“Default constructor không chạy khởi tạo field.”** Sai: instance field initializers và instance initializer blocks vẫn chạy.
-6. **“Có `super()` ngầm tức constructor là default.”** Sai: constructor viết tường minh không gọi `this(...)`/`super(...)` cũng nhận một lời gọi `super()` ngầm định.
-7. **“Con tự dùng constructor có tham số của cha.”** Sai: constructors không được kế thừa, và default constructor ở con chỉ cố gọi `super()`.
-8. **“Reflection tự phân biệt constructor do compiler sinh.”** Sai: `isSynthetic` không phải bộ phân loại này, và constructor mặc định vẫn nằm trong `getDeclaredConstructors()`.
-9. **“`getDeclaredConstructor()` luôn tìm đúng default constructor.”** Sai với trường hợp non-private inner member class: có tham số enclosing instance ở Reflection.
-10. **“Record và enum giống class thường trong mọi trường hợp.”** Sai: loại class này có quy tắc constructor đặc thù.
+1. **"Every class has a default constructor."** False: having any explicit constructor stops the compiler from generating another default constructor.
+2. **"A zero-arg constructor is a default constructor."** False: a zero-arg constructor can be declared by the programmer; a zero-component record also has a zero-arg canonical constructor.
+3. **"If `A(int)` is declared, Java still keeps `A()`."** False: to have both, you must write both `A()` and `A(int)`.
+4. **"A default constructor is always public."** False: the access level depends on the class (and class-kind-specific rules).
+5. **"A default constructor does not run field initialization."** False: instance field initializers and instance initializer blocks still run.
+6. **"Having an implicit `super()` means the constructor is default."** False: an explicitly written constructor that does not call `this(...)`/`super(...)` also receives an implicit `super()` call.
+7. **"A subclass automatically uses its parent's parameterized constructor."** False: constructors are not inherited, and a subclass's default constructor only attempts to call `super()`.
+8. **"Reflection automatically distinguishes compiler-generated constructors."** False: `isSynthetic` is not such a classifier, and default constructors still appear in `getDeclaredConstructors()`.
+9. **"`getDeclaredConstructor()` always finds the default constructor."** False for non-private inner member classes: there is an enclosing instance parameter in Reflection.
+10. **"Records and enums behave like ordinary classes in all cases."** False: these class kinds have specialized constructor rules.
 
-## 10. Tình huống thực hành và cách kiểm thử
+## 10. Practice Scenarios and How to Test
 
-- Bỏ hết constructor declarations khỏi `ParamsOnly` rồi gọi `getDeclaredConstructor()`: quan sát compiler bắt đầu sinh default constructor.
-- Thêm một constructor `ParamsOnly(String)` và thử `new ParamsOnly()`: nêu rõ tại sao bị lỗi biên dịch.
-- Đổi constructor zero-arg trong `Written` thành `private Written()`: dự đoán thay đổi ở `getConstructors()` và `getDeclaredConstructors()`, sau đó thử gọi từ một class không có quyền.
-- Tạo superclass chỉ có constructor `Parent(int)` rồi khai báo subclass không có constructor: giải thích vì sao default `Child()` không biên dịch.
-- Tạo superclass zero-arg constructor ném checked exception: giải thích vì sao cần constructor tường minh `throws` ở lớp con.
-- So sánh `Auto.class.getDeclaredConstructor().isSynthetic()` và `Written.class.getDeclaredConstructor().isSynthetic()`, tránh kết luận nguồn gốc theo boolean này.
-- Với `Outer.Inner`, thử lấy constructor bằng `getDeclaredConstructor(Outer.class)` và gọi `newInstance(new Outer())`.
-- Với `record Point(int x, int y) {}`, kiểm tra danh sách constructor Reflection và phân biệt canonical constructor với default constructor.
+- Remove all constructor declarations from `ParamsOnly` and call `getDeclaredConstructor()`: observe the compiler start generating a default constructor.
+- Add a constructor `ParamsOnly(String)` and try `new ParamsOnly()`: explain clearly why compilation fails.
+- Change the zero-arg constructor in `Written` to `private Written()`: predict changes in `getConstructors()` and `getDeclaredConstructors()`, then try invoking from a class without permission.
+- Create a superclass with only `Parent(int)` and declare a subclass with no constructor: explain why default `Child()` does not compile.
+- Create a superclass zero-arg constructor that throws a checked exception: explain why an explicit `throws` constructor is needed in the subclass.
+- Compare `Auto.class.getDeclaredConstructor().isSynthetic()` and `Written.class.getDeclaredConstructor().isSynthetic()`, avoiding inferring origin from this boolean.
+- For `Outer.Inner`, try retrieving the constructor with `getDeclaredConstructor(Outer.class)` and calling `newInstance(new Outer())`.
+- For `record Point(int x, int y) {}`, inspect the Reflection constructor list and distinguish the canonical constructor from a default constructor.
 
-## 11. Tài liệu tham khảo
+## 11. References
 
-- [Java Language Specification 17 — `8.8.9 Default Constructor](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.8.9): điều kiện sinh, quyền truy cập, lời gọi superclass, `throws` và ngoại lệ inner class.
-- [Java Language Specification 17 — `8.8.7 Constructor Body](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.8.7): cơ chế `this(...)`/`super(...)` và lời gọi ngầm.
-- [Java SE 17 — Class#getDeclaredConstructors và getDeclaredConstructor](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): constructor mặc định xuất hiện trong Reflection, phạm vi declared/public, inner member class parameter.
-- [Java Language Specification 17 — `8.10 Record Classes](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.10): canonical constructor của record và quy tắc sinh riêng.
-- [Java Language Specification 17 — `8.9 Enum Classes](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.9): constructor enum và giới hạn riêng.
+- [Java Language Specification 17 — §8.8.9 Default Constructor](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.8.9): generation conditions, access permissions, superclass invocation, `throws`, and inner class exceptions.
+- [Java Language Specification 17 — §8.8.7 Constructor Body](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.8.7): `this(...)`/`super(...)` mechanics and implicit calls.
+- [Java SE 17 — Class#getDeclaredConstructors and getDeclaredConstructor](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): default constructor appearing in Reflection, declared/public scope, inner member class parameter.
+- [Java Language Specification 17 — §8.10 Record Classes](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.10): record canonical constructors and separate generation rules.
+- [Java Language Specification 17 — §8.9 Enum Classes](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.9): enum constructors and specific restrictions.
 
-**Ghi nhớ:** “mặc định” mô tả **nguồn gốc do compiler ngầm khai báo khi không có constructor nào**, còn “không tham số” mô tả **hình dạng tham số của một constructor**. Đừng dùng hai khái niệm thay thế nhau khi giải thích mã nguồn, thiết kế subclass hoặc sử dụng Reflection.
+**Key takeaway:** "default" describes **the origin implicitly declared by the compiler when no constructors exist**, whereas "no-argument" describes **the parameter shape of a constructor**. Do not use these two concepts interchangeably when explaining source code, designing subclasses, or using Reflection.

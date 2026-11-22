@@ -1,10 +1,10 @@
-# Thiết kế dạng trao đổi giữ số chính xác, không qua `double` trung gian
+# Designing Exchange Formats That Keep Numbers Exact Without `double` Intermediaries
 
-## 1. Bài toán và tiêu chí thành công
+## 1. Problem Statement and Success Criteria
 
-Khi chuyển một giá trị `BigDecimal` qua JSON, HTTP, hàng đợi, tập tin hoặc giữa Java và JavaScript, lỗi phổ biến là đưa số qua `double`/`Double` ở một mắt xích bất kỳ. `double` là số dấu phẩy động nhị phân hữu hạn (IEEE 754 binary64), nên không thể biểu diễn chính xác mọi số thập phân, kể cả `0.1`, và không thể giữ riêng rẽ mọi số nguyên lớn.
+When transmitting a `BigDecimal` value over JSON, HTTP, message queues, files, or between Java and JavaScript, a common bug is passing the number through `double`/`Double` at some stage. `double` is a finite binary floating-point number (IEEE 754 binary64), so it cannot represent every decimal fraction accurately—including `0.1`—and cannot keep all large integers distinct.
 
-Ví dụ trong Java:
+Java example:
 
 ~~~java
 BigDecimal exact = new BigDecimal("9007199254740993.01");
@@ -14,28 +14,28 @@ System.out.println(exact.toPlainString());   // 9007199254740993.01
 System.out.println(altered.toPlainString()); // 9007199254740994
 ~~~
 
-Việc chuyển sang `double` đã làm mất dữ liệu; chuyển ngược bằng `BigDecimal.valueOf(...)` **không thể khôi phục** những chữ số vốn đã bị làm tròn.
+Converting to `double` lost data; converting back with `BigDecimal.valueOf(...)` **cannot recover** the digits that were rounded away.
 
-Một dạng trao đổi tốt cần định nghĩa rõ:
+A sound exchange format must explicitly define:
 
-1. **Giữ nguyên giá trị số học**: phía nhận đọc được đúng số thập phân phía gửi định truyền.
-2. **Có cần giữ nguyên `scale` không?** `1.0` và `1.00` có cùng giá trị theo `compareTo`, nhưng không bằng nhau theo `BigDecimal.equals`.
-3. **Giữ nguyên mọi chữ số trên đường truyền**, không chuyển ngầm qua `double`, `float`, `Number` của JavaScript hoặc ép kiểu tương tự.
-4. **Hợp đồng có thể kiểm thử**: thống nhất kiểu dữ liệu, cú pháp, giới hạn, quy tắc làm tròn và cách báo lỗi.
-5. **Bảo vệ tài nguyên**: kiểm soát độ dài, `precision`, `scale` và số mũ trước các phép chuyển đổi tốn bộ nhớ.
+1. **Preserving the numeric value**: the receiver reads the exact decimal number the sender intended to transmit.
+2. **Does `scale` also need to be preserved?** `1.0` and `1.00` have the same value under `compareTo`, yet are not equal under `BigDecimal.equals`.
+3. **Preserving every digit on the wire**, without implicitly converting through `double`, `float`, JavaScript `Number`, or similar casts.
+4. **A testable contract**: agree on data types, syntax, limits, rounding rules, and error reporting.
+5. **Resource protection**: bound length, `precision`, `scale`, and exponents before memory-intensive conversions.
 
-Bài học này tập trung vào thiết kế và thực hiện trao đổi `BigDecimal` giữa các thành phần. Khi cần phép tính có làm tròn, chính sách làm tròn phải được xác định riêng, không lén thực hiện trong bước mã hóa hoặc giải mã.
+This lesson focuses on designing and implementing `BigDecimal` exchange across components. When rounded calculations are needed, the rounding policy must be specified separately, never hidden inside encoding or decoding steps.
 
-## 2. Vì sao `double` là bước trung gian không an toàn?
+## 2. Why Is `double` an Unsafe Intermediary?
 
-`BigDecimal` biểu diễn một số bằng `unscaledValue × 10^(-scale)`. Với chuỗi thập phân, `new BigDecimal(String)` đọc các chữ số chính xác theo biểu diễn thập phân.
+`BigDecimal` represents a number as `unscaledValue × 10^(-scale)`. For a decimal string, `new BigDecimal(String)` reads the digits accurately according to decimal representation.
 
-Ngược lại, `double` lưu một lượng hữu hạn bit cho số có nghĩa và số mũ nhị phân. Có hai nhóm lỗi chính:
+By contrast, `double` stores a finite number of bits for the binary significand and exponent. There are two primary failure modes:
 
-- **Phân số thập phân**: nhiều số như `0.1` không biểu diễn chính xác bằng nhị phân hữu hạn. `new BigDecimal(0.1)` cho giá trị chính xác của *số double đang lưu*, có thể dài hơn nhiều so với chuỗi `"0.1"`.
-- **Số nguyên vượt miền an toàn của JavaScript**: `Number` là binary64, nên mọi số nguyên trong khoảng `[-(2^53-1), 2^53-1]` mới được bảo đảm biểu diễn chính xác từng đơn vị. `9007199254740993` không thuộc miền đó.
+- **Decimal fractions**: many numbers like `0.1` cannot be represented exactly in finite binary. `new BigDecimal(0.1)` gives the exact value of *the stored double*, which is much longer than the string `"0.1"`.
+- **Integers exceeding JavaScript's safe range**: `Number` is binary64, so only integers in `[-(2^53-1), 2^53-1]` are guaranteed to be represented exactly to the unit. `9007199254740993` falls outside that range.
 
-Minh họa:
+Illustration:
 
 ~~~java
 BigDecimal text = new BigDecimal("0.1");
@@ -49,15 +49,15 @@ System.out.println(
 ); // 9007199254740992
 ~~~
 
-Đừng hiểu nhầm rằng `BigDecimal.valueOf(double)` vô dụng: nó thường thích hợp hơn `new BigDecimal(double)` khi **đầu vào đã thực sự là một `double`** và bạn cần biểu diễn thập phân theo `Double.toString`. Tuy nhiên, không cách nào trong hai cách đó lấy lại chữ số từng tồn tại trước khi dữ liệu bị chuyển sang `double`.
+Do not misunderstand `BigDecimal.valueOf(double)` as useless: it is usually preferable to `new BigDecimal(double)` when **the input truly is already a `double`** and you want its `Double.toString` decimal representation. However, neither approach recovers digits that existed before the data was converted into `double`.
 
-**Quy tắc kiến trúc:** nếu nguồn là chuỗi thập phân, dữ liệu `DECIMAL/NUMERIC` hoặc `BigDecimal`, giữ nó dưới dạng **chuỗi thập phân chính xác hoặc kiểu decimal chính xác** cho đến khi đến đích.
+**Architectural rule:** if the source is a decimal string, `DECIMAL/NUMERIC` data, or a `BigDecimal`, keep it as an **exact decimal string or exact decimal type** all the way to its destination.
 
-## 3. Đầu tiên phải phân biệt hai mức “giữ nguyên”
+## 3. First Distinguish Two Levels of "Preservation"
 
-### A. Giữ giá trị số học
+### A. Preserving Numeric Value
 
-Hai biểu diễn có giá trị bằng nhau nếu:
+Two representations have equal value if:
 
 ~~~java
 BigDecimal a = new BigDecimal("1000");
@@ -67,26 +67,26 @@ System.out.println(a.compareTo(b) == 0); // true
 System.out.println(a.equals(b));         // false
 ~~~
 
-Mức bảo toàn này phù hợp khi chỉ quan tâm kết quả tính toán, chẳng hạn tổng đo lường được chuẩn hóa và quy tắc nghiệp vụ không dùng `scale`.
+This level of preservation is appropriate when only computation results matter, such as normalized measurement totals where business rules do not rely on `scale`.
 
-### B. Giữ cả giá trị lẫn `scale`
+### B. Preserving Both Value and `scale`
 
-`BigDecimal.equals` xét cả giá trị và `scale`. Ví dụ:
+`BigDecimal.equals` checks both value and `scale`. Examples:
 
-| Giá trị nhập | `unscaledValue()` | `scale()` |
+| Input Value | `unscaledValue()` | `scale()` |
 | --- | ---: | ---: |
 | `"1.0"` | `10` | `1` |
 | `"1.00"` | `100` | `2` |
 | `"1000"` | `1000` | `0` |
 | `"1E+3"` | `1` | `-3` |
 
-Nếu `scale` là phần của hợp đồng (ví dụ để giữ số chữ số thập phân đã khai báo), cần round-trip mà `BigDecimal.equals` cũng trả `true`.
+If `scale` is part of the contract (e.g., to preserve the declared number of decimal places), you need a round-trip where `BigDecimal.equals` also returns `true`.
 
-Không nên quy kết số chữ số 0 cuối là “không quan trọng” trong mọi hệ thống. Đối với tính toán số học có thể không quan trọng, nhưng trong nhập liệu, xuất chứng từ hoặc trao đổi dựa trên biểu diễn, thông tin đó có thể cần được giữ lại.
+Do not dismiss trailing zeros as "unimportant" across all systems. They may not affect arithmetic, yet in data entry, document generation, or representation-based exchanges, that information may need to be retained.
 
-## 4. Các phương án wire format và đánh đổi
+## 4. Wire Format Options and Trade-Offs
 
-### Phương án 1 — JSON string chứa decimal chính xác (khuyến nghị mặc định)
+### Option 1 — JSON String Containing Exact Decimal (Default Recommendation)
 
 ~~~json
 {
@@ -95,18 +95,18 @@ Không nên quy kết số chữ số 0 cuối là “không quan trọng” tro
 }
 ~~~
 
-Hợp đồng: `amount` là **JSON string**, không phải JSON number. Nội dung chuỗi biểu diễn số thập phân theo cú pháp đã thỏa thuận; phía Java giải mã trực tiếp bằng `new BigDecimal(amount)`.
+Contract: `amount` is a **JSON string**, not a JSON number. The string content represents the decimal number under an agreed syntax; the Java side decodes directly with `new BigDecimal(amount)`.
 
-Ưu điểm:
+Advantages:
 
-- JavaScript `JSON.parse` trả về **string**, không tự làm tròn qua `Number`.
-- Java, Python, .NET hoặc các ngôn ngữ khác có thể parse bằng kiểu decimal có độ chính xác cần thiết.
-- Dễ duy trì tính toàn vẹn của số nguyên rất lớn, nhiều chữ số thập phân và ký pháp số mũ.
-- Có thể quy định rằng chuỗi là đầu ra của `BigDecimal.toString()` để giữ cả `scale`.
+- JavaScript `JSON.parse` returns a **string**, avoiding automatic rounding via `Number`.
+- Java, Python, .NET, or other languages can parse using a decimal type with the required precision.
+- Easily preserves the integrity of huge integers, many decimal digits, and exponential notation.
+- Can stipulate that the string is the output of `BigDecimal.toString()` to preserve `scale` as well.
 
-Cần thống nhất schema: tên trường, loại JSON **string**, định dạng dấu chấm thập phân, dấu âm, hỗ trợ số mũ, độ dài tối đa và ràng buộc miền giá trị. Đừng để client tùy tiện gọi `Number(amount)` hoặc `parseFloat(amount)` trước khi tính toán.
+Agree on the schema: field name, JSON **string** type, decimal point format, negative sign, exponent support, maximum length, and value range constraints. Do not let clients arbitrarily call `Number(amount)` or `parseFloat(amount)` before computing.
 
-### Phương án 2 — JSON number với pipeline decimal chính xác từ đầu đến cuối
+### Option 2 — JSON Number with End-to-End Exact Decimal Pipeline
 
 ~~~json
 {
@@ -114,15 +114,15 @@ Cần thống nhất schema: tên trường, loại JSON **string**, định d�
 }
 ~~~
 
-Cú pháp JSON **cho phép** literal số có nhiều chữ số, nhưng JSON không bảo đảm mọi parser giữ nguyên độ chính xác. Nếu một bên làm `JSON.parse` trong JavaScript thông thường, `amount` sẽ trở thành `Number`; số đã mất chính xác ngay tại bước parse.
+JSON syntax **permits** numeric literals with many digits, yet JSON does not guarantee every parser preserves precision. If any participant runs standard `JSON.parse` in JavaScript, `amount` becomes a `Number`; precision is already lost at the parse step.
 
-Phương án này chỉ đáp ứng yêu cầu khi **mọi mắt xích** đều đọc token số trực tiếp thành decimal tùy ý và không có bước trung gian qua binary64. Ví dụ một parser Java được cấu hình bind trường sang `BigDecimal` có thể đọc token decimal chính xác, trong khi một parser khác bind sang `Double` có thể làm tròn.
+This option satisfies requirements only when **every link in the chain** reads the numeric token directly into an arbitrary decimal type with no binary64 intermediary. For instance, one Java parser configured to bind the field to `BigDecimal` can read the decimal token accurately, while another parser binding to `Double` can round it.
 
-Việc Java tự serialize `BigDecimal` thành JSON numeric token không đủ chứng minh rằng toàn tuyến an toàn. Hãy kiểm thử cả các consumer, message broker, proxy và bước chuyển đổi dữ liệu.
+Having Java serialize `BigDecimal` as a JSON numeric token is not enough to prove the whole pipeline is safe. Test all consumers, message brokers, proxies, and data transformation steps.
 
-### Phương án 3 — đơn vị nhỏ nhất dưới dạng chuỗi số nguyên
+### Option 3 — Smallest Unit as an Integer String
 
-Ví dụ, nếu hợp đồng quy định hai chữ số thập phân:
+For example, if the contract specifies two decimal places:
 
 ~~~json
 {
@@ -132,11 +132,11 @@ Ví dụ, nếu hợp đồng quy định hai chữ số thập phân:
 }
 ~~~
 
-Giá trị được hiểu là `123456 × 10^(-2) = 1234.56`. `minorUnits` là **string số nguyên** để phía JavaScript không vô tình mất chính xác; phía Java có thể dùng `BigInteger`.
+The value is interpreted as `123456 × 10^(-2) = 1234.56`. `minorUnits` is an **integer string** so JavaScript does not accidentally lose precision; Java can use `BigInteger`.
 
-Phương án này hữu ích trong thanh toán hoặc hệ thống đòi hỏi số nguyên theo một đơn vị đã định trước. Nhưng `scale` không nên tự suy từ mã tiền tệ một cách tùy tiện; cần áp dụng đúng chính sách và phiên bản quy định nghiệp vụ. Nếu giá trị gốc có nhiều chữ số hơn `scale` cho phép, phải xác định **từ chối** hay **làm tròn với chế độ nào** trước khi mã hóa.
+This option is useful in payments or systems requiring integers in a predefined unit. However, `scale` should not be guessed arbitrarily from a currency code; apply the proper business policy and versioned rules. If the original value has more digits than `scale` permits, define whether to **reject** or **round with a specific mode** before encoding.
 
-### Phương án 4 — truyền tách `unscaled` và `scale`
+### Option 4 — Transmitting Separate `unscaled` and `scale`
 
 ~~~json
 {
@@ -145,7 +145,7 @@ Phương án này hữu ích trong thanh toán hoặc hệ thống đòi hỏi s
 }
 ~~~
 
-Phía nhận dựng lại:
+The receiver reconstructs it:
 
 ~~~java
 BigDecimal number = new BigDecimal(
@@ -153,31 +153,31 @@ BigDecimal number = new BigDecimal(
 ); // 1000.00
 ~~~
 
-Biểu diễn này giữ cả giá trị và `scale` mà không cần dựa trên quy tắc chuỗi chuẩn. `unscaled` phải được coi là string số nguyên lớn; `scale` là số nguyên có ràng buộc miền và độ lớn hợp lý (ở Java, `BigDecimal.scale()` trả `int`).
+This representation preserves both value and `scale` without relying on canonical string rules. `unscaled` must be treated as a large integer string; `scale` is an integer with reasonable range and magnitude constraints (in Java, `BigDecimal.scale()` returns `int`).
 
-Ưu điểm là contract tường minh và dễ tái dựng. Nhược điểm là schema dài hơn và mọi bên phải triển khai đúng công thức `unscaled × 10^(-scale)`, đặc biệt với `scale` âm.
+The advantage is an explicit contract that is straightforward to reconstruct. The downside is a more verbose schema and the requirement that all parties implement `unscaled × 10^(-scale)` properly, especially for negative `scale`.
 
-### Chọn phương án nào?
+### Which Option Should You Choose?
 
-| Mục tiêu | Khuyến nghị |
+| Goal | Recommendation |
 | --- | --- |
-| API JSON có web client hoặc nhiều ngôn ngữ | Decimal **string** |
-| Chỉ có các service dùng parser decimal đã được xác minh | JSON number có thể dùng, kèm kiểm thử toàn tuyến |
-| Dữ liệu gắn với đơn vị nhỏ nhất cố định | Integer minor units **string** cùng scale/đơn vị |
-| Phải lưu đúng biểu diễn `BigDecimal` gồm scale | Decimal `toString()` hoặc cặp `unscaled/scale` |
+| JSON API with web clients or multiple languages | Decimal **string** |
+| Services only, all using verified decimal parsers | JSON number may be used, with end-to-end testing |
+| Data tied to fixed smallest units | Integer minor-units **string** alongside scale/unit |
+| Must preserve exact `BigDecimal` representation including scale | Canonical `toString()` or `unscaled/scale` pair |
 
-## 5. Hợp đồng chuỗi decimal: `toString()` khác `toPlainString()`
+## 5. Decimal String Contract: `toString()` vs. `toPlainString()`
 
-Hai phương thức đều tạo chuỗi chứa giá trị số mà không chuyển qua `double`, nhưng **khả năng giữ scale khi parse lại khác nhau**.
+Both methods produce a string containing the numeric value without passing through `double`, yet **their ability to preserve scale when parsed back differs**.
 
-| Giá trị ban đầu | `toString()` | `toPlainString()` | Parse lại có giữ scale? |
+| Initial Value | `toString()` | `toPlainString()` | Preserves Scale When Reparsed? |
 | --- | --- | --- | --- |
-| `new BigDecimal("12.3400")` | `12.3400` | `12.3400` | Cả hai |
-| `new BigDecimal("1E+3")` | `1E+3` | `1000` | Chỉ `toString()` |
-| `new BigDecimal("1000")` | `1000` | `1000` | Cả hai |
-| `new BigDecimal("0.000")` | `0.000` | `0.000` | Cả hai |
+| `new BigDecimal("12.3400")` | `12.3400` | `12.3400` | Both |
+| `new BigDecimal("1E+3")` | `1E+3` | `1000` | Only `toString()` |
+| `new BigDecimal("1000")` | `1000` | `1000` | Both |
+| `new BigDecimal("0.000")` | `0.000` | `0.000` | Both |
 
-Điểm then chốt:
+Key takeaway:
 
 ~~~java
 BigDecimal original = new BigDecimal("1E+3");
@@ -193,15 +193,15 @@ System.out.println(original.equals(plainRoundTrip));     // false
 System.out.println(original.compareTo(plainRoundTrip));  // 0
 ~~~
 
-`BigDecimal.toString()` có thể dùng ký pháp mũ (`1E+3`), nhưng biểu diễn chuẩn này chứa đủ thông tin để `new BigDecimal(original.toString()).equals(original)` trả về `true`.
+`BigDecimal.toString()` may use exponential notation (`1E+3`), yet this canonical representation contains sufficient information for `new BigDecimal(original.toString()).equals(original)` to return `true`.
 
-`toPlainString()` loại bỏ ký pháp mũ, phù hợp để hiển thị hoặc trao đổi khi chỉ cần giữ **giá trị số học**. Với scale âm, việc đọc lại chuỗi plain thường tạo scale khác. Nếu một hệ thống chỉ cho chuỗi thập phân không có số mũ nhưng vẫn phải giữ scale, truyền kèm trường `scale` theo schema riêng.
+`toPlainString()` removes exponential notation, making it suitable for display or exchange when only the **numeric value** needs to be preserved. With negative scales, reading back a plain string typically creates a different scale. If a system only allows exponent-free decimal strings yet still must preserve scale, transmit a separate `scale` field in the schema.
 
-Lưu ý: `stripTrailingZeros()` **thay đổi scale** dù giá trị giữ nguyên; không gọi nó một cách vô thức trước khi xuất dữ liệu cần round-trip chính xác theo `equals()`. Tương tự, `setScale(...)` có thể thêm số 0 hoặc làm tròn, vì vậy là một quy tắc nghiệp vụ riêng, không phải bước bắt buộc của serialization.
+Note: `stripTrailingZeros()` **changes scale** even though the value remains unchanged; do not call it thoughtlessly before outputting data that needs exact `equals()` round-trips. Likewise, `setScale(...)` can add zeros or round, so it is a separate business rule rather than a mandatory serialization step.
 
-## 6. Thiết kế hợp đồng trao đổi cụ thể
+## 6. Designing a Concrete Exchange Contract
 
-Ví dụ thống nhất hợp đồng cho `PaymentWire`:
+Example contract specification for `PaymentWire`:
 
 ~~~json
 {
@@ -210,21 +210,21 @@ Ví dụ thống nhất hợp đồng cho `PaymentWire`:
 }
 ~~~
 
-- `currency`: mã đơn vị theo danh sách hệ thống hỗ trợ, được kiểm tra độc lập.
-- `amount`: JSON **string**, chứa chuỗi canonical do `BigDecimal.toString()` tạo ra.
-- Sử dụng dấu `.` làm dấu thập phân, dấu `-` cho số âm, có thể có số mũ `E` cùng dấu số mũ `+` hoặc `-`.
-- Không chứa dấu phân nhóm (`,`), ký hiệu tiền tệ, khoảng trắng hoặc định dạng phụ thuộc locale.
-- Giới hạn tổng ký tự, `precision`, `scale` và miền giá trị được xác định theo nghiệp vụ.
-- Người nhận parse trực tiếp `String → BigDecimal`, không sử dụng `Double`, `Float`, `BigDecimal(double)` hoặc `Number` làm trung gian.
-- Nếu dữ liệu không hợp lệ, người nhận trả lỗi validation rõ ràng; không âm thầm thay thế bằng `0` hoặc làm tròn.
+- `currency`: unit code from the system's supported list, validated independently.
+- `amount`: JSON **string**, containing the canonical string generated by `BigDecimal.toString()`.
+- Uses `.` as the decimal separator, `-` for negative numbers, and may include exponent `E` with exponent sign `+` or `-`.
+- Contains no grouping separators (`,`), currency symbols, whitespace, or locale-dependent formatting.
+- Total character length, `precision`, `scale`, and value bounds are defined by business rules.
+- The receiver parses directly `String → BigDecimal`, without using `Double`, `Float`, `BigDecimal(double)`, or `Number` as an intermediary.
+- If data is invalid, the receiver returns a clear validation error; never silently substitute `0` or round.
 
-Vì hợp đồng lựa chọn chuỗi canonical, các dạng như `"01.20"`, `"1e3"` hay `"1E+03"` có thể là chuỗi mà một parser decimal đọc được, nhưng **bị từ chối theo tính canonical** nếu đầu ra `BigDecimal.toString()` khác nguyên văn đầu vào. Nếu cần tương thích nhiều producer có quy tắc khác nhau, có thể nới canonical check nhưng vẫn giữ kiểm tra decimal chính xác và thống nhất yêu cầu bảo toàn scale.
+Because the contract chooses canonical strings, forms like `"01.20"`, `"1e3"`, or `"1E+03"` might be readable by a decimal parser, yet **are rejected by the canonical check** if `BigDecimal.toString()` differs verbatim from the input. If compatibility with producers following varying rules is required, you can relax the canonical check while still enforcing exact decimal parsing and agreeing on scale preservation requirements.
 
-## 7. Java 17+ — ví dụ hoàn chỉnh chạy độc lập
+## 7. Java 17+ — Complete Standalone Runnable Example
 
-Tệp: `LosslessDecimalWireDemo.java`.
+File: `LosslessDecimalWireDemo.java`.
 
-Đây là mô hình dữ liệu wire độc lập với thư viện JSON. Một thư viện JSON có thể ánh xạ record `PaymentWire` thành object JSON, trong đó trường `amount` mang kiểu string. Chương trình dưới đây tập trung kiểm chứng tính toàn vẹn của decimal tại điểm mã hóa/giải mã.
+This is a wire data model independent of any JSON library. A JSON library can map the `PaymentWire` record into a JSON object in which the `amount` field has string type. The program below focuses on verifying decimal integrity at encode/decode boundaries.
 
 ~~~java
 import java.math.BigDecimal;
@@ -267,7 +267,7 @@ public class LosslessDecimalWireDemo {
             throw new IllegalArgumentException("Decimal outside contract");
         }
 
-        // Bảo đảm một cách viết canonical tương ứng một biểu diễn.
+        // Ensure one canonical spelling corresponds to one representation.
         if (!parsed.toString().equals(decimal)) {
             throw new IllegalArgumentException("Non-canonical decimal");
         }
@@ -304,14 +304,14 @@ public class LosslessDecimalWireDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac LosslessDecimalWireDemo.java
 java LosslessDecimalWireDemo
 ~~~
 
-Stdout mong đợi:
+Expected stdout:
 
 ~~~text
 wire amount: 9007199254740993.01
@@ -324,23 +324,23 @@ exponent round-trip equals: true
 plain reparsed equals: false
 ~~~
 
-Phần `MAX_TEXT_LENGTH`, `MAX_PRECISION` và `MAX_ABS_SCALE` là **giới hạn minh họa**, cần thiết kế lại theo miền số cho từng API. Trường `currency` trong demo chỉ được mang theo; triển khai thực tế cần xác minh enum/danh sách tiền tệ, quyền truy cập, và các quy tắc giá trị (ví dụ có cho phép số âm không). Giới hạn scale được kiểm tra **trước khi** có thao tác `toPlainString()` có thể mở rộng một số mũ khổng lồ thành chuỗi quá dài.
+`MAX_TEXT_LENGTH`, `MAX_PRECISION`, and `MAX_ABS_SCALE` are **illustrative bounds** that must be redesigned to match each API's numeric domain. The `currency` field in the demo is merely carried along; real implementations must verify against a currency enum/allowlist, access permissions, and value rules (e.g., whether negative numbers are allowed). Scale bounds are checked **before** any `toPlainString()` call that could expand a massive exponent into an overly long string.
 
-### Dùng với thư viện JSON
+### Using with a JSON Library
 
-Trên Java, một thư viện JSON như Jackson có thể deserialize chuỗi JSON `"amount"` trực tiếp vào thuộc tính `String` của DTO hoặc record, sau đó gọi `decode`. Ví dụ payload:
+In Java, a JSON library such as Jackson can deserialize the `"amount"` JSON string directly into a `String` property on a DTO or record, then call `decode`. Example payload:
 
 ~~~json
 {"currency":"USD","amount":"9007199254740993.01"}
 ~~~
 
-Trường `amount` bắt buộc giữ là **string** trong JSON schema. Khi serialize, lấy `BigDecimal.toString()` để tạo string. Khi deserialize, đọc string và gọi `new BigDecimal(String)` như ví dụ. **Không bind sang `double` hay `Double` rồi mới gọi `BigDecimal.valueOf`**.
+The `amount` field must remain a **string** in the JSON schema. When serializing, call `BigDecimal.toString()` to produce the string. When deserializing, read the string and call `new BigDecimal(String)` as shown. **Do not bind to `double` or `Double` and then call `BigDecimal.valueOf`**.
 
-Nếu chọn JSON number, có thể bind trực tiếp token sang `BigDecimal` bằng cấu hình parser thích hợp, nhưng phải xác nhận tất cả các mắt xích khác cũng xử lý decimal chính xác. Nhiều parser mặc định chuyển token JSON number sang kiểu binary64 hoặc một kiểu có giới hạn khác; không đủ an toàn để suy đoán từ phía gửi.
+If choosing a JSON number, you can bind the token directly to `BigDecimal` with proper parser configuration, but you must verify all other links in the chain also process decimals accurately. Many parsers default to converting JSON number tokens into binary64 or another bounded type; it is unsafe to guess from the sender side alone.
 
-## 8. Client JavaScript: đọc chuỗi như chuỗi
+## 8. JavaScript Client: Read Strings as Strings
 
-Trong JavaScript thông thường:
+In standard JavaScript:
 
 ~~~javascript
 const payload = JSON.parse(
@@ -351,73 +351,73 @@ console.log(typeof payload.amount); // string
 console.log(payload.amount);        // 9007199254740993.01
 ~~~
 
-Chuỗi `amount` vẫn giữ nguyên ký tự thập phân. **Không** làm thế này nếu cần tính toán chính xác:
+The `amount` string preserves the exact decimal characters. **Do not** do this if exact computation is needed:
 
 ~~~javascript
 const unsafe = Number(payload.amount);
-console.log(unsafe); // giá trị đã bị làm tròn
+console.log(unsafe); // value has already been rounded
 ~~~
 
-JavaScript `BigInt` phù hợp với số nguyên tùy ý, **không hỗ trợ trực tiếp phần thập phân**. Với decimal tổng quát, hãy dùng thư viện decimal tùy ý hoặc truyền chuỗi về service có `BigDecimal`. Với hợp đồng minor units, chỉ chuyển chuỗi đơn vị nhỏ nhất thành `BigInt` sau validation và giữ scale riêng.
+JavaScript `BigInt` suits arbitrary integers, **and does not directly support fractional parts**. For general decimals, use an arbitrary-precision decimal library or pass the string back to a service with `BigDecimal`. Under a minor-units contract, convert the minor-units string to `BigInt` only after validation and track scale separately.
 
-Nếu muốn hiển thị theo locale, xử lý định dạng tại tầng UI bằng công cụ hỗ trợ decimal phù hợp. `Intl.NumberFormat` làm việc với `Number` theo các cách gọi quen thuộc; việc gọi `Number(decimalString)` trước khi format có thể đã mất chính xác. Không thay dấu chấm bằng dấu phẩy trong dữ liệu wire vì locale của người dùng.
+If locale-specific display is desired, handle formatting in the UI layer using tools that support decimal inputs properly. `Intl.NumberFormat` works with `Number` under common usage; calling `Number(decimalString)` before formatting may already lose precision. Do not replace periods with commas in wire data because of a user's locale.
 
-## 9. Những đường đi khác cũng phải giữ chính xác
+## 9. Other Channels Must Also Preserve Accuracy
 
 ### HTTP/REST
 
-- Request/response schema xác định `amount` là string và tài liệu hóa giới hạn, ví dụ `"12.3400"`.
-- Bên Java nhận trực tiếp chuỗi, xác thực, parse thành `BigDecimal`.
-- Bên server serialize lại từ `BigDecimal` bằng `toString()` nếu cần giữ scale.
-- Kiểm thử HTTP thực tế qua serializer, gateway và client thay vì chỉ unit test hàm `decode`.
+- Request/response schemas define `amount` as a string and document limits, e.g., `"12.3400"`.
+- The Java side receives the string directly, validates it, and parses it into `BigDecimal`.
+- The server serializes back from `BigDecimal` via `toString()` if scale preservation is needed.
+- Test real HTTP traffic through serializers, gateways, and clients rather than unit-testing only the `decode` function.
 
-### Cơ sở dữ liệu quan hệ
+### Relational Databases
 
-Với cột `DECIMAL(p,s)` hoặc `NUMERIC(p,s)` theo đặc tả hệ quản trị, dùng `PreparedStatement.setBigDecimal(...)` và `ResultSet.getBigDecimal(...)`. Tránh đưa dữ liệu qua `setDouble/getDouble`.
+With `DECIMAL(p,s)` or `NUMERIC(p,s)` columns per RDBMS specification, use `PreparedStatement.setBigDecimal(...)` and `ResultSet.getBigDecimal(...)`. Avoid passing data through `setDouble/getDouble`.
 
 ~~~java
-// Minh họa trong ngữ cảnh đã có PreparedStatement ps và ResultSet rs:
+// Illustration assuming PreparedStatement ps and ResultSet rs already exist:
 ps.setBigDecimal(1, new BigDecimal("1234.56"));
 BigDecimal amount = rs.getBigDecimal("amount");
 ~~~
 
-Đây là **đoạn minh họa JDBC**, không phải chương trình chạy độc lập. Schema database vẫn có thể áp đặt precision/scale, làm tròn hoặc từ chối dữ liệu tùy engine/cấu hình. Hãy kiểm tra chính sách cột và round-trip của chính driver/database được dùng.
+This is a **JDBC illustrative snippet**, not a standalone runnable program. The database schema may still enforce precision/scale, round, or reject data depending on the engine/configuration. Verify column policies and round-trip behavior of the specific driver/database in use.
 
-### Message broker, CSV, spreadsheet và tập tin
+### Message Brokers, CSV, Spreadsheets, and Files
 
-- Payload thông qua queue vẫn dùng hợp đồng chuỗi decimal; không dùng bước mapper trung gian chuyển thành `Double`.
-- CSV là text nhưng công cụ import có thể tự đoán cột thành floating point. Khai báo cột decimal là text hoặc nhập bằng parser decimal chính xác.
-- Nếu truyền `unscaled/scale`, tránh đưa `unscaled` vào JSON number ở consumer JavaScript.
-- Khi giao tiếp với hệ thống chưa hỗ trợ decimal chính xác, yêu cầu tiêu chuẩn đầu ra dạng **string** và kiểm tra round-trip thay vì trông chờ “JSON number lúc nào cũng chính xác”.
+- Payloads over queues should continue using a decimal string contract; avoid intermediate mapper steps that convert to `Double`.
+- CSV is text, yet import tools may auto-detect columns as floating-point. Declare decimal columns as text or import using an exact decimal parser.
+- If transmitting `unscaled/scale`, avoid placing `unscaled` in a JSON number for JavaScript consumers.
+- When integrating with systems lacking exact decimal support, mandate **string** output formats and test round-trips rather than expecting "JSON numbers are always exact."
 
-## 10. Validation, chuẩn hóa và bảo mật tài nguyên
+## 10. Validation, Normalization, and Resource Safety
 
-Một parser decimal chính xác không đồng nghĩa mọi đầu vào đều hợp lệ:
+An exact decimal parser does not mean every input is valid:
 
-1. **Cú pháp**: chặn `NaN`, `Infinity`, chuỗi rỗng, whitespace không quy định, dấu phân nhóm và số có format ngoài hợp đồng. `BigDecimal` không đại diện các giá trị `NaN/Infinity`.
-2. **Độ dài và precision**: hạn chế số lượng chữ số để tránh payload rất dài.
-3. **Scale và exponent**: giới hạn miền `scale`; không gọi `toPlainString()` trên `1E+100000000` khi chưa kiểm soát vì có thể tạo chuỗi khổng lồ.
-4. **Miền giá trị**: kiểm tra số âm/dương, `min/max`, đơn vị, loại tiền và ý nghĩa trường.
-5. **Canonical representation**: nếu muốn ký số, hash, cache hoặc tránh nhiều cách viết của cùng biểu diễn, xác định thuật toán canonical rồi áp dụng nhất quán. `BigDecimal.toString()` duy trì scale, nhưng nó không ép hai giá trị numerically equal có scale khác nhau thành một chuỗi.
-6. **Tính nguyên tử của xử lý**: xác thực trước khi ghi database hoặc gửi tiếp, không âm thầm làm tròn tại lớp hạ tầng.
+1. **Syntax**: block `NaN`, `Infinity`, empty strings, disallowed whitespace, grouping separators, and out-of-contract number formats. `BigDecimal` does not represent `NaN/Infinity` values.
+2. **Length and precision**: cap digit counts to avoid huge payloads.
+3. **Scale and exponent**: bound the `scale` range; do not call `toPlainString()` on `1E+100000000` unchecked, as it can allocate an enormous string.
+4. **Value domain**: validate sign, `min/max`, units, currency type, and field semantics.
+5. **Canonical representation**: if signing, hashing, caching, or preventing multiple spellings of the same representation, define a canonicalization algorithm and apply it consistently. `BigDecimal.toString()` preserves scale, yet it does not collapse two numerically equal values with different scales into one string.
+6. **Processing atomicity**: validate before writing to the database or forwarding downstream; never silently round in infrastructure layers.
 
-Đối với số 0, `BigDecimal` không giữ dấu âm tách biệt: `new BigDecimal("-0.00").toString()` là `"0.00"`. Nếu hợp đồng bắt buộc bảo toàn từng ký tự đầu vào (bao gồm dấu `-` của “âm 0”, số 0 đứng trước, chữ `e` thường hoặc khoảng trắng), phải lưu **raw input string** riêng. Bảo toàn `BigDecimal` theo `equals` không phải là bảo toàn byte-for-byte nguyên văn dữ liệu gốc.
+For zero, `BigDecimal` does not preserve a separate negative sign: `new BigDecimal("-0.00").toString()` is `"0.00"`. If the contract requires preserving every input character (including the `-` sign of "negative zero," leading zeros, lowercase `e`, or whitespace), store the **raw input string** separately. Preserving `BigDecimal` under `equals` is not byte-for-byte verbatim preservation of original input text.
 
-Nếu phía gửi có thể cung cấp `1.00`, còn phía nhận lưu cột database scale cố định bằng `2`, có thể giữ được scale này; nhưng không nên mặc nhiên tin rằng bất kỳ cột `DECIMAL/NUMERIC` nào cũng bảo tồn đúng scale từng payload. Phải kiểm thử driver, schema và cách truy vấn.
+If the sender may supply `1.00` while the receiver stores it in a database column with fixed scale `2`, that scale can be retained; however, never blindly assume every `DECIMAL/NUMERIC` column preserves the exact scale of every payload. Test the driver, schema, and query mechanics.
 
-## 11. Quy tắc kiểm thử một giao thức decimal
+## 11. Rules for Testing a Decimal Protocol
 
-Một vòng kiểm thử tối thiểu:
+A minimal test suite:
 
-- **Giá trị lớn**: `9007199254740993`, `9007199254740993.01`; khẳng định không qua `double` và không sai chữ số.
-- **Giá trị rất nhỏ**: `0.0000000000000000000001`; khẳng định không mất phần thập phân.
-- **Scale khác nhau**: `1.0` và `1.00`; kiểm tra cả `compareTo` và `equals`.
-- **Scale âm**: `1E+3` và `1E-7`; xác nhận `toString` và parse lại giữ scale.
-- **Số âm và số 0**: `-12.3400`, `0`, `0.00`; kiểm tra quy tắc canonical.
-- **Biên validation**: payload rỗng, quá dài, có dấu phân nhóm, exponent vượt giới hạn, giá trị ngoài miền.
-- **Liên thông**: Java → JSON → JavaScript → JSON → Java; các consumer phải giữ trường `amount` dưới dạng string từ đầu đến cuối.
+- **Large values**: `9007199254740993`, `9007199254740993.01`; verify no `double` pass-through and no altered digits.
+- **Very small values**: `0.0000000000000000000001`; verify no loss of fractional digits.
+- **Different scales**: `1.0` and `1.00`; test both `compareTo` and `equals`.
+- **Negative scales**: `1E+3` and `1E-7`; verify `toString` and reparsing preserve scale.
+- **Negative numbers and zero**: `-12.3400`, `0`, `0.00`; check canonical rules.
+- **Validation boundaries**: empty payload, excessive length, grouping separators, out-of-bounds exponents, out-of-domain values.
+- **Interoperability**: Java → JSON → JavaScript → JSON → Java; consumers must keep the `amount` field as a string end-to-end.
 
-Với hợp đồng cần giữ scale, bất biến kiểm thử có thể viết:
+For contracts requiring scale preservation, a test invariant can be written as:
 
 ~~~java
 BigDecimal before = new BigDecimal("1E+3");
@@ -428,16 +428,16 @@ assert before.equals(after);
 assert before.scale() == after.scale();
 ~~~
 
-Khi không bật assertions (`-ea`), Java bỏ qua `assert`; trong test JUnit nên dùng assertion framework của bộ kiểm thử để tránh phụ thuộc cờ JVM. Đây là đoạn minh họa điều kiện round-trip, không phải một ứng dụng chạy độc lập.
+When assertions are not enabled (`-ea`), Java skips `assert`; in JUnit tests, use the test suite's assertion framework to avoid depending on JVM flags. This snippet illustrates a round-trip invariant, not a standalone application.
 
-### Bài tập ngắn
+### Short Exercises
 
-1. Một web client nhận `{"amount":9007199254740993}` bằng `JSON.parse`. Chỗ nào có nguy cơ mất thông tin?
-2. Với `new BigDecimal("1E+3")`, bạn chọn `toString()` hay `toPlainString()` để sau khi parse vẫn có `scale = -3`?
-3. Một service ghi `BigDecimal("123.4500")` thành JSON string `"123.4500"`, service khác parse qua `Double` trước khi tạo `BigDecimal`. Đường truyền đó có còn bảo đảm cả giá trị và scale không?
-4. Nếu hợp đồng chỉ truyền minor units là `"12345"` và quy định `scale = 2`, giá trị tiền là bao nhiêu?
-5. Nếu cần giữ nguyên nguyên văn `"-0.00"`, chỉ giữ đối tượng `BigDecimal` đã parse có đủ không?
+1. A web client receives `{"amount":9007199254740993}` via `JSON.parse`. Where is the risk of information loss?
+2. For `new BigDecimal("1E+3")`, do you choose `toString()` or `toPlainString()` so that `scale = -3` remains after parsing?
+3. Service A writes `BigDecimal("123.4500")` as the JSON string `"123.4500"`, and Service B parses through `Double` before creating `BigDecimal`. Does that pipeline still guarantee both value and scale?
+4. If a contract transmits only minor units `"12345"` and specifies `scale = 2`, what is the monetary value?
+5. If you must preserve the verbatim string `"-0.00"`, is keeping only the parsed `BigDecimal` object enough?
 
-**Đáp án:** (1) `JSON.parse` tạo `Number` từ token JSON number, có thể làm tròn số nguyên vượt giới hạn an toàn. (2) `toString()`; `toPlainString()` tạo `"1000"` và mất scale âm khi đọc lại. (3) Không: bước `Double` có thể đổi giá trị hoặc làm mất scale, dù kết quả tình cờ đúng ở một số đầu vào. (4) `123.45`. (5) Không: `BigDecimal` không lưu dấu âm của số 0 dưới dạng dấu độc lập; phải lưu chuỗi đầu vào khi cần bảo toàn nguyên văn.
+**Answers:** (1) `JSON.parse` creates a `Number` from the JSON number token, which can round integers beyond the safe range. (2) `toString()`; `toPlainString()` produces `"1000"` and loses the negative scale when read back. (3) No: the `Double` step can alter the value or lose the scale, even if results happen to match on some inputs. (4) `123.45`. (5) No: `BigDecimal` does not store a negative sign on zero as an independent sign; you must store the raw input string when verbatim preservation is needed.
 
-**Kết luận kỹ thuật:** chọn wire format decimal chính xác ngay từ schema, sử dụng `String ↔ BigDecimal` (hoặc `unscaled + scale`), xác định rõ mức bảo toàn và tuyệt đối kiểm thử toàn tuyến có JavaScript/JSON parser. Một lần chuyển qua binary64 có thể biến lỗi mất chính xác thành vĩnh viễn.
+**Technical takeaway:** choose an exact decimal wire format right in the schema, use `String ↔ BigDecimal` (or `unscaled + scale`), define the preservation level explicitly, and always test end-to-end with JavaScript/JSON parsers. A single pass through binary64 can make a precision loss bug permanent.

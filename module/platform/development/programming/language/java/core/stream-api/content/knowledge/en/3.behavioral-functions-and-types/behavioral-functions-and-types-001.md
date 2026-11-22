@@ -1,30 +1,30 @@
-# Dùng Predicate, Function và Consumer trong pipeline
+# Using Predicate, Function, and Consumer in a Pipeline
 
-Trong **Java Stream API**, một pipeline thường đọc như một câu mô tả yêu cầu: “lọc đơn hàng đã thanh toán, biến mỗi đơn thành một dòng báo cáo, rồi in kết quả”. Ba bước đó tương ứng với ba *kiểu hàm hành vi* rất quan trọng trong Java: **`Predicate`**, **`Function`** và **`Consumer`**.
+In the **Java Stream API**, a pipeline often reads like a sentence describing a requirement: "filter paid orders, turn each order into a report line, then print the results". Those three steps correspond to three very important *behavioral function types* in Java: **`Predicate`**, **`Function`**, and **`Consumer`**.
 
-Ba kiểu này thuộc gói `java.util.function`, được giới thiệu cùng lập trình hàm trong Java 8. Chúng là các **functional interface**: mỗi giao diện có một phương thức trừu tượng chính, nên ta có thể cung cấp cách thực hiện bằng **lambda** hoặc **method reference**. Nhờ đó, `filter`, `map` và `forEach` nhận *hành vi cần áp dụng* thay vì bắt người viết tự điều khiển vòng lặp.
+These three types belong to the `java.util.function` package, introduced alongside functional programming in Java 8. They are **functional interfaces**: each interface has one primary abstract method, so we can provide its implementation using a **lambda** or a **method reference**. As a result, `filter`, `map`, and `forEach` accept *the behavior to apply* instead of forcing the author to manually control the loop.
 
-Bài này thuộc chương **Hàm hành vi và kiểu dữ liệu** của module **JAVA_STREAM_API**. Mục tiêu là hiểu đúng hợp đồng đầu vào/đầu ra của ba kiểu hàm, phối hợp chúng trong pipeline lazy và tránh lỗi do tác dụng phụ, trạng thái chia sẻ hoặc giả định sai về thứ tự thực thi. Đây cũng là nền tảng để học `reduce`, `collect`, grouping, collector tùy chỉnh, `Spliterator`, xử lý song song và Stream Gatherers ở các phần tiếp theo.
+This lesson belongs to the **Behavioral Functions and Types** chapter of the **JAVA_STREAM_API** module. The goal is to understand the input/output contract of the three function types, compose them in a lazy pipeline, and avoid bugs caused by side effects, shared state, or false assumptions about execution order. This also serves as the foundation for learning `reduce`, `collect`, grouping, custom collectors, `Spliterator`, parallel processing, and Stream Gatherers in subsequent sections.
 
-## 1. Nhìn nhanh: ba kiểu hàm khác nhau ở đâu?
+## 1. At a Glance: How Do the Three Function Types Differ?
 
-| Functional interface | Phương thức chính | Nhận vào | Trả về | Vai trò tiêu biểu trong Stream |
+| Functional interface | Primary method | Accepts | Returns | Typical role in Stream |
 |---|---|---|---|---|
-| `Predicate<T>` | `boolean test(T value)` | Một phần tử kiểu `T` | `boolean` | Chọn phần tử bằng `filter`; kiểm tra bằng `anyMatch`, `allMatch`, `noneMatch` |
-| `Function<T, R>` | `R apply(T value)` | Một phần tử kiểu `T` | Giá trị kiểu `R` | Chuyển đổi phần tử bằng `map`; làm khóa grouping; ánh xạ giá trị khi collect |
-| `Consumer<T>` | `void accept(T value)` | Một phần tử kiểu `T` | Không trả giá trị | Thực hiện tác động cuối bằng `forEach`, `forEachOrdered`, `Optional.ifPresent` |
+| `Predicate<T>` | `boolean test(T value)` | An element of type `T` | `boolean` | Selecting elements with `filter`; checking with `anyMatch`, `allMatch`, `noneMatch` |
+| `Function<T, R>` | `R apply(T value)` | An element of type `T` | A value of type `R` | Transforming elements with `map`; serving as a grouping key; mapping values when collecting |
+| `Consumer<T>` | `void accept(T value)` | An element of type `T` | No return value | Performing a final action with `forEach`, `forEachOrdered`, `Optional.ifPresent` |
 
-Ví dụ với một đơn hàng:
+Example with an order:
 
-- **Predicate:** “Đơn này đã thanh toán chưa?” → `true` hoặc `false`.
-- **Function:** “Biến đơn này thành chuỗi hiển thị thế nào?” → `String`.
-- **Consumer:** “In chuỗi hiển thị này ra đâu?” → không có giá trị trả về.
+- **Predicate:** "Is this order paid?" → `true` or `false`.
+- **Function:** "How do we turn this order into a display string?" → `String`.
+- **Consumer:** "Where do we print this display string?" → no return value.
 
-Chú ý chữ cái kiểu:
+Pay attention to the type letters:
 
-- `T` trong `Predicate<T>` và `Consumer<T>` là **kiểu phần tử được nhận**.
-- `T` trong `Function<T, R>` là **kiểu đầu vào**, còn `R` là **kiểu kết quả**. Hai kiểu này có thể giống hoặc khác nhau.
-- `Consumer` không giống `Function<T, Void>`: phương thức `accept` có kiểu trả về `void` thật sự, nên lambda Consumer không cần và không được trả về một giá trị.
+- `T` in `Predicate<T>` and `Consumer<T>` is **the type of the element received**.
+- `T` in `Function<T, R>` is **the input type**, while `R` is **the result type**. These two types can be the same or different.
+- `Consumer` is not the same as `Function<T, Void>`: the `accept` method has an actual `void` return type, so a Consumer lambda does not need to—and must not—return a value.
 
 ~~~mermaid
 flowchart LR
@@ -32,16 +32,16 @@ flowchart LR
     B --> C["map(Function<Order, String>)"]
     C --> D["Stream<String>"]
     D --> E["forEach(Consumer<String>)"]
-    E --> F["Hiệu ứng: in báo cáo"]
+    E --> F["Side effect: print report"]
 ~~~
 
-`filter` và `map` là **phép toán trung gian (intermediate operation)**, còn `forEach` là **phép toán kết thúc (terminal operation)**. Phân biệt này quyết định thời điểm lambda được chạy.
+`filter` and `map` are **intermediate operations**, whereas `forEach` is a **terminal operation**. This distinction determines when the lambdas are executed.
 
-## 2. Ví dụ đầy đủ: chọn đơn hàng và xuất báo cáo
+## 2. Complete Example: Selecting Orders and Exporting a Report
 
-Giả sử có danh sách đơn hàng. Ta muốn lấy những đơn **đã thanh toán và có giá trị từ 100.000 đồng**, biến chúng thành các dòng báo cáo và in từng dòng.
+Suppose we have a list of orders. We want to take the orders that are **paid and have a value of at least 100,000 VND**, turn them into report lines, and print each line.
 
-Ví dụ hoàn chỉnh sau dùng **JDK 17 trở lên** vì có `record`, `List.of` và `Stream.toList()`:
+The following complete example uses **JDK 17 or later** because it uses `record`, `List.of`, and `Stream.toList()`:
 
 ~~~java
 import java.util.List;
@@ -60,15 +60,15 @@ public class BehavioralFunctionsDemo {
             new Order("DH04", "An",    70_000, true)
         );
 
-        // Predicate<Order>: quyết định giữ lại đơn nào.
+        // Predicate<Order>: decides which orders to keep.
         Predicate<Order> isPaid = Order::paid;
         Predicate<Order> isHighValue = order -> order.amountVnd() >= 100_000;
 
-        // Function<Order, String>: chuyển đơn thành dòng báo cáo.
+        // Function<Order, String>: converts an order into a report line.
         Function<Order, String> toReportLine = order ->
             order.id() + " | " + order.customer() + " | " + order.amountVnd();
 
-        // Consumer<String>: sử dụng kết quả, không trả giá trị.
+        // Consumer<String>: consumes the result, returns no value.
         Consumer<String> printLine = System.out::println;
 
         List<String> report = orders.stream()
@@ -81,22 +81,22 @@ public class BehavioralFunctionsDemo {
 }
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 DH01 | An | 120000
 DH03 | Chi | 150000
 ~~~
 
-Đọc pipeline theo thứ tự:
+Reading the pipeline in order:
 
-1. `orders.stream()` tạo nguồn `Stream<Order>` từ danh sách.
-2. `filter(isPaid.and(isHighValue))` nhận một `Predicate<Order>` đã kết hợp hai điều kiện, giữ lại `DH01` và `DH03`.
-3. `map(toReportLine)` nhận `Function<Order, String>`, chuyển `Stream<Order>` thành `Stream<String>`.
-4. `toList()` là phép toán kết thúc, thực sự tính toán và tạo ra danh sách chuỗi.
-5. `report.forEach(printLine)` là lời gọi trên **`List` kết quả** để in từng dòng. Nó sử dụng `Consumer<String>` nhưng không còn thuộc Stream đầu tiên.
+1. `orders.stream()` creates a `Stream<Order>` source from the list.
+2. `filter(isPaid.and(isHighValue))` accepts a `Predicate<Order>` combining two conditions, keeping `DH01` and `DH03`.
+3. `map(toReportLine)` accepts a `Function<Order, String>`, transforming `Stream<Order>` into `Stream<String>`.
+4. `toList()` is the terminal operation, actually evaluating the pipeline and producing the list of strings.
+5. `report.forEach(printLine)` is a call on the **resulting `List`** to print each line. It uses `Consumer<String>` but is no longer part of the first Stream.
 
-Có thể viết tất cả thành một pipeline Stream trực tiếp:
+You can write everything as a single direct Stream pipeline:
 
 ~~~java
 orders.stream()
@@ -105,23 +105,23 @@ orders.stream()
     .forEach(printLine);
 ~~~
 
-Khi đó chính `forEach` kết thúc pipeline. Hai cách mang mục đích khác nhau: **`toList`** phù hợp khi cần lưu và dùng tiếp kết quả; **`forEach`** phù hợp khi cần thực hiện một tác động cuối cùng. Để tính tổng, đếm, nhóm hoặc tạo báo cáo có cấu trúc, thường nên chọn phép toán kết thúc như `sum`, `count` hoặc `collect` thay vì tự thêm phần tử vào collection ngoài bằng `forEach`.
+In that case, `forEach` itself terminates the pipeline. The two approaches serve different purposes: **`toList`** is suitable when you need to store and reuse the results; **`forEach`** is suitable when you need to perform a final action. To compute sums, counts, groups, or build structured reports, you should usually choose a terminal operation like `sum`, `count`, or `collect` rather than manually adding elements to an external collection with `forEach`.
 
-## 3. Predicate<T>: biểu diễn quy tắc đúng/sai
+## 3. Predicate<T>: Representing True/False Rules
 
-`Predicate<T>` có một phương thức trừu tượng:
+`Predicate<T>` has one abstract method:
 
 ~~~java
 @FunctionalInterface
 public interface Predicate<T> {
     boolean test(T value);
-    // Các phương thức mặc định như and, or, negate; phương thức tĩnh như not.
+    // Default methods such as and, or, negate; static methods such as not.
 }
 ~~~
 
-Đây là dạng rút gọn để hiểu hợp đồng, không phải bản chép đầy đủ mã nguồn JDK. Phần quan trọng là một Predicate **nhận một giá trị và trả kết quả logic**.
+This is an abbreviated form to understand the contract, not a full copy of the JDK source code. The key point is that a Predicate **takes a value and returns a boolean result**.
 
-### 3.1. Tạo và gọi Predicate
+### 3.1. Creating and Calling a Predicate
 
 ~~~java
 import java.util.function.Predicate;
@@ -134,7 +134,7 @@ System.out.println(notEmpty.test(""));        // false
 System.out.println(startsWithJ.test("Kotlin")); // false
 ~~~
 
-`test` có thể gọi trực tiếp, nhưng trong Stream ta thường **truyền Predicate vào `filter`**:
+`test` can be called directly, but in Streams we usually **pass the Predicate into `filter`**:
 
 ~~~java
 List<String> names = List.of("Java", "", "Kotlin", "JavaScript");
@@ -144,11 +144,11 @@ List<String> validNames = names.stream()
     .toList(); // [Java, Kotlin, JavaScript]
 ~~~
 
-`filter` có hành vi: với mỗi phần tử, nếu `predicate.test(element)` là `true` thì giữ, ngược lại bỏ. **Kiểu phần tử không đổi** sau `filter`: đầu vào `Stream<String>` thì đầu ra vẫn là `Stream<String>`.
+`filter` behaves as follows: for each element, if `predicate.test(element)` is `true`, keep it; otherwise discard it. **The element type does not change** after `filter`: if the input is `Stream<String>`, the output remains `Stream<String>`.
 
-### 3.2. Ghép quy tắc với and, or, negate
+### 3.2. Composing Rules with and, or, negate
 
-Thay vì nhồi nhiều điều kiện vào một lambda dài, có thể đặt tên từng quy tắc:
+Instead of stuffing multiple conditions into one long lambda, you can name each rule individually:
 
 ~~~java
 Predicate<String> hasText = text -> !text.isBlank();
@@ -164,16 +164,16 @@ System.out.println(either.test("Kotlin")); // true
 System.out.println(doesNotStartWithJ.test("Go")); // true
 ~~~
 
-- `a.and(b)` chỉ đúng khi cả hai điều kiện đều đúng.
-- `a.or(b)` đúng khi ít nhất một điều kiện đúng.
-- `a.negate()` đảo kết quả.
-- `and` và `or` **dừng đánh giá sớm (short-circuit)**: `and` bỏ qua `b` nếu `a` sai; `or` bỏ qua `b` nếu `a` đúng.
+- `a.and(b)` is true only when both conditions are true.
+- `a.or(b)` is true when at least one condition is true.
+- `a.negate()` inverts the result.
+- `and` and `or` **short-circuit**: `and` skips `b` if `a` is false; `or` skips `b` if `a` is true.
 
-`String.isBlank()` cần JDK 11+. Ngoài ra, từ JDK 11 có thể viết `Predicate.not(String::isBlank)` khi cần biểu diễn phủ định của method reference. Với Java 8, có thể dùng `s -> !s.trim().isEmpty()` nếu quy tắc khoảng trắng đó phù hợp.
+`String.isBlank()` requires JDK 11+. Additionally, starting in JDK 11 you can write `Predicate.not(String::isBlank)` when you need to express the negation of a method reference. In Java 8, you can use `s -> !s.trim().isEmpty()` if that whitespace rule is appropriate.
 
-**Chú ý:** việc `Predicate.and` dừng đánh giá sớm là **ở cấp độ biểu thức điều kiện cho một phần tử**. Nó khác với phép toán Stream như `findFirst` hoặc `anyMatch` có thể **dừng duyệt toàn bộ nguồn** khi đủ thông tin.
+**Note:** `Predicate.and` short-circuiting operates **at the level of the conditional expression for a single element**. It differs from Stream operations such as `findFirst` or `anyMatch`, which can **stop traversing the entire source** as soon as enough information is available.
 
-### 3.3. Predicate còn dùng ở phép toán kết thúc
+### 3.3. Predicate Is Also Used in Terminal Operations
 
 ~~~java
 List<Integer> scores = List.of(6, 8, 9, 3);
@@ -185,21 +185,21 @@ boolean allPass = scores.stream().allMatch(passing);    // false
 boolean nonePass = scores.stream().noneMatch(passing);  // false
 ~~~
 
-`anyMatch`, `allMatch` và `noneMatch` đều là **terminal operation**, có thể dừng sớm khi xác định được kết quả. Đối với Stream rỗng, `allMatch` và `noneMatch` trả `true` theo định nghĩa logic; đừng nhầm điều đó với việc đã có phần tử đạt điều kiện.
+`anyMatch`, `allMatch`, and `noneMatch` are all **terminal operations** that can short-circuit as soon as the result is determined. For an empty Stream, `allMatch` and `noneMatch` return `true` by logical definition (vacuous truth); do not mistake that for there being an element that satisfied the condition.
 
-## 4. Function<T, R>: ánh xạ một giá trị sang giá trị khác
+## 4. Function<T, R>: Mapping One Value to Another
 
-`Function<T, R>` có phương thức:
+`Function<T, R>` has the method:
 
 ~~~java
 @FunctionalInterface
 public interface Function<T, R> {
     R apply(T value);
-    // Các phương thức mặc định compose, andThen; phương thức tĩnh identity.
+    // Default methods compose, andThen; static method identity.
 }
 ~~~
 
-Nó trả về **một kết quả** cho mỗi lần gọi. Kết quả có thể cùng kiểu đầu vào hoặc một kiểu khác hoàn toàn.
+It returns **one result** per invocation. The result can be the same type as the input or a completely different type.
 
 ~~~java
 import java.util.function.Function;
@@ -207,11 +207,11 @@ import java.util.function.Function;
 Function<String, Integer> length = String::length;
 System.out.println(length.apply("Stream")); // 6
 
-Function<Integer, String> display = number -> "Giá trị: " + number;
-System.out.println(display.apply(12)); // Giá trị: 12
+Function<Integer, String> display = number -> "Value: " + number;
+System.out.println(display.apply(12)); // Value: 12
 ~~~
 
-### 4.1. Function đi cùng map
+### 4.1. Function Goes with map
 
 ~~~java
 List<String> names = List.of("An", "Bình", "Chi");
@@ -223,13 +223,13 @@ List<Integer> lengths = names.stream()
     .toList(); // [2, 4, 3]
 ~~~
 
-`map` nhận một `Function<? super T, ? extends R>` và tạo `Stream<R>`. Nó **thay đổi giá trị và có thể thay đổi kiểu phần tử**: `Stream<String>` chuyển thành `Stream<Integer>` trong ví dụ. Một phần tử đầu vào thông thường tương ứng một phần tử đầu ra; nếu muốn chuyển một phần tử thành nhiều phần tử thì tìm hiểu `flatMap`, vốn nhận hàm trả về một Stream.
+`map` accepts a `Function<? super T, ? extends R>` and produces a `Stream<R>`. It **changes the value and can change the element type**: `Stream<String>` becomes `Stream<Integer>` in the example. One input element normally corresponds to one output element; if you want to turn one element into multiple elements, look into `flatMap`, which takes a function returning a Stream.
 
-`map` không có nghĩa là lọc; giá trị trả về từ Function **không được hiểu như điều kiện đúng/sai**. Nếu cần bỏ phần tử, hãy dùng `filter`.
+`map` does not mean filtering; the return value from a Function **is not interpreted as a true/false condition**. If you need to discard elements, use `filter`.
 
-### 4.2. Phối hợp Function bằng andThen và compose
+### 4.2. Composing Functions with andThen and compose
 
-Đôi khi cần chuẩn hóa chuỗi qua nhiều bước:
+Sometimes a string needs to be normalized across multiple steps:
 
 ~~~java
 import java.util.Locale;
@@ -245,12 +245,12 @@ System.out.println(normalizeA.apply(" java ")); // JAVA
 System.out.println(normalizeB.apply(" java ")); // JAVA
 ~~~
 
-- `f.andThen(g)` thực hiện **`f` rồi đến `g`**, tức `g(f(x))`.
-- `g.compose(f)` thực hiện **`f` rồi đến `g`**, cũng là `g(f(x))`.
+- `f.andThen(g)` executes **`f` then `g`**, i.e., `g(f(x))`.
+- `g.compose(f)` executes **`f` then `g`**, which is also `g(f(x))`.
 
-Thứ tự rất quan trọng nếu hai phép biến đổi không giao hoán. Ví dụ “cắt khoảng trắng rồi lấy độ dài” có thể cho kết quả khác “lấy độ dài rồi tính tiếp”.
+Order matters greatly when the two transformations are not commutative. For example, "trim whitespace then take length" can yield a different result from "take length then compute further".
 
-Có thể truyền hàm đã ghép vào `map`:
+You can pass the composed function directly into `map`:
 
 ~~~java
 List<String> normalized = List.of(" java ", " Kotlin ", "go").stream()
@@ -258,11 +258,11 @@ List<String> normalized = List.of(" java ", " Kotlin ", "go").stream()
     .toList(); // [JAVA, KOTLIN, GO]
 ~~~
 
-Ngoài ra, `Function.identity()` là hàm trả lại nguyên giá trị đầu vào. Nó đặc biệt hữu ích trong các collector, chẳng hạn khi muốn dùng chính phần tử làm giá trị trong một `Map`.
+In addition, `Function.identity()` is a function that returns its input argument unchanged. It is especially useful in collectors, such as when you want to use the element itself as the value in a `Map`.
 
-### 4.3. Ánh xạ ra số nguyên thủy
+### 4.3. Mapping to Primitives
 
-Với phép tổng hợp số lượng hoặc số tiền, dùng `mapToInt`, `mapToLong` hoặc `mapToDouble` để nhận Stream nguyên thủy:
+For aggregating counts or monetary amounts, use `mapToInt`, `mapToLong`, or `mapToDouble` to obtain a primitive Stream:
 
 ~~~java
 import java.util.List;
@@ -276,88 +276,88 @@ int totalCharacters = names.stream()
     .sum(); // 12
 ~~~
 
-`ToIntFunction<T>` có phương thức `int applyAsInt(T value)`. Nó là biến thể chuyên biệt của họ Function, tránh boxing qua `Integer` trong đường xử lý số. Tương tự có `ToLongFunction`, `ToDoubleFunction`, cùng với `IntFunction<R>` để nhận một `int` làm đầu vào.
+`ToIntFunction<T>` has the method `int applyAsInt(T value)`. It is a specialized variant of the Function family that avoids boxing through `Integer` in numeric processing paths. Similarly, there are `ToLongFunction`, `ToDoubleFunction`, as well as `IntFunction<R>` which takes an `int` as input.
 
-Khi đọc các API `Collectors.groupingBy(classifier)` hoặc `Collectors.toMap(keyMapper, valueMapper)`, bạn cũng sẽ gặp Function: chúng quyết định **khóa nhóm**, **khóa của Map** hoặc **giá trị được thu thập**, chứ không chỉ dùng cho `map`.
+When reading APIs like `Collectors.groupingBy(classifier)` or `Collectors.toMap(keyMapper, valueMapper)`, you will also encounter Function: they determine the **grouping key**, **Map key**, or **collected value**, rather than only being used for `map`.
 
-## 5. Consumer<T>: nhận giá trị và thực hiện một tác động
+## 5. Consumer<T>: Accepting a Value and Performing an Action
 
-`Consumer<T>` có phương thức:
+`Consumer<T>` has the method:
 
 ~~~java
 @FunctionalInterface
 public interface Consumer<T> {
     void accept(T value);
-    // Phương thức mặc định andThen.
+    // Default method andThen.
 }
 ~~~
 
-Consumer dành cho hành động như in log, ghi kết quả ra đầu ra, gửi dữ liệu tới một bộ phận nhận hoặc cập nhật giao diện. **Nó không trả về kết quả để đưa tiếp vào pipeline**.
+Consumer is meant for actions such as logging, writing output, sending data to a receiver, or updating a UI. **It does not return a result to pass further down the pipeline**.
 
 ~~~java
 import java.util.function.Consumer;
 
 Consumer<String> print = System.out::println;
-print.accept("Xin chào Stream API"); // In một dòng
+print.accept("Hello Stream API"); // Prints one line
 ~~~
 
-### 5.1. forEach và forEachOrdered
+### 5.1. forEach and forEachOrdered
 
 ~~~java
 List<String> names = List.of("An", "Bình", "Chi");
-Consumer<String> print = name -> System.out.println("Tên: " + name);
+Consumer<String> print = name -> System.out.println("Name: " + name);
 
 names.stream().forEach(print);
 ~~~
 
-`forEach` là terminal operation. Đối với Stream chạy **tuần tự** từ `List` như ví dụ, các dòng được in theo thứ tự duyệt. Với **parallel Stream**, `forEach` không đảm bảo thứ tự xuất ra, kể cả nguồn có encounter order. Nếu buộc phải giữ encounter order của nguồn, dùng `forEachOrdered`:
+`forEach` is a terminal operation. For a Stream running **sequentially** from a `List` as in the example, the lines are printed in traversal order. With a **parallel Stream**, `forEach` does not guarantee output order, even if the source has an encounter order. If you must preserve the source's encounter order, use `forEachOrdered`:
 
 ~~~java
 names.parallelStream()
     .forEachOrdered(print);
 ~~~
 
-Điều này giữ thứ tự đối với nguồn có thứ tự nhưng có thể làm giảm lợi ích chạy song song. Nếu công việc có thể hoàn thành bằng phép tổng hợp thuần túy, thường nên thu kết quả trước bằng `collect` hoặc `toList` và chỉ thực hiện I/O ở bước cuối.
+This preserves order for ordered sources but can reduce the benefits of parallel execution. If the work can be completed via pure aggregation, it is usually better to collect the results first using `collect` or `toList` and perform I/O only at the final step.
 
-### 5.2. Ghép Consumer bằng andThen
+### 5.2. Chaining Consumers with andThen
 
 ~~~java
-Consumer<String> announce = name -> System.out.println("Tên: " + name);
+Consumer<String> announce = name -> System.out.println("Name: " + name);
 Consumer<String> separator = name -> System.out.println("---");
 
 Consumer<String> printWithSeparator = announce.andThen(separator);
 printWithSeparator.accept("An");
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-Tên: An
+Name: An
 ---
 ~~~
 
-`first.andThen(second)` chạy Consumer thứ nhất rồi đến thứ hai **cho cùng một giá trị**. Nếu hành động đầu ném ngoại lệ, hành động tiếp theo sẽ không chạy. Khác với `Function.andThen`, nó **không tạo ra giá trị mới**.
+`first.andThen(second)` runs the first Consumer and then the second **for the same value**. If the first action throws an exception, the subsequent action will not run. Unlike `Function.andThen`, it **does not produce a new value**.
 
-Ngoài Stream, `Optional.ifPresent(consumer)` cũng nhận Consumer để xử lý giá trị khi có mặt:
+Outside Streams, `Optional.ifPresent(consumer)` also accepts a Consumer to handle a value when present:
 
 ~~~java
 java.util.Optional.of("Java")
     .ifPresent(System.out::println); // Java
 ~~~
 
-### 5.3. Tại sao không dùng Consumer để tự gom danh sách?
+### 5.3. Why Shouldn't You Use Consumer to Manually Collect a List?
 
-Đoạn sau có vẻ hợp lý nhưng đưa **trạng thái thay đổi bên ngoài pipeline** vào luồng xử lý:
+The following snippet looks reasonable but introduces **mutable external state** into the processing flow:
 
 ~~~java
 List<String> collected = new java.util.ArrayList<>();
 
 names.stream()
     .map(String::toUpperCase)
-    .forEach(collected::add); // Không nên dùng để thu thập kết quả.
+    .forEach(collected::add); // Should not be used to collect results.
 ~~~
 
-Trong pipeline tuần tự đơn giản, đoạn này có thể chạy đúng. Nhưng ở Stream song song, `ArrayList` không bảo đảm an toàn luồng; thêm phần tử đồng thời có thể làm mất dữ liệu hoặc gây lỗi. Thay bằng:
+In a simple sequential pipeline, this may run fine. However, in a parallel Stream, `ArrayList` is not thread-safe; adding elements concurrently can cause lost data or errors. Replace it with:
 
 ~~~java
 List<String> collected = names.stream()
@@ -365,22 +365,22 @@ List<String> collected = names.stream()
     .toList();
 ~~~
 
-`toList` tạo danh sách kết quả không thể sửa từ JDK 16. Nếu cần Java 8, có thể dùng `collect(Collectors.toList())`, lưu ý API không bảo đảm danh sách thu được có thể chỉnh sửa. Nếu thật sự cần danh sách thay đổi được, chỉ rõ nhà cung cấp: `collect(Collectors.toCollection(ArrayList::new))`.
+`toList` creates an unmodifiable result list since JDK 16. If you need Java 8, you can use `collect(Collectors.toList())`, noting that the API does not guarantee the resulting list is mutable. If you genuinely need a mutable list, specify the supplier explicitly: `collect(Collectors.toCollection(ArrayList::new))`.
 
-**Quy tắc thực hành:** Consumer hữu ích cho *tác động ở ranh giới chương trình* (in ra màn hình, ghi I/O có kiểm soát). Khi muốn tạo giá trị, hãy ưu tiên Function và phép toán kết thúc sinh kết quả.
+**Rule of thumb:** Consumer is useful for *side effects at program boundaries* (printing to screen, controlled I/O). When you want to produce values, prefer Function and a result-producing terminal operation.
 
-## 6. Lambda, method reference và kiểu đích
+## 6. Lambda, Method Reference, and Target Type
 
-Các functional interface định nghĩa **hợp đồng kiểu**; lambda hoặc method reference là các cách **cung cấp hành vi** phù hợp với hợp đồng đó.
+Functional interfaces define **type contracts**; lambdas or method references are ways of **providing behavior** that conforms to those contracts.
 
-| Viết bằng lambda | Viết bằng method reference | Kiểu đích |
+| Written as lambda | Written as method reference | Target type |
 |---|---|---|
 | `order -> order.paid()` | `Order::paid` | `Predicate<Order>` |
 | `order -> order.customer()` | `Order::customer` | `Function<Order, String>` |
 | `text -> text.length()` | `String::length` | `Function<String, Integer>` |
 | `text -> System.out.println(text)` | `System.out::println` | `Consumer<String>` |
 
-Một lời gọi phương thức có thể được dùng với các interface khác nhau **nếu kiểu tham số và kiểu trả về tương thích**. Trình biên dịch dựa vào *target type* của biến hoặc tham số phương thức để hiểu lambda.
+A method call can be used with different interfaces **if the parameter types and return type are compatible**. The compiler relies on the *target type* of the variable or method parameter to interpret the lambda.
 
 ~~~java
 Predicate<String> isLong = text -> text.length() >= 5;
@@ -390,25 +390,25 @@ Consumer<Integer> printLength = System.out::println;
 Stream.of("Java", "Kotlin")
     .filter(isLong)
     .map(length)
-    .forEach(printLength); // In 6
+    .forEach(printLength); // Prints 6
 ~~~
 
-Trong ví dụ, `Predicate` loại `Java` (4 ký tự), `Function` biến `Kotlin` thành số 6, `Consumer` in 6. Nếu lỡ gán `String::length` vào `Predicate<String>`, trình biên dịch sẽ báo lỗi vì `length()` trả về `int`, không phải `boolean`.
+In the example, `Predicate` filters out `Java` (4 characters), `Function` turns `Kotlin` into the number 6, and `Consumer` prints 6. If you accidentally assign `String::length` to `Predicate<String>`, the compiler will report an error because `length()` returns `int`, not `boolean`.
 
-Lambda còn có thể *capture* biến ở phạm vi ngoài, nhưng biến cục bộ được capture phải là **final hoặc effectively final** (không bị gán lại):
+Lambdas can also *capture* variables from the enclosing scope, but a captured local variable must be **final or effectively final** (not reassigned):
 
 ~~~java
 int minimumLength = 4;
 Predicate<String> longEnough = value -> value.length() >= minimumLength;
 
-// minimumLength = 6; // Nếu bỏ comment, lambda trên sẽ không biên dịch.
+// minimumLength = 6; // If uncommented, the lambda above will not compile.
 ~~~
 
-Quy tắc này hạn chế một số lỗi trạng thái, nhưng không biến mọi đối tượng được capture thành bất biến. Ví dụ capture một `ArrayList` rồi thêm phần tử từ nhiều luồng vẫn có rủi ro race condition.
+This rule curbs certain state bugs, but it does not make every captured object immutable. For instance, capturing an `ArrayList` and adding elements from multiple threads still carries a race condition risk.
 
-## 7. Lazy pipeline: khi nào ba hàm thực sự được gọi?
+## 7. Lazy Pipeline: When Are the Three Functions Actually Called?
 
-Việc tạo một pipeline với `filter` và `map` **chưa nhất thiết gọi** `Predicate.test` hay `Function.apply`. Phần lớn phép toán trung gian của Stream là *lazy*. Công việc được thực hiện khi có terminal operation, và Stream có thể chỉ xử lý số phần tử cần thiết.
+Building a pipeline with `filter` and `map` **does not necessarily invoke** `Predicate.test` or `Function.apply` right away. Most Stream intermediate operations are *lazy*. Work is performed when a terminal operation is invoked, and the Stream may process only as many elements as needed.
 
 ~~~java
 import java.util.stream.Stream;
@@ -423,15 +423,15 @@ Stream<Integer> pipeline = Stream.of(-1, 2, 3)
         return n * 2;
     });
 
-System.out.println("Pipeline đã được tạo");
+System.out.println("Pipeline created");
 
 pipeline.forEach(n -> System.out.println("accept " + n));
 ~~~
 
-Kết quả của pipeline tuần tự này:
+Output of this sequential pipeline:
 
 ~~~text
-Pipeline đã được tạo
+Pipeline created
 test -1
 test 2
 apply 2
@@ -441,11 +441,11 @@ apply 3
 accept 6
 ~~~
 
-Lưu ý **mỗi phần tử** có thể đi qua nhiều bước trước khi phần tử kế tiếp được xử lý; Stream không nhất thiết chạy toàn bộ `filter` rồi toàn bộ `map` như hai vòng lặp riêng biệt. Chỉ có dòng “Pipeline đã được tạo” xuất hiện trước khi terminal operation chạy.
+Notice that **each element** can travel through multiple steps before the next element is processed; a Stream does not necessarily run all of `filter` and then all of `map` like two separate loops. Only the line "Pipeline created" appears before the terminal operation runs.
 
-Tuy nhiên, **không được dựa vào số lần gọi hoặc thứ tự gọi lambda để làm nghiệp vụ**. Với các phép toán có trạng thái như `sorted`, với Stream song song, với phép toán dừng sớm như `findFirst` hoặc khi JDK có thể tối ưu bỏ qua bước không cần thiết, cách đánh giá có thể khác.
+However, **you must not rely on the number of invocations or the invocation order of lambdas for business logic**. With stateful operations like `sorted`, with parallel Streams, with short-circuiting operations like `findFirst`, or when the JDK can optimize away unnecessary steps, the evaluation pattern may differ.
 
-Ví dụ sau minh họa một giả định sai:
+The following example illustrates a false assumption:
 
 ~~~java
 long count = List.of("A", "B", "C").stream()
@@ -458,30 +458,30 @@ long count = List.of("A", "B", "C").stream()
 System.out.println(count); // 3
 ~~~
 
-Đừng dự đoán rằng ba dòng `map: ...` luôn xuất hiện. Với nguồn đã biết kích thước và pipeline không thay đổi số phần tử, triển khai có thể tính `count` mà **không cần gọi mapper**. `map` nên mô tả phép biến đổi giá trị, không nên được dùng làm nơi bắt buộc phát sinh log, ghi dữ liệu hoặc thay đổi trạng thái.
+Do not expect the three `map: ...` lines to always appear. With a sized source and a pipeline that does not change the element count, the implementation may compute `count` **without calling the mapper**. `map` should describe a value transformation, not be used as a mandatory place to emit logs, write data, or mutate state.
 
-Sau khi `forEach`, `count` hoặc `toList` kết thúc, Stream đã được tiêu thụ; muốn xử lý lại dữ liệu, hãy tạo Stream **mới từ nguồn** nếu nguồn đó hỗ trợ duyệt lại.
+Once `forEach`, `count`, or `toList` finishes, the Stream has been consumed; to process the data again, create a **new Stream from the source** if that source supports re-traversal.
 
-## 8. Quy tắc thiết kế Predicate và Function an toàn
+## 8. Rules for Designing Safe Predicates and Functions
 
-Các hàm cung cấp cho pipeline nên đáp ứng hai nguyên tắc chính:
+Functions supplied to a pipeline should satisfy two main principles:
 
-1. **Non-interfering:** không sửa nguồn dữ liệu đang được duyệt.
-2. **Stateless:** kết quả xử lý một phần tử không phụ thuộc vào trạng thái ngoài đang thay đổi trong khi duyệt.
+1. **Non-interfering:** do not modify the data source being traversed.
+2. **Stateless:** the result of processing an element does not depend on external state that changes during traversal.
 
-Ví dụ không nên viết:
+Example of what not to write:
 
 ~~~java
 List<Integer> values = new java.util.ArrayList<>(List.of(1, 2, 3));
 
-// Không được sửa nguồn trong lúc duyệt bằng Stream.
+// Never modify the source while traversing it with a Stream.
 values.stream().filter(n -> {
     values.remove(n);
     return n > 1;
 }).toList();
 ~~~
 
-Thao tác sửa nguồn có thể dẫn đến `ConcurrentModificationException`, bỏ sót phần tử hoặc hành vi khó đoán tùy nguồn và cách xử lý. Nếu muốn lọc để lấy danh sách mới:
+Modifying the source can lead to `ConcurrentModificationException`, skipped elements, or unpredictable behavior depending on the source and processing mode. If you want to filter into a new list:
 
 ~~~java
 List<Integer> remaining = values.stream()
@@ -489,14 +489,14 @@ List<Integer> remaining = values.stream()
     .toList();
 ~~~
 
-Nếu muốn cập nhật chính collection, hãy sử dụng thao tác phù hợp như `values.removeIf(n -> n <= 1)` ở ngoài một pipeline đang duyệt cùng collection.
+If you want to update the collection itself, use an appropriate operation like `values.removeIf(n -> n <= 1)` outside a pipeline traversing the same collection.
 
-Một Predicate tốt kiểm tra cùng đầu vào thường cho cùng kết quả khi điều kiện nghiệp vụ không đổi. Một Function tốt chuyển đổi dựa trên đầu vào và không thực hiện hiệu ứng ngoài ý muốn. Điều này làm việc tái sử dụng trong `parallelStream()` an toàn hơn, nhưng chạy song song vẫn phải đánh giá thêm chi phí chia việc, kết hợp, thứ tự và tài nguyên.
+A well-behaved Predicate checking the same input generally returns the same result when business conditions haven't changed. A well-behaved Function transforms based on its input without unintended side effects. This makes reuse in `parallelStream()` safer, though parallel execution still requires evaluating the overhead of splitting, combining, ordering, and resources.
 
-### Xử lý null và ngoại lệ
+### Handling Nulls and Exceptions
 
-- `List.of(...)` không chấp nhận phần tử `null`, nhưng nguồn Stream khác có thể chứa `null`. Predicate kiểu `text -> text.isBlank()` sẽ ném `NullPointerException` nếu `text` là null.
-- Nếu nguồn có thể chứa null, đặt điều kiện rõ ràng trước khi ánh xạ:
+- `List.of(...)` does not accept `null` elements, but other Stream sources may contain `null`. A Predicate like `text -> text.isBlank()` will throw a `NullPointerException` if `text` is null.
+- If the source might contain nulls, place an explicit condition before mapping:
 
 ~~~java
 List<String> result = java.util.Arrays.asList("Java", null, "Go").stream()
@@ -505,40 +505,40 @@ List<String> result = java.util.Arrays.asList("Java", null, "Go").stream()
     .toList(); // [JAVA, GO]
 ~~~
 
-- Các phương thức chính `test`, `apply` và `accept` không khai báo checked exception. Nếu lời gọi bên trong lambda có checked exception, cần xử lý theo chính sách ứng dụng (xử lý tại chỗ, chuyển đổi ngoại lệ có ngữ cảnh hoặc tách phần I/O ra khỏi pipeline). Không nên “nuốt” lỗi bằng cách âm thầm trả giá trị thay thế không hợp lệ.
-- `map` có thể trả `null` nhưng một số thao tác cuối, ví dụ `findFirst` khi chọn trúng null, sẽ ném lỗi. Hãy xác định quy tắc null trước khi xây pipeline.
+- The primary methods `test`, `apply`, and `accept` do not declare checked exceptions. If a call inside a lambda throws a checked exception, you must handle it according to your application policy (handle in place, wrap with contextual exception, or separate I/O out of the pipeline). You should not "swallow" errors by silently returning an invalid fallback value.
+- `map` can return `null`, but some terminal operations—for example `findFirst` when selecting a null—will throw an error. Define your null policy before building the pipeline.
 
-## 9. Chọn đúng kiểu hàm trong những tình huống thường gặp
+## 9. Choosing the Right Function Type in Common Scenarios
 
-| Nhiệm vụ | Chọn | Vì sao |
+| Task | Choose | Why |
 |---|---|---|
-| Chỉ giữ tài khoản đang hoạt động | `Predicate<Account>` + `filter` | Trả về đúng/sai; không đổi kiểu phần tử |
-| Chuyển `Account` thành email | `Function<Account, String>` + `map` | Trả một giá trị mới; có thể đổi kiểu |
-| Tính tổng số ký tự từ danh sách chuỗi | `ToIntFunction<String>` + `mapToInt` + `sum` | Xử lý kiểu `int` trực tiếp |
-| Kiểm tra xem có đơn quá hạn | `Predicate<Order>` + `anyMatch` | Kết quả logic và có thể dừng sớm |
-| Nhóm hóa đơn theo khách hàng | `Function<Order, String>` + `groupingBy` | Tính khóa nhóm từ mỗi phần tử |
-| In từng kết quả đã xử lý | `Consumer<String>` + `forEach` | Tạo tác động, không trả về giá trị |
-| Tạo `List` từ các phần tử được biến đổi | `map` + `toList` hoặc `collect` | Thu thập giá trị thông qua terminal operation |
+| Keep only active accounts | `Predicate<Account>` + `filter` | Returns true/false; does not change element type |
+| Convert `Account` to email | `Function<Account, String>` + `map` | Returns a new value; can change type |
+| Sum character counts from a list of strings | `ToIntFunction<String>` + `mapToInt` + `sum` | Handles primitive `int` directly |
+| Check whether any order is overdue | `Predicate<Order>` + `anyMatch` | Boolean result and can short-circuit |
+| Group invoices by customer | `Function<Order, String>` + `groupingBy` | Computes grouping key from each element |
+| Print each processed result | `Consumer<String>` + `forEach` | Produces an effect, returns no value |
+| Create a `List` from transformed elements | `map` + `toList` or `collect` | Collects values via a terminal operation |
 
-Các kiểu hàm rất dễ nhầm khi tên biến không rõ ý. Nên đặt tên thể hiện mục đích: `isPaid`, `hasValidEmail` cho Predicate; `toSummary`, `extractId` cho Function; `printLine`, `sendNotification` cho Consumer. Nếu lambda dài, có nhiều nhánh và khó đặt tên, cân nhắc chuyển nó thành một phương thức có tên rồi dùng method reference.
+Function types are easy to confuse when variable names are unclear. Name them to express intent: `isPaid`, `hasValidEmail` for Predicate; `toSummary`, `extractId` for Function; `printLine`, `sendNotification` for Consumer. If a lambda is long, has multiple branches, and is hard to name, consider extracting it into a named method and using a method reference.
 
-## 10. Bài tập thực hành kèm lời giải
+## 10. Practice Exercise with Solution
 
-Cho danh sách mã sản phẩm:
+Given a list of product codes:
 
 ~~~java
 List<String> rawCodes = List.of(" java ", "", "KOTLIN", " go ", "Java");
 ~~~
 
-**Yêu cầu:**
+**Requirements:**
 
-1. Bỏ các mã rỗng hoặc toàn dấu cách.
-2. Chuẩn hóa mã bằng cách cắt khoảng trắng và chuyển sang chữ hoa.
-3. Loại bỏ mã trùng.
-4. Sắp xếp theo thứ tự tự nhiên và in từng mã theo mẫu `Mã: ...`.
-5. Đặt tên riêng cho mỗi Predicate, Function và Consumer.
+1. Drop empty or whitespace-only codes.
+2. Normalize codes by trimming whitespace and converting to uppercase.
+3. Remove duplicate codes.
+4. Sort in natural order and print each code in the format `Code: ...`.
+5. Give a separate named variable to each Predicate, Function, and Consumer.
 
-**Lời giải tham khảo (JDK 17+):**
+**Reference Solution (JDK 17+):**
 
 ~~~java
 import java.util.List;
@@ -555,7 +555,7 @@ public class BehaviorExercise {
         Function<String, String> normalize =
             code -> code.trim().toUpperCase(Locale.ROOT);
         Consumer<String> printCode =
-            code -> System.out.println("Mã: " + code);
+            code -> System.out.println("Code: " + code);
 
         List<String> normalizedCodes = rawCodes.stream()
             .filter(hasContent)
@@ -569,32 +569,32 @@ public class BehaviorExercise {
 }
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-Mã: GO
-Mã: JAVA
-Mã: KOTLIN
+Code: GO
+Code: JAVA
+Code: KOTLIN
 ~~~
 
-Trong bài này, `hasContent` là `Predicate<String>` vì trả `boolean`; `normalize` là `Function<String, String>` vì trả chuỗi chuẩn hóa; `printCode` là `Consumer<String>` vì chỉ in. `distinct` và `sorted` giúp kết quả không trùng và có thứ tự; `toList` kết thúc Stream để tạo dữ liệu trước khi thực hiện tác động in.
+In this exercise, `hasContent` is a `Predicate<String>` because it returns `boolean`; `normalize` is a `Function<String, String>` because it returns the normalized string; `printCode` is a `Consumer<String>` because it only prints. `distinct` and `sorted` ensure the results are unique and ordered; `toList` terminates the Stream to produce the data before performing the print action.
 
-**Câu hỏi tự kiểm tra:**
+**Self-Check Questions:**
 
-1. Nếu bỏ `toList()` và viết `...sorted().forEach(printCode)`, pipeline có chạy không? — **Có**, khi đó `forEach` là terminal operation.
-2. `filter(hasContent)` có thể đổi `Stream<String>` thành `Stream<Integer>` không? — **Không**; để đổi kiểu dùng `map`.
-3. `Function<String, String>` có tự loại bỏ mã trùng không? — **Không**; cần `distinct` hoặc quy tắc xử lý tương đương.
-4. Nếu thay `stream()` bằng `parallelStream()` rồi dùng `forEach(printCode)`, thứ tự in có chắc chắn không? — **Không**; cần cân nhắc `forEachOrdered` khi nguồn có thứ tự, và xử lý tác dụng phụ phù hợp.
-5. Có nên ghi dữ liệu vào database trong `map` chỉ để kích hoạt việc ghi khi `count` chạy không? — **Không**; mapper có thể không được gọi trong một số pipeline, và hiệu ứng ghi không thuộc hợp đồng biến đổi dữ liệu.
+1. If we remove `toList()` and write `...sorted().forEach(printCode)`, does the pipeline run? — **Yes**, `forEach` becomes the terminal operation.
+2. Can `filter(hasContent)` change `Stream<String>` into `Stream<Integer>`? — **No**; use `map` to change types.
+3. Does `Function<String, String>` automatically remove duplicate codes? — **No**; you need `distinct` or equivalent handling rules.
+4. If we replace `stream()` with `parallelStream()` and use `forEach(printCode)`, is the print order guaranteed? — **No**; consider `forEachOrdered` for ordered sources, and handle side effects appropriately.
+5. Should we write data to a database inside `map` just to trigger the write when `count` runs? — **No**; the mapper may not be called in some pipelines, and write side effects do not belong to the data-transformation contract.
 
-## 11. Ghi nhớ và hướng học tiếp
+## 11. Takeaways and Next Steps
 
-Hãy đọc ba kiểu hàm theo cách sau:
+Read the three function types as follows:
 
-- **`Predicate<T>`:** *có giữ giá trị này không?* → `test` → `boolean`.
-- **`Function<T, R>`:** *biến giá trị này thành gì?* → `apply` → `R`.
-- **`Consumer<T>`:** *làm gì với giá trị này?* → `accept` → `void`.
+- **`Predicate<T>`:** *should we keep this value?* → `test` → `boolean`.
+- **`Function<T, R>`:** *what should this value be transformed into?* → `apply` → `R`.
+- **`Consumer<T>`:** *what should we do with this value?* → `accept` → `void`.
 
-Trong Java Stream API, chúng thường tương ứng với `filter` → `map` → `forEach`, nhưng không bị giới hạn vào ba phương thức này: Predicate còn dùng để match; Function còn dùng để phân nhóm và ánh xạ trong collector; Consumer còn dùng với `Optional` và thao tác nhận dữ liệu khác.
+In the Java Stream API, they commonly correspond to `filter` → `map` → `forEach`, though they are not limited to these three methods: Predicate is also used for matching; Function is also used for grouping and mapping in collectors; Consumer is also used with `Optional` and other data-consuming operations.
 
-Khi pipeline ngày càng phức tạp, hãy giữ rõ **hợp đồng kiểu**, **điều kiện thực thi lazy**, **đặc tính không can thiệp nguồn**, và **giới hạn của tác dụng phụ**. Nắm được điều này sẽ giúp bạn hiểu các hàm tổng hợp trong `reduce` và `collect`, cũng như những yêu cầu chặt chẽ hơn ở xử lý song song, collector tùy chỉnh, `Spliterator` và Stream Gatherers.
+As pipelines grow more complex, keep a clear grasp on **type contracts**, **lazy execution conditions**, **non-interference with the source**, and **the boundaries of side effects**. Mastering this will help you understand aggregation functions in `reduce` and `collect`, as well as stricter requirements in parallel processing, custom collectors, `Spliterator`, and Stream Gatherers.

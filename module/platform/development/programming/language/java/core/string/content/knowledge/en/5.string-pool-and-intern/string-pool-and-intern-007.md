@@ -1,6 +1,6 @@
-# Vì sao quan sát `==` trên literal không thay thế so sánh nội dung của `String`
+# Why Observing `==` on Literals Does Not Replace `String` Content Comparison
 
-Khi thử Java, nhiều người thấy:
+When trying Java, many people see:
 
 ```java
 String a = "Java";
@@ -8,13 +8,13 @@ String b = "Java";
 System.out.println(a == b); // true
 ```
 
-Rồi kết luận rằng có thể dùng `==` để kiểm tra hai chuỗi có cùng chữ. **Đó là kết luận sai.** Kết quả `true` ở đây đến từ cơ chế *string pool*: hai literal cùng nội dung được tham chiếu tới cùng một đối tượng `String`. Toán tử `==` vẫn chỉ so sánh **danh tính đối tượng (object identity)**, không tự so sánh từng ký tự.
+And then conclude that `==` can be used to check whether two strings have the same text. **That is the wrong conclusion.** The `true` result here comes from the *string pool* mechanism: two literals with the same content reference the same `String` object. The `==` operator still compares only **object identity**, not each character individually.
 
-Với nhu cầu kiểm tra hai giá trị văn bản có giống nhau hay không, dùng `String.equals(...)` (hoặc một phép so sánh giá trị phù hợp với yêu cầu nghiệp vụ). Bài học này giải thích tại sao những phép thử nhỏ trên literal dễ gây hiểu nhầm và cách viết code đúng cho chuỗi đến từ đầu vào thực tế.
+When you need to check whether two text values are the same, use `String.equals(...)` (or a value comparison matching the business requirement). This lesson explains why small experiments on literals easily mislead and how to write correct code for strings coming from real inputs.
 
-## 1. Ba thứ khác nhau: biến, đối tượng và nội dung
+## 1. Three Different Things: Variable, Object, and Content
 
-Xét mã:
+Consider the code:
 
 ```java
 String first = "core";
@@ -22,31 +22,31 @@ String second = first;
 String third = new String("core");
 ```
 
-- **Biến tham chiếu** `first`, `second` và `third` lưu các giá trị tham chiếu đến đối tượng `String`.
-- **Đối tượng `String`** có danh tính riêng trong bộ nhớ; hai biến có thể trỏ đến cùng một đối tượng.
-- **Nội dung chuỗi** là dãy ký tự, ở đây đều là `"core"`.
+- **Reference variables** `first`, `second`, and `third` store reference values pointing to `String` objects.
+- **A `String` object** has its own identity in memory; two variables can point to the same object.
+- **String content** is the sequence of characters, which is `"core"` in all three here.
 
-Mô hình tham chiếu:
+Reference model:
 
 ```text
 first  ──┐
-         ├──────────> String "core" (đối tượng từ pool)
+         ├──────────> String "core" (object from pool)
 second ──┘
 
-third ──────────────> String "core" (đối tượng do new tạo)
+third ──────────────> String "core" (object created by new)
 ```
 
-Khi so sánh hai biến kiểu tham chiếu:
+When comparing two reference-type variables:
 
-- `first == second` hỏi: «Hai biến có trỏ tới **cùng một đối tượng** không?» → `true`.
-- `first == third` hỏi cùng câu hỏi đó → `false`.
-- `first.equals(third)` hỏi: «Hai đối tượng `String` có **cùng nội dung** không?» → `true`.
+- `first == second` asks: "Do both variables point to **the same object**?" → `true`.
+- `first == third` asks the same question → `false`.
+- `first.equals(third)` asks: "Do both `String` objects have **the same content**?" → `true`.
 
-Dù các chuỗi cùng chữ, identity và value không phải một khái niệm. Dùng `==` để kiểm tra nội dung chỉ tình cờ cho kết quả mong đợi khi hai bên đang tham chiếu tới cùng đối tượng.
+Even when strings have the same characters, identity and value are not the same concept. Using `==` to check content only happens to yield the expected result when both sides already reference the same object.
 
-## 2. Tại sao hai literal giống nhau có thể cho `== true`?
+## 2. Why Can Two Identical Literals Give `== true`?
 
-Java lưu các chuỗi literal dưới dạng đã được *intern* trong **string pool**. Theo ngữ nghĩa Java, các literal cùng nội dung (và các biểu thức chuỗi hằng có cùng nội dung) tham chiếu đến đối tượng `String` chuẩn tắc trong pool.
+Java stores string literals in an *interned* form in the **string pool**. According to Java semantics, literals with the same content (and constant string expressions with the same content) reference the canonical `String` object in the pool.
 
 ```java
 String a = "Java";
@@ -54,17 +54,17 @@ String b = "Java";
 System.out.println(a == b); // true
 ```
 
-Đây là đặc tính có chủ ý của ngôn ngữ và cách tổ chức literal. Nó giúp sử dụng lại đối tượng cho các giá trị hằng giống nhau. Tuy nhiên, điều này **không biến `==` thành phép so sánh nội dung**. Khi hai tham chiếu khác đối tượng, `==` vẫn trả về `false` ngay cả khi các ký tự bằng nhau.
+This is an intentional feature of the language and how literals are organized. It enables object reuse for identical constant values. However, this **does not turn `==` into a content comparison operator**. When two references point to different objects, `==` still returns `false` even if their characters match.
 
-Có thể hình dung câu hỏi sai thường gặp như sau:
+You can picture the common flawed reasoning like this:
 
-> «Hai literal cùng chữ trả về `true` với `==`, vậy mọi chuỗi cùng chữ cũng sẽ trả về `true`.»
+> "Two literals with the same text return `true` with `==`, so all strings with the same text will also return `true`."
 
-Bước suy luận sai là đánh đồng «cùng nội dung» với «luôn cùng tham chiếu». Pool giải thích **vì sao trường hợp literal đặc biệt có thể chia sẻ identity**; nó không đưa ra bảo đảm cho mọi chuỗi được sinh ra lúc chạy.
+The faulty step is equating "same content" with "always the same reference." The pool explains **why the special case of literals can share identity**; it makes no guarantee for arbitrary strings produced at runtime.
 
-### Ví dụ 1: literal và bản sao có cùng nội dung
+### Example 1: literal and a copy with the same content
 
-Tạo tệp `LiteralIdentityDemo.java`:
+Create the file `LiteralIdentityDemo.java`:
 
 ```java
 public class LiteralIdentityDemo {
@@ -80,14 +80,14 @@ public class LiteralIdentityDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac LiteralIdentityDemo.java
 java LiteralIdentityDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 true
@@ -95,15 +95,15 @@ false
 true
 ```
 
-Dòng đầu đúng vì literal `"Java"` được dùng chung qua pool. Dòng thứ hai sai vì `new String("Java")` tạo **đối tượng mới** có identity khác. Dòng cuối đúng vì `equals` so sánh nội dung hai `String`.
+The first line is true because the literal `"Java"` is shared through the pool. The second line is false because `new String("Java")` creates a **new object** with a different identity. The last line is true because `equals` compares the content of the two `String` objects.
 
-Cả ba phép so sánh đều đang làm đúng công việc của chúng. Lỗi nằm ở việc chọn `==` khi thật ra bài toán yêu cầu so sánh văn bản.
+All three comparisons are doing their exact job. The mistake is choosing `==` when the problem actually calls for text comparison.
 
-## 3. Chuỗi hằng tại thời điểm biên dịch cũng có thể dùng chung đối tượng pooled
+## 3. Compile-Time Constant Strings Can Also Share Pooled Objects
 
-Không chỉ literal viết nguyên một lần mới có thể nhận cùng tham chiếu. **Biểu thức hằng chuỗi (constant expression)** được đánh giá tại thời điểm biên dịch cũng có thể trở thành cùng giá trị literal/interned.
+It is not only literals written as a single token that can receive the same reference. **String constant expressions** evaluated at compile time can also become the same literal/interned value.
 
-Ví dụ:
+Example:
 
 ```java
 String a = "Java";
@@ -111,9 +111,9 @@ String b = "Ja" + "va";
 System.out.println(a == b); // true
 ```
 
-`"Ja" + "va"` là biểu thức hằng, được tính tại thời điểm biên dịch thành `"Java"`. Vì vậy `b` nhận tham chiếu tới cùng chuỗi đã intern.
+`"Ja" + "va"` is a constant expression, evaluated at compile time to `"Java"`. Therefore `b` receives a reference to the same interned string.
 
-Tương tự, một **constant variable** `final String` được khởi tạo bằng biểu thức hằng có thể góp phần tạo biểu thức hằng:
+Similarly, a `final String` **constant variable** initialized with a constant expression can participate in a constant expression:
 
 ```java
 final String prefix = "Ja";
@@ -121,11 +121,11 @@ String c = prefix + "va";
 System.out.println(c == "Java"); // true
 ```
 
-Điểm cần nhớ: **`final` không tự động làm mọi phép nối trở thành biểu thức hằng**. Giá trị khởi tạo và loại biểu thức phải thỏa định nghĩa *constant expression* của ngôn ngữ. Ví dụ, nếu một biến `final` nhận giá trị từ phương thức lúc chạy thì phép nối với nó không phải biểu thức hằng chỉ vì nó có `final`.
+Point to remember: **`final` does not automatically make every concatenation a constant expression**. The initializer and expression form must satisfy the language's *constant expression* definition. For example, if a `final` variable receives its value from a method at runtime, concatenating with it is not a constant expression merely because it has `final`.
 
-### Ví dụ 2: kiểm tra literal và phép nối hằng
+### Example 2: checking literals and constant concatenation
 
-Tạo tệp `ConstantExpressionDemo.java`:
+Create the file `ConstantExpressionDemo.java`:
 
 ```java
 public class ConstantExpressionDemo {
@@ -152,7 +152,7 @@ javac ConstantExpressionDemo.java
 java ConstantExpressionDemo
 ```
 
-Kết quả với Java 17+:
+Output with Java 17+:
 
 ```text
 true
@@ -161,13 +161,13 @@ true
 false
 ```
 
-Hai lần `true` đầu không chứng minh `==` so sánh chữ: chúng chỉ phản ánh phép nối **hằng** cùng nhận đối tượng pooled. Với `runtimePrefix` là đối tượng tạo lúc chạy, phép nối sinh ra giá trị `"Java"` mới; `equals` xác nhận nội dung đúng, còn `==` cho thấy nó không cùng identity với literal ở ví dụ này.
+The first two `true` outputs do not prove that `==` compares text: they only reflect **constant** concatenations receiving the pooled object. Because `runtimePrefix` is an object created at runtime, the concatenation produces a new `"Java"` value; `equals` confirms the content matches, while `==` shows it does not share identity with the literal in this example.
 
-Trong ứng dụng thực tế, chuỗi nhận từ mạng, bàn phím, file, cơ sở dữ liệu và kết quả xử lý lúc chạy không được giả định có cùng identity với literal dù nội dung trùng khớp.
+In real applications, strings received from the network, keyboard, files, databases, and runtime processing must not be assumed to share identity with a literal even when their content matches.
 
-## 4. Chuỗi từ bên ngoài có thể bằng literal mà `==` vẫn `false`
+## 4. External Strings Can Equal a Literal While `==` Is Still `false`
 
-Một ví dụ rất gần với việc đọc dữ liệu bên ngoài là tạo chuỗi từ mảng ký tự:
+An example very close to reading external data is constructing a string from a character array:
 
 ```java
 char[] incoming = {'o', 'k'};
@@ -177,11 +177,11 @@ System.out.println(fromInput == "ok");       // false
 System.out.println(fromInput.equals("ok"));   // true
 ```
 
-`fromInput` và literal `"ok"` có cùng nội dung. Tuy nhiên, constructor `String(char[])` tạo một đối tượng `String` từ dữ liệu đầu vào, nên tham chiếu của nó khác tham chiếu literal pooled. Nếu code phân nhánh theo `if (fromInput == "ok")`, nhánh này sẽ **không chạy** dù người dùng đã nhập đúng chữ.
+`fromInput` and the literal `"ok"` have the same content. However, the `String(char[])` constructor creates a `String` object from the input data, so its reference differs from the pooled literal reference. If code branches on `if (fromInput == "ok")`, that branch will **not execute** even though the user entered the exact expected text.
 
-### Ví dụ 3: một nhánh lỗi và một nhánh đúng
+### Example 3: one buggy branch and one correct branch
 
-Tạo tệp `StringDecisionDemo.java`:
+Create the file `StringDecisionDemo.java`:
 
 ```java
 public class StringDecisionDemo {
@@ -211,20 +211,20 @@ javac StringDecisionDemo.java
 java StringDecisionDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Identity did not match
 Content matched
 ```
 
-Chỉ thay đổi **cách tạo đối tượng** mà nội dung vẫn như nhau đã khiến `==` chuyển từ `true` sang `false`. Đó chính là lý do không nên dùng một phép thử trên hai literal để xác nhận logic so sánh nội dung của chương trình.
+Merely changing **how the object was created** while keeping the exact same content caused `==` to flip from `true` to `false`. That is precisely why you should not use a test on two literals to validate a program's content-comparison logic.
 
-## 5. `String.intern()` thay đổi điều gì, và không thay đổi điều gì?
+## 5. What Does `String.intern()` Change, and What Does It Not Change?
 
-`String.intern()` trả về một **tham chiếu chuẩn tắc** tới chuỗi có cùng nội dung trong string pool. Nếu chuỗi tương ứng đã có trong pool, nó trả về tham chiếu ở pool. Nếu chưa có, pool sẽ bảo đảm có một đối tượng chuẩn tắc tương ứng và trả về tham chiếu đó.
+`String.intern()` returns a **canonical reference** to a string with the same content in the string pool. If the corresponding string is already in the pool, it returns the pooled reference. If not, the pool ensures a corresponding canonical object exists and returns that reference.
 
-Ví dụ:
+Example:
 
 ```java
 String literal = "topic";
@@ -236,15 +236,15 @@ System.out.println(literal == canonical); // true
 System.out.println(dynamic == canonical); // false
 ```
 
-Điểm quan trọng:
+Key points:
 
-1. `dynamic` được tạo riêng qua `new`, vì vậy nó có identity khác `literal`.
-2. `dynamic.intern()` trả về tham chiếu chuẩn tắc cho nội dung `"topic"`; literal `"topic"` đã hiện diện trong ví dụ.
-3. Gọi `intern()` **không gán lại biến `dynamic`** và không biến đối tượng mà `dynamic` đang tham chiếu thành đối tượng literal.
+1. `dynamic` was created separately via `new`, so it has a different identity from `literal`.
+2. `dynamic.intern()` returns the canonical reference for the content `"topic"`; the literal `"topic"` is already present in the example.
+3. Calling `intern()` **does not reassign the `dynamic` variable** and does not transform the object `dynamic` references into the literal object.
 
-### Ví dụ 4: kiểm tra rõ trước và sau `intern()`
+### Example 4: clearly checking before and after `intern()`
 
-Tạo tệp `InternDemo.java`:
+Create the file `InternDemo.java`:
 
 ```java
 public class InternDemo {
@@ -266,7 +266,7 @@ javac InternDemo.java
 java InternDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 false
@@ -275,13 +275,13 @@ false
 true
 ```
 
-`intern()` có thể phục vụ những thiết kế cần chuẩn tắc hóa tham chiếu có chủ đích. Tuy nhiên, không cần (và thường không nên) gọi `intern()` chỉ để dùng `==` thay `equals`. Việc tự quản lý chuẩn tắc hóa làm code phụ thuộc thêm vào chiến lược chia sẻ đối tượng và có thể tốn tài nguyên mà yêu cầu so sánh nội dung không cần đến.
+`intern()` can serve designs that intentionally require reference canonicalization. However, there is no need (and usually it is counterproductive) to call `intern()` just so you can use `==` instead of `equals`. Manually managing canonicalization couples code to an object-sharing strategy and can consume resources that content comparison does not need.
 
-Một nguyên tắc tốt: **pool/intern giải thích nguồn gốc tham chiếu; `equals` giải quyết nhu cầu so sánh nội dung.**
+A good rule of thumb: **pool/intern explains where references come from; `equals` solves the need for content comparison.**
 
-## 6. Viết phép so sánh nội dung như thế nào?
+## 6. How Should Content Comparisons Be Written?
 
-Với hai `String` khác `null`:
+For two non-`null` `String` values:
 
 ```java
 String expected = "Java";
@@ -290,19 +290,19 @@ String actual = new String("Java");
 boolean sameContent = expected.equals(actual); // true
 ```
 
-`String.equals(Object other)` trả về `true` khi đối số là một `String` có cùng dãy ký tự. Nó không yêu cầu cùng đối tượng hay cùng nguồn khởi tạo.
+`String.equals(Object other)` returns `true` when the argument is a `String` with the same character sequence. It does not require the same object or the same creation source.
 
-Về hướng gọi và `null`:
+Regarding call direction and `null`:
 
-- Nếu biết chắc `a != null`, dùng `a.equals(b)`.
-- Nếu có một hằng mong đợi, dùng `"READY".equals(received)`: nhận `false` an toàn khi `received == null`.
-- Nếu **cả hai phía có thể null**, dùng `Objects.equals(a, b)` (import `java.util.Objects`); hai giá trị cùng `null` cho `true`.
-- Để kiểm tra một tham chiếu **có null hay không**, dùng `value == null` hoặc `value != null`. Đây là so sánh tham chiếu đúng mục đích.
-- Chỉ dùng `equalsIgnoreCase` khi nghiệp vụ thực sự yêu cầu bỏ qua khác biệt hoa/thường; nó không phải lựa chọn mặc định cho mọi văn bản.
+- If you know for sure `a != null`, use `a.equals(b)`.
+- If there is an expected constant, use `"READY".equals(received)`: it safely returns `false` when `received == null`.
+- If **both sides can be null**, use `Objects.equals(a, b)` (import `java.util.Objects`); two `null` values return `true`.
+- To check whether a reference **is null or not**, use `value == null` or `value != null`. That is reference comparison used for its intended purpose.
+- Use `equalsIgnoreCase` only when business requirements genuinely call for ignoring case differences; it is not the default choice for all text.
 
-### Ví dụ 5: so sánh an toàn khi có `null`
+### Example 5: safe comparison when `null` is possible
 
-Tạo tệp `NullSafeComparisonDemo.java`:
+Create the file `NullSafeComparisonDemo.java`:
 
 ```java
 import java.util.Objects;
@@ -327,7 +327,7 @@ javac NullSafeComparisonDemo.java
 java NullSafeComparisonDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 false
@@ -337,34 +337,34 @@ true
 false
 ```
 
-Nếu viết `received.equals("READY")` khi `received == null`, chương trình sẽ ném `NullPointerException`. Không nên «sửa» lỗi này bằng `received == "READY"`: phép so sánh tham chiếu chỉ che mất lỗi null trong ví dụ nhỏ rồi gây ra lỗi logic khi dữ liệu hợp lệ đến từ nơi khác.
+If you wrote `received.equals("READY")` when `received == null`, the program would throw `NullPointerException`. Do not "fix" this by writing `received == "READY"`: reference comparison merely hides the null bug in a small example and then causes logic errors when valid data arrives from elsewhere.
 
-## 7. So sánh nhanh: kết quả nào được bảo đảm?
+## 7. Quick Comparison: Which Results Are Guaranteed?
 
-| Hai biểu thức được so sánh | `==` | `equals` | Giải thích |
+| Two compared expressions | `==` | `equals` | Explanation |
 | --- | --- | --- | --- |
-| `"x"` và `"x"` | `true` | `true` | Hai literal cùng giá trị đã intern |
-| `"x"` và `"x" + ""` | `true` | `true` | Phép nối toàn hằng được tính ở compile time |
-| `a` và `b` sau `String b = a` | `true` | `true` khi `a` là `String` khác null | Cùng tham chiếu; với null, không được gọi `a.equals(...)` |
-| `"x"` và `new String("x")` | `false` | `true` | `new` tạo đối tượng `String` khác |
-| `"x"` và `new String("x").intern()` | `true` | `true` | `intern()` trả về tham chiếu pooled |
-| `"x"` và `new String("y")` | `false` | `false` | Khác đối tượng và khác nội dung |
+| `"x"` and `"x"` | `true` | `true` | Two literals with the same interned value |
+| `"x"` and `"x" + ""` | `true` | `true` | All-constant concatenation evaluated at compile time |
+| `a` and `b` after `String b = a` | `true` | `true` when `a` is a non-null `String` | Same reference; if null, do not call `a.equals(...)` |
+| `"x"` and `new String("x")` | `false` | `true` | `new` creates a different `String` object |
+| `"x"` and `new String("x").intern()` | `true` | `true` | `intern()` returns the pooled reference |
+| `"x"` and `new String("y")` | `false` | `false` | Different objects and different content |
 
-Bảng này sử dụng các biểu thức có điều kiện rõ ràng. Với một `String` bất kỳ lấy từ hệ thống bên ngoài, **không thể đoán kết quả `==` chỉ từ chữ hiển thị**. Không nên coi `== true` là «nội dung bằng nhau» theo hợp đồng API so sánh giá trị, dù cùng tham chiếu tất nhiên dẫn tới cùng nội dung tại thời điểm đó.
+This table uses expressions with well-defined conditions. For an arbitrary `String` obtained from an external system, **you cannot predict the result of `==` merely from the displayed text**. Do not treat `== true` as meaning "equal content" under a value-comparison API contract, even though having the same reference naturally implies having the same content at that moment.
 
-## 8. Hai lỗi dễ lọt qua kiểm thử
+## 8. Two Bugs That Easily Slip Past Testing
 
-### Lỗi A — kiểm thử chỉ dùng literal
+### Bug A — testing only with literals
 
 ```java
 static boolean isAdmin(String role) {
-    return role == "ADMIN"; // Sai mục đích nếu kiểm tra nội dung.
+    return role == "ADMIN"; // Wrong intent if checking content.
 }
 ```
 
-Nếu thử `isAdmin("ADMIN")`, kết quả thường là `true` và có thể khiến bạn nghĩ hàm đúng. Nhưng khi nguồn dữ liệu tạo đối tượng mới cùng nội dung, ví dụ `isAdmin(new String("ADMIN"))`, kết quả là `false`.
+If you test `isAdmin("ADMIN")`, the result is usually `true`, which can trick you into thinking the method is right. But when a data source creates a new object with the same content, such as `isAdmin(new String("ADMIN"))`, the result is `false`.
 
-Sửa thành:
+Fix to:
 
 ```java
 static boolean isAdmin(String role) {
@@ -372,11 +372,11 @@ static boolean isAdmin(String role) {
 }
 ```
 
-Đây là đoạn minh họa phương thức, có thể đặt trong một lớp Java; nó không phải chương trình độc lập vì chưa có `main`. Phép so sánh mới trả về `true` cho các `String` có nội dung chính xác `"ADMIN"` bất kể cách tạo đối tượng. Khi `role == null`, nó trả về `false`.
+This is an illustrative method snippet that can be placed inside a Java class; it is not a standalone program because it lacks `main`. The new comparison returns `true` for any `String` with exact content `"ADMIN"` regardless of how the object was created. When `role == null`, it returns `false`.
 
-### Lỗi B — dùng `intern()` để hợp thức hóa `==`
+### Bug B — using `intern()` to justify `==`
 
-Một cách sửa kém cần thiết là:
+An unnecessarily awkward fix is:
 
 ```java
 String received = new String("READY");
@@ -385,7 +385,7 @@ if (received.intern() == "READY") {
 }
 ```
 
-Điều này hoạt động với ví dụ cụ thể, nhưng làm logic dựa vào pool, còn người đọc phải hiểu chiến lược canonicalization. Cách trực tiếp và đúng nghĩa hơn:
+This works for the specific example, but makes the logic depend on the pool and forces readers to reason about canonicalization strategy. The more direct and meaningful approach is:
 
 ```java
 String received = new String("READY");
@@ -394,23 +394,23 @@ if ("READY".equals(received)) {
 }
 ```
 
-Các phương thức so sánh giá trị đều thể hiện ý định rõ hơn việc thay đổi cách quản lý tham chiếu chỉ để tạo điều kiện cho `==`.
+Value-comparison methods express intent far better than altering reference management just to make `==` work.
 
-## 9. Khi nào `==` với `String` vẫn có ý nghĩa?
+## 9. When Does `==` on `String` Still Make Sense?
 
-`==` không phải toán tử «cấm dùng» trên `String`. Nó đúng khi điều bạn muốn kiểm tra **thực sự là identity**, chẳng hạn:
+`==` is not a "forbidden" operator on `String`. It is right when what you want to check **is genuinely identity**, such as:
 
-- `value == null` để kiểm tra không có tham chiếu.
-- `a == b` trong mã nội bộ cố ý xác định hai biến có cùng đối tượng hay không, ví dụ khi nghiên cứu pool hoặc kiểm tra tối ưu hóa; kết quả này nói về *đối tượng*, không thay thế bước kiểm tra nội dung.
-- Logic có một hợp đồng riêng thật sự dựa trên identity (trường hợp hiếm và cần được nêu rõ).
+- `value == null` to check for the absence of a reference.
+- `a == b` in internal code intentionally determining whether two variables hold the same object, for instance when studying the pool or verifying an optimization; this result tells you about *object identity*, and does not replace content checks.
+- Logic with a genuine custom contract based on identity (a rare case that must be documented clearly).
 
-Nếu câu hỏi nghiệp vụ là «mã trạng thái có đúng `READY` không?», «username có giống nhau không?», hay «giá trị text ở hai nguồn có bằng nhau không?», thì câu trả lời cần phép so sánh **nội dung**. Đừng thay hợp đồng nghiệp vụ bằng giả định về pooling.
+If the business question is "is the status code equal to `READY`?", "are the usernames the same?", or "are the text values from two sources equal?", then the answer requires **content** comparison. Do not replace a business contract with assumptions about pooling.
 
-Cũng cần nhớ: `String` bất biến nên hai biến chia sẻ một đối tượng pooled không có nghĩa là sửa chuỗi của một biến sẽ tác động đến biến kia. Gán lại biến hoặc tạo giá trị chuỗi mới không sửa nội dung đối tượng `String` cũ.
+Also remember: because `String` is immutable, two variables sharing a pooled object does not mean modifying one variable's string affects the other. Reassigning a variable or creating a new string value does not alter the old `String` object's content.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-### Câu 1 — các giá trị đúng hay sai?
+### Question 1 — true or false values?
 
 ```java
 String x = "cat";
@@ -422,7 +422,7 @@ System.out.println(y == z);
 System.out.println(x.equals(z));
 ```
 
-Đáp án:
+Answer:
 
 ```text
 true
@@ -430,9 +430,9 @@ false
 true
 ```
 
-`x` và `y` cùng tham chiếu literal. `z` là đối tượng riêng có cùng nội dung.
+`x` and `y` share the literal reference. `z` is a separate object with the same content.
 
-### Câu 2 — lý do thật sự của `true`?
+### Question 2 — the real reason for `true`?
 
 ```java
 String text = "abcdef";
@@ -440,9 +440,9 @@ String built = "abc" + "def";
 System.out.println(text == built);
 ```
 
-Đáp án là `true` vì phép nối toàn literal là biểu thức hằng được tính tại thời điểm biên dịch. Điều này **không** có nghĩa toán tử `==` so từng ký tự.
+The answer is `true` because concatenating all literals is a constant expression evaluated at compile time. This does **not** mean the `==` operator compares character by character.
 
-### Câu 3 — thử trường hợp data đến từ runtime
+### Question 3 — testing data arriving at runtime
 
 ```java
 String expected = "abc";
@@ -452,21 +452,21 @@ System.out.println(expected == actual);
 System.out.println(expected.equals(actual));
 ```
 
-Đáp án:
+Answer:
 
 ```text
 false
 true
 ```
 
-Chuỗi runtime không cùng identity với literal dù nội dung bằng nhau.
+A runtime string does not share identity with a literal even when the content is equal.
 
-### Câu 4 — chọn phép so sánh
+### Question 4 — choosing the comparison
 
-Giả sử `String token` có thể bằng `null` và bạn muốn biết token có chính xác là `"OK"` không. Chọn `token == "OK"`, `token.equals("OK")` hay `"OK".equals(token)`?
+Suppose `String token` may be `null` and you want to know whether the token is exactly `"OK"`. Should you choose `token == "OK"`, `token.equals("OK")`, or `"OK".equals(token)`?
 
-**Đáp án:** `"OK".equals(token)`. Nó trả về `true` khi nội dung khớp, `false` nếu `token` khác hoặc `null`. `token.equals("OK")` có nguy cơ ném `NullPointerException`; `token == "OK"` kiểm tra identity sai mục đích.
+**Answer:** `"OK".equals(token)`. It returns `true` when the content matches, and `false` if `token` differs or is `null`. `token.equals("OK")` risks throwing `NullPointerException`; `token == "OK"` checks identity with the wrong intent.
 
-## Kết luận
+## Conclusion
 
-**`==` trên `String` so sánh tham chiếu; `equals` so sánh nội dung.** Hai literal cùng chữ, hoặc hai biểu thức hằng có cùng kết quả, có thể cùng tham chiếu nhờ string pool nên `==` trả về `true`. Đó là một quan sát đúng về **identity của literal**, nhưng **không** phải bảo đảm rằng mọi chuỗi có cùng chữ được tạo ở thời điểm chạy sẽ cùng tham chiếu. Với dữ liệu văn bản thực tế, hãy viết phép so sánh theo yêu cầu giá trị ngay từ đầu, sử dụng `equals` và xử lý `null` rõ ràng.
+**`==` on `String` compares references; `equals` compares content.** Two identical literals, or two constant expressions with the same result, can share a reference via the string pool so `==` returns `true`. That is an accurate observation about **literal identity**, but **not** a guarantee that all strings with the same text created at runtime will share a reference. For real text data, write comparisons according to value semantics from the start, using `equals` and handling `null` explicitly.

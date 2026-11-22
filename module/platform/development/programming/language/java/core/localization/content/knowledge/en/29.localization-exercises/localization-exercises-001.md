@@ -1,19 +1,19 @@
-# Thực hành tổng hợp: xây dựng chương trình dòng lệnh đổi ngôn ngữ bằng ResourceBundle trong Java
+# Comprehensive Practice: Building a Language-Switching CLI Program with ResourceBundle in Java
 
-## 1. Mục tiêu và sản phẩm cần xây dựng
+## 1. Objectives and Deliverable
 
-Bài thực hành xây dựng một **CLI (command-line interface)** chạy trên Java 17 trở lên. Người dùng có thể **đổi ngôn ngữ ngay trong phiên chạy**, không phải khởi động lại JVM. Chương trình có các lệnh:
+This hands-on exercise builds a **CLI (command-line interface)** running on Java 17 or later. Users can **switch languages mid-session** without restarting the JVM. The program supports the following commands:
 
-| Lệnh | Tác dụng |
+| Command | Effect |
 | --- | --- |
-| `help` | Hiển thị hướng dẫn trong ngôn ngữ hiện tại |
-| `lang en` | Chuyển thông điệp sang tiếng Anh |
-| `lang vi` | Chuyển thông điệp sang tiếng Việt |
-| `greet TÊN` | In lời chào có tên động |
-| `count N` | In số lượng tin nhắn; định dạng số theo locale |
-| `quit` | Thoát bằng lời chào tạm biệt đã bản địa hóa |
+| `help` | Displays usage instructions in the current language |
+| `lang en` | Switches messages to English |
+| `lang vi` | Switches messages to Vietnamese |
+| `greet NAME` | Prints a greeting with a dynamic name |
+| `count N` | Prints the message count; formats the number according to the locale |
+| `quit` | Exits with a localized farewell message |
 
-Ví dụ một phiên tương tác:
+Example interactive session:
 
 ```text
 Language Switch CLI
@@ -37,77 +37,77 @@ Language switched to English.
 Goodbye!
 ```
 
-Dấu `>` là prompt của chương trình; các dòng sau prompt là lệnh người dùng gõ. Đối với số `1234`, tiếng Anh Mỹ thường dùng dấu phẩy nhóm nghìn, còn tiếng Việt Việt Nam thường dùng dấu chấm. Việc trình bày này phụ thuộc dữ liệu locale của JDK; đầu ra trên minh họa cách định dạng của JDK hiện đại. Font/encoding terminal có thể ảnh hưởng việc hiển thị dấu tiếng Việt, không thay đổi bản chất của `ResourceBundle`.
+The `>` character is the program prompt; the lines following the prompt are commands typed by the user. For the number `1234`, US English typically uses a comma as the thousands separator, whereas Vietnamese in Vietnam typically uses a dot. This presentation depends on the JDK's locale data; the output above illustrates formatting in a modern JDK. Terminal fonts/encoding can affect the display of Vietnamese diacritics without changing the underlying behavior of `ResourceBundle`.
 
-Sau bài này, bạn sẽ biết:
+After completing this exercise, you will know how to:
 
-1. Tách **logic điều khiển CLI** khỏi **ngôn ngữ hiển thị**.
-2. Tạo và tổ chức `.properties` theo đúng **base name**, **classpath root** và **locale suffix**.
-3. Dùng `Locale`, `ResourceBundle.getBundle`, `getString` và `MessageFormat`.
-4. Đổi ngôn ngữ có kiểm soát, không gọi `Locale.setDefault` trên toàn JVM.
-5. Định dạng tham số động, số lượng và câu hoàn chỉnh.
-6. Xử lý đầu vào, ngôn ngữ không hỗ trợ, key thiếu, lỗi tài nguyên và encoding.
-7. Biên dịch, chạy, đóng gói JAR và kiểm thử một ứng dụng i18n thực tế.
+1. Separate **CLI control logic** from **display language**.
+2. Create and organize `.properties` files using the proper **base name**, **classpath root**, and **locale suffix**.
+3. Use `Locale`, `ResourceBundle.getBundle`, `getString`, and `MessageFormat`.
+4. Switch languages in a controlled way without calling `Locale.setDefault` across the entire JVM.
+5. Format dynamic arguments, counts, and complete sentences.
+6. Handle input validation, unsupported languages, missing keys, resource errors, and encoding.
+7. Compile, run, package as a JAR, and test a practical i18n application.
 
-## 2. Kiến trúc: dữ liệu nghiệp vụ không phụ thuộc ngôn ngữ
+## 2. Architecture: Language-Independent Business Data
 
-Ứng dụng có hai lớp trách nhiệm:
+The application has two layers of responsibility:
 
-- **Logic CLI:** đọc lệnh, kiểm tra lệnh hợp lệ, lưu ngôn ngữ đang chọn, chuyển đến chức năng tương ứng.
-- **Localization:** chọn `ResourceBundle` tương ứng locale, lấy mẫu thông điệp theo key và format dữ liệu.
+- **CLI Logic:** reads commands, validates input, stores the currently selected language, and dispatches to the corresponding functionality.
+- **Localization:** selects the `ResourceBundle` matching the locale, retrieves message patterns by key, and formats data.
 
-Sơ đồ tư duy:
+Conceptual diagram:
 
 ```text
-Người dùng nhập "count 1234"
+User enters "count 1234"
              |
              v
-  Bộ xử lý lệnh CLI
+   CLI command handler
              |
              v
-   Phân tích số 1234 (long)
+   Parse number 1234 (long)
              |
              v
-  Chọn message key "count.other"
+  Select message key "count.other"
              |
              v
- ResourceBundle theo locale hiện tại
+ ResourceBundle for current locale
              |
              v
-   MessageFormat với tham số [1234]
+   MessageFormat with argument [1234]
              |
              v
   "You have 1,234 messages."
-             hoặc
+              or
   "Bạn có 1.234 tin nhắn."
 ```
 
-**Quan trọng:** chương trình **không** viết `if (locale == vi) System.out.println("Bạn có...")` cho từng câu. Nó dùng **cùng key** nhưng tài nguyên cung cấp mẫu câu tương ứng. Nhờ đó, thêm ngôn ngữ mới chủ yếu là thêm bản dịch và cập nhật danh sách ngôn ngữ được hỗ trợ, không sao chép toàn bộ logic xử lý lệnh.
+**Important:** the program does **not** write `if (locale == vi) System.out.println("Bạn có...")` for every sentence. It uses the **same key**, while the resource files supply the corresponding sentence pattern. As a result, adding a new language mainly involves adding translations and updating the supported language list, without duplicating the entire command-handling logic.
 
-### Tên key phải ổn định và mô tả mục đích
+### Key Names Must Be Stable and Describe Purpose
 
-Bộ key của bài:
+The key set for this exercise:
 
-| Key | Ý nghĩa |
+| Key | Meaning |
 | --- | --- |
-| `app.name` | Tên ứng dụng trung lập |
-| `welcome` | Dòng giới thiệu |
-| `help` | Cú pháp các lệnh |
-| `language.changed` | Thông báo chuyển ngôn ngữ thành công |
-| `greeting` | Câu chào có đối số tên `{0}` |
-| `count.one` | Câu số lượng khi `N == 1` |
-| `count.other` | Câu số lượng cho các số nguyên không âm còn lại |
-| `error.locale` | Mã ngôn ngữ không hỗ trợ |
-| `error.name` | Thiếu tên cho lệnh `greet` |
-| `error.number` | Giá trị số lượng không hợp lệ |
-| `error.command` | Lệnh không nhận diện được |
-| `goodbye` | Thông báo thoát |
+| `app.name` | Neutral application name |
+| `welcome` | Welcome line |
+| `help` | Command syntax |
+| `language.changed` | Language switch success message |
+| `greeting` | Greeting sentence with name argument `{0}` |
+| `count.one` | Count sentence when `N == 1` |
+| `count.other` | Count sentence for all other non-negative integers |
+| `error.locale` | Unsupported language code |
+| `error.name` | Missing name for the `greet` command |
+| `error.number` | Invalid count value |
+| `error.command` | Unrecognized command |
+| `goodbye` | Exit message |
 
-Đây là key kỹ thuật: **không cần dịch tên key**. Người dịch chỉ chỉnh giá trị tương ứng. Tránh đặt tên `message1`, `message2` vì khó hiểu chức năng và khó quản lý bản dịch.
+These are technical keys: **key names do not need to be translated**. Translators only edit the corresponding values. Avoid naming keys `message1`, `message2`, because their purpose is unclear and translations become hard to manage.
 
-## 3. Cấu trúc thư mục đúng để Java tìm bundle
+## 3. Proper Directory Structure for Java to Locate Bundles
 
-Dự án đơn giản **không cần thư viện bên ngoài**:
+This simple project **requires no external libraries**:
 
 ```text
 language-cli/
@@ -119,10 +119,10 @@ language-cli/
 │           ├── Messages.properties
 │           ├── Messages_en.properties
 │           └── Messages_vi.properties
-└── out/                      # thư mục tạo sau khi javac
+└── out/                      # directory created after javac
 ```
 
-Vì các file `.properties` đặt **ngay gốc resource directory**, base name là `"Messages"`, không phải `"src.main.resources.Messages"` và không phải `"Messages.properties"`. Khi classpath chứa `src/main/resources` hoặc khi các file đã được chép vào **gốc JAR**, Java tìm:
+Because the `.properties` files are placed **directly at the resource directory root**, the base name is `"Messages"`, not `"src.main.resources.Messages"` and not `"Messages.properties"`. When the classpath includes `src/main/resources`, or when the files are copied to the **JAR root**, Java looks for:
 
 ```text
 Messages.properties
@@ -130,26 +130,26 @@ Messages_en.properties
 Messages_vi.properties
 ```
 
-Nếu đặt resource sâu hơn, chẳng hạn `src/main/resources/com/example/i18n/Messages_vi.properties`, base name tương ứng phải là `com.example.i18n.Messages`. Đừng truyền đường dẫn filesystem tới `getBundle`.
+If you place resources deeper, such as `src/main/resources/com/example/i18n/Messages_vi.properties`, the corresponding base name must be `com.example.i18n.Messages`. Do not pass a filesystem path to `getBundle`.
 
-Một phương thức điển hình:
+A typical call:
 
 ```java
 ResourceBundle messages =
         ResourceBundle.getBundle("Messages", locale);
 ```
 
-Java dùng base name, locale và cơ chế tìm trong classpath/module để tải tài nguyên. Với `Locale.US` (language `en`) và các file hiện có, bundle `Messages_en.properties` được chọn; với `vi-VN`, tìm `Messages_vi_VN.properties` nếu có rồi tới `Messages_vi.properties`. Những key thiếu trong bundle con có thể được tìm trong parent bundle như `Messages.properties`.
+Java uses the base name, locale, and classpath/module lookup mechanism to load resources. With `Locale.US` (language `en`) and the files above, `Messages_en.properties` is selected; with `vi-VN`, it looks for `Messages_vi_VN.properties` if present and then `Messages_vi.properties`. Keys missing in a child bundle can be looked up in parent bundles such as `Messages.properties`.
 
-### Tại sao cần root Messages.properties?
+### Why Do We Need a Root Messages.properties?
 
-Một file `Messages.properties` không có suffix locale đóng vai trò root fallback. Bài này để **bản tiếng Anh đầy đủ** trong root nhằm có giá trị dự phòng và đặt các bản dịch theo locale ở file riêng. Để giảng dạy rõ ràng, `Messages_en.properties` được cung cấp đầy đủ dù nhiều key trùng với root. Trong dự án thật, có thể chọn một ngôn ngữ nguồn làm root hoặc dùng chính sách fallback riêng, nhưng phải kiểm tra coverage bản dịch trước khi phát hành.
+A `Messages.properties` file without a locale suffix acts as the root fallback. This exercise keeps a **complete English version** in the root as a fallback and places locale-specific translations in separate files. For instructional clarity, `Messages_en.properties` is provided in full even though many keys overlap with the root. In real-world projects, you can choose a source language as the root or define a custom fallback policy, but you must verify translation coverage before release.
 
-**Fallback không phải cách hỗ trợ ngôn ngữ chính thức:** `ResourceBundle.getBundle("Messages", Locale.forLanguageTag("xx"))` vẫn có thể tìm thấy root rồi trả về tiếng Anh. Vì vậy, CLI phải **tự giới hạn mã ngôn ngữ được hỗ trợ**, không dựa vào ngoại lệ để phát hiện yêu cầu `xx` không hợp lệ.
+**Fallback is not an official way to support a language:** `ResourceBundle.getBundle("Messages", Locale.forLanguageTag("xx"))` can still find the root and return English. Therefore, the CLI must **restrict supported language codes itself**, rather than relying on an exception to detect an invalid `xx` request.
 
-## 4. Tạo tài nguyên gốc và bản dịch
+## 4. Creating the Root Resource and Translations
 
-Ba file sau đều là **tệp UTF-8**. Java 9+ hỗ trợ UTF-8 cho `PropertyResourceBundle` theo JEP 226, có cơ chế tương thích với ISO-8859-1 khi byte không phải UTF-8 hợp lệ. `Properties.load(InputStream)` là API khác và không nên nhầm với quy tắc này.
+All three files below are **UTF-8 files**. Java 9+ supports UTF-8 for `PropertyResourceBundle` under JEP 226, with a compatibility mechanism that falls back to ISO-8859-1 when bytes are not valid UTF-8. `Properties.load(InputStream)` is a different API and should not be confused with this rule.
 
 ### 4.1. src/main/resources/Messages.properties
 
@@ -168,7 +168,7 @@ error.command=Unknown command. Type help.
 goodbye=Goodbye!
 ```
 
-File root có tất cả key. Điều này quan trọng khi một bản dịch thiếu key: Java có thể lấy từ parent bundle, thay vì lập tức báo lỗi. Nhưng trong pipeline dịch, vẫn nên phát hiện những key bị bỏ sót.
+The root file contains all keys. This matters when a translation is missing a key: Java can retrieve it from the parent bundle instead of immediately failing. However, in a translation pipeline, you should still detect omitted keys.
 
 ### 4.2. src/main/resources/Messages_en.properties
 
@@ -186,7 +186,7 @@ error.command=Unknown command. Type help.
 goodbye=Goodbye!
 ```
 
-Lưu ý `app.name` không có trong file `_en`. Nó được kế thừa từ root; đây là chủ ý để minh họa **parent bundle lookup**. Ngay cả khi `Locale.US` không có file `Messages_en_US.properties`, Java vẫn tìm được `Messages_en.properties` và tra `app.name` ở root.
+Note that `app.name` is absent from the `_en` file. It is inherited from the root; this is intentional to demonstrate **parent bundle lookup**. Even though `Locale.US` has no `Messages_en_US.properties` file, Java still finds `Messages_en.properties` and resolves `app.name` from the root.
 
 ### 4.3. src/main/resources/Messages_vi.properties
 
@@ -204,24 +204,24 @@ error.command=Lệnh không hợp lệ. Gõ help.
 goodbye=Tạm biệt!
 ```
 
-Ở đây hai key `count.one` và `count.other` có cùng cách viết tiếng Việt. **Đó là lựa chọn ngữ pháp cho hai ngôn ngữ minh họa, không phải quy tắc mọi ngôn ngữ chỉ có hai nhóm plural.** Tiếng Anh cần `message`/`messages`, còn tiếng Việt không biến đổi danh từ theo số lượng như vậy trong câu mẫu. Với tiếng Ả Rập, Nga hoặc các ngôn ngữ khác, quy tắc chọn plural phải theo CLDR hoặc framework phù hợp thay vì chỉ `N == 1`.
+Here, the two keys `count.one` and `count.other` share the same Vietnamese phrasing. **That is a grammatical choice for the two illustrated languages, not a rule that every language only has two plural categories.** English requires `message`/`messages`, whereas Vietnamese does not inflect the noun by count in this example sentence. For Arabic, Russian, or other languages, plural selection rules must follow CLDR or an appropriate framework rather than just `N == 1`.
 
-### Placeholder là dữ liệu, không phải phần cần dịch
+### Placeholders Are Data, Not Text to Translate
 
-Mẫu:
+Patterns:
 
 ```properties
 greeting=Xin chào, {0}!
 count.other=Bạn có {0,number,integer} tin nhắn.
 ```
 
-Dùng `{0}` làm vị trí đối số. `MessageFormat` thay nội dung nhưng không cần người dịch biết tên Java của biến. Cú pháp `{0,number,integer}` cho biết đối số là số và cần định dạng thành một số nguyên để trình bày theo locale.
+Use `{0}` as the argument position. `MessageFormat` substitutes the content without requiring translators to know Java variable names. The `{0,number,integer}` syntax indicates that the argument is a number and should be formatted as an integer according to the locale.
 
-Nếu bản dịch muốn đổi vị trí thông tin, placeholder có thể di chuyển trong mẫu mà Java code vẫn truyền cùng một mảng đối số. **Đừng tách câu thành nhiều fragment rồi nối string** vì mỗi ngôn ngữ có thứ tự ngữ pháp khác nhau.
+If a translation needs to reorder information, the placeholder can move within the pattern while the Java code still passes the same argument array. **Do not split sentences into multiple fragments and concatenate strings**, because each language has a different grammatical word order.
 
-## 5. Lập trình LanguageCli.java hoàn chỉnh, chạy trên Java 17+
+## 5. Implementing a Complete LanguageCli.java on Java 17+
 
-Tạo file **src/main/java/LanguageCli.java**:
+Create the file **src/main/java/LanguageCli.java**:
 
 ```java
 import java.io.BufferedReader;
@@ -237,7 +237,7 @@ public final class LanguageCli {
     private static final Locale VI =
             Locale.forLanguageTag("vi-VN");
 
-    // Trạng thái ngôn ngữ thuộc riêng CLI này.
+    // Language state belongs specifically to this CLI instance.
     private Locale locale = Locale.US;
     private ResourceBundle messages =
             ResourceBundle.getBundle(BUNDLE_BASE, locale);
@@ -284,7 +284,7 @@ public final class LanguageCli {
 
                 String line = input.readLine();
                 if (line == null) {
-                    // EOF khi stdin đóng: không tạo vòng lặp vô hạn.
+                    // EOF when stdin closes: avoid an infinite loop.
                     System.out.println();
                     return;
                 }
@@ -344,116 +344,116 @@ public final class LanguageCli {
 }
 ```
 
-Đây là **một class Java độc lập về mã nguồn**, nhưng chương trình cần ba file `Messages*.properties` **trên runtime classpath**. Với Java 17+, các cú pháp `switch ->`, `String.strip()`, `String.isBlank()` đều được hỗ trợ.
+This is a **single standalone Java class in terms of source code**, but the program requires the three `Messages*.properties` files **on the runtime classpath**. On Java 17+, syntax features such as `switch ->`, `String.strip()`, and `String.isBlank()` are all supported.
 
-### 5.1. Vì sao trạng thái locale nằm ở instance?
+### 5.1. Why Does Locale State Live on the Instance?
 
-`locale` và `messages` là trường của **một đối tượng `LanguageCli`**, không phải trạng thái JVM toàn cục. Khi người dùng gõ `lang vi`, chỉ đối tượng đó cập nhật bundle.
+`locale` and `messages` are fields of a **single `LanguageCli` instance**, not global JVM state. When the user types `lang vi`, only that instance updates its bundle.
 
-Không làm như sau:
+Do not do the following:
 
 ```java
 Locale.setDefault(Locale.forLanguageTag("vi-VN"));
 ```
 
-Việc thay default locale của JVM tác động đến các thư viện/chức năng khác dùng locale ngầm và có thể gây xung đột khi ứng dụng phục vụ nhiều người. CLI một người dùng vẫn nên truyền locale tường minh để ví dụ dễ mở rộng sang server hoặc giao diện có nhiều phiên.
+Changing the JVM's default locale affects other libraries/components that rely on the default locale implicitly and can cause conflicts when an application serves multiple users. Even a single-user CLI should pass the locale explicitly so the design easily scales to a server or multi-session interface.
 
-### 5.2. Vì sao chọn ngôn ngữ bằng whitelist?
+### 5.2. Why Select Languages with a Whitelist?
 
-Đoạn `switch` chỉ nhận `en` hoặc `vi`. Nếu nhận `fr` rồi chuyển thẳng sang `Locale.FRENCH`, `ResourceBundle` có thể tìm được file root tiếng Anh nên **không ném lỗi**. Chương trình sẽ báo đã đổi ngôn ngữ dù thực ra không có bản dịch tiếng Pháp.
+The `switch` block accepts only `en` or `vi`. If it accepted `fr` and passed `Locale.FRENCH` straight through, `ResourceBundle` could still locate the English root file and **not throw an error**. The program would report that the language switched even though no French translation exists.
 
-Whitelist giúp hai việc:
+A whitelist accomplishes two things:
 
-- Bảo đảm mã ngôn ngữ thuộc các ngôn ngữ sản phẩm chính thức hỗ trợ.
-- Giúp người dùng nhận lỗi rõ ràng khi `lang zz`, thay vì ngầm fallback.
+- Ensures the language code belongs to the languages officially supported by the product.
+- Gives the user a clear error on `lang zz` instead of silently falling back.
 
-Đối với sản phẩm lớn, có thể quản lý danh sách này trong cấu hình ứng dụng hoặc dùng cấu trúc `Map<String, Locale>`. Không tin rằng `Locale.forLanguageTag` tự xác thực file bundle có tồn tại.
+For larger products, this list can be managed in application configuration or via a `Map<String, Locale>` structure. Do not assume `Locale.forLanguageTag` validates that a bundle file exists.
 
-### 5.3. Vì sao đổi cả locale và ResourceBundle?
+### 5.3. Why Update Both locale and ResourceBundle?
 
-`ResourceBundle.getBundle(BUNDLE_BASE, requested)` chọn bản dịch. Nhưng `MessageFormat` còn dùng locale để quyết định **quy tắc số**, như dấu nhóm nghìn. Nếu chỉ đổi `messages` mà quên cập nhật `locale`, câu có thể là tiếng Việt nhưng số vẫn theo định dạng Mỹ.
+`ResourceBundle.getBundle(BUNDLE_BASE, requested)` selects the translation. However, `MessageFormat` also uses `locale` to determine **number formatting rules**, such as the thousands separator. If you only swap `messages` and forget to update `locale`, the sentence may be in Vietnamese while numbers still use US formatting.
 
-Trình tự trong `changeLanguage`:
+Sequence in `changeLanguage`:
 
-1. Xác thực ngôn ngữ.
-2. Tạo locale tương ứng (`Locale.US` hoặc `vi-VN`).
-3. Tải bundle cho locale mới.
-4. Cập nhật hai trường `locale` và `messages`.
-5. In thông báo từ **bundle mới**.
+1. Validate the language.
+2. Obtain the corresponding locale (`Locale.US` or `vi-VN`).
+3. Load the bundle for the new locale.
+4. Update both the `locale` and `messages` fields.
+5. Print the confirmation message from the **new bundle**.
 
-Vì vậy lệnh `lang vi` in `Đã chuyển sang tiếng Việt.` chứ không phải dòng English từ bundle cũ.
+Thus, `lang vi` prints `Đã chuyển sang tiếng Việt.` rather than the English line from the old bundle.
 
-### 5.4. Vì sao dùng Locale.ROOT cho tên lệnh?
+### 5.4. Why Use Locale.ROOT for Command Names?
 
-Lệnh `LANG`, `Lang`, `greet`, `COUNT` là **từ khóa kỹ thuật ASCII**, không phải văn bản cần chuyển chữ theo ngữ pháp người dùng. `toLowerCase(Locale.ROOT)` tránh các biến đổi bất ngờ khi default locale là Turkish (ví dụ chữ `I` có quy tắc đặc biệt). Với dữ liệu người dùng thực sự, không áp `Locale.ROOT` bừa bãi để thay thế xử lý ngôn ngữ tự nhiên.
+Commands like `LANG`, `Lang`, `greet`, and `COUNT` are **ASCII technical keywords**, not user-facing text that needs case conversion according to user grammar. `toLowerCase(Locale.ROOT)` avoids unexpected transformations when the default locale is Turkish (for instance, the letter `I` has special casing rules). For actual user data, do not blindly apply `Locale.ROOT` as a substitute for natural-language processing.
 
-### 5.5. Vì sao BufferedReader chỉ đọc theo dòng?
+### 5.5. Why Does BufferedReader Only Read Line by Line?
 
-CLI hoạt động theo **một lệnh trên một dòng**. `readLine()` trả chuỗi không chứa ký tự kết thúc dòng. Nếu stdin kết thúc (`EOF`), trả `null`; code thoát thay vì gọi `split` trên `null`.
+The CLI operates as **one command per line**. `readLine()` returns a string without line-termination characters. When stdin ends (`EOF`), it returns `null`; the code exits instead of calling `split` on `null`.
 
-`line.strip()` bỏ whitespace đầu/cuối theo định nghĩa Java; `split("\\s+", 2)` tách **tên lệnh** và **phần đối số còn lại**. Tham số thứ hai bằng 2 giúp `greet Nguyễn Văn A` giữ được cả tên `Nguyễn Văn A` thay vì chỉ lấy `Nguyễn`.
+`line.strip()` removes leading/trailing whitespace as defined by Java; `split("\\s+", 2)` splits the **command name** from the **remaining argument portion**. Passing 2 as the second parameter ensures `greet Nguyễn Văn A` preserves the full name `Nguyễn Văn A` instead of keeping only `Nguyễn`.
 
-**Lưu ý:** đây là CLI demo, không phải bộ parser dòng lệnh tổng quát. `greet "Nguyễn Văn A"` sẽ giữ cả dấu nháy kép như một phần tên, vì chương trình không triển khai shell-style quote parsing. Nếu cần tên tham số có escape, option flags, nhiều tham số với quote hoặc command completion, hãy thiết kế parser riêng hoặc dùng thư viện CLI chuyên dụng.
+**Note:** this is a demo CLI, not a general-purpose command-line parser. `greet "Nguyễn Văn A"` will retain the double quotes as part of the name because the program does not implement shell-style quote parsing. If you need escaped arguments, option flags, multiple quoted arguments, or command completion, design a dedicated parser or use a specialized CLI library.
 
-### 5.6. Vì sao xử lý số bằng long, không ghép string?
+### 5.6. Why Handle Counts as long Instead of String Concatenation?
 
-`Long.parseLong(argument)` chấp nhận chuỗi số nguyên theo quy tắc parse của Java và sẽ ném `NumberFormatException` khi giá trị không hợp lệ hoặc vượt phạm vi `long`. Sau đó:
+`Long.parseLong(argument)` accepts integer strings according to Java's parsing rules and throws `NumberFormatException` if the value is invalid or exceeds the `long` range. Then:
 
-- `count < 0` bị từ chối.
-- `count == 1` chọn mẫu số ít.
-- Các giá trị còn lại chọn mẫu `count.other`.
-- `trf(key, count)` truyền `Long` cho `MessageFormat`, nên `{0,number,integer}` có thể định dạng số theo locale.
+- `count < 0` is rejected.
+- `count == 1` selects the singular pattern.
+- All remaining values select the `count.other` pattern.
+- `trf(key, count)` passes the `Long` to `MessageFormat`, allowing `{0,number,integer}` to format the number according to the locale.
 
-Không lấy `argument` là chuỗi rồi nhét trực tiếp vào pattern: điều đó giữ nguyên `1234` dù locale cần `1,234` hoặc `1.234`. Nếu sản phẩm cần số lớn hơn `long`, có thể cân nhắc `BigInteger`, quy tắc định dạng riêng và validation hợp đồng.
+Do not take `argument` as a string and insert it directly into the pattern: that leaves `1234` unformatted even when the locale requires `1,234` or `1.234`. If a product requires numbers larger than `long`, consider `BigInteger`, dedicated formatting rules, and explicit validation contracts.
 
-## 6. Biên dịch và chạy trực tiếp bằng JDK
+## 6. Compiling and Running Directly with the JDK
 
-Không cần Maven/Gradle cho bài thực hành này. Từ thư mục `language-cli`, biên dịch:
+Maven/Gradle are not required for this exercise. From the `language-cli` directory, compile with:
 
 ```bash
 javac -encoding UTF-8 -d out src/main/java/LanguageCli.java
 ```
 
-`-encoding UTF-8` quy định encoding của **source Java**. Tùy hệ thống, thư mục `out` sẽ được `javac` dùng làm root cho class output.
+`-encoding UTF-8` specifies the encoding of the **Java source file**. Depending on your setup, `javac` uses the `out` directory as the root for compiled class output.
 
-Trên Linux/macOS, chạy:
+On Linux/macOS, run:
 
 ```bash
 java -cp "out:src/main/resources" LanguageCli
 ```
 
-Trên Windows PowerShell:
+On Windows PowerShell:
 
 ```powershell
 java -cp "out;src/main/resources" LanguageCli
 ```
 
-Dấu phân cách classpath:
+Classpath separators:
 
-- `:` trên hệ Unix (Linux/macOS).
-- `;` trên Windows.
+- `:` on Unix systems (Linux/macOS).
+- `;` on Windows.
 
-Java cần **cả class directory** và **resource directory** trên runtime classpath. `out` chứa `LanguageCli.class`; `src/main/resources` chứa `Messages.properties`, `Messages_en.properties` và `Messages_vi.properties`.
+Java requires **both the class directory** and the **resource directory** on the runtime classpath. `out` holds `LanguageCli.class`; `src/main/resources` holds `Messages.properties`, `Messages_en.properties`, and `Messages_vi.properties`.
 
-Nếu lệnh chỉ có:
+If you only run:
 
 ```bash
 java -cp out LanguageCli
 ```
 
-mà `out` chưa chứa file properties, `ResourceBundle.getBundle` không thể tìm thấy base name và có thể ném `MissingResourceException` ngay khi tạo `LanguageCli`.
+and `out` does not contain the properties files, `ResourceBundle.getBundle` cannot locate the base name and can throw `MissingResourceException` right when constructing `LanguageCli`.
 
-### Không nhầm charset của tệp nguồn, stdin và stdout
+### Do Not Confuse Source File, Stdin, and Stdout Charsets
 
-Chương trình dùng `new InputStreamReader(System.in, StandardCharsets.UTF_8)` để **giải mã byte nhập** theo UTF-8. Vì vậy, terminal hoặc pipe **phải thực sự cung cấp byte UTF-8** nếu bạn nhập tên có dấu. Nếu terminal đang gửi một charset khác, tên có thể bị sai. Trên JDK 18+ default charset nhiều API là UTF-8, nhưng bài vẫn truyền tường minh vì **giao thức stdin đã được chọn là UTF-8**.
+The program uses `new InputStreamReader(System.in, StandardCharsets.UTF_8)` to **decode input bytes** as UTF-8. Therefore, the terminal or pipe **must actually supply UTF-8 bytes** when you type names with diacritics. If the terminal sends a different charset, names can become garbled. On JDK 18+, the default charset for many APIs is UTF-8, but this exercise specifies it explicitly because **the chosen stdin protocol is UTF-8**.
 
-`System.out`/`System.err` có cơ chế gắn với console và có thể dùng charset khác default charset của JVM. Nếu emoji/dấu tiếng Việt hiện thành ký tự sai, cần kiểm tra encoding ở cả phía Java output và terminal renderer, chứ không vội kết luận file resource sai.
+`System.out`/`System.err` are tied to the console mechanism and may use a charset different from the JVM default charset. If emojis or Vietnamese diacritics render as garbled characters, inspect the encoding on both the Java output side and the terminal renderer rather than immediately assuming the resource file is wrong.
 
-## 7. Chạy thử theo các tình huống
+## 7. Testing Different Scenarios
 
-### 7.1. Chuyển sang tiếng Việt và quay lại tiếng Anh
+### 7.1. Switching to Vietnamese and Back to English
 
-Lần lượt gõ:
+Type sequentially:
 
 ```text
 lang vi
@@ -464,7 +464,7 @@ greet Lan
 quit
 ```
 
-Các thông điệp theo thứ tự:
+Messages in order:
 
 ```text
 Đã chuyển sang tiếng Việt.
@@ -475,11 +475,11 @@ Hello, Lan!
 Goodbye!
 ```
 
-Đây là **các dòng phản hồi**, đã lược prompt và các dòng welcome ở đầu phiên. Các dòng định dạng số minh họa JDK hiện đại.
+These are the **response lines**, omitting the prompts and initial welcome lines. The number-formatting lines reflect a modern JDK.
 
-### 7.2. Nhập lệnh sai
+### 7.2. Entering Invalid Commands
 
-Lần lượt thử:
+Try sequentially:
 
 ```text
 greet
@@ -489,7 +489,7 @@ lang fr
 unknown
 ```
 
-Khi vẫn ở tiếng Anh, phản hồi tương ứng:
+While still in English, the corresponding responses are:
 
 ```text
 Please provide a name.
@@ -499,11 +499,11 @@ Unsupported language. Use en or vi.
 Unknown command. Type help.
 ```
 
-Nếu chuyển sang tiếng Việt **trước** các lệnh sai, cùng các key lỗi sẽ hiển thị bằng tiếng Việt. Không có câu thông báo lỗi nào được hardcode trong phương thức `run()`; tất cả lấy qua `tr(key)`.
+If you switch to Vietnamese **before** entering the invalid commands, the same error keys display in Vietnamese. No error messages are hardcoded inside `run()`; all of them are retrieved via `tr(key)`.
 
-### 7.3. Kiểm thử số ít và số nhiều
+### 7.3. Testing Singular and Plural Forms
 
-Với English:
+In English:
 
 ```text
 > count 0
@@ -514,7 +514,7 @@ You have 1 message.
 You have 2 messages.
 ```
 
-Với Vietnamese:
+In Vietnamese:
 
 ```text
 > lang vi
@@ -525,15 +525,15 @@ Bạn có 1 tin nhắn.
 Bạn có 2 tin nhắn.
 ```
 
-Code xử lý số lượng **một lần** và chỉ thay mẫu theo key. Mỗi mẫu vẫn là **một câu đầy đủ**, để người dịch có thể đổi trật tự và ngữ pháp khi cần.
+The count-handling code runs **once** and only swaps the pattern by key. Each pattern remains a **complete sentence**, allowing translators to adjust word order and grammar as needed.
 
-Giới hạn của demo: chọn `count.one` khi đúng 1 và `count.other` cho phần còn lại chỉ đủ minh họa hai locale tiếng Anh/Việt được hỗ trợ trong bài. Không áp logic `count == 1` cho mọi ngôn ngữ. Hệ thống sản xuất đa ngôn ngữ nên tham khảo **CLDR plural rules** hoặc một thư viện ICU MessageFormat/MessageFormat có hỗ trợ plural category phù hợp.
+Demo limitation: selecting `count.one` when the value is exactly 1 and `count.other` for the rest only suffices to illustrate the two English/Vietnamese locales supported in this lesson. Do not apply `count == 1` logic to every language. Production multilingual systems should consult **CLDR plural rules** or an ICU MessageFormat/MessageFormat library with appropriate plural-category support.
 
-## 8. Bài tập mở rộng: ghi nhận key theo tên có nghĩa
+## 8. Extension Exercise: Wrapping Keys Behind Meaningful Methods
 
-Trong chương trình, `tr("greeting")` giúp logic không biết câu bản dịch. `trf("count.other", count)` vừa lấy mẫu vừa định dạng dữ liệu. Đây là bước đầu của một lớp cung cấp thông điệp có thể tái sử dụng.
+In this program, `tr("greeting")` keeps business logic unaware of translated sentences. `trf("count.other", count)` both looks up the pattern and formats data. This is the first step toward a reusable message-provider layer.
 
-Với ứng dụng thực tế, có thể tạo giao diện dịch:
+In a real application, you can define a translation interface:
 
 ```java
 interface Localizer {
@@ -542,51 +542,51 @@ interface Localizer {
 }
 ```
 
-Đoạn trên là **snippet giao diện**, không phải class chạy độc lập. Implementation có thể nhận `Locale` của phiên/request và `ResourceBundle`; cách này giúp logic nghiệp vụ phụ thuộc một abstraction nhỏ thay vì gọi static `ResourceBundle.getBundle` ở nhiều nơi.
+The snippet above is an **interface snippet**, not a standalone runnable class. An implementation can accept the session/request `Locale` and `ResourceBundle`; this lets business logic depend on a small abstraction instead of calling static `ResourceBundle.getBundle` everywhere.
 
-Tuy nhiên, **đừng làm abstraction phức tạp trước khi có nhu cầu**. Với CLI một tệp, hai phương thức `tr`/`trf` đã đủ giải thích nguyên lý. Lớp Localizer có giá trị hơn khi ứng dụng lớn, có mock trong unit tests và nhiều kênh xuất thông điệp.
+However, **do not over-engineer abstractions before there is a real need**. For a single-file CLI, the two `tr`/`trf` methods are enough to explain the principle. A `Localizer` abstraction pays off in larger applications with unit-test mocks and multiple output channels.
 
-## 9. ResourceBundle fallback và cache
+## 9. ResourceBundle Fallback and Caching
 
-### 9.1. Locale được chọn không đồng nghĩa có file đúng vùng
+### 9.1. A Selected Locale Does Not Guarantee a Region-Specific File Exists
 
-Khi dùng `Locale.US` (en-US), Java thường xét các candidate bundle `Messages_en_US`, `Messages_en` rồi root. Trong dự án này không có `Messages_en_US.properties` nên bundle `Messages_en.properties` được dùng.
+When using `Locale.US` (en-US), Java typically checks candidate bundles `Messages_en_US`, `Messages_en`, and then the root. This project has no `Messages_en_US.properties`, so `Messages_en.properties` is used.
 
-Tương tự, `vi-VN` không có `Messages_vi_VN.properties` nhưng có `Messages_vi.properties`. Vì thế vẫn in tiếng Việt như mong muốn.
+Similarly, `vi-VN` has no `Messages_vi_VN.properties`, but it does have `Messages_vi.properties`. As a result, Vietnamese still prints as intended.
 
-**Không được suy luận rằng `getBundle` sẽ ném lỗi nếu thiếu một locale cụ thể.** Nó có logic fallback. Bản tiếng Anh ở root giúp chương trình vẫn có thông điệp trong một số tình huống, nhưng có thể che giấu lỗi thiếu bản dịch nếu không có translation-coverage test.
+**Do not assume `getBundle` throws an error if a specific locale is missing.** It uses fallback logic. Having English in the root ensures the program still has messages in some situations, but it can hide missing translations unless you have translation-coverage tests.
 
-### 9.2. Cache là bình thường
+### 9.2. Caching Is Normal Behavior
 
-`ResourceBundle` có cơ chế cache. Gọi `getBundle` nhiều lần có thể trả một bundle đã tải trước đó. Đối với CLI này:
+`ResourceBundle` has a built-in caching mechanism. Calling `getBundle` multiple times can return a previously loaded bundle. For this CLI:
 
-- `lang vi` lấy bundle tiếng Việt.
-- `lang en` lấy bundle tiếng Anh.
-- Quay lại `lang vi` không cần reload file từ disk trong mọi trường hợp.
+- `lang vi` retrieves the Vietnamese bundle.
+- `lang en` retrieves the English bundle.
+- Switching back to `lang vi` does not need to reload the file from disk in all cases.
 
-Đừng gọi `ResourceBundle.clearCache()` sau mỗi lệnh `lang`; đổi ngôn ngữ **không có nghĩa** file trên đĩa đã thay đổi. Nếu đang xây hệ thống chỉnh bản dịch trong runtime, cần chiến lược reload/cache control rõ ràng và kiểm thử. Bài thực hành chỉ đọc tài nguyên đi kèm ứng dụng.
+Do not call `ResourceBundle.clearCache()` after every `lang` command; switching languages **does not mean** the files on disk have changed. If you are building a system that edits translations at runtime, you need an explicit reload/cache-control strategy and thorough testing. This exercise only reads resources bundled with the application.
 
-## 10. Đóng gói thành JAR để chạy không cần cây source
+## 10. Packaging into a JAR to Run Without the Source Tree
 
-Biên dịch lại nếu chưa có class:
+Recompile if the class file does not exist yet:
 
 ```bash
 javac -encoding UTF-8 -d out src/main/java/LanguageCli.java
 ```
 
-Tạo JAR từ **nội dung** class output và resource root:
+Create the JAR from the **contents** of the compiled classes output and resource root:
 
 ```bash
 jar --create --file language-cli.jar -C out . -C src/main/resources .
 ```
 
-Kiểm tra entry:
+Inspect entries:
 
 ```bash
 jar tf language-cli.jar
 ```
 
-Trong output phải có ít nhất các entry liên quan (đây là **trích đoạn**, không phải toàn bộ danh sách):
+The output must contain at least the relevant entries (this is an **excerpt**, not the full listing):
 
 ```text
 LanguageCli.class
@@ -595,52 +595,52 @@ Messages_en.properties
 Messages_vi.properties
 ```
 
-Chạy:
+Run:
 
 ```bash
 java -cp language-cli.jar LanguageCli
 ```
 
-Vì ví dụ không cấu hình `Main-Class` trong manifest, chạy `java -jar language-cli.jar` có thể báo không có main manifest attribute. Để tạo executable JAR, có thể dùng:
+Because this example does not configure `Main-Class` in the manifest, running `java -jar language-cli.jar` may report that there is no main manifest attribute. To create an executable JAR, you can use:
 
 ```bash
 jar --create --file language-cli-run.jar --main-class LanguageCli -C out . -C src/main/resources .
 java -jar language-cli-run.jar
 ```
 
-Hai cách đều cần **đóng gói các `Messages*.properties` đúng đường dẫn**. Nếu đóng gói entry `src/main/resources/Messages_vi.properties` bên trong JAR thay vì `Messages_vi.properties` tại root, `getBundle("Messages", ...)` sẽ không tìm được file.
+Both approaches require **packaging `Messages*.properties` at the right path**. If you package `src/main/resources/Messages_vi.properties` inside the JAR instead of `Messages_vi.properties` at the root, `getBundle("Messages", ...)` will not find the file.
 
-### Dùng Maven/Gradle thì sao?
+### What About Using Maven/Gradle?
 
-Trong Maven/Gradle Java project theo cấu trúc chuẩn, `src/main/resources` thường được copy vào classpath output và package vào JAR. Đừng đưa `src/main/resources` làm một thư mục con nằm nguyên bên trong artifact. Kiểm tra bằng `jar tf` sau mỗi thay đổi build liên quan đến resources.
+In a standard Maven/Gradle Java project layout, `src/main/resources` is normally copied into the classpath output and packaged into the JAR. Do not embed `src/main/resources` itself as a subdirectory inside the artifact. Verify with `jar tf` after any build change affecting resources.
 
-Bài dùng package mặc định để dễ biên dịch thủ công. Với code production, nên dùng package như `com.example.cli` cho Java source và namespace như `com.example.i18n.Messages` cho bundle; khi đó đặt file ở `com/example/i18n` bên trong resources và truyền đúng base name tương ứng.
+This exercise uses the default package for easy manual compilation. In production code, use a package like `com.example.cli` for Java sources and a namespace like `com.example.i18n.Messages` for the bundle; in that case, place files under `com/example/i18n` inside resources and pass the matching base name.
 
-## 11. Lỗi thường gặp và nguyên nhân
+## 11. Common Errors and Root Causes
 
-| Hiện tượng | Nguyên nhân thường gặp | Cách sửa |
+| Symptom | Common Cause | Fix |
 | --- | --- | --- |
-| `MissingResourceException` ngay khi bắt đầu | Không thấy `Messages.properties` hoặc bundle phù hợp | Kiểm tra classpath và file paths |
-| IDE chạy nhưng JAR không chạy | Bỏ sót resources khi package | `jar tf` kiểm tra các entry |
-| Đổi `lang vi` nhưng vẫn tiếng Anh | Thiếu `Messages_vi.properties`; fallback root | Kiểm tra locale/bundle và translation coverage |
-| Gõ `lang fr` nhưng không báo lỗi nếu gọi getBundle trực tiếp | Fallback trả root tiếng Anh | Whitelist supported languages |
-| Có câu tiếng Việt nhưng số dùng dấu phẩy Mỹ | Dùng `MessageFormat` với locale US cũ | Cập nhật locale cùng bundle |
-| Bản dịch chứa `{0}` nhưng không được thay | In `getString` trực tiếp thay vì format | `new MessageFormat(pattern, locale).format(args)` |
-| Lỗi khi xử lý `greet` không có tên | Truy cập đối số rỗng hoặc thiếu | Validation và key `error.name` |
-| `count abc` gây crash | Parse số không bắt lỗi | `catch NumberFormatException` |
-| `count -5` được xem là số lượng hợp lệ | Không kiểm tra điều kiện nghiệp vụ | Kiểm tra `count >= 0` |
-| Dấu tiếng Việt thành ký tự lạ | Charset đầu vào/output, tài nguyên hoặc terminal | Xác định nơi byte bị encode/decode sai |
-| Thêm bản dịch nhưng ứng dụng không đổi | Bundle cache hoặc artifact cũ | Kiểm tra đúng bản JAR, vòng đời cache |
-| Dùng `Locale.setDefault` giữa nhiều request | Trạng thái JVM chung ảnh hưởng tác vụ khác | Locale per session/request |
-| Dịch từng từ rồi nối câu | Trật tự ngữ pháp bị khóa trong code | Mẫu câu nguyên vẹn theo locale |
-| Dùng `count == 1` cho mọi ngôn ngữ | Quy tắc plural đa dạng hơn one/other | Sử dụng CLDR/ICU theo locale |
-| Đưa tên người dùng thành pattern MessageFormat | Tên có dấu `{ }` hoặc apostrophe có thể gây lỗi syntax | Pattern từ catalog, tên là argument |
-| Không escape dấu `'` trong pattern | MessageFormat dùng apostrophe làm syntax | Dùng `''` cho apostrophe literal trong pattern |
-| Chia lệnh bằng `split(" ")` không giới hạn | Tên nhiều từ bị tách không mong muốn | `split("\\s+", 2)` |
+| `MissingResourceException` at startup | Cannot find `Messages.properties` or a matching bundle | Check classpath and file paths |
+| Runs in IDE but fails from JAR | Resources omitted during packaging | Check entries with `jar tf` |
+| `lang vi` still displays English | Missing `Messages_vi.properties`; falls back to root | Check locale/bundle and translation coverage |
+| `lang fr` does not error when calling `getBundle` directly | Fallback returns the English root | Whitelist supported languages |
+| Vietnamese text appears, but numbers use US commas | `MessageFormat` uses the old US locale | Update `locale` alongside the bundle |
+| Output contains literal `{0}` unreplaced | Printing `getString` directly instead of formatting | Use `new MessageFormat(pattern, locale).format(args)` |
+| Error when handling `greet` without a name | Accessing an empty or missing argument | Validate input and use key `error.name` |
+| `count abc` crashes | Parsing number without error handling | `catch NumberFormatException` |
+| `count -5` treated as a valid count | Missing business validation | Check `count >= 0` |
+| Vietnamese diacritics turn into garbled characters | Mismatched input/output, resource, or terminal charset | Identify where bytes are encoded/decoded incorrectly |
+| Added translations but app behavior unchanged | Bundle cache or stale artifact | Verify the right JAR version and cache lifecycle |
+| Calling `Locale.setDefault` across multiple requests | Shared JVM state affects other tasks | Store locale per session/request |
+| Translating word-by-word and concatenating sentences | Word order hardcoded in Java | Keep full sentence patterns per locale |
+| Using `count == 1` for all languages | Plural rules go beyond one/other | Use CLDR/ICU per locale |
+| Passing user name as the `MessageFormat` pattern | Names with `{ }` or apostrophes cause syntax errors | Load pattern from catalog; pass name as an argument |
+| Unescaped `'` in pattern | `MessageFormat` treats apostrophe as quoting syntax | Use `''` for a literal apostrophe in patterns |
+| Splitting commands with unbounded `split(" ")` | Multi-word names get split unexpectedly | Use `split("\\s+", 2)` |
 
-### Bẫy đặc biệt: MessageFormat và dấu nháy đơn
+### Special Pitfall: MessageFormat and Single Quotes
 
-`MessageFormat` dùng dấu `'` để quote phần literal; muốn hiển thị apostrophe trong pattern, thường phải viết `''`. Ví dụ:
+`MessageFormat` uses `'` to quote literal sections; to display an apostrophe in a pattern, you normally must write `''`. For example:
 
 ```java
 MessageFormat fmt = new MessageFormat(
@@ -649,48 +649,48 @@ System.out.println(fmt.format(new Object[]{"Lan"}));
 // It's Lan's message.
 ```
 
-Đây là **snippet**, khác với ứng dụng CLI nguyên vẹn. Khi thêm tiếng Anh có dấu nháy trong file `Messages_en.properties`, hãy kiểm thử parse mẫu. Nếu tên người dùng chứa dấu nháy như `O'Connor` thì nó được truyền làm **argument**, không phải template syntax.
+This is a **snippet**, separate from the complete CLI application. When adding English strings with apostrophes in `Messages_en.properties`, test pattern parsing. If a user's name contains an apostrophe such as `O'Connor`, it is passed as an **argument**, not parsed as template syntax.
 
-## 12. Kiểm thử tự động theo hành vi
+## 12. Automated Behavior-Based Testing
 
-Với một CLI đa ngôn ngữ, kiểm tra nhiều hơn việc `getBundle` không ném lỗi. Các nhóm test:
+For a multilingual CLI, test more than simply verifying that `getBundle` does not throw an exception. Test categories:
 
-| Nhóm | Dữ liệu | Kỳ vọng |
+| Category | Input | Expected Outcome |
 | --- | --- | --- |
-| Start | Không nhập lệnh | Hiển thị app name, welcome, help tiếng Anh |
-| Switch vi | `lang vi` | Thông báo tiếng Việt |
-| Switch en | `lang en` | Thông báo tiếng Anh |
-| Greeting | `greet Lan` | `Hello, Lan!` hoặc `Xin chào, Lan!` |
-| Multi-word name | `greet Nguyễn Văn A` | Giữ nguyên tên, không bỏ phần sau khoảng trắng |
-| Count 0 | `count 0` | Mẫu `count.other` |
-| Count 1 | `count 1` | Mẫu `count.one` |
-| Count 2 | `count 2` | Mẫu `count.other` |
-| Grouping | `count 1234` | EN có `1,234`; VI có `1.234` theo JDK thử |
-| Invalid number | `count NaN` | Trả `error.number`, không crash |
-| Negative number | `count -3` | Trả `error.number` |
-| Overflow | Số vượt phạm vi `long` | `NumberFormatException` được xử lý |
-| Unsupported locale | `lang fr` | Không đổi locale; báo `error.locale` |
-| Unknown command | `whatever` | Báo `error.command` trong ngôn ngữ hiện tại |
-| Blank line | Chỉ nhập spaces | Bỏ qua mà không crash |
-| EOF | Đóng stdin | Thoát sạch, không lặp vô hạn |
-| Keys | Mỗi locale | Có đủ key hoặc fallback được chấp nhận theo policy |
-| Packaging | Sau tạo JAR | Chạy không cần source resource directory |
-| UTF-8 | `greet Đặng Văn A` | Đọc và hiển thị đúng ký tự khi terminal hỗ trợ |
+| Start | No command entered | Displays app name, welcome, and help in English |
+| Switch vi | `lang vi` | Message in Vietnamese |
+| Switch en | `lang en` | Message in English |
+| Greeting | `greet Lan` | `Hello, Lan!` or `Xin chào, Lan!` |
+| Multi-word name | `greet Nguyễn Văn A` | Preserves full name without dropping text after spaces |
+| Count 0 | `count 0` | `count.other` pattern |
+| Count 1 | `count 1` | `count.one` pattern |
+| Count 2 | `count 2` | `count.other` pattern |
+| Grouping | `count 1234` | EN shows `1,234`; VI shows `1.234` on tested JDK |
+| Invalid number | `count NaN` | Returns `error.number`, no crash |
+| Negative number | `count -3` | Returns `error.number` |
+| Overflow | Number exceeding `long` range | `NumberFormatException` handled |
+| Unsupported locale | `lang fr` | Keeps current locale; prints `error.locale` |
+| Unknown command | `whatever` | Prints `error.command` in current language |
+| Blank line | Spaces only | Ignored without crashing |
+| EOF | Close stdin | Exits cleanly, no infinite loop |
+| Keys | Each locale | All required keys present or acceptable fallback per policy |
+| Packaging | After building JAR | Runs without the source resource directory |
+| UTF-8 | `greet Đặng Văn A` | Reads and displays characters properly when terminal supports UTF-8 |
 
-### Các bất biến nên giữ
+### Invariants to Preserve
 
-1. Một chuỗi key giống nhau có thể trả những câu khác nhau theo `Locale`.
-2. **Dữ liệu người dùng** như tên không được dịch tự động hoặc thay đổi khi đổi locale.
-3. Đổi ngôn ngữ chỉ thay thông điệp/format ở **những lệnh sau**; không cần sửa kết quả đã in.
-4. Lệnh `lang fr` không làm mất trạng thái ngôn ngữ cũ.
-5. `ResourceBundle` có thể fallback; phải có validation riêng cho danh sách locale sản phẩm hỗ trợ.
-6. Resource path trong JAR phải đúng với base name.
-7. Bản dịch có thể đổi thứ tự placeholder; điều đó không được làm code phải đổi thứ tự arguments.
-8. Input/output byte encoding và locale là **hai trục độc lập**.
+1. The same key string can return different sentences depending on `Locale`.
+2. **User data** such as names must never be auto-translated or altered when changing locales.
+3. Switching languages only affects messages/formatting for **subsequent commands**; previously printed output does not need to change.
+4. `lang fr` must not overwrite the existing language state.
+5. `ResourceBundle` can fall back; maintain separate validation for the product's supported locale list.
+6. Resource paths inside the JAR must match the base name.
+7. Translations may reorder placeholders; this must not require changing argument order in code.
+8. Input/output byte encoding and locale are **two independent axes**.
 
-### Kiểm thử kiểm tra đủ key
+### Testing Key Completeness
 
-Đối với bộ file ví dụ, có thể dùng `ResourceBundle` để kiểm tra rằng các key cần thiết có thể truy xuất:
+For the example resource files, you can use `ResourceBundle` to verify that required keys are retrievable:
 
 ```java
 ResourceBundle vi = ResourceBundle.getBundle(
@@ -702,34 +702,34 @@ if (!vi.containsKey("greeting")
 }
 ```
 
-Đây là **snippet** trong method. Chú ý `containsKey` xét cả parent, nên không chứng minh **file `Messages_vi.properties` tự có toàn bộ các key**. Muốn bảo đảm translation coverage cho từng file, CI cần đọc trực tiếp catalog hoặc dùng công cụ kiểm tra các key dịch gốc trước khi fallback.
+This is a **method snippet**. Note that `containsKey` checks parent bundles as well, so it does not prove that **`Messages_vi.properties` itself defines every key**. To guarantee translation coverage per file, CI should read the catalog directly or use a tool that inspects translated keys prior to fallback.
 
-## 13. Cải tiến bài thực hành theo nhu cầu thực tế
+## 13. Extending the Practice for Real-World Needs
 
-### 13.1. Thêm ngôn ngữ thứ ba
+### 13.1. Adding a Third Language
 
-Để thêm tiếng Pháp:
+To add French:
 
-1. Tạo `Messages_fr.properties` với các key tương ứng.
-2. Bổ sung `case "fr" -> requested = Locale.FRENCH;` vào whitelist.
-3. Dịch toàn bộ mẫu câu, kiểm tra apostrophe và grammar.
-4. Mở rộng chuỗi help/menu được dịch ở tất cả locale.
-5. Test số và cách phân cách nhóm nghìn theo locale Pháp thực tế.
-6. Kiểm tra fallback không che các key chưa được dịch.
+1. Create `Messages_fr.properties` with the corresponding keys.
+2. Add `case "fr" -> requested = Locale.FRENCH;` to the whitelist.
+3. Translate all sentence patterns, checking apostrophes and grammar.
+4. Update the translated help/menu strings across all locales.
+5. Test numbers and thousands separators under the actual French locale.
+6. Verify that fallback does not mask untranslated keys.
 
-**Không đủ** nếu chỉ thêm file `Messages_fr.properties` nhưng không thêm `fr` vào whitelist; CLI của bài cố ý chỉ hỗ trợ en và vi. Đồng thời không đủ nếu chỉ thêm `case "fr"` mà chưa có file, bởi `ResourceBundle` vẫn có thể fallback tiếng Anh.
+Adding `Messages_fr.properties` alone without adding `fr` to the whitelist is **not enough**; this exercise's CLI intentionally restricts support to `en` and `vi`. Likewise, adding `case "fr"` without the file is not enough, because `ResourceBundle` would still fall back to English.
 
-### 13.2. Lưu tùy chọn ngôn ngữ giữa các phiên
+### 13.2. Persisting Language Preferences Across Sessions
 
-CLI demo lưu ngôn ngữ trong **bộ nhớ của một lần chạy**. Khi thoát và mở lại, mặc định English. Nếu cần nhớ lựa chọn, có thể lưu language tag như `"vi"` vào file cấu hình hoặc cơ sở dữ liệu, rồi validate giá trị khi startup.
+The demo CLI stores the language in **memory for a single run**. Exiting and restarting defaults back to English. If you need to remember the choice, you can store a language tag such as `"vi"` in a configuration file or database and validate the value at startup.
 
-Không dùng biến môi trường hoặc `Locale.getDefault()` làm kho lưu lựa chọn của một người dùng đa ngôn ngữ nếu hệ thống có nhiều account. Việc lưu preference phải có hợp đồng rõ về người dùng, quyền truy cập và cách fallback khi ngôn ngữ bị gỡ hỗ trợ.
+Do not use environment variables or `Locale.getDefault()` to store preferences for a multi-user system with multiple accounts. Persisting preferences requires an explicit contract covering user identity, access permissions, and fallback when a language is deprecated.
 
-### 13.3. Sử dụng Locale cho số và ngày mà không trộn logic
+### 13.3. Using Locale for Numbers and Dates Without Mixing Logic
 
-Trong bài, `MessageFormat` dùng locale hiện hành để định dạng số. Nếu bổ sung `today`, có thể dùng `java.time.format.DateTimeFormatter.ofLocalizedDate(...)` với `withLocale(locale)`, còn ngày/giờ thực tế cần zone riêng nếu ứng dụng có timestamps. **Locale không phải timezone.**
+In this exercise, `MessageFormat` uses the active locale to format numbers. If you add a `today` command, you can use `java.time.format.DateTimeFormatter.ofLocalizedDate(...)` with `withLocale(locale)`, while real dates/times require a separate time zone if the application handles timestamps. **A locale is not a timezone.**
 
-Ví dụ snippet:
+Example snippet:
 
 ```java
 DateTimeFormatter formatter =
@@ -739,66 +739,66 @@ String today = java.time.LocalDate.of(2026, 10, 28)
                 .format(formatter);
 ```
 
-Đoạn này cần import `java.time.format.DateTimeFormatter` và `FormatStyle`, biến `locale` đã định nghĩa. Nó minh họa phần trách nhiệm giao diện; không thêm vào core CLI để tránh làm lệch bài thực hành tập trung ở `ResourceBundle`.
+This snippet requires importing `java.time.format.DateTimeFormatter` and `FormatStyle`, with `locale` already defined. It illustrates UI-layer formatting responsibility; it is omitted from the core CLI to keep the practice focused on `ResourceBundle`.
 
-### 13.4. Đổi ngôn ngữ trong ứng dụng nhiều người dùng
+### 13.4. Switching Languages in Multi-User Applications
 
-Đối với web/server, không nên dùng một biến `static Locale currentLocale` chung cho tất cả request. Một request của user A chọn Vietnamese không được làm request của user B bất ngờ đổi ngôn ngữ. Khi đó, mỗi request/session có locale riêng, và localizer được truyền locale như tham số. Mẫu xử lý của CLI là nền tảng để tách state theo phiên.
+In web or server applications, never share a single `static Locale currentLocale` variable across all requests. A request from user A selecting Vietnamese must not unexpectedly switch the language for user B. Instead, each request or session carries its own locale, and the localizer receives the locale as a parameter. The CLI's pattern forms the basis for isolating state per session.
 
-## 14. Bài tập có đáp án
+## 14. Exercises with Answers
 
-**Bài 1.** Vì sao file `Messages_vi.properties` phải nằm trong runtime classpath?
+**Exercise 1.** Why must `Messages_vi.properties` be on the runtime classpath?
 
-**Đáp án:** `ResourceBundle.getBundle("Messages", locale)` tra tên resource tương ứng từ classpath/module, không tự tìm theo đường dẫn source repo. Nếu file không được copy/đưa vào classpath, Java có thể fallback sang root hoặc báo `MissingResourceException` nếu không tìm được bundle nào.
+**Answer:** `ResourceBundle.getBundle("Messages", locale)` resolves the matching resource name from the classpath/module path, not by searching source repository paths automatically. If the file is not copied or placed on the classpath, Java may fall back to the root or throw `MissingResourceException` if no bundle is found.
 
-**Bài 2.** CLI phải đổi gì khi gõ `lang vi`?
+**Exercise 2.** What must the CLI update when the user types `lang vi`?
 
-**Đáp án:** Chọn `Locale.forLanguageTag("vi-VN")`, tải `ResourceBundle` cho locale đó, lưu cả locale và bundle để bản dịch **và định dạng số** dùng cùng locale, rồi in thông báo bằng bundle mới.
+**Answer:** Select `Locale.forLanguageTag("vi-VN")`, load the `ResourceBundle` for that locale, store both the locale and the bundle so that translations **and number formatting** use the same locale, and then print the confirmation message using the new bundle.
 
-**Bài 3.** Tại sao dùng `Locale.setDefault` không phải cách tốt để đổi ngôn ngữ theo phiên?
+**Exercise 3.** Why is calling `Locale.setDefault` not a good way to switch languages per session?
 
-**Đáp án:** Default locale là trạng thái JVM có thể ảnh hưởng code khác. Một ứng dụng nhiều request có thể bị rò trạng thái ngôn ngữ. Truyền `Locale` tường minh và giữ nó theo instance/session.
+**Answer:** The default locale is JVM-wide state that can affect other code. A multi-request application would suffer from language state leakage. Pass `Locale` explicitly and store it per instance or session.
 
-**Bài 4.** Vì sao `count 1` cần key riêng tiếng Anh, còn tiếng Việt trong bài có thể dùng mẫu giống nhau cho one và other?
+**Exercise 4.** Why does `count 1` need a separate key in English, while Vietnamese in this exercise can use the same pattern for `one` and `other`?
 
-**Đáp án:** Tiếng Anh trong câu minh họa phân biệt danh từ `message/messages`; tiếng Việt thường dùng `tin nhắn` cho cả hai số lượng. Hai nhánh là minh họa cụ thể, không phải đầy đủ plural rules toàn cầu.
+**Answer:** English in the sample sentence distinguishes the singular/plural noun `message/messages`, whereas Vietnamese typically uses `tin nhắn` for both counts. Those two branches are specific illustrations, not universal global plural rules.
 
-**Bài 5.** Nếu muốn lệnh `greet Nguyễn Văn A` giữ nguyên tên, tại sao phải split với limit 2?
+**Exercise 5.** To preserve the full name in `greet Nguyễn Văn A`, why must we split with a limit of 2?
 
-**Đáp án:** Vì phần sau tên lệnh là **một đối số chuỗi nhiều từ**. `split("\\s+", 2)` tách tên lệnh và phần còn lại, không chia nhỏ tên theo khoảng trắng.
+**Answer:** Because everything after the command name is a **single multi-word string argument**. `split("\\s+", 2)` separates the command name from the rest of the line without splitting the name at spaces.
 
-**Bài 6.** Nếu `count 1234` in `1,234` ở English nhưng `1.234` ở Vietnamese, logic tính số có đổi không?
+**Exercise 6.** If `count 1234` prints `1,234` in English but `1.234` in Vietnamese, does the numeric calculation logic change?
 
-**Đáp án:** Không. `count` vẫn là cùng giá trị `long` 1234, chỉ cách trình bày qua `MessageFormat` với locale khác nhau.
+**Answer:** No. `count` remains the exact same `long` value `1234`; only its presentation through `MessageFormat` changes with the locale.
 
-**Bài 7.** Lệnh `lang fr` không báo lỗi vì Java vẫn trả một bundle root tiếng Anh. Đây là bug ở đâu?
+**Exercise 7.** The command `lang fr` produces no error because Java still returns the English root bundle. Where is the bug?
 
-**Đáp án:** Ở logic hỗ trợ ngôn ngữ của ứng dụng: `ResourceBundle` có fallback. Phải validate supported language tags theo whitelist trước khi gọi/chấp nhận chuyển locale.
+**Answer:** In the application's language-support logic: `ResourceBundle` uses fallback. You must validate supported language tags against a whitelist before loading or accepting a locale switch.
 
-**Bài 8.** Để chạy `java -cp language-cli.jar LanguageCli` sau đóng gói, JAR cần entry nào?
+**Exercise 8.** To run `java -cp language-cli.jar LanguageCli` after packaging, which entries must the JAR contain?
 
-**Đáp án:** `LanguageCli.class` và các entry `Messages*.properties` ngay tại JAR root theo base name `Messages`. Có thể kiểm tra bằng `jar tf language-cli.jar`.
+**Answer:** `LanguageCli.class` and the `Messages*.properties` entries directly at the JAR root matching the base name `Messages`. You can verify this with `jar tf language-cli.jar`.
 
-**Bài 9.** Thêm chuỗi `title=It's OK` vào file properties rồi format bằng `MessageFormat` có thể có vấn đề gì?
+**Exercise 9.** What problem can occur if you add `title=It's OK` to a properties file and format it with `MessageFormat`?
 
-**Đáp án:** Dấu nháy đơn có ý nghĩa cú pháp trong pattern MessageFormat. Muốn literal apostrophe thường cần viết `It''s` và kiểm thử formatter. Nếu không dùng MessageFormat cho key đó, `getString` sẽ trả raw text; phải hiểu rõ key nào là pattern.
+**Answer:** A single quote has special syntactic meaning in `MessageFormat` patterns. To output a literal apostrophe, you usually need `It''s` and should test the formatter. If `MessageFormat` is not used for that key, `getString` returns raw text; you must be clear about which keys are patterns.
 
-**Bài 10.** Vì sao không chỉ kiểm tra `messages.containsKey("greeting")` để kết luận bản tiếng Việt đã dịch?
+**Exercise 10.** Why isn't checking `messages.containsKey("greeting")` sufficient to conclude that the Vietnamese translation is complete?
 
-**Đáp án:** Vì `containsKey` có thể trả true nhờ key kế thừa từ parent/root. Cần kiểm tra coverage trên **file bản dịch thực tế** hoặc dùng pipeline quản lý dịch.
+**Answer:** Because `containsKey` can return `true` due to a key inherited from a parent/root bundle. You must verify coverage directly on the **actual translation file** or use a translation management pipeline.
 
-## 15. Tóm tắt kiến thức
+## 15. Summary
 
-- Chương trình CLI đa ngôn ngữ nên tách **command handling** khỏi **localized messages**.
-- `ResourceBundle.getBundle(baseName, locale)` đọc tài nguyên theo base name/locale; file phải ở **đúng classpath root**, có suffix `_en`, `_vi` tương ứng.
-- `Locale` quyết định quy tắc ngôn ngữ/định dạng; `MessageFormat` đặt giá trị động `{0}` vào **mẫu câu hoàn chỉnh**.
-- Chuyển `lang vi` hoặc `lang en` chỉ cần cập nhật **locale + bundle** của phiên, không gọi `Locale.setDefault`.
-- Không giả định thiếu một bản dịch sẽ ném lỗi, bởi `ResourceBundle` có fallback. Hãy **validate** ngôn ngữ hỗ trợ và độ phủ key.
-- Với số lượng, validation đầu vào và logic plural phải tách khỏi text; nhánh one/other chỉ là khởi đầu cho hai locale minh họa.
-- Biên dịch/chạy bằng `javac`/`java -cp` hoặc đóng gói `jar`; kiểm tra đúng file `Messages*.properties` trong artifact cuối.
-- Khi kiểm thử i18n, phải kiểm tra **đổi ngôn ngữ trong cùng phiên**, số/placeholder, lỗi nhập liệu, Unicode, fallback và JAR packaging.
+- A multilingual CLI should separate **command handling** from **localized messages**.
+- `ResourceBundle.getBundle(baseName, locale)` loads resources by base name and locale; files must be at the **correct classpath root** with corresponding `_en` and `_vi` suffixes.
+- `Locale` governs language and formatting rules; `MessageFormat` inserts dynamic values `{0}` into **complete sentence patterns**.
+- Switching `lang vi` or `lang en` only requires updating the session's **locale + bundle**, without calling `Locale.setDefault`.
+- Do not assume a missing translation throws an exception, because `ResourceBundle` has fallback behavior. Always **validate** supported languages and key coverage.
+- For counts, input validation and plural logic must be separated from text; the `one`/`other` branches are only a starting point for the two illustrated locales.
+- Compile and run with `javac`/`java -cp` or package with `jar`; verify that `Messages*.properties` are placed correctly in the final artifact.
+- When testing i18n, test **mid-session language switching**, numbers/placeholders, invalid inputs, Unicode, fallback, and JAR packaging.
 
-**Tài liệu chính thức:**
+**Official Documentation:**
 
 - [Java SE 21 — ResourceBundle](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ResourceBundle.html)
 - [Java SE 21 — PropertyResourceBundle](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/PropertyResourceBundle.html)

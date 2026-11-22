@@ -1,51 +1,51 @@
-# InputStreamReader, OutputStreamWriter và API Files trong Java
+# InputStreamReader, OutputStreamWriter, and the Files API in Java
 
-## 1. Bản chất: tệp và mạng lưu byte, Java xử lý ký tự
+## 1. Essence: Files and Networks Store Bytes, Java Processes Characters
 
-Trong ứng dụng Java bản địa hóa, một lỗi charset có thể khiến văn bản tiếng Việt, tên người, emoji hoặc dữ liệu từ hệ thống khác trở thành ký tự thay thế `�`, dấu hỏi `?` hoặc chuỗi “mojibake” như `cafÃ©`. Muốn đọc/ghi đúng, phải nắm ranh giới giữa **byte**, **ký tự UTF-16 trong Java** và **quy tắc mã hóa**.
+In a localized Java application, a charset bug can turn Vietnamese text, personal names, emoji, or data from external systems into the replacement character `�`, question marks `?`, or “mojibake” strings such as `cafÃ©`. To read and write properly, you must understand the boundary between **bytes**, **UTF-16 characters in Java**, and **encoding rules**.
 
-- `InputStream`: đọc **byte** từ nguồn như tệp, socket, bộ nhớ hoặc tài nguyên đóng gói.
-- `OutputStream`: ghi **byte** ra đích.
-- `Reader`: đọc **char** (đơn vị UTF-16) từ luồng văn bản.
-- `Writer`: ghi **char** ra luồng văn bản.
-- `Charset`: quy tắc **mã hóa** ký tự thành byte và **giải mã** byte thành ký tự.
-- `InputStreamReader`: cầu nối **byte → char** thông qua `CharsetDecoder`.
-- `OutputStreamWriter`: cầu nối **char → byte** thông qua `CharsetEncoder`.
-- `java.nio.file.Files`: cung cấp API mức cao để đọc/ghi tệp trực tiếp bằng byte, text, reader/writer, line stream và nhiều thao tác filesystem.
+- `InputStream`: reads **bytes** from sources like files, sockets, memory, or packaged resources.
+- `OutputStream`: writes **bytes** to a destination.
+- `Reader`: reads **chars** (UTF-16 units) from a text stream.
+- `Writer`: writes **chars** to a text stream.
+- `Charset`: the rule for **encoding** characters into bytes and **decoding** bytes into characters.
+- `InputStreamReader`: the **byte → char** bridge via `CharsetDecoder`.
+- `OutputStreamWriter`: the **char → byte** bridge via `CharsetEncoder`.
+- `java.nio.file.Files`: provides high-level APIs to read/write files directly by bytes, text, reader/writer, line streams, and many filesystem operations.
 
-**Nguyên tắc cốt lõi:** không có khái niệm “một tệp tự động là tiếng Việt hay tiếng Anh”. Tệp là chuỗi byte; chỉ khi biết đúng charset, chương trình mới giải mã các byte thành văn bản đúng. **Locale** phục vụ bản địa hóa, không tự quyết định byte encoding.
+**Core principle:** there is no concept of “a file is automatically Vietnamese or English.” A file is a sequence of bytes; only by knowing the true charset can the program decode those bytes into the right text. **`Locale`** serves localization, and does not itself dictate byte encoding.
 
-### 1.1. Sơ đồ hai chiều
+### 1.1. Bidirectional Diagram
 
 ~~~text
-Đọc:
-tệp / HTTP / byte[] --InputStream--> byte
-     --CharsetDecoder (UTF-8 chẳng hạn)-->
-  UTF-16 char trong Reader --> String / xử lý văn bản
+Read:
+file / HTTP / byte[] --InputStream--> bytes
+     --CharsetDecoder (e.g., UTF-8)-->
+  UTF-16 char in Reader --> String / text processing
 
-Ghi:
+Write:
 String / UTF-16 char --Writer-->
-    CharsetEncoder (UTF-8 chẳng hạn)
-     --OutputStream--> byte --> tệp / HTTP / bộ nhớ
+    CharsetEncoder (e.g., UTF-8)
+     --OutputStream--> bytes --> file / HTTP / memory
 ~~~
 
-Nếu bộ mã **đọc** không khớp bộ mã **đã ghi**, văn bản có thể sai mà chương trình không luôn ném exception. Chẳng hạn chuỗi UTF-8 bị giải mã nhầm theo một charset 8 bit khác có thể trở thành ký tự kỳ lạ nhưng vẫn “hợp lệ” đối với decoder đó.
+If the **reading** encoding does not match the **writing** encoding, text can become corrupted without the program necessarily throwing an exception. For instance, a UTF-8 sequence misdecoded with another 8-bit charset can turn into strange characters that are still “valid” to that decoder.
 
-### 1.2. Đừng nhầm byte, char, code point và grapheme
+### 1.2. Do Not Confuse Bytes, Chars, Code Points, and Graphemes
 
-Trong Java, `char` là đơn vị mã UTF-16. Một Unicode code point ngoài BMP, ví dụ emoji `U+1F603`, chiếm **hai `char`** trong một `String`, nhưng có thể chiếm **bốn byte** khi được mã hóa UTF-8.
+In Java, `char` is a UTF-16 code unit. A Unicode code point outside the BMP, such as emoji `U+1F603`, occupies **two `char`s** in a `String`, yet occupies **four bytes** when encoded in UTF-8.
 
-Ví dụ một chuỗi gồm chữ ASCII `Cafe`, dấu sắc tổ hợp `U+0301`, hai chữ Hán và emoji:
+Consider a string containing ASCII `Cafe`, combining acute accent `U+0301`, two Chinese characters, and an emoji:
 
 ~~~java
 String text = "Cafe\u0301 | \u4F60\u597D | \uD83D\uDE03";
 ~~~
 
-Đây là câu lệnh minh họa trong một phương thức Java. Chuỗi có **15 UTF-16 code units**, **14 code points** và khi mã hóa UTF-8 sẽ thành **22 byte**. Không dùng `text.length()` để suy ra kích thước tệp UTF-8 hoặc số ký tự nhìn thấy.
+This is an illustrative statement inside a Java method. The string has **15 UTF-16 code units**, **14 code points**, and when encoded as UTF-8 becomes **22 bytes**. Do not use `text.length()` to infer UTF-8 file size or visible character count.
 
-## 2. InputStreamReader: giải mã byte thành văn bản
+## 2. InputStreamReader: Decoding Bytes into Text
 
-Dùng `InputStreamReader` khi đã có một nguồn **InputStream** và muốn xử lý thành ký tự. Tạo bằng charset tường minh:
+Use `InputStreamReader` when you already have an **`InputStream`** source and want to process it as characters. Construct it with an explicit charset:
 
 ~~~java
 import java.io.InputStream;
@@ -53,15 +53,15 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 
-try (InputStream stream = /* nguồn byte hợp lệ */ null;
+try (InputStream stream = /* valid byte source */ null;
      Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
-    // Đọc các char từ reader.
+    // Read chars from reader.
 }
 ~~~
 
-**Đoạn trên chỉ minh họa cấu trúc**, chưa runnable do placeholder nguồn `null`. Trong mã thật, thay bằng `Files.newInputStream(path)`, một `ByteArrayInputStream` hoặc luồng hợp lệ; có ví dụ độc lập hoàn chỉnh ở mục 8.
+**The snippet above only illustrates structure** and is not runnable due to the `null` source placeholder. In real code, replace it with `Files.newInputStream(path)`, a `ByteArrayInputStream`, or a valid stream; a complete standalone example appears in Section 8.
 
-Với một `InputStream` đã tồn tại, cách viết ngắn hơn:
+With an existing `InputStream`, a shorter form is:
 
 ~~~java
 try (Reader reader =
@@ -69,55 +69,55 @@ try (Reader reader =
     char[] buffer = new char[4096];
     int n;
     while ((n = reader.read(buffer)) != -1) {
-        // Chỉ xử lý buffer[0..n), không phải toàn bộ buffer.
+        // Process only buffer[0..n), not the entire buffer.
     }
 }
 ~~~
 
-`source` ở đoạn minh họa là `InputStream` hợp lệ được quản lý bởi scope này. **Một lần `read` không đảm bảo lấy toàn bộ nội dung**. Nó trả số `char` thực đọc được, hoặc `-1` khi hết dữ liệu. Duyệt buffer theo `n`, không dùng `buffer.length` làm số ký tự mới.
+`source` in this snippet is a valid `InputStream` managed by this scope. **A single `read` call is not guaranteed to fetch the entire content**. It returns the number of `char`s actually read, or `-1` at end-of-stream. Iterate the buffer up to `n`, not using `buffer.length` as the count of new characters.
 
-### 2.1. Charset tường minh so với mặc định
+### 2.1. Explicit Charset vs. Default Charset
 
-Có nhiều constructor:
+Multiple constructors exist:
 
-| Constructor | Charset dùng | Hệ quả |
+| Constructor | Charset used | Consequence |
 | --- | --- | --- |
-| `new InputStreamReader(in)` | `Charset.defaultCharset()` | Phụ thuộc cấu hình/môi trường runtime |
-| `new InputStreamReader(in, StandardCharsets.UTF_8)` | UTF-8 | Rõ ràng, dễ kiểm thử và tương thích |
-| `new InputStreamReader(in, "UTF-8")` | Theo tên charset | Có thể ném `UnsupportedEncodingException` nếu tên không được hỗ trợ |
-| `new InputStreamReader(in, decoder)` | Theo `CharsetDecoder` tùy chỉnh | Điều khiển xử lý byte sai/không ánh xạ |
+| `new InputStreamReader(in)` | `Charset.defaultCharset()` | Depends on runtime configuration/environment |
+| `new InputStreamReader(in, StandardCharsets.UTF_8)` | UTF-8 | Explicit, easy to test, and portable |
+| `new InputStreamReader(in, "UTF-8")` | By charset name | Can throw `UnsupportedEncodingException` if name is unsupported |
+| `new InputStreamReader(in, decoder)` | Custom `CharsetDecoder` | Controls handling of malformed/unmappable bytes |
 
-Trên Java 17, **không** dựa vào default charset của máy phát triển hoặc container. Java 18 trở lên thay đổi mặc định theo JEP 400 trong đa số tình huống, nhưng điều này không khiến byte của một tệp legacy tự biến thành UTF-8. Đối với giao thức/tệp xác định encoding, luôn truyền charset trực tiếp.
+On Java 17, **do not** rely on the default charset of a developer machine or container. Java 18 and later change the default under JEP 400 in most situations, yet that does not magically turn bytes of a legacy file into UTF-8. For protocols/files with a defined encoding, always pass the charset directly.
 
-`StandardCharsets.UTF_8`, `US_ASCII`, `ISO_8859_1`, `UTF_16`, `UTF_16BE`, `UTF_16LE` là các hằng có sẵn. **Không** suy charset từ ngôn ngữ nội dung: một văn bản tiếng Việt có thể được lưu UTF-8, UTF-16 hoặc charset cũ tùy nguồn.
+`StandardCharsets.UTF_8`, `US_ASCII`, `ISO_8859_1`, `UTF_16`, `UTF_16BE`, and `UTF_16LE` are predefined constants. **Do not** infer charset from the content's language: Vietnamese text can be stored in UTF-8, UTF-16, or a legacy charset depending on the source.
 
-### 2.2. Bộ đệm và ngắt luồng
+### 2.2. Buffering and Stream Boundaries
 
-`InputStreamReader` có thể đọc trước nhiều byte hơn số `char` cần để trả về trong lần `read()` hiện tại, vì một ký tự có thể trải qua nhiều byte. Không phối hợp đọc byte trực tiếp từ cùng một underlying stream trong lúc `InputStreamReader` đang giải mã, vì bộ giải mã đã có thể đọc trước dữ liệu.
+`InputStreamReader` may read ahead more bytes than the number of `char`s needed for the current `read()` call, because a single character can span multiple bytes. Do not interleave direct byte reads from the same underlying stream while `InputStreamReader` is decoding, as the decoder may have already buffered ahead.
 
-Nếu đọc từng dòng, bọc bằng `BufferedReader`:
+When reading line by line, wrap with `BufferedReader`:
 
 ~~~java
 try (BufferedReader reader = new BufferedReader(
         new InputStreamReader(source, StandardCharsets.UTF_8))) {
     String line;
     while ((line = reader.readLine()) != null) {
-        // Xử lý từng dòng.
+        // Process each line.
     }
 }
 ~~~
 
-Đây là snippet cần import `java.io.BufferedReader`. `readLine()` **bỏ ký tự kết thúc dòng**; nếu cần giữ nguyên `CRLF`, `LF`, `CR` hoặc chuỗi gốc từng byte, dùng phương thức khác. Một “dòng” cực dài vẫn có thể tiêu thụ nhiều bộ nhớ, dù `BufferedReader` được dùng.
+This snippet requires importing `java.io.BufferedReader`. `readLine()` **strips line terminators**; if you need to preserve `CRLF`, `LF`, `CR`, or byte-exact original strings, use a different method. An extremely long “line” can still consume significant memory even when `BufferedReader` is used.
 
-**Lưu ý đóng tài nguyên:** đóng reader bọc ngoài thường sẽ đóng các lớp reader/stream phía dưới. Dùng try-with-resources để tự động đóng ngay cả khi có lỗi. Nếu underlying stream do framework sở hữu (ví dụ `System.in` hoặc HTTP response do caller quản lý), cần thống nhất ai chịu trách nhiệm đóng; tránh đóng `System.in` ngoài dự kiến.
+**Resource closing note:** closing an outer wrapper reader normally closes the underlying reader/stream layers. Use try-with-resources to close automatically even on error. If the underlying stream is owned by a framework (such as `System.in` or a caller-managed HTTP response), agree on ownership and avoid unexpectedly closing `System.in`.
 
-### 2.3. ready không phải tín hiệu EOF
+### 2.3. ready Is Not an EOF Signal
 
-`Reader.ready()` chỉ cho biết một lần đọc kế tiếp được bảo đảm không block trong ngữ cảnh cụ thể; `false` **không đồng nghĩa đã hết dữ liệu**. Cần đọc cho đến khi `read()` trả `-1`, hoặc `readLine()` trả `null`.
+`Reader.ready()` only indicates whether the next read is guaranteed not to block in a given context; `false` **does not mean end-of-data**. Keep reading until `read()` returns `-1`, or `readLine()` returns `null`.
 
-## 3. OutputStreamWriter: mã hóa ký tự thành byte
+## 3. OutputStreamWriter: Encoding Characters into Bytes
 
-Dùng `OutputStreamWriter` khi đã có `OutputStream` và cần viết text theo charset cụ thể:
+Use `OutputStreamWriter` when you have an `OutputStream` and need to write text in a specific charset:
 
 ~~~java
 try (Writer writer = new OutputStreamWriter(
@@ -126,22 +126,22 @@ try (Writer writer = new OutputStreamWriter(
 }
 ~~~
 
-Đây là đoạn minh họa trong phương thức, với `destination` là `OutputStream` hợp lệ và import `java.io.Writer`, `java.io.OutputStreamWriter`. Writer **mã hóa UTF-16 char thành byte UTF-8**. Nó không tự chọn ngôn ngữ, không biên dịch resource bundle và không chuyển line ending theo locale.
+This is an illustrative snippet inside a method, with `destination` as a valid `OutputStream` and imports `java.io.Writer`, `java.io.OutputStreamWriter`. The writer **encodes UTF-16 chars into UTF-8 bytes**. It does not choose language, resolve resource bundles, or adapt line endings by locale.
 
-### 3.1. Vì sao flush/close quan trọng?
+### 3.1. Why Do flush/close Matter?
 
-`OutputStreamWriter` có bộ đệm byte nội bộ. Nếu chương trình đã gọi `write` nhưng chưa `flush` hoặc `close`, chưa chắc mọi byte đã được chuyển xuống underlying stream. `close()` cũng thực hiện flush trước khi đóng.
+`OutputStreamWriter` maintains an internal byte buffer. If a program calls `write` without calling `flush` or `close`, not all bytes are guaranteed to have reached the underlying stream. `close()` also flushes before closing.
 
 ~~~java
 writer.write(text);
 writer.flush();
 ~~~
 
-Đoạn này là minh họa có biến `writer`, `text`. Với try-with-resources, `close` được gọi tự động; chỉ cần `flush` sớm khi phải làm dữ liệu hiển thị/chuyển tiếp **trước khi** block kết thúc, ví dụ giao thức streaming.
+This snippet illustrates usage with `writer` and `text` variables. With try-with-resources, `close` is called automatically; you only need an early `flush` when data must be displayed or forwarded **before** the block ends, such as in streaming protocols.
 
-**Đừng hiểu flush = dữ liệu được lưu bền vững lên ổ đĩa.** Flush của Writer đẩy buffer mã hóa xuống stream; yêu cầu durability (fsync/force, atomic replace và quy tắc ghi file) là vấn đề I/O/transaction riêng.
+**Do not equate flush with durable persistence to disk.** A `Writer`'s flush pushes its encoding buffer to the underlying stream; durability requirements (fsync/force, atomic replace, and file-writing guarantees) are a separate I/O/transaction concern.
 
-Nếu có nhiều lần `write` nhỏ, có thể dùng `BufferedWriter` bọc ngoài để gom các thao tác ký tự:
+When performing many small `write` calls, wrap with `BufferedWriter` to batch character operations:
 
 ~~~java
 try (BufferedWriter writer = new BufferedWriter(
@@ -152,37 +152,37 @@ try (BufferedWriter writer = new BufferedWriter(
 }
 ~~~
 
-Đây là snippet cần import `java.io.BufferedWriter`; `newLine()` viết **line separator của platform**. Nếu file hoặc giao thức yêu cầu chính xác `\\n` (LF), hãy ghi `writer.write('\\n')` theo contract thay vì trông cậy vào `newLine()`.
+This snippet requires importing `java.io.BufferedWriter`; `newLine()` writes the **platform's line separator**. If a file or protocol specifically requires `\n` (LF), write `writer.write('\n')` per the contract rather than relying on `newLine()`.
 
-### 3.2. UTF-8 không phải “mỗi char là một byte”
+### 3.2. UTF-8 Is Not “One Byte Per Char”
 
-Hàm viết:
+Writing:
 
 ~~~java
 String s = "Cafe\u0301";
 byte[] encoded = s.getBytes(StandardCharsets.UTF_8);
 ~~~
 
-cho kết quả 5 UTF-16 units nhưng 6 byte UTF-8, do dấu tổ hợp `U+0301` chiếm hai byte. Với emoji supplementary, cặp surrogate được encoder ghép thành bốn byte. Cần đo `encoded.length` khi giao thức giới hạn **byte**, và `s.length()` khi API giới hạn **UTF-16 units**.
+produces 5 UTF-16 units yet 6 UTF-8 bytes, because the combining acute accent `U+0301` takes two bytes. For supplementary emoji, the surrogate pair is encoded into four bytes. Measure `encoded.length` when the protocol limits **bytes**, and `s.length()` when an API limits **UTF-16 units**.
 
-## 4. Luồng byte và luồng ký tự: chọn đúng lớp
+## 4. Byte Streams vs. Character Streams: Choosing the Right Class
 
-| Tình huống | API thích hợp | Vì sao |
+| Scenario | Appropriate API | Why |
 | --- | --- | --- |
-| Đọc PNG, PDF, ZIP, dữ liệu mã hóa, byte giao thức | `InputStream`, `Files.readAllBytes` cho file nhỏ | Dữ liệu **nhị phân**, không giải mã thành text |
-| Đọc tệp UTF-8 nhỏ, cần nguyên text | `Files.readString(path, UTF_8)` | Đơn giản, charset rõ ràng |
-| Đọc nhiều dòng trong tệp lớn | `Files.newBufferedReader(path, UTF_8)` | Duyệt từng dòng, không cần giữ cả file |
-| Nhận text qua socket hoặc ByteArrayInputStream | `InputStreamReader(in, UTF_8)` | Chuyển byte vào Reader |
-| Ghi chuỗi text ra tệp nhỏ | `Files.writeString(path, text, UTF_8)` | Đơn giản, đóng file tự động |
-| Ghi text lớn hoặc ghi theo dòng | `Files.newBufferedWriter(path, UTF_8)` | Ghi từng đoạn, quản lý buffer |
-| Ghi text vào HTTP/socket/byte[] | `OutputStreamWriter(out, UTF_8)` | Chuyển char thành byte |
-| Xử lý sai encoding cần phân biệt reject/replace | `CharsetDecoder`/`CharsetEncoder` | Cấu hình `CodingErrorAction` |
+| Reading PNG, PDF, ZIP, encrypted data, protocol bytes | `InputStream`, `Files.readAllBytes` for small files | **Binary** data, must not be decoded as text |
+| Reading a small UTF-8 file as a full string | `Files.readString(path, UTF_8)` | Simple, explicit charset |
+| Reading many lines in a large file | `Files.newBufferedReader(path, UTF_8)` | Line-by-line iteration without loading entire file |
+| Receiving text via socket or ByteArrayInputStream | `InputStreamReader(in, UTF_8)` | Bridges bytes to a Reader |
+| Writing a text string to a small file | `Files.writeString(path, text, UTF_8)` | Simple, closes file automatically |
+| Writing large text or line by line | `Files.newBufferedWriter(path, UTF_8)` | Incremental writes with buffering |
+| Writing text to HTTP/socket/byte[] | `OutputStreamWriter(out, UTF_8)` | Converts chars to bytes |
+| Handling encoding errors needing reject vs. replace distinction | `CharsetDecoder`/`CharsetEncoder` | Configures `CodingErrorAction` |
 
-**Không bao giờ** chuyển arbitrary binary bytes qua `new String(bytes, UTF_8)` rồi `getBytes(UTF_8)` để “giữ nguyên” file nhị phân: byte không phải UTF-8 hợp lệ có thể bị thay thế, làm dữ liệu mất mát. Dùng API byte khi dữ liệu không phải text.
+**Never** pass arbitrary binary bytes through `new String(bytes, UTF_8)` and then `getBytes(UTF_8)` to “preserve” a binary file: bytes that are not valid UTF-8 can be replaced, corrupting the data. Use byte APIs whenever data is not text.
 
-## 5. API Files: mức cao và có charset rõ ràng
+## 5. The Files API: High-Level with Explicit Charset
 
-`java.nio.file.Files` làm việc với `Path` và cung cấp cả API text và API bytes. Các ví dụ dưới đây là **đoạn minh họa trong phương thức có `throws IOException` hoặc xử lý ngoại lệ**, trừ chương trình hoàn chỉnh ở mục 8.
+`java.nio.file.Files` operates on `Path` and provides both text and byte APIs. The examples below are **illustrative snippets inside a method with `throws IOException` or exception handling**, except for the complete program in Section 8.
 
 ### 5.1. readString/writeString (Java 11+)
 
@@ -192,16 +192,16 @@ Files.writeString(file, text, StandardCharsets.UTF_8);
 String restored = Files.readString(file, StandardCharsets.UTF_8);
 ~~~
 
-`Files.writeString(path, text, charset)` ghi **chính xác chuỗi ký tự được cung cấp**, không tự thêm ký tự xuống dòng. Nếu không truyền `OpenOption`, phương thức mặc định mở để **CREATE**, **TRUNCATE_EXISTING**, **WRITE**: file mới được tạo, file đã tồn tại bị ghi đè (xóa nội dung cũ trước khi viết). Đừng dùng mẫu này trên tệp quan trọng mà không có chiến lược sao lưu hoặc ghi an toàn.
+`Files.writeString(path, text, charset)` writes **exactly the provided character string**, without appending a newline. If no `OpenOption` is passed, it defaults to **CREATE**, **TRUNCATE_EXISTING**, **WRITE**: a new file is created, and an existing file is overwritten (its old content erased before writing). Do not use this pattern on critical files without a backup or safe-write strategy.
 
-`Files.readString(path, charset)` đọc cả file thành một `String` và giữ những ký tự xuống dòng theo dữ liệu nguồn. Nó **không phải** bộ đọc cho file quá lớn; có thể tốn RAM hoặc gây `OutOfMemoryError`.
+`Files.readString(path, charset)` reads the entire file into one `String` and preserves the line endings from the source data. It is **not** meant for overly large files; it can exhaust RAM or throw `OutOfMemoryError`.
 
-Trong Java 17:
+In Java 17:
 
-- `Files.readString(path)` **mặc định UTF-8**.
-- `Files.writeString(path, text)` **mặc định UTF-8**.
+- `Files.readString(path)` **defaults to UTF-8**.
+- `Files.writeString(path, text)` **defaults to UTF-8**.
 
-Điều này khác với việc gọi `new InputStreamReader(in)` **không truyền charset**, vốn dùng default charset của runtime. Đừng gom các API ấy vào một phát biểu chung rằng “tất cả Java I/O mặc định UTF-8” trên Java 17.
+This differs from calling `new InputStreamReader(in)` **without a charset**, which uses the runtime's default charset. Do not lump those APIs together under a blanket claim that “all Java I/O defaults to UTF-8” on Java 17.
 
 ### 5.2. newBufferedReader/newBufferedWriter
 
@@ -224,13 +224,13 @@ try (BufferedReader reader =
 }
 ~~~
 
-Đoạn này có thể nằm trong phương thức `throws IOException`; yêu cầu import `java.nio.file.Files`, `Path`, `StandardCharsets`, `BufferedWriter`, `BufferedReader`. Nếu không truyền options, `newBufferedWriter` cũng mở theo **CREATE**, **TRUNCATE_EXISTING**, **WRITE**.
+This snippet can sit inside a method with `throws IOException`; it requires importing `java.nio.file.Files`, `Path`, `StandardCharsets`, `BufferedWriter`, and `BufferedReader`. When options are omitted, `newBufferedWriter` also opens with **CREATE**, **TRUNCATE_EXISTING**, **WRITE**.
 
-Mặc định các overload **không nhận Charset** của `Files.newBufferedReader` và `Files.newBufferedWriter` là UTF-8 trong Java 17. Dù vậy, với mã cần contract tường minh, truyền `StandardCharsets.UTF_8` giúp người đọc không phải nhớ sự khác nhau giữa các nhóm API.
+The overloads of `Files.newBufferedReader` and `Files.newBufferedWriter` **without a Charset** default to UTF-8 in Java 17. Even so, in code requiring an explicit contract, passing `StandardCharsets.UTF_8` spares readers from having to remember differences across API groups.
 
-`newBufferedReader` làm việc theo dòng. Nó trả dữ liệu văn bản đã giải mã và có thể ném `IOException` khi gặp byte sai charset; đừng dùng để giữ nguyên byte hoặc line separators.
+`newBufferedReader` operates line by line. It returns decoded text and can throw `IOException` on invalid-charset bytes; do not use it to preserve raw bytes or exact line separators.
 
-### 5.3. Files.lines và readAllLines
+### 5.3. Files.lines and readAllLines
 
 ~~~java
 try (java.util.stream.Stream<String> lines =
@@ -240,49 +240,49 @@ try (java.util.stream.Stream<String> lines =
 }
 ~~~
 
-Đây là snippet, biến `path` đã được khai báo. `Files.lines` trả **Stream đọc trễ** còn giữ file đang mở. **Phải đóng stream** bằng try-with-resources. Ngoại lệ I/O khi xử lý stream sau lúc mở có thể được bọc thành `UncheckedIOException`, khác với ngoại lệ ở bước mở file.
+This is a snippet assuming `path` is already declared. `Files.lines` returns a **lazily read Stream** that keeps the file open. **You must close the stream** via try-with-resources. I/O exceptions encountered while consuming the stream after opening may be wrapped in `UncheckedIOException`, unlike exceptions during file opening.
 
-`Files.readAllLines(path, UTF_8)` trả `List<String>`, tiện cho file nhỏ nhưng đọc toàn bộ các dòng vào bộ nhớ; các dấu kết thúc dòng không còn là phần của từng string. Khi cần nguyên văn file và file vừa phải, `readString` hợp hơn; khi cần xử lý dòng lớn/streaming, dùng `newBufferedReader` hoặc `lines`.
+`Files.readAllLines(path, UTF_8)` returns `List<String>`, convenient for small files, but loads all lines into memory with line terminators stripped from each string. When you need the verbatim file and it is moderately sized, `readString` fits better; for large/streaming line processing, use `newBufferedReader` or `lines`.
 
-### 5.4. Files.readAllBytes và Files.write
+### 5.4. Files.readAllBytes and Files.write
 
 ~~~java
 byte[] raw = Files.readAllBytes(path);
 Files.write(path, raw);
 ~~~
 
-Các lệnh này thao tác **byte** chứ không giải mã text. Nếu bạn cần kiểm tra header, BOM, signature, dữ liệu nhị phân hoặc so raw bytes trước/sau, đây là công cụ phù hợp cho **file nhỏ**. `readAllBytes` không nên dùng cho file cực lớn; để streaming, dùng `Files.newInputStream` hoặc các channel.
+These operations handle **bytes** rather than decoding text. If you need to inspect headers, BOMs, signatures, binary data, or compare raw bytes before and after, this is the right tool for **small files**. `readAllBytes` should not be used for huge files; for streaming, use `Files.newInputStream` or channels.
 
-## 6. Lỗi charset: replacement khác REPORT
+## 6. Charset Errors: Replacement vs. REPORT
 
-Một điểm dễ bị bỏ qua: các API có thể áp dụng **chính sách xử lý byte/ký tự sai** khác nhau. Hai loại lỗi phổ biến:
+An easily overlooked point: APIs can apply different **invalid byte/character handling policies**. Two common error types are:
 
-- **Malformed input:** chuỗi byte không hợp lệ theo charset, ví dụ `C3 28` không phải một UTF-8 sequence đúng.
-- **Unmappable character:** ký tự hoặc byte không có biểu diễn phù hợp trong charset đích/nguồn.
+- **Malformed input:** a byte sequence invalid under the charset, e.g., `C3 28` is not a valid UTF-8 sequence.
+- **Unmappable character:** a character or byte with no valid representation in the target/source charset.
 
-Các lựa chọn `CodingErrorAction`:
+`CodingErrorAction` options:
 
-| Chế độ | Nghĩa | Hệ quả |
+| Mode | Meaning | Consequence |
 | --- | --- | --- |
-| `REPORT` | Báo lỗi thay vì lặng lẽ sửa | Có thể ném `MalformedInputException` hoặc `UnmappableCharacterException` |
-| `REPLACE` | Thay đoạn lỗi bằng replacement | Dữ liệu **không còn giữ nguyên** |
-| `IGNORE` | Bỏ qua đoạn lỗi | Có thể **mất dữ liệu âm thầm** |
+| `REPORT` | Reports an error instead of silently altering | Can throw `MalformedInputException` or `UnmappableCharacterException` |
+| `REPLACE` | Substitutes the bad segment with a replacement | Data is **no longer preserved verbatim** |
+| `IGNORE` | Skips the bad segment | Can cause **silent data loss** |
 
-### 6.1. InputStreamReader(InputStream, Charset) và replacement
+### 6.1. InputStreamReader(InputStream, Charset) and Replacement
 
-Khi tạo trực tiếp từ `Charset`, `InputStreamReader` thay input byte sai bằng ký tự thay thế mặc định cho decoder trong trường hợp đã kiểm tra. Điều này thuận tiện khi đọc văn bản để hiển thị nhưng **không thích hợp khi dữ liệu lỗi phải bị từ chối**.
+When constructed directly from a `Charset`, `InputStreamReader` replaces invalid byte input with the decoder's default replacement character in the tested case. This is convenient for displaying text, yet **unsuitable when invalid data must be rejected**.
 
-Ví dụ có hai byte:
+For example, given two bytes:
 
 ~~~text
 C3 28
 ~~~
 
-Byte đầu `C3` báo bắt đầu một UTF-8 sequence nhiều byte, nhưng `28` không phải continuation byte phù hợp. Đọc với `InputStreamReader(..., StandardCharsets.UTF_8)` trong ví dụ hoàn chỉnh có ký tự đầu **U+FFFD** (replacement), còn `(` tiếp tục được đọc.
+The first byte `C3` signals the start of a multi-byte UTF-8 sequence, but `28` is not a valid continuation byte. Reading with `InputStreamReader(..., StandardCharsets.UTF_8)` in the full example produces **U+FFFD** (replacement) as the first character, while `(` continues to be read.
 
-Nếu ứng dụng xử lý tài liệu cần chính xác hoặc kiểm toán, thay thế im lặng có thể nguy hiểm: bạn không còn biết chính xác byte gốc từ chuỗi đã giải mã. Cần validate đầu vào bằng decoder nghiêm ngặt hoặc giữ lại byte gốc để phân tích.
+If an application processes documents requiring exactness or auditing, silent replacement can be dangerous: you can no longer tell the exact original bytes from the decoded string. Validate input with a strict decoder or retain the raw bytes for inspection.
 
-### 6.2. CharsetDecoder cấu hình REPORT
+### 6.2. CharsetDecoder Configured with REPORT
 
 ~~~java
 CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder()
@@ -290,30 +290,30 @@ CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder()
         .onUnmappableCharacter(CodingErrorAction.REPORT);
 
 try (Reader reader = new InputStreamReader(source, decoder)) {
-    // Đọc, lỗi decoding sẽ được báo.
+    // Read; decoding errors will be reported.
 }
 ~~~
 
-Đây là đoạn minh họa có `source` là `InputStream` hợp lệ; import `java.nio.charset.CharsetDecoder`, `CodingErrorAction`. Với input `C3 28`, việc đọc phát sinh `MalformedInputException` thay vì hoàn thành với replacement.
+This snippet assumes `source` is a valid `InputStream` and imports `java.nio.charset.CharsetDecoder`, `CodingErrorAction`. Given input `C3 28`, reading raises `MalformedInputException` instead of completing with a replacement.
 
-**Tránh dùng chung `CharsetDecoder` mutable giữa các thread:** decoder giữ trạng thái mã hóa/giải mã; tạo mới theo reader hoặc quản lý rõ concurrency.
+**Avoid sharing mutable `CharsetDecoder` instances across threads:** a decoder holds encoding/decoding state; create a new instance per reader or manage concurrency explicitly.
 
-### 6.3. Files.readString nghiêm ngặt hơn trường hợp trên
+### 6.3. Files.readString Is Stricter Than the Case Above
 
-Theo API Java 17, `Files.readString(path, charset)` báo `IOException` khi gặp byte **malformed hoặc unmappable**. Trong ví dụ được kiểm chứng, đọc file chứa `C3 28` bằng `Files.readString(..., UTF_8)` ném `MalformedInputException` và được ghi là `Files malformed=REJECTED`.
+Per the Java 17 API, `Files.readString(path, charset)` throws `IOException` upon encountering **malformed or unmappable** bytes. In our verified example, reading a file containing `C3 28` via `Files.readString(..., UTF_8)` throws `MalformedInputException` and prints `Files malformed=REJECTED`.
 
-Vì vậy hai đoạn:
+Therefore, these two calls:
 
 ~~~java
 new InputStreamReader(source, StandardCharsets.UTF_8)
 Files.readString(path, StandardCharsets.UTF_8)
 ~~~
 
-**không nên được quảng bá là có cùng chính sách lỗi byte**. Cả hai đều dùng UTF-8 nhưng khác API và cách xử lý malformed mặc định. Nếu yêu cầu reject toàn bộ byte UTF-8 không hợp lệ, chọn API có hợp đồng phù hợp hoặc decoder `REPORT`.
+**must not be described as having the same byte-error policy**. Both use UTF-8, yet differ in API and default malformed-input handling. If you must reject all invalid UTF-8 bytes, choose an API with the matching contract or a `REPORT` decoder.
 
-### 6.4. OutputStreamWriter và CharsetEncoder
+### 6.4. OutputStreamWriter and CharsetEncoder
 
-`OutputStreamWriter` với `Charset` có thể thay ký tự malformed/unmappable bằng byte substitution của charset. Nếu bắt buộc ghi không mất dữ liệu, dùng `CharsetEncoder` với `REPORT`:
+`OutputStreamWriter` with a `Charset` may replace malformed/unmappable characters with the charset's substitution byte. If lossless writing is mandatory, use a `CharsetEncoder` with `REPORT`:
 
 ~~~java
 CharsetEncoder encoder = StandardCharsets.UTF_8.newEncoder()
@@ -325,28 +325,28 @@ try (Writer writer = new OutputStreamWriter(destination, encoder)) {
 }
 ~~~
 
-Đây là snippet minh họa có `destination` là `OutputStream` hợp lệ và `text` là `String`. Trường hợp malformed surrogate pair trong nguồn hoặc dùng charset không có khả năng mã hóa một ký tự cần được báo và xử lý; không biến lỗi thành dấu `?` mà không có chủ ý.
+This snippet assumes `destination` is a valid `OutputStream` and `text` is a `String`. Malformed surrogate pairs in the source or charsets incapable of encoding a character must be reported and handled; do not let errors turn into `?` unintentionally.
 
-**Không đồng nhất thao tác `new String(bytes, UTF_8)` với xác thực byte UTF-8 nghiêm ngặt**. Với constructor dạng charset, dữ liệu lỗi có thể được thay thế; nếu cần reject, dùng decoder `REPORT` hoặc API đã bảo đảm báo lỗi.
+**Do not equate `new String(bytes, UTF_8)` with strict UTF-8 byte validation**. With the `Charset` constructor, invalid data may be replaced; if rejection is required, use a `REPORT` decoder or an API guaranteed to throw on errors.
 
-## 7. BOM, legacy encodings và line endings
+## 7. BOM, Legacy Encodings, and Line Endings
 
-### 7.1. BOM là dữ liệu byte ở đầu, không phải ngôn ngữ
+### 7.1. BOM Is Leading Byte Data, Not Language
 
-UTF-8 BOM thường là dãy **EF BB BF**. UTF-8 không bắt buộc có BOM, và nhiều file UTF-8 hoàn toàn không có BOM. BOM có thể xuất hiện do hệ thống xuất tệp.
+The UTF-8 BOM is normally the sequence **EF BB BF**. UTF-8 does not require a BOM, and many UTF-8 files have no BOM at all. A BOM may appear due to the system that exported the file.
 
-- Đừng giả định **mọi** tệp UTF-8 đều có BOM.
-- Đừng tự loại ba byte đầu nếu không xác định chúng thật sự là `EF BB BF`.
-- Khi đã decode sang `String`, một BOM UTF-8 có thể xuất hiện như ký tự `U+FEFF` ở đầu nếu API không tự loại bỏ; kiểm thử hành vi của API/file pipeline mục tiêu.
-- Một số giao thức hoặc nội dung CSV/JSON có chính sách BOM riêng. Hãy tuân theo contract, không “đoán” từ locale.
+- Do not assume **every** UTF-8 file has a BOM.
+- Do not blindly strip the first three bytes without verifying they are actually `EF BB BF`.
+- Once decoded into a `String`, a UTF-8 BOM may appear as a leading `U+FEFF` character if the API does not strip it automatically; test the behavior of your target API/file pipeline.
+- Some protocols or CSV/JSON payloads have specific BOM policies. Follow the contract instead of “guessing” from locale.
 
-Với UTF-16, các biến thể `UTF_16`, `UTF_16BE` và `UTF_16LE` khác nhau về cách dùng BOM và endian. Không xem UTF-16LE bytes là UTF-8 rồi chờ reader tự nhận diện chính xác.
+For UTF-16, the variants `UTF_16`, `UTF_16BE`, and `UTF_16LE` differ in BOM usage and endianness. Do not treat UTF-16LE bytes as UTF-8 and expect the reader to auto-detect them accurately.
 
-### 7.2. Mã hóa cũ không tự chuyển thành UTF-8
+### 7.2. Legacy Encodings Do Not Convert Themselves to UTF-8
 
-Nếu đối tác gửi tệp theo Windows-1252, ISO-8859-1 hoặc charset cũ, bạn phải biết encoding thật (thông số kỹ thuật, HTTP headers đáng tin cậy, file metadata/hợp đồng nguồn) mới decode chính xác.
+If a partner sends a file in Windows-1252, ISO-8859-1, or a legacy charset, you must know the true encoding (from technical specs, trusted HTTP headers, or file metadata/source contract) to decode it correctly.
 
-Ví dụ minh họa:
+Illustrative example:
 
 ~~~java
 Charset legacy = Charset.forName("windows-1252");
@@ -354,21 +354,21 @@ String value = Files.readString(path, legacy);
 Files.writeString(output, value, StandardCharsets.UTF_8);
 ~~~
 
-Đoạn này chỉ chạy khi **file đầu vào thật sự có charset đã định**; cần import `Charset`, `Files`, `Path`/các biến. Chuyển đổi encoding đúng là **decode theo charset nguồn rồi encode theo charset đích**. Nếu bước decode dùng sai charset, ghi ra UTF-8 chỉ làm dữ liệu sai được bảo quản ở một mã hóa mới.
+This snippet only works when **the input file actually uses the specified charset**; it requires importing `Charset`, `Files`, `Path`, and variables. Proper encoding conversion means **decoding with the source charset and encoding with the target charset**. If the decode step uses the wrong charset, writing out UTF-8 only preserves corrupted data in a new encoding.
 
-### 7.3. Line endings
+### 7.3. Line Endings
 
-Ba kiểu phổ biến:
+Three common styles:
 
-- LF: `\\n`.
-- CRLF: `\\r\\n`.
-- CR: `\\r`.
+- LF: `\n`.
+- CRLF: `\r\n`.
+- CR: `\r`.
 
-`Files.readString` giữ các ký tự line ending thực tế đã decode. `BufferedReader.readLine()` bỏ line terminators; `BufferedWriter.newLine()` dùng line separator của nền tảng. Nếu chuyển file giữa Windows và Linux mà cần bảo toàn **byte hoặc line ending chính xác**, đừng đọc theo line rồi viết `newLine()` mà không có chính sách đổi dòng.
+`Files.readString` preserves the decoded line-ending characters actually present. `BufferedReader.readLine()` strips line terminators; `BufferedWriter.newLine()` uses the platform's line separator. When transferring files between Windows and Linux where **bytes or exact line endings** must be preserved, do not read by line and write with `newLine()` without an explicit line-ending conversion policy.
 
-## 8. Chương trình Java 17 hoàn chỉnh: UTF-8 round-trip và decoder lỗi
+## 8. Complete Java 17 Program: UTF-8 Round-Trip and Error Decoders
 
-File **`CharsetFilesDemo.java`** sau có thể biên dịch/chạy trên Java 17+. Nó tạo hai file tạm bằng `Files.createTempFile` và xóa trong `finally`; không phụ thuộc file bên ngoài hoặc default charset của máy chạy. Đầu vào dùng Unicode escapes để terminal không cần nhập emoji.
+The following file **`CharsetFilesDemo.java`** compiles and runs on Java 17+. It creates two temporary files via `Files.createTempFile` and deletes them in `finally`; it does not depend on external files or the host's default charset. Input uses Unicode escapes so terminals do not need to enter emoji directly.
 
 ~~~java
 import java.io.*;
@@ -459,14 +459,14 @@ public class CharsetFilesDemo {
 }
 ~~~
 
-Biên dịch và chạy (yêu cầu JDK 17+ do có `HexFormat`):
+Compile and run (requires JDK 17+ for `HexFormat`):
 
 ~~~bash
 javac -encoding UTF-8 CharsetFilesDemo.java
 java CharsetFilesDemo
 ~~~
 
-**Stdout đã kiểm tra** trên Java:
+**Verified stdout** on Java:
 
 ~~~text
 encoded bytes=22
@@ -479,38 +479,38 @@ strict decoder=REJECTED
 Files malformed=REJECTED
 ~~~
 
-Giải thích:
+Explanation:
 
-1. `Cafe` dùng 4 byte ASCII; `U+0301` dùng 2 byte UTF-8, các dấu cách/`|` thêm 6 byte; hai chữ Hán dùng 6 byte và emoji `U+1F603` dùng 4 byte. Tổng `4 + 2 + 6 + 6 + 4 = 22`.
-2. `encoded hex` là đúng 22 byte vừa được `OutputStreamWriter` ghi vào `ByteArrayOutputStream`, không phụ thuộc console charset.
-3. `InputStreamReader` giải mã các byte hợp lệ theo UTF-8, nên `stream roundtrip=true`.
-4. `Files.writeString` và `Files.readString` cũng bảo toàn Unicode hợp lệ; `Files.size(file)` đo **byte** trên tệp.
-5. Với byte UTF-8 sai `C3 28`, decoder mặc định của `InputStreamReader(InputStream, Charset)` sử dụng replacement, nên ký tự đầu là `U+FFFD`.
-6. Khi dùng `CharsetDecoder` với `REPORT`, lỗi được báo bằng `MalformedInputException`.
-7. `Files.readString(invalidFile, UTF_8)` cũng từ chối file malformed và ném `MalformedInputException` trong chương trình này.
-8. Hai file tạm được xóa sau khi kiểm tra; trong ứng dụng thật, xử lý lỗi cần cân nhắc cả trường hợp ghi/xóa file không thành công.
+1. `Cafe` uses 4 ASCII bytes; `U+0301` uses 2 UTF-8 bytes, spaces/`|` add 6 bytes; the two Chinese characters use 6 bytes, and emoji `U+1F603` uses 4 bytes. Total `4 + 2 + 6 + 6 + 4 = 22`.
+2. `encoded hex` shows the exact 22 bytes written by `OutputStreamWriter` into `ByteArrayOutputStream`, independent of console charset.
+3. `InputStreamReader` decodes valid bytes as UTF-8, so `stream roundtrip=true`.
+4. `Files.writeString` and `Files.readString` also preserve valid Unicode; `Files.size(file)` measures **bytes** in the file.
+5. For invalid UTF-8 bytes `C3 28`, the default decoder of `InputStreamReader(InputStream, Charset)` uses replacement, so the first character is `U+FFFD`.
+6. When using a `CharsetDecoder` with `REPORT`, the error is signaled via `MalformedInputException`.
+7. `Files.readString(invalidFile, UTF_8)` also rejects the malformed file and throws `MalformedInputException` in this program.
+8. Both temporary files are deleted after testing; in real applications, error handling must also consider failures when writing or deleting files.
 
-Không sao chép các giá trị hex để khẳng định tất cả văn bản Unicode có độ dài này; đây là kết quả **của đúng chuỗi mẫu**. Mọi phép đo byte phải dựa trên bytes thực sự encode và charset được chọn.
+Do not copy these hex values to claim all Unicode text has this length; this is the result **for this exact sample string**. Every byte measurement must be computed from the actually encoded bytes and chosen charset.
 
-## 9. Chọn API theo quy mô và vòng đời tài nguyên
+## 9. Choosing APIs by Scale and Resource Lifecycle
 
-| Yêu cầu | Cách thường thích hợp | Ràng buộc |
+| Requirement | Typical appropriate approach | Constraints |
 | --- | --- | --- |
-| File cấu hình/README nhỏ, UTF-8 | `Files.readString` | Toàn bộ file lên RAM |
-| File báo cáo nhỏ | `Files.writeString` | Chú ý ghi đè mặc định |
-| File log/csv nhiều dòng | `newBufferedReader` hoặc `Files.lines` | Đóng tài nguyên, hạn chế dòng cực dài |
-| Text được sinh dần | `newBufferedWriter` | Chốt charset, line ending, options |
-| Network InputStream | `InputStreamReader` | Đúng charset theo contract HTTP/protocol |
-| Network OutputStream | `OutputStreamWriter` | Flush/cấp phát charset encoder đúng |
-| Byte chính xác để checksum/signature | `Files.newInputStream` hoặc `readAllBytes` | Không chuyển sang text khi không cần |
-| File lớn không thể đọc hết RAM | Buffered/streaming I/O | Giới hạn input size, không gom vào `StringBuilder` khổng lồ |
-| Dữ liệu có thể malformed | Strict decoder hoặc Files text API có báo lỗi | Tránh thay thế âm thầm nếu cần audit |
+| Small UTF-8 config/README file | `Files.readString` | Entire file loaded into RAM |
+| Small report file | `Files.writeString` | Watch default overwrite behavior |
+| Multi-line log/CSV file | `newBufferedReader` or `Files.lines` | Close resources, guard against extremely long lines |
+| Incrementally generated text | `newBufferedWriter` | Fix charset, line ending, options |
+| Network InputStream | `InputStreamReader` | Correct charset per HTTP/protocol contract |
+| Network OutputStream | `OutputStreamWriter` | Flush/configure charset encoder properly |
+| Exact bytes for checksum/signature | `Files.newInputStream` or `readAllBytes` | Do not convert to text unnecessarily |
+| Large file that cannot fit in RAM | Buffered/streaming I/O | Bound input size, do not accumulate into a huge `StringBuilder` |
+| Potentially malformed data | Strict decoder or error-reporting Files text API | Avoid silent replacement if auditing is required |
 
-Với file nhỏ, ít boilerplate thường quan trọng hơn performance. Với file nhiều GB, **đọc hết vào một `String`** không thực tế và có thể tạo nhiều bản sao ở bộ nhớ. Nên xử lý tuần tự theo buffer hoặc dòng và giới hạn tài nguyên.
+For small files, minimal boilerplate usually matters more than raw throughput. For multi-GB files, **reading everything into a single `String`** is impractical and can create multiple in-memory copies. Process sequentially by buffer or line and bound resources.
 
-### 9.1. Chỉ định OpenOption rõ khi cần
+### 9.1. Specify OpenOption Explicitly When Needed
 
-`Files.writeString` hoặc `Files.newBufferedWriter` **mặc định truncate file đã có** nếu không chỉ định options. Khi muốn nối thêm:
+`Files.writeString` or `Files.newBufferedWriter` **truncates an existing file by default** if options are omitted. To append instead:
 
 ~~~java
 Files.writeString(path, "more text",
@@ -519,19 +519,19 @@ Files.writeString(path, "more text",
         StandardOpenOption.APPEND);
 ~~~
 
-Đây là snippet cần import `StandardOpenOption` và các biến. Nếu định nối text bằng APPEND, phải bảo đảm file đã có **cùng charset**, không nối UTF-8 vào file legacy đang dùng encoding khác. Nếu muốn không bao giờ ghi đè, cân nhắc `CREATE_NEW` và xử lý `FileAlreadyExistsException`.
+This snippet requires importing `StandardOpenOption` and having variables ready. When appending text with `APPEND`, ensure the existing file uses the **same charset**—do not append UTF-8 onto a legacy file encoded differently. If you never want to overwrite, consider `CREATE_NEW` and handle `FileAlreadyExistsException`.
 
-Một thao tác write không tự bảo đảm **atomic replace** hay tính nhất quán trong trường hợp process crash. Nếu ghi file cấu hình quan trọng, thường cần tệp tạm cùng filesystem và chiến lược thay thế an toàn theo `Files.move`, xem xét `ATOMIC_MOVE` khi provider hỗ trợ. Không nhầm việc đóng stream với giao dịch file nguyên tử.
+A single write operation does not guarantee **atomic replace** or consistency in case of a process crash. When writing critical configuration files, you typically need a temporary file on the same filesystem and a safe replacement strategy via `Files.move`, considering `ATOMIC_MOVE` when supported by the provider. Do not confuse closing a stream with an atomic file transaction.
 
-### 9.2. Files.lines phải đóng
+### 9.2. Files.lines Must Be Closed
 
-Đừng viết:
+Do not write:
 
 ~~~java
 long n = Files.lines(path).count();
 ~~~
 
-rồi bỏ quên stream như thể nó là collection trong RAM. `Files.lines` giữ file mở; hãy dùng:
+and abandon the stream as if it were an in-memory collection. `Files.lines` holds the file open; use:
 
 ~~~java
 try (var lines = Files.lines(path, StandardCharsets.UTF_8)) {
@@ -539,89 +539,89 @@ try (var lines = Files.lines(path, StandardCharsets.UTF_8)) {
 }
 ~~~
 
-Hai snippet là minh họa trong phương thức xử lý `IOException`; đoạn đầu là **cách không khuyến khích** vì thiếu đóng. Với file được ghi đồng thời trong lúc stream đang đọc, kết quả có thể không xác định theo hợp đồng API.
+Both snippets illustrate code inside a method handling `IOException`; the first is **discouraged** because it leaks an unclosed resource. For a file being modified concurrently while the stream is read, results can be unspecified per the API contract.
 
-## 10. Lỗi thực tế và cách khắc phục
+## 10. Real-World Errors and Fixes
 
-| Lỗi | Hiện tượng | Cách xử lý |
+| Error | Symptom | Resolution |
 | --- | --- | --- |
-| Đọc UTF-8 bằng charset không đúng | Mojibake, chữ tiếng Việt lỗi | Xác định charset nguồn, decode đúng |
-| Dùng `new InputStreamReader(in)` trên Java 17 | Phụ thuộc default charset runtime | Truyền `StandardCharsets.UTF_8` |
-| Tưởng `Files.readString` luôn giống `InputStreamReader` | Khác chính sách malformed input | Đọc hợp đồng API, dùng decoder REPORT khi cần |
-| Dùng `new String(bytes)` không charset | Phụ thuộc default charset | `new String(bytes, charset)` khi chỉ cần decode nhanh |
-| Dùng `OutputStreamWriter` không flush/close | Byte còn trong buffer, thiếu dữ liệu | try-with-resources, flush đúng lúc |
-| Trộn đọc byte trực tiếp với Reader cùng stream | Reader có thể read-ahead | Dùng một tầng I/O nhất quán |
-| Dùng `available()` hoặc `ready()` làm điều kiện kết thúc | Đọc thiếu nội dung | Đọc đến `-1` hoặc `null` |
-| Dùng `Files.writeString` lên file có sẵn không kiểm tra | File bị truncate | Chọn `CREATE_NEW`, APPEND hoặc quy trình replace |
-| `readLine()` rồi `newLine()` để copy nguyên file | Line endings đổi, có thể thêm/bớt newline | Dùng byte copy hoặc `readString/writeString` khi phù hợp |
-| Dùng `String.length()` như số byte UTF-8 | Sai với Unicode ngoài ASCII | Đo `getBytes(UTF_8).length` hoặc file size |
-| Không xử lý malformed/unmappable | Dữ liệu thay thế/mất âm thầm | Đặt chính sách REPORT/REPLACE có kiểm soát |
-| Dùng `Files.readString` với file rất lớn | RAM cao hoặc OOME | Streaming Reader/Files.lines |
-| Quên đóng `Files.lines` | File descriptor/handle rò rỉ | try-with-resources |
-| Dùng reader text cho file nhị phân | Byte thay đổi hoặc lỗi decode | InputStream/OutputStream, byte APIs |
-| Chuyển charset mà bỏ qua BOM/line ending | File không tương thích downstream | Xác định contract BOM/newline |
-| Cho phép path do người dùng tự chỉ định vô điều kiện | Path traversal / ghi đè file ngoài phạm vi | Kiểm tra quyền, đường dẫn và giới hạn |
+| Reading UTF-8 with wrong charset | Mojibake, corrupted Vietnamese letters | Identify source charset, decode properly |
+| Using `new InputStreamReader(in)` on Java 17 | Depends on runtime default charset | Pass `StandardCharsets.UTF_8` |
+| Assuming `Files.readString` always matches `InputStreamReader` | Different malformed-input policies | Read API contract, use `REPORT` decoder when needed |
+| Using `new String(bytes)` without charset | Depends on default charset | `new String(bytes, charset)` for quick decoding |
+| Using `OutputStreamWriter` without flush/close | Bytes stuck in buffer, truncated output | try-with-resources, flush at proper points |
+| Mixing direct byte reads with Reader on same stream | Reader may read ahead | Use one consistent I/O layer |
+| Using `available()` or `ready()` as end condition | Incomplete reads | Read until `-1` or `null` |
+| Calling `Files.writeString` on existing file unchecked | File truncated | Choose `CREATE_NEW`, `APPEND`, or safe replace workflow |
+| `readLine()` then `newLine()` to copy file verbatim | Line endings change, trailing newline added/dropped | Use byte copy or `readString/writeString` when appropriate |
+| Using `String.length()` as UTF-8 byte count | Wrong for non-ASCII Unicode | Measure `getBytes(UTF_8).length` or file size |
+| Ignoring malformed/unmappable errors | Silent replacement/loss of data | Set controlled `REPORT`/`REPLACE` policy |
+| Using `Files.readString` on huge files | High RAM usage or OOME | Streaming Reader/`Files.lines` |
+| Forgetting to close `Files.lines` | File descriptor/handle leak | try-with-resources |
+| Using text readers for binary files | Bytes altered or decode errors | `InputStream`/`OutputStream`, byte APIs |
+| Transcoding without considering BOM/line endings | File incompatible downstream | Specify BOM/newline contract |
+| Allowing arbitrary user-supplied paths | Path traversal / out-of-scope file overwrite | Validate permissions, paths, and limits |
 
-### 10.1. An toàn dữ liệu không chỉ là đúng charset
+### 10.1. Data Safety Goes Beyond the Right Charset
 
-Khi nhận tệp từ người dùng hoặc hệ thống bên ngoài:
+When receiving files from users or external systems:
 
-- Giới hạn kích thước tệp, số dòng và độ dài tối đa của mỗi dòng.
-- Không dùng tên tệp/path chưa kiểm soát để truy cập tùy ý ngoài thư mục cho phép; cân nhắc symlink, race và quyền file.
-- Kiểm tra encoding theo hợp đồng đã công bố, không tự đoán từ `Locale`.
-- Quyết định rõ **reject hoặc replace** khi input sai charset; với hóa đơn, chữ ký, dữ liệu kế toán hoặc dữ liệu cần audit, thay thế âm thầm thường không phù hợp.
-- Nếu nội dung được render thành HTML, còn phải escape HTML để tránh injection; đọc đúng UTF-8 **không** đồng nghĩa nội dung an toàn để đưa vào markup.
-- Với text quốc tế, normalization Unicode, xử lý ký tự vô hình, grapheme và so sánh locale là vấn đề riêng, không được giải quyết chỉ bằng charset.
+- Bound file size, line count, and maximum length per line.
+- Do not use unvalidated filenames/paths to access arbitrary locations outside allowed directories; account for symlinks, race conditions, and file permissions.
+- Verify encoding against a published contract, never guessing from `Locale`.
+- Decide clearly whether to **reject or replace** invalid-charset input; for invoices, signatures, accounting records, or auditable data, silent replacement is usually inappropriate.
+- If content is rendered as HTML, also HTML-escape it to prevent injection; properly decoded UTF-8 **does not** mean content is safe to embed in markup.
+- For international text, Unicode normalization, invisible characters, graphemes, and locale-sensitive collation are separate problems not solved by charset alone.
 
-## 11. Kiểm thử cần có
+## 11. Essential Tests
 
-Một module I/O/charset đáng tin nên kiểm thử:
+A reliable I/O/charset module should test:
 
-1. **ASCII:** cùng nội dung qua reader/writer UTF-8, số byte khớp.
-2. **Tiếng Việt có dấu:** ký tự dựng sẵn và dạng dấu tổ hợp `U+0301`, bảo toàn code point gốc.
-3. **Unicode ngoài BMP:** emoji `U+1F603`, kiểm tra hai UTF-16 `char` được encode/decode đúng.
-4. **Hán tự/RTL:** các script khác nhau không làm đổi charset hay mất chữ.
-5. **Byte malformed:** `C3 28`, đối chiếu REPLACE với REPORT.
-6. **Ký tự unmappable:** thử encode một ký tự Unicode ngoài phạm vi US-ASCII với `CharsetEncoder` báo lỗi.
-7. **Mismatched charset:** cố ý đọc UTF-8 bằng charset khác để nhận diện mojibake; không gọi đó là Unicode normalization.
-8. **BOM:** file UTF-8 có/không có `EF BB BF`; xác minh chính sách consumer.
-9. **Newline:** LF, CRLF, CR, file cuối có/không có newline; so `readLine` và `readString`.
-10. **OpenOption:** file có sẵn bị truncate mặc định; `APPEND` và `CREATE_NEW` cần hành vi đã định.
-11. **Close/flush:** Writer được đóng/flush trước khi kiểm tra bytes, Files.lines luôn đóng stream.
-12. **Large files:** streaming theo buffer/dòng mà không giữ toàn bộ trong RAM; kiểm tra dòng cực dài.
-13. **Permission/IO failure:** file không tồn tại, không được truy cập, hết dung lượng ổ, lỗi ghi một phần.
-14. **Portability:** chạy trên JDK 17+ với charset được truyền tường minh; không phụ thuộc default locale/charset của OS.
-15. **File chính xác:** so raw bytes, file size và hash khi contract yêu cầu bảo toàn byte; so `String.equals` khi contract yêu cầu bảo toàn text.
+1. **ASCII:** identical content through UTF-8 reader/writer, matching byte count.
+2. **Accented Vietnamese:** precomposed characters and combining mark `U+0301`, preserving original code points.
+3. **Non-BMP Unicode:** emoji `U+1F603`, verifying two UTF-16 `char`s encode/decode accurately.
+4. **CJK/RTL:** different scripts do not alter charset or drop characters.
+5. **Malformed bytes:** `C3 28`, comparing `REPLACE` with `REPORT`.
+6. **Unmappable characters:** try encoding a Unicode character outside US-ASCII with an error-reporting `CharsetEncoder`.
+7. **Mismatched charset:** intentionally reading UTF-8 with another charset to recognize mojibake; do not call it Unicode normalization.
+8. **BOM:** UTF-8 files with and without `EF BB BF`; verify consumer policy.
+9. **Newlines:** LF, CRLF, CR, files with and without a trailing newline; compare `readLine` and `readString`.
+10. **OpenOption:** existing file truncated by default; `APPEND` and `CREATE_NEW` must follow defined behavior.
+11. **Close/flush:** Writer closed/flushed before inspecting bytes; `Files.lines` stream always closed.
+12. **Large files:** streaming by buffer/line without holding the entire file in RAM; test extremely long lines.
+13. **Permissions/IO failure:** missing file, unreadable file, out-of-disk-space, partial write failure.
+14. **Portability:** run on JDK 17+ with explicit charsets; independent of OS default locale/charset.
+15. **Exact files:** compare raw bytes, file size, and hash when the contract requires byte preservation; compare `String.equals` when text preservation is required.
 
-### Bài tập 1 — cùng chuỗi, khác đơn vị độ dài
+### Exercise 1 — Same String, Different Length Units
 
-Đo `length()`, `codePointCount` và `getBytes(UTF_8).length` cho chuỗi mẫu. Giải thích tại sao số byte là 22 dù số `char` là 15 và số code point là 14.
+Measure `length()`, `codePointCount`, and `getBytes(UTF_8).length` for the sample string. Explain why the byte count is 22 even though the `char` count is 15 and the code point count is 14.
 
-### Bài tập 2 — so sánh API mặc định
+### Exercise 2 — Comparing Default APIs
 
-Đọc tài liệu Java SE 17 rồi giải thích sự khác biệt giữa `new InputStreamReader(in)` và `Files.readString(path)` về **charset mặc định**. Dùng `Charset.defaultCharset()` để quan sát môi trường đang chạy, nhưng không dùng thông tin đó như giao thức của file UTF-8.
+Read the Java SE 17 documentation and explain the difference between `new InputStreamReader(in)` and `Files.readString(path)` regarding **default charset**. Use `Charset.defaultCharset()` to inspect the runtime environment, but do not treat that information as a UTF-8 file protocol.
 
-### Bài tập 3 — malformed input
+### Exercise 3 — Malformed Input
 
-Với byte `C3 28`, thử `InputStreamReader` dùng UTF-8 Charset, một decoder REPORT và `Files.readString`. Giải thích trường hợp nào có ký tự thay thế, trường hợp nào ném lỗi.
+With bytes `C3 28`, test `InputStreamReader` using the UTF-8 `Charset`, a `REPORT` decoder, and `Files.readString`. Explain which cases produce a replacement character and which throw an error.
 
-### Bài tập 4 — chuyển đổi encoding có kiểm soát
+### Exercise 4 — Controlled Encoding Conversion
 
-Giả sử file nguồn thực sự dùng `windows-1252`. Viết chương trình đọc bằng charset nguồn, rồi ghi UTF-8; xác minh text sau round-trip bằng sample có ký tự nằm ngoài ASCII. Không được suy charset từ ngôn ngữ.
+Suppose a source file actually uses `windows-1252`. Write a program that reads with the source charset and then writes UTF-8; verify the text after round-trip using a sample containing non-ASCII characters. Do not infer the charset from language.
 
-### Bài tập 5 — tệp nhiều dòng
+### Exercise 5 — Multi-Line Files
 
-Dùng `Files.newBufferedWriter` ghi hai dòng có Unicode, đọc lại bằng `Files.newBufferedReader`, sau đó so `Files.readString` để tìm hiểu vì sao một API giữ line endings và API kia bỏ chúng trong kết quả dòng.
+Use `Files.newBufferedWriter` to write two lines containing Unicode, read them back with `Files.newBufferedReader`, and then compare with `Files.readString` to see why one API preserves line endings while the other strips them from line results.
 
-## 12. Tổng kết
+## 12. Summary
 
-`InputStreamReader` và `OutputStreamWriter` là **hai cầu nối giữa byte streams và character streams**. Luôn chọn `Charset` theo nguồn và đích thật, thường là `StandardCharsets.UTF_8` với giao thức hiện đại; đừng để default charset của Java 17 hoặc thiết lập locale quyết định dữ liệu vô tình.
+`InputStreamReader` and `OutputStreamWriter` are **the two bridges between byte streams and character streams**. Always pick the `Charset` matching the true source and destination—typically `StandardCharsets.UTF_8` in modern protocols—and never let Java 17's default charset or locale settings dictate data accidentally.
 
-`Files` cung cấp API tiện lợi: `readString/writeString` cho file nhỏ, `newBufferedReader/newBufferedWriter` hoặc `lines` cho xử lý theo dòng và stream, `newInputStream/readAllBytes` khi cần byte. Phải kiểm soát **đóng tài nguyên**, **mở/ghi đè file**, **line endings**, **BOM** và **malformed/unmappable sequences**.
+`Files` provides convenient APIs: `readString/writeString` for small files, `newBufferedReader/newBufferedWriter` or `lines` for line-by-line and stream processing, and `newInputStream/readAllBytes` when bytes are needed. You must manage **resource closing**, **file opening/overwriting**, **line endings**, **BOM**, and **malformed/unmappable sequences**.
 
-**Đúng charset chưa đủ:** một hệ thống I/O tốt còn tách byte và văn bản, quy định chấp nhận/từ chối dữ liệu lỗi, bảo toàn nội dung theo contract, kiểm thử Unicode và không phụ thuộc ngầm vào môi trường chạy.
+**Having the right charset is not enough:** a solid I/O system also separates bytes from text, specifies acceptance/rejection of invalid data, preserves content per contract, tests Unicode thoroughly, and avoids hidden dependencies on the runtime environment.
 
-**Tài liệu tham khảo:**
+**References:**
 
 - Java SE 17, `InputStreamReader`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/InputStreamReader.html
 - Java SE 17, `OutputStreamWriter`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/io/OutputStreamWriter.html

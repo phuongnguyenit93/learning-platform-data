@@ -1,29 +1,29 @@
-# Giữ dữ liệu gốc khi phép biến đổi Unicode làm mất thông tin
+# Preserving Original Data When Unicode Transformations Are Lossy
 
-## 1. Vấn đề: chuẩn hóa hữu ích nhưng không luôn đảo ngược được
+## 1. Problem: Normalization Is Useful but Not Always Reversible
 
-Trong ứng dụng Java đa ngôn ngữ, chúng ta thường muốn chuẩn hóa văn bản trước khi tìm kiếm, so sánh hoặc lập chỉ mục. Các ví dụ quen thuộc:
+In multilingual Java applications, we often want to normalize text before searching, comparing, or indexing. Familiar examples:
 
-- Chuỗi `e\u0301` (chữ e + dấu sắc kết hợp) và `é` (U+00E9) có thể về cùng một biểu diễn NFC.
-- Ký tự `①` có thể trở thành `1` sau NFKC.
-- Chữ fullwidth `ＡＢＣ` có thể trở thành `ABC` sau NFKC.
-- `Café` và `Cafe` có thể cùng thành `cafe` nếu một khóa tìm kiếm được hạ chữ thường và bỏ dấu.
+- `e\u0301` (letter e + combining acute accent) and `é` (U+00E9) can converge to the same NFC representation.
+- `①` can become `1` after NFKC.
+- Fullwidth `ＡＢＣ` can become `ABC` after NFKC.
+- `Café` and `Cafe` can both become `cafe` if a search key is lowercased and stripped of accents.
 
-Các biến đổi đó có thể tốt cho **so khớp**, nhưng nếu thay thế luôn văn bản gốc trong cơ sở dữ liệu thì ứng dụng có thể không còn biết người dùng đã thực sự nhập gì. Từ kết quả `"1"` sau NFKC, không thể suy ra nguồn từng là `"1"` hay `"①"`.
+Those transformations can be great for **matching**, yet if you overwrite the original text in the database, the application may no longer know what the user actually entered. From `"1"` after NFKC, you cannot deduce whether the source was `"1"` or `"①"`.
 
-**Nguyên tắc xuyên suốt:** giữ **dữ liệu gốc** (original) riêng với **dữ liệu dẫn xuất đã biến đổi** (normalized/index/search key). Khi phép biến đổi nhiều-đến-một, dữ liệu dẫn xuất không đủ để tái lập nguyên văn.
+**Guiding principle:** keep **original data** separate from **transformed derived data** (normalized/index/search keys). Whenever a transformation is many-to-one, derived data is insufficient to reconstruct the verbatim original.
 
-Bài này giải thích tính mất thông tin của các phép biến đổi Unicode, cách dùng `java.text.Normalizer` trong Java 17+, các ví dụ code chạy được, thiết kế model lưu original, xử lý va chạm sau chuẩn hóa, version hóa chỉ mục và kiểm thử.
+This lesson explains the lossy nature of Unicode transformations, how to use `java.text.Normalizer` in Java 17+, runnable code examples, model design for storing originals, handling post-normalization collisions, index versioning, and testing.
 
-## 2. Ba dạng dữ liệu cần phân biệt
+## 2. Three Data Forms to Distinguish
 
-| Trường | Mục đích | Ví dụ |
+| Field | Purpose | Example |
 | --- | --- | --- |
-| `originalText` | Văn bản được nhập/tiếp nhận theo hợp đồng nguồn | `①` |
-| `normalizedText` | Biểu diễn sau một form chuẩn hóa cụ thể | `1` sau NFKC |
-| `searchKey` | Giá trị dùng để tìm kiếm, có thể gồm nhiều bước | `abc` từ `ＡＢＣ` sau NFKC + lowercase |
+| `originalText` | Text entered/received per source contract | `①` |
+| `normalizedText` | Representation after a specific normalization form | `1` after NFKC |
+| `searchKey` | Value used for search, potentially multi-step | `abc` from `ＡＢＣ` after NFKC + lowercase |
 
-Một bản ghi minh họa:
+An illustrative record:
 
 ~~~text
 recordId:       1007
@@ -32,22 +32,22 @@ searchKey:      1
 searchRule:     nfkc-lower-root-v1
 ~~~
 
-Ở đây, ID định danh bản ghi; original dành cho hiển thị và lưu trữ nội dung; searchKey dành cho tra cứu. `searchRule` cho biết thuật toán và phiên bản đã tạo khóa đó.
+Here, the ID identifies the record; original is for display and content storage; searchKey is for lookup. `searchRule` records the algorithm and version that produced that key.
 
-**Không coi searchKey là dữ liệu gốc**, kể cả khi nhìn bề ngoài hai chuỗi đôi lúc giống nhau. Cũng không mặc nhiên coi searchKey là khóa duy nhất: nhiều đầu vào khác nhau có thể cho cùng một đầu ra.
+**Do not treat searchKey as original data**, even if two strings occasionally look alike on the surface. Nor should you assume searchKey is a unique key: multiple distinct inputs can produce the same output.
 
-## 3. Vì sao biến đổi không đơn ánh gây mất thông tin?
+## 3. Why Do Non-Injective Transformations Lose Information?
 
-Một hàm `f` có thể được đảo ngược duy nhất trên tập đầu vào nếu các giá trị đầu vào khác nhau không bị gộp thành một giá trị đầu ra. Ngược lại, khi có `x != y` nhưng `f(x) == f(y)`, việc biết đầu ra không đủ để tìm lại đầu vào.
+A function `f` can be uniquely inverted over an input set only if distinct inputs are not merged into a single output value. Conversely, when `x != y` yet `f(x) == f(y)`, knowing the output is not enough to recover the input.
 
-Với NFKC:
+With NFKC:
 
 ~~~text
 NFKC("①") = "1"
 NFKC("1") = "1"
 ~~~
 
-Với một pipeline bỏ dấu và chữ hoa:
+With an accent-stripping and casing pipeline:
 
 ~~~text
 key("Café") = "cafe"
@@ -55,44 +55,44 @@ key("Cafe") = "cafe"
 key("CAFE") = "cafe"
 ~~~
 
-Cả ba đầu vào có thể có ý nghĩa hoặc hình thức mong muốn khác nhau. Nếu chỉ giữ `"cafe"`, không có hàm nghịch đảo xác định duy nhất để phục hồi cách người dùng đã viết.
+All three inputs may carry different intended meanings or appearances. If only `"cafe"` is kept, there is no deterministic inverse function to restore how the user wrote it.
 
-Tính “mất thông tin” phụ thuộc mục tiêu. Nếu một hệ thống cố ý định nghĩa tất cả các biến thể là cùng username, việc gộp có thể được cho phép theo chính sách. Nhưng nếu phải tái hiện tên hiển thị, nội dung văn bản, bằng chứng hoặc tệp gốc, thì không thể lặng lẽ ghi đè nguồn.
+Whether “information loss” is acceptable depends on the goal. If a system intentionally defines all variants as the same username, merging may be permitted by policy. However, if display names, article text, evidence, or original files must be reproduced, the source cannot be silently overwritten.
 
-## 4. NFC và NFD: tương đương chuẩn tắc không có nghĩa giống hệt raw
+## 4. NFC and NFD: Canonical Equivalence Does Not Mean Byte-Identical to Raw
 
-Unicode có thể biểu diễn một số chữ cùng hình thức theo nhiều dãy code point. Ví dụ chữ `é`:
+Unicode can represent certain visually identical letters using multiple code point sequences. For instance, `é`:
 
 ~~~text
-Dựng sẵn:   U+00E9
-Phân rã:    U+0065 U+0301
+Precomposed: U+00E9
+Decomposed:  U+0065 U+0301
 ~~~
 
-Trong Java, hai chuỗi này có thể nhìn như một chữ nhưng khác nhau về cấu trúc:
+In Java, these two strings can look like one letter yet differ structurally:
 
-- `String.equals` trả false trước khi normalize.
-- `String.length()` lần lượt là 1 và 2 UTF-16 code unit.
-- Khi encode UTF-8, chúng lần lượt dài 2 và 3 byte.
-- `Normalizer.normalize(..., Normalizer.Form.NFC)` có thể đưa cả hai về cùng biểu diễn dựng sẵn.
+- `String.equals` returns false before normalization.
+- `String.length()` is 1 and 2 UTF-16 code units, respectively.
+- When UTF-8 encoded, they are 2 and 3 bytes long, respectively.
+- `Normalizer.normalize(..., Normalizer.Form.NFC)` brings both to the same precomposed representation.
 
-`NFC` bảo toàn **tương đương chuẩn tắc** của văn bản Unicode, nhưng không bảo toàn **cách biểu diễn gốc**. Khi mất bản đầu vào, chuỗi NFC không cho biết nó đến từ một code point dựng sẵn hay từ chữ cơ sở cộng dấu kết hợp.
+`NFC` preserves the **canonical equivalence** of Unicode text, yet does not preserve the **original representation**. Once the input is discarded, an NFC string does not tell you whether it came from a single precomposed code point or a base letter plus combining mark.
 
-`NFD` phân rã chuẩn tắc, cũng không lưu dấu vết dãy code point ban đầu. Nói “NFC/NFD không mất thông tin” chỉ hợp lý nếu điều muốn giữ là **quan hệ tương đương chuẩn tắc**, không phải **chuỗi code unit hoặc bytes ban đầu**.
+`NFD` performs canonical decomposition and likewise retains no trace of the original code point sequence. Saying “NFC/NFD are lossless” is only valid if what you want to preserve is **canonical equivalence**, not the **original code units or bytes**.
 
-Nếu hợp đồng yêu cầu chứng minh bytes nguồn hoàn toàn không thay đổi, cần lưu chính bytes đó (cùng encoding/metadata cần thiết) trước khi decode/normalize. Một Java `String` đã decode thường không thể tái hiện mọi chi tiết BOM, encoding hoặc byte sequence lỗi của nguồn.
+If a contract requires proving that source bytes are completely unaltered, store those exact bytes (along with required encoding/metadata) before decoding/normalizing. A decoded Java `String` usually cannot reproduce every BOM detail, encoding, or malformed byte sequence of the source.
 
-## 5. NFKC/NFKD còn có ánh xạ tương thích
+## 5. NFKC/NFKD Also Apply Compatibility Mappings
 
-Java cung cấp bốn `Normalizer.Form`:
+Java provides four `Normalizer.Form` values:
 
-| Form | Ý nghĩa | Ghi nhớ |
+| Form | Meaning | Remember |
 | --- | --- | --- |
-| `NFC` | Canonical composition | Các biểu diễn tương đương chuẩn tắc được chuẩn hóa |
-| `NFD` | Canonical decomposition | Phân rã chuẩn tắc |
-| `NFKC` | Compatibility composition | Có thể gộp những ký tự có biểu diễn tương thích |
-| `NFKD` | Compatibility decomposition | Phân rã cả các tương thích theo quy tắc Unicode |
+| `NFC` | Canonical composition | Canonically equivalent representations are standardized |
+| `NFD` | Canonical decomposition | Canonical decomposition |
+| `NFKC` | Compatibility composition | Can merge characters that have compatibility representations |
+| `NFKD` | Compatibility decomposition | Also decomposes compatibility forms per Unicode rules |
 
-Ví dụ:
+Examples:
 
 ~~~text
 NFKC("①")   -> "1"
@@ -100,13 +100,13 @@ NFKC("ＡＢＣ") -> "ABC"
 NFC("①")    -> "①"
 ~~~
 
-Vì NFKC xử lý thêm compatibility mappings, nó có thể rất hữu ích cho chỉ mục tìm kiếm hoặc một số loại định danh, nhưng không phải “NFC tốt hơn” để áp dụng tùy tiện trên mọi dữ liệu nguồn.
+Because NFKC also applies compatibility mappings, it can be very useful for search indexes or certain identifier classes, yet it is not a “better NFC” to apply arbitrarily to all source data.
 
-Nếu người dùng cố tình dùng `①` trong bài viết hoặc fullwidth trong nhãn sản phẩm, biến đổi NFKC trên trường gốc sẽ thay đổi hình thức. Một hệ thống cần bảo toàn dữ liệu tác giả không nên làm như vậy chỉ vì thuận tiện cho tìm kiếm.
+If a user intentionally uses `①` in an article or fullwidth letters in a product label, applying NFKC to the original field alters appearance. A system that must preserve authorial data should not do that merely for search convenience.
 
-## 6. Java 17+: chứng minh biến đổi có va chạm
+## 6. Java 17+: Demonstrating Colliding Transformations
 
-Tạo file `NormalizationCollisionDemo.java`:
+Create `NormalizationCollisionDemo.java`:
 
 ~~~java
 import java.text.Normalizer;
@@ -148,14 +148,14 @@ public class NormalizationCollisionDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 NormalizationCollisionDemo.java
 java NormalizationCollisionDemo
 ~~~
 
-Stdout đã đối chiếu với JVM:
+Stdout verified with the JVM:
 
 ~~~text
 equal raw=false
@@ -167,36 +167,36 @@ circled NFKC=1
 full NFKC=ABC
 ~~~
 
-Kết quả đầu tiên cho thấy `String.equals` đang so sánh giá trị chuỗi Java trước chuẩn hóa, khác với phép kiểm tra tương đương chuẩn tắc. Hai chuỗi trở nên giống nhau dưới NFC nhưng bản NFC **không cho biết độ dài và cách viết Unicode của bản gốc**.
+The first result shows `String.equals` comparing pre-normalization Java string values, unlike a canonical equivalence check. Both strings become equal under NFC, yet the NFC version **does not reveal the length or Unicode spelling of the original**.
 
-Ví dụ `①` và `ＡＢＣ` cho thấy NFKC có thể tạo ra các biểu diễn khác hẳn hình thức đầu vào. Nếu giao diện phải hiện nguyên nội dung do người dùng nhập, hãy đọc từ original, không phải từ bản NFKC.
+The `①` and `ＡＢＣ` examples show that NFKC can yield representations markedly different from the input appearance. If the UI must render exact user-entered content, read from `original`, not from the NFKC form.
 
-## 7. Không chỉ normalization: lowercase, bỏ dấu, gộp khoảng trắng
+## 7. Beyond Normalization: Lowercasing, Accent Stripping, Whitespace Collapsing
 
-Các bước khác thường xuất hiện trong một pipeline tìm kiếm:
+Other steps often appear in a search pipeline:
 
-- **Lowercasing:** `ABC` và `abc` cùng thành `abc`.
-- **Case folding:** các quy tắc Unicode phục vụ caseless matching, không hoàn toàn đồng nghĩa `String.toLowerCase`.
-- **Bỏ dấu:** dùng NFD rồi xóa combining marks theo chính sách tìm kiếm; `Café` và `Cafe` có thể cùng khóa.
-- **Gộp whitespace:** khác biệt giữa một và nhiều dấu cách, dấu xuống dòng hoặc tab có thể biến mất.
-- **Loại punctuation:** mã, tên hoặc văn bản có dấu câu khác nhau có thể trở thành cùng một khóa.
-- **Transliteration:** chuyển chữ từ script này sang script khác có thể gộp nhiều cách viết.
+- **Lowercasing:** `ABC` and `abc` both become `abc`.
+- **Case folding:** Unicode rules for caseless matching, not strictly synonymous with `String.toLowerCase`.
+- **Accent stripping:** using NFD then deleting combining marks per search policy; `Café` and `Cafe` can share a key.
+- **Whitespace collapsing:** differences between single and multiple spaces, newlines, or tabs can disappear.
+- **Punctuation removal:** codes, names, or text with differing punctuation can become the same key.
+- **Transliteration:** converting letters from one script to another can merge multiple spellings.
 
-Đừng gọi tất cả những thao tác này là “Unicode normalization”. NFC/NFD/NFKC/NFKD là những form Unicode cụ thể; các bước xóa dấu, đổi chữ, xóa khoảng trắng hoặc dịch âm cần có **hợp đồng riêng** và có thể mang ý nghĩa ngôn ngữ khác nhau.
+Do not call all of these operations “Unicode normalization.” NFC/NFD/NFKC/NFKD are specific Unicode forms; deleting marks, changing case, collapsing spaces, or transliterating require **their own contracts** and can carry different linguistic implications.
 
-**Ví dụ ngữ cảnh ngôn ngữ:**
+**Linguistic context examples:**
 
-- `"Straße".toUpperCase(Locale.ROOT)` có thể tạo `"STRASSE"`. Việc chuyển đổi này không hứa bảo tồn cách viết gốc.
-- `"I".toLowerCase(Locale.forLanguageTag("tr-TR"))` thành chữ `ı` (dotless i) theo quy tắc Thổ Nhĩ Kỳ. Một chiến lược `Locale.ROOT` có thể cho khóa kỹ thuật ổn định, nhưng không tự nhiên cho mọi trường hợp tìm kiếm ngôn ngữ.
-- `"Café"` sau NFD và xóa `\\p{M}` cho `"Cafe"`. Đây là bước *diacritic stripping*, không phải tác dụng mặc định của NFD.
+- `"Straße".toUpperCase(Locale.ROOT)` can produce `"STRASSE"`. This transformation does not promise to preserve the original spelling.
+- `"I".toLowerCase(Locale.forLanguageTag("tr-TR"))` becomes `ı` (dotless i) per Turkish rules. A `Locale.ROOT` strategy yields a stable technical key, yet is not natural for every linguistic search case.
+- `"Café"` after NFD and deleting `\\p{M}` yields `"Cafe"`. That is *diacritic stripping*, not NFD's default effect.
 
-Với tiếng Việt, dấu phụ/âm điệu có thể phân biệt nhiều từ và tên; bỏ dấu thường chỉ nên làm trên **khóa truy vấn hoặc chỉ mục** khi có yêu cầu tìm kiếm không dấu, không làm trên bản hiển thị.
+In Vietnamese, diacritics/tones distinguish many words and names; stripping accents should normally be done only on **query or index keys** when accent-free search is required, never on display values.
 
-## 8. Thiết kế record giữ original và searchKey
+## 8. Designing a Record That Keeps Original and searchKey
 
-Một mô hình đơn giản sử dụng Java `record` để giữ hai trường tách biệt. Trong ví dụ, khóa tìm kiếm dùng NFKC và lowercase với `Locale.ROOT`; đây là **một chính sách ví dụ**, không phải quy tắc bắt buộc cho mọi ngôn ngữ.
+A simple model using a Java `record` to keep two separate fields. In the example, the search key uses NFKC and lowercasing with `Locale.ROOT`; this is **an example policy**, not a mandatory rule for all languages.
 
-Tạo `OriginalAndKeyDemo.java`:
+Create `OriginalAndKeyDemo.java`:
 
 ~~~java
 import java.text.Normalizer;
@@ -230,7 +230,7 @@ public class OriginalAndKeyDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 OriginalAndKeyDemo.java
@@ -246,13 +246,13 @@ a=①|1
 b=1|1
 ~~~
 
-`TextEntry` giữ **hai giá trị khác nhau** dù chỉ mục tra cứu trùng nhau. Khi cần hiển thị nhãn đã nhập, dùng `original()`; khi cần tra cứu theo chính sách đã định, dùng `searchKey()`.
+`TextEntry` retains **two distinct values** even though their lookup keys collide. When displaying the entered label, use `original()`; when looking up under the defined policy, use `searchKey()`.
 
-Java `record` và `String` immutable thuận tiện cho mô hình dữ liệu này, nhưng tính toàn vẹn lưu trữ vẫn cần được kiểm soát ở database/service. Khi original thay đổi có chủ đích, khóa dẫn xuất phải được tính lại tương ứng.
+Java `record` and immutable `String` suit this data model well, though storage integrity still must be enforced in the database/service. Whenever `original` changes intentionally, derived keys must be recomputed accordingly.
 
-## 9. Cùng một searchKey có thể trỏ tới nhiều original
+## 9. One searchKey Can Point to Multiple Originals
 
-Ví dụ một chỉ mục tìm kiếm không nên tự động mất các giá trị gốc khác nhau:
+Example of a search index that should not automatically drop distinct original values:
 
 ~~~text
 original   normalized key
@@ -262,7 +262,7 @@ original   normalized key
 ABC        abc
 ~~~
 
-Tạo `SearchIndexCollisionDemo.java`:
+Create `SearchIndexCollisionDemo.java`:
 
 ~~~java
 import java.text.Normalizer;
@@ -302,7 +302,7 @@ public class SearchIndexCollisionDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 SearchIndexCollisionDemo.java
@@ -317,42 +317,42 @@ abc matches=2
 first raw=①
 ~~~
 
-Trong ví dụ, một searchKey có thể chứa **danh sách các nguồn**. Với hệ thống lớn, nên cho chỉ mục trỏ đến các `recordId` thay vì lưu nhân bản văn bản gốc ở nhiều nơi.
+In the example, one searchKey can hold a **list of sources**. In a large system, have the index point to `recordId` values rather than duplicating original text across multiple places.
 
-**Không đặt unique constraint theo searchKey một cách tự động.** Chỉ làm vậy khi sản phẩm **cố ý** định nghĩa các giá trị cùng khóa chuẩn hóa thuộc một định danh duy nhất, ví dụ một chính sách username được công bố rõ. Dù có quy tắc unique, nếu muốn giữ hình thức hiển thị do người dùng chọn, vẫn cần trường riêng cho bản gốc.
+**Never place a unique constraint on searchKey automatically.** Only do so when the product **intentionally** defines values sharing a normalized key as a single unique identifier, such as a published username policy. Even with a uniqueness rule, if you want to preserve the user's chosen display styling, you still need a separate field for the original.
 
-## 10. Khi nào được phép chỉnh sửa bản gốc?
+## 10. When Is Modifying the Original Allowed?
 
-Một số hệ thống định nghĩa đầu vào **phải** tuân theo canonical form:
+Some systems stipulate that input **must** conform to a canonical form:
 
-- Mã định danh kỹ thuật chỉ gồm ASCII lowercase.
-- Một giao thức yêu cầu chuẩn hóa cụ thể trước khi ký hoặc lưu.
-- Username có quy tắc không phân biệt một số ký tự, được công bố trước.
-- Một trường do hệ thống sinh ra, không phải văn bản tự do của người dùng.
+- Technical identifiers restricted to lowercase ASCII.
+- A protocol requiring a specific normalization prior to signing or storage.
+- Usernames with a pre-announced rule ignoring certain character differences.
+- A system-generated field rather than free-form user text.
 
-Khi ấy, chuẩn hóa lúc nhận có thể là một phần **hợp đồng dữ liệu chính thức**, chứ không phải lỗi. Nhưng phải nêu rõ:
+In such cases, normalizing at ingestion can be part of a **formal data contract**, not a bug. Still, document clearly:
 
-1. Những biến đổi nào được phép, ví dụ NFC hay NFKC.
-2. Trường đó dùng để hiển thị, định danh hay chỉ tìm kiếm?
-3. Người dùng có được xem và chấp nhận kết quả thay đổi không?
-4. Có cần audit hoặc bản gốc theo chính sách lưu trữ không?
-5. Có tình huống va chạm cần từ chối hoặc yêu cầu đổi tên không?
+1. Which transformations are allowed, e.g., NFC or NFKC.
+2. Is the field used for display, identity, or search only?
+3. Does the user see and accept the modified outcome?
+4. Is an audit trail or original needed per retention policy?
+5. Are there collision cases that require rejection or asking for a rename?
 
-Sự khác biệt là **biến đổi có chủ đích theo hợp đồng** so với **thay đổi ngầm dữ liệu không được phép mất**. Không bắt buộc mọi trường phải lưu raw mãi mãi; nhưng trường cần bảo toàn thì không được chỉ lưu bản dẫn xuất.
+The difference is **intentional transformation under contract** versus **silent loss of data that was not permitted to be lost**. Not every field must store raw input forever; however, fields requiring preservation must never store only the derived version.
 
-## 11. Pipeline lưu trữ an toàn
+## 11. Safe Storage Pipeline
 
-Một luồng xử lý rõ ràng:
+A clear processing flow:
 
 ~~~text
-Nguồn nhập (text hoặc bytes)
+Input source (text or bytes)
           |
           v
-Decode + validation theo hợp đồng
+Decode + validate per contract
           |
-          +----> original được bảo toàn
+          +----> original preserved
           |
-          +----> normalize theo mục đích
+          +----> normalize per purpose
                     |
                     v
                case handling
@@ -361,14 +361,14 @@ Decode + validation theo hợp đồng
                searchKey + ruleVersion
 ~~~
 
-Khi người dùng yêu cầu tìm kiếm:
+When a user executes a search:
 
-1. Tạo khóa truy vấn theo **chính sách tương ứng với index**.
-2. Tra cứu khóa có thể khớp nhiều bản ghi.
-3. Trả về ID và **original** để hiển thị.
-4. Nếu người dùng sửa bản gốc, cập nhật original và mọi derived fields trong cùng một thao tác nhất quán.
+1. Build the query key using **the policy matching the index**.
+2. Look up the key, which may match multiple records.
+3. Return the ID and **original** for display.
+4. If the user edits the original, update `original` and all derived fields in a single consistent operation.
 
-Đây là ví dụ schema tối thiểu:
+Minimal schema example:
 
 ~~~text
 id              PRIMARY KEY
@@ -377,144 +377,144 @@ search_key      TEXT
 key_version     TEXT
 ~~~
 
-Nếu doanh nghiệp cần lưu bytes y nguyên tệp tải lên, có thể cần một trường/blob/file lưu dữ liệu bytes gốc và metadata encoding. Một Java `String` không thay thế yêu cầu lưu byte-level provenance.
+If the business must preserve exact uploaded file bytes, a field/blob/file storing raw bytes and encoding metadata may be necessary. A Java `String` does not satisfy byte-level provenance requirements.
 
-Không xây dựng SQL bằng cách nối trực tiếp giá trị original/searchKey. Dùng prepared statements và cơ chế encoding/escaping đầu ra thích hợp; normalization không phải giải pháp SQL injection/XSS.
+Never build SQL by concatenating `original` or `searchKey` values directly. Use prepared statements and appropriate output encoding/escaping mechanisms; normalization is not a solution for SQL injection or XSS.
 
-## 12. Version hóa pipeline để dựng lại chỉ mục
+## 12. Versioning the Pipeline to Rebuild Indexes
 
-Quy tắc tạo khóa tìm kiếm có thể thay đổi theo thời gian:
+Search-key generation rules can evolve over time:
 
-- Chuyển từ NFC sang NFKC hoặc ngược lại.
-- Thêm/bỏ diacritic stripping.
-- Đổi cách case handling.
-- Cập nhật thư viện i18n, Unicode data hoặc locale provider.
-- Đổi quy tắc về khoảng trắng, dấu câu, kết hợp script.
+- Switching from NFC to NFKC or vice versa.
+- Adding or removing diacritic stripping.
+- Changing case-handling logic.
+- Updating i18n libraries, Unicode data, or locale providers.
+- Changing rules for whitespace, punctuation, or script mixing.
 
-Ghi một phiên bản rõ ràng, ví dụ `"nfkc-lower-root-v1"`. Khi chuyển sang `v2`, tổ chức triển khai có thể:
+Record an explicit version, e.g., `"nfkc-lower-root-v1"`. When migrating to `v2`, deployment teams can:
 
-1. Giữ original **không thay đổi**.
-2. Recompute khóa mới từ original, không từ khóa v1.
-3. Phát hiện các cặp bản ghi vừa mới va chạm.
-4. Xây lại chỉ mục và chạy regression tests.
-5. Chuyển truy vấn sang index v2 theo kế hoạch.
-6. Có phương án quay lại index v1 khi cần.
+1. Keep `original` **unchanged**.
+2. Recompute new keys from `original`, not from `v1` keys.
+3. Detect newly colliding record pairs.
+4. Rebuild indexes and run regression tests.
+5. Cut queries over to the `v2` index on schedule.
+6. Retain a rollback path to the `v1` index if needed.
 
-Nếu chỉ có khóa v1, nhiều phân biệt nguồn đã bị gộp và không thể dựng đầy đủ khóa v2. Đây là một lợi ích lớn của việc giữ dữ liệu gốc: **khả năng đổi thuật toán** mà không phá hủy nội dung.
+If only `v1` keys were kept, many source distinctions are already collapsed and `v2` keys cannot be fully reconstructed. That is a major benefit of preserving original data: **the ability to evolve algorithms** without destroying content.
 
-## 13. Hash và chứng minh tính toàn vẹn
+## 13. Hashing and Integrity Proofs
 
-Hai chuỗi có thể tương đương chuẩn tắc nhưng khác byte UTF-8:
+Two strings can be canonically equivalent yet differ in UTF-8 bytes:
 
 ~~~text
-"é" dạng U+00E9       -> C3 A9
+"é" as U+00E9         -> C3 A9
 "e\u0301"              -> 65 CC 81
 ~~~
 
-Nếu hash trên **bytes gốc**, kết quả thông thường sẽ khác. Nếu trước khi hash bạn chuẩn hóa cả hai về NFC rồi encode, chúng có thể tạo **cùng bytes sau chuẩn hóa** và vì vậy cùng hash.
+Hashing **raw bytes** typically yields different digests. If before hashing you normalize both to NFC and encode, they can produce **the same post-normalization bytes** and thus the same hash.
 
-Ba mục tiêu phải tách:
+Three goals must remain separate:
 
-| Câu hỏi | Cách kiểm tra |
+| Question | How to verify |
 | --- | --- |
-| Bytes nguồn còn nguyên không? | Hash/so sánh đúng **bytes nguồn đã lưu** |
-| Hai văn bản tương đương chuẩn tắc không? | Chuẩn hóa NFC/NFD theo hợp đồng rồi so sánh |
-| Hai bản ghi khớp theo tìm kiếm không dấu/không phân biệt hoa? | Áp dụng riêng **search rule** |
+| Are the source bytes unchanged? | Hash/compare the exact **stored source bytes** |
+| Are two texts canonically equivalent? | Normalize to NFC/NFD per contract and compare |
+| Do two records match under accent-free/case-insensitive search? | Apply the separate **search rule** |
 
-**Không dùng hash của bản normalized để chứng minh raw bytes không đổi.** Với chữ ký số, thứ tự canonicalization, encoding, byte serialization và phạm vi dữ liệu ký phải theo chuẩn giao thức; không tự chuẩn hóa trước khi kiểm tra chữ ký trên dữ liệu gốc.
+**Never use a normalized hash to prove raw bytes did not change.** For digital signatures, the order of canonicalization, encoding, byte serialization, and signed scope must follow protocol standards; never normalize before verifying signatures on raw data.
 
-## 14. Dữ liệu không hợp lệ và chính sách decode
+## 14. Invalid Data and Decoding Policies
 
-Java `String` dùng các code unit UTF-16; về mặt kỹ thuật nó có thể chứa surrogate đứng lẻ. Dữ liệu bytes đầu vào cũng có thể chứa chuỗi UTF-8 lỗi. Các decoder/encoder có những chế độ báo lỗi hoặc thay ký tự; nếu dữ liệu bị thay trước khi lưu, `String` mới có thể không cho phép khôi phục nguồn bytes.
+Java `String` uses UTF-16 code units; technically it can hold unpaired surrogates. Incoming byte streams can also contain malformed UTF-8 sequences. Decoders/encoders have modes to report errors or insert replacement characters; if data is replaced before storage, the resulting `String` may not allow recovering the byte source.
 
-Vì vậy cần xác định “original” là gì:
+Therefore, define what “original” means:
 
-- **Chuỗi ký tự hợp lệ đã decode**, nếu hợp đồng nguồn là dữ liệu Unicode text.
-- **Bytes và charset gốc**, nếu yêu cầu tái xuất tệp/kiểm tra chữ ký hoặc bảo toàn byte-for-byte.
-- **Giá trị đã được người dùng xác nhận sau validation**, nếu chính sách đầu vào cho phép chuyển đổi trước khi lưu.
+- **Valid decoded character sequence**, when the source contract is Unicode text data.
+- **Original bytes and charset**, when file re-export, signature verification, or byte-for-byte preservation is required.
+- **User-confirmed post-validation value**, when input policy permits conversion prior to storage.
 
-Không gọi `Normalizer.normalize` là công cụ “sửa mọi Unicode lỗi”. Cũng không tự động xóa mọi ký tự trông kỳ lạ: dấu kết hợp, ZWJ, ký tự định hướng hoặc ký tự đặc biệt có thể mang ý nghĩa thật sự. Với identifier nhạy cảm bảo mật, việc chặn một số ký tự là **chính sách validation riêng**, không phải thuộc tính của normalization.
+Never call `Normalizer.normalize` a tool to “fix all broken Unicode.” Nor should you automatically strip every odd-looking character: combining marks, ZWJs, directional controls, or special symbols can carry real meaning. For security-sensitive identifiers, blocking certain characters is a **separate validation policy**, not a property of normalization.
 
-## 15. Unicode normalization khác so khớp ngôn ngữ tự nhiên
+## 15. Unicode Normalization Differs from Natural-Language Matching
 
-`java.text.Normalizer` hỗ trợ NFC/NFD/NFKC/NFKD. Nó không tự:
+`java.text.Normalizer` supports NFC/NFD/NFKC/NFKD. It does not automatically:
 
-- Dịch hoặc phiên âm tất cả chữ viết.
-- Thực hiện stemming/lemmatization.
-- Xử lý đầy đủ Unicode case folding.
-- Sắp xếp từ ngữ tự nhiên theo mọi locale.
-- Nhận diện và ngăn chặn toàn bộ confusable/homoglyph attacks.
-- Xử lý mọi cách gõ thiếu dấu theo ngữ nghĩa ngôn ngữ.
+- Translate or transliterate all scripts.
+- Perform stemming or lemmatization.
+- Handle full Unicode case folding.
+- Sort natural words across all locales.
+- Detect and block all confusable/homoglyph attacks.
+- Handle all accent-omitted typing patterns linguistically.
 
-Khi cần collation theo ngôn ngữ, có thể dùng `java.text.Collator` hoặc thư viện i18n như ICU. Khi cần search nâng cao, có thể sử dụng text analyzer chuyên biệt. Dù dùng thuật toán nào, cần phân biệt **kết quả so sánh** với **giá trị được lưu để hiển thị**.
+When language-sensitive collation is needed, use `java.text.Collator` or an i18n library like ICU. When advanced search is needed, use a dedicated text analyzer. Whatever algorithm is used, separate **comparison results** from **the value stored for display**.
 
-Không dùng cùng một pipeline chỉ mục cho mọi trường nếu mục đích khác nhau: tên người, username, văn bản tự do, mã SKU, số điện thoại và tài liệu pháp lý có yêu cầu rất khác nhau.
+Never use the exact same indexing pipeline for every field when purposes differ: personal names, usernames, free text, SKU codes, phone numbers, and legal documents have very different requirements.
 
-## 16. Phân quyền và thời gian lưu trữ bản gốc
+## 16. Access Control and Retention for Original Data
 
-Giữ dữ liệu gốc đúng kỹ thuật không đồng nghĩa được phép lưu dữ liệu không giới hạn. Với thông tin cá nhân, dữ liệu nhạy cảm và nội dung người dùng:
+Preserving original data properly for technical correctness does not grant permission to retain data indefinitely. For personal information, sensitive data, and user content:
 
-- Chỉ lưu những trường original cần thiết cho mục đích sản phẩm.
-- Dùng quyền truy cập, mã hóa và kiểm soát audit theo chính sách.
-- Có thời gian lưu trữ, quyền sửa/xóa và cách cập nhật index khi original bị xóa.
-- Không in bản gốc nhạy cảm ra log chỉ để debug normalization.
-- Khi xóa bản gốc theo yêu cầu hoặc chính sách, phải xử lý bản sao, chỉ mục và bản dẫn xuất liên quan.
+- Store only the original fields necessary for product purposes.
+- Apply access controls, encryption, and audit controls per policy.
+- Define retention periods, edit/delete rights, and how indexes are updated when originals are deleted.
+- Do not log sensitive originals just to debug normalization.
+- When deleting an original upon request or policy, also clean up copies, indexes, and derived versions accordingly.
 
-Quy tắc “giữ original” là để **tránh mất thông tin ngoài ý muốn**, không phải lý do bỏ qua quyền riêng tư và data minimization.
+The rule “keep original” exists to **prevent unintended data loss**, not as an excuse to ignore privacy and data minimization.
 
-## 17. Lỗi phổ biến
+## 17. Common Mistakes
 
-| Sai lầm | Hậu quả | Cách xử lý |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Chỉ lưu kết quả NFKC | Không phục hồi `①` từ `1` | Lưu original riêng |
-| Lấy searchKey làm tên hiển thị | Mất dấu, chữ hoa hoặc hình thức văn bản | Render original |
-| Nghĩ NFC giữ nguyên UTF-8 bytes | Mất dãy code point/byte ban đầu | Phân biệt canonical equivalence và raw identity |
-| Dùng lowercasing không kiểm soát locale | Kết quả không phù hợp hoặc không ổn định | Quy định rõ locale/case policy |
-| Cho searchKey là unique mặc định | Gộp nhầm nhiều original | Xác định quy tắc identity và xử lý collision |
-| Bỏ dấu trực tiếp trên tên gốc | Mất phân biệt ngữ nghĩa/ngôn ngữ | Chỉ tạo derived key khi được phép |
-| Thay đổi index rule mà không rebuild | Khóa cũ/mới không tương thích | Lưu ruleVersion và recompute từ original |
-| Dùng normalized hash chứng minh nguồn không đổi | Không chứng minh byte-for-byte integrity | Hash bytes nguồn cần bảo vệ |
-| Chỉ giữ `String` khi cần giữ file gốc | Không tái hiện encoding/BOM hoặc bytes lỗi | Lưu bytes cùng metadata cần thiết |
-| Dùng Normalizer làm bộ lọc bảo mật hoàn chỉnh | Vẫn có confusables/validation risks | Thiết kế validation và security controls riêng |
-| Giữ original vô thời hạn | Rủi ro dữ liệu cá nhân tăng | Retention/access/deletion policy |
+| Storing only the NFKC result | Cannot recover `①` from `1` | Store original separately |
+| Using searchKey as the display name | Loses accents, capitalization, or text styling | Render original |
+| Thinking NFC preserves raw UTF-8 bytes | Loses original code point/byte sequence | Separate canonical equivalence from raw identity |
+| Using lowercasing without controlling locale | Inappropriate or unstable results | Specify locale/case policy explicitly |
+| Assuming searchKey is unique by default | Wrongly merges multiple originals | Define identity rules and handle collisions |
+| Stripping accents directly on original names | Loses semantic/linguistic distinctions | Generate derived keys only when permitted |
+| Changing index rules without rebuilding | Old/new keys incompatible | Store ruleVersion and recompute from original |
+| Using a normalized hash to prove unchanged source | Fails to prove byte-for-byte integrity | Hash the protected source bytes |
+| Keeping only `String` when original file preservation is needed | Cannot reproduce encoding/BOM or malformed bytes | Store bytes with required metadata |
+| Treating Normalizer as a complete security filter | Confusable/validation risks remain | Design separate validation and security controls |
+| Retaining originals indefinitely | Increases personal data exposure | Enforce retention/access/deletion policies |
 
-## 18. Kiểm thử
+## 18. Testing
 
-Các trường hợp nên có trong bộ regression tests:
+Cases to include in regression test suites:
 
-1. **Canonical:** `"\u00E9"` và `"e\u0301"` khác raw, bằng nhau sau NFC.
-2. **Compatibility:** `"①"` và `"1"` cùng NFKC thành `"1"`.
-3. **Fullwidth:** `"ＡＢＣ"` trở thành `"ABC"` trong derived key, original còn nguyên.
-4. **Case:** `"ABC"` và `"abc"` có thể trùng lowercase key.
-5. **Locale:** `"I"` tiếng Thổ Nhĩ Kỳ khi lowercasing khác một số locale khác.
-6. **Diacritics:** `"Café"` và `"Cafe"` có thể trùng nếu pipeline chủ đích bỏ dấu.
-7. **Identity:** nhiều record IDs có thể cùng searchKey, và quyết định gộp phải thuộc nghiệp vụ.
-8. **Display:** sau mọi truy vấn, UI render original, không render searchKey.
-9. **Version:** khi đổi thuật toán, có thể dựng lại khóa mới từ bản gốc.
-10. **Integrity:** byte-level hash thử trên bytes đúng mà hợp đồng yêu cầu bảo toàn.
-11. **Malformed input:** decode/validation có chính sách rõ.
-12. **Privacy:** xóa original cũng xử lý index và bản dẫn xuất theo chính sách.
-13. **Đa ngôn ngữ:** test với tiếng Việt, emoji, script khác và các cách viết tên có dấu.
-14. **Backward compatibility:** thay thuật toán index không tự thay đổi bản hiển thị.
+1. **Canonical:** `"\u00E9"` and `"e\u0301"` differ raw, match after NFC.
+2. **Compatibility:** `"①"` and `"1"` both NFKC to `"1"`.
+3. **Fullwidth:** `"ＡＢＣ"` becomes `"ABC"` in the derived key while original remains intact.
+4. **Case:** `"ABC"` and `"abc"` can match on a lowercase key.
+5. **Locale:** Turkish `"I"` behaves differently under lowercasing than some other locales.
+6. **Diacritics:** `"Café"` and `"Cafe"` can match if the pipeline intentionally strips accents.
+7. **Identity:** multiple record IDs can share a searchKey, and any merging decision belongs to business logic.
+8. **Display:** after any query, UI renders `original`, never `searchKey`.
+9. **Versioning:** when changing algorithms, new keys can be rebuilt from originals.
+10. **Integrity:** byte-level hashing runs on the exact bytes required by contract to be preserved.
+11. **Malformed input:** decoding/validation follows an explicit policy.
+12. **Privacy:** deleting original also handles indexes and derived versions per policy.
+13. **Multilingual:** test with Vietnamese, emoji, other scripts, and accented name variants.
+14. **Backward compatibility:** changing the indexing algorithm does not silently alter display text.
 
-### Bài tập
+### Exercises
 
-- Thêm `①`, `1`, `ＡＢＣ`, `ABC` vào danh sách và đếm số nhóm searchKey sau NFKC + lowercase. Giải thích tại sao số nhóm nhỏ hơn số original.
-- Tạo hàm search bỏ dấu riêng, dùng `Normalizer.Form.NFD` và thao tác xử lý combining marks, nhưng tuyệt đối không lưu kết quả vào trường tên hiển thị.
-- Viết migration giả định từ `nfkc-lower-v1` sang `nfkc-lower-strip-v2`: recompute từ original, tạo báo cáo các collision mới và kế hoạch rollback.
-- So sánh bytes UTF-8 của `"\u00E9"` và `"e\u0301"` trước/sau NFC. Chọn phương pháp đúng cho kiểm toán byte-level.
-- Thiết kế quy tắc username không phân biệt hoa/thường nhưng vẫn giữ display name nguyên văn; mô tả cách phát hiện va chạm khi đăng ký.
-- Thảo luận một tình huống bản gốc được phép thay đổi theo hợp đồng và một tình huống phải giữ nguyên (văn bản tác giả hoặc dữ liệu pháp lý).
+- Add `①`, `1`, `ＡＢＣ`, `ABC` to a list and count distinct `searchKey` groups after NFKC + lowercase. Explain why the group count is smaller than the original count.
+- Create a dedicated accent-free search function using `Normalizer.Form.NFD` and combining-mark stripping, while never storing its output into the display-name field.
+- Write a hypothetical migration from `nfkc-lower-v1` to `nfkc-lower-strip-v2`: recompute from `original`, generate a report of new collisions, and outline a rollback plan.
+- Compare UTF-8 bytes of `"\u00E9"` and `"e\u0301"` before and after NFC. Pick the right method for byte-level auditing.
+- Design a case-insensitive username rule that preserves the verbatim display name; describe how to detect collisions during registration.
+- Discuss one scenario where altering the original is allowed by contract and one scenario where it must stay untouched (authorial text or legal records).
 
-## 19. Tổng kết
+## 19. Summary
 
-**Dữ liệu gốc** và **dữ liệu dẫn xuất** phải được phân biệt ngay trong mô hình lưu trữ. NFC/NFD có thể làm mất thông tin về dãy code point/bytes ban đầu dù giữ tương đương chuẩn tắc; NFKC/NFKD có thể gộp các ký tự tương thích; lowercasing, bỏ dấu, transliteration hoặc giản lược khoảng trắng còn có thể xóa thêm những khác biệt.
+**Original data** and **derived data** must be separated right in the storage model. NFC/NFD can lose original code point/byte sequence details even while preserving canonical equivalence; NFKC/NFKD can collapse compatibility characters; lowercasing, accent stripping, transliteration, or whitespace simplification remove even more distinctions.
 
-Hãy lưu original ở dạng đúng với hợp đồng, tạo searchKey bằng thuật toán tường minh, giữ quan hệ một-nhiều khi có va chạm, version hóa pipeline và chỉ thay original theo chính sách được chấp nhận. Nếu phải giữ byte-for-byte identity, bản gốc cần được bảo quản ở mức bytes, không chỉ dựa vào Java `String`.
+Store `original` in the form matching your contract, build `searchKey` with an explicit algorithm, preserve a one-to-many relationship when collisions occur, version your pipeline, and alter `original` only under an approved policy. If byte-for-byte identity must be preserved, safeguard the original at the byte level rather than relying solely on a Java `String`.
 
-**Ghi nhớ:** dùng normalize để **hỗ trợ so sánh và tìm kiếm**, không vì thuận tiện mà đánh đổi **khả năng tái hiện nguyên văn** ngoài ý muốn.
+**Takeaway:** use normalization to **support comparison and search**, never trading away **verbatim reproducibility** unintentionally for mere convenience.
 
-## Tài liệu tham khảo
+## References
 
 - [Oracle JDK 21 — Normalizer](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/text/Normalizer.html)
 - [Oracle JDK 21 — String](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html)

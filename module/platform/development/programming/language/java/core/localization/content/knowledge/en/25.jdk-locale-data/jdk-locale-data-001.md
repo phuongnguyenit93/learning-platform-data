@@ -1,139 +1,139 @@
-# CLDR và vai trò cung cấp quy ước bản địa hóa cho JDK
+# CLDR and Its Role in Providing Localization Conventions for the JDK
 
-Trong ứng dụng Java đa ngôn ngữ, thay đổi `Locale` có thể làm định dạng ngày, số, đơn vị tiền, tên tháng, tên quốc gia hoặc cách trình bày thời gian thay đổi. Phần lớn những khác biệt ấy **không được suy ra từ mã ngôn ngữ bằng một vài câu lệnh `if`**. Chúng cần nguồn dữ liệu được nghiên cứu, duy trì và cập nhật cho nhiều ngôn ngữ/vùng. **Unicode CLDR — Common Locale Data Repository** — là một trong những nguồn dữ liệu nền tảng quan trọng nhất cho nhiệm vụ đó.
+In a multilingual Java application, changing the `Locale` can change how dates, numbers, currency units, month names, country names, or time expressions are formatted. Most of those differences **are not derived from a language code using a few `if` statements**. They require a data source that is researched, maintained, and updated across many languages and regions. **Unicode CLDR — Common Locale Data Repository** — is one of the most important foundational data sources for that task.
 
-Trong Java, CLDR không phải một hàm `translate()` hay một đối tượng bạn trực tiếp gọi để lấy “bản dịch của cả ứng dụng”. Nó là **kho dữ liệu và quy tắc bản địa hóa**, được JDK sử dụng qua những **locale data providers** và API phù hợp. JDK 9 trở lên ưu tiên dữ liệu CLDR theo mặc định; riêng ứng dụng chạy Java 17 cần hiểu cơ chế nhà cung cấp, giới hạn phạm vi được JDK triển khai và khả năng kết quả đổi khi nâng JDK/CLDR.
+In Java, CLDR is not a `translate()` function or an object you call directly to fetch "the translation of the entire application." It is a **repository of localization data and rules**, used by the JDK through appropriate **locale data providers** and APIs. JDK 9 and later prioritize CLDR data by default; in particular, applications running Java 17 need to understand the provider mechanism, the scope limitations implemented by the JDK, and the possibility that results may change when upgrading the JDK/CLDR.
 
-Mục tiêu bài học: hiểu CLDR cung cấp gì, cách Java Core tiêu thụ dữ liệu locale, tại sao cùng `Locale` có thể cho kết quả khác giữa JDK, khi nào cần tài nguyên tự dịch hoặc thư viện chuyên dụng, và cách kiểm thử ứng dụng thay vì viết cứng mọi quy ước văn hóa.
+Lesson objectives: understand what CLDR provides, how Java Core consumes locale data, why the same `Locale` can yield different results across JDKs, when you need self-translated resources or specialized libraries, and how to test applications rather than hardcoding every cultural convention.
 
-## 1. CLDR là gì?
+## 1. What is CLDR?
 
-**CLDR (Common Locale Data Repository)** là dự án dữ liệu locale của Unicode Consortium. Nó cung cấp dữ liệu có cấu trúc và các quy tắc phục vụ **quốc tế hóa (internationalization/i18n)** và **bản địa hóa (localization/l10n)** trên nhiều ngôn ngữ, hệ chữ và vùng địa lý.
+**CLDR (Common Locale Data Repository)** is the locale data project of the Unicode Consortium. It provides structured data and rules for **internationalization (i18n)** and **localization (l10n)** across many languages, scripts, and geographic regions.
 
-Những ví dụ điển hình về dữ liệu/quy ước CLDR:
+Typical examples of CLDR data and conventions:
 
-- Mẫu định dạng **ngày, tháng, giờ**, tên thứ, tên tháng, các khoảng thời gian và tên vùng giờ theo ngôn ngữ.
-- Ký hiệu **dấu thập phân**, phân nhóm chữ số, cách hiển thị số và đơn vị tiền.
-- Tên hiển thị của **ngôn ngữ, hệ chữ, quốc gia/vùng, tiền tệ**.
-- Thông tin về **tuần đầu năm, ngày đầu tuần**, quy ước hệ lịch và lựa chọn regional preferences.
-- Quy tắc **plural/cardinal/ordinal** cho nhiều ngôn ngữ, dùng để lựa chọn hình thức thông điệp.
-- Các dữ liệu và quy tắc khác trong hệ sinh thái CLDR về **collation, segmentation, unit formatting, numbering systems** và tương tác ngôn ngữ.
+- Formatting patterns for **dates, months, and times**, weekday names, month names, time intervals, and time zone names by language.
+- Symbols for **decimal separators**, digit grouping, number display, and currency units.
+- Display names of **languages, scripts, countries/regions, and currencies**.
+- Information on **first week of the year, first day of the week**, calendar system conventions, and regional preferences.
+- **Plural/cardinal/ordinal** rules for many languages, used to select message forms.
+- Other data and rules in the CLDR ecosystem for **collation, segmentation, unit formatting, numbering systems**, and language interactions.
 
-Đây là **danh sách phạm vi của dự án CLDR**, không phải lời cam kết JDK 17 đã đưa toàn bộ dữ liệu và mọi thuật toán CLDR ra thành API Java chuẩn. Những lớp hoặc chức năng cụ thể phải được kiểm tra theo phiên bản Java và nhà cung cấp locale đang hoạt động.
+This is the **scope list of the CLDR project**, not a guarantee that JDK 17 has exposed all of CLDR's data and algorithms as standard Java APIs. Specific classes or capabilities must be verified against the Java version and active locale provider.
 
-CLDR còn có các tài liệu đặc tả, đặc biệt **UTS #35 / LDML** (Locale Data Markup Language), mô tả cấu trúc dữ liệu và các quy tắc sử dụng. Dữ liệu CLDR do cộng đồng/chuyên gia ngôn ngữ và nhiều tổ chức đóng góp, được kiểm tra và phát hành theo phiên bản. Chính vì thế **quy ước hiển thị không nhất thiết bất biến theo thời gian**.
+CLDR also has specification documents, notably **UTS #35 / LDML** (Locale Data Markup Language), describing the data structure and usage rules. CLDR data is contributed by the community, linguists, and many organizations, reviewed, and released in versions. For that exact reason, **display conventions are not necessarily immutable over time**.
 
-### Một ví dụ đơn giản
+### A simple example
 
-Cùng số `1234.5`, một ứng dụng thường hiển thị khác nhau tùy locale:
+For the same number `1234.5`, an application typically displays it differently depending on the locale:
 
 ~~~text
 en-US → 1,234.5
 de-DE → 1.234,5
 ~~~
 
-Dấu phân tách nghìn và dấu thập phân **đổi vai trò**. Đó là minh họa về **quy ước trình bày**, không phải đổi giá trị số. `1234.5` vẫn là cùng một lượng số học.
+The thousands separator and decimal separator **swap roles**. That illustrates **presentation conventions**, not a change in numeric value. `1234.5` remains the exact same numerical quantity.
 
-Tương tự, cùng ngày lịch `2024-06-16` có thể hiển thị theo thứ tự tháng/ngày/năm hoặc ngày/tháng/năm. Ứng dụng không nên đồng nhất chuỗi đã bản địa hóa với dữ liệu ngày nguồn dùng cho máy.
+Similarly, the same calendar date `2024-06-16` may be displayed in month/day/year or day/month/year order. Applications should not equate localized strings with source date data meant for machine processing.
 
-## 2. CLDR không đồng nghĩa với Locale, ResourceBundle hoặc ứng dụng dịch
+## 2. CLDR is not synonymous with Locale, ResourceBundle, or application translation
 
-Bốn khái niệm có vai trò khác nhau:
+Four concepts have distinct roles:
 
-| Khái niệm | Trách nhiệm chính | Ví dụ |
+| Concept | Primary responsibility | Example |
 | --- | --- | --- |
-| `Locale` | Định danh ngôn ngữ, vùng, script và tùy chọn locale | `Locale.forLanguageTag("vi-VN")` |
-| CLDR | Dữ liệu/quy tắc bản địa hóa chung để phần mềm áp dụng | Dấu thập phân, mẫu ngày, tên tháng |
-| API định dạng Java | Tiêu thụ dữ liệu locale qua provider để format/parse | `NumberFormat`, `DateTimeFormatter` |
-| `ResourceBundle` của ứng dụng | Lưu thông điệp, nhãn và nội dung do nhóm sản phẩm dịch | `login.button=Đăng nhập` |
+| `Locale` | Identifies language, region, script, and locale options | `Locale.forLanguageTag("vi-VN")` |
+| CLDR | Shared localization data/rules for software to apply | Decimal separator, date pattern, month names |
+| Java formatting APIs | Consume locale data via providers to format/parse | `NumberFormat`, `DateTimeFormatter` |
+| Application `ResourceBundle` | Stores messages, labels, and content translated by the product team | `login.button=Đăng nhập` |
 
-**Có `Locale` chưa đủ để có nội dung đã được dịch.** Mã `"vi-VN"` chỉ yêu cầu ngữ cảnh tiếng Việt/vùng Việt Nam; JDK không biết chức năng “Thanh toán ngay” của một dự án phải dịch thế nào. `ResourceBundle` chứa nội dung ứng dụng; CLDR chủ yếu là nguồn quy ước và dữ liệu dùng chung.
+**Having a `Locale` is not enough to have translated content.** The tag `"vi-VN"` only requests a Vietnamese language / Vietnam region context; the JDK does not know how a project's "Checkout now" button should be translated. `ResourceBundle` holds application content; CLDR is primarily a source of shared conventions and data.
 
-**CLDR không phải Google Translate hoặc dịch máy.** Nó có thể chứa tên hiển thị của quốc gia, đơn vị tiền, tháng hay một số danh mục dữ liệu chung nhưng không có nghĩa toàn bộ mô tả sản phẩm, email, thông báo lỗi và đoạn hội thoại của dự án đã được tự dịch.
+**CLDR is not Google Translate or machine translation.** It may contain display names for countries, currencies, months, or certain general data categories, but that does not mean all product descriptions, emails, error messages, and UI copy of a project are automatically translated.
 
-**CLDR cũng không phải timezone database duy nhất.** Tính offset và quy tắc chuyển giờ của vùng theo thời gian là trách nhiệm riêng của dữ liệu timezone/`ZoneRules` (thường dựa trên tzdb). CLDR có thể cung cấp **tên vùng giờ được bản địa hóa** hoặc một số quy ước trình bày vùng giờ; nó không tự xác định `ZoneId` hiện tại của người dùng.
+**CLDR is also not the sole timezone database.** Calculating offsets and historical time-shift rules for a region is the separate responsibility of timezone data/`ZoneRules` (typically based on tzdb). CLDR may provide **localized time zone names** or certain time zone presentation conventions; it does not determine the user's current `ZoneId` on its own.
 
-### Ba bước khi format dữ liệu
+### Three steps when formatting data
 
 ~~~text
-Giá trị nghiệp vụ
+Business value
         +
-Locale người dùng
+User locale
         +
-Dữ liệu locale do provider JDK cung cấp
+Locale data provided by JDK provider
         ↓
-API NumberFormat / DateTimeFormatter / ...
+NumberFormat / DateTimeFormatter / ... API
         ↓
-Chuỗi hiển thị cho người đọc
+Display string for the reader
 ~~~
 
-Ví dụ `NumberFormat.getNumberInstance(Locale.GERMANY)` lấy một formatter có hành vi phù hợp locale theo dữ liệu/provider hiện hành, không thay đổi giá trị nguồn. Khi hiển thị số USD cho người dùng ở Đức, phải xác định **currency giao dịch** riêng với locale trình bày.
+For example, `NumberFormat.getNumberInstance(Locale.GERMANY)` obtains a formatter whose behavior suits the locale according to current data/providers, without altering the source value. When displaying a USD amount to a user in Germany, the **transaction currency** must be specified independently of the display locale.
 
-## 3. JDK dùng CLDR từ khi nào?
+## 3. Since when has the JDK used CLDR?
 
-Một số mốc lịch sử cần biết:
+Key historical milestones to know:
 
-1. **JDK 8** có đưa dữ liệu CLDR vào runtime, nhưng không đặt CLDR làm nguồn ưu tiên mặc định.
-2. **Từ JDK 9**, theo **JEP 252 — Use CLDR Locale Data by Default**, CLDR được ưu tiên mặc định cho nhiều locale-sensitive services.
-3. **JDK 17** sử dụng CLDR mặc định và vẫn có nhà cung cấp dữ liệu cũ **`COMPAT`** để hỗ trợ chuyển đổi từ hành vi trước JDK 9.
-4. **Từ JDK 23**, dữ liệu locale cũ `COMPAT`/`JRE` đã bị loại bỏ; cấu hình này không còn khôi phục được kết quả cũ như trên JDK 17.
+1. **JDK 8** included CLDR data in the runtime, but did not make CLDR the default prioritized source.
+2. **Starting with JDK 9**, under **JEP 252 — Use CLDR Locale Data by Default**, CLDR became the default priority for many locale-sensitive services.
+3. **JDK 17** uses CLDR by default while still retaining the legacy **`COMPAT`** data provider to support migration from pre-JDK 9 behavior.
+4. **Starting with JDK 23**, the legacy `COMPAT`/`JRE` locale data was removed; this configuration can no longer restore older JDK 17-era outputs.
 
-Riêng theo tài liệu **Oracle JDK 17 Supported Locales**, nhà cung cấp CLDR trong Oracle JDK 17 dựa trên **CLDR release 39**. Không vì dự án Unicode CLDR có bản phát hành mới mà suy ra một JDK 17 đang chạy đã có dữ liệu CLDR mới tương đương. Phải kiểm tra runtime thực và bản cập nhật được sử dụng.
+Specifically, according to the **Oracle JDK 17 Supported Locales** documentation, the CLDR provider in Oracle JDK 17 is based on **CLDR release 39**. You cannot assume that just because the Unicode CLDR project has a newer release, a running JDK 17 already has the corresponding newer CLDR data. You must check the actual runtime and update release being used.
 
-Khi một hệ thống được nâng từ Java 8 sang Java 17, định dạng số/ngày/tiền có thể đổi **dù logic nghiệp vụ không sửa**. Khi nâng từ Java 17 sang Java 23+, không thể dựa vào `COMPAT` như giải pháp lâu dài. Cần kế hoạch kiểm thử và di trú thay vì kỳ vọng tất cả chuỗi giao diện bất biến.
+When a system is upgraded from Java 8 to Java 17, number/date/currency formatting can change **even if no business logic was modified**. When upgrading from Java 17 to Java 23+, you cannot rely on `COMPAT` as a long-term solution. You need a testing and migration plan rather than expecting all UI strings to remain immutable.
 
-### “Mặc định dùng CLDR” không có nghĩa mọi API dùng CLDR
+### "Using CLDR by default" does not mean every API uses CLDR
 
-Điểm dễ nhầm: **dự án CLDR** có rất nhiều bộ dữ liệu, nhưng **phạm vi JDK tích hợp** không bao gồm mọi loại. Theo tài liệu Oracle JDK 17, dữ liệu CLDR của nhà cung cấp JDK 17 **không được áp dụng cho `BreakIterator` và `Collator`** theo cách các dữ liệu định dạng ngày/số được áp dụng.
+A common point of confusion: the **CLDR project** has many datasets, but the **built-in JDK scope** does not include every kind. According to Oracle JDK 17 documentation, the CLDR data of the JDK 17 provider **is not applied to `BreakIterator` and `Collator`** in the same way it is applied to date/number formatting data.
 
-Do đó tránh phát biểu rằng “Java 17 dùng CLDR nên mọi quy tắc phân từ, sắp xếp theo ngôn ngữ hoặc plural CLDR đều đã có sẵn trong Java Core”. Một ứng dụng cần thuật toán/độ bao phủ cụ thể phải kiểm tra API Java, bộ dữ liệu và thư viện chuyên môn của mình.
+Therefore, avoid stating that "Java 17 uses CLDR so all word segmentation, language collation, or CLDR plural rules are already available in Java Core." An application requiring specific algorithms or coverage must check its Java APIs, datasets, and specialized libraries.
 
-## 4. Locale data provider là gì?
+## 4. What is a locale data provider?
 
-Nhiều dịch vụ Java nhạy cảm với locale được cung cấp thông qua cơ chế **locale service providers**. Chúng có thể đến từ dữ liệu tích hợp JDK, hệ điều hành hoặc triển khai riêng, tùy runtime.
+Many locale-sensitive Java services are supplied through the **locale service providers** mechanism. Depending on the runtime, they may come from built-in JDK data, the operating system, or custom implementations.
 
-Trong **JDK 17**, các nhãn provider quan trọng gồm:
+In **JDK 17**, the key provider labels include:
 
-| Provider | Vai trò trong JDK 17 |
+| Provider | Role in JDK 17 |
 | --- | --- |
-| `CLDR` | Dịch vụ dùng dữ liệu Unicode CLDR mà JDK tích hợp |
-| `COMPAT` | Bộ dữ liệu tương thích với nhiều hành vi trước JDK 9 |
-| `JRE` | Bí danh cũ của `COMPAT` trong phiên bản hỗ trợ, đã được đánh dấu sẽ loại bỏ |
-| `SPI` | Các locale service provider do ứng dụng/thư viện bên ngoài hiện thực |
-| `HOST` | Tham chiếu tùy chỉnh locale của hệ điều hành khi được hỗ trợ; không phải mọi nền tảng đều cung cấp |
+| `CLDR` | Services using Unicode CLDR data bundled with the JDK |
+| `COMPAT` | Dataset compatible with many pre-JDK 9 behaviors |
+| `JRE` | Legacy alias for `COMPAT` in supported versions, marked for removal |
+| `SPI` | Locale service providers implemented by external applications/libraries |
+| `HOST` | References OS locale customizations where supported; not provided on all platforms |
 
-Phạm vi mà một nhà cung cấp hỗ trợ có thể khác theo **dịch vụ**, **locale**, runtime và hệ điều hành. Không phải cứ có locale `fr-FR` là mọi API i18n đều tìm được dữ liệu cùng provider và cùng mức độ đầy đủ.
+The coverage supported by a provider can vary by **service**, **locale**, runtime, and operating system. Simply having the `fr-FR` locale does not mean every i18n API will find data from the same provider with the same level of completeness.
 
 ### java.locale.providers
 
-JDK hỗ trợ cấu hình thứ tự tìm nguồn locale bằng system property **`java.locale.providers`**.
+The JDK supports configuring the locale source lookup order using the **`java.locale.providers`** system property.
 
-Ví dụ chạy **trên JDK 17**:
+Example running **on JDK 17**:
 
 ~~~bash
 java -Djava.locale.providers=CLDR,COMPAT CldrJdkLocaleDemo
 java -Djava.locale.providers=COMPAT,CLDR CldrJdkLocaleDemo
 ~~~
 
-Với các dịch vụ locale phù hợp, provider được tra theo thứ tự cấu hình; khi một provider không đáp ứng dữ liệu dịch vụ/locale được yêu cầu, runtime có thể xem provider tiếp theo. Trong Oracle JDK 17, thứ tự mặc định về hành vi được tài liệu mô tả tương đương ưu tiên `CLDR,COMPAT`.
+For applicable locale services, providers are queried in the configured order; when a provider does not supply data for the requested service/locale, the runtime may consult the next provider. In Oracle JDK 17, the default behavioral order documented corresponds to prioritizing `CLDR,COMPAT`.
 
-**Quan trọng:**
+**Important:**
 
-- Đặt property **khi khởi động JVM**; theo hợp đồng `LocaleServiceProvider` Java 17, thứ tự này được đọc ở startup. Gọi `System.setProperty("java.locale.providers", "...")` sau khi ứng dụng chạy **không đổi lại thứ tự provider đang dùng**.
-- `COMPAT` chỉ là lựa chọn chuyển tiếp phù hợp một số JDK cũ. **Từ JDK 23**, dữ liệu `COMPAT/JRE` đã bị loại bỏ; không giới thiệu nó như giải pháp tương thích dùng vĩnh viễn.
-- `SPI` muốn được dùng phải có provider cài đặt/đăng ký phù hợp và được chọn theo cơ chế provider của runtime. Đặt `SPI` trong property **không tự tạo** dữ liệu dịch thuật cho ứng dụng.
-- `HOST` có thể không có trên một hệ điều hành/runtime hoặc chỉ phản ánh một số thiết lập của người dùng hệ điều hành, chứ không phải locale của mọi khách hàng trong ứng dụng web.
-- Việc đổi provider có thể đổi pattern, dấu phân tách, tên tháng hoặc một số cách parse. Không dựa vào một output ngẫu nhiên để quyết định “đúng tuyệt đối” cho mọi JDK.
+- Set the property **at JVM startup**; per the Java 17 `LocaleServiceProvider` contract, this order is read at startup. Calling `System.setProperty("java.locale.providers", "...")` after the application has started **does not change the provider order in use**.
+- `COMPAT` is only a transitional option suitable for certain older JDKs. **Starting with JDK 23**, `COMPAT/JRE` data was removed; do not recommend it as a permanent compatibility solution.
+- For `SPI` to be used, an appropriate provider must be installed/registered and selected via the runtime's provider mechanism. Putting `SPI` in the property **does not automatically generate** translation data for the application.
+- `HOST` may be unavailable on an OS/runtime or may only reflect certain OS user settings rather than the locale of every customer in a web application.
+- Changing providers can alter patterns, separators, month names, or certain parsing behaviors. Do not rely on an arbitrary output to decide what is "absolutely right" across all JDKs.
 
-### Nhà cung cấp nào thật sự phục vụ một cuộc gọi?
+### Which provider actually served a call?
 
-`Locale` không chứa thuộc tính kiểu “bản ghi này được phục vụ bởi CLDR version X”. Không phải API định dạng tiêu chuẩn nào cũng cho bạn một phương thức lấy trực tiếp tên provider đã được chọn cho lần gọi đó.
+`Locale` does not carry an attribute like "this record was served by CLDR version X." Not every standard formatting API gives you a method to directly retrieve the name of the provider chosen for that call.
 
-Để debug, xác nhận **phiên bản JDK/runtime**, startup property, locale yêu cầu, mô-đun locale data được đóng gói, và output trong môi trường đó. Kiểm thử với hai cấu hình provider trên **cùng bản JDK hỗ trợ** có thể giúp xác định sự khác biệt, nhưng cần tránh phỏng đoán dữ liệu nào đã được dùng chỉ từ một dấu thập phân.
+To debug, verify the **JDK/runtime version**, startup properties, requested locale, packaged locale data modules, and output in that environment. Testing with two provider configurations on the **same supported JDK build** can help pinpoint differences, while avoiding guessing which data was used from a single decimal separator alone.
 
-## 5. CLDR giúp định dạng số như thế nào?
+## 5. How does CLDR help format numbers?
 
-`java.text.NumberFormat` là một API Java để format/parse số theo locale. Một giá trị số nhất quán có thể được trình bày với dấu phân nhóm và thập phân khác nhau:
+`java.text.NumberFormat` is a Java API for formatting/parsing numbers by locale. A consistent numeric value can be presented with different grouping and decimal separators:
 
 ~~~java
 NumberFormat us = NumberFormat.getNumberInstance(Locale.US);
@@ -143,28 +143,28 @@ String a = us.format(new BigDecimal("1234.5"));
 String b = de.format(new BigDecimal("1234.5"));
 ~~~
 
-Đây là **đoạn mã minh họa** với import `java.text.NumberFormat`, `java.math.BigDecimal` và `java.util.Locale`. Trên nhiều JDK/provider phổ biến:
+This is an **illustrative snippet** requiring imports `java.text.NumberFormat`, `java.math.BigDecimal`, and `java.util.Locale`. On many common JDKs/providers:
 
 ~~~text
 en-US: 1,234.5
 de-DE: 1.234,5
 ~~~
 
-Nhưng ứng dụng không nên lấy hai chuỗi đó làm hợp đồng byte-for-byte bất biến trên mọi bản JDK. CLDR dữ liệu và provider có thể cập nhật. Nếu dữ liệu là đầu ra giữa hai máy, nên dùng hợp đồng số machine-readable có quy tắc riêng, không lấy chuỗi đã bản địa hóa làm dữ liệu tính toán.
+However, applications should not treat those two strings as an immutable byte-for-byte contract across every JDK release. CLDR data and providers can be updated. If the data is output exchanged between two machines, use a machine-readable numeric contract with its own rules instead of treating localized strings as computation data.
 
-### Parse theo locale cần kỷ luật
+### Locale-sensitive parsing requires discipline
 
-Một chuỗi như `1,234` có thể được hiểu khác theo locale: dấu `,` có thể là phân tách hàng nghìn hoặc dấu thập phân. Do đó:
+A string such as `1,234` can be interpreted differently depending on the locale: `,` could be a thousands separator or a decimal separator. Therefore:
 
-- Nếu số đến từ **UI** của người dùng, parse theo locale nhập liệu đã chọn và kiểm tra đã tiêu thụ toàn bộ chuỗi.
-- Nếu số đến từ **API/CSV máy**, xác định format giao thức ổn định, tránh tự động parse bằng locale máy chủ.
-- Với tiền tệ, phải giữ **currency** và **quy tắc làm tròn** riêng: CLDR cung cấp quy ước hiển thị, không quyết định luật thuế, bước làm tròn tiền mặt hoặc độ chính xác thanh toán của hệ thống.
+- If numbers come from user **UI** input, parse using the selected input locale and verify that the entire string was consumed.
+- If numbers come from **machine APIs/CSVs**, define a stable protocol format and avoid automatically parsing with the server's default locale.
+- For currency, keep **currency** and **rounding rules** separate: CLDR supplies display conventions, not your system's tax laws, cash rounding increments, or payment precision.
 
-`NumberFormat` còn có trạng thái cấu hình có thể thay đổi; không chia sẻ một instance mutable tùy tiện giữa các luồng. Nếu cần formatter trong ứng dụng nhiều request, nên tạo riêng hoặc kiểm soát truy cập/cấu hình đúng cách.
+`NumberFormat` also has mutable configuration state; do not arbitrarily share a mutable instance across threads. If formatters are needed in a multi-request application, create separate instances or properly control access and configuration.
 
-## 6. CLDR giúp trình bày ngày giờ như thế nào?
+## 6. How does CLDR help present dates and times?
 
-`DateTimeFormatter` của `java.time` có các factory bản địa hóa như:
+`DateTimeFormatter` in `java.time` provides localized factories such as:
 
 ~~~java
 DateTimeFormatter formatter = DateTimeFormatter
@@ -174,15 +174,15 @@ DateTimeFormatter formatter = DateTimeFormatter
 String shown = LocalDate.of(2024, 6, 16).format(formatter);
 ~~~
 
-Đây là **đoạn minh họa Java 17** cần import `java.time.LocalDate`, `java.time.format.DateTimeFormatter`, `java.time.format.FormatStyle`, `java.util.Locale`.
+This is a **Java 17 illustrative snippet** requiring imports `java.time.LocalDate`, `java.time.format.DateTimeFormatter`, `java.time.format.FormatStyle`, and `java.util.Locale`.
 
-Với `ofLocalizedDate(FormatStyle.SHORT)`, **style** được yêu cầu và **locale** quyết định mẫu định dạng cụ thể qua dữ liệu runtime. Không lấy một pattern ngày của một quốc gia rồi áp cho tất cả.
+With `ofLocalizedDate(FormatStyle.SHORT)`, the requested **style** and **locale** determine the specific formatting pattern through runtime data. Do not take one country's date pattern and apply it to everyone.
 
-`DateTimeFormatter.ofPattern("uuuu-MM-dd", locale)` lại là trường hợp khác: developer **chọn pattern cụ thể**, và phần literal/định dạng được xác định bởi pattern. Nó có thể phù hợp với một giao thức hay bản in yêu cầu thứ tự xác định, nhưng không phải cách để mỗi quốc gia tùy quyết định thứ tự trường.
+`DateTimeFormatter.ofPattern("uuuu-MM-dd", locale)` is a different case: the developer **chooses an explicit pattern**, and literals/formatting are determined by that pattern. It may suit a protocol or printout requiring a fixed order, not a way for each country to determine field ordering.
 
-### Date locale khác timezone
+### Date locale is distinct from timezone
 
-CLDR có thể giúp tên tháng/thứ hoặc cách trình bày ngày, nhưng timezone phải được chọn theo **sự kiện/người dùng**:
+CLDR can help with month/weekday names or date presentation, but the timezone must be chosen according to the **event/user**:
 
 ~~~java
 Instant instant = Instant.parse("2024-06-16T12:00:00Z");
@@ -190,41 +190,41 @@ ZonedDateTime event = instant.atZone(
         ZoneId.of("Asia/Ho_Chi_Minh"));
 ~~~
 
-Đây là đoạn minh họa, cần import `java.time.*`. Mã `Locale.US` không suy ra `America/New_York`; một quốc gia có thể có nhiều timezone và người dùng có thể chọn ngôn ngữ khác nơi ở.
+This is an illustrative snippet requiring `import java.time.*`. `Locale.US` does not imply `America/New_York`; a country can span multiple timezones and users can choose a language different from where they live.
 
-CLDR cung cấp một số dữ liệu **tên vùng giờ được bản địa hóa**, trong khi quy tắc offset lịch sử/DST là vấn đề của timezone rule provider. Khi cần xác định thời điểm thực, ưu tiên `Instant` và `ZoneId` theo ý nghĩa nghiệp vụ.
+CLDR provides certain **localized time zone name** data, whereas historical offset/DST rules are the concern of the timezone rule provider. When an exact point in time is needed, prefer `Instant` and `ZoneId` according to business semantics.
 
-## 7. Tiền tệ, tên vùng và dữ liệu ngôn ngữ
+## 7. Currencies, region names, and language data
 
-Các API liên quan:
+Relevant APIs:
 
-- `Currency.getInstance("USD")` cho biết đối tượng currency theo mã; `getCurrencyCode()` trả về định danh `USD`.
-- `Currency.getSymbol(locale)` và `getDisplayName(locale)` lấy **chuỗi trình bày** tùy locale/dữ liệu hỗ trợ.
-- `Locale.getDisplayCountry(displayLocale)`, `getDisplayLanguage(displayLocale)` và tương tự giúp hiển thị tên quốc gia/ngôn ngữ theo locale mong muốn.
-- `NumberFormat.getCurrencyInstance(locale)` tạo formatter tiền theo quy ước locale.
+- `Currency.getInstance("USD")` gives the currency object by code; `getCurrencyCode()` returns the identifier `USD`.
+- `Currency.getSymbol(locale)` and `getDisplayName(locale)` retrieve **display strings** depending on the locale and supported data.
+- `Locale.getDisplayCountry(displayLocale)`, `getDisplayLanguage(displayLocale)`, and similar methods display country/language names in the desired locale.
+- `NumberFormat.getCurrencyInstance(locale)` creates a currency formatter using locale conventions.
 
-Ví dụ:
+Example:
 
 ~~~java
 Currency usd = Currency.getInstance("USD");
 
 String code = usd.getCurrencyCode();       // "USD"
-String symbol = usd.getSymbol(Locale.US); // phụ thuộc locale/runtime
+String symbol = usd.getSymbol(Locale.US); // depends on locale/runtime
 ~~~
 
-Đây là đoạn minh họa với import `java.util.Currency`, `java.util.Locale`.
+This is an illustrative snippet with imports `java.util.Currency` and `java.util.Locale`.
 
-**Không nhầm symbol với currency code.** `$` có thể là ký hiệu của nhiều đơn vị tiền, trong khi `USD` và `CAD` là các mã khác nhau. Không dùng symbol để lưu ID tiền.
+**Do not confuse symbol with currency code.** `$` can be the symbol for many currencies, whereas `USD` and `CAD` are distinct codes. Never use symbols to store currency IDs.
 
-**Không suy currency của hóa đơn từ locale UI.** Một người dùng hiển thị giao diện tiếng Việt vẫn có thể thanh toán bằng USD. Hệ thống phải lưu đơn vị tiền tệ thực tế; locale quyết định cách hiển thị chứ không tự quy đổi.
+**Do not infer an invoice's currency from the UI locale.** A user viewing a Vietnamese UI can still pay in USD. The system must store the actual currency unit; the locale determines how it is displayed, not how it is converted.
 
-**Không nhầm thông tin CLDR với quy định tài chính.** Dữ liệu currency có thể có thông tin chữ số thập phân thường dùng, nhưng quy tắc làm tròn khoản thanh toán, thuế, phí hoặc tỷ giá là quyết định nghiệp vụ/pháp lý riêng.
+**Do not confuse CLDR metadata with financial regulations.** Currency data may include typical decimal digits, but payment rounding rules, taxes, fees, or exchange rates are separate business/legal decisions.
 
-## 8. Ví dụ Java 17 chạy độc lập
+## 8. Standalone runnable Java 17 example
 
-Chương trình minh họa rằng **cùng một giá trị số và ngày** có thể có cách trình bày khác nhau theo hai locale; đổi locale không làm đổi giá trị gốc. Nó chủ động in **các bất biến dạng boolean** thay vì đóng đinh một chuỗi ngày/số phụ thuộc CLDR/provider. Vì vậy ví dụ nhấn mạnh hành vi API, dễ kiểm thử và ít phụ thuộc khác biệt ký tự khoảng trắng hoặc cách trình bày của từng JDK.
+This program demonstrates that **the same numeric and date values** can be presented differently in two locales; changing the locale does not change the underlying value. It intentionally prints **boolean invariants** rather than hardcoding a CLDR/provider-dependent date or number string. Thus the example emphasizes API behavior, is easy to test, and is less sensitive to whitespace character or presentation differences across JDKs.
 
-Tạo tệp **`CldrJdkLocaleDemo.java`**:
+Create the file **`CldrJdkLocaleDemo.java`**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -278,14 +278,14 @@ public class CldrJdkLocaleDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 CldrJdkLocaleDemo.java
 java CldrJdkLocaleDemo
 ~~~
 
-Kết quả quan sát với môi trường JDK/locale data đã kiểm thử:
+Observed output in the tested JDK/locale data environment:
 
 ~~~text
 US locale: en-US
@@ -298,45 +298,45 @@ Same underlying number: true
 USD code: USD
 ~~~
 
-**Giải thích từng dòng:**
+**Line-by-line explanation:**
 
-1. Hai tag `en-US` và `de-DE` xác định ngữ cảnh hiển thị được yêu cầu.
-2. `Number formats differ: true` cho thấy cùng số `1234.5` có thể được format khác nhau theo locale.
-3. `Date formats differ: true` thể hiện mẫu ngày `SHORT` có thể đổi theo locale. Các chuỗi thực tế còn có thể chịu tác động của phiên bản data/provider.
-4. `Currency display differs: true` minh họa cùng mã tiền `USD` có thể được biểu diễn khác nhau khi locale khác.
-5. `Machine date` là một chuỗi theo `ISO_LOCAL_DATE`, phù hợp cho biểu diễn ngày theo hợp đồng máy (không phải ngày tháng có dịch tên).
-6. `BigDecimal.compareTo` xác nhận `1234.5` và `1234.50` là cùng giá trị số học; việc format không sửa giá trị.
-7. `Currency.getCurrencyCode()` trả `USD`; mã tiền không thay theo locale.
+1. The two tags `en-US` and `de-DE` identify the requested display contexts.
+2. `Number formats differ: true` shows that the same number `1234.5` can be formatted differently by locale.
+3. `Date formats differ: true` reflects that the `SHORT` date pattern can change by locale. Actual strings may also be affected by data/provider versions.
+4. `Currency display differs: true` illustrates that the same currency code `USD` can be represented differently when the locale differs.
+5. `Machine date` is a string in `ISO_LOCAL_DATE` format, suitable for machine-contract date representation (not dates with translated names).
+6. `BigDecimal.compareTo` confirms `1234.5` and `1234.50` have the same numeric value; formatting does not modify the value.
+7. `Currency.getCurrencyCode()` returns `USD`; the currency code does not change by locale.
 
-**Cảnh báo về tính tái lập:** Các dòng boolean so sánh **kết quả thực của một môi trường JDK có dữ liệu en-US/de-DE thông thường**. Chúng là ví dụ kiểm thử, không phải quy định rằng mọi runtime tùy biến hay mọi thứ tự provider sẽ luôn trả cùng chuỗi hay luôn khác nhau. Nếu chạy trong môi trường `jlink` đã loại bỏ dữ liệu locale hoặc provider đặc thù, cần kiểm tra lại kỳ vọng. Khi muốn khám phá chính xác, có thể in riêng `usText`, `deText`, `dateUS`, `dateDE` và ghi lại version/runtime.
+**Reproducibility warning:** The boolean comparison lines reflect **actual results from a JDK environment with standard en-US/de-DE data**. They are test examples, not a guarantee that every custom runtime or provider order will always return the same strings or always differ. When running in a `jlink` environment where locale data or specific providers have been stripped, re-verify expectations. To inspect exact outputs, print `usText`, `deText`, `dateUS`, and `dateDE` separately and record the version/runtime.
 
-### Vì sao không in thẳng kết quả number/date làm output chuẩn?
+### Why not print number/date results directly as fixed expected output?
 
-CLDR là dữ liệu có phiên bản, runtime cung cấp nhà cung cấp có thứ tự ưu tiên, và nhiều định dạng có các ký tự khoảng trắng đặc biệt hoặc thay đổi về dấu phân cách. Khóa kiểm thử **giá trị đầu vào và các bất biến nghiệp vụ** nên bền hơn việc coi một snapshot theo một JDK là chân lý cho mọi phiên bản.
+CLDR is versioned data, runtimes supply prioritized providers, and many formats include special whitespace characters or separator updates. Locking tests to **input values and business invariants** is more durable than treating one JDK snapshot as universal truth across all releases.
 
-Tuy nhiên, snapshot UI vẫn có ích để phát hiện thay đổi trong chính ứng dụng của bạn; khi nâng JDK/CLDR, hãy xem xét snapshot bằng chuyên môn bản địa hóa thay vì tự động chấp nhận mọi khác biệt.
+However, UI snapshots remain useful for catching changes within your own application; when upgrading JDK/CLDR, review snapshot diffs with localization expertise rather than blindly accepting every change.
 
-## 9. CLDR không tự giải quyết plural và ngữ pháp phức tạp trong Java 17
+## 9. CLDR does not automatically solve plurals and complex grammar in Java 17
 
-Dự án CLDR có dữ liệu về **plural categories** theo ngôn ngữ, nhưng `java.text.MessageFormat` của Java 17 **không hỗ trợ trực tiếp** cú pháp `plural`/`select` của ICU MessageFormat.
+The CLDR project contains **plural categories** data by language, yet Java 17's `java.text.MessageFormat` **does not directly support** ICU MessageFormat's `plural`/`select` syntax.
 
-Đừng viết:
+Do not write:
 
 ~~~text
 {count, plural, one{# item} other{# items}}
 ~~~
 
-rồi truyền chuỗi ấy vào `new java.text.MessageFormat(...)` Java 17 với kỳ vọng nó tự hiểu và áp plural rules của CLDR. Đây là một **pattern theo hệ cú pháp ICU**, không phải một kiểu định dạng có sẵn trong `java.text.MessageFormat` Java 17.
+and pass that string into Java 17's `new java.text.MessageFormat(...)` expecting it to understand and apply CLDR plural rules automatically. That is an **ICU-syntax pattern**, not a built-in format style in Java 17's `java.text.MessageFormat`.
 
-Java Core có `MessageFormat`, `ChoiceFormat` và `ResourceBundle` để lưu/chèn thông điệp, nhưng `ChoiceFormat` là công cụ chọn theo ngưỡng số do developer đặt, không phải plural engine cho mọi locale.
+Java Core has `MessageFormat`, `ChoiceFormat`, and `ResourceBundle` for storing/interpolating messages, but `ChoiceFormat` selects by developer-defined numeric thresholds, not a plural engine for all locales.
 
-Nếu cần plural theo CLDR, ordinal, grammatical gender hoặc select lồng nhau ở nhiều ngôn ngữ, xem xét **ICU4J hoặc framework i18n** có hỗ trợ đúng dữ liệu và cú pháp, đồng thời người dịch phải cung cấp câu hoàn chỉnh đúng ngôn ngữ.
+If you need CLDR plurals, ordinals, grammatical gender, or nested selects across many languages, consider **ICU4J or an i18n framework** that supports the proper data and syntax, and ensure translators provide complete, grammatically sound sentences.
 
-**Nguyên tắc:** CLDR có một dữ liệu/quy tắc **không đồng nghĩa** Java Core đã phơi bày tất cả thành một API Java 17 hoàn chỉnh. Kiểm tra chức năng của **lớp thật sự được dùng**, không suy từ tên dự án dữ liệu.
+**Rule:** CLDR having a dataset/rule **does not mean** Java Core exposes all of it as a complete Java 17 API. Check the capabilities of **the class actually being used**, rather than inferring from the data project's name.
 
-## 10. Dữ liệu locale không phải bản dịch nội dung ứng dụng
+## 10. Locale data is not application content translation
 
-Ví dụ tài nguyên riêng của sản phẩm:
+Example product-specific resources:
 
 ~~~properties
 # messages_vi.properties
@@ -350,9 +350,9 @@ cart.empty=Your cart is empty.
 button.checkout=Checkout
 ~~~
 
-Các nội dung này phải do ứng dụng/người dịch cung cấp và kiểm thử. CLDR có thể cung cấp tên tháng hoặc quy ước số để các placeholder trong thông điệp được trình bày phù hợp, nhưng nó **không tự tạo bản dịch** cho `cart.empty`.
+These contents must be supplied and tested by the application/translators. CLDR can supply month names or number conventions so placeholders inside messages are presented properly, but it **does not generate translations** for `cart.empty`.
 
-Ví dụ định dạng:
+Formatting example:
 
 ~~~java
 ResourceBundle messages = ResourceBundle.getBundle(
@@ -362,130 +362,130 @@ String formattedNumber = NumberFormat.getNumberInstance(
         userLocale).format(total);
 ~~~
 
-Đây là **đoạn minh họa không độc lập** (giả định có các biến `userLocale`, `total` và tệp bundle chứa `cart.total`). Tách hai trách nhiệm: nội dung thông điệp do ứng dụng quản lý, định dạng số do Java/locale provider xử lý. Với thông điệp có placeholders, nên dùng `MessageFormat` đúng cách, cân nhắc escaping/apostrophe và ngữ pháp theo ngôn ngữ.
+This is a **non-standalone illustrative snippet** (assuming variables `userLocale`, `total`, and a bundle file containing `cart.total`). Separate the two responsibilities: message content is managed by the application, while number formatting is handled by Java/locale providers. For messages with placeholders, use `MessageFormat` properly, taking apostrophe escaping and per-language grammar into account.
 
-### Fallback ResourceBundle khác fallback provider
+### ResourceBundle fallback differs from provider fallback
 
-`ResourceBundle.getBundle` có cơ chế tìm bundle theo locale/parent và fallback theo chính sách cụ thể của API. `java.locale.providers` lại quyết định thứ tự **nguồn dữ liệu cho locale-sensitive services**.
+`ResourceBundle.getBundle` resolves bundles by locale/parent and falls back per that API's specific policy. `java.locale.providers`, on the other hand, determines the **data source order for locale-sensitive services**.
 
-Hai thứ này không phải một:
-- thiếu `messages_vi_VN.properties` không có nghĩa JDK đã hết dữ liệu số tiếng Việt;
-- có dữ liệu CLDR cho `vi-VN` không có nghĩa ứng dụng đã dịch mọi nhãn;
-- thay `java.locale.providers` không tự viết/đổi nội dung `ResourceBundle` của sản phẩm.
+These two are not the same:
+- missing `messages_vi_VN.properties` does not mean the JDK has run out of Vietnamese number data;
+- having CLDR data for `vi-VN` does not mean the application has translated every label;
+- changing `java.locale.providers` does not rewrite or change your product's `ResourceBundle` content.
 
-## 11. Một số ranh giới CLDR dễ nhầm
+## 11. Commonly confused CLDR boundaries
 
-### Locale không suy ra tất cả sở thích cá nhân
+### Locale does not imply all personal preferences
 
-`Locale.forLanguageTag("en-US")` không chứng minh người dùng đang ở Mỹ hay dùng USD. Người dùng có thể thích giao diện tiếng Anh nhưng cần giờ Việt Nam, thanh toán bằng EUR hoặc dùng đơn vị đo hệ mét.
+`Locale.forLanguageTag("en-US")` does not prove the user is in the US or uses USD. A user may prefer an English UI while needing Vietnam time, paying in EUR, or using metric units.
 
-CLDR ghi nhận các **quy ước thường gặp**, không nên được dùng thay cho **lựa chọn và dữ liệu giao dịch thực**. Với các lĩnh vực quan trọng, nên xác định rõ `Locale` hiển thị, `ZoneId`, `Currency`, hệ lịch, numbering system và cài đặt riêng.
+CLDR records **common conventions**, which should not replace **actual user preferences and transaction data**. For critical domains, explicitly track display `Locale`, `ZoneId`, `Currency`, calendar system, numbering system, and user-specific settings.
 
-### Tên locale, mã locale và dữ liệu hiển thị
+### Locale names, locale codes, and display data
 
-`Locale.getLanguage()` trả mã ngôn ngữ, `getCountry()` trả mã vùng; chúng không tự là bản dịch tên hiển thị. Để có tên hiển thị, gọi `getDisplayLanguage(displayLocale)` hoặc `getDisplayCountry(displayLocale)`. Tên có thể thay đổi theo dữ liệu và phiên bản JDK.
+`Locale.getLanguage()` returns a language code and `getCountry()` returns a region code; they are not localized display names themselves. To get display names, call `getDisplayLanguage(displayLocale)` or `getDisplayCountry(displayLocale)`. Names can change across data and JDK versions.
 
-### Chuẩn hóa Unicode là nhiệm vụ khác
+### Unicode normalization is a separate task
 
-CLDR liên quan đến quy tắc và dữ liệu bản địa hóa, nhưng Unicode normalization như `Normalizer.Form.NFC` là API xử lý **tương đương ký tự**; không phải “cài CLDR rồi mọi tên đều được Unicode-normalize”. Đừng coi CLDR, chuyển chữ hoa/thường, phiên âm, dịch thuật và Unicode normalization là một thao tác.
+CLDR relates to localization rules and data, whereas Unicode normalization such as `Normalizer.Form.NFC` is an API for handling **character equivalence**; "installing CLDR" does not mean all names are Unicode-normalized. Do not treat CLDR, case conversion, transliteration, translation, and Unicode normalization as a single operation.
 
-### Dữ liệu và thuật toán phải đi với nhau
+### Data and algorithms must go together
 
-Một bộ quy tắc plural, collation hoặc segmentation chỉ có ích nếu thư viện/API **thực thi đúng quy tắc tương ứng**, với dữ liệu/phiên bản được biết. Không dùng `String.equals` rồi gọi đó là collation theo CLDR; không dùng regex xóa dấu rồi gọi đó là Unicode normalization.
+A set of plural, collation, or segmentation rules is only useful if the library/API **executes the corresponding rules** with a known dataset/version. Do not use `String.equals` and call it CLDR collation; do not use a regex to strip diacritics and call it Unicode normalization.
 
-## 12. jlink và phạm vi dữ liệu locale trong runtime
+## 12. jlink and locale data scope in the runtime
 
-Khi tạo **runtime tùy biến bằng `jlink`**, ứng dụng có thể không đóng gói toàn bộ dữ liệu locale của JDK. Trong hệ JDK module, một phần dữ liệu locale bổ sung liên quan đến module `jdk.localedata`. Vì vậy:
+When building a **custom runtime with `jlink`**, the application might not package all of the JDK's locale data. In the modular JDK, part of the additional locale data resides in the `jdk.localedata` module. Therefore:
 
-- Một ứng dụng chạy đúng khi dùng JDK đầy đủ có thể có kết quả/khả năng hỗ trợ locale khác khi chuyển sang custom runtime image.
-- Các thành phần trong `java.base` không có nghĩa mọi locale đều còn được đóng gói.
-- Cần kiểm tra danh sách module và tùy chọn build image; `--include-locales` của jlink là một cơ chế chọn locale tại thời điểm tạo image khi cấu hình tương thích.
-- Không mặc định “`Locale.forLanguageTag("xx-YY")` tạo thành công” đồng nghĩa dịch vụ định dạng có đầy đủ dữ liệu của `xx-YY` trong runtime image đó.
+- An application that works on a full JDK can behave or support locales differently when moved to a custom runtime image.
+- Components in `java.base` do not imply all locales remain packaged.
+- Inspect the module list and image build options; jlink's `--include-locales` is a mechanism to select locales at image creation time when configured compatibly.
+- Do not assume "`Locale.forLanguageTag("xx-YY")` constructs successfully" means formatting services have full `xx-YY` data in that runtime image.
 
-**Đây là một vấn đề triển khai**, khác với việc source code Java đúng cú pháp. Với các ứng dụng chạy Docker/minimal JVM image, hãy thử format/parse những locale thật sự được hỗ trợ ngay trên **artifact runtime cuối cùng**, không chỉ trên máy lập trình viên.
+**This is a deployment concern**, distinct from whether Java source code is syntactically valid. For applications running in Docker/minimal JVM images, test formatting/parsing for the actually supported locales on the **final runtime artifact**, not only on a developer workstation.
 
-## 13. Nâng JDK, đổi CLDR và chiến lược kiểm thử
+## 13. JDK upgrades, CLDR changes, and testing strategy
 
-CLDR được cập nhật theo dữ liệu và nhu cầu ngôn ngữ. JDK có phiên bản dữ liệu riêng, và việc nâng bản cập nhật lớn/nhỏ có thể làm một số kết quả bản địa hóa khác trước.
+CLDR is updated alongside linguistic data and requirements. The JDK ships its own data versions, and major/minor updates can alter some localized outputs.
 
-Những mục nên đưa vào quy trình kiểm thử:
+Items to include in your testing workflow:
 
-1. **Ma trận locale:** các locale thật sự hỗ trợ, không chỉ mặc định của máy chủ.
-2. **Ma trận dịch vụ:** số, tiền, phần trăm, ngày, giờ, tên tháng, tên vùng và parse.
-3. **Các trường hợp biên:** ngày cuối tháng/năm, dấu phân nhóm/decimal, số âm, số lớn, ký tự Unicode đặc biệt.
-4. **Provider/version:** ghi nhận JDK vendor, version, các property startup và runtime image modules.
-5. **Tài nguyên ứng dụng:** kiểm tra key bản dịch và biến placeholder riêng với dữ liệu định dạng của JDK.
-6. **Output người dùng:** so sánh hiển thị trước/sau nâng cấp, đánh giá với người am hiểu locale.
-7. **Giao thức máy:** bảo đảm dữ liệu API/database không dựa vào định dạng hiển thị phụ thuộc CLDR.
-8. **Độ chính xác tiền tệ:** `BigDecimal`, Currency code, rounding policy không được thay bằng một chuỗi số format theo UI.
-9. **Timezone:** kiểm thử `ZoneId`/DST riêng; không lấy thay đổi tên vùng giờ làm bằng chứng offset đổi.
-10. **Custom runtime:** kiểm tra lại locale thực tế khi thay build `jlink`/container.
-11. **Legacy provider:** nếu còn startup `COMPAT` trên Java 17/21/22, lập kế hoạch chuyển sang CLDR thay vì dựa vào cấu hình đã bị xóa từ JDK 23.
+1. **Locale matrix:** the actually supported locales, not just the server default.
+2. **Service matrix:** numbers, currencies, percentages, dates, times, month names, region names, and parsing.
+3. **Edge cases:** end-of-month/year dates, grouping/decimal separators, negative numbers, large numbers, special Unicode characters.
+4. **Provider/version:** record JDK vendor, version, startup properties, and runtime image modules.
+5. **Application resources:** test translation keys and placeholders separately from JDK formatting data.
+6. **User-facing output:** compare pre/post-upgrade displays and review with people knowledgeable in the locale.
+7. **Machine protocols:** ensure API/database data never depends on CLDR-dependent display formats.
+8. **Monetary precision:** `BigDecimal`, currency code, and rounding policy must never be replaced by a UI-formatted number string.
+9. **Timezones:** test `ZoneId`/DST separately; do not treat a timezone name change as evidence that offsets changed.
+10. **Custom runtime:** re-verify actual locales when changing `jlink`/container builds.
+11. **Legacy provider:** if still launching with `COMPAT` on Java 17/21/22, plan to migrate to CLDR rather than relying on configuration removed in JDK 23.
 
-### Snapshot tests: cách dùng có trách nhiệm
+### Snapshot tests: using them responsibly
 
-Một test kỳ vọng chuỗi hiển thị chính xác có thể giúp phát hiện regression. Nhưng khi JDK/CLDR được nâng, một biến đổi pattern **có thể là cập nhật ngôn ngữ đúng** thay vì lỗi. Tránh sửa snapshot mù quáng; phân tích:
-- source dữ liệu/provider/version đã thay đổi chưa;
-- nội dung giao diện có còn rõ ràng và đúng ngôn ngữ không;
-- việc parse từ chuỗi cũ có bị phá không;
-- yêu cầu pháp lý/bản in có cần format cố định ngoài CLDR không.
+A test expecting exact display strings can catch regressions. However, when JDK/CLDR is upgraded, a pattern change **may be a legitimate linguistic update** rather than a bug. Avoid updating snapshots blindly; analyze:
+- whether the data source/provider/version changed;
+- whether the UI content remains clear and linguistically accurate;
+- whether parsing from legacy strings is broken;
+- whether legal/print requirements demand a fixed format outside CLDR.
 
-Đối với giao tiếp giữa các hệ thống, dùng dạng có hợp đồng ổn định như ISO 8601 cho ngày/giờ phù hợp ngữ nghĩa, decimal string hoặc số có đơn vị rõ ràng, chứ không dùng locale display text làm “nguồn chân lý”.
+For inter-system communication, use stable-contract formats such as ISO 8601 for semantically appropriate dates/times, decimal strings, or numbers with explicit units, rather than localized display text as the "source of truth."
 
-## 14. Bảng lỗi phổ biến
+## 14. Common mistakes table
 
-| Sai lầm | Vì sao sai | Cách tránh |
+| Mistake | Why it is wrong | How to avoid |
 | --- | --- | --- |
-| Nghĩ CLDR là máy dịch tự động | CLDR là dữ liệu/quy tắc locale chung, không dịch mọi câu ứng dụng | Dùng ResourceBundle + người dịch/tooling |
-| Nghĩ `Locale` chứa mọi quy tắc văn hóa trong chính object | Locale chủ yếu là định danh | Dùng API + provider data |
-| Nghĩ JDK 17 có mọi API CLDR | CLDR có nhiều lĩnh vực, JDK chỉ tích hợp một phần | Kiểm tra JDK API cụ thể |
-| Suy `BreakIterator`/`Collator` Java17 chắc chắn dùng CLDR | Tài liệu JDK17 nêu ngoại lệ tích hợp | Đọc hỗ trợ của từng service |
-| Dùng một pattern ngày cố định cho mọi locale | Thứ tự và quy ước khác nhau | ofLocalizedDate với locale |
-| Parse số UI bằng locale của server | Dấu chấm/phẩy khác nghĩa | Truyền locale nhập liệu và validate |
-| Dùng ký hiệu tiền như đơn vị lưu trữ | Symbol có thể trùng giữa currency | Lưu mã ISO |
-| Suy timezone từ locale | Nhiều vùng, người dùng có lựa chọn khác | ZoneId riêng |
-| Dùng `java.locale.providers` sau startup | Thứ tự provider đã được đọc khi JVM khởi động | Đặt khi launch |
-| Giới thiệu `COMPAT` như lựa chọn cho JDK 23+ | Legacy provider đã bị xóa | Chuyển sang CLDR hoặc giải pháp rõ |
-| Cho rằng CLDR mới nhất đồng nghĩa JDK đã mới | Runtime có dữ liệu tích hợp theo phiên bản | Kiểm tra vendor/version |
-| Không test `jlink` runtime cuối | Có thể thiếu locale data modules | Test runtime image thực |
-| Dùng localized text làm API máy | Output đổi theo locale/runtime | Dùng machine-readable format |
-| Nghĩ CLDR plural rules = Java17 MessageFormat plural | API Java17 không hỗ trợ cú pháp ICU plural | Dùng engine phù hợp khi cần |
-| Chỉ test en-US | Không thấy các lỗi locale khác | Test toàn bộ locale hỗ trợ |
+| Thinking CLDR is an automatic translator | CLDR is shared locale data/rules, not translations of app sentences | Use ResourceBundle + translators/tooling |
+| Thinking `Locale` holds all cultural rules inside the object | Locale is primarily an identifier | Use APIs + provider data |
+| Thinking JDK 17 has every CLDR API | CLDR spans many areas; JDK integrates only a subset | Check specific JDK APIs |
+| Assuming Java 17 `BreakIterator`/`Collator` definitely use CLDR | JDK 17 docs note integration exceptions | Check per-service support |
+| Using one fixed date pattern for all locales | Field orders and conventions differ | Use ofLocalizedDate with locale |
+| Parsing UI numbers with the server locale | Dots/commas have different meanings | Pass input locale and validate |
+| Using currency symbols as storage units | Symbols can collide across currencies | Store ISO codes |
+| Inferring timezone from locale | Multiple zones exist, and users may choose otherwise | Store ZoneId separately |
+| Setting `java.locale.providers` after startup | Provider order is read at JVM startup | Set at launch time |
+| Recommending `COMPAT` as an option for JDK 23+ | Legacy provider has been removed | Migrate to CLDR or an explicit solution |
+| Assuming newest CLDR means JDK is already updated | Runtime bundles data per its release | Check vendor/version |
+| Not testing the final `jlink` runtime | Locale data modules may be missing | Test the actual runtime image |
+| Using localized text as a machine API | Output changes with locale/runtime | Use machine-readable formats |
+| Equating CLDR plural rules with Java 17 MessageFormat plurals | Java 17 API does not support ICU plural syntax | Use an appropriate engine when needed |
+| Testing only en-US | Hides locale-specific bugs | Test all supported locales |
 
-## 15. Bài tập tự đánh giá
+## 15. Self-assessment exercises
 
-**Câu 1.** CLDR có phải một API Java chuyên dịch các nhãn giao diện sang mọi ngôn ngữ không?
+**Q1.** Is CLDR a Java API dedicated to translating UI labels into every language?
 
-**Đáp án:** Không. CLDR là repository dữ liệu và quy tắc locale dùng chung. Ứng dụng vẫn phải cung cấp bản dịch nội dung của chính mình qua ResourceBundle hoặc hệ thống bản dịch tương đương.
+**Answer:** No. CLDR is a repository of shared locale data and rules. The application still must supply translations for its own content via ResourceBundle or an equivalent localization system.
 
-**Câu 2.** Vì sao cùng `BigDecimal("1234.5")` có thể được format khác giữa `Locale.US` và `Locale.GERMANY`?
+**Q2.** Why can the same `BigDecimal("1234.5")` be formatted differently between `Locale.US` and `Locale.GERMANY`?
 
-**Đáp án:** Hai locale có quy ước dấu phân nhóm và dấu thập phân khác nhau; `NumberFormat` lấy dữ liệu và hành vi phù hợp từ provider của JDK. Giá trị số học không đổi.
+**Answer:** The two locales have different grouping and decimal separator conventions; `NumberFormat` retrieves appropriate data and behavior from the JDK's providers. The numeric value does not change.
 
-**Câu 3.** Trên Java 17, `java.locale.providers=COMPAT,CLDR` có ý nghĩa gì? Trên Java 23 có nên dùng như một phương án cố định không?
+**Q3.** On Java 17, what does `java.locale.providers=COMPAT,CLDR` mean? Should it be used as a permanent strategy on Java 23?
 
-**Đáp án:** Trên Java 17, nó ưu tiên bộ dữ liệu tương thích cũ trước CLDR khi hỗ trợ. Dữ liệu COMPAT/JRE đã bị loại bỏ từ JDK 23, nên không dựa vào cách này làm chiến lược lâu dài.
+**Answer:** On Java 17, it prioritizes the legacy compatibility dataset before CLDR where supported. COMPAT/JRE data was removed in JDK 23, so do not rely on it as a long-term strategy.
 
-**Câu 4.** Nếu CLDR có plural rules tiếng Nga, tại sao Java 17 `java.text.MessageFormat` không tự hiểu `{count, plural, ...}`?
+**Q4.** If CLDR has Russian plural rules, why doesn't Java 17 `java.text.MessageFormat` automatically understand `{count, plural, ...}`?
 
-**Đáp án:** Dự án dữ liệu và khả năng của API formatter là hai thứ khác nhau. Cú pháp plural ICU không phải cú pháp `java.text.MessageFormat` của Java 17; cần một thư viện/engine hỗ trợ.
+**Answer:** The data project and formatter API capabilities are two separate things. ICU plural syntax is not Java 17's `java.text.MessageFormat` syntax; a supporting library/engine is required.
 
-**Câu 5.** `Locale.forLanguageTag("vi-VN")` có tự xác định timezone và đơn vị tiền thực tế của giao dịch không?
+**Q5.** Does `Locale.forLanguageTag("vi-VN")` automatically determine the user's timezone and the actual transaction currency?
 
-**Đáp án:** Không. Locale giúp chọn cách hiển thị nhưng timezone người dùng và currency giao dịch phải được cung cấp theo nghiệp vụ.
+**Answer:** No. Locale helps select how data is displayed, whereas user timezone and transaction currency must be provided by business context.
 
-**Bài tập:** Chạy `CldrJdkLocaleDemo` trên JDK 17 với startup provider mặc định và với `-Djava.locale.providers=COMPAT,CLDR`. Ghi lại kết quả format thực tế ở en-US, de-DE, fr-FR và vi-VN, kết hợp kiểm thử ngày/số/tiền. Sau đó chạy trên JDK mới và phân tích vì sao lựa chọn COMPAT không còn giá trị từ JDK 23. Đừng suy rằng mọi khác biệt là bug; đối chiếu với dữ liệu locale và tài liệu provider của runtime.
+**Exercise:** Run `CldrJdkLocaleDemo` on JDK 17 with the default startup provider and with `-Djava.locale.providers=COMPAT,CLDR`. Record the actual formatted outputs for en-US, de-DE, fr-FR, and vi-VN, testing dates, numbers, and currencies. Then run on a newer JDK and analyze why the COMPAT option is no longer valid starting in JDK 23. Do not assume every difference is a bug; cross-reference with the runtime's locale data and provider documentation.
 
-## 16. Tài liệu tham khảo
+## 16. References
 
-- [Unicode CLDR Project](https://cldr.unicode.org/): mục đích, phạm vi, dữ liệu locale và phát hành.
-- [Unicode Technical Standard #35 — CLDR](https://www.unicode.org/reports/tr35/tr35.html): mô hình locale, LDML và các quy tắc.
-- [JEP 252 — Use CLDR Locale Data by Default](https://openjdk.org/jeps/252): cơ chế và lịch sử ưu tiên CLDR trong Java.
-- [Oracle JDK 17 Supported Locales](https://www.oracle.com/java/technologies/javase/jdk17-suported-locales.html): dữ liệu Oracle JDK 17, CLDR 39, provider và ngoại lệ BreakIterator/Collator.
-- [LocaleServiceProvider — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/spi/LocaleServiceProvider.html): thứ tự `java.locale.providers` và các loại nhà cung cấp.
-- [DateTimeFormatter — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html): định dạng ngày giờ theo locale.
-- [NumberFormat — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html): định dạng số và tiền.
-- [JDK 23 migration — Removed legacy locale data](https://docs.oracle.com/en/java/javase/23/migrate/removed-tools-and-components.html): việc loại bỏ COMPAT/JRE.
-- [Locale — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html): language tag và tên hiển thị.
+- [Unicode CLDR Project](https://cldr.unicode.org/): purpose, scope, locale data, and releases.
+- [Unicode Technical Standard #35 — CLDR](https://www.unicode.org/reports/tr35/tr35.html): locale model, LDML, and rules.
+- [JEP 252 — Use CLDR Locale Data by Default](https://openjdk.org/jeps/252): mechanism and history of prioritizing CLDR in Java.
+- [Oracle JDK 17 Supported Locales](https://www.oracle.com/java/technologies/javase/jdk17-suported-locales.html): Oracle JDK 17 data, CLDR 39, providers, and BreakIterator/Collator exceptions.
+- [LocaleServiceProvider — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/spi/LocaleServiceProvider.html): `java.locale.providers` ordering and provider types.
+- [DateTimeFormatter — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/time/format/DateTimeFormatter.html): locale-sensitive date/time formatting.
+- [NumberFormat — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html): number and currency formatting.
+- [JDK 23 migration — Removed legacy locale data](https://docs.oracle.com/en/java/javase/23/migrate/removed-tools-and-components.html): removal of COMPAT/JRE.
+- [Locale — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html): language tags and display names.
 
-**Ghi nhớ:** **CLDR cung cấp dữ liệu/quy tắc bản địa hóa; JDK cung cấp các API và nhà cung cấp áp dụng phần dữ liệu phù hợp; ứng dụng chịu trách nhiệm ngữ nghĩa nghiệp vụ và nội dung dịch riêng.** Truyền `Locale` tường minh, phân biệt định dạng người đọc với dữ liệu máy, kiểm thử theo phiên bản/provider JDK và không giả định mọi chức năng CLDR đều được Java 17 tích hợp.
+**Takeaway:** **CLDR provides localization data/rules; the JDK provides APIs and providers that apply the relevant subset of data; the application is responsible for business semantics and its own translated content.** Pass `Locale` explicitly, distinguish human-readable formatting from machine data, test against JDK versions/providers, and never assume every CLDR capability is integrated into Java 17.

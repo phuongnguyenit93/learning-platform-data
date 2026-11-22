@@ -1,25 +1,25 @@
-# Phân tích danh sách ưu tiên ngôn ngữ bằng Locale.LanguageRange.parse trong Java
+# Parsing Language Priority Lists with `Locale.LanguageRange.parse` in Java
 
-## 1. Danh sách ưu tiên ngôn ngữ là gì?
+## 1. What Is a Language Priority List?
 
-Người dùng có thể chấp nhận nhiều ngôn ngữ nhưng không thích tất cả ngang nhau. Trong HTTP, header `Accept-Language` có thể truyền danh sách ưu tiên như sau:
+Users can accept multiple languages without liking them all equally. In HTTP, the `Accept-Language` header can pass a priority list like this:
 
 ```http
 Accept-Language: vi-VN,vi;q=0.9,en-US;q=0.7,en;q=0.5
 ```
 
-Trong chuỗi này, dấu phẩy phân cách các **language range**; `q` (*quality value*) biểu thị trọng số ưu tiên của từng range. Java cung cấp `java.util.Locale.LanguageRange.parse(String)` để phân tích chuỗi thành một **Language Priority List** dạng `List<Locale.LanguageRange>`.
+In this string, commas separate **language ranges**; `q` (*quality value*) indicates the priority weight of each range. Java provides `java.util.Locale.LanguageRange.parse(String)` to parse the string into a **Language Priority List** of type `List<Locale.LanguageRange>`.
 
-Mỗi đối tượng `LanguageRange` cho phép đọc:
+Each `LanguageRange` object allows reading:
 
-- `getRange()`: language range sau khi chuẩn hóa, chẳng hạn `"vi-vn"`, `"en-us"` hoặc `"*"`.
-- `getWeight()`: trọng số ưu tiên dạng `double`, từ `0.0` đến `1.0`.
+- `getRange()`: the normalized language range, such as `"vi-vn"`, `"en-us"`, or `"*"`.
+- `getWeight()`: the priority weight as a `double`, from `0.0` to `1.0`.
 
-**Phân tích không phải lựa chọn:** `parse` chỉ tạo danh sách. Nó không biết ứng dụng có những ngôn ngữ nào, không tải bản dịch và không tự chọn bản địa hóa cuối cùng. Sau `parse`, ứng dụng mới áp dụng `Locale.filter`, `Locale.filterTags`, `Locale.lookup` hoặc `Locale.lookupTag` lên tập locale thực sự được hỗ trợ.
+**Parsing is not selection:** `parse` only builds the list. It does not know which languages the application has, does not load translations, and does not automatically pick the final localization. Only after `parse` does the application apply `Locale.filter`, `Locale.filterTags`, `Locale.lookup`, or `Locale.lookupTag` against the set of actually supported locales.
 
-## 2. Cú pháp language range và trọng số `q`
+## 2. Language Range Syntax and `q` Weights
 
-`LanguageRange.parse` hỗ trợ các kiểu input thông dụng:
+`LanguageRange.parse` supports common input forms:
 
 ```text
 vi,en;q=0.5
@@ -27,33 +27,33 @@ Accept-Language: vi,en;q=0.5
 vi,en
 ```
 
-Cú pháp language range được mô tả bởi **RFC 4647**, liên quan với language tag BCP 47. Hai loại range quan trọng:
+Language range syntax is described by **RFC 4647**, related to BCP 47 language tags. Two important types of ranges:
 
-| Dạng | Ví dụ | Ý nghĩa |
+| Form | Example | Meaning |
 |---|---|---|
-| Basic | `vi` | Ưu tiên ngôn ngữ tiếng Việt |
-| Basic | `en-US` | Ưu tiên tiếng Anh tại Hoa Kỳ |
-| Basic wildcard | `*` | Mẫu khớp bất kỳ, tùy thuật toán matching |
-| Extended | `zh-Hant-*` | Tiếng Trung chữ Hán phồn thể, phần sau tùy ý |
-| Extended | `*-CH` | Mẫu có region `CH` khi dùng extended filtering |
+| Basic | `vi` | Prefers the Vietnamese language |
+| Basic | `en-US` | Prefers English in the United States |
+| Basic wildcard | `*` | Wildcard matching anything, depending on the matching algorithm |
+| Extended | `zh-Hant-*` | Traditional Chinese, arbitrary trailing subtags |
+| Extended | `*-CH` | Pattern with region `CH` when using extended filtering |
 
-Một basic range có một nhóm 1–8 chữ cái, có thể kèm các nhóm `-` và 1–8 ký tự chữ/số; hoặc chỉ có `*`. Extended range cho phép `*` ở một số vị trí subtag. Dấu `*` là **ký tự mẫu**, không phải tên của một ngôn ngữ có thể dịch.
+A basic range has a group of 1–8 letters, optionally followed by groups of `-` and 1–8 alphanumeric characters; or just `*`. Extended ranges allow `*` in certain subtag positions. The `*` symbol is a **wildcard character**, not the name of a translatable language.
 
-Bảng quy tắc `q`:
+Table of `q` rules:
 
-| Giá trị | Diễn giải |
+| Value | Interpretation |
 |---|---|
-| Không có `q` | Mặc định `1.0`, tương ứng `MAX_WEIGHT` |
-| `q=1.0` | Mức ưu tiên tối đa |
-| `q=0.8` | Có ưu tiên nhưng thấp hơn `1.0` |
-| `q=0` | Mức thấp nhất `MIN_WEIGHT`; trong ngữ cảnh HTTP thường nghĩa là không chấp nhận range đó |
-| `q=1.2` hoặc `q=-0.1` | Sai vì nằm ngoài khoảng `[0.0, 1.0]`; `parse` ném `IllegalArgumentException` |
+| No `q` | Defaults to `1.0`, corresponding to `MAX_WEIGHT` |
+| `q=1.0` | Maximum priority level |
+| `q=0.8` | Preferred, but lower than `1.0` |
+| `q=0` | Lowest level `MIN_WEIGHT`; in an HTTP context usually means that range is not acceptable |
+| `q=1.2` or `q=-0.1` | Invalid because it is outside `[0.0, 1.0]`; `parse` throws `IllegalArgumentException` |
 
-Không cộng các trọng số để ra 1; chúng **không phải xác suất**. `q` cũng không phải điểm chất lượng bản dịch. Dấu `;q=` gắn với range ngay trước nó, còn dấu phẩy ngăn các range khác nhau.
+Do not sum weights to equal 1; they are **not probabilities**. `q` is also not a translation quality score. The `;q=` attaches to the range immediately preceding it, while commas separate different ranges.
 
-## 3. Ví dụ Java 17+ chạy độc lập
+## 3. Standalone Java 17+ Example
 
-Lưu mã vào tệp `LanguagePriorityDemo.java`:
+Save the code to `LanguagePriorityDemo.java`:
 
 ```java
 import java.util.List;
@@ -77,14 +77,14 @@ public class LanguagePriorityDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac LanguagePriorityDemo.java
 java LanguagePriorityDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 vi -> 1.0
@@ -93,31 +93,31 @@ en-us -> 0.6
 en-gb -> 0.3
 ```
 
-Điều cần quan sát: `vi` được đưa lên đầu dù xuất hiện sau `en-US` trong chuỗi gốc; danh sách được **sắp xếp theo trọng số giảm dần**. Các range `en-US`, `en-GB` được chuẩn hóa thành chữ thường ở `getRange()`. `printf("%.1f")` chỉ dùng để biểu diễn ví dụ; không làm tròn giá trị `double` trước khi thực hiện logic ưu tiên.
+What to observe: `vi` is placed first even though it appeared after `en-US` in the original string; the list is **sorted by descending weight**. Ranges `en-US` and `en-GB` are normalized to lowercase in `getRange()`. `printf("%.1f")` is used only to display the example; do not round `double` values before executing priority logic.
 
-`parse` trả một `List` có thể sửa đổi. Tuy nhiên, khi phân tích header từ người dùng, nên chuyển danh sách kết quả qua bước matching mà không vô tình sắp xếp lại hoặc sửa trọng số.
+`parse` returns a modifiable `List`. However, when parsing user headers, pass the resulting list to the matching step without accidentally re-sorting or altering weights.
 
-## 4. Thứ tự ưu tiên, trường hợp trùng và equivalent range
+## 4. Priority Order, Duplicates, and Equivalent Ranges
 
-### Không có `q`
+### Without `q`
 
 ```java
 List<Locale.LanguageRange> ranges =
         Locale.LanguageRange.parse("vi,en-US,fr");
 ```
 
-Tất cả range có trọng số `1.0`. Thứ tự khai báo `vi` → `en-us` → `fr` được giữ theo ưu tiên của danh sách gốc. Với input không có `q`, mục đứng trước thể hiện ưu tiên trước.
+All ranges have weight `1.0`. The declared order `vi` → `en-us` → `fr` is preserved according to the original list's priority. For inputs without `q`, earlier items indicate higher priority.
 
-### Có `q`
+### With `q`
 
 ```java
 List<Locale.LanguageRange> ranges =
         Locale.LanguageRange.parse("en-US;q=0.4,vi;q=0.9,fr;q=0.6");
 ```
 
-Kết quả được sắp thành `vi (0.9)` → `fr (0.6)` → `en-us (0.4)`. Do vậy không nên xử lý trực tiếp thứ tự chuỗi đầu vào khi có trọng số.
+The result is sorted as `vi (0.9)` → `fr (0.6)` → `en-us (0.4)`. Therefore, you should not process the raw input string order directly when weights are present.
 
-### Range trùng nhau: giữ **lần xuất hiện đầu tiên**
+### Duplicate Ranges: Keep the **First Occurrence**
 
 ```java
 List<Locale.LanguageRange> ranges = Locale.LanguageRange.parse(
@@ -129,25 +129,25 @@ for (Locale.LanguageRange range : ranges) {
 }
 ```
 
-Đầu ra:
+Output:
 
 ```text
 0.8 fr
 0.2 en-us
 ```
 
-`en-US` thứ hai có trọng số `0.9` **không thay thế** mục đầu tiên `0.2`. Java chỉ giữ lần xuất hiện đầu của range trùng, sau đó sắp xếp danh sách theo trọng số.
+The second `en-US` with weight `0.9` **does not replace** the first entry `0.2`. Java keeps only the first occurrence of a duplicate range, then sorts the list by weight.
 
-### IANA equivalents: output có thể dài hơn input
+### IANA Equivalents: Output Can Be Longer Than Input
 
-`parse` tự bổ sung các **language range tương đương** có trong dữ liệu IANA Language Subtag Registry. Ví dụ mã cũ `iw` (Hebrew) và mã mới `he`:
+`parse` automatically adds **equivalent language ranges** found in the IANA Language Subtag Registry data. For example, legacy code `iw` (Hebrew) and current code `he`:
 
 ```java
 List<Locale.LanguageRange> ranges =
         Locale.LanguageRange.parse("iw,en;q=0.5");
 ```
 
-Trên Java 17+, danh sách có các mục sau:
+On Java 17+, the list contains the following entries:
 
 | Range | Weight |
 |---|---:|
@@ -155,24 +155,24 @@ Trên Java 17+, danh sách có các mục sau:
 | `he` | 1.0 |
 | `en` | 0.5 |
 
-Hai mã Hebrew cùng mức ưu tiên; việc thêm `he` giúp bước matching phát hiện tag hỗ trợ dùng mã mới. **Số phần tử sau parse có thể lớn hơn số mục được ngăn bằng dấu phẩy.** Không viết logic giả định một input range sẽ cho đúng một object. Danh sách tương đương có thể phụ thuộc dữ liệu IANA/JDK theo phiên bản.
+Both Hebrew codes have the same priority level; adding `he` helps the matching step find supported tags that use the newer code. **The number of elements after parsing can be larger than the number of comma-separated items.** Do not write logic assuming one input range produces exactly one object. The list of equivalents can depend on IANA/JDK data by version.
 
-## 5. Phân biệt `Locale.LanguageRange` với `Locale`
+## 5. Distinguishing `Locale.LanguageRange` from `Locale`
 
-Một `Locale` như `Locale.forLanguageTag("en-US")` mô tả một đối tượng locale cụ thể. `LanguageRange("en")` mô tả **một yêu cầu matching**, có thể đối chiếu với nhiều tag như `en-US`, `en-GB` theo quy tắc filtering.
+A `Locale` like `Locale.forLanguageTag("en-US")` describes a specific locale object. `LanguageRange("en")` describes **a matching criterion**, which can match multiple tags such as `en-US` and `en-GB` under filtering rules.
 
-- `Locale.forLanguageTag("vi-VN")` nhận **một** language tag BCP 47.
-- `Locale.LanguageRange.parse("vi-VN, en;q=0.7")` nhận **danh sách** range gắn trọng số.
-- `Locale.filterTags(priorityList, supportedTags)` tìm **nhiều** tag được hỗ trợ phù hợp.
-- `Locale.lookupTag(priorityList, supportedTags)` tìm **một** tag được hỗ trợ theo quy tắc lookup, hoặc trả `null`.
+- `Locale.forLanguageTag("vi-VN")` accepts **one** BCP 47 language tag.
+- `Locale.LanguageRange.parse("vi-VN, en;q=0.7")` accepts a **list** of weighted ranges.
+- `Locale.filterTags(priorityList, supportedTags)` finds **multiple** matching supported tags.
+- `Locale.lookupTag(priorityList, supportedTags)` finds **one** supported tag under lookup rules, or returns `null`.
 
-Không truyền nguyên header `Accept-Language` cho `Locale.forLanguageTag(...)`: đầu vào có dấu phẩy và `q` là chuỗi danh sách, không phải một tag đơn.
+Do not pass an entire `Accept-Language` header to `Locale.forLanguageTag(...)`: input containing commas and `q` is a list string, not a single tag.
 
-## 6. Matching sau `parse`: filtering khác lookup
+## 6. Matching After `parse`: Filtering vs. Lookup
 
-`parse` không xác định ngôn ngữ phục vụ. Bước tiếp theo phải biết tập các locale mà dịch vụ thực sự cung cấp. Ví dụ có ba ngôn ngữ hỗ trợ `fr-FR`, `en-US`, `vi-VN`.
+`parse` does not determine which language to serve. The next step requires knowing the set of locales the service actually provides. For example, three supported languages: `fr-FR`, `en-US`, `vi-VN`.
 
-Tạo tệp `LanguageMatchingDemo.java`:
+Create the file `LanguageMatchingDemo.java`:
 
 ```java
 import java.util.List;
@@ -193,49 +193,49 @@ public class LanguageMatchingDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac LanguageMatchingDemo.java
 java LanguageMatchingDemo
 ```
 
-Output đã kiểm tra:
+Verified output:
 
 ```text
 [fr-FR, en-US]
 en-US
 ```
 
-**Vì sao khác nhau?** `filterTags` dùng quy tắc filtering của RFC 4647 và tìm được `fr-FR` từ range `fr`. `lookupTag` dùng thuật toán lookup, so các range theo ưu tiên và quy tắc rút bớt subtags; nó không tự suy ra `fr-CA` cần fallback sang `fr-FR` như con người có thể mong muốn. Với tập ứng viên này, lookup tìm được `en-US`.
+**Why are they different?** `filterTags` uses RFC 4647 filtering rules and finds `fr-FR` from the range `fr`. `lookupTag` uses the lookup algorithm, checking ranges by priority and subtag truncation rules; it does not automatically deduce that `fr-CA` should fall back to `fr-FR` as a human might expect. With this candidate set, lookup finds `en-US`.
 
-Đừng coi `lookupTag` là fuzzy matching theo văn hóa. Nếu sản phẩm muốn quy tắc riêng `fr-CA` → `fr-FR`, phải thiết kế rõ bằng tập ưu tiên/ánh xạ hoặc cơ chế fallback của sản phẩm. `filterTags` dùng để liệt kê các lựa chọn phù hợp; `lookupTag` dùng khi cần một tag phù hợp theo lookup.
+Do not treat `lookupTag` as culturally aware fuzzy matching. If a product wants a custom rule `fr-CA` → `fr-FR`, it must be explicitly designed via priority sets/mappings or a product fallback mechanism. Use `filterTags` to list compatible choices; use `lookupTag` when a single matching tag per lookup is needed.
 
-Khi danh sách ứng viên là `Collection<Locale>` thay vì `Collection<String>`, chọn `Locale.filter(...)` hoặc `Locale.lookup(...)`. Các phương thức `*Tags` chỉ thao tác với chuỗi tag.
+When the candidate list is a `Collection<Locale>` instead of `Collection<String>`, choose `Locale.filter(...)` or `Locale.lookup(...)`. The `*Tags` methods operate only on tag strings.
 
-## 7. Wildcard, extended range, `q=0` và chế độ filtering
+## 7. Wildcards, Extended Ranges, `q=0`, and Filtering Modes
 
-**Wildcard `*`:** `"vi;q=1.0,*;q=0.1"` cho phép cân nhắc các tag khác khi không có lựa chọn ưu tiên cao phù hợp, tùy thuật toán matching. Dấu `*` không phải một bản dịch hay mã locale riêng.
+**Wildcard `*`:** `"vi;q=1.0,*;q=0.1"` allows considering other tags when no high-priority choice matches, depending on the matching algorithm. The `*` symbol is not a translation or separate locale code.
 
-**Extended range:** `"zh-Hant-*"` và `"*-CH"` hợp lệ dưới cú pháp extended language range. Khi gọi `Locale.filterTags` với các mẫu này, phải hiểu `Locale.FilteringMode`, nhất là `EXTENDED_FILTERING`. Một số chế độ chuyển extended range thành basic range, bỏ qua hoặc từ chối chúng. Không mặc định rằng tất cả chế độ có cùng semantics của dấu `*` trong subtags.
+**Extended range:** `"zh-Hant-*"` and `"*-CH"` are valid under extended language range syntax. When calling `Locale.filterTags` with these patterns, you must understand `Locale.FilteringMode`, especially `EXTENDED_FILTERING`. Some modes map extended ranges to basic ranges, ignore them, or reject them. Do not assume all modes share the same semantics for `*` in subtags.
 
-**Trọng số `q=0`:** Trong HTTP, q=0 thể hiện không muốn phạm vi ngôn ngữ tương ứng. `parse` vẫn trả phần tử này với `getWeight()==0.0`. Quy tắc lọc/loại trừ thuộc bước matching, đặc biệt cần kiểm thử khi có wildcard và nhiều range chồng lấn. Đừng tự chọn phần tử thứ nhất sau `parse` hoặc lấy tất cả range có `q` không âm và coi chúng đều được chấp nhận.
+**Weight `q=0`:** In HTTP, q=0 indicates not wanting the corresponding language range. `parse` still returns this entry with `getWeight()==0.0`. Filtering/exclusion rules belong to the matching step, which especially needs testing when wildcards and multiple overlapping ranges are present. Do not blindly pick the first element after `parse` or take all ranges with non-negative `q` and assume they are all acceptable.
 
-## 8. Phát hiện input sai cú pháp
+## 8. Detecting Malformed Input
 
-`LanguageRange.parse` thực hiện **syntactic validation**, không xác nhận mỗi mã nằm trong IANA Language Subtag Registry hoặc có bản dịch trên server.
+`LanguageRange.parse` performs **syntactic validation**, not confirming that each code exists in the IANA Language Subtag Registry or has translations on the server.
 
-| Input | Xử lý |
+| Input | Handling |
 |---|---|
-| `"vi,en;q=0.5"` | Hợp lệ |
-| `"en;q=0"` | Hợp lệ, trọng số bằng 0 |
-| `"en;q=1.2"` | `IllegalArgumentException` vì trọng số lớn hơn 1 |
-| `"en;q=-0.1"` | `IllegalArgumentException` vì trọng số âm |
-| `"en--US"` | `IllegalArgumentException` vì có subtag rỗng |
+| `"vi,en;q=0.5"` | Valid |
+| `"en;q=0"` | Valid, weight equals 0 |
+| `"en;q=1.2"` | `IllegalArgumentException` because weight is greater than 1 |
+| `"en;q=-0.1"` | `IllegalArgumentException` because weight is negative |
+| `"en--US"` | `IllegalArgumentException` because of an empty subtag |
 | `null` | `NullPointerException` |
-| Mã đúng mẫu nhưng không có trong bảng hỗ trợ | Có thể parse thành công; xử lý ở bước hỗ trợ/matching |
+| Pattern-valid code not in the support table | Can parse successfully; handled at the support/matching step |
 
-Tạo tệp `ParseLanguageRangesSafely.java`:
+Create the file `ParseLanguageRangesSafely.java`:
 
 ```java
 import java.util.List;
@@ -256,24 +256,24 @@ public class ParseLanguageRangesSafely {
 }
 ```
 
-Chạy `javac ParseLanguageRangesSafely.java` và `java ParseLanguageRangesSafely`. Kết quả:
+Run `javac ParseLanguageRangesSafely.java` and `java ParseLanguageRangesSafely`. Output:
 
 ```text
 Invalid language preferences
 ```
 
-Với dữ liệu header thật, kiểm tra `null`, dữ liệu trống và giới hạn độ dài, bắt `IllegalArgumentException`, rồi fallback theo **chính sách ứng dụng**. Nếu đầu vào bị lỗi, không dùng giá trị chưa kiểm tra để xây dựng đường dẫn tài nguyên hoặc tự đổi default locale chung của toàn máy chủ.
+For real header data, check `null`, blank data, and length limits, catch `IllegalArgumentException`, and fall back according to **application policy**. If input is invalid, do not use unvalidated values to build resource paths or change the server-wide default locale.
 
-## 9. Overload `parse(String, Map)`: ánh xạ tương đương tùy chỉnh
+## 9. Overload `parse(String, Map)`: Custom Equivalence Mappings
 
-Ngoài `parse(String)`, Java còn có:
+Besides `parse(String)`, Java also has:
 
 ```java
 List<Locale.LanguageRange> result =
         Locale.LanguageRange.parse(raw, equivalents);
 ```
 
-Trong đó `equivalents` là `Map<String, List<String>>` định nghĩa những range ứng dụng muốn coi là tương đương. Nó hoạt động tương đương:
+Here `equivalents` is a `Map<String, List<String>>` defining the ranges the application wants to treat as equivalent. It works identically to:
 
 ```java
 Locale.LanguageRange.mapEquivalents(
@@ -281,7 +281,7 @@ Locale.LanguageRange.mapEquivalents(
         equivalents);
 ```
 
-Ví dụ minh họa, nếu đã có biến `raw` và import `java.util.Map`, `java.util.List`:
+Illustrative example, assuming variable `raw` and imports `java.util.Map`, `java.util.List`:
 
 ```java
 Map<String, List<String>> equivalents =
@@ -290,13 +290,13 @@ List<Locale.LanguageRange> preferences =
         Locale.LanguageRange.parse(raw, equivalents);
 ```
 
-Ánh xạ này diễn ra sau phần bổ sung equivalent từ IANA và giữ trọng số gốc. Tuy nhiên, **đây chỉ là ví dụ API**, không phải khuyến nghị trộn hai hệ chữ Hán làm một; trong giao diện thật, `zh-Hans` và `zh-Hant` có thể cần bản dịch riêng biệt. Chỉ áp dụng custom map khi có quy tắc nghiệp vụ được thiết kế rõ, không coi nó là cách bổ sung bản dịch vào server.
+This mapping occurs after adding IANA equivalents and preserves the original weight. However, **this is only an API example**, not a recommendation to merge two Chinese scripts into one; in a real UI, `zh-Hans` and `zh-Hant` may need separate translations. Apply a custom map only when there is a clearly designed business rule, not as a substitute for adding translations on the server.
 
-## 10. Một chính sách fallback hoàn chỉnh
+## 10. A Complete Fallback Policy
 
-Giả sử sản phẩm hỗ trợ đúng `vi-VN`, `en-US` và `fr-FR`. Ta có thể chọn một tag bằng `lookupTag`; nếu không tìm được hoặc chuỗi đầu vào sai, trả về locale mặc định **đã được server hỗ trợ**.
+Suppose a product supports strictly `vi-VN`, `en-US`, and `fr-FR`. We can pick a tag with `lookupTag`; if none is found or the input string is invalid, return a default locale **supported by the server**.
 
-Tạo tệp `SelectSupportedLocale.java`:
+Create the file `SelectSupportedLocale.java`:
 
 ```java
 import java.util.List;
@@ -330,14 +330,14 @@ public class SelectSupportedLocale {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac SelectSupportedLocale.java
 java SelectSupportedLocale
 ```
 
-Đầu ra:
+Output:
 
 ```text
 fr-FR
@@ -345,34 +345,34 @@ en-US
 en-US
 ```
 
-Đây là một chính sách minh họa: dùng lookup và fallback `en-US`. Nó không bảo đảm rằng một range ngắn `vi` sẽ tự được mở rộng thành `vi-VN` theo mọi thuật toán. Nếu sản phẩm muốn hành vi đó, cần thực hiện quy tắc mapping/fallback rõ ràng và kiểm thử.
+This is an illustrative policy: using lookup and fallback `en-US`. It does not guarantee that a short range `vi` will automatically expand to `vi-VN` under every algorithm. If the product wants that behavior, explicit mapping/fallback rules must be implemented and tested.
 
-Quy trình thực tế thường là: nhận `Accept-Language` → `parse` → matching với danh sách supported locale → fallback khi không tìm thấy → tải bản dịch/định dạng bằng locale cuối cùng. `Content-Language` trong HTTP response (nếu được xuất) nên phản ánh **ngôn ngữ thực tế được phục vụ**, không đơn giản sao chép toàn bộ header sở thích đầu vào. Với `ResourceBundle`, tiếp tục kiểm thử cơ chế fallback của tài nguyên vì có thể không tồn tại bundle chính xác.
+The real-world flow is usually: receive `Accept-Language` → `parse` → match against the supported locales list → fall back when not found → load translations/formatting with the final locale. `Content-Language` in the HTTP response (if emitted) should reflect **the actual language served**, rather than simply copying the entire input preference header. With `ResourceBundle`, continue testing resource fallback rules because an exact bundle may not exist.
 
-Không gọi `Locale.setDefault(...)` cho mỗi HTTP request: đây là trạng thái default chia sẻ trong tiến trình và có thể tác động tới request khác. Truyền locale đã chọn tường minh cho các formatter, parser và bộ tải tài nguyên.
+Do not call `Locale.setDefault(...)` per HTTP request: it is process-shared default state and can affect other requests. Pass the selected locale explicitly to formatters, parsers, and resource loaders.
 
-## 11. Các lỗi thường gặp
+## 11. Common Pitfalls
 
-1. **Dùng `Locale.forLanguageTag` để parse cả `Accept-Language`:** phương thức này xử lý một tag, không xử lý danh sách nhiều mục có `q`.
-2. **Tin rằng mục đầu của input là ưu tiên cao nhất:** sai khi các `q` không đi theo thứ tự giảm dần; xem danh sách `parse` trả về.
-3. **Coi trọng số là xác suất:** `q` không cần có tổng bằng 1.
-4. **Lấy lần cuối của range trùng:** Java giữ **lần đầu tiên**, bất kể lần sau có trọng số cao hơn.
-5. **Giả định một input tạo đúng một range:** equivalence từ IANA có thể làm số phần tử tăng.
-6. **Bỏ qua trường hợp `q=0`:** nó là giá trị hợp lệ, cần được xử lý đúng ở matching.
-7. **Coi wildcard là locale:** `*` là biểu thức range, không phải mã dịch.
-8. **Giả định filtering và lookup giống nhau:** hai thuật toán có kết quả khác như ví dụ `fr-CA`.
-9. **Đoán `parse` xác minh mã IANA:** API chỉ kiểm tra cú pháp; ứng dụng phải kiểm tra danh sách supported.
-10. **Bỏ qua ngoại lệ/null:** input lỗi có thể làm gián đoạn request; cần fallback an toàn.
-11. **Dùng tên ngôn ngữ hiển thị để matching:** so sánh tags/locale, không so chuỗi `getDisplayName()` đã bản địa hóa.
-12. **Sửa default locale toàn cục theo người dùng:** dùng locale cục bộ theo request.
+1. **Using `Locale.forLanguageTag` to parse an entire `Accept-Language`:** this method handles a single tag, not a multi-item list with `q`.
+2. **Believing the first input item has the highest priority:** wrong when `q` values are not in descending order; inspect the list returned by `parse`.
+3. **Treating weights as probabilities:** `q` values do not need to sum to 1.
+4. **Taking the last occurrence of duplicate ranges:** Java keeps **the first occurrence**, regardless of whether a later one has a higher weight.
+5. **Assuming one input produces exactly one range:** IANA equivalences can increase the element count.
+6. **Ignoring the `q=0` case:** it is a valid value and must be handled properly during matching.
+7. **Treating a wildcard as a locale:** `*` is a range expression, not a translation code.
+8. **Assuming filtering and lookup are the same:** the two algorithms produce different results as shown in the `fr-CA` example.
+9. **Assuming `parse` validates IANA codes:** the API only checks syntax; the application must check the supported list.
+10. **Ignoring exceptions/null:** invalid input can disrupt requests; safe fallback is needed.
+11. **Using display language names for matching:** compare tags/locales, not localized `getDisplayName()` strings.
+12. **Modifying the global default locale per user:** use a request-scoped local locale.
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-Check Questions
 
-- Với `"en;q=0.4,vi;q=0.9,fr;q=0.7"`, kết quả ưu tiên là **vi → fr → en**.
-- Với `"en-US;q=0.3,en-US;q=0.8"`, chỉ **en-us với trọng số 0.3** được giữ.
-- Với `"iw,en;q=0.5"`, Java có thể thêm range **he** nhờ IANA equivalence.
-- Với `q=0`, `parse` vẫn tạo range và giữ trọng số **0.0**.
-- `parse` **không bảo đảm** server có bundle cho locale yêu cầu.
-- Sau `parse`, dùng **filter** nếu cần các lựa chọn thỏa quy tắc lọc; dùng **lookup** khi cần một ứng viên theo quy tắc lookup, đồng thời xử lý `null` và fallback.
+- For `"en;q=0.4,vi;q=0.9,fr;q=0.7"`, the priority result is **vi → fr → en**.
+- For `"en-US;q=0.3,en-US;q=0.8"`, only **en-us with weight 0.3** is retained.
+- For `"iw,en;q=0.5"`, Java can add the range **he** via IANA equivalence.
+- For `q=0`, `parse` still creates a range and keeps weight **0.0**.
+- `parse` **does not guarantee** the server has a bundle for the requested locale.
+- After `parse`, use **filter** if you need choices satisfying filtering rules; use **lookup** when you need one candidate under lookup rules, while also handling `null` and fallback.
 
-**Tham khảo:** [Java SE 17 — Locale.LanguageRange](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.LanguageRange.html) · [Java SE 17 — Locale Matching](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html) · [RFC 4647 — Matching of Language Tags](https://www.rfc-editor.org/rfc/rfc4647).
+**References:** [Java SE 17 — Locale.LanguageRange](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.LanguageRange.html) · [Java SE 17 — Locale Matching](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html) · [RFC 4647 — Matching of Language Tags](https://www.rfc-editor.org/rfc/rfc4647).

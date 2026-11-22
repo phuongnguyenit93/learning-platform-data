@@ -1,16 +1,16 @@
-# IllegalAccessError sau khi module graph thay đổi
+# IllegalAccessError After Module Graph Changes
 
-Khi một ứng dụng Java đã compile thành công nhưng sau đó gặp `IllegalAccessError` lúc chạy, nguyên nhân có thể nằm ở sự thay đổi của module graph hoặc module descriptor giữa thời điểm compile và runtime. Một module từng đọc được module khác, hoặc từng được phép truy cập một package, có thể không còn quyền đó trong cấu hình runtime mới.
+When a Java application compiles successfully but later encounters an `IllegalAccessError` at runtime, the cause may lie in a change to the module graph or module descriptors between compile time and runtime. A module that previously could read another module, or previously had permission to access a package, may no longer have that permission in the new runtime configuration.
 
-`IllegalAccessError` là một lỗi liên kết ở runtime thuộc nhóm `LinkageError`. Nó thường cho biết bytecode đang cố truy cập một class hoặc member mà JVM không cho phép truy cập theo cấu trúc thực tế đang được nạp. Với JPMS, cần kiểm tra ít nhất hai điều kiện: **readability** (module gọi có đọc module đích hay không) và **accessibility** (package có được module đích export cho module gọi hay không).
+`IllegalAccessError` is a runtime linkage error belonging to the `LinkageError` family. It typically indicates that bytecode is attempting to access a class or member that the JVM does not permit accessing under the actual loaded structure. With JPMS, at least two conditions must be checked: **readability** (whether the calling module reads the target module) and **accessibility** (whether the package is exported by the target module to the calling module).
 
-Bài này tập trung vào lỗi phát sinh sau khi module graph thay đổi: nâng cấp thư viện, thay đổi `module-info.java`, thay module path, hoặc chạy bytecode cũ với descriptor mới.
+This lesson focuses on errors arising after module graph changes: library upgrades, changes to `module-info.java`, module path changes, or running older bytecode with a newer descriptor.
 
-## 1. IllegalAccessError là gì?
+## 1. What Is IllegalAccessError?
 
-`IllegalAccessError` là một `LinkageError` được JVM ném khi một class cố truy cập một class hoặc member mà quyền truy cập thực tế không cho phép. Lỗi thường xuất hiện khi liên kết symbolic reference trong bytecode với class/member ở runtime.
+`IllegalAccessError` is a `LinkageError` thrown by the JVM when a class attempts to access a class or member whose actual access permissions disallow it. The error typically occurs when linking symbolic references in bytecode to classes/members at runtime.
 
-Ví dụ thông báo có thể có dạng:
+An example message may look like:
 
 ~~~text
 java.lang.IllegalAccessError:
@@ -21,25 +21,25 @@ java.lang.IllegalAccessError:
   com.acme.library.internal to module com.acme.app
 ~~~
 
-Thông báo này cho biết:
+This message indicates:
 
-- Class gọi là `com.acme.app.Main`, thuộc module `com.acme.app`.
-- Class được truy cập là `com.acme.library.internal.Helper`, thuộc module `com.acme.library`.
-- Package `com.acme.library.internal` không được export cho module gọi.
-- JVM từ chối truy cập khi liên kết/chạy bytecode.
+- The calling class is `com.acme.app.Main`, belonging to module `com.acme.app`.
+- The accessed class is `com.acme.library.internal.Helper`, belonging to module `com.acme.library`.
+- Package `com.acme.library.internal` is not exported to the calling module.
+- The JVM denied access when linking/executing bytecode.
 
-Một dạng khác có thể nhắc tới việc module gọi không đọc module đích. Khi đó cần kiểm tra cạnh readability trong module graph.
+Another variant may mention that the calling module does not read the target module. In that case, check the readability edge in the module graph.
 
-Không phải mọi `IllegalAccessError` đều do JPMS. Lỗi cũng có thể xảy ra khi class, method hoặc field không còn public hoặc không còn đáp ứng quy tắc truy cập Java thông thường. Hãy đọc đầy đủ tên class, module, package và member trong thông báo trước khi chọn cách sửa.
+Not every `IllegalAccessError` is caused by JPMS. The error can also happen when a class, method, or field is no longer public or no longer satisfies standard Java access rules. Read the full class, module, package, and member names in the message before choosing a fix.
 
-## 2. Hai điều kiện quan trọng của JPMS: readability và exports
+## 2. Two Key JPMS Conditions: Readability and Exports
 
-Để một class trong module A sử dụng public type thuộc module B, thông thường cần thỏa mãn cả hai điều kiện:
+For a class in module A to use a public type belonging to module B, both conditions normally must be satisfied:
 
 1. Module A **reads** module B.
-2. Module B **exports** package chứa public type cho module A.
+2. Module B **exports** the package containing the public type to module A.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.library {
@@ -53,17 +53,17 @@ module com.acme.app {
 }
 ~~~
 
-Ứng dụng có thể sử dụng public type trong package `com.acme.library.api`. Cạnh `requires` tạo readability từ `com.acme.app` tới `com.acme.library`; chỉ thị `exports` cho phép truy cập API công khai trong package.
+The application can use public types in the `com.acme.library.api` package. The `requires` edge establishes readability from `com.acme.app` to `com.acme.library`; the `exports` directive permits accessing the public API in the package.
 
-Nếu bỏ `requires com.acme.library`, module app có thể không đọc module library. Nếu bỏ `exports com.acme.library.api`, module app có thể đọc module library nhưng không được truy cập kiểu trong package đó. Hai lỗi có nguyên nhân khác nhau và cần sửa ở đúng cạnh.
+If `requires com.acme.library` is removed, the app module may fail to read the library module. If `exports com.acme.library.api` is removed, the app module can read the library module but cannot access types in that package. The two errors have different causes and must be fixed on the corresponding edge.
 
-### Readability không đồng nghĩa với accessibility
+### Readability does not equal accessibility
 
-- `requires` điều khiển module nào được module hiện tại đọc.
-- `exports` điều khiển package nào được module khác truy cập theo quy tắc Java thông thường.
-- `opens` cấp quyền truy cập phản chiếu sâu (deep reflection) cho package; nó không thay thế `exports` cho lời gọi API thông thường.
+- `requires` controls which modules the current module reads.
+- `exports` controls which packages other modules can access under standard Java rules.
+- `opens` grants deep reflection permission for a package; it does not replace `exports` for normal API calls.
 
-Một package có thể được export cho module A nhưng không export cho module B. Đây là qualified export:
+A package can be exported to module A but not exported to module B. This is a qualified export:
 
 ~~~java
 module com.acme.library {
@@ -72,15 +72,15 @@ module com.acme.library {
 }
 ~~~
 
-Chỉ module `com.acme.app` được truy cập package `com.acme.library.spi` theo chỉ thị qualified export.
+Only module `com.acme.app` is permitted to access package `com.acme.library.spi` under the qualified export directive.
 
-## 3. Vì sao module graph thay đổi lại gây lỗi?
+## 3. Why Do Module Graph Changes Cause Errors?
 
-Có một số tình huống thường gặp.
+Several common scenarios exist.
 
-### Descriptor của dependency thay đổi
+### Dependency descriptor changes
 
-Ở phiên bản thư viện cũ:
+In an older library version:
 
 ~~~java
 module com.acme.library {
@@ -88,7 +88,7 @@ module com.acme.library {
 }
 ~~~
 
-Ứng dụng vô tình sử dụng class trong package `internal`. Sau đó thư viện đổi descriptor:
+The application inadvertently used classes in the `internal` package. Later, the library changed its descriptor:
 
 ~~~java
 module com.acme.library {
@@ -96,127 +96,127 @@ module com.acme.library {
 }
 ~~~
 
-Package `com.acme.library.internal` không còn được export. Bytecode ứng dụng đã compile trước đó vẫn chứa symbolic reference tới class cũ, nhưng khi chạy với phiên bản mới, JVM không còn cho phép truy cập. Kết quả có thể là `IllegalAccessError`.
+Package `com.acme.library.internal` is no longer exported. Previously compiled application bytecode still contains symbolic references to the old class, but when run against the new version, the JVM no longer permits access. The result can be an `IllegalAccessError`.
 
-Đây là dấu hiệu ứng dụng đang phụ thuộc vào một package không còn thuộc API được công khai.
+This signals that the application depends on a package that is no longer part of the published API.
 
-### Cạnh requires bị loại bỏ hoặc thay đổi
+### A requires edge is removed or changed
 
-Nếu module app trước đây đọc module library thông qua `requires`, `requires transitive`, hoặc một cấu hình bổ sung, nhưng descriptor/runtime graph mới không còn cạnh readability tương ứng, việc truy cập class ở runtime có thể thất bại.
+If the app module previously read the library module via `requires`, `requires transitive`, or an additional configuration, and the new descriptor/runtime graph no longer has the corresponding readability edge, accessing classes at runtime can fail.
 
-Không nên dựa vào `requires transitive` của một module trung gian nếu ứng dụng thực sự dùng trực tiếp API của dependency. Hãy khai báo dependency trực tiếp khi module của bạn sử dụng kiểu thuộc module đó.
+Do not rely on `requires transitive` from an intermediate module if the application actually uses the dependency's API directly. Declare a direct dependency when your module uses types belonging to that module.
 
-### Runtime nạp nhầm phiên bản module
+### Runtime loads the wrong module version
 
-Build có thể compile với một phiên bản JAR nhưng lệnh chạy lại dùng module path khác. Hai phiên bản có cùng module name nhưng descriptor và package export khác nhau. Launcher resolve module từ nguồn được tìm thấy trong cấu hình runtime, khiến quyền truy cập khác với lúc compile.
+A build may compile against one JAR version while the launch command uses a different module path. Both versions share the same module name but have different descriptors and exported packages. The launcher resolves modules from the sources found in the runtime configuration, resulting in different access permissions than at compile time.
 
-### Thay đổi từ classpath sang module path
+### Moving from classpath to module path
 
-Một thư viện từng chạy trên classpath có thể thuộc unnamed module và được truy cập theo quy tắc classpath. Khi đưa thư viện lên module path, nó trở thành named module (hoặc automatic module), nên quy tắc readability và exports được áp dụng rõ ràng hơn. Code cũ có thể bộc lộ dependency vào package nội bộ.
+A library that previously ran on the classpath belonged to the unnamed module and was accessed under classpath rules. When placed on the module path, it becomes a named module (or automatic module), so readability and exports rules are enforced more explicitly. Legacy code may expose dependencies on internal packages.
 
-### Nâng cấp JDK và strong encapsulation
+### JDK upgrades and strong encapsulation
 
-Các phiên bản Java mới đã tăng cường đóng gói nội bộ của JDK. Từ JDK 17, cơ chế `--illegal-access` không còn khôi phục chế độ truy cập rộng như các bản cũ. Ứng dụng truy cập JDK internal API có thể cần thay bằng API công khai hoặc cấu hình export/open có chủ đích trong thời gian chuyển đổi.
+Recent Java releases have tightened encapsulation of JDK internals. Starting in JDK 17, the `--illegal-access` mechanism no longer restores broad access modes as in older releases. Applications accessing JDK internal APIs may need to switch to public APIs or configure targeted export/open permissions during transition.
 
-## 4. Phân biệt IllegalAccessError với lỗi truy cập reflection
+## 4. Distinguishing IllegalAccessError from Reflection Access Errors
 
-Không phải lỗi truy cập nào cũng là `IllegalAccessError`.
+Not every access error is an `IllegalAccessError`.
 
-| Lỗi | Thời điểm/cách phát sinh thường gặp | Ý nghĩa |
+| Error | Common Occurrence / Trigger | Meaning |
 |---|---|---|
-| `IllegalAccessError` | Runtime linkage/bytecode access | Bytecode truy cập class hoặc member không được phép |
-| `IllegalAccessException` | Reflection API như `Method.invoke` trong một số trường hợp | Reflection không thể thực hiện thao tác truy cập |
-| `InaccessibleObjectException` | `setAccessible(true)` hoặc `trySetAccessible()` không thể mở quyền truy cập sâu | Package/module không mở cho caller |
-| `ClassNotFoundException` | Nạp class bằng tên, thường qua API class loading | Không tìm thấy class |
-| `NoClassDefFoundError` | Linkage/runtime sau khi class cần thiết không sẵn sàng | Class definition cần dùng không thể được tìm/nạp |
-| `NoSuchMethodError` | Runtime linkage | Bytecode tham chiếu method không tồn tại trong phiên bản class đang nạp |
+| `IllegalAccessError` | Runtime linkage/bytecode access | Bytecode accesses a disallowed class or member |
+| `IllegalAccessException` | Reflection APIs such as `Method.invoke` in certain cases | Reflection cannot perform the access operation |
+| `InaccessibleObjectException` | `setAccessible(true)` or `trySetAccessible()` cannot open deep access | Package/module is not open to the caller |
+| `ClassNotFoundException` | Loading a class by name, typically via class-loading APIs | Class was not found |
+| `NoClassDefFoundError` | Linkage/runtime after a required class is unavailable | Required class definition cannot be found/loaded |
+| `NoSuchMethodError` | Runtime linkage | Bytecode references a method not present in the loaded class version |
 
-Ví dụ reflection:
+Reflection example:
 
 ~~~java
 Field field = SomeType.class.getDeclaredField("secret");
 field.setAccessible(true);
 ~~~
 
-Nếu package chứa `SomeType` không được mở cho module gọi, thao tác này có thể ném `InaccessibleObjectException`. Đây là vấn đề `opens` và deep reflection.
+If the package containing `SomeType` is not open to the calling module, this operation can throw `InaccessibleObjectException`. This is an `opens` and deep reflection issue.
 
-Ngược lại, nếu code gọi trực tiếp một public class trong package không được export, vấn đề là `exports` và có thể dẫn tới `IllegalAccessError`.
+Conversely, if code directly calls a public class in an unexported package, the issue is `exports` and can lead to `IllegalAccessError`.
 
-Không dùng `--add-opens` để sửa mọi `IllegalAccessError`. Hãy xác định lỗi là truy cập bytecode thông thường hay reflection trước.
+Do not use `--add-opens` to fix every `IllegalAccessError`. First determine whether the error is normal bytecode access or reflection.
 
-## 5. Quy trình chẩn đoán
+## 5. Diagnostic Workflow
 
-Khi lỗi chỉ xuất hiện ở runtime hoặc sau khi nâng cấp module, hãy thu thập bằng chứng theo thứ tự.
+When an error appears only at runtime or after upgrading modules, gather evidence in order.
 
-### Bước 1: Đọc đầy đủ stack trace
+### Step 1: Read the full stack trace
 
-Ghi lại:
+Record:
 
-- Class gọi và module sở hữu class gọi.
-- Class/member bị truy cập và module sở hữu nó.
-- Package bị từ chối.
-- Thông báo nói tới thiếu readability, thiếu export hay quyền truy cập class/member thông thường.
-- JAR hoặc đường dẫn xuất hiện trong stack trace.
+- The calling class and the module owning the calling class.
+- The accessed class/member and the module owning it.
+- The denied package.
+- Whether the message mentions missing readability, missing export, or ordinary class/member access rules.
+- Any JARs or paths appearing in the stack trace.
 
-Đừng chỉ nhìn dòng đầu tiên rồi kết luận rằng cần thêm `--add-exports`.
+Do not look only at the first line and immediately conclude that `--add-exports` is needed.
 
-### Bước 2: Xem module graph thực tế lúc chạy
+### Step 2: Inspect the actual runtime module graph
 
 ~~~bash
 java --show-module-resolution   --module-path mods   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Output giúp xác nhận root module, dependency được resolve và vị trí module được chọn. Nếu module library đến từ đường dẫn khác với dự kiến, hãy kiểm tra module path và artifact đang chạy.
+The output helps confirm root modules, resolved dependencies, and the locations from which modules are selected. If the library module comes from an unexpected path, check the module path and the running artifact.
 
-### Bước 3: Mô tả descriptor của hai module
+### Step 3: Describe both modules' descriptors
 
 ~~~bash
 java --module-path mods --describe-module com.acme.app
 java --module-path mods --describe-module com.acme.library
 ~~~
 
-Kiểm tra:
+Check:
 
-- App có `requires com.acme.library` hay không.
-- Library có export đúng package cho app hay không.
-- Export là unqualified hay qualified.
-- Có `opens` nào liên quan nếu lỗi đến từ reflection không.
+- Whether app has `requires com.acme.library`.
+- Whether library exports the right package to app.
+- Whether the export is unqualified or qualified.
+- Whether any relevant `opens` exists if the error stems from reflection.
 
-### Bước 4: Kiểm tra descriptor đã compile và artifact runtime
+### Step 4: Inspect compiled descriptors and runtime artifacts
 
-Có thể đọc trực tiếp descriptor trong output directory:
+You can read the descriptor directly in the output directory:
 
 ~~~bash
 javap -v out/com.acme.library/module-info.class
 ~~~
 
-Với modular JAR:
+For a modular JAR:
 
 ~~~bash
 jar --describe-module --file lib/com.acme.library.jar
 ~~~
 
-So sánh descriptor của dependency được dùng khi compile với descriptor của dependency đang chạy. Đảm bảo build output cũ không bị trộn với artifact mới.
+Compare the descriptor of the dependency used at compile time with the descriptor of the dependency actually running. Make sure stale build outputs are not mixed with new artifacts.
 
-### Bước 5: Kiểm tra dependency bằng jdeps
+### Step 5: Check dependencies with jdeps
 
 ~~~bash
 jdeps --module-path mods --check com.acme.app
 ~~~
 
-Nếu nghi ngờ ứng dụng phụ thuộc vào JDK internal API:
+If you suspect the application depends on a JDK internal API:
 
 ~~~bash
 jdeps --jdk-internals app.jar
 ~~~
 
-`jdeps` giúp phân tích dependency tĩnh. Nó không thay thế việc quan sát module resolution tại runtime, nhưng có thể chỉ ra dependency hoặc API nội bộ cần được xử lý.
+`jdeps` helps analyze static dependencies. It does not replace observing module resolution at runtime, but it can point out dependencies or internal APIs that need attention.
 
-## 6. Cách sửa ưu tiên: sửa module descriptor và dependency
+## 6. Preferred Fix: Fix Module Descriptors and Dependencies
 
-Nếu ứng dụng sử dụng public API hợp lệ, sửa descriptor để thể hiện đúng dependency.
+If the application uses a valid public API, update descriptors to express the dependency accurately.
 
-Ví dụ module app thực sự dùng module library:
+For example, if the app module genuinely uses the library module:
 
 ~~~java
 module com.acme.app {
@@ -224,7 +224,7 @@ module com.acme.app {
 }
 ~~~
 
-Nếu module library dự định hỗ trợ API đó, export package tương ứng:
+If the library module intends to support that API, export the corresponding package:
 
 ~~~java
 module com.acme.library {
@@ -232,7 +232,7 @@ module com.acme.library {
 }
 ~~~
 
-Nếu API chỉ dành cho một số module được chỉ định:
+If the API is intended only for specific modules:
 
 ~~~java
 module com.acme.library {
@@ -240,81 +240,81 @@ module com.acme.library {
 }
 ~~~
 
-Nếu module app cần đọc một module khác nhưng dependency không được mô tả trong descriptor (chẳng hạn do cấu hình triển khai đặc biệt), có thể dùng `--add-reads` như biện pháp tương thích tạm thời. Tuy nhiên, với dependency ổn định của ứng dụng, nên khai báo `requires` trong `module-info.java`.
+If the app module needs to read another module whose dependency is not described in the descriptor (for instance, due to a special deployment configuration), you can use `--add-reads` as a temporary compatibility measure. However, for stable application dependencies, declare `requires` in `module-info.java`.
 
-Nếu package nội bộ không được thiết kế làm API công khai, cách bền vững là chuyển code sang public API được hỗ trợ. Việc mở lại package nội bộ chỉ nên dùng khi có lý do tương thích rõ ràng.
+If the internal package was not designed as a public API, the sustainable approach is to migrate code to a supported public API. Reopening an internal package should only be done when there is a clear compatibility reason.
 
-## 7. Các tùy chọn command line để xử lý chuyển đổi
+## 7. Command-Line Options for Transition Handling
 
-JPMS cung cấp một số tùy chọn bổ sung. Chúng hữu ích khi cần chạy ứng dụng cũ, kiểm chứng nguyên nhân hoặc chuyển đổi từng bước. Hãy giới hạn target module cụ thể và ghi nhận rõ vì sao cần chúng.
+JPMS provides several additional options. They are useful when running legacy applications, verifying root causes, or migrating incrementally. Limit target modules specifically and document clearly why they are needed.
 
 ### --add-reads
 
-Cú pháp:
+Syntax:
 
 ~~~bash
 --add-reads <source-module>=<target-module>
 ~~~
 
-Bổ sung readability edge từ module nguồn sang module đích.
+Adds a readability edge from the source module to the target module.
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --add-reads com.acme.app=com.acme.optional   --module-path mods   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Tùy chọn này không tự export package của module đích. Nếu package chưa được export, chỉ thêm readability vẫn chưa đủ.
+This option does not automatically export packages of the target module. If the package is not exported, adding readability alone is not enough.
 
 ### --add-exports
 
-Cú pháp:
+Syntax:
 
 ~~~bash
 --add-exports <source-module>/<package>=<target-module>
 ~~~
 
-Cho phép module đích truy cập các kiểu public trong package được chỉ định.
+Allows the target module to access public types in the specified package.
 
-Ví dụ:
+Example:
 
 ~~~bash
 java --add-exports com.acme.library/com.acme.library.internal=com.acme.app   --module-path mods   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Nếu caller thuộc unnamed module (ứng dụng chạy trên classpath), có thể dùng target `ALL-UNNAMED`. Với named module, hãy ghi rõ tên module tiêu thụ.
+If the caller belongs to an unnamed module (application running on the classpath), you can use target `ALL-UNNAMED`. For a named module, specify the consuming module name explicitly.
 
-Nếu cần compile code mới đang truy cập package được export bổ sung, truyền tùy chọn tương ứng cho javac:
+If new code accessing an additionally exported package needs to be compiled, pass the corresponding option to javac:
 
 ~~~bash
 javac --add-exports com.acme.library/com.acme.library.internal=com.acme.app ...
 ~~~
 
-Để ứng dụng chạy được với bytecode đã compile, cấu hình runtime cũng phải cung cấp quyền export tương ứng. Tùy chọn compile không tự thay đổi descriptor của module ở runtime.
+For the application to run with the compiled bytecode, the runtime configuration must also provide the corresponding export permission. Compile-time options do not automatically alter the module's runtime descriptor.
 
 ### --add-opens
 
-Cú pháp:
+Syntax:
 
 ~~~bash
 --add-opens <source-module>/<package>=<target-module>
 ~~~
 
-Mở package cho deep reflection tại runtime. Ví dụ:
+Opens a package for deep reflection at runtime. Example:
 
 ~~~bash
 java --add-opens com.acme.library/com.acme.library.internal=com.acme.app   --module-path mods   --module com.acme.app/com.acme.app.Main
 ~~~
 
-Dùng tùy chọn này khi framework thực sự cần reflection sâu vào member không public. Nó không thay thế `--add-exports` cho truy cập API thông thường và không phải cách sửa chung cho `IllegalAccessError`.
+Use this option when a framework genuinely needs deep reflection into non-public members. It does not replace `--add-exports` for regular API access and is not a general fix for `IllegalAccessError`.
 
-### Không dựa vào --illegal-access
+### Do not rely on --illegal-access
 
-Tùy chọn `--illegal-access` từng hỗ trợ giai đoạn chuyển đổi strong encapsulation ở các bản Java cũ. Từ JDK 17, nó không còn khôi phục quyền truy cập rộng vào JDK internals. Đừng dùng nó làm giải pháp cho ứng dụng hiện đại; hãy thay internal API hoặc cấp đúng quyền truy cập cần thiết bằng tùy chọn cụ thể trong thời gian migration.
+The `--illegal-access` option previously supported the strong encapsulation transition phase in older Java releases. Starting in JDK 17, it no longer restores broad access to JDK internals. Do not use it as a solution for modern applications; instead replace internal APIs or grant the exact required access with targeted options during migration.
 
-## 8. Ví dụ tái hiện lỗi khi export thay đổi
+## 8. Example Reproducing an Error When Exports Change
 
-Giả sử bản library đầu tiên có descriptor:
+Suppose the first version of a library has the descriptor:
 
 ~~~java
 module com.acme.library {
@@ -322,7 +322,7 @@ module com.acme.library {
 }
 ~~~
 
-Và class:
+And class:
 
 ~~~java
 package com.acme.library.internal;
@@ -334,7 +334,7 @@ public class Helper {
 }
 ~~~
 
-App khai báo:
+The app declares:
 
 ~~~java
 module com.acme.app {
@@ -342,7 +342,7 @@ module com.acme.app {
 }
 ~~~
 
-App gọi trực tiếp:
+The app calls directly:
 
 ~~~java
 package com.acme.app;
@@ -356,14 +356,14 @@ public class Main {
 }
 ~~~
 
-Compile và chạy với phiên bản library cũ:
+Compile and run with the old library version:
 
 ~~~bash
 javac --module-path mods --module-source-path src -d out --module com.acme.app
 java --module-path "out:mods" --module com.acme.app/com.acme.app.Main
 ~~~
 
-Sau đó thay descriptor library bằng phiên bản chỉ export API:
+Then replace the library descriptor with a version that exports only the API:
 
 ~~~java
 module com.acme.library {
@@ -371,15 +371,15 @@ module com.acme.library {
 }
 ~~~
 
-Giữ bytecode app cũ và chạy lại với phiên bản library mới. App vẫn chứa tham chiếu đến `com.acme.library.internal.Helper`, nhưng package đó không còn export. JVM có thể ném `IllegalAccessError` khi liên kết tham chiếu.
+Keep the old app bytecode and re-run with the new library version. The app still contains a reference to `com.acme.library.internal.Helper`, but that package is no longer exported. The JVM may throw `IllegalAccessError` when linking the reference.
 
-Cách xử lý đúng là:
+The proper ways to handle this are:
 
-1. Nếu `Helper` là API mà app được phép dùng, đưa nó vào package API được export và compile lại app theo descriptor mới.
-2. Nếu `Helper` là implementation nội bộ, đổi app để dùng API công khai.
-3. Nếu cần xác nhận nhanh nguyên nhân khi migration, thử `--add-exports` có phạm vi cụ thể; không giữ workaround rộng nếu không cần.
+1. If `Helper` is an API the app is permitted to use, move it into an exported API package and recompile the app against the new descriptor.
+2. If `Helper` is an internal implementation detail, update the app to use the public API.
+3. If quick confirmation of the cause is needed during migration, try a tightly scoped `--add-exports`; do not keep broad workarounds unnecessarily.
 
-Ví dụ dùng package API mới:
+Example using the new API package:
 
 ~~~java
 module com.acme.library {
@@ -387,31 +387,31 @@ module com.acme.library {
 }
 ~~~
 
-App chuyển sang import class thuộc package API đó, sau đó compile lại với module path đúng. Đây là cách đồng bộ code, descriptor và artifact runtime.
+The app switches to importing the class belonging to that API package, then recompiles with the correct module path. This keeps code, descriptors, and runtime artifacts in sync.
 
-## 9. Các lỗi dễ nhầm và cách tránh
+## 9. Common Pitfalls and How to Avoid Them
 
-**Chỉ thêm `requires` nhưng vẫn lỗi.** Module app có thể đã đọc library, nhưng package chứa class vẫn chưa được export. Kiểm tra cả readability lẫn exports.
+**Adding only `requires` and still failing.** The app module may already read the library, but the package containing the class is still not exported. Check both readability and exports.
 
-**Chỉ thêm `exports` nhưng vẫn lỗi.** App có thể không đọc module library. Kiểm tra cạnh `requires` hoặc cấu hình readability cần thiết.
+**Adding only `exports` and still failing.** The app may not read the library module. Check the `requires` edge or required readability configuration.
 
-**Dùng `opens` để sửa truy cập trực tiếp.** `opens` dành cho deep reflection. Truy cập public API thông thường cần `exports`.
+**Using `opens` to fix direct access.** `opens` is for deep reflection. Regular public API access requires `exports`.
 
-**Compile và runtime dùng hai phiên bản dependency khác nhau.** Kiểm tra đường dẫn bằng `--show-module-resolution`, mô tả JAR thực tế và làm sạch build output trước khi kết luận.
+**Compile time and runtime use two different dependency versions.** Check paths using `--show-module-resolution`, describe the actual JARs, and clean build outputs before concluding.
 
-**Dùng package nội bộ của JDK hoặc thư viện.** Package nội bộ có thể bị đóng gói mạnh hơn sau khi nâng cấp. Chuyển sang API công khai được hỗ trợ; chỉ dùng `--add-exports` khi có kế hoạch migration và phạm vi rõ ràng.
+**Using internal packages of the JDK or libraries.** Internal packages may become more strongly encapsulated after upgrades. Switch to supported public APIs; use `--add-exports` only with a migration plan and clear scope.
 
-**Nhầm với InaccessibleObjectException.** Nếu framework gọi `setAccessible(true)` và bị chặn, kiểm tra `opens` và dùng `--add-opens` khi thực sự cần. Nếu bytecode gọi trực tiếp class/member không được phép, kiểm tra `requires` và `exports`.
+**Confusing with InaccessibleObjectException.** If a framework calls `setAccessible(true)` and is blocked, check `opens` and use `--add-opens` when truly needed. If bytecode directly accesses a disallowed class/member, check `requires` and `exports`.
 
-## 10. Thực hành
+## 10. Practice
 
-1. Tạo module `com.acme.library` export package `com.acme.library.internal` và module `com.acme.app` yêu cầu library.
-2. Compile và chạy app với phiên bản descriptor đầu tiên.
-3. Thay descriptor library để bỏ export package internal nhưng giữ bytecode app cũ; chạy lại và ghi nhận lỗi.
-4. Dùng `--show-module-resolution` để xác nhận phiên bản module library và vị trí được nạp.
-5. Dùng `java --describe-module` để kiểm tra export của library và requires của app.
-6. Thử `--add-exports` cho đúng package và module gọi để xác nhận nguyên nhân, sau đó bỏ workaround.
-7. Refactor app để dùng package API công khai, compile lại và chạy với descriptor mới.
-8. Tạo một ví dụ reflection dùng `setAccessible(true)`; so sánh lỗi `InaccessibleObjectException` và cách xử lý bằng `opens`.
+1. Create module `com.acme.library` exporting package `com.acme.library.internal` and module `com.acme.app` requiring the library.
+2. Compile and run the app with the first descriptor version.
+3. Change the library descriptor to remove the internal package export while keeping the old app bytecode; re-run and observe the error.
+4. Use `--show-module-resolution` to confirm the library module version and loaded location.
+5. Use `java --describe-module` to inspect the library's exports and the app's requires.
+6. Try `--add-exports` for the exact package and calling module to confirm the cause, then remove the workaround.
+7. Refactor the app to use the public API package, recompile, and run with the new descriptor.
+8. Create a reflection example using `setAccessible(true)`; compare the `InaccessibleObjectException` error and how `opens` resolves it.
 
-Khi gặp `IllegalAccessError` sau khi module graph thay đổi, hãy xác định module gọi, module đích, package và quyền truy cập bị thiếu. Đối chiếu descriptor lúc compile với descriptor thực sự được resolve lúc chạy. Ưu tiên sửa dependency và API contract; chỉ dùng `--add-reads`, `--add-exports` hoặc `--add-opens` cho đúng loại quyền cần thiết và trong phạm vi hẹp.
+When encountering `IllegalAccessError` after module graph changes, identify the calling module, target module, package, and missing permission. Compare the compile-time descriptor with the descriptor actually resolved at runtime. Prioritize fixing dependencies and API contracts; use `--add-reads`, `--add-exports`, or `--add-opens` only for the exact permission type needed and within a narrow scope.

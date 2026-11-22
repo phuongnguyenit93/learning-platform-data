@@ -1,15 +1,15 @@
-# Phân biệt quy tắc tra cứu phương thức với quy tắc chuyển đổi đối số khi gọi bằng Reflection
+# Distinguishing Method Lookup Rules from Argument Conversion Rules in Reflection Calls
 
-Trong Java Reflection, **tìm một phương thức** và **gọi phương thức đã tìm thấy** là hai giai đoạn có quy tắc kiểu dữ liệu khác nhau:
+In Java Reflection, **finding a method** and **invoking the found method** are two phases with different type rules:
 
-1. **Tra cứu:** `Class.getMethod(name, parameterTypes...)` hoặc `Class.getDeclaredMethod(name, parameterTypes...)` xác định một `Method` theo **tên và danh sách kiểu tham số được khai báo**, trong phạm vi public/declared phù hợp. Kiểu tham số truyền cho hàm tra cứu là các đối tượng `Class<?>`. Java không tự tìm overload bằng phép chuyển đổi `byte -> long`, boxing `int -> Integer`, hoặc quan hệ kế thừa `Integer -> Number`.
-2. **Gọi:** Khi đã có đối tượng `Method`, `Method.invoke(receiver, args...)` thực hiện kiểm tra quyền truy cập, receiver, số đối số và **khả năng chuyển đổi đối số thực tế** sang các kiểu formal parameter. Trong những điều kiện phù hợp, Reflection cho phép **unboxing** giá trị wrapper sang primitive, **widening primitive conversion**, và gán một đối tượng reference cho kiểu tham chiếu tương thích. Nó không cho phép narrowing primitive conversion.
+1. **Lookup:** `Class.getMethod(name, parameterTypes...)` or `Class.getDeclaredMethod(name, parameterTypes...)` identifies a `Method` by **name and declared parameter type list**, within the appropriate public/declared scope. The parameter types passed to the lookup method are `Class<?>` objects. Java does not automatically find overloads via `byte -> long` conversion, `int -> Integer` boxing, or `Integer -> Number` inheritance relationships.
+2. **Invocation:** Once you have a `Method` object, `Method.invoke(receiver, args...)` checks access permissions, the receiver, the argument count, and **the convertibility of actual arguments** to the formal parameter types. Under the right conditions, Reflection allows **unboxing** wrapper values to primitives, **widening primitive conversion**, and assigning a reference object to a compatible reference type. It does not allow narrowing primitive conversion.
 
-Sự khác biệt này giải thích vì sao `getMethod("work", byte.class)` không tìm được `work(long)`, trong khi `getMethod("work", long.class).invoke(obj, Byte.valueOf((byte) 7))` có thể chạy thành công.
+This difference explains why `getMethod("work", byte.class)` cannot find `work(long)`, whereas `getMethod("work", long.class).invoke(obj, Byte.valueOf((byte) 7))` can run successfully.
 
-## 1. Giai đoạn tra cứu: chọn phương thức theo khai báo
+## 1. Lookup phase: selecting a method by declaration
 
-Ví dụ một lớp có hai overload:
+For example, a class with two overloads:
 
 ```java
 class Service {
@@ -18,65 +18,65 @@ class Service {
 }
 ```
 
-Đây là đoạn mã minh họa định nghĩa lớp. Với `Service.class`:
+This snippet illustrates a class definition. With `Service.class`:
 
 ```java
 Method intMethod = Service.class.getMethod("process", int.class);
 Method longMethod = Service.class.getMethod("process", long.class);
 ```
 
-Hai lời gọi yêu cầu chính xác `process(int)` và `process(long)`. Nếu thay `int.class` hoặc `long.class` bằng `byte.class`, `getMethod` không chọn “ứng viên gần nhất” để tiện cho caller. Nếu không có `process(byte)`, kết quả là **`NoSuchMethodException`**.
+The two calls request `process(int)` and `process(long)` exactly. If you replace `int.class` or `long.class` with `byte.class`, `getMethod` does not pick the "nearest candidate" for the caller's convenience. If there is no `process(byte)`, the result is **`NoSuchMethodException`**.
 
-**Kiểu trong lệnh tra cứu là kiểu formal parameter**, không phải một đối số runtime đang được chuẩn bị truyền vào phương thức. Vì vậy:
+**The types in the lookup call are the formal parameter types**, not a runtime argument being prepared to pass to the method. Therefore:
 
-- `int.class` khác `Integer.class`: không có boxing/unboxing để tìm phương thức.
-- `long.class` khác `int.class`: không có widening để tìm phương thức.
-- `Number.class` khác `Integer.class`: tra cứu không tự thay kiểu trong danh sách tham số dựa trên kế thừa.
-- `String[].class` khác `String.class`: tham số varargs khai báo `String...` có kiểu mảng `String[]` trong metadata.
-- Thứ tự và **số lượng** tham số đều cần đúng: `calculate(int, long)` khác `calculate(long, int)`.
+- `int.class` differs from `Integer.class`: there is no boxing/unboxing to find a method.
+- `long.class` differs from `int.class`: there is no widening to find a method.
+- `Number.class` differs from `Integer.class`: lookup does not automatically substitute types in the parameter list based on inheritance.
+- `String[].class` differs from `String.class`: a varargs parameter declared as `String...` has the array type `String[]` in metadata.
+- Both parameter order and **count** must be exact: `calculate(int, long)` differs from `calculate(long, int)`.
 
-### getMethod và getDeclaredMethod khác nhau về phạm vi
+### getMethod and getDeclaredMethod differ in scope
 
-| API | Phương thức được tra cứu |
+| API | Methods looked up |
 | --- | --- |
-| `getMethod(name, parameterTypes...)` | Các phương thức `public` có thể nhìn thấy qua kiểu đang xét, bao gồm phương thức kế thừa phù hợp |
-| `getDeclaredMethod(name, parameterTypes...)` | Phương thức được khai báo trực tiếp tại chính class/interface ấy, kể cả `private` hoặc package-private; không duyệt lên superclass |
+| `getMethod(name, parameterTypes...)` | `public` methods visible through the target type, including applicable inherited methods |
+| `getDeclaredMethod(name, parameterTypes...)` | Methods declared directly on that class/interface itself, including `private` or package-private ones; does not walk up to the superclass |
 
-Cả hai vẫn dùng tên và danh sách kiểu tham số khai báo để tìm method, không thực hiện overload resolution như khi compiler xử lý một lời gọi Java thông thường. `getDeclaredMethod` có thể **lấy metadata** của private method, nhưng lấy được metadata không tự cấp quyền `invoke`; quyền truy cập được xét sau.
+Both still use the name and declared parameter type list to find a method, without performing overload resolution as the compiler does for a normal Java call. `getDeclaredMethod` can **retrieve metadata** for a private method, but retrieving metadata does not automatically grant permission to `invoke`; access permissions are checked later.
 
-**Không truyền kiểu trả về vào `getMethod` hay `getDeclaredMethod`.** Kết quả `getReturnType()` là metadata đọc được *sau khi tra cứu*. Với một số class file có bridge methods hoặc các method có cùng tên/danh sách tham số mà khác kiểu trả về, API có quy tắc lựa chọn riêng theo độ cụ thể của kiểu trả về; do đó công cụ phân tích bytecode nâng cao còn cần kiểm tra `Method.isBridge()` và `isSynthetic()`. Điều này không biến tra cứu Reflection thành cơ chế tự ép kiểu đối số.
+**Do not pass the return type to `getMethod` or `getDeclaredMethod`.** The `getReturnType()` result is metadata read *after lookup*. For some class files with bridge methods or methods having the same name/parameter list but different return types, the API has its own selection rules based on return type specificity; therefore, advanced bytecode analysis tools also need to check `Method.isBridge()` and `isSynthetic()`. This does not turn Reflection lookup into an automatic argument casting mechanism.
 
-### Đừng nhầm với overload resolution lúc biên dịch
+### Do not confuse with compile-time overload resolution
 
-Với mã Java thông thường:
+In normal Java code:
 
 ```java
 byte b = 7;
 new Service().process(b);
 ```
 
-Đây là đoạn mã trong ngữ cảnh có `Service` ở trên. **Compiler** xét các overload có thể áp dụng theo Java Language Specification; trường hợp `process(int)` và `process(long)` ở đây, nó chọn `process(int)` vì `int` là ứng viên cụ thể hơn cho `byte`.
+This snippet is in the context of `Service` above. The **compiler** considers applicable overloads according to the Java Language Specification; in the case of `process(int)` and `process(long)` here, it selects `process(int)` because `int` is the more specific candidate for `byte`.
 
-Reflection không được truyền một biểu thức `b` vào `getMethod` để compiler tự chọn. Người dùng Reflection **phải quyết định method cần lấy** bằng `Class<?>...` trước, rồi `invoke` trên method đã được chọn.
+In Reflection, you cannot pass an expression `b` into `getMethod` for the compiler to choose automatically. The Reflection user **must decide which method to retrieve** using `Class<?>...` first, and then `invoke` on the selected method.
 
-## 2. Giai đoạn gọi: Method.invoke thực hiện conversion cho đối số
+## 2. Invocation phase: Method.invoke performs conversions for arguments
 
-Cú pháp chính:
+Main syntax:
 
 ```java
 Object result = method.invoke(receiver, arg1, arg2);
 ```
 
-Đây là đoạn mã minh họa, giả định đã có `Method method`, `receiver`, `arg1`, `arg2` hợp lệ; code cần xử lý các ngoại lệ Reflection.
+This is an illustrative snippet, assuming valid `Method method`, `receiver`, `arg1`, `arg2` already exist; the code needs to handle Reflection exceptions.
 
-`Method.invoke(Object obj, Object... args)` có hai loại tham số ở tầng Reflection:
+`Method.invoke(Object obj, Object... args)` has two kinds of parameters at the Reflection layer:
 
-- `obj` là **receiver** của instance method; đối với static method, receiver bị bỏ qua nên thường truyền `null`.
-- `args` là các giá trị dùng cho các formal parameter của method. Số lượng giá trị phải phù hợp, và mỗi giá trị phải chuyển đổi được sang kiểu formal parameter tương ứng.
+- `obj` is the **receiver** of an instance method; for a static method, the receiver is ignored so `null` is usually passed.
+- `args` are the values used for the method's formal parameters. The number of values must match, and each value must be convertible to the corresponding formal parameter type.
 
-Vì `invoke` nhận `Object...`, khi truyền giá trị primitive trực tiếp trong mã Java gọi `invoke`, **compiler sẽ boxing giá trị đó** để đưa vào mảng `Object[]`. Sau đó `Method.invoke` xử lý đối tượng wrapper và áp dụng các conversion được cho phép để chuyển sang kiểu tham số primitive của phương thức đích.
+Because `invoke` accepts `Object...`, when passing a primitive value directly in Java code calling `invoke`, the **compiler boxes that value** to place it into the `Object[]` array. Then `Method.invoke` processes the wrapper object and applies permitted conversions to convert it to the target method's primitive parameter type.
 
-Ví dụ, nếu `method` đại diện cho `process(long)`, các cách gọi sau đều có thể hợp lệ về kiểu:
+For example, if `method` represents `process(long)`, the following calls can all be type-valid:
 
 ```java
 method.invoke(receiver, Byte.valueOf((byte) 7));
@@ -84,13 +84,13 @@ method.invoke(receiver, Integer.valueOf(8));
 method.invoke(receiver, Long.valueOf(9L));
 ```
 
-Chúng có thể dùng giá trị wrapper `Byte`, `Integer`, `Long` vì việc unboxing và, nếu cần, widening primitive đưa chúng tới `long`. Nhưng `Double` hoặc `Float` không thể được truyền tới tham số `long` qua narrowing.
+They can use `Byte`, `Integer`, `Long` wrapper values because unboxing and, if needed, primitive widening bring them to `long`. However, `Double` or `Float` cannot be passed to a `long` parameter via narrowing.
 
-Điều quan trọng là **`invoke` không tìm lại overload khác** khi nhận đối số. Nếu `Method` đã chỉ tới `process(long)`, chính phương thức đó được gọi (có xét dynamic dispatch đối với override), dù trong cùng lớp còn `process(int)` phù hợp hơn với một kiểu giá trị nào đó.
+Importantly, **`invoke` does not search for another overload** when receiving arguments. Once `Method` points to `process(long)`, that exact method is invoked (with dynamic dispatch considered for overrides), even if the same class also has `process(int)` which might better fit some value type.
 
-## 3. Ví dụ Java 17+ đầy đủ: chứng minh tra cứu và gọi khác nhau
+## 3. Complete Java 17+ example: proving lookup and invocation differ
 
-Tạo tệp `ReflectionLookupDemo.java`:
+Create the file `ReflectionLookupDemo.java`:
 
 ```java
 import java.lang.reflect.Method;
@@ -178,14 +178,14 @@ public class ReflectionLookupDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac ReflectionLookupDemo.java
 java ReflectionLookupDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 lookup(long)=long
@@ -200,46 +200,46 @@ join(elements)=rejected
 return=22,type=Integer
 ```
 
-Phân tích:
+Analysis:
 
-1. `getMethod("describe", long.class)` tìm đúng overload `describe(long)`. `getMethod("describe", byte.class)` **không** tự áp dụng `byte -> int` hay `byte -> long`; cả hai vẫn là kiểu tham số khác `byte`.
-2. Sau khi đã lấy đúng `describe(long)`, `invoke` với `Byte` hoặc `Integer` thành công nhờ unboxing cộng widening; method được chọn vẫn là overload nhận **`long`**, như chuỗi `long:7` và `long:8` chứng minh.
-3. `Double` không phù hợp với formal parameter `long`; `invoke` ném `IllegalArgumentException`, chương trình bắt và in thông báo rõ ràng.
-4. `getMethod("accept", Number.class)` tìm chính xác method khai báo `Number`, nhưng `invoke` nhận `Integer` vì đó là subtype phù hợp. Tra cứu với `Integer.class` lại không chọn thay `accept(Number)`.
-5. Tham số `String... values` của method `join` được phản chiếu dưới dạng **`String[]`**. `invoke(s, (Object) new String[] {"a","b"})` đưa một đối số mảng vào method và trả `a/b`; `invoke(s, "a", "b")` đưa hai đối số riêng nên bị từ chối vì method chỉ khai báo **một** formal parameter kiểu `String[]`.
-6. `twice(int)` trả kiểu primitive `int`, nhưng `Method.invoke` trả về `Object`, vì vậy giá trị trả về được **boxing** thành `Integer`. Đây là **quy tắc kết quả của invoke**, khác với việc chọn method và chuyển đổi đối số.
+1. `getMethod("describe", long.class)` finds the exact `describe(long)` overload. `getMethod("describe", byte.class)` does **not** automatically apply `byte -> int` or `byte -> long`; both remain parameter types different from `byte`.
+2. After retrieving `describe(long)`, `invoke` with `Byte` or `Integer` succeeds thanks to unboxing plus widening; the selected method is still the overload taking **`long`**, as proven by the strings `long:7` and `long:8`.
+3. `Double` is incompatible with the formal parameter `long`; `invoke` throws `IllegalArgumentException`, which the program catches and prints clearly.
+4. `getMethod("accept", Number.class)` finds the exact method declaring `Number`, while `invoke` accepts `Integer` because it is a compatible subtype. Looking up with `Integer.class` does not select `accept(Number)` instead.
+5. The `String... values` parameter of the `join` method is reflected as **`String[]`**. `invoke(s, (Object) new String[] {"a", "b"})` passes a single array argument to the method and returns `a/b`; `invoke(s, "a", "b")` passes two separate arguments and is rejected because the method declares only **one** formal parameter of type `String[]`.
+6. `twice(int)` returns primitive `int`, but `Method.invoke` returns `Object`, so the return value is **boxed** into `Integer`. This is the **result rule of invoke**, distinct from method selection and argument conversion.
 
-Ví dụ chủ động bắt hai loại lỗi khác nhau: `NoSuchMethodException` phát sinh khi **tra cứu không khớp**, còn `IllegalArgumentException` phát sinh khi đã có `Method` nhưng **đối số gọi không phù hợp**.
+The example intentionally catches two different kinds of errors: `NoSuchMethodException` occurs when **lookup fails to match**, whereas `IllegalArgumentException` occurs when you already have a `Method` but **the invocation arguments are incompatible**.
 
-## 4. Quy trình chọn method và gọi đúng
+## 4. Workflow for selecting and invoking a method properly
 
-Khi tạo công cụ gọi method động, hãy tách hẳn quyết định *chọn phương thức* khỏi bước *thực hiện phép gọi*:
+When building a dynamic method invocation tool, clearly separate the decision of *selecting a method* from the step of *performing the invocation*:
 
-1. **Xác định phạm vi:** tìm chỉ method declared hay cả public methods được kế thừa; kiểm tra ngữ cảnh module/quyền truy cập.
-2. **Chọn method đích:** dựa trên tên và danh sách **formal parameter types**. Nếu phải tự xử lý overload, hãy xác định chính sách ứng viên và mức ưu tiên conversion; đừng phụ thuộc thứ tự `getMethods()`.
-3. **Chuẩn bị receiver:** `null` cho static method hoặc instance phù hợp cho instance method.
-4. **Chuẩn bị đối số:** số lượng khớp formal parameters; primitive nhận wrapper có thể unbox/widen; reference nhận object assignment-compatible hoặc `null`; formal varargs của method đích nhận một mảng thích hợp.
-5. **Gọi `invoke` và xử lý lỗi:** phân biệt tra cứu sai, không có quyền, conversion không hợp lệ, và exception từ method đích.
-6. **Xử lý kết quả:** `invoke` trả `Object`; primitive result được boxing, `void` trả `null`. Nếu cần kiểu cụ thể, cast/kiểm tra trước khi dùng.
+1. **Determine scope:** search only declared methods or also inherited public methods; check module/access context.
+2. **Select target method:** based on name and **formal parameter types** list. If you must handle overloads yourself, define a candidate policy and conversion priority; do not rely on the ordering of `getMethods()`.
+3. **Prepare receiver:** `null` for static methods or an appropriate instance for instance methods.
+4. **Prepare arguments:** count matches formal parameters; primitives accept wrappers that can unbox/widen; references accept assignment-compatible objects or `null`; a target method's formal varargs receives an appropriate array.
+5. **Call `invoke` and handle errors:** distinguish lookup mismatch, lack of access permission, invalid conversion, and exceptions from the target method.
+6. **Handle result:** `invoke` returns `Object`; primitive results are boxed, `void` returns `null`. If a specific type is needed, cast/check before using.
 
-Khi implement một overload resolver riêng, cần cân nhắc `null` với nhiều reference overload, interface/superclass distances, primitive widening, boxing/unboxing, varargs và ambiguity. Java compiler có quy tắc chọn overload tương đối phức tạp; Reflection không tự “chạy lại compiler” với đối số runtime, nên việc viết một resolver thủ công chỉ từ `getName()` và `getParameterCount()` rất dễ chọn sai.
+When implementing a custom overload resolver, consider `null` with multiple reference overloads, interface/superclass distances, primitive widening, boxing/unboxing, varargs, and ambiguity. The Java compiler has fairly complex overload selection rules; Reflection does not "re-run the compiler" on runtime arguments, so writing a manual resolver using only `getName()` and `getParameterCount()` easily picks the wrong method.
 
-## 5. Câu hỏi tự kiểm tra
+## 5. Self-check questions
 
-1. Lớp chỉ khai báo `work(long)`. `getMethod("work", int.class)` có tìm được không? **Không.** Tra cứu yêu cầu formal parameter `long.class` chính xác.
-2. Sau khi có `Method` của `work(long)`, có thể `invoke` với `Integer.valueOf(3)` không? **Có.** `Integer` unbox thành `int`, rồi widening sang `long`.
-3. Có thể `invoke` với `Double.valueOf(3.0)` cho `work(long)` không? **Không.** `double -> long` là narrowing.
-4. Method khai báo `save(Number)`. Tra cứu bằng `Integer.class` có tìm được không? **Không.** Phải tìm `Number.class`; sau đó mới có thể invoke với `Integer`.
-5. Method khai báo `String... names`. Kiểu để tra cứu là gì? **`String[].class`**.
-6. Có thể dùng `invoke(receiver, "A", "B")` để tự động gói thành `String[]` cho method đích varargs không? **Không.** Cần một đối số mảng.
-7. Nếu method đích ném `IllegalStateException`, `invoke` báo qua ngoại lệ nào? **`InvocationTargetException`**; kiểm tra `getCause()`.
-8. Nếu method đích trả `int`, kiểu của `Method.invoke` là gì? **`Object`**, chứa `Integer` đã boxing. Method đích trả `void` thì `invoke` trả `null`.
+1. A class only declares `work(long)`. Can `getMethod("work", int.class)` find it? **No.** Lookup requires the exact `long.class` formal parameter.
+2. After obtaining the `Method` for `work(long)`, can you `invoke` it with `Integer.valueOf(3)`? **Yes.** `Integer` unboxes to `int`, then widens to `long`.
+3. Can you `invoke` with `Double.valueOf(3.0)` for `work(long)`? **No.** `double -> long` is narrowing.
+4. A method declares `save(Number)`. Can you look it up with `Integer.class`? **No.** You must look up `Number.class`; afterwards you can invoke with `Integer`.
+5. A method declares `String... names`. What is the type for lookup? **`String[].class`**.
+6. Can you use `invoke(receiver, "A", "B")` to automatically pack them into `String[]` for a varargs target method? **No.** A single array argument is required.
+7. If the target method throws `IllegalStateException`, through what exception does `invoke` report it? **`InvocationTargetException`**; inspect `getCause()`.
+8. If the target method returns `int`, what is the return type of `Method.invoke`? **`Object`**, containing a boxed `Integer`. If the target method returns `void`, `invoke` returns `null`.
 
-## 6. Tài liệu tham khảo
+## 6. References
 
-- [Oracle Java SE 21 — `Class`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html): tài liệu `getMethod`, `getDeclaredMethod`, kiểu tham số, phạm vi và quy tắc tra cứu.
-- [Oracle Java SE 21 — `Method`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html): tài liệu `invoke`, khả năng chuyển đổi đối số, varargs, return boxing và ngoại lệ.
-- [Java Language Specification SE 21 — §5.1 Conversions and Contexts](https://docs.oracle.com/javase/specs/jls/se21/html/jls-5.html): widening/narrowing primitive, boxing/unboxing và những ngữ cảnh conversion.
-- [Java Language Specification SE 21 — §15.12 Method Invocation Expressions](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.12): cơ chế chọn overload trong **lời gọi Java thông thường**, giúp phân biệt với tra cứu Reflection.
+- [Oracle Java SE 21 — `Class`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html): documentation for `getMethod`, `getDeclaredMethod`, parameter types, scope, and lookup rules.
+- [Oracle Java SE 21 — `Method`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html): documentation for `invoke`, argument convertibility, varargs, return boxing, and exceptions.
+- [Java Language Specification SE 21 — §5.1 Conversions and Contexts](https://docs.oracle.com/javase/specs/jls/se21/html/jls-5.html): widening/narrowing primitive, boxing/unboxing, and conversion contexts.
+- [Java Language Specification SE 21 — §15.12 Method Invocation Expressions](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.12): overload selection mechanism in **normal Java calls**, helping distinguish it from Reflection lookup.
 
-**Ghi nhớ:** `Class.getMethod/getDeclaredMethod` tìm **khai báo khớp tên và kiểu tham số**, còn `Method.invoke` kiểm tra và **chuyển đổi các đối số thật** trong giới hạn được API cho phép. Trộn hai giai đoạn sẽ dẫn đến `NoSuchMethodException`, `IllegalArgumentException` hoặc chọn sai overload.
+**Takeaway:** `Class.getMethod/getDeclaredMethod` searches for **a declaration matching the name and parameter types**, while `Method.invoke` checks and **converts the actual arguments** within the limits allowed by the API. Mixing the two phases leads to `NoSuchMethodException`, `IllegalArgumentException`, or selecting the wrong overload.

@@ -1,29 +1,29 @@
-# Biên dịch nhiều module bằng javac --module-source-path
+# Compiling Multiple Modules with javac --module-source-path
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Khi một dự án Java được chia thành nhiều named module, việc biên dịch không còn đơn giản là đưa tất cả file `.java` vào một lệnh `javac` như dự án classpath truyền thống. Compiler cần biết file nguồn thuộc module nào, module descriptor nằm ở đâu và dependency giữa các module được giải quyết ra sao.
+When a Java project is divided into multiple named modules, compilation is no longer as simple as passing all `.java` files into a single `javac` command like in a traditional classpath project. The compiler needs to know which module each source file belongs to, where the module descriptors are located, and how dependencies between modules are resolved.
 
-Tùy chọn `--module-source-path` cho `javac` biết nơi chứa source tree của nhiều module. Kết hợp với `--module` hoặc `-m`, compiler có thể biên dịch các module được chỉ định từ một cấu trúc thư mục chung.
+The `--module-source-path` option tells `javac` where the source trees of multiple modules are located. Combined with `--module` or `-m`, the compiler can compile the specified modules from a shared directory structure.
 
-Bài này tập trung vào cách tổ chức source tree, cú pháp lệnh biên dịch, thư mục output và cách kết hợp source module với dependency đã biên dịch.
+This lesson focuses on how to organize the source tree, compilation command syntax, output directories, and how to combine source modules with precompiled dependencies.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Tổ chức mã nguồn nhiều module theo tên module.
-- Dùng `--module-source-path` để compiler tìm `module-info.java` và source của từng module.
-- Dùng `-m` để chọn module cần biên dịch.
-- Dùng `-d` để đặt output và `--module-path` cho dependency đã biên dịch.
-- Nhận biết những lỗi thường gặp khi biên dịch modular project.
+- Organize multi-module source code by module name.
+- Use `--module-source-path` so the compiler can locate `module-info.java` and the source files of each module.
+- Use `-m` to select modules to compile.
+- Use `-d` to specify the output directory and `--module-path` for precompiled dependencies.
+- Recognize common errors when compiling a modular project.
 
-## 2. Ví dụ cấu trúc source tree
+## 2. Example Source Tree Structure
 
-Giả sử ứng dụng có hai module:
+Suppose an application has two modules:
 
-- `com.example.api`: cung cấp API.
-- `com.example.app`: sử dụng API.
+- `com.example.api`: provides the API.
+- `com.example.app`: uses the API.
 
-Một cấu trúc thư mục đơn giản:
+A simple directory structure:
 
 ```text
 project/
@@ -43,14 +43,14 @@ project/
 └── out/
 ```
 
-Điểm cần nhớ:
+Points to remember:
 
-- `src` là module source path root.
-- Mỗi thư mục con trực tiếp đại diện cho một module và tên thư mục khớp với tên module trong `module-info.java`.
-- Bên trong thư mục module, cấu trúc package vẫn đi theo đường dẫn package thông thường.
-- Mỗi named module có một `module-info.java` ở gốc source tree của module.
+- `src` is the module source path root.
+- Each immediate subdirectory represents one module, and the directory name matches the module name in `module-info.java`.
+- Inside the module directory, the package structure still follows the standard package path.
+- Each named module has a `module-info.java` at the root of the module's source tree.
 
-Ví dụ module API:
+Example API module:
 
 ```java
 // src/com.example.api/module-info.java
@@ -70,7 +70,7 @@ public final class Greeting {
 }
 ```
 
-Module ứng dụng:
+Application module:
 
 ```java
 // src/com.example.app/module-info.java
@@ -92,46 +92,46 @@ public class Main {
 }
 ```
 
-Tên thư mục module và tên khai báo trong `module-info.java` phải nhất quán để compiler tìm đúng source của module.
+The module directory name and the name declared in `module-info.java` must be consistent so the compiler can find the module's source files properly.
 
-## 3. Cú pháp cơ bản của --module-source-path
+## 3. Basic Syntax of --module-source-path
 
-Cú pháp tổng quát:
+General syntax:
 
 ```bash
 javac --module-source-path <module-source-path> -d <output-directory> --module <module-name>[,<module-name>...]
 ```
 
-Các thành phần:
+Components:
 
-| Thành phần | Ý nghĩa |
+| Component | Meaning |
 | --- | --- |
 | `javac` | Java compiler. |
-| `--module-source-path` | Chỉ định vị trí hoặc mẫu đường dẫn chứa source của các module. |
-| `-d` | Chỉ định thư mục ghi file đã biên dịch. |
-| `--module` hoặc `-m` | Chỉ định một hay nhiều module cần biên dịch. |
+| `--module-source-path` | Specifies the location or path pattern containing the source files of the modules. |
+| `-d` | Specifies the directory where compiled files are written. |
+| `--module` or `-m` | Specifies one or more modules to compile. |
 
-Với cấu trúc ở phần trước, chạy từ thư mục `project`:
+With the structure in the previous section, running from the `project` directory:
 
 ```bash
 javac --module-source-path src -d out --module com.example.api,com.example.app
 ```
 
-Dạng viết ngắn:
+Short form:
 
 ```bash
 javac --module-source-path src -d out -m com.example.api,com.example.app
 ```
 
-Hai lệnh tương đương vì `-m` là dạng viết tắt của tùy chọn `--module` trong javac.
+The two commands are equivalent because `-m` is the short form of the `--module` option in `javac`.
 
-Lệnh trên cho compiler biết source tree của các module nằm dưới `src`, output đặt trong `out`, và hai module được yêu cầu biên dịch là `com.example.api` cùng `com.example.app`.
+The command above tells the compiler that the modules' source trees are located under `src`, the output is placed in `out`, and the two modules requested for compilation are `com.example.api` and `com.example.app`.
 
-Khi biên dịch một tập module có quan hệ phụ thuộc, hãy bảo đảm source của các module liên quan đều có thể được tìm thấy và các module được chọn được đưa vào lệnh biên dịch theo đúng phạm vi dự án.
+When compiling a set of modules with dependency relationships, ensure that the source files of all related modules can be found and that the selected modules are included in the compilation command according to the project's scope.
 
-## 4. Kết quả sau khi biên dịch
+## 4. Result After Compilation
 
-Với tùy chọn `-d out`, compiler tạo output theo từng module. Cấu trúc kết quả có dạng:
+With the `-d out` option, the compiler generates output per module. The resulting structure looks like:
 
 ```text
 out/
@@ -149,27 +149,27 @@ out/
                 └── Main.class
 ```
 
-Mỗi module có thư mục output riêng. File `module-info.class` chứa module descriptor đã biên dịch; các class còn lại nằm theo package.
+Each module has its own output directory. The `module-info.class` file contains the compiled module descriptor; the remaining classes are organized by package.
 
-Có thể chạy ứng dụng bằng module path trỏ tới thư mục output:
+You can run the application with the module path pointing to the output directory:
 
 ```bash
 java --module-path out --module com.example.app/com.example.app.Main
 ```
 
-Dạng ngắn:
+Short form:
 
 ```bash
 java -p out -m com.example.app/com.example.app.Main
 ```
 
-Ở lệnh chạy, phần trước dấu `/` là tên module; phần sau là tên đầy đủ của main class. Đây là cú pháp của lệnh `java`, không phải cú pháp chọn module để biên dịch của `javac`.
+In the run command, the part before `/` is the module name; the part after is the fully qualified name of the main class. This is the syntax of the `java` command, not `javac`'s syntax for selecting modules to compile.
 
-## 5. Chỉ định module source path bằng pattern
+## 5. Specifying Module Source Path with Patterns
 
-Khi source tree không đặt trực tiếp dưới một thư mục module source root đơn giản, `--module-source-path` hỗ trợ pattern có dấu `*` để đại diện cho tên module.
+When the source tree is not placed directly under a simple module source root directory, `--module-source-path` supports patterns with `*` to represent the module name.
 
-Ví dụ cấu trúc:
+Example structure:
 
 ```text
 project/
@@ -186,44 +186,44 @@ project/
                 └── com/example/app/Main.java
 ```
 
-Pattern `src/*/main/java` đại diện cho source root của từng module:
+The pattern `src/*/main/java` represents the source root of each module:
 
 ```bash
 javac --module-source-path "src/*/main/java" -d out -m com.example.api,com.example.app
 ```
 
-Dấu `*` được javac dùng như phần tên module trong module source path pattern. Đặt pattern trong dấu nháy giúp shell chuyển nguyên pattern cho compiler thay vì tự diễn giải ký tự wildcard.
+The `*` is used by `javac` as the module name placeholder in the module source path pattern. Enclosing the pattern in quotes helps the shell pass the pattern intact to the compiler instead of interpreting the wildcard character itself.
 
-Nếu dự án có nhiều source root, module source path cũng có thể chứa danh sách đường dẫn theo quy tắc phân tách path của hệ điều hành. Trên Windows, path-list thường dùng dấu chấm phẩy; trên Linux/macOS thường dùng dấu hai chấm. Khi viết lệnh chạy trên nhiều hệ điều hành, cần chú ý sự khác biệt này.
+If the project has multiple source roots, the module source path can also contain a list of paths following the operating system's path separator rules. On Windows, path lists typically use a semicolon; on Linux/macOS, they typically use a colon. When writing commands to run across multiple operating systems, pay attention to this difference.
 
-## 6. Chọn module nào để biên dịch?
+## 6. Which Modules to Compile?
 
-Dùng `--module` hoặc `-m` để nêu rõ module cần biên dịch:
+Use `--module` or `-m` to explicitly state the modules to compile:
 
 ```bash
 javac --module-source-path src -d out -m com.example.api
 ```
 
-Lệnh này yêu cầu biên dịch module `com.example.api`.
+This command requests compiling the `com.example.api` module.
 
-Có thể chỉ định nhiều module, phân cách bằng dấu phẩy:
+You can specify multiple modules separated by commas:
 
 ```bash
 javac --module-source-path src -d out -m com.example.api,com.example.app
 ```
 
-Khi chọn module ứng dụng, compiler cần giải quyết các module mà ứng dụng yêu cầu. Nếu dependency cũng được biên dịch từ source trong cùng module source path, hãy bảo đảm compiler có thể tìm thấy source của dependency và chọn tập module phù hợp với mục tiêu build.
+When selecting an application module, the compiler needs to resolve the modules required by the application. If dependencies are also compiled from source within the same module source path, ensure the compiler can find the dependency sources and select the set of modules matching the build goal.
 
-Nếu dependency đã được biên dịch thành module output hoặc JAR, có thể đặt chúng trên `--module-path` thay vì biên dịch lại từ source trong cùng lượt.
+If dependencies have already been compiled into module outputs or JARs, you can place them on `--module-path` instead of recompiling them from source in the same pass.
 
-## 7. Kết hợp với --module-path
+## 7. Combining with --module-path
 
-Hai tùy chọn có vai trò khác nhau:
+The two options have different roles:
 
-- `--module-source-path`: nơi tìm source code của các module đang biên dịch.
-- `--module-path`: nơi tìm các module đã được biên dịch, chẳng hạn thư mục module output hoặc JAR.
+- `--module-source-path`: where to find the source code of the modules being compiled.
+- `--module-path`: where to find precompiled modules, such as module output directories or JARs.
 
-Giả sử `com.example.api` đã được biên dịch thành module trong `libs/api-module`, còn source của app nằm trong `src/com.example.app`:
+Suppose `com.example.api` has already been compiled as a module in `libs/api-module`, while the app's source is in `src/com.example.app`:
 
 ```text
 project/
@@ -239,13 +239,13 @@ project/
 └── out/
 ```
 
-Có thể biên dịch app với module path trỏ tới dependency đã có:
+You can compile the app with the module path pointing to the existing dependency:
 
 ```bash
 javac --module-path libs/api-module --module-source-path src -d out -m com.example.app
 ```
 
-Compiler đọc source của app từ module source path và đọc module API đã biên dịch từ module path. Trong module descriptor của app vẫn cần:
+The compiler reads the app's source from the module source path and reads the compiled API module from the module path. The app's module descriptor still needs:
 
 ```java
 module com.example.app {
@@ -253,80 +253,80 @@ module com.example.app {
 }
 ```
 
-Không dùng `--module-source-path` thay cho `--module-path`: một bên phục vụ source module, bên còn lại phục vụ module đã biên dịch.
+Do not use `--module-source-path` in place of `--module-path`: one is for source modules, and the other is for compiled modules.
 
-## 8. Khi nào dùng source path thông thường?
+## 8. When to Use the Regular Source Path?
 
-`-source-path` và `--module-source-path` phục vụ hai cách tổ chức source khác nhau:
+`-source-path` and `--module-source-path` serve two different ways of organizing source code:
 
-| Tùy chọn | Mục đích |
+| Option | Purpose |
 | --- | --- |
-| `-source-path` | Tìm source file theo package trong mô hình biên dịch thông thường. |
-| `--module-source-path` | Tìm source tree của nhiều named module, có phân định module. |
+| `-source-path` | Find source files by package in the traditional compilation model. |
+| `--module-source-path` | Find source trees of multiple named modules, with module boundaries defined. |
 
-Với dự án modular, mỗi module có `module-info.java` và source tree riêng, `--module-source-path` giúp compiler hiểu ranh giới module. Không nên gom source của nhiều module vào một package root rồi kỳ vọng compiler tự suy ra module ownership.
+For a modular project, where each module has its own `module-info.java` and source tree, `--module-source-path` helps the compiler understand module boundaries. You should not lump sources from multiple modules into a single package root and expect the compiler to infer module ownership on its own.
 
-## 9. Lỗi thường gặp và cách xử lý
+## 9. Common Errors and How to Handle Them
 
-**Không tìm thấy module được chỉ định**
+**Specified module not found**
 
-Ví dụ lỗi liên quan đến module không tồn tại hoặc không được tìm thấy trong module source path.
+For example, errors related to a module not existing or not being found in the module source path.
 
-Kiểm tra:
+Check:
 
-- Tên module trong `-m` có khớp tên trong `module-info.java` không.
-- Thư mục module có nằm đúng dưới module source path không.
-- Pattern có trỏ tới đúng thư mục chứa `module-info.java` không.
-- Tên thư mục và module name có bị sai chính tả hoặc khác chữ hoa/chữ thường không.
+- Does the module name in `-m` match the name in `module-info.java`?
+- Is the module directory located properly under the module source path?
+- Does the pattern point to the exact directory containing `module-info.java`?
+- Is there a typo or case mismatch between the directory name and the module name?
 
-**Package không được export hoặc module không đọc được dependency**
+**Package not exported or module cannot read dependency**
 
-Kiểm tra descriptor của dependency:
+Check the dependency's descriptor:
 
-- Module tiêu thụ có `requires` module cung cấp package không.
-- Module cung cấp package đã `exports` package cần dùng chưa.
-- Dependency có nằm trên `--module-path` hoặc trong source tree được compiler tìm thấy không.
+- Does the consuming module `requires` the module providing the package?
+- Has the module providing the package `exports` the needed package yet?
+- Is the dependency on `--module-path` or in a source tree discoverable by the compiler?
 
-**Không tìm thấy class hoặc package**
+**Class or package not found**
 
-Đối chiếu package declaration với cấu trúc thư mục source. Ví dụ `package com.example.app;` tương ứng với thư mục `com/example/app` bên trong source root của module.
+Compare the package declaration with the source directory structure. For example, `package com.example.app;` corresponds to the directory `com/example/app` inside the module's source root.
 
-**Output không có thư mục module như mong đợi**
+**Output does not have expected module directories**
 
-Kiểm tra `-d` có trỏ đúng thư mục output không và module có được biên dịch như named module hay không. Với modular compilation, mỗi module có vùng output riêng dưới thư mục đích.
+Check whether `-d` points to the right output directory and whether the modules are compiled as named modules. With modular compilation, each module has its own output area under the target directory.
 
-**Dùng nhầm --module-path và --module-source-path**
+**Confusing --module-path and --module-source-path**
 
-Xác định dependency đang ở dạng nào: file nguồn thì đặt trong module source path; module đã biên dịch hoặc modular JAR thì đặt trong module path.
+Determine what form the dependency is in: source files belong in the module source path; compiled modules or modular JARs belong in the module path.
 
-## 10. Quy trình biên dịch thực tế
+## 10. Practical Compilation Workflow
 
-Với một dự án nhiều module nhỏ, có thể thực hiện theo trình tự:
+For a small multi-module project, you can follow this sequence:
 
-1. Tạo source root, ví dụ `src/`.
-2. Tạo thư mục riêng cho từng module, tên thư mục khớp module name.
-3. Đặt `module-info.java` tại gốc source tree của từng module.
-4. Viết package source bên trong thư mục module.
-5. Khai báo `requires` và `exports` theo quan hệ module thực tế.
-6. Chọn output directory bằng `-d`.
-7. Dùng `--module-source-path` để chỉ vị trí source tree và `-m` để chọn module cần biên dịch.
-8. Nếu có dependency đã biên dịch, thêm vị trí của chúng bằng `--module-path`.
-9. Chạy ứng dụng bằng `java --module-path` và `--module`.
+1. Create a source root, for example `src/`.
+2. Create a separate directory for each module, with the directory name matching the module name.
+3. Place `module-info.java` at the root of each module's source tree.
+4. Write package source files inside the module directory.
+5. Declare `requires` and `exports` according to actual module relationships.
+6. Choose the output directory with `-d`.
+7. Use `--module-source-path` to point to the source tree location and `-m` to select the modules to compile.
+8. If there are precompiled dependencies, add their locations with `--module-path`.
+9. Run the application with `java --module-path` and `--module`.
 
-Lệnh mẫu cho cấu trúc ở phần 2:
+Sample commands for the structure in Section 2:
 
 ```bash
 javac --module-source-path src -d out -m com.example.api,com.example.app
 java --module-path out -m com.example.app/com.example.app.Main
 ```
 
-## 11. Ghi nhớ
+## 11. Key Takeaways
 
-- `--module-source-path` chỉ nơi chứa source tree của các named module.
-- Tên thư mục module phải phù hợp với tên trong `module-info.java`.
-- `-m` là dạng ngắn của `--module` trong javac, dùng để chỉ định module cần biên dịch.
-- `-d` xác định nơi ghi output; output của các module được tách theo tên module.
-- `--module-path` tìm module đã biên dịch, còn `--module-source-path` tìm module source.
-- Khi chạy chương trình, dùng module path trỏ tới output và chỉ rõ module cùng main class.
+- `--module-source-path` specifies where the source trees of named modules are located.
+- The module directory name must match the name in `module-info.java`.
+- `-m` is the short form of `--module` in `javac`, used to specify the modules to compile.
+- `-d` determines where output is written; output for modules is separated by module name.
+- `--module-path` finds compiled modules, whereas `--module-source-path` finds module sources.
+- When running the program, use module path pointing to the output and specify the module along with the main class.
 
-Hãy bắt đầu từ cấu trúc thư mục và module descriptor. Khi hai phần này đúng, `javac --module-source-path` giúp biên dịch nhiều module từ một source tree có tổ chức và giữ nguyên ranh giới của Java Module System.
+Start with the directory structure and module descriptors. When these two parts are right, `javac --module-source-path` helps compile multiple modules from an organized source tree while preserving the boundaries of the Java Module System.

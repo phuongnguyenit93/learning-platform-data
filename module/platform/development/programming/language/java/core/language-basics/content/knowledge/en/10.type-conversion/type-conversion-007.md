@@ -1,55 +1,55 @@
-# Vì sao phép cộng `byte` hoặc `short` thường cho kết quả `int` trong Java?
+# Why Does Adding `byte` or `short` Usually Produce an `int` Result in Java?
 
-> **Java core — language-basics / Chuyển đổi kiểu**  
-> **Môi trường:** JDK 17 trở lên; không cần thư viện ngoài.  
-> **Mục tiêu:** Hiểu quy tắc *binary numeric promotion* của Java, phân biệt kiểu của **biểu thức cộng** với kiểu của biến đích, nhận diện ngoại lệ hằng số, xử lý `+=`/`++` và dự đoán chính xác kết quả khi ép hẹp.
+> **Java core — language-basics / Type Conversion**  
+> **Environment:** JDK 17 or later; no external libraries needed.  
+> **Objective:** Understand Java's *binary numeric promotion* rule, distinguish the type of the **addition expression** from the type of the target variable, recognize the constant exception, handle `+=`/`++`, and accurately predict results when narrowing.
 
-## 1. Giá trị nhỏ không quyết định kiểu kết quả
+## 1. Small values do not determine the result type
 
-Xem đoạn mã:
+Look at the snippet:
 
 ~~~java
 byte left = 10;
 byte right = 20;
 
-int sum = left + right; // Hợp lệ, sum = 30.
-// byte bad = left + right; // Lỗi biên dịch: int cannot be converted to byte.
+int sum = left + right; // Valid, sum = 30.
+// byte bad = left + right; // Compile error: int cannot be converted to byte.
 ~~~
 
-Hai biến nguồn đều là `byte` nhưng biểu thức `left + right` có kiểu **`int`**, kể cả khi giá trị 30 hoàn toàn nằm trong phạm vi `byte`.
+Both source variables are `byte`, yet the expression `left + right` has type **`int`**, even when the value 30 fits entirely within the `byte` range.
 
-Tương tự:
+Similarly:
 
 ~~~java
 short a = 100;
 short b = 200;
-int total = a + b; // total = 300; biểu thức có kiểu int.
-// short bad = a + b; // Lỗi biên dịch.
+int total = a + b; // total = 300; expression has type int.
+// short bad = a + b; // Compile error.
 ~~~
 
-**Vì sao?** Java quy định phép cộng số học hai ngôi `+` dùng **binary numeric promotion** (*nâng kiểu số học hai ngôi*) để chọn kiểu chung **trước khi thực hiện phép cộng**. Với kiểu nguyên nhỏ `byte`, `short` hoặc `char`, các toán hạng được nâng lên `int` (trừ khi có toán hạng `long`/`float`/`double` làm kiểu chung rộng hơn).
+**Why?** Java specifies that the binary arithmetic addition operator `+` uses **binary numeric promotion** to choose a common type **before performing addition**. For small integer types `byte`, `short`, or `char`, the operands are promoted to `int` (unless there is a `long`/`float`/`double` operand yielding a wider common type).
 
-Kiểu của biểu thức được xác định theo **quy tắc ngôn ngữ và kiểu toán hạng**, không dựa trên việc kết quả chạy thực tế có vừa `byte` hay `short` hay không.
+The expression's type is determined by **language rules and operand types**, not by whether the actual runtime result fits in `byte` or `short`.
 
-## 2. Vì sao kiểu kết quả là `int`?
+## 2. Why is the result type `int`?
 
-Toán tử cộng số `+` sử dụng *binary numeric promotion*. Nếu có toán hạng `double`, `float` hoặc `long`, Java chọn kiểu tương ứng theo thứ tự đó; trong các trường hợp còn lại, các toán hạng số được nâng thành `int`. Vì thế `byte + byte`, `short + short`, `char + byte` đều có kiểu `int`. Quy tắc dựa trên **kiểu khai báo của biểu thức**, không phụ thuộc giá trị tổng tại runtime.
+The numeric addition operator `+` uses *binary numeric promotion*. If there is a `double`, `float`, or `long` operand, Java selects the corresponding type in that order; in the remaining cases, the numeric operands are promoted to `int`. Therefore `byte + byte`, `short + short`, and `char + byte` all have type `int`. The rule is based on the **declared types of the expression**, independent of the sum's value at runtime.
 
-Chú ý: `"x=" + byteValue` là nối chuỗi, còn toán tử `+x` là phép một ngôi có quy tắc nâng kiểu riêng. Các ví dụ dưới đây tập trung vào lỗi gán kết quả cộng số nhỏ về kiểu hẹp và cách xử lý chính xác.
-## 3. Vì sao `byte result = a + b;` báo lỗi dù tổng nằm trong miền?
+Note: `"x=" + byteValue` is string concatenation, while the unary operator `+x` has its own promotion rules. The examples below focus on assignment errors when storing small-integer addition results into narrow types and how to handle them properly.
+## 3. Why does `byte result = a + b;` fail even when the sum is in range?
 
-`byte` có miền giá trị **-128 đến 127**; `short` từ **-32768 đến 32767**. Tuy nhiên Java kiểm tra kiểu của phép gán theo **kiểu biểu thức**, không suy đoán giới hạn của biến tại runtime.
+`byte` has a value range of **-128 to 127**; `short` spans **-32768 to 32767**. However, Java checks assignment types based on the **expression type**, without guessing variable bounds at runtime.
 
 ~~~java
 byte x = 10;
 byte y = 20;
-// byte z = x + y; // KHÔNG biên dịch: x + y có kiểu int.
+// byte z = x + y; // DOES NOT compile: x + y has type int.
 
-int safe = x + y;        // Nên dùng khi xử lý số học.
-byte explicit = (byte) (x + y); // Hợp lệ: cast tường minh.
+int safe = x + y;        // Recommended when performing arithmetic.
+byte explicit = (byte) (x + y); // Valid: explicit cast.
 ~~~
 
-Với phép ép `(byte)`, Java giữ **8 bit thấp** của `int` rồi diễn giải kết quả như `byte` có dấu. Nếu kết quả số học nằm ngoài miền `byte`, giá trị sẽ đổi theo các bit còn lại.
+With the `(byte)` cast, Java keeps the **low 8 bits** of the `int` and interprets the result as a signed `byte`. If the arithmetic result lies outside the `byte` range, the value changes according to the remaining bits.
 
 ~~~java
 byte a = 120;
@@ -58,7 +58,7 @@ int correctSum = a + b;       // 130
 byte narrowed = (byte) (a + b); // -126
 ~~~
 
-Với `short`, khi ép hẹp từ `int` Java giữ **16 bit thấp**:
+For `short`, when narrowing from `int`, Java keeps the **low 16 bits**:
 
 ~~~java
 short a = 30_000;
@@ -67,55 +67,55 @@ int sum = a + b;          // 40000
 short narrowed = (short) sum; // -25536
 ~~~
 
-Bước cộng từ hai `byte` hoặc hai `short` là phép cộng `int` nên **không bị tràn ở kiểu nhỏ trong chính bước đó**. Giá trị âm lạ xuất hiện do **ép hẹp / lưu trở lại kiểu nhỏ**. Với những biểu thức có nhiều phép tính `int`, vẫn phải xét khả năng tràn `int` ở các bước trung gian.
+The addition step of two `byte`s or two `short`s is an `int` addition, so it **does not overflow the small type during that step itself**. Unexpected negative values appear due to **narrowing / storing back into the small type**. For expressions with many `int` operations, you still must consider possible `int` overflow in intermediate steps.
 
-## 4. Vì sao `byte c = 10 + 20;` lại biên dịch được?
+## 4. Why does `byte c = 10 + 20;` compile?
 
-Có **ngoại lệ cho một số phép gán hằng số nguyên tại thời điểm biên dịch** (*constant expression narrowing*).
+There is an **exception for certain compile-time integer constant assignments** (*constant expression narrowing*).
 
 ~~~java
-byte a = 10 + 20;       // Hợp lệ: biểu thức hằng int = 30, vừa byte.
-short b = 1_000 + 200;  // Hợp lệ: hằng 1200 vừa short.
+byte a = 10 + 20;       // Valid: int constant expression = 30, fits in byte.
+short b = 1_000 + 200;  // Valid: constant 1200 fits in short.
 
-// byte bad = 100 + 30; // Lỗi: 130 vượt miền byte.
+// byte bad = 100 + 30; // Error: 130 exceeds byte range.
 ~~~
 
-Ở đây phép `10 + 20` **vẫn có kiểu `int`**; Java cho phép **ngầm thu hẹp hằng số int** khi giá trị tính ngay lúc biên dịch vừa miền của `byte`, `short` hoặc `char` trong ngữ cảnh gán phù hợp.
+Here `10 + 20` **still has type `int`**; Java permits **implicitly narrowing an `int` constant** when the value computed at compile time fits within `byte`, `short`, or `char` in a suitable assignment context.
 
-Biến `final` có thể tham gia nếu thật sự là **biến hằng tại thời điểm biên dịch**:
+`final` variables can participate if they are genuinely **compile-time constant variables**:
 
 ~~~java
 final byte x = 10;
 final byte y = 20;
-byte c = x + y; // Hợp lệ: biểu thức hằng có giá trị 30.
+byte c = x + y; // Valid: constant expression with value 30.
 
 byte p = 10;
 byte q = 20;
-// byte d = p + q; // KHÔNG hợp lệ: p và q không phải compile-time constants.
+// byte d = p + q; // INVALID: p and q are not compile-time constants.
 ~~~
 
-Không suy ra rằng `x + y` ở ví dụ `final` có kiểu `byte`: kiểu biểu thức **vẫn là `int`**. Chỉ riêng quy tắc chuyển hằng khi **gán** cho phép lưu kết quả 30 vào `byte`. Đọc dữ liệu runtime, field không hằng hoặc tham số method không được hưởng ngoại lệ này.
+Do not infer that `x + y` in the `final` example has type `byte`: the expression type **is still `int`**. Only the constant conversion rule during **assignment** allows storing the result 30 into `byte`. Reading runtime data, non-constant fields, or method parameters does not qualify for this exception.
 
-## 5. `+=` và `++`: cú pháp ngắn, có chuyển kiểu ngầm
+## 5. `+=` and `++`: short syntax with implicit conversion
 
-Với biến `byte`/`short`:
+With `byte`/`short` variables:
 
 ~~~java
 byte score = 120;
-// score = score + 10; // Lỗi: vế phải có kiểu int.
-score += 10;           // Hợp lệ: cộng rồi chuyển ngầm trở lại byte.
+// score = score + 10; // Error: right-hand side has type int.
+score += 10;           // Valid: adds and implicitly converts back to byte.
 System.out.println(score); // -126
 ~~~
 
-`score += 10` gần tương đương với `score = (byte) (score + 10)`, nhưng biến ở vế trái chỉ được **đánh giá một lần** (quan trọng với biểu thức có tác dụng phụ). Vì có bước chuyển hẹp ngầm nên `+=` **không tự bảo vệ khỏi mất dữ liệu**.
+`score += 10` is nearly equivalent to `score = (byte) (score + 10)`, except the variable on the left-hand side is **evaluated only once** (important for expressions with side effects). Because there is an implicit narrowing step, `+=` **does not protect against data loss**.
 
-`score++` cũng tăng rồi lưu trở lại kiểu của biến. Ví dụ `byte n = 127; n++;` cho `n == -128`. Đó là quy tắc tràn khi kết quả được lưu về `byte`, không phải phép `+` hai ngôi giữ nguyên kiểu `byte`.
+`score++` also increments and stores back into the variable's type. For example, `byte n = 127; n++;` produces `n == -128`. That is the overflow rule when storing back into `byte`, not a binary `+` operator preserving `byte`.
 
-**Khuyến nghị:** Khi yêu cầu bảo toàn giá trị tính toán, giữ kết quả ở `int` hoặc rộng hơn thay vì dùng `+=` trên `byte`/`short` và mặc nhiên coi kết quả an toàn.
+**Recommendation:** When preserving the calculated value is required, keep the result in `int` or wider instead of using `+=` on `byte`/`short` and assuming the result is safe.
 
-## 6. Chương trình Java 17+ chạy được
+## 6. Runnable Java 17+ program
 
-Tạo tệp **SmallIntegerAdditionDemo.java**:
+Create the file **SmallIntegerAdditionDemo.java**:
 
 ~~~java
 public final class SmallIntegerAdditionDemo {
@@ -171,14 +171,14 @@ public final class SmallIntegerAdditionDemo {
 }
 ~~~
 
-Biên dịch và chạy từ thư mục chứa tệp (Bash, PowerShell hoặc Command Prompt):
+Compile and run from the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 SmallIntegerAdditionDemo.java
 java SmallIntegerAdditionDemo
 ~~~
 
-**Expected output chính xác:**
+**Exact expected output:**
 
 ~~~text
 bytePlusByte=30
@@ -197,27 +197,27 @@ charPlusByte=66
 integerDivision=2
 ~~~
 
-Giải thích nhanh:
+Quick explanation:
 
-- `a + b`, `s1 + s2` và `small + middle` đều có kiểu `int`. `shortSum` là 40.000 dù không thể cất trong `short`.
-- `(byte) 130` thành **-126** vì giữ 8 bit thấp; `(short) 40000` thành **-25536** vì giữ 16 bit thấp.
-- Hai phép gán hằng biên dịch được nhờ giá trị compile-time nằm trong miền `byte`, **không** làm thay đổi kiểu `int` của phép cộng.
-- `compound += 10` và `incremented++` lưu kết quả trở lại `byte`, nên có thể đổi dấu ở biên.
-- Khi cộng với `long` hoặc `float`, kiểu chung lần lượt là `long`/`float`. `'A' + (byte) 1` là `int` 66 vì `char` có code unit giá trị 65.
-- `base / divisor` là phép chia hai số nguyên đã được nâng thành `int` nên 5 chia 2 cho **2**, không phải 2.5.
+- `a + b`, `s1 + s2`, and `small + middle` all have type `int`. `shortSum` is 40,000 even though it cannot fit in `short`.
+- `(byte) 130` becomes **-126** because the low 8 bits are kept; `(short) 40000` becomes **-25536** because the low 16 bits are kept.
+- The two constant assignments compile because their compile-time values fit within the `byte` range, **without** changing the `int` type of the addition.
+- `compound += 10` and `incremented++` store results back into `byte`, so signs can flip at boundaries.
+- When adding `long` or `float`, the common type is `long`/`float` respectively. `'A' + (byte) 1` is `int` 66 because `char` has code unit value 65.
+- `base / divisor` is integer division already promoted to `int`, so 5 divided by 2 yields **2**, not 2.5.
 
-## 7. Mẫu viết nên dùng khi làm bài toán thật
+## 7. Patterns to use in real-world problems
 
-| Nhu cầu | Nên viết | Lý do |
+| Need | Recommended code | Reason |
 | --- | --- | --- |
-| Cộng `byte`/`short` để tính toán | `int total = a + b;` | Giữ kết quả không bị cắt về kiểu nhỏ |
-| Tổng có thể vượt `int` | `long total = (long) a + b;` | Nâng toán hạng **trước** phép tính khi cần |
-| Bắt buộc lưu lại dưới dạng `byte` | Kiểm tra `sum >= Byte.MIN_VALUE && sum <= Byte.MAX_VALUE` trước cast | Không mất giá trị ngoài ý muốn |
-| Bắt buộc lưu lại dưới dạng `short` | Kiểm tra `sum` trong miền `Short.MIN_VALUE` … `Short.MAX_VALUE` | Phát hiện out-of-range |
-| Dùng `+=` cho bộ đếm nhỏ | Chỉ khi đã chủ động kiểm tra giới hạn | `+=` có chuyển hẹp ngầm |
-| Phép chia cần số lẻ | `double ratio = (double) a / b;` | Không chia nguyên trước khi gán `double` |
+| Adding `byte`/`short` for computation | `int total = a + b;` | Keeps result without truncating to a small type |
+| Sum may exceed `int` | `long total = (long) a + b;` | Promote operand **before** calculation when needed |
+| Must store back as `byte` | Check `sum >= Byte.MIN_VALUE && sum <= Byte.MAX_VALUE` before casting | Avoid unintended value loss |
+| Must store back as `short` | Check `sum` in range `Short.MIN_VALUE` … `Short.MAX_VALUE` | Detect out-of-range values |
+| Using `+=` for a small counter | Only after proactively checking bounds | `+=` performs implicit narrowing |
+| Division needing fractional precision | `double ratio = (double) a / b;` | Avoid integer division before assigning to `double` |
 
-Ví dụ kiểm tra trước khi ép hẹp:
+Example check before narrowing:
 
 ~~~java
 int sum = a + b;
@@ -227,20 +227,20 @@ if (sum < Byte.MIN_VALUE || sum > Byte.MAX_VALUE) {
 byte safe = (byte) sum;
 ~~~
 
-Đây là cách chọn có chủ đích khi một giao thức/tệp nhị phân yêu cầu đúng **8 bit**; còn trong code tính toán thông thường, giữ `int` cho phép cộng các giá trị nhỏ thường rõ ràng hơn.
+This is an intentional choice when a protocol or binary file requires exactly **8 bits**; in general computation code, keeping `int` for adding small values is usually clearer.
 
-## 8. Bài tập tự luyện
+## 8. Self-practice exercises
 
-**Bài 1.** Cho `byte x = 7, y = 8;`. Vì sao `byte z = x + y;` lỗi biên dịch, dù 15 vừa `byte`? Viết hai cách hợp lệ và phân tích độ an toàn của từng cách.
+**Exercise 1.** Given `byte x = 7, y = 8;`. Why is `byte z = x + y;` a compile error even though 15 fits in `byte`? Write two valid ways and analyze the safety of each.
 
-**Bài 2.** Dự đoán `int total = (short) 30_000 + (short) 10_000;` và `short stored = (short) total;`. Thời điểm nào có mất giá trị?
+**Exercise 2.** Predict `int total = (short) 30_000 + (short) 10_000;` and `short stored = (short) total;`. At which point is value lost?
 
-**Bài 3.** So sánh `byte a = 10 + 20;`, `final byte x = 10, y = 20; byte b = x + y;` và `byte p = 10, q = 20; byte c = p + q;`. Dòng nào biên dịch được? Kiểu biểu thức `+` có khác nhau không?
+**Exercise 3.** Compare `byte a = 10 + 20;`, `final byte x = 10, y = 20; byte b = x + y;`, and `byte p = 10, q = 20; byte c = p + q;`. Which lines compile? Does the type of the `+` expression differ?
 
-**Bài 4.** Cho `byte n = 127;`. Thử `n++;` và `n += 1;` ở hai lần chạy riêng. Vì sao hai thao tác có thể đưa `n` về -128?
+**Exercise 4.** Given `byte n = 127;`. Try `n++;` and `n += 1;` in two separate runs. Why can both operations bring `n` to -128?
 
-**Bài 5.** Cho `byte a = 5, b = 2;`. Dự đoán `a / b` và `(double) a / b`. Phân biệt kiểu số học trước phép chia.
+**Exercise 5.** Given `byte a = 5, b = 2;`. Predict `a / b` and `(double) a / b`. Distinguish the arithmetic types before division.
 
-### Ghi nhớ
+### Takeaways
 
-**`byte + byte`, `short + short` và `byte + short` đều cho biểu thức kiểu `int`** vì quy tắc **binary numeric promotion**. Kiểu kết quả không phụ thuộc việc tổng có vừa kiểu nhỏ hay không. Gán một **biểu thức hằng `int`** vừa miền là ngoại lệ của luật chuyển hằng, không thay đổi kiểu phép cộng. Ép kiểu, `+=` và `++` có thể làm mất dữ liệu khi lưu trở lại `byte`/`short`: hãy chủ động kiểm tra giới hạn hoặc giữ kết quả bằng `int`.
+**`byte + byte`, `short + short`, and `byte + short` all produce an expression of type `int`** due to the **binary numeric promotion** rule. The result type does not depend on whether the sum fits in the smaller type. Assigning an **in-range `int` constant expression** is an exception of the constant conversion rule and does not alter the type of addition. Casting, `+=`, and `++` can lose data when storing back into `byte`/`short`: proactively check bounds or keep the result in `int`.

@@ -1,11 +1,11 @@
-# Toán tử `%` khác `Math.IEEEremainder` trong Java
+# How the `%` Operator Differs from `Math.IEEEremainder` in Java
 
-Java hỗ trợ **hai phép lấy phần dư trên số dấu phẩy động với hai quy tắc khác nhau**:
+Java supports **two floating-point remainder operations with two different rules**:
 
-- Toán tử **`%`** lấy phần dư từ phép chia có thương **cắt phần lẻ về 0** (*truncation toward zero*), gần với hàm `fmod` của C.
-- **`Math.IEEEremainder(double, double)`** lấy phần dư từ phép chia có thương được làm tròn đến **số nguyên gần nhất**; nếu đúng giữa hai số nguyên, chọn **số nguyên chẵn** (*ties to even*) theo định nghĩa IEEE 754.
+- The **`%`** operator computes the remainder from division whose quotient is **truncated toward zero** (*truncation toward zero*), similar to C's `fmod` function.
+- **`Math.IEEEremainder(double, double)`** computes the remainder from division whose quotient is rounded to the **nearest integer**; if halfway between two integers, it chooses the **even integer** (*ties to even*) per IEEE 754 definition.
 
-Chúng có thể cho hai kết quả **khác dấu**, dù cùng nhận một cặp số thực.
+They can yield two results with **opposite signs**, even when given the exact same pair of floating-point numbers.
 
 ```java
 double x = 7.0;
@@ -15,57 +15,57 @@ System.out.println(x % y);                  // 1.0
 System.out.println(Math.IEEEremainder(x,y)); // -1.0
 ```
 
-Cả hai kết quả đều hợp lý **theo quy tắc thương riêng**. `7 / 2 = 3.5`; nếu cắt về 0, thương nguyên là 3 và dư là `7 - 2*3 = 1`. Nếu chọn thương nguyên gần nhất với quy tắc hòa chọn số chẵn, thương là 4 và dư là `7 - 2*4 = -1`.
+Both results are valid **under their respective quotient rules**. `7 / 2 = 3.5`; if truncated toward 0, the integer quotient is 3 and the remainder is `7 - 2*3 = 1`. If choosing the nearest integer quotient with ties-to-even, the quotient is 4 and the remainder is `7 - 2*4 = -1`.
 
-Bài học tập trung vào cách hiểu, API đúng, dấu của phần dư, trường hợp IEEE 754 đặc biệt, các bẫy khi dùng cho góc/chu kỳ, và cách kiểm chứng kết quả trên Java 17+.
+This lesson focuses on the conceptual model, choosing the right API, remainder sign, special IEEE 754 cases, pitfalls when used for angles/periods, and how to verify results on Java 17+.
 
-## 1. Hai khái niệm khác nhau: remainder từ thương nào?
+## 1. Two Different Concepts: Remainder From Which Quotient?
 
-Gọi `x` là **số bị chia** (*dividend*), `y` là **số chia** (*divisor*) và giả sử cả hai hữu hạn, `y != 0`. Về mặt toán học, một phần dư được mô tả bởi:
+Let `x` be the **dividend**, `y` be the **divisor**, and assume both are finite with `y != 0`. Mathematically, a remainder is described by:
 
 ```text
 r = x - y * q
 ```
 
-Điểm khác biệt nằm ở cách chọn **số nguyên `q`**.
+The difference lies in how the **integer `q`** is chosen.
 
-### `x % y`: thương cắt về 0
+### `x % y`: Quotient Truncated Toward 0
 
-Với toán hạng chấm động, toán tử `%` của Java xác định thương nguyên khái niệm:
+With floating-point operands, Java's `%` operator determines a conceptual integer quotient:
 
 ```text
 q = trunc(x / y)
 r = x - q * y
 ```
 
-`trunc` loại bỏ phần lẻ theo hướng về 0. Ví dụ:
+`trunc` discards the fractional part toward 0. For example:
 
 - `7 / 2 = 3.5`: `q = 3`, `r = +1`.
 - `-7 / 2 = -3.5`: `q = -3`, `r = -1`.
 - `7 / -2 = -3.5`: `q = -3`, `r = +1`.
 - `-7 / -2 = 3.5`: `q = 3`, `r = -1`.
 
-**Nếu khác 0, phần dư `%` mang dấu của `x`**, không phải dấu của `y`. Giá trị tuyệt đối của dư nhỏ hơn `|y|` khi hai toán hạng hữu hạn và số chia khác 0.
+**If non-zero, the `%` remainder carries the sign of `x`**, not the sign of `y`. The absolute value of the remainder is strictly less than `|y|` when both operands are finite and the divisor is non-zero.
 
-### `Math.IEEEremainder`: thương nguyên gần nhất, hòa chọn chẵn
+### `Math.IEEEremainder`: Nearest Integer Quotient, Ties to Even
 
-Phương thức `Math.IEEEremainder(x, y)` dùng:
+The `Math.IEEEremainder(x, y)` method uses:
 
 ```text
-q = số nguyên gần nhất với thương toán học x / y;
-    nếu hai số nguyên cách đều, chọn số nguyên chẵn.
+q = nearest integer to the mathematical quotient x / y;
+    if two integers are equidistant, choose the even integer.
 r = x - q * y
 ```
 
-Với `7 / 2 = 3.5`, hai số nguyên 3 và 4 cùng cách 0.5. Số 4 **chẵn**, vậy `q = 4` và `r = -1`. Với `5 / 2 = 2.5`, hai ứng viên là 2 và 3, nên chọn `q = 2` và `r = +1`.
+For `7 / 2 = 3.5`, the two integers 3 and 4 are equidistant at 0.5. Since 4 is **even**, `q = 4` and `r = -1`. For `5 / 2 = 2.5`, the two candidates are 2 and 3, so `q = 2` and `r = +1`.
 
-Điểm cần nhấn mạnh: “số nguyên chẵn” nói về **thương `q`**, **không** nói về phần dư. Đây không phải làm tròn theo kiểu “0.5 luôn lên”.
+Key point to emphasize: "even integer" refers to the **quotient `q`**, **not** the remainder. This is not "0.5 always rounds up".
 
-> Các công thức trên giải thích **ngữ nghĩa toán học**. Không nên tự mô phỏng phép `%` hoặc `IEEEremainder` bằng biểu thức chấm động `x - y * (...)` vì phép chia và phép nhân trung gian có thể làm tròn hoặc overflow, khiến kết quả khác API được định nghĩa. Hãy gọi đúng toán tử/phương thức.
+> The formulas above explain the **mathematical semantics**. You should not manually emulate `%` or `IEEEremainder` with the floating-point expression `x - y * (...)`, because intermediate division and multiplication can round or overflow, making the result differ from the defined API. Call the proper operator/method directly.
 
-## 2. Bảng so sánh với số dương và âm
+## 2. Comparison Table With Positive and Negative Numbers
 
-| `x` | `y` | `trunc(x/y)` | `q` gần nhất (ties-even) | `x % y` | `Math.IEEEremainder(x,y)` |
+| `x` | `y` | `trunc(x/y)` | Nearest `q` (ties-even) | `x % y` | `Math.IEEEremainder(x,y)` |
 | ---: | ---: | ---: | ---: | ---: | ---: |
 | 7 | 2 | 3 | 4 | 1 | −1 |
 | 5 | 2 | 2 | 2 | 1 | 1 |
@@ -77,76 +77,76 @@ Với `7 / 2 = 3.5`, hai số nguyên 3 và 4 cùng cách 0.5. Số 4 **chẵn**
 | −6 | 4 | −1 | −2 | −2 | 2 |
 | 8 | 3 | 2 | 3 | 2 | −1 |
 
-Trong bảng này, tất cả số là những số nguyên nhỏ được biểu diễn **chính xác** dưới dạng `double`, nên bảng không lẫn vấn đề sai số của literal thập phân.
+In this table, all numbers are small integers represented **exactly** as `double`, so the table does not mix in decimal-literal rounding error.
 
-Các trường hợp dễ nhầm:
+Easy-to-confuse cases:
 
-- **`5.0 % 2.0 == Math.IEEEremainder(5.0,2.0)`:** cả hai bằng 1, vì ties-even chọn thương 2.
-- **`7.0 % 2.0 != Math.IEEEremainder(7.0,2.0)`:** 1 khác −1, vì ties-even chọn thương 4.
-- **`6.0 % 4.0` bằng 2, còn `Math.IEEEremainder(6.0,4.0)` bằng −2:** thương 1.5 nằm giữa 1 và 2, nên IEEE chọn 2.
-- **Đổi dấu số chia** có thể đổi dấu thương nhưng không tự làm đổi dấu phần dư trong ví dụ tương ứng: các kết quả được quyết định bởi quy tắc chọn thương và dấu của số bị chia.
+- **`5.0 % 2.0 == Math.IEEEremainder(5.0,2.0)`:** both equal 1, because ties-even chooses quotient 2.
+- **`7.0 % 2.0 != Math.IEEEremainder(7.0,2.0)`:** 1 differs from −1, because ties-even chooses quotient 4.
+- **`6.0 % 4.0` equals 2, while `Math.IEEEremainder(6.0,4.0)` equals −2:** quotient 1.5 lies halfway between 1 and 2, so IEEE chooses 2.
+- **Negating the divisor** can negate the quotient without automatically flipping the sign of the remainder in the corresponding examples: results are governed by the quotient selection rule and the sign of the dividend.
 
-Để học nhanh, chỉ cần nhớ `7.0` và `2.0`: nó đủ làm phản ví dụ cho nhận định “cả hai đều là modulo nên như nhau”.
+To memorize quickly, just remember `7.0` and `2.0`: it suffices as a counterexample to the claim "both are modulo so they are identical".
 
-## 3. Vì sao tên “IEEEremainder” không có nghĩa “phần dư luôn dương”?
+## 3. Why Does the Name "IEEEremainder" Not Mean "Always Positive Remainder"?
 
-Với `%` trên chấm động, nếu kết quả khác 0, dấu theo **số bị chia `x`**. Nhưng với `Math.IEEEremainder`, phần dư có thể dương **hoặc âm**, không phụ thuộc riêng vào dấu của `x` hay `y`.
+With `%` on floating-point numbers, if the result is non-zero, its sign follows the **dividend `x`**. However, with `Math.IEEEremainder`, the remainder can be positive **or negative**, not depending solely on the sign of `x` or `y`.
 
-Khi `x`, `y` hữu hạn và `y != 0`:
+When `x`, `y` are finite and `y != 0`:
 
-- Phần dư của `%` có độ lớn **nhỏ hơn** `|y|`.
-- Phần dư của `IEEEremainder` có độ lớn **không lớn hơn một nửa** `|y|` theo quan hệ toán học của thương làm tròn gần nhất.
-- Ở đúng vị trí nửa chu kỳ, dấu kết quả `IEEEremainder` được quyết định gián tiếp bởi **ties-to-even của thương**, nên có thể xuất hiện cả `+|y|/2` và `-|y|/2` tùy trường hợp.
+- The `%` remainder has magnitude **strictly less than** `|y|`.
+- The `IEEEremainder` remainder has magnitude **no greater than half** of `|y|` under the mathematical relation of the nearest rounded quotient.
+- At an exact half-period position, the sign of the `IEEEremainder` result is indirectly determined by **ties-to-even of the quotient**, so both `+|y|/2` and `-|y|/2` can appear depending on the case.
 
-Ví dụ:
+Example:
 
 ```java
 System.out.println(Math.IEEEremainder(5.0, 2.0)); // 1.0
 System.out.println(Math.IEEEremainder(7.0, 2.0)); // -1.0
 ```
 
-Cả hai giá trị có cùng độ lớn 1.0 nhưng **khác dấu** dù `x` và `y` đều dương. Do đó, `Math.IEEEremainder` **không phù hợp để tự động tạo index từ 0 đến n−1**.
+Both values have the same magnitude 1.0 yet **opposite signs** even though both `x` and `y` are positive. Therefore, `Math.IEEEremainder` **is not suitable for directly generating indices from 0 to n−1**.
 
-Cụm từ *remainder* trong API không đồng nghĩa với quy ước “modulo không âm”. Khi thiết kế dữ liệu, phải nêu rõ phần dư thuộc khoảng nào và số chia có được âm không.
+The word *remainder* in an API is not synonymous with the convention "non-negative modulo". When designing data contracts, state clearly what interval the remainder belongs to and whether the divisor may be negative.
 
-## 4. Hòa ở nửa đơn vị: ties-to-even khác `Math.round`
+## 4. Ties at Half a Unit: Ties-to-Even Differs from `Math.round`
 
-Quy tắc hòa của `Math.IEEEremainder` tương thích với nguyên tắc làm tròn về số nguyên gần nhất, chọn số chẵn. Java cung cấp `Math.rint(double)` theo quy tắc chọn số nguyên gần nhất với ties-to-even, nhưng **không** được coi `Math.IEEEremainder` đơn giản là `x - Math.rint(x/y) * y` trên mọi đầu vào.
+The tie-breaking rule of `Math.IEEEremainder` aligns with the principle of rounding to the nearest integer, choosing the even integer. Java provides `Math.rint(double)` following nearest-integer with ties-to-even, yet `Math.IEEEremainder` must **not** be treated simply as `x - Math.rint(x/y) * y` across all inputs.
 
 ```java
 System.out.println(Math.rint(2.5));  // 2.0
 System.out.println(Math.round(2.5)); // 3
 ```
 
-`Math.round` là API **khác**: với trường hợp nằm đúng giữa hai số nguyên, nó chọn hướng về **dương vô cực** theo quy tắc của phương thức này. Còn `Math.rint(2.5)` chọn 2 vì 2 chẵn. `Math.rint(3.5)` chọn 4 vì 4 chẵn.
+`Math.round` is a **different** API: for cases halfway between two integers, it chooses the direction toward **positive infinity** according to that method's rule. Meanwhile, `Math.rint(2.5)` chooses 2 because 2 is even. `Math.rint(3.5)` chooses 4 because 4 is even.
 
-Cẩn thận: phép chia `x/y` tính trước bằng `double` có thể bị làm tròn thành giá trị khác thương toán học thật, hoặc overflow thành vô cực khi `x` rất lớn và `y` cực nhỏ. Phép nhân `q*y` cũng có thể làm tròn. Vì thế, dùng `Math.rint` để **minh họa quy tắc ties-even**, nhưng dùng `Math.IEEEremainder` khi cần chính xác **ngữ nghĩa IEEE remainder**.
+Be careful: computing `x/y` beforehand in `double` can round to a value different from the true mathematical quotient, or overflow to infinity when `x` is very large and `y` is extremely small. Multiplying `q*y` can also round. Therefore, use `Math.rint` to **illustrate the ties-even rule**, but use `Math.IEEEremainder` when you need exact **IEEE remainder semantics**.
 
-### Còn `Math.floor` và `Math.floorMod`?
+### What About `Math.floor` and `Math.floorMod`?
 
-- `Math.floor(double)` trả giá trị `double` là số nguyên toán học lớn nhất không vượt đối số; đây không phải phép lấy phần dư.
-- `Math.floorMod` nhận đối số **nguyên** (`int`/`long`), **không có overload nhận `double`**. Với modulo nguyên dương, nó tạo phần dư không âm kể cả khi số bị chia âm.
-- `Math.IEEEremainder` dùng thương **gần nhất** chứ **không** dùng `floor` hay `trunc`.
+- `Math.floor(double)` returns the `double` value of the greatest mathematical integer less than or equal to the argument; this is not a remainder operation.
+- `Math.floorMod` takes **integer** arguments (`int`/`long`), and **has no overload taking `double`**. With a positive integer modulus, it produces a non-negative remainder even when the dividend is negative.
+- `Math.IEEEremainder` uses the **nearest** quotient, **not** `floor` or `trunc`.
 
-Ba cách chọn thương (*truncation*, *floor*, *nearest-ties-even*) là ba quy tắc khác nhau; chỉ dùng chúng thay thế nhau khi bạn chứng minh kết quả đáp ứng hợp đồng bài toán.
+These three ways of choosing a quotient (*truncation*, *floor*, *nearest-ties-even*) are three distinct rules; only substitute one for another when you prove the result satisfies the problem's contract.
 
-## 5. Trường hợp đặc biệt: zero, NaN và Infinity
+## 5. Special Cases: Zero, NaN, and Infinity
 
-Dấu phẩy động của Java có các giá trị `NaN`, `+Infinity`, `-Infinity`, `+0.0` và `-0.0`. Kết quả của `%` **khác đáng kể** với phép `%` số nguyên khi chia cho 0.
+Java floating-point has `NaN`, `+Infinity`, `-Infinity`, `+0.0`, and `-0.0`. The behavior of `%` **differs significantly** from integer `%` when dividing by 0.
 
-| Tình huống dấu phẩy động | `x % y` | `Math.IEEEremainder(x,y)` |
+| Floating-Point Scenario | `x % y` | `Math.IEEEremainder(x,y)` |
 | --- | --- | --- |
-| Bất kỳ toán hạng nào là `NaN` | `NaN` | `NaN` |
-| `x` là ±Infinity, `y` hữu hạn khác 0 | `NaN` | `NaN` |
-| `y` là `+0.0` hoặc `-0.0` | `NaN` | `NaN` |
-| `x` hữu hạn, `y` là ±Infinity | Trả đúng `x` | Trả đúng `x` |
-| `x` bằng `+0.0` hoặc `-0.0`, `y` hữu hạn khác 0 | Trả zero cùng dấu với `x` | Trả zero cùng dấu với `x` |
-| Kết quả khác 0, hai toán hạng hữu hạn | Dấu theo `x` | Dấu tùy thương làm tròn gần nhất |
-| Kết quả đúng bằng 0 | Zero cùng dấu với `x` | Zero cùng dấu với `x` |
+| Either operand is `NaN` | `NaN` | `NaN` |
+| `x` is ±Infinity, `y` is finite non-zero | `NaN` | `NaN` |
+| `y` is `+0.0` or `-0.0` | `NaN` | `NaN` |
+| `x` is finite, `y` is ±Infinity | Returns `x` unchanged | Returns `x` unchanged |
+| `x` is `+0.0` or `-0.0`, `y` is finite non-zero | Returns zero with same sign as `x` | Returns zero with same sign as `x` |
+| Non-zero result, both operands finite | Sign matches `x` | Sign depends on nearest rounded quotient |
+| Result is exactly 0 | Zero with same sign as `x` | Zero with same sign as `x` |
 
-`Math.IEEEremainder` là phương thức nhận và trả `double`. Không có overload `IEEEremainder(float,float)`: nếu truyền hai `float`, Java mở rộng chúng sang `double` và phương thức trả `double`.
+`Math.IEEEremainder` is a method that takes and returns `double`. There is no `IEEEremainder(float,float)` overload: if two `float` values are passed, Java widens them to `double` and the method returns `double`.
 
-### Chia cho 0 là `NaN`, không phải `ArithmeticException`
+### Remainder by 0 Is `NaN`, Not `ArithmeticException`
 
 ```java
 double a = 7.0 % 0.0;
@@ -155,16 +155,16 @@ System.out.println(Double.isNaN(a)); // true
 System.out.println(Double.isNaN(b)); // true
 ```
 
-Khác với:
+Contrast with:
 
 ```java
-// int invalid = 7 % 0; // Phép % số nguyên chia cho 0 không hợp lệ;
-// với số chia nguyên bằng 0 ở runtime, Java ném ArithmeticException.
+// int invalid = 7 % 0; // Integer % by 0 is invalid;
+// with a zero integer divisor at runtime, Java throws ArithmeticException.
 ```
 
-Với toán hạng dấu phẩy động, `%` không ném ngoại lệ runtime do zero divisor. `NaN` cũng không so sánh bằng chính nó theo `==`, nên kiểm tra bằng `Double.isNaN`.
+With floating-point operands, `%` does not throw a runtime exception for a zero divisor. Also, `NaN` does not compare equal to itself under `==`, so check with `Double.isNaN`.
 
-### Zero âm vẫn mang dấu
+### Negative Zero Still Carries a Sign
 
 ```java
 double r1 = -4.0 % 2.0;
@@ -174,42 +174,42 @@ System.out.println(r1); // -0.0
 System.out.println(r2); // -0.0
 ```
 
-Dù `-0.0 == +0.0` là `true`, chúng có mẫu bit dấu khác nhau. Nếu định dạng dữ liệu/giao thức cần bảo toàn zero âm, có thể kiểm tra `Double.doubleToRawLongBits`.
+Even though `-0.0 == +0.0` is `true`, they have different sign bit patterns. If a data format or protocol requires preserving negative zero, you can inspect `Double.doubleToRawLongBits`.
 
-Không dùng `Math.abs` để kết luận mọi phần dư giờ có nghĩa modulo mong muốn: trị tuyệt đối của dư âm có thể cho một vị trí **khác hẳn** vị trí tương đương trong chu kỳ.
+Do not use `Math.abs` assuming every remainder now has the desired modulo meaning: the absolute value of a negative remainder can give a position **completely different** from the equivalent position in the cycle.
 
-## 6. Kiểu của biểu thức: `float`, `double` và numeric promotion
+## 6. Expression Type: `float`, `double`, and Numeric Promotion
 
-Toán tử `%` có thể dùng với `int`, `long`, `float` hoặc `double`. Đối với phép toán có các toán hạng khác kiểu, Java áp dụng **binary numeric promotion**. Ví dụ:
+The `%` operator can be used with `int`, `long`, `float`, or `double`. For an operation with operands of different types, Java applies **binary numeric promotion**. For example:
 
 ```java
 float a = 7.0f;
 float b = 2.0f;
 
-float floatRemainder = a % b; // Kết quả phép % là float.
-double ieeeRemainder = Math.IEEEremainder(a, b); // Hai float được mở rộng lên double.
+float floatRemainder = a % b; // Result of % is float.
+double ieeeRemainder = Math.IEEEremainder(a, b); // Both floats are widened to double.
 ```
 
-Giá trị ở ví dụ là `floatRemainder == 1.0f` và `ieeeRemainder == -1.0`. Khi có `double` ở một toán hạng của `%`, phép toán được tính với `double`:
+The values in the example are `floatRemainder == 1.0f` and `ieeeRemainder == -1.0`. When `double` is in one operand of `%`, the operation is evaluated in `double`:
 
 ```java
 float x = 7.0f;
 double y = 2.0;
-double mixed = x % y; // Kết quả double.
+double mixed = x % y; // Result is double.
 ```
 
-Với số thập phân không biểu diễn chính xác trong binary32/binary64, dữ liệu đã được làm tròn **trước khi gọi phương thức** hoặc thực hiện toán tử. Vì thế, một phép tính tưởng là “x % 0.1” có thể cho phần dư nhỏ không mong muốn do bản thân `0.1` là giá trị nhị phân gần đúng.
+For decimal numbers not exactly representable in binary32/binary64, the data was already rounded **before calling the method** or executing the operator. Therefore, a calculation intended as "x % 0.1" can leave an unexpected tiny remainder because `0.1` itself is an approximate binary value.
 
-Muốn khẳng định kết quả đúng, phải tách hai vấn đề:
+To verify correctness, separate two issues:
 
-1. **Quy tắc lấy thương**: truncate hay nearest-ties-even?
-2. **Biểu diễn các toán hạng**: `float`/`double` có lưu chính xác các số đầu vào không?
+1. **Quotient rule**: truncate or nearest-ties-even?
+2. **Operand representation**: does `float`/`double` store the input numbers accurately?
 
-`Math.IEEEremainder` giải quyết quy tắc thứ nhất, **không** biến mọi giá trị `double` thành thập phân chính xác.
+`Math.IEEEremainder` addresses the first rule; it does **not** turn every `double` value into an exact decimal.
 
-## 7. Ví dụ chạy độc lập trên Java 17+
+## 7. Standalone Runnable Example on Java 17+
 
-Lưu mã dưới tên `RemainderComparisonDemo.java`:
+Save the code as `RemainderComparisonDemo.java`:
 
 ```java
 public class RemainderComparisonDemo {
@@ -258,14 +258,14 @@ public class RemainderComparisonDemo {
 }
 ```
 
-Lệnh biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac --release 17 RemainderComparisonDemo.java
 java RemainderComparisonDemo
 ```
 
-Kết quả stdout:
+Stdout output:
 
 ```text
 7.0 % 2.0 = 1.0 | IEEE = -1.0
@@ -290,65 +290,65 @@ negative zero detected: true
 float remainder = 1.0, IEEE returns double = -1.0
 ```
 
-Chương trình cho thấy: các kết quả khác dấu với cùng dữ liệu, quy tắc ties-to-even, xử lý zero divisor/infinity, zero âm và sự khác biệt kiểu trả về khi gọi `Math.IEEEremainder` với `float`.
+The program demonstrates: results with opposite signs for the same data, the ties-to-even rule, zero divisor/infinity handling, negative zero, and the return type difference when calling `Math.IEEEremainder` with `float`.
 
-## 8. Chọn API nào trong bài toán thực tế?
+## 8. Which API to Choose in Real-World Problems?
 
-### Trường hợp A — Phần dư theo chia cắt về 0
+### Case A — Remainder From Division Truncated Toward 0
 
-Chọn **`%`** khi hợp đồng mong muốn dấu của phần dư đi theo số bị chia, gần với cách tính remainder nguyên của Java.
+Choose **`%`** when the contract wants the sign of the remainder to follow the dividend, matching Java's integer remainder behavior.
 
-Ví dụ, tính phần dư của độ dài dịch chuyển `-7.0` theo quãng `2.0`:
+For example, computing the remainder of a displacement `-7.0` over a step size `2.0`:
 
 ```java
 double offset = -7.0 % 2.0; // -1.0
 ```
 
-Đây là cách tính hợp lệ nếu logic của bạn cần **phần dư có dấu theo dịch chuyển**. Nhưng nó **không phải** tọa độ index modulo luôn không âm.
+This is a valid calculation if your logic needs a **signed remainder following the displacement**. However, it is **not** an always-non-negative modulo index coordinate.
 
-### Trường hợp B — Sai lệch có độ lớn gần 0 nhất trong miền chu kỳ
+### Case B — Deviation Closest to 0 in a Periodic Domain
 
-Chọn **`Math.IEEEremainder`** khi muốn một phần dư nằm gần 0 hơn, chẳng hạn trong một quy ước **hiệu pha có dấu** hoặc sai lệch chu kỳ được đo theo khoảng đối xứng xung quanh 0. Với modulus hữu hạn khác 0, độ lớn phần dư không quá nửa modulus.
+Choose **`Math.IEEEremainder`** when you want a remainder closer to 0, such as in a **signed phase difference** convention or periodic deviation measured on a symmetric interval around 0. With a finite non-zero modulus, the remainder's magnitude is at most half the modulus.
 
 ```java
 double angle = 350.0;
 double signedRemainder = Math.IEEEremainder(angle, 360.0);
-// -10.0, vì chọn thương 1 thay vì 0.
+// -10.0, because quotient 1 is chosen instead of 0.
 ```
 
-Đây có thể là cách thuận tiện để biểu diễn độ lệch góc ngắn nhất quanh điểm 0. Nhưng ở chính **nửa chu kỳ** (±180 độ với chu kỳ 360), kết quả có thể là +180 hoặc −180 tùy thương làm tròn và vị trí ban đầu; hãy quy định rõ muốn khoảng `[-180,180]`, `[-180,180)` hay `(-180,180]` và chuẩn hóa đường biên nếu cần.
+This can be a convenient way to express the shortest angular offset around 0. However, right at the **half-period** (±180 degrees for period 360), the result can be +180 or −180 depending on the rounded quotient and initial position; explicitly specify whether you want `[-180,180]`, `[-180,180)`, or `(-180,180]` and normalize the boundary if needed.
 
-`Math.IEEEremainder` cũng không tự bảo đảm giá trị hữu hạn khi đầu vào là NaN/Infinity hoặc chu kỳ bằng 0. Kiểm tra dữ liệu đầu vào tại ranh giới nghiệp vụ.
+`Math.IEEEremainder` also does not guarantee finite values when inputs are NaN/Infinity or the period is 0. Validate inputs at business boundaries.
 
-### Trường hợp C — Index vòng không âm
+### Case C — Non-Negative Circular Index
 
-Nếu đang đánh chỉ số mảng/list, thường nên dùng số **nguyên**, với `Math.floorMod`:
+If you are indexing arrays/lists, you should normally use **integers**, with `Math.floorMod`:
 
 ```java
 int size = 5;
 int index = Math.floorMod(-1, size); // 4
 ```
 
-`Math.floorMod` không có overload cho `double`. Nếu dữ liệu của bạn thực chất là index nguyên, đừng chuyển sang `double` để dùng `IEEEremainder`.
+`Math.floorMod` has no overload for `double`. If your data is actually an integer index, do not convert to `double` to use `IEEEremainder`.
 
-Với góc hoặc pha chấm động cần chuẩn hóa về `[0,period)`, có thể bắt đầu bằng phép `%` rồi điều chỉnh khi phần dư âm, nhưng phải cân nhắc việc cộng `period` có thể làm tròn ở biên. Ví dụ minh họa cho **đầu vào hữu hạn, chu kỳ dương**, không phải công thức bảo đảm độ chính xác tuyệt đối:
+For floating-point angles or phases that need normalization into `[0,period)`, you can start with `%` and adjust when the remainder is negative, though you must consider that adding `period` can round at the boundary. Illustrative example for **finite inputs, positive period**, not a formula guaranteeing absolute precision:
 
 ```java
 double value = -10.0;
 double period = 360.0;
 double r = value % period;
 if (r < 0.0) r += period;
-if (r >= period) r = 0.0; // Chặn trường hợp làm tròn lên đúng period.
+if (r >= period) r = 0.0; // Guard against rounding up to exact period.
 System.out.println(r); // 350.0
 ```
 
-Nếu cần chuẩn hóa góc với quy tắc chính xác tại boundary, viết test rõ cho ±0, bội số chu kỳ, nửa chu kỳ, dữ liệu rất lớn và trường hợp gần đường biên. Không tự áp dụng `Math.abs(value % period)`, vì `Math.abs(-10.0 % 360.0)` là 10.0 chứ **không phải** vị trí tương đương 350.0.
+If you need angle normalization with exact boundary rules, write explicit tests for ±0, multiples of the period, half-periods, very large inputs, and near-boundary cases. Do not blindly apply `Math.abs(value % period)`, because `Math.abs(-10.0 % 360.0)` is 10.0, **not** the equivalent position 350.0.
 
-### Trường hợp D — Số tiền hoặc số thập phân chính xác
+### Case D — Currency or Exact Decimal Numbers
 
-Nếu bài toán dùng tiền hoặc số thập phân cần quy tắc chính xác, cả `%` trên `double` lẫn `Math.IEEEremainder` đều **không** giải quyết việc nhị phân không biểu diễn chính xác `0.1`.
+If the problem involves money or decimals requiring exact rules, neither `%` on `double` nor `Math.IEEEremainder` solves binary's inability to represent `0.1` exactly.
 
-Có thể dùng `BigDecimal`:
+You can use `BigDecimal`:
 
 ```java
 java.math.BigDecimal amount = new java.math.BigDecimal("7.5");
@@ -356,51 +356,51 @@ java.math.BigDecimal step = new java.math.BigDecimal("2.0");
 java.math.BigDecimal r = amount.remainder(step); // 1.5
 ```
 
-`BigDecimal.remainder` có hợp đồng riêng dựa trên quotient theo hướng về 0, **không phải** IEEE remainder gần nhất. Nó làm việc theo biểu diễn thập phân chính xác nhưng vẫn cần kiểm tra divisor khác 0 và xác định chính sách scale/precision của phép tính.
+`BigDecimal.remainder` has its own contract based on a quotient truncated toward 0, **not** nearest IEEE remainder. It operates on an exact decimal representation, though you still must ensure a non-zero divisor and define scale/precision policies for your calculations.
 
-## 9. Các lỗi phổ biến
+## 9. Common Mistakes
 
-| Nhầm lẫn | Hậu quả | Cách làm đúng |
+| Misconception | Consequence | Correct Approach |
 | --- | --- | --- |
-| Cho rằng `x % y` và `Math.IEEEremainder(x,y)` là một phép toán | Sai dấu và biên khi thương có phần lẻ | Xác định quy tắc truncate hay nearest-ties-even |
-| Cho rằng `IEEEremainder` luôn trả số không âm | `IEEEremainder(7,2) == -1` | Dùng API phù hợp khoảng kết quả nghiệp vụ |
-| Nhầm ties-to-even với `Math.round` | Hòa 2.5 được xử lý khác | Hiểu thương IEEE là nearest, ties-even |
-| Tự tính `x - Math.rint(x / y) * y` thay phương thức | Phép toán trung gian có thể làm tròn/overflow | Gọi `Math.IEEEremainder` trực tiếp |
-| Dùng `IEEEremainder` làm index mảng | Dư có thể âm, đồng thời là `double` | Dùng `Math.floorMod` cho index nguyên |
-| Gọi `Math.floorMod` với `double` | Không biên dịch | Dùng overload kiểu nguyên hoặc thiết kế lại chuẩn hóa thực |
-| Mong `7.0 % 0.0` ném `ArithmeticException` | Kết quả thực tế là `NaN` | Kiểm tra divisor và `Double.isNaN` |
-| Quên số 0 có dấu | `-0.0` có bit dấu âm dù bằng `+0.0` theo `==` | Chỉ kiểm tra raw bits nếu nghiệp vụ cần |
-| Dùng `float` để gọi `IEEEremainder` và giả định kết quả `float` | Phương thức trả `double` | Khai báo `double` và cân nhắc chuyển hẹp nếu cần |
-| Chọn `%` vì muốn chuẩn hóa góc về `[0,360)` | Số âm vẫn cho phần dư âm | Điều chỉnh có kiểm tra và test đường biên |
-| Cho rằng “IEEE” đồng nghĩa với decimal exact | Không thay đổi việc lưu binary64 | Dùng `BigDecimal` nếu bài toán cần thập phân chính xác |
-| Đọc `Math.IEEEremainder` như phép chia lấy thương | Đây là **phần dư**, không phải quotient | Sử dụng `/`, `floorDiv` hoặc thuật toán quotient đúng nhu cầu |
+| Assuming `x % y` and `Math.IEEEremainder(x,y)` are the same operation | Wrong sign and boundary when quotient has fractional part | Decide whether truncate or nearest-ties-even is required |
+| Assuming `IEEEremainder` always returns a non-negative number | `IEEEremainder(7,2) == -1` | Use the API matching the business result interval |
+| Confusing ties-to-even with `Math.round` | Ties at 2.5 are handled differently | Understand IEEE quotient is nearest, ties-even |
+| Manually computing `x - Math.rint(x / y) * y` instead of calling the method | Intermediate operations may round/overflow | Call `Math.IEEEremainder` directly |
+| Using `IEEEremainder` as an array index | Remainder can be negative, and is `double` | Use `Math.floorMod` for integer indices |
+| Calling `Math.floorMod` with `double` | Does not compile | Use integer overloads or redesign floating-point normalization |
+| Expecting `7.0 % 0.0` to throw `ArithmeticException` | Actual result is `NaN` | Check divisor and `Double.isNaN` |
+| Forgetting signed zero | `-0.0` has a negative sign bit despite equaling `+0.0` under `==` | Check raw bits only if business rules require it |
+| Passing `float` to `IEEEremainder` and assuming a `float` result | The method returns `double` | Declare `double` and consider narrowing if needed |
+| Choosing `%` to normalize angles into `[0,360)` | Negative numbers still yield negative remainders | Adjust with checks and boundary tests |
+| Assuming "IEEE" means decimal exact | Does not change binary64 storage | Use `BigDecimal` if the problem requires exact decimals |
+| Reading `Math.IEEEremainder` as division returning a quotient | It is the **remainder**, not the quotient | Use `/`, `floorDiv`, or the appropriate quotient algorithm |
 
-## 10. Bộ kiểm thử tối thiểu và câu hỏi ôn tập
+## 10. Minimal Test Suite and Review Questions
 
-Khi thay một phép tính remainder bằng API khác, nên kiểm tra ít nhất các nhóm:
+When replacing one remainder calculation with another API, test at least these groups:
 
-1. **Thương nguyên chẵn/lẻ và trường hợp hòa:** `(5.0,2.0)`, `(7.0,2.0)`, `(6.0,4.0)`.
-2. **Dấu của hai toán hạng:** `(-7.0,2.0)`, `(7.0,-2.0)`, `(-7.0,-2.0)`.
-3. **Bội số chính xác và zero âm:** `(-4.0,2.0)`, `(+0.0,3.0)`, `(-0.0,3.0)`.
-4. **Giá trị đặc biệt:** một toán hạng NaN, dividend Infinity, divisor ±0, divisor Infinity.
-5. **Giới hạn thực tế của ứng dụng:** số rất lớn/rất nhỏ, số thập phân nhị phân xấp xỉ, nửa chu kỳ và sát đường biên.
+1. **Even/odd integer quotients and tie cases:** `(5.0,2.0)`, `(7.0,2.0)`, `(6.0,4.0)`.
+2. **Operand signs:** `(-7.0,2.0)`, `(7.0,-2.0)`, `(-7.0,-2.0)`.
+3. **Exact multiples and negative zero:** `(-4.0,2.0)`, `(+0.0,3.0)`, `(-0.0,3.0)`.
+4. **Special values:** either operand NaN, dividend Infinity, divisor ±0, divisor Infinity.
+5. **Application practical limits:** very large/very small numbers, approximate binary decimals, half-periods, and near-boundary inputs.
 
-Tự trả lời:
+Answer for yourself:
 
-- Vì sao `7.0 % 2.0` bằng 1.0 nhưng `Math.IEEEremainder(7.0,2.0)` bằng −1.0?
-- Vì sao `Math.IEEEremainder(5.0,2.0)` lại bằng +1.0? Vai trò của thương chẵn là gì?
-- Nếu cần luôn có phần dư trong `[0,n)` với `n` nguyên dương, nên chọn `%`, `IEEEremainder` hay `floorMod`?
-- Java xử lý `7.0 % 0.0` khác `7 % 0` như thế nào?
-- Vì sao `Math.rint(x/y)` chỉ giúp hiểu quy tắc mà chưa phải một cách tự cài đặt IEEE remainder đáng tin cho mọi `double`?
-- Với góc 350 độ và chu kỳ 360 độ, `Math.IEEEremainder` cho kết quả bao nhiêu? Tại sao cần quy ước biên ±180?
-- Khi một hàm nhận `float` nhưng gọi `Math.IEEEremainder`, kiểu trả về thực sự là gì?
-- Với dữ liệu thập phân chính xác, vì sao chuyển sang `BigDecimal.remainder` cũng là thay đổi **hợp đồng phép toán**, không đơn thuần thay đổi số bit?
+- Why is `7.0 % 2.0` equal to 1.0 while `Math.IEEEremainder(7.0,2.0)` equals −1.0?
+- Why is `Math.IEEEremainder(5.0,2.0)` equal to +1.0? What is the role of the even quotient?
+- If you always need a remainder in `[0,n)` for a positive integer `n`, should you choose `%`, `IEEEremainder`, or `floorMod`?
+- How does Java handle `7.0 % 0.0` differently from `7 % 0`?
+- Why does `Math.rint(x/y)` only help explain the rule and is not a reliable manual implementation of IEEE remainder for all `double` values?
+- For an angle of 350 degrees and a period of 360 degrees, what does `Math.IEEEremainder` return? Why do ±180 boundary conventions matter?
+- When a function accepts `float` yet calls `Math.IEEEremainder`, what is the actual return type?
+- For exact decimal data, why is switching to `BigDecimal.remainder` also a change in **operation contract**, not merely a change in bit count?
 
-## 11. Tài liệu chính thức
+## 11. Official Documentation
 
-- [Java Language Specification, `15.17.3 — Remainder Operator % (Java SE 17)](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.17.3): `%` nguyên và dấu phẩy động; quy tắc truncate, dấu của phần dư và các trường hợp đặc biệt.
-- [`Math.IEEEremainder` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html#IEEEremainder(double,double)): định nghĩa quotient gần nhất, ties-to-even, số 0 có dấu và xử lý NaN/Infinity.
-- [`Math.rint` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html#rint(double)): làm tròn về số nguyên gần nhất, hòa chọn số chẵn.
-- [`Math.floorMod` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html#floorMod(int,int)): phép modulo dành cho kiểu nguyên.
+- [Java Language Specification, `15.17.3 — Remainder Operator % (Java SE 17)](https://docs.oracle.com/javase/specs/jls/se17/html/jls-15.html#jls-15.17.3): integer and floating-point `%`; truncation rule, remainder sign, and special cases.
+- [`Math.IEEEremainder` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html#IEEEremainder(double,double)): definition of nearest quotient, ties-to-even, signed zero, and NaN/Infinity handling.
+- [`Math.rint` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html#rint(double)): rounding to nearest integer, ties to even.
+- [`Math.floorMod` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html#floorMod(int,int)): modulo operation for integer types.
 
-**Kết luận:** `%` và `Math.IEEEremainder` không phải hai cách viết của một phép toán. `%` tính phần dư từ thương **cắt về 0**, nên dấu của kết quả khác 0 theo số bị chia. `Math.IEEEremainder` tính phần dư từ thương nguyên **gần nhất, hòa chọn chẵn**, nên có thể cho dư trái dấu số bị chia. Chọn phép toán theo **khoảng giá trị và chính sách làm tròn** của bài toán; kiểm tra NaN, Infinity, divisor bằng zero và dữ liệu gần biên trước khi đưa vào hệ thống thực tế.
+**Conclusion:** `%` and `Math.IEEEremainder` are not two ways to write the same operation. `%` computes the remainder from a quotient **truncated toward 0**, so a non-zero result carries the sign of the dividend. `Math.IEEEremainder` computes the remainder from the **nearest integer quotient, ties to even**, so it can produce a remainder with the opposite sign of the dividend. Choose the operation based on the **value range and rounding policy** of the problem; check for NaN, Infinity, zero divisor, and near-boundary data before deploying to production.

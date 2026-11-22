@@ -1,54 +1,54 @@
-# `BigInteger.compareTo`, `equals`, `signum`, `abs` và `negate` trong Java
+# `BigInteger.compareTo`, `equals`, `signum`, `abs`, and `negate` in Java
 
-## 1. Mục tiêu và bối cảnh
+## 1. Goal and Context
 
-`java.math.BigInteger` biểu diễn số nguyên có dấu với độ chính xác tùy ý (*arbitrary precision*). Giá trị không bị giới hạn trong 32 bit của `int` hoặc 64 bit của `long`; giới hạn thực tế là bộ nhớ, tài nguyên tính toán và giới hạn triển khai thư viện. Đây là một **kiểu đối tượng bất biến**, nên các phép tính không sửa đối tượng nguồn.
+`java.math.BigInteger` represents arbitrary-precision signed integers. Values are not confined to 32 bits of `int` or 64 bits of `long`; practical limits are memory, computation resources, and library implementation limits. It is an **immutable object type**, so operations do not modify the source object.
 
-Năm phương thức trong bài trả lời năm câu hỏi cốt lõi:
+The five methods in this lesson answer five core questions:
 
-| Phương thức | Câu hỏi | Kiểu kết quả |
+| Method | Question | Return type |
 | --- | --- | --- |
-| `a.compareTo(b)` | `a` nhỏ hơn, bằng hay lớn hơn `b`? | `int` âm, `0`, hoặc dương |
-| `a.equals(b)` | Hai đối tượng có cùng **giá trị `BigInteger`** không? | `boolean` |
-| `a.signum()` | Giá trị là âm, bằng 0 hay dương? | `int` thuộc `-1`, `0`, `1` |
-| `a.abs()` | Độ lớn không âm của `a` là gì? | `BigInteger` |
-| `a.negate()` | Số đối của `a` là gì? | `BigInteger` |
+| `a.compareTo(b)` | Is `a` less than, equal to, or greater than `b`? | negative, `0`, or positive `int` |
+| `a.equals(b)` | Do two objects have the same **`BigInteger` value**? | `boolean` |
+| `a.signum()` | Is the value negative, 0, or positive? | `int` in `-1`, `0`, `1` |
+| `a.abs()` | What is the non-negative magnitude of `a`? | `BigInteger` |
+| `a.negate()` | What is the additive inverse (negation) of `a`? | `BigInteger` |
 
-Ví dụ ngắn, đặt trong một phương thức Java với `import java.math.BigInteger`:
+Short example placed in a Java method with `import java.math.BigInteger`:
 
 ```java
 BigInteger a = new BigInteger("-123456789012345678901234567890");
 BigInteger b = BigInteger.valueOf(42);
 
-System.out.println(a.compareTo(b)); // -1: a nhỏ hơn b
-System.out.println(a.signum());      // -1: a âm
+System.out.println(a.compareTo(b)); // -1: a is less than b
+System.out.println(a.signum());      // -1: a is negative
 System.out.println(a.abs());         // 123456789012345678901234567890
 System.out.println(a.negate());      // 123456789012345678901234567890
-System.out.println(a);               // Vẫn là số âm ban đầu
+System.out.println(a);               // Still the original negative number
 ```
 
-Cần phân biệt ba khái niệm: **thứ tự số học**, **bằng nhau về giá trị**, và **cùng tham chiếu đối tượng**. Trong phần lớn code nghiệp vụ, `compareTo`, `equals` và `signum` trả lời câu hỏi đúng; `==` không thay chúng được.
+Three concepts must be distinguished: **arithmetic ordering**, **value equality**, and **same object reference**. In most business code, `compareTo`, `equals`, and `signum` answer the right questions; `==` cannot replace them.
 
-## 2. `compareTo(BigInteger)`: so thứ tự chính xác cả khi số rất lớn
+## 2. `compareTo(BigInteger)`: Exact Ordering Even for Huge Numbers
 
-Chữ ký API:
+API signature:
 
 ```java
 public int compareTo(BigInteger val)
 ```
 
-Kết quả mang **dấu** của quan hệ thứ tự:
+The result carries the **sign** of the ordering relation:
 
 \[
 a.\mathrm{compareTo}(b)
 \begin{cases}
-< 0 & \text{khi } a < b,\\
-= 0 & \text{khi } a = b,\\
-> 0 & \text{khi } a > b.
+< 0 & \text{when } a < b,\\
+= 0 & \text{when } a = b,\\
+> 0 & \text{when } a > b.
 \end{cases}
 \]
 
-Các ví dụ:
+Examples:
 
 ```java
 BigInteger small = BigInteger.valueOf(-5);
@@ -60,9 +60,9 @@ System.out.println(large.compareTo(zero) > 0); // true
 System.out.println(zero.compareTo(BigInteger.ZERO) == 0); // true
 ```
 
-**Đừng dựa vào chính xác `-1` hoặc `1` như một hợp đồng tổng quát của `Comparable`.** Hợp đồng yêu cầu kết quả âm/0/dương; dùng `< 0`, `== 0`, `> 0`.
+**Do not rely on exact `-1` or `1` as a general `Comparable` contract.** The contract guarantees negative/0/positive; test `< 0`, `== 0`, `> 0`.
 
-`compareTo` làm việc trực tiếp với `BigInteger`, không phải chuyển giá trị sang `int`, `long` hoặc `double`:
+`compareTo` operates directly on `BigInteger`, rather than converting values to `int`, `long`, or `double`:
 
 ```java
 BigInteger left = new BigInteger("9007199254740993");
@@ -71,14 +71,14 @@ BigInteger right = new BigInteger("9007199254740992");
 System.out.println(left.compareTo(right) > 0); // true
 ```
 
-Nếu chuyển cả hai sang `double`, các giá trị trên có thể cùng làm tròn thành một số, phá hỏng phép so sánh. `compareTo` giữ nguyên thứ tự toán học trên mọi giá trị `BigInteger` hợp lệ.
+If both were converted to `double`, those values could round to the same number, breaking the comparison. `compareTo` preserves mathematical order across all valid `BigInteger` values.
 
-### So sánh chéo dấu và hai số âm
+### Cross-Sign Comparison and Two Negative Numbers
 
-- Mọi số âm nhỏ hơn số 0, và số 0 nhỏ hơn mọi số dương.
-- Với hai số âm, số có **giá trị tuyệt đối lớn hơn** thì lại **nhỏ hơn** theo thứ tự thông thường.
+- Every negative number is less than 0, and 0 is less than every positive number.
+- Between two negative numbers, the one with the **larger absolute value** is **smaller** in standard order.
 
-Ví dụ:
+Example:
 
 ```java
 BigInteger a = BigInteger.valueOf(-100);
@@ -88,22 +88,22 @@ System.out.println(a.compareTo(b) < 0); // true
 System.out.println(a.abs().compareTo(b.abs()) > 0); // true
 ```
 
-`-100 < -2` nhưng `|-100| > |-2|`.
+`-100 < -2`, whereas `|-100| > |-2|`.
 
-### Không dùng phép trừ rồi ép về `int` để làm comparator
+### Do Not Subtract and Narrow to `int` for a Comparator
 
-Sai lầm thường gặp:
+Common mistake:
 
 ```java
-// Không dùng trong Comparator<BigInteger>:
+// Do not use in Comparator<BigInteger>:
 int compareWrong(BigInteger a, BigInteger b) {
     return a.subtract(b).intValue();
 }
 ```
 
-Hiệu có thể lớn hơn miền `int`, khiến `intValue()` bỏ bit cao. Hai số khác nhau có thể tạo kết quả 0 hoặc sai dấu, phá vỡ thứ tự.
+The difference can exceed the `int` range, causing `intValue()` to drop high bits. Two distinct numbers can yield 0 or the wrong sign, breaking ordering.
 
-Cách đúng:
+Correct approach:
 
 ```java
 int compareCorrect(BigInteger a, BigInteger b) {
@@ -111,11 +111,11 @@ int compareCorrect(BigInteger a, BigInteger b) {
 }
 ```
 
-Đây là phương thức minh họa trong một class Java; không phải hai chương trình độc lập. Trong thực tế có thể dùng trực tiếp `Comparator.naturalOrder()` hoặc `BigInteger::compareTo`.
+These are illustrative methods in a Java class, not two standalone programs. In practice, you can directly use `Comparator.naturalOrder()` or `BigInteger::compareTo`.
 
-### `min` và `max`
+### `min` and `max`
 
-Hai tiện ích liên quan:
+Two related utilities:
 
 ```java
 BigInteger a = BigInteger.valueOf(-3);
@@ -125,17 +125,17 @@ System.out.println(a.min(b)); // -3
 System.out.println(a.max(b)); // 2
 ```
 
-`min`/`max` lựa chọn giá trị theo thứ tự mà `compareTo` xác định. Không dùng chúng khi cần so sánh **độ lớn tuyệt đối**; lúc đó phải xét `abs()`.
+`min`/`max` select the value according to the order defined by `compareTo`. Do not use them when needing to compare **absolute magnitudes**; inspect `abs()` in that case.
 
-## 3. `equals(Object)`: so giá trị, không so địa chỉ đối tượng
+## 3. `equals(Object)`: Compare Values, Not Object Addresses
 
-Chữ ký:
+Signature:
 
 ```java
 public boolean equals(Object x)
 ```
 
-`BigInteger.equals` trả `true` khi đối số là một `BigInteger` biểu diễn cùng số nguyên. Nó **không** quan tâm cách giá trị được tạo ra:
+`BigInteger.equals` returns `true` when the argument is a `BigInteger` representing the same integer. It **does not** care how the value was constructed:
 
 ```java
 BigInteger a = new BigInteger("42");
@@ -146,38 +146,38 @@ System.out.println(a.equals(b)); // true
 System.out.println(a.equals(c)); // true
 ```
 
-Các chuỗi `"42"` và `"0042"` là cách viết khác nhau của cùng số nguyên 42, nên các đối tượng có cùng giá trị. `BigInteger` không lưu “số chữ số 0 ở đầu” như một thuộc tính số học có nghĩa.
+The strings `"42"` and `"0042"` are different notations for the same integer 42, so the objects have equal values. `BigInteger` does not store "number of leading zeros" as a meaningful arithmetic attribute.
 
-### `==` chỉ so tham chiếu
+### `==` Only Compares References
 
 ```java
 BigInteger a = new BigInteger("42");
 BigInteger b = new BigInteger("42");
 
 System.out.println(a.equals(b)); // true
-System.out.println(a == b);      // false: ở đây tạo hai đối tượng riêng
+System.out.println(a == b);      // false: two separate objects were created here
 ```
 
-Lời gọi `new BigInteger(String)` tạo đối tượng mới cho hai biến trong ví dụ, nên so tham chiếu nhận `false`. Nhưng **không suy ngược** rằng cùng giá trị luôn có tham chiếu khác nhau: các hằng và `valueOf` có thể tái sử dụng đối tượng.
+The `new BigInteger(String)` calls allocate distinct objects for the two variables in this example, so reference comparison returns `false`. Yet **do not infer the converse** that equal values always have distinct references: constants and `valueOf` can reuse objects.
 
 ```java
 BigInteger x = BigInteger.valueOf(10);
 BigInteger y = BigInteger.TEN;
 
 System.out.println(x.equals(y)); // true
-// Không dùng x == y làm quy tắc bằng nhau của số.
+// Do not use x == y as the rule for numeric equality.
 ```
 
-`BigInteger.valueOf` có thể cache các giá trị thường dùng. Đây là chi tiết hiệu năng/identity, không thay hợp đồng `equals`. Không dùng `System.identityHashCode` làm ID toán học.
+`BigInteger.valueOf` may cache commonly used values. This is a performance/identity detail, not a replacement for the `equals` contract. Never use `System.identityHashCode` as a mathematical ID.
 
-### So sánh khác kiểu
+### Comparing Across Types
 
 ```java
 System.out.println(BigInteger.valueOf(42).equals(Long.valueOf(42L)));
 // false
 ```
 
-`BigInteger` và `Long` khác lớp, dù cùng biểu diễn số toán học 42. Nếu cần so sánh số nguyên dạng `long` với `BigInteger`, chuyển `long` thành `BigInteger` **mà không mất thông tin**:
+`BigInteger` and `Long` are different classes, even when both represent the mathematical number 42. If you need to compare a `long` integer against a `BigInteger`, convert `long` to `BigInteger` **without losing information**:
 
 ```java
 long input = 42L;
@@ -186,37 +186,37 @@ BigInteger value = new BigInteger("42");
 boolean equal = value.equals(BigInteger.valueOf(input)); // true
 ```
 
-Không ép một `BigInteger` lớn xuống `long` hoặc sang `double` để so nếu chưa xác minh miền; mất chính xác có thể khiến hai số khác nhau thành bằng nhau.
+Never narrow a large `BigInteger` down to `long` or `double` to compare without verifying range; precision loss can make two distinct numbers appear equal.
 
-### `equals` và `compareTo` nhất quán với nhau
+### `equals` and `compareTo` Are Consistent with Each Other
 
-Đối với hai đối tượng `BigInteger` không `null`:
+For two non-null `BigInteger` objects:
 
 \[
 a.equals(b) \iff a.compareTo(b) == 0.
 \]
 
-Đây là hợp đồng quan trọng khi dùng trong collection. Trong khi `BigDecimal` có thể coi `"2.0"` và `"2.00"` bằng nhau về thứ tự nhưng khác nhau theo `equals` do scale, `BigInteger` **không có scale decimal**: thứ tự tự nhiên của nó nhất quán với `equals`.
+This is an important contract when using collections. Whereas `BigDecimal` can treat `"2.0"` and `"2.00"` as equal in ordering yet unequal under `equals` due to scale, `BigInteger` **has no decimal scale**: its natural ordering is consistent with `equals`.
 
-Nếu cần giữ định dạng nguyên thủy (ví dụ `"0042"` khác `"42"` về mã hồ sơ), hãy giữ chuỗi nguồn hoặc một ID dạng chuỗi phù hợp; `BigInteger.equals` cố ý xem chúng là cùng số.
+If original formatting must be kept (for instance, `"0042"` differs from `"42"` as a record code), keep the source string or a suitable string-based ID; `BigInteger.equals` intentionally treats them as the same number.
 
-## 4. `signum()`: lấy dấu mà không cần so với 0 nhiều lần
+## 4. `signum()`: Getting the Sign Without Repeatedly Comparing to 0
 
-Chữ ký:
+Signature:
 
 ```java
 public int signum()
 ```
 
-Kết quả **chỉ là** `-1`, `0` hoặc `1`:
+The result is **strictly** `-1`, `0`, or `1`:
 
-| Giá trị `BigInteger` | `signum()` | Ý nghĩa |
+| `BigInteger` value | `signum()` | Meaning |
 | --- | ---: | --- |
-| Âm, chẳng hạn `-9` | `-1` | Nhỏ hơn 0 |
-| Bằng 0 | `0` | Không âm, không dương |
-| Dương, chẳng hạn `42` | `1` | Lớn hơn 0 |
+| Negative, e.g., `-9` | `-1` | Less than 0 |
+| Equal to 0 | `0` | Neither negative nor positive |
+| Positive, e.g., `42` | `1` | Greater than 0 |
 
-Ví dụ:
+Example:
 
 ```java
 System.out.println(BigInteger.valueOf(-9).signum()); // -1
@@ -224,7 +224,7 @@ System.out.println(BigInteger.ZERO.signum());        // 0
 System.out.println(BigInteger.valueOf(42).signum()); // 1
 ```
 
-Khác với `compareTo`, `signum` không cần một đối tượng thứ hai. Dùng khi bạn chỉ quan tâm dấu:
+Unlike `compareTo`, `signum` does not require a second object. Use it when you only care about the sign:
 
 ```java
 static String describe(BigInteger value) {
@@ -237,13 +237,13 @@ static String describe(BigInteger value) {
 }
 ```
 
-Đoạn trên là phương thức trong một class Java 17 và giả sử `value != null`. `switch` này hợp lệ với JDK 17; các nhánh bao hết miền giá trị được `signum()` cam kết.
+The snippet above is a method in a Java 17 class and assumes `value != null`. This `switch` is valid in JDK 17; its cases cover the full value domain promised by `signum()`.
 
-### `signum` khác kiểm tra parity
+### `signum` Is Not a Parity Check
 
-`signum()` không cho biết số chẵn/lẻ. Số `-8` và `-7` đều có `signum() == -1`. Muốn kiểm tra bit, dùng các phép như `testBit(0)` sau khi xác nhận cách diễn giải số âm phù hợp, hoặc `remainder(BigInteger.TWO)` theo quy tắc số học cần thiết.
+`signum()` does not tell whether a number is even or odd. Both `-8` and `-7` have `signum() == -1`. To test parity, use operations such as `testBit(0)` after verifying the proper interpretation of negative numbers, or `remainder(BigInteger.TWO)` per needed arithmetic rules.
 
-### `BigInteger` không có số âm 0
+### `BigInteger` Has No Negative Zero
 
 ```java
 BigInteger zero = new BigInteger("-0");
@@ -252,17 +252,17 @@ System.out.println(zero);          // 0
 System.out.println(zero.signum()); // 0
 ```
 
-Khác `double`, `BigInteger` không có hai giá trị số 0 với bit dấu khác nhau. Chuỗi `"-0"` khi parse vẫn biểu diễn số nguyên 0, `signum()` trả 0. Nếu cần ghi nhận người dùng đã gõ dấu `-`, phải giữ chuỗi ban đầu; đó là thông tin **biểu diễn**, không phải giá trị số nguyên.
+Unlike `double`, `BigInteger` does not have two zero values with different sign bits. Parsing `"-0"` still represents integer 0, and `signum()` returns 0. If you must record that a user typed a `-` sign, keep the original string; that is **formatting** information, not an integer value.
 
-## 5. `abs()`: lấy trị tuyệt đối không overflow ở biên `long`
+## 5. `abs()`: Absolute Value Without Overflow at the `long` Boundary
 
-Chữ ký:
+Signature:
 
 ```java
 public BigInteger abs()
 ```
 
-Định nghĩa:
+Definition:
 
 \[
 |n| =
@@ -272,7 +272,7 @@ n  & n \ge 0.
 \end{cases}
 \]
 
-Ví dụ:
+Example:
 
 ```java
 BigInteger negative = new BigInteger("-12345678901234567890");
@@ -282,20 +282,20 @@ System.out.println(magnitude); // 12345678901234567890
 System.out.println(negative);  // -12345678901234567890
 ```
 
-`abs()` trả giá trị không âm, **không thay đổi** `negative`. Với 0, kết quả là 0. Với số dương, kết quả có cùng giá trị với đầu vào; thư viện có thể trả lại chính đối tượng hoặc một đối tượng khác tùy tối ưu, nhưng code không được dựa vào identity đó.
+`abs()` returns a non-negative value **without modifying** `negative`. For 0, the result is 0. For positive numbers, the result has the same value as the input; the library may return the same object or another depending on optimization, yet code must not depend on that identity.
 
-### Khác biệt nổi bật với `Math.abs(Long.MIN_VALUE)`
+### Notable Difference from `Math.abs(Long.MIN_VALUE)`
 
-Kiểu `long` có miền từ `-2^63` đến `2^63 - 1`. Giá trị tuyệt đối của `Long.MIN_VALUE` là `2^63`, **không vừa miền số dương `long`**:
+The `long` type ranges from `-2^63` to `2^63 - 1`. The absolute value of `Long.MIN_VALUE` is `2^63`, which **does not fit in the positive `long` range**:
 
 ```java
 System.out.println(Math.abs(Long.MIN_VALUE));
 // -9223372036854775808
 ```
 
-Theo quy tắc số nguyên Java, kết quả vẫn âm ở trường hợp biên này.
+Under Java integer rules, the result stays negative at this boundary case.
 
-Nếu trước tiên chuyển nguyên giá trị `long` sang `BigInteger`, trị tuyệt đối được giữ chính xác:
+If you convert the `long` value to `BigInteger` first, the absolute value is preserved accurately:
 
 ```java
 BigInteger exactMagnitude =
@@ -304,29 +304,29 @@ BigInteger exactMagnitude =
 System.out.println(exactMagnitude); // 9223372036854775808
 ```
 
-**Đúng thứ tự là chuyển rồi `abs`**, không phải `BigInteger.valueOf(Math.abs(Long.MIN_VALUE))`, bởi phép `Math.abs(long)` có thể đã cho kết quả âm không mong muốn trước khi BigInteger nhận được giá trị.
+**The right order is convert then `abs`**, not `BigInteger.valueOf(Math.abs(Long.MIN_VALUE))`, because `Math.abs(long)` may already have produced an unwanted negative result before `BigInteger` ever received the value.
 
-Tình huống thực tế gồm kiểm tra độ lệch giá trị rất lớn, khoảng cách giữa số nguyên và các thuật toán nhận dữ liệu gần cận 64 bit.
+Real-world scenarios include checking huge value deltas, distances between integers, and algorithms receiving data near 64-bit bounds.
 
-### `abs` khác `signum`
+### `abs` Differs from `signum`
 
-`abs()` trả **toàn bộ độ lớn** như một `BigInteger`, còn `signum()` chỉ trả dấu như một `int`. Đừng dùng `abs().equals(BigInteger.ONE)` để kiểm tra dấu dương vì điều đó chỉ đúng cho số `1`, không đúng cho mọi số dương.
+`abs()` returns **the full magnitude** as a `BigInteger`, whereas `signum()` returns only the sign as an `int`. Never use `abs().equals(BigInteger.ONE)` to check for positive sign, as that is only true for `1`, not for all positive numbers.
 
-## 6. `negate()`: tạo số đối và giữ nguyên đối tượng nguồn
+## 6. `negate()`: Creating the Additive Inverse While Preserving the Source Object
 
-Chữ ký:
+Signature:
 
 ```java
 public BigInteger negate()
 ```
 
-Định nghĩa:
+Definition:
 
 \[
 \operatorname{negate}(n)=-n.
 \]
 
-Ví dụ:
+Example:
 
 ```java
 BigInteger original = BigInteger.valueOf(17);
@@ -336,7 +336,7 @@ System.out.println(opposite); // -17
 System.out.println(original); // 17
 ```
 
-`negate()` không sửa `original`. Để đổi trạng thái của biến, phải gán kết quả:
+`negate()` does not modify `original`. To update the variable's state, assign the result:
 
 ```java
 BigInteger balance = BigInteger.valueOf(17);
@@ -345,13 +345,13 @@ balance = balance.negate();
 System.out.println(balance); // -17
 ```
 
-Một số đẳng thức đúng về giá trị:
+Some identities that hold by value:
 
 \[
 -(-n)=n,\qquad -0=0,\qquad |-n|=|n|.
 \]
 
-Kiểm tra:
+Verification:
 
 ```java
 BigInteger n = new BigInteger("-12345678901234567890");
@@ -361,46 +361,46 @@ System.out.println(BigInteger.ZERO.negate());      // 0
 System.out.println(n.negate().abs().equals(n.abs())); // true
 ```
 
-Không suy từ `n.negate().negate().equals(n)` rằng `n.negate().negate() == n`; phương thức là phép toán giá trị, không có hợp đồng giữ identity.
+Do not infer from `n.negate().negate().equals(n)` that `n.negate().negate() == n`; the method is a value operation with no identity-preservation contract.
 
-### `negate()` của `Long.MIN_VALUE` không bị tràn như `long`
+### `negate()` of `Long.MIN_VALUE` Does Not Overflow Like `long`
 
 ```java
 long x = Long.MIN_VALUE;
-System.out.println(-x); // -9223372036854775808: overflow của long
+System.out.println(-x); // -9223372036854775808: long overflow
 
 BigInteger bi = BigInteger.valueOf(x);
 System.out.println(bi.negate()); // 9223372036854775808
 ```
 
-Khi cần số đối chính xác của một giá trị âm cực tiểu, hãy chuyển sang `BigInteger` **trước** phép đổi dấu.
+When needing the exact additive inverse of a minimum negative value, convert to `BigInteger` **before** negating.
 
-### `abs()` có phải chỉ là `negate()` không?
+### Is `abs()` Just `negate()`?
 
-Không:
+No:
 
-- Với `n > 0`, `n.abs()` vẫn dương, còn `n.negate()` âm.
-- Với `n < 0`, hai kết quả có cùng giá trị dương.
-- Với `n == 0`, cả hai cùng cho 0.
+- For `n > 0`, `n.abs()` stays positive, whereas `n.negate()` becomes negative.
+- For `n < 0`, both results have the same positive value.
+- For `n == 0`, both return 0.
 
-`abs` là **lấy độ lớn**, còn `negate` là **đổi dấu**. Đây là hai biến đổi khác nhau, không thay thế nhau cho dữ liệu dương.
+`abs` **takes magnitude**, while `negate` **flips sign**. These are two different transformations, not interchangeable on positive data.
 
-## 7. Tính bất biến: phải nhận giá trị trả về
+## 7. Immutability: Return Values Must Be Captured
 
-`BigInteger` không có toán tử `++`, `--`, `+` hay toán tử một ngôi `-` giống primitive. Các phép toán của nó là phương thức:
+`BigInteger` does not have `++`, `--`, `+`, or unary `-` operators like primitives. Its operations are methods:
 
 ```java
 BigInteger n = BigInteger.TEN;
 
-// n++;      // Không biên dịch: BigInteger không phải kiểu số primitive
-// n = -n;   // Không biên dịch
+// n++;      // Does not compile: BigInteger is not a primitive numeric type
+// n = -n;   // Does not compile
 n = n.add(BigInteger.ONE);
 n = n.negate();
 
 System.out.println(n); // -11
 ```
 
-Nếu bỏ qua kết quả của `add`, `negate` hoặc `abs`, giá trị cũ **không thay đổi**:
+If you discard the return value of `add`, `negate`, or `abs`, the old value **does not change**:
 
 ```java
 BigInteger n = BigInteger.valueOf(-5);
@@ -411,13 +411,13 @@ n = n.abs();
 System.out.println(n); // 5
 ```
 
-Đây là lý do các hàm giúp biến đổi dãy `BigInteger` thường trả về một `BigInteger` mới về **mặt giá trị**. “Bất biến” không hứa mọi phép gọi luôn cấp phát một đối tượng mới; nó chỉ bảo đảm không sửa dữ liệu bên trong đối tượng đã có.
+This is why functions transforming `BigInteger` sequences usually return a new `BigInteger` **by value**. "Immutable" does not promise every call allocates a brand-new object; it only guarantees existing object data is never mutated.
 
-## 8. Kết hợp năm phương thức trong các mẫu code thực tế
+## 8. Combining All Five Methods in Real-World Code Patterns
 
-### 8.1. Kiểm tra miền giá trị
+### 8.1. Range Checking
 
-Nếu người dùng nhập một số nguyên lớn `quantity` và chỉ chấp nhận giá trị từ `0` đến `max`:
+If a user enters a large integer `quantity` and only values from `0` to `max` are accepted:
 
 ```java
 static boolean inRange(BigInteger quantity, BigInteger max) {
@@ -428,11 +428,11 @@ static boolean inRange(BigInteger quantity, BigInteger max) {
 }
 ```
 
-Ở đây `signum() >= 0` kiểm tra không âm; `compareTo(max) <= 0` kiểm tra cận trên. **Không** ép `quantity` sang `long` chỉ để kiểm tra, vì phép ép có thể mất dữ liệu.
+Here `signum() >= 0` checks non-negativity; `compareTo(max) <= 0` checks the upper bound. **Do not** cast `quantity` to `long` just to check bounds, as casting can lose data.
 
-### 8.2. Khoảng cách tuyệt đối giữa hai số nguyên
+### 8.2. Absolute Distance Between Two Integers
 
-Khoảng cách một chiều giữa `a` và `b`:
+One-dimensional distance between `a` and `b`:
 
 \[
 d = |a-b|.
@@ -444,7 +444,7 @@ static BigInteger distance(BigInteger a, BigInteger b) {
 }
 ```
 
-Ví dụ:
+Example:
 
 ```java
 BigInteger a = new BigInteger("100000000000000000000");
@@ -453,17 +453,17 @@ BigInteger b = new BigInteger("99999999999999999995");
 System.out.println(distance(a, b)); // 5
 ```
 
-Lưu ý đây là **giá trị tuyệt đối của hiệu**, không phải hiệu của hai giá trị tuyệt đối:
+Note this is the **absolute value of the difference**, not the difference of the two absolute values:
 
 \[
-|a-b|\ \text{thường khác}\ |a|-|b|.
+|a-b|\ \text{generally differs from}\ |a|-|b|.
 \]
 
-Với `a = -5` và `b = 3`, `|a-b| = 8`, còn `|a|-|b| = 2`.
+With `a = -5` and `b = 3`, `|a-b| = 8`, whereas `|a|-|b| = 2`.
 
-### 8.3. Chuẩn hóa theo dấu trong thuật toán
+### 8.3. Normalizing by Sign in Algorithms
 
-Một thuật toán có thể cần tách dấu và độ lớn:
+An algorithm may need to separate sign and magnitude:
 
 ```java
 BigInteger input = new BigInteger("-12345678901234567890");
@@ -475,7 +475,7 @@ System.out.println(sign);      // -1
 System.out.println(magnitude); // 12345678901234567890
 ```
 
-Nếu sau này dựng lại số:
+If reconstructing the number later:
 
 ```java
 BigInteger restored =
@@ -484,11 +484,11 @@ BigInteger restored =
 System.out.println(restored.equals(input)); // true
 ```
 
-Với số 0, `sign == 0` và `magnitude == 0` về **giá trị**, vì `BigInteger` không có âm 0. Mẫu code này hữu ích trong các phép xử lý dấu riêng, nhưng đừng viết lại thuật toán thư viện khi một phương thức sẵn có đã đáp ứng đầy đủ.
+For zero, `sign == 0` and `magnitude == 0` by **value**, since `BigInteger` has no negative zero. This pattern helps in custom sign-handling logic, though do not rewrite library algorithms when a built-in method already handles everything.
 
-### 8.4. Sắp xếp tự nhiên
+### 8.4. Natural Sorting
 
-`BigInteger` triển khai `Comparable<BigInteger>`, nên dùng comparator tự nhiên:
+`BigInteger` implements `Comparable<BigInteger>`, so it uses natural ordering:
 
 ```java
 import java.math.BigInteger;
@@ -508,15 +508,15 @@ values.sort(BigInteger::compareTo);
 System.out.println(values); // [-3, 0, 2, 10]
 ```
 
-Thứ tự trên là **thứ tự số học**: `-3 < 0 < 2 < 10`. Nếu yêu cầu sắp theo độ lớn tuyệt đối, phải chỉ rõ cách giải quyết hòa (chẳng hạn `-3` và `3` có độ lớn bằng nhau).
+This order is **arithmetic order**: `-3 < 0 < 2 < 10`. If sorting by absolute magnitude is required, you must specify tie-breaking (for example, `-3` and `3` have equal magnitudes).
 
-Ví dụ comparator độ lớn:
+Magnitude comparator example:
 
 ```java
 values.sort((left, right) -> left.abs().compareTo(right.abs()));
 ```
 
-Comparator này xem `-3` và `3` như cùng thứ tự (kết quả compare 0) dù `equals` của chúng là `false`. Nếu dùng nó với `TreeSet`/`TreeMap`, điều đó có thể gây **mất sự phân biệt các khóa khác giá trị**. Muốn vừa ưu tiên độ lớn vừa giữ thứ tự tổng quát phù hợp với `equals`, thêm tie-breaker:
+This comparator treats `-3` and `3` as equal in order (returning 0) even though `equals` is `false`. If used in `TreeSet`/`TreeMap`, that can **collapse distinct-value keys**. To prioritize magnitude while maintaining a total order consistent with `equals`, add a tie-breaker:
 
 ```java
 values.sort(
@@ -527,7 +527,7 @@ values.sort(
 );
 ```
 
-### 8.5. Phân nhánh theo dấu cho bài toán nghiệp vụ
+### 8.5. Branching by Sign for Business Logic
 
 ```java
 static String status(BigInteger balance) {
@@ -540,11 +540,11 @@ static String status(BigInteger balance) {
 }
 ```
 
-Đây chỉ là ví dụ minh họa thuật toán: cách diễn giải số âm là nợ, số dương là dư có phải khớp hợp đồng dữ liệu thực tế. `signum()` không tự biết ý nghĩa tài chính hay nghiệp vụ.
+This is purely an algorithmic illustration: interpreting negative as debt and positive as credit must match the actual data contract. `signum()` does not inherently know financial or business semantics.
 
-## 9. `equals`, `hashCode` và collection
+## 9. `equals`, `hashCode`, and Collections
 
-`BigInteger.equals` kiểm tra giá trị và `hashCode` tuân thủ hợp đồng tương ứng. Vì thế có thể dùng `BigInteger` làm khóa cho `HashMap`/`HashSet`:
+`BigInteger.equals` checks value equality and `hashCode` obeys the corresponding contract. Therefore `BigInteger` can serve as a key in `HashMap`/`HashSet`:
 
 ```java
 import java.math.BigInteger;
@@ -561,19 +561,19 @@ boolean present = identifiers.contains(
 System.out.println(present); // true
 ```
 
-Hai lời gọi constructor có thể tạo hai đối tượng khác nhau về tham chiếu nhưng `HashSet` so khớp **giá trị**.
+Two constructor calls create two distinct objects by reference, yet `HashSet` matches **by value**.
 
-`TreeSet<BigInteger>` sử dụng thứ tự tự nhiên qua `compareTo`; vì thứ tự đó nhất quán với `equals`, nó có hành vi nhận diện giá trị đúng như mong đợi.
+`TreeSet<BigInteger>` uses natural ordering via `compareTo`; because that order is consistent with `equals`, it exhibits expected value-based membership behavior.
 
-Không dùng `IdentityHashMap<BigInteger, ...>` cho key là số nếu mục tiêu là bằng nhau theo **giá trị**: `IdentityHashMap` cố ý sử dụng tham chiếu, khiến dữ liệu có cùng số có thể bị coi là các khóa khác nhau.
+Do not use `IdentityHashMap<BigInteger, ...>` for numeric keys when the goal is equality by **value**: `IdentityHashMap` intentionally uses reference identity, causing equal-numbered data to be treated as distinct keys.
 
-### Dấu âm không ảnh hưởng định danh như chuỗi nguồn
+### Negative Sign Does Not Affect Identity Like Source Strings
 
-`new BigInteger("-0")`, `BigInteger.ZERO`, `new BigInteger("000")` đều bằng nhau về giá trị. Nếu một mã định danh dạng chuỗi yêu cầu giữ số 0 đứng đầu, không nên chuyển nó thành `BigInteger` rồi kỳ vọng `equals` phân biệt được chuỗi nguồn.
+`new BigInteger("-0")`, `BigInteger.ZERO`, and `new BigInteger("000")` are all equal in value. If a string-based identifier requires preserving leading zeros, do not convert it to `BigInteger` expecting `equals` to tell the source strings apart.
 
-## 10. Null và kiểu dữ liệu: các ngoại lệ cần biết
+## 10. Null and Data Types: Exceptions to Know
 
-`BigInteger` là kiểu **tham chiếu**, nên biến có thể nhận `null`:
+`BigInteger` is a **reference** type, so variables can hold `null`:
 
 ```java
 BigInteger missing = null;
@@ -582,7 +582,7 @@ BigInteger missing = null;
 // missing.negate(); // NullPointerException
 ```
 
-`null` không có giá trị số. Phải quyết định cách xử lý:
+`null` has no numeric value. You must decide how to handle it:
 
 ```java
 static boolean isZeroIfPresent(BigInteger value) {
@@ -590,17 +590,17 @@ static boolean isZeroIfPresent(BigInteger value) {
 }
 ```
 
-`Objects.equals` hỗ trợ so đối tượng nullable:
+`Objects.equals` supports comparing nullable objects:
 
 ```java
 boolean same = java.util.Objects.equals(
         (BigInteger) null, (BigInteger) null
-); // true vì cả hai tham chiếu đều null
+); // true because both references are null
 ```
 
-Nhưng `Objects.equals(null, null)` không chứng minh tồn tại hai số 0. Nếu nghiệp vụ yêu cầu có hai số hợp lệ, hãy kiểm tra không `null` trước.
+However, `Objects.equals(null, null)` does not prove two zeros exist. If business logic requires two valid numbers, check non-null first.
 
-Các phương thức có đối số bắt buộc là `BigInteger` như `compareTo(null)` không có một giá trị số để so; trong Java 17, việc này gây `NullPointerException`. Nên validate ở ranh giới API:
+Methods requiring a `BigInteger` argument like `compareTo(null)` have no numeric value to compare; in Java 17, this throws `NullPointerException`. Validate at API boundaries:
 
 ```java
 static int compareRequired(BigInteger a, BigInteger b) {
@@ -610,23 +610,23 @@ static int compareRequired(BigInteger a, BigInteger b) {
 }
 ```
 
-`equals(null)` thì trả `false` nếu receiver là `BigInteger` không `null`, theo hợp đồng `equals(Object)`. **Đừng đánh đồng** `equals(null)` với `compareTo(null)`.
+`equals(null)`, on the other hand, returns `false` if the receiver is a non-null `BigInteger`, per the `equals(Object)` contract. **Do not equate** `equals(null)` with `compareTo(null)`.
 
-### BigInteger không phải primitive và không auto-unbox
+### `BigInteger` Is Not a Primitive and Does Not Auto-Unbox
 
-Không thể viết:
+You cannot write:
 
 ```java
 BigInteger n = BigInteger.TEN;
-// if (n > 0) {} // Không biên dịch
-// int x = n;    // Không biên dịch
+// if (n > 0) {} // Does not compile
+// int x = n;    // Does not compile
 ```
 
-Muốn so với 0, dùng `n.signum() > 0` hoặc `n.compareTo(BigInteger.ZERO) > 0`. Muốn trích `long`, dùng `longValueExact()` nếu bắt buộc chính xác và vừa miền; không dùng `longValue()` tùy tiện với số cực lớn.
+To compare against 0, use `n.signum() > 0` or `n.compareTo(BigInteger.ZERO) > 0`. To extract a `long`, use `longValueExact()` when exactness and range fit are mandatory; never use `longValue()` casually on huge numbers.
 
-## 11. Ví dụ Java 17 hoàn chỉnh
+## 11. Complete Java 17 Example
 
-Lưu dưới tên `BigIntegerComparisonDemo.java`:
+Save as `BigIntegerComparisonDemo.java`:
 
 ```java
 import java.math.BigInteger;
@@ -699,14 +699,14 @@ public class BigIntegerComparisonDemo {
 }
 ```
 
-Chạy với JDK 17 hoặc mới hơn:
+Run with JDK 17 or newer:
 
 ```bash
 javac BigIntegerComparisonDemo.java
 java BigIntegerComparisonDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 compare negative to 42: -1
@@ -728,78 +728,78 @@ distance: 5
 sorted: [-3, 0, 2, 10]
 ```
 
-Các giá trị trên làm rõ việc `compareTo` chỉ cần so dấu, `equals` so giá trị cùng kiểu, `signum` phân nhánh theo dấu, `abs` tính độ lớn chính xác vượt giới hạn `long`, còn `negate` trả số đối **mà không sửa đầu vào**.
+These values clarify that `compareTo` checks order via sign, `equals` checks value equality of the same type, `signum` branches on sign, `abs` computes exact magnitudes beyond `long` limits, and `negate` returns the opposite **without modifying the input**.
 
-## 12. Lỗi thường gặp và cách sửa
+## 12. Common Mistakes and Fixes
 
-| Lỗi | Hậu quả | Cách làm đúng |
+| Mistake | Consequence | Right approach |
 | --- | --- | --- |
-| `a == b` cho hai `BigInteger` | So tham chiếu; cùng giá trị vẫn có thể `false` | `a.equals(b)` |
-| `compareTo(b) == 1` để kiểm tra lớn hơn | Dựa vào trị số thay vì dấu do hợp đồng `Comparable` | `compareTo(b) > 0` |
-| `a.subtract(b).intValue()` làm comparator | Mất bit, sai dấu hoặc trả 0 ngoài ý muốn | `a.compareTo(b)` |
-| Ép `BigInteger` sang `double` để so | Có thể mất chữ số của số nguyên lớn | So trực tiếp bằng `compareTo` |
-| `Math.abs(Long.MIN_VALUE)` rồi gọi `valueOf` | Trị tuyệt đối kiểu `long` đã overflow | `BigInteger.valueOf(Long.MIN_VALUE).abs()` |
-| `-someLong` rồi chuyển BigInteger | Số đối có thể overflow tại `Long.MIN_VALUE` | `BigInteger.valueOf(someLong).negate()` |
-| `n.abs();` không gán kết quả | `BigInteger` bất biến; `n` không đổi | `n = n.abs();` |
-| `n.negate();` không gán kết quả | Không thay đổi số đang lưu | `n = n.negate();` |
-| Dùng `negate()` thay `abs()` cho số dương | Đổi thành số âm thay vì giữ không âm | Dùng đúng hàm theo mục tiêu |
-| `value.signum()` khi `value == null` | `NullPointerException` | Kiểm tra `null` |
-| Dùng `equals(null)` như `compareTo(null)` | Hai API có hành vi khác | `equals(null)` trả `false`; so thứ tự cần giá trị |
-| Coi `BigInteger("-0")` khác `ZERO` | BigInteger không có âm 0 | Cả hai là số nguyên 0 |
-| Tạo `TreeSet` với comparator chỉ dựa vào `abs` khi cần phân biệt `-a` và `a` | Comparator có thể trả 0 cho hai giá trị khác nhau | Thêm tie-breaker `compareTo` |
-| Chọn `BigInteger` làm ID nhưng cần giữ số 0 ở đầu | Chuỗi `"0042"` và `"42"` thành cùng giá trị số | Lưu ID dưới dạng chuỗi nếu cú pháp có ý nghĩa |
-| Coi `abs()` hoặc `negate()` luôn cấp phát instance mới | Identity không phải hợp đồng của phép biến đổi giá trị | Không so tham chiếu; dùng `equals` |
-| Gọi `longValue()` để kiểm tra miền `long` | Có thể mất dữ liệu mà không báo lỗi | Dùng `longValueExact()` khi cần |
+| `a == b` for two `BigInteger`s | Compares references; equal values can still be `false` | `a.equals(b)` |
+| `compareTo(b) == 1` to check greater-than | Relies on exact value rather than sign per `Comparable` contract | `compareTo(b) > 0` |
+| `a.subtract(b).intValue()` as a comparator | Drops bits, flips sign, or returns 0 unexpectedly | `a.compareTo(b)` |
+| Casting `BigInteger` to `double` to compare | Can lose digits of large integers | Compare directly with `compareTo` |
+| `Math.abs(Long.MIN_VALUE)` then calling `valueOf` | `long` absolute value already overflowed | `BigInteger.valueOf(Long.MIN_VALUE).abs()` |
+| `-someLong` then converting to `BigInteger` | Negation can overflow at `Long.MIN_VALUE` | `BigInteger.valueOf(someLong).negate()` |
+| `n.abs();` without assigning result | `BigInteger` is immutable; `n` unchanged | `n = n.abs();` |
+| `n.negate();` without assigning result | Does not change stored number | `n = n.negate();` |
+| Using `negate()` instead of `abs()` on positive numbers | Flips to negative instead of keeping non-negative | Use the right method for the goal |
+| `value.signum()` when `value == null` | `NullPointerException` | Check for `null` |
+| Treating `equals(null)` like `compareTo(null)` | The two APIs behave differently | `equals(null)` returns `false`; ordering requires a value |
+| Treating `BigInteger("-0")` as different from `ZERO` | `BigInteger` has no negative zero | Both are integer 0 |
+| Creating a `TreeSet` with an `abs`-only comparator when `-a` and `a` must be distinct | Comparator returns 0 for distinct values | Add a `compareTo` tie-breaker |
+| Choosing `BigInteger` as an ID while needing leading zeros preserved | `"0042"` and `"42"` become the same numeric value | Store IDs as strings if formatting matters |
+| Assuming `abs()` or `negate()` always allocates a new instance | Identity is not part of value-transformation contracts | Do not compare references; use `equals` |
+| Calling `longValue()` to check `long` range | Can lose data silently | Use `longValueExact()` when needed |
 
-### Quy tắc chọn phương thức nhanh
+### Quick Method Selection Rules
 
-- **Xếp thứ tự hai số:** `a.compareTo(b)`.
-- **Kiểm tra bằng giá trị cùng kiểu:** `a.equals(b)`.
-- **Kiểm tra âm, 0, dương:** `a.signum()`.
-- **Lấy độ lớn không âm:** `a.abs()`.
-- **Đổi dấu:** `a.negate()`.
-- **Lấy độ lớn chênh lệch hai số:** `a.subtract(b).abs()`.
+- **Order two numbers:** `a.compareTo(b)`.
+- **Check value equality of same type:** `a.equals(b)`.
+- **Check negative, 0, positive:** `a.signum()`.
+- **Get non-negative magnitude:** `a.abs()`.
+- **Flip sign:** `a.negate()`.
+- **Get magnitude of difference between two numbers:** `a.subtract(b).abs()`.
 
-## 13. Bài tập có đáp án
+## 13. Exercises with Answers
 
-**Bài 1.** Với `a = -5`, `b = -2`, `a.compareTo(b)` có dấu nào? Giá trị `a.abs().compareTo(b.abs())` có dấu nào?
+**Exercise 1.** With `a = -5`, `b = -2`, what sign does `a.compareTo(b)` have? What sign does `a.abs().compareTo(b.abs())` have?
 
-**Đáp án:** `a.compareTo(b) < 0` vì `-5 < -2`. Trái lại `a.abs().compareTo(b.abs()) > 0` vì `5 > 2`. So thứ tự số khác so độ lớn.
+**Answer:** `a.compareTo(b) < 0` because `-5 < -2`. Conversely, `a.abs().compareTo(b.abs()) > 0` because `5 > 2`. Numeric ordering differs from magnitude comparison.
 
-**Bài 2.** Hai đối tượng được tạo bằng `new BigInteger("42")` riêng biệt có bằng nhau theo `equals` không? Cần dùng `==` không?
+**Exercise 2.** Are two objects created by separate `new BigInteger("42")` calls equal under `equals`? Should `==` be used?
 
-**Đáp án:** Có, `equals` là `true`; `==` giữa hai đối tượng vừa tạo riêng là `false`, và không phù hợp để kiểm tra cùng giá trị.
+**Answer:** Yes, `equals` is `true`; `==` between two separately created objects is `false`, and inappropriate for checking value equality.
 
-**Bài 3.** `BigInteger.ZERO.signum()` trả gì? `new BigInteger("-0").signum()` có khác không?
+**Exercise 3.** What does `BigInteger.ZERO.signum()` return? Does `new BigInteger("-0").signum()` differ?
 
-**Đáp án:** Cả hai trả `0`; `BigInteger` không có số 0 âm tách biệt.
+**Answer:** Both return `0`; `BigInteger` does not have a separate negative zero.
 
-**Bài 4.** Tại sao `BigInteger.valueOf(Long.MIN_VALUE).abs()` cho kết quả dương đúng, còn `Math.abs(Long.MIN_VALUE)` vẫn âm?
+**Exercise 4.** Why does `BigInteger.valueOf(Long.MIN_VALUE).abs()` give the right positive result while `Math.abs(Long.MIN_VALUE)` stays negative?
 
-**Đáp án:** `long` không biểu diễn được số dương `2^63`, nên `Math.abs(long)` gặp cận biểu diễn. `BigInteger` không bị giới hạn ở 64 bit và giữ được `9223372036854775808`.
+**Answer:** `long` cannot represent positive `2^63`, so `Math.abs(long)` hits the representation boundary. `BigInteger` is not capped at 64 bits and holds `9223372036854775808`.
 
-**Bài 5.** Nếu `n` là `BigInteger` âm, sau lệnh `n.negate();` mà không gán kết quả, `n` có đổi không?
+**Exercise 5.** If `n` is a negative `BigInteger`, after running `n.negate();` without assigning the result, does `n` change?
 
-**Đáp án:** Không. `BigInteger` bất biến; cần `n = n.negate()` để biến tham chiếu đến số đối.
+**Answer:** No. `BigInteger` is immutable; `n = n.negate()` is needed for the variable to reference the negated number.
 
-**Bài 6.** `BigInteger.valueOf(42).equals(Long.valueOf(42L))` trả gì và vì sao?
+**Exercise 6.** What does `BigInteger.valueOf(42).equals(Long.valueOf(42L))` return and why?
 
-**Đáp án:** `false`. `BigInteger.equals` yêu cầu đối tượng thuộc `BigInteger` và có cùng giá trị, không so chéo các lớp `Number` chỉ vì cùng giá trị toán học.
+**Answer:** `false`. `BigInteger.equals` requires the object to be a `BigInteger` with the same value, and does not compare across `Number` subclasses merely for having the same mathematical value.
 
-**Bài 7.** Viết biểu thức kiểm tra `BigInteger total` không âm, giả sử `total != null`.
+**Exercise 7.** Write an expression checking that `BigInteger total` is non-negative, assuming `total != null`.
 
-**Đáp án:** `total.signum() >= 0` hoặc `total.compareTo(BigInteger.ZERO) >= 0`. Nếu đầu vào có thể `null`, kiểm tra `total != null` trước.
+**Answer:** `total.signum() >= 0` or `total.compareTo(BigInteger.ZERO) >= 0`. If input can be `null`, check `total != null` first.
 
-**Bài 8.** Vì sao không dùng `a.subtract(b).intValue()` làm hàm so thứ tự giữa hai số `BigInteger` rất lớn?
+**Exercise 8.** Why not use `a.subtract(b).intValue()` as a comparator between two huge `BigInteger`s?
 
-**Đáp án:** Phép trích `intValue()` có thể bỏ bit cao, làm dấu và độ lớn của hiệu bị sai; `compareTo` tính thứ tự chính xác trên toàn miền `BigInteger`.
+**Answer:** Extracting `intValue()` can drop high bits, corrupting the sign and magnitude of the difference; `compareTo` computes exact order across the entire `BigInteger` range.
 
-**Bài 9.** Hai khóa `-7` và `7` sẽ ra sao trong `TreeSet<BigInteger>` nếu comparator chỉ là `(a,b) -> a.abs().compareTo(b.abs())`?
+**Exercise 9.** What happens to the two keys `-7` and `7` in a `TreeSet<BigInteger>` if the comparator is only `(a,b) -> a.abs().compareTo(b.abs())`?
 
-**Đáp án:** Comparator trả `0` cho hai khóa dù `equals` trả `false`. `TreeSet` có thể coi chúng là cùng phần tử theo comparator. Nếu cần giữ cả hai, thêm tie-breaker bằng `a.compareTo(b)` hoặc dùng thứ tự tự nhiên.
+**Answer:** The comparator returns `0` for the two keys even though `equals` returns `false`. `TreeSet` may treat them as the same element per the comparator. To retain both, add a tie-breaker using `a.compareTo(b)` or use natural ordering.
 
-**Bài 10.** So sánh `n.abs()` và `n.negate()` với `n = 17`, `n = -17`, `n = 0`.
+**Exercise 10.** Compare `n.abs()` and `n.negate()` for `n = 17`, `n = -17`, `n = 0`.
 
-**Đáp án:** Với `17`, `abs = 17`, `negate = -17`; với `-17`, cả hai là `17`; với `0`, cả hai là `0`. Hai phương thức khác nhau về ý nghĩa dù đôi khi cùng kết quả.
+**Answer:** For `17`, `abs = 17`, `negate = -17`; for `-17`, both are `17`; for `0`, both are `0`. The two methods differ in meaning even though they sometimes yield the same result.
 
-**Ghi nhớ:** `compareTo` là thứ tự, `equals` là bằng nhau về giá trị, `signum` chỉ dấu, `abs` lấy độ lớn không âm, `negate` lấy số đối. Tất cả áp dụng trực tiếp cho `BigInteger` lớn mà không cần thu hẹp về primitive; hãy giữ tính bất biến, kiểm tra `null` và không dùng identity hay phép ép mất chính xác thay cho so sánh toán học.
+**Key takeaway:** `compareTo` is ordering, `equals` is value equality, `signum` indicates sign, `abs` takes non-negative magnitude, and `negate` takes the additive inverse. All apply directly to large `BigInteger`s without narrowing to primitives; respect immutability, check for `null`, and never use object identity or lossy casts instead of mathematical comparison.

@@ -1,56 +1,56 @@
-# Phạm vi tên trong khối, vòng lặp và phương thức — Java 17+
+# Name Scope in Blocks, Loops, and Methods — Java 17+
 
-> **Java core — language-basics / Phạm vi và khởi tạo**  
-> **Mục tiêu:** Xác định một tên biến/tham số có thể dùng ở đâu, vì sao tên biến trong vòng lặp không dùng được bên ngoài, lúc nào được dùng lại tên, và phân biệt **phạm vi tên (scope)** với **biến đã được gán giá trị (definite assignment)**.
+> **Java core — language-basics / Scope and Initialization**  
+> **Objective:** Determine where a variable/parameter name can be used, why a loop variable name cannot be used outside the loop, when a name can be reused, and distinguish **name scope** from **definite assignment**.
 
-## 1. Phạm vi tên (scope) là gì?
+## 1. What is name scope?
 
-*Scope* là **vùng mã nguồn mà khai báo một tên có hiệu lực để tham chiếu tới thực thể đó**. Với biến cục bộ khai báo trong một khối lệnh, phạm vi thông thường kéo dài từ vị trí khai báo đến cuối khối chứa khai báo; không tự mở rộng ra ngoài dấu `}`.
+*Scope* is **the region of source code in which a name declaration is in effect to refer to that entity**. For a local variable declared in a statement block, the normal scope extends from the declaration position to the end of the enclosing block; it does not automatically extend beyond the closing brace `}`.
 
 ~~~java
 static void example() {
     int outer = 10;
     {
         int inner = 5;
-        System.out.println(outer + inner); // 15: thấy cả hai tên.
+        System.out.println(outer + inner); // 15: both names are visible.
     }
     System.out.println(outer); // 10.
-    // System.out.println(inner); // LỖI BIÊN DỊCH: inner ngoài scope.
+    // System.out.println(inner); // COMPILE ERROR: inner is out of scope.
 }
 ~~~
 
-Dấu `{ ... }` có thể mở ra một khối trong phương thức, nhánh `if`, thân vòng lặp hoặc `try`. Quy tắc phạm vi giúp giới hạn chỗ có thể sử dụng tên; **không** có nghĩa đối tượng tham chiếu từ biến nhất thiết bị hủy ngay khi rời khối.
+Braces `{ ... }` can open a block in a method, an `if` branch, a loop body, or `try`. Scope rules restrict where a name can be used; they do **not** mean the object referenced by a variable is necessarily destroyed as soon as execution leaves the block.
 
-Ba câu hỏi hữu ích khi gặp lỗi `cannot find symbol`:
+Three useful questions when encountering a `cannot find symbol` error:
 
-1. Tên đã được khai báo **trước vị trí đang dùng** và trong vùng nhìn thấy chưa?
-2. Tên thuộc **biến cục bộ**, **tham số**, **biến vòng lặp** hay **trường của lớp/đối tượng**?
-3. Nếu nhìn thấy tên, biến đã được **gán chắc chắn** trước lúc đọc chưa?
+1. Has the name been declared **before the usage site** and within the visible region?
+2. Is the name a **local variable**, **parameter**, **loop variable**, or **class/object field**?
+3. If the name is visible, has the variable been **definitely assigned** before being read?
 
-## 2. Khối lệnh `{ }`: biến ngoài nhìn vào được, biến trong không đi ra được
+## 2. Statement blocks `{ }`: outer variables are visible inside, inner variables cannot escape outside
 
 ~~~java
 int total = 0;
 
 if (total == 0) {
     int adjustment = 3;
-    total += adjustment; // Sửa được total của khối ngoài.
+    total += adjustment; // Can modify total from the outer block.
 }
 System.out.println(total); // 3.
-// System.out.println(adjustment); // LỖI: adjustment hết scope.
+// System.out.println(adjustment); // ERROR: adjustment is out of scope.
 ~~~
 
-Trong một khối, tên của biến cục bộ có phạm vi từ **khai báo của nó** về phía sau, không phải từ đầu khối:
+Within a block, a local variable's name is in scope from **its declaration** onward, not from the beginning of the block:
 
 ~~~java
 {
-    // System.out.println(score); // LỖI: score chưa được khai báo.
+    // System.out.println(score); // ERROR: score has not been declared yet.
     int score = 8;
-    System.out.println(score); // Hợp lệ.
+    System.out.println(score); // Valid.
 }
 ~~~
 
-Hai khối **không chồng lấn** có thể khai báo lại cùng một tên:
+Two **non-overlapping** blocks can redeclare the same name:
 
 ~~~java
 {
@@ -58,35 +58,35 @@ Hai khối **không chồng lấn** có thể khai báo lại cùng một tên:
     System.out.println(temp);
 }
 {
-    int temp = 8; // Hợp lệ: temp trước đã hết scope.
+    int temp = 8; // Valid: the previous temp is out of scope.
     System.out.println(temp);
 }
 ~~~
 
-Nhưng Java **không cho khai báo lại biến cục bộ cùng tên trong phạm vi chồng lấn**, kể cả ở khối con:
+However, Java **does not allow redeclaring a local variable with the same name in overlapping scopes**, even in a nested block:
 
 ~~~java
-// KHÔNG BIÊN DỊCH:
+// DOES NOT COMPILE:
 // int count = 1;
 // {
-//     int count = 2; // Tên count ngoài vẫn đang có hiệu lực.
+//     int count = 2; // Outer name count is still in effect.
 // }
 ~~~
 
-Đây là khác biệt quan trọng so với việc *che khuất trường của đối tượng* bằng một biến cục bộ, được trình bày ở phần 6.
+This is an important difference from *field shadowing* by a local variable, which is covered in Section 6.
 
-## 3. Biến trong vòng `for` thông thường
+## 3. Variables in a standard `for` loop
 
-Biến khai báo trong phần **khởi tạo** của `for` có thể dùng tại phần điều kiện, phần cập nhật và thân vòng lặp; nó không có hiệu lực sau câu lệnh `for`:
+A variable declared in the **initialization** part of `for` can be used in the condition, update, and loop body; it is no longer in effect after the `for` statement:
 
 ~~~java
 for (int i = 0; i < 3; i++) {
     System.out.println("i=" + i);
 }
-// System.out.println(i); // LỖI BIÊN DỊCH: i hết scope.
+// System.out.println(i); // COMPILE ERROR: i is out of scope.
 ~~~
 
-Có thể dùng lại tên biến trong hai vòng `for` độc lập, nối tiếp:
+The same variable name can be reused in two independent, sequential `for` loops:
 
 ~~~java
 for (int i = 0; i < 2; i++) {
@@ -97,39 +97,39 @@ for (int i = 2; i < 4; i++) {
 }
 ~~~
 
-Nhưng không thể khai báo `int i` ở một `for` nằm bên trong thân của `for` khác khi `i` của vòng ngoài vẫn còn scope:
+However, you cannot declare `int i` in a `for` loop inside the body of another `for` loop while the outer loop's `i` is still in scope:
 
 ~~~java
-// KHÔNG BIÊN DỊCH:
+// DOES NOT COMPILE:
 // for (int i = 0; i < 2; i++) {
-//     for (int i = 0; i < 3; i++) { } // i bị khai báo trùng.
+//     for (int i = 0; i < 3; i++) { } // i is declared twice.
 // }
 ~~~
 
-Để duyệt lồng nhau, dùng các tên khác như `row` và `column`. Nếu khai báo biến **trước** vòng lặp, nó thuộc phạm vi của khối bao ngoài, nên có thể đọc sau vòng lặp:
+For nested iteration, use different names such as `row` and `column`. If you declare the variable **before** the loop, it belongs to the enclosing block's scope, so it can be read after the loop:
 
 ~~~java
 int i = 0;
 for (; i < 3; i++) {
-    // Thân có thể dùng i.
+    // The body can use i.
 }
-System.out.println(i); // 3: i được khai báo bên ngoài for.
+System.out.println(i); // 3: i was declared outside the for loop.
 ~~~
 
-## 4. Enhanced `for` và biến khai báo trong thân vòng lặp
+## 4. Enhanced `for` and variables declared in the loop body
 
-Với enhanced `for`, biến phần tử `element` được khai báo ở đầu vòng lặp và được dùng trong **thân** của vòng:
+With an enhanced `for`, the element variable `element` is declared in the loop header and used in the loop **body**:
 
 ~~~java
 for (String word : new String[] {"A", "B"}) {
     System.out.println(word);
 }
-// System.out.println(word); // LỖI: word không tồn tại ở đây.
+// System.out.println(word); // ERROR: word does not exist here.
 ~~~
 
-Biểu thức nguồn ở bên phải dấu `:` **không dùng được biến phần tử mới khai báo** như một tên đã có sẵn. Mỗi lần lặp, biến này nhận giá trị phần tử tương ứng. Nếu nguồn chứa kiểu tham chiếu, giá trị nhận được là **bản sao tham chiếu**, không có tác dụng kéo dài scope ra ngoài vòng.
+The source expression to the right of `:` **cannot use the newly declared element variable** as an already-existing name. On each iteration, this variable receives the corresponding element value. If the source contains a reference type, the received value is a **reference copy**, which does not extend scope outside the loop.
 
-Trong thân `for`/`while`, biến mới khai báo chỉ dùng được trong thân hoặc khối con phù hợp:
+In a `for`/`while` body, a newly declared variable can only be used in that body or an appropriate nested block:
 
 ~~~java
 int sum = 0;
@@ -137,29 +137,29 @@ for (int n = 1; n <= 3; n++) {
     int part = n * 2;
     sum += part;
 }
-// System.out.println(part); // LỖI: part nằm trong thân vòng.
-// System.out.println(n);    // LỖI: n thuộc phạm vi for.
-System.out.println(sum); // 12: sum khai báo bên ngoài.
+// System.out.println(part); // ERROR: part is inside the loop body.
+// System.out.println(n);    // ERROR: n belongs to the for scope.
+System.out.println(sum); // 12: sum is declared outside.
 ~~~
 
-Nếu cần kết quả sau khi duyệt, hãy khai báo biến kết quả trong khối **bao ngoài**, như `sum`, và cập nhật nó trong vòng lặp. Tránh cố đọc một biến tạm chỉ được khai báo trong thân vòng.
+If you need a result after iterating, declare the result variable in an **enclosing** block, like `sum`, and update it inside the loop. Avoid trying to read a temporary variable declared only inside the loop body.
 
-## 5. `while`, `if` và tham số của phương thức
+## 5. `while`, `if`, and method parameters
 
-Một biến cục bộ tạo trong thân `while` có scope thuộc thân đó; biến điều khiển khai báo ở ngoài thì tiếp tục nhìn thấy sau vòng:
+A local variable created in a `while` body has scope restricted to that body; a control variable declared outside remains visible after the loop:
 
 ~~~java
 int turn = 0;
 while (turn < 2) {
     int step = turn + 10;
-    System.out.println(step); // 10 rồi 11.
+    System.out.println(step); // 10 then 11.
     turn++;
 }
-// System.out.println(step); // LỖI: ngoài scope.
+// System.out.println(step); // ERROR: out of scope.
 System.out.println(turn); // 2.
 ~~~
 
-Trong `if`/`else`, biến khai báo **trong nhánh** chỉ nhìn thấy ở nhánh đó. Nếu cần một kết quả chung, khai báo biến ở khối bao ngoài và gán trong các nhánh:
+In `if`/`else`, a variable declared **inside a branch** is visible only in that branch. If a shared result is needed, declare the variable in the enclosing block and assign it in the branches:
 
 ~~~java
 static int choose(boolean flag) {
@@ -169,25 +169,25 @@ static int choose(boolean flag) {
     } else {
         result = 2;
     }
-    return result; // Cả hai nhánh đã gán.
+    return result; // Both branches assigned it.
 }
 ~~~
 
-Tham số hình thức của một phương thức có scope trong **thân phương thức đó**, gồm các khối lồng bên trong; chúng không xuất hiện trong phương thức gọi hoặc phương thức khác:
+Formal parameters of a method have scope throughout **that method's body**, including nested blocks inside it; they do not appear in the caller or other methods:
 
 ~~~java
 static String format(int input) {
     String prefix = "P";
     return prefix + input;
 }
-// Ở phương thức khác, không thể dùng riêng tên input hoặc prefix.
+// In another method, you cannot directly use the names input or prefix.
 ~~~
 
-Không được khai báo `int input` trong một khối lồng của chính `format` vì tên tham số `input` đang có hiệu lực. Các phương thức khác nhau có thể dùng cùng tên tham số mà không xung đột.
+You cannot declare `int input` in a nested block of `format` itself because the parameter name `input` is still in effect. Different methods can use the same parameter names without conflict.
 
-## 6. Trường của đối tượng và che khuất tên (*shadowing*)
+## 6. Object fields and name *shadowing*
 
-Phạm vi một **field** không giống phạm vi local: trong phương thức instance, tham số hoặc biến cục bộ được phép trùng tên field. Khi ấy tên ngắn chọn biến gần hơn, còn `this.count` chỉ đúng field của đối tượng:
+The scope of a **field** differs from local scope: in an instance method, a parameter or local variable is allowed to have the same name as a field. In that case, the short name selects the closer variable, while `this.count` refers specifically to the object's field:
 
 ~~~java
 class Counter {
@@ -200,38 +200,38 @@ class Counter {
 }
 ~~~
 
-Với field `static`, viết `ClassName.field` để phân biệt với local cùng tên; trong phương thức `static` không có `this`. Hai khai báo **local-local** chồng phạm vi vẫn bị cấm, dù local trùng field là hợp lệ. Bài về *tham số/biến cục bộ che khuất trường* sẽ phân tích kỹ lỗi tự gán `value = value;` và cách sửa.
+For a `static` field, write `ClassName.field` to distinguish it from a local with the same name; in a `static` method there is no `this`. Overlapping **local-local** declarations are still forbidden, even though a local matching a field name is valid. The lesson on *parameters/local variables shadowing fields* examines the self-assignment bug `value = value;` and how to fix it in detail.
 
-## 7. Scope khác với *definite assignment* và vòng đời dữ liệu
+## 7. Scope differs from *definite assignment* and data lifetime
 
-Có thể **nhìn thấy tên**, nhưng vẫn **chưa được phép đọc biến cục bộ** nếu Java không chứng minh được nó đã được gán giá trị:
+A name can be **visible**, yet **reading the local variable is still disallowed** if Java cannot prove it has been assigned a value:
 
 ~~~java
-// KHÔNG BIÊN DỊCH:
+// DOES NOT COMPILE:
 // static int bad(boolean condition) {
 //     int result;
 //     if (condition) {
 //         result = 1;
 //     }
-//     return result; // Có đường đi condition=false chưa gán.
+//     return result; // Path condition=false leaves it unassigned.
 // }
 ~~~
 
-Trong ví dụ `choose` ở phần 5, hai nhánh `if` và `else` đều gán `result` trước lúc `return`, nên biên dịch thành công.
+In the `choose` example in Section 5, both `if` and `else` branches assign `result` before `return`, so it compiles successfully.
 
-| Khái niệm | Câu hỏi cần trả lời |
+| Concept | Question to answer |
 | --- | --- |
-| **Scope** | Ở vị trí này có thể tham chiếu đến **tên** đã khai báo không? |
-| **Definite assignment** | Trước khi **đọc giá trị** biến cục bộ, mọi đường đến đây đã gán nó chưa? |
-| **Lifetime / thời gian tồn tại** | Giá trị, vùng nhớ hoặc đối tượng liên quan còn tồn tại trong bao lâu? |
+| **Scope** | Can the declared **name** be referenced at this location? |
+| **Definite assignment** | Before **reading the local variable's value**, have all paths to this point assigned it? |
+| **Lifetime** | How long does the associated value, memory slot, or object continue to exist? |
 
-Mỗi lần gọi một phương thức thông thường tạo ngữ cảnh gọi riêng cho tham số và biến cục bộ. Nếu trả về tham chiếu tới một đối tượng, đối tượng đó **có thể tiếp tục tồn tại** sau khi tên biến cục bộ đi ra khỏi scope; thời điểm thu gom rác không được quyết định chỉ bằng dấu `}`.
+Each invocation of a regular method creates its own call context for parameters and local variables. If a reference to an object is returned, that object **can continue to exist** after the local variable name goes out of scope; garbage collection timing is not determined solely by a closing brace `}`.
 
-`final` ngăn gán lại biến sau khi đã được gán theo quy tắc Java, nhưng **không mở rộng scope** và không tự làm đối tượng mutable trở thành bất biến. Các pattern variable của `instanceof`/`switch` có quy tắc phạm vi theo luồng điều khiển riêng; không nên áp dụng máy móc quy tắc khối đơn giản cho chúng.
+`final` prevents reassigning a variable after it has been assigned according to Java rules, but it **does not extend scope** and does not by itself make a mutable object immutable. Pattern variables in `instanceof`/`switch` have their own control-flow-based scoping rules; simple block rules should not be applied mechanically to them.
 
-## 8. Chương trình Java 17+ chạy độc lập
+## 8. Standalone Java 17+ program
 
-Tạo file **ScopeBlocksDemo.java**:
+Create the file **ScopeBlocksDemo.java**:
 
 ~~~java
 public final class ScopeBlocksDemo {
@@ -318,14 +318,14 @@ public final class ScopeBlocksDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 ScopeBlocksDemo.java
 java ScopeBlocksDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 localCount=3
@@ -351,31 +351,31 @@ localShared=9
 fieldShared=50
 ~~~
 
-Các dòng `siblingA`/`siblingB` chứng minh có thể dùng lại tên ở hai khối không chồng lấn; `forIndex` và `item` chỉ tồn tại trong vòng tương ứng; `total` có thể in sau vòng vì được khai báo bên ngoài; `localCount`/`fieldCount` chứng minh hiện tượng che khuất trường.
+The `siblingA`/`siblingB` lines demonstrate that names can be reused in two non-overlapping blocks; `forIndex` and `item` exist only inside their respective loops; `total` can be printed after the loop because it was declared outside; `localCount`/`fieldCount` demonstrate field shadowing.
 
-## 9. Checklist và bài tập
+## 9. Checklist and exercises
 
-| Tình huống | Kiểm tra / cách giải quyết |
+| Situation | Check / resolution |
 | --- | --- |
-| `cannot find symbol` với tên vừa khai báo trong khối | Tên đã ra ngoài dấu `}` hoặc chưa tới vị trí khai báo? |
-| Muốn dùng kết quả sau `for` | Khai báo biến kết quả ngoài `for` rồi cập nhật ở trong |
-| Hai vòng `for (int i...)` nối tiếp | Hợp lệ nếu phạm vi hai biến `i` không chồng lấn |
-| Vòng `for` lồng nhau cùng tên `i` | Không hợp lệ; đổi tên biến vòng trong |
-| Khai báo local trùng local/parameter bên ngoài còn scope | Không hợp lệ trong vùng chồng lấn |
-| Local trùng tên trường | Hợp lệ nhưng shadowing; cân nhắc `this.field` hoặc `ClassName.field` |
-| Biến được khai báo nhưng chưa chắc được gán | Kiểm tra *definite assignment* trên mọi đường đi |
-| Trả về đối tượng rồi rời khối | Đối tượng vẫn có thể tồn tại qua tham chiếu bên ngoài |
+| `cannot find symbol` for a name just declared in a block | Has the name gone past `}` or not yet reached its declaration? |
+| Want to use a result after `for` | Declare the result variable outside `for` and update it inside |
+| Two sequential `for (int i...)` loops | Valid if the scopes of the two `i` variables do not overlap |
+| Nested `for` loops with the same name `i` | Invalid; rename the inner loop variable |
+| Declaring a local with the same name as an outer local/parameter still in scope | Invalid in overlapping regions |
+| Local with the same name as a field | Valid but shadows; consider `this.field` or `ClassName.field` |
+| Variable is declared but not guaranteed to be assigned | Check *definite assignment* on every path |
+| Returning an object and leaving a block | The object may still exist via an external reference |
 
-**Bài 1.** Khai báo `int sum = 0` ngoài vòng `for` và `int term` bên trong. Tính tổng bình phương từ 1 đến 4, sau đó in `sum`. Vì sao không in `term` sau vòng được?
+**Exercise 1.** Declare `int sum = 0` outside a `for` loop and `int term` inside. Compute the sum of squares from 1 to 4, then print `sum`. Why can't `term` be printed after the loop?
 
-**Bài 2.** Viết hai vòng `for (int i...)` nối tiếp, rồi thử khai báo một vòng cùng tên `i` lồng trong vòng trước. Dự đoán lỗi biên dịch.
+**Exercise 2.** Write two sequential `for (int i...)` loops, then try declaring a loop with the same name `i` nested inside the first loop. Predict the compile error.
 
-**Bài 3.** Tạo hai khối liên tiếp cùng khai báo `String message`. Sau đó thử đặt chúng lồng nhau để thấy khi nào trùng tên bị cấm.
+**Exercise 3.** Create two consecutive blocks that both declare `String message`. Then try nesting them to see when duplicate naming is forbidden.
 
-**Bài 4.** Viết phương thức nhận tham số `int count` và lớp có trường `count`. In giá trị tham số, trường và một local trong khối con; so sánh phạm vi các tên.
+**Exercise 4.** Write a method taking parameter `int count` in a class with field `count`. Print the parameter value, the field, and a local in a nested block; compare the scopes of the names.
 
-**Bài 5.** Viết hàm `int choose(boolean flag)` dùng biến `result` khai báo trước `if`. Thử bỏ nhánh `else` để thấy quy tắc *definite assignment*.
+**Exercise 5.** Write a method `int choose(boolean flag)` using a variable `result` declared before `if`. Try removing the `else` branch to observe the *definite assignment* rule.
 
-### Ghi nhớ
+### Key Takeaway
 
-**Scope xác định tên dùng được ở đâu, không đồng nghĩa biến đã được gán hoặc đối tượng bị hủy khi hết khối.** Biến khai báo trong `{ }`/thân vòng lặp không dùng được ngoài vùng của nó; biến `for` khai báo ở phần khởi tạo cũng hết scope sau vòng. Tham số có hiệu lực trong thân phương thức. Các local cùng tên không được chồng phạm vi, nhưng local có thể che khuất field, truy cập field qua `this` hoặc tên lớp phù hợp.
+**Scope determines where a name can be used, which does not mean a variable is already assigned or an object is destroyed when the block ends.** Variables declared in `{ }`/loop bodies cannot be used outside their region; `for` variables declared in the initialization part also go out of scope after the loop. Parameters are in effect within the method body. Locals with the same name cannot have overlapping scopes, but a local can shadow a field, with the field accessed via `this` or the appropriate class name.

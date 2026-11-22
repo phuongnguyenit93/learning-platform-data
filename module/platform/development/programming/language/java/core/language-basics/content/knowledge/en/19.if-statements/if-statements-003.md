@@ -1,22 +1,22 @@
-# Khối lệnh và rủi ro bỏ dấu ngoặc nhọn trong Java
+# Blocks and the Risks of Omitting Braces in Java
 
-> **Java core — language-basics / Rẽ nhánh if**  
-> **Yêu cầu:** Java 17+, một file Java độc lập, chỉ dùng thư viện chuẩn.  
-> **Mục tiêu:** Hiểu `if`/`else` điều khiển **một câu lệnh** hoặc **một khối lệnh `{ ... }`**; nhận diện lỗi do bỏ ngoặc nhọn, sai lệch thụt lề, `else` gắn nhầm và dấu chấm phẩy thừa. Biết viết nhánh rõ ràng, dễ sửa và dễ kiểm thử.
+> **Java core — language-basics / if branching**  
+> **Requirements:** Java 17+, single standalone Java file, standard library only.  
+> **Goal:** Understand that `if`/`else` controls **a single statement** or **a statement block `{ ... }`**; identify bugs from omitting braces, misleading indentation, misplaced `else`, and stray semicolons. Know how to write clear, maintainable, and testable branches.
 
-## 1. Một câu lệnh khác với một khối lệnh
+## 1. A single statement vs. a block
 
-Cú pháp `if` cơ bản:
+Basic `if` syntax:
 
 ~~~java
 if (condition) {
-    // Các câu lệnh thuộc nhánh if.
+    // Statements belonging to the if branch.
 }
 ~~~
 
-`condition` phải có kiểu `boolean` (hoặc `Boolean` có thể unbox). Một **khối** `{ ... }` được Java xem như **một câu lệnh khối**, chứa được nhiều câu lệnh con.
+`condition` must have type `boolean` (or `Boolean` that can be unboxed). A **block** `{ ... }` is treated by Java as **a single block statement**, capable of containing multiple sub-statements.
 
-Java cho phép bỏ ngoặc nhọn khi thân `if` chỉ là **một câu lệnh**:
+Java allows omitting braces when the `if` body is just **one statement**:
 
 ~~~java
 boolean ready = true;
@@ -24,7 +24,7 @@ if (ready)
     System.out.println("READY");
 ~~~
 
-Nhưng khi cần hai thao tác cùng phụ thuộc `ready`, phải dùng khối:
+However, when two operations depend on `ready`, you must use a block:
 
 ~~~java
 if (ready) {
@@ -33,20 +33,20 @@ if (ready) {
 }
 ~~~
 
-Ngoặc nhọn quyết định **phạm vi thuộc nhánh**, còn dấu cách và thụt lề chỉ giúp người đọc. Java không dùng mức thụt lề để gom các câu lệnh như một số ngôn ngữ khác.
+Braces determine **branch membership scope**, whereas spaces and indentation only help human readers. Java does not use indentation levels to group statements like some other languages.
 
-## 2. Lỗi kinh điển: nhìn thụt lề tưởng cả hai câu cùng thuộc `if`
+## 2. Classic bug: indentation makes both lines look inside `if`
 
-Đoạn này hợp lệ về cú pháp nhưng có thể sai nghiệp vụ:
+This snippet is syntactically valid but can violate business logic:
 
 ~~~java
 boolean authorized = false;
 if (authorized)
     System.out.println("Access granted");
-    System.out.println("Sensitive action"); // LUÔN chạy.
+    System.out.println("Sensitive action"); // ALWAYS runs.
 ~~~
 
-Java hiểu là:
+Java interprets it as:
 
 ~~~java
 if (authorized) {
@@ -55,9 +55,9 @@ if (authorized) {
 System.out.println("Sensitive action");
 ~~~
 
-Lệnh in `"Sensitive action"` **nằm ngoài** `if`, cho dù được thụt vào cùng mức với lệnh đầu. Khi `authorized == false`, lệnh đó **vẫn chạy**.
+The statement printing `"Sensitive action"` **is outside** the `if`, even though it is indented to the same level as the first statement. When `authorized == false`, that statement **still runs**.
 
-Cách sửa an toàn:
+Safe fix:
 
 ~~~java
 if (authorized) {
@@ -66,11 +66,11 @@ if (authorized) {
 }
 ~~~
 
-**Rủi ro khi bảo trì:** Ban đầu có thể chỉ một dòng sau `if` nên chương trình đúng. Người sửa thêm dòng thứ hai theo cùng thụt lề nhưng quên `{}`, khiến dòng mới chạy vô điều kiện. Những lỗi này đặc biệt nghiêm trọng nếu thân `if` là bước xác thực, trừ tiền, xóa dữ liệu hoặc đổi trạng thái.
+**Maintenance risk:** Initially there may be only one line after `if`, so the program works. A maintainer adds a second line with the same indentation and forgets `{}`, causing the new line to run unconditionally. These bugs are especially severe if the `if` body performs authentication, deducts money, deletes data, or mutates state.
 
-## 3. Ngoặc nhọn thay đổi liên kết giữa các `if` lồng nhau
+## 3. Braces change how nested `if` statements pair up
 
-Khi viết `if` lồng mà không dùng ngoặc nhọn, `else` thuộc `if` gần nhất chưa có `else` (*dangling else*), không theo thụt lề:
+When writing nested `if` statements without braces, `else` belongs to the nearest `if` that does not yet have an `else` (*dangling else*), regardless of indentation:
 
 ~~~java
 if (isMember)
@@ -80,7 +80,7 @@ if (isMember)
         System.out.println("No ticket");
 ~~~
 
-Nếu `isMember` false, **không in dòng nào**; `else` thuộc `if (hasTicket)` nhưng toàn bộ câu `if` bên trong bị bỏ qua. Muốn `else` thuộc `if` ngoài, phải đóng **khối thân của `if` ngoài** trước `else`:
+If `isMember` is false, **nothing is printed**; `else` belongs to `if (hasTicket)`, and the entire inner `if` is skipped. To attach `else` to the outer `if`, you must close **the body block of the outer `if`** before `else`:
 
 ~~~java
 if (isMember) {
@@ -92,23 +92,23 @@ if (isMember) {
 }
 ~~~
 
-Với `isMember=false`, đoạn sau in `Not a member`. Đây là **hai hành vi khác nhau**, không chỉ hai cách format. Bài hiện tại nhấn mạnh **khối ngoặc quyết định phạm vi**; bài kế tiếp phân tích chuyên sâu luật gắn `else`, hai `else` lồng nhau, bảng trường hợp và thứ tự đánh giá.
+With `isMember=false`, the second snippet prints `Not a member`. These are **two different behaviors**, not merely two formatting styles. This lesson emphasizes that **braced blocks determine scope**; the next lesson thoroughly analyzes `else` binding rules, double nested `else`, case tables, and evaluation order.
 
 
-## 4. Dấu `;` thừa có thể tạo một nhánh rỗng
+## 4. A stray `;` can create an empty branch
 
-`;` đơn lẻ là **câu lệnh rỗng** (*empty statement*). Vì vậy:
+A standalone `;` is an **empty statement**. Therefore:
 
 ~~~java
 int attempts = 0;
-if (false); // Dấu ; chính là toàn bộ thân if: không làm gì.
+if (false); // The ; is the entire if body: does nothing.
 attempts++;
 System.out.println(attempts); // 1
 ~~~
 
-`attempts++` nằm **ngoài** `if` và chạy bất kể điều kiện false. Dấu `;` sau `if (condition)` thường là lỗi gõ phím.
+`attempts++` is **outside** the `if` and runs even though the condition is false. A `;` after `if (condition)` is usually a typo.
 
-**Đúng:**
+**Correct:**
 
 ~~~java
 if (allowed) {
@@ -116,20 +116,20 @@ if (allowed) {
 }
 ~~~
 
-**Sai về ý định:**
+**Wrong relative to intent:**
 
 ~~~java
-if (allowed); // Nhánh if rỗng.
+if (allowed); // Empty if branch.
 {
-    performAction(); // Khối này độc lập, vẫn chạy.
+    performAction(); // Standalone block, still runs.
 }
 ~~~
 
-Dùng formatter và lint/static analysis để phát hiện `if` có thân rỗng bất thường; vẫn cần review ngữ nghĩa vì chương trình **có thể biên dịch bình thường**.
+Use a formatter and lint/static analysis to detect unusual empty `if` bodies; semantic review is still required because the program **compiles normally**.
 
-## 5. Ngoặc nhọn còn tạo phạm vi biến (*scope*)
+## 5. Braces also create variable scope
 
-Bên trong khối có thể khai báo biến cục bộ chỉ dùng trong khối:
+Inside a block, you can declare local variables used only within that block:
 
 ~~~java
 int total = 0;
@@ -138,12 +138,12 @@ if (true) {
     total += increment;
 }
 System.out.println(total); // 7
-// System.out.println(increment); // LỖI BIÊN DỊCH: ngoài phạm vi.
+// System.out.println(increment); // COMPILE ERROR: out of scope.
 ~~~
 
-Ngoặc nhọn giúp giới hạn thời gian **biến cục bộ có thể được gọi bằng tên đó trong mã** (lexical scope); không có nghĩa mọi đối tượng được tạo trong khối bị hủy ngay khi khối kết thúc. Với `if` và `else`, mỗi khối có thể có các biến cục bộ riêng.
+Braces limit the region where **a local variable can be referred to by that name in code** (lexical scope); it does not mean every object created in the block is immediately destroyed when the block ends. With `if` and `else`, each block can have its own local variables.
 
-Cần chú ý **definite assignment** khi gán giá trị trong nhánh:
+Pay attention to **definite assignment** when assigning values inside branches:
 
 ~~~java
 int discount;
@@ -152,27 +152,27 @@ if (eligible) {
 } else {
     discount = 0;
 }
-System.out.println(discount); // Hợp lệ: cả hai nhánh đều gán.
+System.out.println(discount); // Valid: both branches assign it.
 ~~~
 
-Nếu chỉ gán `discount` trong `if` nhưng không có `else`, sau đó dùng `discount` thì trình biên dịch có thể báo biến chưa được gán ở mọi đường đi. Ngoặc nhọn giúp thấy rõ đường đi, nhưng **không thay thế kiểm tra luồng gán của Java**.
+If you only assign `discount` inside `if` without an `else`, and then read `discount`, the compiler may report that the variable might not have been initialized along all paths. Braces make paths visible, but **do not replace Java's assignment flow analysis**.
 
-## 6. Quy tắc chọn cách viết
+## 6. Guidelines for choosing a style
 
-| Tình huống | Nên làm |
+| Situation | Recommended action |
 | --- | --- |
-| `if` hiện tại chỉ có một câu lệnh | Vẫn dùng `{ ... }` để dễ bổ sung sau này |
-| `if` lồng `if / else` | Dùng khối và thụt lề rõ, tránh *dangling else* |
-| Sau điều kiện có dấu `;` đáng ngờ | Kiểm tra xem có vô tình tạo câu lệnh rỗng không |
-| Nhánh bảo vệ thao tác quan trọng | Đặt mọi thao tác được bảo vệ vào cùng một khối |
-| Cần biến cục bộ phục vụ riêng một nhánh | Khai báo bên trong khối nhánh |
-| Thêm/sửa câu lệnh trong code cũ không ngoặc | Xác minh lại phạm vi điều khiển trước và sau khi sửa |
+| `if` currently has only one statement | Still use `{ ... }` to make future additions safe |
+| Nested `if` with `if / else` | Use blocks and clear indentation to avoid *dangling else* |
+| Suspicious `;` right after a condition | Check whether an empty statement was created accidentally |
+| Branch guarding sensitive operations | Put all guarded operations inside the same block |
+| Local variable needed only for one branch | Declare it inside that branch's block |
+| Adding/editing statements in legacy braceless code | Verify control scope before and after editing |
 
-**Khuyến nghị thực hành:** Luôn viết ngoặc nhọn cho `if`, `else if` và `else` ngay cả khi chỉ có một câu lệnh. Java không bắt buộc quy tắc này, nhưng nó làm ý định rõ ràng và giúp hạn chế lỗi khi thêm dòng. Format code tự động để phát hiện thụt lề đáng ngờ; viết test cho cả nhánh đúng và sai.
+**Practical recommendation:** Always write braces for `if`, `else if`, and `else` even when there is only a single statement. Java does not enforce this rule, but it makes intent explicit and helps prevent bugs when adding lines. Auto-format code to spot suspicious indentation; write tests for both true and false branches.
 
-## 7. Chương trình Java 17+ chạy độc lập
+## 7. Standalone runnable Java 17+ program
 
-Tạo file **IfBlocksDemo.java**:
+Create the file **IfBlocksDemo.java**:
 
 ~~~java
 public final class IfBlocksDemo {
@@ -251,14 +251,14 @@ public final class IfBlocksDemo {
 }
 ~~~
 
-Biên dịch và chạy tại thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 IfBlocksDemo.java
 java IfBlocksDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 authorized=false
@@ -281,20 +281,20 @@ blockScopeTotal=7
 discount=0
 ~~~
 
-Dòng `unguardedAlways` xuất hiện **cả khi authorized=false** dù nhìn như nằm trong `if`; `guardedAudit` chỉ xuất hiện khi true. `danglingFalseTrue=NO_BRANCH` khác `outerFalseTrue=NOT_MEMBER` vì `else` thuộc các `if` khác nhau. `emptyStatementAttempts=1` cho thấy `;` tạo thân rỗng.
+`unguardedAlways` appears **even when authorized=false** despite looking inside the `if`; `guardedAudit` appears only when true. `danglingFalseTrue=NO_BRANCH` differs from `outerFalseTrue=NOT_MEMBER` because `else` belongs to different `if` statements. `emptyStatementAttempts=1` shows that `;` creates an empty body.
 
-## 8. Bài tập tự luyện
+## 8. Practice exercises
 
-**Bài 1.** Dự đoán đầu ra với `boolean active = false; if (active) System.out.println("A"); System.out.println("B");`. Thêm ngoặc nhọn để cả A và B chỉ in khi `active` true.
+**Exercise 1.** Predict the output for `boolean active = false; if (active) System.out.println("A"); System.out.println("B");`. Add braces so that both A and B are printed only when `active` is true.
 
-**Bài 2.** Viết `if (member) if (ticket) enter(); else reject();` có ngoặc nhọn để `else` chắc chắn thuộc `if (member)`; nêu khác biệt khi `member=false`.
+**Exercise 2.** Write `if (member) if (ticket) enter(); else reject();` with braces so that `else` definitely belongs to `if (member)`; explain the difference when `member=false`.
 
-**Bài 3.** Giải thích ý nghĩa của `if (enabled); doWork();` và sửa lại để `doWork()` chỉ chạy khi `enabled` đúng.
+**Exercise 3.** Explain the meaning of `if (enabled); doWork();` and fix it so `doWork()` runs only when `enabled` is true.
 
-**Bài 4.** Khai báo biến `int amount` trong khối `if`. Thử sử dụng bên ngoài khối và giải thích lỗi scope; viết cách lưu kết quả hợp lệ để dùng về sau.
+**Exercise 4.** Declare `int amount` inside an `if` block. Try using it outside the block and explain the scope error; write a valid way to store the result for later use.
 
-**Bài 5.** Tạo `if/else` gán một biến ở cả hai nhánh, rồi thử xóa phép gán trong nhánh `else`. Vì sao Java không cho đọc biến cục bộ có thể chưa được gán?
+**Exercise 5.** Create an `if/else` that assigns a variable in both branches, then try removing the assignment in the `else` branch. Why does Java forbid reading a local variable that might not have been assigned?
 
-### Ghi nhớ
+### Key takeaway
 
-**Không có `{}`, `if`/`else` chỉ điều khiển đúng một câu lệnh; thụt lề không quyết định luồng chạy.** `else` gắn với `if` gần nhất chưa có `else`, còn dấu `;` thừa có thể khiến thân `if` rỗng. Dùng ngoặc nhọn nhất quán để bảo vệ thao tác, làm rõ phạm vi biến và tránh lỗi khó nhìn thấy khi chỉnh sửa.
+**Without `{}`, `if`/`else` controls only a single statement; indentation does not determine execution flow.** `else` binds to the nearest `if` without an `else`, and a stray `;` can make an `if` body empty. Use braces consistently to guard operations, clarify variable scope, and prevent subtle bugs during edits.

@@ -1,24 +1,24 @@
-# CharsetDecoder, CharsetEncoder và CodingErrorAction trong Java
+# CharsetDecoder, CharsetEncoder, and CodingErrorAction in Java
 
-## 1. Vì sao biết UTF-8 vẫn chưa đủ?
+## 1. Why Is Knowing UTF-8 Still Not Enough?
 
-Khi một ứng dụng Java đọc file, nhận HTTP payload hoặc lấy dữ liệu từ hệ thống cũ, chuỗi ký tự phải đi qua một **ranh giới mã hóa**:
+When a Java application reads a file, receives an HTTP payload, or ingests data from a legacy system, character strings must cross an **encoding boundary**:
 
-- **Đọc:** các byte từ file/mạng → ký tự Unicode trong Java.
-- **Ghi:** các ký tự Unicode từ Java → các byte của một charset để gửi/lưu.
+- **Read:** bytes from a file/network → Unicode characters in Java.
+- **Write:** Unicode characters from Java → bytes of a charset for sending/storage.
 
-Nếu dữ liệu hợp lệ, việc chuyển đổi có vẻ đơn giản. Nhưng dữ liệu thực tế có thể chứa **byte bị cắt dở**, **chuỗi UTF-8 không hợp lệ**, **ký tự Unicode không biểu diễn được trong charset đích**, hoặc **surrogate pair UTF-16 bị tách**. Khi gặp những tình huống đó, ứng dụng phải quyết định **báo lỗi, thay ký tự hay bỏ dữ liệu**.
+When the data is valid, conversion seems straightforward. Yet real-world data can contain **truncated bytes**, **invalid UTF-8 sequences**, **Unicode characters unrepresentable in the target charset**, or **split UTF-16 surrogate pairs**. When encountering such cases, the application must decide whether to **report an error, replace characters, or drop data**.
 
-Java 17 cung cấp bộ API có cấu hình rõ ràng:
+Java 17 provides a clearly configurable set of APIs:
 
-- `CharsetDecoder`: chuyển **byte → char** theo một `Charset`.
-- `CharsetEncoder`: chuyển **char → byte** theo một `Charset`.
-- `CodingErrorAction`: chọn chính sách khi gặp lỗi, với ba lựa chọn `REPORT`, `REPLACE`, `IGNORE`.
-- `CoderResult`: mô tả trạng thái khi chuyển đổi bằng API tăng dần, gồm `UNDERFLOW`, `OVERFLOW`, `MALFORMED` và `UNMAPPABLE`.
+- `CharsetDecoder`: converts **bytes → chars** according to a `Charset`.
+- `CharsetEncoder`: converts **chars → bytes** according to a `Charset`.
+- `CodingErrorAction`: chooses the error policy, with three options: `REPORT`, `REPLACE`, `IGNORE`.
+- `CoderResult`: describes status during incremental conversion, including `UNDERFLOW`, `OVERFLOW`, `MALFORMED`, and `UNMAPPABLE`.
 
-Bài học này tập trung vào Java 17+, các trường hợp I/O thực tế và **độ toàn vẹn dữ liệu quốc tế hóa**. Mục tiêu không phải chỉ “làm hết lỗi dấu tiếng Việt”, mà là **không âm thầm phá hỏng văn bản** khi charset đầu vào hoặc đầu ra không phù hợp.
+This lesson focuses on Java 17+, real-world I/O scenarios, and **internationalized data integrity**. The goal is not merely “fixing Vietnamese diacritic bugs,” but **never silently corrupting text** when the input or output charset does not fit.
 
-## 2. Sơ đồ luồng dữ liệu và vai trò từng API
+## 2. Data Flow Diagram and Role of Each API
 
 ```text
 File / Network / Legacy System                Java Application
@@ -32,86 +32,86 @@ ByteBuffer          CharsetDecoder          CharBuffer / String
 CharBuffer / String CharsetEncoder          ByteBuffer
 ```
 
-Các thuật ngữ:
+Terminology:
 
-| Khái niệm | Kiểu/API | Ý nghĩa |
+| Concept | Type/API | Meaning |
 | --- | --- | --- |
-| Charset | `java.nio.charset.Charset` | Quy tắc ánh xạ byte với văn bản Unicode |
-| Decoder | `CharsetDecoder` | Bộ giải mã một charset cụ thể, có trạng thái |
-| Encoder | `CharsetEncoder` | Bộ mã hóa một charset cụ thể, có trạng thái |
-| Byte buffer | `ByteBuffer` | Bộ nhớ chứa byte nguồn/đích, có `position/limit` |
-| Character buffer | `CharBuffer` | Bộ nhớ chứa các UTF-16 code unit `char` |
-| Error action | `CodingErrorAction` | Hành động khi dữ liệu malformed/unmappable |
-| Conversion result | `CoderResult` | UNDERFLOW, OVERFLOW hoặc loại lỗi |
-| Standard charsets | `StandardCharsets.UTF_8`, `US_ASCII`, `ISO_8859_1` | Các charset có sẵn và được hỗ trợ chuẩn |
-| Unicode replacement | `U+FFFD` | Ký tự thường dùng để thay dữ liệu không giải mã được |
+| Charset | `java.nio.charset.Charset` | Rules mapping bytes to Unicode text |
+| Decoder | `CharsetDecoder` | Stateful decoder for a specific charset |
+| Encoder | `CharsetEncoder` | Stateful encoder for a specific charset |
+| Byte buffer | `ByteBuffer` | Memory holding source/target bytes, with `position/limit` |
+| Character buffer | `CharBuffer` | Memory holding UTF-16 `char` code units |
+| Error action | `CodingErrorAction` | Action when encountering malformed/unmappable data |
+| Conversion result | `CoderResult` | UNDERFLOW, OVERFLOW, or error kind |
+| Standard charsets | `StandardCharsets.UTF_8`, `US_ASCII`, `ISO_8859_1` | Built-in, standardly supported charsets |
+| Unicode replacement | `U+FFFD` | Character commonly used to replace undecodable data |
 
-`CharsetDecoder` và `CharsetEncoder` có thể được tạo từ một `Charset`:
+`CharsetDecoder` and `CharsetEncoder` can be created from a `Charset`:
 
 ```java
 CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder();
 CharsetEncoder encoder = StandardCharsets.UTF_8.newEncoder();
 ```
 
-Hai dòng trên là code minh họa **bên trong method**, cần import từ `java.nio.charset`. Mỗi instance giữ trạng thái của một quá trình chuyển đổi; **không chia sẻ một encoder/decoder với nhiều request đồng thời**.
+These two lines are illustrative code **inside a method**, requiring imports from `java.nio.charset`. Each instance holds state for one conversion; **do not share a single encoder/decoder across concurrent requests**.
 
-### Điểm rất quan trọng
+### Very Important Point
 
-`CharsetDecoder` không phải “bộ phát hiện ngôn ngữ” và `CharsetEncoder` không phải “bộ dịch ngôn ngữ”. UTF-8 là cách **mã hóa ký tự**, không phải tiếng Việt/tiếng Anh/tiếng Nhật. Locale và charset là hai khía cạnh khác nhau của localization.
+`CharsetDecoder` is not a “language detector” and `CharsetEncoder` is not a “language translator.” UTF-8 is a **character encoding**, not Vietnamese/English/Japanese. Locale and charset are two distinct aspects of localization.
 
-`Charset.forName("UTF-8")` hoặc `StandardCharsets.UTF_8` mô tả cùng charset chuẩn. Khi biết trước UTF-8, `StandardCharsets.UTF_8` tránh lỗi chính tả tên charset và cho code rõ ràng hơn.
+`Charset.forName("UTF-8")` or `StandardCharsets.UTF_8` describe the same standard charset. When UTF-8 is known upfront, `StandardCharsets.UTF_8` avoids typos in charset names and makes code clearer.
 
-## 3. Hai loại lỗi: malformed và unmappable
+## 3. Two Error Kinds: Malformed and Unmappable
 
-Java phân biệt hai lỗi chính trong quá trình chuyển đổi.
+Java distinguishes two main errors during conversion.
 
-### 3.1. Malformed input
+### 3.1. Malformed Input
 
-Dữ liệu đầu vào **không hợp lệ về cấu trúc** theo encoding được khai báo.
+The input data is **structurally invalid** under the declared encoding.
 
-Ví dụ khi decode UTF-8:
+For example, when decoding UTF-8:
 
-- Byte `0xC3` yêu cầu byte tiếp theo thích hợp để tạo một chuỗi UTF-8 hai byte.
-- Nếu nó đứng trước `0x28` (ký tự `(` trong ASCII), chuỗi `C3 28` không phải một chuỗi mã hóa UTF-8 hợp lệ.
-- Nếu stream kết thúc ngay sau `0xC3`, input bị thiếu byte kết thúc, cũng có thể thành malformed khi đã xác nhận hết input.
+- Byte `0xC3` requires a suitable following byte to form a two-byte UTF-8 sequence.
+- If it precedes `0x28` (the ASCII `(` character), the sequence `C3 28` is not a valid UTF-8 byte sequence.
+- If the stream ends immediately after `0xC3`, the input is missing its trailing byte, which also becomes malformed once end-of-input is confirmed.
 
-Ví dụ khi encode từ Java `String`: một **high surrogate** UTF-16 đứng một mình như `"\uD83D"` không đại diện cho một Unicode scalar value hoàn chỉnh. Nó là **malformed UTF-16 input** cho bộ mã hóa.
+For example, when encoding from a Java `String`: a lone UTF-16 **high surrogate** such as `"\uD83D"` does not represent a complete Unicode scalar value. It is **malformed UTF-16 input** to the encoder.
 
-### 3.2. Unmappable character
+### 3.2. Unmappable Character
 
-Input có thể **hợp lệ về cấu trúc**, nhưng **charset đích không có byte sequence biểu diễn ký tự đó**.
+The input may be **structurally valid**, yet **the target charset has no byte sequence representing that character**.
 
-Ví dụ:
+For example:
 
-- Chuỗi Java `"A€B"` hợp lệ về Unicode.
-- Charset `ISO-8859-1` không biểu diễn ký tự `€` (U+20AC).
-- Khi encode sang ISO-8859-1, `€` là **unmappable**.
-- Nếu encode cùng chuỗi sang UTF-8 thì `€` được biểu diễn bình thường.
+- The Java string `"A€B"` is valid Unicode.
+- The `ISO-8859-1` charset does not represent the `€` character (U+20AC).
+- When encoding to ISO-8859-1, `€` is **unmappable**.
+- Encoding the same string to UTF-8 represents `€` normally.
 
-Một số charset cũng có thể báo **unmappable** khi decode một chuỗi byte hợp lệ về cấu trúc nhưng không ánh xạ sang ký tự Unicode. Không giả định **mọi** lỗi decoder đều malformed hoặc **mọi** lỗi encoder đều unmappable.
+Some charsets can also report **unmappable** when decoding a structurally valid byte sequence that has no mapping to a Unicode character. Do not assume **all** decoder errors are malformed or **all** encoder errors are unmappable.
 
-| Tình huống | Hướng | Loại điển hình |
+| Scenario | Direction | Typical kind |
 | --- | --- | --- |
-| Byte `C3 28` khi đọc UTF-8 | Decode | Malformed |
-| Byte `C3` ở cuối UTF-8 stream | Decode | Malformed khi end-of-input được xác nhận |
-| `"A€B"` chuyển sang ISO-8859-1 | Encode | Unmappable |
-| Chuỗi chứa high surrogate đơn lẻ chuyển sang UTF-8 | Encode | Malformed |
-| `"Tiếng Việt"` chuyển sang UTF-8 | Encode | Hợp lệ |
-| `"A€B"` chuyển sang UTF-8 | Encode | Hợp lệ |
+| Bytes `C3 28` when reading UTF-8 | Decode | Malformed |
+| Byte `C3` at end of UTF-8 stream | Decode | Malformed when end-of-input is signaled |
+| `"A€B"` converted to ISO-8859-1 | Encode | Unmappable |
+| String containing a lone high surrogate converted to UTF-8 | Encode | Malformed |
+| `"Tiếng Việt"` converted to UTF-8 | Encode | Valid |
+| `"A€B"` converted to UTF-8 | Encode | Valid |
 
-**Không giải quyết sai charset bằng cách bỏ lỗi.** Ví dụ nếu file thực ra dùng Windows-1258 nhưng bị đọc như UTF-8, `REPLACE` có thể tạo dấu `�` và làm mất thông tin. Việc đúng phải là xác định/nhận biết charset nguồn từ metadata đáng tin và decode lại đúng.
+**Do not resolve a wrong charset by suppressing errors.** For instance, if a file actually uses Windows-1258 yet is read as UTF-8, `REPLACE` can produce `�` and lose information. The right action is identifying the source charset from trusted metadata and decoding again properly.
 
 ## 4. CodingErrorAction: REPORT, REPLACE, IGNORE
 
-`java.nio.charset.CodingErrorAction` có ba hằng số:
+`java.nio.charset.CodingErrorAction` has three constants:
 
-| Action | Khi gặp dữ liệu sai | Đánh đổi |
+| Action | When encountering bad data | Trade-off |
 | --- | --- | --- |
-| `REPORT` | Báo lỗi cho caller qua `CoderResult` hoặc ném `CharacterCodingException` | Bảo toàn nguyên tắc không âm thầm làm mất dữ liệu |
-| `REPLACE` | Loại đoạn input sai, ghi giá trị thay thế vào output rồi tiếp tục | Pipeline vẫn chạy, **nhưng mất dữ liệu gốc** |
-| `IGNORE` | Loại đoạn input sai, **không ghi ký tự/byte thay thế** | Mất dữ liệu, khó biết chỗ nào bị xóa |
+| `REPORT` | Reports error to caller via `CoderResult` or throws `CharacterCodingException` | Preserves the principle of never silently losing data |
+| `REPLACE` | Discards bad input segment, writes replacement value to output, and continues | Pipeline keeps running, **but original data is lost** |
+| `IGNORE` | Discards bad input segment, **writes no replacement character/byte** | Data loss, hard to tell where data was deleted |
 
-Cấu hình **riêng** cho hai loại lỗi:
+Configure **independently** for the two error types:
 
 ```java
 CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder()
@@ -123,43 +123,43 @@ CharsetEncoder encoder = StandardCharsets.ISO_8859_1.newEncoder()
         .onUnmappableCharacter(CodingErrorAction.REPLACE);
 ```
 
-Tất cả đều là **đoạn mã trong method** với import phù hợp.
+All of these are **method-body snippets** with appropriate imports.
 
-**Theo API Java SE 17, encoder/decoder mới tạo mặc định dùng `REPORT` cho cả malformed và unmappable.** Việc viết hai cấu hình `REPORT` tường minh vẫn hữu ích để biểu đạt policy trong code và tránh nhầm với các API tiện dụng có thể áp dụng replacement.
+**Per the Java SE 17 API, newly created encoders/decoders default to `REPORT` for both malformed and unmappable.** Explicitly configuring both as `REPORT` is still helpful to express policy in code and avoid confusion with convenience APIs that may apply replacement.
 
-### 4.1. Sự khác biệt mặc định rất dễ gây nhầm
+### 4.1. Default Differences Are Easy to Misread
 
-Hai cách decode sau có thể có hành vi khi lỗi khác nhau:
+These two decoding approaches can behave differently on errors:
 
 ```java
-// API tiện dụng tạo String có thể dùng ký tự thay thế:
+// Convenience String API may use a replacement character:
 String convenient = new String(bytes, StandardCharsets.UTF_8);
 
-// Decoder mới, mặc định REPORT:
+// New decoder, defaults to REPORT:
 CharsetDecoder strict = StandardCharsets.UTF_8.newDecoder();
 CharBuffer decoded = strict.decode(ByteBuffer.wrap(bytes));
 ```
 
-Với input UTF-8 malformed, constructor `new String(byte[], Charset)` thay malformed/unmappable byte sequences bằng replacement string mặc định của charset, còn `CharsetDecoder.decode(ByteBuffer)` với `REPORT` ném `CharacterCodingException` phù hợp. **Đừng giả định mọi API Java mặc định hành xử giống nhau chỉ vì cùng UTF-8.**
+On malformed UTF-8 input, `new String(byte[], Charset)` replaces malformed/unmappable byte sequences with the charset's default replacement string, whereas `CharsetDecoder.decode(ByteBuffer)` with `REPORT` throws the appropriate `CharacterCodingException`. **Do not assume all Java APIs share the same error behavior merely because they use UTF-8.**
 
-Tương tự, `String.getBytes(Charset)` có thể dùng replacement bytes cho ký tự không biểu diễn được. Nếu cần phát hiện lỗi mất dữ liệu, dùng `CharsetEncoder` cấu hình `REPORT`.
+Similarly, `String.getBytes(Charset)` can emit replacement bytes for unrepresentable characters. When you must detect data-loss errors, use a `CharsetEncoder` configured with `REPORT`.
 
-## 5. CharsetDecoder: đọc byte không hợp lệ một cách có kiểm soát
+## 5. CharsetDecoder: Reading Invalid Bytes in a Controlled Way
 
-Dưới đây là ví dụ Java 17 độc lập cho cùng một dãy byte:
+Below is a standalone Java 17 example for the same byte sequence:
 
 ```text
 41 C3 28 42
 
 41 = 'A'
-C3 = byte đầu của một UTF-8 sequence hai byte, bị lỗi khi gặp 28
+C3 = leading byte of a two-byte UTF-8 sequence, fails upon encountering 28
 28 = '('
 42 = 'B'
 ```
 
-### Chương trình 1 — ba chính sách khi decode
+### Program 1 — Three Policies When Decoding
 
-Lưu tệp `DecoderActionsDemo.java`:
+Save the file `DecoderActionsDemo.java`:
 
 ```java
 import java.nio.ByteBuffer;
@@ -214,14 +214,14 @@ public class DecoderActionsDemo {
 }
 ```
 
-Biên dịch/chạy bằng JDK 17 trở lên:
+Compile/run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 DecoderActionsDemo.java
 java DecoderActionsDemo
 ```
 
-Stdout xác định:
+Deterministic stdout:
 
 ```text
 REPORT=error
@@ -230,18 +230,18 @@ IGNORE=U+0041 U+0028 U+0042
 convenience=U+0041 U+FFFD U+0028 U+0042
 ```
 
-Giải thích:
+Explanation:
 
-- `REPORT` dừng và ném lỗi với API `decode(ByteBuffer)`.
-- `REPLACE` chèn một ký tự `U+FFFD` cho phần input malformed được phát hiện, tiếp tục đọc dấu `(` và chữ `B`.
-- `IGNORE` bỏ byte lỗi, nên output chỉ còn `A(B`.
-- Constructor `new String(BYTES, UTF_8)` cũng dùng replacement cho dữ liệu hỏng.
+- `REPORT` stops and throws an error with the `decode(ByteBuffer)` API.
+- `REPLACE` inserts a `U+FFFD` character for the detected malformed input, then continues reading `(` and `B`.
+- `IGNORE` drops the invalid byte, so the output becomes `A(B`.
+- The `new String(BYTES, UTF_8)` constructor also applies replacement for corrupted data.
 
-**Một cảnh báo:** output `A�(B` không xác nhận rằng văn bản gốc đã được khôi phục. Byte bị hỏng đã không còn thông tin. Trong các lĩnh vực yêu cầu độ chính xác dữ liệu, chọn `REPORT` rồi xử lý file/network protocol đúng cách.
+**A warning:** output `A�(B` does not confirm that the original text was recovered. The corrupted byte's information is already gone. In domains requiring data precision, choose `REPORT` and handle the file/network protocol properly.
 
-### 5.1. Tùy chỉnh decoder replacement
+### 5.1. Customizing Decoder Replacement
 
-Mặc định decoder replacement string là `"\uFFFD"`, nhưng có thể thay:
+The default decoder replacement string is `"\uFFFD"`, though it can be changed:
 
 ```java
 CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder()
@@ -249,9 +249,9 @@ CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder()
         .replaceWith("[invalid]");
 ```
 
-Đây là code minh họa trong method. `replaceWith(String)` yêu cầu chuỗi thay thế **không null, không rỗng và có độ dài không vượt `maxCharsPerByte()`** của decoder. Với UTF-8, `maxCharsPerByte()` thường là 1; vì vậy **chuỗi thay thế dài `"[invalid]"` không được phép** và sẽ ném `IllegalArgumentException`. Để tránh sai, dùng replacement một ký tự như `"?"` hoặc `"\uFFFD"` cho decoder UTF-8.
+This is illustrative code inside a method. `replaceWith(String)` requires the replacement string to be **non-null, non-empty, and no longer than the decoder's `maxCharsPerByte()`**. For UTF-8, `maxCharsPerByte()` is typically 1; therefore **a long replacement string like `"[invalid]"` is disallowed** and throws `IllegalArgumentException`. To avoid errors, use a single-character replacement such as `"?"` or `"\uFFFD"` for a UTF-8 decoder.
 
-**Ví dụ cấu hình hợp lệ cho UTF-8**:
+**Example valid configuration for UTF-8**:
 
 ```java
 CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder()
@@ -259,19 +259,19 @@ CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder()
         .replaceWith("?");
 ```
 
-Khi dùng replacement dễ nhìn như dấu `?`, vẫn phải ghi nhận rằng dữ liệu gốc đã bị thay. Không dùng dấu hỏi replacement trong hợp đồng dữ liệu mà có thể gây nhập nhằng với dấu hỏi thật của người dùng.
+When using a visible replacement such as `?`, you must still record that original data was replaced. Do not use a question-mark replacement in data contracts where it could be confused with genuine user question marks.
 
-## 6. CharsetEncoder: ký tự hợp lệ nhưng charset đích không hỗ trợ
+## 6. CharsetEncoder: Valid Character Unsupported by Target Charset
 
-Với Unicode `"A€B"`, UTF-8 có thể biểu diễn được toàn bộ. Nhưng `ISO-8859-1` không chứa ký hiệu euro. Khi encode sang ISO-8859-1:
+With Unicode `"A€B"`, UTF-8 can represent all of it. However, `ISO-8859-1` lacks the euro sign. When encoding to ISO-8859-1:
 
-- `REPORT`: ném `UnmappableCharacterException` qua one-shot API.
-- `REPLACE`: ghi replacement byte (thường là `?`); có thể cấu hình `!` để biết chắc output.
-- `IGNORE`: bỏ ký tự `€`, chỉ xuất `AB`.
+- `REPORT`: throws `UnmappableCharacterException` via the one-shot API.
+- `REPLACE`: writes the replacement byte (typically `?`); you can configure `!` to recognize the output unmistakably.
+- `IGNORE`: drops `€`, emitting only `AB`.
 
-### Chương trình 2 — mã hóa ISO-8859-1 và lỗi unmappable
+### Program 2 — ISO-8859-1 Encoding and Unmappable Errors
 
-Tệp `EncoderActionsDemo.java`:
+File `EncoderActionsDemo.java`:
 
 ```java
 import java.nio.ByteBuffer;
@@ -337,7 +337,7 @@ javac -encoding UTF-8 EncoderActionsDemo.java
 java EncoderActionsDemo
 ```
 
-Stdout xác định:
+Deterministic stdout:
 
 ```text
 REPORT=error
@@ -346,49 +346,49 @@ IGNORE=41 42
 UTF8=41 E2 82 AC 42
 ```
 
-`41 21 42` là `A!B`; dấu `!` chỉ là replacement được lập trình viên cấu hình, **không phải ký tự euro**. `41 E2 82 AC 42` là biểu diễn UTF-8 hợp lệ của `A€B`.
+`41 21 42` is `A!B`; `!` is simply the developer-configured replacement, **not the euro sign**. `41 E2 82 AC 42` is the valid UTF-8 representation of `A€B`.
 
-**Ghi nhớ:** một input hợp lệ nhưng charset output không biểu diễn được vẫn là lỗi **UNMAPPABLE**, không phải lỗi malformed. Nếu yêu cầu bảo toàn nhiều hệ chữ quốc tế, dùng UTF-8 khi giao thức cho phép, thay vì ép text đa ngôn ngữ xuống bảng mã chỉ hỗ trợ một phần Unicode.
+**Remember:** valid input that the output charset cannot represent is still an **UNMAPPABLE** error, not a malformed error. If preserving multiple international scripts is required, use UTF-8 whenever the protocol permits, rather than forcing multilingual text into an encoding covering only a subset of Unicode.
 
-### 6.1. Encoder replacement không giống decoder replacement
+### 6.1. Encoder Replacement Differs from Decoder Replacement
 
-| Coder | API replacement | Đơn vị replacement |
+| Coder | Replacement API | Replacement unit |
 | --- | --- | --- |
-| Decoder | `CharsetDecoder.replaceWith(String)` | **Chuỗi `char`** (ký tự Unicode) |
-| Encoder | `CharsetEncoder.replaceWith(byte[])` | **Mảng byte** hợp lệ trong charset đích |
+| Decoder | `CharsetDecoder.replaceWith(String)` | **`char` string** (Unicode characters) |
+| Encoder | `CharsetEncoder.replaceWith(byte[])` | **Byte array** valid in the target charset |
 
-Encoder không nhận `replaceWith("€")`; nó cần **byte[]**. Byte replacement phải là một chuỗi byte **hợp lệ** với charset, không null/rỗng và không vượt giới hạn `maxBytesPerChar()`. Không tự chọn một byte bất kỳ khi charset có cấu trúc nhiều byte hoặc stateful; hãy dùng replacement mặc định hoặc kiểm tra khả năng biểu diễn.
+The encoder does not accept `replaceWith("€")`; it requires **`byte[]`**. The replacement bytes must form a **valid** byte sequence in that charset, non-null/non-empty, and within `maxBytesPerChar()`. Do not pick an arbitrary byte when a charset is multi-byte or stateful; use the default replacement or verify encodability.
 
-### 6.2. canEncode có thay được encode thật không?
+### 6.2. Can canEncode Replace Actual Encoding?
 
-`CharsetEncoder.canEncode(char)` hoặc `canEncode(CharSequence)` giúp kiểm tra liệu coder có thể biểu diễn một chuỗi. Nhưng đó không phải cơ chế xử lý lỗi thay cho encoding thật:
+`CharsetEncoder.canEncode(char)` or `canEncode(CharSequence)` helps check whether a coder can represent a sequence. Yet it is not an error-handling mechanism replacing real encoding:
 
-- Coder có trạng thái, một số mã hóa có giới hạn/chế độ đặc biệt.
-- `canEncode` không thay thế việc kiểm tra nội dung đầu vào đã được xác thực.
-- Chính sách chuyển đổi vẫn cần xử lý `CharacterCodingException` khi `REPORT`.
-- Với Unicode ngoài BMP, nên kiểm tra cả chuỗi/cặp surrogate thay vì thử một `char` cao hoặc thấp đơn lẻ.
+- Coders are stateful, and some encodings have special modes/restrictions.
+- `canEncode` does not replace validating input content.
+- The conversion policy must still handle `CharacterCodingException` under `REPORT`.
+- For non-BMP Unicode, check the full string/surrogate pair rather than testing a lone high or low `char`.
 
-Không dùng `canEncode` cho từng `charAt(i)` rồi cho rằng một emoji hai code unit là hai ký tự không hợp lệ; hãy xử lý toàn bộ Unicode string hoặc code point đúng cách.
+Do not call `canEncode` per `charAt(i)` and conclude a two-code-unit emoji is two invalid characters; handle the full Unicode string or code points properly.
 
-## 7. Malformed UTF-16 trong String và tác động đến encoder
+## 7. Malformed UTF-16 in String and Impact on the Encoder
 
-Java `char` là một **UTF-16 code unit**. Một ký tự ngoài BMP như `😀` (U+1F600) là cặp `\uD83D\uDE00`:
+A Java `char` is a **UTF-16 code unit**. A non-BMP character such as `😀` (U+1F600) is the pair `\uD83D\uDE00`:
 
 ```text
 High surrogate = U+D83D
 Low surrogate  = U+DE00
 Full code point = U+1F600
 
-Cặp đúng   : D83D DE00 → biểu diễn hợp lệ
-High lẻ    : D83D      → malformed UTF-16
-Low lẻ     : DE00      → malformed UTF-16
+Valid pair     : D83D DE00 → valid representation
+Lone high      : D83D      → malformed UTF-16
+Lone low       : DE00      → malformed UTF-16
 ```
 
-Java `String` có thể chứa một `char` surrogate lẻ; nó không nhất thiết ném lỗi khi chuỗi được tạo. Việc **encode** mới là một trong các ranh giới phát hiện input không hợp lệ.
+A Java `String` can hold an unpaired surrogate `char`; it does not necessarily throw an error when constructed. **Encoding** is one of the boundaries that detects invalid input.
 
-### Chương trình 3 — Encoder phân biệt malformed
+### Program 3 — Encoder Distinguishes Malformed Input
 
-Tệp `MalformedUtf16EncoderDemo.java`:
+File `MalformedUtf16EncoderDemo.java`:
 
 ```java
 import java.nio.CharBuffer;
@@ -433,7 +433,7 @@ javac -encoding UTF-8 MalformedUtf16EncoderDemo.java
 java MalformedUtf16EncoderDemo
 ```
 
-Stdout xác định:
+Deterministic stdout:
 
 ```text
 validUtf8Bytes=4
@@ -442,19 +442,19 @@ IGNOREbytes=0
 inputUnits=1
 ```
 
-Dù `loneHigh` có độ dài 1, nó không phải Unicode scalar value hoàn chỉnh. Việc `IGNORE` tạo 0 byte không giúp “chữa” chuỗi: dữ liệu đã bị **bỏ**.
+Although `loneHigh` has length 1, it is not a complete Unicode scalar value. `IGNORE` producing 0 bytes does not “fix” the string: the data was **dropped**.
 
-### 7.1. Không cắt giữa surrogate pair khi chia buffer
+### 7.1. Do Not Split Across a Surrogate Pair When Chunking Buffers
 
-Nếu stream/chunk đầu kết thúc bằng **high surrogate** và chunk tiếp theo bắt đầu bằng **low surrogate**, khi xử lý bằng cùng `CharsetEncoder` ở chế độ incremental, phải **giữ code unit chưa đủ** để ghép với phần tiếp theo, không tự coi nó là malformed ngay lập tức.
+If a first stream/chunk ends with a **high surrogate** and the next chunk begins with a **low surrogate**, when processing with the same `CharsetEncoder` in incremental mode, you must **retain the incomplete code unit** to combine with the next part rather than treating it as malformed immediately.
 
-Ngược lại, nếu đã gọi encode với `endOfInput=true` mà chỉ còn high surrogate lẻ, coder có thể báo malformed.
+Conversely, if encode is called with `endOfInput=true` and only a lone high surrogate remains, the coder can report malformed input.
 
-Điểm này tương tự UTF-8 decoder khi byte sequence bị chia giữa hai network packets: không phải lỗi chỉ vì **gói hiện tại** kết thúc giữa một ký tự; lỗi xuất hiện khi đã biết hết input hoặc gặp bytes vi phạm quy tắc.
+This parallels a UTF-8 decoder when a byte sequence is split across two network packets: it is not an error merely because the **current packet** ends mid-character; an error arises once end-of-input is reached or invalid bytes are encountered.
 
-## 8. Streaming và trạng thái CoderResult
+## 8. Streaming and CoderResult States
 
-Đối với stream lớn hoặc giao thức có dữ liệu đến từng phần, ứng dụng không nhất thiết có toàn bộ input trong một buffer. Cả decoder lẫn encoder có API incremental:
+For large streams or protocols where data arrives incrementally, an application does not necessarily have the entire input in a single buffer. Both decoder and encoder provide incremental APIs:
 
 ```java
 CoderResult decoderResult = decoder.decode(
@@ -468,54 +468,54 @@ CoderResult encoderResult = encoder.encode(
         boolean endOfInput);
 ```
 
-Đây là **chữ ký minh họa**; khi đưa vào Java cần các biến đúng kiểu đã khai báo. Các phương thức nhận `endOfInput`, sau đó thường cần gọi `flush` để kết thúc một operation.
+These are **illustrative signatures**; in Java code, provide declared variables of the appropriate types. These methods take `endOfInput`, after which `flush` must typically be called to complete an operation.
 
-`CoderResult` có bốn trạng thái chính:
+`CoderResult` has four primary states:
 
-| Kết quả | Phương thức kiểm tra | Ý nghĩa | Xử lý điển hình |
+| Result | Check method | Meaning | Typical handling |
 | --- | --- | --- | --- |
-| `UNDERFLOW` | `isUnderflow()` | Hết input hiện có hoặc chưa đủ input để tạo đơn vị tiếp theo | Nạp thêm input; nếu hết thật thì kết thúc operation |
-| `OVERFLOW` | `isOverflow()` | Output buffer không đủ chỗ | Đẩy/đọc output, rồi thử tiếp |
-| `MALFORMED` | `isMalformed()` | Dữ liệu input sai cấu trúc | REPORT/REPLACE/IGNORE theo policy |
-| `UNMAPPABLE` | `isUnmappable()` | Input hợp lệ nhưng không ánh xạ được | REPORT/REPLACE/IGNORE theo policy |
+| `UNDERFLOW` | `isUnderflow()` | Current input exhausted or insufficient input to form next unit | Feed more input; if truly finished, end operation |
+| `OVERFLOW` | `isOverflow()` | Output buffer lacks space | Drain/read output, then retry |
+| `MALFORMED` | `isMalformed()` | Input data is structurally invalid | REPORT/REPLACE/IGNORE per policy |
+| `UNMAPPABLE` | `isUnmappable()` | Valid input cannot be mapped | REPORT/REPLACE/IGNORE per policy |
 
-**UNDERFLOW không đồng nghĩa lỗi.** Đối với UTF-8, 0xC3 chưa đủ để biết code point hoàn chỉnh. Với `endOfInput=false`, decoder có thể trả UNDERFLOW và để lại byte chờ phần sau; nếu stream kết thúc thật, ở lần gọi cuối `endOfInput=true` có thể chuyển thành malformed.
+**UNDERFLOW does not mean an error.** For UTF-8, `0xC3` is not yet enough to determine a complete code point. With `endOfInput=false`, the decoder can return `UNDERFLOW` and leave the byte waiting for the rest; if the stream truly ends, a final call with `endOfInput=true` can turn it into malformed.
 
-**OVERFLOW cũng không đồng nghĩa lỗi charset.** Nó chỉ có nghĩa output buffer hết chỗ. Hệ thống phải chuyển/giải phóng output buffer rồi gọi tiếp, không tự vứt input hay nâng `endOfInput` sai.
+**OVERFLOW does not mean a charset error either.** It simply means the output buffer ran out of space. Drain/free the output buffer and call again; do not discard input or falsely set `endOfInput`.
 
-### Vòng đời coder chuẩn
+### Standard Coder Lifecycle
 
 ```text
 new Decoder/Encoder
       |
       v
-reset() nếu coder đã dùng trước
+reset() if coder was used previously
       |
       v
 decode/encode(input, output, false)
       |        |
-      |        +-- UNDERFLOW: chờ/nạp thêm input
-      |        +-- OVERFLOW: xả output, thử lại
-      |        +-- ERROR: xử lý theo chính sách
+      |        +-- UNDERFLOW: wait for/feed more input
+      |        +-- OVERFLOW: drain output, retry
+      |        +-- ERROR: handle per policy
       v
-decode/encode(input, output, true)  // xác nhận hết input
+decode/encode(input, output, true)  // signal end of input
       |
       v
-flush(output)                       // có thể cần nhiều lần nếu OVERFLOW
+flush(output)                       // may require multiple calls if OVERFLOW
       |
       v
-Hoàn tất; reset trước operation tiếp theo
+Done; reset before next operation
 ```
 
-Theo Oracle Java 17, decoder/encoder là **stateful** và không thread-safe. Sau khi dùng xong một operation, reset trước operation mới; không dùng chúng như hàm thuần có thể gọi chồng chéo từ nhiều thread.
+Per Oracle Java 17, decoders/encoders are **stateful** and not thread-safe. After finishing one operation, reset before the next; do not treat them as pure functions callable concurrently across threads.
 
-## 9. Streaming UTF-8 decoder: byte bị chia đôi không phải lỗi
+## 9. Streaming UTF-8 Decoder: Split Bytes Are Not an Error
 
-Chúng ta sẽ đưa hai byte UTF-8 của `é` (U+00E9) thành **hai đợt input**: `C3` rồi `A9`. Trong đợt đầu, không thể decode ký tự hoàn chỉnh; sau đợt hai, mới có đủ dữ liệu.
+We will feed the two UTF-8 bytes of `é` (U+00E9) in **two input batches**: `C3` then `A9`. In the first batch, a complete character cannot be decoded yet; after the second batch, enough data exists.
 
-### Chương trình 4 — ByteBuffer.compact và decoder
+### Program 4 — ByteBuffer.compact and the Decoder
 
-Tệp `StreamingDecoderDemo.java`:
+File `StreamingDecoderDemo.java`:
 
 ```java
 import java.nio.ByteBuffer;
@@ -547,7 +547,7 @@ public class StreamingDecoderDemo {
         System.out.println("bytesWaiting=" +
                 input.remaining());
 
-        // Giữ byte C3 chưa xử lý, nối A9 từ chunk sau.
+        // Keep unprocessed byte C3, append A9 from next chunk.
         input.compact();
         input.put((byte) 0xA9);
         input.flip();
@@ -587,23 +587,23 @@ flushedUnderflow=true
 bytesLeft=0
 ```
 
-Diễn giải:
+Walkthrough:
 
-- Lần đầu `endOfInput=false`, chỉ có byte C3, decoder giữ byte chưa xử lý và trả UNDERFLOW.
-- `input.compact()` dồn **byte chưa tiêu thụ** về đầu buffer; không được gọi `clear()` rồi đánh mất nó.
-- Sau khi thêm A9, chuỗi UTF-8 `C3 A9` hợp lệ và được giải thành `é`.
-- Chỉ **sau đợt cuối** mới gọi `decode(..., true)` rồi `flush`.
-- Ví dụ dùng buffer đủ lớn nên không có OVERFLOW; chương trình streaming production phải xử lý cả trường hợp output buffer đầy.
+- On the first call with `endOfInput=false`, only byte `C3` is present; the decoder leaves the unprocessed byte and returns `UNDERFLOW`.
+- `input.compact()` shifts **unconsumed bytes** to the start of the buffer; do not call `clear()` and lose them.
+- After appending `A9`, the UTF-8 sequence `C3 A9` is valid and decoded into `é`.
+- Only **on the final batch** do we call `decode(..., true)` followed by `flush`.
+- The example uses sufficiently large buffers so no `OVERFLOW` occurs; production streaming code must handle full output buffers as well.
 
-**Một lỗi thường gặp:** tưởng rằng `input.remaining()==0` sau UNDERFLOW. Khi thiếu byte kết thúc một sequence, decoder có thể **để nguyên bytes chưa tiêu thụ**. Đọc `position/limit` để biết còn gì trước khi nạp thêm. Không chỉ dựa vào `CoderResult.isUnderflow()` mà quên giữ input remainder.
+**A common bug:** assuming `input.remaining()==0` after `UNDERFLOW`. When a sequence lacks its trailing bytes, the decoder may **leave unconsumed bytes in place**. Inspect `position/limit` to see what remains before refilling. Do not rely solely on `CoderResult.isUnderflow()` and forget to preserve the input remainder.
 
-## 10. Streaming encoder: hai UTF-16 surrogate units đến ở hai đợt
+## 10. Streaming Encoder: Two UTF-16 Surrogate Units Arriving in Two Batches
 
-Encoder cũng có trạng thái tương tự. Giả sử muốn ghi emoji `😀` có code point U+1F600, được Java biểu diễn bằng hai UTF-16 code units `\uD83D\uDE00`. Nếu chunk đầu chỉ có high surrogate, coder chưa đủ dữ liệu.
+The encoder has analogous state. Suppose we want to write the emoji `😀` (code point U+1F600), represented in Java by two UTF-16 code units `\uD83D\uDE00`. If the first chunk contains only the high surrogate, the coder lacks complete data.
 
-### Chương trình 5 — giữ high surrogate qua ranh giới chunk
+### Program 5 — Preserving a High Surrogate Across Chunk Boundaries
 
-Tệp `StreamingEncoderDemo.java`:
+File `StreamingEncoderDemo.java`:
 
 ```java
 import java.nio.ByteBuffer;
@@ -647,7 +647,7 @@ public class StreamingEncoderDemo {
         System.out.println("charsWaiting=" +
                 input.remaining());
 
-        // Đưa high surrogate còn lại về đầu, nạp low surrogate.
+        // Move remaining high surrogate to front, feed low surrogate.
         input.compact();
         input.put('\uDE00');
         input.flip();
@@ -681,98 +681,98 @@ flushedUnderflow=true
 utf8=F0 9F 98 80
 ```
 
-Các byte `F0 9F 98 80` là UTF-8 của U+1F600. Coder không nên “chữa” high surrogate lẻ trong chunk đầu bằng replacement khi **chưa xác nhận kết thúc input**. Trong ứng dụng thật, hãy dùng buffer đủ chỗ hoặc logic OVERFLOW và giữ nguyên những `char` chưa được tiêu thụ.
+Bytes `F0 9F 98 80` are the UTF-8 encoding of U+1F600. The coder must not “fix” a lone high surrogate in the first chunk with a replacement when **end-of-input has not been signaled**. In real applications, allocate adequate buffers or handle `OVERFLOW` and retain unconsumed `char`s.
 
-### Khi một buffer nhỏ hơn đơn vị cần tạo?
+### What If a Buffer Is Smaller Than a Single Output Unit?
 
-- UTF-8 encoder có thể cần tối đa bốn byte cho một supplementary code point.
-- Một output `ByteBuffer` quá nhỏ để chứa ngay một đơn vị output có thể khiến coder trả OVERFLOW **mà không tiêu thụ input tương ứng**.
-- Nếu retry với buffer vẫn quá nhỏ và không bao giờ có chỗ, vòng lặp có thể kẹt.
-- Cần kích thước buffer hợp lý, hoặc cơ chế quản lý vùng đệm có thể lớn lên.
+- A UTF-8 encoder may need up to four bytes for one supplementary code point.
+- An output `ByteBuffer` too small to hold even one output unit can cause the coder to return `OVERFLOW` **without consuming the corresponding input**.
+- Retrying with a buffer that remains too small and never gains space can stall the loop.
+- Use reasonable buffer sizes or a buffer management mechanism that can grow.
 
-Những lỗi đó là **lỗi sử dụng API/buffer**, khác với input malformed hoặc unmappable. Chọn `CodingErrorAction.IGNORE` không giải quyết được output OVERFLOW.
+Those are **API/buffer usage bugs**, distinct from malformed or unmappable input. Setting `CodingErrorAction.IGNORE` will not fix output `OVERFLOW`.
 
-## 11. CoderResult: báo lỗi khác ném exception
+## 11. CoderResult: Reporting Errors vs. Throwing Exceptions
 
-Khi dùng API one-shot:
+When using one-shot APIs:
 
 ```java
 CharBuffer result = decoder.decode(bytes);
 ByteBuffer resultBytes = encoder.encode(chars);
 ```
 
-Với `REPORT`, những phương thức này có thể ném `CharacterCodingException`, cụ thể hơn là `MalformedInputException` hoặc `UnmappableCharacterException`.
+Under `REPORT`, these methods can throw `CharacterCodingException`—more specifically `MalformedInputException` or `UnmappableCharacterException`.
 
-Khi dùng API incremental:
+When using incremental APIs:
 
 ```java
 CoderResult result =
         decoder.decode(input, output, endOfInput);
 ```
 
-Coder trả về `CoderResult` để caller biết trạng thái. Với `REPORT`, trường hợp malformed hoặc unmappable được mô tả bằng **CoderResult lỗi**, **không tự ném exception từ lần gọi này**. Caller có thể dùng:
+The coder returns `CoderResult` to inform the caller of its status. Under `REPORT`, malformed or unmappable cases are described via an **error `CoderResult`**, **without throwing an exception from this call**. The caller can use:
 
 ```java
 if (result.isMalformed()) {
-    // Báo byte sequence hỏng.
+    // Report malformed byte sequence.
 }
 if (result.isUnmappable()) {
-    // Báo ký tự không ánh xạ được.
+    // Report unmappable character.
 }
 if (result.isError()) {
     result.throwException();
 }
 ```
 
-Đây là đoạn mã minh họa trong method, `throwException()` có thể ném `CharacterCodingException`; caller cần khai báo hoặc bắt phù hợp.
+This is illustrative code inside a method; `throwException()` can throw `CharacterCodingException`, so the caller must declare or catch it appropriately.
 
-### API của CoderResult
+### CoderResult API
 
-| Phương thức | Ý nghĩa |
+| Method | Meaning |
 | --- | --- |
-| `isUnderflow()` | Thiếu input hiện có hoặc đã hết input để xử lý |
-| `isOverflow()` | Output buffer không còn đủ dung lượng |
-| `isMalformed()` | Input có sequence sai cấu trúc |
-| `isUnmappable()` | Input hợp lệ nhưng không thể ánh xạ |
-| `isError()` | True cho malformed hoặc unmappable |
-| `length()` | Độ dài **đoạn input sai** (đơn vị theo coder) |
-| `throwException()` | Ném loại exception phù hợp với trạng thái |
+| `isUnderflow()` | Insufficient available input or all input processed |
+| `isOverflow()` | Output buffer lacks remaining capacity |
+| `isMalformed()` | Input contains a structurally invalid sequence |
+| `isUnmappable()` | Input is valid but cannot be mapped |
+| `isError()` | True for malformed or unmappable |
+| `length()` | Length of the **offending input segment** (in coder input units) |
+| `throwException()` | Throws the exception matching the error state |
 
-`CoderResult.length()` chỉ có ý nghĩa với result lỗi; không gọi với UNDERFLOW/OVERFLOW rồi coi giá trị là “bao nhiêu byte đã đọc”. Số bytes/chars tiêu thụ được biết qua **`position` của buffer** trước và sau encode/decode.
+`CoderResult.length()` is meaningful only for error results; do not call it on `UNDERFLOW`/`OVERFLOW` expecting “how many bytes were read.” The number of bytes/chars consumed is tracked via the **buffer's `position`** before and after encode/decode.
 
-**Chú ý đơn vị:** decoder nhận `ByteBuffer`, nên length của lỗi liên quan byte input; encoder nhận `CharBuffer`, nên length liên quan UTF-16 code units input. Không mặc định error length = số Unicode graphemes.
+**Watch the units:** a decoder takes a `ByteBuffer`, so error length is in input bytes; an encoder takes a `CharBuffer`, so error length is in input UTF-16 code units. Do not assume error length equals the number of Unicode graphemes.
 
-## 12. REPORT, REPLACE, IGNORE trong thiết kế nghiệp vụ
+## 12. REPORT, REPLACE, IGNORE in Business Design
 
-Quyết định lỗi không nên chỉ nhằm “tránh ném exception”. Nó ảnh hưởng tính đúng đắn, bảo mật và trải nghiệm.
+Error decisions should not merely aim to “avoid throwing exceptions.” They affect correctness, security, and user experience.
 
-| Ngữ cảnh | Hướng thường thích hợp | Lý do |
+| Context | Usually appropriate approach | Reason |
 | --- | --- | --- |
-| Đọc file cấu hình, JSON, dữ liệu hợp đồng | `REPORT` | Không chấp nhận silently corrupt giá trị khóa/định danh |
-| Nhận API payload có charset xác định | `REPORT` | Trả lỗi 4xx/validation nếu byte không hợp lệ |
-| Import dữ liệu lịch sử cần khám phá lỗi | `REPORT` + log/report vị trí; có pipeline repair riêng | Phát hiện và truy vết dữ liệu lỗi |
-| Hiển thị bản preview không đáng tin, ưu tiên best effort | Có thể `REPLACE` theo policy | Người đọc thấy dấu `�` báo có dữ liệu hỏng |
-| Tìm kiếm nội dung có dung sai | Cân nhắc `REPLACE` nếu được công bố | Có thể hiển thị một phần nhưng không lưu đè gốc |
-| Bỏ chuỗi không hợp lệ không quan trọng | Chỉ dùng `IGNORE` khi được phép mất dữ liệu | Không biết dữ liệu nào đã bị xóa |
-| Password, token, chữ ký số, khóa map | Tránh `REPLACE`/`IGNORE` | Những thay đổi âm thầm có thể tạo collision hoặc sai xác thực |
-| Export sang charset legacy | `REPORT` hoặc đường dẫn transliteration rõ ràng | Không thay tên/dữ liệu khách hàng bằng `?` vô thức |
+| Reading config files, JSON, contract data | `REPORT` | Cannot silently corrupt key values or identifiers |
+| Receiving API payloads with a defined charset | `REPORT` | Return 4xx/validation error on invalid bytes |
+| Importing historical data needing error discovery | `REPORT` + log/report offset; separate repair pipeline | Detect and trace corrupted records |
+| Showing an untrusted preview, best-effort priority | `REPLACE` may fit per policy | Readers see `�` indicating corrupted data |
+| Fault-tolerant content search | Consider `REPLACE` if documented | Can display partial content without overwriting source |
+| Dropping unimportant invalid sequences | Use `IGNORE` only when data loss is permitted | Impossible to know which data was deleted |
+| Passwords, tokens, digital signatures, map keys | Avoid `REPLACE`/`IGNORE` | Silent mutations can cause collisions or auth failures |
+| Exporting to a legacy charset | `REPORT` or an explicit transliteration path | Never silently turn customer names/data into `?` |
 
-**Transliteration không đồng nghĩa charset replacement.** Ví dụ ứng dụng chuyển chữ có dấu thành ASCII theo một bộ quy tắc nghiệp vụ là **biến đổi ngôn ngữ chủ đích**, cần được công bố và kiểm thử riêng; `CodingErrorAction.REPLACE` chỉ đơn giản ghi replacement khi không mã hóa được, không tạo bản chuyển tự có ý nghĩa.
+**Transliteration is not the same as charset replacement.** For instance, an application converting accented letters to ASCII via business rules is an **intentional linguistic transformation** that must be documented and tested separately; `CodingErrorAction.REPLACE` simply emits a replacement when encoding fails, rather than producing meaningful transliteration.
 
-### 12.1. Khi nào nên ghi lại lỗi?
+### 12.1. When Should Errors Be Logged?
 
-Với `REPORT`, có thể báo rằng payload có byte không hợp lệ, ghi tên nguồn và offset byte nếu có. Nhưng không log toàn bộ văn bản chứa dữ liệu bí mật hoặc PII một cách không kiểm soát. Một chiến lược tốt là:
+With `REPORT`, you can report that a payload contains invalid bytes, logging the source name and byte offset if available. However, do not dump entire text payloads containing secrets or PII uncontrolled into logs. A good strategy is:
 
-- Trả lỗi có ý nghĩa cho bên cung cấp dữ liệu.
-- Ghi metric số lỗi decode/encode theo nguồn.
-- Giữ bản gốc để có thể xử lý lại nếu chính sách cho phép.
-- Không tự thử nhiều charset liên tiếp rồi chọn “cái không ném exception” như bằng chứng chắc chắn đã chọn đúng charset.
+- Return a meaningful error to the data provider.
+- Record decode/encode error metrics per source.
+- Retain the original payload for reprocessing if policy allows.
+- Do not blindly try multiple charsets sequentially and pick “the first one that does not throw” as proof you found the right charset.
 
-Chọn một charset hợp lệ nhưng sai vẫn có thể decode được thành chữ vô nghĩa (**mojibake**) mà coder **không** báo lỗi. Cần metadata/protocol và kiểm tra ngữ nghĩa phù hợp, không chỉ kiểm tra exception.
+Picking a valid yet wrong charset can still decode into nonsensical text (**mojibake**) without the coder reporting any error. Rely on metadata/protocol contracts and semantic checks, not merely absence of exceptions.
 
-## 13. I/O với file và network: gắn decoder/encoder vào Reader/Writer
+## 13. File and Network I/O: Attaching Decoder/Encoder to Reader/Writer
 
-Khi đọc từ stream, có thể dùng `InputStreamReader` với decoder được cấu hình, và `OutputStreamWriter` với encoder được cấu hình:
+When reading from a stream, you can pass a configured decoder to `InputStreamReader`, and a configured encoder to `OutputStreamWriter`:
 
 ```java
 import java.io.InputStreamReader;
@@ -780,7 +780,7 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 
-// Ví dụ trong method:
+// Example inside a method:
 InputStreamReader reader = new InputStreamReader(
         inputStream,
         StandardCharsets.UTF_8.newDecoder()
@@ -794,13 +794,13 @@ OutputStreamWriter writer = new OutputStreamWriter(
                 .onUnmappableCharacter(CodingErrorAction.REPORT));
 ```
 
-Đây là mã minh họa có `inputStream` và `outputStream` tồn tại từ bên ngoài; trong ứng dụng nên dùng `try-with-resources` khi sở hữu stream.
+This is illustrative code assuming `inputStream` and `outputStream` come from outside; in applications, use `try-with-resources` when owning the stream.
 
-Với I/O streaming, các lớp reader/writer quản lý buffer và trạng thái coder bên trong; bạn không phải tự viết `ByteBuffer.compact()`/`CoderResult` chỉ để đọc một file thông thường. Nhưng **cấu hình hành động lỗi** vẫn quan trọng.
+With streaming I/O, reader/writer classes manage buffers and coder state internally; you do not have to write `ByteBuffer.compact()`/`CoderResult` yourself just to read an ordinary file. Yet **configuring error actions** still matters.
 
-### 13.1. Ví dụ Reader nghiêm ngặt có thể chạy độc lập
+### 13.1. Runnable Strict Reader Example
 
-Tệp `StrictReaderDemo.java`:
+File `StrictReaderDemo.java`:
 
 ```java
 import java.io.ByteArrayInputStream;
@@ -822,7 +822,7 @@ public class StrictReaderDemo {
 
             char[] buf = new char[8];
             while (reader.read(buf) != -1) {
-                // Chỉ đọc để kiểm tra nguồn hợp lệ.
+                // Read solely to validate the source.
             }
         } catch (CharacterCodingException ex) {
             rejected = true;
@@ -844,171 +844,171 @@ Stdout:
 rejected=true
 ```
 
-Nếu dùng overload `InputStreamReader(input, StandardCharsets.UTF_8)` tiện dụng, chính sách gặp malformed/unmappable input có thể không tương đương với decoder `REPORT` được truyền tường minh. Khi yêu cầu đầu vào nghiêm ngặt, nên cung cấp decoder đã được cấu hình để không âm thầm thay ký tự.
+If you use the convenience overload `InputStreamReader(input, StandardCharsets.UTF_8)`, its policy on malformed/unmappable input may not match an explicitly passed `REPORT` decoder. When strict input validation is required, supply a configured decoder so characters are never silently replaced.
 
-### 13.2. Files.readString và Files.writeString
+### 13.2. Files.readString and Files.writeString
 
-API `Files.readString(path, charset)` và `Files.writeString(path, text, charset)` cung cấp thao tác file tiện lợi. Theo Java 17, `Files.readString` báo lỗi cho malformed/unmappable byte sequences bằng `IOException` thích hợp, và `Files.writeString` cũng báo lỗi khi không thể encode văn bản theo charset được chọn. Tuy nhiên, **đừng đánh đồng** tất cả overload file API với `new String(bytes, charset)` hoặc `String.getBytes(charset)`: mỗi API có contract khác nhau về xử lý dữ liệu không hợp lệ.
+The `Files.readString(path, charset)` and `Files.writeString(path, text, charset)` APIs provide convenient file operations. In Java 17, `Files.readString` reports errors on malformed/unmappable byte sequences with an appropriate `IOException`, and `Files.writeString` likewise fails when text cannot be encoded in the chosen charset. However, **do not equate** all file API overloads with `new String(bytes, charset)` or `String.getBytes(charset)`: each API has its own contract for invalid data.
 
-Khi cần streaming lớn, quản lý buffered reader/writer và charset tường minh; khi cần hiểu chính xác từng action, dùng coder/reader/writer hỗ trợ cấu hình. Trên server đa ngôn ngữ, không để charset mặc định của host quyết định cách đọc dữ liệu nếu giao thức đã nêu UTF-8.
+When large streaming is needed, manage buffered readers/writers and explicit charsets; when exact control over every action is needed, use configurable coders/readers/writers. On multilingual servers, never let the host's default charset decide how data is read when the protocol specifies UTF-8.
 
-## 14. Đừng nhầm charset, BOM và locale
+## 14. Do Not Confuse Charset, BOM, and Locale
 
-Một số lỗi sản phẩm dễ được mô tả nhầm thành “lỗi tiếng Việt”:
+Several production bugs are mislabeled as “Vietnamese bugs”:
 
-- **Sai charset:** một file UTF-8 bị đọc như Windows-1252, gây mojibake.
-- **Dữ liệu byte malformed:** một UTF-8 sequence bị cắt/mất byte.
-- **BOM:** một byte-order mark ở đầu luồng có thể cần quy tắc phát hiện/bỏ qua phù hợp với charset và parser; coder không tự là bộ phát hiện mọi kiểu BOM.
-- **Sai Unicode normalization:** `"é"` có thể là precomposed hoặc `"e\u0301"`, nhìn giống nhưng `String.equals` khác.
-- **Sai locale:** thứ tự số, ngày, tên tháng hoặc chữ hoa/thường không đúng ngôn ngữ người dùng.
-- **Sai font/rendering:** glyph không tồn tại hoặc shaping thiếu; Unicode text có thể hoàn toàn hợp lệ nhưng vẫn hiển thị ô vuông.
+- **Wrong charset:** a UTF-8 file read as Windows-1252, causing mojibake.
+- **Malformed byte data:** a truncated UTF-8 sequence missing bytes.
+- **BOM:** a byte-order mark at the start of a stream may require detection/stripping rules aligned with the charset and parser; a coder does not automatically detect all BOM kinds.
+- **Wrong Unicode normalization:** `"é"` can be precomposed or `"e\u0301"`, looking alike yet differing in `String.equals`.
+- **Wrong locale:** number, date, month-name, or case-mapping rules not matching the user's language.
+- **Wrong font/rendering:** missing glyph or shaping support; Unicode text can be completely valid yet still render as boxes.
 
-`CharsetDecoder`/`CharsetEncoder` chủ yếu giải quyết **chuyển đổi byte ↔ ký tự**. Chúng **không** dịch ngôn ngữ, không tự chuyển ký tự decomposed sang NFC, không tự chọn phông và không xử lý collation theo locale.
+`CharsetDecoder`/`CharsetEncoder` primarily solve **byte ↔ character conversion**. They do **not** translate languages, automatically convert decomposed characters to NFC, select fonts, or perform locale-sensitive collation.
 
-Ví dụ: sau khi decode đúng UTF-8, bạn có thể dùng `Normalizer.normalize(text, Normalizer.Form.NFC)` **nếu hợp đồng dữ liệu yêu cầu**. Đó là một bước riêng; đừng tự normalize password, chữ ký hoặc các token khi protocol không cho phép.
+For example, after decoding UTF-8 accurately, you may call `Normalizer.normalize(text, Normalizer.Form.NFC)` **if the data contract requires it**. That is a separate step; do not normalize passwords, signatures, or tokens when the protocol forbids it.
 
-## 15. UTF-8 và supplementary characters
+## 15. UTF-8 and Supplementary Characters
 
-Java `String` dùng UTF-16 code units. Một supplementary Unicode code point như `😀` (U+1F600) có:
+Java `String` uses UTF-16 code units. A supplementary Unicode code point like `😀` (U+1F600) has:
 
-- **Hai UTF-16 code units**: `D83D DE00`.
-- **Bốn UTF-8 bytes**: `F0 9F 98 80`.
-- **Một Unicode code point**.
-- Thường **một grapheme cluster** với emoji đơn, nhưng emoji ghép có thể chứa nhiều code points.
+- **Two UTF-16 code units**: `D83D DE00`.
+- **Four UTF-8 bytes**: `F0 9F 98 80`.
+- **One Unicode code point**.
+- Usually **one grapheme cluster** for a standalone emoji, though composite emoji can contain multiple code points.
 
-Không dùng `String.length()` để dự đoán UTF-8 byte size. Không cắt UTF-8 byte stream tùy ý rồi gọi `new String(chunk, UTF_8)` cho mỗi chunk: một code point có thể bị chia giữa hai chunk, mỗi lần decode riêng có thể tạo replacement và **làm hỏng dữ liệu dù toàn bộ stream ban đầu hợp lệ**.
+Do not use `String.length()` to predict UTF-8 byte size. Do not arbitrarily slice a UTF-8 byte stream and call `new String(chunk, UTF_8)` per chunk: a code point can be split between two chunks, and each isolated decode can emit replacement characters, **corrupting data even though the whole stream was valid**.
 
-**Quy tắc cho streaming:**
+**Streaming rules:**
 
-1. Giữ byte sequence còn thiếu sau UNDERFLOW, nối với chunk tiếp theo.
-2. Chỉ thông báo end-of-input ở chunk cuối thực sự.
-3. Flush coder sau khi kết thúc.
-4. Không dùng output OVERFLOW làm dấu hiệu dữ liệu sai.
-5. Giữ dữ liệu theo **cùng một Charset và coder state** trong một operation.
+1. Retain incomplete byte sequences after `UNDERFLOW` and prepend them to the next chunk.
+2. Only signal end-of-input on the true final chunk.
+3. Flush the coder after completion.
+4. Do not treat output `OVERFLOW` as an invalid-data signal.
+5. Maintain the **same Charset and coder state** throughout a single operation.
 
-Với văn bản có ký tự combining marks/emoji ZWJ, việc decode đúng chỉ bảo đảm Unicode code points; việc cắt/grapheme segmentation thuộc tầng xử lý text riêng.
+For text containing combining marks or ZWJ emoji, accurate decoding only guarantees Unicode code points; slicing/grapheme segmentation belongs to a separate text-processing layer.
 
-## 16. Một checklist kiểm thử hiệu quả
+## 16. An Effective Testing Checklist
 
-### 16.1. Kiểm thử decoder
+### 16.1. Decoder Tests
 
-| Input | Charset | Action | Kỳ vọng |
+| Input | Charset | Action | Expected |
 | --- | --- | --- | --- |
 | `41 42` | UTF-8 | REPORT | `AB` |
 | `C3 A9` | UTF-8 | REPORT | U+00E9 |
-| `41 C3 28 42` | UTF-8 | REPORT | Lỗi malformed |
+| `41 C3 28 42` | UTF-8 | REPORT | Malformed error |
 | `41 C3 28 42` | UTF-8 | REPLACE | `A\uFFFD(B` |
 | `41 C3 28 42` | UTF-8 | IGNORE | `A(B` |
-| `C3`, sau đó `A9` ở hai chunk | UTF-8 | REPORT + incremental | U+00E9 |
-| `C3` ở **cuối thực** stream | UTF-8 | REPORT | Lỗi malformed |
+| `C3`, then `A9` across two chunks | UTF-8 | REPORT + incremental | U+00E9 |
+| `C3` at **true end** of stream | UTF-8 | REPORT | Malformed error |
 
-### 16.2. Kiểm thử encoder
+### 16.2. Encoder Tests
 
-| Input | Charset | Action | Kỳ vọng |
+| Input | Charset | Action | Expected |
 | --- | --- | --- | --- |
 | `"AB"` | ISO-8859-1 | REPORT | Bytes `41 42` |
 | `"A€B"` | UTF-8 | REPORT | `41 E2 82 AC 42` |
-| `"A€B"` | ISO-8859-1 | REPORT | Lỗi unmappable |
+| `"A€B"` | ISO-8859-1 | REPORT | Unmappable error |
 | `"A€B"` | ISO-8859-1 | REPLACE + `!` | `41 21 42` |
 | `"A€B"` | ISO-8859-1 | IGNORE | `41 42` |
-| High surrogate đơn lẻ | UTF-8 | REPORT | Lỗi malformed |
-| High + low surrogate hợp lệ hai chunk | UTF-8 | REPORT + incremental | `F0 9F 98 80` |
+| Lone high surrogate | UTF-8 | REPORT | Malformed error |
+| Valid high + low surrogate across two chunks | UTF-8 | REPORT + incremental | `F0 9F 98 80` |
 
-### 16.3. Test nghiệp vụ
+### 16.3. Business Tests
 
-- Import/export file phải chỉ định charset chuẩn, không dựa default hệ thống.
-- Với `REPORT`, lỗi không được bị bắt rồi silently bỏ qua/ghi file trống.
-- Với `REPLACE`/`IGNORE`, UI hoặc log phải thể hiện việc có thể mất dữ liệu khi có yêu cầu.
-- Input bị chia nhiều chunk phải decode giống input đầy đủ, với các chunk boundaries khác nhau.
-- Không parse charset chỉ dựa vào locale người dùng; language tag `vi-VN` không xác định file dùng UTF-8 hay Windows-1258.
-- Kiểm tra dấu tiếng Việt, CJK, emoji và ký tự ngoài BMP.
-- Với charset legacy, kiểm tra cả khả năng encode những ký tự thực tế xuất hiện.
-- Kiểm thử UTF-8 malformed, isolated surrogate, overlong encodings và illegal code point sequences; không chấp nhận byte malformed chỉ vì “nhìn có vẻ đúng”.
-- Bảo toàn bản gốc khi pipeline cần audit hoặc sửa dữ liệu từ nguồn.
-- Xác minh đúng kiểu exception và không để error action thay đổi giữa các luồng.
+- File import/export must specify a standard charset rather than relying on system defaults.
+- Under `REPORT`, errors must not be caught and silently ignored or turned into empty files.
+- Under `REPLACE`/`IGNORE`, UI or logs must surface potential data loss where required.
+- Input split into multiple chunks must decode identically to unchunked input across varied chunk boundaries.
+- Never determine charset solely from user locale; language tag `vi-VN` does not specify whether a file uses UTF-8 or Windows-1258.
+- Test Vietnamese diacritics, CJK, emoji, and non-BMP characters.
+- For legacy charsets, verify encodability for characters that actually occur.
+- Test malformed UTF-8, isolated surrogates, overlong encodings, and illegal code point sequences; never accept malformed bytes just because they “look okay.”
+- Preserve the original payload when pipelines require auditing or source-level repair.
+- Verify exact exception types and ensure error actions never mutate across flows.
 
-### 16.4. Lỗi thường gặp
+### 16.4. Common Pitfalls
 
-| Lỗi | Hậu quả | Hướng sửa |
+| Pitfall | Consequence | Fix |
 | --- | --- | --- |
-| `new String(bytes)` không chỉ rõ charset | Phụ thuộc default charset/JDK context | Truyền `StandardCharsets.UTF_8` theo contract |
-| Dùng `new String(bytes, UTF_8)` rồi tin input luôn hợp lệ | Malformed bytes có thể thành U+FFFD | Dùng decoder `REPORT` khi cần strict |
-| Dùng `String.getBytes(ISO_8859_1)` cho dữ liệu đa ngôn ngữ | Ký tự không thể mã hóa bị thay | Dùng encoder `REPORT` hoặc UTF-8 |
-| Chỉ cấu hình `onMalformedInput`, quên `onUnmappableCharacter` | Chính sách không nhất quán | Cấu hình cả hai theo policy |
-| Coi UNDERFLOW là lỗi | Từ chối stream có code point bị chia chunk | Giữ remainder, nạp thêm input |
-| Coi OVERFLOW là lỗi | Dừng khi chỉ hết output buffer | Xả output và thử lại |
-| Gọi `clear()` sau khi còn input remainder | Mất byte/chars của một ký tự | Dùng `compact()` rồi nạp tiếp |
-| Đánh `endOfInput=true` trước chunk cuối | Incomplete sequence có thể bị coi malformed | Chỉ kết thúc ở cuối stream thực |
-| Quên `flush` sau lần gọi cuối | Có thể mất dữ liệu trong stateful charset | Hoàn thành đúng vòng đời coder |
-| Dùng `IGNORE` để “sửa lỗi font” | Xóa dữ liệu không thể phục hồi | Sửa charset/font nguồn, không che lỗi |
-| Chia sẻ coder giữa nhiều thread | Race/state corruption | Coder riêng cho operation |
-| Trộn Unicode normalization với decode | Sai chức năng, có thể sửa dữ liệu không được phép | Tách các tầng rõ ràng |
-| Dự đoán UTF-8 bytes bằng `String.length()` | Sai với dấu, CJK, emoji | Đếm bytes đã mã hóa |
-| Xem decode không lỗi là charset chắc chắn đúng | Mojibake vẫn có thể hợp lệ | Dựa metadata/protocol, kiểm tra ngữ nghĩa |
+| `new String(bytes)` without explicit charset | Depends on default charset/JDK context | Pass `StandardCharsets.UTF_8` per contract |
+| Calling `new String(bytes, UTF_8)` and assuming input is always valid | Malformed bytes can become U+FFFD | Use a `REPORT` decoder when strictness is needed |
+| Using `String.getBytes(ISO_8859_1)` for multilingual data | Unrepresentable characters are replaced | Use a `REPORT` encoder or UTF-8 |
+| Configuring only `onMalformedInput`, forgetting `onUnmappableCharacter` | Inconsistent error policy | Configure both per policy |
+| Treating `UNDERFLOW` as an error | Rejects streams with code points split across chunks | Keep remainder, feed more input |
+| Treating `OVERFLOW` as an error | Halts merely because output buffer filled | Drain output and retry |
+| Calling `clear()` with unconsumed input remainder | Loses bytes/chars of a character | Use `compact()` then append more |
+| Passing `endOfInput=true` before the final chunk | Incomplete sequence may be flagged malformed | Signal end only at true end of stream |
+| Forgetting `flush` after final call | Risk of losing data in stateful charsets | Complete full coder lifecycle |
+| Using `IGNORE` to “fix font bugs” | Irreversibly deletes data | Fix source charset/font, never hide errors |
+| Sharing a coder across multiple threads | Race conditions/state corruption | One coder per operation |
+| Mixing Unicode normalization with decoding | Wrong layer, may illegally mutate data | Keep layers cleanly separated |
+| Predicting UTF-8 bytes via `String.length()` | Wrong for diacritics, CJK, emoji | Count encoded bytes |
+| Treating error-free decode as proof of right charset | Mojibake can still be valid | Rely on metadata/protocol and semantic checks |
 
-## 17. Bài tập và đáp án
+## 17. Exercises and Answers
 
-**Bài 1 — phân loại lỗi.** Byte `C3 28` được khai báo UTF-8 nhưng không phải UTF-8 hợp lệ. Đây là malformed hay unmappable?
+**Exercise 1 — Error classification.** Bytes `C3 28` are declared UTF-8 yet are not valid UTF-8. Is this malformed or unmappable?
 
-**Đáp án:** Malformed, vì byte sequence không đúng cấu trúc UTF-8.
+**Answer:** Malformed, because the byte sequence violates UTF-8 structure.
 
-**Bài 2 — phân loại lỗi.** Chuỗi `"A€B"` được encode sang ISO-8859-1. Ký tự euro hợp lệ nhưng không thuộc bộ mã này. Đây là gì?
+**Exercise 2 — Error classification.** The string `"A€B"` is encoded to ISO-8859-1. The euro character is valid Unicode yet absent from that character set. What is this?
 
-**Đáp án:** Unmappable. Chuyển sang UTF-8 thì chuỗi này mã hóa được.
+**Answer:** Unmappable. Switching to UTF-8 encodes this string cleanly.
 
-**Bài 3 — chính sách.** Khi nhận file dữ liệu kế toán từ nhà cung cấp, nên dùng `IGNORE` để tránh phát sinh lỗi không?
+**Exercise 3 — Policy.** When receiving accounting data files from a vendor, should you use `IGNORE` to avoid throwing errors?
 
-**Đáp án:** Thông thường không. Nếu tính toàn vẹn quan trọng, dùng `REPORT`, thông báo file không hợp lệ và sửa nguồn. `IGNORE` âm thầm xóa byte/ký tự và có thể đổi số tài khoản, mã hoặc tên.
+**Answer:** Generally no. When integrity matters, use `REPORT`, report the invalid file, and fix the source. `IGNORE` silently deletes bytes/characters and can alter account numbers, codes, or names.
 
-**Bài 4 — default.** `StandardCharsets.UTF_8.newDecoder()` mặc định dùng hành động nào khi malformed/unmappable theo Java 17? `new String(bytes, UTF_8)` có giống hệt không?
+**Exercise 4 — Defaults.** Which action does `StandardCharsets.UTF_8.newDecoder()` use by default for malformed/unmappable under Java 17? Is `new String(bytes, UTF_8)` identical?
 
-**Đáp án:** Decoder mới mặc định `REPORT`. Constructor String tiện dụng dùng replacement cho malformed/unmappable bytes, nên không tương đương.
+**Answer:** A new decoder defaults to `REPORT`. The convenience `String` constructor uses replacement for malformed/unmappable bytes, so they are not equivalent.
 
-**Bài 5 — streaming.** Một chunk kết thúc bằng byte `0xC3`; chunk sau bắt đầu bằng `0xA9`. Có nên báo lỗi ngay chunk đầu?
+**Exercise 5 — Streaming.** One chunk ends with byte `0xC3`; the next starts with `0xA9`. Should you report an error on the first chunk?
 
-**Đáp án:** Không nếu stream chưa kết thúc. Với decoder incremental, `endOfInput=false` cho phép giữ byte còn thiếu; khi nhận A9, giải thành `é`.
+**Answer:** Not if the stream has not ended. With an incremental decoder, `endOfInput=false` keeps the pending byte; once `A9` arrives, it decodes to `é`.
 
-**Bài 6 — CoderResult.** Decoder trả `OVERFLOW`. Có phải dữ liệu bị sai mã hóa không?
+**Exercise 6 — CoderResult.** A decoder returns `OVERFLOW`. Is the data badly encoded?
 
-**Đáp án:** Không. Output buffer không đủ chỗ; cần xả/đọc output và gọi tiếp.
+**Answer:** No. The output buffer is full; drain/read the output and call again.
 
-**Bài 7 — replacement.** `CharsetEncoder.replaceWith` nhận `String` hay `byte[]`? Còn `CharsetDecoder.replaceWith`?
+**Exercise 7 — Replacement.** Does `CharsetEncoder.replaceWith` take a `String` or a `byte[]`? What about `CharsetDecoder.replaceWith`?
 
-**Đáp án:** Encoder nhận `byte[]`; decoder nhận `String`.
+**Answer:** The encoder takes `byte[]`; the decoder takes `String`.
 
-**Bài 8 — unicode.** Một emoji U+1F600 có hai UTF-16 code units. Nếu encode hai nửa ở hai request độc lập thì điều gì có thể xảy ra?
+**Exercise 8 — Unicode.** Emoji U+1F600 has two UTF-16 code units. What can happen if the two halves are encoded in two independent requests?
 
-**Đáp án:** Mỗi nửa là surrogate lẻ và có thể bị báo malformed/thay thế. Muốn encode thành `F0 9F 98 80`, phải giữ cả cặp trong một operation hoặc nối input còn thiếu trong stateful encoder.
+**Answer:** Each half is a lone surrogate and may be flagged malformed or replaced. To encode as `F0 9F 98 80`, keep both units together in one operation or carry the pending unit in a stateful encoder.
 
-**Bài 9 — exceptions.** API incremental có `CoderResult.isError()`; khi nào cần `throwException()`?
+**Exercise 9 — Exceptions.** The incremental API has `CoderResult.isError()`; when is `throwException()` used?
 
-**Đáp án:** Với `REPORT`, caller có thể chủ động gọi `throwException()` để chuyển CoderResult lỗi thành exception tương ứng. One-shot `decode(ByteBuffer)`/`encode(CharBuffer)` có thể ném trực tiếp.
+**Answer:** With `REPORT`, the caller can explicitly call `throwException()` to turn an error `CoderResult` into the corresponding exception. One-shot `decode(ByteBuffer)`/`encode(CharBuffer)` throw directly.
 
-**Bài 10 — charset và locale.** Người dùng chọn `vi-VN`. Có thể từ đó suy byte file của họ chắc chắn UTF-8 không?
+**Exercise 10 — Charset and locale.** A user selects `vi-VN`. Can you infer from that that their file's bytes are definitely UTF-8?
 
-**Đáp án:** Không. Locale là ngôn ngữ/khu vực; charset của file do hợp đồng, metadata hoặc nguồn xuất quyết định. Có thể là UTF-8 hoặc charset legacy khác.
+**Answer:** No. Locale is language/region; a file's charset is determined by its contract, metadata, or producer. It could be UTF-8 or a legacy charset.
 
-**Bài 11 — IO.** Khi dùng `InputStreamReader(inputStream, decoder)` với `REPORT`, malformed byte được thay bằng U+FFFD và tiếp tục hay phát sinh lỗi?
+**Exercise 11 — I/O.** When using `InputStreamReader(inputStream, decoder)` with `REPORT`, are malformed bytes replaced with U+FFFD and continued, or do they raise an error?
 
-**Đáp án:** Phát sinh `CharacterCodingException` thích hợp (thường là `MalformedInputException`) từ thao tác đọc; không tự chuyển sang replacement vì đã chỉ định `REPORT`.
+**Answer:** They raise the appropriate `CharacterCodingException` (typically `MalformedInputException`) from the read operation; it does not fall back to replacement because `REPORT` was specified.
 
-**Bài 12 — kiểm thử thực tế.** Tại sao test chỉ có chữ ASCII không đủ để xác minh charset pipeline?
+**Exercise 12 — Practical testing.** Why are ASCII-only tests insufficient to verify a charset pipeline?
 
-**Đáp án:** Nhiều charset cùng mã hóa ASCII giống nhau. Cần thêm tiếng Việt, CJK, euro, supplementary characters, malformed bytes và các điều kiện streaming để thấy khác biệt.
+**Answer:** Many charsets encode ASCII identically. You need Vietnamese, CJK, euro signs, supplementary characters, malformed bytes, and streaming boundary conditions to reveal differences.
 
-## 18. Tổng kết
+## 18. Summary
 
-- **`CharsetDecoder` = byte → UTF-16 chars**, **`CharsetEncoder` = UTF-16 chars → byte**. Cả hai cần một `Charset` xác định và giữ trạng thái trong quá trình chuyển đổi.
-- Hai lỗi chính là **MALFORMED** (input sai cấu trúc) và **UNMAPPABLE** (input hợp lệ nhưng không biểu diễn được trong charset/ánh xạ đích).
-- `CodingErrorAction.REPORT` báo lỗi; `REPLACE` dùng replacement; `IGNORE` bỏ đoạn lỗi. **REPLACE và IGNORE có thể làm mất dữ liệu.**
-- Encoder/decoder mới của Java 17 mặc định **REPORT**, trong khi các API tiện dụng như `new String(bytes, charset)` và `String.getBytes(charset)` có thể sử dụng replacement: **cần kiểm tra contract từng API**.
-- One-shot coder có thể ném `CharacterCodingException`; incremental coder trả `CoderResult`. `UNDERFLOW` và `OVERFLOW` là trạng thái buffer bình thường, không phải lỗi charset.
-- Với dữ liệu chia chunk, **giữ remainder**, không đánh dấu hết input quá sớm, xử lý OVERFLOW, gọi final encode/decode và `flush` đúng thứ tự.
-- UTF-8 là encoding, **không phải ngôn ngữ**; không lấy `Locale` làm phương pháp xác định charset.
-- Với dữ liệu quan trọng, ưu tiên **REPORT + xử lý lỗi rõ ràng**; không che lỗi hoặc sửa byte âm thầm.
-- Không dùng chung các coder mutable giữa nhiều luồng; tạo coder cho mỗi operation hoặc quản lý ownership đúng cách.
+- **`CharsetDecoder` = bytes → UTF-16 chars**, **`CharsetEncoder` = UTF-16 chars → bytes**. Both require a specific `Charset` and maintain state during conversion.
+- The two main errors are **MALFORMED** (structurally invalid input) and **UNMAPPABLE** (valid input that cannot be represented in the target charset/mapping).
+- `CodingErrorAction.REPORT` reports errors; `REPLACE` substitutes a replacement; `IGNORE` drops the bad segment. **REPLACE and IGNORE can cause data loss.**
+- New Java 17 encoders/decoders default to **REPORT**, whereas convenience APIs like `new String(bytes, charset)` and `String.getBytes(charset)` may use replacement: **verify each API's contract**.
+- One-shot coders can throw `CharacterCodingException`; incremental coders return `CoderResult`. `UNDERFLOW` and `OVERFLOW` are normal buffer states, not charset errors.
+- For chunked data, **keep remainders**, never signal end-of-input prematurely, handle `OVERFLOW`, and perform final encode/decode and `flush` in order.
+- UTF-8 is an encoding, **not a language**; never use `Locale` as a method to determine charset.
+- For critical data, prefer **REPORT + explicit error handling**; never hide errors or silently alter bytes.
+- Never share mutable coders across threads; create one per operation or manage ownership properly.
 
-### Tài liệu Java SE 17 chính thức
+### Official Java SE 17 Documentation
 
 - [CharsetDecoder — Oracle JDK 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/CharsetDecoder.html)
 - [CharsetEncoder — Oracle JDK 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/CharsetEncoder.html)

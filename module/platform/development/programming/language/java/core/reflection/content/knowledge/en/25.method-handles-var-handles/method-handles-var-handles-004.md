@@ -1,22 +1,22 @@
-# Chuyển `Method`, `Constructor` và `Field` thành handle bằng `unreflect`
+# Converting `Method`, `Constructor`, and `Field` to Handles with `unreflect`
 
-## 1. Tại sao cần `unreflect`?
+## 1. Why Is `unreflect` Needed?
 
-Trong Java, `java.lang.reflect` giúp khám phá cấu trúc lớp tại runtime. `Method`, `Constructor<?>` và `Field` là các đối tượng **metadata** mô tả thành viên; bản thân việc tìm được metadata chưa gọi method, chưa tạo instance và chưa đọc/ghi field.
+In Java, `java.lang.reflect` helps discover class structure at runtime. `Method`, `Constructor<?>`, and `Field` are **metadata** objects describing members; finding the metadata alone has not invoked the method, created an instance, or read/written the field.
 
-`java.lang.invoke` cung cấp `MethodHandle` để biểu diễn thao tác gọi có chữ ký xác định và `VarHandle` để truy cập biến qua các access mode. Khi framework đã có metadata reflection (ví dụ sau khi tìm bằng tên, annotation hoặc cấu hình), đối tượng `MethodHandles.Lookup` có thể chuyển metadata ấy thành handle:
+`java.lang.invoke` provides `MethodHandle` to represent an invocation operation with a specific signature and `VarHandle` to access variables through access modes. Once a framework already has reflection metadata (for example, after looking up by name, annotation, or configuration), a `MethodHandles.Lookup` object can convert that metadata into a handle:
 
-| Metadata đầu vào | API của `MethodHandles.Lookup` | Handle nhận được |
+| Input Metadata | `MethodHandles.Lookup` API | Resulting Handle |
 | --- | --- | --- |
-| `Method` | `unreflect(Method)` | `MethodHandle` gọi method |
-| `Constructor<?>` | `unreflectConstructor(Constructor<?>)` | `MethodHandle` tạo instance |
-| `Field` cần đọc | `unreflectGetter(Field)` | `MethodHandle` đọc giá trị |
-| `Field` cần ghi | `unreflectSetter(Field)` | `MethodHandle` ghi giá trị nếu được phép |
-| `Field` cần access mode | `unreflectVarHandle(Field)` | `VarHandle` (Java 9+) |
+| `Method` | `unreflect(Method)` | `MethodHandle` invoking the method |
+| `Constructor<?>` | `unreflectConstructor(Constructor<?>)` | `MethodHandle` creating an instance |
+| `Field` to read | `unreflectGetter(Field)` | `MethodHandle` reading the value |
+| `Field` to write | `unreflectSetter(Field)` | `MethodHandle` writing the value if permitted |
+| `Field` needing access modes | `unreflectVarHandle(Field)` | `VarHandle` (Java 9+) |
 
-Không có overload chung `unreflect(Field)`: cần chọn getter, setter hoặc VarHandle theo mục đích. Từ “unreflect” có nghĩa **chuyển biểu diễn reflection thành handle có thể gọi**, không có nghĩa “bỏ kiểm soát quyền truy cập”.
+There is no single generic `unreflect(Field)` overload: you must choose getter, setter, or VarHandle according to your purpose. The word "unreflect" means **converting a reflection representation into an invocable handle**, not "bypassing access control".
 
-Luồng sử dụng:
+Usage flow:
 
 ```text
 Class<?> -> Method / Constructor<?> / Field
@@ -24,22 +24,22 @@ Class<?> -> Method / Constructor<?> / Field
                  v
          MethodHandles.Lookup
                  |
-        kiểm tra quyền truy cập
+        check access permissions
                  |
                  v
-     MethodHandle hoặc VarHandle
+     MethodHandle or VarHandle
                  |
                  v
        invokeExact / invoke / get / set ...
 ```
 
-**Hai thời điểm cần phân biệt:** `lookup.unreflect(method)` tạo handle; `handle.invokeExact(...)` mới chạy method đích. Tương tự `unreflectConstructor` chưa tạo object cho đến lúc handle được gọi.
+**Two moments to distinguish:** `lookup.unreflect(method)` creates the handle; `handle.invokeExact(...)` actually executes the target method. Similarly, `unreflectConstructor` does not create an object until the handle is invoked.
 
-## 2. Chữ ký của handle và vai trò của receiver
+## 2. Handle Signatures and the Role of the Receiver
 
-`MethodHandle.type()` trả về `MethodType` mô tả kiểu trả về cùng các kiểu tham số thực tế khi gọi handle. Instance member cần đối tượng nhận lời gọi (**receiver**) ở vị trí tham số đầu tiên; static member không cần receiver. Constructor cũng không cần receiver vì chính nó tạo instance mới.
+`MethodHandle.type()` returns a `MethodType` describing the return type along with the actual parameter types when invoking the handle. Instance members require the target object receiving the call (**receiver**) in the first parameter slot; static members do not take a receiver. Constructors also do not take a receiver because they create the new instance themselves.
 
-Giả sử có:
+Suppose we have:
 
 ```java
 public static class Person {
@@ -59,21 +59,21 @@ public static class Person {
 }
 ```
 
-Đây là đoạn khai báo minh họa, sẽ có một chương trình độc lập hoàn chỉnh ở mục tiếp theo.
+This is an illustrative declaration snippet; a complete standalone program follows in the next section.
 
-| Thành viên | Chữ ký handle sau khi `unreflect` |
+| Member | Handle signature after `unreflect` |
 | --- | --- |
 | `Person.greet(String)` | `(Person, String)String` |
 | `Person.language()` static | `()String` |
 | `Person(String)` constructor | `(String)Person` |
-| Getter của `Person.name` | `(Person)String` |
-| Setter của `Person.name` | `(Person, String)void` |
+| Getter of `Person.name` | `(Person)String` |
+| Setter of `Person.name` | `(Person, String)void` |
 
-Việc reflection tìm method dùng **chữ ký khai báo** như `getMethod("greet", String.class)`, không có tham số receiver. Ngược lại, khi gọi MethodHandle của method instance, `person` phải là đối số đầu tiên. Setter trả `void`, còn constructor handle trả về instance mới. Với `Field` static, getter không có tham số và setter chỉ nhận giá trị mới.
+Looking up a method via reflection uses its **declared signature**, such as `getMethod("greet", String.class)`, without a receiver parameter. Conversely, when invoking an instance method's MethodHandle, `person` must be the first argument. A setter returns `void`, whereas a constructor handle returns the new instance. For a `static` `Field`, the getter takes no parameters and the setter takes only the new value.
 
-## 3. Chương trình hoàn chỉnh Java 17+: Method, Constructor, Field
+## 3. Complete Java 17+ Program: Method, Constructor, Field
 
-Lưu tệp **`UnreflectDemo.java`**:
+Save the file **`UnreflectDemo.java`**:
 
 ```java
 import java.lang.invoke.MethodHandle;
@@ -111,7 +111,7 @@ public class UnreflectDemo {
         VarHandle variable = lookup.unreflectVarHandle(field);
 
         Person person = (Person) create.invokeExact("Lan");
-        System.out.println((String) greet.invokeExact(person, "Xin chào"));
+        System.out.println((String) greet.invokeExact(person, "Hello"));
 
         setter.invokeExact(person, "Mai");
         System.out.println((String) getter.invokeExact(person));
@@ -122,7 +122,7 @@ public class UnreflectDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac UnreflectDemo.java
@@ -132,38 +132,38 @@ java UnreflectDemo
 Stdout:
 
 ```text
-Xin chào, Lan
+Hello, Lan
 Mai
 An
 ```
 
-Giải thích theo thứ tự:
+Explanation in order:
 
-1. `getConstructor(String.class)`, `getMethod("greet", String.class)` và `getField("name")` lấy metadata **public**. Các lệnh này không chạy constructor hay method.
-2. `unreflectConstructor` tạo handle `(String)Person`. Lệnh `create.invokeExact("Lan")` mới tạo `Person` chứa tên `Lan`.
-3. `unreflect(method)` tạo handle `(Person, String)String`. `person` là receiver, `"Xin chào"` là tham số khai báo của method.
-4. `unreflectGetter(field)` tạo `(Person)String`. `unreflectSetter(field)` tạo `(Person, String)void`. Sau setter, tên của `person` đổi thành `Mai`.
-5. `unreflectVarHandle(field)` cũng lấy handle cho field `name`. Gọi `variable.set(person, "An")` rồi `variable.get(person)` khiến dòng cuối in `An`.
-6. Ví dụ dùng class, constructor, method và field `public` để hoạt động trên classpath mà không cần mở truy cập private.
+1. `getConstructor(String.class)`, `getMethod("greet", String.class)`, and `getField("name")` retrieve **public** metadata. These calls do not execute the constructor or method.
+2. `unreflectConstructor` creates a `(String)Person` handle. Only `create.invokeExact("Lan")` creates the `Person` holding the name `Lan`.
+3. `unreflect(method)` creates a `(Person, String)String` handle. `person` is the receiver, and `"Hello"` is the method's declared parameter.
+4. `unreflectGetter(field)` produces `(Person)String`. `unreflectSetter(field)` produces `(Person, String)void`. After the setter, `person`'s name changes to `Mai`.
+5. `unreflectVarHandle(field)` also obtains a handle for the `name` field. Calling `variable.set(person, "An")` and then `variable.get(person)` causes the last line to print `An`.
+6. The example uses a `public` class, constructor, method, and field so it works on the classpath without opening private access.
 
-`main` khai báo `throws Throwable` vì các lời gọi `MethodHandle.invokeExact` có thể lan truyền lỗi từ thao tác đích. Khi viết sản phẩm, nên xử lý những loại lỗi phù hợp thay vì bỏ qua tất cả.
+`main` declares `throws Throwable` because `MethodHandle.invokeExact` calls can propagate errors from the target operation. In production code, handle appropriate error types instead of ignoring all exceptions.
 
-## 4. `invokeExact`, `invoke` và `MethodType`
+## 4. `invokeExact`, `invoke`, and `MethodType`
 
-`MethodHandle.invokeExact` là phương thức **signature-polymorphic**. Kiểu tham số **và kiểu trả về được kỳ vọng tại vị trí gọi** phải tương thích *chính xác* với `handle.type()`. Trong chương trình trên:
+`MethodHandle.invokeExact` is a **signature-polymorphic** method. The parameter types **and the expected return type at the call site** must be *exactly* compatible with `handle.type()`. In the program above:
 
 ```java
 Person person = (Person) create.invokeExact("Lan");
-String text = (String) greet.invokeExact(person, "Xin chào");
+String text = (String) greet.invokeExact(person, "Hello");
 ```
 
-Đây là hai dòng minh họa đặt trong `main` của ví dụ đầy đủ.
+These are two illustrative lines placed inside `main` of the full example.
 
-Phép ép kiểu `(Person)` và `(String)` không chỉ mang tính trình bày: chúng tạo ngữ cảnh kiểu trả về phù hợp cho `invokeExact`. Nếu cố nhận kết quả constructor thành `Object` trong khi handle trả `Person`, hoặc truyền kiểu `Integer` cho tham số `String`, có thể xảy ra `WrongMethodTypeException`.
+The `(Person)` and `(String)` casts are not merely cosmetic: they establish the proper return-type context for `invokeExact`. If you try to receive the constructor result as `Object` while the handle returns `Person`, or pass an `Integer` for a `String` parameter, `WrongMethodTypeException` can occur.
 
-`invoke(...)` cho phép một số phép biến đổi kiểu có kiểm tra, theo cơ chế method handle; `asType(...)` dùng để tạo handle đã thích nghi chữ ký khi cần. `invokeWithArguments(...)` phục vụ lời gọi với danh sách đối số động, thuận tiện hơn nhưng thường có thêm chuyển đổi/boxing. Không hình thức nào cho phép biến một tham số không tương thích thành kiểu bất kỳ.
+`invoke(...)` permits certain checked type conversions according to method handle rules; `asType(...)` creates a signature-adapted handle when needed. `invokeWithArguments(...)` serves invocations with a dynamic argument list, which is more convenient but typically adds conversion/boxing overhead. Neither form lets you turn an incompatible argument into an arbitrary type.
 
-Trong đoạn minh họa khác, static method không cần receiver:
+In another illustrative snippet, a static method requires no receiver:
 
 ```java
 Method m = Math.class.getMethod("abs", int.class);
@@ -171,26 +171,26 @@ MethodHandle abs = MethodHandles.lookup().unreflect(m);
 int result = (int) abs.invokeExact(-7);  // 7
 ```
 
-Đoạn này cần đặt trong method có xử lý các checked exception tương ứng và `throws Throwable` cho `invokeExact`. Chữ ký của `abs` là `(int)int`, không phải `(Math, int)int`.
+This snippet must be placed in a method that handles the corresponding checked exceptions and declares `throws Throwable` for `invokeExact`. The signature of `abs` is `(int)int`, not `(Math, int)int`.
 
-Với method overload, trước khi chuyển đổi phải tìm `Method` mang **đúng các kiểu tham số được khai báo**; `getMethod("f", int.class)` không tự chuyển sang `f(Integer)`. `handle.type()` giúp kiểm tra cấu trúc lời gọi cuối cùng. Với method varargs, handle có thể mang cơ chế variable-arity; nếu cần chữ ký cố định, cân nhắc `asFixedArity()`.
+For overloaded methods, before converting you must locate the `Method` with the **exact declared parameter types**; `getMethod("f", int.class)` does not automatically resolve to `f(Integer)`. `handle.type()` helps verify the final call structure. For varargs methods, the handle may carry variable-arity behavior; if a fixed signature is needed, consider `asFixedArity()`.
 
-## 5. `unreflect(Method)` khác `Method.invoke` thế nào?
+## 5. How Does `unreflect(Method)` Differ from `Method.invoke`?
 
-Cả hai đều có thể gọi một method runtime, nhưng mô hình vận hành khác nhau:
+Both can invoke a method at runtime, but their execution models differ:
 
 | `Method.invoke(receiver, args...)` | `MethodHandle.invokeExact(args...)` |
 | --- | --- |
-| Gọi qua đối tượng metadata reflection | Gọi qua handle có `MethodType` cụ thể |
-| Tham số động theo cơ chế reflection; giá trị trả về thường là `Object` | Receiver (nếu là instance member) nằm ở đầu danh sách tham số của handle |
-| Exception do method đích ném được bọc trong `InvocationTargetException` | Exception do code đích ném thường truyền trực tiếp qua handle |
-| Xử lý kết quả có thể cần ép kiểu và unboxing | `invokeExact` đòi chữ ký lời gọi chính xác |
+| Invoked through a reflection metadata object | Invoked through a handle with a specific `MethodType` |
+| Dynamic arguments via reflection; return value is usually `Object` | Receiver (if an instance member) sits at the front of the handle's parameter list |
+| Exceptions thrown by the target method are wrapped in `InvocationTargetException` | Exceptions thrown by target code generally propagate directly through the handle |
+| Handling the result may require casting and unboxing | `invokeExact` demands an exact call-site signature |
 
-Việc chuyển từ `Method` sang `MethodHandle` **không tự đảm bảo nhanh hơn**. Hiệu quả còn phụ thuộc JVM/JIT, khả năng inline, nơi gọi, khối lượng thao tác, warm-up và cách benchmark. Với các đường gọi lặp lại, tránh liên tục `getDeclaredMethod` và `unreflect` nếu có thể tìm một lần, giữ handle và tái sử dụng.
+Converting from `Method` to `MethodHandle` **does not automatically guarantee faster execution**. Efficiency also depends on the JVM/JIT, inlining capability, call site, workload volume, warm-up, and benchmarking methodology. For repeated call paths, avoid repeatedly calling `getDeclaredMethod` and `unreflect` if you can look up once, retain the handle, and reuse it.
 
-## 6. `unreflectConstructor(Constructor<?>)`: tạo instance từ constructor
+## 6. `unreflectConstructor(Constructor<?>)`: Creating Instances from a Constructor
 
-Nếu đã tìm đúng constructor:
+Once you have located the right constructor:
 
 ```java
 Constructor<Person> constructor =
@@ -200,17 +200,17 @@ MethodHandle create =
 Person person = (Person) create.invokeExact("Lan");
 ```
 
-Đây là đoạn dựa trên `Person` trong chương trình `UnreflectDemo.java`.
+This snippet is based on `Person` in `UnreflectDemo.java`.
 
-`getConstructor(...)` chỉ tìm constructor `public`. `getDeclaredConstructor(...)` tìm constructor khai báo trực tiếp, kể cả non-public; **tìm được không đồng nghĩa có quyền gọi**. `unreflectConstructor(...)` tạo handle với kiểu trả về là kiểu được khởi tạo, ở đây `Person`, dù constructor trong Java không khai báo kiểu trả về.
+`getConstructor(...)` only finds `public` constructors. `getDeclaredConstructor(...)` finds directly declared constructors, including non-public ones; **finding one does not mean you have permission to invoke it**. `unreflectConstructor(...)` creates a handle whose return type is the instantiated type—here `Person`—even though constructors in Java do not declare a return type.
 
-Constructor không được kế thừa. Abstract class và interface không thể tạo instance trực tiếp theo cách thông thường; constructor phù hợp có thể vắng mặt hoặc không truy cập được. Việc chuyển handle có thể thất bại vì access, còn thao tác khởi tạo có thể ném exception do constructor đích phát sinh.
+Constructors are not inherited. Abstract classes and interfaces cannot be instantiated directly in the usual way; a suitable constructor may be absent or inaccessible. Handle conversion can fail due to access restrictions, while instantiation can throw exceptions raised by the target constructor.
 
-Đừng nhầm `Constructor.newInstance(...)` của Reflection với `MethodHandle.invokeExact(...)`. Cả hai có thể tạo instance, nhưng cách truyền đối số/kiểu và cách truyền lỗi khác nhau. `Class.newInstance()` đã deprecated; nên chọn constructor cụ thể và cơ chế xử lý lỗi rõ ràng.
+Do not confuse Reflection's `Constructor.newInstance(...)` with `MethodHandle.invokeExact(...)`. Both can instantiate objects, but argument/type passing and exception propagation differ. `Class.newInstance()` is deprecated; choose a specific constructor and an explicit error-handling strategy.
 
-## 7. `unreflectGetter`, `unreflectSetter` và `unreflectVarHandle`
+## 7. `unreflectGetter`, `unreflectSetter`, and `unreflectVarHandle`
 
-`Field` mô tả trường dữ liệu; API cần chọn theo thao tác:
+`Field` describes a data field; the API must be chosen according to the operation:
 
 ```java
 Field field = Person.class.getField("name");
@@ -221,23 +221,23 @@ MethodHandle setter = lookup.unreflectSetter(field);
 VarHandle variable = lookup.unreflectVarHandle(field);
 ```
 
-Đây là snippet minh họa trên `Person` của chương trình `UnreflectDemo.java`; lời gọi `getField` có thể ném `NoSuchFieldException`, còn unreflect có thể ném `IllegalAccessException`.
+This is an illustrative snippet on `Person` from `UnreflectDemo.java`; `getField` can throw `NoSuchFieldException`, and unreflecting can throw `IllegalAccessException`.
 
-**Instance vs static:** getter instance dùng receiver; setter instance dùng receiver và giá trị. Getter static không dùng receiver; setter static chỉ dùng giá trị. Kiểm tra `getter.type()` / `setter.type()` trước khi xây adapter gọi động.
+**Instance vs static:** an instance getter takes a receiver; an instance setter takes a receiver and a value. A static getter takes no receiver; a static setter takes only the value. Check `getter.type()` / `setter.type()` before building a dynamic invocation adapter.
 
-**Final field:** Không suy ra có getter là có setter. Việc tạo setter cho final field có thể bị từ chối tùy quyền truy cập và điều kiện JVM. `VarHandle` đối với final field thường chỉ hỗ trợ mode đọc, và mode ghi có thể ném `UnsupportedOperationException`. Không dùng thủ thuật deep reflection để xây cơ chế cập nhật object bất biến.
+**Final fields:** Do not infer that having a getter implies having a setter. Creating a setter for a final field can be rejected depending on access rights and JVM rules. A `VarHandle` for a final field typically supports only read modes, and write modes may throw `UnsupportedOperationException`. Do not use deep-reflection tricks to build a mechanism that mutates immutable objects.
 
-**VarHandle và memory ordering:** `VarHandle` có `varType()`, `coordinateTypes()` và các access mode như `get`/`set`, `getVolatile`/`setVolatile` hay `compareAndSet` nếu hỗ trợ. Không coi mode thông thường mặc nhiên là volatile hoặc atomic. Có thể kiểm tra `isAccessModeSupported(...)`; một mode không hỗ trợ đối với kiểu field nhất định sẽ gây lỗi khi gọi.
+**VarHandle and memory ordering:** `VarHandle` provides `varType()`, `coordinateTypes()`, and access modes such as `get`/`set`, `getVolatile`/`setVolatile`, or `compareAndSet` when supported. Do not assume ordinary modes are implicitly volatile or atomic. You can check `isAccessModeSupported(...)`; an unsupported mode for a given field type will fail when invoked.
 
-`VarHandle` phù hợp với thao tác trên biến có nhu cầu rõ về access mode và concurrency. `unreflectGetter`/`unreflectSetter` phù hợp khi chỉ cần handle đọc/ghi với `MethodType` cụ thể.
+`VarHandle` suits variable operations with explicit access mode and concurrency requirements. `unreflectGetter`/`unreflectSetter` suit cases where you simply need a read/write handle with a specific `MethodType`.
 
-## 8. Quyền truy cập của `Lookup`, private member và JPMS
+## 8. `Lookup` Permissions, Private Members, and JPMS
 
-`MethodHandles.lookup()` tạo `Lookup` mang quyền truy cập theo **lớp gọi**; `publicLookup()` hạn chế hơn. `unreflect*` vẫn kiểm tra quyền phù hợp với member và `Lookup`. Ví dụ `getDeclaredField("secret")` có thể trả `Field` của field private, nhưng `lookup.unreflectGetter(field)` có thể ném `IllegalAccessException` nếu không có quyền truy cập.
+`MethodHandles.lookup()` creates a `Lookup` carrying access permissions according to the **calling class**; `publicLookup()` is more restricted. `unreflect*` still checks permissions appropriate to the member and `Lookup`. For instance, `getDeclaredField("secret")` can return the `Field` of a private field, yet `lookup.unreflectGetter(field)` can throw `IllegalAccessException` if access is lacking.
 
-Khi thực sự cần deep access, `MethodHandles.privateLookupIn(Target.class, callerLookup)` có thể tạo `Lookup` với quyền private phù hợp nếu các điều kiện được đáp ứng. Trên Java 17+, JPMS còn yêu cầu module đích mở package thích hợp cho module gọi khi khác module: `exports` không thay thế `opens`. Nên cấp quyền tối thiểu cần thiết.
+When deep access is genuinely required, `MethodHandles.privateLookupIn(Target.class, callerLookup)` can produce a `Lookup` with appropriate private permissions if conditions are met. On Java 17+, JPMS also requires the target module to open the relevant package to the calling module when across modules: `exports` does not substitute for `opens`. Grant the minimum privilege needed.
 
-Ví dụ độc lập sau dùng cùng nest và cùng module để minh họa truy cập private hợp lệ. Tạo **`PrivateLookupDemo.java`**:
+The following standalone example uses the same nest and same module to demonstrate valid private access. Create **`PrivateLookupDemo.java`**:
 
 ```java
 import java.lang.invoke.MethodHandle;
@@ -266,7 +266,7 @@ public class PrivateLookupDemo {
         MethodHandle create = lookup.unreflectConstructor(constructor);
         MethodHandle read = lookup.unreflectGetter(field);
 
-        Vault vault = (Vault) create.invokeExact("đã bảo vệ");
+        Vault vault = (Vault) create.invokeExact("protected");
         System.out.println((String) read.invokeExact(vault));
     }
 }
@@ -280,12 +280,12 @@ java PrivateLookupDemo
 Stdout:
 
 ```text
-đã bảo vệ
+protected
 ```
 
-`privateLookupIn` trong ví dụ không phải đường tắt vượt quyền: do `Vault` nằm trong cùng nest, caller có quyền cần thiết. Với class ở module khác, package phải mở hợp lệ; nếu thiếu quyền, lời gọi có thể bị từ chối.
+`privateLookupIn` in this example is not a permission-bypass shortcut: because `Vault` is in the same nest, the caller has the required rights. For a class in another module, the package must be properly opened; if permissions are missing, the call can be rejected.
 
-Ví dụ khai báo module **minh họa**, không phải chương trình chạy độc lập:
+**Illustrative** module declaration example, not a standalone runnable program:
 
 ```java
 module com.example.domain {
@@ -293,36 +293,36 @@ module com.example.domain {
 }
 ```
 
-Trong trường hợp này, module `com.example.domain` mở package nêu trên cho module `com.example.framework`, ngoài các điều kiện lookup/module khác. Tránh mở toàn bộ module chỉ để xử lý một field.
+In this case, module `com.example.domain` opens the stated package to module `com.example.framework`, in addition to other lookup/module conditions. Avoid opening an entire module just to handle a single field.
 
-`Method`/`Field` còn có `trySetAccessible()` và `setAccessible(true)`. Accessibility override có thể ảnh hưởng cách `unreflect` kiểm tra member, nhưng vẫn tuân thủ JPMS và các ràng buộc đặc biệt như final field; không nên giả định rằng `setAccessible(true)` luôn thành công hoặc biến mọi private member thành public.
+`Method`/`Field` also have `trySetAccessible()` and `setAccessible(true)`. Accessibility overrides can influence how `unreflect` checks a member, while still obeying JPMS and special constraints such as final fields; do not assume `setAccessible(true)` always succeeds or turns every private member public.
 
-## 9. Lỗi và cách xử lý
+## 9. Errors and How to Handle Them
 
-| Giai đoạn | Lỗi thường gặp | Cách nhận biết |
+| Stage | Common Error | How to Recognize |
 | --- | --- | --- |
-| Tìm `Method`/constructor | Tên hoặc signature sai | `NoSuchMethodException` |
-| Tìm `Field` | Tên field sai | `NoSuchFieldException` |
-| Chuyển metadata | Lookup thiếu quyền | `IllegalAccessException` |
-| Gọi handle | Sai chữ ký mong đợi | `WrongMethodTypeException` |
-| Gọi handle | Receiver/ép kiểu không tương thích | Có thể có `ClassCastException` hoặc lỗi runtime tương ứng |
-| Gọi method/constructor đích | Code đích ném exception | Lỗi đích có thể được truyền trực tiếp |
-| Dùng `VarHandle` | Access mode không hỗ trợ | `UnsupportedOperationException` |
-| Deep reflection qua `setAccessible` | Bị module từ chối | Có thể gặp `InaccessibleObjectException` |
+| Finding `Method`/constructor | Wrong name or signature | `NoSuchMethodException` |
+| Finding `Field` | Wrong field name | `NoSuchFieldException` |
+| Converting metadata | Lookup lacks permissions | `IllegalAccessException` |
+| Invoking handle | Expected signature mismatch | `WrongMethodTypeException` |
+| Invoking handle | Incompatible receiver/cast | `ClassCastException` or corresponding runtime error may occur |
+| Invoking target method/constructor | Target code throws an exception | The target error can be propagated directly |
+| Using `VarHandle` | Unsupported access mode | `UnsupportedOperationException` |
+| Deep reflection via `setAccessible` | Denied by module | `InaccessibleObjectException` may occur |
 
-Không nên dùng `catch (Exception ignored)` quanh toàn bộ pipeline. `invokeExact` có thể truyền `Throwable` từ code đích. Khi xử lý, phân biệt lỗi **tìm thành viên**, lỗi **liên kết handle** và lỗi **thực thi**; ghi ngữ cảnh tên method, kiểu tham số, class loader và module khi chẩn đoán.
+Do not wrap an entire pipeline in `catch (Exception ignored)`. `invokeExact` can propagate `Throwable` from target code. When handling errors, distinguish **member lookup** errors, **handle linking** errors, and **execution** errors; log method name, parameter types, class loader, and module context when diagnosing.
 
-Ba nhầm lẫn phổ biến:
+Three common misconceptions:
 
-1. “Tìm được `Method` thì `unreflect` luôn thành công.” Sai, vì `Lookup` còn phải có quyền.
-2. “`invokeExact` giống `Method.invoke`, truyền `Object[]` bất kỳ.” Sai, vì chữ ký phải khớp `MethodType`.
-3. “`unreflectGetter(field)` sẽ đọc field ngay.” Sai, vì thao tác thật xảy ra khi gọi handle.
+1. "Once a `Method` is found, `unreflect` always succeeds." False, because `Lookup` must also hold permissions.
+2. "`invokeExact` is like `Method.invoke` and takes an arbitrary `Object[]`." False, because the signature must match `MethodType`.
+3. "`unreflectGetter(field)` reads the field immediately." False, because the actual operation happens when the handle is invoked.
 
-## 10. Chọn `unreflect` hay `findVirtual`/`findStatic`?
+## 10. Choosing `unreflect` or `findVirtual`/`findStatic`?
 
-`unreflect` thích hợp khi đã có metadata `Method`, `Constructor` hoặc `Field`, ví dụ framework scan annotation hoặc chọn member động từ cấu hình. Nếu đã biết tên, kiểu và muốn handle trực tiếp, `Lookup` có những hàm như `findVirtual`, `findStatic`, `findConstructor`, `findGetter` và `findSetter`.
+`unreflect` fits when you already hold `Method`, `Constructor`, or `Field` metadata—for example, a framework scanning annotations or selecting members dynamically from configuration. If you already know the name and types and want a handle directly, `Lookup` offers methods like `findVirtual`, `findStatic`, `findConstructor`, `findGetter`, and `findSetter`.
 
-Ví dụ minh họa với class `Person` của `UnreflectDemo.java`:
+Illustrative example with the `Person` class from `UnreflectDemo.java`:
 
 ```java
 MethodHandles.Lookup lookup = MethodHandles.lookup();
@@ -333,25 +333,25 @@ MethodHandle direct = lookup.findVirtual(
                 String.class, String.class));
 ```
 
-`direct` cũng biểu diễn handle dạng `(Person, String)String`. Hai cách tiếp cận vẫn chịu kiểm tra quyền. Khi dùng nhiều lần, có thể cache handle thích hợp; lưu ý cache giữ `Class<?>` lâu dài có thể giữ class loader của plugin. Kiểm chứng lợi ích hiệu năng bằng benchmark có warm-up và workload thật; không khẳng định mọi lời gọi method handle nhanh hơn reflection.
+`direct` also represents a `(Person, String)String` handle. Both approaches are still subject to access checks. When used repeatedly, an appropriate handle can be cached; note that a cache retaining `Class<?>` long-term can pin a plugin's class loader. Verify performance gains with benchmarks using warm-up and realistic workloads; do not claim every method handle call is faster than reflection.
 
-## 11. Quy trình thực hành và tự kiểm tra
+## 11. Practical Workflow and Self-Check
 
-1. Xác định member đúng tên/chữ ký, biết đó là instance hay static và dùng loader/module nào.
-2. Chọn `Lookup` với quyền cần thiết; nếu gặp non-public thì kiểm tra `privateLookupIn` và `opens`.
-3. Dùng đúng `unreflect*` theo `Method`/`Constructor`/`Field` và nhu cầu đọc/ghi.
-4. Xem `MethodHandle.type()` hoặc `VarHandle.varType()` / `coordinateTypes()` để biết chính xác đối số.
-5. Gọi handle khi cần thao tác; dùng `invokeExact` với kiểu cố định, `invoke` nếu phép thích nghi hợp lệ là có chủ đích.
-6. Xử lý lỗi lookup khác lỗi code đích, cân nhắc tái sử dụng handle và đo hiệu năng trước khi tối ưu.
+1. Identify the member with the exact name/signature, whether it is instance or static, and which loader/module it uses.
+2. Choose a `Lookup` with the required permissions; if encountering non-public members, check `privateLookupIn` and `opens`.
+3. Use the appropriate `unreflect*` for `Method`/`Constructor`/`Field` and read/write needs.
+4. Inspect `MethodHandle.type()` or `VarHandle.varType()` / `coordinateTypes()` to know the exact arguments.
+5. Invoke the handle when the operation is needed; use `invokeExact` for fixed types, or `invoke` if valid adaptation is intentional.
+6. Handle lookup errors separately from target-code errors, consider handle reuse, and measure performance before optimizing.
 
-Tự kiểm tra:
+Self-check:
 
-- Vì sao `unreflect(Method)` không làm method chạy ngay?
-- Với instance method nhận một `String`, vì sao handle cần thêm receiver?
-- `unreflectConstructor` tạo handle hay tạo instance? Instance được tạo vào lúc nào?
-- Muốn đọc/ghi một `Field` thì dùng API nào? Khác nhau thế nào với `VarHandle`?
-- Vì sao `getDeclaredField` có thể thành công nhưng `unreflectGetter` thất bại?
-- `invokeExact` khác `invoke` ở đâu và vì sao các ví dụ ép kiểu kết quả?
-- `exports` trong JPMS đã đủ cho deep reflection vào private field chưa?
+- Why does `unreflect(Method)` not execute the method immediately?
+- For an instance method taking one `String`, why does the handle need an extra receiver?
+- Does `unreflectConstructor` create a handle or an instance? When is the instance created?
+- Which APIs do you use to read/write a `Field`? How do they differ from `VarHandle`?
+- Why can `getDeclaredField` succeed while `unreflectGetter` fails?
+- How does `invokeExact` differ from `invoke`, and why do the examples cast the result?
+- Is `exports` in JPMS enough for deep reflection into a private field?
 
-**Ghi nhớ:** Reflection cung cấp metadata của thành viên; `MethodHandles.Lookup.unreflect*` chuyển metadata ấy thành handle với quyền truy cập tương ứng. Handle chỉ thực hiện thao tác khi được gọi, theo đúng chữ ký, receiver và access mode.
+**Remember:** Reflection provides member metadata; `MethodHandles.Lookup.unreflect*` converts that metadata into a handle with the corresponding access rights. The handle performs the operation only when invoked, according to the exact signature, receiver, and access mode.

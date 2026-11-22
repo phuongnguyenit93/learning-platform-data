@@ -1,42 +1,42 @@
-# Định luật De Morgan và đơn giản hóa điều kiện trong Java
+# De Morgan's Laws and Simplifying Conditions in Java
 
-> **Java core — language-basics / Logic và điều kiện**  
-> **Môi trường:** JDK 17+, một file Java độc lập, không cần thư viện ngoài.  
-> **Mục tiêu:** Đổi đúng phủ định của AND/OR, đọc bảng chân trị, viết điều kiện rõ ràng hơn mà không làm sai logic hoặc thứ tự đánh giá ngắn mạch.
+> **Java core — language-basics / Logic and conditions**  
+> **Environment:** JDK 17+, a standalone Java file, no external libraries needed.  
+> **Goal:** Correctly transform negations of AND/OR, read truth tables, and write clearer conditions without breaking logic or short-circuit evaluation order.
 
-## 1. Hai định luật De Morgan
+## 1. The Two De Morgan's Laws
 
-Cho hai biểu thức `boolean` là `P` và `Q`:
+Given two `boolean` expressions `P` and `Q`:
 
 ~~~text
-!(P && Q)  tương đương  !P || !Q
-!(P || Q)  tương đương  !P && !Q
+!(P && Q)  is equivalent to  !P || !Q
+!(P || Q)  is equivalent to  !P && !Q
 ~~~
 
-**Quy tắc:** Khi đưa dấu phủ định `!` vào trong ngoặc, hãy **đảo AND thành OR hoặc ngược lại**, đồng thời **phủ định từng vế**.
+**Rule:** When pushing the negation `!` inside parentheses, **flip AND to OR or vice versa**, and **negate each side**.
 
 ~~~java
 boolean p = true;
 boolean q = false;
 
 boolean a = !(p && q); // true.
-boolean b = !p || !q;  // true: tương đương a.
+boolean b = !p || !q;  // true: equivalent to a.
 
 boolean c = !(p || q); // false.
-boolean d = !p && !q;  // false: tương đương c.
+boolean d = !p && !q;  // false: equivalent to c.
 ~~~
 
-Không được chỉ đảo từng toán hạng mà giữ nguyên toán tử:
+Do not negate only each operand while keeping the same operator:
 
 ~~~java
-// SAI về logic:
-// !(p && q)  KHÔNG tương đương  !p && !q.
-// !(p || q)  KHÔNG tương đương  !p || !q.
+// Logically WRONG:
+// !(p && q)  is NOT equivalent to  !p && !q.
+// !(p || q)  is NOT equivalent to  !p || !q.
 ~~~
 
-Ví dụ `!(p && q)` có nghĩa **“không phải cả hai cùng đúng”**; tương đương **“ít nhất một vế sai”**, chứ không phải “cả hai đều sai”.
+For example, `!(p && q)` means **"not both true"**; this is equivalent to **"at least one side is false"**, not "both are false".
 
-## 2. Bảng chân trị chứng minh
+## 2. Proof via Truth Table
 
 | `P` | `Q` | `!(P AND Q)` | `!P OR !Q` | `!(P OR Q)` | `!P AND !Q` |
 | --- | --- | --- | --- | --- | --- |
@@ -45,27 +45,27 @@ Ví dụ `!(p && q)` có nghĩa **“không phải cả hai cùng đúng”**; t
 | true | false | true | true | false | false |
 | true | true | false | false | false | false |
 
-Hai cột của mỗi cặp luôn bằng nhau với mọi tổ hợp `P`/`Q`. Đó là cơ sở để thay biểu thức mà **không đổi kết quả boolean**.
+Both columns in each pair are always equal for every combination of `P`/`Q`. This is the basis for rewriting expressions without **changing the boolean result**.
 
-Có thể mở rộng cho nhiều điều kiện:
+This extends to multiple conditions:
 
 ~~~java
-// Phủ định việc cả ba điều kiện đều đúng:
+// Negating that all three conditions are true:
 boolean denied = !(p && q && r);
-// Tương đương:
+// Equivalent:
 boolean denied2 = !p || !q || !r;
 
-// Phủ định việc ít nhất một điều kiện đúng:
+// Negating that at least one condition is true:
 boolean none = !(p || q || r);
-// Tương đương:
+// Equivalent:
 boolean none2 = !p && !q && !r;
 ~~~
 
-Trong đoạn mở rộng, `p`, `q`, `r` là các biến boolean đã được khai báo. Đừng quên **ngoặc** khi kết hợp với điều kiện khác; `!` có độ ưu tiên cao hơn `&&` và `||`.
+In the extended snippet, `p`, `q`, and `r` are previously declared boolean variables. Do not forget **parentheses** when combining with other conditions; `!` has higher precedence than `&&` and `||`.
 
-## 3. Áp dụng vào điều kiện nghiệp vụ và kiểm tra phạm vi
+## 3. Applying to Business Conditions and Range Checks
 
-Ví dụ một người bị **từ chối** khi không đồng thời đủ tuổi và có vé:
+For example, a person is **denied** when they do not simultaneously meet the age requirement and hold a ticket:
 
 ~~~java
 int age = 20;
@@ -73,12 +73,12 @@ boolean hasTicket = false;
 
 boolean denied = !(age >= 18 && hasTicket);
 boolean deniedSimplified = age < 18 || !hasTicket;
-// Cả hai cùng true ở ví dụ này.
+// Both are true in this example.
 ~~~
 
-Đọc câu thứ hai dễ hơn: **chưa đủ tuổi HOẶC không có vé**.
+The second form reads more naturally: **underage OR no ticket**.
 
-Với `int x`, điều kiện nằm trong khoảng đóng từ 0 đến 100:
+For `int x`, the condition for lying within the closed interval from 0 to 100:
 
 ~~~java
 boolean inRange = x >= 0 && x <= 100;
@@ -86,73 +86,73 @@ boolean outOfRange = !(x >= 0 && x <= 100);
 boolean simpler = x < 0 || x > 100;
 ~~~
 
-Khi `x` là kiểu nguyên, `outOfRange` và `simpler` tương đương. Ngược lại, muốn phủ định điều kiện “nằm ngoài khoảng”, áp dụng De Morgan:
+When `x` is an integer type, `outOfRange` and `simpler` are equivalent. Conversely, to negate an "outside the range" condition, apply De Morgan's law:
 
 ~~~java
 boolean inRangeAgain = !(x < 0 || x > 100);
-// Với int, tương đương x >= 0 && x <= 100.
+// For int, equivalent to x >= 0 && x <= 100.
 ~~~
 
-**Lưu ý:** Phép biến đổi `!(x >= 0)` thành `x < 0` chỉ luôn tương đương với **kiểu nguyên** hoặc khi bạn đã loại bỏ `NaN` ở kiểu số thực. Xem mục 6.
+**Note:** Transforming `!(x >= 0)` into `x < 0` is always equivalent only for **integer types** or when `NaN` has already been ruled out for floating-point types. See section 6.
 
-## 4. Guard với `null` và điều kiện dễ đọc
+## 4. `null` Guards and Readable Conditions
 
-De Morgan giúp diễn đạt trường hợp dữ liệu không hợp lệ:
+De Morgan's laws help express invalid-data cases:
 
 ~~~java
 String name = null;
 boolean valid = name != null && !name.isBlank();
 boolean invalid = !(name != null && !name.isBlank());
 
-// Đổi theo De Morgan:
+// Rewritten via De Morgan:
 boolean invalidSimplified = name == null || name.isBlank();
 ~~~
 
-Nếu `name == null`, vế phải `name.isBlank()` ở biểu thức cuối **không được chạy** nhờ `||` ngắn mạch. `invalid` và `invalidSimplified` đều true; `valid` false.
+If `name == null`, the right side `name.isBlank()` in the last expression **does not run** thanks to short-circuit `||`. `invalid` and `invalidSimplified` are both true; `valid` is false.
 
-Cách viết này vẫn **giữ điều kiện guard đứng trước** thao tác có thể ném `NullPointerException`. Tránh đổi thứ tự thành:
+This form still **keeps the guard condition ahead of** the operation that could throw `NullPointerException`. Avoid reordering it into:
 
 ~~~java
-// KHÔNG AN TOÀN khi name == null:
+// UNSAFE when name == null:
 // boolean broken = name.isBlank() || name == null;
 ~~~
 
-Khi thay đổi hoặc rút gọn điều kiện, mục tiêu không chỉ là ít ký tự hơn mà còn là **diễn đạt đúng nghiệp vụ, dễ bảo trì và bảo vệ điều kiện phụ thuộc**.
+When modifying or simplifying conditions, the goal is not just fewer characters, but **expressing business rules accurately, keeping code maintainable, and protecting dependent conditions**.
 
-## 5. Short-circuit và tác dụng phụ khi áp dụng De Morgan
+## 5. Short-Circuiting and Side Effects When Applying De Morgan's Laws
 
-Trong Java, `&&` bỏ qua vế phải nếu vế trái false; `||` bỏ qua vế phải nếu vế trái true. Hai biến đổi De Morgan dưới đây giữ **thứ tự đánh giá P rồi Q** và cùng điều kiện bỏ qua Q:
+In Java, `&&` skips the right side if the left side is false; `||` skips the right side if the left side is true. The two De Morgan transformations below preserve **evaluation order P then Q** and the exact same condition for skipping Q:
 
 ~~~java
 !(P && Q)  →  !P || !Q
 !(P || Q)  →  !P && !Q
 ~~~
 
-Với các biểu thức `P`/`Q` giống hệt nhau ở hai vế và không có thao tác khác chen vào, cả kết quả lẫn việc vế nào được đánh giá đều giữ nguyên theo quy tắc ngắn mạch.
+With identical `P`/`Q` expressions on both sides and no other interleaved operations, both the result and which side is evaluated remain unchanged under short-circuit rules.
 
 ~~~java
 StringBuilder log = new StringBuilder();
 boolean result = !(mark(log, "F", false)
         && mark(log, "X", true));
-// result=true, log="F": không gọi mark(..., "X", ...).
+// result=true, log="F": does not call mark(..., "X", ...).
 ~~~
 
-Dạng viết lại `!mark(log, "F", false) || !mark(log, "X", true)` cũng không gọi nhánh X.
+The rewritten form `!mark(log, "F", false) || !mark(log, "X", true)` also does not call branch X.
 
-**Không tự ý đổi vị trí, nhân bản hay loại bỏ một biểu thức có tác dụng phụ**: ví dụ `readValue()`, `i++`, một lệnh ghi log hoặc lời gọi cập nhật trạng thái. Những biến đổi đại số khác ngoài De Morgan có thể cho cùng bảng chân trị nhưng khác số lần thực thi biểu thức con.
+**Do not arbitrarily reorder, duplicate, or remove an expression with side effects**: e.g., `readValue()`, `i++`, a logging statement, or a state-updating call. Other algebraic transformations beyond De Morgan's laws might share the same truth table while changing how many times subexpressions run.
 
-Ngoài ra, `&` và `|` trên boolean **không short-circuit**. De Morgan cũng có công thức logic cho chúng, nhưng nếu dùng một ký tự thay `&&`/`||` thì có thể khiến vế phải vốn bị bỏ qua lại được chạy.
+Additionally, boolean `&` and `|` **do not short-circuit**. De Morgan's laws also have logical formulas for them, but switching `&&`/`||` to single-character operators can cause a previously skipped right-hand side to run.
 
-## 6. Cẩn thận khi đổi dấu toán tử quan hệ với `double`/`float`
+## 6. Watch Out When Flipping Relational Operators with `double`/`float`
 
-Thường thấy những phép biến đổi như:
+You often see transformations like:
 
 ~~~text
 !(x < 10)   →   x >= 10
 !(x >= 0)   →   x < 0
 ~~~
 
-Với **`int`/`long`**, chúng tương đương. Nhưng với `double` hoặc `float`, `NaN` làm phép đổi dấu trực tiếp **không còn tương đương**:
+For **`int`/`long`**, these are equivalent. However, for `double` or `float`, `NaN` makes direct operator flipping **no longer equivalent**:
 
 ~~~java
 double x = Double.NaN;
@@ -164,23 +164,23 @@ boolean negatedRange = !(x >= 0.0 && x <= 100.0); // true.
 boolean outsideByComparisons = x < 0.0 || x > 100.0; // false.
 ~~~
 
-Các phép quan hệ `<`, `<=`, `>`, `>=` với `NaN` đều false, nên phủ định của một phép quan hệ false là true. **Định luật De Morgan vẫn đúng**; điều sai là thay `!(x >= 0)` bằng `x < 0` mà quên `NaN`.
+The relational operators `<`, `<=`, `>`, `>=` with `NaN` all evaluate to false, so negating a false relational comparison gives true. **De Morgan's laws still hold**; what is wrong is replacing `!(x >= 0)` with `x < 0` while forgetting `NaN`.
 
-Nếu nghiệp vụ không chấp nhận giá trị không hữu hạn, hãy quy định điều đó rõ ràng:
+If business rules reject non-finite values, state that explicitly:
 
 ~~~java
 double x = Double.NaN;
 boolean valid = Double.isFinite(x) && x >= 0.0 && x <= 100.0;
 boolean invalid = !valid;
-// Có thể viết De Morgan:
+// Can be written via De Morgan:
 // !Double.isFinite(x) || !(x >= 0.0) || !(x <= 100.0)
 ~~~
 
-Với `boolean` nullable kiểu `Boolean`, phủ định `!flag` đòi hỏi unboxing, có thể ném `NullPointerException` nếu `flag == null`. Xác định rõ quy tắc xử lý null trước khi rút gọn.
+With a nullable `Boolean`, negating `!flag` requires unboxing, which can throw `NullPointerException` if `flag == null`. Define the null-handling rule clearly before simplifying.
 
-## 7. Chương trình Java 17+ chạy độc lập
+## 7. Standalone Java 17+ Program
 
-Tạo file **DeMorganDemo.java**:
+Create the file **`DeMorganDemo.java`**:
 
 ~~~java
 public final class DeMorganDemo {
@@ -253,14 +253,14 @@ public final class DeMorganDemo {
 }
 ~~~
 
-Biên dịch và chạy ở thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 DeMorganDemo.java
 java DeMorganDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 andNot=true
@@ -282,35 +282,35 @@ nanNegatedRange=true
 nanOutsideComparisons=false
 ~~~
 
-`truthTableEquivalent=true` kiểm tra đủ bốn tổ hợp của hai giá trị boolean. Hai cặp trace chứng minh phép đổi De Morgan **không buộc nhánh bị bỏ qua chạy thêm**. Bốn dòng `nan...` chứng minh cảnh báo về đổi dấu bất đẳng thức với `NaN`.
+`truthTableEquivalent=true` checks all four combinations of two boolean values. Both trace pairs prove that De Morgan rewriting **does not force a skipped branch to run**. The four `nan...` lines demonstrate the warning about flipping inequalities with `NaN`.
 
-## 8. Quy trình rút gọn và bài tập
+## 8. Simplification Workflow and Exercises
 
-Khi gặp một điều kiện nhiều phủ định, hãy làm theo thứ tự:
+When encountering a condition with nested negations, follow this order:
 
-1. **Nhận diện nhóm trong ngoặc**: `!(P && Q)` hay `!(P || Q)`?
-2. **Đảo phép nối** (`&&` ↔ `||`) và **phủ định mỗi toán hạng**.
-3. **Đọc lại bằng lời**: “không đồng thời” → “ít nhất một điều kiện không đúng”.
-4. **Giữ guard đúng vị trí** và không thay đổi thứ tự/ số lần gọi biểu thức có side effect.
-5. **Kiểm tra kiểu và dữ liệu đặc biệt**, nhất là `double NaN`, `Boolean null`, và các ranh giới 0, min, max.
+1. **Identify the parenthesized group**: `!(P && Q)` or `!(P || Q)`?
+2. **Flip the connective** (`&&` ↔ `||`) and **negate each operand**.
+3. **Read it aloud in plain words**: "not both" → "at least one condition is false".
+4. **Keep guards in their proper position** and do not change the order or call count of expressions with side effects.
+5. **Check types and special values**, especially `double NaN`, `Boolean null`, and boundaries like 0, min, max.
 
-| Dạng ban đầu | Dạng theo De Morgan |
+| Original form | De Morgan form |
 | --- | --- |
 | `!(a && b)` | `!a \|\| !b` |
 | `!(a \|\| b)` | `!a && !b` |
 | `!(x >= 0 && x <= 10)` | `!(x >= 0) \|\| !(x <= 10)` |
 | `!(obj != null && obj.ready())` | `obj == null \|\| !obj.ready()` |
 
-**Bài 1.** Viết lại `!(hasAccount && isActive)` bằng OR và hai phủ định; đọc nghĩa bằng tiếng Việt.
+**Exercise 1.** Rewrite `!(hasAccount && isActive)` using OR and two negations; state its meaning in plain English.
 
-**Bài 2.** Viết lại `!(isWeekend || isHoliday)` bằng AND; lập bảng chân trị nhỏ để kiểm chứng.
+**Exercise 2.** Rewrite `!(isWeekend || isHoliday)` using AND; build a small truth table to verify.
 
-**Bài 3.** Cho `int x = -1`, so sánh `!(x >= 0 && x <= 10)` với `x < 0 || x > 10`. Hai biểu thức có tương đương khi `x` thuộc kiểu `int` không?
+**Exercise 3.** Given `int x = -1`, compare `!(x >= 0 && x <= 10)` with `x < 0 || x > 10`. Are the two expressions equivalent when `x` has type `int`?
 
-**Bài 4.** Cho `String name = null`. Vì sao `name == null || name.isBlank()` không ném ngoại lệ? Viết lại theo dạng phủ định của một AND.
+**Exercise 4.** Given `String name = null`, why does `name == null || name.isBlank()` not throw an exception? Rewrite it as the negation of an AND.
 
-**Bài 5.** Vì sao với `double x = Double.NaN`, `!(x < 10)` khác `x >= 10`? Sự khác biệt đó có phủ định định luật De Morgan không?
+**Exercise 5.** Why is `!(x < 10)` different from `x >= 10` when `double x = Double.NaN`? Does that difference invalidate De Morgan's laws?
 
-### Ghi nhớ
+### Key Takeaways
 
-**De Morgan:** `!(P && Q) == (!P || !Q)` và `!(P || Q) == (!P && !Q)`. Muốn đẩy `!` vào trong ngoặc, phải **đổi AND ↔ OR** và **phủ định từng điều kiện**. Với Java, ưu tiên dễ đọc, giữ short-circuit an toàn và chú ý `NaN` trước khi đổi dấu quan hệ.
+**De Morgan:** `!(P && Q) == (!P || !Q)` and `!(P || Q) == (!P && !Q)`. To push `!` inside parentheses, you must **flip AND ↔ OR** and **negate each condition**. In Java, prioritize readability, preserve safe short-circuiting, and watch out for `NaN` before flipping relational operators.

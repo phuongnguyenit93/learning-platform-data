@@ -1,91 +1,91 @@
-# Giới hạn đọc song song và thứ tự ghép kết quả với Java IO/NIO.2
+# Bounding Parallel Reads and Ordering Result Assembly with Java IO/NIO.2
 
-Khi một tệp lớn cần được đọc và xử lý theo từng khối, ta có thể phân chia công việc cho nhiều luồng: khối đầu tiên đọc từ offset 0, khối tiếp theo từ offset `chunkSize`, v.v. Tuy nhiên, **đọc hoặc xử lý song song** không đồng nghĩa với **kết quả đến theo thứ tự gốc**. Khối ở cuối file có thể hoàn thành trước khối đầu; nếu ghi ngay theo thứ tự hoàn thành, dữ liệu đầu ra sẽ bị đảo chỗ.
+When a large file needs to be read and processed in blocks, work can be split across multiple threads: the first block reads from offset 0, the next from offset `chunkSize`, and so on. However, **parallel reading or processing** does not mean **results arrive in their original order**. A block at the end of the file may finish before the first block; if written immediately in completion order, the output data will be scrambled.
 
-Ngoài tính đúng đắn, đọc song song không giới hạn dễ sinh hàng nghìn tác vụ, nhiều buffer chứa dữ liệu và quá nhiều lời gọi IO cùng lúc. Thiết kế tốt phải đồng thời bảo đảm:
+Beyond correctness, unbounded parallel reads easily spawn thousands of tasks, many data-holding buffers, and too many concurrent I/O calls. A sound design must simultaneously guarantee:
 
-1. **Đúng phạm vi đọc:** mỗi khối đọc một khoảng byte xác định, không chồng lấp, không bỏ sót.
-2. **Giới hạn tài nguyên:** giới hạn số tác vụ thực thi, số tác vụ đã gửi nhưng chưa tiêu thụ kết quả, lượng dữ liệu đệm và số file/channel mở.
-3. **Ghép theo thứ tự:** kết quả được đưa vào đầu ra đúng chỉ số khối/offset, bất kể luồng nào xong trước.
-4. **Xử lý lỗi và kết thúc:** lỗi đọc được truyền về phía điều phối; tài nguyên và tác vụ còn lại được dừng, không tiếp tục công bố một file đầu ra chưa hoàn chỉnh.
+1. **Exact read ranges:** each block reads a defined byte range without overlaps or gaps.
+2. **Resource bounds:** limit executing tasks, submitted tasks whose results are not yet consumed, buffered data, and open files/channels.
+3. **Ordered assembly:** results are written to the output in exact block/offset order regardless of which thread finishes first.
+4. **Error handling and termination:** read errors propagate to the coordinator; remaining resources and tasks are stopped rather than publishing an incomplete output file.
 
-Bài này tập trung vào cơ chế Java 17+ dùng `FileChannel`, `ExecutorService`, `Future` và hàng đợi kết quả có giới hạn. Các nguyên tắc tương tự áp dụng cho việc tính checksum theo khối, giải mã/biến đổi khối độc lập hoặc ghép những phần đã xử lý.
+This lesson focuses on Java 17+ patterns using `FileChannel`, `ExecutorService`, `Future`, and a bounded result queue. The same principles apply to per-block checksums, decoding/transforming independent blocks, or assembling processed chunks.
 
-## 1. Ba thứ tự khác nhau
+## 1. Three Different Orders
 
-Giả sử file có 4 khối:
+Suppose a file has 4 blocks:
 
 ```text
-Tệp theo offset:
+File by offset:
 [0: AAAA] [1: BBBB] [2: CCCC] [3: DDDD]
 ```
 
-Nếu hai worker cùng hoạt động, lịch chạy có thể là:
+If two workers run concurrently, the schedule might be:
 
 ```text
-Lệnh submit:        0 → 1 → 2 → 3
-Lệnh hoàn thành:    1 → 0 → 3 → 2
-Thứ tự phải ghi:    0 → 1 → 2 → 3
-Kết quả đúng:       AAAABBBBCCCCDDDD
+Submit order:       0 → 1 → 2 → 3
+Completion order:   1 → 0 → 3 → 2
+Required write:     0 → 1 → 2 → 3
+Correct result:     AAAABBBBCCCCDDDD
 ```
 
-- **Submit order:** thứ tự gửi công việc vào executor; hoàn toàn không cam kết thứ tự hoàn thành.
-- **Completion order:** thứ tự các tác vụ thực sự xong; phụ thuộc scheduler, tốc độ thiết bị, cache và thời lượng xử lý.
-- **Output order:** thứ tự nghiệp vụ cần giữ; với ghép file thường là thứ tự offset tăng dần.
+- **Submit order:** the order work is submitted to the executor; makes no guarantee about completion order.
+- **Completion order:** the order tasks actually finish; depends on the scheduler, device speed, cache, and processing duration.
+- **Output order:** the business order to preserve; for file assembly, typically ascending offset order.
 
-`Future.get()` chờ tác vụ cụ thể hoàn thành. Nếu lưu các future theo thứ tự khối rồi lần lượt `get()` và ghi, đầu ra có thể đúng thứ tự. Nếu dùng `ExecutorCompletionService.take()`, kết quả sẽ đến theo thứ tự hoàn thành, cần một cơ chế sắp/xếp lại trước khi ghép.
+`Future.get()` waits for a specific task to finish. If futures are stored in block order and sequentially `get()`ed and written, output stays ordered. If `ExecutorCompletionService.take()` is used, results arrive in completion order and need a reordering mechanism before assembly.
 
-**Một sai lầm phổ biến:** `ExecutorService.submit` nhiều lần rồi cho mỗi tác vụ tự ghi vào cùng `OutputStream` bằng `out.write(data)`. Thứ tự ghi lúc đó do lịch chạy quyết định; ngay cả khi từng `write` không bị chen byte, các khối vẫn có thể đảo thứ tự.
+**A common mistake:** calling `ExecutorService.submit` repeatedly and letting each task write directly to the same `OutputStream` via `out.write(data)`. Write order is then dictated by thread scheduling; even if individual `write` calls do not interleave bytes, blocks can still be out of order.
 
-## 2. Phân chia file theo vị trí byte
+## 2. Partitioning a File by Byte Position
 
-Với file kích thước `fileSize` byte và độ lớn khối `chunkSize > 0`, số khối là:
+For a file of `fileSize` bytes and block size `chunkSize > 0`, the number of blocks is:
 
 \[
 \text{chunkCount}=\left\lceil\frac{\text{fileSize}}{\text{chunkSize}}\right\rceil.
 \]
 
-Khối `i` (bắt đầu từ 0) có:
+Block `i` (0-based) has:
 
-- `offset = i * chunkSize` (dùng `long` cho vị trí file lớn).
+- `offset = i * chunkSize` (use `long` for large file positions).
 - `length = min(chunkSize, fileSize - offset)`.
-- Phạm vi byte là `[offset, offset + length)`, tức chứa đầu, không chứa cuối.
+- Byte range is `[offset, offset + length)`, i.e., inclusive start, exclusive end.
 
-Ví dụ: file 15 byte, `chunkSize = 4` → bốn khối ở các offset 0, 4, 8, 12; độ dài lần lượt 4, 4, 4, 3. File rỗng có 0 khối; không tạo công việc đọc ngoài EOF.
+Example: a 15-byte file with `chunkSize = 4` → four blocks at offsets 0, 4, 8, 12; lengths 4, 4, 4, 3 respectively. An empty file has 0 blocks; do not create read tasks past EOF.
 
-Với `FileChannel.read(ByteBuffer dst, long position)`, `position` là vị trí byte **tuyệt đối**. Đây là API phù hợp để nhiều worker đọc các vùng riêng của cùng một channel mà không phải cạnh tranh trên vị trí đọc tuần tự của channel. Mỗi worker phải dùng **ByteBuffer riêng**, không chia sẻ `position/limit` của một buffer giữa các luồng.
+With `FileChannel.read(ByteBuffer dst, long position)`, `position` is an **absolute** byte offset. This API suits multiple workers reading disjoint regions of the same channel without contending on the channel's sequential read position. Each worker must use **its own `ByteBuffer`**, never sharing one buffer's `position/limit` across threads.
 
-Cần lưu ý:
+Keep in mind:
 
-- Một lời gọi `read` **không bảo đảm lấp đầy buffer**. Luôn lặp cho tới khi đủ byte của khối, gặp EOF, hoặc lỗi.
-- `FileChannel.size()` và offset đầu vào phải khớp với **một file ổn định** trong lúc xử lý. Nếu bên khác truncate, append hoặc ghi đè file đang đọc, phép chia khối dựa trên kích thước ban đầu không còn là snapshot nhất quán.
-- `FileChannel` có API an toàn để dùng giữa nhiều luồng theo hợp đồng của channel, nhưng việc gọi read song song **không bảo đảm tăng thông lượng**: provider, filesystem, cache, ổ HDD/SSD và tải I/O có thể giới hạn hoặc tuần tự hóa các thao tác.
+- A single `read` call **does not guarantee filling the buffer**. Always loop until the block's full byte count is read, EOF is hit, or an error occurs.
+- `FileChannel.size()` and input offsets must correspond to **a stable file** during processing. If another party truncates, appends, or overwrites the file while reading, chunking based on initial size is no longer a consistent snapshot.
+- `FileChannel` has a thread-safe API per channel contract, yet calling parallel reads **does not guarantee higher throughput**: the provider, filesystem, cache, HDD/SSD, and I/O load may throttle or serialize operations.
 
-Không nên chia byte tùy ý rồi gọi `new String(bytes, UTF_8)` cho **từng khối** nếu cần giữ nguyên ký tự: một code point UTF-8 có thể bị cắt giữa hai khối. Đọc/ghép byte trước khi giải mã, hoặc tự thiết kế cách chia tại ranh giới ký tự/dòng và decoder có trạng thái. Ví dụ bên dưới ghép **byte nguyên vẹn**; không biến đổi từng khối như văn bản.
+Do not split bytes arbitrarily and call `new String(bytes, UTF_8)` on **each block** if characters must stay intact: a UTF-8 code point can be sliced across two blocks. Read/assemble bytes before decoding, or explicitly split at character/line boundaries using a stateful decoder. The example below assembles **raw bytes verbatim**; it does not transform each block as text.
 
-## 3. Hai loại giới hạn song song khác nhau
+## 3. Two Different Kinds of Concurrency Limits
 
-`Executors.newFixedThreadPool(3)` giới hạn khoảng 3 tác vụ chạy đồng thời, nhưng **không tự giới hạn số lượng đã submit**: executor fixed pool sử dụng hàng đợi công việc có thể tăng rất lớn. Nếu chương trình tạo `Future` cho từng khối của file nhiều terabyte, bộ nhớ vẫn có thể tăng theo số lượng tác vụ dù chỉ có 3 worker đang chạy.
+`Executors.newFixedThreadPool(3)` caps concurrently executing tasks at around 3, yet **does not automatically bound submitted tasks**: a fixed pool's work queue can grow huge. If the program creates a `Future` for every block of a multi-terabyte file, memory can still grow with task count even with only 3 active workers.
 
-Cần tách hai tham số:
+Separate two parameters:
 
-| Giới hạn | Mục đích | Ví dụ |
+| Limit | Purpose | Example |
 | --- | --- | --- |
-| `WORKERS` | Số worker thực thi task cùng lúc, ảnh hưởng CPU, IOPS và mức cạnh tranh đọc | `2` |
-| `MAX_IN_FLIGHT` | Số task đã submit nhưng chưa được lấy/ghi kết quả; giới hạn task queue, future và buffer chờ | `2` |
-| `CHUNK_BYTES` | Kích thước bộ nhớ dữ liệu cho mỗi khối; ảnh hưởng số syscall và memory pressure | `4` trong demo, thường lớn hơn trong thực tế |
+| `WORKERS` | Concurrent task-executing workers; affects CPU, IOPS, and read contention | `2` |
+| `MAX_IN_FLIGHT` | Tasks submitted whose results are not yet taken/written; bounds task queue, futures, and waiting buffers | `2` |
+| `CHUNK_BYTES` | Data memory size per block; affects syscall count and memory pressure | `4` in demo, typically larger in practice |
 
-Với cách ghép byte có giới hạn, lượng byte của các khối đã submit mà còn chờ tiêu thụ xấp xỉ **`MAX_IN_FLIGHT × CHUNK_BYTES`** ở trạng thái xấu nhất, cộng buffer của `OutputStream`, cấu trúc task, buffer hệ thống và các thành phần xử lý khác. Đây là ước lượng theo ứng dụng, không phải giới hạn RSS chính xác của JVM.
+With bounded byte assembly, bytes of submitted blocks waiting to be consumed are roughly **`MAX_IN_FLIGHT × CHUNK_BYTES`** in the worst case, plus `OutputStream` buffers, task structures, system buffers, and other processing components. This is an application-level estimate, not the exact JVM RSS limit.
 
-Nếu mỗi task tạo thêm kết quả kích thước khác (ví dụ giải nén hoặc tạo nhiều đối tượng), phải ràng buộc **kích thước kết quả** nữa: giới hạn số tác vụ chưa chắc giới hạn tổng bộ nhớ nếu một tác vụ có thể tạo hàng gigabyte.
+If each task produces variable-sized outputs (e.g., decompression or generating many objects), you must bound **output size** as well: capping task count alone may not cap total memory if one task can produce gigabytes.
 
-Cơ chế cấp việc hợp lý là **cửa sổ trượt**: chỉ submit khi số task chưa tiêu thụ nhỏ hơn `MAX_IN_FLIGHT`; nhận một kết quả theo thứ tự, ghi nó xuống output, bỏ dữ liệu của khối đó, rồi mới cấp chỗ cho một task mới. Khi đầu ra chậm, tốc độ đọc bị kéo xuống theo (*backpressure*), thay vì tích lũy vô hạn.
+A clean work-dispatching mechanism is a **sliding window**: only submit while unconsumed tasks are below `MAX_IN_FLIGHT`; take one result in order, write it to output, release that block's data, and only then open a slot for a new task. When the output slows down, reading slows down too (*backpressure*), rather than accumulating without bound.
 
-## 4. Ví dụ Java 17+ chạy được: đọc đồng thời, ghi theo offset
+## 4. Runnable Java 17+ Example: Concurrent Reads, Offset-Ordered Writes
 
-Chương trình dưới đây tạo file nguồn nhỏ để stdout xác định, sau đó copy qua nhiều lần đọc có vị trí tuyệt đối. Phương thức `copyOrdered` có thể dùng cùng mẫu cho file lớn; không cần giữ toàn bộ nội dung file trong RAM.
+The program below creates a small source file for deterministic stdout, then copies it via multiple absolute-offset reads. `copyOrdered` can use the same pattern for large files without holding the whole file in RAM.
 
-Tạo file `OrderedParallelRead.java`:
+Create `OrderedParallelRead.java`:
 
 ```java
 import java.io.EOFException;
@@ -131,7 +131,7 @@ public class OrderedParallelRead {
 
     private static long copyOrdered(Path source, Path destination)
             throws Exception {
-        // Tạo stream output bằng CREATE_NEW để không ghi đè file có sẵn.
+        // Open output stream with CREATE_NEW to avoid overwriting existing files.
         try (FileChannel channel =
                      FileChannel.open(source, StandardOpenOption.READ);
              OutputStream out = Files.newOutputStream(
@@ -150,7 +150,7 @@ public class OrderedParallelRead {
             try {
                 while (nextOffset < fileSize || !inFlight.isEmpty()) {
 
-                    // Chỉ gửi thêm tác vụ khi cửa sổ còn chỗ.
+                    // Submit more tasks only while the window has room.
                     while (nextOffset < fileSize
                             && inFlight.size() < MAX_IN_FLIGHT) {
                         final long offset = nextOffset;
@@ -164,8 +164,8 @@ public class OrderedParallelRead {
                         nextOffset += length;
                     }
 
-                    // Future đầu hàng đợi là khối có index nhỏ nhất
-                    // chưa được ghi. Chờ nó dù khối sau đã chạy xong.
+                    // The head future in the queue is the lowest-index
+                    // unwritten block. Wait for it even if later blocks finished.
                     Future<Block> oldest = inFlight.removeFirst();
                     Block block;
                     try {
@@ -184,7 +184,7 @@ public class OrderedParallelRead {
 
                 return expectedIndex;
             } finally {
-                // Hủy phần chưa dùng nếu có lỗi; đóng pool khi hoàn tất.
+                // Cancel unused work on error; shut down pool upon completion.
                 for (Future<Block> future : inFlight) {
                     future.cancel(true);
                 }
@@ -213,14 +213,14 @@ public class OrderedParallelRead {
 }
 ```
 
-Biên dịch/chạy ở thư mục chứa file bằng JDK 17 trở lên:
+Compile/run in the file's directory using JDK 17 or newer:
 
 ```bash
 javac -encoding UTF-8 OrderedParallelRead.java
 java OrderedParallelRead
 ```
 
-Stdout xác định:
+Deterministic stdout:
 
 ```text
 blocks=4
@@ -228,25 +228,25 @@ output=ABCDEFGHIJKLMNO
 equal=true
 ```
 
-**Vì sao kết quả đúng dù task hoàn thành đảo thứ tự?**
+**Why is the output right even if tasks finish out of order?**
 
-1. Task số 0 đọc 4 byte từ offset 0; số 1 đọc từ offset 4; tiếp theo là 8 và 12 (độ dài cuối chỉ 3 byte).
-2. Mỗi `readBlock` tạo `ByteBuffer` riêng, lặp positional read cho tới khi đủ `length`, sau đó trả `Block(index, bytes)`.
-3. `inFlight` lưu future **theo thứ tự submit**, cũng là thứ tự offset; chỉ có tối đa 2 future chưa tiêu thụ.
-4. Consumer lấy `removeFirst().get()` và chỉ ghi khối có index đúng `expectedIndex`. Nếu khối 1 xong sớm hơn khối 0, nó nằm chờ; không được viết trước khối 0.
-5. Dữ liệu từng khối được ghi xong trước khi mở chỗ nhận công việc tiếp theo; `OutputStream` chỉ có **một thread** viết, tránh tranh chấp vị trí output.
-6. Dòng `Arrays.equals` chỉ dùng để chứng minh cho **fixture 15 byte**; với file lớn nên xác nhận bằng checksum dạng streaming, không dùng `Files.readAllBytes` cho cả file.
+1. Task 0 reads 4 bytes from offset 0; task 1 reads from offset 4; followed by 8 and 12 (the final length is only 3 bytes).
+2. Each `readBlock` creates its own `ByteBuffer`, loops positional reads until `length` is met, and returns `Block(index, bytes)`.
+3. `inFlight` stores futures **in submit order**, which is also offset order; at most 2 unconsumed futures exist.
+4. The consumer takes `removeFirst().get()` and only writes the block matching `expectedIndex`. If block 1 finishes earlier than block 0, it waits and cannot be written ahead of block 0.
+5. Each block's data is written before opening a slot for more work; `OutputStream` has **only one writer thread**, avoiding output position races.
+6. The `Arrays.equals` line is only for proving the **15-byte fixture**; for large files, verify with a streaming checksum rather than `Files.readAllBytes` on the entire file.
 
-**Lưu ý về quản lý lỗi:** Ví dụ hủy các future còn trong cửa sổ và gọi `shutdownNow()` khi thoát. `cancel(true)` hoặc `shutdownNow()` chỉ yêu cầu ngắt, không bảo đảm task hoặc I/O đang chặn dừng tức thì. Trong hệ thống có yêu cầu dừng sạch, hãy đợi pool kết thúc bằng `awaitTermination` có timeout, xử lý cờ interrupted và bảo đảm không đóng tài nguyên mà task còn sử dụng. Trên thất bại, file output đã tạo có thể chỉ chứa phần đầu; không công bố file đó như thành phẩm.
+**Error management note:** The example cancels remaining futures in the window and calls `shutdownNow()` on exit. `cancel(true)` or `shutdownNow()` only requests interruption and does not guarantee tasks or blocking I/O stop immediately. In systems requiring clean shutdown, wait for pool termination using `awaitTermination` with a timeout, handle the interrupted flag, and ensure resources still used by tasks are not closed prematurely. On failure, the created output file may contain only the beginning; do not publish it as a finished artifact.
 
-Trong demo, hai tham số `CHUNK_BYTES=4` và `MAX_IN_FLIGHT=2` được cố ý chọn nhỏ để nhìn thấy số khối. Với dữ liệu lớn cần đo đạc trước khi chọn kích thước thực tế.
+In the demo, `CHUNK_BYTES=4` and `MAX_IN_FLIGHT=2` are deliberately small to make block counts visible. For large datasets, measure before picking real sizes.
 
-## 5. Vì sao không submit toàn bộ khối cùng lúc?
+## 5. Why Not Submit All Blocks at Once?
 
-Một phương án dễ viết nhưng kém khả năng mở rộng:
+An easy-to-write approach with poor scalability:
 
 ```java
-// Mã minh họa, không phải chương trình độc lập.
+// Illustrative snippet, not a standalone program.
 List<Future<byte[]>> futures = new ArrayList<>();
 for (long offset = 0; offset < size; offset += chunkSize) {
     final long start = offset;
@@ -257,100 +257,100 @@ for (Future<byte[]> f : futures) {
 }
 ```
 
-Cách này có thể **giữ đúng thứ tự output** vì duyệt future theo thứ tự, nhưng toàn bộ task và future đều được tạo ngay. Nếu không có giới hạn submit, hàng đợi của fixed thread pool, tham chiếu tới các `Future` và kết quả hoàn tất đang chờ có thể tăng theo kích thước file.
+This approach can **preserve output order** by iterating over futures sequentially, yet all tasks and futures are created upfront. Without a submit bound, the fixed thread pool's queue, `Future` references, and completed pending results can grow proportionally to file size.
 
-Các lỗi khác thường đi kèm: dùng `int` cho offset file lớn rồi overflow; `byte[] data = Files.readAllBytes(bigPath)` vô tình nạp cả file; tăng số luồng rất cao và làm thiết bị IO tranh chấp; ghi nhiều khối vào một `OutputStream` từ nhiều worker mà không có đánh số/điều phối.
+Other common accompanying bugs: using `int` for large file offsets and overflowing; `byte[] data = Files.readAllBytes(bigPath)` accidentally loading the whole file; spawning huge thread counts and causing I/O device contention; writing blocks into one `OutputStream` from multiple workers without numbering or coordination.
 
-Cửa sổ trượt trong ví dụ có thể làm tác vụ sau chờ vì tác vụ đầu tiên chậm (**head-of-line blocking**). Đây là lựa chọn đánh đổi để đầu ra giữ đúng thứ tự và bộ nhớ bị chặn bởi số khối tối đa. Nếu xử lý từng khối có thời gian rất lệch nhau, có thể cân nhắc kích thước khối đồng đều hơn, tách bước xử lý khỏi bước đọc, hoặc cơ chế cấp tín chỉ hợp lý.
+The sliding window in the example can make later tasks wait on a slow first task (**head-of-line blocking**). This is the trade-off to keep output ordered and memory bounded by a maximum block count. If per-block processing times vary wildly, consider more uniform block sizes, separating CPU processing from reading, or a suitable credit/scheduling scheme.
 
-## 6. Khi dùng CompletionService và bộ đệm sắp lại
+## 6. Using CompletionService and a Reorder Buffer
 
-`ExecutorCompletionService` hữu ích nếu muốn biết **task nào xong trước**, ví dụ phục vụ metric, chạy downstream độc lập hoặc giảm thời gian nhàn rỗi. Nhưng `take()` không trả theo chỉ số khối.
+`ExecutorCompletionService` is useful when you want to know **which task finished first**, e.g. for metrics, running independent downstream steps, or reducing idle time. However, `take()` does not return by block index.
 
-Mô hình ghép đúng khi nhận theo thứ tự hoàn thành:
+Correct assembly model when receiving in completion order:
 
 ```text
 workers → completed Block(index, bytes)
                    ↓
         pendingByIndex (map)
                    ↓
-nextExpected=0 → xuất khối 0 nếu sẵn có → tăng nextExpected
+nextExpected=0 → emit block 0 if available → increment nextExpected
                    ↓
-        tiếp tục xuất các khối liên tiếp đã có
+        continue emitting consecutive available blocks
 ```
 
-Giữ `Map<Long, Block> pendingByIndex`, thêm kết quả theo `index`, chỉ ghi khi đã có `nextExpected`. Sau khi ghi, lấy các block nối tiếp đang chờ.
+Keep `Map<Long, Block> pendingByIndex`, insert results by `index`, and only write when `nextExpected` is present. After writing, drain any consecutive blocks waiting next.
 
-**Bẫy về giới hạn tài nguyên:** Nếu cứ nhận một completion rồi submit thêm một task mới, nhưng khối đầu đang chậm, `pendingByIndex` có thể phình ra vô hạn: tất cả các khối sau đã xong nhưng không khối nào được xuất. Phải giới hạn **tổng số task đã gửi nhưng chưa được ghi theo thứ tự** (bao gồm cả đang chạy, queued và đã hoàn thành trong reorder buffer). Chỉ hoàn lại một “slot” sau khi kết quả thực sự được tiêu thụ/ghi xong, không chỉ sau khi một task kết thúc.
+**Resource bound trap:** If every completion immediately triggers submitting a new task while the first block is slow, `pendingByIndex` can grow unboundedly: all later blocks finish, yet none can be emitted. You must bound the **total number of submitted tasks not yet written in order** (including running, queued, and completed tasks sitting in the reorder buffer). Release a “slot” only after the result is actually consumed/written, not merely when a task finishes.
 
-Nếu mỗi khối được **ghi vào vị trí offset riêng** bằng `FileChannel.write(buffer, position)`, bước ghép tuần tự về mặt vật lý có thể không cần thiết. Tuy nhiên khi đó phải bảo đảm khoảng ghi không chồng lấp, xử lý partial write, kích thước file đích, lỗi giữa chừng và xác nhận hoàn tất toàn bộ trước khi công bố file. Với định dạng nén/mã hóa có header chung hoặc biến đổi làm thay đổi độ dài mỗi khối, offset đầu ra không còn đơn giản bằng offset đầu vào.
+If each block is **written to its own offset** via `FileChannel.write(buffer, position)`, a sequential physical assembly step might be unnecessary. However, you must then guarantee non-overlapping write ranges, handle partial writes, manage target file size, handle mid-way failures, and verify full completion before publishing the file. With compression/encryption formats sharing a header or transforms altering per-block length, output offsets no longer simply equal input offsets.
 
-## 7. Đọc theo dòng, ký tự và bản ghi: đừng lấy byte chunk làm ranh giới dữ liệu
+## 7. Reading by Lines, Characters, and Records: Do Not Treat Byte Chunks as Data Boundaries
 
-Chia tệp byte thành những đoạn `64 KiB` có thể cắt đôi một ký tự UTF-8, một dòng CSV, một bản ghi có độ dài thay đổi hoặc một thông điệp trong log. Nếu worker giải mã độc lập từng đoạn, bạn có thể gặp ký tự thay thế, bản ghi bị chia đôi hoặc kết quả ghép không đúng về ngữ nghĩa.
+Splitting a byte file into `64 KiB` segments can slice a UTF-8 character, a CSV line, a variable-length record, or a log entry in half. If workers decode segments independently, you risk replacement characters, split records, or semantically corrupted assembly.
 
-Các hướng xử lý:
+Approaches:
 
-- **Cần bảo toàn file nhị phân:** đọc và ghép đúng byte theo offset; không giải mã từng khối. Đây là yêu cầu/thiết kế của ví dụ.
-- **Cần xử lý từng dòng:** dùng một reader tuần tự chịu trách nhiệm phân tách dòng hoàn chỉnh rồi gửi **batch các dòng/bản ghi** cho worker. Đánh số batch, giới hạn queue/in-flight và phát kết quả theo batch index; tránh dùng một `BufferedReader` chung cho nhiều luồng gọi `readLine` không điều phối.
-- **Cần chia file text tại offset:** đọc thêm một phần biên để tìm dấu kết thúc bản ghi hợp lệ, quy định rõ ai sở hữu byte của record nằm ở ranh giới; decoder UTF-8 phải xử lý byte multi-byte ở biên. Đừng tự cộng byte mù quáng và bỏ mất dữ liệu trùng.
-- **Cần streaming từng record qua mạng:** phải xét backpressure, timeout, retry và semantic ordering của giao thức; “song song nội bộ” không tự có nghĩa là response luôn đúng thứ tự.
-- **Cần parallel Stream:** `Files.lines(path)` trả `Stream<String>` và phải được đóng; `parallel()` không thay thế chính sách giới hạn bộ nhớ/IO của bài toán. `forEach` không giữ encounter order, còn `forEachOrdered` có bảo đảm thứ tự phần tử nhưng có thể hạn chế concurrency và không tự bảo đảm bounded buffering cho pipeline tùy biến.
+- **To preserve binary files:** read and assemble exact bytes by offset; do not decode individual blocks. This is the requirement/design of the example.
+- **To process line by line:** use a single sequential reader responsible for splitting complete lines and dispatching **batches of lines/records** to workers. Number batches, bound queues/in-flight work, and emit results by batch index; avoid sharing one `BufferedReader` across multiple threads calling `readLine` uncoordinated.
+- **To split text files at offsets:** read slightly across boundaries to locate valid record delimiters, and define clearly who owns bytes of boundary-spanning records; UTF-8 decoders must handle multi-byte characters at boundaries. Do not add bytes blindly and drop or duplicate data.
+- **To stream records over a network:** consider backpressure, timeouts, retries, and protocol ordering semantics; “internal parallelism” does not automatically keep responses ordered.
+- **To use parallel Streams:** `Files.lines(path)` returns a `Stream<String>` that must be closed; `parallel()` does not replace problem-specific memory/I/O bounds. `forEach` does not preserve encounter order, while `forEachOrdered` preserves element order yet may limit concurrency and does not automatically guarantee bounded buffering for custom pipelines.
 
-Ngay cả khi dữ liệu là text, đôi khi tách “đọc tuần tự + xử lý CPU song song + ghép có thứ tự” đơn giản và hiệu quả hơn “nhiều luồng cùng seek/read text file”.
+Even for text data, separating “sequential reading + parallel CPU processing + ordered assembly” is often simpler and more effective than “multiple threads seeking/reading the text file.”
 
-## 8. Xử lý lỗi, hủy tác vụ và xuất file nguyên tử
+## 8. Error Handling, Task Cancellation, and Atomic File Output
 
-Với file quan trọng, đầu ra cần có một vòng đời rõ ràng:
+For important files, outputs need a clear lifecycle:
 
-1. Đọc metadata input đã được phê duyệt; nếu có thể, sử dụng snapshot/file bất biến trong thời gian xử lý. Không để tác vụ khác ghi/truncate cùng file.
-2. Tạo **file tạm trong cùng filesystem/thư mục phù hợp**, không ghi trực tiếp vào tên đích được công bố.
-3. Chỉ có một coordinator quản lý submit và output order. Mọi worker trả kết quả hoặc lỗi; không âm thầm nuốt exception.
-4. Khi `Future.get()` ném `ExecutionException`, nguyên nhân gốc nằm ở `getCause()`. Dừng cấp việc, hủy tác vụ đang chờ và đưa hệ thống vào trạng thái lỗi. Với `InterruptedException`, phục hồi interrupt flag rồi thoát.
-5. Chỉ khi tất cả block đã xử lý, `OutputStream` đóng thành công và các bước kiểm tra (ví dụ kích thước/checksum) đạt yêu cầu, mới công bố file tạm bằng move/rename. Nếu cần nguyên tử, kiểm tra hỗ trợ `Files.move(..., ATOMIC_MOVE)`; nền tảng có thể ném `AtomicMoveNotSupportedException`.
-6. Nếu có lỗi, xóa file tạm chưa hoàn chỉnh theo chính sách; ghi log offset/index và nguyên nhân nhưng tránh lộ dữ liệu nhạy cảm. Có thể cân nhắc retry **tác vụ chỉ đọc idempotent** với số lần giới hạn khi input bất biến; không retry bừa bãi khi đang ghi side effect.
+1. Read approved input metadata; if possible, use a snapshot or immutable file during processing. Prevent other jobs from writing/truncating the same file.
+2. Create a **temporary file on the appropriate filesystem/directory**, never writing directly to the final published name.
+3. Have a single coordinator manage submission and output order. All workers return results or errors; never silently swallow exceptions.
+4. When `Future.get()` throws `ExecutionException`, the root cause is in `getCause()`. Stop dispatching, cancel pending tasks, and transition to error state. On `InterruptedException`, restore the interrupt flag and exit.
+5. Only when all blocks are processed, `OutputStream` closes cleanly, and verification checks (e.g., size/checksum) pass should you publish the temp file via move/rename. If atomicity is needed, check `Files.move(..., ATOMIC_MOVE)` support; platforms may throw `AtomicMoveNotSupportedException`.
+6. On error, delete the incomplete temp file per policy; log offset/index and cause while avoiding exposing sensitive data. Consider limited retries for **idempotent read-only tasks** on immutable inputs; do not retry carelessly when side effects occur.
 
-Ví dụ hoàn chỉnh ở mục 4 cố ý chưa xây protocol công bố file, checksum streaming hay retry. Nó minh họa cơ chế giới hạn và thứ tự; khi dùng trong hệ thống cần lưu trữ bền vững, phải thêm vòng đời output nói trên.
+The complete example in Section 4 intentionally omits file publishing protocols, streaming checksums, and retries. It demonstrates bounding and ordering; in systems requiring durable storage, add the output lifecycle above.
 
-Một chi tiết quan trọng: nếu worker làm biến đổi không idempotent (ví dụ đếm/tăng trạng thái chung, gửi thông báo), retry sẽ có nguy cơ áp dụng tác dụng phụ hai lần. Phải tách phần tính toán thuần của khối khỏi phần commit có thứ tự, hoặc dùng cơ chế idempotency.
+One key detail: if workers perform non-idempotent mutations (e.g., incrementing shared counters, sending notifications), retries risk applying side effects twice. Separate pure per-block computation from ordered commits, or enforce idempotency.
 
-## 9. Chọn số luồng và kích thước khối theo đo đạc
+## 9. Choosing Thread Count and Block Size by Measurement
 
-Không có con số `WORKERS=8` hoặc `CHUNK_BYTES=1MiB` đúng cho mọi hệ thống.
+No `WORKERS=8` or `CHUNK_BYTES=1MiB` setting is right for every system.
 
-- Với **HDD**, đọc tuần tự thường tốt hơn nhiều truy cập ngẫu nhiên; đọc song song cùng một ổ có thể tăng seek và làm chậm.
-- Với **SSD/NVMe**, vài yêu cầu đọc đồng thời có thể cải thiện throughput, nhưng khi cache đã nóng hoặc giới hạn khác xuất hiện, thêm luồng không giúp.
-- Nếu mỗi khối có **xử lý CPU nặng** độc lập, tách pool đọc IO khỏi pool CPU hoặc cân bằng tổng số worker theo profile. Nút thắt có thể là CPU, memory allocation/GC hoặc output disk thay vì input disk.
-- Với **nhiều file khác nhau**, đọc song song theo file có thể cho lợi ích và cấu trúc đơn giản hơn so với chia một file thành vô số khối.
-- Nếu output là một luồng tuần tự chậm, nó có thể là giới hạn tốc độ tổng thể; tăng số reader chỉ khiến kết quả chờ lâu hơn.
-- Dùng `long` cho size/offset; giới hạn mỗi buffer byte[] ở cỡ vừa đủ (`int`), kiểm tra phép nhân/cộng khi tính offset của hàng tỉ block.
+- On **HDDs**, sequential reads usually beat many random accesses; parallel reads on one disk can increase seeks and slow things down.
+- On **SSDs/NVMe**, a few concurrent reads can improve throughput, though once cache is warm or other limits hit, adding threads stops helping.
+- If each block has independent **heavy CPU work**, separate the I/O read pool from the CPU pool or balance total workers by profile. The bottleneck may be CPU, memory allocation/GC, or the output disk rather than the input disk.
+- Across **many distinct files**, reading files in parallel can bring gains and a simpler structure than slicing one file into countless blocks.
+- If the output is a slow sequential stream, it may cap overall speed; adding readers only makes results wait longer.
+- Use `long` for sizes/offsets; keep each `byte[]` buffer moderately sized (`int`), and guard against overflow when multiplying/adding offsets across billions of blocks.
 
-Các chỉ số cần đo là throughput (MiB/s), tổng thời gian, p95/p99 latency mỗi block, số task in-flight, tổng byte đang chờ, CPU, GC, số lượng context switch, mức sử dụng thiết bị IO và thời gian coordinator chờ khối đầu. Benchmark với file có kích thước đủ lớn, cache lạnh/nóng rõ ràng, dữ liệu thực tế và cùng điều kiện thử nghiệm. Đừng suy ra “nhiều worker hơn thì luôn nhanh hơn” chỉ từ ví dụ nhỏ.
+Metrics to measure include throughput (MiB/s), total duration, per-block p95/p99 latency, in-flight task count, total waiting bytes, CPU, GC, context switches, I/O device utilization, and how long the coordinator waits on the head block. Benchmark with sufficiently large files, explicit cold/warm cache states, realistic data, and identical test conditions. Do not conclude “more workers is always faster” from tiny examples.
 
-Tùy nhu cầu, `AsynchronousFileChannel` có thể cung cấp API hoàn thành IO bất đồng bộ, nhưng callback/future vẫn có thể hoàn thành sai thứ tự offset và vẫn phải áp dụng giới hạn in-flight, reorder buffer, xử lý lỗi và close. Nó không xóa bỏ các yêu cầu trên.
+Depending on needs, `AsynchronousFileChannel` offers async I/O completion APIs, yet callbacks/futures can still complete out of offset order and still require in-flight bounds, reorder buffers, error handling, and closing. It does not remove any of those requirements.
 
-## 10. Lỗi thường gặp và hướng sửa
+## 10. Common Bugs and Fixes
 
-| Triệu chứng | Nguyên nhân khả dĩ | Khắc phục |
+| Symptom | Likely cause | Fix |
 | --- | --- | --- |
-| Output chứa các khối đúng nhưng bị đảo | Ghi theo completion order hoặc worker cùng ghi `OutputStream` | Đánh số khối và ghép theo offset/sequence; dùng một writer |
-| Vùng byte bị lặp hoặc mất | Tính offset/length sai, block cuối không đủ, dùng shared channel position không điều phối | Xác định khoảng `[offset, offset+length)`, đọc đủ byte với positional read |
-| Chỉ có 2 worker nhưng heap vẫn tăng | Submit toàn bộ hàng triệu task/future hoặc lưu mọi kết quả | Dùng bounded in-flight window và ghi/giải phóng từng khối |
-| File text bị lỗi ký tự ở biên | Giải mã UTF-8 theo chunk byte không căn chỉnh | Decode có trạng thái hoặc tách record trước khi xử lý |
-| `Future.get()` treo lâu ở khối đầu | Khối đầu chậm hoặc blocked; head-of-line | Đặt timeout/cancellation policy, theo dõi metric, cân nhắc chiến lược scheduling |
-| Kết quả thiếu cuối file | Chỉ đọc một lần rồi tưởng buffer đã đầy, hoặc dùng `int` tràn | Lặp đọc, xử lý EOF và dùng `long` offset |
-| Copy đúng với file nhỏ nhưng sai khi nguồn thay đổi | File bị truncate/ghi đè khi đang đọc | Dùng input bất biến/snapshot, kiểm tra lỗi/validation |
-| Output file bị bỏ dở khi một task thất bại | Ghi trực tiếp vào file công bố và không cleanup | Ghi temp, commit sau thành công, xử lý fail và cleanup |
-| Thêm luồng khiến đọc chậm hơn | IO contention, seek, cache pressure hoặc output là bottleneck | Đo trên thiết bị thật; thử tuần tự và thay đổi worker/chunk có kiểm soát |
+| Output contains valid blocks in wrong order | Writing in completion order or workers sharing `OutputStream` | Number blocks and assemble by offset/sequence; use one writer |
+| Byte regions duplicated or missing | Wrong offset/length math, short final block, uncoordinated shared channel position | Define `[offset, offset+length)`, loop positional reads to full length |
+| Only 2 workers yet heap keeps growing | Submitting millions of tasks/futures or buffering all results | Use a bounded in-flight window and write/release block by block |
+| Corrupted text characters at boundaries | Decoding UTF-8 across unaligned byte chunks | Decode statefully or split records before processing |
+| `Future.get()` hangs long on the first block | First block is slow or blocked; head-of-line | Set timeout/cancellation policies, monitor metrics, consider scheduling strategy |
+| Output missing end of file | Reading once assuming buffer filled, or `int` overflow | Loop reads, handle EOF, and use `long` offsets |
+| Small files copy fine, breaks when source changes | File truncated/overwritten while reading | Use immutable inputs/snapshots and validation checks |
+| Partial output file left behind when one task fails | Writing directly to published path without cleanup | Write to temp, commit on success, handle failures and cleanup |
+| Adding threads slows reading down | I/O contention, seeks, cache pressure, or output bottleneck | Measure on real hardware; try sequential and controlled worker/chunk tuning |
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-1. File 10 byte, chunk size 4. Có bao nhiêu khối và độ dài từng khối? **3 khối**, lần lượt 4, 4, 2; offset 0, 4, 8.
-2. Fixed thread pool 4 luồng có tự ngăn 1 triệu task được submit không? **Không.** Cần giới hạn in-flight/queue ngoài số luồng.
-3. Task số 3 hoàn thành trước task số 2. Có thể nối byte của số 3 vào `OutputStream` ngay không? **Không**, nếu phải khôi phục thứ tự file và chưa có block 2.
-4. Vì sao `channel.read(buffer, position)` phải chạy trong vòng lặp? **Một lần đọc có thể trả ít byte hơn yêu cầu.**
-5. `CompletionService.take()` có tự trả kết quả theo thứ tự submit không? **Không**, nó trả tác vụ đã hoàn thành; cần đánh số và reorder nếu muốn ghép đúng.
-6. Tăng số worker từ 2 lên 32 có chắc tăng throughput file lớn không? **Không.** Giới hạn có thể nằm ở thiết bị IO, cache, CPU, RAM/GC hoặc writer.
-7. File văn bản UTF-8 có thể giải mã riêng từng block tùy ý không? **Không**, cần giữ trạng thái giải mã hoặc chia theo ranh giới record/ký tự hợp lệ.
+1. A 10-byte file with chunk size 4. How many blocks and what is each block's length? **3 blocks**, lengths 4, 4, 2 respectively; offsets 0, 4, 8.
+2. Does a 4-thread fixed thread pool automatically prevent 1 million tasks from being submitted? **No.** You need in-flight/queue bounds beyond thread count.
+3. Task 3 finishes before task 2. Can you append task 3's bytes to `OutputStream` right away? **No**, if original file order must be restored and block 2 is not yet written.
+4. Why must `channel.read(buffer, position)` run in a loop? **A single read may return fewer bytes than requested.**
+5. Does `CompletionService.take()` return results in submit order? **No**, it returns completed tasks; you must number and reorder them for proper assembly.
+6. Does increasing workers from 2 to 32 guarantee higher throughput on large files? **No.** The bottleneck may be the I/O device, cache, CPU, RAM/GC, or the writer.
+7. Can a UTF-8 text file be decoded independently per arbitrary byte block? **No**, you must maintain decoder state or split on valid record/character boundaries.
 
-**Tài liệu API chính thức:** Java SE 17 `java.nio.channels.FileChannel` (positional `read`/`write`), `java.nio.ByteBuffer`, `java.util.concurrent.ExecutorService`, `Future`, `ExecutorCompletionService`, `java.nio.file.Files` và `StandardOpenOption`.
+**Official API documentation:** Java SE 17 `java.nio.channels.FileChannel` (positional `read`/`write`), `java.nio.ByteBuffer`, `java.util.concurrent.ExecutorService`, `Future`, `ExecutorCompletionService`, `java.nio.file.Files`, and `StandardOpenOption`.

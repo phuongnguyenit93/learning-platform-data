@@ -1,14 +1,14 @@
-# Lọc trong từng nhóm bằng filtering
+# Filtering Within Each Group with filtering
 
-## 1. Vì sao cần lọc sau khi đã xác định nhóm?
+## 1. Why filter after groups have already been identified?
 
-Trong **Java Stream API**, một pipeline thường lấy dữ liệu từ nguồn, sử dụng các thao tác trung gian như `filter` và `map`, rồi kết thúc bằng `collect`, `reduce` hoặc một terminal operation khác. Khi tổng hợp báo cáo, ta hay dùng `Collectors.groupingBy` để chia các phần tử theo khóa như phòng ban, khu vực hay trạng thái.
+In the **Java Stream API**, a pipeline typically pulls data from a source, applies intermediate operations like `filter` and `map`, and ends with `collect`, `reduce`, or another terminal operation. When summarizing reports, we often use `Collectors.groupingBy` to split elements by keys such as department, region, or status.
 
-Giả sử một hệ thống có ba nhóm công việc: **Backend**, **Frontend** và **Mobile**. Yêu cầu là báo cáo **các ticket chưa xử lý có độ ưu tiên cao của từng nhóm**, kể cả khi nhóm đó không có ticket nào đạt điều kiện.
+Suppose a system has three teams: **Backend**, **Frontend**, and **Mobile**. The requirement is to report **high-priority unresolved tickets for each team**, even when a team has zero matching tickets.
 
-Nếu lọc ở đầu Stream, một nhóm có dữ liệu nguồn nhưng không có ticket đạt điều kiện sẽ biến mất khỏi kết quả. Đó có thể là điều không mong muốn khi giao diện cần hiển thị cả nhóm với danh sách rỗng hoặc số đếm bằng 0.
+If you filter at the start of the Stream, a team present in the source data that has no matching tickets disappears from the result. That can be undesirable when the UI needs to display every team with an empty list or a count of 0.
 
-`Collectors.filtering` giải quyết vấn đề bằng cách đặt bước lọc **bên trong một collector khác**, thường là downstream collector của `groupingBy`.
+`Collectors.filtering` solves this by placing the filtering step **inside another collector**, typically as the downstream collector of `groupingBy`.
 
 ```text
                         Stream<Ticket>
@@ -18,7 +18,7 @@ Nếu lọc ở đầu Stream, một nhóm có dữ liệu nguồn nhưng không
                           /    |     \
                       Backend Frontend Mobile
                           |      |       |
-                 filtering(predicate) trong từng nhóm
+                 filtering(predicate) within each group
                           |      |       |
                     [T01]    [T06]     []
                               |
@@ -26,20 +26,20 @@ Nếu lọc ở đầu Stream, một nhóm có dữ liệu nguồn nhưng không
                 Map<String, List<Ticket>>
 ```
 
-Điểm phân biệt then chốt:
+The key distinction:
 
-- **`stream.filter(...).collect(groupingBy(...))`:** loại phần tử **trước khi tạo nhóm**. Nhóm không còn phần tử phù hợp sẽ **không xuất hiện**.
-- **`stream.collect(groupingBy(..., filtering(..., toList())))`:** mọi phần tử nguồn vẫn được đưa qua classifier để xác định nhóm. Nhóm đã xuất hiện trong nguồn có thể được giữ lại với **danh sách rỗng** nếu tất cả phần tử của nhóm bị downstream filtering loại.
+- **`stream.filter(...).collect(groupingBy(...))`:** removes elements **before groups are created**. Groups with no matching elements **will not appear**.
+- **`stream.collect(groupingBy(..., filtering(..., toList())))`:** every source element still passes through the classifier to determine its group. A group that appeared in the source can be retained with an **empty list** if all of its elements are rejected by downstream filtering.
 
-Trong chương **Collector nhiều tầng và tổng hợp**, đây là kỹ thuật quan trọng để tạo báo cáo đầy đủ danh mục, phân biệt "không có nhóm" với "nhóm có mặt nhưng không có bản ghi đạt tiêu chí".
+In the **Composed Collectors and Aggregation** chapter, this is an essential technique for producing complete category reports, distinguishing “no group” from “group present with zero matching records”.
 
-**Mục tiêu sau bài học:** hiểu hợp đồng của `Collectors.filtering`; chọn đúng vị trí lọc; kết hợp `groupingBy`, `mapping`, `counting`, `summingInt`, `teeing`; nhận biết nhóm rỗng, `null`, thứ tự và giới hạn song song; áp dụng cho một báo cáo Java có thể chạy độc lập.
+**Lesson goals:** understand the contract of `Collectors.filtering`; choose the right filter placement; compose `groupingBy`, `mapping`, `counting`, `summingInt`, and `teeing`; recognize empty groups, `null`, ordering, and parallel limitations; and apply it in a standalone runnable Java report.
 
-**Phiên bản Java:** `Collectors.filtering` xuất hiện từ **Java 9**. Các ví dụ sử dụng `record` và `Stream.toList()` cần Java 16+; ví dụ hoàn chỉnh chọn Java 17+.
+**Java version:** `Collectors.filtering` was introduced in **Java 9**. Examples using `record` and `Stream.toList()` require Java 16+; the complete example targets Java 17+.
 
-## 2. Hợp đồng của Collectors.filtering
+## 2. Contract of Collectors.filtering
 
-Chữ ký trên `java.util.stream.Collectors`:
+Signature in `java.util.stream.Collectors`:
 
 ```java
 public static <T, A, R> Collector<T, ?, R> filtering(
@@ -48,16 +48,16 @@ public static <T, A, R> Collector<T, ?, R> filtering(
 )
 ```
 
-Các thành phần:
+Components:
 
-| Thành phần | Vai trò |
+| Component | Role |
 | --- | --- |
-| `T` | Kiểu phần tử đưa vào downstream collector. |
-| `predicate` | Điều kiện quyết định phần tử có được chuyển cho downstream hay không. |
-| `downstream` | Collector nhận **các phần tử đạt điều kiện** và tạo kết quả `R`. |
-| `Collector<T, ?, R>` | Collector mới có thêm bước lọc trước downstream. |
+| `T` | Type of elements fed into the downstream collector. |
+| `predicate` | Condition deciding whether an element is forwarded to the downstream. |
+| `downstream` | Collector that receives **matching elements** and produces result `R`. |
+| `Collector<T, ?, R>` | New collector with an added filtering step before the downstream. |
 
-Không giống `Stream.filter`, `Collectors.filtering` **không trả về Stream**. Nó trả về **một Collector** để sử dụng trong `collect` hoặc lồng bên trong collector khác.
+Unlike `Stream.filter`, `Collectors.filtering` **does not return a Stream**. It returns **a Collector** to be passed into `collect` or nested inside another collector.
 
 ```java
 import java.util.List;
@@ -74,13 +74,13 @@ List<Integer> even = numbers.stream()
 System.out.println(even); // [2, 4]
 ```
 
-Ở dạng không có nhóm này, kết quả tương đương về nội dung với `numbers.stream().filter(n -> n % 2 == 0).toList()` trên dữ liệu minh họa. Lợi ích rõ rệt của `filtering` xuất hiện khi ta muốn **lọc trong một bước thu thập lồng nhau**.
+In this ungrouped form, the result is equivalent in content to `numbers.stream().filter(n -> n % 2 == 0).toList()` on the sample data. The clear benefit of `filtering` appears when you want to **filter inside a nested collection step**.
 
-`filtering` không tự tạo nhóm, không gộp phần tử và không bắt buộc trả về List. **Loại kết quả phụ thuộc vào downstream**: với `counting` là `Long`, với `summingInt` là `Integer`, với `maxBy` là `Optional<T>`.
+`filtering` does not create groups on its own, does not merge elements, and is not required to return a List. **The result type depends on the downstream**: with `counting` it is `Long`, with `summingInt` it is `Integer`, and with `maxBy` it is `Optional<T>`.
 
-## 3. Ví dụ tối thiểu: nhóm có dữ liệu nhưng không có ticket phù hợp
+## 3. Minimal example: group with data but no matching tickets
 
-Tạo dữ liệu dùng chung trong các ví dụ:
+Create shared sample data for the examples:
 
 ```java
 record Ticket(
@@ -101,9 +101,9 @@ List<Ticket> tickets = List.of(
 );
 ```
 
-Điều kiện nghiệp vụ: ticket **chưa giải quyết** và **độ ưu tiên ít nhất 4**.
+Business condition: ticket is **unresolved** and has **priority at least 4**.
 
-### Cách A: filter trước groupingBy
+### Approach A: filter before groupingBy
 
 ```java
 Map<String, List<Ticket>> filteredBeforeGrouping = tickets.stream()
@@ -111,15 +111,15 @@ Map<String, List<Ticket>> filteredBeforeGrouping = tickets.stream()
         .collect(Collectors.groupingBy(Ticket::team));
 
 System.out.println(filteredBeforeGrouping.keySet());
-// Chỉ có Backend và Frontend; thứ tự khóa không được bảo đảm.
+// Only Backend and Frontend; key order is not guaranteed.
 
 System.out.println(filteredBeforeGrouping.containsKey("Mobile"));
 // false
 ```
 
-Ticket `T05` là ticket duy nhất thuộc `Mobile` nhưng đã giải quyết, nên không qua `Stream.filter`. Vì vậy classifier `Ticket::team` **không gặp** nhóm `Mobile`, và Map không có khóa đó.
+Ticket `T05` is the only ticket belonging to `Mobile`, and it is already resolved, so it does not pass `Stream.filter`. Thus the classifier `Ticket::team` **never sees** the `Mobile` group, and the Map lacks that key.
 
-### Cách B: filtering là downstream của groupingBy
+### Approach B: filtering as downstream of groupingBy
 
 ```java
 Map<String, List<Ticket>> filteredInsideGroups = tickets.stream()
@@ -143,20 +143,20 @@ System.out.println(filteredInsideGroups.get("Mobile")); // []
 System.out.println(filteredInsideGroups.containsKey("Mobile")); // true
 ```
 
-`groupingBy` đã gặp `Mobile` từ ticket `T05` và tạo một nhóm cho khóa ấy. Downstream `filtering` không chuyển `T05` cho `toList`, do đó danh sách kết quả của nhóm là rỗng.
+`groupingBy` encountered `Mobile` from ticket `T05` and created a group for that key. Downstream `filtering` did not pass `T05` to `toList`, so the group's resulting list is empty.
 
-| Trường hợp | `filter` trước `groupingBy` | `groupingBy` + downstream `filtering` |
+| Case | `filter` before `groupingBy` | `groupingBy` + downstream `filtering` |
 | --- | --- | --- |
-| Nhóm có phần tử đạt điều kiện | Có khóa, có phần tử | Có khóa, có phần tử |
-| Nhóm có phần tử nguồn nhưng **không phần tử nào đạt** | **Không có khóa** | **Có khóa, kết quả downstream rỗng** |
-| Khóa chưa từng xuất hiện ở nguồn | Không có khóa | Không có khóa |
-| Nguồn rỗng hoàn toàn | Map rỗng | Map rỗng |
+| Group has matching elements | Has key, has elements | Has key, has elements |
+| Group has source elements, **none match** | **No key** | **Has key, empty downstream result** |
+| Key never appeared in source | No key | No key |
+| Completely empty source | Empty Map | Empty Map |
 
-**Lưu ý:** `filtering` không tự sinh nhóm cho những khóa chưa từng xuất hiện. Nếu báo cáo phải hiển thị cả đội `QA` dù không có ticket đầu vào nào, cần bổ sung danh mục đội từ nguồn đáng tin cậy sau khi thu thập hoặc thiết kế dữ liệu nguồn chứa những nhóm đó.
+**Note:** `filtering` does not invent groups for keys that never appeared. If a report must also display team `QA` despite having zero input tickets, you must supplement the team catalog from a trusted source after collecting, or design the source data to include those groups.
 
-## 4. Ngữ nghĩa "nhóm rỗng" khác "không có nhóm"
+## 4. "Empty group" semantics differs from "no group"
 
-Sự khác biệt ở trên ảnh hưởng trực tiếp tới logic báo cáo:
+The distinction above directly impacts reporting logic:
 
 ```java
 Map<String, List<Ticket>> report = tickets.stream()
@@ -175,23 +175,23 @@ System.out.println(report.containsKey("QA"));      // false
 System.out.println(report.get("QA"));              // null
 ```
 
-- `Mobile` **đã xuất hiện trong dữ liệu nguồn**, nhưng không có ticket đạt tiêu chí. Có thể hiển thị "0 ticket cần xử lý".
-- `QA` **không xuất hiện trong nguồn**. Không thể kết luận chỉ từ Map này rằng đội QA có tồn tại trong hệ thống hay không.
+- `Mobile` **appeared in the source data**, yet had no matching tickets. It can display “0 tickets requiring attention”.
+- `QA` **did not appear in the source**. You cannot conclude from this Map alone whether the QA team exists in the system.
 
-Vì vậy, không nên đồng nhất `report.get(key) == null` với `report.get(key).isEmpty()`. Nếu code muốn một danh sách an toàn cho việc duyệt khi không có khóa, có thể dùng:
+Therefore, do not equate `report.get(key) == null` with `report.get(key).isEmpty()`. If code wants a safe list to iterate when a key is missing, it can use:
 
 ```java
 List<Ticket> qaTickets = report.getOrDefault("QA", List.of());
 System.out.println(qaTickets.size()); // 0
 ```
 
-Tuy nhiên, `getOrDefault` chỉ làm cho code đọc dễ hơn; nó **không bổ sung khóa `QA`** vào Map và không xóa bỏ ý nghĩa khác biệt giữa nhóm chưa có trong nguồn với nhóm hiện diện nhưng rỗng.
+However, `getOrDefault` only makes code cleaner to read; it **does not add the `QA` key** to the Map and does not erase the semantic difference between a group absent from the source and a present yet empty group.
 
-## 5. Kết hợp filtering với counting và summingInt
+## 5. Combining filtering with counting and summingInt
 
-Một báo cáo thường chỉ cần số lượng hoặc tổng một thuộc tính, không cần giữ toàn bộ ticket. Lúc đó thay `Collectors.toList()` bằng downstream collector tổng hợp.
+A report often only needs the count or sum of a property rather than keeping all tickets. In that case, replace `Collectors.toList()` with an aggregating downstream collector.
 
-### Đếm ticket đạt điều kiện trong mỗi đội
+### Counting matching tickets per team
 
 ```java
 Map<String, Long> urgentCounts = tickets.stream()
@@ -208,9 +208,9 @@ System.out.println(urgentCounts.get("Frontend")); // 1
 System.out.println(urgentCounts.get("Mobile"));   // 0
 ```
 
-Khi `filtering` không chuyển phần tử nào cho `counting` của một nhóm đã có, collector đếm trả về **`0L`**, không phải `null`. Điều này hữu ích với bảng KPI muốn hiện mọi đội có dữ liệu nguồn.
+When `filtering` passes zero elements to `counting` for an existing group, the counting collector returns **`0L`**, not `null`. This is useful for KPI tables that need to show every team present in the source data.
 
-### Tổng thời gian của các ticket phù hợp
+### Total time of matching tickets
 
 ```java
 Map<String, Integer> urgentMinutes = tickets.stream()
@@ -227,11 +227,11 @@ System.out.println(urgentMinutes.get("Frontend")); // 60
 System.out.println(urgentMinutes.get("Mobile"));   // 0
 ```
 
-`summingInt` tích lũy các số nguyên của những phần tử được chuyển vào downstream. Nếu không có phần tử, tổng là **0**. Tổng kiểu `int` có thể bị tràn nếu cộng quá phạm vi biểu diễn; với thời lượng lớn, cân nhắc `summingLong` và kiểu dữ liệu phù hợp.
+`summingInt` accumulates integers for elements forwarded to the downstream. If there are no elements, the sum is **0**. An `int` sum can overflow if additions exceed its representable range; for large durations, consider `summingLong` and an appropriate data type.
 
-### Kết quả Optional khi downstream tìm cực trị
+### Optional result when the downstream finds an extremum
 
-Không phải mọi downstream collector đều có "zero" cụ thể:
+Not every downstream collector has a concrete “zero”:
 
 ```java
 Map<String, Optional<Ticket>> highestUrgent = tickets.stream()
@@ -251,11 +251,11 @@ highestUrgent.get("Backend")
         .ifPresent(ticket -> System.out.println(ticket.id())); // T01
 ```
 
-Khóa `Mobile` vẫn hiện diện, nhưng downstream `maxBy` trả về `Optional.empty()` vì không có ticket phù hợp. Tránh gọi `get()` trực tiếp trên Optional rỗng; dùng `ifPresent`, `orElse` hoặc `orElseThrow` tùy ý nghĩa nghiệp vụ.
+The `Mobile` key is still present, yet downstream `maxBy` returns `Optional.empty()` because no ticket matches. Avoid calling `get()` directly on an empty Optional; use `ifPresent`, `orElse`, or `orElseThrow` depending on business semantics.
 
-## 6. filtering và mapping: đúng thứ tự để giữ thông tin cần thiết
+## 6. filtering and mapping: ordering properly to keep needed data
 
-`Collectors.mapping` là một downstream collector khác; nó biến đổi từng phần tử trước khi chuyển cho collector bên trong. Kết hợp hai collector này để chỉ lấy **ID** của các ticket đạt điều kiện:
+`Collectors.mapping` is another downstream collector; it transforms each element before passing it to the inner collector. Combine these two collectors to extract only the **IDs** of matching tickets:
 
 ```java
 Map<String, List<String>> idsByTeam = tickets.stream()
@@ -275,14 +275,14 @@ System.out.println(idsByTeam.get("Frontend")); // [T06]
 System.out.println(idsByTeam.get("Mobile"));   // []
 ```
 
-Đọc từ ngoài vào trong:
+Reading from outside in:
 
-1. `groupingBy(Ticket::team, ...)` xác định nhóm của mọi ticket nguồn.
-2. `filtering(predicate, ...)` quyết định ticket nào được tích lũy **trong nhóm**.
-3. `mapping(Ticket::id, toList())` chỉ lấy mã của ticket được giữ.
-4. `toList()` tạo danh sách mã tương ứng.
+1. `groupingBy(Ticket::team, ...)` determines the group for every source ticket.
+2. `filtering(predicate, ...)` decides which tickets are accumulated **within the group**.
+3. `mapping(Ticket::id, toList())` extracts only the IDs of kept tickets.
+4. `toList()` creates the corresponding list of IDs.
 
-### Đổi chỗ mapping và filtering sẽ đổi kiểu của predicate
+### Swapping mapping and filtering changes the predicate's input type
 
 ```java
 Map<String, List<String>> idsStartingWithT = tickets.stream()
@@ -298,13 +298,13 @@ Map<String, List<String>> idsStartingWithT = tickets.stream()
         ));
 ```
 
-Ở pipeline này, `filtering` nhận **`String id`** chứ không còn nhận `Ticket`. Nó có thể lọc theo nội dung ID, nhưng không thể gọi `ticket.resolved()` hay `ticket.priority()` vì những thông tin đó đã bị loại bởi `mapping(Ticket::id, ...)`.
+In this pipeline, `filtering` receives **`String id`** instead of `Ticket`. It can filter on the ID string, but cannot call `ticket.resolved()` or `ticket.priority()` because that information was already discarded by `mapping(Ticket::id, ...)`.
 
-**Quy tắc thiết kế:** đặt điều kiện cần thuộc tính của đối tượng gốc **trước** bước chỉ trích xuất một trường; đặt điều kiện cần giá trị đã chuẩn hóa hoặc biến đổi **sau** phép mapping tương ứng. Các thứ tự khác nhau không nhất thiết cho cùng kết quả.
+**Design rule:** place conditions requiring properties of the original object **before** the step that extracts a single field; place conditions on normalized or transformed values **after** the corresponding mapping step. Different orderings do not necessarily yield the same result.
 
-## 7. Lọc trong groupingBy nhiều tầng
+## 7. Filtering inside multi-level groupingBy
 
-`filtering` có thể nằm ở tầng trong cùng của một collector lồng nhiều `groupingBy`. Ví dụ các đơn bán hàng được phân nhóm theo **khu vực → loại hàng**, sau đó chỉ lấy ID của đơn đã thanh toán:
+`filtering` can sit at the innermost level of a collector nesting multiple `groupingBy` calls. For example, sales orders are grouped by **region → product category**, and then only IDs of paid orders are collected:
 
 ```java
 record Sale(
@@ -344,17 +344,17 @@ System.out.println(paidIds.get("Nam").get("Sách")); // [S03]
 System.out.println(paidIds.get("Nam").get("Bút"));  // []
 ```
 
-Hai lớp classifier `Sale::region` và `Sale::category` đã quan sát các bản ghi ở từng tổ hợp, trước khi `filtering(Sale::paid, ...)` quyết định nội dung danh sách. Vì vậy, tổ hợp **Bắc/Bút** và **Nam/Bút** vẫn xuất hiện với danh sách rỗng.
+Both classifiers `Sale::region` and `Sale::category` observed the records for every combination before `filtering(Sale::paid, ...)` decided the list contents. Therefore, the **Bắc/Bút** and **Nam/Bút** combinations still appear with empty lists.
 
-Nếu đưa `.filter(Sale::paid)` lên trước `collect`, cả hai tổ hợp chỉ có đơn chưa thanh toán sẽ biến mất; nếu một khu vực chỉ có đơn chưa thanh toán, **cả khu vực ấy** cũng biến mất.
+If `.filter(Sale::paid)` were moved before `collect`, both combinations that only have unpaid orders would vanish; if a region only had unpaid orders, **that entire region** would disappear as well.
 
-Đây là khác biệt quan trọng với báo cáo phân cấp: "loại không bán được trong khu vực đã phát sinh hoạt động" khác với "loại chưa hề xuất hiện trong dữ liệu".
+This is a major difference for hierarchical reports: “a category with no paid sales in an active region” differs from “a category that never appeared in the data at all”.
 
-## 8. So sánh với partitioningBy
+## 8. Comparison with partitioningBy
 
-`Collectors.partitioningBy` phân hoạch theo một predicate Boolean và luôn trả về Map có hai khóa **`true` và `false`**, ngay cả khi một phía không có phần tử.
+`Collectors.partitioningBy` partitions by a Boolean predicate and always returns a Map with two keys **`true` and `false`**, even when one side has no elements.
 
-Ta có thể tiếp tục lồng `filtering` vào downstream của `partitioningBy`:
+We can still nest `filtering` inside the downstream of `partitioningBy`:
 
 ```java
 Map<Boolean, Long> highPriorityCountsByResolution = tickets.stream()
@@ -370,22 +370,22 @@ System.out.println(highPriorityCountsByResolution.get(false)); // 2
 System.out.println(highPriorityCountsByResolution.get(true));  // 1
 ```
 
-Trong dữ liệu đang dùng, hai ticket chưa giải quyết có độ ưu tiên cao là `T01` và `T06`; một ticket đã giải quyết có độ ưu tiên cao là `T05`.
+In our dataset, two unresolved tickets have high priority (`T01` and `T06`), and one resolved ticket has high priority (`T05`).
 
-Khác biệt giữa hai loại collector:
+Differences between the two collectors:
 
-| Tình huống | `groupingBy(classifier, filtering(...))` | `partitioningBy(predicate, filtering(...))` |
+| Scenario | `groupingBy(classifier, filtering(...))` | `partitioningBy(predicate, filtering(...))` |
 | --- | --- | --- |
-| Khóa | Giá trị do classifier trả về | Chỉ `true` và `false` |
-| Các khóa không xuất hiện ở nguồn | Không tự sinh | Hai khóa Boolean vẫn hiện diện |
-| Bộ lọc trong mỗi nhóm | Có, nhờ downstream `filtering` | Có, nhờ downstream `filtering` |
-| Tình huống sử dụng | Phòng ban, khu vực, loại hàng, khóa ghép | Phân loại nhị phân như đã xử lý/chưa xử lý |
+| Keys | Values returned by the classifier | Only `true` and `false` |
+| Keys absent from source | Not created automatically | Both Boolean keys remain present |
+| Filtering within each group | Yes, via downstream `filtering` | Yes, via downstream `filtering` |
+| Use cases | Department, region, category, composite keys | Binary classification such as resolved/unresolved |
 
-Nếu nguồn `tickets` rỗng, `groupingBy` trả về Map không có đội nào, còn `partitioningBy` vẫn chứa hai nhóm Boolean với kết quả downstream rỗng hoặc bằng 0 tùy collector. Đừng nhầm tính chất đặc biệt của `partitioningBy` với `groupingBy`.
+If `tickets` is empty, `groupingBy` returns a Map with no teams, whereas `partitioningBy` still contains both Boolean entries with empty or zero downstream results depending on the collector. Do not confuse `partitioningBy`'s special property with `groupingBy`.
 
-## 9. Phối hợp filtering và teeing để lấy nhiều KPI trong một nhóm
+## 9. Combining filtering and teeing for multiple KPIs in one group
 
-Từ Java 12, `Collectors.teeing` cho phép đưa cùng một luồng phần tử đến **hai downstream collector**, rồi kết hợp hai kết quả của chúng. Đặt `filtering` bên ngoài `teeing` khi **hai KPI phải sử dụng cùng một tập phần tử đã lọc**.
+Since Java 12, `Collectors.teeing` lets you feed the same stream of elements into **two downstream collectors** and combine their results. Place `filtering` outside `teeing` when **both KPIs must operate on the same filtered subset of elements**.
 
 ```java
 record TeamMetrics(long count, int totalMinutes) {}
@@ -413,7 +413,7 @@ System.out.println(metrics.get("Mobile"));
 // TeamMetrics[count=0, totalMinutes=0]
 ```
 
-`teeing` không tự quyết định nhóm hay điều kiện lọc. Nó chỉ thực hiện hai phép thu thập downstream trên các phần tử được chuyển đến:
+`teeing` does not decide groups or filtering conditions itself. It simply executes two downstream collections on the elements passed to it:
 
 ```text
 groupingBy(team)
@@ -427,7 +427,7 @@ filtering(urgentAndUnresolved)
                             TeamMetrics(count, totalMinutes)
 ```
 
-Nếu hai KPI cần **hai điều kiện khác nhau**, đừng đặt một `filtering` dùng chung ở ngoài rồi dùng chính các KPI đó để suy đoán dữ liệu đã bị loại. Thay vào đó có thể đặt `teeing` bên ngoài, mỗi nhánh có một `filtering` riêng:
+If two KPIs require **two different conditions**, do not place a shared `filtering` outside and try to infer excluded data from those KPIs. Instead, put `teeing` on the outside, with each branch having its own `filtering`:
 
 ```java
 record StateMetrics(long unresolved, long highPriority) {}
@@ -455,11 +455,11 @@ System.out.println(allStateMetrics.get("Mobile"));
 // StateMetrics[unresolved=0, highPriority=1]
 ```
 
-Hai nhánh trong ví dụ cuối dùng điều kiện **độc lập**; một ticket được phép đóng góp cho cả hai KPI hoặc cho một trong hai. Trong collector nhiều tầng, vị trí `filtering` là một phần của mô hình nghiệp vụ chứ không chỉ là chi tiết cú pháp.
+Both branches in the last example use **independent** conditions; a single ticket is allowed to contribute to both KPIs or to just one. In composed collectors, `filtering` placement is part of the business model rather than a mere syntactic detail.
 
-## 10. Giữ dữ liệu kết quả không cho chỉnh sửa
+## 10. Keeping collected results unmodifiable
 
-Collector `filtering` có thể dùng downstream khác nhau, kể cả collector tạo danh sách không cho sửa như `toUnmodifiableList` (Java 10+):
+`filtering` can use various downstreams, including collectors that build unmodifiable lists such as `toUnmodifiableList` (Java 10+):
 
 ```java
 Map<String, List<String>> readonlyIds = tickets.stream()
@@ -478,15 +478,15 @@ System.out.println(readonlyIds.get("Mobile")); // []
 // readonlyIds.get("Backend").add("T99"); // UnsupportedOperationException
 ```
 
-Điều quan trọng là **giá trị danh sách** không cho chỉnh sửa, nhưng **Map ngoài** từ `groupingBy` mặc định không được cam kết là unmodifiable. Nếu muốn công bố một Map không cho thay đổi cấu trúc:
+Importantly, **the list values** are unmodifiable, yet **the outer Map** from default `groupingBy` is not guaranteed to be unmodifiable. To publish a Map whose structure cannot be altered:
 
 ```java
 Map<String, List<String>> lockedReport = Map.copyOf(readonlyIds);
 ```
 
-`Map.copyOf` từ chối các khóa hoặc giá trị null, không đảm bảo thứ tự duyệt và chỉ tạo bất biến **nông** cho các đối tượng bên trong. Ở ví dụ này, khóa và phần tử là `String` bất biến, danh sách đã không cho sửa nên kết quả tương đối dễ chia sẻ an toàn.
+`Map.copyOf` rejects null keys or values, does not guarantee iteration order, and provides only **shallow** immutability for nested objects. In this example, keys and elements are immutable `String`s and the lists are already unmodifiable, so the result is relatively straightforward to share safely.
 
-Một lựa chọn khác là dùng `Collectors.collectingAndThen` làm downstream, ví dụ:
+Another option is using `Collectors.collectingAndThen` as the downstream, for instance:
 
 ```java
 Map<String, List<String>> readonlyViaFinisher = tickets.stream()
@@ -505,11 +505,11 @@ Map<String, List<String>> readonlyViaFinisher = tickets.stream()
         ));
 ```
 
-`List.copyOf` có từ Java 10 và từ chối phần tử `null`. Dùng phương án nào phụ thuộc nhu cầu phiên bản Java, cách tạo kết quả và chính sách với null. Không được giả định `Collectors.toList()` cam kết luôn trả về danh sách có thể sửa.
+`List.copyOf` has existed since Java 10 and rejects `null` elements. Which approach to use depends on Java version requirements, how the result is constructed, and the policy for nulls. Never assume `Collectors.toList()` guarantees a mutable list.
 
-## 11. Các lỗi với null và classifier
+## 11. Errors with null and classifiers
 
-`Collectors.groupingBy` không chấp nhận classifier trả về **khóa null**. Một `filtering` đặt bên trong không thể che giấu lỗi đó vì classifier được dùng **trước** downstream.
+`Collectors.groupingBy` does not allow a classifier to return a **null key**. An inner `filtering` cannot hide that error because the classifier runs **before** the downstream.
 
 ```java
 record Entry(String team, boolean valid) {}
@@ -519,7 +519,7 @@ List<Entry> entries = List.of(
         new Entry(null, false)
 );
 
-// SAI: phần tử có team null vẫn được classifier xử lý trước downstream.
+// WRONG: the element with team=null is still processed by the classifier before downstream.
 Map<String, Long> invalid = entries.stream()
         .collect(Collectors.groupingBy(
                 Entry::team,
@@ -528,10 +528,10 @@ Map<String, Long> invalid = entries.stream()
                         Collectors.counting()
                 )
         ));
-// Ném NullPointerException dù entry team=null có valid=false.
+// Throws NullPointerException even though the team=null entry has valid=false.
 ```
 
-Trong ví dụ trên, nếu quy tắc nghiệp vụ là **loại toàn bộ bản ghi không có team**, cần lọc chúng ở **Stream ngoài**:
+In the example above, if the business rule is to **exclude all records missing a team**, filter them in the **outer Stream**:
 
 ```java
 Map<String, Long> validCounts = entries.stream()
@@ -547,20 +547,20 @@ Map<String, Long> validCounts = entries.stream()
 System.out.println(validCounts.get("Backend")); // 1
 ```
 
-Hãy phân biệt hai tầng xử lý:
+Distinguish two processing layers:
 
-- **Stream.filter** trước `groupingBy` là lựa chọn hợp lý cho những bản ghi **không thể hoặc không nên phân loại**, ví dụ thiếu khóa nhóm, dữ liệu bị hủy hoặc không thuộc phạm vi báo cáo.
-- **Collectors.filtering** ở downstream xử lý **điều kiện lựa chọn trong nhóm đã được xác định**, nhằm giữ trạng thái của nhóm đó trong báo cáo.
+- **`Stream.filter`** before `groupingBy` is the right choice for records that **cannot or should not be classified**, such as missing group keys, canceled records, or out-of-scope data.
+- **`Collectors.filtering`** in the downstream handles **selection conditions within an already-identified group**, in order to retain that group's presence in the report.
 
-Khi đầu vào có phần tử `null` (không chỉ trường `team` null), `Entry::team` cũng sẽ gây lỗi. Cần dùng `filter(Objects::nonNull)` trước classifier hoặc định nghĩa chính sách dữ liệu thiếu.
+When the input contains `null` elements themselves (not merely a null `team` field), `Entry::team` will also fail. Use `filter(Objects::nonNull)` before the classifier or define a missing-data policy.
 
-Nếu `filtering` chuyển một đối tượng null tới downstream như `Collectors.mapping(Entry::team, ...)`, vẫn có thể gây lỗi trong mapping; không nên coi `filtering` là cơ chế kiểm tra null tự động.
+If `filtering` passes an object with a null field to a downstream such as `Collectors.mapping(Entry::team, ...)`, it can still cause errors inside mapping; do not treat `filtering` as an automatic null check.
 
-## 12. Thứ tự phần tử, thứ tự khóa và xử lý song song
+## 12. Element ordering, key ordering, and parallel processing
 
-### Thứ tự khóa của Map
+### Map key ordering
 
-`groupingBy` mặc định không cam kết kiểu Map hay thứ tự lặp khóa. Để hiển thị nhóm theo **thứ tự gặp đầu tiên** từ một Stream tuần tự có thứ tự, có thể chỉ rõ `LinkedHashMap::new`:
+Default `groupingBy` does not guarantee Map type or key iteration order. To display groups in **first-seen order** from an ordered sequential Stream, specify `LinkedHashMap::new`:
 
 ```java
 Map<String, List<String>> orderedGroups = tickets.stream()
@@ -577,17 +577,17 @@ System.out.println(orderedGroups.keySet());
 // [Backend, Frontend, Mobile]
 ```
 
-Ở ví dụ tuần tự, các đội xuất hiện lần đầu theo thứ tự Backend → Frontend → Mobile. Việc nhóm `Mobile` có danh sách rỗng không khiến khóa ấy bị xóa.
+In this sequential example, teams appear first in the order Backend → Frontend → Mobile. The fact that `Mobile` has an empty list does not remove its key.
 
-### Thứ tự phần tử trong nhóm
+### Element ordering within groups
 
-Với `List.stream()` có encounter order, `groupingBy` cùng `toList` ở downstream có thể giữ thứ tự xuất hiện của các ticket được chuyển vào từng nhóm. Trong pipeline song song, thứ tự **thực thi predicate và mapper** không được bảo đảm; không dùng tác dụng phụ trong lambda để suy ra hay áp đặt thứ tự.
+With `List.stream()` having encounter order, `groupingBy` with downstream `toList` can preserve the encounter order of tickets forwarded into each group. In a parallel pipeline, the **execution order of predicates and mappers** is not guaranteed; never use side effects inside lambdas to infer or enforce order.
 
-Nếu nhóm cần danh sách được **sắp theo độ ưu tiên**, hãy định nghĩa bước sắp hoặc comparator rõ ràng; `filtering` không tự sắp xếp phần tử.
+If each group's list must be **sorted by priority**, define an explicit sorting step or comparator; `filtering` does not sort elements.
 
-### Parallel Stream và groupingByConcurrent
+### Parallel Streams and groupingByConcurrent
 
-`groupingBy` không phải concurrent collector. Khi dùng `parallelStream()`, framework có thể tạo nhiều Map từng phần rồi kết hợp. Các collector lồng như `filtering`, `mapping`, `counting` phải tuân thủ hợp đồng kết hợp của chúng.
+`groupingBy` is not a concurrent collector. With `parallelStream()`, the framework can build partial Maps and then combine them. Nested collectors like `filtering`, `mapping`, and `counting` must obey their combiner contracts.
 
 ```java
 Map<String, Long> parallelCounts = tickets.parallelStream()
@@ -602,7 +602,7 @@ Map<String, Long> parallelCounts = tickets.parallelStream()
 System.out.println(parallelCounts.get("Mobile")); // 0
 ```
 
-Nếu không cần thứ tự, có thể cân nhắc `groupingByConcurrent`:
+If order is not needed, consider `groupingByConcurrent`:
 
 ```java
 ConcurrentMap<String, Long> concurrentCounts = tickets.parallelStream()
@@ -615,17 +615,17 @@ ConcurrentMap<String, Long> concurrentCounts = tickets.parallelStream()
         ));
 ```
 
-`groupingByConcurrent` là collector concurrent, unordered, cho phép chiến lược thu thập khác. Tuy nhiên, nó **không tự khiến predicate có trạng thái hoặc thao tác sửa nguồn trở nên an toàn**; cũng không cam kết nhanh hơn trong mọi tình huống.
+`groupingByConcurrent` is a concurrent, unordered collector allowing a different collection strategy. However, it **does not automatically make stateful predicates or source mutations safe**; nor does it guarantee faster execution in every scenario.
 
-## 13. Tính lazy, non-interference và chi phí xử lý
+## 13. Laziness, non-interference, and processing cost
 
-`Stream.filter` là thao tác trung gian lazy; `Collectors.filtering` là một phần của **collector dùng ở terminal operation**. Cả hai điều kiện chỉ được đánh giá khi terminal operation bắt đầu xử lý phần tử phù hợp với pipeline.
+`Stream.filter` is a lazy intermediate operation; `Collectors.filtering` is part of the **collector used at the terminal operation**. Both conditions are evaluated only when the terminal operation begins processing elements flowing through the pipeline.
 
 ```java
 Stream<Ticket> pipeline = tickets.stream()
         .filter(ticket -> ticket.priority() > 0);
 
-// Chỉ lúc collect() diễn ra, pipeline mới được tiêu thụ.
+// Only when collect() runs is the pipeline consumed.
 Map<String, Long> result = pipeline.collect(
         Collectors.groupingBy(
                 Ticket::team,
@@ -637,20 +637,20 @@ Map<String, Long> result = pipeline.collect(
 );
 ```
 
-Với `groupingBy(classifier, filtering(...))`, classifier được áp dụng để xác định nhóm cho mọi phần tử đã qua các thao tác Stream ở phía trước; downstream `filtering` không tiết kiệm chi phí phân loại những phần tử bị loại.
+With `groupingBy(classifier, filtering(...))`, the classifier is applied to determine the group for every element that passed earlier Stream operations; downstream `filtering` does not save the classification cost of rejected elements.
 
-Vì vậy:
+Therefore:
 
-- Nếu chỉ quan tâm các bản ghi đạt điều kiện và **không cần nhóm rỗng**, `Stream.filter` trước `groupingBy` thường gọn và có thể giảm số lượng phần tử phải phân loại.
-- Nếu **giữ nhóm có dữ liệu nguồn nhưng không có phần tử đạt điều kiện** là một phần của hợp đồng báo cáo, `Collectors.filtering` là cách biểu đạt đúng, kể cả khi có thêm chi phí phân loại.
-- Nếu chỉ cần số đếm hoặc tổng, dùng `counting`/`summingInt` ở downstream thay vì lưu tất cả phần tử vào List lớn.
+- If you only care about matching records and **do not need empty groups**, `Stream.filter` before `groupingBy` is usually cleaner and reduces the number of elements that must be classified.
+- If **preserving groups that have source data but zero matching elements** is part of the report contract, `Collectors.filtering` is the right expression even with the extra classification cost.
+- If you only need counts or sums, use `counting`/`summingInt` in the downstream instead of retaining all elements in large Lists.
 
-Predicate nên **không can thiệp nguồn** và **không dựa vào trạng thái mutable của bên ngoài**:
+Predicates must be **non-interfering** and **stateless** without depending on external mutable state:
 
 ```java
 List<Ticket> mutableTickets = new ArrayList<>(tickets);
 
-// SAI: thay đổi chính nguồn trong lúc collect đang duyệt nó.
+// WRONG: mutating the source itself while collect is traversing it.
 Map<String, Long> broken = mutableTickets.stream()
         .collect(Collectors.groupingBy(
                 Ticket::team,
@@ -664,13 +664,13 @@ Map<String, Long> broken = mutableTickets.stream()
         ));
 ```
 
-Việc sửa nguồn ở đây vi phạm non-interference, có thể gây `ConcurrentModificationException` hoặc hành vi không đáng tin cậy. Cũng tránh dùng biến đếm ngoài để quyết định predicate, nhất là trong parallel pipeline. Nếu cần cập nhật nguồn, hãy hoàn tất phép thu thập trước, sau đó cập nhật trong bước riêng.
+Mutating the source here violates non-interference and can cause `ConcurrentModificationException` or unreliable behavior. Also avoid using external counters to drive predicates, especially in parallel pipelines. If the source needs updating, finish collecting first and update in a separate step.
 
-Với dữ liệu rất lớn và yêu cầu KPI theo nhiều nhóm, hãy xem xét bộ nhớ của Map kết quả, số lượng nhóm, chi phí classifier và downstream, chi phí phối hợp khi chạy song song. Kết quả đúng về mặt nghiệp vụ phải được ưu tiên trước tối ưu tốc độ.
+With very large datasets and multi-group KPIs, consider the memory footprint of the resulting Map, number of groups, classifier and downstream cost, and parallel coordination overhead. Business correctness must take priority over speed optimization.
 
-## 14. Ví dụ Java 17+ hoàn chỉnh: bảng KPI theo đội
+## 14. Complete Java 17+ example: team KPI table
 
-Ví dụ sau tạo ba báo cáo độc lập: danh sách ID ticket khẩn chưa giải quyết, số lượng ticket khẩn và bộ chỉ số số lượng/thời gian. Đội `Mobile` phải **xuất hiện với dữ liệu rỗng hoặc bằng 0** dù không có ticket thỏa tiêu chí.
+The following example produces three independent reports: list of urgent unresolved ticket IDs, count of urgent tickets, and combined count/time metrics. Team `Mobile` must **appear with empty or zero data** even though it has no qualifying tickets.
 
 ```java
 import java.util.LinkedHashMap;
@@ -757,35 +757,35 @@ public class FilteringWithinGroupsDemo {
 }
 ```
 
-**Phân tích:**
+**Analysis:**
 
-1. `Ticket::team` phân nhóm toàn bộ ticket. `LinkedHashMap::new` dùng để giữ thứ tự các nhóm xuất hiện trong nguồn List ở pipeline tuần tự.
-2. `urgentUnresolved` là predicate **thuần về dữ liệu đầu vào**: nó chỉ đọc `Ticket`, không sửa nguồn hoặc biến dùng chung.
-3. `filtering` giữ các nhóm đã xuất hiện kể cả khi không có ticket nào được đưa vào downstream.
-4. `mapping(Ticket::id, toList())` chỉ đưa ID ticket đạt điều kiện vào danh sách.
-5. `counting` cho kết quả `0` ở nhóm `Mobile`; `teeing` kết hợp số đếm và tổng thời gian.
-6. Mỗi báo cáo tạo một Stream mới từ `tickets`. Không cố tái sử dụng một Stream đã bị `collect` tiêu thụ.
+1. `Ticket::team` groups all tickets. `LinkedHashMap::new` preserves the appearance order of groups from the List source in the sequential pipeline.
+2. `urgentUnresolved` is a **pure input-data predicate**: it only reads `Ticket` without modifying the source or shared variables.
+3. `filtering` retains groups that appeared even when no ticket enters the downstream.
+4. `mapping(Ticket::id, toList())` places only qualifying ticket IDs into the list.
+5. `counting` produces `0` for the `Mobile` group; `teeing` combines count and total minutes.
+6. Each report creates a fresh Stream from `tickets`. Never attempt to reuse a Stream already consumed by `collect`.
 
-Trong ứng dụng thực tế, nếu cả ba báo cáo luôn cần được tính trên cùng một tập dữ liệu lớn, có thể thiết kế một downstream collector tổng hợp phù hợp để tránh duyệt nguồn nhiều lần. Ví dụ ở đây ưu tiên học rõ hợp đồng của từng cách phối hợp collector.
+In a real application, if all three reports always need to be computed over the same large dataset, you can design an appropriate aggregate downstream collector to avoid traversing the source multiple times. The example here prioritizes clearly teaching the contract of each collector composition.
 
-## 15. Những lỗi thường gặp
+## 15. Common mistakes
 
-| Hiện tượng | Nguyên nhân | Hướng xử lý |
+| Symptom | Cause | Resolution |
 | --- | --- | --- |
-| Nhóm không có ticket phù hợp biến mất | Đặt `Stream.filter` trước `groupingBy` | Dùng downstream `Collectors.filtering` nếu muốn giữ nhóm đã xuất hiện. |
-| Nhóm chưa hề xuất hiện vẫn không có trong Map | `groupingBy` chỉ tạo khóa từ phần tử được classifier gặp | Kết hợp danh mục nhóm riêng nếu cần đủ mọi khóa hợp lệ. |
-| Không gọi được `filtering` như thao tác Stream | `Collectors.filtering` trả về `Collector`, không phải `Stream` | Truyền nó vào `collect` hoặc downstream của `groupingBy`. |
-| Predicate không truy cập được trường của đối tượng gốc | Đặt `mapping` trước `filtering` đã biến phần tử thành kiểu khác | Đổi thứ tự lồng collector hoặc lưu đủ thông tin cần lọc. |
-| `NullPointerException` ở classifier dù downstream bỏ bản ghi | Phân nhóm diễn ra trước downstream filtering | Loại/xử lý bản ghi không thể phân loại bằng `Stream.filter` phía trước. |
-| Gọi `get(...).isEmpty()` và lỗi với nhóm không có | Map không có key đó nên `get` trả null | Dùng `containsKey`, `getOrDefault` và phân biệt hai trạng thái. |
-| Trông đợi kết quả List rỗng nhưng nhận `Optional.empty` | Dùng `maxBy`/`minBy` thay vì `toList` | Xử lý theo kiểu kết quả downstream thực tế. |
-| Giả định thứ tự khóa của `groupingBy` | Map mặc định không cam kết thứ tự | Chọn `LinkedHashMap` khi cần thứ tự xuất hiện tuần tự. |
-| KPI theo nhóm sai vì mọi nhánh dùng cùng một điều kiện | Đặt `filtering` chung ngoài `teeing` trong khi các KPI cần tiêu chí khác nhau | Dùng `teeing` với mỗi nhánh có `filtering` riêng. |
-| Thống kê sai hoặc bất ổn khi chạy song song | Predicate phụ thuộc biến dùng chung hoặc sửa nguồn | Giữ predicate stateless, non-interfering; kiểm thử với dữ liệu và số nhóm thực tế. |
+| Group with no matching tickets disappears | Placed `Stream.filter` before `groupingBy` | Use downstream `Collectors.filtering` if groups that appeared must be kept. |
+| Group that never appeared is still missing from Map | `groupingBy` only creates keys from elements seen by the classifier | Merge with a separate group catalog if all valid keys must be included. |
+| Cannot call `filtering` as a Stream operation | `Collectors.filtering` returns a `Collector`, not a `Stream` | Pass it to `collect` or as a downstream of `groupingBy`. |
+| Predicate cannot access original object fields | Placed `mapping` before `filtering`, changing elements to another type | Swap collector nesting order or keep enough data for filtering. |
+| `NullPointerException` in classifier despite downstream skipping record | Grouping happens before downstream filtering | Filter/handle unclassifiable records with `Stream.filter` upfront. |
+| Calling `get(...).isEmpty()` fails for missing group | Map has no such key so `get` returns null | Use `containsKey`, `getOrDefault`, and distinguish the two states. |
+| Expecting an empty List but receiving `Optional.empty` | Used `maxBy`/`minBy` instead of `toList` | Handle according to the actual downstream result type. |
+| Assuming key order of `groupingBy` | Default Map does not guarantee order | Choose `LinkedHashMap` when sequential appearance order is needed. |
+| Group KPI is wrong because all branches share one condition | Placed a single `filtering` outside `teeing` while KPIs need different criteria | Use `teeing` with each branch having its own `filtering`. |
+| Incorrect or unstable stats in parallel execution | Predicate depends on shared variables or mutates source | Keep predicates stateless and non-interfering; test with realistic data and group counts. |
 
-## 16. Bài tập thực hành
+## 16. Practice exercises
 
-Cho dữ liệu nhân viên:
+Given employee data:
 
 ```java
 record Employee(String department, String name, int age, boolean active) {}
@@ -799,15 +799,15 @@ List<Employee> employees = List.of(
 );
 ```
 
-**Yêu cầu:**
+**Requirements:**
 
-1. Nhóm nhân viên theo `department`, dùng `Collectors.filtering` để chỉ giữ nhân viên `active` trong từng nhóm.
-2. Chuyển kết quả sang `Map<String, List<String>>` chỉ chứa tên nhân viên active.
-3. Đếm số nhân viên active theo phòng ban. Kết quả phòng `HR` phải có số đếm `0`.
-4. So sánh với việc dùng `employees.stream().filter(Employee::active)` trước `groupingBy`.
-5. Viết báo cáo gồm hai KPI theo phòng ban: số nhân viên active và số nhân viên có tuổi từ 30 trở lên (hai điều kiện **độc lập**).
+1. Group employees by `department`, using `Collectors.filtering` to keep only `active` employees in each group.
+2. Transform the result to `Map<String, List<String>>` containing only active employee names.
+3. Count active employees per department. The `HR` department must have a count of `0`.
+4. Compare with using `employees.stream().filter(Employee::active)` before `groupingBy`.
+5. Write a report with two KPIs per department: number of active employees and number of employees aged 30 or above (two **independent** conditions).
 
-**Lời giải tham khảo:**
+**Reference solution:**
 
 ```java
 Map<String, List<String>> activeNames = employees.stream()
@@ -865,12 +865,12 @@ System.out.println(twoKpis.get("HR"));
 // EmployeeMetrics[active=0, agedAtLeast30=1]
 ```
 
-Ở yêu cầu cuối, `HR` có **0 nhân viên active** nhưng có **1 nhân viên từ 30 tuổi trở lên** (Chi, 35 tuổi); hai phép lọc cần tồn tại ở hai nhánh riêng. Bài tập này giúp phân biệt việc giữ nhóm, đổi kiểu phần tử bằng `mapping` và lựa chọn vị trí `filtering` trong phép tổng hợp nhiều tầng.
+In the last requirement, `HR` has **0 active employees** yet **1 employee aged 30 or above** (Chi, age 35); the two filters must reside in separate branches. This exercise helps distinguish keeping groups, changing element types with `mapping`, and choosing `filtering` placement in multi-level aggregation.
 
-**Tự mở rộng:** Thêm một phòng ban `Legal` không có nhân viên nào trong danh sách. `groupingBy` có tự tạo khóa `Legal` không? Nếu hệ thống có danh mục phòng ban riêng, hãy đề xuất bước bổ sung khóa với giá trị rỗng sau thu thập và giải thích vì sao không nên tạo dữ liệu giả ngay trong predicate.
+**Extension:** Add a `Legal` department with no employees in the list. Does `groupingBy` automatically create the `Legal` key? If the system has a separate department catalog, propose a post-collection step to populate missing keys with empty values and explain why fake data should not be fabricated inside a predicate.
 
-## Ghi nhớ
+## Key takeaway
 
-`Collectors.filtering(predicate, downstream)` là **downstream collector** để lọc những phần tử **sau khi classifier của nhóm đã được áp dụng**. Đặt nó trong `groupingBy` giúp giữ lại những khóa nhóm có dữ liệu nguồn, ngay cả khi tất cả phần tử của nhóm bị lọc bỏ. Điều này khác `Stream.filter` chạy trước `groupingBy`, vốn khiến nhóm không còn phần tử phù hợp biến mất hoàn toàn.
+`Collectors.filtering(predicate, downstream)` is a **downstream collector** for filtering elements **after the group classifier has been applied**. Placing it inside `groupingBy` preserves group keys present in the source data, even when all elements of a group are filtered out. This differs from `Stream.filter` running before `groupingBy`, which causes groups with no remaining matching elements to vanish completely.
 
-Loại giá trị của nhóm phụ thuộc downstream: `toList` cho danh sách rỗng, `counting` cho `0`, `summingInt` cho `0` và `maxBy` cho `Optional.empty()` khi không có phần tử phù hợp. Khi ghép với `mapping` hoặc `teeing`, hãy chú ý kiểu phần tử và ý nghĩa của từng điều kiện. Luôn giữ predicate stateless, không can thiệp nguồn; xử lý khóa null trước classifier; không mặc định thứ tự Map hay lợi ích của `parallelStream`; và chỉ bổ sung những nhóm chưa từng xuất hiện bằng nguồn danh mục đáng tin cậy.
+Each group's value type depends on the downstream: `toList` gives an empty list, `counting` gives `0`, `summingInt` gives `0`, and `maxBy` gives `Optional.empty()` when no element matches. When composing with `mapping` or `teeing`, pay attention to element types and the semantics of each condition. Always keep predicates stateless and non-interfering; handle null keys before the classifier; do not assume Map ordering or `parallelStream` gains by default; and populate never-seen groups only from a trusted catalog source.

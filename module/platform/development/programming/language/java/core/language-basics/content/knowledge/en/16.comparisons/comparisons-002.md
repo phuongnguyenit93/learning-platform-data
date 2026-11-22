@@ -1,13 +1,13 @@
-# `==` và `!=` trên kiểu nguyên thủy — Java 17+
+# `==` and `!=` on Primitive Types — Java 17+
 
-## 1. Mục tiêu và quy tắc chính
+## 1. Purpose and Core Rules
 
-Trong Java, hai toán tử so sánh bằng trên **kiểu nguyên thủy** (*primitive*) là:
+In Java, the two equality operators on **primitive types** are:
 
-- `a == b`: trả `true` nếu hai giá trị bằng nhau theo quy tắc của kiểu dữ liệu.
-- `a != b`: trả `true` nếu hai giá trị không bằng nhau theo cùng quy tắc.
+- `a == b`: returns `true` if the two values are equal according to the rules of the data type.
+- `a != b`: returns `true` if the two values are not equal according to the same rules.
 
-**Kết quả của cả hai toán tử luôn có kiểu `boolean`.** `!=` là phủ định kết quả của `==` khi đánh giá cùng hai toán hạng và cùng trạng thái.
+**The result of both operators always has type `boolean`.** `!=` is the negation of `==` when evaluating the same two operands in the same state.
 
 ~~~java
 int x = 7;
@@ -19,43 +19,43 @@ System.out.println(x != z); // true
 System.out.println(x == z); // false
 ~~~
 
-Với số nguyên, Java so sánh **giá trị số**, không so địa chỉ bộ nhớ. Với `boolean`, so sánh đúng/sai. Với `float` và `double`, so sánh theo quy tắc dấu phẩy động, có các trường hợp đặc biệt như `NaN`, `+0.0` và `-0.0`.
+For integers, Java compares **numeric values**, not memory addresses. For `boolean`, it compares true/false. For `float` and `double`, it compares according to floating-point rules, which have special cases such as `NaN`, `+0.0`, and `-0.0`.
 
-Bài này nói về **so sánh giá trị nguyên thủy**. Toán tử `==` giữa hai biến tham chiếu đối tượng có quy tắc khác; không được áp dụng suy luận của kiểu nguyên thủy một cách máy móc cho `String` hoặc wrapper.
+This lesson covers **comparing primitive values**. The `==` operator between two object reference variables follows different rules; do not mechanically apply primitive reasoning to `String` or wrappers.
 
-## 2. Các kiểu nguyên thủy được so sánh như thế nào?
+## 2. How Are Primitive Types Compared?
 
-Java có tám kiểu nguyên thủy:
+Java has eight primitive types:
 
-| Nhóm | Kiểu | `==`/`!=` hoạt động thế nào? |
+| Category | Type | How do `==`/`!=` work? |
 |---|---|---|
-| Số nguyên có dấu | `byte`, `short`, `int`, `long` | So sánh giá trị số sau chuyển đổi số học nếu cần |
-| Mã UTF-16 không dấu | `char` | So sánh giá trị số của code unit, có thể so với kiểu số khác |
-| Dấu phẩy động | `float`, `double` | So giá trị floating-point, có quy tắc `NaN` và zero có dấu |
-| Logic | `boolean` | `true == true`, `false == false` là true; khác nhau là false |
+| Signed integers | `byte`, `short`, `int`, `long` | Compare numeric values after arithmetic conversion if needed |
+| Unsigned UTF-16 code unit | `char` | Compare the numeric value of the code unit; can be compared with other numeric types |
+| Floating-point | `float`, `double` | Compare floating-point values, with `NaN` and signed zero rules |
+| Boolean logic | `boolean` | `true == true` and `false == false` are true; differing values are false |
 
-Các kiểu số có thể tham gia so sánh số học với nhau, ví dụ `int == long` hoặc `char == int`. Nhưng **`boolean` không được trộn với kiểu số**:
+Numeric types can be compared with one another arithmetically, such as `int == long` or `char == int`. However, **`boolean` cannot be mixed with numeric types**:
 
 ~~~java
 boolean ready = true;
 System.out.println(ready == true);  // true
 System.out.println(ready != false); // true
 
-// boolean invalid = ready == 1; // LỖI COMPILE: boolean không so với int
+// boolean invalid = ready == 1; // COMPILE ERROR: boolean cannot be compared with int
 ~~~
 
-Java không xem `true` như số nguyên 1 hoặc `false` như số 0.
+Java does not treat `true` as the integer 1 or `false` as the integer 0.
 
-## 3. So sánh `int`, `long`, `byte`, `short` và `char`
+## 3. Comparing `int`, `long`, `byte`, `short`, and `char`
 
-Với toán hạng số, Java áp dụng **binary numeric promotion** trước khi so sánh:
+For numeric operands, Java applies **binary numeric promotion** before comparing:
 
-1. Nếu một toán hạng là `double`, chuyển toán hạng còn lại sang `double`.
-2. Nếu không, nếu có `float`, chuyển sang `float`.
-3. Nếu không, nếu có `long`, chuyển sang `long`.
-4. Còn lại, so ở kiểu `int`; `byte`, `short`, `char` được nâng lên `int`.
+1. If either operand is `double`, convert the other operand to `double`.
+2. Otherwise, if either is `float`, convert to `float`.
+3. Otherwise, if either is `long`, convert to `long`.
+4. Otherwise, compare as `int`; `byte`, `short`, and `char` are promoted to `int`.
 
-Ví dụ:
+Examples:
 
 ~~~java
 byte small = 10;
@@ -69,35 +69,35 @@ System.out.println('A' == 65);       // true
 System.out.println(10 != 11L);       // true
 ~~~
 
-Ở `'A' == 65`, `char` mang giá trị UTF-16 bằng 65 và được chuyển sang `int` để so; điều này **không đồng nghĩa** Java đang so sánh chữ `"A"` kiểu `String` với một số.
+In `'A' == 65`, `char` holds the UTF-16 value 65 and is converted to `int` for comparison; this **does not mean** Java is comparing the `String` `"A"` with a number.
 
-Khi chỉ so các **kiểu số nguyên** ở miền giá trị biểu diễn được, widening từ `int` sang `long` không làm mất độ chính xác. Nhưng khi có `float` hoặc `double`, việc chuyển từ số nguyên rất lớn **có thể làm tròn**, cần chú ý phần sau.
+When comparing only **integer types** within their representable ranges, widening from `int` to `long` does not lose precision. However, when `float` or `double` is involved, converting very large integers **can introduce rounding**, which requires attention as shown later.
 
-### Giá trị và kiểu của biểu thức so sánh
+### Value and Type of a Comparison Expression
 
 ~~~java
 int left = 4;
 long right = 4L;
 
-var same = left == right; // same có kiểu boolean, giá trị true
+var same = left == right; // same has type boolean, value true
 System.out.println(same); // true
 ~~~
 
-`var` suy ra `boolean` từ biểu thức `==`, không biến giá trị so sánh thành số hoặc chuỗi.
+`var` infers `boolean` from the `==` expression; it does not turn the comparison result into a number or a string.
 
-## 4. `==` không phải `=`
+## 4. `==` Is Not `=`
 
-| Cú pháp | Ý nghĩa | Ví dụ |
+| Syntax | Meaning | Example |
 |---|---|---|
-| `=` | Gán giá trị vào biến | `x = 7;` |
-| `==` | Kiểm tra hai giá trị bằng nhau | `x == 7` |
-| `!=` | Kiểm tra hai giá trị khác nhau | `x != 7` |
+| `=` | Assign a value to a variable | `x = 7;` |
+| `==` | Check whether two values are equal | `x == 7` |
+| `!=` | Check whether two values are different | `x != 7` |
 
-Ví dụ dễ mắc lỗi:
+An easy mistake to make:
 
 ~~~java
 boolean allowed = false;
-if (allowed = true) { // Hợp lệ, nhưng GÁN true thay vì so sánh
+if (allowed = true) { // Valid, but ASSIGNS true instead of comparing
     System.out.println("entered");
 }
 ~~~
@@ -108,24 +108,24 @@ if (allowed = true) { // Hợp lệ, nhưng GÁN true thay vì so sánh
 entered
 ~~~
 
-Trong Java, phép gán `allowed = true` là biểu thức có giá trị boolean `true`. Compiler chấp nhận, nhưng chương trình có thể sai nghiệp vụ.
+In Java, the assignment `allowed = true` is an expression whose boolean value is `true`. The compiler accepts it, yet the program logic may be wrong.
 
-Để kiểm tra boolean, ưu tiên:
+To check a boolean, prefer:
 
 ~~~java
 if (allowed) {
-    // Chỉ chạy nếu allowed vốn đã true
+    // Only runs if allowed is already true
 }
 if (!allowed) {
-    // Chỉ chạy nếu allowed vốn là false
+    // Only runs if allowed is false
 }
 ~~~
 
-Với biến số `int`, `if (x = 1)` **không hợp lệ** do điều kiện `if` không thể là `int`; đừng áp dụng kết luận đó sang trường hợp gán `boolean`.
+With an `int` variable, `if (x = 1)` is **invalid** because an `if` condition cannot be `int`; do not assume that same safeguard prevents accidental `boolean` assignment.
 
-## 5. `float`/`double`: so chính xác giá trị đã biểu diễn, không có dung sai ngầm
+## 5. `float`/`double`: Exact Comparison of Represented Values, No Implicit Tolerance
 
-Điểm dễ sai nhất khi dùng `==` với số thực:
+The most common pitfall when using `==` with floating-point numbers:
 
 ~~~java
 double calculated = 0.1 + 0.2;
@@ -135,18 +135,18 @@ System.out.println(calculated == 0.3); // false
 System.out.println(calculated != 0.3); // true
 ~~~
 
-`0.1`, `0.2` và `0.3` có thể không biểu diễn chính xác trong nhị phân hữu hạn. Biểu thức `0.1 + 0.2` được làm tròn và tạo giá trị `double` khác với giá trị biểu diễn của literal `0.3`.
+`0.1`, `0.2`, and `0.3` cannot be represented exactly in finite binary. The expression `0.1 + 0.2` is rounded and produces a `double` value different from the represented value of the literal `0.3`.
 
-**`==` không tự so “gần bằng”.** Hai số cùng hiển thị thành `0.30` khi định dạng hai chữ số sau dấu phẩy không nhất thiết có cùng giá trị nhị phân.
+**`==` does not automatically check "nearly equal".** Two numbers that both format as `0.30` to two decimal places do not necessarily share the exact same binary value.
 
 ~~~java
 double difference = (0.1 + 0.2) - 0.3;
 System.out.println(difference); // 5.551115123125783E-17
 ~~~
 
-Tuy nhiên, không nên kết luận rằng `==` trên `double` **luôn sai**: nếu bài toán cố ý kiểm tra sự bằng nhau của **giá trị floating-point đã được biểu diễn**, `==` là toán tử hợp lệ. Vấn đề là không được dùng nó để thay một khái niệm **bằng nhau trong phạm vi sai số** mà chưa định nghĩa rõ.
+However, you should not conclude that `==` on `double` is **always wrong**: if the problem intentionally tests equality of the **represented floating-point values**, `==` is the valid operator. The issue is using it as a substitute for **equality within an error margin** without explicitly defining that tolerance.
 
-## 6. `float` so với `double` có thể khác dù cùng literal thập phân
+## 6. `float` vs `double` Can Differ Despite Identical Decimal Literals
 
 ~~~java
 float f = 0.1f;
@@ -156,13 +156,13 @@ System.out.println((double) f); // 0.10000000149011612
 System.out.println(f == d);     // false
 ~~~
 
-`0.1f` được làm tròn về định dạng **binary32**, còn `0.1` là literal **binary64**. Khi so sánh, `float f` được nâng sang `double`, nhưng **giá trị đã bị làm tròn ở float không được phục hồi**.
+`0.1f` is rounded to **binary32**, whereas `0.1` is a **binary64** literal. During comparison, `float f` is promoted to `double`, but **the precision already lost in float rounding is not recovered**.
 
-Quy tắc tổng quát: cùng cách viết thập phân **không bảo đảm** hai biến `float` và `double` mang cùng giá trị sau chuyển kiểu.
+General rule: identical decimal spelling **does not guarantee** that a `float` and a `double` hold the same value after type conversion.
 
-## 7. So sánh số nguyên lớn với số thực: bẫy làm tròn
+## 7. Comparing Large Integers with Floating-Point Numbers: Rounding Trap
 
-Khi một toán hạng số nguyên được chuyển sang `float` hoặc `double`, những số nguyên đủ lớn có thể **mất khả năng phân biệt từng đơn vị**.
+When an integer operand is converted to `float` or `double`, sufficiently large integers can **lose single-unit precision**.
 
 ~~~java
 int exactInt = 16_777_217;          // 2^24 + 1
@@ -171,9 +171,9 @@ float roundedFloat = 16_777_216f;   // 2^24
 System.out.println(exactInt == roundedFloat); // true
 ~~~
 
-Kết quả tưởng vô lý nhưng hợp lệ: Java chuyển `int` sang `float` theo numeric promotion. Tại độ lớn `2^24`, binary32 không biểu diễn mọi số nguyên liên tiếp; `16_777_217` được làm tròn về `16_777_216f`, nên hai toán hạng cuối cùng bằng nhau.
+Seemingly paradoxical, yet valid: Java converts `int` to `float` via numeric promotion. At magnitude `2^24`, binary32 cannot represent every consecutive integer; `16_777_217` is rounded to `16_777_216f`, so the two operands end up equal.
 
-Tương tự:
+Similarly:
 
 ~~~java
 long exactLong = 9_007_199_254_740_993L;   // 2^53 + 1
@@ -182,11 +182,11 @@ double roundedDouble = 9_007_199_254_740_992d; // 2^53
 System.out.println(exactLong == roundedDouble); // true
 ~~~
 
-Đây **không** phải `long` có cùng giá trị toán học với `double` ban đầu; kiểu `long` bị chuyển thành `double` cho phép so sánh và mất một đơn vị.
+This **does not** mean the `long` has the same mathematical value as the original `double`; the `long` was converted to `double` for the comparison and lost one unit.
 
-**Khuyến nghị:** khi nghiệp vụ cần so ID, số đếm hay tiền dưới dạng số nguyên lớn, **giữ cùng họ kiểu số nguyên** (`long`, `BigInteger` nếu cần) thay vì trộn với floating-point.
+**Recommendation:** when business logic needs to compare IDs, counts, or monetary amounts as large integers, **stay within integer types** (`long`, or `BigInteger` if needed) instead of mixing with floating-point types.
 
-## 8. `NaN`: ngoại lệ của phép bằng và khác
+## 8. `NaN`: The Exception to Equality and Inequality
 
 ~~~java
 double nan = Double.NaN;
@@ -194,9 +194,9 @@ System.out.println(nan == nan); // false
 System.out.println(nan != nan); // true
 ~~~
 
-Với kiểu nguyên thủy `float`/`double`, NaN không bằng bất cứ giá trị nào kể cả chính nó; `!=` trả `true` nếu có NaN. Dùng `Double.isNaN` hoặc `Float.isNaN` để nhận diện, thay vì so với hằng NaN. `Double.equals` và `Double.compare` dùng các quy tắc khác cho wrapper và thứ tự sắp xếp; bài riêng về **NaN** trình bày ví dụ chi tiết.
+For primitive `float`/`double`, NaN is not equal to any value, including itself; `!=` returns `true` when NaN is involved. Use `Double.isNaN` or `Float.isNaN` to detect it, rather than comparing against the NaN constant. `Double.equals` and `Double.compare` follow different rules for wrappers and sort ordering; the dedicated lesson on **NaN** presents detailed examples.
 
-## 9. `+0.0` và `-0.0` bằng nhau dưới `==`
+## 9. `+0.0` and `-0.0` Are Equal Under `==`
 
 ~~~java
 System.out.println(0.0 == -0.0); // true
@@ -204,26 +204,26 @@ System.out.println(0.0 != -0.0); // false
 System.out.println(1.0 / -0.0);  // -Infinity
 ~~~
 
-Zero có dấu khác nhau về bit biểu diễn và có thể ảnh hưởng các phép tính như nghịch đảo, nhưng primitive `==` không phân biệt. Khi yêu cầu phải phân biệt dấu zero hoặc bit, chọn API như `Double.compare` hay `Double.doubleToRawLongBits` theo hợp đồng.
+Signed zeros differ in their bit representations and can affect operations like reciprocals, but primitive `==` does not distinguish them. When requirements demand distinguishing zero signs or bit patterns, choose an API like `Double.compare` or `Double.doubleToRawLongBits` according to the contract.
 
-## 10. Infinity và dữ liệu hữu hạn
+## 10. Infinity and Finite Data
 
 ~~~java
 System.out.println(Double.POSITIVE_INFINITY == Double.POSITIVE_INFINITY); // true
 System.out.println(Double.POSITIVE_INFINITY != Double.NEGATIVE_INFINITY); // true
 ~~~
 
-Infinity cùng dấu bằng nhau và Infinity trái dấu khác nhau khi dùng primitive `==`/`!=`. Nhưng bằng chính nó không chứng minh số đó hữu hạn: hãy dùng `Double.isFinite` khi đầu vào phải là số thực hữu hạn.
+Infinities with the same sign are equal, and infinities with opposite signs differ under primitive `==`/`!=`. However, being equal to itself does not prove a number is finite: use `Double.isFinite` when inputs must be finite floating-point numbers.
 
-## 11. Khi nào cần so gần bằng nhau?
+## 11. When Is Approximate Equality Needed?
 
-Giá trị `0.1 + 0.2` khác `0.3` ở biểu diễn binary64, nên `==` trả `false`. Nếu bài toán muốn so kết quả đo hoặc tính toán trong **một mức sai số được phép**, cần định nghĩa dung sai theo đơn vị và quy mô thay vì thay bằng một epsilon tùy ý.
+The value `0.1 + 0.2` differs from `0.3` in binary64 representation, so `==` returns `false`. If a problem needs to compare measured or computed results within **an allowed margin of error**, you must define the tolerance in terms of units and scale rather than substituting an arbitrary epsilon.
 
-Trong demo cuối bài, `nearlyEqual(a, b, tolerance)` là ví dụ so bằng dung sai tuyệt đối khi **cả hai đầu vào và dung sai hữu hạn**. Bài **So sánh số thực bằng sai số phù hợp yêu cầu** phân tích đầy đủ sai số tuyệt đối, tương đối, kết hợp, miền gần 0 và các giới hạn tràn số.
+In the demo at the end of this lesson, `nearlyEqual(a, b, tolerance)` illustrates comparing with an absolute tolerance when **both inputs and the tolerance are finite**. The lesson **Comparing Floating-Point Numbers with Requirement-Appropriate Tolerance** analyzes absolute tolerance, relative tolerance, combined approaches, regions near 0, and overflow limits in full.
 
-## 12. Phân biệt primitive với reference `==`
+## 12. Distinguishing Primitive vs. Reference `==`
 
-Ở primitive:
+For primitives:
 
 ~~~java
 int a = 1000;
@@ -231,57 +231,57 @@ int b = 1000;
 System.out.println(a == b); // true
 ~~~
 
-Với hai object `String` được tạo riêng:
+For two separately created `String` objects:
 
 ~~~java
 String first = new String("Java");
 String second = new String("Java");
 
-System.out.println(first == second);      // false: hai tham chiếu khác nhau
-System.out.println(first.equals(second)); // true: nội dung bằng nhau
+System.out.println(first == second);      // false: two different references
+System.out.println(first.equals(second)); // true: equal contents
 ~~~
 
-**Không coi `==` là toán tử so nội dung của mọi object.** Nó so giá trị đối với primitive, nhưng giữa hai reference phù hợp thì so cùng/khác object. `!=` có phân biệt tương ứng.
+**Do not treat `==` as a content comparison operator for objects.** It compares values for primitives, but between two compatible references it checks whether they refer to the same or different objects. `!=` distinguishes them accordingly.
 
-Một chi tiết quan trọng khi có wrapper:
+An important detail involving wrappers:
 
 ~~~java
 int primitive = 10;
 Integer boxed = 10;
 
-System.out.println(primitive == boxed); // true: Integer được unbox để so số
+System.out.println(primitive == boxed); // true: Integer is unboxed for numeric comparison
 ~~~
 
-Nhưng `Integer` có thể là `null`:
+However, `Integer` can be `null`:
 
 ~~~java
 Integer nullable = null;
 // System.out.println(primitive == nullable);
-// Có thể ném NullPointerException khi unbox null.
+// Can throw NullPointerException when unboxing null.
 ~~~
 
-So **hai reference wrapper** mà không unbox không đồng nghĩa so hai primitive. Khi mục đích là so **giá trị object**, chọn API so sánh phù hợp như `equals` hoặc `Objects.equals`, dựa trên chính sách xử lý null của ứng dụng.
+Comparing **two wrapper references** without unboxing is not the same as comparing two primitives. When the goal is to compare **object values**, choose an appropriate comparison API such as `equals` or `Objects.equals`, based on your application's null-handling policy.
 
-## 13. Lỗi biên dịch và bẫy logic phổ biến
+## 13. Common Compilation Errors and Logic Traps
 
-| Viết hoặc suy luận sai | Vấn đề | Cách đúng |
+| Wrong code or assumption | Problem | Correct approach |
 |---|---|---|
-| `if (x = 1)` với x là int | Biểu thức gán cho int, không phải boolean | `if (x == 1)` |
-| `if (flag = true)` để so boolean | Vô tình gán true; đoạn code vẫn compile | `if (flag)` |
-| `true == 1` | Boolean không chuyển sang số | Chỉ so boolean với boolean |
-| `'A' == 65` chắc chắn false vì khác kiểu | Numeric promotion so giá trị số | Kết quả `true` |
-| `0.1 + 0.2 == 0.3` phải true | Sai số biểu diễn binary64 | Dung sai có chủ đích hoặc decimal exact |
-| `0.1f == 0.1` phải true | float/double lưu xấp xỉ khác nhau | Hiểu conversion trước khi so |
-| `nan == nan` phải true | NaN không bằng bất kỳ số nào, kể cả nó | `Double.isNaN(nan)` |
-| `0.0 != -0.0` phải true | Signed zero so bằng nhau | So bit nếu cần phân biệt |
-| `intLarge == floatValue` luôn chính xác | int chuyển sang float có thể làm tròn | Giữ kiểu nguyên khi so giá trị nguyên lớn |
-| `Integer a == Integer b` luôn so số | Nếu đều reference, có thể so cùng object | Dùng `equals` hoặc unbox có kiểm tra |
-| `wrapper == primitive` không bao giờ lỗi | Wrapper null có thể NPE khi unbox | Kiểm tra null |
-| `a != b` là so gần khác nhau | `!=` phủ định phép so bằng chính xác | Định nghĩa tolerance cho dữ liệu đo |
+| `if (x = 1)` with `x` as `int` | Assignment expression yields `int`, not `boolean` | `if (x == 1)` |
+| `if (flag = true)` to compare boolean | Accidentally assigns `true`; code still compiles | `if (flag)` |
+| `true == 1` | `boolean` does not convert to numbers | Compare `boolean` only with `boolean` |
+| `'A' == 65` must be false due to different types | Numeric promotion compares numeric values | Result is `true` |
+| `0.1 + 0.2 == 0.3` must be true | Binary64 representation error | Purposeful tolerance or exact decimal |
+| `0.1f == 0.1` must be true | `float`/`double` store different approximations | Understand conversion before comparing |
+| `nan == nan` must be true | NaN is not equal to any number, including itself | `Double.isNaN(nan)` |
+| `0.0 != -0.0` must be true | Signed zeros compare equal | Compare bits if distinction is needed |
+| `intLarge == floatValue` is always exact | `int` converted to `float` can round | Keep integer types when comparing large integers |
+| `Integer a == Integer b` always compares numbers | If both are references, it can compare object identity | Use `equals` or unbox with null checks |
+| `wrapper == primitive` never fails | A `null` wrapper throws NPE on unboxing | Check for `null` |
+| `a != b` means "not nearly equal" | `!=` negates exact equality | Define tolerance for measured data |
 
-## 14. Ví dụ Java 17 độc lập, chạy được
+## 14. Standalone Runnable Java 17 Example
 
-Lưu file đúng tên **`PrimitiveEqualityDemo.java`**:
+Save the file as **`PrimitiveEqualityDemo.java`**:
 
 ~~~java
 public final class PrimitiveEqualityDemo {
@@ -369,7 +369,7 @@ public final class PrimitiveEqualityDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên, terminal ở thư mục chứa `PrimitiveEqualityDemo.java`; không cần Maven/Gradle hoặc thư viện bên ngoài JDK.
+**Requirements:** JDK 17 or later, terminal in the directory containing `PrimitiveEqualityDemo.java`; no Maven/Gradle or external libraries beyond the JDK needed.
 
 **Bash (Linux/macOS):**
 
@@ -417,21 +417,21 @@ reference equal=false
 content equal=true
 ~~~
 
-### Những dòng dễ bất ngờ
+### Surprising Lines Explained
 
-- `int long=true`: giá trị nguyên 10 vẫn giữ chính xác khi chuyển rộng từ int sang long.
-- `char numeric=true`: `'A'` có giá trị số 65.
-- `decimal equal=false`: `0.1 + 0.2` và `0.3` không phải cùng giá trị binary64.
-- `float double equal=false`: `0.1f` và `0.1` được làm tròn ở độ chính xác khác nhau.
-- `int float equal=true` / `long double equal=true`: **chuyển kiểu để so có thể mất độ chính xác**, không phải các số nguyên ban đầu bằng nhau về toán học.
-- `NaN equal=false`, `NaN not equal=true`: quy tắc NaN đặc biệt.
-- `signed zero equal=true`: `+0.0` và `-0.0` bằng nhau dưới toán tử `==`, dù nghịch đảo cho Infinity khác dấu.
-- `boxed primitive=true`: unboxing cho phép so giá trị số, còn wrapper null gây NPE.
-- `reference equal=false`: `==` giữa hai String reference không so nội dung; `equals` mới cho true.
+- `int long=true`: the integer value 10 remains exact when widened from `int` to `long`.
+- `char numeric=true`: `'A'` has numeric value 65.
+- `decimal equal=false`: `0.1 + 0.2` and `0.3` do not have the same binary64 value.
+- `float double equal=false`: `0.1f` and `0.1` are rounded at different precisions.
+- `int float equal=true` / `long double equal=true`: **converting types for comparison can lose precision**, not that the original integers were mathematically equal.
+- `NaN equal=false`, `NaN not equal=true`: special NaN rules.
+- `signed zero equal=true`: `+0.0` and `-0.0` are equal under `==`, even though their reciprocals produce infinities with opposite signs.
+- `boxed primitive=true`: unboxing enables numeric comparison, while a null wrapper causes an NPE.
+- `reference equal=false`: `==` between two `String` references does not compare content; `equals` returns true.
 
-## 15. Bài tập có đáp án
+## 15. Exercises with Answers
 
-### Bài A — nguyên thủy với kiểu khác nhau
+### Exercise A — Primitives of Different Types
 
 ~~~java
 byte a = 65;
@@ -439,18 +439,18 @@ char b = 'A';
 System.out.println(a == b);
 ~~~
 
-**Đáp án:** `true`, vì numeric promotion đưa hai toán hạng về int có cùng giá trị 65.
+**Answer:** `true`, because numeric promotion converts both operands to `int` with the same value 65.
 
-### Bài B — boolean và số
+### Exercise B — Boolean and Number
 
 ~~~java
 boolean active = true;
 // System.out.println(active == 1);
 ~~~
 
-**Đáp án:** dòng comment nếu bỏ comment sẽ **lỗi compile**. Java không so boolean với int.
+**Answer:** uncommenting the commented line causes a **compile error**. Java does not compare `boolean` with `int`.
 
-### Bài C — NaN
+### Exercise C — NaN
 
 ~~~java
 double x = Double.NaN;
@@ -458,25 +458,25 @@ System.out.println(x == x);
 System.out.println(x != x);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 false
 true
 ~~~
 
-Dùng `Double.isNaN(x)` khi muốn nhận diện NaN.
+Use `Double.isNaN(x)` when you want to detect NaN.
 
-### Bài D — sai số số thực
+### Exercise D — Floating-Point Precision Error
 
 ~~~java
 double sum = 0.1 + 0.2;
 System.out.println(sum == 0.3);
 ~~~
 
-**Đáp án:** `false`. Nếu mục đích là gần bằng theo sai số cho phép, cần quy tắc dung sai; nếu nghiệp vụ yêu cầu thập phân chính xác, cân nhắc `BigDecimal` từ chuỗi.
+**Answer:** `false`. If the goal is approximate equality within an allowed tolerance, define a tolerance rule; if the business logic requires exact decimal arithmetic, consider `BigDecimal` constructed from a string.
 
-### Bài E — số nguyên lớn và float
+### Exercise E — Large Integer and Float
 
 ~~~java
 int n = 16_777_217;
@@ -484,9 +484,9 @@ float f = 16_777_216f;
 System.out.println(n == f);
 ~~~
 
-**Đáp án:** `true` vì `n` bị làm tròn khi chuyển sang float trước khi so.
+**Answer:** `true`, because `n` is rounded when converted to `float` before comparison.
 
-### Bài F — khác `=` và `==`
+### Exercise F — `=` vs `==`
 
 ~~~java
 boolean ok = false;
@@ -495,9 +495,9 @@ if (ok = true) {
 }
 ~~~
 
-**Đáp án:** in `entered`. Đây là **gán** `true` cho `ok`, không phải kiểm tra giá trị cũ.
+**Answer:** prints `entered`. This **assigns** `true` to `ok` instead of checking its previous value.
 
-### Bài G — reference hay primitive?
+### Exercise G — Reference or Primitive?
 
 ~~~java
 int a = 5, b = 5;
@@ -508,7 +508,7 @@ System.out.println(x == y);
 System.out.println(x.equals(y));
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 true
@@ -516,22 +516,22 @@ false
 true
 ~~~
 
-`int` được so theo giá trị; `String` cần `equals` để so nội dung.
+`int` is compared by value; `String` requires `equals` to compare content.
 
-## 16. Checklist và kết luận
+## 16. Checklist and Conclusion
 
-- [ ] Biết `==` so bằng, `!=` so khác và trả kết quả `boolean`.
-- [ ] Phân biệt `=` gán và `==` so sánh.
-- [ ] Hiểu `boolean` chỉ so được với biểu thức boolean phù hợp.
-- [ ] Biết `byte`, `short`, `char` có thể được nâng lên `int` khi so.
-- [ ] Biết `int` và `long` có thể so chính xác khi chuyển rộng int → long.
-- [ ] Nhận ra numeric promotion sang `float`/`double` có thể mất độ chính xác số nguyên lớn.
-- [ ] Không xem `==` trên số thực là so “gần bằng”.
-- [ ] Biết `NaN == NaN` là false, `NaN != NaN` là true.
-- [ ] Biết `+0.0 == -0.0` là true, dù bit và một số phép tính khác phân biệt.
-- [ ] Biết Infinity cùng dấu có thể so bằng; dữ liệu hữu hạn cần kiểm tra riêng.
-- [ ] Có thể định nghĩa dung sai dựa trên miền/đơn vị nếu bài toán cần gần bằng.
-- [ ] Phân biệt primitive comparison với reference identity; wrapper có thể unbox và gặp null.
-- [ ] Biên dịch/chạy `PrimitiveEqualityDemo.java` bằng `javac`/`java`, đối chiếu stdout chính xác.
+- [ ] Know that `==` tests equality, `!=` tests inequality, and both return `boolean`.
+- [ ] Distinguish `=` (assignment) from `==` (comparison).
+- [ ] Understand that `boolean` can only be compared with compatible boolean expressions.
+- [ ] Know that `byte`, `short`, and `char` can be promoted to `int` during comparison.
+- [ ] Know that `int` and `long` can be compared accurately when widening `int` -> `long`.
+- [ ] Recognize that numeric promotion to `float`/`double` can lose precision on large integers.
+- [ ] Never treat `==` on floating-point numbers as "nearly equal".
+- [ ] Know that `NaN == NaN` is false and `NaN != NaN` is true.
+- [ ] Know that `+0.0 == -0.0` is true, even though their bit patterns and some operations distinguish them.
+- [ ] Know that infinities of the same sign compare equal; finite data requires separate validation.
+- [ ] Know how to define tolerance based on domain/units when approximate equality is needed.
+- [ ] Distinguish primitive comparison from reference identity; wrappers can unbox and encounter `null`.
+- [ ] Compile/run `PrimitiveEqualityDemo.java` with `javac`/`java` and verify the exact stdout.
 
-**Kết luận:** Với primitive Java 17+, `==`/`!=` kiểm tra **giá trị**, không so tham chiếu. Các kiểu số áp dụng numeric promotion trước khi so; riêng floating-point cần đặc biệt chú ý sai số biểu diễn, NaN, zero có dấu và việc chuyển từ số nguyên lớn sang float/double. Hãy dùng toán tử chính xác khi muốn **giá trị đúng bằng nhau**, và định nghĩa quy tắc dung sai khi muốn **gần bằng nhau** theo yêu cầu bài toán.
+**Conclusion:** For Java 17+ primitives, `==`/`!=` check **values**, not references. Numeric types apply numeric promotion before comparing; floating-point types require special attention to representation error, NaN, signed zeros, and conversions from large integers to `float`/`double`. Use exact operators when you want **exact value equality**, and define tolerance rules when you want **approximate equality** as required by the problem.

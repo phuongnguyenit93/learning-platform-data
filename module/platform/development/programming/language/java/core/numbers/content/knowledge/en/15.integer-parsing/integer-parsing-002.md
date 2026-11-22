@@ -1,50 +1,50 @@
-# valueOf(String) khác parse về kiểu kết quả trong Java
+# How valueOf(String) Differs from parse in Return Type in Java
 
-## 1. Mục tiêu của bài học
+## 1. Lesson objectives
 
-Khi phân tích một chuỗi chữ số thành số nguyên Java, hai cách viết dưới đây trông như nhau:
+When parsing a digit string into a Java integer, the two ways of writing below look alike:
 
 ```java
 int number = Integer.parseInt("42");
 Integer boxed = Integer.valueOf("42");
 ```
 
-Cả hai đều đọc ký tự `"42"` thành giá trị số bốn mươi hai, nhưng **kiểu trả về ở thời điểm biên dịch khác nhau**:
+Both read the characters `"42"` into the numeric value forty-two, but their **compile-time return types differ**:
 
-- `Integer.parseInt(String)` trả **primitive `int`**.
-- `Integer.valueOf(String)` trả **đối tượng wrapper `Integer`**.
+- `Integer.parseInt(String)` returns a **primitive `int`**.
+- `Integer.valueOf(String)` returns a **wrapper object `Integer`**.
 
-Đây là trọng tâm của bài **Java Core — Numbers / Phân tích số nguyên**. Với `Long`, `Short` và `Byte`, các cặp phương thức tương ứng cũng có khác biệt kiểu trả về như vậy. Chọn phương thức không chỉ là sở thích đặt tên: nó ảnh hưởng đến kiểu biến, autoboxing/unboxing, lời gọi phương thức quá tải, API generic/collection, xử lý `null` và cách đọc code.
+This is the core focus of **Java Core — Numbers / Integer Parsing**. For `Long`, `Short`, and `Byte`, the corresponding method pairs share the same return-type difference. Choosing a method is not merely a naming preference: it affects variable types, autoboxing/unboxing, overloaded method calls, generic/collection APIs, `null` handling, and code readability.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Đọc chữ ký phương thức để phân biệt `parseInt`/`parseLong`/`parseShort`/`parseByte` và `valueOf(String)`.
-2. Hiểu vì sao `println` có thể in giống nhau dù kiểu kết quả khác.
-3. Chọn cách parse phù hợp cho tính toán primitive hoặc API cần wrapper.
-4. Nhận diện khi compiler tự boxing/unboxing và nguy cơ `NullPointerException`.
-5. Biết rằng `valueOf(String)` **không nới lỏng** cú pháp chuỗi, phạm vi số, radix hay xử lý ngoại lệ so với phương thức parse tương ứng.
-6. Dùng đúng overload `valueOf(primitive)`, `valueOf(String, radix)` và phân biệt `decode`, `parseUnsignedInt`.
-7. Viết mã Java 17+ chạy được và dự đoán stdout đúng.
+1. Read method signatures to distinguish `parseInt`/`parseLong`/`parseShort`/`parseByte` from `valueOf(String)`.
+2. Understand why `println` can print the same text even though the return types differ.
+3. Choose the right parsing approach for primitive arithmetic or APIs requiring wrappers.
+4. Recognize when the compiler performs automatic boxing/unboxing and the risk of `NullPointerException`.
+5. Know that `valueOf(String)` **does not relax** string syntax, numeric range, radix, or exception handling compared to its corresponding parse method.
+6. Properly use the overloads `valueOf(primitive)` and `valueOf(String, radix)` and distinguish `decode` and `parseUnsignedInt`.
+7. Write runnable Java 17+ code and accurately predict stdout.
 
-**Nguyên tắc nhanh:** *parse* thường đọc chuỗi thành **giá trị primitive**; *valueOf(String)* đọc cùng nội dung thành **wrapper của giá trị đó**. Đừng kết luận phương thức sau tạo ra một kiểu số mới hoặc tự đổi định dạng dữ liệu.
+**Quick rule:** *parse* typically reads a string into a **primitive value**; *valueOf(String)* reads the same content into a **wrapper for that value**. Do not conclude that the latter creates a new numeric type or automatically alters the data format.
 
-## 2. Bảng so sánh phương thức trên bốn họ số nguyên
+## 2. Method comparison table across the four integer families
 
-| Nhóm | Parse chuỗi | Kiểu kết quả | valueOf chuỗi | Kiểu kết quả |
+| Family | String parse | Return type | String valueOf | Return type |
 | --- | --- | --- | --- | --- |
 | `byte` / `Byte` | `Byte.parseByte("127")` | `byte` | `Byte.valueOf("127")` | `Byte` |
 | `short` / `Short` | `Short.parseShort("32767")` | `short` | `Short.valueOf("32767")` | `Short` |
 | `int` / `Integer` | `Integer.parseInt("42")` | `int` | `Integer.valueOf("42")` | `Integer` |
 | `long` / `Long` | `Long.parseLong("3000000000")` | `long` | `Long.valueOf("3000000000")` | `Long` |
 
-Dạng tham số `String` ở bảng trên không bao gồm trường hợp `null`, và giả định chuỗi hợp lệ trong miền kiểu đích. Cả hai cách parse đều có thể ném `NumberFormatException` khi dữ liệu không hợp lệ.
+The `String` parameter examples in the table above exclude the `null` case and assume valid strings within the target type's range. Both parsing approaches can throw `NumberFormatException` on invalid data.
 
-### 2.1. Chữ ký phương thức quyết định kiểu kết quả
+### 2.1. The method signature determines the return type
 
-Các chữ ký tiêu biểu:
+Representative signatures:
 
 ```java
-// Tên và kiểu trả về minh họa; đây không phải các khai báo tự viết.
+// Illustrative names and return types; these are not custom declarations to write.
 static int Integer.parseInt(String s)
 static Integer Integer.valueOf(String s)
 
@@ -58,11 +58,11 @@ static byte Byte.parseByte(String s)
 static Byte Byte.valueOf(String s)
 ```
 
-Đoạn trên là **cách ghi chữ ký để học**, không phải source code Java hợp lệ đặt trong class. Trình biên dịch biết kiểu trả về từ API tương ứng, không dựa trên chuỗi đầu vào thực tế là bao nhiêu.
+The snippet above is **signature notation for study**, not valid Java source code to place inside a class. The compiler knows the return type from the respective API, not from what the actual input string contains.
 
-Ví dụ `"42"` hoặc `"-42"` đều không làm đổi kiểu trả về; `Integer.parseInt` vẫn trả `int`, còn `Integer.valueOf` vẫn trả `Integer`.
+For example, `"42"` or `"-42"` does not change the return type; `Integer.parseInt` still returns `int`, and `Integer.valueOf` still returns `Integer`.
 
-### 2.2. Phân biệt kiểu với văn bản in ra
+### 2.2. Distinguishing the type from printed output
 
 ```java
 int primitive = Integer.parseInt("42");
@@ -72,36 +72,36 @@ System.out.println(primitive); // 42
 System.out.println(wrapper);   // 42
 ```
 
-Hai dòng cùng in `42` vì `println` có overload và cơ chế chuyển sang chuỗi phù hợp. Không thể suy từ stdout rằng `primitive` và `wrapper` có cùng **kiểu compile-time**.
+Both lines print `42` because `println` has overloads and appropriate string-conversion mechanisms. You cannot infer from stdout that `primitive` and `wrapper` have the same **compile-time type**.
 
-`primitive` lưu một giá trị `int`; `wrapper` là một tham chiếu đến một đối tượng `Integer` mang giá trị `42`. Wrapper là immutable và có thể tham gia các API object-oriented như `equals`, `compareTo` hoặc generic collections.
+`primitive` stores an `int` value; `wrapper` is a reference to an `Integer` object carrying the value `42`. Wrappers are immutable and can participate in object-oriented APIs such as `equals`, `compareTo`, or generic collections.
 
-## 3. Giá trị phân tích gần như giống nhau, kiểu trả về khác nhau
+## 3. Nearly identical parsed value, different return type
 
-Về ý nghĩa nội dung, `Integer.valueOf(String)` đọc chuỗi như `Integer.parseInt(String)` ở radix 10, sau đó trả về một `Integer` chứa giá trị đã đọc. Đọc tài liệu API có thể hình dung:
+In terms of content semantics, `Integer.valueOf(String)` reads the string like `Integer.parseInt(String)` in radix 10, then returns an `Integer` holding the parsed value. Reading the API docs, you can picture it as:
 
 ```java
 Integer result = Integer.valueOf(Integer.parseInt("42"));
 ```
 
-Về giá trị số, cách viết này tương đương `Integer.valueOf("42")` đối với chuỗi hợp lệ. **Không** hiểu đây là cam kết số lượng đối tượng được cấp phát hoặc identity của đối tượng trong mọi lần gọi: Java/JVM có thể cache wrapper thường dùng.
+In terms of numeric value, this is equivalent to `Integer.valueOf("42")` for valid strings. Do **not** interpret this as a guarantee on the number of allocated objects or object identity on every call: Java/the JVM may cache commonly used wrappers.
 
-Với chuỗi không hợp lệ, cả `Integer.parseInt(s)` và `Integer.valueOf(s)` đều **không thể tạo kết quả `int`/`Integer` hợp lệ** và đều ném `NumberFormatException`. `valueOf(String)` không phải một phương thức “parse an toàn trả null” hoặc “bỏ qua lỗi”.
+For invalid strings, both `Integer.parseInt(s)` and `Integer.valueOf(s)` **cannot produce a valid `int`/`Integer` result** and both throw `NumberFormatException`. `valueOf(String)` is not a "safe parse that returns null" or "ignore errors" method.
 
-### 3.1. Wrapper không tự có giá trị null khi parse lỗi
+### 3.1. Wrappers do not automatically become null on parse failure
 
 ```java
 // Integer.parseInt("abc");  // NumberFormatException
 // Integer.valueOf("abc");   // NumberFormatException
 ```
 
-Hai lời gọi trên được **comment lại cố ý** để ví dụ minh họa không làm chương trình dừng. Trên một API yêu cầu trả `null` khi dữ liệu sai, bạn phải chủ động thiết kế wrapper method và chính sách lỗi, chẳng hạn trả `OptionalInt`, `Optional<Integer>` hoặc kết quả có trạng thái lỗi.
+The two calls above are **intentionally commented out** so the illustrative example does not halt the program. In an API required to return `null` on bad data, you must explicitly design a wrapper method and error policy, such as returning `OptionalInt`, `Optional<Integer>`, or a status-bearing result.
 
-Không sử dụng `null` để thay thế bất kỳ giá trị không hợp lệ nào một cách tùy tiện, vì `null` có thể làm chương trình ném `NullPointerException` khi được unbox về primitive.
+Do not arbitrarily substitute `null` for any invalid value, because `null` can cause the program to throw `NullPointerException` when unboxed to a primitive.
 
-## 4. Boxing và unboxing có thể che giấu sự khác biệt
+## 4. Boxing and unboxing can hide the difference
 
-Java hỗ trợ **autoboxing** từ primitive sang wrapper và **unboxing** từ wrapper về primitive trong các ngữ cảnh được phép.
+Java supports **autoboxing** from primitive to wrapper and **unboxing** from wrapper to primitive in permitted contexts.
 
 ```java
 int a = Integer.parseInt("42");     // int -> int
@@ -111,44 +111,44 @@ Integer c = Integer.parseInt("42"); // int -> Integer: boxing
 int d = Integer.valueOf("42");     // Integer -> int: unboxing
 ```
 
-Cả bốn dòng đều có thể biên dịch. Nhưng sự tiện lợi này làm bạn dễ bỏ qua kiểu trả về thực tế:
+All four lines compile. Yet this convenience makes it easy to overlook the actual return type:
 
-| Phía phải | Phía trái | Chuyển đổi |
+| Right-hand side | Left-hand side | Conversion |
 | --- | --- | --- |
-| `parseInt(...)` = `int` | `int` | Không boxing |
+| `parseInt(...)` = `int` | `int` | No boxing |
 | `parseInt(...)` = `int` | `Integer` | Boxing |
-| `valueOf(...)` = `Integer` | `Integer` | Không unboxing |
+| `valueOf(...)` = `Integer` | `Integer` | No unboxing |
 | `valueOf(...)` = `Integer` | `int` | Unboxing |
 
-Đừng giải thích `int d = Integer.valueOf("42")` là bằng chứng `valueOf` trả `int`. Chính compiler đã áp dụng unboxing trong phép gán.
+Do not explain `int d = Integer.valueOf("42")` as proof that `valueOf` returns `int`. The compiler itself applied unboxing during the assignment.
 
-### 4.1. Tại sao nên chọn đúng API ngay từ đầu?
+### 4.1. Why pick the right API from the start?
 
-Nếu mục tiêu là một vòng lặp tính tổng theo kiểu `int`, `parseInt` truyền tải ý định trực tiếp. Nếu muốn truyền đối tượng vào API `List<Integer>`, `Map<String,Integer>` hoặc một method nhận `Integer`, `valueOf` làm rõ kiểu wrapper được yêu cầu.
+If the goal is a loop summing `int` values, `parseInt` conveys that intent directly. If you want to pass an object into a `List<Integer>`, `Map<String,Integer>`, or a method taking `Integer`, `valueOf` makes the required wrapper type clear.
 
-Không cần tối ưu mù quáng: JIT có thể tối ưu những phép boxing trong một số ngữ cảnh, và `Integer.valueOf` có thể tái sử dụng object. **Điều quan trọng đầu tiên là kiểu dữ liệu, ngữ nghĩa null, miền giá trị và tính dễ đọc**, thay vì giả định mọi lời gọi `valueOf` chắc chắn tạo allocation mới.
+There is no need to optimize blindly: the JIT can optimize away boxing in some contexts, and `Integer.valueOf` may reuse objects. **What matters first are the data type, null semantics, value range, and readability**, rather than assuming every `valueOf` call necessarily creates a new allocation.
 
-### 4.2. Null là vấn đề của wrapper, không phải một kết quả parse hợp lệ
+### 4.2. Null is a wrapper issue, not a valid parse result
 
 ```java
 Integer boxed = null;
-// int unboxed = boxed; // NullPointerException lúc chạy
+// int unboxed = boxed; // NullPointerException at runtime
 ```
 
-Không có giá trị `null` kiểu `int`. Khi một API nhận `Integer` có thể trả `null` để biểu thị “chưa có dữ liệu”, bạn phải kiểm tra trước unboxing:
+There is no `null` value of type `int`. When an API taking/returning `Integer` may return `null` to represent "missing data", you must check before unboxing:
 
 ```java
 Integer optional = null;
 int fallback = optional == null ? 0 : optional.intValue();
 ```
 
-Việc dùng `0` làm fallback chỉ phù hợp nếu `0` mang nghĩa mà nghiệp vụ cho phép. Nếu `0` là một giá trị có ý nghĩa riêng, cần giữ trạng thái thiếu dữ liệu ở mô hình dữ liệu thay vì tự động dùng zero.
+Using `0` as a fallback is only appropriate if `0` carries a business-acceptable meaning. If `0` is a distinct meaningful value, keep the missing-data state in the data model rather than automatically defaulting to zero.
 
-## 5. Khác biệt có thể quan sát ở quá tải phương thức
+## 5. Observable differences in method overloading
 
-Khi code có overload `accept(int)` và `accept(Integer)`, kiểu kết quả của `parseInt`/`valueOf` có thể quyết định phương thức nào được chọn ngay lúc biên dịch.
+When code has overloads `accept(int)` and `accept(Integer)`, the return type of `parseInt`/`valueOf` can determine which method is selected at compile time.
 
-Lưu thành tệp **`ParseReturnTypes.java`**:
+Save as **`ParseReturnTypes.java`**:
 
 ```java
 public class ParseReturnTypes {
@@ -172,14 +172,14 @@ public class ParseReturnTypes {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 ParseReturnTypes.java
 java ParseReturnTypes
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 primitive int: 42
@@ -188,36 +188,36 @@ true
 Integer
 ```
 
-Diễn giải:
+Explanation:
 
-1. `describe(raw)` chọn overload `describe(int)`.
-2. `describe(boxed)` chọn overload `describe(Integer)`.
-3. Với biểu thức `raw == boxed`, `boxed` được unbox thành `int` để so sánh giá trị primitive; kết quả true.
-4. `boxed.getClass().getSimpleName()` trả tên lớp wrapper `Integer`.
+1. `describe(raw)` selects the `describe(int)` overload.
+2. `describe(boxed)` selects the `describe(Integer)` overload.
+3. In the expression `raw == boxed`, `boxed` is unboxed to `int` for primitive value comparison; the result is true.
+4. `boxed.getClass().getSimpleName()` returns the wrapper class name `Integer`.
 
-**Lưu ý:** nếu `boxed == null`, biểu thức so sánh `raw == boxed` có thể ném `NullPointerException` lúc unboxing. Ví dụ hiện tại không có trường hợp đó vì `Integer.valueOf("42")` trả đối tượng hợp lệ.
+**Note:** if `boxed == null`, the comparison expression `raw == boxed` can throw `NullPointerException` during unboxing. That does not occur in the current example because `Integer.valueOf("42")` returns a valid object.
 
-## 6. Kiểu trả về ảnh hưởng generic collections
+## 6. Return types affect generic collections
 
-Generic type arguments trong Java không được là primitive:
+Generic type arguments in Java cannot be primitives:
 
 ```java
-// List<int> invalid;        // không hợp lệ
+// List<int> invalid;        // invalid
 java.util.List<Integer> values = new java.util.ArrayList<>();
 
-values.add(Integer.parseInt("12")); // int được boxing thành Integer
-values.add(Integer.valueOf("34"));  // đã là Integer
+values.add(Integer.parseInt("12")); // int is boxed into Integer
+values.add(Integer.valueOf("34"));  // already an Integer
 ```
 
-Hai lời gọi `values.add` đều có thể chạy. Nhưng:
+Both `values.add` calls work. However:
 
-- Với `parseInt`, một bước boxing có thể diễn ra.
-- Với `valueOf`, API nhận thẳng một `Integer`.
-- Khi `values.get(0)` được gán sang `int`, có thể xảy ra unboxing.
+- With `parseInt`, a boxing step may occur.
+- With `valueOf`, the API receives an `Integer` directly.
+- When `values.get(0)` is assigned to an `int`, unboxing can occur.
 
-`valueOf(String)` không “tốt hơn” trong mọi trường hợp. Chọn một cách nhất quán theo vai trò kiểu dữ liệu. Nếu đang làm API có thể thiếu dữ liệu, kiểu `Integer` giúp diễn tả nullability nhưng cũng buộc bạn phải xác định rõ cách xử lý `null`.
+`valueOf(String)` is not "better" in every case. Choose consistently according to the data type's role. If you are building an API where data may be absent, `Integer` helps express nullability, though it also forces you to clearly define how `null` is handled.
 
-### 6.1. `Integer` là object, đừng so identity bằng `==`
+### 6.1. `Integer` is an object; do not compare identity with `==`
 
 ```java
 Integer x = Integer.valueOf("42");
@@ -226,61 +226,61 @@ Integer y = Integer.valueOf("42");
 boolean equalValue = x.equals(y); // true
 ```
 
-`x.equals(y)` so **giá trị `Integer`**. `x == y` nếu cả hai có kiểu `Integer` là phép so **tham chiếu object** và có thể chịu ảnh hưởng bởi cơ chế cache của `valueOf`. Java bảo đảm cache một miền giá trị nhỏ chuẩn đối với một số wrapper; nhưng code ứng dụng không nên phụ thuộc vào identity object để kết luận hai số có cùng giá trị.
+`x.equals(y)` compares **`Integer` values**. `x == y`, when both have type `Integer`, compares **object references** and can be affected by `valueOf` caching. Java guarantees caching a standard small range of values for certain wrappers, but application code should never rely on object identity to conclude two numbers have the same value.
 
-Điều đó không mâu thuẫn với `raw == boxed` ở ví dụ trước: khi một toán hạng là primitive `int`, Java áp dụng unboxing/numeric equality. Kiểu của **cả hai** toán hạng quyết định ý nghĩa của toán tử.
+This does not contradict `raw == boxed` in the earlier example: when one operand is a primitive `int`, Java applies unboxing/numeric equality. The types of **both** operands determine the meaning of the operator.
 
-## 7. Cùng quy tắc cú pháp chuỗi, cùng miền giá trị
+## 7. Same string syntax rules, same value range
 
-### 7.1. Chuỗi hợp lệ trong hệ thập phân
+### 7.1. Valid strings in decimal
 
-`Integer.parseInt(String)` và `Integer.valueOf(String)` chấp nhận chuỗi biểu diễn số nguyên **signed decimal** hợp lệ. Ví dụ:
+`Integer.parseInt(String)` and `Integer.valueOf(String)` accept valid **signed decimal** integer string representations. Examples:
 
-| Input | Kết quả số | Ý nghĩa |
+| Input | Numeric result | Meaning |
 | --- | ---: | --- |
-| `"42"` | 42 | Thập phân thông thường |
-| `"+42"` | 42 | Dấu cộng ASCII đầu chuỗi được chấp nhận |
-| `"-42"` | −42 | Dấu trừ ASCII |
-| `"0"` | 0 | Số không |
-| `"-0"` | 0 | Số nguyên không có signed zero riêng |
-| `"00042"` | 42 | Số 0 đầu chuỗi không tự làm chuyển sang octal |
+| `"42"` | 42 | Standard decimal |
+| `"+42"` | 42 | Leading ASCII plus sign accepted |
+| `"-42"` | −42 | ASCII minus sign |
+| `"0"` | 0 | Zero |
+| `"-0"` | 0 | Integers have no separate signed zero |
+| `"00042"` | 42 | Leading zeros do not automatically switch to octal |
 | `"2147483647"` | 2147483647 | `Integer.MAX_VALUE` |
 | `"-2147483648"` | −2147483648 | `Integer.MIN_VALUE` |
 
-Java API cho phép ký tự chữ số được `Character.digit(char,radix)` nhận diện ở radix tương ứng, không chỉ ASCII trong mọi ngữ cảnh. Nhưng API không tự làm bước quốc tế hóa/chuẩn hóa mọi cách viết số theo locale; nếu đầu vào từ người dùng, cần xác định charset, chữ số chấp nhận và ràng buộc bảo mật phù hợp.
+The Java API allows digit characters recognized by `Character.digit(char,radix)` in the corresponding radix, not only ASCII in all contexts. However, the API does not automatically perform localization/normalization for every locale-specific number format; if input comes from users, you must specify the charset, accepted digits, and appropriate security constraints.
 
-### 7.2. Chuỗi không hợp lệ
+### 7.2. Invalid strings
 
-Những input sau không phải cách viết chuẩn được `Integer.parseInt(s)` hoặc `Integer.valueOf(s)` chấp nhận:
+The following inputs are not valid standard representations accepted by `Integer.parseInt(s)` or `Integer.valueOf(s)`:
 
-| Input | Vì sao sai |
+| Input | Why invalid |
 | --- | --- |
-| `""` | Chuỗi trống |
-| `" "`, `" 42 "` | Có khoảng trắng; phương thức không tự trim |
-| `"42.0"` | Có dấu chấm, không còn là chuỗi số nguyên |
-| `"1e3"` | Ký hiệu mũ thuộc số thực, không phải signed integer string |
-| `"1_000"` | Dấu gạch dưới chỉ được Java source grammar chấp nhận ở vị trí phù hợp trong literal, không phải ký tự được parser chuỗi này chấp nhận |
-| `"0xFF"` | Prefix hex không được tự nhận dạng ở overload radix mặc định |
-| `"+"`, `"-"` | Chỉ có dấu, thiếu chữ số |
-| `"2147483648"` | Vượt `Integer.MAX_VALUE` |
-| `"-2147483649"` | Nhỏ hơn `Integer.MIN_VALUE` |
+| `""` | Empty string |
+| `" "`, `" 42 "` | Contains whitespace; the methods do not automatically trim |
+| `"42.0"` | Contains a decimal point, no longer an integer string |
+| `"1e3"` | Exponent notation belongs to floating-point numbers, not signed integer strings |
+| `"1_000"` | Underscores are only accepted by Java source grammar in valid positions within literals, not by this string parser |
+| `"0xFF"` | Hex prefix is not automatically recognized by the default-radix overload |
+| `"+"`, `"-"` | Sign only, missing digits |
+| `"2147483648"` | Exceeds `Integer.MAX_VALUE` |
+| `"-2147483649"` | Less than `Integer.MIN_VALUE` |
 
-`Integer.parseInt(null)` và `Integer.valueOf((String)null)` cũng không tạo giá trị hợp lệ; với overload `String`, JDK báo `NumberFormatException`. Với `null` và nhiều overload khác nhau, cần chú ý **chữ ký được chọn** và ngoại lệ được tài liệu hóa cho chữ ký đó.
+`Integer.parseInt(null)` and `Integer.valueOf((String)null)` also do not produce valid values; with the `String` overload, the JDK reports `NumberFormatException`. With `null` and multiple overloads, pay attention to **which signature is selected** and the exception documented for that signature.
 
-### 7.3. Chuỗi literal và source literal khác nhau
+### 7.3. String literals and source literals differ
 
 ```java
-int a = 1_000;                 // hợp lệ: source code integer literal
+int a = 1_000;                 // valid: source code integer literal
 // int b = Integer.parseInt("1_000"); // runtime NumberFormatException
 ```
 
-`0xFF` viết trong mã nguồn Java là một **integer literal hệ 16**. Nhưng `"0xFF"` là **chuỗi chứa ký tự** `0`, `x`, `F`, `F` và không tự được parse theo source literal grammar.
+`0xFF` written in Java source code is a **base-16 integer literal**. But `"0xFF"` is a **string containing the characters** `0`, `x`, `F`, `F` and is not automatically parsed according to source literal grammar.
 
-**Đừng giải quyết bằng cách đổi `parseInt` sang `valueOf`:** hai cách có cùng giới hạn cơ bản đối với chuỗi đầu vào. Hãy chọn overload radix hoặc phương thức `decode` có hợp đồng phù hợp.
+**Do not try to solve this by switching `parseInt` to `valueOf`:** both have the same fundamental restrictions on input strings. Choose a radix overload or the `decode` method with the appropriate contract.
 
-## 8. Overload có radix: `parseInt(String,int)` và `valueOf(String,int)`
+## 8. Overloads with radix: `parseInt(String,int)` and `valueOf(String,int)`
 
-Cả hai họ API cho phép chỉ định hệ cơ số `radix`:
+Both API families allow specifying a base `radix`:
 
 ```java
 int primitiveHex = Integer.parseInt("FF", 16);       // 255
@@ -290,22 +290,22 @@ int primitiveBinary = Integer.parseInt("101010", 2); // 42
 Integer boxedBinary = Integer.valueOf("101010", 2); // Integer(42)
 ```
 
-Sự khác biệt **vẫn chỉ là kiểu trả về**, còn quy tắc chuyển chuỗi trong radix tương ứng là như nhau.
+The difference **is still only the return type**, while the rules for converting the string in that radix are identical.
 
-Các API chấp nhận radix hợp lệ từ `Character.MIN_RADIX` (2) đến `Character.MAX_RADIX` (36). Với radix 16, ký tự `A`–`F` biểu thị chữ số 10–15 (không phân biệt hoa/thường trong phạm vi tương ứng). Dấu `+`/`-` ở đầu chuỗi được cho phép với signed parsing; dấu nằm giữa chuỗi thì không.
+The APIs accept valid radices from `Character.MIN_RADIX` (2) to `Character.MAX_RADIX` (36). With radix 16, characters `A`–`F` represent digits 10–15 (case-insensitive within the valid range). A leading `+`/`-` sign is allowed for signed parsing; a sign in the middle of the string is not.
 
-Các điểm cần chú ý:
+Points to note:
 
 - `Integer.parseInt("FF",16)` → 255.
 - `Integer.parseInt("-FF",16)` → −255.
-- `Integer.valueOf("FF",16)` → wrapper `Integer` giá trị 255.
-- `Integer.parseInt("0xFF",16)` **không** tự bỏ tiền tố `0x`.
-- `Integer.parseInt("010")` mặc định radix 10 → 10; không suy từ số 0 đầu chuỗi là octal.
-- Radix không hợp lệ, ký tự không đúng radix hoặc kết quả ngoài miền `int` đều dẫn tới `NumberFormatException` với overload `String`.
+- `Integer.valueOf("FF",16)` → wrapper `Integer` with value 255.
+- `Integer.parseInt("0xFF",16)` does **not** automatically strip the `0x` prefix.
+- `Integer.parseInt("010")` defaults to radix 10 → 10; it does not infer octal from the leading zero.
+- An invalid radix, a character not valid in the radix, or a result outside the `int` range all lead to `NumberFormatException` in the `String` overloads.
 
-### 8.1. `decode(String)` có nhiệm vụ khác
+### 8.1. `decode(String)` has a different job
 
-`Integer.decode("0xFF")` nhận tiền tố `0x` để đọc hex, `Integer.decode("#FF")` cũng có quy ước hex, còn số bắt đầu bằng `0` có thể được hiểu theo octal. Ví dụ:
+`Integer.decode("0xFF")` accepts the `0x` prefix to parse hex, `Integer.decode("#FF")` also uses hex convention, and a number starting with `0` can be interpreted as octal. For example:
 
 ```java
 System.out.println(Integer.parseInt("010")); // 10
@@ -313,28 +313,28 @@ System.out.println(Integer.decode("010"));   // 8
 System.out.println(Integer.decode("0xFF"));  // 255
 ```
 
-`decode` trả **`Integer`**, nhưng không đồng nghĩa `valueOf(String)`: khác **ngữ pháp chuỗi chấp nhận**. Tùy yêu cầu dữ liệu, dùng radix tường minh thường ít gây bất ngờ hơn việc tự suy hệ từ prefix hoặc số 0 đầu chuỗi.
+`decode` returns **`Integer`**, but is not synonymous with `valueOf(String)`: they differ in **accepted string grammar**. Depending on data requirements, using an explicit radix is usually less surprising than inferring the base from a prefix or leading zero.
 
-`Long.decode`, `Short.decode`, `Byte.decode` cũng có ý nghĩa tương ứng trong phạm vi kiểu của mỗi lớp. Nếu hệ thống nhận mã số theo format giao thức riêng, nên chỉ rõ quy ước (base, prefix, dấu, miền giá trị) thay vì trộn nhiều cách parse ngẫu nhiên.
+`Long.decode`, `Short.decode`, and `Byte.decode` carry corresponding meanings within each class's type range. If a system receives numeric codes following a custom protocol format, you should explicitly specify the conventions (base, prefix, sign, value range) rather than mixing multiple parsing methods haphazardly.
 
-## 9. Phạm vi giá trị của `Byte`, `Short`, `Integer` và `Long`
+## 9. Value ranges of `Byte`, `Short`, `Integer`, and `Long`
 
-Cùng một chuỗi chỉ được nhận nếu giá trị nằm trong **miền của kiểu parse**:
+The same string is only accepted if its value lies within the **range of the parsing type**:
 
-| API | Miền signed |
+| API | Signed range |
 | --- | --- |
-| `Byte.parseByte` / `Byte.valueOf` | −128 đến 127 |
-| `Short.parseShort` / `Short.valueOf` | −32768 đến 32767 |
-| `Integer.parseInt` / `Integer.valueOf` | −2147483648 đến 2147483647 |
-| `Long.parseLong` / `Long.valueOf` | −9223372036854775808 đến 9223372036854775807 |
+| `Byte.parseByte` / `Byte.valueOf` | −128 to 127 |
+| `Short.parseShort` / `Short.valueOf` | −32768 to 32767 |
+| `Integer.parseInt` / `Integer.valueOf` | −2147483648 to 2147483647 |
+| `Long.parseLong` / `Long.valueOf` | −9223372036854775808 to 9223372036854775807 |
 
-`Byte.parseByte("128")` ném `NumberFormatException`; `Byte.valueOf("128")` cũng vậy. `Integer.parseInt("3000000000")` vượt phạm vi `int`, nhưng `Long.parseLong("3000000000")` hợp lệ và trả `long`. Với `Long.valueOf("3000000000")`, giá trị đó được bọc vào `Long`.
+`Byte.parseByte("128")` throws `NumberFormatException`; so does `Byte.valueOf("128")`. `Integer.parseInt("3000000000")` exceeds the `int` range, whereas `Long.parseLong("3000000000")` is valid and returns `long`. With `Long.valueOf("3000000000")`, that value is boxed into a `Long`.
 
-Đừng giải quyết lỗi miền giá trị bằng cách parse trước qua kiểu quá nhỏ rồi ép sang kiểu lớn: khi `Integer.parseInt` đã báo lỗi vì chuỗi ngoài miền, việc cast kết quả (vốn không được tạo ra) chẳng có tác dụng. **Chọn kiểu phù hợp trước khi parse.**
+Do not solve a range error by parsing first through a type that is too small and then casting to a larger type: once `Integer.parseInt` fails because the string is out of range, casting the result (which was never produced) accomplishes nothing. **Choose the appropriate type before parsing.**
 
-### 9.1. Trường hợp đặc biệt: phân tích không dấu
+### 9.1. Special case: unsigned parsing
 
-`Integer.parseUnsignedInt(String)` đọc giá trị unsigned 32-bit theo dạng chuỗi, nhưng vẫn trả **primitive `int`** chứa cùng mẫu bit 32-bit.
+`Integer.parseUnsignedInt(String)` reads an unsigned 32-bit value from string form, yet still returns a **primitive `int`** containing the same 32-bit pattern.
 
 ```java
 int bits = Integer.parseUnsignedInt("4294967295");
@@ -342,20 +342,20 @@ System.out.println(bits);                           // -1
 System.out.println(Integer.toUnsignedString(bits)); // 4294967295
 ```
 
-Giá trị `-1` ở dòng đầu là cách **đọc signed** của bit pattern toàn 1; dòng sau diễn giải **cùng bit pattern** dưới dạng unsigned. Không có primitive `unsigned int` riêng được tạo.
+The `-1` on the first line is the **signed reading** of the all-1s bit pattern; the next line interprets the **same bit pattern** as unsigned. No separate `unsigned int` primitive is created.
 
-`Integer.valueOf("4294967295")` không thể thay cho `parseUnsignedInt` vì nó dùng signed parsing thông thường và giá trị vượt miền `int` signed. Nếu cần wrapper cho kết quả unsigned bits, viết:
+`Integer.valueOf("4294967295")` cannot replace `parseUnsignedInt` because it uses standard signed parsing and the value exceeds the signed `int` range. If you need a wrapper for the unsigned bits result, write:
 
 ```java
 Integer bitsObject = Integer.valueOf(
         Integer.parseUnsignedInt("4294967295"));
 ```
 
-Đối với 64 bit, `Long.parseUnsignedLong` có ý nghĩa tương tự và trả `long`. Hãy xác định rõ contract của hệ thống trước khi hiển thị hoặc so sánh signed/unsigned.
+For 64 bits, `Long.parseUnsignedLong` has the same meaning and returns `long`. Clearly define the system's contract before displaying or comparing signed/unsigned values.
 
-## 10. Chương trình hoàn chỉnh: giá trị số, wrapper và phạm vi
+## 10. Complete program: numeric values, wrappers, and ranges
 
-Lưu thành **`IntegerParsingTypes.java`**:
+Save as **`IntegerParsingTypes.java`**:
 
 ```java
 public class IntegerParsingTypes {
@@ -381,14 +381,14 @@ public class IntegerParsingTypes {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac --release 17 IntegerParsingTypes.java
 java IntegerParsingTypes
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 42
@@ -401,17 +401,17 @@ Long
 false
 ```
 
-Phân tích:
+Analysis:
 
-1. `primitive` là `int`, `boxed` là `Integer`; cùng một lượng số học `42`.
-2. So sánh `primitive == boxed` sẽ unbox `boxed` thành `int`.
-3. `Long.parseLong`/`Long.valueOf` có kiểu trả về `long`/`Long`, phù hợp khi `3000000000` vượt miền `int`.
-4. `Byte.parseByte` trả `byte`; `Short.valueOf` trả wrapper `Short`.
-5. `Integer.valueOf("42").equals(Long.valueOf("42"))` false vì `Integer.equals` chỉ nhận cùng lớp `Integer` với cùng giá trị; việc cùng số 42 không có nghĩa mọi wrapper loại khác nhau đều `equals`.
+1. `primitive` is `int`, `boxed` is `Integer`; they represent the same arithmetic quantity `42`.
+2. Comparing `primitive == boxed` unboxes `boxed` to `int`.
+3. `Long.parseLong`/`Long.valueOf` have return types `long`/`Long`, suitable when `3000000000` exceeds the `int` range.
+4. `Byte.parseByte` returns `byte`; `Short.valueOf` returns the wrapper `Short`.
+5. `Integer.valueOf("42").equals(Long.valueOf("42"))` is false because `Integer.equals` only accepts the same `Integer` class with the same value; having the same number 42 does not mean wrappers of different types are `equals`.
 
-## 11. Chương trình hoàn chỉnh: radix, decode và unsigned
+## 11. Complete program: radix, decode, and unsigned
 
-Lưu thành **`ParsingRadix.java`**:
+Save as **`ParsingRadix.java`**:
 
 ```java
 public class ParsingRadix {
@@ -436,14 +436,14 @@ public class ParsingRadix {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 ParsingRadix.java
 java ParsingRadix
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 255
@@ -458,13 +458,13 @@ java ParsingRadix
 0
 ```
 
-Phương thức `decode` khác `parseInt` trong cách nhận diện tiền tố và số 0 đầu. Phương thức `parseUnsignedInt` khác `parseInt` trong miền dữ liệu được chấp nhận, **không** đổi kiểu primitive của kết quả. Mọi phép `println` ở đây in giá trị chứ không tự cho thấy kiểu `int` hoặc `Integer` của biểu thức; muốn xác minh kiểu hãy đọc chữ ký hoặc khai báo biến.
+The `decode` method differs from `parseInt` in how it recognizes prefixes and leading zeros. The `parseUnsignedInt` method differs from `parseInt` in the accepted data range, **not** by changing the primitive type of the result. All `println` calls here print values rather than showing on their own whether an expression has type `int` or `Integer`; to verify the type, inspect the signature or variable declaration.
 
-## 12. Kiểm tra lỗi parse đúng cách
+## 12. Validating parse errors properly
 
-Với dữ liệu từ nhập liệu, file, API hoặc database, `NumberFormatException` là một phần của hợp đồng. Mã mẫu nên xác định chính sách khi gặp input không hợp lệ, thay vì mặc định trả `0` mà không thông báo.
+With data from user input, files, APIs, or databases, `NumberFormatException` is part of the contract. Sample code should define a policy when encountering invalid input rather than silently returning `0` by default.
 
-Lưu thành **`SafeIntegerParsing.java`**:
+Save as **`SafeIntegerParsing.java`**:
 
 ```java
 public class SafeIntegerParsing {
@@ -488,14 +488,14 @@ public class SafeIntegerParsing {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac --release 17 SafeIntegerParsing.java
 java SafeIntegerParsing
 ```
 
-**Stdout chính xác:**
+**Exact stdout:**
 
 ```text
 ok: 42
@@ -506,28 +506,28 @@ invalid: [2147483648]
 invalid: []
 ```
 
-Có thể thay `Integer.parseInt(raw)` bằng `Integer.valueOf(raw)` rồi gán kết quả cho `Integer`; **các input sai vẫn sai**. Việc catch ngoại lệ trong ví dụ nhằm làm rõ ranh giới input hợp lệ/không hợp lệ, không phải khuyến nghị âm thầm nuốt lỗi trong ứng dụng thực tế.
+You can replace `Integer.parseInt(raw)` with `Integer.valueOf(raw)` and assign the result to `Integer`; **invalid inputs remain invalid**. Catching the exception in the example is meant to clarify the boundary between valid and invalid input, not to recommend silently swallowing errors in real applications.
 
-### 12.1. Khi nào nên `trim` hoặc `strip`?
+### 12.1. When should you `trim` or `strip`?
 
-Nếu hợp đồng **cho phép khoảng trắng ở hai đầu**, chuẩn hóa một cách có chủ ý trước khi parse:
+If the contract **allows leading and trailing whitespace**, normalize deliberately before parsing:
 
 ```java
 String input = " 42 ";
 int number = Integer.parseInt(input.strip()); // 42
 ```
 
-Nếu hợp đồng cấm khoảng trắng, **đừng chuẩn hóa rồi lặng lẽ nhận input sai**. `strip` xử lý Unicode whitespace theo `Character.isWhitespace`, không đồng nghĩa mọi ký tự trông như khoảng trắng đều bị xóa. `trim` có quy tắc khác; chọn cách dựa trên định dạng dữ liệu.
+If the contract forbids whitespace, **do not normalize and silently accept invalid input**. `strip` handles Unicode whitespace according to `Character.isWhitespace`, which does not mean every character that looks like a space is removed. `trim` has different rules; choose the approach based on the data format.
 
-Nếu chuỗi có hàng nghìn phân cách, ký hiệu tiền tệ hoặc số được định dạng theo locale, `parseInt`/`valueOf` không phải parser định dạng tổng quát. Cần định nghĩa format hoặc dùng công cụ thích hợp có kiểm soát.
+If the string has thousands separators, currency symbols, or locale-formatted numbers, `parseInt`/`valueOf` is not a general-purpose format parser. You need to define the format or use an appropriate, controlled tool.
 
-### 12.2. Tránh dùng exception cho mọi dòng trong dữ liệu khối lớn mà không đánh giá
+### 12.2. Avoid using exceptions for every row in bulk data without evaluation
 
-Với nguồn dữ liệu sạch đã validate, gọi parse trực tiếp là hợp lý. Với dữ liệu ngoài có thể lỗi nhiều, dùng một lớp validation và trả kết quả rõ trạng thái; cân nhắc chi phí tạo exception nếu parse hàng triệu bản ghi lỗi. Tuy nhiên, **đừng tự viết parser số tùy tiện** chỉ để tránh ngoại lệ khi không thật sự cần hiệu năng riêng.
+For clean, pre-validated data sources, calling parse directly is reasonable. For external data that may contain many errors, use a validation layer and return status-bearing results; consider the cost of creating exceptions if parsing millions of invalid records. However, **do not write an ad-hoc custom number parser** just to avoid exceptions unless you genuinely need specialized performance.
 
-## 13. Overload `valueOf` không chỉ nhận String
+## 13. `valueOf` overloads do not only accept String
 
-Một nguyên nhân gây nhầm là tên `valueOf` có nhiều overload:
+One source of confusion is that the name `valueOf` has multiple overloads:
 
 ```java
 Integer fromNumber = Integer.valueOf(42);   // valueOf(int) -> Integer
@@ -535,182 +535,182 @@ Integer fromText = Integer.valueOf("42");  // valueOf(String) -> Integer
 Integer fromHex = Integer.valueOf("2A", 16); // valueOf(String,int) -> Integer
 ```
 
-Các phương thức trên có **đầu vào khác nhau** nhưng đều trả `Integer`.
+These methods take **different inputs** yet all return `Integer`.
 
-`Integer.valueOf(42)` không parse ký tự nào: nó nhận sẵn primitive `int` để tạo/lấy wrapper. `Integer.valueOf("42")` parse `String`. `Integer.valueOf("2A",16)` parse chuỗi theo radix 16.
+`Integer.valueOf(42)` does not parse any characters: it takes an existing primitive `int` to create/obtain a wrapper. `Integer.valueOf("42")` parses a `String`. `Integer.valueOf("2A",16)` parses a string in radix 16.
 
-Đừng viết `Integer.parseInt(42)` vì `parseInt` cần chuỗi (hoặc overload `CharSequence` kèm chỉ số/radix), không có overload đơn giản nhận một `int`.
+Do not write `Integer.parseInt(42)` because `parseInt` requires a string (or a `CharSequence` overload with indices/radix), and has no simple overload accepting an `int`.
 
-### 13.1. Phương thức trên CharSequence
+### 13.1. Methods on CharSequence
 
-Trong Java 17, `Integer.parseInt(CharSequence s, int beginIndex, int endIndex, int radix)` và `Long.parseLong(CharSequence,beginIndex,endIndex,radix)` cho phép parse một đoạn `CharSequence` mà không nhất thiết phải tạo `String` con theo cách thủ công.
+In Java 17, `Integer.parseInt(CharSequence s, int beginIndex, int endIndex, int radix)` and `Long.parseLong(CharSequence,beginIndex,endIndex,radix)` allow parsing a slice of a `CharSequence` without necessarily creating a substring manually.
 
-Ví dụ:
+Example:
 
 ```java
 CharSequence line = "id=0042;";
 int id = Integer.parseInt(line, 3, 7, 10); // 42
 ```
 
-Đoạn trên là mảnh code; `beginIndex` được tính từ 0 và `endIndex` là **exclusive**. `"id=0042;"` có bốn chữ số ở chỉ số 3..6. Cần kiểm soát index và bảo đảm input không bị thay đổi đồng thời nếu `CharSequence` mutable. Đây vẫn là **parse trả primitive `int`**; không có overload tương ứng `Integer.valueOf(CharSequence,begin,end,radix)` trong Java 17.
+The snippet above is a code fragment; `beginIndex` is 0-based and `endIndex` is **exclusive**. `"id=0042;"` has four digits at indices 3..6. You must control the indices and ensure the input is not mutated concurrently if the `CharSequence` is mutable. This is still a **parse returning primitive `int`**; there is no corresponding `Integer.valueOf(CharSequence,begin,end,radix)` overload in Java 17.
 
-## 14. So sánh `valueOf` với constructor wrapper cũ
+## 14. Comparing `valueOf` with legacy wrapper constructors
 
-Trong Java 17, constructor `new Integer(String)` và `new Integer(int)` đã được **deprecated for removal**. Đối với các ứng dụng mới, ưu tiên:
+In Java 17, the constructors `new Integer(String)` and `new Integer(int)` are **deprecated for removal**. For new applications, prefer:
 
-- `Integer.parseInt("42")` khi cần `int`.
-- `Integer.valueOf("42")` khi cần `Integer` từ `String`.
-- `Integer.valueOf(42)` khi đã có một `int` muốn dùng dưới dạng wrapper.
+- `Integer.parseInt("42")` when you need an `int`.
+- `Integer.valueOf("42")` when you need an `Integer` from a `String`.
+- `Integer.valueOf(42)` when you already have an `int` and want to use it as a wrapper.
 
-`valueOf` có thể tái sử dụng object được cache, trong khi constructor cũ tạo object mới, nhưng **đừng dùng điều này để viết logic dựa trên object identity**. Mục tiêu là API rõ ràng và tuân thủ khuyến nghị JDK chứ không phải tối ưu tùy tiện bằng `==` trên wrapper.
+`valueOf` can reuse cached objects, whereas the legacy constructors create a new object, but **do not use this to write logic relying on object identity**. The goal is clear API usage and following JDK recommendations, not arbitrary optimization using `==` on wrappers.
 
-### 14.1. Vì sao không dùng `new Integer("42")` để né cache?
+### 14.1. Why not use `new Integer("42")` to bypass the cache?
 
-Một số code cũ cố ý tạo hai object khác nhau để `a == b` trả false. Đây không phải cơ chế kiểm tra giá trị đúng: `==` ở hai reference kiểm tra identity; `equals` mới là kiểm tra cùng giá trị trong cùng wrapper class. Việc tạo object mới chỉ để điều khiển `==` làm code phụ thuộc chi tiết không cần thiết.
+Some legacy code intentionally created two distinct objects so `a == b` would return false. That is not a proper value-comparison mechanism: `==` on two references checks identity; `equals` is what checks value equality within the same wrapper class. Creating new objects just to manipulate `==` makes code depend on unnecessary implementation details.
 
-## 15. Mở rộng để tránh kết luận sai về mọi lớp parse/valueOf
+## 15. Generalizing carefully to avoid wrong conclusions about all parse/valueOf classes
 
-**Trong chủ đề số nguyên**, `Byte`, `Short`, `Integer`, `Long` có các cặp `parse...` trả primitive và `valueOf(String)` trả wrapper. Tuy nhiên, không được áp dụng một cách máy móc rằng “mọi lớp Java đều có `parseX` và `valueOf(String)` cùng quy tắc”.
+**Within the integer topic**, `Byte`, `Short`, `Integer`, and `Long` have `parse...` methods returning primitives and `valueOf(String)` returning wrappers. However, do not mechanically apply the rule that "every Java class has `parseX` and `valueOf(String)` with the same rules."
 
-Ví dụ:
+For example:
 
-- `Double.parseDouble(String)` trả primitive `double`; `Double.valueOf(String)` trả wrapper `Double`.
-- `Float.parseFloat(String)` trả primitive `float`; `Float.valueOf(String)` trả wrapper `Float`.
-- `Boolean.parseBoolean(String)` trả primitive `boolean` và `Boolean.valueOf(String)` trả `Boolean`, **nhưng quy tắc chuỗi khác số nguyên**: chỉ `"true"` (không phân biệt chữ hoa/thường) được coi true, các chuỗi khác false, không ném `NumberFormatException` như integer parser.
-- `BigInteger` không có `parseBigInteger(String)` hay `valueOf(String)` tương ứng; thông dụng là `new BigInteger(String)`, còn `BigInteger.valueOf(long)` nhận primitive `long`.
-- `BigDecimal` có constructor từ chuỗi để giữ số thập phân chính xác theo định dạng hỗ trợ; `BigDecimal.valueOf(long)` hay `valueOf(double)` có hợp đồng khác, không phải overload `valueOf(String)`.
+- `Double.parseDouble(String)` returns primitive `double`; `Double.valueOf(String)` returns wrapper `Double`.
+- `Float.parseFloat(String)` returns primitive `float`; `Float.valueOf(String)` returns wrapper `Float`.
+- `Boolean.parseBoolean(String)` returns primitive `boolean` and `Boolean.valueOf(String)` returns `Boolean`, **but the string rules differ from integers**: only `"true"` (case-insensitive) is treated as true, other strings yield false, and neither throws `NumberFormatException` like the integer parsers.
+- `BigInteger` does not have a corresponding `parseBigInteger(String)` or `valueOf(String)`; the standard way is `new BigInteger(String)`, while `BigInteger.valueOf(long)` takes a primitive `long`.
+- `BigDecimal` has a constructor from a string to preserve exact decimal numbers in supported formats; `BigDecimal.valueOf(long)` or `valueOf(double)` has a different contract, not a `valueOf(String)` overload.
 
-Phải đọc **chữ ký và tài liệu của đúng lớp/overload**. Tên “parse” hoặc “valueOf” là một dấu hiệu hữu ích, không thay thế type checking.
+You must read the **signature and documentation of the exact class/overload**. The name "parse" or "valueOf" is a useful hint, not a substitute for type checking.
 
-## 16. Những lỗi thường gặp khi review code
+## 16. Common mistakes in code reviews
 
-1. **“`Integer.valueOf("12")` trả `int`.”** Sai: trả `Integer`. Unboxing ở phép gán có thể khiến ta tưởng ngược.
-2. **“`parseInt` không thêm được vào `List<Integer>`.”** Sai: compiler có thể autobox. Nhưng `List<int>` không hợp lệ.
-3. **“`valueOf(String)` tự trả null nếu chuỗi sai.”** Sai: ném `NumberFormatException`.
-4. **“`valueOf` hiểu `"0xFF"` nhưng `parseInt` không hiểu.”** Sai với overload radix 10; dùng `decode` hoặc truyền `"FF",16` khi phù hợp.
-5. **“Chuỗi `"1_000"` hợp lệ vì literal `1_000` hợp lệ.”** Sai: Java source literal và nội dung `String` có ngữ pháp khác nhau.
-6. **“`Integer.parseInt("010")` hiểu octal.”** Sai: mặc định decimal 10; `Integer.decode("010")` mới có quy ước octal.
-7. **“Nếu là `Integer` thì mọi số đều có thể là null.”** Lớp wrapper có thể nhận null **ở biến tham chiếu**, nhưng `valueOf("42")` không trả null; null thường đến từ một nguồn khác.
-8. **“`Integer.valueOf("42") == Integer.valueOf("42")` luôn là cách so số đúng.”** Không nên dùng reference identity. Dùng `equals` cho cùng wrapper hoặc so primitive.
-9. **“Trộn `Integer` và `Long` cùng giá trị sẽ `equals` true.”** Sai: wrapper equality phân biệt class.
-10. **“Sau khi parse int quá lớn, cast `long` sẽ sửa.”** Sai: lỗi xảy ra trong `parseInt` trước khi có kết quả.
-11. **“`parseUnsignedInt` trả unsigned primitive riêng.”** Sai: vẫn là `int` với bit được diễn giải unsigned theo API đi kèm.
-12. **“Bất kỳ khoảng trắng nào đều tự được bỏ.”** Sai: `parseInt` và `valueOf` không tự trim.
-13. **“`Integer.parseInt(null)` mặc định trả 0.”** Sai: không có giá trị hợp lệ; overload `String` ném `NumberFormatException`.
-14. **“`Integer.valueOf(42)` và `Integer.valueOf("42")` cùng parse chuỗi.”** Sai: overload nhận `int` không parse, overload nhận `String` có parse.
-15. **“`Integer.parseInt` có thể đọc số thập phân `"42.0"` rồi bỏ phần lẻ.”** Sai: `"42.0"` không là chuỗi integer hợp lệ; cast `double` và parse integer là hai thao tác khác nhau.
+1. **"`Integer.valueOf("12")` returns `int`."** False: it returns `Integer`. Unboxing on assignment can make you think the opposite.
+2. **"`parseInt` cannot be added to `List<Integer>`."** False: the compiler can autobox. However, `List<int>` is invalid.
+3. **"`valueOf(String)` automatically returns null if the string is invalid."** False: it throws `NumberFormatException`.
+4. **"`valueOf` understands `"0xFF"` while `parseInt` does not."** False for the radix-10 overload; use `decode` or pass `"FF",16` when appropriate.
+5. **"The string `"1_000"` is valid because the literal `1_000` is valid."** False: Java source literals and `String` contents have different grammars.
+6. **"`Integer.parseInt("010")` interprets octal."** False: it defaults to decimal 10; `Integer.decode("010")` is what has the octal convention.
+7. **"If it is `Integer`, then any number can be null."** A wrapper reference variable can hold `null`, but `valueOf("42")` does not return null; null usually comes from another source.
+8. **"`Integer.valueOf("42") == Integer.valueOf("42")` is always the right way to compare numbers."** Do not use reference identity. Use `equals` for the same wrapper type or compare primitives.
+9. **"Mixing `Integer` and `Long` with the same value will be `equals` true."** False: wrapper equality distinguishes classes.
+10. **"After parsing an int that is too large, casting to `long` will fix it."** False: the error occurs inside `parseInt` before any result is produced.
+11. **"`parseUnsignedInt` returns a separate unsigned primitive."** False: it is still `int`, with bits interpreted as unsigned via companion APIs.
+12. **"Any whitespace is automatically ignored."** False: `parseInt` and `valueOf` do not automatically trim.
+13. **"`Integer.parseInt(null)` returns 0 by default."** False: there is no valid value; the `String` overload throws `NumberFormatException`.
+14. **"`Integer.valueOf(42)` and `Integer.valueOf("42")` both parse strings."** False: the overload taking `int` does not parse, while the overload taking `String` does.
+15. **"`Integer.parseInt` can read a decimal `"42.0"` and drop the fractional part."** False: `"42.0"` is not a valid integer string; casting a `double` and parsing an integer are two different operations.
 
-## 17. Bài tập có đáp án giải thích
+## 17. Exercises with explained answers
 
-### Bài 1 — Trả kiểu gì?
+### Exercise 1 — What type is returned?
 
-Chọn kiểu compile-time của `Integer.parseInt("7")`, `Integer.valueOf("7")`, `Long.parseLong("7")` và `Long.valueOf("7")`.
+Choose the compile-time type of `Integer.parseInt("7")`, `Integer.valueOf("7")`, `Long.parseLong("7")`, and `Long.valueOf("7")`.
 
-**Đáp án:** lần lượt `int`, `Integer`, `long`, `Long`. Chữ số trong chuỗi không quyết định kiểu trả về.
+**Answer:** `int`, `Integer`, `long`, `Long`, respectively. The digits inside the string do not determine the return type.
 
-### Bài 2 — Boxing nằm ở đâu?
+### Exercise 2 — Where does boxing happen?
 
-Tại sao `Integer x = Integer.parseInt("10");` vẫn hợp lệ?
+Why is `Integer x = Integer.parseInt("10");` still valid?
 
-**Đáp án:** `parseInt` trả `int`; compiler áp dụng boxing để gán vào `Integer`. `parseInt` không đổi chữ ký vì vế trái là wrapper.
+**Answer:** `parseInt` returns `int`; the compiler applies boxing to assign it to `Integer`. `parseInt` does not change its signature just because the left-hand side is a wrapper.
 
-### Bài 3 — Unboxing nằm ở đâu?
+### Exercise 3 — Where does unboxing happen?
 
-Tại sao `int x = Integer.valueOf("10");` hợp lệ?
+Why is `int x = Integer.valueOf("10");` valid?
 
-**Đáp án:** `valueOf(String)` trả `Integer`; compiler unbox sang `int` khi gán. Nếu nhận `null` từ nguồn khác khi unbox, chương trình có thể ném NPE; `valueOf("10")` không phải nguồn null đó.
+**Answer:** `valueOf(String)` returns `Integer`; the compiler unboxes it to `int` upon assignment. If `null` arrives from another source during unboxing, the program can throw NPE; `valueOf("10")` is not that source of null.
 
-### Bài 4 — Sai cú pháp chuỗi
+### Exercise 4 — Invalid string syntax
 
-`Integer.parseInt("1_000")` và `Integer.valueOf("1_000")` có chấp nhận không?
+Are `Integer.parseInt("1_000")` and `Integer.valueOf("1_000")` accepted?
 
-**Đáp án:** không. Gạch dưới thuộc cú pháp literal trong Java source, không thuộc dạng chuỗi số nguyên mà hai phương thức này nhận.
+**Answer:** no. Underscores belong to literal syntax in Java source code, not to the integer string format accepted by these two methods.
 
-### Bài 5 — Hex và radix
+### Exercise 5 — Hex and radix
 
-Làm sao lấy giá trị 255 từ chuỗi `"FF"` bằng cả parse và valueOf?
+How do you obtain the value 255 from the string `"FF"` using both parse and valueOf?
 
-**Đáp án:** `int p = Integer.parseInt("FF",16);` và `Integer v = Integer.valueOf("FF",16);`. Cả hai cho giá trị số 255, khác kiểu kết quả.
+**Answer:** `int p = Integer.parseInt("FF",16);` and `Integer v = Integer.valueOf("FF",16);`. Both yield the numeric value 255, with different result types.
 
-### Bài 6 — Decode
+### Exercise 6 — Decode
 
-`Integer.parseInt("010")` và `Integer.decode("010")` trả giá trị gì?
+What values do `Integer.parseInt("010")` and `Integer.decode("010")` return?
 
-**Đáp án:** `10` và wrapper `Integer` giá trị `8`, vì `decode` nhận diện số 0 đầu theo octal, còn `parseInt` mặc định decimal.
+**Answer:** `10` and wrapper `Integer` with value `8`, because `decode` interprets a leading zero as octal, whereas `parseInt` defaults to decimal.
 
-### Bài 7 — Miền giá trị
+### Exercise 7 — Value range
 
-`Byte.valueOf("128")`, `Integer.parseInt("3000000000")` và `Long.parseLong("3000000000")` diễn ra thế nào?
+What happens with `Byte.valueOf("128")`, `Integer.parseInt("3000000000")`, and `Long.parseLong("3000000000")`?
 
-**Đáp án:** hai lời gọi đầu ném `NumberFormatException` vì vượt miền; lời gọi thứ ba hợp lệ và trả `long` 3000000000.
+**Answer:** the first two calls throw `NumberFormatException` because they exceed the range; the third call is valid and returns `long` 3000000000.
 
-### Bài 8 — So wrapper
+### Exercise 8 — Comparing wrappers
 
-`Integer.valueOf("42").equals(Long.valueOf("42"))` trả gì?
+What does `Integer.valueOf("42").equals(Long.valueOf("42"))` return?
 
-**Đáp án:** false vì khác wrapper class, dù có cùng lượng toán học. Nếu thật sự cần numeric equality xuyên kiểu, phải định nghĩa chính sách chuyển kiểu và miền dữ liệu riêng.
+**Answer:** false because they are different wrapper classes, even though they represent the same mathematical quantity. If you genuinely need cross-type numeric equality, you must define a custom type-conversion and data-range policy.
 
-### Bài 9 — Unsigned
+### Exercise 9 — Unsigned
 
-`Integer.parseUnsignedInt("4294967295")` trả kiểu gì và in giá trị signed nào?
+What type does `Integer.parseUnsignedInt("4294967295")` return, and what signed value does it print?
 
-**Đáp án:** trả `int` có bit toàn 1; `System.out.println` với `int` in `-1`. `Integer.toUnsignedString(bits)` in `4294967295`.
+**Answer:** returns an `int` with all bits set to 1; `System.out.println` on `int` prints `-1`. `Integer.toUnsignedString(bits)` prints `4294967295`.
 
-### Bài 10 — Null
+### Exercise 10 — Null
 
-Nếu `String text = null;`, `Integer.parseInt(text)` và `Integer.valueOf(text)` có trả 0/null không?
+If `String text = null;`, do `Integer.parseInt(text)` and `Integer.valueOf(text)` return 0/null?
 
-**Đáp án:** không; overload nhận `String` ném `NumberFormatException`. `Integer.valueOf((String)null)` khác với việc một biến `Integer` đã có giá trị `null`.
+**Answer:** no; the overloads taking `String` throw `NumberFormatException`. `Integer.valueOf((String)null)` is different from an `Integer` variable that already holds `null`.
 
-### Bài 11 — Overload method
+### Exercise 11 — Method overloading
 
-Cho hai phương thức `show(int)` và `show(Integer)`. `show(Integer.parseInt("9"))` chọn phương thức nào, và `show(Integer.valueOf("9"))` chọn phương thức nào?
+Given two methods `show(int)` and `show(Integer)`. Which method does `show(Integer.parseInt("9"))` select, and which does `show(Integer.valueOf("9"))` select?
 
-**Đáp án:** đầu chọn `show(int)`, sau chọn `show(Integer)`. Kiểu biểu thức ở call site quyết định overload phù hợp.
+**Answer:** the first selects `show(int)`, the second selects `show(Integer)`. The expression type at the call site determines the matching overload.
 
-### Bài 12 — Thiết kế API
+### Exercise 12 — API design
 
-Một method tính tổng triệu số nguyên và một method trả dữ liệu có trạng thái chưa nhập, nên dùng kiểu nào?
+For a method summing a million integers and a method returning data that may be in an unentered state, which types should be used?
 
-**Đáp án:** tổng tính toán có thể dùng primitive `int`/`long` tùy miền; trường có trạng thái thiếu phải có mô hình riêng như `Integer` nullable, `OptionalInt` hoặc record trạng thái. Không thể quyết định chỉ dựa trên tốc độ mà bỏ qua yêu cầu null/error.
+**Answer:** the arithmetic sum can use primitive `int`/`long` depending on the range; the field with a missing state should have a dedicated model such as nullable `Integer`, `OptionalInt`, or a status record. You cannot decide based solely on speed while ignoring null/error requirements.
 
-### Bài 13 — Decimal và octal
+### Exercise 13 — Decimal and octal
 
-Tại sao `Integer.valueOf("010")` không giống `Integer.decode("010")`?
+Why is `Integer.valueOf("010")` not the same as `Integer.decode("010")`?
 
-**Đáp án:** `valueOf(String)` áp dụng signed decimal giống `parseInt(String)`, cho 10; `decode` hiểu prefix số 0 theo quy tắc riêng nên cho 8.
+**Answer:** `valueOf(String)` applies signed decimal just like `parseInt(String)`, yielding 10; `decode` interprets the leading-zero prefix under its own rules, yielding 8.
 
-### Bài 14 — Chuyển sang wrapper có giải quyết giá trị vượt miền không?
+### Exercise 14 — Does switching to a wrapper solve out-of-range values?
 
-Giá trị `"2147483648"` vượt `Integer.MAX_VALUE`. `Integer.valueOf("2147483648")` có thể chứa nó vì là object không?
+The value `"2147483648"` exceeds `Integer.MAX_VALUE`. Can `Integer.valueOf("2147483648")` hold it because it is an object?
 
-**Đáp án:** không. `Integer` bọc chính miền giá trị của `int`. Dùng `Long.parseLong`/`Long.valueOf` hoặc `BigInteger` nếu miền dữ liệu yêu cầu, không suy rằng wrapper tăng độ rộng số.
+**Answer:** no. `Integer` wraps the exact value range of `int`. Use `Long.parseLong`/`Long.valueOf` or `BigInteger` if the data range requires it; do not assume a wrapper increases numeric width.
 
-## 18. Checklist và tài liệu chuẩn
+## 18. Checklist and standard documentation
 
-- [ ] Tôi nhớ đúng `parseInt(String) -> int` và `valueOf(String) -> Integer`.
-- [ ] Tôi đối chiếu được `parseLong/valueOf`, `parseShort/valueOf` và `parseByte/valueOf`.
-- [ ] Tôi xác định được nơi boxing/unboxing diễn ra khi chọn kiểu biến đích.
-- [ ] Tôi biết wrapper có thể được dùng trong generic collections nhưng `List<int>` không hợp lệ.
-- [ ] Tôi không dùng `==` giữa hai reference wrapper để kiểm tra cùng giá trị.
-- [ ] Tôi hiểu cả parse và valueOf đều có thể ném `NumberFormatException` trên input sai.
-- [ ] Tôi kiểm tra signed range trước khi chọn `byte`, `short`, `int` hay `long`.
-- [ ] Tôi dùng đúng overload radix khi chuỗi không phải hệ thập phân.
-- [ ] Tôi không nhầm `decode` với `parseInt`/`valueOf(String)`.
-- [ ] Tôi biết parseUnsignedInt vẫn trả `int` và cần API unsigned để hiển thị/so sánh tương ứng.
-- [ ] Tôi phân biệt Java source literal có underscore/prefix với chuỗi cần parser.
-- [ ] Tôi biết `valueOf(int)` không giống `valueOf(String)` về đầu vào.
-- [ ] Tôi đã chạy cả ba chương trình Java 17+ và thử thêm input rỗng, khoảng trắng, ngoài miền, sai radix.
-- [ ] Tôi ghi rõ hợp đồng parse lỗi và xử lý `null` trước khi unbox.
+- [ ] I accurately recall `parseInt(String) -> int` and `valueOf(String) -> Integer`.
+- [ ] I can cross-reference `parseLong/valueOf`, `parseShort/valueOf`, and `parseByte/valueOf`.
+- [ ] I can identify where boxing/unboxing occurs when choosing a target variable type.
+- [ ] I know wrappers can be used in generic collections, whereas `List<int>` is invalid.
+- [ ] I do not use `==` between two wrapper references to check value equality.
+- [ ] I understand both parse and valueOf can throw `NumberFormatException` on invalid input.
+- [ ] I check the signed range before choosing `byte`, `short`, `int`, or `long`.
+- [ ] I use the proper radix overload when a string is not decimal.
+- [ ] I do not confuse `decode` with `parseInt`/`valueOf(String)`.
+- [ ] I know parseUnsignedInt still returns `int` and requires unsigned APIs for corresponding display/comparison.
+- [ ] I distinguish Java source literals containing underscores/prefixes from strings passed to a parser.
+- [ ] I know `valueOf(int)` differs from `valueOf(String)` in its input.
+- [ ] I have run all three Java 17+ programs and tested additional empty, whitespace, out-of-range, and invalid-radix inputs.
+- [ ] I clearly document the error-parsing contract and handle `null` before unboxing.
 
-**Tài liệu Java SE 17 chính thức:**
+**Official Java SE 17 documentation:**
 
 - [Integer API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Integer.html): `parseInt`, `valueOf`, `decode`, `parseUnsignedInt`, `toUnsignedString`.
 - [Long API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html): `parseLong`, `valueOf`, `parseUnsignedLong`.
 - [Byte API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Byte.html): `parseByte`, `valueOf`.
 - [Short API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Short.html): `parseShort`, `valueOf`.
-- [Character API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html): `digit` và khái niệm radix.
-- [JLS 17, `5.1.7–`5.1.8 Boxing and Unboxing Conversions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.7): quy tắc boxing/unboxing.
-- [BigInteger API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html): chuyển chuỗi thành số nguyên tùy độ chính xác khi vượt miền primitive.
+- [Character API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html): `digit` and the radix concept.
+- [JLS 17, `5.1.7–`5.1.8 Boxing and Unboxing Conversions](https://docs.oracle.com/javase/specs/jls/se17/html/jls-5.html#jls-5.1.7): boxing/unboxing rules.
+- [BigInteger API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html): converting strings to arbitrary-precision integers when exceeding primitive ranges.
 
-**Kết luận:** khi đọc một chuỗi số nguyên, `parse...` và `valueOf(String)` phần lớn cùng cách hiểu **chuỗi số**, nhưng khác **kiểu trả về**. Hãy ưu tiên primitive khi API cần giá trị primitive, dùng wrapper khi mô hình cần object/generic/nullable, và nhớ rằng lỗi cú pháp, phạm vi, radix và chính sách xử lý dữ liệu không được `valueOf` tự động “giải quyết”.
+**Conclusion:** when reading an integer string, `parse...` and `valueOf(String)` largely share the same interpretation of the **numeric string**, but differ in **return type**. Prefer primitives when the API needs primitive values, use wrappers when the model requires objects/generics/nullability, and remember that syntax errors, range limits, radices, and data-handling policies are not automatically "solved" by `valueOf`.

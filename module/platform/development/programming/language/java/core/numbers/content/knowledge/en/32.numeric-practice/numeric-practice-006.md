@@ -1,64 +1,64 @@
-# Thực hành: tính giai thừa và dãy số lớn bằng BigInteger trong Java
+# Practice: Computing Factorials and Large Sequences with BigInteger in Java
 
-## 1. Mục tiêu và bài toán
+## 1. Objectives and Problem Statement
 
-Các kiểu nguyên nguyên thủy của Java có giới hạn cố định: `int` dùng 32 bit có dấu, `long` dùng 64 bit có dấu. Khi tính các dãy tăng nhanh như **giai thừa** hoặc **Fibonacci**, kết quả sớm vượt những giới hạn đó. Nếu phép tính vẫn chạy trên `int` hoặc `long`, Java thường **tràn số (overflow) và cho kết quả sai**, chứ không tự nâng sang kiểu có nhiều bit hơn.
+Java's primitive integer types have fixed limits: `int` uses 32 signed bits, and `long` uses 64 signed bits. When computing fast-growing sequences such as **factorials** or **Fibonacci**, results quickly exceed those limits. If calculations still run on `int` or `long`, Java typically **overflows and produces wrong results**, rather than automatically promoting to a wider type.
 
-Bài thực hành sử dụng `java.math.BigInteger` để giải hai bài toán:
+This practice uses `java.math.BigInteger` to solve two problems:
 
-1. **Giai thừa**: tính `n! = 1 × 2 × ... × n`, với `0! = 1` và `n` nguyên không âm.
-2. **Fibonacci**: tính `F(0) = 0`, `F(1) = 1` và `F(n) = F(n-1) + F(n-2)` khi `n ≥ 2`.
+1. **Factorial**: compute `n! = 1 × 2 × ... × n`, with `0! = 1` and non-negative integer `n`.
+2. **Fibonacci**: compute `F(0) = 0`, `F(1) = 1`, and `F(n) = F(n-1) + F(n-2)` for `n ≥ 2`.
 
-Kết thúc bài, bạn sẽ biết viết chương trình Java 17+ chạy được, sử dụng đúng API `BigInteger`, so sánh hai cách tính Fibonacci, xác thực đầu vào, kiểm tra kết quả, và hiểu vì sao “không tràn kiểu số” **không đồng nghĩa “không tốn tài nguyên”**.
+By the end of this lesson, you will know how to write a runnable Java 17+ program, use the `BigInteger` API properly, compare two ways of computing Fibonacci, validate inputs, verify results, and understand why "no numeric type overflow" **does not mean "no resource cost."**
 
-## 2. Vì sao không dùng int hoặc long cho kết quả lớn?
+## 2. Why Not Use int or long for Large Results?
 
-### 2.1. Giai thừa vượt long rất sớm
+### 2.1. Factorials exceed long very early
 
-Một số mốc:
+Some milestones:
 
-| n | n! | Đánh giá |
+| n | n! | Assessment |
 |---|---|---|
-| 0 | 1 | Định nghĩa giai thừa |
-| 1 | 1 | Cơ sở |
-| 5 | 120 | Vừa `int` |
-| 12 | 479001600 | Còn vừa `int` |
-| 13 | 6227020800 | **Vượt int** |
-| 20 | 2432902008176640000 | Còn vừa `long` |
-| 21 | 51090942171709440000 | **Vượt long** |
-| 100 | Có 158 chữ số thập phân | Cần số nguyên tùy ý độ dài |
+| 0 | 1 | Factorial definition |
+| 1 | 1 | Base case |
+| 5 | 120 | Fits in `int` |
+| 12 | 479001600 | Still fits in `int` |
+| 13 | 6227020800 | **Exceeds int** |
+| 20 | 2432902008176640000 | Still fits in `long` |
+| 21 | 51090942171709440000 | **Exceeds long** |
+| 100 | Has 158 decimal digits | Needs arbitrary-length integer |
 
-`Long.MAX_VALUE = 9223372036854775807`, nhỏ hơn `21!`. Bản thân việc gán kết quả đã overflow cho `BigInteger` sau đó **không sửa lại giá trị đúng**:
+`Long.MAX_VALUE = 9223372036854775807`, which is smaller than `21!`. Assigning an already-overflowed result to `BigInteger` afterward **does not restore the right value**:
 
 ~~~java
 long wrong = 1L;
 for (int i = 2; i <= 21; i++) {
-    wrong *= i; // long đã overflow trước khi có BigInteger nào tham gia
+    wrong *= i; // long already overflowed before any BigInteger was involved
 }
-BigInteger tooLate = BigInteger.valueOf(wrong); // giữ giá trị sai
+BigInteger tooLate = BigInteger.valueOf(wrong); // holds the wrong value
 ~~~
 
-Đây là đoạn minh họa đặt trong một phương thức, có import `java.math.BigInteger`. Nếu cần chính xác, phải dùng phép nhân của `BigInteger` **ngay từ bước đầu**, không đợi tới khi có số lớn.
+This is an illustrative snippet placed inside a method, with `import java.math.BigInteger`. If exactness is required, you must use `BigInteger` multiplication **right from the first step**, not wait until numbers become large.
 
-### 2.2. Fibonacci cũng vượt long
+### 2.2. Fibonacci also exceeds long
 
-Dãy bắt đầu:
+The sequence starts:
 
 ~~~text
 n:     0  1  2  3  4  5  6  7  8  9  10
 F(n):  0  1  1  2  3  5  8  13 21 34 55
 ~~~
 
-Các mốc quan trọng:
+Key milestones:
 
-- `F(50) = 12586269025`: vượt `int` nhưng còn vừa `long`.
-- `F(92) = 7540113804746346429`: còn vừa `long`.
-- `F(93) = 12200160415121876738`: vượt `Long.MAX_VALUE`.
-- `F(100) = 354224848179261915075`: `BigInteger` biểu diễn được chính xác.
+- `F(50) = 12586269025`: exceeds `int` but still fits in `long`.
+- `F(92) = 7540113804746346429`: still fits in `long`.
+- `F(93) = 12200160415121876738`: exceeds `Long.MAX_VALUE`.
+- `F(100) = 354224848179261915075`: `BigInteger` represents it accurately.
 
-Không phải mọi bài toán cần BigInteger: nếu phạm vi n cố định rất nhỏ, `long` có thể đủ và thường nhẹ hơn. Khi phạm vi có thể lớn hoặc không thể chứng minh vừa kiểu cố định, `BigInteger` là lựa chọn phù hợp để giữ **số nguyên chính xác**.
+Not every problem needs BigInteger: if the range of n is strictly bounded and very small, `long` can be sufficient and is usually lighter. When the range can be large or cannot be proven to fit a fixed type, `BigInteger` is the right choice to preserve **exact integers**.
 
-## 3. Làm quen với API BigInteger
+## 3. Getting Familiar with the BigInteger API
 
 Import:
 
@@ -66,62 +66,62 @@ Import:
 import java.math.BigInteger;
 ~~~
 
-Cách tạo:
+Creation:
 
 ~~~java
 BigInteger zero = BigInteger.ZERO;
 BigInteger one = BigInteger.ONE;
-BigInteger two = BigInteger.TWO; // Có trong Java 17
+BigInteger two = BigInteger.TWO; // Available in Java 17
 BigInteger small = BigInteger.valueOf(123L);
 BigInteger large = new BigInteger("51090942171709440000");
 ~~~
 
-Vì kết quả có thể lớn hơn `long`, chuỗi thập phân là cách nhập một hằng số lớn chính xác. Không viết `BigInteger.valueOf(51090942171709440000L)`: literal kiểu `long` đã vượt giới hạn và code không biên dịch.
+Because results can exceed `long`, a decimal string is the way to enter a large constant accurately. Do not write `BigInteger.valueOf(51090942171709440000L)`: the `long` literal exceeds the limit and the code will not compile.
 
-`BigInteger` không hỗ trợ các toán tử số học thông thường kiểu `+`, `-`, `*` hoặc `/` dành cho primitive. Dùng các phương thức của nó:
+`BigInteger` does not support standard primitive arithmetic operators like `+`, `-`, `*`, or `/`. Use its methods:
 
-| Phép toán | BigInteger |
+| Operation | BigInteger |
 |---|---|
 | `a + b` | `a.add(b)` |
 | `a - b` | `a.subtract(b)` |
 | `a * b` | `a.multiply(b)` |
-| `a / b` (thương nguyên) | `a.divide(b)` |
+| `a / b` (integer quotient) | `a.divide(b)` |
 | `a % b` | `a.remainder(b)` |
-| `a ^ n` theo nghĩa lũy thừa | `a.pow(n)` |
-| So sánh lớn hơn | `a.compareTo(b) > 0` |
-| Bằng nhau theo giá trị BigInteger | `a.equals(b)` |
+| `a ^ n` (exponentiation) | `a.pow(n)` |
+| Greater-than comparison | `a.compareTo(b) > 0` |
+| Value equality for BigInteger | `a.equals(b)` |
 
-BigInteger **bất biến (immutable)**: lời gọi `result.multiply(factor)` không tự thay đổi `result`. Cần lưu giá trị trả về:
+BigInteger is **immutable**: calling `result.multiply(factor)` does not mutate `result` itself. You must store the return value:
 
 ~~~java
 BigInteger result = BigInteger.ONE;
-result.multiply(BigInteger.valueOf(5)); // Kết quả bị bỏ đi!
+result.multiply(BigInteger.valueOf(5)); // Result is discarded!
 System.out.println(result);             // 1
 
 result = result.multiply(BigInteger.valueOf(5));
 System.out.println(result);             // 5
 ~~~
 
-Đây là lý do trong vòng lặp ta luôn viết `result = result.multiply(...)` và `next = previous.add(current)`.
+This is why inside loops we always write `result = result.multiply(...)` and `next = previous.add(current)`.
 
-**Lưu ý:** `BigInteger` bảo đảm phép toán số nguyên chính xác trong phạm vi tài nguyên và giới hạn triển khai, nhưng không tạo bộ nhớ vô hạn. Các số lớn vẫn làm tăng chi phí CPU, vùng nhớ và lượng dữ liệu khi in/ghi.
+**Note:** `BigInteger` guarantees exact integer arithmetic within resource and implementation limits, but it does not create infinite memory. Large numbers still increase CPU cost, memory footprint, and I/O size when printing/writing.
 
-## 4. Giải bài toán 1: giai thừa bằng vòng lặp
+## 4. Solving Problem 1: Factorial Using a Loop
 
-Với `n ≥ 0`:
+For `n ≥ 0`:
 
 \[
 n! = \prod_{k=1}^{n} k,\qquad 0! = 1.
 \]
 
-Ý tưởng:
+Idea:
 
-- Bắt đầu `result = BigInteger.ONE`, vì **phần tử trung hòa của phép nhân là 1**.
-- Duyệt `k` từ 2 đến `n`.
-- Mỗi bước tính `result = result.multiply(BigInteger.valueOf(k))`.
-- Trả lại `result`. Nếu `n = 0` hoặc `n = 1`, vòng lặp không chạy và kết quả vẫn là 1.
+- Start with `result = BigInteger.ONE`, because **the multiplicative identity is 1**.
+- Iterate `k` from 2 to `n`.
+- In each step compute `result = result.multiply(BigInteger.valueOf(k))`.
+- Return `result`. If `n = 0` or `n = 1`, the loop does not execute and the result stays 1.
 
-Phiên bản method:
+Method version:
 
 ~~~java
 static BigInteger factorial(int n) {
@@ -136,11 +136,11 @@ static BigInteger factorial(int n) {
 }
 ~~~
 
-Đây là **phương thức để đặt trong một class** có import `java.math.BigInteger`, không phải chương trình standalone. Dùng biến đếm `long k` để tránh trường hợp vòng lặp `int` tự overflow khi n ở cực trị `Integer.MAX_VALUE`; điều đó không có nghĩa là tính `Integer.MAX_VALUE!` khả thi trong bộ nhớ/thời gian thực tế. Ở ứng dụng thật, vẫn phải đặt giới hạn đầu vào.
+This is a **method to place inside a class** with `import java.math.BigInteger`, not a standalone program. Using a `long k` loop counter avoids `int` loop-variable overflow at the extreme `Integer.MAX_VALUE`; that does not mean computing `Integer.MAX_VALUE!` is feasible in actual memory or time. In real applications, you must still enforce an input bound.
 
-**Bất biến vòng lặp:** sau khi xử lý xong số `k`, `result == k!`. Trước vòng đầu, `result = 1`, đúng cho `1!`. Nếu `result` đang bằng `(k-1)!` thì nhân với `k` cho `k!`. Do đó kết quả sau cùng là `n!`.
+**Loop invariant:** after processing `k`, `result == k!`. Before the first iteration, `result = 1`, which holds for `1!`. If `result` equals `(k-1)!`, multiplying by `k` produces `k!`. Therefore, the final result is `n!`.
 
-Có thể viết đệ quy:
+It can also be written recursively:
 
 ~~~java
 static BigInteger factorialRecursive(int n) {
@@ -155,14 +155,14 @@ static BigInteger factorialRecursive(int n) {
 }
 ~~~
 
-Đây cũng là một method trong class (có import BigInteger). Bản đệ quy phản ánh định nghĩa toán học, nhưng dùng **stack O(n)** và có thể `StackOverflowError` khi n lớn. Bản vòng lặp là lựa chọn mặc định dễ hiểu và vững hơn cho bài tập tính n! lớn. Đừng chọn đệ quy chỉ vì công thức n! thường được viết đệ quy.
+This is also a method inside a class (with BigInteger imported). The recursive version mirrors the mathematical definition, yet uses **O(n) stack** and can throw `StackOverflowError` for large n. The iterative version is the clearer, more robust default for computing large n!. Do not choose recursion merely because the formula for n! is often written recursively.
 
-## 5. Giải bài toán 2: Fibonacci bằng hai biến BigInteger
+## 5. Solving Problem 2: Fibonacci with Two BigInteger Variables
 
-Một cách viết Fibonacci đệ quy ngây thơ:
+A naive recursive Fibonacci implementation:
 
 ~~~java
-// CHỈ minh họa công thức; không phù hợp cho n lớn.
+// ONLY illustrates the formula; unsuitable for large n.
 static BigInteger fibonacciSlow(int n) {
     if (n < 0) {
         throw new IllegalArgumentException("n must be >= 0");
@@ -174,9 +174,9 @@ static BigInteger fibonacciSlow(int n) {
 }
 ~~~
 
-Đoạn code có import BigInteger, nhưng **tính lại cùng giá trị rất nhiều lần**. Ví dụ khi tính `F(40)`, cả `F(38)` và nhiều giá trị nhỏ hơn xuất hiện lặp lại trong cây gọi. Số lời gọi tăng theo cấp số nhân; tăng bit-width bằng BigInteger **không sửa được thuật toán lãng phí đó**.
+This snippet imports BigInteger, yet **recomputes the same values many times**. For instance, when computing `F(40)`, `F(38)` and many smaller values appear repeatedly in the call tree. Call count grows exponentially; widening bit-width with BigInteger **does not fix that wasteful algorithm**.
 
-Giải pháp vòng lặp chỉ giữ hai giá trị gần nhất:
+The iterative solution keeps only the two most recent values:
 
 ~~~java
 static BigInteger fibonacci(int n) {
@@ -195,9 +195,9 @@ static BigInteger fibonacci(int n) {
 }
 ~~~
 
-Cách hiểu:
+How it works:
 
-| n cần tính | Số vòng | `previous` khi trả về |
+| Target n | Loop iterations | `previous` on return |
 |---|---:|---|
 | 0 | 0 | 0 |
 | 1 | 1 | 1 |
@@ -205,15 +205,15 @@ Cách hiểu:
 | 3 | 3 | 2 |
 | 10 | 10 | 55 |
 
-**Bất biến:** tại đầu vòng lặp thứ k (đếm từ 0), `previous = F(k)` và `current = F(k+1)`. Gán `next = previous.add(current)` tạo `F(k+2)`, rồi dịch cặp thành `F(k+1), F(k+2)`. Vì thế sau n lần lặp, `previous = F(n)`.
+**Invariant:** at the start of iteration k (0-indexed), `previous = F(k)` and `current = F(k+1)`. Setting `next = previous.add(current)` computes `F(k+2)`, then shifts the pair to `F(k+1), F(k+2)`. Thus after n iterations, `previous = F(n)`.
 
-Lưu ý thứ tự gán: nếu viết `previous = current; current = previous.add(current);` thì sau khi thay previous, bạn đã mất giá trị cũ cần dùng; công thức dãy sẽ sai. Biến `next` giúp tránh lỗi cập nhật trạng thái theo sai thứ tự.
+Watch assignment order: if you write `previous = current; current = previous.add(current);`, then after overwriting `previous`, you have lost the old value you needed; the sequence formula breaks. The `next` variable prevents out-of-order state update bugs.
 
-Phương pháp này có **n bước cộng**, dùng một số lượng nhỏ tham chiếu BigInteger trong code; nó không lưu toàn bộ dãy trong bộ nhớ. Nếu cần **in cả dãy**, số dữ liệu đầu ra sẽ lớn hơn rất nhiều so với chỉ tìm một số hạng.
+This approach takes **n addition steps** and uses a small number of BigInteger references in code; it does not store the entire sequence in memory. If you need to **print the entire sequence**, output data size will be much larger than finding a single term.
 
-## 6. Chương trình hoàn chỉnh: factorial, Fibonacci và đối chiếu fast doubling
+## 6. Complete Program: Factorial, Fibonacci, and Fast Doubling Comparison
 
-Phương pháp Fibonacci vòng lặp phù hợp để học nguyên lý. Nếu chỉ cần `F(n)` với n lớn, có một kỹ thuật ít bước hơn gọi là **fast doubling**:
+The iterative Fibonacci method is great for learning the core principle. If you only need `F(n)` for large n, a technique with fewer steps is **fast doubling**:
 
 \[
 \begin{aligned}
@@ -222,9 +222,9 @@ F(2k+1) &= F(k)^2 + F(k+1)^2.
 \end{aligned}
 \]
 
-Một hàm có thể trả đồng thời cặp `(F(n), F(n+1))`. Chia n làm đôi mỗi lần nên số **tầng đệ quy O(log n)**; tuy nhiên các phép nhân làm việc với BigInteger ngày càng dài, nên **không được suy ra tổng thời gian tính chỉ O(log n) theo bit**.
+A function can return the pair `(F(n), F(n+1))` together. Halving n each step yields **O(log n) recursion depth**; however, the multiplications operate on increasingly long BigIntegers, so **do not conclude total computation time is O(log n) in bit operations**.
 
-Lưu toàn bộ code sau vào **`BigIntegerSequenceDemo.java`**:
+Save all the following code into **`BigIntegerSequenceDemo.java`**:
 
 ~~~java
 import java.math.BigInteger;
@@ -316,14 +316,14 @@ public final class BigIntegerSequenceDemo {
 }
 ~~~
 
-Chạy trên Java 17+:
+Run on Java 17+:
 
 ~~~bash
 javac BigIntegerSequenceDemo.java
 java BigIntegerSequenceDemo
 ~~~
 
-**Kết quả stdout đã kiểm chứng bằng chạy chương trình:**
+**Stdout verified by running the program:**
 
 ~~~text
 0! = 1
@@ -342,42 +342,42 @@ cross-check F(0..100) = true
 negative factorial rejected = true
 ~~~
 
-### Giải thích công thức fast doubling trong code
+### Explaining the fast doubling formula in code
 
-Giả sử lời gọi đệ quy trả `a = F(k)` và `b = F(k+1)`, trong đó `k = n / 2`. Ta tính:
+Suppose the recursive call returns `a = F(k)` and `b = F(k+1)`, where `k = n / 2`. We compute:
 
-- `c = a × (2b - a) = F(2k)`. Với BigInteger, `b.shiftLeft(1)` tương đương nhân b với 2.
+- `c = a × (2b - a) = F(2k)`. With BigInteger, `b.shiftLeft(1)` is equivalent to multiplying b by 2.
 - `d = a² + b² = F(2k+1)`.
-- Nếu n chẵn (`n = 2k`), cặp cần trả là `(c, d)`.
-- Nếu n lẻ (`n = 2k+1`), cặp cần trả là `(d, c+d)`.
+- If n is even (`n = 2k`), the pair to return is `(c, d)`.
+- If n is odd (`n = 2k+1`), the pair to return is `(d, c+d)`.
 
-Khi `n = 0`, trả `(F(0), F(1)) = (0, 1)`. Mỗi lần gọi giảm n còn `n/2`, nên độ sâu đệ quy tăng theo log n thay vì n. Thuật toán không yêu cầu memoize toàn bộ dãy và tránh chi phí cây đệ quy cấp số nhân của `fibonacciSlow`.
+When `n = 0`, return `(F(0), F(1)) = (0, 1)`. Each call reduces n to `n/2`, so recursion depth grows as log n instead of n. The algorithm does not require memoizing the entire sequence and avoids the exponential recursion tree of `fibonacciSlow`.
 
-**Không nhầm tính đúng với độ nhanh tuyệt đối:** với n nhỏ, vòng lặp dễ đọc và có thể chạy nhanh hơn do không phải nhân BigInteger. Fast doubling thường đáng cân nhắc khi chỉ muốn số hạng ở chỉ số lớn.
+**Do not confuse correctness with absolute speed:** for small n, the iterative loop is easier to read and can run faster because it avoids BigInteger multiplications. Fast doubling is usually worth considering when you only want a term at a large index.
 
-## 7. So sánh thuật toán và độ phức tạp thực tế
+## 7. Comparing Algorithms and Practical Complexity
 
-Cần phân biệt **số lần thao tác ở mức thuật toán** với **chi phí tính toán mỗi thao tác BigInteger**.
+Distinguish **number of algorithmic operations** from **computational cost per BigInteger operation**.
 
-| Cách tính | Số bước mức cao | Bộ nhớ giữ trạng thái | Đặc điểm |
+| Approach | High-level step count | State memory | Characteristics |
 |---|---|---|---|
-| Giai thừa vòng lặp | n−1 phép nhân khi n≥2 | Ít biến BigInteger; kết quả lớn dần | Dễ hiểu, tránh sâu stack |
-| Giai thừa đệ quy | n mức lời gọi | Stack O(n) | Không phù hợp n rất lớn |
-| Fibonacci đệ quy ngây thơ | Tăng theo cấp số nhân | Stack O(n), tính lặp | Chỉ để dạy công thức, không dùng n lớn |
-| Fibonacci vòng lặp | n phép cộng | Hai giá trị trạng thái chính | Đơn giản, không lưu toàn dãy |
-| Fibonacci fast doubling | O(log n) tầng, mỗi tầng một số phép nhân/cộng BigInteger | Stack O(log n) và kết quả trung gian | Hiệu quả hơn về số bước cho chỉ số lớn |
+| Iterative factorial | n−1 multiplications for n≥2 | Few BigInteger variables; result grows | Easy to understand, avoids deep stack |
+| Recursive factorial | n call levels | O(n) stack | Unsuitable for very large n |
+| Naive recursive Fibonacci | Exponential growth | O(n) stack, repeated work | Only for teaching the formula, never for large n |
+| Iterative Fibonacci | n additions | Two main state values | Simple, does not store whole sequence |
+| Fast doubling Fibonacci | O(log n) levels, each with a few BigInteger multiplications/additions | O(log n) stack and intermediates | Fewer steps for large indices |
 
-BigInteger không phải phép cộng/nhân O(1) khi toán hạng có độ dài tăng. Với Fibonacci, độ dài bit của `F(n)` là Θ(n) khi n lớn; vì thế một phép cộng ở bước muộn tốn nhiều hơn ở bước đầu. Theo mô hình cộng số nhiều limb tuyến tính, n lần cộng trên các số tăng dần có tổng công việc xấp xỉ **O(n²) bit operations**; bảng “n phép cộng” không phải cam kết O(n) thời gian máy.
+BigInteger addition/multiplication is not O(1) when operand bit lengths grow. For Fibonacci, the bit length of `F(n)` is Θ(n) for large n; hence an addition in later steps costs more than in early steps. Under a linear multi-limb addition model, n additions on growing numbers take roughly **O(n²) bit operations**; "n additions" in the table is not a promise of O(n) machine time.
 
-Với giai thừa, `n!` có độ dài bit Θ(n log n); mỗi lần nhân thêm một số có độ dài khoảng log n bit, còn tích trung gian lớn dần. Tổng thời gian tùy thuật toán nhân, phân bổ bộ nhớ và triển khai JDK; không nên mô tả mọi lời gọi `multiply` như một phép toán tốn cùng chi phí.
+For factorial, `n!` has bit length Θ(n log n); each step multiplies by a number of about log n bits while the intermediate product keeps growing. Total time depends on multiplication algorithms, memory allocation, and JDK implementation; do not describe every `multiply` call as having the same cost.
 
-Bộ nhớ BigInteger cũng tăng theo kích thước **kết quả và các kết quả tạm**, dù chương trình chỉ giữ vài biến. Ví dụ `F(100000)` có hàng chục nghìn chữ số thập phân; nếu in toàn bộ mỗi bước, thời gian I/O và tạo chuỗi có thể chiếm ưu thế so với tính toán.
+BigInteger memory also grows with the size of **results and temporary intermediates**, even if the program only holds a few variables. For example, `F(100000)` has tens of thousands of decimal digits; printing every step could make I/O and string creation dominate computation time.
 
-## 8. Đầu vào không hợp lệ, tài nguyên và giới hạn ứng dụng
+## 8. Invalid Inputs, Resources, and Application Limits
 
-Về định nghĩa giai thừa cơ bản, `n` phải là số nguyên không âm. Fibonacci trong bài này được định nghĩa cho chỉ số không âm. Do đó API minh họa từ chối `n < 0` bằng `IllegalArgumentException` thay vì lặng lẽ trả 1 hoặc 0.
+Under the basic definition of factorial, `n` must be a non-negative integer. Fibonacci in this lesson is defined for non-negative indices. Therefore, the demo API rejects `n < 0` with `IllegalArgumentException` instead of silently returning 1 or 0.
 
-Nhưng `n >= 0` **chưa đủ để một dịch vụ sản xuất an toàn**. Người dùng có thể gửi `n = 1_000_000_000`: kết quả giai thừa vô cùng lớn trong phạm vi thực tế, có thể tiêu hao bộ nhớ, CPU hoặc thời gian phản hồi. Một dịch vụ cần quy định rõ **giới hạn dựa trên quota và mục đích**:
+However, `n >= 0` is **not enough to make a production service safe**. A user might send `n = 1_000_000_000`: the factorial result is practically huge and can exhaust memory, CPU, or response time. A service must explicitly enforce **bounds based on quotas and purpose**:
 
 ~~~java
 static final int MAX_FACTORIAL_N = 5_000;
@@ -390,52 +390,52 @@ static BigInteger factorialForApi(int n) {
 }
 ~~~
 
-Đoạn trên là **method minh họa của một class khác** có import BigInteger và quyền gọi `BigIntegerSequenceDemo` từ ví dụ hoàn chỉnh. Giá trị 5.000 chỉ là **chính sách ví dụ**, không phải giới hạn cố định của BigInteger. Muốn đặt quota thật, hãy đo và xác nhận trên môi trường chạy cụ thể.
+The snippet above is an **illustrative method of another class** that imports BigInteger and can call `BigIntegerSequenceDemo` from the complete example. The value 5,000 is only an **example policy**, not a fixed limit of BigInteger. To set a real quota, benchmark and verify on the target runtime environment.
 
-Các giới hạn có thể cần xét đồng thời:
+Limits that may need to be considered simultaneously:
 
-- Chỉ số n đầu vào, nguồn gốc và kiểu dữ liệu (không parse số tùy ý mà không giới hạn độ dài request).
-- Số bit hoặc chữ số kết quả ước lượng trước khi bắt đầu.
-- Thời gian CPU, heap/memory, thời gian chờ và số yêu cầu chạy đồng thời.
-- Chi phí serialize và truyền dữ liệu qua mạng nếu API trả toàn bộ số nguyên khổng lồ.
-- Việc lưu cache kết quả: cache nhiều BigInteger lớn có thể tiết kiệm CPU nhưng tốn heap đáng kể.
+- Input index n, its origin, and data format (do not parse arbitrary numbers without limiting request length).
+- Estimated bit count or digit count of the result before starting.
+- CPU time, heap/memory, timeouts, and concurrent request count.
+- Serialization and network transfer cost if the API returns the entire gigantic integer.
+- Result caching: caching many large BigIntegers can save CPU but consume significant heap.
 
-**Chỉ dùng `BigInteger` không làm thuật toán an toàn trước yêu cầu từ chối dịch vụ do input quá lớn.** BigInteger vẫn có giới hạn của JVM/array và tài nguyên máy.
+**Simply using `BigInteger` does not make an algorithm safe against denial-of-service from oversized inputs.** BigInteger is still bound by JVM/array limits and machine resources.
 
-## 9. Không dùng double làm lối tắt cho kết quả nguyên chính xác
+## 9. Do Not Use double as a Shortcut for Exact Integer Results
 
-Có thể thấy `double` có miền số mũ rất rộng, nhưng độ chính xác hữu hạn nên không biểu diễn chính xác mọi số nguyên lớn. Chuyển số nguyên lớn sang double hoặc tính gần đúng giai thừa bằng double có thể đánh mất chữ số.
+`double` has a very wide exponent range, yet finite precision means it cannot represent every large integer exactly. Converting large integers to double or approximating factorials with double can lose digits.
 
 ~~~java
 BigInteger exact = BigIntegerSequenceDemo.factorial(21);
-double approximate = exact.doubleValue(); // Có thể không giữ đủ chữ số
+double approximate = exact.doubleValue(); // May not retain all digits
 ~~~
 
-Đoạn này nằm trong phương thức, có import BigInteger và phụ thuộc class ở phần 6. Khi mục tiêu là **số nguyên chính xác tuyệt đối**, không lấy `double` làm nguồn chân lý hay so sánh kết quả BigInteger bằng cách chuyển đôi bên sang double.
+This snippet sits inside a method, imports BigInteger, and depends on the class in Section 6. When the goal is **exact integers**, do not use `double` as a source of truth or compare BigInteger results by converting both sides to double.
 
-Ngay cả `BigDecimal` cũng không thay thế tự động cho BigInteger: BigDecimal phục vụ số thập phân tùy ý scale/precision; BigInteger đơn giản và trực tiếp hơn cho các dãy số nguyên rời rạc như giai thừa và Fibonacci. Chọn kiểu theo bài toán, không chỉ theo “số có thể lớn”.
+Even `BigDecimal` is not an automatic replacement for BigInteger: BigDecimal serves arbitrary-scale/precision decimals; BigInteger is simpler and more direct for discrete integer sequences like factorials and Fibonacci. Choose the type by problem domain, not merely by "numbers can get big."
 
-## 10. Kiểm tra tính đúng bằng test bất biến
+## 10. Verifying Correctness with Invariant Tests
 
-Một bộ test có ý nghĩa hơn kiểm tra một kết quả lớn được chép tay:
+A test suite is more meaningful than checking one hand-copied large result:
 
-**Giai thừa:**
+**Factorial:**
 
-- `factorial(0) = 1` và `factorial(1) = 1`.
-- `factorial(5) = 120`, `factorial(20)` khớp giá trị đã biết.
-- Với `n ≥ 1`, `factorial(n) = factorial(n-1) × n`.
-- Với `n < 0`, nhận `IllegalArgumentException`.
-- `factorial(21)` lớn hơn `Long.MAX_VALUE`, không được quy về `long`.
+- `factorial(0) = 1` and `factorial(1) = 1`.
+- `factorial(5) = 120`, `factorial(20)` matches the known value.
+- For `n ≥ 1`, `factorial(n) = factorial(n-1) × n`.
+- For `n < 0`, throws `IllegalArgumentException`.
+- `factorial(21)` is greater than `Long.MAX_VALUE`, not truncated to `long`.
 
 **Fibonacci:**
 
 - `F(0) = 0`, `F(1) = 1`.
-- Với `n ≥ 2`, `F(n) = F(n-1) + F(n-2)`.
-- Với n từ 0 đến 100, bản vòng lặp và bản fast doubling trả kết quả bằng nhau; ví dụ ở phần 6 đã làm việc này.
-- `F(93)` vượt `Long.MAX_VALUE`; mọi lần cộng vẫn thực hiện bằng `BigInteger.add`.
-- Với `n < 0`, API từ chối theo contract của bài.
+- For `n ≥ 2`, `F(n) = F(n-1) + F(n-2)`.
+- For n from 0 to 100, the iterative version and fast doubling version return equal results; the example in Section 6 already performs this check.
+- `F(93)` exceeds `Long.MAX_VALUE`; all additions still use `BigInteger.add`.
+- For `n < 0`, the API rejects per the lesson's contract.
 
-Ví dụ các kiểm tra tự chạy được sau khi có class hoàn chỉnh, đặt trong thân method:
+Example self-running checks once the complete class exists, placed inside a method body:
 
 ~~~java
 if (!BigIntegerSequenceDemo.factorial(6)
@@ -449,24 +449,24 @@ if (!BigIntegerSequenceDemo.fibonacci(20)
 }
 ~~~
 
-Đây là code minh họa (có import BigInteger). Có thể chuyển những kiểm tra này sang JUnit; bài này không yêu cầu dependency ngoài Java 17 để chạy ví dụ chính.
+This is illustrative code (with BigInteger imported). These checks can be moved to JUnit; this lesson requires no external dependencies beyond Java 17 to run the main example.
 
-### Kiểm thử thay vì chỉ in kết quả
+### Testing instead of only printing results
 
-- `System.out.println` giúp quan sát, nhưng tự động hóa nên dùng so sánh `equals` hoặc `compareTo` và ném lỗi nếu sai.
-- Với BigInteger, **không dùng `==`** để so sánh giá trị số vì nó so sánh tham chiếu đối tượng.
-- Khi test một hàm tối ưu (fast doubling), hãy đối chiếu với bản đơn giản đáng tin ở phạm vi nhỏ; với phạm vi lớn, kiểm tra công thức hoặc mốc đã biết và tiêu chí tài nguyên.
-- Đối với ca n cực lớn, test riêng timeout, giới hạn request và xử lý lỗi thay vì chạy thật kết quả quá lớn trong bộ unit test nhanh.
+- `System.out.println` helps observation, but automated tests should compare with `equals` or `compareTo` and fail on mismatch.
+- With BigInteger, **do not use `==`** to compare numeric values because it compares object references.
+- When testing an optimized function (fast doubling), cross-check against a simple trusted implementation over a small range; for larger ranges, verify algebraic identities or known milestones and resource criteria.
+- For extremely large n cases, test timeouts, request limits, and error handling separately rather than computing huge results inside fast unit test suites.
 
-## 11. Mở rộng sang một dãy số khác
+## 11. Extending to Another Sequence
 
-Bài toán không chỉ áp dụng cho Fibonacci. Nhiều dãy có thể biểu diễn bằng recurrence:
+This approach applies beyond Fibonacci. Many sequences can be expressed by a recurrence:
 
 \[
 a_n = c_1a_{n-1} + c_2a_{n-2},\qquad n\ge 2.
 \]
 
-Nếu các hệ số và giá trị ban đầu là số nguyên, có thể dùng BigInteger cho mọi phép nhân/cộng để tránh overflow. Ví dụ **dãy Lucas** có `L(0) = 2`, `L(1) = 1`, `L(n) = L(n-1)+L(n-2)`:
+If coefficients and initial values are integers, BigInteger can be used for all multiplications/additions to avoid overflow. For example, the **Lucas sequence** has `L(0) = 2`, `L(1) = 1`, `L(n) = L(n-1)+L(n-2)`:
 
 ~~~java
 static BigInteger lucas(int n) {
@@ -484,48 +484,48 @@ static BigInteger lucas(int n) {
 }
 ~~~
 
-Đây là method (đặt trong class với import BigInteger) dùng cùng kỹ thuật dịch hai biến. Nó trả `L(0)=2`, `L(1)=1`, `L(2)=3`, `L(3)=4`, `L(4)=7`.
+This is a method (placed in a class with BigInteger imported) using the same two-variable shifting technique. It returns `L(0)=2`, `L(1)=1`, `L(2)=3`, `L(3)=4`, `L(4)=7`.
 
-Khi cần toàn bộ dãy từ `a0` đến `an`, có thể lưu từng số vào list, nhưng phải tính chi phí bộ nhớ theo **tổng độ dài của tất cả các phần tử**. Nếu chỉ cần `an`, hai biến trạng thái thường phù hợp hơn. Với recurrence tuyến tính và n cực lớn, có thể nghiên cứu **lũy thừa ma trận** bằng BigInteger hoặc công thức đặc biệt; trước hết phải chứng minh công thức và xử lý hệ số âm/điều kiện đầu đúng.
+When the entire sequence from `a0` to `an` is needed, each number can be stored in a list, but memory cost must be budgeted by the **sum of lengths of all elements**. If only `an` is needed, two state variables are usually more appropriate. For linear recurrences and extremely large n, you can study **matrix exponentiation** with BigInteger or specialized identities; first prove the formula and handle negative coefficients/initial conditions properly.
 
-## 12. Những lỗi phổ biến
+## 12. Common Mistakes
 
-| Lỗi | Điều xảy ra | Cách làm đúng |
+| Mistake | What happens | Right approach |
 |---|---|---|
-| Dùng `int` cho `13!` | Tràn 32 bit | BigInteger ngay từ bước nhân đầu |
-| Dùng `long` cho `21!` hoặc `F(93)` | Tràn 64 bit | `BigInteger.multiply/add` |
-| Nhân bằng long rồi chuyển `valueOf` | Giá trị đã sai trước khi chuyển | Duy trì toàn bộ phép toán ở BigInteger |
-| Viết `result.multiply(x)` mà không nhận kết quả | `result` không đổi | `result = result.multiply(x)` |
-| Viết `a + b` cho hai BigInteger | Không biên dịch | `a.add(b)` |
-| So sánh `a == b` để kiểm tra giá trị | So tham chiếu | `a.equals(b)` |
-| Trả `0` cho `factorial(-1)` | Phá định nghĩa đầu vào | Ném lỗi rõ ràng |
-| Viết Fibonacci đệ quy `F(n-1)+F(n-2)` cho n lớn | Tính trùng vô số lần | Vòng lặp hoặc fast doubling |
-| Chọn đệ quy cho giai thừa cực lớn | Có thể tràn stack | Vòng lặp |
-| Cho rằng có BigInteger thì vô hạn CPU/heap | Có thể treo/hết bộ nhớ | Giới hạn và kiểm tra tài nguyên |
-| In mọi số khổng lồ khi benchmark | Format/I/O che chi phí thuật toán | Đo tách riêng, dùng JMH khi cần |
-| Chuyển số lớn sang double để đối chiếu | Mất tính chính xác của số nguyên | So trực tiếp BigInteger |
+| Using `int` for `13!` | 32-bit overflow | Use BigInteger from the first multiplication |
+| Using `long` for `21!` or `F(93)` | 64-bit overflow | `BigInteger.multiply/add` |
+| Multiplying in `long` then calling `valueOf` | Value already wrong before conversion | Keep all operations in BigInteger |
+| Writing `result.multiply(x)` without saving the result | `result` is unchanged | `result = result.multiply(x)` |
+| Writing `a + b` for two BigIntegers | Does not compile | `a.add(b)` |
+| Comparing `a == b` to check value | Compares references | `a.equals(b)` |
+| Returning `0` for `factorial(-1)` | Breaks input definition | Throw a clear exception |
+| Writing recursive Fibonacci `F(n-1)+F(n-2)` for large n | Recomputes countless times | Iterative loop or fast doubling |
+| Choosing recursion for huge factorials | Risk of stack overflow | Iterative loop |
+| Assuming BigInteger means infinite CPU/heap | Can hang/run out of memory | Enforce bounds and resource checks |
+| Printing every huge number in benchmarks | Formatting/I/O hides algorithm cost | Measure separately, use JMH when needed |
+| Converting large numbers to double for comparison | Loses integer precision | Compare BigInteger directly |
 
-## 13. Bài tập tự luyện
+## 13. Self-Practice Exercises
 
-**Bài 1.** Viết hàm `factorial(30)` bằng BigInteger. Dự đoán vì sao một biến `long` không thể lưu được kết quả. Dùng `equals` để so sánh với chuỗi:
+**Exercise 1.** Write `factorial(30)` using BigInteger. Predict why a `long` variable cannot store the result. Use `equals` to compare against the string:
 
 ~~~text
 265252859812191058636308480000000
 ~~~
 
-**Bài 2.** Viết hàm trả `F(93)` theo vòng lặp, đối chiếu với:
+**Exercise 2.** Write an iterative function returning `F(93)`, and compare it with:
 
 ~~~text
 12200160415121876738
 ~~~
 
-Vì sao giá trị này không vừa signed long?
+Why does this value not fit in signed long?
 
-**Bài 3.** Viết hàm tính **tổng từ F(0) đến F(n)** mà không xây một list toàn dãy. Bạn có thể dùng đẳng thức `F(0)+...+F(n)=F(n+2)-1` với n không âm, nhưng phải chứng minh trước khi sử dụng.
+**Exercise 3.** Write a function computing **the sum from F(0) to F(n)** without building a list of the entire sequence. You may use the identity `F(0)+...+F(n)=F(n+2)-1` for non-negative n, provided you prove it before using it.
 
-**Bài 4.** Phân tích khác biệt chi phí giữa “in toàn bộ F(0)..F(n)” và “chỉ trả về F(n)”, dù cả hai đều có thể chạy với BigInteger.
+**Exercise 4.** Analyze the cost difference between "printing all of F(0)..F(n)" and "only returning F(n)," even though both can run with BigInteger.
 
-**Bài 5.** Sửa lỗi:
+**Exercise 5.** Fix the bug:
 
 ~~~java
 BigInteger result = BigInteger.ONE;
@@ -535,21 +535,21 @@ for (int i = 2; i <= 30; i++) {
 System.out.println(result);
 ~~~
 
-**Bài 6.** Viết một test gọi hai phiên bản Fibonacci cho mọi n từ 0 tới 1000, dừng khi thấy khác biệt. Giải thích vì sao test chéo thuật toán mạnh hơn chỉ test một giá trị `F(10)=55`.
+**Exercise 6.** Write a test calling both Fibonacci versions for all n from 0 to 1000, stopping if a discrepancy is found. Explain why cross-checking algorithms is stronger than only testing a single value `F(10)=55`.
 
-### Đáp án/gợi ý
+### Answers/hints
 
-1. `30! = 265252859812191058636308480000000`, lớn hơn `Long.MAX_VALUE`. Code factorial phần 6 xử lý.
-2. `F(93)` lớn hơn `9223372036854775807`; dùng `BigInteger` là phù hợp.
-3. Có thể cộng dồn qua vòng lặp dùng `BigInteger.add`, hoặc dùng identity và `fibonacciFast(n+2).subtract(BigInteger.ONE)` khi chỉ số n+2 nằm trong miền int và input hợp lệ.
-4. Lưu hoặc in mọi số hạng tốn dữ liệu I/O/bộ nhớ tỉ lệ tổng độ dài từng phần tử. Trả một số hạng chỉ giữ các giá trị trung gian cần thiết.
-5. Gán lại `result = result.multiply(BigInteger.valueOf(i));` để không bỏ kết quả.
-6. Mỗi n là một trường hợp gồm cả parity chẵn/lẻ, base case, công thức nhân và phép cộng; test chéo có thể phát hiện nhiều lỗi hơn một mốc đơn lẻ, dù không thay thế hoàn toàn chứng minh tính đúng.
+1. `30! = 265252859812191058636308480000000`, which is larger than `Long.MAX_VALUE`. The factorial code in Section 6 handles this.
+2. `F(93)` is larger than `9223372036854775807`; using `BigInteger` is appropriate.
+3. You can accumulate in a loop using `BigInteger.add`, or use the identity and `fibonacciFast(n+2).subtract(BigInteger.ONE)` when index n+2 fits in `int` and input is valid.
+4. Storing or printing all terms costs I/O/memory proportional to the total length of all elements. Returning a single term only keeps the needed intermediate values.
+5. Reassign `result = result.multiply(BigInteger.valueOf(i));` so the result is not discarded.
+6. Each n tests even/odd parity, base cases, multiplication formulas, and addition; cross-checking can catch far more bugs than a single milestone, though it does not fully replace a correctness proof.
 
-## 14. Tài liệu chuẩn
+## 14. Official References
 
 - Java SE 17, `BigInteger` API (`add`, `multiply`, `pow`, `shiftLeft`, `bitLength`): https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html
 - Java SE 17, `ArithmeticException`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ArithmeticException.html
 - Java SE 17, `IllegalArgumentException`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/IllegalArgumentException.html
 
-**Ghi nhớ:** BigInteger giúp giữ kết quả **số nguyên chính xác** khi giai thừa hoặc dãy tăng vượt `int`/`long`. Tính đúng đến từ **công thức, điều kiện đầu, thứ tự cập nhật và việc dùng phép toán BigInteger ngay từ đầu**; tính khả thi đến từ lựa chọn thuật toán và giới hạn tài nguyên phù hợp.
+**Remember:** BigInteger preserves **exact integer** results when factorials or sequences grow past `int`/`long`. Correctness comes from **the formula, base conditions, update order, and using BigInteger operations from the very beginning**; feasibility comes from choosing the right algorithm and appropriate resource bounds.

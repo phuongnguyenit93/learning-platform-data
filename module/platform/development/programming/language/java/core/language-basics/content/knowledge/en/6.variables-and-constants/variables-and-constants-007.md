@@ -1,33 +1,33 @@
-# `final` trên biến và quy tắc chỉ gán một lần trong Java 17+
+# `final` on Variables and the Single-Assignment Rule in Java 17+
 
-## 1. Ý nghĩa chính xác của `final` đối với biến
+## 1. Exact Meaning of `final` on a Variable
 
-Một biến Java bình thường có thể được gán lại nếu kiểu và phạm vi cho phép. Khi đặt **`final`** vào khai báo, biến chỉ có thể nhận **một phép gán hợp lệ trên mỗi đường thực thi**; sau khi đã được gán, không thể gán lại chính biến đó.
+A regular Java variable can be reassigned if its type and scope allow it. When placing **`final`** on a declaration, the variable can receive **at most one valid assignment along each execution path**; once assigned, that variable itself cannot be reassigned.
 
 ~~~java
 int normal = 10;
-normal = 20; // Hợp lệ
+normal = 20; // Valid
 
 final int limit = 10;
-// limit = 20; // LỖI BIÊN DỊCH: cannot assign a value to final variable limit
+// limit = 20; // COMPILE ERROR: cannot assign a value to final variable limit
 ~~~
 
-Điều này áp dụng cho biến kiểu nguyên thủy như `int`, `boolean` và biến kiểu tham chiếu như `StringBuilder`, mảng hoặc object. Nhưng **`final` khóa khả năng gán lại biến, không tự biến đối tượng mà biến trỏ tới thành bất biến**.
+This applies to primitive variables such as `int` and `boolean`, as well as reference variables such as `StringBuilder`, arrays, or objects. However, **`final` locks reassignment of the variable, not making the object it points to immutable**.
 
-| Cách viết | Ý nghĩa | Kết quả |
+| Code pattern | Meaning | Outcome |
 |---|---|---|
-| `int x = 1; x = 2;` | Biến thường, gán lại được | Hợp lệ |
-| `final int x = 1;` | Biến đã gán một lần | Hợp lệ |
-| `final int x = 1; x = 2;` | Gán lần hai cho biến final | Lỗi compile |
-| `final int x; x = 1;` | Khai báo trước, gán lần đầu sau | Hợp lệ |
-| `final int x; System.out.println(x);` | Đọc trước khi được gán | Lỗi compile |
-| `final StringBuilder b = new StringBuilder(); b.append("A");` | Thay đổi trạng thái object, không gán lại b | Hợp lệ |
+| `int x = 1; x = 2;` | Normal variable, reassignable | Valid |
+| `final int x = 1;` | Variable assigned once | Valid |
+| `final int x = 1; x = 2;` | Second assignment to a final variable | Compile error |
+| `final int x; x = 1;` | Declared first, first assignment later | Valid |
+| `final int x; System.out.println(x);` | Read before being assigned | Compile error |
+| `final StringBuilder b = new StringBuilder(); b.append("A");` | Mutating object state, not reassigning `b` | Valid |
 
-**Quy tắc kép:** biến `final` phải **được gán chắc chắn trước khi đọc** (*definitely assigned*) và **chưa từng được gán trước mỗi phép gán cho nó** (*definitely unassigned*). Bộ kiểm tra của `javac` xét các đường đi của chương trình.
+**Dual rule:** a `final` variable must be **definitely assigned before being read** (*definitely assigned*) and **definitely unassigned before each assignment to it** (*definitely unassigned*). `javac`'s checker analyzes the program's execution paths.
 
-## 2. Khởi tạo ngay hoặc gán sau: blank final
+## 2. Initialize Immediately or Assign Later: Blank Final
 
-Cách thông dụng nhất là vừa khai báo vừa khởi tạo:
+The most common style is declaring and initializing together:
 
 ~~~java
 final double taxRate = 0.10;
@@ -35,7 +35,7 @@ final boolean production = true;
 final String title = "Java";
 ~~~
 
-Java cũng cho phép **blank final local variable**: khai báo mà chưa có giá trị ban đầu, rồi gán sau đó:
+Java also allows a **blank final local variable**: declaring it without an initial value, then assigning it later:
 
 ~~~java
 static int calculate(boolean premium) {
@@ -49,31 +49,31 @@ static int calculate(boolean premium) {
 }
 ~~~
 
-Dù trong source có **hai câu lệnh gán** khác nhau, ở **mỗi lần chạy** chỉ **một nhánh** thực hiện. Vì thế mỗi đường tới `return price` đều gán biến đúng một lần, nên chương trình hợp lệ.
+Although there are **two different assignment statements** in the source code, on **each run** only **one branch** executes. Thus every path to `return price` assigns the variable exactly once, so the program is valid.
 
 ~~~java
-// Sai: một đường đi chưa gán price
+// Invalid: one path leaves price unassigned
 final int price;
 if (premium) {
     price = 200;
 }
-// System.out.println(price); // Không thể đọc khi premium có thể false
+// System.out.println(price); // Cannot read when premium might be false
 ~~~
 
-Nếu hai phép gán có thể xảy ra **liên tiếp** trên cùng đường đi, compiler sẽ từ chối:
+If two assignments could happen **sequentially** on the same path, the compiler rejects it:
 
 ~~~java
-// Sai:
+// Invalid:
 final int number;
 number = 5;
-// number = 5; // Dù giá trị giống nhau vẫn là phép gán thứ hai
+// number = 5; // Even with the same value, it is still a second assignment
 ~~~
 
-**Chính xác hơn câu “final bắt buộc được gán một lần”:** không được gán **quá một lần trên một đường thực thi**; nếu cần đọc giá trị thì phải bảo đảm đã được gán. Với blank final local không hề được đọc, Java không buộc bạn thêm một phép gán vô nghĩa.
+**More accurate than saying "`final` must be assigned once":** it cannot be assigned **more than once on an execution path**; if its value is read, it must be guaranteed to have been assigned. For an unused blank final local that is never read, Java does not force a pointless assignment.
 
-## 3. Vòng lặp: biến final không được cập nhật lặp đi lặp lại
+## 3. Loops: `final` Variables Cannot Be Repeatedly Updated
 
-Trong vòng lặp thông thường, biến đếm thường phải thay đổi:
+In a standard loop, the counter variable usually has to change:
 
 ~~~java
 for (int i = 0; i < 3; i++) {
@@ -81,16 +81,16 @@ for (int i = 0; i < 3; i++) {
 }
 ~~~
 
-Không thể chỉ thêm `final` vào `i`:
+You cannot simply add `final` to `i`:
 
 ~~~java
-// Sai: phần i++ cố gán lại biến final
+// Invalid: i++ attempts to reassign a final variable
 // for (final int i = 0; i < 3; i++) { }
 ~~~
 
-Một **blank final** được gán bên trong thân một `while` cũng thường không hợp lệ nếu vòng lặp có thể chạy nhiều lần: compiler không bảo đảm mỗi lần gán xảy ra trên đường mà biến vẫn chưa được gán.
+A **blank final** assigned inside the body of a `while` loop is also usually invalid if the loop can run multiple times: the compiler cannot guarantee each assignment happens on a path where the variable is still unassigned.
 
-Ngược lại, **enhanced for** có thể khai báo biến phần tử `final`:
+Conversely, an **enhanced for** loop can declare a `final` element variable:
 
 ~~~java
 int sum = 0;
@@ -100,49 +100,49 @@ for (final int value : new int[] {1, 2, 3}) {
 System.out.println(sum); // 6
 ~~~
 
-Mỗi lần lặp có một biến phần tử cho lần lặp đó; trong **thân vòng lặp**, bạn không được viết `value = 99;`. Bạn vẫn có thể gán lại `sum` vì `sum` không phải `final`.
+Each iteration has an element variable for that iteration; inside the **loop body**, you cannot write `value = 99;`. You can still reassign `sum` because `sum` is not `final`.
 
 
-## 4. `final` khóa phép gán biến, không khóa object
+## 4. `final` Locks Variable Reassignment, Not the Object
 
 ~~~java
 final int count = 5;
-// count++; // Lỗi: cố gán lại biến primitive
+// count++; // Error: attempting to reassign a primitive variable
 
 final int[] scores = {10, 20};
-scores[0] = 99; // Hợp lệ: thay phần tử của object mảng
-// scores = new int[] {30}; // Lỗi: cố gán lại biến scores
+scores[0] = 99; // Valid: changing an element of the array object
+// scores = new int[] {30}; // Error: attempting to reassign scores
 ~~~
 
-Với primitive, không gán lại được biến cũng có nghĩa giá trị primitive giữ nguyên. Với reference, **tham chiếu của biến** giữ nguyên nhưng object vẫn có thể mutable. Điều này không tự cấp an toàn đa luồng hay bất biến sâu; bài riêng về tham chiếu `final` sẽ chứng minh bằng alias, `StringBuilder` và collection. Một biến `final String label = null;` vẫn hợp lệ, nhưng đã gán `null` thì không thể gán lại.
+For a primitive, not being able to reassign the variable also means the primitive value stays constant. For a reference, the **variable's reference** stays fixed, while the object can still be mutable. This does not automatically provide thread safety or deep immutability; the dedicated lesson on `final` references demonstrates this with aliases, `StringBuilder`, and collections. A `final String label = null;` variable is still valid, but once assigned `null`, it cannot be reassigned.
 
-## 5. final trên tham số method và biến cục bộ
+## 5. `final` on Method Parameters and Local Variables
 
-Có thể đặt `final` cho tham số:
+You can mark a parameter `final`:
 
 ~~~java
 static int doubleOf(final int value) {
-    // value = 7; // Lỗi compile
+    // value = 7; // Compile error
     return value * 2;
 }
 ~~~
 
-`final` không ngăn method **đọc** giá trị được truyền vào. Nó chỉ không cho phép gán lại tham số `value` trong thân method.
+`final` does not prevent the method from **reading** the passed-in value. It only disallows reassigning the `value` parameter inside the method body.
 
-Với tham số tham chiếu:
+For a reference parameter:
 
 ~~~java
 static void addMark(final StringBuilder text) {
-    text.append("!");      // Hợp lệ, thay đổi object
-    // text = new StringBuilder(); // Sai, gán lại tham số
+    text.append("!");      // Valid, mutates the object
+    // text = new StringBuilder(); // Invalid, reassigns the parameter
 }
 ~~~
 
-Đây là một công cụ giúp diễn tả chủ ý “tham số này không bị thay thế”. Nó **không** ngăn bên gọi giữ tham chiếu đến cùng object và nhìn thấy thay đổi trạng thái.
+This is a tool to express the intent "this parameter will not be replaced". It does **not** prevent the caller from holding a reference to the same object and observing state changes.
 
-## 6. final field: cần hoàn tất khởi tạo đúng chỗ
+## 6. `final` Fields: Must Finish Initialization in the Right Place
 
-Một field `final` có thể được khởi tạo tại nơi khai báo:
+A `final` field can be initialized at its declaration site:
 
 ~~~java
 class Config {
@@ -150,14 +150,14 @@ class Config {
 }
 ~~~
 
-Hoặc để trống lúc khai báo rồi khởi tạo trong constructor, thường gọi là **blank final instance field**:
+Or left blank at declaration and initialized in the constructor, commonly called a **blank final instance field**:
 
 ~~~java
 class User {
     private final int id;
 
     User(int id) {
-        this.id = id; // Constructor gán field lần đầu
+        this.id = id; // Constructor assigns the field for the first time
     }
 
     int id() {
@@ -166,9 +166,9 @@ class User {
 }
 ~~~
 
-**Mọi constructor hợp lệ phải bảo đảm field final chưa khởi tạo được gán trước khi constructor hoàn thành bình thường.** Nếu lớp có nhiều constructor, phải thiết kế các đường khởi tạo cho thống nhất; không được bỏ một đường hoặc gán hai lần. Có thể dùng instance initializer khi phù hợp, nhưng không nên cố gán lại field đã khởi tạo.
+**Every valid constructor must ensure uninitialized `final` fields are assigned before the constructor completes normally.** If a class has multiple constructors, initialization paths must be designed consistently; none may skip assignment or assign twice. An instance initializer can be used where appropriate, but you must not try to reassign an already initialized field.
 
-Với **`static final`**, giá trị có thể được gán ngay khi khai báo hoặc thông qua **static initializer**:
+With **`static final`**, the value can be assigned at declaration or via a **static initializer**:
 
 ~~~java
 class Environment {
@@ -179,58 +179,58 @@ class Environment {
 }
 ~~~
 
-Một `static final` field chưa được gán phải được khởi tạo hợp lệ trong quá trình khởi tạo tĩnh; không thể chờ đến lúc gọi `main` rồi mới tùy ý gán cho nó.
+An unassigned `static final` field must be validly initialized during static initialization; it cannot wait until `main` is called to be arbitrarily assigned.
 
-**Khác biệt với field bình thường:** field `int` mặc định có giá trị 0, nhưng một blank final field vẫn phải tuân thủ các yêu cầu gán rõ ràng khi hoàn tất khởi tạo. Không lấy giá trị mặc định trong JVM làm lý do bỏ qua khởi tạo final field.
+**Difference from regular fields:** a regular `int` field defaults to `0`, but a blank `final` field still must satisfy explicit assignment requirements upon completing initialization. Do not treat JVM default zeroing as an excuse to skip initializing `final` fields.
 
-## 7. `final` không có nghĩa lúc nào cũng là compile-time constant
+## 7. `final` Does Not Always Mean Compile-Time Constant
 
-Một giá trị được gán một lần **không nhất thiết là hằng số lúc biên dịch**:
+A value assigned once **is not necessarily a compile-time constant**:
 
 ~~~java
-final int fixed = 10;                    // Biểu thức hằng: 10
-final int inputLength = "hello".length();// Giá trị từ lời gọi method
+final int fixed = 10;                    // Constant expression: 10
+final int inputLength = "hello".length();// Value from a method call
 ~~~
 
-`fixed` là ví dụ về biến `final` kiểu primitive được khởi tạo bằng một **constant expression**. Còn `inputLength` cần lời gọi method; `final` chỉ đảm bảo biến không được gán lại, **không biến method call thành constant expression**.
+`fixed` is an example of a primitive `final` variable initialized with a **constant expression**. `inputLength`, however, requires a method call; `final` only ensures the variable is not reassigned, **it does not turn a method call into a constant expression**.
 
-Trong Java, một *constant variable* có định nghĩa chặt hơn: biến `final` thuộc kiểu nguyên thủy hoặc `String`, khởi tạo bằng một constant expression. Nhờ phân biệt này, bạn sẽ hiểu vì sao một số vị trí đòi hằng số lúc biên dịch (như `case` label truyền thống) không chấp nhận mọi biến `final`.
+In Java, a *constant variable* has a stricter definition: a `final` variable of primitive type or `String`, initialized with a constant expression. Understanding this distinction explains why certain places requiring compile-time constants (such as traditional `case` labels) do not accept every `final` variable.
 
-Ví dụ:
+Example:
 
 ~~~java
 final int ten = 10;
 final int eleven = Integer.parseInt("11");
 
-// Hợp lệ trong switch truyền thống:
+// Valid in switch:
 int x = 10;
 switch (x) {
     case ten -> System.out.println("TEN");
     default -> System.out.println("OTHER");
 }
-// Không thể dùng eleven làm case label hằng số tại compile time.
+// Cannot use eleven as a compile-time constant case label.
 ~~~
 
-Đừng đánh đồng `final`, `static final` và “object bất biến”: đó là các khái niệm liên quan nhưng **không đồng nghĩa**.
+Do not equate `final`, `static final`, and "immutable object": they are related concepts, but **not synonymous**.
 
-## 8. final và lambda: effectively final
+## 8. `final` and Lambdas: Effectively Final
 
-Java 17 cho phép lambda/anonymous class **capture** một biến cục bộ nếu biến đó được khai báo `final` **hoặc là effectively final** (không được gán lại sau lần khởi tạo/gán hợp lệ).
+Java 17 allows a lambda/anonymous class to **capture** a local variable if it is declared `final` **or is effectively final** (never reassigned after its valid initialization/assignment).
 
 ~~~java
-int factor = 4; // Không ghi final, nhưng không gán lại
+int factor = 4; // Not written as final, but never reassigned
 java.util.function.IntUnaryOperator times =
         value -> value * factor;
 System.out.println(times.applyAsInt(3)); // 12
 ~~~
 
-Dù `factor` không ghi `final`, compiler thấy nó không bị gán lại nên cho phép capture.
+Even though `factor` does not say `final`, the compiler sees it is never reassigned and allows capturing it.
 
-Nếu bạn thêm `factor = 5;` sau khai báo, biến không còn effectively final và lời gọi lambda sử dụng nó sẽ khiến chương trình không biên dịch. Cách xử lý là thiết kế giá trị capture cố định, hoặc nếu thật sự cần trạng thái thay đổi thì mô hình hóa một object quản lý trạng thái phù hợp. Không nên bọc biến mutable tùy tiện vào mảng chỉ để qua kiểm tra compiler.
+If you add `factor = 5;` after the declaration, the variable is no longer effectively final and the lambda using it will fail to compile. The fix is to design fixed captured values, or if mutable state is truly needed, model an appropriate state-managing object. Do not arbitrarily wrap mutable variables in an array just to bypass the compiler check.
 
-## 9. Chương trình Java 17 chạy độc lập
+## 9. Standalone Runnable Java 17 Program
 
-Tạo tệp chính xác **`FinalOnceDemo.java`**:
+Create the exact file **`FinalOnceDemo.java`**:
 
 ~~~java
 public final class FinalOnceDemo {
@@ -272,12 +272,12 @@ public final class FinalOnceDemo {
         System.out.println("fail=" + classify(40));
 
         FinalOnceDemo object = new FinalOnceDemo(7);
-        object.label.append("-updated"); // Object mutable
+        object.label.append("-updated"); // Mutable object
         System.out.println("id=" + object.id);
         System.out.println("label=" + object.label);
 
         final int[] counts = {1, 2};
-        counts[0] = 9; // Không gán lại biến counts
+        counts[0] = 9; // Not reassigning the counts variable
         System.out.println("array=" + counts[0] + "," + counts[1]);
 
         final StringBuilder text = new StringBuilder("A");
@@ -291,7 +291,7 @@ public final class FinalOnceDemo {
         }
         System.out.println("sum=" + sum);
 
-        int factor = 4; // Effectively final: không gán lại
+        int factor = 4; // Effectively final: never reassigned
         java.util.function.IntUnaryOperator multiply =
                 number -> number * factor;
         System.out.println("lambda=" + multiply.applyAsInt(3));
@@ -299,7 +299,7 @@ public final class FinalOnceDemo {
 }
 ~~~
 
-Tại thư mục chứa tệp, dùng **JDK 17 trở lên**.
+In the directory containing the file, use **JDK 17 or later**.
 
 **Bash (Linux/macOS):**
 
@@ -315,7 +315,7 @@ javac --release 17 -encoding UTF-8 .\FinalOnceDemo.java
 java -cp . FinalOnceDemo
 ~~~
 
-**Đầu ra kỳ vọng:**
+**Expected output:**
 
 ~~~text
 attempts=2
@@ -332,36 +332,36 @@ sum=6
 lambda=12
 ~~~
 
-Những điểm cần tự đối chiếu:
+Points to verify for yourself:
 
-1. `classify` gán một lần ở **đúng một** trong hai nhánh, nên `final outcome` hợp lệ.
-2. `id` và `label` là instance final fields được gán khi chạy constructor.
-3. `APP_NAME` là static final field được gán trong static initializer.
-4. `object.label.append(...)`, `counts[0] = 9` và `text.append(...)` **không phải phép gán lại biến final**.
-5. `factor` là effectively final nên có thể được lambda sử dụng.
+1. `classify` assigns once in **exactly one** of the two branches, so `final outcome` is valid.
+2. `id` and `label` are instance `final` fields assigned when the constructor runs.
+3. `APP_NAME` is a `static final` field assigned in the static initializer.
+4. `object.label.append(...)`, `counts[0] = 9`, and `text.append(...)` **are not reassignments of `final` variables**.
+5. `factor` is effectively final, so it can be used by the lambda.
 
-Đây là một ví dụ duy nhất có thể lưu, biên dịch và chạy độc lập; không cần thư viện hoặc dự án build bên ngoài.
+This is a single self-contained example that can be saved, compiled, and run standalone; no external libraries or build projects are needed.
 
-## 10. Các lỗi điển hình và cách xử lý
+## 10. Typical Errors and How to Handle Them
 
-| Hiện tượng | Vì sao? | Sửa thế nào? |
+| Symptom | Why? | How to fix? |
 |---|---|---|
-| `final int x = 1; x = 2;` | Gán lần thứ hai | Chỉ gán một lần, hoặc bỏ `final` nếu phải thay đổi |
-| `final int x; println(x);` | Đọc blank final chưa gán | Gán chắc chắn trước khi đọc |
-| `final int x; if (c) x = 1; println(x);` | Nhánh `c=false` chưa gán | Thêm nhánh `else`/đường xử lý phù hợp |
-| `final int x; x = 1; x = 1;` | Gán lại dù cùng giá trị | Bỏ phép gán thứ hai |
-| `final int i = 0;` rồi `i++` | Phép tăng phải gán lại `i` | Dùng biến đếm không final |
-| Constructor quên gán một blank final field | Không bảo đảm khởi tạo trên mọi đường hoàn thành bình thường | Khởi tạo field hoặc sửa constructor |
-| `final List ...` rồi gọi API thêm phần tử | Có thể **hợp lệ**; chỉ object đổi | Dùng collection bất biến nếu cần bất biến thật |
-| Lambda dùng biến cục bộ đã gán lại | Không còn effectively final | Tách dữ liệu capture cố định hoặc thiết kế lại |
-| `final String s = null;` rồi muốn gán s thành chuỗi | `s` đã được gán null một lần | Chọn giá trị đúng lúc khởi tạo; không dùng null làm giá trị tạm |
-| Dùng final method-local như constant expression dù initializer gọi method | Final không tự biến kết quả thành hằng compile-time | Dùng constant expression ở vị trí yêu cầu |
+| `final int x = 1; x = 2;` | Second assignment | Assign only once, or remove `final` if it must change |
+| `final int x; println(x);` | Reading an unassigned blank final | Definitely assign before reading |
+| `final int x; if (c) x = 1; println(x);` | `c=false` branch is unassigned | Add an `else` branch / appropriate handling path |
+| `final int x; x = 1; x = 1;` | Reassigning even with the same value | Remove the second assignment |
+| `final int i = 0;` then `i++` | Incrementing requires reassigning `i` | Use a non-final counter variable |
+| Constructor forgets to assign a blank final field | Initialization not guaranteed on all normal completion paths | Initialize the field or fix the constructor |
+| `final List ...` then calling an element-adding API | Can be **valid**; only the object changes | Use an unmodifiable/immutable collection if true immutability is needed |
+| Lambda uses a reassigned local variable | No longer effectively final | Extract a fixed captured value or redesign |
+| `final String s = null;` then wanting to assign a string | `s` was already assigned `null` once | Choose the right value at initialization; do not use null as a placeholder |
+| Using a method-local final as a constant expression when its initializer calls a method | `final` does not turn a call result into a compile-time constant | Use a constant expression where required |
 
-Một lỗi kiểu `cannot assign a value to final variable` thường có nghĩa compiler đã nhận diện **biến cụ thể bị gán lại**, không phải cấm thay đổi mọi thứ liên quan đến đối tượng.
+An error like `cannot assign a value to final variable` usually means the compiler detected **the specific variable being reassigned**, not a prohibition on changing anything related to the object.
 
-## 11. Bài tập có đáp án
+## 11. Exercises with Answers
 
-### Bài A — final gán ở if/else
+### Exercise A — `final` assigned in if/else
 
 ~~~java
 final String state;
@@ -373,9 +373,9 @@ if (ok) {
 System.out.println(state);
 ~~~
 
-**Đáp án:** hợp lệ nếu `ok` là boolean đã khai báo. Mỗi đường chạy gán `state` một lần trước khi in.
+**Answer:** valid if `ok` is a declared boolean. Every execution path assigns `state` once before printing.
 
-### Bài B — phân biệt biến và object
+### Exercise B — distinguishing variable and object
 
 ~~~java
 final StringBuilder sb = new StringBuilder("Hi");
@@ -384,9 +384,9 @@ sb.append("!");
 System.out.println(sb);
 ~~~
 
-**Đáp án:** in `Hi!`; `append` hợp lệ, gán lại `sb` không hợp lệ.
+**Answer:** prints `Hi!`; `append` is valid, reassigning `sb` is invalid.
 
-### Bài C — final array có bất biến không?
+### Exercise C — is a `final` array immutable?
 
 ~~~java
 final int[] values = {1, 2};
@@ -394,20 +394,20 @@ values[0] = 7;
 System.out.println(values[0]);
 ~~~
 
-**Đáp án:** in `7`. Biến `values` không đổi tham chiếu nhưng phần tử mảng vẫn có thể đổi.
+**Answer:** prints `7`. The variable `values` cannot change its reference, but array elements can still be modified.
 
-### Bài D — tham số final
+### Exercise D — `final` parameter
 
 ~~~java
 static int plusOne(final int x) {
-    // x++; // Sai
+    // x++; // Invalid
     return x + 1;
 }
 ~~~
 
-**Đáp án:** `return x + 1;` hợp lệ vì không thay đổi `x`. `x++` không hợp lệ vì gán lại tham số final.
+**Answer:** `return x + 1;` is valid because it does not modify `x`. `x++` is invalid because it reassigns the `final` parameter.
 
-### Bài E — capture trong lambda
+### Exercise E — capturing in a lambda
 
 ~~~java
 int factor = 3;
@@ -415,18 +415,18 @@ java.util.function.IntUnaryOperator op = x -> x * factor;
 // factor = 4;
 ~~~
 
-**Đáp án:** hợp lệ nếu không thêm phép gán lại. Nếu bỏ comment của `factor = 4;`, compiler không cho lambda capture biến vì nó không còn effectively final.
+**Answer:** valid if no reassignment is added. If `factor = 4;` is uncommented, the compiler rejects the lambda capture because the variable is no longer effectively final.
 
-## 12. Checklist ghi nhớ
+## 12. Retention Checklist
 
-- [ ] `final` cấm gán lại **biến** sau khi được gán hợp lệ, không mặc định cấm thay đổi object.
-- [ ] Blank final local có thể khai báo trước, rồi gán một lần trên từng đường đi hợp lệ.
-- [ ] Biến final cần được gán chắc chắn trước khi đọc.
-- [ ] Câu lệnh `x++`, `x += 1`, `x = x` cũng là gán lại.
-- [ ] Enhanced for có thể dùng `final` cho biến phần tử, khác với biến đếm cần `i++`.
-- [ ] Blank final field được khởi tạo hợp lệ tại điểm khai báo, initializer hoặc constructor phù hợp.
-- [ ] Phân biệt `final` variable với **compile-time constant** và **immutable object**.
-- [ ] Hiểu final parameter và effectively final khi capture trong lambda.
-- [ ] Tự biên dịch/chạy `FinalOnceDemo.java` và giải thích toàn bộ output.
+- [ ] `final` forbids reassigning the **variable** after a valid assignment, not mutating the object by default.
+- [ ] A blank final local can be declared first, then assigned once on each valid execution path.
+- [ ] A `final` variable must be definitely assigned before being read.
+- [ ] Statements `x++`, `x += 1`, and `x = x` are also reassignments.
+- [ ] Enhanced for can use `final` for the element variable, unlike a counter needing `i++`.
+- [ ] Blank final fields are validly initialized at declaration, in an initializer, or in the appropriate constructor.
+- [ ] Distinguish a `final` variable from a **compile-time constant** and an **immutable object**.
+- [ ] Understand `final` parameters and effectively final when capturing in lambdas.
+- [ ] Compile/run `FinalOnceDemo.java` yourself and explain all output.
 
-**Kết luận:** `final` đặt trên biến bảo đảm **không gán lại biến sau khi đã gán một lần hợp lệ**. Java kiểm tra điều này ngay lúc biên dịch, bao gồm các nhánh điều khiển và các đường khởi tạo. Với tham chiếu, `final` cố định **giá trị tham chiếu**, không tự làm dữ liệu bên trong bất biến.
+**Conclusion:** `final` on a variable guarantees **not reassigning the variable after it has been validly assigned once**. Java enforces this at compile time, including across control-flow branches and initialization paths. For references, `final` fixes the **reference value**, without automatically making the internal data immutable.

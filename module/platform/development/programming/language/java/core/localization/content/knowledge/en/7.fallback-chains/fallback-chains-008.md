@@ -1,8 +1,8 @@
-# Các trường hợp đặc biệt của tên locale và cách kiểm tra chuỗi ứng viên
+# Special Cases of Locale Names and How to Inspect Candidate Chains
 
-## 1. Vì sao không thể suy ra chuỗi bundle chỉ bằng cách cắt hậu tố?
+## 1. Why Can't You Deduce the Bundle Chain Just by Trimming Suffixes?
 
-Trong Java, `ResourceBundle` tìm tài nguyên phù hợp với một `Locale` từ **base name** và danh sách **candidate locales** (các locale ứng viên). Với trường hợp đơn giản `vi-VN`, ta thường hình dung:
+In Java, `ResourceBundle` locates resources matching a `Locale` from a **base name** and a list of **candidate locales**. For a simple case like `vi-VN`, we usually picture:
 
 ```text
 com.example.i18n.Messages_vi_VN
@@ -10,28 +10,28 @@ com.example.i18n.Messages_vi
 com.example.i18n.Messages              (ROOT)
 ```
 
-Nhưng quy tắc này **chưa đủ** cho locale có script, variant, ngôn ngữ có cách đặt tên lịch sử hoặc các quy tắc đặc biệt như tiếng Hoa và tiếng Na Uy. Ví dụ `zh-TW` có thể được hiểu theo chữ phồn thể và sinh các tên chứa `Hant` dù thẻ đầu vào không ghi script.
+Yet that rule is **insufficient** for locales with scripts, variants, languages with historical naming, or special rules such as Chinese and Norwegian. For example, `zh-TW` can be interpreted as Traditional Chinese and generate names containing `Hant` even though the input tag specifies no script.
 
-Để chẩn đoán chính xác, không nên tự ghép tên theo `locale.toString()`, không chỉ tách `locale.toLanguageTag()` theo dấu gạch nối, và không giả định mọi `Locale` sẽ tạo danh sách dài/ngắn giống nhau. Hãy dùng chính `ResourceBundle.Control.getCandidateLocales(baseName, locale)` và `Control.toBundleName(baseName, candidate)` để quan sát thứ tự tên mà cơ chế classpath tiêu chuẩn sẽ xem xét.
+To diagnose accurately, do not construct names via `locale.toString()`, do not merely split `locale.toLanguageTag()` on hyphens, and do not assume every `Locale` produces the same chain length or shape. Use `ResourceBundle.Control.getCandidateLocales(baseName, locale)` and `Control.toBundleName(baseName, candidate)` directly to observe the name sequence the standard classpath mechanism considers.
 
-Bài này tập trung vào **chuỗi ứng viên và những ngoại lệ của tên locale**. Cần phân biệt danh sách ứng viên với việc thực sự tìm được tệp bundle, với fallback sang default locale, và với việc tra cứu một khóa thông qua parent bundle.
+This lesson focuses on **candidate chains and locale naming exceptions**. Distinguish the candidate list from actually locating a bundle file, falling back to the default locale, and looking up a key through parent bundles.
 
-## 2. Ba tên liên quan nhưng không đồng nhất
+## 2. Three Related but Distinct Names
 
-| Khái niệm | Ví dụ | Dùng ở đâu? |
+| Concept | Example | Where is it used? |
 | --- | --- | --- |
-| **Language tag** | `zh-Hant-TW` | Trao đổi/biểu diễn ngôn ngữ theo BCP 47; `Locale.forLanguageTag(...)`, `toLanguageTag()` |
-| **Locale instance** | Language `zh`, script `Hant`, region `TW` | Tham số cho Java API và cơ chế chọn ứng viên |
-| **Bundle name** | `com.example.i18n.Messages_zh_Hant_TW` | Tên ứng viên dùng để tìm class hoặc file tài nguyên |
-| **Resource path** | `com/example/i18n/Messages_zh_Hant_TW.properties` | Vị trí thực trong classpath/JAR của bundle kiểu `.properties` |
+| **Language tag** | `zh-Hant-TW` | Interchanging/representing languages per BCP 47; `Locale.forLanguageTag(...)`, `toLanguageTag()` |
+| **Locale instance** | Language `zh`, script `Hant`, region `TW` | Argument to Java APIs and candidate selection |
+| **Bundle name** | `com.example.i18n.Messages_zh_Hant_TW` | Candidate name used to look up a class or resource file |
+| **Resource path** | `com/example/i18n/Messages_zh_Hant_TW.properties` | Actual location in classpath/JAR of a `.properties`-type bundle |
 
-Bundle name gắn vào **base name** không chứa phần mở rộng. Với `FORMAT_PROPERTIES`, Java chuyển tên đó sang đường dẫn tài nguyên có dấu `/` và phần mở rộng `.properties`.
+The bundle name appends to the **base name** without an extension. With `FORMAT_PROPERTIES`, Java converts that name into a resource path using `/` separators and the `.properties` extension.
 
-Điểm tinh tế: `Locale.toString()` là một cách biểu diễn để đọc/log thông tin `Locale`, **không phải hợp đồng đặt tên tệp bundle**. Ví dụ locale có script có thể được biểu diễn dạng `zh_TW_#Hant` khi gọi `toString()`, nhưng tên bundle ứng viên là `Messages_zh_Hant_TW`. Hãy gọi `Control.toBundleName(...)` để có tên thực cần tìm.
+Subtle detail: `Locale.toString()` is a representation for reading/logging `Locale` details, **not a bundle-filename contract**. For example, a locale with a script can render as `zh_TW_#Hant` when calling `toString()`, whereas the candidate bundle name is `Messages_zh_Hant_TW`. Call `Control.toBundleName(...)` to get the actual name Java searches for.
 
-## 3. API dùng để tự kiểm tra ứng viên
+## 3. APIs for Inspecting Candidates Yourself
 
-Trong chế độ **classpath/unnamed module**, `ResourceBundle.Control` cung cấp:
+In **classpath/unnamed module** mode, `ResourceBundle.Control` provides:
 
 ```java
 ResourceBundle.Control control =
@@ -51,18 +51,18 @@ for (Locale candidate : candidates) {
 }
 ```
 
-Đây là **đoạn mã minh họa** dùng các biến `requested` và import `Locale`, `List`, `ResourceBundle`; chương trình độc lập có thể chạy được trình bày ở phần 4.
+This is an **illustrative snippet** using variable `requested` and imports `Locale`, `List`, and `ResourceBundle`; a complete runnable program is shown in Section 4.
 
-- `getCandidateLocales(baseName, requested)` trả danh sách **có thứ tự** từ ứng viên cụ thể đến ứng viên rộng hơn, kết thúc bằng `Locale.ROOT` trong cấu hình chuẩn.
-- `toBundleName(baseName, candidate)` biến từng `Locale` ứng viên thành **tên bundle** theo quy tắc Java; đây là bước nên dùng khi kiểm tra lỗi đặt tên file.
-- `FORMAT_DEFAULT` có thể thử class bundle và properties bundle; chọn `FORMAT_PROPERTIES` khi chỉ cần bundle `.properties`.
-- Danh sách trả về chỉ mô tả **tên được cân nhắc**. Nó không chứng minh bất kỳ tên nào tồn tại trên classpath, cũng không nói bundle nào thực sự sẽ được chọn.
+- `getCandidateLocales(baseName, requested)` returns an **ordered** list from specific candidates to broader ones, ending with `Locale.ROOT` under standard configuration.
+- `toBundleName(baseName, candidate)` turns each candidate `Locale` into a **bundle name** following Java rules; this is the step to use when checking filename mistakes.
+- `FORMAT_DEFAULT` can try class bundles and properties bundles; pick `FORMAT_PROPERTIES` when only `.properties` bundles are relevant.
+- The returned list only describes **names considered**. It does not prove any of those names exist on the classpath, nor does it state which bundle will actually be selected.
 
-**Quan trọng:** `getCandidateLocales` là một phương thức của `ResourceBundle.Control`. Các overload nhận `Control` của `ResourceBundle.getBundle` có giới hạn với **named modules**; không sao chép máy móc ví dụ này sang chương trình chạy trên module path. Cơ chế module-aware được nói rõ hơn ở phần 9.
+**Important:** `getCandidateLocales` is a method on `ResourceBundle.Control`. Overloads of `ResourceBundle.getBundle` taking `Control` have limitations with **named modules**; do not blindly copy this example into a program running on the module path. Module-aware mechanisms are discussed in Section 9.
 
-## 4. Chương trình Java 17+ in chuỗi tên ứng viên thực tế
+## 4. Java 17+ Program Printing Actual Candidate Name Chains
 
-Tạo tệp **`CandidateNamesDemo.java`**:
+Create **`CandidateNamesDemo.java`**:
 
 ```java
 import java.util.List;
@@ -100,14 +100,14 @@ public class CandidateNamesDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac -encoding UTF-8 CandidateNamesDemo.java
 java -cp . CandidateNamesDemo
 ```
 
-Dưới đây là các dòng đầu ra của thuật toán `Control` chuẩn trên JDK hiện đại, với chính base name `demo.Messages` được truyền vào (dòng dài được giữ nguyên):
+Below are the output lines of the standard `Control` algorithm on modern JDKs, with the passed base name `demo.Messages` (long lines kept intact):
 
 ```text
 vi-VN: demo.Messages_vi_VN -> demo.Messages_vi -> demo.Messages
@@ -117,13 +117,13 @@ sr-Latn-RS: demo.Messages_sr_Latn_RS -> demo.Messages_sr_Latn -> demo.Messages_s
 en-US-u-nu-thai: demo.Messages_en_US -> demo.Messages_en -> demo.Messages
 ```
 
-Chương trình này **không cần có tệp `demo/Messages*.properties`** vì chỉ liệt kê ứng viên, chưa gọi `getBundle` để nạp tài nguyên. Nếu muốn chứng minh một bundle được chọn, phải cung cấp file/class bundle thật và thực hiện `getBundle`; xem phần 8.
+This program **does not require `demo/Messages*.properties` files** because it only lists candidates without calling `getBundle` to load resources. To prove which bundle gets selected, you must supply real bundle files/classes and call `getBundle`; see Section 8.
 
-## 5. Những trường hợp đặc biệt cần hiểu
+## 5. Special Cases to Understand
 
-### 5.1. Tiếng Hoa: script được bổ sung theo vùng
+### 5.1. Chinese: Script Inferred by Region
 
-Với `Locale.forLanguageTag("zh-TW")`, Java có trường hợp đặc biệt suy luận script **`Hant`** (chữ phồn thể). Do đó, thứ tự ứng viên có thể là:
+For `Locale.forLanguageTag("zh-TW")`, Java has a special case that infers script **`Hant`** (Traditional). Consequently, the candidate order can be:
 
 ```text
 Messages_zh_Hant_TW
@@ -133,7 +133,7 @@ Messages_zh
 Messages
 ```
 
-Tương tự, `zh-CN` được xem theo script **`Hans`** (chữ giản thể):
+Similarly, `zh-CN` is treated with script **`Hans`** (Simplified):
 
 ```text
 Messages_zh_Hans_CN
@@ -143,16 +143,16 @@ Messages_zh
 Messages
 ```
 
-Điều này có hai hệ quả:
+This has two consequences:
 
-1. Dù chỉ yêu cầu `zh-TW`, Java vẫn có thể dùng tài nguyên `Messages_zh_Hant.properties` nếu không có file cụ thể hơn, trước khi xét `Messages_zh_TW.properties`.
-2. Đừng dựa vào việc chuỗi đầu vào không có `Hant` để kết luận các ứng viên cũng không có script.
+1. Even when requesting just `zh-TW`, Java can use `Messages_zh_Hant.properties` if no more specific file exists, before checking `Messages_zh_TW.properties`.
+2. Do not rely on the absence of `Hant` in the input string to conclude the candidates lack a script.
 
-Với thẻ `zh-Hant-TW` đã ghi script tường minh, thứ tự ứng viên cơ bản cũng bắt đầu từ `zh_Hant_TW`, rồi `zh_Hant`, `zh_TW`, `zh` và bundle gốc. Những ví dụ trên là **quy tắc ứng viên của Java**, không phải cách tuyên bố rằng mọi hệ thống người dùng Đài Loan/Trung Quốc đều có cùng một nhu cầu ngôn ngữ. Chất lượng bản dịch còn cần l10n thực tế.
+For the tag `zh-Hant-TW` with an explicit script, the basic candidate order also starts at `zh_Hant_TW`, then `zh_Hant`, `zh_TW`, `zh`, and the root bundle. The examples above are **Java's candidate rules**, not a claim that all user bases in Taiwan/China share identical linguistic needs. Translation quality still requires real localization.
 
-### 5.2. Locale có script tường minh: script có thể đứng trước region trong thứ tự tìm
+### 5.2. Locales with Explicit Scripts: Script Can Precede Region in Search Order
 
-Với `sr-Latn-RS` (tiếng Serbia dùng chữ Latin tại Serbia), Java xét:
+For `sr-Latn-RS` (Serbian written in Latin script in Serbia), Java considers:
 
 ```text
 Messages_sr_Latn_RS
@@ -162,20 +162,20 @@ Messages_sr
 Messages
 ```
 
-Dù `sr_Latn` không chỉ rõ region, nó có thể được xét **trước** `sr_RS` vì script ảnh hưởng mạnh đến bộ chữ/khả năng sử dụng nội dung. Điều này cho thấy thứ tự fallback không đơn giản là “bỏ region trước rồi bỏ script” trong mọi trường hợp.
+Although `sr_Latn` specifies no region, it can be tried **before** `sr_RS` because script strongly affects the writing system and readability of content. This shows fallback order is not simply "drop region first, then drop script" in every case.
 
-**Lưu ý khi đặt file:** dùng `Messages_sr_Latn_RS.properties`, không lấy chuỗi `Locale.toString()` làm tên file trực tiếp.
+**Filename note:** use `Messages_sr_Latn_RS.properties`, do not take `Locale.toString()` directly as the filename.
 
-### 5.3. Tiếng Na Uy: `no`, `nb`, `nn` và variant lịch sử `NY`
+### 5.3. Norwegian: `no`, `nb`, `nn`, and Historical Variant `NY`
 
-Java giữ một số quy tắc tương thích lịch sử cho tiếng Na Uy:
+Java preserves several historical compatibility rules for Norwegian:
 
-- `no` là mã Norwegian nói chung.
-- `nb` biểu diễn Norwegian Bokmål.
-- `nn` biểu diễn Norwegian Nynorsk.
-- Locale lịch sử `new Locale("no", "NO", "NY")` biểu diễn một trường hợp đặc biệt cũ liên quan đến Nynorsk.
+- `no` is the general Norwegian code.
+- `nb` represents Norwegian Bokmål.
+- `nn` represents Norwegian Nynorsk.
+- The historical locale `new Locale("no", "NO", "NY")` represents an old special case related to Nynorsk.
 
-Đối với `nb-NO`, ứng viên theo thuật toán chuẩn:
+For `nb-NO`, candidates under the standard algorithm are:
 
 ```text
 Messages_nb_NO
@@ -185,7 +185,7 @@ Messages_no
 Messages
 ```
 
-Đối với `nn-NO`:
+For `nn-NO`:
 
 ```text
 Messages_nn_NO
@@ -196,7 +196,7 @@ Messages_no
 Messages
 ```
 
-Với **constructor kiểu cũ** `new Locale("no", "NO", "NY")`, chuỗi ứng viên cũng bắt đầu bằng `nn_NO`, `nn`, rồi mới tới `no_NO_NY`:
+With the **legacy constructor** `new Locale("no", "NO", "NY")`, the candidate chain also begins with `nn_NO`, `nn`, and only then `no_NO_NY`:
 
 ```text
 Messages_nn_NO
@@ -207,27 +207,27 @@ Messages_no
 Messages
 ```
 
-Đây là **ngoại lệ cụ thể**, không phải quy tắc chung để `Locale` đổi mọi language thành một language khác. `NY` là variant lịch sử không đáp ứng cú pháp variant BCP 47 thông thường; vì vậy **không** dùng `new Locale.Builder().setVariant("NY")` làm ví dụ thay thế (builder có thể ném `IllformedLocaleException`). Muốn khảo sát chính xác trường hợp legacy, dùng constructor như trên hoặc một giá trị locale legacy nhận từ hệ thống cũ.
+This is a **specific exception**, not a general rule for `Locale` converting any language into another. `NY` is a historical variant that does not satisfy standard BCP 47 variant syntax; therefore do **not** use `new Locale.Builder().setVariant("NY")` as a substitute example (the builder may throw `IllformedLocaleException`). To inspect the legacy case accurately, use the constructor as above or a legacy locale value received from older systems.
 
-### 5.4. Các mã ngôn ngữ lịch sử và mã hiện đại
+### 5.4. Historical Language Codes vs. Modern Codes
 
-Một số mã ngôn ngữ từng dùng trong Java có dạng lịch sử:
+Some language codes once used in Java have historical forms:
 
-| Dạng cũ | Dạng hiện đại tương ứng |
+| Old form | Modern equivalent |
 | --- | --- |
 | `iw` | `he` (Hebrew) |
 | `in` | `id` (Indonesian) |
 | `ji` | `yi` (Yiddish) |
 
-API `Locale` có quy tắc tương thích cho các mã này; chẳng hạn `Locale.forLanguageTag("iw-IL").toLanguageTag()` có thể trả `he-IL`. Tùy cách xây dựng locale và quy tắc tương thích của JDK, các tên hiển thị từ `getLanguage()`/`toString()` không phải cơ sở an toàn để bạn tự viết thuật toán đổi tên bundle.
+The `Locale` API has compatibility rules for these codes; for instance, `Locale.forLanguageTag("iw-IL").toLanguageTag()` can return `he-IL`. Depending on how a locale is constructed and JDK compatibility rules, display strings from `getLanguage()`/`toString()` are not a safe basis for writing your own bundle-renaming algorithm.
 
-**Thực hành đúng:** cho một locale legacy cụ thể, gọi `getCandidateLocales` và `toBundleName` trên runtime mục tiêu; sau đó kiểm tra các tên resource/class thực sự đã đóng gói. Việc file mang dạng tên cũ hay mới còn có thể liên quan tới tài nguyên đang duy trì và tương thích với JDK.
+**Right practice:** for a specific legacy locale, call `getCandidateLocales` and `toBundleName` on the target runtime; then verify which resource/class names are actually packaged. Whether files use old or new names can also depend on maintained legacy resources and JDK compatibility.
 
-### 5.5. Variant: không phải lúc nào cũng có một hậu tố duy nhất
+### 5.5. Variants: Not Always a Single Suffix
 
-Với locale có variant hợp lệ, Java có thể tạo nhiều ứng viên bằng cách **cắt dần các thành phần variant** trước khi bỏ các thành phần cụ thể khác. Khi có script, danh sách có thể có cả nhánh chứa script và nhánh không chứa script.
+For locales with valid variants, Java can generate multiple candidates by **progressively trimming variant components** before dropping other specific components. When a script is present, the list can include both a scripted branch and a non-scripted branch.
 
-Ví dụ nguyên tắc tên có dạng:
+Example name pattern:
 
 ```text
 Messages_en_US_POSIX
@@ -236,17 +236,17 @@ Messages_en
 Messages
 ```
 
-Danh sách thực tế phụ thuộc locale, script, variant và các trường hợp đặc biệt của Java. Đừng xây dựng fallback bằng cách liên tục gọi `lastIndexOf('_')` trên `Locale.toString()`; cách đó có thể sai thứ tự và bỏ qua nhánh như `zh_Hant` hoặc `nn_NO`.
+The actual list depends on the locale, script, variant, and Java's special cases. Do not build fallback by repeatedly calling `lastIndexOf('_')` on `Locale.toString()`; that can produce the wrong order and miss branches such as `zh_Hant` or `nn_NO`.
 
-### 5.6. Unicode locale extensions không tự biến thành hậu tố bundle
+### 5.6. Unicode Locale Extensions Do Not Automatically Become Bundle Suffixes
 
-Thẻ:
+The tag:
 
 ```text
 en-US-u-nu-thai
 ```
 
-có extension `u-nu-thai` yêu cầu hệ chữ số Thai trong những API hiểu thuộc tính Unicode locale. Nhưng trong `ResourceBundle.Control.getCandidateLocales` tiêu chuẩn, phần extension này **không sinh tệp** như `Messages_en_US_u_nu_thai.properties`. Chuỗi ứng viên cơ bản là:
+has extension `u-nu-thai` requesting Thai digits in APIs that understand Unicode locale attributes. However, in standard `ResourceBundle.Control.getCandidateLocales`, this extension **does not generate a file** like `Messages_en_US_u_nu_thai.properties`. The basic candidate chain is:
 
 ```text
 Messages_en_US
@@ -254,11 +254,11 @@ Messages_en
 Messages
 ```
 
-Tương tự, thông tin như lịch `u-ca-japanese` có thể có ý nghĩa với một số dịch vụ ngày/giờ nhưng không đồng nghĩa tồn tại một bundle message riêng cho từng extension. Ứng dụng nào muốn phân biệt thông điệp theo extension phải thiết kế quy tắc riêng và kiểm thử, không suy ra tự động từ `getBundle`.
+Similarly, information like calendar `u-ca-japanese` can be meaningful to date/time services, yet does not imply a separate message bundle exists for each extension. Applications wishing to differentiate messages by extension must design custom rules and test them, rather than expecting automatic support from `getBundle`.
 
-## 6. Chương trình riêng quan sát ngoại lệ của tiếng Na Uy
+## 6. Dedicated Program Observing the Norwegian Exception
 
-Tạo **`NorwegianCandidatesDemo.java`**:
+Create **`NorwegianCandidatesDemo.java`**:
 
 ```java
 import java.util.List;
@@ -288,14 +288,14 @@ public class NorwegianCandidatesDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac -encoding UTF-8 NorwegianCandidatesDemo.java
 java -cp . NorwegianCandidatesDemo
 ```
 
-Đầu ra của chuỗi ứng viên chuẩn:
+Standard candidate chain output:
 
 ```text
 nb-NO: demo.Messages_nb_NO -> demo.Messages_no_NO -> demo.Messages_nb -> demo.Messages_no -> demo.Messages
@@ -303,23 +303,23 @@ nn-NO: demo.Messages_nn_NO -> demo.Messages_nn -> demo.Messages_no_NO_NY -> demo
 no_NO_NY: demo.Messages_nn_NO -> demo.Messages_nn -> demo.Messages_no_NO_NY -> demo.Messages_no_NO -> demo.Messages_no -> demo.Messages
 ```
 
-Cách kiểm tra này giúp bạn không phải phỏng đoán thứ tự đặc biệt từ tên file trên đĩa. Tương tự, có thể thay giá trị `Locale` trong `print` để khảo sát các locale khác.
+This check saves you from guessing special orders from filenames on disk. Similarly, you can swap the `Locale` passed to `print` to inspect other locales.
 
-## 7. Chuỗi ứng viên khác với default-locale fallback
+## 7. Candidate Chain Differs from Default-Locale Fallback
 
-Một nhầm lẫn phổ biến là cho rằng `getCandidateLocales(...)` đã cho biết **toàn bộ thứ tự mà mọi lời gọi `ResourceBundle.getBundle(...)` chắc chắn sẽ tìm kiếm**. Thực tế cần phân biệt:
+A common misconception is assuming `getCandidateLocales(...)` shows the **entire order that every `ResourceBundle.getBundle(...)` call is guaranteed to search**. In reality, distinguish:
 
-**A. Danh sách ứng viên cho requested locale.** `getCandidateLocales(baseName, requestedLocale)` nêu các lựa chọn thuộc requested locale, bao gồm `Locale.ROOT` theo control tiêu chuẩn.
+**A. Candidate list for the requested locale.** `getCandidateLocales(baseName, requestedLocale)` lists options belonging to the requested locale, including `Locale.ROOT` under standard control.
 
-**B. Vòng fallback sang locale mặc định.** Khi không tìm thấy bundle thích hợp theo quy tắc tìm kiếm, `ResourceBundle.Control.getFallbackLocale(baseName, locale)` có thể trả **default locale của JVM** để thử một danh sách ứng viên khác. Nhánh này không có nghĩa `getCandidateLocales` của requested locale đã tự chứa mọi locale của máy.
+**B. Fallback pass to the default locale.** When no suitable bundle is found under lookup rules, `ResourceBundle.Control.getFallbackLocale(baseName, locale)` may return the **JVM default locale** to try another candidate list. That branch does not mean `getCandidateLocales` for the requested locale already contains every locale on the machine.
 
-**C. Parent bundle khi tra khóa.** Một bundle đã được chọn vẫn có thể truy vấn parent khi thiếu một khóa; vì thế bản dịch của khóa có thể đến từ resource khác với `bundle.getLocale()`.
+**C. Parent bundle during key lookup.** A selected bundle can still query its parents when a key is missing; thus a key's value may come from a resource different from `bundle.getLocale()`.
 
-**D. Bundle gốc `Locale.ROOT`.** Bundle gốc là một ứng viên chung trong chuỗi; nó không phải một ngôn ngữ cụ thể và không đồng nghĩa với default locale JVM. `Locale.ROOT.toLanguageTag()` trả `und`.
+**D. Root bundle `Locale.ROOT`.** The root bundle is a general candidate in the chain; it is not a specific language and is not synonymous with the JVM default locale. `Locale.ROOT.toLanguageTag()` returns `und`.
 
-Ví dụ: chỉ in ứng viên của `fr-CA` không đủ để biết Java sau đó có thử locale mặc định `en-US` hay không, hoặc bundle gốc có tồn tại hay không. Phải biết cấu hình control và những tài nguyên được đóng gói.
+For instance, merely printing candidates for `fr-CA` is not enough to know whether Java will next try default locale `en-US` or whether the root bundle exists. You must know the control configuration and packaged resources.
 
-Để bỏ **nhánh fallback sang default locale JVM** khi làm việc với bundle properties trên classpath:
+To disable the **fallback branch to the JVM default locale** when working with properties bundles on the classpath:
 
 ```java
 ResourceBundle.Control control =
@@ -332,13 +332,13 @@ ResourceBundle bundle =
                 control);
 ```
 
-Đây là trích đoạn; nó yêu cầu `java.util.Locale`, `java.util.ResourceBundle` và tài nguyên thực cho `demo.Messages`. Cách gọi này **không loại bỏ bundle gốc**, cũng không tắt việc tìm khóa ở parent.
+This is an excerpt; it requires `java.util.Locale`, `java.util.ResourceBundle`, and real resources for `demo.Messages`. Calling it this way **does not remove the root bundle**, nor does it disable parent key lookup.
 
-## 8. Kiểm tra ứng viên nào thực sự được nạp
+## 8. Checking Which Candidate Is Actually Loaded
 
-In candidate names chỉ trả lời câu hỏi **Java sẽ cân nhắc những tên nào**. Để biết tên nào tồn tại và đã được chọn, cần một ví dụ với file `.properties` thật.
+Printing candidate names only answers **which names Java will consider**. To see which name exists and gets selected, you need an example with real `.properties` files.
 
-Tạo cấu trúc sau trong thư mục làm việc:
+Create the following structure in a working directory:
 
 ```text
 workspace/
@@ -349,25 +349,25 @@ workspace/
     └── Messages_zh_Hant.properties
 ```
 
-**Tệp `demo/Messages.properties`:**
+**File `demo/Messages.properties`:**
 
 ```properties
 message=ROOT
 ```
 
-**Tệp `demo/Messages_zh.properties`:**
+**File `demo/Messages_zh.properties`:**
 
 ```properties
 message=CHINESE
 ```
 
-**Tệp `demo/Messages_zh_Hant.properties`:**
+**File `demo/Messages_zh_Hant.properties`:**
 
 ```properties
 message=TRADITIONAL
 ```
 
-**Tệp `LoadedBundleDemo.java`:**
+**File `LoadedBundleDemo.java`:**
 
 ```java
 import java.util.Locale;
@@ -396,14 +396,14 @@ public class LoadedBundleDemo {
 }
 ```
 
-Từ thư mục `workspace`, chạy:
+From the `workspace` directory, run:
 
 ```bash
 javac -encoding UTF-8 LoadedBundleDemo.java
 java -cp . LoadedBundleDemo
 ```
 
-Kết quả với đúng ba tệp properties và control trên:
+Result with those exact three properties files and the control above:
 
 ```text
 zh-TW -> loaded=zh-Hant, value=TRADITIONAL
@@ -411,55 +411,55 @@ zh-CN -> loaded=zh, value=CHINESE
 fr-CA -> loaded=und, value=ROOT
 ```
 
-**Giải thích:**
+**Explanation:**
 
-- Với `zh-TW`, trong các ứng viên không có file `Messages_zh_Hant_TW.properties`, nhưng có `Messages_zh_Hant.properties`, nên Java chọn bundle `zh-Hant`.
-- Với `zh-CN`, không có các file `zh_Hans_CN`, `zh_Hans` hoặc `zh_CN`; `Messages_zh.properties` phù hợp trước khi tới root.
-- Với `fr-CA`, không có bundle tiếng Pháp, nên dùng `Messages.properties` gốc. `Locale.ROOT.toLanguageTag()` là `und`.
-- Vì dùng `getNoFallbackControl`, chương trình không thử một nhánh default locale JVM để làm thay đổi kết quả.
+- For `zh-TW`, among the candidates `Messages_zh_Hant_TW.properties` is absent, while `Messages_zh_Hant.properties` exists, so Java picks the `zh-Hant` bundle.
+- For `zh-CN`, `zh_Hans_CN`, `zh_Hans`, and `zh_CN` are absent; `Messages_zh.properties` matches before reaching root.
+- For `fr-CA`, no French bundle exists, so the root `Messages.properties` is used. `Locale.ROOT.toLanguageTag()` is `und`.
+- Because `getNoFallbackControl` is used, the program does not try a JVM default locale branch that could alter the result.
 
-Nếu có thêm file `Messages_zh_TW.properties`, thứ tự ứng viên vẫn xét `zh_Hant` trước `zh_TW` cho requested locale `zh-TW`. Vì vậy file `Messages_zh_Hant.properties` ở ví dụ có thể tiếp tục được chọn. Để ép một thông điệp vùng đặc biệt cho `zh-TW`, cần đặt tài nguyên ở ứng viên ưu tiên phù hợp (ví dụ `Messages_zh_Hant_TW.properties`) hoặc thiết kế cách chọn tường minh.
+Even if a `Messages_zh_TW.properties` file were added, the candidate order still checks `zh_Hant` before `zh_TW` for requested locale `zh-TW`. So `Messages_zh_Hant.properties` in the example can continue to be selected. To force a region-specific message for `zh-TW`, place the resource at the appropriate higher-priority candidate (such as `Messages_zh_Hant_TW.properties`) or design explicit selection logic.
 
-## 9. Giới hạn khi dự án dùng JPMS/named modules
+## 9. Limitations When a Project Uses JPMS / Named Modules
 
-`ResourceBundle.Control` là công cụ thiết thực để khám phá thứ tự ứng viên trong cơ chế classpath. Tuy nhiên, khi resource bundle thuộc **named module**, hệ thống module có cơ chế nạp riêng, và một số overload của `ResourceBundle.getBundle` có tham số `Control` không được hỗ trợ, có thể ném `UnsupportedOperationException`.
+`ResourceBundle.Control` is a practical tool for exploring candidate ordering on the classpath. However, when resource bundles reside in a **named module**, the module system uses its own loading mechanism, and `ResourceBundle.getBundle` overloads taking `Control` are not supported and may throw `UnsupportedOperationException`.
 
-Với dự án JPMS:
+For JPMS projects:
 
-- Dùng overload `getBundle(baseName, locale)` hoặc API nhận `Module` theo thiết kế/module caller phù hợp.
-- Kiểm tra tài nguyên đã được đóng gói vào module, chính sách truy cập của package và khai báo dịch vụ nếu sử dụng `ResourceBundleProvider`.
-- Kiểm thử trên **module path thực tế**. Không dùng kết quả chạy classpath làm bằng chứng rằng mọi tên tài nguyên và mức truy cập JPMS đều giống hệt.
-- Có thể dùng `Control.getCandidateLocales` độc lập để **hiểu quy tắc candidate naming**, nhưng không xem nó là phép đo đầy đủ cơ chế module provider thực tế.
+- Use `getBundle(baseName, locale)` or overloads accepting `Module` as appropriate for the caller module's design.
+- Verify resources are packaged into the module, along with package access policies and service declarations if using `ResourceBundleProvider`.
+- Test on the **actual module path**. Do not treat classpath runs as proof that all resource names and JPMS access rules behave identically.
+- You can use `Control.getCandidateLocales` standalone to **understand candidate naming rules**, yet do not treat it as a complete measurement of the actual module provider mechanism.
 
-Ví dụ chạy của bài cố ý sử dụng classpath để hành vi `Control` và các file properties được minh họa trực tiếp.
+The runnable examples in this lesson intentionally use the classpath so `Control` behavior and properties files can be demonstrated directly.
 
-## 10. Cách chẩn đoán khi fallback không như dự kiến
+## 10. How to Diagnose Unexpected Fallback
 
-Khi thấy Java chọn sai bản dịch, hãy kiểm tra có hệ thống:
+When Java selects the wrong translation, check systematically:
 
-1. **Ghi lại input:** giá trị `locale.toLanguageTag()`, language, script, region, variant và extension thực tế. Lưu ý `Locale.toString()` có thể khác language tag.
-2. **In toàn bộ candidates:** gọi `getCandidateLocales` và `toBundleName` như phần 4 hoặc 6. Kiểm tra thứ tự, nhất là `zh`, `sr`, `nb`, `nn`, legacy variant và các extension.
-3. **Đối chiếu file/class thực:** kiểm tra đường dẫn tương ứng trong classpath hoặc JAR, kể cả chữ hoa/thường. Không giả định file tồn tại chỉ vì tên xuất hiện trong danh sách.
-4. **Kiểm tra loại bundle:** mặc định có thể ưu tiên bundle dạng class hơn `.properties` có cùng tên ứng viên; ví dụ bài chọn `FORMAT_PROPERTIES` để tránh nhập nhằng.
-5. **Kiểm tra fallback tới default:** quan sát `Locale.getDefault()` và loại `Control` đang dùng. Khi cần kiểm thử ổn định, có thể dùng no-fallback control như phần 8.
-6. **Xác định bundle được nạp:** `bundle.getLocale()` cho biết locale của bundle được chọn. Giá trị khóa vẫn có thể lấy từ parent nếu bundle con thiếu khóa.
-7. **Kiểm tra runtime:** phiên bản JDK, classloader, tài nguyên trong build artifact, module path và cache `ResourceBundle`. Nếu dữ liệu thay đổi nhưng process còn sống, cache có thể khiến việc nạp không phản ánh file vừa sửa.
-8. **Kiểm thử đúng trường hợp biên:** vùng có script suy luận, vùng có script tường minh, tiếng Na Uy, mã ngôn ngữ cũ, extension Unicode, locale chỉ có language, và locale không có bundle nào.
+1. **Record the input:** actual `locale.toLanguageTag()`, language, script, region, variant, and extension values. Note that `Locale.toString()` can differ from the language tag.
+2. **Print all candidates:** call `getCandidateLocales` and `toBundleName` as in Section 4 or 6. Inspect the order, especially for `zh`, `sr`, `nb`, `nn`, legacy variants, and extensions.
+3. **Compare against real files/classes:** check the corresponding paths in the classpath or JAR, including uppercase/lowercase spelling. Never assume a file exists just because a name appears in the list.
+4. **Check bundle format:** by default, class-based bundles may take precedence over `.properties` with the same candidate name; the examples here choose `FORMAT_PROPERTIES` to avoid ambiguity.
+5. **Check default fallback:** inspect `Locale.getDefault()` and the `Control` in use. For deterministic testing, a no-fallback control as in Section 8 can help.
+6. **Identify the loaded bundle:** `bundle.getLocale()` reports the selected bundle's locale. Key values can still come from a parent if the child bundle lacks a key.
+7. **Check runtime state:** JDK version, classloader, resources inside build artifacts, module path, and `ResourceBundle` caching. If data changes while the process stays alive, caching may prevent loads from reflecting edited files.
+8. **Test edge cases properly:** regions with inferred scripts, regions with explicit scripts, Norwegian, legacy language codes, Unicode extensions, language-only locales, and locales with no bundle at all.
 
-| Triệu chứng | Điều cần xem trước | Lý do |
+| Symptom | What to check first | Reason |
 | --- | --- | --- |
-| `zh-TW` chọn bản dịch phồn thể chung thay vì file `zh_TW` | Danh sách `zh_Hant*` đứng trước `zh_TW` | Script inference có quy tắc đặc biệt |
-| `nn-NO` lấy tài nguyên `no_NO_NY` | Ứng viên tiếng Na Uy lịch sử | Java có nhánh tương thích đặc biệt |
-| `en-US-u-nu-thai` không tìm file có `u_nu_thai` | Candidate list bỏ Unicode extension | Extension không tự thành suffix bundle |
-| `locale.toString()` nhìn khác tên file | So sánh với `toBundleName` | Hai chuỗi có hợp đồng biểu diễn khác nhau |
-| `getCandidateLocales` liệt kê file nhưng `getBundle` báo thiếu | Tệp/class không có trên runtime classpath/module | Ứng viên chỉ là tên có thể được thử |
-| Một khóa hiển thị ngôn ngữ khác `bundle.getLocale()` | Key fallback sang parent | Nguồn khóa và bundle được chọn có thể khác nhau |
-| Chạy tốt trên classpath nhưng lỗi trên module path | Quy tắc JPMS và cách gọi `Control` | Module lookup và quyền truy cập khác nhau |
+| `zh-TW` picks general Traditional bundle instead of `zh_TW` file | `zh_Hant*` appears ahead of `zh_TW` | Script inference has a special rule |
+| `nn-NO` loads `no_NO_NY` resource | Historical Norwegian candidates | Java has a special compatibility branch |
+| `en-US-u-nu-thai` ignores files with `u_nu_thai` | Candidate list drops Unicode extensions | Extensions do not automatically become bundle suffixes |
+| `locale.toString()` looks different from filename | Compare with `toBundleName` | The two strings follow different formatting contracts |
+| `getCandidateLocales` lists a file yet `getBundle` says missing | File/class absent from runtime classpath/module | Candidates are only names that may be tried |
+| A key displays a different language from `bundle.getLocale()` | Key falls back to a parent | Key origin and selected bundle can differ |
+| Works on classpath yet fails on module path | JPMS rules and `Control` calls | Module lookup and access permissions differ |
 
-## 11. Ghi nhớ
+## 11. Takeaways
 
-- Chuỗi ứng viên của `ResourceBundle` là **một quy tắc có thứ tự**, không chỉ là cắt dần từng phần của thẻ BCP 47.
-- Các trường hợp cần lưu ý nhất: **script** (`sr-Latn-RS`), **script suy luận cho tiếng Hoa** (`zh-TW` → `zh_Hant*`, `zh-CN` → `zh_Hans*`), **tiếng Na Uy** (`nb`, `nn`, `no_NO_NY`), **mã ngôn ngữ lịch sử**, **variant**, và **Unicode extension**.
-- Dùng `ResourceBundle.Control.getCandidateLocales` rồi `toBundleName` để in tên bundle ứng viên; không tự dựng tên file từ `Locale.toString()`.
-- Một tên ứng viên xuất hiện **không chứng minh tài nguyên tồn tại**. Dùng `getBundle`, `bundle.getLocale()`, kiểm tra key và artifact để xác nhận điều thực sự được nạp.
-- **Chuỗi ứng viên**, **fallback sang default locale** và **tra khóa qua parent** là ba khái niệm khác nhau; nắm rõ từng tầng sẽ giúp chẩn đoán đúng lỗi bản địa hóa.
+- The `ResourceBundle` candidate chain is an **ordered set of rules**, not merely progressive truncation of a BCP 47 tag.
+- Cases to watch most closely: **scripts** (`sr-Latn-RS`), **inferred scripts for Chinese** (`zh-TW` → `zh_Hant*`, `zh-CN` → `zh_Hans*`), **Norwegian** (`nb`, `nn`, `no_NO_NY`), **historical language codes**, **variants**, and **Unicode extensions**.
+- Use `ResourceBundle.Control.getCandidateLocales` followed by `toBundleName` to print candidate bundle names; do not build filenames from `Locale.toString()`.
+- A candidate name appearing in the list **does not prove the resource exists**. Use `getBundle`, `bundle.getLocale()`, key checks, and artifact inspection to verify what is actually loaded.
+- **Candidate chain**, **fallback to default locale**, and **parent key lookup** are three distinct concepts; understanding each tier lets you diagnose localization bugs accurately.

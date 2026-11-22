@@ -1,35 +1,35 @@
-# Khi nào nên dùng reflection và khi nào gọi trực tiếp trong Java?
+# When to Use Reflection vs. Direct Calls in Java?
 
-Trong Java, **gọi trực tiếp** là lựa chọn mặc định khi chương trình biết kiểu và API cần dùng lúc biên dịch. **Reflection** là cơ chế kiểm tra cấu trúc của lớp và truy cập constructor, method, field hoặc annotation **khi chương trình đang chạy** thông qua các API như `Class`, `Constructor`, `Method` và `Field` trong `java.lang.reflect`.
+In Java, **direct calls** are the default choice when a program knows the types and APIs it needs at compile time. **Reflection** is the mechanism for inspecting a class's structure and accessing constructors, methods, fields, or annotations **while the program is running** through APIs such as `Class`, `Constructor`, `Method`, and `Field` in `java.lang.reflect`.
 
-Cả hai cách đều có thể dẫn tới cùng một hành vi. Quyết định nằm ở chỗ **mức độ động của yêu cầu**: có thật sự cần khám phá tên lớp, phương thức hoặc metadata ở runtime không? Reflection giúp giải bài toán động, nhưng tăng chi phí bảo trì, giảm kiểm tra kiểu tại compile time và có thêm giới hạn truy cập.
+Both approaches can produce the same behavior. The decision comes down to **how dynamic the requirement is**: do you genuinely need to discover class names, methods, or metadata at runtime? Reflection solves dynamic problems, but it increases maintenance cost, reduces compile-time type checking, and introduces additional access restrictions.
 
-## 1. Phân biệt cơ chế
+## 1. Distinguishing the Mechanisms
 
-- **Gọi trực tiếp:** viết `service.execute()`, `new Service()` hoặc gọi qua interface. Compiler kiểm tra method có tồn tại, tham số/kiểu trả về có hợp lệ và quyền truy cập có cho phép. IDE có thể tìm tham chiếu, đổi tên và refactor một cách đáng tin cậy hơn.
-- **Reflection:** lấy đối tượng mô tả lớp (`Class<?>`), tìm member bằng tên/chữ ký tại runtime rồi gọi qua `Method.invoke(...)` hoặc khởi tạo qua `Constructor.newInstance(...)`. Lỗi tên và chữ ký thường chỉ lộ ra khi chạy.
-- **Đa hình không đồng nghĩa với reflection:** `Formatter formatter = ...; formatter.format(text);` vẫn là lời gọi Java thông thường. JVM có thể chọn implementation tại runtime nhờ virtual dispatch mà không cần `Method.invoke`.
-- **Có `Class<?>` chưa chắc đã cần gọi method bằng reflection:** `SomeType.class` và `object.getClass()` chỉ lấy thông tin kiểu; chỉ dùng khả năng introspection nào thực sự cần.
+- **Direct calls:** writing `service.execute()`, `new Service()`, or calling through an interface. The compiler checks that the method exists, that parameter/return types are valid, and that access permissions allow it. IDEs can find references, rename symbols, and refactor more reliably.
+- **Reflection:** obtaining a class descriptor (`Class<?>`), looking up a member by name/signature at runtime, and invoking via `Method.invoke(...)` or instantiating via `Constructor.newInstance(...)`. Name and signature mistakes usually surface only at runtime.
+- **Polymorphism is not reflection:** `Formatter formatter = ...; formatter.format(text);` is still a regular Java call. The JVM can select the implementation at runtime via virtual dispatch without needing `Method.invoke`.
+- **Having a `Class<?>` does not mean you must invoke methods via reflection:** `SomeType.class` and `object.getClass()` only retrieve type information; use only the introspection capabilities you truly need.
 
-Một lời gọi phản chiếu không tự động vượt qua giới hạn `private`, ranh giới Java module hay quyền truy cập. Cơ chế kiểm tra truy cập vẫn được áp dụng.
+A reflective call does not automatically bypass `private` restrictions, Java module boundaries, or access permissions. Access checks still apply.
 
-## 2. Chọn cách nào theo tình huống?
+## 2. Which Approach Fits Which Situation?
 
-| Tình huống | Lựa chọn ưu tiên | Lý do |
+| Situation | Preferred Choice | Reason |
 | --- | --- | --- |
-| Đã biết lớp, constructor, method và chữ ký khi viết mã | Gọi trực tiếp | An toàn kiểu, dễ refactor, dễ theo dõi luồng gọi |
-| Có nhiều cách xử lý cùng một hợp đồng interface | Interface + đa hình, factory hoặc dependency injection | Chọn implementation linh hoạt mà không phải dò tên method |
-| Phải đọc annotation, field, method của nhiều kiểu không biết trước | Reflection ở lớp hạ tầng/framework | Metadata chỉ có thể xác định đầy đủ lúc runtime |
-| Cần nạp một implementation theo cấu hình hoặc plugin bên ngoài | `ServiceLoader` hoặc reflection có kiểm soát | Tên implementation có thể chưa biết khi biên dịch |
-| Muốn gọi private method từ nghiệp vụ hoặc test | Ưu tiên thiết kế lại API/phân tách trách nhiệm | Tránh ghép chặt vào implementation và vi phạm đóng gói |
-| Vòng lặp rất nóng, gọi method lặp lại thường xuyên | Ưu tiên lời gọi trực tiếp sau khi đo đạc | Hạn chế chi phí lookup/invoke và chuyển đổi kiểu |
-| Truy cập API của dependency mà mã nguồn đã tham chiếu được | Gọi trực tiếp | Reflection thêm sự mong manh mà không tạo lợi ích động |
+| Class, constructor, method, and signature are known when writing code | Direct call | Type-safe, easy to refactor, easy to trace call flows |
+| Multiple ways to implement the same interface contract | Interface + polymorphism, factory, or dependency injection | Flexibly selects implementations without probing method names |
+| Must read annotations, fields, and methods of many previously unknown types | Reflection in the infrastructure/framework layer | Metadata can only be fully determined at runtime |
+| Need to load an implementation from configuration or an external plugin | `ServiceLoader` or controlled reflection | The implementation name may be unknown at compile time |
+| Want to call a private method from business code or tests | Prefer redesigning API/separating responsibilities | Avoids tight coupling to implementation details and breaking encapsulation |
+| Very hot loop calling a method repeatedly | Prefer direct calls after measurement | Avoids lookup/invoke overhead and type conversions |
+| Accessing an API of a dependency already referenced in source code | Direct call | Reflection adds fragility without providing dynamic benefit |
 
-**Nguyên tắc:** chỉ đưa reflection vào nơi hệ thống thực sự phải xử lý thông tin chưa biết tại compile time; để phần còn lại giao tiếp qua kiểu hoặc interface rõ ràng.
+**Rule of thumb:** introduce reflection only where the system genuinely has to handle information unknown at compile time; let the rest communicate through explicit types or interfaces.
 
-## 3. Ví dụ: cùng một lời gọi, hai cách thực hiện
+## 3. Example: Same Call, Two Ways to Execute It
 
-Tạo tệp `CallChoiceDemo.java`:
+Create the file `CallChoiceDemo.java`:
 
 ```java
 import java.lang.reflect.Method;
@@ -37,7 +37,7 @@ import java.lang.reflect.Method;
 public class CallChoiceDemo {
     public static class GreetingService {
         public String greet(String name) {
-            return "Xin chào, " + name;
+            return "Hello, " + name;
         }
     }
 
@@ -45,10 +45,10 @@ public class CallChoiceDemo {
             throws ReflectiveOperationException {
         GreetingService service = new GreetingService();
 
-        // Gọi trực tiếp: compiler biết kiểu và chữ ký.
+        // Direct call: the compiler knows the type and signature.
         String direct = service.greet("An");
 
-        // Reflection: tìm phương thức theo tên/chữ ký lúc chạy.
+        // Reflection: look up the method by name/signature at runtime.
         Class<?> type = service.getClass();
         Method greetMethod = type.getMethod("greet", String.class);
         Object dynamic = greetMethod.invoke(service, "An");
@@ -59,34 +59,34 @@ public class CallChoiceDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac CallChoiceDemo.java
 java CallChoiceDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
-Direct: Xin chào, An
-Reflection: Xin chào, An
+Direct: Hello, An
+Reflection: Hello, An
 ```
 
-Phân tích:
+Analysis:
 
-1. `service.greet("An")` được compiler kiểm tra: đổi tên `greet` mà chưa sửa chỗ gọi sẽ sinh lỗi biên dịch.
-2. `getMethod("greet", String.class)` chỉ tìm **public method** có đúng chữ ký tham số `String`, kể cả method public kế thừa. Nếu tên/chữ ký không tồn tại, chương trình nhận `NoSuchMethodException` lúc chạy.
-3. `Method.invoke(service, "An")` trả về `Object` (hoặc `null` nếu method trả về `void`). Vì vậy phía gọi có thể cần kiểm tra và ép kiểu khi biết kiểu kết quả.
-4. Nếu code bên trong `greet` ném exception, `invoke` bọc exception đó trong `InvocationTargetException`; cần xem `getCause()` để biết lỗi gốc. Lỗi truy cập có thể tạo `IllegalAccessException`.
+1. `service.greet("An")` is checked by the compiler: renaming `greet` without updating the call site produces a compile error.
+2. `getMethod("greet", String.class)` finds only a **public method** with the exact `String` parameter signature, including inherited public methods. If the name/signature does not exist, the program receives `NoSuchMethodException` at runtime.
+3. `Method.invoke(service, "An")` returns `Object` (or `null` if the method returns `void`). Therefore, the caller may need to check and cast when the result type is known.
+4. If code inside `greet` throws an exception, `invoke` wraps that exception in `InvocationTargetException`; inspect `getCause()` to see the original error. Access failures can produce `IllegalAccessException`.
 
-Ở ví dụ này, reflection **không có lợi ích**: biết rõ `GreetingService` và `greet` ngay từ đầu nên nên dùng gọi trực tiếp.
+In this example, reflection brings **no benefit**: `GreetingService` and `greet` are clearly known from the start, so a direct call should be used.
 
-## 4. Trường hợp reflection có lý do chính đáng: lớp được chọn ở runtime
+## 4. When Reflection Has a Valid Reason: The Class Is Chosen at Runtime
 
-Một hệ thống plugin có thể nhận tên implementation từ cấu hình, còn phần nghiệp vụ chỉ biết một interface chung. Có thể dùng reflection ở **điểm khởi tạo plugin**, rồi gọi trực tiếp qua interface sau đó.
+A plugin system might receive an implementation name from configuration while business logic knows only a shared interface. You can use reflection at the **plugin initialization point**, then call directly through the interface afterward.
 
-Tạo tệp `RuntimeFormatterDemo.java`:
+Create the file `RuntimeFormatterDemo.java`:
 
 ```java
 import java.util.Locale;
@@ -108,7 +108,7 @@ public class RuntimeFormatterDemo {
 
     public static void main(String[] args)
             throws ReflectiveOperationException {
-        // Trong ứng dụng thật, giá trị này có thể lấy từ cấu hình tin cậy.
+        // In a real application, this value may come from trusted configuration.
         String className = System.getProperty(
                 "formatter.class", UpperFormatter.class.getName());
 
@@ -118,89 +118,89 @@ public class RuntimeFormatterDemo {
         Formatter formatter =
                 implementation.getDeclaredConstructor().newInstance();
 
-        // Từ đây là đa hình thông thường, không gọi Method.invoke.
+        // From here on it is normal polymorphism, with no Method.invoke call.
         System.out.println(formatter.format("reflection"));
     }
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac RuntimeFormatterDemo.java
 java RuntimeFormatterDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 REFLECTION
 ```
 
-Điểm cần hiểu:
+Points to understand:
 
-- `Class.forName(className)` tải/tìm class theo tên được biết tại runtime (với dạng này, việc khởi tạo class cũng có thể xảy ra). Class phải có trên classpath/module path phù hợp.
-- `asSubclass(Formatter.class)` kiểm tra class có tương thích với `Formatter`; nếu không, phát sinh `ClassCastException`.
-- `getDeclaredConstructor().newInstance()` yêu cầu constructor không tham số phù hợp và có thể truy cập từ nơi gọi. Nếu thiếu sẽ có `NoSuchMethodException`; nếu constructor ném lỗi thì lỗi được bọc trong `InvocationTargetException`.
-- Sau khi tạo được `Formatter`, gọi `formatter.format(...)` qua interface là đủ. Không cần tiếp tục tìm và invoke method bằng reflection mỗi lần xử lý.
-- Tên class lấy từ nguồn không đáng tin cậy có thể dẫn tới nạp/khởi tạo code ngoài ý muốn. Ứng dụng phải giới hạn provider được phép dùng, kiểm soát dependency, và không coi ép kiểu interface là cơ chế bảo mật.
+- `Class.forName(className)` loads/finds the class by the name known at runtime (with this form, class initialization may also occur). The class must be on the appropriate classpath/module path.
+- `asSubclass(Formatter.class)` verifies that the class is compatible with `Formatter`; if not, `ClassCastException` is thrown.
+- `getDeclaredConstructor().newInstance()` requires a suitable no-argument constructor that is accessible from the caller. If missing, `NoSuchMethodException` occurs; if the constructor throws an error, it is wrapped in `InvocationTargetException`.
+- Once the `Formatter` is created, calling `formatter.format(...)` through the interface is sufficient. There is no need to keep looking up and invoking the method via reflection on every operation.
+- Class names taken from untrusted sources can lead to loading/initializing unintended code. Applications must restrict allowed providers, control dependencies, and never treat interface casting as a security mechanism.
 
-Trong trường hợp hệ thống đã biết danh sách implementation, một **factory/registry** ánh xạ tên tới `Supplier<Formatter>` còn đơn giản hơn. Nếu cần cơ chế plugin chuẩn, **`ServiceLoader<Formatter>`** cho phép tìm provider qua cấu hình dịch vụ mà không phải tự ghép tên class và constructor trong mã nghiệp vụ. Framework dependency injection cũng thường xử lý bài toán chọn implementation tốt hơn reflection tự viết.
+In cases where the system already knows the list of implementations, a **factory/registry** mapping names to `Supplier<Formatter>` is even simpler. If a standard plugin mechanism is needed, **`ServiceLoader<Formatter>`** discovers providers through service configuration without manually wiring class names and constructors in business code. Dependency injection frameworks also typically handle implementation selection better than hand-rolled reflection.
 
-## 5. Những tình huống reflection thường được sử dụng
+## 5. Situations Where Reflection Is Commonly Used
 
-### Đọc metadata và xây dựng công cụ tổng quát
+### Reading Metadata and Building General-Purpose Tools
 
-- Framework có thể quét annotation để thiết lập dependency injection, mapping, serialization hoặc validation.
-- Công cụ debug, test runner và công cụ khám phá API có thể liệt kê method, field, constructor, annotation từ những lớp chỉ xuất hiện khi chạy.
-- Thư viện chuyển đổi dữ liệu tổng quát có thể phải xử lý các kiểu domain không được liệt kê tường minh trong chính thư viện.
+- Frameworks can scan annotations to configure dependency injection, mapping, serialization, or validation.
+- Debuggers, test runners, and API inspection tools can list methods, fields, constructors, and annotations from classes that only appear at runtime.
+- General-purpose data conversion libraries may have to handle domain types not explicitly enumerated within the library itself.
 
-Ví dụ, một thư viện có thể duyệt `type.getDeclaredFields()` để đọc metadata field rồi quyết định cách ánh xạ dữ liệu. Việc này khác với nghiệp vụ biết sẵn `customer.getName()`: ở trường hợp sau, getter trực tiếp là giải pháp rõ ràng hơn.
+For example, a library can iterate over `type.getDeclaredFields()` to read field metadata and decide how to map data. This differs from business logic that already knows `customer.getName()`: in the latter case, a direct getter is the clearer solution.
 
-### Plugin và phần mở rộng
+### Plugins and Extensions
 
-Khi implementation do plugin cung cấp sau thời điểm biên dịch, ứng dụng có thể cần nạp class, kiểm tra hợp đồng, tạo instance tại runtime. Reflection hữu ích **ở biên tích hợp**, còn thao tác lâu dài nên thông qua interface đã định nghĩa. Nếu runtime thay đổi phương thức/tên kiểu không có hợp đồng chung, cân nhắc adapter hoặc giao thức ổn định thay vì rải các chuỗi tên method khắp hệ thống.
+When an implementation is provided by a plugin after compile time, the application may need to load the class, verify its contract, and create an instance at runtime. Reflection is useful **at the integration boundary**, while ongoing operations should go through a defined interface. If the runtime varies method or type names without a common contract, consider an adapter or a stable protocol rather than scattering method-name strings throughout the system.
 
-### Các lựa chọn trước khi dùng reflection
+### Alternatives to Consider Before Using Reflection
 
-- **Interface/đa hình:** thay cho phân nhánh theo tên class và gọi method động.
-- **Factory, registry, dependency injection:** thay cho dựng đối tượng bằng tên class khi tập implementation có thể khai báo được.
-- **`ServiceLoader`:** cơ chế provider/plugin chuẩn của Java.
-- **Annotation processing lúc biên dịch:** khi có thể tạo metadata/code sớm thay vì quét reflection mỗi lần chạy.
-- **`MethodHandle` / `MethodHandles.Lookup`:** công cụ gọi động có kiểu chữ ký rõ hơn trong một số trường hợp nâng cao; vẫn cần kiểm tra quyền truy cập và đo hiệu năng, không phải lối tắt bắt buộc.
+- **Interfaces/polymorphism:** instead of branching by class name and invoking methods dynamically.
+- **Factories, registries, dependency injection:** instead of constructing objects by class name when the set of implementations can be declared.
+- **`ServiceLoader`:** Java's standard provider/plugin mechanism.
+- **Compile-time annotation processing:** when metadata/code can be generated early instead of scanning with reflection on every run.
+- **`MethodHandle` / `MethodHandles.Lookup`:** a dynamic invocation tool with clearer signature typing in some advanced scenarios; still requires access checks and performance measurement, not a mandatory shortcut.
 
-## 6. Chi phí, quyền truy cập và độ an toàn
+## 6. Cost, Access Permissions, and Safety
 
-**Kiểm tra kiểu và bảo trì.** Gọi trực tiếp giúp compiler phát hiện lỗi đổi tên hoặc thay đổi tham số sớm. Với `getMethod("save", ...)`, các tên member ở dạng chuỗi không được refactor chắc chắn; lỗi chỉ xuất hiện ở runtime. Nên tập trung chuỗi tên member ở một nơi, kiểm tra kết quả và có test tích hợp cho đường đi động.
+**Type checking and maintenance.** Direct calls let the compiler catch renames or parameter changes early. With `getMethod("save", ...)`, member names as strings are not reliably refactored; errors appear only at runtime. Centralize member-name strings in one place, validate results, and maintain integration tests for dynamic paths.
 
-**Hiệu năng.** Reflection có chi phí khám phá member, kiểm tra truy cập, gọi động và có thể sinh boxing/unboxing. Chi phí thực tế tùy phiên bản JDK, độ nóng của mã và khả năng tối ưu của JVM: không nên khẳng định mọi lời gọi reflection đều chậm hơn một hệ số cố định. Nếu bắt buộc dùng reflection, **tra cứu `Method`/`Constructor` một lần rồi tái sử dụng** khi hợp lý, tránh `getMethod` bên trong vòng lặp; dùng benchmark thích hợp như JMH trước khi tối ưu đoạn code nhạy cảm.
+**Performance.** Reflection carries member-discovery, access-checking, dynamic-invocation, and potential boxing/unboxing costs. Actual overhead depends on the JDK version, code hotness, and JVM optimizations: do not claim every reflective call is slower by a fixed factor. When reflection is unavoidable, **look up `Method`/`Constructor` once and reuse it** where appropriate, avoiding `getMethod` inside loops; use proper benchmarks such as JMH before optimizing sensitive code.
 
-**Public, private và Java modules.**
+**Public, private, and Java modules.**
 
-- `getMethod(...)` tìm public method; `getDeclaredMethod(...)` tìm method được khai báo trực tiếp ở lớp đó, bao gồm cả non-public, nhưng **tìm thấy không có nghĩa là gọi được**.
-- `setAccessible(true)`/`trySetAccessible()` có thể bị giới hạn bởi access checks và cơ chế module. Java 17+ áp dụng đóng gói mạnh đối với nhiều package/module; việc mở truy cập có thể thất bại với `InaccessibleObjectException` hoặc `trySetAccessible()` trả về `false`.
-- Trong Java Platform Module System, `exports` cho phép sử dụng public API của package theo quy tắc module; `opens` hỗ trợ deep reflection vào package cho module được cấp quyền. Chỉ mở package thật sự cần cho framework và ưu tiên public contract rõ ràng.
-- Không xây chức năng nghiệp vụ phụ thuộc vào private field/method của thư viện bên thứ ba; chúng có thể thay đổi không báo trước.
+- `getMethod(...)` searches public methods; `getDeclaredMethod(...)` searches methods declared directly in that class, including non-public ones, yet **finding one does not mean it can be invoked**.
+- `setAccessible(true)`/`trySetAccessible()` can be restricted by access checks and module rules. Java 17+ enforces strong encapsulation on many packages/modules; opening access can fail with `InaccessibleObjectException` or `trySetAccessible()` returning `false`.
+- In the Java Platform Module System, `exports` allows using a package's public API under module rules; `opens` supports deep reflection into a package for authorized modules. Open only packages genuinely needed by frameworks and prefer clear public contracts.
+- Do not build business functionality that depends on private fields/methods of third-party libraries; they can change without notice.
 
-**Exception và chẩn đoán.** Ngoài `NoSuchMethodException`, cần phân biệt `ClassNotFoundException`, `IllegalAccessException`, `InstantiationException`, `InvocationTargetException` và `ClassCastException` theo bước thực hiện. Khi log `InvocationTargetException`, giữ cả cause gốc. Đưa tên class/method/chữ ký dự kiến vào thông báo lỗi sẽ giúp kiểm tra cấu hình nhanh hơn.
+**Exceptions and diagnostics.** Beyond `NoSuchMethodException`, distinguish `ClassNotFoundException`, `IllegalAccessException`, `InstantiationException`, `InvocationTargetException`, and `ClassCastException` by execution step. When logging `InvocationTargetException`, preserve the original cause. Including the expected class/method/signature in error messages speeds up configuration troubleshooting.
 
-**An toàn và triển khai.** Không lấy tên lớp/phương thức trực tiếp từ input không tin cậy rồi thực thi tùy ý. Với native image hoặc môi trường phân tích mã theo mô hình closed world, reflective access có thể cần khai báo metadata hoặc cơ chế đăng ký phù hợp với runtime/framework; kiểm tra ngay từ giai đoạn build và test chạy thật trên mục tiêu triển khai.
+**Safety and deployment.** Never take class/method names directly from untrusted input and execute them arbitrarily. With native image or closed-world code-analysis environments, reflective access may require declaring metadata or registration entries suited to the runtime/framework; verify this at build time and run real tests on the deployment target.
 
-## 7. Quy trình ra quyết định
+## 7. Decision Workflow
 
-1. **Tên lớp và method đã biết khi biên dịch?** Dùng gọi trực tiếp.
-2. **Chỉ cần đổi implementation theo điều kiện/cấu hình?** Tạo interface + factory/DI/`ServiceLoader`; lời gọi nghiệp vụ vẫn trực tiếp qua interface.
-3. **Cần đọc cấu trúc hoặc annotation của kiểu chưa biết trước?** Dùng reflection có giới hạn, gom phần truy cập động vào adapter/hạ tầng, kiểm tra lỗi và cache metadata nếu cần.
-4. **Phải gọi method được xác định ở runtime?** Xác thực tên và chữ ký, kiểm tra tương thích, xử lý lỗi truy cập/exception và thu hẹp nơi gọi bằng reflection.
-5. **Phải mở private member chỉ để “cho tiện”?** Xem lại ranh giới API hoặc thiết kế trước khi sử dụng deep reflection.
-6. **Có nghi ngờ vấn đề hiệu năng/đóng gói/module?** Viết kiểm thử/benchmark ở đúng runtime mục tiêu rồi chọn mức động tối thiểu.
+1. **Are the class name and method known at compile time?** Use a direct call.
+2. **Do you only need to swap implementations by condition/configuration?** Create an interface + factory/DI/`ServiceLoader`; business calls remain direct through the interface.
+3. **Do you need to read structure or annotations of previously unknown types?** Use bounded reflection, isolate dynamic access in an adapter/infrastructure layer, handle errors, and cache metadata if needed.
+4. **Must you invoke a method determined at runtime?** Validate the name and signature, check compatibility, handle access/invocation exceptions, and narrow the reflective call site.
+5. **Are you opening a private member just "for convenience"?** Re-examine the API boundary or design before resorting to deep reflection.
+6. **Suspect performance, encapsulation, or module issues?** Write tests/benchmarks on the actual target runtime and choose the minimum level of dynamism.
 
-### Tự kiểm tra cách chọn
+### Self-Check on Making the Choice
 
-- Gọi `orderService.submit(order)` trong service đã biết kiểu: **gọi trực tiếp**.
-- Chọn `PaymentProcessor` theo provider có sẵn: **interface + factory/DI**, không cần `Method.invoke`.
-- Viết thư viện kiểm tra annotation trên những class của ứng dụng mà thư viện chưa biết khi biên dịch: **reflection hợp lý**.
-- Nạp implementation được cài thêm sau khi build: dùng **`ServiceLoader` hoặc khởi tạo động có kiểm soát**, rồi gọi qua interface.
-- Muốn sửa private field của dependency để tránh tạo API đúng nghĩa: **tránh reflection**, ưu tiên thiết kế/test seam phù hợp.
+- Calling `orderService.submit(order)` on a service whose type is already known: **direct call**.
+- Selecting a `PaymentProcessor` from available providers: **interface + factory/DI**, no `Method.invoke` needed.
+- Writing a library that inspects annotations on application classes unknown to the library at compile time: **reflection is reasonable**.
+- Loading an implementation installed after build time: use **`ServiceLoader` or controlled dynamic instantiation**, then call through an interface.
+- Wanting to modify a dependency's private field to avoid creating a proper API: **avoid reflection**, prefer proper design/test seams.
 
-**Kết luận:** Reflection là công cụ giải quyết yêu cầu động tại runtime. Gọi trực tiếp và đa hình vẫn phù hợp cho phần lớn business logic; reflection nên nằm ở một ranh giới nhỏ, có kiểm tra và xử lý lỗi rõ ràng.
+**Conclusion:** Reflection is a tool for solving dynamic runtime requirements. Direct calls and polymorphism remain appropriate for most business logic; reflection should sit behind a small boundary with clear validation and error handling.

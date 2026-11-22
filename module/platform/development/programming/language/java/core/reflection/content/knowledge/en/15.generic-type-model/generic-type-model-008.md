@@ -1,12 +1,12 @@
-# getGenericSuperclass và getGenericInterfaces trong Java Reflection
+# `getGenericSuperclass` and `getGenericInterfaces` in Java Reflection
 
-Khi Java Reflection phân tích một class, có hai câu hỏi khác nhau: **lớp này kế thừa trực tiếp lớp nào?** và **nó khai báo triển khai/mở rộng trực tiếp những interface nào?**. Nếu quan hệ có tham số kiểu, ví dụ **extends Repository<Order>** hoặc **implements Handler<List<String>>**, những API chỉ trả Class thường làm mất thông tin tham số generic. Hai phương thức **Class.getGenericSuperclass()** và **Class.getGenericInterfaces()** giúp đọc những khai báo generic đó từ class file.
+When Java Reflection analyzes a class, there are two distinct questions: **which class does this class directly extend?** and **which interfaces does it directly declare implementing/extending?**. If those relationships carry type arguments, such as **extends Repository<Order>** or **implements Handler<List<String>>**, APIs that return only `Class` discard the generic parameter information. The two methods **Class.getGenericSuperclass()** and **Class.getGenericInterfaces()** read those generic declarations from the class file.
 
-Bài này tập trung vào cách dùng hai API, phân biệt Class với Type/ParameterizedType, giới hạn “trực tiếp” trong cây kế thừa, cách xử lý type variable qua nhiều cấp và những trường hợp đặc biệt như interface, raw type, anonymous subclass hay array class. Ví dụ sử dụng Java 17+ và không cần thư viện bên ngoài.
+This lesson focuses on how to use both APIs, distinguishing `Class` from `Type`/`ParameterizedType`, the "direct" boundary in the inheritance tree, how to handle type variables across multiple levels, and special cases such as interfaces, raw types, anonymous subclasses, and array classes. Examples use Java 17+ and require no external libraries.
 
-## 1. Phân biệt API thông thường và API generic
+## 1. Distinguishing Ordinary APIs from Generic APIs
 
-Một class có thể khai báo:
+A class may declare:
 
 ~~~java
 class Base<T> {}
@@ -16,35 +16,35 @@ interface Named<T> {}
 class User extends Base<String> implements Named<Integer> {}
 ~~~
 
-Từ **User.class**, các API liên quan trả:
+From **User.class**, the related APIs return:
 
-| API | Kiểu trả về | Ý nghĩa |
+| API | Return type | Meaning |
 | --- | --- | --- |
-| **getSuperclass()** | Class<?> hoặc null | Class superclass trực tiếp, sau erasure; ví dụ Base.class |
-| **getGenericSuperclass()** | Type hoặc null | Khai báo superclass trực tiếp, có thể là Base<String> |
-| **getInterfaces()** | Class<?>[] | Các interface trực tiếp, kiểu runtime; ví dụ Named.class |
-| **getGenericInterfaces()** | Type[] | Các interface trực tiếp, có thể là Named<Integer> |
-| **getTypeParameters()** | TypeVariable<?>[] | Các type variable mà chính class/interface khai báo, như T trong Base<T> |
-| **getAnnotatedSuperclass()** | AnnotatedType hoặc null | Type use của superclass kèm annotation TYPE_USE nếu có |
-| **getAnnotatedInterfaces()** | AnnotatedType[] | Type use của các interface trực tiếp kèm annotation TYPE_USE nếu có |
+| **getSuperclass()** | Class<?> or null | Direct superclass `Class`, after erasure; e.g. Base.class |
+| **getGenericSuperclass()** | Type or null | Direct superclass declaration, which can be Base<String> |
+| **getInterfaces()** | Class<?>[] | Direct interfaces, runtime type; e.g. Named.class |
+| **getGenericInterfaces()** | Type[] | Direct interfaces, which can include Named<Integer> |
+| **getTypeParameters()** | TypeVariable<?>[] | Type variables declared by the class/interface itself, such as T in Base<T> |
+| **getAnnotatedSuperclass()** | AnnotatedType or null | Type use of the superclass with TYPE_USE annotations if present |
+| **getAnnotatedInterfaces()** | AnnotatedType[] | Type use of direct interfaces with TYPE_USE annotations if present |
 
-**Quan trọng:** getGenericSuperclass/getGenericInterfaces không trả về “danh sách tất cả tổ tiên”. Chúng phản ánh **cạnh trực tiếp** trong khai báo class/interface đang xét. Để tìm mọi interface gián tiếp hoặc thay thế type variable trên nhiều lớp, phải tự duyệt tiếp.
+**Important:** getGenericSuperclass/getGenericInterfaces do not return "a list of all ancestors." They reflect **direct edges** in the declaration of the class/interface being inspected. To find all indirect interfaces or substitute type variables across multiple classes, you must traverse further yourself.
 
-Đối với **extends Base<String>**, getSuperclass() cung cấp **Class của Base**, còn getGenericSuperclass() thường cung cấp **ParameterizedType** gồm raw type Base và actual type argument String.
+For **extends Base<String>**, getSuperclass() provides the **Class of Base**, whereas getGenericSuperclass() typically provides a **ParameterizedType** consisting of raw type Base and actual type argument String.
 
-## 2. Cấu trúc Type và ParameterizedType
+## 2. Structure of `Type` and `ParameterizedType`
 
-Đối tượng trả về từ API generic có kiểu tổng quát **java.lang.reflect.Type**. Type là interface chung, không phải mọi Type đều là Class.
+Objects returned from generic APIs have the general type **java.lang.reflect.Type**. `Type` is a common interface; not every `Type` is a `Class`.
 
-| Dạng Type | Ví dụ | Cách nhận biết / truy vấn |
+| `Type` form | Example | How to recognize / query |
 | --- | --- | --- |
-| **Class<?>** | Object, String, raw Base, một interface không parameterized | Kiểm tra **instanceof Class<?>** |
+| **Class<?>** | Object, String, raw Base, an unparameterized interface | Check **instanceof Class<?>** |
 | **ParameterizedType** | Base<String>, Handler<List<Integer>> | **getRawType()**, **getActualTypeArguments()**, **getOwnerType()** |
-| **TypeVariable<?>** | T, E, X trong khai báo generic | **getName()**, **getBounds()**, **getGenericDeclaration()** |
+| **TypeVariable<?>** | T, E, X in generic declarations | **getName()**, **getBounds()**, **getGenericDeclaration()** |
 | **WildcardType** | ? extends Number, ? super String | **getUpperBounds()**, **getLowerBounds()** |
-| **GenericArrayType** | T[] nếu thành phần là type variable | **getGenericComponentType()** |
+| **GenericArrayType** | T[] when component is a type variable | **getGenericComponentType()** |
 
-Một phản xạ an toàn luôn **phân nhánh theo loại Type** trước khi ép kiểu:
+A safe reflex is always to **branch on the `Type` kind** before casting:
 
 ~~~java
 import java.lang.reflect.ParameterizedType;
@@ -54,55 +54,55 @@ Type type = User.class.getGenericSuperclass();
 if (type instanceof ParameterizedType parameterized) {
     Type raw = parameterized.getRawType();
     Type[] arguments = parameterized.getActualTypeArguments();
-    System.out.println(raw);            // class Base, tên phụ thuộc package/nesting
+    System.out.println(raw);            // class Base, name depends on package/nesting
     System.out.println(arguments[0]);   // class java.lang.String
 }
 ~~~
 
-Đây là đoạn minh họa cần có các lớp Base/User cùng compilation unit ở mục 1; hai dòng bình luận không phải stdout chuẩn hóa của một chương trình độc lập.
+This is an illustrative snippet requiring classes Base/User in the same compilation unit as section 1; the two comment lines are not standardized stdout of a standalone program.
 
-### Ba thành phần của ParameterizedType
+### Three Components of `ParameterizedType`
 
-- **getRawType()**: class/interface gốc, ví dụ Base trong Base<String>. Kết quả được khai báo là Type; khi làm việc với Reflection thông thường của JVM, raw type chủ yếu là Class<?>.
-- **getActualTypeArguments()**: các đối số kiểu ở cạnh kế thừa đang khai báo, ví dụ String hoặc một Type phức tạp như List<T>. Nếu khai báo nhiều đối số kiểu, thứ tự đúng theo khai báo.
-- **getOwnerType()**: kiểu bao ngoài khi parameterized type là kiểu thành viên, ví dụ Outer<String>.Inner<Integer>; với top-level type thì thường null.
+- **getRawType()**: the underlying class/interface, e.g. Base in Base<String>. The return type is declared as Type; when working with standard JVM Reflection, the raw type is mainly Class<?>.
+- **getActualTypeArguments()**: the type arguments at the declared inheritance edge, e.g. String or a complex Type like List<T>. When multiple type arguments are declared, the order matches the declaration.
+- **getOwnerType()**: the enclosing type when the parameterized type is a member type, e.g. Outer<String>.Inner<Integer>; for top-level types, it is usually null.
 
-**Không dùng cast trực tiếp**:
+**Do not cast directly**:
 
 ~~~java
-// Không an toàn nếu superclass là Object, raw type hoặc không có superclass:
+// Unsafe if the superclass is Object, a raw type, or there is no superclass:
 ParameterizedType p = (ParameterizedType) clazz.getGenericSuperclass();
 ~~~
 
-Đoạn này cố tình minh họa antipattern. getGenericSuperclass() có thể trả **Class<?>** hoặc **null**; cast trên sẽ gây ClassCastException hoặc dẫn đến NullPointerException về sau.
+This snippet intentionally illustrates an antipattern. getGenericSuperclass() can return **Class<?>** or **null**; the cast above will cause ClassCastException or lead to NullPointerException later.
 
 ### Type.getTypeName()
 
-Mỗi Type có **getTypeName()** để lấy chuỗi biểu diễn kiểu, thuận tiện cho log và tài liệu. Tuy nhiên, chuỗi này không phải giao diện chuẩn để parse ngược mọi cấu trúc generic; khi viết tool, xử lý **các đối tượng Type theo loại** vẫn chính xác hơn. Tên đầy đủ có thể bao gồm package, dấu $ của nested class và những biểu thức generic phức tạp.
+Every Type has **getTypeName()** to obtain a string representation of the type, convenient for logs and documentation. However, this string is not a standard interface for parsing back every generic structure; when writing tools, handling **Type objects by kind** remains more accurate. Full names can include packages, `$` signs of nested classes, and complex generic expressions.
 
-## 3. getGenericSuperclass(): chỉ lớp cha trực tiếp
+## 3. `getGenericSuperclass()`: Only the Direct Superclass
 
-Hãy phân biệt các dạng khai báo sau:
+Distinguish the following declarations:
 
 ~~~java
 class Parent<T> {}
 class Concrete extends Parent<String> {}
 class Plain {}
-class RawChild extends Parent {} // Kế thừa raw type, thông tin String không được khai báo
+class RawChild extends Parent {} // Inherits raw type, String information is not declared
 ~~~
 
-| Đối tượng Class | getGenericSuperclass() | Giải thích |
+| `Class` object | getGenericSuperclass() | Explanation |
 | --- | --- | --- |
-| Concrete.class | ParameterizedType mô tả Parent<String> | Khai báo superclass có actual type argument |
-| Parent.class | Class mô tả Object | Parent không ghi extends và cha mặc định là Object |
-| Plain.class | Class mô tả Object | Superclass mặc định |
-| RawChild.class | Class mô tả Parent | Raw extends không cung cấp actual type argument |
-| Object.class | null | Object không có superclass |
-| List.class (interface) | null | Interface không có class superclass |
-| int.class, void.class | null | Primitive và void không có superclass |
-| String[].class | Class mô tả Object | Array class có superclass Object |
+| Concrete.class | ParameterizedType describing Parent<String> | Superclass declaration has an actual type argument |
+| Parent.class | Class describing Object | Parent writes no `extends` and defaults to superclass Object |
+| Plain.class | Class describing Object | Default superclass |
+| RawChild.class | Class describing Parent | Raw `extends` supplies no actual type argument |
+| Object.class | null | Object has no superclass |
+| List.class (interface) | null | An interface has no class superclass |
+| int.class, void.class | null | Primitives and void have no superclass |
+| String[].class | Class describing Object | An array class has superclass Object |
 
-Mỗi lần gọi chỉ đọc **một cấp class superclass**. Ví dụ:
+Each call reads only **one level of class superclass**. For example:
 
 ~~~text
 Leaf extends Middle<Integer>
@@ -110,23 +110,23 @@ Middle<X> extends Parent<List<X>>
 Parent<T> extends Object
 ~~~
 
-Khi gọi **Leaf.class.getGenericSuperclass()**, kết quả là **Middle<Integer>**, không phải Parent<List<Integer>>. Khi gọi **Middle.class.getGenericSuperclass()**, kết quả là **Parent<List<X>>**. Muốn có Parent<List<Integer>> theo ngữ cảnh Leaf, phải ghép hai cạnh và thay **X → Integer** trong chữ ký của Middle.
+When calling **Leaf.class.getGenericSuperclass()**, the result is **Middle<Integer>**, not Parent<List<Integer>>. When calling **Middle.class.getGenericSuperclass()**, the result is **Parent<List<X>>**. To get Parent<List<Integer>> in Leaf's context, you must combine both edges and substitute **X → Integer** in Middle's signature.
 
-Đây chính là giới hạn quan trọng nhất của các thư viện tự phân tích hierarchy: chúng có thể đọc đúng Type của mỗi cạnh, nhưng vẫn suy luận sai nếu bỏ qua ánh xạ type variable.
+This is the most important limitation of custom hierarchy-analysis libraries: they can read each edge's Type accurately, yet still infer incorrectly if they skip type-variable mapping.
 
-### Class không được khai báo generic vẫn có generic superclass
+### A Non-Generic Class Can Still Have a Generic Superclass
 
-Concrete có thể không có type variable nào của riêng mình:
+Concrete may have no type variables of its own:
 
 ~~~java
 Concrete.class.getTypeParameters().length == 0
 ~~~
 
-nhưng vẫn có **Parent<String>** ở getGenericSuperclass(). Ngược lại, Parent.class.getTypeParameters() có T, nhưng Parent.class.getGenericSuperclass() chỉ là Object. Hai API trả lời hai câu hỏi khác nhau: **class này khai báo type variable nào** và **class này dùng kiểu generic gì ở cạnh extends**.
+yet still have **Parent<String>** in getGenericSuperclass(). Conversely, Parent.class.getTypeParameters() has T, while Parent.class.getGenericSuperclass() is just Object. The two APIs answer two different questions: **which type variables does this class declare** and **what generic type does this class use on its extends edge**.
 
-## 4. getGenericInterfaces(): danh sách interface trực tiếp
+## 4. `getGenericInterfaces()`: Direct Interfaces List
 
-Với:
+With:
 
 ~~~java
 interface Keyed<T> {}
@@ -134,40 +134,40 @@ interface Logged {}
 class Service implements Keyed<String>, Logged {}
 ~~~
 
-**Service.class.getGenericInterfaces()** trả một mảng Type có hai phần tử theo thứ tự khai báo:
+**Service.class.getGenericInterfaces()** returns a Type array with two elements in declaration order:
 
-1. ParameterizedType biểu diễn Keyed<String>.
-2. Class<?> biểu diễn Logged vì interface này không được parameterized tại vị trí đó.
+1. ParameterizedType representing Keyed<String>.
+2. Class<?> representing Logged because that interface is not parameterized at that site.
 
-Nếu class không trực tiếp khai báo implements, kết quả thường là **mảng rỗng**, kể cả khi nó **được thừa hưởng** một interface từ superclass.
+If a class does not directly declare `implements`, the result is usually an **empty array**, even when it **inherits** an interface from its superclass.
 
 ~~~java
 class ParentService implements Keyed<String> {}
 class ChildService extends ParentService {}
 ~~~
 
-**ChildService.class.getGenericInterfaces()** trả mảng rỗng; **ParentService.class.getGenericInterfaces()** chứa Keyed<String>. Điều đó **không có nghĩa** ChildService không phải là Keyed: **Keyed.class.isAssignableFrom(ChildService.class)** vẫn có thể trả true do quan hệ inheritance.
+**ChildService.class.getGenericInterfaces()** returns an empty array; **ParentService.class.getGenericInterfaces()** contains Keyed<String>. That **does not mean** ChildService is not a Keyed: **Keyed.class.isAssignableFrom(ChildService.class)** can still return true due to the inheritance relationship.
 
-Với một **interface** đang extends các interface khác, getGenericInterfaces() trả các **superinterfaces trực tiếp**, theo thứ tự được khai báo:
+For an **interface** extending other interfaces, getGenericInterfaces() returns the **direct superinterfaces**, in declared order:
 
 ~~~java
 interface Tag<T> {}
 interface Compound<T> extends Tag<java.util.List<T>> {}
 ~~~
 
-**Compound.class.getGenericInterfaces()** chứa Type đại diện **Tag<List<T>>**, trong đó T là TypeVariable được khai báo bởi Compound. **Compound.class.getGenericSuperclass()** trả **null**, vì Compound là interface và không có class superclass.
+**Compound.class.getGenericInterfaces()** contains a Type representing **Tag<List<T>>**, where T is a TypeVariable declared by Compound. **Compound.class.getGenericSuperclass()** returns **null**, because Compound is an interface and has no class superclass.
 
-### Thứ tự và array type
+### Ordering and Array Types
 
-Java SE 17 chỉ rõ thứ tự các interface từ getInterfaces/getGenericInterfaces theo thứ tự trong **implements** hoặc **extends** clause. Vì vậy khi interface trực tiếp được khai báo là A, B thì mảng tương ứng là A, B.
+Java SE 17 specifies the order of interfaces from getInterfaces/getGenericInterfaces follows their order in the **implements** or **extends** clause. Thus when direct interfaces are declared as A, B, the corresponding array is A, B.
 
-Với **array class**, getGenericInterfaces() trả hai interface của array runtime: **Cloneable**, **java.io.Serializable**, theo thứ tự đó. Với primitive/void hoặc class/interface không khai báo trực tiếp interface nào thì mảng rỗng. Mảng có superclass Object theo getGenericSuperclass() nhưng không chứa generic element argument theo cơ chế parameterized class.
+For an **array class**, getGenericInterfaces() returns the two runtime array interfaces: **Cloneable**, **java.io.Serializable**, in that order. For primitives/void or classes/interfaces that declare no direct interfaces, the array is empty. An array has superclass Object via getGenericSuperclass() and contains no generic element argument under the parameterized class mechanism.
 
-## 5. Ví dụ chạy hoàn chỉnh trên Java 17+
+## 5. Complete Runnable Example on Java 17+
 
-Chương trình dưới đây cho thấy sự khác biệt giữa generic superclass, generic interfaces, superclass sau erasure, type arguments, raw inheritance và interface được thừa hưởng gián tiếp. Hàm **display(Type)** chủ động in tên ngắn để stdout ổn định, tránh phụ thuộc vào tên đầy đủ của nested class.
+The program below shows the difference between generic superclass, generic interfaces, erased superclass, type arguments, raw inheritance, and indirectly inherited interfaces. The **display(Type)** helper intentionally prints short names so stdout is stable, avoiding dependence on full nested class names.
 
-Lưu nguyên văn vào **HierarchyReflectionDemo.java**:
+Save verbatim to **HierarchyReflectionDemo.java**:
 
 ~~~java
 import java.lang.reflect.ParameterizedType;
@@ -234,14 +234,14 @@ public class HierarchyReflectionDemo {
 }
 ~~~
 
-Từ thư mục chứa file, biên dịch và chạy:
+From the directory containing the file, compile and run:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 HierarchyReflectionDemo.java
 java HierarchyReflectionDemo
 ~~~
 
-Stdout đã được kiểm tra bằng JDK 21 với source tương thích Java 17:
+Stdout verified on JDK 21 with Java 17-compatible source:
 
 ~~~text
 Direct superclass=Base<String>
@@ -262,25 +262,25 @@ List superclass=null
 String[] superclass=Object
 ~~~
 
-### Cách đọc kết quả
+### How to Read the Output
 
-- **Direct superclass=Base<String>**: Type chứa đối số String đúng như cạnh extends.
-- **Direct raw superclass=Base**: Class.getSuperclass() không giữ String.
-- **Direct interfaces=[Named<Integer>, Audited]**: một interface parameterized và một interface không parameterized, theo thứ tự implements.
-- **Leaf interfaces=[]**: Leaf không trực tiếp khai báo implements, dù vẫn nhận hợp đồng Named qua Middle.
-- **Middle superclass=Base<List<X>>**: Type còn X vì đang đọc cạnh khai báo bởi Middle, chưa thay X bằng Integer của Leaf.
-- **Chain superclass=null**: interface không có class superclass. Nhưng **Chain interfaces=[Named<List<T>>]** thể hiện quan hệ extends với interface.
-- **Raw superclass=Base**: kế thừa raw type; không có String hay type argument nào để lấy từ cạnh đó.
-- **Plain superclass=Object** trong khi **Object superclass=null**.
-- **String[] superclass=Object**: array runtime là một class có superclass Object; nó còn trực tiếp thực thi Cloneable và Serializable.
+- **Direct superclass=Base<String>**: The `Type` contains the String argument just as on the extends edge.
+- **Direct raw superclass=Base**: Class.getSuperclass() does not retain String.
+- **Direct interfaces=[Named<Integer>, Audited]**: one parameterized interface and one unparameterized interface, in implements order.
+- **Leaf interfaces=[]**: Leaf does not directly declare implements, even though it inherits the Named contract through Middle.
+- **Middle superclass=Base<List<X>>**: The Type still has X because we are reading the edge declared by Middle, without yet substituting Leaf's Integer for X.
+- **Chain superclass=null**: an interface has no class superclass. However, **Chain interfaces=[Named<List<T>>]** expresses the extends relationship with the interface.
+- **Raw superclass=Base**: raw type inheritance; there is no String or type argument to retrieve from that edge.
+- **Plain superclass=Object** while **Object superclass=null**.
+- **String[] superclass=Object**: a runtime array is a class whose superclass is Object; it also directly implements Cloneable and Serializable.
 
-Hàm display() là tiện ích minh họa. Trong ứng dụng thực tế, Type.getTypeName() có thể trả tên đầy đủ như **java.util.List<java.lang.String>** hoặc tên nested class có dấu $, nên không nên sao chép output đã rút gọn để so sánh chuỗi tên runtime.
+The display() method is an illustrative utility. In real applications, Type.getTypeName() can return full names such as **java.util.List<java.lang.String>** or nested class names containing `$`, so do not copy shortened output to compare runtime name strings.
 
-## 6. Duyệt nhiều cấp và thay thế TypeVariable
+## 6. Multi-Level Traversal and `TypeVariable` Substitution
 
-Hai API được bàn trong bài cung cấp **các cạnh trực tiếp**. Để truy ra kiểu của một interface hoặc superclass trong ngữ cảnh một class con cuối cùng, cần duyệt **toàn bộ graph kế thừa** và mang theo ánh xạ kiểu generic.
+The two APIs discussed in this lesson provide **direct edges**. To trace the type of an interface or superclass in the context of a final subclass, you must traverse **the entire inheritance graph** while carrying generic type mappings along.
 
-Xét lại chuỗi:
+Revisit the chain:
 
 ~~~java
 class Base<T> {}
@@ -288,17 +288,17 @@ class Middle<X> extends Base<List<X>> {}
 class Leaf extends Middle<Integer> {}
 ~~~
 
-Từ Leaf:
+Starting from Leaf:
 
-1. Đọc **Leaf.class.getGenericSuperclass()** → Middle<Integer>.
-2. Trong ParameterizedType này, raw type là Middle.class và actual argument là Integer.class. Tạo ánh xạ **X → Integer** dựa trên Middle.class.getTypeParameters().
-3. Đọc **Middle.class.getGenericSuperclass()** → Base<List<X>>.
-4. Thay TypeVariable X bằng Integer theo ánh xạ từ bước 2, được **Base<List<Integer>>** trong ngữ cảnh Leaf.
-5. Nếu tiếp tục sang Base.class, duy trì thêm ánh xạ **T → List<Integer>** nếu cần hiểu kiểu của các field/method do Base khai báo.
+1. Read **Leaf.class.getGenericSuperclass()** → Middle<Integer>.
+2. In this ParameterizedType, the raw type is Middle.class and the actual argument is Integer.class. Create the mapping **X → Integer** based on Middle.class.getTypeParameters().
+3. Read **Middle.class.getGenericSuperclass()** → Base<List<X>>.
+4. Substitute TypeVariable X with Integer using the mapping from step 2, yielding **Base<List<Integer>>** in Leaf's context.
+5. If continuing to Base.class, maintain the additional mapping **T → List<Integer>** if you need to understand the types of fields/methods declared by Base.
 
-Đây là quá trình **type-variable substitution**, không phải kết quả tự động của một lệnh getGenericSuperclass() duy nhất. Tương tự khi đi từ class đến interface gián tiếp phải duyệt cả superclasses **và** getGenericInterfaces() của mỗi lớp/interface.
+This is a **type-variable substitution** process, not an automatic result of a single getGenericSuperclass() call. Similarly, moving from a class to an indirect interface requires traversing both superclasses **and** getGenericInterfaces() of each class/interface.
 
-### Pseudocode thuật toán phân giải generic hierarchy
+### Conceptual Pseudocode for Generic Hierarchy Resolution
 
 ~~~text
 resolve(targetClass, soughtRawType):
@@ -316,13 +316,13 @@ resolve(targetClass, soughtRawType):
   return not found
 ~~~
 
-Đây là **pseudocode khái niệm**, không phải Java chạy độc lập. Một implementation đầy đủ phải xử lý nhiều dạng Type, chu kỳ do interface graph, owner type của nested class, type variable có bound, wildcard, generic array, raw type và trường hợp nhiều đường đến cùng một interface. Nên lưu một tập các node/ánh xạ đã thăm và xác định rõ hành vi khi thông tin type argument bị raw inheritance làm mất.
+This is **conceptual pseudocode**, not standalone runnable Java. A complete implementation must handle multiple forms of Type, cycles from interface graphs, owner types of nested classes, bounded type variables, wildcards, generic arrays, raw types, and multiple paths reaching the same interface. You should track a set of visited nodes/mappings and define clear behavior when type argument information is lost due to raw inheritance.
 
-Để xác định **một class có implement interface bất kể generic argument**, có thể dùng **Interface.class.isAssignableFrom(SomeClass.class)**. Nhưng phương thức này chỉ trả boolean dựa trên quan hệ raw class, **không** trả List<Integer> hay thay thế các TypeVariable.
+To check **whether a class implements an interface regardless of generic arguments**, you can use **Interface.class.isAssignableFrom(SomeClass.class)**. However, that method only returns a boolean based on raw class relationships; it **does not** return List<Integer> or substitute TypeVariables.
 
-### Khi nào không thể suy ra kiểu cụ thể?
+### When Can Concrete Types Not Be Inferred?
 
-Với:
+With:
 
 ~~~java
 class Container<T> {}
@@ -330,34 +330,34 @@ Container<String> first = new Container<>();
 Container<Integer> second = new Container<>();
 ~~~
 
-Hai đối tượng đều có **getClass() == Container.class**. Type arguments của đối tượng được tạo thông thường không tồn tại như hai Class runtime khác nhau. **Container.class.getGenericSuperclass()** chỉ trả Object, không thể tự khôi phục String/Integer từ first/second.
+Both objects have **getClass() == Container.class**. Type arguments of ordinarily instantiated objects do not exist as two distinct runtime Classes. **Container.class.getGenericSuperclass()** only returns Object; it cannot recover String/Integer from first/second by itself.
 
-Một cách phổ biến để giữ kiểu trong metadata là tạo **anonymous subclass**:
+A common way to preserve the type in metadata is creating an **anonymous subclass**:
 
 ~~~java
 Container<String> captured = new Container<String>() {};
 Type capturedParent = captured.getClass().getGenericSuperclass();
-// capturedParent có thể là ParameterizedType biểu diễn Container<String>
+// capturedParent can be a ParameterizedType representing Container<String>
 ~~~
 
-Đây là fragment dùng Container từ ví dụ; phải import java.lang.reflect.Type. Anonymous subclass này có superclass khai báo trực tiếp **Container<String>**, nên đọc được String ở **Signature của anonymous class**. Nó **không** chứng minh rằng mọi đối tượng Container<String> thông thường đều lưu String. Khi tạo anonymous subclass trong ngữ cảnh generic chưa ràng buộc, metadata có thể chứa TypeVariable chứ không nhất thiết là concrete Class.
+This is a fragment using Container from the example; you must import java.lang.reflect.Type. This anonymous subclass has a directly declared superclass **Container<String>**, so String can be read from the **anonymous class's Signature**. It **does not** prove that every ordinary Container<String> object stores String. When creating an anonymous subclass in an unconstrained generic context, metadata may contain a TypeVariable rather than necessarily a concrete Class.
 
-## 7. Raw type, wildcard, nested type và annotation
+## 7. Raw Types, Wildcards, Nested Types, and Annotations
 
-### Raw inheritance
+### Raw Inheritance
 
-Nếu **class Raw extends Base** thay vì extends Base<String>, getGenericSuperclass() thường là **Class** Base, không phải ParameterizedType. Bạn không thể lấy actual type argument đã không tồn tại trong khai báo. Đừng tự gán Object rồi nói rằng đó là actual type argument trong Signature; **erasure thành Object** là quy tắc về kiểu runtime, khác với việc có **đối số generic được khai báo**.
+If **class Raw extends Base** instead of extends Base<String>, getGenericSuperclass() is usually **Class** Base, not ParameterizedType. You cannot extract an actual type argument that never existed in the declaration. Do not assign Object yourself and claim it was the actual type argument in Signature; **erasure to Object** is a runtime type rule, different from having a **declared generic argument**.
 
-### Wildcard và generic argument lồng nhau
+### Wildcards and Nested Generic Arguments
 
-Một class có thể khai báo superclass hoặc interface với biểu thức kiểu lồng nhau:
+A class can declare a superclass or interface with nested type expressions:
 
 ~~~java
 interface Source<T> {}
 class WildcardSource implements Source<List<? extends Number>> {}
 ~~~
 
-Khi truy xuất interface trực tiếp:
+When querying the direct interface:
 
 ~~~java
 Type t = WildcardSource.class.getGenericInterfaces()[0];
@@ -366,100 +366,100 @@ if (t instanceof ParameterizedType p) {
 }
 ~~~
 
-Đây là ví dụ mảnh code: các class Source/WildcardSource phải được khai báo như trên. nested thường là ParameterizedType của List, và type argument trong List là **WildcardType** với upper bound Number. Không ép luôn nested thành Class, vì nested cũng có thể là TypeVariable, WildcardType ở vị trí khác hoặc dạng generic phức tạp.
+This is a code fragment example: classes Source/WildcardSource must be declared as above. `nested` is typically a ParameterizedType for List, and the type argument inside List is a **WildcardType** with upper bound Number. Never cast `nested` unconditionally to Class, because `nested` could also be a TypeVariable, a WildcardType elsewhere, or a complex generic form.
 
-### Nested/inner class và owner type
+### Nested/Inner Classes and Owner Types
 
-Khi type nằm trong một generic outer class, cấu trúc có thể là Outer<String>.Inner<Integer>. Nếu một subclass extends kiểu đó, **ParameterizedType.getOwnerType()** có thể chứa Outer<String>, còn getActualTypeArguments() của inner phần lớn mô tả type parameters riêng của Inner. Không bỏ qua owner type khi cần xác định đủ thông tin generic.
+When a type resides inside a generic outer class, the structure can be Outer<String>.Inner<Integer>. If a subclass extends that type, **ParameterizedType.getOwnerType()** can hold Outer<String>, while the inner's getActualTypeArguments() largely describes Inner's own type parameters. Do not ignore the owner type when you need full generic information.
 
-### Annotation trên vị trí extends/implements
+### Annotations on `extends`/`implements` Positions
 
-Nếu có **@Target(ElementType.TYPE_USE)** cùng **@Retention(RetentionPolicy.RUNTIME)**, annotation trên kiểu được sử dụng tại khai báo extends/implements có thể được xem qua:
+If **@Target(ElementType.TYPE_USE)** and **@Retention(RetentionPolicy.RUNTIME)** are present, annotations on the types used in extends/implements declarations can be inspected via:
 
-- **getAnnotatedSuperclass()**: AnnotatedType của superclass trực tiếp.
-- **getAnnotatedInterfaces()**: AnnotatedType[] của từng interface trực tiếp.
-- **AnnotatedParameterizedType.getAnnotatedActualTypeArguments()** khi muốn đào sâu annotation trên các type arguments của một parameterized type.
+- **getAnnotatedSuperclass()**: AnnotatedType of the direct superclass.
+- **getAnnotatedInterfaces()**: AnnotatedType[] of each direct interface.
+- **AnnotatedParameterizedType.getAnnotatedActualTypeArguments()** when drilling down into annotations on the type arguments of a parameterized type.
 
-Khác biệt giữa **getGenericSuperclass()** và **getAnnotatedSuperclass()** là API thứ hai giữ lớp thông tin annotation TYPE_USE. Không phải annotation nào trong source cũng có thể đọc ở runtime; hãy kiểm tra @Retention và nơi đặt annotation.
+The difference between **getGenericSuperclass()** and **getAnnotatedSuperclass()** is that the second API retains the TYPE_USE annotation layer. Not every annotation in source is readable at runtime; check `@Retention` and where the annotation is placed.
 
-## 8. Ngoại lệ và độ tin cậy của metadata
+## 8. Exceptions and Metadata Reliability
 
-Khi parse generic Signature trong file .class, Reflection có thể gặp dữ liệu bị thiếu hoặc không hợp lệ (ví dụ class file đã bị công cụ bytecode biến đổi sai, hoặc dependency dùng trong type argument không còn tại runtime). Tài liệu Java 17 của **getGenericSuperclass** và **getGenericInterfaces** liệt kê:
+When parsing the generic Signature in a `.class` file, Reflection may encounter missing or invalid data (e.g., a class file transformed improperly by a bytecode tool, or a dependency used in a type argument no longer present at runtime). The Java 17 documentation for **getGenericSuperclass** and **getGenericInterfaces** lists:
 
-- **GenericSignatureFormatError**: chữ ký generic trong class file không phù hợp định dạng theo JVM specification.
-- **TypeNotPresentException**: kiểu được tham chiếu trong generic superclass/superinterface không tồn tại hoặc không thể resolve khi đọc metadata.
-- **MalformedParameterizedTypeException**: kiểu parameterized trong metadata không thể tạo hợp lệ.
+- **GenericSignatureFormatError**: the generic signature in the class file does not conform to the format specified by the JVM specification.
+- **TypeNotPresentException**: a type referenced in the generic superclass/superinterface does not exist or cannot be resolved while reading metadata.
+- **MalformedParameterizedTypeException**: a parameterized type in metadata cannot be validly instantiated.
 
-Các trường hợp này khác với **ClassNotFoundException** xảy ra khi code trực tiếp nạp class bằng tên. Không cần bắt cả ba ở mọi ứng dụng đơn giản, nhưng một scanner xử lý bytecode từ nguồn không tin cậy nên ghi rõ lỗi, phân biệt metadata bị hỏng với việc một class không khai báo interface/superclass.
+These cases differ from **ClassNotFoundException**, which occurs when code directly loads a class by name. You do not need to catch all three in every simple application, but a scanner handling bytecode from untrusted sources should report the error clearly, distinguishing corrupted metadata from a class that simply declares no interfaces/superclass.
 
-Với class biên dịch Java bình thường, thông tin generic nằm trong **Signature attribute** của class file. Phần lớn runtime thực hiện type erasure để thực thi; Signature cung cấp thông tin bổ sung cho Reflection. Nếu Signature bị xóa bởi công cụ build/obfuscator, class vẫn có thể load, nhưng generic metadata có thể không còn đủ.
+For normally compiled Java classes, generic information resides in the class file's **Signature attribute**. Most runtime execution relies on type erasure; Signature supplies supplementary information for Reflection. If Signature is stripped by a build tool or obfuscator, the class can still load, yet generic metadata may no longer be complete.
 
-### Có cần setAccessible(true) để đọc hierarchy?
+### Is `setAccessible(true)` Needed to Read Hierarchy?
 
-**Không.** getGenericSuperclass() và getGenericInterfaces() trên Class đọc metadata kiểu/class, không phải lời gọi private method hoặc đọc private field. Quy tắc mở package JPMS bằng opens chủ yếu quan trọng khi thực hiện **deep reflective member access**, chứ không phải điều kiện bắt buộc để chỉ đọc khai báo generic hierarchy.
+**No.** getGenericSuperclass() and getGenericInterfaces() on Class read class/type metadata, not private method invocations or private field reads. JPMS package `opens` rules mainly matter for **deep reflective member access**, not as a prerequisite merely to read generic hierarchy declarations.
 
-## 9. Quy trình thực hành cho thư viện phân tích type
+## 9. Practical Workflow for Type-Analysis Libraries
 
-Giả sử một framework muốn tìm type argument của Handler<T> mà user class triển khai qua nhiều lớp:
+Suppose a framework wants to find the type argument of Handler<T> that a user class implements across multiple classes:
 
-1. **Bắt đầu ở runtime class** được cung cấp, nhưng xác nhận class đó thực sự chứa generic signature đủ để phân tích; instance thông thường có thể đã mất argument do erasure.
-2. **Duyệt class superclass trực tiếp** qua getGenericSuperclass() và **interface trực tiếp** qua getGenericInterfaces() tại từng node.
-3. **Kiểm tra dạng Type** trước khi xử lý: Class, ParameterizedType, TypeVariable, WildcardType, GenericArrayType.
-4. **Gắn type variable với actual type argument** khi đi qua một ParameterizedType và duy trì mapping xuyên các cấp. Không dừng ở raw type hoặc dựa vào tên T/E/X.
-5. **Xác định target raw class** nhờ ParameterizedType.getRawType() hay Type là Class, thay vì so chuỗi getTypeName().
-6. **Nếu encounter raw inheritance**, công khai rằng generic argument không đủ dữ liệu; tránh tự bịa ra kiểu cụ thể.
-7. **Kiểm tra direct/inherited đúng ngữ cảnh**: getGenericInterfaces() trả trực tiếp, còn assignability có thể đúng do cấp tổ tiên.
-8. **Có chiến lược với nested owner, wildcard và array** nếu framework cần hỗ trợ đầy đủ các biểu thức kiểu Java.
-9. **Viết test cho nhiều tầng** như Leaf → Middle<Integer> → Base<List<X>>, một interface extends interface khác, raw type, anonymous subclass, primitive/array và Java module boundaries.
+1. **Start from the provided runtime class**, but confirm that class actually contains sufficient generic signature data to analyze; an ordinary instance may have lost its argument due to erasure.
+2. **Traverse the direct superclass** via getGenericSuperclass() and **direct interfaces** via getGenericInterfaces() at each node.
+3. **Check the `Type` kind** before processing: Class, ParameterizedType, TypeVariable, WildcardType, GenericArrayType.
+4. **Bind type variables to actual type arguments** when passing through a ParameterizedType and carry the mapping across levels. Do not stop at raw types or rely solely on variable names like T/E/X.
+5. **Identify the target raw class** using ParameterizedType.getRawType() or a Class `Type`, instead of comparing getTypeName() strings.
+6. **If encountering raw inheritance**, surface explicitly that generic argument data is insufficient; avoid fabricating a concrete type.
+7. **Check direct vs. inherited in the right context**: getGenericInterfaces() returns direct interfaces, whereas assignability can hold due to an ancestor level.
+8. **Have a strategy for nested owners, wildcards, and arrays** if the framework needs to support full Java type expressions.
+9. **Write tests for multiple levels** such as Leaf → Middle<Integer> → Base<List<X>>, an interface extending another interface, raw types, anonymous subclasses, primitives/arrays, and Java module boundaries.
 
-Đối với tác vụ chỉ cần biết “có phải một interface không?”, dùng **Class.isAssignableFrom** là đủ. Chỉ xây generic type resolver đầy đủ khi cần chính xác **kiểu tham số** của abstraction như Repository<Customer> hoặc Handler<List<Order>>.
+For tasks that only need to know "is this an interface?", **Class.isAssignableFrom** is enough. Build a full generic type resolver only when you specifically need **parameterized arguments** of an abstraction like Repository<Customer> or Handler<List<Order>>.
 
-## 10. Lỗi hay gặp
+## 10. Common Mistakes
 
-- **Ép mọi getGenericSuperclass() thành ParameterizedType:** superclass có thể là Class hoặc null.
-- **Đọc getGenericInterfaces() rồi kết luận không implements interface:** class có thể kế thừa interface từ superclass; cần duyệt tiếp hoặc dùng isAssignableFrom để kiểm tra quan hệ raw.
-- **Nhầm superclass của interface là Object:** getGenericSuperclass() của interface trả null, dù Java interface vẫn là reference type có quan hệ với Object theo những quy tắc ngôn ngữ khác.
-- **Cho rằng kết quả của Leaf đã là Base<List<Integer>>:** Leaf.getGenericSuperclass() chỉ là Middle<Integer>; phải thay X qua cấp Middle.
-- **Dùng getInterfaces() và mong nhận generic arguments:** kết quả là Class<?>[], không chứa các Type arguments của cạnh khai báo.
-- **Nhầm generic declaration với runtime object:** Container<String> tạo trực tiếp không lưu String dưới dạng một Class riêng.
-- **Coi getTypeName() là format ổn định để parse:** tốt hơn dùng Type và các subtype của nó.
-- **Quên raw inheritance:** raw Base không tự mang argument String, và không nên coi erasure Object là metadata actual argument được khai báo.
-- **Không xử lý nested owner/type-use annotations:** các framework cần metadata đầy đủ nên phân tích thêm getOwnerType/getAnnotatedInterfaces/getAnnotatedSuperclass khi hợp lý.
-- **Nhầm Class.getTypeParameters với getGenericSuperclass:** API đầu đọc biến kiểu do chính class khai báo; API sau đọc kiểu superclass ở cạnh extends.
+- **Casting every getGenericSuperclass() to ParameterizedType:** the superclass can be Class or null.
+- **Reading getGenericInterfaces() and concluding the class does not implement an interface:** the class may inherit the interface from a superclass; traverse further or use isAssignableFrom to check the raw relationship.
+- **Assuming an interface's superclass is Object:** getGenericSuperclass() on an interface returns null, even though Java interfaces are reference types related to Object under other language rules.
+- **Assuming Leaf's result is already Base<List<Integer>>:** Leaf.getGenericSuperclass() is only Middle<Integer>; you must substitute X through the Middle level.
+- **Using getInterfaces() and expecting generic arguments:** the result is Class<?>[], which does not contain the declared edge's Type arguments.
+- **Confusing generic declarations with runtime objects:** a directly constructed Container<String> does not store String as a separate Class.
+- **Treating getTypeName() as a stable format to parse:** using Type and its subtypes is better.
+- **Forgetting raw inheritance:** raw Base carries no String argument, and erased Object should not be treated as declared actual argument metadata.
+- **Skipping nested owners / type-use annotations:** frameworks needing complete metadata should also inspect getOwnerType/getAnnotatedInterfaces/getAnnotatedSuperclass where appropriate.
+- **Confusing Class.getTypeParameters with getGenericSuperclass:** the first reads type variables declared by the class itself; the second reads the superclass type on the extends edge.
 
-## 11. Tự kiểm tra
+## 11. Self-Check
 
-**Câu 1.** class Child extends Base<String> nhưng không implements interface nào. getGenericSuperclass() và getGenericInterfaces() trả gì?
+**Question 1.** class Child extends Base<String> and implements no interfaces. What do getGenericSuperclass() and getGenericInterfaces() return?
 
-**Đáp án:** ParameterizedType mô tả Base<String>; mảng Type[] rỗng.
+**Answer:** A ParameterizedType describing Base<String>; an empty Type[] array.
 
-**Câu 2.** interface Fancy<T> extends Named<List<T>>. Fancy.class.getGenericSuperclass() trả gì?
+**Question 2.** interface Fancy<T> extends Named<List<T>>. What does Fancy.class.getGenericSuperclass() return?
 
-**Đáp án:** null vì Fancy là interface. Fancy.class.getGenericInterfaces() trả một ParameterizedType mô tả Named<List<T>>.
+**Answer:** null because Fancy is an interface. Fancy.class.getGenericInterfaces() returns a ParameterizedType describing Named<List<T>>.
 
-**Câu 3.** class Leaf extends Middle<Integer>, còn Middle<X> extends Base<List<X>>. Có thể lấy Base<List<Integer>> chỉ bằng Leaf.class.getGenericSuperclass() không?
+**Question 3.** class Leaf extends Middle<Integer>, and Middle<X> extends Base<List<X>>. Can you get Base<List<Integer>> solely from Leaf.class.getGenericSuperclass()?
 
-**Đáp án:** Không. Nó trả Middle<Integer>; cần đọc tiếp Middle.getGenericSuperclass(), rồi thay X bằng Integer.
+**Answer:** No. It returns Middle<Integer>; you must continue reading Middle.getGenericSuperclass(), then substitute Integer for X.
 
-**Câu 4.** class Raw extends Base. Đọc getGenericSuperclass() thấy Base.class, vậy có thể khôi phục type argument String không?
+**Question 4.** class Raw extends Base. Calling getGenericSuperclass() gives Base.class; can you recover a String type argument?
 
-**Đáp án:** Không. Raw khai báo raw inheritance, không chứa actual type argument String trong cạnh extends.
+**Answer:** No. Raw declares raw inheritance and contains no String actual type argument on its extends edge.
 
-**Câu 5.** Một class kế thừa implementation của interface I qua superclass, nhưng getGenericInterfaces() trên class ấy trả mảng rỗng. Đây là lỗi Reflection không?
+**Question 5.** A class inherits an implementation of interface I via its superclass, yet getGenericInterfaces() on that class returns an empty array. Is this a Reflection bug?
 
-**Đáp án:** Không. API trả interface **trực tiếp**; interface được thừa hưởng gián tiếp phải duyệt tổ tiên. I.class.isAssignableFrom(ThatClass.class) có thể vẫn true.
+**Answer:** No. The API returns **direct** interfaces; indirectly inherited interfaces require traversing ancestors. I.class.isAssignableFrom(ThatClass.class) may still be true.
 
-**Câu 6.** getGenericSuperclass() của String[].class là gì? Còn Object.class và List.class?
+**Question 6.** What is getGenericSuperclass() of String[].class? And of Object.class and List.class?
 
-**Đáp án:** String[] có superclass Object; Object và interface List trả null.
+**Answer:** String[] has superclass Object; Object and interface List return null.
 
-**Câu 7.** Tại sao new Box<String>() {} có thể cho biết String nhưng new Box<String>() thông thường không cho biết?
+**Question 7.** Why can `new Box<String>() {}` reveal String whereas ordinary `new Box<String>()` cannot?
 
-**Đáp án:** Dấu {} tạo anonymous subclass có khai báo extends Box<String> trong generic Signature của **anonymous class**. Instance Box thông thường chỉ mang runtime Class Box sau erasure.
+**Answer:** The `{}` creates an anonymous subclass whose declaration is `extends Box<String>` in the **anonymous class's** generic Signature. An ordinary Box instance carries only the erased runtime Class Box.
 
-**Ghi nhớ:** **getGenericSuperclass()** đọc **một superclass trực tiếp** dưới dạng Type; **getGenericInterfaces()** đọc **các interface trực tiếp** dưới dạng Type[]. Muốn giữ thông tin generic qua nhiều cấp, phải phân tích **ParameterizedType**, **TypeVariable** và thực hiện **thay thế type argument theo từng cạnh kế thừa**.
+**Takeaway:** **getGenericSuperclass()** reads **one direct superclass** as a Type; **getGenericInterfaces()** reads **direct interfaces** as Type[]. To preserve generic information across multiple levels, you must analyze **ParameterizedType**, **TypeVariable**, and perform **type argument substitution along each inheritance edge**.
 
-### Tài liệu tham khảo
+### References
 
 - Java SE 17 — Class.getGenericSuperclass/getGenericInterfaces, getAnnotatedSuperclass/getAnnotatedInterfaces: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html
 - Java SE 17 — Type: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Type.html
@@ -467,4 +467,4 @@ Giả sử một framework muốn tìm type argument của Handler<T> mà user c
 - Java SE 17 — TypeVariable: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/TypeVariable.html
 - Java SE 17 — WildcardType: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/WildcardType.html
 - Java SE 17 — GenericArrayType: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/GenericArrayType.html
-- Java Language Specification 17 — Types, parameterized types và erasure: https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html
+- Java Language Specification 17 — Types, parameterized types and erasure: https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html

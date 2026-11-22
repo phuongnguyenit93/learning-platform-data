@@ -1,21 +1,21 @@
-# So sánh tên tiếng Việt sau chuẩn hóa phù hợp trong Java
+# Comparing Vietnamese Names After Proper Normalization in Java
 
-## 1. Bài toán: tên trông giống nhau nhưng `String.equals()` trả về `false`
+## 1. The problem: names look identical, yet `String.equals()` returns `false`
 
-Tên tiếng Việt chứa các chữ có dấu như **Hòa**, **Thảo**, **Nguyễn**, **Đỗ**. Trong Unicode, một chữ có dấu có thể được biểu diễn bằng một code point dựng sẵn hoặc bằng chữ cơ sở kèm các **combining mark** (dấu kết hợp). Hai cách viết có thể hiển thị giống nhau nhưng chứa các code point khác nhau.
+Vietnamese names contain accented letters such as **Hòa**, **Thảo**, **Nguyễn**, and **Đỗ**. In Unicode, an accented letter can be represented either as a single precomposed code point or as a base letter followed by **combining marks**. Both representations can render identically while containing different code points.
 
-Ví dụ, `"Hòa"` và `"Ho\u0300a"` thường trông như nhau:
+For example, `"Hòa"` and `"Ho\u0300a"` usually look the same:
 
 ~~~java
-String composed = "H\u00F2a";     // Hòa: chữ ò đã dựng sẵn
+String composed = "H\u00F2a";     // Hòa: precomposed letter ò
 String decomposed = "Ho\u0300a"; // Ho + combining grave + a
 
 System.out.println(composed.equals(decomposed)); // false
 ~~~
 
-`String.equals()` so sánh **dãy UTF-16 code unit**, nên trả về `false` khi hai biểu diễn khác nhau. Điều này có thể làm tìm kiếm, phát hiện tên trùng hoặc kiểm thử chuỗi thất bại dù người dùng nhìn thấy cùng một tên.
+`String.equals()` compares **UTF-16 code unit sequences**, so it returns `false` when the two representations differ. This can cause searches, duplicate-name detection, or string assertions to fail even though users see the exact same name.
 
-**Cách giải quyết cho trường hợp tương đương Unicode theo chuẩn:** chuyển cả hai chuỗi về cùng một **Unicode normalization form**, thường là **NFC**, rồi so sánh bằng `equals()`:
+**Solution for standard Unicode canonical equivalence:** convert both strings to the same **Unicode normalization form**, typically **NFC**, before comparing with `equals()`:
 
 ~~~java
 import java.text.Normalizer;
@@ -26,40 +26,40 @@ String right = Normalizer.normalize("Ho\u0300a", Normalizer.Form.NFC);
 System.out.println(left.equals(right)); // true
 ~~~
 
-Tuy nhiên, **chuẩn hóa Unicode không đồng nghĩa bỏ dấu, bỏ phân biệt hoa/thường hoặc khẳng định hai con người là một**. Cần xác định quy tắc so sánh dựa trên mục đích nghiệp vụ trước khi viết API.
+However, **Unicode normalization does not mean stripping accents, ignoring case, or asserting two people are the same person**. Define comparison rules based on business intent before writing APIs.
 
-## 2. Các cấp độ “bằng nhau” của tên
+## 2. Levels of "equality" for names
 
-| Mục đích | Ví dụ | Quy tắc phù hợp |
+| Purpose | Example | Appropriate rule |
 | --- | --- | --- |
-| So sánh chính xác nội dung chuỗi | `"Hòa"` với chính `"Hòa"` | `String.equals()` |
-| Coi hai biểu diễn Unicode tương đương là cùng chữ | `"Hòa"` và `"Ho\u0300a"` | Chuẩn hóa **NFC** cả hai rồi `equals()` |
-| Bỏ qua hoa/thường để tìm kiếm | `"HÒA"` và `"hòa"` | Quy tắc case được thống nhất, rồi chuẩn hóa |
-| Bỏ qua khoảng trắng thừa theo chính sách ứng dụng | `" Hòa  "` và `"Hòa"` | Chuẩn hóa khoảng trắng **nếu nghiệp vụ cho phép** |
-| Sắp xếp tên theo ngôn ngữ | `"Hoa"`, `"Hòa"`, `"Đỗ"` | `Collator` theo locale tiếng Việt với cấu hình rõ ràng |
-| Tìm gần đúng, chấp nhận thiếu dấu | `"Hoa"` và `"Hòa"` | Chiến lược tìm kiếm gần đúng hoặc accent-insensitive riêng |
-| Xác định **cùng một người** | Hai hồ sơ cùng tên | Cần mã định danh và dữ liệu xác minh; tên không đủ |
+| Exact string content comparison | `"Hòa"` vs `"Hòa"` itself | `String.equals()` |
+| Treat canonically equivalent Unicode forms as the same spelling | `"Hòa"` and `"Ho\u0300a"` | Normalize both to **NFC** then `equals()` |
+| Ignore letter case for searching | `"HÒA"` and `"hòa"` | Agreed case rule, then normalize |
+| Ignore extra whitespace per app policy | `" Hòa  "` and `"Hòa"` | Normalize whitespace **if business rules allow** |
+| Sort names linguistically | `"Hoa"`, `"Hòa"`, `"Đỗ"` | `Collator` for Vietnamese locale with explicit config |
+| Fuzzy search, tolerating missing accents | `"Hoa"` and `"Hòa"` | Separate fuzzy or accent-insensitive search strategy |
+| Identify **the same person** | Two profiles with the same name | Requires ID and verification data; a name is not enough |
 
-Chẳng hạn, `"Hoa"` và `"Hòa"` là **hai chuỗi khác nhau** ngay cả sau NFC. Tự động bỏ tất cả dấu tiếng Việt có thể làm gộp các tên hợp lệ khác nhau. Tương tự, chữ **`đ`** và **`d`** không phải cùng một ký tự; NFC không biến ký tự này thành ký tự kia.
+For instance, `"Hoa"` and `"Hòa"` are **two distinct strings** even after NFC. Automatically stripping all Vietnamese diacritics can merge distinct valid names. Likewise, **`đ`** and **`d`** are not the same character; NFC does not turn one into the other.
 
-Với tên người, nên phân biệt rõ:
+For personal names, distinguish clearly between:
 
-1. **Tên hiển thị:** giữ chính tả và cách viết người dùng cung cấp, có thể lưu kèm dạng Unicode thống nhất.
-2. **Khóa so sánh:** giá trị được tạo bằng chính sách đã công bố, phục vụ tìm kiếm hoặc loại trùng theo quy ước.
-3. **Định danh hồ sơ:** dùng ID duy nhất, không dùng tên đã chuẩn hóa để quyết định hai bản ghi thuộc cùng một người.
+1. **Display name:** preserve the user-supplied spelling and formatting, optionally storing a unified Unicode form.
+2. **Comparison key:** a value generated by a published policy for searching or deduplication per convention.
+3. **Profile identifier:** use a unique ID, never a normalized name, to decide whether two records belong to the same person.
 
-## 3. Unicode normalization: NFC, NFD, NFKC và NFKD
+## 3. Unicode normalization: NFC, NFD, NFKC, and NFKD
 
-Java cung cấp `java.text.Normalizer` với bốn dạng:
+Java provides `java.text.Normalizer` with four forms:
 
-| Dạng | Ý nghĩa chính | Cân nhắc khi xử lý tên |
+| Form | Core meaning | Considerations for names |
 | --- | --- | --- |
-| **NFC** | Phân rã chuẩn tắc rồi ghép lại theo dạng tổ hợp chuẩn | Lựa chọn thực dụng cho so sánh tương đương Unicode của tên |
-| **NFD** | Phân rã chuẩn tắc | Có thể dùng trước một số bước xử lý dấu, nhưng chưa có nghĩa là bỏ dấu |
-| **NFKC** | Chuẩn hóa **compatibility** rồi tổ hợp | Có thể biến đổi thêm các ký tự tương thích; cần chính sách nghiệp vụ |
-| **NFKD** | Phân rã **compatibility** | Tăng phạm vi biến đổi so với NFD; không tự động phù hợp với tên riêng |
+| **NFC** | Canonical decomposition followed by canonical composition | Practical choice for Unicode equivalence comparison of names |
+| **NFD** | Canonical decomposition | Useful before certain accent-processing steps, though it does not strip accents by itself |
+| **NFKC** | **Compatibility** decomposition followed by canonical composition | Can transform additional compatibility characters; requires business policy |
+| **NFKD** | **Compatibility** decomposition | Broadens transformations compared to NFD; not automatically suitable for personal names |
 
-Hai chuỗi **canonically equivalent** sẽ bằng nhau sau NFC hoặc NFD. Việc gọi NFC nhiều lần trên cùng một chuỗi đã chuẩn hóa không làm đổi kết quả (**idempotent**).
+Two **canonically equivalent** strings become equal after NFC or NFD. Calling NFC multiple times on an already normalized string does not change the result (**idempotent**).
 
 ~~~java
 String input = "Ho\u0300a";
@@ -70,20 +70,20 @@ System.out.println(Normalizer.isNormalized(
         nfc, Normalizer.Form.NFC));          // true
 ~~~
 
-**Không mặc định dùng NFKC cho mọi tên người.** Chuẩn hóa compatibility có thể làm mất khác biệt kiểu chữ hoặc biểu diễn mà hệ thống muốn giữ nguyên. Nếu cần loại trùng theo một chuẩn cụ thể, tài liệu hệ thống phải ghi rõ **dạng chuẩn hóa** và giai đoạn áp dụng.
+**Do not use NFKC by default for all personal names.** Compatibility normalization can erase styling or representation differences that the system wants to preserve. If deduplicating under a specific standard is required, system documentation must specify the **normalization form** and the stage where it is applied.
 
-Cũng không thể suy ra hai chuỗi “bằng nhau” chỉ vì chúng hiển thị gần giống. Ký tự thuộc bảng chữ cái khác, ký tự vô hình hay cách ghép emoji có thể tạo văn bản nhìn tương tự mà không canonically equivalent.
+You also cannot conclude two strings are "equal" merely because they look similar. Characters from other alphabets, invisible characters, or emoji sequences can produce visually similar text that is not canonically equivalent.
 
-## 4. Thiết kế chính sách chuẩn hóa tên tiếng Việt
+## 4. Designing a Vietnamese name normalization policy
 
-Một chính sách tối thiểu thường phù hợp cho **so sánh tên đầy đủ chính xác nhưng chấp nhận khác biệt biểu diễn Unicode** là:
+A minimal policy usually suitable for **exact full-name comparison while accepting Unicode representation differences** is:
 
-- Quyết định rõ có cho phép bỏ khoảng trắng ở đầu/cuối và gộp nhiều khoảng trắng liên tiếp hay không.
-- Chuyển về **NFC**.
-- Giữ nguyên **dấu tiếng Việt**, chữ `đ`, chữ hoa/thường và các chữ cái khác, trừ khi nghiệp vụ yêu cầu khác.
-- So sánh hai kết quả với `equals()`.
+- Explicitly decide whether to trim leading/trailing whitespace and collapse consecutive whitespace.
+- Convert to **NFC**.
+- Preserve **Vietnamese diacritics**, `đ`, letter case, and other characters unless business rules require otherwise.
+- Compare the two results with `equals()`.
 
-Ví dụ riêng: khi sản phẩm cho phép gộp mọi cụm whitespace theo chính sách nhập liệu, kể cả một số ký tự khoảng trắng Unicode, có thể chuẩn hóa bằng:
+Specific example: when a product allows collapsing all whitespace runs per input policy, including some Unicode whitespace characters, you can normalize with:
 
 ~~~java
 String collapsed = input.replaceAll("[\\p{Z}\\s]+", " ").strip();
@@ -91,13 +91,13 @@ String normalized = Normalizer.normalize(
         collapsed, Normalizer.Form.NFC);
 ~~~
 
-Trong regex Java, `\p{Z}` là nhóm Unicode separator; `\s` (trong chế độ mặc định) bao phủ các whitespace phổ biến như dấu cách, tab và xuống dòng. Hai lớp được phối hợp ở đây nhằm chuyển các khoảng phân cách tương ứng thành **một dấu cách ASCII**, rồi `strip()` bỏ dấu cách đầu/cuối.
+In Java regex, `\p{Z}` is the Unicode separator category; `\s` (in default mode) covers common whitespace such as space, tab, and newline. Both classes are combined here to convert matching separators into **a single ASCII space**, then `strip()` removes leading/trailing spaces.
 
-**Đây là một quyết định ứng dụng**, không phải chức năng bắt buộc của NFC. Nó có thể làm thay đổi tên chứa khoảng trắng đặc biệt hoặc xuống dòng. Trong dữ liệu pháp lý, tên hiển thị hoặc tài liệu cần lưu nguyên văn, chỉ nên tạo **khóa phụ** đã chuẩn hóa và vẫn bảo toàn dữ liệu gốc.
+**This is an application decision**, not a mandatory behavior of NFC. It alters names containing special whitespace or newlines. For legal records, display names, or documents requiring verbatim storage, generate only a normalized **secondary key** while keeping the original data intact.
 
-### Tìm kiếm không phân biệt hoa/thường
+### Case-insensitive search
 
-Nếu yêu cầu là tìm `"HÒA"` bằng `"hòa"`, có thể tạo khóa tìm kiếm bằng chữ thường:
+If the requirement is matching `"HÒA"` with `"hòa"`, you can build a lowercased search key:
 
 ~~~java
 import java.util.Locale;
@@ -107,13 +107,13 @@ String searchKey = Normalizer.normalize(
         Normalizer.Form.NFC);
 ~~~
 
-`Locale.ROOT` giúp tránh phụ thuộc vào default locale của máy chạy khi quy tắc nghiệp vụ là **khóa tìm kiếm kỹ thuật ổn định**. Tuy nhiên, lowercase không phải Unicode **full case folding** và không thay thế toàn bộ quy tắc so sánh văn bản theo ngôn ngữ. Nếu sản phẩm cần case-insensitive matching đa ngôn ngữ với yêu cầu nghiêm ngặt, phải chọn và kiểm thử thuật toán theo đặc tả đó.
+`Locale.ROOT` avoids depending on the host machine's default locale when the business rule calls for a **technically stable search key**. However, lowercasing is not Unicode **full case folding** and does not replace full language-specific text comparison rules. If a product needs strict multilingual case-insensitive matching, choose and test an algorithm following that specification.
 
-Không nên hạ chữ thường hoặc bỏ dấu trên **bản tên hiển thị** chỉ để tìm kiếm. Giữ nguyên tên gốc và tạo search key riêng.
+Do not lowercase or strip accents on the **stored display name** merely for search. Keep the original name intact and build a separate search key.
 
-## 5. Ví dụ Java 17+ hoàn chỉnh: so sánh, tìm kiếm và loại trùng theo chính sách
+## 5. Complete Java 17+ example: policy-based comparison, search, and deduplication
 
-Lưu vào file `VietnameseNameComparisonDemo.java`:
+Save to `VietnameseNameComparisonDemo.java`:
 
 ~~~java
 import java.text.Collator;
@@ -125,14 +125,14 @@ import java.util.Objects;
 import java.util.Set;
 
 public class VietnameseNameComparisonDemo {
-    // Chính sách ví dụ: gom whitespace, bỏ khoảng trắng biên, chuẩn hóa NFC.
+    // Example policy: collapse whitespace, strip boundary spaces, normalize to NFC.
     static String canonicalName(String input) {
         Objects.requireNonNull(input, "input");
         String spaced = input.replaceAll("[\\p{Z}\\s]+", " ").strip();
         return Normalizer.normalize(spaced, Normalizer.Form.NFC);
     }
 
-    // Khóa tìm kiếm chấp nhận khác biệt hoa/thường nhưng giữ dấu.
+    // Search key that ignores case differences while preserving accents.
     static String searchKey(String input) {
         String lowered = canonicalName(input).toLowerCase(Locale.ROOT);
         return Normalizer.normalize(lowered, Normalizer.Form.NFC);
@@ -140,7 +140,7 @@ public class VietnameseNameComparisonDemo {
 
     public static void main(String[] args) {
         String composed = "H\u00F2a";      // Hòa
-        String decomposed = "Ho\u0300a";  // Ho + dấu huyền + a
+        String decomposed = "Ho\u0300a";  // Ho + grave accent + a
         String withSpaces = "  H\u00F2a\u00A0  ";
 
         System.out.println("rawEquals=" +
@@ -182,14 +182,14 @@ public class VietnameseNameComparisonDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 VietnameseNameComparisonDemo.java
 java VietnameseNameComparisonDemo
 ~~~
 
-`stdout` kỳ vọng trên JDK Java 17+ hỗ trợ locale tiếng Việt:
+Expected `stdout` on a Java 17+ JDK supporting Vietnamese locale:
 
 ~~~text
 rawEquals=false
@@ -203,21 +203,21 @@ collatorCanonical=true
 nfcIdempotent=true
 ~~~
 
-**Giải thích theo thứ tự:**
+**Explanation in order:**
 
-1. Hai biểu diễn `Hòa` khác nhau ở cấp độ code unit nên `rawEquals=false`.
-2. NFC đưa chúng về dạng tương đương nên `nfcEquals=true`.
-3. Chính sách gom separator và bỏ khoảng trắng biên làm cho tên có NBSP (`\u00A0`) khớp tên chuẩn, nên `spacesEquals=true`.
-4. Hạ chữ thường để tạo search key cho phép `HÒA` khớp `Hòa`, nhưng **không bỏ dấu**, nên `Hoa` vẫn khác `Hòa`.
-5. Tập `exactKeys` và `searchKeys` đều còn hai khóa: nhóm tên `Hòa` và tên `Hoa`.
-6. `Collator` với decomposition chuẩn tắc nhận thấy hai biểu diễn canonically equivalent của cùng chữ là bằng nhau.
-7. NFC áp dụng lặp lại không làm đổi giá trị.
+1. Both representations of `Hòa` differ at the code unit level, so `rawEquals=false`.
+2. NFC brings them to an equivalent form, so `nfcEquals=true`.
+3. The policy collapsing separators and stripping boundary whitespace makes the name with NBSP (`\u00A0`) match the canonical name, so `spacesEquals=true`.
+4. Lowercasing for the search key allows `HÒA` to match `Hòa`, while **preserving accents**, so `Hoa` remains distinct from `Hòa`.
+5. Both `exactKeys` and `searchKeys` end up with two keys: the `Hòa` group and `Hoa`.
+6. `Collator` with canonical decomposition recognizes two canonically equivalent forms of the same word as equal.
+7. Repeated NFC normalization does not alter the value.
 
-Đây là ví dụ **chính sách so sánh được chọn**, không phải hàm duy nhất “đúng” cho mọi nghiệp vụ. Nếu hệ thống cần giữ tất cả khoảng trắng gốc hoặc phân biệt chính xác chữ hoa/thường, cần điều chỉnh bước tạo khóa và cập nhật test tương ứng.
+This is an example of **a chosen comparison policy**, not the sole "correct" function for every business case. If the system must preserve all original whitespace or distinguish exact letter case, adjust key generation and update tests accordingly.
 
-## 6. `Collator`: khi cần so sánh tên theo tiếng Việt để sắp xếp
+## 6. `Collator`: when comparing Vietnamese names for sorting
 
-`String.compareTo()` so sánh thứ tự code unit UTF-16; nó **không** phải bộ sắp xếp tên theo quy tắc ngôn ngữ tiếng Việt. Khi hiển thị danh sách tên theo bảng chữ cái, dùng `java.text.Collator` với locale phù hợp:
+`String.compareTo()` compares UTF-16 code unit order; it is **not** a Vietnamese linguistic name sorter. When displaying name lists alphabetically, use `java.text.Collator` with an appropriate locale:
 
 ~~~java
 import java.text.Collator;
@@ -235,86 +235,86 @@ List<String> names = new ArrayList<>(
 names.sort(vi);
 ~~~
 
-Đoạn này minh họa code **bên trong một phương thức**. `Collator` có thể được dùng làm `Comparator<String>` cho sắp xếp. Không nên khẳng định cứng một thứ tự tên cụ thể áp dụng trên mọi bản JDK hoặc provider: kết quả collation có thể thay đổi theo dữ liệu locale và implementation.
+This snippet illustrates code **inside a method**. `Collator` can be used as a `Comparator<String>` for sorting. Do not hardcode an expectation of one exact name order across every JDK release or locale provider: collation results can vary by locale data and implementation.
 
-### Strength, decomposition và tác động tới phép so sánh
+### Strength, decomposition, and impact on comparisons
 
-`Collator` có các mức `PRIMARY`, `SECONDARY`, `TERTIARY` và `IDENTICAL`. Mức càng thấp thì càng có thể bỏ qua một số khác biệt khi so sánh; mức cao hơn xét nhiều chi tiết hơn. Cụ thể **dấu và chữ hoa/thường được coi là khác nhau ở mức nào** phụ thuộc bộ quy tắc collation của locale được dùng.
+`Collator` has `PRIMARY`, `SECONDARY`, `TERTIARY`, and `IDENTICAL` levels. Lower strengths ignore more differences during comparison; higher strengths inspect more details. Exactly **at which level accents and case are considered distinct** depends on the collation rules of the locale used.
 
-Đối với tên tiếng Việt:
+For Vietnamese names:
 
-- Nếu cần giữ sự khác biệt về dấu, **đừng tự giả định** rằng `PRIMARY` sẽ phù hợp; cần kiểm thử tập tên thực tế, gồm cả `d`/`đ` và các dấu thanh.
-- Nếu muốn phép so sánh cân nhắc các chi tiết chữ viết, `TERTIARY` là lựa chọn ban đầu có thể thử nghiệm, sau đó đánh giá yêu cầu nghiệp vụ.
-- `CANONICAL_DECOMPOSITION` hỗ trợ so sánh những biểu diễn Unicode tương đương chuẩn tắc; việc NFC trước khi đưa vào bộ sắp xếp cũng làm dữ liệu nhất quán hơn.
-- `Collator` có trạng thái cấu hình và không nên chia sẻ một instance mutable không đồng bộ giữa nhiều thread; tạo hoặc quản lý instance theo vòng đời phù hợp.
+- If accent differences must be preserved, **do not assume** `PRIMARY` is suitable; test against real name sets including `d`/`đ` and tone marks.
+- If comparison should consider writing details, `TERTIARY` is a reasonable starting choice to test and evaluate against business requirements.
+- `CANONICAL_DECOMPOSITION` helps compare canonically equivalent Unicode representations; normalizing to NFC before feeding the sorter also keeps data more consistent.
+- `Collator` holds configuration state and should not share a single unsynchronized mutable instance across threads; create or manage instances according to an appropriate lifecycle.
 
-**Quan trọng với collection:** `TreeSet` và `TreeMap` dùng `compare(a,b) == 0` để xác định hai khóa được coi là tương đương. Trong khi đó, `HashSet` và `HashMap` dựa trên `equals/hashCode`. Khi comparator có quy tắc khác `String.equals`, hai loại collection có thể quyết định trùng lặp khác nhau. Chọn comparator để **sắp xếp** không đồng nghĩa được phép dùng nó làm bằng chứng rằng hai hồ sơ là cùng một người.
+**Important for collections:** `TreeSet` and `TreeMap` use `compare(a,b) == 0` to decide whether two keys are considered equal. Meanwhile, `HashSet` and `HashMap` rely on `equals/hashCode`. When a comparator's rules differ from `String.equals`, those two collection families can disagree on duplicates. Choosing a comparator for **sorting** does not mean it can be used as proof that two profiles belong to the same person.
 
-## 7. Có nên bỏ dấu khi tìm tên?
+## 7. Should accents be stripped when searching names?
 
-Một ô tìm kiếm có thể muốn người dùng gõ `Hoa` vẫn thấy `Hòa`; đó là **tìm kiếm gần đúng/không phân biệt dấu**, không phải tương đương chuẩn tắc NFC. Cần đặt tên và công bố chính sách riêng.
+A search box might want typing `Hoa` to still surface `Hòa`; that is **fuzzy / accent-insensitive search**, not NFC canonical equivalence. Name and publish that as a separate policy.
 
-Cách “phân rã NFD rồi xóa tất cả combining mark” có thể làm mất thông tin tiếng Việt, tạo trùng tên không mong muốn; riêng chữ **`đ`** không tự biến thành `d` chỉ qua NFD. Nếu nghiệp vụ thực sự cần tìm không dấu:
+"Decompose with NFD then delete all combining marks" can lose Vietnamese distinctions and cause unintended name collisions; in particular, **`đ`** does not automatically turn into `d` via NFD alone. If business rules truly require accent-insensitive search:
 
-1. Giữ **dữ liệu tên gốc** và **khóa NFC** để so sánh chính xác.
-2. Tạo **chỉ mục tìm kiếm phụ** theo chính sách bỏ dấu được tài liệu hóa; cân nhắc cách xử lý `đ`/`d`.
-3. Dùng chỉ mục phụ để đưa ra **kết quả gợi ý**, sau đó hiển thị tên chính xác để người dùng xác nhận.
-4. Tránh dùng khóa bỏ dấu làm primary key hoặc căn cứ duy nhất để gộp hồ sơ.
+1. Keep the **original name data** and **NFC key** for exact comparison.
+2. Build a **secondary search index** under a documented accent-stripping policy; decide explicitly how to handle `đ`/`d`.
+3. Use the secondary index to return **suggested matches**, then display the exact name for user confirmation.
+4. Avoid using the accent-stripped key as a primary key or the sole basis for merging profiles.
 
-Không có quy tắc “bỏ dấu tiếng Việt” duy nhất phù hợp đồng thời cho tìm kiếm, phân tích ngôn ngữ, pháp lý và định danh người dùng.
+There is no single "Vietnamese accent-stripping" rule suitable simultaneously for search, linguistic analysis, legal records, and user identification.
 
-## 8. Lưu dữ liệu gốc, khóa chuẩn hóa và định danh riêng
+## 8. Storing original data, normalized keys, and separate identifiers
 
-Một thiết kế dữ liệu thực tế có thể lưu:
+A practical data design can store:
 
-| Trường | Ví dụ | Công dụng |
+| Field | Example | Purpose |
 | --- | --- | --- |
-| `person_id` | `8742` | Định danh duy nhất, ổn định của hồ sơ |
-| `display_name` | `Hòa` | Văn bản hiển thị theo lựa chọn người dùng |
-| `canonical_name` | `Hòa` ở NFC | So sánh tương đương Unicode và khoảng trắng theo chính sách |
-| `search_name_key` | `hòa` | Tìm kiếm không phân biệt hoa/thường nhưng giữ dấu |
-| `accent_insensitive_key` (nếu cần) | Giá trị theo thuật toán tìm gần đúng đã duyệt | Tìm kiếm phụ, không định danh |
+| `person_id` | `8742` | Unique, stable profile identifier |
+| `display_name` | `Hòa` | Display text as chosen by the user |
+| `canonical_name` | `Hòa` in NFC | Unicode equivalence and policy-based whitespace comparison |
+| `search_name_key` | `hòa` | Case-insensitive search while preserving accents |
+| `accent_insensitive_key` (if needed) | Value per approved fuzzy-search algorithm | Secondary search, not identification |
 
-Tên người **không phải khóa duy nhất đáng tin cậy**. Hai người khác nhau có thể trùng họ tên, còn một người có thể thay đổi tên hoặc cách nhập. Dù khóa chuẩn hóa trùng, hành động gộp hồ sơ thường cần thêm ID, thuộc tính nghiệp vụ và bước xác nhận tương ứng.
+A person's name **is not a reliable unique key**. Two different people can share the same full name, and one person can change their name or spelling. Even when normalized keys match, merging records usually requires additional IDs, business attributes, and confirmation steps.
 
-Cũng cần thống nhất quy tắc giữa frontend, backend và cơ sở dữ liệu. SQL collation có thể có quy tắc tương đương khác với `Normalizer` và `Collator` của Java. Nếu có unique constraint trên một trường tên, hãy kiểm thử rằng cơ chế so sánh tại database thực hiện đúng điều ứng dụng kỳ vọng.
+Rules must also be aligned across frontend, backend, and database. SQL collations may have different equivalence rules from Java's `Normalizer` and `Collator`. If a unique constraint exists on a name column, test that the database comparison mechanism behaves as the application expects.
 
-## 9. Những lỗi thường gặp
+## 9. Common mistakes
 
-| Sai lầm | Tác hại | Cách xử lý |
+| Mistake | Harm | Remedy |
 | --- | --- | --- |
-| Dùng `equals()` trực tiếp với hai biểu diễn NFC/NFD khác nhau | Tên trông giống nhau nhưng không khớp | Chuẩn hóa cùng NFC trước khi so sánh |
-| Nghĩ NFC tự bỏ dấu | Gộp sai chính sách so sánh | Phân biệt canonical equivalence với accent-insensitive search |
-| Biến `Hòa` thành `Hoa` rồi coi là cùng người | Mất sự khác biệt tên hợp lệ | Giữ dấu cho so sánh chính xác; bỏ dấu chỉ cho tìm kiếm được thiết kế riêng |
-| Cho rằng `đ` và `d` tương đương do NFD | Hiểu sai normalization | Kiểm tra quy tắc riêng nếu cần bỏ dấu |
-| Chỉ chuyển chữ thường ở một phía | Kết quả phụ thuộc nguồn dữ liệu | Áp dụng cùng thuật toán tạo khóa ở cả lúc lưu và tra |
-| Dùng `toLowerCase()` không chỉ định locale | Có thể phụ thuộc default locale | Chọn locale rõ ràng theo mục đích |
-| Dùng `Collator` mà không cố định locale/strength | Khó tái hiện hành vi qua môi trường | Cấu hình và kiểm thử locale, strength, decomposition |
-| Dùng `TreeSet` để loại trùng hồ sơ | Comparator có thể coi tên khác nhau là trùng | Dùng ID và chính sách trùng lặp nghiệp vụ |
-| Ghi đè tên gốc bằng search key | Mất chính tả, dấu, cách viết hiển thị | Lưu `display_name` riêng |
-| Tin vào tên đã chuẩn hóa như một định danh | Có thể gộp hai người khác nhau | Dùng ID ổn định và dữ liệu xác minh bổ sung |
+| Calling `equals()` directly on different NFC/NFD forms | Visually identical names fail to match | Normalize both to NFC before comparing |
+| Thinking NFC strips accents automatically | Mixes up comparison policies | Separate canonical equivalence from accent-insensitive search |
+| Turning `Hòa` into `Hoa` and treating them as the same person | Loses valid name distinctions | Keep accents for exact comparison; strip accents only for dedicated search |
+| Assuming `đ` and `d` are equivalent under NFD | Misunderstands normalization | Define explicit rules if accent stripping is required |
+| Lowercasing on only one side | Results depend on data source | Apply the same key-generation algorithm on both write and lookup |
+| Calling `toLowerCase()` without specifying a locale | Can depend on default locale | Specify an explicit locale matching the purpose |
+| Using `Collator` without pinning locale/strength | Behavior is hard to reproduce across environments | Configure and test locale, strength, and decomposition |
+| Using `TreeSet` to deduplicate profiles | Comparator may treat distinct names as equal | Use IDs and business deduplication policies |
+| Overwriting original names with a search key | Loses spelling, accents, and display formatting | Store `display_name` separately |
+| Trusting a normalized name as an identifier | Can merge two different people | Use stable IDs and additional verification data |
 
-### Tình huống Unicode cần test
+### Unicode scenarios to test
 
-- `"Hòa"` dựng sẵn và `"Ho\u0300a"` tổ hợp dấu.
-- `"HÒA"`, `"Hòa"` và `"hòa"` khi tìm kiếm không phân biệt hoa/thường.
-- `"Hoa"` so với `"Hòa"` khi chính sách **giữ dấu**.
-- `"Đỗ"` so với `"Dỗ"`: không được tự đồng nhất chữ `đ` và `d`.
-- Tên có khoảng trắng đầu/cuối, nhiều dấu cách hoặc NBSP.
-- Tên có combining mark đặt ở thứ tự hợp lệ nhưng biểu diễn khác nhau.
-- Ký tự vô hình, dấu câu và dấu gạch nối trong tên; không tự xóa nếu chưa có quy tắc.
-- Các bộ dữ liệu tên thực tế được sắp xếp bởi `Collator` với phiên bản JDK và provider dự kiến.
-- Giá trị `null`, chuỗi rỗng và tên chỉ chứa whitespace; phải quyết định rõ chấp nhận hay từ chối.
+- Precomposed `"Hòa"` and combining-mark `"Ho\u0300a"`.
+- `"HÒA"`, `"Hòa"`, and `"hòa"` for case-insensitive search.
+- `"Hoa"` vs `"Hòa"` when policy **preserves accents**.
+- `"Đỗ"` vs `"Dỗ"`: must not automatically equate `đ` and `d`.
+- Names with leading/trailing whitespace, multiple spaces, or NBSP.
+- Names with combining marks placed in valid orders with different representations.
+- Invisible characters, punctuation, and hyphens in names; do not strip silently without a rule.
+- Real name datasets sorted by `Collator` under the target JDK version and provider.
+- `null`, empty strings, and whitespace-only names; decide explicitly whether to accept or reject.
 
-## 10. Checklist thiết kế và triển khai
+## 10. Design and implementation checklist
 
-1. Xác định đây là **so sánh hiển thị chính xác**, **tìm kiếm**, **sắp xếp** hay **định danh con người**.
-2. Chọn dạng chuẩn hóa Unicode (thông thường NFC) và cách xử lý whitespace theo chính sách.
-3. Quyết định có phân biệt hoa/thường, dấu tiếng Việt và `đ`/`d` hay không; không ngầm coi chúng tương đương.
-4. Viết một hàm tạo khóa, dùng thống nhất ở phía lưu và phía tìm kiếm.
-5. Giữ tên hiển thị gốc, lưu khóa phụ nếu cần, dùng ID để quản lý hồ sơ.
-6. Với việc sắp xếp, cấu hình locale và strength cho `Collator`, tránh giả định rằng thứ tự không bao giờ đổi giữa các môi trường.
-7. Đồng bộ quy tắc ứng dụng với database collation, unique index và chức năng tìm kiếm.
-8. Kiểm thử các chuỗi cùng hình thức hiển thị nhưng khác dãy code point, cũng như những tên **thực sự khác nhau** chỉ bởi dấu.
+1. Clarify whether the operation is **exact display comparison**, **search**, **sorting**, or **person identification**.
+2. Choose the Unicode normalization form (usually NFC) and whitespace handling per policy.
+3. Decide whether case, Vietnamese accents, and `đ`/`d` are distinguished; never treat them as equivalent implicitly.
+4. Write one key-generation function and use it consistently on both storage and lookup paths.
+5. Keep the original display name, store secondary keys if needed, and use IDs to manage records.
+6. For sorting, configure locale and strength on `Collator`, avoiding assumptions that ordering never changes across environments.
+7. Align application rules with database collations, unique indexes, and search features.
+8. Test strings with identical appearance but different code point sequences, as well as names that **genuinely differ** only by accents.
 
-**Kết luận:** Để so sánh tên tiếng Việt hợp lý, hãy dùng **NFC** nhằm giải quyết khác biệt biểu diễn Unicode, và viết rõ các bước xử lý khoảng trắng, chữ hoa/thường hoặc tìm kiếm không dấu theo yêu cầu thực tế. `String.equals()` sau chuẩn hóa phù hợp cho khóa so sánh nội dung; `Collator` hỗ trợ sắp xếp theo ngôn ngữ; còn nhận diện **cùng một người** phải dựa vào định danh và quy tắc nghiệp vụ, không dựa duy nhất vào tên.
+**Conclusion:** To compare Vietnamese names properly, use **NFC** to resolve Unicode representation differences, and explicitly implement whitespace, casing, or accent-insensitive search steps per real requirements. `String.equals()` after normalization fits content comparison keys; `Collator` supports linguistic sorting; and identifying **the same person** must rely on identifiers and business rules, never solely on a name.

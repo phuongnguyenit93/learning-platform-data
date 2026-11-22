@@ -1,33 +1,33 @@
-# Binary numeric promotion với int, long, float và double trong Java
+# Binary numeric promotion with int, long, float, and double in Java
 
-## 1. Binary numeric promotion là gì?
+## 1. What is binary numeric promotion?
 
-**Binary numeric promotion** (nâng kiểu số nhị phân) là bộ quy tắc Java dùng để xác định **kiểu chung cho hai toán hạng số** của nhiều toán tử nhị phân. Khi hai toán hạng có kiểu nguyên thủy khác nhau, Java chuyển chúng sang kiểu thích hợp trước khi thực hiện phép toán. Kết quả của phép toán số học có kiểu do quy tắc này quyết định, **không được lựa chọn ngược từ kiểu của biến đang nhận giá trị**.
+**Binary numeric promotion** is the set of rules Java uses to determine a **common type for two numeric operands** across many binary operators. When two operands have different primitive types, Java converts them to an appropriate type before performing the operation. The result type of an arithmetic operation is determined by these rules, **not inferred backward from the type of the receiving variable**.
 
-Ví dụ:
+Example:
 
 ```java
 int count = 50_000;
 int price = 50_000;
 
-long wrong = count * price;          // Phép nhân là int, tràn trước khi gán long.
-long correct = (long) count * price; // Phép nhân là long, kết quả 2500000000.
+long wrong = count * price;          // Multiplication is int, overflows before long assignment.
+long correct = (long) count * price; // Multiplication is long, result 2500000000.
 ```
 
-Một phép toán số học giữa hai `int` vẫn là `int`, ngay cả khi kết quả được gán vào `long` hoặc `double`. Chỉ khi **ít nhất một toán hạng** được nâng thành `long`, `float` hoặc `double` *trước phép toán*, loại phép toán mới thay đổi theo quy tắc tương ứng.
+An arithmetic operation between two `int` values remains `int`, even when the result is assigned to a `long` or `double`. Only when **at least one operand** is promoted to `long`, `float`, or `double` *before the operation* does the operation type change according to the corresponding rule.
 
-Bài này tập trung vào sự kết hợp giữa bốn kiểu: `int`, `long`, `float` và `double`. Các kiểu số nguyên nhỏ hơn cũng được nhắc đến để làm rõ vì sao điểm xuất phát mặc định là `int`.
+This lesson focuses on combinations of four types: `int`, `long`, `float`, and `double`. Smaller integer types are also mentioned to clarify why the default starting point is `int`.
 
-## 2. Quy tắc chọn kiểu theo thứ tự ưu tiên
+## 2. Precedence rules for choosing the type
 
-Theo Java Language Specification (JLS §5.6), với hai toán hạng số trong ngữ cảnh áp dụng binary numeric promotion, trước tiên các đối tượng wrapper phù hợp được **unbox** nếu cần. Sau đó Java chọn kiểu chung theo thứ tự sau:
+According to the Java Language Specification (JLS §5.6), given two numeric operands in a context where binary numeric promotion applies, applicable wrapper objects are first **unboxed** if needed. Then Java chooses the common type in the following order:
 
-1. Nếu **một trong hai toán hạng là `double`**, toán hạng còn lại được chuyển sang `double`.
-2. Nếu không có `double` nhưng có **`float`**, toán hạng còn lại được chuyển sang `float`.
-3. Nếu không có hai kiểu số thực trên nhưng có **`long`**, toán hạng còn lại được chuyển sang `long`.
-4. Nếu không có những kiểu trên, cả hai toán hạng được chuyển thành **`int`** khi cần. Điều này áp dụng cho `byte`, `short`, `char` và `int`.
+1. If **either operand is `double`**, the other operand is converted to `double`.
+2. If there is no `double` but there is a **`float`**, the other operand is converted to `float`.
+3. If neither floating-point type above is present but there is a **`long`**, the other operand is converted to `long`.
+4. If none of the above types are present, both operands are converted to **`int`** as needed. This applies to `byte`, `short`, `char`, and `int`.
 
-| Hai kiểu toán hạng | Kiểu chung cho phép toán số học |
+| Two operand types | Common type for arithmetic operation |
 | --- | --- |
 | `int` + `int` | `int` |
 | `int` + `long` | `long` |
@@ -38,58 +38,58 @@ Theo Java Language Specification (JLS §5.6), với hai toán hạng số trong 
 | `byte` + `short` | `int` |
 | `char` + `int` | `int` |
 
-Thứ tự cần nhớ là **`double > float > long > int`** để chọn kiểu chung, nhưng **“kiểu đứng cao hơn” không luôn đồng nghĩa “giữ nguyên tất cả chữ số”**. Đặc biệt, `long → float` có thể làm tròn, và `long → double` có thể làm tròn các số nguyên lớn.
+The order to remember is **`double > float > long > int`** for picking the common type, but **"higher-ranking type" does not always mean "preserves all digits"**. In particular, `long → float` can round, and `long → double` can round large integers.
 
-Ở bảng trên, dấu `+` minh họa phép **cộng số**. Nếu một toán hạng là `String`, dấu `+` có thể thực hiện *nối chuỗi* theo những quy tắc khác. `boolean` không phải kiểu số và không thuộc binary numeric promotion.
+In the table above, the `+` sign illustrates **numeric addition**. If one operand is `String`, `+` can instead perform *string concatenation* under different rules. `boolean` is not a numeric type and is not subject to binary numeric promotion.
 
-## 3. Các phép toán nào áp dụng quy tắc này?
+## 3. Which operators apply this rule?
 
-Binary numeric promotion tham gia khi Java thực hiện nhiều toán tử số nhị phân:
+Binary numeric promotion participates when Java evaluates many binary numeric operators:
 
-- Các toán tử số học `+`, `-`, `*`, `/`, `%` khi hai toán hạng là số.
-- Các toán tử so sánh thứ tự `<`, `<=`, `>`, `>=` trên các toán hạng số. Hai toán hạng được nâng kiểu để so sánh, nhưng **kết quả phép so sánh là `boolean`**.
-- `==` và `!=` khi so sánh hai toán hạng thuộc kiểu số nguyên thủy (hoặc được unbox theo quy tắc áp dụng). Kết quả là `boolean`.
-- Các toán tử bit `&`, `|`, `^` ở chế độ **số nguyên**, với kiểu chung là `int` hoặc `long`.
+- Arithmetic operators `+`, `-`, `*`, `/`, `%` when both operands are numeric.
+- Relational ordering operators `<`, `<=`, `>`, `>=` on numeric operands. Both operands are promoted for comparison, but **the result of the comparison is `boolean`**.
+- `==` and `!=` when comparing two operands of primitive numeric types (or unboxed according to applicable rules). The result is `boolean`.
+- Bitwise operators `&`, `|`, `^` in **integer** mode, with a common type of `int` or `long`.
 
-Điều quan trọng là **không áp dụng nhầm quy tắc này cho mọi toán tử**. Các phép dịch `<<`, `>>`, `>>>` sử dụng *unary numeric promotion* riêng trên mỗi toán hạng; kiểu kết quả phụ thuộc vào toán hạng **bên trái** sau khi nâng, không bị toán hạng bên phải kéo lên `long`. Toán tử điều kiện `?:` và toán tử gán ghép cũng có quy tắc định kiểu riêng, dù bên trong có thể cần nâng kiểu số.
+It is important **not to misapply this rule to every operator**. Shift operators `<<`, `>>`, `>>>` use independent *unary numeric promotion* on each operand; the result type depends on the **left** operand after promotion, and is not pulled up to `long` by the right operand. The conditional operator `?:` and compound assignment operators also have their own typing rules, even though numeric promotion may be involved internally.
 
-Ví dụ:
+Example:
 
 ```java
 int a = 7;
 long b = 2L;
 
 long sum = a + b;       // long + long => long
-long quotient = a / b;  // long / long => long; kết quả 3L.
-boolean larger = a > b; // Hai toán hạng so sánh theo long; kết quả boolean.
+long quotient = a / b;  // long / long => long; result 3L.
+boolean larger = a > b; // Both operands compared as long; result boolean.
 ```
 
-Ngay cả phép chia với kiểu chung `long` vẫn là **chia nguyên** và làm tròn về 0. Để có kết quả `3.5`, phải dùng một toán hạng `float` hoặc `double`.
+Even division with a common type of `long` is still **integer division** and truncates toward 0. To get `3.5`, a `float` or `double` operand must be used.
 
-## 4. Kết hợp `int` và `long`: phép toán ở 64 bit
+## 4. Combining `int` and `long`: 64-bit operations
 
-Nếu một toán hạng là `long` và không có `float`/`double`, Java chuyển toán hạng còn lại sang `long` trước khi thực hiện phép toán:
+If one operand is `long` and neither is `float`/`double`, Java converts the other operand to `long` before performing the operation:
 
 ```java
 int n = 2_000_000_000;
 long m = 2L;
 
-long product = n * m;  // 4000000000; phép toán int * long => long.
-long also = n * 2L;    // 4000000000; hậu tố L tạo long literal.
+long product = n * m;  // 4000000000; int * long => long operation.
+long also = n * 2L;    // 4000000000; L suffix creates a long literal.
 ```
 
-Đối chiếu trường hợp không có toán hạng `long`:
+Compare with the case where there is no `long` operand:
 
 ```java
 int n = 2_000_000_000;
 
-long tooLate = n * 2;        // -294967296; phép nhân int tràn.
-long early = ((long) n) * 2; // 4000000000; phép nhân long.
+long tooLate = n * 2;        // -294967296; int multiplication overflows.
+long early = ((long) n) * 2; // 4000000000; long multiplication.
 ```
 
-**Cách nghĩ đúng:** phép gán `long tooLate = ...` gồm hai bước: tính **toàn bộ biểu thức vế phải** theo kiểu của nó, rồi chuyển kết quả sang `long`. Nếu phép nhân `int` đã tràn, bước gán không khôi phục các bit đã mất.
+**Correct mental model:** the assignment `long tooLate = ...` consists of two steps: evaluate the **entire right-hand expression** in its own type, then convert the result to `long`. If the `int` multiplication already overflowed, the assignment step cannot recover the lost bits.
 
-Dấu ngoặc có thể làm thay đổi thời điểm nâng kiểu:
+Parentheses can change when promotion occurs:
 
 ```java
 int a = 50_000, b = 50_000;
@@ -99,11 +99,11 @@ long tooLate = (a * b) * c;      // -3589934592
 long early = ((long) a * b) * c; // 5000000000
 ```
 
-Trong `(a * b) * c`, biểu thức con `a * b` đã tràn `int`; việc gặp `c` kiểu `long` sau đó không sửa kết quả cũ. Quy tắc nâng kiểu được áp dụng **tại từng phép toán** của cây biểu thức.
+In `(a * b) * c`, the subexpression `a * b` already overflowed `int`; encountering `c` of type `long` afterward does not fix the earlier result. Promotion rules are applied **at each operation** of the expression tree.
 
-## 5. Kết hợp số nguyên với `float`: cần đề phòng làm tròn
+## 5. Combining integers with `float`: watch out for rounding
 
-Khi một toán hạng là `float` và không có `double`, Java tính phép toán ở kiểu `float`:
+When one operand is `float` and there is no `double`, Java evaluates the operation in `float`:
 
 ```java
 int a = 4;
@@ -111,10 +111,10 @@ float b = 1.5f;
 float sum = a + b;     // 5.5f
 
 long big = 10L;
-float product = big * b; // 15.0f, vì long được chuyển thành float.
+float product = big * b; // 15.0f, because long is converted to float.
 ```
 
-`float` sử dụng dấu phẩy động nhị phân với **24 bit độ chính xác của phần trị**. Điều này không đủ giữ chính xác mọi giá trị `int` hoặc `long`. Tất cả số nguyên trong khoảng từ `-16_777_216` đến `16_777_216` đều biểu diễn chính xác dưới `float`, nhưng những số nguyên lớn hơn có thể bị làm tròn.
+`float` uses binary floating-point with **24 bits of significand precision**. This is not enough to represent every `int` or `long` value exactly. Every integer in the range `-16_777_216` to `16_777_216` is represented exactly in `float`, but larger integers can be rounded.
 
 ```java
 int exactInt = 16_777_217;
@@ -124,16 +124,16 @@ System.out.println(rounded == 16_777_216f); // true
 System.out.println((int) rounded == exactInt); // false
 ```
 
-Giải thích từng bước:
+Step-by-step explanation:
 
-1. Toán hạng `exactInt` là `int`, toán hạng `0.0f` là `float`.
-2. Binary numeric promotion chuyển `exactInt` sang `float`.
-3. Giá trị `16_777_217` không biểu diễn chính xác bằng `float`, nên được làm tròn thành `16_777_216.0f` (làm tròn về giá trị gần nhất theo quy tắc IEEE 754).
-4. Sau đó mới cộng `0.0f`, cho kết quả đã làm tròn.
+1. Operand `exactInt` is `int`, operand `0.0f` is `float`.
+2. Binary numeric promotion converts `exactInt` to `float`.
+3. The value `16_777_217` cannot be represented exactly in `float`, so it is rounded to `16_777_216.0f` (round-to-nearest under IEEE 754 rules).
+4. Only then is `0.0f` added, yielding the rounded result.
 
-Vì thế, **chuyển sang kiểu có miền số lớn hơn không đảm bảo tính chính xác**. `float` có khả năng biểu diễn độ lớn lớn hơn `long`, nhưng lại có độ chính xác số nguyên kém hơn nhiều.
+Therefore, **converting to a type with a larger range does not guarantee precision**. `float` can represent larger magnitudes than `long`, yet has much poorer integer precision.
 
-Một ví dụ dễ gặp là `long + float`:
+A common example is `long + float`:
 
 ```java
 long id = 16_777_217L;
@@ -142,11 +142,11 @@ float value = id + 0.0f;
 System.out.println((long) value == id); // false
 ```
 
-Với các mã định danh, bộ đếm hoặc tiền tệ nguyên chính xác, không nên dùng `float` để “tránh tràn” chỉ vì nó đứng trước `long` trong thứ tự nâng kiểu.
+For identifiers, counters, or exact integer currency amounts, do not use `float` to "avoid overflow" merely because it outranks `long` in the promotion order.
 
-## 6. Kết hợp với `double`: ưu tiên cao nhất nhưng không phải chính xác vô hạn
+## 6. Combining with `double`: highest precedence, not infinite precision
 
-Nếu một trong hai toán hạng là `double`, phép toán số học dùng `double`:
+If either operand is `double`, the arithmetic operation uses `double`:
 
 ```java
 float left = 1.25f;
@@ -158,7 +158,7 @@ double factor = 0.5;
 double half = count * factor; // 3.5.
 ```
 
-`double` có **53 bit độ chính xác của phần trị**, nên mọi giá trị `int` và mọi số nguyên có trị tuyệt đối không quá `2^53` đều biểu diễn chính xác. Nhưng `long` có thể lớn hơn `2^53`. Một phép tính `long + double` có thể mất độ chính xác khi chuyển `long` thành `double`:
+`double` has **53 bits of significand precision**, so every `int` value and every integer with absolute value at most `2^53` is represented exactly. However, `long` can exceed `2^53`. A `long + double` calculation can lose precision when converting `long` to `double`:
 
 ```java
 long exact = 9_007_199_254_740_993L; // 2^53 + 1.
@@ -167,15 +167,15 @@ double rounded = exact + 0.0;
 System.out.println((long) rounded == exact); // false
 ```
 
-Giá trị `9_007_199_254_740_993` không thể được biểu diễn chính xác bằng `double`. Nó được làm tròn thành `9_007_199_254_740_992.0`. Chuyển ngược `double` sang `long` không phục hồi đơn vị đã mất.
+The value `9_007_199_254_740_993` cannot be represented exactly in `double`. It is rounded to `9_007_199_254_740_992.0`. Casting `double` back to `long` does not restore the lost unit.
 
-Cũng cần phân biệt **độ lớn biểu diễn**, **độ chính xác** và **quy tắc phép tính**. Ví dụ `0.1 + 0.2` dùng `double` nhưng không biểu diễn chính xác phép cộng thập phân toán học `0.3` do các số thập phân này không biểu diễn hữu hạn trong nhị phân. Đó là giới hạn của dấu phẩy động, không phải lỗi của binary numeric promotion.
+It is also necessary to distinguish **representable magnitude**, **precision**, and **operation rules**. For instance, `0.1 + 0.2` uses `double` but does not represent the exact mathematical decimal sum `0.3` because those decimal numbers have no finite binary representation. That is a limitation of floating-point, not a bug in binary numeric promotion.
 
-## 7. Kiểu biểu thức được quyết định trước khi gán cho biến
+## 7. Expression type is decided before variable assignment
 
-Ba ví dụ cùng một quy tắc:
+Three examples of the same rule:
 
-### 7.1. Gán vào `long` sau phép nhân `int`
+### 7.1. Assigning to `long` after `int` multiplication
 
 ```java
 int price = 50_000;
@@ -185,7 +185,7 @@ long wrong = price * quantity;          // -1794967296
 long correct = (long) price * quantity; // 2500000000
 ```
 
-### 7.2. Gán vào `double` sau phép chia `int`
+### 7.2. Assigning to `double` after `int` division
 
 ```java
 int numerator = 1;
@@ -196,9 +196,9 @@ double correct = (double) numerator / denominator; // 0.5
 double alsoCorrect = numerator / 2.0;           // 0.5
 ```
 
-Vì `int / int` là phép chia nguyên, `numerator / denominator` cho `0`. Gán số `0` đó vào `double` cho `0.0`, không phải `0.5`. Ngược lại, `(double) numerator / denominator` dùng `double` ngay từ phép chia.
+Because `int / int` is integer division, `numerator / denominator` yields `0`. Assigning that `0` to `double` produces `0.0`, not `0.5`. Conversely, `(double) numerator / denominator` uses `double` right from the division.
 
-### 7.3. Ép kiểu sau biểu thức khác ép kiểu trước biểu thức
+### 7.3. Casting after an expression vs. casting before
 
 ```java
 int a = 50_000, b = 50_000;
@@ -207,26 +207,26 @@ long castAfter = (long) (a * b); // -1794967296
 long castBefore = (long) a * b;  // 2500000000
 ```
 
-Việc đặt dấu ngoặc khiến phép nhân thực hiện trước khi cast. Muốn mở rộng miền tính toán, hãy cast **một toán hạng trước khi thực hiện phép toán nguy hiểm**, không chỉ cast toàn bộ biểu thức sau cùng.
+Adding parentheses forces the multiplication to happen before the cast. To widen the computation domain, cast **one operand before performing the risky operation**, rather than casting the entire expression at the end.
 
-## 8. `byte`, `short` và `char` đều được nâng lên `int`
+## 8. `byte`, `short`, and `char` are all promoted to `int`
 
-Binary numeric promotion không có nhánh chọn kiểu chung `byte`, `short` hay `char`. Nếu không có `long`/`float`/`double`, các kiểu nguyên nhỏ đó đều được nâng lên `int`:
+Binary numeric promotion has no branch that selects `byte`, `short`, or `char` as a common type. Without `long`/`float`/`double`, all those smaller integral types are promoted to `int`:
 
 ```java
 byte b = 10;
 short s = 20;
 char c = 'A';
 
-int sum = b + s;        // 30; kiểu biểu thức là int.
-int codePointValue = c + 1; // 66; kiểu biểu thức là int.
+int sum = b + s;        // 30; expression type is int.
+int codePointValue = c + 1; // 66; expression type is int.
 
-// byte wrong = b + s; // Không biên dịch: int không tự thu hẹp thành byte.
+// byte wrong = b + s; // Does not compile: int does not automatically narrow to byte.
 ```
 
-Ngoại lệ gán một số **biểu thức hằng** kiểu `int` có giá trị nằm trong miền đích (ví dụ `byte k = 10 + 20;`) là quy tắc *assignment conversion* dành cho hằng. Nó **không thay đổi kiểu của biểu thức cộng**: `10 + 20` vẫn là `int`.
+The exception for assigning certain `int` **constant expressions** whose value lies within the target range (for example, `byte k = 10 + 20;`) is an *assignment conversion* rule for constants. It **does not change the type of the addition expression**: `10 + 20` is still `int`.
 
-Các wrapper như `Integer`/`Long`/`Float`/`Double` có thể tham gia bằng **unboxing**:
+Wrappers such as `Integer`/`Long`/`Float`/`Double` can participate via **unboxing**:
 
 ```java
 Integer boxedInt = 2;
@@ -234,11 +234,11 @@ Long boxedLong = 3L;
 long sum = boxedInt + boxedLong; // 5L.
 ```
 
-Tuy nhiên, nếu một wrapper đang là `null` và phải unbox để tính, biểu thức có thể ném `NullPointerException`. Binary numeric promotion không làm `null` trở thành số `0`.
+However, if a wrapper is `null` and must be unboxed to evaluate, the expression can throw `NullPointerException`. Binary numeric promotion does not turn `null` into `0`.
 
-## 9. Hai bẫy tinh tế: so sánh hỗn hợp và phép gán ghép
+## 9. Two subtle traps: mixed comparisons and compound assignment
 
-### 9.1. So sánh `int` với `float` có thể mất tính phân biệt
+### 9.1. Comparing `int` with `float` can lose distinguishability
 
 ```java
 int n = 16_777_217;
@@ -247,50 +247,50 @@ float f = 16_777_216f;
 System.out.println(n == f); // true
 ```
 
-Hai giá trị số nguyên dự định khác nhau, nhưng toán tử `==` áp dụng binary numeric promotion cho cặp `int`/`float`. `n` được làm tròn xuống `16_777_216f` trước khi so sánh, nên kết quả là `true`.
+The two integer values were meant to be distinct, yet the `==` operator applies binary numeric promotion to the `int`/`float` pair. `n` is rounded down to `16_777_216f` before comparison, so the result is `true`.
 
-Khi cần so sánh **chính xác các số nguyên**, nên giữ các toán hạng trong kiểu nguyên đủ rộng (`long` nếu đủ miền, hoặc `BigInteger` khi vượt 64 bit). Không sử dụng so sánh hỗn hợp với `float`/`double` một cách vô thức.
+When you need **exact comparison of integers**, keep the operands in an integral type wide enough (`long` if in range, or `BigInteger` beyond 64 bits). Do not blindly perform mixed comparisons with `float`/`double`.
 
-### 9.2. Toán tử gán ghép có chuyển kiểu hẹp ngầm
+### 9.2. Compound assignment operators have an implicit narrowing cast
 
-Với phép `E1 += E2`, Java tính phép cộng rồi chuyển kết quả về kiểu của `E1`. Về mặt giá trị, điều này gần với `E1 = (T) (E1 + E2)`, với `T` là kiểu của `E1`, nhưng toán hạng `E1` chỉ được đánh giá một lần trong phép gán ghép.
+For `E1 += E2`, Java computes the addition and then converts the result to the type of `E1`. In terms of value, this is close to `E1 = (T) (E1 + E2)`, where `T` is the type of `E1`, except that `E1` is evaluated only once in compound assignment.
 
 ```java
 byte count = 120;
-count += 10; // Hợp lệ, phép cộng như int, rồi chuyển hẹp về byte.
+count += 10; // Valid, addition as int, then narrowed to byte.
 System.out.println(count); // -126
 
 int whole = 2;
-whole += 1.75; // Hợp lệ, phép cộng như double, rồi chuyển về int.
+whole += 1.75; // Valid, addition as double, then converted to int.
 System.out.println(whole); // 3
 ```
 
-Các cách viết `count = count + 10` và `whole = whole + 1.75` không biên dịch nếu không cast phù hợp. Nhưng `+=` có cơ chế chuyển kiểu ngầm, có thể dẫn đến tràn hay cắt phần thập phân. Vì thế **gán ghép không phải bằng chứng rằng phép toán ban đầu có kiểu hẹp**.
+Writing `count = count + 10` and `whole = whole + 1.75` will not compile without appropriate casts. However, `+=` has an implicit conversion mechanism, which can lead to overflow or truncation of the fractional part. Therefore, **compound assignment is not proof that the underlying operation had a narrow type**.
 
-## 10. Phân biệt với unary numeric promotion và phép dịch bit
+## 10. Distinguishing from unary numeric promotion and bitwise shifts
 
-Ví dụ dưới đây dễ khiến người học áp dụng sai bảng *binary* cho phép dịch bit:
+The example below can easily tempt learners to apply the *binary* table to bitwise shifts:
 
 ```java
 int bits = 1;
 long count = 40L;
 
-int shifted = bits << count; // Kiểu kết quả là int.
+int shifted = bits << count; // Result type is int.
 ```
 
-Dù toán hạng bên phải `count` có kiểu `long`, phép dịch **không đổi toán hạng bên trái `int` thành `long`**. Mỗi toán hạng được *unary numeric promotion* riêng; kết quả có kiểu của toán hạng trái sau nâng kiểu. Với phép dịch `int`, Java chỉ sử dụng 5 bit thấp của khoảng dịch nên `1 << 40` tương đương `1 << 8`, cho `256`.
+Even though the right operand `count` has type `long`, the shift **does not turn the left `int` operand into `long`**. Each operand undergoes *unary numeric promotion* separately; the result has the type of the promoted left operand. For an `int` shift, Java only uses the lowest 5 bits of the shift distance, so `1 << 40` is equivalent to `1 << 8`, giving `256`.
 
-Nếu thật sự muốn dịch trên 64 bit:
+If you truly want a 64-bit shift:
 
 ```java
 long shifted64 = 1L << 40; // 1099511627776.
 ```
 
-Đây là khác biệt quan trọng giữa **binary numeric promotion** cho phép toán số học và quy tắc riêng của các toán tử dịch bit. Không suy đoán kiểu kết quả chỉ dựa vào việc toán hạng nào “rộng nhất” nếu toán tử không áp dụng binary numeric promotion.
+This is an important distinction between **binary numeric promotion** for arithmetic operators and the separate rules for bitwise shift operators. Do not guess the result type based solely on which operand is "widest" if the operator does not apply binary numeric promotion.
 
-## 11. Ví dụ Java 17+ hoàn chỉnh
+## 11. Complete Java 17+ example
 
-Tạo file **`BinaryNumericPromotionDemo.java`**:
+Create the file **`BinaryNumericPromotionDemo.java`**:
 
 ```java
 public class BinaryNumericPromotionDemo {
@@ -338,14 +338,14 @@ public class BinaryNumericPromotionDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa file bằng JDK 17 trở lên:
+Compile and run from the directory containing the file using JDK 17 or higher:
 
 ```bash
 javac BinaryNumericPromotionDemo.java
 java BinaryNumericPromotionDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 int * int then long = -1794967296
@@ -361,21 +361,21 @@ int == float = true
 int + long = 5
 ```
 
-Ở ví dụ này, `int * int` tràn dù biến nhận là `long`; `int / int` làm mất phần phân số dù biến nhận là `double`; các toán hạng `float`/`double` có thể buộc số nguyên làm tròn **trước phép toán hoặc phép so sánh**. Mỗi trường hợp cho thấy kiểu của biểu thức phải được xác định tại **toán tử**, không suy ra từ nơi lưu kết quả.
+In this example, `int * int` overflows even though the receiving variable is `long`; `int / int` drops the fractional part even though the receiving variable is `double`; and `float`/`double` operands can force integers to round **before the operation or comparison**. Each case shows that an expression's type must be determined at the **operator**, not inferred from where the result is stored.
 
-## 12. Lỗi thường gặp và cách tránh
+## 12. Common mistakes and how to avoid them
 
-| Nhầm lẫn | Sự thật | Cách xử lý |
+| Misconception | Reality | How to handle |
 | --- | --- | --- |
-| “Vế trái là `long` nên `int * int` thành phép nhân 64 bit.” | Phép nhân `int` đã xảy ra trước phép gán. | Viết `(long) a * b` hoặc dùng toán hạng `long`. |
-| “Vế trái là `double` nên `1 / 2` ra `0.5`.” | Phép chia là `int / int`, tạo `0`. | Viết `1.0 / 2`. |
-| “`float` rộng hơn `long` nên giữ chính xác mọi `long`.” | `float` có 24 bit độ chính xác, nhiều số nguyên bị làm tròn. | Duy trì kiểu nguyên khi yêu cầu độ chính xác tuyệt đối. |
-| “`double` luôn giữ được mọi `long`.” | `double` có 53 bit độ chính xác, không giữ mọi giá trị 64 bit. | Dùng `long`/`BigInteger` khi cần tính nguyên chính xác. |
-| “Cộng hai `byte` cho `byte`.” | Phép cộng số học nâng lên `int`. | Nhận kết quả bằng `int`, kiểm tra miền trước khi thu hẹp. |
-| “Phép `+= `không mất dữ liệu do không cần cast.” | Gán ghép có chuyển kiểu về toán hạng trái. | Xét tràn và cắt phần phân số rõ ràng. |
-| “Mọi toán tử hai toán hạng đều dùng bảng ưu tiên như nhau.” | Dịch bit, nối chuỗi, `?:` có quy tắc riêng. | Xác định toán tử rồi tra đúng ngữ cảnh định kiểu. |
-| “So sánh số nguyên với `float` luôn chính xác.” | Ép kiểu trong so sánh có thể làm tròn trước khi đánh giá `==`. | So sánh trong kiểu nguyên đủ rộng. |
+| "The left side is `long`, so `int * int` becomes 64-bit multiplication." | The `int` multiplication already happened before the assignment. | Write `(long) a * b` or use a `long` operand. |
+| "The left side is `double`, so `1 / 2` gives `0.5`." | The division is `int / int`, producing `0`. | Write `1.0 / 2`. |
+| "`float` is wider than `long`, so it holds every `long` exactly." | `float` has 24 bits of precision; many integers get rounded. | Stay in integral types when exactness is required. |
+| "`double` always preserves every `long`." | `double` has 53 bits of precision; it cannot hold all 64-bit values. | Use `long`/`BigInteger` when exact integer arithmetic is needed. |
+| "Adding two `byte` values yields a `byte`." | Arithmetic addition promotes to `int`. | Receive the result as `int`, check bounds before narrowing. |
+| "Compound `+= `loses no data because no cast is required." | Compound assignment casts the result to the left operand's type. | Account for overflow and fractional truncation explicitly. |
+| "All binary operators use the same precedence table." | Bitwise shifts, string concatenation, and `?:` have their own rules. | Identify the operator and check its exact typing context. |
+| "Comparing an integer with `float` is always exact." | Conversion during comparison can round before `==` is evaluated. | Compare within a sufficiently wide integral type. |
 
-**Ghi nhớ:** Với phép toán số học chịu binary numeric promotion, ưu tiên kiểu **`double > float > long > int`**. Chọn kiểu trước khi tính không đảm bảo luôn chính xác: phép `int` có thể tràn, còn chuyển số nguyên sang `float`/`double` có thể làm tròn. Để có kết quả mong muốn, hãy xác định kiểu của **từng phép toán và biểu thức con**, chủ động chọn toán hạng phù hợp và chỉ sau đó xét phép gán kết quả.
+**Takeaway:** For arithmetic operations subject to binary numeric promotion, the type precedence is **`double > float > long > int`**. Choosing a type before calculation does not guarantee exactness in all cases: `int` operations can overflow, while converting integers to `float`/`double` can round. To get the intended result, determine the type of **each operation and subexpression**, deliberately choose the right operands, and only afterward consider assigning the result.
 
-**Nguồn tham khảo:** [JLS §5.6 — Numeric Contexts and Promotions](https://docs.oracle.com/javase/specs/jls/se21/html/jls-5.html#jls-5.6), [JLS §15.17 — Multiplicative Operators](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.17), [JLS §15.18 — Additive Operators](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.18), [JLS §15.20 — Relational Operators](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.20), [JLS §15.26 — Assignment Operators](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.26).
+**References:** [JLS §5.6 — Numeric Contexts and Promotions](https://docs.oracle.com/javase/specs/jls/se21/html/jls-5.html#jls-5.6), [JLS §15.17 — Multiplicative Operators](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.17), [JLS §15.18 — Additive Operators](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.18), [JLS §15.20 — Relational Operators](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.20), [JLS §15.26 — Assignment Operators](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.26).

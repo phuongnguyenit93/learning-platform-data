@@ -1,10 +1,10 @@
-# String.copyValueOf và tạo chuỗi từ mảng ký tự trong Java
+# String.copyValueOf and Creating Strings from Character Arrays in Java
 
-## 1. Bài toán: chuyển `char[]` thành `String`
+## 1. The Problem: Converting `char[]` to `String`
 
-Trong Java, `char[]` là **mảng các phần tử `char` có thể thay đổi**, còn `String` biểu diễn một chuỗi văn bản **bất biến (immutable)**. Khi xử lý văn bản bằng mảng ký tự, bạn thường cần tạo một `String` để trả về từ phương thức, so sánh, lưu trữ hoặc truyền cho API nhận chuỗi.
+In Java, `char[]` is a **mutable array of `char` elements**, whereas `String` represents an **immutable** text string. When processing text with a character array, you often need to create a `String` to return from a method, compare, store, or pass to an API that accepts strings.
 
-Ví dụ:
+For example:
 
 ```java
 char[] letters = {'J', 'a', 'v', 'a'};
@@ -13,26 +13,26 @@ String text = String.copyValueOf(letters);
 System.out.println(text); // Java
 ```
 
-`String.copyValueOf` là phương thức **static** của `java.lang.String`, chuyển một mảng ký tự hoặc một phần mảng thành chuỗi. Nó đặc biệt hữu ích khi đã có dữ liệu dạng `char[]` và muốn lấy đúng nội dung ký tự, thay vì biểu diễn của chính đối tượng mảng.
+`String.copyValueOf` is a **static** method of `java.lang.String` that converts a character array or a portion of an array into a string. It is especially useful when you already have data in `char[]` form and want the actual character content, rather than the representation of the array object itself.
 
-Bài học tập trung vào hai overload của `copyValueOf`, cách tạo chuỗi từ mảng, ngữ nghĩa sao chép, chọn phạm vi con và những lưu ý về Unicode/UTF-16.
+This lesson focuses on the two overloads of `copyValueOf`, creating strings from arrays, copying semantics, selecting a subrange, and Unicode/UTF-16 considerations.
 
-## 2. Hai overload của String.copyValueOf
+## 2. The Two Overloads of String.copyValueOf
 
-API cung cấp hai chữ ký:
+The API provides two signatures:
 
 ```java
 public static String copyValueOf(char[] data)
 public static String copyValueOf(char[] data, int offset, int count)
 ```
 
-| Tham số | Ý nghĩa |
+| Parameter | Meaning |
 | --- | --- |
-| `data` | Mảng `char[]` chứa dữ liệu nguồn |
-| `offset` | Chỉ số bắt đầu lấy trong mảng (đếm từ **0**) |
-| `count` | **Số lượng** phần tử `char` cần lấy; không phải chỉ số kết thúc |
+| `data` | The `char[]` array containing the source data |
+| `offset` | Starting index in the array (**0**-based) |
+| `count` | **Number** of `char` elements to take; not the ending index |
 
-**Overload một tham số** lấy toàn bộ mảng:
+**The single-parameter overload** takes the entire array:
 
 ```java
 char[] data = {'H', 'e', 'l', 'l', 'o'};
@@ -41,7 +41,7 @@ String result = String.copyValueOf(data);
 System.out.println(result); // Hello
 ```
 
-**Overload ba tham số** lấy một đoạn liên tiếp từ `offset`, gồm `count` phần tử:
+**The three-parameter overload** takes a contiguous slice starting at `offset`, consisting of `count` elements:
 
 ```java
 char[] data = {'H', 'e', 'l', 'l', 'o', '-', 'J', 'a', 'v', 'a'};
@@ -53,24 +53,24 @@ System.out.println(left);  // Hello
 System.out.println(right); // Java
 ```
 
-Với `String.copyValueOf(data, 6, 4)`, các phần tử được lấy có chỉ số **6, 7, 8, 9**, tức đoạn nửa mở `[6, 10)`. Đối số thứ ba **không phải endIndex**. Nhầm `count` với vị trí kết thúc sẽ khiến bạn lấy sai đoạn hoặc gây ngoại lệ vượt phạm vi.
+With `String.copyValueOf(data, 6, 4)`, the elements taken have indices **6, 7, 8, 9**, i.e., the half-open interval `[6, 10)`. The third argument is **not `endIndex`**. Confusing `count` with the ending position will cause you to extract the wrong slice or trigger an out-of-bounds exception.
 
-Cách tư duy rõ ràng là:
+A clear mental model is:
 
 ```text
 data = ['H', 'e', 'l', 'l', 'o', '-', 'J', 'a', 'v', 'a']
 index    0    1    2    3    4    5    6    7    8    9
 
 copyValueOf(data, 6, 4)
-                 |  +---- lấy 4 đơn vị char
-                 +------- bắt đầu tại index 6
+                 |  +---- take 4 char units
+                 +------- start at index 6
 
-Kết quả: "Java"
+Result: "Java"
 ```
 
-## 3. Sao chép giá trị, không giữ một view đến mảng
+## 3. Copying Values, Not Keeping a View into the Array
 
-Mảng `char[]` có thể được sửa sau khi tạo `String`. Chuỗi nhận được từ `copyValueOf` phải **không bị ảnh hưởng** bởi những lần thay đổi mảng sau đó.
+A `char[]` array can be modified after creating a `String`. The string returned from `copyValueOf` must **not be affected** by subsequent modifications to the array.
 
 ```java
 char[] source = {'c', 'o', 'd', 'e'};
@@ -82,9 +82,9 @@ System.out.println(new String(source)); // mode
 System.out.println(frozen);             // code
 ```
 
-Điều này đúng vì `String` bất biến và API cam kết kết quả không thay đổi nếu mảng ký tự nguồn thay đổi. Không nên coi `String.copyValueOf(data)` là một **view có liên kết sống** với mảng.
+This holds because `String` is immutable and the API guarantees the result does not change if the source character array changes. Do not treat `String.copyValueOf(data)` as a **live-linked view** into the array.
 
-Khi dùng overload chọn đoạn, ý nghĩa vẫn như vậy:
+When using the slice-selecting overload, the semantics are the same:
 
 ```java
 char[] buffer = {'<', 'O', 'K', '>'};
@@ -96,7 +96,7 @@ System.out.println(token);              // OK
 System.out.println(new String(buffer)); // <NK>
 ```
 
-Chiều ngược lại cũng độc lập về mặt giá trị: `String.toCharArray()` tạo mảng ký tự mới từ chuỗi. Sửa mảng đó không sửa `String`:
+The reverse direction is also independent in value: `String.toCharArray()` creates a new character array from the string. Modifying that array does not modify the `String`:
 
 ```java
 String word = "Java";
@@ -108,13 +108,13 @@ System.out.println(word);             // Java
 System.out.println(new String(copy)); // Lava
 ```
 
-**Vì sao có ích?** Khi một bộ đệm ký tự được tái sử dụng để đọc dữ liệu tiếp theo, `copyValueOf` giúp lưu lại nội dung của lần đọc hiện tại dưới dạng `String` ổn định.
+**Why is this useful?** When a character buffer is reused to read subsequent data, `copyValueOf` helps save the content of the current read as a stable `String`.
 
-Lưu ý: API bảo đảm **ngữ nghĩa độc lập của kết quả**, chứ không yêu cầu bạn suy đoán chi tiết lưu trữ nội bộ của `String` trong từng phiên bản JDK.
+Note: the API guarantees **independence of the result's semantics**, rather than requiring you to infer internal `String` storage details across JDK versions.
 
-## 4. copyValueOf, valueOf và new String(char[])
+## 4. copyValueOf, valueOf, and new String(char[])
 
-Có nhiều cách hợp lệ để tạo chuỗi từ mảng ký tự:
+There are several valid ways to create a string from a character array:
 
 ```java
 char[] letters = {'J', 'a', 'v', 'a'};
@@ -128,22 +128,22 @@ System.out.println(a.equals(b));         // true
 System.out.println(a.equals(c));         // true
 ```
 
-Trong API `String`, `copyValueOf(char[])` là cách viết tương đương về chức năng với `valueOf(char[])`. Tương tự, overload `copyValueOf(char[], offset, count)` tương đương với `valueOf(char[], offset, count)` về chuỗi tạo ra.
+In the `String` API, `copyValueOf(char[])` is functionally equivalent to `valueOf(char[])`. Similarly, the overload `copyValueOf(char[], offset, count)` is equivalent to `valueOf(char[], offset, count)` in terms of the resulting string.
 
-| Cách viết | Kết quả với `char[]` | Khi nào nên dùng |
+| Form | Result with `char[]` | When to use |
 | --- | --- | --- |
-| `String.copyValueOf(data)` | Chuỗi chứa toàn bộ mảng | Nhấn mạnh chuyển và giữ nội dung của mảng |
-| `String.copyValueOf(data, offset, count)` | Chuỗi chứa đoạn mảng | Đã có offset và số `char` cần lấy |
-| `String.valueOf(data)` khi `data` có kiểu tĩnh `char[]` | Chuỗi chứa toàn bộ mảng | Cách viết ngắn gọn, phổ biến |
-| `String.valueOf(data, offset, count)` | Chuỗi chứa đoạn mảng | Tương đương overload chọn đoạn của `copyValueOf` |
-| `new String(data)` | Chuỗi chứa toàn bộ mảng | Cách dùng constructor |
-| `new String(data, offset, count)` | Chuỗi chứa đoạn mảng | Cách dùng constructor cho đoạn mảng |
+| `String.copyValueOf(data)` | String containing the whole array | Emphasize converting and preserving the array's content |
+| `String.copyValueOf(data, offset, count)` | String containing the array slice | Already have offset and number of `char`s to take |
+| `String.valueOf(data)` when `data` has static type `char[]` | String containing the whole array | Concise, common style |
+| `String.valueOf(data, offset, count)` | String containing the array slice | Equivalent to `copyValueOf`'s slice overload |
+| `new String(data)` | String containing the whole array | Constructor style |
+| `new String(data, offset, count)` | String containing the array slice | Constructor style for an array slice |
 
-Các cách trên cho cùng **nội dung** khi dùng cùng các ký tự và đoạn mảng. Không nên dùng toán tử `==` để suy ra chúng là cùng đối tượng. Với `String`, so sánh nội dung bằng `equals`.
+The forms above produce the same **content** when given the same characters and slice. Do not use the `==` operator to infer that they are the same object. For `String`, compare contents using `equals`.
 
-### `valueOf(char[])` và `valueOf(Object)` khác nhau
+### `valueOf(char[])` and `valueOf(Object)` differ
 
-`String.valueOf(data)` với biến có kiểu tĩnh `char[]` lấy **nội dung các ký tự**; ép thành `Object` chuyển sang biểu diễn đối tượng mảng:
+`String.valueOf(data)` with a variable of static type `char[]` takes **the character contents**; casting to `Object` switches to the array object representation:
 
 ```java
 char[] data = {'H', 'i'};
@@ -152,11 +152,11 @@ System.out.println(String.valueOf((Object) data)
         .startsWith("[C@"));                              // true
 ```
 
-Nếu dữ liệu đến dưới kiểu `Object`, phải kiểm tra `instanceof char[]` trước khi chọn cách chuyển đổi; không ép kiểu vô điều kiện. Chi tiết phân giải overload và `null` nằm trong bài về `String.valueOf(Object)` so với `String.valueOf(char[])`.
+If data arrives as type `Object`, you must check `instanceof char[]` before choosing the conversion approach; do not cast unconditionally. Details on overload resolution and `null` are covered in the lesson on `String.valueOf(Object)` versus `String.valueOf(char[])`.
 
-### Phân biệt với Arrays.toString
+### Distinction from Arrays.toString
 
-`Arrays.toString(char[])` tạo biểu diễn hiển thị các **phần tử mảng**, có dấu ngoặc vuông, dấu phẩy và dấu cách; nó không ghép các ký tự thành chuỗi liền mạch:
+`Arrays.toString(char[])` produces a display representation of **array elements**, with square brackets, commas, and spaces; it does not join characters into a continuous string:
 
 ```java
 char[] data = {'H', 'i'};
@@ -165,18 +165,18 @@ System.out.println(String.copyValueOf(data)); // Hi
 System.out.println(java.util.Arrays.toString(data)); // [H, i]
 ```
 
-Hai cách đều có ích nhưng phục vụ mục đích khác nhau: cái đầu tạo văn bản, cái sau in cấu trúc mảng để gỡ lỗi.
+Both are useful but serve different purposes: the first creates text, while the second prints the array structure for debugging.
 
-## 5. offset và count: chọn đúng phạm vi
+## 5. offset and count: Choosing the Right Range
 
-Giả sử `data.length == n`. Một phạm vi hợp lệ cần thỏa tất cả điều kiện:
+Suppose `data.length == n`. A valid range must satisfy all conditions:
 
 - `offset >= 0`.
 - `count >= 0`.
 - `offset <= n`.
 - `count <= n - offset`.
 
-Nói cách khác, khoảng `[offset, offset + count)` phải nằm bên trong mảng. Viết điều kiện `count <= n - offset` giúp tránh việc tính `offset + count` bị tràn số nguyên trong tình huống giá trị cực đoan.
+In other words, the interval `[offset, offset + count)` must lie within the array. Writing the condition `count <= n - offset` helps avoid integer overflow when computing `offset + count` in extreme cases.
 
 ```java
 char[] data = {'a', 'b', 'c', 'd'};
@@ -185,9 +185,9 @@ System.out.println(String.copyValueOf(data, 1, 2)); // bc
 System.out.println(String.copyValueOf(data, 4, 0).isEmpty()); // true
 ```
 
-Lấy `count == 0` trong phạm vi hợp lệ cho ra chuỗi rỗng `""`; `offset == data.length` được phép **nếu count bằng 0**. Ngược lại, chỉ số âm hoặc yêu cầu vượt giới hạn sẽ phát sinh ngoại lệ.
+Taking `count == 0` within a valid range produces the empty string `""`; `offset == data.length` is allowed **if `count` is 0**. Otherwise, negative indices or out-of-bounds requests will throw an exception.
 
-Nếu cần lấy từ vị trí `from` (bao gồm) đến `toExclusive` (không bao gồm), hãy tính `count = toExclusive - from`:
+If you need to take from `from` (inclusive) to `toExclusive` (exclusive), compute `count = toExclusive - from`:
 
 ```java
 char[] data = {'a', 'b', 'c', 'd', 'e'};
@@ -198,11 +198,11 @@ String result = String.copyValueOf(data, from, toExclusive - from);
 System.out.println(result); // bcd
 ```
 
-Cách này nhất quán với quy ước phạm vi nửa mở trong nhiều API Java. Tránh truyền thẳng `toExclusive` làm `count` nếu đoạn không bắt đầu từ 0.
+This is consistent with the half-open range convention across many Java APIs. Avoid passing `toExclusive` directly as `count` if the slice does not start at 0.
 
-## 6. null, vùng không hợp lệ và các ngoại lệ
+## 6. null, Invalid Ranges, and Exceptions
 
-Không có chuỗi hợp lệ nào được trả về khi truyền mảng `null` cho `copyValueOf`.
+No valid string is returned when passing a `null` array to `copyValueOf`.
 
 ```java
 char[] missing = null;
@@ -210,25 +210,25 @@ char[] missing = null;
 try {
     String.copyValueOf(missing);
 } catch (NullPointerException e) {
-    System.out.println("Mảng nguồn là null");
+    System.out.println("Source array is null");
 }
 ```
 
-Một lời gọi với `offset` hoặc `count` không hợp lệ phát sinh `IndexOutOfBoundsException` (các phiên bản JDK có thể dùng lớp con cụ thể):
+A call with invalid `offset` or `count` throws `IndexOutOfBoundsException` (JDK versions may throw a specific subclass):
 
 ```java
 char[] data = {'J', 'a', 'v', 'a'};
 
 try {
-    String.copyValueOf(data, 3, 2); // cần 2 char từ index 3
+    String.copyValueOf(data, 3, 2); // needs 2 chars starting from index 3
 } catch (IndexOutOfBoundsException e) {
-    System.out.println("Đoạn mảng vượt giới hạn");
+    System.out.println("Array slice out of bounds");
 }
 ```
 
-Đừng nhầm với overload nhận `Object` của `String.valueOf`. Gọi `String.valueOf((Object) null)` cho chuỗi văn bản `"null"`, trong khi `String.copyValueOf((char[]) null)` ném `NullPointerException`. Đây là những hợp đồng khác nhau.
+Do not confuse this with the `Object` overload of `String.valueOf`. Calling `String.valueOf((Object) null)` produces the text string `"null"`, whereas `String.copyValueOf((char[]) null)` throws `NullPointerException`. These are different contracts.
 
-Khi dữ liệu đến từ người dùng hoặc buffer có `offset`/`count` tính toán, hãy kiểm tra bất biến phạm vi ở ranh giới hệ thống. Nếu dữ liệu bắt buộc có mảng, việc ném ngoại lệ có thể là lựa chọn phù hợp; nếu `null` có ý nghĩa nghiệp vụ, hãy xử lý rõ trước khi gọi:
+When data comes from user input or a buffer with computed `offset`/`count`, validate range invariants at system boundaries. If an array is required, letting an exception be thrown may be appropriate; if `null` has domain meaning, handle it explicitly before calling:
 
 ```java
 static String safelyCopy(char[] data) {
@@ -236,29 +236,29 @@ static String safelyCopy(char[] data) {
 }
 ```
 
-Mẫu này chọn chuỗi rỗng khi nguồn `null` **theo quyết định của ứng dụng**, không phải hành vi mặc định của API.
+This pattern chooses the empty string when the source is `null` **by application decision**, not as default API behavior.
 
-## 7. char[] là các đơn vị UTF-16, không phải mọi "ký tự nhìn thấy"
+## 7. char[] Consists of UTF-16 Units, Not Always "Visible Characters"
 
-`char` trong Java là đơn vị mã UTF-16 16-bit. Nhiều ký tự Unicode thường gặp, như `'A'`, chiếm một `char`. Nhưng ký tự nằm ngoài Basic Multilingual Plane (BMP), chẳng hạn emoji `🚀` (U+1F680), được biểu diễn bằng **cặp surrogate gồm hai `char`**.
+A `char` in Java is a 16-bit UTF-16 code unit. Many common Unicode characters, such as `'A'`, occupy one `char`. However, characters outside the Basic Multilingual Plane (BMP), such as the emoji `🚀` (U+1F680), are represented by a **surrogate pair of two `char`s**.
 
-`copyValueOf(data, offset, count)` đếm theo **phần tử `char`**, không theo số Unicode code point và cũng không theo ký tự người dùng nhìn thấy (grapheme cluster).
+`copyValueOf(data, offset, count)` counts by **`char` elements**, not by Unicode code points and not by user-perceived characters (grapheme clusters).
 
 ```java
 char[] symbols = {'A', '\uD83D', '\uDE80', 'B'};
 String text = String.copyValueOf(symbols);
 
-System.out.println(text.length()); // 4 đơn vị UTF-16
-System.out.println(text.codePointCount(0, text.length())); // 3 code point
+System.out.println(text.length()); // 4 UTF-16 units
+System.out.println(text.codePointCount(0, text.length())); // 3 code points
 
 String rocket = String.copyValueOf(symbols, 1, 2);
 System.out.println(rocket); // 🚀
 System.out.println(rocket.length()); // 2
 ```
 
-Nếu cắt một phần tử ở giữa cặp surrogate, kết quả có thể chứa một surrogate không ghép đôi; chuỗi Java vẫn có thể lưu đơn vị mã đó nhưng quá trình xử lý/hiển thị Unicode về sau có thể gặp vấn đề.
+If you slice a single element in the middle of a surrogate pair, the result may contain an unpaired surrogate; a Java string can still store that code unit, but subsequent Unicode processing/rendering may encounter issues.
 
-Khi offset/count xuất phát từ vị trí code point, cần tính sang chỉ số UTF-16 đúng cách trước khi dùng `copyValueOf`. Có thể bắt đầu bằng một `String` và dùng `offsetByCodePoints` để xác định ranh giới:
+When `offset`/`count` originate from code point positions, convert them properly to UTF-16 indices before using `copyValueOf`. You can start from a `String` and use `offsetByCodePoints` to determine boundaries:
 
 ```java
 String source = "A🚀B";
@@ -270,13 +270,13 @@ String rocket = String.copyValueOf(units, begin, end - begin);
 System.out.println(rocket); // 🚀
 ```
 
-Ở đây `begin == 1`, `end == 3`, nên `count == 2`. Đây là hai đơn vị `char` biểu diễn một code point, hoàn toàn phù hợp với hợp đồng của `copyValueOf`.
+Here `begin == 1`, `end == 3`, so `count == 2`. These are the two `char` units representing one code point, fully matching the contract of `copyValueOf`.
 
-**Không nhầm với mã hóa:** `copyValueOf` không đọc byte và không áp dụng `UTF-8` hay `Charset`; đầu vào là các đơn vị `char` đã có sẵn. Khi đầu vào là `byte[]`, cần giải mã với charset phù hợp (ví dụ `new String(bytes, StandardCharsets.UTF_8)`), không dùng `copyValueOf`.
+**Do not confuse with encoding:** `copyValueOf` does not read bytes and does not apply `UTF-8` or any `Charset`; its input is already `char` units. When input is `byte[]`, you must decode with an appropriate charset (for example `new String(bytes, StandardCharsets.UTF_8)`), rather than `copyValueOf`.
 
-## 8. Ví dụ Java 17+ hoàn chỉnh
+## 8. Complete Java 17+ Example
 
-Lưu mã sau vào tệp **`CopyValueOfDemo.java`**:
+Save the following code to **`CopyValueOfDemo.java`**:
 
 ```java
 public class CopyValueOfDemo {
@@ -336,14 +336,14 @@ public class CopyValueOfDemo {
 }
 ```
 
-Chạy bằng JDK 17 trở lên:
+Run with JDK 17 or newer:
 
 ```bash
 javac -encoding UTF-8 CopyValueOfDemo.java
 java CopyValueOfDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 whole = Java 17
@@ -362,71 +362,71 @@ null -> NullPointerException
 bad range -> IndexOutOfBoundsException
 ```
 
-Ý nghĩa của các dòng quan trọng:
+Meaning of key lines:
 
-- `whole` vẫn là `"Java 17"` sau khi `letters` đã thành `"Xava 27"`: chuỗi đã tạo không liên kết sống với mảng.
-- `same text = true` xác nhận ba cách tạo chuỗi có cùng **nội dung**, không kết luận về việc chúng là cùng đối tượng.
-- `empty tail = true` cho thấy `count = 0` hợp lệ tại cuối mảng.
-- `object overload uses contents = false` cho thấy ép `char[]` thành `Object` làm thay đổi overload được chọn khi gọi `String.valueOf`.
-- `UTF16 units = 4` nhưng `code points = 3` minh họa cặp surrogate; `rocket units = 2` là chiều dài theo `char` của một emoji.
-- Hai ngoại lệ cuối kiểm tra riêng lỗi `null` và phạm vi không hợp lệ.
+- `whole` remains `"Java 17"` after `letters` became `"Xava 27"`: the created string is not live-linked to the array.
+- `same text = true` confirms the three ways of creating a string have the same **content**, without concluding they are the same object.
+- `empty tail = true` shows that `count = 0` is valid at the end of the array.
+- `object overload uses contents = false` shows that casting `char[]` to `Object` changes the overload chosen when calling `String.valueOf`.
+- `UTF16 units = 4` while `code points = 3` illustrates a surrogate pair; `rocket units = 2` is the `char` length of an emoji.
+- The last two exceptions test `null` errors and invalid range errors separately.
 
-## 9. Khi nào nên chọn copyValueOf?
+## 9. When Should You Choose copyValueOf?
 
-Sử dụng `String.copyValueOf(char[])` khi đã có một mảng ký tự chứa dữ liệu cần chuyển thành chuỗi, và `String.copyValueOf(char[], offset, count)` khi chỉ muốn giữ một đoạn mà không cần trước đó tự tạo mảng con.
+Use `String.copyValueOf(char[])` when you already have a character array containing data to convert into a string, and `String.copyValueOf(char[], offset, count)` when you only want to keep a slice without first creating a subarray manually.
 
-Ví dụ với bộ đệm được sử dụng trong quá trình đọc:
+Example with a buffer used during reading:
 
 ```java
 char[] buffer = new char[8];
-// Giả sử API đọc đã điền 3 ký tự đầu: 'c', 'a', 't'
+// Suppose a read API filled the first 3 characters: 'c', 'a', 't'
 buffer[0] = 'c';
 buffer[1] = 'a';
 buffer[2] = 't';
 int length = 3;
 
 String snapshot = String.copyValueOf(buffer, 0, length);
-// snapshot là "cat"; phần còn lại của buffer không được ghép vào chuỗi
+// snapshot is "cat"; the rest of the buffer is not appended to the string
 ```
 
-Khi chỉ một phần mảng chứa dữ liệu có ý nghĩa, overload ba tham số giúp tránh đưa các phần tử chưa dùng (ví dụ `'\0'`) vào `String`.
+When only part of the array holds meaningful data, the three-parameter overload avoids including unused elements (such as `'\0'`) in the `String`.
 
-Các lưu ý khi lựa chọn:
+Notes on making the choice:
 
-- Về **nội dung kết quả**, `String.valueOf(char[])` và `String.copyValueOf(char[])` tương đương. Có thể chọn cách viết quen thuộc của codebase.
-- Không dùng `String.copyValueOf` để ghép nhiều mảng, chuyển kiểu đối tượng bất kỳ hay giải mã `byte[]`. Nếu cần ghép nhiều đoạn, `StringBuilder` hoặc cách ghép phù hợp thường diễn đạt mục đích rõ hơn.
-- Việc tạo `String` mới từ mảng có chi phí xử lý và lưu trữ phụ thuộc độ dài; khi lặp với dữ liệu lớn, nên đo đạc trường hợp thực tế. Không suy đoán chi tiết nội bộ của từng JDK.
-- Nếu mảng chứa bí mật cần xóa khỏi bộ nhớ ngay sau sử dụng, việc chuyển thành `String` bất biến có thể làm khó kiểm soát vòng đời dữ liệu; cân nhắc yêu cầu bảo mật trước khi tạo chuỗi.
-- Với văn bản Unicode, kiểm tra ranh giới UTF-16 và chuẩn hóa riêng nếu bài toán cần so sánh Unicode tương đương; `copyValueOf` không tự chuẩn hóa dấu hay code point.
+- In terms of **resulting content**, `String.valueOf(char[])` and `String.copyValueOf(char[])` are equivalent. You can choose whichever style is familiar in your codebase.
+- Do not use `String.copyValueOf` to concatenate multiple arrays, convert arbitrary object types, or decode `byte[]`. If you need to join multiple slices, `StringBuilder` or an appropriate concatenation method usually expresses the intent more clearly.
+- Creating a new `String` from an array has processing and memory costs proportional to length; when looping over large data, measure your actual case. Do not speculate about internal details of individual JDKs.
+- If the array holds secrets that must be cleared from memory immediately after use, converting it into an immutable `String` can make data lifecycle control difficult; consider security requirements before creating a string.
+- For Unicode text, check UTF-16 boundaries and normalize separately if the problem requires Unicode equivalence comparison; `copyValueOf` does not automatically normalize diacritics or code points.
 
-## 10. Những lỗi phổ biến
+## 10. Common Mistakes
 
-1. **Dùng `charArray.toString()` và mong nhận nội dung.** Phương thức đó biểu diễn đối tượng mảng, không ghép ký tự. Dùng `String.copyValueOf(charArray)`.
-2. **Nhầm `count` là endIndex.** `copyValueOf(data, 2, 5)` nghĩa là lấy **năm ký tự từ chỉ số 2**, không phải lấy các chỉ số 2, 3, 4.
-3. **Giữ tham chiếu đến mảng rồi tưởng thay đổi mảng sẽ đổi chuỗi.** `String` là immutable; snapshot đã tạo không đổi.
-4. **Không kiểm tra `null` hoặc phạm vi.** `copyValueOf(null)` gây `NullPointerException`; đoạn ngoài mảng gây `IndexOutOfBoundsException`.
-5. **Ép mảng thành `Object` khi gọi `String.valueOf`.** Overload `valueOf(Object)` không ghép các phần tử `char[]` thành văn bản.
-6. **Dùng `Arrays.toString(char[])` khi cần chuỗi liền mạch.** Nó được dùng để hiển thị cấu trúc mảng, ví dụ `[H, i]`.
-7. **Giả định `char` tương ứng một Unicode code point.** Một ký tự ngoài BMP thường chiếm hai đơn vị UTF-16; phạm vi có thể cắt nhầm cặp surrogate.
-8. **Nhầm số ký tự hợp lệ của buffer với `buffer.length`.** Nếu buffer chỉ chứa một phần dữ liệu, phải truyền đúng `offset` và `count`.
-9. **So sánh chuỗi bằng `==` thay vì `equals`.** Kết quả tạo từ nhiều API có thể là các đối tượng khác nhau nhưng có cùng văn bản.
+1. **Using `charArray.toString()` expecting to get the content.** That method represents the array object, not the joined characters. Use `String.copyValueOf(charArray)`.
+2. **Confusing `count` with `endIndex`.** `copyValueOf(data, 2, 5)` means taking **five characters starting at index 2**, not taking indices 2, 3, 4.
+3. **Keeping a reference to the array and thinking modifying the array changes the string.** `String` is immutable; the created snapshot does not change.
+4. **Failing to check `null` or bounds.** `copyValueOf(null)` causes `NullPointerException`; an out-of-bounds slice causes `IndexOutOfBoundsException`.
+5. **Casting the array to `Object` when calling `String.valueOf`.** The `valueOf(Object)` overload does not join `char[]` elements into text.
+6. **Using `Arrays.toString(char[])` when a continuous string is needed.** It is used to display the array structure, such as `[H, i]`.
+7. **Assuming a `char` corresponds to one Unicode code point.** A character outside the BMP usually occupies two UTF-16 units; a range might split a surrogate pair by mistake.
+8. **Confusing the valid character count of a buffer with `buffer.length`.** If a buffer only holds partial data, you must pass the exact `offset` and `count`.
+9. **Comparing strings with `==` instead of `equals`.** Results created from different APIs may be distinct objects with the same text.
 
-## 11. Bài tập tự kiểm tra
+## 11. Self-Check Exercises
 
-**Bài 1.** Với đoạn mã sau, kết quả là gì?
+**Exercise 1.** With the following code, what is the output?
 
 ```java
 char[] data = {'A', 'B', 'C', 'D', 'E'};
 System.out.println(String.copyValueOf(data, 1, 3));
 ```
 
-**Đáp án:** `BCD`. Bắt đầu tại chỉ số 1 và lấy ba phần tử.
+**Answer:** `BCD`. Starts at index 1 and takes three elements.
 
-**Bài 2.** Vì sao `String.copyValueOf(data, 2, 4)` gây ngoại lệ khi `data.length == 5`?
+**Exercise 2.** Why does `String.copyValueOf(data, 2, 4)` throw an exception when `data.length == 5`?
 
-**Đáp án:** Phạm vi dự kiến là `[2, 6)`, vượt ra ngoài `[0, 5)` của mảng. `count` cần nhỏ hơn hoặc bằng `5 - 2 = 3`.
+**Answer:** The intended range is `[2, 6)`, which extends beyond the array's `[0, 5)`. `count` must be less than or equal to `5 - 2 = 3`.
 
-**Bài 3.** Sau khi chạy mã sau, `s` có đổi thành `"Xbc"` không?
+**Exercise 3.** After running the following code, does `s` change to `"Xbc"`?
 
 ```java
 char[] data = {'a', 'b', 'c'};
@@ -434,19 +434,19 @@ String s = String.copyValueOf(data);
 data[0] = 'X';
 ```
 
-**Đáp án:** Không. `s` vẫn là `"abc"` vì thay đổi mảng nguồn sau đó không ảnh hưởng `String` đã tạo.
+**Answer:** No. `s` remains `"abc"` because modifying the source array afterward does not affect the created `String`.
 
-**Bài 4.** `String.copyValueOf(data, 0, 1)` có chắc lấy được toàn bộ emoji ở đầu mảng không?
+**Exercise 4.** Is `String.copyValueOf(data, 0, 1)` guaranteed to extract an entire emoji at the beginning of the array?
 
-**Đáp án:** Không chắc. Emoji nằm ngoài BMP thường gồm hai `char` UTF-16. Cần xác định ranh giới code point chính xác rồi mới cắt theo `char`.
+**Answer:** Not guaranteed. Emojis outside the BMP usually consist of two UTF-16 `char`s. You must determine the exact code point boundary before slicing by `char`.
 
-**Bài 5.** Tại sao `String.valueOf((Object) data)` không nên dùng để chuyển `char[]` thành văn bản?
+**Exercise 5.** Why shouldn't `String.valueOf((Object) data)` be used to convert `char[]` to text?
 
-**Đáp án:** Nó chọn overload `valueOf(Object)` và lấy biểu diễn đối tượng mảng. Muốn ghép từng phần tử `char`, dùng `String.valueOf(data)` với kiểu tĩnh `char[]`, `String.copyValueOf(data)` hoặc `new String(data)`.
+**Answer:** It selects the `valueOf(Object)` overload and returns the array object's representation. To join `char` elements, use `String.valueOf(data)` with static type `char[]`, `String.copyValueOf(data)`, or `new String(data)`.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 — String API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): các overload `copyValueOf`, `valueOf`, constructor từ `char[]`, `toCharArray`, và quy tắc immutability.
-- [Java SE 17 — Character API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html): UTF-16 code units, code points và surrogate pairs.
+- [Java SE 17 — String API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): `copyValueOf` and `valueOf` overloads, `char[]` constructors, `toCharArray`, and immutability rules.
+- [Java SE 17 — Character API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html): UTF-16 code units, code points, and surrogate pairs.
 
-**Ghi nhớ:** `copyValueOf` tạo `String` từ toàn bộ hoặc một đoạn mảng `char[]`, `offset` là vị trí bắt đầu, `count` là số **đơn vị UTF-16 `char`** được lấy, và nội dung chuỗi không thay đổi khi mảng nguồn bị sửa về sau.
+**Key takeaway:** `copyValueOf` creates a `String` from an entire `char[]` array or a slice of it, `offset` is the starting position, `count` is the number of **UTF-16 `char` units** taken, and the string's content does not change when the source array is modified later.

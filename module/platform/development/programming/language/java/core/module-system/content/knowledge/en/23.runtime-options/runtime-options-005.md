@@ -1,23 +1,23 @@
-# --limit-modules giới hạn universe module
+# --limit-modules: Limiting the Module Universe
 
-## 1. Ý nghĩa của --limit-modules
+## 1. Meaning of --limit-modules
 
-Khi khởi động ứng dụng modular, Java phải xác định những module nào có thể được nhìn thấy và đưa vào quá trình module resolution. Tập module mà module system có thể quan sát được gọi là **universe of observable modules**.
+When starting a modular application, Java must determine which modules can be seen and included in the module resolution process. The set of modules that the module system can observe is called the **universe of observable modules**.
 
-Tùy chọn runtime `--limit-modules` giới hạn universe này. Nó nhận danh sách tên module và thu hẹp tập module có thể được resolver xem xét xuống:
+The runtime option `--limit-modules` limits this universe. It accepts a list of module names and narrows the set of modules the resolver can consider down to:
 
-- Các module được liệt kê trực tiếp.
-- Các module mà những module đó yêu cầu, theo chuỗi dependency `requires` (bao gồm các dependency gián tiếp).
+- The modules listed directly.
+- The modules required by those modules, following the `requires` dependency chain (including transitive dependencies).
 
-Các module nằm ngoài tập giới hạn sẽ không còn observable trong lần chạy đó. Vì thế, nếu một root module hoặc dependency cần một module đã bị loại khỏi universe, quá trình resolution có thể thất bại với lỗi không tìm thấy module.
+Modules outside the limited set will no longer be observable during that run. Therefore, if a root module or dependency needs a module that was excluded from the universe, the resolution process can fail with a module-not-found error.
 
-Điểm quan trọng: `--limit-modules` **giới hạn tập module có thể được nhìn thấy**, không phải danh sách module mà ứng dụng chắc chắn sẽ khởi tạo. Việc module nào thực sự được resolve còn phụ thuộc vào root modules, các directive `requires`, service binding và những tùy chọn launcher khác.
+Important point: `--limit-modules` **limits the set of modules that can be seen**, not the list of modules the application will definitely instantiate. Which modules are actually resolved still depends on the root modules, `requires` directives, service binding, and other launcher options.
 
-## 2. Universe module gồm những gì?
+## 2. What Does the Module Universe Include?
 
-Thông thường, Java có thể quan sát các system modules của runtime image và các module ứng dụng tìm được trên module path. Khi dùng `--limit-modules`, universe được thu hẹp theo danh sách đã chọn cùng closure dependency của chúng.
+Normally, Java can observe the system modules of the runtime image and the application modules found on the module path. When using `--limit-modules`, the universe is narrowed to the selected list along with its dependency closure.
 
-Ví dụ có các module:
+Suppose there are modules:
 
 ```text
 com.acme.app
@@ -32,40 +32,40 @@ com.acme.provider.json
   provides com.acme.spi.Formatter with ...
 ```
 
-Nếu giới hạn bằng:
+If limited by:
 
 ```bash
 --limit-modules com.acme.app
 ```
 
-thì universe sẽ bao gồm `com.acme.app` và các module cần thiết theo dependency `requires` của nó, chẳng hạn `com.acme.api`, `java.logging` và `java.base`.
+then the universe will include `com.acme.app` and the modules needed along its `requires` dependencies, such as `com.acme.api`, `java.logging`, and `java.base`.
 
-Module `com.acme.provider.json` không tự động thuộc closure chỉ vì nó khai báo `provides` cho một service. Nếu ứng dụng cần provider này thông qua service binding, phải bảo đảm provider vẫn nằm trong universe có thể quan sát. Có thể thêm nó vào danh sách:
+Module `com.acme.provider.json` does not automatically belong to the closure merely because it declares `provides` for a service. If the application needs this provider via service binding, you must ensure the provider remains in the observable universe. You can add it to the list:
 
 ```bash
 --limit-modules com.acme.app,com.acme.provider.json
 ```
 
-Việc giới hạn module không thay đổi nội dung JAR, không sửa `module-info.java` và không xóa module khỏi thư mục module path. Nó chỉ ảnh hưởng đến universe module trong lần chạy được cấu hình.
+Limiting modules does not alter JAR contents, does not modify `module-info.java`, and does not delete modules from the module path directory. It affects only the module universe in the configured run.
 
-## 3. Cú pháp trên Java launcher
+## 3. Syntax on the Java Launcher
 
-Cú pháp:
+Syntax:
 
 ```bash
 java --limit-modules module-name[,module-name...] ...
 ```
 
-Ví dụ:
+Example:
 
 ```bash
 java --limit-modules java.base,java.logging \
   -m com.acme.app/com.acme.app.Main
 ```
 
-Trong ứng dụng modular thực tế, cần bảo đảm root module và mọi dependency cần thiết đều nằm trong tập observable. Nếu `com.acme.app` cần `com.acme.api`, nhưng danh sách giới hạn không chứa app hoặc một module có dependency closure dẫn tới app, module app có thể không còn observable.
+In a real modular application, you must ensure the root module and all required dependencies are in the observable set. If `com.acme.app` needs `com.acme.api`, but the limit list does not contain app or a module whose dependency closure leads to app, the app module may no longer be observable.
 
-Một ví dụ đầy đủ với module path:
+A complete example with a module path:
 
 ```bash
 java --module-path mods \
@@ -73,13 +73,13 @@ java --module-path mods \
   -m com.acme.app/com.acme.app.Main
 ```
 
-Ở đây:
+Here:
 
-- `--module-path mods` chỉ ra nơi tìm các application modules.
-- `--limit-modules com.acme.app` giới hạn universe theo app và dependency closure của nó.
-- `-m com.acme.app/com.acme.app.Main` chọn module và main class để chạy.
+- `--module-path mods` points to where the application modules are located.
+- `--limit-modules com.acme.app` limits the universe to app and its dependency closure.
+- `-m com.acme.app/com.acme.app.Main` selects the module and main class to run.
 
-Nếu ứng dụng dùng provider chỉ được tìm thấy qua SPI, hãy cân nhắc đưa provider module vào danh sách giới hạn:
+If the application uses a provider discovered only via SPI, consider including the provider module in the limit list:
 
 ```bash
 java --module-path mods \
@@ -87,20 +87,20 @@ java --module-path mods \
   -m com.acme.app/com.acme.app.Main
 ```
 
-Tên module phải là tên module thực tế, không phải tên package hoặc tên class. Có thể kiểm tra tên module trong JAR bằng `jar --describe-module`.
+Module names must be actual module names, not package names or class names. You can inspect module names in a JAR using `jar --describe-module`.
 
-## 4. Phân biệt --limit-modules với --add-modules
+## 4. Distinguishing --limit-modules from --add-modules
 
-Hai tùy chọn có mục đích khác nhau:
+The two options have different purposes:
 
-| Tùy chọn | Vai trò |
+| Option | Role |
 |---|---|
-| `--limit-modules` | Giới hạn universe module có thể quan sát và resolve |
-| `--add-modules` | Thêm module được chỉ định vào tập root modules cần resolve |
-| `--module-path` | Chỉ ra nơi tìm application modules |
-| `--show-module-resolution` | In thông tin các module được resolve khi khởi chạy |
+| `--limit-modules` | Limits the universe of observable and resolvable modules |
+| `--add-modules` | Adds the specified modules to the set of root modules to resolve |
+| `--module-path` | Indicates where to find application modules |
+| `--show-module-resolution` | Prints information about modules resolved at launch |
 
-Ví dụ:
+Example:
 
 ```bash
 java --module-path mods \
@@ -108,9 +108,9 @@ java --module-path mods \
   -m com.acme.app/com.acme.app.Main
 ```
 
-`--add-modules java.sql` yêu cầu thêm `java.sql` làm root module. Nó không giới hạn universe các module có thể quan sát.
+`--add-modules java.sql` requests adding `java.sql` as a root module. It does not limit the universe of observable modules.
 
-Ngược lại:
+Conversely:
 
 ```bash
 java --module-path mods \
@@ -118,9 +118,9 @@ java --module-path mods \
   -m com.acme.app/com.acme.app.Main
 ```
 
-`--limit-modules` chỉ thu hẹp universe. Nó không có nghĩa tất cả module trong danh sách đều tự động trở thành root module. Root ứng dụng vẫn được chọn bằng `-m`, `--module` hoặc cơ chế khởi chạy tương ứng.
+`--limit-modules` only narrows the universe. It does not mean all modules in the list automatically become root modules. The application root is still selected via `-m`, `--module`, or the corresponding launch mechanism.
 
-Có thể kết hợp cả hai:
+Both can be combined:
 
 ```bash
 java --module-path mods \
@@ -129,13 +129,13 @@ java --module-path mods \
   -m com.acme.app/com.acme.app.Main
 ```
 
-Trong ví dụ này, `java.sql` vừa nằm trong universe được phép quan sát, vừa được thêm làm root module. Khi kết hợp, mọi module được yêu cầu làm root phải nằm trong universe giới hạn.
+In this example, `java.sql` is both within the allowed observable universe and added as a root module. When combining them, every module requested as a root must lie within the limited universe.
 
-## 5. Tác động đến module resolution
+## 5. Impact on Module Resolution
 
-Module resolution bắt đầu từ root modules và lần theo các dependency `requires`. `--limit-modules` thay đổi tập module đầu vào mà resolver có thể xem xét.
+Module resolution starts from root modules and follows `requires` dependencies. `--limit-modules` changes the input set of modules that the resolver can consider.
 
-Giả sử ứng dụng có graph:
+Suppose an application has the graph:
 
 ```text
 com.acme.app
@@ -147,15 +147,15 @@ com.acme.app
    +-- requires java.logging
 ```
 
-Nếu universe chứa `com.acme.app`, các dependency cần thiết của nó cũng nằm trong closure và resolver có thể tìm chúng, miễn là các module tương ứng có sẵn trong các nguồn tìm kiếm hợp lệ.
+If the universe contains `com.acme.app`, its required dependencies are also in the closure and the resolver can locate them, provided the corresponding modules are available in valid search sources.
 
-Nếu `com.acme.api` không thể được tìm thấy trong universe hoặc trên các nguồn module hợp lệ, resolution không thể hoàn thành. Thông báo lỗi thường cho biết module nào đang bị thiếu; cần kiểm tra cả tên module lẫn danh sách giới hạn.
+If `com.acme.api` cannot be found in the universe or in valid module sources, resolution cannot complete. The error message usually indicates which module is missing; check both the module name and the limit list.
 
-`--limit-modules` không tự sửa dependency thiếu, không biến `requires` thành optional và không export package. Nó chỉ quyết định module nào có thể được nhìn thấy trong quá trình resolution.
+`--limit-modules` does not automatically fix missing dependencies, does not turn `requires` into optional, and does not export packages. It only determines which modules can be seen during the resolution process.
 
-## 6. Tác động đến ServiceLoader và provider module
+## 6. Impact on ServiceLoader and Provider Modules
 
-Trong kiến trúc SPI, consumer thường khai báo:
+In an SPI architecture, a consumer typically declares:
 
 ```java
 module com.acme.app {
@@ -164,7 +164,7 @@ module com.acme.app {
 }
 ```
 
-Provider khai báo:
+A provider declares:
 
 ```java
 module com.acme.provider.json {
@@ -175,9 +175,9 @@ module com.acme.provider.json {
 }
 ```
 
-Khi dùng service binding, module system chỉ có thể xem xét các provider module mà nó quan sát được. Nếu `--limit-modules` loại provider khỏi universe, provider đó không thể được tự động tìm và đưa vào graph chỉ vì có directive `provides`.
+When using service binding, the module system can consider only provider modules that it can observe. If `--limit-modules` excludes the provider from the universe, that provider cannot be automatically discovered and brought into the graph merely because it has a `provides` directive.
 
-Nếu ứng dụng cần provider cụ thể, hãy thêm provider module vào tập giới hạn:
+If the application needs a specific provider, add the provider module to the limit set:
 
 ```bash
 java --module-path mods \
@@ -186,23 +186,23 @@ java --module-path mods \
   -m com.acme.app/com.acme.app.Main
 ```
 
-Sau khi khởi chạy, `ServiceLoader` chỉ có thể tìm các provider phù hợp trong layer mà nó được yêu cầu tìm kiếm. Vì vậy cần phân biệt:
+After launch, `ServiceLoader` can find only matching providers in the layer it is asked to search. Therefore, distinguish:
 
-1. Provider có nằm trong universe module được quan sát không?
-2. Provider có được resolution/service binding đưa vào configuration và layer không?
-3. Consumer có tìm provider trong đúng layer bằng `ServiceLoader` không?
+1. Is the provider in the observable module universe?
+2. Was the provider brought into the configuration and layer by resolution/service binding?
+3. Is the consumer searching for the provider in the right layer using `ServiceLoader`?
 
-Một provider nằm trên ổ đĩa nhưng bị giới hạn khỏi universe không thể được ServiceLoader tự tìm thấy từ layer đó.
+A provider sitting on disk but restricted from the universe cannot be automatically discovered by ServiceLoader from that layer.
 
-## 7. Quan sát module universe và resolution
+## 7. Observing the Module Universe and Resolution
 
-Có thể dùng `--list-modules` để xem danh sách module runtime quan sát được trong cấu hình launcher:
+You can use `--list-modules` to view the list of modules the runtime can observe in the launcher configuration:
 
 ```bash
 java --limit-modules java.base,java.logging --list-modules
 ```
 
-Có thể dùng `--show-module-resolution` khi chạy ứng dụng để quan sát các module được resolve:
+You can use `--show-module-resolution` when running the application to observe which modules are resolved:
 
 ```bash
 java --module-path mods \
@@ -211,61 +211,61 @@ java --module-path mods \
   -m com.acme.app/com.acme.app.Main
 ```
 
-Để kiểm tra descriptor của một module:
+To inspect a module's descriptor:
 
 ```bash
 jar --describe-module --file mods/com.acme.api.jar
 ```
 
-Nếu chưa biết tên module được suy ra từ JAR, lệnh này giúp xác nhận module name và các directive được khai báo. Với module đã có trong runtime image, có thể dùng:
+If you do not know the module name derived from a JAR, this command helps confirm the module name and declared directives. For a module already in the runtime image, you can use:
 
 ```bash
 java --describe-module java.logging
 ```
 
-Khi debug, so sánh danh sách module có thể quan sát, module thực sự được resolve và các module được thêm làm root. Ba tập này có liên quan nhưng không đồng nghĩa.
+When debugging, compare the list of observable modules, the modules actually resolved, and the modules added as roots. These three sets are related, not synonymous.
 
-## 8. Lỗi thường gặp
+## 8. Common Errors
 
-| Triệu chứng | Nguyên nhân cần kiểm tra |
+| Symptom | Cause to Check |
 |---|---|
-| `FindException` hoặc thông báo không tìm thấy module | Module cần thiết bị loại khỏi universe, sai tên module hoặc không có trên module path |
-| Root module không được tìm thấy | Danh sách `--limit-modules` không bao gồm root module và không có module được liệt kê nào yêu cầu nó |
-| Ứng dụng thiếu provider SPI | Provider không nằm trong universe hoặc không được đưa vào layer |
-| Thêm `--add-modules` nhưng vẫn báo module không tìm thấy | Module được thêm làm root nhưng lại không observable trong tập giới hạn |
-| Ứng dụng chạy được trên cấu hình đầy đủ nhưng lỗi khi bật giới hạn | Có dependency gián tiếp hoặc provider mà danh sách giới hạn chưa tính tới |
-| Danh sách module khác dự kiến | Đang so sánh universe observable với graph thực sự được resolve; hãy dùng cả `--list-modules` và `--show-module-resolution` |
+| `FindException` or module-not-found message | A required module was excluded from the universe, the module name is wrong, or it is absent from the module path |
+| Root module not found | The `--limit-modules` list does not include the root module and no listed module requires it |
+| Application missing SPI provider | The provider is not in the universe or was not brought into the layer |
+| Added `--add-modules` but still reports module not found | The module was added as a root yet is not observable within the limited set |
+| Application works with full configuration but fails when limit is enabled | There is an indirect dependency or provider not accounted for by the limit list |
+| Module list differs from expectations | Confusing the observable universe with the actually resolved graph; use both `--list-modules` and `--show-module-resolution` |
 
-Khi sửa, không nên thêm tất cả module một cách tùy tiện. Hãy xác định module bị thiếu, xem nó có phải dependency bắt buộc, provider SPI hay root module chủ động hay không, rồi cập nhật tập giới hạn theo nhu cầu thực tế.
+When fixing, do not indiscriminately add all modules. Identify the missing module, check whether it is a required dependency, an SPI provider, or an intentional root module, and update the limit set according to actual needs.
 
-## 9. Khi nào nên dùng --limit-modules?
+## 9. When Should --limit-modules Be Used?
 
-Tùy chọn này hữu ích khi:
+This option is useful when:
 
-- Muốn kiểm thử ứng dụng với một universe module nhỏ và có kiểm soát.
-- Muốn phát hiện dependency vô tình dựa vào module ngoài tập dự kiến.
-- Muốn tái hiện môi trường runtime bị giới hạn để kiểm tra tính độc lập của ứng dụng.
-- Muốn kiểm tra các module provider và dependency có được khai báo rõ ràng trong kiến trúc không.
+- You want to test the application with a small, controlled module universe.
+- You want to detect dependencies inadvertently relying on modules outside the expected set.
+- You want to reproduce a restricted runtime environment to verify application independence.
+- You want to verify that provider modules and dependencies are explicitly declared in the architecture.
 
-Không nên xem `--limit-modules` là cách đóng gói runtime tối ưu hoặc thay thế kiểm tra bảo mật. Nó không xóa module khỏi JDK, không thay đổi bytecode, không giới hạn quyền truy cập file/network và không bảo đảm ứng dụng không dùng API ngoài danh sách theo mọi cơ chế khác.
+Do not treat `--limit-modules` as a way to package an optimized runtime or as a replacement for security checks. It does not remove modules from the JDK, does not alter bytecode, does not restrict file/network access, and does not guarantee the application will not use out-of-list APIs through other mechanisms.
 
-Nếu mục tiêu là tạo runtime image nhỏ chứa đúng các module cần thiết để triển khai, hãy xem xét `jlink`. `--limit-modules` là tùy chọn giới hạn universe ở thời điểm chạy; `jlink` tạo runtime image tùy biến ở thời điểm build.
+If the goal is to create a small runtime image containing only the modules needed for deployment, consider `jlink`. `--limit-modules` is a runtime universe-limiting option; `jlink` builds a custom runtime image at build time.
 
-## 10. Checklist trước khi phát hành
+## 10. Pre-Release Checklist
 
-- Xác nhận root module có nằm trong universe giới hạn.
-- Xác nhận toàn bộ dependency `requires` cần thiết có thể được tìm thấy.
-- Kiểm tra module provider cho SPI có cần được liệt kê riêng không.
-- Nếu dùng `--add-modules`, bảo đảm các root được thêm cũng observable.
-- Chạy với `--show-module-resolution` để kiểm tra graph thực tế.
-- Chạy integration test với chính tập `--limit-modules` dự kiến trong production.
-- Ghi lại danh sách giới hạn cùng cấu hình launch để việc triển khai có thể tái lập.
+- Confirm the root module is inside the limited universe.
+- Confirm all required `requires` dependencies can be found.
+- Check whether SPI provider modules need to be listed separately.
+- If using `--add-modules`, ensure the added roots are also observable.
+- Run with `--show-module-resolution` to inspect the actual graph.
+- Run integration tests with the exact `--limit-modules` set intended for production.
+- Record the limit list alongside the launch configuration so deployment is reproducible.
 
-## Ghi nhớ
+## Key Takeaways
 
-- `--limit-modules` thu hẹp universe observable xuống các module được liệt kê và dependency `requires` của chúng.
-- Nó không tự thêm mọi module trong danh sách làm root; `--add-modules` đảm nhiệm việc thêm root modules.
-- Module bị loại khỏi universe không thể được resolver sử dụng trong lần chạy đó.
-- Provider SPI cũng phải nằm trong phạm vi module có thể quan sát nếu muốn service binding tìm thấy nó.
-- Dùng `--list-modules` và `--show-module-resolution` để kiểm tra universe và graph.
-- Muốn tạo runtime image nhỏ, cân nhắc `jlink`; `--limit-modules` chỉ giới hạn universe khi chạy.
+- `--limit-modules` narrows the observable universe to the listed modules and their `requires` dependencies.
+- It does not automatically add every module in the list as a root; `--add-modules` handles adding root modules.
+- Modules excluded from the universe cannot be used by the resolver during that run.
+- SPI providers must also lie within the observable module scope for service binding to find them.
+- Use `--list-modules` and `--show-module-resolution` to inspect the universe and the graph.
+- To create a small runtime image, consider `jlink`; `--limit-modules` only limits the universe at runtime.

@@ -1,27 +1,27 @@
-# resolveAndBind và khác biệt với resolve
+# resolveAndBind and differences from resolve
 
-## 1. Bối cảnh: module resolution và service binding
+## 1. Context: module resolution and service binding
 
-Java Platform Module System (JPMS) cần xây dựng một **module graph** trước khi tạo module layer và chạy ứng dụng. Bắt đầu từ một hoặc nhiều root module, bộ phân giải tìm các module mà root yêu cầu trực tiếp hoặc gián tiếp thông qua directive `requires`. Quá trình này gọi là **module resolution**.
+The Java Platform Module System (JPMS) needs to build a **module graph** before creating module layers and running the application. Starting from one or more root modules, the resolver finds modules that the roots require directly or indirectly through `requires` directives. This process is called **module resolution**.
 
-Trong ứng dụng có dùng Service Provider Interface (SPI), một module có thể khai báo `uses` để tiêu thụ một service, trong khi module khác khai báo `provides ... with ...` để cung cấp implementation. Provider có thể không xuất hiện trong chuỗi `requires` của consumer. Nếu chỉ giải quyết các dependency thông thường, module provider có thể không được đưa vào module graph.
+In an application that uses a Service Provider Interface (SPI), one module may declare `uses` to consume a service, while another module declares `provides ... with ...` to supply an implementation. The provider might not appear in the consumer's `requires` chain. If only normal dependencies are resolved, the provider module may not be included in the module graph.
 
-JPMS cung cấp hai phương thức trên `Configuration` để lựa chọn cách giải quyết:
+JPMS provides two methods on `Configuration` to choose how resolution is performed:
 
-- `resolve(...)`: giải quyết root modules và dependency theo `requires`.
-- `resolveAndBind(...)`: thực hiện resolution như trên, đồng thời chạy **service binding** để bổ sung các module cung cấp service mà module trong graph khai báo `uses`.
+- `resolve(...)`: resolves root modules and dependencies declared via `requires`.
+- `resolveAndBind(...)`: performs resolution as above, while also running **service binding** to add modules that provide services for which modules in the graph declare `uses`.
 
-Service binding giải quyết tình huống consumer cần một dịch vụ nhưng không nên phụ thuộc trực tiếp vào module triển khai dịch vụ đó.
+Service binding addresses the situation where a consumer needs a service but should not depend directly on the module implementing that service.
 
-## 2. Ví dụ về ba module
+## 2. Three-module example
 
-Giả sử có ba module:
+Suppose there are three modules:
 
-- `com.acme.spi`: định nghĩa service interface `Formatter`.
-- `com.acme.app`: ứng dụng consumer, sử dụng `Formatter`.
-- `com.acme.provider.json`: provider cung cấp implementation `JsonFormatter`.
+- `com.acme.spi`: defines the `Formatter` service interface.
+- `com.acme.app`: consumer application, using `Formatter`.
+- `com.acme.provider.json`: provider supplying the `JsonFormatter` implementation.
 
-Service contract trong SPI:
+Service contract in the SPI:
 
 ```java
 package com.acme.spi;
@@ -31,7 +31,7 @@ public interface Formatter {
 }
 ```
 
-Module descriptor của SPI:
+Module descriptor of the SPI:
 
 ```java
 module com.acme.spi {
@@ -39,7 +39,7 @@ module com.acme.spi {
 }
 ```
 
-Module descriptor của consumer:
+Module descriptor of the consumer:
 
 ```java
 module com.acme.app {
@@ -49,9 +49,9 @@ module com.acme.app {
 }
 ```
 
-Consumer phụ thuộc vào SPI để tham chiếu interface và khai báo `uses` để thông báo rằng nó cần tìm các provider của service type này.
+The consumer depends on the SPI to reference the interface and declares `uses` to indicate that it needs to discover providers of this service type.
 
-Implementation trong provider:
+Implementation in the provider:
 
 ```java
 package com.acme.provider.json;
@@ -69,7 +69,7 @@ public final class JsonFormatter implements Formatter {
 }
 ```
 
-Module descriptor của provider:
+Module descriptor of the provider:
 
 ```java
 module com.acme.provider.json {
@@ -80,40 +80,40 @@ module com.acme.provider.json {
 }
 ```
 
-Provider phụ thuộc vào SPI để triển khai contract và khai báo `provides` để đăng ký implementation. Consumer không khai báo `requires com.acme.provider.json`; đây chính là điểm giúp provider có thể được thay thế hoặc bổ sung độc lập.
+The provider depends on the SPI to implement the contract and declares `provides` to register its implementation. The consumer does not declare `requires com.acme.provider.json`; this is precisely what allows providers to be replaced or added independently.
 
-## 3. Khác biệt giữa resolve và resolveAndBind
+## 3. Differences between resolve and resolveAndBind
 
-Cả hai phương thức đều bắt đầu từ root modules, tìm các module cần thiết theo `requires`, kiểm tra tính nhất quán của module graph và trả về một `Configuration` mới.
+Both methods start from the root modules, find required modules via `requires`, verify the consistency of the module graph, and return a new `Configuration`.
 
-| Nội dung | `resolve(...)` | `resolveAndBind(...)` |
+| Aspect | `resolve(...)` | `resolveAndBind(...)` |
 |---|---|---|
-| Giải quyết root modules | Có | Có |
-| Giải quyết dependency `requires` | Có | Có |
-| Xét directive `uses` để tìm provider | Không thực hiện service binding | Có |
-| Bổ sung module provider phù hợp vào graph | Không tự bổ sung chỉ vì có `provides` | Có, nếu provider quan sát được trong quá trình resolution |
-| Phù hợp với | Graph chỉ cần dependency tường minh | Ứng dụng cần tự động liên kết các SPI provider |
+| Resolves root modules | Yes | Yes |
+| Resolves `requires` dependencies | Yes | Yes |
+| Inspects `uses` directives to find providers | Does not perform service binding | Yes |
+| Adds matching provider modules to the graph | Does not add automatically merely due to `provides` | Yes, if the provider is observable during resolution |
+| Suitable for | Graphs that only need explicit dependencies | Applications that need to automatically link SPI providers |
 
-Giả sử root là `com.acme.app` và các module được đặt trong cùng một module finder:
+Suppose the root is `com.acme.app` and all modules are placed in the same module finder:
 
-**Với `resolve(...)`:**
+**With `resolve(...)`:**
 
-- Root `com.acme.app` được đưa vào graph.
-- `com.acme.spi` được đưa vào graph vì consumer khai báo `requires com.acme.spi`.
-- `com.acme.provider.json` không được thêm chỉ vì nó có `provides com.acme.spi.Formatter`.
+- Root `com.acme.app` is added to the graph.
+- `com.acme.spi` is added to the graph because the consumer declares `requires com.acme.spi`.
+- `com.acme.provider.json` is not added merely because it has `provides com.acme.spi.Formatter`.
 
-**Với `resolveAndBind(...)`:**
+**With `resolveAndBind(...)`:**
 
-- Các bước resolution thông thường vẫn diễn ra.
-- Bộ phân giải thấy `com.acme.app` khai báo `uses com.acme.spi.Formatter`.
-- Nếu tìm thấy provider module phù hợp và quan sát được, nó bổ sung `com.acme.provider.json` vào graph.
-- Dependency của provider cũng được giải quyết. Nếu module mới được thêm lại khai báo `uses` service khác, service binding tiếp tục xét các service đó cho đến khi không còn module phù hợp cần thêm.
+- The normal resolution steps still take place.
+- The resolver sees that `com.acme.app` declares `uses com.acme.spi.Formatter`.
+- If a matching and observable provider module is found, it adds `com.acme.provider.json` to the graph.
+- The provider's dependencies are also resolved. If the newly added module also declares `uses` for other services, service binding continues processing those services until no more matching modules need to be added.
 
-Vì vậy, `resolveAndBind` có thể tạo graph lớn hơn `resolve`. Kích thước graph thực tế phụ thuộc vào root modules, dependency, các directive service và những module mà các finder/parent configurations cung cấp cho bộ phân giải.
+Therefore, `resolveAndBind` can produce a larger graph than `resolve`. The actual graph size depends on the root modules, dependencies, service directives, and the modules supplied to the resolver by the finders/parent configurations.
 
-## 4. Ví dụ gọi hai phương thức Configuration
+## 4. Example calling the two Configuration methods
 
-Có thể so sánh trực tiếp hai configuration trong code:
+You can compare the two configurations directly in code:
 
 ```java
 import java.lang.module.ModuleFinder;
@@ -151,15 +151,15 @@ public class ResolutionExample {
 }
 ```
 
-Trong ví dụ:
+In the example:
 
-- `ModuleFinder.of(Path.of("mods"))` tìm các module có trong thư mục `mods`, gồm ứng dụng, SPI và provider.
-- `ModuleLayer.boot().configuration()` cung cấp configuration của boot layer làm parent.
-- `Set.of("com.acme.app")` chỉ định root module.
-- `ModuleFinder.of()` là finder rỗng cho tham số finder còn lại.
-- `Configuration.modules()` trả về các module thuộc configuration mới; các module đã có trong parent configuration không được tính vào tập này.
+- `ModuleFinder.of(Path.of("mods"))` locates modules present in the `mods` directory, including the application, SPI, and provider.
+- `ModuleLayer.boot().configuration()` provides the boot layer's configuration as the parent.
+- `Set.of("com.acme.app")` specifies the root module.
+- `ModuleFinder.of()` is an empty finder for the remaining finder parameter.
+- `Configuration.modules()` returns the modules belonging to the new configuration; modules already in the parent configuration are not counted in this set.
 
-Kết quả minh họa nếu provider chỉ được liên kết thông qua SPI:
+Illustrative output if the provider is linked only via SPI:
 
 ```text
 resolve:
@@ -172,22 +172,22 @@ resolveAndBind:
   com.acme.spi
 ```
 
-Danh sách thực tế phụ thuộc vào nội dung thư mục module và các dependency khác. Có thể thêm module khác vào thư mục `mods` để quan sát cách service binding bổ sung provider tương ứng.
+The actual list depends on the contents of the module directory and other dependencies. You can add other modules to the `mods` directory to observe how service binding adds the corresponding providers.
 
-Hai phương thức là instance method của `Configuration`. Các tham số `before` và `after` là `ModuleFinder` tham gia tìm module trong quá trình resolution; khi thiết kế custom configuration, cần bảo đảm các module ứng dụng và provider nằm trong phạm vi mà các finder/parent configurations có thể quan sát.
+Both methods are instance methods on `Configuration`. The `before` and `after` parameters are `ModuleFinder` instances participating in module discovery during resolution; when designing a custom configuration, ensure the application and provider modules are within the observable scope of the finders/parent configurations.
 
-## 5. Service binding không phải là khởi tạo provider
+## 5. Service binding is not provider instantiation
 
-Một điểm quan trọng là `resolveAndBind` chỉ xây dựng configuration có chứa các module provider phù hợp. Nó **không gọi constructor provider, không chạy implementation và không tự tạo đối tượng service**.
+An important point is that `resolveAndBind` only builds a configuration containing matching provider modules. It **does not invoke provider constructors, does not execute implementations, and does not create service objects itself**.
 
-Quy trình đầy đủ có các giai đoạn riêng:
+The complete workflow has distinct stages:
 
-1. Module descriptor khai báo `uses` và `provides`.
-2. `resolveAndBind` giải quyết dependency và bổ sung provider module vào configuration.
-3. Ứng dụng tạo `ModuleLayer` từ configuration.
-4. Consumer dùng `ServiceLoader` để lấy các implementation trong layer và gọi hành vi của service.
+1. Module descriptors declare `uses` and `provides`.
+2. `resolveAndBind` resolves dependencies and adds provider modules to the configuration.
+3. The application creates a `ModuleLayer` from the configuration.
+4. The consumer uses `ServiceLoader` to retrieve implementations in the layer and invoke service behavior.
 
-Ví dụ phía consumer:
+Consumer-side example:
 
 ```java
 import com.acme.spi.Formatter;
@@ -205,29 +205,29 @@ public class Main {
 }
 ```
 
-Nếu provider đã nằm trong layer mà consumer sử dụng, `ServiceLoader` có thể tìm implementation đó. Nếu provider không được đưa vào layer, `ServiceLoader` không thể nạp nó từ layer đó chỉ vì một module khác có khai báo `provides` ở nơi khác.
+If the provider is already in the layer used by the consumer, `ServiceLoader` can locate that implementation. If the provider is not brought into the layer, `ServiceLoader` cannot load it from that layer just because some module elsewhere declares `provides`.
 
-Với một custom `ModuleLayer`, có thể dùng overload `ServiceLoader.load(layer, Formatter.class)` để chỉ rõ layer cần tìm provider. Việc tạo layer và việc nạp provider là các thao tác riêng biệt với resolution.
+With a custom `ModuleLayer`, you can use the overload `ServiceLoader.load(layer, Formatter.class)` to explicitly specify the layer to search for providers. Creating the layer and loading providers are separate operations from resolution.
 
-## 6. resolve vẫn có thể dùng ServiceLoader
+## 6. resolve can still work with ServiceLoader
 
-Không nên hiểu rằng gọi `resolve` sẽ vô hiệu hóa SPI hoặc khiến `ServiceLoader` không hoạt động.
+You should not assume that calling `resolve` disables SPI or prevents `ServiceLoader` from working.
 
-Nếu provider đã được đưa vào graph bằng một cách khác, chẳng hạn:
+If a provider has been brought into the graph by another route, such as:
 
-- Provider được chỉ định trực tiếp như một root module.
-- Một module trong graph khai báo `requires` provider.
-- Provider đã nằm trong parent layer phù hợp.
+- The provider is specified directly as a root module.
+- A module in the graph declares `requires` on the provider.
+- The provider is already present in an appropriate parent layer.
 
-thì consumer vẫn có thể dùng `ServiceLoader` để tìm provider đó. Khác biệt là `resolve` không tự mở rộng graph để tìm provider chỉ dựa trên quan hệ `uses`/`provides`.
+then the consumer can still use `ServiceLoader` to locate that provider. The difference is that `resolve` does not automatically expand the graph to locate providers solely based on `uses`/`provides` relationships.
 
-Ngược lại, `resolveAndBind` cũng không thể tìm provider nằm ngoài phạm vi quan sát của các `ModuleFinder` và parent configurations. Đặt JAR ở một thư mục bất kỳ trên máy không có nghĩa resolver tự động tìm thấy nó; module cần nằm trong nguồn tìm kiếm được cung cấp cho resolution.
+Conversely, `resolveAndBind` also cannot locate providers outside the observable scope of the `ModuleFinder` instances and parent configurations. Placing a JAR in an arbitrary directory on disk does not mean the resolver will automatically find it; the module must be in the search sources supplied to resolution.
 
-## 7. Nhiều provider và service binding lặp
+## 7. Multiple providers and iterative service binding
 
-Một service có thể có nhiều provider. Nếu nhiều provider module phù hợp cùng có thể quan sát được, service binding có thể đưa nhiều module đó vào configuration. `resolveAndBind` không phải cơ chế chọn một provider duy nhất và cũng không xác định thứ tự ưu tiên nghiệp vụ cho ứng dụng.
+A service can have multiple providers. If multiple matching provider modules are observable together, service binding can add those multiple modules to the configuration. `resolveAndBind` is not a mechanism for picking a single provider, nor does it define business priority ordering for the application.
 
-Ví dụ có thêm:
+Suppose we also have:
 
 ```java
 module com.acme.provider.xml {
@@ -238,45 +238,45 @@ module com.acme.provider.xml {
 }
 ```
 
-Khi cả hai provider module đều có thể được resolver quan sát, configuration được tạo bằng `resolveAndBind` có thể chứa cả `com.acme.provider.json` và `com.acme.provider.xml`.
+When both provider modules are observable by the resolver, the configuration created with `resolveAndBind` can contain both `com.acme.provider.json` and `com.acme.provider.xml`.
 
-Consumer cần tự quyết định cách sử dụng nhiều implementation: chạy tất cả, lọc theo metadata/cấu hình, chọn theo loại dữ liệu, hoặc báo lỗi nếu có nhiều lựa chọn trong khi chỉ mong đợi một provider. Không nên dựa vào thứ tự duyệt của `ServiceLoader` như một quy tắc ưu tiên ổn định.
+The consumer must decide how to use multiple implementations: run all of them, filter by metadata/configuration, choose based on data type, or report an error if multiple options exist when only a single provider is expected. You should not rely on `ServiceLoader`'s iteration order as a stable priority rule.
 
-Service binding có tính lan truyền: provider được thêm vào graph cũng có thể có dependency `requires` và directive `uses` riêng. Resolver tiếp tục xử lý các dependency và service liên quan cho đến khi đạt trạng thái ổn định.
+Service binding is transitive: providers added to the graph can also have their own `requires` dependencies and `uses` directives. The resolver continues processing related dependencies and services until a steady state is reached.
 
-## 8. Những giới hạn và lỗi cần kiểm tra
+## 8. Limitations and errors to check
 
-| Hiện tượng | Cách kiểm tra |
+| Symptom | How to check |
 |---|---|
-| `resolveAndBind` không đưa provider vào graph | Kiểm tra consumer có `uses` đúng service type; provider có `provides` đúng type; provider có nằm trong finder hoặc parent configuration có thể quan sát không |
-| Provider không biên dịch | Kiểm tra `requires` tới SPI và package chứa service interface đã được export |
-| `ServiceLoader` không trả về provider | Kiểm tra provider có thực sự nằm trong layer được tìm kiếm và consumer module đã khai báo `uses` |
-| Configuration báo thiếu dependency | Kiểm tra các directive `requires` của root và của provider module, cũng như các finder được truyền vào |
-| Có nhiều provider hơn dự kiến | Kiểm tra toàn bộ module có khai báo `provides` cho service type và quy tắc lựa chọn của consumer |
+| `resolveAndBind` does not bring the provider into the graph | Check that the consumer has `uses` for the right service type; the provider has `provides` for the right type; and the provider is in an observable finder or parent configuration |
+| Provider fails to compile | Check `requires` to the SPI and that the package containing the service interface is exported |
+| `ServiceLoader` does not return the provider | Check that the provider is actually in the searched layer and the consumer module declares `uses` |
+| Configuration reports a missing dependency | Check the `requires` directives of the roots and provider modules, as well as the finders passed in |
+| More providers than expected | Check all modules declaring `provides` for the service type and the consumer's selection rules |
 
-Nếu consumer là named module, directive `uses` là một phần của module descriptor. Gọi `ServiceLoader.load` từ module không khai báo sử dụng service tương ứng có thể gây `ServiceConfigurationError`.
+If the consumer is a named module, the `uses` directive is part of the module descriptor. Calling `ServiceLoader.load` from a module that does not declare using the corresponding service can throw a `ServiceConfigurationError`.
 
-Service binding của JPMS làm việc với module graph. Ứng dụng classpath/unnamed module có thể sử dụng cơ chế đăng ký truyền thống qua `META-INF/services`, nhưng đó không phải là việc `Configuration.resolveAndBind` quét toàn bộ classpath.
+JPMS service binding works with the module graph. Classpath/unnamed-module applications can use the traditional registration mechanism via `META-INF/services`, but that is not `Configuration.resolveAndBind` scanning the entire classpath.
 
-## 9. Chọn phương thức nào?
+## 9. Which method to choose?
 
-Dùng `resolve` khi module graph được xác định bởi các root và dependency `requires`, và ứng dụng chủ động kiểm soát provider bằng cách khác.
+Use `resolve` when the module graph is determined by roots and `requires` dependencies, and the application explicitly controls providers by other means.
 
-Dùng `resolveAndBind` khi ứng dụng muốn JPMS tự bổ sung các module cung cấp service cho những module đã khai báo `uses`. Đây là lựa chọn phù hợp cho hệ thống plugin hoặc kiến trúc SPI, nơi consumer phụ thuộc vào contract còn provider có thể được thêm độc lập.
+Use `resolveAndBind` when the application wants JPMS to automatically add modules providing services for modules that have declared `uses`. This is the right choice for plugin systems or SPI architectures, where consumers depend on contracts while providers can be added independently.
 
-Trước khi chọn, hãy xác định rõ:
+Before choosing, clearly verify:
 
-- Các provider có được đặt trong module finder hoặc parent layer mà resolver quan sát không?
-- Consumer đã khai báo đúng `uses` chưa?
-- Provider đã khai báo đúng `provides ... with ...` chưa?
-- Ứng dụng có chấp nhận nhiều provider hay cần một chính sách lựa chọn cụ thể?
-- Bạn đang cần xây dựng configuration, tạo layer, hay thực sự nạp và gọi implementation? Đây là các bước khác nhau.
+- Are the providers placed in a module finder or parent layer observable by the resolver?
+- Has the consumer declared `uses` properly?
+- Has the provider declared `provides ... with ...` properly?
+- Does the application accept multiple providers or need a specific selection policy?
+- Are you trying to build a configuration, create a layer, or actually load and invoke implementations? These are distinct steps.
 
-## Ghi nhớ
+## Key Takeaways
 
-- `resolve` giải quyết root modules và dependency `requires`.
-- `resolveAndBind` làm các bước đó rồi bổ sung provider module phù hợp theo quan hệ `uses`/`provides`.
-- Provider chỉ được tìm thấy nếu nó nằm trong phạm vi module mà resolver có thể quan sát.
-- Service binding xây dựng module graph; nó không tự khởi tạo provider.
-- `ServiceLoader` thực hiện việc tìm và nạp implementation khi ứng dụng sử dụng service.
-- `resolve` vẫn dùng được với `ServiceLoader` nếu provider đã có trong layer bằng một cách khác.
+- `resolve` resolves root modules and `requires` dependencies.
+- `resolveAndBind` performs those steps and then adds matching provider modules based on `uses`/`provides` relationships.
+- A provider is only found if it is within the module scope observable by the resolver.
+- Service binding builds the module graph; it does not instantiate providers itself.
+- `ServiceLoader` performs discovery and loading of implementations when the application uses the service.
+- `resolve` can still be used with `ServiceLoader` if the provider is already present in the layer by another means.

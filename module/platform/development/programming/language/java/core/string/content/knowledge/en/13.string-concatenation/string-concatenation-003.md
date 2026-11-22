@@ -1,35 +1,35 @@
-# Phân biệt ký tự cộng số với nối chuỗi trong Java
+# Distinguishing Character Arithmetic Addition from String Concatenation in Java
 
-Trong Java, toán tử `+` có **hai vai trò**: thực hiện phép cộng số học hoặc nối chuỗi (`String concatenation`). Vì `char` lưu một đơn vị mã ký tự 16 bit có giá trị số, biểu thức `'A' + 1` **không** có nghĩa là ghép chữ `A` với chữ số `1`: Java nâng `char` thành `int` rồi cộng, nhận `66`. Ngược lại, `"A" + 1` có một toán hạng là `String` nên tạo chuỗi `"A1"`.
+In Java, the `+` operator has **two roles**: performing arithmetic addition or string concatenation. Because `char` stores a 16-bit character code unit with a numeric value, the expression `'A' + 1` does **not** mean joining the letter `A` with the digit `1`: Java promotes `char` to `int` and adds them, yielding `66`. Conversely, `"A" + 1` has a `String` operand, so it produces the string `"A1"`.
 
-Sự khác biệt này rất quan trọng khi in log, xây dựng chuỗi, xử lý ký tự chữ số, dịch chuyển ký tự và đọc biểu thức có nhiều toán tử `+`. Chỉ cần thay dấu nháy đơn bằng nháy kép, thêm chuỗi rỗng hoặc đặt ngoặc khác vị trí, **kiểu kết quả và giá trị có thể đổi**.
+This distinction is crucial when printing logs, building strings, handling digit characters, shifting characters, and reading expressions with multiple `+` operators. Simply replacing single quotes with double quotes, adding an empty string, or placing parentheses differently can change **both the result type and its value**.
 
-## 1. Phân biệt `char`, `String` và `int`
+## 1. Distinguishing `char`, `String`, and `int`
 
-| Biểu thức | Kiểu | Ý nghĩa |
+| Expression | Type | Meaning |
 | --- | --- | --- |
-| `'A'` | `char` | Một UTF-16 code unit tương ứng với ký tự `A` (giá trị `U+0041`, thập phân 65) |
-| `"A"` | `String` | Một đối tượng chuỗi có nội dung là chữ `A` |
-| `1` | `int` | Giá trị số nguyên một |
-| `'1'` | `char` | Ký tự số `1` (giá trị `U+0031`, thập phân 49) |
-| `"1"` | `String` | Chuỗi gồm ký tự `1` |
+| `'A'` | `char` | A UTF-16 code unit corresponding to the character `A` (value `U+0041`, decimal 65) |
+| `"A"` | `String` | A string object whose content is the letter `A` |
+| `1` | `int` | The integer value one |
+| `'1'` | `char` | The digit character `1` (value `U+0031`, decimal 49) |
+| `"1"` | `String` | A string consisting of the character `1` |
 
-**Nháy đơn `'...'` không giống nháy kép `"..."`.**
+**Single quotes `'...'` are not the same as double quotes `"..."`.**
 
-- `'A'` là một giá trị nguyên thủy `char`, có thể tham gia phép toán số học.
-- `"A"` là `String`, khiến toán tử `+` ở biểu thức nhị phân trở thành phép nối chuỗi.
-- `'1'` mang giá trị mã ký tự của chữ số, **không phải số nguyên 1**.
-- `"1"` là một chuỗi. Muốn đổi nội dung chuỗi chữ số thành số, có thể dùng `Integer.parseInt("1")` và xử lý lỗi đầu vào khi cần.
+- `'A'` is a primitive `char` value that can participate in arithmetic operations.
+- `"A"` is a `String`, which makes the `+` operator in a binary expression perform string concatenation.
+- `'1'` carries the character code value of the digit, **not the integer 1**.
+- `"1"` is a string. To convert the content of a digit string into a number, you can use `Integer.parseInt("1")` and handle input errors when needed.
 
-Với các ký tự quen thuộc trong bảng ASCII (cũng nằm trong Unicode), `'A'` có giá trị mã 65; `'B'` có giá trị mã 66; `'0'` có giá trị mã 48; `'1'` có giá trị mã 49.
+For familiar characters in the ASCII table (which are also part of Unicode), `'A'` has code value 65; `'B'` has code value 66; `'0'` has code value 48; `'1'` has code value 49.
 
-## 2. Quy tắc của toán tử `+`
+## 2. Rules of the `+` operator
 
-### Khi cộng các toán hạng số, `char` được nâng thành `int`
+### When adding numeric operands, `char` is promoted to `int`
 
-Nếu cả hai toán hạng là kiểu số nguyên thủy phù hợp với phép cộng số học, Java sử dụng **binary numeric promotion**. Với `char`, `byte` và `short`, giá trị được nâng thành ít nhất `int` trước khi tính toán.
+If both operands are primitive numeric types suitable for arithmetic addition, Java applies **binary numeric promotion**. For `char`, `byte`, and `short`, the value is promoted to at least `int` before computation.
 
-Ví dụ:
+Examples:
 
 ```java
 int a = 'A' + 1;    // 65 + 1 = 66
@@ -37,11 +37,11 @@ int b = 'A' + 'B';  // 65 + 66 = 131
 int c = 1 + '2';   // 1 + 50 = 51
 ```
 
-Kết quả biểu thức `'A' + 1` là một `int`, không phải `char`. Java **không tự chuyển mã 66 thành ký tự `B`** chỉ vì toán hạng đầu là `char`.
+The result of `'A' + 1` is an `int`, not a `char`. Java **does not automatically convert code 66 into the character `B`** just because the first operand is a `char`.
 
-### Khi một toán hạng là `String`, `+` nối chuỗi
+### When one operand is `String`, `+` concatenates strings
 
-Nếu ít nhất một toán hạng của phép `+` nhị phân là `String`, Java thực hiện **nối chuỗi**. Toán hạng còn lại được chuyển thành biểu diễn văn bản phù hợp:
+If at least one operand of binary `+` is `String`, Java performs **string concatenation**. The other operand is converted into an appropriate textual representation:
 
 ```java
 String a = "A" + 1;   // "A1"
@@ -50,13 +50,13 @@ String c = "A" + 'B'; // "AB"
 String d = "" + 42;   // "42"
 ```
 
-Trong các ví dụ trên, toán hạng `char` được biểu diễn như **ký tự** khi tham gia phép nối với `String`: `'A' + "1"` cho `"A1"` chứ không cho `"651"`.
+In the examples above, the `char` operand is represented as a **character** when participating in concatenation with `String`: `'A' + "1"` produces `"A1"`, not `"651"`.
 
-Hai kiểu hoạt động của `+` là **khác nhau về ngữ nghĩa**, không phải cùng một phép cộng rồi Java tự chọn cách in kết quả.
+The two modes of `+` are **semantically different**, rather than being the same addition where Java arbitrarily chooses how to print the result.
 
-## 3. Ví dụ hoàn chỉnh: cùng chữ A nhưng kết quả khác hẳn
+## 3. Complete example: the same letter A, completely different results
 
-Tạo tệp `CharPlusDemo.java`:
+Create the file `CharPlusDemo.java`:
 
 ```java
 public class CharPlusDemo {
@@ -73,14 +73,14 @@ public class CharPlusDemo {
 }
 ```
 
-Biên dịch và chạy trên Java 17 trở lên:
+Compile and run on Java 17 or later:
 
 ```bash
 javac -encoding UTF-8 CharPlusDemo.java
 java CharPlusDemo
 ```
 
-Kết quả chính xác:
+Exact output:
 
 ```text
 A
@@ -93,22 +93,22 @@ AB
 B
 ```
 
-Từng dòng minh họa một quy tắc:
+Each line illustrates a rule:
 
-1. `println('A')` gọi overload có đối số `char` nên in ký tự `A`.
-2. `'A' + 1` là phép cộng số: 65 + 1 = 66; `println` nhận kết quả số nguyên và in `66`.
-3. `"A" + 1` có `String` nên nối thành `A1`.
-4. `'A' + "1"` cũng có `String` nên nối thành `A1`.
-5. `'A' + 'B'` là phép cộng số nguyên 65 + 66 = 131.
-6. `"" + 'A' + 'B'` bắt đầu bằng nối chuỗi và tiếp tục nối hai ký tự thành `AB`.
-7. `String.valueOf('A' + 1)` nhận giá trị `int` 66 nên trả chuỗi `"66"`.
-8. `(char) ('A' + 1)` ép số 66 về kiểu `char`, tương ứng ký tự `B`; `String.valueOf(char)` trả `"B"`.
+1. `println('A')` calls the overload with a `char` parameter, so it prints the character `A`.
+2. `'A' + 1` is numeric addition: 65 + 1 = 66; `println` receives the integer result and prints `66`.
+3. `"A" + 1` has a `String`, so it concatenates into `A1`.
+4. `'A' + "1"` also has a `String`, so it concatenates into `A1`.
+5. `'A' + 'B'` is integer addition: 65 + 66 = 131.
+6. `"" + 'A' + 'B'` starts with string concatenation and continues concatenating both characters into `AB`.
+7. `String.valueOf('A' + 1)` receives the `int` value 66, so it returns the string `"66"`.
+8. `(char) ('A' + 1)` casts 66 to `char`, corresponding to the character `B`; `String.valueOf(char)` returns `"B"`.
 
-**Ghi nhớ:** chỉ nhìn thấy chữ `A` trong mã nguồn chưa đủ để biết chương trình sẽ in `A` hay `65`. Cần xác định **kiểu của cả biểu thức** được truyền cho `println`.
+**Remember:** seeing the letter `A` in source code is not enough on its own to tell whether the program will print `A` or `65`. You must determine the **type of the entire expression** passed to `println`.
 
-## 4. Thứ tự kết hợp từ trái sang phải và vai trò của dấu ngoặc
+## 4. Left-to-right associativity and the role of parentheses
 
-Thứ tự nhóm quyết định phép cộng mã ký tự xảy ra **trước hay sau** khi biểu thức trở thành `String`:
+Grouping order determines whether character code addition happens **before or after** the expression becomes a `String`:
 
 ```java
 System.out.println('A' + 1 + "!");      // 66!
@@ -116,13 +116,13 @@ System.out.println("!" + 'A' + 1);      // !A1
 System.out.println("value=" + ('A' + 'B')); // value=131
 ```
 
-Dùng ngoặc khi muốn tính mã số trước. Bài **Thứ tự kết hợp trái–phải của + với số và chuỗi** giải thích riêng tính kết hợp, độ ưu tiên và thứ tự đánh giá biểu thức; ở đây trọng tâm là **kiểu `int` của phép cộng `char`**.
+Use parentheses when you want to compute numeric codes first. The lesson **Left-to-right associativity of + with numbers and strings** explains associativity, precedence, and expression evaluation order separately; here the focus is the **`int` type of `char` addition**.
 
-## 5. Ký tự chữ số không phải giá trị số tương ứng
+## 5. A digit character is not its corresponding numeric value
 
-Một lỗi thường gặp là dùng `'5' + 2` khi muốn tính `5 + 2`. `'5'` lưu mã ký tự `U+0035` (thập phân 53), nên `'5' + 2` trả `55`, không phải `7`.
+A common mistake is using `'5' + 2` when intending to compute `5 + 2`. `'5'` stores the character code `U+0035` (decimal 53), so `'5' + 2` returns `55`, not `7`.
 
-Tệp `DigitCharDemo.java`:
+File `DigitCharDemo.java`:
 
 ```java
 public class DigitCharDemo {
@@ -141,14 +141,14 @@ public class DigitCharDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac -encoding UTF-8 DigitCharDemo.java
 java DigitCharDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 digitChar=5
@@ -160,40 +160,40 @@ Character.digit=5
 String.parse=5
 ```
 
-**Vì sao `digitChar - '0'` cho 5?** Các ký tự chữ số ASCII `'0'` đến `'9'` có mã liên tiếp từ 48 đến 57, nên `'5' - '0'` là 53 − 48 = 5. Đây là công thức hữu ích **nếu bạn đã xác nhận ký tự thuộc `'0'..'9'`**.
+**Why does `digitChar - '0'` give 5?** The ASCII digit characters `'0'` through `'9'` have consecutive codes from 48 to 57, so `'5' - '0'` is 53 − 48 = 5. This is a useful formula **if you have already verified that the character is in `'0'..'9'`**.
 
-`Character.digit(digitChar, 10)` là một lựa chọn rõ ràng hơn khi xử lý một ký tự chữ số được Java nhận diện theo cơ số 10; nó trả `-1` khi ký tự không hợp lệ ở cơ số đó. `Integer.parseInt(...)` phù hợp khi dữ liệu đầu vào là cả một chuỗi chữ số, có thể nhiều ký tự, và cần bắt lỗi định dạng.
+`Character.digit(digitChar, 10)` is a clearer choice when handling a digit character recognized by Java in base 10; it returns `-1` when the character is invalid for that radix. `Integer.parseInt(...)` is appropriate when the input is an entire digit string, possibly multi-character, and you need to catch format errors.
 
-Không nên tự động áp dụng `c - '0'` cho mọi ký tự Unicode giống chữ số: không phải các chữ số thuộc mọi hệ chữ viết đều có vị trí mã gần `'0'` ASCII.
+Do not blindly apply `c - '0'` to every Unicode character that looks like a digit: digits across different writing systems do not all sit near ASCII `'0'`.
 
-## 6. Biến số `char` khi cộng và phép gán về `char`
+## 6. `char` variables in addition and assignment back to `char`
 
-`char` là kiểu nguyên thủy **16 bit không dấu** dùng để biểu diễn UTF-16 code unit. Khi cộng với một số nguyên, kết quả thông thường là `int`. Do đó, với một **biến** `char`:
+`char` is an **unsigned 16-bit** primitive type used to represent a UTF-16 code unit. When added to an integer, the usual result is `int`. Therefore, with a `char` **variable**:
 
 ```java
 char c = 'A';
 int number = c + 1;            // 66
 char next = (char) (c + 1);    // 'B'
-// char wrong = c + 1;         // Lỗi biên dịch: int không tự thu hẹp thành char
+// char wrong = c + 1;         // Compile error: int does not narrow to char automatically
 ```
 
-Đây là đoạn minh họa đặt trong một phương thức.
+This is an illustrative snippet placed inside a method.
 
-Tuy nhiên, Java có **ngoại lệ cho biểu thức hằng tại thời điểm biên dịch**. Một biểu thức hằng kiểu `int` có giá trị nằm trong dải `char` có thể được gán trực tiếp cho biến `char`:
+However, Java has an **exception for compile-time constant expressions**. A constant expression of type `int` whose value falls within the `char` range can be assigned directly to a `char` variable:
 
 ```java
-char fromConstant = 'A' + 1; // Hợp lệ: hằng số nguyên 66 nằm trong dải char
+char fromConstant = 'A' + 1; // Valid: integer constant 66 is within char range
 
 char letter = 'A';
-// char fromVariable = letter + 1; // Không hợp lệ: kết quả là int
-char fromCast = (char) (letter + 1); // Hợp lệ
+// char fromVariable = letter + 1; // Invalid: result is int
+char fromCast = (char) (letter + 1); // Valid
 ```
 
-Vì vậy, khẳng định “`char` cộng `int` **luôn** không gán được vào `char`” là chưa chính xác: phép cộng **vẫn có kiểu `int`**, nhưng quy tắc gán cho phép **thu hẹp ngầm một biểu thức hằng số nguyên nằm trong giới hạn `char`**. Còn `letter + 1` có chứa biến nên không phải biểu thức hằng theo quy tắc ấy.
+Thus, saying “`char` plus `int` can **never** be assigned to `char`” is inaccurate: the addition **still has type `int`**, but the assignment rule allows **implicit narrowing of an integer constant expression within the `char` bounds**. Meanwhile `letter + 1` involves a variable, so it is not a constant expression under that rule.
 
-### `+=` và `++` hoạt động như thế nào?
+### How do `+=` and `++` work?
 
-Với phép gán kết hợp, Java cho phép chuyển kết quả phép toán về kiểu của biến bên trái theo quy tắc riêng:
+With compound assignment, Java allows converting the operation's result back to the type of the left-hand variable under a dedicated rule:
 
 ```java
 char c = 'A';
@@ -201,9 +201,9 @@ c += 1; // B
 c++;    // C
 ```
 
-Điều này **không làm cho biểu thức `c + 1` có kiểu `char`**. Nó chỉ có nghĩa rằng trong phép gán kết hợp `c += 1`, Java thực hiện phép toán và chuyển kết quả về kiểu của `c` theo ngữ nghĩa của `+=`. Cần cẩn thận với giá trị lớn: phép chuyển về `char` có thể giữ lại 16 bit thấp của giá trị số, không bảo đảm tạo ra ký tự Unicode đúng ý định.
+This **does not make the expression `c + 1` have type `char`**. It simply means that in the compound assignment `c += 1`, Java performs the operation and converts the result to `c`'s type according to the semantics of `+=`. Be careful with large values: converting back to `char` keeps only the low 16 bits of the numeric value, and is not guaranteed to produce the intended Unicode character.
 
-Tệp `CharArithmeticAssignment.java`:
+File `CharArithmeticAssignment.java`:
 
 ```java
 public class CharArithmeticAssignment {
@@ -224,14 +224,14 @@ public class CharArithmeticAssignment {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 CharArithmeticAssignment.java
 java CharArithmeticAssignment
 ```
 
-Kết quả:
+Output:
 
 ```text
 constant=B
@@ -240,13 +240,13 @@ cast=B
 compound=C
 ```
 
-Sử dụng phép cộng mã ký tự để dịch chữ **không phải** phương pháp xử lý văn bản tự nhiên tổng quát: bảng mã Unicode chứa nhiều khoảng không liên tiếp, nhiều chữ có dấu hoặc dạng ký tự bổ sung. Ngay cả việc dùng `c++` cho các ký tự ASCII cũng nên được giới hạn ở bài toán kỹ thuật có kiểm tra đầu vào và giới hạn.
+Using character-code addition to shift letters is **not** a general natural-text processing technique: Unicode contains non-contiguous ranges, accented letters, and supplementary characters. Even using `c++` for ASCII characters should be restricted to technical tasks with input validation and bounds checks.
 
-## 7. Khi truyền vào `print` hoặc `println`, kiểu đối số quyết định cách in
+## 7. When passing to `print` or `println`, the argument type determines how it prints
 
-Lớp `PrintStream` có nhiều overload, bao gồm `println(char)`, `println(int)` và `println(String)`. Java chọn phương thức tương ứng với **kiểu biểu thức** ở thời điểm biên dịch.
+The `PrintStream` class has multiple overloads, including `println(char)`, `println(int)`, and `println(String)`. Java chooses the method matching the **expression's type** at compile time.
 
-| Câu lệnh | Kiểu biểu thức đối số | Nội dung được in |
+| Statement | Argument expression type | Printed output |
 | --- | --- | --- |
 | `System.out.println('A');` | `char` | `A` |
 | `System.out.println((int) 'A');` | `int` | `65` |
@@ -255,15 +255,15 @@ Lớp `PrintStream` có nhiều overload, bao gồm `println(char)`, `println(in
 | `System.out.println("A" + 1);` | `String` | `A1` |
 | `System.out.println('A' + "1");` | `String` | `A1` |
 
-Điều này giải thích tại sao cùng `'A'` có lúc in thành chữ `A`, lúc thành `65` hoặc thành số `66`.
+This explains why the same `'A'` sometimes prints as the letter `A`, sometimes as `65`, or as the number `66`.
 
-Nếu bạn cần thể hiện **mã số** của một `char`, hãy ép sang `int` một cách tường minh: `(int) c`. Nếu cần thể hiện **ký tự sau khi tính toán**, cần quyết định xem phép chuyển số về `char` có thực sự hợp lệ cho bài toán hay không.
+If you need to display the **numeric code** of a `char`, cast it explicitly to `int`: `(int) c`. If you need to display the **character after a calculation**, decide whether converting the number back to `char` is genuinely valid for your problem.
 
-## 8. Ghép ký tự thành chuỗi: lựa chọn rõ ràng hơn
+## 8. Joining characters into a string: clearer alternatives
 
-Khi muốn nối hai ký tự mà không cộng mã của chúng, có một số cách diễn đạt rõ ý định:
+When you want to concatenate two characters without adding their codes, several options express your intent clearly:
 
-### Dùng một `String` làm toán hạng
+### Use a `String` as an operand
 
 ```java
 char first = 'J';
@@ -272,9 +272,9 @@ char second = 'a';
 String joined = "" + first + second; // "Ja"
 ```
 
-Cách này đơn giản và không cần chuyển các `char` thành số. Tuy nhiên, với mã dài hoặc nhiều vòng lặp, có thể chọn công cụ ghép chuỗi chuyên dụng hơn để làm rõ ý định.
+This approach is simple and avoids turning the `char` values into numbers. However, in longer code or loops, you can choose a more dedicated string-building tool to make intent clear.
 
-### Dùng `StringBuilder`
+### Use `StringBuilder`
 
 ```java
 StringBuilder builder = new StringBuilder();
@@ -283,28 +283,28 @@ builder.append('a');
 String joined = builder.toString(); // "Ja"
 ```
 
-`StringBuilder.append(char)` thêm **ký tự được biểu diễn bởi code unit**, không cộng giá trị số. Đây là lựa chọn thường phù hợp khi xây dựng chuỗi theo nhiều bước hoặc trong vòng lặp. Không nên dựa vào việc Java thực thi một biểu thức nối chuỗi cụ thể bằng lớp nào bên trong; JDK có thể chọn chiến lược tối ưu khác nhau.
+`StringBuilder.append(char)` appends **the character represented by the code unit**, without adding numeric values. This is usually the right choice when building strings across multiple steps or inside loops. Do not rely on which internal class Java uses to execute a particular concatenation expression; JDKs may choose different optimization strategies.
 
-### Dùng `String.valueOf(char)`
+### Use `String.valueOf(char)`
 
 ```java
 char letter = 'A';
 String text = String.valueOf(letter); // "A"
 ```
 
-Cần phân biệt `String.valueOf(letter)` (đối số là `char`) với `String.valueOf(letter + 1)` (đối số đã là `int`). Cách rõ ràng nhất để tạo văn bản từ một ký tự là truyền **chính ký tự** hoặc một mảng ký tự vào API tương ứng, không cộng mã số trừ khi bài toán thực sự yêu cầu.
+Distinguish `String.valueOf(letter)` (argument is `char`) from `String.valueOf(letter + 1)` (argument is already `int`). The clearest way to produce text from a character is to pass **the character itself** or a character array to the appropriate API, without adding numeric codes unless the problem genuinely calls for it.
 
-## 9. `char` chỉ là một UTF-16 code unit, không phải mọi ký tự Unicode hoàn chỉnh
+## 9. `char` is only one UTF-16 code unit, not every complete Unicode character
 
-Trong các ví dụ trên, `'A'` và `'5'` đều là ký tự thuộc BMP nên chúng vừa bằng một `char` vừa bằng một Unicode code point. Nhưng không phải mọi ký tự Unicode đều được chứa trong một `char`. Ví dụ emoji 😀 (`U+1F600`) cần **một surrogate pair gồm hai `char`** trong UTF-16.
+In the examples above, `'A'` and `'5'` are both BMP characters, so each is both one `char` and one Unicode code point. However, not every Unicode character fits in a single `char`. For instance, the emoji 😀 (`U+1F600`) requires **a surrogate pair consisting of two `char` values** in UTF-16.
 
-Vì thế:
+Therefore:
 
-- `char` tham gia phép cộng bằng giá trị **code unit**, không tự động là một Unicode code point hoàn chỉnh.
-- Không thể lấy một Unicode code point ngoài BMP chỉ bằng cách lấy một `char` trong surrogate pair rồi cộng số.
-- Nếu cần xử lý mã Unicode như một đơn vị, dùng `int` để lưu code point; các API như `String.codePointAt(...)` và `Character.toChars(int)` hỗ trợ làm việc với code point.
+- `char` participates in addition using its **code unit** value, which is not automatically a complete Unicode code point.
+- You cannot obtain a non-BMP Unicode code point simply by taking one `char` from a surrogate pair and adding numbers to it.
+- If you need to handle Unicode codes as single units, use `int` to store code points; APIs such as `String.codePointAt(...)` and `Character.toChars(int)` support working with code points.
 
-Tệp `CodePointVsChar.java`:
+File `CodePointVsChar.java`:
 
 ```java
 public class CodePointVsChar {
@@ -319,14 +319,14 @@ public class CodePointVsChar {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac -encoding UTF-8 CodePointVsChar.java
 java CodePointVsChar
 ```
 
-Kết quả (console cần hỗ trợ hiển thị emoji để nhìn đúng dòng cuối):
+Output (the console must support emoji rendering to display the last line properly):
 
 ```text
 length=2
@@ -335,19 +335,19 @@ codePoint=U+1F600
 concat=X😀
 ```
 
-Khi nối `"X" + emoji`, Java nối toàn bộ nội dung `String`. Khi làm phép toán với `emoji.charAt(0)`, bạn chỉ đang thao tác với **một nửa của surrogate pair**, không phải toàn bộ emoji.
+When concatenating `"X" + emoji`, Java concatenates the entire `String` content. When performing arithmetic on `emoji.charAt(0)`, you are operating on **only one half of a surrogate pair**, not the whole emoji.
 
-## 10. Các lỗi phổ biến và cách tránh
+## 10. Common mistakes and how to avoid them
 
-- `'1' + 2` cho `51`, vì `'1'` mang mã 49 chứ không phải số 1.
-- `'A' + 'B'` cho `131` (`int`), trong khi `"" + 'A' + 'B'` cho `"AB"`.
-- `String.valueOf('A' + 1)` nhận `int` và cho `"66"`; dùng `String.valueOf((char) ('A' + 1))` để tạo `"B"` khi phép chuyển có nghĩa.
-- `char next = c + 1` không biên dịch nếu `c` là biến; ngoại lệ thu hẹp ngầm chỉ áp dụng cho **biểu thức hằng** `int` hợp lệ.
-- Một `char` có thể chỉ là một nửa surrogate pair; không áp dụng mẹo cộng trừ ASCII cho Unicode tổng quát.
+- `'1' + 2` gives `51`, because `'1'` has code 49 rather than the number 1.
+- `'A' + 'B'` gives `131` (`int`), while `"" + 'A' + 'B'` gives `"AB"`.
+- `String.valueOf('A' + 1)` receives `int` and gives `"66"`; use `String.valueOf((char) ('A' + 1))` to produce `"B"` when the conversion makes sense.
+- `char next = c + 1` does not compile if `c` is a variable; the implicit narrowing exception applies only to valid `int` **constant expressions**.
+- A `char` may be only half of a surrogate pair; do not apply ASCII addition/subtraction tricks to general Unicode text.
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-check questions
 
-**Câu 1.** Đoạn sau in gì?
+**Question 1.** What does the following snippet print?
 
 ```java
 System.out.println('A' + 2);
@@ -355,22 +355,22 @@ System.out.println("A" + 2);
 System.out.println('A' + "2");
 ```
 
-**Đáp án:** `67`, `A2`, `A2`. Chỉ dòng đầu là phép cộng mã ký tự với số nguyên.
+**Answer:** `67`, `A2`, `A2`. Only the first line adds a character code to an integer.
 
-**Câu 2.** Vì sao `'1' + '2'` không phải số 3 và cũng không phải chuỗi `"12"`?
+**Question 2.** Why is `'1' + '2'` neither the number 3 nor the string `"12"`?
 
-**Đáp án:** Cả hai toán hạng là `char`, nên được nâng thành `int` và cộng các mã `49 + 50 = 99`. Muốn tính 1 + 2 phải chuyển chữ số thành số; muốn ghép thành `"12"` cần dùng `String`.
+**Answer:** Both operands are `char`, so they are promoted to `int` and their codes are added: `49 + 50 = 99`. To compute 1 + 2, convert the digits to numbers; to join them into `"12"`, use `String`.
 
-**Câu 3.** `"result=" + 'A' + 1` khác gì `"result=" + ('A' + 1)`?
+**Question 3.** How does `"result=" + 'A' + 1` differ from `"result=" + ('A' + 1)`?
 
-**Đáp án:** Biểu thức đầu in `result=A1` vì nối chuỗi ngay từ `"result="`. Biểu thức sau in `result=66` vì phép cộng trong ngoặc được thực hiện trước khi nối.
+**Answer:** The first expression prints `result=A1` because string concatenation begins right from `"result="`. The second prints `result=66` because the addition inside parentheses is performed before concatenation.
 
-**Câu 4.** `char c = 'A' + 1;` có hợp lệ không? Còn `char c = 'A'; char d = c + 1;` thì sao?
+**Question 4.** Is `char c = 'A' + 1;` valid? What about `char c = 'A'; char d = c + 1;`?
 
-**Đáp án:** Trường hợp đầu hợp lệ vì `'A' + 1` là **biểu thức hằng `int`** có giá trị 66 nằm trong dải `char`. Trường hợp sau không hợp lệ vì `c + 1` phụ thuộc biến, kết quả kiểu `int` không được tự chuyển về `char` trong phép gán thông thường.
+**Answer:** The first case is valid because `'A' + 1` is an **`int` constant expression** whose value 66 is within the `char` range. The second case is invalid because `c + 1` depends on a variable, and an `int` result is not automatically narrowed to `char` in a regular assignment.
 
-**Câu 5.** Khi muốn tạo chuỗi `"Hi"` từ `char a = 'H'; char b = 'i';`, viết thế nào?
+**Question 5.** When you want to build the string `"Hi"` from `char a = 'H'; char b = 'i';`, how should you write it?
 
-**Đáp án:** Có thể viết `String result = "" + a + b;` hoặc `new StringBuilder().append(a).append(b).toString()`. Không dùng `a + b` vì đó là phép cộng số.
+**Answer:** You can write `String result = "" + a + b;` or `new StringBuilder().append(a).append(b).toString()`. Do not use `a + b` because that performs numeric addition.
 
-**Ghi nhớ:** `char + số` hoặc `char + char` là **phép cộng số** sau khi nâng kiểu thành `int`; `String + giá trị` là **nối chuỗi**. Muốn tính số, kiểm tra kiểu của toán hạng; muốn ghép ký tự, tạo một phép nối `String` rõ ràng; và khi có nhiều dấu `+`, hãy dùng ngoặc để biểu đạt đúng ý định.
+**Takeaway:** `char + number` or `char + char` is **numeric addition** after promotion to `int`; `String + value` is **string concatenation**. To do arithmetic, check operand types; to join characters, form an explicit `String` concatenation; and when multiple `+` signs appear, use parentheses to express your exact intent.

@@ -1,53 +1,53 @@
-# Mở rộng số nguyên sang số thực vẫn có thể mất độ chính xác
+# Widening Integers to Floating-Point Can Still Lose Precision
 
-> **Java core — language-basics / Chuyển đổi kiểu**  
-> **Môi trường:** JDK 17+; chỉ dùng thư viện chuẩn.  
-> **Mục tiêu:** Hiểu tại sao `int → float` và `long → double` là các phép chuyển kiểu mở rộng hợp lệ nhưng có thể làm tròn mất dữ liệu. Biết ngưỡng chính xác 24/53 bit, nguy cơ so sánh hỗn hợp và cách xử lý giá trị nguyên cần giữ tuyệt đối.
+> **Java core — language-basics / Type Conversion**  
+> **Environment:** JDK 17+; standard library only.  
+> **Objective:** Understand why `int → float` and `long → double` are valid widening conversions that can round and lose data. Know the 24/53-bit precision thresholds, the risks of mixed comparisons, and how to handle integer values that must be preserved strictly.
 
-## 1. Mở rộng kiểu không bảo đảm giữ nguyên giá trị
+## 1. Type widening does not guarantee preserving the original value
 
-Java cho phép chuyển số nguyên sang số thực mà không cần ép kiểu:
+Java allows converting integers to floating-point numbers without a cast:
 
 ~~~java
 int count = 123;
-float f = count;   // Hợp lệ.
-double d = count;  // Hợp lệ.
+float f = count;   // Valid.
+double d = count;  // Valid.
 
 long id = 9_007_199_254_740_993L;
-double approximateId = id; // Hợp lệ, nhưng có thể mất chính xác.
+double approximateId = id; // Valid, but may lose precision.
 ~~~
 
-`int` và `long` biểu diễn chính xác từng số nguyên trong miền có dấu của chúng. `float` và `double` biểu diễn số thực dạng nhị phân IEEE 754. Chúng có miền độ lớn rất rộng nhưng phần trị chỉ có số bit chính xác hữu hạn:
+`int` and `long` represent every integer accurately within their signed ranges. `float` and `double` represent IEEE 754 binary floating-point numbers. They have a very wide magnitude range, yet the significand only has a finite number of precision bits:
 
-- **`float`:** 24 bit chính xác phần trị, tính cả bit dẫn đầu của số chuẩn hóa.
-- **`double`:** 53 bit chính xác phần trị.
-- **`int`:** 32 bit có dấu; **`long`:** 64 bit có dấu.
+- **`float`:** 24 bits of significand precision, including the leading bit of normalized numbers.
+- **`double`:** 53 bits of significand precision.
+- **`int`:** 32 signed bits; **`long`:** 64 signed bits.
 
-Khi số nguyên không biểu diễn chính xác được bằng kiểu số thực đích, Java làm tròn sang một giá trị số thực có thể biểu diễn; với trường hợp chính giữa hai giá trị, phép chuyển đổi chọn giá trị có bit cuối phần trị chẵn (*round to nearest, ties to even*).
+When an integer cannot be represented accurately by the target floating-point type, Java rounds to a representable floating-point value; in exact tie cases halfway between two values, the conversion chooses the value whose last significand bit is even (*round to nearest, ties to even*).
 
-**Chuyển kiểu widening** nghĩa là chuyển đổi được ngôn ngữ cho phép mà không cần cast. Nó **không** có nghĩa luôn giữ được mọi chữ số của số nguyên.
+**Widening conversion** means a conversion permitted by the language without a cast. It does **not** mean all digits of the integer are always preserved.
 
-## 2. Chuyển đổi nào luôn chính xác?
+## 2. Which conversions are always exact?
 
-| Phép chuyển đổi | Widening tự động? | Chính xác với **mọi** giá trị nguồn? |
+| Conversion | Automatic widening? | Exact for **every** source value? |
 | --- | --- | --- |
-| `byte` → `float`/`double` | Có | Có |
-| `short` → `float`/`double` | Có | Có |
-| `char` → `float`/`double` | Có | Có (giá trị code unit 0–65535) |
-| `int` → `double` | Có | **Có** |
-| `int` → `float` | Có | **Không** |
-| `long` → `double` | Có | **Không** |
-| `long` → `float` | Có | **Không** |
+| `byte` → `float`/`double` | Yes | Yes |
+| `short` → `float`/`double` | Yes | Yes |
+| `char` → `float`/`double` | Yes | Yes (code unit values 0–65535) |
+| `int` → `double` | Yes | **Yes** |
+| `int` → `float` | Yes | **No** |
+| `long` → `double` | Yes | **No** |
+| `long` → `float` | Yes | **No** |
 
-Giới hạn quan trọng:
+Important limits:
 
-- `float` biểu diễn được **mọi** số nguyên từ `-2^24` đến `2^24` (±16.777.216).
-- `double` biểu diễn được **mọi** số nguyên từ `-2^53` đến `2^53` (±9.007.199.254.740.992).
-- Trên các ngưỡng này, **một số** số nguyên vẫn biểu diễn chính xác (ví dụ số chẵn ở ngay trên `2^24` có thể vừa `float`), nhưng **không phải tất cả số nguyên liên tiếp**.
+- `float` represents **every** integer from `-2^24` to `2^24` (±16,777,216).
+- `double` represents **every** integer from `-2^53` to `2^53` (±9,007,199,254,740,992).
+- Above these thresholds, **some** integers are still represented accurately (for example, an even number just above `2^24` may fit in `float`), but **not all consecutive integers**.
 
-Bởi vậy toàn bộ giá trị `int` chuyển sang `double` vẫn chính xác, trong khi `int` chuyển sang `float` hoặc `long` chuyển sang `double` có nguy cơ làm tròn.
+Therefore, every `int` value converts to `double` accurately, whereas converting `int` to `float` or `long` to `double` risks rounding.
 
-## 3. Ranh giới `2^24 + 1` khi đổi `int` sang `float`
+## 3. The `2^24 + 1` boundary when converting `int` to `float`
 
 ~~~java
 int first = 16_777_216;       // 2^24
@@ -56,18 +56,18 @@ float a = first;
 float b = second;
 ~~~
 
-`a` bằng 16.777.216 chính xác. Ở độ lớn này, khoảng cách giữa các giá trị `float` liên tiếp là **2**, nên số 16.777.217 nằm giữa 16.777.216 và 16.777.218. Quy tắc ties-to-even làm tròn `b` thành **16.777.216**.
+`a` equals 16,777,216 exactly. At this magnitude, the spacing between consecutive `float` values is **2**, so 16,777,217 lies halfway between 16,777,216 and 16,777,218. The ties-to-even rule rounds `b` to **16,777,216**.
 
-Hệ quả:
+Consequence:
 
 ~~~java
 System.out.println(first == second); // false
 System.out.println(a == b);          // true
 ~~~
 
-`Math.ulp(a)` cho khoảng cách giữa `a` và giá trị `float` kế tiếp tại độ lớn này: **2.0f**. Nếu cần lưu đúng bất kỳ giá trị `int`, nên giữ `int` hoặc chuyển thành `double`, thay vì ép thành `float`.
+`Math.ulp(a)` gives the spacing between `a` and the next `float` value at this magnitude: **2.0f**. If you need to store any `int` value accurately, keep `int` or convert to `double`, instead of converting to `float`.
 
-## 4. Ranh giới `2^53 + 1` khi đổi `long` sang `double`
+## 4. The `2^53 + 1` boundary when converting `long` to `double`
 
 ~~~java
 long first = 9_007_199_254_740_992L; // 2^53
@@ -76,20 +76,20 @@ double a = first;
 double b = second;
 ~~~
 
-`a` và `b` trở thành **cùng một giá trị `double`** là 9.007.199.254.740.992, dù hai số nguyên nguồn khác nhau. Chú ý phép so sánh hỗn hợp:
+`a` and `b` become the **exact same `double` value**, 9,007,199,254,740,992, even though the two source integers differ. Notice the mixed comparison:
 
 ~~~java
-System.out.println(second == b);       // true - dễ nhầm!
+System.out.println(second == b);       // true - easy to misread!
 System.out.println(second == (long) b); // false
 ~~~
 
-Trong `second == b`, Java **nâng kiểu số** (*binary numeric promotion*): chuyển số `long second` sang `double` trước khi so sánh. Khi hai vế cùng bị làm tròn, phép `==` cho true **không chứng minh dữ liệu được giữ chính xác**.
+In `second == b`, Java performs **binary numeric promotion**: converting the `long second` to `double` before comparing. When both sides round to the same value, `==` returning true **does not prove data was preserved accurately**.
 
-Ép `b` trở lại `long` trong ví dụ này cho 9.007.199.254.740.992 và giúp thấy sai lệch 1. Tuy nhiên, cast số thực sang số nguyên còn có quy tắc bỏ phần lẻ và giới hạn giá trị; nó **không phải phương pháp tổng quát** để kiểm tra chuyển đổi có chính xác hay không.
+Casting `b` back to `long` in this example yields 9,007,199,254,740,992 and exposes the discrepancy of 1. However, casting floating-point to integer also has truncation and range-clamping rules; it is **not a general method** for checking whether a conversion was exact.
 
-## 5. Ví dụ Java 17+ chạy được
+## 5. Runnable Java 17+ example
 
-Tạo tệp **IntegerFloatPrecisionDemo.java**:
+Create the file **IntegerFloatPrecisionDemo.java**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -130,14 +130,14 @@ public final class IntegerFloatPrecisionDemo {
 }
 ~~~
 
-Mở terminal tại thư mục chứa file (Bash, PowerShell hoặc Command Prompt) và chạy:
+Open a terminal in the directory containing the file (Bash, PowerShell, or Command Prompt) and run:
 
 ~~~bash
 javac -encoding UTF-8 IntegerFloatPrecisionDemo.java
 java IntegerFloatPrecisionDemo
 ~~~
 
-**Expected output chính xác:**
+**Exact expected output:**
 
 ~~~text
 intNext=16777217
@@ -155,35 +155,35 @@ allIntToDoubleExact=true
 exactDecimal=9007199254740993
 ~~~
 
-Các dòng `floatAsInt` và `doubleAsLong` cho thấy **giá trị sau khi làm tròn**, chứ không phải kiểu mới tự lưu thêm số. Hai kết quả `floatUlp=2` và `doubleUlp=2` thể hiện bước nhảy giữa các giá trị số thực tại các ngưỡng đang xét (đã cast sang `int` để dễ đọc). `BigDecimal.valueOf(nextLong)` lấy **trực tiếp từ số nguyên gốc**, giữ nguyên số 9.007.199.254.740.993.
+The lines `floatAsInt` and `doubleAsLong` show the **value after rounding**, rather than the new type saving extra digits on its own. The two results `floatUlp=2` and `doubleUlp=2` demonstrate the step size between floating-point values at the examined thresholds (cast to `int` for readability). `BigDecimal.valueOf(nextLong)` takes the value **directly from the original integer**, preserving 9,007,199,254,740,993.
 
-## 6. Cách chọn kiểu khi cần chính xác
+## 6. How to choose types when precision is required
 
-| Nhu cầu | Khuyến nghị |
+| Need | Recommendation |
 | --- | --- |
-| ID, số lượng, timestamp nguyên, tiền lưu bằng đơn vị nguyên | Dùng `int`/`long` nếu miền giá trị phù hợp |
-| Chuyển toàn bộ miền `int` sang số thực mà chưa tính tiếp | `double` giữ chính xác mọi giá trị `int` |
-| `long` lớn và **không được sai một đơn vị** | Tránh chuyển sang `double` để lưu hoặc so sánh |
-| Số nguyên cần vượt miền `long` | Dùng `BigInteger` |
-| Thập phân cần chính xác theo quy tắc nghiệp vụ | Dùng `BigDecimal` từ `String` hoặc số nguyên gốc, với scale/rounding rõ ràng |
-| Đo lường hay đồ họa chấp nhận xấp xỉ | `float`/`double` nếu sai số chấp nhận được |
+| IDs, quantities, integer timestamps, money stored in whole minor units | Use `int`/`long` if the value range fits |
+| Converting the entire `int` range to floating-point without further calculation | `double` preserves every `int` value accurately |
+| Large `long` values that **must not be off by even one unit** | Avoid converting to `double` for storage or comparison |
+| Integers needing to exceed the `long` range | Use `BigInteger` |
+| Decimals requiring accuracy per business rules | Use `BigDecimal` from `String` or original integer, with explicit scale/rounding |
+| Measurements or graphics accepting approximations | `float`/`double` if error margin is acceptable |
 
-**Không có cách “lấy lại” các bit đã mất** chỉ bằng `Math.round`, cast ngược hoặc tạo `BigDecimal` từ giá trị `double` đã làm tròn. Nếu đòi hỏi số nguyên chính xác, giữ số nguyên gốc xuyên suốt luồng dữ liệu và các phép so sánh.
+**There is no way to “recover” lost bits** merely using `Math.round`, casting back, or creating a `BigDecimal` from an already-rounded `double`. If exact integers are required, keep the original integer type throughout the data flow and comparisons.
 
-`int → double` đúng tuyệt đối **ở bước chuyển đổi**, nhưng các phép tính `double` về sau vẫn có thể sinh sai số làm tròn, `NaN` hoặc vô cực. Độ chính xác của phép gán không bảo đảm độ chính xác của toàn bộ thuật toán.
+`int → double` is strictly exact **at the conversion step**, yet subsequent `double` operations can still introduce rounding error, `NaN`, or infinity. Precision of an assignment does not guarantee precision of the entire algorithm.
 
-## 7. Bài tập kiểm tra
+## 7. Check exercises
 
-**Bài 1.** Vì sao `(float) 16_777_216 == (float) 16_777_217` cho true, dù hai literal số nguyên khác nhau?
+**Exercise 1.** Why does `(float) 16_777_216 == (float) 16_777_217` evaluate to true, even though the two integer literals are different?
 
-**Bài 2.** Nêu vì sao `int → double` chính xác với mọi `int`, nhưng `long → double` thì không. Giải thích vai trò của 53 bit phần trị.
+**Exercise 2.** State why `int → double` is exact for every `int`, whereas `long → double` is not. Explain the role of the 53 significand bits.
 
-**Bài 3.** Cho `long id = 9_007_199_254_740_993L; double d = id;`. Dự đoán `id == d` và `id == (long) d`; chỉ ra bước numeric promotion.
+**Exercise 3.** Given `long id = 9_007_199_254_740_993L; double d = id;`. Predict `id == d` and `id == (long) d`; point out the numeric promotion step.
 
-**Bài 4.** Đổi `BigDecimal.valueOf(id)` thành `BigDecimal.valueOf((double) id)`. So sánh chuỗi số thập phân thu được và giải thích tại sao không thể phục hồi phần đã mất.
+**Exercise 4.** Change `BigDecimal.valueOf(id)` to `BigDecimal.valueOf((double) id)`. Compare the resulting decimal strings and explain why the lost portion cannot be restored.
 
-**Bài 5.** Thiết kế một ứng dụng lưu ID 64 bit chính xác, rồi xuất dạng văn bản. Đề xuất cách chuyển thẳng `long` thành `String` mà không đi qua `double`.
+**Exercise 5.** Design an application that stores exact 64-bit IDs and then outputs them as text. Propose a way to convert `long` directly to `String` without going through `double`.
 
-### Ghi nhớ
+### Takeaways
 
-**Chuyển số nguyên sang số thực là widening hợp lệ nhưng không luôn lossless.** `float` chỉ có 24 bit chính xác, `double` có 53 bit. Vì vậy `int → float` và `long → double` có thể làm tròn; ngược lại **mọi `int → double` đều chính xác**. Nếu cần lưu đúng từng đơn vị của số nguyên lớn, đừng đưa giá trị qua số thực xấp xỉ.
+**Converting integers to floating-point is valid widening, but not always lossless.** `float` only has 24 bits of precision, `double` has 53 bits. Thus `int → float` and `long → double` can round; conversely, **every `int → double` is exact**. If you need to store every single unit of a large integer accurately, do not pass the value through an approximate floating-point type.

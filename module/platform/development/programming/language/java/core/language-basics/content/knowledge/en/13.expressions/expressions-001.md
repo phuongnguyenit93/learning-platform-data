@@ -1,74 +1,74 @@
-# Biểu thức tạo ra giá trị và có kiểu tại thời điểm biên dịch — Java 17+
+# Expressions Produce a Value and Have a Compile-Time Type — Java 17+
 
-## 1. Mục tiêu bài học
+## 1. Lesson Objectives
 
-Trong Java, **biểu thức** (*expression*) là một cấu trúc cú pháp được đánh giá theo các quy tắc của ngôn ngữ. Với biểu thức tạo giá trị, kết quả có **một giá trị** và compiler xác định được **kiểu của biểu thức** trước khi chương trình chạy.
+In Java, an **expression** is a syntactic construct evaluated according to the rules of the language. For a value-producing expression, the result has **a value**, and the compiler determines the **type of the expression** before the program runs.
 
 ~~~java
 int a = 7;
 int b = 3;
 
-int sum = a + b;       // Biểu thức a + b có kiểu int, giá trị 10
-boolean larger = a > b; // Biểu thức a > b có kiểu boolean, giá trị true
-String label = "Java"; // Literal chuỗi có kiểu String, giá trị "Java"
+int sum = a + b;       // Expression a + b has type int, value 10
+boolean larger = a > b; // Expression a > b has type boolean, value true
+String label = "Java"; // String literal has type String, value "Java"
 ~~~
 
-Ba điểm cần phân biệt:
+Three points to distinguish:
 
-1. **Kiểu tĩnh (*compile-time type*)**: compiler xác định từ toán hạng, toán tử, khai báo và ngữ cảnh.
-2. **Giá trị lúc chạy (*runtime value*)**: kết quả cụ thể khi biểu thức được đánh giá, tùy dữ liệu hiện thời.
-3. **Đối tượng thực tế (*runtime object*)**: với biểu thức tham chiếu không null, object mà giá trị tham chiếu trỏ tới có thể thuộc class con của kiểu tĩnh.
+1. **Static type (*compile-time type*)**: determined by the compiler from operands, operators, declarations, and context.
+2. **Runtime value**: the concrete result when the expression is evaluated, depending on current data.
+3. **Actual object (*runtime object*)**: for a non-null reference expression, the object that the reference value points to may belong to a subclass of the static type.
 
-Ví dụ `a + b` luôn có kiểu `int` trong các khai báo ở trên; nếu `a` và `b` thay đổi, **giá trị** có thể đổi nhưng **kiểu biểu thức không đổi**.
+For example, `a + b` always has type `int` in the declarations above; if `a` and `b` change, the **value** can change, but the **expression type does not change**.
 
-> Ngoại lệ cần nắm: có lời gọi method kiểu `void` được coi là biểu thức nhưng **không tạo ra một giá trị để dùng tiếp**. Một biểu thức có thể không hoàn tất bình thường nếu ném exception. Vì thế phát biểu “mọi biểu thức đều luôn trả về một giá trị” là quá tuyệt đối.
+> Important exception: a `void` method invocation is considered an expression, yet it **does not produce a value for further use**. An expression can also fail to complete normally if it throws an exception. Therefore, saying "every expression always returns a value" is overly absolute.
 
-## 2. Biểu thức khác câu lệnh (*statement*) như thế nào?
+## 2. How Does an Expression Differ from a Statement?
 
-Biểu thức tạo giá trị có thể là:
+A value-producing expression can be:
 
 ~~~java
-42               // Literal int
-2 + 3            // Phép cộng int
-"Hi".length()    // Method invocation trả int
-a > b            // Phép so sánh trả boolean
-new StringBuilder("A") // Tạo object, cho giá trị tham chiếu
+42               // int literal
+2 + 3            // int addition
+"Hi".length()    // Method invocation returning int
+a > b            // Comparison returning boolean
+new StringBuilder("A") // Creates an object, yielding a reference value
 ~~~
 
-Những dòng này là **mảnh biểu thức**, không nhất thiết là những câu lệnh Java độc lập hợp lệ nếu chép nguyên cả dòng vào method.
+These lines are **expression fragments**, not necessarily valid standalone Java statements if copied directly into a method.
 
-Câu lệnh (*statement*) diễn đạt một hành động trong luồng thực thi: khai báo biến, gán, rẽ nhánh, vòng lặp, `return`, v.v.
+A **statement** expresses an action in the flow of execution: variable declaration, assignment, branching, looping, `return`, etc.
 
 ~~~java
-int result = 2 + 3;         // Câu lệnh khai báo; initializer là biểu thức
-System.out.println(result); // Câu lệnh biểu thức: method invocation
-if (result > 4) {           // Câu lệnh if; điều kiện là biểu thức boolean
+int result = 2 + 3;         // Declaration statement; initializer is an expression
+System.out.println(result); // Expression statement: method invocation
+if (result > 4) {           // if statement; condition is a boolean expression
     System.out.println("ok");
 }
 ~~~
 
-**Không phải mọi biểu thức đều đứng một mình thành câu lệnh được.**
+**Not every expression can stand alone as a statement.**
 
 ~~~java
-// 2 + 3; // Sai: phép cộng đơn thuần không phải statement expression hợp lệ
+// 2 + 3; // Invalid: plain addition is not a valid statement expression
 ~~~
 
-Một số nhóm biểu thức **được phép dùng như câu lệnh** (*statement expressions*) là phép gán, tăng/giảm, một số lời gọi method và biểu thức tạo class instance:
+Some groups of expressions **are allowed to be used as statements** (*statement expressions*): assignments, increments/decrements, certain method invocations, and class instance creation expressions:
 
 ~~~java
-result = 10;             // Assignment expression dùng làm câu lệnh
-result++;                // Increment expression dùng làm câu lệnh
-System.out.println(result); // Method invocation dùng làm câu lệnh
-new StringBuilder("A");   // Class instance creation expression làm câu lệnh
+result = 10;             // Assignment expression used as a statement
+result++;                // Increment expression used as a statement
+System.out.println(result); // Method invocation used as a statement
+new StringBuilder("A");   // Class instance creation expression as a statement
 ~~~
 
-**Ghi nhớ:** câu lệnh và biểu thức không phải hai khái niệm đồng nghĩa. Một câu lệnh có thể chứa nhiều biểu thức con.
+**Remember:** statement and expression are not synonymous concepts. A single statement can contain multiple sub-expressions.
 
-## 3. Kiểu biểu thức được xác định như thế nào?
+## 3. How Is an Expression's Type Determined?
 
-Compiler áp dụng các quy tắc kiểu Java, chẳng hạn:
+The compiler applies Java type rules, for example:
 
-| Biểu thức | Kiểu tĩnh | Ví dụ giá trị |
+| Expression | Static type | Example value |
 |---|---|---|
 | `10` | `int` | `10` |
 | `10L` | `long` | `10` |
@@ -76,94 +76,94 @@ Compiler áp dụng các quy tắc kiểu Java, chẳng hạn:
 | `2.5f` | `float` | `2.5` |
 | `'A'` | `char` | UTF-16 code unit `'A'` |
 | `true` | `boolean` | `true` |
-| `"Java"` | `String` | Văn bản `Java` |
-| `a + b` với a,b `int` | `int` | Ví dụ `10` |
-| `a > b` với a,b `int` | `boolean` | Ví dụ `true` |
+| `"Java"` | `String` | Text `Java` |
+| `a + b` with a,b `int` | `int` | For example `10` |
+| `a > b` with a,b `int` | `boolean` | For example `true` |
 | `"Hi".length()` | `int` | `2` |
-| `new int[3]` | `int[]` | Tham chiếu mảng mới |
-| `new StringBuilder()` | `StringBuilder` | Tham chiếu object mới |
+| `new int[3]` | `int[]` | Reference to a new array |
+| `new StringBuilder()` | `StringBuilder` | Reference to a new object |
 
-Không đoán kiểu từ tên biến hoặc hình thức giá trị in ra. Hãy xem **kiểu khai báo toán hạng, loại literal, chữ ký method** và **ngữ cảnh chuyển kiểu**.
+Do not guess the type from a variable name or how a printed value looks. Look at **the declared types of operands, the kind of literal, the method signature**, and **the type-conversion context**.
 
-Sơ đồ suy luận:
+Reasoning diagram:
 
 ~~~mermaid
 flowchart TD
-    A["Biểu thức Java"] --> B["Xác định kiểu toán hạng / chữ ký / literal"]
-    B --> C["Áp dụng toán tử và quy tắc chuyển kiểu"]
-    C --> D["Kiểu tĩnh tại compile time"]
-    D --> E["Compiler kiểm tra ngữ cảnh sử dụng"]
-    E --> F["Khi chạy: đánh giá và tạo giá trị nếu hoàn tất bình thường"]
+    A["Java expression"] --> B["Determine operand types / signature / literal"]
+    B --> C["Apply operator and conversion rules"]
+    C --> D["Static type at compile time"]
+    D --> E["Compiler checks usage context"]
+    E --> F["At runtime: evaluate and produce a value if completed normally"]
 ~~~
 
-Sơ đồ mô tả quá trình **logic về kiểu và đánh giá**, không phải sơ đồ nội bộ bắt buộc của JVM.
+The diagram illustrates the **logical process of typing and evaluation**, not a mandatory internal JVM diagram.
 
-## 4. Biểu thức số học: kiểu không nhất thiết bằng kiểu biến nhận
+## 4. Arithmetic Expressions: Type Does Not Necessarily Match the Receiving Variable's Type
 
 ~~~java
 int a = 7;
 int b = 2;
 
-int whole = a / b;       // Biểu thức int / int: kiểu int, giá trị 3
-double alsoWhole = a / b; // Vẫn tính int: giá trị 3, sau đó đổi thành 3.0
-double fractional = (double) a / b; // double / double: giá trị 3.5
+int whole = a / b;       // int / int expression: type int, value 3
+double alsoWhole = a / b; // Still int arithmetic: value 3, then converted to 3.0
+double fractional = (double) a / b; // double / double: value 3.5
 
 System.out.println(whole);      // 3
 System.out.println(alsoWhole);  // 3.0
 System.out.println(fractional); // 3.5
 ~~~
 
-**Tại sao `alsoWhole` không thành 3.5?** Phép chia `a / b` được thực hiện theo kiểu của **biểu thức** (`int`); chỉ sau đó kết quả `3` mới widening sang `double` để gán.
+**Why doesn't `alsoWhole` become 3.5?** The division `a / b` is performed according to the type of the **expression** (`int`); only afterward is the result `3` widened to `double` for assignment.
 
-Phần `(double) a / b` khiến phép chia được tiến hành theo `double` ngay từ đầu, từ đó giữ phần lẻ.
+Writing `(double) a / b` causes the division to be carried out in `double` from the start, thereby preserving the fractional part.
 
-**Không dùng kiểu biến đích để suy ngược phép tính đã xảy ra**. Với `var`, kiểu cũng được suy ra từ initializer:
+**Do not use the target variable's type to infer backward what computation occurred.** With `var`, the type is also inferred from the initializer:
 
 ~~~java
-var result = a / b; // result có kiểu int
+var result = a / b; // result has type int
 ~~~
 
-Không có chuyện `var` làm biểu thức tự chọn kiểu rộng hơn.
+`var` never makes an expression automatically pick a wider type.
 
-## 5. Numeric promotion: byte, short, char thường nâng thành int
+## 5. Numeric Promotion: byte, short, char Usually Promote to int
 
-Một phép cộng bình thường giữa hai biến `byte` tạo biểu thức kiểu `int`:
+A normal addition between two `byte` variables produces an expression of type `int`:
 
 ~~~java
 byte left = 100;
 byte right = 20;
 
-int sum = left + right; // Kết quả biểu thức là int
+int sum = left + right; // Expression result is int
 System.out.println(sum); // 120
 
-// byte invalid = left + right; // Lỗi compile: int không tự thu hẹp về byte
+// byte invalid = left + right; // Compile error: int does not implicitly narrow to byte
 ~~~
 
-Điểm quan trọng:
+Key points:
 
-- Cả hai biến là `byte`, nhưng quy tắc **binary numeric promotion** nâng lên `int` trước khi cộng.
-- Compiler không tự suy ra “vì kết quả 120 vừa byte nên kiểu biểu thức sẽ là byte”.
-- Muốn chuyển về byte cần cast phù hợp **và** tự kiểm tra giới hạn dữ liệu nếu không cho phép tràn.
+- Both variables are `byte`, but the **binary numeric promotion** rule promotes them to `int` before addition.
+- The compiler does not infer "because the result 120 fits in a byte, the expression type will be byte."
+- To convert back to `byte`, an appropriate cast is needed **along with** your own range check if overflow is not allowed.
 
-Với `char`:
+With `char`:
 
 ~~~java
 char letter = 'A';
-int nextCodeUnit = letter + 1; // Kết quả là int, giá trị 66
+int nextCodeUnit = letter + 1; // Result is int, value 66
 char nextLetter = (char) nextCodeUnit;
 System.out.println(nextLetter); // B
 ~~~
 
-Với một toán hạng `double`, biểu thức số học hỗn hợp thường được nâng tới `double`:
+With a `double` operand, a mixed arithmetic expression is normally promoted to `double`:
 
 ~~~java
 double mixed = 7 + 0.5;
 System.out.println(mixed); // 7.5
 ~~~
 
-Không có widening/narrowing primitive số học từ hoặc sang `boolean`.
+There is no primitive numeric widening/narrowing conversion from or to `boolean`.
 
-## 6. Kiểu tại compile time không bảo đảm tránh overflow
+## 6. Compile-Time Type Does Not Guarantee Avoiding Overflow
 
 ~~~java
 long wrong = 2_000_000_000 + 2_000_000_000;
@@ -173,19 +173,19 @@ System.out.println(wrong); // -294967296
 System.out.println(right); // 4000000000
 ~~~
 
-Ở dòng đầu:
+On the first line:
 
-1. Hai literal đều kiểu `int`.
-2. Biểu thức `int + int` có kiểu `int` và **tràn** trong phép cộng.
-3. Sau đó giá trị `int` bị tràn mới đổi sang `long` để gán.
+1. Both literals have type `int`.
+2. The `int + int` expression has type `int` and **overflows** during addition.
+3. Only then is the overflowed `int` value converted to `long` for assignment.
 
-Dòng thứ hai có toán hạng đầu kiểu `long`, nên phép cộng có kiểu `long` từ đầu.
+The second line has its first operand of type `long`, so the addition has type `long` from the start.
 
-**Compiler biết kiểu biểu thức nhưng không tự chứng minh biểu thức số học đáp ứng miền nghiệp vụ.** Nếu cần phát hiện tràn int, có thể dùng `Math.addExact(int, int)` khi phù hợp: method ném `ArithmeticException` nếu tổng vượt miền int.
+**The compiler knows the expression type, but it does not automatically prove that an arithmetic expression satisfies business bounds.** If you need to detect `int` overflow, you can use `Math.addExact(int, int)` where appropriate: the method throws `ArithmeticException` if the sum exceeds the `int` range.
 
-## 7. So sánh và logic: kiểu boolean
+## 7. Comparisons and Logic: boolean Type
 
-Toán tử so sánh số trả `boolean`:
+Numeric comparison operators return `boolean`:
 
 ~~~java
 int a = 7;
@@ -197,29 +197,29 @@ System.out.println(greater); // true
 System.out.println(equal);   // false
 ~~~
 
-Toán tử logic `&&`, `||` cho kết quả kiểu `boolean`, đồng thời **short-circuit** khi kết quả đã xác định:
+The logical operators `&&`, `||` yield a `boolean` result and **short-circuit** once the result is determined:
 
 ~~~java
 int divisor = 0;
 boolean safe = divisor != 0 && 10 / divisor > 1;
 
-System.out.println(safe); // false, không chia cho 0
+System.out.println(safe); // false, does not divide by 0
 ~~~
 
-Nếu toán hạng đầu `divisor != 0` là false, Java **không đánh giá** phần `10 / divisor > 1`. Điều này cho thấy **có kiểu tĩnh** không đồng nghĩa mọi biểu thức con được thực thi trong tất cả các lượt chạy.
+If the first operand `divisor != 0` is false, Java **does not evaluate** the `10 / divisor > 1` part. This shows that **having a static type** does not mean every sub-expression is executed on every run.
 
-**Cú pháp `if` yêu cầu biểu thức điều kiện kiểu `boolean`** (hoặc `Boolean` được unbox thích hợp), không chấp nhận số nguyên như điều kiện:
+**The `if` syntax requires a condition expression of type `boolean`** (or a `Boolean` suitably unboxed); it does not accept an integer as a condition:
 
 ~~~java
-// if (1) { ... } // Lỗi compile: int không phải boolean
+// if (1) { ... } // Compile error: int is not boolean
 if (a > b) {
-    System.out.println("a lớn hơn b");
+    System.out.println("a is greater than b");
 }
 ~~~
 
-## 8. Nối chuỗi cũng là biểu thức có kiểu String
+## 8. String Concatenation Is Also an Expression of Type String
 
-Toán tử `+` vừa có thể cộng số vừa có thể nối String. Ngữ nghĩa phụ thuộc kiểu toán hạng và thứ tự đánh giá.
+The `+` operator can either add numbers or concatenate `String`s. The semantics depend on operand types and evaluation order.
 
 ~~~java
 int a = 7;
@@ -229,59 +229,59 @@ System.out.println("result=" + a + b);   // result=73
 System.out.println("result=" + (a + b)); // result=10
 ~~~
 
-`+` kết hợp trái:
+`+` is left-associative:
 
-- `"result=" + a + b` bắt đầu từ String → nối String từng bước.
-- `"result=" + (a + b)` thực hiện phép cộng số trong ngoặc trước, rồi nối kết quả 10.
+- `"result=" + a + b` starts with a `String` → concatenates as `String` step by step.
+- `"result=" + (a + b)` performs numeric addition inside parentheses first, then concatenates the result 10.
 
-Bảng đối chiếu:
+Comparison table:
 
-| Biểu thức | Kiểu tĩnh | Giá trị |
+| Expression | Static type | Value |
 |---|---|---|
 | `7 + 3` | `int` | `10` |
 | `"7" + 3` | `String` | `"73"` |
 | `"result=" + 7 + 3` | `String` | `"result=73"` |
 | `"result=" + (7 + 3)` | `String` | `"result=10"` |
 
-Java **không tự phân tích chuỗi số** để biến `"7" + "3"` thành phép cộng 10. Muốn biến văn bản thành số phải sử dụng API như `Integer.parseInt` và xử lý dữ liệu sai định dạng.
+Java **does not automatically parse numeric strings** to turn `"7" + "3"` into addition yielding 10. To turn text into numbers, you must use an API such as `Integer.parseInt` and handle malformed input.
 
-## 9. Lời gọi method: kiểu biểu thức theo chữ ký trả về
+## 9. Method Invocations: Expression Type Follows the Return Signature
 
 ~~~java
 static int twice(int value) {
     return value * 2;
 }
 
-// Trong main:
+// In main:
 int answer = twice(6);
 System.out.println(answer); // 12
 ~~~
 
-Biểu thức `twice(6)` có kiểu **`int`**, do method `twice` khai báo trả `int`. Compiler không cần chạy method để biết kiểu ấy.
+The expression `twice(6)` has type **`int`**, because the method `twice` is declared to return `int`. The compiler does not need to run the method to know that type.
 
-Tương tự:
+Similarly:
 
 ~~~java
-var length = "Java".length(); // Suy ra int
-var message = String.valueOf(123); // Suy ra String
+var length = "Java".length(); // Inferred as int
+var message = String.valueOf(123); // Inferred as String
 ~~~
 
-Nếu method khai báo trả kiểu `Object`, thì **kiểu tĩnh của biểu thức gọi method là `Object`**, dù object trả về lúc chạy có thể là `String`:
+If a method is declared to return `Object`, then **the static type of the method invocation expression is `Object`**, even though the returned object at runtime might be a `String`:
 
 ~~~java
 static Object makeText() {
     return "Java";
 }
 
-// Trong main:
-Object value = makeText(); // Kiểu biểu thức makeText() là Object
+// In main:
+Object value = makeText(); // Type of expression makeText() is Object
 System.out.println(value.toString()); // Java
-// value.length(); // Lỗi compile: Object không khai báo length()
+// value.length(); // Compile error: Object does not declare length()
 ~~~
 
-**Không dùng giá trị thực tế lúc chạy để đoán quyền gọi method tại compile time.** Kiểu tham chiếu tĩnh là hợp đồng mà compiler sử dụng.
+**Do not use the actual runtime value to assume method-call rights at compile time.** The static reference type is the contract the compiler uses.
 
-## 10. Kiểu tĩnh của tham chiếu và class thật ở runtime
+## 10. Static Type of a Reference vs. Actual Class at Runtime
 
 ~~~java
 class Animal {
@@ -300,25 +300,25 @@ class Dog extends Animal {
 }
 ~~~
 
-Trong một method:
+Inside a method:
 
 ~~~java
 Animal pet = new Dog();
 
 System.out.println(pet.sound()); // woof
-// pet.fetch(); // Lỗi compile: kiểu tĩnh Animal không có fetch()
+// pet.fetch(); // Compile error: static type Animal has no fetch()
 ~~~
 
-Giải thích:
+Explanation:
 
-- Biểu thức `new Dog()` có kiểu tĩnh `Dog` và tạo tham chiếu tới một instance `Dog`.
-- Biến `pet` có kiểu khai báo **`Animal`**, nhận tham chiếu ấy qua widening reference conversion.
-- Khi viết `pet.sound()`, compiler cho phép gọi vì `Animal` khai báo `sound()`; lúc chạy, **dynamic dispatch** chọn implementation override trong `Dog`.
-- `pet.fetch()` không biên dịch vì kiểu tĩnh `Animal` không có method `fetch()`, dù object thật là Dog.
+- The expression `new Dog()` has static type `Dog` and creates a reference to a `Dog` instance.
+- The variable `pet` has declared type **`Animal`**, receiving that reference via widening reference conversion.
+- When writing `pet.sound()`, the compiler allows the call because `Animal` declares `sound()`; at runtime, **dynamic dispatch** selects the overridden implementation in `Dog`.
+- `pet.fetch()` does not compile because the static type `Animal` has no `fetch()` method, even though the actual object is a `Dog`.
 
-**Kiểu tĩnh** kiểm soát thành viên có thể truy cập; **class runtime** quyết định implementation của method instance được override.
+**Static type** governs which members are accessible; **runtime class** determines the implementation of an overridden instance method.
 
-## 11. Overload chọn theo kiểu tĩnh ở compile time
+## 11. Overload Resolution Picks by Static Type at Compile Time
 
 ~~~java
 static void describe(Object value) {
@@ -330,7 +330,7 @@ static void describe(String value) {
 }
 ~~~
 
-Với:
+With:
 
 ~~~java
 Object value = "Java";
@@ -340,23 +340,23 @@ describe(value); // Object overload
 describe(text);  // String overload
 ~~~
 
-Hai biến có thể trỏ **đến cùng một String object**, nhưng compiler chọn overload dựa trên **kiểu tĩnh của đối số**:
+Both variables may point **to the same String object**, yet the compiler selects the overload based on the **static type of the argument**:
 
-- `value` có kiểu `Object`: chọn `describe(Object)`.
-- `text` có kiểu `String`: chọn `describe(String)`.
+- `value` has type `Object`: selects `describe(Object)`.
+- `text` has type `String`: selects `describe(String)`.
 
-**Đừng nhầm overload resolution với override dispatch:**
+**Do not confuse overload resolution with override dispatch:**
 
-| Cơ chế | Quyết định chính | Thời điểm |
+| Mechanism | Primary decision | Timing |
 |---|---|---|
-| **Overload**: nhiều method cùng tên, tham số khác | Chữ ký áp dụng theo kiểu tĩnh đối số | Compile time |
-| **Override**: class con định nghĩa lại method instance | Implementation theo object runtime | Runtime |
+| **Overload**: multiple methods with the same name, different parameters | Applicable signature by static type of arguments | Compile time |
+| **Override**: subclass redefines an instance method | Implementation by runtime object | Runtime |
 
-Kiểu của một biểu thức có thể được compiler quyết định sớm, nhưng điều đó không có nghĩa Java bỏ qua tính đa hình khi thực thi.
+An expression's type may be decided early by the compiler, but that does not mean Java ignores polymorphism at execution time.
 
-## 12. Biểu thức gán cũng có kiểu và giá trị
+## 12. Assignment Expressions Also Have a Type and Value
 
-Phép gán `=` là một biểu thức: nó cập nhật biến và cho giá trị thuộc kiểu của biến bên trái.
+The assignment `=` is an expression: it updates the variable and yields a value of the left-hand variable's type.
 
 ~~~java
 int count = 1;
@@ -365,9 +365,9 @@ System.out.println(count);  // 4
 System.out.println(result); // 6
 ~~~
 
-Tương tự, `++count` và `count++` có giá trị biểu thức lần lượt sau/trước khi tăng biến. Đây là các ví dụ cho thấy **kiểu tĩnh và giá trị** không mô tả hết hành vi lúc chạy: biểu thức còn có thể đổi trạng thái. Khi thao tác cập nhật không cần nằm trong phép tính, hãy tách ra thành câu lệnh riêng.
+Similarly, `++count` and `count++` yield expression values after and before incrementing the variable, respectively. These examples show that **static type and value** do not describe all runtime behavior: an expression can also mutate state. When an update does not need to sit inside a calculation, separate it into its own statement.
 
-## 13. Biểu thức điều kiện `?:` có quy tắc xác định kiểu
+## 13. Conditional Expression `?:` Has Rules for Determining Type
 
 ~~~java
 boolean enabled = true;
@@ -375,9 +375,9 @@ double selected = enabled ? 1 : 2.5;
 System.out.println(selected); // 1.0
 ~~~
 
-Nhánh được chọn quyết định **giá trị runtime**, còn trường hợp biểu thức điều kiện số học `int`/`double` này có kiểu `double` theo quy tắc numeric conditional expression. Không suy ra kiểu từ nhánh được chạy. Với biểu thức điều kiện tham chiếu, Java còn có các quy tắc target typing/poly expression; không có quy tắc chung “luôn chọn kiểu rộng nhất”.
+The chosen branch determines the **runtime value**, while this `int`/`double` numeric conditional expression has type `double` according to numeric conditional expression rules. Do not infer the type from which branch runs. For reference conditional expressions, Java also has target typing / poly expression rules; there is no universal rule of "always picking the widest type."
 
-## 14. Ép kiểu và phép chuyển đổi sau khi biết kiểu biểu thức
+## 14. Type Casting and Conversions After the Expression Type Is Known
 
 ~~~java
 double reading = 7.9;
@@ -386,9 +386,9 @@ int truncated = (int) reading; // Cast double -> int
 System.out.println(truncated); // 7
 ~~~
 
-Biểu thức `(int) reading` có kiểu `int`, khác với `reading` có kiểu `double`. Cast yêu cầu chuyển đổi hợp lệ; với giá trị hữu hạn trong miền, chuyển từ double sang int **cắt phần lẻ theo hướng về 0**, không làm tròn gần nhất.
+The expression `(int) reading` has type `int`, unlike `reading` which has type `double`. A cast requests an explicit valid conversion; for finite in-range values, converting from `double` to `int` **truncates the fractional part toward zero**, rather than rounding to nearest.
 
-Một tình huống khác:
+Another case:
 
 ~~~java
 int value = 130;
@@ -396,65 +396,65 @@ byte small = (byte) value;
 System.out.println(small); // -126
 ~~~
 
-Kết quả `(byte) value` có kiểu `byte` nhưng không giữ nguyên giá trị 130, vì thu hẹp số nguyên có thể làm mất dữ liệu.
+The result `(byte) value` has type `byte` but does not preserve the value 130, because narrowing integers can lose data.
 
-**Phân biệt ba thứ:**
+**Distinguish three things:**
 
-- **Type checking:** compiler xác định và kiểm tra loại giá trị có thể sử dụng.
-- **Conversion:** Java có thể biến đổi biểu diễn/giá trị để phù hợp kiểu đích.
-- **Business validation:** chương trình phải tự kiểm tra kết quả có phù hợp yêu cầu hay không.
+- **Type checking:** the compiler determines and verifies what kinds of values may be used.
+- **Conversion:** Java may transform the representation/value to match the target type.
+- **Business validation:** the program must check on its own whether the result meets domain requirements.
 
-`(int) reading` đúng cú pháp không bảo đảm thao tác này đúng với số tiền, số lượng hoặc phép đo đòi hỏi phần lẻ.
+The fact that `(int) reading` is syntactically valid does not guarantee the operation is right for currency amounts, quantities, or measurements requiring fractional precision.
 
-## 15. `var` quan sát được kiểu compile time từ initializer
+## 15. `var` Observes the Compile-Time Type from the Initializer
 
 ~~~java
 var count = 10;           // int
 var title = "Java";       // String
-var average = 10 / 4;     // int: giá trị 2
-var preciseAverage = 10.0 / 4; // double: giá trị 2.5
+var average = 10 / 4;     // int: value 2
+var preciseAverage = 10.0 / 4; // double: value 2.5
 ~~~
 
-`var` **không tạo biến kiểu động**: nó suy luận kiểu tĩnh của biểu thức khởi tạo.
+`var` **does not create a dynamically typed variable**: it infers the static type of the initializing expression.
 
 ~~~java
 var count = 10;
-// count = "ten"; // Lỗi biên dịch: count đã có kiểu int
+// count = "ten"; // Compile error: count already has type int
 ~~~
 
-Một điểm nên nhớ:
+A point to remember:
 
 ~~~java
-// var unknown = null; // Không hợp lệ: null literal không cung cấp kiểu suy luận
-String knownType = null;  // Hợp lệ: kiểu được khai báo tường minh
+// var unknown = null; // Invalid: the null literal provides no type to infer
+String knownType = null;  // Valid: type is explicitly declared
 ~~~
 
-Java có khái niệm kiểu của `null` literal và các ngữ cảnh target typing; nhưng bản thân `var unknown = null` không có đủ thông tin cho một kiểu biến cục bộ có thể suy luận hợp lệ.
+Java has a notion of the type of the `null` literal and target typing contexts; however, `var unknown = null` by itself lacks sufficient information for a valid inferred local variable type.
 
-Với generic:
+With generics:
 
 ~~~java
 var names = java.util.List.of("Lan", "An"); // List<String>
 System.out.println(names.get(0).length()); // 3
-// names.add(123); // Lỗi compile: Integer không phải String
+// names.add(123); // Compile error: Integer is not String
 ~~~
 
-Không nhầm **kiểm tra kiểu tĩnh** với **khả năng thay đổi collection tại runtime**. `List.of` tạo danh sách không sửa được; thử thêm phần tử hợp kiểu String vẫn có thể ném `UnsupportedOperationException` lúc chạy.
+Do not confuse **static type checking** with **collection mutability at runtime**. `List.of` creates an unmodifiable list; attempting to add a type-compatible `String` element can still throw `UnsupportedOperationException` at runtime.
 
-## 16. Khi có kiểu nhưng không có giá trị dùng được
+## 16. When There Is a Type but No Usable Value
 
-Lời gọi method khai báo `void` có thể hoàn tất bình thường nhưng không cho giá trị để gán:
+A invocation of a method declared `void` can complete normally yet produce no value for assignment:
 
 ~~~java
-System.out.println("Hello"); // Hợp lệ như một statement expression
-// int n = System.out.println("Hello"); // Sai kiểu: lời gọi trả void
+System.out.println("Hello"); // Valid as a statement expression
+// int n = System.out.println("Hello"); // Type error: invocation returns void
 ~~~
 
-Một biểu thức kiểu `int` cũng có thể **không trả được kết quả runtime** nếu ném ngoại lệ, chẳng hạn `10 / denominator` với `denominator == 0`. Kiểu được compiler kiểm tra, còn thành công hoặc thất bại xảy ra khi đánh giá; những side effect trước lỗi không tự động được hoàn tác.
+An expression of type `int` can also **fail to return a runtime result** if it throws an exception, such as `10 / denominator` when `denominator == 0`. Types are checked by the compiler, whereas success or failure happens during evaluation; side effects prior to the failure are not automatically rolled back.
 
-## 17. Ví dụ Java 17 đầy đủ, chạy được
+## 17. Complete, Runnable Java 17 Example
 
-Tạo file chính xác **`ExpressionValueTypeDemo.java`**:
+Create the exact file **`ExpressionValueTypeDemo.java`**:
 
 ~~~java
 public final class ExpressionValueTypeDemo {
@@ -563,7 +563,7 @@ public final class ExpressionValueTypeDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên. Mở terminal trong thư mục chứa `ExpressionValueTypeDemo.java`. Không cần Maven, Gradle hoặc thư viện ngoài JDK.
+**Requirements:** JDK 17 or newer. Open a terminal in the folder containing `ExpressionValueTypeDemo.java`. No Maven, Gradle, or libraries outside the JDK are needed.
 
 **Bash (Linux/macOS):**
 
@@ -612,43 +612,43 @@ long first=4000000000
 void call completed
 ~~~
 
-### Kiểm tra từng nhóm kết quả
+### Checking Each Output Group
 
-- `sum`, `greater`: biểu thức số học tạo `int`, biểu thức so sánh tạo `boolean`.
-- Ba dòng phép chia: cùng các giá trị liên quan nhưng **kiểu biểu thức tại lúc chia** quyết định giữ hay bỏ phần lẻ.
-- `small + 1`: toán hạng `byte` được nâng thành `int`.
-- `concat=73` so với `grouped=10`: kiểu toán hạng String đổi ý nghĩa phép `+`.
-- `(assigned = 4) + 2`: phép gán là expression có giá trị; prefix/postfix có thời điểm cập nhật khác nhau.
-- `conditional selected=1.0`: biểu thức `?:` số học có kiểu `double`.
-- `describe(object)` và `describe(text)`: overload chọn theo **kiểu tĩnh**.
-- `pet.sound()`: method override thực thi theo **object Dog** tại runtime.
-- `var inferred int=2`: `var` suy ra kiểu `int` từ return type `length()`.
-- `short circuit=false`: nhánh chia cho 0 không bị đánh giá.
-- Hai dòng overflow: toán tử cộng có kiểu `int` hoặc `long` trước khi gán vào biến `long`.
+- `sum`, `greater`: arithmetic expression yields `int`, comparison expression yields `boolean`.
+- Three division lines: the same values are involved, yet the **expression type at the time of division** decides whether the fractional part is kept or discarded.
+- `small + 1`: the `byte` operand is promoted to `int`.
+- `concat=73` vs. `grouped=10`: a `String` operand changes the meaning of `+`.
+- `(assigned = 4) + 2`: assignment is a value-producing expression; prefix/postfix differ in when the update takes effect.
+- `conditional selected=1.0`: the numeric `?:` expression has type `double`.
+- `describe(object)` and `describe(text)`: overload chosen by **static type**.
+- `pet.sound()`: overridden method executes according to the **Dog object** at runtime.
+- `var inferred int=2`: `var` infers `int` from the return type of `length()`.
+- `short circuit=false`: the divide-by-zero branch is not evaluated.
+- Two overflow lines: the addition operator has type `int` or `long` before assignment to the `long` variable.
 
-## 18. Lỗi thường gặp và cách sửa
+## 18. Common Mistakes and How to Fix Them
 
-| Ngộ nhận / lỗi | Nguyên nhân | Cách đúng |
+| Misconception / error | Cause | Correct approach |
 |---|---|---|
-| `2 + 3;` là câu lệnh hợp lệ độc lập | Không phải mọi expression là statement expression | Gán, sử dụng kết quả hoặc đặt trong ngữ cảnh phù hợp |
-| `double avg = 7 / 2;` cho 3.5 | Phép chia `int / int` trả `int` | `(double) 7 / 2` |
-| `byte result = byteA + byteB;` | Numeric promotion trả `int` | Dùng `int` hoặc cast có kiểm tra |
-| `long total = intA + intB;` luôn tránh tràn | int cộng trước khi gán | Widen toán hạng trước phép cộng |
-| `"sum=" + 7 + 3` cho `sum=10` | Nối String từ trái sang phải | `"sum=" + (7 + 3)` |
-| `Object x = "Java"; x.length()` | Kiểu tĩnh Object không có length | Chọn String ở khai báo hoặc cast có kiểm tra |
-| `var n = 1;` tự đổi thành long khi cần | `var` suy ra int cố định | Khởi tạo bằng `1L` hoặc khai báo long |
-| `Integer i = null; int x = i + 1;` | Unboxing null ở runtime | Kiểm tra null trước |
-| `if (10)` hợp lệ vì số khác 0 | Java yêu cầu boolean | Viết điều kiện như `10 != 0` |
-| `int n = System.out.println("x");` | Method có return type void, không trả giá trị | Gọi làm câu lệnh riêng |
-| `n = 0; 10 / n` được compiler chặn | Kiểu hợp lệ nhưng giá trị runtime sai | Kiểm tra mẫu số khác 0 |
-| Nghĩ class runtime quyết định overload | Overload phân giải theo kiểu tĩnh | Đọc kiểu khai báo biểu thức đối số |
-| Nghĩ kiểu tĩnh ngăn method override | Method instance có dispatch động | Tách overload và override |
+| `2 + 3;` is a valid standalone statement | Not every expression is a statement expression | Assign, use the result, or place it in an appropriate context |
+| `double avg = 7 / 2;` gives 3.5 | `int / int` division returns `int` | `(double) 7 / 2` |
+| `byte result = byteA + byteB;` | Numeric promotion returns `int` | Use `int` or cast with range checks |
+| `long total = intA + intB;` always avoids overflow | `int` addition happens before assignment | Widen an operand before adding |
+| `"sum=" + 7 + 3` gives `sum=10` | Left-to-right `String` concatenation | `"sum=" + (7 + 3)` |
+| `Object x = "Java"; x.length()` | Static type `Object` has no `length` | Declare as `String` or cast with a check |
+| `var n = 1;` automatically changes to `long` when needed | `var` infers fixed `int` | Initialize with `1L` or declare as `long` |
+| `Integer i = null; int x = i + 1;` | Unboxing `null` at runtime | Check for `null` first |
+| `if (10)` is valid because nonzero is truthy | Java requires `boolean` | Write a condition like `10 != 0` |
+| `int n = System.out.println("x");` | Method has `void` return type, returns no value | Call as a standalone statement |
+| `n = 0; 10 / n` is blocked by the compiler | Types are valid, but runtime value is invalid | Check that the divisor is nonzero |
+| Thinking runtime class picks overloads | Overloads resolve by static type | Read the declared types of argument expressions |
+| Thinking static type prevents method overriding | Instance methods use dynamic dispatch | Keep overloading and overriding distinct |
 
-**Mẹo debug:** khi một biểu thức cho kết quả không như dự đoán, hãy phân tích theo thứ tự **(1) kiểu từng toán hạng → (2) quy tắc chuyển kiểu/toán tử → (3) kiểu biểu thức → (4) giá trị lúc chạy → (5) chuyển đổi khi gán**.
+**Debugging tip:** when an expression gives an unexpected result, analyze in order: **(1) type of each operand → (2) conversion/operator rules → (3) expression type → (4) runtime value → (5) conversion on assignment**.
 
-## 19. Bài tập có đáp án
+## 19. Exercises with Answers
 
-### Bài A — phép chia và kiểu biểu thức
+### Exercise A — division and expression type
 
 ~~~java
 int a = 9;
@@ -659,16 +659,16 @@ System.out.println(x);
 System.out.println(y);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 2.0
 2.25
 ~~~
 
-Phép `a / b` có kiểu `int`; cast toán hạng đầu trước khi chia làm biểu thức `double`.
+`a / b` has type `int`; casting the first operand before dividing makes the expression `double`.
 
-### Bài B — numeric promotion
+### Exercise B — numeric promotion
 
 ~~~java
 byte value = 12;
@@ -676,43 +676,43 @@ var result = value + 1;
 System.out.println(result);
 ~~~
 
-**Đáp án:** in `13`, biến `result` có kiểu **int**, không phải byte.
+**Answer:** prints `13`; variable `result` has type **int**, not `byte`.
 
-### Bài C — toán tử `+` và String
+### Exercise C — `+` operator and String
 
 ~~~java
 System.out.println("value=" + 2 + 3);
 System.out.println("value=" + (2 + 3));
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 value=23
 value=5
 ~~~
 
-### Bài D — kiểu tĩnh và overload
+### Exercise D — static type and overloading
 
 ~~~java
 static void show(Object value) { System.out.println("Object"); }
 static void show(String value) { System.out.println("String"); }
 
-// Trong main:
+// In main:
 Object a = "X";
 String b = "X";
 show(a);
 show(b);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 Object
 String
 ~~~
 
-### Bài E — biểu thức gán có giá trị
+### Exercise E — value-producing assignment expression
 
 ~~~java
 int n = 1;
@@ -721,40 +721,40 @@ System.out.println(n);
 System.out.println(x);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 5
 10
 ~~~
 
-### Bài F — khi expression có kiểu nhưng không có giá trị dùng được
+### Exercise F — when an expression has a type but no usable value
 
-Tại sao dòng này lỗi?
+Why does this line fail?
 
 ~~~java
 // int n = System.out.println("Hello");
 ~~~
 
-**Đáp án:** `println` có kiểu trả về `void`; lời gọi có thể dùng làm statement expression nhưng **không tạo giá trị `int` để gán**.
+**Answer:** `println` has return type `void`; the call can be used as a statement expression, but it **produces no `int` value to assign**.
 
-## 20. Checklist cuối bài
+## 20. End-of-Lesson Checklist
 
-- [ ] Phân biệt biểu thức và câu lệnh Java.
-- [ ] Biết kiểu của biểu thức được compiler xác định từ toán hạng, toán tử và chữ ký API.
-- [ ] Hiểu giá trị runtime có thể thay đổi dù kiểu tĩnh vẫn cố định.
-- [ ] Nhận biết literal `int`, `long`, `double`, `float`, `char`, `boolean`, `String`.
-- [ ] Không nhầm kiểu biến nhận với kiểu của phép tính trung gian.
-- [ ] Hiểu numeric promotion và integer division.
-- [ ] Biết biểu thức so sánh/logic có kiểu boolean; `&&`/`||` short-circuit.
-- [ ] Phân biệt phép cộng số và phép nối String.
-- [ ] Biết method invocation có kiểu theo chữ ký trả về; `void` không cung cấp giá trị gán được.
-- [ ] Phân biệt static type của tham chiếu với runtime class của object.
-- [ ] Hiểu overload compile-time và override runtime.
-- [ ] Biết phép gán, `++`, `--` có kết quả expression và tác dụng phụ.
-- [ ] Hiểu biểu thức điều kiện `?:` có kiểu theo các quy tắc ngôn ngữ.
-- [ ] Biết `var` suy luận kiểu tĩnh từ initializer.
-- [ ] Nhớ compiler chặn sai kiểu nhưng không đảm bảo không có exception/overflow.
-- [ ] Biên dịch và chạy `ExpressionValueTypeDemo.java`, đối chiếu từng dòng exact expected output.
+- [ ] Distinguish between Java expressions and statements.
+- [ ] Know that an expression's type is determined by the compiler from operands, operators, and API signatures.
+- [ ] Understand that runtime values can change even though the static type remains fixed.
+- [ ] Recognize `int`, `long`, `double`, `float`, `char`, `boolean`, and `String` literals.
+- [ ] Avoid confusing the receiving variable's type with the type of an intermediate computation.
+- [ ] Understand numeric promotion and integer division.
+- [ ] Know that comparison/logical expressions have type `boolean`; `&&`/`||` short-circuit.
+- [ ] Distinguish numeric addition from `String` concatenation.
+- [ ] Know that a method invocation takes the type of its return signature; `void` provides no assignable value.
+- [ ] Distinguish a reference's static type from an object's runtime class.
+- [ ] Understand compile-time overloading and runtime overriding.
+- [ ] Know that assignments, `++`, and `--` produce expression results and side effects.
+- [ ] Understand that the `?:` conditional expression is typed according to language rules.
+- [ ] Know that `var` infers its static type from the initializer.
+- [ ] Remember that the compiler blocks type mismatches but does not guarantee freedom from exceptions or overflow.
+- [ ] Compile and run `ExpressionValueTypeDemo.java`, verifying every line of exact expected output.
 
-**Kết luận:** Biểu thức Java không chỉ “làm ra một kết quả”: Java gán cho chúng **kiểu tĩnh tại compile time**, từ đó kiểm tra toán tử, phép gán, lời gọi method và truy cập thành viên. Giá trị thực tế được tính khi chạy và có thể phụ thuộc dữ liệu, nhánh đánh giá hoặc object runtime. Hiểu hai lớp **kiểu tĩnh** và **giá trị runtime** là nền tảng để đọc, dự đoán và sửa lỗi biểu thức Java 17+.
+**Conclusion:** Java expressions do not merely "compute a result": Java assigns them a **static type at compile time**, from which it checks operators, assignments, method calls, and member access. The actual value is computed at runtime and may depend on data, evaluated branches, or the runtime object. Understanding both layers—**static type** and **runtime value**—is foundational for reading, predicting, and debugging Java 17+ expressions.

@@ -1,56 +1,56 @@
-# Không dùng finalizer làm cơ chế bắt buộc để giải phóng tài nguyên
+# Do Not Use Finalizers as a Mandatory Mechanism to Release Resources
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể phân biệt việc thu hồi **bộ nhớ heap** với việc giải phóng **tài nguyên bên ngoài heap**; giải thích vì sao `finalize()` không bảo đảm đóng tài nguyên; và thiết kế vòng đời tài nguyên bằng `AutoCloseable`, `try-with-resources` cùng quy tắc sở hữu rõ ràng.
+After this lesson, you will be able to distinguish between reclaiming **heap memory** and releasing **off-heap resources**; explain why `finalize()` does not guarantee resource closing; and design resource lifecycles using `AutoCloseable`, `try-with-resources`, and clear ownership rules.
 
-## 1. Bộ thu gom rác không thay thế thao tác đóng tài nguyên
+## 1. The Garbage Collector Does Not Replace Closing Resources
 
-Garbage collector (GC) quản lý tính khả dụng của đối tượng và thu hồi bộ nhớ Java khi phù hợp. Nhưng file descriptor, socket, kết nối cơ sở dữ liệu, native handle, stream I/O và nhiều tài nguyên hệ điều hành có vòng đời, hạn mức riêng. Một đối tượng wrapper không còn được dùng **không đồng nghĩa** với việc tài nguyên mà nó đại diện đã được giải phóng kịp thời.
+The garbage collector (GC) manages object reachability and reclaims Java memory when appropriate. However, file descriptors, sockets, database connections, native handles, I/O streams, and many operating system resources have their own lifecycles and quotas. A wrapper object no longer being used **does not mean** the resource it represents has been released in time.
 
-Ví dụ: chương trình mở nhiều file mà không đóng có thể hết file descriptor ngay cả khi heap còn rất nhiều bộ nhớ. Mục tiêu của quản lý tài nguyên là xác định *ai sở hữu tài nguyên và thời điểm kết thúc sử dụng*, thay vì đợi GC đoán được lúc nào nên dọn.
+For example, a program that opens many files without closing them can exhaust file descriptors even when the heap still has plenty of memory. The goal of resource management is to determine *who owns a resource and when its use ends*, rather than waiting for the GC to guess when to clean up.
 
-## 2. `finalize()` hoạt động thế nào và vì sao không được dựa vào nó?
+## 2. How Does `finalize()` Work and Why Should You Not Rely on It?
 
-Trong mô hình finalization cũ, lớp có thể ghi đè `protected void finalize() throws Throwable`. Khi một đối tượng đủ điều kiện được thu gom, JVM *có thể* xử lý finalizer của nó. Đây không phải lời hứa rằng phương thức sẽ chạy ngay, sẽ chạy trước thời hạn nào, hoặc sẽ chạy trước khi tiến trình kết thúc.
+In the legacy finalization model, a class can override `protected void finalize() throws Throwable`. When an object becomes eligible for collection, the JVM *may* process its finalizer. This is not a promise that the method will run immediately, run before any deadline, or run before the process exits.
 
-`Object.finalize()` đã bị đánh dấu deprecated từ Java 9; **JEP 421 (JDK 18)** đánh dấu finalization để loại bỏ trong tương lai. Phần mềm cần hoạt động đúng ngay cả khi finalization bị vô hiệu hóa hoặc không được gọi.
+`Object.finalize()` was marked deprecated in Java 9; **JEP 421 (JDK 18)** marked finalization for removal in a future release. Software needs to work correctly even when finalization is disabled or never called.
 
-Các vấn đề chính:
+Key issues:
 
-- **Không xác định thời điểm:** việc đối tượng trở nên unreachable và việc GC/finalizer xử lý nó không tuân theo thời điểm nghiệp vụ cần đóng file hay connection. `System.gc()` chỉ là yêu cầu và không biến finalizer thành cơ chế đáng tin.
-- **Không bảo đảm thực thi:** GC có thể chưa chạy, finalizer có thể bị trì hoãn vô hạn, môi trường có thể tắt finalization, hoặc JVM kết thúc trước khi cleanup xảy ra.
-- **Thứ tự và tương tác khó kiểm soát:** tài nguyên liên quan có thể đã ở trạng thái khác; xử lý trên luồng finalization riêng làm việc đồng bộ và lỗi khó dự đoán.
-- **Chi phí và rủi ro:** finalizer có thể làm chậm thu hồi bộ nhớ, kéo dài vòng đời đối tượng, và tạo bề mặt lỗi/bảo mật. Một finalizer còn có khả năng làm đối tượng sống lại (object resurrection), khiến việc suy luận vòng đời phức tạp.
-- **Lỗi khó quan sát:** ngoại lệ không bắt được trong finalizer không tạo ra cơ chế báo lỗi cleanup giống lời gọi `close()` trực tiếp tại nơi sở hữu tài nguyên.
+- **Nondeterministic timing:** when an object becomes unreachable and when the GC/finalizer processes it do not follow the business timing required to close a file or connection. `System.gc()` is only a request and does not turn finalizers into a reliable mechanism.
+- **No execution guarantee:** GC may not run, finalizers may be delayed indefinitely, the environment may disable finalization, or the JVM may exit before cleanup occurs.
+- **Hard-to-control order and interactions:** related resources may already be in a different state; execution on a dedicated finalization thread makes synchronization and errors hard to predict.
+- **Overhead and risks:** finalizers can slow down memory reclamation, prolong object lifetimes, and create bug/security surfaces. A finalizer can also resurrect an object (object resurrection), making lifecycle reasoning complex.
+- **Hard-to-observe failures:** uncaught exceptions in a finalizer do not provide a cleanup error-reporting mechanism like a direct `close()` call at the resource owner.
 
-**Quy tắc:** không viết `finalize()` để thực hiện công việc bắt buộc như flush dữ liệu, commit/rollback, đóng socket, trả connection về pool hay giải phóng native handle. Việc bắt buộc phải hoàn tất phải nằm trong luồng thực thi được kiểm soát.
+**Rule:** do not write `finalize()` to perform mandatory work such as flushing data, committing/rolling back, closing sockets, returning connections to a pool, or releasing native handles. Work that must complete must reside in a controlled execution flow.
 
-## 3. Cách làm chính: buộc chủ sở hữu kết thúc vòng đời
+## 3. Primary Approach: Require the Owner to End the Lifecycle
 
-Thay một finalizer bằng `close()` chỉ đúng khi **bên sở hữu thực sự gọi** phương thức ấy. Với tài nguyên thuộc phạm vi ngắn, `AutoCloseable` cùng `try-with-resources` giúp Java cố gắng đóng dù phần thân thành công hay ném lỗi:
+Replacing a finalizer with `close()` is only right when **the owner actually calls** that method. For short-scoped resources, `AutoCloseable` with `try-with-resources` lets Java attempt to close whether the body succeeds or throws an error:
 
 ```java
 try (var writer = java.nio.file.Files.newBufferedWriter(path)) {
-    writer.write("Xin chào");
+    writer.write("Hello");
 }
 ```
 
-Đoạn minh họa giả định `path` là `Path`, các ngoại lệ `IOException` được khai báo hoặc xử lý. `close()` phải giải phóng tài nguyên thật, và lỗi đóng phải được quan sát; `try-with-resources` giữ lỗi chính của thân `try` và gắn lỗi `close()` thành suppressed exception qua `getSuppressed()`. Các tài nguyên khai báo theo thứ tự A rồi B sẽ được đóng B trước A.
+This illustrative snippet assumes `path` is a `Path` and `IOException` exceptions are declared or handled. `close()` must release the real resource, and closing errors must be observed; `try-with-resources` preserves the primary error from the `try` body and attaches `close()` errors as suppressed exceptions via `getSuppressed()`. Resources declared in order A then B are closed B before A.
 
-Bài tiếp theo về `AutoCloseable` cung cấp chương trình chạy được, ví dụ đọc/ghi file và JDBC, kiểm chứng thứ tự đóng cùng đường lỗi kép. Ở đây trọng tâm là **thiết kế lại quyền sở hữu và điểm đóng** khi bỏ finalizer, không chỉ thay tên callback.
+The next lesson on `AutoCloseable` provides runnable programs, file reading/writing and JDBC examples, verifying closing order and dual-error paths. Here the focus is on **redesigning ownership and closing points** when removing finalizers, rather than merely renaming a callback.
 
-## 4. Thiết kế lớp tự quản lý tài nguyên
+## 4. Designing a Self-Managed Resource Class
 
-Khi tự bọc native handle, socket hoặc đối tượng cần đóng, hãy triển khai `AutoCloseable` (hoặc `Closeable` nếu phù hợp với hợp đồng I/O):
+When wrapping a native handle, socket, or closeable object yourself, implement `AutoCloseable` (or `Closeable` if appropriate for an I/O contract):
 
-1. Xác định đối tượng nào **sở hữu** tài nguyên và ai phải gọi `close()`. Nếu thư viện/framework/pool sở hữu tài nguyên, không tự ý đóng đối tượng mượn.
-2. Làm rõ trạng thái **đang mở / đã đóng**; sau `close()`, từ chối thao tác không hợp lệ. Tùy loại tài nguyên, thiết kế `close()` an toàn khi gọi lặp lại.
-3. Giải phóng tài nguyên thực sự trong `close()`, thông báo lỗi thích hợp. Khi cleanup có thể thất bại, cố gắng giải phóng những phần còn lại và quản lý ngoại lệ một cách có chủ ý.
-4. Chuyển quyền sở hữu một cách minh bạch nếu trả tài nguyên ra khỏi phạm vi hiện tại. Không đóng tài nguyên còn được thành phần khác sử dụng.
-5. Nếu dùng tài nguyên qua nhiều luồng, quy định rõ an toàn luồng và đồng bộ trạng thái `close()`/sử dụng; một cờ `boolean` đơn giản không tự bảo đảm thread safety.
+1. Identify which object **owns** the resource and who must call `close()`. If a library/framework/pool owns the resource, do not arbitrarily close a borrowed object.
+2. Clarify **open / closed** state; after `close()`, reject invalid operations. Depending on the resource type, design `close()` to be safe when called repeatedly.
+3. Release the actual resource inside `close()`, reporting errors appropriately. When cleanup can fail, attempt to release the remaining parts and manage exceptions deliberately.
+4. Transfer ownership transparently if returning a resource out of the current scope. Do not close a resource still used by another component.
+5. If using the resource across multiple threads, specify thread safety clearly and synchronize `close()`/usage state; a plain `boolean` flag does not guarantee thread safety by itself.
 
-Ví dụ chỉ **mô phỏng vòng đời**, không mở native handle thật:
+Example that only **simulates the lifecycle** without opening a real native handle:
 
 ```java
 // OwnershipDemo.java
@@ -60,16 +60,16 @@ public class OwnershipDemo {
 
         void use() {
             if (closed) {
-                throw new IllegalStateException("Tài nguyên đã đóng");
+                throw new IllegalStateException("Resource closed");
             }
-            System.out.println("Đang sử dụng");
+            System.out.println("Using");
         }
 
         @Override
         public void close() {
             if (!closed) {
                 closed = true;
-                System.out.println("Đã đóng");
+                System.out.println("Closed");
             }
         }
     }
@@ -88,59 +88,59 @@ java OwnershipDemo
 ```
 
 ```text
-Đang sử dụng
-Đã đóng
+Using
+Closed
 ```
 
-Ở triển khai thực tế, đặt lệnh giải phóng file/socket/native handle bên trong `close()`; không nhầm câu `System.out.println("Đã đóng")` ở ví dụ với thao tác giải phóng thật. Với tài nguyên cần thread safety, đồng bộ hoặc dùng cơ chế trạng thái nguyên tử phù hợp.
+In real implementations, place the code that releases the file/socket/native handle inside `close()`; do not confuse the example's `System.out.println("Closed")` statement with an actual release operation. For resources requiring thread safety, synchronize or use an appropriate atomic state mechanism.
 
-## 5. Cleaner không biến cleanup dự phòng thành bắt buộc
+## 5. Cleaner Does Not Turn Fallback Cleanup into Mandatory Cleanup
 
-Có thể đăng ký `Cleaner` cho wrapper native handle nếu cần giảm hậu quả người dùng quên `close()`, nhưng action chỉ tự động chạy khi điều kiện reachability và lịch xử lý cho phép. Luồng nghiệp vụ vẫn phải đóng chủ động; action phải tách khỏi đối tượng được theo dõi và chống giải phóng hai lần. Không đặt flush, commit/rollback hoặc thông báo bắt buộc trong callback Cleaner. Bài cuối chương hướng dẫn mô hình `Cleanable` và kiểm thử giới hạn này.
+You may register a `Cleaner` for a native handle wrapper if you need to mitigate the consequences of users forgetting `close()`, but the action only runs automatically when reachability conditions and scheduling allow. Business flow must still close proactively; the action must be decoupled from the tracked object and guard against double-freeing. Do not put flushes, commits/rollbacks, or mandatory notifications in a Cleaner callback. The final lesson in this chapter walks through the `Cleanable` pattern and testing this limitation.
 
-## 6. Chuyển từ code dùng finalizer sang quản lý tài nguyên rõ ràng
+## 6. Migrating from Finalizer-Based Code to Explicit Resource Management
 
-Giả sử code cũ dựa vào `finalize()` để đóng một handle. Lộ trình sửa đúng:
+Suppose legacy code relies on `finalize()` to close a handle. The proper migration path:
 
-1. Tìm các override `finalize()`, tài nguyên được giải phóng bên trong, và những nơi khởi tạo đối tượng. Kiểm tra cả dependency có liên quan.
-2. Bổ sung `close()`/ `AutoCloseable`, tách logic cleanup thành thao tác rõ ràng với quy tắc chống đóng lặp; bỏ phụ thuộc nghiệp vụ vào finalizer.
-3. Đổi bên **sở hữu** đối tượng sang `try-with-resources` khi vòng đời theo phạm vi, hoặc gọi `close()` tại điểm đóng của service/component khi vòng đời dài hơn.
-4. Kiểm thử đường đi bình thường, ngoại lệ khi đang dùng, ngoại lệ khi đóng, gọi đóng nhiều lần và việc dùng sau khi đóng. Xác minh tài nguyên thực được giải phóng mà **không gọi `System.gc()`**.
-5. Cân nhắc Cleaner chỉ để giảm thiểu rò rỉ do người gọi quên đóng đối với những tài nguyên phù hợp; không coi nó là đường cleanup chính.
+1. Locate `finalize()` overrides, the resources released inside them, and where those objects are instantiated. Check relevant dependencies as well.
+2. Add `close()` / `AutoCloseable`, extract cleanup logic into an explicit operation with double-close protection; remove business reliance on the finalizer.
+3. Update the object's **owner** to use `try-with-resources` when scoped, or call `close()` at the service/component's shutdown point for longer lifecycles.
+4. Test normal paths, exceptions during use, exceptions during closing, repeated close calls, and use after close. Verify the actual resource is released **without calling `System.gc()`**.
+5. Consider Cleaner only to mitigate leaks from callers forgetting to close for suitable resources; do not treat it as the primary cleanup path.
 
-Đoạn minh họa ý tưởng cần tránh:
+Illustrative snippet of the idea to avoid:
 
 ```java
-// Mã cũ, không nên áp dụng: cố ý chỉ là fragment minh họa.
+// Legacy code, should not be used: intentionally an illustrative fragment only.
 @Override
 protected void finalize() throws Throwable {
     releaseNativeHandle();
 }
 ```
 
-Thiết kế nên dùng: đối tượng sở hữu handle triển khai `AutoCloseable`, gọi `releaseNativeHandle()` từ `close()` và buộc nơi tạo/sở hữu đối tượng kết thúc sử dụng bằng `try-with-resources` hoặc `close()` tường minh. Phương thức `releaseNativeHandle()` ở fragment trên là tên giả định minh họa, không phải Java API.
+Recommended design: the object owning the handle implements `AutoCloseable`, calls `releaseNativeHandle()` from `close()`, and requires the creator/owner of the object to end usage via `try-with-resources` or explicit `close()`. The `releaseNativeHandle()` method in the fragment above is a hypothetical illustrative name, not a Java API.
 
-## 7. Các lỗi thường gặp
+## 7. Common Mistakes
 
-| Quan niệm hoặc cách làm | Vấn đề | Cách thay thế |
+| Concept or Practice | Problem | Alternative |
 | --- | --- | --- |
-| “GC sẽ tự đóng file/connection” | Bộ nhớ được thu hồi và tài nguyên hệ điều hành được đóng là hai trách nhiệm khác nhau | Đóng đúng hạn qua `try-with-resources` |
-| Gọi `System.gc()` sau khi dùng tài nguyên | Không bảo đảm GC hay finalizer chạy đúng lúc | Gọi `close()` tại ranh giới sở hữu |
-| Dùng `finalize()` để flush, commit hoặc rollback | Những thao tác này cần kiểm soát thứ tự, lỗi và thời điểm | Thực hiện chủ động ở luồng nghiệp vụ |
-| Chỉ cài `Cleaner`, không có `close()` | Cleaner tự động vẫn không có thời hạn bảo đảm | `close()` là chính; Cleaner chỉ dự phòng |
-| Dựa vào shutdown hook để đóng từng đối tượng | Hook thuộc vòng đời tiến trình, có thể không chạy trong mọi kiểu kết thúc, không quản lý vòng đời mỗi tài nguyên | Đóng ngay khi không còn sử dụng |
-| Đóng tài nguyên do framework/pool sở hữu | Có thể làm hỏng đối tượng đang được chia sẻ hoặc tái sử dụng | Theo đúng hợp đồng sở hữu của API |
+| “GC will automatically close files/connections” | Reclaiming memory and closing OS resources are two different responsibilities | Close on time via `try-with-resources` |
+| Calling `System.gc()` after using a resource | Does not guarantee GC or finalizers run on time | Call `close()` at the ownership boundary |
+| Using `finalize()` to flush, commit, or rollback | These operations need control over order, errors, and timing | Execute proactively in business flow |
+| Installing only `Cleaner`, without `close()` | Automatic Cleaner still has no guaranteed deadline | `close()` is primary; Cleaner is only fallback |
+| Relying on shutdown hooks to close individual objects | Hooks belong to process lifecycle, may not run on all exit types, and do not manage per-resource lifecycles | Close immediately when no longer used |
+| Closing resources owned by a framework/pool | Can break objects that are shared or reused | Follow the API's ownership contract |
 
-## 8. Tự kiểm tra
+## 8. Self-Check
 
-- Khi một `Socket` không còn được tham chiếu, có thể kết luận ngay socket đã được đóng không? **Không.** Mất tham chiếu không bảo đảm cleanup hệ điều hành được thực hiện kịp thời.
-- Khi thân `try-with-resources` và `close()` đều ném exception, tìm lỗi đóng ở đâu? **`Throwable.getSuppressed()`** trên ngoại lệ chính.
-- Có được dùng Cleaner để chắc chắn flush dữ liệu trước khi trả HTTP response không? **Không.** Hãy flush/close tường minh trong luồng xử lý có kiểm soát.
-- Một lớp không nắm giữ file/socket/native handle có cần finalizer để GC giải phóng heap không? **Không.** GC tự quản lý bộ nhớ của các đối tượng thông thường.
+- When a `Socket` is no longer referenced, can we immediately conclude the socket has been closed? **No.** Losing references does not guarantee OS cleanup has occurred in time.
+- When both the `try-with-resources` body and `close()` throw exceptions, where do you find the closing error? **`Throwable.getSuppressed()`** on the primary exception.
+- Can Cleaner be used to ensure data is flushed before returning an HTTP response? **No.** Flush/close explicitly in a controlled processing flow.
+- Does a class holding no files/sockets/native handles need a finalizer for GC to free heap memory? **No.** GC automatically manages memory for ordinary objects.
 
-**Ghi nhớ:** vòng đời tài nguyên cần thiết kế theo **quyền sở hữu + thao tác đóng rõ ràng**. Finalizer và các callback phụ thuộc GC không đáp ứng cam kết giải phóng tài nguyên tại thời điểm bắt buộc.
+**Key takeaway:** resource lifecycles must be designed around **ownership + explicit closing operations**. Finalizers and GC-dependent callbacks do not satisfy guarantees for releasing resources at mandatory times.
 
-## Tài liệu tham khảo
+## References
 
 - [JEP 421 — Deprecate Finalization for Removal](https://openjdk.org/jeps/421)
 - [Java SE 17 — AutoCloseable](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/AutoCloseable.html)

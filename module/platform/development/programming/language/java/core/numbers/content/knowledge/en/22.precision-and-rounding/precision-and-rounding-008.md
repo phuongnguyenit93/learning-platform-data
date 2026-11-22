@@ -1,10 +1,10 @@
-# `RoundingMode.UNNECESSARY`: yêu cầu kết quả không cần làm tròn trong Java
+# `RoundingMode.UNNECESSARY`: Requiring Results That Need No Rounding in Java
 
-## 1. Vì sao cần chế độ “không cho phép làm tròn”?
+## 1. Why Do We Need a "No Rounding Allowed" Mode?
 
-Khi làm việc với `BigDecimal`, lập trình viên thường chỉ định **scale** (số chữ số sau dấu thập phân) hoặc **precision** (số chữ số có nghĩa). Nếu kết quả chính xác có nhiều chữ số hơn mức được yêu cầu, phép tính cần loại bỏ hoặc thay đổi chữ số. Khi đó, một chế độ như `HALF_UP` hoặc `HALF_EVEN` sẽ quyết định cách làm tròn.
+When working with `BigDecimal`, developers often specify **scale** (digits after the decimal point) or **precision** (significant digits). If the exact result has more digits than requested, the calculation must discard or alter digits. In that case, a mode such as `HALF_UP` or `HALF_EVEN` decides how to round.
 
-**`RoundingMode.UNNECESSARY` có ý nghĩa khác:** tuyên bố rằng thao tác **phải thực hiện được mà không thay đổi giá trị toán học**. Nếu không thể thỏa ràng buộc scale/precision mà vẫn giữ nguyên giá trị, `BigDecimal` ném `ArithmeticException` thay vì âm thầm làm tròn.
+**`RoundingMode.UNNECESSARY` has a different meaning:** it asserts that the operation **must be achievable without changing the mathematical value**. If the scale/precision constraint cannot be satisfied while keeping the value intact, `BigDecimal` throws `ArithmeticException` instead of silently rounding.
 
 ~~~java
 import java.math.BigDecimal;
@@ -14,57 +14,57 @@ BigDecimal exact = new BigDecimal("12.3400");
 BigDecimal a = exact.setScale(2, RoundingMode.UNNECESSARY); // 12.34
 BigDecimal b = exact.setScale(5, RoundingMode.UNNECESSARY); // 12.34000
 
-// Khi chạy sẽ ném ArithmeticException vì phải bỏ chữ số 5:
+// Throws ArithmeticException at runtime because digit 5 must be dropped:
 BigDecimal c = new BigDecimal("12.345")
         .setScale(2, RoundingMode.UNNECESSARY);
 ~~~
 
-Các dòng trên là **đoạn mã minh họa**, đặt vào phương thức hoặc chương trình thích hợp. Bản chạy độc lập có ở phần 6.
+The lines above are an **illustrative code snippet**, placed inside an appropriate method or program. A standalone runnable version is in section 6.
 
-Điểm cốt lõi: `UNNECESSARY` **không có nghĩa là bỏ qua bước xử lý, không có nghĩa là giữ nguyên chuỗi đầu vào và cũng không tự bảo đảm phép toán luôn thành công**. Nó là một **điều kiện kiểm tra tính chính xác** của phép toán dưới ràng buộc đã yêu cầu. `BigDecimal` vẫn có thể thay đổi cách biểu diễn, thêm hoặc bớt các số 0 tận cùng, miễn giá trị không đổi.
+Key point: `UNNECESSARY` **does not mean skipping the operation, does not mean preserving the input string verbatim, and does not guarantee by itself that the operation always succeeds**. It is an **exactness assertion** for the operation under the requested constraint. `BigDecimal` may still change its representation, adding or removing trailing zeros, as long as the value does not change.
 
-## 2. Nền tảng: giá trị, scale và precision của `BigDecimal`
+## 2. Foundation: Value, Scale, and Precision of `BigDecimal`
 
-`BigDecimal` lưu một **unscaled value** là số nguyên, kết hợp với một **scale** nguyên:
+`BigDecimal` stores an integer **unscaled value**, combined with an integer **scale**:
 
 ~~~text
-giá trị = unscaledValue × 10^(-scale)
+value = unscaledValue × 10^(-scale)
 ~~~
 
-Ví dụ:
+Examples:
 
-| `BigDecimal` tạo từ chuỗi | Unscaled value | Scale | Precision |
+| `BigDecimal` created from string | Unscaled value | Scale | Precision |
 | --- | ---: | ---: | ---: |
 | `"12.34"` | 1234 | 2 | 4 |
 | `"12.3400"` | 123400 | 4 | 6 |
 | `"0.00120"` | 120 | 5 | 3 |
 | `"1200"` | 1200 | 0 | 4 |
 
-**Scale** là vị trí dấu thập phân theo biểu diễn hiện tại; scale có thể âm (ví dụ scale = -2 biểu thị bội số của 100). **Precision** là số chữ số thập phân của unscaled value khi bỏ dấu; nó không đồng nghĩa với số chữ số sau dấu thập phân.
+**Scale** is the decimal point position in the current representation; scale can be negative (for example, scale = -2 indicates multiples of 100). **Precision** is the number of decimal digits in the unscaled value ignoring sign; it is not synonymous with digits after the decimal point.
 
-`new BigDecimal("12.3400")` và `new BigDecimal("12.34")` có **giá trị số học bằng nhau**, nhưng scale/precision ban đầu khác nhau. Vì vậy:
+`new BigDecimal("12.3400")` and `new BigDecimal("12.34")` have **equal numerical value**, though their initial scale/precision differ. Therefore:
 
-- `compareTo()` cho kết quả 0 khi hai `BigDecimal` có cùng giá trị toán học.
-- `equals()` còn xét scale nên hai đối tượng trên **không bằng nhau theo `equals`**.
-- `setScale(2, UNNECESSARY)` có thể biến `12.3400` thành `12.34` vì chỉ loại bỏ các chữ số 0 không ảnh hưởng giá trị.
+- `compareTo()` returns 0 when two `BigDecimal` values have the same mathematical value.
+- `equals()` also checks scale, so the two objects above are **not equal according to `equals`**.
+- `setScale(2, UNNECESSARY)` can turn `12.3400` into `12.34` because only zeros that do not affect the value are removed.
 
-Ví dụ `setScale(5, UNNECESSARY)` lại thêm số 0 để tạo `12.34000`, vẫn là một phép chuyển đổi **chính xác**. Do đó “không cần làm tròn” khác với “không được thay đổi cách hiển thị”.
+For example, `setScale(5, UNNECESSARY)` instead appends zeros to produce `12.34000`, which is still an **exact** conversion. Thus "no rounding needed" differs from "cannot change display format".
 
-## 3. `setScale(..., RoundingMode.UNNECESSARY)`: kiểm tra biểu diễn chính xác ở scale mong muốn
+## 3. `setScale(..., RoundingMode.UNNECESSARY)`: Checking Exact Representation at the Desired Scale
 
-Phương thức:
+The method:
 
 ~~~java
 BigDecimal result = value.setScale(targetScale, RoundingMode.UNNECESSARY);
 ~~~
 
-yêu cầu biểu diễn giá trị bằng đúng `targetScale`. Có ba tình huống:
+requires representing the value with exact `targetScale`. There are three situations:
 
-1. **Tăng scale:** thêm chữ số 0 ở phần thập phân để giữ nguyên giá trị, nên có thể thực hiện chính xác.
-2. **Giảm scale nhưng chỉ bỏ số 0 tận cùng:** vẫn chính xác, thành công.
-3. **Giảm scale và phải bỏ chữ số khác 0:** không thể giữ nguyên giá trị; ném `ArithmeticException`.
+1. **Increasing scale:** appends `0` digits in the fractional part to preserve value, so it can be done exactly.
+2. **Decreasing scale while only dropping trailing zeros:** still exact, succeeds.
+3. **Decreasing scale and having to drop a non-zero digit:** cannot preserve the value; throws `ArithmeticException`.
 
-| Giá trị đầu vào | Yêu cầu | Kết quả |
+| Input value | Call | Result |
 | --- | --- | --- |
 | `12.34` | `setScale(4, UNNECESSARY)` | `12.3400` |
 | `12.3400` | `setScale(2, UNNECESSARY)` | `12.34` |
@@ -72,13 +72,13 @@ yêu cầu biểu diễn giá trị bằng đúng `targetScale`. Có ba tình hu
 | `1000` | `setScale(-2, UNNECESSARY)` | `1.0E+3` (scale = -2) |
 | `1250` | `setScale(-2, UNNECESSARY)` | `ArithmeticException` |
 
-Ở hai hàng cuối, scale = -2 yêu cầu giá trị là bội số chính xác của **100**: `1000` chia hết cho 100, còn `1250` thì không. Dạng chuỗi `1.0E+3` chỉ là cách `BigDecimal.toString()` biểu diễn `1000` có scale -2.
+In the last two rows, scale = -2 requires the value to be an exact multiple of **100**: `1000` is divisible by 100, while `1250` is not. The string form `1.0E+3` is simply how `BigDecimal.toString()` displays `1000` with scale -2.
 
-Cùng phép chuyển `12.345` xuống 2 chữ số, các chế độ làm tròn khác có thể tạo `12.35` hoặc `12.34`, tùy quy tắc; `UNNECESSARY` chọn **báo lỗi** để người gọi không nhầm kết quả đã bị sửa.
+For the same conversion of `12.345` down to 2 digits, other rounding modes could produce `12.35` or `12.34`, depending on the rule; `UNNECESSARY` chooses **to raise an error** so the caller does not mistake a modified result for exact.
 
-### 3.1. Ứng dụng: xác minh dữ liệu có đúng số chữ số thập phân được phép
+### 3.1. Application: Validating Data Has at Most the Allowed Decimal Places
 
-Giả sử một hệ thống chỉ nhận tiền có tối đa hai chữ số sau dấu chấm, nhưng phải bảo toàn giá trị khách hàng nhập:
+Suppose a system only accepts money with at most two digits after the decimal point, while preserving the exact value entered by the customer:
 
 ~~~java
 public static BigDecimal requireTwoDecimalPlaces(String input) {
@@ -87,18 +87,18 @@ public static BigDecimal requireTwoDecimalPlaces(String input) {
 }
 ~~~
 
-Đây là phương thức cần đặt trong một class đã import `java.math.BigDecimal` và `java.math.RoundingMode`.
+This is a method to be placed inside a class that imports `java.math.BigDecimal` and `java.math.RoundingMode`.
 
 - `"19"` → `19.00`.
 - `"19.2"` → `19.20`.
-- `"19.2000"` → `19.20`: các số 0 dư không đổi giá trị.
-- `"19.201"` → `ArithmeticException`: không thể biểu diễn chính xác ở scale 2.
+- `"19.2000"` → `19.20`: redundant zeros do not change the value.
+- `"19.201"` → `ArithmeticException`: cannot be represented exactly at scale 2.
 
-Đó là kiểm tra **khả năng biểu diễn chính xác ở scale 2**, không phải kiểm tra **chuỗi gốc có đúng hai chữ số**. Nếu yêu cầu dữ liệu là đúng hai chữ số được nhập, phải xác minh định dạng chuỗi riêng. Ngoài ra, chính sách tiền tệ thực tế có thể còn cần ràng buộc số âm, miền giá trị, currency và các quy tắc nghiệp vụ.
+This checks **exact representability at scale 2**, not whether **the original string had exactly two digits**. If the requirement is that exactly two digits were entered, string format must be validated separately. In addition, real-world monetary policies may also need constraints on negative numbers, value ranges, currency, and business rules.
 
-## 4. `MathContext` và precision: làm tròn theo số chữ số có nghĩa
+## 4. `MathContext` and Precision: Rounding by Significant Digits
 
-`MathContext` gồm precision và rounding mode. Ví dụ:
+`MathContext` combines precision and rounding mode. Example:
 
 ~~~java
 import java.math.BigDecimal;
@@ -109,99 +109,99 @@ MathContext exactThreeDigits =
         new MathContext(3, RoundingMode.UNNECESSARY);
 
 BigDecimal x = new BigDecimal("123.00").round(exactThreeDigits);
-// x = 123: bỏ 2 chữ số 0 tận cùng nhưng không đổi giá trị.
+// x = 123: drops 2 trailing zeros without changing value.
 
-// Ném ArithmeticException: không thể biểu diễn chính xác
-// giá trị 123.40 bằng tối đa 3 chữ số có nghĩa.
+// Throws ArithmeticException: cannot represent 123.40 exactly
+// using at most 3 significant digits.
 BigDecimal y = new BigDecimal("123.40").round(exactThreeDigits);
 ~~~
 
-`MathContext(3, UNNECESSARY)` yêu cầu kết quả vừa có **tối đa 3 chữ số có nghĩa** vừa **không mất giá trị**. Nó không yêu cầu “giữ đúng 3 chữ số sau dấu thập phân”. Chẳng hạn, `123.00` giảm được xuống `123` mà vẫn đúng, còn `123.40` cần bốn chữ số có nghĩa để giữ chính xác giá trị `123.4`.
+`MathContext(3, UNNECESSARY)` requires the result to both have **at most 3 significant digits** and **lose no value**. It does not mean "keep exactly 3 digits after the decimal point". For instance, `123.00` reduces to `123` while remaining exact, whereas `123.40` needs four significant digits to keep the exact value `123.4`.
 
-Một số phép tính như `add`, `subtract`, `multiply`, `divide` có overload nhận `MathContext`. Khi cần thu kết quả về precision đã cho, chúng thực hiện kiểm tra tương tự. Với `UNNECESSARY`, nếu kết quả chính xác cần nhiều chữ số có nghĩa hơn và không thể giảm bằng cách bỏ các số 0 không ảnh hưởng giá trị, thao tác sẽ thất bại.
+Some operations such as `add`, `subtract`, `multiply`, and `divide` have overloads accepting `MathContext`. When the result must fit the given precision, they perform the same check. With `UNNECESSARY`, if the exact result needs more significant digits and cannot be reduced by dropping value-neutral zeros, the operation fails.
 
-### 4.1. Precision = 0 là trường hợp đặc biệt
+### 4.1. Precision = 0 Is a Special Case
 
 ~~~java
 MathContext unlimited =
         new MathContext(0, RoundingMode.UNNECESSARY);
 ~~~
 
-Trong `MathContext`, **precision = 0 nghĩa là không giới hạn độ chính xác**. Khi đó chế độ rounding không tác động đến việc giới hạn số chữ số có nghĩa, vì không có giới hạn nào được đặt ra. Tuy nhiên, điều này **không khiến phép chia có phần thập phân vô hạn tự trở nên biểu diễn được**: `1 / 3` vẫn không có kết quả `BigDecimal` chính xác với hữu hạn chữ số.
+In `MathContext`, **precision = 0 means unlimited precision**. In that case, the rounding mode does not act to limit significant digits, because no limit is imposed. However, this **does not make divisions with infinite decimal expansions suddenly representable**: `1 / 3` still has no exact `BigDecimal` result with finitely many digits.
 
-`MathContext.UNLIMITED` là hằng có precision 0 và rounding mode `HALF_UP`; trong các phép toán không cần giới hạn precision, rounding mode của nó không tạo ra khác biệt. Đừng hiểu `MathContext.UNLIMITED` là vô hiệu hóa mọi lỗi số học (ví dụ chia cho 0 và phép chia không kết thúc vẫn lỗi).
+`MathContext.UNLIMITED` is a constant with precision 0 and rounding mode `HALF_UP`; in operations without a precision limit, its rounding mode makes no difference. Do not assume `MathContext.UNLIMITED` disables all arithmetic errors (for example, division by 0 and non-terminating division still error).
 
-## 5. Phép chia: nơi `UNNECESSARY` thường tạo lỗi khó hiểu
+## 5. Division: Where `UNNECESSARY` Often Creates Confusing Errors
 
-### 5.1. Phân biệt ba overload của `divide`
+### 5.1. Distinguishing Three Overloads of `divide`
 
-| Cách gọi | Ràng buộc kết quả | Điều gì xảy ra nếu không thể chính xác? |
+| Call | Result constraint | What happens if exactness is impossible? |
 | --- | --- | --- |
-| `a.divide(b)` | Kết quả chính xác với biểu diễn thập phân hữu hạn | `ArithmeticException` khi phép chia không kết thúc, ví dụ `1/3` |
-| `a.divide(b, scale, UNNECESSARY)` | Kết quả đúng scale đã chỉ định, không làm tròn | `ArithmeticException` nếu chữ số cần bỏ khác 0 |
-| `a.divide(b, mathContextWithUNNECESSARY)` | Kết quả đúng giới hạn precision, không làm tròn | `ArithmeticException` nếu phải làm tròn hoặc kết quả không biểu diễn chính xác được ở precision đó |
+| `a.divide(b)` | Exact result with finite decimal representation | `ArithmeticException` when division does not terminate, e.g., `1/3` |
+| `a.divide(b, scale, UNNECESSARY)` | Result at exact specified scale, no rounding | `ArithmeticException` if a non-zero digit would be dropped |
+| `a.divide(b, mathContextWithUNNECESSARY)` | Result within precision limit, no rounding | `ArithmeticException` if rounding is needed or result cannot be represented exactly at that precision |
 
-Một overload khác, `a.divide(b, RoundingMode.UNNECESSARY)`, dùng **scale của `a`** làm scale kết quả, dễ gây bất ngờ. Ví dụ `new BigDecimal("10").divide(new BigDecimal("4"), RoundingMode.UNNECESSARY)` sẽ lỗi vì scale của `10` là 0, dù giá trị chia chính xác `2.5` có thể được lưu bằng `BigDecimal`. Nếu muốn kết quả scale 1, phải gọi overload có tham số scale tường minh.
+Another overload, `a.divide(b, RoundingMode.UNNECESSARY)`, uses **the scale of `a`** as the result scale, which easily surprises developers. For example, `new BigDecimal("10").divide(new BigDecimal("4"), RoundingMode.UNNECESSARY)` fails because the scale of `10` is 0, even though the exact quotient `2.5` can be stored by `BigDecimal`. If a scale-1 result is desired, you must call the overload with an explicit scale parameter.
 
-### 5.2. “Chia chính xác” khác “chia chính xác ở scale/precision được yêu cầu”
+### 5.2. "Exact Division" Differs from "Exact Division at Requested Scale/Precision"
 
 ~~~java
 BigDecimal ten = new BigDecimal("10");
 BigDecimal four = new BigDecimal("4");
 
-// Chính xác ở scale 1:
+// Exact at scale 1:
 BigDecimal ok = ten.divide(four, 1, RoundingMode.UNNECESSARY);
 // ok = 2.5
 
-// Không thể chính xác ở scale 0:
+// Cannot be exact at scale 0:
 BigDecimal fail = ten.divide(four, 0, RoundingMode.UNNECESSARY);
 // ArithmeticException
 ~~~
 
-`10 ÷ 4 = 2.5` là giá trị **hoàn toàn biểu diễn được bằng số thập phân hữu hạn**, nhưng không phải bằng scale 0. Đây là lỗi do **ràng buộc biểu diễn**, không phải do phép chia “vốn không chính xác”.
+`10 ÷ 4 = 2.5` is **completely representable as a finite decimal**, yet not at scale 0. This error comes from **the representation constraint**, not because the division is "inherently inexact".
 
-Với precision thì tương tự:
+With precision it is similar:
 
 ~~~java
 MathContext p3 = new MathContext(3, RoundingMode.UNNECESSARY);
 
 BigDecimal ok = BigDecimal.ONE.divide(new BigDecimal("8"), p3);
-// 0.125 có 3 chữ số có nghĩa: thành công.
+// 0.125 has 3 significant digits: succeeds.
 
 BigDecimal fail = BigDecimal.ONE.divide(new BigDecimal("32"), p3);
-// 0.03125 có 4 chữ số có nghĩa: ArithmeticException.
+// 0.03125 has 4 significant digits: ArithmeticException.
 ~~~
 
-### 5.3. Phép chia có thập phân vô hạn
+### 5.3. Non-Terminating Decimal Division
 
-`1 / 3 = 0.3333...` không thể ghi chính xác bằng một `BigDecimal` có hữu hạn chữ số thập phân:
+`1 / 3 = 0.3333...` cannot be written exactly using a `BigDecimal` with finitely many decimal digits:
 
 ~~~java
 BigDecimal a = BigDecimal.ONE;
 BigDecimal b = new BigDecimal("3");
 
-// Cả hai đều không thể trả về BigDecimal chính xác:
+// Neither can return an exact BigDecimal:
 a.divide(b);
 a.divide(b, new MathContext(20, RoundingMode.UNNECESSARY));
 ~~~
 
-Trong hai dòng trên, lỗi phát sinh tại phép chia được thực thi đầu tiên; để kiểm tra dòng thứ hai riêng, đặt các dòng trong những khối `try/catch` độc lập.
+In the two lines above, the error occurs on whichever division executes first; to test the second line independently, place them in separate `try/catch` blocks.
 
-Một phân số tối giản `n/d` có biểu diễn thập phân hữu hạn khi **mẫu d chỉ có các thừa số nguyên tố 2 và 5**. Ví dụ `1/8 = 0.125`, `1/20 = 0.05` hữu hạn; `1/3`, `1/6` không hữu hạn. Tiêu chí này áp dụng sau khi rút gọn phân số, với mẫu là số nguyên dương.
+A reduced fraction `n/d` has a finite decimal representation when **the denominator d has only prime factors 2 and 5**. For example, `1/8 = 0.125` and `1/20 = 0.05` terminate; `1/3` and `1/6` do not. This criterion applies after reducing the fraction, with a positive integer denominator.
 
-Nếu yêu cầu nghiệp vụ **cho phép làm tròn**, hãy chọn một scale hoặc precision và chế độ làm tròn có chủ đích, ví dụ:
+If business requirements **allow rounding**, choose an intentional scale or precision and rounding mode, for example:
 
 ~~~java
 BigDecimal oneThird = BigDecimal.ONE.divide(
         new BigDecimal("3"), 2, RoundingMode.HALF_UP);
-// oneThird = 0.33, là giá trị xấp xỉ.
+// oneThird = 0.33, an approximate value.
 ~~~
 
-Nếu nghiệp vụ **cấm làm tròn**, giữ `UNNECESSARY` và xử lý lỗi như tín hiệu dữ liệu hoặc kỳ vọng phép toán chưa đáp ứng điều kiện, thay vì tự đổi sang `HALF_UP`.
+If business rules **forbid rounding**, keep `UNNECESSARY` and treat the error as a signal that data or operation expectations did not meet the condition, rather than switching to `HALF_UP` on your own.
 
-## 6. Chương trình Java 17+ có thể biên dịch và chạy
+## 6. Compilable and Runnable Java 17+ Program
 
-Tạo tệp **UnnecessaryDemo.java**:
+Create the file **UnnecessaryDemo.java**:
 
 ~~~java
 import java.math.BigDecimal;
@@ -268,14 +268,14 @@ public class UnnecessaryDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac UnnecessaryDemo.java
 java UnnecessaryDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 scale down exact: 12.34
@@ -292,53 +292,53 @@ precision division -> ArithmeticException
 unlimited division: 0.03125
 ~~~
 
-Trong chương trình, `attempt` bắt `ArithmeticException` nhằm cho phép các trường hợp khác tiếp tục chạy sau một phép tính cố ý sai ràng buộc. Ứng dụng thực tế nên có chính sách xử lý lỗi phù hợp, tránh che lỗi hoặc trả một giá trị thay thế tùy tiện.
+In the program, `attempt` catches `ArithmeticException` so that subsequent cases can continue running after an intentionally constraint-violating calculation. Real applications should have an appropriate error-handling policy, avoiding swallowing errors or returning an arbitrary fallback value.
 
-## 7. Dùng `UNNECESSARY` ở đâu?
+## 7. Where to Use `UNNECESSARY`?
 
-### 7.1. Kiểm tra dữ liệu trước khi lưu
+### 7.1. Validating Data Before Saving
 
-Nếu cơ sở dữ liệu sử dụng `DECIMAL(12, 2)` và nghiệp vụ yêu cầu không làm mất phần lẻ, có thể dùng:
+If the database uses `DECIMAL(12, 2)` and business rules require not losing fractional precision, you can use:
 
 ~~~java
 BigDecimal normalized =
         input.setScale(2, RoundingMode.UNNECESSARY);
 ~~~
 
-Sau đó **vẫn phải kiểm tra giới hạn độ lớn/số chữ số nguyên** để phù hợp precision của cột và các quy tắc nghiệp vụ khác. `setScale(2, UNNECESSARY)` chỉ chứng minh rằng giá trị có thể được biểu diễn đúng ở scale 2; nó không chứng minh giá trị vừa vào mọi cột hoặc nằm trong miền hợp lệ.
+Afterward you **must still check magnitude/integer-digit limits** to match column precision and other business rules. `setScale(2, UNNECESSARY)` only proves that the value can be represented accurately at scale 2; it does not prove the value fits every column or lies within a valid range.
 
-### 7.2. Phân phối số lượng nguyên
+### 7.2. Distributing Integer Quantities
 
-Nếu chia một tổng đơn vị nguyên thành các phần và bắt buộc không còn phần dư, có thể dùng `divide(..., 0, UNNECESSARY)` để yêu cầu thương nguyên chính xác. Ví dụ `10 / 2` thành công ở scale 0, còn `10 / 4` báo lỗi vì thương 2.5 không nguyên. Nếu muốn kiểm tra tính chia hết của **số nguyên**, `BigInteger.divideAndRemainder` hoặc phép chia và phần dư nguyên có thể diễn đạt ý định rõ ràng hơn.
+If dividing an integer total into parts while requiring no remainder, you can use `divide(..., 0, UNNECESSARY)` to require an exact integer quotient. For example, `10 / 2` succeeds at scale 0, whereas `10 / 4` throws an error because the quotient 2.5 is not an integer. If you want to check divisibility of **integers**, `BigInteger.divideAndRemainder` or integer division and remainder may express the intent more clearly.
 
-### 7.3. Kiểm tra bất biến trong tính toán
+### 7.3. Checking Invariants in Calculations
 
-Trong một chuỗi phép tính mà phần nghiệp vụ xác nhận **không được mất chữ số**, `UNNECESSARY` biến giả định “chắc chắn chia/chuẩn hóa chính xác được” thành điều kiện được kiểm tra ở runtime. Điều này đặc biệt hữu ích ở **ranh giới dữ liệu**: trước khi lưu, gửi API hoặc chuyển sang scale chuẩn.
+In a chain of calculations where business logic confirms **no digits may be lost**, `UNNECESSARY` turns the assumption "this division/normalization is definitely exact" into a runtime-checked condition. This is especially useful at **data boundaries**: before persisting, sending to an API, or converting to a standard scale.
 
-Tuy nhiên, `UNNECESSARY` không loại bỏ sai số đã phát sinh từ nguồn dữ liệu trước đó. Ví dụ, `new BigDecimal(0.1)` mang chính xác giá trị nhị phân của literal `double` 0.1 sau khi đã làm tròn theo IEEE 754, không mang chính xác số thập phân 0.1 kỳ vọng. Khi cần dữ liệu thập phân đúng theo văn bản, ưu tiên `new BigDecimal("0.1")` hoặc một nguồn thập phân có kiểm soát. Nếu thật sự bắt đầu bằng `double`, `BigDecimal.valueOf(0.1)` dùng biểu diễn thập phân chuẩn của giá trị double và thường phù hợp hơn constructor nhận double, nhưng không phục hồi số thập phân gốc chưa biết.
+However, `UNNECESSARY` does not eliminate errors that originated from earlier data sources. For example, `new BigDecimal(0.1)` carries the exact binary value of the `double` literal 0.1 after IEEE 754 rounding, not the expected exact decimal 0.1. When exact decimal data matching text is needed, prefer `new BigDecimal("0.1")` or a controlled decimal source. If actually starting with a `double`, `BigDecimal.valueOf(0.1)` uses the canonical decimal representation of the double value and is usually better than the double constructor, though it does not recover an unknown original decimal number.
 
-## 8. Các ngoại lệ và hiểu lầm cần tránh
+## 8. Exceptions and Misconceptions to Avoid
 
-| Hiểu lầm | Điều đúng |
+| Misconception | Fact |
 | --- | --- |
-| `UNNECESSARY` nghĩa là “đừng làm gì” | API vẫn đổi scale/precision khi đổi được mà không mất giá trị |
-| Có `UNNECESSARY` thì kết quả phải thành công | Nó ném `ArithmeticException` nếu cần làm tròn |
-| `setScale(2, UNNECESSARY)` bắt chuỗi nhập phải có đúng 2 chữ số sau dấu chấm | Nó kiểm tra **giá trị** có thể biểu diễn chính xác ở scale 2 |
-| Precision = 2 tương đương scale = 2 | Precision đếm chữ số có nghĩa; scale chỉ vị trí dấu thập phân |
-| Mọi phép chia hữu hạn đều thành công ở bất kỳ scale nào | `10/4` hữu hạn nhưng không biểu diễn chính xác ở scale 0 |
-| `MathContext(0, UNNECESSARY)` khiến `1/3` biểu diễn chính xác | Precision không giới hạn vẫn không tạo được một số thập phân hữu hạn bằng `1/3` |
-| `BigDecimal.divide(BigDecimal, UNNECESSARY)` không đặt scale | Overload này dùng **scale của số bị chia** |
-| `UNNECESSARY` tự kiểm tra miền giá trị, định dạng hoặc tính hợp lệ nghiệp vụ | Nó chỉ kiểm tra **nhu cầu làm tròn** trong thao tác đang gọi |
+| `UNNECESSARY` means "do nothing" | The API still changes scale/precision when possible without losing value |
+| Using `UNNECESSARY` guarantees the result will succeed | It throws `ArithmeticException` if rounding is needed |
+| `setScale(2, UNNECESSARY)` forces the input string to have exactly 2 digits after the dot | It checks whether the **value** can be represented exactly at scale 2 |
+| Precision = 2 equals scale = 2 | Precision counts significant digits; scale specifies decimal point position |
+| Every finite division succeeds at any scale | `10/4` is finite yet cannot be represented exactly at scale 0 |
+| `MathContext(0, UNNECESSARY)` makes `1/3` representable exactly | Unlimited precision still cannot produce a finite decimal equal to `1/3` |
+| `BigDecimal.divide(BigDecimal, UNNECESSARY)` does not set scale | This overload uses **the dividend's scale** |
+| `UNNECESSARY` validates range, format, or business validity | It only checks **whether rounding is required** in the invoked operation |
 
-Lưu ý thêm: **không phải mọi `ArithmeticException` đều do `UNNECESSARY`**. Chia cho số 0 cũng ném `ArithmeticException`; vì vậy khi ghi log và phản hồi lỗi nghiệp vụ cần phân biệt dữ liệu đầu vào, phép toán được gọi và ràng buộc mong muốn, thay vì mặc định mọi lỗi đều mang nghĩa “cần làm tròn”.
+Additional note: **not every `ArithmeticException` is caused by `UNNECESSARY`**. Division by 0 also throws `ArithmeticException`; therefore, when logging and reporting business errors, distinguish the input data, invoked operation, and desired constraint, rather than assuming every error means "rounding needed".
 
-## 9. Tự kiểm tra kiến thức
+## 9. Self-Check Knowledge
 
-1. `new BigDecimal("5.000").setScale(0, UNNECESSARY)` có thành công không? **Có**, kết quả `5` vì chỉ bỏ số 0 dư.
-2. `new BigDecimal("5.001").setScale(2, UNNECESSARY)` có thành công không? **Không**, vì `5.001` không thể giữ nguyên khi chỉ còn 2 chữ số sau dấu chấm.
-3. `new BigDecimal("1").divide(new BigDecimal("8"), 2, UNNECESSARY)` thế nào? **Ném `ArithmeticException`**, vì `0.125` không thể chính xác ở scale 2.
-4. Cùng phép chia đó với `scale = 3` thì sao? **Thành công**, kết quả `0.125`.
-5. `new BigDecimal("123.00").round(new MathContext(3, UNNECESSARY))` thế nào? **Thành công**, kết quả `123` vì có thể bỏ các số 0 dư mà vẫn bảo toàn giá trị.
-6. Khi nào nên dùng `HALF_EVEN` hoặc `HALF_UP`? **Khi nghiệp vụ chủ động cho phép làm tròn** và đã chỉ rõ quy tắc. Khi yêu cầu tuyệt đối không đổi giá trị, dùng `UNNECESSARY` để phát hiện vi phạm.
+1. Does `new BigDecimal("5.000").setScale(0, UNNECESSARY)` succeed? **Yes**, yielding `5` because only redundant zeros are dropped.
+2. Does `new BigDecimal("5.001").setScale(2, UNNECESSARY)` succeed? **No**, because `5.001` cannot be preserved with only 2 digits after the decimal point.
+3. What happens with `new BigDecimal("1").divide(new BigDecimal("8"), 2, UNNECESSARY)`? **Throws `ArithmeticException`**, because `0.125` cannot be exact at scale 2.
+4. What about the same division with `scale = 3`? **Succeeds**, yielding `0.125`.
+5. What happens with `new BigDecimal("123.00").round(new MathContext(3, UNNECESSARY))`? **Succeeds**, yielding `123` because redundant zeros can be dropped while preserving value.
+6. When should `HALF_EVEN` or `HALF_UP` be used? **When business rules intentionally allow rounding** and have specified the rule. When required strictly not to change the value, use `UNNECESSARY` to detect violations.
 
-**Ghi nhớ:** `RoundingMode.UNNECESSARY` là cách diễn đạt yêu cầu **“kết quả ở scale/precision này phải chính xác, nếu không hãy báo lỗi”**. Muốn dùng đúng, trước tiên xác định mình đang giới hạn **scale** hay **precision**, sau đó dự kiến và xử lý `ArithmeticException` khi ràng buộc không thể được đáp ứng.
+**Takeaway:** `RoundingMode.UNNECESSARY` is a way to express the requirement **"the result at this scale/precision must be exact, otherwise throw an error"**. To use it properly, first identify whether you are constraining **scale** or **precision**, then anticipate and handle `ArithmeticException` when the constraint cannot be met.

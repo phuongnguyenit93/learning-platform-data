@@ -1,12 +1,12 @@
-# Reflection: đọc các cờ static, final, abstract, synchronized, native và strictfp
+# Reflection: Reading static, final, abstract, synchronized, native, and strictfp Flags
 
-Trong Java, các từ khóa `static`, `final`, `abstract`, `synchronized`, `native` và `strictfp` biểu đạt đặc tính của lớp, phương thức hoặc trường dữ liệu. Khi sử dụng Reflection, ta không tìm các từ khóa trong chuỗi source code; ta đọc **modifier bitmask** từ đối tượng `Class`, `Method`, `Field` hoặc `Constructor`, rồi dùng `java.lang.reflect.Modifier` để kiểm tra từng cờ.
+In Java, the keywords `static`, `final`, `abstract`, `synchronized`, `native`, and `strictfp` express characteristics of a class, method, or field. When using Reflection, we do not search for keywords in source-code strings; we read the **modifier bitmask** from a `Class`, `Method`, `Field`, or `Constructor` object, then use `java.lang.reflect.Modifier` to check each flag.
 
-Bài này tập trung vào câu hỏi: **modifier đang hiện diện trên phần tử nào, mang ý nghĩa gì và Reflection kiểm tra nó như thế nào?** Cần phân biệt đặc tính được ghi trong metadata với hiệu ứng lúc JVM chạy; đặc biệt, `strictfp` đã thay đổi ý nghĩa trong Java 17+.
+This lesson focuses on the question: **which element is a modifier present on, what does it mean, and how does Reflection check it?** You must distinguish characteristics recorded in metadata from runtime JVM effects; in particular, `strictfp` changed meaning in Java 17+.
 
-## 1. Modifier bitmask trong Reflection hoạt động ra sao?
+## 1. How does the modifier bitmask work in Reflection?
 
-Những API tiêu biểu:
+Typical APIs:
 
 ```java
 Class<?> type = SomeClass.class;
@@ -21,9 +21,9 @@ java.lang.reflect.Field field =
 int fieldFlags = field.getModifiers();
 ```
 
-Đây là đoạn minh họa: `SomeClass`, `someMethod` và `someField` phải được khai báo trong chương trình thực tế. Cả ba `getModifiers()` trả về kiểu `int`, nhưng mỗi giá trị thuộc một **ngữ cảnh phần tử** khác nhau.
+This is an illustrative snippet: `SomeClass`, `someMethod`, and `someField` must be declared in an actual program. All three `getModifiers()` calls return `int`, but each value belongs to a different **element context**.
 
-Mỗi hằng của `Modifier` đại diện cho một bit riêng, ví dụ `Modifier.STATIC`, `Modifier.FINAL`, `Modifier.ABSTRACT`, `Modifier.SYNCHRONIZED`, `Modifier.NATIVE` và `Modifier.STRICT`. Một phần tử có thể mang nhiều bit, kết hợp bằng toán tử OR bit `|`.
+Each constant in `Modifier` represents a distinct bit, such as `Modifier.STATIC`, `Modifier.FINAL`, `Modifier.ABSTRACT`, `Modifier.SYNCHRONIZED`, `Modifier.NATIVE`, and `Modifier.STRICT`. An element can carry multiple bits, combined using the bitwise OR operator `|`.
 
 ```java
 int flags = Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL;
@@ -36,42 +36,42 @@ boolean sameStaticCheck = (flags & Modifier.STATIC) != 0; // true
 String labels = Modifier.toString(flags); // "public static final"
 ```
 
-Đoạn minh họa cần `import java.lang.reflect.Modifier;`. `isXxx(flags)` giúp mã rõ ý nghĩa hơn biểu thức `&`; phép `&` vẫn hữu ích khi cần kết hợp hoặc lọc bitmask.
+The illustrative snippet requires `import java.lang.reflect.Modifier;`. `isXxx(flags)` makes code clearer in intent than `&` expressions; the `&` operator remains useful when combining or filtering bitmasks.
 
-Điểm quan trọng:
+Key points:
 
-- **`getModifiers()` không trả về một tên modifier duy nhất.** Nó trả về tập cờ mã hóa trong số nguyên.
-- **`Modifier.toString(flags)` dùng để trình bày**, không phải kiểm tra quy tắc hợp lệ của khai báo. Nó vẫn có thể in chuỗi từ một bitmask tổng hợp vô lý.
-- **Ngữ cảnh quyết định ý nghĩa bit.** Một số bit của class file có ý nghĩa khác nhau ở loại phần tử khác nhau (ví dụ cờ biểu diễn `synchronized` của method khác cờ liên quan lớp). Không đưa modifier của một loại phần tử vào hàm kiểm tra của loại khác rồi suy diễn kết quả.
-- Khi cần lọc theo tập modifier phù hợp với loại phần tử, có thể dùng `Modifier.classModifiers()`, `interfaceModifiers()`, `fieldModifiers()`, `methodModifiers()` hoặc `constructorModifiers()`. Đây là **mask cho modifier của ngôn ngữ nguồn**, không phải bộ kiểm tra tự động tất cả quy tắc kết hợp và mọi cờ kỹ thuật của class file.
+- **`getModifiers()` does not return a single modifier name.** It returns a set of flags encoded in an integer.
+- **`Modifier.toString(flags)` is for presentation**, not for checking the validity rules of a declaration. It can still print a string from a nonsensical combined bitmask.
+- **Context determines bit meaning.** Some class-file bits have different meanings on different element kinds (for example, the bit representing `synchronized` on a method differs from class-related flags). Do not pass modifiers from one element kind into a check method for another kind and infer results.
+- When you need to filter by the set of modifiers valid for an element kind, you can use `Modifier.classModifiers()`, `interfaceModifiers()`, `fieldModifiers()`, `methodModifiers()`, or `constructorModifiers()`. These are **masks for source-language modifiers**, not an automatic validator for all combination rules and every technical class-file flag.
 
-### API lấy metadata trước khi xét modifier
+### APIs to retrieve metadata before inspecting modifiers
 
-| Nguồn Reflection | Modifier được đọc | Lưu ý |
+| Reflection source | Modifiers read | Notes |
 | --- | --- | --- |
-| `Class.getModifiers()` | Modifier của kiểu (class/interface/nested class) | `static` có ý nghĩa đối với member nested class; top-level class không được khai báo `static` |
-| `Method.getModifiers()` | Modifier của một phương thức cụ thể | Dùng để kiểm tra `static`, `final`, `abstract`, `synchronized`, `native`; `strictfp` cần hiểu phiên bản class file |
-| `Field.getModifiers()` | Modifier của một trường cụ thể | Thường quan tâm `static`, `final` cùng các cờ khác như `volatile` hoặc `transient` |
-| `Constructor.getModifiers()` | Modifier của constructor | Chủ yếu kiểm tra mức truy cập; constructor không thể `static`, `final`, `abstract`, `synchronized` hoặc `native` |
+| `Class.getModifiers()` | Modifiers of the type (class/interface/nested class) | `static` is meaningful for a member nested class; a top-level class cannot be declared `static` |
+| `Method.getModifiers()` | Modifiers of a specific method | Used to check `static`, `final`, `abstract`, `synchronized`, `native`; `strictfp` requires understanding the class-file version |
+| `Field.getModifiers()` | Modifiers of a specific field | Often interested in `static`, `final` along with other flags such as `volatile` or `transient` |
+| `Constructor.getModifiers()` | Modifiers of a constructor | Primarily checks access levels; a constructor cannot be `static`, `final`, `abstract`, `synchronized`, or `native` |
 
-Chọn `getDeclaredMethod(...)`/`getDeclaredField(...)` khi muốn thành viên **khai báo trực tiếp tại lớp**, bao gồm thành viên không public; chọn `getMethod(...)`/`getField(...)` nếu muốn tìm thành viên **public** theo quy tắc kế thừa. Việc có metadata không tự cấp quyền gọi hoặc truy cập thành viên.
+Choose `getDeclaredMethod(...)`/`getDeclaredField(...)` when you want members **declared directly on the class**, including non-public members; choose `getMethod(...)`/`getField(...)` if you want to find **public** members following inheritance rules. Having metadata does not automatically grant permission to invoke or access the member.
 
-## 2. Sáu modifier cần hiểu
+## 2. Six modifiers to understand
 
-| Modifier | Áp dụng thường gặp | Kiểm tra bằng Reflection | Ý nghĩa |
+| Modifier | Common applicability | Reflection check | Meaning |
 | --- | --- | --- | --- |
-| `static` | Field, method, member nested class | `Modifier.isStatic(flags)` | Thành viên gắn với lớp; với nested class, không cần đối tượng của enclosing class |
-| `final` | Class, method, field | `Modifier.isFinal(flags)` | Không cho kế thừa class, không cho override method, hoặc không cho gán lại biến field sau khi đã được khởi tạo phù hợp |
-| `abstract` | Class, method | `Modifier.isAbstract(flags)` | Class có thể chưa hoàn chỉnh; abstract method khai báo hợp đồng mà không có thân |
-| `synchronized` | Method | `Modifier.isSynchronized(flags)` | Khi gọi method, JVM thực hiện đồng bộ monitor trong phạm vi toàn bộ method |
-| `native` | Method | `Modifier.isNative(flags)` | Method không có thân mã Java, implementation gắn với native code |
-| `strictfp` | Class, interface, method trong mã nguồn lịch sử | `Modifier.isStrict(flags)` | Cờ lịch sử liên quan số thực; từ Java 17 không còn tác dụng điều chỉnh tính toán và không được lưu như trước trong class file mới |
+| `static` | Field, method, member nested class | `Modifier.isStatic(flags)` | Member bound to the class; for a nested class, no enclosing class instance is needed |
+| `final` | Class, method, field | `Modifier.isFinal(flags)` | Disallows subclassing a class, overriding a method, or reassigning a field after proper initialization |
+| `abstract` | Class, method | `Modifier.isAbstract(flags)` | Class may be incomplete; abstract method declares a contract without a body |
+| `synchronized` | Method | `Modifier.isSynchronized(flags)` | When invoking the method, the JVM performs monitor synchronization across the entire method |
+| `native` | Method | `Modifier.isNative(flags)` | Method has no Java code body; implementation is bound to native code |
+| `strictfp` | Class, interface, method in legacy source | `Modifier.isStrict(flags)` | Historical flag related to floating-point math; since Java 17 it no longer alters computation and is not stored as before in new class files |
 
-Cột “áp dụng” mô tả phạm vi cú pháp thông dụng; không phải mọi tổ hợp trong bảng đều hợp lệ. Ví dụ, method `abstract` không thể đồng thời là `static`, `final`, `synchronized` hoặc `native`.
+The "Common applicability" column describes usual syntactic scope; not every combination in the table is legal. For example, an `abstract` method cannot simultaneously be `static`, `final`, `synchronized`, or `native`.
 
-## 3. static: thành viên lớp và lớp lồng tĩnh
+## 3. static: class members and static nested classes
 
-**`static` field** có một giá trị cấp lớp (cho mỗi `Class` được nạp tương ứng), không phải một bản riêng trên mỗi instance. **`static` method** được gọi theo tên lớp và không có receiver `this`; nó bị **hiding** khi lớp con khai báo method static trùng chữ ký, không override đa hình như instance method.
+A **`static` field** has one class-level value (per corresponding loaded `Class`), not a separate copy on each instance. A **`static` method** is invoked via the class name and has no `this` receiver; it undergoes **hiding** when a subclass declares a static method with the same signature, rather than polymorphic overriding like an instance method.
 
 ```java
 class Counter {
@@ -82,7 +82,7 @@ class Counter {
 }
 ```
 
-Kiểm tra:
+Checking:
 
 ```java
 java.lang.reflect.Field total =
@@ -94,9 +94,9 @@ System.out.println(Modifier.isStatic(total.getModifiers())); // true
 System.out.println(Modifier.isStatic(reset.getModifiers())); // true
 ```
 
-Đây là đoạn minh họa phụ thuộc lớp `Counter` ở trên và khai báo `import java.lang.reflect.Modifier;`; mã gọi cần xử lý hoặc khai báo các checked exception từ `getDeclaredField`/`getDeclaredMethod`.
+This illustrative snippet depends on the `Counter` class above and `import java.lang.reflect.Modifier;`; calling code must handle or declare the checked exceptions from `getDeclaredField`/`getDeclaredMethod`.
 
-Nếu class là **member nested class** khai báo `static`:
+If a class is a **member nested class** declared `static`:
 
 ```java
 class Envelope {
@@ -105,13 +105,13 @@ class Envelope {
 }
 ```
 
-thì `Modifier.isStatic(Envelope.Item.class.getModifiers())` trả về `true`. Một lớp top-level như `Envelope` không mang modifier `static`. Interface lồng nhau có thể **ngầm định static**, do đó đừng chỉ tìm chữ `static` trong source để suy ra giá trị Reflection. Ngược lại, `static` initializer block không được đại diện bằng đối tượng `Method` thông thường mà ứng dụng tìm với `getDeclaredMethod("<clinit>")`.
+then `Modifier.isStatic(Envelope.Item.class.getModifiers())` returns `true`. A top-level class such as `Envelope` does not carry the `static` modifier. Nested interfaces can be **implicitly static**, so do not merely look for the word `static` in source code to infer the Reflection value. Conversely, a `static` initializer block is not represented by a regular `Method` object that an application can look up with `getDeclaredMethod("<clinit>")`.
 
-Đối với `Method.invoke`, method static không cần instance receiver: có thể truyền `null` cho tham số đối tượng; với instance method, cần receiver phù hợp và có quyền truy cập.
+For `Method.invoke`, a static method needs no instance receiver: you can pass `null` for the object argument; for an instance method, a suitable receiver and access permission are required.
 
-## 4. final: ý nghĩa khác nhau trên class, method và field
+## 4. final: different meanings on classes, methods, and fields
 
-**Trên class:** `final class X` không thể có subclass trong Java. **Trên instance method:** `final` cấm lớp con override phương thức đó. **Trên field:** giá trị field không được gán lại sau khi hoàn tất khởi tạo theo quy tắc ngôn ngữ Java.
+**On a class:** `final class X` cannot have subclasses in Java. **On an instance method:** `final` forbids subclasses from overriding that method. **On a field:** the field value cannot be reassigned after initialization completes per Java language rules.
 
 ```java
 final class ServiceConfig {
@@ -123,7 +123,7 @@ final class ServiceConfig {
 }
 ```
 
-Với Reflection, cùng một hàm `Modifier.isFinal` kiểm tra cờ `final` ở ba vị trí:
+With Reflection, the same `Modifier.isFinal` method checks the `final` flag in all three places:
 
 ```java
 Class<?> t = ServiceConfig.class;
@@ -138,15 +138,15 @@ java.lang.reflect.Field f =
 boolean finalField = Modifier.isFinal(f.getModifiers());
 ```
 
-Đây là đoạn minh họa cần import và xử lý exception tương tự mục 3.
+This is an illustrative snippet requiring imports and exception handling similar to section 3.
 
-**Không suy ra “đối tượng bất biến” chỉ từ `final`.** Một `final List<String>` không cho gán lại tham chiếu field theo Java thông thường, nhưng nội dung `List` vẫn có thể thay đổi. `static final` không tự động biến mọi field thành compile-time constant; việc có thể inline phụ thuộc loại và biểu thức khởi tạo hằng.
+**Do not infer an "immutable object" solely from `final`.** A `final List<String>` prevents reassigning the field reference in normal Java code, but the contents of the `List` can still change. `static final` does not automatically turn every field into a compile-time constant; whether it can be inlined depends on the type and constant initializer expression.
 
-Với Reflection, `final` là dấu hiệu cần tôn trọng trong mô hình dữ liệu; không nên thiết kế logic dựa vào việc tự ý sửa `final` field bằng truy cập phản chiếu. Quy tắc truy cập, inlining, module và JDK hiện đại có thể làm hành vi không khả dụng hoặc khó dự đoán.
+With Reflection, `final` is a marker to respect in the data model; you should not design logic around arbitrarily mutating `final` fields via reflective access. Access rules, inlining, modules, and modern JDKs can make such behavior unavailable or unpredictable.
 
-## 5. abstract: hợp đồng chưa có thân và kiểu chưa thể new trực tiếp
+## 5. abstract: bodyless contracts and types that cannot be directly instantiated
 
-Một class `abstract` không thể được khởi tạo trực tiếp bằng `new`; nó có thể có cả method abstract lẫn method đã cài đặt. Một method `abstract` khai báo tên, tham số, kiểu trả về, ngoại lệ theo chữ ký, nhưng không cung cấp thân Java.
+An `abstract` class cannot be instantiated directly with `new`; it may contain both abstract methods and implemented methods. An `abstract` method declares its name, parameters, return type, and exceptions in its signature, without providing a Java body.
 
 ```java
 abstract class Shape {
@@ -158,18 +158,18 @@ abstract class Shape {
 }
 ```
 
-`Modifier.isAbstract(Shape.class.getModifiers())` trả về `true`, còn `Modifier.isAbstract(Shape.class.getDeclaredMethod("area").getModifiers())` cũng trả về `true`.
+`Modifier.isAbstract(Shape.class.getModifiers())` returns `true`, and `Modifier.isAbstract(Shape.class.getDeclaredMethod("area").getModifiers())` also returns `true`.
 
-Một số điểm kiểm tra:
+Some verification points:
 
-- Một class có thể được đánh dấu `abstract` dù không khai báo method abstract nào; `Modifier.isAbstract(classFlags)` và “có method abstract trực tiếp” là hai câu hỏi khác nhau.
-- Method abstract không có thân; không thể gọi trực tiếp phương thức abstract khi không có concrete implementation trên receiver. Khi một lớp con cài đặt method, một `Method` tìm từ class cha có thể được invoke trên instance lớp con phù hợp và dispatch đến implementation.
-- Một method không thể vừa `abstract` vừa `private`, `static`, `final`, `synchronized`, `native` hoặc `strictfp`.
-- Interface vốn là kiểu abstract, nhưng **không phải mọi method của interface đều abstract**: interface có thể có `default`, `static` và `private` methods. Hãy đọc modifier **từng method** thay vì suy từ `isInterface()` của lớp.
+- A class can be marked `abstract` even without declaring any abstract methods; `Modifier.isAbstract(classFlags)` and "has a direct abstract method" are two different questions.
+- An abstract method has no body; an abstract method cannot be invoked directly without a concrete implementation on the receiver. When a subclass implements the method, a `Method` retrieved from the superclass can be invoked on an appropriate subclass instance and dispatch to the implementation.
+- A method cannot be `abstract` and at the same time `private`, `static`, `final`, `synchronized`, `native`, or `strictfp`.
+- Interfaces are inherently abstract types, yet **not every method of an interface is abstract**: an interface can have `default`, `static`, and `private` methods. Read the modifiers of **each method** rather than inferring from the class's `isInterface()`.
 
-## 6. synchronized: chỉ phản ánh khai báo đồng bộ trên method
+## 6. synchronized: reflects only the synchronization declaration on a method
 
-**Instance `synchronized` method** khóa monitor của receiver (`this`) trong khi method chạy. **Static `synchronized` method** khóa monitor gắn với đối tượng `Class` khai báo phương thức. Đây là hai monitor khác nhau; synchronized chỉ có ý nghĩa nếu các luồng tranh chấp cùng monitor thích hợp.
+An **instance `synchronized` method** locks the receiver's (`this`) monitor while the method runs. A **static `synchronized` method** locks the monitor associated with the `Class` object declaring the method. These are two different monitors; `synchronized` is only meaningful if contending threads use the appropriate shared monitor.
 
 ```java
 class BankAccount {
@@ -180,7 +180,7 @@ class BankAccount {
     }
 
     public static synchronized void audit() {
-        // Đồng bộ trên BankAccount.class
+        // Synchronized on BankAccount.class
     }
 
     public void withdraw(int amount) {
@@ -206,13 +206,13 @@ System.out.println(Modifier.isSynchronized(audit.getModifiers()));   // true
 System.out.println(Modifier.isSynchronized(withdraw.getModifiers())); // false
 ```
 
-Đây là đoạn minh họa cần import và xử lý checked exception từ tra cứu. Dòng cuối `false` **không có nghĩa là `withdraw` không đồng bộ gì**: synchronized block trong thân method không khiến method mang cờ `ACC_SYNCHRONIZED`. Reflection modifier chỉ nắm metadata khai báo method, không phân tích mọi lệnh bytecode hay chính sách khóa.
+This illustrative snippet requires imports and handling checked exceptions from lookup. The last line's `false` **does not mean `withdraw` performs no synchronization**: a synchronized block inside a method body does not cause the method to carry the `ACC_SYNCHRONIZED` flag. Reflection modifiers only capture method declaration metadata, not every bytecode instruction or locking policy.
 
-Một method `synchronized` không tự làm mọi thao tác xung quanh thành thread-safe: tính đúng đắn còn phụ thuộc các đường truy cập khác, invariant và việc dùng cùng monitor. Khi `Method.invoke` chạy một synchronized method, lời gọi vẫn chịu semantics đồng bộ của method đó.
+A `synchronized` method does not automatically make all surrounding operations thread-safe: correctness also depends on other access paths, invariants, and using the same monitor. When `Method.invoke` runs a synchronized method, the call still obeys that method's synchronization semantics.
 
-## 7. native: phương thức không có phần thân Java
+## 7. native: a method without a Java body
 
-Một method `native` thường là điểm nối tới phần cài đặt ngoài Java, ví dụ qua Java Native Interface (JNI). Nó chỉ có khai báo method, không có thân Java:
+A `native` method is typically a bridge to an implementation outside Java, for example via the Java Native Interface (JNI). It has only a method declaration, with no Java body:
 
 ```java
 class NativeBridge {
@@ -220,7 +220,7 @@ class NativeBridge {
 }
 ```
 
-Sau khi lấy `Method`:
+After obtaining the `Method`:
 
 ```java
 java.lang.reflect.Method method =
@@ -230,22 +230,22 @@ boolean nativeMethod = Modifier.isNative(method.getModifiers()); // true
 boolean staticMethod = Modifier.isStatic(method.getModifiers()); // true
 ```
 
-Đây là đoạn minh họa cần import và xử lý checked exception từ tra cứu. Chỉ **đọc metadata** của `NativeBridge.calculate` không buộc native implementation phải có sẵn. Nhưng **invoke method native mà chưa liên kết được implementation** có thể dẫn đến `UnsatisfiedLinkError` (khi đi qua Reflection, lỗi từ method có thể được bọc trong `InvocationTargetException`).
+This illustrative snippet requires imports and handling checked exceptions from lookup. Merely **reading metadata** of `NativeBridge.calculate` does not require the native implementation to be available. However, **invoking a native method without a linked implementation** can lead to `UnsatisfiedLinkError` (when invoked through Reflection, an error from the method can be wrapped in `InvocationTargetException`).
 
-`native` không có nghĩa method chắc chắn nhanh hơn Java, an toàn hơn hay tự được phép truy cập mọi tài nguyên. Nó chỉ mô tả hình thức implementation. Các giới hạn tải thư viện, liên kết native và cấu hình JDK vẫn cần được xử lý độc lập.
+`native` does not mean a method is necessarily faster than Java, safer, or automatically allowed to access every resource. It only describes the form of the implementation. Library loading restrictions, native linking, and JDK configuration still need to be handled independently.
 
-## 8. strictfp: di sản cũ và thay đổi quan trọng từ Java 17
+## 8. strictfp: legacy heritage and important change since Java 17
 
-Trước Java 17, `strictfp` giúp buộc các phép tính `float`/`double` trong phạm vi nhất định tuân theo ngữ nghĩa floating-point strict. Java 17 khôi phục ngữ nghĩa **always-strict** theo JEP 306: phép toán floating-point có cùng quy tắc strict bất kể từ khóa `strictfp` có xuất hiện hay không.
+Before Java 17, `strictfp` forced `float`/`double` computations within a given scope to follow strict floating-point semantics. Java 17 restored **always-strict** semantics per JEP 306: floating-point operations obey the same strict rules regardless of whether the `strictfp` keyword is present.
 
-Hệ quả khi đọc modifier bằng Reflection:
+Consequences when reading modifiers with Reflection:
 
-1. `Modifier.STRICT` và `Modifier.isStrict(int)` vẫn là API giải mã **bit**. Nếu tự xây bitmask `Modifier.PUBLIC | Modifier.STRICT`, `isStrict` sẽ trả về `true`, vì bit có mặt.
-2. **Điều đó không có nghĩa method được biên dịch bởi JDK 17+ sẽ mang cờ strict.** Theo JVMS 17, bit `ACC_STRICT` chỉ được diễn giải là `strictfp` trong class file có major version từ **46 đến 60**. Với class file major **61+** (Java 17+), bit đó không còn ý nghĩa `ACC_STRICT`; mã biên dịch mới không cần ghi nó.
-3. Vì thế, dù trong mã nguồn Java 17+ viết `strictfp`, `Modifier.isStrict(method.getModifiers())` thường trả về `false`. **Không thể dùng giá trị `false` để chứng minh rằng source không có từ khóa `strictfp`.**
-4. `strictfp` là từ khóa lỗi thời, compiler hiện đại có thể cảnh báo; không nên thêm vào mã Java mới để “tăng độ chính xác” của phép tính số thực. Khi đọc class file cũ, luôn xét phiên bản class file trước khi suy diễn cờ strict.
+1. `Modifier.STRICT` and `Modifier.isStrict(int)` remain **bit**-decoding APIs. If you manually construct the bitmask `Modifier.PUBLIC | Modifier.STRICT`, `isStrict` will return `true`, because the bit is present.
+2. **That does not mean a method compiled by JDK 17+ will carry the strict flag.** Per JVMS 17, the `ACC_STRICT` bit is only interpreted as `strictfp` in class files with major version **46 through 60**. For class files with major version **61+** (Java 17+), that bit no longer carries the `ACC_STRICT` meaning; newly compiled code does not need to emit it.
+3. Consequently, even if Java 17+ source code writes `strictfp`, `Modifier.isStrict(method.getModifiers())` usually returns `false`. **You cannot use `false` to prove that the source did not contain the `strictfp` keyword.**
+4. `strictfp` is an obsolete keyword that modern compilers may warn on; do not add it to new Java code to "increase the accuracy" of floating-point calculations. When reading older class files, always consider the class-file version before inferring the strict flag.
 
-Ví dụ minh họa **mã nguồn lịch sử**, không yêu cầu chạy:
+Illustrative example of **historical source code**, not required to run:
 
 ```java
 strictfp class OldCalculation {
@@ -255,11 +255,11 @@ strictfp class OldCalculation {
 }
 ```
 
-Trên Java 17+, từ khóa trên không làm thay đổi kết quả tính `input / 2.0`. Dùng Reflection thuần chỉ thấy metadata được lưu trong class file; nếu muốn biết chính xác **từ khóa từng xuất hiện trong source**, phải phân tích source hoặc metadata chuyên dụng phù hợp, không suy ngược chỉ từ `getModifiers()`.
+On Java 17+, the keyword above does not change the result of `input / 2.0`. Pure Reflection only sees metadata stored in the class file; if you need to know accurately **whether a keyword appeared in source**, you must parse source code or appropriate specialized metadata rather than inferring backwards solely from `getModifiers()`.
 
-## 9. Chương trình Java 17+ hoàn chỉnh: kiểm tra sáu cờ
+## 9. Complete Java 17+ program: checking all six flags
 
-Tạo tệp `ModifierFlagsDemo.java`:
+Create the file `ModifierFlagsDemo.java`:
 
 ```java
 import java.lang.reflect.Field;
@@ -287,7 +287,7 @@ public class ModifierFlagsDemo {
             return calculate(number);
         }
 
-        // Chỉ khai báo native: ví dụ không bao giờ gọi method này.
+        // Only a native declaration: the example never calls this method.
         public static native void nativeEntry();
     }
 
@@ -333,7 +333,7 @@ public class ModifierFlagsDemo {
         System.out.println("nativeEntry static: "
                 + Modifier.isStatic(nativeFlags));
 
-        // Chỉ giải mã bitmask minh họa, không phải cờ trong class file mới.
+        // Only illustrative bitmask decoding, not a flag in a new class file.
         int legacyStrictMask = Modifier.PUBLIC | Modifier.STRICT;
         System.out.println("legacy strict bit: "
                 + Modifier.isStrict(legacyStrictMask));
@@ -344,14 +344,14 @@ public class ModifierFlagsDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac ModifierFlagsDemo.java
 java ModifierFlagsDemo
 ```
 
-Kết quả stdout:
+Stdout output:
 
 ```text
 Task abstract: true
@@ -369,19 +369,19 @@ legacy strict bit: true
 run(4): 5
 ```
 
-Giải thích:
+Explanation:
 
-- `Task` mang cờ `abstract`; method `calculate` cũng mang cờ riêng `abstract`. Ngược lại, method `kind` mang cờ `final` chứ không `abstract`.
-- `IncrementTask` vừa là lớp lồng `static` vừa là lớp `final`; cờ trên class phản ánh đặc tính class, không tự động suy ra mọi method đều `static` hoặc `final`.
-- `STEP` có cả cờ `static` và `final`. Hãy kiểm tra **cả hai bit**, vì không phải `static` luôn đồng nghĩa `final`.
-- `run` là instance method `public synchronized`, nên `isSynchronized` là `true` còn `isStatic` là `false`. `Modifier.toString` trình bày các cờ của **method này** theo thứ tự chuẩn.
-- `nativeEntry` được khai báo `static native`; chương trình **chỉ lấy metadata**, không gọi native method nên không cần thư viện JNI để chạy ví dụ.
-- `legacyStrictMask` do chương trình chủ động tạo từ `Modifier.STRICT` để minh họa cách kiểm tra bit. Nó **không** đại diện cho một method được biên dịch từ `strictfp` bằng JDK 17+.
-- `Method.invoke` trên `run` tuân theo cơ chế instance method và monitor; kết quả phép tính là `4 + 1 = 5`, được Reflection trả về dưới dạng `Object` chứa `Integer`.
+- `Task` carries the `abstract` flag; method `calculate` also carries its own `abstract` flag. Conversely, method `kind` carries `final` rather than `abstract`.
+- `IncrementTask` is both a `static` nested class and a `final` class; flags on the class reflect class characteristics and do not automatically imply every method is `static` or `final`.
+- `STEP` has both `static` and `final` flags. Check **both bits**, because `static` does not always imply `final`.
+- `run` is a `public synchronized` instance method, so `isSynchronized` is `true` while `isStatic` is `false`. `Modifier.toString` renders the flags of **this method** in canonical order.
+- `nativeEntry` is declared `static native`; the program **only retrieves metadata** and never invokes the native method, so no JNI library is needed to run the example.
+- `legacyStrictMask` is explicitly constructed by the program from `Modifier.STRICT` to illustrate bit checking. It does **not** represent a method compiled from `strictfp` with JDK 17+.
+- `Method.invoke` on `run` obeys instance method and monitor mechanics; the calculation result is `4 + 1 = 5`, returned by Reflection as an `Object` containing an `Integer`.
 
-## 10. Thiết kế bộ lọc Reflection theo modifier
+## 10. Designing Reflection filters by modifiers
 
-Giả sử chỉ muốn liệt kê những **method public, static, không native** được khai báo trực tiếp trong một class. Có thể lọc như sau:
+Suppose you only want to list **public, static, non-native methods** declared directly in a class. You can filter as follows:
 
 ```java
 for (java.lang.reflect.Method method : SomeClass.class.getDeclaredMethods()) {
@@ -396,38 +396,38 @@ for (java.lang.reflect.Method method : SomeClass.class.getDeclaredMethods()) {
 }
 ```
 
-Đây là đoạn minh họa, cần một `SomeClass` thực tế và `import java.lang.reflect.Modifier;`. Nó xét **method tự khai báo** nhờ `getDeclaredMethods()`; muốn xét cả method public kế thừa cần cân nhắc `getMethods()`. Không giả định thứ tự mảng method được JVM trả về; sắp xếp nếu công cụ cần đầu ra ổn định. Các bộ lọc `isSynthetic()`/`isBridge()` là tùy nhu cầu công cụ, bởi compiler có thể sinh method phụ trợ.
+This is an illustrative snippet requiring an actual `SomeClass` and `import java.lang.reflect.Modifier;`. It inspects **self-declared methods** via `getDeclaredMethods()`; to also consider inherited public methods, consider `getMethods()`. Do not assume the order of the method array returned by the JVM; sort if your tool needs deterministic output. The `isSynthetic()`/`isBridge()` filters depend on tool needs, since the compiler may generate auxiliary methods.
 
-Thứ tự ra quyết định:
+Decision sequence:
 
-1. **Chọn đúng đối tượng `Class<?>`**: kiểu khai báo hoặc kiểu runtime theo mục tiêu kiểm tra.
-2. **Chọn phạm vi khám phá**: `getDeclared*` đối với khai báo riêng của lớp hoặc `get*` để tìm thành viên public theo quy tắc API.
-3. **Đọc `getModifiers()`** từ chính class, method hoặc field đang xét; không sử dụng một cờ của class như chứng cứ cho mọi thành viên.
-4. **Giải mã từng cờ bằng `Modifier.isXxx(flags)`**, kết hợp điều kiện khi cần (ví dụ `static && final`). Dùng `Modifier.toString` để hiển thị, không lấy đó làm bộ xác thực toàn diện.
-5. **Diễn giải theo ngữ nghĩa Java**: `final` không bảo đảm deep immutability; `synchronized` flag không nhìn thấy synchronized block; `native` metadata không chứng minh thư viện native đã sẵn sàng; `strictfp` trong class file mới không thể suy như class file cũ.
+1. **Choose the right `Class<?>` object**: declared type or runtime type depending on the inspection goal.
+2. **Choose the discovery scope**: `getDeclared*` for the class's own declarations or `get*` to find public members per API rules.
+3. **Read `getModifiers()`** from the exact class, method, or field being inspected; do not use a class flag as evidence for every member.
+4. **Decode each flag with `Modifier.isXxx(flags)`**, combining conditions when needed (e.g., `static && final`). Use `Modifier.toString` for display, not as a comprehensive validator.
+5. **Interpret per Java semantics**: `final` does not guarantee deep immutability; the `synchronized` flag cannot see synchronized blocks; `native` metadata does not prove the native library is ready; `strictfp` in new class files cannot be inferred like in old class files.
 
-## 11. Các lỗi thường gặp
+## 11. Common mistakes
 
-| Ngộ nhận | Sự thật/cách xử lý |
+| Misconception | Reality / how to handle |
 | --- | --- |
-| Một số nguyên từ `getModifiers()` biểu thị đúng một từ khóa | Đó là nhiều bit có thể cùng bật; kiểm tra `Modifier.isXxx` hoặc `&` |
-| `Modifier.isFinal(SomeClass.class.getModifiers())` cho biết mọi field đều final | Nó chỉ kiểm tra **class**; hãy kiểm tra modifier của từng `Field` |
-| `final` field làm đối tượng được tham chiếu bất biến | Nó giới hạn việc gán lại field; trạng thái đối tượng được tham chiếu có thể vẫn thay đổi |
-| `static` method được override như instance method | Static method được chọn theo quy tắc hiding; không có dynamic dispatch override theo receiver như instance method |
-| Không có cờ `synchronized` nghĩa là không dùng khóa | Method vẫn có thể chứa synchronized block hoặc cơ chế khóa khác |
-| `Modifier.isNative(flags)` là chứng cứ native library đã được nạp | Chỉ chứng minh method mang cờ native; khả năng liên kết/chạy là chuyện khác |
-| Java 17+ `isStrict() == false` nghĩa là source không có `strictfp` | Java 17+ luôn dùng ngữ nghĩa FP strict và không cần lưu ACC_STRICT như class file cũ |
-| `getMethods()` và `getDeclaredMethods()` giống nhau | Một API thiên về public và kế thừa, API kia chỉ khai báo trực tiếp, bất kể access |
-| Có metadata private nghĩa là được tùy ý gọi/đọc | Quyền truy cập và giới hạn module vẫn phải được tuân thủ |
-| `Modifier.toString(flags)` bảo đảm các cờ hợp lệ với phần tử | Hàm chỉ render bitmask; ngữ cảnh và tổ hợp hợp lệ vẫn phải được xét riêng |
+| An integer from `getModifiers()` represents exactly one keyword | Multiple bits can be set at once; check with `Modifier.isXxx` or `&` |
+| `Modifier.isFinal(SomeClass.class.getModifiers())` indicates all fields are final | It checks only the **class**; check the modifiers of each `Field` |
+| A `final` field makes the referenced object immutable | It restricts reassigning the field; the referenced object's state may still be mutable |
+| `static` methods are overridden like instance methods | Static methods follow hiding rules; there is no receiver-based dynamic dispatch override like instance methods |
+| Absence of the `synchronized` flag means no locking is used | The method may still contain a synchronized block or other locking mechanism |
+| `Modifier.isNative(flags)` proves the native library is loaded | It only proves the method carries the native flag; linking/execution availability is separate |
+| In Java 17+, `isStrict() == false` means source has no `strictfp` | Java 17+ always uses strict FP semantics and need not store ACC_STRICT like older class files |
+| `getMethods()` and `getDeclaredMethods()` are the same | One favors public and inherited methods, the other only direct declarations regardless of access |
+| Having private metadata means arbitrary calling/reading is allowed | Access permissions and module boundaries must still be respected |
+| `Modifier.toString(flags)` guarantees flags are valid for the element | It only renders a bitmask; context and valid combinations must still be checked separately |
 
-## 12. Câu hỏi tự kiểm tra
+## 12. Self-check questions
 
-1. **Một method `public static synchronized` có thể có cả `isStatic` và `isSynchronized` bằng `true` không?** Có. Method static synchronized đồng bộ trên monitor của đối tượng `Class`.
-2. **Một class `final` có thể chứa method `abstract` không?** Không. Class `final` không thể kế thừa để hoàn thiện abstract method; `final` và `abstract` không thể kết hợp trên class.
-3. **`Modifier.isSynchronized` phát hiện được `synchronized(this)` trong thân method thường không?** Không. Nó chỉ đọc flag khai báo method.
-4. **Chưa load thư viện JNI, có thể đọc `getDeclaredMethod("nativeEntry")` và `isNative` không?** Có, miễn class và metadata liên quan đọc được; ví dụ không gọi method native.
-5. **Tại sao `Modifier.isStrict` không đáng tin để phát hiện từ khóa trong mã nguồn Java 17+?** Vì mã FP luôn strict và `ACC_STRICT` chỉ được định nghĩa cho class-file major 46–60, nên mã class file mới không phải giữ bit đó.
-6. **Một field `static final List<?>` có chắc list bất biến không?** Không. Không gán lại tham chiếu field không đồng nghĩa chặn thay đổi nội dung list.
+1. **Can a `public static synchronized` method have both `isStatic` and `isSynchronized` equal to `true`?** Yes. A static synchronized method synchronizes on the `Class` object's monitor.
+2. **Can a `final` class contain an `abstract` method?** No. A `final` class cannot be subclassed to complete the abstract method; `final` and `abstract` cannot be combined on a class.
+3. **Does `Modifier.isSynchronized` detect `synchronized(this)` inside a normal method body?** No. It only reads the method declaration flag.
+4. **Without loading a JNI library, can we read `getDeclaredMethod("nativeEntry")` and `isNative`?** Yes, as long as the class and related metadata are readable; the example does not invoke the native method.
+5. **Why is `Modifier.isStrict` unreliable for detecting the keyword in Java 17+ source code?** Because FP code is always strict and `ACC_STRICT` is only defined for class-file major versions 46–60, so new class files do not have to retain that bit.
+6. **Is a `static final List<?>` field guaranteed to have an immutable list?** No. Not being able to reassign the field reference does not prevent modifying the contents of the list.
 
-**Ghi nhớ:** `Modifier` giúp giải mã **cờ metadata của đúng phần tử**. Muốn hiểu tác động, luôn xét loại phần tử, phạm vi Reflection và phiên bản Java/class file; bản thân cờ không thay thế phân tích ngữ nghĩa Java hoặc hành vi runtime.
+**Key takeaway:** `Modifier` helps decode **metadata flags of the right element**. To understand impact, always consider the element kind, Reflection scope, and Java/class-file version; the flags themselves do not replace analyzing Java semantics or runtime behavior.

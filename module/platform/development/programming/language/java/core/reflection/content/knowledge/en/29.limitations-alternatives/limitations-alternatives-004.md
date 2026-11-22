@@ -1,36 +1,36 @@
-# Java Reflection không có API tự liệt kê mọi lớp trong classpath
+# Java Reflection Has No API to Automatically List Every Class on the Classpath
 
-Một giới hạn quan trọng của **Java Core Reflection** là: **không có phương thức chuẩn như `Class.getAllClassesInClasspath()` để nhận danh sách mọi class mà ứng dụng có thể sử dụng**.
+An important limitation of **Java Core Reflection** is that **there is no standard method like `Class.getAllClassesInClasspath()` to obtain a list of every class an application can use**.
 
-Reflection rất giỏi trả lời câu hỏi về **một kiểu đã biết**: kiểu tên gì, có những constructor, field, method, annotation nào, có thể tạo instance hay gọi method nào. Nhưng câu hỏi “toàn bộ class trong classpath hiện tại là gì?” thuộc về việc **khám phá các nguồn chứa class, cơ chế class loading, cấu trúc module và môi trường chạy**; Reflection không tự làm công việc đó.
+Reflection excels at answering questions about **a known type**: what its name is, what constructors, fields, methods, and annotations it has, and which instances can be created or methods invoked. However, the question "what are all the classes on the current classpath?" belongs to **discovering class sources, class-loading mechanisms, module structure, and the runtime environment**; Reflection does not perform that work on its own.
 
-Bài này tập trung vào **ranh giới của Core Reflection**, các khái niệm dễ bị lẫn, cách khám phá class trong phạm vi xác định và lựa chọn thiết kế phù hợp khi cần xây dựng plugin scanner, test runner, annotation scanner hoặc framework.
+This lesson focuses on **the boundaries of Core Reflection**, easily confused concepts, how to discover classes within a defined scope, and choosing the right design when building a plugin scanner, test runner, annotation scanner, or framework.
 
-## 1. “Liệt kê mọi lớp” thực sự có thể mang nhiều ý nghĩa
+## 1. "Listing All Classes" Can Actually Mean Several Different Things
 
-Trước khi chọn API, cần xác định mục tiêu:
+Before choosing an API, define the goal:
 
-| Câu hỏi thực tế | Tập dữ liệu muốn tìm | Có thể giải quyết bằng gì? |
+| Practical question | Dataset you want to find | What can solve it? |
 | --- | --- | --- |
-| “Class `com.example.User` có thuộc tính nào?” | Metadata của **một class đã biết** | `User.class`, `Class.forName`, `Class.getDeclaredFields` |
-| “Class `Service` khai báo các nested class nào?” | Class/interface thành viên được **khai báo bên trong một class** | `Service.class.getDeclaredClasses()` |
-| “Trong thư mục `build/classes` có file `.class` nào?” | Những **entry vật lý** trong một cây thư mục xác định | `Files.walk` với `java.nio.file` |
-| “JAR `plugins.jar` chứa những entry `.class` nào?” | Entry thuộc **một JAR cụ thể** | `JarFile`, `JarEntry` |
-| “Những implementation nào đã đăng ký cho SPI?” | Provider theo cơ chế đăng ký dịch vụ | `ServiceLoader` |
-| “Trong module `m` có tài nguyên nào?” | Resource của **module đã xác định** | `ModuleReader.list()` với quyền/môi trường tương ứng |
-| “JVM đã nạp những class nào?” | Các class **đã được load** tại thời điểm quan sát | `Instrumentation.getAllLoadedClasses()` qua Java agent, không thuộc Core Reflection |
-| “Mọi class có thể được nạp bởi tất cả class loader, cả trong tương lai?” | Tập class tiềm năng có thể thay đổi động | **Không có cách tổng quát, đầy đủ cho mọi môi trường Java** |
+| "What attributes does class `com.example.User` have?" | Metadata of **a known class** | `User.class`, `Class.forName`, `Class.getDeclaredFields` |
+| "Which nested classes does class `Service` declare?" | Member classes/interfaces **declared inside a class** | `Service.class.getDeclaredClasses()` |
+| "Which `.class` files exist in directory `build/classes`?" | **Physical entries** in a defined directory tree | `Files.walk` with `java.nio.file` |
+| "Which `.class` entries does JAR `plugins.jar` contain?" | Entries belonging to **a specific JAR** | `JarFile`, `JarEntry` |
+| "Which implementations are registered for an SPI?" | Providers under the service provider mechanism | `ServiceLoader` |
+| "Which resources exist in module `m`?" | Resources of a **specified module** | `ModuleReader.list()` with appropriate permissions/environment |
+| "Which classes has the JVM loaded?" | Classes **already loaded** at the time of observation | `Instrumentation.getAllLoadedClasses()` via a Java agent, outside Core Reflection |
+| "Every class that could be loaded by all class loaders, including in the future?" | Potential set of classes that can change dynamically | **No general, complete way across all Java environments** |
 
-Hai tập dữ liệu sau đây khác nhau:
+The following two sets of data are distinct:
 
-- **Class *có mặt* trong một nguồn**: ví dụ file `com/acme/Plugin.class` nằm trong JAR. Chưa chắc được loader hiện tại tìm thấy, chưa chắc link thành công hay được truy cập.
-- **Class *đã được nạp***: JVM đã tạo runtime `Class<?>` tương ứng qua một class loader. Một class được đóng gói trong JAR nhưng chưa hề được dùng có thể **chưa** được nạp.
+- **Classes *present* in a source**: for example, the file `com/acme/Plugin.class` inside a JAR. It is not guaranteed to be found by the current loader, nor guaranteed to link successfully or be accessible.
+- **Classes *already loaded***: the JVM has created the corresponding runtime `Class<?>` through a class loader. A class packaged in a JAR that has never been used may **not yet** be loaded.
 
-Không được suy luận rằng mọi class đã nạp đều có file `.class` nằm trên `java.class.path`, hoặc rằng mọi file `.class` trên disk đều là một runtime class hợp lệ, có thể gọi được.
+You must not infer that every loaded class has a `.class` file on `java.class.path`, or that every `.class` file on disk is a valid, invokable runtime class.
 
-## 2. Core Reflection biết cấu trúc của class đã có tên
+## 2. Core Reflection Knows the Structure of an Already Named Class
 
-Các API quen thuộc:
+Familiar APIs:
 
 ```java
 Class<?> type = String.class;
@@ -39,17 +39,17 @@ System.out.println(type.getName());
 System.out.println(type.getDeclaredMethods().length > 0);
 ```
 
-Khi đã có `Class<?>`, ta có thể duyệt:
+Once you have a `Class<?>`, you can inspect:
 
-- `getDeclaredFields()`: field khai báo trực tiếp, kể cả non-public (tìm thấy chưa đồng nghĩa có quyền truy cập).
-- `getDeclaredMethods()`: method được khai báo trực tiếp, không tự cộng mọi method thừa kế.
-- `getDeclaredConstructors()`: constructor khai báo trực tiếp.
-- `getDeclaredAnnotations()`: các annotation hiện diện trực tiếp mà Reflection có thể quan sát tại runtime.
-- `getDeclaredClasses()`: **member classes/interfaces khai báo trực tiếp bên trong class này**.
+- `getDeclaredFields()`: directly declared fields, including non-public ones (finding them does not imply permission to access).
+- `getDeclaredMethods()`: directly declared methods, without automatically adding all inherited methods.
+- `getDeclaredConstructors()`: directly declared constructors.
+- `getDeclaredAnnotations()`: directly present annotations observable by Reflection at runtime.
+- `getDeclaredClasses()`: **member classes/interfaces declared directly inside this class**.
 
-`getDeclaredClasses()` thường bị hiểu sai. Nó **không** duyệt tất cả class trong cùng package, JAR hoặc classpath; nó chỉ mô tả class thành viên theo quan hệ khai báo trong class hiện tại. Local class hoặc anonymous class cũng không được “quét toàn bộ” từ lời gọi này.
+`getDeclaredClasses()` is frequently misunderstood. It **does not** traverse all classes in the same package, JAR, or classpath; it only describes member classes declared within the current class. Local classes or anonymous classes are not "all scanned" by this call either.
 
-Ví dụ:
+For example:
 
 ```java
 class Container {
@@ -59,64 +59,64 @@ class Container {
 class Independent {}
 ```
 
-`Container.class.getDeclaredClasses()` có thể trả `Container.Nested`; nó không tự trả `Independent` chỉ vì hai class ở cùng file nguồn, cùng package hay cùng thư mục biên dịch.
+`Container.class.getDeclaredClasses()` can return `Container.Nested`; it does not automatically return `Independent` merely because the two classes are in the same source file, package, or compiled directory.
 
-### Biết tên khác với khám phá tất cả tên
+### Knowing a Name Differs from Discovering All Names
 
-`Class.forName("com.acme.SomeType")` thử tìm class theo **tên đã có**. API này không cung cấp bộ duyệt tên class. Biến thể một tham số có thể kích hoạt khởi tạo class.
+`Class.forName("com.acme.SomeType")` attempts to locate a class by **an already known name**. This API does not provide a class-name enumerator. The single-parameter variant can trigger class initialization.
 
 ```java
-// Minh họa cho trường hợp đã biết tên class và có class loader phù hợp.
+// Illustrates the case where the class name is known and a suitable class loader is available.
 ClassLoader loader = Thread.currentThread().getContextClassLoader();
 Class<?> type = Class.forName("com.acme.SomeType", false, loader);
 ```
 
-`false` nghĩa là không yêu cầu khởi tạo class trong lệnh này. Nó **không có nghĩa** không load/link, không phát sinh lỗi liên quan class loading, hay class được tìm thấy chắc chắn có thể truy cập từ caller. Nếu class không tồn tại trong phạm vi loader: `ClassNotFoundException`. Khi có vấn đề linkage có thể nhận `LinkageError`.
+`false` means do not request class initialization in this call. It **does not mean** no loading/linking occurs, no class-loading errors can be thrown, or that the found class is definitely accessible from the caller. If the class does not exist within the loader's scope: `ClassNotFoundException`. When there are linkage issues, `LinkageError` may occur.
 
-**Class name chính xác** dùng cú pháp binary name, ví dụ nested class có thể có tên `com.acme.Outer$Inner`; dấu `$` trong tên nhị phân không nhất thiết đồng nghĩa một class member được khai báo theo cách đơn giản.
+**Exact class names** use binary name syntax; for example, a nested class can be named `com.acme.Outer$Inner`; a `$` in a binary name does not necessarily mean a simply declared member class.
 
-## 3. Vì sao classpath không phải một danh mục class duy nhất?
+## 3. Why Is the Classpath Not a Single Class Catalog?
 
-### 3.1. Classpath có nhiều nguồn và không mang sẵn “danh sách class”
+### 3.1. The Classpath Has Multiple Sources and Does Not Carry a Built-in "Class List"
 
-Ứng dụng Java có thể lấy bytecode từ:
+A Java application can obtain bytecode from:
 
-- Cây thư mục chứa các file `.class` sau biên dịch.
-- JAR truyền qua `-cp` / `--class-path`; wildcard classpath hoặc manifest `Class-Path` có thể mở rộng nguồn mà runtime dùng.
-- Class loader của application server, framework, test runner hoặc hệ thống plugin.
-- Nguồn dữ liệu tùy biến: bộ nhớ, network, file mã hóa, lớp được sinh động, v.v.
-- **Module path** trong ứng dụng JPMS, vốn có quy tắc riêng; không thể đơn giản đánh đồng với classpath.
+- Directory trees containing compiled `.class` files.
+- JARs passed via `-cp` / `--class-path`; classpath wildcards or manifest `Class-Path` entries can expand the sources used at runtime.
+- Class loaders of application servers, frameworks, test runners, or plugin systems.
+- Custom data sources: memory, network, encrypted files, dynamically generated classes, etc.
+- **Module path** in JPMS applications, which has its own rules; it cannot simply be equated with the classpath.
 
-`System.getProperty("java.class.path")` phản ánh một cấu hình classpath liên quan launcher/runtime, nhưng **không đại diện đầy đủ mọi nguồn của mọi class loader**. Không nên chỉ tách chuỗi này rồi kết luận đã tìm hết class trong một JVM.
+`System.getProperty("java.class.path")` reflects a launcher/runtime classpath setting, but **does not fully represent every source of every class loader**. You should not simply split this string and conclude you have found every class in a JVM.
 
-### 3.2. Nhiều class loader có những “tầm nhìn” khác nhau
+### 3.2. Different Class Loaders Have Different "Views"
 
-Hai class loader có thể định nghĩa class mang **cùng binary name** mà vẫn tạo ra **hai runtime type khác nhau**. Identity của một class gắn với cả tên nhị phân và defining class loader.
+Two class loaders can define classes with the **same binary name** and still produce **two distinct runtime types**. A class's identity is tied to both its binary name and its defining class loader.
 
-Ví dụ, plugin loader A có thể tìm thấy `com.plugins.PluginA` trong khi system loader không tìm thấy. Cùng tên đó cũng có thể tồn tại ở plugin loader B nhưng được xem là class khác.
+For example, plugin loader A may find `com.plugins.PluginA` while the system loader cannot. The same name can also exist in plugin loader B yet be treated as a different class.
 
-Nhiều class loader không công bố tất cả URL/path nguồn nạp class, và một số nguồn thậm chí không phải file hoặc JAR thông thường. Không có hợp đồng trong `java.lang.ClassLoader` yêu cầu mọi subclass phải cung cấp “liệt kê tất cả class có thể nạp”.
+Many class loaders do not publish all source URLs/paths from which they load classes, and some sources are not even regular files or JARs. There is no contract in `java.lang.ClassLoader` requiring every subclass to provide a "list all loadable classes" method.
 
-### 3.3. Class có thể chưa được nạp hoặc không có file trực tiếp
+### 3.3. A Class May Not Be Loaded Yet or May Have No Direct File
 
-Việc JVM nạp class thường diễn ra theo nhu cầu. Chương trình có thể chứa hàng ngàn file `.class` nhưng chỉ thực sự load một phần trong phiên chạy. Ngược lại, runtime có thể tạo class trong bộ nhớ hoặc dùng **hidden class** cho mục đích triển khai; những class đó không nhất thiết có tên có thể tìm lại qua `Class.forName`.
+JVM class loading typically happens on demand. A program may contain thousands of `.class` files while actually loading only a subset during a run. Conversely, the runtime may generate classes in memory or use **hidden classes** for implementation purposes; such classes do not necessarily have names findable via `Class.forName`.
 
-Còn có khác biệt về classpath, module path, các runtime image `jrt:/` và cách đóng gói của framework. Một thuật toán “duyệt tất cả file trong một thư mục” vì vậy không thể mặc định đúng cho mọi môi trường.
+There are also differences across classpaths, module paths, `jrt:/` runtime images, and framework packaging. An algorithm that "walks all files in a directory" therefore cannot be assumed correct for all environments.
 
-## 4. Các API dễ bị tưởng nhầm có chức năng quét classpath
+## 4. APIs Often Mistaken for Classpath Scanners
 
-| API | Thực tế trả về | Không bảo đảm |
+| API | What it actually returns | What it does not guarantee |
 | --- | --- | --- |
-| `Class.forName(name)` | Class tương ứng **một tên đã cung cấp**, nếu tìm/nạp được | Tự tìm mọi tên class |
-| `Class.getDeclaredClasses()` | Member classes/interfaces khai báo trực tiếp trong một class | Tất cả class cùng package/JAR/classpath |
-| `Package.getPackages()` | Thông tin những package đã được định nghĩa theo cơ chế package runtime | Tên mọi class trong mỗi package |
-| `ClassLoader.getDefinedPackages()` | Những package do loader đó đã định nghĩa | Mọi class trong nguồn loader có thể dùng |
-| `ClassLoader.getResources(name)` | URL của những **resource có đúng tên được yêu cầu** | Glob `**/*.class` hoặc directory listing phổ quát |
-| `ClassLoader.resources(name)` | Stream của các resource có một tên | Tập toàn bộ resource/class |
-| `ModuleLayer.boot().modules()` | Các module đã có trong boot layer | Class của tất cả module hay tất cả layer |
-| `Instrumentation.getAllLoadedClasses()` | Những class **đã load** tại thời điểm gọi, thông qua agent instrumentation | Tất cả class có thể load trong tương lai |
+| `Class.forName(name)` | The class matching **one provided name**, if found/loadable | Discovering all class names automatically |
+| `Class.getDeclaredClasses()` | Member classes/interfaces directly declared inside one class | All classes in the same package/JAR/classpath |
+| `Package.getPackages()` | Information about packages already defined per runtime package mechanisms | Names of every class in each package |
+| `ClassLoader.getDefinedPackages()` | Packages already defined by that loader | Every class in sources the loader can use |
+| `ClassLoader.getResources(name)` | URLs of **resources with the exact requested name** | `**/*.class` globs or universal directory listings |
+| `ClassLoader.resources(name)` | Stream of resources with a given name | The set of all resources/classes |
+| `ModuleLayer.boot().modules()` | Modules present in the boot layer | Classes of all modules or all layers |
+| `Instrumentation.getAllLoadedClasses()` | Classes **already loaded** at the time of the call, via an instrumentation agent | All classes that may be loaded in the future |
 
-Đặc biệt, lời gọi sau **không** phải API quét package:
+In particular, the following call is **not** a package-scanning API:
 
 ```java
 var urls = Thread.currentThread()
@@ -124,25 +124,25 @@ var urls = Thread.currentThread()
         .getResources("com/acme/plugins");
 ```
 
-Nó tìm resource mang **tên chính xác** `com/acme/plugins` (nếu có), không có nghĩa nó trả danh sách mọi file bên dưới. Trong JAR, “directory entry” có thể không tồn tại; URL có thể dùng nhiều giao thức khác nhau; module có các quy tắc encapsulation riêng đối với resource. Nếu một đoạn scanner dựa vào URL `file:` và `jar:` thì nó mới xử lý **hai loại nguồn được hỗ trợ**, chưa phải toàn bộ classpath.
+It looks up resources bearing the **exact name** `com/acme/plugins` (if any); it does not mean it returns a list of every file underneath. In a JAR, "directory entries" might not exist; URLs can use many different protocols; modules have separate encapsulation rules for resources. If a scanner relies on `file:` and `jar:` URLs, it only handles **two supported source types**, not the entire classpath.
 
-## 5. Cách làm đúng khi cần một danh mục class trong phạm vi xác định
+## 5. The Right Approach When You Need a Class Inventory Within a Defined Scope
 
-Trước hết hãy chọn **phạm vi hữu hạn, kiểm soát được**: ví dụ thư mục `out/` hoặc một tập JAR ứng dụng đã chỉ định. Tiếp theo:
+First choose a **finite, controllable scope**: for example an `out/` directory or a specified set of application JARs. Next:
 
-1. **Liệt kê nguồn**: xác định chính xác thư mục/JAR/module/plugin location sẽ quét.
-2. **Liệt kê entry**: duyệt file `.class` bằng `Files.walk` hoặc `JarFile` (hay API phù hợp riêng từng nguồn).
-3. **Chuyển resource path thành ứng viên binary name**: `com/acme/Widget.class` → `com.acme.Widget`.
-4. **Lọc và chống trùng**: loại `module-info`, `package-info` nếu cần, xử lý nested class, multi-release JAR và các tên trùng giữa nguồn.
-5. **Xác minh khả năng load** với class loader đúng ngữ cảnh khi thật sự cần; thường dùng `Class.forName(name, false, loader)` để tránh yêu cầu khởi tạo ngay.
-6. **Kiểm tra contract**: interface, annotation runtime, method/constructor, module accessibility và quyền ứng dụng trước khi instantiate/invoke.
-7. **Giới hạn tài nguyên**: giới hạn path, số file, thời gian quét, kích thước JAR, số class ứng viên; ghi nhận lỗi từng nguồn thay vì nuốt exception.
+1. **Enumerate sources**: pinpoint the exact directories/JARs/modules/plugin locations to scan.
+2. **Enumerate entries**: traverse `.class` files using `Files.walk` or `JarFile` (or an API appropriate for each source).
+3. **Convert resource paths to candidate binary names**: `com/acme/Widget.class` → `com.acme.Widget`.
+4. **Filter and deduplicate**: exclude `module-info`, `package-info` if needed, and handle nested classes, multi-release JARs, and duplicate names across sources.
+5. **Verify loadability** with the context-appropriate class loader when truly needed; usually use `Class.forName(name, false, loader)` to avoid forcing immediate initialization.
+6. **Check the contract**: interface, runtime annotations, methods/constructors, module accessibility, and application permissions before instantiating/invoking.
+7. **Bound resources**: limit paths, file counts, scan time, JAR sizes, and candidate class counts; record per-source errors rather than swallowing exceptions.
 
-**Đọc tên file** không thực thi class, nhưng **nạp class** có thể gây phát sinh việc đọc bytecode, giải quyết phụ thuộc, linkage error và hành vi tùy chỉnh của class loader. Không nên nạp và khởi tạo bừa bãi mọi tên tìm được chỉ để lọc annotation.
+**Reading file names** does not execute classes, whereas **loading classes** can trigger bytecode reading, dependency resolution, linkage errors, and custom class-loader behavior. You should not indiscriminately load and initialize every name found just to filter annotations.
 
-### Ví dụ A — Duyệt một thư mục class
+### Example A — Walking a Class Directory
 
-Nếu có output của `javac -d out ...`:
+If you have output from `javac -d out ...`:
 
 ```text
 out/
@@ -153,32 +153,32 @@ out/
         └── Outer$Nested.class
 ```
 
-`Files.walk(Path.of("out"))` có thể duyệt những file vật lý trong cây này. Chuyển path tương đối sang dấu chấm cho ra `com.demo.Alpha`, `com.demo.Beta` và `com.demo.Outer$Nested` — đó là **ứng viên theo file**, không phải mọi class loader đều load được từng ứng viên.
+`Files.walk(Path.of("out"))` can traverse physical files in this tree. Converting relative paths to dots yields `com.demo.Alpha`, `com.demo.Beta`, and `com.demo.Outer$Nested` — these are **file-based candidates**, not guaranteed to be loadable one by one by every class loader.
 
-Nếu thư mục gốc bị chỉ sai, hoặc class không nằm trực tiếp trên nguồn mà loader sử dụng, tập tên có thể khác với thực tế runtime.
+If the root directory is misconfigured, or classes do not reside directly on a source the loader uses, the name set can differ from runtime reality.
 
-### Ví dụ B — Duyệt một JAR
+### Example B — Walking a JAR
 
-`JarFile` có thể liệt kê `JarEntry` chứa `.class` trong **JAR cụ thể**. Đó là công cụ đọc nội dung archive, thuộc `java.util.jar`, không phải API liệt kê class của Core Reflection.
+`JarFile` can list `JarEntry` items containing `.class` inside a **specific JAR**. That is an archive-reading tool in `java.util.jar`, not a Core Reflection class-listing API.
 
-Một số chú ý khi quét JAR thực tế:
+Several caveats when scanning real JARs:
 
-- `module-info.class` là mô tả module, `package-info.class` thường không phải implementation cần đăng ký.
-- Multi-release JAR có thể chứa entry dưới `META-INF/versions/<version>/`. Không được biến nguyên path phiên bản thành binary name như class thông thường. Cần chọn phiên bản phù hợp runtime hoặc dùng công cụ hiểu multi-release.
-- JAR trong JAR (*nested/fat JAR*) có thể yêu cầu cơ chế đọc và class loader riêng của framework; không thể coi mọi nested entry là class loadable trực tiếp.
-- Cùng một binary name có thể có mặt trong nhiều JAR, nhưng loader thực tế có thể chỉ chọn một phiên bản theo thứ tự/thuật toán riêng.
-- Class có trong JAR chưa bảo đảm phụ thuộc đầy đủ, đủ quyền JPMS hay khởi tạo an toàn.
+- `module-info.class` is a module descriptor; `package-info.class` is normally not an implementation to register.
+- Multi-release JARs may contain entries under `META-INF/versions/<version>/`. You must not turn the entire versioned path into a binary name like a normal class. Select the runtime-appropriate version or use a multi-release-aware tool.
+- JAR-inside-JAR (*nested/fat JAR*) setups can require framework-specific readers and class loaders; not every nested entry can be treated as a directly loadable class.
+- The same binary name may appear in multiple JARs, while the actual loader picks only one version according to its own ordering/algorithm.
+- A class present in a JAR does not guarantee complete dependencies, JPMS permissions, or safe initialization.
 
-## 6. Chương trình Java 17+: đối chiếu Reflection với việc liệt kê một nguồn
+## 6. Java 17+ Program: Contrasting Reflection with Listing a Single Source
 
-Ví dụ dưới đây làm **hai việc tách biệt**:
+The example below does **two separate things**:
 
-- Dùng `Class.forName` để truy cập một class đã biết tên, không khám phá tên.
-- Quét **một root do người chạy truyền vào**: thư mục output hoặc một file `.jar`. Chương trình chỉ thu thập **tên ứng viên**, tuyệt đối không tự load mỗi class tìm được.
+- Uses `Class.forName` to access a class whose name is already known, rather than discovering names.
+- Scans **a single root passed in by the runner**: an output directory or a `.jar` file. The program collects only **candidate names**, and never automatically loads every class it finds.
 
-Để code độc lập và kết quả ổn định, ta tạo một class nested `ExamplePlugin` ngay trong cùng file. Chương trình cố ý chỉ hỗ trợ thư mục và JAR thường; không nhận là scanner tổng quát cho mọi class loader, module hoặc nested/multi-release JAR.
+To keep the code standalone and results deterministic, we define a nested class `ExamplePlugin` in the same file. The program intentionally supports only directories and ordinary JARs; it does not claim to be a universal scanner for every class loader, module, or nested/multi-release JAR.
 
-Tạo **`ClasspathInventoryDemo.java`**:
+Create **`ClasspathInventoryDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -196,7 +196,7 @@ public class ClasspathInventoryDemo {
 
     private static String className(String relative) {
         if (!relative.endsWith(".class")) {
-            throw new IllegalArgumentException("Không phải .class: " + relative);
+            throw new IllegalArgumentException("Not a .class file: " + relative);
         }
         return relative.substring(0, relative.length() - 6)
                 .replace('/', '.').replace('\\', '.');
@@ -228,7 +228,7 @@ public class ClasspathInventoryDemo {
                 }
             }
         } else {
-            throw new IllegalArgumentException("Cần thư mục hoặc JAR: " + root);
+            throw new IllegalArgumentException("Directory or JAR required: " + root);
         }
         Collections.sort(names);
         return List.copyOf(names);
@@ -237,7 +237,7 @@ public class ClasspathInventoryDemo {
     public static void main(String[] args) throws Exception {
         if (args.length != 1) {
             throw new IllegalArgumentException(
-                    "Dùng: java ClasspathInventoryDemo <root>");
+                    "Usage: java ClasspathInventoryDemo <root>");
         }
         Class<?> known =
                 Class.forName("ClasspathInventoryDemo$ExamplePlugin");
@@ -251,14 +251,14 @@ public class ClasspathInventoryDemo {
 }
 ```
 
-**Biên dịch và chạy trên thư mục** với JDK 17 trở lên:
+**Compile and run on a directory** with JDK 17 or higher:
 
 ```bash
 javac -encoding UTF-8 -d out ClasspathInventoryDemo.java
 java -cp out ClasspathInventoryDemo out
 ```
 
-**Kết quả:**
+**Output:**
 
 ```text
 Known: ClasspathInventoryDemo$ExamplePlugin
@@ -266,16 +266,16 @@ Candidates: 2
 Contains plugin: true
 ```
 
-Có hai file `.class` vì `javac` sinh một cho outer class `ClasspathInventoryDemo` và một cho nested class `ExamplePlugin`.
+There are two `.class` files because `javac` emits one for the outer class `ClasspathInventoryDemo` and one for the nested class `ExamplePlugin`.
 
-**Tạo JAR rồi thử cùng chương trình:**
+**Create a JAR and test the same program:**
 
 ```bash
 jar --create --file demo.jar -C out .
 java -cp out ClasspathInventoryDemo demo.jar
 ```
 
-**Kết quả vẫn là:**
+**Output remains:**
 
 ```text
 Known: ClasspathInventoryDemo$ExamplePlugin
@@ -283,23 +283,23 @@ Candidates: 2
 Contains plugin: true
 ```
 
-Trong lệnh thứ hai, class được dùng để chạy chương trình vẫn được load từ `out`, còn `demo.jar` chỉ là **archive được chương trình đọc**. Chúng là hai hoạt động độc lập. Dùng `java -cp demo.jar ClasspathInventoryDemo demo.jar` cũng có thể chạy ví dụ này vì JAR chứa các class vừa biên dịch, nhưng code vẫn chỉ quét đúng một JAR được chỉ định.
+In the second command, the classes used to run the program are still loaded from `out`, while `demo.jar` is simply an **archive read by the program**. They are two independent activities. Running `java -cp demo.jar ClasspathInventoryDemo demo.jar` can also execute this example because the JAR contains the compiled classes, yet the code still scans only the single specified JAR.
 
-**Đọc code cẩn thận:**
+**Read the code carefully:**
 
-- `Class.forName("ClasspathInventoryDemo$ExamplePlugin")` thành công vì đã biết tên nhị phân và class có thể load; lời gọi này **không** phát hiện `ExamplePlugin` bằng cách liệt kê.
-- `Files.walk(root)` chỉ duyệt cây thư mục chỉ định; luôn đóng `Stream<Path>` bằng try-with-resources.
-- `JarFile.entries()` chỉ liệt kê entry trong một JAR chỉ định; luôn đóng `JarFile`.
-- `className` chỉ chuyển tên đường dẫn có đuôi `.class` thành chuỗi. Đây chưa phải kiểm tra tên hợp lệ, chưa kiểm tra metadata và chưa cấp quyền load.
-- `Collections.sort` làm thứ tự kết quả ổn định. Những class trùng giữa nhiều root sẽ cần cơ chế hợp nhất riêng.
-- Bộ quét JAR trong ví dụ **cố ý bỏ qua** `META-INF/versions/`, nên không dùng nó để báo cáo chính xác toàn bộ lớp phiên bản trong multi-release JAR.
-- Thí dụ không xử lý `module-info.class`, `package-info.class` hoặc nested JAR nếu tình cờ xuất hiện; công cụ thực tế phải lọc các entry đó theo mục đích.
+- `Class.forName("ClasspathInventoryDemo$ExamplePlugin")` succeeds because the binary name is known and the class can be loaded; this call **does not** discover `ExamplePlugin` by enumeration.
+- `Files.walk(root)` traverses only the specified directory tree; always close `Stream<Path>` with try-with-resources.
+- `JarFile.entries()` lists entries only in one specified JAR; always close `JarFile`.
+- `className` merely converts path names ending with `.class` into strings. This does not validate class names, check metadata, or grant loading permissions.
+- `Collections.sort` makes result ordering deterministic. Duplicate classes across multiple roots would require a dedicated merge strategy.
+- The JAR scanner in the example **intentionally skips** `META-INF/versions/`, so do not use it to accurately report all versioned classes in a multi-release JAR.
+- The example does not handle `module-info.class`, `package-info.class`, or nested JARs if encountered; real tools must filter those entries according to their purpose.
 
-Nếu kết quả `Candidates` thay đổi khi chạy trong thư mục chứa file bổ sung, đó là bình thường vì scanner đếm **entry trong root đã chỉ định**, không phải số class đã nạp trong JVM.
+If `Candidates` changes when run in a directory containing additional files, that is normal because the scanner counts **entries inside the specified root**, not the number of classes loaded in the JVM.
 
-## 7. “Tìm các class có annotation” cần thêm một tầng khám phá
+## 7. "Finding Annotated Classes" Requires an Extra Discovery Layer
 
-Giả sử bạn muốn các class được gắn `@MyPlugin`.
+Suppose you want classes annotated with `@MyPlugin`.
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
@@ -307,39 +307,39 @@ Giả sử bạn muốn các class được gắn `@MyPlugin`.
 @interface MyPlugin {}
 ```
 
-**Đoạn khai báo annotation trên chỉ minh họa**, muốn biên dịch độc lập cần thêm import từ `java.lang.annotation` và đặt trong file hợp lệ.
+**The annotation declaration above is illustrative only**; to compile standalone, add imports from `java.lang.annotation` and place it in a valid file.
 
-Không tồn tại:
+What does not exist:
 
 ```java
-// PSEUDOCODE: API này KHÔNG tồn tại trong Java Core Reflection.
+// PSEUDOCODE: This API DOES NOT exist in Java Core Reflection.
 List<Class<?>> types = Reflection.findAllAnnotatedClasses(MyPlugin.class);
 ```
 
-Thực tế một scanner phải:
+In practice, a scanner must:
 
-1. Xác định những root/module/source được quét.
-2. Tìm entry hoặc metadata ứng viên bằng filesystem/JAR/API phù hợp.
-3. Có thể phân tích metadata từ bytecode mà **không load class**, hoặc chọn load class theo class loader và kiểm soát lỗi.
-4. Với class đã load được và annotation lưu ở runtime, gọi `clazz.isAnnotationPresent(MyPlugin.class)` / `getAnnotation`.
-5. Kiểm tra contract/constructor/quyền truy cập rồi mới tạo instance và thực thi.
+1. Determine which roots/modules/sources to scan.
+2. Find candidate entries or metadata using an appropriate filesystem/JAR/API mechanism.
+3. Optionally parse metadata from bytecode **without loading classes**, or choose to load classes via a class loader with controlled error handling.
+4. For loaded classes and runtime-retained annotations, call `clazz.isAnnotationPresent(MyPlugin.class)` / `getAnnotation`.
+5. Verify contract/constructors/access rights before instantiating and executing.
 
-`isAnnotationPresent` xử lý **một** `Class<?>`, không tự cung cấp tập `Class<?>` ban đầu.
+`isAnnotationPresent` operates on **one** `Class<?>`; it does not supply the initial set of `Class<?>` objects itself.
 
-### Khi nào nên dùng thư viện scanner?
+### When Should You Use a Scanner Library?
 
-- Nếu cần duyệt cả **classpath phức tạp**, package filtering, nested JAR hoặc các loại loader, hãy cân nhắc thư viện có hỗ trợ môi trường đó, ví dụ **ClassGraph**, hoặc scanner của framework mà dự án đang dùng.
-- Nếu đã dùng Spring, cơ chế component scanning/classpath metadata scanning của framework có thể phù hợp; việc Spring tự tìm bean **không biến tính năng đó thành API của `java.lang.reflect`**.
-- Với môi trường plugin có contract rõ ràng, thường nên tránh quét toàn bộ classpath: dùng registry rõ ràng, tên plugin trong cấu hình, hoặc **`ServiceLoader`**.
+- If you need to scan a **complex classpath**, package filtering, nested JARs, or multiple loader types, consider a library supporting that environment, such as **ClassGraph**, or the scanner of the framework your project already uses.
+- If you already use Spring, the framework's component scanning / classpath metadata scanning may fit; Spring finding beans on its own **does not make that capability an API of `java.lang.reflect`**.
+- For plugin environments with a clear contract, it is usually better to avoid scanning the entire classpath: use an explicit registry, plugin names in configuration, or **`ServiceLoader`**.
 
-Khi dùng thư viện, cần kiểm tra version/khả năng tương thích với JDK, JPMS, cách đóng gói và custom class loader. Không được kỳ vọng thư viện thứ ba tự phát hiện mọi class có thể xuất hiện động trong tương lai.
+When using a library, verify version/compatibility with the JDK, JPMS, packaging format, and custom class loaders. Do not expect a third-party library to automatically detect every class that could appear dynamically in the future.
 
-## 8. Nếu chỉ muốn plugin: `ServiceLoader` thường đúng bài toán hơn
+## 8. If You Only Want Plugins: `ServiceLoader` Usually Fits the Problem Better
 
-Nhiều chương trình dùng Reflection scan cả classpath chỉ để tìm mọi implementation của một interface. Nếu bạn kiểm soát hợp đồng đăng ký plugin, **Service Provider Interface (SPI)** là lựa chọn rõ nghĩa hơn:
+Many programs scan the entire classpath with Reflection just to find all implementations of an interface. If you control the plugin registration contract, the **Service Provider Interface (SPI)** is a clearer choice:
 
 ```java
-// Phác thảo: PaymentPlugin là interface mà ứng dụng định nghĩa.
+// Sketch: PaymentPlugin is an interface defined by the application.
 ServiceLoader<PaymentPlugin> plugins =
         ServiceLoader.load(PaymentPlugin.class);
 
@@ -348,110 +348,110 @@ for (PaymentPlugin plugin : plugins) {
 }
 ```
 
-Đây là đoạn minh họa chưa độc lập vì ứng dụng cần định nghĩa `PaymentPlugin` và khai báo provider trong `META-INF/services/<tên.interface>` cho classpath, hoặc `provides ... with ...` trong module descriptor khi dùng named modules.
+This snippet is not standalone because the application must define `PaymentPlugin` and declare providers in `META-INF/services/<interface.name>` for the classpath, or `provides ... with ...` in the module descriptor when using named modules.
 
-Điểm khác biệt:
+Key differences:
 
-- `ServiceLoader` liệt kê **provider đã được khai báo** cho một service cụ thể, không liệt kê mọi class.
-- Có thể khám phá provider rồi khởi tạo/lấy instance theo yêu cầu (phụ thuộc cách sử dụng API).
-- Mô hình này thể hiện rõ plugin contract và tránh việc scan mọi class để đoán đâu là plugin.
-- Vẫn phải xử lý provider cấu hình sai, thiếu dependency, lỗi khởi tạo và giới hạn của loader/module phù hợp.
+- `ServiceLoader` lists **declared providers** for a specific service, not every class.
+- Providers can be discovered and instantiated/retrieved on demand (depending on how the API is used).
+- This model expresses the plugin contract explicitly and avoids scanning every class to guess which ones are plugins.
+- You still must handle misconfigured providers, missing dependencies, initialization failures, and appropriate loader/module boundaries.
 
-Nếu mục tiêu thực sự chỉ là “tìm plugin được đăng ký”, việc thêm một danh sách provider rõ ràng là hành vi thiết kế tốt hơn so với quét classpath không giới hạn.
+If the real goal is merely "finding registered plugins", adding an explicit provider list is a better design than unbounded classpath scanning.
 
-## 9. Nếu muốn “các class đang được nạp”: Java agent khác Core Reflection
+## 9. If You Want "Currently Loaded Classes": Java Agents Differ from Core Reflection
 
-`java.lang.instrument.Instrumentation` có phương thức `getAllLoadedClasses()` cho các class **đã load vào JVM** khi gọi. Cần một instrumentation agent hợp lệ được cấp đối tượng `Instrumentation` (thường thông qua `premain` hoặc `agentmain` và manifest/thiết lập phù hợp).
+`java.lang.instrument.Instrumentation` has the method `getAllLoadedClasses()` returning classes **already loaded into the JVM** when called. This requires a valid instrumentation agent granted an `Instrumentation` instance (typically via `premain` or `agentmain` and an appropriate manifest/setup).
 
-Phương thức này:
+This method:
 
-- Không phải API từ `java.lang.Class` hay `java.lang.reflect`.
-- Không xuất hiện tùy ý chỉ bằng `new Instrumentation()` (đây là interface mà agent nhận do JVM cung cấp).
-- Không liệt kê mọi class có thể load về sau hoặc mọi entry của JAR chưa được dùng.
-- Có thể trả những class từ nhiều class loader, kể cả các class không nằm trên application classpath.
-- Chỉ trả snapshot tại một thời điểm, không phải bản đồ bất biến cho toàn bộ đời sống ứng dụng.
+- Is not an API on `java.lang.Class` or `java.lang.reflect`.
+- Cannot be conjured arbitrarily by `new Instrumentation()` (it is an interface passed to the agent by the JVM).
+- Does not list every class that could be loaded later or every entry of an unused JAR.
+- Can return classes from multiple class loaders, including classes not on the application classpath.
+- Returns only a point-in-time snapshot, not an immutable map for the entire application lifetime.
 
-Đối với công cụ quan sát runtime, profiling và instrumentation, hướng này phù hợp hơn việc cố gắng suy diễn tập class đã load bằng quét file. Nhưng với scanner để tìm plugin có thể **chưa được load**, API này lại không thay thế bước khám phá nguồn.
+For runtime observability, profiling, and instrumentation tools, this approach fits better than trying to infer loaded classes by scanning files. But for a scanner looking for plugins that might **not yet be loaded**, this API does not replace the source-discovery step.
 
-## 10. Named modules và hình ảnh runtime Java 9+
+## 10. Named Modules and Java 9+ Runtime Images
 
-Với Java Platform Module System (JPMS), đường đi không đơn giản chỉ là `-cp`. `ModuleLayer.boot().modules()` có thể cho biết module trong boot layer, nhưng đó là tập **module**, chưa phải toàn bộ class của mỗi module. Layer tự tạo sau đó cũng không nhất thiết nằm trong boot layer.
+With the Java Platform Module System (JPMS), paths are no longer simply `-cp`. `ModuleLayer.boot().modules()` can report modules in the boot layer, yet that is the set of **modules**, not all classes of each module. Custom layers created later do not necessarily belong to the boot layer either.
 
-Để xem resource bên trong một module **đã được xác định**, hệ sinh thái `java.lang.module` có `ModuleReference.open()` và `ModuleReader.list()`; cách này vẫn phải bắt đầu từ module được giải quyết trong cấu hình chạy và tôn trọng giới hạn API. **Nó không phải phương thức Core Reflection tự liệt kê mọi classpath entry**.
+To inspect resources inside an **already resolved** module, the `java.lang.module` ecosystem provides `ModuleReference.open()` and `ModuleReader.list()`; this still starts from a module resolved in the runtime configuration and respects API boundaries. **It is not a Core Reflection method that automatically lists every classpath entry**.
 
-Các class JDK còn có thể được lưu trong runtime image qua `jrt:/` thay vì những JAR kiểu `rt.jar` như các JDK rất cũ. Do đó không nên viết scanner chỉ đi tìm `rt.jar` và kết luận đã liệt kê được toàn bộ JDK.
+JDK classes can also reside in a runtime image via `jrt:/` instead of `rt.jar`-style archives as in very old JDKs. Therefore, do not write scanners that merely search for `rt.jar` and conclude they have listed the entire JDK.
 
-**Phân biệt:** đọc được tên `.class` trong một module chưa bảo đảm consumer được phép gọi class đó. Java modules dùng `exports` cho API truy cập bình thường và `opens` cho một số trường hợp deep reflection; class loader và module access đều quan trọng.
+**Distinction:** reading `.class` names inside a module does not guarantee a consumer is allowed to access those classes. Java modules use `exports` for normal API access and `opens` for certain deep reflection cases; both class loaders and module access matter.
 
-## 11. Những bẫy thiết kế phổ biến
+## 11. Common Design Pitfalls
 
-### Bẫy A — Dùng `ClassLoader.getResources("com/foo")` rồi coi URL trả về là danh sách package
+### Pitfall A — Calling `ClassLoader.getResources("com/foo")` and Treating Returned URLs as a Package Listing
 
-API đó chỉ tìm **resource theo tên**, và một package không nhất thiết có directory entry trong JAR. Nó cũng không bảo đảm trả mọi nguồn class. Hãy giới hạn rõ nguồn, hỗ trợ từng scheme, hoặc dùng scanner có chủ đích.
+That API only looks up **resources by name**, and a package does not necessarily have a directory entry in a JAR. Nor does it guarantee returning all class sources. Explicitly constrain sources, handle each URL scheme you support, or use a purpose-built scanner.
 
-### Bẫy B — Quét `java.class.path` và tuyên bố “đã tìm mọi class”
+### Pitfall B — Scanning `java.class.path` and Claiming "All Classes Found"
 
-System property không mô tả đầy đủ custom loaders, named modules, generated classes, agent activity hoặc môi trường đặc thù. Tên trùng giữa các nguồn cũng đòi hỏi xét loader và thứ tự ưu tiên.
+That system property does not fully describe custom loaders, named modules, generated classes, agent activity, or specialized environments. Duplicate names across sources also require accounting for loaders and precedence order.
 
-### Bẫy C — Nạp tất cả class để xem annotation
+### Pitfall C — Loading Every Class Just to Inspect Annotations
 
-Điều đó có thể làm tăng I/O, memory footprint, gây class loading/linkage error và kích hoạt hành vi ngoài dự kiến khi dùng API có initialize. Ưu tiên lọc bằng metadata/bytecode trước; khi cần load hãy dùng loader đúng và `Class.forName(name, false, loader)`, với xử lý lỗi đầy đủ.
+Doing so can increase I/O and memory footprint, cause class-loading/linkage errors, and trigger unintended behavior when using initializing APIs. Prefer filtering via metadata/bytecode first; when loading is needed, use the right loader and `Class.forName(name, false, loader)` with proper error handling.
 
-### Bẫy D — Coi file `.class` là plugin an toàn
+### Pitfall D — Treating Any `.class` File as a Safe Plugin
 
-Một file bytecode có thể có class phụ thuộc bị thiếu, class abstract, quyền truy cập không phù hợp, constructor thiếu hoặc logic nguy hiểm. Cần validate contract, allowlist và chính sách khởi tạo; quét tên chỉ là bước đầu.
+A bytecode file can have missing dependencies, be abstract, have incompatible visibility, lack a constructor, or contain dangerous logic. You must validate contracts, allowlists, and instantiation policies; scanning names is only the first step.
 
-### Bẫy E — Quét cả classpath quá rộng trong mỗi request
+### Pitfall E — Scanning the Entire Classpath Too Broadly on Every Request
 
-Classpath có thể rất lớn. Quét toàn bộ trên đường xử lý request vừa tốn chi phí vừa tăng khả năng lỗi. Giới hạn package/root, dùng cache theo vòng đời ứng dụng, chủ động invalidate khi class loader/redeploy thay đổi; với môi trường build kiểm soát được có thể sinh index ngay khi build.
+The classpath can be huge. Scanning it completely on a request path is both costly and error-prone. Restrict packages/roots, cache per application lifecycle, and actively invalidate on class-loader/redeploy changes; in controlled builds, you can generate an index at build time.
 
-### Bẫy F — Quên sự khác nhau giữa binary name và file path
+### Pitfall F — Forgetting the Difference Between Binary Name and File Path
 
-`com/acme/Outer$Inner.class` là resource path; binary name thường là `com.acme.Outer$Inner`. Không biến dấu `$` thành dấu `.` tùy ý khi load class. Một số tên nội bộ, class local/anonymous, `module-info` hoặc `package-info` cần chính sách riêng.
+`com/acme/Outer$Inner.class` is a resource path; the binary name is typically `com.acme.Outer$Inner`. Do not arbitrarily replace `$` with `.` when loading classes. Certain internal names, local/anonymous classes, `module-info`, or `package-info` require dedicated policies.
 
-### Bẫy G — Dựa vào thứ tự duyệt file/JAR
+### Pitfall G — Relying on File/JAR Traversal Order
 
-Thứ tự `Files.walk` hoặc `JarFile.entries` không phải thứ tự ưu tiên nghiệp vụ. Sắp xếp kết quả nếu cần output xác định và quy định giải quyết duplicate rõ ràng. Đừng dùng “class đầu tiên tìm thấy” làm plugin được chọn nếu không có contract thứ tự.
+The order of `Files.walk` or `JarFile.entries` is not a business priority order. Sort results if deterministic output is required and define explicit duplicate resolution. Do not pick "the first class found" as the chosen plugin without an ordering contract.
 
-## 12. Chọn giải pháp dựa trên mục tiêu
+## 12. Choosing a Solution Based on Your Goal
 
-| Mục tiêu | Cách nên bắt đầu |
+| Goal | Recommended starting point |
 | --- | --- |
-| Biết tên class từ cấu hình | `Class.forName(name, false, loader)` và kiểm tra contract |
-| Đọc field/method/annotation của class đã biết | `Class<?>` và Reflection |
-| Liệt kê `.class` trong một thư mục/JAR **đã chỉ định** | `Files.walk` / `JarFile` |
-| Tìm implementation đã đăng ký cho một interface | `ServiceLoader` / registry |
-| Tìm bean/component trong ứng dụng Spring | Component scanning/metadata scanning của Spring |
-| Quét package/classpath phức tạp của một ứng dụng cụ thể | Scanner chuyên dụng phù hợp môi trường |
-| Thống kê class **đã load** trong một JVM | `Instrumentation` qua Java agent |
-| Phân tích resource của **module đã xác định** | `ModuleReader` và module resolution API |
-| Muốn mọi class có thể xuất hiện trong mọi loader của JVM | Phải thu hẹp định nghĩa và phạm vi; không có API tổng quát đáp ứng tuyệt đối |
+| Know class name from configuration | `Class.forName(name, false, loader)` and contract check |
+| Read fields/methods/annotations of a known class | `Class<?>` and Reflection |
+| List `.class` files in a **specified** directory/JAR | `Files.walk` / `JarFile` |
+| Find registered implementations for an interface | `ServiceLoader` / registry |
+| Find beans/components in a Spring application | Spring's component scanning / metadata scanning |
+| Scan complex packages/classpath of a specific application | Specialized scanner suited to the environment |
+| Inventory **already loaded** classes in a JVM | `Instrumentation` via a Java agent |
+| Inspect resources of an **identified module** | `ModuleReader` and module resolution API |
+| Want every class that could ever appear across all JVM loaders | Must narrow definition and scope; no universal API satisfies this unconditionally |
 
-## 13. Ghi nhớ
+## 13. Key Takeaways
 
-1. **Reflection bắt đầu từ một `Class<?>` hoặc một tên type đã biết.** Nó cho phép xem cấu trúc và thao tác động với thành viên của type đó, **không** có API core tự liệt kê tất cả class của classpath.
-2. **Classpath entry, candidate class name, class loadable, class loaded và class accessible là năm khái niệm khác nhau.** Không tự đồng nhất các tập này.
-3. **Khám phá class** là trách nhiệm của filesystem/JAR/module/source index/class loader framework phù hợp với môi trường chạy; mỗi cách chỉ bao phủ phần phạm vi mà nó hiểu.
-4. Nếu cần plugin theo hợp đồng, hãy xem xét **`ServiceLoader` hoặc explicit registry** trước khi áp dụng quét rộng.
-5. Nếu cần class đã load, xem hướng **Instrumentation**, không suy diễn từ số file `.class`.
-6. Công cụ quét đúng cần có **phạm vi rõ, bộ lọc, xử lý class loader/module, lỗi và giới hạn tài nguyên**, không được quảng cáo kết quả quét một directory/JAR là “mọi lớp trong JVM”.
+1. **Reflection starts from a `Class<?>` or an already known type name.** It lets you inspect structure and dynamically interact with members of that type; it has **no** core API that automatically lists every class on the classpath.
+2. **Classpath entry, candidate class name, loadable class, loaded class, and accessible class are five distinct concepts.** Do not automatically conflate these sets.
+3. **Class discovery** is the responsibility of a filesystem/JAR/module/source index/class-loader framework suited to the runtime environment; each approach covers only the scope it understands.
+4. If you need contract-based plugins, consider **`ServiceLoader` or an explicit registry** before resorting to broad scanning.
+5. If you need already loaded classes, look toward **Instrumentation** rather than inferring from `.class` file counts.
+6. A proper scanning tool needs **a clear scope, filters, class-loader/module handling, error handling, and resource limits**, and must never advertise scanning a directory/JAR as "every class in the JVM".
 
-### Tự kiểm tra
+### Self-Check
 
-- `getDeclaredClasses()` có tìm được các class top-level ở cùng package không? Vì sao?
-- `Class.forName("com.example.Widget")` có tự khám phá tên class nào khác không?
-- Vì sao `ClassLoader.getResources("com/example")` có thể trả rỗng dù vẫn load được `com.example.Widget`?
-- Một file `.class` nằm trong JAR có chắc JVM đã load class đó chưa?
-- Nếu hai custom class loader load cùng binary name, ta có chắc nhận một runtime type duy nhất không?
-- Khi xây plugin registry, tại sao `ServiceLoader` thường hợp lý hơn quét tất cả JAR?
-- `Instrumentation.getAllLoadedClasses()` giải quyết câu hỏi nào và **không** giải quyết câu hỏi nào?
-- Vì sao code ví dụ chỉ nói “Candidates: 2” thay vì “All classes in classpath: 2”?
+- Can `getDeclaredClasses()` find top-level classes in the same package? Why?
+- Does `Class.forName("com.example.Widget")` automatically discover any other class names?
+- Why can `ClassLoader.getResources("com/example")` return empty even when `com.example.Widget` can still be loaded?
+- If a `.class` file resides inside a JAR, has the JVM necessarily loaded that class?
+- If two custom class loaders load the same binary name, are you guaranteed to receive a single unique runtime type?
+- When building a plugin registry, why does `ServiceLoader` usually make more sense than scanning all JARs?
+- Which question does `Instrumentation.getAllLoadedClasses()` answer, and which question does it **not** answer?
+- Why does the example code say only "Candidates: 2" instead of "All classes in classpath: 2"?
 
-### Tài liệu tham khảo chính thức
+### Official References
 
-- [`Class` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): `getDeclaredClasses`, `forName` và Reflection theo một kiểu.
-- [`ClassLoader` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html): `loadClass`, `getResources`, phạm vi và cơ chế delegation.
-- [`JarFile` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/jar/JarFile.html): đọc entry từ một JAR đã chỉ định.
-- [`ServiceLoader` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html): đăng ký và khám phá provider theo SPI.
-- [`Instrumentation` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.instrument/java/lang/instrument/Instrumentation.html): `getAllLoadedClasses` qua agent.
-- [`ModuleReader` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/ModuleReader.html): đọc và liệt kê resource của module xác định.
+- [`Class` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html): `getDeclaredClasses`, `forName`, and single-type Reflection.
+- [`ClassLoader` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html): `loadClass`, `getResources`, scope, and delegation mechanism.
+- [`JarFile` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/jar/JarFile.html): reading entries from a specified JAR.
+- [`ServiceLoader` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ServiceLoader.html): SPI-based provider registration and discovery.
+- [`Instrumentation` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.instrument/java/lang/instrument/Instrumentation.html): `getAllLoadedClasses` via an agent.
+- [`ModuleReader` — Java SE 17 API](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/module/ModuleReader.html): reading and listing resources of an identified module.

@@ -1,48 +1,48 @@
-# Kiểm thử declared member khác inherited member trong Java Reflection
+# Testing Declared Members vs. Inherited Members in Java Reflection
 
-## 1. Bài toán: một thành viên thuộc lớp nào?
+## 1. The Problem: Which Class Does a Member Belong To?
 
-Khi thiết kế bài kiểm thử cho công cụ dùng Reflection, cần phân biệt hai câu hỏi:
+When designing tests for a tool that uses Reflection, two questions must be distinguished:
 
-1. **Member có được khai báo trực tiếp trong lớp này không?** Đây là câu hỏi về *declared member*.
-2. **Có thể tra cứu member `public` thông qua lớp này không?** Đây là câu hỏi về các thành viên công khai mà API Reflection nhìn thấy, có thể bao gồm member kế thừa.
+1. **Is the member declared directly in this class?** This is the question about *declared members*.
+2. **Can the `public` member be looked up through this class?** This is the question about public members visible to the Reflection API, which may include inherited members.
 
-Hai câu hỏi có kết quả khác nhau. Giả sử `Child extends Parent`, `Parent` khai báo `public void run()` và `Child` không override: `Child.class.getDeclaredMethod("run")` ném `NoSuchMethodException`; `Child.class.getMethod("run")` lại tìm được method do `Parent` khai báo.
+The two questions produce different results. Suppose `Child extends Parent`, `Parent` declares `public void run()`, and `Child` does not override it: `Child.class.getDeclaredMethod("run")` throws `NoSuchMethodException`; `Child.class.getMethod("run")` finds the method declared by `Parent`.
 
-Một bài test sai thường dùng `getDeclaredMethods()` để kiểm tra *toàn bộ API mà đối tượng Child có thể gọi*, rồi kết luận thiếu method kế thừa. Ngược lại, nếu dùng `getMethods()` để kiểm tra *các method do Child tự khai báo*, bài test lại có thể tính cả method từ superclass và interface.
+A flawed test often uses `getDeclaredMethods()` to check *the entire API that a Child object can invoke*, and then concludes that inherited methods are missing. Conversely, using `getMethods()` to check *methods declared by Child itself* can include methods from superclasses and interfaces.
 
-Bài học hướng dẫn tạo fixture nhỏ, dùng assertion dương và âm, kiểm tra `getDeclaringClass()` và xử lý các trường hợp override, interface default/static method, field, constructor, overload, bridge/synthetic member. Tập trung vào **kiểm chứng metadata**, không đánh đồng việc tra cứu với quyền gọi phương thức private.
+This lesson guides you through building a small fixture, using positive and negative assertions, checking `getDeclaringClass()`, and handling overrides, interface default/static methods, fields, constructors, overloads, and bridge/synthetic members. It focuses on **verifying metadata**, without equating lookup with permission to invoke private methods.
 
-## 2. Các API Reflection cần đối chiếu
+## 2. Reflection APIs to Compare
 
-| Đối tượng | Declared tại lớp đang xét | Public nhìn thấy qua lớp |
+| Target | Declared on the class under inspection | Public visible through the class |
 | --- | --- | --- |
-| Một method | `getDeclaredMethod(name, parameterTypes...)` | `getMethod(name, parameterTypes...)` |
-| Danh sách method | `getDeclaredMethods()` | `getMethods()` |
-| Một field | `getDeclaredField(name)` | `getField(name)` |
-| Danh sách field | `getDeclaredFields()` | `getFields()` |
-| Một constructor | `getDeclaredConstructor(parameterTypes...)` | `getConstructor(parameterTypes...)` |
-| Danh sách constructor | `getDeclaredConstructors()` | `getConstructors()` |
+| Single method | `getDeclaredMethod(name, parameterTypes...)` | `getMethod(name, parameterTypes...)` |
+| Method list | `getDeclaredMethods()` | `getMethods()` |
+| Single field | `getDeclaredField(name)` | `getField(name)` |
+| Field list | `getDeclaredFields()` | `getFields()` |
+| Single constructor | `getDeclaredConstructor(parameterTypes...)` | `getConstructor(parameterTypes...)` |
+| Constructor list | `getDeclaredConstructors()` | `getConstructors()` |
 
-Quy tắc quan trọng:
+Key rules:
 
-- Nhóm **`getDeclared*`** không đi lên superclass để lấy thành viên kế thừa. Nó trả metadata khai báo trong đúng lớp/interface hiện tại, kể cả non-public member. Có thể chứa bridge/synthetic member do compiler sinh.
-- `getMethod(s)` và `getField(s)` chỉ trả **public member** theo phạm vi tra cứu của API, trong đó có thể có member được kế thừa. Chúng không phải danh sách mọi `protected` hoặc private member có trong cây kế thừa.
-- Constructor **không được kế thừa**. Vì thế hai API constructor chỉ khác phạm vi truy cập public hay declared của **chính lớp đó**, không phải “constructor của cha và con”.
-- Việc tìm được private member với `getDeclaredMethod` / `getDeclaredField` **không bảo đảm được quyền gọi/đọc**. `Method.invoke`, `Field.get` và `Constructor.newInstance` còn chịu kiểm tra truy cập, cùng ranh giới module khi có JPMS.
-- API trả mảng như `getDeclaredMethods()` không cam kết thứ tự tương ứng với source code. Đừng assert phần tử tại index 0 là một method cố định.
+- The **`getDeclared*`** group does not walk up to superclasses to retrieve inherited members. It returns metadata declared directly in the current class/interface, including non-public members. It may contain bridge/synthetic members generated by the compiler.
+- `getMethod(s)` and `getField(s)` only return **public members** within the API's lookup scope, which can include inherited members. They are not a list of all `protected` or private members in the inheritance hierarchy.
+- Constructors **are not inherited**. Therefore, the two constructor APIs only differ in public vs. declared scope on **that class itself**, not "parent vs. child constructors."
+- Finding a private member with `getDeclaredMethod` / `getDeclaredField` **does not guarantee permission to invoke/read it**. `Method.invoke`, `Field.get`, and `Constructor.newInstance` are still subject to access checks, as well as module boundaries when JPMS is active.
+- Array-returning APIs such as `getDeclaredMethods()` do not guarantee an order matching source code. Never assert that the element at index 0 is a fixed method.
 
-### Ba khái niệm khác nhau
+### Three Distinct Concepts
 
-**Khai báo:** nơi member xuất hiện trong lớp/interface. `Method.getDeclaringClass()` hay `Field.getDeclaringClass()` giúp xác định.
+**Declaration:** where a member appears in a class/interface. `Method.getDeclaringClass()` or `Field.getDeclaringClass()` helps determine this.
 
-**Kế thừa:** hành vi Java cho phép lớp con nhận từ kiểu cha theo các quy tắc override/hiding/access; một `private` method của cha không phải member được con kế thừa để override.
+**Inheritance:** Java behavior allowing a subclass to inherit from a supertype under overriding/hiding/access rules; a parent's `private` method is not a member inherited by the child for overriding.
 
-**Truy cập:** người gọi có quyền thực thi/read/write member hay không. Một member có thể có metadata nhưng không thể được truy cập theo ngữ cảnh gọi. Do đó test “tồn tại metadata” phải độc lập với test “gọi thành công”.
+**Access:** whether the caller has permission to execute/read/write the member. A member may have metadata yet still be inaccessible from the caller's context. Thus, a "metadata exists" test must be independent of an "invocation succeeds" test.
 
-## 3. Fixture kiểm thử đủ nhỏ để nhìn ra nguyên nhân
+## 3. A Fixture Small Enough to Reveal the Cause
 
-Chúng ta cần một lớp cha, một lớp con và một interface:
+We need a parent class, a child class, and an interface:
 
 ~~~text
 Work (interface)
@@ -51,7 +51,7 @@ Work (interface)
 
 Base
  ├── public visible()
- ├── public replace()   // sẽ bị override
+ ├── public replace()   // will be overridden
  ├── protected protectedBase()
  ├── private privateBase()
  └── public int baseCount
@@ -65,21 +65,21 @@ Child extends Base implements Work
  └── private Child(int)
 ~~~
 
-Fixture có cả trường hợp **thành công** và **thất bại có chủ ý**. Chẳng hạn, test không chỉ xác nhận `getMethod("visible")` thành công mà còn yêu cầu `getDeclaredMethod("visible")` thất bại. Nếu cả hai phép kiểm tra đều thành công, khả năng cao đã vô tình khai báo lại `visible` trong Child hoặc test đang chọn nhầm lớp.
+The fixture includes both **expected successes** and **intentional failures**. For instance, the test not only verifies that `getMethod("visible")` succeeds, it also requires `getDeclaredMethod("visible")` to fail. If both checks succeed, you likely accidentally redeclared `visible` in Child or the test selected the wrong class.
 
-Các assertion cốt lõi:
+Core assertions:
 
-- `Child.class.getMethod("visible")` có `getDeclaringClass() == Base.class`.
-- `Child.class.getMethod("replace")` có `getDeclaringClass() == Child.class`, vì Child khai báo override.
-- `Base.class.getDeclaredMethod("privateBase")` tìm được metadata; `Child.class.getDeclaredMethod("privateBase")` không tìm được.
-- `Child.class.getMethod("defaultWork")` lấy được default method của `Work`; `Child.class.getMethod("utility")` không tìm được static interface method.
-- `Child.class.getField("baseCount")` lấy được public field của Base; `Child.class.getDeclaredField("baseCount")` thất bại.
-- `Child.class.getDeclaredConstructor(int.class)` tìm được private constructor; `Child.class.getConstructor(int.class)` thì không.
-- Danh sách trả về từ `getDeclaredMethods`/`getMethods` chỉ được đối chiếu theo **tên/tập thuộc tính có chủ đích**, không theo thứ tự phần tử.
+- `Child.class.getMethod("visible")` has `getDeclaringClass() == Base.class`.
+- `Child.class.getMethod("replace")` has `getDeclaringClass() == Child.class`, because Child declares the override.
+- `Base.class.getDeclaredMethod("privateBase")` finds metadata; `Child.class.getDeclaredMethod("privateBase")` does not.
+- `Child.class.getMethod("defaultWork")` retrieves the default method of `Work`; `Child.class.getMethod("utility")` does not find the static interface method.
+- `Child.class.getField("baseCount")` retrieves Base's public field; `Child.class.getDeclaredField("baseCount")` fails.
+- `Child.class.getDeclaredConstructor(int.class)` finds the private constructor; `Child.class.getConstructor(int.class)` does not.
+- Lists returned from `getDeclaredMethods`/`getMethods` are only compared by **intentional name/property sets**, never by element index.
 
-## 4. Chương trình Java 17+ chạy độc lập và tự kiểm chứng
+## 4. Standalone, Self-Verifying Java 17+ Program
 
-Tạo tệp **`DeclaredInheritedDemo.java`**:
+Create file **`DeclaredInheritedDemo.java`**:
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -284,14 +284,14 @@ public class DeclaredInheritedDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac DeclaredInheritedDemo.java
 java DeclaredInheritedDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 declared visible: false
@@ -307,63 +307,63 @@ declared constructors: 2
 PASS
 ~~~
 
-Chương trình tự ném `AssertionError` khi một điều kiện không đạt, vì vậy các kiểm tra vẫn hoạt động khi chạy Java **không bật `-ea`**. Điều này khác với câu lệnh `assert` thông thường của Java, vốn mặc định bị vô hiệu hóa.
+The program throws `AssertionError` on its own when a condition fails, so checks still run when launching Java **without `-ea`**. This differs from Java's standard `assert` statement, which is disabled by default.
 
-**Không cần gọi `setAccessible(true)`:** chúng ta xác minh metadata private member được khai báo ở đâu, không thử vượt qua kiểm tra quyền truy cập.
+**No need to call `setAccessible(true)`:** we verify where private member metadata is declared, without attempting to bypass access checks.
 
-## 5. Đọc kết quả: declared, inherited, override và interface
+## 5. Interpreting Results: Declared, Inherited, Override, and Interface
 
-### 5.1. `getDeclaredMethod` khác `getMethod`
+### 5.1. `getDeclaredMethod` vs. `getMethod`
 
 ~~~java
-Child.class.getMethod("visible");         // tìm được method Base
-Child.class.getDeclaredMethod("visible"); // ném NoSuchMethodException
+Child.class.getMethod("visible");         // finds Base's method
+Child.class.getDeclaredMethod("visible"); // throws NoSuchMethodException
 ~~~
 
-Đoạn trên chỉ minh họa khác biệt; lời gọi thứ hai cần được đặt trong `try/catch` hoặc phương thức `throws NoSuchMethodException` khi sử dụng độc lập.
+The snippet above only illustrates the difference; the second call must be placed inside a `try/catch` or a method with `throws NoSuchMethodException` when used standalone.
 
-`getDeclaredMethod` đọc từ **đúng Class của Child**. Vì `visible` chỉ được khai báo ở Base nên không tìm được. `getMethod` có phạm vi public method nên tìm thấy method kế thừa. Dùng:
+`getDeclaredMethod` reads from **Child's exact Class**. Since `visible` is only declared in Base, it is not found. `getMethod` has public-method scope, so it finds the inherited method. Use:
 
 ~~~java
 Method member = Child.class.getMethod("visible");
 boolean fromBase = member.getDeclaringClass() == Base.class;
 ~~~
 
-Đối với method không được Child override, `getDeclaringClass()` cho biết **nơi method được khai báo**, không phải runtime class của instance được truyền vào `invoke`.
+For a method not overridden by Child, `getDeclaringClass()` tells you **where the method was declared**, not the runtime class of an instance passed to `invoke`.
 
-### 5.2. Override: phương thức được khai báo lại tại Child
+### 5.2. Override: A Method Redeclared in Child
 
-`Child` ghi đè `replace()` nên cả `Child.class.getDeclaredMethod("replace")` và `Child.class.getMethod("replace")` đều tìm được bản khai báo của Child. Nếu dùng `Method.invoke(new Child())`, dynamic dispatch theo receiver vẫn quan trọng; để chứng minh metadata đang chọn *bản nào*, dùng `getDeclaringClass()`.
+`Child` overrides `replace()`, so both `Child.class.getDeclaredMethod("replace")` and `Child.class.getMethod("replace")` find Child's declaration. When using `Method.invoke(new Child())`, dynamic dispatch on the receiver still matters; to prove *which version* the metadata selects, use `getDeclaringClass()`.
 
-Không đánh đồng “method thuộc quan hệ kế thừa” với “method metadata do cha khai báo”. Một override thực sự là **declaration mới tại Child** với quan hệ override tới method ở cha.
+Do not equate "method participating in inheritance" with "method metadata declared by the parent." An actual override is a **new declaration in Child** with an override relationship to the parent's method.
 
-### 5.3. Protected và private không nằm trong public lookup
+### 5.3. Protected and Private Are Excluded from Public Lookup
 
-`Base.class.getDeclaredMethod("protectedBase")` và `Base.class.getDeclaredMethod("privateBase")` tìm được metadata, còn `Child.class.getMethod(...)` cho hai tên đó thất bại.
+`Base.class.getDeclaredMethod("protectedBase")` and `Base.class.getDeclaredMethod("privateBase")` find metadata, whereas `Child.class.getMethod(...)` fails for both names.
 
-**Protected member có thể được kế thừa** theo quy tắc Java, nhưng không vì thế trở thành public. Private member của Base không được Child kế thừa/override theo cách của instance method public/protected. Nếu công cụ cần khảo sát tất cả declared members trong hệ phân cấp, phải tự duyệt qua từng `Class<?>` của superclass rồi dùng `getDeclaredMethods()` trên đúng lớp.
+**Protected members can be inherited** under Java rules, yet that does not make them public. Base's private members are not inherited/overridden by Child in the way public/protected instance methods are. If a tool needs to inspect all declared members in a hierarchy, it must traverse each superclass `Class<?>` itself and call `getDeclaredMethods()` on the exact class.
 
-### 5.4. Interface default khác interface static
+### 5.4. Interface Default vs. Interface Static
 
-Method `defaultWork()` thuộc interface `Work` và được Child kế thừa dưới dạng hành vi default. Khi không override, `Child.class.getMethod("defaultWork").getDeclaringClass()` là `Work.class`.
+Method `defaultWork()` belongs to interface `Work` and is inherited by Child as default behavior. When not overridden, `Child.class.getMethod("defaultWork").getDeclaringClass()` is `Work.class`.
 
-`Work.utility()` là static method của interface, **không được Child kế thừa**: `Child.class.getMethod("utility")` thất bại, còn `Work.class.getMethod("utility")` tìm được. Đây là test quan trọng để tránh suy luận rằng mọi method public của interface đều xuất hiện trong API public của lớp triển khai.
+`Work.utility()` is a static interface method and **is not inherited by Child**: `Child.class.getMethod("utility")` fails, while `Work.class.getMethod("utility")` finds it. This is an important test to avoid assuming that every public method of an interface appears in the public API of an implementing class.
 
-### 5.5. Field: declared ở Child, inherited từ Base
+### 5.5. Field: Declared in Child, Inherited from Base
 
-`Child.class.getField("baseCount")` tìm public field thuộc Base, nhưng `Child.class.getDeclaredField("baseCount")` không tìm được. Ngược lại, `Child.class.getDeclaredField("hidden")` tìm private field của Child, còn `Child.class.getField("hidden")` thất bại vì đó không phải public field.
+`Child.class.getField("baseCount")` finds the public field belonging to Base, but `Child.class.getDeclaredField("baseCount")` does not. Conversely, `Child.class.getDeclaredField("hidden")` finds Child's private field, while `Child.class.getField("hidden")` fails because it is not a public field.
 
-Một field **không override đa hình như instance method**. Nếu Child khai báo field cùng tên `baseCount`, nó tạo một field khác **hide** field của Base. Kiểm tra nguồn khai báo qua `Field.getDeclaringClass()` thay vì chỉ dùng `getName()`.
+A field **does not override polymorphically like an instance method**. If Child declares a field with the same name `baseCount`, it creates a separate field that **hides** Base's field. Check the declaration source via `Field.getDeclaringClass()` rather than relying only on `getName()`.
 
-### 5.6. Constructor không bao giờ kế thừa
+### 5.6. Constructors Are Never Inherited
 
-Constructor của Base không tự trở thành constructor của Child. `Child.class.getDeclaredConstructors()` chỉ nói về constructor khai báo trong Child; `getConstructors()` trả các constructor public của Child.
+Base's constructors do not automatically become Child's constructors. `Child.class.getDeclaredConstructors()` only speaks about constructors declared in Child; `getConstructors()` returns Child's public constructors.
 
-Với fixture của bài, Child khai báo một constructor public không tham số và một constructor private nhận `int`. Vì vậy `getConstructors().length == 1`, `getDeclaredConstructors().length == 2`. Những assertion về **số lượng constructor này** hợp lý vì fixture nhỏ và hoàn toàn do test kiểm soát.
+With this lesson's fixture, Child declares one public no-arg constructor and one private constructor taking `int`. Hence `getConstructors().length == 1` and `getDeclaredConstructors().length == 2`. Assertions on **these constructor counts** are reasonable because the fixture is small and completely controlled by the test.
 
-## 6. Chọn đúng overload bằng danh sách kiểu tham số
+## 6. Selecting the Right Overload by Parameter Type List
 
-Một tên method có thể có nhiều overload:
+One method name can have multiple overloads:
 
 ~~~java
 class Example {
@@ -372,7 +372,7 @@ class Example {
 }
 ~~~
 
-Hai overload đều tên `parse`; vì vậy kiểm tra `getDeclaredMethods()` rồi so sánh duy nhất `getName()` là chưa đủ.
+Both overloads are named `parse`; therefore calling `getDeclaredMethods()` and comparing only `getName()` is insufficient.
 
 ~~~java
 Method parseString =
@@ -381,23 +381,23 @@ Method parseNumber =
         Example.class.getDeclaredMethod("parse", int.class);
 ~~~
 
-*Các fragment giả định có import `java.lang.reflect.Method` và xử lý `NoSuchMethodException`.*
+*Fragments assume `java.lang.reflect.Method` is imported and `NoSuchMethodException` is handled.*
 
-Danh sách kiểu tham số **có thứ tự**: `f(int, String)` khác `f(String, int)`. Nếu xây khóa để so sánh toàn bộ danh sách method, có thể dùng `name + ordered parameterTypes + returnType + declaringClass`. Với bytecode chứa bridge/covariant return, return type cũng có thể cần để phân biệt metadata dù việc overload bằng mỗi return type không hợp lệ trong Java source.
+Parameter type lists are **ordered**: `f(int, String)` differs from `f(String, int)`. If building a key to compare the entire method list, you can use `name + ordered parameterTypes + returnType + declaringClass`. With bytecode containing bridge/covariant returns, the return type may also be needed to distinguish metadata even though overloading solely by return type is invalid in Java source.
 
-Lưu ý `getDeclaredMethod(name, parameterTypes)` không nhận kiểu trả về. Nó hoạt động theo hợp đồng tra cứu của Reflection, không phải API chọn một method theo tùy ý mọi đặc tính trong class file.
+Note that `getDeclaredMethod(name, parameterTypes)` does not take a return type. It operates according to Reflection's lookup contract, not as an API to pick a method by arbitrary class-file attributes.
 
-## 7. Không kiểm thử theo thứ tự mảng do Reflection trả về
+## 7. Do Not Test by the Array Order Returned by Reflection
 
-Các API `getDeclaredMethods()`, `getMethods()`, `getDeclaredFields()` và `getDeclaredConstructors()` **không cam kết thứ tự** thành viên. Những test sau dễ sai:
+The APIs `getDeclaredMethods()`, `getMethods()`, `getDeclaredFields()`, and `getDeclaredConstructors()` **do not guarantee member ordering**. Tests like the following are error-prone:
 
 ~~~java
-// Sai vì phụ thuộc thứ tự không được API cam kết:
+// Wrong because it depends on an order not guaranteed by the API:
 // boolean firstIsLocal = Child.class.getDeclaredMethods()[0]
 //         .getName().equals("local");
 ~~~
 
-Thay bằng:
+Replace with:
 
 ~~~java
 Set<String> names = Arrays.stream(Child.class.getDeclaredMethods())
@@ -407,18 +407,18 @@ Set<String> names = Arrays.stream(Child.class.getDeclaredMethods())
 boolean hasLocal = names.contains("local");
 ~~~
 
-*Fragment cần import `Set`, `Arrays`, `Method`, `Collectors`; lớp `Child` lấy từ ví dụ chính.*
+*Fragment requires importing `Set`, `Arrays`, `Method`, `Collectors`; class `Child` comes from the main example.*
 
-Nếu cần chứng minh nhiều overload khác nhau, thay `Set<String>` tên method bằng một tập khóa có danh sách kiểu tham số được chuẩn hóa. Việc chỉ nhìn tên phù hợp với bài kiểm tra **sự hiện diện sơ bộ**, nhưng không phù hợp để xác thực một chữ ký cụ thể.
+If you need to prove distinct overloads exist, replace `Set<String>` of method names with a key set containing normalized parameter type lists. Looking only at names works for a **preliminary presence check**, not for validating a specific signature.
 
-**Synthetic/bridge member:** compiler có thể tạo method phụ để duy trì dispatch của generic/covariant return. `Method.isBridge()` và `Method.isSynthetic()` giúp nhận diện. Nếu mục tiêu là API gần với source, công cụ có thể chọn lọc; nếu mục tiêu là phân tích bytecode, phải giữ chúng. Đừng kiểm thử “đúng N method” ở những tình huống có thể chứa bridge nếu chưa định nghĩa cách đếm.
+**Synthetic/bridge members:** the compiler may generate auxiliary methods to preserve dispatch for generics/covariant returns. `Method.isBridge()` and `Method.isSynthetic()` help identify them. If the goal is an API close to source code, the tool can filter them out; if the goal is bytecode analysis, it must keep them. Do not assert "exact count of N methods" in situations that may contain bridges without first defining the counting policy.
 
-## 8. Case JUnit 5 hoặc test framework: kiểm cả thành công và thất bại
+## 8. JUnit 5 or Test Framework Cases: Testing Both Success and Failure
 
-Nếu dự án đã dùng JUnit 5, có thể diễn đạt điều kiện theo cách sau:
+If the project already uses JUnit 5, conditions can be expressed as follows:
 
 ~~~java
-// Fragment đặt trong lớp test có import org.junit.jupiter.api.Test,
+// Fragment placed inside a test class importing org.junit.jupiter.api.Test,
 // import static org.junit.jupiter.api.Assertions.*;
 
 @Test
@@ -437,68 +437,68 @@ void overrideIsDeclaredInChild() throws Exception {
 }
 ~~~
 
-Đây là **JUnit fragment**, không phải một chương trình độc lập: cần dependency `org.junit.jupiter:junit-jupiter` và các lớp `Child`, `Base` của fixture. Các phép kiểm tra như vậy có tín hiệu rõ hơn so với test chỉ xem method count.
+This is a **JUnit fragment**, not a standalone program: it requires the `org.junit.jupiter:junit-jupiter` dependency and the fixture's `Child` and `Base` classes. Such checks give clearer signals than tests that only inspect method counts.
 
-Khi dùng Java thuần, ví dụ mục 4 đã làm cùng việc bằng `check(...)` và `try/catch` trong helper. Chọn một phong cách thống nhất với hạ tầng kiểm thử của dự án.
+When using plain Java, the example in section 4 achieved the same thing using `check(...)` and `try/catch` in helpers. Choose a style consistent with your project's test infrastructure.
 
-## 9. Các tình huống đặc biệt trong hệ phân cấp
+## 9. Special Cases in Hierarchies
 
-**Nhiều cấp superclass:** `Child.class.getDeclaredMethods()` không cộng tất cả declared methods của Parent, Grandparent. Nếu muốn một danh sách chi tiết toàn bộ hệ phân cấp, tự duyệt `getSuperclass()` và giữ `getDeclaringClass()` để phân biệt các khai báo.
+**Multiple superclass levels:** `Child.class.getDeclaredMethods()` does not include all declared methods of Parent and Grandparent. If you want a detailed list across the entire hierarchy, traverse `getSuperclass()` manually and keep `getDeclaringClass()` to distinguish declarations.
 
-**Interface kế thừa interface:** `SubInterface.class.getMethod(...)` có thể tìm method public từ `SuperInterface`. Nhưng `getDeclaredMethod(...)` trên SubInterface chỉ tìm method trực tiếp khai báo ở SubInterface.
+**Interface extending interface:** `SubInterface.class.getMethod(...)` can find public methods from `SuperInterface`. However, `getDeclaredMethod(...)` on SubInterface only finds methods declared directly on SubInterface.
 
-**Field hiding:** Parent và Child có thể có field public cùng tên. Khi phân tích toàn bộ metadata, hai field thuộc hai owner khác nhau. `getField(name)` chọn theo quy tắc tra cứu, không giúp liệt kê mọi field bị hide trong cây lớp.
+**Field hiding:** Parent and Child can have public fields with the same name. When analyzing all metadata, the two fields belong to two different owners. `getField(name)` selects according to lookup rules and does not list every hidden field in the class hierarchy.
 
-**Method overload:** method khác nhau theo tên và danh sách tham số, không chỉ tên. Dùng đúng thứ tự `Class<?>... parameterTypes`.
+**Method overloading:** methods differ by name and parameter list, not by name alone. Pass `Class<?>... parameterTypes` in the exact order.
 
-**Generic bridge:** một generic superclass và một subclass override bằng kiểu cụ thể có thể sinh bridge method. Việc dùng `getDeclaredMethods()` để đếm source methods cần một chính sách loại hoặc giữ bridge/synthetic.
+**Generic bridge:** a generic superclass and a subclass overriding with a concrete type can produce a bridge method. Using `getDeclaredMethods()` to count source methods requires a policy to exclude or keep bridge/synthetic methods.
 
-**Interface static:** static method khai báo ở interface không truyền thành member của class triển khai; khác với default instance method.
+**Interface static:** static methods declared on an interface are not passed down as members of implementing classes, unlike default instance methods.
 
-**Quyền module:** method có thể nằm trong metadata mà không được invoke/đọc do Java access checks; phân biệt lookup thành công với sử dụng thành công.
+**Module permissions:** a method may appear in metadata yet fail to be invoked/read due to Java access checks; distinguish successful lookup from successful usage.
 
-## 10. Checklist thiết kế bài kiểm thử
+## 10. Test Case Design Checklist
 
-| Trường hợp | Assertion nên có |
+| Case | Recommended assertion |
 | --- | --- |
-| Own public method | Declared lookup có; public lookup có; owner là Child |
-| Inherited public method | Declared lookup không; public lookup có; owner là Base |
-| Override | Declared lookup có; owner là Child |
-| Parent private method | Parent declared lookup có; Child public/declared lookup không |
-| Parent protected method | Parent declared lookup có; Child public lookup không |
-| Interface default method | Child public lookup có; nếu chưa override thì Child declared lookup không |
-| Interface static method | Interface public lookup có; Child public lookup không |
-| Child private field | Child declared lookup có; public lookup không |
-| Inherited public field | Child public lookup có; Child declared lookup không; owner là Base |
-| Constructor private | Declared constructor có; public constructor không |
-| Constructor của cha | Không được kế thừa thành constructor của con |
-| Hai overload cùng tên | Kiểm danh sách kiểu tham số đúng thứ tự |
-| Danh sách metadata | Không assert theo index; dùng set/key và policy synthetic/bridge |
+| Own public method | Declared lookup succeeds; public lookup succeeds; owner is Child |
+| Inherited public method | Declared lookup fails; public lookup succeeds; owner is Base |
+| Override | Declared lookup succeeds; owner is Child |
+| Parent private method | Parent declared lookup succeeds; Child public/declared lookup fails |
+| Parent protected method | Parent declared lookup succeeds; Child public lookup fails |
+| Interface default method | Child public lookup succeeds; if not overridden, Child declared lookup fails |
+| Interface static method | Interface public lookup succeeds; Child public lookup fails |
+| Child private field | Child declared lookup succeeds; public lookup fails |
+| Inherited public field | Child public lookup succeeds; Child declared lookup fails; owner is Base |
+| Private constructor | Declared constructor succeeds; public constructor fails |
+| Parent constructor | Not inherited as a child constructor |
+| Two overloads with same name | Verify parameter type list in exact order |
+| Metadata lists | Do not assert by index; use sets/keys and synthetic/bridge policy |
 
-Để báo lỗi rõ khi test thất bại, mỗi assertion nên ghi cả tên member và kỳ vọng. Ví dụ “Child must not declare visible()” cụ thể hơn “reflection failed”. Đồng thời, dùng fixture nhỏ để thay đổi test có nguyên nhân dễ nhận ra.
+To report failures clearly when a test fails, each assertion should include both the member name and expectation. For example, `"Child must not declare visible()"` is more specific than `"reflection failed"`. Also, use small fixtures so test changes have easily identifiable causes.
 
-## 11. Tự kiểm tra
+## 11. Self-Check
 
-Giả sử `Child extends Base` và Base khai báo `public void start()`, Child không override:
+Suppose `Child extends Base` and Base declares `public void start()`, which Child does not override:
 
-1. `Child.class.getDeclaredMethod("start")` cho kết quả gì? **`NoSuchMethodException`.**
-2. `Child.class.getMethod("start")` có tìm được không? **Có**, vì đây là public method kế thừa.
-3. `getDeclaringClass()` của method đó là gì? **`Base.class`.**
-4. Nếu Child override `start()`, `getDeclaredMethod("start")` có thành công không? **Có**, vì Child đã khai báo method mới.
-5. Nếu Base có `private void secret()`, có tìm được bằng `Child.class.getDeclaredMethod("secret")` không? **Không**; cần tra trên `Base.class`.
-6. `Child.class.getConstructors()` có trả các constructor public của Base không? **Không**.
-7. Nếu interface có `static void util()`, lớp implements có tự kế thừa method này không? **Không**.
-8. Có thể suy ra thứ tự khai báo từ index của `getDeclaredMethods()` không? **Không**.
-9. Với hai overload `f(int)` và `f(String)`, một key chỉ có tên `f` có đủ không? **Không**.
-10. Vì sao trong ví dụ dùng `check` thay vì Java `assert`? **Vì `assert` bị tắt khi không bật `-ea`, còn `check` vẫn kiểm tra.**
+1. What does `Child.class.getDeclaredMethod("start")` produce? **`NoSuchMethodException`.**
+2. Does `Child.class.getMethod("start")` find it? **Yes**, because it is an inherited public method.
+3. What is `getDeclaringClass()` of that method? **`Base.class`.**
+4. If Child overrides `start()`, does `getDeclaredMethod("start")` succeed? **Yes**, because Child declared a new method.
+5. If Base has `private void secret()`, can it be found via `Child.class.getDeclaredMethod("secret")`? **No**; you must look it up on `Base.class`.
+6. Does `Child.class.getConstructors()` return Base's public constructors? **No**.
+7. If an interface has `static void util()`, does an implementing class automatically inherit this method? **No**.
+8. Can you infer declaration order from the index of `getDeclaredMethods()`? **No**.
+9. For two overloads `f(int)` and `f(String)`, is a key containing only the name `f` sufficient? **No**.
+10. Why does the example use `check` instead of Java `assert`? **Because `assert` is disabled when `-ea` is not enabled, whereas `check` still validates.**
 
-## 12. Kết luận
+## 12. Conclusion
 
-**Declared** mô tả nơi member được khai báo; **inherited/public lookup** mô tả phạm vi tra cứu member theo Java Reflection. Với method và field, hãy đối chiếu `getDeclared*` và `get*`, dùng `getDeclaringClass()` để xác nhận owner, kiểm thử cả trường hợp tìm được lẫn `NoSuchMethodException`/`NoSuchFieldException`. Constructor không được kế thừa. Interface default/static, override, field hiding, overload và bridge/synthetic method cần xem đúng ngữ nghĩa. Một test đáng tin không dựa vào thứ tự mảng hoặc số lượng method tổng quát; nó chứng minh chính xác quan hệ giữa kiểu, member và quyền truy cập.
+**Declared** describes where a member is declared; **inherited/public lookup** describes member lookup scope under Java Reflection. For methods and fields, compare `getDeclared*` and `get*`, use `getDeclaringClass()` to verify ownership, and test both successful lookups and `NoSuchMethodException`/`NoSuchFieldException`. Constructors are never inherited. Interface default/static methods, overrides, field hiding, overloads, and bridge/synthetic methods need accurate semantics. A reliable test does not depend on array ordering or generic method counts; it proves the exact relationship between type, member, and access permissions.
 
-Tài liệu tham khảo:
+References:
 
-- [Java SE 21 — `Class`, các API `getMethod` / `getDeclaredMethod` / field / constructor](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html)
+- [Java SE 21 — `Class`, `getMethod` / `getDeclaredMethod` / field / constructor APIs](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html)
 - [Java SE 21 — `Method`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html)
 - [Java SE 21 — `Field`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Field.html)
 - [Java SE 21 — `Constructor`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Constructor.html)

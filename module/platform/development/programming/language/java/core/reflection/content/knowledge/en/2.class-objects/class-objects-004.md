@@ -1,14 +1,14 @@
-# Class.forName(name, initialize, loader) trong Java Reflection
+# Class.forName(name, initialize, loader) in Java Reflection
 
-## 1. Mục tiêu và ngữ cảnh
+## 1. Objectives and context
 
-`java.lang.Class` là đối tượng đại diện cho một kiểu tại thời điểm chạy: lớp, interface, enum, record, annotation, kiểu mảng hoặc kiểu nguyên thủy. Khi đã có `Class<?>`, ta có thể đọc metadata qua Reflection như constructor, method, field và annotation.
+`java.lang.Class` is the object representing a type at runtime: a class, interface, enum, record, annotation, array type, or primitive type. Once you have `Class<?>`, you can read metadata via Reflection such as constructors, methods, fields, and annotations.
 
-`Class.forName(String name, boolean initialize, ClassLoader loader)` giải quyết tình huống **chỉ biết tên kiểu dưới dạng chuỗi tại runtime** và cần lấy đối tượng `Class` bằng một class loader được chọn. Điểm quan trọng nhất của overload này là tách biệt hai lựa chọn: **dùng class loader nào** và **có yêu cầu khởi tạo lớp ngay không**.
+`Class.forName(String name, boolean initialize, ClassLoader loader)` solves the situation where **only the type name as a string is known at runtime** and you need to obtain the `Class` object using a chosen class loader. The most important aspect of this overload is separating two choices: **which class loader to use** and **whether to request class initialization immediately**.
 
-Ví dụ các hệ thống cấu hình plugin, framework, driver hoặc bộ xử lý nhiều implementation chỉ nhận tên kiểu như `"com.example.payment.CardProcessor"` trong cấu hình. `Class.forName(...)` giúp tra cứu kiểu mà không viết cứng `CardProcessor.class` vào mã nguồn. Tuy nhiên, việc tìm ra lớp chưa đồng nghĩa với tạo object hay gọi bất kỳ method nào.
+For example, plugin configuration systems, frameworks, drivers, or multi-implementation processors only receive a type name like `"com.example.payment.CardProcessor"` in configuration. `Class.forName(...)` helps look up the type without hardcoding `CardProcessor.class` in the source code. However, finding the class does not mean creating an object or calling any method.
 
-## 2. Cú pháp và ý nghĩa từng đối số
+## 2. Syntax and meaning of each argument
 
 ```java
 public static Class<?> forName(
@@ -18,34 +18,34 @@ public static Class<?> forName(
 ) throws ClassNotFoundException;
 ```
 
-| Đối số | Ý nghĩa | Điều dễ nhầm |
+| Argument | Meaning | Common misconceptions |
 |---|---|---|
-| `name` | **Tên nhị phân (binary name)** của lớp/interface cần tìm; với kiểu mảng dùng tên dạng descriptor như `[Ljava.lang.String;`. | Không phải đường dẫn file, không có `.class`, không phải tên generic trong mã nguồn. Nested class thường dùng dấu `$`. |
-| `initialize` | `true` yêu cầu khởi tạo lớp nếu chưa khởi tạo; `false` yêu cầu nạp và liên kết mà **chưa khởi tạo lớp đích**. | `false` không có nghĩa là chỉ tra cứu một chuỗi không có hoạt động nạp lớp, cũng không bảo đảm custom loader không có side effect. |
-| `loader` | Class loader dùng để tìm định nghĩa kiểu, theo chính sách ủy quyền/nạp lớp của loader đó. | `null` nghĩa là dùng **bootstrap class loader**, không có nghĩa "hãy tự chọn loader mặc định". |
+| `name` | **Binary name** of the class/interface to look up; for array types use descriptor-style names like `[Ljava.lang.String;`. | Not a file path, no `.class`, not a generic name in source code. Nested classes usually use `$`. |
+| `initialize` | `true` requests initializing the class if not yet initialized; `false` requests loading and linking while **not yet initializing the target class**. | `false` does not mean merely looking up a string with no class-loading activity, nor does it guarantee a custom loader has no side effects. |
+| `loader` | The class loader used to find the type definition, following that loader's delegation/loading policy. | `null` means using the **bootstrap class loader**, not "pick the default loader automatically". |
 
-**Giá trị trả về:** một `Class<?>` ứng với kiểu mà loader đã xác định. Không có instance của kiểu đó được tạo ra. Nếu không tìm thấy lớp với loader đã chọn, phương thức ném `ClassNotFoundException`.
+**Return value:** a `Class<?>` corresponding to the type resolved by the loader. No instance of that type is created. If the class is not found with the chosen loader, the method throws `ClassNotFoundException`.
 
-Khác biệt giữa các overload:
+Differences between overloads:
 
-- `Class.forName("com.example.Foo")`: tương đương về mục đích với việc nạp và **khởi tạo** lớp bằng class loader của lớp gọi phương thức; không cho chọn trực tiếp `loader` hoặc trì hoãn khởi tạo.
-- `Class.forName("com.example.Foo", false, loader)`: cho chọn loader và trì hoãn khởi tạo.
-- `Class.forName(module, "com.example.Foo")` (Java 9+): tìm lớp trong ngữ cảnh `Module`, **không khởi tạo** và có thể trả `null` khi không tìm thấy trong module đã chỉ định; không có đối số boolean nên không thay thế trực tiếp overload ba đối số.
-- `loader.loadClass("com.example.Foo")`: thao tác thông thường của `ClassLoader` là tải lớp mà chưa chủ động khởi tạo; hành vi nạp và ủy quyền cụ thể tùy loader.
+- `Class.forName("com.example.Foo")`: equivalent in purpose to loading and **initializing** the class using the calling class's class loader; does not allow directly choosing `loader` or deferring initialization.
+- `Class.forName("com.example.Foo", false, loader)`: allows choosing the loader and deferring initialization.
+- `Class.forName(module, "com.example.Foo")` (Java 9+): looks up a class within a `Module` context, **does not initialize**, and can return `null` when not found in the specified module; has no boolean parameter so it is not a direct replacement for the three-argument overload.
+- `loader.loadClass("com.example.Foo")`: normal `ClassLoader` operation that loads the class without actively initializing it; exact loading and delegation behavior depends on the loader.
 
-## 3. `initialize` tác động đến giai đoạn nào?
+## 3. Which phase does `initialize` affect?
 
-JVM thực hiện **loading** để tìm định nghĩa kiểu, **linking** để xác minh/chuẩn bị và có thể trì hoãn một số bước resolution, sau đó **initialization** mới chạy các biểu thức khởi tạo trường `static` và khối `static` theo quy tắc JVM. Việc tạo instance và chạy constructor là bước sử dụng kiểu riêng biệt.
+The JVM performs **loading** to find the type definition, **linking** to verify/prepare and optionally defer some resolution steps, and then **initialization** runs `static` field initializers and `static` blocks according to JVM rules. Creating an instance and running a constructor is a separate step of using the type.
 
-- `initialize=false`: vẫn yêu cầu tìm, nạp và liên kết, nhưng lời gọi này không chủ động thực thi static initializer của lớp đích.
-- `initialize=true`: yêu cầu khởi tạo lớp đích nếu trước đó chưa được khởi tạo; initializer đã thành công không chạy lại vì gọi `forName` lần nữa.
-- Nếu lớp đã khởi tạo, `false` không đảo ngược trạng thái. Nếu sau đó gọi static method, đọc trường static không phải constant variable hoặc tạo instance, JVM có thể khởi tạo lớp.
+- `initialize=false`: still requests finding, loading, and linking, but this call does not actively execute the target class's static initializer.
+- `initialize=true`: requests initializing the target class if it has not been initialized previously; an initializer that already succeeded does not run again because `forName` is called again.
+- If the class is already initialized, `false` does not reverse that state. If you later call a static method, read a non-constant static field, or create an instance, the JVM can initialize the class.
 
-Custom `ClassLoader` vẫn có thể chạy logic riêng trong quá trình nạp; không nên hiểu `false` là thao tác tuyệt đối không có side effect. Trình tự initialization chi tiết, constant variables và thao tác Reflection gây khởi tạo được phân tích trong bài vòng đời lớp.
+A custom `ClassLoader` can still execute its own logic during loading; do not interpret `false` as an operation completely free of side effects. Detailed initialization order, constant variables, and Reflection operations that trigger initialization are analyzed in the class lifecycle lesson.
 
-## 4. Ví dụ Java 17+ chạy độc lập: thấy rõ cờ initialize
+## 4. Standalone Java 17+ example: seeing the initialize flag clearly
 
-Tạo file `ForNameDemo.java`:
+Create the file `ForNameDemo.java`:
 
 ```java
 public class ForNameDemo {
@@ -73,14 +73,14 @@ public class ForNameDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa file:
+Compile and run from the directory containing the file:
 
 ```bash
 javac ForNameDemo.java
 java ForNameDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 Loaded: ForNameDemo$Target
@@ -91,65 +91,65 @@ After second initialize=true
 Same Class object: true
 ```
 
-Giải thích theo từng mốc:
+Step-by-step explanation:
 
-- `ForNameDemo$Target` là **binary name** của nested class `Target`. Dấu `$` ở đây thể hiện cách đặt tên binary cho member class.
-- `Class.forName(name, false, loader)` trả về `Class<?>` nhưng chưa in `Target initialized`. Việc lấy `type.getName()` không kích hoạt khởi tạo `Target`.
-- Lời gọi với `true` lần đầu chạy khối `static` nên dòng `Target initialized` xuất hiện **trước** dòng `After initialize=true`.
-- Lần gọi `true` kế tiếp không chạy lại khối `static`; cùng tên và cùng defining loader sẽ trỏ về cùng một đối tượng `Class`.
+- `ForNameDemo$Target` is the **binary name** of the nested class `Target`. The `$` sign here reflects binary naming for member classes.
+- `Class.forName(name, false, loader)` returns `Class<?>` without printing `Target initialized` yet. Calling `type.getName()` does not trigger initialization of `Target`.
+- The first call with `true` runs the `static` block, so the line `Target initialized` appears **before** `After initialize=true`.
+- The subsequent `true` call does not run the `static` block again; the same name and the same defining loader point to the same `Class` object.
 
-Ví dụ giả định `Target` chưa bị mã khác khởi tạo trước đó; nếu nó đã khởi tạo rồi, bạn sẽ không quan sát được lần in đầu tiên.
+The example assumes `Target` has not been initialized by other code beforehand; if it has already been initialized, you will not observe the first print.
 
-## 5. Kiểm tra tên đầu vào trước khi chọn loader
+## 5. Checking input names before choosing a loader
 
-`name` phải xác định đúng kiểu runtime: lớp top-level dùng tên đầy đủ như `java.util.ArrayList`, member type dùng binary name như `java.util.Map$Entry`, và mảng dùng dạng descriptor như `[Ljava.lang.String;` hoặc `[[I`. `"int"`, `"java.lang.String[]"` và `"java.util.List<String>"` không phải tên lớp hợp lệ để tra cứu theo API này.
+`name` must specify the exact runtime type: top-level classes use full names like `java.util.ArrayList`, member types use binary names like `java.util.Map$Entry`, and arrays use descriptor forms like `[Ljava.lang.String;` or `[[I`. `"int"`, `"java.lang.String[]"`, and `"java.util.List<String>"` are not valid class names for lookup via this API.
 
 ```java
 Class<?> entry = Class.forName("java.util.Map$Entry", false, loader);
 Class<?> numbers = Class.forName("[I", false, loader);
 ```
 
-Đây là fragment giả định biến `loader` đã được chọn và lời gọi xử lý `ClassNotFoundException`. Khi có sẵn `Class` của kiểu, `type.getName()` cung cấp đúng chuỗi tra cứu cho lớp và mảng thông thường; riêng primitive/`void` dùng class literal. Binary name, canonical name và mọi mã descriptor được giải thích kỹ trong bài về tên nhị phân.
+This is a fragment assuming the variable `loader` has been chosen and the call handles `ClassNotFoundException`. When you already have the type's `Class`, `type.getName()` provides the exact lookup string for ordinary classes and arrays; for primitives/`void`, use class literals. Binary names, canonical names, and all descriptor codes are explained thoroughly in the lesson on binary names.
 
-## 6. Chọn ClassLoader: vì sao cùng tên chưa chắc cùng kiểu?
+## 6. Choosing a ClassLoader: why the same name doesn't guarantee the same type?
 
-JVM xác định identity của một lớp theo **binary name và defining class loader**. Nếu hai defining loader độc lập tạo định nghĩa cho cùng tên `com.example.Plugin`, đó là **hai runtime type khác nhau**. Vì thế dù `getName()` giống nhau, `classA == classB` có thể là `false` và ép kiểu giữa chúng có thể thất bại với `ClassCastException`.
+The JVM determines a class's identity by **binary name and defining class loader**. If two independent defining loaders create definitions for the same name `com.example.Plugin`, those are **two distinct runtime types**. Therefore, even though `getName()` is identical, `classA == classB` can be `false` and casting between them can fail with `ClassCastException`.
 
-Có vài lựa chọn loader phổ biến:
+There are several common loader choices:
 
 ```java
-// Loader đã nạp chính lớp hiện tại (khi muốn ở cùng không gian kiểu)
+// Loader that loaded the current class itself (when wanting to stay in the same type space)
 ClassLoader definingLoader = MyApplication.class.getClassLoader();
 
-// Thread context class loader: thường được framework/host điều chỉnh cho plugin
+// Thread context class loader: often configured by framework/host for plugins
 ClassLoader contextLoader =
         Thread.currentThread().getContextClassLoader();
 
-// null: bootstrap loader, chỉ tìm được những kiểu do bootstrap loader cung cấp
+// null: bootstrap loader, only finds types provided by the bootstrap loader
 Class<?> stringType = Class.forName("java.lang.String", false, null);
 ```
 
-Đoạn này minh họa cách chọn loader và giả định có lớp `MyApplication` trong dự án; nó không phải chương trình chạy độc lập. `getContextClassLoader()` có thể trả `null`. Không mặc định rằng context loader trùng với loader của code đang gọi: ứng dụng server, hệ plugin và bộ chạy kiểm thử có thể thiết lập chúng khác nhau.
+This snippet illustrates how to choose a loader and assumes there is a `MyApplication` class in the project; it is not a standalone runnable program. `getContextClassLoader()` can return `null`. Do not assume the context loader matches the calling code's loader: application servers, plugin systems, and test runners can configure them differently.
 
-Quy trình delegation thường đưa yêu cầu nạp tới parent loader trước, nhưng custom loader có thể có chính sách riêng. `loader` truyền vào là **loader được yêu cầu bắt đầu tra cứu**; lớp thực tế có thể được định nghĩa bởi loader cha. Không thể suy ra defining loader chỉ từ biến `loader` đầu vào; hãy dùng `type.getClassLoader()` nếu cần kiểm tra (có thể trả `null` với bootstrap).
+The delegation process typically forwards loading requests to the parent loader first, though custom loaders can have their own policies. The `loader` passed in is the **loader requested to start the lookup**; the actual class may be defined by a parent loader. You cannot infer the defining loader solely from the input `loader` variable; use `type.getClassLoader()` if you need to inspect it (which can return `null` for bootstrap).
 
-## 7. Xử lý lỗi: không gộp tất cả thành "không tìm thấy"
+## 7. Error handling: don't lump everything into "not found"
 
-Các tình huống chính:
+Main scenarios:
 
-| Tình huống | Ngoại lệ/lỗi có thể gặp | Ý nghĩa |
+| Scenario | Possible exception/error | Meaning |
 |---|---|---|
-| Không tìm được định nghĩa với loader đã chọn | `ClassNotFoundException` (checked) | Chuỗi tên sai, dependency không có trong classpath/module path hoặc loader không thấy. |
-| Tìm được lớp nhưng liên kết bị hỏng | `LinkageError` hoặc subclass, ví dụ `NoClassDefFoundError`, `UnsupportedClassVersionError` | Dependency thiếu ở thời điểm liên kết, bytecode không tương thích hoặc xung đột định nghĩa. |
-| Static initialization phát sinh exception | `ExceptionInInitializerError` | JVM đóng gói lỗi khởi tạo không phải `Error` xảy ra trong static initialization. |
-| Khởi tạo lần trước đã thất bại | Thường là `NoClassDefFoundError` ở lần chủ động dùng tiếp theo | Lớp đã vào trạng thái erroneous trong JVM; gọi lại `forName` không sửa được nguyên nhân. |
-| Không đủ quyền cần thiết trong một số bối cảnh có kiểm tra bảo mật | `SecurityException` | Không phải lỗi sai tên; tùy môi trường bảo mật/loader. |
+| Definition not found with the chosen loader | `ClassNotFoundException` (checked) | Wrong name string, dependency missing from classpath/module path, or not visible to the loader. |
+| Class found but linking is broken | `LinkageError` or subclass, e.g. `NoClassDefFoundError`, `UnsupportedClassVersionError` | Missing dependency at link time, incompatible bytecode, or definition conflict. |
+| Static initialization throws an exception | `ExceptionInInitializerError` | JVM wraps a non-`Error` initialization failure occurring during static initialization. |
+| Previous initialization already failed | Typically `NoClassDefFoundError` on the next active use | The class has entered an erroneous state in the JVM; calling `forName` again will not fix the cause. |
+| Insufficient permissions in certain security-checked contexts | `SecurityException` | Not a wrong-name error; depends on security/loader environment. |
 
-Không cố `catch (Exception e)` để giải thích tất cả. `LinkageError` và `ExceptionInInitializerError` là `Error`, không phải `Exception`. Trong dịch vụ thực, cần log **class name, loader mong đợi và nguyên nhân gốc**, đồng thời quyết định rõ đây là lỗi cấu hình, lỗi dependency hay lỗi khởi tạo.
+Do not try to `catch (Exception e)` to explain everything. `LinkageError` and `ExceptionInInitializerError` are `Error`s, not `Exception`s. In real services, log the **class name, expected loader, and root cause**, and clearly distinguish whether it is a configuration error, dependency error, or initialization error.
 
-### Ví dụ riêng: initialization thất bại
+### Separate example: initialization failure
 
-Lưu `InitializationFailureDemo.java`:
+Save `InitializationFailureDemo.java`:
 
 ```java
 public class InitializationFailureDemo {
@@ -183,7 +183,7 @@ public class InitializationFailureDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac InitializationFailureDemo.java
@@ -196,15 +196,15 @@ First attempt: ExceptionInInitializerError
 Second attempt: NoClassDefFoundError
 ```
 
-Lời gọi với `false` không thực thi `crash()`. Lần `true` đầu thất bại trong static initializer nên nhận `ExceptionInInitializerError`; lớp bị đánh dấu khởi tạo lỗi. Lần tiếp theo thường báo `NoClassDefFoundError` thay vì thử chạy lại initializer. Đây là lý do việc nạp lớp thành công chưa đảm bảo có thể khởi tạo và sử dụng lớp.
+The call with `false` does not execute `crash()`. The first `true` attempt fails inside the static initializer and thus receives `ExceptionInInitializerError`; the class is marked as having failed initialization. The next attempt typically reports `NoClassDefFoundError` instead of trying to run the initializer again. This is why successfully loading a class does not guarantee the class can be initialized and used.
 
-## 8. Dùng Reflection sau khi lấy Class<?>
+## 8. Using Reflection after getting Class<?>
 
-`Class.forName(...)` chỉ trả metadata runtime. Nếu cần tạo instance, phải thực hiện thao tác riêng và kiểm tra hợp đồng kiểu:
+`Class.forName(...)` only returns runtime metadata. If you need to create an instance, you must perform a separate operation and verify the type contract:
 
 ```java
-// Giả định implementation có constructor không tham số truy cập được
-// và tên lớp được cấu hình/trusted trong ứng dụng.
+// Assumes the implementation has an accessible no-arg constructor
+// and the class name is configured/trusted within the application.
 Class<?> rawType = Class.forName(implementationName, true, chosenLoader);
 
 Class<? extends Runnable> runnableType = rawType.asSubclass(Runnable.class);
@@ -212,45 +212,45 @@ Runnable runnable = runnableType.getDeclaredConstructor().newInstance();
 runnable.run();
 ```
 
-Đây là **mảnh code minh họa**, không phải chương trình độc lập: `implementationName` và `chosenLoader` phải được cung cấp; lời gọi tạo instance cần xử lý `ReflectiveOperationException`. Ý nghĩa từng bước:
+This is an **illustrative code fragment**, not a standalone program: `implementationName` and `chosenLoader` must be provided; the instantiation call must handle `ReflectiveOperationException`. Meaning of each step:
 
-1. Tải và yêu cầu khởi tạo implementation.
-2. `asSubclass(Runnable.class)` kiểm tra runtime type thật sự gán được cho `Runnable`; nếu không, ném `ClassCastException`.
-3. `getDeclaredConstructor().newInstance()` mới tạo đối tượng, có thể thất bại nếu không có constructor phù hợp, constructor không truy cập được hoặc chính constructor ném lỗi (thường gói trong `InvocationTargetException`).
-4. `run()` là lời gọi business logic, **không** xảy ra tự động trong `Class.forName`.
+1. Load and request initialization of the implementation.
+2. `asSubclass(Runnable.class)` checks whether the runtime type is actually assignable to `Runnable`; if not, it throws `ClassCastException`.
+3. `getDeclaredConstructor().newInstance()` actually creates the object, which can fail if there is no matching constructor, the constructor is inaccessible, or the constructor itself throws an error (usually wrapped in `InvocationTargetException`).
+4. `run()` is a business logic call and does **not** happen automatically inside `Class.forName`.
 
-Với hệ module Java, việc tìm thấy `Class` không có nghĩa mọi constructor/method private hoặc package-private đều được phép truy cập bằng Reflection. Các quy tắc visibility và module exports/opens vẫn áp dụng; đừng coi `setAccessible(true)` luôn thành công.
+With the Java module system, finding a `Class` does not mean all private or package-private constructors/methods are allowed to be accessed via Reflection. Visibility rules and module exports/opens still apply; do not assume `setAccessible(true)` always succeeds.
 
-## 9. Khi nào dùng true, false và loader nào?
+## 9. When to use true, false, and which loader?
 
-**Chọn `initialize = false` khi:**
+**Choose `initialize = false` when:**
 
-- Chỉ kiểm tra lớp có thể được tải, đọc tên/annotation/method/field metadata hoặc quyết định xem lớp có thích hợp cho bước xử lý tiếp theo hay không.
-- Muốn trì hoãn static initialization vốn có thể tốn chi phí hoặc phát sinh side effect cho tới khi thật sự cần kích hoạt lớp.
+- Only checking whether the class can be loaded, reading name/annotation/method/field metadata, or deciding whether the class is suitable for the next processing step.
+- Wanting to defer static initialization, which may be expensive or produce side effects, until the class truly needs to be activated.
 
-**Chọn `initialize = true` khi:**
+**Choose `initialize = true` when:**
 
-- Muốn JVM thực hiện khởi tạo lớp ngay tại bước này và biết chắc lỗi khởi tạo trước khi đi tiếp.
-- Quy trình bootstrap/plugin có hợp đồng yêu cầu static initialization diễn ra tại thời điểm nạp tên lớp.
+- Wanting the JVM to initialize the class right at this step and surface initialization failures before proceeding.
+- A bootstrap/plugin workflow has a contract requiring static initialization to occur at the time the class name is loaded.
 
-**Chọn `loader` theo không gian class thực tế:** loader của lớp gọi phù hợp với ứng dụng bình thường; context loader phù hợp khi host/framework đã đặt nó cho plugin; custom loader khi chính ứng dụng quản lý tập JAR hay lớp động; `null` chỉ khi chủ đích dùng bootstrap loader. Không mặc định đổi tất cả loader sang system class loader vì plugin có thể không nằm trên system classpath.
+**Choose `loader` according to the actual class space:** the calling class's loader suits normal applications; the context loader suits cases where the host/framework has set it for plugins; a custom loader suits cases where the application itself manages a set of JARs or dynamic classes; `null` only when intentionally using the bootstrap loader. Do not blindly switch all loaders to the system class loader because plugins may not reside on the system classpath.
 
-**Tình huống thực tế:** dịch vụ nhận cấu hình `processor.class=com.example.FastProcessor`. Nó có thể dùng `Class.forName(name, false, pluginLoader)` để đọc metadata hoặc kiểm tra `implements Processor` trước. Khi đã xác thực cấu hình, dịch vụ mới chủ động kích hoạt và tạo implementation. Lưu ý `asSubclass(Processor.class)` chỉ hợp lệ khi cả hai phía thấy **cùng một runtime identity** của `Processor`; nạp hai bản `Processor` bởi hai loader khác nhau sẽ làm việc kiểm tra thất bại.
+**Practical scenario:** a service receives the configuration `processor.class=com.example.FastProcessor`. It can use `Class.forName(name, false, pluginLoader)` to read metadata or verify `implements Processor` first. Once the configuration is validated, the service actively triggers and instantiates the implementation. Note that `asSubclass(Processor.class)` is only valid when both sides see the **same runtime identity** of `Processor`; loading two copies of `Processor` by two different loaders will cause the check to fail.
 
-## 10. Những lỗi phổ biến và cách khắc phục
+## 10. Common mistakes and how to fix them
 
-1. **Dùng `true` khi chỉ muốn introspection:** vô tình kích hoạt static initialization, kết nối tài nguyên hoặc đăng ký thành phần. Dùng `false` nếu không có yêu cầu khởi tạo.
-2. **Tưởng `false` làm việc tra cứu "không thực thi mã nào":** custom class loader vẫn có thể có logic riêng, và bước resolution/loading vẫn phát sinh lỗi. Coi lớp được tải là input cần tin cậy, nhất là plugin bên ngoài.
-3. **Sai binary name:** viết `Outer.Inner` thay cho `Outer$Inner` đối với member class, hoặc `Foo[]` thay cho descriptor mảng. Kiểm tra `SomeType.class.getName()` trong một chương trình mẫu khi cần biết tên chuẩn.
-4. **Dùng sai loader:** tên lớp đúng nhưng `ClassNotFoundException` do JAR chỉ hiển thị trong loader khác. Xác minh vị trí dependency và loader tổ chức plugin, không sửa bằng cách thêm tên package tùy tiện.
-5. **Nhầm `ClassNotFoundException` với `NoClassDefFoundError`:** lớp đích có thể đã được tìm ra nhưng dependency của nó bị thiếu hoặc initialization thất bại. Đọc nguyên nhân gốc/stack trace.
-6. **Tưởng trả `Class` là đã tạo object:** constructor chưa chạy chỉ vì nhận được `Class<?>`. Muốn instance, gọi constructor/factory thích hợp.
-7. **Dùng class name do người dùng không tin cậy nhập để khởi tạo tùy ý:** `initialize=true` có thể thực thi mã tĩnh của lớp được chỉ định. Dùng whitelist implementation, classpath/plugin kiểm soát được và nguyên tắc cấp quyền phù hợp; không coi class name là dữ liệu vô hại.
+1. **Using `true` when only wanting introspection:** accidentally triggers static initialization, connects resources, or registers components. Use `false` if initialization is not required.
+2. **Assuming `false` makes lookup "execute no code":** a custom class loader can still have its own logic, and resolution/loading steps can still throw errors. Treat loaded classes as input requiring trust, especially external plugins.
+3. **Wrong binary name:** writing `Outer.Inner` instead of `Outer$Inner` for member classes, or `Foo[]` instead of the array descriptor. Check `SomeType.class.getName()` in a sample program when you need the exact name.
+4. **Using the wrong loader:** the class name is right, yet `ClassNotFoundException` occurs because the JAR is only visible in another loader. Verify dependency placement and the loader organizing plugins rather than arbitrarily adding package names.
+5. **Confusing `ClassNotFoundException` with `NoClassDefFoundError`:** the target class may have been found, but its dependency is missing or initialization failed. Read the root cause/stack trace.
+6. **Assuming returning `Class` creates an object:** constructors have not run just because you received `Class<?>`. To get an instance, call the appropriate constructor/factory.
+7. **Using untrusted user-supplied class names for arbitrary loading:** `initialize=true` can execute static code of the specified class. Use an allowlist of implementations, a controlled classpath/plugin setup, and appropriate permission principles; do not treat class names as harmless data.
 
-## 11. Ghi nhớ nhanh
+## 11. Quick takeaways
 
-- `Class.forName(name, initialize, loader)` = **tìm lớp bằng binary name, bằng loader chỉ định, có/không yêu cầu initialization**.
-- `initialize=false`: nhận `Class<?>` để quan sát/chuẩn bị mà không chủ động chạy static initializer của lớp đích; `true`: yêu cầu initialization nếu chưa diễn ra.
-- Class identity gắn với **tên + defining loader**, không chỉ với chuỗi tên.
-- Tra cứu lớp, khởi tạo lớp, tạo instance và gọi method là **bốn hoạt động khác nhau**.
-- Kiểm tra riêng `ClassNotFoundException`, lỗi liên kết, lỗi khởi tạo và các ràng buộc truy cập Reflection.
+- `Class.forName(name, initialize, loader)` = **look up a class by binary name, using a specified loader, with or without requesting initialization**.
+- `initialize=false`: obtain `Class<?>` to inspect/prepare without actively running the target class's static initializer; `true`: request initialization if it has not happened yet.
+- Class identity is tied to **name + defining loader**, not just the name string.
+- Class lookup, class initialization, instance creation, and method invocation are **four distinct operations**.
+- Check `ClassNotFoundException`, linking errors, initialization errors, and Reflection access constraints separately.

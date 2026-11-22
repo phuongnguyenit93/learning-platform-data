@@ -1,49 +1,49 @@
-# Chia các đối tượng thành những nhóm có cùng giá trị theo hợp đồng equals
+# Grouping Objects into Same-Value Groups According to the equals Contract
 
-## 1. Bài toán và ý nghĩa của “cùng giá trị”
+## 1. The Problem and the Meaning of "Same Value"
 
-Cho một tập hoặc danh sách đối tượng Java, ta muốn chia chúng thành các nhóm sao cho **hai đối tượng nằm trong cùng nhóm khi và chỉ khi chúng được xem là bằng nhau theo quy tắc đã chọn**. Đây là phép phân hoạch (partition): mỗi phần tử đầu vào thuộc đúng một nhóm; không bỏ sót, không đưa một phần tử vào hai nhóm. Một nhóm có thể chứa nhiều **instance** khác nhau nhưng có cùng **giá trị logic**.
+Given a set or list of Java objects, we want to partition them into groups such that **two objects are in the same group if and only if they are considered equal according to the chosen rule**. This is a partition: every input element belongs to exactly one group; no element is left out, and no element is placed into two groups. A group may contain multiple distinct **instances** that share the same **logical value**.
 
-Trong ngữ cảnh hợp đồng **equals**, quan hệ “cùng giá trị” thường được định nghĩa bằng **a.equals(b)**, không phải **a == b**:
+In the context of the **equals** contract, the "same value" relation is usually defined by **a.equals(b)**, not **a == b**:
 
-- **==** trên các tham chiếu hỏi chúng có trỏ tới cùng một đối tượng trong bộ nhớ hay không.
-- **equals(Object)** hỏi chúng có tương đương về giá trị logic hay không, theo cách lớp đó cài đặt.
-- **hashCode()** hỗ trợ tìm kiếm và gom nhóm hiệu quả trong các cấu trúc dựa trên băm như **HashMap**, **LinkedHashMap** và **HashSet**; nó không tự định nghĩa thế nào là bằng nhau.
+- **==** on references asks whether they point to the exact same object in memory.
+- **equals(Object)** asks whether they are equivalent in logical value, according to how that class implements it.
+- **hashCode()** supports efficient lookup and grouping in hash-based structures such as **HashMap**, **LinkedHashMap**, and **HashSet**; it does not by itself define what makes objects equal.
 
-Ví dụ, hai bản ghi nhân viên khác instance nhưng cùng mã định danh nghiệp vụ có thể thuộc cùng nhóm, nếu lớp quy định **equals** chỉ xét mã nhân viên. Ngược lại, nếu nghiệp vụ coi cả mã và phiên bản là một phần của giá trị, chúng phải nằm ở nhóm khác nhau. **Không tồn tại một cách nhóm “đúng” cho mọi hệ thống**: trước tiên phải xác định chính xác tiêu chí bằng nhau.
+For example, two employee records that are different instances yet share the same business identifier can belong to the same group, if the class specifies that **equals** inspects only the employee ID. Conversely, if the domain considers both the ID and version to be part of the value, they must belong to different groups. **There is no single "correct" grouping for every system**: the exact equality criteria must be defined first.
 
-### Điều kiện của một phép phân nhóm đúng
+### Conditions for a Valid Grouping
 
-Đặt a ~ b khi a.equals(b) là true. Để chia thành những lớp tương đương nhất quán, quan hệ này cần thỏa:
+Define `a ~ b` when `a.equals(b)` is true. To partition into consistent equivalence classes, this relation must satisfy:
 
-1. **Phản xạ (reflexive):** a.equals(a) luôn true với a khác null.
-2. **Đối xứng (symmetric):** nếu a.equals(b) thì b.equals(a).
-3. **Bắc cầu (transitive):** nếu a.equals(b) và b.equals(c) thì a.equals(c).
-4. **Nhất quán (consistent):** gọi lặp lại cho cùng hai đối tượng phải cho cùng kết quả chừng nào các thông tin dùng để so sánh chưa đổi.
-5. **Không bằng null:** a.equals(null) luôn false khi a khác null.
+1. **Reflexive:** `a.equals(a)` is always true for non-null `a`.
+2. **Symmetric:** if `a.equals(b)`, then `b.equals(a)`.
+3. **Transitive:** if `a.equals(b)` and `b.equals(c)`, then `a.equals(c)`.
+4. **Consistent:** repeated calls for the same two objects must give the same result as long as the information used for comparison has not changed.
+5. **Non-null:** `a.equals(null)` is always false when `a` is non-null.
 
-Đây là những điều kiện chính của hợp đồng **Object.equals**. Nếu vi phạm tính đối xứng hoặc bắc cầu, khái niệm “nhóm” sẽ trở nên mâu thuẫn: phần tử có thể thuộc nhóm này khi so với đại diện A nhưng lại thuộc nhóm khác khi so với B. Nếu vi phạm tính nhất quán, kết quả phân nhóm có thể thay đổi ngay trong lúc xử lý.
+These are the core conditions of the **Object.equals** contract. Violating symmetry or transitivity makes the notion of a "group" contradictory: an element might belong to one group when compared against representative A yet belong to a different group when compared against B. Violating consistency can cause grouping results to change mid-processing.
 
-**Quy tắc đi kèm:** nếu a.equals(b) là true thì a.hashCode() **bắt buộc** bằng b.hashCode(). Hai đối tượng có cùng mã băm **không bắt buộc** bằng nhau (va chạm băm là hợp lệ). Khi khóa không thay đổi về những trường tham gia **equals/hashCode**, giá trị hashCode cũng phải ổn định trong thời gian được dùng làm khóa.
+**Companion rule:** if `a.equals(b)` is true, `a.hashCode()` **must** equal `b.hashCode()`. Two objects with the same hash code are **not required** to be equal (hash collisions are valid). As long as a key does not change in the fields participating in **equals/hashCode**, its `hashCode` value must also remain stable while used as a key.
 
-## 2. Chọn đối tượng khóa: nhóm theo equals của phần tử hay theo khóa nghiệp vụ?
+## 2. Choosing the Key Object: Group by Element's equals or by Business Key?
 
-Có hai bài toán liên quan nhưng khác nhau:
+There are two related but distinct problems:
 
-| Cách nhóm | Tiêu chí cùng nhóm | Khi phù hợp |
+| Grouping Approach | Same-Group Criterion | When Appropriate |
 | --- | --- | --- |
-| Dùng chính đối tượng làm khóa | Hai phần tử có **equals** bằng true | **equals** của lớp đã diễn đạt đúng ý nghĩa “cùng giá trị” |
-| Rút ra một khóa bất biến từ phần tử | Hai khóa có **equals** bằng true | Muốn nhóm theo một số trường cụ thể nhưng **không muốn đổi** định nghĩa equals của cả đối tượng |
+| Use the object itself as the key | Two elements whose **equals** returns true | The class's **equals** already expresses the right meaning of "same value" |
+| Derive an immutable key from the element | Two keys whose **equals** returns true | Wanting to group by specific fields without **changing** the equality definition of the whole object |
 
-Ví dụ: đối tượng đơn hàng có thể dùng **equals** theo mã đơn hàng, nhưng báo cáo lại muốn nhóm theo mã khách hàng. Lúc đó phải trích xuất mã khách hàng làm khóa; không sửa **Order.equals** chỉ để phục vụ một báo cáo.
+Example: an order object may use **equals** by order ID, while a report wants to group by customer ID. In that case, extract the customer ID as the key; do not alter **Order.equals** merely to serve a single report.
 
-Với khóa HashMap/LinkedHashMap, Java dùng cả **hashCode** lẫn **equals** để xác định khóa tương đương. Khi đưa hai khóa bằng nhau vào map, map giữ **một entry cho nhóm**. Giá trị của entry có thể là **List<T>** lưu đầy đủ mọi phần tử thuộc nhóm, kể cả các phần tử trùng giá trị.
+For HashMap/LinkedHashMap keys, Java uses both **hashCode** and **equals** to identify equivalent keys. When two equal keys are placed into the map, the map keeps **one entry for the group**. The entry's value can be a **List<T>** storing every member of the group, including duplicate values.
 
-## 3. Ví dụ đầy đủ: phân nhóm theo equals của đối tượng
+## 3. Complete Example: Grouping by Object's equals
 
-Giả sử hệ thống quy định **nhân viên có cùng id thì là cùng một nhân viên về mặt logic**. Tên hiển thị không thuộc định danh: tên có thể thay đổi, nhưng các phiên bản mang cùng id cần được nhóm chung.
+Suppose the system specifies that **employees with the same id are logically the same employee**. The display name is not part of identity: names can change, yet versions carrying the same id need to be grouped together.
 
-Tạo tệp **GroupByEqualsDemo.java**:
+Create the file **GroupByEqualsDemo.java**:
 
 ~~~java
 import java.util.ArrayList;
@@ -83,10 +83,10 @@ public class GroupByEqualsDemo {
     public static void main(String[] args) {
         List<Employee> input = List.of(
             new Employee("E02", "An"),
-            new Employee("E01", "Bình"),
-            new Employee("E02", "An mới"),
+            new Employee("E01", "Binh"),
+            new Employee("E02", "An (new)"),
             new Employee("E03", "Chi"),
-            new Employee("E01", "Bình mới")
+            new Employee("E01", "Binh (new)")
         );
 
         Map<Employee, List<Employee>> groups = new LinkedHashMap<>();
@@ -107,34 +107,34 @@ public class GroupByEqualsDemo {
 }
 ~~~
 
-Biên dịch và chạy với Java 17 trở lên:
+Compile and run with Java 17 or later:
 
 ~~~bash
 javac GroupByEqualsDemo.java
 java GroupByEqualsDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
-E02 -> [An, An mới]
-E01 -> [Bình, Bình mới]
+E02 -> [An, An (new)]
+E01 -> [Binh, Binh (new)]
 E03 -> [Chi]
 ~~~
 
-**Giải thích từng bước:**
+**Step-by-step explanation:**
 
-1. Hai instance có **id = "E02"** trả về true khi so bằng **equals**, đồng thời có cùng **hashCode**. Chúng trở thành **một khóa logic** trong map.
-2. Với nhân viên đầu tiên của một nhóm, **computeIfAbsent** tạo ArrayList mới. Với nhân viên cùng id đến sau, nó trả lại danh sách đã có và thêm phần tử mới.
-3. **List<Employee>** lưu **từng lần xuất hiện**, nên nhóm E02 gồm hai đối tượng, không bị mất bản ghi “An mới”.
-4. **LinkedHashMap** giữ thứ tự các khóa theo **lần chèn đầu tiên**: E02, rồi E01, rồi E03. Mỗi danh sách giữ thứ tự các phần tử được thêm vào.
-5. Đối tượng khóa đại diện của nhóm là lần chèn đầu tiên. Vì vậy, không được tùy tiện hiểu khóa đại diện là bản ghi mới nhất hay bản ghi “chuẩn”; nếu cần chọn bản ghi đại diện theo thời điểm/phiên bản, hãy xử lý quy tắc đó riêng.
+1. Two instances with **id = "E02"** return true when compared with **equals**, while also having the same **hashCode**. They become **one logical key** in the map.
+2. For the first employee of a group, **computeIfAbsent** creates a new ArrayList. For a later employee with the same id, it returns the existing list and appends the new element.
+3. **List<Employee>** stores **each occurrence**, so group E02 contains both objects without losing the "An (new)" record.
+4. **LinkedHashMap** preserves key order by **first insertion**: E02, then E01, then E03. Each list preserves the order in which elements were added.
+5. The representative key object of a group is the first inserted one. Therefore, do not arbitrarily assume the representative key is the newest record or the "canonical" record; if you need to select a representative record by timestamp/version, handle that rule separately.
 
-**Vì sao cài đặt Employee như trên?** Lớp được khai báo **final** để không phát sinh vấn đề đối xứng do subclass thêm tiêu chí bằng nhau; **id** là **final** và khác null để định danh ổn định. Tên không tham gia cả hai phương thức. Tùy miền nghiệp vụ, có thể cần khóa tổ hợp (ví dụ tenantId + employeeId) nhằm tránh coi hai mã trùng ở hai tenant là một.
+**Why implement Employee this way?** The class is declared **final** so no symmetry issues arise from a subclass adding equality criteria; **id** is **final** and non-null for stable identity. The name participates in neither method. Depending on the business domain, a composite key (such as tenantId + employeeId) may be needed to avoid treating identical IDs across two tenants as one.
 
-### Biến thể bằng Stream
+### Stream Variant
 
-Với danh sách **input** và lớp **Employee** trong ví dụ trên, có thể thay vòng lặp bằng:
+With the **input** list and **Employee** class in the example above, the loop can be replaced with:
 
 ~~~java
 Map<Employee, List<Employee>> groups = input.stream().collect(
@@ -146,13 +146,13 @@ Map<Employee, List<Employee>> groups = input.stream().collect(
 );
 ~~~
 
-Đây là **đoạn mã thay thế bên trong main**, không phải một chương trình Java độc lập. **groupingBy** lấy chính phần tử làm khóa nên vẫn dựa vào **equals/hashCode** của Employee. Truyền **LinkedHashMap::new** là chủ ý để giữ thứ tự xuất hiện của các nhóm khi chạy stream tuần tự; **Collectors.groupingBy** một tham số không hứa hẹn kiểu map/thứ tự duyệt khóa cụ thể. Danh sách kết quả vẫn chứa tất cả phần tử trong nhóm.
+This is a **replacement snippet inside main**, not a standalone Java program. **groupingBy** uses the element itself as the key, so it still relies on Employee's **equals/hashCode**. Passing **LinkedHashMap::new** is intentional to preserve the appearance order of groups when running a sequential stream; the single-argument **Collectors.groupingBy** makes no guarantee about the specific map type or key iteration order. The resulting lists still contain all elements in each group.
 
-## 4. Ví dụ đầy đủ: nhóm theo khóa giá trị thay vì sửa equals của đối tượng
+## 4. Complete Example: Grouping by Value Key Instead of Altering the Object's equals
 
-Giả sử **Customer** là một bản ghi đầy đủ, nhưng báo cáo phải nhóm theo **(tenantId, customerCode)**. Quy tắc nghiệp vụ của báo cáo nói rõ rằng khoảng trắng ngoài cùng và chữ hoa/thường trong **customerCode** không mang ý nghĩa. Ta tạo **CustomerKey** chỉ chứa hai thành phần khóa đã chuẩn hóa, còn Customer giữ nguyên định nghĩa giá trị đầy đủ của record.
+Suppose **Customer** is a complete record, yet a report must group by **(tenantId, customerCode)**. The report's business rule explicitly states that leading/trailing whitespace and letter casing in **customerCode** are not significant. We create **CustomerKey** containing only the two normalized key components, while Customer keeps its full record value definition.
 
-Tạo tệp **GroupByBusinessKeyDemo.java**:
+Create the file **GroupByBusinessKeyDemo.java**:
 
 ~~~java
 import java.util.ArrayList;
@@ -169,8 +169,8 @@ public class GroupByBusinessKeyDemo {
     public static void main(String[] args) {
         List<Customer> input = List.of(
             new Customer("A", " c123 ", "Lan"),
-            new Customer("B", "C123", "Hà"),
-            new Customer("A", "C123", "Lan mới"),
+            new Customer("B", "C123", "Ha"),
+            new Customer("A", "C123", "Lan (new)"),
             new Customer("A", "x7", "Minh")
         );
 
@@ -195,14 +195,14 @@ public class GroupByBusinessKeyDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac GroupByBusinessKeyDemo.java
 java GroupByBusinessKeyDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 A/C123 -> 2
@@ -210,93 +210,93 @@ B/C123 -> 1
 A/X7 -> 1
 ~~~
 
-**Giải thích:** Hai Customer của tenant A có code khác cách viết nhưng sau chuẩn hóa trở thành cùng **CustomerKey("A", "C123")**; khách hàng tenant B vẫn ở nhóm riêng. **record** tự cung cấp equals/hashCode dựa trên **tất cả các component**, nên key tổ hợp ngắn gọn và ít lỗi hơn viết thủ công. Chuẩn hóa chỉ đúng khi nghiệp vụ cho phép; không mặc định đổi chữ hoa/thường cho mọi mã, email, tên hoặc định danh.
+**Explanation:** Two Customers of tenant A have differently formatted codes that become the same **CustomerKey("A", "C123")** after normalization; the tenant B customer remains in a separate group. **record** automatically provides equals/hashCode based on **all components**, making composite keys more concise and less error-prone than writing them manually. Normalization is valid only when the domain permits it; do not change casing by default for all codes, emails, names, or identifiers.
 
-Không nên tạo record chứa những trường thay đổi rồi dùng nguyên record đó làm khóa nhóm nếu mục đích chỉ là nhóm theo ID. **record Customer** ở trên có equals theo cả tenantId, customerCode và displayName, nên nhóm theo chính Customer sẽ cho kết quả khác nhóm theo CustomerKey.
+Do not create a record containing mutable fields and then use that entire record as a grouping key if the goal is only to group by ID. **record Customer** above has equals across tenantId, customerCode, and displayName, so grouping by Customer itself will yield a different result than grouping by CustomerKey.
 
-## 5. Các cách biểu diễn kết quả và mức độ phù hợp
+## 5. Result Representations and Their Suitability
 
-**Map<K, List<T>>** là biểu diễn thuận tiện nhất cho bài toán giữ toàn bộ thành viên trong từng nhóm: khóa đại diện cho một giá trị logic và list giữ những phần tử tương đương. Có thể dùng **LinkedHashMap** nếu muốn các nhóm được duyệt theo thứ tự xuất hiện, **HashMap** nếu không cần thứ tự, hoặc cấu trúc khác khi yêu cầu thay đổi.
+**Map<K, List<T>>** is the most convenient representation for retaining all members in each group: the key represents one logical value and the list holds equivalent elements. Use **LinkedHashMap** if you want groups iterated in appearance order, **HashMap** if order does not matter, or another structure when requirements differ.
 
-Các biến thể khác phục vụ mục đích khác:
+Other variants serve other goals:
 
-- **Set<T>** (ví dụ **LinkedHashSet**) chỉ giữ một phần tử đại diện cho mỗi giá trị logic, hữu ích để loại trùng. Nó **không giữ danh sách đầy đủ** các phần tử của nhóm.
-- **Map<K, Long>** hoặc **Map<K, Integer>** đếm tần suất theo từng giá trị khóa, nhưng không giữ các đối tượng thành viên.
-- **List<List<T>>** giữ từng nhóm mà không cần đối tượng khóa map; có thể xây bằng cách so phần tử với đại diện mỗi nhóm. Cách quét tuyến tính này thường tốn **O(n²)** phép so sánh ở trường hợp xấu, trong khi gom nhóm bằng hash map thường gần **O(n)** trung bình nếu hash phân phối tốt.
-- **TreeMap** hoặc **TreeSet** xác định trùng khóa theo **Comparator.compare(a, b) == 0** hay **compareTo(a, b) == 0**, không trực tiếp theo equals. Nếu comparator không nhất quán với equals, kết quả nhóm có thể khác nhóm theo hợp đồng equals. Chỉ dùng khi đó chính là quy tắc mong muốn.
+- **Set<T>** (such as **LinkedHashSet**) retains only one representative element per logical value, useful for deduplication. It **does not preserve the full list** of group members.
+- **Map<K, Long>** or **Map<K, Integer>** counts frequencies per key value, without keeping the member objects.
+- **List<List<T>>** keeps each group without needing a map key object; it can be built by comparing elements against each group's representative. This linear scan typically costs **O(n²)** comparisons in the worst case, whereas grouping with a hash map is usually near **O(n)** on average when hashes distribute well.
+- **TreeMap** or **TreeSet** determines duplicate keys using **Comparator.compare(a, b) == 0** or **compareTo(a, b) == 0**, not directly via equals. If the comparator is inconsistent with equals, grouping results can differ from grouping under the equals contract. Use only when that is specifically the desired rule.
 
-Nếu chọn **Map<K, List<T>>**, cần quyết định rõ liệu output phải giữ **thứ tự đầu vào**, **thứ tự sắp xếp theo khóa**, hay không quan tâm thứ tự. Bản thân việc hai đối tượng bằng nhau không hàm ý một thứ tự cụ thể.
+If choosing **Map<K, List<T>>**, decide clearly whether the output must preserve **input order**, **sorted key order**, or whether order is unimportant. Two objects being equal does not by itself imply any specific order.
 
-## 6. Lỗi thường gặp và vì sao nhóm bị sai
+## 6. Common Mistakes and Why Grouping Fails
 
-### 6.1. Override equals nhưng quên hashCode
+### 6.1. Overriding equals Without hashCode
 
 ~~~java
 @Override
 public boolean equals(Object obj) {
-    // Logic so sánh theo id
-    // (chỉ minh họa lỗi thiết kế, không phải chương trình độc lập)
+    // Comparison logic by id
+    // (illustrates a design flaw only, not a standalone program)
 }
 ~~~
 
-Đây là **minh họa bằng chú thích**, không phải hàm có thể biên dịch: nếu lớp override equals theo id nhưng để hashCode kế thừa từ Object, hai đối tượng bằng nhau có thể có mã băm khác nhau. **HashMap/HashSet** có thể lưu chúng ở các vị trí khác nhau và tạo ra **hai nhóm sai**. Luôn override **equals** và **hashCode** cùng nhau, dùng cùng tập thuộc tính định danh.
+This is an **illustration using comments**, not a compilable method: if a class overrides equals by id while leaving hashCode inherited from Object, two equal objects can have different hash codes. **HashMap/HashSet** may store them in different slots and produce **two erroneous groups**. Always override **equals** and **hashCode** together, using the same set of identifying properties.
 
-### 6.2. Dùng == để kiểm tra giá trị của object
+### 6.2. Using == to Check Object Values
 
-Hai object độc lập **new Employee("E02", ...)** thường có tham chiếu khác nhau. **==** trả false cho hai tham chiếu đó dù equals trả true. Với String và các wrapper, hiện tượng cache/intern càng khiến dùng == có vẻ “thỉnh thoảng đúng”, vì vậy phải dùng đúng phép so sánh theo ý nghĩa mong muốn.
+Two independent objects **new Employee("E02", ...)** typically have distinct references. **==** returns false for those two references even when equals returns true. With String and wrapper types, caching/interning makes == appear to "sometimes work", so you must always use the comparison matching the intended semantics.
 
-### 6.3. Dùng trường có thể thay đổi làm khóa hash
+### 6.3. Using Mutable Fields as Hash Keys
 
-Nếu id (hoặc một component tham gia hashCode) thay đổi **sau khi** đã chèn đối tượng vào HashMap, entry vẫn nằm ở vị trí tổ chức theo hash cũ; tra cứu/gom nhóm sau đó có thể thất bại hoặc bất nhất. Nên ưu tiên **khóa bất biến** (record key, String ID không đổi, final fields); nếu cần đổi định danh, xây lại map bằng khóa mới.
+If id (or a component participating in hashCode) changes **after** inserting the object into a HashMap, the entry stays in the slot organized under the old hash; subsequent lookups/groupings may fail or become inconsistent. Prefer **immutable keys** (record keys, immutable String IDs, final fields); if an identifier must change, rebuild the map with the new key.
 
-### 6.4. Chỉ dựa vào hashCode để kết luận bằng nhau
+### 6.4. Relying Solely on hashCode to Conclude Equality
 
-**a.hashCode() == b.hashCode()** không đủ chứng minh **a.equals(b)**. Va chạm hash xảy ra hợp lệ, và HashMap vẫn gọi equals để phân biệt các khóa có cùng hash.
+**a.hashCode() == b.hashCode()** is not sufficient to prove **a.equals(b)**. Hash collisions happen validly, and HashMap still calls equals to distinguish keys sharing a hash.
 
-### 6.5. Nhầm equals với compareTo / Comparator
+### 6.5. Confusing equals with compareTo / Comparator
 
 ~~~java
 new java.math.BigDecimal("1.0").equals(
     new java.math.BigDecimal("1.00"))  // false
 ~~~
 
-Với BigDecimal, **compareTo** cho kết quả 0 giữa hai giá trị này nhưng **equals** trả false vì scale khác nhau. Vì thế nhóm bằng **HashMap<BigDecimal, ...>** có thể tách chúng; nhóm bằng **TreeMap** theo thứ tự tự nhiên có thể gộp chúng. Nếu nghiệp vụ chỉ xét giá trị số, cần quyết định và biểu diễn khóa được chuẩn hóa một cách nhất quán, chẳng hạn cân nhắc **stripTrailingZeros()** cùng cách xử lý giá trị zero và giới hạn miền dữ liệu.
+With BigDecimal, **compareTo** returns 0 between these two values yet **equals** returns false because their scales differ. Therefore, grouping with **HashMap<BigDecimal, ...>** may separate them; grouping with **TreeMap** under natural ordering may merge them. If the domain considers only numeric value, decide on and represent a consistently normalized key, such as considering **stripTrailingZeros()** along with zero handling and data domain bounds.
 
-### 6.6. Nhầm equals của array với equals theo phần tử
+### 6.6. Confusing Array equals with Element-Wise equals
 
-Mảng không override Object.equals để so nội dung: **new int[]{1,2}.equals(new int[]{1,2})** là false. Nếu khóa là mảng, muốn so giá trị theo phần tử phải dùng **Arrays.equals** (mảng một chiều) hoặc **Arrays.deepEquals** (mảng lồng nhau), đồng thời xây khóa có **hashCode** tương thích (Arrays.hashCode/deepHashCode). Cách thuận tiện khác là chuyển về cấu trúc giá trị bất biến thích hợp.
+Arrays do not override Object.equals to compare contents: **new int[]{1,2}.equals(new int[]{1,2})** is false. If a key is an array, comparing values element-wise requires **Arrays.equals** (1D arrays) or **Arrays.deepEquals** (nested arrays), along with building a key that has a compatible **hashCode** (Arrays.hashCode/deepHashCode). Another convenient approach is converting to an appropriate immutable value structure.
 
-### 6.7. Dùng quan hệ “gần giống” nhưng không bắc cầu
+### 6.7. Using a "Nearly Equal" Relation That Is Not Transitive
 
-Ví dụ quy tắc **|a - b| < 2** cho các số 1, 2, 3: 1 gần 2 và 2 gần 3, nhưng 1 không gần 3. Đây không phải quan hệ tương đương; không nên đưa trực tiếp vào **equals** để gom nhóm theo từng lớp tương đương. Bài toán phân cụm theo khoảng cách/độ gần phải dùng thuật toán và quy tắc nhóm riêng.
+For example, the rule **|a - b| < 2** for numbers 1, 2, 3: 1 is near 2 and 2 is near 3, yet 1 is not near 3. This is not an equivalence relation; it should not be placed directly into **equals** to partition into equivalence classes. Distance/proximity clustering problems must use separate clustering algorithms and grouping rules.
 
-### 6.8. Cạm bẫy với null, entity và kế thừa
+### 6.8. Pitfalls with null, Entities, and Inheritance
 
-- **a.equals(null)** phải false; nếu a có thể null thì không được gọi trực tiếp **a.equals(...)**. Có thể dùng **Objects.equals(a, b)** để so sánh null-safe. **List.of** không cho phép phần tử null; **Collectors.groupingBy** của JDK từ chối khóa phân nhóm null. Nếu dữ liệu có null, cần đặt chính sách loại bỏ, tách riêng hay dùng sentinel có ý nghĩa.
-- Các entity có ID được tạo sau khi lưu (ví dụ entity chưa persisted) không nên tự động coi mọi ID null là cùng một giá trị: nhiều entity mới có thể là các thực thể khác nhau. Cần thiết kế equals/hashCode đúng vòng đời định danh.
-- So sánh giữa lớp cha và lớp con có thêm trạng thái dễ làm hỏng đối xứng hoặc bắc cầu; cân nhắc lớp final, record, hoặc quy tắc kế thừa được thiết kế chặt chẽ.
+- **a.equals(null)** must be false; if `a` can be null, never call **a.equals(...)** directly. You can use **Objects.equals(a, b)** for null-safe comparison. **List.of** disallows null elements; the JDK's **Collectors.groupingBy** rejects null grouping keys. If data can contain null, establish a policy to filter them out, separate them, or use a meaningful sentinel.
+- Entities whose ID is generated upon persistence (for example, unpersisted entities) should not automatically treat all null IDs as the same value: multiple new entities can be distinct entities. Design equals/hashCode to fit the identity lifecycle.
+- Comparing between a superclass and a subclass that adds state easily breaks symmetry or transitivity; consider `final` classes, `record`s, or a tightly designed inheritance rule.
 
-## 7. Kiểm chứng hợp đồng trước khi tin kết quả nhóm
+## 7. Verifying the Contract Before Trusting Grouping Results
 
-Với mỗi mẫu **a, b, c**, hãy kiểm tra bằng ví dụ cụ thể:
+For each sample **a, b, c**, test with concrete examples:
 
-1. **a.equals(a)** là true; **a.equals(null)** là false.
-2. **a.equals(b)** đúng bằng **b.equals(a)**.
-3. Nếu **a.equals(b)** và **b.equals(c)** đều true, thì **a.equals(c)** cũng true.
-4. Nếu **a.equals(b)** là true, **a.hashCode() == b.hashCode()** cũng phải true.
-5. Nếu **a** và **b** được coi là khác giá trị, phép nhóm tạo hai nhóm riêng khi cần; nếu bằng nhau, chúng phải ở cùng một nhóm.
-6. Thêm phần tử trùng hoặc xáo thứ tự đầu vào không được làm thay đổi **quan hệ thành viên cùng nhóm**; nếu dùng LinkedHashMap thì thứ tự hiển thị nhóm có thể đổi theo thứ tự xuất hiện.
-7. Tổng số **phần tử trong tất cả danh sách nhóm** phải bằng số phần tử đầu vào đã được giữ lại sau chính sách lọc; số nhóm phải bằng số giá trị khóa phân biệt.
+1. **a.equals(a)** is true; **a.equals(null)** is false.
+2. **a.equals(b)** equals **b.equals(a)**.
+3. If **a.equals(b)** and **b.equals(c)** are both true, then **a.equals(c)** is also true.
+4. If **a.equals(b)** is true, **a.hashCode() == b.hashCode()** must also be true.
+5. If **a** and **b** are considered different values, grouping creates two separate groups when needed; if equal, they must end up in the same group.
+6. Adding duplicate elements or shuffling input order must not alter **same-group membership**; when using LinkedHashMap, group display order may change according to first-appearance order.
+7. The total number of **elements across all group lists** must equal the number of input elements retained after any filtering policy; the number of groups must equal the number of distinct key values.
 
-Có thể thử thêm ba instance với cùng khóa logic, các khóa có hash collision, khóa ở hai tenant khác nhau, null, và các giá trị được chuẩn hóa. Trong kiểm thử tự động, sử dụng các assertion rõ ràng hoặc thư viện kiểm tra equals/hashCode nếu dự án đã có. Một vài ví dụ chạy đúng không chứng minh đầy đủ hợp đồng với mọi đầu vào, nhưng giúp phát hiện nhiều lỗi thiết kế phổ biến.
+You can also test three instances with the same logical key, keys with hash collisions, keys across two different tenants, null, and normalized values. In automated tests, use clear assertions or an equals/hashCode verification library if the project already includes one. A few passing examples do not fully prove the contract for all inputs, but they help catch many common design mistakes.
 
-## 8. Quy trình áp dụng vào dữ liệu thật
+## 8. Process for Applying to Real Data
 
-1. **Viết rõ định nghĩa “cùng giá trị”** của trường hợp nghiệp vụ: cùng ID, cùng tổ hợp tenant + ID, hay trùng toàn bộ giá trị.
-2. **Chọn khóa:** dùng chính đối tượng nếu equals của lớp phù hợp; nếu không, trích xuất khóa bất biến chuyên biệt. Đảm bảo equals/hashCode của khóa tuân hợp đồng.
-3. **Chuẩn hóa có chủ đích**, trước khi gom nhóm và chỉ đối với những khác biệt nghiệp vụ muốn bỏ qua (ví dụ khoảng trắng bao ngoài, cách viết hoa/thường).
-4. **Chọn dạng kết quả:** danh sách thành viên, số lần xuất hiện hay chỉ tập giá trị duy nhất; chọn cấu trúc map/set phù hợp với yêu cầu thứ tự.
-5. **Thực hiện phân nhóm và kiểm tra:** mỗi phần tử vào đúng một nhóm; không thất lạc phần tử, không gộp nhầm các khóa khác nhau; đặc biệt kiểm chứng khóa null và khóa biến đổi.
-6. **Giữ hợp đồng ổn định trong thời gian dùng khóa:** không thay đổi trường định danh của khóa khi đang lưu trong map.
+1. **Write down the exact definition of "same value"** for the business case: same ID, same tenant + ID combination, or full value match.
+2. **Choose the key:** use the object itself if the class's equals fits; otherwise, extract a dedicated immutable key. Ensure the key's equals/hashCode obey the contract.
+3. **Normalize intentionally**, before grouping and only for business differences meant to be ignored (such as surrounding whitespace or casing).
+4. **Choose the result shape:** member lists, occurrence counts, or only the set of unique values; pick a map/set structure matching ordering requirements.
+5. **Perform grouping and verify:** each element goes into exactly one group; no elements lost, no distinct keys merged by mistake; specifically verify null keys and mutable keys.
+6. **Keep the contract stable while keys are in use:** do not mutate identifying key fields while stored in the map.
 
-**Ghi nhớ:** khả năng chia đối tượng thành các nhóm cùng giá trị dựa trên **một quan hệ tương đương hợp lệ**. Trong cấu trúc hash, **equals quyết định bằng nhau** và **hashCode phải nhất quán với equals**. Khi yêu cầu nhóm chỉ theo một phần dữ liệu, hãy thiết kế **khóa giá trị riêng** thay vì làm sai ý nghĩa equals của đối tượng gốc.
+**Key takeaway:** the ability to partition objects into same-value groups rests on **a valid equivalence relation**. In hash structures, **equals determines equality** and **hashCode must be consistent with equals**. When grouping is needed by only part of the data, design a **separate value key** instead of distorting the meaning of the original object's equals.

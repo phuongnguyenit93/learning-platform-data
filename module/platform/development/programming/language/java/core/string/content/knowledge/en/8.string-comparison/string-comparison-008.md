@@ -1,25 +1,25 @@
-# regionMatches() để so sánh một vùng chuỗi trong Java
+# regionMatches() for Comparing a String Region in Java
 
-## 1. Mục tiêu và tình huống sử dụng
+## 1. Objectives and Use Cases
 
-Khi so sánh hai chuỗi, đôi khi bạn **không cần so sánh toàn bộ nội dung**. Ví dụ: kiểm tra bốn ký tự ở giữa hai mã định danh có trùng nhau không; so sánh một đoạn bắt đầu ở vị trí xác định trong văn bản; hoặc kiểm tra một vùng mà **không phân biệt chữ hoa/chữ thường**.
+When comparing two strings, sometimes you **do not need to compare their entire contents**. For example: checking whether four characters in the middle of two identifiers match; comparing a segment starting at a specific position in text; or checking a region **case-insensitively**.
 
-`String.regionMatches()` làm đúng việc này: so sánh **hai vùng liên tiếp có cùng độ dài** được chỉ định bằng offset và số đơn vị ký tự. Phương thức trả `boolean`, **không sửa chuỗi nguồn** và không trả một chuỗi con mới.
+`String.regionMatches()` does exactly this: it compares **two contiguous regions of the same length** specified by offsets and a character-unit count. The method returns a `boolean`, **does not modify the source strings**, and does not allocate a new substring.
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-1. Dùng đúng cả **hai overload** của `regionMatches()`.
-2. Xác định đúng `toffset`, `ooffset` và `len`; phân biệt **vị trí bắt đầu**, **độ dài** và **chỉ số kết thúc**.
-3. Dự đoán `true`/`false` khi vùng trùng, khác ký tự, vượt biên hoặc độ dài bằng `0`.
-4. Hiểu rõ `ignoreCase`, giới hạn Unicode/locale và đơn vị chỉ số UTF-16.
-5. So sánh với `equals()`, `equalsIgnoreCase()`, `startsWith()`, `substring()` và `matches()`.
-6. Viết hàm bao ngoài để kiểm soát `null`, tham số âm và phạm vi trước khi dùng trong nghiệp vụ.
+1. Correctly use both **overloads** of `regionMatches()`.
+2. Determine `toffset`, `ooffset`, and `len` accurately; distinguish **start position**, **length**, and **end index**.
+3. Predict `true`/`false` when regions match, differ in characters, go out of bounds, or have length `0`.
+4. Understand `ignoreCase`, Unicode/locale limitations, and UTF-16 index units.
+5. Compare it against `equals()`, `equalsIgnoreCase()`, `startsWith()`, `substring()`, and `matches()`.
+6. Write a wrapper helper to guard against `null`, negative parameters, and bounds before using it in business logic.
 
-Kiến thức cần có: `String`, chỉ số từ `0`, `length()`, `charAt()`, `boolean` và lời gọi phương thức. Ví dụ độc lập dùng **Java 17+**.
+Prerequisites: `String`, 0-based indexing, `length()`, `charAt()`, `boolean`, and method calls. Standalone examples use **Java 17+**.
 
-## 2. Hai overload và ý nghĩa từng tham số
+## 2. Two Overloads and Parameter Meanings
 
-Java cung cấp hai dạng:
+Java provides two forms:
 
 ~~~java
 public boolean regionMatches(int toffset,
@@ -34,45 +34,45 @@ public boolean regionMatches(boolean ignoreCase,
                              int len);
 ~~~
 
-Cú pháp tổng quát:
+General syntax:
 
 ~~~java
 left.regionMatches(leftOffset, right, rightOffset, length);
 left.regionMatches(ignoreCase, leftOffset, right, rightOffset, length);
 ~~~
 
-Trong đó:
+Where:
 
-| Tham số | Kiểu | Vai trò |
+| Parameter | Type | Role |
 | --- | --- | --- |
-| `left` (đối tượng nhận lời gọi) | `String` | Chuỗi thứ nhất (`this`) |
-| `toffset` / `leftOffset` | `int` | Chỉ số bắt đầu của vùng trong `left` |
-| `other` / `right` | `String` | Chuỗi thứ hai |
-| `ooffset` / `rightOffset` | `int` | Chỉ số bắt đầu của vùng trong `right` |
-| `len` / `length` | `int` | **Số đơn vị UTF-16** cần so ở mỗi vùng, không phải chỉ số kết thúc |
-| `ignoreCase` | `boolean` | `true`: bỏ qua khác biệt chữ hoa/chữ thường theo quy tắc của `Character`; `false`: so chính xác |
+| `left` (receiving object) | `String` | First string (`this`) |
+| `toffset` / `leftOffset` | `int` | Starting index of the region in `left` |
+| `other` / `right` | `String` | Second string |
+| `ooffset` / `rightOffset` | `int` | Starting index of the region in `right` |
+| `len` / `length` | `int` | **Number of UTF-16 units** to compare in each region, not the end index |
+| `ignoreCase` | `boolean` | `true`: ignore case differences per `Character` rules; `false`: exact comparison |
 
-Bản bốn tham số so sánh chính xác (phân biệt case). Bản năm tham số cho phép chọn hành vi case bằng `ignoreCase`.
+The four-parameter form performs an exact (case-sensitive) comparison. The five-parameter form lets you choose case behavior via `ignoreCase`.
 
-**Điểm cần nhớ:** `len` là cùng một độ dài áp dụng cho hai vùng; phương thức không cho một bên dài hơn bên còn lại rồi tự cắt cho vừa.
+**Key point:** `len` is a single length applied to both regions; the method does not allow one side to be longer than the other and trim to fit.
 
-## 3. Đọc offset bằng hình ảnh
+## 3. Visualizing Offsets
 
-Xét hai chuỗi:
+Consider two strings:
 
 ~~~text
 left  = "prefix-Java-END"
          012345678901234
                 ^^^^
-                vị trí 7..10 = Java
+                positions 7..10 = Java
 
 right = "Start-Java-OK"
          0123456789012
                ^^^^
-               vị trí 6..9 = Java
+               positions 6..9 = Java
 ~~~
 
-Ta so **bốn đơn vị UTF-16** bắt đầu ở vị trí `7` của `left` và vị trí `6` của `right`:
+We compare **four UTF-16 units** starting at index `7` of `left` and index `6` of `right`:
 
 ~~~java
 String left = "prefix-Java-END";
@@ -82,26 +82,26 @@ boolean same = left.regionMatches(7, right, 6, 4);
 System.out.println(same); // true
 ~~~
 
-Hai vùng đều là `"Java"` nên kết quả `true`, mặc dù hai chuỗi **toàn phần không giống nhau**.
+Both regions are `"Java"`, so the result is `true`, even though the two strings **are not equal overall**.
 
-Nếu tăng `len` lên `6`, vùng so sánh trở thành `"Java-E"` và `"Java-O"`, kết quả `false`:
+If we increase `len` to `6`, the compared regions become `"Java-E"` and `"Java-O"`, yielding `false`:
 
 ~~~java
 System.out.println(left.regionMatches(7, right, 6, 6)); // false
 ~~~
 
-**Không nhầm với `substring(begin, end)`:** phương thức `substring(7, 11)` có tham số thứ hai là **chỉ số kết thúc loại trừ**, còn `regionMatches(7, right, 6, 4)` có tham số cuối là **độ dài 4**. Nhầm hai kiểu ký hiệu là lỗi rất thường gặp.
+**Do not confuse with `substring(begin, end)`:** `substring(7, 11)` takes an **exclusive end index** as its second argument, whereas `regionMatches(7, right, 6, 4)` takes a **length of 4** as its last argument. Mixing up those two conventions is a very common bug.
 
-## 4. So khớp chính xác: bốn tham số
+## 4. Exact Matching: Four Parameters
 
-Cú pháp:
+Syntax:
 
 ~~~java
 boolean result = first.regionMatches(
         firstOffset, second, secondOffset, count);
 ~~~
 
-Các vị trí được so theo thứ tự từ trái sang phải. Với phiên bản bốn tham số, hai vùng cần có cùng chuỗi **UTF-16 code units**.
+Positions are compared from left to right. With the four-parameter form, both regions must have the exact same sequence of **UTF-16 code units**.
 
 ~~~java
 String a = "--JAVA--";
@@ -112,20 +112,20 @@ System.out.println(a.regionMatches(2, b, 2, 4)); // true
 System.out.println(a.regionMatches(2, c, 2, 4)); // false
 ~~~
 
-Chữ hoa `"JAVA"` và `"Java"` khác nhau ở các ký tự tương ứng nên không khớp trong chế độ chính xác.
+Uppercase `"JAVA"` and `"Java"` differ at corresponding characters, so they do not match in exact mode.
 
-Nếu chỉ muốn biết toàn bộ chuỗi có cùng nội dung, hãy dùng `equals()`:
+If you only want to know whether the entire strings have the same content, use `equals()`:
 
 ~~~java
 boolean allEqual = a.equals(b);              // false
 boolean areaEqual = a.regionMatches(2, b, 2, 4); // true
 ~~~
 
-Đừng dùng `regionMatches()` thay `equals()` khi yêu cầu là so **toàn bộ** nội dung. Một phép so vùng có thể cho `true` trong khi phần đầu, phần cuối hoặc độ dài tổng thể khác nhau.
+Do not use `regionMatches()` in place of `equals()` when the requirement is comparing the **entire** content. A region check can return `true` while the prefix, suffix, or total length differs.
 
-## 5. Bỏ qua chữ hoa/chữ thường: năm tham số
+## 5. Ignoring Case: Five Parameters
 
-Phiên bản năm tham số bổ sung cờ `ignoreCase` ở đầu:
+The five-parameter version adds an `ignoreCase` flag at the start:
 
 ~~~java
 String left = "prefix-Java-END";
@@ -141,38 +141,38 @@ System.out.println(left.regionMatches(true, 7, right, 6, 4));
 // true
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-- `ignoreCase = false`: kiểm tra các vùng khớp **chính xác**.
-- `ignoreCase = true`: kiểm tra tương ứng **không phân biệt case** theo cơ chế của `Character`; `'J'` và `'j'` có thể được coi là tương đương.
+- `ignoreCase = false`: checks that the regions match **exactly**.
+- `ignoreCase = true`: checks equivalence **case-insensitively** using `Character`'s mechanism; `'J'` and `'j'` can be treated as equivalent.
 
-Không cần tạo hai chuỗi viết thường bằng `toLowerCase()` trước khi gọi khi nhu cầu chỉ là so một vùng với quy tắc của `regionMatches(true, ...)`.
+There is no need to allocate two lowercased strings via `toLowerCase()` beforehand when you only need to compare a region using `regionMatches(true, ...)` rules.
 
-### Không đồng nghĩa so sánh văn bản theo ngôn ngữ tự nhiên
+### Not Equivalent to Natural-Language Text Comparison
 
-`regionMatches(true, ...)` **không sử dụng `Locale`** và không thay thế thuật toán *collation* cho mọi ngôn ngữ. Theo Javadoc Java 17, dạng này so sánh các chuỗi **Unicode code points** ở trong vùng; khi bỏ qua case, cơ chế dựa trên phép đổi case bằng `Character.toUpperCase(int)` rồi `Character.toLowerCase(int)`.
+`regionMatches(true, ...)` **does not use `Locale`** and does not replace *collation* algorithms across languages. According to the Java 17 Javadoc, this form compares **Unicode code point** sequences in the regions; when ignoring case, the mechanism converts case via `Character.toUpperCase(int)` followed by `Character.toLowerCase(int)`.
 
-Do đó, `ignoreCase`:
+Consequently, `ignoreCase`:
 
-- Không phải thuật toán tìm kiếm và so sánh có quy tắc ngôn ngữ cụ thể.
-- Không tự bỏ dấu thanh tiếng Việt hoặc tự chuẩn hóa Unicode.
-- Không bảo đảm xử lý tất cả quy tắc *full case folding* có thể khiến một chữ biến thành nhiều code points.
-- Không cho phép hai vùng có độ dài UTF-16 khác nhau.
+- Is not a language-specific search and comparison algorithm.
+- Does not strip Vietnamese tone marks or auto-normalize Unicode.
+- Does not guarantee handling all *full case folding* rules that can expand one letter into multiple code points.
+- Does not allow two regions of different UTF-16 lengths to match.
 
-Nếu nghiệp vụ yêu cầu thứ tự hay sự tương đương theo locale, cân nhắc `java.text.Collator` hoặc một thư viện xử lý văn bản phù hợp; các yêu cầu an ninh/mã định danh có thể cần **so sánh chính xác** thay vì bỏ qua case.
+If business logic requires locale-specific ordering or equivalence, consider `java.text.Collator` or an appropriate text-processing library; security/identifier requirements may need **exact comparison** rather than ignoring case.
 
-## 6. Điều kiện biên: offset, độ dài và vùng rỗng
+## 6. Boundary Conditions: Offsets, Length, and Empty Regions
 
-Với `len >= 0`, cách nghĩ an toàn nhất là hai khoảng chỉ số nửa mở phải hợp lệ:
+For `len >= 0`, the safest mental model is that both half-open index intervals must be valid:
 
 ~~~text
-Vùng trái: [toffset, toffset + len)
-Vùng phải: [ooffset, ooffset + len)
+Left region:  [toffset, toffset + len)
+Right region: [ooffset, ooffset + len)
 ~~~
 
-Khoảng `[a, b)` lấy vị trí `a` nhưng **không lấy** vị trí `b`.
+The interval `[a, b)` includes index `a` but **excludes** index `b`.
 
-Các điều kiện hợp lệ theo cách kiểm tra chủ động:
+Validity conditions when checking proactively:
 
 ~~~text
 toffset >= 0
@@ -184,9 +184,9 @@ len <= left.length() - toffset
 len <= right.length() - ooffset
 ~~~
 
-Khi một offset âm hoặc vùng vượt khỏi độ dài chuỗi, phương thức trả `false` (với `other` hợp lệ); khác `substring()` vốn thường ném ngoại lệ khi chỉ số sai.
+When an offset is negative or a region extends past the string's length, the method returns `false` (assuming `other` is valid)—unlike `substring()`, which typically throws an exception on invalid indices.
 
-Ví dụ:
+Examples:
 
 ~~~java
 String a = "Java";
@@ -199,21 +199,21 @@ System.out.println(a.regionMatches(0, b, 0, 5));  // false
 System.out.println(a.regionMatches(4, b, 4, 0));  // true
 ~~~
 
-Dòng cuối so hai **vùng rỗng** tại vị trí cuối chuỗi; với hai offset hợp lệ và `len = 0`, không có ký tự nào để khác nhau, nên trả `true`.
+The last line compares two **empty regions** at the end of both strings; with two valid offsets and `len = 0`, there are no characters to differ, so it returns `true`.
 
-**Quan trọng:** dùng `len >= 0` như một tiền điều kiện của chương trình. Không dựa vào hành vi với độ dài âm vì đó không phải một yêu cầu so vùng có ý nghĩa và kết quả có thể bất ngờ. Khi nhận offset từ người dùng hoặc dữ liệu không tin cậy, xác minh tham số trước khi gọi.
+**Important:** enforce `len >= 0` as a precondition in your program. Do not rely on negative-length behavior, as it is not a meaningful region-comparison request and results can be surprising. When receiving offsets from users or untrusted data, validate arguments before calling.
 
-### Vì sao nên kiểm tra bằng phép trừ?
+### Why Check Bounds with Subtraction?
 
-Trong hàm tự viết, điều kiện:
+In a custom helper, the condition:
 
 ~~~java
 len <= text.length() - offset
 ~~~
 
-thường dễ bảo vệ hơn `offset + len <= text.length()` nếu offset/len đến từ các số nguyên bất kỳ, vì phép cộng số nguyên có thể **tràn số**. Trước khi trừ, cần chắc chắn `offset` nằm trong `[0, text.length()]`.
+is generally safer than `offset + len <= text.length()` when offset/len come from arbitrary integers, because integer addition can **overflow**. Before subtracting, ensure `offset` lies within `[0, text.length()]`.
 
-### null không được coi là false thông thường
+### null Is Not Treated as a Normal false
 
 ~~~java
 String source = "Java";
@@ -222,11 +222,11 @@ String other = null;
 // source.regionMatches(0, other, 0, 2); // NullPointerException
 ~~~
 
-Đối số `other == null` gây `NullPointerException`; receiver `source == null` cũng không thể gọi phương thức. Hãy quyết định hợp đồng cho `null`: từ chối bằng ngoại lệ rõ ràng, hoặc trả `false` qua một hàm bao ngoài tự viết.
+An `other == null` argument throws `NullPointerException`; a `source == null` receiver also cannot invoke the method. Decide your `null` contract: reject with an explicit exception, or return `false` through a custom wrapper helper.
 
-## 7. Unicode: offset/len đếm UTF-16, không đếm ký tự nhìn thấy
+## 7. Unicode: Offset/Len Count UTF-16, Not Perceived Characters
 
-Cả `toffset`, `ooffset` và `len` được tính theo **UTF-16 code units** (đơn vị `char` 16 bit). Một Unicode code point ngoài BMP, chẳng hạn emoji `😀`, được biểu diễn bằng **surrogate pair** gồm hai đơn vị UTF-16.
+`toffset`, `ooffset`, and `len` are all measured in **UTF-16 code units** (16-bit `char` units). A Unicode code point outside the BMP, such as the emoji `😀`, is represented by a **surrogate pair** of two UTF-16 units.
 
 ~~~java
 String text = "A😀Z";
@@ -235,17 +235,17 @@ System.out.println(text.length()); // 4
 System.out.println(text.codePointCount(0, text.length())); // 3
 ~~~
 
-Sơ đồ:
+Diagram:
 
 ~~~text
-Hiển thị:          A      😀       Z
+Displayed:         A      😀       Z
 UTF-16:           [A] [high][low] [Z]
-Chỉ số:            0    1    2    3
-Độ dài UTF-16:                   4
+Index:             0    1    2    3
+UTF-16 length:                   4
 Code points:                     3
 ~~~
 
-Để so **toàn bộ emoji**, `len` là `2`, không phải `1`:
+To compare the **entire emoji**, `len` is `2`, not `1`:
 
 ~~~java
 String a = "A😀Z";
@@ -253,18 +253,18 @@ String b = "X😀Y";
 System.out.println(a.regionMatches(1, b, 1, 2)); // true
 ~~~
 
-Nếu `len = 1` thì chỉ một nửa surrogate pair được đưa vào vùng so. Điều này có thể tạo kết quả trông đúng nhưng **không phản ánh so sánh trọn một emoji**:
+If `len = 1`, only half of the surrogate pair enters the comparison region. That can produce a result that looks right yet **does not reflect comparing a full emoji**:
 
 ~~~java
 String a = "A😀Z";
 String b = "X😁Y";
 
-// Hai emoji khác nhau nhưng high surrogate giống nhau.
+// Two different emojis with the same high surrogate.
 System.out.println(a.regionMatches(1, b, 1, 1)); // true
 System.out.println(a.regionMatches(1, b, 1, 2)); // false
 ~~~
 
-**Bài học:** cần đặt ranh giới vùng tại **đầu/cuối một code point**, tránh cắt giữa surrogate pair. Khi cần tính chỉ số theo code points, dùng `offsetByCodePoints()` để đổi thành offset UTF-16 phù hợp trước khi gọi:
+**Lesson:** align region boundaries at the **start/end of a code point**, avoiding splitting inside a surrogate pair. When computing indices in code points, use `offsetByCodePoints()` to convert to appropriate UTF-16 offsets before calling:
 
 ~~~java
 String text = "A😀Z";
@@ -275,23 +275,23 @@ int len = end - start; // 2 UTF-16 code units
 System.out.println(text.regionMatches(start, "😀", 0, len)); // true
 ~~~
 
-**Lưu ý khác:** code point vẫn không nhất thiết là một *grapheme cluster* (ký tự người dùng nhìn thấy). Ví dụ `"é"` có thể biểu diễn bằng một code point hoặc `"e\u0301"` (e + dấu sắc kết hợp). Hai chuỗi đó không có cùng dãy UTF-16 code units; `regionMatches()` không tự chuẩn hóa chúng. Nếu nghiệp vụ cần sự tương đương chuẩn hóa, xem `java.text.Normalizer` và quy tắc so sánh đã thỏa thuận.
+**Another note:** a code point is still not necessarily a *grapheme cluster* (user-perceived character). For example, `"é"` can be encoded as a single code point or as `"e\u0301"` (e + combining acute accent). Those two strings do not share the same UTF-16 code-unit sequence; `regionMatches()` does not auto-normalize them. If business logic needs canonical equivalence, look at `java.text.Normalizer` and agreed comparison rules.
 
-## 8. Khi nào dùng regionMatches thay vì các API khác?
+## 8. When to Use regionMatches Instead of Other APIs?
 
-| Mục đích | API phù hợp | Lý do |
+| Purpose | Suitable API | Reason |
 | --- | --- | --- |
-| So **hai chuỗi toàn phần** chính xác | `a.equals(b)` | Rõ nghĩa, không cần tính offset |
-| So hai chuỗi toàn phần không phân biệt case | `a.equalsIgnoreCase(b)` | Diễn đạt trực tiếp |
-| So **hai vùng bất kỳ** trong hai chuỗi | `a.regionMatches(offsetA, b, offsetB, len)` | Có offset cho cả hai bên |
-| So hai vùng, bỏ qua case | `a.regionMatches(true, offsetA, b, offsetB, len)` | Có cờ `ignoreCase` |
-| Kiểm tra tiền tố tại một vị trí trong một chuỗi | `a.startsWith(prefix, offset)` | Diễn đạt rõ hơn nếu vùng ở chuỗi so sánh luôn bắt đầu tại 0 |
-| Kiểm tra hậu tố | `a.endsWith(suffix)` | Không cần tự tính vị trí bắt đầu |
-| Trích vùng để dùng như một giá trị `String` | `a.substring(begin, end)` | Trả chuỗi con thay vì boolean |
-| Tìm vị trí của đoạn không biết nằm ở đâu | `a.indexOf(fragment)` | Trả vị trí hoặc `-1` |
-| Khớp biểu thức chính quy | `Pattern`/`Matcher` hay `matches()` | Dùng khi mẫu là regex, không phải so hai vùng ở vị trí biết trước |
+| Compare **two full strings** exactly | `a.equals(b)` | Clear intent, no offset math needed |
+| Compare two full strings case-insensitively | `a.equalsIgnoreCase(b)` | Directly expresses intent |
+| Compare **two arbitrary regions** in two strings | `a.regionMatches(offsetA, b, offsetB, len)` | Supports offsets on both sides |
+| Compare two regions ignoring case | `a.regionMatches(true, offsetA, b, offsetB, len)` | Includes `ignoreCase` flag |
+| Check a prefix at a position in one string | `a.startsWith(prefix, offset)` | Clearer when the compared region in the pattern always starts at 0 |
+| Check a suffix | `a.endsWith(suffix)` | No need to compute the start offset manually |
+| Extract a region to use as a `String` value | `a.substring(begin, end)` | Returns a substring rather than a boolean |
+| Find the location of a fragment at an unknown offset | `a.indexOf(fragment)` | Returns the index or `-1` |
+| Match a regular expression | `Pattern`/`Matcher` or `matches()` | Use when the pattern is a regex, not two regions at known offsets |
 
-Ví dụ so tiền tố bắt đầu tại vị trí thứ ba:
+Example checking a prefix starting at the third position:
 
 ~~~java
 String log = "--ERROR: disk full";
@@ -301,9 +301,9 @@ System.out.println(log.regionMatches(2, prefix, 0, prefix.length())); // true
 System.out.println(log.startsWith(prefix, 2)); // true
 ~~~
 
-Cả hai phù hợp; trong trường hợp chỉ kiểm tra một `prefix`, `startsWith(prefix, 2)` thường dễ đọc hơn.
+Both work well; when simply testing a `prefix`, `startsWith(prefix, 2)` is usually easier to read.
 
-So với:
+Compare with:
 
 ~~~java
 String a = "prefix-Java-END";
@@ -312,11 +312,11 @@ String b = "Start-Java-OK";
 boolean same = a.substring(7, 11).equals(b.substring(6, 10));
 ~~~
 
-Kết quả cũng `true` nếu chỉ số hợp lệ. Nhưng cách này tạo **giá trị chuỗi con** để so; `regionMatches()` diễn đạt trực tiếp thao tác so vùng và không yêu cầu tạo chuỗi con tại phía người gọi. Đừng mặc định nó luôn nhanh hơn trong mọi môi trường; đo thực tế nếu đoạn code là điểm nghẽn.
+The result is also `true` if the indices are valid. However, this creates **substring values** just to compare; `regionMatches()` directly expresses region comparison without requiring the caller to allocate substrings. Do not assume it is always faster in every environment; measure in practice if the code is a bottleneck.
 
-## 9. Ví dụ chạy độc lập Java 17+
+## 9. Standalone Java 17+ Example
 
-Tạo file **`RegionMatchesDemo.java`**:
+Create file **`RegionMatchesDemo.java`**:
 
 ~~~java
 public class RegionMatchesDemo {
@@ -347,14 +347,14 @@ public class RegionMatchesDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac RegionMatchesDemo.java
 java RegionMatchesDemo
 ~~~
 
-Stdout **chính xác**:
+**Exact** stdout:
 
 ~~~text
 true
@@ -371,20 +371,20 @@ true
 false
 ~~~
 
-Giải thích theo từng nhóm:
+Group-by-group explanation:
 
-1. `"Java"` tại offset `7` của `left` trùng `"Java"` tại offset `6` của `right`: `true`.
-2. So sáu đơn vị gồm `"Java-E"` và `"Java-O"` khác nhau: `false`.
-3. Chuỗi `mixed` có `"jAvA"` nên chế độ phân biệt case: `false`; `ignoreCase = true`: `true`; `false`: `false`.
-4. Offset âm hoặc `len` quá lớn: `false`; vùng rỗng tại cuối hai chuỗi: `true`.
-5. Hai emoji `😀` và `😁` có **high surrogate giống nhau**, nên so `len = 1` (chỉ high surrogate) ra `true`; so đủ `len = 2` ra `false`.
-6. `startsWith("Java", 7)` trả `true`, nhưng `equals(right)` trả `false` vì toàn bộ chuỗi khác nhau.
+1. `"Java"` at offset `7` of `left` matches `"Java"` at offset `6` of `right`: `true`.
+2. Comparing six units gives `"Java-E"` and `"Java-O"`, which differ: `false`.
+3. `mixed` contains `"jAvA"`, so case-sensitive mode yields `false`; `ignoreCase = true` yields `true`; `false` yields `false`.
+4. Negative offset or overly large `len`: `false`; empty regions at the end of both strings: `true`.
+5. Emojis `😀` and `😁` share the **same high surrogate**, so comparing `len = 1` (only the high surrogate) outputs `true`; comparing full `len = 2` outputs `false`.
+6. `startsWith("Java", 7)` returns `true`, while `equals(right)` returns `false` because the full strings differ.
 
-Chương trình là một file độc lập, dùng đúng tên lớp và tên file, không cần thư viện ngoài JDK.
+The program is a single standalone file with matching class and file names and requires no external libraries beyond the JDK.
 
-## 10. Viết hàm so vùng có kiểm tra đầu vào
+## 10. Writing a Region-Comparison Helper with Input Validation
 
-Trong API nhận offset/len từ bên ngoài, bạn có thể công bố một hợp đồng rõ ràng: **trả `false` nếu chuỗi nào `null`, nếu `len` âm hoặc vùng vượt biên**.
+In an API receiving offsets/lengths from outside, you can publish a clear contract: **return `false` if either string is `null`, if `len` is negative, or if a region goes out of bounds**.
 
 ~~~java
 public final class RegionUtils {
@@ -413,15 +413,15 @@ public final class RegionUtils {
 }
 ~~~
 
-Đây là **đoạn lớp tiện ích** độc lập về mặt mã nguồn Java; nếu bạn muốn lưu nó riêng, tạo file `RegionUtils.java`. Mỗi điều kiện có mục đích:
+This is a standalone **utility class snippet** in Java source form; if you want to save it separately, create `RegionUtils.java`. Every condition has a purpose:
 
-- Kiểm tra `null` để không ném `NullPointerException` ngoài ý muốn.
-- Yêu cầu `len >= 0` vì độ dài âm không có ý nghĩa trong hợp đồng đã chọn.
-- Kiểm tra offset theo độ dài từng chuỗi.
-- So sánh với `length() - offset` để tránh phép cộng có thể tràn `int`.
-- Cuối cùng mới ủy quyền cho `regionMatches()`.
+- Check `null` so it does not throw an unintended `NullPointerException`.
+- Require `len >= 0` because a negative length is meaningless under the chosen contract.
+- Validate offsets against each string's length.
+- Compare against `length() - offset` to avoid addition that could overflow `int`.
+- Finally delegate to `regionMatches()`.
 
-Kiểm thử hàm:
+Testing the helper:
 
 ~~~java
 System.out.println(RegionUtils.sameRegion(
@@ -432,87 +432,87 @@ System.out.println(RegionUtils.sameRegion(
         "Java", 0, "Java", 0, -1, false));      // false
 ~~~
 
-**Không có chính sách null duy nhất đúng cho mọi chương trình.** Một API khác có thể chọn ném `IllegalArgumentException` hoặc `NullPointerException` để chỉ ra lỗi người gọi. Quan trọng là hợp đồng rõ và kiểm thử nhất quán.
+**There is no single null policy right for every program.** Another API might choose to throw `IllegalArgumentException` or `NullPointerException` to signal caller errors. What matters is a clear contract and consistent testing.
 
-## 11. Độ phức tạp và cách sử dụng hiệu quả
+## 11. Complexity and Effective Usage
 
-Ở góc nhìn thuật toán, so hai vùng `len` đơn vị UTF-16 cần tối đa công việc tăng theo độ dài vùng, thường mô tả là **O(len)**; nếu gặp khác biệt sớm, phép so có thể dừng sớm. Bộ nhớ bổ sung ở cách sử dụng thông thường là **O(1)** vì không cần tạo hai chuỗi con riêng.
+Algorithmically, comparing two regions of `len` UTF-16 units takes at most work proportional to the region length, typically described as **O(len)**; if an early mismatch occurs, comparison can stop early. Extra memory in normal usage is **O(1)** because no two separate substrings are allocated.
 
-Tuy nhiên, không nên suy luận rằng mọi phiên bản JDK có cùng vi tối ưu hoặc cùng thời gian chạy cho một trường hợp cụ thể; Unicode case folding có chi phí xử lý riêng.
+However, do not infer that every JDK version shares the exact same micro-optimizations or runtime for a specific case; Unicode case folding carries its own processing cost.
 
-Thực hành hiệu quả:
+Effective practices:
 
-- Dùng `regionMatches()` khi **đã biết vị trí bắt đầu** ở cả hai chuỗi.
-- Nếu phải tìm vị trí chưa biết, dùng `indexOf()` hoặc thuật toán tìm kiếm phù hợp trước.
-- Nếu cần **so toàn bộ** thì `equals()`/`equalsIgnoreCase()` sáng nghĩa hơn.
-- Nếu cần so văn bản theo locale hoặc tương đương Unicode chuẩn hóa, định nghĩa yêu cầu nghiệp vụ trước khi chọn API.
-- Khi so dữ liệu bí mật và cần kháng timing attacks, không giả định `regionMatches()` là phép so thời gian cố định; nó không được thiết kế để bảo đảm thuộc tính đó.
+- Use `regionMatches()` when **start positions are already known** in both strings.
+- If you must locate an unknown position first, use `indexOf()` or a suitable search algorithm.
+- If **full-string comparison** is needed, `equals()`/`equalsIgnoreCase()` communicates intent more clearly.
+- If locale-aware text comparison or normalized Unicode equivalence is needed, define business requirements before choosing the API.
+- When comparing secret data requiring timing-attack resistance, do not assume `regionMatches()` is constant-time; it is not designed to guarantee that property.
 
-## 12. Bài tập theo mức độ
+## 12. Tiered Exercises
 
-### Bài 1 — Đọc vị trí
+### Exercise 1 — Reading Positions
 
-Cho `left = "abc-JAVA-xyz"` và `right = "12-JAVA-45"`. Hãy tính offset cho hai vùng `"JAVA"` và dùng `regionMatches()` so đúng bốn đơn vị. Dự đoán kết quả trước khi chạy.
+Given `left = "abc-JAVA-xyz"` and `right = "12-JAVA-45"`, compute the offsets for the two `"JAVA"` regions and use `regionMatches()` to compare exact four units. Predict the result before running.
 
-### Bài 2 — Phân biệt case
+### Exercise 2 — Case Sensitivity
 
-So vùng `"Java"` với `"jAvA"` lần lượt bằng dạng bốn và năm tham số. Giải thích vì sao `ignoreCase = true` thay đổi kết quả.
+Compare `"Java"` with `"jAvA"` using the four-parameter and five-parameter overloads respectively. Explain why `ignoreCase = true` changes the result.
 
-### Bài 3 — Tham số hợp lệ
+### Exercise 3 — Valid Arguments
 
-Với hai chuỗi `"abc"` và `"ABC"`, thử `toffset = -1`, `ooffset = -1`, `len = 4`, rồi `toffset = 3`/`ooffset = 3`/`len = 0`. Ghi lý do trả `false` hoặc `true`; không nhầm vùng rỗng với vùng vượt biên.
+With `"abc"` and `"ABC"`, test `toffset = -1`, `ooffset = -1`, `len = 4`, then `toffset = 3`/`ooffset = 3`/`len = 0`. Note why each returns `false` or `true`; do not confuse empty regions with out-of-bounds regions.
 
-### Bài 4 — So bằng substring và regionMatches
+### Exercise 4 — Comparing via substring vs. regionMatches
 
-Viết hai cách so vùng tương ứng trong `"prefix-Java-END"` và `"Start-Java-OK"`. Đặt tên biến phù hợp để người đọc không nhầm `len` với chỉ số kết thúc của `substring()`. Chỉ ra vì sao `regionMatches()` không cần tạo chuỗi con ở mã gọi.
+Write both ways to compare the corresponding regions in `"prefix-Java-END"` and `"Start-Java-OK"`. Choose clear variable names so readers do not confuse `len` with `substring()`'s end index. Point out why `regionMatches()` needs no substring allocation at the call site.
 
-### Bài 5 — Một ký tự emoji khác nhau
+### Exercise 5 — Different Emoji Characters
 
-Cho `"A😀B"` và `"X😁Y"`. Thử `len = 1` và `len = 2` tại offset `1`. Giải thích bằng UTF-16 surrogate pair. Tính lại chỉ số khi nối thêm một emoji vào đầu chuỗi.
+Given `"A😀B"` and `"X😁Y"`, try `len = 1` and `len = 2` at offset `1`. Explain via UTF-16 surrogate pairs. Recompute the indices when prepending another emoji to the start of the string.
 
-### Bài 6 — Tạo helper an toàn
+### Exercise 6 — Creating a Safe Helper
 
-Tự cài hàm `sameRegion(...)` nhận đầu vào có thể `null`. Viết ít nhất sáu trường hợp kiểm thử: hai vùng giống, vùng khác, ignoreCase, null, offset âm, vượt biên, vùng rỗng. Giải thích vì sao kiểm tra `len > length - offset` hữu ích hơn kiểm tra cộng trong code nhận số nguyên từ ngoài.
+Implement `sameRegion(...)` accepting nullable inputs. Write at least six test cases: matching regions, differing regions, ignoreCase, null, negative offset, out-of-bounds, and empty region. Explain why checking `len > length - offset` is safer than addition-based checks in code receiving external integers.
 
-### Bài 7 — Chọn API đúng
+### Exercise 7 — Choosing the Right API
 
-Với ba yêu cầu: "hai tên đầy đủ giống nhau", "chuỗi bắt đầu bằng `ERROR` tại vị trí `3`", và "vùng giữa hai đường dẫn giống nhau", hãy chọn lần lượt `equals()`, `startsWith(prefix, offset)`, hoặc `regionMatches()` và giải thích sự khác biệt.
+For three requirements—"two full names are equal", "string starts with `ERROR` at index `3`", and "the middle region of two paths matches"—choose `equals()`, `startsWith(prefix, offset)`, or `regionMatches()` respectively and explain the differences.
 
-### Bài 8 — Unicode normalization
+### Exercise 8 — Unicode Normalization
 
-So `"é"` với `"e\u0301"` theo `regionMatches()`. Sau đó dùng `java.text.Normalizer.normalize(..., Normalizer.Form.NFC)` cho cả hai và so lại. Giải thích vì sao hình thức hiển thị tương tự không đồng nghĩa cùng dãy đơn vị UTF-16.
+Compare `"é"` with `"e\u0301"` using `regionMatches()`. Then apply `java.text.Normalizer.normalize(..., Normalizer.Form.NFC)` to both and compare again. Explain why similar visual appearance does not imply identical UTF-16 code-unit sequences.
 
-## 13. Những lỗi phổ biến và checklist
+## 13. Common Mistakes and Checklist
 
-| Lỗi | Hậu quả | Cách tránh |
+| Mistake | Consequence | How to Avoid |
 | --- | --- | --- |
-| Nhầm `len` với chỉ số kết thúc | So sai vùng hoặc vượt biên | Nhớ vùng là `[offset, offset + len)` |
-| Dùng offset bắt đầu từ `1` như số thứ tự | Lệch một ký tự | Chỉ số Java bắt đầu từ `0` |
-| Mong `regionMatches()` so toàn bộ hai chuỗi | Có thể trả `true` khi phần khác nhau nằm ngoài vùng | Dùng `equals()` cho so toàn bộ |
-| Dùng bản bốn tham số và mong bỏ qua case | `"Java"` khác `"java"` | Dùng dạng năm tham số với `ignoreCase = true` |
-| Giả định `ignoreCase` là so sánh theo locale | Sai trong một số ngôn ngữ và quy tắc nghiệp vụ | Xác định locale, dùng API collation khi phù hợp |
-| Cho rằng `len = 1` là một emoji | Surrogate pair có thể cần hai `char` | Đặt cận theo UTF-16 của code point |
-| Truyền `other = null` | Có thể ném NPE | Kiểm tra null trước theo contract |
-| Dùng `len < 0` và mong một kết quả có ý nghĩa | Yêu cầu so vùng không hợp lệ | Từ chối độ dài âm trong helper |
-| Dùng `substring()` với cận sai khi chỉ muốn so | Có thể ném ngoại lệ hoặc tạo giá trị trung gian | Dùng `regionMatches()` khi vị trí biết trước |
-| Tin rằng phương thức chuẩn hóa Unicode | Hai cách mã hóa cùng hình thức có thể khác | Chuẩn hóa trước nếu nghiệp vụ yêu cầu |
-| Dùng nó làm phép so dữ liệu mật constant-time | Không có bảo đảm thời gian cố định | Dùng API phù hợp với bài toán bảo mật |
+| Confusing `len` with end index | Wrong region compared or out of bounds | Remember regions are `[offset, offset + len)` |
+| Using 1-based offsets like ordinal numbers | Off-by-one character shift | Java indices start at `0` |
+| Expecting `regionMatches()` to compare full strings | May return `true` when differences lie outside the region | Use `equals()` for full comparison |
+| Using four-parameter form expecting case-insensitivity | `"Java"` differs from `"java"` | Use five-parameter form with `ignoreCase = true` |
+| Assuming `ignoreCase` is locale-aware comparison | Wrong for certain languages and business rules | Identify locale, use collation APIs when appropriate |
+| Assuming `len = 1` covers one emoji | Surrogate pair may need two `char`s | Align bounds to UTF-16 boundaries of code points |
+| Passing `other = null` | May throw NPE | Check null beforehand per contract |
+| Passing `len < 0` expecting a meaningful result | Invalid region-comparison request | Reject negative lengths in helpers |
+| Using `substring()` with bad bounds just to compare | Can throw exceptions or create intermediate values | Use `regionMatches()` when offsets are known |
+| Believing the method normalizes Unicode | Two encodings of the same form can differ | Normalize beforehand if business logic requires it |
+| Using it as a constant-time secret comparison | No constant-time guarantee | Use APIs suited for security tasks |
 
-**Checklist trước khi gọi:**
+**Pre-call checklist:**
 
-1. Có đúng **hai chuỗi** và xác định được **hai offset**?
-2. `len` là số **UTF-16 code units**, không phải chỉ số kết thúc?
-3. Hai đoạn đủ độ dài? Có xử lý `null` và tham số âm?
-4. Có cần bỏ qua case? Nếu có, quy tắc không phụ thuộc locale của `regionMatches(true, ...)` có đáp ứng nghiệp vụ không?
-5. Nếu có emoji hoặc ký tự kết hợp, vùng có đặt cận trên đơn vị Unicode thích hợp không?
-6. Kết quả `boolean` đã được kiểm tra/thực sự sử dụng chưa?
+1. Are there exactly **two strings** and **two known offsets**?
+2. Is `len` the count of **UTF-16 code units**, not the end index?
+3. Are both segments long enough? Are `null` and negative arguments handled?
+4. Do you need to ignore case? If yes, do the locale-independent rules of `regionMatches(true, ...)` satisfy your business rules?
+5. If emojis or combining characters exist, do the region boundaries fall on proper Unicode units?
+6. Is the `boolean` return value actually checked/used?
 
-**Quy tắc nhớ:** `regionMatches()` so sánh **một vùng trong chuỗi hiện tại** với **một vùng cùng độ dài trong chuỗi khác**, trả `true/false`, không sửa dữ liệu. Chỉ số và độ dài tính theo **UTF-16**; cờ `ignoreCase` điều khiển cách so chữ hoa/chữ thường, **không thay thế so sánh ngôn ngữ tự nhiên**.
+**Rule to remember:** `regionMatches()` compares **a region in the current string** against **a same-length region in another string**, returning `true/false` without mutating data. Indices and lengths are measured in **UTF-16**; the `ignoreCase` flag controls case matching, **not natural-language comparison**.
 
-## 14. Tài liệu tra cứu chuẩn
+## 14. Standard Reference Documentation
 
-- [Java SE 17 — String.regionMatches(int, String, int, int)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#regionMatches(int,java.lang.String,int,int)): overload chính xác, ý nghĩa offset/len.
-- [Java SE 17 — String.regionMatches(boolean, int, String, int, int)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#regionMatches(boolean,int,java.lang.String,int,int)): overload có ignoreCase, quy tắc Unicode/locale.
-- [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): `length()`, `offsetByCodePoints()`, `equals()`, `startsWith()` và `substring()`.
-- [Java SE 17 — Character](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html): Unicode code points, surrogate pairs và chuyển chữ hoa/chữ thường.
-- [Java SE 17 — Collator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Collator.html), [Normalizer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html): so sánh phụ thuộc locale và chuẩn hóa khi nghiệp vụ cần.
+- [Java SE 17 — String.regionMatches(int, String, int, int)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#regionMatches(int,java.lang.String,int,int)): exact-match overload and offset/len semantics.
+- [Java SE 17 — String.regionMatches(boolean, int, String, int, int)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html#regionMatches(boolean,int,java.lang.String,int,int)): ignoreCase overload and Unicode/locale rules.
+- [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): `length()`, `offsetByCodePoints()`, `equals()`, `startsWith()`, and `substring()`.
+- [Java SE 17 — Character](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Character.html): Unicode code points, surrogate pairs, and case mapping.
+- [Java SE 17 — Collator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Collator.html), [Normalizer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html): locale-dependent comparison and normalization when business rules require them.

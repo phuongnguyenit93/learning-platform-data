@@ -1,51 +1,51 @@
-# Chuyển đổi giá trị trả về và ClassCastException ở mã gọi khi dùng Java Reflection
+# Return Value Conversion and Caller-Side ClassCastException in Java Reflection
 
-## 1. Phân biệt kiểu khai báo, giá trị runtime và kiểu ở mã gọi
+## 1. Distinguishing declared type, runtime value, and caller-expected type
 
-Khi dùng Java Reflection để gọi phương thức, API trung tâm là `java.lang.reflect.Method.invoke(Object receiver, Object... args)`. Dù phương thức đích có khai báo trả về `int`, `String`, `Number`, `List<String>` hay `void`, **kiểu trả về tĩnh của `Method.invoke` vẫn là `Object`**.
+When using Java Reflection to invoke a method, the central API is `java.lang.reflect.Method.invoke(Object receiver, Object... args)`. Whether the target method is declared to return `int`, `String`, `Number`, `List<String>`, or `void`, **the static return type of `Method.invoke` is still `Object`**.
 
-Đây là nguồn gốc của một số lỗi chuyển đổi:
+This is the source of several conversion errors:
 
-- **Declared return type**: kiểu trong chữ ký phương thức, đọc qua `Method.getReturnType()`. Ví dụ `int.class` hoặc `String.class`.
-- **Runtime result type**: lớp thực của đối tượng do `Method.invoke` trả về. Phương thức trả primitive `int` sẽ được boxing thành `Integer`; phương thức khai báo `Object` có thể thực sự trả `String` hoặc `Integer`.
-- **Expected type của caller**: kiểu mã gọi muốn nhận khi ép kiểu, chẳng hạn `(String) result`, `(Long) result` hay `(List<String>) result`. Cast tham chiếu chỉ thành công nếu đối tượng thực tương thích.
+- **Declared return type**: the type in the method signature, read via `Method.getReturnType()`. For example, `int.class` or `String.class`.
+- **Runtime result type**: the actual class of the object returned by `Method.invoke`. A method returning primitive `int` will be boxed into `Integer`; a method declared as `Object` may actually return `String` or `Integer`.
+- **Caller's expected type**: the type the calling code intends to receive when casting, such as `(String) result`, `(Long) result`, or `(List<String>) result`. A reference cast only succeeds if the actual object is compatible.
 
-Đề bài này tập trung vào **chuyển đổi giá trị trả về**, nguyên nhân và vị trí `ClassCastException` ở mã gọi, cách phân biệt với `InvocationTargetException`, xử lý primitive/`void`/`null`/generic, cùng chiến lược kiểm tra kiểu an toàn.
+This topic focuses on **return value conversion**, the cause and location of caller-side `ClassCastException`, how to distinguish it from `InvocationTargetException`, handling primitive/`void`/`null`/generic returns, along with safe type-checking strategies.
 
-Một ví dụ ngắn:
+A short example:
 
 ```java
 Method method = service.getClass().getMethod("count");
-Object raw = method.invoke(service);     // count() khai báo int, trả 12
-Integer boxed = (Integer) raw;          // Đúng: raw là Integer
-long widened = boxed.longValue();      // Chuyển đổi số hợp lệ
+Object raw = method.invoke(service);     // count() is declared int, returns 12
+Integer boxed = (Integer) raw;          // Correct: raw is Integer
+long widened = boxed.longValue();      // Valid numeric conversion
 // Long wrong = (Long) raw;            // ClassCastException
 ```
 
-Đoạn trên là **minh họa bên trong phương thức** có `service`, có xử lý/khai báo ngoại lệ Reflection và import `java.lang.reflect.Method`; không phải chương trình Java độc lập.
+The snippet above is an **illustration inside a method** having `service`, Reflection exception handling/declaration, and `import java.lang.reflect.Method`; it is not a standalone Java program.
 
-## 2. Method.invoke thực sự trả lại loại giá trị gì?
+## 2. What kind of value does Method.invoke actually return?
 
-| Return type khai báo của method đích | Giá trị `Method.invoke` trả về khi thành công | Lưu ý |
+| Declared return type of target method | Value returned by `Method.invoke` on success | Notes |
 | --- | --- | --- |
-| `String` | `String` hoặc `null` | Chỉ cast sang `String` khi runtime object phù hợp |
-| `Object`, superclass hoặc interface | Object thuộc subtype cụ thể, hoặc `null` | Kiểu khai báo không nói chắc runtime subtype |
-| `int` | `Integer` | Primitive được boxing |
-| `long` | `Long` | Không chuyển `Integer` thành `Long` theo mong muốn của caller |
-| `boolean` | `Boolean` | Wrapper đại diện primitive |
-| `byte`, `short`, `char` | `Byte`, `Short`, `Character` | Wrapper tương ứng |
-| `float`, `double` | `Float`, `Double` | Wrapper tương ứng |
-| `void` | `null` | Method vẫn chạy và có thể tạo side effect |
-| Kiểu tham chiếu trả `null` | `null` | Nhìn result đơn lẻ chưa biết method khai báo `void` hay return null |
-| Mảng như `String[]` | Đối tượng mảng phù hợp | Không chuyển mảng thành danh sách hoặc tách thành nhiều giá trị |
+| `String` | `String` or `null` | Only cast to `String` when runtime object is compatible |
+| `Object`, superclass, or interface | Object of a concrete subtype, or `null` | Declared type does not guarantee the runtime subtype |
+| `int` | `Integer` | Primitive is boxed |
+| `long` | `Long` | Does not convert `Integer` to `Long` per caller's wish |
+| `boolean` | `Boolean` | Wrapper representing primitive |
+| `byte`, `short`, `char` | `Byte`, `Short`, `Character` | Corresponding wrapper |
+| `float`, `double` | `Float`, `Double` | Corresponding wrapper |
+| `void` | `null` | Method still executes and may produce side effects |
+| Reference type returning `null` | `null` | Looking at the isolated result alone cannot tell `void` from returning null |
+| Array such as `String[]` | Compatible array object | Does not convert array to list or split into multiple values |
 
-`Method.getReturnType()` trả về `Class<?>` mô tả return type **khai báo sau type erasure**. Nếu cần chữ ký generic, dùng `getGenericReturnType()` trả về `Type`; metadata generic không tự kiểm chứng kiểu phần tử của dữ liệu runtime.
+`Method.getReturnType()` returns a `Class<?>` describing the **declared return type after type erasure**. If you need the generic signature, use `getGenericReturnType()` returning `Type`; generic metadata does not automatically verify element types of runtime data.
 
-Một quy tắc quan trọng: phép cast tham chiếu `(TargetType) value` **không biến đổi dữ liệu**. Nếu `value` là `Integer`, `(String) value` không gọi `toString()` mà ném `ClassCastException`. Nếu `value` là `null`, cast sang một kiểu tham chiếu hợp lệ trả `null`; lỗi thường xuất hiện khi code tiếp tục dereference hoặc unbox.
+An important rule: a reference cast `(TargetType) value` **does not transform data**. If `value` is an `Integer`, `(String) value` does not call `toString()`—it throws `ClassCastException`. If `value` is `null`, casting to a valid reference type returns `null`; errors typically appear when code subsequently dereferences or unboxes it.
 
-## 3. Ví dụ Java 17+ hoàn chỉnh
+## 3. Complete Java 17+ example
 
-Lưu toàn bộ chương trình dưới đây vào **`ReturnConversionDemo.java`**:
+Save the entire program below to **`ReturnConversionDemo.java`**:
 
 ```java
 import java.lang.reflect.InvocationTargetException;
@@ -141,7 +141,7 @@ public class ReturnConversionDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac ReturnConversionDemo.java
@@ -168,112 +168,112 @@ null unboxing: NullPointerException
 target threw: IllegalStateException
 ```
 
-### Giải thích từng đoạn
+### Explaining each part
 
-1. `name()` khai báo `String`, nên `Method.getReturnType()` là `String.class`. `name.invoke(api)` trả đối tượng `String` thực sự; phép `(String)` hợp lệ.
-2. `count()` khai báo primitive `int`, nhưng `invoke` đưa kết quả vào `Object` nên boxing thành `Integer`. `getReturnType()` vẫn trả `int.class`, còn `countResult.getClass()` là `Integer.class`.
-3. `Number number = (Number) countResult` đúng do `Integer extends Number`. `number.longValue()` trả `12L`. Ngược lại `(Long) countResult` đòi đối tượng là `Long`, trong khi nó là `Integer`: `ClassCastException` xảy ra **ở caller**.
-4. `total()` khai báo `long` và result runtime là `Long`. Wrapper phải tương ứng với primitive đã trả, không theo yêu cầu tùy ý của mã gọi.
-5. `payload()` khai báo `Object` nhưng trả `Integer(42)`. Đây là return value hoàn toàn hợp lệ. Khi caller ép `(String) unknown`, cast mới thất bại; `String.class.isInstance(unknown)` giúp phát hiện trước.
-6. `ping()` thực hiện side effect in dòng `ping invoked`, sau đó `Method.invoke` trả `null` do return type là `void`. Ép `(Integer) null` hợp lệ, nhưng unboxing tiếp sang `int` làm phát sinh `NullPointerException`.
-7. `explode()` ném `IllegalStateException` **bên trong method đích**. `Method.invoke` chuyển lỗi này thành `InvocationTargetException`, và caller lấy nguyên nhân bằng `getCause()`.
+1. `name()` declares `String`, so `Method.getReturnType()` is `String.class`. `name.invoke(api)` returns an actual `String` object; `(String)` is valid.
+2. `count()` declares primitive `int`, yet `invoke` puts the result into `Object` and therefore boxes it into `Integer`. `getReturnType()` still returns `int.class`, while `countResult.getClass()` is `Integer.class`.
+3. `Number number = (Number) countResult` succeeds because `Integer extends Number`. `number.longValue()` returns `12L`. Conversely, `(Long) countResult` requires the object to be `Long`, whereas it is `Integer`: `ClassCastException` happens **at the caller**.
+4. `total()` declares `long` and the runtime result is `Long`. The wrapper must correspond to the returned primitive, not to an arbitrary expectation of the calling code.
+5. `payload()` declares `Object` yet returns `Integer(42)`. This is a completely valid return value. When the caller casts `(String) unknown`, the cast fails; `String.class.isInstance(unknown)` helps detect this beforehand.
+6. `ping()` performs the side effect of printing `ping invoked`, then `Method.invoke` returns `null` because the return type is `void`. Casting `(Integer) null` succeeds, yet subsequent unboxing to `int` triggers `NullPointerException`.
+7. `explode()` throws `IllegalStateException` **inside the target method**. `Method.invoke` turns this error into `InvocationTargetException`, and the caller retrieves the cause via `getCause()`.
 
-Ví dụ sử dụng đúng chữ ký API thực; phần output được đối chiếu bằng thực thi Java 17+.
+The example uses actual API signatures; the output was verified by execution on Java 17+.
 
-## 4. ClassCastException ở caller xuất hiện sau khi invoke hoàn thành
+## 4. Caller-side ClassCastException occurs after invoke completes
 
-Xem hai câu lệnh:
+Look at two statements:
 
 ```java
 Object raw = method.invoke(receiver);
 String text = (String) raw;
 ```
 
-Giả sử phương thức đích trả về `Integer.valueOf(42)`. Câu lệnh **đầu tiên đã thực thi thành công**: method chạy, Reflection trả lại một `Integer` dưới kiểu tĩnh `Object`. Câu lệnh thứ hai mới ném `ClassCastException` vì JVM kiểm tra object thực khi thực hiện ép kiểu tham chiếu.
+Suppose the target method returns `Integer.valueOf(42)`. The **first statement has already executed successfully**: the method ran, and Reflection returned an `Integer` under static type `Object`. It is the second statement that throws `ClassCastException` because the JVM checks the actual object when performing a reference cast.
 
-Nếu viết gọn:
+If written concisely:
 
 ```java
 String text = (String) method.invoke(receiver);
 ```
 
-thì thứ tự vẫn như vậy: gọi method → nhận `Object` → cast sang `String`. Phép cast là phần mã do **caller** yêu cầu. Trong bytecode, compiler thường sinh `checkcast` tại điểm nhận giá trị.
+the order is still the same: invoke method → receive `Object` → cast to `String`. The cast is part of the code requested by the **caller**. In bytecode, the compiler typically emits `checkcast` at the point receiving the value.
 
-Đừng kết luận lỗi thuộc thư viện Reflection chỉ vì stack trace chỉ đến dòng có `invoke` và cast chung một biểu thức. Tách thành hai câu lệnh để biết chính xác ranh giới.
+Do not conclude the bug belongs to the Reflection library merely because the stack trace points to a line containing both `invoke` and the cast in one expression. Split it into two statements to see the exact boundary.
 
-### Cast không đồng nghĩa chuyển đổi
+### Cast does not mean conversion
 
 ```java
 Object raw = Integer.valueOf(42);
 
-Number asNumber = (Number) raw; // Thành công
-Integer asInteger = (Integer) raw; // Thành công
+Number asNumber = (Number) raw; // Succeeds
+Integer asInteger = (Integer) raw; // Succeeds
 // String bad = (String) raw;   // ClassCastException
-String text = raw.toString();     // Chuỗi biểu diễn "42"
+String text = raw.toString();     // String representation "42"
 ```
 
-`toString()` là chuyển đổi thành representation dạng chuỗi, có thể có hành vi tùy kiểu và không dùng được trực tiếp với `null`. `String.valueOf(raw)` hỗ trợ `null` nhưng trả chuỗi chữ `"null"`, không phải giá trị tham chiếu `null`. Một API mong đợi **đúng đối tượng String** không nên tự tiện thay bằng chuỗi biểu diễn của object khác.
+`toString()` converts to a string representation, which may have type-specific behavior and cannot be called directly on `null`. `String.valueOf(raw)` supports `null` but returns the literal string `"null"`, not a `null` reference value. An API expecting **an actual String object** should not silently substitute another object's string representation.
 
-## 5. Primitive boxing, unboxing và widening
+## 5. Primitive boxing, unboxing, and widening
 
-Khi gọi phương thức thông thường:
+In a normal method call:
 
 ```java
 int small = api.count();
 long bigger = small;
 ```
 
-compiler có thể widening primitive `int` sang `long` khi gán. Nhưng sau Reflection:
+the compiler can widen primitive `int` to `long` on assignment. After Reflection, however:
 
 ```java
 Object raw = countMethod.invoke(api);
 ```
 
-giá trị `raw` là `Integer`. Vì `Integer` và `Long` là hai class không có quan hệ kế thừa, `Long result = (Long) raw` thất bại.
+the `raw` value is `Integer`. Because `Integer` and `Long` are two classes with no inheritance relationship, `Long result = (Long) raw` fails.
 
-Các cách đúng khi `raw` chứa `Integer`:
+Correct ways when `raw` holds `Integer`:
 
 ```java
 Integer boxed = (Integer) raw;
 int n = boxed;
 long widened = n;
 
-long alsoWidened = (Integer) raw; // Unbox int rồi widen long
+long alsoWidened = (Integer) raw; // Unbox int then widen long
 long viaNumber = ((Number) raw).longValue();
 ```
 
-Đây là các đoạn code minh họa bên trong một method có `raw` đã được nhận và bảo đảm khác `null`.
+These are illustrative code snippets inside a method where `raw` has been received and is guaranteed non-`null`.
 
-**Không đồng nhất các cách chuyển đổi:** `Number.longValue()` được hỗ trợ bởi nhiều kiểu số, nhưng với kiểu có phần thập phân hoặc số vượt khoảng biểu diễn, kết quả có thể bị cắt/mất chính xác. Cần định nghĩa cách xử lý overflow và precision nếu dữ liệu runtime không chắc chắn.
+**Do not conflate conversion methods:** `Number.longValue()` is supported by many numeric types, yet for types with fractional parts or values outside the representation range, the result may be truncated/lose precision. You must define how to handle overflow and precision if runtime data is uncertain.
 
-Một lỗi tương tự là cast `Double` sang `Integer` chỉ vì cả hai đại diện cho số: `(Integer) Double.valueOf(1.5)` không hợp lệ. Muốn chuyển giá trị, dùng API số hoặc converter có quy tắc cụ thể.
+A similar error is casting `Double` to `Integer` merely because both represent numbers: `(Integer) Double.valueOf(1.5)` is invalid. To convert values, use numeric APIs or a converter with explicit rules.
 
-### Primitive return và Class.cast
+### Primitive return and Class.cast
 
-Khi kiểm tra result được boxing qua `Class.cast`, dùng wrapper:
+When checking a boxed result via `Class.cast`, use the wrapper:
 
 ```java
 Integer count = Integer.class.cast(countMethod.invoke(api));
 ```
 
-`int.class.cast(result)` **không** tương đương, vì `int.class` biểu diễn primitive type, không phải loại object boxed có thể được kiểm tra bằng cast tham chiếu.
+`int.class.cast(result)` is **not** equivalent, because `int.class` represents the primitive type, not the boxed object type that can be checked by a reference cast.
 
-## 6. Void, null và NullPointerException
+## 6. Void, null, and NullPointerException
 
-Hai trường hợp khác nhau cùng cho `raw == null`:
+Two different cases both yield `raw == null`:
 
-- Method khai báo `void`: `Method.invoke` luôn trả `null` sau khi method chạy thành công.
-- Method khai báo kiểu tham chiếu như `String`: bản thân method có thể trả `null`.
+- Method declared `void`: `Method.invoke` always returns `null` after the method succeeds.
+- Method declared with a reference type such as `String`: the method itself may return `null`.
 
-Nếu muốn phân biệt, hãy đọc metadata:
+To distinguish them, inspect metadata:
 
 ```java
 if (method.getReturnType() == void.class) {
-    // Method không khai báo trả về một giá trị.
+    // The method does not declare a return value.
 }
 ```
 
-Còn nếu caller cần chuyển result sang primitive thì phải xử lý null trước:
+And if the caller needs to convert the result to a primitive, handle null first:
 
 ```java
 Object raw = method.invoke(receiver);
@@ -286,27 +286,27 @@ if (!(raw instanceof Number number)) {
 int value = number.intValue();
 ```
 
-Đoạn trên là mẫu minh họa trong phương thức với `method`, `receiver` hợp lệ. `(Integer) null` tự nó trả `null`, nhưng việc gán vào `int` gọi unboxing và ném `NullPointerException`. Đó là **lỗi khác `ClassCastException`**.
+The snippet above is an illustrative pattern inside a method with valid `method` and `receiver`. `(Integer) null` itself returns `null`, yet assigning to `int` triggers unboxing and throws `NullPointerException`. That is **a different error from `ClassCastException`**.
 
-Không gọi `raw.getClass()` khi raw có thể bằng null. Khi chuẩn đoán, dùng `raw == null ? "null" : raw.getClass().getName()`.
+Do not call `raw.getClass()` when `raw` can be null. For diagnostics, use `raw == null ? "null" : raw.getClass().getName()`.
 
-## 7. Phân biệt lỗi ở caller và InvocationTargetException
+## 7. Distinguishing caller-side errors from InvocationTargetException
 
-Các lỗi quanh Reflection xảy ra ở những giai đoạn khác nhau:
+Errors around Reflection occur at different stages:
 
-| Tình huống | Nơi phát sinh | Ngoại lệ |
+| Situation | Where it occurs | Exception |
 | --- | --- | --- |
-| `getMethod` không tìm được chữ ký | Tra cứu metadata | `NoSuchMethodException` |
-| Không có quyền gọi phương thức | Kiểm tra truy cập | Thường `IllegalAccessException` |
-| Đối số truyền cho `invoke` không phù hợp | Giai đoạn chuẩn bị thực thi | Thường `IllegalArgumentException` |
-| Method đích tự ném `IllegalStateException` | Bên trong method đích | `InvocationTargetException` bọc nguyên nhân |
-| Method đích tự ném `ClassCastException` | Bên trong method đích | `InvocationTargetException` bọc nguyên nhân |
-| Cast `(String) raw` sau khi `invoke` trả `Integer` | Mã gọi sau khi method trả về | `ClassCastException` trực tiếp |
-| Unboxing result `null` thành `int` | Mã gọi sau khi method trả về | `NullPointerException` |
+| `getMethod` fails to find signature | Metadata lookup | `NoSuchMethodException` |
+| No permission to invoke method | Access check | Usually `IllegalAccessException` |
+| Arguments passed to `invoke` are incompatible | Execution preparation phase | Usually `IllegalArgumentException` |
+| Target method itself throws `IllegalStateException` | Inside target method | `InvocationTargetException` wrapping the cause |
+| Target method itself throws `ClassCastException` | Inside target method | `InvocationTargetException` wrapping the cause |
+| Casting `(String) raw` after `invoke` returns `Integer` | Calling code after method returns | Direct `ClassCastException` |
+| Unboxing `null` result to `int` | Calling code after method returns | `NullPointerException` |
 
-Điểm cần nhớ: **`InvocationTargetException` chỉ biểu diễn exception/error thoát ra từ code của method đích** (trong ngữ cảnh invocation). Nếu caller tự cast sai **sau khi** method đã trả về, Reflection không thể quay lại bọc lỗi đó.
+Key point to remember: **`InvocationTargetException` only represents an exception/error escaping from the target method's code** (during invocation context). If the caller itself casts wrongly **after** the method has returned, Reflection cannot go back and wrap that error.
 
-Một cách phân tách trách nhiệm:
+One way to separate responsibilities:
 
 ```java
 Object raw;
@@ -317,25 +317,25 @@ try {
     throw new IllegalStateException("Target method failed", targetCause);
 }
 
-// Sau khi invoke thành công, chuyển đổi là trách nhiệm caller.
+// After invoke succeeds, conversion is the caller's responsibility.
 if (!(raw instanceof String text)) {
     throw new IllegalArgumentException("Expected a String result");
 }
 System.out.println(text);
 ```
 
-Đây là **đoạn minh họa**, đặt trong một phương thức đã xử lý hoặc khai báo các exception khác như `IllegalAccessException`. Chính sách ở ví dụ yêu cầu String khác null; hệ thống cho phép return null phải có nhánh riêng.
+This is an **illustrative snippet**, placed in a method that already handles or declares other exceptions such as `IllegalAccessException`. The policy in the example requires a non-null String; a system allowing a null return must have a separate branch.
 
-### Hai ví dụ dễ bị đánh đồng
+### Two examples easily equated
 
-- `Integer actual = ...; String text = (String) (Object) actual;` gây `ClassCastException` trực tiếp trong mã thực hiện cast.
-- Nếu method đích chứa cast sai tương tự rồi bị gọi bằng `Method.invoke`, caller sẽ thấy `InvocationTargetException` với `getCause() instanceof ClassCastException`.
+- `Integer actual = ...; String text = (String) (Object) actual;` causes a direct `ClassCastException` in the code performing the cast.
+- If the target method contains a similar invalid cast and is invoked via `Method.invoke`, the caller will see `InvocationTargetException` with `getCause() instanceof ClassCastException`.
 
-Nhìn **stack trace và chuỗi nguyên nhân** để xác định nơi lỗi xuất phát.
+Inspect the **stack trace and cause chain** to pinpoint where the error originated.
 
-## 8. Kiểu khai báo không phải kiểu runtime
+## 8. Declared type is not the runtime type
 
-Xét:
+Consider:
 
 ```java
 class Base {
@@ -347,7 +347,7 @@ class Derived extends Base {
 }
 ```
 
-Một đoạn trong phương thức có xử lý ngoại lệ:
+A snippet inside a method with exception handling:
 
 ```java
 Method m = Base.class.getMethod("value");
@@ -357,21 +357,21 @@ System.out.println(m.getReturnType().getSimpleName()); // Object
 System.out.println(raw.getClass().getSimpleName());    // String
 ```
 
-`Method.getReturnType()` mô tả metadata của method được lấy từ `Base`; runtime thực hiện dispatch theo instance `Derived` nên kết quả là `String`. Cast sang `String` hợp lệ vì **đối tượng thực** là String, mặc dù return type khai báo ở `Base` là `Object`.
+`Method.getReturnType()` describes the metadata of the method retrieved from `Base`; at runtime, dispatch executes on the `Derived` instance so the result is `String`. Casting to `String` is valid because **the actual object** is a String, even though the return type declared on `Base` is `Object`.
 
-Tương tự, khi return type là interface hoặc superclass, có thể nhận subtype hợp lệ. Vì vậy, nếu mục tiêu là cast xuống subtype cụ thể, luôn xem xét `instanceof` hoặc `Class.isInstance`.
+Similarly, when the return type is an interface or superclass, a valid subtype may be received. Therefore, if the goal is to downcast to a concrete subtype, always consider `instanceof` or `Class.isInstance`.
 
-### Bridge method và generic return
+### Bridge methods and generic returns
 
-Với generic hoặc covariant return, compiler có thể sinh bridge method; Reflection có thể liệt kê các method này. `Method.isBridge()` và `Method.isSynthetic()` cho biết trường hợp tương ứng. Khi có nhiều method cùng tên, không chọn bừa phần tử đầu tiên từ `getDeclaredMethods()`: thứ tự không được bảo đảm, và chữ ký hoặc return metadata có thể khác.
+For generics or covariant returns, the compiler may generate bridge methods; Reflection can list these methods. `Method.isBridge()` and `Method.isSynthetic()` indicate the respective cases. When multiple methods share the same name, do not blindly pick the first element from `getDeclaredMethods()`: the order is not guaranteed, and signatures or return metadata may differ.
 
-Nếu method đích hoặc bridge tự cast sai, lỗi đi qua cơ chế wrapper của `Method.invoke`; nếu caller cast kết quả sai, lỗi nằm sau lời gọi. Phân biệt bằng stack trace và `InvocationTargetException.getCause()`.
+If the target method or bridge itself casts wrongly, the error passes through `Method.invoke`'s wrapper mechanism; if the caller casts the result wrongly, the error sits after the call. Distinguish them via stack trace and `InvocationTargetException.getCause()`.
 
-## 9. ClassCastException và generic type erasure
+## 9. ClassCastException and generic type erasure
 
-Một method có thể khai báo `List<String>` và `getGenericReturnType()` mô tả được generic signature, nhưng runtime không tự xác minh tất cả phần tử thực sự là String.
+A method may declare `List<String>` and `getGenericReturnType()` can describe the generic signature, yet runtime does not automatically verify that every element is actually a String.
 
-Ví dụ đoạn code minh họa:
+Illustrative code example:
 
 ```java
 Object raw = method.invoke(receiver);
@@ -381,24 +381,24 @@ if (raw instanceof java.util.List<?> list) {
 }
 ```
 
-Cách kiểm tra trên biết `raw` thực sự là List, nhưng không bảo đảm mỗi item là String. Không thể viết `raw instanceof List<String>` vì parameterized type đó không reifiable tại runtime.
+The check above verifies `raw` is actually a List, but does not guarantee each item is a String. You cannot write `raw instanceof List<String>` because that parameterized type is not reifiable at runtime.
 
-Một cast không kiểm tra phần tử có thể thành công ban đầu rồi lỗi xuất hiện muộn:
+An unchecked cast may succeed initially and fail later:
 
 ```java
 @SuppressWarnings("unchecked")
 java.util.List<String> values =
         (java.util.List<String>) raw;
 
-// Khi đọc phần tử, compiler có thể chèn cast thành String.
+// When reading an element, the compiler may insert a cast to String.
 String first = values.get(0);
 ```
 
-Nếu phần tử đầu tiên thực là Integer, lỗi `ClassCastException` có thể xuất hiện ở dòng nhận `first`, **không phải** ở phép cast nguyên List. Vì thế với dữ liệu từ plugin, JSON mapper hoặc API runtime, nên dùng `List<?>` rồi validate từng phần tử khi cần bảo đảm kiểu.
+If the first element is actually an Integer, `ClassCastException` may occur on the line reading `first`, **not** on the cast of the List itself. Thus for data from plugins, JSON mappers, or runtime APIs, use `List<?>` and validate each element when type safety is needed.
 
-## 10. Generic helper trả T chưa chắc kiểm tra T
+## 10. A generic helper returning T does not necessarily check T
 
-Hàm tiện ích sau trông có vẻ trả đúng kiểu:
+The utility method below looks like it returns the right type:
 
 ```java
 @SuppressWarnings("unchecked")
@@ -408,15 +408,15 @@ static <T> T call(Method method, Object target)
 }
 ```
 
-Nhưng type erasure khiến `T` không được kiểm tra như `String` ở thân hàm. Nếu mã gọi viết:
+However, type erasure prevents `T` from being checked like `String` inside the helper body. If the calling code writes:
 
 ```java
 String result = call(method, target);
 ```
 
-compiler có thể đưa phép `checkcast String` ở **vị trí mã gọi sử dụng kết quả**. Khi method trả Integer, `ClassCastException` vẫn có thể xảy ra phía caller, bất chấp generic helper đã return.
+the compiler may place `checkcast String` at **the caller site using the result**. When the method returns an Integer, `ClassCastException` can still occur on the caller side, even though the generic helper already returned.
 
-Một thiết kế rõ ràng hơn là truyền cả runtime type token:
+A clearer design is to pass a runtime type token as well:
 
 ```java
 static <T> T callAs(
@@ -427,11 +427,11 @@ static <T> T callAs(
 }
 ```
 
-Mẫu này yêu cầu caller chọn type cụ thể, ví dụ `String.class` hoặc `Integer.class` (đối với primitive int đã boxing). `Class.cast(null)` vẫn trả null; nếu không chấp nhận null thì thêm kiểm tra riêng. Nếu object có generic parameter như `List<String>`, chỉ một `Class<List>` không kiểm tra được toàn bộ phần tử.
+This pattern requires the caller to pick a concrete type, such as `String.class` or `Integer.class` (for boxed primitive int). `Class.cast(null)` still returns null; if null is disallowed, add a separate check. If the object has generic parameters like `List<String>`, a single `Class<List>` cannot validate all elements.
 
-## 11. Kiểm tra kiểu an toàn bằng instanceof và Class.cast
+## 11. Safe type checking with instanceof and Class.cast
 
-### 11.1. Pattern matching cho instanceof (Java 17)
+### 11.1. Pattern matching for instanceof (Java 17)
 
 ```java
 static String requireString(Object raw) {
@@ -444,9 +444,9 @@ static String requireString(Object raw) {
 }
 ```
 
-Đây là một phương thức tiện ích đầy đủ về cú pháp Java khi đặt trong một class. Nó coi null là không hợp lệ theo chủ ý. Một API cho phép null cần quy tắc khác.
+This is a syntactically complete Java utility method when placed inside a class. It intentionally treats null as invalid. An API allowing null needs a different rule.
 
-### 11.2. Class.isInstance và Class.cast
+### 11.2. Class.isInstance and Class.cast
 
 ```java
 static <T> T checkedCast(Object value, Class<T> expected) {
@@ -457,19 +457,19 @@ static <T> T checkedCast(Object value, Class<T> expected) {
 }
 ```
 
-Đây là phương thức tiện ích có thể đặt trong class. `expected.isInstance(null)` là false, nên nó cũng từ chối null. `Class.cast` kiểm tra type thực và có thể ném `ClassCastException` khi giá trị không thuộc class mong muốn.
+This is a utility method that can be placed inside a class. `expected.isInstance(null)` is false, so it also rejects null. `Class.cast` checks the actual type and can throw `ClassCastException` when the value does not belong to the desired class.
 
-Khi muốn **chuyển đổi** một kiểu số sang kiểu số khác (ví dụ Integer → long), chỉ kiểm tra class không đủ; phải định nghĩa rõ conversion, overflow, null, độ chính xác.
+When wanting to **convert** one numeric type to another (e.g., Integer → long), checking the class alone is not enough; you must clearly define conversion, overflow, null, and precision handling.
 
-### 11.3. Xử lý String khác biểu diễn String
+### 11.3. Handling String vs. String representation
 
-Nếu hợp đồng yêu cầu chính xác return type String, dùng cast đã kiểm tra. Nếu hợp đồng là “hiển thị thông tin” và chấp nhận bất cứ object nào, dùng converter riêng hoặc `String.valueOf` với hành vi null đã được thống nhất. Không âm thầm biến số, collection hoặc object nghiệp vụ thành String khi phía gọi yêu cầu một thực thể có kiểu.
+If the contract requires strictly return type String, use a checked cast. If the contract is "display information" and accepts any object, use a dedicated converter or `String.valueOf` with agreed-upon null behavior. Do not silently turn numbers, collections, or business objects into Strings when the caller expects a typed entity.
 
-## 12. Mảng, class loader và các tình huống đặc biệt
+## 12. Arrays, class loaders, and special cases
 
-### Mảng là object
+### Arrays are objects
 
-Method trả `String[]` sẽ làm `Method.invoke` trả một đối tượng mảng `String[]`:
+A method returning `String[]` causes `Method.invoke` to return a `String[]` array object:
 
 ```java
 Object raw = arrayMethod.invoke(receiver);
@@ -478,36 +478,36 @@ if (raw instanceof String[] values) {
 }
 ```
 
-Đoạn code minh họa giả định method đích phù hợp. Mảng `int[]` không phải `Integer[]`; Reflection không tự boxing toàn bộ phần tử của mảng trả về thành một mảng wrapper mới. Kiểu mảng thực quyết định cast có hợp lệ hay không.
+The illustrative snippet assumes a suitable target method. An `int[]` array is not `Integer[]`; Reflection does not automatically box every element of a returned array into a new wrapper array. The actual array type determines whether a cast is valid.
 
-### Hai class cùng tên có thể vẫn không cast được
+### Two classes with the same name may still fail to cast
 
-Trong môi trường plugin, class loader hoặc hot reload, hai class có **cùng binary name** nhưng được load bởi hai class loader định nghĩa khác nhau có thể là hai kiểu runtime không tương thích. `ClassCastException` khi đó không nhất thiết do tên hiển thị khác nhau.
+In plugin, class loader, or hot-reload environments, two classes with **the same binary name** loaded by two different defining class loaders can be two incompatible runtime types. `ClassCastException` in that case is not necessarily caused by different display names.
 
-Để chẩn đoán, có thể xem `raw.getClass()`, `raw.getClass().getClassLoader()` và class loader của expected type. Cách sửa là thống nhất ranh giới type/class loader (chẳng hạn API/interface dùng chung), không dùng cast mạnh hơn.
+To diagnose, inspect `raw.getClass()`, `raw.getClass().getClassLoader()`, and the class loader of the expected type. The fix is to unify type/class loader boundaries (such as a shared API/interface), not to force a stronger cast.
 
-### Method.invoke, Field.get và Constructor.newInstance khác nhau
+### Method.invoke, Field.get, and Constructor.newInstance differ
 
-| API | Giá trị trả về | Ý nghĩa |
+| API | Return value | Meaning |
 | --- | --- | --- |
-| `Method.invoke(...)` | `Object` | Primitive method return được boxing; `void` thành null |
-| `Field.get(...)` | `Object` | Field primitive được boxing |
-| `Field.getInt(...)` | `int` | API đọc primitive chuyên biệt khi chuyển đổi hợp lệ |
-| `Constructor<T>.newInstance(...)` | `T` | Tạo object của lớp khai báo khi được phép, không có void return |
+| `Method.invoke(...)` | `Object` | Primitive method returns are boxed; `void` becomes null |
+| `Field.get(...)` | `Object` | Primitive fields are boxed |
+| `Field.getInt(...)` | `int` | Specialized primitive reader API when conversion is valid |
+| `Constructor<T>.newInstance(...)` | `T` | Instantiates object of declaring class when permitted; no void return |
 
-Không tổng quát hóa rằng mọi API Reflection có chung quy tắc chuyển đổi. Bài này tập trung vào **return value của Method.invoke**.
+Do not generalize that all Reflection APIs share the same conversion rules. This lesson focuses on **the return value of Method.invoke**.
 
-## 13. Quy trình chẩn đoán lỗi trong thực tế
+## 13. Practical error-diagnosis workflow
 
-1. **Tách lệnh invoke khỏi phép cast** để xác định điểm ném lỗi: `Object raw = method.invoke(target);` rồi mới cast.
-2. **Kiểm tra method thực sự được chọn** qua `getDeclaringClass()`, `getName()`, `getParameterTypes()` và `getReturnType()`. Overload hoặc bridge có thể làm caller dùng sai metadata.
-3. **Xem giá trị null trước khi gọi getClass()**. Nếu `getReturnType() == void.class`, không mong đợi giá trị.
-4. **Nếu khác null, kiểm tra runtime type** và quan hệ subtype/interface với expected type. Với primitive, nhớ wrapper tương ứng.
-5. **Nếu cần số kiểu khác, chuyển đổi rõ ràng** thay vì cast wrapper sai. Kiểm soát overflow/precision.
-6. **Xem wrapper của exception**. `InvocationTargetException.getCause()` biểu diễn lỗi ở method đích; `ClassCastException` sau phép cast là lỗi caller.
-7. **Nếu generic hoặc class loader phức tạp**, kiểm tra element type, bridge method và class loader định nghĩa type.
+1. **Separate the invoke call from the cast** to pinpoint where the error is thrown: `Object raw = method.invoke(target);` and only then cast.
+2. **Verify the method actually selected** via `getDeclaringClass()`, `getName()`, `getParameterTypes()`, and `getReturnType()`. Overloads or bridge methods may cause the caller to use the wrong metadata.
+3. **Check for null before calling getClass()**. If `getReturnType() == void.class`, do not expect a value.
+4. **If non-null, check the runtime type** and subtype/interface relationship with the expected type. For primitives, remember the corresponding wrapper.
+5. **If a different numeric type is needed, convert explicitly** instead of casting to the wrong wrapper. Guard against overflow/precision loss.
+6. **Inspect exception wrappers**. `InvocationTargetException.getCause()` represents an error inside the target method; `ClassCastException` after a cast is a caller error.
+7. **If generics or class loaders are involved**, check element types, bridge methods, and the class loader defining the type.
 
-Ví dụ log chẩn đoán chỉ dựa trên metadata/kiểu (tránh log dữ liệu nhạy cảm):
+Diagnostic logging example relying only on metadata/types (avoid logging sensitive data):
 
 ```java
 Object raw = method.invoke(receiver);
@@ -516,55 +516,55 @@ String actual = raw == null ? "null" : raw.getClass().getName();
 System.out.println("declared=" + declared + ", actual=" + actual);
 ```
 
-Đây là đoạn minh họa trong method đã có biến phù hợp và xử lý ngoại lệ. Nếu kết quả là Integer khi mã cần String, bước sửa nằm ở **hợp đồng kiểu/chuyển đổi của caller**, không nằm ở việc sửa `Method.invoke`.
+This is an illustrative snippet inside a method that already has appropriate variables and exception handling. If the result is Integer when the code needs String, the fix belongs in **the caller's type/conversion contract**, not in changing `Method.invoke`.
 
-## 14. Lỗi phổ biến
+## 14. Common mistakes
 
-| Sai lầm | Hậu quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Tin rằng method trả int thì `invoke` trả primitive int | Nhầm wrapper | Chờ Integer và unbox |
-| Cast `Integer` sang `Long` để widen | ClassCastException | Unbox rồi widening hoặc dùng Number |
-| Cast mọi object thành String | ClassCastException | Kiểm tra instanceof; dùng converter nếu thật sự cần |
-| Unbox return của void | NullPointerException | Xét `getReturnType() == void.class` |
-| Không kiểm tra null trước `getClass()` | NullPointerException | Nhánh null rõ ràng |
-| Chỉ nhìn return type khai báo Object để đoán String | Sai runtime type | Kiểm tra giá trị thực |
-| Xem mọi ClassCastException là lỗi của method đích | Chẩn đoán sai | Phân biệt lỗi trực tiếp và cause của InvocationTargetException |
-| Dùng `(T)` generic và nghĩ runtime type được validate | ClassCastException muộn ở caller | Dùng runtime type token và kiểm tra |
-| Cast thành `List<String>` mà không kiểm tra phần tử | ClassCastException khi đọc phần tử | Dùng `List<?>` và validate |
-| Giả định hai class cùng tên luôn cast được | Lỗi với class loader khác nhau | Kiểm tra class identity và loader |
+| Believing a method returning int makes `invoke` return primitive int | Wrapper confusion | Expect Integer and unbox |
+| Casting `Integer` to `Long` to widen | ClassCastException | Unbox then widen, or use Number |
+| Casting any object to String | ClassCastException | Check instanceof; use a converter if truly needed |
+| Unboxing the return of void | NullPointerException | Check `getReturnType() == void.class` |
+| Failing to check null before `getClass()` | NullPointerException | Explicit null branch |
+| Looking only at declared return type Object and assuming String | Wrong runtime type | Inspect actual value |
+| Treating every ClassCastException as a bug in the target method | Misdiagnosis | Distinguish direct error vs. cause of InvocationTargetException |
+| Using generic `(T)` and thinking runtime type is validated | Delayed ClassCastException at caller | Pass a runtime type token and verify |
+| Casting to `List<String>` without checking elements | ClassCastException when reading elements | Use `List<?>` and validate |
+| Assuming two classes with the same name can always cast | Failure with different class loaders | Check class identity and loader |
 
-## 15. Câu hỏi tự kiểm tra
+## 15. Self-check questions
 
-**1.** Method `int count()` trả 12. Đối tượng runtime từ `Method.invoke()` có class nào?
+**1.** Method `int count()` returns 12. What class does the runtime object from `Method.invoke()` have?
 
-**Đáp án:** `Integer.class`. Primitive `int` được boxing vào kết quả kiểu `Object`.
+**Answer:** `Integer.class`. Primitive `int` is boxed into the `Object` result.
 
-**2.** Tại sao `Long number = (Long) method.invoke(target)` lỗi khi method trả `int`?
+**2.** Why does `Long number = (Long) method.invoke(target)` fail when the method returns `int`?
 
-**Đáp án:** Runtime value là Integer, không phải Long. Cast tham chiếu giữa hai wrapper không thực hiện widening primitive. Hãy unbox Integer rồi widen sang long.
+**Answer:** The runtime value is Integer, not Long. Reference casting between two wrappers does not perform primitive widening. Unbox Integer and then widen to long.
 
-**3.** Method `void ping()` vẫn in thông báo. `invoke` trả gì?
+**3.** Method `void ping()` still prints a message. What does `invoke` return?
 
-**Đáp án:** `null`, mặc dù method đã chạy và có side effect.
+**Answer:** `null`, even though the method executed and had side effects.
 
-**4.** Vì sao `int n = (Integer) raw` ném NullPointerException nếu raw bằng null?
+**4.** Why does `int n = (Integer) raw` throw NullPointerException if raw is null?
 
-**Đáp án:** Cast tham chiếu null sang Integer hợp lệ; lỗi phát sinh ở bước unboxing Integer null thành int.
+**Answer:** Casting null to reference type Integer succeeds; the error occurs at the step unboxing a null Integer to int.
 
-**5.** Khi nào một `ClassCastException` bị bọc trong `InvocationTargetException`?
+**5.** When is a `ClassCastException` wrapped inside `InvocationTargetException`?
 
-**Đáp án:** Khi chính method đích (hoặc code nó gọi) ném ClassCastException và lỗi đó thoát ra trong quá trình invoke. Nếu caller tự cast sai sau khi invoke trả về, lỗi xuất hiện trực tiếp ở caller.
+**Answer:** When the target method itself (or code it calls) throws ClassCastException and that error escapes during invocation. If the caller itself casts wrongly after invoke returns, the error occurs directly at the caller.
 
-**6.** `Method.getReturnType()` trả Object nhưng `raw.getClass()` trả String. Có mâu thuẫn không?
+**6.** `Method.getReturnType()` returns Object while `raw.getClass()` returns String. Is there a contradiction?
 
-**Đáp án:** Không. String là subtype của Object, nên object thực có thể cụ thể hơn return type đã khai báo.
+**Answer:** No. String is a subtype of Object, so the actual object can be more specific than the declared return type.
 
-**7.** `List<?>` có chứng minh tất cả phần tử là String không?
+**7.** Does `List<?>` prove all elements are String?
 
-**Đáp án:** Không. Generic bị erasure; cần kiểm tra từng phần tử hoặc hợp đồng dữ liệu đáng tin cậy.
+**Answer:** No. Generics undergo erasure; individual elements or a trusted data contract must be checked.
 
-**8.** Một helper `<T> T call(...)` có bảo đảm giá trị đã được cast đúng String bên trong helper không?
+**8.** Does a helper `<T> T call(...)` guarantee the value was already cast to String inside the helper?
 
-**Đáp án:** Không. T bị type erasure; compiler có thể đặt runtime cast ở điểm caller nhận kết quả. Có thể truyền `Class<T>`, kiểm tra bằng `Class.cast` và xử lý null/generic riêng.
+**Answer:** No. T undergoes type erasure; the compiler may place the runtime cast where the caller receives the result. You can pass `Class<T>`, check with `Class.cast`, and handle null/generics separately.
 
-**Ghi nhớ:** `Method.invoke` trả `Object`, boxing primitive và trả null cho void. Java không tự chuyển object sang kiểu caller muốn nhận. `ClassCastException` sau khi invoke trả về thường xuất phát từ **phép cast ở caller**. Hãy đối chiếu declared return type, runtime result type và expected type, đồng thời phân biệt nó với `InvocationTargetException` khi method đích thật sự ném lỗi.
+**Takeaway:** `Method.invoke` returns `Object`, boxing primitives and returning null for void. Java does not automatically convert objects to the type the caller wishes to receive. `ClassCastException` after invoke returns typically comes from **a cast at the caller**. Compare declared return type, runtime result type, and expected type, and distinguish it from `InvocationTargetException` when the target method genuinely throws an error.

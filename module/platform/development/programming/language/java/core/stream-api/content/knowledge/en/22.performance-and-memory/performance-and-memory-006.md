@@ -1,21 +1,21 @@
-# Chọn flatMap hoặc mapMulti theo dữ liệu và phép đo
+# Choosing `flatMap` or `mapMulti` Based on Data and Measurement
 
-Trong chương **Hiệu năng và bộ nhớ** của **Java Stream API**, sau khi nắm được pipeline lazy, `filter`, `map`, `reduce`, `collect` và cách dùng Spliterator, một câu hỏi thực tế là: **khi một phần tử đầu vào có thể tạo ra không, một hoặc nhiều phần tử đầu ra, nên dùng `flatMap` hay `mapMulti`?**
+In the **Performance and Memory** chapter of **Java Stream API**, after mastering lazy pipelines, `filter`, `map`, `reduce`, `collect`, and `Spliterator` usage, a practical question arises: **when one input element can produce zero, one, or multiple output elements, should you use `flatMap` or `mapMulti`?**
 
-Hai phương thức đều diễn đạt được phép biến đổi **một–nhiều** (*one-to-many transformation*). Khác biệt chính nằm ở cách mapper cung cấp kết quả:
+Both methods express a **one-to-many transformation**. The main difference lies in how the mapper supplies results:
 
-- `flatMap` yêu cầu mapper tạo **một Stream con** cho mỗi phần tử đầu vào; Stream API làm phẳng các Stream con.
-- `mapMulti` cung cấp **một Consumer đầu ra** cho mapper; mapper gọi `accept` không, một hoặc nhiều lần để phát phần tử.
+- `flatMap` requires the mapper to return **a child Stream** for each input element; the Stream API flattens those child Streams.
+- `mapMulti` passes **an output Consumer** to the mapper; the mapper calls `accept` zero, one, or more times to emit elements.
 
-`mapMulti` có thể giảm mã khởi tạo những Stream con rất nhỏ và đôi khi có lợi về hiệu năng. Nhưng **không có quy tắc phổ quát rằng `mapMulti` luôn nhanh hơn hoặc dùng ít bộ nhớ hơn `flatMap`**. Javadoc cho phép triển khai mặc định `mapMulti` bằng bộ đệm trung gian và `flatMap`; hiệu quả thực tế phụ thuộc JDK, dữ liệu, số phần tử được phát, phép biến đổi và terminal operation.
+`mapMulti` can cut boilerplate for creating tiny child Streams and can sometimes offer performance benefits. However, **there is no universal rule that `mapMulti` is always faster or uses less memory than `flatMap`**. The Javadoc allows `mapMulti`'s default implementation to use an intermediate buffer and `flatMap`; actual efficiency depends on the JDK, data, emitted element counts, transformations, and terminal operation.
 
-Bài này trình bày hợp đồng của từng API, các trường hợp dùng điển hình, ví dụ Java có kết quả tương đương, rủi ro dừng sớm và tài nguyên I/O, phép đo JMH, cũng như một **ma trận quyết định dựa trên ngữ nghĩa trước, số đo sau**.
+This lesson covers each API's contract, typical use cases, equivalent Java examples, short-circuit and I/O resource risks, JMH benchmarks, and a **decision matrix grounded in semantics first, measurements second**.
 
-> **Phiên bản:** `Stream.flatMap` và các biến thể primitive có từ Java 8. `Stream.mapMulti`, `mapMultiToInt`, `mapMultiToLong`, `mapMultiToDouble` có từ **Java 16**. Các ví dụ đầy đủ sử dụng Java 17+; `record` và `Stream.toList()` có từ Java 16. Nếu phải hỗ trợ Java 8 hoặc Java 11, không gọi trực tiếp `mapMulti`.
+> **Versions:** `Stream.flatMap` and its primitive variants have existed since Java 8. `Stream.mapMulti`, `mapMultiToInt`, `mapMultiToLong`, and `mapMultiToDouble` were added in **Java 16**. Complete examples use Java 17+; `record` and `Stream.toList()` require Java 16+. If you must support Java 8 or Java 11, do not call `mapMulti` directly.
 
-## 1. Nhận diện đúng bài toán một–nhiều
+## 1. Recognizing a one-to-many problem properly
 
-Giả sử có danh sách đơn hàng, mỗi đơn chứa danh sách dòng hàng:
+Suppose you have a list of orders, each containing a list of line items:
 
 ~~~text
 Order #10: [PEN x2, BOOK x0]
@@ -23,7 +23,7 @@ Order #11: []
 Order #12: [PAD x3, PEN x1]
 ~~~
 
-Yêu cầu: sinh danh sách mã `"orderId:sku"` chỉ với những dòng có số lượng **lớn hơn 0**.
+Requirement: generate a list of `"orderId:sku"` codes only for lines with quantity **greater than 0**.
 
 ~~~text
 10:PEN
@@ -31,40 +31,40 @@ Yêu cầu: sinh danh sách mã `"orderId:sku"` chỉ với những dòng có s�
 12:PEN
 ~~~
 
-Ở đây mỗi đơn có thể phát:
+Here each order can emit:
 
-| Đầu vào | Số phần tử đầu ra | Lý do |
+| Input | Output element count | Reason |
 | --- | ---: | --- |
-| Đơn 10 | 1 | Có một dòng có quantity > 0 |
-| Đơn 11 | 0 | Không có dòng hàng |
-| Đơn 12 | 2 | Hai dòng có quantity > 0 |
+| Order 10 | 1 | One item has quantity > 0 |
+| Order 11 | 0 | No line items |
+| Order 12 | 2 | Two items have quantity > 0 |
 
-Một phép `map` đơn thuần luôn biến **một phần tử thành đúng một kết quả**, trừ khi kết quả đó chứa collection hoặc được biểu diễn bằng đối tượng tùy chọn. `flatMap` và `mapMulti` phù hợp khi cần **trải phẳng** những kết quả con thành một luồng duy nhất.
+A plain `map` always turns **one element into exactly one result**, unless that result wraps a collection or uses an optional representation. `flatMap` and `mapMulti` fit when you need to **flatten** sub-results into a single stream.
 
-Trước khi so hiệu năng, xác định **hợp đồng đầu ra**:
+Before comparing performance, define the **output contract**:
 
-1. Giữ lại những phần tử nào?
-2. Mỗi đầu vào có thể phát bao nhiêu kết quả?
-3. Có phải giữ encounter order không?
-4. Kết quả có thể là `null` không?
-5. Nguồn con đã là Stream hay chỉ là dữ liệu cần duyệt?
-6. Downstream có thể dừng sớm không?
-7. Có tài nguyên cần đóng không?
+1. Which elements are kept?
+2. How many outputs can each input emit?
+3. Must encounter order be preserved?
+4. Can results be `null`?
+5. Is the child source already a Stream or data to iterate?
+6. Might downstream short-circuit?
+7. Are there resources to close?
 
-Nếu đáp án thay đổi, phương thức phù hợp cũng có thể thay đổi.
+If the answers change, the right method may change too.
 
-## 2. flatMap: mỗi đầu vào trả một Stream con
+## 2. `flatMap`: each input returns a child Stream
 
-Chữ ký tổng quát của `flatMap`:
+General signature of `flatMap`:
 
 ~~~java
 <R> Stream<R> flatMap(
         Function<? super T, ? extends Stream<? extends R>> mapper);
 ~~~
 
-Mapper nhận một phần tử kiểu `T`, trả về một `Stream<? extends R>` chứa những kết quả con. Stream API đưa các phần tử của Stream con vào pipeline chính.
+The mapper takes one element of type `T` and returns a `Stream<? extends R>` holding child results. The Stream API feeds the child Stream's elements into the main pipeline.
 
-Ví dụ Java 17:
+Java 17 example:
 
 ~~~java
 List<String> codes = orders.stream()
@@ -74,46 +74,46 @@ List<String> codes = orders.stream()
         .toList();
 ~~~
 
-Có thể đọc từ trái sang phải:
+You can read it left to right:
 
-1. Duyệt một `Order`.
-2. Lấy Stream con từ `order.items().stream()`.
-3. Lọc dòng có `quantity > 0`.
-4. Biến từng dòng thành `"orderId:sku"`.
-5. `flatMap` làm phẳng những Stream con thành `Stream<String>`.
-6. `toList()` thu kết quả cuối cùng.
+1. Traverse an `Order`.
+2. Open a child Stream via `order.items().stream()`.
+3. Filter items with `quantity > 0`.
+4. Format each item into `"orderId:sku"`.
+5. `flatMap` flattens those child Streams into `Stream<String>`.
+6. `toList()` collects the final result.
 
-### Ưu điểm của flatMap
+### Advantages of `flatMap`
 
-- Dễ đọc khi **nguồn con đã có Stream** hoặc quá trình con tự nhiên biểu diễn bằng pipeline.
-- Tái sử dụng được những thao tác `filter`, `map`, `limit`, `takeWhile`, `distinct` và nhiều thao tác Stream khác trong mỗi nguồn con.
-- Thể hiện rõ một bước biến đổi thành **Stream con**, thuận lợi khi nguồn con có thể lazy hoặc chứa nhiều phần tử.
-- Có hợp đồng đóng những Stream con do mapper trả về sau khi nội dung được đưa vào pipeline.
+- Readable when **the child source already provides a Stream** or sub-processing is naturally expressed as a pipeline.
+- Reuses Stream operations like `filter`, `map`, `limit`, `takeWhile`, `distinct`, and others per child source.
+- Explicitly models transformation into a **child Stream**, helpful when the child source is lazy or has many elements.
+- Carries the contract of closing child Streams returned by the mapper after their contents enter the pipeline.
 
-### Chi phí cần cân nhắc
+### Costs to consider
 
-Với nhiều phần tử đầu vào mà mỗi phần tử tạo một Stream con rỗng hoặc chỉ có một kết quả, cách viết với `Stream.empty()`/`Stream.of(...)` có thể phát sinh nhiều đối tượng trung gian hoặc công việc khởi tạo Stream con. Trên một số JDK, JIT có thể tối ưu được một phần hoặc phần lớn chi phí này; **không được suy ra số cấp phát thực tế chỉ từ số lần gọi phương thức trong mã nguồn**.
+When many inputs each produce an empty or single-element child Stream, writing `Stream.empty()`/`Stream.of(...)` can allocate intermediate objects or incur child Stream setup work. On some JDKs, the JIT can optimize away part or most of this cost; **never deduce actual allocation counts purely from method call counts in source code**.
 
-Với đầu vào có sẵn một `Stream` con, chi phí tạo Stream có thể là **bản chất nguồn** chứ không phải do `flatMap` gây thêm.
+When inputs already hold a child `Stream`, Stream creation cost may be **inherent to the source** rather than added by `flatMap`.
 
-## 3. mapMulti: mapper phát kết quả qua Consumer
+## 3. `mapMulti`: mapper emits results through a Consumer
 
-Chữ ký của `Stream.mapMulti`:
+Signature of `Stream.mapMulti`:
 
 ~~~java
 <R> Stream<R> mapMulti(
         BiConsumer<? super T, ? super Consumer<R>> mapper);
 ~~~
 
-Trong mapper:
+Inside the mapper:
 
-- Tham số thứ nhất là phần tử đầu vào `T`.
-- Tham số thứ hai là `Consumer<R>` do Stream API cung cấp.
-- Gọi `downstream.accept(value)` để đưa một kết quả `R` vào quá trình làm phẳng.
-- Không gọi `accept` nếu đầu vào không tạo kết quả.
-- Gọi nhiều lần `accept` nếu đầu vào tạo nhiều kết quả.
+- The first parameter is the input element `T`.
+- The second parameter is a `Consumer<R>` supplied by the Stream API.
+- Call `downstream.accept(value)` to emit one `R` result into the flattened stream.
+- Do not call `accept` if the input produces no results.
+- Call `accept` multiple times if the input produces multiple results.
 
-Với cùng bài toán đơn hàng:
+For the same order problem:
 
 ~~~java
 List<String> codes = orders.stream()
@@ -127,25 +127,25 @@ List<String> codes = orders.stream()
         .toList();
 ~~~
 
-Không có bước tạo `Stream.empty()` hay `Stream.of(...)` cho từng đơn. Mapper duyệt danh sách con bằng vòng lặp và **phát các giá trị**.
+There is no `Stream.empty()` or `Stream.of(...)` creation per order. The mapper iterates the child list with a loop and **pushes values**.
 
-Dòng `.<String>mapMulti(...)` chỉ định kiểu đầu ra một cách tường minh. Trong một số ngữ cảnh, đặc biệt với lambda và kết quả chưa có kiểu đích rõ, suy luận kiểu generic có thể chọn kiểu quá rộng như `Object`. Type witness `<String>` giúp compiler và người đọc hiểu mục đích.
+The `.<String>mapMulti(...)` syntax explicitly specifies the output type. In some contexts, especially with lambdas and unclear target types, generic type inference may widen the type to `Object`. The `<String>` type witness helps both compiler and reader understand the intent.
 
-### mapMulti không phải push có tín hiệu từ chối
+### `mapMulti` is not push with a cancellation signal
 
-Consumer trong `mapMulti` có phương thức:
+The Consumer in `mapMulti` has the method:
 
 ~~~java
 void accept(R value);
 ~~~
 
-Nó **không trả boolean**, nên mapper không có một tín hiệu như `Gatherer.Downstream.push(...)` để biết downstream đã từ chối nhận thêm. Đây là khác biệt quan trọng nếu đầu vào có thể tạo hàng triệu phần tử hoặc downstream gọi `limit(1)`.
+It **does not return a boolean**, so the mapper lacks a signal like `Gatherer.Downstream.push(...)` to learn that downstream has stopped accepting more elements. This is an important difference if one input can generate millions of elements or downstream calls `limit(1)`.
 
-`mapMulti` được thiết kế để phát nhiều kết quả qua Consumer **đồng bộ trong lần gọi mapper**; không giữ Consumer lại để gọi sau khi mapper đã trả về và không chuyển Consumer sang task bất đồng bộ tự quản.
+`mapMulti` is designed to emit results through the Consumer **synchronously within the mapper invocation**; do not retain the Consumer to call after the mapper returns, and do not pass the Consumer to self-managed asynchronous tasks.
 
-## 4. Ví dụ đầy đủ: hai pipeline tạo kết quả giống nhau
+## 4. Complete example: two pipelines producing identical results
 
-Đặt đoạn mã sau trong `FlatMapOrMapMultiDemo.java`:
+Place the following code in `FlatMapOrMapMultiDemo.java`:
 
 ~~~java
 import java.util.List;
@@ -199,7 +199,7 @@ public class FlatMapOrMapMultiDemo {
 }
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 [10:PEN, 12:PAD, 12:PEN]
@@ -207,41 +207,41 @@ public class FlatMapOrMapMultiDemo {
 true
 ~~~
 
-Chạy trên JDK 17+:
+Run on JDK 17+:
 
 ~~~bash
 javac --release 17 FlatMapOrMapMultiDemo.java
 java FlatMapOrMapMultiDemo
 ~~~
 
-Ví dụ cố ý sử dụng một `List` có encounter order, không sửa dữ liệu đầu vào trong khi xử lý, và mapper chỉ tạo chuỗi kết quả. Nhờ đó, **cả nội dung lẫn thứ tự** của hai danh sách có thể được so trực tiếp.
+The example intentionally uses a `List` with encounter order, does not mutate inputs during processing, and the mapper only creates result strings. Thus, **both contents and ordering** of the two lists can be compared directly.
 
-Nếu nguồn `orders` được lấy từ collection không có thứ tự, hoặc có lời gọi `unordered()`, không nên tự yêu cầu danh sách theo đúng thứ tự của ví dụ. Việc chọn phương thức làm phẳng không thay thế hợp đồng thứ tự của nguồn.
+If `orders` comes from an unordered collection or uses `unordered()`, do not expect the list to match the example's exact order. Choosing a flattening method does not replace the source's ordering contract.
 
-## 5. Một đầu vào sinh 0, 1, vài hoặc rất nhiều đầu ra
+## 5. One input producing 0, 1, a few, or very many outputs
 
-Số kết quả con cho một phần tử, còn gọi là **fan-out**, là một biến đo hiệu năng quan trọng.
+The number of child results per input element, known as **fan-out**, is a key performance variable.
 
-| Fan-out thường gặp | Ví dụ | Gợi ý ban đầu |
+| Common fan-out | Example | Initial suggestion |
 | --- | --- | --- |
-| **0 hoặc 1** | Giá trị tùy chọn, parse thành công/thất bại, thuộc tính có thể null | `mapMulti` đáng thử nếu đang tạo nhiều `Stream.empty`/`Stream.of` rất nhỏ; `filter` + `map` cũng có thể đơn giản hơn |
-| **0 đến vài phần tử** | Một đơn có vài dòng, một sự kiện sinh vài nhãn | So `flatMap` và `mapMulti` trên dữ liệu thật |
-| **Đã có Stream con** | API trả `Stream<Line>`, nguồn con lazy | `flatMap` thường tự nhiên và dễ giữ tính lazy |
-| **Nhiều phần tử cho mỗi đầu vào** | Một bản ghi nở ra hàng trăm nghìn phần tử | Cần xem xét buffering, `limit`, bộ nhớ; không mặc định `mapMulti` có lợi |
-| **Nguồn con có tài nguyên** | Mỗi đường dẫn mở tệp, truy vấn sinh Stream I/O | Ưu tiên cách thể hiện quyền sở hữu/đóng nguồn rõ ràng |
-| **Cần chia kết quả có trạng thái, dừng sớm chủ động** | Window, batching, điều kiện stop nhiều tầng | Cân nhắc công cụ đúng hợp đồng như iterator, Spliterator hoặc Gatherer tùy JDK, không ép mọi bài toán vào `mapMulti` |
+| **0 or 1** | Optional value, parse success/failure, nullable field | `mapMulti` is worth trying if creating many tiny `Stream.empty`/`Stream.of`; `filter` + `map` can also be simpler |
+| **0 to a few elements** | Order with a few lines, event emitting a few tags | Compare `flatMap` and `mapMulti` on real data |
+| **Already a child Stream** | API returning `Stream<Line>`, lazy child source | `flatMap` is usually natural and preserves laziness |
+| **Many elements per input** | One record expanding into hundreds of thousands of elements | Examine buffering, `limit`, memory; do not assume `mapMulti` wins |
+| **Resource-holding child source** | Path opening a file, query returning an I/O Stream | Prefer an approach expressing clear resource ownership/closing |
+| **Stateful splitting, active short-circuiting** | Windowing, batching, multi-stage stop conditions | Consider right-contract tools like iterators, Spliterators, or Gatherers depending on JDK, rather than forcing everything into `mapMulti` |
 
-Mẫu mã đẹp và nhanh nhất có thể khác nhau khi fan-out thay đổi từ `0` sang `1` hoặc `100`. Một benchmark chỉ thử "mỗi phần tử sinh một giá trị" không đủ để kết luận cho trường hợp flatten danh sách dài.
+The cleanest and fastest pattern can shift when fan-out moves from `0` to `1` or `100`. A benchmark testing only “each element emits one value” is insufficient to judge flattening long lists.
 
-## 6. Trường hợp 0 hoặc 1 kết quả: null, Optional và parser
+## 6. The 0-or-1 result case: `null`, `Optional`, and parsers
 
-Ví dụ một đơn hàng có thể có mã tracking hoặc không:
+For example, a shipment may or may not have a tracking code:
 
 ~~~java
 record Shipment(String id, String trackingCode) {}
 ~~~
 
-### Cách dùng flatMap
+### Using `flatMap`
 
 ~~~java
 List<String> codes = shipments.stream()
@@ -251,9 +251,9 @@ List<String> codes = shipments.stream()
         .toList();
 ~~~
 
-`Stream.ofNullable` có từ Java 9. Với `trackingCode == null`, nó tạo một Stream rỗng; ngược lại, tạo Stream một phần tử.
+`Stream.ofNullable` was added in Java 9. When `trackingCode == null`, it returns an empty Stream; otherwise, a single-element Stream.
 
-### Cách dùng mapMulti
+### Using `mapMulti`
 
 ~~~java
 List<String> codes = shipments.stream()
@@ -266,7 +266,7 @@ List<String> codes = shipments.stream()
         .toList();
 ~~~
 
-Hai pipeline có cùng nội dung đầu ra nếu yêu cầu là **bỏ giá trị null**. Nhưng không cần giới hạn lựa chọn vào đúng hai cách này:
+Both pipelines produce the same output if the requirement is to **drop null values**. Still, you need not restrict yourself to just those two:
 
 ~~~java
 List<String> codes = shipments.stream()
@@ -275,11 +275,11 @@ List<String> codes = shipments.stream()
         .toList();
 ~~~
 
-Cách `map` + `filter` có thể gọn và dễ hiểu hơn với phép biến đổi 1–1 rồi loại null; benchmark vẫn cần nếu chênh lệch hiệu năng đáng quan tâm.
+The `map` + `filter` form can be shorter and clearer for a 1–1 transform followed by null removal; still benchmark if performance differences matter.
 
-### Optional khác null thế nào?
+### How does `Optional` differ from `null`?
 
-Nếu đầu vào có `Optional<T>`, Java 9+ hỗ trợ:
+If inputs hold `Optional<T>`, Java 9+ supports:
 
 ~~~java
 List<String> codes = optionalCodes.stream()
@@ -287,7 +287,7 @@ List<String> codes = optionalCodes.stream()
         .toList();
 ~~~
 
-Với `mapMulti`:
+With `mapMulti`:
 
 ~~~java
 List<String> codes = optionalCodes.stream()
@@ -296,13 +296,13 @@ List<String> codes = optionalCodes.stream()
         .toList();
 ~~~
 
-Cả hai cách đều phát **0 hoặc 1** giá trị cho mỗi Optional. Đối số `emit` chỉ hợp lệ trong lời gọi mapper, vì vậy không giữ tham chiếu để sử dụng về sau.
+Both emit **0 or 1** value per Optional. The `emit` argument is only valid during the mapper call, so do not retain a reference for later use.
 
-**Lưu ý nghiệp vụ:** Loại bỏ null hoặc Optional rỗng làm giảm số phần tử. Nếu hệ thống phải giữ vị trí tương ứng với từng bản ghi, đừng loại phần tử rồi cho rằng danh sách đầu ra vẫn có cùng số lượng/phân bố.
+**Business note:** Dropping nulls or empty Optionals reduces element count. If the system must keep positional correspondence with every record, do not drop elements and assume the output list still matches input count/alignment.
 
-## 7. Khi flatMap đáng ưu tiên vì Stream con đã tồn tại
+## 7. When `flatMap` is preferred because a child Stream already exists
 
-Giả sử một lớp nghiệp vụ đã cung cấp một Stream con:
+Suppose a domain interface already returns a child Stream:
 
 ~~~java
 interface EventSource {
@@ -310,16 +310,16 @@ interface EventSource {
 }
 ~~~
 
-Nếu cần nối các nguồn:
+If you need to concatenate the sources:
 
 ~~~java
 Stream<Event> all = sources.stream()
         .flatMap(EventSource::events);
 ~~~
 
-`flatMap` thể hiện trực tiếp "mỗi nguồn cung cấp một Stream sự kiện". Nó cũng sử dụng hợp đồng Stream để xử lý Stream con; theo API, **mỗi Stream được mapper trả về sẽ được đóng sau khi nội dung của nó được đưa vào pipeline**.
+`flatMap` directly expresses “each source supplies an event Stream”. It also leverages Stream's contract for child Streams: per the API, **each Stream returned by the mapper is closed after its contents have been placed into the pipeline**.
 
-Viết lại bằng `mapMulti` có thể buộc bạn chủ động duyệt Stream con:
+Rewriting with `mapMulti` can force eager iteration of the child Stream:
 
 ~~~java
 Stream<Event> all = sources.stream()
@@ -330,13 +330,13 @@ Stream<Event> all = sources.stream()
         });
 ~~~
 
-Đoạn này phải dùng `try-with-resources` để đóng Stream con. Nó cũng chủ động thực hiện việc duyệt tất cả phần tử con **trong callback mapper**, nên không thể suy ra khả năng dừng sớm tương đương với `flatMap`. Việc viết vòng lặp chủ động như vậy thường **không có lợi** nếu API nguồn đã cung cấp Stream lazy.
+This snippet must use `try-with-resources` to close the child Stream. It also eagerly traverses all child elements **inside the mapper callback**, so you cannot assume the same short-circuiting behavior as `flatMap`. Writing such eager iteration is usually **counterproductive** when the source API already returns a lazy Stream.
 
-**Nguyên tắc:** Nếu nguồn con bản thân là Stream hoặc có tài nguyên, `flatMap` là lựa chọn khởi đầu dễ hiểu. Chỉ chuyển sang `mapMulti` nếu kiểm chứng được cùng ngữ nghĩa, vòng đời và lợi ích thực tế.
+**Rule:** If the child source is itself a Stream or holds resources, `flatMap` is the clearer starting choice. Only switch to `mapMulti` if you verify equivalent semantics, lifecycle handling, and measurable gain.
 
-## 8. Đặc biệt lưu ý vòng đời tài nguyên I/O
+## 8. Special care for I/O resource lifecycles
 
-Một Stream tạo từ `Files.lines(path)` có tài nguyên I/O phải đóng. Nếu đọc nhiều tệp, `flatMap` có thể biểu diễn việc mở từng tệp:
+A Stream created from `Files.lines(path)` holds an I/O resource that must be closed. When reading multiple files, `flatMap` can express opening each file:
 
 ~~~java
 import java.io.IOException;
@@ -361,9 +361,9 @@ static long countErrorLines(List<Path> paths) {
 }
 ~~~
 
-Ở đây Stream ngoài là `paths.stream()` từ danh sách trong bộ nhớ. `flatMap` quản lý việc đóng các Stream con do `Files.lines` trả về theo hợp đồng của nó. Nếu Stream **ngoài** cũng sở hữu tài nguyên, phải đặt chính Stream đó trong `try-with-resources`.
+Here the outer Stream is `paths.stream()` from an in-memory list. `flatMap` manages closing the child Streams returned by `Files.lines` under its contract. If the **outer** Stream also owns a resource, wrap that outer Stream in `try-with-resources` as well.
 
-Nếu dùng `mapMulti`, người viết mapper tự chịu trách nhiệm đóng tệp:
+With `mapMulti`, the mapper author is responsible for closing the file:
 
 ~~~java
 static long countErrorLinesMulti(List<Path> paths) {
@@ -382,39 +382,39 @@ static long countErrorLinesMulti(List<Path> paths) {
 }
 ~~~
 
-Đây là cách đóng nguồn con **đúng phạm vi**, nhưng không mặc nhiên là thiết kế tốt hơn: callback có thể phải đọc hết một tệp con, kể cả khi downstream chỉ cần ít phần tử. Nếu xử lý tệp rất lớn hoặc có khả năng short-circuit, `flatMap` thường thuận lợi hơn để biểu đạt luồng con lazy.
+This closes the child source **in the right scope**, yet it is not automatically a better design: the callback may end up reading an entire child file even when downstream only wants a few elements. When processing very large files or potentially short-circuiting, `flatMap` is usually better suited to expressing a lazy child stream.
 
-**Tránh tuyệt đối** mở `Files.lines` bên trong callback rồi `forEach(emit)` mà không đóng Stream. Terminal operation không tự gọi `close` trên một Stream I/O tùy ý.
+**Strictly avoid** opening `Files.lines` inside the callback and calling `forEach(emit)` without closing the Stream. Terminal operations do not automatically call `close` on an arbitrary I/O Stream.
 
-## 9. mapMulti không tự cam kết loại bỏ mọi bộ đệm
+## 9. `mapMulti` does not guarantee eliminating all buffering
 
-Một ý tưởng thường gặp:
+A common thought:
 
-> “`mapMulti` không tạo Stream con, nên chắc chắn không cấp phát bộ đệm và luôn dùng O(1) bộ nhớ.”
+> “`mapMulti` creates no child Streams, so it definitely allocates no buffers and always uses `O(1)` memory.”
 
-Kết luận đó **không được bảo đảm bởi API**.
+That conclusion is **not guaranteed by the API**.
 
-Theo phần API Note của `Stream.mapMulti`, triển khai mặc định có thể được mô tả như sau:
+According to the API Note on `Stream.mapMulti`, a default implementation can work as follows:
 
-1. Tạo một **bộ đệm nội bộ** cho những phần tử được mapper phát ra.
-2. Gọi mapper với Consumer đưa kết quả vào bộ đệm.
-3. Sau khi mapper trả về, tạo Stream từ bộ đệm.
-4. Dùng `flatMap` để đưa các kết quả vào pipeline.
+1. Create an **internal buffer** for elements emitted by the mapper.
+2. Call the mapper with a Consumer that appends into the buffer.
+3. After the mapper returns, create a Stream from the buffer.
+4. Use `flatMap` to feed the results into the pipeline.
 
-Triển khai JDK cụ thể có thể tối ưu khác đi, và JIT có thể thay đổi số object thực sự được cấp phát. Nhưng **code gọi `mapMulti` không được dựa vào một bảo đảm "không bao giờ buffer"**.
+Specific JDK implementations may optimize differently, and the JIT may alter actual object allocations. However, **code calling `mapMulti` must not depend on a “never buffers” guarantee**.
 
-Hệ quả:
+Consequences:
 
-- Với **fan-out nhỏ**, `mapMulti` có thể có lợi khi tránh nhiều Stream con nhỏ, tùy JDK.
-- Với **fan-out rất lớn từ một đầu vào**, có nguy cơ phải giữ nhiều kết quả trung gian theo cách triển khai; cần đo heap và cấp phát.
-- Nếu downstream dừng sớm, không được giả định mapper có thể dừng ngay bên trong vòng lặp chỉ vì đã đủ kết quả.
-- Với đầu ra lớn hoặc vô hạn từ một input, `mapMulti` không phải cơ chế streaming/backpressure được bảo đảm theo từng phần tử.
+- With **small fan-out**, `mapMulti` can help avoid many tiny child Streams, depending on the JDK.
+- With **very large fan-out from one input**, there is a risk of holding many intermediate results depending on implementation; measure heap and allocations.
+- If downstream short-circuits, never assume the mapper will stop mid-loop as soon as enough results are produced.
+- For large or infinite output from a single input, `mapMulti` is not a guaranteed element-by-element streaming/backpressure mechanism.
 
-Vì vậy, ngoài thời gian chạy, phải đo **allocation rate, GC và peak memory** trước khi quyết định cho bài toán dữ liệu lớn.
+Therefore, alongside runtime, measure **allocation rate, GC, and peak memory** before deciding for large-data workloads.
 
-## 10. Short-circuit: limit và findFirst có thể làm hai cách khác chi phí
+## 10. Short-circuiting: `limit` and `findFirst` can differ in cost
 
-Một tình huống quan trọng là downstream chỉ cần kết quả đầu tiên:
+An important scenario is when downstream only needs the first result:
 
 ~~~java
 List<Integer> first = rows.stream()
@@ -423,9 +423,9 @@ List<Integer> first = rows.stream()
         .toList();
 ~~~
 
-Với `flatMap`, Stream con là nguồn lazy. Việc tiêu thụ downstream có thể dừng sau khi lấy đủ số phần tử, tùy hợp đồng và cách thực thi.
+With `flatMap`, the child Stream is a lazy source. Downstream consumption can stop after pulling enough elements, depending on contracts and execution.
 
-Biểu đạt tương ứng bằng `mapMulti`:
+The equivalent using `mapMulti`:
 
 ~~~java
 List<Integer> first = rows.stream()
@@ -438,7 +438,7 @@ List<Integer> first = rows.stream()
         .toList();
 ~~~
 
-Mapper nhận `Consumer<Integer>` **không trả tín hiệu** rằng downstream đã đủ. Nếu `row.values()` có hàng triệu phần tử, không thể viết:
+The mapper receives a `Consumer<Integer>` that **cannot signal** that downstream has enough. If `row.values()` has millions of elements, you cannot write:
 
 ~~~java
 if (!emit.accept(value)) {
@@ -446,33 +446,33 @@ if (!emit.accept(value)) {
 }
 ~~~
 
-vì `Consumer.accept` trả về `void`. Một triển khai có thể buffer toàn bộ những giá trị mà mapper phát cho **một** input trước khi downstream xử lý tiếp.
+because `Consumer.accept` returns `void`. An implementation may buffer all values emitted by the mapper for **one** input before downstream continues processing.
 
-Điều cần ghi nhớ:
+Key points to remember:
 
-- Hai pipeline có thể **cùng kết quả** nhưng khác đáng kể về số phần tử con đã được tạo/duyệt.
-- Đừng dùng tác dụng phụ trong mapper rồi khẳng định `limit(1)` chỉ khiến mapper thao tác đúng một phần tử con.
-- Nếu việc phát kết quả tốn chi phí hoặc nguồn con rất dài, thử `flatMap` với Stream con lazy trước.
-- Nếu dùng `mapMulti` vì chủ động xử lý toàn bộ nhóm ngắn, chi phí callback và memory có thể vẫn phù hợp.
+- Two pipelines can yield the **same result** yet differ significantly in how many child elements are created/traversed.
+- Do not put side effects inside the mapper and assume `limit(1)` causes the mapper to touch exactly one child element.
+- If emitting results is expensive or child sources are huge, try `flatMap` with a lazy child Stream first.
+- If using `mapMulti` because you intentionally process an entire short group, callback and memory overhead may still fit well.
 
-### Vì sao không dùng Gatherer để thay mọi mapMulti?
+### Why not use `Gatherer` to replace every `mapMulti`?
 
-`Gatherer.Downstream.push` (API chuẩn từ Java 24) có tín hiệu `boolean` cho biết downstream còn muốn nhận thêm không; còn Consumer của `mapMulti` **không có** giao thức này. Gatherer phù hợp với một số bài toán cần dừng sớm/chia trạng thái phức tạp, nhưng yêu cầu JDK mới hơn và không phải lựa chọn bắt buộc cho phép làm phẳng đơn giản.
+`Gatherer.Downstream.push` (standard API since Java 24) has a `boolean` signal indicating whether downstream still wants more; `mapMulti`'s Consumer **lacks** this protocol. Gatherers fit problems needing complex short-circuiting/stateful windows, yet require a newer JDK and are unnecessary for simple flattening.
 
-Đừng thay đổi kiến trúc hoặc phiên bản JDK chỉ vì một benchmark nhỏ; hãy chọn API theo **hợp đồng kết quả và vòng đời**, rồi đo.
+Do not change architecture or JDK versions just for a small microbenchmark; pick the API by **result contract and lifecycle**, then measure.
 
-## 11. mapMultiToInt, mapMultiToLong, mapMultiToDouble: tránh boxing không cần thiết
+## 11. `mapMultiToInt`, `mapMultiToLong`, `mapMultiToDouble`: avoiding unnecessary boxing
 
-Khi đầu ra là số primitive, so sánh các cặp API tương ứng:
+When output is primitive numbers, compare the corresponding API pairs:
 
-| Đầu ra | flatMap | mapMulti |
+| Output | `flatMap` | `mapMulti` |
 | --- | --- | --- |
 | `Stream<R>` | `flatMap(...)` | `mapMulti(...)` |
 | `IntStream` | `flatMapToInt(...)` | `mapMultiToInt(...)` |
 | `LongStream` | `flatMapToLong(...)` | `mapMultiToLong(...)` |
 | `DoubleStream` | `flatMapToDouble(...)` | `mapMultiToDouble(...)` |
 
-Ví dụ tính tổng số lượng các dòng hợp lệ:
+Example summing quantities of valid lines:
 
 ~~~java
 long totalUnitsFlat = orders.stream()
@@ -494,13 +494,13 @@ long totalUnitsMulti = orders.stream()
         .sum();
 ~~~
 
-Hai phép tính cho ra cùng tổng khi quantity không âm và số lượng không vượt miền `long`. `asLongStream().sum()` dùng tổng kiểu `long` thay vì `IntStream.sum()` kiểu `int`, giảm nguy cơ tràn khi dữ liệu nhiều (nhưng không loại bỏ mọi khả năng tràn `long`).
+Both computations give the same sum when quantities are non-negative and totals stay within `long`. `asLongStream().sum()` accumulates in `long` instead of `IntStream.sum()`'s `int`, reducing overflow risk on large datasets (though not eliminating `long` overflow).
 
-Điểm đáng so là **`flatMapToInt` với `mapMultiToInt`**. So `Stream<Integer>` boxing nhiều lần với `mapMultiToInt` có thể cho kết quả benchmark thiên lệch vì thay đổi **hai yếu tố cùng lúc**: cách làm phẳng và boxing. Khi benchmark, hãy giữ kiểu pipeline đầu ra tương đương.
+The fair comparison is **`flatMapToInt` vs. `mapMultiToInt`**. Comparing repeatedly boxed `Stream<Integer>` against `mapMultiToInt` skews benchmarks because it changes **two factors at once**: flattening style and boxing. When benchmarking, keep output pipeline types equivalent.
 
-### Type inference trong mapMulti
+### Type inference in `mapMulti`
 
-Khi kiểu đầu ra không được xác định rõ:
+When the output type is not clearly inferred:
 
 ~~~java
 List<String> result = orders.stream()
@@ -512,41 +512,41 @@ List<String> result = orders.stream()
         .toList();
 ~~~
 
-Type witness `<String>` giúp tránh trường hợp compiler suy luận `Object` và không gán được cho `List<String>`. Nếu đầu ra là số primitive, những overload `mapMultiToInt/Long/Double` có loại Stream xác định sẵn nên tránh được nhiều vấn đề suy luận kiểu và boxing.
+The `<String>` type witness avoids cases where the compiler infers `Object` and fails assignment to `List<String>`. If the output is primitive numbers, the `mapMultiToInt/Long/Double` overloads fix the Stream type upfront, avoiding many type-inference and boxing issues.
 
-## 12. Tính đúng trước khi tối ưu: các bất biến cần giữ
+## 12. Correctness before optimization: invariants to preserve
 
-Một phép thay `flatMap` bằng `mapMulti` phải giữ **ngữ nghĩa**:
+Replacing `flatMap` with `mapMulti` must preserve **semantics**:
 
-1. **Số phần tử đầu ra:** mỗi input phát đúng số giá trị cần thiết.
-2. **Giá trị:** các kết quả được biến đổi/lọc theo cùng điều kiện.
-3. **Thứ tự:** khi nguồn có encounter order, các giá trị được phát trong đúng thứ tự cần giữ.
-4. **Null:** các phần tử null được giữ hoặc loại theo đúng quy tắc, không tự suy diễn.
-5. **Ngoại lệ:** lỗi parser và I/O không bị biến thành kết quả thiếu dữ liệu.
-6. **Vòng đời tài nguyên:** Stream con hoặc reader phải được đóng.
-7. **Xử lý song song:** mapper không can thiệp nguồn, không chia sẻ state mutable ngoài hợp đồng.
-8. **Dừng sớm:** không dựa vào số lần gọi mapper/side effect như một kết quả nghiệp vụ.
-9. **Loại đầu ra:** `Stream<R>` và primitive stream có miền kiểu phù hợp.
+1. **Output element count:** each input emits the exact required number of values.
+2. **Values:** outputs are transformed/filtered under identical conditions.
+3. **Order:** when the source has encounter order, values are emitted in the exact order required.
+4. **Nulls:** null elements are kept or dropped under the exact same rules, never guessed.
+5. **Exceptions:** parse and I/O errors are not turned into silently incomplete output.
+6. **Resource lifecycle:** child Streams or readers must be closed.
+7. **Parallelism:** mappers do not interfere with the source or share mutable state outside contracts.
+8. **Short-circuiting:** do not rely on mapper invocation count/side effects as a business result.
+9. **Output type:** `Stream<R>` and primitive streams use appropriate value ranges.
 
-### Bất biến cho ví dụ đơn hàng
+### Invariants for the order example
 
-Với mỗi `Order`, đặt:
+For each `Order`, let:
 
 ~~~text
-valid(order) = các dòng item có quantity > 0
+valid(order) = items with quantity > 0
 ~~~
 
-Khi đó:
+Then:
 
 ~~~text
 flatten(orders).size()
-    == tổng số valid(item) của mọi order
+    == total count of valid(item) across all orders
 
-flatten(orders) giữ thứ tự order và item nếu nguồn có thứ tự
-mọi chuỗi đầu ra dùng đúng order.id và item.sku
+flatten(orders) preserves order and item order if source is ordered
+every output string uses exact order.id and item.sku
 ~~~
 
-Ví dụ kiểm tra:
+Verification example:
 
 ~~~java
 List<String> expected = usingFlatMap(orders);
@@ -561,11 +561,11 @@ if (!expected.equals(actual)) {
 }
 ~~~
 
-**So một cách triển khai với cách triển khai khác không chứng minh cả hai đúng.** Hãy kết hợp thêm oracle bằng vòng lặp để tránh trường hợp hai pipeline cùng sai một điều kiện nghiệp vụ.
+**Comparing one implementation against another does not prove either is right.** Pair it with a loop-based oracle so you catch cases where both pipelines share the same business bug.
 
-## 13. Oracle đơn giản để kiểm tra fan-out và encounter order
+## 13. A simple oracle to check fan-out and encounter order
 
-Một vòng lặp thủ tục, không dùng hai API đang so sánh:
+An imperative loop, independent of both APIs under comparison:
 
 ~~~java
 static List<String> reference(List<Order> orders) {
@@ -584,7 +584,7 @@ static List<String> reference(List<Order> orders) {
 }
 ~~~
 
-Có thể kiểm tra:
+You can check:
 
 ~~~java
 List<String> expected = reference(orders);
@@ -595,29 +595,29 @@ if (!expected.equals(usingFlatMap(orders))
 }
 ~~~
 
-Bộ kiểm thử nên có những trường hợp:
+Your test suite should cover these cases:
 
-| Ca thử | Điều quan trọng |
+| Test case | What matters |
 | --- | --- |
-| Danh sách đơn rỗng | Kết quả rỗng |
-| Một đơn không có dòng | Không phát giá trị |
-| Một đơn chỉ có dòng quantity = 0 | Không phát giá trị |
-| Một đơn có một dòng hợp lệ | Phát một phần tử |
-| Một đơn có nhiều dòng | Phát nhiều phần tử và giữ thứ tự |
-| Nhiều đơn có cùng SKU | Không tự loại trùng nếu không có `distinct` |
-| SKU rỗng hoặc null | Theo chính sách validation đầu vào đã định |
-| Số lượng âm | Bị loại nếu điều kiện là `quantity > 0` |
-| Fan-out tăng dần | So tính đúng, thời gian và cấp phát |
-| Ngừng sớm bằng `limit(1)` | Cùng kết quả nhưng kiểm tra chi phí thực thi riêng |
-| Chuyển sang parallel | So kết quả theo hợp đồng, không so lịch mapper |
+| Empty order list | Empty result |
+| Order with no items | Emits nothing |
+| Order with only quantity = 0 items | Emits nothing |
+| Order with one valid item | Emits one element |
+| Order with multiple items | Emits multiple elements in order |
+| Multiple orders sharing the same SKU | Does not deduplicate without `distinct` |
+| Empty or null SKU | Follows defined input validation policy |
+| Negative quantity | Filtered out if condition is `quantity > 0` |
+| Increasing fan-out | Compare correctness, runtime, and allocations |
+| Short-circuiting with `limit(1)` | Same result, while checking execution cost separately |
+| Switching to parallel | Compare results per contract, not mapper scheduling |
 
-Đừng chỉ thử một đơn chứa đúng một phần tử: đó chính là trường hợp dễ khiến mọi cách viết có vẻ tương đương về cả ngữ nghĩa lẫn hiệu năng.
+Do not test only an order with a single item: that is the exact case that makes all styles look equivalent in both semantics and performance.
 
-## 14. Song song hóa và stateless mapper
+## 14. Parallelization and stateless mappers
 
-Cả `flatMap` và `mapMulti` là **intermediate operations** của Stream. Mapper của chúng phải tránh sửa nguồn và phụ thuộc trạng thái mutable dùng chung.
+Both `flatMap` and `mapMulti` are Stream **intermediate operations**. Their mappers must avoid modifying the source and avoid depending on shared mutable state.
 
-**Mẫu không an toàn:**
+**Unsafe pattern:**
 
 ~~~java
 List<String> shared = new java.util.ArrayList<>();
@@ -630,9 +630,9 @@ orders.parallelStream()
         });
 ~~~
 
-`ArrayList` không an toàn khi nhiều tác vụ cùng ghi. Việc thay thành `synchronizedList` có thể tránh một số race condition, nhưng không tự bảo đảm thứ tự đầu ra đúng encounter order, đồng thời thêm contention.
+`ArrayList` is unsafe when multiple tasks write concurrently. Swapping to `synchronizedList` can prevent some race conditions, yet still fails to preserve encounter order while adding contention.
 
-**Mẫu phù hợp hơn:**
+**Safer pattern:**
 
 ~~~java
 List<String> result = orders.parallelStream()
@@ -646,50 +646,50 @@ List<String> result = orders.parallelStream()
         .toList();
 ~~~
 
-Mỗi mapper chỉ đọc `order.items()`, phát giá trị vào Consumer được Stream API cung cấp. Với một `List` ordered và terminal `toList()`, đầu ra giữ encounter order theo hợp đồng. Nhưng **không** có bảo đảm mapper được thực thi tuần tự hoặc bởi một thread cụ thể.
+Each mapper only reads `order.items()` and emits values into the Stream API-provided Consumer. With an ordered `List` and terminal `toList()`, output preserves encounter order by contract. However, there is **no** guarantee the mapper runs sequentially or on any specific thread.
 
-Đừng giữ Consumer `emit` bên ngoài callback để gọi từ thread khác hoặc thêm tác dụng phụ vào mapper rồi đòi nó chạy đúng một lần trên mọi nhánh short-circuit.
+Never keep the `emit` Consumer outside the callback to call from another thread, and never put side effects in the mapper expecting them to run once under short-circuiting.
 
-### Parallel không đồng nghĩa nhanh hơn
+### Parallel does not automatically mean faster
 
-Khi tính toán trên mỗi phần tử chỉ là một vòng lặp ngắn và một phép cộng, chi phí chia Spliterator, phân phối tác vụ và ghép kết quả có thể vượt lợi ích song song. Khi benchmark `flatMap` và `mapMulti`, mặc định nên so **tuần tự với tuần tự**, sau đó làm một đợt benchmark riêng **song song với song song**, không trộn hai trục thay đổi vào một phép so.
+When per-element work is just a tiny loop and an addition, `Spliterator` splitting, task scheduling, and result merging overhead can outweigh parallel gains. When benchmarking `flatMap` and `mapMulti`, default to comparing **sequential vs. sequential**, then run a separate benchmark for **parallel vs. parallel**, rather than mixing two axes of change in one comparison.
 
-## 15. Thiết kế benchmark công bằng
+## 15. Designing a fair benchmark
 
-Muốn đưa ra quyết định dựa trên số liệu, cần kiểm soát các biến độc lập.
+To decide based on measurements, control independent variables.
 
-### 15.1. Những biến cần cố định
+### 15.1. Variables to hold constant
 
-- **Cùng dữ liệu đầu vào:** số lượng bản ghi, kích thước danh sách con, số kết quả được phát và thứ tự.
-- **Cùng phép lọc/biến đổi:** một bản ghi sinh ra các số giống nhau trên hai pipeline.
-- **Cùng kiểu đầu ra:** so `flatMapToInt` với `mapMultiToInt` hoặc `flatMap` với `mapMulti`.
-- **Cùng terminal operation:** ví dụ cả hai cùng tính `asLongStream().sum()`.
-- **Cùng mức song song:** không so sequential `flatMap` với parallel `mapMulti`.
-- **Cùng trạng thái JIT/GC:** có warm-up, nhiều lần đo và nhiều fork khi cần.
-- **Không đưa bước sinh dữ liệu vào phép đo** trừ khi muốn đo cả bước đó.
-- **Không loại bỏ công việc do compiler tối ưu:** kết quả benchmark phải được quan sát bởi harness hoặc Blackhole.
+- **Identical input data:** record count, sub-list sizes, emitted element counts, and ordering.
+- **Identical filtering/mapping:** each record produces the exact same numbers in both pipelines.
+- **Identical output type:** compare `flatMapToInt` with `mapMultiToInt`, or `flatMap` with `mapMulti`.
+- **Identical terminal operation:** e.g., both compute `asLongStream().sum()`.
+- **Identical parallelism:** do not compare sequential `flatMap` against parallel `mapMulti`.
+- **Identical JIT/GC conditions:** warm up, run multiple iterations and multiple forks as needed.
+- **Exclude input generation from timing** unless intentionally measuring it.
+- **Prevent dead-code elimination:** benchmark outputs must be consumed by the harness or a Blackhole.
 
-Nếu benchmark chỉ đo thời gian tạo một `Stream` mà **không có terminal operation**, phần lớn pipeline có thể chưa thực thi do tính lazy. Phép đo như vậy không phản ánh chi phí thực tế của `flatMap`/`mapMulti`.
+If a benchmark only times creating a `Stream` **without a terminal operation**, most of the pipeline never runs due to laziness. Such a measurement does not reflect actual `flatMap`/`mapMulti` cost.
 
-### 15.2. Những nhóm dữ liệu nên thử
+### 15.2. Data profiles to test
 
-| Tham số | Giá trị gợi ý | Mục đích |
+| Parameter | Suggested values | Purpose |
 | --- | --- | --- |
-| Số input | 1.000; 100.000; lớn hơn nếu phù hợp | Xem overhead theo số phần tử nguồn |
-| Fan-out | 0; 1; 4; 16; 100+ | Phân biệt trường hợp rỗng/nhỏ/lớn |
-| Độ lệch fan-out | Đều; đa số rỗng; vài bản ghi rất lớn | Gần dữ liệu thực tế |
-| Kiểu dữ liệu | `int`, `long`, object | Xem ảnh hưởng boxing |
-| Downstream | `sum`, `toList`, `limit(1)` | Xem khác biệt tổng hợp và short-circuit |
-| Nguồn | `ArrayList`, nguồn từ Iterator, Stream I/O | Xem ảnh hưởng Spliterator và tài nguyên |
-| Chế độ | Sequential; parallel tách riêng | Không đánh đồng thuật toán với concurrency |
+| Input count | 1,000; 100,000; larger if relevant | Inspect overhead vs. source size |
+| Fan-out | 0; 1; 4; 16; 100+ | Distinguish empty/small/large cases |
+| Fan-out skew | Uniform; mostly empty; a few huge records | Match real-world distributions |
+| Data type | `int`, `long`, objects | Inspect boxing effects |
+| Downstream | `sum`, `toList`, `limit(1)` | Compare aggregation vs. short-circuiting |
+| Source | `ArrayList`, Iterator-backed, I/O Stream | Observe Spliterator and resource impact |
+| Mode | Sequential; parallel separately | Do not conflate algorithm with concurrency |
 
-**Quan trọng:** Không chọn một cấu hình fan-out có lợi cho API mình muốn dùng rồi xem đó là bằng chứng chung. Cấu hình benchmark phải phản ánh **phân bố dữ liệu sản xuất**.
+**Important:** Never pick a fan-out configuration favorable to your preferred API and treat it as universal proof. Benchmark setups must mirror **production data distributions**.
 
-## 16. Ví dụ JMH: flatMapToInt so với mapMultiToInt
+## 16. JMH example: `flatMapToInt` vs. `mapMultiToInt`
 
-**JMH** (*Java Microbenchmark Harness*) là công cụ phổ biến để đo microbenchmark trong JVM. Ví dụ sau minh họa cách tổ chức phép đo; JMH là thư viện ngoài JDK, vì vậy cần cấu hình dependency và annotation processor phù hợp trong dự án trước khi chạy. Bài này **không khẳng định** kết quả tốc độ nào khi chưa thực thi benchmark.
+**JMH** (*Java Microbenchmark Harness*) is the standard tool for JVM microbenchmarking. The example below shows how to structure a measurement; JMH is an external library outside the JDK, so configure dependencies and annotation processors in your project before running. This lesson **claims no speed results** without actually running the benchmark.
 
-Lưu ý chương trình benchmark độc lập sau đây cần Java 17+ và JMH đã được cấu hình:
+Note that the standalone benchmark below requires Java 17+ and JMH configured:
 
 ~~~java
 import java.util.ArrayList;
@@ -772,109 +772,109 @@ public class FlatMapMapMultiBenchmark {
 }
 ~~~
 
-Cả hai benchmark:
+Both benchmarks:
 
-- Dùng đúng **cùng dữ liệu** từ `Data.input`.
-- Phát đúng **cùng dãy số nguyên** cho từng `Row`.
-- Đều tạo `IntStream`, chuyển thành `LongStream` rồi cộng để tránh tràn `int` trong bộ dữ liệu lớn.
-- Có terminal operation `sum()`, nên không chỉ đo việc xây một pipeline chưa chạy.
-- Không tính chi phí sinh input trong phương thức `@Benchmark`.
-- Dùng nhiều cấu hình fan-out, có warm-up, nhiều lần đo và nhiều fork.
+- Use the exact **same data** from `Data.input`.
+- Emit the exact **same integer sequence** per `Row`.
+- Create an `IntStream`, widen to `LongStream`, and sum to avoid `int` overflow on large datasets.
+- Include the terminal operation `sum()`, so they do not merely time building an unexecuted pipeline.
+- Exclude input generation from `@Benchmark` methods.
+- Test multiple fan-out configurations with warmup, multiple measurements, and multiple forks.
 
-Khi chạy JMH thật, cần kiểm tra cả **giá trị checksum** của hai nhánh bằng một bài test độc lập; phép đo nhanh không có ý nghĩa nếu hai benchmark tạo kết quả khác nhau.
+When running JMH for real, also verify the **checksum value** of both variants in an independent test; fast timing means nothing if the two benchmarks compute different answers.
 
-### Đọc kết quả JMH
+### Reading JMH results
 
-Một bảng kết quả minh họa **không phải số đo thực tế**:
+An illustrative observation guide, **not real measured numbers**:
 
-| Cấu hình | Điều cần quan sát | Kết luận được phép |
+| Configuration | What to observe | Valid conclusion |
 | --- | --- | --- |
-| Fan-out = 0 | Chi phí xử lý phần tử không phát đầu ra | Một cách có thể ít overhead hơn ở trường hợp rỗng |
-| Fan-out = 1 | Chi phí Stream con nhỏ và Consumer | Một cách có thể ít object hơn trên JDK cụ thể |
-| Fan-out = 16 | Chi phí duyệt nhiều phần tử con | Kết quả có thể đảo chiều |
-| Fan-out = rất lớn | Cấp phát, GC, memory peak và cancellation | Không chỉ nhìn thời gian trung bình |
-| `limit(1)` sau phép làm phẳng | Có thực sự dừng sinh output con sớm? | Ngữ nghĩa giống nhau không đồng nghĩa chi phí giống nhau |
+| Fan-out = 0 | Cost of processing inputs that emit nothing | One approach may have less overhead on empty cases |
+| Fan-out = 1 | Cost of tiny child Stream vs. Consumer | One approach may allocate fewer objects on a given JDK |
+| Fan-out = 16 | Cost of iterating many child elements | Results can flip |
+| Very large fan-out | Allocations, GC, memory peak, and cancellation | Do not look only at average time |
+| `limit(1)` after flattening | Does child emission actually stop early? | Identical semantics do not mean identical cost |
 
-Không suy ra con số phần trăm tăng tốc khi chưa chạy phép đo. Những kết quả tốt trên laptop phát triển có thể không lặp lại trên server khác về JDK, heap, CPU hoặc dữ liệu.
+Never invent speedup percentages before running measurements. Results that look great on a dev laptop may not repeat on a server with a different JDK, heap, CPU, or data profile.
 
-### Đo cấp phát và GC
+### Measuring allocations and GC
 
-Tùy cấu hình JMH, sử dụng profiler thích hợp (chẳng hạn các chế độ thống kê GC/allocation của JMH) để tìm:
+Depending on your JMH setup, use an appropriate profiler (such as JMH's GC/allocation profilers) to inspect:
 
-- Số byte cấp phát trên mỗi operation.
-- Số lần và chi phí garbage collection.
-- Thời gian trung bình, độ biến thiên và trường hợp xấu.
-- Heap peak nếu fan-out tạo nhiều phần tử.
-- Độ ổn định khi chạy nhiều fork và dữ liệu khác nhau.
+- Bytes allocated per operation.
+- GC count and cost.
+- Mean time, variance, and worst-case behavior.
+- Peak heap if fan-out produces many elements.
+- Stability across multiple forks and datasets.
 
-**Giảm cấp phát** không luôn đồng nghĩa **giảm thời gian xử lý**, và giảm thời gian trung bình không luôn đồng nghĩa giảm độ trễ đuôi hoặc cải thiện throughput toàn hệ thống.
+**Fewer allocations** do not always mean **lower runtime**, and faster average time does not always mean lower tail latency or higher system throughput.
 
-## 17. Đo hiệu năng toàn pipeline, không chỉ thao tác làm phẳng
+## 17. Measure the whole pipeline, not just flattening
 
-Đôi khi sự khác biệt giữa `flatMap` và `mapMulti` rất nhỏ so với các bước khác:
+Sometimes the difference between `flatMap` and `mapMulti` is tiny relative to other steps:
 
 ~~~text
-Nguồn dữ liệu -> parse JSON -> validate -> flatMap/mapMulti
-             -> groupingBy -> ghi database
+Data source -> parse JSON -> validate -> flatMap/mapMulti
+            -> groupingBy -> write to database
 ~~~
 
-Nếu phần đọc tệp, parse JSON hoặc truy cập database chiếm phần lớn thời gian, tối ưu chi phí tạo Stream con có thể không đáng kể đối với tổng latency.
+If file reading, JSON parsing, or database writes dominate runtime, optimizing child Stream creation overhead may be negligible for end-to-end latency.
 
-Hãy tách **hai mức đo**:
+Separate **two measurement levels**:
 
-1. **Microbenchmark:** cô lập thao tác làm phẳng, hiểu ảnh hưởng fan-out và allocation.
-2. **Benchmark tích hợp:** đo end-to-end trên dữ liệu sát thực tế, bao gồm parse, filter, collector, I/O, GC và thời gian phản hồi.
+1. **Microbenchmark:** isolate flattening to understand fan-out and allocation behavior.
+2. **Integration benchmark:** measure end-to-end on realistic data including parsing, filtering, collectors, I/O, GC, and response time.
 
-Một phép đo có thể cho thấy `mapMulti` nhanh hơn trong microbenchmark, nhưng pipeline ứng dụng thực tế lại không cải thiện có ý nghĩa. Khi đó, giữ `flatMap` dễ đọc có thể là quyết định tốt hơn.
+Measurements might show `mapMulti` winning in a microbenchmark while the real application pipeline shows no meaningful gain. In that case, keeping readable `flatMap` can be the better choice.
 
-Ngược lại, nếu một pipeline xử lý hàng chục triệu phần tử với rất nhiều Stream con 0/1 phần tử và bước làm phẳng chiếm nhiều CPU/allocation, kết quả đo nhất quán có thể biện minh cho `mapMulti`.
+Conversely, if a pipeline processes tens of millions of elements with many 0/1-element child Streams and flattening consumes substantial CPU/allocations, consistent measurements can justify `mapMulti`.
 
-## 18. Ma trận quyết định thực tế
+## 18. Practical decision matrix
 
-| Điều kiện | Lựa chọn nên thử trước | Lý do |
+| Condition | What to try first | Reason |
 | --- | --- | --- |
-| Chỉ biến đổi 1 đầu vào thành 1 đầu ra | `map` | Đúng mô hình, đơn giản nhất |
-| Chỉ lọc bỏ phần tử | `filter` | Không cần one-to-many |
-| Có giá trị nullable cần loại bỏ | `map + filter`, `ofNullable + flatMap` hoặc `mapMulti` | Chọn dễ đọc, đo nếu xử lý nhiều |
-| Optional đã tồn tại | `flatMap(Optional::stream)` hoặc `mapMulti` | Cả hai diễn đạt 0/1 |
-| Con là `Stream` lazy đã có | `flatMap` | Giữ phép nối Stream con tự nhiên |
-| Con là một collection nhỏ, rất nhiều input | `mapMulti` là ứng viên đáng thử | Có thể tránh tạo Stream con nhỏ; cần đo |
-| Một input phát rất nhiều phần tử | `flatMap` với Stream con lazy đáng thử | Xem buffering, short-circuit và bộ nhớ |
-| Downstream thường `limit`/`findFirst` | Thử `flatMap` trước và benchmark cancellation | `mapMulti` không nhận tín hiệu từ chối qua Consumer |
-| Nguồn con sở hữu I/O | `flatMap` hoặc mã quản lý `try-with-resources` rõ | Phải kiểm soát `close()` |
-| Đầu ra primitive | So `flatMapToInt` với `mapMultiToInt` | Đúng kiểu, tránh so lệch boxing |
-| Codebase hỗ trợ Java 8/11 | `flatMap` | `mapMulti` chưa có trong API đích |
-| Yêu cầu giữ encounter order | Cả hai, nếu mapper phát đúng thứ tự | Không dựa vào thứ tự thread thực thi |
-| Chỉ cần kết quả, không lưu hết output | Terminal `sum`, `reduce`, `collect` phù hợp | Tránh `toList` không cần thiết |
+| Always 1 input to 1 output | `map` | Right model, simplest |
+| Only filtering elements | `filter` | No one-to-many needed |
+| Nullable values to drop | `map + filter`, `ofNullable + flatMap`, or `mapMulti` | Pick readable option, measure if hot |
+| Already have `Optional` | `flatMap(Optional::stream)` or `mapMulti` | Both express 0/1 |
+| Child is already a lazy `Stream` | `flatMap` | Preserves natural child Stream chaining |
+| Child is a small collection, very many inputs | `mapMulti` is a candidate to try | Can avoid tiny child Streams; verify by measuring |
+| One input emits very many elements | Try `flatMap` with lazy child Stream | Watch buffering, short-circuiting, and memory |
+| Downstream often uses `limit`/`findFirst` | Try `flatMap` first and benchmark cancellation | `mapMulti` receives no stop signal via Consumer |
+| Child source owns I/O | `flatMap` or explicit `try-with-resources` | Must control `close()` |
+| Primitive output | Compare `flatMapToInt` with `mapMultiToInt` | Same types, avoids mismatched boxing comparison |
+| Codebase targets Java 8/11 | `flatMap` | `mapMulti` is unavailable in target API |
+| Encounter order must be kept | Either, if mapper emits in order | Never depend on thread execution order |
+| Only aggregate needed, not full list | Appropriate terminal `sum`, `reduce`, `collect` | Avoid unnecessary `toList` |
 
-**Quy tắc ưu tiên:**
+**Priority order:**
 
-- **Đúng ngữ nghĩa trước.**
-- **Đơn giản, dễ bảo trì tiếp theo.**
-- **Hiệu năng theo phép đo cuối cùng.**
+- **Semantic correctness first.**
+- **Simplicity and maintainability next.**
+- **Performance by measurement last.**
 
-Không có nghĩa vụ phải chuyển mọi `flatMap` sang `mapMulti` khi nâng JDK. Mã đang đúng, dễ đọc và không phải nút thắt hiệu năng thì có thể giữ nguyên.
+There is no obligation to rewrite every `flatMap` to `mapMulti` when upgrading the JDK. Code that is correct, readable, and not a performance bottleneck can stay as is.
 
-## 19. Bẫy thường gặp
+## 19. Common traps
 
-| Bẫy | Hậu quả | Cách xử lý |
+| Trap | Consequence | Fix |
 | --- | --- | --- |
-| Tưởng `mapMulti` luôn "zero allocation" | Đánh giá sai bộ nhớ và GC | Kiểm tra JDK, JIT, profiler và dữ liệu |
-| Tưởng `Consumer.accept` trả tín hiệu dừng | Viết logic short-circuit không hợp lệ | Hiểu `accept` trả `void`, cân nhắc `flatMap`/Gatherer phù hợp |
-| Tạo Stream con ngay trong `mapMulti` rồi duyệt hết | Mã phức tạp, có thể mất laziness | Dùng `flatMap` nếu nguồn con đã là Stream |
-| Bỏ quên `close` của `Files.lines` | Rò rỉ tài nguyên | Dùng `try-with-resources` và/hoặc `flatMap` đúng hợp đồng |
-| Chỉ benchmark một phần tử | Không đại diện fan-out thực tế | Đo nhiều phân bố và kích thước |
-| Dùng `count()` rồi cho rằng mọi mapper chắc chắn đã chạy | Có thể có tối ưu hóa phụ thuộc đặc tính nguồn/pipeline | Benchmark cần thực thi phép biến đổi và xác nhận tính đúng; `sum` là một lựa chọn |
-| So Stream boxed với primitive | Kết luận sai về API làm phẳng | So cùng kiểu và cùng công việc |
-| Dựa vào thứ tự thực thi trên `parallel()` | Test chập chờn, side effect sai | Chỉ kiểm tra encounter order/kết quả được đặc tả |
-| Giữ `emit` để gọi sau callback | Vi phạm phạm vi sử dụng Consumer | Chỉ gọi trong mapper được cung cấp |
-| Đưa mapper có side effect vào phép đo | Khó suy luận và khó tái lập | Dùng hàm thuần và fixture bất biến |
-| Kết quả `toList` quá lớn | Tăng memory theo toàn bộ output | Dùng phép tổng hợp/ghi có kiểm soát nếu phù hợp |
-| Thấy một phép đo nhanh hơn và sửa tất cả | Tăng rủi ro mà không có lợi ích hệ thống | Profile nút thắt, đo lại trước/sau trên pipeline thật |
+| Assuming `mapMulti` is always “zero allocation” | Misjudges memory and GC | Check JDK, JIT, profiler, and data |
+| Assuming `Consumer.accept` returns a stop signal | Invalid short-circuit logic | Understand `accept` returns `void`; consider `flatMap`/Gatherer as appropriate |
+| Creating a child Stream inside `mapMulti` and draining it | Complex code, may lose laziness | Use `flatMap` if child source is already a Stream |
+| Forgetting to `close` `Files.lines` | Resource leak | Use `try-with-resources` and/or `flatMap` properly |
+| Benchmarking only 1-element fan-out | Does not represent real fan-out | Measure multiple distributions and sizes |
+| Using `count()` and assuming all mappers ran | Optimizations may skip stages depending on source/pipeline | Benchmarks must execute transforms and verify correctness; `sum` is an option |
+| Comparing boxed Stream against primitive Stream | False conclusions about flattening API | Compare identical types and identical work |
+| Relying on execution order in `parallel()` | Flaky tests, broken side effects | Test only specified encounter order/results |
+| Saving `emit` to call after callback returns | Violates Consumer scope | Call only inside the provided mapper |
+| Putting side-effecting mappers in benchmarks | Hard to reason about and reproduce | Use pure functions and immutable fixtures |
+| Huge `toList` output | Memory scales with total output | Use bounded aggregation/streaming writes if suitable |
+| Seeing one fast benchmark and rewriting everything | Adds risk without system-wide gain | Profile bottlenecks, re-measure before/after on real pipeline |
 
-## 20. Bài tập thực hành
+## 20. Practice exercises
 
-### Bài 1 — Dự đoán kết quả
+### Exercise 1 — Predict the output
 
 ~~~java
 List<Integer> result = List.of(
@@ -888,13 +888,13 @@ List<Integer> result = List.of(
 }).toList();
 ~~~
 
-**Đáp án:** `[2, 4, 6]`. Danh sách con rỗng phát 0 phần tử; những danh sách khác phát lần lượt 2 và 1 phần tử.
+**Answer:** `[2, 4, 6]`. The empty sublist emits 0 elements; the others emit 2 and 1 elements respectively.
 
-### Bài 2 — Viết flatMap tương đương
+### Exercise 2 — Write the equivalent `flatMap`
 
-Cho `mapMulti` ở bài 1, hãy viết bằng `flatMap`.
+Rewrite the `mapMulti` in Exercise 1 using `flatMap`.
 
-**Gợi ý/đáp án:**
+**Hint/answer:**
 
 ~~~java
 List<Integer> result = List.of(
@@ -906,67 +906,67 @@ List<Integer> result = List.of(
         .toList();
 ~~~
 
-Với các danh sách có encounter order, hai cách cho cùng kết quả và thứ tự.
+With lists that have encounter order, both approaches yield the same elements and order.
 
-### Bài 3 — Chọn API cho nguồn con đã là Stream
+### Exercise 3 — Choosing an API when the child source is already a Stream
 
-Một service trả `Stream<LogLine>` lazy cho mỗi ngày. Downstream chỉ cần một dòng thỏa điều kiện. Nên thử API nào đầu tiên?
+A service returns a lazy `Stream<LogLine>` per day. Downstream only needs one matching line. Which API should you try first?
 
-**Đáp án:** `flatMap` thường phù hợp hơn vì có thể làm phẳng Stream con lazy và đóng các Stream con theo hợp đồng, thuận lợi cho short-circuit. Dù vậy vẫn cần `try-with-resources` cho mọi nguồn I/O sở hữu riêng và đo chi phí thực tế.
+**Answer:** `flatMap` is usually more suitable because it flattens lazy child Streams and closes them under contract, favoring short-circuiting. Still use `try-with-resources` for any owned outer I/O source and measure actual cost.
 
-### Bài 4 — Vì sao mapMulti không có callback dừng?
+### Exercise 4 — Why does `mapMulti` have no stop callback?
 
-Có thể viết `if (!emit.accept(value)) break;` không?
+Can you write `if (!emit.accept(value)) break;`?
 
-**Đáp án:** Không. `emit` là `Consumer<R>`, nên `accept` trả `void`. `mapMulti` không có boolean từ chối downstream; khi một mapper có thể tạo rất nhiều đầu ra, cần chú ý buffering/short-circuit.
+**Answer:** No. `emit` is a `Consumer<R>`, so `accept` returns `void`. `mapMulti` has no boolean downstream rejection signal; when a mapper can emit very many outputs, watch buffering and short-circuiting.
 
-### Bài 5 — Trường hợp một–một
+### Exercise 5 — One-to-one case
 
-Pipeline đổi `name` sang chữ hoa và luôn trả đúng một tên. Có nên dùng `flatMap` hay `mapMulti`?
+A pipeline uppercases `name` and always returns exactly one name. Should you use `flatMap` or `mapMulti`?
 
-**Đáp án:** Dùng `map(String::toUpperCase)`. Không cần mô hình một–nhiều, nên đừng thêm chi phí và độ phức tạp của API làm phẳng.
+**Answer:** Use `map(String::toUpperCase)`. You do not need a one-to-many model, so do not add flattening cost or complexity.
 
-### Bài 6 — Kiểm tra bộ nhớ
+### Exercise 6 — Checking memory
 
-Vì sao `mapMulti` với một input phát một triệu giá trị không được cam kết dùng O(1) bộ nhớ?
+Why is `mapMulti` where a single input emits one million values not guaranteed to use `O(1)` memory?
 
-**Đáp án:** Đặc tả cho phép triển khai mặc định tích lũy output của mapper trong buffer nội bộ trước khi tạo Stream cho downstream. Cần kiểm tra implementation/JDK và số đo allocation/peak heap, nhất là khi downstream dùng `limit`.
+**Answer:** The specification allows default implementations to accumulate a mapper's emissions in an internal buffer before creating a Stream for downstream. You must inspect the JDK implementation and allocation/peak heap measurements, especially when downstream uses `limit`.
 
-### Bài 7 — Tạo phép đo công bằng
+### Exercise 7 — Making a fair benchmark
 
-Một benchmark so `Stream<Integer>.flatMap(...)` với `Stream<T>.mapMultiToInt(...)` và kết luận `mapMulti` nhanh gấp nhiều lần. Điểm không công bằng là gì?
+A benchmark compares `Stream<Integer>.flatMap(...)` against `Stream<T>.mapMultiToInt(...)` and concludes `mapMulti` is many times faster. What is unfair?
 
-**Đáp án:** Hai nhánh không cùng kiểu đầu ra: một nhánh boxing object còn nhánh kia dùng primitive. Phải so `flatMapToInt` với `mapMultiToInt`, giữ giống dữ liệu, phép biến đổi và terminal operation trước khi kết luận.
+**Answer:** The two variants have different output types: one boxes objects while the other uses primitives. You must compare `flatMapToInt` with `mapMultiToInt`, keeping data, transformations, and terminal operation identical before drawing conclusions.
 
-### Bài 8 — Fan-out và số phần tử
+### Exercise 8 — Fan-out and element count
 
-Có 100 đơn hàng, mỗi đơn trung bình bốn dòng hợp lệ và mọi đơn đã có dữ liệu đầy đủ. `flatMap` và `mapMulti` tạo bao nhiêu output?
+There are 100 orders, averaging four valid items per order, and all orders have complete data. How many outputs do `flatMap` and `mapMulti` produce?
 
-**Đáp án:** Theo giả định, khoảng 400 đầu ra nếu trung bình bốn dòng hợp lệ được tính chính xác trên toàn bộ 100 đơn. Hai API phải cho cùng số phần tử nếu cùng logic phát; chênh lệch kết quả là lỗi ngữ nghĩa chứ không phải tối ưu hợp lệ.
+**Answer:** By assumption, roughly 400 outputs if the average of four valid items holds across all 100 orders. Both APIs must produce the exact same element count for identical emission logic; a difference in output is a semantic bug, not a valid optimization.
 
-### Bài 9 — Parallel và consumer
+### Exercise 9 — Parallelism and the consumer
 
-Có thể giữ `emit` trong một danh sách rồi dùng executor tự gọi nó sau khi `mapMulti` kết thúc không?
+Can you store `emit` in a list and use your own executor to invoke it after `mapMulti` finishes?
 
-**Đáp án:** Không. Consumer được cung cấp chỉ dành cho phạm vi lời gọi mapper, không phải một kênh push bất đồng bộ do ứng dụng sở hữu. Cần thiết kế khác nếu yêu cầu concurrency.
+**Answer:** No. The supplied Consumer is valid only for the duration of the mapper call, not as an application-owned asynchronous push channel. Use a different design if concurrency like that is required.
 
-### Bài 10 — Đánh giá khi benchmark không khác biệt
+### Exercise 10 — Deciding when benchmarks show no difference
 
-Nếu `flatMap` và `mapMulti` có kết quả giống nhau, thời gian/chỉ số GC không khác biệt đáng kể trên workload thật, nên chọn gì?
+If `flatMap` and `mapMulti` produce identical results and runtime/GC metrics show no meaningful difference on the real workload, which should you choose?
 
-**Đáp án:** Chọn phiên bản dễ đọc, bảo trì và đúng hợp đồng với nguồn. Nếu nguồn con vốn là Stream, `flatMap` thường rõ ràng; nếu nguồn con là vài giá trị phát theo điều kiện, `mapMulti` có thể gọn hơn. Không cần tối ưu dựa trên một giả định chưa được dữ liệu xác nhận.
+**Answer:** Choose the version that is easier to read, maintain, and matches the source's contract. If the child source is already a Stream, `flatMap` is usually clearer; if emitting a few conditional values, `mapMulti` can be more concise. Do not optimize based on an assumption unconfirmed by data.
 
-## 21. Ghi nhớ
+## 21. Key takeaways
 
-- `flatMap` yêu cầu mapper trả **Stream con**; `mapMulti` cho mapper phát **0, 1 hoặc nhiều** phần tử qua `Consumer.accept`.
-- `mapMulti` và các biến thể primitive xuất hiện từ **Java 16**; `flatMap` có từ Java 8.
-- Với nhiều input mà mỗi input sinh rất ít output, `mapMulti` **có thể** giảm overhead nhưng **không được bảo đảm** nhanh hơn `flatMap`.
-- Javadoc cho phép `mapMulti` được triển khai qua **bộ đệm nội bộ và `flatMap`**; đừng khẳng định bộ nhớ O(1) hoặc zero allocation.
-- Consumer của `mapMulti` trả `void`, **không truyền tín hiệu dừng** như `Gatherer.Downstream.push`. Với nguồn con dài hoặc downstream dừng sớm, cân nhắc `flatMap` lazy và đo thực tế.
-- Khi nguồn con đã là Stream hoặc sở hữu tài nguyên I/O, **quyền sở hữu và đóng nguồn** là yếu tố quyết định, không chỉ độ ngắn của mã.
-- Dùng `mapMultiToInt/Long/Double` và `flatMapToInt/Long/Double` để so đúng loại primitive, tránh chênh lệch do boxing.
-- Mapper nên stateless, non-interfering và không giữ Consumer để dùng sau callback; song song không mặc định tăng tốc.
-- **Kiểm tra tính tương đương bằng oracle và ca biên**, sau đó benchmark cùng dữ liệu, fan-out, terminal operation và JVM bằng JMH hoặc công cụ phù hợp.
-- Khi chênh lệch không có ý nghĩa trong pipeline thực, **ưu tiên cách dễ hiểu và dễ bảo trì**.
+- `flatMap` requires the mapper to return a **child Stream**; `mapMulti` lets the mapper emit **0, 1, or more** elements via `Consumer.accept`.
+- `mapMulti` and its primitive variants appeared in **Java 16**; `flatMap` dates from Java 8.
+- With many inputs each producing very few outputs, `mapMulti` **can** reduce overhead, yet is **not guaranteed** to be faster than `flatMap`.
+- The Javadoc permits `mapMulti` to be implemented via an **internal buffer and `flatMap`**; do not claim `O(1)` memory or zero allocation.
+- `mapMulti`'s Consumer returns `void` and **does not propagate a stop signal** like `Gatherer.Downstream.push`. For long child sources or short-circuiting downstreams, consider lazy `flatMap` and measure in practice.
+- When child sources are already Streams or own I/O resources, **ownership and closing** are decisive factors, not code brevity alone.
+- Use `mapMultiToInt/Long/Double` and `flatMapToInt/Long/Double` to compare matching primitive types and avoid skew from boxing.
+- Keep mappers stateless, non-interfering, and never retain the Consumer past the callback; parallel does not mean faster by default.
+- **Verify equivalence with an oracle and edge cases**, then benchmark identical data, fan-out, terminal operation, and JVM using JMH or appropriate tooling.
+- When differences are negligible in the real pipeline, **prefer clarity and maintainability**.
 
-**Ý chính:** Chọn giữa `flatMap` và `mapMulti` không phải một mẹo thay tên phương thức. Hãy xem **dữ liệu con có hình dạng nào, số đầu ra trên mỗi input là bao nhiêu, có cần dừng sớm hoặc đóng nguồn không**, rồi kiểm tra kết quả trước và đo hiệu năng trên workload đại diện. Một tối ưu đáng dùng là tối ưu **vừa đúng ngữ nghĩa, vừa có lợi ích đo được**.
+**Main point:** Choosing between `flatMap` and `mapMulti` is not a trick of swapping method names. Look at **the shape of the child data, how many outputs each input emits, and whether short-circuiting or resource closing is needed**, verify results first, and measure performance on a representative workload. An optimization worth keeping is one that is **both semantically correct and measurably beneficial**.

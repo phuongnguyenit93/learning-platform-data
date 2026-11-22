@@ -1,87 +1,87 @@
-# Nhận diện `NullPointerException` và đặt kiểm tra tại điểm phù hợp
+# Recognizing `NullPointerException` and Placing Checks at the Right Point
 
-> **Java core — language-basics / Tham chiếu và null**  
-> **Môi trường:** JDK 17+; một tệp Java độc lập, không có dependency ngoài.  
-> **Mục tiêu:** Nhận biết các thao tác có thể phát sinh `NullPointerException` (NPE), lần theo vị trí lỗi, chọn giữa **kiểm tra `null` / giá trị mặc định / từ chối đầu vào**, và đặt kiểm tra **trước thao tác cần đối tượng** thay vì bắt lỗi tràn lan.
+> **Java core — language-basics / References and null**  
+> **Environment:** JDK 17+; single standalone Java file, no external dependencies.  
+> **Goal:** Recognize operations that can produce `NullPointerException` (NPE), trace the error location, choose between **checking `null` / default values / rejecting input**, and place checks **before operations requiring an object** instead of catching errors indiscriminately.
 
-## 1. NPE là gì và xảy ra ở đâu?
+## 1. What Is NPE and Where Does It Occur?
 
-`null` là giá trị đặc biệt của **kiểu tham chiếu**, nghĩa là biến hiện không tham chiếu tới đối tượng nào. `NullPointerException` thường xảy ra khi chương trình thực hiện thao tác **đòi hỏi có đối tượng** nhưng tham chiếu liên quan đang bằng `null`.
+`null` is a special value of **reference types**, meaning the variable currently does not reference any object. `NullPointerException` typically occurs when the program performs an operation that **requires an object** while the relevant reference is `null`.
 
-Ví dụ:
+Example:
 
 ~~~java
 String text = null;
-// int n = text.length(); // Nếu chạy: NullPointerException.
+// int n = text.length(); // If executed: NullPointerException.
 ~~~
 
-Các tình huống phổ biến:
+Common situations:
 
-| Thao tác | Ví dụ nguy hiểm | Tham chiếu có thể `null` |
+| Operation | Risky example | Reference that may be `null` |
 | --- | --- | --- |
-| Gọi instance method | `name.trim()` | `name` |
-| Đọc/ghi instance field | `user.status` | `user` |
-| Đọc `length` hay phần tử mảng | `items.length`, `items[0]` | **Mảng `items`**, nếu chưa có object mảng |
-| Sử dụng **phần tử** mảng tham chiếu | `items[0].length()` | `items[0]`, ngay cả khi mảng có tồn tại |
-| Tự unbox wrapper | `int n = boxed;` | `boxed` kiểu `Integer` |
-| Duyệt bằng enhanced `for` trên mảng | `for (String s : items) { ... }` | `items` nếu là mảng `null` |
+| Calling an instance method | `name.trim()` | `name` |
+| Reading/writing an instance field | `user.status` | `user` |
+| Reading array `length` or element | `items.length`, `items[0]` | **The `items` array**, if there is no array object yet |
+| Using a reference array **element** | `items[0].length()` | `items[0]`, even when the array exists |
+| Auto-unboxing a wrapper | `int n = boxed;` | `boxed` of type `Integer` |
+| Iterating with enhanced `for` over an array | `for (String s : items) { ... }` | `items` if the array is `null` |
 
-**Phân biệt lỗi:** `items[10]` trên mảng tồn tại nhưng thiếu phần tử gây `ArrayIndexOutOfBoundsException`, **không** phải NPE. `String` rỗng `""` là object hợp lệ, khác với tham chiếu `null`.
+**Distinguish errors:** `items[10]` on an existing array lacking that index causes `ArrayIndexOutOfBoundsException`, **not** NPE. An empty `String` `""` is a valid object, different from a `null` reference.
 
-## 2. Xác định chính xác điểm lỗi trước khi thêm kiểm tra
+## 2. Pinpointing the Exact Failure Point Before Adding Checks
 
-Khi gặp NPE, đọc **stack trace**:
+When encountering an NPE, read the **stack trace**:
 
-1. Tìm dòng `java.lang.NullPointerException` và frame đầu tiên thuộc mã của bạn (ví dụ `Service.java:42`).
-2. Mở đúng dòng được chỉ tới; liệt kê từng tham chiếu có thể `null` trên dòng đó, nhất là chuỗi gọi như `order.getCustomer().getName()`.
-3. Lần ngược nguồn tạo/nhận giá trị: tham số method, kết quả API, trường chưa khởi tạo, phần tử mảng, giá trị trả về từ repository, v.v.
-4. Kiểm tra **hợp đồng dữ liệu**: `null` có phải một trạng thái hợp lệ hay là đầu vào không hợp lệ?
+1. Find the `java.lang.NullPointerException` line and the first frame belonging to your code (for example, `Service.java:42`).
+2. Open the exact line indicated; list every reference that could be `null` on that line, especially chained calls like `order.getCustomer().getName()`.
+3. Trace back the source that created or received the value: method parameter, API result, uninitialized field, array element, repository return value, etc.
+4. Check the **data contract**: is `null` a valid state or an invalid input?
 
-Java 17 có thể in **thông điệp NPE chi tiết** tùy cấu hình JVM, nhưng đừng hardcode toàn bộ stack trace hoặc thông điệp tự động vào testcase: tên biến và lời giải thích có thể phụ thuộc môi trường/biên dịch. Dùng **line number + nguyên nhân + hợp đồng** để quyết định cách sửa.
+Java 17 can print **detailed NPE messages** depending on JVM configuration, but do not hardcode entire stack traces or automatic messages into test cases: variable names and explanations can depend on environment/compilation. Use **line number + root cause + contract** to decide how to fix it.
 
-Ví dụ một lời gọi nhiều bước:
+Example of a multi-step call:
 
 ~~~java
-// Nếu customer có thể null, kiểm tra tại đây trước khi gọi method:
+// If customer can be null, check here before calling the method:
 // Customer customer = order.getCustomer();
-// if (customer == null) { /* xử lý nhánh thiếu customer */ }
+// if (customer == null) { /* handle missing customer branch */ }
 // String name = customer.getName();
 ~~~
 
-Đừng tự động thêm `try { ... } catch (NullPointerException e) { }` để bỏ qua lỗi: cách đó có thể che lỗi lập trình và làm dữ liệu sau đó sai khó phát hiện.
+Do not automatically add `try { ... } catch (NullPointerException e) { }` to ignore the error: that approach can hide programming bugs and make subsequent corrupted data hard to detect.
 
-## 3. Chọn cách xử lý theo ý nghĩa `null`
+## 3. Choosing Handling Based on the Meaning of `null`
 
-Có **ba chiến lược chính**, không thay thế lẫn nhau:
+There are **three main strategies**, not mutually interchangeable:
 
-| Tình huống nghiệp vụ | Vị trí kiểm tra phù hợp | Cách giải quyết |
+| Business situation | Appropriate check location | Solution |
 | --- | --- | --- |
-| `null` **hợp lệ**, cần mặc định | Trước khi đọc dữ liệu tùy chọn | `if (x == null) return fallback;` |
-| `null` **không hợp lệ** | Ngay ranh giới nhận dữ liệu, constructor hoặc public API | `Objects.requireNonNull(x, "x required")` |
-| `null` hợp lệ nhưng chỉ được thao tác khi có object | Ngay trước thao tác dereference | `x != null && x.isReady()` |
+| `null` is **valid**, needs a default | Before reading optional data | `if (x == null) return fallback;` |
+| `null` is **invalid** | Right at the input boundary, constructor, or public API | `Objects.requireNonNull(x, "x required")` |
+| `null` is valid, but operations only happen when an object exists | Right before the dereference operation | `x != null && x.isReady()` |
 
-Ví dụ gác điều kiện an toàn:
+Example of a safe conditional guard:
 
 ~~~java
 String input = null;
 boolean hasText = input != null && !input.isBlank();
-System.out.println(hasText); // false, không gọi input.isBlank().
+System.out.println(hasText); // false, does not call input.isBlank().
 ~~~
 
-`&&` thực hiện **short-circuit**: khi vế trái false, Java không đánh giá vế phải. **Thứ tự là quan trọng**; đảo thành `!input.isBlank() && input != null` sẽ gây NPE nếu `input` là null. Toán tử boolean `&` **không short-circuit**, nên không phải cách thay thế tương đương khi cần bảo vệ việc gọi method.
+`&&` performs **short-circuiting**: when the left-hand side is false, Java does not evaluate the right-hand side. **Order matters**; reversing it to `!input.isBlank() && input != null` will cause NPE if `input` is null. The boolean `&` operator **does not short-circuit**, so it is not an equivalent substitute when guarding a method call.
 
-Đối với so sánh với literal:
+For comparing with a literal:
 
 ~~~java
 String command = null;
-System.out.println("START".equals(command)); // false, an toàn với null.
+System.out.println("START".equals(command)); // false, null-safe.
 ~~~
 
-Có thể dùng `Objects.equals(a, b)` khi **cả hai** biến có thể `null`. Cần biết `Objects.equals(null, null)` cho **true**; nếu dữ liệu cùng vắng mặt không được xem là bằng nhau, phải đặt quy tắc riêng.
+You can use `Objects.equals(a, b)` when **both** variables can be `null`. Be aware that `Objects.equals(null, null)` returns **true**; if simultaneously absent values must not be treated as equal, define an explicit rule.
 
-## 4. Java 17+ runnable: các tình huống NPE và cách xử lý
+## 4. Runnable Java 17+: NPE Scenarios and Handling
 
-Tạo file **NullCheckDemo.java**:
+Create the file **`NullCheckDemo.java`**:
 
 ~~~java
 import java.util.Objects;
@@ -101,7 +101,7 @@ public final class NullCheckDemo {
 
     private static String displayLabel(Account account) {
         if (account == null) {
-            return "Guest"; // Null là một trạng thái hợp lệ của API này.
+            return "Guest"; // Null is a valid state for this API.
         }
         return account.label();
     }
@@ -163,14 +163,14 @@ public final class NullCheckDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa file bằng Bash, PowerShell hoặc Command Prompt:
+Compile and run in the directory containing the file using Bash, PowerShell, or Command Prompt:
 
 ~~~bash
 javac -encoding UTF-8 NullCheckDemo.java
 java NullCheckDemo
 ~~~
 
-**Expected output chính xác:**
+**Exact expected output:**
 
 ~~~text
 valid=Linh
@@ -187,54 +187,54 @@ constructorError=label required
 safeLength=2
 ~~~
 
-**Giải thích:**
+**Explanation:**
 
-- `displayLabel(null)` trả `"Guest"` vì API **cho phép** tài khoản vắng mặt; `requiredLength(null)` cố ý từ chối bằng thông báo `"account required"`.
-- `missing != null && ...` dừng trước thao tác đọc `label()`. Literal `"Linh".equals(null)` trả false. `Objects.equals(null, null)` trả true theo hợp đồng của nó.
-- `receiver.length()` gây NPE vì receiver null. Mảng `words` **không null**, nhưng phần tử `words[0]` null nên gọi `length()` vẫn gây NPE.
-- Biến wrapper `Integer boxed` có thể null; tự chuyển sang `int` (*auto-unboxing*) gây NPE.
-- Constructor `Account` kiểm tra giá trị `label` **ngay tại nơi thiết lập bất biến của object**, khiến một `Account` được tạo thành công luôn có `label` không null.
-- Các khối `catch` dùng để minh họa một số lỗi một cách có kiểm soát; trong ứng dụng thật, hãy **sửa hợp đồng dữ liệu/kiểm tra đúng chỗ**, đừng nuốt NPE rồi tiếp tục như chưa có vấn đề.
+- `displayLabel(null)` returns `"Guest"` because the API **allows** an absent account; `requiredLength(null)` intentionally rejects it with the message `"account required"`.
+- `missing != null && ...` stops before reading `label()`. The literal `"Linh".equals(null)` returns false. `Objects.equals(null, null)` returns true according to its contract.
+- `receiver.length()` throws NPE because the receiver is null. The `words` array **is not null**, yet element `words[0]` is null so calling `length()` still throws NPE.
+- The wrapper variable `Integer boxed` can be null; auto-converting to `int` (*auto-unboxing*) throws NPE.
+- The `Account` constructor checks `label` **right where the object's invariant is established**, ensuring any successfully constructed `Account` always has a non-null `label`.
+- The `catch` blocks are used to demonstrate certain errors in a controlled manner; in real applications, **fix the data contract / check at the right place**, rather than swallowing NPE and continuing as if nothing happened.
 
-## 5. Kiểm tra `null` ở đâu cho đúng?
+## 5. Where Should You Check for `null`?
 
-**Nguyên tắc:** Đặt kiểm tra tại nơi **có đủ ngữ cảnh để quyết định cách xử lý**, và trước khi truy cập object. Không phải biến nào cũng cần lặp lại `if (x == null)` ở mọi dòng.
+**Principle:** Place checks where there is **enough context to decide how to handle it**, and before accessing the object. Not every variable needs repeated `if (x == null)` checks on every line.
 
-- **Ranh giới public API hoặc constructor:** Nếu giá trị bắt buộc, dùng `Objects.requireNonNull` để phát hiện sai đầu vào **sớm**, ghi rõ tên/thông điệp. Sau đó code nội bộ có thể dựa trên bất biến đã thiết lập.
-- **Ranh giới nhập liệu hoặc nguồn có thể thiếu:** Nếu `null` là trạng thái hợp lệ, quyết định trả default, bỏ qua, yêu cầu người dùng bổ sung hoặc báo lỗi nghiệp vụ trước thao tác.
-- **Trước chuỗi truy cập nhiều cấp:** Chia thành biến trung gian rồi kiểm tra đúng phần nào có thể null, thay vì gọi nối tiếp và chỉ bắt exception.
-- **Từng phần tử collection/mảng:** Kiểm tra cả **container** và **element** nếu nguồn dữ liệu có thể chứa null.
-- **Wrapper số:** Trước phép tính cần unbox `Integer`/`Long`/`Boolean`, xác nhận chúng không null hoặc có quy tắc default rõ ràng.
+- **Public API or constructor boundary:** If a value is required, use `Objects.requireNonNull` to catch bad input **early**, with a clear name/message. Internal code after that can rely on the established invariant.
+- **Input boundary or potentially missing source:** If `null` is a valid state, decide to return a default, skip, ask the user to supply it, or report a business error before operating.
+- **Before multi-level access chains:** Split into intermediate variables and check exactly which part can be null, rather than chaining calls and merely catching exceptions.
+- **Each collection/array element:** Check both the **container** and the **element** if the data source can contain nulls.
+- **Numeric wrappers:** Before operations that unbox `Integer`/`Long`/`Boolean`, confirm they are non-null or have a clear default rule.
 
-`Objects.requireNonNull(x, "...")` vẫn tạo ra **NPE**, nhưng đó là kiểm tra **chủ động ở ranh giới hợp đồng**, khác với lỗi vô tình dereference null sâu bên trong. Nếu public API cần loại exception khác (ví dụ `IllegalArgumentException` cho giá trị nhập không hợp lệ), hãy thiết kế có chủ đích và thống nhất thay vì đổi tùy tiện.
+`Objects.requireNonNull(x, "...")` still produces an **NPE**, yet it is a **deliberate contract-boundary check**, unlike accidentally dereferencing null deep inside. If a public API needs a different exception type (such as `IllegalArgumentException` for invalid input values), design it intentionally and consistently rather than changing it arbitrarily.
 
-## 6. Những sai lầm thường gặp
+## 6. Common Mistakes
 
-| Sai lầm | Hậu quả / cách sửa |
+| Mistake | Consequence / fix |
 | --- | --- |
-| `name.equals("OK")` khi `name` có thể null | Có thể NPE; dùng `"OK".equals(name)` hoặc kiểm tra trước |
-| `input.isBlank() && input != null` | Đảo thứ tự: gọi method trước khi guard |
-| `input != null & input.isBlank()` | `&` đánh giá cả hai vế; dùng `&&` |
-| Chỉ kiểm tra `array != null` rồi gọi `array[0].length()` | Phần tử `array[0]` vẫn có thể null |
-| Tự unbox `Integer count = null` | NPE; định nghĩa fallback hoặc yêu cầu count khác null |
-| Bắt và bỏ qua mọi `NullPointerException` | Che lỗi hợp đồng, kết quả về sau có thể sai |
-| Mọi giá trị thiếu đều thay bằng `""` hoặc `0` | Có thể sai nghiệp vụ; chỉ dùng default nếu được định nghĩa |
-| Gán `x = null` rồi tưởng object đã bị xóa | Chỉ biến x đổi tham chiếu; alias khác có thể còn trỏ object |
+| `name.equals("OK")` when `name` may be null | Can throw NPE; use `"OK".equals(name)` or check first |
+| `input.isBlank() && input != null` | Wrong order: calls method before the guard |
+| `input != null & input.isBlank()` | `&` evaluates both sides; use `&&` |
+| Checking only `array != null` and then calling `array[0].length()` | Element `array[0]` can still be null |
+| Auto-unboxing `Integer count = null` | NPE; define a fallback or require count to be non-null |
+| Catching and ignoring every `NullPointerException` | Hides contract bugs; subsequent results may be wrong |
+| Replacing every missing value with `""` or `0` | Can violate business logic; only use defaults if defined |
+| Assigning `x = null` and thinking the object was deleted | Only variable x changed its reference; other aliases may still point to the object |
 
-**Lưu ý:** `Optional` có thể thể hiện kết quả tùy chọn khi API phù hợp, nhưng không phải công cụ để bọc mọi field và không thay thế việc hiểu liệu `null` là dữ liệu hợp lệ hay lỗi. Tránh gọi `Optional.get()` mà không kiểm tra vì lại sinh lỗi khác.
+**Note:** `Optional` can represent optional results when an API suits it, but it is not a tool for wrapping every field and does not replace understanding whether `null` is valid data or an error. Avoid calling `Optional.get()` without checking because that introduces another error.
 
-## 7. Bài tập ngắn
+## 7. Short Exercises
 
-**Bài 1.** Cho `String value = null;`. Dự đoán hành vi của `value.length()`, `"OK".equals(value)` và `value != null && value.length() > 0`. Chỉ ra lệnh nào gây NPE, lệnh nào an toàn.
+**Exercise 1.** Given `String value = null;`. Predict the behavior of `value.length()`, `"OK".equals(value)`, and `value != null && value.length() > 0`. Point out which statement throws NPE and which ones are safe.
 
-**Bài 2.** Cho `String[] list = new String[2];`. Tại sao `list.length` hợp lệ nhưng `list[0].length()` gây NPE? Đặt guard ở đâu?
+**Exercise 2.** Given `String[] list = new String[2];`. Why is `list.length` valid while `list[0].length()` throws NPE? Where should the guard be placed?
 
-**Bài 3.** Viết hàm nhận `String requiredCode` bắt buộc khác null. Đặt `Objects.requireNonNull(requiredCode, "code required")` ngay đầu hàm, rồi dùng biến an toàn ở phần còn lại.
+**Exercise 3.** Write a function taking a required non-null `String requiredCode`. Place `Objects.requireNonNull(requiredCode, "code required")` right at the start of the function, then use the variable safely in the rest.
 
-**Bài 4.** Một API trả `null` khi không tìm thấy tài khoản. Hãy chọn giữa (a) trả nhãn `"Guest"`, (b) thông báo “không tìm thấy”, (c) phát hiện lỗi đầu vào — và giải thích sự khác nhau về hợp đồng.
+**Exercise 4.** An API returns `null` when an account is not found. Choose between (a) returning the label `"Guest"`, (b) reporting "not found", (c) detecting invalid input — and explain how their contracts differ.
 
-**Bài 5.** `Integer quantity = null; int total = quantity * 2;` gây lỗi vì sao? Viết hai cách xử lý có chủ đích: bắt buộc quantity hoặc dùng giá trị mặc định đã được nghiệp vụ đồng ý.
+**Exercise 5.** Why does `Integer quantity = null; int total = quantity * 2;` fail? Write two intentional ways to handle it: requiring quantity or using a business-agreed default value.
 
-### Ghi nhớ
+### Remember
 
-**NPE thường báo rằng code đã cố sử dụng một tham chiếu `null` như object.** Hãy đọc đúng stack trace để tìm thao tác lỗi; quyết định `null` có hợp lệ không, rồi **đặt kiểm tra tại ranh giới dữ liệu hoặc ngay trước dereference**. Dùng `&&` để guard, `Objects.requireNonNull` cho giá trị bắt buộc và so sánh an toàn khi cần. Tránh che giấu NPE bằng `catch` rỗng hay rải default không có ý nghĩa.
+**An NPE usually signals that code tried to use a `null` reference as an object.** Read the stack trace carefully to find the failing operation; decide whether `null` is valid, and **place checks at the data boundary or right before dereferencing**. Use `&&` to guard, `Objects.requireNonNull` for required values, and null-safe comparisons when needed. Avoid hiding NPEs with empty `catch` blocks or scattering meaningless defaults.

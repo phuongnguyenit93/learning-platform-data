@@ -1,58 +1,58 @@
-# Những vị trí được phép dùng `var` trong Java 17+
+# Allowed Positions for `var` in Java 17+
 
-> **Java core — language-basics / Suy luận với var**  
-> **Yêu cầu:** JDK 17+; ví dụ độc lập, không sử dụng thư viện ngoài Java.  
-> **Mục tiêu:** Biết chính xác nơi được dùng `var`, nơi không được dùng, vì sao trình biên dịch suy ra kiểu tại thời điểm biên dịch và cách chọn `var` mà không làm mã khó đọc.
+> **Java core — language-basics / Inference with var**  
+> **Requirements:** JDK 17+; standalone examples without external Java libraries.  
+> **Goal:** Know the exact places where `var` is allowed and where it is forbidden, why the compiler infers the type at compile time, and how to choose `var` without hurting code readability.
 
-## 1. `var` là suy luận kiểu cục bộ, không phải kiểu động
+## 1. `var` Is Local Type Inference, Not Dynamic Typing
 
-Từ **Java 10**, Java cho phép viết `var` ở một số khai báo biến cục bộ thay cho tên kiểu tường minh:
+Since **Java 10**, Java allows writing `var` in certain local variable declarations instead of an explicit type name:
 
 ~~~java
-var count = 3;          // Trình biên dịch suy ra int.
-var title = "Java";     // Suy ra String.
-var price = 12.5;       // Suy ra double.
+var count = 3;          // The compiler infers int.
+var title = "Java";     // Infers String.
+var price = 12.5;       // Infers double.
 ~~~
 
-Kiểu được **suy ra khi biên dịch** từ biểu thức khởi tạo (hoặc từ ngữ cảnh hợp lệ của vòng lặp/lambda), sau đó **cố định**. Không thể gán một kiểu tùy ý khác vào cùng biến:
+The type is **inferred at compile time** from the initializer expression (or from a valid loop/lambda context), and is then **fixed**. You cannot assign an arbitrary different type to the same variable:
 
 ~~~java
 var count = 3;
-// count = "three"; // Lỗi biên dịch: count có kiểu int, không phải String.
+// count = "three"; // Compile error: count has type int, not String.
 ~~~
 
-`var` **không phải** tên một kiểu dữ liệu thực, không phải `Object` mặc định và không mang cơ chế “dynamic typing”. Java không cho dùng `var` ở mọi nơi có thể viết một tên kiểu.
+`var` is **not** the name of an actual data type, is not `Object` by default, and does not provide a “dynamic typing” mechanism. Java does not allow `var` everywhere a type name can be written.
 
-## 2. Danh sách vị trí được phép
+## 2. List of Allowed Positions
 
-| Vị trí | Ví dụ hợp lệ | Kiểu được xác định như thế nào? |
+| Position | Valid Example | How Is the Type Determined? |
 | --- | --- | --- |
-| Biến cục bộ có khởi tạo trong phương thức | `var number = 42;` | Theo biểu thức `42` → `int` |
-| Biến cục bộ trong constructor hoặc khối khởi tạo | `var text = "ok";` | Theo biểu thức khởi tạo → `String` |
-| Phần khai báo khởi tạo của `for` thông thường | `for (var i = 0; i < 3; i++)` | Theo `0` → `int` |
-| Biến phần tử trong enhanced `for` | `for (var item : names)` | Theo kiểu phần tử của mảng/`Iterable` |
-| Biến tài nguyên trong `try-with-resources` | `try (var reader = new StringReader("hi"))` | Theo đối tượng tài nguyên được khởi tạo |
-| Tham số **lambda** có `var` | `(var a, var b) -> a + b` | Theo *target functional interface* của lambda; hỗ trợ từ **Java 11** |
+| Local variable with initializer in a method | `var number = 42;` | From the expression `42` → `int` |
+| Local variable in a constructor or initializer block | `var text = "ok";` | From the initializer expression → `String` |
+| Initializer section of a traditional `for` loop | `for (var i = 0; i < 3; i++)` | From `0` → `int` |
+| Element variable in an enhanced `for` loop | `for (var item : names)` | From the element type of the array/`Iterable` |
+| Resource variable in `try-with-resources` | `try (var reader = new StringReader("hi"))` | From the resource object being initialized |
+| **Lambda** parameters with `var` | `(var a, var b) -> a + b` | From the lambda's *target functional interface*; supported since **Java 11** |
 
-Đối với biến cục bộ thông thường, **phải có initializer**. Enhanced `for` suy ra kiểu từ phần tử được duyệt; lambda suy ra từ kiểu mục tiêu (ví dụ `BiFunction<Integer, Integer, Integer>`). Đây là các dạng cú pháp hợp lệ riêng, không phải “cho phép biến `var` bất kỳ ở mọi nơi”.
+For regular local variables, **an initializer is required**. Enhanced `for` infers the type from the iterated element; lambdas infer from the target type (for example `BiFunction<Integer, Integer, Integer>`). These are specific valid syntactic forms, not “allowing `var` variables arbitrarily everywhere”.
 
-### Biến cục bộ trong block
+### Local Variables Inside a Block
 
 ~~~java
 void print() {
-    var message = "Hello"; // String cục bộ.
+    var message = "Hello"; // Local String.
     {
-        var active = true;  // boolean cục bộ trong block lồng.
+        var active = true;  // Local boolean inside a nested block.
         System.out.println(message + active);
     }
 }
 ~~~
 
-Tương tự, trong **thân constructor**, khối `static { ... }` hoặc khối khởi tạo instance `{ ... }`, có thể dùng `var` để khai báo **biến cục bộ** thuộc block. Nhưng **field** của class vẫn phải khai báo bằng kiểu cụ thể.
+Similarly, inside a **constructor body**, a `static { ... }` block, or an instance initializer block `{ ... }`, you can use `var` to declare a **local variable** belonging to that block. However, **fields** of a class must still be declared with a concrete type.
 
-## 3. `var` trong hai kiểu vòng lặp `for`
+## 3. `var` in Both Kinds of `for` Loops
 
-### `for` thông thường
+### Traditional `for` Loop
 
 ~~~java
 for (var i = 0; i < 3; i++) {
@@ -60,24 +60,24 @@ for (var i = 0; i < 3; i++) {
 }
 ~~~
 
-`i` được suy ra `int` từ `0` và chỉ có phạm vi phù hợp với cấu trúc vòng lặp. Không có chuyện `i` tự đổi kiểu khi giá trị tăng.
+`i` is inferred as `int` from `0` and has scope matching the loop construct. `i` never automatically changes type as its value increases.
 
-### Enhanced `for` trên mảng hoặc collection
+### Enhanced `for` Over an Array or Collection
 
 ~~~java
 String[] fruits = {"cam", "tao"};
 for (var fruit : fruits) {
-    System.out.println(fruit); // fruit có kiểu String.
+    System.out.println(fruit); // fruit has type String.
 }
 ~~~
 
-Cũng có thể dùng `for (var element : list)` với collection có kiểu phần tử cụ thể. **`var` không tự khám phá kiểu runtime của từng object**: compiler suy ra kiểu phần tử tĩnh từ khai báo mảng hoặc kiểu phần tử được khai báo của `Iterable`.
+You can also use `for (var element : list)` with a collection that has a specific element type. **`var` does not inspect the runtime type of each individual object**: the compiler infers the static element type from the array declaration or the declared element type of the `Iterable`.
 
-Nếu collection được khai báo `List<Object>` thì `var element` được suy ra `Object`, dù vài phần tử thực tế là `String`. Do đó lựa chọn kiểu generic của collection vẫn rất quan trọng.
+If a collection is declared as `List<Object>`, then `var element` is inferred as `Object`, even if some elements are actually `String` at runtime. Therefore, choosing the generic type of a collection still matters greatly.
 
-## 4. `var` trong `try-with-resources`
+## 4. `var` in `try-with-resources`
 
-Một biến tài nguyên trong `try-with-resources` có thể khai báo bằng `var` nếu biểu thức khởi tạo có kiểu tài nguyên hợp lệ (triển khai `AutoCloseable`):
+A resource variable in `try-with-resources` can be declared with `var` if the initializer expression has a valid resource type (implementing `AutoCloseable`):
 
 ~~~java
 import java.io.StringReader;
@@ -87,13 +87,13 @@ try (var reader = new StringReader("AB")) {
 }
 ~~~
 
-`reader` được suy ra `StringReader`, có phương thức `read()`. Khi rời khối `try`, `close()` được gọi tự động theo cơ chế `try-with-resources`.
+`reader` is inferred as `StringReader`, which has the `read()` method. Upon leaving the `try` block, `close()` is called automatically per the `try-with-resources` mechanism.
 
-**Đừng nhầm** `var` với quy tắc của tài nguyên: chỉ những object có kiểu phù hợp `AutoCloseable` mới được khai báo làm resource. `try (var number = 10) { ... }` **không hợp lệ** vì `int` không phải tài nguyên có thể đóng.
+**Do not confuse** `var` with the resource requirement: only objects whose type conforms to `AutoCloseable` can be declared as a resource. `try (var number = 10) { ... }` is **invalid** because `int` is not a closeable resource.
 
-## 5. `var` trong tham số lambda — Java 11 trở lên
+## 5. `var` in Lambda Parameters — Java 11 and Later
 
-Khi lambda có **target type** rõ ràng, từ Java 11 có thể dùng `var` cho **tất cả** tham số:
+When a lambda has a clear **target type**, starting in Java 11 you can use `var` for **all** parameters:
 
 ~~~java
 import java.util.function.BiFunction;
@@ -103,9 +103,9 @@ BiFunction<Integer, Integer, Integer> add =
 System.out.println(add.apply(4, 5)); // 9
 ~~~
 
-Ở đây compiler biết lambda phải triển khai `BiFunction<Integer, Integer, Integer>` nên `left` và `right` tương ứng có kiểu `Integer` (và phép `+` tự unbox để cộng). `var` không làm suy luận kiểu lambda từ hư không: lambda **vẫn cần kiểu đích**.
+Here the compiler knows the lambda must implement `BiFunction<Integer, Integer, Integer>`, so `left` and `right` each have type `Integer` (and `+` automatically unboxes them to add). `var` does not infer a lambda's type out of thin air: a lambda **still needs a target type**.
 
-Cách dùng hợp lệ đối với hai tham số:
+Valid ways to write two parameters:
 
 ~~~java
 BiFunction<Integer, Integer, Integer> a = (x, y) -> x + y;
@@ -114,47 +114,47 @@ BiFunction<Integer, Integer, Integer> c =
         (Integer x, Integer y) -> x + y;
 ~~~
 
-**Không trộn kiểu khai báo của các tham số cùng lambda:**
+**Do not mix parameter declaration styles within the same lambda:**
 
 ~~~java
-// KHÔNG biên dịch:
+// DOES NOT COMPILE:
 // BiFunction<Integer, Integer, Integer> bad = (var x, y) -> x + y;
 // BiFunction<Integer, Integer, Integer> bad2 = (var x, Integer y) -> x + y;
 ~~~
 
-Nếu dùng `var` cho một tham số lambda thì các tham số còn lại cũng phải dùng `var`. Dạng `var` tiện khi cần dùng annotation hợp lệ trên tham số mà vẫn muốn kiểu được suy luận, nhưng trong ví dụ cơ bản có thể chọn cú pháp `(x, y) -> ...` đơn giản hơn.
+If you use `var` for one lambda parameter, the remaining parameters must also use `var`. The `var` form is convenient when you need a valid annotation on a parameter while still letting the type be inferred, though in basic examples you can choose the simpler `(x, y) -> ...` syntax.
 
-## 6. Những vị trí **không** được phép dùng `var`
+## 6. Positions Where `var` Is **Not** Allowed
 
-| Vị trí hoặc kiểu khai báo | Ví dụ không hợp lệ | Lý do |
+| Position or Declaration Kind | Invalid Example | Reason |
 | --- | --- | --- |
-| Field của class (kể cả `static`) | `class A { var n = 1; }` | `var` chỉ được hỗ trợ trong ngữ cảnh cục bộ cho phép |
-| Kiểu trả về của method | `var getCount() { return 1; }` | Return type phải khai báo rõ |
-| Tham số phương thức thường | `void send(var message) { }` | Không phải lambda formal parameter |
-| Tham số constructor | `A(var value) { }` | Không dùng `var` tại khai báo tham số constructor |
-| Tham số `catch` | `catch (var ex) { }` | Cần kiểu exception |
-| Biến cục bộ không khởi tạo | `var n;` | Không có thông tin để suy ra kiểu |
-| Khởi tạo chỉ bằng `null` | `var value = null;` | `null` không đủ suy ra một kiểu |
-| Khai báo nhiều biến trong một câu | `var a = 1, b = 2;` | Khai báo dùng `var` chỉ được một biến |
-| Array initializer không có `new` | `var data = {1, 2};` | Không có kiểu mục tiêu cho initializer này |
-| Tự tham chiếu trong initializer | `var n = n + 1;` | Không thể suy ra kiểu hợp lệ từ chính biến đang khai báo |
+| Class field (including `static`) | `class A { var n = 1; }` | `var` is only supported in allowed local contexts |
+| Method return type | `var getCount() { return 1; }` | The return type must be declared explicitly |
+| Regular method parameter | `void send(var message) { }` | Not a lambda formal parameter |
+| Constructor parameter | `A(var value) { }` | `var` cannot be used in constructor parameter declarations |
+| `catch` parameter | `catch (var ex) { }` | An exception type is required |
+| Uninitialized local variable | `var n;` | There is no information to infer a type |
+| Initialized only with `null` | `var value = null;` | `null` is not enough to infer a type |
+| Multiple variables in one statement | `var a = 1, b = 2;` | A declaration using `var` may only declare one variable |
+| Array initializer without `new` | `var data = {1, 2};` | There is no target type for this initializer |
+| Self-reference in the initializer | `var n = n + 1;` | A valid type cannot be inferred from the variable itself being declared |
 
-**Cách sửa:**
+**How to fix:**
 
 ~~~java
-int n;                         // Không cần initializer ở đây.
-String value = null;           // Kiểu tường minh nếu muốn null ban đầu.
-var typedNull = (String) null; // Hợp lệ: kiểu String đến từ cast.
-var data = new int[] {1, 2};  // Hợp lệ: kiểu suy ra int[].
-var a = 1;                     // Mỗi khai báo var một biến.
+int n;                         // No initializer needed here.
+String value = null;           // Explicit type if null is wanted initially.
+var typedNull = (String) null; // Valid: type String comes from the cast.
+var data = new int[] {1, 2};  // Valid: inferred type is int[].
+var a = 1;                     // One variable per var declaration.
 var b = 2;
 ~~~
 
-Trường hợp `var typedNull = (String) null;` hợp lệ về **cú pháp suy luận kiểu**, nhưng trong ứng dụng thật cần xem liệu null có ý nghĩa không. Đừng cast chỉ để tránh một khai báo kiểu rõ ràng.
+The case `var typedNull = (String) null;` is valid in terms of **type-inference syntax**, but in real applications you should consider whether null makes sense. Do not cast merely to avoid an explicit type declaration.
 
-## 7. Ví dụ Java 17+ runnable
+## 7. Runnable Java 17+ Example
 
-Tạo file **VarAllowedPlacesDemo.java** chứa nguyên chương trình:
+Create a file named **VarAllowedPlacesDemo.java** containing the entire program:
 
 ~~~java
 import java.io.IOException;
@@ -199,14 +199,14 @@ public final class VarAllowedPlacesDemo {
 }
 ~~~
 
-Mở terminal tại thư mục chứa tệp (Bash, PowerShell hoặc Command Prompt) rồi chạy:
+Open a terminal in the directory containing the file (Bash, PowerShell, or Command Prompt) and run:
 
 ~~~bash
 javac -encoding UTF-8 VarAllowedPlacesDemo.java
 java VarAllowedPlacesDemo
 ~~~
 
-**Expected output chính xác:**
+**Exact expected output:**
 
 ~~~text
 local=Java:2
@@ -220,54 +220,54 @@ array=10
 typedNull=true
 ~~~
 
-Những vị trí `var` đã minh họa:
+The `var` positions demonstrated:
 
-1. `language`, `count`, `names`, `scores` và `typedNull` là **biến cục bộ có initializer**.
-2. `index` được khai báo trong phần khởi tạo của vòng `for` thường.
-3. `name` là biến phần tử của enhanced `for`, suy ra `String` từ `ArrayList<String>`.
-4. `reader` là tài nguyên `try-with-resources`, suy ra `StringReader`.
-5. `left` và `right` là tham số lambda (hợp lệ từ Java 11).
-6. Giá trị `typedNull` bằng null nhưng **kiểu suy luận là String** do có cast; đối lập với `var typedNull = null;` không hợp lệ.
+1. `language`, `count`, `names`, `scores`, and `typedNull` are **local variables with initializers**.
+2. `index` is declared in the initializer section of a traditional `for` loop.
+3. `name` is the element variable of an enhanced `for` loop, inferred as `String` from `ArrayList<String>`.
+4. `reader` is a `try-with-resources` resource, inferred as `StringReader`.
+5. `left` and `right` are lambda parameters (valid since Java 11).
+6. `typedNull`'s value is null, but its **inferred type is String** due to the cast; this contrasts with `var typedNull = null;`, which is invalid.
 
-## 8. Khi nào nên dùng `var` để code dễ hiểu?
+## 8. When Should You Use `var` to Keep Code Readable?
 
-`var` giảm lặp kiểu, nhưng không bắt buộc. Hãy dùng khi **kiểu rõ từ initializer** hoặc ngữ cảnh:
-
-~~~java
-var reader = new StringReader("Hi"); // Kiểu StringReader rõ.
-var count = 0;                        // Kiểu int rõ.
-~~~
-
-Cân nhắc kiểu tường minh khi initializer không nói rõ ý nghĩa hoặc dễ suy luận nhầm:
+`var` reduces type repetition, but it is optional. Use it when **the type is obvious from the initializer** or context:
 
 ~~~java
-var result = calculate();       // Muốn hiểu result phải biết calculate() trả gì.
-double result2 = calculate();   // Thể hiện ngay kiểu kỳ vọng.
+var reader = new StringReader("Hi"); // StringReader type is obvious.
+var count = 0;                        // int type is obvious.
 ~~~
 
-Lưu ý đặc biệt với generic diamond:
+Consider an explicit type when the initializer does not clearly state its meaning or can easily be misinferred:
 
 ~~~java
-var list = new ArrayList<>();        // Thường suy ra ArrayList<Object>.
-var strings = new ArrayList<String>(); // Kiểu phần tử String rõ ràng.
+var result = calculate();       // To know result's type, you must check what calculate() returns.
+double result2 = calculate();   // Shows the expected type immediately.
 ~~~
 
-Nếu cần kiểu API là `List<String>` thay vì concrete class `ArrayList<String>`, có thể viết `List<String> names = new ArrayList<>();`. `var` không tự chọn abstraction cho bạn.
+Pay special attention to the generic diamond:
 
-**`var` không thay thế phân tích kiểu**: vẫn cần xem literal số là `int`/`long`/`double`, kiểu generic của initializer, và các phép chuyển kiểu Java có thể thực hiện.
+~~~java
+var list = new ArrayList<>();        // Usually infers ArrayList<Object>.
+var strings = new ArrayList<String>(); // Element type String is explicit.
+~~~
 
-## 9. Bài tập tự kiểm tra
+If you want the API type to be `List<String>` instead of the concrete class `ArrayList<String>`, you can write `List<String> names = new ArrayList<>();`. `var` does not choose an abstraction for you.
 
-**Bài 1.** Đánh dấu hợp lệ/không hợp lệ: `var x = 1;`, `var y;`, `var z = null;`, `var a = new int[]{2, 3};`, `var b = {2, 3};`.
+**`var` does not replace type analysis**: you still need to watch whether a numeric literal is `int`/`long`/`double`, the generic type of the initializer, and the type conversions Java may perform.
 
-**Bài 2.** Chuyển vòng `for (int i = 0; i < 5; i++)` sang `var`. Kiểu suy ra là gì? Khi nào biến rời phạm vi?
+## 9. Self-Check Exercises
 
-**Bài 3.** Cho `ArrayList<String>` có hai phần tử; viết enhanced `for` dùng `var` để in từng phần tử. Kiểu tĩnh của biến phần tử là gì?
+**Exercise 1.** Mark valid/invalid: `var x = 1;`, `var y;`, `var z = null;`, `var a = new int[]{2, 3};`, `var b = {2, 3};`.
 
-**Bài 4.** Dùng `try (var reader = new StringReader("A"))` để đọc ký tự. Vì sao kiểu tài nguyên phải triển khai `AutoCloseable`?
+**Exercise 2.** Convert the loop `for (int i = 0; i < 5; i++)` to use `var`. What is the inferred type? When does the variable leave scope?
 
-**Bài 5.** Khai báo một `BiFunction<Integer, Integer, Integer>` bằng lambda sử dụng hai tham số `var`. Sau đó thử sửa một tham số thành `Integer` và giải thích lỗi biên dịch.
+**Exercise 3.** Given an `ArrayList<String>` with two elements, write an enhanced `for` loop using `var` to print each element. What is the static type of the element variable?
 
-### Ghi nhớ
+**Exercise 4.** Use `try (var reader = new StringReader("A"))` to read a character. Why must the resource type implement `AutoCloseable`?
 
-`var` được dùng ở **biến cục bộ có initializer**, **phần khai báo của `for`**, **biến enhanced `for`**, **biến tài nguyên `try-with-resources`**, và **tham số lambda** (từ Java 11). `var` **không** được dùng làm kiểu của field, return type, tham số method/constructor, tham số `catch` hoặc biến cục bộ thiếu dữ liệu suy luận. Kiểu vẫn được chốt tại **compile time**; hãy ưu tiên sự rõ ràng của mã nguồn.
+**Exercise 5.** Declare a `BiFunction<Integer, Integer, Integer>` using a lambda with two `var` parameters. Then try changing one parameter to `Integer` and explain the compile error.
+
+### Takeaway
+
+`var` can be used in **local variables with initializers**, **the initializer section of `for`**, **enhanced `for` variables**, **`try-with-resources` resource variables**, and **lambda parameters** (since Java 11). `var` **cannot** be used as a field type, return type, method/constructor parameter, `catch` parameter, or local variable lacking inference data. The type is still locked at **compile time**; prioritize source-code clarity.

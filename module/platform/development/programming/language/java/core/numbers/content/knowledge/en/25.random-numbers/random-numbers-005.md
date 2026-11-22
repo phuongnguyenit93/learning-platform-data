@@ -1,89 +1,89 @@
-# SplittableRandom và chia nguồn ngẫu nhiên trong Java
+# SplittableRandom and Splitting Random Sources in Java
 
-## 1. Vấn đề: vì sao cần “chia” nguồn sinh số ngẫu nhiên?
+## 1. The problem: why do we need to “split” a random number source?
 
-Khi chương trình chỉ chạy một chuỗi thao tác, ta có thể tạo một bộ sinh số giả ngẫu nhiên (*pseudorandom number generator*, PRNG) rồi gọi lần lượt `nextInt()`, `nextLong()` hoặc `nextDouble()`. Trong ứng dụng thực tế, công việc có thể tách thành nhiều nhánh: mô phỏng nhiều kịch bản, xử lý một tập dữ liệu theo các tác vụ độc lập hoặc dùng `ExecutorService` / fork-join để chạy song song.
+When a program executes only a single sequence of operations, you can create one pseudorandom number generator (*PRNG*) and call `nextInt()`, `nextLong()`, or `nextDouble()` sequentially. In real applications, work may branch into multiple paths: simulating multiple scenarios, processing a dataset across independent tasks, or using `ExecutorService` / fork-join for parallel execution.
 
-Nếu nhiều tác vụ cùng dùng **một đối tượng sinh số có trạng thái**, chúng có thể tranh chấp trạng thái, gây khó tái lập kết quả hoặc vi phạm hợp đồng về an toàn luồng. `java.util.SplittableRandom` giải quyết bài toán này bằng thao tác **`split()`**: tạo một đối tượng sinh số mới cho nhánh con. Mỗi nhánh sở hữu bộ sinh riêng và tự lấy các số tiếp theo mà không phải truy cập cùng một generator.
+If multiple tasks share **a single stateful generator object**, they can contend on state, make results hard to reproduce, or violate thread-safety contracts. `java.util.SplittableRandom` solves this problem via **`split()`**: creating a new generator object for a child branch. Each branch owns its own generator and draws subsequent numbers without accessing the same generator instance.
 
-`SplittableRandom` xuất hiện từ Java 8, có trong Java 17+, phù hợp với việc tạo dữ liệu ngẫu nhiên hiệu năng tốt và các phép tính chia nhánh. Đây là **bộ sinh giả ngẫu nhiên**, không phải nguồn ngẫu nhiên mật mã; kết quả phụ thuộc trạng thái và thuật toán, không bảo đảm bí mật hay khó dự đoán trước khi kẻ tấn công biết seed/trạng thái.
+`SplittableRandom` has been available since Java 8 and is present in Java 17+, fitting high-performance random data generation and branching computations. It is a **pseudorandom generator**, not a cryptographic source of randomness; its output depends on internal state and algorithm, and does not guarantee secrecy or unpredictability if an attacker knows the seed or state.
 
-Mục tiêu sau bài học: hiểu `split()` làm gì; cách tổ chức cây generator cha-con; cách cung cấp seed để tái lập; cách cấp một generator cho từng tác vụ; cách dùng phạm vi giá trị của API; và những trường hợp phải chọn giải pháp khác.
+Lesson goals: understand what `split()` does; how to organize a parent-child generator tree; how to supply seeds for reproducibility; how to assign one generator per task; how to use the API's value ranges; and when another solution must be chosen.
 
-## 2. Tạo SplittableRandom và gọi các phương thức cơ bản
+## 2. Creating SplittableRandom and calling basic methods
 
-Hai cách tạo thường gặp:
+Two common ways to create an instance:
 
 ```java
 import java.util.SplittableRandom;
 
-// Seed tường minh: phù hợp cho thử nghiệm có thể tái lập.
+// Explicit seed: suitable for reproducible experiments.
 SplittableRandom reproducible = new SplittableRandom(2026L);
 
-// Không truyền seed: hệ thống tạo seed ban đầu.
+// Without passing a seed: the system generates an initial seed.
 SplittableRandom ordinary = new SplittableRandom();
 ```
 
-Những API thường dùng:
+Commonly used APIs:
 
-| Phương thức | Ý nghĩa | Phạm vi |
+| Method | Meaning | Range |
 |---|---|---|
-| `nextInt()` | Số nguyên 32-bit giả ngẫu nhiên | Toàn bộ miền của `int` |
-| `nextLong()` | Số nguyên 64-bit giả ngẫu nhiên | Toàn bộ miền của `long` |
-| `nextDouble()` | Số thực từ 0 tới dưới 1 | `[0.0, 1.0)` |
-| `nextInt(10)` | Số nguyên từ 0 tới dưới 10 | `0..9` |
-| `nextInt(5, 15)` | Số nguyên từ 5 tới dưới 15 | `5..14` |
-| `nextLong(10L, 20L)` | Số `long` từ 10 tới dưới 20 | `10..19` |
-| `ints(5, 0, 10)` | `IntStream` có 5 phần tử trong khoảng 0 đến dưới 10 | Mỗi phần tử `0..9` |
-| `split()` | Sinh một `SplittableRandom` con để cấp cho nhánh công việc | Generator mới |
+| `nextInt()` | Pseudorandom 32-bit integer | Full `int` range |
+| `nextLong()` | Pseudorandom 64-bit integer | Full `long` range |
+| `nextDouble()` | Floating-point number from 0 up to below 1 | `[0.0, 1.0)` |
+| `nextInt(10)` | Integer from 0 up to below 10 | `0..9` |
+| `nextInt(5, 15)` | Integer from 5 up to below 15 | `5..14` |
+| `nextLong(10L, 20L)` | `long` from 10 up to below 20 | `10..19` |
+| `ints(5, 0, 10)` | `IntStream` with 5 elements from 0 up to below 10 | Each element `0..9` |
+| `split()` | Produces a child `SplittableRandom` to assign to a work branch | New generator |
 
-Các khoảng có cận trên **loại trừ** (*exclusive*). Vì thế, `nextInt(10)` không trả 10. Với các overload có `origin` và `bound`, phải có `origin < bound`; `nextInt(0)` hoặc `nextInt(10, 10)` là yêu cầu không hợp lệ và ném `IllegalArgumentException`.
+Intervals have **exclusive** upper bounds. Therefore, `nextInt(10)` never returns 10. For overloads with `origin` and `bound`, `origin < bound` must hold; `nextInt(0)` or `nextInt(10, 10)` is an invalid request and throws `IllegalArgumentException`.
 
-Phương thức `ints(...)` tạo luồng giá trị `int` để xử lý bằng Stream API. Đây là **luồng số lấy từ một generator**, khác với `splits(...)` (Java 17+) tạo luồng **các generator con**. Khi một stream số được tiêu thụ, generator liên quan tiến trạng thái theo các lần sinh giá trị.
+`ints(...)` creates a stream of `int` values for processing with the Stream API. This is a **stream of numbers drawn from one generator**, different from `splits(...)` (Java 17+) which produces a stream of **child generators**. When a number stream is consumed, the associated generator advances its state as values are generated.
 
-## 3. split() hoạt động như thế nào?
+## 3. How does split() work?
 
-`SplittableRandom` là đối tượng **có trạng thái** (*stateful*). Mỗi lần gọi `nextInt()` hoặc các phương thức sinh số, trạng thái tiến lên. `split()` cũng sử dụng và cập nhật trạng thái của generator cha để tạo **generator con mới với trạng thái riêng**. Sau `split()`:
+`SplittableRandom` is a **stateful** object. Every call to `nextInt()` or other generation methods advances its state. `split()` also uses and updates the parent generator's state to create a **new child generator with its own state**. After `split()`:
 
-1. Generator cha **vẫn sử dụng được** để sinh số hoặc tạo các nhánh khác.
-2. Generator con là **đối tượng riêng**, có thể tiến trạng thái độc lập với cha và các con khác.
-3. Không nên coi con là bản sao có cùng chuỗi số với cha; mục tiêu của thao tác chia là tạo các dòng giả ngẫu nhiên **được thiết kế để ít tương quan**, không phải nhân bản y hệt.
-4. Lời gọi `split()` có ảnh hưởng đến trạng thái cha. Vì vậy **thứ tự chia**, số lần chia và thứ tự lấy số là một phần của diễn tiến generator.
+1. The parent generator **can still be used** to generate numbers or create other branches.
+2. The child generator is a **separate object** whose state can advance independently of the parent and other children.
+3. Do not treat a child as a clone producing the same sequence as the parent; the goal of splitting is to produce pseudorandom streams **designed to have low correlation**, not exact duplicates.
+4. Calling `split()` affects the parent's state. Therefore, **splitting order**, the number of splits, and the draw order are part of the generator's progression.
 
-Minh họa cách cấp generator cho cây tác vụ:
+Illustrating how generators are assigned to a task tree:
 
 ```text
 root = new SplittableRandom(seed)
    |
-   +-- root.split() --> generator A --> các lần nextInt riêng của task A
+   +-- root.split() --> generator A --> task A's own nextInt calls
    |
-   +-- root.split() --> generator B --> các lần nextInt riêng của task B
+   +-- root.split() --> generator B --> task B's own nextInt calls
    |
-   +-- root.split() --> generator C --> các lần nextInt riêng của task C
+   +-- root.split() --> generator C --> task C's own nextInt calls
    |
-   +-- root vẫn có thể split tiếp hoặc tự sinh số
+   +-- root can still split further or generate numbers itself
 ```
 
-Điểm cần nhớ: **chia generator trước khi giao công việc cho từng tác vụ**. Sau khi giao, mỗi tác vụ chỉ dùng generator của mình. Không nên đồng thời gọi `root.split()` trên cùng đối tượng `root` từ nhiều luồng.
+Key rule: **split generators before handing work to each task**. Once handed over, each task only uses its own generator. Never call `root.split()` concurrently on the same `root` object from multiple threads.
 
-Không cần và không nên trông chờ mỗi generator con đều sinh ra các số **không bao giờ trùng nhau**. Hai nhánh độc lập vẫn có thể tình cờ sinh cùng một số, chẳng hạn cùng nhận `7` từ `nextInt(10)`. “Chia nguồn” nói về việc tổ chức trạng thái và chất lượng các dòng ngẫu nhiên, **không phải cam kết mọi giá trị xuất ra đều duy nhất**.
+You should neither expect nor require each child generator to produce numbers that **never collide**. Two independent branches can still happen to produce the same number, such as both getting `7` from `nextInt(10)`. “Splitting a source” is about organizing state and the statistical quality of random streams, **not guaranteeing that every output value is unique**.
 
-### Vì sao không tự tạo các generator bằng cùng seed?
+### Why not create generators manually with the same seed?
 
-Đoạn sau là một lỗi thường gặp:
+The following is a common mistake:
 
 ```java
 SplittableRandom a = new SplittableRandom(2026L);
 SplittableRandom b = new SplittableRandom(2026L);
 ```
 
-Nếu hai đối tượng cùng seed và dùng cùng chuỗi lời gọi, chúng cho **cùng chuỗi giá trị**. Đây là điều có ích cho kiểm thử tái lập, nhưng không phải cách cấp hai luồng giả ngẫu nhiên khác nhau cho hai tác vụ. Nếu đã có một generator gốc, dùng `root.split()` để lấy từng nguồn con.
+If two objects have the same seed and make the same call sequence, they produce **the exact same value sequence**. That is useful for reproducible testing, but not how you provision two distinct pseudorandom streams for two tasks. If you already have a root generator, call `root.split()` to obtain each child source.
 
-Cũng không cần mô phỏng `split()` bằng `new SplittableRandom(root.nextLong())`. API `split()` đã được thiết kế riêng cho việc tạo generator con và quản lý trạng thái chia nguồn; hãy dùng đúng API.
+Also avoid simulating `split()` via `new SplittableRandom(root.nextLong())`. The `split()` API is specifically designed to create child generators and manage stream splitting; use the proper API.
 
-## 4. Ví dụ Java 17+: hai nhánh và hai tác vụ song song
+## 4. Java 17+ example: two branches and two parallel tasks
 
-Tạo file **`RandomSplitDemo.java`** với chương trình chạy độc lập dưới đây:
+Create the file **`RandomSplitDemo.java`** with the standalone program below:
 
 ```java
 import java.util.Arrays;
@@ -94,14 +94,14 @@ import java.util.concurrent.Future;
 
 public class RandomSplitDemo {
     private static int[] draw(SplittableRandom rng) {
-        // Đúng 5 số, mỗi số thuộc [0, 10).
+        // Exactly 5 numbers, each in [0, 10).
         return rng.ints(5, 0, 10).toArray();
     }
 
     private static int[][] makePair(long seed) {
         SplittableRandom root = new SplittableRandom(seed);
 
-        // Thứ tự chia nguồn cố định.
+        // Fixed splitting order.
         SplittableRandom childA = root.split();
         SplittableRandom childB = root.split();
 
@@ -111,7 +111,7 @@ public class RandomSplitDemo {
     private static int[] parallelSums(long seed) throws Exception {
         SplittableRandom root = new SplittableRandom(seed);
 
-        // Tạo cả hai nguồn ở luồng điều phối trước khi submit.
+        // Create both sources on the coordinating thread before submitting.
         SplittableRandom rngA = root.split();
         SplittableRandom rngB = root.split();
 
@@ -122,7 +122,7 @@ public class RandomSplitDemo {
             Future<Integer> b = pool.submit(
                     () -> rngB.ints(1000, 0, 10).sum());
 
-            // Đọc theo thứ tự nhiệm vụ A rồi B.
+            // Read in task order A then B.
             return new int[] {a.get(), b.get()};
         } finally {
             pool.shutdown();
@@ -155,14 +155,14 @@ public class RandomSplitDemo {
 }
 ```
 
-Biên dịch và chạy trên JDK 17+:
+Compile and run on JDK 17+:
 
 ```bash
 javac RandomSplitDemo.java
 java RandomSplitDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 repeatable: true
@@ -171,82 +171,82 @@ range [0, 10): true
 parallel repeatable: true
 ```
 
-Giải thích từng phần:
+Step-by-step explanation:
 
-- `makePair(2026L)` tạo generator cha với seed cố định, sau đó **chia A trước B**, rồi mỗi con sinh 5 số. Gọi lại với cùng seed và cùng trình tự tạo/chạy cho cùng hai mảng; kiểm tra dùng `Arrays.deepEquals` vì dữ liệu có kiểu `int[][]`.
-- `ints(5, 0, 10)` lấy đúng 5 phần tử trong khoảng `[0,10)`. Kiểm tra `allMatch` xác nhận quy tắc về cận; đây không phải phép kiểm định chất lượng thống kê.
-- `parallelSums` cấp `rngA` và `rngB` riêng biệt **trước khi** gọi `submit`. Mỗi tác vụ tính tổng 1.000 giá trị nguyên bằng generator của mình. Không có hai tác vụ cùng truy cập một `SplittableRandom`.
-- Gọi `Future.get()` chờ kết quả hoàn tất. Kết quả hai lần giống nhau vì cùng seed, cùng thứ tự split và mỗi nhánh tiêu thụ số lần lấy giá trị cố định. Thứ tự hai công việc được hệ điều hành xếp chạy không ảnh hưởng đến trạng thái generator của nhánh kia.
-- `pool.shutdown()` ở `finally` đóng executor sau khi dùng. Đây là phần quản lý tài nguyên, không liên quan đến thuật toán tạo số ngẫu nhiên.
+- `makePair(2026L)` creates a parent generator with a fixed seed, then **splits A before B**, and each child generates 5 numbers. Calling it again with the same seed and the same creation/execution order produces the same two arrays; comparison uses `Arrays.deepEquals` because the data has type `int[][]`.
+- `ints(5, 0, 10)` draws exactly 5 elements in `[0,10)`. The `allMatch` check verifies the range rule; this is not a statistical quality test.
+- `parallelSums` provisions separate `rngA` and `rngB` **before** calling `submit`. Each task sums 1,000 integers using its own generator. No two tasks access the same `SplittableRandom`.
+- `Future.get()` waits for results to finish. The results match across runs because of the same seed, same split order, and fixed draw counts per branch. The order in which the OS schedules the two tasks does not affect the other branch's generator state.
+- `pool.shutdown()` in `finally` shuts down the executor after use. This is resource management, unrelated to the random number generation algorithm.
 
-Chương trình chủ ý in **tính chất có thể kiểm chứng** thay vì chép mười số giả ngẫu nhiên cụ thể. Nếu cần xem giá trị thực, thêm `System.out.println(Arrays.deepToString(first));`. Các số có thể trùng giữa hai nhánh mà điều đó không làm sai cơ chế `split()`.
+The program intentionally prints **verifiable properties** rather than hardcoding ten specific pseudorandom numbers. To view the actual values, add `System.out.println(Arrays.deepToString(first));`. Numbers may repeat between the two branches, which does not mean `split()` is broken.
 
-## 5. Tính tái lập: seed là cần thiết nhưng chưa đủ
+## 5. Reproducibility: a seed is necessary but not sufficient
 
-Với `new SplittableRandom(seed)`, một luồng gọi hàm **cố định** sẽ tái lập chuỗi sinh ra. Khi tạo cây generator, kết quả còn phụ thuộc cách chia và cách dùng từng nhánh.
+With `new SplittableRandom(seed)`, a single thread making a **fixed** sequence of calls reproduces the generated sequence. When building a generator tree, results also depend on how splits are structured and how each branch is used.
 
-Để một phép thử tái lập ổn định, cố định tất cả yếu tố:
+For a test to reproduce reliably, keep all factors fixed:
 
-1. **Seed gốc**: cùng seed khi khởi tạo generator cha.
-2. **Cấu trúc phân nhánh**: cùng số lượng `split()`, cùng thứ tự tạo A, B, C.
-3. **Phân công nguồn**: cùng nhánh công việc nhận đúng generator con của nó.
-4. **Trình tự và số lượng lời gọi trong từng nhánh**: ví dụ mỗi nhánh gọi `nextInt(100)` chính xác 1.000 lần.
-5. **Dữ liệu và thuật toán xử lý**: nếu thay đổi điều kiện hoặc thứ tự gọi ngẫu nhiên, kết quả đầu ra cũng có thể đổi.
+1. **Root seed**: same seed when initializing the parent generator.
+2. **Branching structure**: same number of `split()` calls and same creation order A, B, C.
+3. **Source assignment**: each work branch receives its exact corresponding child generator.
+4. **Call sequence and count within each branch**: for instance, each branch calls `nextInt(100)` exactly 1,000 times.
+5. **Data and processing algorithm**: if conditions or random draw ordering change, outputs can also change.
 
-Ví dụ này **không bảo đảm tái lập** dù seed giống nhau:
+This example **does not guarantee reproducibility** even with the same seed:
 
 ```java
 SplittableRandom shared = new SplittableRandom(2026L);
 
-// Không dùng cùng một shared trong hai tác vụ chạy song song.
-// Việc luồng nào gọi nextInt() trước còn tùy thời điểm chạy.
+// Do not use the same shared instance in two parallel tasks.
+// Which thread calls nextInt() first depends on execution timing.
 ```
 
-Ngoài vấn đề tái lập, cách chia sẻ trên còn sai về an toàn luồng. Một lỗi tinh vi khác là để từng tác vụ gọi `root.split()` đồng thời: như vậy generator cha trở thành trạng thái chia sẻ. Cách đơn giản và đúng là tạo nguồn con **ở luồng điều phối** rồi giao từng nguồn cho một tác vụ.
+Beyond reproducibility, sharing as shown above violates thread safety. Another subtle bug is having each task call `root.split()` concurrently: the parent generator becomes shared mutable state. The simple and correct approach is to create child sources **on the coordinating thread** and pass each source to one task.
 
-Nếu chia việc động (ví dụ fork-join sinh thêm nhiệm vụ tùy dữ liệu), nhánh tạo nhiệm vụ có thể gọi `split()` trên **generator do chính nhánh đó sở hữu** rồi giao con cho nhiệm vụ mới. Điều kiện là không có hai nhiệm vụ cùng thao tác trên một generator tại cùng thời điểm. Muốn tái lập xuyên các lần chạy, cấu trúc chia và lượng dữ liệu tiêu thụ cũng cần ổn định, hoặc cần một chiến lược seed gắn với định danh tác vụ đã được thiết kế rõ ràng.
+If work splits dynamically (such as fork-join spawning subtasks based on data), the spawning branch can call `split()` on **the generator owned by that branch itself** and pass the child to the new subtask. The requirement is that no two tasks operate on the same generator at the same time. To remain reproducible across runs, the splitting structure and consumption amounts must also be deterministic, or you need an explicit seeding strategy tied to task identifiers.
 
-### Cùng seed không có nghĩa kết quả luôn giống qua mọi thay đổi mã
+### Same seed does not mean results stay identical across code changes
 
-Nếu thêm một lời gọi `nextInt()` trước `split()`, đổi thứ tự `split()`, hoặc chuyển nhánh nào tiêu thụ bao nhiêu số, các chuỗi tiếp theo có thể đổi. Vì vậy đừng xem seed đơn lẻ như “ảnh chụp” toàn bộ trạng thái một phép tính song song.
+If you add a `nextInt()` call before `split()`, reorder `split()` calls, or change how many numbers a branch consumes, subsequent sequences can change. Therefore, do not treat a single seed as a “snapshot” of the entire state of a parallel computation.
 
-Một bộ kiểm thử có thể ghi lại seed, cấu trúc phân nhánh và phiên bản thuật toán nếu việc phát lại chuỗi là yêu cầu quan trọng. Với ví dụ trong một lần chạy trên cùng JDK, việc cố định seed và trình tự thao tác có thể kiểm tra được như chương trình ở trên.
+A test suite can record the seed, branching structure, and algorithm version if sequence replay is a critical requirement. For examples running in a single run on the same JDK, fixing the seed and operation sequence can be verified as shown in the program above.
 
-## 6. An toàn luồng và hiệu năng: mỗi tác vụ một generator
+## 6. Thread safety and performance: one generator per task
 
-Tài liệu API của Java nêu rõ các đối tượng `SplittableRandom` **không thread-safe**: không được coi một instance là tài nguyên dùng đồng thời an toàn giữa nhiều luồng. Chúng được thiết kế để **chia ra và sở hữu riêng**, phù hợp với các phép tính phân nhánh, nhất là fork-join.
+The Java API documentation states clearly that `SplittableRandom` instances are **not thread-safe**: do not treat one instance as a resource safe for concurrent use across multiple threads. They are designed to be **split and owned exclusively**, fitting branching computations, especially fork-join.
 
-Quy tắc tổ chức:
+Organization rules:
 
-| Cách dùng | Đánh giá | Lý do |
+| Usage pattern | Assessment | Reason |
 |---|---|---|
-| Một luồng duy nhất dùng một `SplittableRandom` | Phù hợp | Không có truy cập đồng thời |
-| Cha `split()` tuần tự rồi mỗi task nhận một con | Phù hợp | Trạng thái từng generator độc lập theo chủ sở hữu |
-| Hai task cùng gọi `nextInt()` trên cùng instance | Tránh | `SplittableRandom` không thread-safe |
-| Nhiều task cùng gọi `split()` trên cùng cha | Tránh | Cùng sửa trạng thái cha, có thể tranh chấp |
-| Mỗi task tạo `new SplittableRandom(2026L)` | Thường không phù hợp | Các task có thể sinh cùng chuỗi nếu thao tác giống nhau |
-| Mỗi task giữ generator của mình và con tạo việc nhỏ hơn bằng `split()` | Phù hợp khi quản lý sở hữu chặt | Tạo cấu trúc chia đệ quy, không chia sẻ đối tượng |
+| Single thread using one `SplittableRandom` | Appropriate | No concurrent access |
+| Parent `split()` sequentially, then each task gets one child | Appropriate | Each generator's state is independent by owner |
+| Two tasks calling `nextInt()` on the same instance | Avoid | `SplittableRandom` is not thread-safe |
+| Multiple tasks calling `split()` concurrently on the same parent | Avoid | Mutates parent state concurrently, causing races |
+| Each task creating `new SplittableRandom(2026L)` | Usually inappropriate | Tasks may generate identical sequences if operations match |
+| Each task holds its own generator and spawns smaller work via `split()` | Appropriate with strict ownership | Creates a recursive split tree without sharing objects |
 
-**Hiệu năng:** ý tưởng chia nguồn giúp giảm nhu cầu đồng bộ hóa quanh một generator chung trong các công việc song song. Tuy nhiên, nó **không tự làm mọi thuật toán nhanh hơn**: thời gian tạo tác vụ, gom kết quả và số lượng phép tính vẫn quyết định hiệu năng thực tế. Khi công việc rất nhỏ, overhead của song song có thể lớn hơn lợi ích. Không cần tự gọi `split()` cho mọi số ngẫu nhiên đơn lẻ; hãy tạo một generator cho mỗi **đơn vị công việc độc lập** và dùng nhiều lần.
+**Performance:** splitting sources helps eliminate synchronization around a single shared generator in parallel workloads. However, it **does not automatically make every algorithm faster**: task creation, result aggregation, and computation volume still govern real performance. When work items are tiny, parallel overhead can outweigh the gains. You do not need to call `split()` for every single random number; create one generator per **independent unit of work** and reuse it repeatedly.
 
-## 7. So sánh với Random, ThreadLocalRandom và SecureRandom
+## 7. Comparison with Random, ThreadLocalRandom, and SecureRandom
 
-| API | Cách quản lý | Khi nào phù hợp |
+| API | Management model | When appropriate |
 |---|---|---|
-| `java.util.Random` | PRNG dùng tuần tự; có thể chia sẻ nhưng đồng thời có thể gây tranh chấp | Mã truyền thống, tác vụ đơn giản, yêu cầu API cũ |
-| `ThreadLocalRandom.current()` | Generator riêng gắn với luồng thực thi, do thư viện quản lý | Khi muốn tiện lợi trong mã đa luồng và không cần tự kiểm soát seed cho từng tác vụ |
-| `SplittableRandom` | PRNG có thể chia thành nhiều generator con bằng `split()` | Thuật toán phân nhánh, fork-join, mô phỏng nhiều tác vụ, tái lập qua seed + cấu trúc chia ổn định |
-| `java.security.SecureRandom` | Bộ sinh dành cho yêu cầu bảo mật | Token, nonce, khóa và các giá trị cần tính khó dự đoán phù hợp yêu cầu bảo mật |
+| `java.util.Random` | Sequential PRNG; shareable but concurrent use can cause contention | Legacy code, simple tasks, older API requirements |
+| `ThreadLocalRandom.current()` | Dedicated generator bound to the executing thread, managed by the library | Convenient multithreaded code without manual per-task seed control |
+| `SplittableRandom` | PRNG splittable into child generators via `split()` | Branching algorithms, fork-join, multi-task simulations, reproducibility via seed + stable split structure |
+| `java.security.SecureRandom` | Generator for security requirements | Tokens, nonces, keys, and values needing unpredictability per security requirements |
 
-`ThreadLocalRandom.current()` hữu ích khi mỗi luồng đơn giản muốn lấy số mà không chia sẻ một `Random` chung, nhưng generator gắn với luồng không đồng nghĩa với generator gắn với **tác vụ logic**: tác vụ có thể chạy trên các luồng khác nhau. `SplittableRandom` cho phép giao **một instance cụ thể cho đúng tác vụ**, dễ kiểm soát ở mô hình chia nhánh.
+`ThreadLocalRandom.current()` is useful when each thread simply wants numbers without sharing a global `Random`, but a thread-bound generator is not the same as a generator bound to a **logical task**: a task may run on different threads. `SplittableRandom` lets you hand **a specific instance to a specific task**, making branching models easier to control.
 
-Không dùng `SplittableRandom` để sinh mật khẩu, session token, mã khôi phục, khóa hoặc dữ liệu bí mật. Biết seed hoặc đoán được trạng thái có thể khiến chuỗi số giả ngẫu nhiên dự đoán được; trong các trường hợp bảo mật, dùng API `SecureRandom` phù hợp.
+Never use `SplittableRandom` to generate passwords, session tokens, recovery codes, keys, or secret data. Knowing the seed or guessing the state can make pseudorandom sequences predictable; for security cases, use an appropriate `SecureRandom` API.
 
-### Quan hệ với RandomGenerator trong Java 17
+### Relationship to RandomGenerator in Java 17
 
-Java 17 cung cấp họ interface `java.util.random.RandomGenerator`. `SplittableRandom` thực hiện `RandomGenerator.SplittableGenerator`, hỗ trợ các khả năng chia nguồn trong API thống nhất. `SplittableRandom.split()` trả về `SplittableRandom`, nên có thể trực tiếp gán con vào biến cùng kiểu. Trong Java 17+ cũng có các phương thức thuộc mô hình `splits()` / `splits(long)` để tạo stream các generator con.
+Java 17 provides the `java.util.random.RandomGenerator` interface family. `SplittableRandom` implements `RandomGenerator.SplittableGenerator`, supporting splitting capabilities under the unified API. `SplittableRandom.split()` returns a `SplittableRandom`, so a child can be assigned directly to a variable of the same type. Java 17+ also provides `splits()` / `splits(long)` methods to produce a stream of child generators.
 
-Ví dụ tạo ba generator con:
+Example creating three child generators:
 
 ```java
 import java.util.List;
@@ -255,55 +255,55 @@ import java.util.SplittableRandom;
 SplittableRandom root = new SplittableRandom(2026L);
 List<SplittableRandom> children = root.splits(3).toList();
 
-// 3 nguồn riêng; sau đó giao mỗi nguồn cho một tác vụ.
+// 3 separate sources; then assign each source to a task.
 ```
 
-Đoạn trên là **mã minh họa đặt trong một phương thức** (không phải chương trình độc lập). `toList()` của Stream có từ Java 16. `splits(3)` sinh stream gồm ba generator; việc tiêu thụ stream sẽ thực hiện các lần chia, nên phải có chiến lược sở hữu rõ ràng, nhất là nếu chọn pipeline song song. Đối với số tác vụ cố định và cần dễ kiểm tra thứ tự, vòng lặp `root.split()` tuần tự thường dễ hiểu hơn.
+The snippet above is **illustrative code placed inside a method** (not a standalone program). Stream's `toList()` is available since Java 16. `splits(3)` creates a stream of three generators; consuming the stream executes the splits, so an explicit ownership strategy is required, especially if using a parallel pipeline. For a fixed number of tasks where clear ordering matters, a sequential `root.split()` loop is often easier to follow.
 
-## 8. Lỗi thường gặp và cách kiểm tra
+## 8. Common mistakes and how to check
 
-### Nhầm việc chia nguồn với chia dải số
+### Confusing splitting sources with splitting value ranges
 
-`root.split()` **không** có nghĩa A chỉ sinh số từ 0–4, còn B chỉ sinh 5–9. Cả A và B vẫn có thể gọi `nextInt(0, 10)` và sinh ra bất kỳ số nào trong `[0,10)`. Chia nguồn phân tách **trạng thái PRNG**, không phân vùng kết quả đầu ra.
+`root.split()` does **not** mean A only generates numbers in 0–4 while B only generates 5–9. Both A and B can still call `nextInt(0, 10)` and produce any number in `[0,10)`. Splitting separates **PRNG state**, not output value partitions.
 
-Nếu bài toán yêu cầu ID không trùng hoặc phân bổ chính xác từng giá trị, hãy dùng chiến lược cấp ID, phân đoạn tập giá trị hoặc khóa/transaction thích hợp. Nguồn số ngẫu nhiên độc lập không thay thế các đảm bảo tính duy nhất.
+If your problem requires non-duplicate IDs or exact value partitioning, use an ID-allocation strategy, value-set partitioning, or appropriate locks/transactions. Independent random sources do not replace uniqueness guarantees.
 
-### Cho rằng split “nhân đôi” trạng thái cha
+### Assuming split “clones” parent state
 
-Nếu tạo `child = root.split()` rồi gọi `child.nextInt()` và `root.nextInt()`, không có yêu cầu hai kết quả giống nhau. `split()` sinh một generator mới; đây không phải `clone()`, không phải copy object và không phải phép “đánh dấu” mà không đổi trạng thái cha.
+If you create `child = root.split()` and call `child.nextInt()` and `root.nextInt()`, there is no requirement for the two results to match. `split()` produces a new generator; it is not `clone()`, not an object copy, and not a “bookmark” that leaves the parent's state unchanged.
 
-### Dùng cùng generator ở nhiều luồng và thấy đôi lúc vẫn chạy
+### Using the same generator across threads and seeing it “sometimes work”
 
-Việc chương trình ít tải chưa xuất hiện lỗi không chứng minh dùng chung generator là an toàn. Truy cập đồng thời vào generator không thread-safe có thể gây dữ liệu không đúng kỳ vọng và phá tính tái lập. Luôn thiết lập chủ sở hữu của mỗi generator theo nhiệm vụ.
+A program not failing under light load does not prove sharing a generator is safe. Concurrent access to a non-thread-safe generator can corrupt data expectations and break reproducibility. Always establish single-task ownership for each generator.
 
-### Đổi thứ tự tạo nhánh nhưng vẫn kỳ vọng kết quả giống
+### Changing branch creation order while expecting identical results
 
-Nếu lần một A dùng con của `split()` thứ nhất còn lần hai A nhận con thứ hai, chuỗi của A có thể đổi. Khi xây test song song cần cố định cách ánh xạ **tác vụ → generator con**. Chỉ fixed seed là không đủ khi lịch chia hoặc tiêu thụ nguồn thay đổi.
+If on run one A receives the first `split()` child and on run two A receives the second child, A's sequence can change. When building parallel tests, fix the mapping **task → child generator**. A fixed seed alone is insufficient if the splitting schedule or source consumption changes.
 
-### Nhầm ngẫu nhiên giả với bảo mật hoặc “ngẫu nhiên thật”
+### Confusing pseudorandom with security or “true randomness”
 
-`SplittableRandom` có chất lượng PRNG hữu ích cho nhiều phép mô phỏng và chia nhánh, nhưng không cung cấp tính chất mật mã. Và ngay cả với các nhánh riêng, không có lời hứa rằng mỗi số sinh ra đều khác tất cả số trước đó. Kiểm tra dữ liệu theo xác suất, phân phối, miền giá trị và yêu cầu ứng dụng; đừng rút kết luận thống kê từ một vài mẫu.
+`SplittableRandom` has useful PRNG quality for many simulations and branching tasks, but provides no cryptographic properties. Even with separate branches, there is no promise that each generated number differs from all previous ones. Validate data by probability, distribution, range, and application requirements; do not draw statistical conclusions from a handful of samples.
 
-### Tạo quá nhiều generator hoặc tác vụ
+### Creating too many generators or tasks
 
-Có thể chia cây generator sâu theo cây công việc, nhưng mỗi nguồn và mỗi tác vụ đều có chi phí. Nếu chỉ cần lấy một chuỗi 10.000 số ở một luồng, một generator duy nhất thường đơn giản hơn. Chỉ chia nguồn khi thật sự có **công việc độc lập**, nhất là khi thực thi song song.
+You can split a deep tree of generators matching a task tree, yet each generator and task has overhead. If you only need a sequence of 10,000 numbers on one thread, a single generator is usually simpler. Only split when you genuinely have **independent work**, especially for parallel execution.
 
-## 9. Cách áp dụng và tự kiểm tra
+## 9. How to apply and self-check
 
-Để dùng `SplittableRandom` cho một tác vụ gồm N nhánh:
+To use `SplittableRandom` for a job with N branches:
 
-1. Tạo `root`. Dùng seed cố định cho kiểm thử; cân nhắc nguồn seed phù hợp khi chạy thực tế.
-2. Xác định các nhánh có thể tính độc lập và nhánh nào cần bộ sinh riêng.
-3. Ở luồng điều phối, gọi `root.split()` đúng một lần cho mỗi nhánh và **gắn con với định danh nhánh**.
-4. Giao mỗi con cho một tác vụ; tác vụ chỉ thao tác trên generator của mình.
-5. Khi tác vụ tự chia nhỏ, chỉ generator của tác vụ đó mới được dùng để `split()` thêm.
-6. Nếu cần tái lập, giữ cố định seed, cây chia, thứ tự ánh xạ và lượng lời gọi; viết test so sánh kết quả của hai lần chạy.
-7. Không dùng `SplittableRandom` cho mục đích mật mã.
+1. Create `root`. Use a fixed seed for testing; consider an appropriate seed source for production simulations.
+2. Identify which branches can compute independently and which need their own generator.
+3. On the coordinating thread, call `root.split()` once per branch and **bind each child to a branch identifier**.
+4. Pass each child to one task; the task operates exclusively on its own generator.
+5. When a task subdivides itself, only that task's generator may be used to `split()` further.
+6. If reproducibility is needed, keep the seed, split tree, mapping order, and call counts fixed; write a test comparing outputs of two runs.
+7. Never use `SplittableRandom` for cryptographic purposes.
 
-**Tự kiểm tra 1:** Hai tác vụ đều dùng `new SplittableRandom(7L)` và cùng gọi `nextInt(100)` ba lần. Chúng có tạo hai dòng khác nhau không? **Không:** cùng seed và chuỗi lời gọi dẫn đến cùng chuỗi kết quả. Nên chia từ một generator cha nếu muốn hai nguồn khác nhau.
+**Self-check 1:** Two tasks both use `new SplittableRandom(7L)` and both call `nextInt(100)` three times. Do they produce two different streams? **No:** the same seed and call sequence lead to the exact same result sequence. Split from a parent generator if you want two distinct streams.
 
-**Tự kiểm tra 2:** Gọi `SplittableRandom child = root.split()`, rồi task A dùng `root` còn task B dùng `child` có hợp lệ không? **Có**, nếu không luồng nào khác dùng cùng các đối tượng đó trong khi chạy. Cha vẫn sử dụng được; tuy nhiên để dễ quản lý, thường cấp riêng từng con và giữ cha làm bộ điều phối.
+**Self-check 2:** After calling `SplittableRandom child = root.split()`, is it valid for task A to use `root` while task B uses `child`? **Yes**, provided no other thread touches those objects while running. The parent remains usable; however, for easier management, it is common to issue separate children and keep the parent as coordinator.
 
-**Tự kiểm tra 3:** Task A và task B cùng trả `5` từ `nextInt(10)`. Điều này có chứng minh `split()` bị lỗi không? **Không**. Hai dòng giả ngẫu nhiên có thể xuất ra cùng một giá trị. Điều quan trọng là trạng thái và truy cập được quản lý riêng.
+**Self-check 3:** Task A and task B both return `5` from `nextInt(10)`. Does this prove `split()` is broken? **No**. Two pseudorandom streams can output the same value. What matters is that state and access are managed separately.
 
-**Ghi nhớ:** `SplittableRandom` là PRNG **có thể chia**. Gọi `split()` ở nhánh đang sở hữu generator rồi **giao con cho tác vụ độc lập**. Cùng seed và cùng cấu trúc chia/cách tiêu thụ giúp kiểm thử tái lập; chia nguồn không bảo đảm giá trị duy nhất, không tự bảo đảm tăng tốc và không cung cấp bảo mật mật mã.
+**Key takeaway:** `SplittableRandom` is a **splittable** PRNG. Call `split()` on the branch that owns the generator and **assign the child to an independent task**. The same seed with the same split structure and consumption pattern enables reproducible tests; splitting does not guarantee unique values, does not automatically guarantee speedups, and provides no cryptographic security.

@@ -1,29 +1,29 @@
-# Đảo thứ tự đối số theo cấu trúc câu của từng ngôn ngữ bằng MessageFormat
+# Reordering Arguments to Match Language Sentence Structure with MessageFormat
 
-## 1. Vì sao thứ tự đối số không thể cố định theo một ngôn ngữ?
+## 1. Why Argument Order Cannot Be Fixed to One Language
 
-Trong ứng dụng đa ngôn ngữ, cùng một sự kiện có thể được diễn đạt bằng trật tự từ khác nhau. Tiếng Anh có thể bắt đầu bằng người gửi; tiếng Việt có thể bắt đầu bằng người nhận. Dữ liệu nghiệp vụ **không thay đổi** khi câu dịch đổi thứ tự.
+In a multilingual application, the same event can be expressed with different word orders. English might start with the sender; Vietnamese might start with the recipient. The business data **does not change** when the translated sentence changes order.
 
-Giả sử ứng dụng biết:
+Suppose the application knows:
 
-| Vai trò dữ liệu | Đối số | Giá trị minh họa |
+| Data role | Argument | Sample value |
 | --- | --- | --- |
-| Người gửi | `{0}` | `Lan` |
-| Tên tệp | `{1}` | `report.pdf` |
-| Người nhận | `{2}` | `Minh` |
+| Sender | `{0}` | `Lan` |
+| File name | `{1}` | `report.pdf` |
+| Recipient | `{2}` | `Minh` |
 
-Hai mẫu câu đúng về cùng sự kiện:
+Two valid sentence patterns for the same event:
 
-- Tiếng Anh: `{0} sent file {1} to {2}.` → **Lan sent file report.pdf to Minh.**
-- Tiếng Việt: `{2} đã nhận tệp {1} do {0} gửi.` → **Minh đã nhận tệp report.pdf do Lan gửi.**
+- English: `{0} sent file {1} to {2}.` → **Lan sent file report.pdf to Minh.**
+- Vietnamese: `{2} đã nhận tệp {1} do {0} gửi.` → **Minh đã nhận tệp report.pdf do Lan gửi.**
 
-Pattern tiếng Anh dùng thứ tự `{0} → {1} → {2}`; tiếng Việt dùng `{2} → {1} → {0}`. **Chỉ số đối số mô tả vai trò, không mô tả thứ tự xuất hiện trong câu**. Vì thế, bản dịch có thể thay trật tự mà Java vẫn lấy đúng người gửi, tệp và người nhận.
+The English pattern uses the order `{0} → {1} → {2}`; Vietnamese uses `{2} → {1} → {0}`. **The argument index describes the role, not the appearance order in the sentence.** Because of this, translations can change word order while Java still resolves the right sender, file, and recipient.
 
-`java.text.MessageFormat` trong Java giúp tách mẫu câu khỏi mảng dữ liệu động. Nó không tự dịch văn bản; **người biên dịch nội dung** cung cấp câu hoàn chỉnh theo từng ngôn ngữ, còn `MessageFormat` thay placeholder theo chỉ số.
+`java.text.MessageFormat` in Java separates the sentence pattern from the dynamic data array. It does not translate text automatically; **content translators** provide complete sentences for each language, while `MessageFormat` substitutes placeholders by index.
 
-## 2. Cơ chế ánh xạ của MessageFormat
+## 2. Mapping Mechanism of MessageFormat
 
-Một pattern có thể chứa `{0}`, `{1}`, `{2}` và các format element như `{0,number}`. Các số nguyên không âm đó là **chỉ số trong mảng arguments**, bắt đầu từ 0.
+A pattern can contain `{0}`, `{1}`, `{2}`, and format elements like `{0,number}`. Those non-negative integers are **indices into the arguments array**, starting at 0.
 
 ```text
 Object[] args
@@ -38,9 +38,9 @@ Object[] args
                    Minh           report.pdf Lan
 ```
 
-Khi pattern bắt đầu bằng `{2}`, formatter lấy phần tử ở index 2 ngay đầu câu. Nó **không** lấy `args[0]` chỉ vì placeholder này xuất hiện đầu tiên.
+When a pattern starts with `{2}`, the formatter reads the element at index 2 right at the start of the sentence. It **does not** read `args[0]` just because this placeholder appears first.
 
-Ví dụ minh họa trong một method có các import phù hợp:
+Illustrative example inside a method with appropriate imports:
 
 ```java
 Object[] arguments = {"Lan", "report.pdf", "Minh"};
@@ -49,15 +49,15 @@ String message = new MessageFormat(
         pattern, Locale.forLanguageTag("vi-VN")).format(arguments);
 ```
 
-Giá trị `message` là `Minh đã nhận tệp report.pdf do Lan gửi.`.
+The value of `message` is `Minh đã nhận tệp report.pdf do Lan gửi.`.
 
-Sai lầm phổ biến là sửa mảng thành `{"Minh", "report.pdf", "Lan"}` để khớp thứ tự đọc của bản dịch Việt. Cách đó biến `args[0]` thành hai vai trò khác nhau tùy locale, dễ tạo lỗi đảo người gửi/người nhận.
+A common mistake is changing the array to `{"Minh", "report.pdf", "Lan"}` to match the reading order of the Vietnamese translation. That turns `args[0]` into two different roles depending on the locale, easily causing bugs that swap sender and recipient.
 
-**Quy tắc:** lập trình viên xác định hợp đồng argument **theo ý nghĩa**, rồi người dịch sắp xếp placeholder **theo ngữ pháp**.
+**Rule:** developers define the argument contract **by meaning**, and translators arrange placeholders **by grammar**.
 
-## 3. Ví dụ đầy đủ Java 17+: cùng đối số, hai bản dịch, thứ tự khác
+## 3. Complete Java 17+ Example: Same Arguments, Two Translations, Different Order
 
-Tạo ba tệp trong một thư mục trên classpath:
+Create three files in a directory on the classpath:
 
 ```text
 MessageOrderDemo.java
@@ -121,14 +121,14 @@ public class MessageOrderDemo {
 }
 ```
 
-Lưu tệp mã nguồn và `.properties` với UTF-8. Chạy bằng JDK 17 trở lên:
+Save the source file and `.properties` files in UTF-8. Run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 MessageOrderDemo.java
 java -cp . MessageOrderDemo
 ```
 
-**Stdout chính xác (terminal hỗ trợ UTF-8):**
+**Exact stdout (on a UTF-8 terminal):**
 
 ```text
 EN: Lan sent file report.pdf to Minh.
@@ -137,87 +137,87 @@ EN review: Lan approved PR-17. Thank you, Lan!
 VI review: Cảm ơn Lan! PR-17 đã được Lan duyệt.
 ```
 
-Quan sát:
+Observations:
 
-1. `upload` luôn là mảng `{"Lan", "report.pdf", "Minh"}`. Chỉ có mẫu câu trong resource bundle thay đổi.
-2. `review.notice` dùng `{0}` **hai lần** để nhắc lại người duyệt, nhưng ứng dụng chỉ cần cung cấp tên này một lần. Không có quy tắc cấm xuất hiện nhiều lần cho một chỉ số.
-3. Tiếng Việt `{1} đã được {0} duyệt` đổi sang câu bị động để phù hợp cách diễn đạt. Việc chọn chủ động/bị động là trách nhiệm của bản dịch, không do formatter tự quyết định.
-4. `ResourceBundle` tìm **mẫu dịch** theo key và locale; `MessageFormat` xử lý **các argument** của mẫu. Hai trách nhiệm tách biệt.
-5. Ví dụ dùng `Control.FORMAT_PROPERTIES` trên **classpath/unnamed module**, tránh thử fallback locale mặc định JVM. Các overload dùng `ResourceBundle.Control` không được hỗ trợ khi gọi từ named module; môi trường JPMS cần cơ chế bundle/module phù hợp.
+1. `upload` is always the array `{"Lan", "report.pdf", "Minh"}`. Only the sentence pattern in the resource bundle changes.
+2. `review.notice` uses `{0}` **twice** to mention the reviewer again, yet the application only needs to pass this name once. There is no rule prohibiting multiple occurrences of an index.
+3. Vietnamese `{1} đã được {0} duyệt` switches to passive voice for natural phrasing. Choosing active or passive voice is the responsibility of the translation, not decided automatically by the formatter.
+4. `ResourceBundle` looks up the **translation pattern** by key and locale; `MessageFormat` processes the **arguments** of the pattern. The two responsibilities are separate.
+5. The example uses `Control.FORMAT_PROPERTIES` on the **classpath/unnamed module**, avoiding fallback to the JVM default locale. Overloads accepting `ResourceBundle.Control` are not supported when called from a named module; JPMS environments require an appropriate bundle/module mechanism.
 
-Từ Java 9, `PropertyResourceBundle` có cơ chế đọc UTF-8 mặc định và fallback tương thích ISO-8859-1; thực tế nên quản lý encoding nhất quán từ nguồn, build đến terminal.
+Since Java 9, `PropertyResourceBundle` reads UTF-8 by default with ISO-8859-1 compatibility fallback; in practice, manage encoding consistently from source, build, to terminal.
 
-## 4. Hợp đồng vai trò: điều mà người dịch phải biết
+## 4. Role Contract: What Translators Must Know
 
-Một key không chỉ có tên và chuỗi mẫu; nó còn có **ý nghĩa của từng placeholder**. Hãy mô tả contract rõ ràng:
+A key does not just have a name and a pattern string; it also has **the meaning of each placeholder**. Document the contract clearly:
 
 | Key | `{0}` | `{1}` | `{2}` |
 | --- | --- | --- | --- |
-| `upload.notice` | Tên người gửi | Tên tệp | Tên người nhận |
-| `review.notice` | Tên người duyệt | Mã yêu cầu | Không dùng |
-| `project.summary` | Tên dự án | Trạng thái | Người phụ trách |
+| `upload.notice` | Sender name | File name | Recipient name |
+| `review.notice` | Reviewer name | Request ID | Unused |
+| `project.summary` | Project name | Status | Owner |
 
-Hợp đồng này gắn với **từng key**. Không có quy định toàn cục rằng `{0}` luôn là tên người. Ví dụ key khác có thể quy định `{0}` là số lượng và `{1}` là ngày.
+This contract is tied to **each individual key**. There is no global rule that `{0}` is always a person's name. For example, another key might define `{0}` as a quantity and `{1}` as a date.
 
-Để bàn giao cho người dịch, có thể dùng metadata minh họa như:
+For handoff to translators, you can use illustrative metadata like:
 
 ```yaml
 upload.notice:
-  description: "Thông báo tệp đã chuyển từ người gửi tới người nhận."
+  description: "Notification that a file was transferred from sender to recipient."
   arguments:
-    0: "senderName: tên người gửi"
-    1: "fileName: tên tệp"
-    2: "recipientName: tên người nhận"
+    0: "senderName: sender's name"
+    1: "fileName: file name"
+    2: "recipientName: recipient's name"
   example:
     en: "{0} sent file {1} to {2}."
     vi: "{2} đã nhận tệp {1} do {0} gửi."
 ```
 
-Đây là **tài liệu hợp đồng dịch**, không phải cấu trúc `ResourceBundle` mặc định. Với tệp `.properties`, giá trị thật vẫn là pattern như trong phần 3. Metadata giúp người dịch tránh đổi số placeholder để “đánh lại số” theo trật tự mới.
+This is a **translation contract document**, not the default `ResourceBundle` structure. With `.properties` files, the actual value remains the pattern as shown in section 3. Metadata helps translators avoid changing placeholder numbers to "renumber" them according to the new order.
 
-## 5. Những kiểu thay đổi mà MessageFormat hỗ trợ
+## 5. Types of Changes Supported by MessageFormat
 
-### 5.1. Đảo trật tự
+### 5.1. Reordering
 
 ```text
 en: {0} approved {1}.
 vi: {1} đã được {0} duyệt.
 ```
 
-Đối số `{0}=Lan`, `{1}=PR-17` có kết quả `Lan approved PR-17.` và `PR-17 đã được Lan duyệt.`. Cùng dữ liệu, cách nhấn mạnh khác nhau.
+Arguments `{0}=Lan` and `{1}=PR-17` produce `Lan approved PR-17.` and `PR-17 đã được Lan duyệt.`. Same data, different emphasis.
 
-### 5.2. Lặp một argument
+### 5.2. Repeating an Argument
 
 ```text
 en: {0} approved {1}. Thank you, {0}!
 vi: Cảm ơn {0}! {1} đã được {0} duyệt.
 ```
 
-Không cần truyền tên người duyệt hai lần. Đây không phải “argument mới”; hai `{0}` đều đọc từ `args[0]`.
+No need to pass the reviewer's name twice. This is not a "new argument"; both `{0}` placeholders read from `args[0]`.
 
-### 5.3. Một ngôn ngữ lược bỏ thông tin có thể suy ra
+### 5.3. One Language Omitting Inferable Information
 
-Một pattern có thể không sử dụng mọi giá trị trong mảng. `MessageFormat` không ép từng argument phải xuất hiện đúng một lần. Tuy nhiên, lược bỏ thông tin có thể gây hiểu nhầm nghiệp vụ: ẩn tên người gửi trong thông báo thanh toán/phê duyệt, bỏ số lượng hoặc tên người nhận có thể khiến câu không còn đủ ý nghĩa. Hợp đồng phải nêu **argument nào bắt buộc phải thể hiện** và argument nào chỉ hỗ trợ cách diễn đạt.
+A pattern does not have to use every value in the array. `MessageFormat` does not force each argument to appear exactly once. However, omitting information can cause business ambiguity: hiding the sender in a payment/approval notice, or omitting a quantity or recipient name, can make the sentence incomplete in meaning. The contract must state **which arguments are mandatory to display** and which only support phrasing.
 
-### 5.4. Đổi trật tự nhưng giữ kiểu dữ liệu
+### 5.4. Reordering While Preserving Data Types
 
-Ví dụ `{0}` là số lượng, `{1}` là người nhận, `{2}` là người gửi:
+Suppose `{0}` is a count, `{1}` is the recipient, and `{2}` is the sender:
 
 ```text
 en: {1} received {0,number,integer} items from {2}.
 vi: {2} đã gửi {0,number,integer} mục cho {1}.
 ```
 
-Đảo trật tự không làm `{0}` biến thành tên người, và không được xóa mất ý nghĩa `number,integer` nếu thông điệp cần định dạng số lượng.
+Reordering does not turn `{0}` into a person's name, and the `number,integer` meaning must not be stripped if the message requires integer formatting.
 
-## 6. Đừng nhầm chỉ số argument với thứ tự format element
+## 6. Do Not Confuse Argument Index with Format Element Index
 
-Một `MessageFormat` có hai loại vị trí:
+A `MessageFormat` has two kinds of positions:
 
-- **Argument index:** số trong `{0}`, `{1}`, `{2}`, ứng với phần tử mảng dữ liệu.
-- **Format element index:** số thứ tự placeholder **xuất hiện trong pattern**, tính từ trái sang phải.
+- **Argument index:** the number inside `{0}`, `{1}`, `{2}`, corresponding to the element in the data array.
+- **Format element index:** the ordinal position of the placeholder **as it appears in the pattern**, counted from left to right.
 
-Với pattern `"{2} / {0} / {1}"`:
+Given the pattern `"{2} / {0} / {1}"`:
 
 | Format element index | Format element | Argument index |
 | ---: | --- | ---: |
@@ -225,20 +225,20 @@ Với pattern `"{2} / {0} / {1}"`:
 | 1 | `{0}` | 0 |
 | 2 | `{1}` | 1 |
 
-Các API dễ gây nhầm:
+APIs that are easy to confuse:
 
-| API | Áp dụng theo chỉ số nào? |
+| API | Which index does it apply to? |
 | --- | --- |
-| `setFormat(int formatElementIndex, Format f)` | Thứ tự placeholder xuất hiện |
-| `setFormats(Format[] fs)` | Thứ tự placeholder xuất hiện |
-| `setFormatByArgumentIndex(int argumentIndex, Format f)` | Chỉ số trong `{n}` |
-| `setFormatsByArgumentIndex(Format[] fs)` | Chỉ số trong `{n}` |
+| `setFormat(int formatElementIndex, Format f)` | Appearance order of placeholder |
+| `setFormats(Format[] fs)` | Appearance order of placeholder |
+| `setFormatByArgumentIndex(int argumentIndex, Format f)` | Index inside `{n}` |
+| `setFormatsByArgumentIndex(Format[] fs)` | Index inside `{n}` |
 
-Khi bản dịch hoán đổi thứ tự, **`setFormatByArgumentIndex` thường hợp lý hơn**, vì format vẫn gắn với vai trò dữ liệu. Nếu một chỉ số xuất hiện nhiều lần, phương thức này áp dụng formatter cho mọi format element có cùng argument index.
+When translations swap positions, **`setFormatByArgumentIndex` is usually more appropriate**, because the format stays attached to the data role. If an index appears multiple times, this method applies the formatter to every format element with that same argument index.
 
-### Ví dụ Java 17 đầy đủ về số lượng
+### Complete Java 17 Example with Quantity
 
-Tệp `NumberArgumentOrder.java`:
+File `NumberArgumentOrder.java`:
 
 ```java
 import java.text.MessageFormat;
@@ -251,8 +251,8 @@ public class NumberArgumentOrder {
                 "{1} received {0} items from {2}; {1} will review.",
                 Locale.US);
 
-        // Định dạng argument 0 (số lượng), không phải
-        // placeholder xuất hiện đầu tiên là {1}.
+        // Format argument 0 (quantity), not the
+        // first appearing placeholder {1}.
         format.setFormatByArgumentIndex(
                 0, NumberFormat.getIntegerInstance(Locale.US));
 
@@ -267,17 +267,17 @@ javac -encoding UTF-8 NumberArgumentOrder.java
 java NumberArgumentOrder
 ```
 
-Stdout với `Locale.US`:
+Stdout with `Locale.US`:
 
 ```text
 Minh received 1,200 items from Lan; Minh will review.
 ```
 
-Nếu dùng `setFormat(0, ...)` trong ví dụ này, formatter số nguyên sẽ gắn với **format element đầu tiên `{1}`**, vốn là tên người nhận, dẫn tới lỗi kiểu dữ liệu khi format. `setFormatByArgumentIndex(0, ...)` gắn đúng với số lượng `{0}` dù `{0}` xuất hiện sau `{1}`.
+If you used `setFormat(0, ...)` in this example, the integer formatter would attach to **the first format element `{1}`**, which is the recipient's name, causing a data type error during formatting. `setFormatByArgumentIndex(0, ...)` properly attaches to the quantity `{0}` even though `{0}` appears after `{1}`.
 
-## 7. Các cú pháp format được phép sử dụng
+## 7. Allowed Format Syntaxes
 
-Dạng tổng quát của phần tử thay thế là:
+The general form of a replacement element is:
 
 ```text
 {argumentIndex}
@@ -285,21 +285,21 @@ Dạng tổng quát của phần tử thay thế là:
 {argumentIndex,formatType,formatStyle}
 ```
 
-Một số dạng trong Java SE 17:
+Some forms in Java SE 17:
 
-| Dạng | Ý nghĩa |
+| Form | Meaning |
 | --- | --- |
-| `{0}` | Giá trị của đối số 0 |
-| `{0,number}` | Định dạng số theo locale |
-| `{0,number,integer}` | Định dạng số nguyên |
-| `{0,number,currency}` | Định dạng tiền theo locale và số liệu |
-| `{1,date,short}` | Định dạng ngày ngắn, với loại ngày được `DateFormat` hỗ trợ |
-| `{1,time,short}` | Định dạng thời gian ngắn |
-| `{2,choice,...}` | Lựa chọn nhánh theo `ChoiceFormat` |
+| `{0}` | Value of argument 0 |
+| `{0,number}` | Format number according to locale |
+| `{0,number,integer}` | Format integer |
+| `{0,number,currency}` | Format currency according to locale and numeric value |
+| `{1,date,short}` | Short date format, for date types supported by `DateFormat` |
+| `{1,time,short}` | Short time format |
+| `{2,choice,...}` | Branch selection via `ChoiceFormat` |
 
-Các đối số số và ngày không đơn thuần được chuyển thành chuỗi trước rồi thay vào. `MessageFormat` tạo hoặc sử dụng **subformat**; kết quả phụ thuộc locale, kiểu của đối số và format style. Khi cần kết quả với `java.time.LocalDate`, nên format trước bằng `DateTimeFormatter` hoặc dùng `Format` tương thích; `{0,date}` chuẩn không tự bảo đảm xử lý trực tiếp mọi kiểu `java.time`.
+Numeric and date arguments are not simply converted to strings first and then substituted. `MessageFormat` creates or uses a **subformat**; the output depends on the locale, argument type, and format style. When working with `java.time.LocalDate`, you should format beforehand with `DateTimeFormatter` or use a compatible `Format`; standard `{0,date}` does not automatically guarantee direct support for all `java.time` types.
 
-Thí dụ định dạng tiếng Việt (đoạn mã nằm trong method):
+Vietnamese formatting example (snippet inside a method):
 
 ```java
 Locale locale = Locale.forLanguageTag("vi-VN");
@@ -308,19 +308,19 @@ Object[] arguments = {1200, "Minh", "Lan"};
 String sentence = new MessageFormat(pattern, locale).format(arguments);
 ```
 
-Thông điệp sẽ có thứ tự vai trò **Lan → số lượng → Minh**, còn dấu phân nhóm của số phụ thuộc dữ liệu locale từ JDK/CLDR. Không nên chốt mọi chuỗi format bản địa hóa giống hệt nhau giữa các phiên bản JDK.
+The message will have the role order **Lan → quantity → Minh**, while the number grouping separator depends on locale data from the JDK/CLDR. You should not lock assertions to identical localized formatted strings across different JDK versions.
 
-**Chú ý nghiệp vụ:** `{0,number,currency}` không tự lấy currency từ giao dịch. Nó dựa vào formatter/currency theo locale nếu không được cấu hình khác. Một giao dịch USD cho người dùng `vi-VN` vẫn là USD; muốn thể hiện đúng đơn vị tiền phải truyền và áp dụng `Currency` theo nghiệp vụ, có thể tạo chuỗi tiền trước hoặc dùng formatter tùy chỉnh.
+**Business note:** `{0,number,currency}` does not automatically obtain the currency from the transaction. It relies on the locale's formatter/currency unless configured otherwise. A USD transaction for a `vi-VN` user is still USD; to display the proper currency unit you must pass and apply the business `Currency`, either by pre-formatting the monetary string or using a custom formatter.
 
-## 8. Dấu nháy đơn và ngoặc nhọn: lỗi dịch dễ làm sai placeholder
+## 8. Single Quotes and Curly Braces: Translation Errors That Break Placeholders
 
-`MessageFormat` có cú pháp đặc biệt cho dấu nháy đơn `'`. Trong pattern:
+`MessageFormat` has special syntax for the single quote `'`. In a pattern:
 
-- Một cặp `''` biểu thị dấu apostrophe thật.
-- Đoạn nằm trong cặp dấu nháy đơn có thể được hiểu là văn bản literal, nên `'{0}'` tạo chữ `{0}` thay vì thay argument.
-- Nếu pattern có một dấu nháy đơn mở mà không đóng, cách parser diễn giải phần còn lại có thể khiến placeholder không được thay.
+- A pair `''` represents a real apostrophe.
+- A segment inside single quotes can be interpreted as literal text, so `'{0}'` outputs the text `{0}` instead of substituting the argument.
+- If a pattern has an opening single quote without a closing one, the way the parser interprets the rest can prevent placeholders from being substituted.
 
-Ví dụ Java trong method:
+Java example inside a method:
 
 ```java
 String pattern = "It''s {0}''s file.";
@@ -329,15 +329,15 @@ String message = new MessageFormat(pattern, Locale.ENGLISH)
 System.out.println(message);
 ```
 
-Kết quả:
+Output:
 
 ```text
 It's Lan's file.
 ```
 
-Nếu người dịch viết `"It's {0}'s file."` mà không escape apostrophe cho `MessageFormat`, output có thể chứa literal `{0}` hoặc sai nội dung. Các bản dịch có apostrophe thường xuyên cần được kiểm thử riêng.
+If a translator writes `"It's {0}'s file."` without escaping apostrophes for `MessageFormat`, the output may contain a literal `{0}` or incorrect content. Translations with apostrophes should routinely be tested separately.
 
-Một trường hợp khác:
+Another case:
 
 ```java
 String pattern = "Literal: '{0}', actual: {0}.";
@@ -345,65 +345,65 @@ String message = new MessageFormat(pattern, Locale.ENGLISH)
         .format(new Object[]{"VALUE"});
 ```
 
-Kết quả là `Literal: {0}, actual: VALUE.`. Ở đây `'{0}'` được quote để **in nguyên placeholder**, còn `{0}` còn lại mới thực sự thay bằng dữ liệu.
+The result is `Literal: {0}, actual: VALUE.`. Here `'{0}'` is quoted to **print the placeholder literally**, while the remaining `{0}` is actually substituted with data.
 
-Phân biệt **ba lớp escaping** khi cần thiết: chuỗi Java, nội dung `.properties` và cú pháp `MessageFormat`. Dấu `{`, `}` không cân đối hoặc format type không hợp lệ có thể khiến `new MessageFormat(pattern, locale)` ném `IllegalArgumentException`.
+Distinguish **three layers of escaping** when necessary: Java string literals, `.properties` content, and `MessageFormat` syntax. Unbalanced `{`, `}` or an invalid format type can cause `new MessageFormat(pattern, locale)` to throw `IllegalArgumentException`.
 
-## 9. Những lỗi thường gặp khi đổi trật tự
+## 9. Common Mistakes When Reordering
 
-| Lỗi | Vì sao sai | Cách xử lý |
+| Mistake | Why it is wrong | How to handle |
 | --- | --- | --- |
-| Đánh lại `{0}`, `{1}` theo vị trí chữ trong bản dịch | Các chỉ số đang gắn với role, nên dữ liệu bị tráo | Giữ chỉ số theo hợp đồng |
-| Hoán đổi phần tử mảng theo ngôn ngữ | Logic ứng dụng bị buộc phải hiểu cấu trúc câu | Giữ mảng nhất quán, đổi pattern |
-| Dịch từng từ/ghép chuỗi | Ngữ pháp, giới từ, biến tố và thứ tự có thể khác | Dịch toàn câu với placeholder |
-| Dùng `setFormat(0, f)` và tưởng đó là `{0}` | Đó là format element đầu tiên | Dùng `setFormatByArgumentIndex` khi cần gắn role |
-| Quên dấu `''` trong pattern | Quote sai khiến placeholder mất tác dụng | Kiểm thử apostrophe và literal braces |
-| Thiếu argument nhưng không kiểm tra output | Argument không khả dụng có thể hiện literal `{n}` | Kiểm tra hợp đồng và số lượng đối số |
-| Dùng `{0,number}` với String | Subformat số cần kiểu phù hợp | Truyền Number hoặc định dạng trước |
-| Chuyển một ngày thành String mặc định rồi gắn nhãn | Dễ sai locale và timezone | Chọn formatter và `ZoneId` tường minh |
-| Xem `MessageFormat` là bộ dịch tự động | Nó chỉ thay và format dữ liệu | Viết từng pattern dịch |
-| Chia sẻ `MessageFormat` mutable giữa request | `applyPattern`, `setFormat` có thể sửa trạng thái | Tạo instance riêng hoặc đồng bộ quản lý |
-| Dùng `MessageFormat` cho HTML không escape | Nó không xử lý XSS | Encode theo ngữ cảnh đầu ra |
+| Renumbering `{0}`, `{1}` by word position in translation | Indices are bound to roles, so data gets swapped | Keep indices per the contract |
+| Swapping array elements by language | Application logic is forced to know sentence structure | Keep array consistent, change pattern |
+| Translating word-by-word / concatenating strings | Grammar, prepositions, inflections, and order may differ | Translate whole sentences with placeholders |
+| Using `setFormat(0, f)` thinking it targets `{0}` | That targets the first format element | Use `setFormatByArgumentIndex` when binding to a role |
+| Forgetting `''` in patterns | Incorrect quoting disables placeholders | Test apostrophes and literal braces |
+| Missing argument without checking output | Unavailable argument may display literal `{n}` | Validate contract and argument count |
+| Using `{0,number}` with a String | Numeric subformat requires a compatible type | Pass a Number or pre-format |
+| Converting a date to default String and embedding it | Easily gets locale and time zone wrong | Choose formatter and `ZoneId` explicitly |
+| Treating `MessageFormat` as an automatic translator | It only substitutes and formats data | Write each translated pattern |
+| Sharing mutable `MessageFormat` across requests | `applyPattern`, `setFormat` can mutate state | Create separate instances or synchronize access |
+| Using `MessageFormat` for unescaped HTML | It does not prevent XSS | Encode for the output context |
 
-### 9.1. Argument thiếu và argument `null`
+### 9.1. Missing Arguments and `null` Arguments
 
-Theo đặc tả Java, khi một placeholder có argument index vượt ra khỏi mảng, `MessageFormat` có thể giữ literal như `{2}` trong output, **không bắt buộc ném lỗi**. Vì vậy “format chạy không lỗi” chưa bảo đảm dữ liệu đầy đủ.
+According to the Java specification, when a placeholder has an argument index outside the array bounds, `MessageFormat` may leave a literal like `{2}` in the output, **without necessarily throwing an error**. Therefore, "formatting ran without errors" does not guarantee complete data.
 
-Đối số `null` có thể được biểu diễn bằng chữ `null`. Trong giao diện thực, cần chính sách xử lý dữ liệu thiếu rõ ràng, tránh lộ placeholder hoặc `null` cho người dùng. Nếu subformat yêu cầu Number hoặc Date nhưng truyền kiểu không tương thích, có thể ném `IllegalArgumentException`.
+A `null` argument can be rendered as the text `null`. In a real UI, you need a clear policy for handling missing data to avoid exposing placeholders or `null` to users. If a subformat requires a Number or Date and an incompatible type is passed, it may throw `IllegalArgumentException`.
 
-### 9.2. Gộp tất cả thành một ngôn ngữ làm mẫu gốc
+### 9.2. Using One Language as the Reference Template
 
-Dùng tiếng Anh làm mẫu đối chiếu cũng được, nhưng không được bắt mọi bản dịch giữ **thứ tự placeholder** y hệt tiếng Anh. Hãy giữ **vai trò đối số** và ý nghĩa sự kiện; để người dịch quyết định cấu trúc câu.
+Using English as a reference template is fine, but you must not force every translation to keep the **exact same placeholder order** as English. Keep the **argument roles** and event meaning; let translators decide the sentence structure.
 
-## 10. Đảo thứ tự chưa giải quyết hết biến thể ngữ pháp
+## 10. Reordering Alone Does Not Solve All Grammatical Variants
 
-Đổi từ `{0} {1}` thành `{1} {0}` giúp chuyển thứ tự thông tin, nhưng nhiều ngôn ngữ còn có:
+Changing `{0} {1}` to `{1} {0}` shifts information order, but many languages also have:
 
-- Quy tắc số ít/số nhiều phụ thuộc số lượng;
-- Giống ngữ pháp, cách chia động từ, biến tố của danh từ và đại từ;
-- Đơn vị đo, số, tiền, ngày tháng;
-- Hình thức lịch sự, mức độ trang trọng;
-- Văn bản phải–trái (RTL) và xử lý bidi cho chuỗi xen ký tự Latin.
+- Singular/plural rules depending on quantity;
+- Grammatical gender, verb conjugation, and noun/pronoun inflection;
+- Units of measurement, numbers, currency, and dates;
+- Politeness forms and formality levels;
+- Right-to-left (RTL) text and bidi handling for strings mixed with Latin characters.
 
-`MessageFormat` của JDK 17 có `ChoiceFormat` nhưng **không hỗ trợ trực tiếp** cú pháp ICU `{count, plural, ...}` hoặc `{gender, select, ...}` như format type chuẩn. Nếu sản phẩm cần plural phức tạp, cân nhắc ICU MessageFormat hoặc một lớp chọn mẫu thông điệp phù hợp. Chỉ đổi vị trí placeholder không thể thay thế việc dịch ngữ pháp.
+JDK 17's `MessageFormat` has `ChoiceFormat`, but **does not directly support** ICU syntax like `{count, plural, ...}` or `{gender, select, ...}` as standard format types. If the product needs complex plurals, consider ICU MessageFormat or an appropriate message-pattern selection layer. Reordering placeholders alone cannot replace grammatical translation.
 
-Ví dụ `"{1} đã được {0} duyệt"` là câu bị động, cần người dịch bảo đảm nội dung không đổi nghĩa; `MessageFormat` không kiểm tra ai thật sự là người duyệt.
+For example, `"{1} đã được {0} duyệt"` is a passive sentence, requiring the translator to ensure the meaning stays accurate; `MessageFormat` does not verify who actually performed the approval.
 
-## 11. Tổ chức tài nguyên và định dạng trong ứng dụng
+## 11. Organizing Resources and Formatting in an Application
 
-Một flow thường gặp:
+A typical flow:
 
 ```text
-Sự kiện/domain
+Event / domain
   senderName = "Lan"
   fileName = "report.pdf"
   recipientName = "Minh"
         |
         v
-App xác định locale người dùng (vi/en/...)
+App determines user locale (vi/en/...)
         |
         v
-ResourceBundle lấy pattern theo key + locale
+ResourceBundle loads pattern by key + locale
         |
         v
 MessageFormat(pattern, locale)
@@ -412,20 +412,20 @@ MessageFormat(pattern, locale)
 format(new Object[] {senderName, fileName, recipientName})
         |
         v
-Chuỗi hiển thị -> output encoding phù hợp với UI
+Rendered string -> output encoding appropriate for UI
 ```
 
-`ResourceBundle` chọn mẫu dịch và có cơ chế candidate/fallback theo locale, base, parent. `MessageFormat` không tự tìm ngôn ngữ và không tự tải bundle. Khi một bundle thiếu key, có thể kế thừa từ parent hoặc ném `MissingResourceException` nếu không tìm được ở toàn chain.
+`ResourceBundle` selects the translation pattern and provides candidate/fallback mechanisms across locale, base, and parent. `MessageFormat` does not detect languages or load bundles. When a bundle lacks a key, it can inherit from its parent or throw `MissingResourceException` if not found anywhere in the chain.
 
-Nên truyền `Locale` tường minh từ request/profile thay vì `Locale.setDefault(...)` trên server đa người dùng. `Locale.setDefault` thay mặc định toàn JVM và có thể ảnh hưởng request khác. `MessageFormat.format(pattern, args...)` dạng static sử dụng locale mặc định của formatter được tạo bên trong; muốn locale xác định, dùng `new MessageFormat(pattern, locale).format(args)`.
+Pass the `Locale` explicitly from the request/profile rather than calling `Locale.setDefault(...)` on a multi-user server. `Locale.setDefault` mutates the JVM-wide default and can affect other requests. Static `MessageFormat.format(pattern, args...)` uses the default locale of the internally created formatter; for a deterministic locale, use `new MessageFormat(pattern, locale).format(args)`.
 
-`MessageFormat` là mutable; các phương thức như `applyPattern` và `setFormat` có thể đổi cấu hình. Không chia sẻ một instance rồi thay đổi pattern/locale đồng thời giữa các request. `ResourceBundle` có cache, nhưng điều đó không biến `MessageFormat` thành immutable.
+`MessageFormat` is mutable; methods like `applyPattern` and `setFormat` can alter its configuration. Do not share one instance and mutate its pattern/locale concurrently across requests. `ResourceBundle` has caching, but that does not make `MessageFormat` immutable.
 
-Với nội dung HTML, `MessageFormat` chỉ trả text; **không tự escape HTML/URL**. Giá trị do người dùng nhập phải được encode đúng tại điểm xuất HTML, DOM hoặc các kênh khác. Không dùng thay thế placeholder làm lớp bảo mật.
+For HTML content, `MessageFormat` only returns text; **it does not automatically escape HTML/URLs**. User-supplied values must be properly encoded at the HTML, DOM, or other output boundary. Do not use placeholder substitution as a security layer.
 
-## 12. Kiểm thử trật tự đối số và bản dịch
+## 12. Testing Argument Order and Translations
 
-Dùng **giá trị sentinel khác nhau** cho từng vai trò để phát hiện bị đảo:
+Use **distinct sentinel values** for each role to detect swaps:
 
 ```text
 args[0] = SENDER_A
@@ -436,69 +436,69 @@ en: SENDER_A sent file FILE_B to RECIPIENT_C.
 vi: RECIPIENT_C đã nhận tệp FILE_B do SENDER_A gửi.
 ```
 
-Nếu dùng cùng tên cho người gửi và người nhận, test có thể bỏ sót lỗi hoán đổi.
+If you use the same name for sender and recipient, tests can miss swap bugs.
 
-Những ca cần kiểm tra:
+Cases to verify:
 
-1. **Trật tự khác nhau:** cùng array mà các locale tạo câu đúng nghĩa.
-2. **Chỉ số lặp:** `{0}` xuất hiện nhiều lần đều có cùng giá trị.
-3. **Thiếu placeholder bắt buộc:** kiểm định hợp đồng của key.
-4. **Đối số dư/thiếu:** test định danh index không hợp lệ, thiếu giá trị hoặc `null`.
-5. **Kiểu dữ liệu:** `{0,number}` luôn nhận Number, `{1,date}` nhận kiểu tương thích `DateFormat`.
-6. **Apostrophe và braces:** pattern tiếng Pháp/tiếng Anh chứa nháy đơn vẫn thay đúng.
-7. **Locale và resource fallback:** có đủ key và ngôn ngữ mong muốn, không phụ thuộc default JVM.
-8. **Ngữ nghĩa câu:** người bản ngữ hoặc reviewer xác nhận đúng vai trò người gửi/người nhận, chủ động/bị động.
-9. **Ký tự đặc biệt:** tên người dùng, tệp và nội dung có thể chứa ký tự không Latin, dấu ngoặc, apostrophe và ký tự HTML.
-10. **Formatter mutable:** không có race khi chạy request đồng thời.
+1. **Different order:** the same array produces semantically accurate sentences across locales.
+2. **Repeated indices:** `{0}` appearing multiple times holds the same value.
+3. **Missing required placeholders:** validate the key's contract.
+4. **Extra/missing arguments:** test invalid index references, missing values, or `null`.
+5. **Data types:** `{0,number}` always receives a Number, `{1,date}` receives a type compatible with `DateFormat`.
+6. **Apostrophes and braces:** French/English patterns containing single quotes still substitute properly.
+7. **Locale and resource fallback:** all keys and desired languages are present, independent of JVM default.
+8. **Sentence semantics:** native speakers or reviewers confirm correct sender/recipient roles and active/passive voice.
+9. **Special characters:** user names, file names, and content may contain non-Latin characters, braces, apostrophes, and HTML characters.
+10. **Mutable formatter:** no race conditions when running concurrent requests.
 
-Không nên dùng regex đơn giản trên chuỗi `{...}` để kiểm tra mọi pattern, vì `MessageFormat` có quoting, subformat và khả năng nested pattern với `ChoiceFormat`. Dùng parser phù hợp kết hợp test với giá trị mẫu và quy tắc dịch.
+Do not use simple regex on `{...}` strings to validate all patterns, because `MessageFormat` has quoting, subformats, and nested patterns with `ChoiceFormat`. Use a proper parser combined with sample-value tests and translation rules.
 
-## 13. Bài tập thực hành
+## 13. Hands-On Exercises
 
-### Bài 1 — đổi chủ ngữ khi dịch
+### Exercise 1 — Changing the Subject When Translating
 
-Cho `args = {"Hoa", "contract.pdf", "Nam"}`, trong đó `{0}` là người gửi, `{1}` tệp, `{2}` người nhận. Viết pattern tiếng Anh bắt đầu từ người gửi và tiếng Việt bắt đầu bằng người nhận, không đổi array.
+Given `args = {"Hoa", "contract.pdf", "Nam"}`, where `{0}` is the sender, `{1}` is the file, and `{2}` is the recipient. Write an English pattern starting with the sender and a Vietnamese pattern starting with the recipient, without changing the array.
 
-**Đáp án:**
+**Answer:**
 
 ```text
 en: {0} sent file {1} to {2}.
 vi: {2} đã nhận tệp {1} từ {0}.
 ```
 
-Output lần lượt: `Hoa sent file contract.pdf to Nam.` và `Nam đã nhận tệp contract.pdf từ Hoa.`.
+Outputs respectively: `Hoa sent file contract.pdf to Nam.` and `Nam đã nhận tệp contract.pdf từ Hoa.`.
 
-### Bài 2 — format element index khác argument index
+### Exercise 2 — Format Element Index Differs from Argument Index
 
-Pattern `"{2}: {0} - {1}"`, phần tử placeholder đầu tiên là gì? `setFormat(0, f)` khác `setFormatByArgumentIndex(0, f)` như thế nào?
+Given the pattern `"{2}: {0} - {1}"`, what is the first placeholder element? How does `setFormat(0, f)` differ from `setFormatByArgumentIndex(0, f)`?
 
-**Đáp án:** Format element đầu tiên là `{2}`; `setFormat(0, f)` tác động `{2}`. `setFormatByArgumentIndex(0, f)` tác động `{0}` ở vị trí thứ hai.
+**Answer:** The first format element is `{2}`; `setFormat(0, f)` affects `{2}`. `setFormatByArgumentIndex(0, f)` affects `{0}` in the second position.
 
-### Bài 3 — lặp cùng đối số
+### Exercise 3 — Repeating the Same Argument
 
-Với `args = {"Lan", "PR-17"}` và pattern `"Cảm ơn {0}! {1} đã được {0} duyệt."`, output là gì?
+With `args = {"Lan", "PR-17"}` and pattern `"Cảm ơn {0}! {1} đã được {0} duyệt."`, what is the output?
 
-**Đáp án:** `Cảm ơn Lan! PR-17 đã được Lan duyệt.`.
+**Answer:** `Cảm ơn Lan! PR-17 đã được Lan duyệt.`.
 
-### Bài 4 — dấu apostrophe
+### Exercise 4 — Apostrophes
 
-Pattern `"It's {0}'s file."` có thể hỏng ở đâu? Cách viết đúng?
+Where can the pattern `"It's {0}'s file."` break? How should it be written properly?
 
-**Đáp án:** `'` thuộc cú pháp quote của `MessageFormat`. Viết `"It''s {0}''s file."` để nhận `It's Lan's file.` khi `{0}=Lan`.
+**Answer:** `'` belongs to `MessageFormat`'s quoting syntax. Write `"It''s {0}''s file."` to get `It's Lan's file.` when `{0}=Lan`.
 
-### Bài 5 — giới hạn của đảo thứ tự
+### Exercise 5 — Limits of Reordering
 
-Một ngôn ngữ cần nhiều dạng số nhiều theo `count`. Có thể chỉ đảo `{0}` và `{1}` để dịch đúng không?
+A language needs multiple plural forms based on `count`. Can you simply swap `{0}` and `{1}` to translate it correctly?
 
-**Đáp án:** Không. Đảo thứ tự giải quyết vị trí từ/cụm từ; cần cơ chế chọn biến thể số nhiều riêng theo ngôn ngữ.
+**Answer:** No. Reordering resolves word/phrase position; a separate mechanism is needed to choose plural variants per language.
 
-## 14. Ghi nhớ
+## 14. Key Takeaways
 
-- **Thứ tự xuất hiện của placeholder có thể khác nhau giữa các ngôn ngữ.** Mỗi `{n}` luôn chỉ đến argument index `n`.
-- **Giữ vai trò và thứ tự mảng đầu vào ổn định** cho cùng message key; đặt placeholder theo cách diễn đạt của từng bản dịch.
-- **Có thể lặp hoặc di chuyển placeholder**, nhưng phải giữ ý nghĩa và đủ thông tin nghiệp vụ.
-- **`setFormatByArgumentIndex` gắn formatter với role**, còn `setFormat` gắn với thứ tự format element; sự khác biệt đặc biệt quan trọng khi dịch đổi vị trí.
-- **Kiểm thử bằng dữ liệu phân biệt các vai trò** và kiểm tra apostrophe, loại argument, số lượng đối số, ngữ nghĩa câu.
-- **`MessageFormat` không tự dịch, không xử lý ngữ pháp phức tạp và không escape HTML**; phần còn lại cần nội dung dịch tốt và xử lý đúng ở tầng ứng dụng.
+- **Placeholder appearance order can differ across languages.** Each `{n}` always points to argument index `n`.
+- **Keep roles and input array order stable** for the same message key; place placeholders according to each translation's phrasing.
+- **Placeholders can be repeated or moved**, while preserving meaning and all required business information.
+- **`setFormatByArgumentIndex` binds a formatter to a role**, whereas `setFormat` binds to format element order; this distinction is especially important when translations reorder placeholders.
+- **Test with role-distinguishing data** and verify apostrophes, argument types, argument counts, and sentence semantics.
+- **`MessageFormat` does not auto-translate, handle complex grammar, or escape HTML**; the rest requires good translations and proper handling at the application layer.
 
-Tham khảo: [Java SE 17 — MessageFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html) và [Java SE 17 — ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html).
+References: [Java SE 17 — MessageFormat](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/MessageFormat.html) and [Java SE 17 — ResourceBundle](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/ResourceBundle.html).

@@ -1,34 +1,34 @@
-# Vì sao `int.class` khác `Integer.class`?
+# Why Does `int.class` Differ from `Integer.class`?
 
-Trong Java, `int` là **kiểu nguyên thủy** (primitive type), còn `Integer` là **lớp tham chiếu** (reference type) dùng để biểu diễn một giá trị số nguyên dưới dạng đối tượng. Vì vậy, `int.class` và `Integer.class` trả về **hai đối tượng `Class` khác nhau**, mô tả hai kiểu Java khác nhau. Cơ chế tự động đóng hộp (autoboxing) không biến chúng thành cùng một kiểu.
+In Java, `int` is a **primitive type**, whereas `Integer` is a **reference type** (class) used to represent an integer value as an object. Therefore, `int.class` and `Integer.class` return **two different `Class` objects**, describing two different Java types. The autoboxing mechanism does not make them the same type.
 
-## 1. `.class` thực sự đại diện cho điều gì?
+## 1. What does `.class` actually represent?
 
-Trong Java, biểu thức `TênKiểu.class` là *class literal*: nó trả về đối tượng `java.lang.Class` đại diện cho kiểu được nêu. Cú pháp này áp dụng được cả cho lớp, interface, mảng và kiểu nguyên thủy.
+In Java, the expression `TypeName.class` is a *class literal*: it returns the `java.lang.Class` object representing the specified type. This syntax applies to classes, interfaces, arrays, and primitive types alike.
 
-- `int.class`: đối tượng `Class` đại diện cho **kiểu nguyên thủy `int`**. Dù tên API là `Class`, `int` không phải một lớp thông thường, không có đối tượng kiểu `int`, không có constructor hay superclass.
-- `Integer.class`: đối tượng `Class` đại diện cho **lớp `java.lang.Integer`**. `Integer` là một lớp `final` kế thừa `Number`, dùng với các đối tượng và cung cấp phương thức như `parseInt`, `valueOf`, `compare`.
-- Cả hai có kiểu biểu thức tương thích với `Class<?>`, nhưng mỗi đối tượng `Class` lưu thông tin về **một kiểu được biểu diễn riêng biệt**.
+- `int.class`: the `Class` object representing the **primitive type `int`**. Despite the API name `Class`, `int` is not an ordinary class, has no objects of type `int`, and has no constructors or superclass.
+- `Integer.class`: the `Class` object representing the **`java.lang.Integer` class**. `Integer` is a `final` class extending `Number`, used with objects and providing methods such as `parseInt`, `valueOf`, `compare`.
+- Both have expression types compatible with `Class<?>`, yet each `Class` object stores information about **one separately represented type**.
 
-Điều này tương tự việc `String.class` khác `Object.class`: cùng được biểu diễn bằng API `Class` không có nghĩa là cùng một kiểu.
+This is similar to how `String.class` differs from `Object.class`: being represented by the same `Class` API does not mean being the same type.
 
-## 2. So sánh qua Reflection
+## 2. Comparison via Reflection
 
-| Phép kiểm tra | `int.class` | `Integer.class` |
+| Check | `int.class` | `Integer.class` |
 | --- | --- | --- |
-| Kiểu Java được mô tả | `int` nguyên thủy | `java.lang.Integer` tham chiếu |
+| Described Java type | Primitive `int` | Reference `java.lang.Integer` |
 | `getName()` | `"int"` | `"java.lang.Integer"` |
 | `isPrimitive()` | `true` | `false` |
 | `getSuperclass()` | `null` | `Number.class` |
 | `isInstance(Integer.valueOf(10))` | `false` | `true` |
-| Có thể dùng làm kiểu đối tượng trong `List<T>` | Không: `List<int>` không hợp lệ | Có: `List<Integer>` hợp lệ |
-| Dùng trong chữ ký phương thức | Tham số/giá trị trả về `int` | Tham số/giá trị trả về `Integer` |
+| Can be used as type argument in `List<T>` | No: `List<int>` is invalid | Yes: `List<Integer>` is valid |
+| Used in method signatures | Parameter/return value `int` | Parameter/return value `Integer` |
 
-Một chi tiết thường gây nhầm lẫn là hằng `Integer.TYPE`: **`Integer.TYPE == int.class`**, trong khi **`Integer.TYPE != Integer.class`**. Trường `TYPE` của các lớp wrapper lưu đối tượng `Class` của kiểu nguyên thủy tương ứng; nó không phải một bí danh của `Integer.class`.
+One frequently confusing detail is the constant `Integer.TYPE`: **`Integer.TYPE == int.class`**, whereas **`Integer.TYPE != Integer.class`**. The `TYPE` field on wrapper classes holds the `Class` object of the corresponding primitive type; it is not an alias for `Integer.class`.
 
-### Ví dụ Java 17+ chạy độc lập
+### Standalone runnable Java 17+ example
 
-Lưu toàn bộ mã sau trong tệp `IntVsIntegerClass.java`:
+Save the complete code below in the file `IntVsIntegerClass.java`:
 
 ~~~java
 import java.lang.reflect.Method;
@@ -67,14 +67,14 @@ public class IntVsIntegerClass {
 }
 ~~~
 
-Biên dịch và chạy trong terminal có JDK 17 trở lên:
+Compile and run in a terminal with JDK 17 or newer:
 
 ~~~bash
 javac IntVsIntegerClass.java
 java IntVsIntegerClass
 ~~~
 
-Kết quả chuẩn:
+Expected output:
 
 ~~~text
 false
@@ -92,47 +92,47 @@ int
 java.lang.Integer
 ~~~
 
-Giải thích những dòng trọng tâm:
+Explanation of the key lines:
 
-1. `primitive == wrapper` là `false` vì hai đối tượng `Class` biểu diễn hai kiểu khác nhau.
-2. `isPrimitive()` chỉ đúng cho `int.class`; `Integer.class` mô tả một lớp đối tượng thực sự.
-3. `getSuperclass()` của kiểu nguyên thủy trả `null`; superclass trực tiếp của `Integer` là `Number`.
-4. `isInstance(Object)` kiểm tra liệu **đối tượng truyền vào** có là instance của kiểu được mô tả hay không. Một đối tượng `Integer` không thể là instance của một kiểu nguyên thủy, nên `int.class.isInstance(...)` trả `false`.
-5. Reflection tìm hai phương thức `accept` khác nhau: một nhận `int`, một nhận `Integer`. Chúng không trùng chữ ký.
+1. `primitive == wrapper` is `false` because the two `Class` objects represent two different types.
+2. `isPrimitive()` is only true for `int.class`; `Integer.class` describes an actual object class.
+3. `getSuperclass()` of a primitive type returns `null`; the direct superclass of `Integer` is `Number`.
+4. `isInstance(Object)` checks whether **the passed object** is an instance of the described type. An `Integer` object cannot be an instance of a primitive type, so `int.class.isInstance(...)` returns `false`.
+5. Reflection finds two distinct `accept` methods: one taking `int`, one taking `Integer`. They do not have the same signature.
 
-## 3. Vì sao autoboxing không làm hai `Class` bằng nhau?
+## 3. Why doesn't autoboxing make the two `Class` objects equal?
 
-**Autoboxing** cho phép trình biên dịch chuyển một giá trị `int` thành một tham chiếu `Integer` khi ngữ cảnh cần kiểu wrapper; **unboxing** chuyển ngược lại thành giá trị nguyên thủy. Ví dụ:
+**Autoboxing** lets the compiler convert an `int` value into an `Integer` reference when the context requires a wrapper type; **unboxing** converts back to a primitive value. Example:
 
 ~~~java
 int number = 42;
-Integer boxed = number;      // autoboxing, tương đương về ý nghĩa với Integer.valueOf(number)
-int again = boxed;           // unboxing, tương đương boxed.intValue()
+Integer boxed = number;      // autoboxing, semantically equivalent to Integer.valueOf(number)
+int again = boxed;           // unboxing, equivalent to boxed.intValue()
 ~~~
 
-Đây là **phép chuyển đổi giá trị khi biên dịch/thực thi**, không phải quan hệ kế thừa, không tạo sự đồng nhất giữa hai kiểu và không thay đổi đối tượng `Class`. Bởi vậy:
+This is a **value conversion at compile/runtime**, not an inheritance relationship; it creates no identity between the two types and does not change the `Class` objects. Therefore:
 
-- `int.class == Integer.class` vẫn là `false`.
-- `Integer.class.isAssignableFrom(int.class)` là `false` và `int.class.isAssignableFrom(Integer.class)` cũng là `false`; API này kiểm tra khả năng gán theo quan hệ kiểu tham chiếu, không xem autoboxing là kế thừa.
-- Biến `int` không có phương thức `getClass()`; viết `number.getClass()` khi `number` là `int` gây lỗi biên dịch. Muốn truy vấn kiểu nguyên thủy, dùng `int.class` hoặc `Integer.TYPE`.
-- Khi `boxed` là một đối tượng `Integer`, `boxed.getClass() == Integer.class` là `true` (nếu `boxed` khác `null`).
+- `int.class == Integer.class` remains `false`.
+- `Integer.class.isAssignableFrom(int.class)` is `false` and `int.class.isAssignableFrom(Integer.class)` is also `false`; this API checks assignability based on reference-type relationships, not treating autoboxing as inheritance.
+- An `int` variable has no `getClass()` method; writing `number.getClass()` when `number` is `int` causes a compile error. To query the primitive type, use `int.class` or `Integer.TYPE`.
+- When `boxed` is an `Integer` object, `boxed.getClass() == Integer.class` is `true` (provided `boxed` is non-`null`).
 
-Cần chú ý `Integer` có thể chứa `null`, còn `int` không thể. Unboxing giá trị `null` ném `NullPointerException`:
+Note that `Integer` can hold `null`, whereas `int` cannot. Unboxing a `null` value throws `NullPointerException`:
 
 ~~~java
 Integer missing = null;
-// int value = missing; // Nếu thực thi sẽ ném NullPointerException.
+// int value = missing; // If executed, throws NullPointerException.
 ~~~
 
-Ví dụ chú thích ở trên minh họa rủi ro, không phải một chương trình riêng.
+The commented snippet above illustrates the risk, not a separate program.
 
-## 4. Tác động trực tiếp khi dùng Reflection
+## 4. Direct impact when using Reflection
 
-### 4.1. Tra cứu method phải dùng đúng kiểu tham số đã khai báo
+### 4.1. Method lookup must use the exact declared parameter types
 
-`Class.getMethod(String, Class<?>...)` và `Class.getDeclaredMethod(String, Class<?>...)` tra cứu **đúng chữ ký tham số**. Nếu có phương thức `process(int)`, lời gọi `getMethod("process", Integer.class)` không tự chuyển sang `getMethod("process", int.class)`.
+`Class.getMethod(String, Class<?>...)` and `Class.getDeclaredMethod(String, Class<?>...)` look up **the exact parameter signature**. If there is a method `process(int)`, calling `getMethod("process", Integer.class)` does not automatically fall back to `getMethod("process", int.class)`.
 
-Trong ví dụ độc lập ở mục 2, hai cách tìm dưới đây trỏ đến hai overload riêng:
+In the standalone example in section 2, the two lookups below point to two separate overloads:
 
 ~~~java
 Method primitiveMethod =
@@ -141,39 +141,39 @@ Method wrapperMethod =
         IntVsIntegerClass.class.getMethod("accept", Integer.class);
 ~~~
 
-Nếu lớp chỉ khai báo overload `accept(int)`, truy vấn bằng `Integer.class` sẽ ném `NoSuchMethodException`. Quy tắc tương tự áp dụng khi so kiểu trả về bằng `Method.getReturnType()`, kiểu trường bằng `Field.getType()` và kiểu tham số bằng `Method.getParameterTypes()`.
+If the class only declares the `accept(int)` overload, querying with `Integer.class` throws `NoSuchMethodException`. The same rule applies when comparing return types with `Method.getReturnType()`, field types with `Field.getType()`, and parameter types with `Method.getParameterTypes()`.
 
-**Phân biệt lúc tra cứu với lúc gọi:** `Method.invoke` có thể tự unbox một đối tượng `Integer` để truyền cho tham số `int` (và thực hiện một số chuyển đổi primitive hợp lệ) khi gọi phương thức đã tìm thấy. Điều đó không làm thay đổi chữ ký hay kết quả của `getMethod`.
+**Distinguish lookup time from invocation time:** `Method.invoke` can automatically unbox an `Integer` object to pass to an `int` parameter (and perform certain valid primitive widening conversions) when invoking an already found method. That does not change the signature or the result of `getMethod`.
 
-### 4.2. Không dùng `Class.forName("int")` để lấy kiểu nguyên thủy
+### 4.2. Do not use `Class.forName("int")` to get a primitive type
 
-`Class.forName("java.lang.Integer")` tra cứu được lớp wrapper theo tên đầy đủ. Nhưng `Class.forName("int")` không nhận tên nguyên thủy theo cách đó và ném `ClassNotFoundException`. Khi cần `Class` của primitive, hãy lấy trực tiếp bằng `int.class` hoặc `Integer.TYPE`. Khi đọc một kiểu từ Reflection, dùng `isPrimitive()` để phân biệt.
+`Class.forName("java.lang.Integer")` looks up the wrapper class by its full name. However, `Class.forName("int")` does not accept primitive names that way and throws `ClassNotFoundException`. When you need the `Class` of a primitive, obtain it directly via `int.class` or `Integer.TYPE`. When reading a type from Reflection, use `isPrimitive()` to distinguish it.
 
-### 4.3. Kiểu mảng cũng không giống nhau
+### 4.3. Array types are not the same either
 
-`int[].class` và `Integer[].class` đều có `isArray() == true`, nhưng là hai lớp mảng khác nhau. `getComponentType()` lần lượt cho `int.class` và `Integer.class`. Một mảng `int[]` chứa phần tử primitive; một mảng `Integer[]` chứa tham chiếu đến các đối tượng `Integer` (có thể có phần tử `null`).
+`int[].class` and `Integer[].class` both have `isArray() == true`, yet they are two distinct array classes. `getComponentType()` yields `int.class` and `Integer.class`, respectively. An `int[]` array stores primitive elements; an `Integer[]` array stores references to `Integer` objects (and can contain `null` elements).
 
-Không thể chuyển trực tiếp `int[]` thành `Integer[]` bằng autoboxing; muốn đổi phải chuyển từng phần tử.
+You cannot directly convert `int[]` to `Integer[]` via autoboxing; to convert, you must transform each element individually.
 
-## 5. Cách chọn đúng `Class` trong mã thực tế
+## 5. How to choose the right `Class` in real code
 
-- **Chữ ký khai báo primitive** (ví dụ `void setAge(int age)`, `int getCount()`, `Field` có kiểu `int`): dùng `int.class` khi so hoặc tra cứu qua Reflection.
-- **Chữ ký khai báo wrapper** (ví dụ `void setAge(Integer age)`, `Integer findCount()`, trường có kiểu `Integer`): dùng `Integer.class`.
-- **Framework/mapper xử lý cả hai dạng:** có thể viết logic quy đổi chủ động từ `int.class` sang `Integer.class` (và ngược lại) nếu bài toán muốn xem chúng tương ứng; đừng mặc định `Class.equals` hoặc `isAssignableFrom` thực hiện việc quy đổi này.
-- **Cấu trúc dữ liệu generic:** dùng `Integer` vì type argument của generics phải là kiểu tham chiếu. Với dữ liệu số nguyên lớn cần tránh overhead đối tượng, mảng `int[]` có thể phù hợp hơn `Integer[]`; chọn theo yêu cầu về `null`, API và hiệu năng thực tế.
+- **Signatures declaring primitives** (e.g., `void setAge(int age)`, `int getCount()`, a `Field` of type `int`): use `int.class` when comparing or looking up via Reflection.
+- **Signatures declaring wrappers** (e.g., `void setAge(Integer age)`, `Integer findCount()`, a field of type `Integer`): use `Integer.class`.
+- **Frameworks/mappers handling both forms:** you can write explicit mapping logic from `int.class` to `Integer.class` (and vice versa) if the problem treats them as equivalent; do not assume `Class.equals` or `isAssignableFrom` performs this conversion.
+- **Generic data structures:** use `Integer` because type arguments of generics must be reference types. For large integer datasets where object overhead should be avoided, an `int[]` array may be more suitable than `Integer[]`; choose based on `null` requirements, API, and actual performance.
 
-## 6. Lỗi thường gặp và cách tự kiểm tra
+## 6. Common mistakes and self-check
 
-| Nhầm lẫn | Cách hiểu đúng |
+| Misconception | Correct understanding |
 | --- | --- |
-| “`int.class` là `Integer.class` sau boxing.” | Boxing chuyển **giá trị**, không thay danh tính kiểu. |
-| “`Integer.TYPE` là `Integer.class`.” | `Integer.TYPE` chính là `int.class`. |
-| “`getMethod` tự áp dụng boxing để tìm overload.” | Phải chỉ rõ `int.class` hoặc `Integer.class` theo chữ ký đã khai báo. |
-| “Mọi giá trị `int` đều có `getClass()`.” | Primitive không phải object; dùng class literal. |
-| “`isAssignableFrom` trả true vì Java tự boxing.” | Kiểm tra này không coi boxing là quan hệ gán kiểu tham chiếu. |
-| “`int[].class` và `Integer[].class` giống nhau.” | Thành phần lần lượt là primitive và wrapper; hai loại mảng độc lập. |
+| "`int.class` is `Integer.class` after boxing." | Boxing converts **values**, not type identity. |
+| "`Integer.TYPE` is `Integer.class`." | `Integer.TYPE` is `int.class`. |
+| "`getMethod` automatically applies boxing to find overloads." | You must specify `int.class` or `Integer.class` matching the declared signature. |
+| "Every `int` value has `getClass()`." | Primitives are not objects; use a class literal. |
+| "`isAssignableFrom` returns true because Java autoboxes." | This check does not treat boxing as reference-type assignability. |
+| "`int[].class` and `Integer[].class` are the same." | Their components are primitive and wrapper, respectively; two independent array types. |
 
-Hãy tự dự đoán trước khi thử trên Java 17:
+Predict the output yourself before trying on Java 17:
 
 ~~~java
 System.out.println(int.class == Integer.TYPE);              // true
@@ -183,6 +183,6 @@ System.out.println(int[].class.getComponentType() == int.class); // true
 System.out.println(Integer.class.isAssignableFrom(int.class));  // false
 ~~~
 
-Đoạn cuối là các lệnh minh họa để đặt **bên trong một phương thức** (như `main`); nó không phải tệp Java độc lập.
+The final snippet consists of illustrative statements to place **inside a method** (such as `main`); it is not a standalone Java file.
 
-**Ghi nhớ:** `int.class` nói về **kiểu giá trị nguyên thủy `int`**; `Integer.class` nói về **lớp đối tượng `Integer`**. Java hỗ trợ chuyển đổi giữa giá trị của chúng trong một số ngữ cảnh, nhưng Reflection vẫn phân biệt chính xác hai kiểu.
+**Remember:** `int.class` refers to the **primitive value type `int`**; `Integer.class` refers to the **`Integer` object class**. Java supports converting between their values in certain contexts, but Reflection still distinguishes the two types strictly.

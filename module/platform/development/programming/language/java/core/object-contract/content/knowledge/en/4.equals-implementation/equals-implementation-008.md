@@ -1,35 +1,35 @@
-# Không thay đổi trạng thái hoặc phụ thuộc thời gian trong `equals()`
+# Do Not Mutate State or Depend on Time in `equals()`
 
-## 1. Mục tiêu khi cài đặt `equals()`
+## 1. Goal When Implementing `equals()`
 
-Khi override `Object.equals(Object)`, hãy xem phương thức này như một phép **quan sát quan hệ bằng nhau** giữa hai đối tượng: đọc thông tin cần so sánh, tính toán và trả về `boolean`. Việc gọi `equals()` không nên làm thay đổi trạng thái quan sát được của đối tượng hoặc hệ thống; kết quả cũng không nên phụ thuộc vào giờ hiện tại, số lần gọi hoặc các tác động bên ngoài không liên quan đến giá trị cần so sánh.
+When overriding `Object.equals(Object)`, treat this method as an **observation of the equality relation** between two objects: read the information needed for comparison, compute, and return a `boolean`. Calling `equals()` should not mutate observable state of the object or the system; the result should also not depend on the current time, call count, or external side factors unrelated to the values being compared.
 
-Điều này liên quan chặt chẽ đến **tính nhất quán (consistency)** trong hợp đồng `equals`: với hai tham chiếu khác `null` là `x` và `y`, những lần gọi `x.equals(y)` lặp lại phải trả về cùng `true` hoặc cùng `false`, **miễn là không có thông tin được dùng cho phép so sánh trên các đối tượng thay đổi**.
+This is closely tied to **consistency** in the `equals` contract: for two non-`null` references `x` and `y`, repeated calls to `x.equals(y)` must return the same `true` or the same `false`, **provided no information used in the comparison on the objects is modified**.
 
-Ba điều cần phân biệt:
+Three things must be distinguished:
 
-1. **Quy định của hợp đồng:** Tính nhất quán có điều kiện nêu trên là một yêu cầu chính thức của `Object.equals`. Các tính chất phản xạ, đối xứng, bắc cầu và hành vi với `null` cũng phải được giữ.
-2. **Nguyên tắc thiết kế:** Tránh side effect trong `equals` là một thực hành mạnh để giúp API an toàn và dễ dự đoán; Java không có một câu lệnh đặc biệt nào tự động cấm mọi side effect trong phương thức.
-3. **Tính ổn định của dữ liệu:** Nếu một trường **được dùng để so sánh** thực sự thay đổi, kết quả `equals` có thể thay đổi theo trường đó mà không tự động vi phạm phát biểu nhất quán có điều kiện. Nhưng dùng đối tượng có khóa bình đẳng thay đổi trong `HashMap`/`HashSet` rất dễ làm hỏng việc tra cứu.
+1. **Contract requirement:** The conditional consistency stated above is a formal requirement of `Object.equals`. Reflexivity, symmetry, transitivity, and behavior with `null` must also be preserved.
+2. **Design principle:** Avoiding side effects in `equals` is a strong practice to keep APIs safe and predictable; Java has no special statement that automatically forbids every side effect inside a method.
+3. **Data stability:** If a field **used for comparison** actually changes, the result of `equals` can change with that field without automatically violating the conditional consistency statement. However, using an object with a mutable equality key in `HashMap`/`HashSet` very easily breaks lookups.
 
-Đề bài nhấn mạnh hai nguồn rủi ro phải tránh: **`equals()` tự sửa trạng thái** và **`equals()` phụ thuộc vào thời gian**.
+The lesson emphasizes two sources of risk to avoid: **`equals()` mutating state itself** and **`equals()` depending on time**.
 
-## 2. Tại sao `equals()` không nên có side effect?
+## 2. Why Shouldn't `equals()` Have Side Effects?
 
-*Side effect* là tác động ngoài việc tạo giá trị trả về, chẳng hạn:
+A *side effect* is an action beyond producing the return value, such as:
 
-- Tăng biến đếm trong đối tượng, đổi cờ `visited` hoặc cập nhật `lastCheckedAt`.
-- Ghi hoặc xóa phần tử trong một collection, thay đổi bộ nhớ đệm quan sát được, cập nhật database, gửi thông báo hay gọi một API có tác động ghi.
-- Thay đổi trạng thái chung (`static`), biến toàn cục, `ThreadLocal` hoặc trạng thái của đối tượng được so sánh còn lại.
+- Incrementing a counter inside the object, flipping a `visited` flag, or updating `lastCheckedAt`.
+- Writing or removing elements in a collection, mutating an observable cache, updating a database, sending notifications, or calling a write-capable API.
+- Mutating shared (`static`) state, global variables, `ThreadLocal`, or the state of the other object being compared.
 
-Ngay cả side effect không làm kết quả `equals` đổi ngay lập tức cũng gây bất ngờ: đọc dữ liệu bằng `contains`, `remove`, `get` hoặc một kiểm tra bình đẳng lại có thể sửa dữ liệu. Nếu side effect tác động tới các trường tham gia `equals`/`hashCode`, lần gọi sau còn có thể cho kết quả khác, hoặc khóa trong cấu trúc băm trở nên không truy cập được như mong đợi.
+Even a side effect that does not immediately change the `equals` result causes surprises: reading data via `contains`, `remove`, `get`, or an equality check can end up modifying data. If the side effect impacts fields participating in `equals`/`hashCode`, subsequent calls can yield different results, or keys in hash structures can become unreachable as expected.
 
-Ví dụ **không nên viết**:
+Example **not to write**:
 
 ```java
 @Override
 public boolean equals(Object other) {
-    comparisons++; // Tác dụng phụ: mỗi phép so sánh làm đổi trạng thái.
+    comparisons++; // Side effect: each comparison mutates state.
     if (this == other) {
         return true;
     }
@@ -40,15 +40,15 @@ public boolean equals(Object other) {
 }
 ```
 
-Đây là **mảnh mã minh họa** nằm trong một lớp có trường `comparisons` và `id`, không phải chương trình biên dịch độc lập. Trường `comparisons` có thể không tham gia so sánh nên đoạn code *chưa chắc* vi phạm tính nhất quán chính thức. Nhưng việc gọi `equals` làm tăng `comparisons` vẫn là một thiết kế khó dùng đúng; đừng đặt logic nghiệp vụ, phép ghi hoặc điều kiện quyết định bình đẳng dựa trên số lần đã so sánh vào đây.
+This is an **illustrative code snippet** residing in a class with fields `comparisons` and `id`, not a standalone compilable program. The `comparisons` field might not participate in the comparison, so the code *does not necessarily* violate formal consistency. Still, having `equals` increment `comparisons` remains a design that is hard to use safely; do not place business logic, write operations, or equality conditions based on comparison counts here.
 
-Nếu cần metrics cho hệ thống, nên thu thập ở tầng gọi hoặc hệ thống quan sát bên ngoài; không biến `equals` thành một thao tác ghi trên đối tượng giá trị.
+If system metrics are needed, collect them at the caller layer or an external observability system; do not turn `equals` into a write operation on a value object.
 
-## 3. Vì sao không được dùng thời gian hiện tại để quyết định bằng nhau?
+## 3. Why Must Current Time Not Be Used to Decide Equality?
 
-Các cách viết dùng `System.currentTimeMillis()`, `Instant.now()`, thời điểm hết hạn, hôm nay/ngày mai hoặc một bộ đếm thời gian biến đổi làm cho **cùng hai đối tượng với cùng dữ liệu** có thể được coi là bằng nhau ở thời điểm này và khác nhau ở thời điểm khác.
+Implementations using `System.currentTimeMillis()`, `Instant.now()`, expiration timestamps, today/tomorrow, or a changing timer cause **the exact same two objects with the exact same data** to be considered equal at one moment and different at another.
 
-Ví dụ sai về ý tưởng:
+Conceptually wrong example:
 
 ```java
 @Override
@@ -65,25 +65,25 @@ public boolean equals(Object other) {
 }
 ```
 
-Đây là **mảnh mã minh họa** giả sử có các trường `token`, `expiresAtMillis` trong lớp `SessionKey`. Cùng dữ liệu không đổi nhưng kết quả chuyển từ `true` sang `false` khi thời gian qua mốc hết hạn. Cách cài đặt còn lấy đồng hồ hai lần, nên hai phép đọc có thể lệch nhau ngay ở ranh giới. Không nên dùng trạng thái *còn hiệu lực hay không* làm một phần của danh tính logic trong `equals`.
+This is an **illustrative snippet** assuming fields `token` and `expiresAtMillis` in class `SessionKey`. With unchanged data, the result flips from `true` to `false` when time crosses the expiration boundary. The implementation also reads the clock twice, so the two reads can skew right on the boundary. Do not make *whether something is still valid* part of logical identity in `equals`.
 
-Thay vào đó:
+Instead:
 
-- Dùng `equals` để so sánh **danh tính/giá trị ổn định**, ví dụ `token` hoặc bộ `(tenantId, sessionId)`.
-- Tách điều kiện thời gian thành phương thức riêng như `isExpired(Clock clock)` hoặc `isValidAt(Instant now)`. Thời gian là **đầu vào tường minh** của phép kiểm tra hiệu lực.
-- Khi muốn so sánh một thời điểm là **giá trị thuộc tính** (ví dụ `createdAt` đã lưu và không đổi), việc so sánh `createdAt` của hai đối tượng là hoàn toàn khác với việc hỏi `Instant.now()` trong `equals`. Giá trị timestamp bất biến có thể là một phần của bình đẳng nếu mô hình nghiệp vụ thực sự yêu cầu.
+- Use `equals` to compare **stable identity/value**, such as `token` or the tuple `(tenantId, sessionId)`.
+- Separate the time condition into a dedicated method like `isExpired(Clock clock)` or `isValidAt(Instant now)`. Time is an **explicit input** to the validity check.
+- When comparing a point in time that is a **stored attribute value** (for example, a saved and immutable `createdAt`), comparing `createdAt` of two objects is completely different from querying `Instant.now()` inside `equals`. An immutable timestamp value can be part of equality if the domain model truly requires it.
 
-Nói chính xác, phát biểu nhất quán của `Object.equals` được điều kiện hóa trên thông tin được dùng để so sánh không thay đổi. Một đồng hồ bên ngoài đang chạy làm thông tin tính toán thay đổi; đó chính là lý do **không thiết kế bình đẳng phụ thuộc vào đồng hồ**, dù chỉ tranh luận theo câu chữ hợp đồng chưa đủ để kết luận mọi ví dụ sử dụng thời gian đều vi phạm một điều khoản cụ thể.
+Strictly speaking, `Object.equals`'s consistency statement is conditioned on the information used for comparison not changing. An external running clock changes the computed information; that is precisely why **equality must not be designed to depend on a clock**, even if arguing solely from contract wording is not enough to conclude every time-using example violates a specific clause.
 
-## 4. Ví dụ hoàn chỉnh, chạy bằng Java 17
+## 4. Complete Example, Runnable with Java 17
 
-Ví dụ có ba kiểu đối tượng:
+The example has three object types:
 
-- `StableKey`: so sánh theo các trường `final` và không phát sinh side effect.
-- `CountingKey`: gọi `equals` làm tăng bộ đếm trong đối tượng (ví dụ **không nên dùng**).
-- `TimedKey`: so sánh bị lệ thuộc vào đồng hồ được giả lập, cho phép kiểm chứng kết quả bằng nhau thay đổi theo thời gian mà không phải chờ thật.
+- `StableKey`: compares based on `final` fields and produces no side effects.
+- `CountingKey`: calling `equals` increments a counter inside the object (an example **not to use**).
+- `TimedKey`: comparison depends on a simulated clock, allowing verification that the equality result changes over time without actually waiting.
 
-Tạo tệp **`EqualsPurityDemo.java`**:
+Create the file **`EqualsPurityDemo.java`**:
 
 ```java
 import java.util.HashMap;
@@ -134,7 +134,7 @@ public class EqualsPurityDemo {
 
         @Override
         public boolean equals(Object other) {
-            comparisons++; // KHÔNG NÊN: equals có side effect.
+            comparisons++; // DO NOT DO THIS: equals has a side effect.
             if (this == other) {
                 return true;
             }
@@ -209,14 +209,14 @@ public class EqualsPurityDemo {
 }
 ```
 
-Biên dịch/chạy với JDK 17 trở lên:
+Compile/run with JDK 17 or higher:
 
 ```bash
 javac --release 17 EqualsPurityDemo.java
 java EqualsPurityDemo
 ```
 
-Kết quả tiêu chuẩn (không phụ thuộc thời gian thực vì đã dùng đồng hồ giả):
+Standard output (independent of wall-clock time because a fake clock was used):
 
 ```text
 stable #1: true
@@ -231,33 +231,33 @@ timed at 1500: false
 map lookup at 1500: null
 ```
 
-Diễn giải:
+Explanation:
 
-1. Hai `StableKey` có cùng `tenant` và `id` cho kết quả `true` ổn định. `hashCode` cũng dựa trên chính các trường này, đảm bảo các đối tượng được xem là bằng nhau có cùng mã băm.
-2. `CountingKey.equals(counted)` trả `true` (tính phản xạ vẫn đúng) nhưng tăng `comparisons` từ `0` lên `1`. Như vậy **việc trả kết quả đúng chưa đồng nghĩa phương thức không có side effect**.
-3. `TimedKey` so sánh cả `code` và điều kiện `currentMillis < 1_000`. Khi đồng hồ giả chuyển từ `500` sang `1_500` mà hai đối tượng không bị sửa trường nào, `left.equals(right)` đổi từ `true` thành `false`.
-4. Trong ví dụ này `HashMap` được thêm `left` làm khóa và dùng `right` để tra cứu. Lúc `500`, `right` được coi bằng `left` nên tìm thấy giá trị; lúc `1_500`, nó không còn được coi bằng nữa nên kết quả là `null`. Mã băm ở đây vẫn như cũ; **chính quan hệ bình đẳng thay đổi theo đồng hồ** dẫn đến kết quả lookup đổi khác.
-5. `left.equals(left)` vẫn `true` nhờ nhánh `this == other`: ví dụ thời gian này giữ tính phản xạ nhưng lại cho thấy một rủi ro **khác**, là kết quả so sánh giữa hai đối tượng thay đổi theo thời điểm. Không được đánh đồng việc qua một điều khoản với việc thiết kế `equals` đã đáng tin cậy.
+1. Two `StableKey` instances with the same `tenant` and `id` give a stable `true` result. `hashCode` is also based on these exact fields, ensuring objects considered equal have the same hash code.
+2. `CountingKey.equals(counted)` returns `true` (reflexivity still holds) but increments `comparisons` from `0` to `1`. Thus **returning the right result does not mean the method has no side effects**.
+3. `TimedKey` compares both `code` and the condition `currentMillis < 1_000`. When the fake clock moves from `500` to `1_500` without any field on either object being modified, `left.equals(right)` changes from `true` to `false`.
+4. In this example, `HashMap` has `left` inserted as a key and uses `right` for lookup. At `500`, `right` is considered equal to `left`, so the value is found; at `1_500`, it is no longer considered equal, so the result is `null`. The hash code here remains the same; **the equality relation itself changing with the clock** causes the lookup result to change.
+5. `left.equals(left)` is still `true` thanks to the `this == other` branch: this time-based example preserves reflexivity yet exposes **another** risk, where the comparison result between two objects changes over time. Passing one clause must not be equated with a reliable `equals` design.
 
-`TimedKey` và `CountingKey` chỉ để chứng minh các cách làm cần tránh, không phải những cài đặt được khuyến nghị trong mã ứng dụng.
+`TimedKey` and `CountingKey` are only meant to demonstrate practices to avoid, not recommended implementations in application code.
 
-## 5. Ảnh hưởng đến `HashMap`, `HashSet` và các API khác
+## 5. Impact on `HashMap`, `HashSet`, and Other APIs
 
-Một `HashMap` dùng `hashCode` để chọn nhóm băm và `equals` để xác định khóa tương đương khi cần. `HashSet` dựa trên ý tưởng tương tự. Nếu `equals` phụ thuộc trạng thái thay đổi, có thể xảy ra:
+A `HashMap` uses `hashCode` to select a hash bucket and `equals` to determine equivalent keys when needed. `HashSet` relies on a similar idea. If `equals` depends on changing state, the following can occur:
 
-- Thêm một khóa rồi không tìm thấy khóa tương đương dù không hề chủ động xóa entry.
-- `contains`, `get`, `remove` cho kết quả bất ngờ vào những thời điểm khác nhau.
-- Phép đọc bị gắn với side effect: một lần so sánh có thể thay đổi dữ liệu mà các phép tra cứu sau sử dụng.
+- Inserting a key and later failing to find an equivalent key even though the entry was never actively removed.
+- `contains`, `get`, and `remove` giving unexpected results at different times.
+- Read operations becoming coupled with side effects: one comparison can alter data used by subsequent lookups.
 
-Cần phân biệt **ổn định của `equals`** với **ổn định của `hashCode`**. Hai phương thức phải thống nhất: khi `a.equals(b)` là `true`, `a.hashCode() == b.hashCode()` cũng phải là `true`. Nhưng chỉ có `hashCode` ổn định vẫn không cứu được một `equals` phụ thuộc đồng hồ, như ví dụ `TimedKey`.
+Distinguish **stability of `equals`** from **stability of `hashCode`**. The two methods must align: when `a.equals(b)` is `true`, `a.hashCode() == b.hashCode()` must also be `true`. Yet having a stable `hashCode` alone still cannot save a clock-dependent `equals`, as shown in the `TimedKey` example.
 
-Đối với khóa của `HashMap`/`HashSet`, thực tế tốt nhất là dùng thuộc tính định danh **bất biến** và dùng cùng tiêu chí trong `equals`/`hashCode`. Với đối tượng có dữ liệu mutable, hãy cẩn trọng khi đưa các trường có thể đổi vào bình đẳng, nhất là sau khi đối tượng đã được dùng làm khóa.
+For keys of `HashMap`/`HashSet`, the best practice is to use **immutable** identity attributes and use the same criteria in `equals`/`hashCode`. For objects with mutable data, be cautious when putting changeable fields into equality, especially after the object has been used as a key.
 
-## 6. Thiết kế đúng: tách bình đẳng khỏi trạng thái vận hành
+## 6. Proper Design: Separating Equality from Operational State
 
-Một lớp lưu token và thời điểm hết hạn có thể cần cả khái niệm “cùng token” lẫn “token còn hiệu lực”. Hai câu hỏi này nên có API riêng.
+A class storing a token and an expiration timestamp may need both the concept of “same token” and “token still valid”. These two questions should have separate APIs.
 
-Ví dụ **đoạn mã minh họa** Java 17 (các khai báo `import` phải được thêm khi đặt vào tệp độc lập):
+Java 17 **illustrative code snippet** (`import` declarations must be added when placed in a standalone file):
 
 ```java
 import java.time.Clock;
@@ -295,60 +295,60 @@ final class SessionToken {
 }
 ```
 
-Ở mô hình ví dụ này, **bình đẳng được định nghĩa theo `tokenId`**; `expiresAt` không thuộc danh tính nên không xuất hiện trong `equals`/`hashCode`. Đây là lựa chọn nghiệp vụ cho ví dụ, không phải quy tắc bắt buộc cho mọi token. Nếu nghiệp vụ định nghĩa hai giá trị token khác nhau khi `expiresAt` khác nhau, có thể đưa **giá trị `expiresAt` đã lưu** vào cả `equals` và `hashCode`, miễn là chúng ổn định; vẫn không gọi đồng hồ hiện tại trong `equals`.
+In this example model, **equality is defined by `tokenId`**; `expiresAt` is not part of identity, so it does not appear in `equals`/`hashCode`. This is a business choice for the example, not a mandatory rule for every token. If the domain defines two token values as different when `expiresAt` differs, you can include the **stored `expiresAt` value** in both `equals` and `hashCode`, provided they are stable; still do not query the current clock inside `equals`.
 
-Phương thức `isExpired(Clock clock)` nhận nguồn thời gian tường minh, dễ kiểm thử với `Clock.fixed(...)`. Thời điểm hiệu lực có thể thay đổi theo thời gian, đúng với trách nhiệm của phương thức này; thay đổi đó không âm thầm thay đổi quan hệ bình đẳng của khóa.
+The `isExpired(Clock clock)` method receives an explicit time source, easy to test with `Clock.fixed(...)`. Validity time can change over time, matching this method's responsibility; that change does not silently alter the key's equality relation.
 
-Một lựa chọn khác cho đối tượng giá trị chỉ chứa dữ liệu bất biến là **Java record**:
+Another choice for a value object containing only immutable data is a **Java record**:
 
 ```java
 record CustomerKey(String tenantId, long customerId) {}
 ```
 
-Java sinh `equals`/`hashCode` dựa trên các thành phần record. Ví dụ này phù hợp vì `String` và `long` ổn định. Tuy nhiên, **record không biến mọi thành phần tham chiếu thành bất biến sâu**: nếu chứa một mảng hoặc đối tượng mutable, vẫn phải xem lại ngữ nghĩa bình đẳng và mức độ ổn định của dữ liệu.
+Java generates `equals`/`hashCode` based on the record components. This example works well because `String` and `long` are stable. However, **a record does not make every reference component deeply immutable**: if it contains an array or mutable object, you must still review the equality semantics and data stability.
 
-## 7. Những lỗi tinh vi cần tránh
+## 7. Subtle Bugs to Avoid
 
-### 7.1. Tự động chuẩn hóa dữ liệu bằng cách gán trường trong `equals`
+### 7.1. Automatically normalizing data by assigning fields inside `equals`
 
-Cách sai: khi so sánh tên, gọi setter để đổi `name` thành chữ thường hoặc trim ngay trên đối tượng. Điều đó làm `equals` biến thành một thao tác sửa dữ liệu; nếu trường được dùng trong `hashCode`, mã băm cũng có thể thay đổi.
+Wrong approach: when comparing names, calling a setter to lowercase or trim `name` directly on the object. That turns `equals` into a data-mutating operation; if the field is used in `hashCode`, the hash code can also change.
 
-Cách tốt hơn: chuẩn hóa ở constructor hoặc tại biên nhập dữ liệu, hoặc so sánh bằng kết quả chuẩn hóa cục bộ mà không ghi lại vào trường. Nếu chuẩn hóa theo locale, chọn quy tắc rõ ràng phù hợp nghiệp vụ; đừng dùng locale mặc định toàn cục biến đổi mà không chủ đích.
+Better approach: normalize in the constructor or at the data entry boundary, or compare using a local normalized result without writing back to the field. If normalization is locale-dependent, choose a clear rule suitable for the domain; do not rely on a mutable global default locale unintentionally.
 
-### 7.2. Lazy initialization làm thay đổi các trường tham gia bình đẳng
+### 7.2. Lazy initialization modifying fields participating in equality
 
-Ví dụ `equals` gọi một getter lười khởi tạo bằng cách cập nhật ID hay timestamp. Lần so sánh đầu tiên có thể ảnh hưởng đến lần sau. Nên xác lập danh tính trước khi dùng trong so sánh và bảo đảm đọc giá trị không tự đổi ý nghĩa của danh tính.
+For example, `equals` calls a getter that lazily initializes by updating an ID or timestamp. The first comparison can affect subsequent ones. Establish identity before using it in comparisons and ensure reading values does not itself alter the meaning of identity.
 
-Không phải mọi cache nội bộ đều đương nhiên phá hợp đồng, nhưng nó làm tăng độ khó về side effect và thread safety. Với kiến thức nền tảng, hãy ưu tiên phép so sánh thuần chỉ đọc.
+Not every internal cache necessarily breaks the contract, but it increases difficulty around side effects and thread safety. For foundational code, prefer a pure read-only comparison.
 
-### 7.3. Phụ thuộc giá trị bên ngoài: random, cấu hình, database
+### 7.3. Depending on external values: random, configuration, database
 
-Không lấy kết quả `Random.nextBoolean()`, phiên bản cấu hình, mạng, quyền truy cập hiện hành hoặc kết quả truy vấn database để quyết định hai đối tượng đã được tạo có bằng nhau không. Những nguồn đó có thể thay đổi giữa hai lần gọi và làm cho một phép kiểm tra giá trị mang tính trạng thái vận hành.
+Do not use the result of `Random.nextBoolean()`, configuration versions, network, current permissions, or database query results to decide whether two already created objects are equal. Those sources can change between two calls and turn a value check into operational state.
 
-### 7.4. Mutable field trong đối tượng đang dùng làm khóa
+### 7.4. Mutable fields in an object currently used as a key
 
-Nếu `equals`/`hashCode` dựa trên trường có thể thay đổi, sau khi đặt đối tượng vào `HashMap`, việc sửa trường có thể khiến lookup thất bại. Đây là vấn đề ngay cả khi `equals` **không tự sửa** trường đó. Vì vậy cần xem xét cả **side effect của phương thức** và **tính bất biến của các thuộc tính được dùng trong so sánh**.
+If `equals`/`hashCode` relies on a mutable field, after putting the object into a `HashMap`, mutating the field can cause lookups to fail. This is a problem even when `equals` **does not mutate** that field itself. Therefore, consider both **method side effects** and **immutability of the attributes used in comparison**.
 
-### 7.5. Đồng thời (concurrency)
+### 7.5. Concurrency
 
-Một cài đặt `equals` đọc nhiều trường mutable trong khi thread khác sửa có thể quan sát một tổ hợp dữ liệu không nhất quán. Khai báo `final` và thiết kế value object bất biến giúp đơn giản hóa. Nếu đối tượng thực sự phải mutable, cần chiến lược đồng bộ/snapshot thích hợp cho yêu cầu nghiệp vụ; chỉ thêm `volatile` cho từng trường không tự động cung cấp ảnh chụp nhất quán của nhiều trường.
+An `equals` implementation reading multiple mutable fields while another thread modifies them can observe an inconsistent combination of data. Declaring `final` and designing immutable value objects simplifies this. If an object truly must be mutable, an appropriate synchronization/snapshot strategy is needed for the business requirements; merely adding `volatile` to individual fields does not automatically provide a consistent snapshot across multiple fields.
 
-## 8. Kiểm tra khi review và test
+## 8. Checks During Review and Testing
 
-Với cùng hai đối tượng có dữ liệu cần so sánh không đổi, có thể kiểm thử:
+For the same two objects whose comparison data does not change, you can test:
 
-1. Gọi `a.equals(b)` nhiều lần và so kết quả; đồng thời kiểm tra `a.equals(a)`, `a.equals(null)` cùng các điều khoản bình đẳng liên quan.
-2. Chụp trạng thái có thể quan sát của `a` và `b` trước/sau phép gọi; bảo đảm không có trường nào bị sửa ngoài chủ đích. Đặc biệt chú ý tới phương thức getter có lazy write.
-3. Khi thiết kế có `Clock`, fake clock hoặc test time boundary, thay đổi thời gian nhưng **giữ nguyên dữ liệu danh tính**; kết quả `equals` không nên đổi.
-4. Nếu lớp dùng làm khóa, thử `HashMap.put` rồi `get` bằng một đối tượng tương đương; chạy lại sau những thao tác không được phép làm thay đổi danh tính.
-5. Kiểm tra `hashCode` luôn phù hợp với các trường `equals` sử dụng, và dữ liệu khóa không đổi khi đang nằm trong cấu trúc băm.
+1. Call `a.equals(b)` multiple times and compare results; simultaneously check `a.equals(a)`, `a.equals(null)`, and the related equality clauses.
+2. Snapshot the observable state of `a` and `b` before/after the call; ensure no field was modified unintentionally. Pay special attention to getters with lazy writes.
+3. When the design has a `Clock`, fake clock, or time boundary tests, advance the time while **keeping identity data unchanged**; the `equals` result should not change.
+4. If the class is used as a key, test `HashMap.put` then `get` with an equivalent object; re-run after operations that are not supposed to alter identity.
+5. Check that `hashCode` always matches the fields `equals` uses, and key data does not change while residing in a hash structure.
 
-Lưu ý: test vài giá trị mẫu không chứng minh tuyệt đối mọi tính chất. Cần đọc cả đường đi của code để phát hiện việc ghi trạng thái, gọi đồng hồ hoặc phụ thuộc dịch vụ bên ngoài.
+Note: testing a few sample values does not prove every property absolutely. You also need to inspect the code paths to detect state writes, clock calls, or dependencies on external services.
 
-## 9. Tổng kết kiến thức cần nhớ
+## 9. Summary of Key Takeaways
 
-- `equals` nên là thao tác **chỉ đọc và có kết quả dễ dự đoán**; không sửa chính đối tượng, đối tượng đối diện hay trạng thái hệ thống.
-- Theo hợp đồng `Object.equals`, các lần so sánh lặp lại phải nhất quán **khi thông tin dùng cho so sánh không đổi**.
-- Không dùng `Instant.now()`, `System.currentTimeMillis()`, random, số lần gọi hoặc trạng thái dịch vụ bên ngoài để quyết định bình đẳng.
-- “Hai giá trị có cùng danh tính hay không?” và “Giá trị đó còn hiệu lực tại thời điểm này không?” là **hai trách nhiệm khác nhau**; hãy tách `equals` và phương thức kiểm tra thời gian.
-- Dùng trường danh tính ổn định, và giữ tiêu chí `equals`/`hashCode` thống nhất, nhất là với khóa trong `HashMap`/`HashSet`.
+- `equals` should be a **read-only operation with predictable results**; do not mutate the receiver object, the other object, or system state.
+- Per the `Object.equals` contract, repeated comparisons must be consistent **when the information used for comparison does not change**.
+- Do not use `Instant.now()`, `System.currentTimeMillis()`, randomness, call counts, or external service state to determine equality.
+- “Do two values share the same identity?” and “Is that value still valid at this point in time?” are **two different responsibilities**; separate `equals` and time-checking methods.
+- Use stable identity fields, and keep `equals`/`hashCode` criteria consistent, especially for keys in `HashMap`/`HashSet`.

@@ -1,19 +1,19 @@
-# Kết hợp hai phép thu thập bằng teeing
+# Combining Two Collections with teeing
 
-Một báo cáo thường cần **nhiều chỉ số trên cùng tập dữ liệu**: số đơn hàng và tổng doanh thu, điểm thấp nhất và cao nhất, hoặc danh sách mã giao dịch cùng số lượng giao dịch. Có thể viết hai pipeline Stream độc lập rồi kết hợp kết quả, nhưng điều đó khiến nguồn phải được duyệt hai lần nếu có thể tạo lại, và không phù hợp khi dữ liệu chỉ được đọc một lần.
+A report often needs **multiple metrics over the same dataset**: order count and total revenue, lowest and highest scores, or a list of transaction IDs alongside the transaction count. You could write two independent Stream pipelines and combine their results, yet that forces traversing the source twice if it can be re-created, and does not work when data can only be read once.
 
-Từ **Java 12**, `Collectors.teeing(...)` cho phép **kết hợp hai collector** trong một phép `collect`. Mỗi phần tử đi vào **cả hai collector nhánh**, sau đó một hàm `merger` nhận **hai kết quả đã hoàn tất** để tạo kết quả cuối cùng. Cơ chế này đặc biệt hữu ích với các báo cáo nhiều chỉ số và các phép tổng hợp lồng nhau.
+Since **Java 12**, `Collectors.teeing(...)` allows **combining two collectors** within a single `collect`. Each element enters **both branch collectors**, and then a `merger` function receives the **two finished results** to produce the final result. This mechanism is especially useful for multi-metric reports and nested aggregations.
 
-Bài thuộc chương **Collector nhiều tầng và tổng hợp** của module **JAVA_STREAM_API**. Ta sẽ tìm hiểu hợp đồng `teeing`, cách dùng `counting`, `summingLong`, `minBy`, `maxBy`, `groupingBy` và `filtering` làm downstream; đồng thời nhận diện giới hạn về thứ tự, trạng thái, nguồn Stream, bộ nhớ, tính kết hợp và hiệu năng khi chạy song song. Những nguyên tắc này cũng liên hệ với collector tùy chỉnh, `Spliterator` và Stream Gatherers.
+This lesson belongs to the **Composed Collectors and Aggregation** chapter of the **JAVA_STREAM_API** module. We will explore the `teeing` contract, using `counting`, `summingLong`, `minBy`, `maxBy`, `groupingBy`, and `filtering` as downstreams, while recognizing constraints around ordering, state, Stream sources, memory, associativity, and parallel performance. These principles also relate to custom collectors, `Spliterator`, and Stream Gatherers.
 
-## 1. Vì sao cần kết hợp hai collector?
+## 1. Why combine two collectors?
 
-Giả sử có danh sách thanh toán và ta cần hai chỉ số của **các khoản đã thanh toán**:
+Suppose you have a list of payments and need two metrics for **paid transactions**:
 
-1. **Số giao dịch thành công**.
-2. **Tổng tiền của các giao dịch thành công**.
+1. **Number of successful transactions**.
+2. **Total amount of successful transactions**.
 
-Một cách viết thông thường là tạo hai Stream:
+A common approach is creating two Streams:
 
 ~~~java
 long count = payments.stream()
@@ -26,9 +26,9 @@ long total = payments.stream()
     .sum();
 ~~~
 
-Hai đoạn code hợp lệ nếu `payments` là một collection có thể duyệt lại, nhưng phải duyệt danh sách **hai lần**, thực hiện `filter` hai lần và quản lý hai kết quả độc lập. Với nguồn đọc một lần (ví dụ Stream từ file), không thể dùng lại **cùng một đối tượng Stream** sau terminal operation đầu tiên.
+These two snippets are valid if `payments` is a re-iterable collection, yet they traverse the list **twice**, run `filter` twice, and manage two independent results. With a single-use source (such as a Stream from a file), you cannot reuse **the same Stream instance** after the first terminal operation.
 
-`teeing` mô tả việc thu cả hai kết quả trong **một terminal operation**:
+`teeing` expresses collecting both results in **a single terminal operation**:
 
 ~~~java
 Stats result = payments.stream()
@@ -40,13 +40,13 @@ Stats result = payments.stream()
     ));
 ~~~
 
-Đoạn này giả định đã khai báo `record Payment(...)` và `record Stats(long count, long totalVnd)` như ví dụ đầy đủ bên dưới.
+This snippet assumes `record Payment(...)` and `record Stats(long count, long totalVnd)` are declared as in the complete example below.
 
-Điểm quan trọng: **`teeing` không phải phép nhân bản Stream**. Nó xây **một collector tổng hợp** có hai collector nhánh. Mỗi phần tử được đưa tới hai accumulator của chúng trong một lần thu thập.
+Crucial point: **`teeing` does not duplicate a Stream**. It constructs **one composite collector** with two branch collectors. Each element is passed to both of their accumulators during a single collection pass.
 
-## 2. Ví dụ hoàn chỉnh: số lượng và tổng tiền trong một lần collect
+## 2. Complete example: count and total amount in a single collect
 
-Đoạn sau có thể đặt trong file `TeeingOverviewDemo.java` và chạy với **JDK 17+**. `Collectors.teeing` có từ Java 12; ví dụ sử dụng thêm `record` và `List.of` để mã dễ đọc.
+The following code can be placed in `TeeingOverviewDemo.java` and run with **JDK 17+**. `Collectors.teeing` has been available since Java 12; the example also uses `record` and `List.of` for readability.
 
 ~~~java
 import java.util.List;
@@ -102,24 +102,24 @@ public class TeeingOverviewDemo {
         // Stats[count=1, totalVnd=200000]
 
         System.out.println(paidStatsByCategory.containsKey("Thể thao"));
-        // false: không có giao dịch đã thanh toán trong nhóm này
+        // false: no paid transactions in this group
     }
 }
 ~~~
 
-Giải thích:
+Explanation:
 
-- `counting()` tạo kết quả đầu tiên kiểu `Long`, là số giao dịch đạt điều kiện.
-- `summingLong(Payment::amountVnd)` tạo kết quả thứ hai kiểu `Long`, là tổng tiền.
-- `Stats::new` là hàm ghép hai kết quả thành một `Stats`.
-- `groupingBy(Payment::category, teeing(...))` thực hiện cùng phép tính **riêng trong từng nhóm danh mục**.
-- Vì có `filter(Payment::paid)` trước `groupingBy`, danh mục chỉ có giao dịch chưa thanh toán (`Thể thao`) không được tạo trong kết quả.
+- `counting()` produces the first result of type `Long`, the count of matching transactions.
+- `summingLong(Payment::amountVnd)` produces the second result of type `Long`, the total amount.
+- `Stats::new` is the function merging the two results into a `Stats`.
+- `groupingBy(Payment::category, teeing(...))` performs the same computation **separately inside each category group**.
+- Because `filter(Payment::paid)` runs before `groupingBy`, a category with only unpaid transactions (`Thể thao`) is omitted from the result.
 
-Trong ví dụ này, thứ tự các khóa của `Map` không được bảo đảm. Ta truy xuất bằng khóa cụ thể thay vì giả định kết quả của `Map.toString()` có thứ tự cố định.
+In this example, `Map` key ordering is not guaranteed. We look up specific keys instead of assuming `Map.toString()` prints in a fixed order.
 
-## 3. Chữ ký và ba vai trò của teeing
+## 3. Signature and the three roles in teeing
 
-Chữ ký API có thể đọc theo dạng:
+The API signature reads:
 
 ~~~java
 public static <T, R1, R2, R>
@@ -130,15 +130,15 @@ Collector<T, ?, R> teeing(
 )
 ~~~
 
-| Thành phần | Nhận gì? | Tạo gì? | Trách nhiệm |
+| Component | Receives what? | Produces what? | Responsibility |
 |---|---|---|---|
-| `downstream1` | Các phần tử `T` | Kết quả `R1` | Thu thập chỉ số/thông tin thứ nhất |
-| `downstream2` | **Cùng các phần tử `T`** | Kết quả `R2` | Thu thập chỉ số/thông tin thứ hai |
-| `merger` | Kết quả `R1` và `R2` | Kết quả cuối `R` | Kết hợp hai kết quả, không duyệt lại nguồn |
+| `downstream1` | Elements `T` | Result `R1` | Collects the first metric/information |
+| `downstream2` | **The same elements `T`** | Result `R2` | Collects the second metric/information |
+| `merger` | Results `R1` and `R2` | Final result `R` | Combines the two results without re-traversing source |
 
-Những kiểu `R1`, `R2` và `R` **không cần giống nhau**. Ví dụ một nhánh tạo `List<String>`, nhánh kia tạo `Long`, còn kết quả cuối là record tùy chỉnh.
+The types `R1`, `R2`, and `R` **do not need to match**. For instance, one branch can produce `List<String>`, the other `Long`, and the final result a custom record.
 
-### 3.1. teeing diễn ra khi nào?
+### 3.1. When does teeing execute?
 
 ~~~mermaid
 flowchart TD
@@ -152,23 +152,23 @@ flowchart TD
     M --> R["Stats(count, total)"]
 ~~~
 
-Khi `collect` chạy, framework tổ chức việc thu thập vào hai nhánh. Chỉ **sau khi hai nhánh tạo kết quả của mình**, hàm `merger` mới kết hợp chúng. Nó **không phải** hàm được gọi một lần cho từng phần tử.
+When `collect` runs, the framework orchestrates collection into both branches. Only **after both branches finish producing their results** does `merger` combine them. It is **not** invoked once per element.
 
-Trong pipeline song song, mỗi collector nhánh còn có thể có các bộ chứa cục bộ và bộ kết hợp (*combiner*) riêng trước giai đoạn tạo kết quả cuối. Số lần tạo bộ chứa và thứ tự thực thi là chi tiết của framework, không nên dùng làm logic nghiệp vụ.
+In a parallel pipeline, each branch collector can also maintain its own local containers and *combiner* before producing its final result. Container creation counts and execution scheduling are framework details and should not be relied upon in business logic.
 
-### 3.2. Phân biệt merger với accumulator và combiner
+### 3.2. Distinguishing merger from accumulator and combiner
 
-Ba khái niệm dễ nhầm:
+Three easily confused concepts:
 
-- **Accumulator của mỗi downstream collector:** cập nhật trạng thái tích lũy khi nhận **mỗi phần tử `T`**.
-- **Combiner của mỗi downstream collector:** hợp nhất **hai trạng thái tích lũy cùng loại**, đặc biệt khi chạy song song.
-- **`merger` của `teeing`:** nhận **hai kết quả cuối** `R1` và `R2` rồi tạo `R`.
+- **Accumulator of each downstream collector:** updates accumulation state upon receiving **each element `T`**.
+- **Combiner of each downstream collector:** merges **two accumulation states of the same type**, especially during parallel execution.
+- **`merger` of `teeing`:** receives the **two final results** `R1` and `R2` and produces `R`.
 
-Ví dụ `Stats::new` chỉ chạy ở bước tạo kết quả cuối; nó **không chịu trách nhiệm** cộng trực tiếp từng số tiền của các phần tử đầu vào.
+For example, `Stats::new` runs only at the final result step; it is **not responsible** for directly adding the amounts of individual input elements.
 
-## 4. Suy luận kiểu khi hai nhánh có kết quả khác nhau
+## 4. Type inference when the two branches have different results
 
-Hãy viết các kiểu một cách tường minh để thấy cơ chế:
+Let us write out the types explicitly to see how it works:
 
 ~~~java
 Collector<Payment, ?, Long> counter =
@@ -189,23 +189,23 @@ Stats result = payments.stream()
     .collect(both);
 ~~~
 
-Ở đây `Payment`, `Stats` và `payments` được khai báo trong ví dụ hoàn chỉnh mục 2. Để biên dịch đoạn riêng này cần import `java.util.stream.Collector` và `java.util.stream.Collectors`.
+Here `Payment`, `Stats`, and `payments` are declared in the complete example in section 2. Compiling this standalone snippet requires importing `java.util.stream.Collector` and `java.util.stream.Collectors`.
 
-Bảng kiểu:
+Type table:
 
-| Vị trí | Kiểu |
+| Position | Type |
 |---|---|
-| Phần tử nguồn | `Payment` |
-| Kết quả nhánh 1 | `Long` |
-| Kết quả nhánh 2 | `Long` |
-| BiFunction của `merger` | `(Long, Long) -> Stats` |
-| Kết quả chung | `Stats` |
+| Source element | `Payment` |
+| Branch 1 result | `Long` |
+| Branch 2 result | `Long` |
+| `BiFunction` of `merger` | `(Long, Long) -> Stats` |
+| Overall result | `Stats` |
 
-Với record `Stats(long count, long totalVnd)`, Java có thể thực hiện unboxing từ `Long` sang `long` khi gọi constructor. Khi compiler không suy luận được kiểu generic trong một biểu thức lồng nhiều cấp, ta có thể tách downstream và merger thành biến có kiểu rõ ràng thay vì thêm các ép kiểu không an toàn.
+With record `Stats(long count, long totalVnd)`, Java can unbox `Long` to `long` when calling the constructor. When the compiler fails to infer generic types inside deeply nested expressions, extract the downstreams and merger into explicitly typed variables rather than adding unsafe casts.
 
-## 5. Ví dụ hai kiểu đầu ra khác nhau: danh sách và tổng tiền
+## 5. Example with two different output types: list and total amount
 
-Giả sử báo cáo cần **danh sách mã giao dịch** và **tổng tiền** của cùng nhóm. Một nhánh trả `List<String>`, một nhánh trả `Long`:
+Suppose a report needs a **list of transaction IDs** and the **total amount** for the same group. One branch returns `List<String>`, and the other returns `Long`:
 
 ~~~java
 record DetailReport(List<String> ids, long totalVnd) {}
@@ -229,30 +229,30 @@ System.out.println(details.totalVnd());
 // 400000
 ~~~
 
-Ví dụ dùng `payments` và `Payment` từ mục 2, cùng `List`/`Collectors` đã import.
+The example uses `payments` and `Payment` from section 2, along with imported `List`/`Collectors`.
 
-Lưu ý quan trọng:
+Important notes:
 
-1. `mapping(Payment::id, toList())` là **collector lồng**: nó lấy mã từ `Payment` trong nhánh thứ nhất, không làm mất dữ liệu cần dùng trong nhánh thứ hai.
-2. `summingLong` lấy số tiền từ **cùng các phần tử Payment**.
-3. `List.copyOf(ids)` (Java 10+) tạo danh sách kết quả không cho sửa, giúp bảo vệ kết quả báo cáo khỏi thay đổi danh sách trung gian; nó **không chấp nhận phần tử null**.
-4. Một record chứa `List` không tự làm nội dung List trở nên bất biến. Nếu bỏ `List.copyOf`, một danh sách có thể thay đổi vẫn được đặt vào record.
+1. `mapping(Payment::id, toList())` is a **nested collector**: it extracts IDs from `Payment` in the first branch without discarding data needed in the second branch.
+2. `summingLong` reads the amount from **the exact same Payment elements**.
+3. `List.copyOf(ids)` (Java 10+) produces an unmodifiable result list, protecting the report output from mutations to the intermediate list; it **rejects null elements**.
+4. A record holding a `List` does not automatically make the List's contents immutable. Without `List.copyOf`, a mutable list could still be stored inside the record.
 
-Nếu đầu ra cần đầy đủ thứ tự theo `List` nguồn, `Collectors.toList()` là downstream có thể thu theo encounter order của nguồn có thứ tự. Với các Stream không có thứ tự hoặc collector `UNORDERED`, không được áp đặt kỳ vọng về thứ tự mã.
+If the output must follow the source `List`'s order, `Collectors.toList()` is a downstream that can preserve the encounter order of an ordered source. On unordered Streams or `UNORDERED` collectors, do not impose expectations on ID order.
 
-### 5.1. Chỉ cần tập mã không trùng
+### 5.1. Need only a set of unique IDs
 
-Thay `mapping(Payment::id, toList())` bằng:
+Replace `mapping(Payment::id, toList())` with:
 
 ~~~java
 Collectors.mapping(Payment::id, Collectors.toSet())
 ~~~
 
-thì kiểu kết quả nhánh thứ nhất trở thành `Set<String>`. Tuy nhiên, `toSet()` **không bảo đảm thứ tự duyệt**; nếu báo cáo cần tập sắp xếp, có thể dùng `toCollection(TreeSet::new)` khi phần tử so sánh được.
+and the first branch's result type becomes `Set<String>`. However, `toSet()` **does not guarantee iteration order**; if the report needs a sorted set, use `toCollection(TreeSet::new)` when elements are comparable.
 
-## 6. Tìm giá trị nhỏ nhất và lớn nhất trong cùng một collect
+## 6. Finding minimum and maximum in a single collect
 
-Một cách dùng rất tự nhiên của `teeing` là kết hợp `minBy` với `maxBy`. Mỗi collector trả về một `Optional<T>` vì tập nguồn có thể rỗng.
+A very natural use of `teeing` is combining `minBy` with `maxBy`. Each collector returns an `Optional<T>` because the source set may be empty.
 
 ~~~java
 import java.util.Comparator;
@@ -287,17 +287,17 @@ public class TeeingExtremesDemo {
         );
 
         System.out.println(
-            result.lowest().map(Score::student).orElse("Không có")
+            result.lowest().map(Score::student).orElse("None")
         ); // Bình
 
         System.out.println(
-            result.highest().map(Score::student).orElse("Không có")
+            result.highest().map(Score::student).orElse("None")
         ); // Chi
     }
 }
 ~~~
 
-Nếu danh sách điểm rỗng:
+If the score list is empty:
 
 ~~~java
 Extremes empty = List.<Score>of().stream()
@@ -311,13 +311,13 @@ System.out.println(empty.lowest().isPresent());  // false
 System.out.println(empty.highest().isPresent()); // false
 ~~~
 
-Đoạn thứ hai dùng `Score`, `byPoint` và `Extremes` từ phạm vi chương trình trước. Hai collector `minBy` và `maxBy` đều trả Optional rỗng, **nhưng bản thân phép `collect(teeing)` vẫn hoàn thành và trả một đối tượng `Extremes`** có hai trường Optional rỗng.
+The second snippet uses `Score`, `byPoint`, and `Extremes` from the earlier program scope. Both `minBy` and `maxBy` return empty Optionals, **yet `collect(teeing)` itself still completes and returns an `Extremes` instance** holding two empty Optional fields.
 
-Với các phần tử bằng nhau theo comparator, không dựa vào một bản ghi đồng hạng cụ thể trừ khi có quy tắc phá hòa. Nếu cần kết quả xác định, xây comparator gồm các tiêu chí phụ (chẳng hạn `thenComparing(Score::student)`).
+When elements tie under the comparator, do not rely on a specific tied record unless there is a tie-breaking rule. If deterministic results are required, build the comparator with secondary criteria (such as `thenComparing(Score::student)`).
 
-### 6.1. Khi đầu ra phải là một Optional chung
+### 6.1. When the output must be a single outer Optional
 
-Nếu nghiệp vụ không muốn đối tượng `Extremes` chứa hai Optional rỗng, `merger` có thể kiểm tra trạng thái và trả một `Optional<Extremes>`:
+If business rules do not want an `Extremes` object containing two empty Optionals, the `merger` can check their state and return an `Optional<Extremes>`:
 
 ~~~java
 Optional<Extremes> result = scores.stream()
@@ -331,24 +331,24 @@ Optional<Extremes> result = scores.stream()
     ));
 ~~~
 
-Đoạn code dùng các khai báo ở ví dụ đầy đủ. Đây là một **chính sách biểu diễn kết quả**, không phải hành vi mặc định của `teeing`. Tùy bài toán, giữ hai Optional riêng cũng có thể rõ nghĩa hơn.
+This snippet uses the declarations from the full example. This is a **result presentation policy**, not `teeing`'s default behavior. Depending on the problem, keeping two separate Optionals can also be clearer.
 
-## 7. Kết quả rỗng: mỗi downstream có quy tắc riêng
+## 7. Empty results: each downstream has its own rules
 
-`teeing` **không tự tạo ra `Optional.empty()`** khi Stream rỗng. Nó chạy hợp đồng của hai downstream và đưa kết quả vào `merger`.
+`teeing` **does not automatically return `Optional.empty()`** when the Stream is empty. It executes the contracts of both downstreams and passes their results to `merger`.
 
-| Downstream | Kết quả khi không có phần tử |
+| Downstream | Result when zero elements |
 |---|---|
 | `counting()` | `0L` |
 | `summingLong(...)` | `0L` |
 | `averagingLong(...)` | `0.0` |
-| `toList()` | Danh sách rỗng |
-| `toSet()` | Tập rỗng |
+| `toList()` | Empty list |
+| `toSet()` | Empty set |
 | `minBy(...)` | `Optional.empty()` |
 | `maxBy(...)` | `Optional.empty()` |
 | `reducing(BinaryOperator)` | `Optional.empty()` |
 
-Ví dụ:
+Example:
 
 ~~~java
 Stats noPayments = java.util.stream.Stream.<Payment>empty()
@@ -362,11 +362,11 @@ System.out.println(noPayments);
 // Stats[count=0, totalVnd=0]
 ~~~
 
-Ở đây dùng `Payment` và `Stats` của mục 2. **`Stats(0, 0)` có thể được hiểu là một kết quả thống kê hợp lệ**, nhưng không tự phân biệt “không có giao dịch” với “có giao dịch nhưng tổng bằng 0”. Nếu báo cáo cần phân biệt, dùng `count` để xác định dữ liệu có mặt.
+Here `Payment` and `Stats` come from section 2. **`Stats(0, 0)` can be interpreted as a valid statistics result**, yet it does not automatically distinguish “no transactions” from “transactions exist whose sum is 0”. If the report needs to distinguish them, use `count` to detect data presence.
 
-### 7.1. Trung bình cần xử lý mẫu số bằng 0
+### 7.1. Computing an average requires handling a zero denominator
 
-Nếu muốn tính trung bình từ `count` và `total`, đừng chia mà không kiểm tra `count == 0`:
+If you want to compute an average from `count` and `total`, never divide without checking `count == 0`:
 
 ~~~java
 import java.util.OptionalDouble;
@@ -382,16 +382,16 @@ OptionalDouble average = payments.stream()
     ));
 
 System.out.println(average.orElse(Double.NaN));
-// 133333.33333333334 với ba giao dịch thành công
+// 133333.33333333334 with three successful transactions
 ~~~
 
-Ở đây `OptionalDouble.empty()` là lựa chọn nghiệp vụ khi không có phần tử. Nếu chỉ cần **giá trị trung bình đơn lẻ**, `mapToLong(Payment::amountVnd).average()` đã trả `OptionalDouble` và có thể ngắn hơn. Dùng `teeing` khi thực sự cần **hai phép thu thập khác nhau** hoặc một báo cáo ghép.
+Here `OptionalDouble.empty()` is the business choice when there are no elements. If you only need a **single average value**, `mapToLong(Payment::amountVnd).average()` already returns `OptionalDouble` and can be shorter. Use `teeing` when you truly need **two distinct collections** or a combined report.
 
-Với tiền tệ, dùng `double` có thể gây sai số làm tròn. Hãy lựa chọn đơn vị nguyên và chính sách làm tròn hoặc dùng `BigDecimal` khi yêu cầu tính toán chính xác.
+For currency, using `double` can cause rounding errors. Choose integer minor units and explicit rounding policies or `BigDecimal` when exact arithmetic is required.
 
-## 8. Kết hợp teeing bên trong groupingBy
+## 8. Composing teeing inside groupingBy
 
-Một lợi thế của `teeing` là có thể dùng làm **downstream** của `groupingBy`. Khi đó, mỗi nhóm có riêng hai nhánh thống kê:
+One strength of `teeing` is that it can serve as the **downstream** of `groupingBy`. Then each group gets its own two-branch statistics:
 
 ~~~java
 Map<String, Stats> byCategory = payments.stream()
@@ -406,21 +406,21 @@ Map<String, Stats> byCategory = payments.stream()
     ));
 ~~~
 
-Bảng tương ứng với ví dụ mục 2:
+Table corresponding to the example in section 2:
 
-| Danh mục | Số giao dịch đã thanh toán | Tổng tiền |
+| Category | Paid transaction count | Total amount |
 |---|---:|---:|
 | Văn phòng | 2 | 200.000 |
 | Sách | 1 | 200.000 |
-| Thể thao | *Không có khóa* | *Không có khóa* |
+| Thể thao | *No key* | *No key* |
 
-Nhánh thống kê của từng nhóm chỉ nhận các phần tử **trong nhóm đó**. `teeing` không làm phẳng những nhóm hoặc sử dụng chung một `Stats` cho tất cả danh mục.
+Each group's statistics branch receives only elements **within that group**. `teeing` does not flatten groups or share one `Stats` across all categories.
 
-### 8.1. Giữ nhóm có kết quả bằng 0 bằng filtering downstream
+### 8.1. Keeping groups with zero results via downstream filtering
 
-Giả sử cần hiển thị cả danh mục có giao dịch nhưng **không có giao dịch được thanh toán** (ở ví dụ này là Thể thao). Nếu lọc `paid` trước `groupingBy`, nhóm đó biến mất.
+Suppose you need to show even categories that have transactions yet **have zero paid transactions** (`Thể thao` in this example). Filtering `paid` before `groupingBy` makes that group vanish.
 
-Dùng **`Collectors.filtering`** (Java 9+) **bên trong** nhóm và **bên ngoài** `teeing`:
+Place **`Collectors.filtering`** (Java 9+) **inside** the group and **outside** `teeing`:
 
 ~~~java
 Map<String, Stats> includingZero = payments.stream()
@@ -440,18 +440,18 @@ System.out.println(includingZero.get("Thể thao"));
 // Stats[count=0, totalVnd=0]
 ~~~
 
-Ở đây:
+Here:
 
-1. `groupingBy(Payment::category)` nhìn thấy **mọi giao dịch**, nên tạo nhóm Thể thao.
-2. `filtering(Payment::paid, ...)` chỉ chuyển **giao dịch đã thanh toán** của mỗi nhóm tới downstream.
-3. `teeing` tổng hợp số đếm và tổng tiền trên dữ liệu đã qua lọc.
-4. Nhóm không có giao dịch thỏa điều kiện vẫn tạo `Stats(0, 0)`.
+1. `groupingBy(Payment::category)` sees **all transactions**, so it creates the `Thể thao` group.
+2. `filtering(Payment::paid, ...)` passes only **paid transactions** of each group to the downstream.
+3. `teeing` aggregates the count and total amount over the filtered data.
+4. A group with zero qualifying transactions still produces `Stats(0, 0)`.
 
-**Lưu ý:** Nếu một danh mục **không có bất kỳ giao dịch nào trong nguồn**, `groupingBy` không tự tạo khóa cho danh mục đó. Muốn đầy đủ mọi danh mục hợp lệ kể cả danh mục chưa xuất hiện, ứng dụng cần có danh sách danh mục chuẩn và bước bổ sung nhóm vắng mặt.
+**Note:** If a category **has zero transactions at all in the source**, `groupingBy` does not automatically create a key for it. To include every valid category even when absent from the source, the application needs a standard category list and a step to populate missing groups.
 
-### 8.2. Khi nào phải đặt filtering riêng cho hai nhánh?
+### 8.2. When must filtering be placed separately on each branch?
 
-Hai chỉ số đôi khi dùng **hai điều kiện khác nhau**, ví dụ số lượng giao dịch thành công và tổng tiền giao dịch thất bại. Khi đó, mỗi nhánh phải tự lọc theo quy tắc của mình:
+Two metrics sometimes use **two different conditions**, such as the count of successful transactions and the total amount of failed transactions. Then each branch must filter by its own rule:
 
 ~~~java
 record TwoStates(long paidCount, long unpaidTotalVnd) {}
@@ -472,13 +472,13 @@ System.out.println(result);
 // TwoStates[paidCount=3, unpaidTotalVnd=180000]
 ~~~
 
-Ở đây `TwoStates` được khai báo như một record Java 16+. Giao dịch chưa thanh toán gồm `P02` (70.000), `P05` (50.000), `P06` (60.000), nên tổng là **180.000**.
+Here `TwoStates` is declared as a Java 16+ record. Unpaid transactions are `P02` (70,000), `P05` (50,000), and `P06` (60,000), so the sum is **180,000**.
 
-Điểm quan trọng: hai downstream của `teeing` **cùng nhận tập đầu vào tổng**, nhưng mỗi downstream `filtering` có điều kiện riêng. Không thể đặt một phép `stream.filter(Payment::paid)` trước `teeing` nếu nhánh thứ hai cần nhìn thấy các giao dịch chưa thanh toán.
+Key point: both downstreams of `teeing` **receive the full input stream**, yet each `filtering` downstream has its own predicate. You cannot place `stream.filter(Payment::paid)` before `teeing` if the second branch needs to see unpaid transactions.
 
-## 9. Kết hợp ba phép tổng hợp bằng teeing lồng nhau
+## 9. Combining three aggregations via nested teeing
 
-`teeing` nhận **đúng hai downstream**. Khi cần ba hoặc nhiều chỉ số, có thể lồng một `teeing` bên trong nhánh khác, rồi ghép kết quả:
+`teeing` accepts **exactly two downstreams**. When three or more metrics are needed, you can nest another `teeing` inside one branch and merge the results:
 
 ~~~java
 record Tail(long totalVnd, long highestVnd) {}
@@ -506,9 +506,9 @@ System.out.println(result);
 // FullStats[count=3, totalVnd=400000, highestVnd=200000]
 ~~~
 
-Ví dụ sử dụng `Payment` và `payments` ở mục 2. `Tail` chỉ là đối tượng trung gian để đóng gói kết quả của hai collector nhánh bên trong.
+The example uses `Payment` and `payments` from section 2. `Tail` is merely an intermediate object packaging the results of the two inner branch collectors.
 
-Đoạn code hợp lệ, nhưng **không nhất thiết là cách tốt nhất** để lấy số lượng, tổng và giá trị lớn nhất. Khi tất cả chỉ số cùng thuộc một thuộc tính số, `Collectors.summarizingLong` thường đơn giản hơn:
+This code is valid, yet **not necessarily the best way** to get count, sum, and maximum. When all metrics belong to the same numeric attribute, `Collectors.summarizingLong` is usually simpler:
 
 ~~~java
 java.util.LongSummaryStatistics stats = payments.stream()
@@ -520,44 +520,44 @@ System.out.println(stats.getSum());   // 400000
 System.out.println(stats.getMax());   // 200000
 ~~~
 
-Hãy chọn `teeing` khi muốn ghép **hai kết quả hoặc hai loại phân tích khác nhau** thành một kiểu kết quả có nghĩa. Không lồng `teeing` chỉ vì có thể làm vậy.
+Choose `teeing` when you want to combine **two distinct results or two different kinds of analysis** into a meaningful result type. Do not nest `teeing` merely because you can.
 
-## 10. teeing khác gì với reduce và collector tùy chỉnh?
+## 10. How does teeing differ from reduce and custom collectors?
 
-| Tình huống | Công cụ phù hợp | Vì sao |
+| Scenario | Suitable tool | Why |
 |---|---|---|
-| Chỉ tính tổng số nguyên | `mapToLong(...).sum()` | Ngắn, trực tiếp, tránh boxing trung gian |
-| Chỉ cần count/sum/min/max/average của một trường số | `summarizingLong(...)` | Có sẵn bộ thống kê nhiều chỉ số |
-| Kết hợp hai báo cáo sẵn có, như `counting` và `toList` | `teeing(...)` | Tái sử dụng hai collector, gộp kết quả có kiểm soát |
-| Nhóm dữ liệu, mỗi nhóm trả hai chỉ số | `groupingBy(..., teeing(...))` | Mỗi nhóm có báo cáo kết hợp riêng |
-| Muốn trạng thái tích lũy đặc biệt hoặc hơn hai chỉ số liên quan | Collector tùy chỉnh | Kiểm soát bộ chứa, accumulator, combiner và finisher |
-| Gộp các giá trị bất biến bằng phép toán associative | `reduce(...)` | Hợp đồng non-mutating reduction rõ ràng |
+| Only summing integers | `mapToLong(...).sum()` | Short, direct, avoids intermediate boxing |
+| Only need count/sum/min/max/average of one numeric field | `summarizingLong(...)` | Built-in multi-metric statistics object |
+| Combining two existing reports, like `counting` and `toList` | `teeing(...)` | Reuses two collectors and merges results cleanly |
+| Grouping data, each group returning two metrics | `groupingBy(..., teeing(...))` | Each group gets its own combined report |
+| Need specialized accumulation state or more than two coupled metrics | Custom collector | Full control over container, accumulator, combiner, and finisher |
+| Combining immutable values with an associative operation | `reduce(...)` | Clear non-mutating reduction contract |
 
-### 10.1. teeing không thay thế mọi collector tùy chỉnh
+### 10.1. teeing does not replace every custom collector
 
-`teeing` sử dụng **hai cơ chế tích lũy riêng**. Nếu hai chỉ số chia sẻ nhiều dữ liệu trung gian hoặc cần nhiều thành phần thống kê kết hợp chặt chẽ, một collector tùy chỉnh với **một bộ chứa** có thể giảm cấp phát hoặc giảm thao tác; song bạn phải tự bảo đảm hợp đồng supplier/accumulator/combiner/finisher.
+`teeing` maintains **two separate accumulation mechanisms**. If two metrics share a lot of intermediate data or require tightly coupled statistical fields, a custom collector with **a single container** can reduce allocations or work; however, you must verify the supplier/accumulator/combiner/finisher contract yourself.
 
-Ngược lại, khi đã có hai collector chuẩn đúng mục tiêu, `teeing` giúp code dễ đọc và tránh viết lại logic tích lũy, nhất là với các downstream phức tạp.
+Conversely, when two standard collectors already match the goal, `teeing` keeps code readable and avoids re-implementing accumulation logic, especially with complex downstreams.
 
-### 10.2. teeing không giống reduce với một cặp mutable
+### 10.2. teeing is not like reduce with a mutable pair
 
-Không nên cố tự dựng một `Pair` mutable và đưa vào `reduce(identity, accumulator, combiner)` bằng cách sửa cùng đối tượng tích lũy. Một `reduce` như vậy dễ vi phạm hợp đồng identity/associativity và gây sai khi chạy song song.
+Do not build a mutable `Pair` and pass it into `reduce(identity, accumulator, combiner)` by mutating the same accumulation object. Such a `reduce` easily violates identity/associativity contracts and breaks in parallel runs.
 
-`teeing` nằm trong mô hình **mutable reduction qua Collector**: mỗi collector nhánh kiểm soát bộ chứa trung gian đúng hợp đồng, còn `merger` chỉ làm việc với kết quả đã được hoàn tất.
+`teeing` fits within **mutable reduction via Collector**: each branch collector manages its intermediate container per contract, while `merger` works only with finalized results.
 
-## 11. Đặc tính Collector và xử lý song song
+## 11. Collector characteristics and parallel processing
 
-Một collector có các **characteristics** như `UNORDERED`, `CONCURRENT` và `IDENTITY_FINISH`. Với `teeing`, các đặc tính có thể được kế thừa theo sự tương thích của **cả hai downstream**.
+A collector has **characteristics** such as `UNORDERED`, `CONCURRENT`, and `IDENTITY_FINISH`. With `teeing`, characteristics can be inherited based on the compatibility of **both downstreams**.
 
-Về nguyên tắc:
+In principle:
 
-- Chỉ khi **cả hai** downstream phù hợp với `CONCURRENT`, collector kết hợp mới có thể công bố đặc tính đồng thời đó.
-- Chỉ khi **cả hai** downstream là `UNORDERED`, collector kết hợp mới có thể công bố tính không có thứ tự.
-- `teeing` **không mang `IDENTITY_FINISH`**, vì kết quả cần đi qua hàm `merger`.
+- Only when **both** downstreams support `CONCURRENT` can the combined collector advertise that concurrency characteristic.
+- Only when **both** downstreams are `UNORDERED` can the combined collector advertise unorderedness.
+- `teeing` **never carries `IDENTITY_FINISH`**, because the results must pass through `merger`.
 
-Đặc tính thực tế do API của các downstream xác định; **không nên tự suy đoán** rằng `teeing(toList(), counting(), ...)` có thể dùng một container kết quả duy nhất cho nhiều thread.
+Actual characteristics are determined by the downstreams' APIs; **do not guess** that `teeing(toList(), counting(), ...)` can share a single result container across multiple threads.
 
-### 11.1. Chạy parallel không có nghĩa dùng một container chia sẻ
+### 11.1. Running in parallel does not mean sharing one container
 
 ~~~java
 Stats parallelStats = payments.parallelStream()
@@ -572,25 +572,25 @@ System.out.println(parallelStats);
 // Stats[count=3, totalVnd=400000]
 ~~~
 
-Với bộ dữ liệu mẫu, kết quả bằng kết quả tuần tự. Framework quản lý việc tích lũy cục bộ và kết hợp các kết quả theo hợp đồng collector; không nên sử dụng một `ArrayList` hoặc `HashMap` mutable ngoài pipeline làm biến chia sẻ cho hai nhánh.
+On the sample dataset, the result matches the sequential run. The framework manages local accumulation and merging per collector contract; never use an external mutable `ArrayList` or `HashMap` as a shared variable across two branches.
 
-Chẳng hạn, **không nên** viết:
+For instance, **never** write:
 
 ~~~java
 java.util.ArrayList<String> sharedIds =
     new java.util.ArrayList<>();
 
-// Không thu thập theo kiểu có tác dụng phụ ngoài:
+// Do not collect via external side effects:
 // payments.parallelStream().forEach(p -> sharedIds.add(p.id()));
 ~~~
 
-`ArrayList` không thread-safe. Ngay cả khi dùng một cấu trúc có đồng bộ, thứ tự và hiệu năng vẫn phải xét theo mục tiêu nghiệp vụ. Nếu muốn danh sách trong một nhánh của `teeing`, dùng `mapping(..., toList())` hoặc collector phù hợp.
+`ArrayList` is not thread-safe. Even with a synchronized structure, ordering and performance still must match business goals. If you want a list in one branch of `teeing`, use `mapping(..., toList())` or an appropriate collector.
 
-### 11.2. Không sử dụng merger để sửa nguồn hoặc kích hoạt nghiệp vụ ngoài
+### 11.2. Do not use merger to mutate the source or trigger external side effects
 
-`merger` nên thuần theo nghĩa: nhận hai kết quả và xây một kết quả rõ ràng. Tránh dùng nó để gửi thông báo, ghi database hoặc thay đổi trạng thái dùng chung. Với parallel Stream, các callback trung gian và combiner có thể chạy ở những thread/thứ tự khác nhau; dù merger tạo kết quả cuối, tác dụng phụ ở đây vẫn khiến code khó kiểm thử và khó tái sử dụng.
+`merger` should be pure: take two results and construct a clear combined result. Avoid using it to send notifications, write to databases, or mutate shared state. With parallel Streams, intermediate callbacks and combiners can run on different threads/orders; even though `merger` creates the final result, side effects there still make code hard to test and reuse.
 
-Khi cần I/O sau khi đã có báo cáo, hãy tách thành bước **sau `collect`**. Ví dụ:
+When I/O is needed after the report is ready, separate it into a step **after `collect`**. For example:
 
 ~~~java
 Stats stats = payments.stream()
@@ -601,20 +601,20 @@ Stats stats = payments.stream()
         Stats::new
     ));
 
-System.out.println("Đã tính báo cáo: " + stats);
+System.out.println("Report computed: " + stats);
 ~~~
 
-## 12. Thứ tự, null và tính ổn định của dữ liệu
+## 12. Ordering, null, and data stability
 
-### 12.1. Encounter order vẫn quan trọng nếu một nhánh thu List
+### 12.1. Encounter order still matters if one branch collects a List
 
-Một `List` làm nguồn có thứ tự; `Collectors.toList()` có thể giữ thứ tự phần tử theo encounter order. Nhưng nếu pipeline gọi `unordered()` hoặc nguồn không có encounter order, đừng kỳ vọng nhánh kết quả danh sách phản ánh một thứ tự cụ thể.
+A `List` source is ordered; `Collectors.toList()` can preserve element order according to encounter order. Yet if the pipeline calls `unordered()` or the source has no encounter order, do not expect the list branch to reflect a specific order.
 
-Các downstream như `counting` và `summingLong` về ý nghĩa không phụ thuộc thứ tự phần tử khi số học chính xác và không tràn; các collector chọn đại diện khi hòa nhau (như `minBy` trên comparator không có tie-breaker) có thể có yêu cầu mạnh hơn về thứ tự hoặc quy tắc ưu tiên.
+Downstreams like `counting` and `summingLong` are semantically independent of element order when arithmetic is exact and does not overflow; collectors that pick a representative on ties (like `minBy` with a comparator lacking a tie-breaker) can have stronger requirements on order or priority rules.
 
-### 12.2. Null cần được xử lý theo hợp đồng từng nhánh
+### 12.2. Null must be handled according to each branch's contract
 
-`teeing` không tự loại `null`. Nếu phần tử nguồn có thể là null, một nhánh như `mapping(Payment::id, ...)` hoặc `summingLong(Payment::amountVnd)` có thể ném `NullPointerException`.
+`teeing` does not remove `null` automatically. If source elements can be null, a branch like `mapping(Payment::id, ...)` or `summingLong(Payment::amountVnd)` can throw `NullPointerException`.
 
 ~~~java
 import java.util.Arrays;
@@ -634,34 +634,34 @@ Stats safeStats = safePayments.stream()
     ));
 ~~~
 
-Ngoài null đầu vào, từng downstream còn có chính sách riêng: `toUnmodifiableList()` không chấp nhận phần tử null, `groupingBy` không cho classifier trả khóa null theo hợp đồng triển khai Java chuẩn, và một `minBy` trên comparator không xử lý được null cũng có thể lỗi.
+Beyond null inputs, each downstream has its own policy: `toUnmodifiableList()` rejects null elements, `groupingBy` forbids a classifier from returning null keys under standard Java contracts, and `minBy` with a comparator that cannot handle null can also fail.
 
-Không nên coi hai nhánh sẽ luôn xử lý null giống nhau. Hãy chuẩn hóa hoặc xác thực dữ liệu **trước** giai đoạn thu thập khi có thể.
+Do not assume both branches will always treat null identically. Normalize or validate data **before** collection whenever possible.
 
-### 12.3. Không sửa nguồn khi đang thu thập
+### 12.3. Do not mutate the source while collecting
 
-Các lambda như `Payment::amountVnd` hoặc `Payment::paid` nên không can thiệp nguồn và không phụ thuộc trạng thái ngoài thay đổi giữa lúc duyệt. Nếu đối tượng nguồn bị sửa trong lúc chạy song song, các nhánh có thể quan sát dữ liệu khác nhau và báo cáo sẽ không còn nhất quán.
+Lambdas such as `Payment::amountVnd` or `Payment::paid` must be non-interfering and not depend on external state changing mid-traversal. If source objects are mutated during parallel execution, the two branches can observe inconsistent data and the report will no longer be consistent.
 
-Nếu báo cáo cần một **snapshot** của dữ liệu biến đổi liên tục, cần chiến lược chụp dữ liệu hoặc giao dịch ở tầng nguồn. `teeing` giúp hợp nhất hai phép thu thập trong một pipeline nhưng **không bảo đảm snapshot nguyên tử** trước các thay đổi đồng thời từ bên ngoài.
+If a report needs a **snapshot** of continuously changing data, you need a snapshotting or transaction strategy at the source layer. `teeing` unifies two collections within one pipeline, yet **does not guarantee an atomic snapshot** against concurrent external mutations.
 
-## 13. Tài nguyên và hiệu năng: một lần duyệt không có nghĩa chi phí bằng một collector
+## 13. Resources and performance: one pass does not mean the cost of one collector
 
-### 13.1. Ưu điểm
+### 13.1. Advantages
 
-- Một pipeline `collect` có thể xây **hai chỉ số** mà không cần chạy hai Stream riêng.
-- Tái sử dụng collector có sẵn, giảm lượng code accumulator/combiner tự viết.
-- Phù hợp với nguồn chỉ đọc một lần hoặc nguồn mà việc duyệt lại đắt đỏ.
-- Dễ ghép với `groupingBy` hoặc downstream như `filtering` và `mapping`.
+- One `collect` pipeline can build **two metrics** without running two separate Streams.
+- Reuses existing collectors, reducing hand-written accumulator/combiner boilerplate.
+- Fits single-use sources or sources where re-traversal is expensive.
+- Composes easily with `groupingBy` or downstreams like `filtering` and `mapping`.
 
-### 13.2. Giới hạn
+### 13.2. Limitations
 
-- Mỗi phần tử được xử lý bởi **cả hai nhánh**; đó không phải một phép tính miễn phí.
-- Hai collector có thể giữ **hai trạng thái tích lũy** khác nhau. Nếu một nhánh là `toList` và một nhánh là `toSet`, bộ nhớ có thể tăng theo kích thước các kết quả.
-- Nếu cả hai nhánh đều duyệt và xây cấu trúc phức tạp, một collector tùy chỉnh chia sẻ trạng thái có thể tiết kiệm hơn — nhưng cần đo kiểm thay vì phỏng đoán.
-- `teeing` là terminal collection: với nguồn vô hạn không có điểm dừng, collector thường **không thể hoàn thành**.
-- `summingLong` có thể tràn `long`; thống kê dấu phẩy động có sai số và có thể phụ thuộc thứ tự phép tính.
+- Every element is processed by **both branches**; it is not a free computation.
+- Two collectors can retain **two distinct accumulation states**. If one branch is `toList` and the other is `toSet`, memory grows with the sizes of both results.
+- If both branches traverse and build complex structures, a custom collector sharing state may save resources—though you should benchmark rather than guess.
+- `teeing` is a terminal collection: on an unbounded infinite source, the collector generally **cannot complete**.
+- `summingLong` can overflow `long`; floating-point statistics have rounding errors and can depend on operation order.
 
-### 13.3. So sánh với hai lần collect
+### 13.3. Comparison with two separate collects
 
 ~~~java
 long count = payments.stream().filter(Payment::paid).count();
@@ -672,14 +672,14 @@ long total = payments.stream()
     .sum();
 ~~~
 
-Hai pipeline riêng giúp dễ đọc trong một số tình huống nhỏ, nhưng duyệt lại nguồn. `teeing` giúp gộp trong một pipeline; tuy nhiên, nó cũng tạo/ghép hai accumulator và chạy merger cuối. Trên dữ liệu ít phần tử, **đừng khẳng định** nó luôn nhanh hơn. Với vấn đề hiệu năng quan trọng, hãy kiểm tra bằng benchmark thực tế trên JDK và kiểu nguồn của ứng dụng.
+Two separate pipelines can be easier to read in some small situations, yet they traverse the source twice. `teeing` combines them in one pipeline; however, it also creates/merges two accumulators and runs the final merger. On small datasets, **never claim** it is always faster. For performance-critical paths, measure with a real benchmark on your application's JDK and source type.
 
-### 13.4. Đừng dùng teeing để giải quyết vấn đề kết thúc của Stream
+### 13.4. Do not use teeing to solve Stream termination issues
 
-Ví dụ sau **không nên chạy**:
+The following example **must not be run**:
 
 ~~~java
-// Nguồn vô hạn và không có điều kiện dừng.
+// Unbounded infinite source with no termination condition.
 // java.util.stream.Stream.iterate(1, n -> n + 1)
 //     .collect(Collectors.teeing(
 //         Collectors.counting(),
@@ -688,7 +688,7 @@ Ví dụ sau **không nên chạy**:
 //     ));
 ~~~
 
-`counting` và `summingInt` phải xử lý đủ nguồn để trả kết quả. Khi nguồn không bao giờ hết, phép thu thập không thể tạo kết quả cuối. Nếu nhu cầu là lấy một cửa sổ hữu hạn:
+`counting` and `summingInt` must consume the entire source to return a result. When the source never ends, collection cannot produce a final result. If you need a finite window:
 
 ~~~java
 String firstFive = java.util.stream.IntStream
@@ -698,46 +698,46 @@ String firstFive = java.util.stream.IntStream
     .collect(Collectors.teeing(
         Collectors.counting(),
         Collectors.summingInt(Integer::intValue),
-        (count, sum) -> count + " phần tử, tổng = " + sum
+        (count, sum) -> count + " elements, sum = " + sum
     ));
 
 System.out.println(firstFive);
-// 5 phần tử, tổng = 15
+// 5 elements, sum = 15
 ~~~
 
-Giới hạn `limit(5)` bảo đảm pipeline này có số phần tử hữu hạn.
+The `limit(5)` bound ensures this pipeline has a finite number of elements.
 
-## 14. Các lỗi thường gặp khi dùng teeing
+## 14. Common mistakes when using teeing
 
-| Cách hiểu/cách làm sai | Rủi ro | Cách sửa |
+| Misconception / mistake | Risk | Fix |
 |---|---|---|
-| Nghĩ `teeing` nhân đôi Stream thành hai Stream độc lập | Hiểu sai vòng đời và cách duyệt | Xem nó là **một Collector có hai nhánh** |
-| Nghĩ `merger` chạy cho từng phần tử | Đặt nhầm logic tích lũy | Đưa việc tích lũy vào downstream, chỉ ghép kết quả ở merger |
-| Dùng `counting` và `summingLong` rồi chia luôn cho count | Chia cho 0 với nguồn rỗng | Kiểm tra `count == 0` và định nghĩa chính sách |
-| Dùng `minBy/maxBy` rồi gọi `Optional.get()` trực tiếp | Ném lỗi nếu nguồn rỗng | Xử lý Optional bằng `map`/`orElse`/`orElseThrow` |
-| Dùng `groupingBy` sau khi `filter` nhưng muốn nhóm count 0 | Nhóm có toàn phần tử không đạt bị xóa | Dùng downstream `filtering` trong nhóm |
-| Muốn hai điều kiện khác nhau nhưng lọc chung trước teeing | Nhánh thứ hai mất dữ liệu cần thiết | Đặt `filtering` riêng cho từng nhánh |
-| Dùng `toList` rồi tưởng kết quả trong record bất biến | List có thể thay đổi | Sao chép `List.copyOf` nếu cần, và xử lý null |
-| Tự cập nhật List/Map chung trong `parallelStream` | Race condition | Dùng collector đúng hợp đồng |
-| Nghĩ merger quyết định đặc tính `CONCURRENT` | Kế thừa characteristics của hai downstream bị hiểu sai | Xem hợp đồng của cả hai collector; đừng tự khai báo tùy tiện |
-| Dùng teeing để lấy các chỉ số số học đã có `summarizingLong` | Code lồng khó đọc không cần thiết | Ưu tiên collector chuyên dụng khi phù hợp |
-| Thu thập trên nguồn vô hạn | Không thể hoàn thành phép tổng hợp | Cắt nguồn hoặc dùng cửa sổ hữu hạn |
-| Cho rằng teeing tạo snapshot nguyên tử | Hai nhánh vẫn đọc nguồn có thể thay đổi | Ổn định dữ liệu trước pipeline |
-| Tin rằng chạy song song luôn nhanh hơn | Chi phí chia việc và hợp nhất có thể lớn | Benchmark và kiểm tra điều kiện thread-safe |
+| Thinking `teeing` splits a Stream into two independent Streams | Misunderstands lifecycle and traversal | Treat it as **one Collector with two branches** |
+| Thinking `merger` runs per element | Misplaces accumulation logic | Put accumulation in downstreams; only combine final results in merger |
+| Using `counting` and `summingLong` and dividing by count directly | Division by 0 on empty source | Check `count == 0` and define a policy |
+| Using `minBy/maxBy` and calling `Optional.get()` directly | Throws exception if source is empty | Handle Optional via `map`/`orElse`/`orElseThrow` |
+| Using `groupingBy` after `filter` while wanting count-0 groups | Groups with all non-matching elements vanish | Use downstream `filtering` inside the group |
+| Wanting two different conditions yet filtering once before `teeing` | Second branch loses needed data | Put separate `filtering` on each branch |
+| Using `toList` and assuming the list inside a record is immutable | List may be mutable | Wrap with `List.copyOf` if needed, and handle nulls |
+| Mutating shared List/Map in `parallelStream` | Race condition | Use a contract-compliant collector |
+| Thinking merger decides `CONCURRENT` characteristic | Misunderstands characteristic inheritance from both downstreams | Check both collectors' contracts; never assume arbitrarily |
+| Using `teeing` for numeric metrics already covered by `summarizingLong` | Unnecessarily nested, hard-to-read code | Prefer dedicated collectors when appropriate |
+| Collecting over an infinite source | Aggregation never terminates | Bound the source or use a finite window |
+| Assuming `teeing` takes an atomic snapshot | Both branches still read a potentially mutating source | Stabilize data before the pipeline |
+| Believing parallel is always faster | Splitting and merging overhead can dominate | Benchmark and verify thread-safety requirements |
 
-## 15. Bài tập: báo cáo kết quả xử lý tác vụ theo nhóm
+## 15. Exercise: grouped task completion report
 
-Một hệ thống có các tác vụ gồm `id`, `team`, `effort` và `done`. Hãy xây báo cáo bằng `teeing`, sau đó kết hợp với `groupingBy`.
+A system has tasks with `id`, `team`, `effort`, and `done`. Build a report using `teeing`, then combine it with `groupingBy`.
 
-**Yêu cầu:**
+**Requirements:**
 
-1. Đếm tác vụ **đã hoàn tất** và tính tổng `effort` của những tác vụ đó, trong **một phép `collect`**.
-2. Tạo `Map<String, Metrics>` theo nhóm `team`, giữ cả nhóm chưa có tác vụ hoàn tất với `count = 0` và `total = 0`.
-3. Từ `count` và `total`, tính trung bình của tác vụ hoàn tất; nếu không có dữ liệu, biểu diễn rõ trạng thái thiếu.
-4. Không dùng danh sách mutable ngoài pipeline để đếm hoặc thu thập.
-5. Giải thích vì sao `stream.filter(Task::done)` trước `groupingBy` sẽ không giữ nhóm chỉ có tác vụ chưa hoàn tất.
+1. Count **completed** tasks and sum their `effort` in a **single `collect`**.
+2. Build `Map<String, Metrics>` grouped by `team`, keeping groups with zero completed tasks with `count = 0` and `total = 0`.
+3. From `count` and `total`, compute the average effort of completed tasks; when there is no data, represent the missing state explicitly.
+4. Do not use mutable lists outside the pipeline to count or collect.
+5. Explain why `stream.filter(Task::done)` before `groupingBy` would not keep a group that has only incomplete tasks.
 
-### Lời giải tham khảo (Java 17+)
+### Reference solution (Java 17+)
 
 ~~~java
 import java.util.List;
@@ -800,31 +800,31 @@ public class TeeingPractice {
 }
 ~~~
 
-Trong lời giải:
+In the solution:
 
-- Các tác vụ hoàn tất là `T01`, `T03` và `T05`, tổng effort bằng `5 + 3 + 2 = 10`.
-- `toMetrics` là **merger** dùng lại cho cả phép tổng hợp toàn bộ lẫn từng nhóm.
-- `groupingBy(Task::team)` tạo nhóm Backend, Frontend và QA từ **toàn bộ nguồn**.
-- `filtering(Task::done, teeing(...))` chỉ chuyển tác vụ hoàn tất vào collector hai nhánh. QA không có tác vụ hoàn tất, nhưng vẫn có nhóm và được ghép thành `Metrics(count=0, total=0, average=empty)`.
-- `OptionalDouble.empty()` cho trường hợp không có dữ liệu giúp phân biệt “không có mức trung bình” với “mức trung bình thực sự bằng 0”.
+- Completed tasks are `T01`, `T03`, and `T05`, with total effort `5 + 3 + 2 = 10`.
+- `toMetrics` is the **merger** reused for both the overall aggregation and per-group aggregation.
+- `groupingBy(Task::team)` creates groups Backend, Frontend, and QA from the **entire source**.
+- `filtering(Task::done, teeing(...))` forwards only completed tasks into the two-branch collector. QA has no completed tasks, yet still has a group and merges into `Metrics(count=0, total=0, average=empty)`.
+- `OptionalDouble.empty()` for the no-data case distinguishes “no average available” from “actual average is 0”.
 
-### Câu hỏi tự kiểm tra
+### Self-check questions
 
-1. `Collectors.teeing` được giới thiệu từ phiên bản Java nào? — **Java 12**.
-2. `teeing` nhận mấy downstream và một hàm gì? — **Hai downstream collector** và một **BiFunction merger**.
-3. `merger` nhận từng `Payment` hay kết quả cuối của mỗi collector? — **Hai kết quả đã thu thập**.
-4. Có thể dùng `teeing(counting(), mapping(..., toList()), merger)` không? — **Có**, hai nhánh có thể có kiểu kết quả khác nhau.
-5. `teeing(minBy(...), maxBy(...), ...)` trên nguồn rỗng có tự trả null không? — **Không mặc định**; hai downstream trả `Optional.empty()` rồi merger quyết định kết quả.
-6. Khi nào dùng `summarizingLong` thay vì lồng nhiều `teeing`? — Khi chỉ cần các chỉ số chuẩn như count, sum, min, max, average của **cùng một trường số**.
-7. `teeing` có đặc tính `IDENTITY_FINISH` không? — **Không**, vì cần thực hiện merger.
-8. Làm sao giữ nhóm `QA` chỉ có tác vụ chưa hoàn tất? — Nhóm trước bằng `groupingBy`, đặt `filtering` bên trong downstream.
-9. Nguồn Stream dùng với `teeing` có thể được tiêu thụ lại sau `collect` không? — **Không**, phải tạo Stream mới từ nguồn có thể sử dụng lại.
-10. `teeing` có bảo đảm chạy nhanh hơn hai pipeline riêng không? — **Không**, cần xét số lượng phần tử, chi phí hai nhánh, bộ nhớ và cách thực thi.
+1. Which Java version introduced `Collectors.teeing`? — **Java 12**.
+2. How many downstreams and what function does `teeing` take? — **Two downstream collectors** and one **BiFunction merger**.
+3. Does `merger` receive each `Payment` or the final results of each collector? — **The two collected results**.
+4. Can you use `teeing(counting(), mapping(..., toList()), merger)`? — **Yes**, the two branches can have different result types.
+5. Does `teeing(minBy(...), maxBy(...), ...)` return null automatically on an empty source? — **Not by default**; both downstreams return `Optional.empty()` and then the merger decides the result.
+6. When should you use `summarizingLong` instead of nesting multiple `teeing` calls? — When you only need standard metrics like count, sum, min, max, and average of **the same numeric field**.
+7. Does `teeing` have the `IDENTITY_FINISH` characteristic? — **No**, because it must run the merger.
+8. How do you keep the `QA` group if it has only incomplete tasks? — Group first with `groupingBy`, and place `filtering` inside the downstream.
+9. Can a Stream source used with `teeing` be consumed again after `collect`? — **No**, you must create a fresh Stream from a reusable source.
+10. Is `teeing` guaranteed to run faster than two separate pipelines? — **No**; you must consider element count, branch costs, memory, and execution mode.
 
-## 16. Ghi nhớ và hướng vận dụng
+## 16. Summary and practical guidance
 
-**`Collectors.teeing(downstream1, downstream2, merger)`** kết hợp **hai phép thu thập trên cùng các phần tử** trong một terminal `collect`. Hai downstream có thể trả những kiểu khác nhau; `merger` biến hai kết quả thành một giá trị có ý nghĩa đối với nghiệp vụ. Hãy nhớ đây là **composition của collector**, không phải phép ghép hoặc nhân bản Stream.
+**`Collectors.teeing(downstream1, downstream2, merger)`** combines **two collections over the same elements** in a single terminal `collect`. The two downstreams can return different types; `merger` turns the two results into a business-meaningful value. Remember this is **collector composition**, not Stream merging or duplication.
 
-Khi kết hợp với `groupingBy`, mỗi nhóm có thể trả một báo cáo gồm nhiều chỉ số. Đặt `filtering` **ở ngoài teeing nhưng bên trong groupingBy** nếu cần giữ nhóm có count 0; đặt `filtering` **riêng cho từng nhánh teeing** nếu hai chỉ số dùng hai điều kiện độc lập.
+When composed with `groupingBy`, each group can return a multi-metric report. Place `filtering` **outside `teeing` but inside `groupingBy`** if groups with count 0 must be kept; place `filtering` **separately on each `teeing` branch** if the two metrics use independent conditions.
 
-Luôn kiểm tra **nguồn rỗng**, **Optional**, **kiểu số và tràn số**, **thứ tự**, **null**, **trạng thái mutable của collector** và **chi phí tích lũy song song**. Khi chỉ cần các thống kê số học tiêu chuẩn, ưu tiên `summarizingLong` hoặc Stream nguyên thủy; khi hai downstream đã mô tả chính xác bài toán, `teeing` giúp xây một kết quả rõ ràng mà không phải tự viết collector phức tạp.
+Always check **empty sources**, **Optional**, **numeric types and overflow**, **ordering**, **null**, **mutable collector state**, and **parallel accumulation cost**. When standard numeric statistics suffice, prefer `summarizingLong` or primitive Streams; when two downstreams cleanly express the problem, `teeing` builds a clear result without writing a complex custom collector.

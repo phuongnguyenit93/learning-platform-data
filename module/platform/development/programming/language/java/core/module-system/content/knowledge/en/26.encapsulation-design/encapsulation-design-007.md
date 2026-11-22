@@ -1,19 +1,19 @@
-# Đặt type public tại package phù hợp
+# Placing Public Types in the Appropriate Package
 
-Trong Java Platform Module System (JPMS), việc đặt một type có modifier public vào package nào là quyết định thiết kế API chứ không chỉ là cách tổ chức thư mục. Một class có thể public đối với mã Java trong cùng mô-đun, nhưng vẫn không thể được mô-đun khác import nếu package chứa nó không được exports. Ngược lại, khi một package được export, mọi top-level type public đủ điều kiện trong package đó có thể trở thành một phần của bề mặt API nhìn thấy từ bên ngoài.
+In the Java Platform Module System (JPMS), deciding which package to place a type with the public modifier in is an API design decision rather than just directory organization. A class can be public to Java code within the same module, yet still cannot be imported by other modules if the package containing it is not exported. Conversely, when a package is exported, every eligible public top-level type in that package can become part of the externally visible API surface.
 
-Để duy trì strong encapsulation, hãy tách rõ **package dành cho hợp đồng công khai** và **package dành cho implementation**. Chỉ export package chứa những kiểu thực sự được cam kết cho người sử dụng; giữ class hỗ trợ, adapter, cache, mapper và thuật toán nội bộ trong package không export.
+To maintain strong encapsulation, clearly separate **packages meant for the public contract** from **packages meant for the implementation**. Export only packages containing types genuinely committed to users; keep helper classes, adapters, caches, mappers, and internal algorithms in unexported packages.
 
-Bài học này giải thích cách chọn package cho public type, cách tránh lộ implementation qua chữ ký public, và cách sắp xếp module-info.java để API ổn định khi dự án phát triển.
+This lesson explains how to choose packages for public types, how to avoid exposing implementations through public signatures, and how to arrange module-info.java so the API remains stable as the project grows.
 
-## 1. Public trong Java chưa đủ để trở thành API của module
+## 1. Being Public in Java Is Not Enough to Become Module API
 
-Java có hai tầng liên quan đến khả năng truy cập:
+Java has two layers related to accessibility:
 
-1. **Java language access:** public, protected, package-private và private kiểm soát quyền truy cập ở cấp class và member.
-2. **JPMS module access:** requires quyết định readability, exports quyết định package được dùng như API thông thường, còn opens quyết định quyền deep reflection ở runtime.
+1. **Java language access:** public, protected, package-private, and private control access at the class and member levels.
+2. **JPMS module access:** requires determines readability, exports determines packages used as normal API, and opens determines deep reflection permissions at runtime.
 
-Giả sử module có descriptor:
+Suppose a module has the descriptor:
 
 ~~~java
 module com.example.catalog {
@@ -21,7 +21,7 @@ module com.example.catalog {
 }
 ~~~
 
-Và chứa hai lớp:
+And contains two classes:
 
 ~~~java
 package com.example.catalog.api;
@@ -43,15 +43,15 @@ public final class DefaultCatalogService
 }
 ~~~
 
-DefaultCatalogService là public, nhưng package com.example.catalog.internal không được export. Mã trong mô-đun khác không được phép import lớp này như API public thông thường, dù modifier của lớp là public.
+DefaultCatalogService is public, yet the com.example.catalog.internal package is not exported. Code in another module is not permitted to import this class as normal public API, even though the class modifier is public.
 
-Trong khi đó CatalogService nằm trong package được export, nên mô-đun có readability phù hợp có thể tham chiếu interface này.
+Meanwhile, CatalogService resides in an exported package, so modules with appropriate readability can reference this interface.
 
-Đây là điểm thiết yếu: **public type và exported package là hai điều kiện khác nhau**.
+This is the essential point: **a public type and an exported package are two separate conditions**.
 
-## 2. Package là ranh giới export, không phải từng class
+## 2. Packages Are the Export Boundary, Not Individual Classes
 
-Trong module-info.java, JPMS không có chỉ thị export riêng một class:
+In module-info.java, JPMS has no directive to export a single class on its own:
 
 ~~~java
 module com.example.catalog {
@@ -59,9 +59,9 @@ module com.example.catalog {
 }
 ~~~
 
-Chỉ thị exports mở khả năng truy cập các kiểu public trong cả package api. Nó không chỉ export một interface mà bạn đang quan tâm.
+The exports directive opens access to public types across the entire api package. It does not export only the one interface you happen to care about.
 
-Nếu đặt một public implementation helper vào cùng package:
+If you place a public implementation helper in the same package:
 
 ~~~java
 package com.example.catalog.api;
@@ -73,35 +73,35 @@ public final class CacheResetUtility {
 }
 ~~~
 
-thì một mô-đun khác có thể nhìn thấy CacheResetUtility cùng với những API công khai khác, miễn là thỏa các quy tắc truy cập. Điều này không nhất thiết đồng nghĩa nhà phát hành cam kết hỗ trợ nó, nhưng về mặt cơ chế JPMS nó đã được đưa ra bề mặt truy cập.
+then another module can see CacheResetUtility alongside the other public APIs, provided access rules are satisfied. This does not necessarily mean the publisher commits to supporting it, yet mechanically JPMS has exposed it on the access surface.
 
-Nếu class không dành cho consumer, có hai lựa chọn thường hợp lý:
+If a class is not meant for consumers, there are two usually sensible options:
 
-- Chuyển class sang package không export, ví dụ com.example.catalog.internal.
-- Nếu class chỉ được dùng trong cùng package, cân nhắc bỏ modifier public để nó trở thành package-private.
+- Move the class to an unexported package, such as com.example.catalog.internal.
+- If the class is only used within the same package, consider removing the public modifier so it becomes package-private.
 
-Không nên sử dụng public chỉ vì thuận tiện, rồi hy vọng module-info.java có thể giấu từng type nằm trong package đã export.
+Do not make types public merely for convenience and then hope module-info.java can hide individual types inside an exported package.
 
-## 3. Thiết kế package từ góc nhìn của consumer
+## 3. Designing Packages from the Consumer's Perspective
 
-Khi lựa chọn package, hãy bắt đầu bằng câu hỏi: **mô-đun khác được phép phụ thuộc lâu dài vào những gì?**
+When choosing packages, start with the question: **what are other modules permitted to depend on long-term?**
 
-Một API tốt thường gồm:
+A good API typically consists of:
 
-- Interface hoặc class đại diện cho hành vi nghiệp vụ được công bố.
-- Kiểu đầu vào, đầu ra và exception ổn định.
-- Factory hoặc entry point để tạo đối tượng nếu consumer không nên biết implementation.
-- Annotation hoặc extension point mà consumer được phép sử dụng.
+- Interfaces or classes representing the published business behavior.
+- Stable input, output, and exception types.
+- Factories or entry points to create objects if consumers should not know the implementation.
+- Annotations or extension points that consumers are allowed to use.
 
-Những phần thường nên ở package nội bộ:
+Parts that usually belong in internal packages:
 
-- Repository implementation, cache, mapper và helper.
-- Cấu trúc dữ liệu phục vụ thuật toán nội bộ.
-- Adapter tích hợp thư viện cụ thể.
-- Code sinh tự động không được thiết kế thành hợp đồng.
-- Class chứa logic wiring và cấu hình riêng của module.
+- Repository implementations, caches, mappers, and helpers.
+- Data structures serving internal algorithms.
+- Adapters integrating specific libraries.
+- Generated code not designed as a contract.
+- Classes containing wiring logic and module-specific configuration.
 
-Ví dụ bố cục:
+Example layout:
 
 ~~~text
 src/com.example.catalog/
@@ -126,11 +126,11 @@ module com.example.catalog {
 }
 ~~~
 
-Nhờ vậy module bên ngoài chỉ phụ thuộc vào com.example.catalog.api. Module sở hữu có thể thay cache hoặc persistence implementation mà không bắt consumer sửa import.
+As a result, external modules depend only on com.example.catalog.api. The owning module can replace the cache or persistence implementation without forcing consumers to change imports.
 
-## 4. Tình huống thiết kế sai: implementation nằm trong package API
+## 4. Bad Design Scenario: Implementation Inside the API Package
 
-Giả sử dự án ban đầu chỉ có:
+Suppose a project initially only has:
 
 ~~~text
 com/example/payment/
@@ -140,7 +140,7 @@ com/example/payment/
 └── RetryPolicy.java
 ~~~
 
-Cả bốn type được khai báo public và package được export:
+All four types are declared public and the package is exported:
 
 ~~~java
 module com.example.payment {
@@ -148,11 +148,11 @@ module com.example.payment {
 }
 ~~~
 
-Mọi type public trong package này đều được mô-đun khác nhìn thấy. Một consumer có thể bắt đầu tạo trực tiếp PaymentServiceImpl hoặc gọi DatabaseConnectionHelper.
+Every public type in this package is visible to other modules. A consumer might start instantiating PaymentServiceImpl directly or calling DatabaseConnectionHelper.
 
-Về sau, đội phát triển muốn đổi database hoặc kiến trúc retry. Việc thay thế implementation có thể làm vỡ mã consumer đã phụ thuộc vào những type không đáng lẽ là API.
+Later, the development team wants to change the database or retry architecture. Replacing the implementation could break consumer code that has come to depend on types that should never have been API.
 
-Một cấu trúc phù hợp hơn:
+A more suitable structure:
 
 ~~~text
 com/example/payment/
@@ -173,13 +173,13 @@ module com.example.payment {
 }
 ~~~
 
-Mục tiêu không phải giảm số type public bằng mọi giá, mà là tách rõ **public đối với code nội bộ** và **public API dành cho module khác**.
+The goal is not to minimize the number of public types at all costs, but to clearly separate **public to internal code** from **public API meant for other modules**.
 
-## 5. Public implementation ở package không export vẫn có ích
+## 5. Public Implementations in Unexported Packages Are Still Useful
 
-Đôi khi implementation cần được sử dụng từ một package khác trong cùng module. Khi đó class có thể phải public theo quy tắc ngôn ngữ Java.
+Sometimes an implementation needs to be used from another package within the same module. In that case, the class may need to be public under Java language rules.
 
-Ví dụ:
+For example:
 
 ~~~java
 package com.example.payment.internal;
@@ -194,7 +194,7 @@ public final class DefaultPaymentService implements PaymentService {
 }
 ~~~
 
-Và factory trong package api:
+And a factory in the api package:
 
 ~~~java
 package com.example.payment.api;
@@ -211,9 +211,9 @@ public final class PaymentServices {
 }
 ~~~
 
-Dù DefaultPaymentService là public, nó không trở thành một kiểu mà consumer bên ngoài có thể import qua JPMS vì package internal không export.
+Even though DefaultPaymentService is public, it does not become a type that external consumers can import via JPMS because the internal package is not exported.
 
-Module khác chỉ dùng:
+Other modules only use:
 
 ~~~java
 import com.example.payment.api.PaymentService;
@@ -223,13 +223,13 @@ PaymentService service = PaymentServices.create();
 System.out.println(service.pay("INV-001"));
 ~~~
 
-Điều này giúp consumer phụ thuộc vào interface và factory, thay vì bị ràng buộc vào cách khởi tạo hoặc cách cài đặt hiện tại.
+This keeps consumers depending on the interface and factory rather than being coupled to instantiation details or the current implementation.
 
-## 6. Chữ ký public phải dùng các kiểu consumer truy cập được
+## 6. Public Signatures Must Use Types Accessible to Consumers
 
-Một lỗi thiết kế phổ biến là đặt interface vào package đã export nhưng dùng một kiểu nội bộ trong public method signature.
+A common design mistake is placing an interface in an exported package yet using an internal type in a public method signature.
 
-Ví dụ:
+For example:
 
 ~~~java
 package com.example.order.api;
@@ -241,9 +241,9 @@ public interface OrderService {
 }
 ~~~
 
-OrderData chỉ tồn tại trong package internal không export. Consumer có thể nhìn thấy interface OrderService nhưng gặp khó khăn hoặc lỗi compile khi muốn sử dụng kiểu trả về OrderData.
+OrderData only exists in an unexported internal package. Consumers can see the OrderService interface, yet encounter difficulties or compile errors when trying to use the OrderData return type.
 
-Cách cải thiện là đưa kiểu dữ liệu hợp đồng sang package API:
+The improvement is to move the contract data type to the API package:
 
 ~~~java
 package com.example.order.api;
@@ -260,23 +260,23 @@ public interface OrderService {
 }
 ~~~
 
-Nếu implementation cần một cấu trúc OrderData riêng, hãy chuyển đổi sang OrderView tại ranh giới API.
+If the implementation needs a separate OrderData structure, convert it to OrderView at the API boundary.
 
-Quy tắc này cũng áp dụng cho:
+This rule also applies to:
 
-- Kiểu tham số của public method và public constructor.
-- Kiểu trả về, generic type parameter và generic bound.
-- Exception được công bố như một phần hợp đồng.
-- Public field, superclass và interface mà consumer phải tham chiếu.
-- Public nested type xuất hiện trong chữ ký dùng bên ngoài.
+- Parameter types of public methods and public constructors.
+- Return types, generic type parameters, and generic bounds.
+- Exceptions declared as part of the contract.
+- Public fields, superclasses, and interfaces that consumers must reference.
+- Public nested types appearing in externally used signatures.
 
-Không nên chỉ kiểm tra type được khai báo public; cần đọc cả **toàn bộ type graph xuất hiện trong API công khai**.
+Do not inspect only types declared public; examine the **entire type graph appearing in the public API**.
 
-## 7. Thiết kế API DTO hoặc record
+## 7. Designing API DTOs or Records
 
-Kiểu dữ liệu xuất hiện trong hợp đồng nên được đặt ở package có tên và ý nghĩa rõ ràng, chẳng hạn api, model hoặc contract, tùy quy ước nhóm.
+Data types appearing in the contract should be placed in a package with a clear name and purpose, such as api, model, or contract, depending on team conventions.
 
-Ví dụ:
+For example:
 
 ~~~java
 package com.example.inventory.api;
@@ -306,17 +306,17 @@ module com.example.inventory {
 }
 ~~~
 
-Consumer có thể dùng ProductView mà không cần biết kiểu entity hoặc cache nội bộ.
+Consumers can use ProductView without knowing internal entity or cache types.
 
-Record thích hợp với dữ liệu bất biến và công khai theo giá trị khi nó đáp ứng yêu cầu nghiệp vụ. Tuy nhiên không phải mọi entity hoặc object phức tạp đều phải biến thành record. Mục tiêu là chọn kiểu hợp đồng ổn định, không lộ chi tiết persistence hoặc framework.
+Records are well suited for immutable data exposed by value when they fit business requirements. However, not every entity or complex object must be turned into a record. The goal is to choose stable contract types that do not leak persistence or framework details.
 
-Khi thiết kế DTO, cần cân nhắc khả năng tương thích nếu thay đổi component hoặc constructor public. Đặt nó ở API package có nghĩa là những thay đổi sau này có thể ảnh hưởng đến consumer.
+When designing DTOs, consider compatibility if public components or constructors change. Placing them in the API package means future changes can affect consumers.
 
-## 8. API package và internal package không nhất thiết có một tên cố định
+## 8. API Packages and Internal Packages Do Not Require One Fixed Name
 
-Không có quy định bắt buộc mọi dự án đều phải dùng hậu tố .api hoặc .internal.
+There is no mandatory rule forcing every project to use the .api or .internal suffixes.
 
-Các cách đặt tên đều có thể hợp lý:
+All of these naming approaches can be reasonable:
 
 ~~~text
 com.example.billing.api
@@ -327,20 +327,20 @@ com.example.billing.persistence
 com.example.billing.adapter
 ~~~
 
-Điều quan trọng là ngữ nghĩa rõ ràng:
+What matters is clear semantics:
 
-- Package chứa type dành cho consumer cần được tài liệu hóa như hợp đồng.
-- Package internal không nên export nếu module bên ngoài không cần dùng trực tiếp.
-- Package spi dành cho Service Provider Interface nên được thiết kế cẩn thận vì provider bên ngoài có thể cần implement kiểu ở đó.
-- Package model có thể là API hoặc nội bộ; không nên suy luận chỉ từ tên model.
+- Packages containing types meant for consumers need to be documented as contracts.
+- Internal packages should not be exported if external modules do not need to use them directly.
+- An spi package meant for a Service Provider Interface must be designed carefully because external providers may need to implement types there.
+- A model package could be API or internal; do not infer solely from the name model.
 
-Đừng biến tên package thành cơ chế kiểm soát truy cập duy nhất. Chính module-info.java mới xác định package nào được export ở cấp JPMS.
+Do not turn package naming into the sole access control mechanism. It is module-info.java that determines which packages are exported at the JPMS level.
 
-## 9. Khi API cần kiểu từ mô-đun khác
+## 9. When the API Needs Types from Another Module
 
-Public API có thể phụ thuộc vào một kiểu nằm trong một named module khác. Ví dụ thư viện catalog trả về kiểu Result từ mô-đun contract dùng chung.
+A public API may depend on a type residing in another named module. For example, the catalog library returns a Result type from a shared contract module.
 
-Module contract:
+Contract module:
 
 ~~~java
 module com.example.contract {
@@ -355,7 +355,7 @@ public record Result<T>(T value, boolean success) {
 }
 ~~~
 
-Module catalog:
+Catalog module:
 
 ~~~java
 module com.example.catalog {
@@ -376,17 +376,17 @@ public interface CatalogService {
 }
 ~~~
 
-requires transitive giúp module nào đọc com.example.catalog cũng có thể đọc com.example.contract theo quy tắc JPMS. Điều này phù hợp khi public API của catalog cần type từ contract.
+requires transitive ensures any module reading com.example.catalog can also read com.example.contract under JPMS rules. This is appropriate when the catalog's public API requires types from contract.
 
-Nếu catalog chỉ sử dụng một dependency trong implementation nội bộ và không lộ kiểu dependency ra hợp đồng công khai, requires thông thường thường phù hợp hơn requires transitive.
+If catalog only uses a dependency in its internal implementation and does not expose that dependency's types in the public contract, a regular requires is usually better than requires transitive.
 
-Không lạm dụng transitive cho mọi dependency. Nó làm tăng các quan hệ readability mà consumer nhận được và khiến dependency trở nên gắn chặt hơn với API module.
+Do not overuse transitive for every dependency. It increases the readability relationships inherited by consumers and couples the dependency more tightly to the API module.
 
-## 10. Qualified exports cho đối tác được chỉ định
+## 10. Qualified Exports for Designated Partners
 
-Có những type không phải API chung cho tất cả consumer nhưng cần được một mô-đun tích hợp cụ thể sử dụng.
+There are types that are not general API for all consumers yet need to be used by a specific integration module.
 
-Ví dụ:
+For example:
 
 ~~~java
 module com.example.billing {
@@ -397,21 +397,21 @@ module com.example.billing {
 }
 ~~~
 
-Package integration được export riêng cho com.example.billing.bridge, không phải cho mọi named module khác.
+The integration package is exported specifically to com.example.billing.bridge, not to every other named module.
 
-Qualified exports có thể hữu ích cho:
+Qualified exports can be useful for:
 
-- Mô-đun adapter được quản lý cùng một sản phẩm.
-- API giao tiếp giữa hai mô-đun trong một hệ thống lớn.
-- Tích hợp đặc thù chưa muốn công bố rộng.
+- Adapter modules managed within the same product.
+- A communication API between two modules in a large system.
+- Specialized integrations not yet intended for wide publication.
 
-Tuy nhiên đây không phải ranh giới bảo mật chống lại mọi loại mã hoặc mọi cấu hình JVM. Nó là cơ chế điều khiển khả năng truy cập trong JPMS. Với API dành cho bên thứ ba, cần cân nhắc khả năng mở rộng danh sách module đích và tính ổn định của hợp đồng.
+However, this is not a security boundary against arbitrary code or all JVM configurations. It is an accessibility control mechanism in JPMS. For third-party APIs, consider the extensibility of the target module list and contract stability.
 
-Không nên dùng qualified exports như cách che giấu một thiết kế package hỗn tạp, nơi hàng chục implementation helper đang nằm cùng API type. Tổ chức package tốt vẫn là nền tảng.
+Do not use qualified exports as a way to hide a messy package design where dozens of implementation helpers sit alongside API types. Clean package organization remains foundational.
 
-## 11. Opens không thay thế exports
+## 11. Opens Does Not Replace Exports
 
-Một framework serialization hoặc ORM có thể cần deep reflection vào field private của entity. Khi đó package chứa entity có thể cần opens:
+A serialization framework or ORM may need deep reflection into private fields of entities. In that case, the package containing entities may need opens:
 
 ~~~java
 module com.example.billing {
@@ -422,26 +422,26 @@ module com.example.billing {
 }
 ~~~
 
-Cách này cho phép framework thực hiện reflection sâu vào entity theo phạm vi module được chỉ định. Nó **không** làm package entity trở thành một package API thông thường để mọi client import.
+This allows the framework to perform deep reflection on entities within the specified module scope. It does **not** make the entity package a normal API package for all clients to import.
 
-Phân biệt:
+Distinction:
 
-| Chỉ thị | Mục đích |
+| Directive | Purpose |
 | --- | --- |
-| exports p | Cho phép sử dụng kiểu public của package p qua Java access thông thường. |
-| exports p to m | Chỉ export package p cho module m. |
-| opens p | Mở package p cho deep reflection tại runtime. |
-| opens p to m | Mở package p cho deep reflection từ module m. |
+| exports p | Allows using public types of package p through normal Java access. |
+| exports p to m | Exports package p only to module m. |
+| opens p | Opens package p for deep reflection at runtime. |
+| opens p to m | Opens package p for deep reflection from module m. |
 
-Nếu client cần biên dịch mã gọi một public type, hãy xem requires và exports. Nếu framework cần đọc private state qua reflection, hãy xem opens.
+If a client needs to compile code calling a public type, look at requires and exports. If a framework needs to read private state via reflection, look at opens.
 
-Không export một package implementation chỉ vì serializer không truy cập được private field; cũng không open package API một cách không cần thiết chỉ để sửa lỗi import trong mã nguồn.
+Do not export an implementation package just because a serializer cannot access private fields; likewise, do not unnecessarily open an API package just to fix source import errors.
 
-## 12. Public top-level type và Java language rules
+## 12. Public Top-Level Types and Java Language Rules
 
-Trong Java, một top-level type có thể public hoặc package-private. Với source file thông thường, tên file của public top-level class/interface phải phù hợp với tên type public.
+In Java, a top-level type can be public or package-private. For standard source files, the filename of a public top-level class/interface must match the public type's name.
 
-Ví dụ:
+For example:
 
 ~~~java
 package com.example.catalog.internal;
@@ -455,17 +455,17 @@ final class CacheKey {
 }
 ~~~
 
-CacheKey không public nên chỉ các lớp trong cùng package có thể trực tiếp truy cập nó theo quy tắc package-private của Java.
+CacheKey is not public, so only classes in the same package can directly access it under Java's package-private rules.
 
-Một class khác trong cùng module nhưng khác package sẽ không thể import CacheKey chỉ nhờ việc chúng nằm cùng module. **JPMS không loại bỏ các modifier truy cập của Java**.
+Another class in the same module but in a different package will not be able to import CacheKey just because they are in the same module. **JPMS does not eliminate Java's access modifiers.**
 
-Nếu implementation cần được nhiều package trong cùng module sử dụng, có thể tạo type public trong package không export, hoặc thiết kế một điểm truy cập nội bộ có kiểm soát. Cũng cần cân nhắc giữ API nội bộ nhỏ thay vì làm public mọi helper cho tiện.
+If an implementation needs to be used by multiple packages within the same module, you can create a public type in an unexported package, or design a controlled internal access point. Also consider keeping the internal API small rather than making every helper public for convenience.
 
-## 13. Public nested type và enclosing type
+## 13. Public Nested Types and Enclosing Types
 
-Một nested class hoặc nested interface có thể public, nhưng quyền truy cập bên ngoài còn phụ thuộc vào enclosing type, package và module.
+A nested class or nested interface can be public, yet external accessibility still depends on the enclosing type, package, and module.
 
-Ví dụ:
+For example:
 
 ~~~java
 package com.example.catalog.api;
@@ -481,17 +481,17 @@ public final class CatalogOptions {
 }
 ~~~
 
-Nếu package api được export và các điều kiện readability phù hợp, consumer có thể dùng CatalogOptions.Mode.
+If the api package is exported and readability conditions are satisfied, consumers can use CatalogOptions.Mode.
 
-Ngược lại, một public nested type nằm trong top-level type không truy cập được từ module khác cũng không tự trở thành API công khai hữu ích cho consumer.
+Conversely, a public nested type inside a top-level type that is inaccessible from other modules does not automatically become useful public API for consumers.
 
-Khi thiết kế nested type công khai, cần xem xét cách consumer đặt import và gọi API. Đừng xuất hiện một nested type nội bộ trong signature của API chỉ vì nó có modifier public.
+When designing public nested types, consider how consumers write imports and call the API. Do not surface an internal nested type in an API signature just because it has the public modifier.
 
-## 14. Tránh split package giữa các named module
+## 14. Avoiding Split Packages Between Named Modules
 
-JPMS không phù hợp với việc nhiều named module cùng cung cấp cùng một package trong cùng module graph và môi trường nạp lớp liên quan. Việc chia một package giữa nhiều module có thể gây lỗi phân giải hoặc lỗi cấu hình.
+JPMS is incompatible with multiple named modules providing the same package in the same module graph and related class-loading environment. Splitting a package across multiple modules can cause resolution or configuration errors.
 
-Ví dụ thiết kế không nên:
+Example of a design to avoid:
 
 ~~~text
 module com.example.catalog.api
@@ -501,7 +501,7 @@ module com.example.catalog.impl
 └── package com.example.catalog.shared
 ~~~
 
-Cần tổ chức thành các package riêng theo trách nhiệm:
+They should be organized into separate packages by responsibility:
 
 ~~~text
 com.example.catalog.api
@@ -509,13 +509,13 @@ com.example.catalog.internal
 com.example.catalog.persistence
 ~~~
 
-Mỗi package thuộc một module thích hợp trong cấu hình. Nếu hai module cần cùng kiểu hợp đồng, cân nhắc đưa kiểu đó vào một module API dùng chung thay vì sao chép cùng một package giữa nhiều module.
+Each package belongs to an appropriate module in the configuration. If two modules need the same contract type, consider placing that type in a shared API module instead of duplicating the same package across multiple modules.
 
-Cách này còn giảm rủi ro class identity và xung đột dependency khi thêm plugin hoặc module layer.
+This also reduces class identity risks and dependency conflicts when adding plugins or module layers.
 
-## 15. Tránh API lộ class của framework
+## 15. Avoiding Leaking Framework Classes in the API
 
-Một lỗi thiết kế khác là đặt class API ở package phù hợp nhưng để chữ ký phụ thuộc vào framework-specific type:
+Another design error is placing an API class in the right package yet letting its signature depend on a framework-specific type:
 
 ~~~java
 package com.example.payment.api;
@@ -525,9 +525,9 @@ public interface PaymentService {
 }
 ~~~
 
-Nếu FrameworkSession là chi tiết implementation của ORM hoặc HTTP framework, consumer có thể bị buộc phụ thuộc vào framework chỉ để gọi API nghiệp vụ.
+If FrameworkSession is an implementation detail of an ORM or HTTP framework, consumers may be forced to depend on that framework just to call the business API.
 
-Một hợp đồng độc lập hơn:
+A more independent contract:
 
 ~~~java
 package com.example.payment.api;
@@ -544,15 +544,15 @@ public interface PaymentService {
 }
 ~~~
 
-Implementation có thể chuyển đổi giữa PaymentTicket và đối tượng framework bên trong package internal.
+The implementation can convert between PaymentTicket and the framework object inside the internal package.
 
-Không phải lúc nào lộ kiểu bên ngoài cũng sai: thư viện chuyên cung cấp integration có thể cố ý công khai kiểu framework. Nhưng đây phải là lựa chọn thiết kế có chủ đích, được tài liệu hóa và quản lý compatibility.
+Exposing external types is not always wrong: a library dedicated to providing integration may intentionally expose framework types. However, that must be an intentional design choice, documented and managed for compatibility.
 
-## 16. API và SPI là hai bề mặt khác nhau
+## 16. API and SPI Are Two Different Surfaces
 
-API phục vụ consumer; SPI phục vụ người cung cấp implementation hoặc plugin.
+API serves consumers; SPI serves providers of implementations or plugins.
 
-Ví dụ:
+For example:
 
 ~~~text
 com.example.report.api
@@ -560,7 +560,7 @@ com.example.report.spi
 com.example.report.internal
 ~~~
 
-Một interface SPI có thể được export để các module plugin implement:
+An SPI interface can be exported so plugin modules can implement it:
 
 ~~~java
 module com.example.report {
@@ -570,7 +570,7 @@ module com.example.report {
 }
 ~~~
 
-Mô-đun provider có thể khai báo:
+A provider module can declare:
 
 ~~~java
 module com.example.report.pdf {
@@ -581,52 +581,52 @@ module com.example.report.pdf {
 }
 ~~~
 
-Mô-đun API có thể sử dụng ServiceLoader để khám phá provider. Lưu ý package chứa implementation PdfReportProvider không nhất thiết phải export chỉ để cung cấp provider qua provides.
+The API module can use ServiceLoader to discover providers. Note that the package containing the PdfReportProvider implementation does not have to be exported merely to supply the provider via provides.
 
-Việc đặt SPI ở package riêng giúp giải thích đây là hợp đồng dành cho người mở rộng hệ thống, không phải mọi consumer đều cần dùng. Quy ước này cũng hỗ trợ tài liệu hóa và tiến hóa API rõ ràng hơn.
+Placing the SPI in a separate package helps clarify that it is a contract for system extenders, which not every consumer needs to use. This convention also supports clearer documentation and API evolution.
 
-## 17. Thiết kế package cho thư viện dùng cả JPMS và classpath
+## 17. Designing Packages for Libraries Used on Both JPMS and the Classpath
 
-Khi cùng một JAR có thể được sử dụng trên module path hoặc classpath, cần nhớ:
+When the same JAR can be used on the module path or the classpath, remember:
 
-- Trên module path, JPMS áp dụng ranh giới exports/opens của named module.
-- Trên classpath, các lớp thuộc unnamed module và ranh giới exports của modular descriptor không hoạt động theo cùng cơ chế như khi JAR là named module.
-- Java modifier public/package-private vẫn được áp dụng trong cả hai mô hình.
+- On the module path, JPMS enforces the exports/opens boundaries of the named module.
+- On the classpath, classes belong to the unnamed module and the exports boundaries of the modular descriptor do not operate under the same mechanism as when the JAR is a named module.
+- Java's public/package-private modifiers still apply in both models.
 
-Vì vậy, không nên xem một package không export là bí mật tuyệt đối trước mọi môi trường chạy. Mục tiêu của encapsulation design là **hợp đồng phụ thuộc rõ ràng và khả năng bảo trì**, không phải cô lập bảo mật đối với mã không đáng tin cậy trong cùng tiến trình.
+Therefore, an unexported package should not be treated as an absolute secret across every runtime environment. The goal of encapsulation design is **clear dependency contracts and maintainability**, not security isolation against untrusted code in the same process.
 
-Nếu thư viện được phát hành cho cả ứng dụng modular và non-modular, vẫn nên giữ thiết kế package API/internal rõ ràng. Tài liệu public API cần nhất quán, ngay cả khi classpath có khả năng truy cập rộng hơn.
+If a library is released for both modular and non-modular applications, still maintain a clean API/internal package design. Public API documentation should stay consistent, even when the classpath allows broader access.
 
-## 18. Quy trình chuyển type public sang package phù hợp
+## 18. Process for Moving a Public Type to the Appropriate Package
 
-Giả sử trước đây client dùng:
+Suppose clients previously used:
 
 ~~~java
 import com.example.catalog.DefaultCatalogService;
 ~~~
 
-Sau khi thiết kế lại, đội phát triển muốn consumer phụ thuộc vào CatalogService trong package api.
+After redesigning, the development team wants consumers to depend on CatalogService in the api package.
 
-Đây có thể là thay đổi không tương thích đối với code client hiện hữu. Vì tên đầy đủ của type bao gồm package, việc di chuyển type sang package mới làm thay đổi binary name của nó.
+This can be an incompatible change for existing client code. Because a type's full name includes its package, moving a type to a new package changes its binary name.
 
-Một quy trình an toàn:
+A safe process:
 
-1. Xác định type nào là API thực sự và type nào là implementation.
-2. Kiểm tra tất cả public method, constructor, generic type và exception trong hợp đồng.
-3. Thiết kế package api hoặc contract và module exports tương ứng.
-4. Đưa interface, DTO và factory công khai sang package mới.
-5. Giữ implementation trong package internal không export.
-6. Cập nhật client dùng API mới.
-7. Nếu thư viện đã có người dùng, cân nhắc adapter hoặc type chuyển tiếp có deprecated để quản lý compatibility.
-8. Biên dịch và chạy consumer ở module riêng để xác nhận hợp đồng sử dụng được.
+1. Identify which types are true API and which types are implementation.
+2. Inspect all public methods, constructors, generic types, and exceptions in the contract.
+3. Design the api or contract package and corresponding module exports.
+4. Move public interfaces, DTOs, and factories to the new package.
+5. Keep implementations in unexported internal packages.
+6. Update clients to use the new API.
+7. If the library already has users, consider adapters or deprecated forwarding types to manage compatibility.
+8. Compile and run consumers in a separate module to confirm the contract is usable.
 
-Với thư viện đã phát hành, không nên chuyển package một cách âm thầm. Source compatibility và binary compatibility đều cần được cân nhắc.
+For a published library, packages should not be moved silently. Both source compatibility and binary compatibility need to be considered.
 
-Không phải type nào cũng nên đổi package ngay. Có thể duy trì public facade cũ trong thời gian chuyển tiếp rồi gỡ bỏ theo chính sách versioning của dự án.
+Not every type should change packages immediately. An old public facade can be kept during a transition period and then removed according to the project's versioning policy.
 
-## 19. Ví dụ hoàn chỉnh: tách API và implementation
+## 19. Complete Example: Separating API and Implementation
 
-Bố cục dự án:
+Project layout:
 
 ~~~text
 src/
@@ -644,7 +644,7 @@ src/
     └── com/example/cli/Main.java
 ~~~
 
-Descriptor của inventory:
+Inventory descriptor:
 
 ~~~java
 module com.example.inventory {
@@ -652,7 +652,7 @@ module com.example.inventory {
 }
 ~~~
 
-DTO public:
+Public DTO:
 
 ~~~java
 package com.example.inventory.api;
@@ -673,7 +673,7 @@ public interface InventoryService {
 }
 ~~~
 
-Implementation ở package internal:
+Implementation in internal package:
 
 ~~~java
 package com.example.inventory.internal;
@@ -695,7 +695,7 @@ public final class InMemoryInventoryService
 }
 ~~~
 
-Factory ở package API:
+Factory in API package:
 
 ~~~java
 package com.example.inventory.api;
@@ -712,7 +712,7 @@ public final class InventoryServices {
 }
 ~~~
 
-Descriptor client:
+Client descriptor:
 
 ~~~java
 module com.example.cli {
@@ -736,11 +736,11 @@ public class Main {
 }
 ~~~
 
-Client chỉ import kiểu từ package api. Việc implementation là public không làm nó trở thành API xuất bản vì package internal không được export.
+The client only imports types from the api package. Having the implementation be public does not make it a published API because the internal package is not exported.
 
-## 20. Biên dịch ví dụ modular
+## 20. Compiling the Modular Example
 
-Với cấu trúc module-source-path như trên, có thể biên dịch:
+With the module-source-path layout above, you can compile:
 
 ~~~bash
 javac --module-source-path src \
@@ -748,99 +748,99 @@ javac --module-source-path src \
     -m com.example.inventory,com.example.cli
 ~~~
 
-Chạy ứng dụng:
+Run the application:
 
 ~~~bash
 java --module-path out \
     -m com.example.cli/com.example.cli.Main
 ~~~
 
-Trên Windows, có thể dùng lệnh một dòng:
+On Windows, single-line commands can be used:
 
 ~~~powershell
 javac --module-source-path src -d out -m com.example.inventory,com.example.cli
 java --module-path out -m com.example.cli/com.example.cli.Main
 ~~~
 
-Nếu client thử import trực tiếp com.example.inventory.internal.InMemoryInventoryService, compiler của ứng dụng modular sẽ từ chối truy cập package internal vì package này không được export cho com.example.cli.
+If the client tries to directly import com.example.inventory.internal.InMemoryInventoryService, the modular application's compiler will reject access to the internal package because this package is not exported to com.example.cli.
 
-Đây là cách kiểm tra thực tế xem ranh giới API có tương ứng với module descriptor hay không.
+This is a practical way to verify whether the API boundary matches the module descriptor.
 
-## 21. Công cụ hỗ trợ kiểm tra API module
+## 21. Tools for Inspecting Module APIs
 
-Một số công cụ trong JDK:
+Some tools in the JDK:
 
 ~~~bash
 jar --describe-module --file libs/inventory.jar
 ~~~
 
-Lệnh cho biết module descriptor của JAR, gồm tên module và các exports tương ứng.
+This command shows the JAR's module descriptor, including the module name and corresponding exports.
 
 ~~~bash
 java --describe-module java.sql
 ~~~
 
-Lệnh mô tả module hệ thống java.sql, hữu ích để quan sát cách một module công bố package.
+This command describes the system module java.sql, useful for observing how a module exposes packages.
 
 ~~~bash
 jdeps --module-path libs --check com.example.inventory
 ~~~
 
-jdeps hỗ trợ phân tích requires và dependency liên quan đến module descriptor. Tùy cách đóng gói, cần truyền đúng đường dẫn module hoặc JAR.
+jdeps assists in analyzing requires and dependencies related to the module descriptor. Depending on packaging, pass the appropriate module path or JAR.
 
-Các công cụ này giúp tìm tên mô-đun và những package được export. Tuy nhiên, quyết định type nào nên trở thành public API vẫn phải dựa trên hợp đồng sử dụng và yêu cầu kiến trúc.
+These tools help find module names and exported packages. However, deciding which types should become public API must still be based on the usage contract and architectural requirements.
 
-## 22. Lỗi thường gặp trong encapsulation design
+## 22. Common Mistakes in Encapsulation Design
 
-| Hiện tượng | Nguyên nhân thường gặp | Hướng xử lý |
+| Symptom | Common Cause | Resolution |
 | --- | --- | --- |
-| Public type không import được từ module khác | Package chứa type không được export hoặc thiếu readability | Kiểm tra requires và exports; chỉ export nếu type thực sự là API. |
-| Consumer import được implementation helper | Helper public nằm trong package đã export | Chuyển helper sang package không export hoặc giảm visibility. |
-| API method dùng kiểu internal trong signature | Hợp đồng lộ kiểu consumer không truy cập được | Dùng DTO/interface công khai trong package API. |
-| Package conflict khi ghép module | Split package hoặc trùng package trong cấu hình không phù hợp | Tách package theo mô-đun và dùng một module contract chung. |
-| Framework reflection lỗi | Package cần deep reflection nhưng chưa được opens | Cấp qualified opens đúng package cho framework nếu thật sự cần. |
-| Thay package làm code client không biên dịch | Binary name/import của public type đã đổi | Quản lý migration và compatibility có chủ đích. |
-| Chỉ đặt tên package internal nhưng vẫn bị consumer dùng trên classpath | Tên package không tự tạo quyền truy cập | Tách hợp đồng rõ ràng, kiểm soát qua modifier và exports khi chạy modular. |
+| Public type cannot be imported from another module | Package containing the type is not exported or readability is missing | Check requires and exports; export only if the type is genuinely API. |
+| Consumer can import an implementation helper | Public helper resides in an exported package | Move the helper to an unexported package or reduce visibility. |
+| API method uses internal type in signature | Contract exposes a type consumers cannot access | Use a public DTO/interface in the API package. |
+| Package conflict when assembling modules | Split package or duplicate package in an unsuitable configuration | Separate packages by module and use one shared contract module. |
+| Framework reflection fails | Package needs deep reflection but is not opened | Grant qualified opens on the exact package to the framework if truly needed. |
+| Changing packages breaks client compilation | Binary name/import of public type changed | Manage migration and compatibility intentionally. |
+| Package named internal is still used by consumers on classpath | Package name alone does not enforce access control | Separate contracts clearly; enforce via modifiers and exports when running modularly. |
 
-## 23. Nguyên tắc chốt khi đặt public type
+## 23. Key Rules When Placing Public Types
 
-- Đặt interface, DTO, factory và exception công khai vào package phù hợp với hợp đồng của module.
-- Chỉ export package dành cho consumer, không export toàn bộ module vì thuận tiện.
-- Không để public signature cần đến các type trong package không export.
-- Kiểm tra dependency xuất hiện trong public signature và cân nhắc requires transitive nếu API cần chuyển tiếp readability.
-- Giữ implementation, cache, mapper và persistence helper trong package không export.
-- Có thể dùng public implementation trong package internal nếu nhiều package trong cùng module thực sự cần.
-- Dùng qualified exports cho API tích hợp có phạm vi đích rõ ràng.
-- Dùng opens cho deep reflection; không coi opens là cách công bố API thông thường.
-- Tránh split package giữa các named module trong cùng cấu hình.
-- Xem di chuyển public type giữa package là một thay đổi hợp đồng cần quản lý tương thích.
+- Place public interfaces, DTOs, factories, and exceptions in packages matching the module's contract.
+- Export only packages meant for consumers; do not export the whole module for convenience.
+- Do not let public signatures require types in unexported packages.
+- Check dependencies appearing in public signatures and consider requires transitive if the API needs to propagate readability.
+- Keep implementations, caches, mappers, and persistence helpers in unexported packages.
+- Public implementations in internal packages can be used if multiple packages in the same module genuinely need them.
+- Use qualified exports for integration APIs with a clear target scope.
+- Use opens for deep reflection; do not treat opens as a way to publish normal APIs.
+- Avoid split packages across named modules in the same configuration.
+- Treat moving a public type between packages as a contract change requiring compatibility management.
 
-## 24. Câu hỏi tự kiểm tra
+## 24. Self-Check Questions
 
-**Câu 1:** Một class public nằm trong com.example.billing.internal, nhưng module chỉ exports com.example.billing.api. Mô-đun khác có được import class internal đó không?
+**Question 1:** A public class resides in com.example.billing.internal, yet the module only exports com.example.billing.api. Can another module import that internal class?
 
-Không theo truy cập JPMS thông thường. Modifier public của class không thay thế việc package được export.
+Not under standard JPMS access. A class's public modifier does not replace the package being exported.
 
-**Câu 2:** Nếu một package đã export có ba class public, JPMS có chỉ định export riêng đúng một class trong đó không?
+**Question 2:** If an exported package has three public classes, can JPMS specify exporting only one class among them?
 
-Không. exports áp dụng cho package. Cần tổ chức lại package hoặc thay visibility nếu chỉ muốn công bố một phần.
+No. exports applies to the package. Reorganize packages or adjust visibility if you only want to expose a subset.
 
-**Câu 3:** Một interface API trả về kiểu InternalOrder không được export. Thiết kế có vấn đề gì?
+**Question 3:** An API interface returns an unexported InternalOrder type. What is wrong with this design?
 
-Consumer có thể không sử dụng được kiểu trong chữ ký. Nên công bố một interface hoặc DTO hợp đồng ở package API và chuyển đổi từ internal type bên trong module.
+Consumers may be unable to use the type in the signature. Expose a contract interface or DTO in the API package and convert from the internal type inside the module.
 
-**Câu 4:** Package chứa entity cần ORM đọc private field. Nên thêm exports hay opens?
+**Question 4:** A package containing entities needs an ORM to read private fields. Should you add exports or opens?
 
-Khi chỉ cần deep reflection, opens có phạm vi cho module ORM thường phù hợp; exports dành cho truy cập API public thông thường.
+When only deep reflection is needed, opens scoped to the ORM module is usually appropriate; exports is for normal public API access.
 
-**Câu 5:** Khi nào dùng requires transitive?
+**Question 5:** When should requires transitive be used?
 
-Khi module công khai API phụ thuộc vào kiểu từ mô-đun khác và muốn consumer đọc được dependency đó qua hợp đồng module. Nếu dependency chỉ là chi tiết implementation, requires thông thường thường phù hợp hơn.
+When a module exposes an API depending on types from another module and wants consumers to read that dependency through the module contract. If the dependency is only an implementation detail, regular requires is usually better.
 
-**Câu 6:** Một class public trong package internal có phải luôn là lỗi thiết kế không?
+**Question 6:** Is a public class in an internal package always a design mistake?
 
-Không. Nó có thể cần được gọi từ package khác trong cùng module. Điều quan trọng là package internal không được export cho consumer bên ngoài nếu class không thuộc hợp đồng API.
+No. It may need to be called from another package within the same module. What matters is that the internal package is not exported to external consumers if the class does not belong to the API contract.
 
-**Câu 7:** Tại sao đổi package của public type có thể phá tương thích?
+**Question 7:** Why can changing a public type's package break compatibility?
 
-Vì tên đầy đủ của type bao gồm tên package. Đổi package làm thay đổi tên mà source code và bytecode client tham chiếu, nên cần chiến lược migration.
+Because a type's full name includes the package name. Changing the package changes the name referenced by client source code and bytecode, so a migration strategy is needed.

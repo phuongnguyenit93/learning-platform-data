@@ -1,64 +1,64 @@
-# `equals()` định nghĩa quan hệ tương đương trên các tham chiếu khác `null`
+# `equals()` Defines an Equivalence Relation on Non-`null` References
 
-## 1. Mục tiêu và phạm vi
+## 1. Purpose and Scope
 
-Trong Java, `Object.equals(Object)` là phương thức để một đối tượng trả lời câu hỏi: “Đối tượng này có được xem là bằng đối tượng kia theo quy tắc của kiểu dữ liệu hay không?”. Triển khai mặc định trong `Object` chỉ coi hai tham chiếu bằng nhau khi chúng cùng trỏ đến **một đối tượng**. Lớp có ngữ nghĩa giá trị thường ghi đè `equals` để hai đối tượng khác nhau vẫn bằng nhau khi các thuộc tính có ý nghĩa tương ứng bằng nhau.
+In Java, `Object.equals(Object)` is the method by which an object answers the question: "Is this object considered equal to the other object according to the rules of the data type?". The default implementation in `Object` considers two references equal only when they point to **the same object**. A class with value semantics typically overrides `equals` so that two different objects are still equal when their corresponding meaningful properties are equal.
 
-Xét tập `D` gồm các tham chiếu đối tượng Java **khác `null`**. Định nghĩa quan hệ `~` trên `D`:
+Consider the set `D` of **non-`null`** Java object references. Define the relation `~` on `D`:
 
-- `x ~ y` khi và chỉ khi `x.equals(y)` trả về `true`.
-- Để `~` thực sự là **quan hệ tương đương**, `equals` phải có tính **phản xạ, đối xứng, bắc cầu**.
-- Hợp đồng của `Object.equals` còn yêu cầu **nhất quán** trong điều kiện trạng thái liên quan không đổi và `x.equals(null)` luôn là `false` đối với `x != null`.
+- `x ~ y` if and only if `x.equals(y)` returns `true`.
+- For `~` to truly be an **equivalence relation**, `equals` must be **reflexive, symmetric, and transitive**.
+- The `Object.equals` contract also requires **consistency** provided the relevant state does not change, and that `x.equals(null)` is always `false` for `x != null`.
 
-Cần phân biệt: các tiên đề của *quan hệ tương đương* áp dụng cho các phần tử **khác `null`** trong `D`; hai yêu cầu “nhất quán” và “khác `null`” là phần bổ sung của **hợp đồng phương thức `equals`**, không phải hai tiên đề toán học của quan hệ tương đương.
+Note the distinction: the axioms of an *equivalence relation* apply to the **non-`null`** elements in `D`; the two requirements "consistent" and "non-null" are additions of the **`equals` method contract**, not two mathematical axioms of an equivalence relation.
 
-## 2. Năm điều kiện của hợp đồng `equals`
+## 2. The Five Conditions of the `equals` Contract
 
-Với các tham chiếu `x`, `y`, `z` khác `null`:
+For non-`null` references `x`, `y`, and `z`:
 
-| Điều kiện | Biểu thức / phát biểu | Ý nghĩa |
+| Condition | Expression / Statement | Meaning |
 | --- | --- | --- |
-| **Phản xạ (reflexive)** | `x.equals(x) == true` | Một đối tượng luôn bằng chính nó. |
-| **Đối xứng (symmetric)** | `x.equals(y)` và `y.equals(x)` phải cho cùng kết quả | Thứ tự hai đối tượng không được quyết định kết quả bằng nhau. |
-| **Bắc cầu (transitive)** | Nếu `x.equals(y)` và `y.equals(z)` thì `x.equals(z)` | Ba đối tượng không thể tạo thành chuỗi “bằng, bằng, nhưng không bằng”. |
-| **Nhất quán (consistent)** | Gọi nhiều lần cho cùng cặp đối tượng phải có cùng kết quả, nếu thông tin dùng bởi `equals` không thay đổi | Kết quả không được phụ thuộc ngẫu nhiên vào lần gọi, thời gian hay trạng thái ngoại lai không thuộc định nghĩa bằng nhau. |
-| **Khác `null` (non-null)** | `x.equals(null) == false` | Một tham chiếu tới đối tượng thực không bằng `null`. |
+| **Reflexive** | `x.equals(x) == true` | An object is always equal to itself. |
+| **Symmetric** | `x.equals(y)` and `y.equals(x)` must give the same result | The order of the two objects must not determine the equality result. |
+| **Transitive** | If `x.equals(y)` and `y.equals(z)` then `x.equals(z)` | Three objects cannot form an "equal, equal, yet not equal" chain. |
+| **Consistent** | Multiple calls for the same pair of objects must give the same result, if the information used by `equals` does not change | The result must not depend randomly on the invocation, time, or extraneous state outside the equality definition. |
+| **Non-null** | `x.equals(null) == false` | A reference to a real object is not equal to `null`. |
 
-### Phản xạ
+### Reflexive
 
-`x.equals(x)` phải đúng ngay cả khi `x` là đối tượng mới tạo hoặc thuộc lớp có logic so sánh phức tạp. Một cách triển khai thường gặp là kiểm tra `this == other` trước; nhưng đây chỉ là kỹ thuật tối ưu, không thay thế việc thiết kế toàn bộ quan hệ bằng nhau.
+`x.equals(x)` must be true even when `x` is a newly created object or belongs to a class with complex comparison logic. A common implementation technique is to check `this == other` first; however, this is only an optimization technique and does not replace designing the entire equality relation.
 
-### Đối xứng
+### Symmetric
 
-Nếu `a.equals(b)` là `true` thì `b.equals(a)` cũng phải là `true`. Lỗi thường xuất hiện khi một lớp chấp nhận so sánh với kiểu khác nhưng kiểu đó không có quy tắc tương ứng, hoặc khi lớp con thay đổi tiêu chí so sánh của lớp cha.
+If `a.equals(b)` is `true`, then `b.equals(a)` must also be `true`. Bugs often appear when a class accepts comparisons with another type that does not have a corresponding rule, or when a subclass changes the comparison criteria of its superclass.
 
-Ví dụ về **thiết kế sai**: một lớp `FlexibleText` cho `equals` chấp nhận một `String` có chữ hoa/thường khác nhau. Nếu `FlexibleText("java").equals("JAVA")` trả về `true`, thì `"JAVA".equals(FlexibleText("java"))` vẫn trả về `false` bởi `String.equals` chỉ chấp nhận `String`. Hai hướng không đối xứng. Giải pháp là định nghĩa cùng miền kiểu cho cả hai phía hoặc dùng một API so sánh riêng (ví dụ `equalsIgnoreCase`) nếu muốn quy tắc khác.
+Example of a **flawed design**: a `FlexibleText` class allows `equals` to accept a `String` with different letter casing. If `FlexibleText("java").equals("JAVA")` returns `true`, `"JAVA".equals(FlexibleText("java"))` still returns `false` because `String.equals` only accepts `String`. The two directions are not symmetric. The solution is to define the same type domain for both sides or use a separate comparison API (for example `equalsIgnoreCase`) if a different rule is desired.
 
-### Bắc cầu
+### Transitive
 
-Giả sử một thiết kế so sánh hai số nguyên là bằng nhau khi khoảng cách của chúng không quá 1. Khi đó `1 ~ 2` đúng, `2 ~ 3` đúng, nhưng `1 ~ 3` sai. Quy tắc “gần bằng” này **không phù hợp để triển khai `equals`**. Nó có thể là một phép kiểm tra nghiệp vụ với tên riêng như `isNearTo`, nhưng không thể thay thế quan hệ bằng nhau có tính bắc cầu.
+Suppose a design compares two integers as equal when their distance is at most 1. Then `1 ~ 2` is true, `2 ~ 3` is true, yet `1 ~ 3` is false. This "nearly equal" rule is **unsuitable for implementing `equals`**. It can be a business check with a dedicated name such as `isNearTo`, but it cannot replace a transitive equality relation.
 
-### Nhất quán và `null`
+### Consistent and `null`
 
-`equals` cần dựa trên những dữ liệu xác định ngữ nghĩa đối tượng. Nếu các dữ liệu ấy không đổi thì kết quả không được tự đổi giữa các lần gọi. Khi dữ liệu dùng để so sánh **thực sự thay đổi**, kết quả `equals` được phép thay đổi; điều này vẫn dễ gây rủi ro khi đối tượng đã được dùng làm khóa trong cấu trúc băm.
+`equals` needs to rely on data that defines object semantics. If that data does not change, the result must not change on its own across calls. When the data used for comparison **actually changes**, the `equals` result is allowed to change; this is still risky when the object has already been used as a key in a hash structure.
 
-`x.equals(null)` phải trả về `false`. Ngược lại, `null.equals(x)` **không thể gọi được** và sẽ gây `NullPointerException`. Hãy phân biệt hai biểu thức đó thay vì diễn đạt chung rằng “`null` tự so sánh được”.
+`x.equals(null)` must return `false`. Conversely, `null.equals(x)` **cannot be invoked** and will throw a `NullPointerException`. Distinguish between those two expressions rather than phrasing it loosely as "`null` can compare itself".
 
-## 3. Phân biệt `==`, `equals` và `Objects.equals`
+## 3. Distinguishing `==`, `equals`, and `Objects.equals`
 
-- Với **tham chiếu đối tượng**, `a == b` kiểm tra **đồng nhất tham chiếu**: cả hai cùng trỏ đến một đối tượng (hoặc đều là `null`).
-- `a.equals(b)` áp dụng quy tắc **bằng nhau do lớp `a` định nghĩa**; nó yêu cầu `a` khác `null`. Nếu lớp không ghi đè `Object.equals`, hành vi mặc định là so sánh đồng nhất như `==`.
-- `Objects.equals(a, b)` kiểm tra an toàn khi có `null`: nếu cả hai `null` thì trả về `true`; nếu chỉ một bên `null` thì `false`; nếu `a` khác `null` thì ủy quyền tới `a.equals(b)`.
+- For **object references**, `a == b` checks **reference identity**: whether both point to the same object (or both are `null`).
+- `a.equals(b)` applies the **equality rule defined by `a`'s class**; it requires `a` to be non-`null`. If the class does not override `Object.equals`, the default behavior is identity comparison like `==`.
+- `Objects.equals(a, b)` performs a `null`-safe check: if both are `null`, it returns `true`; if only one side is `null`, `false`; if `a` is non-`null`, it delegates to `a.equals(b)`.
 
-`Objects.equals(null, null) == true` không mâu thuẫn với `x.equals(null) == false`: biểu thức đầu là tiện ích so sánh hai tham chiếu có thể `null`, biểu thức sau là hợp đồng của phương thức trên **một đối tượng có thật**.
+`Objects.equals(null, null) == true` does not contradict `x.equals(null) == false`: the former expression is a utility comparing two potentially `null` references, while the latter is the contract of the method on **an actual object**.
 
-Các phương thức hoặc miền giá trị khác nhau có thể định nghĩa khái niệm bằng nhau khác nhau. Khi thảo luận hợp đồng ở bài này, luôn xét kết quả của **`equals(Object)`**, không thay bằng `==` hay một phương thức gần giống tên.
+Different methods or value domains may define different notions of equality. When discussing the contract in this lesson, always examine the result of **`equals(Object)`**, without substituting `==` or a similarly named method.
 
-## 4. Ví dụ Java 17+ đúng hợp đồng
+## 4. A Contract-Compliant Java 17+ Example
 
-Thiết kế `Coordinate` là một **lớp giá trị bất biến** với hai thành phần số nguyên `x`, `y`. Hai tọa độ bằng nhau khi cả `x` lẫn `y` bằng nhau. Khai báo `final` làm rõ rằng lớp không có lớp con bổ sung trạng thái so sánh.
+Design `Coordinate` as an **immutable value class** with two integer components `x` and `y`. Two coordinates are equal when both `x` and `y` are equal. Declaring it `final` makes it clear that the class has no subclasses adding comparison state.
 
-Lưu toàn bộ chương trình sau trong tệp `EqualsContractDemo.java`:
+Save the entire following program in the file `EqualsContractDemo.java`:
 
 ```java
 import java.util.HashSet;
@@ -114,14 +114,14 @@ public class EqualsContractDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 EqualsContractDemo.java
 java EqualsContractDemo
 ```
 
-Kết quả chuẩn:
+Expected output:
 
 ```text
 a == b: false
@@ -135,56 +135,56 @@ same hash: true
 set contains b: true
 ```
 
-Giải thích các bước:
+Step-by-step explanation:
 
-1. `a` và `b` được tạo bằng hai lệnh `new` riêng, nên `a == b` là `false`; chúng có cùng cặp tọa độ nên `a.equals(b)` là `true`.
-2. Kiểm tra `this == other` xử lý nhanh trường hợp chính nó và bảo đảm phản xạ; mẫu `instanceof Coordinate that` (pattern matching có trong Java 17) trả về `false` khi `other` là `null` hoặc khác kiểu.
-3. So sánh hai trường `int` bằng `==` là thích hợp vì ở đây chúng là các **giá trị nguyên thủy**. Định nghĩa bằng nhau không dựa vào địa chỉ đối tượng.
-4. Biểu thức “transitive” trong chương trình kiểm tra một bộ ba cụ thể: nếu hai tiền đề đúng thì kết luận phải đúng. Một ví dụ trả về `true` **không chứng minh** mọi đầu vào đều thỏa hợp đồng; cần kiểm tra thêm bằng test có hệ thống.
-5. `HashSet.contains(b)` thành công dù chỉ thêm `a`, bởi `a` và `b` được coi là cùng giá trị, đồng thời mã băm tương thích.
+1. `a` and `b` are created with two separate `new` expressions, so `a == b` is `false`; they have the same pair of coordinates, so `a.equals(b)` is `true`.
+2. The `this == other` check quickly handles the self-comparison case and ensures reflexivity; the `instanceof Coordinate that` pattern (pattern matching available in Java 17) returns `false` when `other` is `null` or of a different type.
+3. Comparing two `int` fields with `==` is appropriate because here they are **primitive values**. The equality definition does not depend on object addresses.
+4. The "transitive" expression in the program checks one specific triple: if both premises are true, the conclusion must be true. A single example returning `true` **does not prove** all inputs satisfy the contract; systematic tests are still needed.
+5. `HashSet.contains(b)` succeeds even though only `a` was added, because `a` and `b` are considered the same value and their hash codes are compatible.
 
-## 5. Hợp đồng giữa `equals` và `hashCode`
+## 5. The Contract Between `equals` and `hashCode`
 
-Khi ghi đè `equals`, gần như luôn phải ghi đè `hashCode` cùng lúc. Hợp đồng quy định:
+When overriding `equals`, you must almost always override `hashCode` at the same time. The contract specifies:
 
-- Nếu `a.equals(b)` là `true`, **bắt buộc** `a.hashCode() == b.hashCode()`.
-- Nếu `a.equals(b)` là `false`, mã băm **có thể giống hoặc khác nhau**; va chạm hash là hợp lệ.
-- Trong một lần chạy, các lần gọi `hashCode` trên cùng đối tượng phải nhất quán khi dữ liệu dùng trong `equals` không thay đổi.
+- If `a.equals(b)` is `true`, it is **mandatory** that `a.hashCode() == b.hashCode()`.
+- If `a.equals(b)` is `false`, the hash codes **may be the same or different**; hash collisions are valid.
+- Within a single execution, repeated calls to `hashCode` on the same object must be consistent when the data used in `equals` does not change.
 
-Ví dụ tọa độ sử dụng `31 * x + y`. Đây là cách phối hợp đơn giản cho hai trường `int`; phép tràn số nguyên Java vẫn được xác định, không tự làm vi phạm hợp đồng. Lưu ý hai tọa độ khác nhau **có thể** tạo cùng hash, điều đó không khiến chúng bằng nhau. Có thể chọn `Objects.hash(x, y)` khi ưu tiên cách viết tổng quát, chấp nhận chút chi phí bổ sung.
+The coordinate example uses `31 * x + y`. This is a simple way to combine two `int` fields; Java integer overflow is well-defined and does not by itself violate the contract. Note that two different coordinates **can** produce the same hash, which does not make them equal. You may choose `Objects.hash(x, y)` when preferring a general-purpose approach, accepting a small extra cost.
 
-`HashMap`, `HashSet` thường tìm ứng viên trong nhóm theo `hashCode` rồi dùng `equals` để quyết định bằng nhau. Vi phạm chiều “bằng nhau ⇒ cùng hash” có thể làm thao tác `contains`, `get` hoặc phát hiện khóa trùng bị sai. Dù `equals` đúng, thay đổi dữ liệu ảnh hưởng tới hash của một khóa **sau khi đã đưa vào** cấu trúc băm cũng có thể khiến việc tra cứu không còn tìm thấy nó. Vì vậy, ưu tiên khóa **bất biến**.
+`HashMap` and `HashSet` typically locate candidates in a bucket by `hashCode` and then use `equals` to decide equality. Violating the "equal ⇒ same hash" direction can cause `contains`, `get`, or duplicate-key detection to behave incorrectly. Even if `equals` is correct, modifying data that affects a key's hash **after inserting it** into a hash structure can prevent lookups from finding it. Therefore, prefer **immutable** keys.
 
-## 6. Chọn các thuộc tính và miền kiểu để so sánh
+## 6. Choosing Fields and Type Domains to Compare
 
-Một triển khai tốt trả lời trước hai câu hỏi: **điều gì xác định danh tính giá trị** và **những kiểu nào được phép xem là bằng nhau**?
+A good implementation first answers two questions: **what defines value identity** and **which types are allowed to be considered equal**?
 
-Ví dụ một mã sách có trường `isbn` và mô tả hiển thị `displayTitle`: nếu nghiệp vụ xác định sách bằng ISBN, hai đối tượng có cùng ISBN vẫn có thể bằng nhau dù tiêu đề hiển thị khác. Ngược lại, tọa độ `(x, y)` phải dùng cả hai thành phần. Cần chọn tiêu chí nhất quán với ý nghĩa dữ liệu, không tự động đưa mọi trường vào so sánh.
+For example, a book entry has an `isbn` field and a display description `displayTitle`: if the domain identifies books by ISBN, two objects with the same ISBN can still be equal even if their display titles differ. Conversely, a `(x, y)` coordinate must use both components. Choose criteria consistent with the meaning of the data rather than automatically including every field in the comparison.
 
-### Kế thừa và vấn đề đối xứng/bắc cầu
+### Inheritance and the Symmetry/Transitivity Problem
 
-Nếu `Point` so sánh `x, y`, còn `ColorPoint extends Point` muốn so sánh thêm `color`, rất dễ có hai kết quả trái ngược: `Point.equals(ColorPoint)` chấp nhận do cùng tọa độ, nhưng `ColorPoint.equals(Point)` từ chối vì không có màu. Nếu cố cho phép mọi hướng, có thể lại phá bắc cầu giữa hai điểm có màu khác nhau và một điểm không màu.
+If `Point` compares `x, y`, while `ColorPoint extends Point` wants to also compare `color`, it is very easy to get two contradictory results: `Point.equals(ColorPoint)` accepts because the coordinates match, whereas `ColorPoint.equals(Point)` rejects because there is no color. Trying to allow all directions can instead break transitivity between two differently colored points and a colorless point.
 
-Các phương án tùy ngữ nghĩa:
+Options depending on semantics:
 
-- Dùng lớp giá trị `final` khi thiết kế không cần kế thừa: đơn giản nhất để giữ một quy tắc `equals` ổn định.
-- Dùng `getClass() == other.getClass()` khi muốn **chỉ bằng nhau trong cùng lớp runtime**, áp dụng nhất quán trong thứ bậc lớp; điều này cố ý không xem lớp cha và lớp con bằng nhau.
-- Nếu thực sự cần bình đẳng xuyên các lớp trong quan hệ kế thừa, phải thiết kế quy tắc chung cho mọi phía và kiểm chứng đủ các tính chất. Đừng chỉ đổi `instanceof` thành `getClass` một cách máy móc.
+- Use a `final` value class when the design does not need inheritance: the simplest way to keep a stable `equals` rule.
+- Use `getClass() == other.getClass()` when you want **equality only within the exact same runtime class**, applied consistently across the class hierarchy; this intentionally does not consider superclass and subclass instances equal.
+- If equality across classes in an inheritance relationship is genuinely required, a common rule must be designed for all sides and all properties must be verified. Do not mechanically swap `instanceof` for `getClass`.
 
-Trong ví dụ `Coordinate` là `final` nên mẫu `instanceof Coordinate` vừa ngắn gọn vừa xác định rõ tập đối tượng có thể bằng nhau.
+In the example, `Coordinate` is `final`, so the `instanceof Coordinate` pattern is both concise and clearly defines the set of objects that can be equal.
 
-### Những trường hợp cần chú ý
+### Cases Requiring Attention
 
-- **Mảng Java:** hai mảng riêng có cùng phần tử vẫn không bằng nhau theo `array1.equals(array2)` (thừa hưởng so sánh tham chiếu). Dùng `Arrays.equals` cho mảng một chiều, hoặc `Arrays.deepEquals` cho mảng chứa mảng cần so sánh sâu.
-- **`BigDecimal`:** `new BigDecimal("2.0").equals(new BigDecimal("2.00"))` là `false` vì `equals` còn xét scale; trong khi `compareTo` có thể trả về `0`. Quy tắc sắp thứ tự và `equals` khác nhau có thể dẫn đến khác biệt giữa `TreeSet` và `HashSet`.
-- **Số thực:** `double` có `NaN`, `-0.0`, `+0.0`; tránh chọn trực tiếp tiêu chí “khoảng sai số epsilon” cho `equals` vì dễ vi phạm bắc cầu. Khi cần biểu diễn giá trị số thực theo hợp đồng nhất quán, xem xét `Double.compare` / `Double.hashCode` hoặc quy tắc chuẩn hóa phù hợp với miền dữ liệu.
-- **`record`:** Java tự sinh `equals` và `hashCode` theo các thành phần của record. Đó là điểm khởi đầu hữu ích cho mô hình giá trị, nhưng thành phần tham chiếu tới đối tượng có thể thay đổi vẫn cần được cân nhắc về tính bất biến thực tế.
+- **Java arrays:** two separate arrays with the same elements are still not equal under `array1.equals(array2)` (inherited reference comparison). Use `Arrays.equals` for one-dimensional arrays, or `Arrays.deepEquals` for nested arrays requiring deep comparison.
+- **`BigDecimal`:** `new BigDecimal("2.0").equals(new BigDecimal("2.00"))` is `false` because `equals` also considers scale; whereas `compareTo` may return `0`. Different ordering and `equals` rules can lead to differences between `TreeSet` and `HashSet`.
+- **Floating-point numbers:** `double` has `NaN`, `-0.0`, and `+0.0`; avoid directly choosing an "epsilon tolerance" criterion for `equals` because it easily violates transitivity. When representing floating-point values under a consistent contract, consider `Double.compare` / `Double.hashCode` or a normalization rule appropriate for the data domain.
+- **`record`:** Java automatically generates `equals` and `hashCode` based on the record's components. This is a useful starting point for value modeling, but components referencing mutable objects still need consideration regarding effective immutability.
 
-## 7. Hai phản ví dụ giúp nhận ra lỗi thiết kế
+## 7. Two Counterexamples to Spot Design Flaws
 
-### Sai đối xứng: so sánh sang kiểu khác
+### Broken Symmetry: Comparing Across Different Types
 
-Đoạn **minh họa rút gọn, không phải chương trình Java độc lập** sau giả định lớp `FlexibleText` có trường `String value`:
+The following **abbreviated illustration, not a standalone Java program** assumes class `FlexibleText` has a `String value` field:
 
 ```java
 @Override
@@ -193,17 +193,17 @@ public boolean equals(Object other) {
         return value.equalsIgnoreCase(text.value);
     }
     if (other instanceof String text) {
-        return value.equalsIgnoreCase(text); // SAI: String.equals không nhận FlexibleText
+        return value.equalsIgnoreCase(text); // WRONG: String.equals does not accept FlexibleText
     }
     return false;
 }
 ```
 
-Với `FlexibleText("java")` và `"JAVA"`, lời gọi từ phía `FlexibleText` có thể đúng nhưng chiều ngược lại sai. Không dùng quy tắc này làm `equals`. Nếu muốn kiểm tra chuỗi không phân biệt hoa/thường, hãy công khai phương thức nghiệp vụ riêng hoặc chuẩn hóa dữ liệu trước khi tạo một kiểu giá trị có miền so sánh thống nhất.
+With `FlexibleText("java")` and `"JAVA"`, calling from the `FlexibleText` side may return true while the reverse direction returns false. Do not use this rule as `equals`. If you want case-insensitive string checks, expose a separate business method or normalize the data before creating a value type with a unified comparison domain.
 
-### Sai bắc cầu: “gần bằng”
+### Broken Transitivity: "Nearly Equal"
 
-Giả sử `NearbyNumber.equals` trả về `true` khi hiệu tuyệt đối của hai giá trị không quá `1`. Khi giá trị là `1`, `2`, `3` thì:
+Suppose `NearbyNumber.equals` returns `true` when the absolute difference between two values is at most `1`. When the values are `1`, `2`, and `3`:
 
 ```text
 1 ~ 2: true
@@ -211,34 +211,34 @@ Giả sử `NearbyNumber.equals` trả về `true` khi hiệu tuyệt đối c�
 1 ~ 3: false
 ```
 
-Hai tiền đề đều đúng nhưng kết luận sai, nên quan hệ không bắc cầu. Test chỉ một cặp có thể không thấy lỗi; cần test một **bộ ba**. Nếu ứng dụng cần khái niệm “gần nhau”, viết một hàm như `withinDistance(other, tolerance)` và không tuyên bố đó là `equals`.
+Both premises are true yet the conclusion is false, so the relation is not transitive. Testing only a single pair may miss the bug; you need to test a **triple**. If the application needs a "nearby" notion, write a method like `withinDistance(other, tolerance)` and do not declare it as `equals`.
 
-## 8. Cách kiểm thử hợp đồng
+## 8. How to Test the Contract
 
-Đối với lớp giá trị của bạn, chuẩn bị ít nhất ba đối tượng cùng giá trị nhưng được tạo độc lập (`a, b, c`), một đối tượng khác giá trị (`d`), một đối tượng khác kiểu và `null`. Xác nhận:
+For your value class, prepare at least three objects with the same value created independently (`a, b, c`), an object with a different value (`d`), an object of a different type, and `null`. Verify:
 
-1. `a.equals(a)` đúng; với các đối tượng hợp lệ khác cũng tương tự.
-2. `a.equals(b) == b.equals(a)`; thử cả cặp bằng nhau và không bằng nhau, kể cả khi khác kiểu.
-3. Nếu `a.equals(b) && b.equals(c)` thì `a.equals(c)`; thử nhiều bộ ba, nhất là khi có kế thừa hoặc làm tròn số.
-4. Gọi cùng cặp nhiều lần khi các trường liên quan không đổi cho cùng kết quả.
-5. `a.equals(null)` sai; việc kiểm tra khác kiểu trả về `false` mà không ép kiểu sai.
-6. Với mọi cặp bằng nhau, mã băm phải bằng nhau; kiểm tra thêm cách dùng thực tế trong `HashSet` và `HashMap`.
-7. Nếu lớp cho phép thay đổi trạng thái, xác định rõ trường nào ảnh hưởng `equals`/`hashCode` và tránh dùng các đối tượng có hash thay đổi làm khóa.
+1. `a.equals(a)` is true; likewise for other valid objects.
+2. `a.equals(b) == b.equals(a)`; test both equal and unequal pairs, including different types.
+3. If `a.equals(b) && b.equals(c)` then `a.equals(c)`; test multiple triples, especially when inheritance or rounding is involved.
+4. Calling on the same pair repeatedly while relevant fields are unchanged yields the same result.
+5. `a.equals(null)` is false; different-type checks return `false` without invalid casts.
+6. For every equal pair, hash codes must be equal; also test real usage in `HashSet` and `HashMap`.
+7. If the class allows state mutation, clearly identify which fields affect `equals`/`hashCode` and avoid using objects with changing hashes as keys.
 
-Các lệnh kiểm tra trong `main` ở trên là ví dụ quan sát hành vi, chưa phải kiểm định đầy đủ. Với thư viện hoặc domain model quan trọng, nên có unit test theo tính chất (property-based tests) trên nhiều dữ liệu, đặc biệt test cặp kiểu cha/con và các giá trị biên nếu có.
+The check statements in `main` above are behavioral observation examples, not complete verification. For libraries or critical domain models, write property-based unit tests across varied inputs, especially testing superclass/subclass pairs and boundary values where applicable.
 
-## 9. Lỗi thường gặp và cách sửa
+## 9. Common Mistakes and Fixes
 
-| Lỗi | Hậu quả | Hướng sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Viết `equals(Coordinate other)` thay vì `equals(Object other)` | Đây là **overload**, không ghi đè `Object.equals`; các collection gọi phiên bản `equals(Object)` vẫn giữ hành vi cũ. | Dùng `@Override public boolean equals(Object other)`; annotation giúp trình biên dịch phát hiện chữ ký sai. |
-| So sánh trường tham chiếu bằng `==` khi cần so sánh giá trị | Hai đối tượng nội dung giống nhau có thể bị coi là khác nhau. | Dùng `Objects.equals(field1, field2)` hoặc `field.equals(...)` khi chắc chắn không `null`. |
-| Quên kiểm tra `null`/kiểu trước khi ép kiểu | Có thể gây `NullPointerException` hoặc `ClassCastException` trong quá trình so sánh. | Kiểm tra `this == other` và `instanceof` (hoặc kiểm tra class) trước khi đọc trường của đối tượng kia. |
-| Ghi đè `equals` nhưng không ghi đè `hashCode` tương ứng | Cấu trúc băm có thể xử lý sai hai khóa bằng nhau. | Dùng cùng tập trường quan trọng cho cả hai phương thức. |
-| Thêm điều kiện bằng nhau chỉ ở lớp con | Có thể phá đối xứng/bắc cầu khi so với lớp cha. | Chọn miền kiểu và chính sách kế thừa rõ ràng; ưu tiên value class `final` nếu phù hợp. |
-| Dùng ngưỡng gần đúng làm `equals` | Có thể phá bắc cầu. | Tách thao tác “gần bằng” thành phương thức riêng. |
-| Dùng trường mutable của khóa trong `hashCode` | Tra cứu trong `HashMap`/`HashSet` có thể thất bại sau sửa đổi. | Dùng khóa bất biến hoặc không thay đổi các trường tham gia so sánh khi đã lưu trong cấu trúc băm. |
+| Writing `equals(Coordinate other)` instead of `equals(Object other)` | This is an **overload**, not an override of `Object.equals`; collections calling `equals(Object)` keep the old behavior. | Use `@Override public boolean equals(Object other)`; the annotation helps the compiler catch an incorrect signature. |
+| Comparing reference fields with `==` when value comparison is needed | Two objects with identical content may be treated as different. | Use `Objects.equals(field1, field2)` or `field.equals(...)` when guaranteed non-`null`. |
+| Forgetting to check `null`/type before casting | Can throw `NullPointerException` or `ClassCastException` during comparison. | Check `this == other` and `instanceof` (or class check) before reading the other object's fields. |
+| Overriding `equals` without overriding `hashCode` accordingly | Hash structures may mishandle two equal keys. | Use the same set of significant fields for both methods. |
+| Adding equality conditions only in a subclass | Can break symmetry/transitivity when compared against the superclass. | Choose a clear type domain and inheritance policy; prefer a `final` value class when appropriate. |
+| Using an approximation threshold as `equals` | Can break transitivity. | Separate the "nearly equal" operation into its own method. |
+| Using mutable key fields in `hashCode` | Lookups in `HashMap`/`HashSet` may fail after modification. | Use immutable keys or do not mutate comparison fields while stored in a hash structure. |
 
-## 10. Ghi nhớ
+## 10. Key Takeaways
 
-Một `equals(Object)` hợp lệ trên các đối tượng khác `null` phải tạo ra **quan hệ tương đương**: phản xạ, đối xứng, bắc cầu. Hợp đồng Java còn đòi hỏi nhất quán khi dữ liệu so sánh không đổi và `x.equals(null) == false`. Nếu đã định nghĩa bằng nhau theo giá trị, hãy bảo đảm `hashCode` tương thích. Điểm quan trọng nhất khi cài đặt là xác định **đúng ý nghĩa bằng nhau và miền kiểu**, sau đó dùng test cho cả các cặp và bộ ba đối tượng, không chỉ một ví dụ có kết quả mong đợi.
+A valid `equals(Object)` on non-`null` objects must form an **equivalence relation**: reflexive, symmetric, and transitive. The Java contract also requires consistency when comparison data does not change and `x.equals(null) == false`. When defining value-based equality, ensure `hashCode` is compatible. The most important part of implementing it is defining **the right equality semantics and type domain**, then testing with both pairs and triples of objects rather than a single example with an expected result.

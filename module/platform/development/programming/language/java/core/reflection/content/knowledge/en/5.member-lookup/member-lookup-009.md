@@ -1,22 +1,22 @@
-# Tra cứu thành viên theo kiểu sau type erasure trong Java Reflection
+# Member Lookup by Erased Types After Type Erasure in Java Reflection
 
-Khi tìm method, constructor hoặc field của lớp generic bằng Java Reflection, cần phân biệt **kiểu runtime để tra cứu** với **khai báo generic trong mã nguồn**. Java dùng *type erasure*: type variable như T thường bị thay bằng Object hoặc bound đầu tiên, còn List<String> chỉ mang raw type List trong chữ ký dùng để tìm method. Thông tin generic được khai báo vẫn có thể nằm trong thuộc tính Signature của class file để các API getGeneric... đọc lại.
+When finding methods, constructors, or fields of a generic class using Java Reflection, you must distinguish **runtime types for lookup** from **generic declarations in source code**. Java uses *type erasure*: a type variable such as T is typically replaced by Object or its first bound, while List<String> carries only the raw type List in the signature used to find the method. Declared generic information can still reside in the class file's Signature attribute for the getGeneric... APIs to read back.
 
-Bài này giải thích cách chọn đúng Class<?> khi lookup, cách xem Type để phân tích generic, cách generic hoạt động qua kế thừa và vì sao compiler sinh bridge method.
+This lesson explains how to choose the right Class<?> during lookup, how to inspect Type to analyze generics, how generics behave across inheritance, and why the compiler generates bridge methods.
 
-## 1. Quy tắc xóa kiểu liên quan đến lookup
+## 1. Type Erasure Rules Related to Lookup
 
-| Kiểu tham số được khai báo | Class<?> dùng để tìm sau erasure | Nguyên nhân |
+| Declared Parameter Type | Class<?> Used to Look Up After Erasure | Reason |
 | --- | --- | --- |
-| T (không có bound) | Object.class | Erasure của type variable không bị ràng buộc |
-| T extends Number | Number.class | Erasure bằng bound |
-| T extends Number & Comparable<T> | Number.class | Chọn bound đầu tiên |
-| List<String> | List.class | Xóa type argument String |
-| List<? extends Number> | List.class | Wildcard không làm đổi raw type |
-| T[] với T không có bound | Object[].class | Xóa kiểu phần tử thành Object |
-| String... | String[].class | Varargs là một tham số mảng |
+| T (unbounded) | Object.class | Erasure of an unbounded type variable |
+| T extends Number | Number.class | Erasure to the bound |
+| T extends Number & Comparable<T> | Number.class | Selects the first bound |
+| List<String> | List.class | Erases the String type argument |
+| List<? extends Number> | List.class | Wildcard does not change the raw type |
+| T[] with unbounded T | Object[].class | Erases the element type to Object |
+| String... | String[].class | Varargs is an array parameter |
 
-Xét khai báo:
+Consider the declaration:
 
 ~~~java
 class Holder<T extends Number> {
@@ -25,33 +25,33 @@ class Holder<T extends Number> {
 }
 ~~~
 
-Đây là hai cách tra cứu đúng:
+Here are the two correct lookups:
 
 ~~~java
 Holder.class.getDeclaredMethod("set", Number.class);
 Holder.class.getDeclaredMethod("setAll", java.util.List.class);
 ~~~
 
-Không tìm set bằng Integer.class dù trong ứng dụng bạn có thể truyền Integer cho T; kiểu khai báo đã xóa là Number. Cũng không truyền một ParameterizedType biểu diễn List<String> vào getDeclaredMethod vì API này nhận mảng Class<?> mô tả **kiểu tham số sau erasure**.
+Do not look up set using Integer.class even though in the application you may pass Integer for T; the declared type has already been erased to Number. Also do not pass a ParameterizedType representing List<String> into getDeclaredMethod because this API accepts an array of Class<?> describing **parameter types after erasure**.
 
-Hai overload chỉ khác generic type argument dẫn đến cùng erasure sẽ xung đột lúc biên dịch. Đoạn sau **cố ý không biên dịch được**:
+Two overloads differing only in generic type arguments lead to the same erasure and will conflict at compile time. The following snippet **intentionally fails to compile**:
 
 ~~~java
 void process(java.util.List<String> items) {}
 void process(java.util.List<Integer> items) {} // name clash: same erasure
 ~~~
 
-Đối tượng new ArrayList<String>() và new ArrayList<Integer>() đều có runtime class java.util.ArrayList; gọi getClass() không khôi phục được tham số kiểu String/Integer từ instance thông thường.
+Objects new ArrayList<String>() and new ArrayList<Integer>() both have runtime class java.util.ArrayList; calling getClass() cannot recover the String/Integer type argument from a regular instance.
 
-## 2. API tìm thành viên và phạm vi tra cứu
+## 2. Member Lookup APIs and Search Scope
 
 **Method**
 
-- getDeclaredMethod(name, Class<?>...) tìm method được khai báo **ngay trong lớp** ở mọi mức truy cập, kể cả private; không tìm method kế thừa.
-- getMethod(name, Class<?>...) tìm method **public**, gồm cả public method kế thừa.
-- getDeclaredMethods() / getMethods() trả danh sách để tìm overload, lọc bridge hoặc kiểm tra thông tin generic.
-- getDeclaredMethod/getMethod đối sánh tên và danh sách parameter types sau erasure; **không yêu cầu kiểu trả về**. Với bridge method có cùng tên và tham số, dùng isBridge()/isSynthetic() khi duyệt danh sách.
-- Đối với void update(int id, List<String> values), cần int.class và List.class theo đúng thứ tự. int.class khác Integer.class; String[].class khác String.class trong varargs.
+- getDeclaredMethod(name, Class<?>...) finds a method declared **directly in the class** at any access level, including private; does not find inherited methods.
+- getMethod(name, Class<?>...) finds a **`public`** method, including inherited public methods.
+- getDeclaredMethods() / getMethods() return lists to find overloads, filter bridges, or inspect generic information.
+- getDeclaredMethod/getMethod matches the name and the parameter types list after erasure; **does not require the return type**. For bridge methods with the same name and parameters, use isBridge()/isSynthetic() when iterating the list.
+- For void update(int id, List<String> values), int.class and List.class are required in exact order. int.class differs from Integer.class; String[].class differs from String.class in varargs.
 
 ~~~java
 clazz.getDeclaredMethod("update", int.class, java.util.List.class);
@@ -59,21 +59,21 @@ clazz.getDeclaredMethod("update", int.class, java.util.List.class);
 
 **Constructor**
 
-- getDeclaredConstructor(Class<?>...) tìm constructor khai báo trong lớp ở mọi mức truy cập.
-- getConstructor(Class<?>...) chỉ tìm constructor public.
-- Nếu constructor nhận T extends Number thì tra cứu bằng Number.class, dù dữ liệu truyền khi tạo instance là Integer.
+- getDeclaredConstructor(Class<?>...) finds a constructor declared in the class at any access level.
+- getConstructor(Class<?>...) finds only public constructors.
+- If a constructor takes T extends Number, look it up with Number.class, even if the value passed when creating an instance is Integer.
 
 **Field**
 
-- getDeclaredField(name) tìm field khai báo trực tiếp, kể cả private; getField(name) tìm field public và có thể thấy field kế thừa.
-- Field được tìm bằng **tên**, không có tham số kiểu trong lệnh tìm. Sau đó Field.getType() trả kiểu đã xóa, còn Field.getGenericType() trả thông tin generic được khai báo khi có metadata.
-- Field T value của class Holder<T extends Number> sẽ có getType() là Number.class, và getGenericType() thường là TypeVariable tên T.
+- getDeclaredField(name) finds a field declared directly, including private; getField(name) finds a public field and can see inherited fields.
+- Fields are looked up by **name**, with no type parameters in the lookup call. Afterward, Field.getType() returns the erased type, while Field.getGenericType() returns the declared generic information when metadata is present.
+- Field T value of class Holder<T extends Number> will have getType() as Number.class, and getGenericType() typically as a TypeVariable named T.
 
-Tra cứu được một thành viên chưa đồng nghĩa có thể truy cập/gọi thành công. Private access và module encapsulation vẫn áp dụng; type erasure không cho phép vượt qua kiểm soát truy cập.
+Looking up a member does not mean being able to access/invoke it successfully. Private access and module encapsulation still apply; type erasure does not allow bypassing access control.
 
-## 3. Ví dụ Java 17+ có thể biên dịch và chạy
+## 3. Compilable and Runnable Java 17+ Example
 
-Tạo file **ErasureLookupDemo.java** với toàn bộ mã sau:
+Create the file **ErasureLookupDemo.java** with all the code below:
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -161,14 +161,14 @@ public class ErasureLookupDemo {
 }
 ~~~
 
-Biên dịch và chạy từ thư mục chứa file:
+Compile and run from the directory containing the file:
 
 ~~~bash
 javac -encoding UTF-8 ErasureLookupDemo.java
 java ErasureLookupDemo
 ~~~
 
-Output stdout đã được kiểm chứng bằng JDK 21 và sử dụng các tính năng tương thích Java 17:
+Stdout output verified with JDK 21 and using Java 17-compatible features:
 
 ~~~text
 ctor/erased = java.lang.Number
@@ -189,36 +189,36 @@ TextStore.get = Object, bridge=true
 TextStore<Base> arg = java.lang.String
 ~~~
 
-Giải thích kết quả:
+Output explanation:
 
-1. **Kiểu sau erasure**: Store<T extends Number> khai báo constructor và method nhận T, nhưng getDeclaredConstructor/getDeclaredMethod phải nhận Number.class. Field và kiểu trả về T cũng có raw Class là Number.
-2. **Khai báo generic được lưu lại**: getGenericType/getGenericParameterTypes/getGenericReturnType cho TypeVariable T; putList có ParameterizedType với actual type argument String dù lookup chỉ dùng List.class.
-3. **Phương thức kế thừa**: InheritsText extends Base<String> nhưng không override get(); Method kế thừa từ Base vẫn có erased return type Object và generic return T. Muốn biết String là đối số kiểu của Base tại lớp con cần phân tích getGenericSuperclass().
-4. **Bridge method**: TextStore override get() trả String. Trình biên dịch thêm bridge get() trả Object (isBridge() == true) để lệnh gọi qua Base tiếp tục dispatch đúng sau erasure. Thứ tự getDeclaredMethods() không được bảo đảm; ví dụ chủ động sắp xếp trước khi in để stdout ổn định.
+1. **Erased types**: Store<T extends Number> declares a constructor and method taking T, yet getDeclaredConstructor/getDeclaredMethod must receive Number.class. The field and return type T also have raw Class Number.
+2. **Preserved generic declarations**: getGenericType/getGenericParameterTypes/getGenericReturnType return TypeVariable T; putList has ParameterizedType with actual type argument String even though lookup only used List.class.
+3. **Inherited method**: InheritsText extends Base<String> without overriding get(); the Method inherited from Base still has erased return type Object and generic return T. To know String is Base's type argument on the subclass, you must analyze getGenericSuperclass().
+4. **Bridge method**: TextStore overrides get() returning String. The compiler adds a bridge get() returning Object (isBridge() == true) so calls through Base continue dispatching properly after erasure. The order of getDeclaredMethods() is not guaranteed; the example actively sorts before printing for stable stdout.
 
-## 4. Class<?> để tìm; Type để đọc chữ ký generic
+## 4. Class<?> for Lookup; Type for Reading Generic Signatures
 
-| Việc cần làm | API | Dạng kết quả |
+| Task | API | Result Form |
 | --- | --- | --- |
-| Tìm method hoặc constructor | getMethod/getDeclaredMethod/getConstructor/getDeclaredConstructor | Truyền Class<?>... đã xóa kiểu |
-| Đọc kiểu tham số runtime | Method.getParameterTypes(), Constructor.getParameterTypes() | Class<?>[] |
-| Đọc kiểu trả về/field runtime | Method.getReturnType(), Field.getType() | Class<?> |
-| Đọc generic của method | Method.getGenericParameterTypes(), Method.getGenericReturnType() | Type[], Type |
-| Đọc generic của constructor | Constructor.getGenericParameterTypes() | Type[] |
-| Đọc generic của field | Field.getGenericType() | Type |
-| Đọc generic superclass/interfaces | Class.getGenericSuperclass(), Class.getGenericInterfaces() | Type, Type[] |
+| Find method or constructor | getMethod/getDeclaredMethod/getConstructor/getDeclaredConstructor | Pass erased Class<?>... |
+| Read runtime parameter types | Method.getParameterTypes(), Constructor.getParameterTypes() | Class<?>[] |
+| Read runtime return/field type | Method.getReturnType(), Field.getType() | Class<?> |
+| Read method generics | Method.getGenericParameterTypes(), Method.getGenericReturnType() | Type[], Type |
+| Read constructor generics | Constructor.getGenericParameterTypes() | Type[] |
+| Read field generics | Field.getGenericType() | Type |
+| Read generic superclass/interfaces | Class.getGenericSuperclass(), Class.getGenericInterfaces() | Type, Type[] |
 
-Type là một interface tổng quát; không phải Type nào cũng là Class. Các trường hợp thường gặp:
+Type is a general interface; not every Type is a Class. Common cases:
 
-- **Class<?>**: kiểu không parameterized tại vị trí đang xem.
-- **ParameterizedType**: List<String>, Map<String, Integer>; dùng getRawType() và getActualTypeArguments().
-- **TypeVariable<?>**: T; dùng getName() và getBounds().
-- **WildcardType**: dấu ? trong List<? extends Number>; dùng getUpperBounds()/getLowerBounds().
-- **GenericArrayType**: kiểu mảng còn chứa generic type variable, ví dụ T[].
+- **Class<?>**: non-parameterized type at the inspected position.
+- **ParameterizedType**: List<String>, Map<String, Integer>; use getRawType() and getActualTypeArguments().
+- **TypeVariable<?>**: T; use getName() and getBounds().
+- **WildcardType**: the ? in List<? extends Number>; use getUpperBounds()/getLowerBounds().
+- **GenericArrayType**: an array type still containing a generic type variable, e.g., T[].
 
-Không cast Type trực tiếp sang ParameterizedType mà thiếu kiểm tra instanceof. Metadata generic nói về **chữ ký khai báo**. Nó không phải cơ chế runtime kiểm tra tất cả phần tử thực tế trong List đã đúng String, đặc biệt khi có raw types hoặc unchecked conversion.
+Do not cast Type directly to ParameterizedType without an instanceof check. Generic metadata describes the **declared signature**. It is not a runtime mechanism verifying that all actual elements in a List are indeed String, especially when raw types or unchecked conversions exist.
 
-Dùng lớp Store từ ví dụ trên, đoạn sau minh họa việc tách raw type và type argument (đây là **đoạn trích phụ thuộc Store**, không phải file chạy độc lập):
+Using the Store class from the example above, the following snippet illustrates separating the raw type and type argument (this is an **excerpt depending on Store**, not a standalone runnable file):
 
 ~~~java
 Method m = Store.class.getDeclaredMethod("putList", List.class);
@@ -229,38 +229,38 @@ if (t instanceof ParameterizedType p) {
 }
 ~~~
 
-Để suy ra ràng buộc T = String từ subclass extends Base<String>, phải duyệt generic superclass/interfaces, lấy các actual type arguments rồi ánh xạ chúng tới type variables ở lớp khai báo. getMethod() của phương thức kế thừa không tự thay mọi TypeVariable trong method đó bằng kiểu cụ thể của subclass.
+To deduce the binding T = String from a subclass extends Base<String>, you must traverse generic superclass/interfaces, extract actual type arguments, and map them to type variables in the declaring class. Calling getMethod() on an inherited method does not automatically replace every TypeVariable in that method with the subclass's concrete type.
 
-## 5. Quy trình xử lý một yêu cầu lookup
+## 5. Workflow for Handling a Lookup Request
 
-1. **Xác định nơi khai báo và visibility.** Chọn getDeclaredMethod/getDeclaredConstructor/getDeclaredField khi cần member khai báo trực tiếp (kể cả non-public); chọn getMethod/getConstructor/getField khi yêu cầu public tương ứng.
-2. **Đổi từng parameter type sang erasure.** Bỏ type arguments của parameterized type; thay T bằng Object hoặc erasure của bound đầu tiên; với mảng giữ dạng array class; với primitive dùng chính xác int.class/long.class...
-3. **Tra tên + tham số đúng thứ tự.** Ví dụ foo(T, List<String>, int[]) với T extends Number cần Number.class, List.class, int[].class. Field chỉ tra theo tên.
-4. **Đọc generic metadata khi bài toán cần.** Dùng getGeneric... và instanceof để phân biệt ParameterizedType, TypeVariable, WildcardType, GenericArrayType; khi liên quan kế thừa thì thêm ánh xạ type variables qua superclass/interfaces.
-5. **Nếu liệt kê method sau override generic**, kiểm tra isBridge()/isSynthetic(); tùy nhu cầu có thể loại bridge khi tạo tài liệu hướng đến source API, nhưng giữ bridge khi phân tích dispatch JVM.
+1. **Determine the declaration site and visibility.** Choose getDeclaredMethod/getDeclaredConstructor/getDeclaredField when you need directly declared members (including non-public); choose getMethod/getConstructor/getField when requiring corresponding public ones.
+2. **Convert each parameter type to its erasure.** Drop type arguments of parameterized types; replace T with Object or the erasure of its first bound; keep arrays in array class form; for primitives use exact int.class/long.class...
+3. **Look up name + parameters in exact order.** For example, foo(T, List<String>, int[]) with T extends Number requires Number.class, List.class, int[].class. Fields are looked up by name only.
+4. **Read generic metadata when the problem needs it.** Use getGeneric... and instanceof to distinguish ParameterizedType, TypeVariable, WildcardType, GenericArrayType; when inheritance is involved, add type variable mapping across superclasses/interfaces.
+5. **If listing methods after generic overriding**, check isBridge()/isSynthetic(); depending on needs, bridge methods can be excluded when generating source-oriented API docs, while retained when analyzing JVM dispatch.
 
-## 6. Lỗi phổ biến và cách nhận diện
+## 6. Common Errors and How to Identify Them
 
-- **NoSuchMethodException**: truyền Integer.class cho T extends Number; truyền Integer.class thay int.class; truyền String.class thay String[].class cho varargs; hoặc nhầm getDeclaredMethod với getMethod khi member thực ra được kế thừa.
-- **Nhầm type argument với runtime parameter type**: getDeclaredMethod dùng List.class dù source ghi List<String> hay List<Integer>. Không có List<String>.class.
-- **Nhầm generic superclass với chữ ký của method kế thừa**: extends Base<String> không làm Base.get() đột nhiên có erased return type String.
-- **Không kiểm tra bridge methods**: getDeclaredMethods() có thể chứa method compiler sinh ra; không dựa vào thứ tự mảng Method khi tìm một phiên bản cụ thể.
-- **Lạm dụng getGeneric... để xác nhận giá trị runtime**: thông tin kiểu generic phần lớn chỉ mô tả khai báo. Các phép cast/gọi invoke vẫn có thể gặp lỗi và còn bị ràng buộc bởi quyền truy cập hoặc module boundary.
-- **Đọc return type như tham số tra cứu**: getMethod/getDeclaredMethod không nhận return type; nếu cần phân tích return type hãy đọc Method.getReturnType()/getGenericReturnType() sau khi lấy Method.
+- **NoSuchMethodException**: passing Integer.class for T extends Number; passing Integer.class instead of int.class; passing String.class instead of String[].class for varargs; or confusing getDeclaredMethod with getMethod when the member is actually inherited.
+- **Confusing type arguments with runtime parameter types**: getDeclaredMethod uses List.class whether source writes List<String> or List<Integer>. There is no List<String>.class.
+- **Confusing generic superclass with the signature of an inherited method**: extends Base<String> does not suddenly give Base.get() an erased return type of String.
+- **Not checking bridge methods**: getDeclaredMethods() may contain compiler-generated methods; do not rely on Method array order when finding a specific version.
+- **Misusing getGeneric... to validate runtime values**: generic type info mostly describes declarations. Casts/invoke calls can still fail and remain constrained by access permissions or module boundaries.
+- **Treating return type as a lookup parameter**: getMethod/getDeclaredMethod does not accept return types; if you need to analyze the return type, read Method.getReturnType()/getGenericReturnType() after obtaining Method.
 
-## 7. Bài tập tự kiểm tra
+## 7. Self-Check Exercise
 
-Với method khai báo **<T extends CharSequence> void consume(T[] data, List<? super String> output)**, nó được tìm bằng:
+For a method declared as **<T extends CharSequence> void consume(T[] data, List<? super String> output)**, it is looked up with:
 
 ~~~java
 clazz.getDeclaredMethod("consume", CharSequence[].class, java.util.List.class);
 ~~~
 
-T[] được xóa thành CharSequence[] do bound của T; List<? super String> được xóa thành List. Khi đọc getGenericParameterTypes()[0], bạn thường nhận GenericArrayType chứa TypeVariable T; tham số thứ hai là ParameterizedType chứa WildcardType có lower bound String. Tra cứu bằng String[].class là sai dù một lời gọi thực tế có thể truyền mảng String[].
+T[] is erased to CharSequence[] due to T's bound; List<? super String> is erased to List. When reading getGenericParameterTypes()[0], you typically receive a GenericArrayType containing TypeVariable T; the second parameter is a ParameterizedType containing a WildcardType with lower bound String. Looking up with String[].class is wrong even though an actual call might pass a String[] array.
 
-**Ghi nhớ:** dùng các Class<?> đã erasure để **tìm** thành viên; dùng Type để **phân tích** thông tin generic đã khai báo. Với generic inheritance và override, kiểm tra thêm generic superclass cùng bridge methods.
+**Takeaway:** use erased Class<?> objects to **find** members; use Type to **analyze** declared generic information. With generic inheritance and overriding, additionally inspect generic superclasses and bridge methods.
 
-### Tài liệu tham khảo
+### References
 
 - Java Language Specification 17, §4.6 — Type Erasure: https://docs.oracle.com/javase/specs/jls/se17/html/jls-4.html#jls-4.6
 - JDK 17 Class API: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html

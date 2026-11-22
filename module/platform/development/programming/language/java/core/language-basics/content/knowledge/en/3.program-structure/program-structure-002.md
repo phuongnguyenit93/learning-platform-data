@@ -1,29 +1,29 @@
-# Vai trò của `public static void main(String[] args)` trong Java
+# Role of `public static void main(String[] args)` in Java
 
-Khi chạy một ứng dụng Java đơn giản từ terminal, JVM cần biết **chương trình bắt đầu thực thi từ đâu**. Với cách khởi chạy một lớp thông thường trên **JDK 17**, Java launcher tìm một phương thức có chữ ký phù hợp, điển hình là:
+When running a simple Java application from the terminal, the JVM needs to know **where the program starts executing**. When launching a class normally on **JDK 17**, the Java launcher looks for a method with a matching signature, typically:
 
 ~~~java
 public static void main(String[] args)
 ~~~
 
-Phương thức `main` là **điểm vào (entry point)** của chương trình. Những câu lệnh trong phần thân `main` được gọi khi người dùng chạy lớp đó bằng lệnh `java`. Nó không phải toàn bộ ứng dụng: từ `main`, bạn có thể gọi những phương thức và lớp khác để thực hiện công việc.
+The `main` method is the **entry point** of the program. The statements in the body of `main` are executed when the user runs that class with the `java` command. It is not the entire application: from `main`, you can call other methods and classes to perform work.
 
-Bài này tập trung vào chữ ký trên, cách chạy lớp chứa `main`, vai trò của đối số `args` và những lỗi người mới thường gặp. Các ví dụ dùng **JDK 17 trở lên** và cú pháp `main` truyền thống tương thích Java 17.
+This lesson focuses on the signature above, how to run a class containing `main`, the role of the `args` parameter, and common beginner mistakes. The examples use **JDK 17 or later** and traditional Java 17-compatible `main` syntax.
 
-## 1. Đọc từng phần của chữ ký `main`
+## 1. Reading Each Part of the `main` Signature
 
-| Thành phần | Ý nghĩa | Tại sao cần trong cách chạy lớp trên Java 17? |
+| Component | Meaning | Why is it needed when running a class on Java 17? |
 | --- | --- | --- |
-| `public` | Phương thức có khả năng truy cập công khai | Java launcher cần có thể gọi điểm vào |
-| `static` | Phương thức thuộc lớp, không cần tạo đối tượng để gọi | Launcher có thể gọi `main` mà không phải `new` lớp chứa nó |
-| `void` | Phương thức không trả về một giá trị Java | Chữ ký entry point truyền thống yêu cầu trả về `void` |
-| `main` | Tên phương thức điểm vào | Launcher tìm phương thức có tên này |
-| `String[]` | Kiểu **mảng các chuỗi** | Chứa đối số người dùng truyền khi chạy chương trình |
-| `args` | Tên tham số của mảng `String[]` | Tên có thể đổi; `args` chỉ là quy ước dễ hiểu |
+| `public` | Method has public accessibility | The Java launcher needs to be able to call the entry point |
+| `static` | Method belongs to the class, no object needed to call it | The launcher can invoke `main` without having to `new` its enclosing class |
+| `void` | Method does not return a Java value | The traditional entry-point signature requires returning `void` |
+| `main` | Entry-point method name | The launcher looks for a method with this name |
+| `String[]` | Type **array of strings** | Holds arguments passed by the user when running the program |
+| `args` | Parameter name of the `String[]` array | The name can be changed; `args` is simply a clear convention |
 
-Từ khóa `public`, `static` và `void` không phải ba từ viết cho đẹp: bỏ hoặc thay sai có thể khiến phương thức **không còn đáp ứng yêu cầu điểm vào**, dù lớp vẫn biên dịch.
+The keywords `public`, `static`, and `void` are not three decorative words: omitting or changing them incorrectly can make the method **no longer satisfy the entry-point requirements**, even though the class still compiles.
 
-Ví dụ, một phương thức thông thường cũng có thể có tên `main` nhưng không nhất thiết được Java launcher dùng làm điểm vào:
+For example, a regular method can also be named `main` without necessarily being used by the Java launcher as an entry point:
 
 ~~~java
 static void main(int number) {
@@ -31,17 +31,17 @@ static void main(int number) {
 }
 ~~~
 
-Đó là một phương thức có tham số `int`, **không** phải chữ ký `main(String[] args)` mà ví dụ chạy lớp dưới đây yêu cầu.
+That is a method with an `int` parameter, **not** the `main(String[] args)` signature required by the class-running examples below.
 
-### Vì sao `main` có `static`?
+### Why is `main` `static`?
 
-Một phương thức `static` có thể được gọi theo tên lớp mà không cần tạo instance. Khi khởi động `GreetingMain`, launcher không cần biết cách tạo `new GreetingMain()`; nó dùng phương thức `main` phù hợp để bắt đầu luồng thực thi.
+A `static` method can be called by class name without creating an instance. When starting `GreetingMain`, the launcher does not need to know how to create `new GreetingMain()`; it uses the matching `main` method to start the execution flow.
 
-Từ khóa `static` ở đây **không có nghĩa** toàn bộ dữ liệu của ứng dụng phải là biến `static`. Bạn vẫn có thể tạo đối tượng, gọi phương thức instance và tổ chức chương trình thành nhiều lớp từ `main`.
+The `static` keyword here **does not mean** all application data must be `static` variables. You can still create objects, call instance methods, and organize the program into multiple classes from `main`.
 
-## 2. Một chương trình Java 17+ hoàn chỉnh
+## 2. A Complete Java 17+ Program
 
-Tạo tệp **`GreetingMain.java`** với nội dung sau:
+Create the file **`GreetingMain.java`** with the following content:
 
 ~~~java
 public class GreetingMain {
@@ -79,30 +79,30 @@ public class GreetingMain {
 }
 ~~~
 
-Ví dụ này cố ý chỉ có **một lớp công khai** chứa một điểm vào.
+This example intentionally has only **one public class** containing one entry point.
 
-- `public class GreetingMain`: tên lớp phải khớp với tên tệp `GreetingMain.java`.
-- `main`: nhận hai đối số, kiểm tra dữ liệu và quyết định cần làm gì.
-- `args.length`: số **chuỗi đối số**, không bao gồm từ `java` hay tên lớp.
-- `args[0]`: tên người được chào; `args[1]`: văn bản cần chuyển thành số lần lặp.
-- `Integer.parseInt(args[1])`: chuyển chuỗi số nguyên; dữ liệu như `abc` hoặc số vượt miền `int` gây `NumberFormatException`.
-- `return;`: kết thúc lời gọi `main` hiện tại, không trả về giá trị vì `main` có kiểu `void`.
-- Vòng `for` thực hiện in đúng số lần, sau khi dữ liệu được xác nhận trong khoảng 1–5.
+- `public class GreetingMain`: the class name must match the filename `GreetingMain.java`.
+- `main`: receives two arguments, validates data, and decides what to do.
+- `args.length`: the number of **argument strings**, excluding the word `java` or the class name.
+- `args[0]`: name of the person to greet; `args[1]`: text to parse into the repetition count.
+- `Integer.parseInt(args[1])`: parses an integer string; inputs such as `abc` or numbers outside the `int` range throw `NumberFormatException`.
+- `return;`: terminates the current `main` call without returning a value because `main` has type `void`.
+- The `for` loop prints the exact number of times after the data is confirmed to be in the range 1–5.
 
-Chữ ký phương thức **đúng** chưa đủ để chương trình đúng nghiệp vụ. Việc kiểm tra số đối số, tên trống và số lần hợp lệ là trách nhiệm của mã trong `main`.
+Having the **right** method signature is not enough for the program to be functionally correct. Checking the argument count, blank name, and valid repetition count is the responsibility of the code inside `main`.
 
-## 3. Biên dịch và chạy bằng terminal
+## 3. Compiling and Running via Terminal
 
-Mở PowerShell trên Windows hoặc Bash trên Linux, đi tới thư mục có `GreetingMain.java`.
+Open PowerShell on Windows or Bash on Linux and go to the directory containing `GreetingMain.java`.
 
-### Kiểm tra công cụ
+### Check the tools
 
 ~~~bash
 java -version
 javac -version
 ~~~
 
-Dùng JDK 17 trở lên có `java` và `javac`. Tạo thư mục riêng cho bytecode:
+Use JDK 17 or later that includes `java` and `javac`. Create a separate directory for bytecode:
 
 **Windows PowerShell:**
 
@@ -116,14 +116,14 @@ New-Item -ItemType Directory -Force -Path out | Out-Null
 mkdir -p out
 ~~~
 
-Sau đó, trên **cả hai hệ điều hành**:
+Then, on **both operating systems**:
 
 ~~~bash
 javac -encoding UTF-8 -d out GreetingMain.java
 java -cp out GreetingMain Mai 3
 ~~~
 
-**Kết quả:**
+**Output:**
 
 ~~~text
 Lan 1: Xin chao, Mai!
@@ -131,9 +131,9 @@ Lan 2: Xin chao, Mai!
 Lan 3: Xin chao, Mai!
 ~~~
 
-`javac` tạo `out/GreetingMain.class` khi mã hợp lệ; `-d out` yêu cầu output vào thư mục đó. Lệnh `java -cp out GreetingMain Mai 3` dùng Java launcher để tìm lớp `GreetingMain` trong classpath `out` rồi gọi phương thức `main` tương ứng.
+`javac` creates `out/GreetingMain.class` when the code is valid; `-d out` specifies outputting into that directory. The command `java -cp out GreetingMain Mai 3` uses the Java launcher to find the `GreetingMain` class in the `out` classpath and invoke the corresponding `main` method.
 
-Với lệnh trên, launcher truyền vào `main`:
+With the command above, the launcher passes into `main`:
 
 ~~~text
 args.length == 2
@@ -141,9 +141,9 @@ args[0] == "Mai"
 args[1] == "3"
 ~~~
 
-Điều đó có nghĩa **`args[1]` vẫn là `String`** `"3"`, dù khi gõ lệnh trông giống một con số. Chỉ khi gọi `Integer.parseInt`, chương trình mới thu được giá trị `int` là 3.
+That means **`args[1]` is still a `String`** `"3"`, even though it looks like a number when typed in the command. Only when calling `Integer.parseInt` does the program obtain the `int` value 3.
 
-### Tên chứa dấu cách vẫn là một đối số
+### A name containing spaces is still one argument
 
 ~~~bash
 java -cp out GreetingMain "Lan Anh" 2
@@ -154,30 +154,30 @@ Lan 1: Xin chao, Lan Anh!
 Lan 2: Xin chao, Lan Anh!
 ~~~
 
-PowerShell và Bash đều hiểu dấu nháy kép ở đây để giữ `Lan Anh` thành **một đối số**. Nếu bỏ dấu nháy, shell thường tách thành hai đối số `Lan` và `Anh`, làm `args.length` thay đổi.
+PowerShell and Bash both interpret double quotes here to keep `Lan Anh` as **one argument**. If you omit the quotes, the shell usually splits it into two arguments `Lan` and `Anh`, changing `args.length`.
 
-## 4. Dòng thực thi đi qua `main` như thế nào?
+## 4. How Execution Flow Passes Through `main`
 
 ~~~mermaid
 flowchart TD
-    A["java -cp out GreetingMain Mai 3"] --> B["Java launcher tìm GreetingMain"]
-    B --> C["Tìm main(String[] args) phù hợp"]
-    C --> D["Gọi main với 2 chuỗi đối số"]
-    D --> E{"Dữ liệu hợp lệ?"}
-    E -->|Không| F["In lỗi hoặc hướng dẫn, return"]
-    E -->|Có| G["Chạy vòng for, in lời chào"]
-    G --> H["Kết thúc lời gọi main"]
+    A["java -cp out GreetingMain Mai 3"] --> B["Java launcher locates GreetingMain"]
+    B --> C["Find matching main(String[] args)"]
+    C --> D["Call main with 2 string arguments"]
+    D --> E{"Data valid?"}
+    E -->|No| F["Print error or usage, return"]
+    E -->|Yes| G["Run for loop, print greetings"]
+    G --> H["End main call"]
 ~~~
 
-Một ứng dụng lớn hơn vẫn dùng `main` làm nơi **khởi động và kết nối các thành phần**; không nên dồn mọi phép tính và mọi thao tác I/O vào một phương thức rất dài chỉ vì `main` là điểm vào.
+Larger applications still use `main` as the place to **start up and wire components together**; you should not cram all calculations and I/O operations into one very long method just because `main` is the entry point.
 
-`main` thường được gọi lúc bắt đầu luồng chính trong ví dụ chạy lớp, nhưng **không nhất thiết là phương thức duy nhất được thực thi**. Nó có thể gọi các phương thức khác. Nếu chương trình tạo thêm luồng còn hoạt động, việc `main` trả về **không tự bảo đảm JVM dừng ngay lập tức**.
+`main` is normally called at the start of the main thread in class-launching examples, but it is **not necessarily the only method executed**. It can call other methods. If the program spawns additional active threads, `main` returning **does not automatically guarantee the JVM stops immediately**.
 
-## 5. `args` là gì và không phải là gì?
+## 5. What `args` Is and What It Is Not
 
-### `args` chỉ là tên biến tham số
+### `args` is only the parameter variable name
 
-Hai chữ ký sau cùng mô tả tham số `String[]`:
+The following two signatures both describe a `String[]` parameter:
 
 ~~~java
 public static void main(String[] args)
@@ -187,91 +187,91 @@ public static void main(String[] args)
 public static void main(String[] arguments)
 ~~~
 
-Tên `args` được sử dụng rộng rãi, nhưng **không phải từ khóa**. Nếu đổi tên thành `arguments`, bạn phải đổi các chỗ sử dụng bên trong phương thức.
+The name `args` is widely used, but it is **not a keyword**. If you rename it to `arguments`, you must update its uses inside the method.
 
-Java còn chấp nhận cú pháp tham số biến độ dài (*varargs*) cho kiểu chuỗi:
+Java also accepts variable-arity parameter syntax (*varargs*) for the string type:
 
 ~~~java
 public static void main(String... args)
 ~~~
 
-Ở bên trong, `args` vẫn sử dụng được như một mảng `String[]`. Với người mới học, cách viết `String[] args` thường rõ ràng hơn.
+Inside, `args` can still be used like a `String[]` array. For beginners, writing `String[] args` is usually clearer.
 
-### Giá trị ban đầu của `args`
+### Initial value of `args`
 
-Khi khởi chạy bình thường qua Java launcher, chương trình nhận mảng chứa những đối số sau tên lớp. Không cung cấp đối số nghĩa là mảng có **độ dài 0**:
+When launched normally through the Java launcher, the program receives an array containing the arguments after the class name. Providing no arguments means the array has **length 0**:
 
 ~~~bash
 java -cp out GreetingMain
 ~~~
 
-Kết quả từ chương trình ví dụ:
+Output from the example program:
 
 ~~~text
 Cach dung: java GreetingMain <ten> <soLan>
 ~~~
 
-**Không đọc `args[0]` trước khi kiểm tra `args.length`.** Nếu mảng không có phần tử, truy cập chỉ số 0 sẽ gây `ArrayIndexOutOfBoundsException` khi chạy.
+**Do not read `args[0]` before checking `args.length`.** If the array has no elements, accessing index 0 throws `ArrayIndexOutOfBoundsException` at runtime.
 
-Một phương thức Java có thể được gọi thủ công trong mã khác bằng `GreetingMain.main(null)`, nhưng đó là lời gọi khác với việc khởi động thông thường. Vì vậy, không nên suy luận rằng mọi lời gọi trực tiếp tới `main` đều tự có mảng hợp lệ.
+A Java method can be called manually in other code via `GreetingMain.main(null)`, which is different from normal startup. Therefore, you should not assume every direct call to `main` automatically has a non-null valid array.
 
-## 6. Phân biệt lỗi chữ ký điểm vào với lỗi dữ liệu trong `main`
+## 6. Distinguishing Entry-Point Signature Errors from Data Errors Inside `main`
 
-| Vấn đề | Biên dịch `javac`? | Khi chạy `java`? |
+| Issue | Compiles with `javac`? | When running `java`? |
 | --- | --- | --- |
-| `public static void main(String[] args)` | Hợp lệ | Launcher dùng làm điểm vào |
-| Chỉ có `public void main(String[] args)` | Lớp vẫn có thể biên dịch | Trên Java 17, không phải entry point phù hợp vì thiếu `static` |
-| Chỉ có `private static void main(String[] args)` | Lớp vẫn có thể biên dịch | Trên Java 17, không phải entry point phù hợp vì không `public` |
-| Chỉ có `public static int main(String[] args)` | Có thể biên dịch như method thường | Không đúng kiểu trả về `void` của entry point Java 17 |
-| Chỉ có `public static void main(int[] args)` | Có thể biên dịch như method thường | Không khớp tham số mảng `String` |
-| `args[0]` khi không có đối số | Vẫn có thể biên dịch | Có thể ném `ArrayIndexOutOfBoundsException` |
-| `Integer.parseInt("abc")` | Hợp lệ về kiểu | Ném `NumberFormatException` lúc chạy |
+| `public static void main(String[] args)` | Valid | Launcher uses it as the entry point |
+| Only `public void main(String[] args)` | Class still compiles | On Java 17, not a valid entry point because `static` is missing |
+| Only `private static void main(String[] args)` | Class still compiles | On Java 17, not a valid entry point because it is not `public` |
+| Only `public static int main(String[] args)` | Compiles as an ordinary method | Does not match the `void` return type of a Java 17 entry point |
+| Only `public static void main(int[] args)` | Compiles as an ordinary method | Does not match the `String` array parameter |
+| `args[0]` when no arguments are given | Still compiles | Can throw `ArrayIndexOutOfBoundsException` |
+| `Integer.parseInt("abc")` | Type-valid | Throws `NumberFormatException` at runtime |
 
-**Quan trọng:** `javac` không yêu cầu **mọi lớp** đều phải có `main`. Một lớp thư viện hoặc lớp dữ liệu có thể biên dịch bình thường mà không thể chạy trực tiếp bằng `java TenLop` theo cách thông thường.
+**Important:** `javac` does not require **every class** to have `main`. A library class or data class can compile normally without being directly runnable via `java ClassName` in the standard way.
 
-Thông báo từ Java launcher có thể khác giữa các bản JDK, nhưng nguyên tắc là: **biên dịch hợp lệ** và **có điểm vào hợp lệ để chạy lớp** là hai kiểm tra khác nhau.
+Messages from the Java launcher can vary across JDK versions, but the principle holds: **valid compilation** and **having a valid entry point to run a class** are two different checks.
 
-Một chữ ký hợp lệ chỉ định **cách bắt đầu**, không kiểm tra số lượng hay kiểu số học của đối số: các chuỗi đầu vào vẫn cần được phân tích trong ứng dụng.
+A valid signature specifies **how to start**, without checking the count or numeric format of arguments: input strings still need to be parsed inside the application.
 
-## 7. Những ca cần thử với chương trình mẫu
+## 7. Cases to Try with the Sample Program
 
-| Lệnh sau khi biên dịch | Kết quả cần kiểm chứng |
+| Command after compiling | Expected result to verify |
 | --- | --- |
-| `java -cp out GreetingMain Mai 1` | In một lời chào |
-| `java -cp out GreetingMain Mai 5` | In năm lời chào |
+| `java -cp out GreetingMain Mai 1` | Prints one greeting |
+| `java -cp out GreetingMain Mai 5` | Prints five greetings |
 | `java -cp out GreetingMain Mai 0` | `Loi: soLan phai tu 1 den 5` |
 | `java -cp out GreetingMain Mai 6` | `Loi: soLan phai tu 1 den 5` |
 | `java -cp out GreetingMain Mai abc` | `Loi: soLan phai la so nguyen` |
-| `java -cp out GreetingMain Mai 2147483648` | `Loi: soLan phai la so nguyen` vì ngoài miền `int` |
-| `java -cp out GreetingMain Mai` | In hướng dẫn vì thiếu đối số |
-| `java -cp out GreetingMain "Lan Anh" 2` | Hai lời chào với đúng tên có dấu cách |
+| `java -cp out GreetingMain Mai 2147483648` | `Loi: soLan phai la so nguyen` because it is outside the `int` range |
+| `java -cp out GreetingMain Mai` | Prints usage message because an argument is missing |
+| `java -cp out GreetingMain "Lan Anh" 2` | Two greetings with the exact name containing a space |
 | `java -cp out GreetingMain "" 2` | `Loi: ten khong duoc trong` |
 
-Một tình huống khác: nếu truyền `" 2 "` làm chuỗi số lần, `Integer.parseInt` không mặc nhiên loại bỏ khoảng trắng. Khi muốn chấp nhận khoảng trắng, ứng dụng phải có quy tắc xử lý như `trim()` rõ ràng. Đừng sửa mã chỉ để thông qua một ca kiểm thử mà chưa quyết định hành vi đầu vào được mong đợi.
+Another scenario: if `" 2 "` is passed as the repetition count string, `Integer.parseInt` does not automatically strip whitespace. When whitespace should be accepted, the application must have explicit handling rules such as `trim()`. Do not patch code just to pass a single test case without deciding the expected input behavior.
 
-### Tại sao `return;` không giống `System.exit(...)`?
+### Why is `return;` not the same as `System.exit(...)`?
 
-Trong mã ví dụ, `return;` chỉ **kết thúc phương thức `main`**. Với chương trình đơn luồng đơn giản, không còn tác vụ khác nên chương trình thường kết thúc ngay sau đó.
+In the example code, `return;` only **terminates the `main` method**. In a simple single-threaded program, no other tasks remain, so the program usually finishes right after.
 
-Ngược lại, `System.exit(2)` yêu cầu JVM kết thúc tiến trình với mã trạng thái 2; điều này thường hữu ích cho công cụ CLI hoặc hệ thống tự động hóa khi cần phân biệt thành công và lỗi. Nó có tác động lên **toàn tiến trình**, nên không cần dùng khi bài học chỉ đang trình bày vai trò cơ bản của `main`.
+In contrast, `System.exit(2)` requests the JVM to terminate the process with status code 2; this is often useful for CLI tools or automation systems that need to distinguish success from failure. It affects the **entire process**, so it is unnecessary when the lesson is only introducing the basic role of `main`.
 
-Vì ví dụ hiện tại in lỗi rồi `return;`, nó **không tự đặt mã thoát khác 0**. Đừng giả định cứ in chữ `Loi` thì shell sẽ thấy tiến trình thất bại.
+Because the current example prints an error and executes `return;`, it **does not automatically set a non-zero exit code**. Do not assume that printing the word `Loi` causes the shell to see the process as failed.
 
-## 8. Bài tập tự luyện
+## 8. Self-Practice Exercises
 
-**Bài 1 — Giải thích chữ ký.** Không nhìn bảng, hãy nói một câu cho mỗi thành phần `public`, `static`, `void`, `main`, `String[]` và `args`.
+**Exercise 1 — Explain the signature.** Without looking at the table, state one sentence for each of `public`, `static`, `void`, `main`, `String[]`, and `args`.
 
-**Bài 2 — Dự đoán kết quả.** Chạy `java -cp out GreetingMain "Minh Chau" 2`. Có bao nhiêu phần tử trong `args`? Hai phần tử chứa gì và có bao nhiêu dòng được in?
+**Exercise 2 — Predict the output.** Run `java -cp out GreetingMain "Minh Chau" 2`. How many elements are in `args`? What do the two elements contain, and how many lines are printed?
 
-*Đáp án:* Hai phần tử, `"Minh Chau"` và `"2"`; hai lời chào.
+*Answer:* Two elements, `"Minh Chau"` and `"2"`; two greetings.
 
-**Bài 3 — Tìm lỗi điểm vào.** Hãy thử đổi `public static void main(String[] args)` thành `public void main(String[] args)`. Tại sao `javac` có thể không báo lỗi nhưng `java -cp out GreetingMain Mai 2` không chạy theo ý định trên Java 17?
+**Exercise 3 — Spot the entry-point error.** Try changing `public static void main(String[] args)` to `public void main(String[] args)`. Why might `javac` report no error while `java -cp out GreetingMain Mai 2` fails to run as intended on Java 17?
 
-*Đáp án:* Bạn tạo một phương thức instance, không còn phương thức `main` `public static` đúng chữ ký mà launcher Java 17 tìm.
+*Answer:* You created an instance method, leaving no `public static` `main` method with the exact signature the Java 17 launcher looks for.
 
-**Bài 4 — Xử lý input.** Sửa mã để chấp nhận số lần từ 1 đến 10, rồi chạy ca đúng ngưỡng 10 và ca sai 11. Xác nhận chỉ thay đổi quy tắc kiểm tra số lần, không làm thay đổi ý nghĩa `main`.
+**Exercise 4 — Input handling.** Modify the code to accept repetition counts from 1 to 10, then test the valid boundary case 10 and invalid case 11. Confirm that you only changed the count validation rule without changing the meaning of `main`.
 
-**Bài 5 — Tách công việc khỏi `main`.** Thêm phương thức sau **bên trong lớp `GreetingMain`**:
+**Exercise 5 — Extract work out of `main`.** Add the following method **inside the `GreetingMain` class**:
 
 ~~~java
 static void greet(String name, int sequence) {
@@ -280,17 +280,17 @@ static void greet(String name, int sequence) {
 }
 ~~~
 
-Sau đó thay câu `println` trong vòng `for` bằng `greet(name, i);`. Kết quả có thay đổi không? Giải thích vì sao đây là một bước tổ chức mã tốt dù `main` vẫn là điểm vào.
+Then replace the `println` statement inside the `for` loop with `greet(name, i);`. Does the output change? Explain why this is a good code-organization step even though `main` remains the entry point.
 
-## Checklist ghi nhớ
+## Checklist
 
-- [ ] Biết rằng `main` là điểm vào khi Java launcher chạy lớp theo cách truyền thống trên JDK 17.
-- [ ] Giải thích được `public`, `static`, `void`, `main`, `String[]`, `args`.
-- [ ] Tạo đúng tệp chứa `public class` và biên dịch bằng `javac`.
-- [ ] Chạy được `java -cp out GreetingMain Mai 3` và dự đoán được kết quả.
-- [ ] Biết đối số CLI ban đầu đều là `String` và tên lớp không nằm trong `args[]`.
-- [ ] Kiểm tra `args.length` trước khi truy cập phần tử.
-- [ ] Phân biệt lỗi không tìm thấy entry point với lỗi dữ liệu trong phương thức `main`.
-- [ ] Hiểu rằng kết thúc `main` không phải lúc nào cũng buộc mọi luồng/JVM dừng tức thì.
+- [ ] Know that `main` is the entry point when the Java launcher runs a class in the traditional way on JDK 17.
+- [ ] Explain `public`, `static`, `void`, `main`, `String[]`, and `args`.
+- [ ] Create a properly named file containing a `public class` and compile it with `javac`.
+- [ ] Run `java -cp out GreetingMain Mai 3` and predict its output.
+- [ ] Know that CLI arguments are initially all `String` values and the class name is not in `args[]`.
+- [ ] Check `args.length` before accessing elements.
+- [ ] Distinguish missing entry-point errors from data errors inside the `main` method.
+- [ ] Understand that `main` finishing does not always force all threads/the JVM to stop immediately.
 
-**Tóm lại:** `public static void main(String[] args)` là lời khai báo điểm bắt đầu quen thuộc của ứng dụng Java 17. Java launcher sử dụng chữ ký này để gọi mã của bạn; còn chương trình dùng `args` để nhận chuỗi đầu vào. Hiểu ranh giới ấy giúp bạn tạo chương trình chạy được, phân tích lỗi đúng chỗ và tổ chức logic ngoài `main` khi ứng dụng lớn dần.
+**Summary:** `public static void main(String[] args)` is the familiar starting-point declaration of a Java 17 application. The Java launcher uses this signature to invoke your code, while the program uses `args` to receive input strings. Understanding that boundary helps you build runnable programs, diagnose errors in the right place, and organize logic outside `main` as applications grow.

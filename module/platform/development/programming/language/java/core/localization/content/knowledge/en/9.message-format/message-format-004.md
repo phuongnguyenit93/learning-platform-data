@@ -1,10 +1,10 @@
-# Các kiểu number, date, time và choice của MessageFormat trong Java
+# MessageFormat number, date, time, and choice Types in Java
 
-## 1. MessageFormat làm gì?
+## 1. What Does MessageFormat Do?
 
-`java.text.MessageFormat` ghép một **mẫu thông điệp** (message pattern) với các đối số để tạo chuỗi cho người dùng. Thay vì viết cố định `"Có " + count + " đơn hàng"`, người viết bản dịch có thể quyết định thứ tự từ và cách biểu diễn số, ngày giờ tùy theo `Locale`.
+`java.text.MessageFormat` combines a **message pattern** with arguments to produce a user-facing string. Instead of hardcoding `"There are " + count + " orders"`, translators can decide word order and how numbers, dates, and times are represented according to the `Locale`.
 
-`MessageFormat` dùng dấu ngoặc nhọn để khai báo các *format element*:
+`MessageFormat` uses curly braces to declare *format elements*:
 
 ```text
 {argumentIndex}
@@ -12,25 +12,25 @@
 {argumentIndex,formatType,formatStyle}
 ```
 
-Trong đó:
+Where:
 
-- `argumentIndex`: vị trí đối số bắt đầu từ `0` trong mảng truyền vào `format(...)`.
-- `formatType`: một trong `number`, `date`, `time`, `choice`; bỏ trống type thì đối số được định dạng theo kiểu mặc định của nó.
-- `formatStyle`: tên style có sẵn (ví dụ `integer`, `currency`, `short`) hoặc chuỗi pattern riêng phù hợp với kiểu.
+- `argumentIndex`: the 0-based argument position in the array passed to `format(...)`.
+- `formatType`: one of `number`, `date`, `time`, `choice`; omitting the type formats the argument according to its default style.
+- `formatStyle`: a predefined style name (such as `integer`, `currency`, `short`) or a custom pattern string appropriate for that type.
 
-Ví dụ một mẫu tiếng Anh:
+Example of an English pattern:
 
 ```text
 "You bought {0,number,integer} items on {1,date,long}."
 ```
 
-Đối số `0` là một số, đối số `1` phải là giá trị ngày giờ phù hợp (thường là `java.util.Date`). `MessageFormat` sẽ đặt chúng vào thông điệp theo quy tắc của locale được cấu hình.
+Argument `0` is a number, and argument `1` must be a suitable date/time value (typically `java.util.Date`). `MessageFormat` inserts them into the message according to the rules of the configured locale.
 
-**Phạm vi bài:** bốn kiểu `number`, `date`, `time`, `choice`, cách kiểm tra ranh giới, locale, time zone, và lỗi thường gặp khi kết hợp chúng. Bài không coi `choice` là giải pháp đầy đủ cho mọi quy tắc số nhiều của tất cả ngôn ngữ.
+**Lesson scope:** the four types `number`, `date`, `time`, and `choice`, boundary checking, locale, time zone, and common pitfalls when combining them. This lesson does not treat `choice` as a complete solution for all plural rules across all languages.
 
-## 2. Cấu trúc API và tác động của Locale
+## 2. API Structure and the Effect of Locale
 
-Để tạo một formatter cho locale cố định:
+To create a formatter for a fixed locale:
 
 ```java
 Locale locale = Locale.forLanguageTag("en-US");
@@ -39,86 +39,86 @@ MessageFormat mf = new MessageFormat(
 String text = mf.format(new Object[] {1234.5});
 ```
 
-*Đoạn minh họa đặt trong một phương thức Java; nó cần import `java.text.MessageFormat` và `java.util.Locale`.*
+*This illustrative snippet is placed inside a Java method; it requires importing `java.text.MessageFormat` and `java.util.Locale`.*
 
-`MessageFormat` giữ mẫu và `Locale` được thiết lập bằng constructor hoặc `setLocale(...)`. Mẫu được biên dịch thành các phần literal và formatter cho từng vị trí đối số. Khi thay locale, có thể cần áp dụng lại pattern để tạo lại các formatter theo locale mới; cách đơn giản là **khởi tạo một `MessageFormat` riêng cho mỗi locale**.
+`MessageFormat` holds the pattern and `Locale` set via the constructor or `setLocale(...)`. The pattern is compiled into literal segments and formatters for each argument position. When changing the locale, you may need to reapply the pattern to recreate the formatters for the new locale; the simplest approach is to **instantiate a separate `MessageFormat` for each locale**.
 
-Hai điểm dễ nhầm:
+Two easily confused points:
 
-1. `new MessageFormat(pattern, Locale.US)` điều khiển quy tắc ngôn ngữ/định dạng. `MessageFormat.format(pattern, args...)` là phương thức tĩnh tiện dụng sử dụng locale mặc định `FORMAT` của JVM, nên khó dự đoán hơn trong test phụ thuộc môi trường.
-2. `MessageFormat` là đối tượng **mutable**, không được đảm bảo an toàn khi dùng đồng thời trên nhiều thread nếu có thay đổi cấu hình. Không chia sẻ một instance và gọi `applyPattern(...)`, `setFormat(...)` hoặc `setLocale(...)` từ nhiều request không được đồng bộ. Cách đơn giản nhất trong code web là khởi tạo formatter theo request hoặc dùng chiến lược quản lý instance an toàn.
+1. `new MessageFormat(pattern, Locale.US)` controls the language/formatting rules. `MessageFormat.format(pattern, args...)` is a convenience static method that uses the JVM's default `FORMAT` locale, making it less predictable in environment-dependent tests.
+2. `MessageFormat` is a **mutable** object and is not guaranteed to be safe when used concurrently across multiple threads if configuration changes occur. Do not share one instance and call `applyPattern(...)`, `setFormat(...)`, or `setLocale(...)` from multiple unsynchronized requests. The simplest approach in web code is to create a formatter per request or use a safe instance-management strategy.
 
-Đối số là mảng `Object[]`. Khi mẫu chỉ định kiểu, đối số phải thích hợp: `number` cần `Number`, `date`/`time` cần `Date` hoặc kiểu thời gian được API định dạng chấp nhận. Riêng `LocalDate` hay `Instant` của `java.time` không tự động được xử lý như `Date` trong format element `date/time` của `MessageFormat`; nên chuyển đổi có chủ đích hoặc dùng `DateTimeFormatter` riêng.
+Arguments are passed as an `Object[]` array. When the pattern specifies a type, the argument must be compatible: `number` requires a `Number`, and `date`/`time` require a `Date` or a temporal type accepted by the formatting API. Specifically, `LocalDate` or `Instant` from `java.time` is not automatically handled like `Date` in `MessageFormat`'s `date`/`time` format elements; convert intentionally or use a separate `DateTimeFormatter`.
 
-## 3. Format type `number`
+## 3. The `number` Format Type
 
-`number` dùng cơ chế `NumberFormat`/`DecimalFormat` để hiển thị đối số số. Cùng một giá trị có thể có các cách thể hiện khác nhau:
+`number` uses the `NumberFormat`/`DecimalFormat` mechanism to display numeric arguments. The same value can have different representations:
 
-| Pattern element | Ý nghĩa | Ví dụ theo `Locale.US` |
+| Pattern element | Meaning | Example with `Locale.US` |
 | --- | --- | --- |
-| `{0,number}` | Dạng số thông thường theo locale | `1,234.5` cho `1234.5` |
-| `{0,number,integer}` | Số nguyên dùng quy tắc format/làm tròn | `1,234` cho `1234` |
-| `{0,number,currency}` | Kiểu tiền tệ theo locale và quy tắc formatter | `$1,234.50` cho `1234.5` |
-| `{0,number,percent}` | Giá trị nhân 100 rồi thêm ký hiệu phần trăm | `26%` cho `0.256` khi làm tròn theo formatter |
-| `{0,number,#,##0.00}` | Mẫu `DecimalFormat` tự định nghĩa | `1,234.50` cho `1234.5` |
+| `{0,number}` | General number format per locale | `1,234.5` for `1234.5` |
+| `{0,number,integer}` | Integer using formatting/rounding rules | `1,234` for `1234` |
+| `{0,number,currency}` | Currency format per locale and formatter rules | `$1,234.50` for `1234.5` |
+| `{0,number,percent}` | Value multiplied by 100 with a percent sign | `26%` for `0.256` when rounded by the formatter |
+| `{0,number,#,##0.00}` | Custom `DecimalFormat` pattern | `1,234.50` for `1234.5` |
 
-### 3.1. Số thông thường và integer
+### 3.1. General Numbers and `integer`
 
-Với `{0,number,integer}`, Java dùng NumberFormat với style số nguyên, có thể **làm tròn** khi đối số có phần thập phân. Vì vậy, không dùng style này như cách ép kiểu sang `int`, kiểm tra giá trị có nguyên hay không, hoặc bảo toàn số thập phân. Cần validation nghiệp vụ trước khi quyết định định dạng.
+With `{0,number,integer}`, Java uses an integer-style `NumberFormat`, which may **round** when the argument has a fractional part. Therefore, do not use this style as a way to cast to `int`, check whether a value is an integer, or preserve decimals. Perform business validation before deciding how to format.
 
-Các dấu phân cách và cách nhóm phụ thuộc locale. Không nên tự thay dấu chấm bằng dấu phẩy hay dùng `String.format` với locale mặc định rồi đưa lại vào `MessageFormat`.
+Separators and grouping depend on the locale. Do not manually replace periods with commas or call `String.format` with the default locale and pass the result back into `MessageFormat`.
 
-### 3.2. Currency không đồng nghĩa chuyển đổi tiền
+### 3.2. Currency Does Not Mean Currency Conversion
 
-`{0,number,currency}` tạo giá trị với định dạng tiền của locale, chẳng hạn `Locale.US` thường hiển thị ký hiệu `$`. Nó **không đổi 1234.5 USD sang 1234.5 VND**, cũng không tra tỷ giá. Đơn vị tiền tệ thực và tỷ giá thuộc dữ liệu nghiệp vụ.
+`{0,number,currency}` produces a value using the locale's currency format—for instance, `Locale.US` typically displays the `$` symbol. It **does not convert 1234.5 USD to 1234.5 VND**, nor does it look up exchange rates. Actual currency units and exchange rates belong to business data.
 
-Nếu giao dịch được ghi theo một currency cụ thể khác với currency thường gắn cho locale, hãy tạo `NumberFormat.getCurrencyInstance(locale)`, gọi `setCurrency(Currency.getInstance("EUR"))` theo giá trị giao dịch, rồi gắn formatter bằng `setFormatByArgumentIndex(...)` hoặc xử lý riêng tiền trước khi chèn. Không đánh đồng định dạng và chuyển đổi số tiền.
+If a transaction is recorded in a specific currency different from the currency normally associated with the locale, create `NumberFormat.getCurrencyInstance(locale)`, call `setCurrency(Currency.getInstance("EUR"))` based on the transaction's currency, and attach the formatter via `setFormatByArgumentIndex(...)` or format the money separately before inserting. Do not equate formatting with currency conversion.
 
-### 3.3. Percent nhân giá trị với 100
+### 3.3. `percent` Multiplies the Value by 100
 
-`{0,number,percent}` hiểu `0.256` là tỷ lệ `25.6%` và với số chữ số thập phân mặc định của locale, có thể hiển thị `26%`. Nếu đối số nghiệp vụ đã được lưu là `25.6` theo đơn vị phần trăm, dùng `percent` trực tiếp sẽ nhân 100 thêm lần nữa. Cần thống nhất dữ liệu nguồn là **fraction 0–1** hay **percent points 0–100**.
+`{0,number,percent}` interprets `0.256` as a ratio of `25.6%` and, with the locale's default fraction digits, may display `26%`. If the business argument is already stored as `25.6` in percentage units, using `percent` directly will multiply by 100 a second time. Agree consistently on whether source data is a **0–1 fraction** or **0–100 percentage points**.
 
-### 3.4. Pattern số tự định nghĩa
+### 3.4. Custom Number Patterns
 
-`{0,number,#,##0.00}` sử dụng cú pháp pattern của `DecimalFormat`: `0` là chữ số bắt buộc, `#` là chữ số tùy chọn, dấu phẩy trong mẫu thể hiện grouping và dấu chấm trong mẫu thể hiện ranh giới phần thập phân. **Dấu hiển thị thực tế vẫn do locale quyết định**. Các pattern số phức tạp có dấu ngoặc, ký tự literal và ký hiệu tiền cần đọc theo quy tắc `DecimalFormat`, không tự coi mọi dấu phẩy trong format element là dấu phân chia tham số.
+`{0,number,#,##0.00}` uses `DecimalFormat` pattern syntax: `0` is a required digit, `#` is an optional digit, the comma in the pattern denotes grouping, and the period in the pattern denotes the decimal boundary. **The actual displayed symbols are still determined by the locale.** Complex number patterns with parentheses, literals, and currency signs must be read according to `DecimalFormat` rules rather than assuming every comma inside a format element is an argument delimiter.
 
-Để format tiền chính xác, số nguồn thường nên dùng `BigDecimal` và quy tắc làm tròn nghiệp vụ rõ ràng; `MessageFormat` chỉ giải quyết cách hiển thị.
+For accurate money formatting, source numbers should usually use `BigDecimal` with explicit business rounding rules; `MessageFormat` only handles presentation.
 
-## 4. Format type `date`
+## 4. The `date` Format Type
 
-`{0,date,...}` chọn cách hiển thị ngày của đối số thời gian dựa trên `DateFormat`. Các style chuẩn:
+`{0,date,...}` chooses how to display the date of a temporal argument based on `DateFormat`. Standard styles:
 
-| Style | Pattern | Ý nghĩa |
+| Style | Pattern | Meaning |
 | --- | --- | --- |
-| Mặc định | `{0,date}` | Dùng style mặc định cho ngày. |
-| Short | `{0,date,short}` | Ngày ngắn, thường dạng chữ số. |
-| Medium | `{0,date,medium}` | Ngày ở mức trung bình. |
-| Long | `{0,date,long}` | Ngày dài, có thể có tên tháng. |
-| Full | `{0,date,full}` | Ngày đầy đủ, có thể có tên thứ. |
-| Custom | `{0,date,yyyy-MM-dd}` | Mẫu `SimpleDateFormat` riêng. |
+| Default | `{0,date}` | Uses the default style for dates. |
+| Short | `{0,date,short}` | Short date, usually numeric. |
+| Medium | `{0,date,medium}` | Medium-length date. |
+| Long | `{0,date,long}` | Long date, may include month name. |
+| Full | `{0,date,full}` | Full date, may include day of week. |
+| Custom | `{0,date,yyyy-MM-dd}` | Custom `SimpleDateFormat` pattern. |
 
-Các style `short`/`medium`/`long`/`full` **không phải chuỗi ngày cố định**. Thứ tự ngày/tháng/năm, dấu tách, chữ tháng và tên thứ phụ thuộc locale cùng dữ liệu locale của JDK. Điều này phù hợp cho UI bản địa hóa, nhưng không phù hợp để mã hóa ngày vào API hoặc database. Khi trao đổi dữ liệu, dùng kiểu ngày hoặc chuẩn serialization rõ ràng, ví dụ ISO 8601.
+The `short`/`medium`/`long`/`full` styles **are not fixed date strings**. Day/month/year order, separators, month text, and weekday names depend on the locale and the JDK's locale data. This is suitable for localized UI, but unsuitable for encoding dates in APIs or databases. When exchanging data, use date types or an explicit serialization standard such as ISO 8601.
 
-**Điểm quan trọng:** `MessageFormat` dùng hệ `java.text.DateFormat` dựa trên thời điểm/ngày kiểu `Date`. Để format `LocalDate` trong Java hiện đại, nên dùng `java.time.format.DateTimeFormatter` (với `Locale` rõ ràng) rồi đưa chuỗi kết quả vào thông điệp, hoặc chuyển sang kiểu `Date` bằng quy tắc time zone nếu thực sự cần tương thích `java.text`.
+**Important point:** `MessageFormat` uses the `java.text.DateFormat` hierarchy based on `Date` instants/dates. To format `LocalDate` in modern Java, use `java.time.format.DateTimeFormatter` (with an explicit `Locale`) and pass the resulting string into the message, or convert to `Date` using time zone rules if `java.text` compatibility is truly needed.
 
-Mẫu tùy chỉnh `yyyy-MM-dd` trong `MessageFormat` được diễn giải theo `SimpleDateFormat`. Ký hiệu `y`, `M`, `d` có ý nghĩa riêng; đừng nhầm với pattern `DateTimeFormatter` trong `java.time`, vì hai API có sự khác nhau ở một số ký hiệu và quy tắc xử lý.
+A custom pattern like `yyyy-MM-dd` in `MessageFormat` is interpreted by `SimpleDateFormat`. Symbols such as `y`, `M`, and `d` have specific meanings; do not confuse them with `DateTimeFormatter` patterns in `java.time`, as the two APIs differ in some pattern letters and handling rules.
 
-## 5. Format type `time`
+## 5. The `time` Format Type
 
-`{0,time,...}` định dạng phần thời gian từ cùng kiểu đối số tương thích `DateFormat`. Styles phổ biến:
+`{0,time,...}` formats the time portion from the same `DateFormat`-compatible argument types. Common styles:
 
-| Style | Pattern | Ý nghĩa |
+| Style | Pattern | Meaning |
 | --- | --- | --- |
-| Mặc định | `{0,time}` | Dùng style mặc định của thời gian. |
-| Short | `{0,time,short}` | Giờ và phút trong bố cục ngắn theo locale. |
-| Medium | `{0,time,medium}` | Có thể hiển thị giây. |
-| Long | `{0,time,long}` | Có thể có zone hoặc độ lệch giờ. |
-| Full | `{0,time,full}` | Biểu diễn đầy đủ theo dữ liệu locale/JDK. |
-| Custom | `{0,time,HH:mm:ss}` | Giờ 24h, phút và giây với `SimpleDateFormat`. |
+| Default | `{0,time}` | Uses the default style for times. |
+| Short | `{0,time,short}` | Hours and minutes in short locale layout. |
+| Medium | `{0,time,medium}` | May include seconds. |
+| Long | `{0,time,long}` | May include zone or offset. |
+| Full | `{0,time,full}` | Full representation per locale/JDK data. |
+| Custom | `{0,time,HH:mm:ss}` | 24-hour clock, minutes, and seconds with `SimpleDateFormat`. |
 
-**Locale khác time zone.** Locale có thể ảnh hưởng cách trình bày giờ (12h/24h, tên, ký hiệu), còn `TimeZone`/`ZoneId` quyết định giờ địa phương của một thời điểm. Nếu tạo `MessageFormat` sử dụng formatter mặc định mà không định timezone, đầu ra ngày/giờ có thể khác giữa máy cá nhân và CI.
+**Locale is different from time zone.** Locale can affect time presentation (12h/24h, names, symbols), whereas `TimeZone`/`ZoneId` determines the local wall-clock time of an instant. If you create a `MessageFormat` using default formatters without setting a time zone, date/time output can differ between a developer's machine and CI.
 
-Để có kết quả cố định cho một `Date` đại diện cho `Instant`, thiết lập timezone lên các formatter `DateFormat` nằm trong `MessageFormat`:
+To get deterministic results for a `Date` representing an `Instant`, set the time zone on the `DateFormat` formatters inside `MessageFormat`:
 
 ```java
 MessageFormat message = new MessageFormat(
@@ -135,51 +135,51 @@ System.out.println(message.format(new Object[] {new java.util.Date(0L)}));
 // day=1970-01-01; time=00:00:00
 ```
 
-Đây là đoạn code đặt trong phương thức Java có import hoặc tên class đầy đủ. `getFormats()` trả các formatter của từng format element theo thứ tự xuất hiện; vì cùng đối số `0` được dùng trong cả `date` và `time`, duyệt **toàn bộ `getFormats()`** giúp thiết lập timezone cho cả hai formatter. Không thay default timezone toàn JVM chỉ để chạy một format test.
+This is a code snippet placed in a Java method with imports or fully qualified class names. `getFormats()` returns the formatter of each format element in order of appearance; because the same argument `0` is used in both `date` and `time`, iterating over **all of `getFormats()`** sets the time zone on both formatters. Do not change the JVM-wide default time zone just to run a formatting test.
 
-Các formatter ngày giờ có thể phải được tạo lại sau `applyPattern(...)` hoặc thay đổi mẫu/locale. Khi dùng format object riêng, cấu hình trước rồi đưa vào `MessageFormat` bằng API thích hợp để tránh phụ thuộc cấu hình mặc định.
+Date/time formatters may be recreated after `applyPattern(...)` or pattern/locale changes. When using custom format objects, configure them first and attach them to `MessageFormat` via the appropriate API to avoid relying on default settings.
 
-## 6. Format type `choice`
+## 6. The `choice` Format Type
 
-`choice` chọn một đoạn thông điệp theo một giá trị số, sử dụng cú pháp `ChoiceFormat`:
+`choice` selects a message fragment based on a numeric value, using `ChoiceFormat` syntax:
 
 ```text
 {0,choice,0#no files|1#one file|1<more than one file}
 ```
 
-- `0#no files`: áp dụng khi giá trị nằm từ giới hạn 0 trở lên đến trước giới hạn tiếp theo.
-- `1#one file`: áp dụng tại đúng giá trị 1 theo các nhánh được sắp giới hạn.
-- `1<more than one file`: áp dụng khi giá trị **lớn hơn 1**.
-- Dấu `|` phân tách các nhánh.
-- Dấu `#` biểu diễn giới hạn **bao gồm** tại giá trị đặt sau nó; `<` biểu diễn ranh giới **loại trừ** giá trị giới hạn (strictly greater).
-- Các giới hạn số cần sắp đúng thứ tự tăng và thiết kế nhánh phù hợp với tập dữ liệu đầu vào.
+- `0#no files`: applies when the value is from lower bound 0 up to just before the next bound.
+- `1#one file`: applies at exact value 1 according to the bounded branches.
+- `1<more than one file`: applies when the value is **greater than 1**.
+- The `|` character separates branches.
+- The `#` symbol denotes an **inclusive** bound at the preceding value; `<` denotes an **exclusive** bound (strictly greater).
+- Numeric limits must be ordered strictly ascending and branches designed to fit the input dataset.
 
-**Chú ý ranh giới và giá trị ngoài phạm vi:** `ChoiceFormat` dựa trên các giới hạn numeric, và với giá trị nhỏ hơn nhánh đầu nó vẫn dùng thông điệp của nhánh đầu. Ví dụ mẫu mở đầu ở 0 có thể hiển thị `no files` cho số âm. Không dùng cách này để validate dữ liệu đếm âm; kiểm tra input riêng trước khi format.
+**Note on bounds and out-of-range values:** `ChoiceFormat` relies on numeric limits, and for values smaller than the first bound it still falls back to the first branch's message. For example, a pattern starting at 0 can display `no files` for negative numbers. Do not use this to validate negative counts; validate input separately before formatting.
 
-### 6.1. Lựa chọn chuỗi và định dạng lồng nhau
+### 6.1. Branch Selection and Nested Formatting
 
-Có thể cho kết quả lựa chọn chứa một format element khác để chèn lại chính số đã dùng:
+A choice branch's result can contain another format element to re-insert the number itself:
 
 ```text
 {0,choice,0#no files|1#one file|1<{0,number,integer} files}
 ```
 
-Với giá trị `0`, `1`, `2`, kết quả lần lượt là `no files`, `one file`, `2 files`. `MessageFormat` có thể xử lý pattern con trong kết quả `choice` khi kết quả chứa dấu ngoặc format element; vì vậy cần đặc biệt cẩn thận với dấu nháy đơn, dấu ngoặc nhọn và chuỗi lồng nhau.
+For values `0`, `1`, and `2`, the results are `no files`, `one file`, and `2 files`, respectively. `MessageFormat` can parse a subpattern inside a `choice` result when that result contains format element braces; therefore, be especially careful with single quotes, curly braces, and nested strings.
 
-### 6.2. Khi nào choice chưa đủ?
+### 6.2. When Is `choice` Insufficient?
 
-`ChoiceFormat` là lựa chọn theo **ngưỡng số**, rất phù hợp để giải thích cơ chế chọn thông điệp, hoặc giải quyết một số trường hợp đơn giản. Tuy nhiên:
+`ChoiceFormat` selects by **numeric thresholds**, which is well-suited for explaining message selection or handling a few simple cases. However:
 
-- Quy tắc số nhiều của các ngôn ngữ có thể phụ thuộc 0, 1, 2, 3–4, nhiều lớp ngữ pháp hoặc phần thập phân, chứ không chỉ các ngưỡng cố định dễ suy luận.
-- Có ngôn ngữ cần hình thái số ít/số nhiều thay đổi theo từ vựng và loại câu.
-- `choice` không thể tự suy ra đầy đủ plural rules của mọi locale chỉ từ `Locale`.
-- Với yêu cầu i18n phức tạp, cân nhắc hệ thống message có plural/select theo locale như ICU4J; sử dụng bản dịch được kiểm thử với từng ngôn ngữ cụ thể.
+- Plural rules across languages can depend on 0, 1, 2, 3–4, multiple grammatical classes, or fractional parts, rather than simple fixed thresholds.
+- Some languages require singular/plural morphology that varies with vocabulary and sentence type.
+- `choice` cannot automatically infer full plural rules for every locale from `Locale` alone.
+- For complex i18n requirements, consider a message system with locale-aware plural/select support such as ICU4J; use translations tested with each target language.
 
-**Không mã hóa các nhánh tiếng Anh rồi cho rằng chúng đúng khi thay locale thành tiếng Việt, tiếng Nga, tiếng Ả Rập...** Nội dung của các nhánh vẫn cần dịch theo ngôn ngữ và quy tắc của sản phẩm.
+**Do not hardcode English branches and assume they remain correct when switching the locale to Vietnamese, Russian, Arabic, etc.** Branch text still needs to be translated according to the language and product rules.
 
-## 7. Ví dụ Java 17+ đầy đủ: number, date, time, choice
+## 7. Complete Java 17+ Example: `number`, `date`, `time`, `choice`
 
-Tạo tệp **`MessageFormatTypesDemo.java`** chứa nội dung dưới đây. Ví dụ chọn `Locale.US` rõ ràng và đặt timezone UTC chỉ trên các formatter ngày/giờ. Không thay đổi locale hay timezone mặc định của toàn JVM.
+Create a file **`MessageFormatTypesDemo.java`** with the following content. The example explicitly selects `Locale.US` and sets the UTC time zone only on date/time formatters. It does not mutate the JVM-wide default locale or time zone.
 
 ```java
 import java.text.DateFormat;
@@ -237,14 +237,14 @@ public class MessageFormatTypesDemo {
 }
 ```
 
-Chạy trong thư mục chứa tệp, sử dụng JDK 17 trở lên:
+Run in the directory containing the file, using JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 MessageFormatTypesDemo.java
 java MessageFormatTypesDemo
 ```
 
-**Stdout chính xác với Java 17 và dữ liệu locale thông dụng cho `Locale.US`:**
+**Exact stdout with Java 17 and standard locale data for `Locale.US`:**
 
 ```text
 count=1,234; money=$1,234.50; ratio=26%; day=1970-01-01; time=00:00:00
@@ -254,65 +254,65 @@ files-2=2 files
 You've got 2 files.
 ```
 
-Giải thích:
+Explanation:
 
-1. `count={0,number,integer}` hiển thị `1234` có dấu nhóm của `Locale.US` thành `1,234`.
-2. `money={1,number,currency}` dùng định dạng tiền của `Locale.US`, ra `$1,234.50`; không có chuyển đổi tỷ giá.
-3. `ratio={2,number,percent}` nhận `0.256`, nhân 100 rồi làm tròn theo style mặc định, thành `26%`.
-4. `day` và `time` cùng đọc `Date(0L)`, tức mốc Unix epoch, và nhờ cấu hình UTC ở từng `DateFormat` mà có `1970-01-01` và `00:00:00`.
-5. `choice` chọn nhánh dựa trên 0, 1 và lớn hơn 1; nhánh cuối có format element số lồng nhau.
-6. Mẫu `"You''ve"` sử dụng **hai dấu nháy đơn** trong pattern để tạo một dấu nháy đơn hiển thị `You've`; nếu chỉ viết một `'`, parser có thể coi phần sau là văn bản được trích dẫn và bỏ qua placeholder.
+1. `count={0,number,integer}` formats `1234` with `Locale.US` grouping as `1,234`.
+2. `money={1,number,currency}` uses `Locale.US` currency formatting, producing `$1,234.50`; no exchange rate conversion occurs.
+3. `ratio={2,number,percent}` takes `0.256`, multiplies by 100, and rounds per the default style, producing `26%`.
+4. `day` and `time` both read `Date(0L)`, the Unix epoch, and thanks to UTC configured on each `DateFormat`, yield `1970-01-01` and `00:00:00`.
+5. `choice` selects branches based on 0, 1, and greater than 1; the last branch has a nested numeric format element.
+6. The pattern `"You''ve"` uses **two single quotes** in the pattern to produce one visible apostrophe `You've`; if only one `'` were written, the parser would treat the rest as quoted text and ignore the placeholder.
 
-Đối với style số/tiền mặc định, tên tháng và quy ước CLDR, đầu ra có thể có khác biệt nhỏ giữa các bản JDK hoặc dữ liệu locale. Các trường ngày và giờ tùy chỉnh đã được cố định bằng pattern và UTC để giảm nguồn sai khác của ví dụ.
+For default number/currency styles, month names, and CLDR conventions, output may vary slightly across JDK versions or locale data. Custom date and time fields were pinned using patterns and UTC to minimize sources of variation in the example.
 
-## 8. Cú pháp dấu nháy đơn, ngoặc nhọn và dấu phẩy
+## 8. Single Quotes, Curly Braces, and Commas Syntax
 
-Trong `MessageFormat`, dấu nháy đơn `'` là ký tự quote của **ngôn ngữ pattern**, không chỉ là dấu câu bình thường:
+In `MessageFormat`, the single quote `'` is a quoting character of the **pattern language**, not merely ordinary punctuation:
 
-- Muốn in một dấu apostrophe trong literal text, viết `''` trong message pattern.
-- Muốn in dấu ngoặc nhọn như ký tự literal, cần quote phần ngoặc: `'{'` và `'}'`; không đặt một dấu `{` đơn lẻ trong message pattern nếu bạn muốn nó chỉ là văn bản.
-- Với một cặp quote không đóng, parser có thể tự xử lý phần kết thúc pattern theo quy tắc quote của nó, dẫn tới placeholder không được nhận diện. Đừng trông chờ nó tự sửa nội dung.
-- Khi pattern có định dạng lồng nhau, việc escape có thể qua nhiều lớp parser; cần test trực tiếp đầu ra mong muốn của từng locale, đặc biệt nếu pattern đến từ file dịch.
+- To print an apostrophe in literal text, write `''` in the message pattern.
+- To print curly braces as literal characters, quote the braces: `'{'` and `'}'`; do not place a bare `{` in a message pattern if you only want it as text.
+- With an unclosed quote, the parser may handle the end of the pattern per its quoting rules, causing placeholders to go unrecognized. Do not expect it to auto-correct the content.
+- When a pattern has nested formats, escaping can pass through multiple parser layers; directly test expected output for each locale, especially if patterns come from translation files.
 
-Ví dụ:
+Examples:
 
-| Pattern literal | Kết quả mong muốn |
+| Pattern literal | Desired result |
 | --- | --- |
-| `You''ve got {0} files.` | In dấu apostrophe và chèn đối số. |
-| `'{'{0}'}'` | Hiển thị dấu ngoặc nhọn bao quanh giá trị đối số. |
-| `{0,number,#,##0.00}` | Sử dụng dấu phẩy/thập phân theo **cú pháp `DecimalFormat`**, không phải tách format element sai vị trí. |
+| `You''ve got {0} files.` | Prints the apostrophe and inserts the argument. |
+| `'{'{0}'}'` | Displays curly braces surrounding the argument value. |
+| `{0,number,#,##0.00}` | Uses comma/decimal according to **`DecimalFormat` syntax**, not splitting format elements in the wrong place. |
 
-Không nên dùng nối chuỗi để “né” quote, vì nối chuỗi có thể ép thứ tự từ giống nhau ở mọi ngôn ngữ. Thiết kế thông điệp và cách escape phù hợp sẽ giữ quyền điều chỉnh câu cho người dịch.
+Do not use string concatenation to "dodge" quoting, because concatenation can force the same word order across all languages. Proper message design and escaping preserve translators' ability to adjust phrasing.
 
-## 9. Format đối số lặp, thiếu đối số và sai kiểu
+## 9. Repeated Argument Formatting, Missing Arguments, and Wrong Types
 
-### 9.1. Cùng một đối số ở nhiều format element
+### 9.1. Same Argument in Multiple Format Elements
 
-Trong mẫu:
+In the pattern:
 
 ```text
 "Date={0,date,yyyy-MM-dd}; Time={0,time,HH:mm:ss}"
 ```
 
-Đối số `0` được sử dụng **hai lần**, nhưng mỗi lần có formatter khác. Khi cần cấu hình time zone, đừng mặc định `getFormatsByArgumentIndex()[0]` đại diện cho cả hai format element; hãy dùng `getFormats()` để duyệt từng phần, hoặc cấu hình bằng `setFormat(...)` theo đúng thứ tự format element.
+Argument `0` is used **twice**, each time with a different formatter. When configuring a time zone, do not assume `getFormatsByArgumentIndex()[0]` represents both format elements; use `getFormats()` to iterate over every element, or configure via `setFormat(...)` in format element order.
 
-### 9.2. Thiếu đối số
+### 9.2. Missing Arguments
 
-`MessageFormat` yêu cầu các index khớp mảng đối số. Nếu index được tham chiếu trong pattern nhưng mảng không có đối số tương ứng, việc hiển thị placeholder chưa được thay thế có thể xảy ra. Đừng coi đó là một cách fallback bản dịch an toàn. Test tính đầy đủ của tham số và quản lý key/argument contract trong ứng dụng.
+`MessageFormat` expects indices to match the argument array. If an index is referenced in the pattern but missing from the array, an unsubstituted placeholder may be displayed. Do not treat that as a safe translation fallback. Test argument completeness and manage key/argument contracts in the application.
 
-### 9.3. Sai kiểu
+### 9.3. Wrong Types
 
-Nếu pattern yêu cầu `number` nhưng truyền `String` không phải `Number`, hoặc yêu cầu `date` nhưng truyền đối tượng không hợp lệ, formatter có thể ném `IllegalArgumentException`. Ví dụ trong code review, hãy phân biệt ba lỗi:
+If a pattern expects `number` but a non-numeric `String` is passed, or expects `date` but an invalid object is passed, the formatter may throw `IllegalArgumentException`. During code review, distinguish three errors:
 
-- Lỗi thiếu khóa dịch (`MissingResourceException`) khi nạp thông điệp từ bundle.
-- Lỗi pattern không hợp lệ khi tạo hoặc `applyPattern`.
-- Lỗi giá trị đối số không tương thích lúc gọi `format`.
+- Missing translation key (`MissingResourceException`) when loading a message from a bundle.
+- Invalid pattern syntax when constructing or calling `applyPattern`.
+- Incompatible argument value when calling `format`.
 
-Các lỗi này cần biện pháp sửa khác nhau; tránh bắt chung rồi trả chuỗi trống làm mất thông tin.
+These errors require different fixes; avoid catching them generically and returning an empty string that discards diagnostic information.
 
-## 10. Tích hợp với ResourceBundle và dữ liệu nghiệp vụ
+## 10. Integration with ResourceBundle and Business Data
 
-Thông thường bạn lưu từng pattern theo key:
+Typically you store each pattern by key:
 
 ```properties
 cart.summary=You have {0,number,integer} items.
@@ -320,7 +320,7 @@ invoice.paidAt=Paid at {0,date,short} {0,time,short}.
 file.count={0,choice,0#No files|1#One file|1<{0,number,integer} files}
 ```
 
-Sau khi tải một `ResourceBundle`, dùng chính locale đã chọn cho `MessageFormat`:
+After loading a `ResourceBundle`, pass the exact chosen locale to `MessageFormat`:
 
 ```java
 Locale locale = Locale.US;
@@ -331,66 +331,66 @@ MessageFormat message =
 String result = message.format(new Object[] {3});
 ```
 
-Đoạn này cần tệp resource và import `ResourceBundle`, `Locale`, `MessageFormat` để chạy trong chương trình thực.
+This snippet needs the resource file and imports for `ResourceBundle`, `Locale`, and `MessageFormat` to run in a real program.
 
-Lưu ý khi ứng dụng dùng bundle fallback: bundle được nạp có thể là bản gốc hoặc bundle cha; chuỗi pattern cần đúng ngữ pháp `MessageFormat` cho ngôn ngữ của bản dịch ấy. Cùng một key ở các locale khác nhau có thể đổi thứ tự đối số (ví dụ `{1}` xuất hiện trước `{0}`), nhưng **vẫn phải giữ hợp đồng kiểu và ý nghĩa đối số**. Đừng giả định chỉ vì pattern ở hai locale dùng cùng index thì mô tả ngữ pháp đã chính xác.
+Be mindful when the application uses bundle fallback: the loaded bundle may be the root or a parent bundle; the pattern string must satisfy `MessageFormat` grammar for that translation's language. The same key across different locales may reorder arguments (e.g., `{1}` appearing before `{0}`), yet **must still preserve the type and semantic contract of arguments**. Do not assume that just because patterns in two locales use the same indices, the grammar is right.
 
-Với dữ liệu thời gian trong nghiệp vụ hiện đại, lưu `Instant`, `LocalDate` hoặc `ZonedDateTime` theo ngữ nghĩa thật; ở tầng trình bày, chuyển về đối số phù hợp hoặc format bằng `java.time` rồi dùng `MessageFormat` để ghép thông điệp. Ngôn ngữ (locale) và múi giờ (zone) là hai lựa chọn khác nhau; truyền tường minh để tránh phụ thuộc cấu hình máy chủ.
+For temporal data in modern business logic, store `Instant`, `LocalDate`, or `ZonedDateTime` according to true semantics; at the presentation layer, convert to a compatible argument or format with `java.time` and use `MessageFormat` to assemble the message. Language (`locale`) and time zone (`zone`) are two distinct choices; pass them explicitly to avoid relying on server configuration.
 
-## 11. Lưu ý hiệu năng, phân tích ngược và kiểm thử
+## 11. Performance, Reverse Parsing, and Testing Notes
 
-- `MessageFormat` lưu cấu trúc pattern và các formatter thành phần; nếu lặp hàng nghìn lần với cùng mẫu, có thể chuẩn bị và tái sử dụng theo cách **có kiểm soát trạng thái/concurrency**. Không sửa cùng instance từ nhiều thread.
-- `MessageFormat.parse(...)` không phải phương pháp tổng quát, đáng tin cho mọi chuỗi đã format, nhất là khi có `choice`, văn bản lặp, định dạng phụ thuộc locale hay format lồng nhau. Dùng parser có hợp đồng dữ liệu rõ ràng cho input của người dùng.
-- Pattern trong bundle có thể bị thay đổi bởi người dịch; khi đưa vào CI, cần kiểm tra cân bằng ngoặc/quote, chỉ số tham số và sự tương thích kiểu giữa các locale.
-- Với `choice`, phải test tại ngưỡng **dưới, đúng bằng, trên** giới hạn; đồng thời test số âm, số thập phân và số lớn theo domain thực tế.
-- Test `date/time` với timezone cố định và ngày biên (gần nửa đêm, chuyển ngày). Không dùng định dạng hiển thị làm khóa dữ liệu nghiệp vụ hoặc chuẩn trao đổi API.
-- Đừng giả định timezone sẽ thay đổi chỉ vì `Locale` thay đổi; `DateFormat` và `TimeZone` là những cơ chế riêng.
+- `MessageFormat` stores the parsed pattern structure and component formatters; if formatting thousands of times with the same pattern, you can prepare and reuse it in a **state- and concurrency-controlled** way. Do not mutate the same instance from multiple threads.
+- `MessageFormat.parse(...)` is not a reliable general-purpose parser for every formatted string, especially with `choice`, repeated text, locale-dependent formatting, or nested formats. Use a parser with an explicit data contract for user input.
+- Patterns in bundles may be edited by translators; in CI, validate brace/quote balance, parameter indices, and type compatibility across locales.
+- With `choice`, test **below, equal to, and above** each threshold; also test negative numbers, decimals, and large numbers per real domain expectations.
+- Test `date/time` with a fixed time zone and boundary dates (near midnight, date rollovers). Do not use display formatting as a business data key or API exchange format.
+- Do not assume the time zone changes just because `Locale` changes; `DateFormat` and `TimeZone` are separate mechanisms.
 
-### Ma trận kiểm thử gợi ý
+### Suggested Test Matrix
 
-| Trường hợp | Kỳ vọng |
+| Case | Expectation |
 | --- | --- |
-| `{0,number,integer}` với `1234` | Grouping theo locale, đúng số nguyên. |
-| `{0,number,percent}` với `0.256` | Hiển thị phần trăm theo format, không thay đổi số nguồn. |
-| `{0,number,currency}` | Có ký hiệu/kiểu tiền phù hợp và currency nghiệp vụ được kiểm soát. |
-| `{0,date,short}`, `{0,time,short}` | Kết quả theo locale/zone tường minh. |
-| `choice` với `0, 1, 2` | Chọn đúng nhánh ranh giới. |
-| `choice` với `-1, 1.5` | Nhận diện hành vi ngoài domain, validate input trước. |
-| Apostrophe trong pattern | Literal `'` được in, placeholder vẫn hoạt động. |
-| Thiếu đối số hoặc sai kiểu | Test phát hiện hành vi lỗi; không coi là chuỗi dịch hoàn chỉnh. |
-| Cùng index xuất hiện nhiều lần | Mỗi format element được cấu hình đúng. |
+| `{0,number,integer}` with `1234` | Locale-appropriate grouping, accurate integer. |
+| `{0,number,percent}` with `0.256` | Formatted percentage display without altering source number. |
+| `{0,number,currency}` | Appropriate currency symbol/style and controlled business currency. |
+| `{0,date,short}`, `{0,time,short}` | Output matching explicit locale/zone. |
+| `choice` with `0, 1, 2` | Selects exact boundary branch. |
+| `choice` with `-1, 1.5` | Identifies out-of-domain behavior, validates input beforehand. |
+| Apostrophes in pattern | Literal `'` is printed, placeholders still work. |
+| Missing argument or wrong type | Tests detect failure behavior; not treated as a complete translated string. |
+| Same index appearing multiple times | Each format element is configured properly. |
 
-## 12. Lỗi thường gặp và cách khắc phục
+## 12. Common Pitfalls and Fixes
 
-| Sai lầm | Vì sao gây vấn đề | Cách làm |
+| Mistake | Why it causes issues | What to do |
 | --- | --- | --- |
-| Dùng `{0,number,percent}` với giá trị `25` để biểu diễn 25% | Formatter nhân 100, gây lệch đơn vị. | Lưu tỷ lệ `0.25` hoặc chọn formatter khác theo domain. |
-| Coi `{0,number,currency}` tự biết currency giao dịch | Locale không nhất thiết là mã tiền của nghiệp vụ. | Gắn `Currency` thực và định dạng rõ ràng. |
-| Truyền `LocalDate` trực tiếp vào `{0,date}` | `DateFormat` dùng API kiểu `Date`, không tự hỗ trợ toàn bộ `java.time`. | Dùng `DateTimeFormatter` hoặc chuyển đổi có zone phù hợp. |
-| Quên timezone khi format `Date(0L)` | Mỗi JVM có thể hiển thị giờ/ngày khác. | Cấu hình `DateFormat.setTimeZone(...)` tường minh. |
-| Viết `You've {0}` trong pattern | Một dấu `'` có ý nghĩa quote, khiến placeholder bị hiểu sai. | Viết `You''ve {0}`. |
-| Mặc định `choice` xử lý plural toàn thế giới | Quy tắc số nhiều có thể phức tạp theo locale. | Dùng cơ chế plural phù hợp ngôn ngữ khi cần. |
-| Không test số âm dưới nhánh đầu của `choice` | Vẫn có thể chọn nhánh đầu, trả câu sai nghĩa. | Validate miền giá trị trước khi format. |
-| Cấu hình timezone qua `getFormatsByArgumentIndex()` khi cùng index lặp | Có thể bỏ sót các format element khác nhau. | Duyệt `getFormats()` hoặc gắn format theo từng occurrence. |
-| Dùng static `MessageFormat.format(...)` trong test phụ thuộc locale | Có thể lấy default `FORMAT` từ JVM. | Khởi tạo `MessageFormat(pattern, locale)`. |
-| Dùng chung mutable formatter giữa request | Nguy cơ lỗi concurrency và trạng thái chéo. | Tạo mới hoặc dùng chiến lược clone/đồng bộ an toàn. |
+| Using `{0,number,percent}` with `25` to represent 25% | Formatter multiplies by 100, skewing units. | Store ratio `0.25` or choose another domain formatter. |
+| Assuming `{0,number,currency}` knows the transaction currency | Locale is not necessarily the business currency code. | Attach the actual `Currency` and format explicitly. |
+| Passing `LocalDate` directly to `{0,date}` | `DateFormat` uses `Date`-based APIs, not automatically supporting all `java.time` types. | Use `DateTimeFormatter` or convert with an appropriate zone. |
+| Forgetting time zone when formatting `Date(0L)` | Different JVMs may display different dates/times. | Configure `DateFormat.setTimeZone(...)` explicitly. |
+| Writing `You've {0}` in a pattern | Single `'` acts as a quote, causing placeholders to be misparsed. | Write `You''ve {0}`. |
+| Assuming `choice` handles all global plurals | Plural rules can be complex per locale. | Use a language-appropriate plural mechanism when needed. |
+| Not testing negative numbers below `choice`'s first branch | Still selects the first branch, producing nonsensical text. | Validate value domain before formatting. |
+| Configuring time zone via `getFormatsByArgumentIndex()` when index repeats | Can miss distinct format elements. | Iterate `getFormats()` or configure per occurrence. |
+| Using static `MessageFormat.format(...)` in locale-sensitive tests | Can pick up the JVM's default `FORMAT` locale. | Instantiate `MessageFormat(pattern, locale)`. |
+| Sharing mutable formatters across requests | Risk of concurrency bugs and cross-request state leakage. | Create per use or apply safe cloning/synchronization. |
 
-## 13. Bài tập tự luyện
+## 13. Self-Practice Exercises
 
-**Bài 1 — So sánh kiểu số:** truyền `1234.567` và `0.256` vào các pattern `number`, `integer`, `currency` và `percent`. Thử `Locale.US` và `Locale.forLanguageTag("vi-VN")`; ghi lại khác biệt về grouping, decimal separator, ký hiệu tiền và kết quả làm tròn. Không sửa giá trị nguồn để khớp chuỗi hiển thị.
+**Exercise 1 — Comparing numeric types:** pass `1234.567` and `0.256` into `number`, `integer`, `currency`, and `percent` patterns. Try `Locale.US` and `Locale.forLanguageTag("vi-VN")`; record differences in grouping, decimal separator, currency symbol, and rounding results. Do not alter source values to match display strings.
 
-**Bài 2 — Múi giờ:** cho `Instant.parse("2026-01-01T00:00:00Z")`. Tạo `Date.from(instant)` rồi format theo UTC và `Asia/Ho_Chi_Minh`; giải thích sự khác biệt giữa hai output mà không thay đổi `Instant`. Thử xem ngày địa phương có thể khác khi đổi timezone.
+**Exercise 2 — Time zones:** given `Instant.parse("2026-01-01T00:00:00Z")`. Create `Date.from(instant)` and format in UTC and `Asia/Ho_Chi_Minh`; explain the difference between the two outputs without changing the `Instant`. Observe how the local calendar date can differ when changing time zones.
 
-**Bài 3 — Choice boundaries:** viết pattern cho mức tồn kho: 0 = hết, 1 = còn một, lớn hơn 1 = còn N. Test `0`, `1`, `2`, `-1` và `1.5`. Phân biệt trách nhiệm **chọn thông điệp** với trách nhiệm **kiểm tra dữ liệu hợp lệ**.
+**Exercise 3 — Choice boundaries:** write a pattern for inventory levels: 0 = out of stock, 1 = one left, greater than 1 = N left. Test `0`, `1`, `2`, `-1`, and `1.5`. Distinguish the responsibility of **message selection** from **validating valid input**.
 
-**Bài 4 — Apostrophe và literal braces:** tạo thông điệp có dấu `'` và dấu ngoặc nhọn literal, vẫn chèn được `{0,number,integer}`. Test output chính xác, đặc biệt khi pattern đến từ file `.properties`.
+**Exercise 4 — Apostrophes and literal braces:** create a message containing `'` and literal curly braces while still inserting `{0,number,integer}`. Verify exact output, especially when the pattern comes from a `.properties` file.
 
-**Bài 5 — Bundle theo ngôn ngữ:** tạo `messages_en.properties` và `messages_vi.properties` với cùng key nhưng thứ tự tham số khác nhau. Tải bundle theo locale, format hai kiểu số/ngày và kiểm tra hợp đồng tham số ở cả hai. Nếu ngôn ngữ yêu cầu plural phức tạp, mô tả lý do nên chuyển sang giải pháp plural theo locale.
+**Exercise 5 — Per-language bundles:** create `messages_en.properties` and `messages_vi.properties` with the same key but different parameter ordering. Load the bundle by locale, format two number/date types, and verify the parameter contract in both. If a language requires complex plurals, explain why you should move to a locale-aware plural solution.
 
-### Ghi nhớ
+### Takeaway
 
-- `number` định dạng số, số nguyên, currency, percent hoặc pattern DecimalFormat riêng.
-- `date` và `time` dùng DateFormat với locale và timezone; đối số thường là `java.util.Date`.
-- `choice` chọn một nhánh theo ngưỡng số; `#` bao gồm ngưỡng, `<` loại trừ ngưỡng.
-- `Locale` điều khiển cách trình bày; timezone, currency giao dịch và quy tắc nghiệp vụ cần kiểm soát riêng.
-- Dùng một hoặc hai dấu `'` trong pattern sai chỗ có thể thay đổi nghĩa toàn bộ thông điệp; phải kiểm thử chuỗi thực tế.
+- `number` formats numbers, integers, currency, percentages, or custom `DecimalFormat` patterns.
+- `date` and `time` use `DateFormat` with locale and time zone; arguments are typically `java.util.Date`.
+- `choice` selects a branch by numeric thresholds; `#` includes the threshold, `<` excludes it.
+- `Locale` controls presentation; time zone, transaction currency, and business validation rules require separate control.
+- Misplacing one or two `'` characters in a pattern can alter the meaning of the entire message; always test actual formatted strings.

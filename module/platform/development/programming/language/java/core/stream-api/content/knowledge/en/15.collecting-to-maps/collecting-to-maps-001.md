@@ -1,14 +1,14 @@
-# Chuyển Stream thành Map bằng Collectors.toMap
+# Converting a Stream to a Map with Collectors.toMap
 
-Trong chương **Thu thập thành Map** của **Java Stream API**, nhiều bài toán cần biến một dãy đối tượng thành cấu trúc tra cứu theo khóa: mã sản phẩm → sản phẩm, mã nhân viên → tên, mã khách hàng → tổng doanh thu. `Collectors.toMap` là collector dùng để tạo `Map<K, V>` từ các phần tử của một Stream bằng cách xác định **khóa** và **giá trị** cho từng phần tử.
+In the **Collecting to Maps** chapter of the **Java Stream API**, many problems require turning a sequence of objects into a key-based lookup structure: product code → product, employee ID → name, customer ID → total revenue. `Collectors.toMap` is the collector used to create a `Map<K, V>` from the elements of a Stream by specifying a **key** and a **value** for each element.
 
-Điểm phải thiết kế trước là **khóa có duy nhất không**. Nếu nhiều phần tử tạo cùng một khóa, phiên bản `toMap` đơn giản sẽ ném ngoại lệ; khi đó phải chọn chính sách xử lý xung đột, hoặc chuyển sang collector nhóm nhiều giá trị như `groupingBy`. Những vấn đề khác cũng quan trọng: kiểu `Map` cần nhận, quy tắc thứ tự, xử lý `null`, an toàn khi chạy song song và chi phí giữ dữ liệu trong bộ nhớ.
+The first design point to decide is **whether keys are unique**. If multiple elements produce the same key, the simple `toMap` version throws an exception; in that case, you must choose a conflict-handling policy or switch to a multi-value grouping collector such as `groupingBy`. Other aspects are equally important: the desired `Map` type, ordering rules, `null` handling, safety in parallel execution, and the cost of keeping data in memory.
 
-Bài này xây dựng từ ví dụ cơ bản đến xử lý khóa trùng, tổng hợp dữ liệu và thiết kế collector theo hợp đồng nghiệp vụ.
+This lesson builds from basic examples to handling duplicate keys, aggregating data, and designing collectors according to business contracts.
 
-## 1. Bài toán: tra cứu nhanh theo khóa
+## 1. The Problem: Fast Key-Based Lookup
 
-Giả sử dữ liệu đầu vào là một `List<Product>`. Mỗi sản phẩm có một mã `sku` duy nhất; hệ thống thường xuyên cần tìm giá bán theo mã.
+Suppose the input data is a `List<Product>`. Each product has a unique `sku` code; the system frequently needs to look up the selling price by code.
 
 ~~~java
 import java.math.BigDecimal;
@@ -22,9 +22,9 @@ public class ProductIndexDemo {
 
     public static void main(String[] args) {
         List<Product> products = List.of(
-                new Product("PEN", "Bút", new BigDecimal("12000")),
-                new Product("BOOK", "Sách", new BigDecimal("50000")),
-                new Product("BAG", "Túi", new BigDecimal("95000"))
+                new Product("PEN", "Pen", new BigDecimal("12000")),
+                new Product("BOOK", "Book", new BigDecimal("50000")),
+                new Product("BAG", "Bag", new BigDecimal("95000"))
         );
 
         Map<String, BigDecimal> priceBySku = products.stream()
@@ -40,20 +40,20 @@ public class ProductIndexDemo {
 }
 ~~~
 
-Trong pipeline này:
+In this pipeline:
 
-1. `products.stream()` tạo Stream các `Product`.
-2. `Product::sku` là **key mapper**: mỗi sản phẩm sinh một khóa kiểu `String`.
-3. `Product::price` là **value mapper**: mỗi sản phẩm sinh một giá trị kiểu `BigDecimal`.
-4. `collect(Collectors.toMap(...))` là **terminal operation**: nó kích hoạt pipeline, tích lũy các cặp khóa–giá trị và trả về `Map<String, BigDecimal>`.
+1. `products.stream()` creates a Stream of `Product`.
+2. `Product::sku` is the **key mapper**: each product produces a key of type `String`.
+3. `Product::price` is the **value mapper**: each product produces a value of type `BigDecimal`.
+4. `collect(Collectors.toMap(...))` is the **terminal operation**: it triggers the pipeline, accumulates key–value pairs, and returns a `Map<String, BigDecimal>`.
 
-Sau khi thu thập, có thể dùng `get(key)`, `containsKey(key)` và các phương thức `Map` thông thường. Dù vậy, `Map` không phải bản sao tự động của toàn bộ đối tượng nguồn: trong ví dụ nó chỉ giữ mã và giá.
+After collecting, you can use `get(key)`, `containsKey(key)`, and regular `Map` methods. However, the `Map` is not an automatic copy of the entire source object: in the example, it only stores the code and the price.
 
-> **Điều kiện ngầm của overload hai tham số:** Mỗi khóa phải xuất hiện tối đa một lần trong kết quả ánh xạ. `toMap` không tự động chọn giá trị đầu tiên hoặc giá trị cuối cùng khi khóa trùng.
+> **Implicit precondition of the two-argument overload:** Each key must appear at most once in the mapped result. `toMap` does not automatically pick the first or last value when keys collide.
 
-## 2. Hiểu vai trò của key mapper và value mapper
+## 2. Understanding the Roles of keyMapper and valueMapper
 
-Chữ ký khái quát của overload cơ bản là:
+The general signature of the basic overload is:
 
 ~~~java
 static <T, K, U> Collector<T, ?, Map<K, U>> toMap(
@@ -61,25 +61,25 @@ static <T, K, U> Collector<T, ?, Map<K, U>> toMap(
         Function<? super T, ? extends U> valueMapper)
 ~~~
 
-Ở đây:
+Here:
 
-| Thành phần | Ý nghĩa | Trong ví dụ |
+| Component | Meaning | In the example |
 | --- | --- | --- |
-| `T` | Kiểu phần tử Stream | `Product` |
-| `K` | Kiểu khóa của Map | `String` |
-| `U` | Kiểu giá trị của Map | `BigDecimal` |
-| `keyMapper` | Hàm chuyển `T -> K` | `Product::sku` |
-| `valueMapper` | Hàm chuyển `T -> U` | `Product::price` |
-| Kết quả | Collector tạo `Map<K, U>` | `Map<String, BigDecimal>` |
+| `T` | Stream element type | `Product` |
+| `K` | Map key type | `String` |
+| `U` | Map value type | `BigDecimal` |
+| `keyMapper` | Function mapping `T -> K` | `Product::sku` |
+| `valueMapper` | Function mapping `T -> U` | `Product::price` |
+| Result | Collector creating `Map<K, U>` | `Map<String, BigDecimal>` |
 
-Hai hàm ánh xạ **không bắt buộc trả chính phần tử đầu vào**. Chẳng hạn, lập chỉ mục toàn bộ đối tượng theo mã:
+The two mapping functions **do not have to return fields of the input element** (they can return the input element itself). For example, indexing the whole object by code:
 
 ~~~java
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-// products có kiểu List<Product>.
+// products has type List<Product>.
 Map<String, Product> bySku = products.stream()
         .collect(Collectors.toMap(
                 Product::sku,
@@ -89,9 +89,9 @@ Map<String, Product> bySku = products.stream()
 Product book = bySku.get("BOOK");
 ~~~
 
-`Function.identity()` trả về chính phần tử nhận vào, nhờ vậy giá trị của Map là `Product`. Cách làm này thích hợp khi cần tìm cả đối tượng bằng khóa. Tuy nhiên, Map vẫn giữ tham chiếu đến `Product` gốc; nó không tự sao chép sâu các trường dữ liệu.
+`Function.identity()` returns the input element itself, so the Map value is `Product`. This approach is suitable when you need to look up the entire object by key. However, the Map still holds references to the original `Product` instances; it does not automatically deep-copy data fields.
 
-Khóa cũng có thể là một loại khác, chẳng hạn số nguyên:
+Keys can also be another type, such as integers:
 
 ~~~java
 record Worker(int id, String name) {}
@@ -103,38 +103,38 @@ Map<Integer, String> nameById = workers.stream()
         ));
 ~~~
 
-Đoạn ví dụ giả định `workers` là một collection các `Worker`. Dạng mã này dễ đọc khi mỗi ID là duy nhất và giá trị không `null`.
+The snippet assumes `workers` is a collection of `Worker`. This form is easy to read when each ID is unique and values are non-`null`.
 
-## 3. Bốn dạng toMap cần nhớ
+## 3. Four toMap Forms to Remember
 
-`Collectors` có bốn overload chính của `toMap`:
+`Collectors` has four key map-related forms to keep in mind for `toMap`:
 
 ~~~java
-// 1. Khóa phải duy nhất.
+// 1. Keys must be unique.
 toMap(keyMapper, valueMapper)
 
-// 2. Tự xử lý khi hai phần tử sinh cùng khóa.
+// 2. Custom handling when two elements produce the same key.
 toMap(keyMapper, valueMapper, mergeFunction)
 
-// 3. Xử lý khóa trùng và chọn cách tạo Map kết quả.
+// 3. Handle duplicate keys and choose how to create the result Map.
 toMap(keyMapper, valueMapper, mergeFunction, mapFactory)
 ~~~
 
-Ba dòng trên là ba **cách gọi** (overload) thông dụng; thực tế `Collectors.toMap` có **ba overload**, theo chữ ký Java 8 trở lên. Mỗi overload sau bổ sung một chính sách rõ ràng.
+The three lines above are the three common **call forms** (overloads); in practice `Collectors.toMap` has **three overloads**, according to the Java 8+ signatures. Each subsequent overload adds an explicit policy.
 
-| Overload | Khi nào dùng | Yêu cầu cần chú ý |
+| Overload | When to use | Requirement to watch |
 | --- | --- | --- |
-| `toMap(k, v)` | Khóa đã duy nhất theo hợp đồng | Khóa trùng gây `IllegalStateException`. |
-| `toMap(k, v, merge)` | Có thể trùng khóa; cần gộp/chọn giá trị | Hàm gộp phải diễn đạt đúng nghiệp vụ. |
-| `toMap(k, v, merge, factory)` | Cần thêm loại Map cụ thể | Factory tạo Map mới, ví dụ `LinkedHashMap::new` hoặc `TreeMap::new`. |
+| `toMap(k, v)` | Keys are already unique by contract | Duplicate keys throw `IllegalStateException`. |
+| `toMap(k, v, merge)` | Keys may collide; need to merge/pick a value | The merge function must express the business rule accurately. |
+| `toMap(k, v, merge, factory)` | Also need a specific Map type | The factory creates a new Map, e.g. `LinkedHashMap::new` or `TreeMap::new`. |
 
-Mặc định, đặc tả của `toMap` **không bảo đảm** loại Map, khả năng sửa đổi, tính serializable hay thread-safety của kết quả. Không nên thiết kế logic phụ thuộc vào việc một bản JDK hiện trả về `HashMap`.
+By default, the `toMap` specification **makes no guarantees** about the type, mutability, serializability, or thread-safety of the returned Map. Do not design logic that depends on a current JDK version returning a `HashMap`.
 
-> **Chú ý:** `Collectors.toUnmodifiableMap` và `Collectors.toConcurrentMap` là **các factory collector khác**, không phải overload bổ sung của `Collectors.toMap`. Chúng có hợp đồng riêng về tính không sửa đổi hoặc khả năng thu thập đồng thời.
+> **Note:** `Collectors.toUnmodifiableMap` and `Collectors.toConcurrentMap` are **separate collector factories**, not additional overloads of `Collectors.toMap`. They have their own contracts regarding unmodifiability or concurrent collection.
 
-## 4. Khóa trùng: lỗi quan trọng nhất khi dùng toMap
+## 4. Duplicate Keys: The Most Important Error When Using toMap
 
-Một tập dữ liệu hợp lệ về mặt nghiệp vụ vẫn có thể chứa nhiều dòng chung mã sản phẩm:
+A business-valid dataset can still contain multiple lines sharing the same product code:
 
 ~~~java
 import java.util.List;
@@ -152,14 +152,14 @@ var quantityBySku = lines.stream()
         .collect(Collectors.toMap(
                 Item::sku,
                 Item::quantity
-        )); // IllegalStateException vì PEN xuất hiện hai lần.
+        )); // IllegalStateException because PEN appears twice.
 ~~~
 
-Hai dòng `PEN` đều sinh khóa `"PEN"`. Overload hai tham số **không tự ghi đè** giá trị cũ bằng giá trị mới; nó từ chối khóa trùng.
+Both `PEN` lines produce the key `"PEN"`. The two-argument overload **does not automatically overwrite** the old value with the new one; it rejects duplicate keys.
 
-Thông báo thường có nội dung kiểu `Duplicate key ...`, nhưng chi tiết của chuỗi lỗi có thể khác theo phiên bản JDK. Điều quan trọng là điều kiện trùng khóa, được xác định theo cách Map so sánh khóa, thường dựa trên `equals` và `hashCode`.
+The message usually looks like `Duplicate key ...`, though the exact wording of the error string may vary by JDK version. What matters is the duplicate-key condition, which is determined by how the Map compares keys, typically based on `equals` and `hashCode`.
 
-Ngay cả khi **hai giá trị bằng nhau**, khóa trùng vẫn vi phạm hợp đồng overload này:
+Even when **two values are equal**, a duplicate key still violates this overload's contract:
 
 ~~~java
 List<Item> same = List.of(
@@ -167,27 +167,27 @@ List<Item> same = List.of(
         new Item("PEN", 2)
 );
 
-// Vẫn báo duplicate key; không tự gộp chỉ vì cả hai quantity đều là 2.
+// Still reports duplicate key; does not auto-merge just because both quantities are 2.
 same.stream().collect(Collectors.toMap(Item::sku, Item::quantity));
 ~~~
 
-Nếu khóa phải duy nhất nhưng dữ liệu có trùng, ngoại lệ có thể là tín hiệu cần thiết để phát hiện dữ liệu không hợp lệ. Đừng vội bổ sung merge function chỉ để “cho chương trình chạy qua” nếu nghiệp vụ yêu cầu khóa duy nhất.
+If keys are supposed to be unique yet the data contains duplicates, the exception can be a necessary signal to detect invalid data. Do not rush to add a merge function just to "make the program run" if the business domain requires unique keys.
 
-## 5. Dùng mergeFunction để quyết định giá trị khi khóa trùng
+## 5. Using mergeFunction to Decide the Value on Duplicate Keys
 
-Overload ba tham số nhận thêm một `BinaryOperator<U>`:
+The three-argument overload accepts an additional `BinaryOperator<U>`:
 
 ~~~java
 toMap(keyMapper, valueMapper, mergeFunction)
 ~~~
 
-Khi khóa đã có giá trị, collector gọi hàm gộp với **giá trị đã tích lũy** và **giá trị mới**:
+When a key already has a value, the collector invokes the merge function with the **accumulated value** and the **incoming value**:
 
 ~~~text
 merge(oldValue, incomingValue) -> mergedValue
 ~~~
 
-### 5.1. Cộng số lượng cho các mã sản phẩm trùng
+### 5.1. Summing quantities for duplicate product codes
 
 ~~~java
 import java.util.List;
@@ -213,9 +213,9 @@ System.out.println(quantityBySku.get("PEN"));  // 5
 System.out.println(quantityBySku.get("BOOK")); // 1
 ~~~
 
-`Integer::sum` gộp `2` và `3` thành `5`. Quy tắc này có tính kết hợp với phép cộng số nguyên theo ngữ nghĩa Java, nên thích hợp khi các kết quả trung gian được ghép trong parallel stream. Với dữ liệu thực, cần cân nhắc tràn `int`; nếu tổng có thể lớn hơn giới hạn, dùng `long` hoặc kiểu số thích hợp.
+`Integer::sum` merges `2` and `3` into `5`. This rule is associative under Java integer addition semantics, making it suitable when intermediate results are combined in a parallel stream. With real-world data, consider `int` overflow; if the sum may exceed the limit, use `long` or an appropriate numeric type.
 
-### 5.2. Chọn giá trị đầu hoặc cuối trong luồng có thứ tự
+### 5.2. Picking the first or last value in an ordered stream
 
 ~~~java
 import java.util.List;
@@ -248,9 +248,9 @@ System.out.println(keepFirst.get("E-1")); // NEW
 System.out.println(keepLast.get("E-1"));  // CHECKED
 ~~~
 
-Trên ví dụ **tuần tự từ List có thứ tự**, hai hàm trên thể hiện cách chọn giá trị của lần xuất hiện đầu tiên hoặc cuối cùng. Với dữ liệu **không có thứ tự encounter order**, khái niệm “đầu” và “cuối” không được xác định ổn định; không dùng cách đó khi nghiệp vụ cần bản ghi mới nhất theo thời gian.
+In the **sequential example from an ordered List**, the two functions above illustrate picking the first or last occurrence. For data **without an encounter order**, the notions of "first" and "last" are not stably defined; do not use that approach when the business logic requires the latest record by time.
 
-Nếu muốn bản ghi có thời gian mới nhất, hãy **so sánh bằng timestamp thực**:
+If you want the record with the most recent time, **compare using the actual timestamp**:
 
 ~~~java
 import java.time.Instant;
@@ -267,11 +267,11 @@ Map<String, StatusEvent> latest = statusEvents.stream()
         ));
 ~~~
 
-Đoạn trên giả định `statusEvents` là tập `StatusEvent` và các timestamp hợp lệ. Nếu hai thời điểm bằng nhau, ví dụ chọn `b`; trong hệ thống thật, cần thêm quy tắc phá hòa ổn định như sequence hoặc ID sự kiện để kết quả không phụ thuộc cách kết hợp.
+The snippet above assumes `statusEvents` is a collection of `StatusEvent` with valid timestamps. If two timestamps are equal, the example picks `b`; in a real system, add a deterministic tie-breaker such as a sequence number or event ID so the result does not depend on combination order.
 
-### 5.3. Chọn lớn nhất hoặc cộng tiền
+### 5.3. Picking the maximum or summing monetary amounts
 
-Khi giá trị có kiểu `BigDecimal`, có thể gộp bằng phép cộng chính xác:
+When values have type `BigDecimal`, you can merge using exact addition:
 
 ~~~java
 import java.math.BigDecimal;
@@ -287,21 +287,21 @@ Map<String, BigDecimal> amountBySku = sales.stream()
         ));
 ~~~
 
-Ở đây `sales` là tập các `Sale` với `sku()`, `quantity()`, `unitPrice()`. Cách này tổng hợp tiền theo từng mã sản phẩm: mỗi phần tử ánh xạ thành một khoản tiền, sau đó gộp các khoản có cùng khóa.
+Here `sales` is a collection of `Sale` with `sku()`, `quantity()`, and `unitPrice()`. This aggregates monetary amounts by product code: each element maps to an amount, then amounts with the same key are merged.
 
-Nếu cần làm tròn tiền, hãy xác định **điểm làm tròn theo nghiệp vụ**. Không tự đưa `setScale` vào merge function sau mỗi phép cộng nếu mục tiêu là cộng chính xác rồi làm tròn một lần, vì làm tròn trung gian có thể làm kết quả phụ thuộc thứ tự ghép.
+If monetary rounding is required, define the **rounding point according to business rules**. Do not insert `setScale` into the merge function after every addition if the goal is exact summation followed by a single rounding step, because intermediate rounding can make the result depend on combination order.
 
-## 6. Quy tắc kỹ thuật của mergeFunction
+## 6. Engineering Rules for mergeFunction
 
-Hàm merge không chỉ giải quyết ngoại lệ; nó xác định **ý nghĩa dữ liệu khi nhiều phần tử cùng khóa**.
+A merge function does more than prevent an exception; it defines the **data semantics when multiple elements share a key**.
 
-- **Phù hợp với nghiệp vụ:** cộng số lượng, lấy giá lớn nhất, lấy bản ghi mới nhất theo timestamp hoặc chấp nhận trùng đều là những chính sách khác nhau.
-- **Tránh side effect:** đừng thay đổi một biến đếm, danh sách hoặc Map bên ngoài trong merge function; cách phân chia và ghép pipeline có thể khác giữa chạy tuần tự và song song.
-- **Ưu tiên phép kết hợp:** cộng, lấy min/max theo một thứ tự so sánh xác định thường thích hợp hơn các thao tác phụ thuộc vào tổng chạy trước đó. Điều này giúp kết quả ổn định khi Collector ghép các Map trung gian.
-- **Nhận biết hợp đồng `Map.merge`:** nếu merge function trả về `null`, ánh xạ của khóa liên quan có thể bị xóa. Không dùng `null` như một giá trị “bỏ qua” nếu mục tiêu là giữ lại khóa.
-- **Không đánh đồng thứ tự với tính đúng:** hàm `(a, b) -> a` có thể có ý nghĩa “giữ phần tử đầu” trên nguồn có thứ tự; hàm đó không giải quyết bài toán “bản ghi có thời gian mới nhất” nếu nguồn đến ngẫu nhiên.
+- **Match the business domain:** summing quantities, taking the highest price, taking the latest record by timestamp, or rejecting duplicates are completely different policies.
+- **Avoid side effects:** do not mutate an external counter, list, or Map inside the merge function; splitting and combining in the pipeline can differ between sequential and parallel execution.
+- **Prefer associative operations:** addition and taking min/max under a deterministic ordering are usually preferable to operations that depend on a prior running total. This keeps results stable when the Collector combines intermediate Maps.
+- **Know the `Map.merge` contract:** if the merge function returns `null`, the mapping for that key may be removed. Do not return `null` as a "skip" value if the goal is to retain the key.
+- **Do not equate order with correctness:** `(a, b) -> a` can mean "keep the first element" on an ordered source; it does not solve "latest record by time" if the source arrives out of order.
 
-Ví dụ việc trả `null` có thể làm mất khóa:
+Example showing how returning `null` can lose a key:
 
 ~~~java
 import java.util.List;
@@ -322,19 +322,19 @@ Map<String, String> result = List.of(
 System.out.println(result.containsKey("A")); // false
 ~~~
 
-Chính sách “gặp trùng thì xóa khóa” rất hiếm khi phù hợp cho lập chỉ mục nghiệp vụ. Nếu muốn loại dữ liệu không hợp lệ, thường tốt hơn khi xác thực trước, loại phần tử bằng `filter` có chủ đích hoặc ném ngoại lệ tường minh.
+The policy "remove the key on duplicate" is rarely appropriate for business indexing. If you want to exclude invalid data, it is usually better to validate beforehand, intentionally exclude elements with `filter`, or throw an explicit exception.
 
-## 7. Chỉ định loại Map bằng mapFactory
+## 7. Specifying the Map Type with mapFactory
 
-Overload có bốn tham số cho phép chọn loại Map:
+The four-argument overload lets you choose the Map implementation:
 
 ~~~java
 toMap(keyMapper, valueMapper, mergeFunction, mapFactory)
 ~~~
 
-`mapFactory` là một `Supplier<M>` tạo Map mới để tích lũy. Nó hữu ích khi caller cần quy tắc thứ tự, kiểu Map cụ thể hoặc semantics của khóa khác mặc định.
+`mapFactory` is a `Supplier<M>` that creates a new Map for accumulation. It is useful when the caller needs ordering rules, a specific Map type, or key semantics different from the default.
 
-### 7.1. LinkedHashMap giữ thứ tự chèn
+### 7.1. LinkedHashMap preserves insertion order
 
 ~~~java
 import java.util.LinkedHashMap;
@@ -363,11 +363,11 @@ System.out.println(quantities);
 // {PEN=5, BOOK=1, BAG=4}
 ~~~
 
-`LinkedHashMap` mặc định giữ thứ tự chèn khóa. Trong ví dụ tuần tự, khóa `PEN` xuất hiện trước, rồi `BOOK`, rồi `BAG`. Khi `PEN` xuất hiện lại, merge cập nhật giá trị nhưng không chèn khóa mới, nên thứ tự khóa không thay đổi.
+`LinkedHashMap` preserves key insertion order by default. In this sequential example, `PEN` appears first, then `BOOK`, then `BAG`. When `PEN` appears again, merging updates its value without inserting a new key, so the key order remains unchanged.
 
-**Đừng dựa vào thứ tự in Map mặc định** khi dùng overload không có supplier. Hợp đồng `toMap` không cam kết loại Map hoặc thứ tự duyệt khóa.
+**Do not rely on the default Map print order** when using overloads without a supplier. The `toMap` contract does not guarantee the Map type or key iteration order.
 
-### 7.2. TreeMap sắp xếp khóa
+### 7.2. TreeMap sorts keys
 
 ~~~java
 import java.util.Map;
@@ -386,9 +386,9 @@ System.out.println(sortedQuantities);
 // {BAG=4, BOOK=1, PEN=5}
 ~~~
 
-`TreeMap` có thứ tự theo khóa. Với kiểu `String` trong ví dụ, thứ tự tự nhiên được áp dụng. Nếu khóa không có thứ tự tự nhiên hoặc cần quy tắc sắp xếp đặc biệt, tạo TreeMap với comparator rõ ràng.
+`TreeMap` is ordered by key. For `String` in the example, natural ordering applies. If keys lack a natural ordering or require custom sorting rules, construct the `TreeMap` with an explicit comparator.
 
-Một điểm cần cân nhắc: trong `TreeMap`, **tính duy nhất của khóa phụ thuộc comparator**. Nếu comparator xem hai khóa khác nhau là bằng nhau (kết quả so sánh bằng 0), Map coi chúng là cùng một vị trí khóa, dù `String.equals` của chúng có thể khác.
+One point to consider: in `TreeMap`, **key uniqueness depends on the comparator**. If the comparator treats two distinct keys as equal (comparison result is 0), the Map treats them as the same key slot, even though their `String.equals` may return false.
 
 ~~~java
 import java.util.TreeMap;
@@ -402,27 +402,27 @@ Map<String, Integer> caseInsensitive = lines.stream()
         ));
 ~~~
 
-Kiểu Map và comparator là một phần quan trọng của mô hình dữ liệu. Không nên thay `HashMap` bằng `TreeMap` mà không xét tác động đến nhận diện khóa.
+The Map type and comparator are a critical part of the data model. Do not replace `HashMap` with `TreeMap` without considering the impact on key identity.
 
-### 7.3. Factory phải tạo Map mới
+### 7.3. The factory must create a new Map
 
-Tránh dùng một Map có thể thay đổi được và **dùng chung qua nhiều lần gọi** làm kết quả của supplier. Trong xử lý song song, collector có thể yêu cầu nhiều vùng tích lũy độc lập; factory nên tạo một Map trống mới mỗi lần.
+Avoid returning a mutable Map **shared across multiple invocations** from the supplier. In parallel processing, the collector may request multiple independent accumulation containers; the factory should create a fresh empty Map each time.
 
 ~~~java
-// Đúng: supplier tạo Map mới khi được gọi.
+// Correct: supplier creates a new Map when called.
 LinkedHashMap::new
 ~~~
 
-Đây là ý nghĩa của `Supplier<M>` trong overload, không phải một tham số Map đã có sẵn để trực tiếp ghi dữ liệu vào.
+That is the role of `Supplier<M>` in the overload—not a pre-existing Map parameter to write data into directly.
 
-## 8. Phân biệt toMap với groupingBy
+## 8. Distinguishing toMap from groupingBy
 
-Nhiều phần tử cùng khóa có thể có hai ý nghĩa rất khác nhau:
+Multiple elements sharing a key can have two very different meanings:
 
-1. **Một giá trị kết quả cho mỗi khóa:** Cần gộp nhiều giá trị thành một, như tổng số lượng hoặc tổng tiền. Dùng `toMap` với merge function.
-2. **Một tập giá trị cho mỗi khóa:** Cần giữ mọi phần tử, như danh sách đơn hàng theo khách hàng. Dùng `groupingBy`.
+1. **One resulting value per key:** multiple values must be merged into one, such as total quantity or total amount. Use `toMap` with a merge function.
+2. **A collection of values per key:** all elements must be kept, such as a list of orders per customer. Use `groupingBy`.
 
-Ví dụ cùng một nguồn:
+Example with the same source:
 
 ~~~java
 import java.util.List;
@@ -437,7 +437,7 @@ List<Order> orders = List.of(
         new Order("C-01", "O-3", 4)
 );
 
-// Một số tổng cho mỗi khách hàng.
+// One total per customer.
 Map<String, Integer> totalUnits = orders.stream()
         .collect(Collectors.toMap(
                 Order::customerId,
@@ -445,7 +445,7 @@ Map<String, Integer> totalUnits = orders.stream()
                 Integer::sum
         ));
 
-// Danh sách toàn bộ đơn hàng cho mỗi khách hàng.
+// List of all orders per customer.
 Map<String, List<Order>> ordersByCustomer = orders.stream()
         .collect(Collectors.groupingBy(Order::customerId));
 
@@ -453,9 +453,9 @@ System.out.println(totalUnits.get("C-01"));          // 6
 System.out.println(ordersByCustomer.get("C-01").size()); // 2
 ~~~
 
-Nếu cố dùng `toMap(Order::customerId, order -> order)`, khóa khách `C-01` sẽ trùng và gây lỗi. Nếu chọn `(first, second) -> first` để tránh lỗi, hệ thống **làm mất một đơn hàng**. Khi yêu cầu là giữ mọi đơn, `groupingBy` mới thể hiện đúng ý định.
+If you try `toMap(Order::customerId, order -> order)`, customer key `C-01` will collide and throw an error. If you pick `(first, second) -> first` to avoid the error, the system **drops an order**. When the requirement is to keep all orders, `groupingBy` expresses the true intent.
 
-Ngoài ra, có thể dùng `groupingBy` kết hợp downstream collector để vừa nhóm vừa tính tổng:
+In addition, you can combine `groupingBy` with a downstream collector to both group and sum:
 
 ~~~java
 Map<String, Integer> totals = orders.stream()
@@ -465,11 +465,11 @@ Map<String, Integer> totals = orders.stream()
         ));
 ~~~
 
-Đối với collector phức tạp như `groupingBy`, các downstream collector cho phép tính trung bình, đếm, chuyển đổi phần tử, gom danh sách hoặc thực hiện reduction tùy chỉnh. Lựa chọn giữa `toMap` và `groupingBy` nên dựa vào **hình dạng kết quả** và ý nghĩa khóa, không chỉ số dòng mã.
+For composite collectors like `groupingBy`, downstream collectors allow computing averages, counting, transforming elements, collecting lists, or performing custom reductions. Choosing between `toMap` and `groupingBy` should be based on the **output shape** and key semantics, not merely line count.
 
-## 9. Chuẩn hóa khóa trước khi thu thập
+## 9. Normalizing Keys Before Collecting
 
-Một hệ thống có thể xem các mã `"pen"`, `"PEN"` và `" Pen "` là cùng sản phẩm. Khi đó, phải chuẩn hóa khóa theo quy tắc đã công bố:
+A system may treat codes `"pen"`, `"PEN"`, and `" Pen "` as the same product. In that case, keys must be normalized according to a published rule:
 
 ~~~java
 import java.util.List;
@@ -495,19 +495,19 @@ Map<String, Integer> quantityByCanonicalSku = input.stream()
 System.out.println(quantityByCanonicalSku.get("PEN")); // 5
 ~~~
 
-`Locale.ROOT` giúp diễn đạt ý định chuẩn hóa mã theo quy tắc độc lập locale hiển thị người dùng. Nhưng `trim` và `toUpperCase` không phải chính sách hợp lệ cho **mọi** loại định danh; mã phân biệt chữ hoa/thường hoặc mã Unicode phức tạp có thể cần chuẩn hóa riêng.
+`Locale.ROOT` expresses the intent to normalize codes using rules independent of the user's display locale. However, `trim` and `toUpperCase` are not valid policies for **all** identifier types; case-sensitive codes or complex Unicode identifiers may require dedicated normalization.
 
-Sau khi chuẩn hóa, **những khóa ban đầu khác nhau có thể trở thành trùng**. Vì vậy, thiết kế merge function phải phù hợp ngay cả khi dữ liệu nguồn ban đầu không có khóa trùng theo phép so sánh chuỗi thô.
+After normalization, **keys that were initially distinct may become duplicates**. Therefore, the merge function must be designed properly even if the raw source data had no duplicate keys under raw string comparison.
 
-Không nên tự biến `null` thành chuỗi `"null"` hoặc chuỗi rỗng làm khóa, nếu việc đó có thể gộp những bản ghi độc lập. Khi khóa bắt buộc tồn tại, hãy kiểm tra và từ chối dữ liệu thiếu mã.
+Do not convert `null` into the string `"null"` or an empty string as a key if doing so could merge independent records. When a key is required to exist, validate and reject records with missing codes.
 
-## 10. Xử lý null ở key mapper và value mapper
+## 10. Handling null in keyMapper and valueMapper
 
-Các collector tạo Map **không phải cơ chế chuẩn hóa null**.
+Map-producing collectors are **not a null-normalization mechanism**.
 
-Với `Collectors.toMap`, không nên dựa vào khả năng hỗ trợ khóa `null` của Map triển khai mặc định. Đặc tả không cam kết loại Map; các cách thu thập hoặc loại Map khác nhau có thể xử lý khóa `null` khác nhau. Với giá trị `null`, cách triển khai thông thường từ chối và có thể ném `NullPointerException`.
+With `Collectors.toMap`, do not rely on the default Map implementation supporting `null` keys. The specification does not guarantee the Map type; different collection strategies or Map types may handle `null` keys differently. For `null` values, standard implementations reject them and can throw `NullPointerException`.
 
-Chính sách an toàn nhất là **xác minh cả khóa và giá trị phù hợp trước khi thu**. Ví dụ:
+The safest policy is to **validate that both keys and values are appropriate before collecting**. For example:
 
 ~~~java
 import java.util.List;
@@ -523,7 +523,7 @@ List<User> users = List.of(
         new User("U-3", "minh@example.com")
 );
 
-// Quy định minh họa: chỉ lập chỉ mục user có cả ID và email.
+// Illustrative rule: only index users with both an ID and an email.
 Map<String, String> emailById = users.stream()
         .filter(user -> user.id() != null && user.email() != null)
         .collect(Collectors.toMap(
@@ -532,15 +532,15 @@ Map<String, String> emailById = users.stream()
         ));
 ~~~
 
-`List.of` không cho phép **phần tử List** bằng `null`, nhưng các `record User` trong danh sách vẫn có thể có trường `email` bằng `null`; ví dụ vì vậy hợp lệ.
+`List.of` disallows `null` **List elements**, but `User` records inside the list can still have a `null` `email` field; the example is therefore valid.
 
-Trong tình huống cần giữ user chưa có email, việc lọc bỏ user có thể không phù hợp. Khi đó hãy chọn một mô hình rõ ràng, chẳng hạn `Map<String, User>` (giữ toàn bộ đối tượng và trường email rỗng), `Optional<String>` ở lớp nghiệp vụ hoặc một danh sách lỗi validation riêng. **Không biến mất dữ liệu một cách im lặng** chỉ để tránh ngoại lệ.
+In situations where users without an email must be kept, filtering out the user may be inappropriate. In that case, choose an explicit model, such as `Map<String, User>` (retaining the whole object with a missing email field), `Optional<String>` at the domain layer, or a separate validation error list. **Do not silently drop data** just to avoid an exception.
 
-`Collectors.toUnmodifiableMap` (Java 10+) chặt chẽ hơn: nó từ chối `null` cả ở khóa lẫn giá trị và không cho phép sửa Map kết quả.
+`Collectors.toUnmodifiableMap` (Java 10+) is stricter: it rejects `null` in both keys and values and forbids modifying the resulting Map.
 
-## 11. Khi nào dùng toUnmodifiableMap?
+## 11. When to Use toUnmodifiableMap?
 
-Nếu mục tiêu là trả về một **Map không sửa đổi được** và các khóa, giá trị không `null`, có thể sử dụng:
+If the goal is to return an **unmodifiable Map** with non-`null` keys and values, you can use:
 
 ~~~java
 import java.util.Map;
@@ -553,9 +553,9 @@ Map<String, Product> bySku = products.stream()
         ));
 ~~~
 
-Với mã nguồn trong ví dụ này, `Product` là kiểu record khai báo ở phần trước và `products` chứa khóa duy nhất. `bySku.put(...)` hoặc `remove(...)` sẽ ném `UnsupportedOperationException`.
+In this example's source code, `Product` is the record type declared earlier and `products` contains unique keys. Calling `bySku.put(...)` or `remove(...)` will throw `UnsupportedOperationException`.
 
-Collector này có overload với merge function nếu cần xử lý khóa trùng:
+This collector has an overload with a merge function if duplicate keys need to be handled:
 
 ~~~java
 Map<String, Integer> quantities = lines.stream()
@@ -566,21 +566,21 @@ Map<String, Integer> quantities = lines.stream()
         ));
 ~~~
 
-Tính **không sửa đổi được** chỉ ngăn thao tác sửa cấu trúc Map. Nếu giá trị là một đối tượng mutable, thuộc tính của đối tượng đó vẫn có thể thay đổi qua tham chiếu khác; Map không tự sao chép sâu giá trị.
+**Unmodifiability** only prevents structural modifications to the Map. If a value is a mutable object, its properties can still be modified through another reference; the Map does not automatically deep-copy values.
 
-Một lựa chọn khác là thu Map rồi dùng `Map.copyOf(...)` (Java 10+) nếu đáp ứng hợp đồng `null` và cần bản sao không sửa đổi được. `Map.copyOf` không cam kết thứ tự lặp giống Map nguồn; nếu cần cả thứ tự và cấu trúc không sửa, phải thiết kế hợp đồng riêng và xác định có sử dụng view hay snapshot.
+Another option is to collect a Map and then use `Map.copyOf(...)` (Java 10+) if the `null` contract is satisfied and an unmodifiable copy is needed. `Map.copyOf` does not guarantee preserving the iteration order of the source Map; if both ordering and unmodifiable structure are required, you must design an explicit contract and decide whether to use a view or a snapshot.
 
-Đặc biệt, không suy rằng `Collectors.toMap` luôn tạo Map mutable chỉ vì một bản JDK cho phép gọi `put` trên kết quả. Nếu khả năng sửa Map là yêu cầu bắt buộc, chọn một `mapFactory` tạo Map mutable cụ thể như `LinkedHashMap::new`.
+In particular, do not assume `Collectors.toMap` always creates a mutable Map just because a given JDK version allows calling `put` on the result. If Map mutability is a strict requirement, supply a `mapFactory` that creates a specific mutable Map such as `LinkedHashMap::new`.
 
-## 12. Thứ tự kết quả, parallel stream và collector đồng thời
+## 12. Result Ordering, Parallel Streams, and Concurrent Collectors
 
-### 12.1. Map không có thứ tự mặc định được bảo đảm
+### 12.1. Default Maps have no guaranteed order
 
-Dù nguồn là `List` có thứ tự, overload mặc định `toMap(k, v)` **không cam kết thứ tự duyệt của Map**. Nếu cần xuất kết quả theo thứ tự xuất hiện khóa, dùng `LinkedHashMap::new` với pipeline tuần tự có encounter order. Nếu cần sắp theo khóa, dùng `TreeMap::new` với comparator phù hợp.
+Even when the source is an ordered `List`, the default `toMap(k, v)` overload **does not guarantee Map iteration order**. If you need output in key-appearance order, use `LinkedHashMap::new` with a sequential pipeline that has an encounter order. If you need keys sorted, use `TreeMap::new` with an appropriate comparator.
 
-Đối với Map có cùng tập khóa và giá trị, thứ tự của `Map.toString()` không phải cách kiểm chứng tính đúng đắn của overload mặc định. Hãy truy cập bằng `get` hoặc so sánh Map theo hợp đồng ánh xạ.
+For Maps with the same set of keys and values, the order of `Map.toString()` is not a valid way to verify correctness of the default overload. Access entries via `get` or compare Maps according to the mapping contract.
 
-### 12.2. Parallel stream không làm một Map thông thường tự trở thành concurrent
+### 12.2. Parallel streams do not make an ordinary Map concurrent
 
 ~~~java
 Map<String, Integer> quantities = lines.parallelStream()
@@ -591,10 +591,10 @@ Map<String, Integer> quantities = lines.parallelStream()
         ));
 ~~~
 
-Với Collector chuẩn, thư viện có thể tạo **nhiều Map trung gian** rồi ghép. Đây khác với việc nhiều luồng cùng sửa một `HashMap` tùy ý từ bên ngoài. Không nên thay collector bằng:
+With a standard Collector, the library can create **multiple intermediate Maps** and merge them. This differs from multiple threads mutating an arbitrary external `HashMap`. Do not replace the collector with:
 
 ~~~java
-// Sai: ghi vào HashMap dùng chung từ các tác vụ song song.
+// Wrong: writing to a shared HashMap from parallel tasks.
 Map<String, Integer> shared = new java.util.HashMap<>();
 
 lines.parallelStream().forEach(item ->
@@ -602,11 +602,11 @@ lines.parallelStream().forEach(item ->
 );
 ~~~
 
-Cách này vừa có rủi ro race condition, vừa ghi đè giá trị của khóa trùng và không gộp theo quy tắc số lượng. Hãy dùng Collector tương ứng.
+This approach introduces race-condition risks, overwrites duplicate keys, and fails to merge quantities by rule. Use the appropriate Collector instead.
 
-### 12.3. toConcurrentMap có hợp đồng khác
+### 12.3. toConcurrentMap has a different contract
 
-Khi thực sự cần một `ConcurrentMap` và pipeline có thể thu thập không phụ thuộc encounter order, Java cung cấp `Collectors.toConcurrentMap`:
+When you genuinely need a `ConcurrentMap` and the pipeline can collect independently of encounter order, Java provides `Collectors.toConcurrentMap`:
 
 ~~~java
 import java.util.concurrent.ConcurrentMap;
@@ -620,19 +620,19 @@ ConcurrentMap<String, Integer> concurrentTotals = lines.parallelStream()
         ));
 ~~~
 
-`toConcurrentMap` có collector hỗ trợ tích lũy đồng thời và có đặc tính unordered; thứ tự duyệt Map kết quả không phải thứ tự danh sách đầu vào. Khi có trùng khóa, merge function phải có ngữ nghĩa ổn định dưới các cách ghép khác nhau.
+`toConcurrentMap` has a collector supporting concurrent accumulation and is unordered; the resulting Map's iteration order is not the input list's order. When keys collide, the merge function must have stable semantics across different combination patterns.
 
-Không mặc định `toConcurrentMap` nhanh hơn `toMap`: kết quả phụ thuộc vào kích thước nguồn, số khóa phân biệt, độ cạnh tranh trên các khóa, chi phí ánh xạ và đặc điểm môi trường chạy. Đo hiệu năng trước khi tối ưu.
+Do not assume `toConcurrentMap` is faster than `toMap`: performance depends on source size, number of distinct keys, key contention, mapping cost, and runtime environment characteristics. Measure performance before optimizing.
 
-### 12.4. Giới hạn tính kết hợp của merge
+### 12.4. Associativity limits of merging
 
-Khi pipeline chạy song song, cách kết hợp các giá trị trùng có thể khác chạy tuần tự. Vì vậy, nên ưu tiên merge có tính kết hợp đối với các giá trị cần tổng hợp, ví dụ cộng số lượng, cộng `BigDecimal` chính xác hoặc lấy min/max theo thứ tự nhất quán.
+When a pipeline runs in parallel, the order in which duplicate values are combined may differ from sequential execution. Therefore, prefer associative merge operations for aggregated values, such as summing quantities, adding exact `BigDecimal` values, or taking min/max under a consistent order.
 
-Các thao tác trừ tuần tự, làm tròn sau **mỗi lần** cộng hoặc dựa vào số thứ tự cập nhật của biến dùng chung có thể thay đổi kết quả theo lịch chạy. Nếu bài toán cần “sự kiện mới nhất”, so sánh theo khóa thời gian và quy tắc phá hòa ổn định thường phù hợp hơn giữ “bản ghi được xử lý cuối”.
+Sequential subtraction, rounding after **each** addition, or relying on the update sequence of a shared variable can change results depending on execution scheduling. If the problem requires the "latest event", comparing by timestamp key and a deterministic tie-breaker is usually better than keeping the "last processed record".
 
-## 13. Ví dụ thực tế đầy đủ: tổng tiền theo mã sản phẩm
+## 13. Complete Real-World Example: Total Revenue by Product Code
 
-Một ứng dụng cần tổng doanh thu theo từng mã sản phẩm từ các dòng đơn hàng. Mỗi dòng có mã, số lượng và đơn giá; nhiều dòng có thể cùng mã. Yêu cầu: giữ thứ tự xuất hiện **đầu tiên** của từng mã trong dữ liệu nhập và tính tiền bằng `BigDecimal` chính xác trước khi định dạng.
+An application needs total revenue per product code from order lines. Each line has a code, quantity, and unit price; multiple lines can share the same code. Requirement: preserve the **first-appearance** order of each code in the input data and calculate monetary amounts with exact `BigDecimal` arithmetic before formatting.
 
 ~~~java
 import java.math.BigDecimal;
@@ -670,59 +670,59 @@ public class SalesBySkuDemo {
 }
 ~~~
 
-Tính toán:
+Calculation:
 
 ~~~text
 PEN:  2 x 12.50 + 1 x 10.00 = 35.00
 BOOK: 1 x 30.00               = 30.00
 ~~~
 
-Pipeline thực hiện:
+What the pipeline does:
 
-1. `Sale::sku` tạo khóa cho mỗi dòng.
-2. Value mapper tính thành tiền của dòng và tạo giá trị `BigDecimal`.
-3. `BigDecimal::add` gộp các khoản có cùng khóa **không làm tròn trung gian**.
-4. `LinkedHashMap::new` yêu cầu Map giữ thứ tự chèn, nên khi xử lý tuần tự các mã xuất hiện lần đầu theo thứ tự `PEN`, `BOOK`.
+1. `Sale::sku` creates the key for each line.
+2. The value mapper computes the line amount and produces a `BigDecimal` value.
+3. `BigDecimal::add` merges amounts with the same key **without intermediate rounding**.
+4. `LinkedHashMap::new` requests a Map preserving insertion order, so under sequential processing the codes appear in order `PEN`, `BOOK`.
 
-Nếu nghiệp vụ quy định làm tròn thành tiền ở cấp hóa đơn, cấp thuế hoặc từng dòng, phải áp dụng đúng quy tắc ở **ranh giới đã định**. Đoạn ví dụ cố tình không tự áp dụng rounding policy vì giá trị đầu vào đã chính xác và nhiệm vụ chỉ là cộng theo mã sản phẩm.
+If business rules specify rounding amounts at the invoice, tax, or line level, apply the exact rule at the **designated boundary**. The example intentionally avoids applying a rounding policy on its own because the input values are already exact and the task is solely to sum by product code.
 
-## 14. Các lỗi thường gặp và cách sửa
+## 14. Common Errors and How to Fix Them
 
-| Triệu chứng | Nguyên nhân | Cách xử lý |
+| Symptom | Cause | Resolution |
 | --- | --- | --- |
-| `IllegalStateException: Duplicate key ...` | Hai phần tử sinh khóa trùng trong `toMap(k, v)` | Nếu trùng là lỗi, xác thực nguồn; nếu hợp lệ, thêm merge function đúng nghiệp vụ. |
-| Mất dòng dữ liệu sau khi dùng `(old, next) -> old` | Chọn giữ một giá trị nhưng thực tế cần tất cả | Dùng `groupingBy` khi mỗi khóa phải có danh sách nhiều giá trị. |
-| `NullPointerException` khi thu Map | Key/value mapper tạo giá trị thiếu hoặc null, không đáp ứng collector/Map kết quả | Kiểm tra và áp dụng chính sách null tường minh trước khi thu. |
-| Thứ tự duyệt Map không giống List đầu vào | `toMap` không mặc định cam kết thứ tự Map | Chọn `LinkedHashMap::new` hoặc `TreeMap::new` phù hợp yêu cầu. |
-| Kết quả thay đổi trên nguồn unordered khi “giữ cuối” | Quy tắc dựa vào thứ tự không được bảo đảm | Chọn giá trị theo timestamp và tie-breaker ổn định. |
-| Bản ghi trùng không được gộp sau khi chuẩn hóa mã | Khóa chưa được chuẩn hóa nhất quán | Dùng canonical key và merge function có ý nghĩa. |
-| Tổng khi chạy song song không ổn định | Merge không kết hợp hoặc phụ thuộc side effect | Dùng phép gộp kết hợp, tránh trạng thái dùng chung; không làm tròn trung gian tùy tiện. |
-| Ép kiểu Map kết quả gây lỗi | Tin rằng overload mặc định luôn trả một lớp cụ thể | Dùng giao diện `Map` hoặc cung cấp `mapFactory`. |
-| Muốn Map không sửa được nhưng vẫn có `put` | Dùng `toUnmodifiableMap` / `Map.copyOf` | Xác định rõ mutable hay unmodifiable trong hợp đồng API. |
-| Tăng bộ nhớ lớn | Map giữ tất cả các cặp khóa–giá trị phân biệt và đối tượng liên quan | Giảm số trường, tổng hợp trực tiếp, xử lý theo lô hoặc dùng cơ sở dữ liệu khi phù hợp. |
+| `IllegalStateException: Duplicate key ...` | Two elements produce the same key in `toMap(k, v)` | If duplicates are errors, validate the source; if valid, add a business-appropriate merge function. |
+| Missing data rows after using `(old, next) -> old` | Chose to keep one value when all values were actually needed | Use `groupingBy` when each key must hold a list of multiple values. |
+| `NullPointerException` when collecting Map | Key/value mapper produces missing or null values incompatible with collector/result Map | Validate and apply an explicit null policy before collecting. |
+| Map iteration order differs from input List | `toMap` does not guarantee Map order by default | Choose `LinkedHashMap::new` or `TreeMap::new` to match requirements. |
+| Results vary on unordered sources when "keeping last" | Rule depends on an unguaranteed order | Pick the value using a timestamp and a deterministic tie-breaker. |
+| Duplicate records not merged after code normalization | Keys were not normalized consistently | Use a canonical key and a meaningful merge function. |
+| Sums fluctuate under parallel execution | Non-associative merge or reliance on side effects | Use an associative merge, avoid shared state, and avoid arbitrary intermediate rounding. |
+| Casting the result Map fails | Assumed the default overload always returns a specific class | Program to the `Map` interface or supply a `mapFactory`. |
+| Expected an unmodifiable Map yet `put` works | Use `toUnmodifiableMap` / `Map.copyOf` | Clearly specify mutable vs. unmodifiable in the API contract. |
+| High memory growth | The Map retains all distinct key–value pairs and referenced objects | Reduce fields, aggregate directly, process in batches, or use a database where appropriate. |
 
-## 15. Hiệu năng, vòng đời và giới hạn của pipeline
+## 15. Performance, Lifecycle, and Pipeline Limits
 
-`collect(Collectors.toMap(...))` là **terminal operation**. Các bước `filter`, `map`, `flatMap` phía trước thường chỉ được thực thi khi terminal operation bắt đầu xử lý. Sau khi thu Map, không được sử dụng lại **cùng đối tượng Stream** cho terminal operation khác.
+`collect(Collectors.toMap(...))` is a **terminal operation**. Preceding `filter`, `map`, and `flatMap` steps generally execute only when the terminal operation begins processing. After collecting the Map, you must not reuse the **same Stream instance** for another terminal operation.
 
-Một Map thường giữ một mục cho mỗi khóa phân biệt; nếu Stream chứa hàng triệu khóa, bộ nhớ vẫn tăng theo số mục. `toMap` không phải phép tổng hợp dùng bộ nhớ hằng số đối với số lượng khóa tăng không giới hạn.
+A Map typically holds one entry per distinct key; if the Stream contains millions of keys, memory still grows with the number of entries. `toMap` is not a constant-memory aggregation for unbounded numbers of keys.
 
-Một nguồn vô hạn với liên tục xuất hiện khóa mới sẽ không thể thu thành Map hữu hạn bằng `collect(toMap)` nếu không có điểm dừng. Dùng `limit(n)` hoặc nguồn hữu hạn phù hợp khi cần kết quả được vật hóa hoàn toàn. Với dữ liệu đọc từ tệp hoặc nguồn I/O, phải quản lý vòng đời và đóng tài nguyên riêng; `collect` không tự thay thế `try-with-resources`.
+An infinite source that continuously introduces new keys cannot be collected into a finite Map with `collect(toMap)` without a stopping condition. Use `limit(n)` or an appropriate finite source when a fully materialized result is needed. For data read from files or I/O sources, manage lifecycle and resource closing separately; `collect` does not replace `try-with-resources`.
 
-Các lưu ý tối ưu:
+Optimization notes:
 
-- Nếu cần tra cứu bằng khóa nhiều lần, một Map có thể tiết kiệm công sức so với liên tục lọc lại danh sách; hiệu quả còn phụ thuộc loại Map và số mục.
-- Nếu chỉ cần xác định một mã có tồn tại hay không, `anyMatch` có thể dừng sớm và tránh tạo toàn bộ Map.
-- Nếu cần nhiều giá trị trên một khóa, `groupingBy` có thể tránh phải tự viết logic ghép danh sách trong `toMap`.
-- Không nhất thiết chuyển Stream sang parallel chỉ vì có nhiều phần tử; với quá ít dữ liệu hoặc nhiều khóa trùng gây cạnh tranh, overhead có thể lớn.
-- Tránh khóa mutable: sửa các trường tham gia `equals`/`hashCode` của khóa sau khi chèn vào hash-based Map có thể khiến mục trở nên khó tra cứu.
-- Khi chọn `TreeMap`, xem xét chi phí sắp xếp và comparator; lựa chọn cấu trúc dựa trên nhu cầu thay vì chỉ nhìn vào cú pháp ngắn.
+- If key-based lookups are needed repeatedly, a Map can save work compared to repeatedly filtering a list; efficiency also depends on the Map type and entry count.
+- If you only need to check whether a code exists, `anyMatch` can short-circuit and avoid building an entire Map.
+- If multiple values per key are needed, `groupingBy` avoids manually writing list-merging logic inside `toMap`.
+- Do not switch a Stream to parallel just because there are many elements; with too little data or heavy contention on duplicate keys, overhead can be significant.
+- Avoid mutable keys: modifying fields involved in `equals`/`hashCode` of a key after inserting it into a hash-based Map can make the entry impossible to look up.
+- When choosing `TreeMap`, consider sorting and comparator costs; choose the structure based on requirements rather than merely shorter syntax.
 
-Những kỹ thuật này cũng liên quan đến collector tùy chỉnh, Spliterator và xử lý song song của Stream API: hợp đồng khóa và kết hợp dữ liệu phải giữ nguyên dù nguồn được chia hoặc duyệt theo cách khác.
+These techniques also connect to custom collectors, `Spliterator`, and Stream API parallel processing: key contracts and data-combination semantics must remain intact even when the source is split or traversed differently.
 
-## 16. Bài tập tự kiểm tra
+## 16. Self-Check Exercises
 
-### Bài 1 — Dự đoán lỗi khóa trùng
+### Exercise 1 — Predicting duplicate-key failure
 
 ~~~java
 record Product(String sku, int price) {}
@@ -739,9 +739,9 @@ Map<String, Integer> prices = products.stream()
         ));
 ~~~
 
-**Đáp án:** Ném `IllegalStateException` vì khóa `"A"` xuất hiện hai lần, dù giá trị tương ứng đều bằng 10. Nếu nguồn phải duy nhất, cần sửa dữ liệu; nếu trùng hợp lệ, định nghĩa merge function.
+**Answer:** Throws `IllegalStateException` because the key `"A"` appears twice, even though both corresponding values are 10. If the source must be unique, fix the data; if duplicates are valid, define a merge function.
 
-### Bài 2 — Cộng số lượng theo khóa
+### Exercise 2 — Summing quantities by key
 
 ~~~java
 record Line(String code, int count) {}
@@ -753,9 +753,9 @@ List<Line> lines = List.of(
 );
 ~~~
 
-**Yêu cầu:** Tạo `Map<String, Integer>` cộng số lượng cùng mã.
+**Task:** Create a `Map<String, Integer>` summing quantities with the same code.
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 Map<String, Integer> total = lines.stream()
@@ -769,25 +769,25 @@ System.out.println(total.get("A")); // 5
 System.out.println(total.get("B")); // 4
 ~~~
 
-### Bài 3 — Chọn toMap hay groupingBy
+### Exercise 3 — Choosing toMap or groupingBy
 
-**Yêu cầu:** Có `Stream<Order>`, cần giữ **tất cả đơn hàng** theo `customerId`.
+**Task:** Given a `Stream<Order>`, keep **all orders** grouped by `customerId`.
 
-**Đáp án:** Dùng `Collectors.groupingBy(Order::customerId)` để nhận `Map<String, List<Order>>`. Nếu dùng `toMap(Order::customerId, Function.identity())`, khách có nhiều đơn sẽ gây lỗi; nếu chọn giữ một đơn, kết quả sẽ mất các đơn còn lại.
+**Answer:** Use `Collectors.groupingBy(Order::customerId)` to obtain `Map<String, List<Order>>`. Using `toMap(Order::customerId, Function.identity())` will fail for customers with multiple orders; choosing to keep one order will lose the remaining orders.
 
-### Bài 4 — Thứ tự khóa
+### Exercise 4 — Key ordering
 
-**Yêu cầu:** Từ `List` có thứ tự xuất hiện khóa `B`, `A`, `C`, trả một Map giữ thứ tự chèn của khóa.
+**Task:** From a `List` whose keys appear in the order `B`, `A`, `C`, return a Map preserving key insertion order.
 
-**Đáp án:** Dùng pipeline tuần tự và `Collectors.toMap(keyMapper, valueMapper, mergeFunction, LinkedHashMap::new)`. Không phụ thuộc vào thứ tự khóa của overload mặc định.
+**Answer:** Use a sequential pipeline and `Collectors.toMap(keyMapper, valueMapper, mergeFunction, LinkedHashMap::new)`. Do not rely on the key ordering of the default overload.
 
-### Bài 5 — Chọn bản ghi mới nhất
+### Exercise 5 — Selecting the latest record
 
-Hai sự kiện có cùng mã, nhưng được đọc theo thứ tự ngược thời gian. Có nên dùng `(oldValue, newValue) -> newValue` để lấy bản ghi mới nhất không?
+Two events share the same code, but are read in reverse chronological order. Should you use `(oldValue, newValue) -> newValue` to get the latest record?
 
-**Đáp án:** Không nếu thứ tự xử lý không bảo đảm trùng thứ tự thời gian. Cần so sánh timestamp hoặc sequence đáng tin cậy và có tie-breaker xác định, rồi chọn sự kiện lớn nhất theo tiêu chí đó.
+**Answer:** No, if processing order is not guaranteed to match chronological order. You must compare a reliable timestamp or sequence number with a deterministic tie-breaker, then pick the greatest event by that criterion.
 
-### Bài 6 — Map không sửa đổi được
+### Exercise 6 — Unmodifiable Map
 
 ~~~java
 Map<String, String> result = Stream.of("a", "b")
@@ -797,18 +797,18 @@ Map<String, String> result = Stream.of("a", "b")
         ));
 ~~~
 
-**Hỏi:** Có gọi `result.put("c", "C")` được không? Nếu Stream có hai phần tử `"a"` thì sao?
+**Question:** Can you call `result.put("c", "C")`? What happens if the Stream has two `"a"` elements?
 
-**Đáp án:** `put` ném `UnsupportedOperationException`. Nếu hai phần tử đều sinh khóa `"a"` và dùng overload không có merge function, collector sẽ ném `IllegalStateException` vì khóa trùng.
+**Answer:** `put` throws `UnsupportedOperationException`. If two elements both produce the key `"a"` and the overload without a merge function is used, the collector will throw `IllegalStateException` due to the duplicate key.
 
-## 17. Ghi nhớ
+## 17. Key Takeaways
 
-- `Collectors.toMap(keyMapper, valueMapper)` biến Stream thành `Map<K, V>` khi khóa duy nhất.
-- Có thể trùng khóa thì dùng `toMap(keyMapper, valueMapper, mergeFunction)`, nhưng **chỉ sau khi đã chọn quy tắc gộp đúng nghiệp vụ**.
-- Muốn loại Map cụ thể, sử dụng overload thêm `mapFactory`: `LinkedHashMap::new` cho thứ tự chèn hoặc `TreeMap::new` cho thứ tự khóa.
-- Dùng `groupingBy` khi cần giữ **nhiều giá trị** cho một khóa; `toMap` thích hợp khi mỗi khóa cuối cùng tương ứng **một giá trị đã gộp**.
-- Xử lý rõ khóa trùng, `null`, chuẩn hóa định danh, thứ tự duyệt, tính kết hợp của merge và giới hạn bộ nhớ trước khi đưa pipeline vào ứng dụng.
-- `Collectors.toUnmodifiableMap` tạo Map không sửa đổi được và từ chối `null`; `toConcurrentMap` dành cho những tình huống cần Collector có tính chất đồng thời.
-- `collect` kết thúc Stream; nguồn vô hạn cần điều kiện dừng, nguồn I/O cần được đóng đúng vòng đời.
+- `Collectors.toMap(keyMapper, valueMapper)` turns a Stream into a `Map<K, V>` when keys are unique.
+- When keys can collide, use `toMap(keyMapper, valueMapper, mergeFunction)`, but **only after choosing a business-correct merge rule**.
+- To specify a concrete Map type, use the overload with `mapFactory`: `LinkedHashMap::new` for insertion order or `TreeMap::new` for key order.
+- Use `groupingBy` when **multiple values** per key must be kept; `toMap` fits when each key ultimately maps to **a single merged value**.
+- Explicitly address duplicate keys, `null`, identifier normalization, traversal order, merge associativity, and memory limits before putting a pipeline into production.
+- `Collectors.toUnmodifiableMap` creates an unmodifiable Map and rejects `null`; `toConcurrentMap` is for scenarios requiring a concurrent Collector.
+- `collect` terminates the Stream; infinite sources need a stopping condition, and I/O sources must be properly closed according to their lifecycle.
 
-**Ý chính:** `Collectors.toMap` là công cụ lập chỉ mục và tổng hợp dữ liệu theo khóa trong Java Stream API. Để kết quả đúng, cần trả lời ba câu hỏi trước: **khóa nào xác định một mục**, **gặp khóa trùng thì gộp ra sao**, và **kết quả cần loại Map/hợp đồng thứ tự nào**. Khi các quy tắc đó rõ ràng, pipeline sẽ dễ đọc, dễ kiểm thử và có thể mở rộng sang nhóm dữ liệu hoặc xử lý song song một cách có kiểm soát.
+**Main idea:** `Collectors.toMap` is the tool for indexing and aggregating data by key in the Java Stream API. To get correct results, answer three questions upfront: **which key identifies an entry**, **how to merge duplicate keys**, and **what Map type/ordering contract the result requires**. When those rules are clear, the pipeline becomes easy to read, easy to test, and safely extensible to data grouping or parallel processing.

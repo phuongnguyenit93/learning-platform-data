@@ -1,19 +1,19 @@
-# Xử lý Optional trả về từ findFirst, findAny, min, max và reduce
+# Handling Optional Returned by findFirst, findAny, min, max, and reduce
 
-Trong Java Stream API, nhiều yêu cầu có dạng “tìm một phần tử”: tìm đơn hàng đầu tiên đủ điều kiện, tìm hóa đơn lớn nhất, lấy số điểm nhỏ nhất hoặc kết hợp nhiều giá trị thành một kết quả. Nhưng **không phải lúc nào cũng tìm được phần tử**. Một danh sách có thể rỗng, hoặc các bước `filter` có thể loại hết dữ liệu. Nếu API chỉ trả một đối tượng `T`, làm sao phân biệt “không có kết quả” với một giá trị hợp lệ?
+In the Java Stream API, many requirements take the form of "finding an element": finding the first eligible order, finding the largest invoice, getting the lowest score, or combining multiple values into a single result. However, **an element cannot always be found**. A list may be empty, or `filter` steps may filter out all data. If the API only returned a `T` object, how would you distinguish "no result" from a valid value?
 
-Java giải quyết vấn đề đó bằng **`Optional<T>`**. Các phép toán kết thúc `findFirst()`, `findAny()`, `min(...)`, `max(...)` và một số overload của `reduce(...)` trả về `Optional` để thể hiện rõ **có một giá trị** hoặc **không có giá trị**. Đối với Stream kiểu nguyên thủy, Java cung cấp `OptionalInt`, `OptionalLong` và `OptionalDouble`.
+Java solves this problem with **`Optional<T>`**. The terminal operations `findFirst()`, `findAny()`, `min(...)`, `max(...)`, and certain overloads of `reduce(...)` return an `Optional` to clearly represent **having a value** or **having no value**. For primitive Streams, Java provides `OptionalInt`, `OptionalLong`, and `OptionalDouble`.
 
-Bài này thuộc chương **Optional trong kết quả Stream** của module **JAVA_STREAM_API**. Bạn sẽ học cách đọc các kết quả Optional, xử lý trường hợp rỗng an toàn, phân biệt các phương thức tìm kiếm và tổng hợp, hiểu ảnh hưởng của encounter order, lazy evaluation và parallel Stream, đồng thời chuẩn bị kiến thức cho `collect`, grouping, collector tùy chỉnh, `Spliterator` và Stream Gatherers.
+This lesson belongs to the chapter **Optional in Stream Results** of the **JAVA_STREAM_API** module. You will learn how to read Optional results, handle empty cases safely, distinguish search and aggregation methods, understand the impact of encounter order, lazy evaluation, and parallel Streams, while preparing your foundation for `collect`, grouping, custom collectors, `Spliterator`, and Stream Gatherers.
 
-## 1. Optional biểu diễn điều gì?
+## 1. What does Optional represent?
 
-`Optional<T>` là một đối tượng biểu diễn một trong hai trạng thái:
+`Optional<T>` is an object representing one of two states:
 
-- **Có giá trị (`present`):** chứa một đối tượng `T` khác `null`.
-- **Không có giá trị (`empty`):** không chứa đối tượng nào.
+- **Has a value (`present`):** contains a non-`null` object `T`.
+- **Has no value (`empty`):** contains no object.
 
-Ví dụ:
+Example:
 
 ~~~java
 import java.util.Optional;
@@ -25,32 +25,32 @@ System.out.println(found.isPresent());  // true
 System.out.println(absent.isPresent()); // false
 ~~~
 
-Một giá trị có thể rỗng theo nghĩa nghiệp vụ mà vẫn là **present**: `Optional.of("")` có mặt và chứa chuỗi rỗng. `Optional.empty()` mới là trạng thái “không có giá trị”. Đừng đánh đồng chuỗi rỗng, số 0 hoặc danh sách rỗng với một Optional rỗng.
+A value can be empty in a business sense while still being **present**: `Optional.of("")` is present and contains an empty string. Only `Optional.empty()` represents the "no value" state. Do not equate an empty string, the number 0, or an empty list with an empty Optional.
 
-Với API Stream, Optional giúp người gọi **phải quyết định cách xử lý việc không tìm được kết quả**, chẳng hạn dùng giá trị mặc định, phát sinh lỗi nghiệp vụ, hoặc không thực hiện hành động nào.
+With the Stream API, Optional forces the caller **to decide how to handle not finding a result**, such as using a default value, throwing a business exception, or performing no action at all.
 
 ~~~mermaid
 flowchart LR
-    A["Stream<Order>"] --> B["filter: đơn đã thanh toán"]
+    A["Stream<Order>"] --> B["filter: paid orders"]
     B --> C["findFirst()"]
     C --> D{"Optional<Order>"}
-    D -->|"present"| E["Xử lý Order"]
-    D -->|"empty"| F["Dùng mặc định / báo không tìm thấy"]
+    D -->|"present"| E["Process Order"]
+    D -->|"empty"| F["Use default / report not found"]
 ~~~
 
-Tất cả năm phép toán chính được học trong bài đều là **terminal operation**: khi được gọi, pipeline được tiêu thụ và không thể chạy lại trên cùng đối tượng Stream.
+All five main operations covered in this lesson are **terminal operations**: once invoked, the pipeline is consumed and cannot be run again on the same Stream object.
 
-## 2. Bảng tra nhanh các phương thức trả về Optional
+## 2. Quick Reference Table of Methods Returning Optional
 
-| Phép toán | Mục đích | Kiểu kết quả trên `Stream<T>` | Nếu Stream rỗng |
+| Operation | Purpose | Result type on `Stream<T>` | If Stream is empty |
 |---|---|---|---|
-| `findFirst()` | Tìm phần tử đầu tiên theo encounter order nếu có | `Optional<T>` | `Optional.empty()` |
-| `findAny()` | Tìm một phần tử bất kỳ | `Optional<T>` | `Optional.empty()` |
-| `min(comparator)` | Tìm phần tử nhỏ nhất theo comparator | `Optional<T>` | `Optional.empty()` |
-| `max(comparator)` | Tìm phần tử lớn nhất theo comparator | `Optional<T>` | `Optional.empty()` |
-| `reduce(accumulator)` | Gộp các phần tử bằng phép kết hợp | `Optional<T>` | `Optional.empty()` |
+| `findFirst()` | Finds the first element in encounter order if present | `Optional<T>` | `Optional.empty()` |
+| `findAny()` | Finds any element | `Optional<T>` | `Optional.empty()` |
+| `min(comparator)` | Finds the smallest element according to the comparator | `Optional<T>` | `Optional.empty()` |
+| `max(comparator)` | Finds the largest element according to the comparator | `Optional<T>` | `Optional.empty()` |
+| `reduce(accumulator)` | Combines elements using an associative operation | `Optional<T>` | `Optional.empty()` |
 
-Hai overload khác của `reduce` cần phân biệt:
+Two other overloads of `reduce` should be distinguished:
 
 ~~~java
 T reduce(T identity, BinaryOperator<T> accumulator)
@@ -59,15 +59,15 @@ T reduce(T identity, BinaryOperator<T> accumulator)
              BinaryOperator<U> combiner)
 ~~~
 
-Chúng **có giá trị khởi tạo `identity`**, nên trả về trực tiếp một giá trị, không phải Optional. Với Stream rỗng, kết quả là `identity`.
+They **have an initial `identity` value**, so they return a value directly rather than an Optional. For an empty Stream, the result is `identity`.
 
-Trên các Stream nguyên thủy, các phương thức tương ứng trả về kiểu chuyên biệt: chẳng hạn `IntStream.findFirst()`, `IntStream.min()` và `IntStream.reduce(IntBinaryOperator)` trả `OptionalInt`. Bảng chi tiết có ở phần 7.
+On primitive Streams, the corresponding methods return specialized types: for example, `IntStream.findFirst()`, `IntStream.min()`, and `IntStream.reduce(IntBinaryOperator)` return `OptionalInt`. A detailed table is in section 7.
 
-## 3. Ví dụ hoàn chỉnh: kết quả có thể không tồn tại
+## 3. Complete Example: Results That May Not Exist
 
-Giả sử hệ thống có các đơn hàng, mỗi đơn chứa mã, tên khách hàng, số tiền và trạng thái đã thanh toán. Ta cần tìm đơn đầu tiên đã thanh toán, một đơn bất kỳ đã thanh toán, đơn có giá trị nhỏ nhất/lớn nhất, và tổng số tiền của các đơn đã thanh toán.
+Suppose a system has orders, each containing an ID, customer name, amount, and paid status. We need to find the first paid order, any paid order, the order with the smallest/largest value, and the total amount of paid orders.
 
-Ví dụ chạy với **JDK 17 trở lên** vì dùng `record` và `List.of`:
+The example runs with **JDK 17 or later** because it uses `record` and `List.of`:
 
 ~~~java
 import java.util.Comparator;
@@ -86,7 +86,7 @@ public class OptionalStreamResultsDemo {
             new Order("DH04", "Dũng", 250_000L, true)
         );
 
-        // Mỗi phép toán kết thúc cần một Stream mới từ nguồn List.
+        // Each terminal operation requires a new Stream from the List source.
         Optional<Order> firstPaid = orders.stream()
             .filter(Order::paid)
             .findFirst();
@@ -112,45 +112,45 @@ public class OptionalStreamResultsDemo {
             .reduce(Long::sum);
 
         System.out.println(
-            "Đầu tiên: " + firstPaid.map(Order::id).orElse("Không có")
-        ); // Đầu tiên: DH01
+            "First: " + firstPaid.map(Order::id).orElse("None")
+        ); // First: DH01
 
-        System.out.println("Có đơn bất kỳ: " + anyPaid.isPresent());
-        // Có đơn bất kỳ: true; không giả định đó là mã đơn nào.
-
-        System.out.println(
-            "Nhỏ nhất: " + cheapestPaid.map(Order::amountVnd).orElse(0L)
-        ); // Nhỏ nhất: 120000
+        System.out.println("Has any order: " + anyPaid.isPresent());
+        // Has any order: true; do not assume which order ID it is.
 
         System.out.println(
-            "Lớn nhất: " + mostExpensivePaid.map(Order::amountVnd).orElse(0L)
-        ); // Lớn nhất: 250000
+            "Lowest: " + cheapestPaid.map(Order::amountVnd).orElse(0L)
+        ); // Lowest: 120000
 
-        System.out.println("Tổng: " + totalPaid.orElse(0L));
-        // Tổng: 620000
+        System.out.println(
+            "Highest: " + mostExpensivePaid.map(Order::amountVnd).orElse(0L)
+        ); // Highest: 250000
+
+        System.out.println("Total: " + totalPaid.orElse(0L));
+        // Total: 620000
     }
 }
 ~~~
 
-Có một số quyết định quan trọng ở ví dụ này:
+There are several important decisions in this example:
 
-1. `findFirst()` lấy đơn `DH01` vì nguồn là `List` có encounter order và `DH01` là đơn đã thanh toán đầu tiên.
-2. `findAny()` chỉ bảo đảm trả về **một** đơn phù hợp nếu có; không nên viết kiểm thử ép nó luôn trả `DH01`.
-3. `min` tìm số tiền thấp nhất; `max` tìm số tiền cao nhất theo `Comparator.comparingLong`.
-4. Hai đơn `DH03` và `DH04` cùng có giá 250.000 đồng. `max` có thể chọn một đại diện trong các phần tử đồng hạng; nếu nghiệp vụ cần xác định chính xác ID, phải bổ sung quy tắc phụ vào comparator.
-5. `mapToLong(...).reduce(Long::sum)` trả về `OptionalLong`. Với danh sách hiện tại, nó chứa 620.000; với không có đơn đã thanh toán, nó rỗng.
+1. `findFirst()` takes order `DH01` because the source is a `List` with an encounter order and `DH01` is the first paid order.
+2. `findAny()` only guarantees returning **one** matching order if available; do not write tests forcing it to always return `DH01`.
+3. `min` finds the lowest amount; `max` finds the highest amount according to `Comparator.comparingLong`.
+4. Both orders `DH03` and `DH04` have an amount of 250,000 VND. `max` may pick any representative among tied elements; if business logic requires determining the exact ID, an additional rule must be added to the comparator.
+5. `mapToLong(...).reduce(Long::sum)` returns an `OptionalLong`. With the current list, it contains 620,000; when there are no paid orders, it is empty.
 
-Trong ví dụ, `orElse(0L)` được dùng khi **quy ước hiển thị** là “không có dữ liệu thì hiện số 0”. Với báo cáo thực tế, “không có đơn”, “không xác định” và “giá trị thật bằng 0” có thể mang ý nghĩa khác nhau. Hãy chọn chính sách thiếu dữ liệu rõ ràng.
+In the example, `orElse(0L)` is used when the **display convention** is "show 0 if there is no data". For real-world reports, "no orders", "unknown", and "actual value of 0" may carry different meanings. Choose a clear missing-data policy.
 
-## 4. findFirst: ưu tiên phần tử đầu tiên theo encounter order
+## 4. findFirst: Prioritizing the First Element by Encounter Order
 
-`Stream.findFirst()` có chữ ký:
+`Stream.findFirst()` has the signature:
 
 ~~~java
 Optional<T> findFirst()
 ~~~
 
-Đây là terminal operation **short-circuiting**: trong nhiều pipeline, nó có thể dừng ngay khi xác định được phần tử đầu tiên. “Đầu tiên” được xác định bởi **encounter order** nếu nguồn/pipeline có thứ tự.
+This is a **short-circuiting** terminal operation: in many pipelines, it can stop immediately once the first element is determined. "First" is determined by **encounter order** if the source/pipeline is ordered.
 
 ~~~java
 import java.util.List;
@@ -162,10 +162,10 @@ Optional<String> firstLongName = names.stream()
     .filter(name -> name.length() >= 4)
     .findFirst();
 
-System.out.println(firstLongName.orElse("Không tìm thấy")); // Bình
+System.out.println(firstLongName.orElse("Not found")); // Bình
 ~~~
 
-Vì `List` có thứ tự, `Bình` là phần tử đầu tiên đạt điều kiện độ dài ít nhất 4. Khi không có phần tử phù hợp:
+Because `List` is ordered, `Bình` is the first element meeting the condition of length at least 4. When there is no matching element:
 
 ~~~java
 Optional<String> missing = names.stream()
@@ -175,11 +175,11 @@ Optional<String> missing = names.stream()
 System.out.println(missing.isPresent()); // false
 ~~~
 
-### 4.1. “Đầu tiên” không luôn có nghĩa “nhỏ nhất”
+### 4.1. "First" Does Not Always Mean "Smallest"
 
-Ví dụ, `List.of(9, 3, 5).stream().findFirst()` trả `9`, không phải `3`. Nếu muốn tìm giá trị nhỏ nhất, dùng `min` hoặc một phép toán tương đương theo tiêu chí nghiệp vụ. Nếu đã `sorted()` rồi `findFirst()` thì có thể thu phần tử nhỏ nhất, nhưng thường `min` diễn đạt ý định rõ hơn và tránh yêu cầu sắp xếp toàn bộ dữ liệu.
+For example, `List.of(9, 3, 5).stream().findFirst()` returns `9`, not `3`. If you want to find the smallest value, use `min` or an equivalent operation based on business criteria. Calling `sorted()` followed by `findFirst()` can retrieve the smallest element, but `min` usually expresses intent more clearly and avoids requiring a full sort of the data.
 
-### 4.2. Với nguồn không có encounter order
+### 4.2. With Sources Without an Encounter Order
 
 ~~~java
 Optional<Integer> chosen = java.util.Set.of(3, 1, 2)
@@ -187,23 +187,23 @@ Optional<Integer> chosen = java.util.Set.of(3, 1, 2)
     .findFirst();
 ~~~
 
-Không nên đoán `chosen` chứa `1` chỉ vì nó là giá trị nhỏ nhất hoặc vì một lần chạy xuất ra như vậy. Một `Set` không có encounter order được bảo đảm có thể khiến `findFirst` chọn bất kỳ phần tử nào. Tương tự, nếu dùng `unordered()` trên Stream, khái niệm phần tử đầu tiên không còn ràng buộc theo thứ tự nguồn.
+Do not guess that `chosen` contains `1` just because it is the smallest value or because one run printed that. A `Set` without a guaranteed encounter order can cause `findFirst` to pick any element. Similarly, if `unordered()` is used on a Stream, the concept of the first element is no longer bound by the source order.
 
-### 4.3. findFirst và Stream song song
+### 4.3. findFirst and Parallel Streams
 
-`findFirst` phải tôn trọng encounter order nếu Stream có thứ tự, kể cả khi xử lý bằng `parallel()`. Điều này có thể làm giảm hiệu năng do cần xác định phần tử đầu tiên theo thứ tự, thay vì lấy kết quả của nhánh hoàn thành sớm nhất.
+`findFirst` must respect encounter order if the Stream is ordered, even when processed with `parallel()`. This can reduce performance because it needs to determine the first element in order, rather than taking the result of the branch that finishes earliest.
 
-Nếu nghiệp vụ chỉ cần **một phần tử bất kỳ**, `findAny` cho phép cách thực thi linh hoạt hơn.
+If the business logic only needs **any element**, `findAny` allows more flexible execution.
 
-## 5. findAny: tìm một phần tử phù hợp không ràng buộc đại diện
+## 5. findAny: Finding Any Matching Element Without Guaranteeing a Representative
 
-`Stream.findAny()` cũng trả `Optional<T>`:
+`Stream.findAny()` also returns `Optional<T>`:
 
 ~~~java
 Optional<T> findAny()
 ~~~
 
-Khác với `findFirst`, **API không cam kết** phần tử nào sẽ được trả nếu có nhiều phần tử phù hợp. Trên Stream tuần tự, bạn thường thấy nó trả phần tử đầu tiên, nhưng đó không phải quy tắc để viết logic nghiệp vụ.
+Unlike `findFirst`, **the API does not guarantee** which element will be returned if there are multiple matching elements. On a sequential Stream, you often see it return the first element, but that is not a rule to rely on for business logic.
 
 ~~~java
 import java.util.List;
@@ -218,37 +218,37 @@ boolean hasLongName = cities.parallelStream()
 System.out.println(hasLongName); // true
 ~~~
 
-Ở đây câu hỏi là **có phần tử nào phù hợp hay không**. Nếu chỉ cần một kết quả `boolean`, `anyMatch(...)` còn diễn đạt trực tiếp hơn:
+Here the question is **whether any matching element exists**. If you only need a `boolean` result, `anyMatch(...)` expresses this even more directly:
 
 ~~~java
 boolean hasLongNameDirectly = cities.stream()
     .anyMatch(name -> name.length() >= 5);
 ~~~
 
-Chỉ chọn `findAny` khi bạn **cần sử dụng chính phần tử** tìm được. Các trường hợp phù hợp có thể là chọn một phần tử mẫu từ tập dữ liệu, hoặc lấy bất kỳ tài nguyên đáp ứng điều kiện mà không có ưu tiên thứ tự.
+Only choose `findAny` when you **need to use the found element itself**. Suitable cases include picking a sample element from a dataset, or retrieving any resource that meets a condition without order preference.
 
-| Thuộc tính | `findFirst` | `findAny` |
+| Property | `findFirst` | `findAny` |
 |---|---|---|
-| Kết quả | `Optional<T>` | `Optional<T>` |
-| Có thể kết thúc sớm | Có | Có |
-| Có giữ encounter order khi nguồn có thứ tự | Có | Không cam kết |
-| Chạy parallel có thể linh hoạt chọn nhánh | Ít linh hoạt hơn | Linh hoạt hơn |
-| Dùng khi | Muốn **đại diện đầu tiên** | Muốn **đại diện bất kỳ** |
+| Result | `Optional<T>` | `Optional<T>` |
+| Can terminate early | Yes | Yes |
+| Preserves encounter order on ordered sources | Yes | Not guaranteed |
+| Flexible branch selection in parallel execution | Less flexible | More flexible |
+| Use when | You want the **first representative** | You want **any representative** |
 
-**Điều kiện chung:** khi không có phần tử nào, cả hai trả `Optional.empty()`. Nếu phần tử được chọn là `null` thì API có thể ném `NullPointerException`; mục 9 giải thích cách xử lý.
+**Common condition:** when there is no element, both return `Optional.empty()`. If the selected element is `null`, the API may throw `NullPointerException`; section 9 explains how to handle this.
 
-## 6. min và max: Comparator định nghĩa giá trị nhỏ nhất/lớn nhất
+## 6. min and max: Comparator Defines the Smallest/Largest Value
 
-Hai terminal operation:
+Two terminal operations:
 
 ~~~java
 Optional<T> min(Comparator<? super T> comparator)
 Optional<T> max(Comparator<? super T> comparator)
 ~~~
 
-`Comparator` xác định **thứ tự so sánh**; `min` lấy phần tử thấp nhất, `max` lấy phần tử cao nhất theo quy tắc đó.
+`Comparator` defines the **comparison order**; `min` takes the lowest element, and `max` takes the highest element according to that rule.
 
-### 6.1. Min/max với số nguyên và chuỗi
+### 6.1. Min/max with Integers and Strings
 
 ~~~java
 import java.util.Comparator;
@@ -258,21 +258,21 @@ List<Integer> scores = List.of(8, 5, 10, 7);
 
 int lowest = scores.stream()
     .min(Integer::compareTo)
-    .orElseThrow(() -> new IllegalStateException("Danh sách rỗng"));
+    .orElseThrow(() -> new IllegalStateException("Empty list"));
 
 int highest = scores.stream()
     .max(Comparator.naturalOrder())
-    .orElseThrow(() -> new IllegalStateException("Danh sách rỗng"));
+    .orElseThrow(() -> new IllegalStateException("Empty list"));
 
 System.out.println(lowest);  // 5
 System.out.println(highest); // 10
 ~~~
 
-Với chuỗi, `Comparator.naturalOrder()` dựa vào quy tắc `String.compareTo`, **không mặc nhiên** tương đương sắp xếp theo ngôn ngữ tự nhiên hoặc không phân biệt hoa/thường.
+For strings, `Comparator.naturalOrder()` relies on `String.compareTo`, which does **not automatically** correspond to natural language sorting or case-insensitive comparison.
 
-### 6.2. So sánh đối tượng theo thuộc tính
+### 6.2. Comparing Objects by Property
 
-Giả sử ta cần đơn hàng giá trị cao nhất:
+Suppose we need the highest-value order:
 
 ~~~java
 Comparator<Order> byAmount =
@@ -282,11 +282,11 @@ Optional<Order> mostExpensive = orders.stream()
     .max(byAmount);
 ~~~
 
-`Comparator.comparingLong` thích hợp với thuộc tính `long`, tránh boxing chỉ để so sánh. Đoạn ví dụ này dùng kiểu `Order` và biến `orders` từ chương trình hoàn chỉnh ở mục 3.
+`Comparator.comparingLong` is well-suited for `long` properties, avoiding boxing just for comparison. This snippet uses the `Order` type and `orders` variable from the complete program in section 3.
 
-**Tie-breaker:** nếu nhiều đơn có cùng số tiền, việc so sánh theo `amountVnd` cho kết quả bằng 0 giữa chúng. Nếu nghiệp vụ yêu cầu chọn **đơn có mã nhỏ nhất** khi số tiền bằng nhau, hãy diễn đạt bằng comparator và lựa chọn min/max cho nhất quán.
+**Tie-breaker:** if multiple orders have the same amount, comparing by `amountVnd` yields 0 between them. If business logic requires choosing the **order with the smallest ID** when amounts are equal, express it with a comparator and choose min/max consistently.
 
-Ví dụ: “Lấy đơn có số tiền lớn nhất, nếu bằng nhau lấy mã **nhỏ hơn**”:
+Example: "Get the order with the largest amount; if tied, pick the **smaller** ID":
 
 ~~~java
 Comparator<Order> byAmountThenPreferredId =
@@ -296,14 +296,14 @@ Comparator<Order> byAmountThenPreferredId =
 Optional<Order> selected = orders.stream()
     .max(byAmountThenPreferredId);
 
-// Với ví dụ mục 3, hai đơn giá 250000 có ID DH03 và DH04.
-// max theo comparator trên chọn DH03.
-System.out.println(selected.map(Order::id).orElse("Không có")); // DH03
+// For the example in section 3, two orders with amount 250000 have IDs DH03 and DH04.
+// max with the comparator above selects DH03.
+System.out.println(selected.map(Order::id).orElse("None")); // DH03
 ~~~
 
-Lý do: `max` chọn giá trị được comparator xếp **lớn nhất**; ở phần mã đơn, `reverseOrder()` khiến mã chữ nhỏ hơn được xếp lớn hơn trong phép so sánh phụ. Cách này chỉ đúng với yêu cầu đang mô tả, không có một tie-breaker mặc định cho mọi miền nghiệp vụ.
+Reason: `max` picks the value ranked **largest** by the comparator; for the order ID part, `reverseOrder()` causes lexicographically smaller IDs to rank larger in the secondary comparison. This approach applies only to the described requirement; there is no single default tie-breaker for all business domains.
 
-### 6.3. min/max trên Stream rỗng
+### 6.3. min/max on an Empty Stream
 
 ~~~java
 Optional<Integer> min = List.<Integer>of().stream()
@@ -312,25 +312,25 @@ Optional<Integer> min = List.<Integer>of().stream()
 System.out.println(min.isPresent()); // false
 ~~~
 
-Không có giá trị nhỏ nhất khi tập phần tử rỗng. Đó là lý do `min` và `max` trả Optional, thay vì tự chọn một số mặc định có thể không phù hợp.
+There is no smallest value when the set of elements is empty. That is why `min` and `max` return an Optional, rather than picking a default number that might be inappropriate.
 
-Ngoài ra, **`min` và `max` thường phải xem đủ các phần tử của nguồn hữu hạn** để biết kết quả cuối, khác với `findFirst` có thể dừng sớm. Với nguồn vô hạn, một phép toán cần khảo sát toàn bộ nguồn có thể không hoàn thành. Nếu comparator hoặc hàm tạo dữ liệu có tác dụng phụ, không dựa vào số lần gọi comparator để thực hiện nghiệp vụ.
+In addition, **`min` and `max` usually have to examine all elements of a finite source** to determine the final result, unlike `findFirst` which can stop early. With an infinite source, an operation that needs to inspect the entire source may not terminate. If the comparator or data-generating function has side effects, do not rely on the number of comparator invocations to drive business logic.
 
-### 6.4. Không nhầm min/max với thứ tự theo equals
+### 6.4. Do Not Confuse min/max Order with equals
 
-`min` và `max` làm việc theo `Comparator`. Hai đối tượng có thể được comparator xem là ngang nhau dù `equals` của chúng khác nhau. Ví dụ, hai đơn hàng có cùng giá trị 250.000 nhưng khác ID là hai đối tượng khác nhau; chúng vẫn đồng hạng theo `comparingLong(Order::amountVnd)`.
+`min` and `max` operate according to the `Comparator`. Two objects can be considered equal by the comparator even if their `equals` implementations differ. For example, two orders with the same amount of 250,000 but different IDs are distinct objects; they still tie under `comparingLong(Order::amountVnd)`.
 
-## 7. reduce: khi phép gộp có thể không có kết quả
+## 7. reduce: When an Aggregation May Have No Result
 
-`reduce` kết hợp nhiều phần tử thành một kết quả: tính tổng, tích, tìm giá trị tích lũy hoặc kết hợp các cấu trúc bất biến. Có **hai dạng quan trọng** khi xét kết quả rỗng.
+`reduce` combines multiple elements into a single result: computing a sum, product, accumulated value, or combining immutable structures. There are **two important forms** when considering empty results.
 
-### 7.1. reduce không có identity trả Optional
+### 7.1. reduce Without Identity Returns Optional
 
 ~~~java
 Optional<T> reduce(BinaryOperator<T> accumulator)
 ~~~
 
-Ví dụ tính tổng:
+Example computing a sum:
 
 ~~~java
 import java.util.List;
@@ -344,7 +344,7 @@ Optional<Integer> total = numbers.stream()
 System.out.println(total.orElse(0)); // 20
 ~~~
 
-Với ba phần tử, phép gộp `Integer::sum` tạo `4 + 6 + 10 = 20`. Với Stream rỗng, không có phần tử nào để dùng làm giá trị ban đầu, nên:
+With three elements, the reduction `Integer::sum` produces `4 + 6 + 10 = 20`. With an empty Stream, there is no element to serve as an initial value, so:
 
 ~~~java
 Optional<Integer> emptyTotal = List.<Integer>of()
@@ -354,15 +354,15 @@ Optional<Integer> emptyTotal = List.<Integer>of()
 System.out.println(emptyTotal.isPresent()); // false
 ~~~
 
-Dù toán học có thể quy ước tổng tập rỗng bằng 0, **overload không có identity** vẫn trả Optional rỗng. Chính ứng dụng phải quyết định có dùng 0 làm giá trị mặc định hay không.
+Even though mathematics may define the sum of an empty set as 0, the **overload without identity** still returns an empty Optional. The application itself must decide whether to use 0 as the default value.
 
-### 7.2. reduce có identity trả trực tiếp giá trị
+### 7.2. reduce With Identity Returns the Value Directly
 
 ~~~java
 T reduce(T identity, BinaryOperator<T> accumulator)
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~java
 int total = numbers.stream()
@@ -376,36 +376,36 @@ System.out.println(total);      // 20
 System.out.println(emptyTotal); // 0
 ~~~
 
-`identity` là phần tử trung hòa của phép kết hợp:
+`identity` is the identity element of the combining operation:
 
-- Với cộng số học, identity là **0**.
-- Với nhân số học, identity là **1**.
-- Với nối chuỗi, identity thường là **""**.
+- For arithmetic addition, identity is **0**.
+- For arithmetic multiplication, identity is **1**.
+- For string concatenation, identity is typically **""**.
 
-Chọn identity sai làm sai cả dữ liệu không rỗng. Ví dụ `Stream.of(5, 8).reduce(0, Integer::min)` cho `0`, vì 0 nhỏ hơn cả 5 và 8. Do đó muốn tìm min thường nên dùng **`min(...)` trả Optional** hoặc `reduce(Integer::min)` không có identity, thay vì mặc định bắt đầu bằng 0.
+Choosing the wrong identity breaks even non-empty data. For example, `Stream.of(5, 8).reduce(0, Integer::min)` gives `0`, because 0 is smaller than both 5 and 8. Therefore, to find the minimum, you should normally use **`min(...)` returning Optional** or `reduce(Integer::min)` without identity, instead of defaulting to starting at 0.
 
-### 7.3. Phép kết hợp cần bảo đảm associativity
+### 7.3. The Combining Operation Must Guarantee Associativity
 
-Để `reduce` hoạt động đúng, đặc biệt khi chia nhỏ để xử lý song song, accumulator cần **associative**: 
+For `reduce` to work properly, especially when split for parallel processing, the accumulator must be **associative**:
 
 `(a ◦ b) ◦ c = a ◦ (b ◦ c)`.
 
-Cộng số nguyên thường là ví dụ quen thuộc trong phạm vi quy tắc số nguyên của Java; **phép trừ không có tính kết hợp**:
+Integer addition is a familiar example within Java's integer arithmetic rules; **subtraction is not associative**:
 
 ~~~java
 List<Integer> values = List.of(10, 3, 2);
 
-// Không dùng kiểu này nếu muốn một reduction ổn định khi song song.
+// Do not use this style if you want a stable reduction in parallel.
 int sequential = values.stream()
     .reduce((a, b) -> a - b)
     .orElse(0); // (10 - 3) - 2 = 5
 ~~~
 
-Nếu chia nhóm và kết hợp theo thứ tự khác, phép trừ có thể cho kết quả khác. Với `double`, phép cộng cũng có vấn đề về **thứ tự làm tròn** và số học dấu phẩy động: xử lý song song hoặc đổi thứ tự phép gộp có thể tạo chênh lệch nhỏ. Với tổng tiền tệ cần tính chính xác, cân nhắc đơn vị tiền nguyên nhỏ nhất hoặc `BigDecimal` theo chính sách nghiệp vụ.
+If grouped and combined in a different order, subtraction can yield a different result. With `double`, addition also suffers from **rounding order** and floating-point arithmetic issues: parallel processing or changing the reduction order can produce slight differences. For monetary totals requiring exact precision, consider the smallest integer currency unit or `BigDecimal` according to business policy.
 
-### 7.4. Primitive Stream dùng Optional chuyên biệt
+### 7.4. Primitive Streams Use Specialized Optionals
 
-Để tránh boxing, có thể chọn `IntStream` hoặc `LongStream`:
+To avoid boxing, you can choose `IntStream` or `LongStream`:
 
 ~~~java
 import java.util.OptionalInt;
@@ -423,34 +423,34 @@ System.out.println(intTotal.orElse(0));   // 10
 System.out.println(longTotal.orElse(0L)); // 3000000000
 ~~~
 
-`IntStream.reduce(IntBinaryOperator)` trả `OptionalInt`; `LongStream.reduce(LongBinaryOperator)` trả `OptionalLong`; `DoubleStream.reduce(DoubleBinaryOperator)` trả `OptionalDouble`. Nếu dùng overload có identity, chúng trả nguyên thủy `int`, `long` hoặc `double`.
+`IntStream.reduce(IntBinaryOperator)` returns `OptionalInt`; `LongStream.reduce(LongBinaryOperator)` returns `OptionalLong`; `DoubleStream.reduce(DoubleBinaryOperator)` returns `OptionalDouble`. If you use the overload with an identity, they return primitive `int`, `long`, or `double`.
 
-Với tính tổng thông thường, `sum()` là cách ngắn gọn hơn. Nhưng `sum()` trả nguyên thủy và có quy tắc kết quả riêng cho Stream rỗng (tổng bằng 0), trong khi `reduce(operator)` trả Optional rỗng. Chọn API dựa theo nhu cầu thể hiện trạng thái “không có dữ liệu”.
+For ordinary summation, `sum()` is more concise. However, `sum()` returns a primitive and has its own result rule for empty Streams (sum equals 0), whereas `reduce(operator)` returns an empty Optional. Choose the API based on the need to represent the "no data" state.
 
-### 7.5. reduce không dành cho cập nhật collection chia sẻ
+### 7.5. reduce Is Not Meant for Mutating a Shared Collection
 
-Không dùng `reduce` để liên tục sửa một `ArrayList` hoặc `HashMap` tích lũy được chia sẻ. Phép gộp trong reduction nên tuân thủ hợp đồng về tính kết hợp và tránh tác dụng phụ. Khi muốn tạo `List`, `Map` hoặc nhóm dữ liệu, dùng **`collect` và `Collector`**; khi muốn tổng hợp nhiều thuộc tính, có thể dùng collector phù hợp hoặc custom collector với cách phối hợp thread-safe đúng hợp đồng.
+Do not use `reduce` to repeatedly mutate a shared accumulating `ArrayList` or `HashMap`. The combining operation in a reduction should adhere to the associativity contract and avoid side effects. When you want to build a `List`, `Map`, or group data, use **`collect` and `Collector`**; when you want to aggregate multiple properties, you can use an appropriate collector or a custom collector with contract-compliant thread-safe combination.
 
-## 8. Xử lý Optional an toàn và đúng nghiệp vụ
+## 8. Handling Optional Safely and According to Business Logic
 
-Tìm thấy một `Optional<T>` mới là nửa đầu câu chuyện. Phần quan trọng là **quyết định làm gì khi không có giá trị**.
+Obtaining an `Optional<T>` is only the first half of the story. The important part is **deciding what to do when there is no value**.
 
-### 8.1. orElse: cung cấp giá trị mặc định
+### 8.1. orElse: Providing a Default Value
 
 ~~~java
 Optional<String> first = List.<String>of().stream()
     .findFirst();
 
-String label = first.orElse("Không tìm thấy");
+String label = first.orElse("Not found");
 
-System.out.println(label); // Không tìm thấy
+System.out.println(label); // Not found
 ~~~
 
-`orElse(defaultValue)` phù hợp khi giá trị mặc định có sẵn, rẻ để tạo và có ý nghĩa trong miền dữ liệu. Không nên mặc định chọn `null` hoặc một số như 0 nếu điều đó che giấu lỗi đầu vào.
+`orElse(defaultValue)` is suitable when the default value is already available, cheap to create, and meaningful in the domain. Do not default to `null` or a number like 0 if doing so hides invalid input errors.
 
-### 8.2. orElseGet: chỉ tính mặc định khi cần
+### 8.2. orElseGet: Computing the Default Only When Needed
 
-`orElseGet(Supplier<? extends T>)` gọi supplier **chỉ khi Optional rỗng**. Ngược lại, biểu thức truyền vào `orElse(...)` được Java đánh giá **ngay khi gọi phương thức**, dù Optional có giá trị.
+`orElseGet(Supplier<? extends T>)` invokes the supplier **only when the Optional is empty**. In contrast, the expression passed to `orElse(...)` is evaluated by Java **immediately when the method is called**, even if the Optional has a value.
 
 ~~~java
 import java.util.Optional;
@@ -459,57 +459,57 @@ import java.util.concurrent.atomic.AtomicInteger;
 AtomicInteger calls = new AtomicInteger();
 Optional<String> present = Optional.of("DH01");
 
-String a = present.orElse("Mã-" + calls.incrementAndGet());
-System.out.println(calls.get()); // 1: đã tính biểu thức mặc định
+String a = present.orElse("Code-" + calls.incrementAndGet());
+System.out.println(calls.get()); // 1: the default expression was evaluated
 
-String b = present.orElseGet(() -> "Mã-" + calls.incrementAndGet());
-System.out.println(calls.get()); // Vẫn là 1: supplier chưa được gọi
+String b = present.orElseGet(() -> "Code-" + calls.incrementAndGet());
+System.out.println(calls.get()); // Still 1: supplier was not called
 
 System.out.println(a + ", " + b); // DH01, DH01
 ~~~
 
-Bộ đếm chỉ minh họa cơ chế đánh giá. Trong code thật, `orElseGet` thích hợp với việc lấy dữ liệu dự phòng hoặc tạo đối tượng tốn chi phí. Khi supplier có I/O hoặc trạng thái, vẫn cần xử lý lỗi và phạm vi tác dụng phụ.
+The counter merely illustrates the evaluation mechanism. In real code, `orElseGet` is suitable for fetching fallback data or creating expensive objects. When the supplier performs I/O or has state, error handling and side-effect scope still need to be managed.
 
-### 8.3. orElseThrow: yêu cầu bắt buộc phải có giá trị
+### 8.3. orElseThrow: Requiring a Value to Be Present
 
-Nếu việc không tìm thấy là lỗi nghiệp vụ, hãy thể hiện trực tiếp:
+If not finding a value is a business error, express it directly:
 
 ~~~java
 String required = List.of("A", "B").stream()
     .filter(value -> value.equals("B"))
     .findFirst()
-    .orElseThrow(() -> new IllegalArgumentException("Không có giá trị B"));
+    .orElseThrow(() -> new IllegalArgumentException("Missing value B"));
 
 System.out.println(required); // B
 ~~~
 
-Overload `orElseThrow(Supplier<? extends X>)` có từ Java 8; `orElseThrow()` không tham số xuất hiện ở Java 10. Với Java 8, cũng có `get()` nhưng khi rỗng nó ném `NoSuchElementException` ít ngữ cảnh. Trong mã nghiệp vụ, `orElseThrow(() -> new ...("thông báo cụ thể"))` thường dễ chẩn đoán hơn.
+The `orElseThrow(Supplier<? extends X>)` overload has existed since Java 8; the no-argument `orElseThrow()` appeared in Java 10. In Java 8, `get()` also exists, but when empty it throws `NoSuchElementException` with little context. In business code, `orElseThrow(() -> new ...("specific message"))` is usually easier to diagnose.
 
-### 8.4. ifPresent và ifPresentOrElse: xử lý theo nhánh
+### 8.4. ifPresent and ifPresentOrElse: Branch-Based Handling
 
 ~~~java
 import java.util.Optional;
 
 Optional<String> result = Optional.of("DH01");
 
-result.ifPresent(id -> System.out.println("Tìm thấy: " + id));
-// Tìm thấy: DH01
+result.ifPresent(id -> System.out.println("Found: " + id));
+// Found: DH01
 ~~~
 
-`ifPresent(Consumer)` chỉ chạy khi có giá trị. Nếu cần nhánh khi rỗng, Java 9+ hỗ trợ `ifPresentOrElse(Consumer, Runnable)`:
+`ifPresent(Consumer)` only runs when a value is present. If you need a branch for the empty case, Java 9+ supports `ifPresentOrElse(Consumer, Runnable)`:
 
 ~~~java
 result.ifPresentOrElse(
-    id -> System.out.println("Tìm thấy: " + id),
-    () -> System.out.println("Không tìm thấy")
+    id -> System.out.println("Found: " + id),
+    () -> System.out.println("Not found")
 );
 ~~~
 
-Với Java 8, có thể dùng `ifPresent` kết hợp xử lý khác ở bên gọi, hoặc dùng `orElse`/`orElseGet` tùy nhu cầu trả kết quả.
+In Java 8, you can use `ifPresent` combined with other handling at the caller, or use `orElse`/`orElseGet` depending on the need to return a result.
 
-### 8.5. map, filter và flatMap trên Optional
+### 8.5. map, filter, and flatMap on Optional
 
-`Optional` cũng có những phép toán khai báo để làm việc với **tối đa một giá trị**:
+`Optional` also has declarative operations for working with **at most one value**:
 
 ~~~java
 Optional<String> normalizedId = orders.stream()
@@ -520,9 +520,9 @@ Optional<String> normalizedId = orders.stream()
     .filter(id -> !id.isEmpty());
 ~~~
 
-Đoạn này dùng `Order` và `orders` ở mục 3. Từng `map` chỉ chạy khi Optional có giá trị. Nếu mapper trả `null`, `Optional.map` tạo Optional rỗng theo hợp đồng, nhưng nên tránh dùng `null` như tín hiệu điều khiển khi có thể định nghĩa rõ kết quả.
+This snippet uses `Order` and `orders` from section 3. Each `map` runs only when the Optional has a value. If the mapper returns `null`, `Optional.map` produces an empty Optional by contract, but you should avoid using `null` as a control signal when the result can be clearly defined.
 
-`flatMap` dùng khi mapper **đã trả về một Optional**, giúp tránh `Optional<Optional<T>>`:
+`flatMap` is used when the mapper **already returns an Optional**, avoiding `Optional<Optional<T>>`:
 
 ~~~java
 import java.util.Optional;
@@ -539,11 +539,11 @@ Optional<Integer> parsed = input.flatMap(value -> {
 System.out.println(parsed.orElse(-1)); // 42
 ~~~
 
-Lưu ý `Optional.flatMap` không chấp nhận mapper trả `null`: trường hợp đó ném `NullPointerException`. Ví dụ bắt `NumberFormatException` ở đây phục vụ minh họa quy tắc parse tùy chọn; với hệ thống có yêu cầu chẩn đoán lỗi, cần báo lỗi chi tiết thay vì luôn chuyển lỗi parse thành “không có”.
+Note that `Optional.flatMap` does not accept a mapper returning `null`: that case throws `NullPointerException`. Catching `NumberFormatException` here serves to illustrate optional parsing rules; in systems requiring error diagnostics, detailed errors should be reported rather than always turning parse failures into "absent".
 
-### 8.6. Optional.stream để kết hợp lại với Stream (Java 9+)
+### 8.6. Optional.stream to Rejoin a Stream (Java 9+)
 
-Nếu có nhiều Optional và muốn lấy tất cả giá trị có mặt:
+If you have multiple Optionals and want to extract all present values:
 
 ~~~java
 import java.util.List;
@@ -558,19 +558,19 @@ List<String> presentValues = List.of(
     .toList(); // [A, B]
 ~~~
 
-`Optional.stream()` có từ Java 9, còn `Stream.toList()` có từ Java 16. Với Java 9–15, thay `toList()` bằng `collect(Collectors.toList())`. Khi dùng `Optional.stream()`, Optional rỗng đóng góp **0 phần tử**, Optional có giá trị đóng góp **1 phần tử**.
+`Optional.stream()` is available from Java 9, and `Stream.toList()` from Java 16. For Java 9–15, replace `toList()` with `collect(Collectors.toList())`. When using `Optional.stream()`, an empty Optional contributes **0 elements**, and a present Optional contributes **1 element**.
 
-## 9. OptionalInt, OptionalLong và OptionalDouble
+## 9. OptionalInt, OptionalLong, and OptionalDouble
 
-Stream nguyên thủy không trả `Optional<Integer>`, `Optional<Long>` hoặc `Optional<Double>` trong các phép toán tìm một giá trị. Chúng trả các kiểu **chuyên biệt**, tránh boxing:
+Primitive Streams do not return `Optional<Integer>`, `Optional<Long>`, or `Optional<Double>` in single-value lookup operations. They return **specialized** types, avoiding boxing:
 
-| Nguồn | `findFirst` / `findAny` | `min` / `max` | `reduce(operator)` | `average` |
+| Source | `findFirst` / `findAny` | `min` / `max` | `reduce(operator)` | `average` |
 |---|---|---|---|---|
 | `IntStream` | `OptionalInt` | `OptionalInt` | `OptionalInt` | `OptionalDouble` |
 | `LongStream` | `OptionalLong` | `OptionalLong` | `OptionalLong` | `OptionalDouble` |
 | `DoubleStream` | `OptionalDouble` | `OptionalDouble` | `OptionalDouble` | `OptionalDouble` |
 
-Ví dụ:
+Example:
 
 ~~~java
 import java.util.OptionalDouble;
@@ -584,63 +584,63 @@ System.out.println(min.orElse(-1));           // 2
 System.out.println(average.orElse(Double.NaN)); // 4.333...
 ~~~
 
-`OptionalInt` có `getAsInt()`, `orElse(int)`, `orElseGet(IntSupplier)`, `orElseThrow(...)` và một số phương thức kiểm tra/tiêu thụ giá trị. Tương tự, `OptionalLong` có `getAsLong()`, `OptionalDouble` có `getAsDouble()`. Các kiểu này **không có đầy đủ mọi phép biến đổi `map`/`flatMap` giống `Optional<T>`**; đừng viết `optionalInt.map(...)` theo thói quen từ Optional đối tượng.
+`OptionalInt` has `getAsInt()`, `orElse(int)`, `orElseGet(IntSupplier)`, `orElseThrow(...)`, and several methods for checking/consuming the value. Similarly, `OptionalLong` has `getAsLong()`, and `OptionalDouble` has `getAsDouble()`. These types **do not have the full set of `map`/`flatMap` transformation methods like `Optional<T>`**; do not write `optionalInt.map(...)` out of habit from object Optional.
 
-Nếu cần chuyển sang đối tượng hoặc tiếp tục với `Stream<T>`, cân nhắc tạo Stream từ Optional nguyên thủy bằng `stream()` (Java 9+) rồi `mapToObj` hoặc thực hiện chuyển kiểu rõ ràng khi có giá trị.
+If you need to convert to objects or continue with `Stream<T>`, consider creating a Stream from the primitive Optional via `stream()` (Java 9+) followed by `mapToObj`, or performing an explicit conversion when a value is present.
 
 ~~~java
 int[] values = IntStream.of(8, 3, 6)
     .min()
-    .stream() // IntStream 0 hoặc 1 phần tử, Java 9+
+    .stream() // IntStream of 0 or 1 element, Java 9+
     .toArray();
 
 System.out.println(java.util.Arrays.toString(values)); // [3]
 ~~~
 
-Với Optional rỗng, `stream()` của Optional nguyên thủy cũng tạo Stream rỗng.
+With an empty Optional, the primitive Optional's `stream()` also creates an empty Stream.
 
-## 10. Optional và null: phân biệt “không có” với “có null”
+## 10. Optional and null: Distinguishing "Absent" from "Having null"
 
-`Optional<T>` **không chứa `null`**. Hai cách tạo Optional khác nhau:
+`Optional<T>` **cannot contain `null`**. The two ways of creating an Optional differ:
 
 ~~~java
 Optional<String> absent = Optional.ofNullable(null);
 System.out.println(absent.isPresent()); // false
 
-// Optional.of(null); // Ném NullPointerException.
+// Optional.of(null); // Throws NullPointerException.
 ~~~
 
-Đối với các phép toán tìm kết quả trên Stream, có hai tình huống cần tách biệt:
+For Stream lookup operations, two situations must be separated:
 
-1. **Stream không có phần tử phù hợp:** `findFirst`, `findAny`, `min`, `max` và `reduce(accumulator)` trả Optional rỗng.
-2. **Stream có phần tử `null` được chọn làm kết quả:** một số phép toán như `findFirst`/`findAny` có thể ném `NullPointerException`, thay vì trả Optional chứa null.
+1. **The Stream has no matching elements:** `findFirst`, `findAny`, `min`, `max`, and `reduce(accumulator)` return an empty Optional.
+2. **The Stream has a `null` element selected as the result:** some operations like `findFirst`/`findAny` may throw `NullPointerException`, instead of returning an Optional containing null.
 
-Ví dụ:
+Example:
 
 ~~~java
 import java.util.Arrays;
 import java.util.Objects;
 
-// Nguồn này có một phần tử null:
+// This source contains a null element:
 List<String> values = Arrays.asList(null, "Java");
 
-// values.stream().findFirst(); // Ném NullPointerException.
+// values.stream().findFirst(); // Throws NullPointerException.
 
 String firstNonNull = values.stream()
     .filter(Objects::nonNull)
     .findFirst()
-    .orElse("Không có");
+    .orElse("None");
 
 System.out.println(firstNonNull); // Java
 ~~~
 
-`List.of(null, "Java")` không phải cách tạo nguồn tương đương, vì `List.of` tự từ chối null. Nếu nghiệp vụ cần giữ lại ý nghĩa đặc biệt của dữ liệu thiếu, hãy dùng một mô hình dữ liệu biểu diễn trạng thái thiếu rõ ràng thay vì để null đi qua pipeline một cách ngầm định.
+`List.of(null, "Java")` is not an equivalent way to create the source, because `List.of` itself rejects null. If business logic needs to preserve the special meaning of missing data, use a data model that explicitly represents the missing state rather than letting null flow implicitly through the pipeline.
 
-Với `reduce(accumulator)`, accumulator **không nên trả null**; nếu kết quả reduction là null, một số overload có thể ném `NullPointerException`. Tương tự, comparator và phép toán khác không nhất thiết xử lý được null. Cần xác định quy tắc lọc, chuẩn hóa hoặc báo lỗi dữ liệu trước khi tổng hợp.
+With `reduce(accumulator)`, the accumulator **should not return null**; if the reduction result is null, some overloads may throw `NullPointerException`. Similarly, comparators and other operations do not necessarily handle null. Define rules for filtering, normalizing, or reporting data errors before aggregating.
 
-## 11. Tính lazy, tài nguyên và khả năng dừng
+## 11. Laziness, Resources, and Termination
 
-`findFirst`, `findAny`, `min`, `max` và `reduce` là terminal operation: chúng **kích hoạt** pipeline lazy. Tuy nhiên, lượng dữ liệu cần duyệt không giống nhau:
+`findFirst`, `findAny`, `min`, `max`, and `reduce` are terminal operations: they **trigger** the lazy pipeline. However, the amount of data they need to traverse is not the same:
 
 ~~~java
 import java.util.stream.IntStream;
@@ -653,11 +653,11 @@ int firstMultipleOfSeven = IntStream.rangeClosed(1, 1_000_000)
 System.out.println(firstMultipleOfSeven); // 7
 ~~~
 
-Ở đây `findFirst` có thể dừng khi tìm thấy 7, không cần kiểm tra hết một triệu số. `findAny` cũng có khả năng dừng sớm.
+Here `findFirst` can stop as soon as it finds 7, without checking all one million numbers. `findAny` can also terminate early.
 
-Ngược lại, `min`, `max` và `reduce` thường cần xử lý **toàn bộ nguồn hữu hạn** để xác định kết quả. Với nguồn vô hạn, ví dụ `IntStream.iterate(0, n -> n + 1).max()`, một phép toán yêu cầu giá trị cuối có thể không hoàn thành. Đừng kỳ vọng tính lazy tự biến nguồn vô hạn thành phép tính kết thúc.
+Conversely, `min`, `max`, and `reduce` generally need to process **the entire finite source** to determine the result. With an infinite source, such as `IntStream.iterate(0, n -> n + 1).max()`, an operation requiring the final value may not finish. Do not expect laziness alone to turn an infinite source into a terminating computation.
 
-### 11.1. Thứ tự thao tác thay đổi kết quả
+### 11.1. Operation Order Changes the Result
 
 ~~~java
 List<Integer> values = List.of(10, 2, 8, 4);
@@ -672,53 +672,53 @@ int globalMinThenLimited = values.stream()
     .orElse(-1); // 2
 ~~~
 
-Hai giá trị tình cờ giống nhau ở dữ liệu này; đổi danh sách thành `List.of(10, 8, 2, 4)` thì phép thứ nhất trả **8**, phép thứ hai trả **2**. Ý nghĩa của `limit(2).min(...)` là **min của hai phần tử đầu**, còn `min(...)` là **min của toàn bộ nguồn**.
+The two values happen to be the same with this data; change the list to `List.of(10, 8, 2, 4)` and the first returns **8**, while the second returns **2**. The meaning of `limit(2).min(...)` is **the min of the first two elements**, whereas `min(...)` is **the min of the entire source**.
 
-Với `sorted()` và `findFirst()`, thao tác `sorted` thường phải khảo sát nguồn hữu hạn trước khi trả phần tử đầu; không nên suy luận rằng `findFirst` luôn làm pipeline dừng sớm ở mọi vị trí.
+With `sorted()` and `findFirst()`, the `sorted` operation typically has to inspect the finite source before returning the first element; do not infer that `findFirst` always makes the pipeline terminate early at any position.
 
-### 11.2. Stream chỉ được tiêu thụ một lần
+### 11.2. A Stream Can Only Be Consumed Once
 
 ~~~java
 var stream = List.of(3, 6, 9).stream();
 Optional<Integer> first = stream.findFirst();
 
-// stream.max(Integer::compareTo); // Không hợp lệ: Stream đã tiêu thụ.
+// stream.max(Integer::compareTo); // Invalid: Stream has already been consumed.
 ~~~
 
-Cần tạo **Stream mới** từ `List` cho mỗi terminal operation. Nếu nguồn là Stream I/O như `Files.lines(...)`, còn phải đóng tài nguyên đúng cách, ví dụ dùng `try-with-resources`. Optional chỉ biểu diễn **kết quả có/không**, nó **không quản lý việc đóng Stream**.
+You must create a **new Stream** from the `List` for each terminal operation. If the source is an I/O Stream such as `Files.lines(...)`, you also need to close the resource properly, for example using `try-with-resources`. Optional only represents **whether a result is present or not**; it **does not manage closing the Stream**.
 
-### 11.3. Không dựa vào tác dụng phụ trong callback
+### 11.3. Do Not Rely on Side Effects in Callbacks
 
-Predicate, mapper và accumulator trong pipeline nên không can thiệp nguồn và không dựa vào trạng thái bên ngoài có thể thay đổi. Stream có thể dừng sớm, xử lý song song hoặc bỏ qua những bước không cần thiết cho kết quả cuối. Vì vậy không dùng các callback đó làm nơi bắt buộc ghi log, gửi thông báo hoặc cập nhật dữ liệu quan trọng.
+Predicates, mappers, and accumulators in a pipeline should not interfere with the source and should not rely on mutable external state. Streams may terminate early, process in parallel, or skip steps unnecessary for the final result. Therefore, do not use those callbacks as places for mandatory logging, sending notifications, or updating critical data.
 
-## 12. Các lỗi thường gặp và cách sửa
+## 12. Common Mistakes and How to Fix Them
 
-| Cách viết có vấn đề | Vì sao nguy hiểm | Cách xử lý |
+| Problematic pattern | Why it is dangerous | How to handle it |
 |---|---|---|
-| `stream.findFirst().get()` mà không kiểm tra | Khi rỗng, ném `NoSuchElementException` | Dùng `orElse`, `orElseGet` hoặc `orElseThrow` có thông báo |
-| `findAny()` rồi so sánh cứng với phần tử đầu | `findAny` không bảo đảm đại diện nào | Nếu cần đầu tiên, dùng `findFirst` trên nguồn có thứ tự |
-| `min(comparator)` với comparator sai chiều | Min thực tế có thể là max của tiêu chí | Xác định và kiểm tra quy tắc comparator |
-| `reduce(0, Integer::min)` để tìm min | Identity 0 có thể nhỏ hơn mọi giá trị | Dùng `min` hoặc `reduce(Integer::min)` |
-| `orElse(expensiveCall())` | Gọi hàm dự phòng ngay cả khi có dữ liệu | Dùng `orElseGet(() -> expensiveCall())` |
-| `Optional.of(nullableValue)` | Ném lỗi nếu `null` | Dùng `ofNullable` khi chủ đích cho phép thiếu |
-| Gọi `findFirst` trên nguồn có null đứng đầu | Optional không chứa null | Chuẩn hóa/lọc `Objects::nonNull` |
-| `reduce` với accumulator dùng biến chung | Phụ thuộc trạng thái và có thể sai khi song song | Dùng phép kết hợp có tính kết hợp, không can thiệp trạng thái |
-| Gọi tiếp một terminal trên cùng Stream | Stream đã tiêu thụ | Tạo Stream mới từ nguồn có thể dùng lại |
-| Dùng `orElse(0)` mà không xét ý nghĩa nghiệp vụ | Có thể che giấu sự khác biệt giữa “không có” và “bằng 0” | Chọn chính sách thiếu dữ liệu và truyền đạt rõ |
+| `stream.findFirst().get()` without checking | When empty, throws `NoSuchElementException` | Use `orElse`, `orElseGet`, or `orElseThrow` with a message |
+| `findAny()` then asserting equality with the first element | `findAny` does not guarantee which representative is picked | If you need the first, use `findFirst` on an ordered source |
+| `min(comparator)` with reversed comparator direction | Actual min may be the max of the intended criterion | Define and test the comparator rules |
+| `reduce(0, Integer::min)` to find min | Identity 0 may be smaller than all values | Use `min` or `reduce(Integer::min)` |
+| `orElse(expensiveCall())` | Calls the fallback function even when data is present | Use `orElseGet(() -> expensiveCall())` |
+| `Optional.of(nullableValue)` | Throws an exception if `null` | Use `ofNullable` when absence is intentional |
+| Calling `findFirst` on a source starting with null | Optional cannot hold null | Normalize/filter with `Objects::nonNull` |
+| `reduce` with an accumulator using shared variables | Depends on state and can fail in parallel execution | Use an associative combining operation without mutating state |
+| Calling another terminal operation on the same Stream | Stream has already been consumed | Create a new Stream from a reusable source |
+| Using `orElse(0)` without considering business semantics | Can hide the difference between "absent" and "equal to 0" | Choose a missing-data policy and communicate it clearly |
 
-Nên ưu tiên Optional ở **giá trị trả về nơi có thể thiếu kết quả**, thay vì đưa Optional tràn lan vào mọi trường dữ liệu, tham số hoặc collection. Đối với các miền nghiệp vụ cần biết **vì sao** thất bại (lỗi xác thực, dữ liệu không hợp lệ, nguồn mất kết nối), Optional không mang thông tin lỗi; hãy dùng kiểu kết quả hoặc ngoại lệ thích hợp.
+Prefer Optional on **return values where a result may be absent**, rather than overusing Optional in every field, parameter, or collection. For business domains that need to know **why** an operation failed (validation error, invalid data, disconnected source), Optional does not carry error details; use an appropriate result type or exception.
 
-## 13. Bài thực hành: phân tích điểm kiểm tra
+## 13. Practice Exercise: Analyzing Test Scores
 
-Một khóa học có điểm đánh giá từ danh sách `List<Integer>`. Yêu cầu:
+A course has assessment scores from a `List<Integer>`. Requirements:
 
-1. Tìm điểm đầu tiên từ 8 trở lên.
-2. Tìm điểm nhỏ nhất và điểm lớn nhất.
-3. Tính tổng điểm bằng `reduce` không có identity.
-4. Giải quyết trường hợp danh sách rỗng bằng chính sách rõ ràng.
-5. Không gọi `get()` nếu chưa xử lý Optional.
+1. Find the first score of 8 or above.
+2. Find the lowest score and the highest score.
+3. Compute the total score using `reduce` without an identity.
+4. Handle an empty list with a clear policy.
+5. Do not call `get()` without handling Optional.
 
-**Lời giải tham khảo (Java 8+):**
+**Reference solution (Java 8+):**
 
 ~~~java
 import java.util.Arrays;
@@ -743,44 +743,44 @@ public class ScoreOptionalPractice {
         Optional<Integer> total = scores.stream()
             .reduce(Integer::sum);
 
-        System.out.println("Điểm cao đầu tiên: "
-            + firstHigh.map(String::valueOf).orElse("Không có"));
-        System.out.println("Điểm thấp nhất: "
-            + minimum.map(String::valueOf).orElse("Không có"));
-        System.out.println("Điểm cao nhất: "
-            + maximum.map(String::valueOf).orElse("Không có"));
-        System.out.println("Tổng điểm: "
-            + total.map(String::valueOf).orElse("Chưa có điểm"));
+        System.out.println("First high score: "
+            + firstHigh.map(String::valueOf).orElse("None"));
+        System.out.println("Lowest score: "
+            + minimum.map(String::valueOf).orElse("None"));
+        System.out.println("Highest score: "
+            + maximum.map(String::valueOf).orElse("None"));
+        System.out.println("Total score: "
+            + total.map(String::valueOf).orElse("No scores yet"));
     }
 }
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
-Điểm cao đầu tiên: 9
-Điểm thấp nhất: 6
-Điểm cao nhất: 10
-Tổng điểm: 40
+First high score: 9
+Lowest score: 6
+Highest score: 10
+Total score: 40
 ~~~
 
-Nếu thay `scores` bằng một danh sách rỗng, tất cả bốn kết quả sẽ là `Optional.empty()` và chương trình in thông báo theo từng chính sách thay vì ném lỗi. Nếu nghiệp vụ quy định “tổng của danh sách rỗng bằng 0” thì dùng `scores.stream().reduce(0, Integer::sum)` hoặc `mapToInt(Integer::intValue).sum()` và giải thích rõ quy ước đó.
+If `scores` is replaced with an empty list, all four results will be `Optional.empty()` and the program prints messages according to each policy instead of throwing an error. If business rules specify "the sum of an empty list is 0", use `scores.stream().reduce(0, Integer::sum)` or `mapToInt(Integer::intValue).sum()` and clearly document that convention.
 
-**Tự kiểm tra kiến thức:**
+**Self-check questions:**
 
-1. `findFirst()` trên Stream rỗng trả gì? — **`Optional.empty()`**.
-2. `findAny()` có bảo đảm giữ phần tử đầu tiên của `List` không? — **Không**.
-3. `min(Comparator.naturalOrder())` trên `List.of(9, 2, 5)` trả gì? — **Optional chứa 2**.
-4. `Stream.of(5, 8).reduce(0, Integer::min)` trả gì? — **0**, do identity không phù hợp với phép min trên các số dương.
-5. `Stream.<Integer>empty().reduce(Integer::sum)` trả gì? — **Optional rỗng**, không phải Optional chứa 0.
-6. `IntStream.of(2, 4).average()` trả kiểu nào? — **`OptionalDouble`**.
-7. `orElseGet` có gọi supplier khi Optional có giá trị không? — **Không**.
-8. `findFirst` có luôn duyệt toàn bộ dữ liệu không? — **Không**, có khả năng dừng sớm; các thao tác trước đó có thể khiến nó cần nhiều công việc hơn.
+1. What does `findFirst()` return on an empty Stream? — **`Optional.empty()`**.
+2. Does `findAny()` guarantee preserving the first element of a `List`? — **No**.
+3. What does `min(Comparator.naturalOrder())` return on `List.of(9, 2, 5)`? — **An Optional containing 2**.
+4. What does `Stream.of(5, 8).reduce(0, Integer::min)` return? — **0**, because the identity is unsuitable for min over positive numbers.
+5. What does `Stream.<Integer>empty().reduce(Integer::sum)` return? — **An empty Optional**, not an Optional containing 0.
+6. What type does `IntStream.of(2, 4).average()` return? — **`OptionalDouble`**.
+7. Does `orElseGet` invoke the supplier when the Optional has a value? — **No**.
+8. Does `findFirst` always traverse all the data? — **No**, it can terminate early; preceding operations may cause it to do more work.
 
-## 14. Ghi nhớ trước khi học các phép tổng hợp nâng cao
+## 14. Key Takeaways Before Learning Advanced Aggregations
 
-**`findFirst`** lấy phần tử đầu tiên khi có encounter order; **`findAny`** lấy phần tử bất kỳ; **`min`/`max`** chọn phần tử theo comparator; còn **`reduce(accumulator)`** kết hợp các phần tử khi không cung cấp identity. Chúng trả **Optional** vì kết quả có thể không tồn tại.
+**`findFirst`** gets the first element when an encounter order exists; **`findAny`** gets any element; **`min`/`max`** select an element according to a comparator; and **`reduce(accumulator)`** combines elements when no identity is provided. They return **Optional** because the result may not exist.
 
-Hãy xem Optional như một **hợp đồng bắt người gọi đối diện với trường hợp rỗng**: dùng `orElse` cho mặc định đơn giản, `orElseGet` cho mặc định tính khi cần, `orElseThrow` khi kết quả là bắt buộc, hoặc `ifPresent` và các phép biến đổi Optional khi muốn tiếp tục xử lý khai báo. Với số nguyên thủy, sử dụng đúng `OptionalInt`, `OptionalLong` hoặc `OptionalDouble`.
+Think of Optional as a **contract that forces the caller to confront the empty case**: use `orElse` for simple defaults, `orElseGet` for defaults computed on demand, `orElseThrow` when a result is mandatory, or `ifPresent` and Optional transformations when you want to continue declarative processing. For primitive numbers, use the appropriate `OptionalInt`, `OptionalLong`, or `OptionalDouble`.
 
-Khi thiết kế pipeline, hãy kiểm tra **ngữ nghĩa rỗng**, **thứ tự và tiêu chí chọn phần tử**, **khả năng dừng của nguồn**, **phép kết hợp trong reduce** và **tác dụng phụ trong callback**. Nắm được những điều này giúp chuyển tiếp sang `collect`, grouping, collector tùy chỉnh, `Spliterator`, parallel Stream và Stream Gatherers mà vẫn giữ kết quả rõ nghĩa và có thể kiểm tra.
+When designing a pipeline, check **empty semantics**, **element selection order and criteria**, **source termination**, **associativity in reduce**, and **side effects in callbacks**. Mastering these helps you transition to `collect`, grouping, custom collectors, `Spliterator`, parallel Streams, and Stream Gatherers while keeping results clear and testable.

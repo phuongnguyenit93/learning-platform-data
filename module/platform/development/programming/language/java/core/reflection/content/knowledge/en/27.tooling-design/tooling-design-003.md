@@ -1,84 +1,84 @@
-# Không mặc định mọi field đều là dữ liệu nghiệp vụ khi thiết kế công cụ Java Reflection
+# Never Default Every Field to Business Data When Designing Java Reflection Tools
 
-## 1. Vấn đề: nhìn thấy field không có nghĩa field thuộc mô hình nghiệp vụ
+## 1. The problem: seeing a field does not mean it belongs to the business model
 
-`type.getDeclaredFields()` chỉ trả **khai báo vật lý**: trong `Order`, các field `orderId`, `totalCents`, `internalCache`, `traceContext`, `LOG` có thể cùng được phát hiện, nhưng không cùng thuộc một schema nghiệp vụ. Exporter cần `orderId` và `totalCents`; công cụ chẩn đoán có thể cần `traceContext`; cả hai đều phải xét quyền dữ liệu trước khi đọc giá trị.
+`type.getDeclaredFields()` only returns **physical declarations**: in `Order`, the fields `orderId`, `totalCents`, `internalCache`, `traceContext`, and `LOG` may all be discovered together, yet they do not belong to the same business schema. An exporter needs `orderId` and `totalCents`; a diagnostic tool might need `traceContext`; both must check data permissions before reading values.
 
-Vì vậy phải tách **khám phá metadata**, **chọn field theo hợp đồng nghiệp vụ** và **truy cập giá trị thật**. `private`, `static`, `transient`, `synthetic` giúp phân loại cấu trúc, nhưng không tự trả lời một trường có được công bố cho người dùng hay không. Bài này tập trung vào ranh giới schema/allowlist và bảo vệ thông tin khi một công cụ dùng `Field`.
+Therefore, you must separate **metadata discovery**, **field selection by business contract**, and **reading actual values**. `private`, `static`, `transient`, and `synthetic` help classify structure, but they do not by themselves answer whether a field may be exposed to users. This article focuses on schema/allowlist boundaries and information protection when a tool uses `Field`.
 
-## 2. Các loại field và ý nghĩa đối với công cụ
+## 2. Field types and what they mean to a tool
 
-| Dấu hiệu quan sát được | Có mặc nhiên là dữ liệu nghiệp vụ? | Cách quyết định |
+| Observable indicator | Is it implicitly business data? | How to decide |
 | --- | --- | --- |
-| `private String orderId` | **Không thể quyết định từ `private`** | Có thể là dữ liệu nghiệp vụ; dùng hợp đồng/annotation hoặc schema đã định. |
-| `static final String VERSION` | Thường **không** là trạng thái của từng object | Thông thường loại khỏi projection của instance; nhưng có thể thuộc metadata chẩn đoán. |
-| `static` mutable field | Thường không | Đây là trạng thái cấp class, không phải field riêng của từng instance; đọc có thể khởi tạo class. |
-| `transient` | **Không tự động** loại khỏi mọi mục đích | `transient` ảnh hưởng cơ chế Java serialization mặc định, không định nghĩa hợp đồng nghiệp vụ, JSON hay persistence. |
-| `final` | **Không tự động** loại | Nhiều giá trị nghiệp vụ bất biến dùng `final`, bao gồm field nền của record. |
-| `synthetic` (`Field.isSynthetic()`) | Thường loại khỏi projection do ứng dụng kiểm soát | Có thể là hiện vật do compiler sinh, không nên dựa vào tên sinh ra cụ thể. |
-| `enum` constant (`Field.isEnumConstant()`) | Không tự coi như field dữ liệu của mỗi đối tượng enum | Tùy công cụ muốn liệt kê hằng enum hay xuất state. |
-| Field chứa cache, lazy state, lock, metric, logger, dependency | Không mặc định | Xem hợp đồng domain, role của công cụ và khả năng lộ nội bộ. |
-| Field mang annotation riêng như `@BusinessData` | Có thể chọn theo **chính sách đã định** | Annotation có ý nghĩa khi công cụ định nghĩa, đọc và thực thi chính sách đó. |
-| Field kế thừa từ superclass | Có thể | `getDeclaredFields()` trên subclass không tự bao gồm nó; phải duyệt hierarchy có chủ ý. |
-| Field có dữ liệu nhạy cảm | Có thể **vẫn là** dữ liệu nghiệp vụ | Quyết định redaction/quyền truy cập trước khi hiển thị; không đánh đồng “nghiệp vụ” với “được phép tiết lộ”. |
+| `private String orderId` | **Cannot decide from `private`** | May be business data; use contract/annotation or a defined schema. |
+| `static final String VERSION` | Usually **not** per-object state | Typically excluded from instance projections; may belong to diagnostic metadata. |
+| `static` mutable field | Usually not | This is class-level state, not an individual instance's field; reading it may initialize the class. |
+| `transient` | **Not automatically** excluded from all purposes | `transient` affects default Java serialization; it does not define business, JSON, or persistence contracts. |
+| `final` | **Not automatically** excluded | Many immutable business values use `final`, including backing fields of records. |
+| `synthetic` (`Field.isSynthetic()`) | Usually excluded from application-controlled projections | May be a compiler-generated artifact; do not rely on specific generated names. |
+| `enum` constant (`Field.isEnumConstant()`) | Do not automatically treat as a data field of each enum object | Depends on whether the tool lists enum constants or exports state. |
+| Fields holding caches, lazy state, locks, metrics, loggers, dependencies | Not by default | Check the domain contract, tool role, and internal exposure risk. |
+| Fields carrying a custom annotation such as `@BusinessData` | May be selected per **defined policy** | An annotation has meaning when the tool defines, reads, and enforces that policy. |
+| Fields inherited from a superclass | Possibly | `getDeclaredFields()` on a subclass does not automatically include them; must deliberately walk the hierarchy. |
+| Fields containing sensitive data | May **still be** business data | Decide redaction/access permissions before displaying; do not equate "business" with "allowed to disclose". |
 
-**Hai lưu ý quan trọng:**
+**Two important notes:**
 
-- `transient` là tín hiệu về **Java Object Serialization**, không phải bộ lọc phổ quát cho Jackson, JPA, CSV, JSON hay audit; các công nghệ đó có quy tắc và annotation riêng.
-- Không nên dùng `private`, `final`, tên bắt đầu bằng dấu gạch dưới, hay tên có chứa `cache` làm tiêu chí duy nhất. Những heuristic này dễ bỏ sót dữ liệu cần thiết hoặc lộ thông tin không nên xuất.
+- `transient` is a signal for **Java Object Serialization**, not a universal filter for Jackson, JPA, CSV, JSON, or audit; those technologies have their own rules and annotations.
+- Do not use `private`, `final`, leading underscores, or names containing `cache` as the sole criterion. These heuristics easily miss required data or expose information that should not be output.
 
-## 3. Reflection cho ta metadata gì và không cho ta điều gì?
+## 3. What metadata does Reflection give us and what does it not?
 
-### 3.1. Chọn API quét đúng phạm vi
+### 3.1. Choosing the right scanning API scope
 
-- `Class.getDeclaredFields()`: các field khai báo **trực tiếp** trên class/interface; gồm private và static, không gom field kế thừa.
-- `Class.getFields()`: các field **public** có thể truy cập theo quy tắc API, gồm public field kế thừa. Dùng nó không phải cách chắc chắn để chọn business data.
-- `Field.getName()`, `getType()`, `getGenericType()`, `getModifiers()`, `isSynthetic()`, `isEnumConstant()` và `getDeclaredAnnotations()`: cung cấp metadata để phân loại.
-- `Modifier.isStatic(field.getModifiers())`, `Modifier.isTransient(...)`, `Modifier.isFinal(...)`: kiểm tra modifier theo quy tắc Java.
-- `Class.getSuperclass()`: duyệt superclass nếu chính sách muốn chọn field kế thừa.
-- `Class.isRecord()`, `Class.getRecordComponents()`: nếu xử lý record như dữ liệu mang tính cấu trúc, record components thường là điểm xuất phát phù hợp hơn quét field tùy ý.
+- `Class.getDeclaredFields()`: fields declared **directly** on the class/interface; includes private and static, excludes inherited fields.
+- `Class.getFields()`: **public** fields accessible per API rules, including inherited public fields. Using it is not a reliable way to select business data.
+- `Field.getName()`, `getType()`, `getGenericType()`, `getModifiers()`, `isSynthetic()`, `isEnumConstant()`, and `getDeclaredAnnotations()`: provide metadata for classification.
+- `Modifier.isStatic(field.getModifiers())`, `Modifier.isTransient(...)`, `Modifier.isFinal(...)`: inspect modifiers according to Java rules.
+- `Class.getSuperclass()`: traverse superclasses if policy chooses to include inherited fields.
+- `Class.isRecord()`, `Class.getRecordComponents()`: when treating records as structured data, record components are usually a better starting point than scanning arbitrary fields.
 
-Java **không bảo đảm thứ tự** các field trả về bởi `getDeclaredFields()`. Nếu output dùng cho snapshot, file xuất, hash hoặc kiểm thử, phải định nghĩa thứ tự riêng (ví dụ sắp xếp theo tên kèm declaring class hoặc thứ tự schema).
+Java **does not guarantee the order** of fields returned by `getDeclaredFields()`. If output is used for snapshots, export files, hashes, or tests, define an explicit order (e.g., sort by name with declaring class, or follow schema order).
 
-### 3.2. Từ cấu trúc tới ý nghĩa nghiệp vụ cần một hợp đồng
+### 3.2. Going from structure to business meaning requires a contract
 
-`Field.getType() == String.class` chỉ cho biết **kiểu khai báo** của field, không cho biết chuỗi đó là mã đơn hàng, access token hay metadata tạm. Tương tự, `Field.isSynthetic() == false` chỉ nói field không được đánh dấu synthetic; nó vẫn có thể thuộc hạ tầng.
+`Field.getType() == String.class` only tells you the field's **declared type**, not whether that string is an order ID, an access token, or temporary metadata. Similarly, `Field.isSynthetic() == false` only states the field is not marked synthetic; it can still belong to infrastructure.
 
-Các cách làm rõ hợp đồng:
+Ways to clarify the contract:
 
-1. **Allowlist schema**: liệt kê tên và kiểu được xuất; thay đổi có review và versioning.
-2. **Annotation opt-in**: dùng `@BusinessData` hoặc annotation của chính công cụ; mặc định field không được đánh dấu sẽ bị bỏ.
-3. **DTO/record projection**: chuyển domain object thành kiểu công khai riêng; thường dễ kiểm soát hơn đọc trực tiếp field.
-4. **Metadata từ framework/domain**: khi xử lý entity, bean hoặc serialization, đọc metadata/hợp đồng thực tế của framework đó thay vì tự suy luận chỉ từ JVM field.
+1. **Allowlist schema**: enumerate exported names and types; changes are reviewed and versioned.
+2. **Opt-in annotation**: use `@BusinessData` or the tool's own annotation; unmarked fields are skipped by default.
+3. **DTO/record projection**: map domain objects to dedicated public types; usually easier to control than reading fields directly.
+4. **Framework/domain metadata**: when handling entities, beans, or serialization, read the actual metadata/contract of that framework rather than inferring from raw JVM fields alone.
 
-Nhiều công cụ nên dùng **kết hợp**: chọn field theo schema/annotation, xác thực access policy, kiểm tra nhạy cảm, rồi mới đọc giá trị và chuyển đổi.
+Many tools should use a **combination**: select fields via schema/annotation, verify access policy, check sensitivity, and only then read and transform values.
 
-## 4. Quy trình chọn field có thể bảo vệ và kiểm chứng
+## 4. A defensible and verifiable field-selection pipeline
 
-Đề xuất một pipeline khi viết field inspector hoặc exporter:
+Recommended pipeline when writing a field inspector or exporter:
 
-1. **Chốt mục đích đầu ra**: xuất dữ liệu nghiệp vụ, debug, audit, migration hay validation? Mỗi mục đích có chính sách riêng.
-2. **Xác định phạm vi kiểu**: kiểu gốc, superclass nào cần xét, interface/record component/property hay field trực tiếp? Tránh duyệt vô hạn vào thư viện/JDK.
-3. **Lọc metadata trước**: `isSynthetic`, `static`, modifier, annotation, kiểu, declaring class, các điều kiện loại trừ rõ ràng. Không gọi `Field.get` trong pha lọc metadata.
-4. **Áp dụng allowlist và quyền dữ liệu**: mặc định không xuất field chưa được chấp thuận; dữ liệu nhạy cảm có thể bị che hoặc bị bỏ tùy người nhận.
-5. **Kiểm tra truy cập một cách tường minh**: dùng API public, accessor được phép hoặc `trySetAccessible()` nếu thật sự cần và được module cho phép; thất bại thì xử lý/ghi nhận có kiểm soát.
-6. **Đọc/biến đổi giá trị và bảo vệ output**: phân biệt `null`, chuẩn hóa kiểu/đơn vị, che secrets, giới hạn độ sâu của object graph, chống vòng lặp và định dạng đầu ra ổn định.
-7. **Kiểm thử thay đổi schema**: thêm field mới không nên làm nó tự xuất hiện trong API/audit ngoài ý muốn. Dùng test cụ thể đối với allowlist, redaction và field kế thừa.
+1. **Lock down the output goal**: exporting business data, debugging, auditing, migration, or validation? Each goal has its own policy.
+2. **Define type scope**: root type, which superclasses to inspect, interfaces/record components/properties or direct fields? Avoid unbounded traversal into libraries/JDK.
+3. **Filter metadata first**: `isSynthetic`, `static`, modifiers, annotations, type, declaring class, and explicit exclusion rules. Never call `Field.get` during the metadata filtering phase.
+4. **Apply allowlist and data permissions**: do not output unapproved fields by default; sensitive data may be masked or omitted depending on the recipient.
+5. **Check access explicitly**: use public APIs, permitted accessors, or `trySetAccessible()` if truly needed and allowed by modules; handle/record failures cleanly.
+6. **Read/transform values and protect output**: distinguish `null`, normalize types/units, mask secrets, bound object-graph depth, prevent cycles, and format output deterministically.
+7. **Test schema changes**: adding a new field must not cause it to automatically appear in APIs/audits unintentionally. Write dedicated tests for allowlists, redaction, and inherited fields.
 
-**Fail closed** cho dữ liệu có quyền riêng tư cao: nếu một field mới chưa được phê duyệt, đừng xuất nó. Nhưng không nhất thiết ném lỗi cho mọi field kỹ thuật bị bỏ; cách xử lý phải phản ánh hợp đồng và mức nghiêm ngặt của pipeline.
+**Fail closed** for high-privacy data: if a new field is not yet approved, do not export it. However, it is not necessary to throw errors for every skipped technical field; handling must reflect the contract and strictness of the pipeline.
 
-## 5. Ví dụ Java 17+: kiểm tra metadata và xuất các field được chọn
+## 5. Java 17+ example: inspecting metadata and exporting selected fields
 
-Chương trình minh họa một **chính sách của ứng dụng mẫu**, không phải quy tắc có sẵn của Reflection:
+The program demonstrates a **sample application policy**, not built-in Reflection rules:
 
-- Chọn field có `@BusinessData` (`RUNTIME`, `FIELD`).
-- Bỏ `static` và `synthetic`; ở **demo này** còn bỏ `transient`.
-- Bỏ field không có `@BusinessData`.
-- Field có `@Sensitive` vẫn là thông tin nghiệp vụ nhưng **không đọc hoặc in giá trị**.
-- Duyệt superclass có chủ ý và sắp xếp từng nhóm field theo tên để đầu ra ổn định.
-- Chỉ sau các bước lọc mới gọi `trySetAccessible()` rồi `Field.get(target)`. Ví dụ đặt các class trong cùng file, chạy từ classpath nên thao tác này được phép.
+- Select fields annotated with `@BusinessData` (`RUNTIME`, `FIELD`).
+- Skip `static` and `synthetic`; in **this demo**, also skip `transient`.
+- Skip fields without `@BusinessData`.
+- Fields with `@Sensitive` are still business information, yet **their values are not read or printed**.
+- Deliberately traverse superclasses and sort each group of fields by name for deterministic output.
+- Only after filtering steps do we call `trySetAccessible()` and then `Field.get(target)`. The example places the classes in the same file running from the classpath, so this operation is permitted.
 
-Lưu thành file **`BusinessFieldSelectionDemo.java`**:
+Save as **`BusinessFieldSelectionDemo.java`**:
 
 ```java
 import java.lang.annotation.ElementType;
@@ -147,14 +147,14 @@ public class BusinessFieldSelectionDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac --release 17 BusinessFieldSelectionDemo.java
 java BusinessFieldSelectionDemo
 ```
 
-**Đầu ra đã kiểm chứng**:
+**Verified output**:
 
 ```text
 Order.CACHE_VERSION -> skip: static
@@ -167,109 +167,109 @@ OrderBase.tenantId -> tenant-a
 OrderBase.traceSource -> skip: not annotated
 ```
 
-**Phân tích đầu ra:**
+**Output analysis:**
 
-1. `CACHE_VERSION` là field của class, không phải state riêng của `Order`; trình xuất instance bỏ nó.
-2. `customerEmail` mang cả `@BusinessData` và `@Sensitive`. Thông tin đó **có ý nghĩa nghiệp vụ nhưng không được tiết lộ**. Demo không gọi `Field.get` trên field này.
-3. `draftNote` bị bỏ bởi **chính sách demo**, không phải vì mọi công cụ Java đều phải bỏ `transient`.
-4. `internalCache` có thể hữu ích cho debug, nhưng không có `@BusinessData` nên không đi vào projection nghiệp vụ.
-5. `orderId` và `totalCents` được chọn, truy cập và in ra. `final` không ngăn việc đọc, cũng không làm mất ý nghĩa nghiệp vụ.
-6. `tenantId` là private field thuộc `OrderBase`; duyệt superclass giúp tìm nó. `traceSource` được nhìn thấy ở metadata nhưng không được xuất vì thiếu annotation.
-7. Chương trình hiển thị quyết định cho từng field để phục vụ học tập; trong hệ thống thực tế, **đừng log tên hoặc metadata nhạy cảm nếu chính sách cấm**. Thông thường exporter chỉ trả các trường được phê duyệt, còn việc từ chối được ghi trong kênh kiểm toán phù hợp.
+1. `CACHE_VERSION` is a class field, not instance-specific state of `Order`; the instance exporter skips it.
+2. `customerEmail` carries both `@BusinessData` and `@Sensitive`. That information **has business meaning but must not be disclosed**. The demo does not call `Field.get` on this field.
+3. `draftNote` is skipped by the **demo policy**, not because every Java tool must skip `transient`.
+4. `internalCache` may be useful for debugging, but lacks `@BusinessData` so it does not enter the business projection.
+5. `orderId` and `totalCents` are selected, accessed, and printed. `final` neither prevents reading nor removes business meaning.
+6. `tenantId` is a private field on `OrderBase`; traversing superclasses finds it. `traceSource` is visible in metadata but is not exported because it lacks the annotation.
+7. The program prints the decision for each field for learning purposes; in a real system, **do not log sensitive names or metadata if policy forbids it**. Typically an exporter only returns approved fields, while rejections are recorded in an appropriate audit channel.
 
-Annotation `@BusinessData` trong mã không tự thực thi hành vi; **phương thức `inspect` mới là bộ xử lý**. Nếu bỏ `@Retention(RetentionPolicy.RUNTIME)`, annotation không nhất thiết tồn tại trong metadata runtime để `isAnnotationPresent` kiểm tra; nếu bỏ `@Target(ElementType.FIELD)` thì annotation có thể không đúng mục tiêu thiết kế.
+The `@BusinessData` annotation in code does not enforce behavior by itself; **the `inspect` method is the processor**. If `@Retention(RetentionPolicy.RUNTIME)` is omitted, the annotation will not necessarily exist in runtime metadata for `isAnnotationPresent` to check; if `@Target(ElementType.FIELD)` is omitted, the annotation may not match the intended target.
 
-## 6. Field và property không phải lúc nào cũng tương ứng 1–1
+## 6. Fields and properties do not always correspond 1–1
 
-### 6.1. JavaBeans và getter
+### 6.1. JavaBeans and getters
 
-Một *property* có thể được công khai qua `getTotal()`, `isActive()` hoặc accessor khác dù không có field cùng tên. Ngược lại, một field cache có thể không có accessor nào trong public API. Framework dựa trên getter/property và framework dựa trên field access có thể xây ra hai schema khác nhau.
+A *property* can be exposed via `getTotal()`, `isActive()`, or another accessor even when no field shares the same name. Conversely, a cache field may have no accessor in the public API. A getter/property-based framework and a field-access-based framework may build two different schemas.
 
-Không nên tùy tiện gọi tất cả phương thức bắt đầu bằng `get` để “kiểm tra dữ liệu”: getter có thể truy vấn database, tải lazy association, tính toán tốn kém, thay đổi cache hoặc ném exception. Nếu cần introspection property, phải đọc đúng hợp đồng JavaBeans/framework và kiểm soát lúc thực thi accessor.
+Do not arbitrarily call every method starting with `get` to "inspect data": getters can query databases, load lazy associations, run expensive computations, mutate caches, or throw exceptions. If property introspection is needed, read the proper JavaBeans/framework contract and control accessor execution.
 
-### 6.2. Record từ Java 16+
+### 6.2. Records from Java 16+
 
-Với:
+Given:
 
 ```java
 record OrderView(String orderId, int totalCents) {}
 ```
 
-Đây là **khai báo kiểu minh họa**, không phải ứng dụng độc lập. `OrderView.class.isRecord()` là `true` và `getRecordComponents()` cho metadata của `orderId`, `totalCents` theo **thứ tự khai báo trong record header**. Nếu chính sách muốn tạo projection từ record components, nên bắt đầu ở API `RecordComponent` và hợp đồng record, thay vì mặc định mọi field bên trong record là trường dữ liệu.
+This is an **illustrative type declaration**, not a standalone application. `OrderView.class.isRecord()` is `true` and `getRecordComponents()` provides metadata for `orderId` and `totalCents` in **declaration order within the record header**. If policy wants to build projections from record components, start from the `RecordComponent` API and the record contract rather than assuming all internal fields in the record are data fields.
 
-Chú ý annotation của *record component*, field nền và accessor có các quy tắc về `@Target` riêng. **Không giả định** một annotation đặt trên record component luôn xuất hiện đúng như mong muốn trên `Field`; phải kiểm tra thiết kế annotation và metadata mà công cụ thực sự đọc.
+Note that annotations on *record components*, backing fields, and accessors have separate `@Target` rules. **Do not assume** an annotation placed on a record component always appears as expected on `Field`; verify annotation design and what metadata the tool actually reads.
 
-### 6.3. ORM, serializer và framework
+### 6.3. ORMs, serializers, and frameworks
 
-Các trường hợp như JPA entity, JSON model, dependency injection hoặc object do framework sinh thường có hợp đồng riêng:
+Cases like JPA entities, JSON models, dependency injection, or framework-generated objects often have their own contracts:
 
-- Một entity có thể dùng **field access** hoặc **property access**; không suy đoán mapping chỉ từ danh sách field.
-- Annotation `@Transient` của JPA, từ khóa Java `transient` và cách Jackson quyết định serialize là các cơ chế khác nhau.
-- Proxy/lazy-loading object có thể chứa state hạ tầng; Reflection trên **runtime class** của proxy có thể trả field khác so với domain class được dự định.
-- Các thư viện serializer có thể xử lý annotation, getter, record component, accessor visibility và naming strategy; quét `getDeclaredFields()` không tái tạo đầy đủ hành vi đó.
+- An entity may use **field access** or **property access**; do not infer mapping solely from the field list.
+- JPA's `@Transient` annotation, Java's `transient` keyword, and Jackson's serialization decisions are different mechanisms.
+- Proxy/lazy-loading objects can hold infrastructure state; Reflection on a proxy's **runtime class** may return different fields than the intended domain class.
+- Serializer libraries may process annotations, getters, record components, accessor visibility, and naming strategies; scanning `getDeclaredFields()` does not faithfully reproduce that behavior.
 
-Nếu mục đích là xuất JSON hoặc dữ liệu persistence, ưu tiên **chính schema/mapper của công nghệ được dùng** thay vì dựng lại một hệ thống mapping khác từ field thô.
+If the goal is to output JSON or persistence data, prefer **the schema/mapper of the technology actually in use** rather than rebuilding another mapping system from raw fields.
 
-## 7. Kế thừa, field hiding và định danh ổn định
+## 7. Inheritance, field hiding, and stable identifiers
 
-`getDeclaredFields()` không nhận field của superclass; ví dụ đã duyệt chuỗi `getSuperclass()`. Nhưng việc duyệt này đưa ra thêm câu hỏi:
+`getDeclaredFields()` does not retrieve superclass fields; the example walks the `getSuperclass()` chain. However, walking it raises further questions:
 
-- **Field hiding:** subclass và superclass có thể cùng khai báo một field tên `code`, đây là **hai field khác nhau** với `getDeclaringClass()` khác nhau; sơ đồ chỉ dựa vào tên `"code"` có thể ghi đè một field. Hãy dùng định danh gồm declaring class + field name, hoặc đặt quy tắc ưu tiên rõ ràng trong schema.
-- **Interface constants:** interface có field `public static final`. Một inspector state của instance không nên tự coi chúng là thuộc tính nghiệp vụ.
-- **Phạm vi superclass:** đối tượng ứng dụng có thể kế thừa lớp framework với nhiều field kỹ thuật. Không quét không giới hạn vào mọi superclass nếu hợp đồng chỉ thuộc một miền kiểu được quản lý.
-- **Thứ tự:** sắp xếp tùy mục đích; nếu schema có thứ tự đã công bố, hãy dùng thứ tự của schema thay vì alphabetical để tránh breaking change.
+- **Field hiding:** a subclass and superclass can both declare a field named `code`; these are **two distinct fields** with different `getDeclaringClass()` values; a map keyed only by `"code"` can overwrite one field. Use an identifier combining declaring class + field name, or define explicit precedence rules in the schema.
+- **Interface constants:** interfaces have `public static final` fields. An instance state inspector should not automatically treat them as business attributes.
+- **Superclass scope:** application objects may inherit from framework classes containing many technical fields. Do not scan unboundedly into every superclass if the contract covers only a managed domain of types.
+- **Ordering:** sort according to purpose; if a schema has a published order, use schema order rather than alphabetical to avoid breaking changes.
 
-`Field.getDeclaringClass()` chỉ nơi field được khai báo; `target.getClass()` xác định runtime type. Cả hai hữu ích khi kết quả quét cần audit rõ ràng.
+`Field.getDeclaringClass()` indicates where the field is declared; `target.getClass()` identifies the runtime type. Both are useful when scan results require clear auditing.
 
-## 8. Quyền truy cập, an toàn dữ liệu và tác dụng phụ
+## 8. Access permissions, data safety, and side effects
 
-### 8.1. Không dựa vào `setAccessible(true)` vô điều kiện
+### 8.1. Do not rely unconditionally on `setAccessible(true)`
 
-`Field.trySetAccessible()` trả `false` khi không thể bật quyền truy cập theo mô hình module; `setAccessible(true)` có thể ném `InaccessibleObjectException`. Trong named module, package chưa `opens` phù hợp có thể chặn Reflection vào thành viên non-public. Đừng tự động đề xuất `--add-opens` chỉ để xuất dữ liệu nếu đã có API công khai/DTO.
+`Field.trySetAccessible()` returns `false` when access cannot be enabled under the module system; `setAccessible(true)` can throw `InaccessibleObjectException`. In a named module, a package without appropriate `opens` can block Reflection on non-public members. Do not automatically recommend `--add-opens` just to export data if a public API/DTO already exists.
 
-Trong ví dụ, cả các lớp nằm cùng một file classpath, nên `trySetAccessible()` thành công. Một thư viện reusable cần xử lý trường hợp không thành công (bỏ field có kiểm soát, báo thiếu quyền hoặc chuyển sang accessor được phép), đồng thời không nuốt lỗi khiến báo cáo sai âm thầm.
+In the example, all classes reside in the same classpath file, so `trySetAccessible()` succeeds. A reusable library must handle failure cleanly (skipping the field cleanly, reporting missing access, or switching to an allowed accessor) while never swallowing errors into silent misreporting.
 
-### 8.2. Đọc giá trị phải có lý do
+### 8.2. Reading values must have a justification
 
-- `Field.get(target)` đọc **giá trị runtime**, khác hẳn `getType()` hoặc `getModifiers()` chỉ đọc metadata.
-- Đọc `static` field có thể kích hoạt **class initialization**. Ví dụ chọn bỏ static trước khi đọc giúp tránh rủi ro không cần thiết này.
-- Thông tin có thể đổi đồng thời do thread khác; một lần quét nhiều field không tự là snapshot nguyên tử.
-- Giá trị là object tham chiếu, collection hoặc graph có vòng lặp. Nếu tiếp tục truy sâu phải có giới hạn độ sâu, visited identity set, timeout/budget và quy tắc loại nội dung nhạy cảm.
-- Đừng gọi `toString()` bừa bãi trên object chưa tin cậy: implementation có thể thực hiện I/O, tạo log, kích hoạt lazy loading hoặc in secrets. Trong demo, các giá trị được chọn chỉ là `String` và primitive `int`.
+- `Field.get(target)` reads **runtime values**, unlike `getType()` or `getModifiers()` which only read metadata.
+- Reading a `static` field can trigger **class initialization**. Skipping static fields before reading in the example avoids this unnecessary risk.
+- Data may change concurrently due to other threads; a single scan across multiple fields is not automatically an atomic snapshot.
+- Values may be referenced objects, collections, or cyclic graphs. Deep traversal requires depth limits, a visited identity set, timeouts/budgets, and rules excluding sensitive content.
+- Do not call `toString()` indiscriminately on untrusted objects: implementations may perform I/O, produce logs, trigger lazy loading, or print secrets. In the demo, selected values are only `String` and primitive `int`.
 
-Một chính sách tốt lọc **trước khi đọc**, tránh giữ plaintext nhạy cảm trong bộ đệm/log trung gian rồi mới “redact” ở cuối.
+A good policy filters **before reading**, avoiding holding sensitive plaintext in intermediate buffers/logs only to "redact" at the end.
 
-### 8.3. Quyền đọc và quyền xuất là hai cấp khác nhau
+### 8.3. Read permission and export permission are two different levels
 
-Dù Reflection được phép đọc field, điều đó **không** khẳng định người nhận được phép xem nó. Phải xác định vai trò/ngữ cảnh truy cập, tập dữ liệu cho phép, redaction, audit, lưu trữ và thời hạn giữ dữ liệu ở layer ứng dụng.
+Even if Reflection is permitted to read a field, that does **not** mean the recipient is authorized to see it. Roles/access contexts, allowed data sets, redaction, auditing, storage, and retention must be determined at the application layer.
 
-Ví dụ `email` hoặc `tenantId` có thể là dữ liệu nghiệp vụ hợp lệ, nhưng endpoint xuất công khai cần ẩn/bỏ, còn một công cụ quản trị có thể được cấp quyền khác. Đây là quyết định domain/security, không phải kết quả tự động của `Field.isSynthetic()` hay modifier.
+For instance, `email` or `tenantId` may be valid business data, yet a public export endpoint must mask/omit them while an admin tool may receive different authorization. This is a domain/security decision, not an automatic consequence of `Field.isSynthetic()` or modifiers.
 
-## 9. Những anti-pattern cần tránh
+## 9. Anti-patterns to avoid
 
-| Mẫu sai | Vấn đề | Thay thế |
+| Anti-pattern | Problem | Alternative |
 | --- | --- | --- |
-| `for (Field f : c.getDeclaredFields()) out.put(f.getName(), f.get(obj));` | Có thể lộ field riêng tư/kỹ thuật, có access error, tên field trùng và output không ổn định. | Allowlist/annotation/schema, lọc metadata, truy cập đúng quyền, redaction. |
-| Bỏ mọi field `private` | Mất dữ liệu nghiệp vụ đang được đóng gói. | Chọn theo contract; lấy giá trị bằng public accessor khi phù hợp. |
-| Chỉ bỏ `static` rồi coi phần còn lại là domain data | Bao gồm cache, transient, token, synthetic và state framework. | Áp dụng chính sách nhiều bước, mặc định opt-in. |
-| Coi `transient` là “không thuộc nghiệp vụ” trong mọi trường hợp | Trộn hợp đồng Java serialization với domain mapping. | Chính sách riêng cho từng đầu ra/framework. |
-| Coi `!isSynthetic()` là bằng chứng an toàn | Compiler flag không mô tả sensitivity hay ownership. | Dùng allowlist và metadata nghiệp vụ. |
-| Tự động gọi mọi getter và duyệt object graph vô hạn | Có thể gây side effect, N+1 queries, vòng lặp, lộ secrets. | DTO hoặc API schema riêng, budget và cycle detection. |
-| Sắp xếp mặc định dựa vào thứ tự `getDeclaredFields()` | Reflection không bảo đảm thứ tự. | Sort hoặc schema order. |
-| Bật `setAccessible(true)` cho mọi field | Va chạm module boundary, mở quá mức, không cần thiết. | Chọn field trước, dùng accessor/DTO hoặc truy cập có kiểm soát. |
+| `for (Field f : c.getDeclaredFields()) out.put(f.getName(), f.get(obj));` | May leak private/technical fields, cause access errors, collide on field names, and produce unstable output. | Allowlist/annotation/schema, metadata filtering, proper access rights, redaction. |
+| Skip all `private` fields | Loses encapsulated business data. | Select by contract; read values via public accessors when appropriate. |
+| Only skip `static` and treat the rest as domain data | Includes caches, transient fields, tokens, synthetics, and framework state. | Apply a multi-step policy, opt-in by default. |
+| Treat `transient` as "non-business" in all cases | Conflates Java serialization contract with domain mapping. | Separate policy per output/framework. |
+| Treat `!isSynthetic()` as proof of safety | Compiler flag does not describe sensitivity or ownership. | Use allowlists and business metadata. |
+| Automatically call all getters and traverse object graphs unboundedly | Can cause side effects, N+1 queries, infinite loops, and secret leaks. | Dedicated DTO or API schema, budgets, and cycle detection. |
+| Default ordering based on `getDeclaredFields()` order | Reflection does not guarantee order. | Explicit sorting or schema order. |
+| Enable `setAccessible(true)` for every field | Hits module boundaries, overly permissive, unnecessary. | Select fields first, use accessors/DTOs, or controlled access. |
 
-## 10. Bài tập áp dụng
+## 10. Practice exercises
 
-1. Thêm `@BusinessData private final String currency = "VND";` vào `Order`, dự đoán nơi nó xuất hiện trong output và kiểm tra thứ tự do `Arrays.sort`.
-2. Gắn `@BusinessData` vào `internalCache`. Tại sao annotation opt-in lúc này khiến nó được xuất, dù tên cho thấy có thể là hạ tầng? Thiết kế thêm một kiểm tra schema/owner review để ngăn sai sót người khai báo.
-3. Gỡ `@Sensitive` khỏi `customerEmail` và quan sát chính sách demo thay đổi như thế nào. Vì sao tác động này cần review security?
-4. Thêm một field tên `orderId` vào `OrderBase`. Nếu exporter dùng map chỉ có key là tên field, điều gì xảy ra? Hãy sử dụng `getDeclaringClass()` để tránh trùng.
-5. Thử tạo `record OrderView(String orderId, int totalCents) {}` và in các `RecordComponent`. So sánh cách chọn schema record với duyệt `getDeclaredFields()`.
-6. Thiết kế hai projection khác nhau: **audit nội bộ** và **JSON công khai**. Nêu rõ allowlist, quyền, mức redaction và chính sách xử lý field chưa biết.
+1. Add `@BusinessData private final String currency = "VND";` to `Order`, predict where it appears in the output, and verify the ordering produced by `Arrays.sort`.
+2. Add `@BusinessData` to `internalCache`. Why does the opt-in annotation now cause it to be exported even though its name suggests infrastructure? Design an additional schema/owner review check to prevent author mistakes.
+3. Remove `@Sensitive` from `customerEmail` and observe how the demo policy changes. Why does this change require a security review?
+4. Add a field named `orderId` to `OrderBase`. If the exporter uses a map keyed only by field name, what happens? Use `getDeclaringClass()` to avoid collisions.
+5. Try creating `record OrderView(String orderId, int totalCents) {}` and printing its `RecordComponent` objects. Compare record schema selection with scanning `getDeclaredFields()`.
+6. Design two different projections: **internal audit** and **public JSON**. Specify the allowlist, permissions, redaction level, and policy for unknown fields.
 
-**Checklist trước khi đưa một field vào đầu ra:** Ai sở hữu ý nghĩa của field? Nó thuộc schema/contract phiên bản nào? Có annotation/allowlist phê duyệt không? Là field instance hay state hạ tầng? Có nhạy cảm không? Có thể đọc hợp lệ không? Việc đọc có side effect hoặc snapshot không nhất quán không? Đối tượng sẽ được biểu diễn bằng giá trị nguyên thủy, DTO hay traversal an toàn? Có kiểm thử khi lớp thêm field mới không?
+**Checklist before including a field in output:** Who owns the field's meaning? Which schema/contract version does it belong to? Does it have annotation/allowlist approval? Is it instance data or infrastructure state? Is it sensitive? Can it be read legitimately? Does reading cause side effects or inconsistent snapshots? Will objects be represented as primitives, DTOs, or via safe traversal? Are there tests for when a class adds a new field?
 
-## 11. Tài liệu tham khảo
+## 11. References
 
 - [Java SE 17 — Class.getDeclaredFields(), getFields(), getRecordComponents()](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html)
 - [Java SE 17 — java.lang.reflect.Field](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/Field.html)

@@ -1,48 +1,48 @@
-# Fixture kiểm thử Reflection với `public`, `protected`, package-private và `private` member
+# Testing Reflection Fixtures with `public`, `protected`, Package-Private, and `private` Members
 
-Khi viết công cụ Java dựa trên Reflection (mapper, serializer, dependency injection, bộ tạo tài liệu API hoặc scanner), **chỉ nhìn thấy một member trong metadata không có nghĩa được phép đọc, gọi hoặc tạo instance qua member đó**. Một fixture tốt cần chủ động tạo đủ bốn mức truy cập của Java, đặt mã kiểm thử **ở cả cùng package lẫn khác package**, rồi kiểm tra hành vi thật thay vì suy đoán từ tên modifier.
+When building Reflection-based Java tools (mappers, serializers, dependency injection, API doc generators, or scanners), **merely seeing a member in metadata does not mean you are permitted to read, invoke, or instantiate through that member**. A good fixture must intentionally create all four Java access levels, place test code **in both the same package and a different package**, and verify actual behavior rather than guessing from modifier names.
 
-Bài này thiết kế một fixture Java 17+ có **field, method và constructor** ở bốn mức `public`, `protected`, **package-private** (không ghi access modifier) và `private`. Ta quan sát sự khác nhau giữa `getFields()/getMethods()` với `getDeclaredFields()/getDeclaredMethods()`, và kiểm thử quyền bằng `AccessibleObject.canAccess(...)`, `trySetAccessible()` cùng quy tắc dành cho subclass/JPMS.
+This lesson designs a Java 17+ fixture with **fields, methods, and constructors** at all four levels: `public`, `protected`, **package-private** (no access modifier), and `private`. We observe the difference between `getFields()/getMethods()` and `getDeclaredFields()/getDeclaredMethods()`, and test permissions using `AccessibleObject.canAccess(...)`, `trySetAccessible()`, and rules for subclasses/JPMS.
 
-## 1. Bốn mức truy cập cần được thử trong fixture
+## 1. The Four Access Levels to Test in a Fixture
 
-| Modifier của member | Chính class/nestmate được phép | Class khác cùng package | Subclass ở package khác | Class không liên quan ở package khác |
+| Member modifier | Own class/nestmate allowed | Another class in same package | Subclass in different package | Unrelated class in different package |
 | --- | --- | --- | --- | --- |
-| `public` | Có | Có | Có | Có, nếu lớp/package đích cũng khả kiến |
-| `protected` | Có | Có | Có, **với quy tắc receiver khi ở package khác** | Không |
-| *package-private* (không modifier) | Có | Có | Không chỉ vì là subclass | Không |
-| `private` | Có, theo quy tắc nestmate của Java | Không chỉ vì cùng package | Không chỉ vì kế thừa | Không |
+| `public` | Yes | Yes | Yes | Yes, if the target class/package is also visible |
+| `protected` | Yes | Yes | Yes, **with the receiver rule when in a different package** | No |
+| *package-private* (no modifier) | Yes | Yes | Not merely because it is a subclass | No |
+| `private` | Yes, under Java nestmate rules | Not merely because it is in the same package | Not merely because of inheritance | No |
 
-Bảng trên mô tả quyền của **mã Java thông thường**, trước khi dùng một cơ chế reflective access suppression được cấp phép. Cần kiểm tra thêm khả năng truy cập của **lớp chứa member** và quan hệ module (`exports`/`opens`). `public` trên một member nằm trong lớp không public hoặc package không export không tự tạo thành API public toàn hệ thống.
+The table above describes the permissions of **normal Java code**, before using an authorized reflective access suppression mechanism. You must also check the accessibility of the **enclosing class** and module relationships (`exports`/`opens`). `public` on a member inside a non-public class or an unexported package does not automatically create a system-wide public API.
 
-- **Protected ở package khác:** subclass được quyền truy cập instance member `protected` qua một receiver có kiểu là chính subclass đó (hoặc subclass con thích hợp). Từ subclass ấy, thao tác cùng member trên một instance `BaseFixture` thông thường vẫn có thể bị từ chối.
-- **Package-private:** phụ thuộc **runtime package**. Khi Java có các class loader/module khác nhau, chỉ cùng dòng tên package trong source không đủ để khẳng định cùng runtime package.
-- **Private và nestmates:** những nested class cùng nest có cơ chế truy cập private riêng. Để thử thất bại private một cách rõ ràng, ví dụ sử dụng **ba lớp top-level ở các tệp riêng**, không đặt toàn bộ fixture vào nested class của test.
-- **Constructor:** cũng có bốn mức quyền, nhưng không được kế thừa. Test constructor cần `getDeclaredConstructor(...)` hoặc `getConstructor(...)`, không áp dụng quy tắc override.
+- **Protected in a different package:** a subclass is allowed to access a `protected` instance member through a receiver whose type is that subclass itself (or an appropriate subtype). From that subclass, accessing the same member on an ordinary `BaseFixture` instance may still be rejected.
+- **Package-private:** depends on the **runtime package**. When Java has different class loaders/modules, having the same package name string in source files is not enough to establish the same runtime package.
+- **Private and nestmates:** nested classes in the same nest have their own private access mechanism. To test private failure cleanly, the example uses **three top-level classes in separate files**, rather than putting the entire fixture inside a nested class of the test.
+- **Constructor:** also has four permission levels, but is not inherited. Testing constructors requires `getDeclaredConstructor(...)` or `getConstructor(...)`, without applying override rules.
 
-## 2. Xác định câu hỏi kiểm thử trước khi chọn API
+## 2. Identify the Testing Question Before Choosing an API
 
-Reflection có hai hoạt động khác nhau: **tìm metadata** và **sử dụng member**.
+Reflection has two distinct activities: **looking up metadata** and **using a member**.
 
-| API | Nó cho biết gì? | Không nên suy diễn |
+| API | What does it tell you? | What not to infer |
 | --- | --- | --- |
-| `Class.getDeclaredField(name)` | Tìm field khai báo trực tiếp, gồm public/non-public | Không chứng minh caller có thể đọc/ghi field |
-| `Class.getFields()` | Liệt kê các public field phù hợp, gồm field kế thừa | Không phải danh sách đầy đủ mọi field private của hierarchy |
-| `Class.getDeclaredMethod(name, parameterTypes...)` | Tìm đúng method do lớp khai báo, không giới hạn modifier | Không chứng minh có quyền `invoke` |
-| `Class.getMethods()` | Public methods phù hợp, có tính đến kế thừa/interface | Không trả toàn bộ non-public methods |
-| `Class.getDeclaredConstructors()` | Constructor do lớp khai báo, mọi mức modifier | Không có constructor kế thừa |
-| `Class.getConstructor(parameterTypes...)` | Tìm public constructor theo chữ ký | Constructor private/protected/package-private không xuất hiện |
-| `Field.get`/`set`, `Method.invoke`, `Constructor.newInstance` | Thực hiện thao tác, có kiểm tra truy cập và điều kiện gọi | Không chỉ dựa vào việc đã tìm được metadata |
-| `AccessibleObject.canAccess(receiver)` | Hỏi tại vị trí caller hiện tại có thể sử dụng member không, xét trạng thái accessible | Không tự thay đổi quyền; với field/method instance cần receiver phù hợp; với static member/constructor cần `null` |
-| `AccessibleObject.trySetAccessible()` | Thử bật cờ bỏ qua kiểm tra truy cập Java ở những nơi được phép | Có thể trả `false` nếu bị module encapsulation ngăn; không cấp quyền vô điều kiện |
+| `Class.getDeclaredField(name)` | Finds a directly declared field, including public/non-public | Does not prove the caller can read/write the field |
+| `Class.getFields()` | Lists matching public fields, including inherited fields | Not a complete list of all private fields in the hierarchy |
+| `Class.getDeclaredMethod(name, parameterTypes...)` | Finds the exact method declared by the class, regardless of modifier | Does not prove permission to `invoke` |
+| `Class.getMethods()` | Matching public methods, accounting for inheritance/interfaces | Does not return all non-public methods |
+| `Class.getDeclaredConstructors()` | Constructors declared by the class, of all modifier levels | No inherited constructors |
+| `Class.getConstructor(parameterTypes...)` | Finds a public constructor by signature | Private/protected/package-private constructors do not appear |
+| `Field.get`/`set`, `Method.invoke`, `Constructor.newInstance` | Performs the operation, checking access and invocation conditions | Do not rely solely on having found the metadata |
+| `AccessibleObject.canAccess(receiver)` | Asks whether the member can be used at the current caller site, considering accessible state | Does not change permissions itself; for instance fields/methods requires a suitable receiver; for static members/constructors requires `null` |
+| `AccessibleObject.trySetAccessible()` | Attempts to enable the flag to suppress Java access checks where permitted | May return `false` if blocked by module encapsulation; does not grant unconditional permission |
 
-**Điểm thực hành:** `getDeclaredFields()` và các API trả mảng Reflection **không bảo đảm thứ tự**. Khi in kết quả để test/đối chiếu snapshot, hãy `sorted()`; nếu không, test sẽ phụ thuộc thứ tự ngẫu nhiên của môi trường thay vì ý nghĩa của access modifier.
+**Practical note:** `getDeclaredFields()` and Reflection APIs returning arrays **do not guarantee ordering**. When printing results for tests/snapshot comparisons, call `sorted()`; otherwise, tests will depend on an arbitrary environment order rather than the meaning of access modifiers.
 
-`canAccess` không phù hợp làm một hàm tổng quát nhận `null` cho mọi member: với instance field và instance method, phải truyền receiver tương thích; constructor và static member dùng `null`. Nếu receiver sai loại, API có thể ném `IllegalArgumentException`. Nó cũng kiểm tra theo **caller thực tế**, nên cùng một `Field` có thể cho kết quả khác khi `canAccess` được gọi từ lớp test khác.
+`canAccess` is not suitable as a generic function taking `null` for every member: for instance fields and instance methods, you must pass a compatible receiver; constructors and static members use `null`. If the receiver is the wrong kind, the API may throw `IllegalArgumentException`. It also checks against the **actual caller**, so the same `Field` can yield different results when `canAccess` is called from a different test class.
 
-## 3. Fixture Java 17+: ba tệp, hai package và nhiều ngữ cảnh caller
+## 3. Java 17+ Fixture: Three Files, Two Packages, and Multiple Caller Contexts
 
-Cấu trúc thư mục:
+Directory structure:
 
 ~~~text
 fixture/
@@ -52,11 +52,11 @@ client/
   FixtureAccessDemo.java
 ~~~
 
-Ba class này được biên dịch và chạy trên **classpath/unnamed module** để cô lập quy tắc modifier/package trước khi thử named modules. Cùng tên package trong hai source file đi kèm cùng class loader, nên được xem là cùng runtime package.
+These three classes are compiled and run on the **classpath/unnamed module** to isolate modifier/package rules before testing named modules. The same package name in two source files loaded by the same class loader is treated as the same runtime package.
 
 ### 3.1. `fixture/BaseFixture.java`
 
-Định nghĩa đủ bốn mức truy cập cho **field, constructor và method**:
+Defines all four access levels for **fields, constructors, and methods**:
 
 ~~~java
 package fixture;
@@ -79,13 +79,13 @@ public class BaseFixture {
 }
 ~~~
 
-- Không có từ khóa modifier trước `packageField`/`packageMethod`/`BaseFixture(int)` nghĩa là **package-private**, không phải `protected`.
-- `privateField` vẫn tồn tại trong metadata của `BaseFixture`; việc test bên ngoài không được truy cập trực tiếp không có nghĩa field này bị Reflection “ẩn hoàn toàn”.
-- Các constructor được cố ý cho kiểu tham số khác nhau. Vì Java không cho hai constructor trùng parameter signature chỉ khác modifier, đó là cách tạo fixture với cả bốn mức quyền mà vẫn hợp lệ.
+- Having no modifier keyword before `packageField`/`packageMethod`/`BaseFixture(int)` means **package-private**, not `protected`.
+- `privateField` still exists in `BaseFixture`'s metadata; the fact that an external test cannot access it directly does not mean this field is "completely hidden" from Reflection.
+- The constructors intentionally use different parameter types. Since Java does not allow two constructors with the same parameter signature differing only by modifier, that is how to build a valid fixture with all four permission levels.
 
 ### 3.2. `fixture/SamePackageProbe.java`
 
-Một caller **khác class, cùng package** kiểm tra các field và constructor:
+A caller in **a different class, same package** checks the fields and constructor:
 
 ~~~java
 package fixture;
@@ -107,13 +107,13 @@ public class SamePackageProbe {
 }
 ~~~
 
-Quan sát kỳ vọng: `public`, `protected` và package-private đều `true`, còn `private` trả `false`. `SamePackageProbe` không phải nestmate của `BaseFixture`; cùng package không đủ để truy cập private.
+Expected observation: `public`, `protected`, and package-private are all `true`, while `private` returns `false`. `SamePackageProbe` is not a nestmate of `BaseFixture`; being in the same package is not enough for private access.
 
-`getDeclaredConstructor(int.class)` tìm constructor package-private. `ctor.canAccess(null)` trả `true` do caller `SamePackageProbe` thuộc cùng runtime package. Đây là kiểm tra quyền constructor, với receiver bắt buộc là `null`.
+`getDeclaredConstructor(int.class)` finds the package-private constructor. `ctor.canAccess(null)` returns `true` because the caller `SamePackageProbe` belongs to the same runtime package. This is a constructor permission check, where the receiver must be `null`.
 
 ### 3.3. `client/FixtureAccessDemo.java`
 
-Một caller ở **package khác** đồng thời là subclass, giúp thấy ràng buộc receiver của `protected`:
+A caller in a **different package** that is also a subclass, showing the receiver constraint of `protected`:
 
 ~~~java
 package client;
@@ -171,11 +171,11 @@ public class FixtureAccessDemo extends BaseFixture {
 }
 ~~~
 
-Lưu ý `FixtureAccessDemo` là subclass của `BaseFixture` nhưng vòng lặp `canAccess(base)` truyền một **receiver thuộc chính `BaseFixture`**, không thuộc `FixtureAccessDemo`. Điều này được cố ý để thử tình huống `protected` bị từ chối xuyên package. Trong `checkProtected()`, receiver `this` lại là instance của subclass, nên phép kiểm tra `protected` thành công.
+Note that `FixtureAccessDemo` is a subclass of `BaseFixture`, yet the loop calling `canAccess(base)` passes a **receiver of `BaseFixture` itself**, not of `FixtureAccessDemo`. This is intentional to test the case where `protected` is denied across packages. In `checkProtected()`, the receiver `this` is an instance of the subclass, so the `protected` check succeeds.
 
-### 3.4. Biên dịch, chạy và kiểm tra stdout
+### 3.4. Compile, Run, and Verify stdout
 
-Từ thư mục chứa hai folder `fixture` và `client`, tạo thư mục `out` rồi chạy:
+From the directory containing the two folders `fixture` and `client`, create an `out` directory and run:
 
 ~~~bash
 mkdir out
@@ -183,7 +183,7 @@ javac --release 17 -d out fixture/BaseFixture.java fixture/SamePackageProbe.java
 java -cp out client.FixtureAccessDemo
 ~~~
 
-Kết quả đã đối chiếu bằng JDK với `--release 17`:
+Verified output with JDK `--release 17`:
 
 ~~~text
 declared fields: packageField, privateField, protectedField, publicField
@@ -205,102 +205,102 @@ private trySetAccessible: true
 private field value: 40
 ~~~
 
-**Giải thích các kết quả quan trọng:**
+**Explanation of key results:**
 
-1. `declared fields` liệt kê cả bốn field, vì `getDeclaredFields()` không lọc theo `public`. `public fields` chỉ có `publicField` trong fixture (đã lọc theo `getDeclaringClass()`).
-2. Ở vòng lặp `client`, `canAccess(base)` chỉ đúng cho `publicField`. Ba field còn lại không tự trở nên truy cập được vì đã lấy `Field` từ `getDeclaredField`.
-3. `BaseFixture.class.getMethod("privateMethod")` không tìm thấy vì API này chỉ tìm public method: nó ném **`NoSuchMethodException`**. Nếu dùng `getDeclaredMethod("privateMethod")` sẽ tìm được metadata, nhưng việc `invoke` còn cần quyền.
-4. `SamePackageProbe` thấy được `protectedField` và `packageField`. `privateField` vẫn bị từ chối vì hai lớp top-level không phải nestmates.
-5. `subclass receiver protected: true` nhưng `base receiver protected: false` chứng minh điều kiện receiver đặc thù của `protected` khi caller là subclass khác package.
-6. `private trySetAccessible: true` là kết quả trong ví dụ chạy **trên classpath/unnamed module**. `trySetAccessible()` có thể trả `false` trong một ứng dụng named modules nếu package đích không `opens` tới module caller. Không dùng kết quả `true` ở đây để tuyên bố Java luôn cho vượt quyền private.
-7. Sau khi `trySetAccessible()` thành công, `getInt(base)` có thể đọc giá trị `privateField = 40`. Đây là thao tác chủ động yêu cầu suppress access checks trong ngữ cảnh được phép, khác với kiểm tra truy cập mặc định bằng `canAccess`.
+1. `declared fields` lists all four fields, because `getDeclaredFields()` does not filter by `public`. `public fields` only has `publicField` in the fixture (filtered by `getDeclaringClass()`).
+2. In the `client` loop, `canAccess(base)` is only true for `publicField`. The other three fields do not automatically become accessible just because the `Field` was obtained from `getDeclaredField`.
+3. `BaseFixture.class.getMethod("privateMethod")` does not find it because this API only searches for public methods: it throws **`NoSuchMethodException`**. Using `getDeclaredMethod("privateMethod")` finds the metadata, while `invoke` still requires permission.
+4. `SamePackageProbe` can see `protectedField` and `packageField`. `privateField` is still denied because the two top-level classes are not nestmates.
+5. `subclass receiver protected: true` while `base receiver protected: false` proves the special receiver condition for `protected` when the caller is a subclass in a different package.
+6. `private trySetAccessible: true` is the result in this example running **on the classpath/unnamed module**. `trySetAccessible()` can return `false` in a named-module application if the target package does not `opens` to the caller module. Do not use the `true` result here to claim Java always allows bypassing private access.
+7. After `trySetAccessible()` succeeds, `getInt(base)` can read `privateField = 40`. This is an explicit operation requesting to suppress access checks in a permitted context, distinct from the default access check via `canAccess`.
 
-## 4. Mở rộng cùng fixture sang kiểm thử method và constructor
+## 4. Extending the Same Fixture to Test Methods and Constructors
 
-Đối với method, dùng cùng các tên từ `BaseFixture`:
+For methods, use the same names from `BaseFixture`:
 
-| Method | Tìm bằng `getDeclaredMethod(...)` | Tìm bằng `getMethod(...)` | Quyền gọi mặc định từ class khác package |
+| Method | Found with `getDeclaredMethod(...)` | Found with `getMethod(...)` | Default invocation permission from another package |
 | --- | --- | --- | --- |
-| `publicMethod()` | Có | Có | Được, nếu lớp/package đích khả kiến |
-| `protectedMethod()` | Có | Không theo API này trên fixture chỉ có member protected | Phụ thuộc subclass và receiver |
-| `packageMethod()` | Có | Không | Không |
-| `privateMethod()` | Có | Không | Không |
+| `publicMethod()` | Yes | Yes | Allowed, if the target class/package is visible |
+| `protectedMethod()` | Yes | No with this API on a fixture with only this protected member | Depends on subclass and receiver |
+| `packageMethod()` | Yes | No | No |
+| `privateMethod()` | Yes | No | No |
 
-Nếu muốn test **quyền invocation** thay vì khả năng lookup, trước tiên lấy `Method m = BaseFixture.class.getDeclaredMethod("privateMethod")`, rồi gọi `m.canAccess(base)` hoặc `m.invoke(base)`; trường hợp không được phép invoke sẽ báo `IllegalAccessException`. `NoSuchMethodException` lại thuộc bước **tìm method theo API/chữ ký**. Đừng gộp hai nguyên nhân này thành cùng một lỗi.
+If you want to test **invocation permission** instead of lookup capability, first retrieve `Method m = BaseFixture.class.getDeclaredMethod("privateMethod")`, then call `m.canAccess(base)` or `m.invoke(base)`; when invocation is not allowed, it throws `IllegalAccessException`. `NoSuchMethodException` belongs to the step of **looking up the method by API/signature**. Do not conflate these two causes into the same error.
 
-Với constructor:
+For constructors:
 
-- `BaseFixture.class.getConstructor()` tìm được constructor public không tham số.
-- `BaseFixture.class.getDeclaredConstructor(String.class)` tìm thấy constructor `protected`.
-- `BaseFixture.class.getDeclaredConstructor(int.class)` tìm thấy constructor package-private.
-- `BaseFixture.class.getDeclaredConstructor(boolean.class)` tìm thấy constructor `private`.
-- `BaseFixture.class.getConstructor(boolean.class)` ném `NoSuchMethodException` vì constructor tương ứng không public.
+- `BaseFixture.class.getConstructor()` finds the public no-arg constructor.
+- `BaseFixture.class.getDeclaredConstructor(String.class)` finds the `protected` constructor.
+- `BaseFixture.class.getDeclaredConstructor(int.class)` finds the package-private constructor.
+- `BaseFixture.class.getDeclaredConstructor(boolean.class)` finds the `private` constructor.
+- `BaseFixture.class.getConstructor(boolean.class)` throws `NoSuchMethodException` because the corresponding constructor is not public.
 
-`Constructor.canAccess(null)` kiểm tra quyền tại caller hiện tại; dùng `null` vì constructor chưa có đối tượng receiver. `newInstance(...)` có thể ném `IllegalAccessException` khi không được phép gọi constructor, `InvocationTargetException` nếu chính constructor ném exception, hoặc `InstantiationException` với class abstract; những ngoại lệ này không được nhầm với lỗi không tìm thấy constructor.
+`Constructor.canAccess(null)` checks permissions at the current caller; use `null` because a constructor does not yet have a receiver object. `newInstance(...)` can throw `IllegalAccessException` when calling the constructor is not allowed, `InvocationTargetException` if the constructor itself throws an exception, or `InstantiationException` for an abstract class; these exceptions must not be confused with failing to find the constructor.
 
-Khi kiểm thử từng loại member, nên tạo **bộ case độc lập** (field lookup, field get/set, method lookup/invoke, constructor lookup/newInstance) với expected exception cụ thể. Nếu chỉ viết một phép thử duy nhất `getDeclaredXxx`, fixture mới kiểm chứng khả năng nhìn metadata chứ chưa kiểm chứng quyền sử dụng.
+When testing each member kind, create **independent test cases** (field lookup, field get/set, method lookup/invoke, constructor lookup/newInstance) with specific expected exceptions. If you only write a single `getDeclaredXxx` check, the fixture only verifies metadata visibility, not usage permission.
 
-## 5. Named modules, `exports` và `opens` thay đổi điều gì?
+## 5. What Do Named Modules, `exports`, and `opens` Change?
 
-Ví dụ ở mục 3 cố ý chạy classpath trong unnamed module. Một bộ test cho **JPMS** cần dùng các named module riêng, bởi vì `exports` và `opens` kiểm soát những khía cạnh khác nhau:
+The example in section 3 intentionally runs on the classpath in the unnamed module. A test suite for **JPMS** needs separate named modules, because `exports` and `opens` control different aspects:
 
-- `exports fixture;` cho phép module khác (nếu đọc module đích) dùng các **public types/public members** của package `fixture` theo luật truy cập bình thường. Nó không cho bên ngoài tùy ý gọi `privateMethod`.
-- `opens fixture to client.app;` cấp khả năng **deep reflection** tới package `fixture` cho module `client.app`, khi các điều kiện API và module khác được đáp ứng. `opens` không tự biến member private thành public Java source.
-- Nếu package không open cho bên gọi, `trySetAccessible()` trên private member ở module khác có thể trả `false`, còn `setAccessible(true)` có thể ném `InaccessibleObjectException`.
-- Các module có thể sử dụng `--add-opens source.module/fixture=client.app` cho nhu cầu chẩn đoán có kiểm soát, nhưng không nên coi cờ này là điều kiện mặc định để ứng dụng hoạt động.
+- `exports fixture;` allows another module (if it reads the target module) to use **public types/public members** of package `fixture` under normal access rules. It does not allow outsiders to arbitrarily invoke `privateMethod`.
+- `opens fixture to client.app;` grants **deep reflection** capability on package `fixture` to module `client.app`, when other API and module conditions are satisfied. `opens` does not turn private members into public Java source members.
+- If the package is not open to the caller, `trySetAccessible()` on a private member in another module may return `false`, and `setAccessible(true)` may throw `InaccessibleObjectException`.
+- Modules can use `--add-opens source.module/fixture=client.app` for controlled diagnostic needs, but this flag should not be treated as a default requirement for the application to work.
 
-Ví dụ minh họa riêng về descriptor (không phải các file bắt buộc để chạy demo classpath phía trên):
+Separate illustrative example of descriptors (not required files to run the classpath demo above):
 
 ~~~java
-// module-info.java của module fixture.lib:
+// module-info.java of module fixture.lib:
 module fixture.lib {
     exports fixture;
     opens fixture to client.app;
 }
 
-// module-info.java của module client.app:
+// module-info.java of module client.app:
 module client.app {
     requires fixture.lib;
 }
 ~~~
 
-Nếu muốn kiểm thử chặn deep reflection, hãy tạo thêm fixture ở một **named module không opens package** và xác nhận `trySetAccessible()` thất bại từ module khác. Cần lưu ý cách khởi chạy/module path, không dùng kết quả của classpath demo làm expected output cho test JPMS.
+If you want to test blocking deep reflection, add a fixture in a **named module that does not `opens` the package** and verify `trySetAccessible()` fails from another module. Pay attention to launch options/module path, and do not use the classpath demo output as expected output for JPMS tests.
 
-## 6. Thiết kế ma trận kiểm thử ổn định
+## 6. Designing a Stable Test Matrix
 
-Không nên thiết kế fixture chỉ để “chạy được một lần”. Với công cụ Reflection, nên có ma trận kiểm chứng rõ:
+Do not design a fixture just to "run once." For Reflection tools, have a clear verification matrix:
 
-| Trục thử | Những trường hợp tối thiểu |
+| Test axis | Minimum cases |
 | --- | --- |
-| Thành viên | Field, method, constructor; cân nhắc static, inherited, final ở test mở rộng |
+| Member | Field, method, constructor; consider static, inherited, final in extended tests |
 | Modifier | `public`, `protected`, package-private, `private` |
-| Quan hệ caller | Chính class, class cùng package khác nest, subclass khác package, class không liên quan khác package |
-| Receiver | Đúng subclass receiver, base-class receiver, `null` cho static/constructor, receiver không tương thích |
-| Lookup | `getDeclaredXxx` đối chiếu `getXxx`; kiểm tra `NoSuchFieldException`/`NoSuchMethodException` |
-| Sử dụng | `canAccess`, `Field.get/set`, `Method.invoke`, `Constructor.newInstance`, `trySetAccessible` |
-| Module | Classpath unnamed module, named modules `exports`, named modules `opens`/không `opens` |
-| Kết quả | Đúng dữ liệu, đúng exception, metadata đầy đủ, định dạng log và thứ tự ổn định |
+| Caller relationship | Same class, same-package different nest, cross-package subclass, cross-package unrelated class |
+| Receiver | Proper subclass receiver, base-class receiver, `null` for static/constructor, incompatible receiver |
+| Lookup | `getDeclaredXxx` vs `getXxx`; verify `NoSuchFieldException`/`NoSuchMethodException` |
+| Usage | `canAccess`, `Field.get/set`, `Method.invoke`, `Constructor.newInstance`, `trySetAccessible` |
+| Module | Classpath unnamed module, named modules with `exports`, named modules with/without `opens` |
+| Result | Correct data, expected exception, complete metadata, stable log format and ordering |
 
-**Không dùng thứ tự mảng Reflection làm expected output.** Thực hiện `sorted()` hoặc so tập hợp nếu thứ tự không có ý nghĩa. Tránh test phụ thuộc vào `setAccessible(true)` trên các package JDK bị đóng; mục tiêu ở đây là kiểm chứng các luật truy cập của fixture, không phải tìm cách vô hiệu hóa encapsulation.
+**Do not use Reflection array ordering as expected output.** Perform `sorted()` or set comparisons when ordering is meaningless. Avoid tests that rely on `setAccessible(true)` on closed JDK packages; the goal here is to verify the fixture's access rules, not to find ways to disable encapsulation.
 
-Nếu thử với nested class, hãy ghi rõ chúng thuộc nest nào bằng `Class.getNestHost()` và `getNestMembers()`. Một nested test class có thể có quyền private đối với enclosing class ngay từ đầu, khiến phép thử “private phải bị từ chối” trở thành **false negative về thiết kế test**.
+When testing with nested classes, explicitly record which nest they belong to using `Class.getNestHost()` and `getNestMembers()`. A nested test class may already have private access to its enclosing class from the start, turning a "private must be denied" check into a **false negative in test design**.
 
-## 7. Lỗi thường gặp khi dùng fixture
+## 7. Common Mistakes When Using Fixtures
 
-1. **Chỉ có class public:** không chứng minh công cụ xử lý protected/package-private/private đúng.
-2. **Đặt fixture và runner trong cùng class/nest:** các quyền private có thể được chia sẻ, làm mất case cần bị từ chối.
-3. **Lấy `Field` thành công rồi kết luận có quyền đọc:** metadata lookup và access check là hai bước độc lập.
-4. **Dùng `getMethods()` để tìm private method:** API đó chỉ phục vụ public methods; muốn metadata private dùng `getDeclaredMethod`.
-5. **Dùng `canAccess(null)` cho instance field:** truyền sai receiver; phải cấp instance đúng kiểu.
-6. **Dùng `trySetAccessible()` rồi bỏ qua trạng thái:** nó trả boolean; khi không cho phép cần xử lý `false` đúng.
-7. **Nhầm protected member với public cho mọi subclass receiver:** ở package khác, receiver của instance member chịu quy tắc riêng.
-8. **Dựa vào named module mà vẫn dùng expected output của classpath:** JPMS có thể thay đổi kết quả reflective access.
-9. **So sánh danh sách method/field theo thứ tự Reflection trả về:** không có cam kết thứ tự, gây test không ổn định.
-10. **Không phân biệt exception lookup với exception invoke:** thiếu method và thiếu quyền gọi là hai nguyên nhân khác nhau.
+1. **Having only public classes:** does not prove the tool handles protected/package-private/private correctly.
+2. **Putting the fixture and runner in the same class/nest:** private permissions may be shared, losing cases that should be denied.
+3. **Obtaining a `Field` successfully and concluding you have read permission:** metadata lookup and access check are two independent steps.
+4. **Using `getMethods()` to find a private method:** that API only serves public methods; for private metadata use `getDeclaredMethod`.
+5. **Using `canAccess(null)` for an instance field:** passes the wrong receiver; you must supply an instance of the right type.
+6. **Calling `trySetAccessible()` and ignoring its status:** it returns a boolean; when disallowed, `false` must be handled properly.
+7. **Confusing a protected member with public for every subclass receiver:** in a different package, instance member receivers follow specific rules.
+8. **Relying on named modules while still using classpath expected output:** JPMS can alter reflective access results.
+9. **Comparing method/field lists by the order Reflection returns:** there is no ordering guarantee, causing flaky tests.
+10. **Failing to distinguish lookup exceptions from invoke exceptions:** a missing method and missing permission to invoke are two different causes.
 
-**Ghi nhớ:** một fixture Reflection hữu ích phải tách bạch **metadata thấy được**, **truy cập mặc định theo caller/receiver**, và **quyền deep reflection được cấp có điều kiện**. Ví dụ ba lớp ở hai package vừa cho thấy đủ bốn access modifier, vừa chứng minh tại sao `protected`, package-private và `private` cần được test từ nhiều ngữ cảnh, không chỉ một lớp đơn lẻ.
+**Takeaway:** a useful Reflection fixture must separate **visible metadata**, **default access by caller/receiver**, and **conditionally granted deep reflection permission**. The three-class, two-package example both demonstrates all four access modifiers and proves why `protected`, package-private, and `private` must be tested from multiple contexts rather than a single class.
 
-**Tài liệu đối chiếu:**
+**References:**
 - [`Class` — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html)
 - [`AccessibleObject` — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AccessibleObject.html)
 - [`Field` — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Field.html)

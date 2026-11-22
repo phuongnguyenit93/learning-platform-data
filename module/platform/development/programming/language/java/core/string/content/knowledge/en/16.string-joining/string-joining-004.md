@@ -1,33 +1,33 @@
-# `StringJoiner` với `delimiter`, `prefix` và `suffix` trong Java
+# `StringJoiner` with `delimiter`, `prefix`, and `suffix` in Java
 
-Khi cần ghép nhiều giá trị thành một chuỗi, ta thường muốn đặt **dấu phân cách ở giữa các phần tử** và đôi khi thêm **tiền tố**/**hậu tố** bao quanh toàn bộ kết quả. Ví dụ, từ các phần tử `"Lan"`, `"Mai"` và `"An"`, đầu ra mong muốn có thể là `"[Lan, Mai, An]"`.
+When you need to join multiple values into a single string, you often want to place a **delimiter between elements** and sometimes add a **prefix**/**suffix** wrapping the entire result. For example, from the elements `"Lan"`, `"Mai"`, and `"An"`, the desired output might be `"[Lan, Mai, An]"`.
 
-`java.util.StringJoiner` được thiết kế đúng cho trường hợp này. Thay vì tự theo dõi «đã thêm phần tử đầu tiên chưa?» để chèn dấu phẩy, ta khai báo quy tắc ghép một lần rồi lần lượt gọi `add(...)`. Đặc biệt, ba khái niệm **delimiter**, **prefix** và **suffix** có ba vai trò hoàn toàn khác nhau:
+`java.util.StringJoiner` is designed for this exact case. Instead of manually tracking "have I added the first element yet?" to insert a comma, you declare the joining rule once and then call `add(...)` repeatedly. Specifically, the three concepts **delimiter**, **prefix**, and **suffix** have three completely different roles:
 
-- **`delimiter` (dấu phân cách):** xuất hiện **giữa** các phần tử, không tự xuất hiện ở đầu hay cuối danh sách.
-- **`prefix` (tiền tố):** đứng **trước toàn bộ** nội dung các phần tử.
-- **`suffix` (hậu tố):** đứng **sau toàn bộ** nội dung các phần tử.
+- **`delimiter`:** appears **between** elements; never appears automatically at the start or end of the list.
+- **`prefix`:** stands **before the entire** element content.
+- **`suffix`:** stands **after the entire** element content.
 
-Một `StringJoiner` là đối tượng *mutable* dùng để tích lũy nội dung; kết quả từ `toString()` là một `String` để dùng hoặc lưu lại.
+A `StringJoiner` is a *mutable* object used to accumulate content; the result from `toString()` is a `String` to use or store.
 
-## 1. Khởi tạo `StringJoiner`
+## 1. Initializing a `StringJoiner`
 
-Hai constructor thường dùng:
+Two commonly used constructors:
 
 ```java
 StringJoiner joiner = new StringJoiner(", ");
 StringJoiner wrapped = new StringJoiner(", ", "[", "]");
 ```
 
-Constructor đầy đủ có chữ ký:
+The full constructor has the signature:
 
 ```java
 StringJoiner(CharSequence delimiter, CharSequence prefix, CharSequence suffix)
 ```
 
-Constructor chỉ nhận delimiter tương đương việc dùng tiền tố và hậu tố là chuỗi rỗng. Các tham số cấu hình này **không được `null`**: truyền `null` cho delimiter, prefix hoặc suffix khiến constructor ném `NullPointerException`.
+The constructor taking only a delimiter is equivalent to using empty strings for prefix and suffix. These configuration parameters **must not be `null`**: passing `null` for delimiter, prefix, or suffix causes the constructor to throw `NullPointerException`.
 
-Ví dụ:
+Examples:
 
 ```text
 new StringJoiner(", ")         -> "A, B, C"
@@ -35,13 +35,13 @@ new StringJoiner(", ", "[", "]") -> "[A, B, C]"
 new StringJoiner(" | ", "{", "}") -> "{A | B | C}"
 ```
 
-Đây là hình dung kết quả **sau khi** gọi `add("A")`, `add("B")` và `add("C")` lên từng joiner tương ứng.
+This illustrates the result **after** calling `add("A")`, `add("B")`, and `add("C")` on each respective joiner.
 
-Không phải `StringJoiner` tự biết danh sách phần tử. Nó chỉ biết cách nối các chuỗi được bạn truyền lần lượt qua `add(...)`.
+`StringJoiner` does not know the list of elements on its own. It only knows how to join the strings you pass sequentially via `add(...)`.
 
-### Ví dụ 1: cấu hình một lần, thêm nhiều phần tử
+### Example 1: Configure Once, Add Multiple Elements
 
-Tạo tệp `StringJoinerBasicsDemo.java`:
+Create `StringJoinerBasicsDemo.java`:
 
 ```java
 import java.util.StringJoiner;
@@ -63,14 +63,14 @@ public class StringJoinerBasicsDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac StringJoinerBasicsDemo.java
 java StringJoinerBasicsDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 {}
@@ -79,28 +79,28 @@ Kết quả:
 true
 ```
 
-Khi chưa thêm phần tử nào, `toString()` trả `prefix + suffix`, ở đây là `{}`. Sau ba lần `add`, delimiter `" | "` chỉ xuất hiện **giữa** các phần tử; dấu `{` và `}` chỉ xuất hiện mỗi thứ một lần bao quanh toàn bộ nội dung.
+When no elements have been added yet, `toString()` returns `prefix + suffix`, which here is `{}`. After three `add` calls, the delimiter `" | "` appears only **between** elements; `{` and `}` each appear once wrapping the entire content.
 
-`length()` trả số UTF-16 code unit của **biểu diễn kết quả hiện tại**, tương đương `toString().length()`. Nó không trả về số phần tử đã gọi `add`.
+`length()` returns the number of UTF-16 code units of the **current resulting representation**, equivalent to `toString().length()`. It does not return the count of elements passed to `add`.
 
-## 2. Diễn biến trước và sau mỗi lần `add`
+## 2. State Before and After Each `add`
 
-Với cấu hình:
+With the configuration:
 
 ```java
 StringJoiner joiner = new StringJoiner(", ", "[", "]");
 ```
 
-Các bước được hiểu như sau:
+The steps behave as follows:
 
-| Thời điểm | Nội dung của `joiner.toString()` |
+| Moment | Contents of `joiner.toString()` |
 | --- | --- |
-| Chưa gọi `add` | `[]` |
-| Sau `add("A")` | `[A]` |
-| Sau `add("B")` | `[A, B]` |
-| Sau `add("C")` | `[A, B, C]` |
+| Before calling `add` | `[]` |
+| After `add("A")` | `[A]` |
+| After `add("B")` | `[A, B]` |
+| After `add("C")` | `[A, B, C]` |
 
-**Dấu phân cách không xuất hiện trước phần tử đầu tiên hay tự đứng sau phần tử cuối.** Đây chính là lợi ích so với cách viết nối chuỗi dễ thừa hoặc thiếu dấu:
+**The delimiter never appears before the first element or automatically after the last element.** This is the key advantage over manual concatenation that easily leaves an extra or missing separator:
 
 ```java
 StringBuilder builder = new StringBuilder("[");
@@ -110,28 +110,28 @@ for (String name : names) {
 builder.append("]");
 ```
 
-Đoạn trên chỉ là minh họa và giả định biến `names` đã tồn tại. Nếu danh sách có phần tử, nó có thể tạo dư `", "` trước dấu `]`. `StringJoiner` tự giải quyết việc đặt delimiter **giữa** các phần tử; bạn không cần xóa delimiter cuối hoặc quản lý biến cờ «đã có phần tử».
+The snippet above is illustrative only and assumes `names` already exists. If the list has elements, it can leave a trailing `", "` before `]`. `StringJoiner` handles placing the delimiter **between** elements automatically; you do not need to trim the final delimiter or maintain a "has element" flag.
 
-Để hiểu đúng, hãy tưởng tượng `StringJoiner` lưu nội dung các phần tử theo thứ tự thêm, rồi tạo ra chuỗi với delimiter và phần bao ngoài khi được yêu cầu. **Không nên phụ thuộc vào cấu trúc bộ nhớ nội bộ của JDK**; những gì chương trình dựa vào là hợp đồng API và kết quả `toString()`.
+To build the right mental model, picture `StringJoiner` storing element contents in the order added, then assembling the string with the delimiter and wrapper when requested. **Do not rely on internal JDK memory structures**; what your program relies on is the API contract and the `toString()` result.
 
-## 3. Phân biệt bộ bao ngoài với nội dung từng phần tử
+## 3. Distinguishing the Outer Wrapper from Individual Element Content
 
-`prefix` và `suffix` bao **toàn bộ chuỗi**. Chúng không bọc lần lượt từng giá trị được thêm bằng `add`. Bốn cấu hình dưới đây đều nhận cùng hai phần tử `"A"` rồi `"B"`:
+`prefix` and `suffix` wrap **the entire string**. They do not wrap each value added with `add`. The four configurations below all receive the same two elements `"A"` then `"B"`:
 
-| Delimiter | Prefix | Suffix | Kết quả |
+| Delimiter | Prefix | Suffix | Result |
 | --- | --- | --- | --- |
 | `", "` | `""` | `""` | `A, B` |
 | `" / "` | `"["` | `"]"` | `[A / B]` |
 | `":"` | `"user="` | `";"` | `user=A:B;` |
 | `""` | `"<"` | `">"` | `<AB>` |
 
-Nếu yêu cầu là `[A], [B]`, phải tạo phần tử đã được bọc, chẳng hạn `joiner.add("[" + item + "]")` với delimiter `", "`. Dùng prefix/suffix `"["` và `"]"` sẽ tạo `[A, B]`, biểu diễn một nhóm duy nhất.
+If the requirement is `[A], [B]`, you must create already-wrapped elements, such as `joiner.add("[" + item + "]")` with delimiter `", "`. Using prefix/suffix `"["` and `"]"` produces `[A, B]`, representing a single group.
 
-**Các wrapper là văn bản nguyên dạng.** `StringJoiner` không kiểm tra cặp dấu ngoặc đúng cú pháp, không phân tích delimiter, không escape dấu phẩy hoặc quote bên trong phần tử. Bạn có thể tạo nhãn văn bản thông thường bằng prefix, nhưng nếu cần xuất CSV, JSON, SQL hoặc URL hợp lệ hãy dùng API hoặc bộ mã hóa đúng định dạng.
+**Wrappers are literal text.** `StringJoiner` does not check for matched bracket syntax, does not parse delimiters, and does not escape commas or quotes inside elements. You can create plain text labels with a prefix, but if you need valid CSV, JSON, SQL, or URLs, use an API or encoder built for that format.
 
-## 4. Trạng thái chưa có phần tử
+## 4. The State When No Elements Have Been Added
 
-Khi chưa gọi `add`, một joiner với prefix/suffix trả về `prefix + suffix`. Ví dụ `new StringJoiner(", ", "[", "]")` trả `"[]"` khi gọi `toString()` trước lần `add` đầu tiên. Có thể dùng `setEmptyValue(...)` để thay **toàn bộ** biểu diễn khi chưa có phần tử; giá trị đó không bị bọc thêm bởi prefix/suffix.
+Before `add` is called, a joiner with prefix/suffix returns `prefix + suffix`. For example, `new StringJoiner(", ", "[", "]")` returns `"[]"` when `toString()` is called before the first `add`. You can use `setEmptyValue(...)` to replace the **entire** representation when no elements exist; that value is not wrapped again by prefix/suffix.
 
 ```java
 StringJoiner names = new StringJoiner(" / ", "<", ">");
@@ -147,13 +147,13 @@ names.add("Mai");
 System.out.println(names); // < / Mai>
 ```
 
-`add("")` vẫn ghi nhận **một phần tử**. Dù không có ký tự trong phần tử đầu, sau lần `add` đó kết quả không còn sử dụng emptyValue; khi thêm `"Mai"`, delimiter xuất hiện ở ranh giới hai phần tử. Cần phân biệt “chưa có phần tử” với “đã có một phần tử rỗng”, nhất là khi biểu diễn trường dữ liệu theo vị trí.
+`add("")` still records **one element**. Even though the first element has no characters, after that `add` call the result no longer uses `emptyValue`; when `"Mai"` is added, the delimiter appears at the boundary between the two elements. You should distinguish "no elements added yet" from "one empty element added," especially when representing positional data fields.
 
-Bài `StringJoiner.add, merge và setEmptyValue` phân tích sâu những thay đổi trạng thái, cách `merge` xử lý nguồn rỗng hoặc đã có `add("")`, và sự khác biệt giữa `merge(other)` với `add(other.toString())`. Trong bài này, hãy tập trung vào **hình dạng đầu ra** do delimiter, prefix và suffix xác định.
+The lesson `StringJoiner.add, merge, and setEmptyValue` analyzes these state transitions in depth, how `merge` handles an empty source or one that called `add("")`, and the difference between `merge(other)` and `add(other.toString())`. In this lesson, focus on the **output shape** determined by delimiter, prefix, and suffix.
 
-## 5. Chương trình hoàn chỉnh: ghép nhãn hiển thị
+## 5. Complete Program: Joining Display Labels
 
-Lưu thành `JoinerEnvelopeDemo.java` và chạy bằng JDK 17 trở lên:
+Save as `JoinerEnvelopeDemo.java` and run with JDK 17 or newer:
 
 ```java
 import java.util.List;
@@ -188,7 +188,7 @@ javac -encoding UTF-8 JoinerEnvelopeDemo.java
 java JoinerEnvelopeDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Filters: []
@@ -198,29 +198,29 @@ Filters: [status=OPEN ; level=HIGH]
 [java], [core]
 ```
 
-`Filters: []` là biểu diễn của **joiner chưa có phần tử** với prefix/suffix có sẵn. Sau hai lần `add`, delimiter `" ; "` xuất hiện đúng một lần ở giữa. Dòng `< / Mai>` cho thấy delimiter có thể nằm gần đầu chuỗi khi **phần tử đầu là chuỗi rỗng**; phần bao ngoài vẫn chỉ được chèn một lần. Dòng cuối bọc từng tag trong phần tử truyền cho `add`, không dùng wrapper của toàn bộ joiner.
+`Filters: []` is the representation of a **joiner with no elements yet** using its configured prefix/suffix. After two `add` calls, the delimiter `" ; "` appears exactly once in the middle. The line `< / Mai>` shows that the delimiter can appear right near the start when **the first element is an empty string**; the outer wrapper is still inserted only once. The last line wraps each tag in the element passed to `add`, rather than using the outer joiner's wrapper.
 
-## 6. Giới hạn và cách chọn công cụ
+## 6. Limitations and Tool Selection
 
-- Constructor yêu cầu delimiter, prefix và suffix **khác `null`**, nhưng `""` hợp lệ. Đối số `add(null)` được biểu diễn bằng chữ `"null"`; muốn bỏ null thì phải lọc trước.
-- `StringJoiner.length()` trả số code unit UTF-16 trong văn bản hiển thị, gồm wrapper và delimiter (hoặc emptyValue khi chưa có phần tử); đây không phải số phần tử hay số byte UTF-8.
-- `StringJoiner` có thể thay đổi sau `add`, nhưng một `String` đã được trả từ `toString()` không thay đổi khi joiner nhận phần tử mới.
-- Khi có mảng/`Iterable` hoàn chỉnh và chỉ cần delimiter, `String.join` ngắn hơn. Khi dữ liệu đã ở `Stream` với `map`/`filter`, dùng `Collectors.joining(delimiter, prefix, suffix)` thường hợp lý. Chọn `StringJoiner` khi cần thêm từng phần và kiểm soát wrapper theo tiến trình.
+- The constructor requires delimiter, prefix, and suffix to be **non-`null`**, though `""` is valid. A `null` argument to `add(null)` is rendered as `"null"`; if you want to omit nulls, filter beforehand.
+- `StringJoiner.length()` returns the number of UTF-16 code units in the current display text, including wrappers and delimiters (or `emptyValue` when no elements exist); this is neither the element count nor the UTF-8 byte count.
+- `StringJoiner` is mutable across `add` calls, but a `String` already returned by `toString()` does not change when the joiner receives new elements.
+- When you already have a complete array/`Iterable` and only need a delimiter, `String.join` is shorter. When data is already in a `Stream` with `map`/`filter`, using `Collectors.joining(delimiter, prefix, suffix)` usually makes sense. Choose `StringJoiner` when you need to add parts incrementally and control wrappers as you go.
 
-## 7. Tự kiểm tra
+## 7. Self-Check
 
-**Bài 1.** Cho:
+**Exercise 1.** Given:
 
 ```java
 StringJoiner j = new StringJoiner("|", "(", ")");
 j.add("A").add("B").add("C");
 ```
 
-Kết quả `j.toString()` là `"(A|B|C)"`. Ba phần tử tạo hai delimiter; prefix và suffix chỉ xuất hiện một lần.
+The result of `j.toString()` is `"(A|B|C)"`. Three elements produce two delimiters; prefix and suffix each appear once.
 
-**Bài 2.** Với `new StringJoiner(":", "user=", ";")`, trước `add` kết quả là `"user=;"`, sau `add("A").add("B")` là `"user=A:B;"`. Prefix/suffix là văn bản tùy chọn, không nhất thiết là cặp dấu ngoặc.
+**Exercise 2.** With `new StringJoiner(":", "user=", ";")`, before `add` the result is `"user=;"`, and after `add("A").add("B")` it is `"user=A:B;"`. Prefix/suffix can be arbitrary text, not necessarily a pair of brackets.
 
-**Bài 3.** Một joiner `new StringJoiner("-", "[", "]")` được đặt `setEmptyValue("EMPTY")`, rồi lần lượt gọi `add("")` và `add("X")`. Ba lần in trước và sau các lệnh cho:
+**Exercise 3.** A joiner `new StringJoiner("-", "[", "]")` has `setEmptyValue("EMPTY")` set, followed by `add("")` and `add("X")`. The three prints before and after those calls produce:
 
 ```text
 EMPTY
@@ -228,10 +228,10 @@ EMPTY
 [-X]
 ```
 
-`add("")` khiến joiner không còn ở trạng thái chưa có phần tử; `-` được chèn trước phần tử `"X"` tiếp theo.
+`add("")` moves the joiner out of its empty (no-elements) state; `-` is inserted before the next element `"X"`.
 
-## 8. Ghi nhớ
+## 8. Key Takeaways
 
-`delimiter` nằm **giữa các phần tử**; `prefix` và `suffix` nằm **ngoài toàn bộ kết quả**. Khi chưa có phần tử, kết quả mặc định là prefix + suffix, trừ khi có `setEmptyValue`. Một phần tử `""` vẫn được tính là đã thêm; việc lọc, escape và xác thực nội dung là trách nhiệm riêng của ứng dụng.
+`delimiter` sits **between elements**; `prefix` and `suffix` wrap **the entire result**. When no elements have been added, the default output is `prefix + suffix` unless `setEmptyValue` is set. An empty element `""` still counts as added; filtering, escaping, and content validation remain the application's responsibility.
 
-Tài liệu tham khảo: [Oracle Java SE 17 — StringJoiner](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/StringJoiner.html).
+Reference documentation: [Oracle Java SE 17 — StringJoiner](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/StringJoiner.html).

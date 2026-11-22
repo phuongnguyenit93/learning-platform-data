@@ -1,22 +1,22 @@
-# Ảnh hưởng của chuẩn hóa Unicode đến so sánh, tìm kiếm và khóa dữ liệu trong Java
+# Impact of Unicode Normalization on Comparison, Search, and Data Keys in Java
 
-## 1. Cùng cách hiển thị, khác dữ liệu nhị phân
+## 1. Same Visual Display, Different Binary Data
 
-Trong các ứng dụng đa ngôn ngữ, hai chuỗi có thể **trông giống nhau** nhưng không có cùng dãy ký tự Unicode. Điều đó ảnh hưởng trực tiếp đến:
+In multilingual applications, two strings can **look alike** yet not share the same sequence of Unicode characters. This directly affects:
 
-- So sánh bằng `String.equals()`, `compareTo()`, `equalsIgnoreCase()`.
-- Tìm kiếm bằng `contains()`, `indexOf()`, các chỉ mục văn bản hoặc bộ máy search.
-- Khóa của `HashMap`, `HashSet`, cache, bảng dữ liệu, chỉ mục UNIQUE, slug và mã định danh.
-- Tính nhất quán khi hệ thống nhận input từ bàn phím, trình duyệt, file, API hoặc nhiều hệ điều hành khác nhau.
+- Comparisons via `String.equals()`, `compareTo()`, `equalsIgnoreCase()`.
+- Searching via `contains()`, `indexOf()`, text indexes, or search engines.
+- Keys in `HashMap`, `HashSet`, caches, data tables, UNIQUE indexes, slugs, and identifiers.
+- Consistency when a system receives input from keyboards, browsers, files, APIs, or multiple operating systems.
 
-Ví dụ chữ **é** có thể xuất hiện dưới hai cách biểu diễn:
+For example, the letter **é** can appear in two representations:
 
 ```text
-Dạng dựng sẵn (precomposed):  U+00E9          é
-Dạng kết hợp (decomposed):    U+0065 U+0301   e + dấu sắc kết hợp
+Precomposed form:  U+00E9          é
+Decomposed form:   U+0065 U+0301   e + combining acute accent
 ```
 
-Hai dãy trên là **tương đương chuẩn tắc** (*canonically equivalent*) theo Unicode, nhưng khác số lượng mã ký tự. Trong Java:
+These two sequences are **canonically equivalent** under Unicode, yet differ in character code count. In Java:
 
 ```java
 String composed = "caf\u00E9";
@@ -27,13 +27,13 @@ System.out.println(composed.length());           // 4
 System.out.println(decomposed.length());         // 5
 ```
 
-`String.equals()` so sánh nội dung ký tự được lưu, không tự chuẩn hóa Unicode. `String.length()` đếm **UTF-16 code units**, không phải số ký tự người dùng nhìn thấy. Vì vậy, chỉ nhìn giao diện hoặc dùng font hiển thị là không đủ để quyết định hai chuỗi có cùng **khóa dữ liệu** hay không.
+`String.equals()` compares stored character contents without automatically normalizing Unicode. `String.length()` counts **UTF-16 code units**, not user-perceived characters. Therefore, merely looking at the UI or relying on font rendering is not enough to determine whether two strings represent the same **data key**.
 
-Mục tiêu của bài là xác định **khi nào cần chuẩn hóa**, sử dụng `java.text.Normalizer` trong Java 17+, lựa chọn quy tắc so sánh/tìm kiếm, và tránh biến chuẩn hóa thành một thao tác gây mất dữ liệu hoặc tạo lỗ hổng trong việc định danh.
+The goal of this lesson is to determine **when normalization is needed**, use `java.text.Normalizer` in Java 17+, choose comparison/search rules, and avoid turning normalization into an operation that causes data loss or introduces identifier vulnerabilities.
 
-## 2. Unicode normalization là gì?
+## 2. What Is Unicode Normalization?
 
-*Unicode normalization* chuyển đổi chuỗi về một trong những dạng được xác định bởi Tiêu chuẩn Unicode để các cách biểu diễn tương đương có thể được xử lý nhất quán. Java cung cấp:
+*Unicode normalization* converts strings into one of the forms defined by the Unicode Standard so that equivalent representations can be handled consistently. Java provides:
 
 ```java
 import java.text.Normalizer;
@@ -42,31 +42,31 @@ String normalized =
         Normalizer.normalize(input, Normalizer.Form.NFC);
 ```
 
-Các dạng chính:
+Main forms:
 
-| Dạng | Tên | Ý nghĩa khái quát | Trường hợp thường gặp |
+| Form | Name | General Meaning | Common Use Cases |
 |---|---|---|---|
-| `NFD` | Canonical Decomposition | Phân rã ký tự theo tương đương chuẩn tắc | Xử lý dấu kết hợp, phân tích ký tự |
-| `NFC` | Canonical Decomposition + Composition | Phân rã chuẩn tắc rồi tái tổ hợp theo quy tắc Unicode | Lưu trữ/so sánh văn bản khi muốn dạng chuẩn tắc ổn định |
-| `NFKD` | Compatibility Decomposition | Phân rã cả các ký tự tương thích | Chỉ dùng khi ý nghĩa nghiệp vụ cho phép gộp dạng trình bày |
-| `NFKC` | Compatibility Decomposition + Composition | Phân rã tương thích rồi tái tổ hợp | Một số quy trình tìm kiếm hoặc chuẩn hóa định danh được thiết kế rõ ràng |
+| `NFD` | Canonical Decomposition | Decomposes characters by canonical equivalence | Processing combining marks, character analysis |
+| `NFC` | Canonical Decomposition + Composition | Canonical decomposition followed by recomposition per Unicode rules | Storing/comparing text when a stable canonical form is desired |
+| `NFKD` | Compatibility Decomposition | Also decomposes compatibility characters | Only when business semantics permit collapsing presentational forms |
+| `NFKC` | Compatibility Decomposition + Composition | Compatibility decomposition followed by recomposition | Certain explicitly designed search workflows or identifier normalizations |
 
-**Canonical equivalence khác compatibility equivalence.** NFD/NFC dựa trên tương đương chuẩn tắc, còn NFKD/NFKC có thể làm mất sự phân biệt giữa nhiều ký tự được coi là tương thích về dạng trình bày.
+**Canonical equivalence differs from compatibility equivalence.** NFD/NFC rely on canonical equivalence, whereas NFKD/NFKC can discard distinctions between characters considered compatible in presentational form.
 
-Ví dụ NFKC có thể chuyển:
+For example, NFKC can transform:
 
 ```text
-Ký tự gốc:       ﬁ   Ａ   ①
-Sau NFKC:        fi  A    1
+Original chars:  ﬁ   Ａ   ①
+After NFKC:      fi  A    1
 ```
 
-NFKC **không chỉ gộp ký tự có dấu**; nó có thể thay đổi các hình thức chữ cái, chữ số, chỉ số và ligature. Do đó, **không mặc định dùng NFKC để thay thế dữ liệu văn bản người dùng**. Chọn form phải dựa trên hợp đồng định danh hoặc chính sách tìm kiếm.
+NFKC **does not only touch accented letters**; it can alter letterforms, digits, superscripts/subscripts, and ligatures. Therefore, **never default to NFKC to overwrite user text data**. Choosing a form must follow an identifier contract or search policy.
 
-`Normalizer.isNormalized(text, form)` kiểm tra một chuỗi đã ở dạng cần thiết chưa, hữu ích cho validation, logging có kiểm soát và tối ưu hóa khi cần.
+`Normalizer.isNormalized(text, form)` checks whether a string is already in the required form, useful for validation, controlled logging, and optimization when needed.
 
-## 3. Một chương trình Java 17+ cho thấy sự khác nhau
+## 3. A Java 17+ Program Demonstrating the Difference
 
-Tạo file `UnicodeEqualityDemo.java`:
+Create `UnicodeEqualityDemo.java`:
 
 ```java
 import java.text.Normalizer;
@@ -108,14 +108,14 @@ public class UnicodeEqualityDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac UnicodeEqualityDemo.java
 java UnicodeEqualityDemo
 ```
 
-Đầu ra được kiểm chứng bằng JDK:
+Output verified with JDK:
 
 ```text
 rawEquals=false
@@ -127,22 +127,22 @@ lookupNfc=found
 nfkc=XfiA1
 ```
 
-Giải thích:
+Explanation:
 
-1. `composed` và `decomposed` có cùng cách hiển thị thông dụng nhưng `equals()` trả `false`.
-2. Sau khi chuẩn hóa cả hai về `NFC`, chúng có cùng nội dung và `equals()` trả `true`.
-3. `HashMap` đã lưu khóa theo dạng dựng sẵn, nên truy vấn bằng dạng phân rã không được khớp. Truy vấn bằng dạng đã chuẩn hóa NFC thì tìm được.
-4. `NFKC` chuyển ligature `ﬁ` thành `fi`, chữ Latin full-width `Ａ` thành `A`, số khoanh tròn `①` thành `1`. Điều này có thể hữu ích cho tìm kiếm linh hoạt, nhưng không phù hợp với mọi thao tác bảo toàn nguyên văn.
+1. `composed` and `decomposed` share the same common visual rendering yet `equals()` returns `false`.
+2. After normalizing both to `NFC`, they have identical content and `equals()` returns `true`.
+3. `HashMap` stored the key in precomposed form, so querying with the decomposed form failed to match. Querying with the NFC-normalized form succeeded.
+4. `NFKC` converts the ligature `ﬁ` into `fi`, fullwidth Latin `Ａ` into `A`, and circled digit `①` into `1`. This can be useful for flexible search, yet unsuitable for operations requiring verbatim preservation.
 
-`HashMap` không có quy tắc Unicode đặc biệt cho khóa chuỗi: nó dựa vào `String.equals()` và `hashCode()`. Hai chuỗi canonical-equivalent chỉ được xem là một khóa khi **ứng dụng chủ động đưa cả hai về cùng dạng**.
+`HashMap` has no special Unicode rules for string keys: it relies on `String.equals()` and `hashCode()`. Two canonically equivalent strings are treated as the same key only when **the application proactively converts both to the same form**.
 
-## 4. So sánh: equals, compareTo, equalsIgnoreCase và Collator khác nhau
+## 4. Comparison: equals, compareTo, equalsIgnoreCase, and Collator Differ
 
-### `String.equals()`: so sánh chính xác nội dung được lưu
+### `String.equals()`: Compares Exact Stored Content
 
-`equals()` là phép so sánh phù hợp nếu domain yêu cầu **đúng dãy ký tự**. Nó không tự sửa case, dấu kết hợp hoặc kiểu ký tự tương thích. Kể cả khi nội dung nhìn giống nhau, `equals()` có thể trả `false` do cách biểu diễn Unicode khác nhau.
+`equals()` is the right comparison when the domain demands **exact character sequences**. It does not automatically fix casing, combining marks, or compatibility variants. Even when contents look identical, `equals()` can return `false` due to different Unicode representations.
 
-Sau khi bạn chuẩn hóa **hai bên** về một form được thống nhất, `equals()` có thể dùng để xét bằng nhau trong không gian chuẩn hóa:
+Once you normalize **both sides** to an agreed form, `equals()` can test equality in the normalized space:
 
 ```java
 static boolean canonicallyEqual(String a, String b) {
@@ -152,32 +152,32 @@ static boolean canonicallyEqual(String a, String b) {
 }
 ```
 
-Đây là **mảnh code** để đặt trong class có import `Normalizer`. Với `NFC`, mục đích là so sánh các chuỗi tương đương chuẩn tắc. Nó **không** tự bỏ dấu, bỏ khác biệt chữ hoa/thường hay gộp mọi ký tự nhìn giống nhau.
+This is a **code snippet** to place in a class that imports `Normalizer`. With `NFC`, the intent is to compare canonically equivalent strings. It **does not** automatically strip accents, ignore case differences, or merge all look-alike characters.
 
-### `String.compareTo()`: thứ tự UTF-16, không phải sắp xếp theo ngôn ngữ
+### `String.compareTo()`: UTF-16 Order, Not Linguistic Sorting
 
-`String.compareTo()` không tương đương sắp xếp từ điển trong một ngôn ngữ cụ thể. Nó dựa trên thứ tự so sánh của nội dung ký tự Java. Ngay cả sau khi chuẩn hóa NFC, thứ tự này không trở thành thứ tự từ vựng đúng cho tiếng Việt, tiếng Pháp hoặc các ngôn ngữ có dấu.
+`String.compareTo()` is not equivalent to dictionary ordering in a specific language. It is based on the comparison order of Java character code units. Even after NFC normalization, this order does not become proper lexical ordering for Vietnamese, French, or other accented languages.
 
-Dùng `Collator` khi mục tiêu là **sắp xếp hoặc so sánh có cân nhắc ngôn ngữ**.
+Use `Collator` when the goal is **language-aware sorting or comparison**.
 
-### `String.equalsIgnoreCase()`: không phải Unicode case folding đầy đủ
+### `String.equalsIgnoreCase()`: Not Full Unicode Case Folding
 
-`equalsIgnoreCase()` có logic bỏ qua hoa/thường của Java nhưng không thay thế một chính sách canonicalization quốc tế đầy đủ. Ví dụ `Straße` và `STRASSE` có quan hệ case-folding đặc biệt trong một số quy tắc Unicode/ngôn ngữ, nhưng không thể mặc định `equalsIgnoreCase()` hoặc `toLowerCase()` của Java sẽ luôn biến chúng thành một chuỗi giống nhau.
+`equalsIgnoreCase()` implements Java's case-insensitivity logic, which does not replace a full international canonicalization policy. For example, `Straße` and `STRASSE` have a special case-folding relationship in certain Unicode/linguistic rules, yet you cannot assume Java's `equalsIgnoreCase()` or `toLowerCase()` will always turn them into matching strings.
 
-Ngoài ra, so sánh bỏ qua case và chuẩn hóa Unicode là **hai chiều độc lập**: chuỗi có dấu dựng sẵn và dấu kết hợp vẫn cần một chính sách chuẩn hóa nhất quán.
+In addition, case-insensitive comparison and Unicode normalization are **two orthogonal dimensions**: strings with precomposed vs. combining marks still require a consistent normalization policy.
 
-### `Collator`: đối chiếu theo Locale, phục vụ UI và tìm kiếm linh hoạt
+### `Collator`: Locale-Based Matching for UI and Flexible Search
 
-`java.text.Collator` cho phép so sánh chuỗi theo quy tắc địa phương. Mức `strength` ảnh hưởng các khác biệt được xét:
+`java.text.Collator` compares strings according to regional rules. Its `strength` setting controls which differences are considered:
 
-- `PRIMARY`: thường bỏ qua những khác biệt thứ cấp như dấu và một số khác biệt hoa/thường, tùy locale và bộ quy tắc.
-- `SECONDARY`: thường phân biệt dấu nhưng có thể bỏ qua khác biệt chữ hoa/thường theo locale.
-- `TERTIARY`: thường xét thêm khác biệt kiểu chữ hoa/thường và các đặc tính phụ thuộc ngôn ngữ.
-- `IDENTICAL`: mức phân biệt rất cao; không đơn giản là `String.equals()`.
+- `PRIMARY`: typically ignores secondary differences such as accents and some case differences, depending on locale and rule set.
+- `SECONDARY`: typically distinguishes accents while potentially ignoring case differences per locale.
+- `TERTIARY`: typically also considers uppercase/lowercase and language-dependent styling differences.
+- `IDENTICAL`: very strict distinction level; still not simply `String.equals()`.
 
-Các mô tả trên là **định hướng**, không phải bảng quy tắc áp được y nguyên cho mọi ngôn ngữ. Bản địa hóa có thể thay đổi cách so sánh từng chữ cái.
+The descriptions above are **general guidelines**, not an identical rule table across every language. Localization can alter how individual letters compare.
 
-Ví dụ:
+Example:
 
 ```java
 Collator collator = Collator.getInstance(Locale.FRENCH);
@@ -187,41 +187,41 @@ boolean equivalentForSearch =
         collator.compare("cafe", "caf\u00E9") == 0;
 ```
 
-Với bộ quy tắc Pháp thông dụng, `equivalentForSearch` là `true` ở mức PRIMARY; đây là **quy tắc đối chiếu được lựa chọn**, không có nghĩa hai chuỗi giống byte hoặc có cùng identity.
+With standard French collation rules, `equivalentForSearch` is `true` at PRIMARY strength; this is a **chosen matching rule**, not proof that the two strings have identical bytes or the same identity.
 
-**Cảnh báo:** `Collator` mutable và không phải lựa chọn mặc định để làm `equals/hashCode` của khóa `HashMap`. Không được dùng `Collator.compare(a,b)==0` tại một nơi, nhưng lưu/truy xuất khóa bằng `String.equals()` ở nơi khác rồi mong hai cơ chế nhất quán.
+**Warning:** `Collator` is mutable and is not a default choice for implementing `equals/hashCode` on `HashMap` keys. Never use `Collator.compare(a,b)==0` in one place while storing/retrieving keys via `String.equals()` elsewhere and expect the two mechanisms to align.
 
-## 5. So sánh chuẩn tắc và so sánh theo ngôn ngữ là hai bài toán
+## 5. Canonical Comparison and Linguistic Comparison Are Two Different Problems
 
-Giả sử có ba giá trị:
+Suppose we have three values:
 
 ```text
-A: "café"   với U+00E9
-B: "café"  với U+0065 + U+0301
-C: "cafe"   không có dấu
+A: "café"   with U+00E9
+B: "café"  with U+0065 + U+0301
+C: "cafe"   without accent
 ```
 
-- `A` và `B` **canonical equivalent**. Nếu đưa cả hai về NFC, `equals()` trả true.
-- `A` và `C` **không** canonical equivalent. NFC không xóa dấu để tạo ra `cafe`.
-- Một chính sách tìm kiếm **không phân biệt dấu** có thể muốn cả `A`, `B` và `C` cùng khớp. Đó là yêu cầu search/collation riêng, không phải định nghĩa của NFC.
+- `A` and `B` are **canonically equivalent**. Converting both to NFC makes `equals()` return true.
+- `A` and `C` are **not** canonically equivalent. NFC does not delete accents to produce `cafe`.
+- An **accent-insensitive** search policy might want `A`, `B`, and `C` to all match. That is a separate search/collation requirement, not the definition of NFC.
 
-Vì vậy, phải tách hai chức năng:
+Therefore, separate two responsibilities:
 
-1. **Khóa dữ liệu / identity:** xác định khi nào hai giá trị được xem là *cùng một thực thể*.
-2. **Tìm kiếm / matching:** xác định khi nào truy vấn *có liên quan* đến một bản ghi, kể cả khi khác dấu, cách viết hoặc hoa/thường.
+1. **Data key / identity:** defines when two values represent *the same entity*.
+2. **Search / matching:** defines when a query *is relevant* to a record, even with differing accents, spelling, or casing.
 
-Một cơ chế “search-friendly” thường cố ý có nhiều false positives hơn cơ chế khóa duy nhất. Không nên dùng quy tắc search mềm để ghi đè identity hoặc hợp nhất dữ liệu nếu nghiệp vụ không chấp nhận.
+A “search-friendly” mechanism intentionally allows more false positives than a unique-key mechanism. Never use loose search rules to override identity or merge records unless the business explicitly intends it.
 
-## 6. Ảnh hưởng đến HashMap, HashSet và cache
+## 6. Impact on HashMap, HashSet, and Caches
 
-`Map<String, V>` và `Set<String>` chuẩn dùng `equals()/hashCode()` của `String`. Do đó, nếu một bên dùng NFC còn bên kia dùng NFD, có thể xảy ra:
+Standard `Map<String, V>` and `Set<String>` use `String.equals()/hashCode()`. Consequently, if one side uses NFC and another uses NFD, the following can happen:
 
-- `map.get(key)` trả `null` dù giao diện hiển thị có vẻ đúng.
-- `set.add(...)` chấp nhận hai chuỗi giống nhau bằng mắt thường như **hai phần tử**.
-- Cache miss xảy ra liên tục giữa các hệ thống tạo văn bản theo dạng Unicode khác nhau.
-- Hai tài khoản có tên hiển thị giống nhau nhưng khóa username khác nhau, nếu hệ thống định nghĩa username bằng raw string.
+- `map.get(key)` returns `null` even though the UI display looks right.
+- `set.add(...)` accepts two visually identical strings as **two distinct elements**.
+- Cache misses occur continuously across systems that generate text in different Unicode forms.
+- Two accounts have identical display names yet different username keys if the system defines usernames by raw strings.
 
-Một hàm canonicalization đơn giản cho **khóa văn bản được phép dùng NFC**:
+A simple canonicalization function for **text keys permitted to use NFC**:
 
 ```java
 static String canonicalKey(String input) {
@@ -231,7 +231,7 @@ static String canonicalKey(String input) {
 }
 ```
 
-Dùng **cùng một hàm** khi insert và lookup:
+Use **the exact same function** on both insert and lookup:
 
 ```java
 Map<String, String> accounts = new HashMap<>();
@@ -242,23 +242,23 @@ String account = accounts.get(
         canonicalKey("cafe\u0301"));
 ```
 
-Hai đoạn này là **mảnh code**, cần import `java.util.Objects`, `java.text.Normalizer`, `java.util.Map` và `java.util.HashMap` cùng phương thức `canonicalKey` trong class.
+These two snippets are **code fragments**, requiring imports for `java.util.Objects`, `java.text.Normalizer`, `java.util.Map`, and `java.util.HashMap` along with the `canonicalKey` method in the class.
 
-Điều cần nhớ không phải “NFC làm mọi khóa bằng nhau”, mà là **mọi đường vào cùng một miền khóa phải tuân theo chính sách giống nhau**.
+The key takeaway is not “NFC makes every key equal,” but rather **every path into the same key domain must follow the same policy**.
 
-### Không normalize khi đọc mà bỏ qua lúc ghi
+### Do Not Normalize on Read While Ignoring Writes
 
-Nếu bản ghi cũ lưu raw NFD, trong khi bản ghi mới dùng NFC, việc chuẩn hóa chỉ ở phía request **không sửa được** chỉ mục cũ và có thể tiếp tục gây miss. Cần kế hoạch di chuyển dữ liệu và tái tạo index, cache hoặc khóa phù hợp.
+If legacy records were stored in raw NFD while new records use NFC, normalizing only on the request side **cannot fix** old indexes and will continue causing misses. A data migration plan and appropriate index/cache/key rebuild are required.
 
-### Khóa là identity khác với nội dung hiển thị
+### Identity Keys Differ from Display Content
 
-Trong một hệ thống tốt, display name có thể giữ nguyên cách viết người dùng để hiển thị; khóa nội bộ có thể là một ID không đổi. Nếu cần unique username, nên lưu thêm **canonical_username** theo chính sách đã định nghĩa, thay vì thay đổi tự động mọi trường hiển thị.
+In a well-designed system, a display name can keep the user's preferred spelling for rendering; the internal key can be an immutable ID. If a unique username is needed, store a separate **canonical_username** built per defined policy instead of silently altering every display field.
 
-Không nên sửa key trong một `HashMap` đang dùng theo kiểu “đổi thuộc tính rồi giữ nguyên hash”; `String` immutable, nhưng thay cách tính key ở các tầng mà không reindex/rebuild vẫn làm logic sai.
+Never mutate a key inside an active `HashMap` in the sense of “changing its key derivation while keeping old hashes”; `String` is immutable, yet changing key-computation logic across layers without reindexing/rebuilding still breaks logic.
 
-## 7. Ví dụ Java 17+ hoàn chỉnh: so khớp khóa sau normalize
+## 7. Complete Java 17+ Example: Matching Keys After Normalization
 
-Lưu thành `CanonicalKeyDemo.java`:
+Save as `CanonicalKeyDemo.java`:
 
 ```java
 import java.text.Normalizer;
@@ -298,14 +298,14 @@ public class CanonicalKeyDemo {
 }
 ```
 
-Chạy:
+Run:
 
 ```bash
 javac CanonicalKeyDemo.java
 java CanonicalKeyDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 rawSetSize=2
@@ -314,15 +314,15 @@ lookup=7
 canonicalEquals=true
 ```
 
-Điều này minh họa **hệ quả trực tiếp lên identity của Set/Map**. Khi chính sách username cho phép coi hai dạng Unicode canonically equivalent là một, chuẩn hóa trước khi lưu giúp phát hiện trùng. Nhưng khi nhập danh sách sản phẩm hoặc nội dung văn bản mà **hai cách viết cần giữ riêng**, chuẩn hóa có thể không phải hành vi mong muốn.
+This illustrates the **direct impact on Set/Map identity**. When a username policy treats two canonically equivalent Unicode forms as one, normalizing before storing detects duplicates. Conversely, when importing product lists or text content where **two encodings must remain separate**, normalization may not be the desired behavior.
 
-**Cẩn thận khi gộp dữ liệu:** nếu hai bản ghi lịch sử vốn phân biệt bằng raw strings nhưng sau NFC lại có cùng khóa, migration cần chính sách xử lý xung đột. Không được âm thầm bỏ một bản ghi hoặc chọn ngẫu nhiên tài khoản “thắng” khi phát hiện collision.
+**Be careful when merging data:** if two legacy records were distinct as raw strings yet collapse to the same NFC key, the migration needs a conflict-resolution policy. Never silently drop one record or randomly pick a “winning” account upon detecting a collision.
 
-## 8. Tìm kiếm trong chuỗi: contains và indexOf có thể bỏ sót
+## 8. Searching Inside Strings: contains and indexOf Can Miss Matches
 
-Các phương thức cơ bản của `String` như `contains()` và `indexOf()` tìm dãy ký tự, không tự tìm theo tương đương Unicode.
+Basic `String` methods like `contains()` and `indexOf()` search literal character sequences rather than Unicode equivalence.
 
-Ví dụ:
+Example:
 
 ```java
 String text = "cafe\u0301";
@@ -331,9 +331,9 @@ String query = "\u00E9";
 System.out.println(text.contains(query)); // false
 ```
 
-Trong văn bản, người dùng nhìn thấy `café` và có thể nghĩ tìm chữ `é` phải khớp. Nhưng đoạn văn bản dùng hai code points `e` + dấu kết hợp, còn query chứa một code point `é` dựng sẵn.
+In the text, a user sees `café` and expects searching for `é` to match. Yet the text uses two code points (`e` + combining mark), while the query contains one precomposed code point `é`.
 
-Một cách xử lý **tìm kiếm chính xác nhưng đồng nhất dạng chuẩn tắc**:
+One approach for **exact search with unified canonical form**:
 
 ```java
 String normalizedText = Normalizer.normalize(
@@ -344,16 +344,16 @@ String normalizedQuery = Normalizer.normalize(
 boolean found = normalizedText.contains(normalizedQuery);
 ```
 
-`found` là `true`. Trước khi dùng kỹ thuật này với một kho tài liệu lớn, xem xét:
+`found` is `true`. Before applying this technique to a large document store, consider:
 
-- Chuẩn hóa cả **tài liệu** và **query**, không chỉ một phía.
-- Chọn một form duy nhất; không trộn dữ liệu NFC với NFKC rồi so sánh như một hệ thống nhất quán.
-- Nên chuẩn hóa/index dữ liệu tại thời điểm ingestion thay vì lặp lại chi phí với mọi truy vấn, nếu kiến trúc yêu cầu hiệu năng.
-- Nếu cần search theo locale với bỏ dấu, bỏ hoa/thường hoặc biến thể từ ngữ, `String.contains()` sau NFC **chưa đủ**; nên dùng engine có analyzer/collation phù hợp.
+- Normalize both the **document** and the **query**, never just one side.
+- Pick a single form; do not mix NFC data with NFKC data and compare them as if they belonged to a consistent system.
+- Normalize/index data at ingestion time rather than repeating the cost on every query, if performance requires it.
+- If you need locale-aware search with accent folding, case folding, or word variants, `String.contains()` after NFC is **not enough**; use an engine with an appropriate analyzer/collation.
 
-### Vị trí tìm thấy trên chuỗi normalized không phải vị trí của chuỗi raw
+### Match Positions on a Normalized String Are Not Raw String Positions
 
-Một cạm bẫy quan trọng cho chức năng bôi sáng kết quả tìm kiếm:
+An important pitfall for search-result highlighting:
 
 ```text
 raw:        "cafe" + combining acute
@@ -362,15 +362,15 @@ raw length: 5
 NFC length: 4
 ```
 
-Một `indexOf()` trên chuỗi normalized trả offset theo **UTF-16 của chuỗi normalized**. Nó không tự ánh xạ sang offset trong chuỗi gốc để đặt highlight. NFD/NFC/NFKC có thể thay đổi độ dài, thứ tự hoặc dãy mã Unicode.
+An `indexOf()` call on the normalized string returns an offset in **UTF-16 units of the normalized string**. It does not map automatically back to an offset in the original string for placing highlights. NFD/NFC/NFKC can change length, order, or code point sequences.
 
-Nếu UI muốn tô đúng vị trí trong raw text, phải **giữ bản đồ offset** trong pipeline tokenizer/search, hoặc render từ cùng bản normalized đã tạo index, với một quy tắc bảo toàn selection rõ ràng. Không dùng chỉ số từ search index rồi cắt trực tiếp raw string khi không chắc hệ offset khớp nhau.
+If the UI must highlight the exact span in raw text, **maintain an offset map** in the tokenizer/search pipeline, or render from the same normalized version that built the index with an explicit selection-preservation rule. Never slice a raw string using indices from a search index unless you are sure the offsets match.
 
-## 9. Collator và ví dụ Java 17+ về tìm kiếm linh hoạt
+## 9. Collator and a Java 17+ Example for Flexible Search
 
-Một bài toán khác là người dùng gõ `cafe` nhưng muốn tìm `café`. NFC không xóa dấu. `Collator` với `Locale.FRENCH` và mức `PRIMARY` có thể xem các dạng này tương đương trong so sánh ngôn ngữ.
+Another problem is when a user types `cafe` wanting to find `café`. NFC does not remove accents. `Collator` with `Locale.FRENCH` and `PRIMARY` strength can treat these forms as equivalent in linguistic comparison.
 
-Tạo `LocaleComparisonDemo.java`:
+Create `LocaleComparisonDemo.java`:
 
 ```java
 import java.text.Collator;
@@ -405,14 +405,14 @@ public class LocaleComparisonDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac LocaleComparisonDemo.java
 java LocaleComparisonDemo
 ```
 
-Kết quả đã kiểm chứng trong môi trường JDK với dữ liệu locale tương ứng:
+Verified output in a JDK environment with matching locale data:
 
 ```text
 rawContains=false
@@ -421,26 +421,26 @@ primaryEquals=true
 tertiaryEquals=false
 ```
 
-Diễn giải:
+Interpretation:
 
-- `rawContains` là false vì hai cách mã hóa chữ có dấu không trùng dãy ký tự.
-- `nfcContains` là true vì đã chuẩn hóa về cùng dạng.
-- Ở `PRIMARY`, collator Pháp trong ví dụ bỏ qua khác biệt dấu này.
-- Ở `TERTIARY`, sự khác biệt giữa `cafe` và `café` lại được xét.
+- `rawContains` is false because the two encodings of the accented letter do not share the same character sequence.
+- `nfcContains` is true because both were normalized to the same form.
+- At `PRIMARY`, the French collator in the example ignores this accent difference.
+- At `TERTIARY`, the distinction between `cafe` and `café` is considered again.
 
-Lưu ý rằng `Collator.compare(a,b)==0` là **tương đương theo cấu hình collation**, không phải khẳng định hai chuỗi có cùng Unicode code points hoặc cùng tên người/cùng tài khoản.
+Note that `Collator.compare(a,b)==0` indicates **equivalence under the collation configuration**, not proof that two strings have identical Unicode code points or represent the same person or account.
 
-`Collator` có thể cấu hình decomposition và strength; hành vi chi tiết phụ thuộc locale/provider và các phiên bản dữ liệu collation. Nếu cần chỉ mục tìm kiếm lớn, dùng engine có analyzer tương ứng và test bằng dữ liệu thực; `Collator` là công cụ so sánh/sắp xếp, không phải một hệ thống full-text search với stemming, tokenization và ranking.
+`Collator` supports configuring decomposition and strength; exact behavior depends on locale/provider and collation data versions. For large search indexes, use an engine with an appropriate analyzer and test with real data; `Collator` is a comparison/sorting tool, not a full-text search system with stemming, tokenization, and ranking.
 
-## 10. Chuẩn hóa Unicode không đồng nghĩa chuyển chữ thường
+## 10. Unicode Normalization Does Not Mean Lowercasing
 
-Nhiều hệ thống muốn có tên đăng nhập không phân biệt case. Khi đó NFC **chưa đủ**:
+Many systems want case-insensitive usernames. Here, NFC **is not enough**:
 
 ```text
-"User" và "user" đều đã NFC, nhưng không bằng nhau bằng String.equals().
+"User" and "user" are both already NFC, yet are not equal via String.equals().
 ```
 
-Một pipeline minh họa cho **khóa case-insensitive đơn giản**:
+An illustrative pipeline for a **simple case-insensitive key**:
 
 ```java
 static String simpleCanonicalUsername(String raw) {
@@ -450,50 +450,50 @@ static String simpleCanonicalUsername(String raw) {
 }
 ```
 
-Đây chỉ là **chính sách ví dụ**, không phải Unicode case folding đầy đủ và không phù hợp tự động cho mọi ngôn ngữ. Chọn `Locale.ROOT` giúp tránh hành vi phụ thuộc locale mặc định của máy khi xử lý định danh “ngôn ngữ-trung lập”.
+This is only an **example policy**, not full Unicode case folding, and not automatically suitable for every language. Picking `Locale.ROOT` avoids machine default-locale dependencies when handling “language-neutral” identifiers.
 
-### Vì sao phải nói rõ đây không phải full case folding?
+### Why State Explicitly That This Is Not Full Case Folding?
 
-Java `String.toLowerCase(Locale.ROOT)` có thể ánh xạ một ký tự thành **nhiều code points**. Ví dụ chữ hoa `İ` (Latin Capital Letter I with Dot Above, U+0130) khi đổi về chữ thường theo `Locale.ROOT` có thể tạo dãy `i` + dấu chấm kết hợp, chứ không chỉ một ký tự ASCII `i`.
+Java `String.toLowerCase(Locale.ROOT)` can map a single character to **multiple code points**. For example, uppercase `İ` (Latin Capital Letter I with Dot Above, U+0130) converted to lowercase under `Locale.ROOT` can produce `i` + combining dot above, rather than a single ASCII `i`.
 
-Ngược lại, `Straße` và `STRASSE` không trở thành cùng chuỗi chỉ nhờ phép lowercase đơn giản của Java. Các quy tắc chữ hoa/thường có thể phụ thuộc ngôn ngữ, cách case folding và chuẩn Unicode được dùng.
+Conversely, `Straße` and `STRASSE` do not become identical solely through simple Java lowercasing. Uppercase/lowercase rules can depend on language, case-folding mode, and Unicode version.
 
-Nếu sản phẩm cần **Unicode caseless matching chính xác theo một chuẩn cụ thể**, cần có chính sách Unicode case folding phù hợp, có thể dùng thư viện chuyên dụng hỗ trợ full case folding và version dữ liệu Unicode đã được quy định. Không được thay đổi thuật toán canonical username sau khi có tài khoản mà không lên kế hoạch migration và xử lý va chạm.
+If a product requires **exact Unicode caseless matching per a specific standard**, adopt a proper Unicode case-folding policy, potentially using a dedicated library supporting full case folding and a pinned Unicode data version. Never change the canonical username algorithm after accounts exist without a migration and collision-handling plan.
 
-### Thứ tự các phép biến đổi có thể quan trọng
+### Order of Transformations Can Matter
 
-Case mapping đôi khi tạo ra ký tự kết hợp mới. Do đó, nếu pipeline gồm lowercase và normalization, hãy xác định **thứ tự chính thức** và giữ nó nhất quán. Ví dụ `lowercase → NFC` khác về mặt chính sách so với chỉ `NFC` hoặc chỉ lowercase. Một số hệ thống định danh dùng tiêu chuẩn riêng (như IDNA cho domain) và không thể thay bằng hai lời gọi trên.
+Case mapping sometimes introduces new combining characters. Thus, if a pipeline combines lowercasing and normalization, define an **official order** and keep it consistent. For example, `lowercase → NFC` differs in policy from `NFC` alone or `lowercase` alone. Some identifier systems follow dedicated standards (such as IDNA for domains) and cannot be replaced by these two calls.
 
-## 11. NFC và NFKC: thế nào là đúng cho khóa dữ liệu?
+## 11. NFC vs. NFKC: Which Is Right for Data Keys?
 
-Hai chính sách thường bị nhầm:
+Two commonly confused policies:
 
-**Chính sách A: canonical equivalence.** Nếu hệ thống muốn xem `café` dựng sẵn và `cafe + combining acute` là cùng chuỗi, dùng NFC có thể hợp lý. Nó không đồng nhất `cafe` với `café`, và không cố đồng nhất mọi glyph trông giống nhau.
+**Policy A: canonical equivalence.** If a system wants precomposed `café` and `cafe + combining acute` to be treated as the same string, using NFC is reasonable. It does not equate `cafe` with `café`, and does not attempt to unify every visually similar glyph.
 
-**Chính sách B: compatibility equivalence.** Nếu hệ thống muốn các ký tự full-width, ligature hoặc số dạng trình bày được gộp với dạng thông dụng, NFKC có thể là một bước trong pipeline **đã được thiết kế và công bố**.
+**Policy B: compatibility equivalence.** If a system wants fullwidth characters, ligatures, or styled digits to collapse with standard forms, NFKC can be a step in a **designed and documented** pipeline.
 
-| Chuỗi | NFC | NFKC | Rủi ro nếu dùng cho identity |
+| String | NFC | NFKC | Risk if used for identity |
 |---|---|---|---|
-| `caf\u00E9` dạng dựng sẵn | `café` | `café` | Thường là canonical equivalence dự kiến |
-| `cafe\u0301` dạng phân rã | `café` | `café` | Gộp hai cách biểu diễn chuẩn tắc |
-| `ﬁ` | Giữ `ﬁ` | `fi` | Gộp ligature với hai chữ cái |
-| `Ａ` (full-width A) | Giữ `Ａ` | `A` | Gộp kiểu ký tự full-width |
-| `①` | Giữ `①` | `1` | Gộp chữ số khoanh tròn với chữ số thông thường |
+| `caf\u00E9` precomposed | `café` | `café` | Usually intended canonical equivalence |
+| `cafe\u0301` decomposed | `café` | `café` | Merges two canonically equivalent forms |
+| `ﬁ` | Keeps `ﬁ` | `fi` | Merges ligature with two letters |
+| `Ａ` (fullwidth A) | Keeps `Ａ` | `A` | Merges fullwidth style |
+| `①` | Keeps `①` | `1` | Merges circled digit with ordinary digit |
 
-NFKC có thể phá hủy một phân biệt có ý nghĩa trong tài liệu, thiết kế hoặc nội dung người dùng. Chỉ dùng khi **miền ứng dụng** xác nhận các khác biệt đó không ảnh hưởng identity.
+NFKC can destroy meaningful distinctions in documents, designs, or user content. Use it only when the **application domain** confirms those differences do not affect identity.
 
-Đừng xem Unicode normalization như công cụ loại bỏ toàn bộ ký tự nguy hiểm, xử lý homograph hay xóa mọi khác biệt hình ảnh. Có những ký tự **confusable** nhìn giống nhau nhưng không được Unicode normalization gộp lại. Ngược lại, NFKC có thể gộp những cặp mà ứng dụng muốn giữ riêng.
+Never treat Unicode normalization as a tool to strip all dangerous characters, solve homographs, or eliminate all visual differences. There are **confusable** characters that look identical yet are not merged by Unicode normalization. Conversely, NFKC can merge pairs an application needed to keep distinct.
 
-## 12. Tìm kiếm bỏ dấu: cần chính sách riêng
+## 12. Accent-Free Search Requires Its Own Policy
 
-Một vài ứng dụng muốn `“hoa”` khớp `“hòa”` hay `“hoà”`. Có thể xây dựng *search key* bằng cách:
+Some applications want `"hoa"` to match `"hòa"` or `"hoà"`. A *search key* can be constructed by:
 
-1. Chuẩn hóa NFD để phơi bày nhiều dấu kết hợp.
-2. Xóa nhóm combining marks theo quy tắc tìm kiếm.
-3. Chuẩn hóa về form đầu ra đã chọn.
-4. Có thể thực hiện thêm case folding hoặc các thay thế có chủ đích.
+1. Normalizing to NFD to expose combining marks.
+2. Stripping combining marks per search rules.
+3. Normalizing to a chosen output form.
+4. Optionally applying case folding or intentional replacements.
 
-Một ý tưởng mã minh họa:
+An illustrative code idea:
 
 ```java
 String stripped = Normalizer.normalize(
@@ -501,22 +501,22 @@ String stripped = Normalizer.normalize(
         .replaceAll("\\p{M}+", "");
 ```
 
-**Cảnh báo bắt buộc:** đây chỉ là thao tác xóa combining marks, **không phải thuật toán tìm kiếm bỏ dấu đầy đủ cho mọi ngôn ngữ**. Nó có thể làm mất khác biệt ngữ nghĩa, không chuyển tất cả ký tự có gạch/nét đặc biệt (ví dụ `đ`) thành ký tự ASCII, và có thể phá văn bản của các ngôn ngữ mà dấu kết hợp là thành phần thiết yếu.
+**Mandatory warning:** this only deletes combining marks; **it is not a complete accent-free search algorithm for all languages**. It can erase semantic distinctions, does not convert all barred/special letters (such as `đ`) to ASCII, and can break text in languages where combining marks are essential letters.
 
-Với tiếng Việt, việc loại bỏ dấu phục vụ search cần xem xét cách xử lý `đ/Đ`, sắc/huyền/hỏi/ngã/nặng, các dấu tạo nguyên âm và chính sách phân biệt âm. Hệ thống phải quyết định có muốn `đ` và `d` khớp nhau không; không được ngầm coi đó là hệ quả chuẩn tắc của NFC/NFD.
+For Vietnamese, stripping accents for search must account for `đ/Đ`, acute/grave/hook/tilde/dot-below tones, vowel-shaping marks, and phonetic distinction policies. The system must explicitly decide whether `đ` and `d` should match; never silently assume that is a canonical consequence of NFC/NFD.
 
-Trong các hệ search, nên lưu **văn bản gốc** để hiển thị và lập **search index** riêng theo analyzer có kiểm soát. Search index được phép “mềm” hơn identity, nhưng không được dùng làm khóa duy nhất của tài khoản hoặc chứng minh hai thực thể là một.
+In search systems, store the **original text** for display and build a separate **search index** using a controlled analyzer. A search index may be “looser” than identity, yet must never serve as the unique key of an account or proof that two entities are identical.
 
-## 13. Dữ liệu lưu trữ và UNIQUE: xử lý ngay ở biên ghi
+## 13. Stored Data and UNIQUE: Handle It at the Write Boundary
 
-Khi lưu chuỗi từ nhiều nguồn, có thể xảy ra:
+When storing strings from multiple sources, the following can occur:
 
-- Client A gửi `café` dạng dựng sẵn.
-- Client B gửi chuỗi tương đương dạng phân rã.
-- Database với collation/index thô coi chúng khác nhau.
-- Tầng Java normalize trong query nhưng bảng cũ chưa normalize, khiến đọc dữ liệu bị thiếu.
+- Client A sends precomposed `café`.
+- Client B sends the equivalent decomposed sequence.
+- A database with raw collation/indexes treats them as distinct.
+- The Java layer normalizes in queries, while legacy table rows were never normalized, causing missed reads.
 
-Một kiến trúc thường dùng:
+A common architecture:
 
 ```text
 raw input
@@ -533,137 +533,137 @@ canonicalize using chosen normalization + case policy
 canonical key -> unique constraint / index / cache key
 ```
 
-Nếu lưu cả `display_name` và `canonical_username`:
+If storing both `display_name` and `canonical_username`:
 
-- `display_name` là nội dung hiển thị theo ý định người dùng, có thể giữ nguyên raw hoặc định dạng được phép.
-- `canonical_username` phải được tạo theo **một hàm duy nhất**, có version/chính sách rõ ràng nếu lâu dài.
-- Cột canonical cần có uniqueness ở **tầng lưu trữ** phù hợp, không chỉ kiểm tra trước bằng Java: hai request song song vẫn có thể tạo race nếu không có constraint hoặc cơ chế giao dịch tương đương.
+- `display_name` is the display text as intended by the user, kept raw or in an allowed format.
+- `canonical_username` must be derived by **one single function**, with a clear version/policy if long-lived.
+- The canonical column needs uniqueness enforced at the **storage layer**, not only pre-checked in Java: two concurrent requests can still race without a constraint or equivalent transactional mechanism.
 
-Không giả định mọi DB có cùng **collation**. Một số hệ thống database có thể so sánh bỏ case/bỏ dấu hay canonical equivalent khác nhau, và các quy tắc này phụ thuộc sản phẩm, version và cấu hình cột/index. Cần kiểm thử trực tiếp **hợp đồng uniqueness thực tế** thay vì kết luận rằng DB tự hoạt động giống `Normalizer.normalize(..., NFC)`.
+Never assume all DBs share the same **collation**. Some database engines compare case-insensitively, accent-insensitively, or by canonical equivalence differently, depending on product, version, and column/index configuration. Test the **actual uniqueness contract** directly rather than assuming the DB behaves identically to `Normalizer.normalize(..., NFC)`.
 
-### Khi đổi chính sách canonicalization phải migration
+### Changing Canonicalization Policy Requires Migration
 
-Thay `NFC` bằng `NFKC` hoặc bổ sung case folding sau khi đã có dữ liệu có thể khiến hai tên trước đây khác nhau trở thành **cùng canonical key**.
+Replacing `NFC` with `NFKC` or adding case folding after data already exists can make two previously distinct names collapse onto **the same canonical key**.
 
-Quy trình nên gồm:
+A migration workflow should include:
 
-1. Kiểm kê toàn bộ raw values và tính canonical key theo chính sách mới.
-2. Phát hiện collision và giải quyết theo quy tắc kinh doanh **trước** khi áp UNIQUE.
-3. Xây dựng lại các index/cache và kiểm thử đọc/ghi ở cả API cũ/mới.
-4. Chuyển đổi trong transaction/chiến lược triển khai có kiểm soát; tránh hai version ứng dụng cùng lúc dùng hai chính sách nhận dạng khác nhau.
-5. Giữ mapping/alias có chủ đích nếu cần tương thích dữ liệu cũ.
+1. Inventory all raw values and compute canonical keys under the new policy.
+2. Detect collisions and resolve them per business rules **before** enforcing UNIQUE.
+3. Rebuild indexes/caches and test reads/writes across both old and new APIs.
+4. Cut over in a controlled transaction/deployment strategy; avoid running two app versions concurrently with conflicting identity policies.
+5. Keep intentional mappings/aliases if legacy data compatibility is needed.
 
-Không hợp nhất hai tài khoản người dùng chỉ vì tên hiển thị hoặc search-key tương đương; identity cần dựa vào ID và quy tắc xác minh rõ ràng.
+Never merge two user accounts solely because their display names or search keys match; identity must rely on IDs and explicit verification rules.
 
-## 14. Bảo mật: chuẩn hóa không giải quyết toàn bộ spoofing
+## 14. Security: Normalization Does Not Solve All Spoofing
 
-Chuẩn hóa Unicode có thể là một lớp của chiến lược an toàn, nhưng **không đủ** để chống giả mạo định danh:
+Unicode normalization can be one layer in a defense strategy, yet **is not enough** to prevent identifier spoofing:
 
-- Ký tự Latin `a` và Cyrillic `а` có thể trông rất giống nhau; chúng không nhất thiết được NFC/NFKC biến thành cùng code point.
-- Ký tự zero-width hoặc điều khiển hướng văn bản có thể ảnh hưởng cách hiển thị mà không tạo ra chuỗi giống theo `equals()`.
-- Các ký tự compatibility có thể đổi thành dạng khác dưới NFKC, tạo collision không mong đợi.
-- Input có dấu kết hợp bất thường hoặc đoạn Unicode dài có thể gây khó khăn về UI, giới hạn chiều dài và hiệu năng nếu không kiểm tra.
-- Quy tắc case/collation không đồng nhất giữa phía client, server và database có thể làm sai kiểm soát truy cập nếu dùng chuỗi làm identity.
+- Latin `a` and Cyrillic `а` can look almost identical; NFC/NFKC will not necessarily turn them into the same code point.
+- Zero-width or bidirectional control characters can alter visual rendering without producing strings equal under `equals()`.
+- Compatibility characters can change into other forms under NFKC, creating unexpected collisions.
+- Input with abnormal combining marks or long Unicode sequences can stress UI layout, length limits, and performance if unchecked.
+- Inconsistent case/collation rules across client, server, and database can break access control if strings serve as identities.
 
-Nên xác định rõ **bộ ký tự được phép**, chiều dài theo đơn vị đo thích hợp, quy tắc normalization, xử lý script mixing/confusables theo nhu cầu và kiểu ID dùng trong authorization. Không được coi NFKC là một bộ lọc an ninh hay tự ý xóa mọi ký tự khác thường.
+Explicitly define the **allowed character set**, length in appropriate units, normalization rules, mixed-script/confusable handling as needed, and ID type used in authorization. Never treat NFKC as a security filter or blindly delete unusual characters.
 
-### Mật khẩu và chữ ký số
+### Passwords and Digital Signatures
 
-Đối với **mật khẩu**, không được âm thầm đổi normalization khi chưa có chính sách xác thực rõ ràng. Đổi input trước khi băm có thể khiến mật khẩu khác nhau thành cùng kết quả hoặc làm người dùng không đăng nhập được khi hệ thống được nâng cấp.
+For **passwords**, never silently change normalization without a clear authentication policy. Altering input before hashing can make different passwords collide or lock users out after a system upgrade.
 
-Đối với **chữ ký số, HMAC, hash của nội dung hoặc canonical request**, thay đổi một code point hoặc thứ tự combining marks sẽ thay **byte sequence** được ký/băm. Chỉ normalize nếu **giao thức chính thức** quy định và hai phía áp dụng chính xác cùng quy tắc. Không dùng `Normalizer` để “sửa dữ liệu” sau khi đã ký rồi mong chữ ký tiếp tục hợp lệ.
+For **digital signatures, HMACs, content hashes, or canonical requests**, changing a single code point or combining-mark order alters the signed/hashed **byte sequence**. Normalize only if the **official protocol** specifies it and both sides apply the exact same rules. Never use `Normalizer` to “clean up data” after signing and expect signatures to remain valid.
 
-Phân biệt “so sánh văn bản cho người dùng” với “so sánh bytes giao thức/secret”. Đây là hai miền có yêu cầu khác nhau.
+Distinguish “comparing text for users” from “comparing protocol/secret bytes.” These two domains have different requirements.
 
-## 15. Unicode version và đồng bộ giữa các hệ thống
+## 15. Unicode Versions and Cross-System Synchronization
 
-Unicode có các phiên bản và thư viện/driver/search engine có thể dùng các phiên bản dữ liệu normalization, case folding hoặc collation khác nhau.
+Unicode evolves across versions, and libraries/drivers/search engines may bundle different versions of normalization, case folding, or collation data.
 
-Với các ký tự đã được xác định từ lâu, các dạng normalization thường có đặc tính ổn định cao, nhưng **không nên tự mặc định mọi engine sẽ có cùng cách so sánh, search ranking, case folding hoặc sorting**. Collation và case folding là những lĩnh vực đặc biệt cần kiểm thử theo version.
+For long-assigned characters, normalization forms have strong stability properties, yet **you should not assume every engine shares identical comparison, search ranking, case folding, or sorting behavior**. Collation and case folding especially require version-specific testing.
 
-Một hợp đồng dữ liệu dùng lâu dài nên ghi rõ:
+A long-lived data contract should document:
 
-- Form normalization (`NFC` hay `NFKC`, hoặc không normalize).
-- Có lowercase/case folding không, theo locale hay không.
-- Có xóa dấu hoặc ký tự kết hợp không (thường chỉ dành cho search).
-- Có trim whitespace không, có cho phép ký tự điều khiển và format characters không.
-- Canonical key lưu ở đâu và constraint nào thực thi uniqueness.
-- Version chính sách/schema và chiến lược migration nếu thay đổi.
-- Các test vectors Unicode với trường hợp canonical equivalent, compatibility equivalent, case mapping đặc biệt và confusables.
+- Normalization form (`NFC` or `NFKC`, or unnormalized).
+- Whether lowercasing/case folding is applied, and whether it is locale-dependent.
+- Whether accents or combining characters are stripped (usually only for search).
+- Whether whitespace is trimmed, and whether control/format characters are allowed.
+- Where canonical keys are stored and which constraint enforces uniqueness.
+- Policy/schema version and migration strategy if changed.
+- Unicode test vectors covering canonical equivalence, compatibility equivalence, special case mappings, and confusables.
 
-Nếu client và server cùng chuẩn hóa, hãy **kiểm tra canonicalization ở biên tin cậy phía server**; không dựa duy nhất vào JavaScript client hoặc UI đã tự chuẩn hóa.
+If both client and server normalize, **enforce canonicalization at the trusted server boundary**; never rely solely on client JavaScript or the UI having normalized input.
 
-## 16. Checklist kiểm thử
+## 16. Testing Checklist
 
-| Nhóm kiểm thử | Input gợi ý | Kỳ vọng của chính sách NFC |
+| Test Category | Suggested Input | Expected under NFC Policy |
 |---|---|---|
-| Canonical equivalence | `caf\u00E9` và `cafe\u0301` | Cùng canonical key |
-| Compatibility ligature | `ﬁ` và `fi` | NFC không mặc định gộp |
-| Full-width | `Ａ` và `A` | NFC không mặc định gộp |
-| Hoa/thường | `User` và `user` | NFC không tự gộp |
-| Không dấu/có dấu | `cafe` và `café` | NFC không gộp |
-| Ký tự confusable | Latin `a` và Cyrillic `а` | NFC không phải bộ phát hiện giả mạo |
-| Tìm kiếm | Query `é` trong raw `e + combining acute` | Search raw có thể miss; normalized tìm được |
-| Cache | Insert NFC, lookup NFD | Canonicalize cả hai trước lookup |
-| Unique | Hai raw strings khác nhưng NFC giống nhau | Phát hiện collision ở canonical key |
-| Unicode offset | Raw `cafe + combining acute` so với NFC `café` | Length/index có thể khác |
-| Case đặc biệt | `İ`, `Straße` | Không giả định lowercase là full case folding |
-| Password/dữ liệu ký | Dãy Unicode khác nhưng hiển thị giống | Không normalize ngoài hợp đồng |
+| Canonical equivalence | `caf\u00E9` and `cafe\u0301` | Same canonical key |
+| Compatibility ligature | `ﬁ` and `fi` | Not merged by default under NFC |
+| Fullwidth | `Ａ` and `A` | Not merged by default under NFC |
+| Uppercase/lowercase | `User` and `user` | Not merged automatically by NFC |
+| Unaccented/accented | `cafe` and `café` | Not merged by NFC |
+| Confusable characters | Latin `a` and Cyrillic `а` | NFC is not a spoofing detector |
+| Search | Query `é` in raw `e + combining acute` | Raw search can miss; normalized matches |
+| Cache | Insert NFC, lookup NFD | Canonicalize both before lookup |
+| Uniqueness | Two different raw strings with identical NFC | Collision detected at canonical key |
+| Unicode offsets | Raw `cafe + combining acute` vs. NFC `café` | Length/indices can differ |
+| Special casing | `İ`, `Straße` | Do not assume lowercasing is full case folding |
+| Passwords/signed data | Different Unicode sequences looking alike | Do not normalize outside contract |
 
-Ngoài unit test đơn lẻ, nên kiểm thử **end-to-end** qua HTTP, database, cache và search index để phát hiện tầng nào đang thực hiện chuẩn hóa hoặc đối chiếu khác với hệ thống còn lại.
+Beyond isolated unit tests, test **end-to-end** through HTTP, databases, caches, and search indexes to discover any layer normalizing or matching inconsistently with the rest of the system.
 
-## 17. Lỗi phổ biến cần tránh
+## 17. Common Mistakes to Avoid
 
-1. **Cho rằng giống nhau trên màn hình thì `String.equals()` phải true.** Unicode cho phép nhiều dãy ký tự canonical-equivalent.
-2. **Chỉ normalize một bên.** Insert và lookup phải thống nhất form.
-3. **Dùng NFKC mặc định cho tất cả văn bản.** Compatibility normalization có thể gộp những ký tự cần giữ phân biệt.
-4. **Nhầm normalize với lowercase hoặc bỏ dấu.** Đây là các thao tác và chính sách khác nhau.
-5. **Dùng `equalsIgnoreCase()` như full Unicode case folding.** Không bảo đảm mọi quy tắc case đặc biệt.
-6. **Dùng Collator PRIMARY làm bằng chứng hai tài khoản là một.** Nó là tương đương tìm kiếm/sắp xếp theo locale, không phải identity.
-7. **Dùng `String.contains()` trên raw Unicode và mong match canonical equivalents.** Chuẩn hóa cả text/query hoặc dùng search engine phù hợp.
-8. **Lấy index từ chuỗi normalized để cắt raw string.** Offset có thể lệch do thay đổi UTF-16 length.
-9. **Dựa vào DB collation mặc định mà không kiểm thử.** Unique/sort/search khác nhau theo DB/version/config.
-10. **Thay đổi canonicalization sau triển khai mà không migration.** Có thể gây collisions, cache misses và mất liên kết dữ liệu.
-11. **Đặt secret/password/hash input qua normalization vô điều kiện.** Có thể phá giao thức hoặc thay ý nghĩa xác thực.
-12. **Tin rằng NFC/NFKC tự chống homograph.** Confusable characters là vấn đề bổ sung, không được giải quyết toàn bộ bởi normalization.
-13. **Chỉ xử lý ở client.** Server cần áp dụng chính sách canonicalization ở biên tin cậy.
-14. **Dùng search key bỏ dấu làm unique key.** Quy tắc tìm kiếm linh hoạt thường quá rộng để làm định danh.
-15. **Coi `length()` là số ký tự nhìn thấy.** `String.length()` đếm UTF-16 code units; normalization có thể làm length thay đổi.
+1. **Assuming strings that look alike on screen must return true from `String.equals()`.** Unicode allows multiple canonically equivalent sequences.
+2. **Normalizing only one side.** Insert and lookup must use the same form.
+3. **Defaulting to NFKC for all text.** Compatibility normalization can merge characters whose distinctions matter.
+4. **Confusing normalization with lowercasing or accent stripping.** These are separate operations and policies.
+5. **Treating `equalsIgnoreCase()` as full Unicode case folding.** Does not guarantee all special casing rules.
+6. **Using Collator PRIMARY as proof two accounts are identical.** It represents locale-based search/sort equivalence, not identity.
+7. **Calling `String.contains()` on raw Unicode expecting canonical equivalents to match.** Normalize both text and query, or use an appropriate search engine.
+8. **Using an index from a normalized string to slice a raw string.** Offsets can shift due to UTF-16 length changes.
+9. **Relying on default DB collation without testing.** Uniqueness/sorting/searching vary by DB, version, and configuration.
+10. **Changing canonicalization after deployment without migration.** Causes collisions, cache misses, and broken data links.
+11. **Passing secrets/passwords/hash inputs through unconditional normalization.** Can break protocols or alter authentication semantics.
+12. **Believing NFC/NFKC alone blocks homographs.** Confusable characters are an additional concern not fully solved by normalization.
+13. **Normalizing only on the client.** The server must enforce canonicalization at the trusted boundary.
+14. **Using an accent-stripped search key as a unique key.** Flexible search rules are usually too broad for identity.
+15. **Treating `length()` as the visible character count.** `String.length()` counts UTF-16 code units; normalization can change length.
 
-## 18. Câu hỏi tự kiểm tra
+## 18. Self-Check Questions
 
-**Câu 1.** Vì sao `"caf\u00E9".equals("cafe\u0301")` có thể false?  
-**Đáp án:** Hai chuỗi dùng dãy Unicode khác nhau: ký tự dựng sẵn so với base letter + combining mark. `String.equals()` không tự normalize.
+**Question 1.** Why can `"caf\u00E9".equals("cafe\u0301")` return false?  
+**Answer:** The two strings use different Unicode sequences: a precomposed character vs. base letter + combining mark. `String.equals()` does not normalize automatically.
 
-**Câu 2.** Chuẩn hóa cả hai về NFC rồi so sánh có giải quyết được trường hợp đó không?  
-**Đáp án:** Có, vì hai dạng tương đương chuẩn tắc sẽ về cùng biểu diễn NFC trong ví dụ.
+**Question 2.** Does normalizing both to NFC before comparing resolve that case?  
+**Answer:** Yes, because the two canonically equivalent forms collapse to the same NFC representation in the example.
 
-**Câu 3.** NFC có biến `cafe` thành `café` không?  
-**Đáp án:** Không. Chúng không tương đương chuẩn tắc.
+**Question 3.** Does NFC turn `cafe` into `café`?  
+**Answer:** No. They are not canonically equivalent.
 
-**Câu 4.** `NFKC` có thể đổi `ﬁ` thành `fi` không?  
-**Đáp án:** Có. Đây là compatibility mapping; phải cân nhắc tác động lên identity.
+**Question 4.** Can `NFKC` turn `ﬁ` into `fi`?  
+**Answer:** Yes. This is a compatibility mapping; its impact on identity must be evaluated.
 
-**Câu 5.** Nếu `HashMap` lưu khóa NFC và client gửi NFD thì nên làm gì?  
-**Đáp án:** Chuẩn hóa mọi khóa khi ghi và tra cứu theo cùng chính sách; dữ liệu lịch sử cần migration nếu chưa tuân theo.
+**Question 5.** If a `HashMap` stores NFC keys and a client sends NFD, what should be done?  
+**Answer:** Normalize all keys on write and lookup under the same policy; legacy data needs migration if it does not yet comply.
 
-**Câu 6.** `Collator` ở mức PRIMARY có phù hợp làm UNIQUE username cho mọi sản phẩm không?  
-**Đáp án:** Không mặc định. Nó có thể gộp khác biệt dấu/chữ tùy locale; identity cần quy tắc riêng và sự nhất quán ở database.
+**Question 6.** Is `Collator` at PRIMARY strength suitable for enforcing UNIQUE usernames in every product?  
+**Answer:** Not by default. It can merge accent/case differences depending on locale; identity needs explicit rules and database-level consistency.
 
-**Câu 7.** Kết quả `indexOf()` sau normalize có thể dùng trực tiếp lên raw text không?  
-**Đáp án:** Không bảo đảm. Normalization có thể thay đổi số UTF-16 code units; cần mapping hoặc render cùng văn bản chuẩn hóa.
+**Question 7.** Can `indexOf()` offsets after normalization be applied directly to raw text?  
+**Answer:** Not safely. Normalization can change the number of UTF-16 code units; either maintain an offset mapping or render from the same normalized text.
 
-**Câu 8.** NFC hoặc NFKC có loại bỏ hết ký tự giả mạo nhìn giống nhau không?  
-**Đáp án:** Không. Phát hiện confusable, kiểm soát script, security identifiers và chính sách Unicode cần thiết kế riêng.
+**Question 8.** Do NFC or NFKC eliminate all visually similar spoofing characters?  
+**Answer:** No. Confusable detection, script controls, identifier security, and Unicode policies require dedicated design.
 
-## 19. Ghi nhớ
+## 19. Takeaways
 
-**Unicode normalization là một phần của hợp đồng dữ liệu, không phải bộ lọc “làm sạch” chung cho mọi trường.** Khi dùng để so sánh, tìm kiếm và tạo khóa:
+**Unicode normalization is part of your data contract, not a generic “sanitizer” for all fields.** When used for comparison, search, and key generation:
 
-- Chọn `NFC` cho tương đương chuẩn tắc nếu domain muốn hai cách mã hóa cùng một chữ được xem là giống nhau.
-- Chỉ chọn `NFKC` khi các khác biệt tương thích được phép mất đi.
-- Tách **canonical identity key** khỏi **display value** và **search key**.
-- Normalize nhất quán ở mọi đường ghi/đọc; xử lý collision và UNIQUE ở tầng lưu trữ.
-- Không nhầm normalizer với case folding, collation, xử lý dấu hay phòng chống Unicode spoofing.
+- Pick `NFC` for canonical equivalence when the domain treats different encodings of the same letter as equal.
+- Pick `NFKC` only when compatibility differences are explicitly permitted to be lost.
+- Separate **canonical identity keys** from **display values** and **search keys**.
+- Normalize consistently across all write/read paths; handle collisions and UNIQUE constraints at the storage layer.
+- Never confuse `Normalizer` with case folding, collation, diacritic stripping, or Unicode spoofing prevention.
 
-**Tài liệu chính thức:** [Java SE 17 — Normalizer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html) · [Java SE 17 — Collator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Collator.html) · [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html) · [Unicode Standard Annex #15: Unicode Normalization Forms](https://www.unicode.org/reports/tr15/).
+**Official Documentation:** [Java SE 17 — Normalizer](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Normalizer.html) · [Java SE 17 — Collator](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/Collator.html) · [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html) · [Unicode Standard Annex #15: Unicode Normalization Forms](https://www.unicode.org/reports/tr15/).

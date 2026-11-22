@@ -1,31 +1,31 @@
-# Kiểm tra Collector khi ghép nhiều kết quả trung gian
+# Testing a Collector When Merging Multiple Intermediate Results
 
-> **Chương:** Cơ chế collect và Collector  
+> **Chapter:** Collect Mechanism and Collector  
 > **Module:** JAVA_STREAM_API  
-> **Trọng tâm:** Xác minh một `Collector` giữ đúng kết quả khi Java Stream API chia dữ liệu thành nhiều phần, tạo các trạng thái tích lũy trung gian rồi dùng `combiner` ghép chúng lại. Đây là điều kiện quan trọng trước khi sử dụng `parallelStream()`, `parallel()`, collector tùy chỉnh hoặc các phép nhóm dữ liệu phức tạp.
+> **Focus:** Verify that a `Collector` preserves correct results when the Java Stream API splits data into multiple parts, creates intermediate accumulation states, and uses `combiner` to merge them. This is an essential prerequisite before using `parallelStream()`, `parallel()`, custom collectors, or complex data grouping operations.
 
-## Mục tiêu học tập
+## Learning objectives
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-1. Mô tả vai trò của `supplier`, `accumulator`, `combiner`, `finisher` và `characteristics` trong `Collector<T, A, R>`.
-2. Phân biệt tính đúng của một Collector khi chạy tuần tự và khi các trạng thái trung gian được gộp theo nhiều cách.
-3. Kiểm tra hai quy tắc cốt lõi: **identity** và **associativity**, đồng thời xét tính tương đương của kết quả qua `finisher`.
-4. Viết Collector dùng accumulator mutable nhưng không chia sẻ nhầm container giữa các phần xử lý.
-5. Phát hiện combiner làm mất bản ghi, nhân đôi dữ liệu, gộp ngược thứ tự hoặc làm tròn sai.
-6. Thiết kế phép kiểm thử chủ động chia nguồn thành 2–3 phân vùng, đổi cây ghép, kiểm tra nguồn rỗng và dùng oracle độc lập.
-7. Hiểu ảnh hưởng của `CONCURRENT`, `UNORDERED`, `IDENTITY_FINISH` đến cách Stream có thể tích lũy và ghép trạng thái.
+1. Describe the roles of `supplier`, `accumulator`, `combiner`, `finisher`, and `characteristics` in `Collector<T, A, R>`.
+2. Distinguish the correctness of a Collector when run sequentially versus when intermediate states are merged in multiple ways.
+3. Verify the two core laws: **identity** and **associativity**, while checking result equivalence through `finisher`.
+4. Write a Collector that uses a mutable accumulator without mistakenly sharing containers across execution partitions.
+5. Detect combiners that drop records, duplicate data, reverse merge order, or introduce rounding errors.
+6. Design tests that proactively split a source into 2–3 partitions, vary merge trees, check empty sources, and use an independent oracle.
+7. Understand the impact of `CONCURRENT`, `UNORDERED`, and `IDENTITY_FINISH` on how a Stream may accumulate and merge state.
 
-Ví dụ sử dụng Java 17 trở lên. `Collector`, `collect` và cơ chế Stream song song đã có từ Java 8; các ví dụ dùng `record` yêu cầu Java 16+. Nội dung liên hệ các kỹ thuật `filter`, `map`, `reduce`, `groupingBy`, tính đúng của tổng số và nguồn dữ liệu `Spliterator` trong module Java Stream API.
+Examples use Java 17 or later. `Collector`, `collect`, and the parallel Stream mechanism have existed since Java 8; examples using `record` require Java 16+. The content connects `filter`, `map`, `reduce`, `groupingBy`, sum correctness, and `Spliterator` data sources in the Java Stream API module.
 
-## 1. Vì sao chạy tuần tự đúng chưa đủ?
+## 1. Why is passing sequentially not enough?
 
-Một pipeline thu thập dữ liệu có thể vận hành như sau:
+A data collection pipeline may operate as follows:
 
 ~~~text
-Nguồn có 6 phần tử: [a, b, c, d, e, f]
+Source with 6 elements: [a, b, c, d, e, f]
 
-Thu thập tuần tự:
+Sequential collection:
   supplier() -> A0
   accumulator(A0, a)
   accumulator(A0, b)
@@ -33,7 +33,7 @@ Thu thập tuần tự:
   accumulator(A0, f)
   finisher(A0) -> R
 
-Một khả năng khi chạy song song:
+One possibility during parallel execution:
        [a, b]          [c, d]          [e, f]
          |               |               |
    supplier()       supplier()      supplier()
@@ -49,9 +49,9 @@ Một khả năng khi chạy song song:
                            R
 ~~~
 
-Trong trường hợp tuần tự đơn giản, có thể chỉ dùng một container tích lũy và **không cần gọi combiner**. Khi Stream phân chia dữ liệu để xử lý song song, `combiner` có thể được gọi nhiều lần để ghép những container do các nhánh tạo ra.
+In a simple sequential case, only one accumulation container may be used and **the combiner may not need to be called**. When a Stream partitions data for parallel processing, `combiner` can be invoked multiple times to merge containers produced by different branches.
 
-Vì vậy, một Collector có `accumulator` đúng nhưng `combiner` sai thường vượt qua bài kiểm tra tuần tự rồi thất bại khi chuyển sang `parallelStream()`.
+Therefore, a Collector with a correct `accumulator` but a broken `combiner` often passes sequential tests and then fails when switched to `parallelStream()`.
 
 ~~~java
 import java.util.List;
@@ -59,7 +59,7 @@ import java.util.stream.Collector;
 
 List<Integer> numbers = List.of(1, 2, 3, 4, 5, 6);
 
-// Sai: combiner bỏ hoàn toàn trạng thái bên phải.
+// Wrong: combiner completely discards the right-hand state.
 Collector<Integer, int[], Integer> broken = Collector.of(
         () -> new int[] {0},
         (acc, value) -> acc[0] += value,
@@ -67,38 +67,38 @@ Collector<Integer, int[], Integer> broken = Collector.of(
         acc -> acc[0]
 );
 
-System.out.println(numbers.stream().collect(broken)); // 21 trong ví dụ tuần tự
-// Kết quả parallel KHÔNG ĐƯỢC BẢO ĐẢM bằng 21.
+System.out.println(numbers.stream().collect(broken)); // 21 in sequential example
+// Parallel result IS NOT GUARANTEED to be 21.
 System.out.println(numbers.parallelStream().collect(broken));
 ~~~
 
-Điều sai nằm ngay trong hợp đồng: `(left, right) -> left` làm mất toàn bộ kết quả từ `right`. Không nên dựa vào một con số cụ thể của lần chạy song song; môi trường và cách chia nguồn có thể ảnh hưởng số lần combiner được gọi.
+The bug lies right in the contract: `(left, right) -> left` drops all results from `right`. Do not rely on a specific number from a parallel run; the environment and source splitting can affect how many times the combiner is called.
 
-**Mục tiêu kiểm tra Collector là kiểm chứng phép ghép trung gian**, chứ không chỉ kiểm chứng một lần chạy tuần tự và một lần chạy song song tình cờ cho kết quả giống nhau.
+**The goal of testing a Collector is to verify intermediate merging**, not merely checking one sequential run and one parallel run that happened to yield the same result.
 
-## 2. Đọc đúng hợp đồng Collector<T, A, R>
+## 2. Reading the Collector<T, A, R> contract properly
 
-Một Collector có ba kiểu:
+A Collector has three types:
 
 ~~~java
 Collector<T, A, R>
 ~~~
 
-- `T`: kiểu phần tử đầu vào của Stream.
-- `A`: kiểu container/trạng thái tích lũy **trung gian**.
-- `R`: kiểu kết quả **cuối cùng** của phép thu thập.
+- `T`: the Stream's input element type.
+- `A`: the **intermediate** accumulation container/state type.
+- `R`: the **final** result type of the collection operation.
 
-Collector có năm thành phần:
+A Collector has five components:
 
-| Thành phần | Chữ ký khái niệm | Nhiệm vụ |
+| Component | Conceptual signature | Responsibility |
 |---|---|---|
-| `supplier()` | `() -> A` | Tạo trạng thái `A` mới, ban đầu rỗng |
-| `accumulator()` | `(A, T) -> void` | Đưa một phần tử `T` vào trạng thái `A` |
-| `combiner()` | `(A, A) -> A` | Ghép hai trạng thái tích lũy thành một |
-| `finisher()` | `A -> R` | Chuyển trạng thái cuối sang kết quả công khai |
-| `characteristics()` | `Set<Characteristics>` | Cho framework biết đặc điểm của Collector |
+| `supplier()` | `() -> A` | Creates a new state `A`, initially empty |
+| `accumulator()` | `(A, T) -> void` | Incorporates an element `T` into state `A` |
+| `combiner()` | `(A, A) -> A` | Merges two accumulation states into one |
+| `finisher()` | `A -> R` | Converts final state into the public result |
+| `characteristics()` | `Set<Characteristics>` | Tells the framework the Collector's properties |
 
-Ví dụ một danh sách:
+Example with a list:
 
 ~~~java
 import java.util.ArrayList;
@@ -113,7 +113,7 @@ Collector<String, List<String>, List<String>> toMutableList =
                     left.addAll(right);
                     return left;
                 }
-                // Collector.of 3 tham số có identity finisher.
+                // 3-parameter Collector.of has an identity finisher.
         );
 
 List<String> result = List.of("a", "b", "c")
@@ -123,46 +123,46 @@ List<String> result = List.of("a", "b", "c")
 System.out.println(result); // [a, b, c]
 ~~~
 
-Container `A` ở đây cũng là kết quả `R`. Trong ví dụ khác, `A` có thể là một đối tượng mutable chứa tổng và số lượng, còn `R` là một `record` bất biến mô tả thống kê.
+Here container `A` is also result `R`. In another example, `A` might be a mutable object holding sum and count, while `R` is an immutable `record` describing statistics.
 
-### 2.1. collect không phải reduce đơn giản trên một biến chung
+### 2.1. collect is not a simple reduce on a shared variable
 
-`Stream.collect(Collector)` là **terminal operation**. Nó tiêu thụ Stream và thu thập kết quả theo hợp đồng Collector. Việc tạo container riêng cho mỗi phần việc rồi ghép với `combiner` là cơ chế quan trọng hỗ trợ song song.
+`Stream.collect(Collector)` is a **terminal operation**. It consumes the Stream and collects results according to the Collector contract. Creating separate containers per work chunk and merging them with `combiner` is a key mechanism supporting parallelism.
 
-Không nên tự thay bằng:
+Do not replace it with:
 
 ~~~java
-// Không đúng thiết kế thu thập song song:
+// Incorrect parallel collection design:
 // List<String> shared = new ArrayList<>();
 // input.parallelStream().forEach(shared::add);
 ~~~
 
-`ArrayList` không an toàn nếu nhiều thread thêm dữ liệu đồng thời. Một Collector chuẩn sẽ điều phối container và phép ghép theo hợp đồng phù hợp.
+`ArrayList` is not safe when multiple threads add elements concurrently. A proper Collector coordinates containers and merging according to the appropriate contract.
 
-`Collector` có thể chứa container mutable. Điều quan trọng là **container nào được sửa, ở giai đoạn nào, và có bị chia sẻ giữa các thread hay không**.
+A `Collector` can hold mutable containers. What matters is **which container is modified, at what stage, and whether it is shared across threads**.
 
-## 3. Hai quy tắc nền tảng: identity và associativity
+## 3. Two foundational laws: identity and associativity
 
-Tài liệu hợp đồng `Collector` mô tả các ràng buộc trên kết quả thu thập. Hãy dùng ký hiệu:
+The `Collector` contract documentation describes constraints on collection results. Let's use the notation:
 
-- `empty()` = `supplier.get()`: container mới ở trạng thái rỗng.
-- `accumulate(a, t)`: thêm phần tử `t` vào trạng thái `a`.
-- `combine(a, b)`: ghép hai trạng thái.
-- `finish(a)` = `finisher.apply(a)`: tạo kết quả cuối.
+- `empty()` = `supplier.get()`: a fresh container in the empty state.
+- `accumulate(a, t)`: adds element `t` to state `a`.
+- `combine(a, b)`: merges two states.
+- `finish(a)` = `finisher.apply(a)`: produces the final result.
 
-Khi kiểm tra, **tính tương đương** là tương đương theo hợp đồng kết quả. Không đòi hỏi hai object `A` có cùng địa chỉ hay `equals` trả `true`; nhiều container mutable không định nghĩa `equals` theo nội dung.
+When testing, **equivalence** means equivalence under the result contract. It does not require two `A` objects to have the same memory address or return `true` from `equals`; many mutable containers do not define `equals` by content.
 
-### 3.1. Identity: ghép với container rỗng không đổi ý nghĩa
+### 3.1. Identity: merging with an empty container does not change meaning
 
-Với một trạng thái `a` đã tích lũy, hợp đồng yêu cầu:
+Given an accumulated state `a`, the contract requires:
 
 ~~~text
 finish(combine(a, empty()))  ≈  finish(a)
 
-≈ : tương đương về kết quả được Collector công khai
+≈ : equivalent in the result exposed by the Collector
 ~~~
 
-Ví dụ một accumulator đếm số lượng:
+Example of a counting accumulator:
 
 ~~~java
 final class CountAcc {
@@ -173,21 +173,21 @@ final class CountAcc {
     }
 
     CountAcc combine(CountAcc other) {
-        count += other.count;  // ghép số đếm
+        count += other.count;  // merge counts
         return this;
     }
 }
 ~~~
 
-Một container mới có `count == 0`. Ghép nó vào trạng thái đã có không đổi số lượng.
+A fresh container has `count == 0`. Merging it into an existing state does not change the count.
 
-Sai thường gặp: `supplier` khởi tạo bộ đếm bằng `1`, hoặc `combiner` cộng thêm “chi phí phân vùng” ngoài nghiệp vụ. Trong Stream song song, container có thể được tạo nhiều lần; giá trị dư bị nhân lên theo số phần.
+Common mistake: `supplier` initializes the counter to `1`, or `combiner` adds an off-spec "partition fee". In a parallel Stream, containers can be created many times; the extra value gets multiplied by the number of partitions.
 
-**Đặc biệt:** muốn tính trung bình, `supplier` phải khởi tạo **sum = 0, count = 0**. Không nên khởi tạo `count = 1` để “tránh chia cho 0”; xử lý nguồn rỗng ở `finisher`.
+**Specifically:** to compute an average, `supplier` must initialize **sum = 0, count = 0**. Do not initialize `count = 1` to "avoid division by zero"; handle an empty source in `finisher`.
 
-### 3.2. Associativity: ghép nhiều phân vùng theo cây nào cũng đúng
+### 3.2. Associativity: merging multiple partitions under any tree gives the same answer
 
-Nếu ba phần nguồn cho ra trạng thái `a`, `b`, `c`, cần có:
+If three source partitions produce states `a`, `b`, and `c`, we must have:
 
 ~~~text
 finish(combine(combine(a, b), c))
@@ -195,33 +195,33 @@ finish(combine(combine(a, b), c))
 finish(combine(a, combine(b, c)))
 ~~~
 
-Đây là tính **kết hợp** của việc ghép kết quả trung gian. Với Collector hỗ trợ thứ tự, các cách ghép ở trên đều duy trì trật tự phần nguồn `a -> b -> c`; chúng chỉ **đổi cách đặt ngoặc**, không đảo nguồn.
+This is the **associativity** of merging intermediate results. For an ordered Collector, both merges above maintain the source partition order `a -> b -> c`; they only **change parenthesization**, without reordering source partitions.
 
-Ví dụ ghép danh sách đúng:
+Example of proper list merging:
 
 ~~~text
 a = [A, B]
 b = [C]
 c = [D, E]
 
-(left + right) theo thứ tự:
+(left + right) in order:
   ((a + b) + c) = [A, B, C, D, E]
   (a + (b + c)) = [A, B, C, D, E]
 ~~~
 
-`addAll` theo thứ tự trái rồi phải phù hợp, với giả định các container độc lập. Ngược lại, nếu combiner luôn nối `right + left`, kết quả bị đảo ở một số cách chia, vi phạm yêu cầu giữ encounter order.
+`addAll` in left-then-right order fits, assuming independent containers. Conversely, if the combiner always concatenates `right + left`, results get reversed under some splits, violating encounter-order preservation.
 
-### 3.3. Identity/associativity được đánh giá ở cấp kết quả
+### 3.3. Identity/associativity are evaluated at the result level
 
-Đối với Collector có `finisher`, hai trạng thái khác object vẫn có thể cho kết quả tương đương. Ví dụ các accumulator lưu số lượng có thể khác `identityHashCode` nhưng trả cùng `long`.
+For a Collector with a `finisher`, two distinct state objects can still produce equivalent results. For example, accumulators storing counts can have different `identityHashCode` values yet return the same `long`.
 
-Khi thử thủ công trên accumulator mutable, hãy **tạo các container mới cho từng cách ghép**. Không dùng lại container đã bị `combine` sửa để so sánh cây ghép khác, vì thử nghiệm sẽ tự làm thay đổi dữ liệu đầu vào.
+When testing manually on mutable accumulators, **create fresh containers for each merge tree**. Never reuse a container already mutated by `combine` to compare another merge tree, as the test itself will corrupt its input data.
 
-## 4. Ví dụ Collector đúng: gộp số lượng và tổng tiền chính xác
+## 4. Example of a correct Collector: merging count and exact total amount
 
-Giả sử xử lý các giao dịch, mỗi giao dịch ghi số tiền ở đơn vị **cent**, có thể dương hoặc âm (hoàn tiền). Cần kết quả gồm số giao dịch và tổng cent, không tràn khi cộng `long`.
+Suppose we process transactions, where each transaction records an amount in **cents**, which can be positive or negative (refunds). We need a result containing transaction count and total cents, without overflowing `long` addition.
 
-Đoạn dưới đây là chương trình Java 17 độc lập:
+The snippet below is a standalone Java 17 program:
 
 ~~~java
 import java.math.BigInteger;
@@ -278,24 +278,24 @@ public class CollectorMergeDemo {
 }
 ~~~
 
-Vì sao Collector này phù hợp để ghép phân vùng?
+Why is this Collector suitable for merging partitions?
 
-- `Acc::new` cung cấp container riêng có **count = 0**, **total = 0**.
-- `Acc::add` cộng một giao dịch vào đúng trạng thái của container.
-- `Acc::merge` ghép **cả count lẫn total** của hai container, không bỏ trường nào.
-- `Acc::finish` trả `Summary` bất biến; kết quả có thể so sánh bằng `equals`.
-- `BigInteger::add` thực hiện phép cộng số nguyên chính xác; việc nhóm phép cộng không làm thay đổi giá trị.
-- `Math.addExact` giúp phát hiện tràn bộ đếm `long`. Nếu yêu cầu đếm hơn giới hạn `long`, cần chọn kiểu đếm khác.
+- `Acc::new` provides a separate container with **count = 0**, **total = 0**.
+- `Acc::add` adds one transaction to the container's own state.
+- `Acc::merge` merges **both count and total** from the two containers, omitting no field.
+- `Acc::finish` returns an immutable `Summary`; results can be compared using `equals`.
+- `BigInteger::add` performs exact integer addition; parenthesizing additions never changes the value.
+- `Math.addExact` detects `long` counter overflow. If counts beyond `long` limits are required, choose a different counter type.
 
-Trong Collector này, `merge` **có thay đổi `this`** và trả về `this`. Đó là một mô hình hợp lệ: combiner được phép gộp vào một container rồi trả container đó. Không nhất thiết phải tạo object `Acc` mới cho mỗi lần ghép.
+In this Collector, `merge` **mutates `this`** and returns `this`. That is a valid pattern: the combiner is allowed to merge into one container and return that container. Creating a new `Acc` object on every merge is not required.
 
-**Phạm vi an toàn:** `Acc` không thread-safe nếu cùng một instance được cập nhật đồng thời. Tuy nhiên Collector ở đây **không khai báo `CONCURRENT`**; Stream có thể dùng các container riêng rồi gộp chúng khi chạy song song. Không giữ `Acc` ở field static để tái sử dụng giữa các lần `collect`.
+**Safety scope:** `Acc` is not thread-safe if the same instance is updated concurrently. However, the Collector here **does not declare `CONCURRENT`**; the Stream can use separate containers and merge them during parallel execution. Never store an `Acc` in a static field to reuse across `collect` runs.
 
-## 5. Kiểm tra trực tiếp hai container trung gian
+## 5. Directly testing two intermediate containers
 
-Một cách kiểm tra tốt là tạo những container độc lập, tích lũy mỗi phần nguồn rồi gọi combiner, thay vì chỉ chạy `parallelStream()` và hy vọng framework chọn cấu trúc chia mong muốn.
+A good test approach is creating independent containers, accumulating each source slice, and calling the combiner, instead of only running `parallelStream()` and hoping the framework picks the desired split structure.
 
-Các phương thức sau có thể đặt **bên trong lớp `CollectorMergeDemo`** ở mục 4:
+The following methods can be placed **inside the `CollectorMergeDemo` class** from section 4:
 
 ~~~java
 static Acc fold(List<Sale> partition) {
@@ -327,47 +327,47 @@ static void verifyTwoPartitions(List<Sale> sales) {
 }
 ~~~
 
-Với danh sách bốn giao dịch `A, B, C, D`:
+With a list of four transactions `A, B, C, D`:
 
 ~~~text
-Phần 1: [A, B] -> count=2, total=1000
-Phần 2: [C, D] -> count=2, total=1200
+Part 1: [A, B] -> count=2, total=1000
+Part 2: [C, D] -> count=2, total=1200
 
-Ghép đúng:
+Correct merge:
   count = 2 + 2 = 4
   total = 1000 + 1200 = 2200
 ~~~
 
-Khi kiểm thử Collector thật, có thể lấy `supplier()`, `accumulator()` và `combiner()` từ chính Collector để tránh viết lại logic. Mục 7 cung cấp cách làm đó.
+When testing a real Collector, you can retrieve `supplier()`, `accumulator()`, and `combiner()` directly from the Collector itself to avoid duplicating logic. Section 7 shows how to do that.
 
-### 5.1. Phải kiểm tra cả hai trường của kết quả
+### 5.1. Both fields of the result must be checked
 
-Nếu combiner chỉ cộng tổng cent nhưng quên cộng `count`:
+If the combiner only adds total cents and forgets to add `count`:
 
 ~~~java
-// SAI, chỉ minh họa:
+// WRONG, illustrative only:
 // Acc merge(Acc other) {
 //     total = total.add(other.total);
-//     return this;  // count của other bị bỏ quên
+//     return this;  // other's count is forgotten
 // }
 ~~~
 
-Kiểm tra mỗi tổng tiền có thể vẫn PASS, nhưng số lượng giao dịch lại sai. Tương tự, collector gồm nhiều trường như `sum`, `count`, `min`, `max` hoặc `Map` theo nhóm cần kiểm tra **từng trường** và sự nhất quán giữa chúng.
+A test checking only total amount might still PASS, yet the transaction count is wrong. Likewise, a collector with multiple fields like `sum`, `count`, `min`, `max`, or grouped `Map`s must check **every field** and consistency among them.
 
-## 6. Kiểm tra ba phân vùng: hai cách đặt ngoặc
+## 6. Testing three partitions: two parenthesizations
 
-Chia dữ liệu thành ba phần có tính phân biệt:
+Split data into three distinct parts:
 
 ~~~text
 A = [1, 2]
 B = [3]
 C = [4, 5]
 
-Cây trái:  combine(combine(A, B), C)
-Cây phải: combine(A, combine(B, C))
+Left tree:  combine(combine(A, B), C)
+Right tree: combine(A, combine(B, C))
 ~~~
 
-Với accumulator mutable, mỗi cây ghép cần được tạo từ những container riêng. Thêm các phương thức này vào `CollectorMergeDemo`:
+With mutable accumulators, each merge tree must be built from separate containers. Add these methods to `CollectorMergeDemo`:
 
 ~~~java
 static void verifyAssociativity(
@@ -386,7 +386,7 @@ static void verifyAssociativity(
 
     requireEquals(leftGrouping, rightGrouping);
 
-    // Kiểm tra cả kết quả chuẩn của tập đầu vào.
+    // Also verify the baseline result of the combined input set.
     java.util.ArrayList<Sale> all = new java.util.ArrayList<>();
     all.addAll(first);
     all.addAll(second);
@@ -397,7 +397,7 @@ static void verifyAssociativity(
 }
 ~~~
 
-Có thể gọi:
+You can call:
 
 ~~~java
 verifyAssociativity(
@@ -407,13 +407,13 @@ verifyAssociativity(
 );
 ~~~
 
-Bài kiểm tra này gọi thẳng `merge` của ví dụ. Nó bắt được combiner phụ thuộc **cách phân nhóm** và loại bỏ sự may rủi của lịch chạy song song.
+This test calls the example's `merge` directly. It catches combiners that depend on **grouping structure** and removes the luck factor of parallel scheduling.
 
-**Không đổi thứ tự A, B, C** khi kiểm tra associativity của Collector có thứ tự. Đẳng thức `combine(a, b) == combine(b, a)` là **commutativity**, yêu cầu mạnh hơn và không áp dụng cho mọi Collector hợp lệ. Collector nối danh sách đúng là associative nhưng thường **không commutative**.
+**Do not swap the order of A, B, C** when testing associativity of an ordered Collector. The equality `combine(a, b) == combine(b, a)` is **commutativity**, a stronger requirement that does not apply to every valid Collector. A list-concatenating Collector is associative but typically **not commutative**.
 
-## 7. Hàm kiểm tra dùng trực tiếp giao diện Collector
+## 7. Test helper using the Collector interface directly
 
-Để áp dụng với nhiều Collector, có thể viết tiện ích thao tác theo đúng các thành phần do Collector cung cấp.
+To apply across many Collectors, you can write a utility operating strictly through the components provided by `Collector`.
 
 ~~~java
 import java.util.List;
@@ -471,25 +471,25 @@ final class CollectorChecks {
 }
 ~~~
 
-Chẳng hạn, trong `CollectorMergeDemo.main`:
+For instance, inside `CollectorMergeDemo.main`:
 
 ~~~java
 CollectorChecks.verifyTwoPartitions(collector(), sales);
 ~~~
 
-Hàm này:
+This helper:
 
-1. Tạo **hai** container `A` bằng `supplier`.
-2. Gọi `accumulator` cho từng phần.
-3. Buộc gọi `combiner` ít nhất một lần.
-4. Dùng `finisher` để kiểm tra kết quả kiểu `R`.
-5. So với phép thu thập trên toàn nguồn.
+1. Creates **two** `A` containers via `supplier`.
+2. Calls `accumulator` for each partition.
+3. Forces `combiner` to be called at least once.
+4. Uses `finisher` to check the `R`-typed result.
+5. Compares against collecting over the whole source.
 
-**Giới hạn của phép so sánh:** Nếu phép thu thập tuần tự cũng sai, bài thử trên có thể cho PASS giả. Cần thêm **oracle độc lập** dựa trên logic nghiệp vụ, như một vòng lặp tính tổng bằng `BigInteger` hoặc bộ dữ liệu nhỏ đã tính tay. Bài thử cũng dùng `Objects.equals`, chỉ phù hợp nếu `R` có ngữ nghĩa `equals` đúng; với mảng, dùng `Arrays.equals` hoặc `Arrays.deepEquals` theo kiểu dữ liệu.
+**Limitation of this comparison:** If sequential collection is also wrong, the test above can give a false PASS. You need an **independent oracle** based on business logic, such as a loop summing with `BigInteger` or a small hand-calculated dataset. The test also uses `Objects.equals`, which only fits if `R` has proper `equals` semantics; for arrays, use `Arrays.equals` or `Arrays.deepEquals` as appropriate.
 
-### 7.1. Kiểm tra identity bằng container rỗng
+### 7.1. Testing identity with an empty container
 
-Với Collector tùy chỉnh có kết quả bất biến, có thể viết:
+For a custom Collector with an immutable result, you can write:
 
 ~~~java
 Collector<Sale, Acc, Summary> c = collector();
@@ -504,9 +504,9 @@ Summary after = c.finisher().apply(merged);
 requireEquals(before, after);
 ~~~
 
-Ở đây `before` là `record Summary` bất biến, nên việc `merged` có thể sửa `accumulated` không thay đổi giá trị đã chụp ở `before`. Nếu `R` chính là container mutable, cần **snapshot nội dung** trước khi merge; so sánh hai tham chiếu tới cùng một object sau khi đã sửa có thể cho PASS giả.
+Here `before` is an immutable `record Summary`, so the fact that `merged` may mutate `accumulated` does not change the value captured in `before`. If `R` itself is a mutable container, you must **snapshot its contents** before merging; comparing two references to the same object after mutation can give a false PASS.
 
-### 7.2. Với collector hợp lệ trên Stream rỗng
+### 7.2. With a valid collector on an empty Stream
 
 ~~~java
 import java.util.List;
@@ -520,83 +520,83 @@ System.out.println(s1); // Summary[count=0, totalCents=0]
 System.out.println(s2); // Summary[count=0, totalCents=0]
 ~~~
 
-Nguồn rỗng kiểm tra `supplier` và `finisher` có diễn đạt đúng trạng thái rỗng không. **Đừng** khởi tạo `count = 1` chỉ để tránh lỗi khi tính trung bình; phải quy định kết quả với nguồn rỗng riêng.
+An empty source tests whether `supplier` and `finisher` express the empty state properly. **Never** initialize `count = 1` just to avoid division-by-zero errors when averaging; specify the empty-source result explicitly.
 
-## 8. Những lỗi combiner cần phát hiện
+## 8. Combiner bugs to catch
 
-### 8.1. Bỏ mất kết quả bên phải
+### 8.1. Dropping the right-hand result
 
 ~~~java
-// Sai:
+// Wrong:
 (left, right) -> left
 ~~~
 
-Nếu có hai phần kết quả, một phần bị mất. Các bài test chia hai phân vùng không rỗng thường phát hiện ngay.
+When two partial results exist, one is lost. Tests splitting into two non-empty partitions usually catch this immediately.
 
-### 8.2. Gộp sai phép toán
+### 8.2. Merging with the wrong operation
 
 ~~~java
-// Sai khi đang tổng hợp tiền:
+// Wrong when aggregating money:
 // (left, right) -> {
 //     left.total = left.total.subtract(right.total);
 //     return left;
 // }
 ~~~
 
-Combiner phải có **cùng ý nghĩa** tổng hợp với accumulator. Nếu accumulator đang cộng số tiền, combiner lại trừ, kết quả phụ thuộc cách phân vùng.
+The combiner must have **the same aggregation semantics** as the accumulator. If the accumulator adds amounts while the combiner subtracts them, the result depends on how partitions are split.
 
-### 8.3. Quên ghép một trường
+### 8.3. Forgetting to merge a field
 
 ~~~java
-// Sai nếu thống kê gồm sum và count:
+// Wrong if statistics include sum and count:
 // left.sum += right.sum;
-// return left; // Quên left.count += right.count
+// return left; // Forgot left.count += right.count
 ~~~
 
-Một phép kiểm chỉ xem `sum` sẽ bỏ sót. Kiểm tra đồng thời `sum`, `count`, `min`, `max` và mọi thuộc tính nghiệp vụ.
+A test checking only `sum` will miss it. Verify `sum`, `count`, `min`, `max`, and every business attribute simultaneously.
 
-### 8.4. Ghép làm nhân đôi dữ liệu
+### 8.4. Merging duplicates data
 
 ~~~java
-// Sai với danh sách:
+// Wrong for lists:
 // left.addAll(right);
-// left.addAll(right); // nhân đôi toàn bộ phần bên phải
+// left.addAll(right); // duplicates the entire right part
 // return left;
 ~~~
 
-Danh sách có nhiều phần tử giống nhau làm lỗi khó phát hiện nếu chỉ so sánh tập giá trị. Cần so cả **số lần xuất hiện (multiplicity)** và thứ tự nếu hợp đồng yêu cầu.
+A list with repeated elements can hide bugs if you only compare sets of values. Compare **multiplicity** as well as order when the contract requires it.
 
-### 8.5. Đảo thứ tự của phần kết quả
+### 8.5. Reversing the order of result parts
 
 ~~~java
-// Sai nếu Collector phải giữ encounter order:
+// Wrong if the Collector must preserve encounter order:
 // right.addAll(left);
-// return right; // [B, C] + [A] có thể thành [B, C, A]
+// return right; // [B, C] + [A] can become [B, C, A]
 ~~~
 
-Với Collector gom `List` từ nguồn có encounter order, combiner phải nối theo thứ tự được giao. `Collectors.toList()` thích hợp hơn nếu chỉ cần danh sách mà không có yêu cầu container tùy chỉnh.
+For a Collector gathering a `List` from an ordered source, the combiner must append in the expected order. `Collectors.toList()` is preferable if you only need a list without custom container requirements.
 
-### 8.6. Mỗi phần bị tính phí khởi tạo
+### 8.6. Each partition incurs an initialization fee
 
 ~~~java
-// Sai về ngữ nghĩa của supplier:
+// Semantically wrong for supplier:
 // () -> new long[] {100L}
 ~~~
 
-Nếu `100` là “phí cố định cho toàn bộ batch”, việc tạo nhiều container có thể cộng phí nhiều lần. Hãy tách phí cố định khỏi phép gom từng bản ghi rồi áp dụng **một lần sau khi tổng hợp**, nếu đó là đúng quy tắc nghiệp vụ.
+If `100` is a "flat fee for the entire batch", creating multiple containers can add the fee multiple times. Separate flat fees from per-record aggregation and apply them **once after aggregating**, if that matches business rules.
 
-### 8.7. Làm tròn trung gian
+### 8.7. Intermediate rounding
 
 ~~~java
-// Nguy cơ sai khi BigDecimal được gộp theo nhóm khác nhau:
+// Risk of error when BigDecimal is merged across different groupings:
 // left.sum = left.sum.add(right.sum, mathContext);
 ~~~
 
-Khi `MathContext` làm tròn ở từng bước, phép cộng có thể mất tính kết hợp theo giá trị thập phân chính xác. Nếu quy tắc cho phép, tích lũy `BigDecimal::add` **không truyền MathContext**, rồi làm tròn một lần ở finisher. Nếu mỗi giao dịch bắt buộc làm tròn trước, hãy chuẩn hóa **mỗi giao dịch** rồi cộng các giá trị đã chuẩn hóa.
+When `MathContext` rounds at every step, addition can lose associativity for exact decimal values. If rules allow, accumulate with `BigDecimal::add` **without passing a MathContext**, then round once in the finisher. If each transaction must be rounded upfront, normalize **each transaction** and then sum the normalized values.
 
-## 9. Supplier phải tạo container độc lập
+## 9. Supplier must create independent containers
 
-Một lỗi kín đáo là tái sử dụng **cùng một instance** cho tất cả lần gọi supplier:
+A subtle bug is reusing **the exact same instance** for all supplier invocations:
 
 ~~~java
 import java.util.ArrayList;
@@ -605,7 +605,7 @@ import java.util.stream.Collector;
 
 List<String> shared = new ArrayList<>();
 
-// SAI: mỗi lần supplier được gọi đều trả về cùng một List.
+// WRONG: every time supplier is called it returns the same List.
 Collector<String, List<String>, List<String>> broken = Collector.of(
         () -> shared,
         List::add,
@@ -616,9 +616,9 @@ Collector<String, List<String>, List<String>> broken = Collector.of(
 );
 ~~~
 
-Khi ghép hai “container” thực ra là **một đối tượng**, việc `left.addAll(right)` có thể thành `list.addAll(list)`, gây nhân đôi phần tử. Với chạy song song, nhiều thread còn có thể ghi vào cùng `ArrayList` mà không có đồng bộ.
+When merging two "containers" that are actually **one object**, `left.addAll(right)` can become `list.addAll(list)`, duplicating elements. In parallel runs, multiple threads can also write to the same `ArrayList` without synchronization.
 
-Cách đúng:
+The right way:
 
 ~~~java
 Collector<String, List<String>, List<String>> correct = Collector.of(
@@ -631,15 +631,15 @@ Collector<String, List<String>, List<String>> correct = Collector.of(
 );
 ~~~
 
-`ArrayList::new` tạo một list mới cho **mỗi lần supplier được gọi**.
+`ArrayList::new` creates a new list for **every supplier invocation**.
 
-**Quy tắc thực hành:** Không đặt accumulator trong static field, singleton hoặc closure chung rồi trả lại từ `supplier`. Các container của mỗi lượt thu thập phải độc lập để framework quản lý tích lũy và ghép đúng.
+**Practical rule:** Do not place accumulators in static fields, singletons, or shared closures and return them from `supplier`. Each collection's containers must be independent so the framework can manage accumulation and merging properly.
 
-## 10. Finisher, kiểu kết quả và IDENTITY_FINISH
+## 10. Finisher, result type, and IDENTITY_FINISH
 
-Kết quả cuối `R` có thể khác kiểu tích lũy `A`. Trong ví dụ thống kê, `A = Acc` còn `R = Summary`; `finisher` chuyển dữ liệu mutable thành `record` bất biến.
+The final result `R` can differ from accumulation type `A`. In the statistics example, `A = Acc` and `R = Summary`; `finisher` converts mutable data into an immutable `record`.
 
-Một ví dụ ngắn thu thập chuỗi rồi tạo list không thể thay đổi cấu trúc:
+A short example collecting strings and producing a structurally unmodifiable list:
 
 ~~~java
 import java.util.ArrayList;
@@ -665,23 +665,23 @@ System.out.println(values); // [a, b, c]
 // values.add("d"); // UnsupportedOperationException
 ~~~
 
-Ở đây `finisher` quan trọng: nó chuyển một `ArrayList` mutable thành list không thể thay đổi cấu trúc. **Không khai báo `IDENTITY_FINISH`** cho collector này.
+Here `finisher` matters: it turns a mutable `ArrayList` into a structurally unmodifiable list. **Do not declare `IDENTITY_FINISH`** for this collector.
 
-### 10.1. Ý nghĩa của IDENTITY_FINISH
+### 10.1. Meaning of IDENTITY_FINISH
 
-`Collector.Characteristics.IDENTITY_FINISH` cho phép framework coi bước kết thúc là phép chuyển kiểu đồng nhất, bỏ qua việc gọi một finisher khác. Đặc tính này phải **đúng theo hợp đồng kiểu và hành vi**, không đơn thuần vì “finisher thường trả nội dung giống accumulator”.
+`Collector.Characteristics.IDENTITY_FINISH` allows the framework to treat the finishing step as an identity cast, skipping calling another finisher. This characteristic must be **true by type and behavioral contract**, not merely because "the finisher usually returns the same contents as the accumulator".
 
-Sai lầm:
+Mistake:
 
 ~~~java
-// ĐỪNG tự thêm Characteristics.IDENTITY_FINISH vào Collector
-// có finisher List::copyOf; framework có thể không gọi finisher,
-// khiến kết quả không còn bảo đảm là list bất biến.
+// DO NOT manually add Characteristics.IDENTITY_FINISH to a Collector
+// whose finisher is List::copyOf; the framework may skip the finisher,
+// leaving the result no longer guaranteed to be an immutable list.
 ~~~
 
-Với `Collector.of(supplier, accumulator, combiner)` ba tham số, kết quả chính là container và Collector có `IDENTITY_FINISH`. Với overload có finisher thực sự chuyển đổi dữ liệu, để đặc tính này vắng mặt trừ khi việc chuyển kiểu đồng nhất là hợp đồng đúng.
+With three-parameter `Collector.of(supplier, accumulator, combiner)`, the result is the container itself and the Collector has `IDENTITY_FINISH`. With overloads whose finisher genuinely transforms data, leave this characteristic absent unless an identity cast satisfies the contract.
 
-### 10.2. Không so sánh reference identity thay cho nội dung
+### 10.2. Do not compare reference identity instead of content
 
 ~~~java
 import java.util.ArrayList;
@@ -694,51 +694,51 @@ System.out.println(first == second);      // false
 System.out.println(first.equals(second)); // true
 ~~~
 
-Hai Collector hợp lệ có thể trả hai instance khác nhau nhưng cùng nội dung. Dùng tiêu chí tương đương theo kết quả nghiệp vụ, không so địa chỉ bộ nhớ.
+Two valid Collectors can return two different instances with identical contents. Use business-result equivalence criteria, not memory addresses.
 
-## 11. Collector có thứ tự và Collector UNORDERED
+## 11. Ordered Collectors and UNORDERED Collectors
 
-`Characteristics.UNORDERED` nói rằng phép thu thập **không cam kết bảo toàn encounter order**. Đây là đặc tính của Collector, không phải câu lệnh “hãy đảo thứ tự”.
+`Characteristics.UNORDERED` states that the collection **does not commit to preserving encounter order**. It is a property of the Collector, not a command saying "reverse the order".
 
-Ví dụ:
+Examples:
 
-- Gom phần tử vào `List` thường quan tâm thứ tự nếu nguồn có thứ tự.
-- Gom vào `Set` hoặc `Map` để tra cứu theo khóa thường không quan tâm thứ tự duyệt, trừ khi bài toán yêu cầu thứ tự cụ thể.
-- Một Collector tính tổng có thể không cần quan tâm thứ tự nếu phép toán tổng hợp đúng và không phụ thuộc thứ tự.
+- Collecting elements into a `List` usually cares about order if the source is ordered.
+- Collecting into a `Set` or `Map` for key lookup usually does not care about iteration order, unless the problem specifies a particular order.
+- A summing Collector can be order-independent if the aggregation operation is accurate and order-insensitive.
 
-Bảng kiểm chứng:
+Verification table:
 
-| Kết quả | Kiểm tra tương đương phù hợp |
+| Result | Suitable equivalence check |
 |---|---|
-| `List<T>` có thứ tự | `List.equals`, so đúng vị trí và số lần xuất hiện |
-| `Set<T>` không yêu cầu thứ tự | `Set.equals` |
-| `Map<K,V>` không yêu cầu thứ tự | `Map.equals` và kiểm tra từng giá trị |
-| Tổng nguyên chính xác | So giá trị số chính xác |
-| Tổng `double` | Theo chính sách sai số/tính tái lập đã xác định |
-| Kết quả của Collector khai báo `UNORDERED` | So nội dung theo hợp đồng; không tự đòi thứ tự |
+| Ordered `List<T>` | `List.equals`, checking exact positions and multiplicities |
+| Order-independent `Set<T>` | `Set.equals` |
+| Order-independent `Map<K,V>` | `Map.equals` and checking each value |
+| Exact integer sum | Exact numeric equality |
+| `double` sum | Per defined error tolerance / reproducibility policy |
+| Result of a Collector declaring `UNORDERED` | Compare contents per contract; do not assume order |
 
-**Thứ tự khi gộp:** Với Collector có thứ tự, kiểm tra các cách đặt ngoặc nhưng giữ nguyên thứ tự các phân vùng. Với Collector thực sự không quan tâm thứ tự, có thể thêm phép thử đổi thứ tự phân vùng để tìm sự phụ thuộc không mong muốn.
+**Merge ordering:** For an ordered Collector, test different parenthesizations while preserving partition order. For a Collector genuinely indifferent to order, you may also test reordering partitions to detect unintended order dependencies.
 
-Không thêm `UNORDERED` vào một Collector nối `StringBuilder` hoặc `List` mà yêu cầu nghiệp vụ là giữ nguyên thứ tự đầu vào.
+Do not add `UNORDERED` to a Collector concatenating a `StringBuilder` or `List` when the business requirement is to keep input order.
 
-## 12. CONCURRENT không có nghĩa chỉ cần dùng parallelStream()
+## 12. CONCURRENT does not mean just using parallelStream()
 
-Một Collector khai báo `Characteristics.CONCURRENT` cho biết các container có thể được phép **tích lũy đồng thời** từ nhiều thread. Để đặc tính này đúng, cấu trúc dữ liệu và accumulator phải hỗ trợ việc đó.
+A Collector declaring `Characteristics.CONCURRENT` indicates its container may be **accumulated into concurrently** by multiple threads. For this characteristic to hold, the data structure and accumulator must support that.
 
-Một Collector **không khai báo `CONCURRENT`** vẫn có thể dùng hợp lệ với `parallelStream()`: framework có thể tích lũy vào nhiều container riêng rồi gọi `combiner`.
+A Collector **not declaring `CONCURRENT`** can still be used validly with `parallelStream()`: the framework can accumulate into multiple separate containers and call `combiner`.
 
-Phân biệt:
+Distinction:
 
-| Tình huống | Framework có thể làm gì? | Điều cần bảo đảm |
+| Situation | What might the framework do? | What must be ensured |
 |---|---|---|
-| `parallelStream()` + Collector thông thường | Tạo nhiều container, tích lũy riêng, ghép lại | Combiner đúng identity/associativity |
-| Collector có `CONCURRENT` trên Stream không có encounter order cần giữ | Có thể gọi accumulator đồng thời trên **cùng container** | Container và accumulator thread-safe |
-| Collector có `CONCURRENT` nhưng không `UNORDERED` trên Stream có thứ tự | Framework có thể chọn cách không tích lũy chung đồng thời để giữ thứ tự | Đừng giả định mọi lần chạy đều dùng cùng container |
-| Collector có `UNORDERED` nhưng không `CONCURRENT` | Không đòi thứ tự nhưng vẫn có thể dùng nhiều container riêng | Không vì `UNORDERED` mà chia sẻ container bừa bãi |
+| `parallelStream()` + normal Collector | Create multiple containers, accumulate separately, merge | Combiner satisfies identity/associativity |
+| `CONCURRENT` Collector on a Stream without encounter order to keep | May call accumulator concurrently on **the same container** | Container and accumulator are thread-safe |
+| `CONCURRENT` Collector without `UNORDERED` on an ordered Stream | Framework may choose not to share concurrently to preserve order | Never assume every run uses the same container |
+| `UNORDERED` Collector without `CONCURRENT` | Does not require order yet may still use multiple separate containers | Never share containers recklessly because of `UNORDERED` |
 
-Theo cơ chế thu thập Stream, phép tích lũy đồng thời trong cùng một container đặc biệt có thể được sử dụng nếu Collector có `CONCURRENT` và nguồn **không có thứ tự** hoặc Collector đồng thời có `UNORDERED`. Dù đủ điều kiện, framework không có nghĩa vụ phải chọn một lịch chạy cố định.
+Under the Stream collection mechanism, concurrent accumulation in a single container can specifically be used if the Collector has `CONCURRENT` and either the source is **unordered** or the Collector also has `UNORDERED`. Even when eligible, the framework is not obligated to pick a fixed execution schedule.
 
-### 12.1. Ví dụ chọn API concurrent có sẵn
+### 12.1. Example choosing a built-in concurrent API
 
 ~~~java
 import java.math.BigInteger;
@@ -765,23 +765,23 @@ System.out.println(sums.get("BOOK")); // 400
 System.out.println(sums.get("PEN"));  // 50
 ~~~
 
-`Collectors.toConcurrentMap` quản lý container và cơ chế gộp đồng thời theo hợp đồng API. Phép `BigInteger::add` phù hợp vì cho kết quả nguyên chính xác. Đây thường là lựa chọn rõ ràng hơn việc tự viết `HashMap` chia sẻ rồi khai báo Collector là `CONCURRENT`.
+`Collectors.toConcurrentMap` manages the container and concurrent merging per the API contract. `BigInteger::add` fits because it yields exact integer results. This is usually a clearer choice than writing a shared `HashMap` yourself and declaring the Collector `CONCURRENT`.
 
-**Không làm:**
+**Do not do:**
 
 ~~~java
-// Sai nếu accumulator có thể chạy đồng thời trên cùng container:
+// Wrong if accumulator can run concurrently on the same container:
 // Collector.Characteristics.CONCURRENT
-// kết hợp HashMap::new và HashMap.merge(...) không có đồng bộ.
+// combined with HashMap::new and unsynchronized HashMap.merge(...).
 ~~~
 
-`HashMap` không thread-safe. Tự gắn `CONCURRENT` không tự làm container an toàn.
+`HashMap` is not thread-safe. Attaching `CONCURRENT` yourself does not make the container safe.
 
-## 13. Thử với groupingBy, mapping và reducing
+## 13. Testing with groupingBy, mapping, and reducing
 
-Một downstream Collector cũng phải ghép đúng khi kết quả nhóm được chia ra thành nhiều phần.
+A downstream Collector must also merge properly when grouped results are split across multiple parts.
 
-Ví dụ gom tổng cent theo danh mục:
+Example aggregating total cents by category:
 
 ~~~java
 import java.math.BigInteger;
@@ -811,19 +811,19 @@ System.out.println(totals.get("BOOK")); // 70
 System.out.println(totals.get("PEN"));  // 120
 ~~~
 
-Có hai cấp ghép:
+There are two levels of merging:
 
-1. **Cấp nhóm:** kết quả cho cùng khóa từ nhiều phân vùng phải được gộp vào đúng khóa.
-2. **Cấp giá trị:** các tổng `BigInteger` của cùng khóa được cộng bằng phép toán kết hợp chính xác.
+1. **Group level:** results for the same key from multiple partitions must be merged into the right key.
+2. **Value level:** `BigInteger` sums for the same key are added using an exact associative operation.
 
-Kiểm thử nên xác nhận:
+Tests should verify:
 
-- Tập khóa đúng, không mất hoặc xuất hiện khóa ngoài mong đợi.
-- Giá trị **từng khóa** đúng.
-- Tổng các nhóm bằng tổng toàn nguồn nếu mỗi bản ghi thuộc đúng một nhóm.
-- Không dựa vào thứ tự duyệt của `HashMap`/`ConcurrentHashMap` nếu không có hợp đồng thứ tự.
+- The key set is right, with no missing or unexpected keys.
+- **Each key's** value is right.
+- The sum across groups equals the whole-source sum if each record belongs to exactly one group.
+- Do not rely on `HashMap`/`ConcurrentHashMap` iteration order without an ordering contract.
 
-### 13.1. Khi dùng toMap phải có merge function cho khóa trùng
+### 13.1. Using toMap requires a merge function for duplicate keys
 
 ~~~java
 Map<String, BigInteger> totals = payments.parallelStream()
@@ -834,27 +834,27 @@ Map<String, BigInteger> totals = payments.parallelStream()
         ));
 ~~~
 
-Nếu hai phần dữ liệu có cùng khóa, `toMap` cần cách ghép giá trị; `BigInteger::add` là merge function hợp lệ. Bỏ merge function trong bài toán có khóa trùng sẽ gây `IllegalStateException`, không phụ thuộc việc chạy tuần tự hay song song.
+If two data slices share the same key, `toMap` needs a way to merge values; `BigInteger::add` is a valid merge function. Omitting the merge function when duplicate keys occur causes `IllegalStateException`, regardless of sequential or parallel execution.
 
-Đừng dùng merge function không kết hợp như phép trừ hoặc phép chia nếu muốn kết quả không phụ thuộc cách phân vùng.
+Do not use non-associative merge functions like subtraction or division if you want results independent of partitioning.
 
-## 14. Kiểm tra dữ liệu số: tránh một combiner “đúng kiểu” nhưng sai số học
+## 14. Checking numeric data: avoiding a "type-correct" yet arithmetically wrong combiner
 
-Một Collector có thể biên dịch và trả đúng kiểu `R` nhưng vẫn sai yêu cầu tính toán.
+A Collector can compile and return the right type `R` while still failing calculation requirements.
 
-### 14.1. Trung bình phải gộp tổng và số đếm
+### 14.1. Averages must merge sum and count
 
-Hai phân vùng:
+Two partitions:
 
 ~~~text
 A = [10, 20]  -> average = 15, count = 2
 B = [100]     -> average = 100, count = 1
 
-Sai: (15 + 100) / 2 = 57.5
-Đúng: (10 + 20 + 100) / 3 = 43.333...
+Wrong:   (15 + 100) / 2 = 57.5
+Correct: (10 + 20 + 100) / 3 = 43.333...
 ~~~
 
-Combiner không thể chỉ tính trung bình của hai trung bình, trừ khi thiết kế có thêm trọng số đúng. Thay vào đó, accumulator nên giữ cặp **(sum, count)**, combiner cộng từng trường, finisher mới chia.
+A combiner cannot simply average two averages unless the design adds proper weights. Instead, the accumulator should hold a **(sum, count)** pair, the combiner adds each field, and only the finisher divides.
 
 ~~~java
 import java.math.BigDecimal;
@@ -864,7 +864,7 @@ import java.math.RoundingMode;
 record Stats(BigInteger sum, long count) {
     BigDecimal average(int scale) {
         if (count == 0) {
-            throw new IllegalStateException("Không có dữ liệu");
+            throw new IllegalStateException("No data");
         }
         return new BigDecimal(sum).divide(
                 BigDecimal.valueOf(count),
@@ -875,9 +875,9 @@ record Stats(BigInteger sum, long count) {
 }
 ~~~
 
-Record này là **kết quả cuối** có thể dùng sau khi đã thu thập `sum` và `count` bằng Collector đúng. Quyết định scale và rounding mode phải xuất phát từ yêu cầu nghiệp vụ.
+This record is a **final result** usable after collecting `sum` and `count` with a proper Collector. Decisions on scale and rounding mode must come from business requirements.
 
-### 14.2. Số nguyên có thể tràn
+### 14.2. Integers can overflow
 
 ~~~java
 import java.util.List;
@@ -896,9 +896,9 @@ System.out.println(wrong);         // -1294967296
 System.out.println(correctInLong); // 3000000000
 ~~~
 
-Dù combiner của phép cộng `int` có tính kết hợp **modulo** \(2^{32}\), kết quả có thể sai nghiệp vụ nếu muốn tổng số nguyên toán học. Chọn `long` hoặc `BigInteger` theo miền giá trị; đừng coi “sequential == parallel” là chứng cứ duy nhất của độ đúng.
+Even though `int` addition's combiner is associative **modulo** \(2^{32}\), the result can be business-wrong when mathematical integer totals are wanted. Choose `long` or `BigInteger` according to value domain; never treat "sequential == parallel" as sole proof of correctness.
 
-### 14.3. double không kết hợp tuyệt đối
+### 14.3. double is not strictly associative
 
 ~~~java
 double a = 1.0e16;
@@ -909,32 +909,32 @@ System.out.println((a + b) + c); // 1.0
 System.out.println(a + (b + c)); // 0.0
 ~~~
 
-Nếu combiner dùng phép cộng `double` hoặc làm tròn `BigDecimal` ở từng bước, kết quả có thể thay đổi theo cây gộp. Cần đặt ra sai số cho phép, thuật toán tích lũy, quy tắc làm tròn hoặc chọn phép toán chính xác nếu nghiệp vụ đòi hỏi.
+If a combiner uses `double` addition or rounds `BigDecimal` at every step, results can vary with the merge tree. Define allowed error tolerance, accumulation algorithm, rounding rules, or pick exact arithmetic if business logic demands it.
 
-## 15. Bộ ca kiểm thử đủ để bắt lỗi ghép trung gian
+## 15. A test suite comprehensive enough to catch intermediate merge bugs
 
-Một ma trận cơ bản:
+A baseline matrix:
 
-| Ca | Vì sao cần kiểm tra? | Kỳ vọng |
+| Case | Why test it? | Expectation |
 |---|---|---|
-| Nguồn rỗng | Supplier/finisher đúng trạng thái khởi đầu | Kết quả rỗng/0 đúng nghiệp vụ |
-| Một phần tử | Không tạo giá trị phụ | Kết quả bằng phần tử |
-| Hai phân vùng đều không rỗng | Buộc dùng combiner | Không mất/nhân đôi dữ liệu |
-| Một phân vùng rỗng | Identity | Ghép với rỗng không đổi kết quả |
-| Ba phân vùng | Associativity | Hai cách đặt ngoặc cho kết quả tương đương |
-| Phân vùng có kích thước rất lệch | Lộ lỗi chỉ tính trung bình các trung bình | Tổng/đếm đúng |
-| Dữ liệu lặp, khóa trùng | Lộ lỗi merge hoặc multiplicity | Giữ đủ số lần xuất hiện |
-| Nhiều giá trị dương và âm | Lộ overflow/triệt tiêu | Đúng theo miền số nghiệp vụ |
-| Hoán vị nguồn | Kiểm tra trường hợp kết quả không phụ thuộc thứ tự | Chỉ áp dụng nếu hợp đồng cho phép |
-| Nguồn lớn và nhiều lần chạy parallel | Phát hiện race hoặc lỗi hiếm | Đúng oracle, không có trạng thái chia sẻ |
-| Collector có `CONCURRENT` | Có thể dùng accumulator cùng lúc | Thread-safe và ổn định |
-| Kết quả có thứ tự | Lộ combiner đảo phần | Giữ encounter order khi phải giữ |
+| Empty source | Supplier/finisher handle initial state properly | Empty/0 result matching business rules |
+| Single element | Does not invent extra values | Result matches single element |
+| Two non-empty partitions | Forces combiner usage | No lost or duplicated data |
+| One empty partition | Identity | Merging with empty does not alter result |
+| Three partitions | Associativity | Both parenthesizations yield equivalent results |
+| Heavily skewed partition sizes | Exposes averaging-of-averages bug | Exact sum/count |
+| Duplicate data, duplicate keys | Exposes merge or multiplicity bugs | Preserves full multiplicities |
+| Many positive and negative values | Exposes overflow/cancellation | Accurate within business numeric domain |
+| Source permutations | Checks order-independent cases | Apply only if contract permits |
+| Large source and repeated parallel runs | Detects races or rare bugs | Matches oracle, no shared state |
+| Collector with `CONCURRENT` | Accumulator may be called concurrently | Thread-safe and consistent |
+| Ordered results | Exposes branch-reversing combiners | Preserves encounter order when required |
 
-Đừng dừng ở `assertEquals(sequential, parallel)`. Nếu combiner không được gọi trong một lần chạy hoặc cả hai đường thực thi đều có lỗi số học, phép so sánh có thể PASS giả.
+Do not stop at `assertEquals(sequential, parallel)`. If the combiner was not called in a run or both execution paths share an arithmetic bug, the comparison can falsely PASS.
 
-### 15.1. Oracle độc lập
+### 15.1. Independent oracle
 
-Với dữ liệu `Sale` ở mục 4, hãy xây một vòng lặp tính toán độc lập:
+For the `Sale` data in section 4, build an independent computation loop:
 
 ~~~java
 static Summary oracle(List<Sale> sales) {
@@ -950,7 +950,7 @@ static Summary oracle(List<Sale> sales) {
 }
 ~~~
 
-Thêm phương thức này **trong lớp `CollectorMergeDemo`**. Sau đó kiểm tra:
+Add this method **inside `CollectorMergeDemo`**. Then verify:
 
 ~~~java
 Summary expected = oracle(sales);
@@ -961,11 +961,11 @@ requireEquals(expected, seq);
 requireEquals(expected, par);
 ~~~
 
-Oracle này dùng vòng lặp, không gọi Collector đang được kiểm tra. Nhờ vậy, nếu `accumulator` và `combiner` cùng sai theo một cách, phép so sánh với oracle có cơ hội phát hiện.
+This oracle uses a loop, never calling the Collector under test. That way, if `accumulator` and `combiner` share a flaw, comparing against the oracle has a chance to catch it.
 
-### 15.2. Thử nhiều cách chia, không chỉ chia đôi
+### 15.2. Try multiple ways of splitting, not just halving
 
-Ví dụ với danh sách sáu phần tử:
+For example, with a six-element list:
 
 ~~~text
 [A, B, C, D, E, F]
@@ -981,11 +981,11 @@ Ví dụ với danh sách sáu phần tử:
 ...
 ~~~
 
-Dùng một helper như `CollectorChecks.mergeInOrder` để thử từng cách chia đôi. Với ba phân vùng, so sánh cả `(A + B) + C` và `A + (B + C)` bằng các container mới.
+Use a helper like `CollectorChecks.mergeInOrder` to test each two-way split. With three partitions, compare both `(A + B) + C` and `A + (B + C)` using fresh containers.
 
-Nếu Collector được thiết kế **UNORDERED** và có phép ghép thực sự không quan tâm thứ tự, có thể thử đảo các phân vùng. Với Collector có thứ tự, chỉ thay vị trí ranh giới và cây ghép; không đảo encounter order.
+If the Collector is designed as **UNORDERED** and its merge is genuinely order-indifferent, you can test swapping partitions as well. For ordered Collectors, only vary split boundaries and merge trees; do not reverse encounter order.
 
-### 15.3. Dùng seed cố định khi tạo dữ liệu
+### 15.3. Use a fixed seed when generating data
 
 ~~~java
 import java.util.ArrayList;
@@ -1014,11 +1014,11 @@ for (int trial = 0; trial < 20; trial++) {
 }
 ~~~
 
-Seed cố định cho phép tái hiện đầu vào khi phát hiện lỗi. Dẫu vậy, kiểm thử shuffle **không thay thế** phép kiểm tra hợp đồng identity và associativity, và việc lặp nhiều lần chưa chứng minh không có data race trong mọi điều kiện.
+A fixed seed lets you reproduce inputs when a bug is found. Still, shuffle tests **do not replace** identity and associativity contract checks, and repeating runs does not prove the absence of data races under all conditions.
 
-## 16. Cách viết kiểm thử với JUnit 5
+## 16. Writing tests with JUnit 5
 
-Nếu dự án có JUnit 5, các kiểm tra nên so sánh với oracle, thử nhiều dạng chia và đưa đầu vào biên vào test. Ví dụ dưới đây dựa trên lớp `CollectorMergeDemo` ở mục 4 (đặt mã test trong cùng phạm vi package hoặc điều chỉnh visibility):
+If the project uses JUnit 5, tests should compare against an oracle, try multiple split shapes, and include boundary inputs. The example below builds on `CollectorMergeDemo` from section 4 (place test code in the same package scope or adjust visibility):
 
 ~~~java
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -1072,59 +1072,59 @@ class CollectorMergeDemoTest {
 }
 ~~~
 
-Bài test đầu xác nhận giá trị mong đợi tính được từ ví dụ; bài test thứ hai ép ghép hai trạng thái; bài test thứ ba xác minh identity trên đầu vào rỗng.
+The first test confirms the expected values computed from the example; the second forces merging two states; the third verifies identity on empty input.
 
-Để biến thành một bộ kiểm tra mạnh hơn, bổ sung bài test cho 3 phân vùng và các cây ghép, lỗi trùng khóa, lần chạy song song lặp lại và các giá trị biên lớn. **Không nên viết test chỉ tái sử dụng cùng một phép tính sai ở cả expected và actual.**
+To make this a stronger test suite, add tests for 3 partitions and merge trees, duplicate-key errors, repeated parallel runs, and large boundary values. **Do not write tests that merely reuse the same buggy computation for both expected and actual.**
 
-## 17. Quy trình phân tích khi kết quả song song không khớp
+## 17. Analysis workflow when parallel results do not match
 
-Khi `parallelStream().collect(customCollector)` trả kết quả bất thường, dùng trình tự kiểm tra:
+When `parallelStream().collect(customCollector)` returns anomalous results, use this checklist sequence:
 
-1. **Bắt đầu với dữ liệu nhỏ có oracle rõ ràng.** Ghi lại các phần tử, thứ tự và kết quả mong đợi.
-2. **Kiểm tra supplier.** Mỗi lần gọi có tạo trạng thái độc lập đúng giá trị rỗng không?
-3. **Kiểm tra accumulator.** Một container nhận lần lượt mọi phần tử có cho kết quả đúng không?
-4. **Kiểm tra combiner trực tiếp.** Ép tạo hai container không rỗng, ghép chúng rồi đối chiếu oracle.
-5. **Kiểm tra identity và ba phân vùng.** Ghép với container rỗng; so hai cây ghép khác nhau.
-6. **Kiểm tra finisher.** Có làm tròn, đổi kiểu, bỏ trạng thái, trả tham chiếu mutable bị sửa sau đó hoặc nhầm `IDENTITY_FINISH` không?
-7. **Kiểm tra characteristics.** `CONCURRENT`, `UNORDERED` và `IDENTITY_FINISH` có phản ánh đúng hành vi không?
-8. **Kiểm tra trạng thái chia sẻ và độ chính xác số.** Loại bỏ các biến dùng chung và lỗi overflow/rounding.
-9. **Thử nguồn lớn, nhiều phân vùng, nhiều lần chạy.** Khi đã đúng mới xét benchmark hiệu năng.
+1. **Start with small data and a clear oracle.** Record elements, order, and expected result.
+2. **Check supplier.** Does each call create an independent state with the right empty values?
+3. **Check accumulator.** Does one container receiving every element sequentially produce the right result?
+4. **Check combiner directly.** Force creating two non-empty containers, merge them, and compare against the oracle.
+5. **Check identity and three partitions.** Merge with an empty container; compare two different merge trees.
+6. **Check finisher.** Does it round, convert types, drop state, return a mutable reference mutated later, or misuse `IDENTITY_FINISH`?
+7. **Check characteristics.** Do `CONCURRENT`, `UNORDERED`, and `IDENTITY_FINISH` accurately reflect behavior?
+8. **Check shared state and numeric precision.** Eliminate shared variables and overflow/rounding bugs.
+9. **Test large sources, many partitions, and repeated runs.** Only benchmark performance once correctness holds.
 
 ~~~text
-Kết quả parallel sai?
+Parallel result wrong?
        |
        v
-Sequential có đúng oracle?
-   |-- Không --> kiểm tra supplier / accumulator / finisher
+Does sequential match oracle?
+   |-- No --> check supplier / accumulator / finisher
    |
    v
-Ghép thủ công hai container có đúng?
-   |-- Không --> kiểm tra combiner, dữ liệu bị mất / nhân đôi
+Does manual two-container merge work?
+   |-- No --> check combiner, lost / duplicated data
    |
    v
-Ghép với empty và đổi cây 3 phân vùng có đúng?
-   |-- Không --> identity / associativity / rounding
+Do merging with empty and changing 3-partition trees work?
+   |-- No --> identity / associativity / rounding
    |
    v
-Có dùng chung một container hoặc khai báo CONCURRENT sai?
-   |-- Có --> sửa cấu trúc và hợp đồng đồng thời
+Is a single container shared or CONCURRENT misdeclared?
+   |-- Yes --> fix structure and concurrency contract
    |
    v
-So sánh theo hợp đồng kết quả (thứ tự, số học, ngưỡng sai số)
+Compare per result contract (ordering, arithmetic, error threshold)
        |
        v
-Chạy lại các ca biên và oracle; sau đó mới đo hiệu năng
+Rerun edge cases and oracle; only then measure performance
 ~~~
 
-## 18. Bài tập tự kiểm tra (kèm đáp án)
+## 18. Self-check exercises (with answers)
 
-### Bài 1. Supplier dùng chung
+### Exercise 1. Shared supplier
 
-**Đề:** Vì sao `() -> sharedList` là supplier sai cho Collector thông thường nếu `sharedList` là một `ArrayList` mutable dùng lại?
+**Prompt:** Why is `() -> sharedList` a wrong supplier for a normal Collector if `sharedList` is a reused mutable `ArrayList`?
 
-**Đáp án:** Mỗi container đáng lẽ phải độc lập. Khi hai nhánh dùng cùng list, các lần `accumulator` có thể ghi đồng thời và `combiner` có thể nối một list với chính nó. Dùng `ArrayList::new` để mỗi lời gọi supplier tạo list riêng.
+**Answer:** Every container is supposed to be independent. When two branches use the same list, `accumulator` calls can write concurrently and `combiner` may merge a list into itself. Use `ArrayList::new` so each supplier call creates a separate list.
 
-### Bài 2. Combiner làm mất dữ liệu
+### Exercise 2. Combiner dropping data
 
 ~~~java
 Collector<Integer, int[], Integer> c = Collector.of(
@@ -1135,59 +1135,59 @@ Collector<Integer, int[], Integer> c = Collector.of(
 );
 ~~~
 
-**Đề:** Với hai phần `[1, 2]` và `[3, 4]`, kết quả ghép thủ công ra sao?
+**Prompt:** Given two parts `[1, 2]` and `[3, 4]`, what is the result of manual merging?
 
-**Đáp án:** `left = 3`, `right = 7`. Combiner chỉ trả `left` nên kết quả là `3`, không phải tổng `10`. Sửa thành `left[0] += right[0]; return left;`.
+**Answer:** `left = 3`, `right = 7`. The combiner only returns `left`, so the result is `3` instead of the sum `10`. Fix to `left[0] += right[0]; return left;`.
 
-### Bài 3. Associativity và thứ tự
+### Exercise 3. Associativity and order
 
-**Đề:** Collector nối danh sách bằng `left.addAll(right)` có cần thỏa `combine(left, right) == combine(right, left)` không?
+**Prompt:** Does a Collector concatenating lists via `left.addAll(right)` need to satisfy `combine(left, right) == combine(right, left)`?
 
-**Đáp án:** Không. Nó cần giữ đúng thứ tự khi đặt ngoặc lại: `(A+B)+C` và `A+(B+C)` đều bằng `A+B+C`. Nối `B+A` có thể đổi encounter order. Commutativity không phải điều kiện chung cho mọi Collector.
+**Answer:** No. It needs to preserve order when re-parenthesized: `(A+B)+C` and `A+(B+C)` both equal `A+B+C`. Concatenating `B+A` can alter encounter order. Commutativity is not a general requirement for every Collector.
 
-### Bài 4. Finisher và IDENTITY_FINISH
+### Exercise 4. Finisher and IDENTITY_FINISH
 
-**Đề:** Collector gom `ArrayList` rồi dùng `List.copyOf` để trả list không thể thay đổi cấu trúc. Có nên khai báo `IDENTITY_FINISH`?
+**Prompt:** A Collector gathers an `ArrayList` and uses `List.copyOf` to return a structurally unmodifiable list. Should `IDENTITY_FINISH` be declared?
 
-**Đáp án:** Không. Finisher thật sự thay đổi loại/hợp đồng của kết quả, từ list mutable thành list không thể thay đổi cấu trúc. `IDENTITY_FINISH` có thể khiến finisher bị bỏ qua.
+**Answer:** No. The finisher genuinely changes the type/contract of the result, from a mutable list to a structurally unmodifiable list. `IDENTITY_FINISH` could cause the finisher to be skipped.
 
-### Bài 5. Trung bình của hai nhóm
+### Exercise 5. Average of two groups
 
-**Đề:** Nhóm `A = [10, 20]` và `B = [100]`. Nếu combiner lấy trung bình của hai trung bình nhóm, kết quả sai như thế nào?
+**Prompt:** Groups `A = [10, 20]` and `B = [100]`. If the combiner takes the average of the two group averages, how is the result wrong?
 
-**Đáp án:** Cho `57.5`, nhưng trung bình toàn bộ là `130/3 ≈ 43.3333`. Gộp **sum** và **count**, sau đó chia ở finisher.
+**Answer:** It yields `57.5`, whereas the overall average is `130/3 ≈ 43.3333`. Merge **sum** and **count**, then divide in the finisher.
 
-### Bài 6. Collector và tràn số
+### Exercise 6. Collector and overflow
 
-**Đề:** Collector cộng `int` có combiner đúng `Integer::sum`, nhưng tổng thật vượt `Integer.MAX_VALUE`. Test chỉ so sequential và parallel bằng nhau có đủ không?
+**Prompt:** An `int`-summing Collector has the proper combiner `Integer::sum`, yet the true sum exceeds `Integer.MAX_VALUE`. Is a test checking only that sequential equals parallel sufficient?
 
-**Đáp án:** Không. Cả hai có thể cùng tràn theo số học `int`. Cần oracle `long`/`BigInteger` và kiểm tra miền số trước khi khẳng định kết quả nghiệp vụ đúng.
+**Answer:** No. Both can overflow identically under `int` arithmetic. You need a `long`/`BigInteger` oracle and numeric-range checks before claiming the business result is correct.
 
-### Bài 7. Concurrent collector
+### Exercise 7. Concurrent collector
 
-**Đề:** Có thể dùng `HashMap` và `HashMap::merge` thiếu đồng bộ rồi tự khai báo `CONCURRENT` không?
+**Prompt:** Can you use `HashMap` and unsynchronized `HashMap::merge` and simply declare `CONCURRENT`?
 
-**Đáp án:** Không. Nếu nhiều thread cùng gọi accumulator trên một container, `HashMap` không bảo đảm an toàn. Dùng collector concurrent chuẩn như `toConcurrentMap` hoặc xây cấu trúc thread-safe thực sự với hợp đồng thích hợp.
+**Answer:** No. If multiple threads call accumulator concurrently on one container, `HashMap` is not thread-safe. Use a standard concurrent collector like `toConcurrentMap` or build a genuinely thread-safe structure with the appropriate contract.
 
-### Bài 8. Kiểm tra trường hợp rỗng
+### Exercise 8. Testing the empty case
 
-**Đề:** Tại sao nguồn rỗng cần một bài test riêng?
+**Prompt:** Why does an empty source need its own test?
 
-**Đáp án:** Nguồn rỗng kiểm tra supplier khởi tạo chính xác và finisher xử lý trạng thái chưa tích lũy. Nó bắt được lỗi như `count = 1`, `min` mặc định không hợp lệ hoặc phép chia cho 0 khi tính trung bình.
+**Answer:** An empty source tests whether the supplier initializes properly and the finisher handles unaccumulated state. It catches bugs like `count = 1`, invalid default `min`, or division by zero when averaging.
 
-### Bài 9. Nguồn có thứ tự
+### Exercise 9. Ordered source
 
-**Đề:** Dữ liệu `[A, B, C, D]` cần kết quả List theo thứ tự. Một combiner trả `right.addAll(left)` có nguy cơ gì?
+**Prompt:** Data `[A, B, C, D]` needs an ordered List result. What risk does a combiner returning `right.addAll(left)` carry?
 
-**Đáp án:** Khi chia phần, nó có thể đặt nhóm sau trước nhóm trước. Kết quả có thể là `[C, D, A, B]`, vi phạm yêu cầu encounter order. Dùng `left.addAll(right)` theo thứ tự combiner nhận các phần.
+**Answer:** When partitioned, it can place a later group before an earlier group. The result can become `[C, D, A, B]`, violating encounter-order requirements. Use `left.addAll(right)` in the order the combiner receives the parts.
 
-### Bài 10. Chọn phép kiểm chứng phù hợp
+### Exercise 10. Choosing the right verification check
 
-**Đề:** Collector gom tổng cent theo từng khóa `BOOK` và `PEN`. Cần so kết quả ra sao?
+**Prompt:** A Collector aggregates total cents per key `BOOK` and `PEN`. How should the result be verified?
 
-**Đáp án:** So cùng tập khóa, tổng của **từng khóa**, tổng cộng các nhóm và tổng số bản ghi nếu có thống kê số lượng. Không dựa vào thứ tự in ra của `Map`. Với dữ liệu tiền lớn, dùng kiểu số có miền đủ rộng hoặc `BigInteger`.
+**Answer:** Check the exact same key set, the sum for **each key**, the grand total across groups, and total record count if counts are tracked. Do not rely on `Map` print order. For large monetary values, use a numeric type with sufficient range or `BigInteger`.
 
 ---
 
-**Ghi nhớ:** Một `Collector` chỉ đáng tin cậy khi **supplier tạo trạng thái rỗng độc lập, accumulator đưa dữ liệu vào đúng container, combiner giữ identity và associativity, finisher trả kết quả đúng hợp đồng, và characteristics phản ánh đúng hành vi**. Hãy chủ động ghép **hai và ba** trạng thái trung gian, so với oracle độc lập và thử cả nguồn rỗng, thứ tự, tràn số, dữ liệu trùng lặp. Kết quả tuần tự đúng hoặc một lần chạy song song thành công chưa đủ chứng minh Collector sẽ luôn đúng khi Stream phân chia công việc theo cách khác.
+**Takeaway:** A `Collector` is only trustworthy when **supplier creates independent empty states, accumulator inserts data into the right container, combiner preserves identity and associativity, finisher returns results per contract, and characteristics accurately reflect behavior**. Proactively merge **two and three** intermediate states, compare against an independent oracle, and test empty sources, ordering, overflow, and duplicate data. A passing sequential run or a single successful parallel run is not enough to prove a Collector will always be right when the Stream splits work differently.
 

@@ -1,31 +1,31 @@
-# Accessor được khai báo tường minh và metadata thực tế của record
+# Explicitly declared accessors and actual record metadata
 
-## 1. Accessor của record là một phương thức thực sự
+## 1. A record accessor is a real method
 
-Với `record Label(String text)`, component `text` có một phương thức truy cập cùng tên: `text()`. Nếu tác giả không khai báo nó, compiler cung cấp phần thực hiện trả về giá trị component field.
+For `record Label(String text)`, the `text` component has an accessor method of the same name: `text()`. If the author does not declare it, the compiler provides an implementation that returns the component field's value.
 
-Tác giả cũng có thể khai báo accessor tường minh trong phần thân record. Khi đó, phương thức ấy chính là accessor của component; không có thêm một accessor ngầm định khác cùng chữ ký để Reflection lựa chọn.
+The author can also declare an accessor explicitly inside the record body. In that case, that method is the component's accessor; there is no additional implicit accessor with the same signature for Reflection to choose between.
 
-Điều này tạo ra ba lớp thông tin cần phân biệt:
+This creates three layers of information to distinguish:
 
-- **RecordComponent:** tên, kiểu, annotation và thông tin về component trong phần đầu record.
-- **Method accessor:** phương thức truy cập thực tế, cùng metadata và phần thực hiện của nó.
-- **Component field:** nơi lưu giá trị tương ứng, có đặc tính `private final`.
+- **RecordComponent:** name, type, annotations, and information about the component in the record header.
+- **Accessor method:** the actual access method, along with its metadata and implementation body.
+- **Component field:** where the corresponding value is stored, with `private final` characteristics.
 
-`RecordComponent.getAccessor()` nối component với đúng đối tượng `Method` mô tả accessor của nó. API này không bảo đảm accessor chỉ làm một phép đọc field đơn giản nếu tác giả đã tự viết phần thân.
+`RecordComponent.getAccessor()` connects the component to the exact `Method` object describing its accessor. This API does not guarantee that the accessor performs only a simple field read if the author wrote its body manually.
 
-## 2. Quy tắc của accessor tường minh
+## 2. Rules for explicit accessors
 
-Accessor tường minh của một component phải:
+An explicit accessor of a component must:
 
-- Có cùng tên với component.
-- Là phương thức instance `public`.
-- Không có tham số.
-- Có kiểu trả về giống kiểu khai báo của component.
-- Không khai báo tham số kiểu của riêng phương thức.
-- Không có mệnh đề `throws`.
+- Have the same name as the component.
+- Be a `public` instance method.
+- Have no parameters.
+- Have the same return type as the component's declared type.
+- Declare no method-specific type parameters.
+- Have no `throws` clause.
 
-Ví dụ một khai báo hợp lệ về mặt ngôn ngữ:
+Example of a valid declaration in the language:
 
 ~~~java
 record Measurement(int value) {
@@ -35,17 +35,17 @@ record Measurement(int value) {
 }
 ~~~
 
-Đây là một khai báo record, không phải chương trình có `main`.
+This is a record declaration, not a program with `main`.
 
-Không đổi accessor thành `getValue()` theo quy ước JavaBean rồi cho rằng nó thay thế `value()`. Một method khác tên chỉ là method khác của record. Tương tự, một overload như `value(int scale)` không phải accessor của component `value`.
+Do not rename the accessor to `getValue()` following JavaBean conventions and assume it replaces `value()`. A method with a different name is just another method on the record. Similarly, an overload like `value(int scale)` is not the accessor of component `value`.
 
-Accessor được tự viết không nhất thiết ghi đè một phương thức từ lớp cha hoặc interface. Tuy vậy, Java có quy tắc riêng cho record: **được phép đặt `@Override` trên accessor tường minh của một component**, kể cả khi không có phương thức tương ứng trong kiểu cha. Annotation này giúp trình biên dịch phát hiện khi component bị đổi tên hoặc loại bỏ mà phương thức cũ không còn là accessor. Quy tắc được nêu tại [JLS §9.6.4.4](https://docs.oracle.com/javase/specs/jls/se21/html/jls-9.html#jls-9.6.4.4).
+A handwritten accessor does not have to override a method from a superclass or interface. Still, Java has a special rule for records: **you are allowed to put `@Override` on an explicit accessor of a component**, even when there is no corresponding method in a supertype. This annotation helps the compiler catch when a component is renamed or removed and the old method is no longer an accessor. The rule is stated in [JLS §9.6.4.4](https://docs.oracle.com/javase/specs/jls/se21/html/jls-9.html#jls-9.6.4.4).
 
-## 3. Ví dụ: metadata xác định accessor, lời gọi chạy phần thân thực tế
+## 3. Example: metadata identifies the accessor, invocation runs the actual body
 
-Ví dụ dưới cố ý đặt việc chuẩn hóa chuỗi trong accessor để quan sát sự khác biệt giữa giá trị lưu và giá trị trả về. Thiết kế `Label` trong ví dụ không giữ được quy tắc sao chép của record; phần sau sẽ chỉ ra cách sửa.
+The example below intentionally puts string normalization inside the accessor to observe the difference between the stored value and the returned value. The `Label` design in the example fails the record copy rule; a later section shows how to fix it.
 
-Lưu thành `ExplicitAccessorBehaviorDemo.java`:
+Save as `ExplicitAccessorBehaviorDemo.java`:
 
 ~~~java
 import java.lang.reflect.Field;
@@ -100,14 +100,14 @@ public class ExplicitAccessorBehaviorDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17:
+Compile and run with JDK 17:
 
 ~~~bash
 javac --release 17 ExplicitAccessorBehaviorDemo.java
 java ExplicitAccessorBehaviorDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 component=text
@@ -123,42 +123,42 @@ normalized=[LAN]
 normalizedCopyEquals=true
 ~~~
 
-Các cặp dấu ngoặc vuông giúp nhìn rõ khoảng trắng trong giá trị field. Accessor tường minh trả `LAN`, còn field vẫn chứa chuỗi `"  lan  "` được đưa vào constructor.
+The square brackets make whitespace in the field value easy to see. The explicit accessor returns `LAN`, while the field still holds the string `"  lan  "` passed to the constructor.
 
-`getAccessor()` trả metadata của phương thức `text()` thực tế. So sánh bằng `Method.equals` với phương thức tìm được từ `getDeclaredMethod("text")` cho kết quả đúng. Không dùng `==` để yêu cầu hai lần lấy metadata phải trả cùng một tham chiếu đối tượng `Method`.
+`getAccessor()` returns metadata for the actual `text()` method. Comparing with `Method.equals` against the method found by `getDeclaredMethod("text")` evaluates to true. Do not use `==` to require two metadata lookups to return the same `Method` object reference.
 
-Lời gọi `accessor.invoke(original)` chạy phần thân đã được tác giả viết. Reflection không bỏ qua phần chuẩn hóa để đọc thẳng field.
+The call `accessor.invoke(original)` runs the body written by the author. Reflection does not skip the normalization logic to read the field directly.
 
-Việc bật truy cập field trong ví dụ chỉ phục vụ quan sát giá trị lưu trong cùng lớp ngoài; không có thao tác ghi field. Một công cụ sử dụng giao diện công khai của record không nên mặc định thay lời gọi accessor bằng đọc private field.
+Enabling field access in the example is solely to observe the stored value inside the same outer class; there is no field write operation. A tool using a record's public interface should not by default replace accessor calls with private field reads.
 
-## 4. Hệ quả đối với hợp đồng của record
+## 4. Consequences for the record contract
 
-Các phần thực hiện mặc định của `equals`, `hashCode` và `toString` dựa trên component field, không gọi accessor tường minh để lấy một giá trị đã biến đổi.
+The default implementations of `equals`, `hashCode`, and `toString` rely on component fields rather than calling an explicit accessor to obtain a transformed value.
 
-Record cần giữ quy tắc sao chép: nếu tạo một record mới bằng các giá trị nhận từ accessor của record cũ, hai record phải bằng nhau theo `equals`.
+A record should uphold the copy rule: if you create a new record using the values returned by the old record's accessors, the two records should be equal according to `equals`.
 
-Trong `Label` của ví dụ:
+In `Label` of the example:
 
-1. Đối tượng ban đầu lưu `"  lan  "`.
-2. Accessor trả `"LAN"`.
-3. Bản sao được tạo từ accessor lưu `"LAN"`.
-4. `equals` mặc định so sánh hai giá trị field khác nhau, nên trả `false`.
+1. The original object stores `"  lan  "`.
+2. The accessor returns `"LAN"`.
+3. The copy created from the accessor stores `"LAN"`.
+4. Default `equals` compares the two different field values, so it returns `false`.
 
-Mã ấy biên dịch được nhưng thiết kế làm mất quy tắc sao chép. Compiler không kiểm chứng được mọi hành vi của accessor do tác giả viết.
+That code compiles, yet the design breaks the copy rule. The compiler cannot verify all behaviors of an author-written accessor.
 
-`NormalizedLabel` chuyển bước chuẩn hóa vào compact constructor. Giá trị lưu ngay từ đầu đã là `LAN`; accessor ngầm định trả đúng giá trị đó. Bản sao đi qua cùng quy tắc chuẩn hóa và vẫn bằng đối tượng ban đầu.
+`NormalizedLabel` moves the normalization step into the compact constructor. The stored value is `LAN` from the start; the implicit accessor returns that exact value. A copy goes through the same normalization rule and remains equal to the original object.
 
-Nếu chỉ cần một chuỗi hiển thị khác, một lựa chọn rõ ràng là giữ accessor trả dữ liệu component và thêm phương thức có tên riêng cho biểu diễn hiển thị. Dù chọn cách nào, tác giả phải xét sự nhất quán với constructor và các method đặc trưng của record.
+If you merely need a different display string, a clean option is keeping the accessor returning component data and adding a separately named method for the display representation. Whichever approach is chosen, the author must consider consistency with the constructor and the record's characteristic methods.
 
-Metadata như tên và kiểu trả về không đủ để chứng minh accessor “chỉ đọc field”. Một method có thể tính toán, ném ngoại lệ không kiểm tra hoặc thực hiện tác vụ khác mà vẫn có cùng chữ ký.
+Metadata such as name and return type is not enough to prove an accessor "only reads a field." A method can compute, throw unchecked exceptions, or perform other work while having the exact same signature.
 
-## 5. Annotation của component và annotation của accessor là hai nơi khác nhau
+## 5. Component annotations and accessor annotations are two separate locations
 
-Annotation trên phần đầu record có thể được truyền sang các thành viên được khai báo ngầm định nếu `@Target` cho phép. Với **accessor được khai báo tường minh**, annotation trên component không tự được truyền sang method ấy.
+Annotations in the record header can be propagated to implicitly declared members if `@Target` permits. For an **explicitly declared accessor**, annotations on the component are not automatically propagated to that method.
 
-Vì vậy, việc thêm một accessor tường minh có thể làm thay đổi metadata method quan sát được, dù tên component và kiểu component vẫn như cũ.
+Therefore, adding an explicit accessor can change the observable method metadata, even though the component name and component type remain the same.
 
-Lưu thành `ExplicitAccessorAnnotationsDemo.java`:
+Save as `ExplicitAccessorAnnotationsDemo.java`:
 
 ~~~java
 import java.lang.annotation.ElementType;
@@ -214,121 +214,121 @@ public class ExplicitAccessorAnnotationsDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 ExplicitAccessorAnnotationsDemo.java
 java ExplicitAccessorAnnotationsDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 Implicit: componentHeader=true, accessorHeader=true, accessorOwn=false
 Explicit: componentHeader=true, accessorHeader=false, accessorOwn=true
 ~~~
 
-Giải thích:
+Explanation:
 
-- `HeaderTag` được phép xuất hiện trên component và trên method, đồng thời giữ lại ở runtime.
-- Cả hai component đều có `HeaderTag`.
-- Accessor ngầm định của `Implicit` nhận annotation được truyền từ component.
-- Accessor tường minh của `Explicit` không tự nhận `HeaderTag`; nó có `AccessorTag` được viết trực tiếp trên method.
+- `HeaderTag` is allowed on both components and methods, and is retained at runtime.
+- Both components have `HeaderTag`.
+- `Implicit`'s implicit accessor receives the annotation propagated from the component.
+- `Explicit`'s explicit accessor does not automatically receive `HeaderTag`; it has `AccessorTag` written directly on the method.
 
-Nếu một framework đọc annotation từ accessor, việc tác giả thêm method tường minh có thể làm framework không còn thấy annotation cũ ở method. Điều đó không có nghĩa annotation đã biến mất khỏi component.
+If a framework reads annotations from the accessor, an author adding an explicit method can cause the framework to stop seeing the old annotation on the method. That does not mean the annotation disappeared from the component.
 
-Nếu hợp đồng yêu cầu accessor tường minh cũng có cùng annotation, tác giả có thể khai báo annotation tại method khi `@Target` cho phép. Một công cụ cũng có thể đọc đồng thời các vị trí theo chính sách đã định, nhưng không nên giả định mọi vị trí luôn chứa cùng dữ liệu.
+If the contract requires the explicit accessor to also carry the same annotation, the author can declare the annotation on the method when `@Target` allows. A tool can also read multiple locations according to a defined policy, but it should not assume every location always holds the same data.
 
-## 6. Chọn đúng API cho loại metadata cần dùng
+## 6. Choosing the right API for the needed metadata kind
 
-| Thông tin cần lấy | API phù hợp |
+| Information to retrieve | Suitable API |
 | --- | --- |
-| Tên component trong phần đầu record | `RecordComponent.getName()` |
-| Kiểu component ở mức Class | `RecordComponent.getType()` |
-| Kiểu generic của component | `RecordComponent.getGenericType()` |
-| Annotation khai báo trên component ở runtime | `RecordComponent.getAnnotations()` hoặc `getAnnotation(...)` |
-| Metadata kiểu được chú thích của component | `RecordComponent.getAnnotatedType()` |
-| Method accessor thực tế | `RecordComponent.getAccessor()` |
-| Annotation của method accessor thực tế | `Method.getAnnotations()` hoặc `getAnnotation(...)` |
-| Metadata kiểu trả về được chú thích của accessor | `Method.getAnnotatedReturnType()` |
-| Giá trị do accessor cung cấp cho một instance | `Method.invoke(instance)` |
+| Component name in the record header | `RecordComponent.getName()` |
+| Component type at the Class level | `RecordComponent.getType()` |
+| Generic type of the component | `RecordComponent.getGenericType()` |
+| Declaration annotations on the component at runtime | `RecordComponent.getAnnotations()` or `getAnnotation(...)` |
+| Annotated type metadata of the component | `RecordComponent.getAnnotatedType()` |
+| Actual accessor method | `RecordComponent.getAccessor()` |
+| Annotations of the actual accessor method | `Method.getAnnotations()` or `getAnnotation(...)` |
+| Annotated return type metadata of the accessor | `Method.getAnnotatedReturnType()` |
+| Value provided by the accessor for an instance | `Method.invoke(instance)` |
 
-Annotation khai báo và annotation dùng trên kiểu (`TYPE_USE`) cũng là hai khía cạnh cần đọc bằng API tương ứng. Khi accessor được viết tường minh, hãy quan sát metadata của method và kiểu trả về thực tế; không tự suy ra rằng chúng đã được sao chép từ component.
+Declaration annotations and type-use annotations (`TYPE_USE`) are also two aspects that must be read with their respective APIs. When an accessor is explicitly written, inspect the metadata of the actual method and return type; do not assume it was copied from the component.
 
-Với generic, `getType()`/`getReturnType()` cho thông tin ở mức `Class`, còn `getGenericType()`/`getGenericReturnType()` giữ mô tả generic phù hợp. Không dùng một chuỗi tên kiểu đã rút gọn làm bằng chứng rằng toàn bộ metadata ở hai vị trí đều giống nhau.
+For generics, `getType()`/`getReturnType()` give `Class`-level information, while `getGenericType()`/`getGenericReturnType()` retain the appropriate generic description. Do not use an erased type name string as proof that all metadata at both locations is identical.
 
-Nên giữ thông tin nguồn của annotation khi tổng hợp: annotation đến từ component hay từ method? Nếu cả hai nơi có cùng loại annotation nhưng giá trị khác nhau, công cụ phải có quy tắc ưu tiên hoặc báo xung đột rõ ràng.
+You should preserve annotation source information when aggregating: did the annotation come from the component or from the method? If both locations have the same annotation type with different values, the tool must have a clear precedence rule or conflict reporting.
 
-Không có một quy tắc gộp chung phù hợp cho mọi thư viện. Một bộ xử lý cấu trúc record có thể lấy component làm điểm chính; một bộ xử lý method công khai có thể dùng method làm điểm chính. Cả hai phải thực hiện chính sách của mình dựa trên dữ liệu đã đọc.
+No single merging rule fits every library. A record-structure processor may treat the component as primary; a public-method processor may treat the method as primary. Both must enforce their policy based on the data read.
 
-## 7. getAccessor không phải công cụ phân biệt tác giả với compiler
+## 7. getAccessor is not a tool for distinguishing author from compiler
 
-Accessor ngầm định cũng là method thật của lớp sau khi biên dịch. Accessor tường minh cũng được trả về qua cùng API `getAccessor()`.
+An implicit accessor is also a real method on the class after compilation. An explicit accessor is also returned through the same `getAccessor()` API.
 
-Không có cờ `isExplicitAccessor()` trong `RecordComponent`. Cũng không dùng `Method.isSynthetic()` như một phép kiểm tra chắc chắn “ngầm định hay do tác giả viết”: các thành viên ngầm định được quy định bởi Java không nhất thiết là synthetic.
+There is no `isExplicitAccessor()` flag on `RecordComponent`. Nor should you use `Method.isSynthetic()` as a definitive check for "implicit vs. author-written": implicit members specified by Java are not necessarily synthetic.
 
-Trong ví dụ đầu, accessor tường minh có `synthetic=false`. Một accessor do compiler cung cấp cũng có thể có kết quả như vậy. Giá trị cờ này không chứng minh nguồn gốc tường minh của phần thân.
+In the first example, the explicit accessor has `synthetic=false`. A compiler-provided accessor can also yield that result. This flag value does not prove an explicit origin of the body.
 
-Nếu công cụ cần biết chính xác accessor có được viết trong tệp nguồn hay không, phải có thêm dữ liệu nguồn hoặc công cụ phân tích phù hợp. Không suy ra điều đó từ việc method có cùng tên với component, có annotation hay không, hoặc có vẻ chỉ trả một field.
+If a tool needs to know for certain whether an accessor was written in a source file, it needs additional source data or an appropriate analysis tool. Do not infer that from whether the method shares the component's name, whether it has annotations, or whether it appears to return only a field.
 
-Mục đích của `getAccessor()` là tìm đúng phương thức truy cập của component, không phải tái dựng lịch sử tác giả của method.
+The purpose of `getAccessor()` is to find the component's exact accessor method, not to reconstruct the authoring history of the method.
 
-## 8. Ứng dụng trong công cụ đọc record
+## 8. Application in a record-reading tool
 
-Một bộ đọc record có thể thực hiện theo thứ tự:
+A record reader can proceed in sequence:
 
-1. Kiểm tra `Class.isRecord()`.
-2. Lấy `getRecordComponents()` để giữ cấu trúc và thứ tự component.
-3. Với mỗi component, lấy `getAccessor()` và đọc metadata method cần thiết.
-4. Giữ riêng metadata component, method và kiểu được chú thích.
-5. Chỉ gọi accessor khi thực sự cần giá trị và khi đối tượng đầu vào phù hợp.
+1. Check `Class.isRecord()`.
+2. Retrieve `getRecordComponents()` to preserve component structure and order.
+3. For each component, get `getAccessor()` and read the needed method metadata.
+4. Keep component, method, and annotated-type metadata separate.
+5. Invoke the accessor only when the value is actually needed and the input object is valid.
 
-Không tìm accessor bằng cách lấy phần tử đầu tiên trong `getDeclaredMethods()` có cùng tên. Method overload hoặc bridge method có thể khiến một phép chọn đơn giản như vậy sai mục tiêu; thứ tự mảng metadata cũng không được dùng làm quy tắc chọn.
+Do not find an accessor by taking the first element in `getDeclaredMethods()` with the same name. Overloaded methods or bridge methods can cause such a simple selection to pick the wrong target; metadata array order must not be used as a selection rule either.
 
-Khi gọi accessor tường minh:
+When invoking an explicit accessor:
 
-- Nó có thể trả giá trị đã biến đổi, như ví dụ quan sát.
-- Nó có thể ném ngoại lệ không kiểm tra dù không có `throws` trong khai báo.
-- Ngoại lệ từ phần thân được `Method.invoke` bọc trong `InvocationTargetException`.
-- Lời gọi vẫn chịu quy tắc truy cập của Reflection.
+- It can return a transformed value, as observed in the example.
+- It can throw unchecked exceptions even without a `throws` clause in its declaration.
+- Exceptions from the body are wrapped by `Method.invoke` in `InvocationTargetException`.
+- The invocation is still subject to Reflection access rules.
 
-Nếu accessor thất bại, tự động chuyển sang đọc private field có thể làm thay đổi ngữ nghĩa của bộ đọc và bỏ qua logic công khai của record. Hãy xử lý lỗi theo hợp đồng của công cụ, thay vì âm thầm coi hai cách lấy giá trị là tương đương.
+If an accessor fails, automatically falling back to reading the private field can alter the reader's semantics and bypass the record's public logic. Handle errors according to the tool's contract instead of silently treating the two ways of obtaining values as equivalent.
 
-Một trình xem metadata chỉ cần tên, kiểu và annotation có thể dừng ở các bước đọc mô tả. Nó không cần chạy accessor để biết accessor nào thuộc component nào.
+A metadata viewer that only needs names, types, and annotations can stop at the descriptor-reading steps. It does not need to execute the accessor to know which accessor belongs to which component.
 
-## 9. Các lỗi dễ gặp
+## 9. Common pitfalls
 
-| Giả định sai | Hệ quả |
+| Wrong assumption | Consequence |
 | --- | --- |
-| Accessor của record luôn là mã compiler sinh để đọc field | Bỏ qua phần thực hiện do tác giả viết |
-| `getAccessor()` trả một method mặc định tách biệt với method tường minh | Hiểu sai method thực tế được dùng |
-| Có cùng tên/kiểu nên field và accessor luôn trả cùng giá trị | Có thể đọc sai ngữ nghĩa dữ liệu |
-| Annotation trên component luôn có trên accessor | Sai với accessor tường minh hoặc annotation không có target phù hợp |
-| Không thấy annotation trên method nghĩa là component không có annotation | Bỏ sót metadata ở vị trí khác |
-| Method không synthetic chắc chắn do tác giả viết | Phân loại sai accessor ngầm định |
-| `equals` mặc định gọi accessor đã được tùy chỉnh | Bỏ qua giá trị field được dùng cho so sánh |
-| Tùy chỉnh accessor không cần xét constructor/copy | Có thể làm mất quy tắc sao chép của record |
+| A record accessor is always compiler-generated code to read a field | Overlooks author-written implementation |
+| `getAccessor()` returns a default method separate from the explicit method | Misunderstands the actual method being used |
+| Having the same name/type means field and accessor always return the same value | May read wrong data semantics |
+| Annotations on a component are always present on the accessor | Fails for explicit accessors or annotations without an applicable target |
+| Not seeing an annotation on the method means the component has no annotation | Misses metadata at the other location |
+| Non-synthetic methods are definitely author-written | Misclassifies implicit accessors |
+| Default `equals` calls a customized accessor | Overlooks the field values used for comparison |
+| Customizing an accessor without considering constructor/copy | May break the record's copy rule |
 
-## 10. Tự kiểm tra
+## 10. Self-check
 
-1. Khi record tự khai báo accessor, `RecordComponent.getAccessor()` trả method nào?
-2. Vì sao một bộ đọc gọi accessor có thể nhận giá trị khác với một bộ đọc field?
-3. `@Target(METHOD)` có đủ để bảo đảm annotation trên component được truyền sang một accessor tường minh không?
-4. Nếu annotation còn trên component nhưng không có trên accessor, hai kết quả Reflection có mâu thuẫn không?
-5. Có thể dùng `isSynthetic()` để xác định chắc chắn accessor được tác giả viết hay không?
-6. Vì sao chuyển chuẩn hóa vào constructor giúp `NormalizedLabel` giữ quy tắc sao chép trong ví dụ?
+1. When a record declares an accessor itself, which method does `RecordComponent.getAccessor()` return?
+2. Why might a reader calling the accessor receive a different value than a field reader?
+3. Is `@Target(METHOD)` enough to guarantee an annotation on a component propagates to an explicit accessor?
+4. If an annotation remains on the component but is absent on the accessor, do the two Reflection results contradict each other?
+5. Can `isSynthetic()` be used to determine with certainty that an accessor was written by the author?
+6. Why does moving normalization into the constructor help `NormalizedLabel` preserve the copy rule in the example?
 
-Đáp án:
+Answers:
 
-1. Method accessor thực tế đã được khai báo tường minh.
-2. Accessor có phần thân thực thi riêng; đọc field lấy giá trị đang lưu.
-3. Không. Accessor tường minh không tự nhận annotation truyền từ component; target chỉ là điều kiện về vị trí được phép dùng.
-4. Không. Chúng mô tả hai phần tử được chú thích khác nhau.
-5. Không; cần thêm dữ liệu nếu muốn xác định nguồn gốc phần thân.
-6. Giá trị lưu đã được chuẩn hóa; accessor trả giá trị ấy và bản sao qua constructor giữ cùng giá trị.
+1. The actual explicitly declared accessor method.
+2. The accessor has its own executable body; reading the field gets the stored value.
+3. No. An explicit accessor does not automatically receive annotations propagated from the component; the target is only a condition for allowed locations.
+4. No. They describe two different annotated elements.
+5. No; additional data is needed to determine the origin of the body.
+6. The stored value is already normalized; the accessor returns that value and copying via the constructor preserves the same value.
 
-## Tài liệu đối chiếu
+## References
 
-- [JLS 17 — Thành viên record, accessor tường minh và annotation](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.10.3).
-- [Java 17 — RecordComponent.getAccessor và metadata component](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/RecordComponent.html#getAccessor()).
-- [Java 17 — Record và quy tắc sao chép](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Record.html).
+- [JLS 17 — Record members, explicit accessors, and annotations](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.10.3).
+- [Java 17 — RecordComponent.getAccessor and component metadata](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/reflect/RecordComponent.html#getAccessor()).
+- [Java 17 — Record and the copy rule](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Record.html).

@@ -1,17 +1,17 @@
-# Mảng nhiều chiều là mảng chứa tham chiếu tới mảng con trong Java
+# Multidimensional Arrays Are Arrays of References to Subarrays in Java
 
-> **Java core — language-basics / Mảng nhiều chiều**  
-> **Yêu cầu:** JDK 17+; ví dụ Java độc lập, không cần thư viện ngoài.  
-> **Mục tiêu:** Hiểu đúng cấu trúc `int[][]` là **một mảng ngoài chứa các tham chiếu tới những mảng `int[]`**, biết phân biệt mảng con chưa tạo (`null`) với mảng con đã tạo, lý giải hàng có độ dài khác nhau, chia sẻ tham chiếu và thao tác với hai tầng chỉ số.
+> **Java core — language-basics / Multidimensional arrays**  
+> **Requirements:** JDK 17+; standalone Java examples, no external libraries required.  
+> **Goal:** Correctly understand the `int[][]` structure as **an outer array containing references to `int[]` arrays**, distinguish uncreated subarrays (`null`) from created subarrays, explain rows of differing lengths, reference sharing, and working with two index levels.
 
-## 1. Mô hình “mảng chứa các mảng” thay vì một bảng nguyên khối
+## 1. The "Array of Arrays" Model Instead of a Contiguous Grid
 
-Trong Java, `int[][]` được đọc là “mảng có phần tử kiểu `int[]`”. Mỗi phần tử của **mảng ngoài** là **một tham chiếu** tới một mảng `int[]` hoặc giá trị `null`. Chỉ các phần tử **bên trong mảng `int[]`** mới chứa giá trị nguyên thủy `int`.
+In Java, `int[][]` is read as "an array whose elements have type `int[]`". Each element of the **outer array** is **a reference** to an `int[]` array or the value `null`. Only the elements **inside the `int[]` arrays** hold primitive `int` values.
 
 ~~~text
 int[][] grid = new int[2][3];
 
-grid (tham chiếu tới mảng ngoài int[][])
+grid (reference to outer array int[][])
        │
        ▼
   +----------+       +-------------+
@@ -22,31 +22,31 @@ grid (tham chiếu tới mảng ngoài int[][])
                      +-------------+
 ~~~
 
-Ở mức ngữ nghĩa Java, `new int[2][3]` tạo **một mảng ngoài có hai phần tử tham chiếu**, và mỗi phần tử đó được trỏ tới **một mảng con `int[3]` riêng**. Vì thế:
+At the Java semantic level, `new int[2][3]` creates **an outer array with two reference elements**, and each of those elements points to **a separate `int[3]` subarray**. Therefore:
 
 ~~~java
 int[][] grid = new int[2][3];
-System.out.println(grid.length);       // 2: số phần tử của mảng ngoài.
-System.out.println(grid[0].length);    // 3: số phần tử hàng 0.
-System.out.println(grid[1].length);    // 3: số phần tử hàng 1.
-System.out.println(grid[0] == grid[1]); // false: hai mảng con khác nhau.
+System.out.println(grid.length);       // 2: number of elements in the outer array.
+System.out.println(grid[0].length);    // 3: number of elements in row 0.
+System.out.println(grid[1].length);    // 3: number of elements in row 1.
+System.out.println(grid[0] == grid[1]); // false: two different subarrays.
 ~~~
 
-Cách diễn đạt “2 hàng × 3 cột” hữu ích để hình dung, nhưng **không nên suy ra rằng Java bắt buộc lưu cả ma trận thành một vùng `int` liên tục**. Hai hàng là hai đối tượng mảng độc lập, được tham chiếu từ mảng ngoài.
+The phrasing "2 rows × 3 columns" is useful for visualization, but **you should not infer that Java guarantees storing the entire matrix as a single contiguous region of `int` values**. The two rows are two independent array objects referenced from the outer array.
 
-## 2. Khởi tạo cả hai tầng hoặc chỉ mảng ngoài
+## 2. Initializing Both Levels or Only the Outer Array
 
-Sự khác biệt quan trọng nằm ở **các tầng đã được `new` tạo**:
+The important difference lies in **which levels have been created with `new`**:
 
-| Cú pháp | Mảng ngoài | Các mảng con ban đầu |
+| Syntax | Outer array | Initial subarrays |
 | --- | --- | --- |
-| `new int[2][3]` | Có, độ dài 2 | Hai `int[3]` khác nhau, chứa `0` |
-| `new int[2][]` | Có, độ dài 2 | Cả hai tham chiếu đều `null` |
-| `new int[2][0]` | Có, độ dài 2 | Hai `int[0]` hợp lệ và khác `null` |
-| `new int[0][3]` | Có, độ dài 0 | Không có phần tử mảng ngoài, nên không có hàng để truy cập |
-| `new String[2][3]` | Có, độ dài 2 | Hai `String[3]`, từng phần tử chuỗi là `null` |
+| `new int[2][3]` | Yes, length 2 | Two distinct `int[3]` arrays containing `0` |
+| `new int[2][]` | Yes, length 2 | Both references are `null` |
+| `new int[2][0]` | Yes, length 2 | Two valid `int[0]` arrays, non-`null` |
+| `new int[0][3]` | Yes, length 0 | No outer array elements, so no rows to access |
+| `new String[2][3]` | Yes, length 2 | Two `String[3]` arrays, each string element is `null` |
 
-Trong `new int[2][]`, các phần tử của mảng ngoài có **kiểu tham chiếu `int[]`**, nên nhận mặc định `null`, dù loại phần tử ở tầng sâu hơn là `int`.
+In `new int[2][]`, the elements of the outer array have **the reference type `int[]`**, so they receive the default value `null`, even though the element type at the deeper level is `int`.
 
 ~~~java
 int[][] partial = new int[2][];
@@ -54,19 +54,19 @@ System.out.println(partial.length);       // 2
 System.out.println(partial[0] == null);   // true
 System.out.println(partial[1] == null);   // true
 
-partial[0] = new int[3]; // Tạo hàng số 0, gồm [0, 0, 0].
-partial[1] = new int[0]; // Tạo hàng số 1, độ dài 0.
+partial[0] = new int[3]; // Create row 0, containing [0, 0, 0].
+partial[1] = new int[0]; // Create row 1, length 0.
 System.out.println(partial[0].length); // 3
 System.out.println(partial[1].length); // 0
 ~~~
 
-Từ `partial[1] == null` trước khi gán đến `partial[1].length == 0` sau khi gán là **hai trạng thái hoàn toàn khác nhau**: hàng chưa có đối tượng và hàng có đối tượng mảng rỗng.
+Going from `partial[1] == null` before assignment to `partial[1].length == 0` after assignment represents **two completely different states**: a row without an object yet and a row with an empty array object.
 
-Với cú pháp `new` có nhiều chiều, không được chỉ định chiều sâu hơn khi chiều trước còn để trống, chẳng hạn `new int[][3]` không hợp lệ. Có thể bỏ các chiều ở cuối, ví dụ `new int[2][]` hoặc `new int[2][3][]`.
+With multi-dimensional `new` syntax, you cannot specify a deeper dimension when a preceding dimension is left empty; for example, `new int[][3]` is invalid. You may omit trailing dimensions, such as `new int[2][]` or `new int[2][3][]`.
 
-## 3. Hai tầng chỉ số và kiểm tra hàng `null`
+## 3. Two Index Levels and Checking for `null` Rows
 
-Biểu thức `matrix[row][column]` tương đương về ý nghĩa với việc **lấy tham chiếu mảng con** `matrix[row]` rồi đánh chỉ số `[column]` trên mảng con đó:
+The expression `matrix[row][column]` is semantically equivalent to **obtaining the subarray reference** `matrix[row]` and then indexing `[column]` on that subarray:
 
 ~~~java
 int[][] matrix = {{10, 20}, {30, 40}};
@@ -76,16 +76,16 @@ System.out.println(firstRow[1]); // 20
 System.out.println(matrix[0][1]); // 20
 ~~~
 
-Để đọc `matrix[r][c]` thành công, cần:
+To read `matrix[r][c]` successfully, you need:
 
-1. Biến `matrix` tham chiếu tới một mảng ngoài thực sự (không `null`).
-2. `r` nằm từ `0` đến `matrix.length - 1`.
-3. `matrix[r]` không phải `null`.
-4. `c` nằm từ `0` đến `matrix[r].length - 1`.
+1. The variable `matrix` to reference an actual outer array (not `null`).
+2. `r` to be between `0` and `matrix.length - 1`.
+3. `matrix[r]` not to be `null`.
+4. `c` to be between `0` and `matrix[r].length - 1`.
 
-Thiếu một trong các điều kiện này có thể gây `NullPointerException` hoặc `ArrayIndexOutOfBoundsException`. Một mảng ngoài đã được tạo **không** bảo đảm rằng mọi mảng con cũng đã được tạo.
+Missing any of these conditions can cause a `NullPointerException` or `ArrayIndexOutOfBoundsException`. An already created outer array does **not** guarantee that all subarrays have also been created.
 
-Ví dụ kiểm tra an toàn khi chỉ muốn đọc nếu vị trí tồn tại:
+Example of a safe check when you only want to read if the position exists:
 
 ~~~java
 static boolean containsCell(int[][] matrix, int r, int c) {
@@ -96,11 +96,11 @@ static boolean containsCell(int[][] matrix, int r, int c) {
 }
 ~~~
 
-Phương thức trên dùng toán tử `&&` có đánh giá ngắn mạch: nếu điều kiện trước sai, điều kiện sau không được đánh giá. Vì vậy không vô tình truy cập `matrix[r]` trước khi biết `r` hợp lệ.
+The method above uses the short-circuit `&&` operator: if an earlier condition is false, subsequent conditions are not evaluated. Thus it does not accidentally access `matrix[r]` before knowing `r` is valid.
 
-## 4. Các hàng không cần có cùng độ dài: mảng “răng cưa”
+## 4. Rows Do Not Need the Same Length: "Jagged" Arrays
 
-Mỗi phần tử của mảng ngoài là một tham chiếu tới `int[]`, nên các hàng có thể có độ dài **khác nhau** (*jagged/ragged array*):
+Each element of the outer array is a reference to an `int[]`, so rows can have **different** lengths (*jagged/ragged array*):
 
 ~~~java
 int[][] rows = new int[3][];
@@ -114,7 +114,7 @@ System.out.println(rows[1].length); // 0
 System.out.println(rows[2].length); // 1
 ~~~
 
-Có thể khởi tạo ngắn gọn bằng danh sách:
+You can initialize concisely with an array initializer list:
 
 ~~~java
 int[][] triangle = {
@@ -124,14 +124,14 @@ int[][] triangle = {
 };
 ~~~
 
-Trong vòng lặp, đừng áp đặt số cột bằng `rows[0].length` cho mọi hàng. Hãy kiểm tra độ dài **của từng hàng**:
+Inside a loop, do not force the column count to be `rows[0].length` for every row. Check the length **of each individual row**:
 
 ~~~java
 static int sumAll(int[][] rows) {
     int sum = 0;
     for (int[] row : rows) {
         if (row == null) {
-            continue; // Bỏ qua hàng chưa được tạo theo hợp đồng ví dụ.
+            continue; // Skip uncreated rows according to the example contract.
         }
         for (int value : row) {
             sum += value;
@@ -141,11 +141,11 @@ static int sumAll(int[][] rows) {
 }
 ~~~
 
-Phương thức `sumAll` xử lý cả hàng rỗng và hàng `null`, miễn chính mảng ngoài `rows` khác `null`. Với `triangle` phía trên, kết quả là 21. Với ví dụ `rows` ban đầu, tổng là 15.
+The `sumAll` method handles both empty rows and `null` rows, provided the outer array `rows` itself is non-`null`. For `triangle` above, the result is 21. For the initial `rows` example, the sum is 15.
 
-## 5. Hai hàng có thể tham chiếu cùng một mảng con
+## 5. Two Rows Can Reference the Same Subarray
 
-Cũng giống biến tham chiếu đối tượng, **hai phần tử của mảng ngoài có thể giữ cùng một tham chiếu**:
+Just like object reference variables, **two elements of the outer array can hold the same reference**:
 
 ~~~java
 int[] shared = {10, 20};
@@ -156,35 +156,35 @@ aliases[0][0] = 99;
 System.out.println(aliases[1][0]);             // 99
 ~~~
 
-Cập nhật `aliases[0][0]` thay đổi **đối tượng mảng con chung**, nên khi đọc qua `aliases[1][0]` cũng thấy 99.
+Updating `aliases[0][0]` mutates **the shared subarray object**, so reading through `aliases[1][0]` also sees 99.
 
-**Nhưng gán lại tham chiếu hàng không sửa hàng còn lại:**
+**However, reassigning a row reference does not modify the other row:**
 
 ~~~java
 aliases[0] = new int[] {1};
-// aliases[0] trỏ tới mảng con mới [1].
-// aliases[1] vẫn trỏ tới mảng con cũ [99, 20].
+// aliases[0] points to the new subarray [1].
+// aliases[1] still points to the old subarray [99, 20].
 ~~~
 
-Đây là hai kiểu thao tác khác nhau:
+These are two different kinds of operations:
 
-| Thao tác | Điều xảy ra |
+| Operation | What happens |
 | --- | --- |
-| `aliases[0][0] = 99` | Thay **phần tử của mảng con** mà hàng 0 đang tham chiếu |
-| `aliases[0] = new int[] {1}` | Thay **tham chiếu ở hàng 0** bằng tham chiếu tới mảng mới |
-| `aliases[1] = aliases[0]` | Để hai hàng tham chiếu chung một mảng con hiện tại |
+| `aliases[0][0] = 99` | Modifies **an element of the subarray** that row 0 currently references |
+| `aliases[0] = new int[] {1}` | Replaces **the reference at row 0** with a reference to a new array |
+| `aliases[1] = aliases[0]` | Makes two rows reference the same current subarray |
 
-Không thể coi hàng của `int[][]` là “bản sao giá trị” mỗi lần gán. Đây là **tham chiếu**, không phải phép sao chép sâu (*deep copy*).
+You cannot treat a row of `int[][]` as a "value copy" on every assignment. These are **references**, not a *deep copy*.
 
-## 6. Sao chép mảng ngoài vẫn chia sẻ các hàng
+## 6. Copying the Outer Array Still Shares the Rows
 
-Phép `matrix.clone()` tạo một mảng ngoài mới, nhưng các phần tử của nó vẫn là **tham chiếu đến những hàng cũ**. Vì thế thay `copy[0][1]` có thể làm `matrix[0][1]` đổi theo; còn gán `copy[0] = new int[]{8}` chỉ đổi tham chiếu hàng của bản sao. Hai thao tác này nối trực tiếp với mô hình ở mục 5.
+Calling `matrix.clone()` creates a new outer array, but its elements are still **references to the old rows**. Therefore, modifying `copy[0][1]` can cause `matrix[0][1]` to change as well; whereas assigning `copy[0] = new int[]{8}` only changes the copy's row reference. These two operations connect directly to the model in section 5.
 
-Nếu cần dữ liệu `int` độc lập, hãy sao chép từng mảng con không `null` vào mảng ngoài mới. Bài **Sao chép nông và chia sẻ các mảng con** phân tích đầy đủ `clone()`, `Arrays.copyOf()`, mảng có nhiều alias và phần tử đối tượng mutable.
+If you need independent `int` data, copy each non-`null` subarray into a new outer array. The lesson **Shallow Copying and Sharing Subarrays** analyzes `clone()`, `Arrays.copyOf()`, arrays with multiple aliases, and mutable object elements in full.
 
-## 7. Chương trình Java 17+ chạy độc lập
+## 7. Standalone Java 17+ Program
 
-Tạo file **ArrayOfArraysDemo.java**:
+Create the file **ArrayOfArraysDemo.java**:
 
 ~~~java
 import java.util.Arrays;
@@ -264,14 +264,14 @@ public final class ArrayOfArraysDemo {
 }
 ~~~
 
-Biên dịch và chạy tại thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile and run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 ArrayOfArraysDemo.java
 java ArrayOfArraysDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 rectRows=2
@@ -309,35 +309,35 @@ nullRowError=NullPointerException
 deepRagged=[[2, 55], [], [9]]
 ~~~
 
-Phần `rectDistinct=true` cho thấy mỗi hàng của `new int[2][3]` là một mảng con độc lập. `partial[r]=null` thể hiện mảng con chưa được tạo. `sharedRowsSame=true` và `sameRowSeen=99` chứng minh hai hàng có thể cùng tham chiếu một mảng con; `cloneRowSame=true` cho thấy sao chép mảng ngoài vẫn chia sẻ các hàng.
+The `rectDistinct=true` output shows that each row of `new int[2][3]` is an independent subarray. `partial[r]=null` indicates an uncreated subarray. `sharedRowsSame=true` and `sameRowSeen=99` demonstrate that two rows can reference the same subarray; `cloneRowSame=true` shows that copying the outer array still shares the rows.
 
-Ở dòng cuối, `Arrays.deepToString(partial)` in cấu trúc lồng nhau theo nội dung, khác với `Arrays.toString(partial)` có thể hiển thị chuỗi định danh mảng con khó đọc.
+On the last line, `Arrays.deepToString(partial)` prints the nested structure by contents, unlike `Arrays.toString(partial)` which may display hard-to-read subarray identity strings.
 
-## 8. Lỗi thường gặp, checklist và bài tập
+## 8. Common Mistakes, Checklist, and Exercises
 
-| Nhầm lẫn hoặc lỗi | Cách hiểu đúng |
+| Misconception or mistake | Correct understanding |
 | --- | --- |
-| `int[][]` là một khối ô `int` liên tục duy nhất | Là mảng ngoài chứa **tham chiếu tới `int[]`** |
-| `new int[2][]` đã tạo hai `int[]` | Sai: hai hàng đang là `null` |
-| `new int[2][3]` dùng một đối tượng hàng chung | Sai: mỗi hàng là mảng con riêng |
-| Mọi hàng đều phải có cùng độ dài | Sai: mỗi mảng con có thể có độ dài riêng |
-| `matrix.length` là số cột | Sai: là số phần tử của mảng ngoài (số hàng nếu tổ chức theo hàng) |
-| `matrix[r].length` luôn đọc được | Cần `r` hợp lệ và `matrix[r] != null` |
-| Gán `a[1] = a[0]` sao chép giá trị hàng | Sai: gán **tham chiếu**, khiến hai hàng chia sẻ cùng mảng |
-| `a.clone()` sao chép toàn bộ các mảng con | Sai: chỉ tạo mảng ngoài mới, các tham chiếu hàng được sao chép |
-| `new int[2][0]` và `new int[2][]` giống nhau | Sai: hàng rỗng không phải hàng `null` |
-| Dùng `Arrays.toString` trên `int[][]` để xem tất cả số | Ưu tiên `Arrays.deepToString` cho hiển thị nhiều tầng |
+| `int[][]` is a single contiguous block of `int` cells | It is an outer array containing **references to `int[]`** |
+| `new int[2][]` has already created two `int[]` arrays | Wrong: both rows are currently `null` |
+| `new int[2][3]` uses one shared row object | Wrong: each row is a separate subarray |
+| All rows must have the same length | Wrong: each subarray can have its own length |
+| `matrix.length` is the number of columns | Wrong: it is the number of elements in the outer array (number of rows when organized by rows) |
+| `matrix[r].length` can always be read | Requires `r` to be valid and `matrix[r] != null` |
+| Assigning `a[1] = a[0]` copies the row's values | Wrong: it assigns a **reference**, causing both rows to share the same array |
+| `a.clone()` copies all subarrays | Wrong: it only creates a new outer array; the row references are copied |
+| `new int[2][0]` and `new int[2][]` are the same | Wrong: an empty row is not a `null` row |
+| Using `Arrays.toString` on `int[][]` to inspect all numbers | Prefer `Arrays.deepToString` for multi-level display |
 
-**Bài 1.** Tạo `int[][] data = new int[3][];`. Kiểm tra `data[0] == null`, rồi lần lượt gán `new int[2]`, `new int[0]` và `new int[] {5}` cho ba hàng. In độ dài mỗi hàng.
+**Exercise 1.** Create `int[][] data = new int[3][];`. Check `data[0] == null`, then assign `new int[2]`, `new int[0]`, and `new int[] {5}` to the three rows respectively. Print the length of each row.
 
-**Bài 2.** Khởi tạo `int[][] jagged = {{1}, {2, 3}, {4, 5, 6}};`, viết hai vòng lặp để tính tổng và giải thích tại sao vòng trong phải dựa vào `jagged[row].length`.
+**Exercise 2.** Initialize `int[][] jagged = {{1}, {2, 3}, {4, 5, 6}};`, write two loops to compute the sum, and explain why the inner loop must rely on `jagged[row].length`.
 
-**Bài 3.** Tạo hai hàng cùng tham chiếu `int[] shared`, cập nhật một phần tử qua hàng đầu rồi đọc qua hàng còn lại. Sau đó gán lại hàng đầu thành một mảng con mới và dự đoán kết quả.
+**Exercise 3.** Create two rows that both reference `int[] shared`, update an element through the first row, and read it through the other row. Then reassign the first row to a new subarray and predict the result.
 
-**Bài 4.** So sánh `new int[0][3]`, `new int[2][0]` và `new int[2][]` về số hàng, `null` và độ dài mảng con hợp lệ.
+**Exercise 4.** Compare `new int[0][3]`, `new int[2][0]`, and `new int[2][]` in terms of row count, `null` status, and valid subarray lengths.
 
-**Bài 5.** Dùng `clone()` cho mảng ngoài, chứng minh `outerCopy[0] == original[0]`. Sau đó viết hàm sao chép từng `int[]` để thay đổi bản sao mà không ảnh hưởng bản gốc.
+**Exercise 5.** Use `clone()` on the outer array and prove that `outerCopy[0] == original[0]`. Then write a method to copy each `int[]` so that modifying the copy does not affect the original.
 
-### Ghi nhớ
+### Key Takeaway
 
-**`int[][]` là mảng mà mỗi phần tử có kiểu `int[]`, tức một tham chiếu tới mảng con.** Dạng `new int[rows][columns]` tạo cả mảng ngoài và các hàng; `new int[rows][]` chỉ tạo mảng ngoài, hàng ban đầu là `null`. Các hàng có thể khác độ dài, chia sẻ tham chiếu hoặc được thay bằng mảng khác; vì vậy hãy kiểm tra từng hàng và hiểu rõ việc sao chép tham chiếu.
+**`int[][]` is an array where each element has type `int[]`, meaning a reference to a subarray.** The `new int[rows][columns]` form creates both the outer array and the rows; `new int[rows][]` creates only the outer array, with rows initially `null`. Rows can have different lengths, share references, or be replaced with other arrays; therefore, check each row individually and understand reference copying clearly.

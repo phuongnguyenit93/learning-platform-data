@@ -1,18 +1,18 @@
-# getAnnotatedReturnType, getAnnotatedExceptionTypes và receiver type trong Java Reflection
+# getAnnotatedReturnType, getAnnotatedExceptionTypes, and Receiver Type in Java Reflection
 
-Khi học Java Reflection, việc đọc metadata của một phương thức không chỉ dừng ở `getReturnType()` hay `getExceptionTypes()`. Java còn cho phép gắn annotation trực tiếp lên **vị trí sử dụng kiểu** (*type use*), ví dụ annotation trên kiểu trả về, kiểu exception trong mệnh đề `throws`, hoặc kiểu `this` của một instance method.
+When learning Java Reflection, reading a method's metadata does not stop at `getReturnType()` or `getExceptionTypes()`. Java also allows attaching annotations directly to **type-use positions**, such as annotations on the return type, exception types in the `throws` clause, or the `this` type of an instance method.
 
-Ba API quan trọng thuộc `java.lang.reflect.Executable` là:
+Three important APIs on `java.lang.reflect.Executable` are:
 
-- `getAnnotatedReturnType()`: đọc **lần sử dụng kiểu trả về** cùng type-use annotations của nó.
-- `getAnnotatedExceptionTypes()`: đọc các **lần sử dụng kiểu exception trong `throws`**, giữ thứ tự khai báo và annotation tại từng vị trí.
-- `getAnnotatedReceiverType()`: đọc **kiểu receiver** (kiểu của `this` theo quy tắc ngôn ngữ), bao gồm annotation trên *explicit receiver parameter* khi có; kết quả có thể là `null` nếu executable không thể có receiver parameter.
+- `getAnnotatedReturnType()`: reads **the return type use** along with its type-use annotations.
+- `getAnnotatedExceptionTypes()`: reads **the exception type uses in `throws`**, preserving declaration order and annotations at each position.
+- `getAnnotatedReceiverType()`: reads **the receiver type** (the type of `this` per language rules), including annotations on an *explicit receiver parameter* when present; the result may be `null` if the executable cannot have a receiver parameter.
 
-Cả ba đều làm việc với `AnnotatedType` hoặc mảng `AnnotatedType[]`; **không cần gọi phương thức đích** để lấy thông tin. Chúng mô tả metadata ở thời điểm khai báo, **không** tự thi hành kiểm tra nghiệp vụ nào đối với annotation.
+All three work with `AnnotatedType` or `AnnotatedType[]`; **there is no need to invoke the target method** to obtain this information. They describe declaration-time metadata and **do not** automatically enforce any business validation on the annotations.
 
-## 1. Điều kiện để đọc type-use annotation tại runtime
+## 1. Conditions to read type-use annotations at runtime
 
-Annotation nhắm đến vị trí **dùng một kiểu** phải cho phép `ElementType.TYPE_USE`. Để Reflection nhìn thấy tại runtime, cần thêm `RetentionPolicy.RUNTIME`:
+An annotation targeting a **type-use** position must allow `ElementType.TYPE_USE`. For Reflection to see it at runtime, `RetentionPolicy.RUNTIME` is also required:
 
 ```java
 import java.lang.annotation.ElementType;
@@ -27,41 +27,41 @@ import java.lang.annotation.Target;
 }
 ```
 
-Đoạn trên là **khai báo minh họa**; chương trình độc lập bên dưới sẽ khai báo annotation `Mark` trong class của chính nó.
+The snippet above is an **illustrative declaration**; the standalone program below will declare the `Mark` annotation inside its own class.
 
-`@Target(TYPE_USE)` cho phép các cú pháp như:
+`@Target(TYPE_USE)` allows syntax such as:
 
 ```java
 public @Mark("result") String read() { return "ok"; }
 public void save() throws @Mark("io") java.io.IOException {}
 ```
 
-Hai dòng chỉ minh họa vị trí type-use, chưa phải chương trình chạy độc lập và method `save` không ném `IOException` mặc dù khai báo `throws`. Java cho phép khai báo một checked exception mà phần thân method không nhất thiết phải ném exception đó.
+These two lines only illustrate type-use positions; they are not a standalone runnable program, and method `save` does not throw `IOException` even though it declares `throws`. Java permits declaring a checked exception without the method body necessarily throwing that exception.
 
-**Phân biệt:** annotation gắn trên **khai báo method** với `ElementType.METHOD` được đọc bằng `Method.getAnnotation` hoặc `getDeclaredAnnotations()`. Annotation gắn trên **kiểu trả về** cần `getAnnotatedReturnType()`. Tương tự, annotation trên một **khai báo tham số** khác với annotation trên **kiểu của tham số**. Không được suy rằng `Method.getAnnotations()` sẽ trả toàn bộ annotation bên trong generic return type hay mệnh đề `throws`.
+**Distinction:** an annotation attached to **a method declaration** with `ElementType.METHOD` is read via `Method.getAnnotation` or `getDeclaredAnnotations()`. An annotation attached to **a return type** requires `getAnnotatedReturnType()`. Similarly, an annotation on a **parameter declaration** differs from an annotation on **the parameter's type**. Do not infer that `Method.getAnnotations()` returns every annotation inside a generic return type or a `throws` clause.
 
-## 2. Bức tranh tổng quát về các API của Executable
+## 2. Overview of `Executable` APIs
 
-`Executable` là lớp cha của `Method` và `Constructor`. Nó cung cấp các API về danh sách tham số, ngoại lệ, receiver và annotated types.
+`Executable` is the superclass of `Method` and `Constructor`. It provides APIs for parameter lists, exceptions, receivers, and annotated types.
 
-| Câu hỏi | API | Kiểu trả về của Reflection |
+| Question | API | Reflection return type |
 | --- | --- | --- |
-| Phương thức trả kiểu nào sau erasure? | `Method.getReturnType()` | `Class<?>` |
-| Kiểu trả về có cấu trúc generic nào? | `Method.getGenericReturnType()` | `Type` |
-| Type-use annotations nằm ở đâu trên kiểu trả về? | `Method.getAnnotatedReturnType()` | `AnnotatedType` |
-| Có những kiểu exception nào trong `throws`? | `Executable.getExceptionTypes()` | `Class<?>[]` |
-| Các exception types có khai báo generic nào? | `Executable.getGenericExceptionTypes()` | `Type[]` |
-| Annotation trên từng kiểu exception trong `throws`? | `Executable.getAnnotatedExceptionTypes()` | `AnnotatedType[]` |
-| Kiểu receiver có annotation nào? | `Executable.getAnnotatedReceiverType()` | `AnnotatedType` hoặc `null` |
-| Type-use annotations trên kiểu của formal parameters? | `Executable.getAnnotatedParameterTypes()` | `AnnotatedType[]` |
+| What type does the method return after erasure? | `Method.getReturnType()` | `Class<?>` |
+| What generic structure does the return type have? | `Method.getGenericReturnType()` | `Type` |
+| Where are type-use annotations on the return type? | `Method.getAnnotatedReturnType()` | `AnnotatedType` |
+| Which exception types are in `throws`? | `Executable.getExceptionTypes()` | `Class<?>[]` |
+| What generic declarations do the exception types have? | `Executable.getGenericExceptionTypes()` | `Type[]` |
+| Annotations on each exception type in `throws`? | `Executable.getAnnotatedExceptionTypes()` | `AnnotatedType[]` |
+| Which annotations does the receiver type have? | `Executable.getAnnotatedReceiverType()` | `AnnotatedType` or `null` |
+| Type-use annotations on formal parameter types? | `Executable.getAnnotatedParameterTypes()` | `AnnotatedType[]` |
 
-Mỗi `AnnotatedType` biểu diễn một **nút trong cây sử dụng kiểu**. Phương thức `getType()` trả về `Type` nền, còn `getAnnotation(SomeAnnotation.class)` đọc annotation nằm **ngay tại nút đó**. Nếu annotation nằm trên type argument hoặc bound sâu hơn, cần đi vào các nút con bằng API chuyên biệt như `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()`.
+Each `AnnotatedType` represents a **node in the type-use tree**. The `getType()` method returns the underlying `Type`, while `getAnnotation(SomeAnnotation.class)` reads the annotation located **right at that node**. If the annotation sits on a deeper type argument or bound, you must step into child nodes using specialized APIs such as `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()`.
 
-Đây không phải một trình đánh giá giá trị lúc chạy: `getAnnotatedExceptionTypes()` không chờ method ném exception, và `getAnnotatedReturnType()` không chờ method trả về giá trị.
+This is not a runtime value evaluator: `getAnnotatedExceptionTypes()` does not wait for the method to throw an exception, and `getAnnotatedReturnType()` does not wait for the method to return a value.
 
-## 3. getAnnotatedReturnType(): annotation trên kiểu trả về
+## 3. getAnnotatedReturnType(): annotations on the return type
 
-Giả sử một method khai báo:
+Suppose a method declares:
 
 ```java
 public @Mark("result") List<@Mark("element") String> read() {
@@ -69,14 +69,14 @@ public @Mark("result") List<@Mark("element") String> read() {
 }
 ```
 
-Đây là đoạn minh họa trong ngữ cảnh có `List` và `Mark`.
+This is an illustrative snippet in a context where `List` and `Mark` exist.
 
-- `method.getReturnType()` trả `List.class` (generic bị **erasure**).
-- `method.getGenericReturnType()` biểu diễn `List<String>` với các tham số generic nhưng chưa cho biết trực tiếp annotation tại từng vị trí.
-- `method.getAnnotatedReturnType()` biểu diễn **lần dùng `List<String>`**; trên nút ngoài có `@Mark("result")`.
-- Vì kiểu ngoài là parameterized, có thể dùng `AnnotatedParameterizedType` và `getAnnotatedActualTypeArguments()[0]` để đến nút **`String`**; ở đó mới có `@Mark("element")`.
+- `method.getReturnType()` returns `List.class` (generics are **erased**).
+- `method.getGenericReturnType()` represents `List<String>` with generic parameters, but does not directly expose annotations at each position.
+- `method.getAnnotatedReturnType()` represents **the use of `List<String>`**; on the outer node there is `@Mark("result")`.
+- Because the outer type is parameterized, you can use `AnnotatedParameterizedType` and `getAnnotatedActualTypeArguments()[0]` to reach the **`String`** node; that is where `@Mark("element")` sits.
 
-Ví dụ đường truy cập metadata:
+Example metadata access path:
 
 ```java
 Method method = Service.class.getDeclaredMethod("read");
@@ -90,17 +90,17 @@ if (returnUse instanceof AnnotatedParameterizedType pt) {
 }
 ```
 
-Đoạn này cần imports `java.lang.reflect.*`, class `Service` và `Mark` đã khai báo, đồng thời xử lý `NoSuchMethodException`; ví dụ chạy đầy đủ có ở mục 6.
+This snippet requires `import java.lang.reflect.*`, declared `Service` and `Mark`, and handling `NoSuchMethodException`; a complete runnable example is in section 6.
 
-**Cần nhớ:** `getAnnotatedReturnType()` vẫn trả một `AnnotatedType` với method không có annotation trên return type. Mảng `getAnnotations()` rỗng chỉ có nghĩa nút hiện tại không mang annotation được phản chiếu, không có nghĩa không tồn tại return type.
+**Remember:** `getAnnotatedReturnType()` still returns an `AnnotatedType` for a method with no annotations on its return type. An empty `getAnnotations()` array only means the current node carries no reflected annotations, not that no return type exists.
 
-Với phương thức `void ping()`, kiểu trả về vẫn được biểu diễn bằng `void.class`; `getAnnotatedReturnType().getType()` biểu diễn `void`. Nó **không phải** `null` hay `Void.class`.
+For a `void ping()` method, the return type is still represented by `void.class`; `getAnnotatedReturnType().getType()` represents `void`. It is **not** `null` or `Void.class`.
 
-`Executable.getAnnotatedReturnType()` cũng áp dụng cho **constructor**, nhưng ngữ nghĩa khác: đối tượng `AnnotatedType` biểu diễn **kiểu đối tượng được xây dựng**, không phải một kiểu return được khai báo như method. Không nên gọi `getReturnType()` trên `Constructor`, vì phương thức đó thuộc `Method`, không phải `Constructor`.
+`Executable.getAnnotatedReturnType()` also applies to **constructors**, though with different semantics: the `AnnotatedType` object represents **the type of the constructed object**, rather than a return type declared like a method. You cannot call `getReturnType()` on `Constructor`, because that method belongs to `Method`, not `Constructor`.
 
-## 4. getAnnotatedExceptionTypes(): annotation trong throws
+## 4. getAnnotatedExceptionTypes(): annotations in throws
 
-Ví dụ một phương thức khai báo:
+Example of a method declaration:
 
 ```java
 public void load()
@@ -109,72 +109,72 @@ public void load()
 }
 ```
 
-Đoạn này minh họa khai báo method, giả định import `IOException` và `Mark`. Dù thân phương thức trống, hai kiểu xuất hiện trong mệnh đề `throws` vẫn là metadata có thể đọc.
+This snippet illustrates a method declaration, assuming `IOException` and `Mark` are imported. Even though the method body is empty, the two types appearing in the `throws` clause remain readable metadata.
 
-`method.getAnnotatedExceptionTypes()` trả về **`AnnotatedType[]` theo đúng thứ tự các exception types được liệt kê trong mệnh đề `throws`**:
+`method.getAnnotatedExceptionTypes()` returns **`AnnotatedType[]` in the exact order the exception types are listed in the `throws` clause**:
 
-| Chỉ số | `getType()` của phần tử | Annotation tại phần tử |
+| Index | Element's `getType()` | Annotation at element |
 | --- | --- | --- |
 | `0` | `java.io.IOException` | `@Mark("io")` |
 | `1` | `java.lang.IllegalStateException` | `@Mark("state")` |
 
-Tương phản:
+Contrast:
 
-- `getExceptionTypes()` trả `Class<?>[]`, cho biết các lớp exception được khai báo nhưng không mang thông tin type-use annotations ngay trong phần tử `Class`.
-- `getGenericExceptionTypes()` trả `Type[]` khi cần thông tin kiểu tổng quát, chẳng hạn một type variable kiểu `E extends Exception` trong `throws E`.
-- `getAnnotatedExceptionTypes()` trả `AnnotatedType[]`, cho phép đọc annotation trên lần dùng từng exception type, và với trường hợp phù hợp có thể duyệt các dạng `AnnotatedTypeVariable`.
+- `getExceptionTypes()` returns `Class<?>[]`, reporting the declared exception classes without carrying type-use annotation metadata directly in the `Class` elements.
+- `getGenericExceptionTypes()` returns `Type[]` when general type information is needed, such as a type variable like `E extends Exception` in `throws E`.
+- `getAnnotatedExceptionTypes()` returns `AnnotatedType[]`, allowing annotations to be read on each exception type use, and when applicable allowing traversal of `AnnotatedTypeVariable` forms.
 
-**Giới hạn rất quan trọng:** Mảng này chứa các exception types **được khai báo trong `throws`**, không phải danh sách tất cả lỗi thực tế có thể phát sinh khi method chạy. Một method có `throws IOException` nhưng chưa từng ném nó vẫn trả metadata; ngược lại, method không khai báo `throws` vẫn có thể ném `RuntimeException` hoặc `Error`. Nếu không có kiểu exception nào trong `throws`, mảng kết quả dài **0**, không phải `null`.
+**Very important limitation:** This array contains the exception types **declared in `throws`**, not the list of all actual errors that could occur when the method runs. A method with `throws IOException` that never throws it still returns metadata; conversely, a method without `throws` can still throw a `RuntimeException` or `Error`. If there are no exception types in `throws`, the resulting array has length **0**, not `null`.
 
-Mảng `AnnotatedType[]` của exception types giữ **thứ tự khai báo**, khác với một số API Reflection trả mảng method/field mà thứ tự không được bảo đảm như thứ tự source.
+The `AnnotatedType[]` array of exception types preserves **declaration order**, unlike certain Reflection APIs returning arrays of methods/fields whose order is not guaranteed to match source order.
 
-## 5. Receiver type là gì? Vì sao khác với parameter thông thường?
+## 5. What is a receiver type? Why is it different from a normal parameter?
 
-Với instance method, **receiver** là đối tượng mà method sẽ thực thi trên đó, thường được nhắc đến bằng `this`. Java cho phép viết một **explicit receiver parameter** nhằm gắn type-use annotation lên kiểu receiver:
+For an instance method, the **receiver** is the object on which the method will execute, usually referred to as `this`. Java allows writing an **explicit receiver parameter** to attach type-use annotations to the receiver type:
 
 ```java
 class Service {
     public void action(@Mark("receiver") Service this) {
-        // this là đối tượng nhận lời gọi action().
+        // this is the object receiving the action() call.
     }
 }
 ```
 
-Đây là đoạn minh họa trong ngữ cảnh `Mark` đã khai báo. Receiver parameter có cú pháp giống một tham số ở chữ ký, nhưng **không** phải formal parameter mang giá trị độc lập được truyền bằng lời gọi. Trong ví dụ:
+This is an illustrative snippet in a context where `Mark` is declared. A receiver parameter has syntax resembling a parameter in the signature, yet it is **not** a formal parameter carrying an independent value passed by the caller. In the example:
 
-- `action()` vẫn được gọi bằng `service.action()`, **không truyền thêm một đối số** cho `this`.
-- `Method.getParameterCount()` của `action` vẫn bằng **0**.
-- `Method.getParameterTypes()` và `getAnnotatedParameterTypes()` không thêm một phần tử cho explicit receiver.
-- `getAnnotatedReceiverType()` cung cấp `AnnotatedType` có thể chứa `@Mark("receiver")`.
-- Việc thêm receiver parameter không thay đổi overload signature của method và không cho phép gọi static method bằng receiver.
+- `action()` is still invoked as `service.action()`, **without passing an extra argument** for `this`.
+- `Method.getParameterCount()` of `action` remains **0**.
+- `Method.getParameterTypes()` and `getAnnotatedParameterTypes()` do not add an element for the explicit receiver.
+- `getAnnotatedReceiverType()` provides the `AnnotatedType` that can contain `@Mark("receiver")`.
+- Adding a receiver parameter does not change the method's overload signature and does not allow calling a static method with a receiver.
 
-Với method `read(@Mark("receiver") Service this)` có annotation, ta có thể đọc:
+For an annotated `read(@Mark("receiver") Service this)` method, we can read:
 
 ```java
 AnnotatedType receiverUse = method.getAnnotatedReceiverType();
 Mark tag = receiverUse.getAnnotation(Mark.class);
 ```
 
-**Các trường hợp cần phân biệt** theo hợp đồng JDK 21:
+**Cases to distinguish** according to the JDK 21 contract:
 
-| Loại executable | `getAnnotatedReceiverType()` |
+| Executable kind | `getAnnotatedReceiverType()` |
 | --- | --- |
-| Instance method có explicit receiver annotation | Một `AnnotatedType` chứa annotation trên kiểu receiver |
-| Instance method không viết receiver parameter (hoặc receiver không mang annotation) | Vẫn là `AnnotatedType`, nhưng **không có annotation** tại receiver |
-| Static method | `null` vì không thể có receiver parameter |
-| Constructor của top-level class hoặc static member class | `null` |
-| Constructor của non-static inner member class | Có thể trả `AnnotatedType` biểu diễn **enclosing receiver type**, kể cả không ghi explicit receiver annotation |
-| Constructor của local/anonymous class | `null` theo hợp đồng API |
+| Instance method with explicit receiver annotation | An `AnnotatedType` containing annotations on the receiver type |
+| Instance method without a written receiver parameter (or with an unannotated receiver) | Still an `AnnotatedType`, but **without annotations** on the receiver |
+| Static method | `null` because it cannot have a receiver parameter |
+| Constructor of a top-level class or static member class | `null` |
+| Constructor of a non-static inner member class | May return an `AnnotatedType` representing **the enclosing receiver type**, even without an explicit receiver annotation |
+| Constructor of a local/anonymous class | `null` per the API contract |
 
-Vì vậy, **`getAnnotatedReceiverType() == null` không đồng nghĩa “không viết annotation”**. Một instance method không viết explicit receiver vẫn trả `AnnotatedType` *không có annotation*; còn static method trả `null` vì không có receiver theo loại executable. Ngược lại, một `AnnotatedType` không có annotation không chứng minh trong source đã khai báo một explicit receiver parameter.
+Therefore, **`getAnnotatedReceiverType() == null` does not mean "no annotation was written"**. An instance method without a written explicit receiver still returns an *unannotated* `AnnotatedType`; whereas a static method returns `null` because it has no receiver due to the executable kind. Conversely, an unannotated `AnnotatedType` does not prove that an explicit receiver parameter was declared in source.
 
-Với inner-class constructor, quy tắc ngữ pháp receiver khác instance method thông thường (receiver gắn với enclosing instance), nên không thể máy móc dùng kiểu `Inner this` như với method. Hãy xem JLS nếu cần phân tích chi tiết receiver của constructor.
+For an inner-class constructor, the receiver syntax rules differ from a normal instance method (the receiver refers to the enclosing instance), so you cannot mechanically write `Inner this` as with a method. Consult the JLS if you need to analyze constructor receivers in detail.
 
-**Receiver type không phải kiểu runtime của object cụ thể:** `getAnnotatedReceiverType()` mô tả kiểu receiver theo khai báo, không kiểm tra `receiver.getClass()` của object khi chạy, cũng không thay đổi dynamic dispatch.
+**Receiver type is not the runtime type of a concrete object:** `getAnnotatedReceiverType()` describes the declared receiver type; it does not inspect `receiver.getClass()` at runtime, nor does it alter dynamic dispatch.
 
-## 6. Ví dụ Java 17+ đầy đủ, chạy được
+## 6. Complete, runnable Java 17+ example
 
-Tạo tệp `AnnotatedExecutableDemo.java`:
+Create the file `AnnotatedExecutableDemo.java`:
 
 ```java
 import java.io.IOException;
@@ -289,14 +289,14 @@ public class AnnotatedExecutableDemo {
 }
 ```
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ```bash
 javac AnnotatedExecutableDemo.java
 java AnnotatedExecutableDemo
 ```
 
-Kết quả mong đợi trên Java 17+:
+Expected output on Java 17+:
 
 ```text
 return.raw=java.util.List
@@ -315,25 +315,25 @@ noThrows=0
 constructor.receiver=null
 ```
 
-Giải thích:
+Explanation:
 
-1. `getReturnType()` cho `List.class` sau erasure. `getAnnotatedReturnType()` giữ `@Mark("result")` tại nút ngoài của kiểu trả về.
-2. `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()[0]` đi xuống `String` để tìm `@Mark("element")`, thay vì trộn annotation của container và element.
-3. `getAnnotatedExceptionTypes()` trả hai kiểu `IOException` và `IllegalStateException` theo thứ tự khai báo, với giá trị `io` và `state` tương ứng.
-4. `getAnnotatedReceiverType()` của `read` giữ annotation `receiver` trên `Service this`. Class cơ sở của receiver có simple name `Service`.
-5. `getParameterCount() == 0` chứng minh receiver khai báo tường minh **không** phải formal parameter mà người gọi phải truyền vào.
-6. `plain()` là instance method, không viết explicit receiver: API vẫn trả một `AnnotatedType` nhưng không có annotation `Mark`, nên nhãn là `none`.
-7. `ping()` là static method: receiver type là `null`; return type là `void`.
-8. `noThrows()` không có `throws`: mảng `getAnnotatedExceptionTypes()` rỗng.
-9. Constructor `Service()` thuộc **static member class**, nên không có receiver kiểu enclosing instance và `getAnnotatedReceiverType()` trả `null`.
+1. `getReturnType()` gives `List.class` after erasure. `getAnnotatedReturnType()` preserves `@Mark("result")` at the outer node of the return type.
+2. `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()[0]` descends to `String` to find `@Mark("element")`, rather than mixing container and element annotations.
+3. `getAnnotatedExceptionTypes()` returns the two types `IOException` and `IllegalStateException` in declaration order, with values `io` and `state` respectively.
+4. `read`'s `getAnnotatedReceiverType()` retains the `receiver` annotation on `Service this`. The receiver's underlying class has simple name `Service`.
+5. `getParameterCount() == 0` proves that an explicitly declared receiver is **not** a formal parameter that callers must pass.
+6. `plain()` is an instance method without an explicit receiver written: the API still returns an `AnnotatedType`, but without a `Mark` annotation, so the label is `none`.
+7. `ping()` is a static method: receiver type is `null`; return type is `void`.
+8. `noThrows()` has no `throws`: the `getAnnotatedExceptionTypes()` array is empty.
+9. Constructor `Service()` belongs to a **static member class**, so it has no enclosing-instance receiver and `getAnnotatedReceiverType()` returns `null`.
 
-Chương trình chỉ đọc metadata; không gọi `read()` hay `plain()`, không cần tạo một đối tượng `Service`. Mỗi method được tìm bằng tên cụ thể, nên không phụ thuộc thứ tự của `getDeclaredMethods()`.
+The program only reads metadata; it does not call `read()` or `plain()`, and does not need to instantiate `Service`. Each method is looked up by exact name, so it does not depend on the ordering of `getDeclaredMethods()`.
 
-## 7. Nếu kiểu trả về/exception là generic hoặc phức hợp
+## 7. If the return/exception type is generic or compound
 
-`AnnotatedType` là một họ interface. Đọc annotation của **nút ngoài** bằng `getAnnotation` chưa đủ nếu annotation ở các thành phần bên trong.
+`AnnotatedType` is a family of interfaces. Reading annotations on the **outer node** with `getAnnotation` is insufficient if annotations sit on inner components.
 
-Với một return type có đối số generic:
+For a return type with generic arguments:
 
 ```java
 public List<@Mark("item") String> items() {
@@ -341,86 +341,86 @@ public List<@Mark("item") String> items() {
 }
 ```
 
-Cần kiểm tra `getAnnotatedReturnType() instanceof AnnotatedParameterizedType`, sau đó duyệt `getAnnotatedActualTypeArguments()` để lấy annotation tại `String`.
+You need to check `getAnnotatedReturnType() instanceof AnnotatedParameterizedType`, then iterate `getAnnotatedActualTypeArguments()` to retrieve the annotation on `String`.
 
-Khi return type là mảng, wildcard hay type variable, các nhánh khác của họ `AnnotatedType` cần xử lý riêng:
+When the return type is an array, wildcard, or type variable, the other branches of the `AnnotatedType` family require dedicated handling:
 
-| Loại nút | API duyệt thông tin con |
+| Node kind | API to traverse child info |
 | --- | --- |
-| `AnnotatedParameterizedType` | `getAnnotatedActualTypeArguments()` và khi phù hợp `getAnnotatedOwnerType()` |
+| `AnnotatedParameterizedType` | `getAnnotatedActualTypeArguments()` and when applicable `getAnnotatedOwnerType()` |
 | `AnnotatedArrayType` | `getAnnotatedGenericComponentType()` |
 | `AnnotatedWildcardType` | `getAnnotatedUpperBounds()`, `getAnnotatedLowerBounds()` |
 | `AnnotatedTypeVariable` | `getAnnotatedBounds()` |
 
-Ví dụ method generic:
+Generic method example:
 
 ```java
 public <E extends Exception> void call() throws E {}
 ```
 
-Đây là đoạn minh họa, không phải chương trình độc lập. `getGenericExceptionTypes()` có thể trả một `TypeVariable` đại diện cho `E`, còn `getAnnotatedExceptionTypes()` biểu diễn **lần sử dụng `E` trong `throws`** dưới dạng `AnnotatedType`, có thể là `AnnotatedTypeVariable`. Annotation đặt trên **bound** `E extends Exception` là thông tin ở **vị trí bound** khác với annotation đặt trên **lần dùng `E` trong `throws`**.
+This is an illustrative snippet, not a standalone program. `getGenericExceptionTypes()` can return a `TypeVariable` representing `E`, while `getAnnotatedExceptionTypes()` represents **the use of `E` in `throws`** as an `AnnotatedType`, which can be an `AnnotatedTypeVariable`. An annotation placed on the **bound** `E extends Exception` is information at **the bound position**, distinct from an annotation placed on **the use of `E` in `throws`**.
 
-Nếu viết bộ duyệt metadata đệ quy trên các bounds, cần chú ý chu trình type variable (ví dụ `T extends Comparable<T>`) và có cơ chế visited-set phù hợp. Đừng ép kiểu mọi `AnnotatedType` thành `AnnotatedParameterizedType`.
+If writing a recursive metadata traverser over bounds, watch out for type-variable cycles (such as `T extends Comparable<T>`) and include an appropriate visited-set mechanism. Do not cast every `AnnotatedType` to `AnnotatedParameterizedType`.
 
-## 8. Ba loại annotation dễ bị đọc nhầm
+## 8. Three kinds of annotations easily misread
 
-Một framework kiểm tra annotation trên method nên tách ít nhất ba câu hỏi:
+A framework inspecting annotations on methods should separate at least three questions:
 
-| Vị trí cần đọc | API phù hợp | Ví dụ minh họa |
+| Location to read | Appropriate API | Illustrative example |
 | --- | --- | --- |
-| Annotation trên **khai báo method** | `method.getAnnotation(DeclarationAnnotation.class)` | `@Deprecated` ngay trước khai báo method |
-| Annotation trên **kiểu trả về** | `method.getAnnotatedReturnType().getAnnotation(TypeUseAnnotation.class)` | `@Mark("result") List<String> read()` |
-| Annotation trên **đối số của kiểu trả về** | `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()[i]` | `List<@Mark("item") String>` |
-| Annotation trên **kiểu exception** | `method.getAnnotatedExceptionTypes()[i].getAnnotation(...)` | `throws @Mark("io") IOException` |
-| Annotation trên **kiểu receiver** | `method.getAnnotatedReceiverType().getAnnotation(...)` (nếu khác `null`) | `method(@Mark("this") C this)` |
-| Annotation trên **kiểu formal parameter** | `method.getAnnotatedParameterTypes()[i]` | `save(@Mark("argument") String s)` |
+| Annotation on **method declaration** | `method.getAnnotation(DeclarationAnnotation.class)` | `@Deprecated` right before the method declaration |
+| Annotation on **return type** | `method.getAnnotatedReturnType().getAnnotation(TypeUseAnnotation.class)` | `@Mark("result") List<String> read()` |
+| Annotation on **return type argument** | `AnnotatedParameterizedType.getAnnotatedActualTypeArguments()[i]` | `List<@Mark("item") String>` |
+| Annotation on **exception type** | `method.getAnnotatedExceptionTypes()[i].getAnnotation(...)` | `throws @Mark("io") IOException` |
+| Annotation on **receiver type** | `method.getAnnotatedReceiverType().getAnnotation(...)` (if non-`null`) | `method(@Mark("this") C this)` |
+| Annotation on **formal parameter type** | `method.getAnnotatedParameterTypes()[i]` | `save(@Mark("argument") String s)` |
 
-Ở hàng receiver, `C` tượng trưng cho declaring class của instance method; mã minh họa chỉ thể hiện cú pháp, không dùng làm class Java độc lập.
+In the receiver row, `C` stands for the declaring class of the instance method; the illustrative code only shows syntax and is not meant as a standalone Java class.
 
-Nếu annotation được khai báo với **nhiều target** (`METHOD`, `PARAMETER`, `TYPE_USE`...), cần kiểm tra vị trí cú pháp và quy tắc ghi metadata của compiler, thay vì mặc định nó được lưu ở một API duy nhất. Nếu không có `@Retention(RUNTIME)`, việc không nhìn thấy annotation qua Reflection runtime chưa chứng minh annotation vắng mặt trong source hoặc class file.
+If an annotation is declared with **multiple targets** (`METHOD`, `PARAMETER`, `TYPE_USE`...), inspect the syntactic position and compiler metadata recording rules rather than assuming it is stored under a single API. Without `@Retention(RUNTIME)`, not seeing an annotation via runtime Reflection does not prove the annotation is absent from source or the class file.
 
-## 9. Lỗi phổ biến và cách khắc phục
+## 9. Common mistakes and fixes
 
-**Lỗi 1 — Dùng `getReturnType()` để đọc annotation trong `List<@Mark String>`.** `getReturnType()` chỉ trả `Class<?> = List.class`; dùng `getAnnotatedReturnType()` rồi duyệt đến generic argument.
+**Mistake 1 — Using `getReturnType()` to read annotations in `List<@Mark String>`.** `getReturnType()` only returns `Class<?> = List.class`; use `getAnnotatedReturnType()` and traverse down to the generic argument.
 
-**Lỗi 2 — Đọc `getExceptionTypes()` rồi cho rằng đã có annotation trên `throws`.** Kết quả chỉ là `Class<?>[]`; dùng `getAnnotatedExceptionTypes()` để có `AnnotatedType[]`.
+**Mistake 2 — Reading `getExceptionTypes()` and assuming you have annotations on `throws`.** The result is only `Class<?>[]`; use `getAnnotatedExceptionTypes()` to get `AnnotatedType[]`.
 
-**Lỗi 3 — Tưởng `getAnnotatedExceptionTypes()` liệt kê lỗi sẽ xảy ra lúc chạy.** Nó chỉ phản ánh **`throws` clause**; không chạy phương thức, không quan sát exception phát sinh thực tế.
+**Mistake 3 — Thinking `getAnnotatedExceptionTypes()` lists errors that will occur at runtime.** It reflects only the **`throws` clause**; it does not run the method or observe exceptions actually thrown.
 
-**Lỗi 4 — Đồng nhất `getAnnotatedReceiverType() == null` với receiver không được annotation.** Instance method có thể trả `AnnotatedType` không có annotation; `null` được dùng khi executable **không thể có receiver parameter**, ví dụ static method.
+**Mistake 4 — Equating `getAnnotatedReceiverType() == null` with an unannotated receiver.** An instance method can return an unannotated `AnnotatedType`; `null` is used when the executable **cannot have a receiver parameter**, such as a static method.
 
-**Lỗi 5 — Nghĩ explicit receiver là một tham số bình thường.** `Service this` không làm tăng `getParameterCount()` và không buộc người gọi truyền thêm `this`.
+**Mistake 5 — Thinking an explicit receiver is an ordinary parameter.** `Service this` does not increase `getParameterCount()` and does not force callers to pass an extra `this`.
 
-**Lỗi 6 — Tưởng receiver type phản ánh runtime subclass.** Metadata ghi kiểu receiver theo khai báo; object khi chạy có thể thuộc lớp con, còn dynamic dispatch là vấn đề riêng.
+**Mistake 6 — Thinking the receiver type reflects a runtime subclass.** Metadata records the declared receiver type; at runtime the object may belong to a subclass, while dynamic dispatch is a separate matter.
 
-**Lỗi 7 — Không xử lý mảng rỗng hoặc `null`.** `getAnnotatedExceptionTypes()` có thể trả mảng rỗng; `getAnnotatedReceiverType()` có thể trả `null`. Kiểm tra trước khi lấy `[0]` hoặc `getAnnotation`.
+**Mistake 7 — Failing to handle empty arrays or `null`.** `getAnnotatedExceptionTypes()` can return an empty array; `getAnnotatedReceiverType()` can return `null`. Check before indexing `[0]` or calling `getAnnotation`.
 
-**Lỗi 8 — Nhầm annotation khai báo method với annotation trên kiểu trả về.** `Method.getAnnotations()` không tự bao gồm annotation tại tất cả các type-use positions.
+**Mistake 8 — Confusing method declaration annotations with return type annotations.** `Method.getAnnotations()` does not automatically include annotations at all type-use positions.
 
-**Lỗi 9 — Bỏ qua `RetentionPolicy.RUNTIME`.** `TYPE_USE` chỉ cho phép đặt annotation; không bảo đảm annotation xuất hiện qua Reflection nếu retention không phù hợp.
+**Mistake 9 — Omitting `RetentionPolicy.RUNTIME`.** `TYPE_USE` only permits placing the annotation; it does not guarantee the annotation appears via Reflection if retention is inappropriate.
 
-**Lỗi 10 — Xem `AnnotatedType` luôn là một kiểu đơn giản.** Return type có thể parameterized, array, wildcard hoặc type variable; phải đi đúng cấu trúc cây kiểu, không cast bừa.
+**Mistake 10 — Treating `AnnotatedType` as always being a simple type.** Return types can be parameterized, arrays, wildcards, or type variables; follow the type tree structure instead of casting recklessly.
 
-## 10. Tự kiểm tra
+## 10. Self-check
 
-1. Phương thức có kiểu trả về `@Mark("top") List<@Mark("item") String>`. Đọc `top` ở đâu? **Tại `getAnnotatedReturnType()`**; đọc `item` ở **nút type argument thứ nhất**.
-2. `throws @Mark("io") IOException` có `getExceptionTypes()[0]` trả annotation không? **Không**, phần tử là `Class`; cần `getAnnotatedExceptionTypes()[0]`.
-3. Method không khai báo `throws` thì `getAnnotatedExceptionTypes()` trả gì? **Mảng rỗng**, không phải `null`.
-4. Static method có receiver type không? **Không**, `getAnnotatedReceiverType()` trả `null`.
-5. Instance method không có explicit receiver annotation thì receiver type có bắt buộc `null` không? **Không**; API trả `AnnotatedType` không có annotation trên receiver.
-6. `void act(@Mark("x") C this)` khai báo bao nhiêu **formal parameters**? **0**; receiver không tính là formal parameter thông thường.
-7. `getAnnotatedReceiverType()` có phải kiểu runtime chính xác của đối tượng đang gọi không? **Không**; nó là metadata trên kiểu receiver theo khai báo.
-8. `getAnnotatedReturnType()` có chạy phương thức và xem đối tượng được trả về không? **Không**; chỉ đọc cấu trúc khai báo.
-9. Với method `<E extends Exception> void call() throws E`, nên xem API nào để thấy cấu trúc kiểu generic ở `throws`? **`getGenericExceptionTypes()`**, và dùng **`getAnnotatedExceptionTypes()`** khi cần annotation trên lần dùng kiểu.
-10. Vì sao annotation `@Target(TYPE_USE)` nhưng không `@Retention(RUNTIME)` có thể không đọc được bằng Reflection? **Vì quyền đặt annotation và khả năng giữ annotation đến runtime là hai thuộc tính độc lập.**
+1. A method has return type `@Mark("top") List<@Mark("item") String>`. Where do you read `top`? **At `getAnnotatedReturnType()`**; read `item` at **the first type argument node**.
+2. Does `throws @Mark("io") IOException` have `getExceptionTypes()[0]` return the annotation? **No**, the element is a `Class`; `getAnnotatedExceptionTypes()[0]` is needed.
+3. If a method declares no `throws`, what does `getAnnotatedExceptionTypes()` return? **An empty array**, not `null`.
+4. Does a static method have a receiver type? **No**, `getAnnotatedReceiverType()` returns `null`.
+5. For an instance method without an explicit receiver annotation, must the receiver type be `null`? **No**; the API returns an `AnnotatedType` with no annotation on the receiver.
+6. How many **formal parameters** does `void act(@Mark("x") C this)` declare? **0**; the receiver does not count as an ordinary formal parameter.
+7. Is `getAnnotatedReceiverType()` the exact runtime type of the calling object? **No**; it is metadata on the declared receiver type.
+8. Does `getAnnotatedReturnType()` execute the method and inspect the returned object? **No**; it only reads the declared structure.
+9. For method `<E extends Exception> void call() throws E`, which API should you check to see the generic type structure in `throws`? **`getGenericExceptionTypes()`**, and use **`getAnnotatedExceptionTypes()`** when annotations on the type use are needed.
+10. Why might an annotation with `@Target(TYPE_USE)` but without `@Retention(RUNTIME)` be unreadable via Reflection? **Because permission to place an annotation and retaining it until runtime are two independent properties.**
 
-## 11. Tài liệu chính thức
+## 11. Official documentation
 
-- [Oracle Java SE 21 — `Executable`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Executable.html): các hợp đồng `getAnnotatedReturnType()`, `getAnnotatedExceptionTypes()`, `getAnnotatedReceiverType()`, kiểu receiver của method và constructor.
-- [Oracle Java SE 21 — `Method`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html): thông tin method, return type, generic return type và annotation.
-- [Oracle Java SE 21 — `AnnotatedType`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AnnotatedType.html): `getType()`, annotation tại mỗi type-use node.
-- [Oracle Java SE 21 — `AnnotatedParameterizedType`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AnnotatedParameterizedType.html): annotation trên các đối số generic.
-- [Java Language Specification SE 21 — §8.4.1 Formal Parameters](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.4.1): receiver parameters của instance methods.
-- [Java Language Specification SE 21 — §9.7 Annotations](https://docs.oracle.com/javase/specs/jls/se21/html/jls-9.html#jls-9.7): annotation tại vị trí type use.
+- [Oracle Java SE 21 — `Executable`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Executable.html): contracts for `getAnnotatedReturnType()`, `getAnnotatedExceptionTypes()`, `getAnnotatedReceiverType()`, and receiver types of methods and constructors.
+- [Oracle Java SE 21 — `Method`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Method.html): method info, return type, generic return type, and annotations.
+- [Oracle Java SE 21 — `AnnotatedType`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AnnotatedType.html): `getType()`, annotations at each type-use node.
+- [Oracle Java SE 21 — `AnnotatedParameterizedType`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AnnotatedParameterizedType.html): annotations on generic arguments.
+- [Java Language Specification SE 21 — §8.4.1 Formal Parameters](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.4.1): receiver parameters of instance methods.
+- [Java Language Specification SE 21 — §9.7 Annotations](https://docs.oracle.com/javase/specs/jls/se21/html/jls-9.html#jls-9.7): annotations at type-use positions.
 
-**Ghi nhớ:** `getAnnotatedReturnType()` nhìn vào **kiểu trả về**; `getAnnotatedExceptionTypes()` nhìn vào **những kiểu ghi trong `throws`**; `getAnnotatedReceiverType()` nhìn vào **kiểu của receiver `this`**. Cả ba đọc *annotation trên vị trí dùng kiểu*, không phải cùng một nhóm annotation của khai báo method, và luôn phải xét đúng nút `AnnotatedType` cũng như khả năng trả mảng rỗng hoặc `null`.
+**Remember:** `getAnnotatedReturnType()` looks at **the return type**; `getAnnotatedExceptionTypes()` looks at **the types listed in `throws`**; `getAnnotatedReceiverType()` looks at **the type of receiver `this`**. All three read *annotations at type-use positions*, not the same annotation group as the method declaration, and you must always inspect the right `AnnotatedType` node as well as handle empty arrays or `null`.

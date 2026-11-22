@@ -1,53 +1,53 @@
-# Unicode trong mã nguồn và xử lý Unicode escape trước phân tích token — Java 17+
+# Unicode in Source Code and Unicode Escape Processing Before Tokenization — Java 17+
 
-Trong Java, một chuỗi ký tự giống `\u0041` không nhất thiết được chờ đến lúc chương trình chạy mới chuyển thành chữ `A`. **Unicode escape hợp lệ trong mã nguồn được xử lý rất sớm, trước khi Java nhận diện comment, string literal, identifier hoặc từ khóa.**
+In Java, a character sequence like `\u0041` does not necessarily wait until the program runs to turn into the letter `A`. **Valid Unicode escapes in source code are processed very early, before Java recognizes comments, string literals, identifiers, or keywords.**
 
-Đây là một đặc điểm quan trọng của *quá trình dịch mã nguồn* trong Java. Nó giải thích vì sao một ký tự viết dưới dạng `\u0061` có thể trở thành một phần tên biến; vì sao `\u000a` có thể kết thúc comment; và vì sao một cách viết tưởng như nằm trong string lại gây lỗi biên dịch.
+This is an important characteristic of Java's *source translation pipeline*. It explains why a character written as `\u0061` can become part of a variable name; why `\u000a` can terminate a comment; and why a sequence that appears to be inside a string can cause a compile error.
 
-Mục tiêu của bài: hiểu thứ tự xử lý, phân biệt Unicode escape của **mã nguồn** với escape của **string/char literal**, và tự kiểm chứng trên **JDK 17 trở lên**.
+Lesson goal: understand the processing order, distinguish **source-code** Unicode escapes from **string/char literal** escapes, and verify it yourself on **JDK 17 and later**.
 
-## 1. Ba tầng xử lý dễ bị nhầm
+## 1. Three processing stages that are easily confused
 
-Hãy hình dung tệp `.java` được xử lý theo thứ tự:
+Picture a `.java` file being processed in order:
 
 ~~~text
-Tệp .java lưu dưới UTF-8
+.java file saved as UTF-8
         │ javac -encoding UTF-8
         ▼
-Ký tự đầu vào đã được giải mã từ byte
-        │ Bước xử lý Unicode escape hợp lệ: \uXXXX
+Input characters decoded from bytes
+        │ Step processing valid Unicode escapes: \uXXXX
         ▼
-Chuỗi ký tự Java sau chuyển đổi Unicode escape
-        │ Nhận diện kết thúc dòng, comment, identifier,
-        │ keyword, toán tử, string/char literal ...
+Java character sequence after Unicode escape translation
+        │ Recognize line terminators, comments, identifiers,
+        │ keywords, operators, string/char literals ...
         ▼
-Các token để phân tích cú pháp và kiểm tra kiểu
+Tokens for syntax parsing and type checking
         │
         ▼
-Bytecode (.class), nếu mã hợp lệ
+Bytecode (.class), if code is valid
 ~~~
 
-**Thứ tự là điểm cốt lõi.** Unicode escape được xử lý **trước khi** token hóa; điều này áp dụng ngay cả khi văn bản trông như đang nằm trong comment hoặc string.
+**Order is the key point.** Unicode escapes are processed **before** tokenization; this applies even when the text appears to sit inside a comment or string.
 
-| Thứ cần phân biệt | Ví dụ | Giai đoạn/ý nghĩa |
+| Concept to distinguish | Example | Stage / meaning |
 | --- | --- | --- |
-| Mã hóa tệp nguồn | UTF-8 | Quy tắc giải mã byte thành ký tự khi đọc tệp |
-| Unicode escape trong nguồn | `\u0041` | Được chuyển thành ký tự `A` trước khi phân tích token, nếu đủ điều kiện |
-| Escape trong Java string | `\n`, `\t`, `\\`, `\"` | Được hiểu theo cú pháp string/char literal sau bước Unicode escape |
-| Unicode code point | U+1F680 (🚀) | Một ký tự Unicode có thể cần **hai** đơn vị mã UTF-16 |
-| Kiểu `char` | `'A'` | Một **UTF-16 code unit**, không nhất thiết là một Unicode code point đầy đủ |
+| Source file encoding | UTF-8 | Rules for decoding bytes into characters when reading the file |
+| Unicode escape in source | `\u0041` | Translated into character `A` before tokenization, when eligible |
+| Escape inside Java string | `\n`, `\t`, `\\`, `\"` | Interpreted per string/char literal syntax after the Unicode escape step |
+| Unicode code point | U+1F680 (🚀) | A Unicode character may require **two** UTF-16 code units |
+| `char` type | `'A'` | One **UTF-16 code unit**, not necessarily a full Unicode code point |
 
-Cú pháp Unicode escape thông thường là **dấu gạch chéo ngược**, một hoặc nhiều chữ `u` thường, rồi **chính xác bốn chữ số thập lục phân** (`0–9`, `a–f`, `A–F`). Ví dụ `\u0041` và `\uuuu0041` đều biểu diễn `A` ở bước chuyển đổi của mã nguồn. Nó **không** có dạng `\u{1F680}` trong Java.
+Standard Unicode escape syntax is a **backslash**, one or more lowercase `u` letters, and then **exactly four hexadecimal digits** (`0–9`, `a–f`, `A–F`). For example, `\u0041` and `\uuuu0041` both represent `A` at the source translation stage. Java does **not** use the `\u{1F680}` form.
 
-## 2. Ví dụ runnable: escape làm thay đổi cả tên biến
+## 2. Runnable example: an escape alters even a variable name
 
-Tạo tệp **`UnicodeStageDemo.java`** dưới dạng UTF-8:
+Create a file **`UnicodeStageDemo.java`** saved as UTF-8:
 
 ~~~java
 public class UnicodeStageDemo {
     public static void main(String[] args) {
-        int ca\u0074 = 3;             // Ten bien sau dich: cat.
-        String fromEscape = "\u0041";  // Sau dich: "A".
+        int ca\u0074 = 3;             // Variable name after translation: cat.
+        String fromEscape = "\u0041";  // After translation: "A".
         String literalText = "\\u0041";
         String rocket = "🚀";
 
@@ -62,7 +62,7 @@ public class UnicodeStageDemo {
 }
 ~~~
 
-**Biên dịch và chạy** trong thư mục chứa tệp, trên Windows PowerShell hoặc Linux/Bash:
+**Compile and run** in the file's directory, on Windows PowerShell or Linux/Bash:
 
 ~~~bash
 java -version
@@ -71,7 +71,7 @@ javac -encoding UTF-8 UnicodeStageDemo.java
 java UnicodeStageDemo
 ~~~
 
-Kết quả dự kiến:
+Expected output:
 
 ~~~text
 cat=3
@@ -81,18 +81,18 @@ utf16Length=2
 codePoints=1
 ~~~
 
-**Giải thích từng kết quả:**
+**Explanation of each result:**
 
-1. `ca\u0074` được chuyển thành `cat` **trước khi phân tích identifier**. Vì vậy mã có thể khai báo bằng cách viết có escape và sử dụng biến bằng `cat`.
-2. `"\u0041"` trở thành chuỗi nguồn `"A"` trước khi token hóa; giá trị chạy là `A`.
-3. `"\\u0041"` chứa **hai dấu backslash trong tệp nguồn**. Theo quy tắc *điều kiện nhận Unicode escape* của Java, dấu thứ hai trong cặp đó không bắt đầu Unicode escape; khi xử lý string literal, `\\` biểu diễn **một** backslash. Vì vậy chương trình thực sự in chuỗi ký tự `\u0041`.
-4. `🚀` là Unicode code point U+1F680, nằm ngoài Basic Multilingual Plane. Một `String` Java lưu dưới dạng các đơn vị mã UTF-16: `length()` trả `2` cho surrogate pair, trong khi `codePointCount(...)` trả `1`.
+1. `ca\u0074` is translated to `cat` **before identifier recognition**. Thus the code can declare the variable using the escaped spelling and reference it as `cat`.
+2. `"\u0041"` becomes the source text `"A"` before tokenization; the runtime value is `A`.
+3. `"\\u0041"` contains **two backslashes in the source file**. Under Java's *Unicode escape eligibility rules*, the second backslash in that pair does not start a Unicode escape; when parsing the string literal, `\\` represents **one** backslash. Therefore, the program actually prints the character sequence `\u0041`.
+4. `🚀` is Unicode code point U+1F680, outside the Basic Multilingual Plane. A Java `String` stores UTF-16 code units: `length()` returns `2` for the surrogate pair, while `codePointCount(...)` returns `1`.
 
-Đoạn ví dụ chỉ in chữ ASCII và số ở đầu ra, nên kết quả ít phụ thuộc cách terminal hiển thị emoji; tuy nhiên **tệp nguồn phải được lưu đúng UTF-8**.
+The example prints only ASCII letters and digits in its output, so results depend little on how the terminal renders emojis; however, **the source file must be saved properly as UTF-8**.
 
-## 3. Unicode escape được xử lý cả ở nơi trông như comment
+## 3. Unicode escapes are processed even where text looks like a comment
 
-Xem đoạn sau — một ví dụ **cố ý gây bất ngờ**. Tạo riêng tệp **`CommentBoundary.java`**:
+Look at the following — an **intentionally surprising** example. Create a separate file **`CommentBoundary.java`**:
 
 ~~~java
 public class CommentBoundary {
@@ -102,137 +102,137 @@ public class CommentBoundary {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 CommentBoundary.java
 java CommentBoundary
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 THIS RUNS
 ~~~
 
-**Tại sao dòng tưởng là comment vẫn in ra?**
+**Why does a line that looks like a comment still print?**
 
-- `\u000a` biểu diễn ký tự xuống dòng LF.
-- Trước khi Java nhận diện comment `//`, Unicode escape được chuyển thành **xuống dòng thật**.
-- Vì vậy, Java nhìn thấy comment kết thúc ngay tại dòng mới ấy; câu lệnh `System.out.println(...)` nằm **sau comment** và được thực thi.
+- `\u000a` represents the LF line-feed character.
+- Before Java recognizes the `//` comment, the Unicode escape is translated into an **actual line break**.
+- As a result, Java sees the comment end right at that new line; the statement `System.out.println(...)` lies **after the comment** and gets executed.
 
-Nếu diễn tả mã **sau bước dịch Unicode escape**, nó tương đương về ý nghĩa với:
+Expressed **after the Unicode escape translation step**, the code is equivalent in meaning to:
 
 ~~~java
-// comment ket thuc tai day
+// comment ends here
 System.out.println("THIS RUNS");
 ~~~
 
-**Đừng dùng mẹo này trong mã thực tế.** Nó gây khó đọc, dễ làm công cụ phân tích/lint không theo đúng bước chuyển đổi hiểu sai và tạo nguy cơ khi review mã. Dùng xuống dòng thật và comment rõ ràng.
+**Do not use this trick in real code.** It reduces readability, can mislead analysis/lint tools that do not mirror the exact translation stage, and creates risks during code review. Use real line breaks and clear comments.
 
-### Bẫy tương tự trong string và char literal
+### Similar trap in string and char literals
 
-Các đoạn sau **cố ý không biên dịch** nếu đưa vào một phương thức:
+The following snippets **intentionally do not compile** if placed in a method:
 
 ~~~java
-// String s = "\u000a"; // Khong dung: escape tao xuong dong
-// char c = '\u000a';   // Khong dung: escape tao xuong dong
+// String s = "\u000a"; // Invalid: escape creates a line break
+// char c = '\u000a';   // Invalid: escape creates a line break
 ~~~
 
-Hai dòng ở trên được viết dưới dạng comment để minh họa, **nhưng chính Unicode escape trong comment cũng vẫn có thể được chuyển đổi**. Vì thế **không nên chép chúng vào tệp Java để tắt lỗi bằng `//`**.
+The two lines above are written as comments for illustration, **yet Unicode escapes inside comments can still be translated**. Therefore, **do not copy them into a Java file expecting `//` to disable the error**.
 
-Trong tài liệu, ta hiểu các mẫu `"\u000a"` và `'\u000a'` là văn bản **trước** xử lý Unicode escape: chúng sẽ làm đứt literal thành nhiều dòng, gây lỗi biên dịch. Nếu muốn chứa ký tự xuống dòng trong một chuỗi Java bình thường, hãy dùng escape của string literal:
+In documentation, treat patterns like `"\u000a"` and `'\u000a'` as text **prior to** Unicode escape processing: they break the literal across lines, causing a compile error. If you want a newline character in a regular Java string, use a string literal escape:
 
 ~~~java
-String safe = "\n"; // Hop le, 1 ky tu xuong dong luc chay.
+String safe = "\n"; // Valid, 1 newline character at runtime.
 System.out.println(safe.length()); // 1
 ~~~
 
-**Lưu ý an toàn về cách ghi ví dụ lỗi:** Đoạn `// String s = "\u000a";` trên được hiển thị trong README để phân tích, không phải câu lệnh để đưa vào file nguồn. Trong Java thật, lexer vẫn xử lý `\u000a` trong comment, nên cách comment-out thông thường **không che được** nó. Đây chính là nội dung bài học.
+**Safety note on documenting error examples:** The snippet `// String s = "\u000a";` above is shown in documentation for analysis, not as a statement to paste into a source file. In real Java, the lexer still processes `\u000a` inside comments, so ordinary commenting-out **does not mask** it. That is the very point of this lesson.
 
-## 4. Phân biệt `\uXXXX` với các escape ở thời điểm chạy
+## 4. Distinguishing `\uXXXX` from runtime escapes
 
-| Trong tệp `.java` | Kết quả của bước Unicode escape | Giá trị/hiệu ứng |
+| In the `.java` file | Result of Unicode escape step | Value / effect |
 | --- | --- | --- |
-| `"\u0041"` | `"A"` | Chuỗi chứa chữ `A` |
-| `'\u0042'` | `'B'` | `char` chứa chữ `B` |
-| `"\\u0041"` | Không chuyển cặp `\\u0041` thành `A` | String chứa backslash và năm ký tự `u0041` |
-| `"\n"` | Không phải Unicode escape | String có một ký tự xuống dòng nhờ escape của literal |
-| `\u0069nt number = 1;` | `int number = 1;` | `int` được nhận diện là keyword |
-| `// \u000a printSomething();` | Xuống dòng được chèn **trước** phân tích comment | Phần sau có thể trở thành mã Java ngoài comment |
+| `"\u0041"` | `"A"` | String containing letter `A` |
+| `'\u0042'` | `'B'` | `char` containing letter `B` |
+| `"\\u0041"` | Does not translate `\\u0041` into `A` | String containing backslash and five characters `u0041` |
+| `"\n"` | Not a Unicode escape | String with one newline character via literal escape |
+| `\u0069nt number = 1;` | `int number = 1;` | `int` is recognized as a keyword |
+| `// \u000a printSomething();` | Line break inserted **before** comment parsing | What follows can become Java code outside the comment |
 
-Không phải cứ thấy backslash + `u` là mã chắc chắn chuyển đổi ngay. Java có **quy tắc xác định backslash nào đủ điều kiện mở Unicode escape**, phụ thuộc vào chuỗi backslash liền trước. Ví dụ nguồn `"\\u0041"` không dịch thành `"A"`. Không cần học thuộc công thức đếm mọi backslash khi mới bắt đầu; hãy nhớ **khác biệt giữa một và hai backslash**, và dùng `javac` để tự kiểm chứng khi mã phức tạp.
+Seeing a backslash + `u` does not always mean the code immediately translates it. Java has a **rule determining which backslashes are eligible to begin a Unicode escape**, depending on the immediately preceding run of backslashes. For example, source `"\\u0041"` does not translate to `"A"`. You do not need to memorize a backslash-counting formula when starting out; remember the **difference between one and two backslashes**, and use `javac` to verify when code is tricky.
 
-Cũng đừng nghĩ có thể viết `\u005c` (escape tạo ra ký tự backslash) rồi ghép thêm `u0041` để khiến compiler dịch nhiều lượt. **Unicode escape không được xử lý lặp vô hạn**; ký tự backslash sinh ra từ bước dịch không tự bắt đầu một Unicode escape mới.
+Nor should you think you can write `\u005c` (an escape producing a backslash character) followed by `u0041` to make the compiler translate in multiple passes. **Unicode escapes are not processed in repeated loops**; a backslash produced by translation does not itself start a new Unicode escape.
 
-## 5. Unicode trong identifier và quy tắc đặt tên
+## 5. Unicode in identifiers and naming rules
 
-Java cho phép nhiều ký tự Unicode trong identifier, tùy các quy tắc `Character.isJavaIdentifierStart` / `Character.isJavaIdentifierPart` và các ngoại lệ theo đặc tả ngôn ngữ. Vì vậy, identifier không nhất thiết chỉ gồm `A-Z`, `a-z` và chữ số ASCII.
+Java allows many Unicode characters in identifiers, subject to `Character.isJavaIdentifierStart` / `Character.isJavaIdentifierPart` rules and exceptions in the language specification. Thus, identifiers do not have to consist solely of `A-Z`, `a-z`, and ASCII digits.
 
-Ví dụ có thể khai báo identifier tiếng Việt:
+For example, you can declare a Vietnamese identifier:
 
 ~~~java
 int sốNgày = 3;
 System.out.println(sốNgày); // 3
 ~~~
 
-Tuy nhiên:
+However:
 
-- Java **phân biệt chữ hoa và chữ thường**; tên phải khớp chính xác.
-- Hai ký tự **trông giống nhau** không bảo đảm là cùng code point. Ví dụ ký tự Latin `a` và một ký tự từ hệ chữ khác có hình tương tự có thể tạo hai identifier khác nhau.
-- Dạng ký tự tổ hợp và dạng ký tự dựng sẵn có thể hiển thị gần giống; đừng giả định Java tự chuẩn hóa mọi identifier theo cách bạn mong muốn.
-- Với code nhóm, ưu tiên tên dễ đánh máy, dễ tìm kiếm và nhất quán theo convention. Unicode escape để “giấu” một phần tên thường làm mã khó review.
+- Java is **case-sensitive**; names must match exactly.
+- Two characters that **look alike** are not guaranteed to be the same code point. For example, a Latin `a` and a visually similar character from another script form two distinct identifiers.
+- Composed and decomposed character forms can look nearly identical; do not assume Java normalizes all identifiers the way you expect.
+- In team codebases, prefer names that are easy to type, easy to search, and consistent with conventions. Using Unicode escapes to "hide" part of a name usually makes code hard to review.
 
-Với chữ ngoài Basic Multilingual Plane, `String` Java có thể lưu bằng **surrogate pair**; `char` vẫn chỉ đại diện một đơn vị mã UTF-16. Vì vậy, muốn xử lý Unicode theo code point thay vì code unit, dùng các API như `codePointAt`, `codePointCount` và `String.codePoints()` khi phù hợp.
+For characters outside the Basic Multilingual Plane, a Java `String` may store a **surrogate pair**; a `char` still represents only one UTF-16 code unit. Therefore, when processing Unicode by code point rather than code unit, use APIs like `codePointAt`, `codePointCount`, and `String.codePoints()` where appropriate.
 
-## 6. Lỗi thường gặp và cách xác định nguyên nhân
+## 6. Common errors and how to diagnose them
 
-| Triệu chứng | Nguyên nhân cần xem | Cách xử lý |
+| Symptom | Cause to inspect | Fix |
 | --- | --- | --- |
-| `illegal unicode escape` | `\u` không đủ bốn chữ số hex, hoặc chữ số sai | Sửa đúng escape hay bỏ backslash nếu muốn văn bản thuần |
-| `unclosed string literal` | `\u000a` hoặc `\u000d` tạo line terminator trước khi phân tích literal | Dùng `\n` hoặc `\r` bên trong string literal |
-| Dòng tưởng comment vẫn chạy | Escape trong `//` tạo newline | Không viết Unicode escape có hiệu ứng tách dòng trong comment |
-| `cannot find symbol` với identifier | Tên sau xử lý escape khác tên bạn tham chiếu | Xem ký tự thật, chữ hoa/thường, code point |
-| Ký tự tiếng Việt hoặc emoji bị lỗi khi biên dịch | Mã hóa file không khớp cách `javac` đọc nguồn | Lưu UTF-8, biên dịch với `-encoding UTF-8` |
-| `String.length()` lớn hơn số ký tự nhìn thấy | Java đếm UTF-16 code unit, không phải code point hoặc grapheme cluster | Dùng API code point nếu đó là đơn vị muốn đếm |
+| `illegal unicode escape` | `\u` without four hex digits, or invalid hex digit | Fix the escape or remove/escape the backslash for literal text |
+| `unclosed string literal` | `\u000a` or `\u000d` created a line terminator before literal parsing | Use `\n` or `\r` inside string literals |
+| A line that looks like a comment still runs | Escape inside `//` produced a newline | Do not write line-breaking Unicode escapes inside comments |
+| `cannot find symbol` on an identifier | Post-escape name differs from the referenced name | Check actual characters, casing, code points |
+| Vietnamese characters or emojis break on compile | File encoding does not match how `javac` reads source | Save as UTF-8, compile with `-encoding UTF-8` |
+| `String.length()` exceeds visible character count | Java counts UTF-16 code units, not code points or grapheme clusters | Use code point APIs if that is the unit you want to count |
 
-`codePointCount` cũng **không** tự đếm “số ký tự người dùng nhìn thấy” (*grapheme clusters*): emoji ghép hoặc chữ có dấu kết hợp có thể gồm nhiều code point nhưng được hiển thị như một ký tự. Đừng dùng `length()` hay `codePointCount()` như một bộ đếm ký tự giao diện người dùng hoàn hảo nếu chưa xác định đơn vị cần đếm.
+`codePointCount` also **does not** automatically count "user-perceived characters" (*grapheme clusters*): combined emojis or accented characters with combining marks can consist of multiple code points while rendering as one character. Do not treat `length()` or `codePointCount()` as a perfect UI character counter without first defining the unit to count.
 
-### Checklist kiểm tra khi gặp lỗi liên quan Unicode
+### Checklist when encountering Unicode-related errors
 
-1. File đang được lưu ở **mã hóa** nào? `javac` đang dùng encoding nào?
-2. Chuỗi `\u....` có đủ điều kiện để trở thành Unicode escape không?
-3. Sau khi dịch escape, ký tự đó có thể biến thành newline, dấu nháy, ký tự phân cách token hoặc một phần identifier không?
-4. Thông báo lỗi xảy ra **khi biên dịch** hay sau khi chương trình đã chạy?
-5. Bạn muốn đếm **UTF-16 code unit**, **code point**, hay **ký tự hiển thị**?
+1. What **encoding** is the file saved in? What encoding is `javac` using?
+2. Is the `\u....` sequence eligible to become a Unicode escape?
+3. After escape translation, could that character turn into a newline, quote, token separator, or part of an identifier?
+4. Did the error occur **at compile time** or after the program ran?
+5. Do you want to count **UTF-16 code units**, **code points**, or **rendered characters**?
 
-## 7. Bài tập thực hành
+## 7. Practice exercises
 
-**Bài 1 — Dự đoán trước khi chạy.** Trong `UnicodeStageDemo`, nếu đổi `ca\u0074` thành `nu\u006Dber`, biến thực sự có tên gì?
+**Exercise 1 — Predict before running.** In `UnicodeStageDemo`, if you change `ca\u0074` to `nu\u006Dber`, what is the variable's actual name?
 
-*Đáp án:* `number`, vì `\u006D` được chuyển thành `m` trước khi lexer nhận diện identifier. Nhớ đổi nơi sử dụng biến tương ứng.
+*Answer:* `number`, because `\u006D` translates to `m` before the lexer recognizes identifiers. Remember to update places referencing the variable accordingly.
 
-**Bài 2 — Một hay hai backslash?** So sánh hai dòng:
+**Exercise 2 — One or two backslashes?** Compare these two lines:
 
 ~~~java
 String a = "\u0041";
 String b = "\\u0041";
 ~~~
 
-*Đáp án:* `a` chứa `A`; `b` chứa sáu ký tự gồm một backslash và `u0041`. Khi in, `b` hiển thị `\u0041`.
+*Answer:* `a` holds `A`; `b` holds six characters consisting of one backslash and `u0041`. When printed, `b` displays `\u0041`.
 
-**Bài 3 — Vì sao comment có thể nguy hiểm?** Giải thích kết quả của `CommentBoundary` trước khi chạy. Tìm bước nào phải xảy ra **trước** phân tích `//`.
+**Exercise 3 — Why can comments be dangerous?** Explain the output of `CommentBoundary` before running it. Identify which step must happen **before** parsing `//`.
 
-*Đáp án:* Unicode escape `\u000a` chuyển thành newline trước bước nhận diện comment, khiến phần sau trở thành câu lệnh thật.
+*Answer:* The Unicode escape `\u000a` translates into a newline prior to comment recognition, turning what follows into an actual statement.
 
-**Bài 4 — Dùng string escape đúng.** Muốn string Java chứa một ký tự xuống dòng, nên viết `"\u000a"` hay `"\n"`?
+**Exercise 4 — Use proper string escapes.** To put a newline character in a Java string, should you write `"\u000a"` or `"\n"`?
 
-*Đáp án:* `"\n"`. Unicode escape `\u000a` bị dịch thành line terminator quá sớm; `\n` là escape được phân tích trong string literal, tạo ký tự xuống dòng đúng ý định.
+*Answer:* `"\n"`. The Unicode escape `\u000a` translates into a line terminator too early; `\n` is an escape parsed inside the string literal, producing the intended newline character.
 
-**Bài 5 — Code point và `char`.** Vì sao `"🚀".length()` trả về 2 nhưng `"🚀".codePointCount(0, "🚀".length())` trả về 1? Có thể dùng một `char` duy nhất để chứa toàn bộ code point U+1F680 không?
+**Exercise 5 — Code points and `char`.** Why does `"🚀".length()` return 2 while `"🚀".codePointCount(0, "🚀".length())` returns 1? Can a single `char` hold the entire U+1F680 code point?
 
-*Đáp án:* `String` dùng UTF-16; U+1F680 cần hai code unit (*surrogate pair*). Một `char` riêng lẻ không đủ để biểu diễn trọn code point đó.
+*Answer:* `String` uses UTF-16; U+1F680 requires two code units (*surrogate pair*). A single `char` cannot represent that entire code point.
 
-## Ghi nhớ
+## Key takeaways
 
-**Unicode escape trong mã nguồn Java được xử lý trước khi tách token**, nên nó có thể thay đổi cả identifier, từ khóa, comment và ranh giới string literal. Điều này khác với escape như `\n` bên trong Java string, khác với encoding UTF-8 của tệp nguồn, và khác với quy tắc đếm UTF-16 của `String`. Khi gặp mã Unicode khó hiểu, hãy hình dung **tệp nguồn → dịch Unicode escape → nhận diện token → phân tích cú pháp**, rồi mới xem hành vi khi chạy.
+**Unicode escapes in Java source code are processed before tokenization**, so they can alter identifiers, keywords, comments, and string literal boundaries. This differs from escapes like `\n` inside Java strings, from UTF-8 source file encoding, and from `String`'s UTF-16 counting rules. When facing confusing Unicode code, trace **source file → Unicode escape translation → token recognition → syntax parsing**, and only then examine runtime behavior.

@@ -1,37 +1,37 @@
-# Đo và giải thích hiệu năng của ba cách xử lý cùng bài toán
+# Measuring and Explaining the Performance of Three Approaches to the Same Problem
 
-Một giải pháp dùng **Java Stream API** có thể ngắn gọn, dễ đọc và đúng về mặt ngữ nghĩa, nhưng điều đó **không tự động chứng minh nó nhanh hơn** vòng lặp truyền thống. Tương tự, thêm `parallel()` không bảo đảm tăng tốc: việc chia nguồn bằng `Spliterator`, lập lịch tác vụ, gộp kết quả, áp lực bộ nhớ và độ lớn công việc đều ảnh hưởng tới thời gian chạy.
+A **Java Stream API** solution can be concise, readable, and semantically accurate, yet that **does not automatically prove it is faster** than a traditional loop. Likewise, adding `parallel()` does not guarantee a speedup: splitting the source via `Spliterator`, task scheduling, result merging, memory pressure, and workload size all influence runtime.
 
-Bài thực hành nâng cao này hướng dẫn thiết kế **một thí nghiệm có thể tái lập**, so sánh **ba cách giải cùng một bài toán**: vòng lặp `for`, stream tuần tự và stream song song. Mục tiêu không phải tuyên bố cách nào luôn thắng, mà là **đo đúng, kiểm tra cùng kết quả và giải thích vì sao tốc độ thay đổi** giữa các kích thước dữ liệu và mức độ tính toán.
+This advanced hands-on lesson guides you through designing **a reproducible experiment** comparing **three ways to solve the same problem**: a `for` loop, a sequential stream, and a parallel stream. The goal is not to declare one approach the universal winner, but to **measure properly, verify identical outputs, and explain why speed changes** across data sizes and computational intensity.
 
-Đây là một bài thuộc chương **Bài tập nâng cao và dự án** của mô-đun `JAVA_STREAM_API`, kết nối kiến thức về pipeline lazy, `filter`, `mapToLong`, `sum`/`reduce`, primitive stream, Spliterator và giới hạn hiệu năng của parallel stream.
+This is part of the **Advanced Exercises and Projects** chapter of the `JAVA_STREAM_API` module, connecting lazy pipelines, `filter`, `mapToLong`, `sum`/`reduce`, primitive streams, Spliterators, and the performance limits of parallel streams.
 
-## 1. Đầu bài dự án và tiêu chí hoàn thành
+## 1. Project Prompt and Completion Criteria
 
-Cho một mảng `int[] data`. Chỉ xét các phần tử **chẵn**. Với mỗi phần tử được chọn, áp dụng một hàm biến đổi số nguyên xác định `score(value, rounds)`, sau đó **cộng tất cả điểm** thành một `long`.
+Given an `int[] data` array, consider only **even** elements. For each selected element, apply a deterministic integer transformation `score(value, rounds)`, then **sum all scores** into a `long`.
 
-Viết và so sánh ba cách:
+Implement and compare three approaches:
 
-1. **Imperative loop:** một vòng `for` duyệt mảng, kiểm tra chẵn/lẻ, tính điểm và cộng kết quả.
+1. **Imperative loop:** a `for` loop iterating over the array, checking parity, computing scores, and summing results.
 2. **Sequential stream:** `Arrays.stream(data).filter(...).mapToLong(...).sum()`.
-3. **Parallel stream:** cùng pipeline nhưng bật `parallel()` để cho phép chia mảng thành các phần xử lý.
+3. **Parallel stream:** the same pipeline with `parallel()` enabled so the array can be split across workers.
 
-Ba phiên bản phải dùng **cùng dữ liệu, cùng hàm `score`, cùng điều kiện lọc và cùng kiểu tổng hợp**. Không được làm cho một phiên bản ít việc hơn rồi kết luận nó nhanh hơn.
+All three versions must use **the same data, the same `score` function, the same filter predicate, and the same summation type**. Never give one version less work and conclude it is faster.
 
-### Sản phẩm cần nộp
+### Deliverables
 
-| Sản phẩm | Mục tiêu |
+| Deliverable | Objective |
 | --- | --- |
-| Ba phương thức Java | Cùng bài toán, dễ đọc và không dùng trạng thái chia sẻ mutable. |
-| Kiểm tra tính đúng | Cả ba trả cùng tổng trên nhiều kích thước và trường hợp biên. |
-| Benchmark JMH | Có warm-up, measurement, fork và cách tiêu thụ kết quả. |
-| Bảng số liệu | Ghi rõ `n`, mức tính toán, đơn vị thời gian và môi trường chạy. |
-| Phần phân tích | Giải thích overhead, chia nguồn, JIT, CPU, GC và khả năng mở rộng. |
-| Kết luận có điều kiện | Nêu cách phù hợp cho workload đã đo, không khái quát quá mức. |
+| Three Java methods | Same problem, readable, no shared mutable state. |
+| Correctness verification | All three return the exact same sum across multiple sizes and edge cases. |
+| JMH benchmark | Includes warm-up, measurement, forks, and result consumption. |
+| Results table | Explicitly records `n`, computation rounds, time units, and runtime environment. |
+| Analysis | Explains overhead, source splitting, JIT, CPU, GC, and scalability. |
+| Scoped conclusion | Identifies the suitable choice for the measured workload without overgeneralizing. |
 
-## 2. Xác định phép tính để ba lời giải thực sự tương đương
+## 2. Defining a Computation So All Three Solutions Are Truly Equivalent
 
-Hãy chọn một hàm tính toán **thuần** (*pure*): nó chỉ phụ thuộc vào `value` và `rounds`, không đọc đồng hồ, I/O hay thay đổi biến toàn cục. Trong ví dụ, mỗi vòng lặp trộn các bit của một giá trị `long`, cuối cùng giữ lại 16 bit thấp để điểm nằm trong khoảng `[0, 65_535]`.
+Choose a **pure** computation function: it depends solely on `value` and `rounds`, without reading clocks, performing I/O, or mutating global state. In this example, each loop mixes the bits of a `long` value and masks the low 16 bits so the score falls within `[0, 65_535]`.
 
 ```java
 static long score(int value, int rounds) {
@@ -49,18 +49,18 @@ static long score(int value, int rounds) {
 }
 ```
 
-Các phép nhân `long` có thể tràn theo quy tắc số nguyên 64 bit của Java; ở đây đó là **chủ đích của thuật toán trộn bit**, không phải yêu cầu độ chính xác số học của một tổng tiền. Kết quả `score` luôn không âm và không quá 65.535. Với mảng tối đa một triệu phần tử, tổng lớn nhất có thể là `65_535_000_000L`, nằm an toàn trong phạm vi `long`.
+The `long` multiplications can wrap under Java's 64-bit integer rules; here that is **intentional for bit mixing**, not an arithmetic precision requirement on a monetary total. Each `score` result is non-negative and at most 65,535. For an array of up to one million elements, the maximum possible sum is `65_535_000_000L`, safely within `long` bounds.
 
-Tham số `rounds` biểu diễn **mức độ công việc trên một phần tử**:
+The `rounds` parameter controls **work per element**:
 
-- `rounds = 4`: phép biến đổi tương đối nhẹ; overhead tạo và chia pipeline có thể chiếm tỷ lệ đáng kể.
-- `rounds = 64`: nhiều phép toán hơn trên mỗi phần tử; chi phí song song có cơ hội được bù lại.
+- `rounds = 4`: relatively light transformation; pipeline setup and splitting overhead can represent a significant fraction.
+- `rounds = 64`: more operations per element; parallelization overhead has a chance to pay off.
 
-Đây là hàm **mô phỏng tải CPU để đo đạc**, không phải thuật toán mật mã hay hàm băm chất lượng thống kê đã được thẩm định. Không dùng nó để tạo token bảo mật.
+This function **simulates CPU load for measurement**, not a cryptographic algorithm or statistically vetted hash function. Do not use it to generate security tokens.
 
-## 3. Triển khai ba phương án trong cùng một lớp
+## 3. Implementing All Three Approaches in One Class
 
-Ví dụ đầy đủ sau dùng Java 8+. Mọi phương thức nhận **đúng cùng mảng** và không thay đổi dữ liệu nguồn.
+The complete example below uses Java 8+. Every method receives **the exact same array** and does not mutate the source data.
 
 ```java
 package example;
@@ -83,7 +83,7 @@ public final class ThreeWays {
         return x & 0xFFFFL;
     }
 
-    // Phương án A: xử lý trực tiếp, tuần tự.
+    // Approach A: direct, sequential loop.
     public static long loop(int[] data, int rounds) {
         long total = 0L;
         for (int value : data) {
@@ -94,7 +94,7 @@ public final class ThreeWays {
         return total;
     }
 
-    // Phương án B: pipeline Stream tuần tự.
+    // Approach B: sequential Stream pipeline.
     public static long sequentialStream(int[] data, int rounds) {
         return Arrays.stream(data)
             .filter(value -> (value & 1) == 0)
@@ -102,7 +102,7 @@ public final class ThreeWays {
             .sum();
     }
 
-    // Phương án C: cùng pipeline, cho phép xử lý song song.
+    // Approach C: identical pipeline allowing parallel execution.
     public static long parallelStream(int[] data, int rounds) {
         return Arrays.stream(data)
             .parallel()
@@ -113,11 +113,11 @@ public final class ThreeWays {
 
     public static int[] makeInput(int size) {
         if (size < 0 || size > 1_000_000) {
-            throw new IllegalArgumentException("size ngoài phạm vi thử");
+            throw new IllegalArgumentException("size out of test range");
         }
         int[] result = new int[size];
         for (int i = 0; i < size; i++) {
-            result[i] = i * 37 + 11; // Dữ liệu xác định, không cần RNG.
+            result[i] = i * 37 + 11; // Deterministic data, no RNG needed.
         }
         return result;
     }
@@ -135,32 +135,32 @@ public final class ThreeWays {
         System.out.println("parallel = " + c);
 
         if (a != b || a != c) {
-            throw new AssertionError("Ba kết quả không khớp");
+            throw new AssertionError("Three results do not match");
         }
     }
 }
 ```
 
-**Vì sao so sánh này công bằng hơn nhiều ví dụ benchmark tùy tiện?**
+**Why is this comparison fairer than many ad-hoc benchmarks?**
 
-- **Chỉ một thuật toán `score`:** cả ba gọi cùng hàm; không thay hàm nặng bằng hàm nhẹ ở một nhánh.
-- **Chỉ một điều kiện lọc:** `(value & 1) == 0` tương ứng với số chẵn cho mọi giá trị `int`.
-- **Dùng primitive stream:** `Arrays.stream(int[])` tạo `IntStream` và `mapToLong` tạo `LongStream`, tránh boxing sang `Integer`/ `Long` không cần thiết.
-- **Cùng kiểu tổng:** mọi cách cộng vào `long`. Với giới hạn dữ liệu trên, tổng không tràn `long`.
-- **Không có side effect:** việc xử lý các phần tử độc lập; `parallel()` không chia sẻ một `ArrayList` hay bộ đếm mutable bên ngoài.
-- **Đầu vào cố định:** `makeInput` không phụ thuộc thời gian hoặc seed không được ghi lại.
+- **Single `score` algorithm:** all three invoke the same function; no branch swaps in a lighter calculation.
+- **Single filter predicate:** `(value & 1) == 0` identifies even numbers across all `int` values.
+- **Primitive streams:** `Arrays.stream(int[])` yields an `IntStream` and `mapToLong` yields a `LongStream`, avoiding unnecessary boxing to `Integer`/`Long`.
+- **Identical sum type:** every version accumulates into `long`. Within the data bounds above, the sum never overflows `long`.
+- **No side effects:** element processing is independent; `parallel()` shares no external `ArrayList` or mutable counter.
+- **Fixed input:** `makeInput` does not depend on wall-clock time or an unrecorded seed.
 
-Không được coi riêng việc `main` in ra ba tổng bằng nhau là bằng chứng đầy đủ về đúng đắn. Cần kiểm thử cả mảng rỗng, toàn số lẻ, toàn số chẵn, số âm, một phần tử và các độ lớn lớn hơn.
+Do not treat `main` printing three equal sums as full proof of correctness. You must also test empty arrays, all-odd arrays, all-even arrays, negative values, single-element arrays, and larger sizes.
 
-## 4. Hiểu chính xác công việc của mỗi phương án
+## 4. Understanding What Each Approach Actually Does
 
-### A. Vòng lặp `for`
+### A. The `for` Loop
 
-Vòng lặp thực thi phép lọc và phép cộng trực tiếp trên mảng. Nó thường có overhead khởi tạo thấp, không cần đối tượng pipeline Stream và không tạo các tác vụ fork/join.
+The loop executes filtering and summation directly over the array. It typically has low startup overhead, requires no Stream pipeline objects, and spawns no fork/join tasks.
 
-**Không suy ra** vòng lặp luôn nhanh hơn stream: JVM có thể inline lambda, tối ưu primitive stream và có các tối ưu phụ thuộc JDK. Mức nhanh/chậm chỉ có thể kết luận khi đo workload cụ thể.
+**Never assume** a loop is always faster than a stream: the JVM can inline lambdas, optimize primitive streams, and apply JDK-specific optimizations. Speed differences can only be concluded by measuring a specific workload.
 
-### B. Stream tuần tự
+### B. Sequential Stream
 
 ```java
 Arrays.stream(data)
@@ -169,11 +169,11 @@ Arrays.stream(data)
     .sum();
 ```
 
-`filter` và `mapToLong` là các **intermediate operation lazy**. `sum()` là terminal operation kích hoạt traversal; pipeline thường được kết hợp để từng phần tử đi qua các bước mà không cần materialize danh sách trung gian.
+`filter` and `mapToLong` are **lazy intermediate operations**. `sum()` is the terminal operation triggering traversal; pipelines are typically fused so each element flows through stages without materializing intermediate lists.
 
-Khi `n` nhỏ, chi phí thiết lập pipeline và gọi các lớp trừu tượng có thể đáng kể so với vòng lặp. Khi phép `score` chiếm phần lớn thời gian, tỷ trọng overhead này thường giảm.
+When `n` is small, pipeline setup and abstraction calls can be noticeable compared to a loop. When `score` dominates runtime, that relative overhead usually shrinks.
 
-### C. Stream song song
+### C. Parallel Stream
 
 ```java
 Arrays.stream(data)
@@ -183,25 +183,25 @@ Arrays.stream(data)
     .sum();
 ```
 
-`parallel()` không tạo thread riêng cho **mỗi phần tử**. Framework sử dụng Spliterator của mảng để phân chia công việc; các tác vụ xử lý phần nguồn rồi kết hợp tổng bộ phận. Phép cộng số nguyên với tổng trong giới hạn `long` phù hợp cho reduction song song.
+`parallel()` does not spawn a separate thread for **each element**. The framework uses the array's Spliterator to split work; worker tasks process slices and combine partial sums. Integer addition within `long` bounds fits parallel reduction cleanly.
 
-Chi phí bổ sung có thể gồm **chia nguồn, lập lịch, đồng bộ hóa kết quả, truy cập bộ nhớ và tranh chấp CPU**. Với ít phần tử và hàm `score` nhẹ, các chi phí này dễ áp đảo lợi ích. Với dữ liệu đủ lớn và CPU còn tài nguyên, song song có thể thắng.
+Additional costs can include **source splitting, scheduling, result synchronization, memory traffic, and CPU contention**. With few elements and a light `score`, these costs easily outweigh any benefit. With sufficiently large data and spare CPU cores, parallel execution can win.
 
-## 5. Trước khi đo thời gian: xác nhận tính tương đương
+## 5. Before Timing: Verify Equivalence
 
-Một benchmark chỉ có ý nghĩa khi so sánh các giải pháp cho **cùng kết quả nghiệp vụ**. Với dự án này, cần kiểm tra:
+A benchmark is meaningful only when comparing solutions that produce **the exact same business result**. For this project, verify:
 
-| Trường hợp | Điều cần xác nhận |
+| Case | What to Verify |
 | --- | --- |
-| Mảng rỗng | Cả ba trả `0L`. |
-| Một phần tử chẵn | Cả ba trả `score(value, rounds)`. |
-| Một phần tử lẻ | Cả ba trả `0L`. |
-| Giá trị âm hoặc `Integer.MIN_VALUE` | Kiểm tra chẵn/lẻ thống nhất; không lỗi ép kiểu. |
-| Dữ liệu nhiều phần tử | Cùng tổng, không mất hoặc cộng trùng phần tử. |
-| `rounds` khác nhau | Ba cách vẫn khớp với mỗi cấu hình. |
-| Lặp lại cùng dữ liệu | Tổng không phụ thuộc lịch chạy của các worker. |
+| Empty array | All three return `0L`. |
+| Single even element | All three return `score(value, rounds)`. |
+| Single odd element | All three return `0L`. |
+| Negative values or `Integer.MIN_VALUE` | Consistent parity check; no casting bugs. |
+| Multi-element datasets | Identical sum, no dropped or double-counted elements. |
+| Varying `rounds` | All three match under each configuration. |
+| Repeated runs on same data | Sum is independent of worker scheduling. |
 
-Ví dụ kiểm tra đơn giản với Java 8+, không cần thư viện kiểm thử:
+Simple Java 8+ check without needing a test framework:
 
 ```java
 package example;
@@ -218,7 +218,7 @@ public class ThreeWaysCheck {
 
         if (expected != actualSequential || expected != actualParallel) {
             throw new AssertionError(
-                "Không khớp với input " + Arrays.toString(data)
+                "Mismatch for input " + Arrays.toString(data)
             );
         }
     }
@@ -231,16 +231,16 @@ public class ThreeWaysCheck {
             check(new int[] {-4, -3, 0, Integer.MIN_VALUE}, rounds);
             check(ThreeWays.makeInput(1_000), rounds);
         }
-        System.out.println("Các trường hợp kiểm tra đã khớp");
+        System.out.println("All test cases matched");
     }
 }
 ```
 
-Đây là **kiểm tra kết quả**, chưa phải benchmark hiệu năng. Cũng chưa phải một bộ kiểm thử bao phủ mọi trường hợp. Hãy tách việc kiểm tra đúng/sai khỏi mã được đo để không vô tình đo thêm chi phí `assert`, tạo mảng hoặc xuất log.
+This is a **correctness check**, not a performance benchmark—nor is it an exhaustive test suite. Keep correctness assertions separate from timed code so you do not accidentally measure assertion, array creation, or logging overhead.
 
-## 6. Vì sao không lấy một lần `System.nanoTime()` làm kết luận?
+## 6. Why Not Draw Conclusions from a Single `System.nanoTime()` Call?
 
-Đo một lần:
+A one-off measurement:
 
 ```java
 long start = System.nanoTime();
@@ -248,24 +248,24 @@ long result = ThreeWays.parallelStream(data, 64);
 long duration = System.nanoTime() - start;
 ```
 
-có thể dùng để quan sát sơ bộ, nhưng **không đủ** để kết luận phương án nào tối ưu. Thời gian có thể thay đổi do:
+can give a rough sanity check, yet is **insufficient** to conclude which approach is optimal. Timings fluctuate due to:
 
-- **JIT compilation:** JVM thường cần chạy một số lần trước khi tối ưu mã nóng; lần đầu không đại diện cho trạng thái đã warm-up.
-- **Dead-code elimination:** nếu chương trình không dùng kết quả, trình biên dịch có thể loại bỏ một số công việc.
-- **Garbage collection:** cấp phát và GC xuất hiện bất thường có thể làm một lần đo chậm hơn.
-- **Scheduling:** hệ điều hành hoặc tiến trình khác lấy CPU làm độ trễ thay đổi.
-- **Dynamic frequency / thermal throttling:** tốc độ CPU không luôn cố định, đặc biệt khi có tải liên tục.
-- **JVM và môi trường:** phiên bản JDK, số core, kích thước heap và giới hạn container ảnh hưởng đến kết quả.
+- **JIT compilation:** the JVM needs warm-up invocations before optimizing hot code; the first run does not represent steady-state execution.
+- **Dead-code elimination:** if a program ignores the computed result, the compiler may optimize away part of the work.
+- **Garbage collection:** sporadic allocations and GC pauses can skew a single measurement.
+- **Scheduling:** the OS or background processes preempting CPU cores alter latency.
+- **Dynamic frequency / thermal throttling:** CPU clock speed is not always constant, especially under sustained load.
+- **JVM and environment:** JDK version, core count, heap size, and container limits all affect results.
 
-Ngoài ra, việc đo `makeInput` cùng với xử lý sẽ làm lẫn **chi phí chuẩn bị dữ liệu** vào chi phí của ba thuật toán. Nếu yêu cầu đo toàn bộ quy trình từ đầu đến cuối, phép đo đó cũng có giá trị, nhưng phải gọi tên rõ ràng và áp dụng **nhất quán** cho mọi phương án.
+Additionally, timing `makeInput` alongside processing mixes **data-preparation cost** into the three algorithms' costs. Measuring end-to-end cost can also be valuable when requested, provided it is labeled clearly and applied **consistently** across all approaches.
 
-## 7. Benchmark bằng JMH
+## 7. Benchmarking with JMH
 
-**JMH (Java Microbenchmark Harness)** là bộ công cụ được thiết kế để đo các thao tác Java có xét đến warm-up, lặp đo, fork JVM và tối ưu của JIT. JMH không có sẵn như một API trong JDK; cần một **dự án JMH có cấu hình thư viện và annotation processor tương thích**.
+**JMH (Java Microbenchmark Harness)** is a toolkit designed for measuring Java operations while accounting for warm-up, repeated measurements, JVM forks, and JIT optimizations. JMH is not built into the JDK; it requires a **JMH project configured with compatible libraries and annotation processing**.
 
-Thông thường, một dự án Maven JMH sử dụng `org.openjdk.jmh:jmh-core` cùng `org.openjdk.jmh:jmh-generator-annprocess` có **cùng phiên bản**. Có thể tạo cấu trúc dự án bằng JMH Maven archetype hoặc cấu hình tương đương. Không cần tự đo thời gian bằng `System.nanoTime()` bên trong phương thức `@Benchmark`.
+Typically, a Maven JMH project uses `org.openjdk.jmh:jmh-core` alongside `org.openjdk.jmh:jmh-generator-annprocess` of the **same version**. You can generate the project structure via the JMH Maven archetype or equivalent setup. Never manually call `System.nanoTime()` inside a `@Benchmark` method.
 
-Đặt lớp sau trong dự án đã có JMH và cùng package `example` với `ThreeWays`:
+Place the following class in your JMH-configured project in package `example` alongside `ThreeWays`:
 
 ```java
 package example;
@@ -325,111 +325,111 @@ public class ThreeWaysBenchmark {
 }
 ```
 
-### Vì sao bố trí benchmark như vậy?
+### Why Structure the Benchmark This Way?
 
-| Thiết lập | Mục đích |
+| Setting | Purpose |
 | --- | --- |
-| `@State(Scope.Benchmark)` | Lưu dữ liệu đầu vào dùng chung trong lần chạy benchmark; mảng chỉ đọc nên không có tranh chấp ghi. |
-| `@Setup(Level.Trial)` | Tạo input **ngoài đoạn tính thời gian**. |
-| `@Param({"1000", "1000000"})` | Thử nguồn nhỏ và nguồn lớn, tránh kết luận chỉ từ một `n`. |
-| `@Param({"4", "64"})` | Thử phép xử lý nhẹ và nặng trên cùng thuật toán. |
-| `@Warmup` | Cho JVM cơ hội JIT tối ưu trước các lượt đo. |
-| `@Measurement` | Thu nhiều lần đo độc lập theo cấu hình harness. |
-| `@Fork(2)` | Thử trên nhiều tiến trình JVM để giảm phụ thuộc một lần khởi động. |
-| `@Threads(1)` | Chỉ một luồng **gọi phương thức benchmark** cùng lúc; bên trong `parallelStream()` vẫn có thể dùng nhiều worker. |
-| Trả `long` từ `@Benchmark` | JMH tiêu thụ giá trị trả về, giúp tránh việc kết quả không được quan sát. |
+| `@State(Scope.Benchmark)` | Holds shared input data for the benchmark run; the array is read-only so there is no write contention. |
+| `@Setup(Level.Trial)` | Builds input **outside the timed section**. |
+| `@Param({"1000", "1000000"})` | Tests small and large sources, avoiding conclusions from one `n`. |
+| `@Param({"4", "64"})` | Tests light and heavy computation on the same algorithm. |
+| `@Warmup` | Gives the JVM a chance to JIT-compile hot paths before measurement iterations. |
+| `@Measurement` | Collects multiple independent measurements as configured. |
+| `@Fork(2)` | Runs across multiple JVM processes to reduce single-startup bias. |
+| `@Threads(1)` | Only one thread **calls the benchmark method** at a time; internally `parallelStream()` can still use multiple workers. |
+| Returning `long` from `@Benchmark` | JMH consumes the return value, preventing dead-code elimination. |
 
-Từng cấu hình tham số tạo ra những benchmark case riêng. Trong phép đo này, **tạo stream và terminal operation đều nằm trong thời gian đo**: điều đó phản ánh chi phí gọi pipeline trong một ứng dụng thực tế. Việc tạo mảng không nằm trong thời gian đo, vì mục tiêu là so sánh ba cách **xử lý một input đã có**.
+Each parameter combination creates a separate benchmark case. Here, **stream creation and the terminal operation are both included in the timed scope**: that reflects the cost of invoking a pipeline in a real application. Array allocation is excluded because the goal is comparing three ways of **processing an existing input**.
 
-JMH không tự chứng minh phép tính đúng, và cũng không bảo đảm giải pháp nhanh nhất trong production. Nó cung cấp số liệu đáng tin hơn phép đo một lần khi cấu hình và môi trường phù hợp.
+JMH neither proves a computation is correct nor guarantees the fastest behavior in production. It simply yields far more reliable numbers than a one-off measurement when properly configured and run.
 
-### Chạy và xuất kết quả
+### Running and Exporting Results
 
-Với dự án JMH Maven đã cấu hình tạo tệp `target/benchmarks.jar`, có thể chạy:
+With a Maven JMH project configured to build `target/benchmarks.jar`, run:
 
 ```text
 java -jar target/benchmarks.jar ThreeWaysBenchmark -rf csv -rff results.csv
 ```
 
-Để quan sát thêm cấp phát bộ nhớ và hoạt động GC, JMH có profiler hỗ trợ:
+To also observe memory allocation and GC activity, JMH offers a built-in profiler:
 
 ```text
 java -jar target/benchmarks.jar ThreeWaysBenchmark -prof gc
 ```
 
-Các lệnh này là **hướng dẫn cho dự án JMH**, không phải kết quả benchmark đã được thực thi trong bài. Tùy cấu hình build, tên JAR và cách kích hoạt annotation processor có thể khác; phải sử dụng runner thực tế của dự án. Đo khi máy tương đối ổn định, hạn chế tác vụ nền và ghi lại phiên bản JDK, CPU, RAM, hệ điều hành cùng mức tải máy.
+These commands are **instructions for your JMH project**, not results from a benchmark already executed in this lesson. Depending on build configuration, JAR naming and annotation processor setup may vary; use your project's actual runner. Measure on a relatively quiet machine, minimize background load, and record JDK version, CPU, RAM, OS, and system load.
 
-## 8. Cách đọc bảng kết quả và tính mức tăng tốc
+## 8. Reading the Results Table and Calculating Speedup
 
-JMH ở chế độ `Mode.AverageTime` cho kết quả thời gian trung bình trên mỗi lần thực hiện (*time/op*); **nhỏ hơn là nhanh hơn**. Nếu chuyển sang `Mode.Throughput`, đơn vị là số lần thực hiện trên một đơn vị thời gian; **lớn hơn là nhanh hơn**. Không trộn hai loại số liệu trong cùng một phép chia mà không đổi đơn vị.
+In `Mode.AverageTime`, JMH reports average time per invocation (*time/op*); **smaller is faster**. In `Mode.Throughput`, units are operations per unit time; **larger is faster**. Never divide metrics from different modes without converting units.
 
-Mẫu bảng để điền kết quả **sau khi chạy thực tế**:
+Table template to fill in **after running the benchmark yourself**:
 
-| `size` | `rounds` | Loop (µs/op) | Sequential (µs/op) | Parallel (µs/op) | Phương án nhanh nhất |
+| `size` | `rounds` | Loop (µs/op) | Sequential (µs/op) | Parallel (µs/op) | Fastest Approach |
 | ---: | ---: | ---: | ---: | ---: | --- |
-| 1.000 | 4 | Điền số đo | Điền số đo | Điền số đo | Rút ra sau khi đo |
-| 1.000 | 64 | Điền số đo | Điền số đo | Điền số đo | Rút ra sau khi đo |
-| 1.000.000 | 4 | Điền số đo | Điền số đo | Điền số đo | Rút ra sau khi đo |
-| 1.000.000 | 64 | Điền số đo | Điền số đo | Điền số đo | Rút ra sau khi đo |
+| 1,000 | 4 | Fill measured value | Fill measured value | Fill measured value | Determine after run |
+| 1,000 | 64 | Fill measured value | Fill measured value | Fill measured value | Determine after run |
+| 1,000,000 | 4 | Fill measured value | Fill measured value | Fill measured value | Determine after run |
+| 1,000,000 | 64 | Fill measured value | Fill measured value | Fill measured value | Determine after run |
 
-**Không có số liệu đo sẵn** ở đây. Mọi giá trị thời gian phải do benchmark thật tạo ra; không điền những số chỉ dựa trên kỳ vọng rằng song song sẽ nhanh hơn.
+**No fabricated measurements are pre-filled here.** Every timing entry must come from an actual benchmark run; never fill in numbers based on an expectation that parallel will be faster.
 
-Nếu muốn diễn giải mức tăng tốc giữa hai phương án, dùng:
+To express speedup between two approaches, use:
 
 \[
-\text{Speedup} = \frac{\text{Thời gian phương án gốc}}{\text{Thời gian phương án mới}}
+\text{Speedup} = \frac{\text{Baseline method time}}{\text{New method time}}
 \]
 
-Ví dụ **giả định để hiểu công thức**, không phải số đo của dự án: nếu một phương án mất 24 ms và phương án khác mất 8 ms trên cùng đầu vào, thì speedup là `24 / 8 = 3`, tức khoảng **3 lần**. Mức tăng tốc ấy không đồng nghĩa chương trình sử dụng đúng ba core, cũng không chứng minh chi phí bộ nhớ không tăng.
+As a **hypothetical illustration of the formula**, not a project measurement: if one method takes 24 ms and another takes 8 ms on the same input, speedup is `24 / 8 = 3`, or roughly **3x**. That speedup does not imply exactly three cores were utilized, nor does it prove memory cost stayed flat.
 
-Khi đánh giá số đo, nên xem cả độ biến thiên (confidence interval hoặc độ lệch giữa các fork/iteration), không chỉ chọn lần chạy nhanh nhất. Chênh lệch nhỏ hơn nhiễu đo thì chưa đủ cơ sở khẳng định một cách xử lý nhanh hơn.
+When evaluating measurements, inspect variance (confidence intervals or spread across forks/iterations), not just the fastest single sample. Differences smaller than measurement noise are not enough evidence to declare one approach faster.
 
-## 9. Giải thích kết quả theo ba kịch bản
+## 9. Explaining Results Across Three Scenarios
 
-### Kịch bản A: đầu vào nhỏ, hàm `score` nhẹ
+### Scenario A: Small Input, Light `score`
 
-Với `size = 1_000`, `rounds = 4`, lượng tính toán hữu ích ít. Các chi phí tương đối nổi bật có thể là:
+With `size = 1_000`, `rounds = 4`, useful computation is tiny. Relative overhead that may dominate includes:
 
-- Tạo pipeline và bộ máy traversal đối với stream.
-- Tạo và phối hợp các tác vụ song song.
-- Gộp các kết quả bộ phận cho `sum`.
+- Creating pipeline objects and traversal machinery for streams.
+- Creating and coordinating parallel tasks.
+- Merging partial results for `sum`.
 
-Vòng lặp có thể nhanh nhất ở trường hợp này. Nếu kết quả đo thực tế ngược lại, cần kiểm tra nhiễu, cách JIT tối ưu, độ chính xác của benchmark và đặc điểm phần cứng **trước khi phủ nhận kết quả**.
+The imperative loop will often win here. If actual measurements show otherwise, inspect noise, JIT optimizations, benchmark accuracy, and hardware characteristics **before dismissing the numbers**.
 
-### Kịch bản B: đầu vào lớn, hàm `score` nặng
+### Scenario B: Large Input, Heavy `score`
 
-Với `size = 1_000_000`, `rounds = 64`, phần lớn thời gian có thể nằm ở hàm biến đổi CPU-bound. Mảng `int[]` có Spliterator chia nguồn thuận lợi, mỗi phần tử độc lập và phép gộp có tính kết hợp. Vì vậy stream song song có **cơ hội** thắng hai cách tuần tự trên máy có nhiều core rảnh.
+With `size = 1_000_000`, `rounds = 64`, most runtime is spent in the CPU-bound transformation. `int[]` has a Spliterator that splits cleanly by index, each element is independent, and summation is associative. Thus the parallel stream has a **real chance** to beat both sequential approaches on a machine with spare CPU cores.
 
-Tuy nhiên, speedup thường **không tỷ lệ tuyến tính vô hạn với số core**. Công việc chia/gộp, tranh chấp băng thông bộ nhớ, tải hệ thống, turbo/thermal và các phần không song song hóa được sẽ giới hạn lợi ích.
+Still, speedup does **not scale linearly forever with core count**. Splitting/merging overhead, memory bandwidth contention, OS load, turbo/thermal limits, and non-parallelizable work all cap gains.
 
-### Kịch bản C: đầu vào lớn nhưng biến đổi rẻ
+### Scenario C: Large Input, Cheap Transformation
 
-Với `size = 1_000_000`, `rounds = 4`, phép tính trên mỗi phần tử có thể chưa đủ nặng để bù overhead phân chia. Kết quả có thể cho thấy vòng lặp hoặc stream tuần tự cạnh tranh tốt với song song.
+With `size = 1_000_000`, `rounds = 4`, per-element computation may not be heavy enough to offset splitting overhead. Measurements may show the loop or sequential stream competing closely with parallel execution.
 
-Điểm then chốt là **không chỉ tăng số phần tử, mà còn phải xét chi phí xử lý trên từng phần tử**. Đó là lý do benchmark sử dụng hai tham số `size` và `rounds` thay vì chỉ thử một cấu hình.
+The key insight is **never look only at element count; also consider work per element**. That is why the benchmark varies both `size` and `rounds` instead of testing a single configuration.
 
-## 10. Spliterator và độ hạt tác vụ giải thích một phần hiệu năng
+## 10. Spliterator and Task Granularity Explain Part of Performance
 
-Stream song song được tổ chức qua `Spliterator`: `trySplit` cung cấp các phần dữ liệu con, `estimateSize` và `characteristics` giúp framework quyết định cách chia/tối ưu. Nguồn `Arrays.stream(int[])` có các đặc tính phù hợp cho việc chia theo khoảng chỉ số; không phải mọi nguồn đều như vậy.
+Parallel streams are coordinated via `Spliterator`: `trySplit` hands out sub-ranges, while `estimateSize` and `characteristics` guide splitting and optimizations. `Arrays.stream(int[])` has favorable properties for index-range splitting; not every source does.
 
-| Nguồn | Đặc điểm có thể ảnh hưởng benchmark |
+| Source | Traits Affecting Benchmarks |
 | --- | --- |
-| `int[]`, `IntStream.range` | Kích thước rõ ràng, thường dễ chia đều. |
-| `ArrayList` | Có chỉ số, nguồn khá thuận lợi cho chia. |
-| `LinkedList` | Traversal/chia có thể tốn chi phí khác mảng. |
-| `Stream.iterate` | Dãy truy hồi có phụ thuộc trạng thái, không giống công việc theo chỉ số độc lập. |
-| `Files.lines` | Có I/O, tài nguyên phải đóng, dữ liệu và khả năng chia phụ thuộc nguồn. |
-| Nguồn tự viết với `trySplit() == null` | Khó khai thác song song vì không chia được phần việc. |
+| `int[]`, `IntStream.range` | Exact size known, usually splits evenly. |
+| `ArrayList` | Indexed access, relatively favorable for splitting. |
+| `LinkedList` | Traversal and splitting have very different cost characteristics from arrays. |
+| `Stream.iterate` | Recurrence sequence with state dependency, unlike independent indexed work. |
+| `Files.lines` | Involves I/O, requires resource closing, and splitting depends on the backing reader. |
+| Custom source with `trySplit() == null` | Poor parallel utilization because work cannot be split. |
 
-Đừng “tối ưu” bằng cách tự khai báo `SIZED`/`SUBSIZED` sai trên một custom Spliterator. Các characteristics là **cam kết về ngữ nghĩa**, không phải gợi ý tăng tốc vô điều kiện.
+Never "optimize" by falsely declaring `SIZED`/`SUBSIZED` on a custom Spliterator. Characteristics are **semantic contracts**, not unconditional speedup hints.
 
-Nếu workload thực tế là nhiều nhóm dữ liệu không cân đối, có thể thử chia nhóm lớn thành **chunk** và song song hóa theo chunk. Đừng tự động lồng `parallelStream()` ở cả outer lẫn inner; việc đó có thể tăng tác vụ, tranh chấp pool và độ trễ mà không tăng số core CPU.
+If a real workload consists of unevenly sized groups, consider splitting large groups into **chunks** and parallelizing by chunk. Never blindly nest `parallelStream()` inside both outer and inner loops; that can explode task counts, pool contention, and latency without adding CPU cores.
 
-## 11. Tại sao không dùng `Stream<Integer>` để so sánh với `int[]` trong thí nghiệm chính?
+## 11. Why Not Compare `Stream<Integer>` Against `int[]` in the Main Experiment?
 
-Nếu vòng lặp duyệt `int[]`, nhưng stream lại dùng `List<Integer>` với `map` và `reduce`, thí nghiệm đã đổi **hình dạng dữ liệu và chi phí boxing/unboxing**. Kết quả có thể phản ánh chi phí wrapper `Integer` nhiều hơn khác biệt giữa vòng lặp với Stream API.
+If the loop scans `int[]` while the stream processes `List<Integer>` with `map` and `reduce`, the experiment changes **data layout and boxing/unboxing cost**. Results would reflect `Integer` wrapper overhead more than differences between loops and the Stream API.
 
-Trong bài này, cả ba đều bắt đầu từ **cùng `int[]`** và dùng giá trị số nguyên thủy. Có thể làm **thí nghiệm phụ** riêng:
+In this lesson, all three start from **the exact same `int[]`** and use primitive values. You can run a separate **side experiment**:
 
 ```java
 long total = boxedValues.stream()
@@ -438,50 +438,50 @@ long total = boxedValues.stream()
     .sum();
 ```
 
-Khi báo cáo thí nghiệm phụ, cần ghi rõ input là `List<Integer>` và phân biệt thời gian chuẩn bị `boxedValues` có được tính hay không. Đừng lấy số liệu từ hai kiểu dữ liệu khác nhau để tuyên bố “Stream luôn chậm hơn vòng lặp”.
+When reporting the side experiment, explicitly state the input is `List<Integer>` and note whether `boxedValues` construction time is excluded or included. Never mix measurements from two different data types to claim "Streams are always slower than loops".
 
-## 12. Cảnh giác với số học, trạng thái và phép tổng hợp
+## 12. Watch Out for Arithmetic, State, and Aggregation Rules
 
-Ba pipeline trong dự án dùng kết quả `score` hữu hạn, cộng bằng `long` và không thay đổi nguồn. Nếu thay bài toán, các điều kiện đúng đắn có thể thay đổi:
+The three project pipelines produce bounded `score` values, sum into `long`, and leave the source untouched. If you change the problem, correctness conditions can shift:
 
-| Thay đổi | Rủi ro | Hướng xử lý |
+| Change | Risk | Mitigation |
 | --- | --- | --- |
-| Dùng `int` cho tổng rất lớn | Tràn `int`, số đo vẫn nhanh nhưng kết quả sai. | Dùng `long` đúng từ trước phép cộng hoặc kiểm tra tràn. |
-| Dùng `double` và so sánh bằng `==` | Sai số dấu phẩy động, kết quả song song có thể lệch bit cuối. | Định nghĩa sai số phù hợp; lưu ý thứ tự gộp. |
-| Đọc `Math.random()` trong mapper | Dữ liệu từng lượt không tái lập. | Cố định bộ dữ liệu và seed, không chia sẻ trạng thái generator tùy tiện. |
-| Ghi vào `ArrayList` ngoài trong `parallel().forEach` | Tranh chấp, mất hoặc trùng phần tử. | Dùng `collect` hoặc reduction hợp lệ. |
-| Dùng một phép `reduce` không kết hợp | Kết quả phụ thuộc cách chia/gộp. | Chọn combiner có identity và tính kết hợp đúng hợp đồng. |
-| Sửa mảng nguồn trong lúc đo | Các lần chạy không còn cùng input. | Giữ dữ liệu bất biến trong toàn phiên benchmark. |
-| Gọi API mạng hoặc DB trong `score` | Benchmark bị chi phối bởi I/O, timeout và giới hạn kết nối. | Thiết kế benchmark I/O riêng có điều phối đồng thời rõ ràng. |
+| Using `int` for huge sums | `int` overflow—fast measurement, wrong result. | Use `long` before adding or check for overflow. |
+| Using `double` and comparing with `==` | Floating-point rounding; parallel order may shift last bits. | Define tolerance; note merge order sensitivity. |
+| Calling `Math.random()` in mapper | Runs are non-reproducible. | Fix dataset and seed; never share generator state carelessly. |
+| Writing to external `ArrayList` in `parallel().forEach` | Contention, dropped or duplicate elements. | Use `collect` or a valid reduction. |
+| Using a non-associative `reduce` | Result depends on split/merge tree. | Choose a combiner with a lawful identity and associativity. |
+| Mutating source array during measurement | Iterations no longer see identical inputs. | Keep input immutable throughout the benchmark session. |
+| Calling network or DB APIs in `score` | Benchmark dominated by I/O, timeouts, and connection limits. | Design a dedicated I/O benchmark with explicit concurrency control. |
 
-Một phép toán có thể **rất nhanh nhưng sai ngữ nghĩa**, nhất là khi có side effect hoặc lấy ít phần tử hơn yêu cầu. Tính đúng đắn luôn là điều kiện trước khi đánh giá tốc độ.
+An operation can be **very fast yet semantically wrong**, especially with side effects or dropped elements. Correctness is always a prerequisite before evaluating speed.
 
-## 13. Phân tích cấp phát bộ nhớ, GC và độ trễ
+## 13. Analyzing Memory Allocation, GC, and Latency
 
-Time/op không phải chỉ số duy nhất của hiệu năng. Hãy xem xét:
+Time/op is not the only dimension of performance. Also examine:
 
-1. **Allocation rate:** số byte/op hoặc byte/giây từ JMH GC profiler; có tăng đáng kể khi dùng pipeline không?
-2. **Garbage collection:** số lần và thời gian GC có ảnh hưởng đến các fork không?
-3. **CPU utilization:** stream song song có thực sự khai thác nhiều core không, hay bị giới hạn bởi một nguồn khó chia?
-4. **Latency variance:** các lần đo có ổn định không, đặc biệt khi nhiều request cùng dùng common pool?
-5. **Memory bandwidth/cache:** nhiều worker cùng đọc mảng có thể tranh chấp tài nguyên bộ nhớ.
+1. **Allocation rate:** bytes/op or bytes/sec from JMH's GC profiler; does using a pipeline raise allocations significantly?
+2. **Garbage collection:** do GC counts and pause times affect forks?
+3. **CPU utilization:** does the parallel stream genuinely utilize multiple cores, or is it bottlenecked by an unsplittable source?
+4. **Latency variance:** are runs consistent, especially when concurrent requests share the common pool?
+5. **Memory bandwidth/cache:** multiple workers scanning arrays simultaneously can contend on memory bandwidth.
 
-Trong ví dụ chuẩn, chúng ta dùng primitive stream, `filter`, `mapToLong` và `sum` nên **không cần tạo `List<Long>` trung gian chứa toàn bộ phần tử**. Nhưng stream vẫn có thể tạo các đối tượng pipeline hoặc tác vụ nội bộ; một benchmark có thể cho thấy khác biệt cấp phát ngay cả khi không boxing từng giá trị.
+In the standard example, we use primitive streams, `filter`, `mapToLong`, and `sum`, so **no intermediate `List<Long>` holding all elements is created**. Even so, streams may allocate pipeline objects or internal fork/join tasks; a benchmark may reveal allocation differences even without per-element boxing.
 
-Tách biệt **độ trễ một phép gọi** với **throughput của toàn ứng dụng**. Một phép gọi `parallelStream()` có thể kết thúc sớm hơn khi chạy riêng lẻ, nhưng nhiều request đồng thời cùng dùng tài nguyên CPU/pool có thể khiến throughput hoặc p99 latency xấu đi. Đây là phép thử khác với JMH `@Threads(1)` và nên được báo cáo riêng.
+Separate **single-invocation latency** from **application-wide throughput**. A `parallelStream()` call might finish sooner in isolation, while many concurrent requests competing for CPU/pool resources can degrade throughput or p99 latency. That is a different test from JMH `@Threads(1)` and should be reported separately.
 
-## 14. Cấu trúc báo cáo thí nghiệm
+## 14. Experiment Report Structure
 
-Một báo cáo có thể gồm những phần sau:
+A solid report can follow this outline:
 
-### A. Môi trường và cách đo
+### A. Environment and Measurement Setup
 
 ```text
-JDK:                <phiên bản thực tế>
-CPU / logical cores:<thông tin máy đo>
-RAM / giới hạn heap:<thông tin thực tế>
-OS:                 <hệ điều hành>
-JMH:                <phiên bản dùng trong dự án>
+JDK:                <actual version>
+CPU / logical cores:<machine info>
+RAM / heap limit:   <actual info>
+OS:                 <operating system>
+JMH:                <project version>
 Benchmark mode:     AverageTime, microseconds/op
 Warm-up:            3 iterations x 1 second
 Measurement:        5 iterations x 1 second
@@ -491,70 +491,70 @@ Inputs:             size = 1000 / 1000000
                     rounds = 4 / 64
 ```
 
-Đây là **mẫu khai báo**, không phải cấu hình máy đã được quan sát trong bài. Người thực hành cần điền dữ liệu thật thay cho các dấu chỗ trống.
+This is a **reporting template**, not a machine configuration observed in this lesson. Practitioners must fill in real environment details in place of placeholders.
 
-### B. Kết quả và tính đúng
+### B. Results and Correctness
 
-Lưu bảng time/op theo `size`, `rounds` và tên phương án, kèm mức biến thiên. Ghi cách đã xác nhận ba cách cho cùng tổng. Nếu có trường hợp lệch kết quả, **dừng kết luận hiệu năng** để điều tra ngữ nghĩa trước.
+Record a time/op table by `size`, `rounds`, and approach name, including variance. Document how you verified all three approaches produce identical sums. If any discrepancy appears, **halt performance conclusions** and investigate semantics first.
 
-### C. Giải thích có dẫn chứng từ số liệu
+### C. Evidence-Based Explanation from Measurements
 
-Với mỗi cấu hình, đặt câu hỏi:
+For each configuration, ask:
 
-- Phần tử ít hay nhiều? `score` nặng hay nhẹ?
-- Chi phí pipeline, tách nguồn và gộp có chiếm tỷ lệ lớn không?
-- JMH có cho thấy nhiễu cao giữa các lần đo hoặc fork không?
-- CPU, GC hoặc bộ nhớ có dấu hiệu nghẽn không?
-- Vì sao một phương án thắng ở cấu hình này nhưng thua ở cấu hình khác?
+- Are there few or many elements? Is `score` cheap or expensive?
+- Do pipeline setup, source splitting, and merging account for a large share?
+- Does JMH show high variance across iterations or forks?
+- Are CPU, GC, or memory showing bottlenecks?
+- Why did one approach win in one configuration yet lose in another?
 
-### D. Kết luận và giới hạn
+### D. Conclusions and Limitations
 
-Không viết “`parallelStream` nhanh gấp N lần” nếu N chưa được đo. Viết kết luận có phạm vi: **trên JDK, phần cứng, dữ liệu và mức tải đã thử**, phương án X tốt hơn hoặc các phương án không khác đáng kể. Nêu điều kiện có thể khiến kết luận đổi khác.
+Never write "`parallelStream` is N times faster" unless N was actually measured. State a scoped conclusion: **on the tested JDK, hardware, data, and load**, approach X performed better or approaches showed no meaningful difference. Note conditions that could flip the conclusion.
 
-## 15. Mở rộng dự án sau phép so sánh cơ bản
+## 15. Extending the Project Beyond the Basic Comparison
 
-### Mở rộng 1 — Độ lớn dữ liệu và ngưỡng hòa vốn
+### Extension 1 — Data Size and Break-Even Threshold
 
-Thêm các mức `size` trung gian như `10_000`, `100_000` và `500_000`. Quan sát xem từ mức nào parallel stream bắt đầu cạnh tranh với tuần tự. **Ngưỡng hòa vốn** không cố định giữa các máy và mức `rounds`.
+Add intermediate `size` values such as `10_000`, `100_000`, and `500_000`. Observe where parallel streams begin competing with sequential execution. The **break-even threshold** varies across machines and `rounds` values.
 
-### Mở rộng 2 — Nguồn object và boxing
+### Extension 2 — Object Sources and Boxing
 
-Giữ cùng bài toán nhưng chuyển mảng thành `List<Integer>`. So sánh `Stream<Integer>` với `IntStream`. Ghi riêng chi phí dựng dữ liệu boxed và cảnh giác với tác động của GC.
+Keep the same problem but switch the array to `List<Integer>`. Compare `Stream<Integer>` with `IntStream`. Record boxed-data setup separately and watch GC effects.
 
-### Mở rộng 3 — Thử nhiều request đồng thời
+### Extension 3 — Simulating Concurrent Requests
 
-Benchmark nhiều lời gọi xử lý diễn ra cùng lúc. Quan sát throughput và p95/p99, thay vì chỉ nhìn độ trễ một lời gọi. Đừng kết luận từ `@Threads(1)` rằng production với nhiều request cũng có hiệu năng giống vậy.
+Benchmark multiple concurrent invocations running at the same time. Observe throughput and p95/p99 rather than single-call latency alone. Never infer multi-request production behavior solely from `@Threads(1)`.
 
-### Mở rộng 4 — Dữ liệu nhóm mất cân bằng
+### Extension 4 — Skewed Group Data
 
-Thay một mảng phẳng bằng các lô có kích thước khác nhau. So sánh một pipeline song song trên từng lô, một pipeline phẳng và cách chia thành chunk. Tránh mặc định việc song song hóa hai tầng sẽ tối ưu.
+Replace a flat array with batches of uneven sizes. Compare a parallel pipeline per batch, a flattened pipeline, and chunked splitting. Avoid assuming nested two-level parallelism is optimal.
 
-### Mở rộng 5 — Thống kê thay vì một tổng
+### Extension 5 — Multi-Metric Statistics Instead of a Single Sum
 
-Thay `sum` bằng `summaryStatistics` hoặc `Collectors.summarizingLong` để lấy count/sum/min/max/average. Khi cần nhiều chỉ số, hãy so sánh **một lần tổng hợp** với nhiều pipeline độc lập, bảo đảm thời gian đo bao gồm cùng lượng công việc và dữ liệu rỗng được xử lý đúng.
+Replace `sum` with `summaryStatistics` or `Collectors.summarizingLong` to compute count/sum/min/max/average. When multiple metrics are needed, compare **one combined aggregation** against multiple independent pipelines, ensuring identical total work and proper empty-data handling.
 
-## 16. Bài tập tự đánh giá
+## 16. Self-Assessment Exercises
 
-1. **Đúng trước nhanh:** Tại sao cần so sánh kết quả ba cách trước khi đo? Cho một ví dụ parallel stream chạy nhanh nhưng trả sai do shared mutable state.
-2. **Dữ liệu nhỏ:** Vì sao `size=1000` và `rounds=4` có thể khiến parallel stream chậm hơn vòng lặp?
-3. **Nguồn chia được:** Vai trò của `Spliterator.trySplit`, `SIZED` và đặc tính nguồn mảng trong xử lý song song là gì?
-4. **Đo lường:** Giải thích `@Warmup`, `@Fork`, `@Param`, `@Threads(1)` và vì sao phương thức `@Benchmark` trả kết quả `long`.
-5. **Hai loại chỉ số:** Phân biệt latency/time-op và throughput. Vì sao một phép xử lý nhanh hơn trong điều kiện chạy đơn lẻ chưa chắc cải thiện throughput dưới tải cao?
-6. **Phân tích có điều kiện:** Nếu kết quả đo cho thấy parallel thắng rõ ở `size=1_000_000, rounds=64` nhưng thua ở `size=1000, rounds=4`, hãy viết kết luận không khái quát quá mức.
-7. **Kiểm tra phạm vi:** Tổng `long` trong ví dụ có thể tràn với mảng lớn nhất được tạo bởi `makeInput` không? Hãy dùng cận trên của `score` và `size` để giải thích.
-8. **Thiết kế lại workload:** Nếu dữ liệu nằm trong nhiều tệp và phần lớn thời gian chờ I/O, vì sao benchmark CPU-bound ở bài này không đủ cơ sở để áp dụng `parallelStream()` cho tác vụ đọc tệp?
+1. **Correctness before speed:** Why verify outputs across all three approaches before benchmarking? Give an example where a parallel stream runs fast yet returns wrong results due to shared mutable state.
+2. **Small data:** Why can `size=1000` and `rounds=4` make a parallel stream slower than a loop?
+3. **Splittable sources:** What roles do `Spliterator.trySplit`, `SIZED`, and array source traits play in parallel processing?
+4. **Measurement methodology:** Explain `@Warmup`, `@Fork`, `@Param`, `@Threads(1)`, and why `@Benchmark` methods return `long`.
+5. **Two metric types:** Distinguish latency/time-op from throughput. Why might a method that is faster in single-call tests fail to improve throughput under high load?
+6. **Scoped analysis:** Suppose measurements show parallel clearly winning at `size=1_000_000, rounds=64` while losing at `size=1000, rounds=4`. Write a conclusion without overgeneralizing.
+7. **Range check:** Can the `long` sum in this example overflow on the largest array created by `makeInput`? Use the upper bounds of `score` and `size` to explain.
+8. **Workload redesign:** If data lives across many files and most time is spent waiting on I/O, why is this lesson's CPU-bound benchmark insufficient justification for applying `parallelStream()` to file reading?
 
-## 17. Checklist hoàn thành dự án
+## 17. Project Completion Checklist
 
-- [ ] Ba phương án dùng cùng input và cùng `score`, chỉ khác cách duyệt và chế độ song song.
-- [ ] Mảng nguồn không bị thay đổi trong benchmark.
-- [ ] Các trường hợp rỗng, nhỏ, âm và lớn đều được kiểm tra tính đúng.
-- [ ] Đã chạy JMH với warm-up, nhiều lần đo và fork hợp lý.
-- [ ] Kết quả trả về từ mỗi `@Benchmark` được JMH quan sát.
-- [ ] Thời gian tạo dữ liệu được loại ra hoặc được tính một cách nhất quán theo mục tiêu phép đo.
-- [ ] Bảng kết quả ghi rõ size, rounds, đơn vị và mức biến thiên.
-- [ ] Có giải thích overhead, JIT, Spliterator, CPU/GC và giới hạn của song song.
-- [ ] Không sử dụng các số liệu **giả định** như thể đó là số đo thực.
-- [ ] Kết luận ghi rõ môi trường áp dụng và những giới hạn của thử nghiệm.
+- [ ] All three approaches use identical inputs and `score`, differing only in traversal style and parallelism.
+- [ ] The source array is never modified during benchmarking.
+- [ ] Empty, small, negative, and large test cases are verified for correctness.
+- [ ] JMH runs with appropriate warm-up, measurement iterations, and forks.
+- [ ] Values returned from each `@Benchmark` are consumed by JMH.
+- [ ] Data-generation time is excluded or accounted for consistently with the measurement goal.
+- [ ] Results tables clearly specify size, rounds, units, and variance.
+- [ ] Explanations cover overhead, JIT, Spliterator, CPU/GC, and limits of parallelism.
+- [ ] No **hypothetical** numbers are presented as actual benchmark measurements.
+- [ ] Conclusions explicitly state the target environment and experimental limits.
 
-**Ghi nhớ:** Đo hiệu năng tốt không bắt đầu bằng việc thêm `parallel()`, mà bằng **xác định chính xác bài toán, xây các cách giải tương đương và kiểm tra kết quả**. Dùng JMH để quan sát ba cách xử lý trên nhiều kích thước và mức chi phí CPU, sau đó giải thích kết quả bằng chi phí pipeline, khả năng chia của Spliterator, phép reduction, tài nguyên phần cứng và biến động JVM. Hãy chỉ chọn phương án tối ưu **trong phạm vi số liệu đã đo**, thay vì coi một mẫu benchmark là quy luật chung cho toàn bộ Java Stream API.
+**Key takeaway:** Good performance measurement does not begin by adding `parallel()`, but by **defining the problem precisely, building equivalent solutions, and verifying outputs**. Use JMH to observe all three approaches across multiple sizes and CPU intensities, then explain results in terms of pipeline overhead, Spliterator splitting, reduction mechanics, hardware resources, and JVM variance. Pick an approach only **within the scope of measured evidence**, rather than treating one benchmark pattern as a universal rule for the entire Java Stream API.

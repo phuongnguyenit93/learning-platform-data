@@ -1,10 +1,10 @@
-# Text block trong Java: dòng cuối có hoặc không có ký tự xuống dòng
+# Text Blocks in Java: Final Line With or Without a Newline Character
 
-Khi dùng **text block** trong Java, dấu xuống dòng cuối cùng có thể là một phần của giá trị String hoặc không. Khác biệt đúng một ký tự này ảnh hưởng đến so sánh chuỗi, xuất file, tạo payload và kiểm thử. Bài này tập trung vào cách quyết định **dòng cuối có hoặc không có ký tự xuống dòng** bằng vị trí dấu đóng và escape của text block trong Java 17+.
+When using a **text block** in Java, the final newline character may or may not be part of the String value. This single-character difference affects string comparison, file output, payload generation, and testing. This lesson focuses on how to decide whether **the final line has or does not have a newline character** using the closing delimiter position and text block escapes in Java 17+.
 
-## 1. Cú pháp và ý nghĩa của xuống dòng
+## 1. Syntax and the meaning of newlines
 
-Text block bắt đầu bằng ba dấu nháy kép liên tiếp (**"""**) theo sau là dấu kết thúc dòng bắt buộc, chứa nội dung nhiều dòng, rồi kết thúc bằng **"""**:
+A text block starts with three consecutive double quotes (**"""**) followed by a mandatory line terminator, contains multiline content, and ends with **"""**:
 
 ~~~java
 String text = """
@@ -13,25 +13,25 @@ String text = """
         """;
 ~~~
 
-Trong ví dụ này, String có nội dung tương đương:
+In this example, the String has content equivalent to:
 
 ~~~java
 String text = "first\nsecond\n";
 ~~~
 
-Dấu xuống dòng ngay sau **dấu mở** text block dùng để bắt đầu nội dung, **không xuất hiện** ở đầu giá trị String. Ngược lại, dấu xuống dòng sau dòng nội dung cuối có thể được giữ lại tùy cách đặt dấu đóng.
+The newline right after the **opening delimiter** of the text block serves to start the content and **does not appear** at the start of the String value. Conversely, the newline after the last content line may be kept depending on where the closing delimiter is placed.
 
-Quy tắc quan trọng:
+Key rules:
 
-- Nếu **dấu đóng ở dòng riêng bên dưới dòng cuối**, ký tự xuống dòng giữa nội dung cuối và dấu đóng thuộc về String.
-- Nếu **dấu đóng ngay sau ký tự cuối của nội dung** trên cùng dòng, không có xuống dòng cuối do dấu đóng tạo ra.
-- Các dấu xuống dòng giữa hai dòng nội dung vẫn được giữ lại.
-- Trong text block, Java chuẩn hóa dấu kết thúc dòng của mã nguồn thành LF (**\n**, U+000A), kể cả khi file nguồn lưu với CRLF.
-- Text block vẫn trải qua bước loại bỏ phần thụt lề ngẫu nhiên; hãy giữ cách căn lề nhất quán khi so sánh hai biến thể.
+- If **the closing delimiter is on its own line below the last line**, the newline character between the final content and the closing delimiter belongs to the String.
+- If **the closing delimiter is immediately after the last character of the content** on the same line, no trailing newline is created by the closing delimiter.
+- Newlines between two content lines are preserved.
+- Inside text blocks, Java normalizes source line terminators to LF (**\n**, U+000A), even when the source file is saved with CRLF.
+- Text blocks still go through incidental indentation stripping; keep alignment consistent when comparing two variants.
 
-Text block được hỗ trợ chính thức từ Java 15, nên Java 17 trở lên có thể biên dịch các ví dụ sau mà không cần bật preview feature.
+Text blocks have been officially supported since Java 15, so Java 17 and later can compile the following examples without enabling preview features.
 
-## 2. Đặt dấu đóng ở dòng riêng: có LF cuối
+## 2. Placing the closing delimiter on its own line: with trailing LF
 
 ~~~java
 String withFinalLf = """
@@ -40,13 +40,13 @@ String withFinalLf = """
         """;
 ~~~
 
-Có **hai ký tự LF**: một giữa **first** và **second**, một sau **second**. Giá trị chính xác là:
+There are **two LF characters**: one between **first** and **second**, and one after **second**. The exact value is:
 
 ~~~text
 first\nsecond\n
 ~~~
 
-Dòng minh họa này dùng hai ký tự hiển thị **\** và **n** để biểu diễn **mỗi LF**; trong String thật, mỗi LF chỉ là **một** ký tự.
+This illustrative line uses two visible characters **\** and **n** to represent **each LF**; in the actual String, each LF is only **one** character.
 
 ~~~java
 withFinalLf.equals("first\nsecond\n"); // true
@@ -54,9 +54,9 @@ withFinalLf.endsWith("\n");             // true
 withFinalLf.length();                   // 13
 ~~~
 
-Vì **first** có 5 ký tự, **second** có 6 ký tự và có hai LF, tổng độ dài là 13.
+Since **first** has 5 characters, **second** has 6 characters, and there are two LFs, the total length is 13.
 
-## 3. Đặt dấu đóng ngay sau nội dung cuối: không có LF cuối
+## 3. Placing the closing delimiter directly after the final content: without trailing LF
 
 ~~~java
 String withoutFinalLf = """
@@ -64,13 +64,13 @@ String withoutFinalLf = """
         second""";
 ~~~
 
-Ở đây dấu đóng đứng sát sau **second**, nên giá trị là:
+Here the closing delimiter sits immediately after **second**, so the value is:
 
 ~~~text
 first\nsecond
 ~~~
 
-Kiểm chứng:
+Verification:
 
 ~~~java
 withoutFinalLf.equals("first\nsecond"); // true
@@ -78,18 +78,18 @@ withoutFinalLf.endsWith("\n");           // false
 withoutFinalLf.length();                 // 12
 ~~~
 
-Hai String trên có cùng các chữ và cùng LF **ở giữa** hai dòng, nhưng không bằng nhau vì biến đầu có thêm LF sau dòng thứ hai.
+The two Strings above share the same words and the same LF **between** the two lines, yet they are not equal because the first variable has an extra LF after the second line.
 
-| Cách viết | String tương đương | LF cuối? |
+| Syntax | Equivalent String | Trailing LF? |
 | --- | --- | --- |
-| Dấu đóng ở dòng riêng sau dòng cuối | **"first\nsecond\n"** | Có |
-| Dấu đóng sát ký tự cuối của nội dung | **"first\nsecond"** | Không |
+| Closing delimiter on its own line after the final line | **"first\nsecond\n"** | Yes |
+| Closing delimiter flush against the last content character | **"first\nsecond"** | No |
 
-**Chú ý:** Việc đưa dấu đóng sang một dòng khác cũng có thể tác động đến quy tắc loại bỏ thụt lề nếu các dòng không căn nhất quán. Các ví dụ trong bài có cùng thụt lề nội dung để sự khác biệt chỉ là một LF cuối.
+**Note:** Moving the closing delimiter to a different line can also affect indentation-stripping rules if lines are not aligned consistently. The examples in this lesson use identical content indentation so that the only difference is a single trailing LF.
 
-## 4. Ví dụ Java 17+ hoàn chỉnh
+## 4. Complete Java 17+ example
 
-Lưu thành file **TextBlockFinalNewlineDemo.java**:
+Save as **TextBlockFinalNewlineDemo.java**:
 
 ~~~java
 public class TextBlockFinalNewlineDemo {
@@ -103,13 +103,13 @@ public class TextBlockFinalNewlineDemo {
                 first
                 second""";
 
-        // Dấu '\' nối dòng làm mất LF ở cuối dòng second.
+        // The '\' line continuation removes the LF at the end of the second line.
         String continued = """
                 first
                 second\
                 """;
 
-        // Escape '\n' chủ động thêm LF sau second.
+        // The '\n' escape explicitly adds an LF after second.
         String explicitLF = """
                 first
                 second\n""";
@@ -133,7 +133,7 @@ public class TextBlockFinalNewlineDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac TextBlockFinalNewlineDemo.java
@@ -151,13 +151,13 @@ withLF equals explicitLF: true
 withoutLF equals continued: true
 ~~~
 
-Hàm **show** đổi LF trong giá trị thành hai ký tự hiển thị **\n** để tiện kiểm tra và in cả **length** lẫn **endsWith**. Phần **%n** trong **printf** là ký tự xuống dòng của thao tác in ra console, **không phải** dấu xuống dòng nằm trong String được kiểm tra.
+The **show** method converts LF in the value to the two visible characters **\n** for easier inspection and prints both **length** and **endsWith**. The **%n** in **printf** is the console output newline for printing, **not** a newline inside the String being inspected.
 
-## 5. Ba cách chủ động kiểm soát dấu xuống dòng cuối
+## 5. Three ways to explicitly control the trailing newline
 
-### 5.1. Đổi vị trí dấu đóng
+### 5.1. Changing the closing delimiter position
 
-Có LF cuối:
+With trailing LF:
 
 ~~~java
 String sql = """
@@ -166,7 +166,7 @@ String sql = """
         """;
 ~~~
 
-Không có LF cuối:
+Without trailing LF:
 
 ~~~java
 String sql = """
@@ -174,11 +174,11 @@ String sql = """
         FROM users""";
 ~~~
 
-Đây là cách trực tiếp nhất để người đọc nhận ra ý định. Trong trường hợp dấu đóng ngay sau dòng cuối khiến mã kém dễ đọc, có thể dùng escape nối dòng.
+This is the most direct way for a reader to recognize your intent. In cases where placing the closing delimiter right after the final line hurts readability, you can use a line-continuation escape.
 
-### 5.2. Escape nối dòng: dấu gạch chéo ngược ở cuối dòng
+### 5.2. Line continuation escape: backslash at the end of a line
 
-Trong text block, dấu **\** đặt **ngay cuối dòng** sẽ loại bỏ dấu xuống dòng của dòng đó:
+Inside a text block, a **\** placed **at the very end of a line** removes the newline character of that line:
 
 ~~~java
 String text = """
@@ -186,32 +186,32 @@ String text = """
         omega\
         """;
 
-// Bằng "alpha\nomega" — không có LF cuối.
+// Equals "alpha\nomega" — no trailing LF.
 ~~~
 
-Cách này cho phép đặt dấu đóng ở dòng riêng mà vẫn bỏ LF cuối. **Không chèn khoảng trắng sau dấu \** vì escape nối dòng cần dấu gạch chéo ngược đứng sát ký tự xuống dòng thực tế. Editor tự thêm khoảng trắng cuối dòng có thể làm thay đổi hành vi mong muốn.
+This lets you keep the closing delimiter on its own line while still omitting the trailing LF. **Do not insert spaces after the \** because line continuation requires the backslash to sit right against the actual newline character. Editors that automatically append trailing spaces can alter the intended behavior.
 
-Escape nối dòng cũng có thể dùng giữa các dòng nội dung để nối chúng mà không sinh LF ở điểm nối; khi đó cần cân nhắc cả thụt lề và khoảng trắng.
+Line continuation can also be used between content lines to join them without generating an LF at the join point; in that case, remember to account for indentation and spaces.
 
-### 5.3. Escape LF tường minh
+### 5.3. Explicit LF escape
 
-Nếu muốn dấu đóng sát nội dung nhưng vẫn có LF cuối, thêm escape **\n**:
+If you want the closing delimiter right against the content while still having a trailing LF, add the **\n** escape:
 
 ~~~java
 String text = """
         alpha
         omega\n""";
 
-// Bằng "alpha\nomega\n" — có LF cuối.
+// Equals "alpha\nomega\n" — has trailing LF.
 ~~~
 
-Escape **\n** của Java đại diện đúng một ký tự LF. Đây không phải cặp ký tự thường gồm dấu gạch chéo ngược và chữ n.
+Java's **\n** escape represents exactly one LF character. It is not the literal pair of characters backslash and letter n.
 
-Có thể chọn theo style chung của codebase. Điều cốt yếu là kết quả mong muốn được thể hiện rõ và có test kiểm chứng khi đây là dữ liệu cần khớp chính xác.
+You can choose based on the codebase's style conventions. The essential point is that the intended outcome is clear and verified by tests when exact character matching is required.
 
-## 6. LF cuối, dòng trống cuối và khoảng trắng cuối khác nhau
+## 6. Trailing LF, trailing blank line, and trailing spaces are different
 
-Xét ba chuỗi:
+Consider three strings:
 
 ~~~java
 String a = "alpha";
@@ -219,11 +219,11 @@ String b = "alpha\n";
 String c = "alpha\n\n";
 ~~~
 
-- **a** không có LF nào.
-- **b** có một LF ngay sau **alpha**.
-- **c** có hai LF liên tiếp sau **alpha**, nghĩa là có thêm một dòng rỗng sau dòng nội dung.
+- **a** has no LF.
+- **b** has one LF right after **alpha**.
+- **c** has two consecutive LFs after **alpha**, meaning there is an extra blank line after the content line.
 
-Biểu diễn b và c bằng text block:
+Representing b and c with text blocks:
 
 ~~~java
 String b = """
@@ -236,9 +236,9 @@ String c = """
         """;
 ~~~
 
-Dòng hoàn toàn trống trước dấu đóng trong ví dụ c làm giá trị có thêm một LF. Nếu dữ liệu cần chính xác, không tự ý xóa dòng trống cuối chỉ vì nó không có chữ.
+The completely blank line before the closing delimiter in example c gives the value an extra LF. When data must match exactly, do not arbitrarily delete a trailing blank line just because it contains no text.
 
-**Dấu cách trước LF** cũng là dữ liệu khác với **LF**. Java xử lý thụt lề và khoảng trắng cuối dòng trong quá trình tạo text block. Nếu muốn giữ rõ một dấu cách trước LF, có thể dùng escape **\s** (dấu cách) trong text block:
+**Spaces before an LF** are also different data from **an LF** alone. Java processes indentation and trailing whitespace on lines while creating a text block. If you want to explicitly preserve a space before an LF, you can use the **\s** (space) escape in the text block:
 
 ~~~java
 String text = """
@@ -246,31 +246,31 @@ String text = """
         beta
         """;
 
-// Kết quả tương đương "alpha \nbeta\n".
+// Result equivalent to "alpha \nbeta\n".
 ~~~
 
-Ở đây **\s** là **escape của Java** tạo ra dấu cách; không nhầm với mẫu regex **\\s** trong một Java String.
+Here **\s** is a **Java escape** that produces a space; do not confuse it with the regex pattern **\\s** inside a Java String.
 
-## 7. Vì sao println có thể gây hiểu lầm?
+## 7. Why can `println` be misleading?
 
-Lệnh **System.out.print(text)** in đúng dữ liệu vốn có; **System.out.println(text)** còn tự thêm một dấu kết thúc dòng cho lệnh in, tùy nền tảng. Nếu text đã có LF cuối, dùng println sẽ đưa hai lần xuống dòng liên tiếp ra console:
+Calling **System.out.print(text)** prints the exact data as is; **System.out.println(text)** also appends a line terminator for the print call itself, depending on the platform. If `text` already ends with an LF, using `println` sends two consecutive line breaks to the console:
 
 ~~~java
 String text = """
         hello
         """;
 
-System.out.print(text);    // In "hello" và LF vốn nằm trong text.
-System.out.println(text); // In text rồi thêm newline của println.
+System.out.print(text);    // Prints "hello" and the LF already inside text.
+System.out.println(text); // Prints text and then appends println's newline.
 ~~~
 
-Vì vậy chỉ nhìn màn hình console là chưa đủ để kết luận chuỗi có LF cuối hay không. Hãy in **length()**, **endsWith("\n")**, hoặc thay ký tự LF thành hai ký tự hiển thị bằng **replace("\n", "\\n")**.
+Therefore, merely looking at the console screen is not enough to conclude whether a string ends with an LF. Print **length()**, **endsWith("\n")**, or replace LF characters with two visible characters via **replace("\n", "\\n")**.
 
-Khi lưu file văn bản, gửi request body, tính checksum, kiểm tra chữ ký số hoặc so sánh snapshot, một LF cuối có thể làm payload khác về byte. Với định dạng đặt yêu cầu chính xác, phải chọn và giữ nhất quán quy ước newline.
+When writing text files, sending request bodies, computing checksums, verifying digital signatures, or comparing snapshots, a single trailing LF changes the payload at the byte level. For formats with strict requirements, choose and consistently maintain a newline convention.
 
-## 8. Kiểm thử và API xử lý dòng dễ che mất LF cuối
+## 8. Tests and line-processing APIs can easily hide a trailing LF
 
-Hai chuỗi có cùng các dòng nội dung nhưng khác dấu xuống dòng cuối:
+Two strings share the same content lines yet differ in their trailing newline:
 
 ~~~java
 String expected = "one\ntwo";
@@ -284,7 +284,7 @@ System.out.println(actual.endsWith("\n"));     // true
 System.out.println(actual.length());          // 8
 ~~~
 
-Khi cần phát hiện sự khác biệt, không nên chỉ dùng số dòng:
+When you need to detect the difference, do not rely solely on line counts:
 
 ~~~java
 String withLF = "one\ntwo\n";
@@ -296,9 +296,9 @@ System.out.println(withLF.split("\n").length);     // 2
 System.out.println(withLF.split("\n", -1).length); // 3
 ~~~
 
-**String.lines()** không phát sinh một dòng rỗng cuối chỉ vì String kết thúc bằng dấu xuống dòng; **split** theo mặc định cũng loại bỏ các phần tử rỗng cuối. Truyền **-1** vào split để giữ chuỗi rỗng cuối. Muốn kiểm tra trực tiếp dấu LF cuối, cách đơn giản nhất vẫn là **endsWith("\n")**.
+**String.lines()** does not emit a trailing empty line merely because the String ends with a newline; **split** also discards trailing empty elements by default. Pass **-1** to `split` to retain the trailing empty string. To check directly for a trailing LF, the simplest approach remains **endsWith("\n")**.
 
-Ví dụ kiểm thử chính xác nội dung mong muốn:
+Example testing exact expected content:
 
 ~~~java
 String expected = "line 1\nline 2\n";
@@ -308,15 +308,15 @@ String actual = """
         """;
 
 if (!expected.equals(actual)) {
-    throw new AssertionError("Text block không khớp chính xác");
+    throw new AssertionError("Text block does not match exactly");
 }
 ~~~
 
-Đoạn trên là mã minh họa điều kiện assert, có thể đặt trong một phương thức Java; chỉ có chương trình ở phần 4 là ví dụ lớp hoàn chỉnh độc lập.
+The snippet above illustrates an assertion condition that can be placed inside a Java method; only the program in section 4 is a standalone complete class example.
 
-## 9. Bỏ đúng một LF cuối sau khi đã tạo String
+## 9. Removing exactly one trailing LF after creating a String
 
-Khi cần bỏ **duy nhất một LF cuối**, có thể dùng String API mà không ảnh hưởng các ký tự cuối khác:
+When you need to remove **only a single trailing LF**, you can use the String API without affecting other trailing characters:
 
 ~~~java
 String raw = """
@@ -328,38 +328,38 @@ String withoutOneFinalLF = raw.endsWith("\n")
         ? raw.substring(0, raw.length() - 1)
         : raw;
 
-// withoutOneFinalLF bằng "first\nsecond".
+// withoutOneFinalLF equals "first\nsecond".
 ~~~
 
-Không dùng **stripTrailing()** hay **strip()** để thực hiện yêu cầu này khi khoảng trắng khác phải được giữ, vì những phương thức đó loại bỏ **nhiều ký tự whitespace**:
+Do not use **stripTrailing()** or **strip()** for this requirement when other whitespace must be preserved, because those methods remove **multiple whitespace characters**:
 
 ~~~java
 String raw = "alpha  \n";
 
 String onlyLfRemoved = raw.substring(0, raw.length() - 1);
-// "alpha  " — hai dấu cách cuối được giữ.
+// "alpha  " — the two trailing spaces are kept.
 
 String stripped = raw.stripTrailing();
-// "alpha" — bỏ cả hai dấu cách và LF.
+// "alpha" — removes both the two spaces and the LF.
 ~~~
 
-Nếu dữ liệu đến từ ngoài text block và có CRLF, cần xác định quy ước newline trước khi bỏ; ví dụ trên được viết cho dữ liệu text block đã chuẩn hóa LF.
+If the data comes from outside a text block and contains CRLF, determine the newline convention before stripping; the example above is written for LF-normalized text block data.
 
-## 10. Lỗi thường gặp và cách xử lý
+## 10. Common mistakes and how to handle them
 
-| Hiện tượng | Nguyên nhân | Cách xử lý |
+| Symptom | Cause | Solution |
 | --- | --- | --- |
-| Chuỗi so sánh không bằng nhau dù console trông giống | Một bên có LF cuối, bên kia không | So sánh **length**, **endsWith**, và nội dung escape |
-| Thêm một dòng trống khi in ra | Dùng **println** với String vốn đã có LF cuối | Dùng **print** nếu cần in chính xác nội dung |
-| Text block không có LF cuối | Đặt dấu đóng sát ký tự nội dung cuối | Đưa dấu đóng xuống dòng riêng hoặc thêm **\n** |
-| Text block có LF cuối ngoài dự kiến | Dấu đóng nằm dòng riêng bên dưới | Đặt dấu đóng sát nội dung hoặc dùng nối dòng **\** |
-| Đếm dòng vẫn giống nhau | **lines()** và **split** mặc định không giữ dấu hiệu LF cuối | Kiểm tra **endsWith("\n")** |
-| Thêm/xóa cả khoảng trắng đầu dòng | Thay đổi vị trí dấu đóng làm thay đổi thụt lề ngẫu nhiên | Căn lề nhất quán và kiểm tra String thực tế |
-| Xóa nhiều whitespace hơn dự kiến | Dùng **stripTrailing()** để bỏ một LF | Bỏ đúng một ký tự sau khi kiểm tra **endsWith** |
+| Strings compare unequal even though console looks identical | One has a trailing LF and the other does not | Compare **length**, **endsWith**, and escaped contents |
+| Extra blank line appears when printing | Using **println** with a String that already has a trailing LF | Use **print** if you need to print exact content |
+| Text block lacks a trailing LF | Closing delimiter is placed flush against the last content character | Move the closing delimiter to its own line or add **\n** |
+| Text block has an unexpected trailing LF | Closing delimiter sits on its own line below | Place the closing delimiter against the content or use line continuation **\** |
+| Line counts still look identical | **lines()** and default **split** do not preserve trailing LF markers | Check **endsWith("\n")** |
+| Leading spaces added or removed across lines | Moving the closing delimiter changes incidental indentation | Align consistently and inspect the actual String |
+| More whitespace removed than expected | Using **stripTrailing()** to remove one LF | Remove a single character after checking **endsWith** |
 
-## 11. Tự kiểm tra
+## 11. Self-check
 
-Đoán độ dài và ký tự cuối của hai chuỗi:
+Predict the length and trailing character of the two strings:
 
 ~~~java
 String x = """
@@ -372,10 +372,10 @@ String y = """
         B""";
 ~~~
 
-Đáp án:
+Answers:
 
-- **x** bằng **"A\nB\n"**, dài **4**, **endsWith("\n")** là **true**.
-- **y** bằng **"A\nB"**, dài **3**, **endsWith("\n")** là **false**.
-- **x.equals(y)** là **false** vì chỉ x có một LF cuối.
+- **x** equals **"A\nB\n"**, length **4**, **endsWith("\n")** is **true**.
+- **y** equals **"A\nB"**, length **3**, **endsWith("\n")** is **false**.
+- **x.equals(y)** is **false** because only `x` has a trailing LF.
 
-Khi thiết kế text block, hãy xác định **dữ liệu phải kết thúc bằng LF hay không**, rồi đặt dấu đóng **"""** hoặc dùng escape cho đúng. Ký tự LF cuối là thành phần của String, không chỉ là cách trình bày mã Java.
+When designing a text block, decide first **whether the data must end with an LF or not**, then place the closing **"""** or use escapes accordingly. The trailing LF is part of the String data, not just Java code layout.

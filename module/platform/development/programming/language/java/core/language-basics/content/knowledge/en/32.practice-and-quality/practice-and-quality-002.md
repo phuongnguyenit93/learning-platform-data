@@ -1,105 +1,105 @@
-# Viết mã giả và bảng theo dõi trước khi lập trình
+# Writing Pseudocode and Trace Tables Before Programming
 
-## 1. Vì sao nên thiết kế trước khi viết Java?
+## 1. Why design before writing Java?
 
-Khi giải một bài toán, viết ngay các câu lệnh `if`, `for` và `System.out.println` có thể khiến ta bỏ sót điều kiện, chọn sai biến hoặc không biết vì sao kết quả sai. **Mã giả** (*pseudocode*) và **bảng theo dõi** (*trace table/dry-run table*) giúp kiểm tra ý tưởng trước khi phụ thuộc vào cú pháp của một ngôn ngữ lập trình.
+When solving a problem, jumping straight into `if`, `for`, and `System.out.println` statements can cause you to miss conditions, pick the wrong variables, or lose track of why a result is wrong. **Pseudocode** and a **trace table** (*dry-run table*) help test your idea before committing to the syntax of a programming language.
 
-- **Mã giả** diễn tả trình tự thuật toán bằng ngôn ngữ tự nhiên có cấu trúc. Nó nêu **làm gì và theo thứ tự nào**, không nhất thiết tuân theo cú pháp Java.
-- **Bảng theo dõi** ghi lại sự thay đổi của các biến sau từng bước quan trọng, đặc biệt khi chương trình có vòng lặp và nhánh điều kiện.
-- **Chạy tay** (*dry run*) là mô phỏng thuật toán với một bộ dữ liệu cụ thể mà chưa cần chạy máy.
-- **Triển khai** là chuyển thuật toán đã được kiểm tra thành Java rồi đối chiếu kết quả thực tế với kết quả mong đợi.
+- **Pseudocode** describes the sequence of an algorithm in structured natural language. It states **what to do and in what order**, without needing to follow Java syntax.
+- **A trace table** records how variables change after each important step, especially when the program has loops and conditional branches.
+- **A dry run** simulates the algorithm on a concrete data set without running it on a computer yet.
+- **Implementation** translates the verified algorithm into Java and compares actual output against expected results.
 
-Quy trình hiệu quả:
+An effective workflow:
 
 ```text
-Đọc đề
+Read the problem
    |
    v
-Xác định input, output, quy tắc, trường hợp biên
+Identify inputs, outputs, rules, edge cases
    |
    v
-Viết mã giả theo các bước rõ ràng
+Write pseudocode in clear steps
    |
    v
-Chạy tay và lập bảng theo dõi
+Dry run and build a trace table
    |
    v
-Sửa lỗi logic nếu có
+Fix logic errors if any
    |
    v
-Viết Java 17+, biên dịch và kiểm thử
+Write Java 17+, compile, and test
    |
    v
-So sánh kết quả với bảng theo dõi và yêu cầu
+Compare results with the trace table and requirements
 ```
 
-Không phải bài toán nhỏ nào cũng cần bảng dài. Mục tiêu là **đủ rõ để chứng minh cách giải hợp lý và tìm lỗi sớm**, không phải thêm thủ tục hình thức.
+Not every small problem needs a long table. The goal is to be **clear enough to prove the solution makes sense and catch bugs early**, not to add formal busywork.
 
-## 2. Xác định yêu cầu và hợp đồng đầu vào/đầu ra
+## 2. Defining requirements and the input/output contract
 
-Trước khi viết mã giả, trả lời bốn câu hỏi:
+Before writing pseudocode, answer four questions:
 
-1. **Đầu vào là gì?** Một số nguyên, một mảng, danh sách, chuỗi hay dữ liệu đọc từ file?
-2. **Đầu ra là gì?** Giá trị cần trả về, nội dung cần in, hoặc trạng thái cần cập nhật?
-3. **Quy tắc tính toán và ràng buộc là gì?** Chẳng hạn số dương nghĩa là `x > 0` (không tính `0`), có thể có số âm, mảng có thể rỗng.
-4. **Trường hợp biên và trường hợp sai là gì?** Mảng rỗng, không có phần tử đạt điều kiện, một phần tử, giá trị lớn, `null`...
+1. **What is the input?** An integer, an array, a list, a string, or data read from a file?
+2. **What is the output?** A return value, printed content, or updated state?
+3. **What are the calculation rules and constraints?** For example, positive numbers mean `x > 0` (excluding `0`), negative numbers may appear, and the array may be empty.
+4. **What are the edge cases and invalid cases?** Empty array, no matching elements, single element, large values, `null`, etc.
 
-Ví dụ xuyên suốt:
+Running example:
 
-**Đề bài:** Cho một mảng số nguyên `int[]`. Hãy đếm số phần tử **dương**, tính **tổng** các số dương, xác định **số dương lớn nhất** và tính **trung bình** các số dương. Nếu không có số dương, phải báo rõ là không có số dương và **không thực hiện phép chia cho 0**.
+**Problem:** Given an integer array `int[]`. Count the number of **positive** elements, compute the **sum** of the positive numbers, find the **largest positive number**, and calculate the **average** of the positive numbers. If there are no positive numbers, clearly report that there are no positive numbers and **do not divide by 0**.
 
-Đầu vào mẫu:
+Sample input:
 
 ```text
 [4, -2, 7, 0, 3]
 ```
 
-Kết quả cần suy ra:
+Expected results to derive:
 
-- Số dương: `4`, `7`, `3`.
-- Số lượng: `3`.
-- Tổng: `4 + 7 + 3 = 14`.
-- Giá trị lớn nhất: `7`.
-- Trung bình: `14 / 3`, khi hiển thị hai chữ số thập phân là `4.67`.
+- Positive numbers: `4`, `7`, `3`.
+- Count: `3`.
+- Sum: `4 + 7 + 3 = 14`.
+- Largest value: `7`.
+- Average: `14 / 3`, which displays to two decimal places as `4.67`.
 
-Trong ví dụ này, **`0` không phải số dương**. Cũng cần quyết định trước: nếu không có số dương thì không có giá trị lớn nhất/trung bình hợp lệ; không nên tự coi giá trị lớn nhất là `0` như một kết quả nghiệp vụ.
+In this example, **`0` is not a positive number**. You also need to decide upfront: if there are no positive numbers, there is no valid maximum or average; do not treat `0` as the maximum business result.
 
-Đối với một API tái sử dụng, phải quy định thêm cách xử lý tham chiếu `null`: từ chối bằng ngoại lệ hay chấp nhận như mảng rỗng. Trong chương trình mẫu bên dưới, phương thức yêu cầu mảng khác `null` và chủ động báo lỗi nếu vi phạm.
+For a reusable API, you must also specify how `null` references are handled: reject with an exception or treat as an empty array. In the sample program below, the method requires a non-`null` array and explicitly reports an error if violated.
 
-## 3. Cách viết mã giả dễ chuyển thành chương trình
+## 3. How to write pseudocode that translates easily to code
 
-Mã giả **không có một cú pháp duy nhất bắt buộc**. Hãy dùng tên biến rõ ràng và những cấu trúc phổ biến:
+Pseudocode **does not have a single mandatory syntax**. Use clear variable names and common constructs:
 
-| Ý tưởng thuật toán | Cách ghi mã giả | Gợi ý khi chuyển sang Java |
+| Algorithmic idea | Pseudocode notation | Java translation hint |
 | --- | --- | --- |
-| Gán trạng thái ban đầu | `count ← 0` | `int count = 0;` |
-| Rẽ nhánh | `IF value > 0 THEN ...` | `if (value > 0) { ... }` |
-| Duyệt phần tử | `FOR EACH value IN numbers` | `for (int value : numbers) { ... }` |
-| Cập nhật biến | `sum ← sum + value` | `sum += value;` |
-| Xử lý trường hợp không có dữ liệu | `IF count = 0 THEN ...` | `if (count == 0) { ... }` |
-| Xuất kết quả | `OUTPUT count, sum` | `System.out.println(...)` |
+| Initialize state | `count ← 0` | `int count = 0;` |
+| Branching | `IF value > 0 THEN ...` | `if (value > 0) { ... }` |
+| Iterate elements | `FOR EACH value IN numbers` | `for (int value : numbers) { ... }` |
+| Update variable | `sum ← sum + value` | `sum += value;` |
+| Handle no-data case | `IF count = 0 THEN ...` | `if (count == 0) { ... }` |
+| Produce output | `OUTPUT count, sum` | `System.out.println(...)` |
 
-Dấu `←` là ký hiệu **gán** thường dùng trong mã giả, không phải toán tử Java. Mã giả dùng `=` để so sánh chỉ khi quy ước đã được làm rõ; trong Java, **`==`** kiểm tra bằng nhau đối với số nguyên còn **`=`** là phép gán.
+The `←` symbol is the **assignment** notation commonly used in pseudocode, not a Java operator. Pseudocode uses `=` for comparison only when that convention is clear; in Java, **`==`** checks equality for integers while **`=`** is assignment.
 
-Một mã giả tốt nên:
+Good pseudocode should:
 
-- Ghi rõ **điểm bắt đầu**, dữ liệu cần giữ và thứ tự các bước.
-- Đặt tên biến có ý nghĩa, ví dụ `count` (số lượng), `sum` (tổng), `max` (giá trị lớn nhất).
-- Diễn tả điều kiện biên bằng biểu thức chính xác, không dùng câu mơ hồ như “nếu giá trị thích hợp”.
-- Làm rõ mỗi lần lặp **xử lý một phần tử** và biến nào được thay đổi.
-- Tránh gắn chặt vào việc in ra màn hình nếu mục tiêu chính là thuật toán; in là một cách trình bày kết quả.
-- Tránh nhảy ngay vào tối ưu hóa phức tạp trước khi chứng minh thuật toán đơn giản là đúng.
+- Clearly state the **starting point**, the data to maintain, and the order of steps.
+- Use meaningful variable names, such as `count`, `sum`, and `max`.
+- Express boundary conditions with precise expressions instead of vague phrases like "if the value is suitable."
+- Make clear that each iteration **processes one element** and which variables are modified.
+- Avoid tying itself to screen printing if the main focus is the algorithm; printing is just one way to present results.
+- Avoid jumping into complex optimizations before proving the simple algorithm is correct.
 
-## 4. Viết mã giả cho bài toán đếm và thống kê số dương
+## 4. Writing pseudocode for counting and summarizing positive numbers
 
-Một phiên bản mã giả đủ chi tiết:
+A sufficiently detailed pseudocode version:
 
 ```text
-INPUT numbers: mảng các số nguyên, không null
+INPUT numbers: integer array, non-null
 
 count ← 0
 sum ← 0
-max ← 0                  // Chưa được coi là kết quả cho tới khi count > 0
+max ← 0                  // Not considered a result until count > 0
 
 FOR EACH value IN numbers DO
     IF value > 0 THEN
@@ -117,88 +117,88 @@ OUTPUT sum
 IF count = 0 THEN
     OUTPUT "no positive values"
 ELSE
-    average ← sum / count  // Chia số thực, không chia nguyên
+    average ← sum / count  // Floating-point division, not integer division
     OUTPUT max
-    OUTPUT average với 2 chữ số sau dấu thập phân
+    OUTPUT average to 2 decimal places
 END IF
 ```
 
-Đây là **mã giả, không được biên dịch bởi `javac`**. Một số quyết định thiết kế quan trọng:
+This is **pseudocode, not compiled by `javac`**. Several key design decisions:
 
-1. `count` và `sum` bắt đầu bằng `0` vì chưa xử lý phần tử nào.
-2. `value > 0` lọc đúng các số dương; số âm và `0` không đổi bộ đếm, tổng và giá trị lớn nhất.
-3. `count = 0` trong điều kiện cập nhật `max` nghĩa là **đang gặp số dương đầu tiên**. Nhờ vậy, giá trị khởi tạo `max ← 0` không phải một ứng viên lớn nhất thực sự.
-4. Cần kiểm tra `count = 0` **trước khi tính trung bình** để không chia cho `0`.
-5. Trung bình phải dùng phép chia **số thực**. Nếu dùng phép chia hai số nguyên, phần thập phân bị mất.
-6. Trong Java, dùng `long sum` để mở rộng phạm vi tổng so với `int`, vì cộng nhiều số `int` dương có thể vượt `Integer.MAX_VALUE`. `long` vẫn có giới hạn, nên bài toán kích thước cực lớn cần ràng buộc đầu vào hoặc cách tính thích hợp hơn.
+1. `count` and `sum` start at `0` because no elements have been processed yet.
+2. `value > 0` filters exactly positive numbers; negative numbers and `0` do not change the count, sum, or maximum.
+3. `count = 0` inside the `max` update condition means **this is the first positive number seen**. Therefore, the initial value `max ← 0` is never treated as an actual maximum candidate.
+4. You must check `count = 0` **before computing the average** to avoid dividing by `0`.
+5. The average must use **floating-point division**. Integer division between two integers loses the fractional part.
+6. In Java, use `long sum` to widen the sum range compared to `int`, because adding many positive `int` values can exceed `Integer.MAX_VALUE`. `long` still has limits, so extremely large inputs require input constraints or a more suitable calculation approach.
 
-### Bất biến vòng lặp
+### Loop invariants
 
-Một cách tự giải thích tính đúng đắn là nêu điều gì phải luôn đúng sau khi xử lý mỗi phần tử:
+One way to verify correctness is to state what must always remain true after processing each element:
 
-- `count` = số phần tử dương đã gặp trong phần đầu của mảng.
-- `sum` = tổng các phần tử dương đã gặp.
-- Khi `count > 0`, `max` = số lớn nhất trong các phần tử dương đã gặp.
+- `count` = number of positive elements seen so far in the processed prefix of the array.
+- `sum` = sum of the positive elements seen so far.
+- When `count > 0`, `max` = largest number among the positive elements seen so far.
 
-Ban đầu, với phần đầu của mảng có độ dài `0`, `count = 0`, `sum = 0`; điều kiện về `max` chưa áp dụng. Mỗi bước bỏ qua phần tử không dương hoặc cập nhật đúng ba biến cho phần tử dương, nên các điều kiện trên tiếp tục đúng. Sau vòng lặp, phần đầu đã xét là **toàn bộ mảng**, do đó các kết quả thu được đúng theo định nghĩa.
+Initially, for a prefix of length `0`, `count = 0` and `sum = 0`; the condition on `max` does not apply yet. Each step either skips a non-positive element or updates all three variables properly for a positive element, so these conditions stay true. After the loop, the processed prefix is **the entire array**, so the final results match the definition.
 
-Không cần viết chứng minh hình thức quá dài cho mọi bài tập, nhưng việc nhận diện bất biến giúp kiểm tra thiết kế vòng lặp có bỏ sót hoặc đếm trùng dữ liệu hay không.
+You do not need a lengthy formal proof for every exercise, but identifying invariants helps verify whether a loop misses or double-counts data.
 
-## 5. Lập bảng theo dõi (*trace table*) từng lần lặp
+## 5. Building a step-by-step trace table
 
-Bảng theo dõi nên có **dữ liệu đầu vào, vị trí đang xét, điều kiện rẽ nhánh, giá trị các biến sau khi cập nhật**. Với `numbers = [4, -2, 7, 0, 3]`, ta có:
+A trace table should include **input data, current position, branching condition, and variable values after updates**. For `numbers = [4, -2, 7, 0, 3]`, we have:
 
-| Bước | Chỉ số `i` | `value` | `value > 0` | `count` sau bước | `sum` sau bước | `max` hợp lệ sau bước |
+| Step | Index `i` | `value` | `value > 0` | `count` after step | `sum` after step | Valid `max` after step |
 | --- | ---: | ---: | --- | ---: | ---: | --- |
-| Khởi tạo | — | — | — | 0 | 0 | Chưa có |
-| 1 | 0 | 4 | Đúng | 1 | 4 | 4 |
-| 2 | 1 | -2 | Sai | 1 | 4 | 4 |
-| 3 | 2 | 7 | Đúng | 2 | 11 | 7 |
-| 4 | 3 | 0 | Sai | 2 | 11 | 7 |
-| 5 | 4 | 3 | Đúng | 3 | 14 | 7 |
+| Init | — | — | — | 0 | 0 | None yet |
+| 1 | 0 | 4 | True | 1 | 4 | 4 |
+| 2 | 1 | -2 | False | 1 | 4 | 4 |
+| 3 | 2 | 7 | True | 2 | 11 | 7 |
+| 4 | 3 | 0 | False | 2 | 11 | 7 |
+| 5 | 4 | 3 | True | 3 | 14 | 7 |
 
-Cách tính:
+Calculation walkthrough:
 
-- **Bước 1:** gặp `4 > 0`; đây là số dương đầu tiên, nên `max = 4`, `count = 1`, `sum = 4`.
-- **Bước 2:** `-2` không dương, giữ nguyên trạng thái.
-- **Bước 3:** gặp `7`, tăng `count = 2`, `sum = 11`, cập nhật `max = 7`.
-- **Bước 4:** `0` không dương, giữ nguyên trạng thái.
-- **Bước 5:** gặp `3`, tăng `count = 3`, `sum = 14`; `max` vẫn là `7`.
-- **Sau vòng lặp:** vì `count = 3`, trung bình bằng `(double) 14 / 3 ≈ 4.666...`, được in là `4.67` nếu dùng định dạng hai chữ số thập phân với `Locale.US`.
+- **Step 1:** encounters `4 > 0`; this is the first positive number, so `max = 4`, `count = 1`, `sum = 4`.
+- **Step 2:** `-2` is not positive, state stays unchanged.
+- **Step 3:** encounters `7`, increments `count = 2`, `sum = 11`, updates `max = 7`.
+- **Step 4:** `0` is not positive, state stays unchanged.
+- **Step 5:** encounters `3`, increments `count = 3`, `sum = 14`; `max` remains `7`.
+- **After the loop:** since `count = 3`, the average is `(double) 14 / 3 ≈ 4.666...`, printed as `4.67` when formatted to two decimal places with `Locale.US`.
 
-Cột `max` ghi **“Chưa có”** lúc khởi tạo để phân biệt giá trị lưu tạm trong biến với **kết quả đã có nghĩa**. Không nên in `max = 0` như số dương lớn nhất khi mảng không có số dương.
+The `max` column shows **"None yet"** at initialization to distinguish a temporary placeholder stored in the variable from **a meaningful result**. Never print `max = 0` as the largest positive number when the array has no positive numbers.
 
-### Chọn nội dung cho bảng theo dõi
+### Choosing what to put in a trace table
 
-Một bảng theo dõi nên trả lời được: “Tại sao sau bước thứ ba lại có `sum = 11`?” Nếu chỉ ghi kết quả cuối, bảng không giúp tìm lỗi logic. Nhưng cũng không cần ghi tất cả biến không liên quan, vì bảng sẽ dài và khó đọc.
+A trace table should answer: "Why is `sum = 11` after the third step?" If it only records the final answer, the table will not help find logic bugs. At the same time, you do not need to list every unrelated variable, because the table would become long and hard to read.
 
-Cách đơn giản là **mỗi hàng tương ứng một lần lặp** và các cột là biến thay đổi hoặc điều kiện quyết định. Với vòng lặp lồng nhau, có thể thêm chỉ số vòng ngoài/vòng trong; với thuật toán tìm kiếm, có thể ghi điều kiện dừng và trạng thái “đã tìm thấy” hay chưa.
+A simple rule is **one row per iteration** with columns for changing variables and deciding conditions. For nested loops, you can add outer/inner loop indices; for search algorithms, you can track the stopping condition and whether the target has been "found" yet.
 
-## 6. Thử trường hợp biên ngay trên mã giả
+## 6. Testing edge cases directly on pseudocode
 
-Chỉ kiểm tra một bộ dữ liệu “đẹp” là chưa đủ. Dùng mã giả và bảng trạng thái để thử những trường hợp khác:
+Testing only a "nice" data set is not enough. Use pseudocode and the state table to test other cases:
 
-| Đầu vào | `count` | `sum` | Kết luận |
+| Input | `count` | `sum` | Conclusion |
 | --- | ---: | ---: | --- |
-| `[]` | 0 | 0 | Không có số dương; không tính `max`/`average` |
-| `[-1, 0]` | 0 | 0 | Không có số dương |
+| `[]` | 0 | 0 | No positive numbers; do not compute `max`/`average` |
+| `[-1, 0]` | 0 | 0 | No positive numbers |
 | `[5]` | 1 | 5 | `max = 5`, `average = 5.00` |
 | `[2, 2, 2]` | 3 | 6 | `max = 2`, `average = 2.00` |
 | `[0, 3, -4, 8]` | 2 | 11 | `max = 8`, `average = 5.50` |
 
-Những trường hợp này kiểm tra trực tiếp các sai sót phổ biến:
+These cases directly test common mistakes:
 
-- Dùng `>= 0` thay vì `> 0` làm `0` bị đếm thành số dương.
-- Không kiểm tra `count == 0` trước khi chia.
-- Khởi tạo sai `max` khi mảng không có số dương.
-- Chỉ kiểm tra phần tử đầu hoặc bỏ sót phần tử cuối.
-- Chia nguyên khi cần trung bình có phần lẻ.
+- Using `>= 0` instead of `> 0`, causing `0` to be counted as positive.
+- Forgetting to check `count == 0` before dividing.
+- Initializing `max` incorrectly when the array contains no positive numbers.
+- Checking only the first element or skipping the last element.
+- Performing integer division when a fractional average is needed.
 
-Mảng `null` không giống mảng rỗng. Nếu yêu cầu của phương thức không chấp nhận `null`, nên **từ chối rõ ràng** thay vì vô tình gây `NullPointerException` sâu trong vòng lặp.
+A `null` array is not the same as an empty array. If a method's contract does not accept `null`, **reject it explicitly** instead of letting a `NullPointerException` happen deep inside the loop.
 
-## 7. Chuyển mã giả thành Java 17+ chạy được
+## 7. Translating pseudocode into runnable Java 17+
 
-Tạo tệp **`PseudocodeTraceDemo.java`**:
+Create the file **`PseudocodeTraceDemo.java`**:
 
 ```java
 import java.util.Locale;
@@ -247,14 +247,14 @@ public class PseudocodeTraceDemo {
 }
 ```
 
-Trong thư mục chứa tệp, dùng **JDK 17 trở lên** trên Windows PowerShell/CMD hoặc Linux/macOS:
+In the directory containing the file, use **JDK 17 or later** on Windows PowerShell/CMD or Linux/macOS:
 
 ```bash
 javac -encoding UTF-8 PseudocodeTraceDemo.java
 java PseudocodeTraceDemo
 ```
 
-**Stdout chính xác** (biên dịch thành công không in thông báo):
+**Exact stdout** (a successful compilation prints nothing):
 
 ```text
 Case A
@@ -273,75 +273,75 @@ max=5
 average=5.00
 ```
 
-### Đối chiếu từng bước với mã giả
+### Line-by-line comparison with pseudocode
 
-| Mã giả | Java 17+ | Ý nghĩa |
+| Pseudocode | Java 17+ | Meaning |
 | --- | --- | --- |
-| `count ← 0` | `int count = 0;` | Trạng thái ban đầu |
-| `sum ← 0` | `long sum = 0;` | Tổng, dùng `long` |
-| `FOR EACH value IN numbers` | `for (int value : numbers)` | Duyệt lần lượt từng phần tử |
-| `IF value > 0` | `if (value > 0)` | Lọc số dương |
-| `count ← count + 1` | `count++;` | Tăng bộ đếm |
-| `sum ← sum + value` | `sum += value;` | Cộng vào tổng |
-| `IF count = 0` | `if (count == 0)` | Kiểm tra không có số dương |
-| `average ← sum / count` | `(double) sum / count` | Chia thực, giữ phần lẻ |
+| `count ← 0` | `int count = 0;` | Initial state |
+| `sum ← 0` | `long sum = 0;` | Sum, using `long` |
+| `FOR EACH value IN numbers` | `for (int value : numbers)` | Iterate through each element |
+| `IF value > 0` | `if (value > 0)` | Filter positive numbers |
+| `count ← count + 1` | `count++;` | Increment counter |
+| `sum ← sum + value` | `sum += value;` | Add to sum |
+| `IF count = 0` | `if (count == 0)` | Check for no positive numbers |
+| `average ← sum / count` | `(double) sum / count` | Floating-point division, keeping the fractional part |
 
-Hai điểm cần kiểm tra sau khi chuyển:
+Two points to verify after translating:
 
-1. **Đúng thứ tự:** ở Java, `max` được cập nhật **trước** khi tăng `count`, nên điều kiện `count == 0` nhận diện chính xác số dương đầu tiên. Nếu chuyển vị trí `count++` lên trước, điều kiện này không còn phát hiện lần đầu.
-2. **Đúng kiểu:** `sum` là `long`, nhưng có phép ép rõ `(double) sum` khi chia để không tạo phép chia nguyên. `System.out.printf(Locale.US, ...)` đảm bảo dấu chấm thập phân trong đầu ra ví dụ.
+1. **Correct order:** in Java, `max` is updated **before** incrementing `count`, so `count == 0` accurately detects the first positive number. If `count++` were moved earlier, this condition would no longer detect the first occurrence.
+2. **Correct types:** `sum` is a `long`, with an explicit cast `(double) sum` during division to prevent integer division. `System.out.printf(Locale.US, ...)` guarantees a decimal dot in the example output.
 
-`Objects.requireNonNull` ném `NullPointerException` có thông điệp tên tham số khi `numbers == null`. Ở đây đó là **tiền điều kiện của API**; mã hoàn chỉnh không truyền `null` nên stdout ổn định.
+`Objects.requireNonNull` throws a `NullPointerException` with the parameter name as its message when `numbers == null`. Here that is an **API precondition**; the complete code never passes `null`, so stdout is consistent.
 
-## 8. Các kiểu lỗi mà chạy tay giúp phát hiện
+## 8. Types of bugs that dry runs help catch
 
-### Lỗi bỏ sót phần tử cuối (*off-by-one*)
+### Off-by-one error (missing the last element)
 
-Mã giả muốn duyệt mọi phần tử của mảng có `n` phần tử, chỉ số hợp lệ là `0` đến `n - 1`.
+The pseudocode aims to visit every element of an array with `n` elements, whose valid indices are `0` to `n - 1`.
 
 ```java
-// Minh họa trong phương thức:
+// Illustration inside a method:
 for (int i = 0; i < numbers.length - 1; i++) {
-    // Bị bỏ sót phần tử cuối nếu mục tiêu là duyệt cả mảng.
+    // The last element is missed if the goal is to iterate over the whole array.
 }
 ```
 
-Bảng theo dõi buộc người viết ghi chỉ số `i`; nếu mảng có năm phần tử mà bảng chỉ có bốn bước, lỗi dễ được phát hiện. Cách thông thường để duyệt đủ chỉ số là `i < numbers.length`, hoặc dùng for-each khi không cần chỉ số.
+A trace table forces you to write down the index `i`; if an array has five elements while the table only has four steps, the bug is easy to spot. The standard way to iterate all indices is `i < numbers.length`, or using for-each when the index is not needed.
 
-### Lỗi cập nhật biến sai nhánh
+### Updating variables in the wrong branch
 
 ```java
-// Minh họa sai logic:
+// Logic error illustration:
 for (int value : numbers) {
     if (value > 0) {
         sum += value;
     }
-    count++; // Sai: đếm cả số âm và 0.
+    count++; // Wrong: counts negative numbers and 0 too.
 }
 ```
 
-Bảng theo dõi với `[-2, 4]` cho thấy sau bước xét `-2`, `count` tăng thành 1 mặc dù chưa gặp số dương. Cần đặt `count++` **bên trong** nhánh `value > 0`.
+A trace table for `[-2, 4]` shows that after examining `-2`, `count` becomes 1 even though no positive number has been seen yet. `count++` must be placed **inside** the `value > 0` branch.
 
-### Lỗi khởi tạo hoặc cập nhật cực trị
+### Wrong initialization or update for extrema
 
-Nếu tìm giá trị lớn nhất trong **mọi số**, khởi tạo `max = 0` là sai đối với mảng chỉ chứa số âm. Bài xuyên suốt tìm số **dương** lớn nhất nên có điều kiện `count > 0` và cập nhật `max` khi nhận số dương đầu tiên. **Không được lấy quy tắc khởi tạo này áp dụng máy móc cho bài toán khác**.
+When finding the largest value among **all numbers**, initializing `max = 0` is wrong for an array containing only negative numbers. The running example finds the largest **positive** number, so it uses `count > 0` and initializes `max` when the first positive number arrives. **Do not apply this initialization rule mechanically to a different problem**.
 
-### Lỗi chia nguyên
+### Integer division error
 
 ```java
 int count = 3;
 long sum = 14;
-double wrong = sum / count;          // 4.0: chia nguyên trước, rồi đổi sang double.
+double wrong = sum / count;          // 4.0: integer division first, then converted to double.
 double correct = (double) sum / count; // 4.6666...
 ```
 
-Bảng theo dõi cho `sum = 14`, `count = 3`; khi lấy trung bình nếu chương trình in `4.00`, đó là dấu hiệu chọn sai kiểu phép chia. `printf("%.2f")` chỉ định dạng kết quả; **không khôi phục phần lẻ đã mất** vì phép chia nguyên.
+The trace table gives `sum = 14`, `count = 3`; when computing the average, if the program prints `4.00`, that is a sign of choosing the wrong division type. `printf("%.2f")` only formats the result; **it does not recover fractional digits already lost** to integer division.
 
-## 9. Bảng theo dõi khác gì việc in debug?
+## 9. How is a trace table different from debug printing?
 
-**Bảng theo dõi trước khi chạy** là dự đoán được viết ra từ logic thuật toán; **dòng in debug** là trạng thái thực tế khi JVM thực thi. So sánh chúng giúp khoanh vùng dòng làm thuật toán đi sai.
+**A pre-run trace table** is a prediction written from the algorithm's logic; **debug print statements** show the actual state when the JVM executes. Comparing them helps narrow down the exact line where the algorithm goes wrong.
 
-Ví dụ, có thể tạm thêm sau mỗi vòng lặp trong `report`:
+For example, you could temporarily add after each iteration inside `report`:
 
 ```java
 System.out.println("value=" + value
@@ -349,38 +349,38 @@ System.out.println("value=" + value
         + " sum=" + sum);
 ```
 
-Đây là **dòng minh họa** để đặt trong thân vòng lặp, không thuộc chương trình hoàn chỉnh ở mục 7. Khi in debug, hãy đảm bảo vị trí in nằm **sau cập nhật trạng thái** nếu bảng cũng ghi trạng thái sau mỗi bước. Nếu in trước cập nhật mà đem so với bảng sau cập nhật, dễ tưởng rằng có lỗi dù chỉ là hai thời điểm quan sát khác nhau.
+This is an **illustrative snippet** to place inside the loop body, not part of the complete program in section 7. When printing for debugging, make sure the print statement sits **after the state updates** if the table also records post-step state. If you print before updates and compare against a post-update table, you may think there is a bug when you are merely observing two different points in time.
 
-Trong chương trình thực tế, có thể dùng breakpoint/debugger hoặc unit test thay vì để nhiều `println` debug trong mã sản xuất.
+In real programs, you can use breakpoints/a debugger or unit tests instead of leaving lots of debug `println` calls in production code.
 
-Một bảng theo dõi không chứng minh thuật toán đúng cho **mọi** đầu vào. Để tăng tin cậy, hãy kết hợp:
-- Bảng chạy tay cho trường hợp thông thường và trường hợp biên.
-- Lập luận bất biến hoặc lý do điều kiện/vòng lặp đúng.
-- Kiểm thử tự động với đầu ra kỳ vọng rõ ràng.
-- Kiểm tra hành vi khi đầu vào không hợp lệ.
+One trace table does not prove an algorithm works for **all** inputs. To build confidence, combine:
+- Dry-run tables for normal cases and edge cases.
+- Invariant arguments or reasoning explaining why conditions and loops are right.
+- Automated tests with clear expected outputs.
+- Checks for behavior on invalid inputs.
 
-## 10. Mẫu bảng theo dõi có thể tái sử dụng
+## 10. A reusable trace table template
 
-Khi thực hành những bài khác, hãy chuẩn bị trước bảng đơn giản:
+When practicing other problems, prepare a simple table beforehand:
 
-| Bước | Dữ liệu đang xét | Điều kiện | Biến trước | Biến sau | Ghi chú |
+| Step | Current data | Condition | Variables before | Variables after | Notes |
 | --- | --- | --- | --- | --- | --- |
-| Khởi tạo | Chưa xét | — | — | Trạng thái ban đầu | Đặt giá trị khởi tạo |
-| 1 | Phần tử thứ nhất | Đúng/Sai | Trạng thái cũ | Trạng thái mới | Ghi nhánh đã chọn |
-| 2 | Phần tử thứ hai | Đúng/Sai | Trạng thái cũ | Trạng thái mới | Xem có cập nhật đúng không |
-| Kết thúc | Hết dữ liệu | Điều kiện dừng | Trạng thái cuối | Kết quả | Kiểm tra hậu điều kiện |
+| Init | Not yet inspected | — | — | Initial state | Set initial values |
+| 1 | First element | True/False | Old state | New state | Record branch taken |
+| 2 | Second element | True/False | Old state | New state | Check whether update is right |
+| End | Out of data | Stopping condition | Final state | Result | Verify postcondition |
 
-Bảng trên là **khuôn minh họa**, không phải bảng kết quả của ví dụ số dương. Với bài tìm kiếm, thay các cột bằng `index`, `target`, `found`; với bài đếm, theo dõi `count`; với bài tính tổng, theo dõi `sum`. Luôn ưu tiên các biến quyết định tính đúng của thuật toán.
+The table above is an **illustrative template**, not the result table for the positive-numbers example. For search problems, replace columns with `index`, `target`, `found`; for counting problems, track `count`; for summation problems, track `sum`. Always prioritize the variables that determine the algorithm's correctness.
 
-### Checklist trước khi bắt đầu viết mã Java
+### Pre-Java-coding checklist
 
-1. Đã xác định **input, output** và ý nghĩa của từng kết quả chưa?
-2. Các điều kiện như `>`, `>=`, `==` có đúng yêu cầu không?
-3. Đã nêu rõ cách xử lý **mảng rỗng/không có dữ liệu hợp lệ** chưa?
-4. Biến đếm, tổng, cực trị đã được khởi tạo hợp lý chưa?
-5. Mỗi bước lặp cập nhật đúng biến, đúng nhánh và **không bỏ sót phần tử** chưa?
-6. Bảng theo dõi có bao gồm trường hợp thường và ít nhất một **trường hợp biên** không?
-7. Có phép chia cho 0, chia nguyên ngoài ý muốn, hoặc nguy cơ tràn số không?
-8. Khi chuyển sang Java, kết quả chạy thực tế có **khớp dự đoán** không?
+1. Have I defined the **inputs, outputs**, and the meaning of each result?
+2. Do conditions like `>`, `>=`, `==` match the requirements?
+3. Have I specified how to handle **empty arrays / no valid data**?
+4. Are counter, sum, and extremum variables initialized properly?
+5. Does each loop iteration update the right variables in the right branch and **not miss any element**?
+6. Does the trace table cover a normal case and at least one **edge case**?
+7. Are there any division-by-zero risks, unintended integer divisions, or overflow risks?
+8. Once translated to Java, do the actual run results **match the predictions**?
 
-**Ghi nhớ:** viết mã giả để diễn đạt thuật toán trước cú pháp; dùng bảng theo dõi để quan sát những thay đổi của biến và phát hiện sai logic sớm; sau đó mới triển khai Java và kiểm thử. Một thuật toán được suy nghĩ, chạy tay và kiểm tra đầu vào biên trước thường dễ hiểu và dễ sửa hơn mã được viết bằng thử-sai ngẫu nhiên.
+**Remember:** write pseudocode to express the algorithm before syntax; use a trace table to observe variable changes and catch logic errors early; only then implement in Java and test. An algorithm that is thought through, dry-run, and checked against edge inputs is usually easier to understand and maintain than code written by random trial and error.

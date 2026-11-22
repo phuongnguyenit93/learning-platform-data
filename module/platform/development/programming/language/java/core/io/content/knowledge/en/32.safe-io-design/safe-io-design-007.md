@@ -1,49 +1,49 @@
-# Không ghi đè dữ liệu ngoài ý muốn khi mở hoặc copy tệp trong Java
+# Avoiding Unintended Data Overwrites When Opening or Copying Files in Java
 
-Mất dữ liệu khi xử lý file thường không bắt đầu từ một lệnh xóa tường minh. Chỉ cần mở một đường dẫn bằng API có mặc định **cắt ngắn nội dung**, dùng `REPLACE_EXISTING` sai chỗ hoặc ghi vào một file đã tồn tại ở vị trí byte 0, ứng dụng có thể làm hỏng dữ liệu người dùng dù không hề gọi `Files.delete()`. Trong Java I/O và NIO.2, **chọn đúng chế độ tạo/mở tệp, kiểm tra quyền sở hữu và xử lý lỗi giữa chừng** là những bước quan trọng của thiết kế an toàn.
+Data loss during file processing rarely starts with an explicit delete call. Simply opening a path with an API that defaults to **truncating content**, misusing `REPLACE_EXISTING`, or writing to an existing file at byte offset 0 can corrupt user data even without ever calling `Files.delete()`. In Java I/O and NIO.2, **choosing the right file creation/open mode, checking ownership, and handling mid-operation errors** are essential steps of safe design.
 
-Bài này giải thích khi nào Java tự tạo, cắt ngắn, ghi đè hoặc từ chối đích đã tồn tại; phân biệt `CREATE` với `CREATE_NEW`, `TRUNCATE_EXISTING` với `APPEND`, hành vi của `Files.copy()`, giới hạn của bước `Files.exists()` trước khi ghi, và cách giảm rủi ro khi cần cập nhật một file quan trọng.
+This lesson explains when Java creates, truncates, overwrites, or rejects an existing target; distinguishes `CREATE` from `CREATE_NEW`, `TRUNCATE_EXISTING` from `APPEND`, the behavior of `Files.copy()`, the limitations of calling `Files.exists()` before writing, and how to reduce risks when updating an important file.
 
-Mục tiêu là chọn chiến lược **“không thay nội dung hiện có trừ khi đã có chủ đích”**, chứ không phải giả định mọi thao tác file đều an toàn chỉ vì không khai báo tùy chọn thay thế.
+The goal is choosing a strategy of **"never alter existing content unless explicitly intended,"** rather than assuming every file operation is safe simply because no replacement option was declared.
 
-## 1. Định nghĩa đúng các dạng “ghi đè”
+## 1. Properly Defining Forms of "Overwrite"
 
-Có ít nhất bốn tình huống khác nhau:
+There are at least four distinct scenarios:
 
-1. **Truncate khi mở:** File có nội dung bị đưa về độ dài 0 ngay lúc mở, trước khi ứng dụng kịp ghi dữ liệu mới.
-2. **Overwrite tại offset:** File vẫn giữ kích thước ban đầu hoặc được kéo dài, nhưng một số byte đang có bị thay bởi byte mới, thường khi `position = 0`.
-3. **Replace file object/đường dẫn đích:** Thao tác copy/move thay tệp đang nằm ở đường dẫn đích bằng tệp khác, có thể làm mất nội dung hoặc metadata cũ.
-4. **Ghi ra ngoài vùng dự kiến:** Đường dẫn bị chuẩn hóa sai hoặc theo symbolic link làm dữ liệu được ghi sang một file khác với mục tiêu nghiệp vụ.
+1. **Truncate on open:** A file with existing content is reset to length 0 immediately upon opening, before the application writes any new data.
+2. **Overwrite at offset:** The file keeps its original length or grows, but existing bytes are replaced by new bytes, commonly starting at `position = 0`.
+3. **Replace the target file object/path:** A copy/move operation replaces the file at the target path with another file, potentially losing old content or metadata.
+4. **Write outside the intended area:** An improperly normalized path or a followed symbolic link causes data to be written to a different file than the business target.
 
-Để tránh mất dữ liệu phải phân biệt cả bốn. Chẳng hạn `StandardOpenOption.WRITE` **không tự xóa sạch file khi mở**, nhưng một lần `write()` tại offset 0 vẫn có thể **ghi đè các byte đầu**. Ngược lại `TRUNCATE_EXISTING` làm rỗng file ngay khi mở thành công, kể cả khi phần thân `try` chưa ghi byte nào.
+To prevent data loss, distinguish all four. For instance, `StandardOpenOption.WRITE` **does not clear a file upon opening**, yet a single `write()` at offset 0 can still **overwrite the leading bytes**. Conversely, `TRUNCATE_EXISTING` empties the file as soon as opening succeeds, even if the `try` body has not written a single byte yet.
 
-## 2. Bảng hành vi mở và ghi: những mặc định nguy hiểm
+## 2. Open and Write Behavior Table: Dangerous Defaults
 
-| API / cấu hình | Nếu file đích đã tồn tại | Nếu file chưa tồn tại | Rủi ro |
+| API / configuration | If target file already exists | If file does not exist | Risk |
 | --- | --- | --- | --- |
-| `Files.newOutputStream(path)` | **Cắt ngắn file** khi mở | Tạo file mới | Dễ mất nội dung vì mặc định tương đương `CREATE + TRUNCATE_EXISTING + WRITE` |
-| `Files.newBufferedWriter(path, charset)` | **Cắt ngắn file** khi mở | Tạo file mới | Cũng là mặc định tạo mới hoặc truncate |
-| `Files.write(path, bytes)` / `Files.writeString(path, text)` | **Thay nội dung file** (mặc định truncate) | Tạo file mới | Không dùng trực tiếp với tên có thể tồn tại nếu cần bảo toàn |
-| `new FileOutputStream(file)` | **Cắt ngắn file** | Tạo file | Mặc định không phải append |
-| `new FileOutputStream(file, true)` | Mở để ghi nối | Tạo file nếu thiếu | Có thể thêm dữ liệu vào file không mong muốn |
-| `FileChannel.open(path)` | Mở chỉ đọc | Thất bại nếu thiếu | Không tự cho phép ghi |
-| `FileChannel.open(path, WRITE)` | Cho phép ghi vào file cũ, vị trí mới mở là 0 | Thường thất bại nếu file thiếu | Ghi đè từ đầu khi gọi `write()` |
-| `FileChannel.open(path, WRITE, CREATE)` | Giữ nội dung khi mở; `write()` vẫn có thể ghi đè | Tạo file | Không phải bảo đảm “chỉ tạo nếu thiếu và không bao giờ sửa file cũ” |
-| `FileChannel.open(path, WRITE, CREATE, TRUNCATE_EXISTING)` | **Cắt về 0 byte khi mở** | Tạo file | Chỉ phù hợp khi cố ý thay toàn bộ dữ liệu |
-| `FileChannel.open(path, WRITE, CREATE_NEW)` | **Thất bại, không mở để ghi** | Tạo file mới | Thích hợp cho mục tiêu “không đụng file đã có” |
-| `FileChannel.open(path, WRITE, APPEND)` | Ghi nối cuối | Thất bại nếu thiếu, trừ khi thêm `CREATE` | Không có nghĩa khóa độc quyền giữa nhiều writer |
+| `Files.newOutputStream(path)` | **Truncates file** on open | Creates new file | Easy to lose content because default equals `CREATE + TRUNCATE_EXISTING + WRITE` |
+| `Files.newBufferedWriter(path, charset)` | **Truncates file** on open | Creates new file | Also defaults to create or truncate |
+| `Files.write(path, bytes)` / `Files.writeString(path, text)` | **Replaces file content** (truncates by default) | Creates new file | Do not use directly on names that might exist when preservation is required |
+| `new FileOutputStream(file)` | **Truncates file** | Creates file | Default is not append |
+| `new FileOutputStream(file, true)` | Opens for appending | Creates file if missing | May append data to an unintended file |
+| `FileChannel.open(path)` | Opens read-only | Fails if missing | Does not allow writing itself |
+| `FileChannel.open(path, WRITE)` | Allows writing to existing file, starting position 0 | Usually fails if missing | Overwrites from start when `write()` is called |
+| `FileChannel.open(path, WRITE, CREATE)` | Keeps content on open; `write()` can still overwrite | Creates file | Does not guarantee "create only if missing and never modify existing file" |
+| `FileChannel.open(path, WRITE, CREATE, TRUNCATE_EXISTING)` | **Truncates to 0 bytes on open** | Creates file | Suitable only when intentionally replacing all data |
+| `FileChannel.open(path, WRITE, CREATE_NEW)` | **Fails, does not open for writing** | Creates new file | Appropriate for "never touch an existing file" |
+| `FileChannel.open(path, WRITE, APPEND)` | Appends to end | Fails if missing, unless `CREATE` is added | Does not imply exclusive locking across multiple writers |
 
-Các mô tả mặc định dùng các file provider Java thông thường; thao tác cụ thể vẫn có thể thất bại vì quyền, loại đường dẫn, hệ thống tệp hoặc lỗi I/O. Khi mục tiêu là **không bao giờ sửa file đã có**, hãy đặt policy bằng thao tác tạo độc quyền như `CREATE_NEW`, thay vì trông cậy vào việc mở với `CREATE`.
+Default descriptions apply to standard Java file providers; specific operations can still fail due to permissions, path type, filesystem, or I/O errors. When the goal is **never modifying an existing file**, enforce policy with an exclusive creation operation like `CREATE_NEW`, rather than relying on opening with `CREATE`.
 
-### Vì sao Files.writeString có thể nguy hiểm?
+### Why Can `Files.writeString` Be Dangerous?
 
-Đoạn mã:
+The code:
 
 ```java
 Files.writeString(Path.of("config.txt"), "new");
 ```
 
-nếu `config.txt` đã tồn tại và ghi được, API mặc định **tạo nếu thiếu và truncate nếu đã có**. Một file cấu hình dài có thể bị biến thành chỉ ba byte `new`. Nếu mục tiêu là chỉ tạo file mới, hãy ghi rõ:
+if `config.txt` already exists and is writable, the API defaults to **creating if missing and truncating if present**. A long configuration file can be reduced to just the three bytes `new`. If the goal is only creating a new file, specify explicitly:
 
 ```java
 Files.writeString(
@@ -54,26 +54,26 @@ Files.writeString(
         StandardOpenOption.WRITE);
 ```
 
-Đây là **đoạn minh họa** cần import `Files`, `Path`, `StandardCharsets`, `StandardOpenOption` và xử lý `IOException`. Nếu file đã tồn tại, thao tác thất bại, thường với `FileAlreadyExistsException`, thay vì ghi đè.
+This is an **illustrative snippet** requiring imports for `Files`, `Path`, `StandardCharsets`, `StandardOpenOption`, and `IOException` handling. If the file already exists, the operation fails, typically with `FileAlreadyExistsException`, instead of overwriting.
 
-## 3. CREATE và CREATE_NEW khác nhau ở đâu?
+## 3. How Do `CREATE` and `CREATE_NEW` Differ?
 
-`CREATE` nghĩa là **tạo file khi chưa có**, nhưng nếu file đã tồn tại và channel được phép ghi, chương trình vẫn có thể mở file đó để sửa. Ngược lại, `CREATE_NEW` yêu cầu **tạo một file mới**; nếu đường dẫn đã tồn tại thì thất bại. Kiểm tra tồn tại và tạo mới được thực hiện **nguyên tử đối với nhau** theo hợp đồng API.
+`CREATE` means **create the file if absent**, yet if the file already exists and the channel is opened for writing, the program can still open that file to modify it. Conversely, `CREATE_NEW` requires **creating a new file**; if the path already exists, it fails. The existence check and creation are performed **atomically with respect to each other** per the API contract.
 
 ```java
-// Minh họa: path là Path được kiểm soát, xử lý IOException ở caller.
+// Illustrative: path is a controlled Path; caller handles IOException.
 try (FileChannel channel = FileChannel.open(
         path,
         StandardOpenOption.CREATE_NEW,
         StandardOpenOption.WRITE)) {
-    // Chỉ tới đây nếu tạo file mới thành công.
+    // Only reaches here if creating a new file succeeded.
 }
 ```
 
-Đối với `Files.newOutputStream()`:
+For `Files.newOutputStream()`:
 
 ```java
-// Minh họa: không cấp quyền ghi vào file đã có.
+// Illustrative: do not allow writing to an existing file.
 try (OutputStream out = Files.newOutputStream(
         path,
         StandardOpenOption.CREATE_NEW,
@@ -82,27 +82,27 @@ try (OutputStream out = Files.newOutputStream(
 }
 ```
 
-`payload` phải là `byte[]` do caller chuẩn bị; đây là đoạn code minh họa, chưa phải chương trình độc lập.
+`payload` must be a `byte[]` prepared by the caller; this is an illustrative snippet, not a standalone program.
 
-Một số đặc điểm cần ghi nhớ:
+Key points to remember:
 
-- `CREATE_NEW` từ chối **đường dẫn đã có**, kể cả đường dẫn đang là **symbolic link** dù đích link không còn tồn tại. Đặc điểm này giúp tránh thao tác “theo symlink cũ rồi ghi vào chỗ khác” trong ca tạo mới.
-- `CREATE_NEW` không tự tạo **thư mục cha**. Nếu `parent` thiếu, lệnh vẫn thất bại; chỉ tạo thư mục cha khi đó là đường dẫn được phép.
-- `CREATE_NEW` không xác thực rằng đường dẫn cha không bị thay đổi đồng thời bởi tác nhân khác. Trong thư mục công cộng hoặc có người khác sửa, cần biện pháp ownership và bảo vệ đường dẫn ở cấp hệ thống tệp.
-- Nếu file cần tạo chứa nội dung nhạy cảm, còn phải chọn **quyền truy cập của file mới**, chính sách `FileAttribute`/umask và nơi lưu trữ thích hợp.
-- `CREATE_NEW` giải quyết race **tồn tại so với tạo** tại đường dẫn đích, nhưng không biến một chuỗi nhiều lệnh ghi thành giao dịch nguyên tử hoàn chỉnh.
+- `CREATE_NEW` rejects an **existing path**, including when the path is a **symbolic link** even if the link target no longer exists. This helps avoid "following an old symlink and writing elsewhere" during creation.
+- `CREATE_NEW` does not automatically create **parent directories**. If `parent` is missing, the call still fails; create parent directories only when that path is permitted.
+- `CREATE_NEW` does not verify that the parent path is not concurrently altered by another actor. In public or externally writable directories, filesystem ownership and path protection measures are required.
+- If the new file holds sensitive content, you must also choose appropriate **permissions for the new file**, `FileAttribute`/umask policies, and storage location.
+- `CREATE_NEW` resolves the **existence vs. creation** race at the target path, but does not turn a sequence of multiple write calls into an atomic transaction.
 
-### Files.createFile cũng từ chối tên có sẵn
+### `Files.createFile` Also Rejects Existing Names
 
 ```java
 Path file = Files.createFile(target);
 ```
 
-`Files.createFile()` là thao tác tạo file mới nguyên tử nếu chưa có, có thể nhận `FileAttribute<?>...` khi hệ thống hỗ trợ. Tuy nhiên, tạo trước một file rỗng rồi gọi `Files.writeString(file, text)` **không tự bảo đảm không có writer khác sửa file giữa hai bước**, và `Files.writeString` mặc định vẫn truncate file đang mở. Nếu cần vừa khẳng định quyền tạo mới vừa ghi dữ liệu, thường đơn giản hơn khi **mở trực tiếp với `CREATE_NEW + WRITE` rồi ghi qua chính stream/channel đó**.
+`Files.createFile()` atomically creates an empty new file if absent, accepting `FileAttribute<?>...` when supported by the system. However, pre-creating an empty file and then calling `Files.writeString(file, text)` **does not guarantee another writer will not modify the file between the two steps**, and default `Files.writeString` still truncates the file on open. When you want to enforce exclusive creation and write data, it is usually simpler to **open directly with `CREATE_NEW + WRITE` and write through that same stream/channel**.
 
-## 4. Kiểm tra Files.exists() trước khi ghi không đủ an toàn
+## 4. Checking `Files.exists()` Before Writing Is Not Safe Enough
 
-Một anti-pattern:
+An anti-pattern:
 
 ```java
 if (Files.notExists(target)) {
@@ -110,18 +110,18 @@ if (Files.notExists(target)) {
 }
 ```
 
-Giữa lệnh `notExists()` và `writeString()`, luồng hoặc tiến trình khác có thể tạo file cùng tên. Lệnh ghi phía sau dùng mặc định truncate và có thể **ghi đè file vừa xuất hiện**. Đây là lỗi **TOCTOU** (*time-of-check to time-of-use*).
+Between `notExists()` and `writeString()`, another thread or process can create a file with the same name. The subsequent write uses default truncation and can **overwrite the newly appeared file**. This is a **TOCTOU** (*time-of-check to time-of-use*) bug.
 
 ```text
-Thời điểm | Process A                          | Process B
+Time      | Process A                          | Process B
 --------- | ---------------------------------- | -------------------
-T1        | notExists(target) -> true         |
-T2        |                                    | tạo target, ghi "B"
+T1        | notExists(target) -> true          |
+T2        |                                    | creates target, writes "B"
 T3        | writeString(target, "A")           |
-T4        | target chứa "A" (mất dữ liệu "B")   |
+T4        | target contains "A" (lost "B")     |
 ```
 
-Cách đúng khi nghiệp vụ yêu cầu “không tạo đè” là dùng một thao tác có **điều kiện tồn tại gắn với việc tạo**:
+The right approach when business logic requires "no overwrite" is an operation where **the existence check is bound to creation**:
 
 ```java
 try {
@@ -129,35 +129,35 @@ try {
             StandardOpenOption.CREATE_NEW,
             StandardOpenOption.WRITE);
 } catch (FileAlreadyExistsException exists) {
-    // Không ghi đè: báo trùng tên hoặc chọn tên mới theo quy tắc nghiệp vụ.
+    // Do not overwrite: report name conflict or pick a new name per business rules.
 }
 ```
 
-Đây là đoạn minh họa cần khai báo biến `target` và `content`, import các kiểu và xử lý `IOException` khác. **Không chuyển ngay sang `TRUNCATE_EXISTING` trong nhánh catch chỉ để “cho chạy thành công”**, vì như vậy phá bỏ chính sách không ghi đè.
+This is an illustrative snippet requiring `target` and `content` declarations, type imports, and handling for other `IOException` cases. **Do not immediately switch to `TRUNCATE_EXISTING` inside the catch block just to "make it succeed,"** as that breaks the no-overwrite policy.
 
-`Files.exists()` vẫn hữu ích để hiển thị thông tin cho người dùng hoặc chuẩn bị UI, nhưng **không dùng kết quả kiểm tra cũ làm bảo đảm độc quyền ghi**. `notExists()` trả `false` cũng có thể có nghĩa là không xác định được trạng thái, không nhất thiết file đang tồn tại.
+`Files.exists()` remains useful for displaying UI status or preparing output, but **never use a prior check result as a guarantee of exclusive write**. `notExists()` returning `false` can also mean status could not be determined, not necessarily that the file exists.
 
-## 5. Files.copy(): mặc định từ chối target đã tồn tại
+## 5. `Files.copy()`: Refuses Existing Targets by Default
 
-Khi sao chép bằng Java NIO:
+When copying with Java NIO:
 
 ```java
 Files.copy(source, target);
 ```
 
-Với `Path source` và `Path target`, **nếu file đích đã tồn tại thì thao tác copy thông thường thất bại** (thường `FileAlreadyExistsException`), trừ các trường hợp đặc biệt do API quy định như hai đường dẫn thực sự tham chiếu đến cùng file. Không cần kiểm tra `Files.exists(target)` trước khi gọi để tránh ghi đè.
+With `Path source` and `Path target`, **if the target file already exists, an ordinary copy fails** (typically with `FileAlreadyExistsException`), except for special cases defined by the API such as both paths referring to the exact same file. You do not need to call `Files.exists(target)` beforehand to avoid overwriting.
 
-Nếu bạn cố ý cho phép thay thế:
+If you intentionally allow replacement:
 
 ```java
 Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
 ```
 
-thì đó là một quyết định **phá hủy dữ liệu cũ có chủ đích**, cần phê duyệt và xử lý lỗi. `Files.copy()` **không được bảo đảm atomic**, kể cả khi không dùng `REPLACE_EXISTING`. Nếu xảy ra `IOException` giữa lúc copy, file đích mới hoặc file đích đang bị thay có thể nằm ở trạng thái dở dang. Vì vậy **“không thay file cũ”** và **“file mới luôn hoàn chỉnh”** là hai yêu cầu khác nhau.
+then that is an **intentional data-destructive decision**, requiring authorization and error handling. `Files.copy()` **is not guaranteed to be atomic**, even without `REPLACE_EXISTING`. If an `IOException` occurs mid-copy, the new target file or the target being replaced can remain in an incomplete state. Therefore, **"not touching the old file"** and **"the new file is always complete"** are two separate requirements.
 
-### COPY_ATTRIBUTES và NOFOLLOW_LINKS không phải “chế độ an toàn tuyệt đối”
+### `COPY_ATTRIBUTES` and `NOFOLLOW_LINKS` Are Not "Absolute Safety Modes"
 
-Một lời gọi:
+A call like:
 
 ```java
 Files.copy(source, target,
@@ -165,29 +165,29 @@ Files.copy(source, target,
         LinkOption.NOFOLLOW_LINKS);
 ```
 
-là **đoạn minh họa**. `COPY_ATTRIBUTES` yêu cầu copy một số metadata phù hợp provider và có thể thất bại. `NOFOLLOW_LINKS` điều khiển việc **không đi theo symbolic link ở source** trong thao tác copy; khi source là symbolic link, API có thể sao chép link thay vì nội dung đích liên kết nếu hỗ trợ. Cả hai **không thay thế** chính sách tạo đích an toàn, kiểm soát quyền và bảo vệ khỏi path traversal.
+is an **illustrative snippet**. `COPY_ATTRIBUTES` requests copying certain provider-supported metadata and may fail. `NOFOLLOW_LINKS` instructs the copy operation **not to follow symbolic links on the source**; when the source is a symbolic link, the API may copy the link itself rather than the target's content if supported. Neither option **replaces** safe target creation policies, permission controls, or path traversal protection.
 
-Nếu cần tránh ghi đè, hãy **không thêm `REPLACE_EXISTING`** và kiểm tra/giữ nguyên nội dung đích khi nhận `FileAlreadyExistsException`.
+To prevent overwrites, **omit `REPLACE_EXISTING`** and preserve the target's existing content when `FileAlreadyExistsException` is thrown.
 
-### Files.copy(InputStream, Path) cũng cần thận trọng
+### `Files.copy(InputStream, Path)` Also Requires Caution
 
 ```java
 Files.copy(networkInput, target);
 ```
 
-Đây là mẫu minh họa với `networkInput` kiểu `InputStream`. Overload này không dùng `Path source`, nhưng cũng có tùy chọn `REPLACE_EXISTING` và có thể để lại dữ liệu đã copy một phần nếu lỗi trong quá trình đọc/ghi. Khi input là dữ liệu không tin cậy, cần giới hạn dung lượng/tốc độ và không sử dụng tên file do đầu vào cung cấp trực tiếp để ghi ra ngoài vùng cho phép.
+This is an illustrative snippet with an `InputStream networkInput`. This overload does not take a `Path source`, yet it still supports `REPLACE_EXISTING` and can leave partially copied data if reading or writing fails mid-way. When input comes from an untrusted source, limit size and rate, and never use a filename supplied by the input directly to write outside the allowed region.
 
-## 6. Chương trình Java 17+ hoàn chỉnh: không ghi đè khi copy hoặc tạo
+## 6. Complete Java 17+ Program: Never Overwrite When Copying or Creating
 
-Ví dụ tự tạo thư mục tạm nên không chạm vào file thật của người học. Chương trình:
+This example creates its own temporary directory so it does not touch any real user files. The program:
 
-- Ghi một file nguồn có nội dung `NEW DATA` và một đích đã tồn tại có nội dung `KEEP`.
-- Thử `Files.copy(source, existing)` mà không có `REPLACE_EXISTING`; xác nhận từ chối và đích giữ nguyên.
-- Copy đến một tên mới chưa tồn tại.
-- Tạo một file khác bằng `FileChannel.open(..., CREATE_NEW, WRITE)`; thử tạo lại lần hai và xác nhận từ chối mà nội dung không đổi.
-- Đóng mọi channel trước khi xóa file/thư mục tạm.
+- Writes a source file containing `NEW DATA` and an existing target file containing `KEEP`.
+- Attempts `Files.copy(source, existing)` without `REPLACE_EXISTING`; verifies it is rejected and the target remains intact.
+- Copies to a new, non-existent name.
+- Creates another file via `FileChannel.open(..., CREATE_NEW, WRITE)`; attempts creating it a second time and verifies rejection with unchanged content.
+- Closes all channels before deleting temporary files and directories.
 
-Tạo file **`SafeOpenCopyDemo.java`**:
+Create file **`SafeOpenCopyDemo.java`**:
 
 ```java
 import java.io.IOException;
@@ -270,14 +270,14 @@ public final class SafeOpenCopyDemo {
 }
 ```
 
-Biên dịch và chạy với JDK 17+:
+Compile and run with JDK 17+:
 
 ```bash
 javac SafeOpenCopyDemo.java
 java SafeOpenCopyDemo
 ```
 
-Kết quả khi các thao tác trên thư mục tạm thành công trên filesystem thông thường:
+Output when temporary directory operations succeed on a standard filesystem:
 
 ```text
 copy-existing=refused
@@ -288,71 +288,71 @@ create-new-existing=refused
 created-still=SAFE
 ```
 
-Phân tích:
+Analysis:
 
-1. `Files.writeString(..., CREATE_NEW, WRITE)` tạo hai file đầu tiên mà không có khả năng vô tình truncate một file trùng tên.
-2. `Files.copy(source, existing)` mặc định không thay file đích `existing.txt`; exception được bắt rõ ràng, không nuốt các `IOException` khác.
-3. `Files.copy(source, copied)` thành công vì `copied.txt` chưa tồn tại. Nó vẫn không phải thao tác copy nguyên tử đối với lỗi I/O giữa chừng.
-4. `FileChannel.open(created, CREATE_NEW, WRITE)` thực hiện mở file mới một cách loại trừ, sau đó vòng lặp `ByteBuffer.hasRemaining()` bảo đảm hoàn tất bytes được chấp nhận ghi.
-5. Cố mở `created.txt` lần nữa với `CREATE_NEW` báo `FileAlreadyExistsException`, để nguyên file cũ `SAFE`.
-6. `try-with-resources` đóng channel trước khi cleanup. `finally` cố xóa các file tạm thuộc sở hữu ví dụ.
+1. `Files.writeString(..., CREATE_NEW, WRITE)` creates the first two files with no risk of accidentally truncating a same-named file.
+2. `Files.copy(source, existing)` preserves `existing.txt` by default; the expected exception is caught explicitly without swallowing other `IOException`s.
+3. `Files.copy(source, copied)` succeeds because `copied.txt` does not yet exist. It is still not an atomic copy against mid-way I/O errors.
+4. `FileChannel.open(created, CREATE_NEW, WRITE)` opens the new file exclusively, and the `ByteBuffer.hasRemaining()` loop ensures all accepted bytes are written.
+5. Attempting to open `created.txt` again with `CREATE_NEW` throws `FileAlreadyExistsException`, leaving the old file `SAFE` untouched.
+6. `try-with-resources` closes the channel before cleanup. `finally` attempts to delete the example-owned temporary files.
 
-Ví dụ cho thấy **bảo vệ file đã tồn tại**; nó không chứng minh rằng toàn bộ tiến trình copy/ghi sẽ tự rollback khi mất điện hoặc lỗi I/O. Trong ứng dụng thật, nếu thao tác thất bại sau khi đã tạo file mới, phải có chính sách phát hiện và dọn **chính file mới mà ứng dụng sở hữu**, không xóa bừa đường dẫn có thể đã bị một tác nhân khác thay thế.
+The example demonstrates **protecting existing files**; it does not prove an entire copy/write process will automatically roll back on power loss or I/O failure. In real applications, if an operation fails after creating a new file, you must have a policy to detect and clean up **only the new file owned by the application**, never blindly deleting a path that another actor might have swapped.
 
-## 7. Nếu vẫn cần thay nội dung file cũ thì làm thế nào?
+## 7. What If You Still Need to Replace an Existing File's Content?
 
-Có những nhu cầu hợp lệ như cập nhật cấu hình, thay bản export hoặc ghi phiên bản mới của một file báo cáo. Khi đó **không ghi đè ngoài ý muốn** nghĩa là việc thay thế phải **có chủ đích, được kiểm soát và có phương án phục hồi**, không nhất thiết cấm thay thế trong mọi trường hợp.
+There are legitimate needs such as updating configuration, replacing an export, or writing a new version of a report file. In such cases, **avoiding unintended overwrites** means replacement must be **intentional, controlled, and recoverable**, not forbidden in every scenario.
 
-### Tránh truncate file đích ngay khi bắt đầu
+### Avoid Truncating the Target File Upfront
 
-Cách rủi ro:
+Risky approach:
 
 ```java
 Files.writeString(target, newlyGeneratedContent);
 ```
 
-Nếu file cũ quan trọng, `Files.writeString()` mặc định truncate target và tiến trình có thể chết trước khi ghi xong. Thay vì ghi thẳng vào target, cân nhắc chiến lược:
+If the old file is critical, `Files.writeString()` truncates the target by default and the process might die before finishing writing. Instead of writing directly to `target`, consider this strategy:
 
-1. Tạo **file tạm mới** trong cùng filesystem và thư mục thích hợp; tên file tạm phải được cấp phát an toàn, ví dụ `Files.createTempFile(parent, prefix, suffix)`.
-2. Ghi dữ liệu mới hết vào file tạm, kiểm tra tính hợp lệ, đóng stream/channel, tùy yêu cầu có thể `FileChannel.force(true)` để yêu cầu đồng bộ nội dung/metadata.
-3. Chỉ khi nội dung đã sẵn sàng, thực hiện một thao tác `Files.move()` từ file tạm sang file đích **theo chính sách thay thế đã được cho phép**.
-4. Nếu cần tính nguyên tử, thử `StandardCopyOption.ATOMIC_MOVE` trên filesystem hỗ trợ, xử lý `AtomicMoveNotSupportedException` rõ ràng.
-5. Ghi log kết quả, kiểm thử crash/recovery và cleanup file tạm còn sót lại.
+1. Create a **new temporary file** on the same filesystem and in an appropriate directory; its name must be safely allocated, e.g., `Files.createTempFile(parent, prefix, suffix)`.
+2. Write all new data to the temporary file, validate it, close the stream/channel, and optionally call `FileChannel.force(true)` to request syncing content and metadata.
+3. Only once the content is ready, perform a `Files.move()` from the temporary file to the target **using an explicitly permitted replacement policy**.
+4. If atomicity is needed, try `StandardCopyOption.ATOMIC_MOVE` on a supporting filesystem, handling `AtomicMoveNotSupportedException` explicitly.
+5. Log the outcome, test crash/recovery scenarios, and clean up leftover temporary files.
 
-**Quan trọng:** `ATOMIC_MOVE` không có nghĩa là “tuyệt đối không ghi đè”. Khi `ATOMIC_MOVE` được chọn, **hành vi nếu target đã tồn tại là implementation-specific** và các option khác có thể bị bỏ qua theo hợp đồng `Files.move()`. Do đó không dùng `Files.move(temp, target, ATOMIC_MOVE)` làm bằng chứng chung rằng target cũ chắc chắn không thể bị thay. Nếu yêu cầu **tuyệt đối không chạm file đích đã có**, lựa chọn tạo độc quyền `CREATE_NEW` hoặc cơ chế publish có hợp đồng no-replace được xác minh trên nền tảng sẽ phù hợp hơn.
+**Important:** `ATOMIC_MOVE` does not mean "strictly no overwrite." When `ATOMIC_MOVE` is specified, **behavior if the target already exists is implementation-specific** and other options may be ignored per the `Files.move()` contract. Therefore, never use `Files.move(temp, target, ATOMIC_MOVE)` as universal proof that an existing target cannot be replaced. If the requirement is **strictly never touching an existing target**, exclusive creation `CREATE_NEW` or a platform-verified no-replace publishing mechanism is more appropriate.
 
-### Ví dụ thay thế có chủ đích và phải kiểm soát
+### Controlled Intentional Replacement Example
 
 ```java
-// Phác thảo: ứng dụng đã kiểm tra quyền thay thế target,
-// temporary chứa nội dung hoàn chỉnh, cùng FileStore phù hợp.
+// Sketch: application already verified permission to replace target,
+// temporary contains complete content, on an appropriate same FileStore.
 try {
     Files.move(temporary, target,
             StandardCopyOption.ATOMIC_MOVE,
             StandardCopyOption.REPLACE_EXISTING);
 } catch (AtomicMoveNotSupportedException unsupported) {
-    // Chọn chính sách riêng: thất bại an toàn hoặc fallback đã chấp thuận.
+    // Choose own policy: fail safely or use an approved fallback.
 }
 ```
 
-Đây là phác thảo **không độc lập**; đòi hỏi biến `temporary`/`target`, xử lý `IOException` và chính sách fallback. Với `ATOMIC_MOVE`, việc thay thế target có tồn tại hay không còn tùy implementation; **không suy ra chỉ việc thêm `REPLACE_EXISTING` vào một atomic move sẽ cho ngữ nghĩa portable đầy đủ**. Trên hệ thống không hỗ trợ atomic move, fallback không nguyên tử có thể làm tăng nguy cơ ứng dụng khác quan sát trạng thái trung gian. Nếu không chấp nhận điều đó, phải **dừng và báo lỗi**, không tự fallback một cách âm thầm.
+This is a **non-standalone** sketch; it requires `temporary`/`target` variables, `IOException` handling, and a fallback policy. With `ATOMIC_MOVE`, whether an existing target is replaced depends on the implementation; **do not assume simply adding `REPLACE_EXISTING` to an atomic move yields full portable semantics**. On systems without atomic move support, a non-atomic fallback can increase the risk of another application observing an intermediate state. If that is unacceptable, **stop and report an error** instead of silently falling back.
 
-`FileChannel.force(true)` yêu cầu đồng bộ nội dung/file metadata theo hợp đồng API; nó không bảo đảm toàn bộ thao tác rename hoặc cập nhật thư mục chứa tên file đã bền vững qua mọi sự cố mất điện trên mọi OS/filesystem. Yêu cầu durability nghiêm ngặt cần chiến lược cấp hệ thống và kiểm thử recovery.
+`FileChannel.force(true)` requests syncing file content and metadata per API contract; it does not guarantee that a rename or directory entry update containing the filename is durable across all power failures on every OS/filesystem. Strict durability requires system-level strategies and recovery testing.
 
-## 8. Bảo vệ khỏi path traversal, symbolic link và nhầm thư mục
+## 8. Protecting Against Path Traversal, Symlinks, and Wrong Directories
 
-`CREATE_NEW` bảo vệ trường hợp có file/symlink ngay tại **đường dẫn đích**, nhưng không tự bảo vệ mọi thành phần của đường dẫn hay mọi loại race. Ví dụ ứng dụng định tạo:
+`CREATE_NEW` protects against an existing file or symlink at the **final target path**, but does not automatically protect all path components or all race conditions. Suppose the application intends to create:
 
 ```text
 /app/export/report.txt
 ```
 
-Nếu `/app/export` có thể bị thay bằng symbolic link trỏ tới thư mục khác, thao tác tạo tệp vẫn có thể ghi ngoài vùng dự kiến. Cần lựa chọn thư mục gốc mà ứng dụng sở hữu, xác thực và giới hạn đầu vào tên file, cũng như bảo vệ các directory entries khỏi tác nhân không tin cậy.
+If `/app/export` can be replaced with a symbolic link pointing to another directory, file creation can still write outside the intended area. Choose a root directory owned by the application, validate and constrain filename inputs, and protect directory entries from untrusted actors.
 
-Một bước chuẩn hóa đường dẫn cơ bản:
+A basic path normalization step:
 
 ```java
-// Minh họa: root là thư mục tin cậy, userName lấy từ đầu vào.
+// Illustrative: root is a trusted directory, userName comes from input.
 Path base = root.toAbsolutePath().normalize();
 Path candidate = base.resolve(userName).normalize();
 if (!candidate.startsWith(base) || candidate.equals(base)) {
@@ -360,21 +360,21 @@ if (!candidate.startsWith(base) || candidate.equals(base)) {
 }
 ```
 
-Điều này chặn một số trường hợp lexical `../` trỏ ra ngoài nhưng **không chặn hoàn toàn symlink hoặc race trên các thành phần thư mục**. Đối với môi trường có đối thủ chủ động chỉnh sửa đường dẫn, cần cách truy cập dựa trên thư mục được mở an toàn, quyền filesystem, hoặc `SecureDirectoryStream` nếu provider hỗ trợ. Không tự tuyên bố `normalize() + startsWith()` là giải pháp chống path traversal toàn diện.
+This blocks some lexical `../` escapes, yet **does not fully block symlinks or races on directory components**. In environments where an adversary actively modifies paths, use access patterns anchored on securely opened directories, filesystem permissions, or `SecureDirectoryStream` when supported by the provider. Never claim `normalize() + startsWith()` alone is a complete path traversal solution.
 
-Đối với `Files.copy(source, target)`, cũng cần cân nhắc `Files.isSameFile(source, target)` khi thiết kế quy trình: hai đường dẫn có thể tham chiếu cùng một file qua hard link/symlink. Với cùng đối tượng file, một thao tác copy có thể không làm gì theo hợp đồng API; điều này không chứng minh dữ liệu đã được nhân bản thành file độc lập.
+For `Files.copy(source, target)`, also consider `Files.isSameFile(source, target)` when designing workflows: two paths may refer to the same file via hard links or symlinks. On the same file object, a copy operation may do nothing per the API contract; this does not prove data was duplicated into an independent file.
 
-### Quyền sở hữu và tập tin tạm
+### Ownership and Temporary Files
 
-- Chỉ cleanup file mà tiến trình **thực sự tạo và vẫn sở hữu**; không gọi `Files.deleteIfExists(target)` bừa bãi trong `catch` sau thất bại `CREATE_NEW`.
-- Đừng tạo file tạm theo tên dễ đoán rồi mở bằng cách có thể truncate một file có sẵn.
-- Tránh thư mục tạm chia sẻ không tin cậy cho các thao tác có đường dẫn do người dùng định nghĩa; `Files.createTempFile()` tránh va chạm tên nhưng không tự biến toàn bộ workflow thành không có race.
-- Với file nhạy cảm, cần đặt permission cho file và thư mục, nhất là khi dữ liệu được ghi trước khi đổi tên vào nơi công khai.
-- Khi dùng `Files.copy(..., REPLACE_EXISTING)`, nhớ việc thay file có thể làm thay metadata hoặc quyền file đích. Kiểm tra nhu cầu bảo toàn attributes/ownership theo provider.
+- Only clean up files that the process **actually created and still owns**; never blindly call `Files.deleteIfExists(target)` in a `catch` block after a `CREATE_NEW` failure.
+- Never create temporary files with predictable names and open them in a way that could truncate an existing file.
+- Avoid untrusted shared temp directories for operations involving user-defined paths; `Files.createTempFile()` avoids name collisions, but does not by itself make an entire workflow race-free.
+- For sensitive files, set permissions on both the file and directory, especially when data is written before renaming into a public location.
+- When using `Files.copy(..., REPLACE_EXISTING)`, remember replacing a file can change the target's metadata or permissions. Check whether attributes/ownership preservation is needed per provider.
 
-## 9. Khi nào cần APPEND thay vì CREATE_NEW?
+## 9. When Should You Use `APPEND` Instead of `CREATE_NEW`?
 
-Có lúc mục tiêu không phải tạo file mới hay thay toàn bộ file cũ mà là **bổ sung một bản ghi vào log hiện có**:
+Sometimes the goal is neither creating a brand-new file nor replacing an entire old file, but **appending a record to an existing log**:
 
 ```java
 try (FileChannel channel = FileChannel.open(
@@ -389,57 +389,57 @@ try (FileChannel channel = FileChannel.open(
 }
 ```
 
-Đây là đoạn minh họa với `logPath` kiểu `Path`, import `FileChannel`, `ByteBuffer`, `StandardOpenOption`, `StandardCharsets` và xử lý `IOException`. `APPEND` giúp mỗi lần ghi theo ngữ nghĩa cuối file, tránh tình huống mở `WRITE + CREATE` rồi ghi từ byte 0. Nhưng `APPEND` không phải khóa phân tán, không bảo đảm atomicity khi nhiều tiến trình append trên mọi filesystem, và không khôi phục dữ liệu khi lỗi.
+This is an illustrative snippet with `Path logPath`, importing `FileChannel`, `ByteBuffer`, `StandardOpenOption`, `StandardCharsets`, and handling `IOException`. `APPEND` routes each write to end-of-file semantics, avoiding opening with `WRITE + CREATE` and writing from byte 0. However, `APPEND` is not a distributed lock, does not guarantee atomicity across concurrent appending processes on every filesystem, and does not recover data on failure.
 
-Nếu log phải có từng record bất khả phân, hãy quy định framing, đồng bộ giữa writer, kiểm tra kết quả và chiến lược durability phù hợp. Không dùng `APPEND` cùng `TRUNCATE_EXISTING` trong `FileChannel.open()`; tổ hợp này không hợp lệ.
+If logs require indivisible records, define framing, synchronize writers, check write results, and apply an appropriate durability strategy. Never combine `APPEND` with `TRUNCATE_EXISTING` in `FileChannel.open()`; that combination is invalid.
 
-## 10. Xử lý exception đúng để không làm hỏng dữ liệu
+## 10. Proper Exception Handling to Prevent Data Corruption
 
-| Tình huống | Ngoại lệ thường gặp | Xử lý an toàn |
+| Scenario | Common exception | Safe handling |
 | --- | --- | --- |
-| `CREATE_NEW` gặp tên đã có | `FileAlreadyExistsException` | Giữ nguyên file, trả lỗi trùng tên hoặc sinh tên mới theo chính sách |
-| `Files.copy()` gặp đích đã có | `FileAlreadyExistsException` | Không tự retry bằng `REPLACE_EXISTING` |
-| Không tồn tại thư mục cha | `NoSuchFileException` hoặc `IOException` | Kiểm tra root được phép, chỉ tạo parent hợp lệ |
-| Không có quyền | `AccessDeniedException` hoặc `IOException` | Báo lỗi quyền, không làm fallback sang đường dẫn ngẫu nhiên |
-| Hết dung lượng hoặc lỗi giữa khi ghi/copy | `IOException` | Đánh dấu output chưa hoàn chỉnh, dọn tài nguyên owned, không tuyên bố thành công |
-| Move nguyên tử không được hỗ trợ | `AtomicMoveNotSupportedException` | Fail-safe hoặc fallback được cho phép rõ ràng |
-| Source/target bị người khác thay đổi giữa các bước | Thay đổi kết quả hoặc `IOException` tùy provider | Thiết kế ownership/locking và không dùng pre-check như cam kết |
-| Phần đích là thư mục/link bất thường | Ngoại lệ phụ thuộc OS/provider | Xác thực loại file/đường dẫn và quyền, không ghi đè bất chấp |
+| `CREATE_NEW` hits an existing name | `FileAlreadyExistsException` | Keep existing file intact; return conflict error or generate a new name per policy |
+| `Files.copy()` hits an existing target | `FileAlreadyExistsException` | Do not automatically retry with `REPLACE_EXISTING` |
+| Missing parent directory | `NoSuchFileException` or `IOException` | Verify allowed root; create parent only if valid |
+| Insufficient permissions | `AccessDeniedException` or `IOException` | Report permission error; do not fall back to an arbitrary path |
+| Out of space or mid-write/copy failure | `IOException` | Mark output incomplete, clean up owned resources, never report success |
+| Atomic move unsupported | `AtomicMoveNotSupportedException` | Fail safely or use an explicitly approved fallback |
+| Source/target altered externally mid-way | Altered result or `IOException` per provider | Design ownership/locking and never treat pre-checks as guarantees |
+| Target is an unexpected directory/link | OS/provider-dependent exception | Validate file/path type and permissions; never force overwrite |
 
-Phân biệt lỗi **“file đã tồn tại”** với lỗi I/O khác. Một đoạn `catch (Exception ignored) { ... }` quá rộng có thể che mất lỗi copy dở và khiến ứng dụng ghi metadata “thành công” trong khi dữ liệu thực không đầy đủ.
+Distinguish **"file already exists"** from other I/O errors. An overly broad `catch (Exception ignored) { ... }` can hide a partial copy failure and cause the application to record "success" metadata while actual data is incomplete.
 
-Nếu đã tạo một file mới nhưng ghi bị lỗi, ứng dụng có thể cần loại bỏ **file mới dở dang**. Nhưng cleanup này không được phép xóa file đã tồn tại từ trước hoặc file thuộc người khác chỉ vì trùng tên; mô hình ownership, thư mục riêng hoặc token theo dõi tài nguyên là điều quan trọng.
+If a new file was already created and writing failed, the application may need to remove the **incomplete new file**. However, this cleanup must never delete a pre-existing file or someone else's file just because of a name match; ownership models, private directories, or resource tracking tokens are vital.
 
-## 11. Checklist thiết kế thao tác không ghi đè
+## 11. Non-Overwrite Design Checklist
 
-Trước khi ghi hoặc copy, kiểm tra:
+Before writing or copying, verify:
 
-1. **Chính sách:** Tác vụ này chỉ tạo file mới, nối vào file cũ, sửa một phần, hay thay toàn bộ? Không dùng một API cho mọi trường hợp.
-2. **Tên đích:** Path được tạo từ root tin cậy? Có chặn đường dẫn ra ngoài hoặc symlink đáng ngờ? Thư mục cha có do ứng dụng sở hữu?
-3. **Mở file:** Đã chọn `CREATE_NEW` khi cần tuyệt đối từ chối tên tồn tại? Có vô tình dùng API mặc định truncate?
-4. **Copy:** Có chủ động thêm `REPLACE_EXISTING` không? Nếu có, ai đã cho phép mất nội dung cũ?
-5. **TOCTOU:** Có dùng `Files.exists()` rồi dựa vào kết quả cũ để mở bằng API nguy hiểm không?
-6. **I/O lỗi giữa chừng:** Có ghi vào file tạm, kiểm soát file dở, cleanup đúng đối tượng và thông báo lỗi rõ ràng không?
-7. **Atomicity & durability:** Ứng dụng cần tệp đích luôn hoàn chỉnh, cần cấm overwrite tuyệt đối, hay cần giữ dữ liệu qua mất điện? Các yêu cầu này khác nhau.
-8. **Đồng thời:** Có nhiều writer hay các tiến trình khác cùng truy cập? Có cần sở hữu độc quyền, locking hoặc version check không?
-9. **Quyền và metadata:** File mới có permission phù hợp, file bị thay có cần giữ attributes/owner?
-10. **Kiểm thử:** Đã thử file đích có sẵn, symlink, thư mục cha thiếu, quyền bị từ chối, ENOSPC, crash giữa copy, thao tác hai tiến trình đồng thời và hành vi nền tảng triển khai chưa?
+1. **Policy:** Should this task only create a new file, append to an old file, modify part of it, or replace it completely? Never use one API for every case.
+2. **Target name:** Is the path built from a trusted root? Are escaping paths and suspicious symlinks blocked? Does the application own the parent directory?
+3. **Opening files:** Did you choose `CREATE_NEW` when existing names must strictly be rejected? Did you accidentally use an API that truncates by default?
+4. **Copying:** Did you deliberately add `REPLACE_EXISTING`? If so, who authorized discarding old content?
+5. **TOCTOU:** Are you calling `Files.exists()` and relying on that stale result to open with a dangerous API?
+6. **Mid-operation I/O errors:** Do you write to a temporary file, track partial files, clean up only owned objects, and surface errors clearly?
+7. **Atomicity & durability:** Does the application need the target file always complete, strict no-overwrite, or survival across power loss? These are distinct requirements.
+8. **Concurrency:** Do multiple writers or other processes access it concurrently? Are exclusive ownership, locking, or version checks needed?
+9. **Permissions and metadata:** Does the new file have proper permissions, and must a replaced file preserve attributes/owner?
+10. **Testing:** Have you tested existing targets, symlinks, missing parent directories, permission denied, `ENOSPC`, mid-copy crashes, concurrent two-process operations, and target deployment platform behavior?
 
-## 12. Những lỗi phổ biến cần tránh
+## 12. Common Mistakes to Avoid
 
-| Lỗi | Hậu quả | Cách sửa |
+| Mistake | Consequence | Fix |
 | --- | --- | --- |
-| Dùng `Files.writeString(path, text)` với tên file do người dùng cung cấp | Có thể truncate file cũ | `CREATE_NEW + WRITE` nếu chỉ tạo mới |
-| Dùng `new FileOutputStream(file)` và nghĩ nó nối cuối | Làm rỗng nội dung cũ | Dùng append rõ ràng nếu đúng nghiệp vụ |
-| Dùng `WRITE + CREATE` và nghĩ không bao giờ sửa file đã có | Ghi đè từ offset 0 | Dùng `CREATE_NEW` hoặc ghi offset có chủ đích |
-| Kiểm tra `Files.notExists()` trước rồi mới ghi mặc định | Race TOCTOU khiến đè file do tiến trình khác tạo | Dùng một thao tác tạo độc quyền |
-| Thêm `REPLACE_EXISTING` khi muốn "copy cho chắc" | Xóa/đổi file đích đã có | Không thêm trừ khi thay thế là nghiệp vụ đã được duyệt |
-| Nghĩ `Files.copy()` là atomic | File mới hoặc file thay thế có thể dở khi lỗi | Chiến lược staging + kiểm tra + publish |
-| Tin `ATOMIC_MOVE` bảo đảm no-overwrite portable | Target cũ có thể bị thay tùy implementation | Đừng đồng nhất atomic rename với create-if-absent |
-| Truyền path từ ZIP/user mà không kiểm tra | Viết ngoài vùng đích dự kiến | Root tin cậy, kiểm tra đường dẫn và symlink/race |
-| Xóa `target` ngay trong catch khi `CREATE_NEW` thất bại | Xóa file có sẵn của người khác | Chỉ cleanup những file đã tạo và sở hữu |
-| Coi `FileChannel.write()` một lần là đã ghi hết | File mới có thể thiếu byte | Kiểm tra `ByteBuffer.hasRemaining()` |
-| Ghi vào cùng file qua hai tên hard link khác nhau | Thay đổi dữ liệu ngoài dự định dù tên khác nhau | Xác minh file identity và quyền |
-| Không xử lý `IOException` sau khi tạo file mới | Để lại file hỏng và báo thành công | Cleanup owned partial output, phát lỗi rõ ràng |
+| Using `Files.writeString(path, text)` with a user-supplied filename | Can truncate an old file | `CREATE_NEW + WRITE` if creating only |
+| Using `new FileOutputStream(file)` thinking it appends | Empties existing content | Use explicit append if business logic intends appending |
+| Using `WRITE + CREATE` thinking it never modifies existing files | Overwrites from offset 0 | Use `CREATE_NEW` or intentional offset writes |
+| Checking `Files.notExists()` first then writing with defaults | TOCTOU race overwrites a file created by another process | Use an exclusive creation primitive |
+| Adding `REPLACE_EXISTING` to "copy reliably" | Deletes/replaces existing target file | Omit unless replacement is an approved business requirement |
+| Assuming `Files.copy()` is atomic | New or replaced file can be incomplete on error | Staging + validation + publish strategy |
+| Believing `ATOMIC_MOVE` guarantees portable no-overwrite | Old target may be replaced depending on implementation | Never equate atomic rename with create-if-absent |
+| Passing paths from ZIP/users without checking | Writes outside intended target area | Trusted root, path validation, and symlink/race checks |
+| Deleting `target` in `catch` when `CREATE_NEW` fails | Deletes another user's existing file | Clean up only files created and owned by this operation |
+| Treating a single `FileChannel.write()` as writing everything | New file can miss bytes | Loop on `ByteBuffer.hasRemaining()` |
+| Writing to the same file via two different hard links | Unintended data changes despite different names | Verify file identity and permissions |
+| Ignoring `IOException` after creating a new file | Leaves corrupt file behind and reports success | Clean up owned partial output; raise error clearly |
 
-**Ghi nhớ:** “Không ghi đè” phải được xác định bằng **hợp đồng của chính thao tác mở/copy**, không bằng một lần kiểm tra tồn tại trước đó. Dùng `CREATE_NEW` để tạo độc quyền và từ chối file đã có; để `Files.copy(source, target)` không có `REPLACE_EXISTING` khi cần giữ nguyên target; tránh mặc định truncate của `Files.writeString()`, `newOutputStream()` và `FileOutputStream`. Khi buộc phải thay file cũ, làm việc với tệp tạm, phương án publish và recovery rõ ràng; đừng nhầm “không ghi đè”, “thao tác nguyên tử” và “ghi bền” là một tính chất.
+**Remember:** "Do not overwrite" must be enforced by **the contract of the open/copy operation itself**, not by a prior existence check. Use `CREATE_NEW` for exclusive creation and to reject existing files; keep `Files.copy(source, target)` without `REPLACE_EXISTING` when the target must remain intact; avoid the default truncation of `Files.writeString()`, `newOutputStream()`, and `FileOutputStream`. When an old file must be replaced, use temporary files and explicit publish and recovery workflows; never conflate "no overwrite," "atomic operation," and "durable write" as the same property.

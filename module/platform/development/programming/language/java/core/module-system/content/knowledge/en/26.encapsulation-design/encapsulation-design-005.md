@@ -1,40 +1,40 @@
-# Qualified opens cho reflection có giới hạn
+# Qualified Opens for Restricted Reflection
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể:
+After this lesson, you will be able to:
 
-- Giải thích qualified opens trong Java Platform Module System (JPMS).
-- Khai báo một package chỉ mở cho đúng module cần reflection.
-- Phân biệt `opens`, `exports`, `open module` và command-line `--add-opens`.
-- Xác định đúng module thực hiện reflection trong framework hoặc thư viện.
-- Kiểm tra quyền mở ở runtime và chẩn đoán lỗi `InaccessibleObjectException`.
-- Giới hạn rủi ro bằng package cụ thể, target cụ thể và kiểm thử trên module path.
+- Explain qualified opens in the Java Platform Module System (JPMS).
+- Declare a package open only to the exact module that needs reflection.
+- Distinguish `opens`, `exports`, `open module`, and command-line `--add-opens`.
+- Identify the exact module performing reflection inside a framework or library.
+- Check open permissions at runtime and diagnose `InaccessibleObjectException`.
+- Limit risk using specific packages, specific targets, and testing on the module path.
 
-## 1. Vì sao cần qualified opens?
+## 1. Why Are Qualified Opens Needed?
 
-JPMS đóng gói package bên trong named module. Một module không tự động cho phép module khác truy cập mọi thành phần nội bộ. Đây là cơ chế strong encapsulation: module công khai API theo hợp đồng và giữ các chi tiết triển khai ở bên trong.
+JPMS encapsulates packages inside a named module. A module does not automatically allow other modules to access all of its internal members. This is strong encapsulation: a module exposes an API by contract and keeps implementation details internal.
 
-Một số framework cần reflection sâu để thực hiện công việc của chúng. Ví dụ:
+Some frameworks need deep reflection to do their work. For example:
 
-- ORM cần đọc hoặc gán private field của entity.
-- Dependency injection framework cần truy cập constructor hoặc field được đánh dấu annotation.
-- Serializer cần đọc field để chuyển object thành JSON/XML.
-- Framework tạo proxy hoặc khôi phục object từ dữ liệu.
+- An ORM needs to read or assign private fields of an entity.
+- A dependency injection framework needs to access annotated constructors or fields.
+- A serializer needs to read fields to convert objects into JSON/XML.
+- A framework creates proxies or reconstructs objects from data.
 
-Nếu package chứa các member đó không được mở cho module thực hiện reflection, lời gọi `setAccessible(true)` có thể thất bại với `InaccessibleObjectException`.
+If the package containing those members is not opened to the module performing reflection, calling `setAccessible(true)` can fail with `InaccessibleObjectException`.
 
-Không phải toàn bộ module đều cần mở. Thông thường, chỉ một vài package chứa entity hoặc metadata cần được framework truy cập. **Qualified opens** cho phép mở đúng package cho một hoặc một nhóm module đích đã xác định.
+Not the entire module needs to be opened. Typically, only a few packages containing entities or metadata need to be accessed by a framework. **Qualified opens** allow opening only the specific package to one or a defined group of target modules.
 
-## 2. Cú pháp qualified opens trong module-info.java
+## 2. Syntax of Qualified Opens in module-info.java
 
-Cú pháp:
+Syntax:
 
 ~~~java
 opens <package-name> to <target-module>[, <target-module>...];
 ~~~
 
-Ví dụ một module domain có API công khai và package persistence dành cho ORM:
+Example of a domain module having a public API and a persistence package for an ORM:
 
 ~~~java
 module com.acme.domain {
@@ -44,14 +44,14 @@ module com.acme.domain {
 }
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-- `com.acme.domain` là module sở hữu package.
-- `com.acme.domain.persistence` là package được mở.
-- `com.acme.orm` là module được phép thực hiện deep reflection vào package đó.
-- Các package khác của module vẫn được đóng gói theo quy tắc bình thường, trừ khi có directive khác.
+- `com.acme.domain` is the module owning the package.
+- `com.acme.domain.persistence` is the opened package.
+- `com.acme.orm` is the module permitted to perform deep reflection into that package.
+- Other packages of the module remain encapsulated under normal rules, unless another directive applies.
 
-Nếu có hai framework thực sự cần truy cập cùng package, có thể khai báo cả hai target:
+If two frameworks genuinely need access to the same package, both targets can be declared:
 
 ~~~java
 module com.acme.domain {
@@ -60,17 +60,17 @@ module com.acme.domain {
 }
 ~~~
 
-Tên target phải là tên module thực tế mà framework chạy trong đó. Đừng đoán tên module từ tên artifact hoặc tên package Java.
+Target names must be the actual module names in which the frameworks run. Do not guess a module name from the artifact name or Java package name.
 
-### 2.1. Package được mở là package nào?
+### 2.1. Which Package Is Opened?
 
-Directive `opens` áp dụng cho một package cụ thể. Nếu entity nằm trong:
+The `opens` directive applies to a specific package. If entities reside in:
 
 ~~~text
 com.acme.domain.persistence
 ~~~
 
-thì mở package đó không tự động mở các package khác như:
+then opening that package does not automatically open other packages such as:
 
 ~~~text
 com.acme.domain.internal
@@ -78,13 +78,13 @@ com.acme.domain.security
 com.acme.domain.admin
 ~~~
 
-Nếu một framework cần reflection vào nhiều package, hãy liệt kê từng package có nhu cầu thực tế. Cách này giúp descriptor thể hiện rõ ranh giới được cho phép.
+If a framework needs reflection into multiple packages, list each package that actually needs it. This keeps the descriptor explicit about the permitted boundaries.
 
-## 3. Qualified opens cho phép điều gì?
+## 3. What Do Qualified Opens Allow?
 
-Qualified opens cho phép module đích thực hiện reflective access sâu vào package được mở, theo các quy tắc của Java Reflection API.
+Qualified opens allow the target module to perform deep reflective access into the opened package, according to the rules of the Java Reflection API.
 
-Ví dụ, entity có private field:
+For example, an entity has private fields:
 
 ~~~java
 package com.acme.domain.persistence;
@@ -99,7 +99,7 @@ public class CustomerEntity {
 }
 ~~~
 
-Một ORM có thể cần tìm field và cho phép truy cập:
+An ORM may need to find the field and enable access:
 
 ~~~java
 Field emailField =
@@ -112,25 +112,25 @@ if (!emailField.trySetAccessible()) {
 }
 ~~~
 
-Nếu `com.acme.domain.persistence` được mở cho đúng module chứa đoạn code ORM này, `trySetAccessible()` có thể bật quyền truy cập reflection sâu khi các điều kiện khác được đáp ứng.
+If `com.acme.domain.persistence` is opened to the exact module containing this ORM code, `trySetAccessible()` can enable deep reflective access when other conditions are satisfied.
 
-Nếu package không được mở cho module gọi, `trySetAccessible()` có thể trả về `false`. Nếu dùng `setAccessible(true)`, lời gọi có thể ném `InaccessibleObjectException`.
+If the package is not opened to the calling module, `trySetAccessible()` can return `false`. If `setAccessible(true)` is used, the call can throw `InaccessibleObjectException`.
 
-Qualified opens không có nghĩa là framework được quyền sửa mọi field trong mọi tình huống. Reflection vẫn chịu các giới hạn của Java, chẳng hạn một số final field của record, hidden class hoặc static final field không thể được biến thành writable chỉ bằng cách mở package.
+Qualified opens do not mean the framework has permission to modify every field in every situation. Reflection is still subject to Java's restrictions; for instance, certain final fields of records, hidden classes, or static final fields cannot be made writable merely by opening a package.
 
-## 4. Phân biệt opens và exports
+## 4. Distinguishing opens and exports
 
-`opens` và `exports` phục vụ hai hợp đồng khác nhau.
+`opens` and `exports` serve two different contracts.
 
-| Tiêu chí | `exports` | `opens` |
+| Criterion | `exports` | `opens` |
 |---|---|---|
-| Mục đích | Công khai API của package | Cho phép deep reflection |
-| Truy cập source code thông thường | Cho phép module đọc API public nếu có readability | Không tạo quyền import/truy cập API thông thường |
-| Reflection vào private member | Không tự cho phép | Cho phép module đích thực hiện deep reflection |
-| Phạm vi | Public type/member theo quy tắc Java | Package được mở cho reflection |
-| Thời điểm chính | Compile time và runtime | Runtime |
+| Purpose | Exposes a package's API | Allows deep reflection |
+| Normal source code access | Allows modules to read public API if they have readability | Grants no import/normal API access permission |
+| Reflection on private members | Not automatically permitted | Allows target modules to perform deep reflection |
+| Scope | Public types/members under Java rules | Package opened for reflection |
+| Primary phase | Compile time and runtime | Runtime |
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.domain {
@@ -139,13 +139,13 @@ module com.acme.domain {
 }
 ~~~
 
-Module consumer có thể import public API trong `com.acme.domain.api` nếu có quan hệ readability phù hợp. ORM có thể reflection sâu vào `com.acme.domain.persistence`. Hai package có hai mục đích riêng.
+Consumer modules can import public APIs in `com.acme.domain.api` if they have an appropriate readability relationship. The ORM can perform deep reflection into `com.acme.domain.persistence`. The two packages serve two separate purposes.
 
-Một qualified opens không làm package trở thành public API. Nếu code khác cần import class trong package đó, hãy thiết kế API hoặc export phù hợp thay vì dùng opens để giải quyết lỗi compile.
+A qualified opens does not turn a package into a public API. If other code needs to import classes in that package, design an appropriate API or export instead of using opens to work around compile errors.
 
-## 5. Phân biệt qualified opens, unqualified opens và open module
+## 5. Distinguishing Qualified Opens, Unqualified Opens, and Open Modules
 
-### 5.1. Unqualified opens
+### 5.1. Unqualified Opens
 
 ~~~java
 module com.acme.domain {
@@ -153,11 +153,11 @@ module com.acme.domain {
 }
 ~~~
 
-Directive này mở package cho mọi module ở runtime. Nó rộng hơn qualified opens vì không giới hạn target module.
+This directive opens the package to every module at runtime. It is broader than qualified opens because it does not restrict the target module.
 
-Chỉ dùng khi thiết kế thực sự yêu cầu mọi module có thể reflection sâu vào package đó. Với framework cụ thể, hãy ưu tiên qualified opens.
+Use it only when the design truly requires any module to be able to perform deep reflection into that package. For specific frameworks, prefer qualified opens.
 
-### 5.2. Open module
+### 5.2. Open Module
 
 ~~~java
 open module com.acme.domain {
@@ -166,30 +166,30 @@ open module com.acme.domain {
 }
 ~~~
 
-Khai báo `open module` mở tất cả package của module cho deep reflection ở runtime. Đây là phạm vi rất rộng.
+Declaring `open module` opens all packages of the module for deep reflection at runtime. This is a very broad scope.
 
-Một open module không được khai báo thêm các directive `opens` riêng lẻ bên trong descriptor. Nếu cần mở một vài package có kiểm soát, hãy dùng module bình thường với qualified opens.
+An open module cannot declare additional individual `opens` directives inside its descriptor. If you need to open a few packages in a controlled manner, use a normal module with qualified opens.
 
-### 5.3. Bảng lựa chọn
+### 5.3. Selection Table
 
-| Cách khai báo | Phạm vi |
+| Declaration | Scope |
 |---|---|
-| `opens p to m;` | Chỉ module m |
-| `opens p;` | Mọi module |
-| `open module M { ... }` | Mọi package của module M |
+| `opens p to m;` | Only module m |
+| `opens p;` | All modules |
+| `open module M { ... }` | All packages of module M |
 
-Với một ORM cần truy cập private field của entity, `opens package to orm.module` thường là lựa chọn thể hiện đúng ý định nhất.
+For an ORM that needs to access private entity fields, `opens package to orm.module` is usually the choice that expresses the intent most accurately.
 
-## 6. Xác định đúng module đích của framework
+## 6. Identifying the Correct Target Module of the Framework
 
-Một lỗi cấu hình phổ biến là mở package cho module của ứng dụng, trong khi code thực hiện reflection lại nằm trong module của framework.
+A common configuration mistake is opening the package to the application module while the code actually performing reflection lives inside the framework module.
 
-Ví dụ luồng gọi:
+Example call flow:
 
 ~~~text
 Application module
        |
-       | gọi API
+       | calls API
        v
 ORM framework module
        |
@@ -199,27 +199,27 @@ Domain module
   package persistence
 ~~~
 
-Module cần được đưa vào target của qualified opens là module thực hiện thao tác reflection, trong ví dụ là `com.acme.orm`. Module ứng dụng chỉ gọi API ORM không nhất thiết là module cần quyền đó.
+The module that needs to be put in the target of qualified opens is the module performing the reflection operation, which in this example is `com.acme.orm`. The application module that merely calls the ORM API is not necessarily the module that needs that permission.
 
-### 6.1. Kiểm tra module name của JAR
+### 6.1. Checking a JAR's Module Name
 
-Có thể dùng lệnh:
+You can use the command:
 
 ~~~bash
 jar --describe-module --file libs/acme-orm.jar
 ~~~
 
-Lệnh này hiển thị module descriptor hoặc tên automatic module của JAR. Nếu JAR khai báo `Automatic-Module-Name` trong manifest, tên đó thường được dùng làm module name khi chạy trên module path.
+This command displays the module descriptor or automatic module name of the JAR. If the JAR declares `Automatic-Module-Name` in its manifest, that name is normally used as the module name when running on the module path.
 
-Không lấy tên Maven artifact hoặc package name làm module name nếu chưa xác minh.
+Do not assume a Maven artifact name or package name is the module name without verifying.
 
-Có thể kiểm tra module đang được JVM nhận diện bằng:
+You can check which modules the JVM recognizes with:
 
 ~~~bash
 java --list-modules
 ~~~
 
-Với ứng dụng đang chạy, có thể ghi nhận module của class thực hiện reflection:
+In a running application, you can log the module of the class performing reflection:
 
 ~~~java
 Module frameworkModule = OrmInternalAccessor.class.getModule();
@@ -227,33 +227,33 @@ Module frameworkModule = OrmInternalAccessor.class.getModule();
 System.out.println(frameworkModule.getName());
 ~~~
 
-Nếu `getName()` trả về `null`, class đang thuộc unnamed module. Trường hợp đó cần xử lý khác với qualified opens trong descriptor.
+If `getName()` returns `null`, the class belongs to the unnamed module. That case requires different handling from qualified opens in the descriptor.
 
-## 7. Trường hợp framework chạy trên classpath
+## 7. When the Framework Runs on the Classpath
 
-Qualified opens trong `module-info.java` chỉ định target bằng tên module. Nó không thể khai báo target đặc biệt `ALL-UNNAMED`.
+Qualified opens in `module-info.java` specify targets by module name. They cannot declare the special target `ALL-UNNAMED`.
 
-Nếu framework vẫn chạy trong unnamed module trên classpath, có thể dùng command-line option tạm thời:
+If the framework still runs in the unnamed module on the classpath, a temporary command-line option can be used:
 
 ~~~bash
 java --add-opens com.acme.domain/com.acme.domain.persistence=ALL-UNNAMED -cp app.jar:libs/* com.acme.Main
 ~~~
 
-Cờ này mở package ở runtime cho các unnamed module. Nó hữu ích để xác nhận chẩn đoán hoặc hỗ trợ một thư viện chưa thể chuyển sang named module.
+This flag opens the package at runtime to unnamed modules. It is useful for confirming a diagnosis or supporting a library that cannot yet be moved to a named module.
 
-Nếu framework đã là named module, hãy mở package cho đúng module đó:
+If the framework is already a named module, open the package to that exact module:
 
 ~~~bash
 java --add-opens com.acme.domain/com.acme.domain.persistence=com.acme.orm --module-path mods -m com.acme.app/com.acme.Main
 ~~~
 
-`--add-opens` là cấu hình runtime bên ngoài. Nó không thay đổi source descriptor đã đóng gói trong module và không phải một directive compile-time của `javac`.
+`--add-opens` is an external runtime configuration. It does not change the source descriptor packaged inside the module and is not a compile-time directive for `javac`.
 
-Về lâu dài, hãy cân nhắc chuyển framework sang module path nếu thư viện hỗ trợ, sau đó ghi qualified opens trong descriptor của module sở hữu package. Như vậy, quyền reflection trở thành một phần của hợp đồng module có thể review và version cùng source code.
+In the long run, consider moving the framework to the module path if the library supports it, then record qualified opens in the descriptor of the module owning the package. That way, reflection permissions become part of the module contract that can be reviewed and versioned alongside source code.
 
-## 8. Kiểm tra openness tại runtime
+## 8. Checking Openness at Runtime
 
-Java cung cấp API để truy vấn module có mở package cho module khác hay không.
+Java provides an API to query whether a module opens a package to another module.
 
 ~~~java
 Module domainModule = CustomerEntity.class.getModule();
@@ -267,9 +267,9 @@ boolean openToOrm = domainModule.isOpen(
 System.out.println("Persistence package open to ORM: " + openToOrm);
 ~~~
 
-`Module.isOpen(packageName, otherModule)` kiểm tra package có mở cho module đích được chỉ định hay không. Nó giúp xác nhận runtime đang nhìn thấy quan hệ openness như dự kiến.
+`Module.isOpen(packageName, otherModule)` checks whether the package is open to the specified target module. It helps confirm that the runtime sees the openness relationship as expected.
 
-Có thể kết hợp kiểm tra với `trySetAccessible()` trên member thực sự cần truy cập:
+You can combine this check with `trySetAccessible()` on the actual member that needs to be accessed:
 
 ~~~java
 Field field = CustomerEntity.class.getDeclaredField("email");
@@ -281,46 +281,46 @@ if (!field.trySetAccessible()) {
 }
 ~~~
 
-Hai phép kiểm tra có mục đích khác nhau:
+These two checks serve different purposes:
 
-- `isOpen` xác nhận cấu hình module.
-- `trySetAccessible` xác nhận member cụ thể có thể bật quyền truy cập reflection trong ngữ cảnh hiện tại hay không.
+- `isOpen` confirms the module configuration.
+- `trySetAccessible` confirms whether the specific member can have reflective access enabled in the current context.
 
-Đừng chỉ kiểm tra bằng một test chạy trên classpath. Khi mọi code nằm trong unnamed module, ranh giới module có thể khác với production. Hãy chạy integration test trên module path giống môi trường triển khai.
+Do not test solely with a run on the classpath. When all code resides in the unnamed module, module boundaries can differ from production. Run integration tests on the module path matching the deployment environment.
 
-## 9. Rủi ro khi mở package quá rộng
+## 9. Risks of Opening Packages Too Broadly
 
-### 9.1. Lộ chi tiết triển khai
+### 9.1. Exposing Implementation Details
 
-Khi package được mở cho framework, framework có thể phụ thuộc vào private field, tên member hoặc cấu trúc object. Một refactor nội bộ có thể phá ứng dụng dù public API không thay đổi.
+When a package is opened to a framework, the framework can depend on private fields, member names, or object layouts. An internal refactor can break the application even though the public API has not changed.
 
-### 9.2. Tăng coupling với framework
+### 9.2. Increasing Coupling to the Framework
 
-Qualified opens tạo một quan hệ vận hành giữa module domain và framework. Khi đổi ORM hoặc serializer, target module name và danh sách package có thể cần thay đổi.
+Qualified opens create an operational dependency between the domain module and the framework. When switching ORMs or serializers, the target module name and package list may need to change.
 
-### 9.3. Mở nhầm module
+### 9.3. Opening to the Wrong Module
 
-Nếu mở cho module ứng dụng trong khi framework thực hiện reflection, cấu hình vẫn không giải quyết được lỗi. Nếu mở cho `ALL-UNNAMED`, nhiều thư viện trên classpath có thể nhận quyền rộng hơn dự kiến.
+If opened to the application module while the framework performs reflection, the configuration still will not resolve the error. If opened to `ALL-UNNAMED`, many libraries on the classpath may receive broader permissions than intended.
 
-### 9.4. Kiểm thử không phản ánh production
+### 9.4. Tests Not Reflecting Production
 
-Test chạy trên classpath có thể không tái hiện lỗi encapsulation của named module. Ngược lại, test JVM có cờ `--add-opens` toàn cục có thể che giấu việc descriptor thiếu qualified opens.
+Tests run on the classpath may fail to reproduce named-module encapsulation errors. Conversely, a test JVM with global `--add-opens` flags can mask a descriptor missing qualified opens.
 
-### 9.5. Khó nâng cấp
+### 9.5. Upgrade Difficulties
 
-Framework có thể đổi module name, đổi cách reflection hoặc không còn cần package cũ. Descriptor cũ có thể giữ quyền không cần thiết, hoặc khiến module resolution thất bại nếu target module không còn trong runtime configuration.
+A framework may change its module name, change how it performs reflection, or no longer need the old package. An outdated descriptor might retain unnecessary permissions, or cause module resolution to fail if the target module is no longer present in the runtime configuration.
 
-## 10. Quy trình thiết kế qualified opens có giới hạn
+## 10. Process for Designing Restricted Qualified Opens
 
-### Bước 1: Xác định member và package thực sự cần reflection
+### Step 1: Identify Members and Packages That Actually Need Reflection
 
-Ghi lại class, package và thao tác reflection gây lỗi. Đừng mở toàn bộ domain module chỉ vì một entity field bị chặn.
+Record the class, package, and reflection operation causing the error. Do not open the entire domain module just because one entity field is blocked.
 
-### Bước 2: Xác định module thực hiện reflection
+### Step 2: Identify the Module Performing Reflection
 
-Lấy module từ class thực hiện `setAccessible` hoặc `trySetAccessible`. Xác minh module name của framework bằng JAR descriptor hoặc runtime inspection.
+Retrieve the module from the class invoking `setAccessible` or `trySetAccessible`. Verify the framework's module name via its JAR descriptor or runtime inspection.
 
-### Bước 3: Khai báo qualified opens
+### Step 3: Declare Qualified Opens
 
 ~~~java
 module com.acme.domain {
@@ -330,31 +330,31 @@ module com.acme.domain {
 }
 ~~~
 
-Chỉ thêm package và target có nhu cầu đã xác nhận.
+Add only the packages and targets with a confirmed need.
 
-### Bước 4: Chạy integration test trên module path
+### Step 4: Run Integration Tests on the Module Path
 
-Kiểm tra:
+Verify that:
 
-- Module domain resolve thành công.
-- Framework được nạp trong module đích dự kiến.
-- Reflection vào member cần thiết hoạt động.
-- Package không liên quan vẫn đóng.
-- Các đường chạy serialize, hydrate entity hoặc injection hoạt động như mong đợi.
+- The domain module resolves successfully.
+- The framework is loaded under the expected target module.
+- Reflection on the required members works.
+- Unrelated packages remain closed.
+- Serialization, entity hydration, or injection flows work as expected.
 
-### Bước 5: Ghi nhận hợp đồng và thời điểm review
+### Step 5: Document the Contract and Review Timing
 
-Trong tài liệu module hoặc cấu hình kiến trúc, ghi:
+In the module documentation or architectural configuration, record:
 
-- Vì sao package phải mở.
-- Framework/module đích đang nhận quyền.
-- Thành phần nào sở hữu directive.
-- Phiên bản framework đã kiểm thử.
-- Điều kiện để thu hẹp hoặc gỡ directive khi framework thay đổi.
+- Why the package must be opened.
+- Which framework/target module receives the permission.
+- Which component owns the directive.
+- The tested framework version.
+- Conditions for narrowing or removing the directive when the framework changes.
 
-## 11. Ví dụ hoàn chỉnh
+## 11. Complete Example
 
-Giả sử project có hai module:
+Suppose the project has two modules:
 
 ~~~text
 modules/
@@ -371,7 +371,7 @@ modules/
         └── OrmInternalAccessor.java
 ~~~
 
-Descriptor domain:
+Domain descriptor:
 
 ~~~java
 module com.acme.domain {
@@ -381,7 +381,7 @@ module com.acme.domain {
 }
 ~~~
 
-Descriptor ORM:
+ORM descriptor:
 
 ~~~java
 module com.acme.orm {
@@ -389,32 +389,32 @@ module com.acme.orm {
 }
 ~~~
 
-Trong ví dụ, ORM có thể sử dụng public API được export của domain và reflection sâu vào package persistence đã mở. Nó không được tự động reflection sâu vào package khác của domain.
+In the example, the ORM can use the domain's exported public API and perform deep reflection into the opened persistence package. It is not automatically permitted to perform deep reflection into other packages of the domain.
 
-Khi chạy, cả hai module phải có mặt trên module path và module name phải khớp với qualified opens:
+At runtime, both modules must be present on the module path and the module name must match the qualified opens:
 
 ~~~bash
 java --module-path mods -m com.acme.app/com.acme.Main
 ~~~
 
-Nếu target module `com.acme.orm` không có trong runtime configuration hoặc tên trong descriptor không khớp tên module thực tế, cấu hình không thể đáp ứng mục đích thiết kế.
+If the target module `com.acme.orm` is absent from the runtime configuration or the name in the descriptor does not match the actual module name, the configuration cannot fulfill its design intent.
 
-## 12. Checklist review
+## 12. Review Checklist
 
-Trước khi thêm hoặc giữ một qualified opens, hãy xác nhận:
+Before adding or keeping a qualified opens, confirm:
 
-- [ ] Đã xác định package cụ thể chứa member cần reflection.
-- [ ] Đã xác định đúng module thực hiện reflection.
-- [ ] Target trong directive khớp module name thực tế.
-- [ ] Chỉ mở package cần thiết, không dùng `open module` cho một nhu cầu hẹp.
-- [ ] Không dùng `exports` thay cho `opens` khi cần deep reflection.
-- [ ] Đã kiểm tra `Module.isOpen` hoặc hành vi `trySetAccessible` ở runtime.
-- [ ] Integration test chạy trên module path tương tự production.
-- [ ] Đã ghi lý do, framework version và người sở hữu directive.
-- [ ] Có kế hoạch review khi nâng cấp framework hoặc thay đổi package.
+- [ ] The specific package containing members needing reflection has been identified.
+- [ ] The exact module performing reflection has been identified.
+- [ ] The target in the directive matches the actual module name.
+- [ ] Only necessary packages are opened; `open module` is not used for a narrow need.
+- [ ] `exports` is not used in place of `opens` when deep reflection is needed.
+- [ ] `Module.isOpen` or `trySetAccessible` behavior has been verified at runtime.
+- [ ] Integration tests run on a module path similar to production.
+- [ ] The rationale, framework version, and directive owner have been documented.
+- [ ] A plan exists to review upon framework upgrades or package changes.
 
-## Kết luận
+## Conclusion
 
-Qualified opens là cách khai báo rõ ràng rằng một package cần hỗ trợ deep reflection cho một module cụ thể. Nó giữ các package còn lại trong trạng thái encapsulated và giúp module descriptor thể hiện đúng nhu cầu tích hợp với ORM, serializer hoặc dependency injection framework.
+Qualified opens are an explicit declaration that a package needs to support deep reflection for a specific module. They keep the remaining packages encapsulated and help the module descriptor accurately reflect integration needs with ORMs, serializers, or dependency injection frameworks.
 
-Hãy bắt đầu từ member và package cần truy cập, tìm đúng module thực hiện reflection, rồi mở package cho target đó. **Mở đúng package, đúng module và kiểm thử trên module path** giúp giữ được lợi ích của strong encapsulation trong khi vẫn hỗ trợ các framework cần reflection.
+Start from the members and packages needing access, find the exact module performing reflection, and then open the package to that target. **Opening the right package to the right module and testing on the module path** preserves the benefits of strong encapsulation while still supporting frameworks that require reflection.

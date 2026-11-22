@@ -1,53 +1,53 @@
-# HALF_EVEN và lựa chọn chữ số chẵn trong BigDecimal
+# HALF_EVEN and Even-Digit Selection in BigDecimal
 
-## 1. Vì sao cần quy tắc HALF_EVEN?
+## 1. Why Is the HALF_EVEN Rule Needed?
 
-Khi biểu diễn hoặc tính toán số thập phân với số chữ số giới hạn, đôi khi phải bỏ bớt chữ số. Thông thường ta làm tròn đến giá trị **gần số ban đầu nhất**. Tuy nhiên, có những giá trị nằm **chính xác giữa hai kết quả hợp lệ** (gọi là *halfway* hoặc *tie*): cần thêm quy tắc để chọn một phía.
+When representing or computing decimal numbers with a limited number of digits, digits sometimes have to be discarded. Usually we round to the value **nearest to the original number**. However, there are values that lie **exactly halfway between two valid results** (called *halfway* or a *tie*): an extra rule is needed to choose one side.
 
-**RoundingMode.HALF_EVEN** trong Java là quy tắc *round to nearest, ties to even*: **chọn kết quả gần nhất; nếu hai phía cách đều nhau, chọn kết quả có chữ số cuối được giữ lại là số chẵn** (0, 2, 4, 6, 8). Đây còn được gọi là *round half to even* hoặc *banker's rounding*.
+**RoundingMode.HALF_EVEN** in Java is the *round to nearest, ties to even* rule: **choose the nearest result; if both sides are equidistant, choose the result whose last retained digit is even** (0, 2, 4, 6, 8). This is also known as *round half to even* or *banker's rounding*.
 
-Phạm vi: Java 17+, `java.math.BigDecimal`, `java.math.RoundingMode`, `java.math.MathContext`. Bài này giải thích chính xác chữ số nào phải chẵn, những trường hợp không thực sự là tie, xử lý số âm, khác biệt với HALF_UP/HALF_DOWN và lựa chọn thời điểm làm tròn trong ứng dụng.
+Scope: Java 17+, `java.math.BigDecimal`, `java.math.RoundingMode`, `java.math.MathContext`. This lesson explains exactly which digit must be even, cases that are not actually ties, handling negative numbers, differences from HALF_UP/HALF_DOWN, and choosing when to round in applications.
 
-## 2. Cơ chế: gần nhất trước, chẵn chỉ khi hòa
+## 2. Mechanism: Nearest First, Even Only on a Tie
 
-Giả sử làm tròn một giá trị đến số nguyên. Những giá trị có phần lẻ khác 0.5 được làm tròn về số nguyên gần hơn. Nếu phần lẻ bằng đúng 0.5, hai số nguyên gần nhất cách đều nhau nên HALF_EVEN chọn số chẵn:
+Suppose we round a value to an integer. Values with a fractional part other than 0.5 are rounded to the closer integer. If the fractional part is exactly 0.5, the two nearest integers are equidistant, so HALF_EVEN picks the even one:
 
-| Số gốc | Hai kết quả gần nhất | HALF_EVEN | Lý do |
+| Original number | Two nearest results | HALF_EVEN | Reason |
 | --- | --- | ---: | --- |
-| 2.4 | 2 và 3 | 2 | Khoảng cách đến 2 nhỏ hơn |
-| 2.5 | 2 và 3 | 2 | Hòa; 2 chẵn |
-| 3.5 | 3 và 4 | 4 | Hòa; 4 chẵn |
-| 4.5 | 4 và 5 | 4 | Hòa; 4 chẵn |
-| 5.5 | 5 và 6 | 6 | Hòa; 6 chẵn |
-| -2.5 | -3 và -2 | -2 | Hòa; chữ số 2 chẵn |
-| -3.5 | -4 và -3 | -4 | Hòa; chữ số 4 chẵn |
-| 2.51 | 2 và 3 | 3 | Gần 3 hơn; không hòa |
+| 2.4 | 2 and 3 | 2 | Distance to 2 is smaller |
+| 2.5 | 2 and 3 | 2 | Tie; 2 is even |
+| 3.5 | 3 and 4 | 4 | Tie; 4 is even |
+| 4.5 | 4 and 5 | 4 | Tie; 4 is even |
+| 5.5 | 5 and 6 | 6 | Tie; 6 is even |
+| -2.5 | -3 and -2 | -2 | Tie; digit 2 is even |
+| -3.5 | -4 and -3 | -4 | Tie; digit 4 is even |
+| 2.51 | 2 and 3 | 3 | Closer to 3; not a tie |
 
-**HALF_EVEN không có nghĩa “luôn làm tròn thành số nguyên chẵn”.** Khi giá trị không hòa, một kết quả có chữ số lẻ vẫn được chọn nếu nó gần hơn, như 2.51 → 3.
+**HALF_EVEN does not mean "always round to an even integer".** When the value is not a tie, a result with an odd digit is still chosen if it is closer, such as 2.51 → 3.
 
-Khi cần giữ chữ số thập phân, tính chẵn/lẻ áp dụng cho **chữ số cuối cùng được giữ lại**, không phải phần nguyên. Nếu làm tròn 1.25 đến một chữ số thập phân, ta chọn giữa 1.2 và 1.3: 1.2 có chữ số hàng phần mười là 2 (chẵn), nên được chọn. Với 1.35, ta chọn 1.4 vì chữ số 4 chẵn.
+When keeping decimal places, evenness applies to **the last retained digit**, not the integer part. If rounding 1.25 to one decimal place, we choose between 1.2 and 1.3: 1.2 has tenths digit 2 (even), so it is chosen. With 1.35, we choose 1.4 because the digit 4 is even.
 
-### Kiểm tra tie chính xác
+### Checking Exact Ties
 
-Với scale đích bằng 2, hai số thập phân kề nhau cách 0.01; điểm giữa cách mỗi phía 0.005.
+With a target scale of 2, two adjacent decimal numbers are 0.01 apart; the midpoint is 0.005 from each side.
 
-- **1.005**: chính giữa 1.00 và 1.01 → 1.00 (hàng phần trăm là 0, chẵn).
-- **1.015**: chính giữa 1.01 và 1.02 → 1.02 (chữ số 2, chẵn).
-- **1.0050**: vẫn bằng 1.005, nên vẫn hòa → 1.00.
-- **1.0051**: gần 1.01 hơn → 1.01, dù chữ số hàng phần trăm là 1 (lẻ).
-- **1.0049**: gần 1.00 hơn → 1.00.
+- **1.005**: halfway between 1.00 and 1.01 → 1.00 (hundredths digit is 0, even).
+- **1.015**: halfway between 1.01 and 1.02 → 1.02 (digit 2, even).
+- **1.0050**: still equals 1.005, so still a tie → 1.00.
+- **1.0051**: closer to 1.01 → 1.01, even though the hundredths digit is 1 (odd).
+- **1.0049**: closer to 1.00 → 1.00.
 
-Nếu chữ số đầu tiên bị bỏ là 5 nhưng **phần bị bỏ sau chữ số 5 còn khác 0**, giá trị không nằm chính giữa. Đừng quyết định theo chẵn/lẻ trước khi xác định khoảng cách.
+If the first discarded digit is 5 but **the discarded part after the digit 5 is still non-zero**, the value does not lie exactly halfway. Do not decide by even/odd before determining distance.
 
-## 3. Dùng setScale(scale, RoundingMode.HALF_EVEN)
+## 3. Using setScale(scale, RoundingMode.HALF_EVEN)
 
-Trong BigDecimal, phương thức `setScale(int newScale, RoundingMode roundingMode)` tạo biểu diễn với scale yêu cầu. Scale bằng 0 tương ứng không có chữ số sau dấu thập phân; scale 1 giữ một chữ số; scale 2 giữ hai chữ số. Scale âm cho phép làm tròn đến hàng chục, hàng trăm.
+In BigDecimal, the method `setScale(int newScale, RoundingMode roundingMode)` produces a representation with the requested scale. A scale of 0 corresponds to no digits after the decimal point; scale 1 keeps one digit; scale 2 keeps two digits. Negative scale lets you round to tens, hundreds.
 
-Ví dụ, `x.setScale(2, RoundingMode.HALF_EVEN)` yêu cầu giữ đúng hai chữ số thập phân và dùng HALF_EVEN nếu phải bỏ các chữ số có giá trị. Nếu chỉ tăng scale như 1.2 → 1.200, không có giá trị nào bị bỏ, nên không thực hiện làm tròn theo nghĩa chọn gần nhất. BigDecimal là **immutable**: phương thức trả về giá trị, không sửa đối tượng gốc.
+For example, `x.setScale(2, RoundingMode.HALF_EVEN)` requests keeping exactly two decimal places and uses HALF_EVEN if significant digits must be discarded. If only increasing the scale such as 1.2 → 1.200, no value is discarded, so no nearest-choice rounding is performed. BigDecimal is **immutable**: the method returns a value without modifying the original object.
 
-### Ví dụ Java 17: tie khi làm tròn số nguyên
+### Java 17 Example: Ties When Rounding Integers
 
-Lưu dưới tên `HalfEvenIntegerDemo.java`:
+Save under the name `HalfEvenIntegerDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -69,14 +69,14 @@ public class HalfEvenIntegerDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or higher:
 
 ~~~bash
 javac HalfEvenIntegerDemo.java
 java HalfEvenIntegerDemo
 ~~~
 
-Đầu ra chính xác:
+Exact output:
 
 ~~~text
 2.4 -> 2
@@ -89,26 +89,26 @@ java HalfEvenIntegerDemo
 2.51 -> 3
 ~~~
 
-Cặp 2.5/3.5 chứng minh HALF_EVEN không mặc định luôn làm tròn lên hay xuống. Hai giá trị âm chứng minh đây cũng không phải quy tắc luôn làm tròn về 0.
+The 2.5/3.5 pair proves HALF_EVEN does not default to always rounding up or down. The two negative values prove it is also not a rule that always rounds toward 0.
 
-## 4. Trường hợp thập phân, dấu âm và chuyển nhớ
+## 4. Decimal Cases, Negative Signs, and Carrying
 
-Với scale đích bằng 1, chữ số cuối được giữ lại nằm ở hàng phần mười. Tương tự, với scale đích bằng 2, xét hàng phần trăm. Những chữ số chẵn có thể nằm sau dấu thập phân, dù phần nguyên là số chẵn hay lẻ.
+With a target scale of 1, the last retained digit is in the tenths place. Similarly, with a target scale of 2, the hundredths place is examined. Even digits can appear after the decimal point, whether the integer part is even or odd.
 
-| Giá trị | Scale đích | Kết quả HALF_EVEN | Lý do |
+| Value | Target scale | HALF_EVEN result | Reason |
 | --- | ---: | --- | --- |
-| 1.25 | 1 | 1.2 | Tie, chữ số 2 chẵn |
-| 1.35 | 1 | 1.4 | Tie, chữ số 4 chẵn |
-| 1.2500 | 1 | 1.2 | Số 0 phía sau không phá tie |
-| 1.2501 | 1 | 1.3 | Lớn hơn điểm giữa; gần 1.3 |
-| 1.2499 | 1 | 1.2 | Nhỏ hơn điểm giữa; gần 1.2 |
-| -1.25 | 1 | -1.2 | Tie, chữ số 2 chẵn |
-| -1.35 | 1 | -1.4 | Tie, chữ số 4 chẵn |
-| 9.95 | 1 | 10.0 | Tie giữa 9.9 và 10.0; chữ số 0 chẵn |
-| 8.235 | 2 | 8.24 | Tie giữa 8.23 và 8.24; 4 chẵn |
-| 8.245 | 2 | 8.24 | Tie giữa 8.24 và 8.25; 4 chẵn |
+| 1.25 | 1 | 1.2 | Tie, digit 2 is even |
+| 1.35 | 1 | 1.4 | Tie, digit 4 is even |
+| 1.2500 | 1 | 1.2 | Trailing zeros do not break the tie |
+| 1.2501 | 1 | 1.3 | Greater than midpoint; closer to 1.3 |
+| 1.2499 | 1 | 1.2 | Less than midpoint; closer to 1.2 |
+| -1.25 | 1 | -1.2 | Tie, digit 2 is even |
+| -1.35 | 1 | -1.4 | Tie, digit 4 is even |
+| 9.95 | 1 | 10.0 | Tie between 9.9 and 10.0; digit 0 is even |
+| 8.235 | 2 | 8.24 | Tie between 8.23 and 8.24; 4 is even |
+| 8.245 | 2 | 8.24 | Tie between 8.24 and 8.25; 4 is even |
 
-Tạo `HalfEvenDecimalDemo.java`:
+Create `HalfEvenDecimalDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -139,7 +139,7 @@ javac HalfEvenDecimalDemo.java
 java HalfEvenDecimalDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 1.25 -> 1.2
@@ -152,17 +152,17 @@ java HalfEvenDecimalDemo
 9.95 -> 10.0
 ~~~
 
-Với 9.95 → 10.0, hãy chú ý đến **chuyển nhớ**: việc tăng chữ số bên trái là hợp lệ. Khi giữ một chữ số lẻ, chữ số cuối của 10.0 là 0, thỏa mãn tiêu chí chẵn.
+With 9.95 → 10.0, pay attention to **carrying**: incrementing digits to the left is valid. When keeping one fractional digit, the last digit of 10.0 is 0, satisfying the even criterion.
 
-## 5. So sánh HALF_EVEN, HALF_UP và HALF_DOWN
+## 5. Comparing HALF_EVEN, HALF_UP, and HALF_DOWN
 
-Cả ba thuộc nhóm chọn số gần nhất khi không hòa. Khi chính xác hòa:
+All three belong to the group that picks the nearest number when not tied. When exactly tied:
 
-- **HALF_UP**: chọn phương án xa 0 hơn.
-- **HALF_DOWN**: chọn phương án gần 0 hơn.
-- **HALF_EVEN**: chọn phương án có chữ số cuối giữ lại chẵn.
+- **HALF_UP**: picks the option farther from 0.
+- **HALF_DOWN**: picks the option closer to 0.
+- **HALF_EVEN**: picks the option whose last retained digit is even.
 
-| Giá trị → scale 0 | HALF_UP | HALF_DOWN | HALF_EVEN |
+| Value → scale 0 | HALF_UP | HALF_DOWN | HALF_EVEN |
 | --- | ---: | ---: | ---: |
 | 2.5 | 3 | 2 | 2 |
 | 3.5 | 4 | 3 | 4 |
@@ -170,9 +170,9 @@ Cả ba thuộc nhóm chọn số gần nhất khi không hòa. Khi chính xác 
 | -3.5 | -4 | -3 | -4 |
 | 2.6 | 3 | 3 | 3 |
 
-Không nhầm **HALF_UP** với **UP**: `RoundingMode.UP` làm tròn ra xa 0 bất cứ khi nào bỏ phần có giá trị, kể cả không hòa. Tương tự, `RoundingMode.DOWN` làm tròn về 0 chứ không giống `HALF_DOWN`.
+Do not confuse **HALF_UP** with **UP**: `RoundingMode.UP` rounds away from 0 whenever discarding any non-zero part, even without a tie. Similarly, `RoundingMode.DOWN` rounds toward 0 and is not like `HALF_DOWN`.
 
-Tạo `HalfEvenModesDemo.java`:
+Create `HalfEvenModesDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -203,7 +203,7 @@ javac HalfEvenModesDemo.java
 java HalfEvenModesDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 2.5: UP=3, DOWN=2, EVEN=2
@@ -213,20 +213,20 @@ java HalfEvenModesDemo
 2.6: UP=3, DOWN=3, EVEN=3
 ~~~
 
-Hai chế độ có thể cho kết quả trùng nhau trong một trường hợp riêng lẻ mà không có nghĩa tương đương. Hãy kiểm tra cả hai loại tie (chữ số cuối cũ chẵn/lẻ) và các giá trị không hòa.
+Two modes can produce identical results in an isolated case without being equivalent. Always test both kinds of ties (old last digit even/odd) and non-tie values.
 
-## 6. HALF_EVEN cùng MathContext: phân biệt precision với scale
+## 6. HALF_EVEN with MathContext: Distinguishing Precision from Scale
 
-`setScale(2, HALF_EVEN)` giữ **hai chữ số sau dấu thập phân**. `MathContext(4, HALF_EVEN)` giữ tối đa **bốn chữ số có nghĩa** tính từ chữ số khác 0 đầu tiên. Đây là hai quy tắc giới hạn hoàn toàn khác nhau:
+`setScale(2, HALF_EVEN)` keeps **two digits after the decimal point**. `MathContext(4, HALF_EVEN)` keeps at most **four significant digits** counting from the first non-zero digit. These are two completely different limiting rules:
 
-- 12.345 với scale 2 → 12.34.
-- 12.345 với precision 4 → 12.34, tình cờ trùng vì chữ số có nghĩa thứ tư chính là hàng phần trăm.
-- 123.45 với scale 2 → 123.45; với precision 4 → 123.4.
-- 123.55 với precision 4 → 123.6: hai kết quả 123.5 và 123.6 cách đều 123.55, chữ số 6 chẵn.
+- 12.345 with scale 2 → 12.34.
+- 12.345 with precision 4 → 12.34, coincidentally matching because the fourth significant digit happens to be the hundredths place.
+- 123.45 with scale 2 → 123.45; with precision 4 → 123.4.
+- 123.55 with precision 4 → 123.6: the two results 123.5 and 123.6 are equidistant from 123.55, digit 6 is even.
 
-`BigDecimal.round(MathContext)` làm tròn theo precision và rounding mode; các phép toán hỗ trợ `MathContext` cũng có thể làm tròn kết quả theo ngữ cảnh này. Precision 0 trong `MathContext.UNLIMITED` biểu thị không giới hạn số chữ số có nghĩa; quy tắc làm tròn không bị áp dụng chỉ vì precision. Nếu dùng `UNNECESSARY` mà thực sự cần loại bỏ chữ số có giá trị, Java ném `ArithmeticException`.
+`BigDecimal.round(MathContext)` rounds according to precision and rounding mode; operations supporting `MathContext` can also round results according to this context. Precision 0 in `MathContext.UNLIMITED` denotes unlimited significant digits; the rounding rule is not applied merely for precision. If `UNNECESSARY` is used and non-zero digits actually need to be discarded, Java throws `ArithmeticException`.
 
-Tạo `HalfEvenPrecisionDemo.java`:
+Create `HalfEvenPrecisionDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -256,7 +256,7 @@ javac HalfEvenPrecisionDemo.java
 java HalfEvenPrecisionDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 first scale 2  = 12.34
@@ -266,15 +266,15 @@ second prec 4  = 12.36
 large prec 4   = 123.4
 ~~~
 
-Chọn `setScale` khi có quy định số chữ số phần lẻ; chọn `MathContext` khi giới hạn số chữ số **có nghĩa** trong phép tính. Không đổi một API sang API còn lại chỉ vì đều hỗ trợ HALF_EVEN.
+Choose `setScale` when there is a rule on the number of fractional digits; choose `MathContext` when limiting the number of **significant** digits in a calculation. Do not swap one API for the other just because both support HALF_EVEN.
 
-## 7. HALF_EVEN khi chia BigDecimal
+## 7. HALF_EVEN in BigDecimal Division
 
-Một số phép chia không thể biểu diễn thành số thập phân hữu hạn (ví dụ 1/3). `BigDecimal.divide(divisor)` có thể ném `ArithmeticException` khi không có kết quả thập phân hữu hạn chính xác. Có thể chỉ định scale và chế độ làm tròn trong overload `divide(divisor, scale, roundingMode)`.
+Some divisions cannot be represented as a finite decimal number (for example 1/3). `BigDecimal.divide(divisor)` can throw `ArithmeticException` when there is no exact finite decimal result. You can specify scale and rounding mode in the `divide(divisor, scale, roundingMode)` overload.
 
-Ví dụ: 1/8 = 0.125 nằm chính giữa 0.12 và 0.13 → 0.12 (2 chẵn). 3/8 = 0.375 nằm chính giữa 0.37 và 0.38 → 0.38 (8 chẵn).
+For example: 1/8 = 0.125 lies halfway between 0.12 and 0.13 → 0.12 (2 is even). 3/8 = 0.375 lies halfway between 0.37 and 0.38 → 0.38 (8 is even).
 
-Tạo `HalfEvenDivisionDemo.java`:
+Create `HalfEvenDivisionDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -302,7 +302,7 @@ javac HalfEvenDivisionDemo.java
 java HalfEvenDivisionDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 1 / 8 = 0.12
@@ -310,30 +310,30 @@ java HalfEvenDivisionDemo
 1 / 3 = 0.33
 ~~~
 
-1/3 được làm tròn về 0.33 vì gần 0.33 hơn 0.34, không phụ thuộc tính chẵn. Để biết cần giữ bao nhiêu chữ số và khi nào làm tròn, phải dựa vào yêu cầu đầu ra/nhất quán của nghiệp vụ.
+1/3 is rounded to 0.33 because it is closer to 0.33 than 0.34, independent of evenness. To know how many digits to keep and when to round, you must rely on output/consistency requirements of the business logic.
 
-## 8. Vì sao còn gọi là banker's rounding?
+## 8. Why Is It Also Called Banker's Rounding?
 
-Nếu dữ liệu có rất nhiều giá trị dương rơi đúng điểm giữa, làm tròn luôn xa 0 theo HALF_UP có thể tạo xu hướng tăng tổng. HALF_EVEN chọn hướng lên hoặc xuống theo tính chẵn của chữ số cuối được giữ. Với phân bố các tie cân bằng, cách này **có thể làm giảm thiên lệch tích lũy**.
+If data has many positive values landing exactly at the midpoint, always rounding away from 0 via HALF_UP can create an upward bias in the sum. HALF_EVEN chooses the upward or downward direction based on the evenness of the last retained digit. With a balanced distribution of ties, this approach **can reduce accumulated bias**.
 
-Ví dụ, xét bốn giá trị cần làm tròn thành số nguyên:
+For example, consider four values to be rounded to integers:
 
-| Cách tính | Các giá trị | Tổng |
+| Calculation | Values | Sum |
 | --- | --- | ---: |
-| Chưa làm tròn | 1.5, 2.5, 3.5, 4.5 | 12 |
+| Unrounded | 1.5, 2.5, 3.5, 4.5 | 12 |
 | HALF_UP | 2, 3, 4, 5 | 14 |
 | HALF_EVEN | 2, 2, 4, 4 | 12 |
 
-Đây là minh họa, **không phải chứng minh HALF_EVEN luôn giữ nguyên tổng hoặc hoàn toàn không thiên lệch**. Kết quả tùy dữ liệu, đặc biệt khi tie tập trung về một nhóm chữ số. Tên gọi "banker's rounding" cũng không có nghĩa tất cả ngân hàng, chuẩn kế toán hay thuế đều bắt buộc dùng HALF_EVEN; phải theo quy định nghiệp vụ thực tế.
+This is an illustration, **not a proof that HALF_EVEN always preserves the sum or is completely unbiased**. Results depend on the data, especially when ties cluster around a group of digits. The name "banker's rounding" also does not mean all banks, accounting standards, or tax rules mandate HALF_EVEN; you must follow actual business rules.
 
-### Làm tròn từng khoản khác làm tròn tổng
+### Rounding Each Item Differs from Rounding the Total
 
-Nếu có ba khoản 1.005 và cần số tiền hai chữ số lẻ:
+If there are three items of 1.005 and an amount with two fractional digits is needed:
 
-- Làm tròn từng khoản HALF_EVEN: mỗi khoản 1.00; tổng bằng **3.00**.
-- Cộng giá trị nguyên gốc rồi làm tròn một lần: 3.015 → **3.02**.
+- Round each item with HALF_EVEN: each item is 1.00; the total equals **3.00**.
+- Sum the original values and round once: 3.015 → **3.02**.
 
-Tạo `HalfEvenTotalsDemo.java`:
+Create `HalfEvenTotalsDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -371,7 +371,7 @@ javac HalfEvenTotalsDemo.java
 java HalfEvenTotalsDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 raw total        = 3.015
@@ -379,15 +379,15 @@ round each, sum  = 3.00
 sum, round once  = 3.02
 ~~~
 
-Cả hai phép làm tròn đều tuân thủ HALF_EVEN. Việc chọn **thời điểm làm tròn** (theo dòng, theo giao dịch hay theo tổng) ảnh hưởng kết quả và phải xác định rõ từ quy tắc nghiệp vụ. Hạn chế các lần làm tròn trung gian nếu không bắt buộc, để không mất độ chính xác cần cho phép tính sau.
+Both roundings follow HALF_EVEN. Choosing **when rounding occurs** (per line, per transaction, or on the total) affects the result and must be clearly specified from business rules. Avoid intermediate roundings when not mandatory, so as not to lose precision needed for later calculations.
 
-## 9. Tránh tạo BigDecimal bằng double nếu cần tie thập phân chính xác
+## 9. Avoid Creating BigDecimal from double When Exact Decimal Ties Matter
 
-Nhiều số thập phân không biểu diễn chính xác trong hệ nhị phân của kiểu `double`. Vì vậy, `new BigDecimal(2.675)` tạo BigDecimal biểu diễn chính xác **giá trị double nhị phân đã nhận**, vốn hơi nhỏ hơn 2.675. Khi làm tròn về hai chữ số, số này gần 2.67 hơn; HALF_EVEN không chọn theo tie vì trên thực tế không có tie.
+Many decimal numbers cannot be represented exactly in the binary system of `double`. Thus, `new BigDecimal(2.675)` creates a BigDecimal representing the exact **received binary double value**, which is slightly less than 2.675. When rounding to two digits, this number is closer to 2.67; HALF_EVEN does not apply tie-breaking because in fact there is no tie.
 
-Ngược lại, `new BigDecimal("2.675")` giữ chính xác 2.675: nó ở chính giữa 2.67 và 2.68, nên HALF_EVEN chọn 2.68. `BigDecimal.valueOf(2.675)` dùng biểu diễn thập phân chuẩn của double nên cũng cho 2.68 trong ví dụ, nhưng cách đó không phục hồi được mọi độ chính xác đã mất từ dữ liệu trước đó.
+Conversely, `new BigDecimal("2.675")` keeps 2.675 exactly: it is halfway between 2.67 and 2.68, so HALF_EVEN picks 2.68. `BigDecimal.valueOf(2.675)` uses the canonical decimal representation of double and therefore also gives 2.68 in the example, though that approach cannot recover any precision already lost from earlier data.
 
-Tạo `HalfEvenInputDemo.java`:
+Create `HalfEvenInputDemo.java`:
 
 ~~~java
 import java.math.BigDecimal;
@@ -414,7 +414,7 @@ javac HalfEvenInputDemo.java
 java HalfEvenInputDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 String  = 2.68
@@ -422,50 +422,50 @@ double  = 2.67
 valueOf = 2.68
 ~~~
 
-Khi cần kiểm soát chữ số thập phân (đặc biệt các khoản tiền), hãy ưu tiên dữ liệu BigDecimal tạo từ chuỗi thập phân chính xác hoặc nguồn số nguyên được quy đổi rõ ràng, tránh đưa sai số nhị phân vào tie.
+When decimal digit control is needed (especially for monetary amounts), prefer BigDecimal data created from exact decimal strings or clearly scaled integer sources, avoiding injecting binary error into ties.
 
-## 10. Những lỗi phổ biến
+## 10. Common Mistakes
 
-1. **Xem chữ số đầu tiên bị bỏ là 5 thì chắc chắn hòa.** Ví dụ 1.2501 có các chữ số khác 0 sau 5 nên phải chọn số gần hơn, tức 1.3 tại scale 1.
-2. **Xét số chẵn trước khi xác định khoảng cách.** 2.51 → 3, dù 3 lẻ; lý do là gần nhất.
-3. **Xét chẵn/lẻ của phần nguyên bất kể scale.** 1.25 → 1.2 tại scale 1 vì chữ số hàng phần mười là 2, không phải vì phần nguyên 1.
-4. **Tưởng HALF_EVEN luôn làm tròn xuống.** 3.5 → 4, 1.35 → 1.4 và 9.95 → 10.0.
-5. **Tưởng số âm luôn làm tròn về 0.** -3.5 → -4, còn -2.5 → -2.
-6. **Nhầm HALF_UP với UP, HALF_DOWN với DOWN.** Hai chế độ không có HALF không yêu cầu tie mới làm tròn theo hướng.
-7. **Nhầm precision với scale.** MathContext precision đếm chữ số có nghĩa; setScale quy định chữ số phần thập phân.
-8. **Dùng `new BigDecimal(double)` cho hằng số decimal.** Giá trị nhị phân có thể khác rất nhỏ nhưng đủ làm kết quả ở ranh giới thay đổi.
-9. **Làm tròn ở nhiều bước mà không có chính sách.** Tổng sau làm tròn từng khoản có thể khác làm tròn tổng một lần.
-10. **Quên lưu giá trị trả về.** BigDecimal là immutable: `value.setScale(...)` không cập nhật `value`; dùng biến mới hoặc phép gán phù hợp.
-11. **Dùng HALF_EVEN cho mọi số tiền theo quán tính.** Cần kiểm tra yêu cầu loại giao dịch, chuẩn báo cáo và quy định hiện hành của hệ thống.
+1. **Assuming a first discarded digit of 5 is guaranteed to be a tie.** For example, 1.2501 has non-zero digits after 5 so the closer number must be chosen, i.e., 1.3 at scale 1.
+2. **Checking evenness before determining distance.** 2.51 → 3, even though 3 is odd; the reason is nearest.
+3. **Checking evenness of the integer part regardless of scale.** 1.25 → 1.2 at scale 1 because the tenths digit is 2, not because the integer part is 1.
+4. **Thinking HALF_EVEN always rounds down.** 3.5 → 4, 1.35 → 1.4, and 9.95 → 10.0.
+5. **Thinking negative numbers always round toward 0.** -3.5 → -4, whereas -2.5 → -2.
+6. **Confusing HALF_UP with UP, HALF_DOWN with DOWN.** The two modes without HALF do not require a tie to round in that direction.
+7. **Confusing precision with scale.** MathContext precision counts significant digits; setScale specifies fractional decimal digits.
+8. **Using `new BigDecimal(double)` for decimal constants.** The binary value may differ very slightly yet enough to alter boundary results.
+9. **Rounding across multiple steps without a policy.** The sum after rounding each item can differ from rounding the total once.
+10. **Forgetting to save the return value.** BigDecimal is immutable: `value.setScale(...)` does not update `value`; use a new variable or appropriate assignment.
+11. **Using HALF_EVEN for all money out of habit.** You must verify transaction type requirements, reporting standards, and current system regulations.
 
-## 11. Câu hỏi tự kiểm tra
+## 11. Self-Check Questions
 
-**Câu 1.** Làm tròn `4.5` và `5.5` về scale 0 theo HALF_EVEN. Vì sao kết quả khác chiều?
+**Question 1.** Round `4.5` and `5.5` to scale 0 using HALF_EVEN. Why do the results go in opposite directions?
 
-**Đáp án:** 4 và 6. Cả hai là tie, nhưng hai cặp lân cận lần lượt là (4, 5) và (5, 6); chọn chữ số chẵn.
+**Answer:** 4 and 6. Both are ties, but the two adjacent pairs are (4, 5) and (5, 6) respectively; the even digit is chosen.
 
-**Câu 2.** Làm tròn `8.235` và `8.245` về scale 2 theo HALF_EVEN.
+**Question 2.** Round `8.235` and `8.245` to scale 2 using HALF_EVEN.
 
-**Đáp án:** Cả hai đều là 8.24: giá trị thứ nhất ở giữa 8.23 và 8.24, giá trị thứ hai ở giữa 8.24 và 8.25; chữ số cuối 4 là chẵn.
+**Answer:** Both are 8.24: the first value lies between 8.23 and 8.24, the second lies between 8.24 and 8.25; the last digit 4 is even.
 
-**Câu 3.** Vì sao `1.2500` → `1.2` còn `1.2501` → `1.3` ở scale 1?
+**Question 3.** Why does `1.2500` → `1.2` while `1.2501` → `1.3` at scale 1?
 
-**Đáp án:** 1.2500 bằng đúng 1.25 nên là tie; 1.2501 gần 1.3 hơn nên quy tắc gần nhất quyết định.
+**Answer:** 1.2500 equals 1.25 exactly so it is a tie; 1.2501 is closer to 1.3 so the nearest rule decides.
 
-**Câu 4.** Với `new BigDecimal("12.345")`, `setScale(2, HALF_EVEN)` khác `round(new MathContext(2, HALF_EVEN))` ra sao?
+**Question 4.** For `new BigDecimal("12.345")`, how does `setScale(2, HALF_EVEN)` differ from `round(new MathContext(2, HALF_EVEN))`?
 
-**Đáp án:** Kết quả lần lượt là 12.34 và 12; cách thứ nhất giữ hai chữ số lẻ, cách thứ hai giữ hai chữ số có nghĩa.
+**Answer:** The results are 12.34 and 12 respectively; the first keeps two fractional digits, the second keeps two significant digits.
 
-**Câu 5.** HALF_EVEN có bảo đảm tổng đã làm tròn từng dòng bằng tổng gốc được làm tròn một lần?
+**Question 5.** Does HALF_EVEN guarantee that the sum of line-rounded values equals the original sum rounded once?
 
-**Đáp án:** Không. Ba giá trị 1.005 minh họa kết quả có thể là 3.00 hoặc 3.02 tùy thời điểm áp dụng quy tắc.
+**Answer:** No. Three values of 1.005 illustrate that the result can be 3.00 or 3.02 depending on when the rule is applied.
 
-## 12. Ghi nhớ
+## 12. Takeaways
 
-- **HALF_EVEN chọn kết quả gần nhất; nếu hòa, chọn chữ số cuối được giữ lại là chẵn.**
-- Chẵn/lẻ **chỉ giải quyết tie**, không thay thế quy tắc khoảng cách.
-- Dùng `setScale(scale, RoundingMode.HALF_EVEN)` để kiểm soát chữ số sau dấu thập phân; dùng `MathContext` để kiểm soát chữ số có nghĩa.
-- Nhận dữ liệu thập phân chính xác và chọn thời điểm làm tròn theo yêu cầu nghiệp vụ.
-- HALF_EVEN có thể giảm xu hướng sai lệch khi xử lý nhiều tie cân bằng, nhưng không bảo đảm mọi kết quả tổng đều giống dữ liệu chưa làm tròn.
+- **HALF_EVEN chooses the nearest result; on a tie, it chooses the last retained digit that is even.**
+- Evenness **only resolves ties**, not replacing the distance rule.
+- Use `setScale(scale, RoundingMode.HALF_EVEN)` to control digits after the decimal point; use `MathContext` to control significant digits.
+- Accept exact decimal inputs and choose when rounding occurs according to business requirements.
+- HALF_EVEN can reduce directional bias when processing many balanced ties, though it does not guarantee that every summed result matches unrounded data.
 
-Tài liệu API chính thức: Java SE 17 `java.math.RoundingMode`, `java.math.BigDecimal` và `java.math.MathContext`.
+Official API documentation: Java SE 17 `java.math.RoundingMode`, `java.math.BigDecimal`, and `java.math.MathContext`.

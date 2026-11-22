@@ -1,8 +1,8 @@
-# Split package giữa module path và classpath
+# Split Packages Between the Module Path and Classpath
 
-## 1. Split package là gì?
+## 1. What Is a Split Package?
 
-Một **split package** xảy ra khi cùng một tên package được chứa trong nhiều đơn vị triển khai độc lập, chẳng hạn nhiều JAR. Ví dụ:
+A **split package** occurs when the same package name is contained in multiple independent deployment units, such as multiple JARs. For example:
 
 ```text
 lib-core.jar
@@ -12,18 +12,18 @@ lib-extra.jar
 └── com/acme/util/DateHelper.class
 ```
 
-Cả hai JAR đều đóng góp class vào package `com.acme.util`. Cách Java xử lý cấu trúc này phụ thuộc vào nơi đặt JAR:
+Both JARs contribute classes to the package `com.acme.util`. How Java handles this structure depends on where the JARs are placed:
 
-- Trên **classpath**, các class thường thuộc unnamed module của class loader. Nhiều JAR trên classpath có thể cùng đóng góp class vào một package.
-- Trên **module path**, mỗi explicit module hoặc automatic module có ranh giới riêng. Package được gắn với module sở hữu nó; việc cùng package xuất hiện trong nhiều named module có thể làm module resolution thất bại khi một module đọc đồng thời các nguồn package đó.
+- On the **classpath**, classes usually belong to the unnamed module of the class loader. Multiple JARs on the classpath can contribute classes to the same package.
+- On the **module path**, each explicit module or automatic module has its own boundary. A package is bound to the module that owns it; having the same package appear in multiple named modules can cause module resolution to fail when a module simultaneously reads those package sources.
 
-Vì vậy, một cấu trúc chạy được trên classpath có thể không chạy được sau khi chuyển các JAR lên module path. Đây là vấn đề thường gặp khi modular hóa một ứng dụng Java cũ.
+Therefore, a structure that runs on the classpath might not run after moving the JARs onto the module path. This is a common issue when modularizing a legacy Java application.
 
-## 2. Classpath: nhiều JAR cùng đóng góp vào unnamed module
+## 2. Classpath: Multiple JARs Contributing to the Unnamed Module
 
-Khi khởi chạy bằng `-cp` hoặc `--class-path`, các thư mục và JAR được chỉ định được tìm kiếm bởi class loader. Với class loader ứng dụng thông thường, các class trên classpath thuộc unnamed module tương ứng.
+When launching with `-cp` or `--class-path`, the specified directories and JARs are searched by the class loader. For the standard application class loader, classes on the classpath belong to the corresponding unnamed module.
 
-Ví dụ:
+For example:
 
 ```text
 app.jar
@@ -31,40 +31,40 @@ lib-core.jar
 lib-extra.jar
 ```
 
-Chạy:
+Run:
 
 ```bash
 java -cp "app.jar:lib-core.jar:lib-extra.jar" com.acme.app.Main
 ```
 
-Trên Windows, dấu phân cách classpath là dấu chấm phẩy:
+On Windows, the classpath separator is a semicolon:
 
 ```powershell
 java -cp "app.jar;lib-core.jar;lib-extra.jar" com.acme.app.Main
 ```
 
-Nếu `lib-core.jar` và `lib-extra.jar` chứa các class khác nhau nhưng cùng package `com.acme.util`, ứng dụng thường vẫn có thể nạp cả hai. Package không bị chia thành hai named module; các class được nạp vào cùng unnamed module của class loader đó.
+If `lib-core.jar` and `lib-extra.jar` contain different classes in the same package `com.acme.util`, the application can usually still load both. The package is not split across two named modules; the classes are loaded into the same unnamed module of that class loader.
 
-Đây là lý do nhiều thư viện Java cũ có thể chia package qua nhiều JAR mà vẫn hoạt động trên classpath.
+This is why many legacy Java libraries can split a package across multiple JARs and still work on the classpath.
 
-Tuy nhiên, classpath không làm mọi xung đột biến mất:
+However, the classpath does not make all conflicts disappear:
 
-- Nếu hai JAR chứa cùng binary class name, ví dụ cả hai đều có `com.acme.util.StringHelper`, class loader thường nạp bản tìm thấy đầu tiên theo thứ tự tìm kiếm (sau cơ chế delegation của loader).
-- Thứ tự classpath có thể ảnh hưởng kết quả và khiến lỗi chỉ xuất hiện ở một môi trường triển khai.
-- Nếu các class được nạp bởi class loader khác nhau, chúng không tự động thuộc cùng runtime package; package-private access có thể thất bại.
+- If two JARs contain the same binary class name, for example both have `com.acme.util.StringHelper`, the class loader typically loads the version found first in search order (after the loader's delegation mechanism).
+- Classpath order can affect the result and cause bugs to appear only in a specific deployment environment.
+- If classes are loaded by different class loaders, they do not automatically belong to the same runtime package; package-private access may fail.
 
-Classpath chấp nhận việc nhiều JAR đóng góp class vào package, nhưng không bảo đảm các class trùng tên hoặc các class loader khác nhau tương thích.
+The classpath allows multiple JARs to contribute classes to a package, but does not guarantee that duplicate class names or different class loaders are compatible.
 
-## 3. Module path: package thuộc về module
+## 3. Module Path: Packages Belong to Modules
 
-Khi JAR được đặt trên module path, Java xác định module từ:
+When JARs are placed on the module path, Java determines modules from:
 
-- `module-info.class` của explicit named module; hoặc
-- Quy tắc suy ra tên và nội dung của automatic module nếu JAR không có descriptor phù hợp.
+- `module-info.class` of an explicit named module; or
+- The rules for deriving the name and contents of an automatic module if the JAR has no corresponding descriptor.
 
-Module descriptor xác định các package được module sở hữu và những package được export. Các module không còn đơn thuần là những JAR cùng đổ class vào một classpath chung.
+The module descriptor specifies the packages owned by the module and which packages are exported. Modules are no longer merely JARs dumping classes into a shared classpath.
 
-Ví dụ:
+For example:
 
 ```text
 com.acme.core
@@ -78,31 +78,31 @@ com.acme.app
 └── requires com.acme.extra
 ```
 
-Nếu cả `com.acme.core` và `com.acme.extra` export package `com.acme.util` tới `com.acme.app`, module system không thể chọn một nguồn package duy nhất cho consumer. Resolution có thể thất bại với `ResolutionException`, kèm thông báo rằng hai module export cùng package tới một module.
+If both `com.acme.core` and `com.acme.extra` export the package `com.acme.util` to `com.acme.app`, the module system cannot choose a single package source for the consumer. Resolution can fail with `ResolutionException`, accompanied by a message stating that two modules export the same package to a module.
 
-Không nên thiết kế dựa trên việc split package tình cờ chưa gây lỗi trong một graph cụ thể. Khi thêm dependency hoặc thay đổi module đọc các package đó, xung đột có thể xuất hiện.
+You should not design based on a split package coincidentally not causing an error in one specific graph. When adding dependencies or changing which modules read those packages, conflicts can emerge.
 
-Với named module, cùng package name không có nghĩa các class thuộc cùng một module hoặc được chia sẻ quyền truy cập package-private. Package ownership là một phần của ranh giới module.
+With named modules, having the same package name does not mean the classes belong to the same module or share package-private access. Package ownership is part of the module boundary.
 
-## 4. Vì sao classpath và module path cho kết quả khác nhau?
+## 4. Why Do the Classpath and Module Path Produce Different Results?
 
-So sánh:
+Comparison:
 
-| Nội dung | Classpath | Module path |
+| Aspect | Classpath | Module path |
 |---|---|---|
-| Đơn vị tổ chức | Các entry được tìm bởi class loader | Explicit hoặc automatic module |
-| Module chứa class | Thường là unnamed module của loader | Named module |
-| Nhiều JAR cùng package | Thường có thể cùng đóng góp vào package của unnamed module | Có thể gây split-package conflict trong module graph |
-| Package visibility | Quy tắc truy cập Java truyền thống trong runtime package | Kết hợp quy tắc truy cập Java và exports/opens của module |
-| Dependency declaration | Không có `requires` trong module descriptor | Có `requires`, `exports`, `uses`, `provides` |
-| Module resolution | Không resolve graph cho các classpath JAR | Resolve root modules và dependency |
-| Class trùng binary name | Thứ tự tìm kiếm/class loader có thể quyết định class được nạp | Module ownership và resolution phải nhất quán; không nên có hai nguồn package cạnh tranh |
+| Unit of organization | Entries searched by the class loader | Explicit or automatic modules |
+| Module containing classes | Typically the loader's unnamed module | Named module |
+| Multiple JARs with the same package | Can usually co-contribute to the unnamed module's package | Can cause a split-package conflict in the module graph |
+| Package visibility | Traditional Java access rules within the runtime package | Combines Java access rules and module exports/opens |
+| Dependency declaration | No `requires` in a module descriptor | Has `requires`, `exports`, `uses`, `provides` |
+| Module resolution | Does not resolve a graph for classpath JARs | Resolves root modules and dependencies |
+| Duplicate binary class names | Search order/class loader may determine the loaded class | Module ownership and resolution must be consistent; there should not be two competing package sources |
 
-Trên classpath, các JAR được nhìn như các nguồn class của unnamed module. Trên module path, mỗi module là một đơn vị độc lập với package ownership và dependency rõ ràng. Vì vậy, chỉ đổi tham số khởi chạy từ `-cp` sang `--module-path` không phải là một bước modular hóa đầy đủ.
+On the classpath, JARs are viewed as class sources for the unnamed module. On the module path, each module is an independent unit with explicit package ownership and dependencies. Therefore, merely changing the launch argument from `-cp` to `--module-path` is not a complete modularization step.
 
-## 5. Split package khi trộn classpath và module path
+## 5. Split Packages When Mixing the Classpath and Module Path
 
-Một ứng dụng có thể đồng thời dùng cả classpath và module path:
+An application can use both the classpath and module path simultaneously:
 
 ```bash
 java --module-path mods \
@@ -110,23 +110,23 @@ java --module-path mods \
   -m com.acme.app/com.acme.app.Main
 ```
 
-Trong cấu hình này:
+In this configuration:
 
-- Các module trong `mods` là named hoặc automatic modules.
-- Các thư viện trong `legacy-libs` thuộc unnamed module của class loader tương ứng.
-- Package cùng tên ở hai phía vẫn nằm trong các module/loading context khác nhau; chúng không tự động hợp nhất thành một package dùng chung.
+- Modules in `mods` are named or automatic modules.
+- Libraries in `legacy-libs` belong to the unnamed module of the corresponding class loader.
+- Packages with the same name on both sides remain in different modules/loading contexts; they do not automatically merge into a single shared package.
 
-Một điểm quan trọng là named module không đọc unnamed module theo mặc định. Vì vậy, nếu `com.acme.app` là named module và cần một thư viện vẫn để trên classpath, khai báo `requires` tới tên JAR đó sẽ không biến thư viện classpath thành một named module.
+An important point is that a named module does not read the unnamed module by default. Therefore, if `com.acme.app` is a named module and needs a library still left on the classpath, declaring `requires` to that JAR's name will not turn the classpath library into a named module.
 
-Ngược lại, code chạy trong unnamed module có thể đọc các named module được đưa vào module layer phù hợp. Sự bất đối xứng này làm cho quá trình chuyển đổi từng phần cần được thiết kế cẩn thận.
+Conversely, code running in the unnamed module can read named modules placed in an appropriate module layer. This asymmetry makes partial migration require careful design.
 
-Nếu cùng package xuất hiện trên cả module path và classpath, hãy kiểm tra module nào thực sự sở hữu từng class và class loader nào nạp chúng. Đừng dựa vào việc hai tên package giống nhau để giả định package-private access, class identity hoặc thứ tự nạp sẽ giống như khi tất cả JAR nằm trên classpath.
+If the same package appears on both the module path and classpath, check which module actually owns each class and which class loader loads them. Do not rely on two identical package names to assume package-private access, class identity, or loading order will behave the same as when all JARs are on the classpath.
 
-Các biểu hiện khi trộn không đúng có thể gồm package không visible lúc compile, class không tìm thấy ở runtime, lỗi truy cập hoặc liên kết nhầm phiên bản class. Nguyên nhân cụ thể phụ thuộc vào module graph, class loader và cách ứng dụng được biên dịch/khởi chạy.
+Symptoms of improper mixing can include packages not being visible at compile time, classes not found at runtime, access errors, or linking the wrong class version. The exact cause depends on the module graph, class loaders, and how the application is compiled/launched.
 
-## 6. Ví dụ chuyển hai JAR từ classpath sang module path
+## 6. Example of Moving Two JARs from the Classpath to the Module Path
 
-Giả sử ban đầu có:
+Suppose initially you have:
 
 ```text
 legacy-app.jar
@@ -134,7 +134,7 @@ legacy-core.jar
 legacy-extra.jar
 ```
 
-Hai thư viện chứa:
+The two libraries contain:
 
 ```text
 legacy-core.jar
@@ -144,47 +144,47 @@ legacy-extra.jar
 └── com/acme/util/DateHelper.class
 ```
 
-Cách chạy cũ:
+Legacy launch command:
 
 ```bash
 java -cp "legacy-app.jar:legacy-core.jar:legacy-extra.jar" \
   com.acme.app.Main
 ```
 
-Cấu trúc này có thể hoạt động vì các class cùng package được nạp trong unnamed module.
+This structure can work because classes in the same package are loaded in the unnamed module.
 
-Nếu chuyển cả hai thư viện thành hai automatic module trên module path, package `com.acme.util` được xuất hiện trong hai module riêng. Automatic module có quy tắc export package rộng, nên xung đột package có thể lộ ra trong quá trình resolution khi consumer đọc cả hai.
+If both libraries are moved as two automatic modules onto the module path, the package `com.acme.util` appears in two separate modules. Automatic modules have broad package export rules, so package conflicts can surface during resolution when a consumer reads both.
 
-Nếu chuyển `legacy-core.jar` lên module path nhưng để `legacy-extra.jar` trên classpath, hai phần package nằm trong named module và unnamed module. Named module không tự đọc phần classpath còn lại. Một dependency vốn chạy được trên classpath vì vậy có thể không còn hoạt động.
+If `legacy-core.jar` is moved to the module path while `legacy-extra.jar` is left on the classpath, the two parts of the package sit in a named module and the unnamed module. The named module does not automatically read the remaining classpath part. A dependency that used to work on the classpath may therefore no longer function.
 
-Cách sửa bền vững là xác định package thuộc module nào và tổ chức artifact theo ranh giới đó, thay vì chỉ đổi vị trí JAR.
+The sustainable fix is to determine which module owns each package and organize artifacts along those boundaries, rather than just moving JAR locations.
 
-## 7. Cách kiểm tra package trong từng JAR
+## 7. How to Inspect Packages in Each JAR
 
-Liệt kê class trong JAR:
+List classes in JARs:
 
 ```bash
 jar --list --file legacy-core.jar
 jar --list --file legacy-extra.jar
 ```
 
-Tìm các đường dẫn có cùng thư mục package, ví dụ:
+Look for paths sharing the same package directory, for example:
 
 ```text
 com/acme/util/StringHelper.class
 com/acme/util/DateHelper.class
 ```
 
-Xem module descriptor hoặc tên automatic module:
+Inspect module descriptors or automatic module names:
 
 ```bash
 jar --describe-module --file legacy-core.jar
 jar --describe-module --file legacy-extra.jar
 ```
 
-Lệnh này giúp xác định module name, package được nhận diện và các directive module. Nếu JAR không có `module-info.class`, kết quả có thể cho biết nó là automatic module và tên được suy ra hoặc khai báo qua manifest.
+This command helps determine the module name, recognized packages, and module directives. If a JAR has no `module-info.class`, the output can show that it is an automatic module and the name inferred or declared via the manifest.
 
-Để kiểm tra module graph trên module path:
+To check the module graph on the module path:
 
 ```bash
 java --validate-modules \
@@ -192,7 +192,7 @@ java --validate-modules \
   --add-modules ALL-MODULE-PATH
 ```
 
-Lệnh validation có thể phát hiện xung đột package và các vấn đề module graph khác. Nếu cần xem module nào thực sự được resolve khi chạy ứng dụng:
+The validation command can detect package conflicts and other module graph issues. If you need to see which modules are actually resolved when running the application:
 
 ```bash
 java --module-path mods \
@@ -200,19 +200,19 @@ java --module-path mods \
   -m com.acme.app/com.acme.app.Main
 ```
 
-Có thể dùng `jdeps` để xem dependency và kiểm tra descriptor:
+You can use `jdeps` to inspect dependencies and check descriptors:
 
 ```bash
 jdeps --check com.acme.app --module-path mods
 ```
 
-Nên kiểm tra toàn bộ tập artifact sẽ được triển khai cùng nhau. Kiểm tra từng JAR riêng lẻ không phát hiện được package bị chia giữa hai JAR.
+You should inspect the entire set of artifacts that will be deployed together. Checking each JAR individually cannot detect a package split between two JARs.
 
-## 8. Hướng xử lý khi chuyển sang module path
+## 8. Approaches When Migrating to the Module Path
 
-### Gom package về một module sở hữu
+### Consolidate the package into one owning module
 
-Nếu các class cùng package thuộc cùng một thành phần, chuyển chúng về một module duy nhất:
+If classes in the same package belong to the same component, move them into a single module:
 
 ```text
 com.acme.util
@@ -220,7 +220,7 @@ com.acme.util
 └── DateHelper
 ```
 
-Module descriptor export package nếu đó là API cần cho consumer:
+The module descriptor exports the package if it is an API needed by consumers:
 
 ```java
 module com.acme.util {
@@ -228,34 +228,34 @@ module com.acme.util {
 }
 ```
 
-### Tách package theo trách nhiệm
+### Separate packages by responsibility
 
-Nếu các class thuộc hai thành phần độc lập, đổi package để mỗi module sở hữu package riêng:
+If the classes belong to two independent components, rename packages so each module owns its own package:
 
 ```text
 com.acme.core.util.StringHelper
 com.acme.extra.util.DateHelper
 ```
 
-Cần cập nhật import, cấu hình serialization/reflection và các tên class được lưu trong cấu hình nếu chúng được tham chiếu bằng tên đầy đủ.
+You must update imports, serialization/reflection configurations, and class names stored in configurations if they are referenced by their fully qualified names.
 
-### Modular hóa dependency
+### Modularize dependencies
 
-Đưa các dependency cần thiết lên module path và tạo module descriptor phù hợp. Có thể bắt đầu bằng automatic module để xác định tên module và kiểm tra dependency, sau đó bổ sung explicit `module-info.java` để kiểm soát `requires` và `exports`.
+Move required dependencies onto the module path and create appropriate module descriptors. You can start with automatic modules to determine module names and verify dependencies, then add explicit `module-info.java` files to control `requires` and `exports`.
 
-Manifest `Automatic-Module-Name` giúp giữ tên automatic module ổn định giữa các phiên bản JAR, nhưng không sửa split package. Các package vẫn thuộc module riêng và vẫn cần được tổ chức không xung đột.
+The `Automatic-Module-Name` manifest attribute keeps the automatic module name stable across JAR versions, but it does not fix split packages. Packages still belong to separate modules and still need to be organized without conflicts.
 
-### Tạm giữ nhóm thư viện legacy trên classpath
+### Temporarily keep legacy library groups on the classpath
 
-Nếu chưa thể modular hóa toàn bộ nhóm thư viện có package phụ thuộc lẫn nhau, có thể giữ nhóm đó trên classpath và để phần ứng dụng legacy chạy trong unnamed module trong giai đoạn chuyển đổi. Tuy nhiên, named module không đọc unnamed module theo mặc định; không thể giả định một named module sẽ sử dụng trực tiếp các class legacy chỉ vì JAR nằm trên classpath.
+If an entire group of libraries with interdependent packages cannot be modularized yet, you can keep that group on the classpath and let the legacy application portion run in the unnamed module during the transition phase. However, named modules do not read the unnamed module by default; you cannot assume a named module will directly use legacy classes merely because the JAR is on the classpath.
 
-## 9. Các cơ chế đặc biệt và giới hạn
+## 9. Special Mechanisms and Limitations
 
 ### --patch-module
 
-`--patch-module` cho phép bổ sung class hoặc resource vào một module đã tồn tại, khiến nội dung được patch trở thành một phần của module đích trong lần chạy đó.
+`--patch-module` allows adding classes or resources into an existing module, making the patched content become part of the target module for that run.
 
-Ví dụ:
+For example:
 
 ```bash
 java --patch-module com.acme.core=patches/core \
@@ -263,36 +263,36 @@ java --patch-module com.acme.core=patches/core \
   -m com.acme.app/com.acme.app.Main
 ```
 
-Đây là cơ chế có chủ đích cho một số tình huống patch hoặc kiểm thử. Nó không nên được dùng như cách sửa mặc định cho cấu trúc phát hành có package ownership không rõ ràng. Khi patch, phải xác định module đích và kiểm soát chính xác nội dung được bổ sung.
+This is an intentional mechanism for certain patching or testing scenarios. It should not be used as the default fix for release structures with unclear package ownership. When patching, you must specify the target module and strictly control the added content.
 
-### --add-reads và --add-exports
+### --add-reads and --add-exports
 
-Các tùy chọn này có thể điều chỉnh readability hoặc quyền truy cập package trong tình huống tương thích đặc biệt. Chúng không làm hai module sở hữu cùng package trở thành một module và không tự giải quyết split package.
+These options can adjust readability or package access in special compatibility situations. They do not turn two modules owning the same package into one module and do not by themselves resolve split packages.
 
 ### Automatic modules
 
-JAR không có descriptor khi đặt trên module path có thể trở thành automatic module. Automatic module thuận tiện cho quá trình chuyển đổi, nhưng nó không phải là unnamed module của classpath. Nó vẫn có tên module, tham gia module graph và có thể gây xung đột package với module khác.
+A JAR without a descriptor placed on the module path can become an automatic module. Automatic modules are convenient for migration, but they are not the classpath's unnamed module. They still have a module name, participate in the module graph, and can cause package conflicts with other modules.
 
-## 10. Quy trình kiểm tra trong CI
+## 10. Verification Workflow in CI
 
-Một pipeline chuyển đổi hoặc phát hành modular nên:
+A modular migration or release pipeline should:
 
-1. Tạo thư mục staging chứa đúng các JAR sẽ được triển khai.
-2. Quét package inventory của toàn bộ JAR để tìm package xuất hiện ở nhiều artifact.
-3. Chạy `jar --describe-module` cho các dependency để xác nhận tên module và package.
-4. Chạy `java --validate-modules` trên module path staging.
-5. Chạy integration test bằng đúng lệnh khởi chạy modular dự kiến.
-6. Kiểm tra các thư viện còn trên classpath và xác nhận không có named module nào phụ thuộc ngầm vào unnamed module.
-7. Chỉ phát hành khi các bước kiểm tra bắt buộc thành công.
+1. Create a staging directory containing the exact JARs to be deployed.
+2. Scan the package inventory of all JARs to find packages appearing in multiple artifacts.
+3. Run `jar --describe-module` on dependencies to confirm module names and packages.
+4. Run `java --validate-modules` on the staging module path.
+5. Run integration tests using the exact intended modular launch command.
+6. Check libraries remaining on the classpath and confirm no named module implicitly depends on the unnamed module.
+7. Only release when all required checks pass.
 
-Với dự án đang chuyển đổi, nên chạy test cả cấu hình classpath cũ và module path mới. Sự khác biệt giữa hai kết quả giúp phát hiện dependency ẩn, package-private coupling và các package bị chia giữa artifact.
+For a project undergoing migration, you should run tests on both the legacy classpath configuration and the new module path. Differences between the two results help uncover hidden dependencies, package-private coupling, and packages split across artifacts.
 
-## Ghi nhớ
+## Key Takeaways
 
-- Trên classpath, nhiều JAR thường cùng đóng góp class vào unnamed module của class loader; split package có thể hoạt động.
-- Trên module path, package thuộc module riêng; hai module export cùng package tới một consumer đọc cả hai có thể khiến resolution thất bại.
-- Cùng package name giữa named module và unnamed module không làm chúng trở thành một package dùng chung.
-- Named module không đọc unnamed module theo mặc định.
-- Automatic module vẫn là module và vẫn có thể tạo split-package conflict.
-- Kiểm tra toàn bộ tập JAR bằng `jar --describe-module`, `java --validate-modules`, `jdeps` và integration test.
-- Sửa bằng cách gom package về một module hoặc tách package theo trách nhiệm; `--patch-module` chỉ dành cho tình huống đặc biệt có kiểm soát.
+- On the classpath, multiple JARs typically contribute classes to the class loader's unnamed module; split packages can work.
+- On the module path, packages belong to separate modules; two modules exporting the same package to a consumer reading both can cause resolution to fail.
+- Sharing a package name between a named module and the unnamed module does not turn them into one shared package.
+- Named modules do not read the unnamed module by default.
+- Automatic modules are still modules and can still create split-package conflicts.
+- Inspect the entire set of JARs using `jar --describe-module`, `java --validate-modules`, `jdeps`, and integration tests.
+- Fix by consolidating packages into one module or separating packages by responsibility; `--patch-module` is only for controlled special situations.

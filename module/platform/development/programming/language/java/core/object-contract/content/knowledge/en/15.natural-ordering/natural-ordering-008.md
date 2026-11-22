@@ -1,78 +1,78 @@
-# Không dùng phép trừ dễ tràn số để cài đặt `compareTo()`
+# Do Not Use Overflow-Prone Subtraction to Implement `compareTo()`
 
-## 1. Vấn đề: phép trừ không luôn cho biết đúng thứ tự
+## 1. The problem: subtraction does not always indicate the true order
 
-Khi cài đặt `Comparable<T>.compareTo(T other)`, một cách viết rất dễ gặp là lấy hai trường số trừ cho nhau:
+When implementing `Comparable<T>.compareTo(T other)`, a very common pattern is subtracting two numeric fields from each other:
 
 ```java
 @Override
 public int compareTo(Item other) {
-    return this.priority - other.priority; // Nguy hiểm nếu int bị tràn.
+    return this.priority - other.priority; // Dangerous if int overflows.
 }
 ```
 
-Đây chỉ là đoạn mã minh họa bên trong một lớp `Item` giả định có trường `int priority`, **không phải chương trình độc lập**. Nó có vẻ hợp lý: hiệu âm khi giá trị bên trái nhỏ hơn, hiệu bằng 0 khi bằng nhau, hiệu dương khi lớn hơn. Nhưng trong Java, `int` và `long` là các kiểu số nguyên có **giới hạn**. Kết quả toán học của phép trừ có thể vượt phạm vi lưu trữ; khi đó kết quả số nguyên Java bị tràn và có thể **đảo dấu**.
+This is only an illustrative snippet inside a hypothetical `Item` class having field `int priority`, **not a standalone program**. It looks reasonable: negative difference when the left value is smaller, zero difference when equal, positive difference when larger. Yet in Java, `int` and `long` are **bounded** integer types. The mathematical result of subtraction can exceed storage range; when that happens, the Java integer result overflows and can **flip sign**.
 
-Thí dụ với `int`:
+Example with `int`:
 
 ```text
 Integer.MAX_VALUE =  2147483647
 Integer.MIN_VALUE = -2147483648
 
-Theo toán học: 2147483647 - (-1) = 2147483648, một số dương.
-Trong int Java: 2147483647 - (-1) = -2147483648 (tràn số).
+Mathematically: 2147483647 - (-1) = 2147483648, a positive number.
+In Java int: 2147483647 - (-1) = -2147483648 (overflow).
 ```
 
-Như vậy, dù `2147483647 > -1`, phép trừ `2147483647 - (-1)` lại cho kết quả **âm**, khiến `compareTo()` sai về mặt thứ tự. Lỗi này khó phát hiện khi chỉ thử các số nhỏ như 1, 2, 3.
+Thus, even though `2147483647 > -1`, the subtraction `2147483647 - (-1)` yields a **negative** result, making `compareTo()` wrong in ordering. This bug is hard to notice when testing only small numbers like 1, 2, 3.
 
-**Cách viết đúng là dùng `Integer.compare(a, b)` cho `int`, `Long.compare(a, b)` cho `long`, hoặc `Comparator.comparingInt`/`comparingLong` khi tạo comparator.** Các API đó so sánh trực tiếp thứ tự của hai giá trị thay vì phụ thuộc phép trừ có khả năng tràn.
+**The right way is using `Integer.compare(a, b)` for `int`, `Long.compare(a, b)` for `long`, or `Comparator.comparingInt`/`comparingLong` when creating a comparator.** Those APIs compare the order of two values directly rather than relying on overflow-prone subtraction.
 
-## 2. Hợp đồng của `compareTo()`: quan trọng là dấu, không phải độ lớn
+## 2. The `compareTo()` contract: sign matters, not magnitude
 
-Với một lớp `T implements Comparable<T>`, `a.compareTo(b)` phải có ý nghĩa:
+For a class `T implements Comparable<T>`, `a.compareTo(b)` must mean:
 
-| Kết quả | Cách hiểu |
+| Result | Interpretation |
 | --- | --- |
-| Nhỏ hơn 0 | `a` đứng **trước** `b` trong thứ tự tự nhiên. |
-| Bằng 0 | `a` và `b` được coi là **tương đương về thứ tự**. |
-| Lớn hơn 0 | `a` đứng **sau** `b`. |
+| Less than 0 | `a` comes **before** `b` in natural ordering. |
+| Equal to 0 | `a` and `b` are considered **equivalent in ordering**. |
+| Greater than 0 | `a` comes **after** `b`. |
 
-Không có yêu cầu kết quả phải chính xác là `-1`, `0`, `1`: chỉ **dấu** mới là hợp đồng quan trọng. Ví dụ, một triển khai `String.compareTo` có thể trả một số âm hoặc dương có độ lớn khác 1.
+There is no requirement that the result be strictly `-1`, `0`, `1`: only the **sign** is contractually significant. For instance, a `String.compareTo` implementation may return a negative or positive number whose magnitude differs from 1.
 
-Các quy tắc đặc biệt cần bảo đảm:
+Specific rules that must hold:
 
-1. **Phản đối xứng về dấu:** `sign(a.compareTo(b)) == -sign(b.compareTo(a))`. Hai chiều không thể cùng âm hoặc cùng dương.
-2. **Bắc cầu:** nếu `a > b` và `b > c` theo `compareTo`, thì `a > c`. Tương tự đối với quan hệ nhỏ hơn.
-3. **Tương đương nhất quán:** khi `a.compareTo(b) == 0`, `a` và `b` phải so với mọi đối tượng thứ ba theo cùng dấu.
-4. **Không thay đổi khi dữ liệu so sánh giữ nguyên:** phép so sánh nên ổn định theo trạng thái dùng để xác định thứ tự.
+1. **Sign antisymmetry:** `sign(a.compareTo(b)) == -sign(b.compareTo(a))`. Both directions cannot be negative or both positive.
+2. **Transitivity:** if `a > b` and `b > c` under `compareTo`, then `a > c`. Similarly for the less-than relation.
+3. **Consistent equivalence:** when `a.compareTo(b) == 0`, `a` and `b` must compare against every third object with the same sign.
+4. **Unchanged while compared data stays constant:** comparison should remain stable with respect to the state used to determine order.
 
-Với một đối tượng `x`, `x.compareTo(null)` thông thường ném `NullPointerException` theo hợp đồng `Comparable`; bản thân comparator có thể được cấu hình chính sách xử lý `null`, ví dụ `Comparator.nullsFirst` hoặc `nullsLast`.
+For an object `x`, `x.compareTo(null)` normally throws `NullPointerException` by the `Comparable` contract; a comparator itself can be configured with a `null`-handling policy, such as `Comparator.nullsFirst` or `nullsLast`.
 
-`compareTo` có kết quả 0 không **bắt buộc** đồng nghĩa với `equals == true`, nhưng **nên nhất quán với `equals`** khi dùng lớp làm kiểu giá trị hoặc khóa trong collection có thứ tự. Ví dụ nổi tiếng là `BigDecimal`: `new BigDecimal("1.0").compareTo(new BigDecimal("1.00")) == 0`, nhưng `equals` trả `false` vì khác scale. Phải xác định rõ điều này khi dùng `TreeSet`/`TreeMap`.
+`compareTo` returning 0 does not **mandate** `equals == true`, yet **it should be consistent with `equals`** when the class is used as a value type or key in ordered collections. A famous example is `BigDecimal`: `new BigDecimal("1.0").compareTo(new BigDecimal("1.00")) == 0`, yet `equals` returns `false` due to differing scale. This must be clearly understood when using `TreeSet`/`TreeMap`.
 
-Nếu phép trừ gây sai dấu, ngay quy tắc đầu tiên đã có thể bị phá vỡ; sau đó thuật toán sắp xếp và cây cân bằng có thể hoạt động không đúng kỳ vọng.
+If subtraction produces the wrong sign, the very first rule is already broken; subsequently sorting algorithms and balanced trees can behave unexpectedly.
 
-## 3. Tràn `int` có thể phá cả phản đối xứng và bắc cầu
+## 3. `int` overflow can break both antisymmetry and transitivity
 
-### 3.1. Cả hai chiều đều âm
+### 3.1. Both directions negative
 
-Đặt `a = Integer.MAX_VALUE`, `b = -1`. Khi dùng hiệu `a - b`:
+Set `a = Integer.MAX_VALUE`, `b = -1`. When using the difference `a - b`:
 
 ```text
 a - b = 2147483647 - (-1)
-      = -2147483648  (tràn int, dấu âm)
+      = -2147483648  (int overflow, negative sign)
 
 b - a = -1 - 2147483647
-      = -2147483648  (không tràn, vẫn âm)
+      = -2147483648  (no overflow, still negative)
 ```
 
-Cả `a.compareTo(b)` lẫn `b.compareTo(a)` đều có dấu âm. Điều này **vi phạm hợp đồng phản đối xứng về dấu**: không thể đồng thời khẳng định `a < b` và `b < a`.
+Both `a.compareTo(b)` and `b.compareTo(a)` have negative signs. This **violates the sign-antisymmetry contract**: you cannot simultaneously assert `a < b` and `b < a`.
 
-Một sai lầm khác là lấy `Math.abs(a - b)` để so độ chênh lệch. `Math.abs(Integer.MIN_VALUE)` vẫn trả về `Integer.MIN_VALUE` vì `2147483648` không biểu diễn được bằng `int` dương. Dùng `Math.abs` không khắc phục vấn đề này.
+Another mistake is taking `Math.abs(a - b)` to measure magnitude difference. `Math.abs(Integer.MIN_VALUE)` still returns `Integer.MIN_VALUE` because `2147483648` cannot be represented as a positive `int`. Using `Math.abs` does not fix this issue.
 
-### 3.2. Một bộ ba tạo thứ tự vòng
+### 3.2. A triple forming a cyclic order
 
-Chọn:
+Choose:
 
 ```text
 a = Integer.MIN_VALUE = -2147483648
@@ -80,21 +80,21 @@ b = 0
 c = Integer.MAX_VALUE =  2147483647
 ```
 
-Với comparator sai `(x, y) -> x - y`:
+With the broken comparator `(x, y) -> x - y`:
 
 ```text
-a - b = -2147483648 < 0, nên comparator nói a < b.
-b - c = -2147483647 < 0, nên comparator nói b < c.
-a - c = 1 > 0 do tràn int, nên comparator lại nói a > c.
+a - b = -2147483648 < 0, so the comparator says a < b.
+b - c = -2147483647 < 0, so the comparator says b < c.
+a - c = 1 > 0 due to int overflow, so the comparator says a > c.
 ```
 
-Ta có `a < b`, `b < c`, nhưng `a > c`: **vi phạm tính bắc cầu**. Vì vậy, đây không đơn thuần là lỗi thứ tự của một cặp giá trị. Nó có thể khiến toàn bộ quan hệ thứ tự không còn hợp lệ.
+We have `a < b`, `b < c`, yet `a > c`: **a transitivity violation**. Therefore, this is not merely a single-pair ordering bug. It can invalidate the entire ordering relation.
 
-Một thuật toán sắp xếp dựa vào comparator hợp lệ có thể cho thứ tự sai, và một số đường chạy của thư viện sắp xếp Java có thể phát hiện vi phạm hợp đồng và ném `IllegalArgumentException` với thông báo về hợp đồng comparator. Không được giả định rằng Java luôn phát hiện lỗi hoặc luôn ném ngoại lệ: hành vi tùy dữ liệu và đường đi thuật toán.
+A sorting algorithm expecting a valid comparator can produce wrong orders, and some Java sorting library execution paths may detect the contract violation and throw `IllegalArgumentException` with a comparator contract message. Do not assume Java always detects the bug or always throws an exception: behavior depends on data and algorithm paths.
 
-## 4. Cách an toàn với từng kiểu số
+## 4. Safe patterns for each numeric type
 
-Java có các phương thức so sánh số nguyên theo **dấu thứ tự**:
+Java provides integer comparison methods based on **ordering sign**:
 
 ```java
 Integer.compare(aInt, bInt);
@@ -103,9 +103,9 @@ Short.compare(aShort, bShort);
 Byte.compare(aByte, bByte);
 ```
 
-Các dòng trên là **lời gọi minh họa** với các biến đã tồn tại, không phải một chương trình độc lập. Phương thức trả số âm/0/dương theo giá trị thực của kiểu, không bị tràn do lấy hiệu.
+The lines above are **illustrative calls** using already-existing variables, not a standalone program. The methods return negative/0/positive according to the type's true values, without overflowing from taking a difference.
 
-Cài đặt `compareTo` theo kiểu điển hình:
+Typical `compareTo` implementation by type:
 
 ```java
 record Rank(int priority) implements Comparable<Rank> {
@@ -116,7 +116,7 @@ record Rank(int priority) implements Comparable<Rank> {
 }
 ```
 
-Đối với `long`:
+For `long`:
 
 ```java
 record Sequence(long id) implements Comparable<Sequence> {
@@ -127,25 +127,25 @@ record Sequence(long id) implements Comparable<Sequence> {
 }
 ```
 
-Hai đoạn `record` là các khai báo kiểu độc lập có thể đặt ở top-level một tệp Java 17 (hoặc làm kiểu lồng hợp lệ); `record` tạo sẵn `equals/hashCode` dựa trên component và ở đây `compareTo` dùng đúng component đó.
+Both `record` snippets are standalone type declarations that can be placed at top-level in a Java 17 file (or as valid nested types); `record` generates `equals/hashCode` based on components, and here `compareTo` uses that exact component.
 
-Có thể viết phép so sánh phân nhánh thủ công:
+You can write manual branching comparisons:
 
 ```java
 return a < b ? -1 : (a > b ? 1 : 0);
 ```
 
-Nó cũng an toàn trước tràn số khi `a` và `b` cùng kiểu số nguyên có thứ tự. Tuy nhiên, `Integer.compare` hoặc `Long.compare` giúp biểu đạt ý định ngắn gọn và ít sai hơn.
+This is also safe against overflow when `a` and `b` share an ordered integer type. However, `Integer.compare` or `Long.compare` expresses intent more concisely and with fewer errors.
 
-### Nếu số không dấu hoặc dấu phẩy động?
+### What about unsigned or floating-point numbers?
 
-- Với `int`/`long` đại diện **giá trị không dấu** theo các bit, dùng `Integer.compareUnsigned` hoặc `Long.compareUnsigned`. `Integer.compare`/ `Long.compare` coi số là **có dấu**. Chỉ chọn unsigned khi đây là yêu cầu dữ liệu thực tế.
-- Với `float`/`double`, dùng `Float.compare` hoặc `Double.compare` khi cần thứ tự toàn phần theo quy tắc của wrapper, bao gồm `NaN` và phân biệt `-0.0` với `+0.0`. Không dùng phép trừ rồi ép sang `int`, vì còn có sai số, vô cực, NaN và kết quả ép kiểu không biểu đạt đúng quan hệ so sánh.
-- Với `BigInteger`/`BigDecimal`, dùng `a.compareTo(b)` của chính kiểu đó; không cố chuyển sang `int`/`long` hoặc ép kết quả hiệu thành `int`.
+- For `int`/`long` representing **unsigned bit values**, use `Integer.compareUnsigned` or `Long.compareUnsigned`. `Integer.compare`/`Long.compare` treat numbers as **signed**. Choose unsigned only when actual data semantics demand it.
+- For `float`/`double`, use `Float.compare` or `Double.compare` when a total order per wrapper rules is needed, including `NaN` and distinguishing `-0.0` from `+0.0`. Do not subtract and cast to `int`, because precision loss, infinity, NaN, and type-casting results fail to express the true comparison relation.
+- For `BigInteger`/`BigDecimal`, use that type's own `a.compareTo(b)`; do not try converting to `int`/`long` or casting a difference to `int`.
 
-## 5. Ví dụ Java 17: nhìn thấy tràn số và kết quả đúng
+## 5. Java 17 example: seeing overflow and the right result
 
-Tạo tệp `CompareOverflowDemo.java`:
+Create file `CompareOverflowDemo.java`:
 
 ```java
 public class CompareOverflowDemo {
@@ -191,14 +191,14 @@ public class CompareOverflowDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac CompareOverflowDemo.java
 java CompareOverflowDemo
 ```
 
-Stdout chính xác:
+Exact stdout:
 
 ```text
 high > low: true
@@ -216,27 +216,27 @@ cast diff zero: true
 compare long gap: true
 ```
 
-Phân tích:
+Analysis:
 
-- Hai phép `wrong(high, low)` và `wrong(low, high)` đều âm, cho thấy **cùng một cặp nhưng hai chiều trái hợp đồng**.
-- Bộ ba `min, mid, max` tạo thứ tự vòng với `wrong`: `min < mid < max` nhưng comparator kết luận `min > max`.
-- Với `long`, `Long.MAX_VALUE - (-1L)` cũng tràn thành `Long.MIN_VALUE`; đừng nghĩ đổi `int` sang `long` là sửa tận gốc.
-- Ép `(int)(longA - longB)` đặc biệt nguy hiểm: hai giá trị `long` khác nhau đúng `2^32` có hiệu khi ép sang `int` bằng **0**, khiến comparator sai ngay cả về việc coi hai giá trị là bằng thứ tự. `Long.compare` xử lý chính xác.
+- Both `wrong(high, low)` and `wrong(low, high)` are negative, showing **the same pair with both directions breaking the contract**.
+- The triple `min, mid, max` forms a cyclic order under `wrong`: `min < mid < max`, yet the comparator concludes `min > max`.
+- With `long`, `Long.MAX_VALUE - (-1L)` also overflows to `Long.MIN_VALUE`; do not think changing `int` to `long` fixes the root problem.
+- Casting `(int)(longA - longB)` is especially dangerous: two `long` values separated by exactly `2^32` have a difference that casts to `int` as **0**, causing the comparator to wrongly treat two distinct values as equal in ordering. `Long.compare` handles this accurately.
 
-Nếu cần trình bày sai lệch giữa hai số mà không bị tràn, đó là **bài toán tính chênh lệch**, khác với bài toán **xác định thứ tự**. Khi thật sự cần hiệu chính xác vượt phạm vi kiểu, có thể dùng `Math.subtractExact` để phát hiện overflow hoặc `BigInteger` để biểu diễn số lớn, nhưng các cách này không phải lựa chọn cần thiết chỉ để viết `compareTo`.
+If you need to report the numerical gap between two numbers without overflow, that is a **difference-calculation problem**, distinct from **determining order**. When an exact difference beyond type bounds is genuinely needed, you can use `Math.subtractExact` to detect overflow or `BigInteger` to represent large numbers, though these are unnecessary simply for writing `compareTo`.
 
-## 6. So sánh nhiều trường: thứ tự khóa chính, khóa phụ
+## 6. Multi-field comparison: primary key, secondary key order
 
-Một lớp thường có nhiều trường xác định thứ tự, chẳng hạn sắp xếp nhân viên theo `level` tăng dần, rồi `employeeId` tăng dần. Tuyệt đối không viết:
+A class often has multiple fields determining order, such as sorting employees by ascending `level`, then ascending `employeeId`. Never write:
 
 ```java
-// Sai: cả hai trường số đều có nguy cơ tràn; đây là đoạn minh họa.
+// Wrong: both numeric fields risk overflow; this is an illustrative snippet.
 int byLevel = this.level - other.level;
 if (byLevel != 0) return byLevel;
 return (int) (this.employeeId - other.employeeId);
 ```
 
-Ở nhánh `employeeId`, ngoài overflow của `long` còn có lỗi ép xuống `int`. Nên thực hiện **so sánh theo dấu** cho từng trường và chỉ chuyển sang khóa phụ khi kết quả khóa trước là 0:
+In the `employeeId` branch, besides `long` overflow there is the bug of casting down to `int`. Perform **sign-based comparison** for each field and move to the secondary key only when the previous key returns 0:
 
 ```java
 @Override
@@ -249,9 +249,9 @@ public int compareTo(Employee other) {
 }
 ```
 
-Đoạn mã chỉ là phần thân phương thức minh họa cho `Employee` có hai trường tương ứng. Đối với nhiều trường kiểu chuỗi, sử dụng `String.compareTo` và xác định riêng chính sách `null` nếu dữ liệu có thể vắng.
+The snippet is only an illustrative method body for an `Employee` with two corresponding fields. For multiple string fields, use `String.compareTo` and define an explicit `null` policy if data can be absent.
 
-Một công thức thay thế dùng `Comparator` có thể dễ đọc hơn:
+An alternative formula using `Comparator` can be easier to read:
 
 ```java
 Comparator<Employee> ORDER =
@@ -259,17 +259,17 @@ Comparator<Employee> ORDER =
                   .thenComparingLong(Employee::employeeId);
 ```
 
-`Comparator.comparingInt` và `thenComparingLong` dùng so sánh primitive an toàn. Các lệnh này là đoạn minh họa với lớp `Employee` có accessor `level()` và `employeeId()`. Không nên tạo comparator bằng `(a, b) -> a.level() - b.level()` chỉ để ngắn dòng.
+`Comparator.comparingInt` and `thenComparingLong` use safe primitive comparison. These statements are illustrative snippets for an `Employee` class with accessors `level()` and `employeeId()`. Do not build a comparator via `(a, b) -> a.level() - b.level()` just to save a few characters.
 
-### So sánh giảm dần không cần nhân với `-1`
+### Descending comparison without multiplying by `-1`
 
-Một thói quen khác là đảo thứ tự bằng `-ascendingCompare(a, b)`. Hợp đồng `Comparable` chỉ yêu cầu giá trị âm/0/dương, **không bảo đảm** kết quả của mọi `compareTo` chỉ thuộc `-1, 0, 1`. Nếu một comparator hợp lệ trả `Integer.MIN_VALUE`, lấy dấu âm của kết quả đó vẫn bằng `Integer.MIN_VALUE` do tràn.
+Another habit is reversing order with `-ascendingCompare(a, b)`. The `Comparable` contract only requires negative/0/positive values, **not guaranteeing** every `compareTo` result lies in `-1, 0, 1`. If a valid comparator returns `Integer.MIN_VALUE`, negating that result still yields `Integer.MIN_VALUE` due to overflow.
 
-Để đảo thứ tự, dùng `comparator.reversed()` hoặc so sánh **đảo đối số** bằng API an toàn, ví dụ `Integer.compare(b, a)`, thay vì nhân hoặc đổi dấu một kết quả comparator bất kỳ.
+To reverse order, use `comparator.reversed()` or compare with **swapped arguments** via a safe API, such as `Integer.compare(b, a)`, rather than multiplying or negating an arbitrary comparator result.
 
-## 7. Ví dụ hoàn chỉnh Java 17: thứ tự tự nhiên nhiều trường
+## 7. Complete Java 17 example: multi-field natural ordering
 
-Tạo tệp `EmployeeOrderDemo.java`:
+Create file `EmployeeOrderDemo.java`:
 
 ```java
 import java.util.ArrayList;
@@ -329,7 +329,7 @@ public class EmployeeOrderDemo {
 }
 ```
 
-Biên dịch/chạy:
+Compile/run:
 
 ```bash
 javac EmployeeOrderDemo.java
@@ -349,39 +349,39 @@ same ordering: true
 reversed high first: true
 ```
 
-Giải thích: `level` được xét trước `employeeId`, sau đó mới xét `name`. Hai nhân viên cùng `Integer.MIN_VALUE` được xếp theo `employeeId` 11 trước 12; nhân viên `Integer.MAX_VALUE` xếp sau. Bộ `Comparator` tạo bằng các hàm so sánh trường biểu diễn đúng cùng thứ tự, còn `reversed()` dùng khi cần giảm dần.
+Explanation: `level` is checked before `employeeId`, followed by `name`. Two employees sharing `Integer.MIN_VALUE` are ordered by `employeeId` 11 before 12; the `Integer.MAX_VALUE` employee comes after. The `Comparator` built from field-comparison helpers expresses the exact same order, while `reversed()` is used when descending order is needed.
 
-Ở đây record `Employee` sinh sẵn `equals/hashCode` dựa trên cả ba component; `compareTo` cũng xét cả ba component, nên với dữ liệu `name` không null, ví dụ duy trì tính nhất quán tự nhiên giữa thứ tự và bình đẳng. Nếu cố tình chỉ so sánh `level` mà bỏ `employeeId/name`, hai record khác nhau có thể có `compareTo == 0`, điều này cần được quyết định rõ theo nghiệp vụ.
+Here record `Employee` automatically generates `equals/hashCode` based on all three components; `compareTo` also checks all three components, so with non-null `name` data, the example maintains natural consistency between ordering and equality. If you intentionally compare only `level` and omit `employeeId/name`, two distinct records can have `compareTo == 0`, which must be decided deliberately per business logic.
 
-## 8. Những lỗi sửa sai tưởng đúng nhưng vẫn nguy hiểm
+## 8. Deceptive "fixes" that remain dangerous
 
-| Cách viết | Vấn đề | Thay thế |
+| Pattern | Issue | Replacement |
 | --- | --- | --- |
-| `return a - b;` với `int` | Tràn, trả sai dấu, phá hợp đồng. | `Integer.compare(a, b)`. |
-| `return (int) (aLong - bLong);` | Có thể tràn `long` và mất bit khi ép `int`. | `Long.compare(aLong, bLong)`. |
-| `return Math.abs(a - b);` | Mất dấu thứ tự và `abs(MIN_VALUE)` vẫn âm. | Dùng API compare trực tiếp. |
-| `return (a - b) > 0 ? 1 : ...;` | Kiểm tra **sau phép trừ** vẫn chịu overflow. | `a < b ? -1 : a > b ? 1 : 0`, hoặc API compare. |
-| `return -other.compareTo(this);` | Đổi dấu `Integer.MIN_VALUE` có thể tràn nếu comparator trả giá trị đó. | `Comparator.reversed()` hoặc so sánh đối số đảo đúng cách. |
-| So sánh khóa phụ bằng phép trừ sau khi khóa chính bằng nhau | Cùng lỗi overflow ở nhánh ít gặp. | `thenComparingInt`, `thenComparingLong`, hoặc `Long.compare`. |
-| Chỉ kiểm tra số nhỏ và dương | Không bắt lỗi ở biên miền số, dấu khác nhau. | Kiểm tra `MIN_VALUE`, `MAX_VALUE`, âm, 0, dương. |
+| `return a - b;` for `int` | Overflows, returns wrong sign, breaks contract. | `Integer.compare(a, b)`. |
+| `return (int) (aLong - bLong);` | Can overflow `long` and drop bits when casting to `int`. | `Long.compare(aLong, bLong)`. |
+| `return Math.abs(a - b);` | Loses ordering sign and `abs(MIN_VALUE)` stays negative. | Use compare APIs directly. |
+| `return (a - b) > 0 ? 1 : ...;` | Checking **after subtraction** still suffers overflow. | `a < b ? -1 : a > b ? 1 : 0`, or compare APIs. |
+| `return -other.compareTo(this);` | Negating `Integer.MIN_VALUE` can overflow if the comparator returns it. | `Comparator.reversed()` or properly swapped argument comparison. |
+| Comparing secondary key with subtraction after primary keys match | Same overflow bug in the less-frequent branch. | `thenComparingInt`, `thenComparingLong`, or `Long.compare`. |
+| Testing only small positive numbers | Fails to catch bugs at numeric range boundaries and differing signs. | Test `MIN_VALUE`, `MAX_VALUE`, negative, 0, positive. |
 
-Ngoài overflow, một `compareTo` có thể sai hợp đồng vì dùng dữ liệu thay đổi theo thời gian, quy tắc xử lý `null` thiếu nhất quán, cài đặt không đối xứng ở các nhánh lớp con, hoặc so sánh theo một trường không ổn định khi đã đưa đối tượng vào `TreeSet`/`TreeMap`. Đừng xem việc thay dấu trừ bằng `Integer.compare` là đủ nếu các phần còn lại của chính sách thứ tự vẫn mâu thuẫn.
+Besides overflow, a `compareTo` can violate its contract by using time-varying data, inconsistent `null`-handling rules, asymmetric subclass implementations, or comparing on an unstable field after inserting the object into `TreeSet`/`TreeMap`. Do not assume replacing `-` with `Integer.compare` is sufficient if the rest of the ordering policy remains contradictory.
 
-### Lưu ý với `TreeSet` và `TreeMap`
+### Notes on `TreeSet` and `TreeMap`
 
-Các collection có thứ tự như `TreeSet` và `TreeMap` dựa vào `compareTo` hoặc `Comparator` để tìm kiếm và xác định hai khóa tương đương về thứ tự. Nếu comparator trả `0` cho hai khóa khác nhau do ép kiểu làm mất bit, collection có thể coi chúng là cùng vị trí khóa dù `equals` trả `false`. Nếu comparator sai bắc cầu, cấu trúc cây có thể không còn bảo đảm các thao tác `contains`/`get`/`remove` như mong đợi.
+Ordered collections such as `TreeSet` and `TreeMap` rely on `compareTo` or a `Comparator` to search and determine two ordering-equivalent keys. If a comparator returns `0` for two distinct keys due to bit loss on casting, the collection may treat them as the same key position even when `equals` returns `false`. If the comparator breaks transitivity, the tree structure may no longer guarantee `contains`/`get`/`remove` operations as expected.
 
-Không nên thay đổi các trường tham gia `compareTo`/`Comparator` trong khi đối tượng đang được dùng làm khóa `TreeMap` hoặc phần tử `TreeSet`, vì collection không tự xây dựng lại thứ tự khi trạng thái khóa đổi.
+Do not modify fields participating in `compareTo`/`Comparator` while the object is being used as a `TreeMap` key or `TreeSet` element, because the collection does not automatically rebuild its order when key state changes.
 
-Với những kiểu mà `compareTo == 0` khác `equals == true` theo thiết kế (ví dụ `BigDecimal`), cần hiểu `TreeSet` sử dụng **tương đương về thứ tự** để xác định một phần tử đã có mặt. Đây là một chủ đề riêng nhưng liên quan trực tiếp đến việc chọn khóa so sánh và viết comparator không lỗi.
+For types where `compareTo == 0` differs from `equals == true` by design (such as `BigDecimal`), understand that `TreeSet` uses **ordering equivalence** to decide whether an element is already present. This is a separate topic, yet directly tied to choosing comparison keys and writing bug-free comparators.
 
-## 9. Cách kiểm thử một cài đặt `compareTo`
+## 9. How to test a `compareTo` implementation
 
-Thay vì chỉ gọi `sort` rồi nhìn danh sách, hãy kiểm tra **hợp đồng** của phép so sánh trên các mẫu đã chọn.
+Instead of merely calling `sort` and glancing at the list, test the comparison **contract** on selected samples.
 
-### Mẫu biên bắt buộc
+### Mandatory boundary samples
 
-Với trường `int`, nên có:
+For an `int` field, include:
 
 ```text
 Integer.MIN_VALUE
@@ -393,53 +393,53 @@ Integer.MAX_VALUE - 1
 Integer.MAX_VALUE
 ```
 
-Với `long`, dùng tương tự `Long.MIN_VALUE` và `Long.MAX_VALUE`, cùng một cặp cách nhau `2^32` để bắt lỗi ép xuống `int`.
+For `long`, similarly use `Long.MIN_VALUE` and `Long.MAX_VALUE`, plus a pair separated by `2^32` to catch casts down to `int`.
 
-### Kiểm tra từng cặp hai chiều
+### Checking every pair in both directions
 
-Đối với mọi cặp mẫu `a` và `b`, cần xác nhận:
+For every sample pair `a` and `b`, confirm:
 
 ```text
 sign(a.compareTo(b)) == -sign(b.compareTo(a))
 ```
 
-Dùng `Integer.signum(result)` để lấy dấu `-1`, `0`, hoặc `1` **sau khi comparator trả kết quả**; không có phép trừ ở đây. Với phép so sánh thứ tự từ giá trị gốc, có thể đối chiếu dấu với `Integer.compare` hoặc `Long.compare`.
+Use `Integer.signum(result)` to extract sign `-1`, `0`, or `1` **after the comparator returns a result**; no subtraction is involved here. For ordering comparisons from raw values, you can cross-check the sign against `Integer.compare` or `Long.compare`.
 
-Nên thử ít nhất những cặp sau: `MIN` với `MAX`; `MAX` với `-1`; `MIN` với `1`; hai giá trị bằng nhau; hai giá trị sát nhau; và cặp `long` rất xa nhau.
+Test at least these pairs: `MIN` with `MAX`; `MAX` with `-1`; `MIN` with `1`; two equal values; two adjacent values; and a very far-apart `long` pair.
 
-### Kiểm tra bộ ba có thứ tự
+### Checking ordered triples
 
-Với bộ ba `a`, `b`, `c` và một comparator dự kiến tăng dần:
+For a triple `a`, `b`, `c` and an expected ascending comparator:
 
 ```text
-Nếu compare(a,b) < 0 và compare(b,c) < 0
-thì compare(a,c) phải < 0.
+If compare(a,b) < 0 and compare(b,c) < 0
+then compare(a,c) must be < 0.
 ```
 
-Tương tự cho chiều lớn hơn. Khi comparator có thể trả `0`, cần kiểm tra thêm rằng quan hệ tương đương theo `compare == 0` là bắc cầu và các đối tượng tương đương có cùng dấu khi so sánh với một đối tượng thứ ba. Một bộ kiểm thử tự động có thể duyệt tất cả cặp và bộ ba có thứ tự trên tập dữ liệu biên nhỏ.
+Similarly for the greater-than direction. When the comparator can return `0`, additionally verify that the `compare == 0` equivalence relation is transitive and equivalent objects share the same sign when compared against a third object. An automated test suite can iterate through all ordered pairs and triples on a small boundary dataset.
 
-Thử nghiệm hữu hạn giúp **tìm** sai lệch nhưng không chứng minh tuyệt đối mọi giá trị có thể có. Cách cài đặt dựa trên `Integer.compare`/`Long.compare` và chain nhất quán vẫn có nền tảng đáng tin cậy hơn thử nghiệm ngẫu nhiên của `a - b`.
+Finite testing helps **find** discrepancies yet cannot mathematically prove every possible value. An implementation built on `Integer.compare`/`Long.compare` and consistent chaining remains a far more reliable foundation than ad-hoc testing of `a - b`.
 
-### Checklist trước khi sử dụng
+### Pre-use checklist
 
-1. Tất cả trường số đều dùng phương thức `compare` phù hợp, không dùng phép trừ để quyết định dấu?
-2. Mọi khóa phụ cũng sử dụng phép so sánh an toàn và chỉ chạy khi khóa trước bằng nhau?
-3. Có ép kết quả `long` xuống `int`, dùng `Math.abs`, hoặc đảo dấu một giá trị comparator bất kỳ?
-4. Các giá trị biên âm/dương, cực tiểu/cực đại được bao phủ?
-5. Có kiểm tra hai hướng từng cặp và một số bộ ba, đặc biệt những bộ ba nằm gần biên?
-6. `compareTo == 0` có phù hợp với ý nghĩa bằng nhau theo nghiệp vụ và với `equals` hay đã được ghi rõ lý do khác biệt?
-7. Các trường tham gia thứ tự có ổn định khi đối tượng đã được lưu trong `TreeMap`/`TreeSet`?
+1. Do all numeric fields use the appropriate `compare` method instead of subtraction to decide sign?
+2. Do all secondary keys also use safe comparisons and run only when earlier keys are equal?
+3. Are you casting `long` results to `int`, using `Math.abs`, or negating an arbitrary comparator value?
+4. Are negative/positive boundaries and min/max extremes covered?
+5. Have you tested both directions per pair and several triples, especially triples near boundaries?
+6. Does `compareTo == 0` align with business equality and `equals`, or has the reason for divergence been clearly documented?
+7. Do fields participating in ordering remain stable while the object is stored in `TreeMap`/`TreeSet`?
 
-## 10. Câu hỏi tự luyện
+## 10. Practice questions
 
-1. Vì sao `Integer.MAX_VALUE - (-1)` làm comparator dùng phép trừ trả dấu sai?
-2. Nếu cả `a - b` và `b - a` cùng âm trong `int`, điều kiện nào của `compareTo` bị vi phạm?
-3. Cho `a = Integer.MIN_VALUE`, `b = 0`, `c = Integer.MAX_VALUE`. Bộ ba này bộc lộ lỗi bắc cầu nào với `(x, y) -> x - y`?
-4. Vì sao chỉ đổi kiểu `int` thành `long` không khắc phục hoàn toàn tràn số?
-5. Vì sao `(int)(leftLong - rightLong)` còn nguy hiểm hơn việc so sánh `long` bằng phép trừ?
-6. Với đối tượng có `level`, `id`, `name`, cách triển khai sắp xếp tăng dần theo cả ba trường là gì?
-7. Khi cần thứ tự giảm dần, vì sao `comparator.reversed()` đáng tin cậy hơn phủ định trực tiếp một kết quả comparator tùy ý?
-8. Một comparator trả `0` cho hai đối tượng có ID khác nhau có thể ảnh hưởng gì đến `TreeSet`?
-9. Khi nào nên dùng `Integer.compareUnsigned` thay cho `Integer.compare`?
+1. Why does `Integer.MAX_VALUE - (-1)` cause a subtraction-based comparator to return the wrong sign?
+2. If both `a - b` and `b - a` are negative in `int`, which condition of `compareTo` is violated?
+3. Given `a = Integer.MIN_VALUE`, `b = 0`, `c = Integer.MAX_VALUE`. What transitivity failure does this triple expose with `(x, y) -> x - y`?
+4. Why does merely changing `int` to `long` not completely solve overflow?
+5. Why is `(int)(leftLong - rightLong)` even more dangerous than comparing `long` via subtraction?
+6. For an object with `level`, `id`, `name`, how do you implement ascending sort across all three fields?
+7. When descending order is needed, why is `comparator.reversed()` more reliable than directly negating an arbitrary comparator result?
+8. How can a comparator returning `0` for two objects with different IDs affect `TreeSet`?
+9. When should `Integer.compareUnsigned` be used instead of `Integer.compare`?
 
-**Ghi nhớ:** `compareTo()` và `Comparator.compare()` cần trả **đúng dấu của quan hệ thứ tự**, không cần trả hiệu hai số. Phép trừ `a - b` trên `int`/`long` có thể overflow và phá cả phản đối xứng lẫn bắc cầu. Hãy dùng `Integer.compare`, `Long.compare`, và các phương thức xây dựng `Comparator` tương ứng cho mọi trường, kể cả khóa phụ.
+**Remember:** `compareTo()` and `Comparator.compare()` need to return **the correct sign of the ordering relation**, not the difference of two numbers. Subtracting `a - b` on `int`/`long` can overflow and break both antisymmetry and transitivity. Use `Integer.compare`, `Long.compare`, and corresponding `Comparator` builder methods for every field, including secondary keys.

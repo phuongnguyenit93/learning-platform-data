@@ -1,23 +1,23 @@
-# Ẩn implementation package và kiểm tra lỗi access
+# Hiding Implementation Packages and Inspecting Access Errors
 
-## 1. Mục tiêu của bài thực hành
+## 1. Lab Objectives
 
-Trong Java Platform Module System (JPMS), module có thể công khai một số package làm API và giữ các package triển khai ở bên trong. Bài thực hành này xây dựng một module thư viện có API công khai, một implementation package không export, sau đó kiểm tra các cách truy cập từ module tiêu thụ.
+In the Java Platform Module System (JPMS), a module can expose certain packages as its API while keeping implementation packages internal. This lab builds a library module with a public API, an unexported implementation package, and then tests various access approaches from a consumer module.
 
-Mục tiêu gồm:
+Objectives include:
 
-- Tạo một named module có package API và package implementation riêng.
-- Chỉ export package API trong module descriptor.
-- Thử truy cập public class nằm trong package implementation từ module khác.
-- Phân biệt lỗi biên dịch, lỗi liên kết lúc chạy và lỗi deep reflection.
-- Dùng các option JPMS trong môi trường thử nghiệm để hiểu tác động của exports và opens.
-- Giữ implementation package kín trong cấu hình production.
+- Create a named module with separate API and implementation packages.
+- Export only the API package in the module descriptor.
+- Attempt to access a public class inside the implementation package from another module.
+- Distinguish between compile-time errors, runtime link errors, and deep reflection errors.
+- Use JPMS options in a test environment to understand the effects of exports and opens.
+- Keep implementation packages encapsulated in production configurations.
 
-Ý tưởng cốt lõi: một lớp được khai báo public vẫn có thể không truy cập được từ module khác nếu package chứa lớp đó không được export. Encapsulation của JPMS bổ sung một ranh giới ở cấp package và module bên cạnh access modifier của Java.
+Core idea: a class declared as public can still be inaccessible from another module if the package containing that class is not exported. JPMS encapsulation adds a package- and module-level boundary alongside Java's access modifiers.
 
-## 2. Tạo cấu trúc dự án mẫu
+## 2. Creating the sample project structure
 
-Tạo hai module:
+Create two modules:
 
     access-demo/
       src/
@@ -29,7 +29,7 @@ Tạo hai module:
           module-info.java
           com/example/client/Main.java
 
-Module thư viện cung cấp một API:
+The library module provides an API:
 
     package com.example.library.api;
 
@@ -37,7 +37,7 @@ Module thư viện cung cấp một API:
         String greet(String name);
     }
 
-Implementation nằm trong package nội bộ:
+The implementation resides in an internal package:
 
     package com.example.library.internal;
 
@@ -50,25 +50,25 @@ Implementation nằm trong package nội bộ:
         }
     }
 
-Descriptor của module thư viện chỉ export API:
+The library module descriptor exports only the API:
 
     module com.example.library {
         exports com.example.library.api;
     }
 
-Package **com.example.library.internal** không xuất hiện trong exports. Vì vậy, module client không thể truy cập các kiểu trong package này theo quy tắc truy cập thông thường của JPMS.
+The package **com.example.library.internal** does not appear in exports. Therefore, the client module cannot access types in this package under normal JPMS access rules.
 
-Trong ví dụ thực tế, module library nên cung cấp một factory hoặc service API để consumer lấy implementation mà không cần biết lớp nội bộ. Bài thực hành cố ý giữ implementation class public để thấy rằng modifier public không tự vượt qua ranh giới module.
+In a real-world example, the library module should provide a factory or service API for consumers to obtain an implementation without knowing internal classes. This lab intentionally keeps the implementation class public to show that the public modifier does not automatically cross module boundaries.
 
-## 3. Tạo module client chỉ sử dụng API
+## 3. Creating a client module that uses only the API
 
-Module client khai báo dependency tới library:
+The client module declares a dependency on the library:
 
     module com.example.client {
         requires com.example.library;
     }
 
-Lớp main sử dụng interface được export:
+The main class uses the exported interface:
 
     package com.example.client;
 
@@ -81,35 +81,35 @@ Lớp main sử dụng interface được export:
         }
     }
 
-Ở đây client chỉ phụ thuộc vào package API. Có thể thay implementation trong library mà không cần thay đổi code consumer, miễn là contract Greeter vẫn giữ tương thích.
+Here the client only depends on the API package. You can swap implementations inside the library without changing consumer code, as long as the Greeter contract remains compatible.
 
-Nếu library có factory công khai, consumer có thể gọi factory đó:
+If the library has a public factory, the consumer can call that factory:
 
     Greeter greeter = Greeters.defaultGreeter();
 
-Factory có thể khởi tạo DefaultGreeter bên trong module library. Consumer không cần import lớp implementation và package internal tiếp tục được giữ kín.
+The factory can instantiate DefaultGreeter inside the library module. The consumer does not need to import the implementation class and the internal package continues to remain hidden.
 
-## 4. Biên dịch và chạy trên module path
+## 4. Compiling and running on the module path
 
-Từ thư mục gốc access-demo, biên dịch hai module vào thư mục mods:
+From the access-demo root directory, compile both modules into the mods directory:
 
     javac -d mods/com.example.library src/com.example.library/module-info.java src/com.example.library/com/example/library/api/Greeter.java src/com.example.library/com/example/library/internal/DefaultGreeter.java
 
     javac --module-path mods -d mods/com.example.client src/com.example.client/module-info.java src/com.example.client/com/example/client/Main.java
 
-Chạy ứng dụng:
+Run the application:
 
     java --module-path mods --module com.example.client/com.example.client.Main
 
-Kết quả:
+Output:
 
     Hello, Java
 
-Client chỉ đọc API đã export. Implementation package không cần export để library tự sử dụng các lớp trong package đó.
+The client reads only the exported API. The implementation package does not need to be exported for the library itself to use classes in that package.
 
-## 5. Thử truy cập implementation package trực tiếp
+## 5. Attempting to access the implementation package directly
 
-Sửa client để import implementation:
+Modify the client to import the implementation:
 
     package com.example.client;
 
@@ -122,69 +122,69 @@ Sửa client để import implementation:
         }
     }
 
-Biên dịch lại client:
+Recompile the client:
 
     javac --module-path mods -d mods/com.example.client src/com.example.client/com/example/client/Main.java
 
-Compiler sẽ báo rằng package **com.example.library.internal** không được export từ module com.example.library tới module com.example.client. Tùy phiên bản JDK và ngữ cảnh, thông báo có thể nói package không visible hoặc module không export package.
+The compiler will report that package **com.example.library.internal** is not exported from module com.example.library to module com.example.client. Depending on the JDK version and context, the message may say the package is not visible or the module does not export the package.
 
-Đây là lỗi truy cập ở thời điểm biên dịch. Nguyên nhân không phải lớp DefaultGreeter thiếu modifier public; nguyên nhân là module descriptor không export package chứa lớp đó.
+This is a compile-time access error. The cause is not that the DefaultGreeter class lacks the public modifier; the cause is that the module descriptor does not export the package containing that class.
 
-Để tái hiện, giữ module descriptor:
+To reproduce, keep the module descriptor:
 
     module com.example.library {
         exports com.example.library.api;
     }
 
-Không thêm exports cho internal trong cấu hình chuẩn. Sau khi xác nhận lỗi, khôi phục client về sử dụng Greeter API để ứng dụng chạy bình thường.
+Do not add exports for internal in the standard configuration. After confirming the error, restore the client to use the Greeter API so the application runs normally.
 
-## 6. Kiểm tra lỗi access khi biên dịch và khi chạy
+## 6. Inspecting compile-time and runtime access errors
 
-Cần phân biệt hai thời điểm:
+You must distinguish between two points in time:
 
-| Thời điểm | Triệu chứng thường gặp | Nguyên nhân |
+| Time | Common symptom | Cause |
 |---|---|---|
-| Compile time | Compiler báo package không được export hoặc package không visible | Module consumer không có quyền truy cập package trong module provider |
-| Link/runtime | IllegalAccessError | Bytecode hoặc cấu hình runtime yêu cầu truy cập kiểu/thành viên mà module không cho phép |
-| Deep reflection | InaccessibleObjectException hoặc lỗi liên quan đến reflection | Package chưa được mở cho module thực hiện reflection |
-| Readability | Module không đọc được module khác | Thiếu requires hoặc quan hệ đọc phù hợp |
-| Class loading | ClassNotFoundException hoặc NoClassDefFoundError | Lớp không được tìm thấy hoặc dependency không có trong runtime configuration |
+| Compile time | Compiler reports package is not exported or package is not visible | Consumer module lacks permission to access the package in the provider module |
+| Link/runtime | IllegalAccessError | Bytecode or runtime configuration requests access to a type/member disallowed by the module |
+| Deep reflection | InaccessibleObjectException or reflection-related error | Package has not been opened to the module performing reflection |
+| Readability | Module cannot read another module | Missing requires or appropriate readability relationship |
+| Class loading | ClassNotFoundException or NoClassDefFoundError | Class is not found or dependency is missing in the runtime configuration |
 
-Nếu compiler chặn code, thường không thể tạo lại chính xác lỗi runtime bằng cách chạy cùng source đó. Để thử runtime access error, có thể dùng bytecode đã được biên dịch trong một cấu hình khác, reflection, hoặc một test fixture được tạo riêng. Không nên nhầm mọi lỗi access thành cùng một ngoại lệ.
+If the compiler blocks the code, you usually cannot recreate the exact runtime error by running the same source. To test a runtime access error, you can use bytecode compiled under a different configuration, reflection, or a specially crafted test fixture. Do not confuse all access errors as the same exception.
 
-Lỗi **IllegalAccessError** là lỗi liên kết xảy ra khi JVM gặp truy cập không hợp lệ tới lớp hoặc thành viên. Nó khác với **IllegalAccessException**, là checked exception thường xuất hiện từ các API reflection như Field.get hoặc Method.invoke khi quyền truy cập bị từ chối.
+**IllegalAccessError** is a linkage error that occurs when the JVM encounters an invalid access to a class or member. It differs from **IllegalAccessException**, which is a checked exception commonly thrown by reflection APIs like Field.get or Method.invoke when access is denied.
 
-## 7. Dùng --add-exports trong môi trường thử nghiệm
+## 7. Using --add-exports in a test environment
 
-Có thể tạm thời export package internal tới module client khi biên dịch:
+You can temporarily export the internal package to the client module at compile time:
 
     javac --module-path mods --add-exports com.example.library/com.example.library.internal=com.example.client -d mods/com.example.client src/com.example.client/module-info.java src/com.example.client/com/example/client/Main.java
 
-Khi chạy, cần cấp quyền tương ứng cho JVM:
+At runtime, you need to grant the corresponding permission to the JVM:
 
     java --module-path mods --add-exports com.example.library/com.example.library.internal=com.example.client --module com.example.client/com.example.client.Main
 
-Option có dạng:
+The option has the form:
 
     --add-exports source-module/package=target-module
 
-Trong ví dụ:
+In the example:
 
-- Source module là com.example.library.
-- Package được export thêm là com.example.library.internal.
-- Target module là com.example.client.
+- Source module is com.example.library.
+- The additionally exported package is com.example.library.internal.
+- Target module is com.example.client.
 
-**--add-exports** cho phép module đích truy cập các kiểu public trong package được chỉ định. Nó không tự mở package cho deep reflection và không thay đổi module-info.java của JAR.
+**--add-exports** allows the target module to access public types in the specified package. It does not automatically open the package for deep reflection and does not modify the JAR's module-info.java.
 
-Dùng option này để tái hiện việc truy cập package khi cần chẩn đoán hoặc kiểm thử. Không đưa nó vào lệnh production nếu package đó không phải API được hỗ trợ.
+Use this option to reproduce package access when diagnosing or testing. Do not put it into production commands if that package is not a supported API.
 
-Nếu client chạy trong unnamed module, có thể dùng target **ALL-UNNAMED**. Với named module, ưu tiên chỉ định tên module cụ thể để giới hạn phạm vi truy cập.
+If the client runs in the unnamed module, you can use the target **ALL-UNNAMED**. With named modules, prefer specifying the exact module name to limit access scope.
 
-## 8. Kiểm tra deep reflection và --add-opens
+## 8. Testing deep reflection and --add-opens
 
-Export package cho phép truy cập các kiểu public theo quy tắc Java. Framework có thể cần thêm quyền để đọc hoặc thay đổi thành viên private qua reflection. Khi đó cần **opens**.
+Exporting a package allows accessing public types according to Java rules. Frameworks may need additional permission to read or modify private members via reflection. In that case, **opens** is required.
 
-Thêm một test class trong module client:
+Add a test class in the client module:
 
     package com.example.client;
 
@@ -200,83 +200,83 @@ Thêm một test class trong module client:
         }
     }
 
-Ví dụ trên chỉ minh họa vị trí gọi reflection; để thử nghiệm thực tế, lớp cần có field private tên somePrivateField. Khi package chưa mở cho module client, lời gọi setAccessible(true) có thể ném **InaccessibleObjectException**.
+The example above only illustrates where the reflection call happens; for actual testing, the class needs a private field named somePrivateField. When the package is not open to the client module, calling setAccessible(true) can throw **InaccessibleObjectException**.
 
-Có thể mở package cho client trong một lần chạy:
+You can open the package to the client for a single run:
 
     java --module-path mods --add-opens com.example.library/com.example.library.internal=com.example.client --module com.example.client/com.example.client.Main
 
-Option có dạng:
+The option has the form:
 
     --add-opens source-module/package=target-module
 
-**--add-opens** cho phép deep reflection từ module đích vào package được chỉ định. Nó không cấp quyền compile-time để import các kiểu trong package chưa export.
+**--add-opens** allows deep reflection from the target module into the specified package. It does not grant compile-time permission to import types in an unexported package.
 
-Nếu framework vừa cần import public type trong package nội bộ, vừa cần deep reflection, test configuration có thể cần cả --add-exports khi biên dịch và --add-opens khi chạy. Chỉ cấp những quyền thực sự cần thiết.
+If a framework both needs to import public types in an internal package and perform deep reflection, the test configuration may need both --add-exports at compile time and --add-opens at runtime. Grant only the permissions actually needed.
 
-## 9. So sánh exports, opens và các runtime options
+## 9. Comparing exports, opens, and runtime options
 
-| Cơ chế | Mục đích | Ví dụ sử dụng |
+| Mechanism | Purpose | Usage example |
 |---|---|---|
-| exports | Công khai package cho truy cập thông thường | API public của thư viện |
-| qualified exports | Công khai package cho module đích cụ thể | SPI dành cho một adapter module |
-| opens | Cho phép deep reflection | ORM đọc field private |
-| --add-exports | Bổ sung export trong cấu hình compile/runtime | Test truy cập public implementation type |
-| --add-opens | Bổ sung open trong runtime | Test framework cần reflection sâu |
-| --add-reads | Bổ sung readability | Module cần đọc một module khác trong cấu hình đặc biệt |
+| exports | Expose a package for normal access | Public API of a library |
+| qualified exports | Expose a package to specific target modules | SPI intended for an adapter module |
+| opens | Allow deep reflection | ORM reading private fields |
+| --add-exports | Supplement export in compile/runtime config | Tests accessing a public implementation type |
+| --add-opens | Supplement open at runtime | Test framework needing deep reflection |
+| --add-reads | Supplement readability | Module needing to read another module in a special configuration |
 
-Không dùng --add-exports để giải quyết lỗi deep reflection nếu package cần được mở. Không dùng --add-opens để sửa lỗi compiler không thể import package. Hãy xác định đúng loại access đang bị chặn.
+Do not use --add-exports to solve a deep reflection error if the package needs to be opened. Do not use --add-opens to fix a compiler error where a package cannot be imported. Identify the exact type of access being blocked.
 
-## 10. Kiểm tra module descriptor và module resolution
+## 10. Inspecting module descriptors and module resolution
 
-Có thể xem module descriptor của artifact:
+You can view an artifact's module descriptor:
 
     jar --describe-module --file mods/com.example.library
 
-Kết quả cần cho thấy package API được export và package internal không được export. Nếu module descriptor được đóng gói trong JAR, chạy lệnh trên file JAR tương ứng.
+The output should show the API package exported and the internal package not exported. If the module descriptor is packaged in a JAR, run the command on the corresponding JAR file.
 
-Để quan sát module resolution:
+To observe module resolution:
 
     java --show-module-resolution --module-path mods --module com.example.client/com.example.client.Main
 
-Option này hiển thị module nào được resolve và quan hệ dependency. Nó giúp chẩn đoán readability và module path, nhưng không tự giải quyết package access.
+This option displays which modules are resolved and their dependency relationships. It helps diagnose readability and module path issues, though it does not resolve package access by itself.
 
-Nếu module không được tìm thấy, kiểm tra module path. Nếu module được tìm thấy nhưng package không được truy cập, kiểm tra exports. Nếu lỗi chỉ xảy ra với reflection, kiểm tra opens. Không thêm mọi option cùng lúc vì như vậy khó xác định nguyên nhân gốc.
+If a module is not found, check the module path. If the module is found but a package is inaccessible, check exports. If the error only occurs with reflection, check opens. Do not add every option at once, as that makes it difficult to identify the root cause.
 
-## 11. Thiết kế production và test configuration
+## 11. Designing production and test configurations
 
-Trong production, module descriptor nên giữ ranh giới dự kiến:
+In production, the module descriptor should preserve the intended boundaries:
 
     module com.example.library {
         exports com.example.library.api;
     }
 
-Test có thể dùng một cấu hình riêng:
+Tests can use a separate configuration:
 
-- Test black-box chỉ cần requires library và gọi public API.
-- Test cần import một public implementation type có thể dùng --add-exports trong test compile/runtime.
-- Framework cần deep reflection có thể dùng --add-opens trong test JVM.
-- Test cần package-private access có thể dùng --patch-module để đưa test classes vào module đích trong test runtime.
+- Black-box tests only need to require the library and call the public API.
+- Tests that need to import a public implementation type can use --add-exports during test compile/runtime.
+- Frameworks that need deep reflection can use --add-opens in the test JVM.
+- Tests that need package-private access can use --patch-module to put test classes into the target module during test runtime.
 
-Không sửa module-info.java production chỉ để test biên dịch được. Không lưu các option test-only vào script deploy hoặc launcher production.
+Do not modify production module-info.java just to make tests compile. Do not save test-only options into deployment scripts or production launchers.
 
-Nếu dùng Maven hoặc Gradle, đặt option trong cấu hình test task tương ứng. Tên property và cách truyền JVM argument tùy plugin/build tool; hãy bảo đảm option được truyền cho cả compiler nếu cần compile-time access và test JVM nếu cần runtime reflection.
+If using Maven or Gradle, place the options in the corresponding test task configuration. Property names and how JVM arguments are passed depend on the plugin/build tool; ensure the options are passed to both the compiler if compile-time access is needed and the test JVM if runtime reflection is needed.
 
-## 12. Ghi nhớ
+## 12. Key Takeaways
 
-- Public class trong package không export vẫn không thể được module khác truy cập thông thường.
-- **exports** công khai package; **opens** cho phép deep reflection.
-- Compile error về package không visible khác với IllegalAccessError ở runtime.
-- IllegalAccessException và InaccessibleObjectException là những lỗi reflection khác nhau, cần xem đúng API gây lỗi.
-- --add-exports có thể cấp quyền truy cập kiểu public trong package cho module đích.
-- --add-opens cấp quyền deep reflection trong runtime, không thay thế compile-time export.
-- Chỉ dùng runtime options để chẩn đoán hoặc cho test khi cần; giữ module descriptor production nhỏ và rõ.
-- Kiểm tra module path, requires, exports và opens theo đúng loại lỗi.
-- Dùng jar --describe-module và --show-module-resolution để quan sát cấu hình thực tế.
+- A public class in an unexported package still cannot be accessed normally by another module.
+- **exports** exposes a package; **opens** allows deep reflection.
+- A compile error about a package not being visible differs from an IllegalAccessError at runtime.
+- IllegalAccessException and InaccessibleObjectException are different reflection errors; check the exact API causing the error.
+- --add-exports can grant access to public types in a package for a target module.
+- --add-opens grants deep reflection permission at runtime, and does not replace compile-time export.
+- Use runtime options only for diagnostics or testing when needed; keep production module descriptors small and clear.
+- Check module path, requires, exports, and opens according to the error type.
+- Use jar --describe-module and --show-module-resolution to observe the actual configuration.
 
-**Ẩn implementation package giúp module giữ quyền kiểm soát API và giới hạn điểm truy cập từ bên ngoài.** Khi kiểm tra lỗi access, hãy xác định lỗi xảy ra lúc biên dịch, liên kết hay reflection rồi chọn đúng cơ chế JPMS thay vì export hoặc open toàn bộ module.
+**Hiding implementation packages helps a module retain control over its API and limit external entry points.** When inspecting access errors, identify whether the error occurs at compile time, link time, or reflection time, then choose the right JPMS mechanism instead of exporting or opening the entire module.
 
-## Tài liệu tham khảo
+## References
 
 - Java Platform Module System — JEP 261: https://openjdk.org/jeps/261
 - Java SE 21 API — Module: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Module.html

@@ -1,55 +1,55 @@
-# Xây dựng chính sách tìm kiếm xuyên phân cấp một cách tường minh với Java Reflection
+# Building an Explicit Cross-Hierarchy Lookup Policy with Java Reflection
 
-## 1. Vì sao phải có chính sách tra cứu?
+## 1. Why Must There Be a Lookup Policy?
 
-Khi viết công cụ dựa trên Java Reflection (mapper, serializer, framework kiểm thử, công cụ kiểm tra metadata), câu hỏi “tìm field/method có tên X” chưa đủ rõ. Ta còn phải quyết định: chỉ xét lớp hiện tại hay cả lớp cha; có đi qua interface không; có lấy thành viên `private`/`protected` không; có giữ các khai báo bị che khuất/ghi đè không; và ưu tiên khai báo nào khi nhiều nơi cùng tên.
+When writing tools based on Java Reflection (mappers, serializers, testing frameworks, metadata checkers), the question "find field/method named X" is not clear enough. We also have to decide: inspect only the current class or superclasses too; traverse interfaces or not; include `private`/`protected` members or not; retain hidden/overridden declarations or not; and which declaration takes priority when multiple places share the same name.
 
-Ví dụ, `Child` khai báo field `id` trùng với `Parent.id`. Hai field **cùng tồn tại** và mỗi field có `getDeclaringClass()` khác nhau. Với method `score()` được override, ta thường muốn khai báo gần lớp được hỏi nhất. Nhưng công cụ kiểm toán có thể cần **mọi khai báo**, kể cả khai báo bị che. Vì vậy, kết quả phải đến từ một chính sách có tên, phạm vi và thứ tự ưu tiên được viết rõ trước khi triển khai.
+For example, `Child` declares field `id` matching `Parent.id`. Both fields **coexist** and each field has a different `getDeclaringClass()`. For an overridden `score()` method, we usually want the declaration closest to the queried class. However, an auditing tool might need **all declarations**, including hidden ones. Therefore, results must come from a policy whose name, scope, and priority order are written explicitly before implementation.
 
-Phân biệt ba yêu cầu thường gặp:
+Distinguish three common requirements:
 
-- **Tra cứu thành viên công khai có thể nhìn thấy:** tận dụng `getField` / `getMethod` / `getFields` / `getMethods`, với ngữ nghĩa của API.
-- **Kiểm kê khai báo theo từng tầng:** đi qua từng `Class<?>` và dùng `getDeclaredFields` / `getDeclaredMethods`; không gộp các khai báo trùng.
-- **Chọn một thành viên theo chính sách ứng dụng:** tự định nghĩa các tầng được thăm, bộ lọc, khóa trùng và quy tắc ưu tiên; ví dụ mã bên dưới thực hiện cách này.
+- **Looking up visible public members:** leverage `getField` / `getMethod` / `getFields` / `getMethods`, with the semantics of those APIs.
+- **Inventorying declarations level by level:** walk through each `Class<?>` and use `getDeclaredFields` / `getDeclaredMethods`; do not merge duplicate declarations.
+- **Selecting a member according to application policy:** define the visited levels, filters, deduplication keys, and priority rules yourself; the code example below implements this approach.
 
-“Được Reflection tìm thấy” **không đồng nghĩa** với “được ngôn ngữ Java kế thừa”, “có quyền truy cập” hay “gọi được”. Đây là bốn vấn đề riêng.
+"Found by Reflection" **does not mean** "inherited by the Java language", "has access permission", or "can be invoked". These are four separate concerns.
 
-## 2. Các API và ranh giới cần hiểu
+## 2. APIs and Boundaries to Understand
 
-| API | Phạm vi và ý nghĩa |
+| API | Scope and Meaning |
 | --- | --- |
-| `getDeclaredField(name)` / `getDeclaredFields()` | Field được **khai báo trực tiếp** tại lớp/interface đang xét, bất kể mức truy cập; không tự đi lớp cha. |
-| `getField(name)` / `getFields()` | Field `public` của lớp và thành viên `public` được kế thừa/hiển thị từ các lớp cha, interface theo quy tắc Reflection. |
-| `getDeclaredMethod(name, parameterTypes...)` / `getDeclaredMethods()` | Method khai báo trực tiếp, kể cả `private`; tìm method theo tên **và kiểu tham số**, không theo kiểu trả về. |
-| `getMethod(name, parameterTypes...)` / `getMethods()` | Method `public` được cung cấp trong tập public của kiểu, bao gồm các method kế thừa thích hợp; có thể bao gồm method từ `Object`. |
-| `getSuperclass()` | Lấy lớp cha trực tiếp; với `Object` hoặc interface thì trả về `null`. |
-| `getInterfaces()` | Lấy các interface trực tiếp được khai báo; muốn thăm cả interface cha, phải tự duyệt tiếp `getInterfaces()`. |
-| `getDeclaringClass()` | Xác định chính xác nơi một `Field`/`Method` được khai báo, khác với lớp ban đầu yêu cầu tìm. |
+| `getDeclaredField(name)` / `getDeclaredFields()` | Fields **declared directly** on the class/interface under inspection, regardless of access level; does not automatically climb to superclasses. |
+| `getField(name)` / `getFields()` | `public` fields of the class and `public` members inherited/visible from superclasses and interfaces per Reflection rules. |
+| `getDeclaredMethod(name, parameterTypes...)` / `getDeclaredMethods()` | Directly declared methods, including `private`; finds methods by name **and parameter types**, not by return type. |
+| `getMethod(name, parameterTypes...)` / `getMethods()` | `public` methods provided in the type's public set, including eligible inherited methods; may include methods from `Object`. |
+| `getSuperclass()` | Gets the direct superclass; returns `null` for `Object` or interfaces. |
+| `getInterfaces()` | Gets directly declared interfaces; to visit superinterfaces too, you must recursively traverse `getInterfaces()`. |
+| `getDeclaringClass()` | Identifies the exact location where a `Field`/`Method` is declared, distinct from the class initially queried. |
 
-`getDeclared...` là thành phần quan trọng của thuật toán xuyên phân cấp: mỗi lần gọi chỉ xem **một** kiểu, sau đó thuật toán chủ động đi sang kiểu khác. Không nên giả định thứ tự phần tử trả về bởi `getDeclaredFields()` hoặc `getDeclaredMethods()` ổn định; hãy sắp xếp nếu kết quả cần tái lập được.
+`getDeclared...` is a key building block of a cross-hierarchy algorithm: each call inspects only **one** type, and then the algorithm explicitly moves to another type. You should not assume the element order returned by `getDeclaredFields()` or `getDeclaredMethods()` is stable; sort if results must be reproducible.
 
-Constructor không được kế thừa; nếu bài toán yêu cầu constructor, dùng `getDeclaredConstructors()` trên đúng kiểu, không áp dụng thuật toán tìm kiếm constructor dọc lớp cha.
+Constructors are not inherited; if the problem requires constructors, use `getDeclaredConstructors()` on the exact type, without applying a superclass search algorithm for constructors.
 
-## 3. Hợp đồng chính sách tra cứu
+## 3. Lookup Policy Contract
 
-Ví dụ sau định nghĩa ba chế độ:
+The following example defines three modes:
 
-1. `DECLARED_ONLY`: chỉ kiểu đầu vào.
-2. `CLASS_HIERARCHY`: kiểu đầu vào → lớp cha gần nhất → lớp cha tiếp theo; `Object` chỉ xuất hiện khi bật `includeObject`.
-3. `WITH_INTERFACES`: trước hết toàn bộ các lớp như trên; sau đó các interface được khai báo từ lớp gần nhất đến lớp xa hơn, đi sâu theo interface cha, bỏ các interface đã thăm.
+1. `DECLARED_ONLY`: only the input type.
+2. `CLASS_HIERARCHY`: input type → closest superclass → next superclass; `Object` appears only when `includeObject` is enabled.
+3. `WITH_INTERFACES`: first all the classes as above; then declared interfaces from the closest class to more distant ones, walking deeper along superinterfaces, skipping already-visited interfaces.
 
-Hai cờ độc lập:
+Two independent flags:
 
-- `publicOnly`: chỉ nhận thành viên có modifier `public`. Nếu `false`, thu thập cả khai báo không public; **không** tự nâng quyền truy cập.
-- `includeObject`: có đưa `Object` vào vòng duyệt lớp cha hay không (mặc định trong ví dụ sử dụng `false`).
+- `publicOnly`: accepts only members with the `public` modifier. If `false`, collects non-public declarations as well; **does not** automatically elevate access permissions.
+- `includeObject`: whether to include `Object` in the superclass traversal loop (`false` by default in the example).
 
-Ví dụ chọn thành viên theo quy tắc **first match wins**: với field, khóa trùng là tên; với method, khóa trùng là tên cùng danh sách kiểu tham số. Vì lớp gần được duyệt trước, field bị che và method bị override ưu tiên khai báo gần nhất. Với nhiều interface trùng chữ ký/tên, thứ tự duyệt interface đã định sẽ chọn ứng viên đầu tiên. Nếu nghiệp vụ không cho phép nhập nhằng, thay lựa chọn đầu tiên bằng kiểm tra và báo lỗi rõ ràng. Đây là **chính sách của công cụ**, không tự nhận là thuật toán phân giải tất cả trường hợp gọi method của trình biên dịch Java.
+The example selects members using a **first match wins** rule: for fields, the deduplication key is the name; for methods, the deduplication key is the name plus the parameter type list. Because closer classes are visited first, hidden fields and overridden methods prioritize the closest declaration. With multiple interfaces having matching signatures/names, the defined interface traversal order selects the first candidate. If business logic does not allow ambiguity, replace first-match selection with validation and an explicit error report. This is a **tool policy**, not claiming to be the Java compiler's resolution algorithm for all method-call cases.
 
-Các kết quả dùng `List.copyOf`/`Optional` để người gọi nhận kết quả dễ kiểm tra và không sửa trực tiếp tập kết quả.
+Results use `List.copyOf`/`Optional` so callers receive easily checkable results and cannot mutate the result collection directly.
 
-## 4. Ví dụ Java 17+ chạy độc lập
+## 4. Standalone Java 17+ Example
 
-Lưu thành `HierarchyLookupDemo.java`. Chương trình dùng lớp lồng nhau nhằm thể hiện field hiding, covariant return/bridge method, interface mặc định và mức truy cập private.
+Save as `HierarchyLookupDemo.java`. The program uses nested classes to demonstrate field hiding, covariant return/bridge methods, default interface methods, and private access levels.
 
 ~~~java
 import java.lang.reflect.Field;
@@ -99,7 +99,7 @@ public class HierarchyLookupDemo {
     }
 
     static class Middle extends Parent implements Audited {
-        public String id; // Che Parent.id, không xóa Parent.id.
+        public String id; // Hides Parent.id, does not remove Parent.id.
         protected String state;
 
         @Override
@@ -116,8 +116,8 @@ public class HierarchyLookupDemo {
         }
     }
 
-    // Thứ tự: kiểu đầu vào -> superclass -> ... -> interface trực tiếp,
-    // rồi các interface cha (không duyệt trùng trong cấu trúc hình thoi).
+    // Order: input type -> superclass -> ... -> direct interfaces,
+    // then superinterfaces (without duplicate visits in diamond structures).
     static List<Class<?>> owners(Class<?> start, Policy policy) {
         Objects.requireNonNull(start);
         if (policy.mode() == Mode.DECLARED_ONLY) {
@@ -190,7 +190,7 @@ public class HierarchyLookupDemo {
                                     m.getParameterTypes()))
                             .thenComparing(m -> m.getReturnType().getName()));
             for (Method method : declared) {
-                // Compiler có thể sinh bridge cho kiểu trả về hiệp biến.
+                // Compiler may generate bridge methods for covariant return types.
                 if (method.isBridge() || method.isSynthetic()) {
                     continue;
                 }
@@ -242,14 +242,14 @@ public class HierarchyLookupDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac -encoding UTF-8 HierarchyLookupDemo.java
 java HierarchyLookupDemo
 ~~~
 
-Kết quả chuẩn:
+Expected output:
 
 ~~~text
 field id: Middle
@@ -259,42 +259,42 @@ private local (deep): true
 private local (public-only): false
 ~~~
 
-Lý do kết quả: `Middle.id` được xét trước `Parent.id`; `Middle.score()` được xét trước `Parent.score()`; `label()` khai báo tại `Named`, được tìm thấy khi duyệt `Middle → Audited → Named` trong nhánh interface; `local` là `private` nên chỉ tồn tại trong chế độ cho phép thành viên không public. Method bridge sinh cho `Middle.score()` được lọc để không ảnh hưởng quy tắc chọn chữ ký.
+Reason for the results: `Middle.id` is evaluated before `Parent.id`; `Middle.score()` is evaluated before `Parent.score()`; `label()` is declared on `Named`, found while traversing `Middle → Audited → Named` in the interface branch; `local` is `private` so it exists only in the mode allowing non-public members. The bridge method generated for `Middle.score()` is filtered out so it does not affect signature selection rules.
 
-Ví dụ trên **chỉ tìm và trả metadata** `Field`/`Method`. Nó không gọi `setAccessible`, `trySetAccessible`, `Field.get` hay `Method.invoke`.
+The example above **only finds and returns `Field`/`Method` metadata**. It does not call `setAccessible`, `trySetAccessible`, `Field.get`, or `Method.invoke`.
 
-## 5. Biến thể chính sách theo mục đích thực tế
+## 5. Policy Variants for Practical Purposes
 
-| Mục tiêu | Quy tắc phù hợp |
+| Goal | Suitable Rule |
 | --- | --- |
-| Chỉ đọc metadata do kiểu hiện tại định nghĩa | `DECLARED_ONLY`; lưu toàn bộ kết quả nếu cần phân biệt khai báo. |
-| Mapping dữ liệu theo field của lớp con và lớp cha | `CLASS_HIERARCHY`; định nghĩa xử lý field cùng tên; thường bỏ static/synthetic/transient theo yêu cầu mapper. |
-| Tìm annotation trên method của superclass/interface | `WITH_INTERFACES`; duyệt khai báo theo tầng và dùng `getDeclaredAnnotation` tại từng method; xác định rõ quy tắc kế thừa annotation. |
-| Liệt kê API công khai của kiểu | Cân nhắc `getMethods()`/`getFields()` hoặc `publicOnly=true`; so sánh vì policy tùy chỉnh không có nghĩa chính xác như Java member resolution. |
-| Công cụ phân tích/kiểm toán | Không dùng `putIfAbsent` để loại khai báo trùng; trả về cặp `(declaringClass, member)` và các vị trí xung đột. |
+| Read only metadata defined by the current type | `DECLARED_ONLY`; store all results if declarations need to be distinguished. |
+| Map data by fields of subclass and superclass | `CLASS_HIERARCHY`; define handling for same-named fields; typically skip static/synthetic/transient per mapper requirements. |
+| Find annotations on superclass/interface methods | `WITH_INTERFACES`; traverse declarations level by level and use `getDeclaredAnnotation` on each method; define annotation inheritance rules clearly. |
+| List the public API of a type | Consider `getMethods()`/`getFields()` or `publicOnly=true`; compare carefully because a custom policy does not have the exact semantics of Java member resolution. |
+| Analysis/auditing tools | Do not use `putIfAbsent` to drop duplicate declarations; return `(declaringClass, member)` pairs and conflict locations. |
 
-Một điều chỉnh phổ biến khi viết mapper là lọc `Modifier.isStatic(...)` và `Modifier.isTransient(...)` đối với field. Với scanner method phục vụ nghiệp vụ, có thể bỏ method `static`, method trên `Object`, getter không hợp lệ, hoặc method đã bị override, tùy hợp đồng. Không áp dụng các bộ lọc này một cách ngầm định vì chúng thay đổi kết quả.
+A common adjustment when writing mappers is filtering out `Modifier.isStatic(...)` and `Modifier.isTransient(...)` for fields. For business-oriented method scanners, you may skip `static` methods, methods on `Object`, invalid getters, or overridden methods, depending on the contract. Do not apply these filters implicitly because they change the results.
 
-**Annotation có quy tắc riêng:** `@Inherited` chỉ liên quan đến việc truy vấn annotation trên *class* theo lớp cha, không khiến annotation trên method hoặc interface tự được kế thừa. Muốn hợp nhất annotation từ method của cha/interface cần định nghĩa thuật toán tìm method tương ứng và chính sách ưu tiên tường minh.
+**Annotations have their own rules:** `@Inherited` only pertains to querying annotations on a *class* via its superclass; it does not make annotations on methods or interfaces automatically inherited. To merge annotations from parent/interface methods, you must define a matching-method lookup algorithm and an explicit priority policy.
 
-## 6. Những giới hạn và bẫy cần tránh
+## 6. Limitations and Pitfalls to Avoid
 
-1. **Tên method chưa phải chữ ký:** overload `load(String)` và `load(int)` là hai method khác nhau. Kiểu tham số trong Reflection phản ánh erasure của generic và kiểu primitive khác kiểu wrapper (`int.class` khác `Integer.class`). Method có kiểu trả về hiệp biến có thể sinh bridge; ví dụ loại bridge/synthetic để phục vụ tra cứu nghiệp vụ. Với công cụ phân tích bytecode, cần giữ chúng.
-2. **Field hiding khác method overriding:** Java không có field đa hình theo kiểu method; `Parent.id` vẫn tồn tại khi `Middle` khai báo `id`. Nếu mục đích là kiểm kê, việc gộp bằng tên sẽ mất thông tin. Method `private` hoặc `static` cũng không tuân cùng quy tắc override như method instance có thể override.
-3. **Thành viên của interface:** interface có thể có default, static và private method. Việc thuật toán duyệt `getDeclaredMethods()` của interface chỉ nói rằng nó *phát hiện khai báo*, không khẳng định mọi method đó đều được lớp implement kế thừa hay gọi trực tiếp. Nếu cần mô phỏng chính xác khả năng gọi theo ngôn ngữ, phải bổ sung điều kiện về tính thừa kế, static/private, access, override và trường hợp xung đột.
-4. **Phạm vi truy cập và module:** tìm thấy thành viên `private` không cấp quyền đọc/gọi. `trySetAccessible()` có thể trả về `false`, còn `setAccessible(true)` có thể ném `InaccessibleObjectException` khi Java Platform Module System không mở package tương ứng; `IllegalAccessException` có thể xảy ra khi thao tác. Chỉ nâng quyền khi có nhu cầu và quyền hợp lệ, không tự mở module để “sửa lỗi tìm kiếm”.
-5. **Thứ tự và xung đột:** thứ tự thành viên do Reflection trả về không bảo đảm phù hợp thứ tự nguồn; ví dụ sắp xếp để ổn định. Chế độ first-match cần công bố cách chọn khi nhiều interface cùng tên. Trường hợp cần độ chính xác cao, trả về danh sách ứng viên kèm `declaringClass` rồi báo xung đột thay vì âm thầm chọn.
-6. **Hiệu năng và class loader:** Reflection lặp lại trên nhiều đối tượng có chi phí. Cache metadata theo `Class<?>` khi cần (ví dụ `ClassValue`), nhưng phải tránh giữ tham chiếu không cần thiết đến các `ClassLoader` có vòng đời ngắn. Không cache kết quả phụ thuộc chính sách mà quên đưa chính sách vào khóa.
-7. **Kiểu đặc biệt:** array, primitive, interface, record và proxy có cấu trúc khai báo khác lớp thông thường. Cần kiểm thử riêng khi ứng dụng hỗ trợ chúng; thuật toán minh họa tập trung vào chuỗi kế thừa class/interface thông thường.
+1. **Method name is not a signature:** overloads `load(String)` and `load(int)` are two distinct methods. Parameter types in Reflection reflect generic erasure, and primitive types differ from wrapper types (`int.class` differs from `Integer.class`). Methods with covariant return types may generate bridges; the example filters bridge/synthetic methods to serve business lookup. For bytecode analysis tools, you need to retain them.
+2. **Field hiding differs from method overriding:** Java has no polymorphic fields like methods; `Parent.id` still exists when `Middle` declares `id`. If the goal is auditing, merging by name loses information. `private` or `static` methods also do not follow the same overriding rules as overridable instance methods.
+3. **Interface members:** interfaces can have default, static, and private methods. An algorithm traversing `getDeclaredMethods()` of interfaces only means it *discovers declarations*, not asserting that every such method is inherited or directly callable by the implementing class. To model language-level callability accurately, you must add conditions for inheritability, static/private, access, overriding, and conflict cases.
+4. **Access scope and modules:** finding a `private` member does not grant permission to read/call it. `trySetAccessible()` can return `false`, and `setAccessible(true)` can throw `InaccessibleObjectException` when the Java Platform Module System has not opened the corresponding package; `IllegalAccessException` can occur upon operation. Elevate access only when necessary and permitted, and do not open modules just to "fix lookup errors".
+5. **Order and conflicts:** member order returned by Reflection is not guaranteed to match source order; the example sorts for stability. First-match mode must document how ties are chosen when multiple interfaces share a name. Where high precision is needed, return the list of candidates with `declaringClass` and report a conflict rather than silently picking one.
+6. **Performance and class loaders:** repeated Reflection over many objects has cost. Cache metadata by `Class<?>` when needed (e.g., `ClassValue`), while avoiding holding unnecessary references to short-lived `ClassLoader` instances. Do not cache policy-dependent results while forgetting to include the policy in the cache key.
+7. **Special types:** arrays, primitives, interfaces, records, and proxies have different declaration structures than ordinary classes. Test them separately when your application supports them; the illustrative algorithm focuses on standard class/interface inheritance chains.
 
-## 7. Tình huống kiểm thử tối thiểu cho chính sách
+## 7. Minimal Test Cases for a Policy
 
-- `DECLARED_ONLY` tại `Leaf` tìm được `local` nhưng không tìm được `id`.
-- `CLASS_HIERARCHY` tại `Leaf` tìm `id` từ `Middle`; không tìm `Named.label()` vì không đi interface.
-- `WITH_INTERFACES` tại `Leaf` tìm `Named.label()`; thăm interface cha đúng một lần dù gặp cấu trúc kim cương.
-- `publicOnly=true` không trả về `Leaf.local`, `Middle.state` hoặc `Parent.secret`.
-- `includeObject=false` không lấy các method khai báo tại `Object` như `toString()` khi chưa override; bật cờ thì có thể tìm thấy.
-- Trường hợp overload phân biệt tham số; trường hợp override/bridge ưu tiên khai báo đúng kiểu theo chính sách; trường hợp field cùng tên xác minh `getDeclaringClass()`.
-- Khi nghiệp vụ cần giữ mọi khai báo, kiểm thử rằng thuật toán kiểm kê **không** dùng dedup như thuật toán chọn một kết quả.
+- `DECLARED_ONLY` on `Leaf` finds `local` but does not find `id`.
+- `CLASS_HIERARCHY` on `Leaf` finds `id` from `Middle`; does not find `Named.label()` because it does not traverse interfaces.
+- `WITH_INTERFACES` on `Leaf` finds `Named.label()`; visits superinterfaces exactly once even in diamond structures.
+- `publicOnly=true` does not return `Leaf.local`, `Middle.state`, or `Parent.secret`.
+- `includeObject=false` excludes methods declared on `Object` such as `toString()` when not overridden; enabling the flag allows finding them.
+- Overload cases distinguish parameters; override/bridge cases prioritize the right declaring type per policy; same-named field cases verify `getDeclaringClass()`.
+- When business logic needs to keep all declarations, test that the inventory algorithm does **not** deduplicate like the single-result selection algorithm.
 
-**Nguyên tắc triển khai:** viết rõ tập kiểu cần duyệt, thứ tự, điều kiện lọc, khóa đồng nhất, cách xử lý xung đột và giới hạn truy cập; sau đó hiện thực các lựa chọn đó thành code có thể kiểm thử. Reflection là công cụ đọc metadata, còn ý nghĩa của việc “tìm xuyên phân cấp” do hợp đồng của ứng dụng quyết định.
+**Implementation principle:** explicitly specify the set of types to traverse, traversal order, filtering conditions, identity key, conflict resolution, and access limits; then implement those choices as testable code. Reflection is a tool for reading metadata, whereas the meaning of "cross-hierarchy lookup" is defined by your application's contract.

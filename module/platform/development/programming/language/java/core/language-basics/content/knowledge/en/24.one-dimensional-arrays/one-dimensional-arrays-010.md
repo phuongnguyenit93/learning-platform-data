@@ -1,10 +1,10 @@
-# Giới thiệu `Arrays.toString()`, `Arrays.equals()` và `Arrays.copyOf()`
+# Introducing `Arrays.toString()`, `Arrays.equals()`, and `Arrays.copyOf()`
 
-> **Java core — language-basics / Mảng một chiều**  
-> **Môi trường:** Java 17+, chỉ dùng JDK.  
-> **Mục tiêu:** Biết cách **in nội dung**, **so sánh nội dung** và **tạo bản sao mảng với độ dài mong muốn**; tránh nhầm tham chiếu `==` với nội dung, mảng rỗng với `null` và sao chép nông với sao chép sâu.
+> **Java core — language-basics / One-Dimensional Arrays**  
+> **Environment:** Java 17+, JDK only.  
+> **Goal:** Know how to **print contents**, **compare contents**, and **create array copies of a desired length**; avoid confusing `==` reference equality with content equality, empty arrays with `null`, and shallow copying with deep copying.
 
-## 1. Ba công cụ trong `java.util.Arrays`
+## 1. Three utilities in `java.util.Arrays`
 
 ~~~java
 import java.util.Arrays;
@@ -16,15 +16,15 @@ System.out.println(Arrays.equals(data, new int[] {2, 4, 6})); // true
 int[] copy = Arrays.copyOf(data, 5);                 // [2, 4, 6, 0, 0]
 ~~~
 
-| Phương thức | Vai trò | Giá trị trả về |
+| Method | Role | Return value |
 | --- | --- | --- |
-| `Arrays.toString(array)` | Biểu diễn phần tử của mảng một chiều thành chuỗi | `String` |
-| `Arrays.equals(a, b)` | So sánh nội dung của hai mảng theo thứ tự | `boolean` |
-| `Arrays.copyOf(original, newLength)` | Tạo **mảng mới**, sao chép phần đầu và cắt/bổ sung nếu cần | Mảng mới |
+| `Arrays.toString(array)` | Formats elements of a one-dimensional array into a string | `String` |
+| `Arrays.equals(a, b)` | Compares contents of two arrays in order | `boolean` |
+| `Arrays.copyOf(original, newLength)` | Creates a **new array**, copies the prefix, and truncates or pads if needed | New array |
 
-Các phương thức đều là `static`, gọi qua lớp `Arrays`. Chúng không tự thay đổi đối tượng mảng nguồn. Dùng `import java.util.Arrays;` hoặc gọi đầy đủ `java.util.Arrays.toString(...)`.
+All three methods are `static`, called through the `Arrays` class. They do not mutate the source array object. Use `import java.util.Arrays;` or call `java.util.Arrays.toString(...)` explicitly.
 
-## 2. `Arrays.toString()`: nhìn thấy các phần tử
+## 2. `Arrays.toString()`: seeing the elements
 
 ~~~java
 int[] values = {3, -1, 0};
@@ -35,45 +35,45 @@ System.out.println(Arrays.toString(names));  // [An, null, Binh]
 System.out.println(Arrays.toString(new int[0])); // []
 ~~~
 
-`System.out.println(values)` gọi biểu diễn đối tượng mặc định của mảng (thường giống `[I@...`), **không** tự in các số dưới dạng danh sách. `Arrays.toString(values)` thuận tiện khi debug và viết output có thể kiểm chứng.
+`System.out.println(values)` invokes the array's default object representation (usually looking like `[I@...`), and **does not** automatically print the numbers as a list. `Arrays.toString(values)` is convenient for debugging and writing verifiable output.
 
-- Với mảng primitive, phần tử được định dạng theo kiểu tương ứng.
-- Với mảng tham chiếu, nội dung hiển thị phụ thuộc vào `toString()` của đối tượng phần tử; phần tử null hiện `null`.
-- Với **mảng nhiều chiều**, `Arrays.toString(outer)` không in sâu các mảng con; dùng `Arrays.deepToString(outer)` khi muốn xem cấu trúc lồng nhau.
+- For primitive arrays, elements are formatted according to their respective types.
+- For reference arrays, displayed content depends on each element object's `toString()`; null elements render as `null`.
+- For **multidimensional arrays**, `Arrays.toString(outer)` does not print nested sub-arrays deeply; use `Arrays.deepToString(outer)` when you want to see nested structures.
 
-`Arrays.toString((int[]) null)` trả **chuỗi `"null"`**, không ném `NullPointerException`. Đây chỉ là cách định dạng tham chiếu null, không có nghĩa mảng được tạo ra.
+`Arrays.toString((int[]) null)` returns the **string `"null"`**, without throwing `NullPointerException`. This is merely how a null reference is formatted, not an indication that an array was created.
 
-## 3. `Arrays.equals()` khác toán tử `==`
+## 3. `Arrays.equals()` differs from the `==` operator
 
 ~~~java
 int[] a = {1, 2};
 int[] b = {1, 2};
 int[] alias = a;
 
-System.out.println(a == b);            // false: hai đối tượng khác nhau.
-System.out.println(a == alias);        // true: cùng đối tượng.
-System.out.println(Arrays.equals(a, b)); // true: hai phần tử bằng nhau.
+System.out.println(a == b);            // false: two distinct objects.
+System.out.println(a == alias);        // true: same object.
+System.out.println(Arrays.equals(a, b)); // true: elements are equal.
 ~~~
 
-`Arrays.equals(a, b)` với mảng primitive so sánh các phần tử tương ứng cùng thứ tự; chiều dài khác nhau thì false. Với mảng tham chiếu, phương thức dùng quy tắc bằng nhau của **phần tử**, bao gồm `equals`, không nhất thiết so bằng tham chiếu.
+`Arrays.equals(a, b)` for primitive arrays compares corresponding elements in the same order; different lengths yield false. For reference arrays, the method uses the equality rules of the **elements**, including `equals`, rather than strictly comparing by reference.
 
 ~~~java
 String[] x = {new String("Java")};
 String[] y = {"Java"};
-System.out.println(Arrays.equals(x, y)); // true: String.equals xét nội dung.
+System.out.println(Arrays.equals(x, y)); // true: String.equals compares contents.
 ~~~
 
-Ngược lại, các đối tượng chỉ giữ `Object.equals` mặc định thường so theo danh tính:
+Conversely, objects that keep only the default `Object.equals` typically compare by identity:
 
 ~~~java
 StringBuilder[] x = {new StringBuilder("A")};
 StringBuilder[] y = {new StringBuilder("A")};
-// Arrays.equals(x, y) là false: StringBuilder không override equals theo nội dung.
+// Arrays.equals(x, y) is false: StringBuilder does not override equals by content.
 ~~~
 
-Điều này khác với **so sánh mảng lồng nhau**: `Arrays.equals(int[][], int[][])` chỉ so sánh các tham chiếu mảng con theo `equals` của từng mảng; muốn so từng số trong mảng con, dùng `Arrays.deepEquals(...)`.
+This differs from **comparing nested arrays**: `Arrays.equals(int[][], int[][])` only compares sub-array references using each array's `equals`; to compare numbers inside nested arrays, use `Arrays.deepEquals(...)`.
 
-## 4. `Arrays.copyOf()`: mảng mới, dài hơn hoặc ngắn hơn
+## 4. `Arrays.copyOf()`: a new array, longer or shorter
 
 ~~~java
 int[] original = {5, 7, 9};
@@ -83,12 +83,12 @@ int[] longer = Arrays.copyOf(original, 5);   // [5, 7, 9, 0, 0]
 int[] shorter = Arrays.copyOf(original, 2);  // [5, 7]
 ~~~
 
-Quy tắc:
+Rules:
 
-1. Java tạo **mảng mới** với độ dài bằng `newLength`.
-2. Sao chép `min(original.length, newLength)` phần tử đầu, giữ thứ tự.
-3. Nếu cần thêm vị trí, mỗi vị trí được điền **giá trị mặc định của kiểu thành phần**: số là 0, boolean là false, tham chiếu là null.
-4. Nếu độ dài mới nhỏ hơn, những phần tử ở cuối mảng nguồn không có trong mảng mới.
+1. Java creates a **new array** with length equal to `newLength`.
+2. Copies the first `min(original.length, newLength)` elements, preserving order.
+3. If extra slots are needed, each added slot is filled with **the component type's default value**: 0 for numbers, false for boolean, null for references.
+4. If the new length is smaller, trailing elements of the source array are omitted from the new array.
 
 ~~~java
 String[] colors = {"red", "blue"};
@@ -96,64 +96,64 @@ String[] padded = Arrays.copyOf(colors, 4);
 // padded = [red, blue, null, null].
 ~~~
 
-`Arrays.copyOf` không thay đổi `original.length`. Nếu viết `original = Arrays.copyOf(original, 5)`, biến `original` sẽ **trỏ sang đối tượng mảng mới**; mọi alias trỏ tới mảng cũ vẫn nhìn thấy độ dài cũ.
+`Arrays.copyOf` does not change `original.length`. If you write `original = Arrays.copyOf(original, 5)`, the variable `original` will **point to the new array object**; any alias pointing to the old array still sees the old length.
 
-Độ dài mới âm gây `NegativeArraySizeException`. Mảng nguồn null gây `NullPointerException` khi gọi `copyOf`; cần kiểm tra đầu vào nếu API cho phép null.
+A negative new length throws `NegativeArraySizeException`. A null source array throws `NullPointerException` when calling `copyOf`; validate inputs if your API permits null.
 
-## 5. Bản sao độc lập ở cấp mảng, nhưng có thể chia sẻ đối tượng phần tử
+## 5. Independent copy at the array level, while element objects can still be shared
 
-Với mảng `int[]`, sao chép tạo các vị trí số độc lập:
+For `int[]` arrays, copying creates independent numeric slots:
 
 ~~~java
 int[] a = {2, 4};
 int[] copy = Arrays.copyOf(a, a.length);
 copy[0] = 99;
-// a = [2, 4]; copy = [99, 4]; a == copy là false.
+// a = [2, 4]; copy = [99, 4]; a == copy is false.
 ~~~
 
-Với mảng các đối tượng mutable, `copyOf` chỉ **sao chép giá trị tham chiếu** (*shallow copy*):
+For arrays of mutable objects, `copyOf` only **copies reference values** (*shallow copy*):
 
 ~~~java
 StringBuilder[] source = {new StringBuilder("A")};
 StringBuilder[] copy = Arrays.copyOf(source, source.length);
 
 copy[0].append("!");
-// source[0].toString() cũng là "A!".
+// source[0].toString() is also "A!".
 copy[0] = new StringBuilder("B");
-// source[0] vẫn trỏ đối tượng ban đầu "A!".
+// source[0] still points to the original object "A!".
 ~~~
 
-Mảng nhiều chiều trong Java là **mảng chứa các tham chiếu tới mảng con**. Vì vậy khi copy mảng ngoài, các mảng con vẫn được chia sẻ:
+Multidimensional arrays in Java are **arrays containing references to sub-arrays**. Therefore, when copying the outer array, the inner sub-arrays are still shared:
 
 ~~~java
 int[][] rows = {{1, 2}, {3}};
 int[][] outerCopy = Arrays.copyOf(rows, rows.length);
 
 outerCopy[0][0] = 99;
-// rows[0][0] cũng bằng 99.
+// rows[0][0] also equals 99.
 ~~~
 
-Muốn sao chép sâu dữ liệu hai chiều, phải tạo bản sao cho từng mảng con hoặc dùng cách sao chép đối tượng thích hợp. `Arrays.deepEquals` và `Arrays.deepToString` dùng để **so sánh/hiển thị sâu**, không tự tạo bản sao sâu.
+To deep-copy two-dimensional data, you must create copies of each sub-array or use an appropriate object-copying approach. `Arrays.deepEquals` and `Arrays.deepToString` are for **deep comparison/display**, and do not create deep copies.
 
-## 6. Mảng rỗng, `null` và độ phức tạp
+## 6. Empty arrays, `null`, and complexity
 
-| Lệnh | Kết quả |
+| Call | Result |
 | --- | --- |
 | `Arrays.toString(new int[0])` | `"[]"` |
 | `Arrays.toString((int[]) null)` | `"null"` |
 | `Arrays.equals(new int[0], new int[0])` | `true` |
 | `Arrays.equals((int[]) null, (int[]) null)` | `true` |
 | `Arrays.equals((int[]) null, new int[0])` | `false` |
-| `Arrays.copyOf(new int[0], 3)` | Mảng mới `[0, 0, 0]` |
+| `Arrays.copyOf(new int[0], 3)` | New array `[0, 0, 0]` |
 | `Arrays.copyOf((int[]) null, 3)` | `NullPointerException` |
 
-`Arrays.equals(null, null)` chỉ có nghĩa hai tham chiếu cùng null theo quy ước của API; **không** có hai đối tượng mảng được tạo. Khi tự viết hàm nghiệp vụ, vẫn phải quyết định null có hợp lệ không.
+`Arrays.equals(null, null)` simply means both references are null by the API's convention; **no** two array objects were created. When writing your own domain methods, you still must decide whether null is valid.
 
-Với mảng dài `n`, `toString` đọc các phần tử để tạo chuỗi và `equals` có thể đọc tới `n` phần tử (hoặc dừng sớm khi khác). `copyOf` dùng bộ nhớ cho **mảng mới dài `newLength`** và sao chép phần phù hợp. Đây là các thao tác hữu ích nhưng không miễn phí nếu dữ liệu rất lớn.
+For an array of length `n`, `toString` reads elements to build the string, and `equals` may read up to `n` elements (or stop early on a mismatch). `copyOf` allocates memory for **a new array of length `newLength`** and copies the relevant slice. These are handy operations, though not free when data is very large.
 
-## 7. Ví dụ Java 17+ chạy độc lập
+## 7. Standalone Java 17+ example
 
-Tạo file **ArraysBasicsDemo.java**:
+Create the file **ArraysBasicsDemo.java**:
 
 ~~~java
 import java.util.Arrays;
@@ -234,14 +234,14 @@ public final class ArraysBasicsDemo {
 }
 ~~~
 
-Biên dịch/chạy trong thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile/run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 ArraysBasicsDemo.java
 java ArraysBasicsDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 initial=[2, 4, 6]
@@ -271,31 +271,31 @@ copyNull=NullPointerException
 copyNegative=NegativeArraySizeException
 ~~~
 
-Dòng `sameReference=false` nhưng `sameContent=true` chứng minh `==` khác `Arrays.equals`. Hai dòng `nestedDeepEqual` và `nestedAfterCopy` cho thấy cách so sánh sâu **khác** việc sao chép nông. Các dòng `copyNull` và `copyNegative` minh họa lỗi cần xử lý.
+The lines `sameReference=false` yet `sameContent=true` prove that `==` differs from `Arrays.equals`. The two lines `nestedDeepEqual` and `nestedAfterCopy` show how deep comparison **differs** from shallow copying. The lines `copyNull` and `copyNegative` illustrate errors that need handling.
 
-## 8. Lỗi thường gặp và bài tập
+## 8. Common pitfalls and exercises
 
-| Lỗi / hiểu lầm | Cách xử lý |
+| Error / misconception | How to handle |
 | --- | --- |
-| In mảng trực tiếp rồi nghĩ đã in phần tử | Dùng `Arrays.toString(array)` |
-| So hai mảng với `==` để so nội dung | Dùng `Arrays.equals(a, b)` |
-| Dùng `Arrays.equals` cho mảng nhiều chiều và mong so mọi số | Dùng `Arrays.deepEquals` |
-| Dùng `Arrays.toString` để in sâu mảng lồng nhau | Dùng `Arrays.deepToString` |
-| Cho rằng `copyOf` đổi `length` của mảng gốc | Nó tạo **mảng mới** |
-| Cho rằng `copyOf` sao chép sâu mọi đối tượng | Nó chỉ sao chép phần tử/tham chiếu |
-| Gọi `copyOf(null, n)` | Kiểm tra null trước nếu có khả năng này |
-| Dùng `newLength` âm | Kiểm tra độ dài, vì runtime ném `NegativeArraySizeException` |
+| Printing an array directly and thinking elements were printed | Use `Arrays.toString(array)` |
+| Comparing two arrays with `==` to compare contents | Use `Arrays.equals(a, b)` |
+| Using `Arrays.equals` on multidimensional arrays expecting to compare every number | Use `Arrays.deepEquals` |
+| Using `Arrays.toString` to deeply print nested arrays | Use `Arrays.deepToString` |
+| Thinking `copyOf` changes `length` of the original array | It creates a **new array** |
+| Thinking `copyOf` deep-copies every object | It only copies elements/references |
+| Calling `copyOf(null, n)` | Check for null first if that is possible |
+| Using a negative `newLength` | Validate length, because runtime throws `NegativeArraySizeException` |
 
-**Bài 1.** Tạo hai mảng `int[] {1, 2, 3}` độc lập. So sánh bằng `==` và `Arrays.equals`, rồi sửa một phần tử.
+**Exercise 1.** Create two independent `int[] {1, 2, 3}` arrays. Compare them with `==` and `Arrays.equals`, then modify one element.
 
-**Bài 2.** Từ `int[] {4, 5}`, tạo một bản copy dài 4 và một bản dài 1. Dự đoán giá trị mặc định được thêm và phần tử bị cắt.
+**Exercise 2.** From `int[] {4, 5}`, create one copy of length 4 and one of length 1. Predict the appended default values and the truncated element.
 
-**Bài 3.** Dùng `String[] {"A", "B"}`, gọi `Arrays.copyOf` với độ dài 4 và giải thích vì sao hai vị trí mới là null chứ không phải chuỗi rỗng.
+**Exercise 3.** Using `String[] {"A", "B"}`, call `Arrays.copyOf` with length 4 and explain why the two new slots are null rather than empty strings.
 
-**Bài 4.** Viết mảng hai chiều có các mảng con độc lập nhưng nội dung bằng nhau; so sánh kết quả `Arrays.equals` và `Arrays.deepEquals`.
+**Exercise 4.** Write a two-dimensional array whose sub-arrays are independent yet have equal contents; compare the results of `Arrays.equals` and `Arrays.deepEquals`.
 
-**Bài 5.** Sao chép mảng `StringBuilder[]` bằng `copyOf`, sau đó gọi `append` trên phần tử của bản sao. Vì sao nguồn cũng thấy nội dung thay đổi?
+**Exercise 5.** Copy a `StringBuilder[]` array using `copyOf`, then call `append` on an element of the copy. Why does the source also see the modified content?
 
-### Ghi nhớ
+### Key takeaways
 
-**`Arrays.toString` để xem nội dung; `Arrays.equals` để so nội dung; `Arrays.copyOf` để tạo mảng mới.** `==` trên hai biến mảng chỉ hỏi có cùng đối tượng không. `copyOf` có thể cắt hoặc bổ sung các giá trị mặc định, nhưng là **shallow copy** với tham chiếu đối tượng. Với mảng lồng nhau, dùng `deepToString`/`deepEquals` nếu cần xem hoặc so sánh phần tử sâu.
+**`Arrays.toString` to view contents; `Arrays.equals` to compare contents; `Arrays.copyOf` to create a new array.** `==` on two array variables only asks whether they refer to the same object. `copyOf` can truncate or pad with default values, yet it is a **shallow copy** for object references. For nested arrays, use `deepToString`/`deepEquals` if you need to inspect or compare elements deeply.

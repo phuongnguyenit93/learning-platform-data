@@ -1,36 +1,36 @@
-# Dấu ngoặc nhọn, dấu chấm phẩy và khối lệnh trong Java
+# Braces, Semicolons, and Blocks in Java
 
-> **Java core — language-basics / Cấu trúc chương trình**  
-> **Yêu cầu thực hành:** JDK 17 trở lên; ví dụ sử dụng cú pháp hợp lệ trong Java 17.  
-> **Mục tiêu:** Phân biệt chính xác `{ }` (dấu ngoặc nhọn), `;` (dấu chấm phẩy) và *block* (khối lệnh); biết nơi phải có hoặc không nên đặt `;`; hiểu phạm vi biến và luồng thực thi khi dùng `if`, `for`, `while`, `do...while`. Tự biên dịch, chạy và dự đoán đầu ra của một chương trình Java tối thiểu.
+> **Java core — language-basics / Program Structure**  
+> **Practice requirement:** JDK 17 or later; examples use syntax valid in Java 17.  
+> **Objective:** Accurately distinguish `{ }` (curly braces), `;` (semicolon), and a *block*; know where `;` must be placed or omitted; understand variable scope and execution flow when using `if`, `for`, `while`, and `do...while`. Compile, run, and predict the output of a minimal Java program on your own.
 
-## 1. Ba ý niệm nền tảng
+## 1. Three Foundational Concepts
 
-Trong Java, **cú pháp** quyết định đoạn mã có tạo thành câu lệnh hợp lệ hay không; **cấu trúc khối** quyết định nhóm câu lệnh nào thuộc về một nhánh hoặc một vòng lặp.
+In Java, **syntax** determines whether a snippet forms valid statements; **block structure** determines which group of statements belongs to a branch or a loop.
 
-| Ký hiệu/khái niệm | Vai trò chính | Ví dụ | Điều không có nghĩa |
+| Symbol/concept | Primary role | Example | What it does not mean |
 | --- | --- | --- | --- |
-| `{` và `}` | Đánh dấu giới hạn của thân lớp, thân phương thức, khối câu lệnh; cũng có các cách dùng khác như khởi tạo mảng | `if (ok) { run(); }` | Không phải mọi cặp `{ }` đều là một block statement |
-| `;` | Kết thúc nhiều loại statement/declaration hoặc là dấu phân tách trong header `for` | `int age = 20;` | Không có nghĩa mọi dòng Java đều phải kết thúc bằng `;` |
-| **Block** (khối lệnh) | Một statement chứa **không hoặc nhiều** statement/khai báo cục bộ nằm giữa `{ }` | `{ int x = 1; print(x); }` | Xuống dòng hoặc thụt lề không tự tạo block |
+| `{` and `}` | Marks the boundaries of a class body, method body, or statement block; also has other uses such as array initializers | `if (ok) { run(); }` | Not every `{ }` pair is a block statement |
+| `;` | Terminates many kinds of statements/declarations or acts as a separator in a `for` header | `int age = 20;` | Does not mean every line of Java must end with `;` |
+| **Block** | A statement containing **zero or more** statements/local declarations enclosed in `{ }` | `{ int x = 1; print(x); }` | Line breaks or indentation do not automatically create a block |
 
-Cần nhớ hai quy tắc độc lập:
+Remember two independent rules:
 
-- Dấu `;` thường **kết thúc một câu lệnh**, còn `{ }` tạo ranh giới cấu trúc cho một nhóm câu lệnh.
-- Trong Java, **thụt lề giúp đọc code**, nhưng dấu ngoặc nhọn và ngữ pháp — không phải số khoảng trắng — quyết định nhánh `if` hoặc vòng lặp chứa những gì.
+- The `;` character usually **terminates a statement**, whereas `{ }` establishes a structural boundary for a group of statements.
+- In Java, **indentation helps readability**, but curly braces and grammar — not the number of spaces — determine what an `if` branch or a loop contains.
 
 ~~~mermaid
 flowchart TD
-    A["Câu lệnh trong main"] --> B["for (...) { ... }"]
-    B --> C["if (điều kiện) { ... }"]
+    A["Statements in main"] --> B["for (...) { ... }"]
+    B --> C["if (condition) { ... }"]
     C --> D["total += number;"]
-    B --> E["Sau vòng for"]
+    B --> E["After for loop"]
     E --> F["System.out.println(...);"]
 ~~~
 
-## 2. Chương trình Java 17+ tối thiểu có đủ ba thành phần
+## 2. A Minimal Java 17+ Program with All Three Elements
 
-Tạo file **BlockSyntaxDemo.java**; tên tệp trùng với `public class BlockSyntaxDemo`:
+Create the file **BlockSyntaxDemo.java**; the filename matches `public class BlockSyntaxDemo`:
 
 ~~~java
 public final class BlockSyntaxDemo {
@@ -62,7 +62,7 @@ public final class BlockSyntaxDemo {
 }
 ~~~
 
-**Chạy trong terminal ở thư mục chứa tệp:**
+**Run in the terminal inside the directory containing the file:**
 
 ~~~bash
 java -version
@@ -71,46 +71,46 @@ javac -encoding UTF-8 BlockSyntaxDemo.java
 java BlockSyntaxDemo
 ~~~
 
-Hai lệnh đầu giúp xác minh công cụ, không phải đầu ra của chương trình. Nếu biên dịch thành công, `javac` thường không in gì và tạo `BlockSyntaxDemo.class`. Lệnh cuối in **đúng hai dòng**:
+The first two commands verify the tools, not the program output. If compilation succeeds, `javac` normally prints nothing and creates `BlockSyntaxDemo.class`. The final command prints **exactly two lines**:
 
 ~~~text
 Tong so chan tu 1 den 6: 12
 Da tim thay so chan
 ~~~
 
-Vì các số chẵn trong khoảng từ 1 đến 6 là 2, 4, 6 nên tổng là 12.
+Because the even numbers from 1 to 6 are 2, 4, and 6, the sum is 12.
 
-### Quan sát từng kiểu dấu trong ví dụ
+### Inspecting each kind of punctuation in the example
 
-| Đoạn mã | Tại sao viết như vậy? |
+| Snippet | Why is it written that way? |
 | --- | --- |
-| `public final class BlockSyntaxDemo { ... }` | Dấu ngoặc nhọn bao quanh **thân lớp**; không có `;` bắt buộc sau dấu `}` cuối của khai báo lớp |
-| `private static int sumEvenUpTo(int limit) { ... }` | Dấu ngoặc nhọn bao quanh **thân phương thức** |
-| `int total = 0;` | Một câu lệnh khai báo biến cục bộ kết thúc bằng `;` |
-| `for (...; ...; ...) { ... }` | Hai dấu `;` trong header phân tách ba phần của vòng `for` truyền thống |
-| `if (number % 2 == 0) { ... }` | Block thuộc nhánh `if`; không thêm `;` giữa `)` và `{` |
-| `total += number;` | Một expression statement thay đổi biến, kết thúc bằng `;` |
-| `return total;` | Câu lệnh trả kết quả, kết thúc bằng `;` |
-| `System.out.println(...);` | Lời gọi phương thức dùng như statement, kết thúc bằng `;` |
+| `public final class BlockSyntaxDemo { ... }` | Braces enclose the **class body**; no `;` is required after the closing `}` of a class declaration |
+| `private static int sumEvenUpTo(int limit) { ... }` | Braces enclose the **method body** |
+| `int total = 0;` | A local variable declaration statement ending with `;` |
+| `for (...; ...; ...) { ... }` | Two `;` separators in the header split the three parts of a traditional `for` loop |
+| `if (number % 2 == 0) { ... }` | Block belonging to the `if` branch; do not place `;` between `)` and `{` |
+| `total += number;` | An expression statement modifying a variable, ending with `;` |
+| `return total;` | A return statement, ending with `;` |
+| `System.out.println(...);` | A method call used as a statement, ending with `;` |
 
-**Lưu ý về tên:** Dùng `java BlockSyntaxDemo` để khởi chạy class đã biên dịch, không dùng `java BlockSyntaxDemo.class`. Trong file nguồn không có khai báo `package`, nên tên class chạy ở ví dụ này chỉ là `BlockSyntaxDemo`.
+**Note on names:** Use `java BlockSyntaxDemo` to launch the compiled class, not `java BlockSyntaxDemo.class`. Because the source file has no `package` declaration, the class name to run in this example is simply `BlockSyntaxDemo`.
 
-## 3. `{ }` tạo khối lệnh như thế nào?
+## 3. How `{ }` Creates a Block
 
-Một block statement có hình dạng:
+A block statement has the form:
 
 ~~~java
 {
-    // Có thể là 0, 1 hoặc nhiều câu lệnh.
+    // Can contain 0, 1, or many statements.
     int first = 2;
     int second = 3;
     System.out.println(first + second);
 }
 ~~~
 
-Block trên **hợp lệ khi nằm trong thân một phương thức hoặc vị trí cho phép block statement**, nhưng đoạn riêng lẻ này **không phải tệp Java hoàn chỉnh** để gọi `java` trực tiếp.
+The block above is **valid when placed inside a method body or any position allowing a block statement**, but this standalone snippet is **not a complete Java file** that you can pass directly to `java`.
 
-Trong một phương thức, có thể lồng nhiều block:
+Inside a method, you can nest multiple blocks:
 
 ~~~java
 int outer = 10;
@@ -119,98 +119,98 @@ int outer = 10;
     System.out.println(outer + inner); // 15
 }
 System.out.println(outer);             // 10
-// System.out.println(inner);          // Sai: inner đã ra khỏi phạm vi.
+// System.out.println(inner);          // Invalid: inner is out of scope.
 ~~~
 
-**Phạm vi (scope):** biến cục bộ `inner` chỉ dùng được trong block khai báo nó, kể từ chỗ khai báo trở đi. Biến `outer` được khai báo bên ngoài nên block lồng bên trong có thể tham chiếu tới nó. Khi kết thúc block, tên biến cục bộ chỉ tồn tại trong block đó không còn truy cập được.
+**Scope:** the local variable `inner` is only usable within the block where it is declared, from its declaration point onward. The variable `outer` is declared outside, so the nested inner block can reference it. When the block ends, a local variable existing only in that block is no longer accessible.
 
-Đây cũng là điểm khác biệt với **field** của lớp:
+This is also how it differs from a class **field**:
 
 ~~~java
 class Counter {
-    private int total;  // Field của mỗi đối tượng Counter.
+    private int total;  // Field of each Counter object.
 
     void addOne() {
-        int delta = 1;  // Biến cục bộ của phương thức.
+        int delta = 1;  // Local variable of the method.
         total += delta;
     }
 }
 ~~~
 
-`total` là field của object; `delta` là biến cục bộ chỉ có phạm vi trong phương thức. Không dùng thời điểm kết thúc một block để suy luận rằng object chứa field chắc chắn đã bị thu gom bộ nhớ; đó là hai khái niệm khác nhau.
+`total` is an object field; `delta` is a local variable scoped only to the method. Do not use the end of a block to infer that an object holding fields has definitely been garbage-collected; those are two different concepts.
 
-### Ranh giới khai báo và che khuất tên
+### Declaration boundaries and name shadowing
 
-Trong các phạm vi cục bộ chồng lấp nhau, Java không cho khai báo lại một **biến cục bộ trùng tên** như cách làm bên dưới:
+In overlapping local scopes, Java does not allow redeclaring a **local variable with the same name** as shown below:
 
 ~~~java
 void example() {
     int value = 1;
     {
-        // int value = 2; // Lỗi biên dịch: trùng tên biến cục bộ còn trong phạm vi.
+        // int value = 2; // Compile error: duplicate local variable name still in scope.
         System.out.println(value);
     }
 }
 ~~~
 
-Ngược lại, có thể có tên field và biến cục bộ trùng nhau; khi đó cú pháp như `this.value` giúp chỉ rõ field của đối tượng. Chỉ nên giới thiệu quy tắc này để tránh suy luận rằng “cứ thêm `{ }` là có thể tái sử dụng mọi tên”.
+Conversely, a field and a local variable can share the same name; in that case, syntax like `this.value` clarifies the object's field. This rule should only be introduced to prevent inferring that "just adding `{ }` lets you reuse any name."
 
-## 4. Khi nào cần dấu `;`?
+## 4. When Is `;` Needed?
 
-Có nhiều statement kết thúc bằng dấu chấm phẩy, nhưng **không phải tất cả**. Bảng dưới tóm tắt những dạng thường gặp trong Java 17:
+Many statements end with a semicolon, though **not all of them**. The table below summarizes common forms in Java 17:
 
-| Dạng | Ví dụ | Có `;`? |
+| Form | Example | Has `;`? |
 | --- | --- | --- |
-| Khai báo biến cục bộ | `int count = 0;` | Có |
-| Gán và gọi method | `count++;`, `System.out.println(count);` | Có |
-| Trả về | `return count;` hoặc `return;` trong method `void` | Có |
-| Thoát/bỏ qua vòng lặp | `break;`, `continue;` | Có |
-| Khai báo `package` và `import` | `package demo;`, `import java.util.List;` | Có |
-| `if` có block | `if (ready) { work(); }` | **Không** đặt `;` sau header `if (...)` |
-| `for` truyền thống | `for (int i = 0; i < 3; i++) { ... }` | Có **hai** `;` bên trong header |
-| `while` có block | `while (ready) { work(); }` | Không có `;` giữa `)` và `{` |
-| `do...while` | `do { work(); } while (ready);` | Có `;` ở cuối |
-| Khai báo phương thức có thân | `void work() { ... }` | Không bắt buộc `;` sau `}` |
-| Khai báo lớp có thân | `class Example { ... }` | Không cần `;` sau `}` |
+| Local variable declaration | `int count = 0;` | Yes |
+| Assignment and method call | `count++;`, `System.out.println(count);` | Yes |
+| Return | `return count;` or `return;` in a `void` method | Yes |
+| Exiting/skipping a loop | `break;`, `continue;` | Yes |
+| `package` and `import` declarations | `package demo;`, `import java.util.List;` | Yes |
+| `if` with a block | `if (ready) { work(); }` | **Do not** place `;` after the `if (...)` header |
+| Traditional `for` | `for (int i = 0; i < 3; i++) { ... }` | Has **two** `;` inside the header |
+| `while` with a block | `while (ready) { work(); }` | No `;` between `)` and `{` |
+| `do...while` | `do { work(); } while (ready);` | Has `;` at the end |
+| Method declaration with body | `void work() { ... }` | No `;` required after `}` |
+| Class declaration with body | `class Example { ... }` | No `;` needed after `}` |
 
-**Chính xác hơn:** dấu `;` là một token ngữ pháp, không chỉ đơn giản “chốt dòng code”. Java cho phép nhiều statement cùng một dòng hoặc một statement trải qua nhiều dòng:
+**More precisely:** `;` is a syntactic token, not simply "end of a line of code." Java allows multiple statements on a single line or one statement spanning multiple lines:
 
 ~~~java
 int a = 1; int b = 2;
 System.out.println(
         a + b
-); // Kết thúc statement ở đây, không phải ở cuối dòng đầu.
+); // The statement ends here, not at the end of the first line.
 ~~~
 
-Hai dạng sau không tương đương:
+The following two forms are not equivalent:
 
 ~~~java
-int amount = 10;  // Statement hoàn chỉnh.
-int amount = 10   // Nếu đây là một statement độc lập: thiếu dấu ;, lỗi biên dịch.
+int amount = 10;  // Complete statement.
+int amount = 10   // If this is a standalone statement: missing ;, compile error.
 ~~~
 
-Dòng thứ hai chỉ là **mảnh minh họa cú pháp sai**, không phải code để đặt chung với dòng đầu vào một chương trình chạy được.
+The second line is only a **snippet illustrating invalid syntax**, not code to place together with the first line in a runnable program.
 
 
-## 5. Bẫy cú pháp: dấu `;` trở thành thân của `if`
+## 5. Syntax Trap: `;` Becomes the Body of `if`
 
-Một dấu `;` đứng độc lập là **empty statement**. Khi đặt ngay sau `if (condition)`, nó chính là toàn bộ thân của nhánh, còn block phía sau chạy độc lập:
+A standalone `;` is an **empty statement**. When placed immediately after `if (condition)`, it becomes the entire body of the branch, while the block after it runs independently:
 
 ~~~java
 boolean ready = false;
-if (ready); // Thân if rỗng.
+if (ready); // Empty if body.
 {
     System.out.println("Khoi nay chay doc lap");
 }
 ~~~
 
-Dù `ready` là `false`, đoạn mã trên (nếu đặt trong một phương thức) vẫn in `Khoi nay chay doc lap`. Muốn chỉ in khi điều kiện đúng, hãy bỏ dấu `;` sau điều kiện và viết `if (ready) { ... }`.
+Even though `ready` is `false`, the snippet above (when placed inside a method) still prints `Khoi nay chay doc lap`. To print only when the condition is true, remove the `;` after the condition and write `if (ready) { ... }`.
 
-Đây là ví dụ ngắn về tác động của token `;` lên cấu trúc khối. Bài **Câu lệnh biểu thức và câu lệnh rỗng** giải thích sâu hơn khi nào `;` là một statement riêng và hành vi của nó trong vòng lặp. Với các nhánh `if` lồng nhau thiếu ngoặc, `else` ghép theo cú pháp với `if` gần nhất có thể nhận nó, bất kể thụt lề.
+This is a brief example of how the `;` token affects block structure. The lesson **Expression Statements and Empty Statements** explains in greater depth when `;` is a standalone statement and how it behaves in loops. With nested `if` branches lacking braces, `else` syntactically binds to the nearest `if` that can accept it, regardless of indentation.
 
-## 6. Khối lệnh trong `for`, `while` và `do...while`
+## 6. Blocks in `for`, `while`, and `do...while`
 
-### 6.1. `for` truyền thống có hai dấu phân tách `;`
+### 6.1. Traditional `for` has two `;` separators
 
 ~~~java
 for (int i = 0; i < 3; i++) {
@@ -218,7 +218,7 @@ for (int i = 0; i < 3; i++) {
 }
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 0
@@ -226,15 +226,15 @@ Kết quả:
 2
 ~~~
 
-Ba phần của header là:
+The three parts of the header are:
 
-1. `int i = 0` — khởi tạo, chạy một lần trước vòng.
-2. `i < 3` — điều kiện kiểm tra trước mỗi lượt lặp.
-3. `i++` — cập nhật sau mỗi lượt thực thi thân vòng.
+1. `int i = 0` — initialization, runs once before the loop.
+2. `i < 3` — condition checked before each iteration.
+3. `i++` — update after each execution of the loop body.
 
-Hai dấu `;` ở giữa là **bắt buộc đối với cấu trúc này**, ngay cả khi một số phần bỏ trống. Ví dụ `for (;;) { break; }` hợp lệ: header có hai dấu phân tách nhưng ba phần đều rỗng, vòng dừng nhờ `break;`.
+The two `;` separators in between are **mandatory for this construct**, even when some parts are omitted. For example, `for (;;) { break; }` is valid: the header has two separators while all three parts are empty, and the loop stops via `break;`.
 
-### 6.2. Enhanced `for` không dùng hai dấu `;`
+### 6.2. Enhanced `for` does not use two `;`
 
 ~~~java
 int[] values = {2, 4, 6};
@@ -243,9 +243,9 @@ for (int value : values) {
 }
 ~~~
 
-Dấu `:` là cú pháp của enhanced for; đừng nhầm với `for (init; condition; update)`. Mảng `values` có khởi tạo bằng dấu ngoặc nhọn nhưng `{2, 4, 6}` ở đây là **array initializer**, không phải block statement.
+The colon `:` is enhanced-for syntax; do not confuse it with `for (init; condition; update)`. The array `values` is initialized with braces, but `{2, 4, 6}` here is an **array initializer**, not a block statement.
 
-### 6.3. `while` không có `;` sau điều kiện
+### 6.3. `while` has no `;` after the condition
 
 ~~~java
 int remaining = 2;
@@ -255,9 +255,9 @@ while (remaining > 0) {
 }
 ~~~
 
-Đầu ra là `2` rồi `1`. Dấu `;` xuất hiện ở **hai statement bên trong** block, không ở giữa `while (...)` và block. Nếu viết `while (remaining > 0);` với `remaining` không thay đổi ở header, bạn có thể tạo vòng lặp rỗng không kết thúc.
+The output is `2` then `1`. Semicolons appear at the **two statements inside** the block, not between `while (...)` and the block. Writing `while (remaining > 0);` where `remaining` does not change in the header can create a non-terminating empty loop.
 
-### 6.4. `do...while` cần dấu `;` cuối
+### 6.4. `do...while` requires a trailing `;`
 
 ~~~java
 int remaining = 2;
@@ -267,27 +267,27 @@ do {
 } while (remaining > 0);
 ~~~
 
-Dòng đóng `} while (...);` có dấu chấm phẩy **bắt buộc**. Điểm khác với `while` là thân `do` thực thi ít nhất một lần trước khi kiểm tra điều kiện.
+The closing line `} while (...);` has a **mandatory** semicolon. The difference from `while` is that the `do` body executes at least once before checking the condition.
 
-## 7. Block quyết định cả phạm vi biến và tính hợp lệ của code
+## 7. Blocks Determine Both Variable Scope and Code Validity
 
-### Biến chỉ tồn tại trong nhánh khai báo
+### Variables exist only inside the branch where they are declared
 
-Đoạn sau minh họa lỗi phạm vi:
+The snippet below illustrates a scope error:
 
 ~~~java
 if (args.length > 0) {
     String first = args[0];
     System.out.println(first);
 }
-// System.out.println(first); // Lỗi: first chỉ được khai báo trong block if.
+// System.out.println(first); // Error: first is only declared inside the if block.
 ~~~
 
-Nó dùng biến `args` có sẵn **bên trong `main(String[] args)`**. Việc bình thường hóa khoảng trắng hay thêm dấu `;` **không** giải quyết lỗi tên biến nằm ngoài phạm vi.
+It uses the `args` variable available **inside `main(String[] args)`**. Normalizing whitespace or adding `;` **does not** fix an out-of-scope variable name error.
 
-### Khác biệt giữa “đã khai báo” và “đã gán giá trị”
+### Difference between "declared" and "assigned a value"
 
-Một biến cục bộ phải **được gán chắc chắn** (*definitely assigned*) trước khi đọc giá trị:
+A local variable must be **definitely assigned** before its value is read:
 
 ~~~java
 int result;
@@ -296,27 +296,27 @@ if (args.length > 0) {
 } else {
     result = 0;
 }
-System.out.println(result);  // Hợp lệ: mọi nhánh đều gán result.
+System.out.println(result);  // Valid: every branch assigns result.
 ~~~
 
-Nếu bỏ nhánh `else`, compiler có thể báo `variable result might not have been initialized`. Java **không** tự khởi tạo biến cục bộ thành 0 chỉ vì kiểu là `int`; quy tắc mặc định giá trị của field khác với quy tắc definite assignment cho biến cục bộ.
+If you remove the `else` branch, the compiler can report `variable result might not have been initialized`. Java **does not** automatically initialize local variables to 0 just because the type is `int`; default value rules for fields differ from definite assignment rules for local variables.
 
-Đây là ví dụ tốt để thấy `{ }` không chỉ “để code đẹp”: chúng thể hiện nhánh kiểm tra, phạm vi và đường đi điều khiển mà compiler phân tích.
+This is a good example showing that `{ }` are not merely "for making code look nice": they represent the test branches, scopes, and control paths that the compiler analyzes.
 
-## 8. Không phải mọi `{ }` đều là block statement
+## 8. Not Every `{ }` Is a Block Statement
 
-Dấu ngoặc nhọn cũng xuất hiện trong các cấu trúc Java 17 khác:
+Curly braces also appear in other Java 17 constructs:
 
-### 8.1. Khởi tạo mảng
+### 8.1. Array initializer
 
 ~~~java
 int[] scores = {8, 9, 10};
 System.out.println(scores.length); // 3
 ~~~
 
-`{8, 9, 10}` là **array initializer**. Dấu `;` cuối là dấu kết thúc **khai báo biến**, không phải dấu bắt buộc sau mọi `}`.
+`{8, 9, 10}` is an **array initializer**. The trailing `;` terminates the **variable declaration**, not a required semicolon after every `}`.
 
-### 8.2. Lambda có thân là block
+### 8.2. Lambda with a block body
 
 ~~~java
 Runnable task = () -> {
@@ -325,9 +325,9 @@ Runnable task = () -> {
 task.run();
 ~~~
 
-Lời gọi `println` bên trong kết thúc bằng `;`; dấu `;` sau `}` kết thúc **statement gán lambda cho biến `task`**. Không suy ra “mọi block `{ }` đều cần `;` ở cuối”.
+The `println` call inside ends with `;`; the `;` after `}` terminates the **statement assigning the lambda to `task`**. Do not conclude that "every `{ }` block needs a trailing `;`."
 
-### 8.3. `switch` expression trong Java 17
+### 8.3. `switch` expression in Java 17
 
 ~~~java
 int day = 2;
@@ -339,7 +339,7 @@ String label = switch (day) {
 System.out.println(label);
 ~~~
 
-Kết quả: `Tue`. Ở đây dấu `;` sau `}` kết thúc **khai báo biến `label`** dùng một biểu thức `switch`. Khi một nhánh `case` có nhiều statement, nó có thể dùng block và `yield` để trả giá trị của switch expression:
+Output: `Tue`. Here the `;` after `}` terminates the **declaration of variable `label`** using a `switch` expression. When a `case` branch has multiple statements, it can use a block and `yield` to produce a value for the switch expression:
 
 ~~~java
 int n = 4;
@@ -352,47 +352,47 @@ String category = switch (n) {
 };
 ~~~
 
-Đây là cú pháp hỗ trợ trong Java 17; `yield "Chan";` dùng để tạo giá trị cho switch expression, không đồng nghĩa với `return` thoát khỏi phương thức.
+This is supported syntax in Java 17; `yield "Chan";` produces a value for the switch expression, which is not the same as `return` exiting the method.
 
-**Tóm lại:** cần xác định dấu `{ }` đang đóng **khối lệnh, thân khai báo hay initializer** trước khi quyết định đặt dấu `;`.
+**In short:** identify whether `{ }` closes a **statement block, declaration body, or initializer** before deciding whether to place a `;`.
 
-## 9. Lỗi cú pháp: xem lỗi theo ngữ cảnh thay vì đoán
+## 9. Syntax Errors: Read the Error in Context Instead of Guessing
 
-| Thông báo/triệu chứng | Nguyên nhân khả dĩ | Cách sửa phù hợp |
+| Message/symptom | Likely cause | Appropriate fix |
 | --- | --- | --- |
-| `';' expected` | Thiếu dấu `;` sau khai báo biến hoặc expression statement | Xác định statement cần kết thúc ở đâu |
-| `reached end of file while parsing` | Thiếu `}` hoặc một phần cú pháp chưa đóng | Đối chiếu các cặp `{ }`, dấu `( )` |
-| `'else' without 'if'` | Có statement hoặc `;` làm thay đổi cấu trúc nhánh | Kiểm tra dấu `;` sau `if` và các block |
-| `variable ... is already defined` | Khai báo lại biến cục bộ trùng tên trong phạm vi chồng lấp | Đổi tên hoặc sửa phạm vi đúng mục đích |
-| `cannot find symbol` với biến trong block trước | Biến nằm ngoài phạm vi nhìn thấy | Khai báo ở phạm vi phù hợp, truyền qua tham số hoặc trả kết quả |
-| `variable ... might not have been initialized` | Có đường đi tới chỗ đọc nhưng chưa chắc chắn gán giá trị | Bảo đảm gán trước khi dùng trên mọi nhánh cần thiết |
-| Vòng lặp `while` không dừng | Vô tình dùng `while (condition);` với thân rỗng | Bỏ dấu `;` sai và kiểm tra điều kiện cập nhật |
-| `if` luôn “in” dù điều kiện false | Có `;` sau `if (...)`, block sau đó độc lập | Ghép đúng `if (condition) { ... }` |
+| `';' expected` | Missing `;` after a variable declaration or expression statement | Identify where the statement should end |
+| `reached end of file while parsing` | Missing `}` or an unclosed syntactic construct | Match pairs of `{ }` and `( )` |
+| `'else' without 'if'` | A statement or `;` altered the branch structure | Check `;` after `if` and check blocks |
+| `variable ... is already defined` | Redeclaring a local variable with the same name in overlapping scope | Rename or adjust scope as intended |
+| `cannot find symbol` for a variable from an earlier block | Variable is outside the visible scope | Declare in an appropriate scope, pass as parameter, or return result |
+| `variable ... might not have been initialized` | There is a path to the read site without definite assignment | Ensure assignment before use on all required paths |
+| `while` loop never stops | Accidentally wrote `while (condition);` with an empty body | Remove the misplaced `;` and check update conditions |
+| `if` always "prints" even when condition is false | There is a `;` after `if (...)`, making the following block independent | Write `if (condition) { ... }` properly |
 
-**Điểm quan trọng:** thông báo compiler có thể chỉ tới một dòng **sau** chỗ đặt sai dấu `{`, `}` hoặc `;`, vì trình phân tích cú pháp chỉ phát hiện mâu thuẫn ở vị trí tiếp theo. Khi thấy lỗi, đọc cả vài dòng trước đó.
+**Important point:** compiler messages can point to a line **after** the misplaced `{`, `}`, or `;`, because the parser only detects the contradiction at the next token. When you see an error, inspect a few preceding lines as well.
 
-## 10. Quy tắc trình bày code giúp ngăn lỗi
+## 10. Formatting Habits That Prevent Bugs
 
-- Mỗi cặp `{`/`}` nên được thụt lề nhất quán; đóng ngoặc đúng cấp khối.
-- Ưu tiên dùng `{ }` cho thân `if`/`else`/`for`/`while` dù ngữ pháp Java có thể cho một statement không cần ngoặc. Điều này giảm rủi ro khi bổ sung câu lệnh.
-- Đừng thêm `;` ngay sau phần điều kiện `if (...)`, `for (...)` hoặc `while (...)` nếu bạn định chạy một block.
-- Với `do { ... } while (...);`, đừng quên dấu `;` cuối.
-- Không chỉ đếm dấu ngoặc trên **văn bản**: ký tự `{`, `}`, `;` xuất hiện bên trong **chuỗi** hoặc **comment** không tự biến thành cú pháp điều khiển.
+- Each `{`/`}` pair should be indented consistently; align closing braces with the block level.
+- Prefer using `{ }` for `if`/`else`/`for`/`while` bodies even when Java grammar permits a single statement without braces. This lowers the risk when adding statements later.
+- Do not put `;` right after the condition of `if (...)`, `for (...)`, or `while (...)` when you intend to run a block.
+- For `do { ... } while (...);`, do not forget the trailing `;`.
+- Do not just count braces in **plain text**: `{`, `}`, and `;` inside **strings** or **comments** do not become control syntax.
 
-Ví dụ:
+Example:
 
 ~~~java
-String text = "{ ; }"; // Các ký tự bên trong chuỗi không tạo block.
-System.out.println(text); // In đúng: { ; }
+String text = "{ ; }"; // Characters inside a string do not create a block.
+System.out.println(text); // Prints literally: { ; }
 ~~~
 
-Đừng cố sửa bằng cách xóa mọi dấu chấm phẩy sau dấu `}`, vì trường hợp khai báo biến với mảng, lambda hoặc switch expression **cần** dấu đó để kết thúc statement.
+Do not try to fix errors by deleting every semicolon after a closing brace `}`, because variable declarations with arrays, lambdas, or switch expressions **need** that semicolon to terminate the statement.
 
-## 11. Bài tập tự luyện
+## 11. Self-Practice Exercises
 
-**Bài 1 — Đoán đầu ra của chương trình chính.** Với `limit = 6`, những lần nào `total += number;` thực sự chạy? Thử đổi `limit` thành 5 và dự đoán tổng; sau đó biên dịch lại để kiểm tra.
+**Exercise 1 — Predict the main program output.** With `limit = 6`, on which iterations does `total += number;` actually run? Try changing `limit` to 5 and predict the sum; then recompile to verify.
 
-**Bài 2 — Tìm dấu sai.** Trong phương thức `main`, đoạn sau in mấy dòng và vì sao?
+**Exercise 2 — Spot the misplaced punctuation.** Inside a `main` method, how many lines does the snippet below print and why?
 
 ~~~java
 boolean pass = false;
@@ -402,9 +402,9 @@ if (pass);
 }
 ~~~
 
-*Định hướng:* Một dòng `PASS`. `if (pass)` đang điều khiển empty statement; block riêng vẫn chạy.
+*Guidance:* One line `PASS`. `if (pass)` governs an empty statement; the separate block still runs.
 
-**Bài 3 — Tính phạm vi.** Đoạn sau có biên dịch được không? Nếu không, sửa để in được giá trị:
+**Exercise 3 — Scope.** Does the following snippet compile? If not, fix it so the value can be printed:
 
 ~~~java
 {
@@ -413,23 +413,23 @@ if (pass);
 System.out.println(count);
 ~~~
 
-*Định hướng:* Không. `count` được khai báo trong block đã kết thúc; có thể khai báo `count` ở phạm vi bên ngoài nếu cần sử dụng sau đó.
+*Guidance:* No. `count` is declared in a block that has already ended; `count` can be declared in the outer scope if it needs to be used afterward.
 
-**Bài 4 — Điền dấu phân tách.** Viết vòng `for` in 1, 2, 3. Chỉ ra hai dấu `;` trong header và dấu `;` kết thúc lời gọi `println` bên trong.
+**Exercise 4 — Fill in separators.** Write a `for` loop that prints 1, 2, 3. Point out the two `;` separators in the header and the `;` terminating the `println` call inside.
 
-**Bài 5 — So sánh hai loại `while`.** Viết một vòng `while` và một vòng `do...while` với điều kiện ban đầu `false`, quan sát số lần thực thi thân vòng và vị trí dấu chấm phẩy.
+**Exercise 5 — Compare two `while` forms.** Write a `while` loop and a `do...while` loop with an initial condition of `false`, and observe how many times the loop body executes and where semicolons appear.
 
-**Bài 6 — Nhận diện kiểu `{ }`.** Trong `int[] a = {1, 2};`, `if (ok) { work(); }` và `Runnable r = () -> { work(); };`, dấu ngoặc nhọn thuộc loại nào? Dấu `;` ngoài cùng đang kết thúc cấu trúc nào?
+**Exercise 6 — Identify kinds of `{ }`.** In `int[] a = {1, 2};`, `if (ok) { work(); }`, and `Runnable r = () -> { work(); };`, what kind is each pair of curly braces? Which construct does each outermost `;` terminate?
 
-## 12. Tự kiểm tra cuối bài
+## 12. Lesson Self-Check
 
-Bạn hiểu chủ đề nếu có thể giải thích chính xác:
+You understand the topic if you can accurately explain:
 
-1. **Block** bắt đầu và kết thúc ở đâu, vì sao thụt lề không quyết định cấu trúc.
-2. Dấu `;` nào kết thúc statement, dấu nào phân tách ba phần của `for`.
-3. Tại sao `if (condition); { ... }` nguy hiểm dù thường không phải lỗi biên dịch.
-4. Tại sao `do...while` cần `;` cuối nhưng `while (...) { ... }` không.
-5. Khi nào biến cục bộ nằm ngoài phạm vi, và tại sao nó còn có thể bị lỗi *definite assignment*.
-6. Vì sao `int[] values = {2, 4};` hoặc `String s = switch (...) { ... };` cần dấu chấm phẩy cuối dù vừa có dấu `}`.
+1. Where a **block** starts and ends, and why indentation does not determine structure.
+2. Which `;` terminates a statement and which separates the three parts of `for`.
+3. Why `if (condition); { ... }` is dangerous even though it is usually not a compile error.
+4. Why `do...while` needs a trailing `;` while `while (...) { ... }` does not.
+5. When a local variable is out of scope, and why it can also fail *definite assignment*.
+6. Why `int[] values = {2, 4};` or `String s = switch (...) { ... };` needs a trailing semicolon even right after `}`.
 
-**Ghi nhớ:** Trong Java, **`{ }` là ranh giới cấu trúc**, còn **`;` là token ngữ pháp** để kết thúc hoặc phân tách theo từng dạng câu lệnh. Hãy nhìn **loại cấu trúc đang viết**, không chỉ nhìn vị trí xuống dòng.
+**Key takeaway:** In Java, **`{ }` are structural boundaries**, whereas **`;` is a syntactic token** used to terminate or separate depending on the statement form. Look at the **kind of construct being written**, not just where lines break.

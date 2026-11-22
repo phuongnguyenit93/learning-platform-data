@@ -1,15 +1,15 @@
-# Phép gán tham chiếu không tạo đối tượng mới trong Java
+# Reference Assignment Does Not Create a New Object in Java
 
-## 1. Bản chất của phép gán tham chiếu
+## 1. The Nature of Reference Assignment
 
-Trong Java, một biến kiểu tham chiếu (ví dụ `Person`, `String`, mảng hay `List`) giữ **giá trị tham chiếu đến một đối tượng**, hoặc giá trị `null`. Với phép gán `b = a`, Java chép **giá trị tham chiếu** của `a` vào biến `b`. Bản thân phép gán không tạo thêm đối tượng và không sao chép các trường của đối tượng.
+In Java, a variable of a reference type (for example `Person`, `String`, an array, or `List`) holds a **reference value pointing to an object**, or the value `null`. With the assignment `b = a`, Java copies the **reference value** of `a` into the variable `b`. The assignment itself does not create an additional object and does not copy the object's fields.
 
 ~~~java
-Box first = new Box("A"); // new Box(...) tạo đối tượng.
-Box alias = first;        // Chép tham chiếu, không tạo Box thứ hai.
+Box first = new Box("A"); // new Box(...) creates the object.
+Box alias = first;        // Copies the reference, does not create a second Box.
 ~~~
 
-Sau đó `first` và `alias` là **hai biến riêng biệt cùng tham chiếu một Box**:
+Afterward, `first` and `alias` are **two separate variables referencing the same Box**:
 
 ~~~text
 first ──┐
@@ -17,11 +17,11 @@ first ──┐
 alias ──┘
 ~~~
 
-Khai báo biến tham chiếu không đồng nghĩa với tạo một đối tượng của lớp được tham chiếu. Trong `Box first = new Box("A")`, **biểu thức `new`** làm phát sinh đối tượng, còn phép gán chỉ đặt tham chiếu vào `first`. Câu “phép gán không tạo đối tượng mới” nói về thao tác sao chép tham chiếu; nó không phủ nhận rằng **biểu thức bên phải** có thể tự tạo đối tượng.
+Declaring a reference variable is not equivalent to creating an object of the referenced class. In `Box first = new Box("A")`, the **`new` expression** brings the object into existence, while the assignment merely places the reference into `first`. The statement “assignment does not create a new object” refers to the reference-copying operation; it does not deny that the **right-hand expression** may itself create an object.
 
-## 2. Ví dụ đầy đủ: alias, thay đổi trạng thái và gán lại
+## 2. Complete Example: Aliasing, Mutating State, and Reassignment
 
-Tạo tệp `ReferenceAssignmentDemo.java`:
+Create the file `ReferenceAssignmentDemo.java`:
 
 ~~~java
 public class ReferenceAssignmentDemo {
@@ -50,7 +50,7 @@ public class ReferenceAssignmentDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng Java 17+:
+Compile and run with Java 17+:
 
 ~~~bash
 javac -encoding UTF-8 ReferenceAssignmentDemo.java
@@ -67,22 +67,22 @@ first.value: B
 alias.value: C
 ~~~
 
-Đọc từng bước:
+Read step by step:
 
-1. `new Box("A")` tạo một đối tượng Box, `first` nhận tham chiếu đến đối tượng đó.
-2. `Box alias = first` chép tham chiếu vào `alias`, nên `first == alias` là `true`.
-3. `alias.value = "B"` **sửa trạng thái đối tượng dùng chung**. Qua `first.value` ta cũng thấy `"B"`.
-4. `alias = new Box("C")` tạo Box thứ hai rồi gán tham chiếu của Box mới cho **riêng biến** `alias`.
-5. `first` vẫn trỏ đến Box có `value = "B"`; `alias` trỏ đến Box có `value = "C"`. Hai biến không còn cùng tham chiếu, nên `==` trả `false`.
+1. `new Box("A")` creates a Box object, and `first` receives a reference to that object.
+2. `Box alias = first` copies the reference into `alias`, so `first == alias` is `true`.
+3. `alias.value = "B"` **modifies the state of the shared object**. Through `first.value`, we also see `"B"`.
+4. `alias = new Box("C")` creates a second Box and assigns the reference of the new Box to **only the variable** `alias`.
+5. `first` still points to the Box with `value = "B"`; `alias` points to the Box with `value = "C"`. The two variables no longer share the same reference, so `==` returns `false`.
 
-Phải phân biệt hai thao tác:
+You must distinguish two operations:
 
-- **Sửa đối tượng:** `alias.value = "B"` tác động đến đối tượng mà các alias cùng trỏ tới.
-- **Gán lại biến:** `alias = other`, `alias = null` hoặc `alias = new Box(...)` đổi giá trị tham chiếu trong riêng `alias`. Lệnh này không tự sửa đối tượng cũ và không đổi giá trị của `first`.
+- **Modifying the object:** `alias.value = "B"` affects the object that the aliases point to.
+- **Reassigning the variable:** `alias = other`, `alias = null`, or `alias = new Box(...)` changes the reference value inside `alias` alone. This statement does not itself modify the old object and does not change the value of `first`.
 
-## 3. Khác biệt với gán kiểu nguyên thủy
+## 3. Difference from Primitive Assignment
 
-Với kiểu nguyên thủy, giá trị được sao chép là số, ký tự hoặc giá trị boolean trực tiếp:
+For primitive types, the copied value is a direct number, character, or boolean value:
 
 ~~~java
 int a = 10;
@@ -92,11 +92,11 @@ System.out.println(a); // 10
 System.out.println(b); // 20
 ~~~
 
-Với kiểu tham chiếu, phép gán vẫn sao chép **giá trị**, nhưng giá trị ấy chỉ đến đối tượng. Các biến tham chiếu độc lập khi bị **gán lại**, dù chúng có thể **chia sẻ đối tượng**. Vì vậy không nên gọi `Box b = a` là “sao chép Box”.
+For reference types, assignment still copies a **value**, but that value points to an object. Reference variables are independent when **reassigned**, even though they can **share an object**. Therefore, you should not call `Box b = a` “copying a Box”.
 
-## 4. Danh tính đối tượng: == khác equals
+## 4. Object Identity: == Differs from equals
 
-`==` trên hai tham chiếu tương thích kiểm tra chúng có cùng giá trị tham chiếu hay không: cùng đối tượng, hoặc cả hai cùng `null`. `equals(Object)` là phương thức để lớp định nghĩa ý nghĩa “bằng nhau” theo quy ước; nhiều lớp, ví dụ `String`, ghi đè phương thức này để so nội dung. Nếu một lớp không ghi đè, nó kế thừa hành vi so sánh danh tính từ `Object`.
+`==` on two compatible references checks whether they have the same reference value: the same object, or both `null`. `equals(Object)` is a method for a class to define the meaning of “equal” by convention; many classes, such as `String`, override this method to compare content. If a class does not override it, it inherits identity-comparison behavior from `Object`.
 
 ~~~java
 String x = new String("java");
@@ -105,15 +105,15 @@ System.out.println(x == y);      // false
 System.out.println(x.equals(y)); // true
 ~~~
 
-Hai biểu thức `new String("java")` tạo hai đối tượng String khác nhau, nhưng nội dung hai chuỗi bằng nhau. Chỉ dùng `new String(...)` ở đây để minh họa danh tính; với chuỗi thông thường nên dùng literal như `"java"`.
+The two `new String("java")` expressions create two different String objects, yet the content of both strings is equal. Only use `new String(...)` here to demonstrate identity; for ordinary strings, use literals such as `"java"`.
 
-Đừng dựa vào `System.identityHashCode(obj)` để chứng minh danh tính: mã băm danh tính không được bảo đảm duy nhất cho mỗi đối tượng. Để nhận biết hai tham chiếu có trỏ đến **chính cùng đối tượng** hay không, dùng `==`.
+Do not rely on `System.identityHashCode(obj)` to prove identity: the identity hash code is not guaranteed to be unique for every object. To tell whether two references point to **the exact same object**, use `==`.
 
-## 5. Truyền đối tượng vào phương thức: Java vẫn truyền theo giá trị
+## 5. Passing Objects to Methods: Java Still Passes by Value
 
-Java luôn **truyền tham số theo giá trị**. Khi đối số là biến tham chiếu, tham số phương thức nhận **bản sao của giá trị tham chiếu**. Bởi vậy phương thức có thể sửa một đối tượng dùng chung, nhưng phép gán lại tham số không thể làm biến ở phía gọi tự đổi tham chiếu.
+Java always **passes parameters by value**. When the argument is a reference variable, the method parameter receives a **copy of the reference value**. Because of this, a method can modify a shared object, but reassigning the parameter cannot cause the caller's variable to change its reference on its own.
 
-Tạo tệp `ParameterPassingDemo.java`:
+Create the file `ParameterPassingDemo.java`:
 
 ~~~java
 public class ParameterPassingDemo {
@@ -126,15 +126,15 @@ public class ParameterPassingDemo {
     }
 
     static void reassign(Box parameter) {
-        parameter = new Box("mới");
+        parameter = new Box("new");
     }
 
     static void mutate(Box parameter) {
-        parameter.value = "đã đổi";
+        parameter.value = "changed";
     }
 
     public static void main(String[] args) {
-        Box original = new Box("ban đầu");
+        Box original = new Box("initial");
 
         reassign(original);
         System.out.println("after reassign: " + original.value);
@@ -153,40 +153,40 @@ java ParameterPassingDemo
 Stdout:
 
 ~~~text
-after reassign: ban đầu
-after mutate: đã đổi
+after reassign: initial
+after mutate: changed
 ~~~
 
-Trong `reassign`, biến cục bộ `parameter` nhận tham chiếu đến đối tượng mới, nhưng `original` ở phía gọi không bị gán lại. Trong `mutate`, tham số và `original` cùng tham chiếu Box ban đầu nên thay đổi `value` được quan sát ở bên ngoài. Nếu muốn người gọi chuyển sang đối tượng khác, hãy **trả về tham chiếu** và gán rõ ràng ở phía gọi, chẳng hạn `original = createBox();`.
+In `reassign`, the local variable `parameter` receives a reference to a new object, but `original` on the caller side is not reassigned. In `mutate`, the parameter and `original` both reference the original Box, so the change to `value` is observed outside. If you want the caller to switch to another object, **return the reference** and assign it explicitly on the caller side, such as `original = createBox();`.
 
-## 6. final, null và khả năng truy cập đối tượng
+## 6. final, null, and Object Reachability
 
-### Biến final không đồng nghĩa đối tượng bất biến
+### A final Variable Does Not Mean an Immutable Object
 
 ~~~java
 final Box selected = new Box("A");
-selected.value = "B";      // Được phép nếu đối tượng có trường có thể sửa.
-// selected = new Box("C"); // Không biên dịch nếu bỏ //: selected là final.
+selected.value = "B";      // Allowed if the object has mutable fields.
+// selected = new Box("C"); // Does not compile if // is removed: selected is final.
 ~~~
 
-`final` cấm gán lại **biến**, không tự làm đối tượng trở thành immutable. Đối tượng bất biến là kết quả của thiết kế lớp, ví dụ chỉ công khai các thao tác không sửa trạng thái.
+`final` forbids reassigning the **variable**; it does not make the object immutable. An immutable object is the result of class design, for example exposing only operations that do not mutate state.
 
-### null không tạo hoặc hủy đối tượng
+### null Does Not Create or Destroy an Object
 
 ~~~java
 Box first = new Box("A");
 Box alias = first;
 first = null;
-// alias vẫn tham chiếu đến Box("A").
+// alias still references Box("A").
 ~~~
 
-`Box b = null` không tạo Box nào. `first = null` chỉ đổi tham chiếu trong `first`; Box cũ vẫn có thể được truy cập qua `alias`. Khi một đối tượng không còn có thể truy cập qua các đường tham chiếu mạnh thích hợp, nó có thể đủ điều kiện để được garbage collector thu hồi; Java không bảo đảm thu hồi ngay tại thời điểm gán biến.
+`Box b = null` does not create any Box. `first = null` only changes the reference in `first`; the old Box can still be accessed through `alias`. When an object is no longer reachable through appropriate strong reference paths, it may become eligible to be reclaimed by the garbage collector; Java does not guarantee immediate reclamation at the moment a variable is assigned.
 
-Cố truy cập trường hoặc gọi phương thức thực thể qua tham chiếu `null` sẽ gây `NullPointerException`. Việc so sánh `b == null` hoặc gán `b = null` tự nó vẫn hợp lệ.
+Attempting to access a field or call an instance method through a `null` reference causes `NullPointerException`. Comparing `b == null` or assigning `b = null` by itself remains valid.
 
-## 7. Mảng, collection và sao chép thực sự
+## 7. Arrays, Collections, and True Copying
 
-Mảng cũng là đối tượng, nên phép gán mảng tạo alias:
+Arrays are also objects, so array assignment creates an alias:
 
 ~~~java
 int[] numbers = {1, 2};
@@ -196,18 +196,18 @@ System.out.println(numbers[0]);      // 99
 System.out.println(numbers == same); // true
 ~~~
 
-Với collection cũng vậy: `List<String> b = a;` không tạo danh sách mới; `a` và `b` trỏ vào cùng List, nên các thao tác thêm/xóa phần tử qua một biến sẽ được biến kia quan sát.
+The same holds for collections: `List<String> b = a;` does not create a new list; `a` and `b` point to the same List, so adding/removing elements through one variable is observed by the other.
 
-Nếu muốn tạo **đối tượng chứa độc lập**, phải yêu cầu tạo hoặc sao chép rõ ràng:
+If you want to create an **independent container object**, you must explicitly request creation or copying:
 
 ~~~java
 int[] copy = numbers.clone();
 System.out.println(numbers == copy); // false
 ~~~
 
-`clone()` của mảng tạo mảng mới. Với **mảng chứa tham chiếu**, đây là **sao chép nông**: mảng mới vẫn giữ tham chiếu tới các đối tượng phần tử cũ. Tương tự, `new ArrayList<>(oldList)` tạo List mới nhưng các phần tử kiểu tham chiếu của nó không tự được sao chép sâu. Nếu cần mọi phần tử tùy biến độc lập, phải xây dựng quy tắc sao chép từng phần tử (copy constructor hoặc phương thức tạo bản sao phù hợp).
+An array's `clone()` creates a new array. For an **array containing references**, this is a **shallow copy**: the new array still holds references to the old element objects. Similarly, `new ArrayList<>(oldList)` creates a new List, but its reference-type elements are not automatically deep-copied. If every custom element needs to be independent, you must build a rule to copy each element (a copy constructor or an appropriate copy-creating method).
 
-### Trường hợp String
+### The String Case
 
 ~~~java
 String first = "Java";
@@ -216,22 +216,22 @@ alias = alias + " 17";
 System.out.println(first); // Java
 ~~~
 
-Hai biến ban đầu cùng tham chiếu một String. Tuy nhiên `String` là **immutable**: thao tác nối xây dựng giá trị chuỗi mới và gán kết quả cho `alias`, không sửa chuỗi mà `first` đang tham chiếu. Vì vậy không thể dùng ví dụ chuỗi để kết luận rằng các đối tượng mutable cũng không chia sẻ thay đổi trạng thái.
+The two variables initially reference the same String. However, `String` is **immutable**: concatenation constructs a new string value and assigns the result to `alias`, without modifying the string that `first` references. Therefore, you cannot use the string example to conclude that mutable objects also do not share state changes.
 
-## 8. Hiểu lầm phổ biến
+## 8. Common Misconceptions
 
-| Hiểu lầm | Điều thực sự diễn ra |
+| Misconception | What Actually Happens |
 | --- | --- |
-| `Box b = a` tạo một bản sao Box. | Sai. `b` và `a` tham chiếu cùng Box. |
-| `b.field = x` giống `b = other`. | Lệnh đầu sửa đối tượng; lệnh sau gán lại biến `b`. |
-| Java truyền tham chiếu “theo tham chiếu”, vì vậy phương thức có thể gán lại biến của người gọi. | Sai. Tham số nhận bản sao của giá trị tham chiếu. |
-| Hai đối tượng có dữ liệu giống nhau thì `==` là `true`. | Sai. `==` so sánh danh tính; `equals` có thể so nội dung nếu lớp định nghĩa. |
-| Biến `final` làm đối tượng bất biến. | Sai đối với các đối tượng mutable. |
-| Gán `null` hoặc gán sang đối tượng mới xóa ngay đối tượng cũ. | Sai. Khả năng truy cập và thời điểm GC là vấn đề khác. |
-| Sao chép List/mảng là sao chép sâu mọi phần tử. | Sai với cách sao chép nông thông thường. |
+| `Box b = a` creates a copy of Box. | False. `b` and `a` reference the same Box. |
+| `b.field = x` is the same as `b = other`. | The first modifies the object; the second reassigns the variable `b`. |
+| Java passes references “by reference”, so a method can reassign the caller's variable. | False. The parameter receives a copy of the reference value. |
+| Two objects with the same data have `==` equal to `true`. | False. `==` compares identity; `equals` can compare content if the class defines it. |
+| A `final` variable makes the object immutable. | False for mutable objects. |
+| Assigning `null` or reassigning to a new object immediately deletes the old object. | False. Reachability and GC timing are separate matters. |
+| Copying a List/array deep-copies every element. | False for standard shallow copies. |
 
-## 9. Kỹ thuật dự đoán kết quả khi đọc code
+## 9. Technique for Predicting Results When Reading Code
 
-Vẽ mỗi **đối tượng** bằng một hộp, mỗi **biến tham chiếu** bằng một mũi tên. Khi gặp `new` (hoặc thao tác thực sự tạo đối tượng), thêm hộp tương ứng. Khi gặp `b = a`, chỉ cập nhật mũi tên của `b` để nó giống `a`. Khi gặp `b.field = value`, cập nhật trường trong hộp mà `b` đang trỏ tới. Khi gặp `b = null`, xóa mũi tên của riêng `b`. Khi gặp `b = new Box(...)`, vẽ hộp mới và chuyển riêng mũi tên của `b` sang đó.
+Draw each **object** as a box and each **reference variable** as an arrow. When encountering `new` (or an operation that actually creates an object), add the corresponding box. When encountering `b = a`, simply update `b`'s arrow to match `a`. When encountering `b.field = value`, update the field inside the box that `b` currently points to. When encountering `b = null`, erase `b`'s arrow alone. When encountering `b = new Box(...)`, draw a new box and point only `b`'s arrow to it.
 
-Cách làm này tách bạch **danh tính đối tượng**, **trạng thái được chia sẻ** và **giá trị tham chiếu của từng biến**. Nó đủ để suy luận về aliasing mà không cần biết địa chỉ bộ nhớ thực tế hay cách JVM bố trí đối tượng.
+This method cleanly separates **object identity**, **shared state**, and **each variable's reference value**. It is sufficient to reason about aliasing without needing to know actual memory addresses or how the JVM lays out objects.

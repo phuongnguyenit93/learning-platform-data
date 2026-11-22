@@ -1,45 +1,45 @@
-# Xây dựng phép tính kích thước có kiểm tra tràn trong Java
+# Building Overflow-Checked Size Calculations in Java
 
-## 1. Mục tiêu thực hành
+## 1. Practice Objectives
 
-Khi tính kích thước bộ nhớ, tập tin, ảnh, buffer hoặc số trang lưu trữ, biểu thức đơn giản như `width * height * bytesPerPixel` có thể **tràn số nguyên** (*integer overflow*) dù các đối số đầu vào đều hợp lệ riêng lẻ.
+When calculating memory, file, image, buffer, or storage page sizes, a simple expression like `width * height * bytesPerPixel` can experience **integer overflow** even when all input arguments are individually valid.
 
-Ví dụ:
+Example:
 
 ```java
 int width = 70_000;
 int height = 70_000;
 
-int wrong = width * height; // 605032704, không phải 4900000000
+int wrong = width * height; // 605032704, not 4900000000
 ```
 
-Kết quả đúng là **4.900.000.000**, vượt `Integer.MAX_VALUE = 2.147.483.647`. Java không tự ném ngoại lệ cho phép nhân `int` thông thường: phần bit vượt phạm vi bị loại theo quy tắc số nguyên Java, dẫn đến kết quả sai nhưng chương trình vẫn có thể tiếp tục.
+The correct result is **4,900,000,000**, exceeding `Integer.MAX_VALUE = 2,147,483,647`. Java does not automatically throw an exception for standard `int` multiplication: bits exceeding the range are discarded according to Java integer rules, leading to an incorrect result while the program can still continue running.
 
-Trong các tác vụ tính kích thước, lỗi này đặc biệt nguy hiểm: phân bổ buffer thiếu byte, tính sai offset, số bản ghi hoặc giới hạn dữ liệu. Mục tiêu của bài này là xây một phép tính **rõ đơn vị, kiểm tra điều kiện, phát hiện tràn ngay tại phép toán, làm tròn an toàn và không cấp phát vượt khả năng thực tế**.
+In size calculation tasks, this bug is especially dangerous: allocating an undersized buffer, miscalculating offsets, record counts, or data limits. The goal of this lesson is to build a calculation that is **clear in units, validates preconditions, detects overflow directly at the operation, rounds safely, and does not allocate beyond actual capacity**.
 
-Sau bài học, bạn sẽ:
-- Dùng `Math.multiplyExact`, `Math.addExact`, `Math.subtractExact` và `Math.toIntExact` đúng chỗ.
-- Phân biệt mở rộng kiểu **trước** phép nhân với gán kết quả đã tràn vào `long`.
-- Tính số byte một hàng, stride có alignment, tổng dung lượng, số trang cần cấp phát.
-- Phân biệt **tràn số học**, **dữ liệu đầu vào không hợp lệ** và **thiếu tài nguyên vật lý**.
-- Kiểm thử ca bình thường, biên `int`/`long`, số 0, số âm và bài toán vượt `long` với `BigInteger`.
+After this lesson, you will:
+- Use `Math.multiplyExact`, `Math.addExact`, `Math.subtractExact`, and `Math.toIntExact` in the right places.
+- Distinguish widening types **before** multiplication from assigning an already-overflowed result to `long`.
+- Compute bytes per row, aligned stride, total capacity, and required allocation pages.
+- Distinguish **arithmetic overflow**, **invalid input data**, and **insufficient physical resources**.
+- Test normal cases, `int`/`long` boundaries, zero, negative numbers, and problems exceeding `long` with `BigInteger`.
 
-## 2. Phát biểu bài toán: tính kích thước theo đơn vị
+## 2. Problem Statement: Computing Size by Units
 
-Giả sử ảnh có:
-- `rows`: số hàng.
-- `columns`: số điểm ảnh trên mỗi hàng.
-- `bytesPerPixel`: số byte mỗi điểm ảnh.
-- `alignment`: mức căn chỉnh số byte của mỗi hàng.
+Suppose an image has:
+- `rows`: number of rows.
+- `columns`: number of pixels per row.
+- `bytesPerPixel`: bytes per pixel.
+- `alignment`: byte alignment level for each row.
 
-Không có căn chỉnh, tổng byte là:
+Without alignment, total bytes are:
 
 ```text
 rawRowBytes = columns × bytesPerPixel
 totalBytes  = rows × rawRowBytes
 ```
 
-Nếu stride hàng cần là bội số của `alignment`:
+If row stride must be a multiple of `alignment`:
 
 ```text
 remainder  = rawRowBytes % alignment
@@ -48,57 +48,57 @@ stride     = rawRowBytes + padding
 totalBytes = rows × stride
 ```
 
-Phải kiểm tra `alignment > 0`, `rows >= 0`, `columns >= 0` và `bytesPerPixel >= 0` hoặc `> 0` theo quy tắc nghiệp vụ. Có thể yêu cầu kích thước ảnh dương, nhưng ví dụ chung trong bài **cho phép vùng 0 byte** để mô tả buffer rỗng.
+You must check `alignment > 0`, `rows >= 0`, `columns >= 0`, and `bytesPerPixel >= 0` or `> 0` depending on business rules. You may require positive image dimensions, though the general examples in this lesson **allow 0-byte regions** to represent empty buffers.
 
-Ví dụ: ảnh 2 hàng, 3 cột, 3 byte/pixel, alignment 4:
-- Raw: `3 × 3 = 9` byte/hàng.
-- Phần dư 9 % 4 = 1; cần thêm 3 byte padding.
-- Stride: 12 byte/hàng.
-- Tổng: `2 × 12 = 24` byte.
+Example: an image with 2 rows, 3 columns, 3 bytes/pixel, alignment 4:
+- Raw: `3 × 3 = 9` bytes/row.
+- Remainder 9 % 4 = 1; requires 3 bytes of padding.
+- Stride: 12 bytes/row.
+- Total: `2 × 12 = 24` bytes.
 
-Điều cốt yếu: **mọi phép nhân/cộng có thể vượt giới hạn phải được kiểm tra ngay lúc thực hiện**, kể cả phép cộng padding sau khi phép nhân đầu tiên vẫn hợp lệ.
+Key point: **every multiplication/addition that can exceed limits must be checked at the moment it executes**, including adding padding even when the first multiplication was valid.
 
-## 3. Tràn số nguyên hoạt động thế nào?
+## 3. How Does Integer Overflow Work?
 
-`int` có dấu 32 bit, từ `-2^31` đến `2^31 - 1`. `long` có dấu 64 bit, từ `-2^63` đến `2^63 - 1`.
+`int` is 32-bit signed, from `-2^31` to `2^31 - 1`. `long` is 64-bit signed, from `-2^63` to `2^63 - 1`.
 
-Trong Java, cộng/trừ/nhân số nguyên thông thường thực hiện theo độ rộng của kiểu tính toán. Khi vượt phạm vi, kết quả quấn vòng theo 2^32 hoặc 2^64 (không tự ném ngoại lệ).
+In Java, standard integer addition/subtraction/multiplication executes at the width of the computation type. When out of range, the result wraps modulo 2^32 or 2^64 (without automatically throwing an exception).
 
 ```java
 int a = 70_000;
 int b = 70_000;
 
 int incorrect = a * b;       // 605032704
-long stillWrong = a * b;     // 605032704L: đã tràn trước khi gán!
-long correct = (long) a * b; // 4900000000L: mở rộng trước khi nhân
+long stillWrong = a * b;     // 605032704L: already overflowed before assignment!
+long correct = (long) a * b; // 4900000000L: widen before multiplication
 ```
 
-Đặt toán hạng `long` trước khi nhân quan trọng hơn kiểu biến kết quả. Ngoài ra:
+Making an operand `long` before multiplication matters more than the result variable's type. In addition:
 
 ```java
 long checked = Math.multiplyExact((long) a, b); // 4900000000L
-// Math.multiplyExact(a, b) chọn overload int và ném ArithmeticException.
+// Math.multiplyExact(a, b) selects the int overload and throws ArithmeticException.
 ```
 
-Đây là khác biệt giữa **mở rộng phạm vi** và **kiểm tra tràn**:
-- Chuyển một toán hạng từ `int` sang `long` có thể tránh tràn `int`, nhưng phép nhân `long` vẫn có thể tràn.
-- `Math.multiplyExact(long, long)` phát hiện tràn `long` bằng cách ném `ArithmeticException`.
-- `Math.multiplyExact(int, int)` ném nếu không thể chứa kết quả trong `int`.
+This is the difference between **widening the range** and **overflow checking**:
+- Converting an operand from `int` to `long` can avoid `int` overflow, but `long` multiplication can still overflow.
+- `Math.multiplyExact(long, long)` detects `long` overflow by throwing `ArithmeticException`.
+- `Math.multiplyExact(int, int)` throws if the result cannot fit in `int`.
 
-Dùng overload có chủ đích theo **kiểu trả về và phạm vi kết quả mong muốn**.
+Choose the overload intentionally based on the **desired return type and result range**.
 
-## 4. Các API kiểm tra tràn trong Java 17
+## 4. Overflow-Checking APIs in Java 17
 
-| API | Công dụng | Khi vượt miền |
+| API | Purpose | When out of range |
 | --- | --- | --- |
-| `Math.addExact(int,int)` / `Math.addExact(long,long)` | Cộng có kiểm tra | `ArithmeticException` |
-| `Math.subtractExact(...)` | Trừ có kiểm tra | `ArithmeticException` |
-| `Math.multiplyExact(...)` | Nhân có kiểm tra | `ArithmeticException` |
-| `Math.incrementExact(...)` / `Math.decrementExact(...)` | Tăng/giảm 1 | `ArithmeticException` |
-| `Math.negateExact(...)` | Đổi dấu | `ArithmeticException` khi đổi dấu giá trị MIN |
-| `Math.toIntExact(long)` | Thu hẹp từ `long` sang `int` có kiểm tra | `ArithmeticException` |
+| `Math.addExact(int,int)` / `Math.addExact(long,long)` | Checked addition | `ArithmeticException` |
+| `Math.subtractExact(...)` | Checked subtraction | `ArithmeticException` |
+| `Math.multiplyExact(...)` | Checked multiplication | `ArithmeticException` |
+| `Math.incrementExact(...)` / `Math.decrementExact(...)` | Increment/decrement by 1 | `ArithmeticException` |
+| `Math.negateExact(...)` | Negation | `ArithmeticException` when negating MIN value |
+| `Math.toIntExact(long)` | Checked narrowing from `long` to `int` | `ArithmeticException` |
 
-Một số ví dụ:
+Some examples:
 
 ```java
 long bytes = Math.multiplyExact(4_000L, 3_000L);
@@ -107,21 +107,21 @@ long withHeader = Math.addExact(bytes, 128L);
 long remaining = Math.subtractExact(withHeader, 128L);
 
 int acceptableLength = Math.toIntExact(4_096L); // 4096
-// Math.toIntExact(2_147_483_648L) ném ArithmeticException.
+// Math.toIntExact(2_147_483_648L) throws ArithmeticException.
 ```
 
-**Không nhầm `Math.toIntExact` với `(int) x`**: ép kiểu `(int)` chỉ giữ các bit thấp, có thể trả một số hoàn toàn khác. Cần kiểm tra **tính hợp lệ nghiệp vụ** riêng: `Math.toIntExact(-1L)` vẫn trả `-1` vì số -1 nằm trong miền `int`, trong khi độ dài mảng âm là không hợp lệ.
+**Do not confuse `Math.toIntExact` with `(int) x`**: casting `(int)` only keeps the low bits and can return a completely different number. You must check **business validity** separately: `Math.toIntExact(-1L)` still returns `-1` because -1 is within the `int` range, whereas a negative array length is invalid.
 
-Nếu phép tính cần nhiều bước, mỗi bước có nguy cơ tràn đều cần được bảo vệ. Chỉ kiểm tra kết quả cuối `if (result < 0)` là **không đủ**: kết quả tràn có thể vẫn dương, như `70_000 × 70_000` đã cho.
+If a calculation requires multiple steps, every step with overflow risk must be protected. Only checking the final result with `if (result < 0)` is **not enough**: an overflowed result can still be positive, as `70_000 × 70_000` demonstrated.
 
-## 5. Thiết kế API: giá trị hợp lệ và ngoại lệ
+## 5. API Design: Valid Values and Exceptions
 
-Một API tính kích thước nên tách hai loại lỗi:
+A size-calculation API should separate two categories of errors:
 
-1. **Đối số vi phạm quy tắc**: âm, divisor/alignment bằng 0; thường ném `IllegalArgumentException` với thông báo nêu tên tham số.
-2. **Phép toán đúng về ý nghĩa nhưng vượt phạm vi kiểu**: ném `ArithmeticException` qua `Math.*Exact`.
+1. **Arguments violating rules**: negative values, zero divisor/alignment; typically throw `IllegalArgumentException` with a message naming the parameter.
+2. **Operation meaningful semantically but exceeding type range**: throw `ArithmeticException` via `Math.*Exact`.
 
-Ví dụ phương thức tính byte dữ liệu:
+Example method to calculate data bytes:
 
 ```java
 static long elementBytes(long count, long bytesPerElement) {
@@ -132,22 +132,22 @@ static long elementBytes(long count, long bytesPerElement) {
 }
 ```
 
-Đây là **đoạn phương thức minh họa**, phải đặt trong một lớp. Với `elementBytes(70_000,70_000)`, kết quả là `4_900_000_000L`. Với `elementBytes(Long.MAX_VALUE,2)`, phép nhân vượt `long` và ném `ArithmeticException`.
+This is an **illustrative method snippet** and must be placed inside a class. With `elementBytes(70_000,70_000)`, the result is `4_900_000_000L`. With `elementBytes(Long.MAX_VALUE,2)`, the multiplication exceeds `long` and throws `ArithmeticException`.
 
-Lựa chọn cho phép `count = 0` và `bytesPerElement = 0` thuộc hợp đồng bài toán. Nếu “mỗi phần tử phải chiếm byte dương”, kiểm tra `bytesPerElement > 0` thay vì để 0 hợp lệ. Điều quan trọng là không âm thầm sửa giá trị đầu vào về 0 hoặc giới hạn tối đa mà người gọi không biết.
+Choosing to allow `count = 0` and `bytesPerElement = 0` is part of the problem's contract. If "each element must occupy positive bytes," check `bytesPerElement > 0` instead of allowing 0. What matters is never silently clamping input values to 0 or a maximum limit without the caller knowing.
 
-## 6. Căn chỉnh kích thước mà không làm tràn phép cộng trung gian
+## 6. Aligning Sizes Without Overflowing Intermediate Addition
 
-Một công thức dễ gặp:
+A commonly seen formula:
 
 ```java
-// Phản ví dụ: raw + alignment - 1 có thể tràn.
+// Counterexample: raw + alignment - 1 can overflow.
 long stride = ((raw + alignment - 1) / alignment) * alignment;
 ```
 
-Ngay cả khi số hàng có thể chứa trong `long`, biểu thức `raw + alignment - 1` có thể tràn; phép nhân với `alignment` ở bước cuối cũng có thể tràn.
+Even when the row size fits in `long`, the expression `raw + alignment - 1` can overflow; multiplying by `alignment` in the last step can also overflow.
 
-Cách an toàn cho `raw >= 0` và `alignment > 0` là tính phần dư:
+A safe approach for `raw >= 0` and `alignment > 0` is computing the remainder:
 
 ```java
 static long alignUp(long raw, long alignment) {
@@ -160,19 +160,19 @@ static long alignUp(long raw, long alignment) {
 }
 ```
 
-Khi `remainder != 0`, `padding` thuộc `1..alignment-1`. Phép `Math.addExact` cuối phát hiện việc **không còn đủ phạm vi `long` cho kích thước đã căn chỉnh**. Không cần giả định `alignment` luôn là lũy thừa hai; thuật toán trên dùng được cho mọi alignment dương.
+When `remainder != 0`, `padding` is in `1..alignment-1`. The final `Math.addExact` detects when **there is no longer enough `long` range for the aligned size**. There is no need to assume `alignment` is always a power of two; the algorithm above works for any positive alignment.
 
-Ví dụ:
+Examples:
 - `alignUp(9,4) = 12`.
 - `alignUp(12,4) = 12`.
 - `alignUp(0,4) = 0`.
-- `alignUp(Long.MAX_VALUE-2,8)` ném `ArithmeticException` vì kích thước căn chỉnh tiếp theo vượt `Long.MAX_VALUE`.
+- `alignUp(Long.MAX_VALUE-2,8)` throws `ArithmeticException` because the next aligned size exceeds `Long.MAX_VALUE`.
 
-Chỉ dùng kỹ thuật bitwise `(value + alignment - 1) & -alignment` nếu bạn đã quy định alignment là lũy thừa hai, kiểm tra miền và xử lý tràn. Nó không phải giải pháp tổng quát tự động an toàn.
+Only use the bitwise technique `(value + alignment - 1) & -alignment` if you have mandated power-of-two alignment, validated the range, and handled overflow. It is not an automatically safe general solution.
 
-## 7. Làm tròn số trang bằng chia và phần dư
+## 7. Rounding Page Counts Using Division and Remainder
 
-Nếu `bytes` byte cần chia thành trang `pageSize` byte, số trang là **ceil(bytes/pageSize)**. Với hai số không âm và `pageSize > 0`, có thể tính:
+If `bytes` bytes need to be split into pages of `pageSize` bytes, the page count is **ceil(bytes/pageSize)**. For two non-negative numbers and `pageSize > 0`, you can compute:
 
 ```java
 static long pageCount(long bytes, long pageSize) {
@@ -184,19 +184,19 @@ static long pageCount(long bytes, long pageSize) {
 }
 ```
 
-Tránh công thức `(bytes + pageSize - 1) / pageSize` nếu phép cộng có thể tràn. Với `bytes = Long.MAX_VALUE` và `pageSize = Long.MAX_VALUE`, công thức chia-dư trả 1, trong khi công thức cộng trước có thể tràn.
+Avoid `(bytes + pageSize - 1) / pageSize` if addition can overflow. With `bytes = Long.MAX_VALUE` and `pageSize = Long.MAX_VALUE`, the quotient-remainder formula returns 1, whereas adding first can overflow.
 
-Ví dụ:
-- 0 byte / trang 4096 byte → 0 trang.
-- 4096 byte / trang 4096 byte → 1 trang.
-- 4097 byte / trang 4096 byte → 2 trang.
-- 48.000.000 byte / trang 4096 byte → 11.719 trang.
+Examples:
+- 0 bytes / 4096-byte page → 0 pages.
+- 4096 bytes / 4096-byte page → 1 page.
+- 4097 bytes / 4096-byte page → 2 pages.
+- 48,000,000 bytes / 4096-byte page → 11,719 pages.
 
-Với tiền, kích thước trang, phân lô hoặc các thuật toán khác, **làm tròn lên** và **căn chỉnh bội số** là các yêu cầu có quan hệ nhưng khác nhau: số trang là **số lượng**, còn stride đã căn chỉnh là **số byte**.
+With money, page size, batching, or other algorithms, **rounding up** and **aligning to a multiple** are related but distinct requirements: page count is a **quantity**, whereas aligned stride is a **byte count**.
 
-## 8. Chương trình Java 17 độc lập: bộ tính kích thước có kiểm tra
+## 8. Standalone Java 17 Program: Checked Size Calculator
 
-Tạo tệp **`CheckedSizeDemo.java`**:
+Create the file **`CheckedSizeDemo.java`**:
 
 ```java
 import java.math.BigInteger;
@@ -285,14 +285,14 @@ public class CheckedSizeDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or newer:
 
 ```bash
 javac CheckedSizeDemo.java
 java CheckedSizeDemo
 ```
 
-Kết quả **đã kiểm chứng thực tế** khi biên dịch với `javac --release 17`:
+Result **actually verified** when compiling with `javac --release 17`:
 
 ```text
 uncheckedInt=605032704
@@ -314,40 +314,40 @@ hugeBytes=73786976294838206456
 bigIntegerToLong=ArithmeticException
 ```
 
-**Các phép kiểm chứng quan trọng:**
+**Important verifications:**
 
-1. `uncheckedInt` là ví dụ số **sai do tràn nhưng không báo lỗi**; `Math.multiplyExact` với overload `int` báo lỗi rõ ràng.
-2. `wideProduct` là phép nhân theo `long`, cho kết quả 4.900.000.000.
-3. `rowStride=12` là số byte hàng sau padding; `smallGrid=24` là hai hàng.
-4. `imageBytes=48000000`: `4000 × 4 = 16000` byte/hàng, đã chia hết cho alignment 64; nhân 3000 hàng được 48.000.000 byte.
-5. `pages=11719` chứng minh làm tròn lên bằng chia dư, không dùng cộng `pageSize-1` dễ tràn.
-6. `maxPages=1` xử lý đầu vào cận trên `long` mà không tràn.
-7. Những dòng mang tên `*Overflow` và lỗi đầu vào chứng minh API **ném ngoại lệ đúng loại** thay vì trả giá trị size âm/sai.
-8. `hugeBytes` vượt phạm vi `long` và được tính bằng `BigInteger`; chuyển về `long` bằng `longValueExact()` báo lỗi đúng.
+1. `uncheckedInt` is an example of a number that is **wrong due to overflow without reporting an error**; `Math.multiplyExact` with the `int` overload reports the error clearly.
+2. `wideProduct` is multiplication in `long`, yielding 4,900,000,000.
+3. `rowStride=12` is row bytes after padding; `smallGrid=24` is two rows.
+4. `imageBytes=48000000`: `4000 × 4 = 16000` bytes/row, already divisible by alignment 64; multiplying by 3000 rows gives 48,000,000 bytes.
+5. `pages=11719` proves ceiling calculation using division and remainder, avoiding the overflow-prone `pageSize-1` addition.
+6. `maxPages=1` handles upper-bound `long` inputs without overflowing.
+7. The lines named `*Overflow` and input errors prove the API **throws the right exception type** instead of returning negative/wrong size values.
+8. `hugeBytes` exceeds `long` range and is computed with `BigInteger`; converting to `long` with `longValueExact()` reports the error properly.
 
-Hàm `expectedError` chỉ phục vụ bài kiểm thử. Ở ứng dụng thật, có thể dùng JUnit để kiểm tra `assertThrows` thay vì tự tạo helper. Vì hàm này chỉ chạy tác vụ dự kiến ném ngoại lệ, nó không dùng để nuốt những lỗi ngoài dự kiến; ngoại lệ sai loại vẫn được ném tiếp.
+The `expectedError` function is only for testing. In real applications, you can use JUnit's `assertThrows` instead of writing a custom helper. Because this function only executes operations expected to throw, it is not used to swallow unexpected errors; exceptions of the wrong type are still rethrown.
 
-## 9. Phân biệt bytes, elements và số hàng
+## 9. Distinguishing Bytes, Elements, and Row Counts
 
-Một trong những lỗi không phải overflow nhưng cũng nguy hiểm là nhầm đơn vị:
+One of the non-overflow bugs that is just as dangerous is mixing up units:
 
 ```text
-count           : số phần tử
-bytesPerElement : byte/phần tử
-totalBytes      : byte
-rowStride       : byte/hàng
-pageSize        : byte/trang
-pageCount       : số trang
+count           : number of elements
+bytesPerElement : bytes/element
+totalBytes      : bytes
+rowStride       : bytes/row
+pageSize        : bytes/page
+pageCount       : number of pages
 ```
 
-Nếu kích thước là `long bytes = 4_000_000_000L` thì **không phải** có thể tạo `new int[4_000_000_000]`. `int[]` nhận **số phần tử** kiểu `int`, không nhận số byte. Với mảng `int[]`, số byte cho dữ liệu phần tử thường là `4 × count` (chưa tính overhead đối tượng và yêu cầu bộ nhớ khác).
+If a size is `long bytes = 4_000_000_000L`, you **cannot** simply do `new int[4_000_000_000]`. `int[]` takes an `int` **element count**, not a byte count. For an `int[]` array, the bytes for element data are typically `4 × count` (excluding object overhead and other memory requirements).
 
-Để chuyển yêu cầu từ byte sang số phần tử, phải định nghĩa chính sách:
-- Nếu yêu cầu phải chia hết cho kích thước mỗi phần tử, kiểm tra `bytes % bytesPerElement == 0` rồi chia.
-- Nếu có thể cấp phát dư một phần tử, dùng quy tắc làm tròn lên an toàn.
-- Cuối cùng kiểm tra số phần tử có nằm trong miền `int` hay không.
+To convert a byte requirement to an element count, you must define a policy:
+- If the requirement must be divisible by the size per element, check `bytes % bytesPerElement == 0` then divide.
+- If allocating one extra partial element is acceptable, use the safe ceiling rule.
+- Finally check whether the element count fits in the `int` range.
 
-Ví dụ dưới đây là **đoạn phương thức minh họa**, không cần cấp phát thật:
+The example below is an **illustrative method snippet**, without needing real allocation:
 
 ```java
 static int exactElementCount(long totalBytes, long bytesPerElement) {
@@ -361,11 +361,11 @@ static int exactElementCount(long totalBytes, long bytesPerElement) {
 }
 ```
 
-Kiểm tra `Math.toIntExact` mới chỉ xác nhận miền kiểu `int`. JVM có thể có **giới hạn mảng thực tế thấp hơn `Integer.MAX_VALUE`**, và việc cấp phát còn phụ thuộc heap còn trống. Không sử dụng `Math.toIntExact` như một bảo đảm “cấp phát sẽ luôn thành công”.
+Checking `Math.toIntExact` only confirms the `int` range. The JVM may have an **actual array limit lower than `Integer.MAX_VALUE`**, and allocation also depends on available heap space. Do not use `Math.toIntExact` as a guarantee that "allocation will always succeed."
 
-## 10. BigInteger khi yêu cầu kích thước vượt Long.MAX_VALUE
+## 10. BigInteger When Size Requirements Exceed Long.MAX_VALUE
 
-Nếu chỉ cần **ước lượng, báo cáo hoặc tính dung lượng logic** rất lớn, việc `long` không đủ không nhất thiết là dữ liệu lỗi. `BigInteger` biểu diễn số nguyên có độ lớn không bị giới hạn bởi 64 bit (vẫn chịu tài nguyên bộ nhớ):
+If you only need to **estimate, report, or compute very large logical capacities**, `long` being insufficient is not necessarily invalid data. `BigInteger` represents integers whose magnitude is not limited by 64 bits (still subject to memory resources):
 
 ```java
 BigInteger a = BigInteger.valueOf(Long.MAX_VALUE);
@@ -373,30 +373,30 @@ BigInteger size = a.multiply(BigInteger.valueOf(8));
 System.out.println(size); // 73786976294838206456
 ```
 
-`BigInteger.multiply()` không gặp overflow 64 bit. Tuy nhiên, `BigInteger` không tự khiến bạn có thể cấp phát một mảng lớn như kết quả đó. Hãy tách rõ:
-- **Kích thước lý thuyết**: có thể tính chính xác bằng `BigInteger`.
-- **Kích thước có thể biểu diễn bằng long**: dùng `big.longValueExact()`; nếu vượt phạm vi, ném `ArithmeticException`.
-- **Kích thước hợp lệ cho API cấp phát**: có thể cần `int`, ngưỡng ứng dụng và giới hạn thực tế của JVM/tài nguyên.
+`BigInteger.multiply()` does not encounter 64-bit overflow. However, `BigInteger` does not automatically enable you to allocate an array as large as that result. Clearly separate:
+- **Theoretical size**: can be computed accurately using `BigInteger`.
+- **Size representable in long**: use `big.longValueExact()`; if out of range, throws `ArithmeticException`.
+- **Valid size for an allocation API**: may require `int`, application thresholds, and actual JVM/resource limits.
 
-Không dùng `big.longValue()` khi cần phép chuyển không mất dữ liệu: nó có thể làm mất các bit cao của giá trị. Dùng `longValueExact()` để phát hiện khi không biểu diễn được.
+Do not use `big.longValue()` when a lossless conversion is required: it can truncate the high bits of the value. Use `longValueExact()` to detect when it cannot be represented.
 
-## 11. Chính sách lỗi: fail fast, giới hạn và chia nhỏ
+## 11. Error Policies: Fail Fast, Cap, and Chunk
 
-Khi tính kích thước, có ba cách xử lý tùy mục đích:
+When calculating sizes, there are three approaches depending on your goal:
 
-**1. Fail fast khi tràn.** `Math.*Exact` là lựa chọn mặc định tốt nếu giá trị sai có thể làm hỏng địa chỉ, buffer, offset hoặc kiểm tra an toàn. Ném lỗi thay vì âm thầm quay vòng.
+**1. Fail fast on overflow.** `Math.*Exact` is a good default choice if a wrong value could corrupt addresses, buffers, offsets, or safety checks. Throw an error instead of silently wrapping around.
 
-**2. Giới hạn theo ngân sách tài nguyên.** Bên cạnh kiểm tra overflow, kiểm tra giới hạn nghiệp vụ, ví dụ `requestedBytes <= maxAllowedBytes`. Giới hạn này phải là cấu hình rõ ràng và áp dụng trước khi thử cấp phát. Không tự động “kẹp” một yêu cầu 10 GB thành 100 MB nhưng vẫn hành xử như đã cấp phát đủ 10 GB.
+**2. Cap by resource budget.** Alongside overflow checks, check business limits, such as `requestedBytes <= maxAllowedBytes`. This limit must be an explicit configuration and applied before attempting allocation. Do not automatically "clamp" a 10 GB request down to 100 MB while still acting as if all 10 GB were allocated.
 
-**3. Chia nhỏ dữ liệu.** Khi tổng kích thước hợp lệ về mặt logic nhưng không thể tạo một mảng/buffer đơn lẻ, chia thành các chunk có kích thước an toàn, theo dõi tổng số byte đã xử lý bằng `long` hoặc `BigInteger` khi thích hợp. Cần kiểm tra toán học offset và lượng còn lại ở mỗi bước.
+**3. Split data into chunks.** When the total size is logically valid but a single array/buffer cannot be created, split it into safely sized chunks, tracking total processed bytes with `long` or `BigInteger` as appropriate. You must verify the offset math and remaining amount at each step.
 
-Một điều không được lẫn lộn: **kiểm tra tràn số nguyên** chỉ trả lời “số đếm này có biểu diễn đúng trong kiểu không?”. Nó **không bảo đảm** JVM còn heap, native memory, disk space hoặc quota để thực thi.
+One thing never to confuse: **integer overflow checking** only answers "can this count be accurately represented in this type?". It **does not guarantee** the JVM has enough heap, native memory, disk space, or quota to execute.
 
-## 12. Test kế hoạch: ca biên và bất biến
+## 12. Test Plan: Boundary Cases and Invariants
 
 ### 12.1. Test table
 
-| Đầu vào/đặc tính | Kết quả mong đợi |
+| Input/property | Expected result |
 | --- | --- |
 | `elementBytes(0, 4)` | `0` |
 | `elementBytes(1, 4)` | `4` |
@@ -414,139 +414,139 @@ Một điều không được lẫn lộn: **kiểm tra tràn số nguyên** ch�
 | `pageCount(Long.MAX_VALUE, Long.MAX_VALUE)` | `1` |
 | `arrayLength(2_147_483_648L)` | `ArithmeticException` |
 
-Kiểm thử overflow bằng việc **kỳ vọng ngoại lệ**, không phải chỉ kiểm tra rằng kết quả có dấu âm. Test cả trường hợp tổng vẫn dương sau khi quay vòng.
+Test overflow by **expecting an exception**, not just checking that the result is negative. Also test cases where the sum remains positive after wrapping.
 
-### 12.2. Những bất biến hữu ích
+### 12.2. Useful invariants
 
-Với `rows, columns, bytesPerPixel >= 0`, `alignment > 0` và giả sử không tràn:
+For `rows, columns, bytesPerPixel >= 0`, `alignment > 0`, and assuming no overflow:
 
 - `stride >= rawRowBytes`.
 - `stride % alignment == 0`.
 - `0 <= stride - rawRowBytes < alignment`.
-- `totalBytes == rows × stride` theo toán học chính xác.
-- `pageCount(bytes, pageSize) × pageSize >= bytes` **về mặt toán học**; nếu nhân bằng `long` để kiểm thử, bản thân tích có thể tràn. Dùng `BigInteger` hoặc kiểm tra bằng chia/dư.
-- Với `bytes > 0`, `pageCount(bytes, pageSize) >= 1`.
-- Nếu `bytes` tăng mà `pageSize` cố định, `pageCount` không được giảm.
+- `totalBytes == rows × stride` mathematically exact.
+- `pageCount(bytes, pageSize) × pageSize >= bytes` **mathematically**; if multiplying in `long` for a test, the product itself can overflow. Use `BigInteger` or verify using division/remainder.
+- For `bytes > 0`, `pageCount(bytes, pageSize) >= 1`.
+- If `bytes` increases while `pageSize` is fixed, `pageCount` must not decrease.
 
-Bài test tự động có thể sinh ngẫu nhiên tham số **trong vùng hợp lệ**, tính kết quả tham chiếu bằng `BigInteger`, rồi kiểm tra rằng:
-1. khi giá trị tham chiếu nằm trong `0..Long.MAX_VALUE`, hàm `long` trả cùng giá trị;
-2. khi vượt phạm vi `long`, hàm ném `ArithmeticException`;
-3. khi đối số âm hoặc divisor/alignment không dương, hàm ném `IllegalArgumentException`.
+Automated tests can randomly generate parameters **within the valid domain**, compute the reference result with `BigInteger`, and verify that:
+1. when the reference value is within `0..Long.MAX_VALUE`, the `long` function returns the same value;
+2. when it exceeds the `long` range, the function throws `ArithmeticException`;
+3. when arguments are negative or divisor/alignment is non-positive, the function throws `IllegalArgumentException`.
 
-Cần tách test đầu vào không hợp lệ khỏi test overflow để tránh khẳng định nhầm loại lỗi.
+Separate invalid-input tests from overflow tests to avoid asserting the wrong error type.
 
-## 13. Những lỗi phổ biến và cách sửa
+## 13. Common Mistakes and How to Fix Them
 
-### Lỗi 1: nhân int rồi mới gán long
+### Mistake 1: Multiplying ints before assigning to long
 
 ```java
 int width = 70_000, height = 70_000;
 
-long wrong = width * height;        // sai vì overflow int
-long correct = (long) width * height; // đúng trong phạm vi long
+long wrong = width * height;        // wrong due to int overflow
+long correct = (long) width * height; // right within long range
 long checked = Math.multiplyExact((long) width, height);
 ```
 
-### Lỗi 2: chỉ kiểm tra kết quả âm
+### Mistake 2: Only checking for a negative result
 
 ```java
 int size = width * height;
 if (size < 0) {
-    // Không bắt hết trường hợp overflow!
+    // Does not catch all overflow cases!
 }
 ```
 
-Ví dụ `70_000 × 70_000` tràn thành số dương 605.032.704. Phải kiểm tra phép toán thay vì suy từ dấu kết quả.
+For example, `70_000 × 70_000` overflows to the positive number 605,032,704. You must check the operation instead of inferring from the sign of the result.
 
-### Lỗi 3: dùng phép cộng trước khi chia để ceil
+### Mistake 3: Using addition before division for ceiling
 
 ```java
-// Có nguy cơ tràn:
+// Overflow risk:
 long pages = (bytes + pageSize - 1) / pageSize;
 ```
 
-Sửa bằng chia và phần dư, với các ràng buộc byte không âm và pageSize dương.
+Fix using division and remainder, with non-negative byte and positive pageSize constraints.
 
-### Lỗi 4: căn chỉnh mà không kiểm tra cộng padding
+### Mistake 4: Aligning without checking padding addition
 
 ```java
-long stride = raw + padding; // có thể tràn long
+long stride = raw + padding; // can overflow long
 ```
 
-Sửa thành `Math.addExact(raw, padding)`, sau khi đã đảm bảo padding hợp lệ.
+Fix to `Math.addExact(raw, padding)` after ensuring padding is valid.
 
-### Lỗi 5: dùng toIntExact và nghĩ có thể cấp phát mọi mảng
+### Mistake 5: Using toIntExact and assuming any array can be allocated
 
-`Math.toIntExact(long)` chỉ đảm bảo phép chuyển kiểu không mất thông tin. JVM và heap có giới hạn riêng. Cần ngưỡng cấp phát/chunk phù hợp, và xử lý tình huống thiếu bộ nhớ theo kiến trúc hệ thống.
+`Math.toIntExact(long)` only guarantees a lossless type conversion. The JVM and heap have their own limits. You need appropriate allocation/chunk thresholds and out-of-memory handling according to system architecture.
 
-### Lỗi 6: trộn đơn vị KB, KiB, MB, MiB
+### Mistake 6: Mixing up KB, KiB, MB, MiB units
 
-- `1 KB = 1000 byte`.
-- `1 KiB = 1024 byte`.
-- `1 MB = 1_000_000 byte`.
-- `1 MiB = 1_048_576 byte`.
+- `1 KB = 1000 bytes`.
+- `1 KiB = 1024 bytes`.
+- `1 MB = 1,000,000 bytes`.
+- `1 MiB = 1,048,576 bytes`.
 
-Đừng so sánh một giá trị byte với “MB” không xác định hệ thập phân/hệ nhị phân. Tốt hơn đặt tên biến chứa đơn vị như `fileBytes`, `pageBytes`, `maxBytes` và xác định quy ước trong tài liệu.
+Do not compare a byte value against "MB" without specifying decimal/binary convention. Better to include units in variable names like `fileBytes`, `pageBytes`, `maxBytes` and define the convention in documentation.
 
-### Lỗi 7: cho rằng nhân chính xác đồng nghĩa kích thước hợp lệ
+### Mistake 7: Assuming exact multiplication means valid size
 
-`Math.multiplyExact(-2, 4)` trả -8 mà **không tràn**, nhưng kích thước âm không hợp lệ. Phải xác minh tính hợp lệ **trước hoặc cùng lúc** với phép tính.
+`Math.multiplyExact(-2, 4)` returns -8 **without overflowing**, yet a negative size is invalid. You must validate inputs **before or alongside** the calculation.
 
-### Lỗi 8: chuyển BigInteger sang long mà không kiểm tra
+### Mistake 8: Converting BigInteger to long without checking
 
-`BigInteger.longValue()` có thể cắt mất dữ liệu; `longValueExact()` ném lỗi khi không chứa vừa `long`.
+`BigInteger.longValue()` can truncate data; `longValueExact()` throws an error when it does not fit in `long`.
 
-### Lỗi 9: tính đúng tổng nhưng sai phép nhân trung gian
+### Mistake 9: Correct final total but overflowing intermediate multiplication
 
-Nếu phép tính gồm nhiều bước, một giá trị trung gian có thể vượt phạm vi dù kết quả sau đó được chia nhỏ trở lại. Nếu cần thực hiện phép toán chính xác trên giá trị trung gian lớn, dùng `BigInteger` cho giai đoạn đó hoặc biến đổi đại số một cách có chứng minh để tránh overflow.
+If a calculation has multiple steps, an intermediate value can exceed the range even if the result is later divided back down. If exact operations on large intermediate values are required, use `BigInteger` for that stage or apply an algebraic transformation with a proof to avoid overflow.
 
-### Lỗi 10: âm thầm nuốt ArithmeticException
+### Mistake 10: Silently swallowing ArithmeticException
 
-Nếu `Math.*Exact` ném lỗi, việc trả `0` thay thế có thể dẫn đến **cấp phát ít hơn yêu cầu** và lỗi dữ liệu. Chỉ dùng fallback nếu hợp đồng nghiệp vụ đã định nghĩa rõ và người gọi có thể phân biệt lỗi với trường hợp kích thước thực sự bằng 0.
+If `Math.*Exact` throws an error, returning `0` instead can lead to **under-allocating** and data corruption. Only use a fallback if the business contract clearly defines it and callers can distinguish the error from an actual 0 size.
 
-## 14. Bài luyện tập
+## 14. Practice Exercises
 
-**Bài 1.** Tính kích thước pixel cho 70.000 × 70.000, mỗi pixel 4 byte. Vì sao `(long)(70_000 * 70_000 * 4)` sai?  
-**Đáp án:** biểu thức bên trong cast được tính bằng `int` và đã tràn. Dùng `Math.multiplyExact(Math.multiplyExact(70_000L, 70_000L), 4L)` → 19.600.000.000 byte, hoặc cách tương đương có kiểm tra.
+**Exercise 1.** Calculate pixel size for 70,000 × 70,000, at 4 bytes per pixel. Why is `(long)(70_000 * 70_000 * 4)` wrong?  
+**Answer:** the expression inside the cast is evaluated as `int` and already overflowed. Use `Math.multiplyExact(Math.multiplyExact(70_000L, 70_000L), 4L)` → 19,600,000,000 bytes, or an equivalent checked approach.
 
-**Bài 2.** Với raw row 13 byte và alignment 8, padding/stride là bao nhiêu?  
-**Đáp án:** 13 % 8 = 5, padding = 3, stride = 16.
+**Exercise 2.** With a raw row of 13 bytes and alignment 8, what are padding/stride?  
+**Answer:** 13 % 8 = 5, padding = 3, stride = 16.
 
-**Bài 3.** Vì sao `(Long.MAX_VALUE + 4) / 4` không phải cách tính số trang an toàn?  
-**Đáp án:** phép cộng `long` tràn trước khi chia. Dùng thương và phần dư.
+**Exercise 3.** Why is `(Long.MAX_VALUE + 4) / 4` not a safe way to compute page count?  
+**Answer:** the `long` addition overflows before division. Use quotient and remainder.
 
-**Bài 4.** Nếu cần phân bổ 3.000.000.000 phần tử trong một `int[]`, `Math.toIntExact(3_000_000_000L)` xử lý thế nào?  
-**Đáp án:** ném `ArithmeticException` vì số phần tử không vừa miền `int`. Ngay cả số phần tử vừa `int` cũng có thể không cấp phát được.
+**Exercise 4.** If you need to allocate 3,000,000,000 elements in an `int[]`, how does `Math.toIntExact(3_000_000_000L)` behave?  
+**Answer:** throws `ArithmeticException` because the element count does not fit in `int`. Even an element count that fits in `int` might still fail to allocate.
 
-**Bài 5.** Khi cần biểu diễn kích thước 8 × `Long.MAX_VALUE`, kiểu số nào phù hợp để tính giá trị lý thuyết?  
-**Đáp án:** `BigInteger`. Nó tính chính xác giá trị 73.786.976.294.838.206.456; không thể chuyển về `long` bằng `longValueExact()`.
+**Exercise 5.** When needing to represent a size of 8 × `Long.MAX_VALUE`, which numeric type is suitable for computing the theoretical value?  
+**Answer:** `BigInteger`. It computes the exact value 73,786,976,294,838,206,456; it cannot be converted to `long` via `longValueExact()`.
 
-**Bài 6.** Viết phương thức tính `totalBytes = rows × alignedRowBytes(columns,bpp,alignment)`, làm gì để không có overflow âm thầm?  
-**Đáp án:** kiểm tra rows/columns/bpp không âm và alignment dương; dùng `Math.multiplyExact(columns,bpp)`, chia dư để tính padding, `Math.addExact(raw,padding)` rồi `Math.multiplyExact(rows,stride)`.
+**Exercise 6.** Write a method to compute `totalBytes = rows × alignedRowBytes(columns,bpp,alignment)`; what do you do to prevent silent overflow?  
+**Answer:** check that rows/columns/bpp are non-negative and alignment is positive; use `Math.multiplyExact(columns,bpp)`, compute padding via remainder, `Math.addExact(raw,padding)`, and then `Math.multiplyExact(rows,stride)`.
 
-## 15. Checklist trước khi đưa vào sản phẩm
+## 15. Production Checklist
 
-1. Tất cả tham số có **đơn vị** và phạm vi hợp lệ rõ ràng chưa?
-2. Các phép toán `+`, `-`, `*` trên kích thước/offset có dùng exact arithmetic hoặc cách chứng minh an toàn chưa?
-3. Nếu có phép nhân `int`, đã chuyển đúng toán hạng sang `long` **trước** phép nhân chưa?
-4. Có chia/làm tròn lên không? Đã tránh `bytes + pageSize - 1` chưa?
-5. Căn chỉnh có kiểm tra overflow ở bước cộng padding không?
-6. Phân biệt kích thước logic `long/BigInteger` với độ dài mảng `int` và tài nguyên vật lý chưa?
-7. Mọi phép chuyển thu hẹp kiểu có dùng `Math.toIntExact` hoặc phương án được kiểm tra tương đương chưa?
-8. Khi yêu cầu vượt ngân sách, có báo lỗi minh bạch hoặc chia chunk thay vì cấp phát thiếu không?
-9. Test đã có ca 0, âm, boundary, overflow cho số dương và case alignment overflow chưa?
-10. Có kiểm tra rằng tính đúng số byte vẫn **không có nghĩa** sẽ luôn cấp phát thành công không?
+1. Do all parameters have clear **units** and valid ranges?
+2. Do `+`, `-`, `*` operations on sizes/offsets use exact arithmetic or a provably safe method?
+3. If there is `int` multiplication, was the operand converted to `long` **before** multiplication?
+4. Is there division/ceiling rounding? Have you avoided `bytes + pageSize - 1`?
+5. Does alignment check for overflow at the padding addition step?
+6. Have you distinguished logical sizes `long/BigInteger` from array length `int` and physical resources?
+7. Does every narrowing conversion use `Math.toIntExact` or an equivalent checked alternative?
+8. When a request exceeds the budget, does it fail transparently or split into chunks rather than under-allocating?
+9. Do tests cover 0, negative, boundary, overflow producing positive values, and alignment overflow cases?
+10. Have you verified that computing the right byte count **does not mean** allocation will always succeed?
 
-## 16. Kết luận
+## 16. Conclusion
 
-- Dùng **`Math.multiplyExact`, `Math.addExact` và `Math.toIntExact`** để phát hiện tràn và mất dữ liệu khi tính kích thước.
-- Với số nguyên thông thường, **gán kết quả tràn `int` sang `long` không sửa được phép tính**; phải mở rộng kiểu trước.
-- Với kích thước được căn chỉnh, tính padding từ phần dư và cộng bằng `Math.addExact`; với số trang, dùng thương và phần dư thay công thức cộng `pageSize-1`.
-- Kiểm tra **đối số âm, đơn vị, ngưỡng tài nguyên** bên cạnh kiểm tra số học.
-- Khi kết quả lý thuyết vượt `long`, dùng `BigInteger`; nếu một API yêu cầu `long` hoặc `int`, chuyển bằng phương thức `*ValueExact` hoặc `Math.toIntExact` để phát hiện không biểu diễn được.
-- Số đếm **đúng** không đảm bảo bộ nhớ/đĩa **đủ**; cả hai lớp kiểm tra đều cần trong hệ thống an toàn.
+- Use **`Math.multiplyExact`, `Math.addExact`, and `Math.toIntExact`** to detect overflow and data loss when calculating sizes.
+- With standard integers, **assigning an overflowed `int` result to `long` does not fix the calculation**; you must widen the type beforehand.
+- For aligned sizes, calculate padding from the remainder and add with `Math.addExact`; for page counts, use quotient and remainder instead of adding `pageSize-1`.
+- Validate **negative arguments, units, and resource thresholds** alongside arithmetic checks.
+- When the theoretical result exceeds `long`, use `BigInteger`; if an API requires `long` or `int`, convert via `*ValueExact` methods or `Math.toIntExact` to detect unrepresentable values.
+- A **correct** count does not guarantee **sufficient** memory/disk; both layers of checks are required in a safe system.
 
-Tài liệu tham khảo chính thức Java SE 17:
+Official Java SE 17 documentation:
 - [`Math` — multiplyExact, addExact, subtractExact, toIntExact](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Math.html)
 - [`BigInteger` — multiply, longValueExact](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/math/BigInteger.html)
 - [`ArithmeticException`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ArithmeticException.html)

@@ -1,21 +1,21 @@
-# Kiểu mảng với `Object`, `Cloneable` và `Serializable` trong Java
+# Array Types with `Object`, `Cloneable`, and `Serializable` in Java
 
-## 1. Mục tiêu và mô hình kiểu
+## 1. Objectives and Type Model
 
-Trong Java, mảng (`array`) là **đối tượng** được tạo ở runtime, đồng thời mỗi mảng có một **kiểu lớp mảng** riêng. Dù phần tử là kiểu nguyên thủy như `int` hay kiểu tham chiếu như `String`, bản thân biến mảng luôn chứa tham chiếu đến một đối tượng mảng (hoặc `null`).
+In Java, an array (`array`) is an **object** created at runtime, and at the same time each array has its own **array class type**. Whether its elements are a primitive type like `int` or a reference type like `String`, the array variable itself always holds a reference to an array object (or `null`).
 
-Một lớp mảng bất kỳ đều có các quan hệ sau:
+Any array class has the following relationships:
 
-- Có `java.lang.Object` là **lớp cha trực tiếp**.
-- Triển khai trực tiếp hai giao diện đánh dấu `java.lang.Cloneable` và `java.io.Serializable`.
-- Có thể gán cho biến kiểu `Object`, `Cloneable` hoặc `Serializable` mà không cần ép kiểu.
-- Có thể truy vấn qua `Class<?>`, chẳng hạn `isArray()`, `getComponentType()`, `getSuperclass()`, `getInterfaces()` và `isAssignableFrom()`.
+- Has `java.lang.Object` as its **direct superclass**.
+- Directly implements the two marker interfaces `java.lang.Cloneable` and `java.io.Serializable`.
+- Can be assigned to a variable of type `Object`, `Cloneable`, or `Serializable` without casting.
+- Can be queried via `Class<?>`, such as `isArray()`, `getComponentType()`, `getSuperclass()`, `getInterfaces()`, and `isAssignableFrom()`.
 
-Ví dụ, các phép gán sau đều hợp lệ:
+For example, the following assignments are all valid:
 
 ```java
 int[] numbers = {1, 2, 3};
-String[] names = {"An", "Bình"};
+String[] names = {"An", "Binh"};
 
 Object first = numbers;
 Object second = names;
@@ -23,13 +23,13 @@ Cloneable cloneable = numbers;
 Serializable serializable = names;
 ```
 
-Để biên dịch ví dụ này trong một lớp độc lập, thêm `import java.io.Serializable;`. `Cloneable` thuộc `java.lang` nên không cần import.
+To compile this example in a standalone class, add `import java.io.Serializable;`. `Cloneable` belongs to `java.lang`, so it needs no import.
 
-Điểm cần nhớ: *mảng là đối tượng* không đồng nghĩa *mảng nào cũng là `Object[]`*. `Object` là lớp cha của mọi lớp mảng; còn `Object[]` là một **kiểu mảng có phần tử kiểu `Object`**, nên tuân theo các quy tắc tương thích phần tử khác.
+Point to remember: *an array is an object* does not mean *every array is an `Object[]`*. `Object` is the superclass of every array class; whereas `Object[]` is an **array type with element type `Object`**, so it follows different element compatibility rules.
 
-## 2. Hiểu đúng quan hệ với `Object`
+## 2. Properly Understanding the Relationship with `Object`
 
-Khai báo `int[]`, `String[]` và `int[][]` đều biểu thị kiểu tham chiếu. Vì vậy, chúng đều là subtype của `Object`:
+Declarations `int[]`, `String[]`, and `int[][]` all denote reference types. Therefore, they are all subtypes of `Object`:
 
 ```java
 Object a = new int[3];
@@ -41,44 +41,44 @@ System.out.println(b instanceof Object); // true
 System.out.println(c instanceof Object); // true
 ```
 
-Ví dụ trên là **đoạn mã minh họa**, có thể đặt trong phương thức `main`.
+The example above is an **illustrative code snippet** that can be placed inside the `main` method.
 
-Ở runtime, `new int[3]` tạo một đối tượng mảng và điền phần tử bằng giá trị mặc định `0`. `new String[3]` tạo một đối tượng mảng mà từng phần tử ban đầu là `null`. Việc đối tượng mảng thuộc `Object` không làm biến đổi kiểu phần tử.
+At runtime, `new int[3]` creates an array object and fills its elements with the default value `0`. `new String[3]` creates an array object whose elements are initially `null`. The fact that the array object is an `Object` does not alter the element type.
 
-Mọi lớp mảng đều trả về `Object.class` khi gọi `getSuperclass()`. Tuy nhiên, lớp mảng không phải lớp Java do lập trình viên khai báo bằng `extends Object`, và không thể khai báo một lớp con tùy ý kế thừa từ `int[]` hay `String[]`. JVM tạo các lớp mảng theo nhu cầu và Java không cho phép khai báo lớp kế thừa từ kiểu mảng.
+Every array class returns `Object.class` when calling `getSuperclass()`. However, an array class is not a Java class declared by a programmer with `extends Object`, and you cannot declare an arbitrary subclass inheriting from `int[]` or `String[]`. The JVM creates array classes on demand, and Java does not allow declaring a class that inherits from an array type.
 
-### Vì sao `int[]` không gán được cho `Object[]`?
+### Why Cannot `int[]` Be Assigned to `Object[]`?
 
-`Object[]` chứa các **tham chiếu đối tượng**; `int[]` chứa các giá trị `int` nguyên thủy. Do đó:
+`Object[]` holds **object references**; `int[]` holds primitive `int` values. Therefore:
 
 ```java
 int[] values = {1, 2};
-Object anything = values;        // Hợp lệ
-// Object[] bad = values;       // LỖI BIÊN DỊCH
+Object anything = values;        // Valid
+// Object[] bad = values;       // COMPILE ERROR
 ```
 
-Phép chuyển từ `int[]` sang `Object[]` không trở nên hợp lệ bằng cách ép kiểu trực tiếp. Nếu đưa một `int[]` vào biến `Object` rồi ép thành `Object[]`, chương trình sẽ ném `ClassCastException` tại runtime. Muốn một mảng phần tử tham chiếu, phải tạo kiểu phù hợp, ví dụ `Integer[]`, và chuyển các phần tử một cách tường minh khi cần.
+Converting from `int[]` to `Object[]` does not become valid via a direct cast. If you place an `int[]` into an `Object` variable and then cast it to `Object[]`, the program throws `ClassCastException` at runtime. If you want an array of reference elements, you must create an appropriate type, such as `Integer[]`, and convert the elements explicitly when needed.
 
-Ngược lại, `String[]` **có thể** gán cho `Object[]`, vì `String` là subtype của `Object`:
+Conversely, `String[]` **can** be assigned to `Object[]`, because `String` is a subtype of `Object`:
 
 ```java
 String[] strings = {"a", "b"};
-Object[] objects = strings;      // Hợp lệ
+Object[] objects = strings;      // Valid
 System.out.println(objects[0]); // a
 ```
 
-Quy tắc này được gọi là **hiệp biến của mảng tham chiếu** (array covariance), được xét kỹ ở mục 5.
+This rule is called **reference array covariance** (array covariance), examined closely in section 5.
 
-## 3. Quan hệ với `Cloneable`: sao chép mảng
+## 3. Relationship with `Cloneable`: Copying Arrays
 
-Mọi đối tượng mảng triển khai `Cloneable` và hỗ trợ gọi `clone()` trên biểu thức kiểu mảng. Phép clone tạo **đối tượng mảng mới cùng kiểu runtime, cùng độ dài**, sau đó sao chép giá trị của từng phần tử.
+Every array object implements `Cloneable` and supports calling `clone()` on an array-typed expression. The clone operation creates a **new array object of the same runtime type and same length**, then copies the value of each element.
 
-- Với mảng nguyên thủy như `int[]`, mỗi giá trị nguyên thủy được sao chép.
-- Với mảng tham chiếu như `StringBuilder[]`, từng **tham chiếu** được sao chép; đối tượng được tham chiếu không được sao chép đệ quy.
-- Với mảng nhiều chiều như `int[][]`, chỉ **mảng ngoài** được clone; các mảng con vẫn được hai mảng ngoài cùng tham chiếu. Đây là **shallow copy**.
-- `clone()` của mảng trả về đúng kiểu mảng ở thời điểm biên dịch, ví dụ `int[] copy = original.clone();`, không cần ép kiểu.
+- For a primitive array like `int[]`, each primitive value is copied.
+- For a reference array like `StringBuilder[]`, each **reference** is copied; the referenced objects are not recursively cloned.
+- For a multidimensional array like `int[][]`, only the **outer array** is cloned; the subarrays are still shared by both outer arrays. This is a **shallow copy**.
+- An array's `clone()` returns the exact array type at compile time, e.g., `int[] copy = original.clone();`, with no cast needed.
 
-Ví dụ:
+Example:
 
 ```java
 int[] original = {1, 2};
@@ -97,20 +97,20 @@ System.out.println(matrix == shallow); // false
 System.out.println(matrix[0] == shallow[0]); // true
 ```
 
-Đây là đoạn minh họa đặt trong `main`. Để sao chép độc lập từng hàng của `int[][]`, cần tự clone từng mảng con (hoặc áp dụng thuật toán sao chép sâu phù hợp với cấu trúc dữ liệu).
+This is an illustrative snippet placed inside `main`. To independently copy each row of `int[][]`, you must clone each subarray yourself (or apply a deep-copy algorithm suited to the data structure).
 
-**Giới hạn của `Cloneable`:** Gán `int[]` cho biến `Cloneable` chỉ chứng minh đối tượng có giao diện đánh dấu. Giao diện `Cloneable` **không khai báo phương thức `clone()`**. Vì vậy `Cloneable marker = numbers; marker.clone();` không biên dịch; cần giữ hoặc lấy lại kiểu mảng thích hợp. `Object.clone()` là phương thức `protected`, còn cú pháp gọi `clone()` trên kiểu mảng được ngôn ngữ Java cho phép một cách đặc biệt.
+**Limitation of `Cloneable`:** Assigning `int[]` to a `Cloneable` variable only proves the object has the marker interface. The `Cloneable` interface **does not declare a `clone()` method**. Therefore `Cloneable marker = numbers; marker.clone();` does not compile; you must keep or recover the appropriate array type. `Object.clone()` is a `protected` method, whereas the syntax of calling `clone()` on an array type is specially permitted by the Java language.
 
-## 4. Quan hệ với `Serializable`: khả năng tuần tự hóa
+## 4. Relationship with `Serializable`: Serializability
 
-`Serializable` cũng là **marker interface**, không khai báo phương thức. Các kiểu mảng như `int[]`, `String[]` và `Object[]` đều triển khai `Serializable`, bất kể kiểu phần tử của chúng.
+`Serializable` is also a **marker interface**, declaring no methods. Array types such as `int[]`, `String[]`, and `Object[]` all implement `Serializable`, regardless of their element type.
 
-Điều này cho phép cơ chế Java Object Serialization xử lý một đối tượng mảng. Tuy nhiên, để **ghi thành công một mảng tham chiếu có phần tử không null**, mỗi đối tượng phần tử được ghi cùng đồ thị đối tượng cần hỗ trợ tuần tự hóa theo hợp đồng của cơ chế này:
+This allows the Java Object Serialization mechanism to process an array object. However, to **successfully write a reference array that has non-null elements**, each element object written along with the object graph must support serialization under this mechanism's contract:
 
-- `int[]` có thể tuần tự hóa các giá trị `int`.
-- `String[]` chứa các `String` có thể tuần tự hóa vì `String` triển khai `Serializable`.
-- Một mảng chứa đối tượng của lớp không triển khai `Serializable` có thể ném `NotSerializableException` trong quá trình `ObjectOutputStream.writeObject(...)`.
-- Mảng có kiểu thành phần là lớp không serializable **vẫn là một đối tượng `Serializable`**; chẳng hạn mảng rỗng hoặc các phần tử đều `null` có thể ghi thành công vì không có đối tượng phần tử không serializable phải ghi.
+- `int[]` can serialize its `int` values.
+- `String[]` contains `String` instances that are serializable because `String` implements `Serializable`.
+- An array containing objects of a class that does not implement `Serializable` may throw `NotSerializableException` during `ObjectOutputStream.writeObject(...)`.
+- An array whose component type is a non-serializable class **is still a `Serializable` object**; for example, an empty array or one whose elements are all `null` can be written successfully because there is no non-serializable element object that must be written.
 
 ```java
 import java.io.ByteArrayOutputStream;
@@ -146,14 +146,14 @@ public class ArraySerializationDemo {
 }
 ```
 
-Lưu tệp `ArraySerializationDemo.java`, chạy bằng Java 17 trở lên:
+Save the file `ArraySerializationDemo.java`, and run with Java 17 or higher:
 
 ```bash
 javac ArraySerializationDemo.java
 java ArraySerializationDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 int[]: OK
@@ -161,44 +161,44 @@ PlainItem[0]: OK
 PlainItem[1]: NotSerializableException
 ```
 
-`Serializable` chỉ thể hiện khả năng tham gia cơ chế serialization; **không bảo đảm mọi nội dung cụ thể đều tuần tự hóa được**. Serialization gốc của Java còn liên quan đến tương thích phiên bản, an toàn dữ liệu và rủi ro giải tuần tự hóa dữ liệu không tin cậy; không nên dùng nó làm định dạng trao đổi dữ liệu mở mặc định.
+`Serializable` only indicates the ability to participate in the serialization mechanism; **it does not guarantee that every specific content can be serialized**. Native Java serialization also involves version compatibility, data safety, and the risks of deserializing untrusted data; it should not be used as the default open data-exchange format.
 
-## 5. Quy tắc gán kiểu giữa các loại mảng
+## 5. Type Assignment Rules Between Array Kinds
 
-### 5.1. Mảng nguyên thủy và mảng tham chiếu
+### 5.1. Primitive Arrays and Reference Arrays
 
-| Kiểu nguồn | Kiểu đích | Gán trực tiếp? | Lý do |
+| Source type | Target type | Direct assignment? | Reason |
 | --- | --- | --- | --- |
-| `int[]` | `Object` | Có | Mọi mảng là đối tượng |
-| `int[]` | `Cloneable` | Có | Mọi mảng triển khai marker interface này |
-| `int[]` | `Serializable` | Có | Mọi mảng triển khai marker interface này |
-| `int[]` | `Object[]` | Không | `int` không phải kiểu tham chiếu `Object` |
-| `String[]` | `Object[]` | Có | Mảng tham chiếu hiệp biến; `String <: Object` |
-| `Integer[]` | `Number[]` | Có | Mảng tham chiếu hiệp biến; `Integer <: Number` |
-| `int[]` | `long[]` | Không | Không có phép mở rộng kiểu nguyên thủy áp dụng cho **toàn mảng** |
-| `int[][]` | `Object[]` | Có | Phần tử của mảng ngoài là `int[]`, một kiểu tham chiếu thuộc `Object` |
-| `int[][]` | `Cloneable[]` | Có | Phần tử `int[]` triển khai `Cloneable` |
-| `int[][]` | `Object[][]` | Không | `int[]` không phải subtype của `Object[]` |
+| `int[]` | `Object` | Yes | Every array is an object |
+| `int[]` | `Cloneable` | Yes | Every array implements this marker interface |
+| `int[]` | `Serializable` | Yes | Every array implements this marker interface |
+| `int[]` | `Object[]` | No | `int` is not an `Object` reference type |
+| `String[]` | `Object[]` | Yes | Reference arrays are covariant; `String <: Object` |
+| `Integer[]` | `Number[]` | Yes | Reference arrays are covariant; `Integer <: Number` |
+| `int[]` | `long[]` | No | No primitive widening applies to the **entire array** |
+| `int[][]` | `Object[]` | Yes | Elements of the outer array are `int[]`, a reference type belonging to `Object` |
+| `int[][]` | `Cloneable[]` | Yes | Elements `int[]` implement `Cloneable` |
+| `int[][]` | `Object[][]` | No | `int[]` is not a subtype of `Object[]` |
 
-Ký hiệu `A <: B` ở đây nghĩa là `A` là subtype của `B`.
+The notation `A <: B` here means `A` is a subtype of `B`.
 
-### 5.2. Hiệp biến không làm mất kiểm tra kiểu runtime
+### 5.2. Covariance Does Not Remove Runtime Type Checking
 
-Java cho phép `String[]` được nhìn qua biến `Object[]`. Nhưng đối tượng thực tế vẫn là `String[]`. Nếu cố lưu `Integer` vào đó, JVM ném `ArrayStoreException`:
+Java allows `String[]` to be viewed through an `Object[]` variable. Yet the actual object is still `String[]`. If you try to store an `Integer` into it, the JVM throws `ArrayStoreException`:
 
 ```java
 String[] words = {"Java"};
-Object[] array = words;          // Được phép
-// array[0] = Integer.valueOf(7); // Biên dịch được, nhưng ném ArrayStoreException
+Object[] array = words;          // Allowed
+// array[0] = Integer.valueOf(7); // Compiles, but throws ArrayStoreException
 ```
 
-Chính xác hơn, câu lệnh ghi ở trên **biên dịch được** do kiểu tĩnh của `array` là `Object[]`; lỗi chỉ phát sinh khi thực thi, do phần tử của mảng runtime chỉ nhận `String` (và `null`).
+More precisely, the write statement above **compiles** because the static type of `array` is `Object[]`; the error arises only at execution time, because the runtime array's elements only accept `String` (and `null`).
 
-Mảng là reifiable: thông tin kiểu phần tử của một đối tượng mảng được runtime giữ để kiểm tra phép ghi. Quy tắc này khác với cơ chế xóa kiểu của Java generics; không được suy luận rằng `List<String>` hoạt động giống `String[]`. Việc tạo trực tiếp mảng có kiểu phần tử parameterized không reifiable như `new List<String>[10]` cũng bị Java từ chối khi biên dịch.
+Arrays are reifiable: the element type information of an array object is retained at runtime to check write operations. This rule differs from Java generics' type erasure; do not infer that `List<String>` behaves like `String[]`. Directly creating an array with a non-reifiable parameterized element type such as `new List<String>[10]` is also rejected by Java at compile time.
 
-### 5.3. Mảng nhiều chiều là mảng chứa mảng
+### 5.3. Multidimensional Arrays Are Arrays of Arrays
 
-`int[][]` là mảng mà **mỗi phần tử có kiểu `int[]`**. Vì thế, bản thân `int[][]` là một mảng tham chiếu và có thể gán cho `Object[]`, dù các phần tử cuối cùng là giá trị nguyên thủy.
+`int[][]` is an array in which **each element has type `int[]`**. Therefore, `int[][]` itself is a reference array and can be assigned to `Object[]`, even though the final elements are primitive values.
 
 ```java
 int[][] grid = {{10, 20}, {30}};
@@ -208,20 +208,20 @@ System.out.println(outer[0] instanceof int[]); // true
 System.out.println(((int[]) outer[0])[1]);       // 20
 ```
 
-Điều đó **không** khiến `int[][]` trở thành `Object[][]`. Để là `Object[][]`, phần tử của mảng ngoài phải tương thích với `Object[]`; còn `int[]` không phải subtype của `Object[]`.
+That does **not** make `int[][]` an `Object[][]`. To be an `Object[][]`, the elements of the outer array must be compatible with `Object[]`; whereas `int[]` is not a subtype of `Object[]`.
 
-## 6. Kiểm tra bằng Java Reflection
+## 6. Inspecting with Java Reflection
 
-Các API của `java.lang.Class` giúp kiểm tra quan hệ kiểu mà không cần tạo đối tượng:
+The APIs of `java.lang.Class` help inspect type relationships without needing to create objects:
 
-- `SomeArray.class.isArray()`: kiểm tra đối tượng `Class` biểu diễn kiểu mảng.
-- `getComponentType()`: trả về `Class` của kiểu phần tử trực tiếp; với `int[][]`, kết quả là `int[].class`, không phải `int.class`.
-- `getSuperclass()`: trả về `Object.class` đối với mọi lớp mảng.
-- `getInterfaces()`: đối với lớp mảng trả về `Cloneable` và `Serializable`. Không nên phụ thuộc vào **thứ tự** trả về khi in kết quả.
-- `Destination.class.isAssignableFrom(Source.class)`: `true` nếu giá trị có kiểu `Source` gán được cho biến `Destination` bằng phép gán mở rộng hoặc đồng nhất cho kiểu tham chiếu; thứ tự đối số là **đích.isAssignableFrom(nguồn)**.
-- `getTypeName()`: hiển thị tên thân thiện, ví dụ `int[]`, `java.lang.String[]`. `getName()` của lớp mảng dùng dạng ký hiệu JVM như `[I` và `[Ljava.lang.String;`, không phải cú pháp mã nguồn thông thường.
+- `SomeArray.class.isArray()`: checks whether the `Class` object represents an array type.
+- `getComponentType()`: returns the `Class` of the direct element type; for `int[][]`, the result is `int[].class`, not `int.class`.
+- `getSuperclass()`: returns `Object.class` for all array classes.
+- `getInterfaces()`: for array classes returns `Cloneable` and `Serializable`. You should not rely on the returned **order** when printing results.
+- `Destination.class.isAssignableFrom(Source.class)`: `true` if a value of type `Source` can be assigned to a `Destination` variable via a widening or identity reference conversion; the argument order is **destination.isAssignableFrom(source)**.
+- `getTypeName()`: displays a friendly name, such as `int[]`, `java.lang.String[]`. `getName()` of an array class uses JVM descriptor notation such as `[I` and `[Ljava.lang.String;`, not ordinary source-code syntax.
 
-Ví dụ hoàn chỉnh:
+Complete example:
 
 ```java
 import java.io.Serializable;
@@ -272,14 +272,14 @@ public class ArrayTypeRelationsDemo {
 }
 ```
 
-Lưu tệp `ArrayTypeRelationsDemo.java`. Trong thư mục chứa tệp, thực hiện:
+Save the file `ArrayTypeRelationsDemo.java`. In the directory containing the file, run:
 
 ```bash
 javac ArrayTypeRelationsDemo.java
 java ArrayTypeRelationsDemo
 ```
 
-Stdout mong đợi trên Java 17+:
+Expected stdout on Java 17+:
 
 ```text
 Superclass: java.lang.Object
@@ -296,38 +296,38 @@ Checked store: ArrayStoreException
 Shallow clone shares row: true
 ```
 
-Vì đã sắp xếp tên giao diện trước khi in, ví dụ không dựa vào thứ tự `Class.getInterfaces()`.
+Because the interface names were sorted before printing, the example does not depend on the order of `Class.getInterfaces()`.
 
-## 7. Phân biệt các câu hỏi Reflection dễ nhầm
+## 7. Distinguishing Easily Confused Reflection Questions
 
-| Câu hỏi | API nên dùng | Ví dụ |
+| Question | Recommended API | Example |
 | --- | --- | --- |
-| Đây có phải kiểu mảng? | `type.isArray()` | `int[].class.isArray() == true` |
-| Phần tử trực tiếp có kiểu nào? | `type.getComponentType()` | `int[][].class.getComponentType() == int[].class` |
-| Lớp cha trực tiếp của mảng là gì? | `type.getSuperclass()` | `String[].class.getSuperclass() == Object.class` |
-| Mảng triển khai trực tiếp giao diện nào? | `type.getInterfaces()` | `Cloneable` và `Serializable` |
-| Một giá trị kiểu A có gán được vào biến kiểu B? | `B.class.isAssignableFrom(A.class)` | `Object[].class.isAssignableFrom(String[].class) == true` |
-| Một đối tượng cụ thể có thuộc kiểu cho trước? | `type.isInstance(value)` | `Object[].class.isInstance(new int[1]) == false` |
+| Is this an array type? | `type.isArray()` | `int[].class.isArray() == true` |
+| What type are the direct elements? | `type.getComponentType()` | `int[][].class.getComponentType() == int[].class` |
+| What is the direct superclass of the array? | `type.getSuperclass()` | `String[].class.getSuperclass() == Object.class` |
+| Which interfaces does the array directly implement? | `type.getInterfaces()` | `Cloneable` and `Serializable` |
+| Can a value of type A be assigned to a variable of type B? | `B.class.isAssignableFrom(A.class)` | `Object[].class.isAssignableFrom(String[].class) == true` |
+| Does a specific object belong to a given type? | `type.isInstance(value)` | `Object[].class.isInstance(new int[1]) == false` |
 
-`isAssignableFrom` hoạt động với đối tượng `Class`, còn `isInstance` kiểm tra một **đối tượng runtime**. Đừng đảo chiều `isAssignableFrom`: `Object.class.isAssignableFrom(int[].class)` là `true`, nhưng `int[].class.isAssignableFrom(Object.class)` là `false`.
+`isAssignableFrom` operates on `Class` objects, whereas `isInstance` checks a **runtime object**. Do not reverse `isAssignableFrom`: `Object.class.isAssignableFrom(int[].class)` is `true`, whereas `int[].class.isAssignableFrom(Object.class)` is `false`.
 
-Cũng cần tách biệt `instanceof Object` với `instanceof Object[]`. Ví dụ `new int[1] instanceof Object` là đúng, nhưng phép kiểm tra xem đó có phải `Object[]` thì sai. Khi cần kiểm tra động mà kiểu biểu thức cố định khiến phép `instanceof` không hợp lệ ở biên dịch, hãy dùng `Class.isInstance(...)` trên một giá trị đã được nhìn qua `Object`.
+You also need to separate `instanceof Object` from `instanceof Object[]`. For example, `new int[1] instanceof Object` is true, but checking whether it is `Object[]` is false. When you need a dynamic check where a fixed expression type makes `instanceof` invalid at compile time, use `Class.isInstance(...)` on a value viewed through `Object`.
 
-## 8. Lỗi thường gặp và cách tự kiểm tra
+## 8. Common Mistakes and How to Self-Check
 
-1. **Cho rằng mảng nguyên thủy không phải đối tượng.** Thực tế, `int[]` là đối tượng và có thể gán cho `Object`, `Cloneable` và `Serializable`.
-2. **Đồng nhất `Object` với `Object[]`.** `Object[]` có quy tắc tương thích kiểu phần tử; `int[]` không chuyển thành `Object[]`.
-3. **Xem `Cloneable` là cam kết sao chép sâu.** Clone của mảng là sao chép nông; mảng con và các đối tượng tham chiếu vẫn được dùng chung.
-4. **Gọi `clone()` qua biến `Cloneable`.** Giao diện đánh dấu này không khai báo `clone()`.
-5. **Cho rằng `Serializable` bảo đảm luôn ghi mảng thành công.** Khi serializing, các phần tử không serializable vẫn có thể gây `NotSerializableException`.
-6. **Bỏ qua `ArrayStoreException`.** Hiệp biến cho phép phép gán kiểu rộng ở compile time, nhưng JVM kiểm tra kiểu phần tử khi ghi.
-7. **Đảo chiều `isAssignableFrom`.** Luôn đọc `ĐÍCH.isAssignableFrom(NGUỒN)`.
-8. **Nhầm mảng nhiều chiều với mảng nguyên thủy một chiều.** `int[][]` là mảng ngoài chứa các tham chiếu `int[]`, nên có thể là `Object[]`; còn `int[]` thì không.
-9. **Cho rằng `getComponentType()` trả về kiểu phần tử sâu nhất.** Với `String[][][]`, gọi một lần chỉ được `String[][]`; lặp lại mới đi sâu tới `String`.
+1. **Assuming primitive arrays are not objects.** In fact, `int[]` is an object and can be assigned to `Object`, `Cloneable`, and `Serializable`.
+2. **Equating `Object` with `Object[]`.** `Object[]` has element type compatibility rules; `int[]` does not convert to `Object[]`.
+3. **Treating `Cloneable` as a promise of deep copying.** An array's clone is a shallow copy; subarrays and referenced objects are still shared.
+4. **Calling `clone()` through a `Cloneable` variable.** This marker interface does not declare `clone()`.
+5. **Assuming `Serializable` guarantees writing the array always succeeds.** When serializing, non-serializable elements can still cause `NotSerializableException`.
+6. **Ignoring `ArrayStoreException`.** Covariance allows widening assignments at compile time, but the JVM checks the element type on write.
+7. **Reversing `isAssignableFrom`.** Always read `DESTINATION.isAssignableFrom(SOURCE)`.
+8. **Confusing multidimensional arrays with 1D primitive arrays.** `int[][]` is an outer array holding `int[]` references, so it can be an `Object[]`; `int[]` cannot.
+9. **Assuming `getComponentType()` returns the deepest element type.** For `String[][][]`, calling it once yields only `String[][]`; repeating it walks down to `String`.
 
-### Bài tự kiểm tra
+### Self-Check Exercise
 
-Không chạy code ngay: hãy dự đoán rồi dùng `Class.isAssignableFrom` hoặc `Class.isInstance` để kiểm chứng.
+Do not run the code right away: predict first, then use `Class.isAssignableFrom` or `Class.isInstance` to verify.
 
 ```java
 Object.class.isAssignableFrom(byte[].class)          // ?
@@ -338,8 +338,8 @@ Object[][].class.isAssignableFrom(String[][].class)  // ?
 Object[][].class.isAssignableFrom(int[][].class)     // ?
 ```
 
-Đáp án lần lượt: **true, true, true, true, true, false**. Giải thích: mọi mảng là `Object` và triển khai hai marker interface; mảng ngoài của `byte[][]`/`int[][]` chứa đối tượng mảng `byte[]`/`int[]`; `String[]` là subtype của `Object[]`, còn `int[]` thì không.
+Answers in order: **true, true, true, true, true, false**. Explanation: every array is an `Object` and implements both marker interfaces; the outer array of `byte[][]`/`int[][]` holds `byte[]`/`int[]` array objects; `String[]` is a subtype of `Object[]`, whereas `int[]` is not.
 
-## 9. Ghi nhớ
+## 9. Key Takeaways
 
-Quy tắc gốc là **mọi lớp mảng đều có superclass `Object` và triển khai `Cloneable`, `Serializable`**. Khi hỏi mảng có gán được cho một **kiểu mảng khác** hay không, phải xét thêm kiểu phần tử, phân biệt mảng nguyên thủy, mảng tham chiếu và từng chiều của mảng nhiều chiều. Khi thao tác với dữ liệu, nhớ `clone()` là shallow copy, serialization còn phụ thuộc đối tượng phần tử, và việc ghi vào mảng hiệp biến luôn được JVM kiểm tra ở runtime.
+The core rule is that **every array class has superclass `Object` and implements `Cloneable`, `Serializable`**. When asking whether an array can be assigned to another **array type**, you must also consider the element type, distinguishing primitive arrays, reference arrays, and each dimension of multidimensional arrays. When manipulating data, remember `clone()` is a shallow copy, serialization still depends on element objects, and writes into covariant arrays are always checked by the JVM at runtime.

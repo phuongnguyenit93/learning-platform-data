@@ -1,71 +1,71 @@
-# Ma trận kiểm thử locale: vi-VN, en-US, de-DE, tr-TR và ngôn ngữ phải–trái trong Java
+# Locale Testing Matrix: vi-VN, en-US, de-DE, tr-TR, and Right-to-Left Languages in Java
 
-## 1. Vì sao một bài kiểm thử tiếng Anh không bảo đảm localization đúng?
+## 1. Why Does an English Test Suite Not Guarantee Correct Localization?
 
-Một chương trình Java có thể chạy hoàn hảo với `Locale.US` nhưng thất bại khi người dùng chọn tiếng Việt, tiếng Đức, tiếng Thổ Nhĩ Kỳ hoặc một ngôn ngữ viết **từ phải sang trái (RTL)**. Lỗi có thể nằm ở:
+A Java program can run perfectly with `Locale.US` yet fail when users choose Vietnamese, German, Turkish, or a **right-to-left (RTL)** language. Bugs can hide in:
 
-- Cách viết **số, phân cách hàng nghìn, dấu thập phân, phần trăm, tiền tệ**.
-- **Thứ tự ngày/tháng/năm**, tên tháng, múi giờ và cách parse lại chuỗi ngày.
-- **Chữ hoa/chữ thường theo ngôn ngữ**, đặc biệt chữ I trong tiếng Thổ Nhĩ Kỳ.
-- **Tải bản dịch `ResourceBundle`**, fallback, các key hoặc placeholder bị thiếu.
-- **Sắp xếp chữ theo ngôn ngữ** với `Collator` thay vì `String.compareTo`.
-- **Bố cục RTL**, vị trí icon, nút, dấu câu, số và văn bản pha trộn Latin/Ả Rập/Hebrew.
-- **Độ dài bản dịch**, Unicode combining marks, emoji, text overflow và vấn đề accessibility.
-- Lỗi chỉ xuất hiện khi máy chủ dùng một **default locale khác** môi trường phát triển.
+- Formatting of **numbers, thousand separators, decimal points, percentages, and currencies**.
+- **Day/month/year order**, month names, time zones, and parsing date strings back.
+- **Language-specific casing**, especially the letter I in Turkish.
+- **`ResourceBundle` translation loading**, fallback, and missing keys or placeholders.
+- **Language-aware sorting** with `Collator` instead of `String.compareTo`.
+- **RTL layout**, icon/button placement, punctuation, numbers, and mixed Latin/Arabic/Hebrew text.
+- **Translation length**, Unicode combining marks, emoji, text overflow, and accessibility issues.
+- Bugs that appear only when a server uses a **different default locale** from the development environment.
 
-Vì thế, một **ma trận locale** không chỉ là danh sách ngôn ngữ để “mở xem thử”, mà là kế hoạch QA có dữ liệu, điều kiện, kỳ vọng, loại test và tiêu chí đánh giá rõ ràng.
+Therefore, a **locale matrix** is not just a list of languages to "open and take a look at", but a QA plan with clear data, conditions, expectations, test types, and evaluation criteria.
 
-Bài này sử dụng **Java 17+**, tập trung vào sáu locale đại diện:
+This lesson uses **Java 17+**, focusing on six representative locales:
 
-1. `vi-VN` — tiếng Việt tại Việt Nam;
-2. `en-US` — tiếng Anh tại Hoa Kỳ;
-3. `de-DE` — tiếng Đức tại Đức;
-4. `tr-TR` — tiếng Thổ Nhĩ Kỳ tại Thổ Nhĩ Kỳ;
-5. `ar-EG` — tiếng Ả Rập tại Ai Cập, ngôn ngữ RTL;
-6. `he-IL` — tiếng Hebrew tại Israel, ngôn ngữ RTL.
+1. `vi-VN` — Vietnamese in Vietnam;
+2. `en-US` — English in the United States;
+3. `de-DE` — German in Germany;
+4. `tr-TR` — Turkish in Turkey;
+5. `ar-EG` — Arabic in Egypt, an RTL language;
+6. `he-IL` — Hebrew in Israel, an RTL language.
 
-**Lưu ý về thuật ngữ:** `Locale` không phải là test case duy nhất. Mỗi locale còn phải được kiểm thử trên dữ liệu/ngữ cảnh cụ thể, với font, viewport, `ZoneId`, charset và phiên bản JDK/CLDR được xác định khi cần.
+**Terminology note:** `Locale` is not the entire test case. Each locale must also be tested against specific data/context, with font, viewport, `ZoneId`, charset, and JDK/CLDR version specified when needed.
 
-## 2. Xác định phạm vi của ma trận
+## 2. Defining the Scope of the Matrix
 
-| Locale | Mục tiêu kiểm thử trọng tâm | Ví dụ rủi ro |
+| Locale | Primary testing focus | Example risks |
 | --- | --- | --- |
-| `vi-VN` | Chữ có dấu, bản dịch tiếng Việt, ngày/số bản địa | Thiếu font, dấu lỗi, text dài, fallback |
-| `en-US` | Mốc so sánh tiếng Anh, ngày tháng theo Hoa Kỳ | Giả định tất cả locale có cùng pattern |
-| `de-DE` | Dấu thập phân và grouping khác tiếng Anh, format tiền/số | Parse `1,5` như `1.5` theo locale sai |
-| `tr-TR` | Hai cặp chữ I/ı và İ/i; case mapping và lookup key | `"TITLE".toLowerCase()` ra `"tıtle"` |
-| `ar-EG` | Định dạng và chữ Ả Rập, số/văn bản lẫn LTR, UI RTL | Dấu câu, thứ tự icon, mã số hiển thị lộn xộn |
-| `he-IL` | Văn bản Hebrew, LTR/RTL pha trộn, ngày và layout | Căn lề, caret, dấu ngoặc, email/URL |
+| `vi-VN` | Diacritics, Vietnamese translations, localized dates/numbers | Missing fonts, broken diacritics, long text, fallback |
+| `en-US` | English baseline, US date formatting | Assuming all locales share the same pattern |
+| `de-DE` | Decimal and grouping separators different from English, currency/number formatting | Parsing `1,5` as `1.5` under the wrong locale |
+| `tr-TR` | Two letter pairs I/ı and İ/i; case mapping and key lookup | `"TITLE".toLowerCase()` produces `"tıtle"` |
+| `ar-EG` | Arabic formatting and script, numbers/text mixed with LTR, RTL UI | Punctuation, icon order, scrambled IDs |
+| `he-IL` | Hebrew text, mixed LTR/RTL, dates and layout | Alignment, caret, parentheses, email/URL |
 
-Ma trận trên **không ngầm khẳng định** mọi người dùng `ar-EG` sẽ dùng cùng kiểu chữ số, tiền tệ hay lịch. Hành vi có thể thay đổi theo Unicode locale extensions, preference riêng, JDK locale provider và chính sách sản phẩm.
+The matrix above **does not implicitly assert** that every `ar-EG` user uses the same numeral system, currency, or calendar. Behavior can vary depending on Unicode locale extensions, personal preferences, the JDK locale provider, and product policy.
 
-Tương tự, một người dùng ở Việt Nam có thể dùng giao diện tiếng Anh, múi giờ Nhật và đơn vị tiền tệ USD. **Locale, ZoneId, Currency, Chronology, writing direction và định dạng giao thức là những lựa chọn liên quan nhưng không đồng nhất.**
+Similarly, a user in Vietnam might use an English interface, a Japanese time zone, and USD currency. **Locale, ZoneId, Currency, Chronology, writing direction, and protocol format are related choices, not identical ones.**
 
-### 2.1. Hai chiều kiểm thử: chức năng và trình bày
+### 2.1. Two Testing Dimensions: Functional and Presentation
 
-**Kiểm thử chức năng có thể tự động hóa:**
+**Automatable functional testing:**
 
-- Format số/ngày thành chuỗi và parse lại bằng đúng formatter.
-- Lấy đúng bundle, đủ key và đúng fallback.
-- Case mapping Thổ Nhĩ Kỳ ra đúng Unicode code points.
-- So sánh chuỗi theo `Collator` với bộ dữ liệu/cấu hình đã xác định.
-- Không thay đổi giá trị nghiệp vụ khi đổi locale.
-- Dữ liệu API vẫn ở định dạng máy tường minh.
+- Format numbers/dates into strings and parse them back with the same formatter.
+- Load the right bundle, complete keys, and proper fallback.
+- Turkish case mapping produces the expected Unicode code points.
+- Compare strings using `Collator` with a defined dataset and configuration.
+- Business values do not change when switching locales.
+- API data remains in an explicit machine-readable format.
 
-**Kiểm thử trực quan hoặc tương tác:**
+**Visual or interactive testing:**
 
-- Thứ tự hiển thị RTL trong UI; biểu tượng, nút Back/Next, menu, breadcrumb.
-- Nội dung lẫn chữ Ả Rập/Hebrew và số ASCII/URL.
-- Vị trí dấu câu, cursor, selection, copy/paste.
-- Tràn chữ khi bản dịch dài, phóng to font hoặc màn hình hẹp.
-- Screen reader đọc đúng thứ tự ngữ nghĩa.
-- Font fallback, diacritics và glyph shaping đúng.
+- RTL rendering order in the UI; icons, Back/Next buttons, menus, breadcrumbs.
+- Content mixing Arabic/Hebrew script with ASCII digits/URLs.
+- Punctuation placement, cursor, selection, copy/paste.
+- Text overflow when translations are longer, fonts are zoomed, or viewports are narrow.
+- Screen reader reads in the correct semantic order.
+- Font fallback, diacritics, and proper glyph shaping.
 
-Không nên đánh dấu **“PASS toàn bộ RTL” chỉ vì `java.text.Bidi` xác định được hướng đoạn**. Phần rendering còn cần engine UI và kiểm thử người dùng.
+Do not mark **"Full RTL PASS" simply because `java.text.Bidi` determines the paragraph direction**. Rendering also requires the UI engine and user testing.
 
-## 3. Khởi tạo các Locale một cách tường minh
+## 3. Instantiating Locales Explicitly
 
-Java hỗ trợ BCP 47 language tags:
+Java supports BCP 47 language tags:
 
 ```java
 Locale vi = Locale.forLanguageTag("vi-VN");
@@ -76,58 +76,58 @@ Locale ar = Locale.forLanguageTag("ar-EG");
 Locale he = Locale.forLanguageTag("he-IL");
 ```
 
-Đây là đoạn mã minh họa **bên trong method**, cần `import java.util.Locale;`.
+This is an illustrative snippet **inside a method**, requiring `import java.util.Locale;`.
 
-Trong application thực tế, nên có **danh sách locale được hỗ trợ** do sản phẩm xác nhận, không chấp nhận mọi language tag rồi giả định đã có bản dịch và font.
+In a real application, there should be a **product-approved list of supported locales**, rather than accepting any arbitrary language tag and assuming translations and fonts already exist.
 
-### 3.1. Language tag khác locale mặc định
+### 3.1. Language Tags vs. Default Locale
 
-- `Locale.forLanguageTag("de-DE")` tạo locale đích rõ ràng.
-- `Locale.getDefault()` nhận default locale chung cho JVM.
-- `Locale.getDefault(Locale.Category.FORMAT)` nhận default phục vụ định dạng.
-- `Locale.getDefault(Locale.Category.DISPLAY)` nhận default cho display names.
+- `Locale.forLanguageTag("de-DE")` creates an explicit target locale.
+- `Locale.getDefault()` gets the general JVM default locale.
+- `Locale.getDefault(Locale.Category.FORMAT)` gets the default used for formatting.
+- `Locale.getDefault(Locale.Category.DISPLAY)` gets the default used for display names.
 
-Đừng dùng `Locale.setDefault(...)` cho **mỗi HTTP request**: default là trạng thái toàn JVM có thể ảnh hưởng người dùng khác. Truyền locale từng nơi, hoặc quản lý context theo request nhưng **không biến nó thành default toàn hệ thống**.
+Do not call `Locale.setDefault(...)` **per HTTP request**: the default is JVM-wide state that can affect other users. Pass the locale explicitly where needed, or manage context per request without **turning it into a global default**.
 
-### 3.2. Unicode locale extensions
+### 3.2. Unicode Locale Extensions
 
-Language tag có thể chứa lựa chọn bổ sung, chẳng hạn:
+A language tag can carry additional options, for example:
 
 ```text
 ar-EG-u-nu-latn
 th-TH-u-ca-buddhist
 ```
 
-`nu` gợi ý hệ chữ số và `ca` gợi ý calendar; nhưng khả năng áp dụng phụ thuộc API cụ thể và locale provider. Không suy rằng chỉ gọi `String.toLowerCase(locale)` hoặc `NumberFormat.getInstance(locale)` sẽ áp dụng cùng một tập extension giống tất cả các API còn lại.
+`nu` hints at the numbering system and `ca` hints at the calendar; however, whether they are applied depends on the specific API and locale provider. Do not assume that calling `String.toLowerCase(locale)` or `NumberFormat.getInstance(locale)` applies the exact same set of extensions as every other API.
 
-Một locale tag **không tự quyết định** `ZoneId`. Với định dạng giờ, chọn ZoneId riêng theo nghiệp vụ.
+A locale tag **does not determine** `ZoneId`. For time formatting, select `ZoneId` separately according to business requirements.
 
-## 4. Ma trận kiểm thử nền tảng
+## 4. Baseline Testing Matrix
 
-Đây là **bộ kiểm thử mẫu** có thể chuyển thành test plan của sản phẩm:
+Here is a **sample test suite** that can be turned into a product test plan:
 
-| Nhóm chức năng | vi-VN | en-US | de-DE | tr-TR | ar-EG | he-IL |
+| Feature group | vi-VN | en-US | de-DE | tr-TR | ar-EG | he-IL |
 | --- | --- | --- | --- | --- | --- | --- |
-| Số/thập phân | Có | Có | Có | Có | Có | Có |
-| Phần trăm/tiền tệ | Có | Có | Có | Có | Có | Có |
-| Ngày giờ localized | Có | Có | Có | Có | Có | Có |
-| Date/number parse round-trip | Có | Có | Có | Có | Có | Có |
-| ResourceBundle/fallback | Có | Có | Có | Có | Có | Có |
-| Format placeholder | Có | Có | Có | Có | Có | Có |
-| Collation/sort | Có | Có | Có | Có | Có | Có |
-| Case-mapping chữ I | Bảo đảm không bị locale khác tác động | Mốc ROOT | Theo policy | **Đặc biệt** | Không dùng để suy I tiếng Thổ | Không dùng để suy I tiếng Thổ |
-| Chữ có dấu/Unicode | **Đặc biệt** | Cơ bản | Có | Có | **Đặc biệt** | **Đặc biệt** |
-| RTL layout | Test không bị đảo nhầm | Test không bị đảo nhầm | Test không bị đảo nhầm | Test không bị đảo nhầm | **Bắt buộc** | **Bắt buộc** |
-| Bidi text lẫn số/URL | Cơ bản | Cơ bản | Cơ bản | Cơ bản | **Bắt buộc** | **Bắt buộc** |
-| Overflow/zoom/accessibility | Có | Có | Có | Có | Có | Có |
+| Numbers/decimals | Yes | Yes | Yes | Yes | Yes | Yes |
+| Percentages/currency | Yes | Yes | Yes | Yes | Yes | Yes |
+| Localized date/time | Yes | Yes | Yes | Yes | Yes | Yes |
+| Date/number parse round-trip | Yes | Yes | Yes | Yes | Yes | Yes |
+| ResourceBundle/fallback | Yes | Yes | Yes | Yes | Yes | Yes |
+| Placeholder formatting | Yes | Yes | Yes | Yes | Yes | Yes |
+| Collation/sort | Yes | Yes | Yes | Yes | Yes | Yes |
+| Letter I case-mapping | Ensure unaffected by other locales | ROOT baseline | Per policy | **Special** | Not used to infer Turkish I | Not used to infer Turkish I |
+| Diacritics/Unicode | **Special** | Basic | Yes | Yes | **Special** | **Special** |
+| RTL layout | Test not mistakenly mirrored | Test not mistakenly mirrored | Test not mistakenly mirrored | Test not mistakenly mirrored | **Required** | **Required** |
+| Bidi text mixed with numbers/URLs | Basic | Basic | Basic | Basic | **Required** | **Required** |
+| Overflow/zoom/accessibility | Yes | Yes | Yes | Yes | Yes | Yes |
 
-“Có” nghĩa là **phải chạy test tương ứng**; nó không khẳng định locale tự nhiên phải cho chuỗi output cố định. “Đặc biệt” chỉ nhóm rủi ro cần bổ sung nhiều dữ liệu/điều kiện.
+"Yes" means **the corresponding test must be run**; it does not assert that a locale must naturally produce a fixed output string. "Special" marks high-risk areas that need additional test data/conditions.
 
-Ma trận không nên bị đóng băng vĩnh viễn. Thêm các locale khác khi thị trường mở rộng, đặc biệt chữ viết phức tạp, ngôn ngữ không phân tách từ bằng khoảng trắng, lịch không ISO và bản địa hóa số.
+The matrix should not be frozen forever. Add other locales as markets expand, especially complex scripts, languages that do not separate words with spaces, non-ISO calendars, and numeral localization.
 
-## 5. Test định dạng số: đừng hard-code dấu phân cách
+## 5. Testing Number Formatting: Do Not Hard-Code Separators
 
-`java.text.NumberFormat` có thể tạo formatter theo locale:
+`java.text.NumberFormat` can create a locale-aware formatter:
 
 ```java
 NumberFormat nf = NumberFormat.getNumberInstance(locale);
@@ -137,32 +137,32 @@ String shown = nf.format(12345.5);
 Number parsed = nf.parse(shown);
 ```
 
-**Điều cần khẳng định bằng test:** với chính formatter, dữ liệu mẫu hợp lệ phải được định dạng và parse lại thành giá trị tương đương, xét precision. Trong một test không pin JDK/CLDR/provider, không nên hard-code rằng một chuỗi `shown` luôn bằng một literal duy nhất cho mọi môi trường.
+**What the test should assert:** with the same formatter, valid sample data must format and parse back to an equivalent value, within precision limits. In a test that does not pin the JDK/CLDR/provider, do not hard-code that `shown` must always equal a single literal across all environments.
 
-Ví dụ thường gặp:
+Common examples:
 
-- `en-US` thường có dấu `.` cho decimal và dấu `,` cho grouping.
-- `de-DE` thường dùng dấu `,` cho decimal và dấu `.` cho grouping.
-- `vi-VN` có quy ước riêng có thể khác `en-US`.
-- `ar-EG` có thể dùng Arabic-Indic digits và ký hiệu phân cách bản địa, tùy runtime/config.
+- `en-US` typically uses `.` for the decimal separator and `,` for grouping.
+- `de-DE` typically uses `,` for the decimal separator and `.` for grouping.
+- `vi-VN` has its own conventions that may differ from `en-US`.
+- `ar-EG` may use Arabic-Indic digits and localized separator characters, depending on runtime/config.
 
-**Nhưng đây là mô tả quy ước, không phải oracle tuyệt đối để so exact string trên mọi JDK**. Một số separator còn là khoảng trắng Unicode không dễ nhìn thấy.
+**However, these are descriptions of conventions, not an absolute oracle for exact string comparisons across every JDK.** Some separators are also non-obvious Unicode spaces.
 
-### 5.1. Không parse localized string bằng `Double.parseDouble`
+### 5.1. Do Not Parse Localized Strings with `Double.parseDouble`
 
-`Double.parseDouble("1,5")` không có cơ chế đọc dấu thập phân của Đức. Với input người dùng tiếng Đức, dùng formatter được chọn theo locale hoặc một parser UI có contract rõ.
+`Double.parseDouble("1,5")` has no mechanism to read German decimal separators. For German user input, use a locale-selected formatter or a UI parser with a clear contract.
 
-Đồng thời, `NumberFormat.parse` có thể chấp nhận prefix rồi dừng ở ký tự chưa hiểu. Nếu muốn validate **toàn bộ input**, dùng `ParsePosition` và kiểm tra `position.getIndex() == text.length()`, cùng điều kiện lỗi. Đó là lý do ví dụ runnable ở phần sau dùng `ParsePosition` thay vì chỉ gọi parse mơ hồ rồi coi mọi chữ là hợp lệ.
+At the same time, `NumberFormat.parse` can accept a prefix and stop at an unrecognized character. If you want to validate **the entire input**, use `ParsePosition` and check `position.getIndex() == text.length()`, along with error conditions. That is why the runnable example later uses `ParsePosition` instead of calling an ambiguous parse and treating every string as valid.
 
-### 5.2. Giá trị tiền tệ không tự quy đổi
+### 5.2. Currency Values Do Not Convert Automatically
 
-`NumberFormat.getCurrencyInstance(locale)` chọn cách **hiển thị** tiền theo locale; đổi locale hoặc ký hiệu tiền **không phải** đổi giá trị từ USD sang EUR. Với ứng dụng tài chính, cần có `Currency`/mã ISO rõ, tỷ giá có nguồn và thời điểm khi nghiệp vụ thực sự chuyển đổi, tính toán chính xác với `BigDecimal` và làm tròn có policy.
+`NumberFormat.getCurrencyInstance(locale)` chooses how to **display** money for a locale; changing the locale or currency symbol **does not** convert a value from USD to EUR. Financial applications require an explicit `Currency`/ISO code, exchange rates with a source and timestamp when business logic actually converts, exact arithmetic with `BigDecimal`, and a defined rounding policy.
 
-Trong test localization, kiểm tra hai điều độc lập: *giá trị số không đổi* và *nhãn/cách trình bày tiền tệ đúng yêu cầu*.
+In localization tests, verify two independent things: *the numeric value remains unchanged* and *the currency label/presentation meets requirements*.
 
-## 6. Test ngày giờ: localized pattern và múi giờ khác nhau
+## 6. Testing Date and Time: Localized Patterns and Different Time Zones
 
-Java 17 dùng `java.time.format.DateTimeFormatter`. Để hiển thị ngày cho người dùng:
+Java 17 uses `java.time.format.DateTimeFormatter`. To display a date to the user:
 
 ```java
 DateTimeFormatter formatter =
@@ -173,37 +173,37 @@ String text = formatter.format(LocalDate.of(2026, 10, 28));
 LocalDate parsed = LocalDate.parse(text, formatter);
 ```
 
-Đây là đoạn trong method với import `java.time.LocalDate`, `java.time.format.*`.
+This is inside a method with imports `java.time.LocalDate`, `java.time.format.*`.
 
-Với các locale đã chọn, test **round-trip** sẽ cho biết formatter và parser hoạt động nhất quán với cùng locale/runtime. Pattern thực tế đến từ dữ liệu locale. `FormatStyle.MEDIUM` không có nghĩa một literal cố định như `dd/MM/yyyy` ở mọi quốc gia.
+For the chosen locales, a **round-trip** test shows that the formatter and parser behave consistently under the same locale/runtime. The actual pattern comes from locale data. `FormatStyle.MEDIUM` does not mean a fixed literal like `dd/MM/yyyy` in every country.
 
-Nếu UI thực sự muốn layout ngày theo vùng người dùng, dùng `ofLocalizedDate(FormatStyle...)`. Nếu sản phẩm cần một định dạng **cố định** như `uuuu-MM-dd` cho API, dùng `DateTimeFormatter.ISO_LOCAL_DATE` hoặc contract máy, **không** lấy output UI truyền thành dữ liệu giao thức.
+If the UI genuinely wants a regional date layout for the user, use `ofLocalizedDate(FormatStyle...)`. If the product needs a **fixed** format like `uuuu-MM-dd` for an API, use `DateTimeFormatter.ISO_LOCAL_DATE` or a machine contract; **do not** pass UI output as protocol data.
 
-### 6.1. Cố định ngày cho test
+### 6.1. Fix Dates in Tests
 
-Không dùng `LocalDate.now()` trong test yêu cầu output cố định vì ngày có thể thay đổi theo hệ thống và timezone. Dùng:
+Do not use `LocalDate.now()` in tests that expect deterministic output because the date can change depending on system and time zone. Use:
 
 ```java
 LocalDate testDate = LocalDate.of(2026, 10, 28);
 ```
 
-Nếu cần test một thời điểm tuyệt đối, dùng một `Instant` cố định rồi chọn `ZoneId` **tường minh**. Ví dụ `Instant.parse("2026-10-28T07:30:00Z")` là một instant; khi hiển thị ở Việt Nam hoặc Berlin, giờ đồng hồ phụ thuộc zone, không phụ thuộc `Locale` một mình.
+If you need to test an absolute point in time, use a fixed `Instant` and select `ZoneId` **explicitly**. For example, `Instant.parse("2026-10-28T07:30:00Z")` is an instant; when displayed in Vietnam or Berlin, the wall-clock time depends on the zone, not `Locale` alone.
 
-### 6.2. Test ở ranh giới năm và DST
+### 6.2. Testing Year Boundaries and DST
 
-Bổ sung ít nhất:
+Include at least:
 
-- Ngày 1 tháng 1 và 31 tháng 12 để phát hiện nhầm `YYYY` (week-based-year) với `uuuu`.
-- Ngày 29 tháng 2 năm nhuận và ngày 31 tháng 2 không hợp lệ để test `ResolverStyle.STRICT`.
-- Các thời điểm tại vùng có daylight saving time (DST), bao gồm thời điểm **gap/overlap** nếu tính giờ địa phương.
-- Một date-only `LocalDate` không cần tự chuyển giờ theo timezone.
-- Locale `ar-EG`/`he-IL` không đồng nghĩa phải dùng calendar Hijrah/Hebrew; chronology/currency/zone phải chọn theo yêu cầu.
+- January 1 and December 31 to catch confusing `YYYY` (week-based-year) with `uuuu`.
+- Leap-year February 29 and invalid February 31 to test `ResolverStyle.STRICT`.
+- Timestamps in regions with daylight saving time (DST), including **gap/overlap** moments when computing local time.
+- A date-only `LocalDate` should not shift hours by time zone.
+- `ar-EG`/`he-IL` locales do not automatically imply Hijrah/Hebrew calendars; chronology/currency/zone must be chosen per requirements.
 
-**Không** khẳng định các locale `ar-EG` hoặc `he-IL` mặc định đổi chronology sang hệ lịch khác. `DateTimeFormatter.ofLocalizedDate` dùng ISO chronology nếu không override chronology.
+Do **not** assert that `ar-EG` or `he-IL` locales switch chronology to another calendar by default. `DateTimeFormatter.ofLocalizedDate` uses ISO chronology unless chronology is overridden.
 
-## 7. Ví dụ độc lập Java 17: chạy ma trận số và ngày
+## 7. Standalone Java 17 Example: Running the Number and Date Matrix
 
-Tệp `LocaleMatrixSmokeDemo.java` dưới đây dùng **sáu locale**, không đòi exact string định dạng. Nó kiểm tra **giá trị sau round-trip**, số ký tự được parser tiêu thụ và sự ổn định của date.
+The file `LocaleMatrixSmokeDemo.java` below uses **six locales** without demanding exact formatted strings. It checks **round-trip values**, the number of characters consumed by the parser, and date stability.
 
 ```java
 import java.text.NumberFormat;
@@ -258,14 +258,14 @@ public class LocaleMatrixSmokeDemo {
 }
 ```
 
-Biên dịch và chạy bằng Java 17:
+Compile and run with Java 17:
 
 ```bash
 javac -encoding UTF-8 LocaleMatrixSmokeDemo.java
 java LocaleMatrixSmokeDemo
 ```
 
-Trên một JDK 17 tiêu chuẩn hỗ trợ các locale này, kết quả kỳ vọng theo test invariant là:
+On a standard JDK 17 supporting these locales, the expected output according to the test invariant is:
 
 ```text
 vi-VN number=true date=true
@@ -276,27 +276,27 @@ ar-EG number=true date=true
 he-IL number=true date=true
 ```
 
-Nếu một hàng không PASS, hãy ghi lại **JDK vendor/version, locale provider, locale tag, formatted string và vị trí parser dừng**, rồi điều tra. Đoạn test không coi mọi locale phải dùng cùng dấu ngăn cách hay cùng thứ tự ngày. Với sản phẩm thực, thêm test các giá trị 0, âm, số cực lớn, NaN/Infinity nếu được hỗ trợ, phần trăm và tiền tệ theo policy, chứ không chỉ một giá trị 12345.5.
+If any row does not PASS, record the **JDK vendor/version, locale provider, locale tag, formatted string, and parser stop position**, then investigate. The test does not assume all locales use the same separators or date order. For a real product, add tests for 0, negative numbers, very large numbers, NaN/Infinity if supported, percentages, and currencies per policy, not just the single value 12345.5.
 
-**Chú ý giới hạn:** đây là smoke test, không phải chứng minh mọi pattern, mọi dữ liệu và mọi UI đã được bản địa hóa đúng. Định dạng ngày theo một calendar đặc biệt hoặc input sai cần test riêng. Để test chính xác tiền tệ, ưu tiên số học `BigDecimal` thay vì so sánh tài chính bằng `double`; `double` ở đây chỉ để minh họa round-trip số đơn giản 12345.5, một giá trị biểu diễn nhị phân chính xác.
+**Limitation note:** this is a smoke test, not proof that every pattern, dataset, and UI element is properly localized. Date formatting under a special calendar or invalid inputs requires separate tests. For accurate currency testing, prefer `BigDecimal` arithmetic instead of comparing financial values with `double`; `double` is used here only to illustrate a simple numeric round-trip for 12345.5, which has an exact binary representation.
 
-## 8. Chữ I của tiếng Thổ Nhĩ Kỳ: test bắt buộc
+## 8. The Turkish Letter I: A Mandatory Test
 
-Tiếng Thổ Nhĩ Kỳ có hai cặp chữ:
+Turkish has two letter pairs:
 
 ```text
 I (U+0049)  <-->  ı (U+0131)
 İ (U+0130)  <-->  i (U+0069)
 ```
 
-Trong khi đó, `Locale.ROOT` và nhiều ngôn ngữ khác thường có quy tắc `I → i` cho lowercase. Vì vậy `"TITLE".toLowerCase()` có thể tạo `"tıtle"` (với dotless ı) khi default locale của JVM là tiếng Thổ, làm lookup khóa máy `"title"` thất bại.
+Meanwhile, `Locale.ROOT` and many other languages normally follow `I → i` for lowercase. As a result, `"TITLE".toLowerCase()` can produce `"tıtle"` (with dotless ı) when the JVM's default locale is Turkish, causing lookups for the machine key `"title"` to fail.
 
-**Chia test thành hai mục đích:**
+**Split tests into two purposes:**
 
-1. Văn bản tiếng Thổ phải dùng `String.toLowerCase(trLocale)` hoặc `toUpperCase(trLocale)` với kết quả Unicode đúng.
-2. **Machine identifiers** như key cấu hình/protocol ASCII phải chuẩn hóa **độc lập locale**, thường với `Locale.ROOT` và validation bộ ký tự. Không dùng default locale để xử lý mã định danh.
+1. Turkish prose text must use `String.toLowerCase(trLocale)` or `toUpperCase(trLocale)` with accurate Unicode results.
+2. **Machine identifiers** such as ASCII config/protocol keys must be normalized **locale-independently**, typically with `Locale.ROOT` and character-set validation. Do not use the default locale to process identifiers.
 
-### Java 17 độc lập: TurkishIAssertions.java
+### Standalone Java 17: TurkishIAssertions.java
 
 ```java
 import java.util.Locale;
@@ -338,7 +338,7 @@ javac -encoding UTF-8 TurkishIAssertions.java
 java TurkishIAssertions
 ```
 
-Stdout kỳ vọng theo Java 17:
+Expected stdout on Java 17:
 
 ```text
 PASS I-to-dotless-i
@@ -350,13 +350,13 @@ PASS TR-not-machine-key
 PASS ROOT-dotted-I-expansion
 ```
 
-Lưu ý: `"\u0130".toLowerCase(Locale.ROOT)` tạo `i` cộng combining dot above U+0307 (hai code points); còn tiếng Thổ tạo `i` duy nhất. Vì thế case conversion có thể làm **độ dài và offset của chuỗi thay đổi**. Không dùng các index tính từ chuỗi trước khi lowercase để highlight chuỗi sau mà không thiết kế mapping offsets.
+Note: `"\u0130".toLowerCase(Locale.ROOT)` produces `i` plus combining dot above U+0307 (two code points), whereas Turkish produces a single `i`. Therefore, case conversion can change **string length and character offsets**. Do not reuse indices computed from the string before lowercasing to highlight the lowercased string without designing offset mapping.
 
-`String.equalsIgnoreCase` **không nhận Locale** nên không phải thuật toán so sánh ngữ nghĩa tiếng Thổ. Khi yêu cầu sort hoặc matching theo ngôn ngữ, cân nhắc `Collator`/công cụ tìm kiếm được cấu hình locale; không dùng `equalsIgnoreCase` để chứng minh I/ı/İ/i đã được xử lý chính xác theo quy tắc sản phẩm.
+`String.equalsIgnoreCase` **does not accept a Locale**, so it is not a Turkish semantic comparison algorithm. When language-aware sorting or matching is required, consider `Collator` or a locale-configured search engine; do not use `equalsIgnoreCase` to prove I/ı/İ/i is handled properly according to product rules.
 
-## 9. Test ResourceBundle và fallback theo từng locale
+## 9. Testing ResourceBundle and Fallback per Locale
 
-Một hệ thống localization thường có family:
+A localization system typically has a bundle family:
 
 ```text
 demo/
@@ -368,34 +368,34 @@ demo/
   Messages_he.properties
 ```
 
-`ResourceBundle` dùng **baseName**, ví dụ `"demo.Messages"`, rồi chọn các ứng viên theo `Locale`. Việc có hay không file locale cụ thể tùy trạng thái dịch của sản phẩm.
+`ResourceBundle` takes a **baseName**, such as `"demo.Messages"`, and resolves candidate bundles according to `Locale`. Whether a specific locale file exists depends on the product's translation status.
 
-Các tình huống test cần có:
+Test scenarios to include:
 
-| Kiểm tra | Kỳ vọng |
+| Check | Expectation |
 | --- | --- |
-| `getBundle(baseName, viVN)` | Dùng bundle tiếng Việt được đóng gói, hoặc fallback được công bố |
-| `getBundle(baseName, enUS)` | Dùng bundle tiếng Anh/root phù hợp |
-| `getBundle(baseName, deDE)` | Dùng bundle Đức nếu có; nếu chưa có, fallback chính thức |
-| `getBundle(baseName, trTR)` | Không làm hỏng key khi đổi case; bản dịch tiếng Thổ đúng |
-| `getBundle(baseName, arEG)` | Text Ả Rập đúng Unicode, có RTL layout ở tầng giao diện |
-| `getBundle(baseName, heIL)` | Text Hebrew đúng Unicode, có RTL layout ở tầng giao diện |
-| Một key bắt buộc bị thiếu | QA phát hiện; không để production hiện raw key hoặc exception vô kiểm soát |
-| Thay loader/package/JAR | Vẫn tìm thấy resources trong phạm vi đúng |
-| Default locale khác | Không thay đổi kết quả khi caller đã chọn locale và fallback tường minh |
+| `getBundle(baseName, viVN)` | Uses packaged Vietnamese bundle, or documented fallback |
+| `getBundle(baseName, enUS)` | Uses appropriate English/root bundle |
+| `getBundle(baseName, deDE)` | Uses German bundle if present; otherwise official fallback |
+| `getBundle(baseName, trTR)` | Does not corrupt keys on case change; accurate Turkish translation |
+| `getBundle(baseName, arEG)` | Valid Unicode Arabic text, with RTL layout at the UI layer |
+| `getBundle(baseName, heIL)` | Valid Unicode Hebrew text, with RTL layout at the UI layer |
+| Missing required key | Caught by QA; never shows raw keys or unhandled exceptions in production |
+| Changing loader/package/JAR | Resources are still found within the right scope |
+| Different default locale | Does not alter results when the caller specifies locale and fallback explicitly |
 
-### 9.1. Fallback không phải dịch chính xác
+### 9.1. Fallback Is Not Accurate Translation
 
-Một ứng dụng có thể fallback về `Messages.properties` tiếng Anh khi thiếu `Messages_ar.properties`. Điều đó giúp giao diện không crash, **nhưng không có nghĩa bản địa hóa tiếng Ả Rập đã đạt**. Test nên phân biệt:
+An application can fall back to the English `Messages.properties` when `Messages_ar.properties` is missing. That keeps the UI from crashing, **but does not mean Arabic localization passes**. Tests should distinguish:
 
-- **Functional fallback PASS**: có nội dung đọc được, không bị `MissingResourceException`.
-- **Translation coverage FAIL/WARNING**: thiếu bản dịch theo mức độ bắt buộc của release.
+- **Functional fallback PASS**: readable content exists, no `MissingResourceException`.
+- **Translation coverage FAIL/WARNING**: translations are missing relative to the release requirement.
 
-Không dùng chỉ tiêu “getString không rỗng” như chứng minh toàn bộ bộ dịch đã hoàn chỉnh. Cần so sánh key set giữa bundle gốc và các bản dịch, tìm key thiếu/không dùng nữa, kiểm tra placeholder, văn bản bị cắt và thứ tự tham số.
+Do not use "getString is non-empty" as proof that the entire translation set is complete. Compare key sets between the base bundle and translations, detect missing/unused keys, and check placeholders, truncated text, and argument order.
 
-### 9.2. Java 17 độc lập: kiểm tra một bộ bundle mẫu
+### 9.2. Standalone Java 17: Testing a Sample Bundle Set
 
-Dùng cấu trúc:
+Use this structure:
 
 ```text
 project/
@@ -405,25 +405,25 @@ project/
   resources/demo/Messages_tr.properties
 ```
 
-Nội dung `resources/demo/Messages.properties`:
+Contents of `resources/demo/Messages.properties`:
 
 ```properties
 hello=Hello
 ```
 
-Nội dung `resources/demo/Messages_vi.properties`:
+Contents of `resources/demo/Messages_vi.properties`:
 
 ```properties
 hello=Xin chào
 ```
 
-Nội dung `resources/demo/Messages_tr.properties`:
+Contents of `resources/demo/Messages_tr.properties`:
 
 ```properties
 hello=Merhaba
 ```
 
-Mã `src/demo/BundleLocaleMatrixDemo.java`:
+Code in `src/demo/BundleLocaleMatrixDemo.java`:
 
 ```java
 package demo;
@@ -457,7 +457,7 @@ public class BundleLocaleMatrixDemo {
 }
 ```
 
-Biên dịch, copy resources và chạy trong **classpath/unnamed module** (lệnh Bash):
+Compile, copy resources, and run on the **classpath/unnamed module** (Bash commands):
 
 ```bash
 mkdir -p out/demo
@@ -466,7 +466,7 @@ cp resources/demo/Messages*.properties out/demo/
 java -cp out demo.BundleLocaleMatrixDemo
 ```
 
-Stdout khi dùng đúng các file mẫu:
+Stdout when using the exact sample files:
 
 ```text
 vi-VN=Xin chào
@@ -477,40 +477,40 @@ ar-EG=Hello
 he-IL=Hello
 ```
 
-Vì demo cố tình chỉ có resource tiếng Việt, tiếng Thổ và root tiếng Anh, ba locale `de-DE`, `ar-EG`, `he-IL` fallback về root. Đây là **minh họa fallback**, không phải mẫu release hoàn chỉnh. Khi sản phẩm yêu cầu dịch Đức/Ả Rập/Hebrew, ba locale ấy phải có coverage riêng.
+Because the demo intentionally includes only Vietnamese, Turkish, and the English root resources, the three locales `de-DE`, `ar-EG`, and `he-IL` fall back to root. This is a **fallback demonstration**, not a complete release sample. When a product requires German/Arabic/Hebrew translations, those three locales must have dedicated coverage.
 
-**Lưu ý về Java 17:** `PropertyResourceBundle` từ Java 9 hỗ trợ UTF-8 mặc định cùng cơ chế tương thích legacy; ví dụ giả định file được lưu UTF-8 và không có cấu hình override encoding khác. `ResourceBundle.Control` không phải con đường thích hợp cho mọi cấu hình named module; với JPMS, có thể cần overload module-aware hoặc `ResourceBundleProvider`. Ví dụ ở đây cố ý chạy trên classpath.
+**Java 17 note:** `PropertyResourceBundle` since Java 9 supports UTF-8 by default along with legacy compatibility; the example assumes files are saved in UTF-8 with no conflicting encoding override. `ResourceBundle.Control` is not appropriate for all named-module configurations; with JPMS, module-aware overloads or `ResourceBundleProvider` may be required. This example intentionally runs on the classpath.
 
-## 10. MessageFormat, placeholder và bản dịch đảo thứ tự đối số
+## 10. MessageFormat, Placeholders, and Reordered Arguments
 
-Một bản dịch đúng không chỉ thay từ; thứ tự từ có thể thay đổi giữa các ngôn ngữ. Với Java `MessageFormat`, nên dùng **argument indexes** như `{0}`, `{1}` thay vì nối chuỗi bằng `+`.
+Proper translation is not just word substitution; word order can change across languages. With Java `MessageFormat`, use **argument indexes** such as `{0}`, `{1}` instead of string concatenation with `+`.
 
-Ví dụ:
+Example:
 
 ```text
 English: "{0} sent {1} to {2}."
 Other locale: "To {2}, {0} sent {1}."
 ```
 
-Đây là ví dụ minh họa tái sắp xếp ý trong câu, không khẳng định đó là bản dịch tự nhiên cho mọi ngôn ngữ. Cần người dịch bản địa biên tập pattern. Mỗi bản dịch có thể đổi vị trí `{0}`/`{1}`/`{2}` nhưng vẫn phải giữ đúng **vai trò và kiểu tham số**.
+This illustrates reordering clauses in a sentence, not a claim that it is natural phrasing for every language. Native translators must author the patterns. Each translation may reorder `{0}`/`{1}`/`{2}`, but must preserve the **role and type of each parameter**.
 
-### Những điều cần test
+### What to Test
 
-- Bản dịch có đủ những argument bắt buộc.
-- Không dùng sai index, ví dụ `{3}` khi caller chỉ truyền ba đối số.
-- Các loại format `number`/`date` được gán đúng loại dữ liệu.
-- Dấu nháy đơn `'` và dấu ngoặc nhọn được escape theo cú pháp `MessageFormat`.
-- Không nối fragment cứng trước/sau như “Hello ” rồi cộng tên người trong mọi ngôn ngữ.
-- Trong HTML, nội dung tham số do người dùng cung cấp vẫn phải được **escape đúng ngữ cảnh**; `MessageFormat` không phải HTML sanitizer.
-- Bản dịch dài hơn không tràn UI và không đổi thứ tự đọc RTL.
+- Translations include all required arguments.
+- No invalid indexes, such as `{3}` when the caller passes only three arguments.
+- `number`/`date` format types match the argument data types.
+- Single quotes `'` and braces are escaped according to `MessageFormat` syntax.
+- No hard-coded prefixes/suffixes like concatenating `"Hello "` with a person's name across all languages.
+- In HTML, user-supplied parameter values must still be **escaped for the output context**; `MessageFormat` is not an HTML sanitizer.
+- Longer translations do not overflow the UI or break RTL reading order.
 
-### Ví dụ Java 17 về định dạng với locale
+### Java 17 Example of Locale-Aware Formatting
 
 ```java
 import java.text.MessageFormat;
 import java.util.Locale;
 
-// Bên trong method:
+// Inside a method:
 Locale german = Locale.forLanguageTag("de-DE");
 MessageFormat format = new MessageFormat(
         "Wert: {0,number}", german);
@@ -518,13 +518,13 @@ MessageFormat format = new MessageFormat(
 String shown = format.format(new Object[]{12345.5});
 ```
 
-Ở đây formatter dùng locale Đức để biểu diễn số, nhưng output của `shown` có thể khác chi tiết theo CLDR/JDK; test hợp đồng số học và ngữ nghĩa thay vì luôn so một literal nếu môi trường không được pin.
+Here the formatter uses the German locale to represent numbers, though the exact details of `shown` can vary by CLDR/JDK; test numeric and semantic contracts rather than always comparing against a literal if the environment is not pinned.
 
-**Không dùng `MessageFormat.format(pattern, args)` tĩnh khi bạn cần một locale tường minh** mà không kiểm soát default locale. Tạo `new MessageFormat(pattern, locale)` và dùng nó trong đúng ngữ cảnh.
+**Do not use static `MessageFormat.format(pattern, args)` when you need an explicit locale** without controlling the default locale. Create `new MessageFormat(pattern, locale)` and use it in the right context.
 
-## 11. Collator: sort theo ngôn ngữ chứ không theo Unicode code unit
+## 11. Collator: Language-Aware Sorting Instead of Unicode Code Units
 
-`String.compareTo` so sánh giá trị UTF-16 code units; nó không biết cách xếp từ theo ngôn ngữ. `java.text.Collator` dùng quy tắc collation của locale:
+`String.compareTo` compares UTF-16 code unit values; it has no knowledge of language sorting rules. `java.text.Collator` applies locale collation rules:
 
 ```java
 Collator collator = Collator.getInstance(locale);
@@ -533,52 +533,52 @@ collator.setStrength(Collator.TERTIARY);
 names.sort(collator::compare);
 ```
 
-Đây là code minh họa bên trong method với biến `locale` và `names` hợp lệ, import `java.text.Collator`.
+This illustrates code inside a method with valid `locale` and `names` variables, importing `java.text.Collator`.
 
-### Các mức strength
+### Strength Levels
 
-| Strength | Ý nghĩa chung | Cần kiểm thử |
+| Strength | General meaning | What to test |
 | --- | --- | --- |
-| `PRIMARY` | Khác biệt chữ cơ bản | Không giả định mọi dấu đều bị bỏ qua trong mọi ngôn ngữ |
-| `SECONDARY` | Thêm một số khác biệt dấu | Locale có thể xem dấu là quan trọng ở mức khác |
-| `TERTIARY` | Thêm khác biệt case/biến thể | Dùng khi muốn thứ tự chi tiết hơn |
-| `IDENTICAL` | Độ phân biệt sâu hơn | Cần có chiến lược Unicode decomposition |
+| `PRIMARY` | Base letter differences | Do not assume all diacritics are ignored in every language |
+| `SECONDARY` | Adds certain accent differences | Locales may treat diacritics as significant at different levels |
+| `TERTIARY` | Adds case/variant differences | Use when finer ordering is desired |
+| `IDENTICAL` | Deeper distinction | Requires a Unicode decomposition strategy |
 
-Trong tiếng Thổ, `I` và `ı` cùng một cặp case, còn `İ` và `i` là một cặp khác. `Collator` có quy tắc tiếng Thổ khác các phép ép case độc lập locale. Ở tiếng Đức, thứ tự chữ có dấu cũng chịu locale rules. Không hard-code một thứ tự chung cho tất cả locale.
+In Turkish, `I` and `ı` belong to one case pair, while `İ` and `i` belong to another. `Collator` has Turkish rules that differ from locale-independent case folding. In German, ordering of accented/umlauted letters also follows locale rules. Do not hard-code a single order across all locales.
 
-### 11.1. Test Collator có độ bền tốt
+### 11.1. Robust Collator Tests
 
-- Test **phản xạ**: `collator.compare(s,s)==0`.
-- Test **đối xứng dấu**: `sign(compare(a,b)) == -sign(compare(b,a))`.
-- Test **bắc cầu**: nếu `a≤b` và `b≤c` thì `a≤c`.
-- Test tương đương giữa `collator.compare(a,b)` và `getCollationKey(a).compareTo(getCollationKey(b))` trong **cùng Collator không đổi cấu hình**.
-- Test tên thật cho từng thị trường, có người bản địa phê duyệt thứ tự kỳ vọng.
-- Không lưu `CollationKey` lâu dài như một thứ tự vĩnh viễn khi JDK/provider/CLDR có thể thay đổi.
+- Test **reflexivity**: `collator.compare(s,s)==0`.
+- Test **antisymmetry**: `sign(compare(a,b)) == -sign(compare(b,a))`.
+- Test **transitivity**: if `a≤b` and `b≤c`, then `a≤c`.
+- Test equivalence between `collator.compare(a,b)` and `getCollationKey(a).compareTo(getCollationKey(b))` on **the same unmodified Collator configuration**.
+- Test realistic names for each market, with native speakers approving the expected order.
+- Do not persist `CollationKey` long-term as a permanent sort key when JDK/provider/CLDR versions can change.
 
-**Không đồng nhất so sánh ngôn ngữ với kiểm tra username/password hoặc mã định danh kỹ thuật**. Bảo mật và uniqueness có contract khác; collation level thấp có thể coi hai chuỗi khác nhau là bằng nhau.
+**Do not equate linguistic comparison with username/password checks or technical identifiers.** Security and uniqueness have different contracts; lower collation strengths may treat two distinct strings as equal.
 
-## 12. RTL: hướng văn bản khác với ngôn ngữ và dữ liệu nguồn
+## 12. RTL: Text Direction Differs from Language and Source Data
 
-Ngôn ngữ phải–trái (right-to-left, RTL) như tiếng Ả Rập hoặc Hebrew cần kiểm thử riêng. Có ít nhất ba cấp:
+Right-to-left (RTL) languages such as Arabic or Hebrew require dedicated testing across at least three levels:
 
-1. **Logical order:** thứ tự Unicode code points trong `String`, dùng cho lưu trữ, copy/paste và giao thức.
-2. **Bidirectional reordering:** thứ tự hiển thị của các đoạn RTL/LTR sau khi áp Unicode Bidirectional Algorithm.
-3. **Glyph shaping/layout:** cách chữ nối nhau, chọn glyph, đặt dấu, căn lề, icon và phân bố ô giao diện.
+1. **Logical order:** the sequence of Unicode code points in `String`, used for storage, copy/paste, and protocols.
+2. **Bidirectional reordering:** the visual display order of RTL/LTR runs after applying the Unicode Bidirectional Algorithm.
+3. **Glyph shaping/layout:** cursive joining, glyph selection, diacritic placement, alignment, icons, and UI container layout.
 
-Java có `java.text.Bidi` hỗ trợ phân tích bidi, nhưng nó **không phải bộ dịch**, không tự “đảo cả String” và **không thay** engine render/shaping.
+Java provides `java.text.Bidi` for bidi analysis, but it is **not a translator**, does not automatically "reverse the String", and **does not replace** a rendering/shaping engine.
 
-Một đoạn văn Ả Rập có thể chứa chữ số 1234, URL `https://example.com` và tên sản phẩm Latin. Nếu code cố `new StringBuilder(text).reverse()` để làm RTL, thứ tự logic và ý nghĩa dấu câu/cụm Unicode có thể bị hỏng.
+An Arabic paragraph can contain digits `1234`, a URL `https://example.com`, and Latin product names. If code attempts `new StringBuilder(text).reverse()` to simulate RTL, logical order and the meaning of punctuation/Unicode clusters can be corrupted.
 
-### 12.1. Không suy direction từ toàn bộ ứng dụng một cách cứng nhắc
+### 12.1. Do Not Infer Direction Rigidly Across the Whole Application
 
-- `ar-EG` và `he-IL` thường dùng giao diện hướng RTL, nhưng một trường **email/URL/mã serial** bên trong vẫn cần xử lý hướng LTR thích hợp.
-- Người dùng có thể chọn locale tiếng Ả Rập nhưng nhập tiếng Anh; không nên đảo ký tự input.
-- `vi-VN`/`en-US`/`de-DE`/`tr-TR` thường là LTR, nhưng vẫn phải hiển thị được trích dẫn hoặc tên tiếng Ả Rập.
-- Icon mũi tên điều hướng có thể cần **mirror** tùy ngữ nghĩa; icon không có ý nghĩa hướng như biểu tượng play/media hoặc logo không nhất thiết cần mirror.
+- `ar-EG` and `he-IL` typically use an RTL UI layout, yet an **email/URL/serial number** field inside still requires appropriate LTR direction handling.
+- A user may select an Arabic locale while typing English; input characters must not be reversed.
+- `vi-VN`/`en-US`/`de-DE`/`tr-TR` are typically LTR, yet must still render quoted Arabic text or names properly.
+- Directional navigation arrow icons may need **mirroring** depending on semantics; icons without directional meaning such as play/media symbols or logos do not necessarily need mirroring.
 
-### 12.2. Test văn bản trộn
+### 12.2. Testing Mixed-Direction Text
 
-Bộ dữ liệu test nên gồm:
+Your test dataset should include:
 
 ```text
 Arabic only:       مرحبا
@@ -590,11 +590,11 @@ Parentheses:       (مرحبا) 123
 Currency/percent:  123.45 USD / 25%
 ```
 
-Các chuỗi là **dữ liệu kiểm thử**, không phải một hướng dẫn “đảo String” trước khi vẽ. Khi chụp screenshot, phải ghi rõ font, viewport, text direction, tình huống input và render engine.
+These strings are **test data**, not an instruction to "reverse the String" before drawing. When taking screenshots, record the font, viewport, text direction, input scenario, and render engine.
 
-### 12.3. Java 17 runnable: xác nhận dữ liệu có đặc tính RTL
+### 12.3. Runnable Java 17: Verifying RTL Properties of Data
 
-Tệp `BidiSmokeDemo.java`:
+File `BidiSmokeDemo.java`:
 
 ```java
 import java.text.Bidi;
@@ -628,7 +628,7 @@ javac -encoding UTF-8 BidiSmokeDemo.java
 java BidiSmokeDemo
 ```
 
-Stdout kỳ vọng:
+Expected stdout:
 
 ```text
 arabicRequiresBidi=true
@@ -637,26 +637,26 @@ arabicBaseRTL=true
 hebrewBaseRTL=true
 ```
 
-Demo xác nhận **đặc tính bidirectional** của hai chuỗi và cách xác định hướng cơ sở từ ký tự mạnh khi dùng default paragraph direction. Nó **không xác minh glyph Arabic có nối đúng**, checkbox bên phải hay menu đã mirror, vì những việc ấy thuộc tầng UI.
+The demo verifies the **bidirectional properties** of the two strings and how base direction is resolved from strong characters when using default paragraph direction. It **does not verify that Arabic glyphs join properly**, that checkboxes sit on the right, or that menus are mirrored, because those belong to the UI layer.
 
-## 13. Kiểm thử giao diện RTL không thể bỏ qua
+## 13. Non-Negotiable RTL UI Tests
 
-Dưới đây là ma trận test thủ công/visual regression dành cho `ar-EG` và `he-IL`:
+Below is a manual/visual regression test matrix for `ar-EG` and `he-IL`:
 
-| Vùng giao diện | Trường hợp test | Kỳ vọng |
+| UI area | Test scenario | Expectation |
 | --- | --- | --- |
-| Thanh điều hướng | Back, Next, breadcrumb | Thứ tự và hướng icon theo thiết kế RTL |
-| Form | Label, text input, placeholder, validation | Căn lề đúng; không mất focus/caret |
-| Trường email/URL | Nhập/chỉnh/copy URL LTR trong form RTL | Nội dung lưu và paste giữ đúng logical string |
-| Giá tiền | Ký hiệu currency, số âm/dương, phần thập phân | Thứ tự phần số/ký hiệu dễ hiểu, không bị đảo byte |
-| Danh sách | Thứ tự icon, bullet, số thứ tự, pagination | Hợp hướng đọc, không đổi meaning |
-| Dialog/toast | Message chứa ID Latin, số và ký tự Arabic | Dấu câu/ngoặc hiển thị rõ, text không tràn |
-| Bảng dữ liệu | Cột, header, sort control | Thứ tự và alignment nhất quán |
-| Error state | Text validation dài, icon cảnh báo | Không che field hoặc nút submit |
-| Accessibility | Screen reader, tab order | Thứ tự focus/đọc phù hợp logical flow |
-| Responsive | Điện thoại nhỏ, zoom 200–400% | Không mất nội dung hoặc bị chồng chữ |
+| Navigation bar | Back, Next, breadcrumbs | Order and icon direction match RTL design |
+| Forms | Labels, text inputs, placeholders, validation | Proper alignment; no lost focus/caret |
+| Email/URL fields | Typing/editing/copying an LTR URL in an RTL form | Stored and pasted content preserves the logical string |
+| Prices | Currency symbol, negative/positive numbers, decimals | Number/symbol order is clear, not byte-reversed |
+| Lists | Icon order, bullets, numbering, pagination | Matches reading direction without altering meaning |
+| Dialogs/toasts | Messages containing Latin IDs, digits, and Arabic characters | Punctuation/parentheses display clearly, text does not overflow |
+| Data tables | Columns, headers, sort controls | Consistent order and alignment |
+| Error states | Long validation text, warning icon | Does not cover fields or submit buttons |
+| Accessibility | Screen reader, tab order | Focus/reading order matches logical flow |
+| Responsive | Small phones, 200–400% zoom | No lost content or overlapping text |
 
-Với giao diện web, đặt `lang` và `dir` đúng ngữ cảnh; cách diễn đạt ví dụ:
+For web UIs, set `lang` and `dir` appropriately; example markup:
 
 ```html
 <div lang="ar" dir="rtl">
@@ -664,184 +664,184 @@ Với giao diện web, đặt `lang` và `dir` đúng ngữ cảnh; cách diễn
 </div>
 ```
 
-`bdi` giúp cô lập một đoạn nhúng có hướng độc lập trong ngữ cảnh bidi khi phù hợp. Đây là ví dụ **HTML UI**, không phải Java code, và không tự thay mọi quy tắc CSS. Đối với input type/email hoặc component UI phức tạp, cần test chính browser/framework được dùng.
+`bdi` isolates an embedded span whose direction is independent within a bidi context when appropriate. This is an **HTML UI** example, not Java code, and does not replace CSS rules. For email inputs or complex UI components, test on the actual browser/framework being used.
 
-Trong Java Swing, có `ComponentOrientation.RIGHT_TO_LEFT` và các thành phần hỗ trợ orientation, nhưng không phải mọi custom-painted component tự mirror theo orientation. Cần xác nhận cả layout manager, font và text renderer.
+In Java Swing, `ComponentOrientation.RIGHT_TO_LEFT` and orientation-aware components exist, though not every custom-painted component mirrors automatically with orientation. Verify the layout manager, font, and text renderer together.
 
-### 13.1. Những ký tự điều khiển Bidi và bảo mật
+### 13.1. Bidi Control Characters and Security
 
-Unicode có các **bidi formatting controls**, ví dụ U+202E RIGHT-TO-LEFT OVERRIDE, có thể khiến văn bản hiển thị khác thứ tự logical code points. Trong log, tên file, mã nguồn hoặc nội dung không đáng tin, những ký tự này có thể bị lạm dụng để che giấu thứ tự ký tự.
+Unicode includes **bidi formatting controls**, such as U+202E RIGHT-TO-LEFT OVERRIDE, which can make text display in a different order from its logical code points. In logs, filenames, source code, or untrusted content, these characters can be abused to disguise character order.
 
-Đối với dữ liệu có độ nhạy bảo mật như filename, URL, mã định danh, review nội dung và audit log:
+For security-sensitive data such as filenames, URLs, identifiers, content reviews, and audit logs:
 
-- Không tự xóa toàn bộ ký tự RTL hợp lệ của một ngôn ngữ.
-- Có chính sách phát hiện/cảnh báo các bidi controls bất thường trong identifier hoặc log.
-- Khi cần hiển thị nội dung người dùng trong UI, dùng **isolation/escaping đúng ngữ cảnh**.
-- Hiển thị code point/escaped representation khi debug các chuỗi có khả năng gây nhầm lẫn.
-- Không dựa hoàn toàn vào screenshot để chứng minh dữ liệu gốc không bị sửa.
+- Do not strip all valid RTL characters of a language.
+- Have a policy to detect/warn on unexpected bidi controls in identifiers or logs.
+- When displaying user content in the UI, use **context-appropriate isolation/escaping**.
+- Show code points or escaped representations when debugging potentially deceptive strings.
+- Do not rely solely on screenshots to prove raw data was not altered.
 
-**Bidi controls và dữ liệu RTL bình thường là hai thứ khác nhau**. Chính sách validation nên theo miền dữ liệu chứ không cấm mọi ký tự tiếng Ả Rập/Hebrew.
+**Bidi controls and normal RTL data are two different things.** Validation policies should be domain-driven rather than banning all Arabic/Hebrew characters.
 
-## 14. Unicode: dấu tiếng Việt, combining marks và emoji
+## 14. Unicode: Vietnamese Diacritics, Combining Marks, and Emoji
 
-Một bài QA localization cần có dữ liệu Unicode ngoài chữ ASCII:
+A localization QA suite needs non-ASCII Unicode test data:
 
-- Tiếng Việt: `Tiếng Việt`, `Đặng`, `nghiêng`, chữ hoa/thường có dấu.
-- Đức: `Straße`, `Äpfel`, `für`.
-- Thổ: `İstanbul`, `Iğdır`, `ışık`.
-- Ả Rập/Hebrew: text thuần và text trộn Latin/số.
-- Emoji supplementary: `😀`, `🚀`.
-- Dạng phân rã: `e\u0301`, cùng các dấu kết hợp tiếng Việt nếu cần.
+- Vietnamese: `Tiếng Việt`, `Đặng`, `nghiêng`, uppercase/lowercase with diacritics.
+- German: `Straße`, `Äpfel`, `für`.
+- Turkish: `İstanbul`, `Iğdır`, `ışık`.
+- Arabic/Hebrew: pure script and text mixed with Latin/digits.
+- Supplementary emoji: `😀`, `🚀`.
+- Decomposed forms: `e\u0301`, plus Vietnamese combining diacritics where relevant.
 
-Trong Java, `String.length()` đếm **UTF-16 code units**, không phải số code points hoặc grapheme clusters. Chữ ngoài BMP cần surrogate pair; một chữ có dấu kết hợp có thể có nhiều code points.
+In Java, `String.length()` counts **UTF-16 code units**, not code points or grapheme clusters. Characters outside the BMP require a surrogate pair; a letter with combining marks can span multiple code points.
 
-### Test canonical normalization
+### Testing Canonical Normalization
 
-`java.text.Normalizer` có thể đưa chuỗi về `NFC` khi hợp đồng yêu cầu. Ví dụ `"\u00E9"` và `"e\u0301"` khác về code units nhưng canonically equivalent sau NFC.
+`java.text.Normalizer` can normalize strings to `NFC` when a contract requires it. For example, `"\u00E9"` and `"e\u0301"` differ in code units yet are canonically equivalent after NFC.
 
-Tuy nhiên, không tự normalize password, token, chữ ký hoặc các dữ liệu có contract byte-level. Normalization, case conversion, collation và bidi rendering có **mục tiêu khác nhau**, cần kiểm thử độc lập.
+However, do not blindly normalize passwords, tokens, signatures, or data with byte-level contracts. Normalization, case conversion, collation, and bidi rendering have **different goals** and require independent testing.
 
-### Charset ở ranh giới I/O
+### Charset at I/O Boundaries
 
-Dữ liệu bản dịch cần được lưu/đọc với charset rõ ràng, thường là UTF-8. Một file UTF-8 được decode sai charset có thể tạo mojibake mà không phát sinh exception. `Locale.forLanguageTag("vi-VN")` **không** bảo đảm một file nguồn được mã hóa bằng UTF-8; charset phải do giao thức hoặc cấu hình dữ liệu xác định.
+Translation data must be saved/read with an explicit charset, usually UTF-8. A UTF-8 file decoded with the wrong charset can produce mojibake without throwing an exception. `Locale.forLanguageTag("vi-VN")` **does not** guarantee a source file is encoded in UTF-8; the charset must be specified by the protocol or data configuration.
 
-Khi cần phát hiện malformed UTF-8, có thể dùng `StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)` thay vì dựa vào constructor `new String(bytes, UTF_8)` có khả năng replacement. Test một file chứa dấu/emoji giúp phát hiện sai đường đọc.
+When you need to detect malformed UTF-8, use `StandardCharsets.UTF_8.newDecoder().onMalformedInput(CodingErrorAction.REPORT)` instead of relying on `new String(bytes, UTF_8)`, which may insert replacement characters. Testing a file containing diacritics/emoji helps catch wrong read paths.
 
-## 15. Chẩn đoán test thất bại: nhóm lỗi theo tầng
+## 15. Diagnosing Test Failures: Grouping Bugs by Layer
 
-| Dấu hiệu | Nhóm vấn đề có thể | Bước điều tra |
+| Symptom | Likely issue category | Investigation steps |
 | --- | --- | --- |
-| `vi-VN` hiển thị `?` hoặc ký tự lạ | Encoding/font | Kiểm tra byte UTF-8, decoder và font glyph |
-| `de-DE` parse `"1,5"` sai | Dùng parser máy thay locale | Kiểm tra NumberFormat/ParsePosition |
-| `tr-TR` lookup key `"TITLE"` thất bại | Dùng default locale khi lower-case ID | Đổi sang ROOT/canonicalization rõ |
-| `ar-EG` văn bản đúng nhưng layout LTR | Thiếu `dir`/orientation | Kiểm tra document direction và UI component |
-| `he-IL` dấu ngoặc/số bị đặt lạ | Bidi embedding/isolation | Test chuỗi logical, dùng Bidi-aware engine |
-| Locale mục tiêu rơi về English | ResourceBundle thiếu file/loader/fallback | Kiểm tra bundle và translation coverage |
-| Ngày 03/04 bị hiểu nhầm | Pattern locale hoặc contract không rõ | Định nghĩa input format, parse strict |
-| Chỉ lỗi trên container Linux | JDK/locale provider/font khác | Ghi môi trường và chụp UI thực tế |
-| Text dài tràn nút | Layout cố định, translation expansion | Responsive/auto-layout, pseudo-localization |
-| Test exact string thay đổi sau nâng JDK | CLDR/locale data thay đổi | Pin runtime hoặc test theo invariant |
-| Sort tên khác dự kiến | Collator locale/strength khác | Kiểm tra provider và test dữ liệu bản địa |
-| Timestamps lệch giờ | Nhầm Locale với ZoneId | Kiểm tra `Instant`, `ZoneId`, DST |
+| `vi-VN` displays `?` or garbled characters | Encoding/font | Check UTF-8 bytes, decoder, and font glyphs |
+| `de-DE` parses `"1,5"` incorrectly | Machine parser used instead of locale | Check `NumberFormat`/`ParsePosition` |
+| `tr-TR` lookup for key `"TITLE"` fails | Default locale used when lowercasing ID | Switch to `ROOT`/explicit canonicalization |
+| `ar-EG` text is right but layout is LTR | Missing `dir`/orientation | Check document direction and UI component |
+| `he-IL` parentheses/numbers placed oddly | Bidi embedding/isolation | Check logical string, use bidi-aware engine |
+| Target locale falls back to English | Missing `ResourceBundle` file/loader/fallback | Check bundle packaging and translation coverage |
+| Date `03/04` misinterpreted | Ambiguous locale pattern or contract | Define input format, parse strictly |
+| Fails only on Linux container | Different JDK/locale provider/fonts | Record environment and capture actual UI |
+| Long text overflows buttons | Fixed layout, translation expansion | Responsive/auto-layout, pseudo-localization |
+| Exact string tests break after JDK upgrade | CLDR/locale data updated | Pin runtime or assert invariants |
+| Name sorting differs from expectations | Different `Collator` locale/strength | Check provider and test native dataset |
+| Timestamps off by hours | Confusing `Locale` with `ZoneId` | Check `Instant`, `ZoneId`, DST |
 
-Một lỗi có thể xuất phát từ nhiều tầng; đừng luôn “sửa” bằng cách đổi `Locale.setDefault` hoặc ép mọi chuỗi thành lowercase. Cần xác định lỗi thuộc **formatting, parsing, resource loading, encoding, text processing hay layout**.
+A bug can span multiple layers; do not reflexively "fix" it by changing `Locale.setDefault` or lowercasing every string. Identify whether the defect belongs to **formatting, parsing, resource loading, encoding, text processing, or layout**.
 
-## 16. Test dữ liệu sai, biên và các đường lỗi
+## 16. Testing Invalid Data, Boundaries, and Failure Paths
 
-Đối với mỗi locale, ngoài happy path hãy có:
+For each locale, beyond the happy path, include:
 
 **Number:**
 
-- `0`, số âm, phần thập phân, số lớn có grouping.
-- Input thiếu/méo dấu phân cách, chuỗi có ký tự lạ ở cuối.
-- Percent, currency cùng mã tiền thực tế, negative sign và precision.
-- Đầu vào người dùng có spaces Unicode, Arabic digit shaping, hoặc ký tự hai chiều nếu sản phẩm cho phép.
+- `0`, negative values, decimals, large numbers with grouping.
+- Input with missing/malformed separators, strings with trailing garbage characters.
+- Percentages, currency with actual currency codes, negative signs, and precision.
+- User input containing Unicode spaces, Arabic digit shaping, or bidirectional characters if the product permits them.
 
 **Date/time:**
 
-- Ngày nhuận, ngày không tồn tại, chuyển năm, DST gap/overlap.
-- `LocalDate` so với `Instant`, timezone tường minh và date style.
-- Parse strict với `uuuu` khi input có pattern cố định.
-- Dữ liệu API dùng ISO để tránh diễn giải mơ hồ.
+- Leap days, nonexistent dates, year transitions, DST gaps/overlaps.
+- `LocalDate` vs. `Instant`, explicit time zone, and date styles.
+- Strict parsing with `uuuu` when input uses a fixed pattern.
+- ISO formats for API payloads to avoid ambiguous interpretation.
 
 **Resource/text:**
 
-- Missing bundle, missing key, placeholder thiếu/sai index.
-- Ký tự escape trong `MessageFormat`, ký hiệu HTML, emoji.
-- Trường không có bản dịch và trường có bản dịch dài hơn 2–3 lần.
-- Fallback đã được thiết kế có chủ đích.
+- Missing bundle, missing key, missing/wrong placeholder index.
+- Escaped characters in `MessageFormat`, HTML characters, emoji.
+- Untranslated fields and fields whose translations are 2–3× longer.
+- Deliberately designed fallback paths.
 
 **RTL and UI:**
 
-- Nút điều hướng, bảng, form, notification, modal, keyboard tab order.
-- Chuỗi trộn code, email, số, dấu ngoặc và script RTL.
-- Resize, zoom, rotation thiết bị, font lớn, thiếu glyph.
-- Screen reader, copy/paste và selection đúng logical text.
+- Navigation buttons, tables, forms, notifications, modals, keyboard tab order.
+- Strings mixing code, email, numbers, parentheses, and RTL script.
+- Resize, zoom, device rotation, large fonts, missing glyphs.
+- Screen reader, copy/paste, and selection preserving logical text.
 
-**Khác nhau giữa hai loại kiểm thử:** một check Java xác nhận `Bidi.requiresBidi` trả true không thể chứng minh một modal đã căn nội dung đúng. Ngược lại, screenshot đẹp không chứng minh backend không làm mất code points. Cần cả functional assertions lẫn UI/visual checks.
+**Difference between test types:** a Java check verifying `Bidi.requiresBidi` returns `true` cannot prove a modal aligns its content properly. Conversely, a clean screenshot does not prove the backend preserved all code points. Both functional assertions and UI/visual checks are needed.
 
-## 17. Pseudo-localization: bổ sung cho ma trận locale thật
+## 17. Pseudo-Localization: Complementing the Real Locale Matrix
 
-Pseudo-localization là việc biến văn bản để mô phỏng bản dịch, ví dụ thêm dấu, kéo dài text hoặc ký tự RTL giả lập. Nó hữu ích để tìm:
+Pseudo-localization transforms text to simulate translation—for example, adding accents, expanding string length, or simulating RTL characters. It helps uncover:
 
-- String hard-coded chưa chuyển qua resource bundle.
-- Khung/chiều rộng UI quá chật.
-- Truncation trong button/menu, line height và text clipping.
-- Đường dẫn layout phụ thuộc số chữ tiếng Anh.
+- Hard-coded strings not moved into resource bundles.
+- Tight UI containers/widths.
+- Truncation in buttons/menus, line height issues, and text clipping.
+- Layout paths assuming English word counts.
 
-**Nhưng pseudo-localization không thay thế** bản dịch thật và native linguistic review. Một chuỗi “English kéo dài” không thể kiểm chứng quy tắc chữ I tiếng Thổ, collation tiếng Đức, dấu tiếng Việt hay bidi shaping tiếng Ả Rập.
+**However, pseudo-localization does not replace** real translations and native linguistic review. An "expanded English" string cannot verify Turkish I casing rules, German collation, Vietnamese diacritics, or Arabic bidi shaping.
 
-Có thể chạy **pseudo-locale mở rộng** như một cột phụ, nhưng sáu locale thật trong bài vẫn phải có test riêng.
+You can run an **expanded pseudo-locale** as an extra column, while the six real locales in this lesson must still have dedicated tests.
 
-## 18. Viết assertion bền vững: tách invariant và snapshot
+## 18. Writing Resilient Assertions: Separating Invariants from Snapshots
 
-Không phải mọi test locale đều nên so exact text.
+Not every locale test should compare exact text.
 
-### 18.1. Những assertion nên ổn định
+### 18.1. Assertions That Should Be Stable
 
-- Cùng numeric value khi format/parse hợp lệ với cùng NumberFormat, đủ precision.
-- Cùng `LocalDate` khi format/parse bằng cùng formatter.
-- Các mapping `I/ı/İ/i` tiếng Thổ theo Java 17.
-- `"TITLE".toLowerCase(Locale.ROOT)` luôn là `"title"`, bất kể default JVM.
-- Chuỗi nguồn Unicode không mất code points sau encode/decode UTF-8 hợp lệ.
-- Bundle key bắt buộc có thể load và không rỗng.
-- Bidi utility nhận diện một chuỗi tiếng Ả Rập/Hebrew thuần có hướng RTL.
+- Same numeric value when formatting/parsing valid inputs with the same `NumberFormat`, within precision.
+- Same `LocalDate` when formatting/parsing with the same formatter.
+- Turkish `I/ı/İ/i` mappings under Java 17.
+- `"TITLE".toLowerCase(Locale.ROOT)` is always `"title"`, regardless of JVM default.
+- Unicode source strings lose no code points across valid UTF-8 encode/decode.
+- Required bundle keys load and are non-empty.
+- Bidi utility identifies pure Arabic/Hebrew strings as having RTL base direction.
 
-### 18.2. Những snapshot cần pin môi trường
+### 18.2. Snapshots Requiring a Pinned Environment
 
-- Chuỗi chính xác của `NumberFormat`, `DateTimeFormatter.ofLocalizedDate`, `Currency`, tên tháng.
-- Pattern và ký hiệu grouping/decimal do CLDR/provider trả về.
-- Text sort order theo `Collator` khi provider thay đổi.
-- Screenshot visual RTL phụ thuộc font/OS, CSS/renderer, DPI và browser.
-- Hiển thị emoji, combining marks và fallback glyph.
+- Exact output strings from `NumberFormat`, `DateTimeFormatter.ofLocalizedDate`, `Currency`, month names.
+- Patterns and grouping/decimal symbols returned by CLDR/provider.
+- Text sort order under `Collator` when providers change.
+- Visual RTL screenshots dependent on font/OS, CSS/renderer, DPI, and browser.
+- Rendering of emoji, combining marks, and fallback glyphs.
 
-Nếu hệ thống **yêu cầu output exact** (chẳng hạn một báo cáo quy định phải theo một pattern), cần định nghĩa pattern/format tường minh, version/pin môi trường và test literal. Nếu chỉ cần tuân quy ước locale, đừng lấy một snapshot máy dev làm “chân lý vĩnh viễn”.
+If a system **requires exact output** (for instance, a regulatory report bound to a fixed pattern), define the pattern/format explicitly, pin the environment/version, and test the literal. If it only needs to follow locale conventions, do not treat a snapshot from a developer machine as an "eternal truth."
 
-### 18.3. Ghi môi trường khi báo lỗi
+### 18.3. Recording Environment Details on Failure
 
-Khi một test locale fail, nên ghi:
+When a locale test fails, log:
 
 ```text
 Locale tag:   tr-TR
-Java version: 17.x (vendor/build cụ thể)
-Locale provider: CLDR/COMPAT/config liên quan
+Java version: 17.x (specific vendor/build)
+Locale provider: relevant CLDR/COMPAT/config
 ZoneId:       explicit setting
-Font/renderer: (với test UI)
-Input value:  Unicode escaped, đã lọc thông tin nhạy cảm
-Actual/expected: loại so sánh và lý do bất biến
+Font/renderer: (for UI tests)
+Input value:  Unicode escaped, sensitive data scrubbed
+Actual/expected: comparison type and invariant rationale
 ```
 
-Đây là ví dụ **thông tin cần thu thập**, không phải output của một lệnh Java. Không log password/token hoặc toàn bộ PII khi debug.
+This is an example of **information to collect**, not the output of a Java command. Do not log passwords, tokens, or full PII while debugging.
 
-## 19. Thiết kế test suite và chiến lược CI
+## 19. Test Suite Design and CI Strategy
 
-### 19.1. Phân lớp kiểm thử
+### 19.1. Test Layers
 
-| Lớp test | Mục tiêu | Đặc tính |
+| Test layer | Target | Characteristics |
 | --- | --- | --- |
-| Unit | Casing, format/parse, fallback/key contract | Chạy nhanh, dữ liệu cố định |
-| Integration | Load resources từ JAR/module, I/O UTF-8 | Gần môi trường production |
-| Component UI | Orientation, text overflow và interaction | Kiểm tra rendering engine của app |
-| E2E | Người dùng đổi locale, nhập form, nhận email/report | Kiểm tra nhiều tầng |
-| Visual regression | So sánh screenshot tại width/font cố định | Pin font/browser và review RTL |
-| Native review | Dịch tự nhiên và thứ tự sắp xếp theo ngôn ngữ | Người thông thạo ngôn ngữ phê duyệt |
-| Accessibility | Screen reader, focus/tab order, zoom | Không chỉ kiểm tra screenshot |
+| Unit | Casing, format/parse, fallback/key contract | Fast execution, fixed data |
+| Integration | Loading resources from JAR/module, UTF-8 I/O | Close to production environment |
+| Component UI | Orientation, text overflow, and interaction | Tests the app's rendering engine |
+| E2E | User switches locale, submits forms, receives email/reports | Cross-layer verification |
+| Visual regression | Screenshot comparison at fixed width/font | Pin font/browser and review RTL |
+| Native review | Natural phrasing and language sort order | Approved by fluent speakers |
+| Accessibility | Screen reader, focus/tab order, zoom | Beyond screenshot checks |
 
-### 19.2. Quản lý test matrix để không bùng nổ tổ hợp
+### 19.2. Controlling the Test Matrix to Avoid Combinatorial Explosion
 
-Sáu locale × nhiều browser × nhiều viewport × nhiều timezone × nhiều currency tạo số lượng tổ hợp lớn. Có thể:
+Six locales × multiple browsers × multiple viewports × multiple time zones × multiple currencies produce a huge number of combinations. You can:
 
-1. Chạy unit matrix cho **mọi locale** trong mỗi pull request.
-2. Chạy smoke UI ít nhất một LTR và **cả hai RTL** ở kích thước chính.
-3. Chạy visual regression trên các màn quan trọng và các locale rủi ro cao.
-4. Chạy full matrix theo lịch hoặc trước release.
-5. Chạy targeted tests khi thay đổi thư viện i18n, CLDR/JDK, font, CSS, resource loader.
+1. Run the unit matrix across **all locales** on every pull request.
+2. Run UI smoke tests on at least one LTR and **both RTL** locales at primary viewport sizes.
+3. Run visual regression on critical screens and high-risk locales.
+4. Run the full matrix on a schedule or before releases.
+5. Run targeted tests when changing i18n libraries, CLDR/JDK, fonts, CSS, or resource loaders.
 
-Không bỏ hẳn `tr-TR` hay RTL vì “sản phẩm hiện ít người dùng”: đây là những locale **rất dễ phát hiện lỗi giả định ngầm của code**.
+Do not skip `tr-TR` or RTL because "few users use them right now": these locales **readily expose implicit assumptions in code**.
 
-### 19.3. Dữ liệu mẫu phải thật và có tính đối kháng
+### 19.3. Realistic and Adversarial Sample Data
 
-Ngoài dữ liệu đơn giản, cần đặt tên chứa dấu, tên dài, ký tự tổ hợp, chuỗi trộn script, dấu ngoặc/URL trong RTL. Chọn ví dụ có chủ đích:
+Beyond simple inputs, include accented names, long names, combining characters, mixed-script strings, and parentheses/URLs inside RTL text. Pick examples deliberately:
 
 ```text
 vi-VN:  Nguyễn Thị Minh Anh
@@ -852,13 +852,13 @@ he-IL:  שלום ABC-123
 Unicode: e + U+0301, U+1F600
 ```
 
-Không phải đây là bộ corpus ngôn ngữ đầy đủ. Test ngôn ngữ thực tế cần chuyên gia bản địa xác nhận lựa chọn từ, hướng layout và case/ordering expected.
+This is not an exhaustive linguistic corpus. Real-world language testing needs native specialists to confirm word choice, layout direction, and expected casing/ordering.
 
-## 20. Một chương trình Java 17 tổng hợp kiểm tra bất biến
+## 20. A Consolidated Java 17 Program Checking Invariants
 
-Dưới đây là ví dụ độc lập **không dùng JUnit**, phù hợp làm smoke check nhỏ trong build nếu muốn. Nó kiểm tra các điều kiện bất biến không dựa vào exact localized output.
+Below is a standalone example **without JUnit**, suitable as a small smoke check in a build if desired. It verifies invariant conditions without relying on exact localized output.
 
-Tệp `LocaleMatrixAssertions.java`:
+File `LocaleMatrixAssertions.java`:
 
 ```java
 import java.text.NumberFormat;
@@ -926,7 +926,7 @@ javac -encoding UTF-8 LocaleMatrixAssertions.java
 java LocaleMatrixAssertions
 ```
 
-Với Java 17 tiêu chuẩn và locale data được cung cấp cho sáu tag, expected stdout là:
+On standard Java 17 with locale data available for all six tags, the expected stdout is:
 
 ```text
 vi-VN:PASS
@@ -938,107 +938,107 @@ he-IL:PASS
 case:PASS
 ```
 
-Test này không thay thế JUnit, không kiểm tra translator quality, UI RTL, money conversion, DST hay style exact. Nó chỉ đảm bảo một tập các API i18n cơ bản hoạt động nhất quán trên runtime đang chạy.
+This test does not replace JUnit, nor does it check translation quality, RTL UI, currency conversion, DST, or exact styles. It only ensures that a core set of i18n APIs behaves consistently on the current runtime.
 
-Để dùng làm CI nghiêm túc, đưa từng điều kiện vào JUnit 5 parameterized test để báo lỗi riêng theo locale và case. JUnit không đi kèm JDK 17 nên phải khai báo test dependency riêng (Maven/Gradle), không coi code import JUnit là chương trình chạy với `javac` thuần nếu chưa thêm classpath.
+For serious CI usage, move each condition into a JUnit 5 parameterized test so failures are reported per locale and case. JUnit is not bundled with JDK 17, so it must be declared as a separate test dependency (Maven/Gradle); do not expect code importing JUnit to run with plain `javac` without adding it to the classpath.
 
-## 21. Các lỗi và hiểu lầm thường gặp
+## 21. Common Mistakes and Misconceptions
 
-| Hiểu lầm | Vì sao sai | Cách xử lý |
+| Misconception | Why it is wrong | How to handle it |
 | --- | --- | --- |
-| “Chạy en-US là đủ.” | Locale khác có dấu/số/case/RTL khác | Chạy ma trận đa locale |
-| “tr-TR khác en-US chỉ ở từ dịch.” | Turkish I có case mapping khác | Test I/ı/İ/i rõ ràng |
-| “Mọi số parse được bằng Double.parseDouble.” | Parser máy không theo dấu địa phương | NumberFormat/contract UI |
-| “Việt Nam và Đức đều dùng cùng mẫu ngày.” | Pattern phụ thuộc locale/JDK | Dùng localized formatter và test |
-| “Locale tự quyết định timezone.” | Locale và ZoneId độc lập | Chọn zone tường minh |
-| “Ả Rập/Hebrew chỉ cần text dịch, không cần đổi layout.” | RTL ảnh hưởng navigation, input, bidi | Test UI thực tế |
-| “Muốn RTL thì đảo String.” | Phá logical order và Unicode | Dùng Bidi-aware renderer |
-| “String.length = số ký tự nhìn thấy.” | Đếm UTF-16 code units | Test code points/graphemes riêng |
-| “Đủ key là đủ dịch.” | Fallback có thể che thiếu translation | Theo dõi coverage |
-| “Collator giống compareTo.” | Collation theo ngôn ngữ | Test với locale thật |
-| “Snapshot localized output luôn cố định.” | CLDR/provider/JDK có thể đổi | Pin môi trường hoặc test invariant |
-| “Dữ liệu RTL hợp lệ luôn là bidi control độc hại.” | Chữ Ả Rập/Hebrew hợp lệ là dữ liệu ngôn ngữ | Policy validation theo ngữ cảnh |
-| “Pseudo-localization thay được native QA.” | Không chứng minh đúng nghĩa/culture | Kết hợp pseudo và native review |
-| “SetDefault locale theo request không có tác dụng phụ.” | Default dùng chung toàn JVM | Truyền locale tường minh |
-| “Screen đẹp là test pass.” | Có thể sai parsing/encoding/Unicode | Cần cả assertion và UI test |
+| "Running en-US is enough." | Other locales differ in diacritics/numbers/casing/RTL | Run a multi-locale matrix |
+| "tr-TR differs from en-US only in translated words." | Turkish I has different case mapping | Test I/ı/İ/i explicitly |
+| "Every number can be parsed with Double.parseDouble." | Machine parser ignores localized separators | `NumberFormat`/UI contract |
+| "Vietnam and Germany use the same date pattern." | Patterns depend on locale/JDK | Use localized formatter and test |
+| "Locale determines the time zone." | Locale and ZoneId are independent | Select zone explicitly |
+| "Arabic/Hebrew only need translated text, not layout changes." | RTL affects navigation, inputs, bidi | Test actual UI |
+| "To support RTL, reverse the String." | Breaks logical order and Unicode | Use a bidi-aware renderer |
+| "String.length = visible character count." | Counts UTF-16 code units | Test code points/graphemes separately |
+| "Having all keys means translation is complete." | Fallback can hide missing translations | Track coverage |
+| "Collator is the same as compareTo." | Collation follows language rules | Test with real locales |
+| "Snapshots of localized output never change." | CLDR/provider/JDK can change | Pin environment or test invariants |
+| "Valid RTL data is always a malicious bidi control." | Valid Arabic/Hebrew script is normal language data | Context-based validation policy |
+| "Pseudo-localization replaces native QA." | Cannot prove semantic/cultural correctness | Combine pseudo and native review |
+| "Calling setDefault per request has no side effects." | Default is shared across the entire JVM | Pass locale explicitly |
+| "If the screen looks good, the test passes." | Parsing/encoding/Unicode may still be broken | Need both assertions and UI tests |
 
-## 22. Bài tập và đáp án
+## 22. Exercises and Answers
 
-**Bài 1.** Tại sao `"TITLE".toLowerCase()` có thể làm hỏng một key map trong môi trường `tr-TR`?
+**Exercise 1.** Why can `"TITLE".toLowerCase()` break a key map in a `tr-TR` environment?
 
-**Đáp án:** Overload không đối số phụ thuộc JVM default locale; tiếng Thổ chuyển chữ `I` thành dotless `ı`. Key `"tıtle"` không bằng `"title"`. Với identifier kỹ thuật ASCII, dùng một hợp đồng canonicalization độc lập locale như `Locale.ROOT`.
+**Answer:** The no-argument overload depends on the JVM default locale; Turkish maps `I` to dotless `ı`. The key `"tıtle"` does not equal `"title"`. For ASCII technical identifiers, use a locale-independent canonicalization contract such as `Locale.ROOT`.
 
-**Bài 2.** Một bài test `de-DE` so `NumberFormat.getNumberInstance(de).format(12345.5)` với một literal chính xác. Vì sao nó có thể bị lỗi sau khi nâng JDK?
+**Exercise 2.** A `de-DE` test compares `NumberFormat.getNumberInstance(de).format(12345.5)` against an exact literal. Why might it fail after a JDK upgrade?
 
-**Đáp án:** Separator, dấu cách hoặc locale data có thể thay theo provider/CLDR. Nếu app chỉ yêu cầu hành vi bản địa, test giá trị và parse round-trip; nếu cần literal chính xác, pin environment/format contract.
+**Answer:** Separators, spaces, or locale data may change across providers/CLDR. If the app only requires localized behavior, test the numeric value and parse round-trip; if an exact literal is required, pin the environment/format contract.
 
-**Bài 3.** `ar-EG` và `he-IL` đã hiển thị đúng bản dịch. Có đủ để kết luận UI RTL đạt không?
+**Exercise 3.** `ar-EG` and `he-IL` already display translated text properly. Is that enough to conclude the RTL UI passes?
 
-**Đáp án:** Không. Còn phải test navigation, icon direction, form, text trộn số/email, dấu câu, caret, font/shaping, zoom và accessibility.
+**Answer:** No. You also need to test navigation, icon direction, forms, mixed number/email text, punctuation, caret, font/shaping, zoom, and accessibility.
 
-**Bài 4.** Vì sao không dùng `new StringBuilder(arabicText).reverse()` để “đổi sang RTL”?
+**Exercise 4.** Why should you not use `new StringBuilder(arabicText).reverse()` to "convert to RTL"?
 
-**Đáp án:** RTL là quy tắc bố trí bidirectional, không phải đảo logical Unicode code units; reverse có thể phá chữ, dấu và dữ liệu.
+**Answer:** RTL is a bidirectional layout rule, not reversing logical Unicode code units; reversing can corrupt characters, diacritics, and data.
 
-**Bài 5.** Khi dùng `ResourceBundle`, locale `he-IL` nhận text `Hello` từ root bundle. Test nào PASS, test nào có thể FAIL?
+**Exercise 5.** When using `ResourceBundle`, locale `he-IL` receives `Hello` from the root bundle. Which test PASSES and which may FAIL?
 
-**Đáp án:** Có thể PASS về fallback/không crash; translation coverage Hebrew vẫn FAIL nếu release bắt buộc tiếng Hebrew.
+**Answer:** Fallback/no-crash behavior may PASS; Hebrew translation coverage still FAILS if Hebrew is required for the release.
 
-**Bài 6.** Một `LocalDate` được format cho `vi-VN` và `en-US` rồi parse lại bằng formatter tương ứng. Giá trị ngày có nên thay đổi không?
+**Exercise 6.** A `LocalDate` is formatted for `vi-VN` and `en-US`, then parsed back with the corresponding formatter. Should the date value change?
 
-**Đáp án:** Không. Đây là hai cách trình bày cùng một ngày; test round-trip phải giữ giá trị `LocalDate`.
+**Answer:** No. Those are two representations of the same date; a round-trip test must preserve the `LocalDate` value.
 
-**Bài 7.** Người dùng tiếng Ả Rập nhập mã `ABC-123`. Có cần đảo ký tự trong database vì UI đang RTL không?
+**Exercise 7.** An Arabic user enters the code `ABC-123`. Should the characters be reversed in the database because the UI is RTL?
 
-**Đáp án:** Không. Lưu logical value, dùng bidi isolation/orientation ở tầng hiển thị theo nhu cầu.
+**Answer:** No. Store the logical value and apply bidi isolation/orientation at the presentation layer as needed.
 
-**Bài 8.** Thay locale thành `tr-TR` thì `Collator` và `String.equalsIgnoreCase` có tương đương ngữ nghĩa không?
+**Exercise 8.** When switching the locale to `tr-TR`, are `Collator` and `String.equalsIgnoreCase` semantically equivalent?
 
-**Đáp án:** Không. `Collator` dùng quy tắc so sánh theo locale, `equalsIgnoreCase` không nhận locale và không thay thế collation tiếng Thổ.
+**Answer:** No. `Collator` uses locale-aware comparison rules, while `equalsIgnoreCase` does not accept a locale and does not replace Turkish collation.
 
-**Bài 9.** Vì sao ấn định `Locale.setDefault(ar)` trong một request không phải cách kiểm thử/triển khai đa ngôn ngữ tốt?
+**Exercise 9.** Why is calling `Locale.setDefault(ar)` inside a request not a good way to test or deploy multilingual behavior?
 
-**Đáp án:** Default locale là trạng thái JVM dùng chung, có thể ảnh hưởng các request khác. Dùng locale tường minh và test cô lập nếu muốn kiểm tra overload phụ thuộc default.
+**Answer:** The default locale is shared JVM state that can affect other requests. Pass the locale explicitly, and isolate tests if you specifically need to test default-dependent overloads.
 
-**Bài 10.** Một chuỗi địa danh tiếng Việt có dạng composed và decomposed giống mắt thường. `String.equals` có tự nhận là bằng nhau không?
+**Exercise 10.** A Vietnamese place name exists in composed and decomposed forms that look identical to the eye. Does `String.equals` treat them as equal automatically?
 
-**Đáp án:** Không. Java so code units; nếu contract yêu cầu canonical equivalence, chuẩn hóa Unicode `NFC` trước khi so sánh, nhưng không tự normalize dữ liệu nhạy cảm ngoài contract.
+**Answer:** No. Java compares code units; if the contract requires canonical equivalence, normalize Unicode to `NFC` before comparing, without blindly normalizing sensitive data outside the contract.
 
-**Bài 11.** Test `BidiSmokeDemo` PASS có chứng minh UI Arabic trong Android/web/Swing render chính xác không?
+**Exercise 11.** Does a passing `BidiSmokeDemo` test prove that an Arabic UI in Android/web/Swing renders properly?
 
-**Đáp án:** Không. Nó chỉ kiểm tra thuật toán bidi ở dữ liệu chữ; cần kiểm thử rendering, fonts, direction và thao tác UI.
+**Answer:** No. It only tests the bidi algorithm on text data; rendering, fonts, direction, and UI interaction still require testing.
 
-**Bài 12.** Có một sản phẩm sắp mở thị trường mới dùng lịch không ISO. Có nên chỉ thêm locale trong ma trận là đủ?
+**Exercise 12.** A product is expanding into a new market that uses a non-ISO calendar. Is simply adding the locale to the matrix sufficient?
 
-**Đáp án:** Không. Cần thêm các biến thể calendar/chronology, số, zone, resource bundle, font và test domain-specific; locale language-region không tự quyết định tất cả.
+**Answer:** No. You also need calendar/chronology variants, numerals, zone, resource bundles, fonts, and domain-specific tests; a language-region locale does not determine everything automatically.
 
-## 23. Checklist trước khi phát hành
+## 23. Pre-Release Checklist
 
-- [ ] Mọi locale được hỗ trợ có resource bundles và coverage dịch theo tiêu chí release.
-- [ ] Tên key/placeholder nhất quán, fallback được kiểm soát.
-- [ ] Unit test định dạng số/ngày chạy với `vi-VN`, `en-US`, `de-DE`, `tr-TR`, `ar-EG`, `he-IL`.
-- [ ] Test Turkish I/ı/İ/i và bảo đảm identifier kỹ thuật độc lập locale.
-- [ ] Không dùng localized number/date string làm giao thức máy không có contract.
-- [ ] Currency/Chronology/ZoneId được chọn tường minh khi nghiệp vụ cần.
-- [ ] Collation được kiểm thử với dữ liệu bản địa, không dùng `String.compareTo` thay thế.
-- [ ] Có UI test trực quan cho cả Arabic và Hebrew với chuỗi trộn Latin/số/URL.
-- [ ] Form RTL hoạt động đúng khi caret, copy/paste và validation.
-- [ ] Font được hỗ trợ, text không tràn khi dịch dài hoặc zoom.
-- [ ] Test Unicode, combining marks, emoji và UTF-8.
-- [ ] Không dựa vào JVM default locale cho logic đa người dùng.
-- [ ] Ghi Java version/provider/font khi debug các snapshot thay đổi.
-- [ ] Có accessibility QA và native linguistic review.
-- [ ] Unit, integration, UI/E2E và visual regression phối hợp, không chỉ một loại test.
+- [ ] Every supported locale has resource bundles and translation coverage meeting release criteria.
+- [ ] Key names/placeholders are consistent and fallback is controlled.
+- [ ] Unit tests for number/date formatting run with `vi-VN`, `en-US`, `de-DE`, `tr-TR`, `ar-EG`, `he-IL`.
+- [ ] Turkish I/ı/İ/i is tested and technical identifiers are guaranteed locale-independent.
+- [ ] Localized number/date strings are not used as machine protocols without a contract.
+- [ ] Currency/Chronology/ZoneId are chosen explicitly where business logic requires them.
+- [ ] Collation is tested with native datasets, not replaced by `String.compareTo`.
+- [ ] Visual UI tests exist for both Arabic and Hebrew with text mixing Latin/numbers/URLs.
+- [ ] RTL forms work properly for caret movement, copy/paste, and validation.
+- [ ] Fonts are supported and text does not overflow under long translations or zoom.
+- [ ] Unicode, combining marks, emoji, and UTF-8 are tested.
+- [ ] Multi-user logic does not rely on the JVM default locale.
+- [ ] Java version/provider/font are recorded when debugging changing snapshots.
+- [ ] Accessibility QA and native linguistic review are performed.
+- [ ] Unit, integration, UI/E2E, and visual regression tests work together, not just one test type.
 
-## 24. Tổng kết
+## 24. Summary
 
-**Ma trận locale là công cụ phát hiện giả định sai của ứng dụng, không phải danh sách bản dịch cần hiển thị.** Với Java 17, hãy bắt đầu từ `vi-VN`, `en-US`, `de-DE`, `tr-TR` và ít nhất hai ngôn ngữ RTL như `ar-EG`, `he-IL`.
+**A locale matrix is a tool for uncovering false assumptions in an application, not a list of translations to display.** With Java 17, start with `vi-VN`, `en-US`, `de-DE`, `tr-TR`, and at least two RTL languages such as `ar-EG` and `he-IL`.
 
-Chạy các assertion **đúng loại**: round-trip number/date, Unicode casing Thổ Nhĩ Kỳ, bundle fallback/key contract, collation theo locale và encoding đúng. Bên cạnh đó, phải kiểm tra **rendering thực tế** cho RTL, font, diacritics, bidi/selection, overflow và accessibility. Tránh hard-code exact localized strings khi không pin dữ liệu JDK/CLDR; dùng chính xác các literal khi API/protocol có contract rõ.
+Run the **right kinds of assertions**: number/date round-trips, Turkish Unicode casing, bundle fallback/key contracts, locale-aware collation, and proper encoding. Alongside that, verify **actual rendering** for RTL, fonts, diacritics, bidi/selection, overflow, and accessibility. Avoid hard-coding exact localized strings when JDK/CLDR data is not pinned; use exact literals only when an API or protocol defines an explicit contract.
 
-Nếu cần một nguyên tắc duy nhất: **giá trị nghiệp vụ, ngôn ngữ hiển thị, direction UI và dữ liệu giao thức phải được tách biệt; mỗi lớp cần test phù hợp.**
+If you need a single guiding principle: **business values, display language, UI direction, and protocol data must be kept separate; each layer needs appropriate tests.**
 
-### Tham khảo API Java SE 17
+### Java SE 17 API References
 
 - [Locale — Oracle JDK 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html)
 - [NumberFormat — Oracle JDK 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/text/NumberFormat.html)

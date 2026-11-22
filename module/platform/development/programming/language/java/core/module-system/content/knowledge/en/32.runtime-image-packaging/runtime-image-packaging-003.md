@@ -1,25 +1,25 @@
-# Giảm runtime image bằng jlink --limit-modules
+# Shrinking Runtime Images with jlink --limit-modules
 
-## 1. Mục tiêu
+## 1. Objectives
 
-Một JDK đầy đủ cung cấp nhiều module, nhưng một ứng dụng thường chỉ cần một phần trong số đó. Khi triển khai ứng dụng trên máy chủ hoặc container, mang theo toàn bộ JDK có thể làm runtime lớn hơn mức cần thiết.
+A full JDK provides many modules, but an application usually only needs a subset of them. When deploying an application on a server or container, carrying the entire JDK can make the runtime larger than necessary.
 
-Công cụ `jlink` tạo một **custom runtime image** gồm runtime Java và các module được chọn. Tùy chọn `--limit-modules` giới hạn tập module mà resolver được phép quan sát trong lúc tạo image. Kết hợp nó với `--add-modules`, ta có thể xác định module gốc của ứng dụng và thu hẹp tập module ứng viên dùng để giải quyết dependency.
+The `jlink` tool creates a **custom runtime image** consisting of the Java runtime and selected modules. The `--limit-modules` option restricts the set of modules the resolver is allowed to observe while creating the image. Combining it with `--add-modules`, we can specify the application's root modules and narrow down the candidate module set used to resolve dependencies.
 
-Cần phân biệt hai việc:
+Two things must be distinguished:
 
-- `--add-modules` xác định các root modules cần đưa vào image.
-- `--limit-modules` giới hạn universe module observable dùng trong quá trình resolution; các dependency bắc cầu cần thiết của những module trong tập giới hạn vẫn được tính đến.
+- `--add-modules` specifies the root modules to include in the image.
+- `--limit-modules` limits the universe of observable modules used during resolution; required transitive dependencies of modules in the limited set are still taken into account.
 
-`--limit-modules` không đơn giản có nghĩa là chỉ chép đúng các tên được liệt kê rồi bỏ mọi dependency. Resolver vẫn cần các module mà root yêu cầu trực tiếp hoặc gián tiếp. Nếu thiếu một dependency bắt buộc trong module path, quá trình link sẽ thất bại.
+`--limit-modules` does not simply mean copying only the listed names and dropping all dependencies. The resolver still needs the modules that the roots require directly or indirectly. If a required dependency is missing on the module path, the linking process will fail.
 
-Sau bài này, bạn có thể tạo runtime image cho một modular application, chọn root modules, giới hạn tập module observable, kiểm tra image và xử lý lỗi khi module cần thiết bị thiếu.
+After this lesson, you will be able to create a runtime image for a modular application, select root modules, limit the observable module set, inspect the image, and troubleshoot errors when a required module is missing.
 
-## 2. jlink tạo ra những gì?
+## 2. What Does jlink Produce?
 
-`jlink` lấy các module đã biên dịch từ module path, giải quyết dependency của các root modules và tạo một runtime image có thể chạy độc lập trên nền tảng tương ứng.
+`jlink` takes compiled modules from the module path, resolves dependencies of the root modules, and creates a runtime image that can run standalone on the corresponding platform.
 
-Một image thường có cấu trúc dạng:
+An image typically has a structure like:
 
 ~~~text
 runtime/
@@ -32,23 +32,23 @@ runtime/
 └── release
 ~~~
 
-Các module được link nằm trong image. Ứng dụng modular cũng có thể được đóng gói vào image, vì vậy khi chạy không cần cung cấp lại các JAR ứng dụng qua module path bên ngoài.
+The linked modules reside inside the image. Modular applications can also be packaged into the image, so at runtime there is no need to provide the application JARs again via an external module path.
 
-Điều kiện cơ bản:
+Basic prerequisites:
 
-- Dùng JDK có công cụ `jlink`, không phải một runtime image tối giản đã loại bỏ linker.
-- Ứng dụng và các dependency cần thiết phải là named modules hợp lệ.
-- Module path phải chứa các module mà resolver cần tìm.
-- Runtime image được tạo cho nền tảng tương ứng với JDK/toolchain đang dùng; không xem `jlink` như công cụ biên dịch chéo tùy ý giữa các hệ điều hành hoặc kiến trúc.
+- Use a JDK that has the `jlink` tool, not a minimal runtime image that has stripped out the linker.
+- The application and its required dependencies must be valid named modules.
+- The module path must contain the modules that the resolver needs to find.
+- The runtime image is created for the platform corresponding to the JDK/toolchain in use; do not treat `jlink` as an arbitrary cross-compilation tool across operating systems or architectures.
 
-## 3. Chuẩn bị một modular application
+## 3. Preparing a Modular Application
 
-Ví dụ ứng dụng có hai module:
+For example, an application has two modules:
 
-- `com.example.api`: cung cấp API.
-- `com.example.app`: chứa main class và sử dụng API.
+- `com.example.api`: provides the API.
+- `com.example.app`: contains the main class and uses the API.
 
-Cấu trúc thư mục sau khi biên dịch:
+Directory structure after compilation:
 
 ~~~text
 project/
@@ -58,7 +58,7 @@ project/
 └── runtime/
 ~~~
 
-Module API:
+API module:
 
 ~~~java
 module com.example.api {
@@ -76,7 +76,7 @@ public final class Greeting {
 }
 ~~~
 
-Module ứng dụng:
+Application module:
 
 ~~~java
 module com.example.app {
@@ -96,101 +96,101 @@ public class Main {
 }
 ~~~
 
-Giả sử hai module đã được đóng gói thành modular JAR:
+Suppose both modules have been packaged into modular JARs:
 
 ~~~text
 mods/com.example.api.jar
 mods/com.example.app.jar
 ~~~
 
-Tên file JAR có thể khác tên module; module name thực tế lấy từ descriptor của module.
+The JAR filename may differ from the module name; the actual module name is taken from the module descriptor.
 
-## 4. Cú pháp jlink cơ bản
+## 4. Basic jlink Syntax
 
-Cú pháp tổng quát:
+General syntax:
 
 ~~~bash
 jlink --module-path <module-path> --add-modules <root-modules> --output <directory>
 ~~~
 
-Các tùy chọn chính:
+Key options:
 
-| Tùy chọn | Vai trò |
+| Option | Role |
 | --- | --- |
-| `--module-path` | Nơi tìm các module nguồn, thường gồm thư mục `jmods` của JDK và thư mục chứa modular JAR của ứng dụng. |
-| `--add-modules` | Chọn một hoặc nhiều root modules để đưa vào image. |
-| `--limit-modules` | Giới hạn tập module observable trong quá trình resolution. |
-| `--output` | Thư mục tạo runtime image. |
-| `--bind-services` | Liên kết các service provider module phù hợp cùng dependency của chúng. |
+| `--module-path` | Where to find source modules, usually including the JDK's `jmods` directory and the directory containing the application's modular JARs. |
+| `--add-modules` | Selects one or more root modules to include in the image. |
+| `--limit-modules` | Restricts the observable module set during resolution. |
+| `--output` | Output directory for the runtime image. |
+| `--bind-services` | Links matching service provider modules along with their dependencies. |
 
-Trên Linux/macOS, có thể link ứng dụng như sau:
+On Linux/macOS, you can link the application as follows:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" --add-modules com.example.app --output runtime
 ~~~
 
-Trong đó:
+Where:
 
-- `$JAVA_HOME/jmods` chứa các module của JDK dưới dạng JMOD.
-- `mods` chứa modular JAR của ứng dụng.
-- `com.example.app` là root module.
-- `runtime` là custom runtime image được tạo.
+- `$JAVA_HOME/jmods` contains JDK modules in JMOD format.
+- `mods` contains the application's modular JARs.
+- `com.example.app` is the root module.
+- `runtime` is the generated custom runtime image.
 
-Vì `com.example.app` khai báo `requires com.example.api`, resolver đưa cả `com.example.api` và các dependency cần thiết của nó vào image. `java.base` cũng có mặt vì các named module thông thường phụ thuộc nền tảng vào module này.
+Because `com.example.app` declares `requires com.example.api`, the resolver includes both `com.example.api` and its required dependencies in the image. `java.base` is also present because regular named modules fundamentally depend on this module.
 
-## 5. Dùng --limit-modules để thu hẹp tập module observable
+## 5. Using --limit-modules to Narrow the Observable Module Set
 
-Cú pháp:
+Syntax:
 
 ~~~bash
 jlink --module-path <module-path> --add-modules <root-modules> --limit-modules <module-list> --output <directory>
 ~~~
 
-Ví dụ:
+Example:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" --add-modules com.example.app --limit-modules "java.base,com.example.api,com.example.app" --output runtime
 ~~~
 
-Ở đây:
+Here:
 
-- `com.example.app` là root module được link.
-- `java.base`, `com.example.api` và `com.example.app` là các module được nêu trong giới hạn observable.
-- Dependency bắc cầu cần thiết của các module trong tập này vẫn được resolver xét đến.
-- Các module không nằm trong tập giới hạn và không thuộc dependency closure cần thiết sẽ không được xem như module observable cho lần link này.
+- `com.example.app` is the root module being linked.
+- `java.base`, `com.example.api`, and `com.example.app` are the modules listed in the observable limit.
+- Required transitive dependencies of modules in this set are still considered by the resolver.
+- Modules outside the limited set and not belonging to the required dependency closure will not be treated as observable modules for this link run.
 
-Trong ví dụ nhỏ, danh sách giới hạn nêu rõ app, API và module nền tảng mà ứng dụng cần. Với dự án thực tế, phải xét cả các module được yêu cầu gián tiếp, module hệ thống mà thư viện sử dụng và service provider cần được bind.
+In the small example, the limit list explicitly states the app, API, and platform module the application needs. For real projects, you must also consider indirectly required modules, system modules used by libraries, and service providers that need to be bound.
 
-Nếu `--limit-modules` loại mất một module mà ứng dụng thực sự cần, `jlink` sẽ báo lỗi resolution thay vì âm thầm tạo image thiếu dependency.
+If `--limit-modules` excludes a module that the application truly needs, `jlink` will report a resolution error instead of silently creating an image missing dependencies.
 
-## 6. --add-modules và --limit-modules không thay thế nhau
+## 6. --add-modules and --limit-modules Do Not Replace Each Other
 
-Hai tùy chọn giải quyết hai câu hỏi khác nhau:
+The two options answer two different questions:
 
-| Câu hỏi | Tùy chọn |
+| Question | Option |
 | --- | --- |
-| Module nào là root cần đưa vào image? | `--add-modules` |
-| Resolver được phép quan sát tập module nào? | `--limit-modules` |
+| Which modules are the roots to include in the image? | `--add-modules` |
+| Which set of modules is the resolver allowed to observe? | `--limit-modules` |
 
-Ví dụ chỉ định root:
+Example specifying roots:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" --add-modules com.example.app --output runtime
 ~~~
 
-Ví dụ chỉ định root và giới hạn universe:
+Example specifying roots and limiting the universe:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" --add-modules com.example.app --limit-modules "java.base,com.example.api,com.example.app" --output runtime
 ~~~
 
-Nếu chỉ có `--limit-modules` mà không chọn root phù hợp, nó không tự nói rằng module ứng dụng nào phải được đưa vào image. Ngược lại, `--add-modules` không phải danh sách cấm tất cả module khác; nó chọn roots, còn resolver tính dependency closure.
+Having only `--limit-modules` without selecting appropriate roots does not by itself tell the tool which application modules must be included in the image. Conversely, `--add-modules` is not a blocklist against all other modules; it selects roots, and the resolver computes the dependency closure.
 
-## 7. Service provider trong runtime image
+## 7. Service Providers in a Runtime Image
 
-Nếu ứng dụng sử dụng `ServiceLoader`, cần tính đến provider module trong lúc đóng gói.
+If the application uses `ServiceLoader`, provider modules must be accounted for during packaging.
 
-Ví dụ consumer khai báo:
+For example, the consumer declares:
 
 ~~~java
 module com.example.app {
@@ -200,7 +200,7 @@ module com.example.app {
 }
 ~~~
 
-Provider khai báo:
+The provider declares:
 
 ~~~java
 module com.example.provider {
@@ -211,127 +211,127 @@ module com.example.provider {
 }
 ~~~
 
-Nếu provider không phải dependency `requires` trực tiếp của root, có thể dùng `--bind-services` để linker tìm và liên kết các provider module phù hợp:
+If the provider is not a direct `requires` dependency of a root, you can use `--bind-services` so the linker finds and links matching provider modules:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" --add-modules com.example.app --bind-services --output runtime
 ~~~
 
-Khi kết hợp với `--limit-modules`, bảo đảm các provider module cần dùng nằm trong tập module observable hoặc dependency closure của tập đó. Nếu giới hạn loại provider khỏi universe, linker không thể bind provider ấy.
+When combining with `--limit-modules`, make sure the needed provider modules are in the observable module set or in the dependency closure of that set. If the limit excludes the provider from the universe, the linker cannot bind that provider.
 
-Việc provider module được đưa vào image không đồng nghĩa service instance đã được tạo lúc link. Instance được yêu cầu khi ứng dụng chạy và gọi ServiceLoader.
+Including a provider module in the image does not mean a service instance is already created at link time. Instances are requested when the application runs and calls ServiceLoader.
 
-## 8. Tối ưu thêm kích thước runtime image
+## 8. Further Optimizing Runtime Image Size
 
-Sau khi chọn đúng module set, có thể dùng các plugin của `jlink` để giảm dung lượng image.
+After selecting the right module set, you can use `jlink` plugins to reduce image size.
 
-Ví dụ:
+Example:
 
 ~~~bash
 jlink --module-path "$JAVA_HOME/jmods:mods" --add-modules com.example.app --limit-modules "java.base,com.example.api,com.example.app" --strip-debug --no-header-files --no-man-pages --compress=2 --output runtime
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-- `--strip-debug`: loại bỏ thông tin debug khỏi các class trong image.
-- `--no-header-files`: không đưa các header file native vào image.
-- `--no-man-pages`: không đưa manual page vào image.
-- `--compress=2`: nén resource trong image theo mức nén được hỗ trợ.
+- `--strip-debug`: strips debug information from classes in the image.
+- `--no-header-files`: excludes native header files from the image.
+- `--no-man-pages`: excludes manual pages from the image.
+- `--compress=2`: compresses resources in the image at the supported compression level.
 
-Các plugin này là lựa chọn tối ưu đóng gói; chúng không thay thế việc xác định đúng dependency module. Trước khi bỏ header hoặc man page, xác nhận image không được dùng như bộ JDK phát triển native hoặc tài liệu tham khảo trên máy đích.
+These plugins are packaging optimization options; they do not replace identifying the right dependency modules. Before dropping headers or man pages, confirm that the image will not be used as a native development JDK or reference documentation on the target machine.
 
-Có thể xem danh sách plugin khả dụng bằng:
+You can view the list of available plugins with:
 
 ~~~bash
 jlink --list-plugins
 ~~~
 
-Danh sách và chi tiết plugin phụ thuộc phiên bản JDK đang dùng.
+The plugin list and details depend on the JDK version in use.
 
-## 9. Kiểm tra runtime image sau khi link
+## 9. Verifying the Runtime Image After Linking
 
-Sau khi lệnh `jlink` hoàn tất, dùng chính launcher trong image để kiểm tra danh sách module:
+After the `jlink` command finishes, use the launcher inside the image itself to check the module list:
 
 ~~~bash
 runtime/bin/java --list-modules
 ~~~
 
-Kết quả sẽ liệt kê các module có trong custom runtime image. Có thể xem descriptor của module ứng dụng:
+The output will list the modules present in the custom runtime image. You can inspect the application module descriptor:
 
 ~~~bash
 runtime/bin/java --describe-module com.example.app
 ~~~
 
-Chạy ứng dụng bằng runtime mới:
+Run the application with the new runtime:
 
 ~~~bash
 runtime/bin/java --module com.example.app/com.example.app.Main
 ~~~
 
-Trên Windows, launcher thường nằm tại:
+On Windows, the launcher is usually located at:
 
 ~~~powershell
 runtime\bin\java.exe --list-modules
 runtime\bin\java.exe --module com.example.app/com.example.app.Main
 ~~~
 
-Kiểm tra thực tế nên gồm:
+Practical verification should include:
 
-- Ứng dụng khởi động thành công bằng launcher trong image.
-- Mọi API được sử dụng đều có mặt.
-- Các module provider cần thiết được bind nếu ứng dụng dùng service.
-- Resource, locale, security provider, logging và cấu hình runtime hoạt động như mong đợi.
-- Image chạy trên môi trường đích có cùng nền tảng hệ điều hành và kiến trúc.
+- The application starts successfully using the launcher inside the image.
+- Every API used is present.
+- Required provider modules are bound if the application uses services.
+- Resources, locales, security providers, logging, and runtime configurations work as expected.
+- The image runs on the target environment with the same operating system platform and architecture.
 
-Không chỉ kiểm tra lệnh link thành công. Hãy chạy các luồng chức năng quan trọng trên image cuối cùng.
+Do not just check that the link command succeeded. Run critical functional flows on the final image.
 
-## 10. Lỗi thường gặp
+## 10. Common Errors
 
 **Module not found**
 
-Module được nêu trong `--add-modules` hoặc `--limit-modules` không được tìm thấy. Kiểm tra module path, tên module trong descriptor và sự hiện diện của JDK `jmods`.
+A module specified in `--add-modules` or `--limit-modules` was not found. Check the module path, the module name in the descriptor, and the presence of JDK `jmods`.
 
 **Missing required module**
 
-Một root hoặc dependency của nó yêu cầu module không có trong module path hoặc không còn observable sau khi giới hạn. Thêm đúng module vào module path và điều chỉnh giới hạn để dependency closure hợp lệ.
+A root or one of its dependencies requires a module that is not on the module path or is no longer observable after limiting. Add the right module to the module path and adjust the limit so the dependency closure is valid.
 
-**Module bị giới hạn nhưng ứng dụng cần dùng**
+**Module is limited but needed by the application**
 
-Nếu một module nằm ngoài tập giới hạn và không thuộc dependency closure của các module được liệt kê, resolver không thể dùng module đó. Cập nhật danh sách giới hạn hoặc bỏ `--limit-modules` để xác định liệu giới hạn có phải nguyên nhân.
+If a module is outside the limited set and not in the dependency closure of the listed modules, the resolver cannot use that module. Update the limit list or remove `--limit-modules` to determine whether the limit is the cause.
 
-**Automatic module không thể link**
+**Automatic modules cannot be linked**
 
-`jlink` yêu cầu các module được link phải phù hợp với mô hình modular image; automatic module từ JAR không có descriptor không phải đầu vào thay thế trực tiếp cho explicit named module. Hãy nâng cấp thư viện, tạo modular JAR hợp lệ hoặc đóng gói dependency theo cách phù hợp trước khi link.
+`jlink` requires the modules to be linked to fit the modular image model; an automatic module from a JAR without a descriptor is not a direct substitute input for an explicit named module. Upgrade the library, create a valid modular JAR, or package the dependency appropriately before linking.
 
-**Service provider không xuất hiện trong image**
+**Service provider does not appear in the image**
 
-Kiểm tra consumer có `uses`, provider có `provides`, provider nằm trên module path và có thể được quan sát. Nếu muốn linker tự bind các provider phù hợp, cân nhắc `--bind-services`; nếu dùng `--limit-modules`, đừng loại provider cần thiết khỏi tập observable.
+Check that the consumer has `uses`, the provider has `provides`, and the provider is on the module path and observable. If you want the linker to bind matching providers automatically, consider `--bind-services`; if using `--limit-modules`, do not exclude needed providers from the observable set.
 
-**Image tạo được nhưng ứng dụng lỗi khi chạy**
+**Image is created but application fails at runtime**
 
-Kiểm tra lại module roots, module resolution, service binding và các tài nguyên cần ở runtime. Chạy bằng chính `runtime/bin/java` thay vì JDK phát triển để phát hiện module hoặc resource vô tình chỉ có trong môi trường build.
+Recheck module roots, module resolution, service binding, and resources needed at runtime. Run with `runtime/bin/java` itself rather than the development JDK to catch modules or resources accidentally present only in the build environment.
 
-## 11. Quy trình tạo image có kiểm soát
+## 11. Controlled Image Creation Workflow
 
-1. Biên dịch và đóng gói ứng dụng thành explicit modular JAR.
-2. Liệt kê dependency module của ứng dụng qua `module-info.java` và kiểm tra descriptor của thư viện.
-3. Xác định root module, thường là module chứa ứng dụng.
-4. Xác định module provider cần có nếu ứng dụng sử dụng ServiceLoader.
-5. Chọn module path gồm JDK `jmods` và modular JAR của ứng dụng.
-6. Chạy `jlink` với `--add-modules` để chọn root.
-7. Thêm `--limit-modules` khi cần giới hạn tập module observable, đồng thời giữ đủ dependency closure.
-8. Thêm plugin giảm kích thước sau khi module set đã đúng.
-9. Kiểm tra `--list-modules`, `--describe-module` và chạy các bài test trên image tạo ra.
-10. Đóng gói image cho đúng hệ điều hành và kiến trúc đích.
+1. Compile and package the application into explicit modular JARs.
+2. List the application's module dependencies via `module-info.java` and check library descriptors.
+3. Identify root modules, usually the module containing the application.
+4. Identify required provider modules if the application uses ServiceLoader.
+5. Choose a module path containing JDK `jmods` and the application's modular JARs.
+6. Run `jlink` with `--add-modules` to select roots.
+7. Add `--limit-modules` when needed to limit the observable module set, while keeping the full dependency closure.
+8. Add size-reduction plugins after the module set is correct.
+9. Check `--list-modules`, `--describe-module`, and run tests on the resulting image.
+10. Package the image for the exact target operating system and architecture.
 
-## 12. Ghi nhớ
+## 12. Key Takeaways
 
-- `jlink` tạo custom runtime image từ các module đã biên dịch.
-- `--add-modules` chọn root modules cần link.
-- `--limit-modules` giới hạn module observable trong quá trình resolution; dependency bắc cầu cần thiết vẫn được giải quyết.
-- Module path phải chứa JDK modules và các modular JAR của ứng dụng.
-- Dùng `--bind-services` khi muốn linker liên kết service provider module phù hợp.
-- Các plugin như `--strip-debug`, `--no-header-files`, `--no-man-pages` và `--compress=2` có thể giảm dung lượng nhưng không thay thế việc chọn dependency đúng.
-- Dùng launcher trong image để kiểm tra module list và chạy ứng dụng thực tế.
+- `jlink` creates a custom runtime image from compiled modules.
+- `--add-modules` selects root modules to link.
+- `--limit-modules` restricts observable modules during resolution; required transitive dependencies are still resolved.
+- The module path must contain JDK modules and the application's modular JARs.
+- Use `--bind-services` when you want the linker to link matching service provider modules.
+- Plugins such as `--strip-debug`, `--no-header-files`, `--no-man-pages`, and `--compress=2` can reduce size, but do not replace selecting the right dependencies.
+- Use the launcher inside the image to check the module list and run the actual application.
 
-Hãy bắt đầu bằng việc xác định root module và dependency closure của ứng dụng. Sau đó dùng `--limit-modules` để thu hẹp tập module resolver có thể nhìn thấy, link image và kiểm thử chính image đó trên môi trường triển khai.
+Start by identifying the root modules and dependency closure of the application. Then use `--limit-modules` to narrow the set of modules the resolver can see, link the image, and test that exact image in the deployment environment.

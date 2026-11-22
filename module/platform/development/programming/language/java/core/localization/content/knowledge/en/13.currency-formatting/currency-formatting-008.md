@@ -1,98 +1,98 @@
-# Giới hạn suy ra tiền tệ chỉ từ ngôn ngữ hoặc khu vực trong Java
+# Limits of Inferring Currency Only from Language or Region in Java
 
-## 1. Ngôn ngữ, khu vực và đơn vị tiền tệ là ba khái niệm khác nhau
+## 1. Language, region, and currency unit are three distinct concepts
 
-Một ứng dụng quốc tế hóa thường biết **ngôn ngữ giao diện** và **khu vực** của người dùng. Tuy nhiên, hai thông tin đó **không đủ để khẳng định đồng tiền của một giao dịch**. Java cung cấp các API hữu ích để lấy *đồng tiền thường gắn với một khu vực*, nhưng kết quả ấy là gợi ý theo dữ liệu của runtime, không phải một quyết định tài chính hoàn chỉnh.
+An internationalized application usually knows the user's **UI language** and **region**. However, those two pieces of information are **not enough to determine the currency of a transaction**. Java provides convenient APIs to retrieve *the currency typically associated with a region*, yet that result is a hint based on runtime data, not a complete financial decision.
 
-Cần phân biệt:
+Distinguish clearly:
 
-| Thông tin | Ví dụ | Trả lời câu hỏi |
+| Information | Example | Question it answers |
 | --- | --- | --- |
-| Ngôn ngữ | `vi`, `en`, `es` | Người dùng đọc/nghe ngôn ngữ nào? |
-| Khu vực của `Locale` | `VN`, `US`, `GB` | Quy ước văn hóa/định dạng nào được ưu tiên? |
-| Mã tiền tệ | `VND`, `USD`, `GBP`, `EUR` | Số tiền có đơn vị kế toán/giao dịch nào? |
-| Giá trị tiền | `125.50` cùng `USD` | Giao dịch thực sự có giá trị bao nhiêu và bằng tiền gì? |
-| Tỷ giá và ngày hiệu lực | USD → VND ở một thời điểm | Nếu phải quy đổi, sử dụng tỷ giá nào? |
+| Language | `vi`, `en`, `es` | Which language does the user read/hear? |
+| Region of `Locale` | `VN`, `US`, `GB` | Which cultural/formatting conventions are preferred? |
+| Currency code | `VND`, `USD`, `GBP`, `EUR` | Which accounting/transaction unit does the amount have? |
+| Monetary value | `125.50` with `USD` | What is the transaction actually worth and in what currency? |
+| Exchange rate and effective date | USD → VND at a point in time | If conversion is required, which rate applies? |
 
-Các cặp sau đều hợp lý về mặt sản phẩm:
+All of the following combinations are completely valid in real products:
 
-- Giao diện **tiếng Việt** hiển thị giá của một dịch vụ quốc tế bằng **USD**.
-- Giao diện **tiếng Anh** tại Việt Nam hiển thị phí bằng **VND**.
-- Người dùng sống tại Anh mua dịch vụ có **đơn vị thanh toán EUR**.
-- Người dùng ở Mỹ đang xem giá **JPY** hoặc **EUR** và không muốn tự động quy đổi.
-- Một nhà bán hàng niêm yết bằng một đồng tiền nhưng cổng thanh toán quyết toán bằng đồng tiền khác.
+- A **Vietnamese** interface displaying prices for an international service in **USD**.
+- An **English** interface in Vietnam displaying fees in **VND**.
+- A user living in the UK purchasing a service whose **billing currency is EUR**.
+- A user in the US viewing prices in **JPY** or **EUR** without wanting automatic conversion.
+- A merchant listing prices in one currency while the payment gateway settles in another currency.
 
-**Nguyên tắc:** `Locale` điều khiển *cách biểu diễn* và gợi ý theo vùng; `Currency` cùng giá trị số xác định *đơn vị của khoản tiền*. Không được suy luận `currency = language` hay `currency = userLocale.getCountry()` trong dữ liệu nghiệp vụ.
+**Principle:** `Locale` controls *presentation* and regional hints; `Currency` together with the numeric value defines *the unit of the monetary amount*. Never infer `currency = language` or `currency = userLocale.getCountry()` in business data.
 
-## 2. Java có thể suy ra điều gì từ Locale?
+## 2. What can Java infer from a Locale?
 
-Java SE 17 có hai phương thức thường gặp trong `java.util.Currency`:
+Java SE 17 has two commonly used methods in `java.util.Currency`:
 
 ~~~java
 Currency fromRegion = Currency.getInstance(Locale.US);
 Currency explicit = Currency.getInstance("USD");
 ~~~
 
-Đây là **hai câu lệnh minh họa trong một phương thức Java**, yêu cầu `import java.util.Currency;` và `import java.util.Locale;`. Chương trình độc lập nằm ở mục 7.
+These are **two illustrative statements inside a Java method**, requiring `import java.util.Currency;` and `import java.util.Locale;`. A standalone program appears in section 7.
 
-### 2.1. Currency.getInstance(Locale): gợi ý theo khu vực
+### 2.1. Currency.getInstance(Locale): region-based hint
 
-`Currency.getInstance(locale)` xác định currency từ **country/region** trong locale theo dữ liệu của JDK. Với locale thông thường, **language** và **variant** không quyết định đồng tiền. Ngoại lệ quan trọng là các Unicode locale extension `cu` và `rg`, được phân tích ở mục 3.
+`Currency.getInstance(locale)` determines a currency from the **country/region** in the locale according to JDK data. For ordinary locales, **language** and **variant** do not determine the currency. Important exceptions are the Unicode locale extensions `cu` and `rg`, analyzed in section 3.
 
-Ví dụ kinh điển:
+Classic examples:
 
-| Locale đầu vào | Khu vực liên quan | Mã thường được trả về | Ý nghĩa |
+| Input locale | Associated region | Typically returned code | Meaning |
 | --- | --- | --- | --- |
-| `en-US` | Mỹ | `USD` | Tiếng Anh tại Mỹ |
-| `es-US` | Mỹ | `USD` | Tiếng Tây Ban Nha tại Mỹ, **vẫn** USD |
-| `en-GB` | Anh | `GBP` | Cùng tiếng Anh nhưng khu vực khác |
-| `vi-VN` | Việt Nam | `VND` | Gợi ý tiền tệ theo VN |
-| `en` | Không chỉ định country | Không xác định được theo region; thường ném `IllegalArgumentException` | Ngôn ngữ **không phải** mã khu vực |
-| `en-AQ` | Nam Cực | `null` | Vùng không có đồng tiền được gán theo API |
+| `en-US` | United States | `USD` | English in the US |
+| `es-US` | United States | `USD` | Spanish in the US, **still** USD |
+| `en-GB` | United Kingdom | `GBP` | Same English language, different region |
+| `vi-VN` | Vietnam | `VND` | Currency hint for VN |
+| `en` | No country specified | Cannot resolve by region; typically throws `IllegalArgumentException` | Language is **not** a region code |
+| `en-AQ` | Antarctica | `null` | Territory with no assigned currency per API |
 
-Các kết quả là ví dụ cho JDK có dữ liệu ISO tương ứng, **không phải lời khẳng định rằng mọi hóa đơn phát sinh trong vùng ấy đều thanh toán bằng đồng đó**.
+These results are examples for a JDK with matching ISO data, **not a guarantee that every invoice issued in that region is settled in that currency**.
 
-Theo hợp đồng Java SE 17, `Currency.getInstance(Locale)` có thể:
+Under the Java SE 17 contract, `Currency.getInstance(Locale)` can:
 
-1. Trả về một `Currency` có mã ISO 4217.
-2. Trả về `null` nếu lãnh thổ không có currency được gán, ví dụ Antarctica (`AQ`).
-3. Ném `IllegalArgumentException` khi country của locale không phải mã ISO 3166 được hỗ trợ hoặc không đủ thông tin để xác định; vì vậy `Locale.forLanguageTag("en")` không phải cơ sở đầy đủ để lấy đồng tiền.
-4. Ném `NullPointerException` nếu truyền `locale == null`.
+1. Return a `Currency` with an ISO 4217 code.
+2. Return `null` if the territory has no assigned currency, such as Antarctica (`AQ`).
+3. Throw `IllegalArgumentException` when the locale's country is not a supported ISO 3166 code or lacks sufficient information to resolve; therefore `Locale.forLanguageTag("en")` is not sufficient to look up a currency.
+4. Throw `NullPointerException` if `locale == null` is passed.
 
-Trường hợp thiếu khu vực cần được giải quyết bằng **dữ liệu giao dịch hoặc một chính sách chọn tiền tệ rõ ràng**, không tự đoán “người nói tiếng Anh chắc chắn dùng USD”.
+Missing-region cases must be resolved using **transaction data or an explicit currency-selection policy**, not by guessing "English speakers must use USD".
 
-### 2.2. Currency.getInstance(String): dùng mã được xác định rõ
+### 2.2. Currency.getInstance(String): using an explicitly known code
 
-`Currency.getInstance("USD")` nhận **mã tiền tệ ISO 4217**, phù hợp khi hệ thống đã biết đơn vị qua hợp đồng, bảng giá, lựa chọn thanh toán hoặc bản ghi giao dịch.
+`Currency.getInstance("USD")` accepts an **ISO 4217 currency code**, which fits when the system already knows the unit from a contract, price list, payment choice, or transaction record.
 
 ~~~java
 Currency currency = Currency.getInstance("EUR");
 System.out.println(currency.getCurrencyCode()); // EUR
 ~~~
 
-Đây là **đoạn minh họa**, yêu cầu import `Currency`. Mã không được runtime hỗ trợ sẽ gây `IllegalArgumentException`; input `null` gây `NullPointerException`.
+This is an **illustrative snippet**, requiring `Currency` to be imported. A code not supported by the runtime throws `IllegalArgumentException`; a `null` input throws `NullPointerException`.
 
-API chỉ xác nhận rằng runtime biết mã. Nó không tự kiểm tra **đồng tiền có đang được phép dùng trong giao dịch này, được cổng thanh toán hỗ trợ, còn lưu hành tại ngày giao dịch, hay có tỷ giá cho cặp tiền hay không**. Những điều kiện đó phải do nghiệp vụ và hệ thống thanh toán xử lý.
+The API only confirms that the runtime recognizes the code. It does not check **whether the currency is permitted in this transaction, supported by the payment gateway, still in circulation on the transaction date, or has an exchange rate for the currency pair**. Those conditions must be handled by the business domain and payment system.
 
-### 2.3. Kết quả theo khu vực có thể đổi theo thời gian
+### 2.3. Region-based results can change over time
 
-Tài liệu `Currency.getInstance(Locale)` nêu rõ kết quả **có thể thay đổi theo thời gian khi một nước thay đổi đồng tiền**. JDK mang dữ liệu ISO và các quy tắc hiệu lực; một country không có bảo đảm luôn được ánh xạ đến một currency duy nhất cho mọi thời điểm lịch sử/tương lai.
+The `Currency.getInstance(Locale)` documentation explicitly states that results **can change over time when a country changes its currency**. The JDK bundles ISO data and effective-date rules; a country is not guaranteed to map to a single currency across all historical or future points in time.
 
-Hệ quả quan trọng:
+Important consequences:
 
-- **Không tính lại currency của hóa đơn cũ** bằng cách gọi `Currency.getInstance(customerLocale)` ở thời điểm hiện tại.
-- Đã xác nhận giao dịch dùng currency nào thì lưu **mã currency** ngay trên đơn hàng/chứng từ, bên cạnh `BigDecimal` amount.
-- Nếu nghiệp vụ phải tái hiện quy tắc tiền tệ **theo ngày hiệu lực lịch sử**, cần nguồn dữ liệu và chính sách phiên bản phù hợp; `Currency.getInstance(Locale)` không phải API tra cứu tỷ giá hoặc currency theo một ngày tùy chọn.
-- Dữ liệu runtime có thể được cập nhật qua các bản JDK. Kiểm thử tích hợp cần kiểm soát runtime khi phụ thuộc ánh xạ mã cụ thể.
+- **Do not recompute the currency of old invoices** by calling `Currency.getInstance(customerLocale)` in the present.
+- Once a transaction's currency is confirmed, store the **currency code** directly on the order/document alongside the `BigDecimal` amount.
+- If the business must reconstruct currency rules **by historical effective date**, use an appropriate versioned data source and policy; `Currency.getInstance(Locale)` is not an API for looking up exchange rates or currencies as of an arbitrary date.
+- Runtime data can be updated across JDK releases. Integration tests should control the runtime when depending on specific code mappings.
 
-## 3. Ngoại lệ quan trọng: Unicode locale extension cu và rg
+## 3. Important exception: Unicode locale extensions cu and rg
 
-Không nên nói một cách tuyệt đối rằng Java **luôn bỏ qua mọi phần khác ngoài country**. Java SE 17 hỗ trợ **Unicode locale extension** trong language tag:
+One should not claim absolutely that Java **always ignores everything other than country**. Java SE 17 supports **Unicode locale extensions** in language tags:
 
-- `u-cu-xxx` yêu cầu **currency** dạng mã ISO 4217. Ví dụ `en-US-u-cu-eur` thể hiện giao diện tiếng Anh/Mỹ nhưng ưu tiên Euro trong metadata locale.
-- `u-rg-xxzzzz` cho phép **region override** cho các dịch vụ bản địa hóa. Ví dụ `en-US-u-rg-gbzzzz` có country cơ sở là US nhưng region override là GB.
+- `u-cu-xxx` requests a **currency** as an ISO 4217 code. For example, `en-US-u-cu-eur` expresses an English/US interface while preferring Euro in locale metadata.
+- `u-rg-xxzzzz` specifies a **region override** for localization services. For example, `en-US-u-rg-gbzzzz` has base country US but region override GB.
 
-Kết quả cụ thể theo Java 17:
+Concrete results in Java 17:
 
 ~~~text
 en-US                 -> USD
@@ -102,67 +102,67 @@ en-US-u-cu-eur        -> EUR
 en-US-u-rg-gbzzzz     -> GBP
 ~~~
 
-Nếu có cả `cu` lẫn `rg`, currency được chỉ định bởi `cu` được ưu tiên trước kết quả gián tiếp từ region override `rg`.
+If both `cu` and `rg` are present, the currency specified by `cu` takes precedence over the indirect result from the `rg` region override.
 
-**Lưu ý về an toàn và nghiệp vụ:** các extension là **gợi ý/thiết lập trong Locale**, không phải bằng chứng khách hàng đã chọn đổi đồng tiền thanh toán. Một request tự khai báo `u-cu-eur` **không được tự ý thay đổi currency** của giá hàng hóa hoặc đơn đã được báo bằng USD. Nếu sản phẩm cho phép người dùng chọn currency, hãy ghi nhận lựa chọn qua một trường input có kiểm tra quyền và hỗ trợ, không dùng language tag như kênh âm thầm sửa giao dịch.
+**Security and business note:** extensions are **hints/preferences inside Locale**, not proof that a customer chose to switch billing currency. A request self-reporting `u-cu-eur` **must not silently alter the currency** of product prices or an order already quoted in USD. If the product lets users select a currency, capture that choice via a dedicated input field with authorization and support checks, never using a language tag as a backdoor to mutate transactions.
 
-Ngoài ra, `Locale.forLanguageTag` là parser có thể chấp nhận một phần tag khi gặp đoạn sai cú pháp. Với input locale không tin cậy cần kiểm tra cấu trúc nghiêm ngặt, dùng `new Locale.Builder().setLanguageTag(raw).build()` và xử lý `IllformedLocaleException`, sau đó mới áp dụng chính sách hỗ trợ sản phẩm. **Đúng cú pháp locale không chứng minh currency nghiệp vụ hợp lệ.**
+In addition, `Locale.forLanguageTag` is a lenient parser that may accept part of a tag when encountering malformed subtags. For untrusted locale input requiring strict structural validation, use `new Locale.Builder().setLanguageTag(raw).build()` and handle `IllformedLocaleException` before applying product support policies. **Valid locale syntax does not prove a valid business currency.**
 
-## 4. Những giới hạn thực tế của việc suy ra từ khu vực
+## 4. Practical limits of region-based inference
 
-### 4.1. Một khu vực không có nghĩa mọi giao dịch dùng một currency
+### 4.1. One region does not mean every transaction uses one currency
 
-Một quốc gia/khu vực có thể dùng nhiều đơn vị trong thanh toán, niêm yết, ngoại thương hoặc giao dịch trực tuyến. Đồng tiền **được sử dụng trong một hợp đồng cụ thể** có thể do nhà cung cấp, khách hàng, chính sách thuế, ngân hàng hoặc cổng thanh toán quyết định.
+A country or region may use multiple currencies for payments, pricing, international trade, or online transactions. The currency **used in a specific contract** can be dictated by the supplier, customer, tax rules, bank, or payment gateway.
 
-Ví dụ:
+Example:
 
 ~~~text
 Customer locale  : vi-VN
 Product price    : 50.00 USD
 Invoice currency : USD
 Display language : vi
-Settlement currency (nếu có chuyển đổi) : VND
+Settlement currency (if converted) : VND
 ~~~
 
-Trong tình huống đó, nếu gọi `Currency.getInstance(Locale.forLanguageTag("vi-VN"))` để thay `USD` trên giá sản phẩm thành `VND`, hệ thống sẽ **gắn sai đơn vị cho cùng trị số 50.00**, không phải quy đổi. Giá 50 USD không bao giờ được biến thành “50 VND” chỉ bằng việc đổi ký hiệu.
+In that situation, calling `Currency.getInstance(Locale.forLanguageTag("vi-VN"))` to replace `USD` on the product price with `VND` would **attach the wrong unit to the same numeric value 50.00**, not convert it. A price of 50 USD must never turn into "50 VND" just by swapping symbols.
 
-### 4.2. Người dùng, cửa hàng và tài khoản có thể ở các vùng khác nhau
+### 4.2. Users, stores, and accounts may be in different regions
 
-Cần phân biệt tối thiểu:
+At a minimum, distinguish between:
 
-| Nguồn dữ liệu | Tác dụng chính | Có đủ quyết định currency giao dịch không? |
+| Data source | Primary effect | Enough to decide transaction currency? |
 | --- | --- | --- |
-| `Accept-Language` trên HTTP | Ưu tiên ngôn ngữ và locale hiển thị | Không |
-| Quốc tịch/ngôn ngữ của khách hàng | Thông tin người dùng | Không |
-| Vị trí IP/GPS | Gợi ý vị trí hiện tại | Không |
-| Quốc gia giao hàng | Thuế, vận chuyển và chính sách sản phẩm | Không, trừ khi chính sách quy định rõ |
-| Quốc gia tài khoản/cửa hàng | Gợi ý currency bán hàng mặc định | Không cho mọi giao dịch |
-| Currency đã lưu trên price quote/order | Đơn vị của số tiền báo giá/giao dịch | **Có**, theo contract giao dịch |
-| Currency được cổng thanh toán xác nhận | Đơn vị capture/settlement | **Có**, trong phạm vi kết quả cổng thanh toán |
+| HTTP `Accept-Language` | Language and display-locale preference | No |
+| Customer nationality/language | User profile information | No |
+| IP/GPS location | Current location hint | No |
+| Shipping country | Taxes, shipping, and product rules | No, unless explicitly defined by policy |
+| Account/store country | Default storefront currency hint | Not for every transaction |
+| Currency stored on price quote/order | Unit of the quoted/transacted amount | **Yes**, per transaction contract |
+| Currency confirmed by payment gateway | Capture/settlement unit | **Yes**, within gateway result scope |
 
-Ngay cả khi biết khu vực chính xác, **giá trị giao dịch phải có đơn vị tường minh** nếu ứng dụng xử lý tiền thật. Locale có thể được dùng để **gợi ý giá trị mặc định** tại bước tạo đơn mới theo chính sách, nhưng phải kiểm tra xem đồng tiền đó có được nhà bán hàng và phương thức thanh toán hỗ trợ hay không.
+Even when the exact region is known, **a transaction value must carry an explicit unit** whenever the application handles real money. Locale may be used to **suggest a default** when creating a new order per policy, but you must verify that the currency is supported by the merchant and payment method.
 
-### 4.3. Không phải mọi mã trong API đều đang là legal tender
+### 4.3. Not every code in the API is currently legal tender
 
-`Currency.getAvailableCurrencies()` trả tập các currency được runtime biết, **có thể bao gồm mã đã lỗi thời** theo dữ liệu Java. Vì thế:
+`Currency.getAvailableCurrencies()` returns the set of currencies known to the runtime, **which may include obsolete codes** in Java's data. Thus:
 
 ~~~java
 Set<Currency> known = Currency.getAvailableCurrencies();
 ~~~
 
-Đây là đoạn minh họa, cần import `java.util.Set` và `java.util.Currency`. Việc mã nằm trong tập này chỉ nói **JDK có dữ liệu về mã**, không đảm bảo:
+This is an illustrative snippet requiring imports for `java.util.Set` and `java.util.Currency`. A code's presence in this set only means **the JDK has data for that code**; it does not guarantee that:
 
-- Currency đang là legal tender.
-- Mã đó được hệ thống ngân hàng/cổng thanh toán hỗ trợ.
-- Sản phẩm cho phép niêm yết, thanh toán hoặc hoàn tiền bằng mã đó.
-- Có tỷ giá giao dịch hiện hành.
-- Mã đã/đang còn hiệu lực ở thời điểm lịch sử liên quan.
+- The currency is currently legal tender.
+- The code is supported by banking systems or payment gateways.
+- The product allows listing, paying, or refunding in that code.
+- A current exchange rate exists.
+- The code was or is valid at the relevant historical date.
 
-Trong luồng thanh toán, hãy kiểm tra **allowlist currency được hỗ trợ bởi dịch vụ** và quy định hiệu lực/nghiệp vụ riêng.
+In payment flows, validate against a **currency allowlist supported by the service** along with separate validity and business rules.
 
-## 5. Định dạng tiền không giống quy đổi tiền
+## 5. Formatting money is not currency conversion
 
-Java thường dùng `NumberFormat.getCurrencyInstance(displayLocale)` để tạo formatter có quy ước trình bày tiền phù hợp với locale.
+Java commonly uses `NumberFormat.getCurrencyInstance(displayLocale)` to build a formatter with currency presentation conventions appropriate for a locale.
 
 ~~~java
 NumberFormat formatter =
@@ -171,23 +171,23 @@ formatter.setCurrency(Currency.getInstance("USD"));
 String shown = formatter.format(new BigDecimal("125.50"));
 ~~~
 
-Đoạn minh họa trên cần các import: `java.text.NumberFormat`, `java.util.Locale`, `java.util.Currency`, `java.math.BigDecimal`.
+The illustrative snippet above requires imports: `java.text.NumberFormat`, `java.util.Locale`, `java.util.Currency`, `java.math.BigDecimal`.
 
-Ở đây:
+Here:
 
-- `Locale.GERMANY` điều khiển phần **cách hiển thị**: dấu phân cách, vị trí đơn vị, quy ước ký hiệu.
-- `Currency.getInstance("USD")` là đơn vị **được hiển thị**.
-- `new BigDecimal("125.50")` là trị số **không thay đổi**; không có tỷ giá hoặc phép nhân/chia nào xảy ra.
+- `Locale.GERMANY` controls the **display style**: separators, unit placement, symbol conventions.
+- `Currency.getInstance("USD")` is the **displayed unit**.
+- `new BigDecimal("125.50")` is the numeric value, which **does not change**; no exchange rate or multiplication/division occurs.
 
-**Quan trọng:** `NumberFormat.setCurrency(currency)` **không tự cập nhật** `minimumFractionDigits` và `maximumFractionDigits`. Nếu currency thay đổi từ EUR sang JPY hay ngược lại, cần kiểm soát số chữ số lẻ theo tiền tệ và yêu cầu của nghiệp vụ; không giả định một lệnh `setCurrency` đã đặt lại precision thích hợp.
+**Important:** `NumberFormat.setCurrency(currency)` **does not automatically update** `minimumFractionDigits` and `maximumFractionDigits`. If the currency switches from EUR to JPY or vice versa, control the fractional digits explicitly according to the currency and business requirements; never assume a single `setCurrency` call resets the appropriate precision.
 
-`Currency.getDefaultFractionDigits()` trả số chữ số phần nhỏ mặc định theo ISO 4217; ví dụ thường là **USD: 2** và **JPY: 0**. Giá trị **-1** có thể xuất hiện với pseudo-currency. Đây là metadata về *minor unit theo ISO*, không có nghĩa mọi cổng thanh toán hoặc quy định làm tròn tiền mặt đều tuân theo số đó cho mọi loại giao dịch.
+`Currency.getDefaultFractionDigits()` returns the default number of minor-unit digits per ISO 4217; typical examples are **USD: 2** and **JPY: 0**. A value of **-1** may appear for pseudo-currencies. This is metadata about *ISO minor units*, and does not mean every payment gateway or cash-rounding rule follows that exact count for every transaction type.
 
-Một số giao dịch còn yêu cầu **bước làm tròn tiền mặt**, cách tính thuế hay quy định đặc thù của nhà cung cấp. Cần xác định rule đó trong domain/payment layer, rồi đặt số chữ số hiển thị riêng.
+Some transactions also require **cash rounding steps**, tax calculation rules, or provider-specific rules. Define those rules in the domain/payment layer, and configure display precision separately.
 
-### 5.1. Ký hiệu không phải mã định danh duy nhất
+### 5.1. Symbols are not unique identifiers
 
-`Currency.getSymbol(locale)` và `getDisplayName(locale)` chỉ phục vụ **văn bản hiển thị**. Dấu `$` có thể dùng cho nhiều currency; chữ viết tắt hoặc ký hiệu thay đổi theo locale:
+`Currency.getSymbol(locale)` and `getDisplayName(locale)` serve **display text** only. The `$` sign can belong to many currencies; abbreviations or symbols vary by locale:
 
 ~~~java
 Currency usd = Currency.getInstance("USD");
@@ -195,62 +195,62 @@ String symbol = usd.getSymbol(Locale.US);
 String name = usd.getDisplayName(Locale.US);
 ~~~
 
-Đây là đoạn minh họa; code và tên currency ổn định hơn để định danh trong dữ liệu. **Không parse một ký hiệu `$` thành USD mà không có ngữ cảnh**, và không lưu mỗi ký hiệu thay cho mã ISO 4217 trên hóa đơn.
+This is an illustrative snippet; the currency code and name are more stable identifiers in data. **Do not parse a `$` symbol into USD without context**, and do not store only a symbol instead of the ISO 4217 code on invoices.
 
-### 5.2. Khi thật sự cần chuyển đổi
+### 5.2. When conversion is truly needed
 
-Quy đổi tiền cần ít nhất:
+Currency conversion requires at least:
 
-- Số tiền và mã currency nguồn.
-- Currency đích.
-- Tỷ giá đáng tin cậy, thời điểm hiệu lực và hướng báo giá.
-- Quy tắc precision/rounding, phí và các quy tắc tuân thủ liên quan.
+- Source amount and source currency code.
+- Target currency.
+- A reliable exchange rate, effective timestamp, and quote direction.
+- Precision/rounding rules, fees, and relevant compliance rules.
 
-Ví dụ cách tổ chức dữ liệu:
+Example data structure:
 
 ~~~text
-originalAmount  = 125.50
+originalAmount   = 125.50
 originalCurrency = USD
-targetCurrency  = VND
-exchangeRate    = (do dịch vụ tỷ giá cung cấp, không tự đoán)
-effectiveAt     = (thời điểm tỷ giá)
-convertedAmount = (kết quả tính với quy tắc rounding đã chọn)
+targetCurrency   = VND
+exchangeRate     = (provided by an exchange-rate service, not guessed)
+effectiveAt      = (rate effective timestamp)
+convertedAmount  = (result calculated with the chosen rounding rule)
 ~~~
 
-Java `Currency`, `Locale` và `NumberFormat` **không tự cung cấp tỷ giá**. Không xây luồng đổi tiền bằng cách thay ký hiệu qua `setCurrency` hoặc `Locale.setDefault`.
+Java's `Currency`, `Locale`, and `NumberFormat` **do not provide exchange rates**. Never build a currency-conversion flow by swapping symbols via `setCurrency` or `Locale.setDefault`.
 
-## 6. Mô hình dữ liệu: gắn Currency với BigDecimal từ đầu
+## 6. Data modeling: bind Currency to BigDecimal from the start
 
-Một mô hình nhỏ, độc lập với locale hiển thị:
+A small model independent of display locale:
 
 ~~~java
 record Money(BigDecimal amount, Currency currency) {}
 ~~~
 
-Đây là phần khai báo Java 17, cần import `BigDecimal`, `Currency`; trong hệ thống thật, nên có constructor kiểm tra `amount`/`currency` khác `null` và bất biến nghiệp vụ (ví dụ không cho số tiền âm khi là giá niêm yết).
+This is a Java 17 declaration requiring imports for `BigDecimal` and `Currency`; in a real system, include a compact constructor checking that `amount` and `currency` are non-null and enforcing business invariants (for example, disallowing negative amounts for list prices).
 
-**Không lưu một số tiền đơn lẻ như `125.50` rồi suy ra đơn vị từ ngôn ngữ giao diện về sau.** Nên lưu ít nhất:
+**Never store a bare number like `125.50` and infer its unit later from the UI language.** Store at least:
 
-| Trường | Ví dụ | Lưu ý |
+| Field | Example | Notes |
 | --- | --- | --- |
-| `amount` | `125.50` | `BigDecimal` hoặc dạng decimal có precision xác định |
-| `currencyCode` | `USD` | Mã ISO 4217 được xác minh trong domain |
-| `displayLocale` | `vi-VN` | Tùy chọn UI, không thay đổi hai trường trên |
-| `exchangeRate` | Nếu có quy đổi | Dữ liệu có nguồn và thời điểm |
-| `settlementCurrency` | Nếu khác currency giao dịch | Cần đối soát rõ ràng |
+| `amount` | `125.50` | `BigDecimal` or a decimal type with defined precision |
+| `currencyCode` | `USD` | ISO 4217 code validated in the domain |
+| `displayLocale` | `vi-VN` | UI preference; does not alter the two fields above |
+| `exchangeRate` | If converted | Data with source and timestamp |
+| `settlementCurrency` | If different from transaction currency | Requires clear reconciliation |
 
-Tầng nghiệp vụ cần kiểm soát việc cộng/trừ tiền:
+The business layer must guard monetary addition and subtraction:
 
-- Không cộng 5 USD với 10 EUR rồi lưu kết quả 15 ở một currency không xác định.
-- Muốn tổng hợp nhiều currency thì phải chuyển đổi theo chính sách tỷ giá có chứng cứ.
-- Không so sánh hoặc làm tròn tiền qua **chuỗi đã format**; giữ số và currency trong object/domain.
-- Nếu UI thay ngôn ngữ giữa lúc đặt hàng, **currency trên đơn đã xác nhận không đổi** trừ khi có thao tác đổi tiền được người dùng yêu cầu và hệ thống hỗ trợ.
+- Do not add 5 USD and 10 EUR and store 15 in an unspecified currency.
+- To aggregate across multiple currencies, convert using an auditable exchange-rate policy.
+- Do not compare or round money via **formatted strings**; keep numbers and currencies in domain objects.
+- If the UI changes language mid-checkout, **the currency on a confirmed order does not change** unless an explicit currency conversion is requested by the user and supported by the system.
 
-Locale hiển thị có thể thay đổi qua request context mà không phá vỡ hợp đồng tiền tệ của đối tượng `Money`.
+The display locale can change per request context without breaking the monetary contract of the `Money` object.
 
-## 7. Chương trình Java 17 hoàn chỉnh: giới hạn suy luận qua ví dụ
+## 7. Complete Java 17 program: limits of inference by example
 
-Đặt nội dung sau trong file **`CurrencyInferenceDemo.java`**. Mã cố ý chỉ in mã currency và giá trị gốc để stdout ít phụ thuộc phiên bản dữ liệu ký hiệu hiển thị của từng locale.
+Place the following code in **`CurrencyInferenceDemo.java`**. The code intentionally prints only currency codes and raw values so stdout depends minimally on locale symbol data versions.
 
 ~~~java
 import java.math.BigDecimal;
@@ -304,14 +304,14 @@ public class CurrencyInferenceDemo {
 }
 ~~~
 
-Biên dịch và chạy bằng Java 17 trở lên:
+Compile and run with Java 17 or later:
 
 ~~~bash
 javac -encoding UTF-8 CurrencyInferenceDemo.java
 java CurrencyInferenceDemo
 ~~~
 
-Stdout đã kiểm tra trên JDK với dữ liệu currency tương ứng:
+Verified stdout on a JDK with matching currency data:
 
 ~~~text
 en-US -> USD
@@ -326,111 +326,111 @@ payment currency: USD
 JPY default fraction: 0
 ~~~
 
-**Giải thích kết quả:**
+**Result explanation:**
 
-1. `en-US` và `es-US` khác **ngôn ngữ**, nhưng cùng **khu vực US**, nên ánh xạ mặc định là USD.
-2. `en-GB` vẫn dùng tiếng Anh nhưng khu vực GB nên cho GBP: language đơn lẻ không quyết định currency.
-3. `en` không có khu vực cần thiết cho ánh xạ ISO country; helper bắt `IllegalArgumentException` và in `not-resolvable`.
-4. `en-AQ` minh họa một lãnh thổ không có currency được gán: Java trả `null`, helper in `none`.
-5. `en-US-u-cu-eur` cho EUR qua extension `cu` dù country cơ sở là US.
-6. `en-US-u-rg-gbzzzz` cho GBP do region override `rg`, dù language tag còn country US.
-7. Giá trị tiền `125.50` vẫn là USD ngay cả khi formatter được tạo theo `Locale.GERMANY`. Lệnh `setCurrency(USD)` **không phải phép quy đổi**.
-8. JPY có 0 chữ số thập phân mặc định theo ISO; chi tiết thanh toán thực tế vẫn phụ thuộc hợp đồng cổng thanh toán và quy tắc nghiệp vụ.
+1. `en-US` and `es-US` differ in **language**, yet share the **US region**, so the default mapping is USD.
+2. `en-GB` still uses English, but the GB region yields GBP: language alone does not determine currency.
+3. `en` lacks the region required for ISO country mapping; the helper catches `IllegalArgumentException` and prints `not-resolvable`.
+4. `en-AQ` illustrates a territory with no assigned currency: Java returns `null`, and the helper prints `none`.
+5. `en-US-u-cu-eur` returns EUR via the `cu` extension even though the base country is US.
+6. `en-US-u-rg-gbzzzz` returns GBP due to the `rg` region override, despite the language tag retaining country US.
+7. The monetary value `125.50` remains USD even when the formatter is built with `Locale.GERMANY`. Calling `setCurrency(USD)` **is not a conversion**.
+8. JPY has 0 default decimal places per ISO; actual payment details still depend on the payment gateway contract and business rules.
 
-Trong code ví dụ, helper `inferredCode` nhận `Locale.forLanguageTag` cho tiện trình diễn. **Đối với input người dùng không tin cậy**, nên xác thực language tag và hạn chế extension bằng quy tắc rõ ràng trước khi dùng thông tin cho quyết định tiền tệ. Không sử dụng helper như một dịch vụ xác định currency để thu tiền.
+In the example code, `inferredCode` accepts `Locale.forLanguageTag` for demonstration convenience. **For untrusted user input**, validate the language tag and restrict extensions with explicit rules before using the information in monetary decisions. Do not use this helper as a service to determine billing currencies.
 
-## 8. Luồng nghiệp vụ nên chọn currency theo thứ tự nào?
+## 8. In what order should a business flow select a currency?
 
-Một cách thiết kế có kiểm soát là **ưu tiên nguồn sự thật của giao dịch**:
+A controlled design **prioritizes the transaction's source of truth**:
 
 ~~~text
-1. Giao dịch / bảng giá / hợp đồng có currency tường minh?
-   |-- Có --> giữ mã đó, kiểm tra được phép và tương thích thanh toán
+1. Does the transaction / price list / contract have an explicit currency?
+   |-- Yes --> keep that code, verify it is allowed and payment-compatible
    |
-   '-- Không --> 
-       2. Người dùng đã chọn currency bằng chức năng được hỗ trợ?
-          |-- Có --> kiểm tra allowlist, ghi nhận lựa chọn
+   '-- No --> 
+       2. Did the user select a currency through a supported feature?
+          |-- Yes --> check allowlist, record selection
           |
-          '-- Không -->
-              3. Có chính sách chọn mặc định theo merchant/market/region?
-                 |-- Có --> dùng dữ liệu policy đã version hóa
+          '-- No -->
+              3. Is there a default selection policy by merchant/market/region?
+                 |-- Yes --> use versioned policy data
                  |
-                 '-- Không --> yêu cầu xác định currency, không tự đoán
-                               chỉ từ language hoặc Accept-Language
+                 '-- No --> require currency to be specified, do not guess
+                              solely from language or Accept-Language
 ~~~
 
-Có thể dùng `Currency.getInstance(locale)` như một **gợi ý UI** ở bước chọn mặc định nếu policy cho phép, nhưng vẫn phải xử lý `null`/`IllegalArgumentException`, kiểm tra currency được hỗ trợ và không tự ý ghi đè đồng tiền đã được xác định.
+You can use `Currency.getInstance(locale)` as a **UI hint** at the default-selection step if policy permits, while still handling `null`/`IllegalArgumentException`, verifying the currency is supported, and never silently overwriting an already established currency.
 
-Sau khi domain đã có `Money(amount, currency)`:
+Once the domain holds `Money(amount, currency)`:
 
-1. Presenter chọn `Locale` theo ngôn ngữ người dùng.
-2. Presenter tạo formatter theo `Locale`.
-3. Presenter gọi `formatter.setCurrency(money.currency())` và áp dụng quy tắc số lẻ/rounding rõ ràng.
-4. Chuỗi được trả ra chỉ là **bản trình bày**, không trở thành dữ liệu nguồn của đơn hàng.
+1. The presenter picks `Locale` from the user's language preference.
+2. The presenter creates a formatter for that `Locale`.
+3. The presenter calls `formatter.setCurrency(money.currency())` and applies explicit fraction-digit and rounding rules.
+4. The returned string is strictly a **presentation view**, never becoming the order's source data.
 
-Nếu chưa có currency, **không dùng `Locale.getDefault()` của JVM như một cơ chế fallback cho thanh toán**: default locale có thể do máy chủ/CI/container quyết định và không phản ánh user hay merchant.
+If no currency is set yet, **do not use the JVM's `Locale.getDefault()` as a fallback for billing**: the default locale may be determined by the server/CI/container and does not reflect the user or merchant.
 
-## 9. Các lỗi thường gặp
+## 9. Common errors
 
-| Sai lầm | Vì sao sai | Cách làm đúng |
+| Mistake | Why it is wrong | Correct approach |
 | --- | --- | --- |
-| “Tiếng Anh luôn dùng USD” | `en-US`, `en-GB` và nhiều locale dùng chung language | Chỉ dùng language cho ngôn ngữ UI |
-| “Biết country là biết currency trên hóa đơn” | Currency giao dịch phụ thuộc hợp đồng/merchant/payment | Lưu mã currency tường minh trên khoản tiền |
-| Dùng `Currency.getInstance(Locale.forLanguageTag("en"))` và giả định có kết quả | Thiếu country, có thể ném lỗi | Kiểm tra đầu vào và chính sách fallback |
-| Không xử lý kết quả `null` | Một số lãnh thổ không có currency được gán | Hỗ trợ trạng thái không xác định |
-| Bỏ qua Unicode extensions `cu` và `rg` | Currency có thể khác ánh xạ country cơ sở | Hiểu đầy đủ hợp đồng API, không dùng extension làm lệnh thanh toán |
-| Gọi `setCurrency(EUR)` rồi nghĩ 100 USD thành 100 EUR đã quy đổi | Chỉ thay **đơn vị được hiển thị**, trị số giữ nguyên | Dùng dịch vụ tỷ giá và lưu conversion record |
-| Coi `Currency.getAvailableCurrencies()` là danh sách tiền đang được chấp nhận | Có thể gồm mã cũ hoặc mã không được provider hỗ trợ | Allowlist theo product/payment/hiệu lực |
-| Lưu dấu `$` thay cho mã currency | Nhiều currency chia sẻ ký hiệu | Lưu `USD`/`CAD`/... rõ ràng |
-| Gọi `setCurrency` và nghĩ precision tự thay | `setCurrency` không reset min/max fraction | Cấu hình fraction digits và rounding riêng |
-| Đổi locale màn hình rồi làm đổi đơn vị hóa đơn | Locale chỉ liên quan trình bày | Giữ `Money` và currency immutable theo contract |
-| Dùng `double` cho tính toán tiền cần chính xác | Có sai số nhị phân | Dùng `BigDecimal` với rounding rule |
-| Suy tỷ giá từ locale | Locale không có tỷ giá | Lấy tỷ giá có nguồn, thời điểm và quy tắc |
+| "English always uses USD" | `en-US`, `en-GB`, and many locales share a language | Use language only for UI text |
+| "Knowing the country tells you the invoice currency" | Transaction currency depends on contract/merchant/payment | Store an explicit currency code on the monetary amount |
+| Calling `Currency.getInstance(Locale.forLanguageTag("en"))` and assuming a result | Missing country, can throw an exception | Validate input and define a fallback policy |
+| Ignoring a `null` result | Some territories have no assigned currency | Handle the unresolved state |
+| Ignoring Unicode extensions `cu` and `rg` | Currency can differ from the base country mapping | Understand the full API contract; never treat extensions as payment commands |
+| Calling `setCurrency(EUR)` and thinking 100 USD converted to 100 EUR | Only changes the **displayed unit**; the number stays the same | Use an exchange-rate service and store a conversion record |
+| Treating `Currency.getAvailableCurrencies()` as accepted currencies | May include obsolete codes or codes unsupported by providers | Maintain an allowlist per product/payment/effective status |
+| Storing `$` instead of a currency code | Multiple currencies share the symbol | Store `USD`/`CAD`/... explicitly |
+| Calling `setCurrency` and expecting precision to update | `setCurrency` does not reset min/max fraction digits | Configure fraction digits and rounding separately |
+| Changing screen locale and mutating the invoice unit | Locale only governs presentation | Keep `Money` and currency immutable per contract |
+| Using `double` for exact monetary calculations | Binary floating-point rounding errors | Use `BigDecimal` with explicit rounding rules |
+| Inferring exchange rates from a locale | A locale carries no exchange rate | Fetch rates with source, timestamp, and rules |
 
-## 10. Kiểm thử cần có
+## 10. Required tests
 
-Tách riêng **kiểm thử Java API** và **kiểm thử nghiệp vụ**.
+Separate **Java API tests** from **business-logic tests**.
 
-### Kiểm thử hành vi của Java
+### Testing Java behavior
 
-- `en-US` với `es-US` cùng gợi ý USD: language không đổi country.
-- `en-US` với `en-GB` khác currency: country có tác dụng trong ánh xạ.
-- Locale chỉ có language như `en`: xử lý lỗi rõ ràng; không tự gán USD.
-- Vùng `AQ`: xử lý `null` thay vì giả định mọi country có currency.
-- `u-cu-eur` và `u-rg-gbzzzz`: xác minh extension và chính sách nhận input.
-- `Currency.getInstance("USD")` với mã sai/không được hỗ trợ: xử lý `IllegalArgumentException`.
-- `NumberFormat.getCurrencyInstance(locale)` sau khi `setCurrency`: đơn vị hiển thị đổi nhưng số gốc không đổi; fraction digits cần được kiểm soát.
+- `en-US` and `es-US` both suggest USD: language does not alter country.
+- `en-US` vs. `en-GB` produce different currencies: country drives the mapping.
+- Language-only locale such as `en`: handle the error explicitly; never auto-assign USD.
+- Region `AQ`: handle `null` rather than assuming every country has a currency.
+- `u-cu-eur` and `u-rg-gbzzzz`: verify extension behavior and input-acceptance policy.
+- `Currency.getInstance("USD")` with invalid/unsupported codes: handle `IllegalArgumentException`.
+- `NumberFormat.getCurrencyInstance(locale)` after `setCurrency`: the displayed unit changes while the underlying number does not; fraction digits must be controlled.
 
-### Kiểm thử nghiệp vụ
+### Testing business logic
 
-- Đơn 125.50 USD mở trên UI tiếng Việt, tiếng Đức và tiếng Anh **vẫn là USD**.
-- Tạo đơn khi không biết currency: yêu cầu lựa chọn hoặc áp dụng policy đã công bố, không đoán từ language.
-- Ngôn ngữ UI hoặc country giao hàng đổi sau khi tạo đơn: đồng tiền đơn đã xác nhận không tự đổi.
-- Cổng thanh toán không hỗ trợ mã currency do UI đề xuất: từ chối/chọn lại theo policy, không thay đổi âm thầm.
-- Quy đổi USD → VND: bắt buộc có tỷ giá, thời điểm, rounding và dữ liệu audit.
-- Hóa đơn cũ theo dữ liệu lịch sử: không dùng ánh xạ country hiện thời để viết lại currency của giao dịch.
-- Currency code và amount được lưu/đọc từ database/API mà không phụ thuộc locale của server.
+- An order for 125.50 USD opened in Vietnamese, German, and English UIs **remains USD**.
+- Creating an order with an unknown currency: require explicit selection or apply a published policy rather than guessing from language.
+- Changing UI language or shipping country after order creation: a confirmed order's currency does not change automatically.
+- Payment gateway does not support the UI-suggested currency code: reject or re-select per policy without silent mutation.
+- Converting USD → VND: requires an exchange rate, effective timestamp, rounding rule, and audit trail.
+- Historical invoices: never use current country mappings to rewrite a past transaction's currency.
+- Currency code and amount are persisted/read in the database/API independently of the server locale.
 
-Với tình huống bắt buộc theo thời gian, thiết kế test cố định dataset/version và mốc hiệu lực; kết quả ánh xạ theo country có thể thay đổi khi JDK cập nhật dữ liệu tiền tệ.
+For time-sensitive scenarios, design tests that pin dataset/version and effective timestamps; country-to-currency mappings can change when the JDK updates currency data.
 
-## 11. Bài tập thực hành
+## 11. Practice exercises
 
-1. Gọi `Currency.getInstance` với `Locale.forLanguageTag("fr-CA")` và `Locale.forLanguageTag("en-CA")`; giải thích vì sao cùng region có thể cho cùng mã dù ngôn ngữ khác.
-2. Thử `en-US-u-cu-jpy`; phân biệt region của locale với currency extension, và lý do không dùng extension tự động sửa hóa đơn.
-3. Tạo `Money(new BigDecimal("100.00"), Currency.getInstance("USD"))`; định dạng theo `Locale.GERMANY`, rồi theo `Locale.US`. So sánh **chuỗi hiển thị** và **giá trị nghiệp vụ**.
-4. Thử `Currency.getInstance(Locale.forLanguageTag("en"))` và một mã country không được hỗ trợ; xử lý kết quả hoặc ngoại lệ.
-5. Kiểm tra `Currency.getInstance("JPY").getDefaultFractionDigits()`, sau đó format khoản tiền JPY; đặt rõ min/max fraction digits trong presenter.
-6. Tạo danh sách `supportedCurrencies` do merchant quyết định, rồi thử locale đề xuất một currency không nằm trong danh sách.
-7. Viết hàm `createQuote(BigDecimal amount, String currencyCode)` xác thực mã ISO và allowlist, không nhận locale làm nguồn currency.
-8. Giải thích vì sao chuyển `"$125.50"` thành `Money` có thể gây nhập nhằng nếu thiếu mã currency và locale.
+1. Call `Currency.getInstance` with `Locale.forLanguageTag("fr-CA")` and `Locale.forLanguageTag("en-CA")`; explain why the same region can yield the same code despite different languages.
+2. Try `en-US-u-cu-jpy`; distinguish the locale's region from the currency extension, and explain why extensions must not automatically alter invoices.
+3. Create `Money(new BigDecimal("100.00"), Currency.getInstance("USD"))`; format it with `Locale.GERMANY`, then with `Locale.US`. Compare the **display string** and the **business value**.
+4. Test `Currency.getInstance(Locale.forLanguageTag("en"))` and an unsupported country code; handle the result or exception.
+5. Check `Currency.getInstance("JPY").getDefaultFractionDigits()`, then format a JPY amount; explicitly configure min/max fraction digits in a presenter.
+6. Create a `supportedCurrencies` list defined by a merchant, then test a locale suggesting a currency outside that list.
+7. Write `createQuote(BigDecimal amount, String currencyCode)` validating the ISO code and allowlist without taking a locale as the currency source.
+8. Explain why converting `"$125.50"` into `Money` is ambiguous without a currency code and locale.
 
-## 12. Kết luận
+## 12. Conclusion
 
-**Locale không phải đồng tiền giao dịch.** Language chủ yếu quyết định ngôn ngữ UI; region có thể giúp Java **gợi ý** một currency, nhưng không xác định chắc currency của mọi giao dịch. `Currency.getInstance(Locale)` có thể trả mã được ánh xạ, `null`, ném lỗi hoặc chịu tác động từ các Unicode extension `cu`/`rg`.
+**A locale is not a transaction currency.** Language primarily determines UI text; region can help Java **suggest** a currency, yet cannot definitively determine the currency of every transaction. `Currency.getInstance(Locale)` can return a mapped code, return `null`, throw an exception, or be influenced by Unicode extensions `cu`/`rg`.
 
-Khi làm phần mềm có tiền thật, hãy lưu `BigDecimal` **kèm `Currency` tường minh** từ nguồn đáng tin cậy; dùng `Locale` chỉ để trình bày, tách riêng tỷ giá/quy đổi và kiểm soát quy tắc làm tròn. Cách tách bạch đó ngăn lỗi nguy hiểm nhất: **đổi ký hiệu hoặc ngôn ngữ rồi vô tình thay đổi ý nghĩa của số tiền**.
+When building software that handles real money, store `BigDecimal` **paired with an explicit `Currency`** from a trusted source; use `Locale` strictly for presentation, separate exchange rates and conversion, and control rounding rules. That separation prevents the most dangerous bug: **changing a symbol or language and accidentally altering the meaning of a monetary amount**.
 
-**Tài liệu tham khảo:**
+**References:**
 
 - Java SE 17, `java.util.Currency`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Currency.html
 - Java SE 17, `java.util.Locale`: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Locale.html

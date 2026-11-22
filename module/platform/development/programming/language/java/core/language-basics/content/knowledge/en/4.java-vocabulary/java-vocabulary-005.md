@@ -1,49 +1,49 @@
-# Giới hạn của tên `_`, `const` và `goto` trong Java 17+
+# Limits of `_`, `const`, and `goto` as Names in Java 17+
 
-Ba trường hợp dễ gây nhầm khi đặt tên trong Java là dấu gạch dưới đơn lẻ `_` cùng hai từ `const` và `goto`. Chúng **không được dùng làm identifier** (tên biến, lớp, phương thức, v.v.) trên Java 17, nhưng lý do và lịch sử của chúng không hoàn toàn giống nhau:
+Three cases that easily cause confusion when naming things in Java are the standalone underscore `_` along with the two words `const` and `goto`. They **cannot be used as identifiers** (names of variables, classes, methods, etc.) in Java 17, though their reasons and histories are not entirely identical:
 
-- `_` (chỉ một dấu gạch dưới) trở thành từ khóa dành riêng từ **Java 9**. Dấu `_` vẫn được phép **nằm trong tên dài hơn** như `_count`, `value_` hoặc `__`.
-- `const` và `goto` được Java **dành riêng**, nhưng Java **không cung cấp cú pháp khai báo hằng bằng `const` hoặc câu lệnh nhảy `goto`**.
-- Thay cho `const` khi cần ngăn gán lại, Java sử dụng `final`; hằng số cấp lớp thường khai báo với `static final`. Thay cho ý tưởng nhảy vô điều kiện, Java cung cấp các cấu trúc điều khiển có quy tắc rõ ràng như `if`, `for`, `while`, `break`, `continue` và `return`.
+- `_` (a single underscore alone) became a reserved keyword starting in **Java 9**. The `_` character is still allowed **inside longer names** such as `_count`, `value_`, or `__`.
+- `const` and `goto` are **reserved** by Java, even though Java **does not provide a `const` constant declaration syntax or a `goto` jump statement**.
+- Instead of `const` when preventing reassignment, Java uses `final`; class-level constants are commonly declared with `static final`. Instead of unconditional jumps, Java provides structured control-flow constructs such as `if`, `for`, `while`, `break`, `continue`, and `return`.
 
-Bài này tập trung vào **Java/JDK 17 trở lên**, chỉ ra tên nào hợp lệ, cách thay bằng cú pháp đúng và cách tự xác minh bằng `javac`.
+This lesson focuses on **Java/JDK 17 and later**, showing which names are valid, how to replace them with proper syntax, and how to verify them yourself with `javac`.
 
-## 1. Vì sao ba tên này không hợp lệ?
+## 1. Why are these three names invalid?
 
-| Cách viết | Trên Java 17 | Giải thích |
+| Syntax | On Java 17 | Explanation |
 | --- | --- | --- |
-| `int _ = 1;` | **Lỗi biên dịch** | `_` đơn lẻ là từ khóa dành riêng |
-| `int const = 2;` | **Lỗi biên dịch** | `const` là từ khóa dành riêng, dù Java không thực thi một câu lệnh `const` |
-| `int goto = 3;` | **Lỗi biên dịch** | `goto` là từ khóa dành riêng, dù Java không có câu lệnh `goto` |
-| `int _count = 1;` | **Hợp lệ** | Dấu gạch dưới chỉ là một phần của tên |
-| `int count_ = 2;` | **Hợp lệ** | Tên không phải `_` đơn lẻ |
-| `int __ = 3;` | **Hợp lệ** | Hai dấu gạch dưới tạo thành một identifier khác `_` |
-| `int constValue = 4;` | **Hợp lệ** | Không trùng nguyên token `const` |
-| `int gotoCount = 5;` | **Hợp lệ** | Không trùng nguyên token `goto` |
-| `String text = "const goto _";` | **Hợp lệ** | Các ký tự nằm trong *string literal*, không phải identifier |
+| `int _ = 1;` | **Compile error** | Standalone `_` is a reserved keyword |
+| `int const = 2;` | **Compile error** | `const` is a reserved keyword, even though Java implements no `const` statement |
+| `int goto = 3;` | **Compile error** | `goto` is a reserved keyword, even though Java has no `goto` statement |
+| `int _count = 1;` | **Valid** | The underscore is only part of the name |
+| `int count_ = 2;` | **Valid** | The name is not standalone `_` |
+| `int __ = 3;` | **Valid** | Two underscores form an identifier distinct from `_` |
+| `int constValue = 4;` | **Valid** | Does not match the exact `const` token |
+| `int gotoCount = 5;` | **Valid** | Does not match the exact `goto` token |
+| `String text = "const goto _";` | **Valid** | The characters are inside a *string literal*, not identifiers |
 
-**Điểm cốt lõi:** trình biên dịch xem `const` là một token dành riêng, nhưng `constValue` là **một identifier riêng biệt**, không bị tách thành keyword `const` và phần đuôi `Value`. Tương tự với `gotoCount`.
+**Key point:** the compiler treats `const` as a reserved token, whereas `constValue` is **a distinct identifier**, not split into the keyword `const` and suffix `Value`. The same applies to `gotoCount`.
 
-Trong Java, tên có phân biệt chữ hoa/chữ thường. `GotoCount` không phải token `goto`, nhưng cách đặt tên vẫn nên tuân theo quy ước dễ đọc, ví dụ `gotoCount` cho biến và `GotoCounter` cho lớp.
+In Java, names are case-sensitive. `GotoCount` is not the `goto` token, yet naming should still follow readable conventions, such as `gotoCount` for variables and `GotoCounter` for classes.
 
-### Quy tắc về identifier cần nhớ
+### Identifier rules to remember
 
-Một tên Java thông thường có thể bắt đầu bằng chữ cái, dấu `_` hoặc `$` theo quy tắc ký tự Java, nhưng **không bắt đầu bằng chữ số**. Sau ký tự đầu tiên có thể có chữ số. Từ khóa dành riêng và literal như `true`, `false`, `null` cũng không dùng làm tên.
+A regular Java name can start with a letter, `_`, or `$` under Java character rules, but **cannot start with a digit**. Digits may appear after the first character. Reserved keywords and literals such as `true`, `false`, and `null` cannot be used as names either.
 
-Dấu `$` hợp lệ về ngữ pháp nhưng thường dành cho mã sinh tự động hoặc tình huống đặc biệt; trong mã học tập, ưu tiên tên có nghĩa như `totalCount` hoặc `maxRetries`.
+The `$` character is grammatically valid, yet usually reserved for auto-generated code or special cases; in learning code, prefer meaningful names like `totalCount` or `maxRetries`.
 
-Phân biệt hai trường hợp:
+Distinguish these two cases:
 
 ~~~java
-int item_2 = 10; // Hợp lệ.
-int _item = 20;  // Hợp lệ.
-// int 2item = 30; // Sai: bắt đầu bằng chữ số.
-// int _ = 40;     // Sai trên Java 17: "_" đơn lẻ.
+int item_2 = 10; // Valid.
+int _item = 20;  // Valid.
+// int 2item = 30; // Invalid: starts with a digit.
+// int _ = 40;     // Invalid on Java 17: standalone "_".
 ~~~
 
-## 2. Thử nhìn thấy lỗi từ `javac`
+## 2. Observing the errors from `javac`
 
-Tạo tệp **`BadNames.java`** sau để **cố ý kiểm tra lỗi**:
+Create the following file **`BadNames.java`** to **intentionally test the errors**:
 
 ~~~java
 public class BadNames {
@@ -56,15 +56,15 @@ public class BadNames {
 }
 ~~~
 
-Chạy trong thư mục chứa tệp:
+Run in the directory containing the file:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 BadNames.java
 ~~~
 
-**Kết quả:** biên dịch **thất bại**. `javac` sẽ chỉ ra những token không thể dùng làm identifier; số lượng và lời văn chẩn đoán có thể thay đổi theo phiên bản compiler. **Không có đầu ra chương trình**, vì phương thức `main` chưa được thực thi.
+**Result:** compilation **fails**. `javac` will point out the tokens that cannot be used as identifiers; the exact count and wording of diagnostics may vary by compiler version. **There is no program output**, because the `main` method is never executed.
 
-Khi thử sửa lỗi, nên bỏ từng dòng sai hoặc đổi chúng thành:
+When fixing the errors, remove the invalid lines one by one or change them to:
 
 ~~~java
 int _value = 1;
@@ -73,57 +73,57 @@ int gotoCount = 3;
 System.out.println(_value + constValue + gotoCount); // 6
 ~~~
 
-Bốn câu lệnh trên là đoạn **đặt trong một phương thức**, không phải một tệp Java độc lập.
+The four statements above are a snippet **placed inside a method**, not a standalone Java file.
 
-## 3. `const` không thay thế được `final` trong Java
+## 3. `const` does not replace `final` in Java
 
-Nếu muốn giá trị không được gán lại sau khi khởi tạo, dùng `final`:
+If you want a value not to be reassigned after initialization, use `final`:
 
 ~~~java
 final int retryLimit = 3;
-// retryLimit = 4; // Sai: không thể gán lại biến final.
+// retryLimit = 4; // Invalid: cannot reassign a final variable.
 ~~~
 
-Nếu cần một hằng số dùng chung trong lớp, một cách thông dụng là:
+If you need a shared constant in a class, a common pattern is:
 
 ~~~java
 static final int MAX_RETRIES = 3;
 ~~~
 
-| Ý định | Cách làm Java | Lưu ý |
+| Intent | Java approach | Notes |
 | --- | --- | --- |
-| Không cho gán lại biến cục bộ | `final int limit = 3;` | `final` ngăn gán lại, không phải token `const` |
-| Hằng số thuộc lớp | `static final int MAX_RETRIES = 3;` | Thường viết tên hằng bằng chữ hoa và `_` |
-| Giá trị không đổi của chuỗi | `final String APP_NAME = "Demo";` | `String` vốn không thay đổi nội dung đối tượng |
-| Không gán lại tham chiếu | `final StringBuilder b = new StringBuilder();` | **Vẫn có thể** gọi `b.append(...)` để sửa nội dung đối tượng |
+| Prevent reassigning a local variable | `final int limit = 3;` | `final` prevents reassignment, not the `const` token |
+| Class constant | `static final int MAX_RETRIES = 3;` | Constant names are usually written in uppercase with `_` |
+| Unchanging string value | `final String APP_NAME = "Demo";` | `String` object contents are already immutable |
+| Prevent reassigning a reference | `final StringBuilder b = new StringBuilder();` | You **can still** call `b.append(...)` to mutate the object's contents |
 
-Một field `static final` không nhất thiết là *compile-time constant*: điều đó còn phụ thuộc kiểu và **biểu thức khởi tạo**. Ví dụ `static final int X = 3;` là hằng số biểu thức đơn giản; `static final int X = Integer.parseInt("3");` là field chỉ được gán một lần nhưng giá trị tính lúc chạy.
+A `static final` field is not necessarily a *compile-time constant*: that also depends on its type and **initializer expression**. For example, `static final int X = 3;` is a simple constant expression; `static final int X = Integer.parseInt("3");` is a field assigned only once whose value is computed at runtime.
 
-**Đừng nhầm:** `final` không tự khiến mọi đối tượng trở nên bất biến (*immutable*). Nó hạn chế việc gán lại biến/tham chiếu theo quy tắc Java.
+**Do not confuse this:** `final` does not automatically make every object *immutable*. It restricts reassigning the variable/reference according to Java's rules.
 
-## 4. Không có `goto`: dùng điều khiển luồng có cấu trúc
+## 4. No `goto`: use structured control flow
 
-Java không có câu lệnh `goto label;`. Một số cách điều khiển luồng gần với mục đích thực tế:
+Java has no `goto label;` statement. Some control-flow constructs suited to practical needs:
 
-| Mục đích | Cấu trúc phù hợp |
+| Purpose | Appropriate construct |
 | --- | --- |
-| Chọn nhánh theo điều kiện | `if` / `else`, `switch` |
-| Lặp nhiều lần | `for`, `while`, `do-while` |
-| Thoát một vòng lặp | `break;` |
-| Bỏ phần còn lại của một lượt lặp | `continue;` |
-| Thoát nhiều mức lặp có chủ đích | `break label;` tại vòng/khối được gắn nhãn |
-| Chuyển ngay sang lượt của vòng lặp ngoài | `continue label;` với **nhãn đặt trên một vòng lặp** |
-| Kết thúc phương thức | `return;` hoặc `return value;` |
+| Conditional branching | `if` / `else`, `switch` |
+| Repeating multiple times | `for`, `while`, `do-while` |
+| Exiting a loop | `break;` |
+| Skipping the rest of an iteration | `continue;` |
+| Intentionally exiting multiple loop levels | `break label;` on a labeled loop/block |
+| Jumping immediately to the next iteration of an outer loop | `continue label;` with **a label placed on a loop** |
+| Ending a method | `return;` or `return value;` |
 
-Nhãn là **identifier theo sau dấu hai chấm**. Bạn có thể viết `scan:` nhưng **không** viết `goto:` vì `goto` là từ khóa dành riêng.
+A label is an **identifier followed by a colon**. You can write `scan:`, but **not** `goto:` because `goto` is a reserved keyword.
 
-Với `break outer;`, Java kết thúc statement mang nhãn `outer`. Với `continue outer;`, Java chuyển đến lượt tiếp theo của **vòng lặp** được gắn nhãn `outer`; không thể `continue` đến một nhãn đặt trên khối bất kỳ không phải vòng lặp.
+With `break outer;`, Java terminates the statement labeled `outer`. With `continue outer;`, Java advances to the next iteration of the **loop** labeled `outer`; you cannot `continue` to a label placed on an arbitrary non-loop block.
 
-Nhãn nên dùng có chừng mực: nhiều nhãn chồng chéo khiến luồng chạy khó theo dõi. Đối với tìm kiếm đơn giản, `return` từ một phương thức nhỏ thường còn rõ ràng hơn.
+Labels should be used sparingly: multiple overlapping labels make execution flow hard to follow. For simple searches, `return` from a small method is often even clearer.
 
-## 5. Ví dụ Java 17 chạy được: tên hợp lệ và nhãn thay cho `goto`
+## 5. Runnable Java 17 example: valid names and labels instead of `goto`
 
-Tạo tệp **`ReservedNamesDemo.java`**:
+Create a file **`ReservedNamesDemo.java`**:
 
 ~~~java
 public class ReservedNamesDemo {
@@ -138,11 +138,11 @@ public class ReservedNamesDemo {
                 int value = rows[row][column];
 
                 if (value == -1) {
-                    continue scan; // Bo qua phan con lai cua hang.
+                    continue scan; // Skip the rest of the row.
                 }
 
                 if (value == 99) {
-                    break scan; // Thoat ca hai vong lap.
+                    break scan; // Exit both loops.
                 }
 
                 processed++;
@@ -171,7 +171,7 @@ public class ReservedNamesDemo {
 }
 ~~~
 
-**Biên dịch/chạy trên Windows PowerShell hoặc Linux/Bash** — cùng một bộ lệnh:
+**Compile and run on Windows PowerShell or Linux/Bash** — using the exact same commands:
 
 ~~~bash
 java -version
@@ -180,7 +180,7 @@ javac --release 17 -encoding UTF-8 ReservedNamesDemo.java
 java ReservedNamesDemo
 ~~~
 
-Kết quả dự kiến:
+Expected output:
 
 ~~~text
 maxRetries=3
@@ -188,76 +188,76 @@ legalNamesSum=17
 processed=4
 ~~~
 
-### Tại sao kết quả là 4?
+### Why is the result 4?
 
-Dữ liệu được duyệt lần lượt:
+The data is traversed sequentially:
 
-1. Hàng đầu tiên chứa `4`, `5`: cả hai được tính, `processed = 2`.
-2. Hàng thứ hai: `7` được tính, `processed = 3`. Gặp `-1` thì `continue scan;` **bỏ qua số 8** và chuyển sang hàng thứ ba.
-3. Hàng thứ ba: `9` được tính, `processed = 4`. Gặp `99` thì `break scan;` thoát cả hai vòng lặp, **không xét số 10**.
+1. First row contains `4`, `5`: both are counted, `processed = 2`.
+2. Second row: `7` is counted, `processed = 3`. Upon encountering `-1`, `continue scan;` **skips `8`** and moves to the third row.
+3. Third row: `9` is counted, `processed = 4`. Upon encountering `99`, `break scan;` exits both loops, **without examining `10`**.
 
-Lệnh `continue scan` và `break scan` có phạm vi điều khiển xác định, khác với một lệnh nhảy tùy ý kiểu `goto`.
+`continue scan` and `break scan` have well-defined control scopes, unlike an arbitrary `goto`-style jump.
 
-Ở phần tên biến: `_count`, `__`, `constValue` và `gotoCount` đều hợp lệ; tổng `2 + 3 + 5 + 7 = 17`. Tên `__` tuy hợp lệ về cú pháp, nhưng khi viết chương trình thực tế bạn nên đặt tên biểu đạt ý nghĩa hơn.
+Regarding variable names: `_count`, `__`, `constValue`, and `gotoCount` are all valid; their sum is `2 + 3 + 5 + 7 = 17`. Although `__` is syntactically valid, in real programs you should choose more expressive names.
 
-`MAX_RETRIES` minh họa cách khai báo `static final`, **không phải** một câu lệnh `const`.
+`MAX_RETRIES` illustrates a `static final` declaration, **not** a `const` statement.
 
-## 6. Các lỗi và ngộ nhận thường gặp
+## 6. Common errors and misconceptions
 
-| Nhầm lẫn | Sự thật trên Java 17 | Cách xử lý |
+| Misconception | Fact in Java 17 | How to handle |
 | --- | --- | --- |
-| “`_` là tên biến ngắn nên chắc hợp lệ” | `_` đứng một mình là keyword từ Java 9 | Đặt `_value` hoặc tên mô tả như `count` |
-| “`const` không có tính năng nên được dùng đặt tên” | Vẫn là keyword dành riêng | Dùng tên như `constValue`; dùng `final` để ngăn gán lại |
-| “`goto` không chạy nên có thể đặt làm nhãn” | Không; từ khóa dành riêng không làm identifier được | Đặt nhãn `scan:` hoặc `outer:` |
-| “Mọi tên chứa `_` đều sai” | Chỉ `_` **đơn lẻ** bị cấm theo quy tắc này | `_count`, `item_2`, `__` hợp lệ |
-| “`final` làm đối tượng bất biến hoàn toàn” | Không đúng với mọi đối tượng | Phân biệt gán lại tham chiếu và thay đổi trạng thái đối tượng |
-| “`break outer` giống hệt `goto`” | `break` chỉ nhảy đến điểm kết thúc statement gắn nhãn hợp lệ | Dùng điều khiển luồng có cấu trúc |
-| “`continue label` có thể nhảy tới mọi nhãn” | Nhãn đích phải đặt trên vòng lặp thích hợp | Chỉ dùng `continue` với nhãn vòng lặp |
-| “Mã `const`/`goto` sẽ chạy rồi báo lỗi” | Lỗi bị bắt **khi biên dịch**, trước khi chạy `main` | Sửa identifier/cú pháp trước khi dùng `java` |
+| "`_` is a short variable name so it must be valid" | Standalone `_` is a keyword since Java 9 | Use `_value` or a descriptive name like `count` |
+| "`const` has no feature so it can be used for naming" | Still a reserved keyword | Use names like `constValue`; use `final` to prevent reassignment |
+| "`goto` isn't runnable so it can be used as a label" | No; reserved keywords cannot be identifiers | Use labels like `scan:` or `outer:` |
+| "Any name containing `_` is invalid" | Only **standalone** `_` is prohibited by this rule | `_count`, `item_2`, `__` are valid |
+| "`final` makes objects completely immutable" | Not true for all objects | Distinguish reference reassignment from mutating object state |
+| "`break outer` is identical to `goto`" | `break` only jumps to the end of a validly labeled statement | Use structured control flow |
+| "`continue label` can jump to any label" | The target label must be on an appropriate loop | Only use `continue` with loop labels |
+| "Code with `const`/`goto` will run and then throw an error" | Errors are caught **at compile time**, before running `main` | Fix identifiers/syntax before running `java` |
 
-Một lưu ý nữa: dấu gạch dưới trong literal số, ví dụ `1_000`, chỉ giúp dễ đọc **chữ số**, không phải một biến tên `_`. Đây là hai ngữ cảnh cú pháp hoàn toàn khác nhau.
+One more note: underscores in numeric literals, such as `1_000`, only improve readability of **digits**, not a variable named `_`. These are two completely different syntactic contexts.
 
-## 7. Bài tập tự luyện
+## 7. Self-practice exercises
 
-**Bài 1 — Phân loại tên.** Các tên nào có thể khai báo thành biến `int` trên Java 17?
+**Exercise 1 — Name classification.** Which names can be declared as `int` variables on Java 17?
 
 ~~~text
 _    __    _score    score_    const    constValue
 goto    gotoCount    2score    score2
 ~~~
 
-*Đáp án:* Hợp lệ: `__`, `_score`, `score_`, `constValue`, `gotoCount`, `score2`. Không hợp lệ: `_`, `const`, `goto` và `2score` (bắt đầu bằng chữ số).
+*Answer:* Valid: `__`, `_score`, `score_`, `constValue`, `gotoCount`, `score2`. Invalid: `_`, `const`, `goto`, and `2score` (starts with a digit).
 
-**Bài 2 — Sửa lỗi.** Đoạn sau sai ở đâu?
+**Exercise 2 — Fix the errors.** What is wrong with the following snippet?
 
 ~~~java
-// Đoạn cố ý SAI, không đặt vào ví dụ đang chạy.
+// Intentionally INVALID snippet; do not place in a running example.
 final int const = 3;
 goto: for (int i = 0; i < 2; i++) {
     System.out.println(i);
 }
 ~~~
 
-*Gợi ý đáp án:* Cả `const` làm tên biến lẫn `goto` làm nhãn đều không hợp lệ. Đổi thành `final int maxTries = 3;` và nhãn `loop:` hoặc bỏ nhãn nếu không cần.
+*Suggested answer:* Both `const` as a variable name and `goto` as a label are invalid. Change them to `final int maxTries = 3;` and label `loop:`, or omit the label if unnecessary.
 
-**Bài 3 — Dự đoán trước khi chạy.** Trong `ReservedNamesDemo`, nếu đổi `99` thành `11` thì `processed` bằng bao nhiêu?
+**Exercise 3 — Predict before running.** In `ReservedNamesDemo`, if `99` is changed to `11`, what will `processed` equal?
 
-*Đáp án:* `6`. Không còn giá trị chặn 99; vòng lặp vẫn bỏ qua `8` vì `-1`, sau đó đếm `9`, `11` và `10`.
+*Answer:* `6`. There is no longer a `99` stopping value; the loop still skips `8` due to `-1`, then counts `9`, `11`, and `10`.
 
-**Bài 4 — Thử `continue`.** Bỏ nhãn trong `continue scan;` để thành `continue;`. Với dữ liệu gốc, kết quả `processed` có thay đổi không?
+**Exercise 4 — Try `continue`.** Remove the label in `continue scan;` so it becomes `continue;`. With the original data, does the `processed` result change?
 
-*Đáp án:* Có: thành `5`. `continue;` chỉ chuyển sang lượt tiếp theo của **vòng lặp trong**, nên sau `-1` còn xử lý `8`, trước khi gặp `99` ở hàng sau.
+*Answer:* Yes: it becomes `5`. `continue;` only skips to the next iteration of the **inner loop**, so after `-1` it still processes `8`, before hitting `99` in the next row.
 
-**Bài 5 — `final` và object.** Cho:
+**Exercise 5 — `final` and objects.** Given:
 
 ~~~java
 final StringBuilder message = new StringBuilder("Java");
-message.append(" 17"); // Hợp lệ.
-// message = new StringBuilder("Other"); // Sai: gán lại biến final.
+message.append(" 17"); // Valid.
+// message = new StringBuilder("Other"); // Invalid: reassigning a final variable.
 ~~~
 
-Tại sao câu `append` hợp lệ? *Đáp án:* `final` ngăn đổi tham chiếu được lưu trong biến, không nhất thiết ngăn thay đổi trạng thái đối tượng tham chiếu tới.
+Why is the `append` statement valid? *Answer:* `final` prevents changing the reference stored in the variable, not necessarily mutating the state of the referenced object.
 
-## Ghi nhớ
+## Key takeaways
 
-Trên **Java 17+**, `_` đơn lẻ, `const` và `goto` đều **không thể dùng làm tên**. `const` và `goto` là những từ dành riêng dù Java không triển khai câu lệnh mang các tên ấy; `_` đơn lẻ bị dành riêng từ Java 9, nhưng dấu `_` vẫn có thể là một phần trong identifier dài hơn. Hãy dùng `final`/`static final` cho mục đích hạn chế gán lại, và dùng `break`/`continue` có nhãn, `return` hoặc cấu trúc điều khiển phù hợp thay vì tìm cú pháp `goto`.
+On **Java 17+**, standalone `_`, `const`, and `goto` **cannot be used as names**. `const` and `goto` are reserved words even though Java implements no statements with those names; standalone `_` has been reserved since Java 9, while `_` can still be part of longer identifiers. Use `final`/`static final` to restrict reassignment, and use labeled `break`/`continue`, `return`, or appropriate control-flow constructs instead of looking for `goto` syntax.

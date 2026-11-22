@@ -1,8 +1,8 @@
-# Phép nối chuỗi qua `StringConcatFactory` và `invokedynamic`
+# String Concatenation via `StringConcatFactory` and `invokedynamic`
 
-## 1. Bức tranh tổng quan
+## 1. Big picture
 
-Java cho phép nối chuỗi rất tự nhiên bằng toán tử `+`:
+Java lets you concatenate strings naturally using the `+` operator:
 
 ```java
 String name = "Java";
@@ -10,22 +10,22 @@ int version = 17;
 String description = "Language: " + name + ", version=" + version;
 ```
 
-Đây là đoạn mã minh họa trong thân phương thức. Giá trị cuối cùng là `Language: Java, version=17`. Cú pháp `+` là một phần **ngôn ngữ Java**, còn cách trình biên dịch tạo bytecode để thực thi phép nối là một quyết định triển khai.
+This is an illustrative snippet inside a method body. The final value is `Language: Java, version=17`. The `+` syntax is part of the **Java language**, whereas how the compiler emits bytecode to execute the concatenation is an implementation choice.
 
-Từ **Java 9**, theo hướng thay đổi của **JEP 280 (Indify String Concatenation)**, trình biên dịch `javac` thường biểu diễn các phép nối `String` động bằng lệnh bytecode **`invokedynamic`**. Khi liên kết lời gọi đó, JVM sử dụng bootstrap method thuộc lớp **`java.lang.invoke.StringConcatFactory`** để xây dựng cơ chế nối phù hợp với kiểu đối số và hằng số của phép nối.
+Starting in **Java 9**, following **JEP 280 (Indify String Concatenation)**, the `javac` compiler typically emits dynamic `String` concatenation using the **`invokedynamic`** bytecode instruction. When linking that call site, the JVM uses a bootstrap method in **`java.lang.invoke.StringConcatFactory`** to construct a concatenation strategy suited to the argument types and constant segments.
 
-Các khái niệm cần tách biệt:
+Concepts to keep separate:
 
-- `String` vẫn **bất biến (immutable)**: biểu thức nối tạo giá trị chuỗi kết quả theo ngữ nghĩa ngôn ngữ.
-- `+` vẫn là cú pháp Java; lập trình viên không cần gọi `StringConcatFactory`.
-- `invokedynamic` là **lệnh bytecode** liên kết lời gọi thông qua một bootstrap method, không phải câu lệnh Java mới hay việc tìm tên hàm bằng reflection mỗi lần chạy.
-- `StringConcatFactory` là **cơ sở hạ tầng runtime** cho việc xây dựng lời gọi nối chuỗi; không phải định dạng dữ liệu hay kho lưu trữ chuỗi.
+- `String` remains **immutable**: a concatenation expression produces a resulting string value according to language semantics.
+- `+` remains standard Java syntax; developers do not call `StringConcatFactory` directly.
+- `invokedynamic` is a **bytecode instruction** that links a call site via a bootstrap method, not a new Java statement or a reflective method-name lookup on every execution.
+- `StringConcatFactory` is **runtime infrastructure** for building concatenation call sites; it is not a data format or a string storage repository.
 
-Với trường hợp chỉ gồm các hằng chuỗi, `javac` có thể gộp giá trị ngay khi biên dịch và không cần `invokedynamic` cho chính phép nối đó. Vì vậy cần nhìn bytecode của **trường hợp cụ thể**, thay vì khẳng định mọi dấu `+` đều trở thành `invokedynamic`.
+When an expression consists solely of string constants, `javac` can fold the value at compile time and does not need `invokedynamic` for that concatenation itself. Therefore, inspect the bytecode of the **specific case** rather than asserting that every `+` becomes `invokedynamic`.
 
-## 2. Trước Java 9: phép nối thường thành `StringBuilder`
+## 2. Before Java 9: concatenation typically compiled to `StringBuilder`
 
-Một ví dụ đơn giản:
+A simple example:
 
 ```java
 public class Contrast {
@@ -35,7 +35,7 @@ public class Contrast {
 }
 ```
 
-Khi biên dịch mã này bằng `javac --release 8`, bytecode có thể chứa chuỗi thao tác tương đương:
+When compiled with `javac --release 8`, the bytecode can contain a sequence of operations equivalent to:
 
 ```text
 new           java/lang/StringBuilder
@@ -47,24 +47,24 @@ invokevirtual java/lang/StringBuilder.append
 invokevirtual java/lang/StringBuilder.toString
 ```
 
-Trong kết quả thực tế, bytecode còn chứa các lệnh nạp đối số và có thể chọn overload `append(String)`, `append(int)`. Đoạn trên là **lược trích những thao tác chính**, không phải toàn bộ bản disassembly nguyên văn.
+In actual output, the bytecode also includes argument-loading instructions and selects specific overloads such as `append(String)` and `append(int)`. The listing above is an **abbreviated summary of the main operations**, not a verbatim disassembly.
 
-Cách cũ giúp nối hiệu quả hơn việc tạo một chuỗi riêng cho mỗi cặp toán hạng. Nhưng nó cũng ràng buộc chiến lược nối vào bytecode do compiler phát ra. Muốn thay đổi toàn bộ chiến lược, JVM/JIT phải nhận diện và tối ưu mẫu bytecode `StringBuilder` tương ứng.
+This older approach concatenated more efficiently than allocating a separate string for each pair of operands. However, it baked the concatenation strategy directly into compiler-emitted bytecode. To change the overall strategy, the JVM/JIT had to recognize and optimize the corresponding `StringBuilder` bytecode pattern.
 
-## 3. Từ Java 9: `invokedynamic` tách ý nghĩa nối khỏi chiến lược thực thi
+## 3. Since Java 9: `invokedynamic` separates concatenation semantics from execution strategy
 
-Cũng với lớp `Contrast` trên, khi biên dịch `javac --release 17`, `javap -c` cho thấy một lệnh dạng:
+With the same `Contrast` class above, when compiled with `javac --release 17`, `javap -c` shows an instruction of the form:
 
 ```text
 invokedynamic #... // makeConcatWithConstants:(Ljava/lang/String;I)Ljava/lang/String;
 ```
 
-Đây là **trích đoạn mô tả dạng output**; số index constant pool phụ thuộc file class được biên dịch. Tham số `String` và `int` trong chữ ký cho biết lời gọi xử lý các giá trị động loại đó; các phần như `Name=` và `, count=` có thể được đưa vào recipe làm hằng. Khi quan sát lệnh này, không có nghĩa Java đã bỏ bất biến của `String` hay chuyển thành nối chuỗi ở thời điểm biên dịch: nó chỉ thay đổi **cách gọi logic nối ở runtime**.
+This is a **schematic excerpt of the output format**; the constant-pool index depends on the compiled class file. The `String` and `int` parameters in the descriptor show that the call handles dynamic values of those types, while fixed parts such as `Name=` and `, count=` can be placed into a recipe as constants. Observing this instruction does not mean Java abandoned `String` immutability or moved dynamic concatenation to compile time: it only changes **how the concatenation logic is linked and invoked at runtime**.
 
-Luồng khái quát:
+High-level flow:
 
 ```text
-Mã Java: "Name=" + name + ", count=" + n
+Java code: "Name=" + name + ", count=" + n
           |
           v
 javac (target Java 9+)
@@ -73,46 +73,46 @@ javac (target Java 9+)
 Class file: invokedynamic + BootstrapMethods + recipe/metadata
           |
           v
-JVM liên kết invokedynamic với StringConcatFactory
+JVM links invokedynamic with StringConcatFactory
           |
           v
-CallSite / MethodHandle có kiểu phù hợp
+CallSite / MethodHandle with matching type
           |
           v
-Runtime thực thi phép nối với đối số hiện tại
+Runtime executes concatenation with current arguments
           |
           v
-String kết quả
+Resulting String
 ```
 
-**JVM có thể tối ưu và JIT có thể inline** lời gọi được liên kết. Từ một instruction `invokedynamic` trong class file, không thể kết luận chính xác mỗi lần chạy tạo bao nhiêu đối tượng, cấp phát bao nhiêu mảng byte hay chạy bao nhiêu lệnh máy: đó là chuyện tối ưu runtime của JVM cụ thể.
+**The JVM can optimize and the JIT can inline** the linked call site. From a single `invokedynamic` instruction in a class file, you cannot conclude exactly how many objects are created, how many byte arrays are allocated, or how many machine instructions run on each call: that belongs to the specific JVM's runtime optimizations.
 
-## 4. Bootstrap method và cơ chế liên kết call site
+## 4. Bootstrap methods and call-site linking
 
-`invokedynamic` có entry trong constant pool, mô tả tên lời gọi, kiểu hàm (tham số và kiểu trả về) cùng thông tin về **bootstrap method**. Khi JVM cần liên kết instruction, bootstrap method được gọi với ngữ cảnh liên kết và các hằng static liên quan, rồi trả về một `CallSite` có target phù hợp.
+An `invokedynamic` instruction references a constant-pool entry describing the invocation name, function type (parameter and return types), and **bootstrap method** info. When the JVM needs to link the instruction, the bootstrap method is invoked with the lookup context and associated static constants, returning a `CallSite` with an appropriate target.
 
-Trong tình huống nối chuỗi được `javac` tạo ra, bootstrap phổ biến là:
+For string concatenation generated by `javac`, the common bootstrap methods are:
 
-- `StringConcatFactory.makeConcat(...)`: cung cấp dạng nối dựa trên các đối số động.
-- `StringConcatFactory.makeConcatWithConstants(...)`: nhận thêm một **recipe** và các hằng bootstrap, nhờ đó có thể trộn văn bản cố định với các giá trị động.
+- `StringConcatFactory.makeConcat(...)`: provides a concatenation form based purely on the dynamic arguments.
+- `StringConcatFactory.makeConcatWithConstants(...)`: additionally accepts a **recipe** and bootstrap constants, allowing fixed text to be interleaved with dynamic values.
 
-Các phương thức này thuộc API `java.lang.invoke`. `javac` thường chọn `makeConcatWithConstants` trong các bản JDK hiện đại; chi tiết cụ thể có thể thay đổi theo phiên bản compiler, lựa chọn target, ngữ cảnh mã và các tối ưu.
+These methods belong to the `java.lang.invoke` API. `javac` commonly selects `makeConcatWithConstants` in modern JDK releases; exact details can vary by compiler version, release target, code shape, and optimizations.
 
-Ở dạng `makeConcatWithConstants`, **recipe** có thể chứa hai marker điều khiển:
+In the `makeConcatWithConstants` form, a **recipe** can contain two control markers:
 
-| Marker trong recipe | Ý nghĩa |
+| Marker in recipe | Meaning |
 | --- | --- |
-| `\u0001` | Đặt một giá trị từ các đối số động của lời gọi nối |
-| `\u0002` | Đặt một hằng từ các static bootstrap constants |
-| Ký tự khác | Đoạn văn bản cố định được đưa trực tiếp vào kết quả |
+| `\u0001` | Inserts a value from the dynamic arguments of the concatenation call |
+| `\u0002` | Inserts a constant from the static bootstrap constants |
+| Any other character | Fixed text inserted directly into the output |
 
-Ví dụ, recipe được `javap -v` in gần như `Xin chào \u0001 \u0001 / \u0001` là cấu trúc ghép chuỗi với ba giá trị động ở ba vị trí. Marker `\u0001` trong disassembly là ký hiệu cho **một ký tự điều khiển**, không phải sáu ký tự văn bản cần xuất hiện trong output người dùng. Không nên tự xây dựng recipe bằng cách nối các đoạn tùy ý rồi kỳ vọng mọi implementation có chiến lược giống nhau.
+For example, a recipe printed by `javap -v` looking like `Hello \u0001 \u0001 / \u0001` describes a concatenation template with three dynamic values at three positions. The `\u0001` marker in disassembly denotes **a single control character**, not six literal characters in user output. Do not manually construct recipes by pasting arbitrary strings together and expect every implementation to share the same strategy.
 
-**Liên kết call site** không đồng nghĩa “phân tích lại biểu thức `+` từ mã nguồn ở mỗi lần thực thi”. JVM liên kết instruction với target; các lần thực thi sau gọi target đó theo cơ chế của JVM, còn compiler runtime có thể tối ưu thêm. Thời điểm liên kết thường là khi site được sử dụng lần đầu, song mã nên dựa vào **ngữ nghĩa Java**, không dựa vào một lịch liên kết tuyệt đối.
+**Linking a call site** does not mean "re-parsing the `+` expression from source code on every execution." The JVM links the instruction to a target; subsequent executions invoke that target via the JVM's dispatch mechanism, and the runtime compiler can optimize it further. Linking usually happens when the site is first executed, though application code should rely on **Java semantics**, not on a rigid linking schedule.
 
-## 5. Ví dụ chạy được với Java 17+
+## 5. Runnable Java 17+ example
 
-Tạo file `ConcatIndyDemo.java`:
+Create `ConcatIndyDemo.java`:
 
 ```java
 public class ConcatIndyDemo {
@@ -125,7 +125,7 @@ public class ConcatIndyDemo {
         String who = "Java";
         int version = 17;
         Object absent = null;
-        String message = "Xin chào " + who + " " + version + " / " + absent;
+        String message = "Hello " + who + " " + version + " / " + absent;
         System.out.println("message = " + message);
 
         String order = mark("left", "A") + mark("right", "B") + 7;
@@ -143,17 +143,17 @@ public class ConcatIndyDemo {
 }
 ```
 
-Biên dịch và chạy:
+Compile and run:
 
 ```bash
 javac --release 17 -encoding UTF-8 ConcatIndyDemo.java
 java ConcatIndyDemo
 ```
 
-Kết quả chuẩn đã được đối chiếu khi chạy chương trình:
+Verified standard output from running the program:
 
 ```text
-message = Xin chào Java 17 / null
+message = Hello Java 17 / null
 eval left
 eval right
 order = AB7
@@ -161,49 +161,49 @@ folded = foobar
 builder = Java!
 ```
 
-Giải thích các chi tiết đáng chú ý:
+Explanation of notable details:
 
-1. Giá trị `null` trong biểu thức nối chuỗi được chuyển thành văn bản `"null"` theo ngữ nghĩa string conversion của Java. Không thể đồng nhất việc nối bằng `+` với gọi trực tiếp `someString.concat(null)`, vì phương thức `concat` nhận đối số `null` có thể gây `NullPointerException`.
-2. Hai lời gọi `mark` được đánh giá **từ trái sang phải**, mỗi lời gọi một lần. Đổi chiến lược bytecode sang `invokedynamic` không được phép đảo hiệu ứng phụ của toán hạng. Vì vậy console in `eval left` rồi `eval right`.
-3. `mark("left", "A") + mark("right", "B") + 7` cho `AB7` vì khi phép cộng đã ở chế độ nối chuỗi, số `7` được chuyển thành ký tự theo quy tắc nối. Literal số `7` có thể được compiler đưa vào recipe thay vì thành đối số động riêng.
-4. `"foo" + "bar"` là **biểu thức hằng**; `javac` gộp thành `"foobar"` ngay trong class file. Phần in `"folded = " + folded` trong ví dụ vẫn có thể là một site `invokedynamic` riêng vì `folded` là local variable thường, không phải một hằng compile-time variable được khai báo `final`.
-5. Đoạn `new StringBuilder(...).append(...).toString()` là cách xây dựng chuỗi tường minh. Nó vẫn hợp lệ ở Java mới; compiler không buộc lập trình viên viết nó để nối một biểu thức `+` thông thường.
+1. A `null` value in a concatenation expression is converted to the text `"null"` according to Java's string conversion rules. Do not equate `+` concatenation with calling `someString.concat(null)` directly, because `concat` throws `NullPointerException` when passed `null`.
+2. Both `mark` calls are evaluated **from left to right**, once each. Changing the bytecode strategy to `invokedynamic` is not allowed to reorder operand side effects. Thus the console prints `eval left` followed by `eval right`.
+3. `mark("left", "A") + mark("right", "B") + 7` yields `AB7` because once addition is in string-concatenation mode, the number `7` is converted to text according to concatenation rules. The numeric literal `7` may be folded by the compiler into the recipe rather than passed as a separate dynamic argument.
+4. `"foo" + "bar"` is a **constant expression**; `javac` folds it into `"foobar"` directly in the class file. The statement printing `"folded = " + folded` in the example can still be a separate `invokedynamic` site because `folded` is an ordinary local variable, not a compile-time constant variable declared `final`.
+5. `new StringBuilder(...).append(...).toString()` is explicit string building. It remains completely valid in modern Java; the compiler does not require programmers to write it for a normal `+` expression.
 
-## 6. Dùng `javap` để tự nhìn chứng cứ bytecode
+## 6. Using `javap` to inspect bytecode evidence yourself
 
-Sau khi biên dịch, chạy:
+After compiling, run:
 
 ```bash
 javap -c -v ConcatIndyDemo
 ```
 
-Trong kết quả, tập trung vào ba vị trí:
+In the output, focus on three places:
 
-**A. Lệnh trong phần `Code`:** Một lệnh có dạng:
+**A. Instruction in the `Code` section:** An instruction of the form:
 
 ```text
 invokedynamic #... // makeConcatWithConstants:(Ljava/lang/String;ILjava/lang/String;)Ljava/lang/String;
 ```
 
-Đây là phép nối `message` của ví dụ, có các đối số động dạng `String`, `int`, `String` (Javac có thể chuyển `Object absent` thành `String` trước khi gọi site). Các chuỗi cố định `Xin chào` và dấu phân cách có thể nằm trong recipe.
+This is the concatenation for `message` in the example, taking dynamic arguments of types `String`, `int`, `String` (`javac` may convert `Object absent` to `String` before invoking the site). The fixed string `Hello` and the separators can live inside the recipe.
 
-**B. Phần `BootstrapMethods`:** Trong `javap -v`, ta có thể thấy bootstrap handle trỏ đến:
+**B. The `BootstrapMethods` section:** In `javap -v`, you can see a bootstrap handle pointing to:
 
 ```text
 REF_invokeStatic java/lang/invoke/StringConcatFactory.makeConcatWithConstants
 ```
 
-Cùng với các method arguments dạng recipe, ví dụ `Xin chào \u0001 \u0001 / \u0001`. Thứ tự và constant-pool indices được JVM/class file xác định và có thể khác nếu thay mã hoặc compiler.
+along with method arguments such as the recipe, e.g. `Hello \u0001 \u0001 / \u0001`. Exact ordering and constant-pool indices are determined by the JVM/class file and may differ if you change the code or compiler.
 
-**C. Biểu thức hằng:** Đối với `String folded = "foo" + "bar";`, `javap` có thể hiển thị:
+**C. Constant expression:** For `String folded = "foo" + "bar";`, `javap` can display:
 
 ```text
 ldc #... // String foobar
 ```
 
-`ldc` nạp một hằng từ constant pool. Đây là bằng chứng phép nối *hai chuỗi hằng* được giải quyết tại compile time; không có site nối riêng cho biểu thức đó. Nếu nhìn thấy `invokedynamic` ở dòng in `folded`, đó là phép nối khác: `"folded = " + folded`.
+`ldc` loads a constant from the constant pool. This is evidence that concatenating *two string constants* was resolved at compile time; there is no separate concatenation call site for that expression. If you see `invokedynamic` on the line printing `folded`, that is the other concatenation: `"folded = " + folded`.
 
-Để so sánh rõ cơ chế cũ/mới, tạo file `Contrast.java` như ở phần 2 rồi biên dịch thành **hai thư mục output khác nhau**:
+To clearly compare the old and new mechanisms, create `Contrast.java` from section 2 and compile it into **two different output directories**:
 
 ```bash
 javac --release 8 -d out8 Contrast.java
@@ -212,15 +212,15 @@ javap -classpath out8 -c Contrast
 javap -classpath out17 -c Contrast
 ```
 
-Tạo sẵn các thư mục `out8` và `out17` nếu hệ thống biên dịch yêu cầu. Với compiler `javac` đã kiểm thử, bản target 8 dùng `StringBuilder.append`, còn target 17 dùng `invokedynamic`. Lệnh `--release 8` biên dịch một class tương thích API/bytecode Java 8; nó không bắt buộc bạn thực sự phải cài JDK 8 để quan sát output, miễn JDK hiện tại còn hỗ trợ release đó.
+Create the `out8` and `out17` directories beforehand if your build environment requires it. With the tested `javac` compiler, target 8 uses `StringBuilder.append`, whereas target 17 uses `invokedynamic`. The `--release 8` flag compiles a class targeting Java 8 API/bytecode compatibility; it does not require actually installing JDK 8 to observe the output, as long as your current JDK supports that release target.
 
-**Quan trọng:** `javap` cho thấy chiến lược do trình biên dịch phát ra ở class file. Nó **không phải phép đo thời gian thực thi** và không hiển thị toàn bộ mã máy mà JIT chọn sau khi chương trình chạy nóng.
+**Important:** `javap` shows the strategy emitted by the compiler into the class file. It is **not a runtime performance measurement** and does not display the final machine code chosen by the JIT once the program warms up.
 
-## 7. Ngữ nghĩa biểu thức `+` không đổi
+## 7. The semantics of the `+` expression stay unchanged
 
-Dù bytecode được tạo theo kiểu nào, chương trình Java vẫn phải tuân thủ ngữ nghĩa của toán tử `+`:
+Regardless of how bytecode is generated, a Java program must preserve the semantics of the `+` operator:
 
-### Phân biệt cộng số và nối chuỗi
+### Distinguishing numeric addition from string concatenation
 
 ```java
 String a = 1 + 2 + "x";    // "3x"
@@ -228,40 +228,40 @@ String b = "x" + 1 + 2;    // "x12"
 String c = "x" + (1 + 2);  // "x3"
 ```
 
-Toán tử `+` kết hợp từ trái sang phải. Trước khi xuất hiện toán hạng `String`, phép `1 + 2` là cộng số. Khi đã là nối chuỗi, các giá trị tiếp theo được chuyển thành văn bản. Dùng dấu ngoặc để tránh lỗi logic thay vì trông cậy vào chi tiết tối ưu bytecode.
+The `+` operator is left-associative. Before a `String` operand appears, `1 + 2` is numeric addition. Once in string concatenation mode, subsequent values are converted to text. Use parentheses to prevent logic bugs rather than relying on bytecode optimization details.
 
-### Thứ tự và ngoại lệ của toán hạng
+### Operand evaluation order and exceptions
 
 ```java
 String s = first() + second() + third();
 ```
 
-Ba lời gọi (nếu trả về kiểu phù hợp) phải được đánh giá theo thứ tự Java quy định; các tác dụng phụ và ngoại lệ quan sát được không được phép bị thay đổi chỉ vì compiler dùng `invokedynamic`. Không thể “tối ưu” bằng cách bỏ một lời gọi có tác dụng phụ.
+The three calls (assuming compatible return types) must be evaluated in the order specified by Java; observable side effects and exceptions cannot be altered just because the compiler uses `invokedynamic`. A compiler cannot "optimize away" a call that has side effects.
 
-### Hằng gộp trước, runtime chỉ xử lý phần cần thiết
+### Constants fold early; runtime handles only what is needed
 
 ```java
 String compileTime = "ab" + "cd"; // "abcd"
-String runtime = prefix + "cd";   // phụ thuộc prefix
+String runtime = prefix + "cd";   // depends on prefix
 ```
 
-Với biểu thức hoàn toàn là hằng, compiler có thể gộp chuỗi. Với `prefix` là biến có giá trị runtime, cần thực hiện phép nối khi chạy (dưới dạng `invokedynamic` hoặc chiến lược khác của compiler).
+For an all-constant expression, the compiler can fold the strings. When `prefix` is a variable with a runtime value, concatenation must occur at runtime (via `invokedynamic` or another compiler strategy).
 
-### `null` và chuyển kiểu thành String
+### `null` and conversion to String
 
-Khi nối một đối tượng (kể cả `null`), Java áp dụng string conversion, về mặt kết quả thông thường tương đương với `String.valueOf(value)`. Với object không null, có thể sử dụng `toString()` của object; phương thức đó có thể chứa logic hoặc tác dụng phụ. Kết quả và thứ tự đánh giá vẫn bị ràng buộc bởi ngữ nghĩa Java; không nên tự đoán rằng mọi object đã bị chuyển thành `String` ngay tại thời điểm biên dịch.
+When concatenating an object (including `null`), Java applies string conversion, whose resulting text is normally equivalent to `String.valueOf(value)`. For non-null objects, the object's `toString()` may be called; that method can contain logic or side effects. The result and evaluation order remain governed by Java semantics; do not assume every object is already converted to a `String` at compile time.
 
-## 8. Hiệu năng: khi nào dùng `+`, khi nào dùng `StringBuilder`?
+## 8. Performance: when to use `+`, when to use `StringBuilder`
 
-**Với một biểu thức nối chuỗi rõ ràng**, cách viết:
+**For a single clear concatenation expression**, writing:
 
 ```java
 String line = "user=" + user + ", count=" + count;
 ```
 
-thường là lựa chọn sáng sủa. Trên Java hiện đại, `javac`/JVM có khả năng xây dựng và tối ưu toàn bộ phép nối, nên **không cần tự thay mọi dấu `+` bằng `StringBuilder`** vì tin rằng nó chắc chắn nhanh hơn. Sự tối ưu cụ thể tùy compiler, JVM, dữ liệu đầu vào và mức độ code chạy nóng.
+is usually the cleanest choice. On modern Java, `javac` and the JVM can build and optimize the whole concatenation, so **there is no need to manually replace every `+` with `StringBuilder`** out of a belief that it is guaranteed to be faster. Exact optimization depends on the compiler, JVM, input data, and how hot the code path is.
 
-**Với việc tích lũy chuỗi qua nhiều vòng lặp**, mỗi phép `+=` trên `String` có thể tạo một chuỗi trung gian mới, làm sao chép lặp đi lặp lại và có chi phí lớn khi dữ liệu tăng. Ví dụ cần xem xét:
+**For accumulating strings across many loop iterations**, each `+=` on a `String` can produce a new intermediate string, causing repeated copying and heavy cost as data grows. Consider this example:
 
 ```java
 String output = "";
@@ -270,7 +270,7 @@ for (String item : items) {
 }
 ```
 
-Trong trường hợp tập hợp nhiều phần tử, một giải pháp rõ mục đích hơn thường là:
+When combining many elements, a clearer, purpose-built solution is typically:
 
 ```java
 StringBuilder builder = new StringBuilder();
@@ -280,31 +280,31 @@ for (String item : items) {
 String output = builder.toString();
 ```
 
-Đây là **hai đoạn mã minh họa trong thân phương thức**, giả sử có biến `items` kiểu `Iterable<String>` hoặc một collection thích hợp. Không thể tuyên bố mọi vòng lặp `+=` đều chậm cùng một mức vì JVM có thể tối ưu trong một số trường hợp. Tuy nhiên, `StringBuilder` biểu đạt trực tiếp việc tích lũy nội dung và tránh phụ thuộc vào việc compiler/JIT có nhận ra cơ hội tối ưu toàn chuỗi qua nhiều lần lặp hay không.
+These are **two illustrative snippets inside a method body**, assuming an `items` variable of type `Iterable<String>` or an appropriate collection. You cannot claim every `+=` loop is equally slow because the JVM can optimize some cases. Still, `StringBuilder` directly expresses incremental accumulation and avoids depending on whether the compiler/JIT recognizes an optimization across loop iterations.
 
-Nếu có nhu cầu benchmark, hãy đo trong môi trường đại diện bằng công cụ microbenchmark như JMH; tránh lấy một lần gọi `System.nanoTime()` rồi suy luận toàn bộ hiệu năng. JIT warmup, dead-code elimination, escape analysis, GC và định dạng kết quả đều có thể ảnh hưởng.
+If you need to benchmark, measure in a representative environment using a microbenchmarking tool like JMH; avoid taking a single `System.nanoTime()` measurement and extrapolating overall performance. JIT warm-up, dead-code elimination, escape analysis, GC, and result formatting can all skew numbers.
 
-**Không suy luận rằng `invokedynamic` luôn không cấp phát**. Các lớp runtime như `StringConcatFactory` cho phép JVM chọn chiến lược hiệu quả, nhưng chi tiết cấp phát/compact-string/JIT không phải cam kết cố định của cú pháp `+`.
+**Do not assume `invokedynamic` never allocates.** Runtime helpers like `StringConcatFactory` allow the JVM to select efficient strategies, yet allocation/compact-string/JIT behavior is not a fixed guarantee of the `+` syntax.
 
-## 9. Sai lầm thường gặp
+## 9. Common misconceptions
 
-1. **“Mọi phép cộng chuỗi đều gọi `StringBuilder`”:** nhận định này không còn đúng mặc định với `javac` Java 9+. Hãy kiểm tra bytecode khi cần.
-2. **“Mọi dấu `+` đều thành `invokedynamic`”:** biểu thức hằng có thể được gộp sẵn; toán tử `+` số học là phép cộng số; compiler có thể dùng cơ chế khác.
-3. **“`invokedynamic` nghĩa là gọi reflection mỗi lần”:** đây là lệnh bytecode có liên kết `CallSite`, không phải dò method theo tên trong mã nguồn mỗi lần nối.
-4. **“`StringConcatFactory` làm `String` mutable”:** chuỗi kết quả vẫn có ngữ nghĩa `String` bất biến.
-5. **“Thay `+` bằng `StringBuilder` chắc chắn nhanh hơn”:** phụ thuộc ngữ cảnh, compiler, JVM và workload; một biểu thức nối đơn giản thường nên ưu tiên dễ đọc.
-6. **“`StringBuilder` không còn cần thiết”:** nó vẫn phù hợp cho xây dựng chuỗi gia tăng, đặc biệt trong vòng lặp.
-7. **“Bytecode `invokedynamic` chứng minh runtime không cấp phát”:** bytecode và mã máy tối ưu là hai tầng khác nhau.
-8. **“Có thể đảo thứ tự tính các toán hạng để tối ưu”:** Java yêu cầu giữ đúng thứ tự đánh giá, hiệu ứng phụ và ngoại lệ.
-9. **“`null` trong `+` giống gọi `String.concat(null)`”:** phép nối có string conversion còn `concat` nhận tham số `null` có thể ném exception.
-10. **“Đọc một output `javap` là đủ để khẳng định hành vi mọi JDK”:** output chịu ảnh hưởng version compiler, release target và hình dạng biểu thức. Hãy nêu rõ môi trường kiểm tra.
+1. **"Every string concatenation calls `StringBuilder`":** this is no longer true by default with `javac` on Java 9+. Inspect the bytecode when needed.
+2. **"Every `+` becomes `invokedynamic`":** constant expressions can be folded at compile time; arithmetic `+` is numeric addition; compilers may use other mechanisms.
+3. **"`invokedynamic` means calling reflection every time":** it is a bytecode instruction backed by a linked `CallSite`, not searching for method names in source code on each concatenation.
+4. **"`StringConcatFactory` makes `String` mutable":** the resulting string still has immutable `String` semantics.
+5. **"Replacing `+` with `StringBuilder` is guaranteed to be faster":** depends on context, compiler, JVM, and workload; a single simple concatenation should normally favor readability.
+6. **"`StringBuilder` is obsolete":** it remains the right tool for incremental string building, especially inside loops.
+7. **"`invokedynamic` bytecode proves the runtime does zero allocations":** bytecode and JIT-optimized machine code are two different layers.
+8. **"Operand evaluation order can be reordered for optimization":** Java requires preserving exact evaluation order, side effects, and exceptions.
+9. **"`null` in `+` is the same as calling `String.concat(null)`":** `+` applies string conversion, whereas `concat` passed `null` throws an exception.
+10. **"Reading one `javap` output is enough to assert behavior across all JDKs":** output depends on compiler version, release target, and expression shape. Always state the test environment.
 
-## 10. Quy trình tự kiểm tra một phép nối chuỗi
+## 10. Checklist for verifying a string concatenation yourself
 
-1. Xác định ý nghĩa biểu thức Java: đây là cộng số hay nối chuỗi, có `null`, phương thức có tác dụng phụ hay các phần hằng nào?
-2. Biên dịch với release target bạn thực sự quan tâm, ví dụ `javac --release 17`.
-3. Dùng `javap -c -v` để tìm `invokedynamic`, entry `BootstrapMethods`, bootstrap handle và recipe. Nếu thấy `ldc` với chuỗi đã gộp, đó có thể là constant folding.
-4. Thực thi chương trình và kiểm tra **nội dung kết quả, thứ tự hiệu ứng phụ và cách xử lý `null`**; đừng chỉ nhìn lệnh bytecode.
-5. Nếu mục tiêu là tối ưu hiệu năng, đánh giá công việc thực tế và benchmark nghiêm túc trước khi thay cấu trúc mã.
+1. Determine what the Java expression means: is it numeric addition or string concatenation, are there `null` values, side-effecting methods, or constant parts?
+2. Compile with the release target you actually care about, such as `javac --release 17`.
+3. Run `javap -c -v` to look for `invokedynamic`, `BootstrapMethods` entries, the bootstrap handle, and the recipe. If you see `ldc` with an already-folded string, that is likely constant folding.
+4. Execute the program and verify **result content, side-effect order, and `null` handling**; do not look solely at bytecode instructions.
+5. If your goal is performance tuning, measure real work and benchmark rigorously before restructuring code.
 
-**Ghi nhớ:** `+` là cú pháp nối chuỗi ở cấp ngôn ngữ. Từ Java 9, `javac` thường chuyển phép nối động thành `invokedynamic`; JVM dùng `StringConcatFactory` làm bootstrap để liên kết một lời gọi có thể tối ưu. Cơ chế nội bộ thay đổi nhưng **ngữ nghĩa chuỗi bất biến, thứ tự đánh giá và kết quả phép nối phải được giữ nguyên**.
+**Key takeaway:** `+` is language-level string concatenation syntax. Since Java 9, `javac` commonly compiles dynamic concatenation into `invokedynamic`; the JVM uses `StringConcatFactory` as a bootstrap to link an optimizable call site. The internal mechanism changed, while **immutable string semantics, evaluation order, and concatenation results must remain unchanged**.

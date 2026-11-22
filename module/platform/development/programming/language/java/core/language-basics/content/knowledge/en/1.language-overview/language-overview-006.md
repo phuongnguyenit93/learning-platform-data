@@ -1,46 +1,46 @@
-# Từ đầu vào tới xử lý và đầu ra của một chương trình Java
+# From Input to Processing and Output in a Java Program
 
-> **Java core — language-basics / Tổng quan**  
-> **Mục tiêu:** Sau bài này, bạn giải thích được đường đi **Input → Processing → Output (IPO)**, biết chương trình Java nhận dữ liệu ở đâu, kiểm tra và biến đổi thế nào, in kết quả hoặc báo lỗi ra sao. Bạn cũng có thể tự biên dịch/chạy một ứng dụng console đơn giản, thử dữ liệu bình thường và các trường hợp biên.
+> **Java core — language-basics / Overview**  
+> **Goal:** After this lesson, you can explain the **Input → Processing → Output (IPO)** pipeline, know where a Java program receives data, how it validates and transforms it, and how it prints results or reports errors. You can also compile and run a simple console application yourself, testing normal data and boundary cases.
 
-## 1. Một chương trình làm gì với dữ liệu?
+## 1. What Does a Program Do with Data?
 
-Hãy tưởng tượng người dùng muốn tính tiền mua bút. Họ nhập tên món hàng, đơn giá và số lượng. Chương trình kiểm tra dữ liệu, tính thành tiền, rồi hiển thị kết quả.
+Imagine a user wants to calculate the total cost of buying pens. They enter the item name, unit price, and quantity. The program validates the data, computes the total amount, and then displays the result.
 
-| Giai đoạn | Câu hỏi cần trả lời | Ví dụ mua hàng |
+| Stage | Questions to answer | Purchase example |
 | --- | --- | --- |
-| **Input — Đầu vào** | Dữ liệu được lấy từ đâu? Hình dạng ban đầu là gì? | Bàn phím cung cấp `"Bút bi"`, `"12000"`, `"3"` dưới dạng những dòng ký tự |
-| **Processing — Xử lý** | Dữ liệu có hợp lệ không? Cần tính hay quyết định điều gì? | Chuyển giá thành `long`, số lượng thành `int`, kiểm tra giá không âm, số lượng dương; tính `12000 × 3` |
-| **Output — Đầu ra** | Kết quả hoặc lỗi được gửi tới đâu? | In `Tổng tiền: 36000 VND` hoặc lý do đầu vào không hợp lệ |
+| **Input** | Where does the data come from? What is its initial form? | The keyboard provides `"Bút bi"`, `"12000"`, `"3"` as lines of characters |
+| **Processing** | Is the data valid? What needs to be calculated or decided? | Parse price to `long` and quantity to `int`, verify price is non-negative and quantity is positive; compute `12000 × 3` |
+| **Output** | Where is the result or error sent? | Print `Tổng tiền: 36000 VND` or the reason why the input is invalid |
 
-Đừng nhầm **đầu vào** với “dữ liệu đã được xử lý”. Người dùng gõ `12000` trên bàn phím; chương trình trước tiên nhận được **chuỗi ký tự** `"12000"`, sau đó mới chuyển sang số `12000L`. Việc nhập thành công **không** đồng nghĩa dữ liệu hợp lệ.
+Do not confuse **input** with “already processed data”. The user types `12000` on the keyboard; the program first receives the **character string** `"12000"`, and only then converts it into the number `12000L`. Reading input successfully **does not** mean the data is valid.
 
 ~~~mermaid
 flowchart TD
-    A["Người dùng / nguồn dữ liệu"] --> B["Đọc input: dòng ký tự"]
-    B --> C["Phân tích cú pháp + kiểm tra"]
-    C --> D{"Hợp lệ?"}
-    D -->|Không| E["Thông báo lỗi qua stderr"]
-    D -->|Có| F["Xử lý nghiệp vụ: tính toán"]
-    F --> G{"Phép toán hợp lệ?"}
-    G -->|Không| E
-    G -->|Có| H["In kết quả qua stdout"]
+    A["User / data source"] --> B["Read input: line of characters"]
+    B --> C["Parse + validate"]
+    C --> D{"Valid?"}
+    D -->|No| E["Report error via stderr"]
+    D -->|Yes| F["Business processing: calculation"]
+    F --> G{"Operation valid?"}
+    G -->|No| E
+    G -->|Yes| H["Print result via stdout"]
 ~~~
 
-Quy trình IPO không chỉ áp dụng cho console. Với một ứng dụng web, đầu vào có thể là HTTP request, xử lý là kiểm tra và tính toán, đầu ra là HTTP response. Với ứng dụng đọc tệp, đầu vào là nội dung tệp và đầu ra có thể là tệp kết quả. **Ba bước tư duy không thay đổi**, còn cách kết nối nguồn/đích thì khác.
+The IPO process does not apply only to the console. For a web application, input can be an HTTP request, processing is validation and computation, and output is an HTTP response. For a file-reading application, input is file content and output can be a result file. **The three thinking steps stay the same**, while how sources and destinations are connected differs.
 
-## 2. Đầu vào trong Java: dữ liệu đến từ đâu?
+## 2. Input in Java: Where Does Data Come From?
 
-Một chương trình Java thông thường có nhiều nguồn đầu vào:
+A typical Java program has several sources of input:
 
-| Nguồn | Java API/cách dùng điển hình | Khi nào phù hợp? |
+| Source | Typical Java API/usage | When is it appropriate? |
 | --- | --- | --- |
-| **Đối số dòng lệnh** | Mảng `String[] args` trong `main` | Tham số được truyền **khi khởi động** chương trình |
-| **Bàn phím/standard input** | `System.in`, thường được bọc bằng `Scanner` hoặc `BufferedReader` | Hội thoại nhập liệu tại terminal; nhận dữ liệu đã chuyển hướng từ tệp/pipe |
-| **Tệp** | `Files.readString`, `Files.newBufferedReader`, v.v. | Đọc dữ liệu đã được lưu |
-| **Lời gọi từ chương trình khác** | Tham số phương thức, object, API/network | Dữ liệu đến từ các thành phần khác của hệ thống |
+| **Command-line arguments** | The `String[] args` array in `main` | Parameters passed **when starting** the program |
+| **Keyboard/standard input** | `System.in`, commonly wrapped with `Scanner` or `BufferedReader` | Interactive input in a terminal; receiving data redirected from a file or pipe |
+| **Files** | `Files.readString`, `Files.newBufferedReader`, etc. | Reading stored data |
+| **Calls from other code** | Method parameters, objects, API/network | Data coming from other components of the system |
 
-Ví dụ với đối số dòng lệnh:
+Example with command-line arguments:
 
 ~~~java
 public class ArgumentsDemo {
@@ -53,44 +53,44 @@ public class ArgumentsDemo {
 }
 ~~~
 
-Biên dịch và chạy (Java 11+):
+Compile and run (Java 11+):
 
 ~~~bash
 javac ArgumentsDemo.java
 java ArgumentsDemo xin-chao
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 So doi so: 1
 Doi so dau: xin-chao
 ~~~
 
-Nếu chạy `java ArgumentsDemo`, `args.length` bằng `0`. Cố truy cập `args[0]` khi mảng rỗng sẽ gây `ArrayIndexOutOfBoundsException`; vì vậy mã trên kiểm tra độ dài trước.
+If you run `java ArgumentsDemo`, `args.length` equals `0`. Trying to access `args[0]` on an empty array causes `ArrayIndexOutOfBoundsException`; therefore, the code above checks the length first.
 
-**Phân biệt:** `args` là dữ liệu đã truyền vào lúc khởi động. `System.in` là luồng để đọc **trong thời gian chương trình đang chạy**; cả hai đều có thể cung cấp chuỗi nhưng vòng đời và cách sử dụng khác nhau.
+**Distinction:** `args` is data passed in at startup. `System.in` is a stream for reading **while the program is running**; both can supply strings, but their lifecycles and usage differ.
 
-## 3. Standard input, standard output và standard error
+## 3. Standard Input, Standard Output, and Standard Error
 
-Một ứng dụng console thường dùng ba luồng chuẩn:
+A console application normally uses three standard streams:
 
-| Luồng | Trong Java | Mục đích |
+| Stream | In Java | Purpose |
 | --- | --- | --- |
-| **stdin** (*standard input*) | `System.in` | Nhận các byte đầu vào, thường từ terminal |
-| **stdout** (*standard output*) | `System.out` | In kết quả thông thường |
-| **stderr** (*standard error*) | `System.err` | In thông báo lỗi/chẩn đoán |
+| **stdin** (*standard input*) | `System.in` | Receives input bytes, usually from the terminal |
+| **stdout** (*standard output*) | `System.out` | Prints normal output |
+| **stderr** (*standard error*) | `System.err` | Prints error/diagnostic messages |
 
-Ví dụ:
+Example:
 
 ~~~java
 System.out.println("Tong tien: 36000 VND");
 System.err.println("Loi: so luong phai lon hon 0");
 ~~~
 
-Tại terminal, **cả hai dòng có thể cùng xuất hiện trên màn hình**, nên rất dễ tưởng stdout và stderr là một. Nhưng khi chuyển hướng luồng, chúng có thể được xử lý riêng. Điều này hữu ích khi một chương trình được tự động hóa: chương trình khác có thể đọc kết quả từ stdout mà không nhầm với lời báo lỗi.
+In a terminal, **both lines may appear together on the screen**, making it easy to assume stdout and stderr are the same. However, when streams are redirected, they can be handled separately. This is useful when a program is automated: another program can read results from stdout without confusing them with error messages.
 
-`System.in` là luồng **byte**. Khi cần đọc văn bản, Java thường bọc nó trong một `InputStreamReader` để giải mã byte thành ký tự, rồi `BufferedReader` để đọc từng dòng:
+`System.in` is a **byte** stream. When reading text, Java commonly wraps it in an `InputStreamReader` to decode bytes into characters, and then a `BufferedReader` to read line by line:
 
 ~~~java
 BufferedReader input = new BufferedReader(
@@ -98,28 +98,28 @@ BufferedReader input = new BufferedReader(
 String line = input.readLine();
 ~~~
 
-Cần import `java.io.BufferedReader`, `java.io.InputStreamReader` và `java.nio.charset.StandardCharsets`. `readLine()` trả một `String`, bỏ ký tự kết thúc dòng; **trả `null` khi đã hết dữ liệu**, chứ không trả một chuỗi rỗng. Đây là khác biệt quan trọng khi đầu vào đến từ tệp hoặc pipe.
+You need to import `java.io.BufferedReader`, `java.io.InputStreamReader`, and `java.nio.charset.StandardCharsets`. `readLine()` returns a `String`, stripping the line terminator; it **returns `null` when input has ended**, rather than returning an empty string. This is an important difference when input comes from a file or pipe.
 
-`Scanner` là lựa chọn đơn giản cho nhiều bài học nhập số, nhưng `Scanner.nextInt()` phụ thuộc cách tách token và locale, dễ phát sinh bất ngờ khi dùng xen kẽ `nextInt()` với `nextLine()`. Ví dụ chính của bài dùng `BufferedReader.readLine()`, sau đó chủ động chuyển kiểu và kiểm tra để thấy rõ từng bước IPO.
+`Scanner` is a simple choice for many number-input lessons, though `Scanner.nextInt()` depends on token splitting and locale, which can cause surprises when mixing `nextInt()` with `nextLine()`. The main example in this lesson uses `BufferedReader.readLine()`, and then explicitly parses and validates so each IPO step is clearly visible.
 
-## 4. Một chương trình chạy được từ đầu đến cuối
+## 4. A Complete End-to-End Runnable Program
 
-Bài toán: người dùng nhập **tên một mặt hàng**, **đơn giá VND** và **số lượng**. Chương trình tính tổng tiền của đúng mặt hàng đó.
+Problem: the user enters **one item's name**, **unit price in VND**, and **quantity**. The program calculates the total amount for that item.
 
-**Hợp đồng đầu vào:**
+**Input contract:**
 
-- Tên món hàng không được trống hoặc chỉ chứa khoảng trắng.
-- Đơn giá là **số nguyên từ 0 tới `Long.MAX_VALUE`**; giá 0 được phép, ví dụ hàng tặng.
-- Số lượng là **số nguyên dương từ 1 tới `Integer.MAX_VALUE`**.
-- Tổng tiền `đơn giá × số lượng` phải nằm trong phạm vi `long`.
-- Chương trình đọc chính xác **ba dòng** từ stdin theo đúng thứ tự.
-- Khi hợp lệ, chương trình in tên hàng và tổng tiền ra stdout. Khi lỗi, in thông báo ra stderr và thoát bằng trạng thái khác 0.
+- The item name must not be empty or consist only of whitespace.
+- Unit price is an **integer from 0 to `Long.MAX_VALUE`**; a price of 0 is allowed, for example a promotional gift.
+- Quantity is a **positive integer from 1 to `Integer.MAX_VALUE`**.
+- The total `unit price × quantity` must fit within the `long` range.
+- The program reads exactly **three lines** from stdin in exact order.
+- When valid, the program prints the item name and total amount to stdout. On error, it prints a message to stderr and exits with a non-zero status.
 
-Ví dụ chọn `long` cho tiền nguyên VND, thay vì `float`/`double` để tránh sai số nhị phân trong ví dụ tiền tệ. Một phần mềm tài chính thực có thể dùng `BigDecimal` và cần quy định tiền tệ/đơn vị/làm tròn chi tiết hơn; bài này chỉ minh họa luồng xử lý và một hợp đồng số nguyên rõ ràng.
+The example chooses `long` for whole VND currency instead of `float`/`double` to avoid binary rounding errors in currency examples. Real financial software might use `BigDecimal` and require more detailed currency/unit/rounding rules; this lesson simply demonstrates the processing flow and a clear integer contract.
 
-### 4.1. Mã nguồn: PurchaseFlowDemo.java
+### 4.1. Source Code: PurchaseFlowDemo.java
 
-Tạo tệp **PurchaseFlowDemo.java** và chép toàn bộ mã sau. Chương trình dùng Java 11 trở lên, không cần thư viện ngoài JDK.
+Create the file **PurchaseFlowDemo.java** and copy all of the following code. The program uses Java 11 or later and requires no libraries outside the JDK.
 
 ~~~java
 import java.io.BufferedReader;
@@ -130,7 +130,7 @@ import java.nio.charset.StandardCharsets;
 
 public class PurchaseFlowDemo {
 
-    // Sau khi kiểm tra, chương trình giữ giá trị đã có đúng kiểu.
+    // After validation, the program holds values that already have the right types.
     static final class Purchase {
         final String productName;
         final long unitPriceVnd;
@@ -143,7 +143,7 @@ public class PurchaseFlowDemo {
         }
     }
 
-    // INPUT: đọc đúng một dòng văn bản, không giả định luôn có dữ liệu.
+    // INPUT: read exactly one line of text, without assuming data is always present.
     private static String requestLine(
             BufferedReader reader, String prompt) throws IOException {
 
@@ -157,7 +157,7 @@ public class PurchaseFlowDemo {
         return line.strip();
     }
 
-    // INPUT + VALIDATION: đổi String thành kiểu dữ liệu phù hợp.
+    // INPUT + VALIDATION: convert String to the appropriate data types.
     private static Purchase readPurchase(
             BufferedReader reader) throws IOException {
 
@@ -188,13 +188,13 @@ public class PurchaseFlowDemo {
         return new Purchase(name, price, quantity);
     }
 
-    // PROCESSING: chỉ tính toán, không đọc từ bàn phím hay in ra màn hình.
+    // PROCESSING: only computes; does not read from the keyboard or print to the screen.
     private static long calculateTotal(Purchase purchase) {
         return Math.multiplyExact(
                 purchase.unitPriceVnd, (long) purchase.quantity);
     }
 
-    // OUTPUT: trình bày kết quả đã xử lý.
+    // OUTPUT: present the processed result.
     private static void printReceipt(Purchase purchase, long total) {
         System.out.println("Mat hang : " + purchase.productName);
         System.out.println("Tong tien: " + total + " VND");
@@ -222,27 +222,27 @@ public class PurchaseFlowDemo {
 }
 ~~~
 
-Có bốn nhóm trách nhiệm dễ nhìn thấy:
+There are four clearly visible groups of responsibilities:
 
-| Phương thức | Giai đoạn | Điều nó làm | Điều nó **không** làm |
+| Method | Stage | What it does | What it does **not** do |
 | --- | --- | --- | --- |
-| `requestLine` | Input | Nhắc nhập, đọc một dòng, phát hiện hết dữ liệu | Không nhân giá và số lượng |
-| `readPurchase` | Input / Validation | Gom ba dòng, chuyển sang `long`/`int`, từ chối đầu vào sai | Không in hóa đơn |
-| `calculateTotal` | Processing | Tính tổng với kiểm tra tràn số | Không tự đọc từ `System.in` |
-| `printReceipt` | Output | Định dạng và in kết quả hợp lệ | Không tự sửa quy tắc tính tiền |
+| `requestLine` | Input | Prompts for input, reads one line, detects end of data | Does not multiply price and quantity |
+| `readPurchase` | Input / Validation | Collects three lines, parses to `long`/`int`, rejects invalid input | Does not print the receipt |
+| `calculateTotal` | Processing | Computes total with overflow checking | Does not read from `System.in` itself |
+| `printReceipt` | Output | Formats and prints the valid result | Does not alter the pricing rule itself |
 
-Cách tách này giúp thấy **dòng dữ liệu** thay vì chỉ nhìn một khối code có lẫn đọc, tính, in. Với chương trình nhỏ hơn, bạn hoàn toàn có thể viết tất cả vào `main`; việc tách method ở đây phục vụ mục đích giáo dục, **không phải quy tắc buộc mọi chương trình phải có bốn phương thức**.
+Separating responsibilities this way lets you see the **data flow** instead of looking at one block of code mixing reading, calculating, and printing. For a smaller program, you can certainly write everything inside `main`; splitting methods here serves an educational purpose, **not a rule forcing every program to have four methods**.
 
-### 4.2. Biên dịch bằng javac, chạy bằng java
+### 4.2. Compile with javac, Run with java
 
-Mở terminal tại thư mục chứa tệp `PurchaseFlowDemo.java`:
+Open a terminal in the directory containing `PurchaseFlowDemo.java`:
 
 ~~~bash
 javac -encoding UTF-8 PurchaseFlowDemo.java
 java PurchaseFlowDemo
 ~~~
 
-Khi chương trình hỏi, lần lượt nhập:
+When the program prompts, enter sequentially:
 
 ~~~text
 Ten san pham: But bi
@@ -252,13 +252,13 @@ Mat hang : But bi
 Tong tien: 36000 VND
 ~~~
 
-Ba dòng bắt đầu bằng lời nhắc là **phần tương tác khi bạn gõ và nhấn Enter**; hai dòng `Mat hang` và `Tong tien` là kết quả được chương trình in. Compiler tạo `PurchaseFlowDemo.class`, còn lệnh `java PurchaseFlowDemo` khởi động lớp đã biên dịch. **Không** thêm đuôi `.class` khi truyền tên lớp cho `java`.
+The three lines starting with prompts are the **interactive part where you type and press Enter**; the two lines `Mat hang` and `Tong tien` are the output printed by the program. The compiler generates `PurchaseFlowDemo.class`, while the command `java PurchaseFlowDemo` launches the compiled class. Do **not** append `.class` when passing the class name to `java`.
 
-Thử nhập `0` cho đơn giá và `5` cho số lượng, kết quả sẽ là `0 VND`. Thử nhập khoảng trắng đầu/cuối tên món hàng: `strip()` cắt khoảng trắng hai đầu. Cách hiển thị ký tự có dấu tại terminal phụ thuộc cấu hình mã hóa/console; trong mã có khai báo UTF-8 cho **đầu vào**.
+Try entering `0` for unit price and `5` for quantity; the result will be `0 VND`. Try entering leading/trailing spaces on the item name: `strip()` trims whitespace at both ends. How accented characters display in the terminal depends on the console/encoding configuration; the code specifies UTF-8 for **input**.
 
-## 5. Dữ liệu chảy qua chương trình như thế nào?
+## 5. How Does Data Flow Through the Program?
 
-Với đầu vào:
+Given the input:
 
 ~~~text
 But bi
@@ -266,50 +266,50 @@ But bi
 3
 ~~~
 
-Bảng sau mô phỏng từng trạng thái:
+The table below simulates each state:
 
-| Bước | Giá trị trong chương trình | Kiểu dữ liệu | Ý nghĩa |
+| Step | Value in the program | Data type | Meaning |
 | --- | --- | --- | --- |
-| Đọc tên | `"But bi"` | `String` | Chưa kiểm tra tên rỗng |
-| Đọc giá | `"12000"` | `String` | Vẫn là văn bản |
-| Đọc số lượng | `"3"` | `String` | Vẫn là văn bản |
-| Chuyển và kiểm tra giá | `12000L` | `long` | Số nguyên không âm |
-| Chuyển và kiểm tra lượng | `3` | `int` | Số nguyên dương |
-| Tính toán | `36000L` | `long` | `12000 × 3` |
-| In kết quả | `"Tong tien: 36000 VND"` | Chuỗi xuất ra stdout | Người dùng thấy kết quả |
+| Read name | `"But bi"` | `String` | Empty name not yet checked |
+| Read price | `"12000"` | `String` | Still text |
+| Read quantity | `"3"` | `String` | Still text |
+| Parse and validate price | `12000L` | `long` | Non-negative integer |
+| Parse and validate quantity | `3` | `int` | Positive integer |
+| Compute | `36000L` | `long` | `12000 × 3` |
+| Print result | `"Tong tien: 36000 VND"` | String written to stdout | User sees the result |
 
-Dữ liệu được **chuyển từ biểu diễn bên ngoài** (chuỗi) thành **giá trị Java có kiểu**, sau đó được kiểm tra theo quy tắc nghiệp vụ. Không có bước xử lý hợp lệ nếu số lượng là `"ba"`: gọi `Integer.parseInt("ba")` sẽ ném `NumberFormatException`; trong ví dụ, lỗi được biến thành một thông báo dễ hiểu hơn cho người dùng.
+Data is **converted from an external representation** (string) into **typed Java values**, and then checked against business rules. There is no valid processing step if the quantity is `"ba"`: calling `Integer.parseInt("ba")` throws `NumberFormatException`; in the example, the error is turned into a clearer message for the user.
 
-Phân biệt hai kiểu câu hỏi:
+Distinguish two kinds of questions:
 
-- **Hợp lệ về cú pháp?** `"1000"` parse được thành số; `"1,000"` hoặc `"1 000"` không parse trực tiếp bằng `Long.parseLong`.
-- **Hợp lệ về nghiệp vụ?** `"-100"` parse được thành số, nhưng **giá âm** bị từ chối; `"0"` parse được thành số, nhưng **số lượng 0** không hợp lệ theo hợp đồng.
+- **Syntactically valid?** `"1000"` parses as a number; `"1,000"` or `"1 000"` does not parse directly with `Long.parseLong`.
+- **Business-valid?** `"-100"` parses as a number, yet a **negative price** is rejected; `"0"` parses as a number, yet a **quantity of 0** is invalid per the contract.
 
-Mã tính tiền dùng `Math.multiplyExact` thay cho phép nhân thông thường để **không trả một số đã tràn** nếu giá × lượng vượt phạm vi `long`.
+The calculation code uses `Math.multiplyExact` instead of ordinary multiplication so it **never returns an overflowed number** if price × quantity exceeds the `long` range.
 
-## 6. Edge cases: đầu vào hỏng và cách chương trình phản hồi
+## 6. Edge Cases: Broken Input and How the Program Responds
 
-| Dữ liệu nhập | Điều xảy ra | Vì sao? |
+| Input data | What happens | Why? |
 | --- | --- | --- |
-| Tên là chuỗi rỗng hoặc toàn khoảng trắng | In lỗi tên rỗng | `strip()` và `isEmpty()` phát hiện tên không có nội dung |
-| Giá là `-1` | In lỗi giá âm | Parse thành công nhưng sai nghiệp vụ |
-| Giá là `0`, số lượng là `2` | In tổng `0 VND` | Giá 0 được phép theo hợp đồng |
-| Số lượng là `0` | In lỗi số lượng không dương | Quy tắc yêu cầu ít nhất một món |
-| Số lượng là `2.5` hoặc `hai` | In lỗi số nguyên | `Integer.parseInt` không nhận số thực/chữ |
-| Giá là `1_000` | In lỗi số nguyên | Dấu gạch dưới hợp lệ trong **literal source Java**, không phải cú pháp mà `parseLong` nhận từ người dùng |
-| Giá vượt `Long.MAX_VALUE` | In lỗi số nguyên | Số không biểu diễn được bằng `long` |
-| Giá = `Long.MAX_VALUE`, lượng = `2` | In lỗi tính toán | `Math.multiplyExact` phát hiện tràn `long` |
-| Chỉ đưa hai dòng rồi kết thúc stdin | In lỗi thiếu dữ liệu | `readLine()` trả `null` tại EOF |
-| Có dòng trống giữa hai giá trị | Dòng trống được đọc như input thật | `readLine()` không tự bỏ qua dòng trống |
-| Có thêm dòng thứ tư | Chương trình bỏ qua dòng thứ tư | Hợp đồng ví dụ chỉ đọc ba dòng |
+| Name is empty or all whitespace | Prints empty-name error | `strip()` and `isEmpty()` detect a name with no content |
+| Price is `-1` | Prints negative-price error | Parses successfully, but violates business rule |
+| Price is `0`, quantity is `2` | Prints total `0 VND` | Price 0 is permitted by the contract |
+| Quantity is `0` | Prints non-positive quantity error | Rule requires at least one item |
+| Quantity is `2.5` or `hai` | Prints integer error | `Integer.parseInt` does not accept decimals or words |
+| Price is `1_000` | Prints integer error | Underscores are valid in **Java source literals**, not syntax accepted from users by `parseLong` |
+| Price exceeds `Long.MAX_VALUE` | Prints integer error | Number cannot be represented by `long` |
+| Price = `Long.MAX_VALUE`, quantity = `2` | Prints arithmetic error | `Math.multiplyExact` detects `long` overflow |
+| Only two lines provided before stdin ends | Prints missing-data error | `readLine()` returns `null` at EOF |
+| Blank line between two values | Blank line is read as real input | `readLine()` does not skip blank lines automatically |
+| Fourth line added | Program ignores the fourth line | Example contract reads only three lines |
 
-Một lỗi không có nghĩa là “chương trình in tổng tiền bằng 0”. **Không nên tự chuyển input sai thành 0 để code khỏi báo lỗi**, vì khi đó người dùng không phân biệt được dữ liệu sai với giá trị hợp lệ. Chương trình dừng với mã trạng thái 1 và ghi lỗi lên stderr, thay vì tạo một hóa đơn trông có vẻ thành công.
+An error does not mean “the program prints a total of 0”. **You should not silently turn bad input into 0 just to avoid errors**, because then the user cannot tell invalid data apart from valid values. The program stops with exit code 1 and writes the error to stderr, rather than producing a receipt that looks successful.
 
-Một điểm nhỏ nhưng có ý nghĩa: ở ví dụ này, `readPurchase` **đọc hết ba dòng rồi mới kiểm tra tên**. Nếu tên rỗng, người dùng vẫn được hỏi giá và số lượng trước khi thấy thông báo lỗi. Đó là lựa chọn thứ tự xử lý của ví dụ, **không** phải hành vi mặc định Java. Bạn có thể cải thiện UX bằng kiểm tra ngay sau khi đọc từng trường, nhưng hãy nhận biết sự khác biệt về thứ tự lời nhắc.
+One small but meaningful point: in this example, `readPurchase` **reads all three lines before checking the name**. If the name is empty, the user is still prompted for price and quantity before seeing the error message. That is a processing-order choice made by this example, **not** Java's default behavior. You can improve UX by validating immediately after reading each field, while noting the difference in prompt order.
 
-## 7. Thử tự động và chuyển hướng luồng
+## 7. Automated Testing and Stream Redirection
 
-Vì chương trình đọc từ **stdin**, bạn không bắt buộc phải gõ tay. Trong shell có hỗ trợ pipe, một chương trình khác có thể cấp dữ liệu cho nó.
+Because the program reads from **stdin**, you do not have to type manually. In shells that support pipes, another command can feed data to it.
 
 **macOS/Linux — terminal shell:**
 
@@ -323,48 +323,48 @@ printf 'But bi\n12000\n3\n' | java PurchaseFlowDemo
 @('But bi', '12000', '3') | java PurchaseFlowDemo
 ~~~
 
-Đầu ra có cùng kết quả tính tiền; khi stdin được pipe từ lệnh khác, các lời nhắc có thể hiện liền nhau vì bản thân dữ liệu nhập **không nhất thiết được terminal echo lại**. Đừng so nguyên hình thức lời nhắc tương tác với transcript gõ tay.
+The output produces the same calculation result; when stdin is piped from another command, the prompts may appear run together on one line because the input data itself **is not necessarily echoed back by the terminal**. Do not compare the prompt formatting of piped runs directly against a manual typing transcript.
 
-Để nhận biết stderr khác stdout (ví dụ trên macOS/Linux hoặc shell hỗ trợ cú pháp tương đương):
+To see that stderr is separate from stdout (for example on macOS/Linux or a shell supporting equivalent syntax):
 
 ~~~bash
 printf 'But bi\n12000\n0\n' | java PurchaseFlowDemo > result.txt 2> errors.txt
 ~~~
 
-- `> result.txt` chuyển **stdout** sang tệp `result.txt`.
-- `2> errors.txt` chuyển **stderr** sang `errors.txt`.
-- Trong trường hợp sai số lượng, `errors.txt` có thông báo lỗi; `result.txt` có thể chứa các lời nhắc nhập mà chương trình đã in trước khi lỗi.
-- Mã thoát khác 0 báo chương trình không hoàn tất thành công. Cách kiểm tra mã thoát khác nhau giữa shell, ví dụ `echo $?` trong Bash sau lệnh.
+- `> result.txt` redirects **stdout** to the file `result.txt`.
+- `2> errors.txt` redirects **stderr** to `errors.txt`.
+- In the invalid-quantity case, `errors.txt` holds the error message; `result.txt` may hold the input prompts the program printed before failing.
+- A non-zero exit code indicates the program did not complete successfully. How to inspect the exit code varies by shell, e.g. `echo $?` in Bash after the command.
 
-**Chú ý:** Lệnh chuyển hướng trên tác động tới luồng của **tiến trình**; `System.out` và `System.err` vẫn là các API Java. Java không cần biết dữ liệu đang đến từ bàn phím, tệp hay pipe để đọc từng dòng bằng `BufferedReader`.
+**Note:** The redirection commands above affect the **process** streams; `System.out` and `System.err` are still the Java APIs. Java does not need to know whether data comes from a keyboard, a file, or a pipe in order to read line by line with `BufferedReader`.
 
-## 8. Gỡ lỗi bằng cách đi ngược dòng dữ liệu
+## 8. Debugging by Tracing Backward Along the Data Flow
 
-Khi kết quả không đúng, lần theo đúng từng bước:
+When the result is wrong, trace step by step:
 
-1. **Có nhận được input không?** `readLine()` trả `null` hay chuỗi? Có đang chờ Enter không?
-2. **Chuỗi đọc được là gì?** Có khoảng trắng đầu/cuối, dòng rỗng, dấu phân cách lạ không? Tránh in mật khẩu/thông tin nhạy cảm khi debug.
-3. **Phân tích cú pháp ra sao?** `parseInt/parseLong` chấp nhận chuỗi đó không? Kiểu số có đủ phạm vi không?
-4. **Đã kiểm tra nghiệp vụ chưa?** Giá âm, số lượng bằng 0 hoặc vượt ngưỡng hợp lệ có bị chặn không?
-5. **Phép tính có an toàn không?** Có phép cộng/nhân vượt `int`/`long` không? Nếu cần, dùng các phương thức `Math.*Exact` tương ứng.
-6. **Đã xuất kết quả nào?** Đầu ra thành công có chỉ xuất khi mọi bước trước hợp lệ không? Thông báo lỗi có đi vào stderr không?
+1. **Did input arrive?** Did `readLine()` return `null` or a string? Is it waiting for Enter?
+2. **What string was read?** Are there leading/trailing spaces, blank lines, or unexpected separators? Avoid printing passwords/sensitive info when debugging.
+3. **How was it parsed?** Does `parseInt/parseLong` accept that string? Does the numeric type have sufficient range?
+4. **Were business rules checked?** Are negative prices, zero quantities, or out-of-bounds values blocked?
+5. **Is the arithmetic safe?** Could addition or multiplication overflow `int`/`long`? If needed, use the corresponding `Math.*Exact` methods.
+6. **What output was produced?** Is success output emitted only when all prior steps succeed? Do error messages go to stderr?
 
-Một số lỗi hay gặp:
+Some common issues:
 
-| Triệu chứng | Khả năng | Cách xem xét |
+| Symptom | Possibility | What to Check |
 | --- | --- | --- |
-| Chương trình “đứng yên” sau lời nhắc | Đang chờ dữ liệu từ stdin | Nhập một dòng và Enter hoặc cung cấp đủ input qua pipe |
-| `NumberFormatException` | Chuỗi không phải số nguyên được hỗ trợ | Kiểm tra ký tự lạ, dấu phẩy, số quá lớn |
-| `NullPointerException` khi gọi method trên `readLine()` | Không xử lý EOF trước | Kiểm tra `null` như `requestLine` |
-| Giá đúng nhưng tổng âm bất thường | Tràn kiểu số với phép nhân thường | Dùng `Math.multiplyExact` và xử lý lỗi |
-| Máy hiển thị chữ tiếng Việt sai dấu | Mã hóa console không khớp | Kiểm tra terminal, charset nguồn/input/output |
-| Không tìm được main class | Sai thư mục chạy/classpath/tên lớp | Kiểm tra biên dịch thành công, chạy `java PurchaseFlowDemo` |
+| Program “hangs” after a prompt | Waiting for data from stdin | Type a line and press Enter, or supply enough input via pipe |
+| `NumberFormatException` | String is not a supported integer | Check for stray characters, commas, or overly large numbers |
+| `NullPointerException` when calling a method on `readLine()` | EOF not handled first | Check for `null` like `requestLine` does |
+| Price looks right, yet total is unexpectedly negative | Numeric overflow with ordinary multiplication | Use `Math.multiplyExact` and handle the error |
+| Machine displays Vietnamese diacritics incorrectly | Console encoding mismatch | Check terminal, source/input/output charsets |
+| Main class not found | Wrong working directory/classpath/class name | Verify compilation succeeded and run `java PurchaseFlowDemo` |
 
-Đừng mặc định mọi lỗi nhập liệu đều là `IOException`: chuyển số sai thường gây `NumberFormatException` (một `IllegalArgumentException`), còn đọc nguồn lỗi thật mới là trường hợp `IOException`. Việc phân biệt giúp thông báo lỗi và cách khắc phục chính xác hơn.
+Do not assume every input error is an `IOException`: invalid number conversion usually causes `NumberFormatException` (an `IllegalArgumentException`), while actual failures reading the source are `IOException` cases. Distinguishing them makes error messages and fixes more accurate.
 
-## 9. Từ ví dụ console đến thiết kế dễ kiểm thử
+## 9. From Console Example to Testable Design
 
-Đầu vào/đầu ra phụ thuộc **môi trường**; phần tính toán có thể viết như một hàm thuần. Đây là lý do ta tách:
+Input/output depends on the **environment**; the calculation part can be written as a pure function. That is why we separated:
 
 ~~~java
 private static long calculateTotal(Purchase purchase) {
@@ -373,37 +373,37 @@ private static long calculateTotal(Purchase purchase) {
 }
 ~~~
 
-Nếu đơn giá là `12000` và số lượng là `3`, hàm cho kết quả `36000` mà không cần bàn phím. Nếu đơn giá là `Long.MAX_VALUE` và lượng là `2`, hàm ném `ArithmeticException` mà không in kết quả. Hai hành vi đó có thể kiểm tra trực tiếp bằng unit test khi nâng cấp dự án.
+If unit price is `12000` and quantity is `3`, the method returns `36000` without needing a keyboard. If unit price is `Long.MAX_VALUE` and quantity is `2`, the method throws `ArithmeticException` without printing a result. Both behaviors can be tested directly with unit tests as the project grows.
 
-Trong chương trình thực, nguồn vào có thể đổi từ terminal sang HTTP request hoặc file CSV. Nếu phần xử lý không tự đọc input và không tự in output, ta có thể **tái sử dụng quy tắc** mà không phải mang theo phụ thuộc vào console. Tuy vậy, tách lớp và kiến trúc sâu hơn không phải mục tiêu bắt buộc của bài nhập môn: trước tiên hãy nắm cách dữ liệu đi qua từng giai đoạn.
+In a real program, the input source might change from a terminal to an HTTP request or a CSV file. If processing does not read input or print output itself, we can **reuse the rules** without carrying a dependency on the console. Even so, deeper class splitting and architecture are not mandatory goals for an introductory lesson: first master how data moves through each stage.
 
-### Kiểm thử thủ công theo hợp đồng
+### Manual Testing Against the Contract
 
-Hãy thử ít nhất các trường hợp sau, ghi lại input/kỳ vọng trước khi chạy:
+Test at least the following cases, writing down input/expected output before running:
 
-| Trường hợp | Input ba dòng | Kỳ vọng |
+| Case | Three-line input | Expected |
 | --- | --- | --- |
-| Bình thường | `But bi / 12000 / 3` | `Tong tien: 36000 VND` |
-| Hàng miễn phí | `Qua tang / 0 / 2` | `Tong tien: 0 VND` |
-| Tên trống | `(trống) / 12000 / 3` | Thông báo tên không được rỗng |
-| Số lượng sai | `But bi / 12000 / 0` | Thông báo lượng phải dương |
-| Không phải số | `But bi / abc / 3` | Thông báo yêu cầu số nguyên |
-| Tràn số | `But bi / 9223372036854775807 / 2` | Lỗi tràn, không có dòng tổng tiền |
+| Normal | `But bi / 12000 / 3` | `Tong tien: 36000 VND` |
+| Free item | `Qua tang / 0 / 2` | `Tong tien: 0 VND` |
+| Empty name | `(blank) / 12000 / 3` | Message saying name cannot be empty |
+| Invalid quantity | `But bi / 12000 / 0` | Message saying quantity must be positive |
+| Not a number | `But bi / abc / 3` | Message requiring an integer |
+| Numeric overflow | `But bi / 9223372036854775807 / 2` | Overflow error, no total line printed |
 
-Một bộ test hữu ích luôn có **ca bình thường + ca biên + ca lỗi**, không chỉ có một ảnh chụp màn hình chứng minh chương trình in được một phép nhân.
+A useful test suite always includes **normal cases + boundary cases + error cases**, not just one screenshot showing the program printed one multiplication.
 
-## 10. Bài tập thực hành
+## 10. Practice Exercises
 
-**Bài 1 — Vẽ luồng IPO:** Với ứng dụng tính điểm trung bình từ ba bài kiểm tra, hãy xác định đầu vào, kiểu dữ liệu nội bộ, công thức xử lý, cách hiển thị kết quả và những dữ liệu không hợp lệ. Nếu điểm hợp lệ là `0..10`, bạn kiểm tra ở giai đoạn nào?
+**Exercise 1 — Draw the IPO flow:** For an application that calculates the average score of three tests, identify the inputs, internal data types, processing formula, how results are displayed, and invalid inputs. If valid scores are `0..10`, at which stage do you check them?
 
-**Bài 2 — Thêm giảm giá:** Thêm một dòng đầu vào “Phần trăm giảm giá” (số nguyên `0..100`) rồi tính tiền cuối. Chỉ rõ thứ tự nhân/chia và cách làm tròn bằng phép tính số nguyên. Viết trước các ca 0%, 100%, 50% và input ngoài phạm vi. Đây là **mở rộng tính năng** chứ không còn là bản gốc ba dòng.
+**Exercise 2 — Add a discount:** Add an input line “Discount percentage” (integer `0..100`) and calculate the final amount. Specify the multiplication/division order and rounding method using integer arithmetic. Write out cases for 0%, 100%, 50%, and out-of-range inputs beforehand. This is a **feature extension**, no longer the original three-line version.
 
-**Bài 3 — Cải thiện thông báo nhập lỗi:** Trong `readPurchase`, kiểm tra tên ngay sau khi đọc và giá ngay sau khi parse; để input sai được báo sớm. Quan sát thay đổi về số lời nhắc nhưng vẫn giữ công thức thành tiền.
+**Exercise 3 — Improve invalid-input feedback:** In `readPurchase`, validate the name right after reading it and the price right after parsing it so invalid input is reported earlier. Observe the change in the number of prompts while keeping the total-price formula unchanged.
 
-**Bài 4 — Phân biệt stdout/stderr:** Cấp số lượng 0 bằng pipe, chuyển hướng hai luồng ra hai tệp. Dòng nào là kết quả, dòng nào là lỗi? Vì sao một công cụ tự động nên dựa cả vào mã thoát?
+**Exercise 4 — Distinguish stdout/stderr:** Supply quantity 0 via a pipe and redirect the two streams to two files. Which line is output, and which line is error? Why should an automated tool also check the exit code?
 
-**Bài 5 — Đổi nguồn input:** Thay bàn phím bằng dữ liệu từ một tệp văn bản có ba dòng. Dùng `<` của shell nơi hỗ trợ hoặc `Files.newBufferedReader`. Chỉ ra phần nào của chương trình phải thay, phần nào có thể giữ nguyên.
+**Exercise 5 — Change the input source:** Replace the keyboard with data from a three-line text file. Use shell `<` where supported or `Files.newBufferedReader`. Point out which part of the program must change and which part can stay the same.
 
-### Tự đánh giá
+### Self-Assessment
 
-Bạn hiểu bài khi có thể: **(1)** mô tả đường đi Input → Validation → Processing → Output; **(2)** phân biệt `String` đọc vào với giá trị số đã parse; **(3)** chỉ rõ vai trò `System.in`, `System.out`, `System.err`; **(4)** giải thích vì sao dữ liệu sai hoặc tràn số **không được in như kết quả thành công**; và **(5)** tự chạy/chẩn đoán ví dụ bằng `javac`/`java`.
+You understand this lesson when you can: **(1)** describe the Input → Validation → Processing → Output path; **(2)** distinguish the `String` read as input from parsed numeric values; **(3)** state the roles of `System.in`, `System.out`, and `System.err`; **(4)** explain why invalid data or numeric overflow **must not be printed as a successful result**; and **(5)** run and diagnose the example yourself using `javac`/`java`.

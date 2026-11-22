@@ -1,8 +1,8 @@
-# Không tạo thêm hằng enum bằng Constructor.newInstance
+# Do not create extra enum constants with Constructor.newInstance
 
-## 1. Enum không phải lớp thường có constructor riêng tư
+## 1. An enum is not a regular class with a private constructor
 
-Một enum khai báo một tập các hằng có tên. Ví dụ:
+An enum declares a set of named constants. For example:
 
 ~~~java
 enum Phase {
@@ -10,25 +10,25 @@ enum Phase {
 }
 ~~~
 
-Trong khai báo này, `READY` và `DONE` là các hằng của `Phase`. Các đối tượng tương ứng được tạo trong quá trình khởi tạo lớp enum.
+In this declaration, `READY` and `DONE` are the constants of `Phase`. The corresponding objects are created during enum class initialization.
 
-Khi học Reflection, ta dễ suy luận rằng:
+When learning Reflection, it is easy to reason that:
 
-1. Enum có constructor.
-2. Constructor đó không `public`.
-3. Nếu lấy constructor và mở quyền truy cập thì có thể gọi `newInstance()` để tạo `EXTRA`.
+1. An enum has a constructor.
+2. That constructor is not `public`.
+3. If you retrieve the constructor and open access, you can call `newInstance()` to create `EXTRA`.
 
-**Suy luận ở bước 3 không đúng.** `Constructor.newInstance()` có quy tắc riêng: nếu constructor thuộc một lớp enum, việc tạo instance bị từ chối bằng `IllegalArgumentException`. Đây không chỉ là vấn đề constructor có modifier `private`.
+**The reasoning in step 3 is incorrect.** `Constructor.newInstance()` has a dedicated rule: if the constructor belongs to an enum class, object creation is rejected with `IllegalArgumentException`. This is not merely an issue of the constructor having the `private` modifier.
 
-Quy tắc được ghi trong hợp đồng [Constructor.newInstance](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Constructor.html#newInstance(java.lang.Object...)). [JLS §8.9](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.9) cũng nêu rằng không được tạo instance enum bằng Reflection.
+The rule is recorded in the [Constructor.newInstance](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Constructor.html#newInstance(java.lang.Object...)) contract. [JLS §8.9](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.9) also states that enum instances cannot be created via Reflection.
 
-Bài học này tập trung vào việc phân biệt **khảo sát constructor**, **điều chỉnh kiểm tra truy cập** và **được phép tạo đối tượng**. Có được hai điều đầu không có nghĩa điều thứ ba được cho phép.
+This lesson focuses on distinguishing **inspecting constructors**, **adjusting access checks**, and **being permitted to instantiate objects**. Achieving the first two does not mean the third is allowed.
 
-## 2. Vì sao enum vẫn có constructor?
+## 2. Why does an enum still have constructors?
 
-Constructor của enum phục vụ việc khởi tạo các hằng được khai báo. Nó có thể nhận dữ liệu riêng, gán trường và thực hiện logic khởi tạo giống những phần mã Java thông thường.
+An enum's constructor serves to initialize its declared constants. It can take custom data, assign fields, and execute initialization logic just like regular Java code.
 
-Ví dụ sau là một khai báo enum độc lập:
+The following example is a standalone enum declaration:
 
 ~~~java
 enum Severity {
@@ -43,20 +43,20 @@ enum Severity {
 }
 ~~~
 
-Khi các hằng được khởi tạo, `LOW` nhận dữ liệu `1`, còn `HIGH` nhận dữ liệu `5`. Điều đó không tạo một API để mã bên ngoài gọi `new Severity(3)`.
+When the constants are initialized, `LOW` receives the data `1`, and `HIGH` receives `5`. That does not create an API for external code to call `new Severity(3)`.
 
-Một vài quy tắc cần nhớ:
+A few rules to remember:
 
-- Không được dùng biểu thức `new` để tự tạo instance của lớp enum.
-- Constructor enum không được khai báo `public` hoặc `protected`.
-- Constructor enum không ghi modifier truy cập được xem là `private`.
-- Việc Reflection nhìn thấy constructor không làm thay đổi các quy tắc của enum.
+- You cannot use the `new` expression to instantiate an enum class yourself.
+- An enum constructor cannot be declared `public` or `protected`.
+- An enum constructor with no written access modifier is treated as `private`.
+- Reflection being able to see the constructor does not change the rules of enums.
 
-Đặc biệt, `private` và “không được tạo thêm instance enum bằng `Constructor.newInstance()`” là hai ràng buộc khác nhau. Thí nghiệm tiếp theo tách rõ chúng.
+In particular, `private` and "cannot create extra enum instances with `Constructor.newInstance()`" are two different constraints. The next experiment separates them clearly.
 
-## 3. Thí nghiệm đầy đủ: cùng mở truy cập, kết quả khác nhau
+## 3. Complete experiment: same access unlocking, different outcomes
 
-Lưu toàn bộ mã dưới đây vào `EnumConstructorDemo.java`. Chỉ lớp `EnumConstructorDemo` là `public`; các lớp và enum hỗ trợ ở cấp cao nhất nằm trong cùng tệp.
+Save the entire code below into `EnumConstructorDemo.java`. Only the `EnumConstructorDemo` class is `public`; the supporting top-level classes and enum reside in the same file.
 
 ~~~java
 import java.lang.reflect.Constructor;
@@ -149,14 +149,14 @@ public class EnumConstructorDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ~~~bash
 javac --release 17 -encoding UTF-8 EnumConstructorDemo.java
 java EnumConstructorDemo
 ~~~
 
-Kết quả chính xác khi chạy theo các lệnh trên, trên classpath thông thường:
+Exact output when run with the commands above on a standard classpath:
 
 ~~~text
 plain private: true
@@ -179,24 +179,24 @@ lookup EXTRA: IllegalArgumentException
 lookup READY identity: true
 ~~~
 
-Chương trình in loại ngoại lệ, không phụ thuộc vào nguyên văn thông báo lỗi của một phiên bản JDK.
+The program prints the exception types without depending on the verbatim error message of a particular JDK version.
 
-`PlainItem` và `Phase` là các kiểu ở cấp cao nhất, tách khỏi lớp chứa `main()`. Cách đặt này giúp thể hiện rõ trạng thái không truy cập được constructor `private` trước khi gọi `trySetAccessible()`.
+`PlainItem` and `Phase` are top-level types separate from the class containing `main()`. Putting them there clearly demonstrates that the `private` constructors are inaccessible before calling `trySetAccessible()`.
 
-### 3.1. Lớp thường có thể được tạo sau khi mở truy cập
+### 3.1. A regular class can be instantiated after enabling access
 
-Đối với `PlainItem`:
+For `PlainItem`:
 
-- Constructor là `private`.
-- Trước khi mở truy cập, `canAccess(null)` trả về `false`.
-- Trong môi trường của thí nghiệm, `trySetAccessible()` trả về `true`.
-- `plain.newInstance()` tạo được một đối tượng.
+- The constructor is `private`.
+- Before enabling access, `canAccess(null)` returns `false`.
+- In the experiment's environment, `trySetAccessible()` returns `true`.
+- `plain.newInstance()` creates an object.
 
-Điều này làm mẫu đối chiếu cho nhận định “constructor riêng tư có thể gọi được khi điều kiện truy cập cho phép”. Nó không áp dụng riêng cho enum.
+This serves as a control sample for the statement "a private constructor can be invoked when access conditions permit". It does not generalize to enums.
 
-### 3.2. Enum vẫn bị từ chối dù đã mở truy cập
+### 3.2. An enum is still rejected even after enabling access
 
-Đối với constructor của `Phase`, chương trình cũng xác nhận:
+For `Phase`'s constructor, the program also confirms:
 
 ~~~text
 enum private: true
@@ -205,41 +205,21 @@ enum access enabled: true
 enum accessible after: true
 ~~~
 
-Ngay sau đó, lời gọi:
+Immediately afterward, the call:
 
 ~~~java
 constructor.newInstance("EXTRA", 2);
 ~~~
 
-vẫn ném `IllegalArgumentException`.
+still throws `IllegalArgumentException`.
 
-Như vậy, lỗi không xuất phát từ việc chưa mở quyền truy cập constructor trong thí nghiệm này. Trạng thái truy cập đã được chứng minh là cho phép; quy tắc cấm tạo instance enum vẫn còn hiệu lực.
+Thus, the failure does not stem from failing to unlock access to the constructor in this experiment. Accessibility has been proven to be enabled; the rule prohibiting enum instantiation still remains in effect.
 
-`canAccess(null)` chỉ hỏi người gọi hiện tại có thể truy cập đối tượng Reflection đó hay không. Nó không hỏi rằng mọi thao tác thực thi tiếp theo đều hợp lệ về ngữ nghĩa. Đối với constructor, đối số của `canAccess` phải là `null`; đây không phải một đối tượng sẽ nhận lời gọi phương thức.
+`canAccess(null)` only asks whether the current caller can access that Reflection object. It does not ask whether every subsequent execution operation is semantically valid. For a constructor, the argument to `canAccess` must be `null`; it is not an object that will receive a method call.
 
-### 3.3. Thân constructor không được gọi thêm
+### 3.3. The constructor body is not invoked again
 
-Để quan sát điều này, constructor của `Phase` tăng một bộ đếm nằm ở lớp hỗ trợ riêng:
-
-~~~java
-private Phase() {
-    PhaseConstructionCount.count++;
-}
-~~~
-
-Trước thí nghiệm tạo thêm instance, chương trình gọi `Phase.values()` để khởi tạo hai hằng hiện có. Vì vậy bộ đếm là `2`.
-
-Sau lần `newInstance()` bị từ chối:
-
-- Bộ đếm giữ nguyên.
-- `Phase.values()` vẫn chỉ chứa `READY` và `DONE`.
-- Tra cứu `EXTRA` bằng `Enum.valueOf(...)` vẫn thất bại.
-
-Bộ đếm ở ngoài enum cũng giúp tránh trộn bài thí nghiệm với các quy tắc đặc biệt về truy cập trường tĩnh trong quá trình khởi tạo enum.
-
-## 4. Vì sao tìm constructor không tham số lại thất bại?
-
-Mã nguồn có thể cho thấy:
+To observe this, `Phase`'s constructor increments a counter located in a separate helper class:
 
 ~~~java
 private Phase() {
@@ -247,129 +227,149 @@ private Phase() {
 }
 ~~~
 
-nhưng metadata constructor trong class file do `javac` tạo ở ví dụ này có các tham số:
+Before testing extra instantiation, the program calls `Phase.values()` to initialize the two existing constants. Therefore, the counter is `2`.
+
+After the rejected `newInstance()` attempt:
+
+- The counter stays unchanged.
+- `Phase.values()` still contains only `READY` and `DONE`.
+- Looking up `EXTRA` with `Enum.valueOf(...)` still fails.
+
+Placing the counter outside the enum also avoids mixing the experiment with special rules on accessing static fields during enum initialization.
+
+## 4. Why does looking up a no-arg constructor fail?
+
+The source code may show:
+
+~~~java
+private Phase() {
+    PhaseConstructionCount.count++;
+}
+~~~
+
+yet the constructor metadata in the class file generated by `javac` in this example has the parameters:
 
 ~~~text
 [class java.lang.String, int]
 ~~~
 
-Chúng phục vụ tên hằng và vị trí thứ tự của hằng. Constructor của lớp cơ sở `Enum` nhận `name` và `ordinal`; các giá trị này được mã do trình biên dịch sinh ra cung cấp.
+They serve the constant's name and ordinal position. The base `Enum` class constructor accepts `name` and `ordinal`; these values are supplied by compiler-generated code.
 
-Vì vậy, trong thí nghiệm:
+Therefore, in the experiment:
 
 ~~~java
 Phase.class.getDeclaredConstructor();
 ~~~
 
-không tìm thấy constructor có danh sách kiểu tham số rỗng và ném `NoSuchMethodException`.
+does not find a constructor with an empty parameter type list and throws `NoSuchMethodException`.
 
-Tra cứu tương ứng với metadata đã quan sát là:
+The lookup matching the observed metadata is:
 
 ~~~java
 Phase.class.getDeclaredConstructor(String.class, int.class);
 ~~~
 
-**Tìm được chữ ký không có nghĩa được gọi để tạo enum.** Ví dụ đã truyền đúng hai đối số có kiểu phù hợp nhưng vẫn bị chặn.
+**Finding the signature does not mean it can be called to create an enum.** The example passed two arguments of matching types and was still blocked.
 
-Nếu enum có tham số do người viết khai báo, chẳng hạn `Severity(int score)`, metadata do `javac` sinh thường thể hiện các tham số hỗ trợ ở trước tham số `score`. Khi khảo sát constructor, hãy xem `getParameterTypes()` và metadata thực tế của class file, không suy đoán từ số tham số nhìn thấy trong mã nguồn. Không dùng vị trí đầu tiên của `getDeclaredConstructors()` làm quy tắc chọn constructor khi enum có nhiều constructor.
+If an enum has author-declared parameters, such as `Severity(int score)`, the metadata generated by `javac` typically shows the helper parameters before `score`. When inspecting constructors, check `getParameterTypes()` and the actual class file metadata rather than guessing from the parameter count visible in source code. Do not use the first element of `getDeclaredConstructors()` as a rule for picking a constructor when an enum has multiple constructors.
 
-Cũng không nên dựa vào tên tham số như `arg0` hay tên nội bộ do compiler đặt. Tùy chọn biên dịch và metadata có thể ảnh hưởng cách tên tham số được phản chiếu.
+You should also not rely on parameter names like `arg0` or compiler-assigned internal names. Compiler options and metadata can affect how parameter names are reflected.
 
-`String.class` và `int.class` trong ví dụ là các **kiểu dùng để tìm chữ ký**. Truyền `Integer.class` thay `int.class` cho `getDeclaredConstructor(...)` không phải cùng một tra cứu. Việc `newInstance()` có hỗ trợ chuyển đổi đối số ở bước gọi không làm API tìm constructor tự chọn lại một chữ ký khác.
+`String.class` and `int.class` in the example are **types used to look up the signature**. Passing `Integer.class` instead of `int.class` to `getDeclaredConstructor(...)` is not the same lookup. The fact that `newInstance()` supports argument conversions at invocation time does not make the constructor lookup API select a different signature automatically.
 
-## 5. Phân biệt các thao tác và nhóm lỗi
+## 5. Distinguishing operations and error categories
 
-| Thao tác hoặc tình huống | Ý nghĩa và kết quả cần phân biệt |
+| Operation or situation | Meaning and result to distinguish |
 | --- | --- |
-| `getConstructors()` | Chỉ trả constructor `public`; enum trong ví dụ có mảng rỗng |
-| `getDeclaredConstructor(...)` | Tìm constructor khai báo trong lớp, bao gồm constructor riêng tư; chữ ký không khớp gây `NoSuchMethodException` |
-| Constructor chưa truy cập được | Khi gọi, có thể gặp `IllegalAccessException` |
-| `trySetAccessible()` | Thử cho phép bỏ qua kiểm tra truy cập theo các điều kiện của Java; thành công không bỏ quy tắc cấm tạo enum |
-| `setAccessible(true)` không được môi trường cho phép | Có thể gặp `InaccessibleObjectException` hoặc kiểm tra bảo mật tương ứng |
-| `newInstance()` với constructor enum đã truy cập được | Việc tạo instance enum bị từ chối bằng `IllegalArgumentException` |
-| Đối số gọi sai số lượng hoặc kiểu | Cũng có thể gây `IllegalArgumentException`; không được suy từ tên ngoại lệ rằng luôn do enum |
-| Thân constructor hợp lệ tự ném ngoại lệ | Thông thường ngoại lệ từ thân constructor được bọc trong `InvocationTargetException` |
+| `getConstructors()` | Returns only `public` constructors; the enum in the example yields an empty array |
+| `getDeclaredConstructor(...)` | Finds a constructor declared in the class, including private constructors; mismatched signature causes `NoSuchMethodException` |
+| Constructor not yet accessible | When invoked, may hit `IllegalAccessException` |
+| `trySetAccessible()` | Attempts to allow bypassing access checks under Java's conditions; success does not bypass the enum prohibition |
+| `setAccessible(true)` disallowed by the environment | May hit `InaccessibleObjectException` or the corresponding security check |
+| `newInstance()` on an accessible enum constructor | Enum instantiation is rejected with `IllegalArgumentException` |
+| Calling with wrong argument count or types | Can also cause `IllegalArgumentException`; do not infer from the exception name alone that it is always due to enum |
+| Valid constructor body throws an exception itself | Normally an exception from the constructor body is wrapped in `InvocationTargetException` |
 
-Bảng giúp định vị vấn đề ở đúng thao tác. Không nên gộp mọi thất bại Reflection thành “không tìm thấy constructor” hoặc “thiếu quyền”.
+The table helps pinpoint the issue at the exact operation. Do not lump all Reflection failures into "constructor not found" or "missing permission".
 
-### IllegalArgumentException ở đây không phải ngoại lệ từ thân constructor
+### IllegalArgumentException here is not an exception from the constructor body
 
-Trong thí nghiệm, Reflection từ chối tạo đối tượng enum; thân constructor không chạy thêm. Vì vậy không có một ngoại lệ do thân constructor `Phase()` tự ném rồi được bọc lại.
+In the experiment, Reflection refuses to create the enum object; the constructor body does not run again. Therefore, there is no exception thrown by the `Phase()` constructor body itself and wrapped.
 
-Nếu chỉ bắt:
+If you only catch:
 
 ~~~java
-// Đoạn minh họa cho một khối catch chưa đủ để xử lý trường hợp enum.
+// Illustrative snippet of a catch block insufficient to handle the enum case.
 catch (java.lang.reflect.InvocationTargetException ex) {
     System.out.println(ex.getCause());
 }
 ~~~
 
-thì chưa xử lý được `IllegalArgumentException` phát sinh do quy tắc cấm tạo enum. Đoạn trên chỉ là nhánh `catch` minh họa, phải đặt sau một khối `try` thích hợp khi dùng trong mã Java.
+then `IllegalArgumentException` raised by the enum prohibition rule is not handled. The snippet above is only an illustrative `catch` branch and must be placed after an appropriate `try` block when used in Java code.
 
-Trong ứng dụng, hãy đọc lỗi cùng với **kiểu đang tạo**, **constructor đã tìm**, **quyền truy cập** và **đối số thực tế**. Không chỉ kiểm tra chuỗi thông báo của ngoại lệ.
+In applications, read the error together with the **type being constructed**, the **looked-up constructor**, **accessibility**, and the **actual arguments**. Do not inspect only the exception message string.
 
-## 6. setAccessible không phải công tắc bỏ mọi ràng buộc
+## 6. setAccessible is not a switch to bypass all constraints
 
-`setAccessible(true)` và `trySetAccessible()` làm việc với kiểm tra truy cập của Reflection, trong giới hạn mà hệ thống module và môi trường cho phép.
+`setAccessible(true)` and `trySetAccessible()` operate on Reflection's access checks, within limits permitted by the module system and environment.
 
-Chúng không:
+They do not:
 
-- Thêm một hằng vào khai báo enum.
-- Thay đổi lớp enum thành lớp thường.
-- Thay đổi số lượng hoặc kiểu tham số của constructor.
-- Biến việc tạo enum bằng `Constructor.newInstance()` thành thao tác hợp lệ.
+- Add a constant to an enum declaration.
+- Turn an enum class into a regular class.
+- Change the number or types of constructor parameters.
+- Make creating an enum via `Constructor.newInstance()` a valid operation.
 
-Thí nghiệm dùng các kiểu do chính chương trình định nghĩa trên classpath, nên việc mở truy cập thành công. Khi khảo sát một kiểu ở module khác, việc mở truy cập có thể thất bại trước khi đi đến câu hỏi tạo đối tượng.
+The experiment uses types defined by the program itself on the classpath, so unlocking access succeeds. When inspecting a type in another module, unlocking access can fail before even reaching the question of object instantiation.
 
-Tài liệu [AccessibleObject.trySetAccessible](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AccessibleObject.html#trySetAccessible()) mô tả giới hạn của thao tác này. Nếu mở được quyền truy cập thì quy tắc enum vẫn giữ nguyên; thay đổi cấu hình mở package không phải cách sửa lỗi cấm tạo enum.
+The [AccessibleObject.trySetAccessible](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/AccessibleObject.html#trySetAccessible()) documentation describes the limits of this operation. If access can be enabled, the enum rule still holds; changing package-opening configuration is not a fix for the enum instantiation prohibition.
 
-Cũng cần phân biệt **metadata có thể đọc được** với **thao tác có thể thực hiện**. Công cụ có thể hiển thị constructor enum để phục vụ khảo sát chữ ký, annotation hoặc bytecode mà không cần và không được tạo thêm hằng bằng API này.
+You must also distinguish **readable metadata** from **executable operations**. A tool can display enum constructors for inspecting signatures, annotations, or bytecode without needing and without being allowed to create extra constants via this API.
 
-## 7. “Lấy hằng hiện có” khác với “tạo hằng mới”
+## 7. "Retrieving an existing constant" differs from "creating a new constant"
 
-Khi cần một giá trị enum từ dữ liệu đầu vào, thường mục tiêu thực tế là chọn một hằng đã được khai báo.
+When an enum value is needed from input data, the real goal is usually to select an already-declared constant.
 
-Ví dụ, trong ngữ cảnh chương trình trên:
+For example, in the context of the program above:
 
 ~~~java
 Phase ready = Enum.valueOf(Phase.class, "READY");
 System.out.println(ready == Phase.READY);
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 true
 ~~~
 
-`Enum.valueOf` không gọi constructor để tạo thêm `READY`. Nó trả về hằng hiện có mang đúng tên khai báo.
+`Enum.valueOf` does not call the constructor to create another `READY`. It returns the existing constant bearing the exact declared name.
 
-Nếu tên là `EXTRA`, API ném `IllegalArgumentException` vì enum không khai báo hằng đó. Không tự sinh một hằng mới và không tự thêm hằng vào `values()`.
+If the name is `EXTRA`, the API throws `IllegalArgumentException` because the enum does not declare that constant. It does not auto-generate a new constant and does not add a constant to `values()`.
 
-| Nhu cầu | Cách biểu diễn phù hợp |
+| Need | Suitable representation |
 | --- | --- |
-| Chọn hằng có tên đã biết khi viết mã | `Phase.READY` |
-| Chuyển tên khai báo thành hằng hiện có | `Enum.valueOf(Phase.class, name)` hoặc `Phase.valueOf(name)` |
-| Liệt kê các hằng khi biết enum lúc biên dịch | `Phase.values()` |
-| Liệt kê khi chỉ có token lớp | `enumType.getEnumConstants()` |
-| Bổ sung hằng cho mô hình enum | Thay đổi khai báo enum và xây dựng lại chương trình |
-| Tập giá trị cần thêm hoặc xóa trong lúc chạy | Mô hình dữ liệu có thể mở rộng, chẳng hạn lớp hoặc record kết hợp danh mục đăng ký |
+| Select a constant whose name is known when writing code | `Phase.READY` |
+| Convert a declared name into an existing constant | `Enum.valueOf(Phase.class, name)` or `Phase.valueOf(name)` |
+| List constants when the enum is known at compile time | `Phase.values()` |
+| List when only a class token is available | `enumType.getEnumConstants()` |
+| Add a constant to an enum model | Change the enum declaration and rebuild the program |
+| Value set needs additions or removals at runtime | An extensible data model, such as a class or record combined with a registry |
 
-Khi đọc tên từ đầu vào, phải có chính sách xử lý tên không hợp lệ, khác biệt chữ hoa/chữ thường hoặc nhãn hiển thị. `Enum.valueOf` dùng đúng tên khai báo, không dùng chuỗi tùy biến từ `toString()`. Quy tắc API được nêu tại [Enum.valueOf](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Enum.html#valueOf(java.lang.Class,java.lang.String)).
+When reading names from input, have a policy for handling invalid names, case differences, or display labels. `Enum.valueOf` uses the exact declared name, not customized strings from `toString()`. The API rules are stated at [Enum.valueOf](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Enum.html#valueOf(java.lang.Class,java.lang.String)).
 
-Không dùng constructor Reflection làm nhánh dự phòng khi `valueOf` không tìm thấy tên. Hai việc đó không tương đương nhau.
+Do not use Reflection constructors as a fallback branch when `valueOf` does not find a name. Those two things are not equivalent.
 
-## 8. Tác động đến công cụ tạo đối tượng tổng quát
+## 8. Impact on general-purpose object creation tools
 
-Một bộ ánh xạ dữ liệu hoặc factory dựa trên Reflection không nên xử lý enum theo nhánh “tìm constructor không tham số rồi tạo đối tượng”.
+A Reflection-based data mapper or factory should not process enums via a branch that "finds a no-arg constructor and creates an object".
 
-Với enum, thông thường cần một **quy tắc chọn hằng** dựa trên dữ liệu: tên khai báo, mã nghiệp vụ đã được định nghĩa, hoặc một ánh xạ do ứng dụng cung cấp.
+For enums, a **constant selection rule** based on data is normally needed: the declared name, a defined business code, or an application-provided mapping.
 
-Một hàm minh họa cho nhánh tạo đối tượng mặc định có thể từ chối enum ngay từ đầu:
+An illustrative method for a default object-creation branch can reject enums right at the start:
 
 ~~~java
-// Phương thức hỗ trợ; đặt trong một lớp và thêm import java.util.Objects.
+// Helper method; place inside a class and add import java.util.Objects.
 static <T> T createDefault(Class<T> type)
         throws ReflectiveOperationException {
     Objects.requireNonNull(type, "type");
@@ -383,9 +383,9 @@ static <T> T createDefault(Class<T> type)
 }
 ~~~
 
-Hàm này chỉ minh họa chính sách không tạo enum bằng constructor. Với lớp thường, nó vẫn yêu cầu một constructor không tham số truy cập được; nó không tự giải quyết mọi trường hợp của một framework tạo đối tượng.
+This method only illustrates the policy of not creating enums via constructors. For regular classes, it still requires an accessible no-arg constructor; it does not by itself solve every case of an object-creation framework.
 
-Ví dụ lời gọi khi thêm hàm vào chương trình mẫu:
+Example call when adding the method to the sample program:
 
 ~~~java
 System.out.println(createDefault(StringBuilder.class).length());
@@ -397,49 +397,49 @@ try {
 }
 ~~~
 
-Kết quả của riêng đoạn thêm:
+Output for the added snippet alone:
 
 ~~~text
 0
 enum requires an existing constant
 ~~~
 
-Việc kiểm tra sớm giúp công cụ đưa ra hướng xử lý đúng, thay vì liên tục thử các tổ hợp tham số hoặc mở truy cập rồi gặp lại cùng một quy tắc cấm của Reflection.
+Checking early helps the tool choose the right handling path instead of repeatedly trying parameter combinations or unlocking access only to hit the same Reflection prohibition rule again.
 
-## 9. Những hiểu lầm thường gặp
+## 9. Common misconceptions
 
-**“Enum không có constructor nên Reflection không tạo được.”** Enum có constructor và có thể khảo sát được bằng Reflection. Hạn chế nằm ở việc tạo instance bằng `Constructor.newInstance()`, không phải ở sự tồn tại của constructor.
+**"An enum has no constructor, so Reflection cannot instantiate it."** An enum does have constructors and can be inspected via Reflection. The restriction lies in creating instances with `Constructor.newInstance()`, not in the existence of constructors.
 
-**“Chỉ cần setAccessible(true) vì constructor enum là private.”** Mở truy cập không bỏ quy tắc riêng cấm tạo enum.
+**"You just need setAccessible(true) because enum constructors are private."** Enabling access does not override the specific rule prohibiting enum instantiation.
 
-**“Truyền thêm tên và ordinal là tạo được hằng mới.”** Các đối số hỗ trợ giải thích chữ ký do compiler sinh ra. Chúng không phải API mở rộng tập hằng enum.
+**"Passing the name and ordinal as extra arguments will create a new constant."** Those helper arguments explain the compiler-generated signature. They are not an API for extending the enum constant set.
 
-**“NoSuchMethodException và IllegalArgumentException là cùng một lỗi.”** Một lỗi xảy ra khi không tìm thấy chữ ký constructor; lỗi còn lại trong thí nghiệm xảy ra khi gọi một constructor đã tìm được.
+**"NoSuchMethodException and IllegalArgumentException are the same error."** One occurs when a constructor signature is not found; the other in the experiment occurs when invoking a constructor that was found.
 
-**“CanAccess trả true thì newInstance chắc chắn thành công.”** Quyền truy cập chỉ là một điều kiện. Enum vẫn bị từ chối; lớp thường cũng có thể thất bại vì các điều kiện khác hoặc vì thân constructor ném ngoại lệ.
+**"If canAccess returns true, newInstance is guaranteed to succeed."** Access permission is only one condition. Enums are still rejected; regular classes can also fail for other conditions or because the constructor body throws an exception.
 
-**“Đổi thông báo lỗi hoặc bắt InvocationTargetException sẽ giúp tạo được enum.”** Xử lý ngoại lệ chỉ xử lý kết quả thất bại; không biến thao tác bị cấm thành hợp lệ.
+**"Changing the error message or catching InvocationTargetException will let you create an enum."** Exception handling only handles a failed result; it does not turn a prohibited operation into a valid one.
 
-**“ValueOf tạo mới enum theo tên yêu cầu.”** Nó chọn hằng đã tồn tại, không tạo hoặc đăng ký thêm hằng.
+**"ValueOf creates a new enum for the requested name."** It selects an already-existing constant; it does not create or register additional constants.
 
-## 10. Tự kiểm tra
+## 10. Self-check
 
-1. Vì sao chương trình có thể lấy được `Constructor<Phase>` nhưng không tạo được `EXTRA`?
-2. Trong thí nghiệm, bằng chứng nào cho thấy việc mở quyền truy cập đã thành công?
-3. Vì sao gọi `getDeclaredConstructor()` không tham số không tìm thấy constructor trong ví dụ do `javac` biên dịch?
-4. Lỗi tạo enum sau khi đã mở truy cập có được bọc trong `InvocationTargetException` như một ngoại lệ từ thân constructor không?
-5. Vì sao chỉ nhìn thấy `IllegalArgumentException` chưa đủ để khẳng định nguyên nhân là enum?
-6. Sau lần thử tạo `EXTRA`, bộ đếm constructor và `Phase.values()` thay đổi thế nào?
-7. Nếu muốn lấy `READY` từ chuỗi `"READY"`, nên gọi API nào?
-8. Nếu danh mục nghiệp vụ phải bổ sung phần tử trong lúc chương trình chạy, có nên cố gọi constructor enum để làm việc đó không?
+1. Why can the program obtain `Constructor<Phase>` yet fail to create `EXTRA`?
+2. In the experiment, what evidence shows that enabling access succeeded?
+3. Why does calling the no-arg `getDeclaredConstructor()` fail to find a constructor in the `javac`-compiled example?
+4. Is the enum creation error after enabling access wrapped in `InvocationTargetException` like an exception from a constructor body?
+5. Why is seeing `IllegalArgumentException` alone not enough to conclude the cause is an enum?
+6. After attempting to create `EXTRA`, how do the constructor counter and `Phase.values()` change?
+7. To obtain `READY` from the string `"READY"`, which API should be called?
+8. If a business catalog must add elements at runtime, should you try to invoke an enum constructor to do so?
 
-Đáp án:
+Answers:
 
-1. Metadata constructor vẫn tồn tại; hợp đồng `Constructor.newInstance()` cấm tạo instance enum.
-2. `trySetAccessible()` trả về `true` và `canAccess(null)` sau đó cũng trả về `true`.
-3. Metadata trong ví dụ có hai tham số hỗ trợ `String` và `int`; tra cứu danh sách rỗng không khớp.
-4. Không trong thí nghiệm này. Reflection từ chối bằng `IllegalArgumentException` trước khi thực thi thêm thân constructor enum.
-5. Vì lỗi số lượng hoặc kiểu đối số cũng có thể gây loại ngoại lệ đó; phải đối chiếu ngữ cảnh.
-6. Bộ đếm giữ nguyên ở `2`; danh sách hằng vẫn là `[READY, DONE]`.
-7. Dùng `Enum.valueOf(Phase.class, "READY")` hoặc `Phase.valueOf("READY")`; kết quả là hằng hiện có.
-8. Không. Hãy dùng một mô hình dữ liệu cho phép tập giá trị thay đổi trong lúc chạy.
+1. Constructor metadata exists; the `Constructor.newInstance()` contract prohibits creating enum instances.
+2. `trySetAccessible()` returns `true` and `canAccess(null)` afterward also returns `true`.
+3. Metadata in the example has two helper parameters `String` and `int`; an empty parameter-list lookup does not match.
+4. Not in this experiment. Reflection rejects with `IllegalArgumentException` before executing the enum constructor body again.
+5. Because an error in argument count or types can also raise that exception type; you must check the context.
+6. The counter stays at `2`; the constant list remains `[READY, DONE]`.
+7. Use `Enum.valueOf(Phase.class, "READY")` or `Phase.valueOf("READY")`; the result is the existing constant.
+8. No. Use a data model that allows the set of values to change at runtime.

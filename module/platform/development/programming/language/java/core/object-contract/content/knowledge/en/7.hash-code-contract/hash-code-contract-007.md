@@ -1,59 +1,59 @@
-# Vì sao ghi đè `equals()` thường phải ghi đè `hashCode()` cùng lúc?
+# Why Does Overriding `equals()` Usually Require Overriding `hashCode()` at the Same Time?
 
-## 1. Vấn đề cốt lõi
+## 1. The Core Problem
 
-Trong Java, `equals(Object)` trả lời câu hỏi **hai đối tượng có được coi là bằng nhau theo định nghĩa của lớp hay không**. `hashCode()` tạo ra một số nguyên `int` dùng làm mã băm, đặc biệt quan trọng đối với các cấu trúc như `HashMap` và `HashSet`.
+In Java, `equals(Object)` answers the question of **whether two objects are considered equal according to the class's definition**. `hashCode()` produces an `int` integer used as a hash code, which is especially important for structures like `HashMap` and `HashSet`.
 
-Khi bạn ghi đè `equals()` từ so sánh cùng tham chiếu sang so sánh nội dung hoặc mã định danh, hai instance **khác nhau trong bộ nhớ** có thể trở thành bằng nhau. Nếu vẫn để nguyên `hashCode()` kế thừa từ `Object`, bạn không bảo đảm hai instance bằng nhau có cùng mã băm. Điều này vi phạm **hợp đồng của `hashCode()`**, khiến những bộ sưu tập dựa trên hash có thể không tìm thấy khóa, giữ lại phần tử trùng hoặc xử lý khóa không như mong muốn.
+When you override `equals()` from same-reference comparison to content or identifier comparison, two **different instances in memory** can become equal. If you leave `hashCode()` as inherited from `Object`, you do not guarantee that two equal instances share the same hash code. This violates the **`hashCode()` contract**, causing hash-based collections to miss keys, retain duplicate elements, or handle keys unexpectedly.
 
-Mệnh đề bắt buộc cần nhớ:
+Mandatory statement to remember:
 
-**Nếu `a.equals(b)` là `true` thì `a.hashCode() == b.hashCode()` phải là `true`.**
+**If `a.equals(b)` is `true`, then `a.hashCode() == b.hashCode()` must be `true`.**
 
-Đảo chiều là sai: hai đối tượng có hash bằng nhau **không bắt buộc** phải bằng nhau theo `equals()`; đó có thể là một lần va chạm hash.
+The converse is false: two objects with equal hashes **do not have** to be equal according to `equals()`; that may simply be a hash collision.
 
-Vì thế, khi thay đổi định nghĩa “bằng nhau” của một lớp, cần xét **đồng thời** cả hai phương thức. Trong cách triển khai thường dùng, bạn ghi đè cả `equals()` và `hashCode()` dựa trên cùng những thuộc tính có ý nghĩa đối với sự bằng nhau.
+Therefore, when changing a class's definition of "equality," you must consider **both** methods together. In typical implementations, you override both `equals()` and `hashCode()` based on the same attributes that are meaningful for equality.
 
-## 2. Hợp đồng chính xác của hai phương thức
+## 2. Exact Contracts of the Two Methods
 
-### 2.1. `equals()` phải là một quan hệ tương đương
+### 2.1. `equals()` Must Be an Equivalence Relation
 
-Với các tham chiếu không `null` và khi những thông tin dùng trong phép so sánh không đổi, một triển khai `equals()` cần bảo đảm:
+For non-`null` references and when the information used in comparisons does not change, an `equals()` implementation must guarantee:
 
-- **Phản xạ:** `x.equals(x)` luôn là `true`.
-- **Đối xứng:** `x.equals(y)` và `y.equals(x)` có cùng kết quả.
-- **Bắc cầu:** nếu `x.equals(y)` và `y.equals(z)` đều `true` thì `x.equals(z)` phải `true`.
-- **Nhất quán:** gọi lại nhiều lần với cùng thông tin liên quan cho cùng kết quả.
-- **So với `null`:** `x.equals(null)` là `false`.
+- **Reflexive:** `x.equals(x)` is always `true`.
+- **Symmetric:** `x.equals(y)` and `y.equals(x)` have the same result.
+- **Transitive:** if `x.equals(y)` and `y.equals(z)` are both `true`, then `x.equals(z)` must be `true`.
+- **Consistent:** repeated calls with the same relevant information yield the same result.
+- **Null comparison:** `x.equals(null)` is `false`.
 
-`Object.equals()` mặc định có hành vi so sánh đồng nhất tham chiếu, tương tự `==` với hai tham chiếu đối tượng. Lớp con có thể ghi đè để so theo dữ liệu. Việc ghi đè như vậy mở rộng phạm vi các đối tượng được coi là bằng nhau, nhưng kéo theo nghĩa vụ cập nhật hash tương ứng.
+`Object.equals()` defaults to reference identity comparison, similar to `==` on two object references. Subclasses can override it to compare by data. Doing so expands which objects are considered equal, bringing along the obligation to update the hash accordingly.
 
-### 2.2. `hashCode()` có những cam kết gì?
+### 2.2. What Commitments Does `hashCode()` Make?
 
-Theo hợp đồng Java:
+According to the Java contract:
 
-1. Với **cùng một đối tượng**, nếu các thông tin dùng trong `equals()` không bị sửa, nhiều lần gọi `hashCode()` trong **một lần thực thi** phải cho cùng kết quả. Không yêu cầu mã hash giống nhau qua các lần chạy chương trình khác nhau.
-2. Nếu `x.equals(y)` trả về `true` thì **bắt buộc** `x.hashCode() == y.hashCode()`.
-3. Nếu `x.equals(y)` trả về `false` thì **không bắt buộc** hai hash phải khác nhau. Hash phân biệt tốt giúp hiệu năng nhưng không phải điều kiện đúng/sai của equality.
+1. For the **same object**, if the information used in `equals()` is not modified, multiple calls to `hashCode()` during **a single execution** must produce the same result. The hash code is not required to stay the same across different program runs.
+2. If `x.equals(y)` returns `true`, then `x.hashCode() == y.hashCode()` is **mandatory**.
+3. If `x.equals(y)` returns `false`, the two hashes are **not required** to differ. Well-distributed hashes help performance, but are not a correctness condition of equality.
 
-Viết dưới dạng kéo theo:
+Written as implications:
 
 ```text
-equals(a, b) == true  =>  hashCode(a) == hashCode(b)    [BẮT BUỘC]
-hashCode(a) == hashCode(b) => equals(a, b) == true      [KHÔNG ĐÚNG]
-equals(a, b) == false => hashCode(a) != hashCode(b)     [KHÔNG BẮT BUỘC]
+equals(a, b) == true  =>  hashCode(a) == hashCode(b)    [REQUIRED]
+hashCode(a) == hashCode(b) => equals(a, b) == true      [FALSE]
+equals(a, b) == false => hashCode(a) != hashCode(b)     [NOT REQUIRED]
 ```
 
-`hashCode()` chỉ tạo số nguyên 32-bit và có thể va chạm. Bản thân hash **không phải** ID duy nhất, không phải địa chỉ bộ nhớ và không nên dùng làm định danh nghiệp vụ.
+`hashCode()` only produces a 32-bit integer and can collide. The hash itself is **not** a unique ID, not a memory address, and should not be used as a business identifier.
 
-## 3. Vì sao chỉ ghi đè `equals()` dễ làm sai hợp đồng?
+## 3. Why Does Overriding Only `equals()` Easily Break the Contract?
 
-Giả sử có một lớp đại diện cho khóa theo `tenantId` và `documentId`:
+Suppose you have a class representing a key by `tenantId` and `documentId`:
 
 ```java
 import java.util.Objects;
 
-// Mảnh code minh họa, chưa phải chương trình độc lập.
+// Illustrative snippet, not a standalone program.
 final class OnlyEqualsKey {
     private final String tenantId;
     private final String documentId;
@@ -71,11 +71,11 @@ final class OnlyEqualsKey {
             && Objects.equals(documentId, that.documentId);
     }
 
-    // Không ghi đè hashCode(): vẫn kế thừa Object.hashCode().
+    // Does not override hashCode(): still inherits Object.hashCode().
 }
 ```
 
-Giả sử `first` và `second` là hai instance `OnlyEqualsKey` khác nhau nhưng cùng hai trường:
+Suppose `first` and `second` are two distinct `OnlyEqualsKey` instances with the same two fields:
 
 ```java
 OnlyEqualsKey first = new OnlyEqualsKey("T1", "D-10");
@@ -83,37 +83,37 @@ OnlyEqualsKey second = new OnlyEqualsKey("T1", "D-10");
 // first.equals(second) == true
 ```
 
-Lời gọi `first.equals(second)` cho `true` theo nội dung. Tuy nhiên `Object.hashCode()` mặc định dựa trên danh tính đối tượng. Java **không cam kết** hai instance khác nhau có cùng mã hash; chúng thường cho giá trị khác nhau nhưng va chạm vẫn có thể xảy ra. Vì vậy class này **không bảo đảm** hệ quả bắt buộc “bằng nhau thì hash bằng nhau”.
+Calling `first.equals(second)` returns `true` by contents. However, the default `Object.hashCode()` is based on object identity. Java **does not guarantee** that two different instances share the same hash code; they usually return different values, though collisions can still happen. Thus this class **fails to guarantee** the mandatory implication "equal implies equal hash codes."
 
-Đừng viết ví dụ dựa trên kết luận chắc chắn rằng `first.hashCode() != second.hashCode()`: Java không bảo đảm các hash identity luôn khác nhau. Để thấy lỗi bằng kết quả **xác định được**, ví dụ chạy được ở phần sau dùng một kiểu khóa cố ý trả về hai hash khác nhau cho hai đối tượng mà `equals()` coi bằng nhau.
+Do not write examples relying on the assumption that `first.hashCode() != second.hashCode()` is guaranteed: Java does not guarantee identity hashes are always distinct. To demonstrate the bug with **deterministic** output, the runnable example below uses a key type that intentionally returns two different hashes for two objects considered equal by `equals()`.
 
-## 4. Cấu trúc `HashMap` và `HashSet` dựa vào cả hash lẫn equality
+## 4. `HashMap` and `HashSet` Rely on Both Hash and Equality
 
-Ở mức khái niệm:
+Conceptually:
 
-1. Khi thêm một khóa, cấu trúc băm dùng `hashCode()` để định vị vùng lưu trữ/bucket thích hợp.
-2. Trong vùng được xem xét, cấu trúc cần phân biệt những khóa có mã hash trùng bằng quan hệ equality (hoặc trường hợp cùng tham chiếu).
-3. Khi truy xuất với một khóa tương đương, nó phải đi tới vị trí tương thích với khóa đã lưu. Nếu hai khóa được coi bằng nhau nhưng có mã hash khác nhau, việc tìm kiếm có thể đi lệch và không bao giờ kiểm tra được phần tử cần tìm.
+1. When adding a key, the hash structure uses `hashCode()` to locate the appropriate storage area/bucket.
+2. Within the inspected area, the structure needs to distinguish keys with matching hash codes using equality (or same-reference check).
+3. When retrieving with an equivalent key, it must reach a location compatible with the stored key. If two keys are considered equal yet have different hash codes, the search may look in the wrong place and never inspect the target element.
 
-Chi tiết bucket, thao tác nội bộ và mức độ xử lý va chạm là triển khai; điều phải dựa vào khi lập trình là **hợp đồng `equals/hashCode`**.
+Bucket details, internal operations, and collision-handling levels are implementation details; what you must rely on when programming is the **`equals/hashCode` contract**.
 
-| Thao tác | Khi hợp đồng đúng | Khi `equals` nói bằng nhau nhưng hash khác nhau |
+| Operation | When the Contract Is Valid | When `equals` Says Equal but Hashes Differ |
 | --- | --- | --- |
-| `HashSet.add(second)` sau `add(first)` | Phần tử bằng nhau được coi trùng; không tăng số phần tử | Có thể nhận thêm “bản sao” thành phần tử mới |
-| `HashSet.contains(second)` | Có thể tìm phần tử tương đương đã thêm | Có thể trả `false` |
-| `HashMap.get(second)` sau `put(first, value)` | Tìm ra giá trị của khóa tương đương | Có thể trả `null` dù khóa bằng nhau tồn tại |
-| `HashMap.put(second, value2)` | Cập nhật mapping của khóa tương đương | Có thể tạo hai entry cho các khóa được coi bằng nhau |
+| `HashSet.add(second)` after `add(first)` | Equal element is treated as duplicate; size does not grow | May accept the "duplicate" as a new element |
+| `HashSet.contains(second)` | Can find the equivalent element that was added | May return `false` |
+| `HashMap.get(second)` after `put(first, value)` | Finds the value of the equivalent key | May return `null` even though an equal key exists |
+| `HashMap.put(second, value2)` | Updates the mapping of the equivalent key | May create two entries for keys considered equal |
 
-Các bộ sưu tập dựa trên danh sách như `ArrayList.contains` và các phép so sánh trực tiếp thường dùng `equals()` mà không dựa vào mã băm của phần tử; vì vậy có thể cho kết quả đúng ngay cả khi một lớp có `hashCode()` sai. Không vì vậy mà coi lớp đó hợp lệ: lỗi sẽ xuất hiện khi đổi sang `HashSet` hoặc `HashMap`.
+List-based collections such as `ArrayList.contains` and direct comparisons generally use `equals()` without relying on element hash codes; therefore they can yield correct results even when a class has a broken `hashCode()`. Do not assume the class is valid because of that: the bug will surface when switching to `HashSet` or `HashMap`.
 
-## 5. Chương trình Java 17 hoàn chỉnh: sai rồi sửa
+## 5. Complete Java 17 Program: Broken Then Fixed
 
-Ví dụ dưới đây trình bày hai lớp khóa.
+The example below presents two key classes.
 
-- `BrokenKey` cố ý **vi phạm hợp đồng**: `equals()` so `code` nhưng `hashCode()` trả về trường `slot` mà equality bỏ qua. Hai instance có cùng `code` và `slot` khác nhau là bằng nhau nhưng có hash khác nhau. Đây là phép mô phỏng **xác định** để dễ quan sát lỗi.
-- `CorrectKey` dùng cùng tổ hợp `tenantId` và `code` trong `equals()` lẫn `hashCode()`. `label` chỉ là thông tin mô tả và bị loại khỏi cả hai.
+- `BrokenKey` intentionally **violates the contract**: `equals()` compares `code`, while `hashCode()` returns the `slot` field ignored by equality. Two instances with the same `code` and different `slot` values are equal yet have different hashes. This is a **deterministic** simulation to make the bug easy to observe.
+- `CorrectKey` uses the same combination of `tenantId` and `code` in both `equals()` and `hashCode()`. `label` is purely descriptive information and is excluded from both.
 
-Lưu tệp **`EqualsHashCodeContractDemo.java`**:
+Save the file **`EqualsHashCodeContractDemo.java`**:
 
 ```java
 import java.util.HashMap;
@@ -136,12 +136,12 @@ public class EqualsHashCodeContractDemo {
         public boolean equals(Object other) {
             if (this == other) return true;
             if (!(other instanceof BrokenKey that)) return false;
-            return code.equals(that.code); // "slot" không thuộc equality
+            return code.equals(that.code); // "slot" is not part of equality
         }
 
         @Override
         public int hashCode() {
-            return slot; // SAI: field bị equals bỏ qua
+            return slot; // WRONG: field ignored by equals
         }
     }
 
@@ -215,14 +215,14 @@ public class EqualsHashCodeContractDemo {
 }
 ```
 
-Biên dịch/chạy từ thư mục chứa tệp bằng **JDK 17 hoặc mới hơn**:
+Compile/run from the folder containing the file using **JDK 17 or newer**:
 
 ```bash
 javac EqualsHashCodeContractDemo.java
 java EqualsHashCodeContractDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Bad equals: true
@@ -237,43 +237,43 @@ Correct HashMap lookup: saved
 Contains after rename: true
 ```
 
-**Giải thích kết quả, không phụ thuộc mã hash ngẫu nhiên:**
+**Output explanation, independent of random hash codes:**
 
-1. Hai `BrokenKey` bằng nhau vì cùng `code == "X-7"` về mặt nội dung, nhưng hash lần lượt bằng `1` và `2`. Đây là trường hợp cố ý vi phạm điều kiện “equal implies same hash”.
-2. `HashSet` giữ cả hai object vi phạm làm hai phần tử vì chúng có hash khác nhau và được đưa vào vị trí khác nhau; `HashMap.get(badB)` không tìm được entry được thêm bằng `badA`. Không nên suy rộng giá trị hash 1, 2 này thành hành vi chuẩn của `Object.hashCode()`; ví dụ là **một cách tái hiện hậu quả** của lớp có hợp đồng sai.
-3. Hai `CorrectKey` cùng `tenantId` và `code` bằng nhau dù `label` khác nhau; hash của chúng cùng được tính bằng `Objects.hash(tenantId, code)`.
-4. Object `c` cùng `code` nhưng khác tenant nên **không bằng** `a`. Bỏ `tenantId` khỏi `equals` trong miền này sẽ gộp nhầm hai khóa.
-5. `HashSet` đúng chỉ chứa hai khóa khác nhau: `(T1, X-7)` và `(T2, X-7)`. `HashMap.get(b)` tìm ra giá trị đã lưu bằng `a`.
-6. Đổi `label` của `a` không làm thay đổi định nghĩa bằng nhau hoặc hash nên khóa vẫn tìm thấy trong tập. Nếu `label` có mặt trong `hashCode()`, đổi tên có thể làm hỏng việc tra cứu khóa.
+1. Both `BrokenKey` objects are equal because they share `code == "X-7"` in content, yet their hashes are `1` and `2` respectively. This case intentionally violates the "equal implies same hash" condition.
+2. `HashSet` keeps both violating objects as two elements because they have different hashes and are placed in different locations; `HashMap.get(badB)` fails to find the entry added under `badA`. Do not generalize these hash values 1 and 2 as the standard behavior of `Object.hashCode()`; the example is **a way to reproduce the consequences** of a class with a broken contract.
+3. Both `CorrectKey` objects with the same `tenantId` and `code` are equal despite having different `label`s; their hashes are both computed with `Objects.hash(tenantId, code)`.
+4. Object `c` has the same `code` but a different tenant, so it is **not equal** to `a`. Omitting `tenantId` from `equals` in this domain would wrongly merge two keys.
+5. The correct `HashSet` contains only two distinct keys: `(T1, X-7)` and `(T2, X-7)`. `HashMap.get(b)` finds the value stored using `a`.
+6. Changing `a`'s `label` does not alter the equality definition or hash, so the key is still found in the set. If `label` were included in `hashCode()`, renaming could break key lookup.
 
-## 6. Cách triển khai `equals()` và `hashCode()` khớp nhau
+## 6. How to Implement Matching `equals()` and `hashCode()`
 
-### 6.1. Chọn tập trường theo **định nghĩa bằng nhau**
+### 6.1. Choose the Set of Fields Based on the **Equality Definition**
 
-Không tự động đưa tất cả field vào cả hai phương thức. Ví dụ trong `CorrectKey`, khóa là `(tenantId, code)` nên hai phương thức đều được viết theo **hai field này**; `label` không tham gia.
+Do not automatically put every field into both methods. For example, in `CorrectKey`, the key is `(tenantId, code)`, so both methods are written using **those two fields**; `label` does not participate.
 
-Quy tắc thiết kế:
+Design rules:
 
-- **Value object** như cặp tọa độ `(x, y)`: thường so toàn bộ thuộc tính làm nên giá trị.
-- **Entity** có ID nghiệp vụ ổn định: có thể so ID; ID có thể là tổ hợp `(tenantId, localId)` khi tính duy nhất có phạm vi.
-- **Metadata/cache/log/field mô tả**: không tự động trở thành một phần của equality.
-- **Thuộc tính dễ thay đổi**: cân nhắc loại khỏi equality/hash nếu đối tượng sẽ dùng làm khóa trong cấu trúc băm.
+- **Value objects** such as a coordinate pair `(x, y)`: usually compare all attributes that make up the value.
+- **Entities** with a stable business ID: can compare the ID; the ID can be a composite `(tenantId, localId)` when uniqueness is scoped.
+- **Metadata/cache/log/descriptive fields**: do not automatically become part of equality.
+- **Easily mutated attributes**: consider excluding them from equality/hash if the object will be used as a key in hash structures.
 
-Không có yêu cầu rằng `hashCode()` phải sử dụng **mọi** field mà `equals()` dùng; về mặt hợp đồng, có thể trả về mã hash hằng số (mọi object đều hash bằng nhau) và vẫn thỏa “hai object bằng nhau có hash bằng nhau”. Tuy nhiên điều này có thể tạo quá nhiều va chạm, làm giảm hiệu năng. Cách lập trình thực tế thường tính hash từ chính các trường tham gia equality để mã hash hữu ích, rõ ràng và dễ bảo trì. Điều tối quan trọng là **không để những trường mà `equals()` bỏ qua làm thay đổi hash của hai object bằng nhau**.
+There is no requirement that `hashCode()` must use **every** field that `equals()` uses; contractually, you could return a constant hash code (every object hashes to the same value) and still satisfy "two equal objects have equal hashes." However, that can create excessive collisions and hurt performance. Practical coding typically computes the hash from the exact fields participating in equality so the hash is useful, clear, and maintainable. What is critical is **never letting fields ignored by `equals()` change the hash of two equal objects**.
 
-### 6.2. Lựa chọn công cụ theo kiểu dữ liệu
+### 6.2. Choosing Tools by Data Type
 
-| Kiểu dữ liệu | So sánh equality phù hợp | Thành phần hash tương ứng |
+| Data Type | Appropriate Equality Comparison | Corresponding Hash Component |
 | --- | --- | --- |
 | `int`, `long`, `boolean` | `==` | `Integer.hashCode`, `Long.hashCode`, `Boolean.hashCode` |
-| `String`/value object có thể `null` | `Objects.equals(a, b)` | `Objects.hashCode(value)` hoặc hash tổng hợp |
-| Nhiều reference có thể `null` | Kết hợp `Objects.equals(...)` bằng `&&` | `Objects.hash(field1, field2, ...)` |
-| `float`/`double` | Chọn `Float.compare`/`Double.compare` để khớp chính sách IEEE được định nghĩa; chú ý NaN và zero có dấu | `Float.hashCode`/`Double.hashCode` tương ứng |
-| Mảng một chiều | `Arrays.equals(a, b)` | `Arrays.hashCode(array)` |
-| Mảng đa chiều khi cần deep equality | `Arrays.deepEquals(a, b)` | `Arrays.deepHashCode(array)` |
-| `BigDecimal` | `BigDecimal.equals` theo value **và scale**, hoặc chính sách canonicalization riêng | `BigDecimal.hashCode` nếu dùng `equals` gốc; hash theo giá trị chuẩn hóa nếu dùng equality đã chuẩn hóa |
+| Nullable `String`/value object | `Objects.equals(a, b)` | `Objects.hashCode(value)` or combined hash |
+| Multiple nullable references | Combine `Objects.equals(...)` with `&&` | `Objects.hash(field1, field2, ...)` |
+| `float`/`double` | Choose `Float.compare`/`Double.compare` to match a defined IEEE policy; watch out for NaN and signed zero | `Float.hashCode`/`Double.hashCode` accordingly |
+| One-dimensional array | `Arrays.equals(a, b)` | `Arrays.hashCode(array)` |
+| Multi-dimensional array when deep equality is needed | `Arrays.deepEquals(a, b)` | `Arrays.deepHashCode(array)` |
+| `BigDecimal` | `BigDecimal.equals` by value **and scale**, or a custom canonicalization policy | `BigDecimal.hashCode` if using default `equals`; hash of canonicalized value if using canonicalized equality |
 
-`Objects.hash(...)` là phương thức varargs; nó hữu ích cho ít trường nhưng có thể gây thêm cấp phát mảng/boxing trong đường chạy nóng. Chỉ tối ưu bằng phép nhân `31` và hàm hash kiểu tương ứng khi có lý do và đã kiểm chứng tính đúng. Ví dụ tổng hợp thủ công:
+`Objects.hash(...)` is a varargs method; it is convenient for a few fields, but can cause extra array allocation/boxing on hot paths. Optimize manually using multiplication by `31` and type-specific hash methods only when there is a reason and correctness has been verified. Manual combination example:
 
 ```java
 @Override
@@ -284,61 +284,61 @@ public int hashCode() {
 }
 ```
 
-Mảnh code này thuộc class có hai field `tenantId`, `code` đều được xác nhận không `null`, giống `CorrectKey`; không phải chương trình độc lập. Phép nhân/tràn số nguyên `int` trong tính hash là bình thường và cho kết quả xác định theo Java.
+This snippet belongs to a class with two fields `tenantId` and `code` both verified non-`null`, like `CorrectKey`; it is not a standalone program. `int` multiplication/overflow in hash calculation is normal and deterministic in Java.
 
-### 6.3. Khi không cần tự triển khai?
+### 6.3. When Do You Not Need to Implement Them Yourself?
 
-Một `record` của Java thường có `equals()` và `hashCode()` được sinh nhất quán từ **các component** của record. Với record làm value object và tất cả component thật sự thuộc định nghĩa bằng nhau, đây là một lựa chọn ngắn gọn. Nhưng nếu component là mảng, logic bằng nhau mặc định không tự trở thành phép so nội dung sâu; nếu một component không thuộc equality nghiệp vụ, code sinh mặc định có thể không phù hợp.
+A Java `record` usually has consistent `equals()` and `hashCode()` generated from its **record components**. For a record serving as a value object where all components genuinely belong to the equality definition, this is a concise choice. However, if a component is an array, the default generated equality does not automatically become deep content comparison; and if a component does not belong to business equality, the default generated code may be unsuitable.
 
-Một lớp không ghi đè **cả** `equals()` **lẫn** `hashCode()` và kế thừa hành vi identity từ `Object` vẫn có hợp đồng nhất quán. Vấn đề xuất hiện khi thay đổi một phía nhưng không đảm bảo phía còn lại tương ứng.
+A class that overrides **neither** `equals()` **nor** `hashCode()` and inherits identity behavior from `Object` still has a consistent contract. Problems arise when changing one side without ensuring the other side matches.
 
-## 7. Những sai lầm tinh vi cần tránh
+## 7. Subtle Mistakes to Avoid
 
-### 7.1. `hashCode()` không phải phép kiểm tra bằng nhau
+### 7.1. `hashCode()` Is Not an Equality Check
 
-Không bao giờ thay `a.equals(b)` bằng `a.hashCode() == b.hashCode()` để quyết định cùng thực thể. Hai object khác nhau có thể đụng hash; Java chỉ cung cấp không gian `int` hữu hạn. Bảng băm vẫn cần đối chiếu khóa theo equality khi có ứng viên trùng hash.
+Never replace `a.equals(b)` with `a.hashCode() == b.hashCode()` to decide whether two entities are the same. Two distinct objects can collide on hash; Java provides only a finite `int` space. A hash table still needs to compare keys by equality when candidates share a hash.
 
-### 7.2. Cùng mã hash không đồng nghĩa cùng đối tượng Java
+### 7.2. Same Hash Code Does Not Mean Same Java Object
 
-`System.identityHashCode(obj)` tạo mã hash dựa trên danh tính, không phải địa chỉ RAM và không bảo đảm duy nhất. Trong khi đó `Object.hashCode()` có thể được override bởi lớp con. Để kiểm tra có cùng instance, dùng `a == b` với tham chiếu; để kiểm tra cùng giá trị theo miền, dùng `a.equals(b)` khi lớp thiết kế đúng.
+`System.identityHashCode(obj)` produces a hash code based on identity, not a RAM address, and is not guaranteed unique. Meanwhile `Object.hashCode()` can be overridden by subclasses. To check for the same instance, use `a == b` on references; to check for equal domain value, use `a.equals(b)` when the class is properly designed.
 
-### 7.3. Thay đổi field tham gia hash sau khi đưa vào `HashSet`/`HashMap`
+### 7.3. Mutating a Field Used in Hash After Inserting into `HashSet`/`HashMap`
 
-Giả sử `hashCode()` dùng `status` và `status` bị sửa sau `set.add(object)`. Khi `contains(object)` gọi hash mới, việc truy xuất có thể tìm sai vị trí so với lúc thêm. Tương tự với field tham gia `equals()`. Hãy ưu tiên khóa/value object bất biến hoặc chỉ đưa các trường ổn định vào equality/hash.
+Suppose `hashCode()` uses `status` and `status` is modified after `set.add(object)`. When `contains(object)` computes the new hash, lookup may search a different location than where it was added. The same applies to fields used in `equals()`. Prefer immutable keys/value objects or include only stable fields in equality/hash.
 
-Từ khóa `final` trên tham chiếu không bảo đảm object được tham chiếu bất biến: `final List<String>` vẫn có thể bị thay đổi các phần tử. Nếu trường là mảng/collection mutable và thực sự tham gia equality, cần phòng vệ bằng sao chép, immutable wrapper hoặc thiết kế phù hợp. 
+The `final` keyword on a reference does not guarantee the referenced object is immutable: a `final List<String>` can still have its elements modified. If a field is a mutable array/collection and truly participates in equality, defend with copying, immutable wrappers, or an appropriate design.
 
-### 7.4. ID database được gán trễ
+### 7.4. Late-Assigned Database IDs
 
-Một entity mới có `id == null`. Nếu `equals()` chỉ dùng `Objects.equals(id, that.id)`, hai entity mới khác nhau đều có `null` có thể bị coi bằng nhau; nếu `hashCode()` dựa vào ID rồi ID được gán sau `insert`, hash thay đổi khi đang là khóa. Cần thiết kế nhất quán cho trạng thái trước/sau lưu, tùy hệ thống ORM và chiến lược cấp ID. Đừng cho rằng “đã override đủ hai hàm” thì tự động đúng mọi vòng đời.
+A new entity has `id == null`. If `equals()` only uses `Objects.equals(id, that.id)`, two different new entities both having `null` can be treated as equal; if `hashCode()` relies on the ID and the ID is assigned after `insert`, the hash changes while serving as a key. You need a consistent design for pre-save and post-save states, depending on the ORM framework and ID generation strategy. Do not assume that "overriding both methods" automatically works across every lifecycle stage.
 
-### 7.5. Chuẩn hóa không giống nhau giữa equality và hash
+### 7.5. Mismatched Normalization Between Equality and Hash
 
-Ví dụ `equals()` dùng `code.equalsIgnoreCase(other.code)` nhưng `hashCode()` dùng `code.hashCode()` của chuỗi gốc. Với `"abc"` và `"ABC"`, equality trả `true` nhưng hash gốc có thể khác: hợp đồng bị phá. Nên chuẩn hóa mã trong constructor theo quy tắc miền (chẳng hạn `toUpperCase(Locale.ROOT)` đối với định danh kỹ thuật nếu phù hợp), rồi dùng **cùng biểu diễn chuẩn** trong cả hai phương thức.
+For example, `equals()` uses `code.equalsIgnoreCase(other.code)` while `hashCode()` uses `code.hashCode()` of the raw string. For `"abc"` and `"ABC"`, equality returns `true` yet raw hashes can differ: the contract is broken. Normalize the code in the constructor according to domain rules (for instance, `toUpperCase(Locale.ROOT)` for technical identifiers where appropriate), then use the **same canonical representation** in both methods.
 
-Với `BigDecimal`, `new BigDecimal("1.0").compareTo(new BigDecimal("1.00")) == 0` nhưng `equals` mặc định trả `false` vì `scale` khác. Nếu đổi equality sang so trị số bằng `compareTo`, cũng phải tính hash theo chính sách chuẩn hóa cùng trị số; giữ hash `BigDecimal` gốc là nguy hiểm.
+With `BigDecimal`, `new BigDecimal("1.0").compareTo(new BigDecimal("1.00")) == 0`, yet default `equals` returns `false` because their `scale`s differ. If you change equality to compare numeric value via `compareTo`, you must also compute the hash using a normalized policy for equal numeric values; keeping the raw `BigDecimal` hash is dangerous.
 
-### 7.6. Kế thừa phá quy tắc đối xứng
+### 7.6. Inheritance Breaking Symmetry
 
-Nếu class cha so hai field, class con lại so ba field, `parent.equals(child)` có thể khác `child.equals(parent)`. Một cách đơn giản cho các class đại diện giá trị là `final class` để cố định quan hệ bằng nhau. Với kế thừa/ORM proxy, cần chiến lược kiểu class nhất quán và phù hợp framework. Tự sinh `hashCode()` không cứu được một triển khai `equals()` mất đối xứng.
+If a superclass compares two fields and a subclass compares three fields, `parent.equals(child)` may differ from `child.equals(parent)`. A simple approach for value-representing classes is `final class` to fix the equality relation. With inheritance or ORM proxies, you need a class-typing strategy that is consistent and compatible with the framework. Auto-generating `hashCode()` cannot rescue an `equals()` implementation that violates symmetry.
 
-### 7.7. Tưởng rằng hash ổn định qua nhiều lần chạy
+### 7.7. Assuming Hashes Are Stable Across Multiple Runs
 
-Hợp đồng chỉ đòi hỏi mã hash nhất quán **trong một lần thực thi** khi các thông tin equality liên quan không đổi. Không nên ghi `hashCode()` hoặc `identityHashCode()` xuống database để làm ID bền vững, không dùng làm khóa chia sẻ liên tiến trình nếu không có hợp đồng thuật toán và dữ liệu rõ ràng. Sử dụng ID miền nghiệp vụ ổn định cho việc đó.
+The contract only requires the hash code to be consistent **within a single execution** when relevant equality information does not change. Do not write `hashCode()` or `identityHashCode()` to a database as a persistent ID, and do not use it as a shared inter-process key without an explicit algorithm and data contract. Use a stable business domain ID for that purpose.
 
-## 8. Cách kiểm tra khi review một lớp
+## 8. How to Check When Reviewing a Class
 
-Trước khi chấp nhận một class đã override `equals()`:
+Before accepting a class that overrides `equals()`:
 
-1. **Đọc định nghĩa bằng nhau bằng lời:** “Hai instance bằng nhau khi ...”; ghi rõ đó là cùng giá trị hay cùng thực thể theo ID.
-2. **Kiểm tra danh sách field được so trong `equals()`:** có bỏ sót namespace, tenant, loại thực thể không? Có đưa nhầm tên hiển thị/cache/trạng thái dễ đổi không?
-3. **Kiểm tra hash theo cặp đối tượng bằng nhau:** mọi pair `a.equals(b) == true` bắt buộc cho `a.hashCode() == b.hashCode()`. Tập trường hash không cần giống hệt về cú pháp nhưng phải **tương thích logic**.
-4. **Kiểm tra null, kiểu khác, tham chiếu cùng object:** `equals(null)` là `false`, `equals(this)` là `true`; không làm mất đối xứng/bắc cầu.
-5. **Kiểm tra tính ổn định:** sau khi đưa object vào `HashSet` hoặc làm key `HashMap`, trường ảnh hưởng equality/hash có bị sửa không?
-6. **Kiểm tra bằng collection thật:** thêm hai object bằng nhau vào `HashSet` phải cho một phần tử duy nhất; `HashMap.get(equalKey)` phải trả giá trị đã lưu. Thử với các field khác nhau và hash collision khi phù hợp.
-7. **Kiểm tra generated code:** IDE, Lombok và record có thể giúp tránh lỗi gõ, nhưng không tự hiểu quy tắc nghiệp vụ; luôn review trường nào được include/exclude.
+1. **Read the equality definition in plain words:** "Two instances are equal when ..."; specify clearly whether that means same value or same entity by ID.
+2. **Inspect the list of fields compared in `equals()`:** is namespace, tenant, or entity type missing? Were display names, caches, or volatile state accidentally included?
+3. **Check hash across equal pairs:** every pair with `a.equals(b) == true` must give `a.hashCode() == b.hashCode()`. The hash field set does not have to be syntactically identical, but must be **logically compatible**.
+4. **Check null, different types, same-object reference:** `equals(null)` is `false`, `equals(this)` is `true`; symmetry and transitivity are not broken.
+5. **Check stability:** after putting the object into a `HashSet` or using it as a `HashMap` key, are fields affecting equality/hash modified?
+6. **Check with real collections:** adding two equal objects to a `HashSet` must yield a single unique element; `HashMap.get(equalKey)` must return the stored value. Test with differing fields and hash collisions where appropriate.
+7. **Review generated code:** IDEs, Lombok, and records help avoid typos, but do not understand business rules automatically; always review which fields are included/excluded.
 
-Ví dụ những xác nhận tối thiểu (mảnh code áp dụng cho class `CorrectKey` ở trên):
+Example of minimal checks (snippet applicable to the `CorrectKey` class above):
 
 ```java
 CorrectKey x = new CorrectKey("T1", "D1", "A");
@@ -352,34 +352,34 @@ assert !x.equals(z);
 assert !x.equals(null);
 ```
 
-Các câu lệnh `assert` chỉ được JVM thực thi khi bật assertions (ví dụ chạy `java -ea ...`); trong kiểm thử tự động nên dùng framework assertion phù hợp. Đây là mảnh minh họa đặt trong phạm vi có thể tham chiếu `CorrectKey`, không phải chương trình Java độc lập.
+`assert` statements are only executed by the JVM when assertions are enabled (for instance running `java -ea ...`); in automated tests, use an appropriate testing assertion framework. This is an illustrative snippet placed in a scope where `CorrectKey` can be referenced, not a standalone Java program.
 
-## 9. Tự kiểm tra
+## 9. Self-Check
 
-**Câu 1.** `a.equals(b)` trả `true`, nhưng `a.hashCode()` và `b.hashCode()` khác nhau. Chuyện gì sai và ảnh hưởng ở đâu?
+**Question 1.** `a.equals(b)` returns `true`, yet `a.hashCode()` and `b.hashCode()` differ. What is wrong and where does it break?
 
-**Đáp án:** Lớp vi phạm hợp đồng `hashCode()`. `HashSet` có thể chứa hai phần tử tương đương; `HashMap.get(b)` có thể không tìm được giá trị lưu bằng `a`.
+**Answer:** The class violates the `hashCode()` contract. `HashSet` may contain two equivalent elements; `HashMap.get(b)` may fail to find the value stored using `a`.
 
-**Câu 2.** Hai object không bằng nhau nhưng hash giống nhau. Có nhất thiết là lỗi không?
+**Question 2.** Two objects are unequal yet share the same hash. Is that necessarily a bug?
 
-**Đáp án:** Không. Va chạm hash được cho phép; hash tốt giảm va chạm vì hiệu năng. Cấu trúc băm vẫn dùng so sánh khóa bằng equality để giải quyết.
+**Answer:** No. Hash collisions are allowed; good hashes reduce collisions for performance. Hash structures still use equality key comparisons to resolve them.
 
-**Câu 3.** Nếu không override phương thức nào và dùng `Object.equals/hashCode` mặc định, có vi phạm hợp đồng không?
+**Question 3.** If neither method is overridden and the default `Object.equals/hashCode` is used, does that violate the contract?
 
-**Đáp án:** Không. Vì `Object.equals` mặc định chỉ coi cùng instance là bằng nhau, cách hash mặc định tương thích với identity equality. Vấn đề thường đến khi override `equals()` để xem hai instance khác nhau là bằng nhau mà không override hash tương thích.
+**Answer:** No. Because default `Object.equals` only treats the exact same instance as equal, the default hash is compatible with identity equality. Problems usually arise when overriding `equals()` to treat two different instances as equal without overriding a compatible hash.
 
-**Câu 4.** Có thể dùng `hashCode() { return 42; }` cho mọi object không?
+**Question 4.** Can `hashCode() { return 42; }` be used for all objects?
 
-**Đáp án:** Về mặt hợp đồng, có: mọi pair bằng nhau chắc chắn cùng hash. Nhưng hiệu năng cấu trúc băm có thể kém đáng kể do mọi khóa dồn vào cùng hash, nên thực tế nên tính hash từ các thành phần equality có ý nghĩa.
+**Answer:** Contractually, yes: every equal pair is guaranteed to have the same hash. However, hash structure performance can degrade significantly because all keys pile into the same hash, so in practice compute hashes from meaningful equality components.
 
-**Câu 5.** Một class có `equals()` dựa vào `id` và `hashCode()` dựa vào `(id, lastModified)`. Hai instance có cùng ID nhưng timestamp khác nhau gây lỗi gì?
+**Question 5.** A class has `equals()` based on `id` and `hashCode()` based on `(id, lastModified)`. What bug do two instances with the same ID but different timestamps cause?
 
-**Đáp án:** `equals()` nói bằng nhau nhưng hash có thể khác nhau, vi phạm điều kiện bắt buộc. Trường `lastModified` không được ảnh hưởng hash nếu `equals()` bỏ qua nó.
+**Answer:** `equals()` says they are equal while their hashes may differ, violating the mandatory condition. The `lastModified` field must not affect the hash if `equals()` ignores it.
 
-**Câu 6.** Khi override `hashCode()` nhưng giữ `equals()` mặc định, có tự động vi phạm hợp đồng không?
+**Question 6.** When overriding `hashCode()` while keeping the default `equals()`, is the contract automatically violated?
 
-**Đáp án:** Không tự động. Equality theo identity chỉ yêu cầu cùng một instance trả hash nhất quán trong lần thực thi khi thông tin dùng cho equality không đổi. Tuy nhiên, nếu thay đổi hash theo trạng thái mutable trong quá trình đối tượng làm khóa, việc tra cứu vẫn có thể hỏng; và khi đã thiết kế equality theo nội dung thì cần triển khai cả hai một cách đồng bộ.
+**Answer:** Not automatically. Identity equality only requires the same instance to return a consistent hash within an execution while equality information does not change. However, mutating hash-relevant state while the object serves as a key can still break lookups; and once content-based equality is designed, both must be implemented in sync.
 
 ---
 
-**Ghi nhớ:** `equals()` định nghĩa **ai được coi là bằng ai**; `hashCode()` phải cho cùng giá trị đối với những cặp đó. Ghi đè `equals()` thường buộc bạn ghi đè `hashCode()` để không phá hợp đồng kế thừa từ `Object`. Viết và review hai phương thức như một cặp, chọn tập trường theo ngữ nghĩa, giữ các thành phần đó ổn định và kiểm tra thực tế bằng `HashSet`/`HashMap`.
+**Takeaway:** `equals()` defines **who is equal to whom**; `hashCode()` must produce the same value for those pairs. Overriding `equals()` usually forces you to override `hashCode()` so you do not break the contract inherited from `Object`. Write and review both methods as a pair, pick the field set by semantics, keep those components stable, and test in practice using `HashSet`/`HashMap`.

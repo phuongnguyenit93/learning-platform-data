@@ -1,81 +1,81 @@
-# UTF-16 của mô hình String khác với charset của tệp trong Java
+# Java's `String` UTF-16 Model Differs from File Charsets
 
-Khi học Java, người ta thường nói “`String` dùng UTF-16”, nhưng tệp văn bản lại có thể mang charset UTF-8, UTF-16LE hoặc một charset khác. **Hai phát biểu này mô tả hai tầng khác nhau**: mô hình thao tác với ký tự trong Java và cách biểu diễn văn bản thành **byte** khi lưu ra tệp hay truyền qua mạng. Nhầm lẫn hai tầng dẫn đến lỗi đếm độ dài, cắt chuỗi, đọc sai tiếng Việt, lỗi ký tự thay thế và chọn sai charset.
+When learning Java, people often say “`String` uses UTF-16”, yet a text file may have a charset like UTF-8, UTF-16LE, or another charset. **These two statements describe two different layers**: the character-manipulation model inside Java and how text is represented as **bytes** when saved to a file or transmitted over a network. Confusing these two layers leads to length-counting bugs, broken string slicing, garbled Vietnamese text, replacement character issues, and choosing the wrong charset.
 
-## 1. Phân biệt Unicode, mô hình String và charset
+## 1. Distinguishing Unicode, the `String` Model, and Charsets
 
-| Khái niệm | Ý nghĩa | Ví dụ |
+| Concept | Meaning | Example |
 | --- | --- | --- |
-| Unicode code point | Giá trị định danh một phần tử ký tự Unicode | `U+0041` là A, `U+00E9` là é, `U+1F600` là 😀 |
-| UTF-16 code unit | Đơn vị mã 16 bit; một code point có thể chiếm một hoặc hai đơn vị | Emoji 😀 cần cặp surrogate `D83D DE00` |
-| Mô hình `String` Java | Chỉ số và các API như `length()`, `charAt()` được định nghĩa dựa trên UTF-16 code unit | `"😀".length() == 2` |
-| Charset của tệp | Quy tắc mã hóa/giải mã văn bản thành/từ các byte | UTF-8, UTF-16LE, UTF-16BE, Windows-1252 |
+| Unicode code point | An identifying value for a Unicode character element | `U+0041` is A, `U+00E9` is é, `U+1F600` is 😀 |
+| UTF-16 code unit | A 16-bit code unit; a code point can take one or two units | Emoji 😀 needs the surrogate pair `D83D DE00` |
+| Java `String` model | Indices and APIs like `length()`, `charAt()` are defined in terms of UTF-16 code units | `"😀".length() == 2` |
+| File charset | Rules for encoding/decoding text to/from bytes | UTF-8, UTF-16LE, UTF-16BE, Windows-1252 |
 
-**Mô hình `String`** là cách API Java nhìn nhận chuỗi. Một `char` là một đơn vị mã UTF-16; `length()` tính số đơn vị mã; chỉ số `charAt()` và `substring()` cũng tính theo đơn vị mã này. **Charset của tệp** là lựa chọn tại điểm chuyển đổi từ chuỗi sang byte (encode) hoặc từ byte sang chuỗi (decode).
+**The `String` model** is how Java APIs view a string. A `char` is one UTF-16 code unit; `length()` counts the number of code units; `charAt()` and `substring()` indices are also measured in these code units. **A file's charset** is the choice made at the point of converting a string to bytes (encode) or bytes to a string (decode).
 
-Vì thế, cùng một đối tượng `String` có thể được lưu thành tệp UTF-8 hoặc UTF-16LE. Khi đọc hai tệp bằng charset tương ứng, ta có thể khôi phục **cùng nội dung `String`**. Charset từng dùng để lưu tệp không trở thành thuộc tính cố định của `String`.
+Therefore, the exact same `String` object can be saved as a UTF-8 file or a UTF-16LE file. When reading both files with their respective charsets, you can recover **the same `String` content**. The charset used to save a file does not become a permanent property of the `String`.
 
-### “String dùng UTF-16” không có nghĩa “bộ nhớ luôn là char[]”
+### “`String` uses UTF-16” does not mean “memory is always `char[]`”
 
-Đừng suy diễn rằng mọi JVM luôn giữ bên trong đối tượng `String` một mảng gồm hai byte cho mỗi `char`. OpenJDK từ Java 9 có tối ưu **Compact Strings**, cho phép biểu diễn gọn hơn đối với các chuỗi phù hợp Latin-1. Chi tiết bố trí bộ nhớ nội bộ tùy triển khai, còn các hành vi quan sát qua `String.length()`, `charAt()`, `codePointCount()` vẫn theo hợp đồng API liên quan UTF-16. Đặc biệt, byte nội bộ của `String` **không phải** byte ghi ra tệp.
+Do not infer that every JVM always holds an array of two bytes per `char` inside a `String` object. Since Java 9, OpenJDK includes the **Compact Strings** optimization, allowing a more compact representation for strings that fit in Latin-1. Internal memory layout is an implementation detail, whereas behavior observed through `String.length()`, `charAt()`, and `codePointCount()` still follows the UTF-16-based API contract. In particular, the internal bytes of a `String` are **not** the bytes written to a file.
 
-## 2. Minh họa: một chuỗi nhưng ba cách đếm
+## 2. Illustration: One String, Three Ways to Measure
 
-Xét chuỗi:
+Consider the string:
 
 ~~~java
 String text = "Aé😀";
 ~~~
 
-| Ký tự | Unicode code point | UTF-16 code unit | Byte UTF-8 |
+| Character | Unicode code point | UTF-16 code unit | UTF-8 bytes |
 | --- | --- | --- | --- |
 | A | `U+0041` | `0041` (1 unit) | `41` (1 byte) |
-| é | `U+00E9` | `00E9` (1 unit) | `C3 A9` (2 byte) |
-| 😀 | `U+1F600` | `D83D DE00` (2 unit) | `F0 9F 98 80` (4 byte) |
-| **Tổng** | **3 code point** | **4 UTF-16 unit** | **7 byte UTF-8** |
+| é | `U+00E9` | `00E9` (1 unit) | `C3 A9` (2 bytes) |
+| 😀 | `U+1F600` | `D83D DE00` (2 units) | `F0 9F 98 80` (4 bytes) |
+| **Total** | **3 code points** | **4 UTF-16 units** | **7 UTF-8 bytes** |
 
-Do đó:
+Hence:
 
-- `text.length()` bằng **4**, vì UTF-16 cần bốn đơn vị mã.
-- `text.codePointCount(0, text.length())` bằng **3**.
-- `Character.isHighSurrogate(text.charAt(2))` bằng `true`: vị trí 2 là nửa đầu của cặp surrogate của emoji.
-- `text.getBytes(StandardCharsets.UTF_8).length` bằng **7**.
-- `text.getBytes(StandardCharsets.UTF_16LE).length` bằng **8** (4 đơn vị nhân 2 byte).
+- `text.length()` equals **4**, because UTF-16 requires four code units.
+- `text.codePointCount(0, text.length())` equals **3**.
+- `Character.isHighSurrogate(text.charAt(2))` equals `true`: position 2 is the first half of the emoji's surrogate pair.
+- `text.getBytes(StandardCharsets.UTF_8).length` equals **7**.
+- `text.getBytes(StandardCharsets.UTF_16LE).length` equals **8** (4 units times 2 bytes).
 
-**Đừng đồng nhất code point với ký tự người đọc thấy.** Một cụm ký tự hiển thị có thể bao gồm nhiều code point, ví dụ chữ cái cộng dấu kết hợp hoặc emoji ghép. Với dữ liệu Unicode, đơn vị mã UTF-16, code point và cụm ký tự hiển thị (*grapheme cluster*) là ba khái niệm riêng.
+**Do not equate code points with user-perceived characters.** A displayed character cluster can contain multiple code points, such as a base letter plus a combining mark or a joined emoji. For Unicode data, UTF-16 code units, code points, and *grapheme clusters* are three distinct concepts.
 
-## 3. Luồng chuyển đổi từ String sang tệp và ngược lại
+## 3. Conversion Flow from `String` to File and Back
 
 ~~~text
-Nội dung Unicode, ví dụ "Aé😀"
+Unicode content, e.g. "Aé😀"
                |
                v
-     Java String (API UTF-16)
+     Java String (UTF-16 API)
      length() / charAt() / substring()
                |
                | ENCODE: getBytes(charset)
-               | hoặc Files.writeString(path, text, charset)
+               | or Files.writeString(path, text, charset)
                v
-     Dãy byte theo charset đã chọn
+     Byte sequence in the chosen charset
      UTF-8   : 41 C3 A9 F0 9F 98 80
      UTF-16LE: 41 00 E9 00 3D D8 00 DE
                |
                v
-         Tệp trên ổ đĩa
+         File on disk
                |
                | DECODE: new String(bytes, charset)
-               | hoặc Files.readString(path, charset)
+               | or Files.readString(path, charset)
                v
-     Java String (API vẫn theo UTF-16)
+     Java String (API still UTF-16)
 ~~~
 
-Encoding và decoding là **các thao tác chuyển đổi dữ liệu**, không phải thao tác thay đổi “loại” của một `String`. Byte được tạo từ UTF-8 và UTF-16LE có thể khác hoàn toàn, nhưng khi giải mã **đúng charset và dữ liệu hợp lệ** sẽ thu lại cùng chuỗi.
+Encoding and decoding are **data conversion operations**, not operations that change the “type” of a `String`. Bytes generated from UTF-8 and UTF-16LE can look completely different, yet decoding with **the right charset and valid data** yields the same string again.
 
-Đuôi tệp `.txt` không tự bảo đảm charset. Cần biết charset từ đặc tả định dạng, giao thức, metadata hoặc thỏa thuận với hệ thống tạo dữ liệu. Không thể suy ra một charset luôn chính xác cho mọi dãy byte.
+A `.txt` file extension does not guarantee a charset on its own. You must know the charset from the format specification, protocol, metadata, or agreement with the system that produced the data. You cannot reliably guess a charset with 100% accuracy for arbitrary byte sequences.
 
-## 4. Ví dụ Java 17+ chạy độc lập: kiểm tra UTF-16 và byte thực tế
+## 4. Standalone Runnable Java 17+ Example: Inspecting UTF-16 and Actual Bytes
 
-Tạo tệp **StringCharsetDemo.java**:
+Create the file **StringCharsetDemo.java**:
 
 ~~~java
 import java.nio.charset.StandardCharsets;
@@ -125,14 +125,14 @@ public class StringCharsetDemo {
 }
 ~~~
 
-Biên dịch bằng JDK 17 trở lên và chạy:
+Compile with JDK 17 or newer and run:
 
 ~~~bash
 javac -encoding UTF-8 StringCharsetDemo.java
 java StringCharsetDemo
 ~~~
 
-**Kết quả chuẩn:**
+**Expected output:**
 
 ~~~text
 UTF-16 units = 4
@@ -149,39 +149,39 @@ file round-trip = true
 file bytes equal UTF-8 = true
 ~~~
 
-Giải thích từng kết quả:
+Explanation of each result:
 
-1. **4 UTF-16 units** phản ánh mô hình API của `String`, không phải 4 byte trong tệp.
-2. **7 byte UTF-8** và **8 byte UTF-16LE** đều mã hóa cùng ba code point.
-3. Với `StandardCharsets.UTF_16`, bộ mã hóa Java ghi BOM `FE FF`, sau đó ghi UTF-16 big-endian: `00 41 00 E9 D8 3D DE 00`. Do đó tổng cộng **10 byte**. BOM nằm trong **đầu ra byte**, không phải hai byte ẩn mà mọi `String` đều có.
-4. `new String(utf8, StandardCharsets.UTF_8)` giải mã về văn bản, nên `equals()` trả về `true`.
-5. `Files.writeString` lưu **byte UTF-8** theo charset được truyền; chương trình đọc tệp bằng UTF-8, đối chiếu nội dung và cả byte thực tế, rồi xóa tệp tạm trong `finally`.
+1. **4 UTF-16 units** reflects `String`'s API model, not 4 bytes in a file.
+2. **7 UTF-8 bytes** and **8 UTF-16LE bytes** both encode the same three code points.
+3. With `StandardCharsets.UTF_16`, the Java encoder writes the BOM `FE FF`, followed by UTF-16 big-endian: `00 41 00 E9 D8 3D DE 00`. Hence **10 bytes** in total. The BOM lives in **the byte output**, not as two hidden bytes inside every `String`.
+4. `new String(utf8, StandardCharsets.UTF_8)` decodes back to text, so `equals()` returns `true`.
+5. `Files.writeString` saves **UTF-8 bytes** according to the passed charset; the program reads the file as UTF-8, compares both the content and the actual bytes, and deletes the temporary file in `finally`.
 
-Cờ `javac -encoding UTF-8` chỉ báo cho trình biên dịch rằng **tệp mã nguồn Java** được lưu bằng UTF-8. Nó không đặt charset tự động cho mọi tệp dữ liệu do chương trình tạo; charset tệp trong ví dụ đến từ đối số `StandardCharsets.UTF_8` của API I/O.
+The `javac -encoding UTF-8` flag only tells the compiler that **Java source files** are saved in UTF-8. It does not automatically set the charset for data files created by your program; the file charset in the example comes from the `StandardCharsets.UTF_8` argument passed to the I/O API.
 
-## 5. UTF-16 của API và charset UTF-16 của tệp khác nhau ở đâu?
+## 5. How Do API UTF-16 and File Charset UTF-16 Differ?
 
-| Charset | Khi xuất dữ liệu thành byte | Chi tiết cần chú ý |
+| Charset | When outputting data as bytes | Details to note |
 | --- | --- | --- |
-| UTF-8 | Mỗi code point thường dùng 1–4 byte | Không có byte order của đơn vị 16-bit |
-| UTF-16LE | Mỗi UTF-16 code unit dùng 2 byte, byte thấp trước | `U+0041` thành `41 00`; encoder Java không tự ghi BOM |
-| UTF-16BE | Mỗi UTF-16 code unit dùng 2 byte, byte cao trước | `U+0041` thành `00 41`; encoder Java không tự ghi BOM |
-| UTF-16 (`StandardCharsets.UTF_16`) | Có quy ước dùng BOM để xác định thứ tự byte lúc giải mã | Java mã hóa mặc định có BOM `FE FF` và nội dung big-endian; decoder dùng big-endian khi thiếu BOM |
+| UTF-8 | Each code point typically uses 1–4 bytes | No byte order for 16-bit units |
+| UTF-16LE | Each UTF-16 code unit uses 2 bytes, low byte first | `U+0041` becomes `41 00`; Java's encoder does not write a BOM |
+| UTF-16BE | Each UTF-16 code unit uses 2 bytes, high byte first | `U+0041` becomes `00 41`; Java's encoder does not write a BOM |
+| UTF-16 (`StandardCharsets.UTF_16`) | Uses a convention with BOM to determine byte order when decoding | Java encodes by default with BOM `FE FF` and big-endian content; decoder uses big-endian if BOM is absent |
 
-**BOM** (*byte order mark*) là dấu byte dùng để nhận biết thứ tự byte ở một số cách mã hóa. Chẳng hạn, `FE FF` biểu thị big-endian trong UTF-16 và `FF FE` biểu thị little-endian. Điều đó không có nghĩa mọi tệp UTF-8 hay UTF-16LE đều phải có BOM. Cần tuân thủ quy ước của nguồn dữ liệu và API sử dụng.
+A **BOM** (*byte order mark*) is a byte marker used to identify byte order in certain encodings. For instance, `FE FF` indicates big-endian in UTF-16 and `FF FE` indicates little-endian. That does not mean every UTF-8 or UTF-16LE file must have a BOM. Follow the conventions of the data source and the APIs in use.
 
-Ví dụ chữ A được biểu diễn khác nhau:
+For example, the letter A is represented differently:
 
 - `UTF-8`: `41`.
 - `UTF-16LE`: `41 00`.
 - `UTF-16BE`: `00 41`.
-- `UTF-16` do encoder Java ghi: `FE FF 00 41` (bao gồm BOM).
+- `UTF-16` written by Java's encoder: `FE FF 00 41` (including BOM).
 
-Cả bốn trường hợp đều có thể giải mã thành `String "A"` với `length() == 1`. Charset UTF-16 dùng để **lưu/đọc byte** có thêm mối quan tâm thứ tự byte, khác với hợp đồng `charAt()`, `length()` khi thao tác trên `String`.
+All four cases can decode into `String "A"` with `length() == 1`. The UTF-16 charset used to **store/read bytes** introduces byte-order concerns, unlike the `charAt()`, `length()` contract when operating on `String`.
 
-## 6. Đọc và ghi tệp với charset tường minh
+## 6. Reading and Writing Files with an Explicit Charset
 
-Ví dụ dùng `Files.writeString()` và `Files.readString()`, có từ Java 11 trở lên. Tạo tệp **Utf8FileExample.java**:
+Example using `Files.writeString()` and `Files.readString()`, available since Java 11. Create the file **Utf8FileExample.java**:
 
 ~~~java
 import java.io.IOException;
@@ -202,7 +202,7 @@ public class Utf8FileExample {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac -encoding UTF-8 Utf8FileExample.java
@@ -215,9 +215,9 @@ Stdout:
 true
 ~~~
 
-Chương trình tạo/ghi đè `notes-utf8.txt` tại thư mục chạy. Khi dùng trong ứng dụng thật cần kiểm soát đường dẫn, quyền truy cập và chính sách ghi đè. Nội dung lúc còn ở `String original` vẫn có ngữ nghĩa UTF-16 theo API Java; nó **được mã hóa thành UTF-8 tại lời gọi ghi tệp**.
+The program creates/overwrites `notes-utf8.txt` in the working directory. In real applications, control paths, permissions, and overwrite policies. While in `String original`, the content still has UTF-16 semantics per the Java API; it **is encoded into UTF-8 at the file-writing call**.
 
-Với tệp đã biết mang UTF-16LE, đoạn mã sau phải đọc theo UTF-16LE:
+For a file known to be UTF-16LE, the following snippet must read using UTF-16LE:
 
 ~~~java
 String text = Files.readString(
@@ -225,20 +225,20 @@ String text = Files.readString(
         StandardCharsets.UTF_16LE);
 ~~~
 
-Đây chỉ là **đoạn code minh họa** trong một phương thức có xử lý hoặc khai báo `IOException` và có import `Files`, `Path`, `StandardCharsets`. Chọn đúng charset theo dữ liệu thực tế của tệp. Khi đã giải mã, `text` là `String` Java bình thường.
+This is only an **illustrative code snippet** inside a method that handles or declares `IOException` and imports `Files`, `Path`, and `StandardCharsets`. Choose the charset matching the file's actual data. Once decoded, `text` is an ordinary Java `String`.
 
-**Lưu ý về mặc định:** Hai overload `Files.readString(path)` và `Files.writeString(path, text)` sử dụng UTF-8 theo hợp đồng API Java 11+. Nhưng các API khác như `FileReader`, `InputStreamReader`, `FileWriter` hoặc `String.getBytes()` có overload dùng **default charset** nếu không chỉ định. Từ JDK 18, JEP 400 chuẩn hóa UTF-8 làm default charset cho phần lớn trường hợp trong cấu hình chuẩn, song điều đó không đảm bảo mọi dữ liệu cũ hoặc dữ liệu do hệ thống khác cung cấp đều là UTF-8. Để kết nối ổn định, **truyền charset tường minh theo hợp đồng dữ liệu**.
+**Note on defaults:** The two overloads `Files.readString(path)` and `Files.writeString(path, text)` use UTF-8 under the Java 11+ API contract. However, other APIs such as `FileReader`, `InputStreamReader`, `FileWriter`, or `String.getBytes()` have overloads that use the **default charset** if unspecified. Since JDK 18, JEP 400 standardizes UTF-8 as the default charset in most standard configurations, yet that does not guarantee legacy data or data provided by other systems is UTF-8. For reliable integration, **pass an explicit charset according to the data contract**.
 
-## 7. Lỗi đọc sai charset: mojibake và ký tự thay thế
+## 7. Misreading Charsets: Mojibake and Replacement Characters
 
-Giả sử tệp lưu chuỗi `café` dưới UTF-8. Chữ `é` được mã hóa thành `C3 A9`. Nếu áp dụng bộ giải mã Windows-1252 lên các byte này, người dùng có thể thấy `cafÃ©`. Hiện tượng này gọi là **mojibake**: byte được hiểu bằng quy tắc khác với charset đã dùng để tạo nó. Chuỗi Java thu được vẫn là `String` với ngữ nghĩa API UTF-16; **nội dung bị sai ngay ở bước giải mã**.
+Suppose a file stores the string `café` in UTF-8. The letter `é` is encoded as `C3 A9`. If a Windows-1252 decoder is applied to these bytes, users may see `cafÃ©`. This phenomenon is called **mojibake**: bytes are interpreted under rules different from the charset used to create them. The resulting Java string is still a `String` with UTF-16 API semantics; **the content was corrupted right at the decoding step**.
 
-Có hai loại lỗi:
+There are two kinds of errors:
 
-- Dữ liệu byte hợp lệ theo charset **sai**: bộ giải mã có thể tạo ra các ký tự khác, không ném lỗi.
-- Byte không hợp lệ theo charset đang dùng: decoder có thể thay ký tự lỗi bằng `U+FFFD` (ký tự thay thế), hoặc báo ngoại lệ, tùy API và cấu hình.
+- Byte data valid under the **wrong** charset: the decoder can produce different characters without throwing an error.
+- Bytes invalid under the active charset: the decoder may replace invalid characters with `U+FFFD` (the replacement character), or throw an exception, depending on the API and configuration.
 
-Nếu cần phát hiện byte UTF-8 lỗi **thay vì thay thế âm thầm**, dùng `CharsetDecoder` và cấu hình `CodingErrorAction.REPORT`:
+If you need to detect invalid UTF-8 bytes **instead of silently replacing them**, use `CharsetDecoder` and configure `CodingErrorAction.REPORT`:
 
 ~~~java
 import java.nio.ByteBuffer;
@@ -246,7 +246,7 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 
-// Đoạn code đặt trong một phương thức Java:
+// Code snippet placed inside a Java method:
 byte[] invalidUtf8 = {(byte) 0xC3, (byte) 0x28};
 try {
     String decoded = StandardCharsets.UTF_8.newDecoder()
@@ -260,79 +260,79 @@ try {
 }
 ~~~
 
-Stdout của đoạn mã khi thực thi trong phương thức:
+Stdout of the snippet when executed inside a method:
 
 ~~~text
 Invalid UTF-8
 ~~~
 
-Byte `C3` bắt đầu một chuỗi UTF-8 cần byte tiếp nối, nhưng `28` không phải byte tiếp nối hợp lệ. Cấu hình `REPORT` giúp phát hiện dữ liệu hỏng. Nếu dùng API tiện lợi `new String(bytes, StandardCharsets.UTF_8)`, các chuỗi byte lỗi thường được thay bằng ký tự thay thế theo hợp đồng constructor, vì vậy không nên coi việc không ném lỗi là bằng chứng dữ liệu gốc hợp lệ.
+Byte `C3` starts a UTF-8 sequence requiring a continuation byte, yet `28` is not a valid continuation byte. The `REPORT` configuration detects corrupted data. When using the convenience API `new String(bytes, StandardCharsets.UTF_8)`, invalid byte sequences are typically replaced with the replacement character under the constructor's contract, so not throwing an exception should not be taken as proof that the original data was valid.
 
-### Cắt chuỗi có thể phá surrogate pair
+### String slicing can break a surrogate pair
 
-Đoạn mã sau chứng minh `substring()` cũng dùng chỉ số UTF-16:
+The following snippet proves `substring()` also uses UTF-16 indices:
 
 ~~~java
 String s = "A😀B";
 System.out.println(s.length()); // 4
 System.out.println(s.substring(1, 3).equals("😀")); // true
-System.out.println(s.substring(1, 2).length()); // 1, chi lay high surrogate
+System.out.println(s.substring(1, 2).length()); // 1, only takes the high surrogate
 ~~~
 
-Đây là **đoạn code minh họa** đặt trong một phương thức. Cắt `[1, 3)` giữ cả hai đơn vị UTF-16 của emoji; cắt `[1, 2)` lấy một surrogate lẻ nên không còn emoji hoàn chỉnh. Nếu phạm vi cần thao tác theo code point, tham khảo `codePointCount()`, `offsetByCodePoints()` và `codePoints()`. Nếu yêu cầu không tách cụm ký tự người dùng nhìn thấy, cần thêm cơ chế phân đoạn theo *grapheme cluster*.
+This is an **illustrative code snippet** placed inside a method. Slicing `[1, 3)` keeps both UTF-16 units of the emoji; slicing `[1, 2)` takes an unpaired surrogate, leaving no complete emoji. If the scope requires operating by code points, refer to `codePointCount()`, `offsetByCodePoints()`, and `codePoints()`. If the requirement is not to split user-perceived character clusters, you need additional segmentation by *grapheme clusters*.
 
-## 8. Lỗi phổ biến và cách sửa
+## 8. Common Mistakes and How to Fix Them
 
-| Nhầm lẫn hoặc thao tác sai | Hậu quả | Cách sửa |
+| Misconception or improper operation | Consequence | Fix |
 | --- | --- | --- |
-| “`String` dùng UTF-16 nên tệp nhất định là UTF-16” | Chọn sai cách đọc/ghi byte | Chỉ định đúng charset khi I/O |
-| Dùng `s.length()` làm số byte UTF-8 | Sai kích thước với dấu, emoji và nhiều ký tự khác | `s.getBytes(StandardCharsets.UTF_8).length` |
-| Dùng `substring()` tùy tiện giữa surrogate pair | Tạo chuỗi có surrogate lẻ | Đặt ranh giới phù hợp với code point hoặc cụm hiển thị |
-| Ghi UTF-8 nhưng đọc bằng UTF-16LE | Văn bản sai hoặc lỗi giải mã | Dùng charset tương ứng với byte gốc |
-| Dùng `new String(bytes)` khi không biết default charset | Kết quả có thể khác giữa cấu hình/môi trường hoặc dữ liệu không đúng charset | `new String(bytes, expectedCharset)` |
-| Tưởng `javac -encoding UTF-8` quyết định charset của tệp lúc chạy | Dữ liệu đầu ra có thể khác dự kiến | Charset mã nguồn và charset dữ liệu là hai quyết định riêng |
-| Tưởng BOM bắt buộc cho mọi UTF-8/UTF-16LE | Ghi thêm/thiếu BOM so với giao thức | Tuân theo đặc tả định dạng và tên charset |
-| Tin rằng đuôi `.txt` xác định charset | Giải mã sai tệp không có metadata | Lấy charset từ thỏa thuận hoặc định dạng |
-| Tin rằng `char` luôn là một ký tự trọn vẹn | Cắt hỏng code point ngoài BMP | Dùng API code point khi thích hợp |
-| Coi byte nội bộ của JVM là dữ liệu tệp | Phụ thuộc chi tiết triển khai | Chỉ dựa vào API encode/decode |
+| “`String` uses UTF-16 so the file must be UTF-16” | Choosing the wrong way to read/write bytes | Specify the right charset during I/O |
+| Using `s.length()` as the UTF-8 byte count | Wrong size for accented letters, emojis, and many other characters | `s.getBytes(StandardCharsets.UTF_8).length` |
+| Calling `substring()` arbitrarily inside a surrogate pair | Creates a string with an unpaired surrogate | Set boundaries aligned with code points or display clusters |
+| Writing UTF-8 but reading as UTF-16LE | Garbled text or decoding failure | Use the charset matching the original bytes |
+| Using `new String(bytes)` without knowing the default charset | Results can vary across configs/environments or data may use a different charset | `new String(bytes, expectedCharset)` |
+| Thinking `javac -encoding UTF-8` determines the file charset at runtime | Output data may differ from expectations | Source code charset and data charset are two separate decisions |
+| Thinking a BOM is mandatory for all UTF-8/UTF-16LE | Adding/omitting a BOM against the protocol | Follow the format specification and charset name |
+| Believing the `.txt` extension determines the charset | Misdecoding files lacking metadata | Obtain the charset from agreement or format |
+| Believing `char` is always a complete character | Splits non-BMP code points | Use code point APIs when appropriate |
+| Treating the JVM's internal bytes as file data | Depends on implementation details | Rely solely on encode/decode APIs |
 
-## 9. Quy trình kiểm tra khi gặp lỗi tiếng Việt hoặc emoji trong tệp
+## 9. Troubleshooting Checklist for Garbled Vietnamese or Emojis in Files
 
-1. **Làm rõ nguồn byte:** tệp được tạo từ chương trình nào, có charset nào, có BOM hoặc metadata hay không?
-2. **Kiểm tra đoạn đọc:** `Files.readString(path, charset)` hoặc `InputStreamReader(input, charset)` có dùng đúng charset nguồn không?
-3. **Kiểm tra `String` sau khi decode:** so sánh code point, `equals()` và các giá trị mong đợi; đừng dùng `length()` như kích thước byte.
-4. **Kiểm tra đoạn ghi:** `Files.writeString(path, content, charset)` hoặc `getBytes(charset)` có dùng charset mà hệ thống nhận yêu cầu không?
-5. **Kiểm tra byte thật:** in hex hoặc đọc byte bằng `Files.readAllBytes()`, quan sát BOM và chuỗi byte UTF-8/UTF-16.
-6. **Round-trip:** với mẫu có chữ ASCII, tiếng Việt có dấu, emoji, thử encode rồi decode với cùng charset; kiểm tra `original.equals(restored)`.
-7. **Quy định cách báo lỗi:** với tệp quan trọng, quyết định việc dùng decoder báo lỗi nghiêm ngặt thay vì lặng lẽ thay ký tự hỏng.
+1. **Clarify the byte source:** which program created the file, what charset does it use, and is there a BOM or metadata?
+2. **Check the reading step:** does `Files.readString(path, charset)` or `InputStreamReader(input, charset)` use the exact source charset?
+3. **Inspect the `String` after decoding:** compare code points, `equals()`, and expected values; do not use `length()` as byte size.
+4. **Check the writing step:** does `Files.writeString(path, content, charset)` or `getBytes(charset)` use the charset required by the receiving system?
+5. **Inspect the actual bytes:** print hex or read bytes via `Files.readAllBytes()`, observing the BOM and UTF-8/UTF-16 byte sequences.
+6. **Round-trip:** with samples containing ASCII letters, accented Vietnamese, and emojis, try encoding and then decoding with the same charset; verify `original.equals(restored)`.
+7. **Define error reporting:** for critical files, decide on using a strict reporting decoder instead of silently replacing corrupted characters.
 
-## 10. Tự kiểm tra
+## 10. Self-Check
 
-**Câu 1.** `String s = "😀";` thì `s.length()` bằng mấy và lưu s dưới UTF-8 (không BOM) cần bao nhiêu byte?
+**Question 1.** Given `String s = "😀";`, what is `s.length()` and how many bytes are needed to save `s` as UTF-8 (without BOM)?
 
-**Đáp án:** `length() == 2` vì emoji dùng hai UTF-16 code unit; UTF-8 của emoji dùng **4 byte**, `F0 9F 98 80`.
+**Answer:** `length() == 2` because the emoji uses two UTF-16 code units; the UTF-8 encoding of the emoji uses **4 bytes**, `F0 9F 98 80`.
 
-**Câu 2.** Chuỗi `"Aé"` có hai Unicode code point. Số byte UTF-8 có bằng 2 không?
+**Question 2.** The string `"Aé"` has two Unicode code points. Is its UTF-8 byte count equal to 2?
 
-**Đáp án:** không. A chiếm 1 byte, é chiếm 2 byte; tổng cộng **3 byte**.
+**Answer:** No. A takes 1 byte, é takes 2 bytes; **3 bytes** in total.
 
-**Câu 3.** Sau khi `Files.writeString(path, s, StandardCharsets.UTF_8)`, biến `s` có đổi loại thành “String UTF-8” không?
+**Question 3.** After `Files.writeString(path, s, StandardCharsets.UTF_8)`, does variable `s` change type into a “UTF-8 String”?
 
-**Đáp án:** không. Chỉ đầu ra byte được mã hóa theo UTF-8; API `String` vẫn làm việc với đơn vị UTF-16.
+**Answer:** No. Only the byte output is encoded as UTF-8; `String` APIs still operate on UTF-16 units.
 
-**Câu 4.** Tại sao bytes `FE FF 00 41` đọc qua charset UTF-16 cho ra chuỗi có nội dung A?
+**Question 4.** Why do the bytes `FE FF 00 41` read through charset UTF-16 produce a string containing A?
 
-**Đáp án:** `FE FF` là BOM chỉ big-endian, còn `00 41` là UTF-16 code unit của A.
+**Answer:** `FE FF` is the BOM indicating big-endian, and `00 41` is the UTF-16 code unit for A.
 
-**Câu 5.** Đọc một tệp lưu bằng UTF-8 nhưng dùng `StandardCharsets.UTF_16LE` có đảm bảo khôi phục đúng không?
+**Question 5.** Is reading a file saved in UTF-8 using `StandardCharsets.UTF_16LE` guaranteed to recover it properly?
 
-**Đáp án:** không; mã hóa và giải mã phải sử dụng cùng quy ước (hoặc các quy ước tương thích theo đặc tả). Kết quả sai charset có thể tạo ký tự sai hoặc bị coi là dữ liệu không hợp lệ.
+**Answer:** No; encoding and decoding must use the same convention (or compatible conventions per the specification). A mismatched charset can produce wrong characters or be treated as invalid data.
 
-## Tài liệu tham khảo
+## References
 
-- [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): quy ước UTF-16 trong API chuỗi, `length`, `charAt`, `getBytes`, `codePointCount`.
-- [Java SE 17 — StandardCharsets](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/StandardCharsets.html): tên và đặc tính charset chuẩn.
+- [Java SE 17 — String](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): UTF-16 conventions in string APIs, `length`, `charAt`, `getBytes`, `codePointCount`.
+- [Java SE 17 — StandardCharsets](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/StandardCharsets.html): standard charset names and properties.
 - [Java SE 17 — Files](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/file/Files.html): `writeString`, `readString`, `readAllBytes`.
-- [Java SE 17 — CharsetDecoder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/CharsetDecoder.html): xử lý byte lỗi và `CodingErrorAction`.
-- [JEP 254 — Compact Strings](https://openjdk.org/jeps/254): tối ưu biểu diễn nội bộ `String`.
-- [JEP 400 — UTF-8 by Default](https://openjdk.org/jeps/400): thay đổi charset mặc định kể từ JDK 18.
+- [Java SE 17 — CharsetDecoder](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/nio/charset/CharsetDecoder.html): handling malformed bytes and `CodingErrorAction`.
+- [JEP 254 — Compact Strings](https://openjdk.org/jeps/254): optimizing internal `String` representation.
+- [JEP 400 — UTF-8 by Default](https://openjdk.org/jeps/400): changing the default charset starting in JDK 18.

@@ -1,47 +1,47 @@
-# Mở rộng và thu hẹp kiểu nguyên thủy trong Java 17+
+# Widening and Narrowing Primitive Types in Java 17+
 
-## 1. Mục tiêu: chuyển đổi kiểu là gì?
+## 1. Objective: what is type conversion?
 
-**Chuyển đổi kiểu nguyên thủy** (*primitive type conversion*) là quá trình Java chuyển một giá trị giữa các kiểu primitive tương thích, ví dụ từ `byte` sang `int` hoặc từ `double` sang `int`.
+**Primitive type conversion** is the process by which Java converts a value between compatible primitive types, for example from `byte` to `int` or from `double` to `int`.
 
 ~~~java
 int count = 120;
-long widened = count;       // Mở rộng: int -> long
-byte narrowed = (byte) count; // Thu hẹp tường minh: int -> byte
+long widened = count;       // Widening: int -> long
+byte narrowed = (byte) count; // Explicit narrowing: int -> byte
 
 System.out.println(widened);  // 120
 System.out.println(narrowed); // 120
 ~~~
 
-Có hai nhóm quan trọng:
+There are two important categories:
 
-- **Widening primitive conversion (chuyển đổi mở rộng)**: đi theo quan hệ cho phép Java chuyển tự động trong ngữ cảnh phù hợp, thường là từ kiểu có phạm vi đại diện rộng hơn. **Không đồng nghĩa luôn giữ độ chính xác số học**.
-- **Narrowing primitive conversion (chuyển đổi thu hẹp)**: đi từ kiểu nguồn sang kiểu đích có thể không chứa trọn giá trị nguồn; thường cần **ép kiểu tường minh** `(TargetType)`, và có thể mất dữ liệu.
+- **Widening primitive conversion**: follows a relationship that allows Java to convert automatically in a suitable context, usually from a type to one with a broader representation range. **It does not mean arithmetic precision is always preserved.**
+- **Narrowing primitive conversion**: goes from a source type to a target type that may not hold the entire source value; usually requires an **explicit cast** `(TargetType)`, and may lose data.
 
-Java kiểm tra tính hợp lệ **khi biên dịch** đối với kiểu dữ liệu; nhưng phép cast hợp lệ không tự bảo đảm giá trị sau khi chuyển còn đúng nghiệp vụ.
+Java checks data type validity **at compile time**; however, a valid cast does not automatically guarantee that the converted value remains business-valid.
 
-## 2. Nhớ các kiểu primitive trước khi chuyển đổi
+## 2. Recall primitive types before converting
 
-| Kiểu | Độ rộng | Đặc điểm |
+| Type | Width | Characteristics |
 |---|---:|---|
-| `byte` | 8 bit | Số nguyên có dấu, -128 đến 127 |
-| `short` | 16 bit | Số nguyên có dấu, -32768 đến 32767 |
-| `char` | 16 bit | UTF-16 code unit không dấu, 0 đến 65535 |
-| `int` | 32 bit | Số nguyên có dấu |
-| `long` | 64 bit | Số nguyên có dấu |
-| `float` | 32 bit | Số thực dấu phẩy động nhị phân, khoảng 24 bit có nghĩa |
-| `double` | 64 bit | Số thực dấu phẩy động nhị phân, khoảng 53 bit có nghĩa |
-| `boolean` | Theo ngữ nghĩa true/false | **Không có** chuyển đổi số học sang/từ các kiểu còn lại |
+| `byte` | 8 bits | Signed integer, -128 to 127 |
+| `short` | 16 bits | Signed integer, -32768 to 32767 |
+| `char` | 16 bits | Unsigned UTF-16 code unit, 0 to 65535 |
+| `int` | 32 bits | Signed integer |
+| `long` | 64 bits | Signed integer |
+| `float` | 32 bits | Binary floating-point, about 24 significant bits |
+| `double` | 64 bits | Binary floating-point, about 53 significant bits |
+| `boolean` | By true/false semantics | **No** arithmetic conversion to/from the remaining types |
 
-**Lưu ý:** `char` và `short` đều 16 bit nhưng không có cùng miền giá trị. `char` không âm; `short` có dấu. Vì thế Java không cho phép chuyển mở rộng trực tiếp từ `char` sang `short` hoặc ngược lại.
+**Note:** `char` and `short` are both 16 bits but do not have the same value range. `char` is non-negative; `short` is signed. Therefore, Java does not allow direct widening conversion from `char` to `short` or vice versa.
 
-`String` không phải kiểu nguyên thủy. Các thao tác `Integer.parseInt("123")`, `String.valueOf(123)` là **chuyển đổi văn bản và giá trị**, không phải một widening/narrowing primitive conversion.
+`String` is not a primitive type. Operations like `Integer.parseInt("123")` and `String.valueOf(123)` are **text and value conversions**, not a widening/narrowing primitive conversion.
 
-## 3. Các đường chuyển đổi mở rộng hợp lệ
+## 3. Valid widening conversion paths
 
-Trong Java, những quan hệ mở rộng primitive có thể ghi nhớ bằng bảng sau:
+In Java, primitive widening relationships can be remembered using the following table:
 
-| Kiểu nguồn | Kiểu đích mở rộng trực tiếp hợp lệ |
+| Source type | Valid direct widening target types |
 |---|---|
 | `byte` | `short`, `int`, `long`, `float`, `double` |
 | `short` | `int`, `long`, `float`, `double` |
@@ -50,7 +50,7 @@ Trong Java, những quan hệ mở rộng primitive có thể ghi nhớ bằng b
 | `long` | `float`, `double` |
 | `float` | `double` |
 
-Không có widening từ `double` sang kiểu nào khác; và `boolean` không tham gia bảng này.
+There is no widening from `double` to any other type; and `boolean` does not participate in this table.
 
 ~~~java
 byte small = 100;
@@ -66,15 +66,15 @@ System.out.println(reading);  // 100.0
 System.out.println(codeUnit); // 65
 ~~~
 
-Ví dụ `char` là nhánh mở rộng riêng, không nằm trong chuỗi `byte -> short -> int -> long`.
+For example, `char` is a separate widening branch, not in the `byte -> short -> int -> long` chain.
 
-**Không cần viết cast** ở các phép gán widening trên. Viết `(long) count` cũng có thể hợp lệ, nhưng thường không cần thiết trừ khi muốn làm rõ kiểu trước một phép toán.
+**No cast is needed** in the widening assignments above. Writing `(long) count` can also be valid, but is usually unnecessary unless clarifying the type before an operation.
 
-## 4. “Mở rộng” không bảo đảm chính xác tuyệt đối
+## 4. “Widening” does not guarantee absolute precision
 
-Đây là một điểm dễ hiểu sai. Các chuyển đổi mở rộng **giữa kiểu nguyên và kiểu nguyên** trong bảng trên giữ giá trị chính xác. Tuy nhiên, khi mở rộng sang kiểu dấu phẩy động, một số giá trị lớn **không thể biểu diễn chính xác bằng significand hữu hạn**.
+This is a commonly misunderstood point. Widening conversions **between integer types** in the table above preserve exact values. However, when widening to a floating-point type, some large values **cannot be represented accurately with a finite significand**.
 
-Ví dụ một `long` có giá trị \(2^{53}+1\):
+Consider a `long` with value \(2^{53}+1\):
 
 ~~~java
 long exact = 9_007_199_254_740_993L;
@@ -85,18 +85,18 @@ System.out.println(approximate);         // 9.007199254740992E15
 System.out.println((long) approximate);  // 9007199254740992
 ~~~
 
-`long` giữ chính xác số nguyên trên, nhưng `double` chỉ có 53 bit significand hiệu dụng: giá trị được làm tròn thành \(2^{53}\), mất đơn vị cuối.
+`long` holds that integer accurately, but `double` only has 53 effective significand bits: the value is rounded to \(2^{53}\), losing the last unit.
 
-Tương tự:
+Similarly:
 
 ~~~java
 float big = 16_777_216f; // 2^24
 System.out.println(big + 1f == big); // true
 ~~~
 
-Ở độ lớn này, `float` không còn phân biệt được mọi bước tăng 1.
+At this magnitude, `float` can no longer distinguish every increment of 1.
 
-Một ví dụ khác là `float -> double`:
+Another example is `float -> double`:
 
 ~~~java
 float f = 0.1f;
@@ -104,24 +104,24 @@ double d = f;
 System.out.println(d); // 0.10000000149011612
 ~~~
 
-Chuyển `float` sang `double` **giữ chính xác giá trị nhị phân đang có trong float**, không khôi phục số thập phân `0.1` ban đầu.
+Converting `float` to `double` **preserves the exact binary value currently in the float**, without recovering the original decimal `0.1`.
 
-**Quy tắc ứng dụng:** khi chuyển số nguyên lớn sang `float`/`double`, hãy xem xét độ chính xác yêu cầu. Nếu mọi đơn vị đếm cần được bảo toàn, giữ `long`/`int` hoặc chọn biểu diễn chính xác hơn.
+**Practical rule:** when converting large integers to `float`/`double`, examine the required precision. If every count unit must be preserved, keep `long`/`int` or choose a more accurate representation.
 
-## 5. Thu hẹp kiểu nguyên: cast và mất dữ liệu
+## 5. Narrowing integer types: casting and data loss
 
-Khi muốn chuyển từ một kiểu nguyên sang một kiểu nguyên nhỏ hơn, thường phải viết cast:
+When converting from an integer type to a smaller integer type, you usually have to write a cast:
 
 ~~~java
 int value = 130;
-// byte invalid = value; // LỖI BIÊN DỊCH
+// byte invalid = value; // COMPILE ERROR
 byte narrowed = (byte) value;
 System.out.println(narrowed); // -126
 ~~~
 
-Vì `byte` chỉ biểu diễn từ -128 đến 127, nên chuyển 130 sang `byte` giữ **8 bit thấp** của kết quả theo quy tắc narrowing. Mẫu bit `1000_0010` được diễn giải thành -126 theo biểu diễn có dấu.
+Because `byte` only represents from -128 to 127, converting 130 to `byte` keeps the **low 8 bits** of the result according to the narrowing rule. The bit pattern `1000_0010` is interpreted as -126 in signed representation.
 
-Tương tự:
+Similarly:
 
 ~~~java
 int value = 65_537;
@@ -129,9 +129,9 @@ char c = (char) value;
 System.out.println((int) c); // 1
 ~~~
 
-`char` 16 bit nhận 16 bit thấp; 65537 tương đương \(65536+1\), nên code unit sau cast có giá trị 1.
+A 16-bit `char` receives the low 16 bits; 65537 equals \(65536+1\), so the code unit after casting has value 1.
 
-| Chuyển đổi | Input | Kết quả |
+| Conversion | Input | Result |
 |---|---:|---:|
 | `(byte) 127` | 127 | 127 |
 | `(byte) 128` | 128 | -128 |
@@ -139,42 +139,42 @@ System.out.println((int) c); // 1
 | `(short) 65535` | 65535 | -1 |
 | `(char) -1` | -1 | 65535 |
 
-**Cast không tự cảnh báo tràn.** Nó chỉ yêu cầu Java thực hiện một phép chuyển kiểu hợp lệ về cú pháp. Nếu không cho phép thay đổi giá trị số học, hãy kiểm tra giới hạn trước khi cast.
+**A cast does not automatically warn of overflow.** It merely instructs Java to perform a syntactically valid type conversion. If arithmetic value changes are not acceptable, check bounds before casting.
 
-## 6. Ngoại lệ: gán hằng int vừa phạm vi cho byte, short, char
+## 6. Exception: assigning an in-range `int` constant to `byte`, `short`, `char`
 
-Phép gán `int -> byte`, `short` hoặc `char` thường là narrowing. Tuy nhiên Java có **narrowing conversion dành riêng cho biểu thức hằng tại thời điểm biên dịch** (*constant expressions*) khi giá trị biểu diễn được trong kiểu đích.
+Assignments `int -> byte`, `short`, or `char` are normally narrowing. However, Java has a **narrowing conversion specifically for compile-time constant expressions** when the value can be represented in the target type.
 
 ~~~java
-byte b = 127;         // Hợp lệ dù literal 127 có kiểu int
-short s = 32_000;     // Hợp lệ
-char c = 65;          // Hợp lệ: mã UTF-16 65
-// byte wrong = 128;  // LỖI: ngoài miền byte
-// char wrong2 = -1;  // LỖI: ngoài miền char
+byte b = 127;         // Valid even though literal 127 has type int
+short s = 32_000;     // Valid
+char c = 65;          // Valid: UTF-16 code 65
+// byte wrong = 128;  // ERROR: outside byte range
+// char wrong2 = -1;  // ERROR: outside char range
 ~~~
 
-Một biến `int` bình thường **không được chuyển tự động**, kể cả khi hiện đang chứa số 127:
+A regular `int` variable **is not converted automatically**, even when it currently holds 127:
 
 ~~~java
 int value = 127;
-// byte b = value;    // Lỗi compile: int không tự thu hẹp
-byte b = (byte) value; // Hợp lệ nhưng cần tự chịu trách nhiệm
+// byte b = value;    // Compile error: int does not narrow automatically
+byte b = (byte) value; // Valid, but you take responsibility
 ~~~
 
-Một **final constant variable** kiểu `int` được gán bằng constant expression cũng có thể được compiler xét trong ngữ cảnh gán:
+A **`final` constant variable** of type `int` assigned with a constant expression can also be considered by the compiler in an assignment context:
 
 ~~~java
 final int LIMIT = 100;
-byte threshold = LIMIT; // Hợp lệ vì LIMIT là constant variable
+byte threshold = LIMIT; // Valid because LIMIT is a constant variable
 ~~~
 
-Nhưng `final int runtime = Integer.parseInt("100");` không phải constant variable theo nghĩa này; giá trị xuất phát từ lời gọi method, nên không dùng được phép gán narrowing đặc biệt.
+But `final int runtime = Integer.parseInt("100");` is not a constant variable in this sense; the value comes from a method call, so the special narrowing assignment cannot be used.
 
-**Giới hạn quy tắc:** ngoại lệ trên thuộc ngữ cảnh assignment (cũng bao gồm initializer), không biến mọi lời gọi method hay biểu thức đều được phép implicit narrowing. Tránh suy từ `byte b = 127;` rằng mọi nơi đều có thể truyền một `int` bất kỳ vào tham số `byte` không cần cast.
+**Rule boundary:** the exception above belongs to the assignment context (which also includes initializers), and does not allow implicit narrowing in every method call or expression. Avoid inferring from `byte b = 127;` that any `int` can be passed to a `byte` parameter everywhere without a cast.
 
-## 7. Thu hẹp từ float/double sang số nguyên
+## 7. Narrowing from `float`/`double` to integer
 
-Chuyển `float` hoặc `double` sang kiểu nguyên yêu cầu cast trong các trường hợp thông thường:
+Converting `float` or `double` to an integer type requires a cast in ordinary cases:
 
 ~~~java
 double positive = 12.9;
@@ -184,24 +184,24 @@ System.out.println((int) positive); // 12
 System.out.println((int) negative); // -12
 ~~~
 
-Java **cắt phần thập phân về 0**, không dùng quy tắc làm tròn tới số nguyên gần nhất như `Math.round`.
+Java **truncates the fractional part toward 0**, rather than using nearest-integer rounding like `Math.round`.
 
-Cần nhớ các trường hợp đặc biệt theo đặc tả:
+Remember the special cases according to the specification:
 
-| Đầu vào double | `(int)` | Giải thích |
+| `double` input | `(int)` | Explanation |
 |---|---:|---|
-| `12.9` | 12 | Cắt phần thập phân |
-| `-12.9` | -12 | Hướng về 0 |
-| `Double.NaN` | 0 | Quy tắc NaN khi chuyển về số nguyên |
-| `Double.POSITIVE_INFINITY` | 2147483647 | Bão hòa tại `Integer.MAX_VALUE` |
-| `Double.NEGATIVE_INFINITY` | -2147483648 | Bão hòa tại `Integer.MIN_VALUE` |
-| `1.0e30` | 2147483647 | Bão hòa khi vượt miền int |
+| `12.9` | 12 | Truncates fractional part |
+| `-12.9` | -12 | Toward 0 |
+| `Double.NaN` | 0 | NaN rule when converting to integer |
+| `Double.POSITIVE_INFINITY` | 2147483647 | Saturates at `Integer.MAX_VALUE` |
+| `Double.NEGATIVE_INFINITY` | -2147483648 | Saturates at `Integer.MIN_VALUE` |
+| `1.0e30` | 2147483647 | Saturates when exceeding int range |
 
-Nếu đích là `byte` hoặc `short`, phép thu hẹp từ dấu phẩy động trước hết chuyển qua `int` rồi thu hẹp tiếp, nên có thể cho kết quả càng khó đoán nếu bạn không kiểm tra đầu vào.
+If the target is `byte` or `short`, narrowing from floating-point first converts through `int` and then narrows further, which can produce even harder-to-predict results if you do not validate the input.
 
-Không dùng `(int) doubleValue` làm “validation”: NaN, Infinity hoặc giá trị ngoài miền **không nhất thiết ném exception**. Nếu cần dữ liệu hữu hạn, số nguyên và nằm trong khoảng xác định, phải kiểm tra từng điều kiện trước phép cast.
+Do not use `(int) doubleValue` as “validation”: NaN, Infinity, or out-of-range values **do not necessarily throw an exception**. If you need finite, whole-integer data within a specific interval, check each condition before casting.
 
-## 8. Thu hẹp double -> float: mất độ chính xác, overflow, underflow
+## 8. Narrowing `double -> float`: precision loss, overflow, underflow
 
 ~~~java
 double source = 0.1;
@@ -211,9 +211,9 @@ System.out.println(narrowed);        // 0.1
 System.out.println((double) narrowed); // 0.10000000149011612
 ~~~
 
-Chuỗi hiển thị `0.1` là cách Java in một giá trị `float` gần `0.1`, không có nghĩa `float` lưu chính xác 1/10.
+The displayed string `0.1` is how Java prints a `float` value close to `0.1`, not that `float` stores 1/10 accurately.
 
-Giá trị hữu hạn `double` quá lớn khi chuyển sang `float` có thể thành **Infinity**:
+A finite `double` value that is too large when converted to `float` can become **Infinity**:
 
 ~~~java
 double huge = 1.0e40;
@@ -221,44 +221,44 @@ float overflow = (float) huge;
 System.out.println(overflow); // Infinity
 ~~~
 
-Giá trị có độ lớn quá nhỏ có thể chuyển thành zero (có dấu) hoặc một giá trị subnormal. Khi yêu cầu kết quả `float` hữu hạn và khác 0, cần validation phù hợp.
+A value with too small a magnitude can convert to (signed) zero or a subnormal value. When a finite and nonzero `float` result is required, proper validation is needed.
 
-**Với float/double:** đừng đồng nhất “độ rộng ít bit hơn” với quy tắc giữ các bit thấp như chuyển `int -> byte`. Dấu phẩy động thu hẹp dùng quy tắc làm tròn/giới hạn của mô hình dấu phẩy động.
+**For `float`/`double`:** do not equate “fewer bits in width” with the low-bit-retention rule like `int -> byte` conversion. Floating-point narrowing uses the rounding/clamping rules of the floating-point model.
 
-## 9. Chuyển kiểu trong biểu thức số học
+## 9. Type conversion in arithmetic expressions
 
-Java thực hiện **numeric promotion** đối với nhiều toán tử số học. Đặc biệt, `byte`, `short` và `char` được nâng lên `int` trong phép cộng thông thường:
+Java performs **numeric promotion** on many arithmetic operators. In particular, `byte`, `short`, and `char` are promoted to `int` in ordinary addition:
 
 ~~~java
 byte a = 100;
 byte b = 20;
 
-// byte sum = a + b; // LỖI: a + b có kiểu int
+// byte sum = a + b; // ERROR: a + b has type int
 int sum = a + b;
 System.out.println(sum); // 120
 
 char ch = 'A';
-// char next = ch + 1; // LỖI: ch + 1 là int
+// char next = ch + 1; // ERROR: ch + 1 is int
 char next = (char) (ch + 1);
 System.out.println(next); // B
 ~~~
 
-Với toán hạng `long`, `float` hoặc `double`, biểu thức được nâng kiểu theo quy tắc tương ứng trước khi tính.
+With `long`, `float`, or `double` operands, the expression is promoted according to the corresponding rules before computing.
 
-Một bẫy quan trọng là **tràn xảy ra trước khi gán sang long**:
+An important pitfall is **overflow occurring before assigning to `long`**:
 
 ~~~java
 int x = Integer.MAX_VALUE;
-long wrong = x + 1;        // int + int tràn trước khi gán long
-long correct = (long) x + 1; // Một toán hạng đã là long
+long wrong = x + 1;        // int + int overflows before assigning to long
+long correct = (long) x + 1; // One operand is already long
 
 System.out.println(wrong);   // -2147483648
 System.out.println(correct); // 2147483648
 ~~~
 
-Chỉ khai báo biến **đích** kiểu `long` không thay đổi phép cộng đã diễn ra với toán hạng `int`.
+Merely declaring the **target** variable as `long` does not change an addition that already happened with `int` operands.
 
-### Phép gán kết hợp có cast ngầm
+### Compound assignment has an implicit cast
 
 ~~~java
 byte count = 120;
@@ -266,22 +266,22 @@ count += 10;
 System.out.println(count); // -126
 ~~~
 
-`count += 10` có thể biên dịch bởi ngữ nghĩa compound assignment bao gồm chuyển kiểu về kiểu của biến nhận. Nhưng:
+`count += 10` compiles because compound assignment semantics include converting the result to the type of the receiving variable. However:
 
 ~~~java
 byte count = 120;
-// count = count + 10; // LỖI: count + 10 có kiểu int
+// count = count + 10; // ERROR: count + 10 has type int
 ~~~
 
-Hai cách nhìn gần giống nhau nhưng **khác kết quả compile**. Đừng dùng `+=` như cách lách kiểm tra tràn: `count += 10` vẫn mất dữ liệu số học.
+The two forms look similar but have **different compile outcomes**. Do not use `+=` as a way to bypass overflow checks: `count += 10` still loses arithmetic data.
 
-## 10. Kiểm tra an toàn trước khi narrowing
+## 10. Safety checks before narrowing
 
-Có nhiều cách tùy miền kiểu.
+There are multiple approaches depending on the type range.
 
-### Trường hợp long -> int
+### Case `long -> int`
 
-Java cung cấp `Math.toIntExact(long)`, trả `int` nếu vừa miền; nếu vượt miền, nó ném `ArithmeticException`:
+Java provides `Math.toIntExact(long)`, returning `int` if in range; if out of range, it throws `ArithmeticException`:
 
 ~~~java
 long big = 2_147_483_648L;
@@ -294,11 +294,11 @@ try {
 }
 ~~~
 
-Đầu ra: `outside int range`.
+Output: `outside int range`.
 
-### Trường hợp long -> byte
+### Case `long -> byte`
 
-Không có `Math.toByteExact(long)` tương ứng trong Java 17; bạn có thể kiểm tra:
+There is no corresponding `Math.toByteExact(long)` in Java 17; you can check:
 
 ~~~java
 static byte checkedByte(long value) {
@@ -309,7 +309,7 @@ static byte checkedByte(long value) {
 }
 ~~~
 
-### Trường hợp double -> int cần đúng số nguyên
+### Case `double -> int` requiring an exact whole integer
 
 ~~~java
 static int checkedWholeInt(double value) {
@@ -323,23 +323,23 @@ static int checkedWholeInt(double value) {
 }
 ~~~
 
-Ở đây chúng ta kiểm tra **hữu hạn**, **nằm trong miền int**, và **không có phần lẻ**. Cận trên dùng `2147483648.0` (2³¹) và điều kiện `>=` để tránh bẫy biểu diễn khi so sánh số thực với `Integer.MAX_VALUE`.
+Here we check **finiteness**, **within `int` range**, and **no fractional part**. The upper bound uses `2147483648.0` (2³¹) and the `>=` condition to avoid representation pitfalls when comparing floating-point numbers with `Integer.MAX_VALUE`.
 
-Nếu cần hỗ trợ chính xác theo decimal, quy tắc làm tròn cụ thể hoặc miền số lớn, hãy chọn kiểu/thuật toán phù hợp thay vì cast trực tiếp.
+If exact decimal precision, specific rounding rules, or large numeric ranges are needed, choose an appropriate type/algorithm instead of casting directly.
 
-## 11. `boolean` không có chuyển đổi kiểu số học
+## 11. `boolean` has no arithmetic type conversion
 
-Java **không cho** chuyển `boolean` thành `int` hoặc ngược lại bằng widening/narrowing:
+Java **does not allow** converting `boolean` to `int` or vice versa via widening/narrowing:
 
 ~~~java
 boolean enabled = true;
-// int number = (int) enabled; // LỖI BIÊN DỊCH
+// int number = (int) enabled; // COMPILE ERROR
 
 int number = 1;
-// boolean flag = (boolean) number; // LỖI BIÊN DỊCH
+// boolean flag = (boolean) number; // COMPILE ERROR
 ~~~
 
-Nếu nghiệp vụ quy định `true` tương ứng với `1`, bạn phải diễn đạt quy tắc đó rõ ràng:
+If business logic specifies that `true` corresponds to `1`, you must express that rule explicitly:
 
 ~~~java
 boolean enabled = true;
@@ -347,11 +347,11 @@ int numericFlag = enabled ? 1 : 0;
 System.out.println(numericFlag); // 1
 ~~~
 
-Đây là biểu thức điều kiện sinh số nguyên theo quy tắc bạn đặt ra, **không phải** một primitive conversion từ boolean.
+This is a conditional expression producing an integer according to your defined rule, **not** a primitive conversion from boolean.
 
-## 12. Ví dụ Java 17 hoàn chỉnh, runnable
+## 12. Complete, runnable Java 17 example
 
-Tạo đúng tệp **`PrimitiveConversionDemo.java`**:
+Create the exact file **`PrimitiveConversionDemo.java`**:
 
 ~~~java
 public final class PrimitiveConversionDemo {
@@ -450,7 +450,7 @@ public final class PrimitiveConversionDemo {
 }
 ~~~
 
-Yêu cầu: cài **JDK 17 trở lên**, terminal đang đứng tại thư mục chứa tệp.
+Requirements: **JDK 17 or later** installed, terminal located in the directory containing the file.
 
 **Bash (Linux/macOS):**
 
@@ -493,42 +493,42 @@ checked whole error=not a finite int
 toIntExact=overflow
 ~~~
 
-**Đọc kết quả theo nhóm:**
+**Reading the results by group:**
 
-1. `widen` và `char code` cho thấy mở rộng giữ chính xác những giá trị nhỏ.
-2. `int to byte`, `int to char` cho thấy thu hẹp kiểu nguyên có thể đổi giá trị.
-3. `constant` minh họa ngoại lệ gán constant variable kiểu int vừa miền byte.
-4. `long through double` và `float as double` chứng minh widening không phải lúc nào cũng khôi phục độ chính xác mong muốn.
-5. `positive/negative trunc`, `NaN`, `infinity` cho thấy casting dấu phẩy động về số nguyên có quy tắc đặc biệt.
-6. `compound assignment` và `int overflow first` nhắc rằng phép tính có thể đã mất giá trị trước khi gán.
-7. Hai hàm `checkedByte`/`checkedWholeInt` và `Math.toIntExact` thể hiện cách ngăn mất dữ liệu khi nghiệp vụ không chấp nhận.
+1. `widen` and `char code` show that widening preserves small values accurately.
+2. `int to byte` and `int to char` show that integer narrowing can change values.
+3. `constant` illustrates the assignment exception for `int` constant variables within `byte` range.
+4. `long through double` and `float as double` prove that widening does not always recover the desired precision.
+5. `positive/negative trunc`, `NaN`, and `infinity` show that floating-point-to-integer casting has special rules.
+6. `compound assignment` and `int overflow first` remind us that calculations may have already lost values before assignment.
+7. The two functions `checkedByte`/`checkedWholeInt` and `Math.toIntExact` demonstrate how to prevent data loss when business logic cannot accept it.
 
-Ví dụ không cần thư viện bên ngoài JDK, đầu ra không phụ thuộc hệ điều hành hoặc dữ liệu nhập bàn phím.
+The example requires no libraries outside the JDK, and the output does not depend on the operating system or keyboard input.
 
-## 13. Các lỗi thường gặp
+## 13. Common mistakes
 
-| Tình huống | Nguyên nhân | Cách xử lý |
+| Situation | Cause | How to handle |
 |---|---|---|
-| `byte b = intVariable;` | Narrowing int -> byte không tự động | Kiểm tra miền rồi cast |
-| `byte b = 128;` | Constant int không vừa miền byte | Sử dụng kiểu lớn hơn nếu cần 128 |
-| `short s = charVariable;` | Không có widening char -> short | Kiểm tra miền rồi cast, hoặc dùng int |
-| `char c = shortVariable;` | Short có thể âm, char không có dấu | Kiểm tra trước khi cast |
-| `long x = 3_000_000_000;` | Decimal integer literal mặc định int quá giới hạn | `3_000_000_000L` |
-| `float f = 0.1;` | Literal 0.1 có kiểu double | `0.1f` hoặc cast có chủ đích |
-| `long result = intA + intB;` bị tràn | Phép cộng int xảy ra trước widening | Đổi ít nhất một toán hạng sang long trước |
-| `byte s = a + b;` với a,b là byte | Binary numeric promotion thành int | Nhận `int`, hoặc cast có kiểm tra |
-| `byte count; count += delta;` mất dữ liệu | Compound assignment thu hẹp ngầm | Tính bằng int, kiểm tra miền rồi gán |
-| `(int) 12.9` cho 12 | Cast cắt phần lẻ về 0 | Nếu muốn làm tròn, dùng quy tắc/ API riêng |
-| `(int) Double.NaN` cho 0 | Quy tắc chuyển đổi đặc biệt | Validation trước cast |
-| `(int) Double.POSITIVE_INFINITY` cho max int | Giá trị bão hòa | Kiểm tra `isFinite`/range |
-| `long -> double` mất chữ số cuối | Giới hạn 53 bit significand | Duy trì long nếu cần số nguyên chính xác |
-| Cast boolean sang int | Không có primitive conversion như vậy | Dùng biểu thức điều kiện theo nghiệp vụ |
+| `byte b = intVariable;` | Narrowing `int -> byte` is not automatic | Check range then cast |
+| `byte b = 128;` | Constant `int` does not fit in `byte` range | Use a larger type if 128 is needed |
+| `short s = charVariable;` | No widening `char -> short` | Check range then cast, or use `int` |
+| `char c = shortVariable;` | `short` can be negative, `char` is unsigned | Check before casting |
+| `long x = 3_000_000_000;` | Decimal integer literal defaults to `int`, exceeding limit | `3_000_000_000L` |
+| `float f = 0.1;` | Literal `0.1` has type `double` | `0.1f` or intentional cast |
+| `long result = intA + intB;` overflows | `int` addition occurs before widening | Convert at least one operand to `long` first |
+| `byte s = a + b;` with `a`, `b` as `byte` | Binary numeric promotion to `int` | Receive `int`, or cast with validation |
+| `byte count; count += delta;` loses data | Compound assignment narrows implicitly | Compute as `int`, check range, then assign |
+| `(int) 12.9` gives 12 | Cast truncates fractional part toward 0 | If rounding is desired, use a separate rule/API |
+| `(int) Double.NaN` gives 0 | Special conversion rule | Validate before casting |
+| `(int) Double.POSITIVE_INFINITY` gives max int | Saturation value | Check `isFinite`/range |
+| `long -> double` loses last digits | 53-bit significand limit | Keep `long` if exact integers are needed |
+| Casting `boolean` to `int` | No such primitive conversion exists | Use a conditional expression per business logic |
 
-**Phân biệt rõ:** Java có thể chấp nhận một phép cast về cú pháp nhưng tạo kết quả sai yêu cầu. Việc chọn biểu diễn/validation là trách nhiệm của thiết kế chương trình.
+**Distinguish clearly:** Java may accept a cast syntactically while producing a result that violates requirements. Choosing the representation/validation is the responsibility of program design.
 
-## 14. Bài tập có đáp án
+## 14. Exercises with answers
 
-### Bài A — mở rộng
+### Exercise A — widening
 
 ~~~java
 byte b = -10;
@@ -537,18 +537,18 @@ long l = i;
 System.out.println(l);
 ~~~
 
-**Đáp án:** `-10`. Hai bước mở rộng giữa số nguyên giữ đúng giá trị âm.
+**Answer:** `-10`. Two widening steps between integers preserve negative values accurately.
 
-### Bài B — narrowing
+### Exercise B — narrowing
 
 ~~~java
 int n = 255;
 System.out.println((byte) n);
 ~~~
 
-**Đáp án:** `-1`. Mẫu 8 bit thấp `11111111` là -1 khi diễn giải dưới dạng byte có dấu.
+**Answer:** `-1`. The low 8-bit pattern `11111111` is -1 when interpreted as a signed `byte`.
 
-### Bài C — char và short
+### Exercise C — `char` and `short`
 
 ~~~java
 char c = 65;
@@ -556,9 +556,9 @@ int code = c;
 System.out.println(code);
 ~~~
 
-**Đáp án:** `65`. `char -> int` là widening; nhưng `char -> short` không phải widening dù cả hai có 16 bit.
+**Answer:** `65`. `char -> int` is widening; however, `char -> short` is not widening even though both are 16 bits.
 
-### Bài D — float và double
+### Exercise D — `float` and `double`
 
 ~~~java
 float f = 0.1f;
@@ -566,9 +566,9 @@ double d = f;
 System.out.println(d);
 ~~~
 
-**Đáp án:** `0.10000000149011612`. Chuyển mở rộng giữ đúng **giá trị xấp xỉ đã lưu** trong `float`.
+**Answer:** `0.10000000149011612`. Widening preserves the exact **approximate value already stored** in `float`.
 
-### Bài E — phép cộng int
+### Exercise E — `int` addition
 
 ~~~java
 int max = Integer.MAX_VALUE;
@@ -576,27 +576,27 @@ long result = max + 1;
 System.out.println(result);
 ~~~
 
-**Đáp án:** `-2147483648`, vì phép cộng tràn trong `int` trước. Sửa bằng `long result = (long) max + 1;`.
+**Answer:** `-2147483648`, because the addition overflows in `int` first. Fix with `long result = (long) max + 1;`.
 
-### Bài F — không chấp nhận phần lẻ
+### Exercise F — fractional part not allowed
 
-Muốn chuyển `double value = 12.5;` thành số nguyên nhưng nghiệp vụ **không cho phép mất phần lẻ**, có nên viết `(int) value`?
+Given `double value = 12.5;` to convert to an integer when business logic **does not allow losing the fractional part**, should you write `(int) value`?
 
-**Đáp án:** không. Phép cast cho `12`, làm mất 0.5. Trước khi cast cần kiểm tra dữ liệu hữu hạn, nằm trong miền kiểu nguyên và có giá trị nguyên; nếu không hợp lệ phải từ chối hoặc xử lý theo quy tắc nghiệp vụ.
+**Answer:** No. The cast yields `12`, losing 0.5. Before casting, verify the data is finite, within the integer type's range, and has a whole-number value; if invalid, reject or handle per business rules.
 
-## 15. Checklist tổng kết
+## 15. Summary checklist
 
-- [ ] Biết phân biệt widening và narrowing primitive conversion.
-- [ ] Nhớ `char` không phải `short` có dấu và `boolean` không tham gia chuyển kiểu số học.
-- [ ] Biết widening giữa kiểu nguyên giữ chính xác giá trị, còn sang float/double có thể làm tròn.
-- [ ] Biết narrowing nguyên bằng cast có thể giữ các bit thấp và đổi giá trị số.
-- [ ] Hiểu ngoại lệ gán constant int vừa miền byte/short/char.
-- [ ] Biết cast float/double sang int/long thường cắt phần lẻ về 0 và có quy tắc đặc biệt cho NaN/Infinity.
-- [ ] Biết double -> float có thể mất độ chính xác, overflow hoặc underflow.
-- [ ] Nhớ byte/short/char được nâng thành int trong nhiều phép tính.
-- [ ] Biết compound assignment như `+=` có thể thu hẹp kiểu ngầm.
-- [ ] Chọn kiểu toán hạng **trước** khi phép cộng có thể bị overflow.
-- [ ] Kiểm tra miền trước khi cast, dùng `Math.toIntExact` khi thích hợp.
-- [ ] Chạy `PrimitiveConversionDemo.java` bằng JDK 17+ và đối chiếu từng dòng output.
+- [ ] Know how to distinguish widening and narrowing primitive conversion.
+- [ ] Remember `char` is not a signed `short` and `boolean` does not participate in numeric conversions.
+- [ ] Know that widening between integer types preserves exact values, while widening to `float`/`double` may round.
+- [ ] Know that integer narrowing via cast keeps low bits and can change numeric values.
+- [ ] Understand the assignment exception for `int` constants fitting in `byte`/`short`/`char`.
+- [ ] Know that casting `float`/`double` to `int`/`long` usually truncates toward 0 and has special rules for NaN/Infinity.
+- [ ] Know that `double -> float` can lose precision, overflow, or underflow.
+- [ ] Remember `byte`/`short`/`char` are promoted to `int` in many operations.
+- [ ] Know that compound assignments like `+=` can narrow types implicitly.
+- [ ] Choose operand types **before** addition might overflow.
+- [ ] Check range before casting, using `Math.toIntExact` when appropriate.
+- [ ] Run `PrimitiveConversionDemo.java` with JDK 17+ and compare each line of output.
 
-**Kết luận:** **Chuyển kiểu mở rộng** thường được Java thực hiện tự động, nhưng có trường hợp mất độ chính xác khi sang floating-point. **Chuyển kiểu thu hẹp** thường cần cast và có thể thay đổi giá trị mà không ném exception. Phân biệt kiểu của toán hạng, giới hạn biểu diễn và yêu cầu nghiệp vụ là cách viết chuyển đổi primitive an toàn trong Java 17+.
+**Conclusion:** **Widening conversions** are usually performed automatically by Java, but precision loss can occur when converting to floating-point. **Narrowing conversions** usually require a cast and can alter values without throwing an exception. Distinguishing operand types, representation limits, and business requirements is the way to write safe primitive conversions in Java 17+.

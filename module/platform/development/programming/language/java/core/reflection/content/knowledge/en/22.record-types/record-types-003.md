@@ -1,56 +1,56 @@
-# Thứ tự thành phần record và constructor chuẩn
+# Record component order and canonical constructors
 
-Khi tạo record bằng Reflection, tìm được đúng các kiểu tham số mới giải quyết một nửa bài toán. Bạn còn phải đặt **đúng giá trị vào đúng vị trí**. Nếu hai thành phần cùng kiểu, việc đảo chúng có thể tạo một đối tượng hợp lệ về kiểu nhưng sai ý nghĩa.
+When instantiating a record with Reflection, finding the right parameter types only solves half the problem. You also have to put **the right value in the right position**. If two components have the same type, swapping them can create an object that is valid by type yet wrong in meaning.
 
-Constructor chuẩn (*canonical constructor*) là constructor gắn với toàn bộ các thành phần được khai báo trong header của record. Thứ tự thành phần xác định thứ tự tham số của constructor này. Nhờ quan hệ đó, một công cụ ánh xạ dữ liệu có thể tìm constructor và sắp xếp đối số một cách có căn cứ.
+The canonical constructor (*canonical constructor*) is the constructor tied to all components declared in the record header. Component order determines the parameter order of this constructor. Thanks to that relationship, a data mapping tool can look up the constructor and order arguments on a sound basis.
 
-Bài này dùng Java 17 trở lên và tập trung vào mối liên hệ giữa metadata thành phần, chữ ký constructor và dữ liệu dùng để tạo đối tượng.
+This article uses Java 17 or later and focuses on the relationship between component metadata, constructor signatures, and the data used to instantiate objects.
 
-## 1. Header của record xác định điều gì?
+## 1. What does a record's header determine?
 
-Với khai báo:
+With the declaration:
 
 ```java
 record Trip(String origin, String destination, int transfers) {
 }
 ```
 
-Constructor chuẩn nhận ba tham số theo thứ tự:
+The canonical constructor accepts three parameters in order:
 
-| Vị trí | Thành phần | Kiểu tham số | Ý nghĩa giá trị |
+| Position | Component | Parameter type | Value meaning |
 | --- | --- | --- | --- |
-| `0` | `origin` | `String` | Điểm xuất phát |
-| `1` | `destination` | `String` | Điểm đến |
-| `2` | `transfers` | `int` | Số lần chuyển chặng |
+| `0` | `origin` | `String` | Departure point |
+| `1` | `destination` | `String` | Destination |
+| `2` | `transfers` | `int` | Number of transfers |
 
-Quan hệ tên, kiểu và thứ tự này thuộc quy tắc [constructor chuẩn của record](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.10.4.1). Nếu không khai báo constructor chuẩn tường minh, trình biên dịch cung cấp nó.
+This relationship of name, type, and order belongs to [the record canonical constructor rules](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.10.4.1). If no explicit canonical constructor is declared, the compiler provides it.
 
-Record có thể có constructor khác để phục vụ cách tạo đối tượng tiện lợi hơn. Vì vậy, không chọn `getDeclaredConstructors()[0]` hoặc chỉ chọn constructor có số tham số trông phù hợp. Cần tìm **đúng dãy kiểu tham số theo thứ tự header**.
+A record can have other constructors to support more convenient ways of creating objects. Therefore, do not pick `getDeclaredConstructors()[0]` or pick just any constructor whose parameter count looks suitable. You must find **the exact sequence of parameter types in header order**.
 
-Đặc biệt, hai vị trí `origin` và `destination` đều là `String`. Reflection không biết chuỗi nào là điểm đi hay điểm đến chỉ bằng kiểu dữ liệu. Trách nhiệm gắn đúng giá trị với tên thành phần thuộc về mã ánh xạ.
+In particular, both positions `origin` and `destination` are `String`. Reflection cannot tell which string is the departure point or the destination from data type alone. The responsibility of binding the right value to the component name belongs to the mapping code.
 
-## 2. Tìm constructor chuẩn từ metadata
+## 2. Finding the canonical constructor from metadata
 
-`Class.getRecordComponents()` giữ thứ tự khai báo thành phần. Lấy `getType()` của từng thành phần theo thứ tự đó để tạo `Class<?>[]`, rồi truyền dãy kiểu vào `getDeclaredConstructor(...)`.
+`Class.getRecordComponents()` preserves component declaration order. Take `getType()` of each component in that order to build a `Class<?>[]`, then pass that type sequence to `getDeclaredConstructor(...)`.
 
-Quy trình:
+Process:
 
-1. Xác minh kiểu là record; kết quả thành phần khác `null`.
-2. Giữ nguyên thứ tự mảng `RecordComponent[]`.
-3. Chuyển từng thành phần thành `Class<?>` bằng `getType()`.
-4. Tra cứu constructor có chính xác dãy kiểu đó.
+1. Verify the type is a record; the component result is non-`null`.
+2. Preserve the order of the `RecordComponent[]` array.
+3. Convert each component to `Class<?>` using `getType()`.
+4. Look up the constructor with that exact sequence of types.
 
-[API `Class.getRecordComponents()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getRecordComponents()) mô tả cả quy tắc thứ tự và cách áp dụng để tìm constructor chuẩn.
+[The `Class.getRecordComponents()` API](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Class.html#getRecordComponents()) describes both the ordering rule and how to apply it to find the canonical constructor.
 
-Không sắp xếp thành phần theo tên trước bước tra cứu. Một thứ tự đẹp cho việc hiển thị không nhất thiết là thứ tự tham số hợp lệ.
+Do not sort components by name before the lookup step. An order that looks nice for display is not necessarily a valid parameter order.
 
-`getDeclaredConstructor` tra cứu theo kiểu tham số, không tự chọn overload từ các giá trị thực tế như một lời gọi `new` được viết trong mã nguồn.
+`getDeclaredConstructor` looks up by parameter types; it does not select an overload from actual values the way a `new` call written in source code does.
 
-## 3. Thí nghiệm Java 17+ chạy độc lập
+## 3. Standalone Java 17+ experiment
 
-Chương trình có các trường hợp: record có constructor chuẩn rút gọn, constructor phụ, dữ liệu dạng bản đồ, tham số nguyên thủy, record rỗng, record generic và thành phần varargs.
+The program includes these cases: a record with a compact canonical constructor, a secondary constructor, map-formatted data, primitive parameters, an empty record, a generic record, and a varargs component.
 
-Lưu toàn bộ vào **`RecordConstructorDemo.java`**:
+Save the entire code into **`RecordConstructorDemo.java`**:
 
 ```java
 import java.lang.reflect.Constructor;
@@ -186,14 +186,14 @@ public class RecordConstructorDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 --release 17 -Xlint:all -Werror RecordConstructorDemo.java
 java RecordConstructorDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 Components = [origin, destination, transfers]
@@ -216,148 +216,148 @@ Labels values = [x, y]
 base Record -> IllegalArgumentException
 ```
 
-`attempt()` là hàm hỗ trợ thí nghiệm: in loại lỗi để chương trình tiếp tục quan sát các trường hợp khác. Nó không phải hợp đồng xử lý lỗi dành cho một thư viện ánh xạ dữ liệu hoàn chỉnh.
+`attempt()` is an experiment helper: it prints the error type so the program can continue observing other cases. It is not an error-handling contract for a complete data mapping library.
 
-## 4. Hai dãy cần đồng bộ: kiểu tham số và giá trị đối số
+## 4. Two sequences to keep in sync: parameter types and argument values
 
-Hàm `canonicalConstructor` tạo dãy kiểu `[String.class, String.class, int.class]` từ metadata của `Trip`. Đó là cơ sở tìm đúng constructor.
+The `canonicalConstructor` method builds the type sequence `[String.class, String.class, int.class]` from `Trip`'s metadata. That is the basis for finding the right constructor.
 
-Hàm `constructFromMap` tạo một dãy khác: **các giá trị đối số**. Dãy này cũng phải đi theo thứ tự thành phần, không theo thứ tự duyệt khóa của bản đồ.
+The `constructFromMap` method builds another sequence: **the argument values**. This sequence must also follow component order, not the key iteration order of the map.
 
-Trong thí nghiệm, dữ liệu được thêm theo thứ tự:
+In the experiment, data was inserted in the order:
 
 ```text
 destination → transfers → origin
 ```
 
-Nhưng hàm ánh xạ lần lượt hỏi giá trị của `origin`, `destination`, `transfers`, nên constructor nhận:
+However, the mapping method looks up the values of `origin`, `destination`, `transfers` in sequence, so the constructor receives:
 
 ```text
 " Hanoi " → "Hue" → 1
 ```
 
-Constructor chuẩn rút gọn bỏ khoảng trắng hai đầu các chuỗi, nên kết quả cuối là `Trip[origin=Hanoi, destination=Hue, transfers=1]`.
+The compact canonical constructor strips leading and trailing whitespace from the strings, so the final result is `Trip[origin=Hanoi, destination=Hue, transfers=1]`.
 
-### Vì sao đổi chỗ hai giá trị cùng kiểu không phát sinh lỗi?
+### Why does swapping two values of the same type not raise an error?
 
-Lời gọi `constructor.newInstance("Hue", "Hanoi", 1)` vẫn khớp chữ ký `(String, String, int)`. Nó tạo hành trình ngược lại một cách hợp lệ về kiểu.
+The call `constructor.newInstance("Hue", "Hanoi", 1)` still matches the `(String, String, int)` signature. It creates the reversed trip in a type-valid way.
 
-Đây là lỗi ngữ nghĩa mà kiểm tra kiểu của Reflection không thể tự phát hiện. Nếu lấy dữ liệu theo tên thành phần, hãy dùng chính tên đó làm khóa rồi đặt giá trị vào đúng chỉ số của thành phần.
+This is a semantic error that Reflection's type checks cannot detect on their own. If reading data by component name, use that name as the key and place the value at the component's exact index.
 
-Đừng xây đối số bằng `values.values().toArray()` và hy vọng thứ tự bản đồ luôn khớp header. Ngay cả bản đồ giữ thứ tự thêm khóa cũng có thể được tạo theo thứ tự khác, như dữ liệu trong ví dụ.
+Do not build arguments with `values.values().toArray()` and hope the map order always matches the header. Even a map that preserves insertion order can be populated in a different order, as shown by the data in the example.
 
-### Phân biệt thiếu khóa với giá trị `null`
+### Distinguishing a missing key from a `null` value
 
-Mã mẫu dùng `containsKey(name)` trước `get(name)`. Cách này phân biệt không có dữ liệu cho thành phần với việc bên gọi chủ động truyền `null`.
+The sample code uses `containsKey(name)` before `get(name)`. This distinguishes having no data for a component from the caller intentionally passing `null`.
 
-Hàm mẫu yêu cầu đủ tên thành phần và từ chối khóa dư. Đây là chính sách ánh xạ của hàm mẫu, không phải hành vi tự động của Reflection. Sau khi thu thập đối số, giá trị `null` có được chấp nhận hay không còn phụ thuộc kiểu tham số và kiểm tra trong constructor.
+The sample method requires all component names and rejects extra keys. This is the sample method's mapping policy, not automatic Reflection behavior. After collecting the arguments, whether a `null` value is accepted still depends on the parameter type and checks inside the constructor.
 
-## 5. Constructor rút gọn vẫn có đủ tham số
+## 5. Compact constructors still have all parameters
 
-Khai báo `public Trip { ... }` trong chương trình là **constructor chuẩn rút gọn (compact canonical constructor)**. Việc bỏ danh sách tham số trong cú pháp nguồn không biến nó thành constructor không tham số.
+The declaration `public Trip { ... }` in the program is a **compact canonical constructor**. Omitting the parameter list in source syntax does not turn it into a no-argument constructor.
 
-Reflection vẫn nhìn thấy chữ ký `(String, String, int)`. Phần thân rút gọn sử dụng các biến tham số tương ứng header để kiểm tra hoặc chuẩn hóa dữ liệu; việc gán các trường thành phần được hoàn tất theo quy tắc của record. Xem [constructor chuẩn rút gọn trong JLS](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.10.4.2).
+Reflection still sees the `(String, String, int)` signature. The compact body uses the parameter variables corresponding to the header to validate or normalize data; assigning the component fields is completed according to record rules. See [compact canonical constructors in the JLS](https://docs.oracle.com/javase/specs/jls/se21/html/jls-8.html#jls-8.10.4.2).
 
-Trong thí nghiệm:
+In the experiment:
 
-- `origin` và `destination` được chuẩn hóa bằng `strip()`.
-- `transfers` âm bị từ chối.
-- Constructor phụ nhận hai chuỗi gọi `this(origin, destination, 0)`.
+- `origin` and `destination` are normalized with `strip()`.
+- Negative `transfers` is rejected.
+- The secondary constructor taking two strings calls `this(origin, destination, 0)`.
 
-Dù constructor chuẩn được trình biên dịch cung cấp, viết đầy đủ hay viết rút gọn, cách tìm dựa trên metadata thành phần vẫn áp dụng. Không cần đoán kiểu cú pháp nào đã được tác giả dùng trong mã nguồn.
+Whether the canonical constructor is compiler-provided, written in full, or written compactly, the lookup approach based on component metadata still applies. There is no need to guess which syntax form the author used in source code.
 
-Record `Trip` không có constructor không tham số. Vì vậy, `Trip.class.getDeclaredConstructor()` ném `NoSuchMethodException`, dù nó có constructor phụ khác.
+The `Trip` record has no no-argument constructor. Therefore, `Trip.class.getDeclaredConstructor()` throws `NoSuchMethodException`, even though it has another secondary constructor.
 
-## 6. Tra cứu chữ ký khác với chuyển đổi đối số khi gọi
+## 6. Signature lookup differs from argument conversion on invocation
 
-Đây là hai bước có các quy tắc khác nhau.
+These are two steps with different rules.
 
-### Khi tra cứu
+### On lookup
 
-`int.class` và `Integer.class` là hai kiểu khác nhau. Vì thành phần `transfers` có kiểu `int`, tra cứu với `Integer.class` không tìm thấy constructor chuẩn và ném `NoSuchMethodException`.
+`int.class` and `Integer.class` are two different types. Because the `transfers` component has type `int`, looking up with `Integer.class` does not find the canonical constructor and throws `NoSuchMethodException`.
 
-Do đó, không dựng chữ ký bằng cách gọi `argument.getClass()` cho từng giá trị: giá trị `1` bên trong `Object[]` là `Integer`, còn constructor thực sự nhận `int`. Giá trị `null` thậm chí không có `getClass()` để dùng.
+Therefore, do not build the signature by calling `argument.getClass()` on each value: the value `1` inside `Object[]` is an `Integer`, whereas the constructor actually takes `int`. A `null` value does not even have `getClass()` to call.
 
-Hãy dựng chữ ký từ `RecordComponent.getType()`, vì nó mô tả **kiểu khai báo**, không phải lớp thực tế của đối số hiện tại.
+Build the signature from `RecordComponent.getType()`, because it describes the **declared type**, not the runtime class of the current argument.
 
-### Khi gọi
+### On invocation
 
-`Constructor.newInstance(Object... arguments)` nhận các giá trị dạng đối tượng. Với tham số `int`, đối tượng `Integer` có thể được mở gói để truyền vào constructor. API cũng có các quy tắc chuyển đổi nguyên thủy được cho phép, nhưng không tự phân tích chuỗi số thành số hay tùy ý thu hẹp kiểu. Xem [hợp đồng `Constructor.newInstance`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Constructor.html#newInstance(java.lang.Object...)).
+`Constructor.newInstance(Object... arguments)` accepts values in object form. For an `int` parameter, an `Integer` object can be unboxed to pass into the constructor. The API also has rules for allowed primitive conversions, but it does not automatically parse numeric strings into numbers or arbitrarily narrow types. See [the `Constructor.newInstance` contract](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/Constructor.html#newInstance(java.lang.Object...)).
 
-Trong thí nghiệm, truyền `null` cho vị trí `int` gây `IllegalArgumentException` trước khi phần thân constructor được thực hiện. Truyền `"1"` thay vì một giá trị số cũng không phải một bước chuyển đổi cấu hình được Reflection tự làm.
+In the experiment, passing `null` for the `int` position causes `IllegalArgumentException` before the constructor body executes. Passing `"1"` instead of a numeric value is also not a configurable conversion performed automatically by Reflection.
 
-Một thư viện ánh xạ thực tế cần có bước chuyển đổi dữ liệu rõ ràng trước khi gọi constructor; thuật toán trong bài chỉ xử lý việc gắn tên với vị trí và gọi constructor.
+A real-world mapping library needs an explicit data conversion step before calling the constructor; the algorithm in this article only handles binding names to positions and invoking the constructor.
 
-## 7. Lỗi trước lời gọi và lỗi từ bên trong constructor
+## 7. Errors before invocation vs. errors from inside the constructor
 
-Hai trường hợp trong kết quả cần được phân biệt:
+Two cases in the output need to be distinguished:
 
-| Thí nghiệm | Kết quả | Constructor đã chạy phần kiểm tra dữ liệu chưa? |
+| Experiment | Output | Did the constructor run its validation logic? |
 | --- | --- | --- |
-| Truyền `null` cho `transfers` kiểu `int` | `IllegalArgumentException` | Chưa vào phần thân |
-| Truyền `transfers = -1` | `InvocationTargetException`, nguyên nhân là `IllegalArgumentException` | Đã vào và chủ động từ chối |
+| Passing `null` for `int` `transfers` | `IllegalArgumentException` | Did not enter the body |
+| Passing `transfers = -1` | `InvocationTargetException`, cause is `IllegalArgumentException` | Entered and actively rejected |
 
-Ở trường hợp thứ hai, `InvocationTargetException` là lớp bọc của lời gọi Reflection. `getCause()` cho ngoại lệ mà constructor thực sự ném ra.
+In the second case, `InvocationTargetException` is the wrapper of the Reflection call. `getCause()` gives the exception that the constructor actually threw.
 
-Công cụ gọi constructor nên giữ thông tin này khi báo lỗi. Một thông báo “sai kiểu tham số” không giải thích đúng trường hợp dữ liệu đã vào constructor nhưng vi phạm bất biến nghiệp vụ.
+A tool invoking constructors should preserve this information when reporting errors. An "invalid argument type" message does not accurately explain the case where data entered the constructor but violated a business invariant.
 
-Cũng cần tách lỗi không tìm thấy constructor, lỗi không có quyền gọi và lỗi kiểm tra dữ liệu. Không dùng một thông báo chung khiến người dùng không biết cần sửa cấu trúc, quyền truy cập hay giá trị đầu vào.
+You should also separate constructor-not-found errors, lack-of-access errors, and data-validation errors. Do not use one generic message that leaves users unsure whether to fix structure, access permissions, or input values.
 
-## 8. Các trường hợp đặc biệt
+## 8. Special cases
 
-### Record rỗng
+### Empty records
 
-`Empty` có header `()`. Metadata thành phần có độ dài `0`, nên dãy kiểu tham số cũng rỗng. Constructor chuẩn chính là constructor không tham số và có thể gọi bằng `newInstance()`.
+`Empty` has the header `()`. Component metadata has length `0`, so the parameter type sequence is also empty. The canonical constructor is the no-argument constructor and can be invoked with `newInstance()`.
 
-Đây là kết quả từ cấu trúc record, không phải quy tắc rằng mọi record đều có constructor không tham số.
+This follows from the record's structure, not a rule that every record has a no-argument constructor.
 
-### Record generic
+### Generic records
 
-`Bundle<T>(T content)` có `T` không giới hạn cụ thể hơn, nên kiểu tham số dùng khi tra cứu là `Object.class`. Kết quả in `[java.lang.Object]` xác nhận điều đó.
+`Bundle<T>(T content)` has `T` with no more specific bound, so the parameter type used for lookup is `Object.class`. The printed result `[java.lang.Object]` confirms this.
 
-`RecordComponent.getGenericType()` có ích để phân tích khai báo generic, nhưng `getDeclaredConstructor(...)` cần `Class<?>[]`. Vì vậy, thuật toán dùng [kiểu thành phần từ `getType()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/RecordComponent.html#getType()). Không thay dãy kiểu khai báo bằng lớp của giá trị `"book"`, tức `String.class`.
+`RecordComponent.getGenericType()` is useful for analyzing generic declarations, but `getDeclaredConstructor(...)` requires `Class<?>[]`. Therefore, the algorithm uses [the component type from `getType()`](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/reflect/RecordComponent.html#getType()). Do not replace the declared type sequence with the class of the `"book"` value, namely `String.class`.
 
-### Thành phần varargs
+### Varargs components
 
-`Labels(String... values)` có một thành phần với kiểu `String[]`. Constructor chuẩn có **một tham số mảng**, và `isVarArgs()` cho `true`.
+`Labels(String... values)` has one component with type `String[]`. The canonical constructor has **one array parameter**, and `isVarArgs()` returns `true`.
 
-Cần phân biệt mảng của constructor đích với cơ chế varargs của chính `Constructor.newInstance(Object...)`. Trong ví dụ:
+Distinguish the target constructor's array from the varargs mechanism of `Constructor.newInstance(Object...)` itself. In the example:
 
 ```java
 Labels labels = labelsConstructor.newInstance(
         (Object) new String[]{"x", "y"});
 ```
 
-Đây là đoạn trích từ chương trình đầy đủ. Phép ép `(Object)` làm cho toàn bộ `String[]` trở thành **một đối số**. Một cách biểu diễn tương đương là truyền mảng đối số bên ngoài chứa đúng một phần tử mảng chuỗi.
+This is an excerpt from the full program. The `(Object)` cast turns the entire `String[]` into **one argument**. An equivalent representation is passing an outer argument array containing exactly one string-array element.
 
-Không truyền hai chuỗi rời rồi cho rằng Reflection sẽ tự đóng gói chúng vào `String[]` của constructor. Mã gọi phải chuẩn bị đúng số đối số và hình dạng mảng.
+Do not pass two separate strings and assume Reflection will wrap them into the constructor's `String[]`. Calling code must prepare the exact argument count and array shape.
 
-### Lớp cơ sở và quyền truy cập
+### Base class and access permissions
 
-Ràng buộc `<R extends Record>` không loại bỏ được chính `Record.class`, nên hàm vẫn kiểm tra metadata thành phần có khác `null` hay không. Thí nghiệm `base Record` bị từ chối trước bước tra cứu constructor.
+The `<R extends Record>` bound does not exclude `Record.class` itself, so the method still checks whether component metadata is non-`null`. The `base Record` experiment is rejected before the constructor lookup step.
 
-`getDeclaredConstructor` tìm cả constructor không công khai, nhưng việc tìm thấy không tự cấp quyền gọi. Ví dụ dùng record lồng công khai để lời gọi hợp lệ trong bối cảnh của nó. Khi áp dụng với kiểu từ package hoặc module khác, hãy xử lý quyền truy cập theo hợp đồng của ứng dụng, không mặc định mở mọi constructor.
+`getDeclaredConstructor` finds non-public constructors as well, but finding one does not automatically grant permission to invoke it. The example uses public nested records so the calls are valid in their context. When applying to types from another package or module, handle access permissions according to the application's contract rather than blindly opening every constructor.
 
-## 9. Bảng kiểm áp dụng
+## 9. Application checklist
 
-| Việc cần kiểm tra | Căn cứ đúng |
+| Check item | Right basis |
 | --- | --- |
-| Có phải record không? | `isRecord()` hoặc mảng thành phần khác `null` |
-| Thứ tự tham số chuẩn là gì? | Thứ tự của `getRecordComponents()` |
-| Kiểu dùng để tra cứu là gì? | `RecordComponent.getType()` |
-| Constructor nào là chuẩn? | Constructor khớp toàn bộ dãy kiểu theo header |
-| Giá trị nào vào vị trí nào? | Gắn theo tên thành phần rồi đặt vào chỉ số tương ứng |
-| Thiếu giá trị hay chủ động truyền `null`? | Kiểm tra sự tồn tại của khóa riêng với giá trị |
-| Lỗi đến từ đâu? | Tách lỗi tra cứu, gọi Reflection và nguyên nhân của `InvocationTargetException` |
-| Có constructor rút gọn không? | Cú pháp rút gọn không thay chữ ký theo header |
+| Is it a record? | `isRecord()` or non-`null` component array |
+| What is the canonical parameter order? | Order of `getRecordComponents()` |
+| What type is used for lookup? | `RecordComponent.getType()` |
+| Which constructor is canonical? | Constructor matching the entire type sequence from the header |
+| Which value goes in which position? | Bind by component name then place at the corresponding index |
+| Missing value or intentionally passed `null`? | Check key existence separately from value |
+| Where did the error come from? | Separate lookup errors, Reflection invocation, and the cause of `InvocationTargetException` |
+| Is there a compact constructor? | Compact syntax does not change the header-based signature |
 
-### Tự kiểm tra
+### Self-check
 
-1. Vì sao đổi chỗ `origin` và `destination` không gây lỗi kiểu?
-2. Vì sao `Integer.class` không thay được `int.class` ở bước tìm constructor?
-3. Nếu bản đồ dữ liệu giữ thứ tự thêm khóa, tại sao vẫn cần sắp đối số theo metadata?
-4. Tại sao constructor rút gọn của `Trip` không được tìm bằng dãy kiểu rỗng?
-5. Làm sao phân biệt tham số `int` không nhận được `null` với constructor chủ động từ chối giá trị âm?
-6. Vì sao `Labels` có một tham số constructor dù một đối tượng có thể chứa nhiều chuỗi?
+1. Why does swapping `origin` and `destination` not cause a type error?
+2. Why can `Integer.class` not replace `int.class` in the constructor lookup step?
+3. If a data map preserves key insertion order, why is it still necessary to order arguments by metadata?
+4. Why is the compact constructor of `Trip` not looked up with an empty type sequence?
+5. How can you distinguish an `int` parameter refusing `null` from a constructor actively rejecting a negative value?
+6. Why does `Labels` have one constructor parameter even though an object can hold multiple strings?
 
-Quan hệ cần giữ xuyên suốt là **thứ tự thành phần → thứ tự kiểu tham số → thứ tự giá trị đối số**. Khi ba dãy này đồng bộ, việc tạo record qua Reflection có thể được kiểm chứng và giải thích rõ ràng.
+The relationship to maintain throughout is **component order → parameter type order → argument value order**. When these three sequences stay synchronized, creating records via Reflection can be clearly verified and explained.

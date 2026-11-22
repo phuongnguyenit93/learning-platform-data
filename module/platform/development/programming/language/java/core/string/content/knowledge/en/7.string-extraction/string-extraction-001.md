@@ -1,14 +1,14 @@
-# `String.substring(beginIndex)`: Trích xuất chuỗi từ một vị trí đến hết chuỗi trong Java
+# `String.substring(beginIndex)`: Extracting a Substring from a Position to the End in Java
 
-## 1. Bài toán và ý nghĩa của `substring(beginIndex)`
+## 1. Problem and Meaning of `substring(beginIndex)`
 
-Khi đã có một chuỗi nhưng chỉ cần giữ phần **bắt đầu từ một vị trí xác định đến ký tự cuối cùng**, Java cung cấp phương thức:
+When you already have a string and only need to keep the part **starting from a specific position to the last character**, Java provides the method:
 
 ```java
 public String substring(int beginIndex)
 ```
 
-Phương thức này thuộc lớp `java.lang.String`. Nó trả về một `String` đại diện cho **phần còn lại của chuỗi**, bắt đầu **tại** `beginIndex`, bao gồm ký tự ở vị trí đó (nếu có) và toàn bộ ký tự phía sau.
+This method belongs to the `java.lang.String` class. It returns a `String` representing the **remainder of the string**, starting **at** `beginIndex`, including the character at that position (if any) and all characters after it.
 
 ```java
 String text = "Java Core";
@@ -17,52 +17,52 @@ String part = text.substring(5);
 System.out.println(part); // Core
 ```
 
-Chuỗi `"Java Core"` có các vị trí như sau:
+The string `"Java Core"` has the following positions:
 
 ```text
-Ký tự:  J  a  v  a     C  o  r  e
-Chỉ số: 0  1  2  3  4  5  6  7  8
+Chars:  J  a  v  a     C  o  r  e
+Index:  0  1  2  3  4  5  6  7  8
 ```
 
-Chỉ số `5` trỏ đến chữ `C`. Vì vậy `text.substring(5)` trả về `"Core"`.
+Index `5` points to the letter `C`. Therefore, `text.substring(5)` returns `"Core"`.
 
-**Cốt lõi:** `beginIndex` là chỉ số **bắt đầu lấy**, được tính từ `0`. Với phiên bản nhận **một tham số**, bạn không cần chỉ định điểm kết thúc: Java tự lấy đến hết chuỗi.
+**Key point:** `beginIndex` is the **starting** index, counted from `0`. With the **single-parameter** version, you do not need to specify an end point: Java automatically takes everything to the end of the string.
 
-## 2. Cú pháp và giá trị trả về
+## 2. Syntax and Return Value
 
-Dạng thường dùng:
+Common form:
 
 ```java
 String original = "abcdef";
 String suffix = original.substring(2); // "cdef"
 ```
 
-- **Đối tượng nhận:** `original` có kiểu `String`, không phải `null`.
-- **Tham số:** `beginIndex` là một số nguyên `int`, biểu thị vị trí bắt đầu.
-- **Kết quả:** Một giá trị `String` chứa các ký tự từ vị trí `beginIndex` đến cuối.
-- **Chuỗi gốc:** Không bị thay đổi, vì `String` là đối tượng **bất biến** (*immutable*).
+- **Target object:** `original` is of type `String`, not `null`.
+- **Parameter:** `beginIndex` is an `int` integer, representing the starting position.
+- **Result:** A `String` value containing the characters from position `beginIndex` to the end.
+- **Original string:** Unchanged, because `String` is an **immutable** object.
 
-Trong cách nói bằng khoảng chỉ số, với `length = original.length()`, phần được chọn có khoảng **`[beginIndex, length)`**: có lấy vị trí bắt đầu, còn `length` là mốc kết thúc *không bao gồm*. Đây là ký hiệu khoảng nửa mở, không có ký tự ở vị trí `length`.
+In index-range notation, with `length = original.length()`, the selected part has the range **`[beginIndex, length)`**: the starting position is included, while `length` is the *exclusive* end boundary. This is half-open interval notation; there is no character at position `length`.
 
-### Chỉ số hợp lệ
+### Valid Indices
 
-Phương thức yêu cầu:
+The method requires:
 
 \[
 0 \leq \texttt{beginIndex} \leq \texttt{length()}
 \]
 
-| `beginIndex` | Kết quả | Lý do |
+| `beginIndex` | Result | Reason |
 |---|---|---|
-| `0` | Toàn bộ nội dung chuỗi | Bắt đầu từ ký tự đầu tiên |
-| `1` đến `length() - 1` | Hậu tố bắt đầu từ chỉ số tương ứng | Bỏ qua phần đứng trước |
-| `length()` | Chuỗi rỗng `""` | Không còn ký tự phía sau mốc bắt đầu |
-| Số âm | Ném `StringIndexOutOfBoundsException` | Nằm trước đầu chuỗi |
-| Lớn hơn `length()` | Ném `StringIndexOutOfBoundsException` | Vượt quá điểm kết thúc |
+| `0` | Entire string content | Starts from the first character |
+| `1` to `length() - 1` | Suffix starting from the corresponding index | Skips the preceding part |
+| `length()` | Empty string `""` | No characters remain after the starting mark |
+| Negative number | Throws `StringIndexOutOfBoundsException` | Lies before the start of the string |
+| Greater than `length()` | Throws `StringIndexOutOfBoundsException` | Exceeds the end point |
 
-**Đừng nhầm `length()` với chỉ số của ký tự cuối.** Với chuỗi không rỗng, chỉ số của ký tự cuối là `length() - 1`. Nhưng `substring(length())` **vẫn hợp lệ** và trả về chuỗi rỗng.
+**Do not confuse `length()` with the index of the last character.** For a non-empty string, the index of the last character is `length() - 1`. However, `substring(length())` is **still valid** and returns an empty string.
 
-Ví dụ, chuỗi `"Java"` có độ dài `4`:
+For example, the string `"Java"` has length `4`:
 
 ```java
 String s = "Java";
@@ -75,18 +75,18 @@ s.substring(4); // ""
 // s.substring(5); // StringIndexOutOfBoundsException
 ```
 
-Các dòng trên minh họa biểu thức bên trong một phương thức; chúng **không phải** một tệp Java độc lập.
+The lines above illustrate expressions inside a method; they are **not** a standalone Java file.
 
-## 3. Cơ chế từng bước
+## 3. Step-by-Step Mechanism
 
-Xét:
+Consider:
 
 ```java
 String word = "Programming";
 String remainder = word.substring(7);
 ```
 
-Đánh số theo chỉ số từ `0`:
+Zero-based indexing:
 
 ```text
 P  r  o  g  r  a  m  m  i  n  g
@@ -95,19 +95,19 @@ P  r  o  g  r  a  m  m  i  n  g
                    index 7: m
 ```
 
-`word.substring(7)` trả về `"ming"` (gồm các ký tự ở chỉ số 7, 8, 9 và 10). Phần `"Program"` đứng trước mốc bắt đầu không nằm trong kết quả. `word` vẫn giữ nguyên `"Programming"`.
+`word.substring(7)` returns `"ming"` (consisting of the characters at indices 7, 8, 9, and 10). The `"Program"` part before the starting mark is not in the result. `word` remains `"Programming"`.
 
-Có thể hiểu bằng ba bước:
+This can be understood in three steps:
 
-1. Xác định độ dài chuỗi (`word.length()` là `11`).
-2. Kiểm tra `beginIndex` có nằm trong khoảng từ `0` đến `11`, kể cả `11`, hay không.
-3. Trả về phần nội dung từ `beginIndex` đến hết; nếu bắt đầu tại `11`, kết quả là `""`.
+1. Determine the string length (`word.length()` is `11`).
+2. Check whether `beginIndex` is in the range from `0` to `11`, inclusive of `11`.
+3. Return the content from `beginIndex` to the end; if starting at `11`, the result is `""`.
 
-Không cần gọi `.substring(beginIndex, word.length())` để thực hiện trường hợp phổ biến này; cách gọi một tham số thể hiện rõ ý định **lấy đến cuối**.
+You do not need to call `.substring(beginIndex, word.length())` for this common case; the single-parameter form clearly expresses the intent to **take until the end**.
 
-## 4. Ví dụ Java 17+ hoàn chỉnh, có thể chạy
+## 4. Complete, Runnable Java 17+ Example
 
-Tạo tệp **`SubstringToEndDemo.java`**:
+Create the file **`SubstringToEndDemo.java`**:
 
 ```java
 public class SubstringToEndDemo {
@@ -149,14 +149,14 @@ public class SubstringToEndDemo {
 }
 ```
 
-Trong thư mục chứa tệp, biên dịch và chạy với JDK 17 trở lên:
+In the directory containing the file, compile and run with JDK 17 or later:
 
 ```bash
 javac -encoding UTF-8 SubstringToEndDemo.java
 java SubstringToEndDemo
 ```
 
-**Stdout dự kiến:**
+**Expected stdout:**
 
 ```text
 part=Core
@@ -170,21 +170,21 @@ suffixCodePoints=2
 badIndex=StringIndexOutOfBoundsException
 ```
 
-Giải thích các điểm đáng chú ý:
+Notable points explained:
 
-- `text.substring(5)` trả `"Core"`. Việc in lại `text` cho thấy chuỗi gốc không đổi.
-- `text.substring(0)` lấy toàn bộ nội dung.
-- `text.substring(text.length())` trả `""`, vì vậy khi kẹp trong `[...]` ta thấy `[]`.
-- `lastIndexOf('.')` trả về vị trí dấu chấm cuối; `substring(lastDot + 1)` lấy phần **sau** dấu chấm, được `"csv"`.
-- `lastIndexOf('/')` giúp xác định dấu phân tách cuối cùng của một đường dẫn minh họa, sau đó `substring(lastSlash + 1)` lấy `"42"`.
-- Chuỗi `"A😀B"` có **4 UTF-16 code unit** (`A` = 1, emoji = 2, `B` = 1). Hậu tố sau `A` chứa **2 Unicode code point** (emoji và `B`).
-- Chỉ số lớn hơn độ dài gây `StringIndexOutOfBoundsException`; ví dụ bắt ngoại lệ để phần trình diễn tiếp tục chạy.
+- `text.substring(5)` returns `"Core"`. Printing `text` again shows that the original string is unchanged.
+- `text.substring(0)` takes the entire content.
+- `text.substring(text.length())` returns `""`, so when wrapped in `[...]` we see `[]`.
+- `lastIndexOf('.')` returns the position of the last dot; `substring(lastDot + 1)` takes the part **after** the dot, yielding `"csv"`.
+- `lastIndexOf('/')` finds the last separator of an illustrative path, and then `substring(lastSlash + 1)` extracts `"42"`.
+- The string `"A😀B"` has **4 UTF-16 code units** (`A` = 1, emoji = 2, `B` = 1). The suffix after `A` contains **2 Unicode code points** (the emoji and `B`).
+- An index greater than the length causes `StringIndexOutOfBoundsException`; the example catches the exception so the demonstration can continue running.
 
-> Chú ý: Ví dụ dùng `/` trong một chuỗi đường dẫn đơn giản để dạy cách trích xuất. Việc phân tích URL thật, đường dẫn hệ điều hành hay đường dẫn đã mã hóa cần API chuyên dụng tương ứng, tùy ngữ cảnh.
+> Note: The example uses `/` in a simple path string to teach extraction. Parsing real URLs, OS file paths, or encoded paths requires the appropriate specialized APIs depending on context.
 
-## 5. Trích xuất hậu tố sau ký tự phân cách
+## 5. Extracting the Suffix After a Separator Character
 
-Một cách dùng thực tế là **tìm điểm bắt đầu rồi lấy toàn bộ phần còn lại**. Ví dụ:
+A practical use is to **find the starting point and take the entire remainder**. For example:
 
 ```java
 String record = "ID:12345";
@@ -196,9 +196,9 @@ if (colon >= 0) {
 }
 ```
 
-Tại sao phải `+ 1`? `indexOf(':')` trả về vị trí của dấu `:`. Nếu gọi `substring(colon)`, kết quả sẽ còn cả dấu phân cách (`":12345"`). Dùng `colon + 1` để bắt đầu ở ký tự kế tiếp.
+Why `+ 1`? `indexOf(':')` returns the position of `:`. If you call `substring(colon)`, the result will still include the separator (`":12345"`). Use `colon + 1` to start at the next character.
 
-Phải phân biệt hai mục tiêu:
+You must distinguish between two goals:
 
 ```java
 String text = "key=value";
@@ -208,11 +208,11 @@ String includingSeparator = text.substring(equal);     // "=value"
 String excludingSeparator = text.substring(equal + 1); // "value"
 ```
 
-Đây là những đoạn minh họa nằm trong phương thức, với chuỗi đầu vào chứa dấu `=` như đã biết. Nếu dấu phân cách **không chắc chắn tồn tại**, luôn kiểm tra kết quả tìm kiếm.
+These are illustrative snippets inside a method, with an input string already known to contain `=`. If the separator is **not guaranteed to exist**, always check the search result.
 
-### Xử lý trường hợp không tìm thấy dấu phân cách
+### Handling the Case Where the Separator Is Not Found
 
-`indexOf(...)` và `lastIndexOf(...)` trả về `-1` khi không tìm thấy ký tự hoặc chuỗi cần tìm. Thông thường phải kiểm tra:
+`indexOf(...)` and `lastIndexOf(...)` return `-1` when the target character or string is not found. Usually you must check:
 
 ```java
 static String valueAfterColon(String input) {
@@ -224,19 +224,19 @@ static String valueAfterColon(String input) {
 }
 ```
 
-Phương thức trên trả `""` khi không có dấu `:`. Đây chỉ là **một lựa chọn thiết kế**; tùy bài toán, bạn cũng có thể muốn trả toàn bộ chuỗi, `Optional<String>` hoặc thông báo dữ liệu sai định dạng.
+The method above returns `""` when there is no `:`. This is just **one design choice**; depending on the problem, you may also want to return the entire string, an `Optional<String>`, or report malformed input.
 
-Một lỗi tinh tế cần tránh: nếu viết `substring(indexOf(':') + 1)` mà không kiểm tra, khi không tìm thấy dấu phân cách thì `indexOf` trả `-1`, cộng `1` thành `0`, và phương thức âm thầm trả về **toàn bộ chuỗi**. Nó không ném ngoại lệ nên dễ làm che giấu dữ liệu đầu vào sai.
+A subtle bug to avoid: if you write `substring(indexOf(':') + 1)` without checking, when the separator is not found `indexOf` returns `-1`, adding `1` yields `0`, and the method silently returns the **entire string**. It does not throw an exception, so it can easily mask invalid input data.
 
-## 6. Sử dụng độ dài để lấy N ký tự cuối
+## 6. Using Length to Get the Last N Characters
 
-Để lấy **`n` UTF-16 code unit ở cuối**, điểm bắt đầu thường là:
+To get the **last `n` UTF-16 code units**, the starting point is typically:
 
 \[
 \texttt{start = text.length() - n}
 \]
 
-Ví dụ:
+For example:
 
 ```java
 String code = "INV-2026";
@@ -245,26 +245,26 @@ String year = code.substring(code.length() - 4);
 System.out.println(year); // 2026
 ```
 
-Vì `"INV-2026"` dài `8` code unit, `start = 8 - 4 = 4`; hậu tố từ chỉ số `4` là `"2026"`.
+Because `"INV-2026"` is `8` code units long, `start = 8 - 4 = 4`; the suffix from index `4` is `"2026"`.
 
-Để an toàn, cần đảm bảo `0 <= n <= text.length()`:
+To be safe, ensure `0 <= n <= text.length()`:
 
 ```java
 static String lastUnits(String text, int n) {
     if (n < 0 || n > text.length()) {
-        throw new IllegalArgumentException("n nằm ngoài độ dài chuỗi");
+        throw new IllegalArgumentException("n is outside string length");
     }
     return text.substring(text.length() - n);
 }
 ```
 
-Phương thức `lastUnits` xử lý **code unit**, không đảm bảo luôn trích đúng `n` ký tự Unicode theo cảm nhận của con người. Với emoji hoặc ký tự bổ trợ được biểu diễn bằng cặp surrogate, điểm cắt có thể nằm giữa cặp. Phần tiếp theo giải thích cách tránh lỗi này.
+The `lastUnits` method operates on **code units**, which does not guarantee always extracting `n` human-perceived Unicode characters. With emojis or supplementary characters represented by surrogate pairs, the cut point might fall in the middle of a pair. The next section explains how to avoid this issue.
 
-## 7. Chỉ số của `String` sử dụng UTF-16
+## 7. `String` Indices Use UTF-16
 
-`String.length()` và các offset của `substring` đếm **UTF-16 code unit**, không nhất thiết là số Unicode code point hay ký tự hiển thị. Chẳng hạn, `"A😀B"` có độ dài `4`: emoji chiếm hai code unit. `substring(1)` bắt đầu đúng tại emoji, còn `substring(2)` bắt đầu giữa cặp surrogate và có thể để lại một nửa surrogate đứng lẻ.
+`String.length()` and `substring` offsets count **UTF-16 code units**, not necessarily the number of Unicode code points or displayed characters. For instance, `"A😀B"` has length `4`: the emoji occupies two code units. `substring(1)` starts cleanly at the emoji, whereas `substring(2)` starts in the middle of the surrogate pair and can leave an unpaired surrogate.
 
-Khi cần lấy đoạn theo **code point**, hãy chuyển số lượng code point thành offset UTF-16 bằng `offsetByCodePoints` trước khi cắt:
+When you need to slice by **code points**, convert the code point count into a UTF-16 offset using `offsetByCodePoints` before slicing:
 
 ```java
 String text = "A😀B";
@@ -272,31 +272,31 @@ int start = text.offsetByCodePoints(0, 2);
 System.out.println(text.substring(start)); // B
 ```
 
-Đây là ví dụ minh họa trong phương thức. Cắt theo code point vẫn có thể chia cụm chữ có dấu kết hợp hoặc emoji nhiều code point; những trường hợp hiển thị đó cần phân đoạn grapheme riêng.
+This is an illustrative snippet inside a method. Slicing by code points can still split letter clusters with combining marks or multi-code-point emojis; those display cases require separate grapheme segmentation.
 
-## 8. Những trường hợp biên và lỗi thường gặp
+## 8. Edge Cases and Common Mistakes
 
-### Lỗi A: Nghĩ rằng chỉ số bắt đầu từ 1
+### Mistake A: Thinking Indices Start at 1
 
-**Sai về ý định:**
+**Wrong intent:**
 
 ```java
 String s = "Java";
 System.out.println(s.substring(1)); // ava
 ```
 
-Để lấy cả `"Java"`, bắt đầu từ **`0`**, không phải `1`.
+To get all of `"Java"`, start from **`0`**, not `1`.
 
-### Lỗi B: Cho rằng chỉ số bằng `length()` là không hợp lệ
+### Mistake B: Assuming an Index Equal to `length()` Is Invalid
 
 ```java
 String s = "abc";
 System.out.println("[" + s.substring(3) + "]"); // []
 ```
 
-Chỉ số bằng độ dài là hợp lệ và trả chuỗi rỗng. Chỉ số **lớn hơn** `length()` mới vượt ranh giới.
+An index equal to the length is valid and returns an empty string. Only an index **greater than** `length()` is out of bounds.
 
-### Lỗi C: Bỏ qua giá trị trả về
+### Mistake C: Ignoring the Return Value
 
 ```java
 String s = "abcdef";
@@ -304,106 +304,106 @@ s.substring(3);
 System.out.println(s); // abcdef
 ```
 
-`String` bất biến nên `substring` **không sửa tại chỗ**. Nếu muốn giữ hậu tố:
+`String` is immutable, so `substring` **does not modify in place**. If you want to keep the suffix:
 
 ```java
 s = s.substring(3);
 System.out.println(s); // def
 ```
 
-Việc gán lại thay đổi giá trị biến `s`, chứ không sửa nội dung đối tượng `String` ban đầu.
+Reassigning changes the value of the variable `s`, rather than modifying the content of the original `String` object.
 
-### Lỗi D: Dùng kết quả `indexOf` mà không kiểm tra
+### Mistake D: Using the Result of `indexOf` Without Checking
 
 ```java
 String s = "no-separator";
 int index = s.indexOf(':'); // -1
-String part = s.substring(index + 1); // Chính là "no-separator"
+String part = s.substring(index + 1); // Evaluates to "no-separator"
 ```
 
-Không có dấu `:` nhưng phép cộng `-1 + 1` thành `0`. Cần kiểm tra `index >= 0` nếu việc không có dấu phân cách là trường hợp cần xử lý riêng.
+There is no `:`, yet `-1 + 1` becomes `0`. You must check `index >= 0` if a missing separator needs special handling.
 
-### Lỗi E: Truyền chỉ số âm hoặc vượt độ dài
+### Mistake E: Passing a Negative Index or One Exceeding Length
 
 ```java
 String s = "abc";
-// s.substring(-1); // Ném StringIndexOutOfBoundsException
-// s.substring(4);  // Ném StringIndexOutOfBoundsException
+// s.substring(-1); // Throws StringIndexOutOfBoundsException
+// s.substring(4);  // Throws StringIndexOutOfBoundsException
 ```
 
-Có thể kiểm tra ranh giới trước khi gọi:
+You can check bounds before calling:
 
 ```java
 static String fromIndex(String text, int beginIndex) {
     if (beginIndex < 0 || beginIndex > text.length()) {
-        throw new IllegalArgumentException("beginIndex không hợp lệ");
+        throw new IllegalArgumentException("Invalid beginIndex");
     }
     return text.substring(beginIndex);
 }
 ```
 
-Phương thức bọc này minh họa cách chọn ngoại lệ của ứng dụng. Nếu gọi trực tiếp `substring` với chỉ số sai, Java ném `StringIndexOutOfBoundsException`.
+This wrapper method illustrates choosing an application-level exception. If you call `substring` directly with an invalid index, Java throws `StringIndexOutOfBoundsException`.
 
-### Lỗi F: Gọi phương thức trên `null`
+### Mistake F: Calling the Method on `null`
 
 ```java
 String s = null;
-// s.substring(0); // Ném NullPointerException
+// s.substring(0); // Throws NullPointerException
 ```
 
-`null` không phải một đối tượng `String`, nên không thể gọi phương thức trên nó. Đây là lỗi **khác** với chỉ số không hợp lệ. Kiểm tra đầu vào nếu `null` được phép xuất hiện trong thiết kế của chương trình.
+`null` is not a `String` object, so no method can be called on it. This is a **different** error from an invalid index. Validate input if `null` is allowed in the program's design.
 
-### Lỗi G: Nhầm `substring(int)` với `substring(int, int)`
+### Mistake G: Confusing `substring(int)` with `substring(int, int)`
 
-Hai cách gọi:
+Two ways to call:
 
 ```java
 String s = "abcdefgh";
 
-s.substring(3);    // "defgh": từ 3 đến hết
-s.substring(3, 6); // "def": lấy các chỉ số 3, 4, 5; không gồm 6
+s.substring(3);    // "defgh": from 3 to the end
+s.substring(3, 6); // "def": takes indices 3, 4, 5; excludes 6
 ```
 
-Dạng hai tham số cho phép chỉ định riêng điểm kết thúc (`endIndex` không bao gồm). Dạng một tham số **luôn** lấy tới hết, nên chọn dạng này khi đúng ý định và không phải tính toán chỉ số cuối một cách thừa thãi.
+The two-parameter form lets you specify an explicit end point (`endIndex` is exclusive). The single-parameter form **always** takes up to the end, so choose it when that matches your intent instead of unnecessarily computing the end index.
 
-## 9. Phân biệt với những thao tác gần giống
+## 9. Distinguishing from Similar Operations
 
-| Bài toán | Phương thức phù hợp | Ví dụ |
+| Problem | Appropriate Method | Example |
 |---|---|---|
-| Lấy phần từ một chỉ số đến cuối | `substring(beginIndex)` | `"abcdef".substring(3)` → `"def"` |
-| Lấy phần giữa hai mốc | `substring(beginIndex, endIndex)` | `"abcdef".substring(1, 4)` → `"bcd"` |
-| Lấy vị trí bắt đầu của một đoạn | `indexOf(...)` | `"a:b".indexOf(':')` → `1` |
-| Lấy vị trí xuất hiện cuối | `lastIndexOf(...)` | `"a:b:c".lastIndexOf(':')` → `3` |
-| Tìm số lượng UTF-16 code unit | `length()` | `"Java".length()` → `4` |
-| Trích từ vị trí tính theo code point | `offsetByCodePoints(...)` rồi `substring(...)` | Tránh cắt vào giữa surrogate pair |
+| Take the part from an index to the end | `substring(beginIndex)` | `"abcdef".substring(3)` → `"def"` |
+| Take the part between two marks | `substring(beginIndex, endIndex)` | `"abcdef".substring(1, 4)` → `"bcd"` |
+| Get the starting position of a segment | `indexOf(...)` | `"a:b".indexOf(':')` → `1` |
+| Get the last occurrence position | `lastIndexOf(...)` | `"a:b:c".lastIndexOf(':')` → `3` |
+| Find the number of UTF-16 code units | `length()` | `"Java".length()` → `4` |
+| Extract from a code-point-based position | `offsetByCodePoints(...)` then `substring(...)` | Avoids cutting in the middle of a surrogate pair |
 
-`substring` chỉ **trích xuất một phạm vi đã xác định**. Nếu chưa biết điểm bắt đầu nằm ở đâu, thường kết hợp với `indexOf`/`lastIndexOf` hoặc một thuật toán tìm vị trí theo quy tắc dữ liệu.
+`substring` only **extracts a defined range**. If you do not yet know where the starting point is, combine it with `indexOf`/`lastIndexOf` or an algorithm that locates the position according to data rules.
 
-## 10. Lưu ý về hiệu năng và đối tượng trả về
+## 10. Notes on Performance and the Returned Object
 
-`substring` trả về một giá trị `String` bất biến; không có lời hứa công khai rằng kết quả luôn là instance mới, luôn là instance nguồn hay có cơ chế bộ nhớ cụ thể. Một triển khai có thể tối ưu trường hợp lấy toàn bộ chuỗi hoặc chuỗi rỗng. Vì vậy, khi so nội dung, hãy dùng `equals` thay vì `==`.
+`substring` returns an immutable `String` value; there is no public guarantee that the result is always a new instance, always the source instance, or backed by a specific memory mechanism. An implementation may optimize taking the whole string or an empty string. Therefore, when comparing content, use `equals` instead of `==`.
 
-Đối với xử lý lượng lớn chuỗi, nên đo hiệu năng và mức cấp phát trên JDK cùng dữ liệu thực tế. Không tạo thêm bản sao chỉ vì giả định `substring` nhất định dùng chung hoặc sao chép vùng nhớ.
+For large-scale string processing, measure performance and allocation on the target JDK with real data. Do not create extra copies solely on the assumption that `substring` necessarily shares or copies memory buffers.
 
-## 11. Bài tập và đáp án
+## 11. Exercises and Answers
 
-**Bài 1.** Với `String s = "Hello World";`, hãy lấy `"World"`.
+**Exercise 1.** Given `String s = "Hello World";`, extract `"World"`.
 
-**Đáp án:**
+**Answer:**
 
 ```java
 String result = s.substring(6);
 ```
 
-Dấu cách nằm ở chỉ số `5`, chữ `W` ở chỉ số `6`.
+The space is at index `5`, and `W` is at index `6`.
 
-**Bài 2.** Với `"ABC"`, ba kết quả của `substring(0)`, `substring(2)` và `substring(3)` là gì?
+**Exercise 2.** Given `"ABC"`, what are the three results of `substring(0)`, `substring(2)`, and `substring(3)`?
 
-**Đáp án:** Lần lượt là `"ABC"`, `"C"` và `""`.
+**Answer:** `"ABC"`, `"C"`, and `""`, respectively.
 
-**Bài 3.** Với `"token:abc:def"`, lấy mọi ký tự sau **dấu `:` đầu tiên**.
+**Exercise 3.** Given `"token:abc:def"`, extract all characters after the **first `:`**.
 
-**Đáp án:**
+**Answer:**
 
 ```java
 String input = "token:abc:def";
@@ -412,13 +412,13 @@ String value = p < 0 ? "" : input.substring(p + 1);
 // value = "abc:def"
 ```
 
-Nếu cần lấy sau dấu `:` **cuối cùng**, đổi `indexOf(':')` thành `lastIndexOf(':')`, khi đó giá trị là `"def"`.
+If you need everything after the **last** `:`, change `indexOf(':')` to `lastIndexOf(':')`, in which case the value is `"def"`.
 
-**Bài 4.** Vì sao `"A😀B".substring(2)` cần thận trọng?
+**Exercise 4.** Why does `"A😀B".substring(2)` require caution?
 
-**Đáp án:** Chỉ số `2` rơi vào giữa hai UTF-16 code unit dùng để biểu diễn emoji, có thể làm vỡ surrogate pair. Nên xác định ranh giới code point (hoặc grapheme, tùy bài toán) trước khi cắt.
+**Answer:** Index `2` falls between the two UTF-16 code units representing the emoji, which can break the surrogate pair. Determine the code point (or grapheme, depending on the problem) boundary before slicing.
 
-**Bài 5.** Đoạn sau in gì?
+**Exercise 5.** What does the following snippet print?
 
 ```java
 String s = "12345";
@@ -426,8 +426,8 @@ s.substring(3);
 System.out.println(s);
 ```
 
-**Đáp án:** `12345`. Giá trị `"45"` được trả về nhưng đã bị bỏ qua, còn chuỗi gốc không đổi.
+**Answer:** `12345`. The value `"45"` is returned but discarded, while the original string remains unchanged.
 
-## 12. Ghi nhớ
+## 12. Key Takeaways
 
-`String.substring(beginIndex)` có thể được đọc là: **“Lấy chuỗi từ chỉ số `beginIndex` (bao gồm) đến hết”**. Chỉ số bắt đầu từ `0`, miền hợp lệ là **`0` đến `length()` (bao gồm cả hai đầu)**, bắt đầu ở `length()` cho chuỗi rỗng, còn ra ngoài miền thì ném `StringIndexOutOfBoundsException`. Kết quả là một giá trị `String` cần được lưu hoặc sử dụng, chuỗi gốc vẫn bất biến. Khi dữ liệu có emoji hoặc ký tự Unicode bổ trợ, hãy nhớ chỉ số `String` đo theo **UTF-16 code unit**, không mặc nhiên theo ký tự hiển thị.
+`String.substring(beginIndex)` can be read as: **“Take the string from index `beginIndex` (inclusive) to the end”**. Indices start at `0`, the valid range is **`0` to `length()` (inclusive on both ends)**, starting at `length()` produces an empty string, and going out of bounds throws `StringIndexOutOfBoundsException`. The result is a `String` value that must be stored or used; the original string remains immutable. When data contains emojis or supplementary Unicode characters, remember that `String` indices measure **UTF-16 code units**, not necessarily visible characters.

@@ -1,14 +1,14 @@
-# Kiểu dữ liệu tĩnh và những lỗi được phát hiện khi biên dịch
+# Static Data Types and Errors Caught at Compile Time
 
-Một chương trình có thể sai ngay cả khi **chưa chạy**. Ví dụ, bạn muốn lưu số lượng sản phẩm trong một biến số nguyên nhưng lại gán cho biến đó chuỗi `"ba"`. Java sẽ không đợi chương trình gặp dữ liệu này lúc chạy: trình biên dịch `javac` phát hiện rằng hai kiểu không tương thích.
+A program can be wrong even **before it runs**. For example, you want to store a product quantity in an integer variable, yet you assign the string `"ba"` to that variable. Java will not wait until the program hits that data at runtime: the `javac` compiler detects that the two types are incompatible.
 
-Đây là ý nghĩa quan trọng của **hệ kiểu tĩnh (static typing)**: kiểu của biểu thức và biến được xác định và kiểm tra theo các quy tắc của ngôn ngữ **trong quá trình biên dịch**. Điều này giúp loại sớm nhiều lỗi, nhưng không bảo đảm chương trình không có ngoại lệ khi chạy hoặc luôn cho kết quả nghiệp vụ đúng.
+This is a key meaning of a **static type system (static typing)**: the types of expressions and variables are determined and checked according to language rules **during compilation**. This helps eliminate many bugs early, though it does not guarantee that the program will have no runtime exceptions or always produce the right business result.
 
-Sau bài này, bạn có thể nhận biết lỗi về kiểu, tự sửa những lỗi biên dịch Java thường gặp, chọn phép chuyển kiểu phù hợp và dự đoán được những tình huống mà kiểm tra kiểu tĩnh chưa thể bảo vệ.
+After this lesson, you will be able to recognize type errors, fix common Java compile errors yourself, choose appropriate type conversions, and anticipate situations where static type checking cannot protect you yet.
 
-## 1. Kiểu dữ liệu tĩnh nghĩa là gì?
+## 1. What Does Static Typing Mean?
 
-Trong Java, một biến hoặc một biểu thức có **kiểu**. Kiểu cho trình biên dịch biết giá trị có thể được dùng trong những phép toán nào và phương thức nào có thể được gọi.
+In Java, every variable or expression has a **type**. The type tells the compiler which operations a value can participate in and which methods can be called on it.
 
 ~~~java
 int quantity = 3;
@@ -17,69 +17,69 @@ boolean available = true;
 String productCode = "JAVA-01";
 ~~~
 
-Ý nghĩa của từng khai báo:
+Meaning of each declaration:
 
-| Thành phần | Kiểu | Ý nghĩa |
+| Component | Type | Meaning |
 | --- | --- | --- |
-| `quantity` | `int` | Số lượng nguyên trong phạm vi của `int` |
-| `unitPriceVnd` | `long` | Giá tiền theo VND nguyên, có miền giá trị rộng hơn `int` |
-| `available` | `boolean` | Chỉ có `true` hoặc `false` |
-| `productCode` | `String` | Chuỗi ký tự biểu diễn mã hàng |
+| `quantity` | `int` | Whole number quantity within the range of `int` |
+| `unitPriceVnd` | `long` | Price in whole VND, with a wider value range than `int` |
+| `available` | `boolean` | Only `true` or `false` |
+| `productCode` | `String` | Character string representing a product code |
 
-Ví dụ:
+Example:
 
 ~~~java
 int count = 3;
-count = 5;         // Hợp lệ: giá trị mới vẫn là int.
-// count = "nam";  // Lỗi biên dịch: String không thể gán cho int.
+count = 5;         // Valid: the new value is still int.
+// count = "nam";  // Compile error: String cannot be assigned to int.
 ~~~
 
-Giá trị biến `count` thay đổi từ 3 thành 5, nhưng **kiểu khai báo của biến không đổi**. Hệ kiểu tĩnh không có nghĩa giá trị bất biến.
+The value of `count` changes from 3 to 5, yet **the declared type of the variable does not change**. Static typing does not mean immutable values.
 
-Đừng nhầm **static typing** với từ khóa **`static`**. `static` dùng khi khai báo thành viên thuộc về lớp; nó không phải từ khóa làm cho một ngôn ngữ trở thành ngôn ngữ có kiểu tĩnh. Một biến instance thông thường vẫn chịu kiểm tra kiểu tĩnh.
+Do not confuse **static typing** with the **`static`** keyword. `static` is used to declare members belonging to a class; it is not the keyword that makes a language statically typed. An ordinary instance variable still undergoes static type checking.
 
-### Các nhóm kiểu quan trọng
+### Important Type Categories
 
-Java có hai nhóm mà người mới thường cần phân biệt:
+Java has two categories that beginners often need to distinguish:
 
-- **Primitive:** `byte`, `short`, `int`, `long`, `float`, `double`, `char` và `boolean`. Những biến này lưu giá trị primitive.
-- **Reference type:** ví dụ `String`, một lớp tự định nghĩa, interface hoặc kiểu mảng như `int[]`. Một biến kiểu tham chiếu lưu tham chiếu tới đối tượng hoặc có thể là `null` nếu ngữ cảnh cho phép.
+- **Primitive:** `byte`, `short`, `int`, `long`, `float`, `double`, `char`, and `boolean`. These variables store primitive values.
+- **Reference type:** for example, `String`, a user-defined class, an interface, or an array type such as `int[]`. A reference variable stores a reference to an object, or can be `null` if the context allows.
 
 ~~~java
 int age = 20;          // Primitive int
-String name = "An";    // Kiểu tham chiếu String
-int[] scores = {7, 8}; // Mảng là đối tượng
+String name = "An";    // Reference type String
+int[] scores = {7, 8}; // Arrays are objects
 ~~~
 
-`String` không phải một kiểu primitive, dù rất thường xuyên được sử dụng. `null` cũng không phải một chuỗi rỗng; gọi phương thức qua biến tham chiếu đang bằng `null` có thể gây lỗi khi chạy.
+`String` is not a primitive type, even though it is used very frequently. `null` is also not an empty string; calling a method through a reference variable that is currently `null` can cause a runtime error.
 
-## 2. Từ mã nguồn đến kiểm tra kiểu của `javac`
+## 2. From Source Code to `javac` Type Checking
 
 ~~~mermaid
 flowchart TD
-    A["Tệp .java"] --> B["javac: phân tích cú pháp và ngữ nghĩa"]
-    B --> C{"Có lỗi biên dịch?"}
-    C -->|Có| D["Báo lỗi và yêu cầu sửa mã"]
-    C -->|Không| E["Tạo bytecode .class"]
-    E --> F["JVM chạy chương trình"]
-    F --> G["Kết quả, ngoại lệ lúc chạy hoặc lỗi logic"]
+    A[".java file"] --> B["javac: syntax and semantic analysis"]
+    B --> C{"Compile errors?"}
+    C -->|Yes| D["Report error and require code fix"]
+    C -->|No| E["Generate .class bytecode"]
+    E --> F["JVM runs the program"]
+    F --> G["Result, runtime exception, or logic error"]
 ~~~
 
-Một số việc quan trọng mà trình biên dịch có thể kiểm tra:
+Some important things the compiler can check:
 
-1. Câu lệnh có đúng ngữ pháp Java không: dấu `;`, ngoặc, từ khóa, cấu trúc lớp.
-2. Tên biến, lớp hoặc phương thức được dùng có được khai báo và có thể truy cập từ vị trí đó không.
-3. Biểu thức có kiểu phù hợp với phép toán, lời gọi phương thức, phép gán và giá trị trả về không.
-4. Biến cục bộ đã chắc chắn được gán giá trị trước khi đọc chưa (*definite assignment*).
-5. Đường điều khiển có đáp ứng một số quy tắc như trả về giá trị cho phương thức không có kiểu `void`, xử lý checked exception khi bắt buộc hay không.
+1. Whether statements follow Java grammar: `;`, parentheses/braces, keywords, class structure.
+2. Whether a variable, class, or method name being used is declared and accessible from that location.
+3. Whether expressions have types compatible with the operation, method call, assignment, and return value.
+4. Whether local variables are definitely assigned before being read (*definite assignment*).
+5. Whether control flow satisfies rules such as returning a value for non-`void` methods and handling checked exceptions where required.
 
-Nếu biên dịch thất bại, hãy nhìn vị trí lỗi, đọc loại lỗi và **sửa nguyên nhân trong mã**. Thông báo có thể khác đôi chút giữa phiên bản JDK; đừng phụ thuộc vào một chuỗi thông báo duy nhất.
+If compilation fails, look at the error location, read the error kind, and **fix the cause in the code**. Error messages may vary slightly between JDK versions; do not rely on a single exact wording.
 
-Cần nhớ: `javac` **không chạy thử tất cả đầu vào** hay tự hiểu yêu cầu nghiệp vụ. Nó có thể chấp nhận một chương trình tính thuế sai công thức nếu các phép toán vẫn đúng kiểu.
+Remember: `javac` **does not test all possible inputs** or understand business requirements on its own. It can accept a program that computes tax with the wrong formula as long as the operations remain well-typed.
 
-## 3. Chương trình Java chạy được: dùng kiểu đúng để mô hình hóa dữ liệu
+## 3. A Runnable Java Program: Using the Right Types to Model Data
 
-Hãy tạo tệp chính xác tên **`StaticTypesDemo.java`** và chép mã sau. Ví dụ dùng JDK 17 trở lên, không yêu cầu thư viện ngoài JDK.
+Create a file named exactly **`StaticTypesDemo.java`** and copy the following code. The example uses JDK 17 or later and requires no libraries outside the JDK.
 
 ~~~java
 import java.util.Locale;
@@ -120,7 +120,7 @@ public class StaticTypesDemo {
         System.out.println(
                 "Chuyen long sang int: " + Math.toIntExact(42L));
 
-        // Thử bỏ chú thích từng dòng sau để xem lỗi javac:
+        // Try uncommenting each line below to see javac errors:
         // quantity = "ba";
         // boolean wrong = 1;
         // int narrowed = 3.5;
@@ -128,7 +128,7 @@ public class StaticTypesDemo {
 }
 ~~~
 
-Biên dịch và chạy trong thư mục chứa tệp:
+Compile and run in the directory containing the file:
 
 ~~~bash
 java -version
@@ -137,7 +137,7 @@ javac -encoding UTF-8 StaticTypesDemo.java
 java StaticTypesDemo
 ~~~
 
-Kết quả dự kiến:
+Expected output:
 
 ~~~text
 Tong tien: 360000 VND
@@ -148,46 +148,46 @@ Ma hang: JAVA-01
 Chuyen long sang int: 42
 ~~~
 
-Diễn giải theo dữ liệu:
+Interpreting by data:
 
-- `quantity` có kiểu `int` và `unitPriceVnd` có kiểu `long`. Phương thức `calculateAmount` khai báo đầu vào rõ ràng và trả về `long`.
-- `(long) quantity` chuyển số lượng sang `long` trước phép nhân. `Math.multiplyExact` giúp phát hiện nếu **kết quả kiểu long** bị tràn; phép nhân số nguyên thông thường không nhất thiết tự báo lỗi tràn.
-- `classifyScore` trả `String`; cả hai nhánh của toán tử `?:` đều trả chuỗi.
-- `average` có kiểu `double`. Viết `3.0` để phép chia ra kết quả chấm động, khác với chia hai số nguyên.
-- `canBuy` là `boolean` được tạo từ các biểu thức so sánh và toán tử logic `&&`.
-- `printf(Locale.ROOT, ...)` cố định dấu thập phân thành `.` để đầu ra ví dụ dễ kiểm chứng trên nhiều cấu hình vùng.
+- `quantity` has type `int` and `unitPriceVnd` has type `long`. The `calculateAmount` method declares clear inputs and returns `long`.
+- `(long) quantity` converts the quantity to `long` before multiplication. `Math.multiplyExact` helps detect if the **`long` result** overflows; ordinary integer multiplication does not necessarily report overflow errors on its own.
+- `classifyScore` returns `String`; both branches of the `?:` operator return strings.
+- `average` has type `double`. Writing `3.0` makes the division produce a floating-point result, unlike dividing two integers.
+- `canBuy` is a `boolean` built from comparison expressions and the logical operator `&&`.
+- `printf(Locale.ROOT, ...)` fixes the decimal separator to `.` so the example output is easy to verify across different regional settings.
 
-Đọc kiểu trả về là cách rất nhanh để dự đoán phương thức được phép dùng như thế nào:
+Reading the return type is a fast way to predict how a method may be used:
 
 ~~~java
 long amount = StaticTypesDemo.calculateAmount(2, 20_000L);
 String result = StaticTypesDemo.classifyScore(7);
-// boolean result = StaticTypesDemo.classifyScore(7); // Không biên dịch.
+// boolean result = StaticTypesDemo.classifyScore(7); // Does not compile.
 ~~~
 
-Đoạn cuối chỉ là minh họa khi được đặt trong một phương thức khác; dòng sai đã được chú thích.
+The last snippet is only an illustration when placed inside another method; the invalid line has been commented out.
 
-## 4. Những lỗi kiểu dữ liệu `javac` phát hiện sớm
+## 4. Data Type Errors `javac` Catches Early
 
-Mỗi ví dụ trong bảng dưới đây được cố ý viết sai. Hãy **chỉ thử một lỗi mỗi lần** để không bị nhiều thông báo che mất nguyên nhân.
+Each example in the table below is intentionally written wrong. **Test only one error at a time** so multiple messages do not obscure the root cause.
 
-| Dòng mã không hợp lệ | Vì sao không biên dịch? | Hướng sửa |
+| Invalid line of code | Why doesn't it compile? | How to fix |
 | --- | --- | --- |
-| `int count = "3";` | `String` không tự chuyển thành `int` | `Integer.parseInt("3")` khi dữ liệu đến từ chuỗi |
-| `String label = 3;` | Không có phép gán tự động từ `int` thành `String` | `String.valueOf(3)` hoặc `"3"` |
-| `boolean active = 1;` | Java không xem số 1 là `true` | Dùng `true` hoặc một biểu thức điều kiện |
-| `int amount = 3.5;` | Literal chấm động không thể thu hẹp tự động thành `int` | Chọn `double` hoặc làm tròn/chuyển kiểu có chủ đích |
-| `char symbol = "A";` | `"A"` là `String`, còn `char` là một đơn vị mã UTF-16 | Dùng `'A'` khi muốn `char` |
-| `int number = 3_000_000_000;` | Literal số nguyên không hậu tố vượt miền `int` | Dùng `long number = 3_000_000_000L;` |
-| `unknownName++;` | Không có khai báo tên phù hợp trong phạm vi | Khai báo đúng tên/kiểm tra chính tả |
-| `int x = Math.toIntExact("5");` | Tham số yêu cầu `long`, không phải `String` | Chuyển chuỗi thành số bằng API thích hợp trước |
-| `return "text";` trong method khai báo trả `int` | Kiểu trả về không tương thích | Trả `int` hoặc đổi hợp đồng method |
+| `int count = "3";` | `String` does not implicitly convert to `int` | `Integer.parseInt("3")` when data comes from a string |
+| `String label = 3;` | No automatic assignment from `int` to `String` | `String.valueOf(3)` or `"3"` |
+| `boolean active = 1;` | Java does not treat the number 1 as `true` | Use `true` or a conditional expression |
+| `int amount = 3.5;` | A floating-point literal cannot be implicitly narrowed to `int` | Choose `double` or round/convert intentionally |
+| `char symbol = "A";` | `"A"` is a `String`, whereas `char` is a UTF-16 code unit | Use `'A'` when you want a `char` |
+| `int number = 3_000_000_000;` | Un-suffixed integer literal exceeds `int` range | Use `long number = 3_000_000_000L;` |
+| `unknownName++;` | No matching declaration in scope | Declare the proper name / check spelling |
+| `int x = Math.toIntExact("5");` | Parameter requires `long`, not `String` | Convert the string to a number with an appropriate API first |
+| `return "text";` in a method declared to return `int` | Incompatible return type | Return an `int` or change the method contract |
 
-Không phải lúc nào thông báo lỗi nằm chính xác ở dòng gây ra nguyên nhân. Một dấu ngoặc thiếu phía trước có thể làm `javac` báo lỗi ở nhiều dòng sau. Hãy sửa lỗi đầu tiên hợp lý, biên dịch lại rồi mới xem tiếp.
+The error message is not always on the exact line that caused the issue. A missing brace or parenthesis earlier can make `javac` report errors many lines later. Fix the first sensible error, recompile, and then inspect again.
 
-### Thử một lỗi thật bằng tệp ngắn
+### Test a Real Error with a Short File
 
-Tạo riêng `WrongType.java`:
+Create a separate `WrongType.java`:
 
 ~~~java
 public class WrongType {
@@ -198,67 +198,67 @@ public class WrongType {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac WrongType.java
 ~~~
 
-Biên dịch **thất bại** vì không thể chuyển `String` thành `int`. Không cần học thuộc từng từ của thông báo; trọng tâm là xác định vế nhận cần `int` và vế gán lại là `String`. Sửa:
+Compilation **fails** because `String` cannot be converted to `int`. There is no need to memorize every word of the error message; the key is identifying that the receiving side expects `int` while the assigned side is `String`. Fix:
 
 ~~~java
 int quantity = Integer.parseInt("3");
 ~~~
 
-Dòng sửa biên dịch được, nhưng `Integer.parseInt("ba")` vẫn ném `NumberFormatException` **khi chạy**. Như vậy, kiểu tĩnh ngăn việc gán sai loại dữ liệu nhưng không bảo đảm chuỗi đầu vào chứa số hợp lệ.
+The fixed line compiles, yet `Integer.parseInt("ba")` still throws `NumberFormatException` **at runtime**. Thus, static typing prevents assigning the wrong category of data, but does not guarantee that an input string contains a valid number.
 
-## 5. Chuyển kiểu: mở rộng, thu hẹp và mất dữ liệu
+## 5. Type Conversion: Widening, Narrowing, and Data Loss
 
-Java cho phép một số phép chuyển kiểu **mở rộng tự động** (*widening conversion*), nhưng nhiều phép chuyển thu hẹp đòi hỏi ép kiểu hoặc một phương thức kiểm tra.
+Java allows certain **automatic widening conversions**, whereas many narrowing conversions require an explicit cast or a checked method.
 
 ~~~java
 int small = 42;
-long larger = small; // Hợp lệ: int -> long, giữ nguyên giá trị.
+long larger = small; // Valid: int -> long, preserves the value.
 
-// int narrowed = larger; // Lỗi biên dịch: long -> int.
-// int narrowed = (int) larger; // Có thể biên dịch nhưng có nguy cơ mất dữ liệu.
+// int narrowed = larger; // Compile error: long -> int.
+// int narrowed = (int) larger; // Compiles, but risks data loss.
 
-int checked = Math.toIntExact(larger); // 42; ném lỗi nếu ngoài miền int.
+int checked = Math.toIntExact(larger); // 42; throws an error if outside int range.
 ~~~
 
-Khi ép kiểu rõ ràng, trình biên dịch biết bạn **chủ ý cho phép phép chuyển**, nhưng không chứng minh giá trị vẫn chính xác. Ví dụ:
+With an explicit cast, the compiler knows you **intentionally permit the conversion**, but it does not prove the value remains accurate. For example:
 
 ~~~java
 long big = 3_000_000_000L;
-int unsafe = (int) big; // Biên dịch, nhưng giá trị int không còn là 3000000000.
-// Math.toIntExact(big); // Ném ArithmeticException vì quá miền int.
+int unsafe = (int) big; // Compiles, but the int value is no longer 3000000000.
+// Math.toIntExact(big); // Throws ArithmeticException because it exceeds int range.
 ~~~
 
-### Hai phép chia trông gần giống nhau
+### Two Divisions That Look Almost Alike
 
 ~~~java
 int a = 10;
 int b = 4;
 
-double first = a / b;          // 2.0: chia int trước, rồi đổi sang double.
-double second = (double) a / b; // 2.5: chuyển a sang double trước khi chia.
+double first = a / b;          // 2.0: int division first, then converted to double.
+double second = (double) a / b; // 2.5: converts a to double before dividing.
 ~~~
 
-Kiểu biểu thức quyết định phép chia được thực hiện theo quy tắc nào. Việc biến kết quả khai báo `double` không thể làm phần thập phân đã bị mất ở phép chia số nguyên tự xuất hiện trở lại.
+The types of the operands in the expression determine which rules the division follows. Declaring the result variable as `double` cannot bring back the fractional part already lost in integer division.
 
-Đặc biệt, hằng số kiểu `int` có thể được Java cho phép gán vào `byte`, `short` hoặc `char` khi compiler **biết giá trị nằm trong miền hợp lệ**, nhưng điều đó không có nghĩa mọi biến `int` đều thu hẹp tự động. Ví dụ:
+Notably, Java can allow an `int` constant expression to be assigned to `byte`, `short`, or `char` when the compiler **knows the value is within the valid range**, though that does not mean arbitrary `int` variables narrow automatically. For example:
 
 ~~~java
-byte smallConstant = 100; // Hợp lệ: hằng int trong miền byte.
+byte smallConstant = 100; // Valid: int constant within byte range.
 int generalNumber = 100;
-// byte copy = generalNumber; // Không biên dịch: giá trị biến có thể thay đổi.
+// byte copy = generalNumber; // Does not compile: variable value could change.
 ~~~
 
-Không nên ép kiểu chỉ để “hết lỗi đỏ”. Trước khi ép, hãy hỏi **miền giá trị, độ chính xác và ý nghĩa nghiệp vụ** của dữ liệu.
+Do not insert a cast merely to “make the red error go away”. Before casting, ask about the **value range, precision, and business meaning** of the data.
 
-## 6. Biến chưa được gán và từ khóa `final`
+## 6. Unassigned Variables and the `final` Keyword
 
-Với **biến cục bộ**, Java yêu cầu biến đã được **gán chắc chắn** trước khi đọc. Ví dụ:
+For **local variables**, Java requires the variable to be **definitely assigned** before being read. For example:
 
 ~~~java
 public class DefiniteAssignmentDemo {
@@ -270,8 +270,8 @@ public class DefiniteAssignmentDemo {
             score = 8;
         }
 
-        // System.out.println(score); // Không biên dịch:
-        // nhánh hasExam == false có thể khiến score chưa được gán.
+        // System.out.println(score); // Does not compile:
+        // the hasExam == false branch may leave score unassigned.
 
         int safeScore = hasExam ? 8 : 0;
         System.out.println(safeScore); // 8
@@ -279,44 +279,44 @@ public class DefiniteAssignmentDemo {
 }
 ~~~
 
-Một biến field được khởi tạo mặc định theo quy tắc Java, nhưng không vì thế mà biến cục bộ không được gán lại tự có giá trị 0. Đây là hai tình huống khác nhau.
+A field is initialized by default according to Java rules, yet that does not mean an unassigned local variable automatically gets the value 0. These are two different situations.
 
-`final` ngăn **gán lại biến** sau khi đã được gán theo quy tắc definite assignment:
+`final` prevents **reassigning a variable** once it has been assigned under definite assignment rules:
 
 ~~~java
 final int passMark = 5;
-// passMark = 6; // Không biên dịch: không được gán lại.
+// passMark = 6; // Does not compile: cannot reassign.
 
 final StringBuilder text = new StringBuilder("Java");
-text.append(" core"); // Hợp lệ: nội dung đối tượng vẫn có thể đổi.
-// text = new StringBuilder(); // Không biên dịch: gán lại tham chiếu final.
+text.append(" core"); // Valid: the object's contents can still change.
+// text = new StringBuilder(); // Does not compile: reassigning a final reference.
 ~~~
 
-**`final` không tự biến đối tượng thành bất biến.** Với kiểu tham chiếu, nó bảo vệ *giá trị tham chiếu của biến*, không cấm mọi thay đổi bên trong đối tượng.
+**`final` does not automatically make an object immutable.** For reference types, it protects *the reference value stored in the variable*, not changes inside the referenced object.
 
-## 7. Kiểu của biến tham chiếu và khả năng gọi phương thức
+## 7. Reference Variable Types and Method Call Capability
 
-Cùng một đối tượng có thể được giữ qua các biến có **kiểu khai báo khác nhau**. Trình biên dịch kiểm tra lời gọi dựa trên **kiểu của biểu thức ở vị trí gọi**, không chỉ dựa trên lớp runtime của đối tượng.
+The same object can be held through variables with **different declared types**. The compiler checks a call based on the **type of the expression at the call site**, not merely the object's runtime class.
 
 ~~~java
 Object value = "Hello";
 
-// System.out.println(value.length()); // Không biên dịch:
-// Object không công bố method length().
+// System.out.println(value.length()); // Does not compile:
+// Object does not declare a length() method.
 
 String text = (String) value;
 System.out.println(text.length()); // 5
 ~~~
 
-Dòng ép kiểu làm chương trình biên dịch, nhưng không đảm bảo luôn an toàn với mọi đối tượng:
+The cast lets the program compile, though it does not guarantee safety for every object:
 
 ~~~java
 Object value = Integer.valueOf(42);
-// String text = (String) value; // Biên dịch được nếu bỏ comment,
-// nhưng khi chạy sẽ ném ClassCastException.
+// String text = (String) value; // Compiles if uncommented,
+// but will throw ClassCastException at runtime.
 ~~~
 
-Trong một phương thức thật, nên tránh ép kiểu không có cơ sở. Nếu cần kiểm tra, dùng `instanceof` để xác định một đối tượng có kiểu tương thích trước khi sử dụng:
+In real methods, avoid unfounded casts. If you need to check, use `instanceof` to verify that an object has a compatible type before using it:
 
 ~~~java
 Object item = "Java";
@@ -326,74 +326,74 @@ if (item instanceof String) {
 }
 ~~~
 
-Tính đa hình còn khiến **triển khai nào của một instance method được thực thi** phụ thuộc vào đối tượng runtime. Kiểm tra kiểu của lời gọi khi biên dịch và lựa chọn phần triển khai lúc chạy là hai lớp cơ chế khác nhau, không mâu thuẫn với nhau.
+Polymorphism also causes **which implementation of an instance method executes** to depend on the runtime object. Compile-time type checking of the call and runtime selection of the implementation are two different layers of mechanisms, not contradictory to each other.
 
-### Generic giúp bắt lỗi tập hợp sai kiểu
+### Generics Help Catch Mismatched Collection Element Types
 
 ~~~java
 java.util.List<String> names = new java.util.ArrayList<>();
 names.add("An");
-// names.add(42); // Không biên dịch: danh sách khai báo nhận String.
+// names.add(42); // Does not compile: the list is declared to accept String.
 
-String first = names.get(0); // Kiểu kết quả được kiểm tra là String.
+String first = names.get(0); // Result type is checked as String.
 ~~~
 
-Generics tăng khả năng kiểm tra tĩnh, nhưng Java sử dụng *type erasure* ở nhiều khía cạnh của việc thực thi generic. Dùng raw type, ép kiểu không an toàn hoặc dữ liệu ngoài chương trình có thể khiến lỗi xuất hiện khi chạy. Vì vậy, **generic không phải bằng chứng chương trình miễn nhiễm với mọi lỗi kiểu**.
+Generics strengthen static checking, though Java uses *type erasure* for many aspects of generic execution. Using raw types, unsafe casts, or external data can cause errors to appear at runtime. Therefore, **generics are not proof that a program is immune to all type errors**.
 
-## 8. `var` vẫn là kiểu tĩnh, không phải biến kiểu động
+## 8. `var` Is Still Statically Typed, Not a Dynamic Variable
 
-Từ Java 10, trong một số khai báo biến cục bộ, có thể để trình biên dịch **suy luận kiểu** từ biểu thức khởi tạo:
+Starting in Java 10, in certain local variable declarations, you can let the compiler **infer the type** from the initializer expression:
 
 ~~~java
-var count = 3;         // Suy luận int.
-var title = "Java";    // Suy luận String.
+var count = 3;         // Inferred as int.
+var title = "Java";    // Inferred as String.
 
-count = 5;             // Hợp lệ.
-// count = "five";     // Không biên dịch: count đã được suy luận là int.
+count = 5;             // Valid.
+// count = "five";     // Does not compile: count was already inferred as int.
 ~~~
 
-`var` không có nghĩa biến sẽ tự đổi kiểu qua từng phép gán. Nó cũng không thay thế được kiểu khai báo ở mọi nơi:
+`var` does not mean the variable changes type across assignments. Nor can it replace explicit types everywhere:
 
 ~~~java
-// var withoutValue; // Không hợp lệ: thiếu giá trị khởi tạo.
-// var empty = null;  // Không thể suy luận kiểu từ null.
-// void test(var x) {} // Không dùng var như kiểu tham số method thường.
+// var withoutValue; // Invalid: missing initializer.
+// var empty = null;  // Cannot infer type from null.
+// void test(var x) {} // Cannot use var as a regular method parameter type.
 ~~~
 
-Dùng `var` khi kiểu đã hiển nhiên và mã dễ đọc hơn; dùng tên kiểu tường minh khi điều đó giúp người học hoặc người bảo trì nhìn rõ hợp đồng của dữ liệu.
+Use `var` when the type is already obvious and it makes the code easier to read; use explicit type names when doing so helps learners or maintainers clearly see the data contract.
 
-## 9. Những lỗi không được hệ kiểu tĩnh loại bỏ hoàn toàn
+## 9. Bugs That Static Typing Does Not Completely Eliminate
 
-So sánh ba tình huống:
+Compare three situations:
 
-| Loại vấn đề | Ví dụ | Java phát hiện khi nào? |
+| Problem Type | Example | When Does Java Detect It? |
 | --- | --- | --- |
-| Sai kiểu hoặc cú pháp | `int score = "8";` | Khi biên dịch |
-| Ngoại lệ lúc chạy | `10 / zero` với `zero = 0` ở runtime | Khi chạy đến phép toán |
-| Sai logic | Dùng `>` thay vì `>=` cho ngưỡng đạt | Có thể chạy bình thường; cần kiểm thử theo yêu cầu |
+| Type or syntax error | `int score = "8";` | At compile time |
+| Runtime exception | `10 / zero` with `zero = 0` at runtime | When execution reaches the operation |
+| Logic error | Using `>` instead of `>=` for a passing threshold | May run normally; requires testing against requirements |
 
-Ví dụ những đoạn **có thể biên dịch** nhưng vẫn gặp vấn đề:
+Examples of snippets that **compile** yet still have issues:
 
 ~~~java
 int zero = 0;
-// System.out.println(10 / zero); // Ném ArithmeticException khi chạy.
+// System.out.println(10 / zero); // Throws ArithmeticException at runtime.
 
 int[] values = {2, 4};
-// System.out.println(values[2]); // Ném ArrayIndexOutOfBoundsException.
+// System.out.println(values[2]); // Throws ArrayIndexOutOfBoundsException.
 
 String message = null;
-// System.out.println(message.length()); // Ném NullPointerException.
+// System.out.println(message.length()); // Throws NullPointerException.
 
 int tooLarge = Integer.MAX_VALUE;
 tooLarge++;
-System.out.println(tooLarge); // -2147483648: int tràn và quay vòng.
+System.out.println(tooLarge); // -2147483648: int overflows and wraps around.
 ~~~
 
-Ở ví dụ cuối, Java không tự ném lỗi khi tăng `int` thông thường vượt miền. Khi cần phát hiện tràn trong phép cộng số nguyên, có thể dùng `Math.addExact(...)` hoặc một phương pháp kiểm tra miền giá trị phù hợp.
+In the last example, Java does not automatically throw an error when normal `int` increment overflows the range. When you need to detect overflow in integer addition, you can use `Math.addExact(...)` or an appropriate range-checking approach.
 
-### Checked exception cũng được kiểm tra lúc biên dịch
+### Checked Exceptions Are Also Verified at Compile Time
 
-Một số API có thể khai báo **checked exception**. Java yêu cầu caller **bắt hoặc khai báo tiếp** các loại checked exception cần xử lý. Ví dụ:
+Some APIs may declare **checked exceptions**. Java requires the caller to **catch or further declare** the checked exceptions that must be handled. For example:
 
 ~~~java
 import java.io.IOException;
@@ -407,58 +407,58 @@ class ReadTextDemo {
 }
 ~~~
 
-Ở đây, chữ ký `throws IOException` thừa nhận thao tác đọc có thể thất bại khi chạy. Trình biên dịch giúp kiểm tra sự hiện diện của cơ chế **bắt hoặc khai báo**, nhưng không dự đoán tệp có tồn tại, quyền đọc có hợp lệ hay ổ đĩa có gặp lỗi hay không.
+Here, the `throws IOException` signature acknowledges that the read operation can fail at runtime. The compiler checks for the presence of the **catch-or-declare** mechanism, yet cannot predict whether the file exists, read permissions are valid, or the disk encounters an error.
 
-Ngược lại, các lỗi runtime phổ biến như `NullPointerException` thường là *unchecked exception*; Java không bắt buộc method phải ghi `throws NullPointerException` hoặc caller phải bắt nó.
+By contrast, common runtime errors such as `NullPointerException` are *unchecked exceptions*; Java does not force a method to write `throws NullPointerException` or force callers to catch it.
 
-## 10. Cách đọc và sửa thông báo lỗi `javac`
+## 10. How to Read and Fix `javac` Error Messages
 
-Khi thấy thông báo lỗi, hãy làm theo quy trình:
+When you see an error message, follow this process:
 
-1. **Xác định tệp và dòng lỗi.** Đọc biểu thức ngay tại dòng đó và vài dòng trước nếu cần.
-2. **Tìm kiểu được yêu cầu và kiểu đang có.** Ví dụ vế trái cần `int` nhưng biểu thức bên phải là `String`.
-3. **Xem dữ liệu có đúng ý nghĩa không.** Số lượng nên là số, mã hàng thường là chuỗi; đừng ép kiểu sai bản chất.
-4. **Chọn cách sửa an toàn:** sửa khai báo, chuyển chuỗi bằng API có kiểm tra, bổ sung gán giá trị, hoặc thay lời gọi phương thức đúng.
-5. **Biên dịch lại** sau mỗi nhóm sửa nhỏ, sau đó **chạy và kiểm thử** vì hết lỗi compile chưa đồng nghĩa đúng yêu cầu.
+1. **Locate the file and line of the error.** Read the expression on that line and a few preceding lines if needed.
+2. **Identify the expected type and the actual type.** For example, the left-hand side expects `int`, while the expression on the right is `String`.
+3. **Check whether the data makes sense conceptually.** Quantities should be numbers, product codes are usually strings; do not force a cast that contradicts the data's nature.
+4. **Choose a safe fix:** fix the declaration, parse strings with a validating API, add an assignment, or call the right method.
+5. **Recompile** after each small group of fixes, then **run and test**, because zero compile errors does not mean the requirement is met.
 
-Một số dạng thông báo thường gặp:
+Some common message patterns:
 
-| Dấu hiệu | Hướng điều tra |
+| Clue | Direction to Investigate |
 | --- | --- |
-| `incompatible types` | Sai kiểu khi gán, trả về hoặc truyền tham số |
-| `cannot find symbol` | Sai tên, thiếu khai báo hoặc thiếu import |
-| `possible lossy conversion` | Chuyển thu hẹp có nguy cơ mất dữ liệu |
-| `variable ... might not have been initialized` | Biến cục bộ chưa được gán chắc chắn |
-| `method ... cannot be applied to given types` | Sai số lượng hoặc kiểu đối số |
-| `unreported exception ...` | Checked exception chưa bắt/khai báo |
-| `';' expected` | Có thể thiếu dấu kết thúc câu lệnh hoặc cú pháp trước đó sai |
+| `incompatible types` | Mismatched type in assignment, return, or passing an argument |
+| `cannot find symbol` | Misspelled name, missing declaration, or missing import |
+| `possible lossy conversion` | Narrowing conversion risking data loss |
+| `variable ... might not have been initialized` | Local variable not definitely assigned |
+| `method ... cannot be applied to given types` | Wrong number or types of arguments |
+| `unreported exception ...` | Checked exception not caught or declared |
+| `';' expected` | Possibly missing statement terminator or earlier syntax mistake |
 
-Đừng sửa lỗi bằng cách đổi mọi thứ sang `String` hoặc chèn ép kiểu hàng loạt. Như vậy có thể làm chương trình biên dịch được nhưng mất kiểm soát dữ liệu và vẫn sai khi chạy.
+Do not fix errors by turning everything into `String` or inserting casts everywhere. Doing so may let the program compile, yet you lose control over data and it will still fail at runtime.
 
-## 11. Các trường hợp biên đáng kiểm tra
+## 11. Boundary Cases Worth Checking
 
-Bảng sau nhấn mạnh rằng kiểm tra kiểu và kiểm tra **giá trị hợp lệ** là hai việc bổ sung cho nhau.
+The table below emphasizes that type checking and **valid value checking** complement each other.
 
-| Trường hợp | `javac` có chặn không? | Điều gì cần xảy ra? |
+| Case | Does `javac` block it? | What needs to happen? |
 | --- | --- | --- |
-| `int age = "20";` | Có | Sửa kiểu/giao tiếp chuyển chuỗi |
-| `int age = -1;` | Không | Nếu tuổi không được âm, tự kiểm tra quy tắc |
-| `Long.parseLong("abc")` | Không | Khi chạy có thể ném `NumberFormatException` |
-| `int x = Integer.MAX_VALUE; x++;` | Không | Tràn theo ngữ nghĩa `int`; cần kiểm tra nếu không được phép |
-| `long big = 3_000_000_000;` | Có | Literal cần hậu tố `L` |
-| `byte x = 100;` | Không | Hằng nằm trong giới hạn `byte` |
-| `byte x = 200;` | Có | Hằng vượt miền `byte` |
-| `Object x = "Hi"; x.length();` | Có | Kiểu `Object` không công bố `length()` |
-| `Object x = 42; (String) x;` | Không đối với cast hợp lệ về mặt kiểu | Có thể `ClassCastException` khi chạy |
-| `String s = null; s.length();` | Thường không | Có thể `NullPointerException` khi chạy |
-| `double x = 10 / 4;` | Không | Kết quả là `2.0`, cần đổi cách chia nếu muốn `2.5` |
-| `int[] a = {1}; a[1]` | Không | Có thể `ArrayIndexOutOfBoundsException` |
+| `int age = "20";` | Yes | Fix the type / string conversion boundary |
+| `int age = -1;` | No | If age cannot be negative, validate the rule yourself |
+| `Long.parseLong("abc")` | No | May throw `NumberFormatException` at runtime |
+| `int x = Integer.MAX_VALUE; x++;` | No | Overflows per `int` semantics; check explicitly if disallowed |
+| `long big = 3_000_000_000;` | Yes | Literal needs suffix `L` |
+| `byte x = 100;` | No | Constant is within `byte` limits |
+| `byte x = 200;` | Yes | Constant exceeds `byte` range |
+| `Object x = "Hi"; x.length();` | Yes | Type `Object` does not declare `length()` |
+| `Object x = 42; (String) x;` | Not for a type-valid cast | May throw `ClassCastException` at runtime |
+| `String s = null; s.length();` | Usually no | May throw `NullPointerException` at runtime |
+| `double x = 10 / 4;` | No | Result is `2.0`; change the division if `2.5` is wanted |
+| `int[] a = {1}; a[1]` | No | May throw `ArrayIndexOutOfBoundsException` |
 
-Lưu ý về dòng ép kiểu ở bảng: dạng `(String) x` là một **biểu thức**; trong chương trình Java cần đặt nó vào một câu lệnh hợp lệ, ví dụ `String text = (String) x;`. Mục đích ở đây là minh họa khả năng kiểm tra kiểu, không phải tệp mã độc lập.
+Note on the cast in the table: `(String) x` is an **expression**; in a Java program it must be placed inside a valid statement, such as `String text = (String) x;`. The intent here is to illustrate type-checking behavior, not a standalone code file.
 
-## 12. Bài tập tự luyện và đáp án
+## 12. Self-Practice Exercises and Answers
 
-**Bài 1 — Tìm lỗi biên dịch.** Đọc đoạn sau và chỉ ra vì sao từng dòng bị chú thích sẽ sai nếu bỏ chú thích:
+**Exercise 1 — Find the compile errors.** Read the snippet below and explain why each commented line will fail if uncommented:
 
 ~~~java
 int tickets = 2;
@@ -467,9 +467,9 @@ int tickets = 2;
 // char grade = "A";
 ~~~
 
-*Đáp án:* `tickets` đã có kiểu `int`, chuỗi không gán được trực tiếp; `boolean` không dùng 1 thay cho `true`; `char` cần một literal `'A'` thay vì `String` `"A"`.
+*Answer:* `tickets` already has type `int`, so a string cannot be assigned directly; `boolean` does not use 1 in place of `true`; `char` needs a `'A'` literal instead of the `String` `"A"`.
 
-**Bài 2 — Sửa phép chia.**
+**Exercise 2 — Fix the division.**
 
 ~~~java
 int sum = 7 + 8 + 9;
@@ -477,19 +477,19 @@ double average = sum / 3;
 System.out.println(average);
 ~~~
 
-*Dự đoán:* In `8.0` vì chia nguyên cho ra 8. Để diễn đạt đúng ý định nếu tổng không chia hết, viết `(double) sum / 3` hoặc `sum / 3.0`. Với tổng này, cả hai cách vẫn cho 8.0; thử `sum = 25` để thấy khác biệt (chia nguyên thành 8, chia chấm động thành khoảng 8.333...).
+*Prediction:* Prints `8.0` because integer division yields 8. To express the right intent when the sum is not evenly divisible, write `(double) sum / 3` or `sum / 3.0`. With this sum, both still yield 8.0; try `sum = 25` to see the difference (integer division gives 8, floating-point division gives around 8.333...).
 
-**Bài 3 — Lỗi runtime hay compile?** Với `Object anything = "Java";`, vì sao `anything.length()` không được biên dịch, nhưng `((String) anything).length()` lại hợp lệ? Nếu thay đối tượng thực thành `Integer.valueOf(7)` thì chuyện gì xảy ra?
+**Exercise 3 — Runtime or compile error?** Given `Object anything = "Java";`, why does `anything.length()` fail to compile, while `((String) anything).length()` is valid? If the actual object is changed to `Integer.valueOf(7)`, what happens?
 
-*Đáp án:* Kiểu khai báo `Object` không có `length()`; cast sang `String` mở quyền gọi ở mức biên dịch. Nếu runtime là `Integer`, ép sang `String` gây `ClassCastException`.
+*Answer:* The declared type `Object` does not have `length()`; casting to `String` grants permission to call it at compile time. If the runtime object is an `Integer`, casting to `String` causes `ClassCastException`.
 
-**Bài 4 — Giá trị lớn.** Tại sao `long money = 3_000_000_000;` không biên dịch? Viết đúng và giải thích vì sao chỉ đổi kiểu biến ở vế trái chưa đủ.
+**Exercise 4 — Large values.** Why does `long money = 3_000_000_000;` fail to compile? Write it correctly and explain why changing only the variable's type on the left is not enough.
 
-*Đáp án:* Literal không hậu tố được xử lý theo quy tắc literal `int` và quá miền; dùng `3_000_000_000L`, hậu tố `L` cho literal kiểu `long`.
+*Answer:* An un-suffixed literal is processed under `int` literal rules and overflows the range; use `3_000_000_000L`, where the `L` suffix indicates a `long` literal.
 
-**Bài 5 — Thiết kế ca kiểm thử.** Viết phương thức `static int positiveCount(String raw)` nhận chuỗi số nguyên và từ chối số âm. Phân biệt các lỗi cần xử lý cho ba input `"5"`, `"-2"` và `"abc"`.
+**Exercise 5 — Design test cases.** Write a method `static int positiveCount(String raw)` that accepts an integer string and rejects negative numbers. Distinguish the errors to handle for the three inputs `"5"`, `"-2"`, and `"abc"`.
 
-*Gợi ý một lời giải:*
+*One possible solution:*
 
 ~~~java
 static int positiveCount(String raw) {
@@ -501,25 +501,25 @@ static int positiveCount(String raw) {
 }
 ~~~
 
-Kết quả: `"5"` trả 5; `"-2"` ném `IllegalArgumentException` theo quy tắc; `"abc"` ném `NumberFormatException` khi parse (là lớp con của `IllegalArgumentException`). Dù mã hợp lệ về kiểu, phải **kiểm tra dữ liệu** lúc chạy.
+Results: `"5"` returns 5; `"-2"` throws `IllegalArgumentException` per the rule; `"abc"` throws `NumberFormatException` during parsing (which is a subclass of `IllegalArgumentException`). Even when code is well-typed, you must **validate data** at runtime.
 
-**Bài 6 — Phân biệt `final` và kiểu tĩnh.** Cho `final StringBuilder sb = new StringBuilder("A");`. Vì sao `sb.append("B")` chạy được nhưng `sb = new StringBuilder("C")` lại không biên dịch?
+**Exercise 6 — Distinguish `final` and static typing.** Given `final StringBuilder sb = new StringBuilder("A");`, why does `sb.append("B")` run while `sb = new StringBuilder("C")` fails to compile?
 
-*Đáp án:* `final` cấm gán lại biến sau khi đã gán; đối tượng `StringBuilder` vẫn mutable. Kiểu của `sb` không đổi trong cả hai trường hợp.
+*Answer:* `final` forbids reassigning the variable once assigned; the `StringBuilder` object remains mutable. The type of `sb` does not change in either case.
 
-## 13. Checklist trước khi nộp một chương trình Java
+## 13. Checklist Before Submitting a Java Program
 
-- [ ] Tệp `.java` và lớp `public` khớp tên.
-- [ ] Tên biến có ý nghĩa và kiểu phù hợp với đơn vị, miền giá trị.
-- [ ] Không gán nhầm `String` cho kiểu số hoặc `int` cho `boolean`.
-- [ ] Hiểu chuyển kiểu mở rộng/thu hẹp và nguy cơ mất dữ liệu.
-- [ ] Biến cục bộ đã được gán chắc chắn trước khi dùng.
-- [ ] Tham số truyền vào đúng kiểu và số lượng phương thức yêu cầu.
-- [ ] Không dùng cast chỉ để né lỗi kiểu; có kiểm tra khi cần.
-- [ ] Giá trị đầu vào được validate theo quy tắc nghiệp vụ.
-- [ ] Đã biên dịch bằng `javac`, chạy bằng `java` và thử trường hợp biên.
-- [ ] Phân biệt **hết lỗi biên dịch** với **không còn lỗi khi chạy và kết quả đúng**.
+- [ ] The `.java` file and the `public` class match in name.
+- [ ] Variable names are meaningful and their types match the units and value ranges.
+- [ ] No accidental assignment of `String` to a numeric type or `int` to `boolean`.
+- [ ] Understand widening/narrowing conversions and the risk of data loss.
+- [ ] Local variables are definitely assigned before being used.
+- [ ] Arguments passed match the types and count required by the method.
+- [ ] No casts added just to bypass type errors; checks are used when needed.
+- [ ] Input values are validated according to business rules.
+- [ ] Compiled with `javac`, run with `java`, and tested on boundary cases.
+- [ ] Distinguish **zero compile errors** from **zero runtime errors and correct results**.
 
-## Ghi nhớ
+## Key Takeaways
 
-**Kiểu dữ liệu tĩnh là một hàng rào phát hiện sớm**, giúp Java từ chối nhiều cách dùng dữ liệu sai trước khi chạy. Khi compiler báo lỗi, hãy hỏi “biểu thức này có kiểu gì?” và “vị trí sử dụng đòi hỏi kiểu gì?”. Nhưng khi compiler không báo lỗi, bạn vẫn phải hỏi “giá trị có hợp lệ không?” và “thuật toán có đúng yêu cầu không?”. Hiểu cả ba lớp — **kiểm tra kiểu, kiểm tra dữ liệu, kiểm tra logic** — là nền tảng để viết Java đáng tin cậy.
+**Static typing is an early detection barrier**, helping Java reject many improper uses of data before execution. When the compiler reports an error, ask “what type does this expression have?” and “what type does this usage site require?”. Yet when the compiler reports no error, you still must ask “are the values valid?” and “does the algorithm satisfy the requirement?”. Understanding all three layers—**type checking, data validation, and logic verification**—is the foundation for writing reliable Java code.

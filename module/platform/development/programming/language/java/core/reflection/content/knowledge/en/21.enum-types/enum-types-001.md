@@ -1,54 +1,54 @@
-# Nhận diện enum bằng isEnum và lấy các hằng bằng getEnumConstants
+# Identifying enums with isEnum and retrieving constants with getEnumConstants
 
-## 1. Hai câu hỏi khác nhau khi chỉ có Class
+## 1. Two different questions when you only have a Class
 
-Một enum biểu diễn một tập hằng có tên, chẳng hạn `LOW`, `NORMAL`, `HIGH`. Khi biết tên kiểu ngay trong mã nguồn, ta có thể gọi `Priority.values()` để duyệt các hằng. Nhưng một công cụ tạo biểu mẫu, đọc cấu hình hoặc kiểm tra mô hình dữ liệu có thể chỉ nhận được một `Class<?>` lúc chạy.
+An enum represents a set of named constants, such as `LOW`, `NORMAL`, `HIGH`. When the type name is known directly in source code, you can call `Priority.values()` to iterate over the constants. However, a form generator, configuration reader, or data model inspector might only receive a `Class<?>` at runtime.
 
-Trong trường hợp ấy, hai phương thức của `Class` trả lời hai câu hỏi:
+In that case, two methods on `Class` answer two questions:
 
-- `isEnum()`: đối tượng `Class` này có mô tả **lớp được khai báo bằng enum** hay không?
-- `getEnumConstants()`: các **đối tượng hằng enum thực tế** của lớp đó là những đối tượng nào?
+- `isEnum()`: does this `Class` object describe a **class declared as an enum**?
+- `getEnumConstants()`: what are the **actual enum constant objects** of that class?
 
-Đừng gộp hai câu hỏi thành một. Nhận diện một lớp là enum khác với lấy các đối tượng hằng của nó. Đặc biệt, bước lấy các hằng có thể làm enum được khởi tạo nếu trước đó chưa được khởi tạo.
+Do not merge the two questions into one. Identifying a class as an enum is different from retrieving its constant objects. In particular, retrieving the constants may cause the enum to be initialized if it has not been initialized previously.
 
-Bài học dùng Java 17 trở lên và tập trung vào hai API trên. Các thao tác tìm hằng theo tên, đọc annotation của hằng hoặc truy cập field bên trong enum là những nhu cầu khác.
+This lesson uses Java 17 or later and focuses on the two APIs above. Looking up constants by name, reading annotations on constants, or accessing fields inside an enum are different needs.
 
-## 2. Hợp đồng cần nhớ
+## 2. Contracts to remember
 
-| API | Kiểu trả về | Ý nghĩa |
+| API | Return type | Meaning |
 | --- | --- | --- |
-| `Class.isEnum()` | `boolean` | `true` khi lớp được khai báo là enum |
-| `Class<T>.getEnumConstants()` | `T[]` | Mảng hằng theo **thứ tự khai báo**, hoặc `null` nếu lớp không phải enum |
+| `Class.isEnum()` | `boolean` | `true` when the class is declared as an enum |
+| `Class<T>.getEnumConstants()` | `T[]` | Array of constants in **declaration order**, or `null` if the class is not an enum |
 
-Hai kết quả dễ nhầm:
+Two easily confused results:
 
-- **Không phải enum:** `getEnumConstants()` trả `null`.
-- **Là enum nhưng không có hằng:** phương thức trả một mảng có độ dài `0`.
+- **Not an enum:** `getEnumConstants()` returns `null`.
+- **Is an enum with no constants:** the method returns an array of length `0`.
 
-Enum rỗng là hợp lệ, ví dụ một khai báo riêng:
+An empty enum is valid, for example a standalone declaration:
 
 ~~~java
 enum Empty {
 }
 ~~~
 
-Không suy ra “không phải enum” chỉ từ việc không có phần tử. Cần phân biệt mảng rỗng với `null`.
+Do not infer "not an enum" merely from having no elements. You must distinguish an empty array from `null`.
 
-Các trường hợp thường gặp, giả sử đã có khai báo `enum Priority { LOW, NORMAL, HIGH }`:
+Common cases, assuming `enum Priority { LOW, NORMAL, HIGH }` is declared:
 
-| Đối tượng Class | isEnum() | getEnumConstants() |
+| Class object | isEnum() | getEnumConstants() |
 | --- | --- | --- |
-| `Priority.class` | `true` | Ba hằng `LOW`, `NORMAL`, `HIGH` |
-| `Empty.class` | `true` | Mảng rỗng |
+| `Priority.class` | `true` | Three constants `LOW`, `NORMAL`, `HIGH` |
+| `Empty.class` | `true` | Empty array |
 | `String.class` | `false` | `null` |
 | `Enum.class` | `false` | `null` |
 | `Priority[].class` | `false` | `null` |
 
-`java.lang.Enum` là lớp cơ sở chung của các enum, nhưng bản thân nó không phải một lớp được khai báo bằng cú pháp `enum`. Một mảng chứa enum cũng là kiểu mảng, không phải enum.
+`java.lang.Enum` is the common base class of enums, but it is not itself a class declared with the `enum` syntax. An array containing enums is also an array type, not an enum.
 
-## 3. Ví dụ hoàn chỉnh: nhận diện, liệt kê và xử lý enum rỗng
+## 3. Complete example: identifying, listing, and handling an empty enum
 
-Lưu thành `EnumInspectionDemo.java`:
+Save as `EnumInspectionDemo.java`:
 
 ~~~java
 import java.util.ArrayList;
@@ -106,14 +106,14 @@ public class EnumInspectionDemo {
 }
 ~~~
 
-Biên dịch và chạy:
+Compile and run:
 
 ~~~bash
 javac --release 17 EnumInspectionDemo.java
 java EnumInspectionDemo
 ~~~
 
-Kết quả chính xác:
+Exact output:
 
 ~~~text
 isEnum=true
@@ -132,29 +132,29 @@ array.isEnum=false
 names=[LOW, NORMAL, HIGH]
 ~~~
 
-Những điều chương trình chứng minh:
+What the program demonstrates:
 
-1. Duyệt bằng `getEnumConstants()` giữ thứ tự `LOW`, `NORMAL`, `HIGH`, đúng thứ tự khai báo.
-2. Phần tử đầu tiên chính là `Priority.LOW`, không phải một bản sao mới của hằng ấy.
-3. Với `Class<Priority>`, kết quả được định kiểu thành `Priority[]`. Với `Class<?>`, có thể duyệt qua `Object[]` rồi xử lý theo hợp đồng enum.
-4. Enum rỗng vẫn nhận diện được bằng `isEnum()`.
-5. Hàm `enumNames` từ chối đầu vào không phải enum, thay vì biến đầu vào sai thành một danh sách rỗng khó phân biệt.
+1. Iterating with `getEnumConstants()` preserves the order `LOW`, `NORMAL`, `HIGH`, matching the declaration order.
+2. The first element is `Priority.LOW` itself, not a new copy of that constant.
+3. With `Class<Priority>`, the result is typed as `Priority[]`. With `Class<?>`, you can iterate through `Object[]` and then handle elements according to the enum contract.
+4. An empty enum can still be identified with `isEnum()`.
+5. The `enumNames` method rejects non-enum inputs, rather than turning invalid input into an empty list that is hard to distinguish.
 
-Phép ép sang `Enum<?>` trong `enumNames` dựa trên điều kiện đã kiểm tra: `type` là lớp enum và các phần tử được lấy trực tiếp từ `type.getEnumConstants()`. Không áp dụng phép ép ấy cho một mảng `Object[]` bất kỳ.
+The cast to `Enum<?>` in `enumNames` relies on the condition already checked: `type` is an enum class and the elements are retrieved directly from `type.getEnumConstants()`. Do not apply that cast to an arbitrary `Object[]` array.
 
-Trong `main`, `type` được gán trực tiếp từ `Priority.class`, nên chương trình biết chắc kết quả khác `null`. Nếu nhận `Class<?>` từ nơi khác, cần kiểm tra như hàm `enumNames` trước khi duyệt.
+In `main`, `type` is assigned directly from `Priority.class`, so the program knows for certain that the result is non-`null`. If you receive `Class<?>` from elsewhere, check it as `enumNames` does before iterating.
 
-## 4. Thứ tự khai báo, tên và nhãn
+## 4. Declaration order, names, and labels
 
-`getEnumConstants()` trả các hằng theo **thứ tự khai báo**. `ordinal()` là vị trí bắt đầu từ 0; `name()` trả tên khai báo, còn `toString()` có thể bị ghi đè để tạo nhãn hiển thị. Vì thế, công cụ cần khóa tên chính xác nên dùng `name()` và công cụ cần thứ tự khác phải tự sắp xếp kết quả để hiển thị.
+`getEnumConstants()` returns constants in **declaration order**. `ordinal()` is the zero-based position; `name()` returns the declared name, whereas `toString()` may be overridden to produce a display label. Therefore, tools that need exact name keys should use `name()`, and tools that need a different order must sort the results themselves for display.
 
-Không lưu `ordinal()` như mã nghiệp vụ bền vững: thêm hoặc đổi chỗ hằng có thể thay đổi các vị trí. Sắp xếp mảng `getEnumConstants()` cục bộ cũng không thay đổi thứ tự thực của enum. Bài tiếp theo kiểm tra chi tiết việc sắp xếp, thứ tự và sự khác nhau giữa mảng rỗng với `null`.
+Do not store `ordinal()` as a durable business code: adding or reordering constants can change positions. Sorting the `getEnumConstants()` array locally also does not change the actual order of the enum. The next lesson examines sorting, ordering, and the difference between an empty array and `null` in detail.
 
-## 5. Khi hằng enum có thân lớp riêng
+## 5. When an enum constant has a constant-specific class body
 
-Hằng enum có thể khai báo một thân lớp riêng để ghi đè hành vi; lớp thực tế của đối tượng lúc đó là **lớp con ẩn danh**, nên `constant.getClass().isEnum()` có thể trả `false`. Điều này không phủ nhận việc đối tượng là một hằng enum. Khi đã có `Enum<?>`, dùng `constant.getDeclaringClass()` để lấy **lớp khai báo enum** rồi mới gọi `getEnumConstants()`.
+An enum constant can declare a constant-specific class body to override behavior; the runtime class of the object is then an **anonymous subclass**, so `constant.getClass().isEnum()` can return `false`. This does not negate the fact that the object is an enum constant. Once you have an `Enum<?>`, use `constant.getDeclaringClass()` to obtain the **declaring enum class** and then call `getEnumConstants()`.
 
-Ví dụ độc lập về sự khác biệt:
+Standalone example of the difference:
 
 ~~~java
 enum Mode {
@@ -170,15 +170,15 @@ System.out.println(constant.getDeclaringClass().isEnum()); // true
 System.out.println(constant.getDeclaringClass() == Mode.class); // true
 ~~~
 
-Các câu lệnh sau khai báo `Mode` là đoạn minh họa phải đặt trong phương thức hoặc khối thích hợp; trường hợp `SAFE` không có thân riêng sẽ có lớp thực tế là `Mode`. Nếu nhận `Object value` bất kỳ, trước tiên kiểm tra `value instanceof Enum<?> constant` để nhận diện cả các hằng có thân riêng.
+The statements after the `Mode` declaration are an illustrative snippet that must be placed inside an appropriate method or block; the `SAFE` case without its own body will have `Mode` as its runtime class. If you receive an arbitrary `Object value`, first check `value instanceof Enum<?> constant` to recognize constants with their own class bodies as well.
 
-Muốn khảo sát phần thực hiện riêng của hằng, `getClass()` vẫn hữu ích. Muốn phân loại và liệt kê **kiểu enum chung**, dùng `getDeclaringClass()`; bài riêng về thân lớp của hằng phân tích thêm quan hệ này và sự khác biệt giữa `Enum.getDeclaringClass()` với `Class.getDeclaringClass()`.
+If you want to inspect the constant-specific implementation, `getClass()` is still useful. If you want to classify and list the **common enum type**, use `getDeclaringClass()`; a separate lesson on constant-specific class bodies analyzes this relationship further along with the difference between `Enum.getDeclaringClass()` and `Class.getDeclaringClass()`.
 
-## 6. Lấy các hằng có thể khởi tạo enum
+## 6. Retrieving constants can initialize the enum
 
-`isEnum()` là bước phân loại kiểu. `getEnumConstants()` phải cung cấp các hằng thực tế; nếu enum chưa được khởi tạo, việc lấy các hằng có thể làm chạy quá trình khởi tạo, gồm việc tạo các hằng và thực hiện khối `static`.
+`isEnum()` is a type classification step. `getEnumConstants()` must provide the actual constants; if the enum has not been initialized yet, retrieving the constants can trigger initialization, including creating the constants and executing `static` blocks.
 
-Lưu thành `EnumInitializationDemo.java`:
+Save as `EnumInitializationDemo.java`:
 
 ~~~java
 public class EnumInitializationDemo {
@@ -204,14 +204,14 @@ public class EnumInitializationDemo {
 }
 ~~~
 
-Biên dịch và chạy trong một tiến trình mới:
+Compile and run in a new process:
 
 ~~~bash
 javac --release 17 EnumInitializationDemo.java
 java EnumInitializationDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 isEnum=true
@@ -220,66 +220,66 @@ Level initialized
 count=2
 ~~~
 
-Đối số `false` của `Class.forName` trong ví dụ yêu cầu lấy lớp mà chưa khởi tạo nó. Tên có `$` ở đây là tên nhị phân chính xác của enum lồng trong lớp minh họa, không phải thuật toán suy ra tên enum từ một hằng.
+The `false` argument to `Class.forName` in the example requests loading the class without initializing it yet. The name with `$` here is the exact binary name of the nested enum in the demo class, not an algorithm for deriving an enum name from a constant.
 
-Dòng `Level initialized` xuất hiện khi lấy các hằng. Vì vậy, một công cụ chỉ muốn phân loại kiểu có thể dừng ở `isEnum()`; nếu cần danh sách đối tượng hằng thì phải chấp nhận bước lấy các giá trị có ngữ nghĩa khởi tạo.
+The line `Level initialized` appears when retrieving the constants. Therefore, a tool that only wants to classify types can stop at `isEnum()`; if it needs the list of constant objects, it must accept that retrieving values carries initialization semantics.
 
-Nếu enum đã được khởi tạo thành công trước đó, lấy lại các hằng không có nghĩa là tạo lại từng hằng hoặc chạy lại khối `static` cho mỗi lần gọi. Nếu quá trình khởi tạo thất bại, chương trình có thể nhận lỗi khởi tạo; đừng đồng nhất lỗi ấy với kết quả `null` dành cho lớp không phải enum.
+If the enum has already been initialized successfully earlier, retrieving the constants again does not recreate each constant or rerun `static` blocks on each call. If initialization fails, the program may receive an initialization error; do not equate that error with the `null` result reserved for non-enum classes.
 
-Ví dụ này cũng cho thấy không nên mô tả mọi API Reflection có tên bắt đầu bằng `get` là hoàn toàn không gây tác dụng phụ.
+This example also shows why you should not describe every Reflection API starting with `get` as completely side-effect-free.
 
-## 7. Chọn đúng API cho từng tình huống
+## 7. Choosing the right API for each situation
 
-**Đã biết kiểu cụ thể trong mã nguồn:** gọi `Priority.values()` để duyệt trực tiếp. Không cần tìm phương thức `values` bằng Reflection rồi gọi `Method.invoke`.
+**Specific type already known in source code:** call `Priority.values()` to iterate directly. There is no need to look up the `values` method via Reflection and call `Method.invoke`.
 
-**Chỉ có Class lúc chạy:** dùng `isEnum()` và `getEnumConstants()`. Đây là trường hợp một bộ tạo biểu mẫu nhận kiểu của thuộc tính nhưng không biết trước enum nào được dùng.
+**Only a Class available at runtime:** use `isEnum()` and `getEnumConstants()`. This is the case when a form builder receives a property's type without knowing in advance which enum is used.
 
-**Đã có một hằng:** dùng `getDeclaringClass()` để chuẩn hóa về lớp enum, nhất là khi hằng có thân lớp riêng.
+**Already holding a constant:** use `getDeclaringClass()` to normalize to the enum class, especially when the constant has a constant-specific class body.
 
-**Cần tên các lựa chọn:** chuyển từng hằng bằng `Enum.name()` nếu cần tên khai báo; tạo nhãn hiển thị theo quy tắc riêng nếu ứng dụng yêu cầu bản địa hóa hoặc nhãn dễ đọc.
+**Need option names:** convert each constant with `Enum.name()` if declared names are needed; generate display labels using your own rules if the application requires localization or human-readable labels.
 
-**Cần metadata của field khai báo hằng:** đó là công việc khác với lấy giá trị. `getDeclaredFields()` có thể bao gồm cả field thông thường và field do trình biên dịch sinh ra; không thay thế việc gọi `getEnumConstants()` bằng cách duyệt mọi field rồi cho rằng đó đều là hằng enum.
+**Need metadata of the fields declaring constants:** that is a different task from retrieving values. `getDeclaredFields()` may include both regular fields and compiler-generated fields; do not replace calling `getEnumConstants()` by iterating over every field and assuming they are all enum constants.
 
-Kết quả của hai API này cũng không cho biết mọi lựa chọn đều được phép trong mọi tình huống nghiệp vụ. Ví dụ một trạng thái có trong enum chưa chắc là trạng thái được phép chuyển đến từ trạng thái hiện tại. Bước liệt kê kiểu và bước kiểm tra quy tắc nghiệp vụ cần được phân biệt.
+The results of these two APIs also do not tell you that every option is permitted in every business scenario. For example, a state present in an enum is not necessarily a state allowed to be transitioned to from the current state. Type enumeration and business rule validation must be kept distinct.
 
-## 8. Các lỗi cần tránh
+## 8. Mistakes to avoid
 
-| Sai lầm | Hậu quả hoặc cách sửa |
+| Mistake | Consequence or fix |
 | --- | --- |
-| Gọi `getEnumConstants().length` trên một Class chưa kiểm tra | Có thể gặp `NullPointerException` khi lớp không phải enum |
-| Coi mảng rỗng là bằng chứng không phải enum | Bỏ sót enum không có hằng |
-| Cho rằng `Enum.class.isEnum()` phải là `true` | Nhầm lớp cơ sở với lớp enum khai báo |
-| Dùng `constant.getClass().isEnum()` cho mọi hằng | Bỏ sót hằng có thân lớp riêng; lấy `getDeclaringClass()` |
-| Dùng `toString()` làm tên khai báo | Có thể nhận chuỗi đã được ghi đè |
-| Dùng `ordinal()` làm mã ổn định mặc định | Mã có thể thay đổi khi thứ tự khai báo đổi |
-| Cho rằng lấy hằng chỉ là đọc metadata | Bỏ qua việc khởi tạo enum |
-| Ép mọi kết quả sang một enum cụ thể như `Priority[]` | Có thể sai kiểu khi Class đầu vào là enum khác |
-| Duyệt mọi field để lấy danh sách hằng | Lẫn field khác và mất hợp đồng thứ tự của `getEnumConstants()` |
+| Calling `getEnumConstants().length` on an unchecked Class | May hit `NullPointerException` when the class is not an enum |
+| Treating an empty array as proof of not being an enum | Misses enums that have no constants |
+| Assuming `Enum.class.isEnum()` must be `true` | Confuses the base class with a declared enum class |
+| Using `constant.getClass().isEnum()` for every constant | Misses constants with their own class body; get `getDeclaringClass()` |
+| Using `toString()` as the declared name | May receive an overridden string |
+| Using `ordinal()` as a stable code by default | Codes can change when declaration order changes |
+| Assuming retrieving constants only reads metadata | Overlooks enum initialization |
+| Casting every result to a specific enum like `Priority[]` | Can fail type-wise when the input Class is another enum |
+| Iterating all fields to obtain the list of constants | Mixes in other fields and loses the ordering contract of `getEnumConstants()` |
 
-Nếu hàm của bạn nhận `Class<?>`, nên quyết định rõ hợp đồng: từ chối lớp không phải enum, hay trả một kết quả có trạng thái phân biệt được “không phải enum” với “enum rỗng”. Không âm thầm gộp hai trường hợp nếu mã sử dụng cần phân biệt chúng.
+If your method accepts `Class<?>`, decide on a clear contract: reject non-enum classes, or return a result with a state that distinguishes "not an enum" from "empty enum". Do not silently merge the two cases if calling code needs to distinguish them.
 
-## 9. Tự kiểm tra
+## 9. Self-check
 
-1. `Empty.class.isEnum()` là `true` hay `false` nếu enum không có hằng?
-2. `String.class.getEnumConstants()` trả mảng rỗng hay `null`?
-3. Khi một hằng ghi đè `toString()` trong thân lớp riêng, vì sao `getClass().isEnum()` có thể là `false`?
-4. Muốn lấy cả hai hằng `FAST`, `SAFE` khi đang giữ `Mode.FAST`, nên bắt đầu bằng API nào?
-5. Lấy danh sách hằng có bảo đảm không chạy mã khởi tạo hay không?
+1. Is `Empty.class.isEnum()` `true` or `false` if the enum has no constants?
+2. Does `String.class.getEnumConstants()` return an empty array or `null`?
+3. When a constant overrides `toString()` in a constant-specific class body, why can `getClass().isEnum()` be `false`?
+4. To retrieve both `FAST` and `SAFE` while holding `Mode.FAST`, which API should you start with?
+5. Does retrieving the list of constants guarantee that no initialization code runs?
 
-Đáp án:
+Answers:
 
-1. `true`; enum rỗng vẫn là enum, còn mảng hằng có độ dài 0.
-2. `null`, vì `String` không phải lớp enum.
-3. Lớp thực tế lúc ấy là lớp con ẩn danh của enum, không phải lớp enum khai báo.
-4. `Mode.FAST.getDeclaringClass()`, sau đó gọi `getEnumConstants()` trên lớp nhận được.
-5. Không. Nếu chưa khởi tạo enum, bước lấy các hằng có thể kích hoạt việc khởi tạo.
+1. `true`; an empty enum is still an enum, while the constants array has length 0.
+2. `null`, because `String` is not an enum class.
+3. The runtime class is then an anonymous subclass of the enum, not the declared enum class.
+4. `Mode.FAST.getDeclaringClass()`, then call `getEnumConstants()` on the returned class.
+5. No. If the enum has not been initialized yet, retrieving the constants can trigger initialization.
 
-Hãy giữ riêng ba ý: lớp enum được khai báo, lớp thực tế của một hằng và tập các đối tượng hằng. `isEnum()`, `getDeclaringClass()` và `getEnumConstants()` giải quyết ba phần ấy với những hợp đồng khác nhau.
+Keep three concepts separate: the declared enum class, the runtime class of a constant, and the set of constant objects. `isEnum()`, `getDeclaringClass()`, and `getEnumConstants()` address those three parts with distinct contracts.
 
-## Tài liệu đối chiếu
+## Reference documentation
 
 - [Java 17 — Class.isEnum](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#isEnum()).
 - [Java 17 — Class.getEnumConstants](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Class.html#getEnumConstants()).
-- [Java 17 — Enum và getDeclaringClass](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Enum.html#getDeclaringClass()).
-- [JLS 17 — Enum, thân lớp riêng của hằng và values](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.9).
-- [JLS 17 — Khởi tạo lớp và interface](https://docs.oracle.com/javase/specs/jls/se17/html/jls-12.html#jls-12.4).
+- [Java 17 — Enum and getDeclaringClass](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Enum.html#getDeclaringClass()).
+- [JLS 17 — Enum, constant-specific class bodies, and values](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.9).
+- [JLS 17 — Initialization of Classes and Interfaces](https://docs.oracle.com/javase/specs/jls/se17/html/jls-12.html#jls-12.4).

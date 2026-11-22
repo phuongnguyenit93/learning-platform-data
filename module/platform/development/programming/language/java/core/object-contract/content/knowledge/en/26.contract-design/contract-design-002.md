@@ -1,105 +1,105 @@
-# Giữ equals(), hashCode() và thứ tự so sánh cùng một mô hình nghiệp vụ
+# Keeping equals(), hashCode(), and Comparison Ordering on the Same Business Model
 
-## 1. Vấn đề: cùng một thực thể nghiệp vụ nhưng nhiều đối tượng Java
+## 1. The Problem: One Business Entity, Multiple Java Objects
 
-Trong ứng dụng, dữ liệu của **cùng một đơn hàng** có thể được nạp từ cơ sở dữ liệu nhiều lần hoặc xuất hiện trong những bản snapshot khác nhau. Hai đối tượng Java đó có thể khác địa chỉ bộ nhớ và khác trạng thái hiển thị, nhưng vẫn biểu diễn **cùng một đơn hàng**.
+In an application, data for **the same order** may be loaded from the database multiple times or appear in different snapshots. Those two Java objects may have different memory addresses and different display states, yet still represent **the same order**.
 
-Ví dụ: `Order("shop-A", 42, 1500)` và `Order("shop-A", 42, 1999)` có cùng khóa nghiệp vụ `(tenantId, orderNo) = ("shop-A", 42)`, còn `totalCents` là một thuộc tính có thể thay đổi theo phiên bản dữ liệu.
+For example: `Order("shop-A", 42, 1500)` and `Order("shop-A", 42, 1999)` share the same business key `(tenantId, orderNo) = ("shop-A", 42)`, while `totalCents` is an attribute that can vary across data versions.
 
-Nếu hợp đồng của `Order` quy định **định danh nghiệp vụ** là cặp `tenantId + orderNo`, ba cơ chế trong Java phải cùng tôn trọng lựa chọn đó:
+If `Order`'s contract specifies that the **business identity** is the pair `tenantId + orderNo`, three mechanisms in Java must all respect that choice:
 
-- **`equals(Object)`** trả lời “hai đối tượng có đại diện cùng thực thể nghiệp vụ không?”.
-- **`hashCode()`** cung cấp mã băm phù hợp với `equals()` để `HashSet`/`HashMap` định vị phần tử/khóa.
-- **`compareTo(T)`** (hoặc `Comparator` dành cho bộ sưu tập có thứ tự) cung cấp thứ tự; kết quả **bằng 0** cần biểu thị cùng định danh khi ta muốn `TreeSet`/`TreeMap` có đúng ngữ nghĩa nghiệp vụ của `equals()`.
+- **`equals(Object)`** answers "do these two objects represent the same business entity?".
+- **`hashCode()`** provides a hash code consistent with `equals()` so that `HashSet`/`HashMap` can locate elements/keys.
+- **`compareTo(T)`** (or a `Comparator` for ordered collections) provides ordering; a result of **0** needs to represent the same identity when we want `TreeSet`/`TreeMap` to have the exact business semantics of `equals()`.
 
-Ba phương thức không có nhiệm vụ giống nhau. `equals()` xét quan hệ tương đương; `hashCode()` tối ưu tra cứu theo quan hệ ấy; so sánh tạo thứ tự. Chúng phải **nhất quán theo một mô hình danh tính**, nhưng không có yêu cầu rằng hai giá trị `hashCode()` phải bằng nhau khi hai đối tượng khác nhau, hoặc kết quả `compareTo()` phải bằng `hashCode()`.
+The three methods do not have identical roles. `equals()` tests an equivalence relation; `hashCode()` optimizes lookup under that relation; comparison establishes order. They must be **consistent under a single identity model**, though there is no requirement that two `hashCode()` values be equal when two objects differ, or that the result of `compareTo()` equal `hashCode()`.
 
-## 2. Chốt mô hình nghiệp vụ trước khi chọn trường cho các phương thức
+## 2. Lock In the Business Model Before Choosing Fields for the Methods
 
-Trước khi cài đặt, cần xác định **điều gì làm hai thực thể trở thành cùng một thực thể**. Đây là quyết định nghiệp vụ, không phải quyết định do IDE tự sinh mã.
+Before implementing, determine **what makes two entities the same entity**. This is a business decision, not a decision made by IDE code generation.
 
-Với một đơn hàng thuộc nhiều cửa hàng/tenant:
+For an order belonging to multiple stores/tenants:
 
-| Trường | Vai trò | Tham gia `equals` | Tham gia `hashCode` | Tham gia thứ tự tự nhiên |
+| Field | Role | Participates in `equals` | Participates in `hashCode` | Participates in natural order |
 | --- | --- | --- | --- | --- |
-| `tenantId` | Một phần khóa nghiệp vụ | Có | Có | Có, so trước |
-| `orderNo` | Một phần khóa nghiệp vụ trong tenant | Có | Có | Có, so sau |
-| `totalCents` | Giá trị đơn hàng, có thể đổi | Không | Không | Không, nếu thứ tự tự nhiên dựa trên danh tính |
-| `status`, `updatedAt` | Trạng thái/metadata | Không | Không | Không, với cùng mô hình định danh |
+| `tenantId` | Part of business key | Yes | Yes | Yes, compared first |
+| `orderNo` | Part of business key within tenant | Yes | Yes | Yes, compared second |
+| `totalCents` | Order amount, can change | No | No | No, if natural order is based on identity |
+| `status`, `updatedAt` | Status/metadata | No | No | No, under the same identity model |
 
-Không thể chỉ dùng `orderNo` nếu các tenant có thể cùng phát sinh số 42. Ngược lại, thêm `status` vào `equals` sẽ khiến chính đơn hàng đó trở thành “một thực thể khác” mỗi khi trạng thái đổi.
+You cannot use `orderNo` alone if different tenants can both generate number 42. Conversely, adding `status` to `equals` would turn the exact same order into "a different entity" every time its status changes.
 
-Có hai mô hình phổ biến; không nên trộn lẫn:
+There are two common models; do not mix them:
 
-1. **Entity identity:** đối tượng đại diện thực thể có định danh ổn định. So sánh theo khóa, ví dụ `tenantId + orderNo`; nhiều snapshot khác nhau vẫn bằng nhau về nghiệp vụ.
-2. **Value object:** toàn bộ thuộc tính có ý nghĩa cấu thành giá trị. Hai value object chỉ bằng nhau khi các thành phần được quy định là giá trị tương đương. Với kiểu bất biến, cách này thường tự nhiên; ví dụ hai tọa độ `(x,y)` có cùng cặp giá trị.
+1. **Entity identity:** the object represents an entity with a stable identity. Compare by key, such as `tenantId + orderNo`; different snapshots remain business-equal.
+2. **Value object:** all meaningful attributes constitute the value. Two value objects are equal only when their specified components have equivalent values. For immutable types, this approach is usually natural; for example, two coordinates `(x,y)` with the same pair of values.
 
-Một class `Order` có số tiền, trạng thái và thời điểm cập nhật nhưng danh tính xác định bằng mã đơn hàng thường nên dùng cách thứ nhất. Nếu nghiệp vụ thực sự coi **toàn bộ nội dung** là định danh, cả `equals`, `hashCode` và khóa so sánh phải chuyển sang mô hình giá trị đó, chứ không chỉ đổi một phương thức.
+An `Order` class that has an amount, status, and update timestamp, but whose identity is defined by order code, should generally use the first approach. If the business truly treats **all content** as the identity, then `equals`, `hashCode`, and the comparison key must all move to that value model, rather than changing just one method.
 
-**Chuẩn hóa khóa:** quy tắc về chữ hoa/thường, khoảng trắng, mã tenant và kiểu số phải được xác định thống nhất khi tạo đối tượng. Ví dụ nếu `shop-A` và `SHOP-A` cùng là một tenant theo nghiệp vụ, cần chuẩn hóa cả hai về cùng biểu diễn chuẩn **trước khi lưu khóa**; nếu phân biệt hoa/thường, giữ nguyên. Không để `equals` bỏ qua hoa/thường trong khi `compareTo` vẫn so sánh có phân biệt.
+**Key normalization:** rules for letter case, whitespace, tenant codes, and numeric types must be applied consistently when creating the object. For example, if `shop-A` and `SHOP-A` represent the same tenant in the business domain, normalize both to the same canonical form **before storing the key**; if case-sensitive, preserve as-is. Do not let `equals` ignore case while `compareTo` still compares case-sensitively.
 
-## 3. Những hợp đồng Java bắt buộc phải hiểu
+## 3. Java Contracts You Must Understand
 
-### 3.1. `equals(Object)` là quan hệ tương đương
+### 3.1. `equals(Object)` Is an Equivalence Relation
 
-Đối với các giá trị tham chiếu không null `x`, `y`, `z`, `equals` phải tuân thủ:
+For non-null reference values `x`, `y`, `z`, `equals` must obey:
 
-- **Phản xạ:** `x.equals(x)` là `true`.
-- **Đối xứng:** `x.equals(y)` và `y.equals(x)` có cùng kết quả.
-- **Bắc cầu:** nếu `x.equals(y)` và `y.equals(z)` thì `x.equals(z)`.
-- **Nhất quán:** khi các thông tin tham gia `equals` không đổi, gọi lặp lại phải cho cùng kết quả.
-- **Với null:** `x.equals(null)` luôn là `false`.
+- **Reflexive:** `x.equals(x)` is `true`.
+- **Symmetric:** `x.equals(y)` and `y.equals(x)` produce the same result.
+- **Transitive:** if `x.equals(y)` and `y.equals(z)` then `x.equals(z)`.
+- **Consistent:** when the information participating in `equals` does not change, repeated calls must return the same result.
+- **For null:** `x.equals(null)` is always `false`.
 
-Không nên tạo luật “hai đơn hàng giống nhau nếu số tiền chênh nhau dưới một ngưỡng”, vì quan hệ gần nhau theo ngưỡng có thể **không bắc cầu**: A gần B, B gần C, nhưng A không gần C. Cũng phải chú ý tình huống class cha so sánh với `instanceof` còn class con thêm trường: hai chiều so sánh có thể mất đối xứng. Trong ví dụ dưới đây dùng `final class` để khóa ý nghĩa danh tính và tránh vấn đề kế thừa.
+Do not invent a rule like "two orders are equal if their amounts differ by less than a threshold", because proximity within a threshold may **not be transitive**: A is close to B, B is close to C, yet A is not close to C. Also watch out for situations where a parent class compares using `instanceof` while a subclass adds fields: the two comparison directions can lose symmetry. The example below uses `final class` to lock down the identity semantics and avoid inheritance issues.
 
-### 3.2. `hashCode()` phải dùng cùng danh tính với `equals()`
+### 3.2. `hashCode()` Must Use the Same Identity as `equals()`
 
-Quy tắc bắt buộc:
+Mandatory rule:
 
 ```text
 a.equals(b) == true  =>  a.hashCode() == b.hashCode()
 ```
 
-Chiều ngược **không bắt buộc**: hai đơn hàng khác nhau có thể bị trùng mã băm (hash collision). `HashSet` và `HashMap` vẫn cần `equals` để xác định phần tử/khóa thực sự trùng.
+The converse is **not required**: two different orders may share a hash code (hash collision). `HashSet` and `HashMap` still need `equals` to determine whether elements/keys are truly duplicates.
 
-Một `hashCode()` đúng không nhất thiết duy nhất, không phải định danh lưu database, và không cần ổn định qua các lần chạy ứng dụng. Điều cần giữ là nhất quán với `equals` trong cùng quá trình các trường định danh không đổi.
+A valid `hashCode()` does not have to be unique, is not a database storage identifier, and does not need to remain stable across application runs. What must be preserved is consistency with `equals` as long as the identity fields do not change.
 
-Sai lầm điển hình:
+Typical mistake:
 
 ```java
-// Minh họa sai: equals chỉ theo khóa, hashCode lại thêm totalCents.
+// Incorrect illustration: equals uses only the key, while hashCode adds totalCents.
 @Override
 public int hashCode() {
     return Objects.hash(tenantId, orderNo, totalCents);
 }
 ```
 
-Khi hai snapshot có cùng `tenantId + orderNo` nhưng tổng tiền khác nhau, `equals` có thể là `true` trong khi mã băm có thể khác; trường `totalCents` phải được loại khỏi `hashCode` nếu nó không thuộc định danh.
+When two snapshots share the same `tenantId + orderNo` but have different total amounts, `equals` can be `true` while the hash codes differ; the `totalCents` field must be excluded from `hashCode` if it is not part of the identity.
 
-### 3.3. `Comparable.compareTo` hoặc `Comparator.compare` tạo thứ tự
+### 3.3. `Comparable.compareTo` or `Comparator.compare` Establishes Order
 
-Với thứ tự tự nhiên theo cùng khóa, mong muốn:
+For natural ordering using the same key, what is desired is:
 
 ```text
 sign(a.compareTo(b)) == 0   <=>   a.equals(b)
 ```
 
-Trong đó `sign` là dấu âm/0/dương, không có yêu cầu `compareTo` trả chính xác `-1` hoặc `1`. Java **khuyến nghị mạnh** thứ tự tự nhiên nhất quán với `equals`, nhưng ngôn ngữ không ép mọi class phải tuân theo. Khi đặt vào `TreeSet`/`TreeMap`, kết quả so sánh **0** mới là tiêu chí coi hai phần tử/khóa là trùng; vì thế sự không nhất quán có hậu quả rõ rệt.
+Here `sign` is the negative/0/positive sign; there is no requirement for `compareTo` to return strictly `-1` or `1`. Java **strongly recommends** that natural ordering be consistent with `equals`, though the language does not force every class to comply. When placed in a `TreeSet`/`TreeMap`, a comparison result of **0** is the criterion that treats two elements/keys as duplicates; hence inconsistency has tangible consequences.
 
-Thứ tự còn phải đáp ứng tính phản đối xứng theo dấu và bắc cầu:
+The ordering must also satisfy sign antisymmetry and transitivity:
 
 ```text
 sign(compare(a, b)) == -sign(compare(b, a))
 compare(a, b) > 0 && compare(b, c) > 0  =>  compare(a, c) > 0
 ```
 
-Cần bảo đảm những phần tử được xem là bằng nhau theo bộ so sánh có quan hệ so sánh đồng nhất với các phần tử thứ ba. Khi so sánh nhiều trường, so lần lượt theo một thứ tự cố định; dùng `String.compareTo`, `Long.compare`, `Integer.compare` hoặc chuỗi `Comparator.thenComparing`, tránh tự viết phép trừ có thể tràn số.
+Ensure that elements considered equal by the comparator have identical comparison relationships with any third element. When comparing multiple fields, compare sequentially in a fixed order; use `String.compareTo`, `Long.compare`, `Integer.compare`, or chained `Comparator.thenComparing`, avoiding hand-written subtraction that could overflow.
 
-`equals(null)` là `false` nhưng `compareTo(null)` thường ném `NullPointerException`; hai hành vi không mâu thuẫn. Chỉ hỗ trợ null trong `Comparator` riêng khi nghiệp vụ cần, chẳng hạn `Comparator.nullsFirst(...)`.
+`equals(null)` returns `false`, whereas `compareTo(null)` typically throws `NullPointerException`; the two behaviors do not contradict each other. Only support null in a dedicated `Comparator` when the business needs it, such as `Comparator.nullsFirst(...)`.
 
-## 4. Ví dụ hoàn chỉnh Java 17: cùng một khóa cho cả ba cơ chế
+## 4. Complete Java 17 Example: One Key for All Three Mechanisms
 
-Tạo tệp **`BusinessContractDemo.java`**:
+Create the file **`BusinessContractDemo.java`**:
 
 ```java
 import java.math.BigDecimal;
@@ -200,14 +200,14 @@ public class BusinessContractDemo {
 }
 ```
 
-Biên dịch và chạy bằng JDK 17 trở lên:
+Compile and run with JDK 17 or higher:
 
 ```bash
 javac BusinessContractDemo.java
 java BusinessContractDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 equals: true
@@ -223,22 +223,22 @@ BigDecimal HashSet/TreeSet sizes: 2/1
 Display by total: [shop-A/42(1500), shop-A/43(1000)]
 ```
 
-Giải thích các phần quan trọng:
+Explanation of the key parts:
 
-1. `first` và `snapshot` là **hai đối tượng khác nhau**, tổng tiền cũng khác nhau, nhưng có cùng khóa `shop-A/42`. Theo mô hình được chọn, `equals` phải trả `true`.
-2. `hashCode` chỉ băm `tenantId` và `orderNo`. Vì hai instance bằng nhau về nghiệp vụ nên mã băm cũng bằng nhau.
-3. `compareTo` so tenant trước, số đơn sau; cùng khóa cho kết quả 0. Với các đơn khác khóa, Java xác lập một thứ tự ổn định, có tính bắc cầu.
-4. `HashSet` dùng băm rồi `equals` để loại bản ghi lặp, còn `TreeSet` dùng `compareTo`; **cả hai đều còn hai đơn hàng**.
-5. `BigDecimal` là phản ví dụ từ thư viện chuẩn: `1.0` và `1.00` bằng nhau khi so về trị số theo `compareTo`, nhưng `equals` xét cả scale nên là `false`. Vì vậy `HashSet` giữ hai phần tử, `TreeSet` giữ một.
-6. Phần cuối **chỉ sắp xếp một `List` phục vụ hiển thị** theo tổng tiền giảm dần. `thenComparing(Comparator.naturalOrder())` cố định thứ tự khi tổng tiền bằng nhau; bộ so sánh hiển thị này không được mặc nhiên dùng làm quy tắc định danh cho `TreeSet`.
+1. `first` and `snapshot` are **two different objects**, with different total amounts, yet share the same key `shop-A/42`. Under the chosen model, `equals` must return `true`.
+2. `hashCode` hashes only `tenantId` and `orderNo`. Because the two instances are business-equal, their hash codes are also equal.
+3. `compareTo` compares tenant first, then order number; the same key yields 0. For orders with different keys, Java establishes a stable, transitive order.
+4. `HashSet` uses hashing followed by `equals` to remove duplicates, while `TreeSet` uses `compareTo`; **both retain two orders**.
+5. `BigDecimal` is a counterexample from the standard library: `1.0` and `1.00` are equal numerically under `compareTo`, but `equals` considers scale as well so it returns `false`. Thus `HashSet` keeps two elements, while `TreeSet` keeps one.
+6. The final section **only sorts a `List` for display** in descending order of total amount. `thenComparing(Comparator.naturalOrder())` fixes the order when total amounts tie; this display comparator must not be blindly used as the identity rule for a `TreeSet`.
 
-Trong ví dụ, `totalCents` là `final` để đầu ra ổn định. Nếu dữ liệu này có thể đổi trong một đối tượng khác, nó vẫn không nên tham gia băm hoặc thứ tự của khóa `TreeSet` khi không thuộc định danh nghiệp vụ.
+In the example, `totalCents` is `final` so the output stays deterministic. If this data can change in another object, it still must not participate in hashing or `TreeSet` key ordering when it is not part of the business identity.
 
-## 5. Phân biệt thứ tự dùng để xác định trùng với thứ tự dùng để hiển thị
+## 5. Distinguishing Ordering Used for Deduplication from Ordering Used for Display
 
-Nhiều màn hình cần sắp xếp theo “đơn đắt nhất trước”, “cập nhật gần nhất trước” hoặc “trạng thái ưu tiên trước”. Đó là **tiêu chí trình bày**, khác với câu hỏi “hai đơn hàng có cùng định danh không?”.
+Many screens need sorting by "highest amount first", "most recently updated first", or "priority status first". Those are **presentation criteria**, distinct from the question "do two orders have the same identity?".
 
-Với các đối tượng `Order` ở phần 4, phương thức so sánh dưới đây phù hợp để sắp xếp một `List<Order>` (đoạn minh họa, không phải chương trình độc lập):
+For the `Order` objects in section 4, the comparator below is suitable for sorting a `List<Order>` (illustrative snippet, not a standalone program):
 
 ```java
 Comparator<Order> byAmountForDisplay =
@@ -247,65 +247,65 @@ Comparator<Order> byAmountForDisplay =
                 .thenComparing(Comparator.naturalOrder());
 ```
 
-Nhưng **không sử dụng bộ so sánh ấy cho `TreeSet`** nếu tập hợp cần giữ đúng ý nghĩa “một phần tử cho mỗi khóa đơn hàng”. Hai snapshot cùng đơn `shop-A/42` có thể có tổng tiền khác nhau, khiến bộ so sánh hiển thị trả khác 0 trong khi `equals` là `true`.
+However, **do not use that comparator for a `TreeSet`** if the set needs to preserve the meaning "one element per order key". Two snapshots of the same order `shop-A/42` could have different total amounts, causing the display comparator to return non-zero even though `equals` is `true`.
 
-Một lỗi khác là chỉ so tổng tiền:
+Another mistake is comparing only by total amount:
 
 ```java
-// Minh họa nguy hiểm nếu dùng làm comparator của TreeSet<Order>.
+// Dangerous illustration if used as the comparator for TreeSet<Order>.
 Comparator<Order> amountOnly =
         Comparator.comparingLong(Order::totalCents);
 ```
 
-Hai **đơn hàng khác khóa** cùng tổng tiền cho kết quả 0, nên `TreeSet` coi chúng là trùng và chỉ giữ một. Thêm tiêu chí phá hòa bằng khóa giúp phân biệt các đơn khác nhau có cùng tổng tiền, nhưng **vẫn chưa bảo đảm** hai snapshot của *cùng một đơn* có tổng tiền khác nhau so ra bằng 0. Vì vậy, muốn sorted set bảo toàn định danh nghiệp vụ, hãy so sánh **trực tiếp theo chính khóa nghiệp vụ**.
+Two **orders with different keys** and the same total amount yield 0, so `TreeSet` treats them as duplicates and keeps only one. Adding a tie-breaker by key distinguishes different orders with the same total, yet **still does not guarantee** that two snapshots of *the same order* with different total amounts compare as 0. Therefore, if a sorted set must preserve business identity, compare **directly by the business key itself**.
 
-| Tình huống | Cách phù hợp | Điểm cần kiểm tra |
+| Scenario | Suitable Approach | What to Verify |
 | --- | --- | --- |
-| Tra cứu/tránh trùng thực thể theo khóa nghiệp vụ | `HashSet`, `HashMap` với `equals/hashCode` dựa trên khóa | Khóa ổn định, đầy đủ tenant, `equals` và `hashCode` nhất quán |
-| Vừa có thứ tự vừa loại trùng theo khóa nghiệp vụ | `TreeSet`, `TreeMap` với so sánh theo cùng khóa | `compare(a,b)==0` khi và chỉ khi `a.equals(b)` |
-| Chỉ hiển thị danh sách theo tổng tiền/trạng thái/ngày | `List.sort(Comparator)` | Có thể khác mô hình `equals`; xác định tie-breaker nếu cần thứ tự tất định |
-| Muốn sắp xếp giá trị bất biến khác với danh tính entity | Danh sách/view/model riêng, hoặc chỉ số phụ được thiết kế rõ | Không vô tình coi thứ tự hiển thị là quy tắc loại trùng |
+| Lookup/deduplicate entities by business key | `HashSet`, `HashMap` with key-based `equals/hashCode` | Stable key, includes tenant, consistent `equals` and `hashCode` |
+| Both ordered and deduplicated by business key | `TreeSet`, `TreeMap` comparing by the same key | `compare(a,b)==0` if and only if `a.equals(b)` |
+| Display-only list sorted by amount/status/date | `List.sort(Comparator)` | Can differ from the `equals` model; define a tie-breaker if deterministic order is needed |
+| Need to sort immutable values differently from entity identity | Separate list/view/model, or explicitly designed secondary index | Do not accidentally treat display order as the deduplication rule |
 
-**Hệ quả với map:** `HashMap` tìm khóa bằng băm và `equals`; `TreeMap` xác định cùng khóa theo `compareTo` hoặc `Comparator` của nó. Nếu `compare` trả 0 cho hai key khác nhau về `equals`, lệnh `put` khóa thứ hai trong `TreeMap` có thể thay **value của cùng entry**, dù `HashMap` sẽ coi đó là hai key riêng. Một `TreeMap` hoặc `TreeSet` có thứ tự không nhất quán với `equals` có thể hoạt động theo quy tắc comparator của nó, nhưng không đáp ứng đầy đủ hợp đồng `Map`/`Set` thông thường về việc các phần tử/khóa bằng nhau.
+**Consequence for maps:** `HashMap` finds keys via hashing and `equals`; `TreeMap` determines equal keys via `compareTo` or its `Comparator`. If `compare` returns 0 for two keys that are unequal under `equals`, calling `put` with the second key in a `TreeMap` can overwrite **the value of the same entry**, even though `HashMap` would treat them as two separate keys. A `TreeMap` or `TreeSet` whose ordering is inconsistent with `equals` may still operate according to its comparator rules, but it does not fully satisfy the general `Map`/`Set` contract regarding equal elements/keys.
 
-Nếu class không có **thứ tự tự nhiên nghiệp vụ rõ ràng**, có thể không implement `Comparable`. Hãy dùng một `Comparator` tường minh tại nơi cần thứ tự, và đặc biệt cân nhắc sự nhất quán với `equals` nếu comparator được sử dụng để định danh trong sorted collection.
+If a class has no **clear business natural order**, you may omit implementing `Comparable`. Use an explicit `Comparator` wherever ordering is needed, and carefully check consistency with `equals` if the comparator is used for identity in a sorted collection.
 
-## 6. Vì sao BigDecimal và phép chuẩn hóa là trường hợp đáng chú ý?
+## 6. Why Are `BigDecimal` and Normalization Notable Cases?
 
-Theo Java, `new BigDecimal("1.0").compareTo(new BigDecimal("1.00")) == 0` vì cùng trị số, nhưng `equals` là `false` vì biểu diễn có **scale khác nhau**. Đây là một trường hợp nổi tiếng mà thứ tự tự nhiên không nhất quán với `equals`.
+In Java, `new BigDecimal("1.0").compareTo(new BigDecimal("1.00")) == 0` because they have the same numeric value, yet `equals` is `false` because their representations have **different scales**. This is a famous case where natural ordering is inconsistent with `equals`.
 
-Vì vậy, nếu **tiền** là một phần định danh của value object, hãy quyết định rõ khái niệm bằng nhau:
+Therefore, if **money** is part of a value object's identity, define equality explicitly:
 
-- Nếu `1.0` và `1.00` **phải là cùng giá trị nghiệp vụ**, chuẩn hóa chúng về biểu diễn nhất quán trước khi lưu trong value object; ví dụ lưu `long cents` khi đồng tiền chỉ dùng hai chữ số thập phân, hoặc chuẩn hóa `BigDecimal` theo quy tắc scale/đồng tiền đã thống nhất.
-- Nếu **scale có ý nghĩa nghiệp vụ** (độ chính xác được khai báo hoặc dữ liệu gốc), `BigDecimal.equals` có thể đúng với value object ấy; khi đó không thể dùng riêng `BigDecimal.compareTo` để bảo toàn đúng cùng tập các lớp tương đương.
-- Không tùy tiện dùng `stripTrailingZeros()` hoặc `setScale(...)` khi chưa có quy tắc domain: cần cân nhắc scale âm, làm tròn và đơn vị tiền tệ.
+- If `1.0` and `1.00` **must represent the same business value**, normalize them to a consistent representation before storing in the value object; for example, store `long cents` when the currency always uses two decimal places, or normalize `BigDecimal` according to an agreed scale/currency rule.
+- If **scale has business meaning** (declared precision or raw input), `BigDecimal.equals` may be right for that value object; in that case, `BigDecimal.compareTo` alone cannot preserve the exact same equivalence classes.
+- Do not arbitrarily call `stripTrailingZeros()` or `setScale(...)` without a domain rule: you must account for negative scales, rounding, and currency units.
 
-Một khi chuẩn hóa, **tất cả đường tạo giá trị** (constructor, parser, mapper, dữ liệu từ DB/API) phải áp dụng cùng quy tắc. Không nên sửa chắp vá bằng cách chỉ bỏ qua scale trong `equals` nhưng giữ `hashCode` mặc định trên một `BigDecimal` chưa chuẩn hóa.
+Once normalized, **every path creating the value** (constructors, parsers, mappers, data from DB/API) must apply the same rule. Do not apply a band-aid fix by ignoring scale only in `equals` while keeping the default `hashCode` on an unnormalized `BigDecimal`.
 
-Với `String`, hai mã khác chữ hoa/thường, Unicode normalization hoặc dấu cách cũng có thể tạo bất đồng nếu một phương thức so sánh “thoáng” hơn phương thức khác. Dùng giá trị khóa đã được canonicalize thống nhất.
+With `String`, two codes differing in letter case, Unicode normalization, or whitespace can also cause disagreement if one method compares more "leniently" than another. Use key values that have been uniformly canonicalized.
 
-## 7. Thiết kế khóa bất biến và tránh bẫy thay đổi khi đã ở trong collection
+## 7. Designing Immutable Keys and Avoiding the Trap of Mutating While in a Collection
 
-Giả sử `Order` dùng `status` trong `hashCode`, rồi được thêm vào `HashSet`. Sau khi đổi trạng thái, mã băm được tính từ trạng thái mới có thể không còn khớp bucket cũ; `contains(order)` hoặc `remove(order)` có thể không tìm thấy chính phần tử từng được thêm.
+Suppose `Order` uses `status` in `hashCode` and is added to a `HashSet`. After changing the status, the hash code computed from the new status may no longer match the old bucket; `contains(order)` or `remove(order)` may fail to find the very element that was added.
 
-Tương tự, khi thứ tự `compareTo` hoặc comparator của `TreeSet` phụ thuộc vào trường mutable đang bị sửa bên ngoài, cấu trúc cây không tự sắp xếp lại. Thao tác `contains`/`remove`, thứ tự duyệt hoặc tính nhất quán có thể sai.
+Similarly, when the ordering of `compareTo` or a `TreeSet` comparator depends on a mutable field that is modified externally, the tree structure does not automatically re-sort itself. `contains`/`remove` operations, iteration order, or consistency can break.
 
-Vì vậy:
+Therefore:
 
-1. Chọn **khóa nghiệp vụ ổn định** theo vòng đời thực thể; với thực thể chưa được gán ID bởi database, phải quy định rõ giai đoạn trước/sau khi phát sinh ID và tránh dùng khóa đang thay đổi trong hash/sorted collections.
-2. Ưu tiên trường `final` hoặc value object bất biến làm khóa, bảo đảm các lớp mutable lồng trong khóa không bị sửa qua reference khác.
-3. Các thuộc tính có thể thay đổi như tổng tiền, trạng thái, thời gian cập nhật chỉ nên là dữ liệu; muốn xếp hạng lại theo chúng, hãy **sort lại danh sách** hoặc xây lại cấu trúc chỉ số phù hợp.
-4. Không dùng `System.identityHashCode`, `==` hay địa chỉ bộ nhớ thay cho business identity, trừ khi nghiệp vụ cố ý định nghĩa equality theo **identity đối tượng JVM**.
-5. Nếu dùng một khóa tự nhiên như `email`, kiểm tra xem email có thể thay đổi hay tái sử dụng theo nghiệp vụ không. Nếu có, một ID ổn định thường thích hợp hơn cho danh tính entity.
+1. Choose a **stable business key** across the entity lifecycle; for entities not yet assigned an ID by the database, clearly define the phases before/after ID generation and avoid using a changing key inside hash/sorted collections.
+2. Prefer `final` fields or immutable value objects as keys, ensuring nested mutable classes inside the key cannot be modified through another reference.
+3. Mutable attributes such as total amount, status, and update time should be data only; to re-rank by them, **re-sort the list** or rebuild the appropriate index structure.
+4. Do not use `System.identityHashCode`, `==`, or memory addresses in place of business identity, unless the business intentionally defines equality as **JVM object identity**.
+5. If using a natural key like `email`, check whether email can change or be reused in the business domain. If so, a stable ID is usually better suited for entity identity.
 
-`hashCode` không phải khóa duy nhất trong database. Dữ liệu quan trọng vẫn cần **constraint/unique index** ở hệ thống lưu trữ; việc `equals` đúng trong một JVM không tự ngăn hai transaction khác nhau tạo bản ghi trùng khóa.
+`hashCode` is not a unique constraint in the database. Critical data still needs a **constraint/unique index** in the storage system; having a correct `equals` within one JVM does not prevent two separate transactions from creating records with duplicate keys.
 
-## 8. Cách áp dụng với record, giá trị tổng hợp và kế thừa
+## 8. Applying This to Records, Composite Values, and Inheritance
 
-**Record:** Java 17 có `record` và tự sinh `equals`/`hashCode` theo tất cả component của record, nhưng **không tự sinh `Comparable.compareTo`**. Record phù hợp để gói một khóa nghiệp vụ bất biến:
+**Record:** Java 17 provides `record` and auto-generates `equals`/`hashCode` over all record components, but **does not auto-generate `Comparable.compareTo`**. Records are well suited to encapsulating an immutable business key:
 
 ```java
-// Đoạn minh họa độc lập với class Order ở phần 4.
+// Illustrative snippet independent of the Order class in section 4.
 record OrderKey(String tenantId, long orderNo)
         implements Comparable<OrderKey> {
     @Override
@@ -316,48 +316,48 @@ record OrderKey(String tenantId, long orderNo)
 }
 ```
 
-Khi tất cả component `OrderKey` đều được chuẩn hóa và có semantics tương thích giữa `equals` với `compareTo`, record giữ hợp đồng đó ngắn gọn. Bản thân record chỉ làm **reference field là final**, không tự biến đối tượng mutable bên trong thành bất biến; không đưa `List` mutable hay một đối tượng mutable chưa được phòng vệ vào business key.
+When all components of `OrderKey` are normalized and have compatible semantics between `equals` and `compareTo`, a record keeps that contract concise. A record itself only makes **field references final**, and does not automatically make mutable objects inside immutable; do not put a mutable `List` or an unguarded mutable object into a business key.
 
-**Kế thừa:** nếu class cha và con mỗi lớp tự thêm trường định danh theo cách khác, `equals` có thể mất đối xứng, còn `compareTo` có thể không xử lý loại con đúng. Với business key được dùng trong set/map, ưu tiên một kiểu khóa final/record bất biến hoặc một chính sách type/equality rõ ràng áp dụng cho toàn bộ phân cấp. Việc dùng `getClass()` hay `instanceof` phải bám hợp đồng; ví dụ dùng `final class Order` để không có subtype mở rộng identity một phía.
+**Inheritance:** if a superclass and subclass each add identity fields in different ways, `equals` can lose symmetry, and `compareTo` may fail to handle subtypes properly. For business keys used in sets/maps, prefer an immutable final/record key type or a clear type/equality policy applied across the entire hierarchy. Whether to use `getClass()` or `instanceof` must follow the contract; for instance, using `final class Order` prevents subtypes from unilaterally extending identity.
 
-**ID kỹ thuật so với khóa nghiệp vụ:** nếu `OrderKey` là `tenantId + orderNo`, phải thống nhất xem định danh này do database phát sinh hay có sẵn từ domain. Trong tình huống ID chưa tồn tại, không được ngầm dùng các trường tạm thời vào `equals` rồi đổi sang ID khi persist mà không tính tới hậu quả đối với các collection đang giữ phần tử.
+**Technical ID vs. business key:** if `OrderKey` is `tenantId + orderNo`, agree on whether this identifier is database-generated or already exists in the domain. When the ID does not yet exist, do not implicitly use temporary fields in `equals` and then switch to the ID upon persisting without accounting for the impact on collections holding the element.
 
-## 9. Ma trận kiểm thử cho hợp đồng đồng nhất
+## 9. Test Matrix for the Identity Contract
 
-Ví dụ dữ liệu kiểm thử của `Order`:
+Example test data for `Order`:
 
-| A | B | `A.equals(B)` | `A.hashCode()==B.hashCode()` | Dấu của `A.compareTo(B)` |
+| A | B | `A.equals(B)` | `A.hashCode()==B.hashCode()` | Sign of `A.compareTo(B)` |
 | --- | --- | --- | --- | --- |
-| `shop-A/42, 1500` | `shop-A/42, 1999` | `true` | **Phải true** | `0` |
-| `shop-A/42, 1500` | `shop-A/43, 1500` | `false` | Không quy định | Âm |
-| `shop-A/42, 1500` | `shop-B/42, 1500` | `false` | Không quy định | Âm |
-| `shop-B/42, 1500` | `shop-A/42, 1500` | `false` | Không quy định | Dương |
+| `shop-A/42, 1500` | `shop-A/42, 1999` | `true` | **Must be true** | `0` |
+| `shop-A/42, 1500` | `shop-A/43, 1500` | `false` | Unspecified | Negative |
+| `shop-A/42, 1500` | `shop-B/42, 1500` | `false` | Unspecified | Negative |
+| `shop-B/42, 1500` | `shop-A/42, 1500` | `false` | Unspecified | Positive |
 
-**Không kiểm tra “hash khác nhau” cho những cặp không bằng nhau:** mã băm khác nhau không phải một invariant bắt buộc, còn trùng băm là trường hợp bình thường.
+**Do not assert "different hashes" for unequal pairs:** distinct hash codes are not a mandatory invariant, and hash collisions are normal.
 
-Một checklist kiểm thử có khả năng phát hiện lỗi thật:
+A testing checklist capable of catching real bugs:
 
-- **Phản xạ/đối xứng/bắc cầu:** cùng đối tượng, hai snapshot, ba snapshot cùng business key; `equals(null) == false`.
-- **Hàm băm:** mọi cặp `equals == true` đều có `hashCode` bằng nhau; thay `totalCents` ở bản snapshot khác không ảnh hưởng hash của khóa.
-- **Thứ tự:** `compare(a,b)==0` khi và chỉ khi `a.equals(b)` theo mô hình này; đổi chiều thì đổi dấu, và các bộ ba khóa tăng dần giữ tính bắc cầu.
-- **Bộ sưu tập:** cùng dữ liệu đưa vào `HashSet` và `TreeSet` phải có cùng số **khóa nghiệp vụ**; `HashMap` và `TreeMap` phải tra cứu cùng key nghiệp vụ theo chính sách thống nhất.
-- **Phân tách tenant:** cùng `orderNo` nhưng khác `tenantId` không được coi trùng.
-- **Dữ liệu biên:** null, chuỗi rỗng, ID âm/0, giá trị số lớn; dùng `Long.compare` để tránh overflow thay vì trừ.
-- **Chuẩn hóa:** các biểu diễn khác nhau nhưng nghiệp vụ quy định cùng khóa phải được đưa về cùng dạng ở mọi đường tạo object.
-- **Thay đổi state:** thay đổi thuộc tính không thuộc khóa không làm thay đổi tập các thực thể được nhận diện bởi `equals`, `hashCode`, `compareTo`.
+- **Reflexivity/symmetry/transitivity:** same object, two snapshots, three snapshots with the same business key; `equals(null) == false`.
+- **Hash function:** every pair with `equals == true` must have equal `hashCode`; changing `totalCents` on another snapshot does not affect the key's hash.
+- **Ordering:** `compare(a,b)==0` if and only if `a.equals(b)` under this model; reversing arguments flips the sign, and ascending key triples preserve transitivity.
+- **Collections:** inserting the same data into `HashSet` and `TreeSet` must yield the same number of **business keys**; `HashMap` and `TreeMap` must look up the same business key under a unified policy.
+- **Tenant isolation:** same `orderNo` with different `tenantId` must not be treated as duplicates.
+- **Boundary data:** null, empty strings, negative/0 IDs, large numeric values; use `Long.compare` to avoid overflow instead of subtraction.
+- **Normalization:** different representations that the domain treats as the same key must be normalized to the same form across all object-creation paths.
+- **State changes:** changing non-key attributes does not alter the set of entities recognized by `equals`, `hashCode`, or `compareTo`.
 
-Những kiểm tra này tốt hơn việc chỉ chạy IDE-generated `equals` test với một object có tất cả trường giống nhau: chúng xác minh được **ranh giới danh tính** do nghiệp vụ chọn.
+These checks are better than merely running an IDE-generated `equals` test on an object with all identical fields: they verify the **identity boundary** chosen by the business domain.
 
-## 10. Các lỗi thực tế cần tránh
+## 10. Real-World Mistakes to Avoid
 
-1. **Chọn trường độc lập cho ba phương thức:** `equals` theo ID, `hashCode` theo toàn bộ field, `compareTo` theo giá tiền. Kết quả là mỗi collection có một khái niệm “trùng” khác nhau.
-2. **Dùng phép trừ trong so sánh:** `return (int) (a.orderNo - b.orderNo);` có thể tràn hoặc mất bit. Dùng `Long.compare(a.orderNo, b.orderNo)`.
-3. **Thêm tie-breaker không suy xét vào comparator của `TreeSet`:** thêm `totalCents` giúp sắp xếp đẹp hơn nhưng có thể làm hai snapshot cùng ID so ra khác 0. Hãy giữ comparator định danh tách khỏi comparator hiển thị.
-4. **Quên khóa kết hợp gồm tenant:** hai đơn trùng `orderNo` giữa các tenant vô tình gộp thành một.
-5. **Đưa trường mutable vào hash/order:** sửa nó sau khi đã thêm vào `HashSet`/`TreeSet` có thể làm thao tác lookup/remove không tin cậy.
-6. **Cho rằng `compareTo()==0` luôn đồng nghĩa với `equals()==true` ở mọi thư viện:** `BigDecimal` là phản ví dụ; phải hiểu semantics trước khi dùng làm key có thứ tự.
-7. **Tưởng record tự sinh mọi hợp đồng:** record tự sinh `equals` và `hashCode` nhưng không tự cung cấp ordering; các component mutable còn có thể phá tính ổn định của key.
-8. **Sử dụng comparator hiển thị làm quy tắc uniqueness:** sắp xếp theo giá hay thời điểm cập nhật phù hợp cho danh sách; với sorted set/map cần tính chất trùng theo ý định nghiệp vụ.
-9. **Chọn khóa không ổn định khi thực thể chưa có ID:** thay đổi identity giữa lúc đang ở trong map/set có thể gây lỗi khó tìm; thiết kế vòng đời khóa ngay từ đầu.
+1. **Choosing fields independently for the three methods:** `equals` by ID, `hashCode` by all fields, `compareTo` by price. As a result, each collection has a different notion of "duplicate".
+2. **Using subtraction in comparisons:** `return (int) (a.orderNo - b.orderNo);` can overflow or lose bits. Use `Long.compare(a.orderNo, b.orderNo)`.
+3. **Thoughtlessly adding a tie-breaker to a `TreeSet` comparator:** adding `totalCents` makes sorting look nicer, yet can cause two snapshots with the same ID to compare as non-zero. Keep the identity comparator separate from display comparators.
+4. **Forgetting composite keys that include tenant:** two orders with matching `orderNo` across tenants are accidentally merged into one.
+5. **Putting mutable fields into hash/order:** modifying them after adding to a `HashSet`/`TreeSet` can make lookup/remove operations unreliable.
+6. **Assuming `compareTo()==0` always implies `equals()==true` in every library:** `BigDecimal` is a counterexample; understand semantics before using a type as an ordered key.
+7. **Assuming records auto-generate every contract:** records auto-generate `equals` and `hashCode` but do not automatically provide ordering; mutable components can also break key stability.
+8. **Using a display comparator as the uniqueness rule:** sorting by price or update time is suitable for lists; sorted sets/maps need duplicate semantics matching business intent.
+9. **Choosing an unstable key before an entity has an ID:** changing identity while already inside a map/set can cause hard-to-find bugs; design the key lifecycle upfront.
 
-**Nguyên tắc áp dụng:** trước hết xác định một mô hình danh tính doanh nghiệp chính xác. Với entity `Order` ở bài này, cùng `tenantId + orderNo` phải **bằng nhau qua `equals`**, **có cùng mã băm**, và **so sánh bằng 0** theo thứ tự dùng cho `TreeSet`/`TreeMap`. Mọi thứ tự phục vụ giao diện hoặc báo cáo được diễn đạt bằng comparator riêng trên danh sách; không nên để một tiêu chí hiển thị vô tình thay đổi ý nghĩa “cùng một thực thể”.
+**Guiding principle:** first define one exact business identity model. For the `Order` entity in this article, matching `tenantId + orderNo` must be **equal via `equals`**, **have the same hash code**, and **compare as 0** under the ordering used for `TreeSet`/`TreeMap`. Any ordering for UI or reporting is expressed via separate comparators on lists; never let a display criterion accidentally alter the meaning of "the same entity".

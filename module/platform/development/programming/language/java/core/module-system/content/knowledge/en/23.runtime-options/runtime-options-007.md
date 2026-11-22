@@ -1,60 +1,60 @@
-# --upgrade-module-path thay module hệ thống
+# --upgrade-module-path: Replacing System Modules
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể giải thích vì sao Java có tùy chọn --upgrade-module-path, phân biệt upgrade module path với application module path, thay thế một system module có thể nâng cấp bằng bản modular JAR riêng, và nhận biết giới hạn của cơ chế này khi so sánh với --patch-module.
+After this lesson, you will be able to explain why Java has the --upgrade-module-path option, distinguish the upgrade module path from the application module path, replace an upgradeable system module with a custom modular JAR, and recognize the limitations of this mechanism compared to --patch-module.
 
-## 1. Bối cảnh: module hệ thống trong runtime image
+## 1. Context: System Modules in the Runtime Image
 
-Từ Java 9, JDK được tổ chức thành các module. Các module nền tảng như java.base, java.logging, java.sql, java.xml và nhiều module jdk.* được đóng gói trong runtime image của JDK.
+Since Java 9, the JDK has been organized into modules. Platform modules such as java.base, java.logging, java.sql, java.xml, and many jdk.* modules are packaged inside the JDK's runtime image.
 
-Khi khởi động JVM, Java sử dụng các module hệ thống có sẵn trong runtime image để phân giải các dependency nền tảng. Ứng dụng có thể bổ sung module của mình bằng --module-path, nhưng đôi khi cần thay thế implementation của một module hệ thống bằng phiên bản khác.
+When starting the JVM, Java uses the system modules available in the runtime image to resolve platform dependencies. An application can supply its own modules via --module-path, yet sometimes needs to replace the implementation of a system module with a different version.
 
-Ví dụ, một môi trường triển khai có thể cần dùng bản cập nhật của một module thư viện trong JDK trước khi chuyển toàn bộ ứng dụng sang một JDK mới hơn. Trong trường hợp module đó được phép nâng cấp, Java cung cấp tùy chọn:
+For example, a deployment environment might need to use an updated version of a library module in the JDK before migrating the entire application to a newer JDK. When that module is allowed to be upgraded, Java provides the option:
 
 ~~~bash
 --upgrade-module-path <module-path>
 ~~~
 
-Tùy chọn này chỉ định nơi Java tìm các phiên bản thay thế của những module hệ thống có thể nâng cấp. Module tìm được trên upgrade module path sẽ được ưu tiên thay cho module cùng tên trong runtime image.
+This option specifies where Java searches for replacement versions of upgradeable system modules. A module found on the upgrade module path takes precedence over the module of the same name in the runtime image.
 
-Đây là cơ chế thay module ở cấp JPMS. Nó không thay toàn bộ JDK, không thay runtime image trên đĩa và không tự động thay mọi module trong hệ thống.
+This is a module-replacement mechanism at the JPMS level. It does not replace the entire JDK, does not modify the runtime image on disk, and does not automatically replace every module in the system.
 
-## 2. Upgrade module path hoạt động như thế nào?
+## 2. How Does the Upgrade Module Path Work?
 
-Có thể hình dung quá trình phân giải như sau:
+You can visualize the resolution process as follows:
 
-1. Runtime image cung cấp các module hệ thống của JDK.
-2. Upgrade module path được kiểm tra để tìm các module hệ thống có thể nâng cấp.
-3. Nếu đường dẫn nâng cấp chứa module cùng tên với một module hệ thống có thể nâng cấp, phiên bản trên upgrade module path được dùng thay thế.
-4. Các module ứng dụng vẫn được tìm từ application module path được chỉ định bằng --module-path.
-5. Module graph được phân giải dựa trên các module được chọn và quan hệ requires của chúng.
+1. The runtime image provides the JDK's system modules.
+2. The upgrade module path is checked to find upgradeable system modules.
+3. If the upgrade path contains a module with the same name as an upgradeable system module, the version on the upgrade module path is used instead.
+4. Application modules are still located from the application module path specified via --module-path.
+5. The module graph is resolved based on the selected modules and their requires relationships.
 
-Ví dụ, JDK hiện tại cung cấp module java.xml. Nếu upgrade module path chứa một explicit module có tên java.xml, runtime có thể sử dụng module đó thay cho module java.xml có sẵn trong runtime image.
+For example, the current JDK provides module java.xml. If the upgrade module path contains an explicit module named java.xml, the runtime can use that module instead of the java.xml module built into the runtime image.
 
-Tên module là yếu tố quyết định việc thay thế. Một JAR tên custom-xml.jar nhưng descriptor khai báo module com.acme.xml không thay thế java.xml. Ngược lại, file JAR có tên tùy ý nhưng descriptor khai báo đúng tên module hệ thống có thể nâng cấp thì được nhận diện theo tên module trong descriptor.
+The module name is the deciding factor for replacement. A JAR named custom-xml.jar whose descriptor declares module com.acme.xml does not replace java.xml. Conversely, a JAR file with an arbitrary filename whose descriptor declares the exact name of an upgradeable system module is recognized by the module name in its descriptor.
 
-## 3. Phân biệt ba đường dẫn module thường gặp
+## 3. Distinguishing Three Common Module Paths
 
-| Tùy chọn | Vai trò |
+| Option | Role |
 |---|---|
-| --module-path | Tìm các module ứng dụng hoặc thư viện mà ứng dụng cần sử dụng |
-| --upgrade-module-path | Cung cấp phiên bản thay thế cho module hệ thống có thể nâng cấp trong runtime image |
-| --system | Chỉ định runtime image/JDK dùng làm nguồn module hệ thống khi biên dịch bằng javac |
+| --module-path | Locates application or library modules that the application needs to use |
+| --upgrade-module-path | Provides replacement versions for upgradeable system modules in the runtime image |
+| --system | Specifies the runtime image/JDK used as the source of system modules when compiling with javac |
 
-Ba tùy chọn này không thể thay thế lẫn nhau.
+These three options are not interchangeable.
 
-Ví dụ:
+Example:
 
-- com.acme.app nằm trên --module-path vì đây là module của ứng dụng.
-- Bản thay thế của java.xml nằm trên --upgrade-module-path vì nó thay một module hệ thống có sẵn.
-- Các module nền tảng còn lại tiếp tục đến từ runtime image của JDK đang chạy.
+- com.acme.app sits on --module-path because it is an application module.
+- The replacement for java.xml sits on --upgrade-module-path because it replaces a built-in system module.
+- The remaining platform modules continue to come from the runtime image of the running JDK.
 
-Nếu chỉ đưa một JAR thay thế vào --module-path, Java sẽ xem nó như một module ứng dụng hoặc thư viện thông thường. Đặt JAR vào --upgrade-module-path mới thể hiện ý định thay thế module hệ thống cùng tên.
+If you only place a replacement JAR on --module-path, Java treats it as a regular application or library module. Placing the JAR on --upgrade-module-path expresses the intent to replace the system module of the same name.
 
-## 4. Cấu trúc thư mục ví dụ
+## 4. Example Directory Structure
 
-Giả sử ta có một ứng dụng modular và một bản thay thế cho module hệ thống:
+Suppose we have a modular application and a replacement for a system module:
 
 ~~~text
 deployment/
@@ -65,27 +65,27 @@ deployment/
     java.xml.jar
 ~~~
 
-Trong ví dụ này:
+In this example:
 
-- com.acme.report.jar là module ứng dụng.
-- java.xml.jar là explicit modular JAR chứa module descriptor khai báo tên module java.xml.
-- Các module hệ thống khác vẫn được cung cấp bởi JDK đang sử dụng.
+- com.acme.report.jar is the application module.
+- java.xml.jar is an explicit modular JAR containing a module descriptor declaring the module name java.xml.
+- Other system modules are still supplied by the JDK in use.
 
-Tên file java.xml.jar chỉ giúp người vận hành dễ nhận biết. Điều quan trọng là module-info.class bên trong JAR phải khai báo đúng tên java.xml và cấu trúc module phải hợp lệ.
+The filename java.xml.jar merely helps operators identify it easily. What matters is that module-info.class inside the JAR declares the exact name java.xml and the module structure is valid.
 
-Có thể kiểm tra descriptor của bản thay thế bằng:
+You can inspect the replacement's descriptor with:
 
 ~~~bash
 jar --describe-module --file deployment/upgrade-modules/java.xml.jar
 ~~~
 
-Kết quả cần xác nhận tên module là java.xml, đồng thời cho biết các requires, exports và những chỉ thị module khác mà bản thay thế khai báo.
+The output should confirm the module name is java.xml, while also showing the requires, exports, and other module directives declared by the replacement.
 
-Không nên đóng gói một thư viện JAR thông thường rồi chỉ đổi tên file thành java.xml.jar. Một module trên upgrade module path cần có descriptor module phù hợp để Java nhận diện đúng module cần nâng cấp.
+Do not package a regular library JAR and merely rename the file to java.xml.jar. A module on the upgrade module path needs an appropriate module descriptor so Java recognizes the exact module to upgrade.
 
-## 5. Chạy ứng dụng với module thay thế
+## 5. Running the Application with a Replacement Module
 
-Dùng java launcher:
+Use the java launcher:
 
 ~~~bash
 java \
@@ -94,59 +94,59 @@ java \
     --module com.acme.report/com.acme.report.Main
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-- --upgrade-module-path chỉ định thư mục chứa module thay thế.
-- --module-path chỉ định thư mục chứa module ứng dụng.
-- --module chọn module và main class cần chạy.
+- --upgrade-module-path specifies the directory containing the replacement module.
+- --module-path specifies the directory containing the application modules.
+- --module selects the module and main class to run.
 
-Trên Windows, dấu phân tách nhiều mục trong một module path là dấu chấm phẩy; trên Linux và macOS là dấu hai chấm. Trong ví dụ trên mỗi tùy chọn nhận một thư mục nên không cần ghép nhiều mục.
+On Windows, the separator for multiple entries in a module path is a semicolon; on Linux and macOS it is a colon. In the example above, each option takes one directory, so joining multiple entries is not needed.
 
-Khi khởi chạy, Java phân giải com.acme.report cùng dependency của nó. Nếu module graph yêu cầu java.xml, runtime sử dụng phiên bản được tìm thấy trên upgrade module path thay cho phiên bản java.xml trong runtime image, miễn là module đó thuộc nhóm được phép nâng cấp và bản thay thế phân giải hợp lệ.
+At launch, Java resolves com.acme.report along with its dependencies. If the module graph requires java.xml, the runtime uses the version found on the upgrade module path instead of the java.xml version in the runtime image, provided that module belongs to the upgradeable group and the replacement resolves cleanly.
 
-Nếu upgrade module path không chứa module thay thế tương ứng, Java tiếp tục sử dụng module có sẵn trong runtime image.
+If the upgrade module path does not contain a corresponding replacement module, Java continues using the module built into the runtime image.
 
-## 6. Module nào có thể được nâng cấp?
+## 6. Which Modules Can Be Upgraded?
 
-Không phải mọi thành phần của runtime đều có thể được thay bằng tùy chọn này. Module java.base là module nền tảng đặc biệt và không thể được nâng cấp bằng --upgrade-module-path.
+Not every part of the runtime can be replaced using this option. Module java.base is a special core module and cannot be upgraded via --upgrade-module-path.
 
-Với các module hệ thống khác, khả năng nâng cấp phụ thuộc vào quy tắc của runtime/JDK đang dùng. Hãy kiểm tra tài liệu của đúng phiên bản JDK mục tiêu trước khi triển khai một module thay thế.
+For other system modules, upgradeability depends on the rules of the runtime/JDK in use. Check the documentation for the exact target JDK version before deploying a replacement module.
 
-Bản thay thế cần đáp ứng các điều kiện cơ bản:
+The replacement must satisfy basic conditions:
 
-- Là một module hợp lệ mà Java có thể tìm thấy trên upgrade module path.
-- Khai báo cùng tên module với module hệ thống cần thay.
-- Có các dependency có thể phân giải trong module graph.
-- Cung cấp các package và kiểu mà những module phụ thuộc mong đợi.
-- Tương thích với runtime và các module còn lại trong JDK đang chạy.
+- It is a valid module that Java can locate on the upgrade module path.
+- It declares the same module name as the system module to replace.
+- It has dependencies that can be resolved within the module graph.
+- It provides the packages and types expected by dependent modules.
+- It is compatible with the runtime and the remaining modules in the running JDK.
 
-JPMS kiểm soát tên module, khả năng đọc module và quyền truy cập package. Nó không bảo đảm API nhị phân của bản thay thế tương thích với mọi ứng dụng. Nếu bản mới bỏ một lớp hoặc phương thức mà ứng dụng đang dùng, ứng dụng vẫn có thể lỗi khi liên kết hoặc chạy.
+JPMS governs module names, module readability, and package access. It does not guarantee that the replacement's binary API is compatible with every application. If the new version removes a class or method that the application uses, the application can still fail during linking or execution.
 
-Không nên giả định một module thay thế được biên dịch trên JDK mới hơn sẽ luôn chạy được trên mọi JDK cũ hơn. Hãy xây dựng và kiểm tra artifact trên phiên bản nền tảng được hỗ trợ.
+Do not assume a replacement module compiled on a newer JDK will always run on every older JDK. Build and test the artifact on the supported platform version.
 
-## 7. Kiểm tra module đang được phân giải
+## 7. Inspecting Resolved Modules
 
-Có thể dùng các lệnh của JDK để xem module hệ thống và descriptor:
+You can use JDK commands to inspect system modules and descriptors:
 
 ~~~bash
 java --list-modules
 ~~~
 
-Lệnh này liệt kê các module có trong runtime đang được sử dụng. Nó hữu ích để xác định tên module và phiên bản module mà JDK cung cấp.
+This command lists the modules present in the runtime being used. It is useful for identifying module names and module versions provided by the JDK.
 
-Xem descriptor của module trong JDK:
+View the descriptor of a module in the JDK:
 
 ~~~bash
 java --describe-module java.xml
 ~~~
 
-Để kiểm tra file JAR thay thế trước khi chạy, dùng:
+To inspect a replacement JAR file before running, use:
 
 ~~~bash
 jar --describe-module --file deployment/upgrade-modules/java.xml.jar
 ~~~
 
-Khi cần quan sát module graph hoặc tìm nguyên nhân một module không được phân giải, có thể bật log module:
+When you need to observe the module graph or diagnose why a module is not resolved, you can enable module logging:
 
 ~~~bash
 java -Xlog:module+load=info \
@@ -155,21 +155,21 @@ java -Xlog:module+load=info \
      --module com.acme.report/com.acme.report.Main
 ~~~
 
-Các tag log có thể khác nhau giữa các phiên bản JDK. Nếu tag không được runtime hỗ trợ, xem danh sách tag bằng -Xlog:help rồi chọn tag phù hợp.
+Log tags can vary across JDK versions. If a tag is not supported by the runtime, view the tag list with -Xlog:help and choose the appropriate tag.
 
-## 8. Phân biệt --upgrade-module-path với --patch-module
+## 8. Distinguishing --upgrade-module-path from --patch-module
 
-Hai tùy chọn đều tác động đến nội dung module, nhưng cách hoạt động khác nhau:
+Both options affect module contents, but they work differently:
 
-| Tiêu chí | --upgrade-module-path | --patch-module |
+| Criterion | --upgrade-module-path | --patch-module |
 |---|---|---|
-| Mục đích | Thay module hệ thống có thể nâng cấp bằng module cùng tên | Bổ sung hoặc thay thế class/resource trong một module đã tồn tại |
-| Artifact | Module thay thế có descriptor riêng | Các class/resource được đưa vào module đích |
-| Module descriptor | Dùng descriptor của module thay thế | Không thay module descriptor hiện có |
-| Phạm vi | Module hệ thống có thể nâng cấp | Module được chỉ định để patch |
-| Trường hợp thường gặp | Thử nghiệm hoặc triển khai phiên bản mới của module hệ thống | Test, instrumentation hoặc thêm lớp vào module hiện hữu |
+| Purpose | Replaces an upgradeable system module with a module of the same name | Adds or replaces classes/resources inside an existing module |
+| Artifact | Replacement module with its own descriptor | Classes/resources injected into the target module |
+| Module descriptor | Uses the descriptor of the replacement module | Does not change the existing module descriptor |
+| Scope | Upgradeable system modules | Specified module to patch |
+| Common use cases | Testing or deploying a new version of a system module | Testing, instrumentation, or adding classes to an existing module |
 
-Ví dụ patch module java.base bằng một thư mục class đã biên dịch:
+Example patching module java.base with a compiled class directory:
 
 ~~~bash
 java \
@@ -178,19 +178,19 @@ java \
     --module com.acme.app/com.acme.app.Main
 ~~~
 
-Đường dẫn sau dấu bằng là nội dung bổ sung cho module đích. Patch không thay descriptor của module, không tạo một module mới và không tự thay các chỉ thị requires, exports hay opens.
+The path after the equals sign is additional content for the target module. Patching does not replace the module's descriptor, does not create a new module, and does not automatically alter requires, exports, or opens directives.
 
-Ngược lại, --upgrade-module-path cung cấp một module thay thế hoàn chỉnh có tên tương ứng. Hãy chọn patch khi cần bổ sung hoặc thay một số lớp trong module hiện hữu; chọn upgrade path khi cần cung cấp phiên bản module thay thế theo cơ chế JPMS.
+Conversely, --upgrade-module-path provides a complete replacement module with the corresponding name. Choose patching when you need to add or replace a few classes in an existing module; choose the upgrade path when you need to supply a replacement module version via the JPMS mechanism.
 
-## 9. Phân biệt với --add-exports và --add-opens
+## 9. Distinguishing from --add-exports and --add-opens
 
-Một số lỗi runtime liên quan đến module bị đóng gói thường khiến người học nhầm --upgrade-module-path với các tùy chọn mở quyền truy cập.
+Some runtime errors related to encapsulated modules cause learners to confuse --upgrade-module-path with access-opening options.
 
-- --add-exports mở một package cho module đích truy cập các kiểu public trong package đó.
-- --add-opens mở package cho reflective access sâu tại runtime.
-- --upgrade-module-path chọn một implementation module khác cho module hệ thống có thể nâng cấp.
+- --add-exports opens a package so the target module can access public types in that package.
+- --add-opens opens a package for deep reflective access at runtime.
+- --upgrade-module-path selects a different module implementation for an upgradeable system module.
 
-Ví dụ:
+Example:
 
 ~~~bash
 java \
@@ -198,15 +198,15 @@ java \
     -jar legacy-app.jar
 ~~~
 
-Lệnh này mở package sun.nio.ch của java.base cho unnamed module. Nó không thay module java.base và cũng không cập nhật implementation của module đó.
+This command opens package sun.nio.ch of java.base to unnamed modules. It does not replace module java.base and does not update that module's implementation.
 
-Nếu ứng dụng cần truy cập package nội bộ, hãy xử lý quyền truy cập bằng tùy chọn exports/opens phù hợp. Nếu cần thay implementation của một module hệ thống có thể nâng cấp, hãy xem xét upgrade module path.
+If the application needs access to an internal package, handle access permissions using the appropriate exports/opens option. If you need to replace the implementation of an upgradeable system module, consider the upgrade module path.
 
-## 10. Dùng --upgrade-module-path khi biên dịch
+## 10. Using --upgrade-module-path at Compile Time
 
-Javac cũng có tùy chọn --upgrade-module-path để chỉ định module thay thế khi phân giải các module hệ thống trong quá trình biên dịch.
+Javac also has the --upgrade-module-path option to specify replacement modules when resolving system modules during compilation.
 
-Ví dụ:
+Example:
 
 ~~~bash
 javac \
@@ -217,44 +217,44 @@ javac \
     -m com.acme.report
 ~~~
 
-Ở đây:
+Here:
 
-- --upgrade-module-path cho javac biết nơi tìm phiên bản thay thế của module hệ thống có thể nâng cấp.
-- --module-path cung cấp các module dependency của ứng dụng.
-- --module-source-path chỉ định cấu trúc source theo module.
-- -m chọn module cần biên dịch.
+- --upgrade-module-path tells javac where to find replacement versions of upgradeable system modules.
+- --module-path provides the application's dependency modules.
+- --module-source-path specifies the module-based source layout.
+- -m selects the module to compile.
 
-Nếu biên dịch với một phiên bản java.xml thay thế nhưng chạy bằng JDK không có cùng artifact trên upgrade module path, môi trường compile và runtime có thể khác nhau. Hãy đồng bộ cấu hình hai giai đoạn để tránh biên dịch thành công nhưng chạy lỗi do API/module được chọn khác nhau.
+If you compile with a replacement java.xml version but run on a JDK without the same artifact on the upgrade module path, the compile and runtime environments can diverge. Synchronize the configuration across both phases to avoid succeeding at compile time yet failing at runtime due to different APIs/modules being selected.
 
-## 11. Những lỗi thường gặp
+## 11. Common Errors
 
-| Hiện tượng | Nguyên nhân thường gặp | Hướng xử lý |
+| Symptom | Common Cause | Resolution |
 |---|---|---|
-| Module thay thế không được chọn | Đặt JAR trên --module-path thay vì --upgrade-module-path | Đặt artifact vào đúng upgrade module path |
-| Module không thay thế được system module | Tên trong module descriptor không trùng tên module cần thay | Dùng jar --describe-module để kiểm tra module name |
-| Không thể nâng cấp java.base | java.base là module nền tảng không upgrade được | Không dùng upgrade path để thay java.base |
-| FindException hoặc ResolutionException | Module thay thế hoặc dependency của nó không thể phân giải | Kiểm tra descriptor, requires và các đường dẫn module |
-| NoSuchMethodError hoặc NoClassDefFoundError | Bản thay thế không tương thích với module/ứng dụng đang dùng | Kiểm tra API và binary compatibility |
-| Compile thành công nhưng runtime lỗi | Javac và java sử dụng các module thay thế hoặc phiên bản JDK khác nhau | Đồng bộ upgrade module path ở cả compile và runtime |
-| Lỗi truy cập package nội bộ vẫn còn | Upgrade path không tự mở package hoặc cấp quyền reflective access | Xem xét --add-exports hoặc --add-opens nếu đúng nhu cầu |
+| Replacement module is not selected | Placed JAR on --module-path instead of --upgrade-module-path | Place the artifact on the proper upgrade module path |
+| Module does not replace the system module | Name in module descriptor does not match the name of the module to replace | Use jar --describe-module to check the module name |
+| Cannot upgrade java.base | java.base is a non-upgradeable core module | Do not use the upgrade path to replace java.base |
+| FindException or ResolutionException | Replacement module or its dependencies cannot be resolved | Check descriptor, requires, and module paths |
+| NoSuchMethodError or NoClassDefFoundError | Replacement is incompatible with the module/application in use | Check API and binary compatibility |
+| Compile succeeds but runtime fails | Javac and java use different replacement modules or JDK versions | Synchronize upgrade module path at both compile time and runtime |
+| Internal package access errors persist | Upgrade path does not automatically open packages or grant reflective access | Consider --add-exports or --add-opens if genuinely needed |
 
-Khi chẩn đoán, hãy kiểm tra theo thứ tự: module name của artifact, đường dẫn được truyền vào launcher/compiler, khả năng nâng cấp của module đích, dependency trong descriptor và tính tương thích API. Chỉ kiểm tra tên file JAR là chưa đủ.
+When diagnosing, check in order: the artifact's module name, the paths passed to the launcher/compiler, the upgradeability of the target module, dependencies in the descriptor, and API compatibility. Checking only the JAR filename is not enough.
 
-## 12. Khi nào nên dùng tùy chọn này?
+## 12. When Should This Option Be Used?
 
---upgrade-module-path hữu ích khi cần thử nghiệm hoặc triển khai một bản thay thế của module hệ thống được phép nâng cấp mà không thay toàn bộ JDK runtime image.
+--upgrade-module-path is useful when you need to test or deploy a replacement for an upgradeable system module without replacing the entire JDK runtime image.
 
-Trước khi dùng trong môi trường production, cần kiểm tra:
+Before using it in production, verify:
 
-- Module đích có thuộc nhóm upgradeable của JDK đang chạy không.
-- Artifact thay thế có đúng module name và descriptor hợp lệ không.
-- Dependency của module có thể phân giải không.
-- API của bản thay thế có tương thích với ứng dụng và các module khác không.
-- Cấu hình lúc compile và runtime có nhất quán không.
-- Môi trường triển khai có sử dụng đúng JDK và đúng upgrade module path đã kiểm thử không.
+- Does the target module belong to the upgradeable group of the running JDK?
+- Does the replacement artifact have the exact module name and a valid descriptor?
+- Can the module's dependencies be resolved?
+- Is the replacement's API compatible with the application and other modules?
+- Are compile-time and runtime configurations consistent?
+- Does the deployment environment use the exact JDK and upgrade module path that were tested?
 
-Nếu mục tiêu chỉ là thêm một module ứng dụng mới, hãy dùng --module-path. Nếu mục tiêu chỉ là thêm hoặc thay một số class trong module hiện hữu, hãy xem xét --patch-module. Nếu cần thay module hệ thống có thể nâng cấp bằng một module cùng tên, --upgrade-module-path là tùy chọn tương ứng.
+If the goal is only to add a new application module, use --module-path. If the goal is only to add or replace a few classes in an existing module, consider --patch-module. If you need to replace an upgradeable system module with a module of the same name, --upgrade-module-path is the corresponding option.
 
-## Ghi nhớ
+## Key Takeaways
 
---upgrade-module-path cung cấp các module thay thế cho module hệ thống có thể nâng cấp trong runtime image. Java dùng module cùng tên trên đường dẫn này thay cho module tương ứng trong JDK; java.base là ngoại lệ không thể nâng cấp. --module-path dành cho module ứng dụng, còn --patch-module bổ sung hoặc thay class/resource trong module hiện có mà không thay descriptor. Khi dùng upgrade path, hãy kiểm tra module name, dependency, khả năng tương thích và bảo đảm cấu hình compile/runtime đồng nhất.
+--upgrade-module-path provides replacement modules for upgradeable system modules in the runtime image. Java uses a module of the same name on this path instead of the corresponding module in the JDK; java.base is the non-upgradeable exception. --module-path is for application modules, while --patch-module adds or replaces classes/resources in an existing module without changing its descriptor. When using the upgrade path, verify the module name, dependencies, compatibility, and ensure compile/runtime configurations match.

@@ -1,12 +1,12 @@
-# Chia package theo API và implementation
+# Splitting Packages by API and Implementation
 
-## 1. Mục tiêu của việc tách API và implementation
+## 1. The Goal of Separating API and Implementation
 
-Java Platform Module System (JPMS) cho phép một module công bố chọn lọc các package qua chỉ thị `exports`. Nhờ vậy, tác giả module có thể phân biệt phần **contract công khai** mà ứng dụng bên ngoài được phép sử dụng với phần **implementation nội bộ** có thể thay đổi mà không phá vỡ code consumer.
+The Java Platform Module System (JPMS) allows a module to selectively expose packages via the `exports` directive. As a result, a module author can distinguish the **public contract** that external applications are allowed to use from the **internal implementation** that can change without breaking consumer code.
 
-Nếu đặt API và implementation vào cùng một package đã export, mọi public type trong package đều có thể được consumer tham chiếu theo các quy tắc truy cập Java và JPMS. Điều này khiến consumer dễ phụ thuộc trực tiếp vào các class mà nhà phát triển chỉ định dùng nội bộ.
+If you place both the API and the implementation in the same exported package, every public type in the package can be referenced by consumers according to Java and JPMS access rules. This makes it easy for consumers to depend directly on classes that the developer intended for internal use only.
 
-Ví dụ cấu trúc dễ tạo coupling:
+Example of a structure that easily creates coupling:
 
 ~~~text
 com.acme.inventory/
@@ -16,7 +16,7 @@ com.acme.inventory/
 └── ConnectionFactory.java
 ~~~
 
-Khi descriptor khai báo:
+When the descriptor declares:
 
 ~~~java
 module com.acme.inventory {
@@ -24,16 +24,16 @@ module com.acme.inventory {
 }
 ~~~
 
-cả `InventoryService` lẫn những implementation class `public` trong package này đều thuộc phạm vi export. JPMS không có lệnh `exports` theo từng class riêng lẻ.
+both `InventoryService` and the `public` implementation classes in this package fall within the export scope. JPMS does not have an `exports` directive for individual classes.
 
-Cách tổ chức phù hợp hơn:
+A more appropriate organization:
 
 ~~~text
 com.acme.inventory.api
 com.acme.inventory.internal
 ~~~
 
-Và:
+And:
 
 ~~~java
 module com.acme.inventory {
@@ -41,29 +41,29 @@ module com.acme.inventory {
 }
 ~~~
 
-Consumer chỉ cần phụ thuộc vào contract. Implementation có thể được thay thế mà vẫn giữ nguyên API.
+Consumers only need to depend on the contract. The implementation can be replaced while keeping the API unchanged.
 
-## 2. Phân loại package theo trách nhiệm
+## 2. Categorizing Packages by Responsibility
 
-Có thể bắt đầu bằng những nhóm sau:
+You can start with the following groups:
 
-| Nhóm | Vai trò | Ví dụ |
+| Group | Role | Example |
 |---|---|---|
-| API | Contract cho code sử dụng module | `com.acme.inventory.api` |
-| Implementation | Class triển khai contract, thuật toán nội bộ | `com.acme.inventory.internal` |
-| Persistence | Repository, database mapping, JDBC adapter | `com.acme.inventory.internal.persistence` |
-| SPI | Contract cho người viết provider/extension | `com.acme.inventory.spi` |
-| Integration | Contract/adapter dùng cho tích hợp chuyên biệt | `com.acme.inventory.integration` |
+| API | Contract for code using the module | `com.acme.inventory.api` |
+| Implementation | Classes implementing contracts, internal algorithms | `com.acme.inventory.internal` |
+| Persistence | Repositories, database mappings, JDBC adapters | `com.acme.inventory.internal.persistence` |
+| SPI | Contract for provider/extension authors | `com.acme.inventory.spi` |
+| Integration | Contracts/adapters used for specialized integration | `com.acme.inventory.integration` |
 
-Một API package có thể chứa interface, abstract class, record/DTO, enum, exception công khai và một facade hoặc factory. Không phải tất cả public API đều phải là interface.
+An API package can contain interfaces, abstract classes, records/DTOs, enums, public exceptions, and a facade or factory. Not all public APIs have to be interfaces.
 
-Implementation package thường chứa class cụ thể, cache, mapper, connection factory, repository, adapter và helper mà consumer không cần biết.
+An implementation package typically contains concrete classes, caches, mappers, connection factories, repositories, adapters, and helpers that consumers do not need to know about.
 
-Các tên `api`, `spi`, `internal` chỉ là quy ước đặt tên. **Ranh giới thật sự do module descriptor và các quy tắc access của Java quyết định.** Đặt package tên `internal` nhưng vẫn `exports` nó thì JPMS vẫn cho phép truy cập theo quyền export.
+Names like `api`, `spi`, and `internal` are merely naming conventions. **The real boundary is determined by the module descriptor and Java access rules.** If you name a package `internal` yet still `exports` it, JPMS will still allow access according to the export rules.
 
-## 3. Một module chứa cả API và implementation
+## 3. A Single Module Containing Both API and Implementation
 
-Với thư viện nhỏ, chưa nhất thiết phải tách thành hai module. Có thể tách package ngay trong một module:
+For a small library, it is not yet necessary to split into two modules. You can separate packages right inside a single module:
 
 ~~~text
 inventory/
@@ -85,7 +85,7 @@ module com.acme.inventory {
 }
 ~~~
 
-Contract công khai:
+Public contract:
 
 ~~~java
 package com.acme.inventory.api;
@@ -95,7 +95,7 @@ public interface InventoryService {
 }
 ~~~
 
-Implementation nội bộ:
+Internal implementation:
 
 ~~~java
 package com.acme.inventory.internal;
@@ -116,7 +116,7 @@ public final class InMemoryInventoryService
 }
 ~~~
 
-Factory công khai:
+Public factory:
 
 ~~~java
 package com.acme.inventory.api;
@@ -134,13 +134,13 @@ public final class InventoryServices {
 }
 ~~~
 
-Trong cùng một named module, code ở các package khác nhau vẫn có thể dùng public class nội bộ theo quy tắc Java. Điều đó không có nghĩa các module consumer bên ngoài được phép truy cập package internal.
+Within the same named module, code in different packages can still use internal public classes according to Java rules. That does not mean external consumer modules are allowed to access the internal package.
 
-Factory ở ví dụ này làm nhiệm vụ wiring. Trong kiến trúc lớn, có thể đặt việc lựa chọn implementation ở một composition root riêng để API module không phụ thuộc ngược vào implementation.
+The factory in this example performs wiring. In a larger architecture, implementation selection can be placed in a separate composition root so that the API module does not depend back on the implementation.
 
-## 4. Consumer chỉ nhìn thấy contract
+## 4. Consumers Only See the Contract
 
-Module consumer:
+Consumer module:
 
 ~~~java
 module com.acme.checkout {
@@ -148,7 +148,7 @@ module com.acme.checkout {
 }
 ~~~
 
-Ứng dụng:
+Application:
 
 ~~~java
 package com.acme.checkout;
@@ -167,15 +167,15 @@ public final class Main {
 }
 ~~~
 
-Consumer không import implementation class. Nó chỉ sử dụng type có trong API package đã export.
+The consumer does not import the implementation class. It only uses types present in the exported API package.
 
-Nếu consumer thử:
+If the consumer tries:
 
 ~~~java
 import com.acme.inventory.internal.InMemoryInventoryService;
 ~~~
 
-compiler có thể báo:
+the compiler may report:
 
 ~~~text
 package com.acme.inventory.internal is not visible
@@ -183,17 +183,17 @@ package com.acme.inventory.internal is not visible
  com.acme.inventory, which does not export it)
 ~~~
 
-Thông báo này minh họa sự khác biệt giữa:
+This message illustrates the difference between:
 
-- `public`: khả năng truy cập type theo Java language rules.
-- `requires`: khả năng đọc module dependency.
-- `exports`: khả năng truy cập public types của một package qua module boundary.
+- `public`: accessibility of a type under Java language rules.
+- `requires`: readability of a module dependency.
+- `exports`: accessibility of public types of a package across the module boundary.
 
-Dù `InMemoryInventoryService` là `public`, một named module khác vẫn không thể dùng nó như public API khi package chứa class không được export.
+Even though `InMemoryInventoryService` is `public`, another named module still cannot use it as public API when the package containing the class is not exported.
 
-## 5. exports không áp dụng đệ quy
+## 5. exports Is Not Applied Recursively
 
-Nếu descriptor khai báo:
+If the descriptor declares:
 
 ~~~java
 module com.acme.inventory {
@@ -201,11 +201,11 @@ module com.acme.inventory {
 }
 ~~~
 
-thì package `com.acme.inventory.api.internal` **không tự động được export**. Java không xem subpackage là một phần của package cha về quyền truy cập.
+then the package `com.acme.inventory.api.internal` is **not automatically exported**. Java does not treat subpackages as part of the parent package for access control.
 
-Tương tự, `exports com.acme.inventory` không làm mọi package có prefix `com.acme.inventory.*` được export.
+Similarly, `exports com.acme.inventory` does not export every package with the prefix `com.acme.inventory.*`.
 
-Muốn export nhiều package, phải nêu từng package:
+To export multiple packages, each package must be listed explicitly:
 
 ~~~java
 module com.acme.inventory {
@@ -214,18 +214,18 @@ module com.acme.inventory {
 }
 ~~~
 
-Không có cú pháp wildcard:
+There is no wildcard syntax:
 
 ~~~java
-// Sai cú pháp:
+// Invalid syntax:
 exports com.acme.inventory.*;
 ~~~
 
-Vì JPMS export ở cấp package, hãy xác định ngay từ đầu package nào chứa những public type thật sự được hỗ trợ lâu dài. Không đặt implementation class vào package API rồi trông chờ một keyword khác để ẩn chúng.
+Because JPMS exports at the package level, determine from the start which packages contain public types that are genuinely supported long-term. Do not place implementation classes in an API package and hope for another keyword to hide them.
 
-## 6. Tránh làm rò rỉ implementation qua chữ ký công khai
+## 6. Avoiding Leaking Implementations Through Public Signatures
 
-Một lỗi thiết kế tinh vi là đặt interface trong API package nhưng để method trả về kiểu thuộc implementation package:
+A subtle design flaw is placing an interface in the API package while having a method return a type from the implementation package:
 
 ~~~java
 package com.acme.inventory.api;
@@ -237,9 +237,9 @@ public interface InventoryService {
 }
 ~~~
 
-Dù package API đã được export, consumer vẫn bị ràng buộc vào `SqlProductEntity`, một type nội bộ không export.
+Even though the API package is exported, consumers are still coupled to `SqlProductEntity`, an unexported internal type.
 
-Cách phù hợp hơn là định nghĩa dữ liệu trao đổi trong API:
+A better approach is to define the exchange data in the API:
 
 ~~~java
 package com.acme.inventory.api;
@@ -248,7 +248,7 @@ public record ProductView(String sku, String name) {
 }
 ~~~
 
-Sau đó:
+Then:
 
 ~~~java
 package com.acme.inventory.api;
@@ -260,47 +260,47 @@ public interface InventoryService {
 }
 ~~~
 
-Implementation chuyển database entity sang `ProductView` trước khi trả kết quả.
+The implementation converts the database entity to `ProductView` before returning the result.
 
-Khi đánh giá một public API, kiểm tra:
+When evaluating a public API, check:
 
-1. Kiểu trả về và parameter types.
-2. Generic arguments, ví dụ `List<ProductView>`.
-3. Checked exception trong `throws`.
-4. Superclass/interface mà public type kế thừa.
-5. Annotation và những kiểu khác nằm trong contract mà consumer cần biên dịch cùng.
+1. Return types and parameter types.
+2. Generic arguments, such as `List<ProductView>`.
+3. Checked exceptions in `throws`.
+4. Superclasses/interfaces inherited by public types.
+5. Annotations and other types in the contract that consumers need to compile against.
 
-Nếu API trả về `List<SqlProductEntity>` trong khi entity chỉ dành cho persistence, việc thay ORM hoặc database có thể phá vỡ consumer. API ổn định nên tránh lộ những quyết định triển khai này.
+If an API returns `List<SqlProductEntity>` when the entity is only meant for persistence, changing the ORM or database can break consumers. A stable API should avoid exposing these implementation decisions.
 
-## 7. Hướng phụ thuộc giữa API và implementation
+## 7. Dependency Direction Between API and Implementation
 
-Một thiết kế dễ bảo trì thường tuân theo:
+A maintainable design usually follows:
 
 ~~~text
 consumer  ----->  API contract  <-----  implementation
 ~~~
 
-Ý nghĩa:
+Meaning:
 
-- Consumer biết contract, không cần biết implementation cụ thể.
-- Implementation triển khai contract.
-- Một composition root, factory hoặc service-discovery mechanism quyết định implementation nào được dùng.
+- Consumers know the contract, without needing to know the concrete implementation.
+- Implementations implement the contract.
+- A composition root, factory, or service-discovery mechanism decides which implementation is used.
 
-Trong single-module design, factory nằm trong API package có thể sử dụng implementation ở cùng module. Với hệ thống cần nhiều implementation thay thế, mô hình nhiều module thường rõ ràng hơn.
+In a single-module design, a factory located in the API package can use an implementation in the same module. For systems needing multiple interchangeable implementations, a multi-module model is usually clearer.
 
-Không nên để API module `requires` implementation module chỉ để khởi tạo một object cụ thể. Nếu cần wiring, đưa trách nhiệm chọn provider sang host/composition module hoặc dùng `ServiceLoader`.
+An API module should not `requires` an implementation module just to instantiate a specific object. If wiring is needed, move the responsibility of choosing a provider to a host/composition module or use `ServiceLoader`.
 
-## 8. Khi nào nên tách thành API module và implementation module?
+## 8. When Should You Split into an API Module and an Implementation Module?
 
-Tách module là lựa chọn phù hợp khi:
+Splitting modules is an appropriate choice when:
 
-- Nhiều team hoặc hệ thống khác nhau cùng sử dụng một contract.
-- Có nhiều backend thay thế: file, database, cloud storage hoặc in-memory.
-- Ứng dụng cần plugin hoặc extension động.
-- Implementation có dependency nặng mà API không nên mang theo.
-- Muốn phát hành API và implementation theo vòng đời/version riêng.
+- Multiple teams or different systems share the same contract.
+- There are multiple interchangeable backends: file, database, cloud storage, or in-memory.
+- The application needs dynamic plugins or extensions.
+- The implementation has heavy dependencies that the API should not carry.
+- You want to release the API and implementation on separate lifecycles/versions.
 
-Ví dụ cấu trúc:
+Example structure:
 
 ~~~text
 src/
@@ -315,9 +315,9 @@ src/
     └── com/acme/checkout/Main.java
 ~~~
 
-Điểm quan trọng là mỗi module sở hữu package riêng. Không sao chép API class vào từng provider JAR vì như vậy có thể tạo split package hoặc class identity khác nhau khi dùng class loader/layer riêng.
+The important point is that each module owns its own packages. Do not copy API classes into each provider JAR, as doing so can create split packages or different class identities when using separate class loaders/layers.
 
-## 9. Public API module
+## 9. Public API Module
 
 Descriptor:
 
@@ -337,13 +337,13 @@ public interface InventoryService {
 }
 ~~~
 
-Module API không biết provider nào sẽ được cài. Nơi dùng interface chỉ cần `requires com.acme.inventory.api;`.
+The API module does not know which provider will be installed. Callers using the interface only need `requires com.acme.inventory.api;`.
 
-API package nên giữ số lượng dependency càng nhỏ và ổn định càng tốt. Nếu một public signature bắt buộc chứa type từ module khác, cân nhắc `requires transitive` khi điều đó phản ánh đúng contract; không thêm `transitive` cho mọi dependency nội bộ.
+The API package should keep its number of dependencies as small and stable as possible. If a public signature must contain a type from another module, consider `requires transitive` when that accurately reflects the contract; do not add `transitive` for every internal dependency.
 
-## 10. Provider module và ServiceLoader
+## 10. Provider Module and ServiceLoader
 
-Một provider module có thể đăng ký implementation qua JPMS service binding:
+A provider module can register an implementation via JPMS service binding:
 
 ~~~java
 module com.acme.inventory.provider {
@@ -374,19 +374,19 @@ public final class FileInventoryService
 }
 ~~~
 
-Lưu ý:
+Notes:
 
-- Provider class nằm trong package không export.
-- `provides ... with ...` đăng ký implementation với service type.
-- Consumer không phải import hoặc `requires` provider module cụ thể.
-- Provider module cần `requires` API module để triển khai đúng service type.
-- Việc `ServiceLoader` tạo provider hợp lệ không đòi hỏi provider implementation package phải được export.
+- The provider class resides in an unexported package.
+- `provides ... with ...` registers the implementation with the service type.
+- Consumers do not have to import or `requires` a specific provider module.
+- The provider module needs `requires` on the API module to properly implement the service type.
+- For `ServiceLoader` to instantiate a valid provider, the provider implementation package does not need to be exported.
 
-Đối với named module sử dụng service, caller cần khai báo `uses` cho service type đó.
+For a named module using the service, the caller needs to declare `uses` for that service type.
 
-## 11. Consumer tìm implementation bằng service contract
+## 11. Consumer Discovering the Implementation via the Service Contract
 
-Descriptor của consumer:
+Consumer descriptor:
 
 ~~~java
 module com.acme.checkout {
@@ -418,9 +418,9 @@ public final class Main {
 }
 ~~~
 
-Host thao tác qua `InventoryService`. Không cần thấy class `FileInventoryService`.
+The host operates through `InventoryService`. It does not need to see the `FileInventoryService` class.
 
-Khi chạy, provider cần được phân giải vào module configuration. Ví dụ, nếu muốn thêm provider như một root module rõ ràng:
+At runtime, the provider needs to be resolved into the module configuration. For example, if you want to add the provider as an explicit root module:
 
 ~~~bash
 java --module-path mods \
@@ -428,11 +428,11 @@ java --module-path mods \
   -m com.acme.checkout/com.acme.checkout.Main
 ~~~
 
-Ví dụ này không áp đặt thứ tự provider khi có nhiều implementation. Nếu nghiệp vụ cần chọn backend theo tên hoặc priority, hãy định nghĩa cơ chế lựa chọn rõ ràng thay vì dựa vào thứ tự `ServiceLoader`.
+This example does not impose a provider order when multiple implementations exist. If business logic needs to select a backend by name or priority, define an explicit selection mechanism rather than relying on `ServiceLoader` order.
 
-## 12. Biên dịch ví dụ nhiều module
+## 12. Compiling the Multi-Module Example
 
-Với source layout `src/<module-name>/...` ở trên:
+With the `src/<module-name>/...` source layout above:
 
 ~~~bash
 javac --module-source-path src \
@@ -452,9 +452,9 @@ mods/
     └── module-info.class
 ~~~
 
-Các `.class` của API, provider và consumer được compiler đặt vào package path tương ứng dưới từng thư mục module.
+The `.class` files for the API, provider, and consumer are placed by the compiler into the corresponding package paths under each module directory.
 
-Chạy:
+Run:
 
 ~~~bash
 java --module-path mods \
@@ -462,17 +462,17 @@ java --module-path mods \
   -m com.acme.checkout/com.acme.checkout.Main
 ~~~
 
-Kết quả minh họa:
+Illustrative output:
 
 ~~~text
 File-backed: SKU-1
 ~~~
 
-Lưu ý cách dùng `--module-source-path` phù hợp với source tree có một thư mục con mang tên mỗi module. Nếu dùng Maven/Gradle multi-project với `src/main/java` trong từng subproject, build tool thường quản lý output và module path thay vì dùng nguyên lệnh này.
+Note that using `--module-source-path` fits a source tree that has a subdirectory named after each module. If using a Maven/Gradle multi-project with `src/main/java` in each subproject, the build tool usually manages the output and module path instead of using this exact command.
 
-## 13. SPI là contract cho provider, không phải implementation
+## 13. SPI Is a Contract for Providers, Not an Implementation
 
-Nếu hệ thống có một SPI rõ ràng, có thể phân chia:
+If a system has a clear SPI, it can be divided as:
 
 ~~~text
 com.acme.payment.api
@@ -480,13 +480,13 @@ com.acme.payment.spi
 com.acme.payment.provider.internal
 ~~~
 
-Trong đó:
+Where:
 
-- `api` dành cho consumer gọi tính năng.
-- `spi` dành cho provider hoặc extension triển khai chức năng.
-- `provider.internal` chứa implementation mà consumer không nên import.
+- `api` is for consumers calling the feature.
+- `spi` is for providers or extensions implementing the feature.
+- `provider.internal` contains the implementation that consumers should not import.
 
-Một SPI được provider ở module khác triển khai cũng phải được export phù hợp:
+An SPI implemented by a provider in another module must also be exported appropriately:
 
 ~~~java
 module com.acme.payment.api {
@@ -495,13 +495,13 @@ module com.acme.payment.api {
 }
 ~~~
 
-Nếu SPI chỉ được sử dụng bởi những module cụ thể, có thể chọn qualified exports. Nhưng không nên giấu interface SPI trong package không export rồi mong module provider độc lập có thể implement nó bằng code thông thường.
+If the SPI is only used by specific modules, qualified exports can be chosen. However, you should not hide the SPI interface in an unexported package and expect an independent provider module to implement it with normal code.
 
-Ngược lại, package chứa implementation class của provider thường không cần export. Phân biệt **provider contract** và **provider implementation** sẽ giúp service architecture có boundary rõ ràng.
+Conversely, the package containing the provider's implementation class usually does not need to be exported. Distinguishing the **provider contract** from the **provider implementation** gives the service architecture clear boundaries.
 
-## 14. Qualified exports cho package tích hợp chuyên biệt
+## 14. Qualified Exports for Specialized Integration Packages
 
-Đôi khi một package chỉ cần được công bố cho một module adapter đã biết:
+Sometimes a package only needs to be exposed to a known adapter module:
 
 ~~~java
 module com.acme.inventory {
@@ -512,21 +512,21 @@ module com.acme.inventory {
 }
 ~~~
 
-Khi đó, `com.acme.inventory.adapter` có thể truy cập các public type phù hợp trong package integration nếu cũng có readability. Những module khác không tự được cấp quyền đó.
+In that case, `com.acme.inventory.adapter` can access the eligible public types in the integration package if it also has readability. Other modules are not automatically granted that access.
 
-Qualified exports hữu ích khi:
+Qualified exports are useful when:
 
-- Một package là contract nội bộ giữa một nhóm module.
-- Không muốn biến package thành API công khai cho mọi consumer.
-- Tên module đích được quản lý và ổn định.
+- A package is an internal contract among a group of modules.
+- You do not want to turn the package into public API for all consumers.
+- Target module names are managed and stable.
 
-Nếu phải liệt kê quá nhiều target module, cân nhắc tạo API module dành riêng cho integration hoặc thiết kế lại contract. Qualified exports không thay thế việc quản trị compatibility của API mà nó công bố.
+If you have to list too many target modules, consider creating a dedicated API module for integration or redesigning the contract. Qualified exports do not replace compatibility management for the API they expose.
 
-## 15. opens dành cho reflection, không thay thế exports
+## 15. opens Is for Reflection, Not a Replacement for exports
 
-Framework có thể cần deep reflection vào model/entity package dù code consumer không được import implementation.
+A framework may need deep reflection into a model/entity package even though consumer code must not import the implementation.
 
-Ví dụ:
+Example:
 
 ~~~java
 module com.acme.inventory {
@@ -537,19 +537,19 @@ module com.acme.inventory {
 }
 ~~~
 
-Trong trường hợp trên:
+In the case above:
 
-- API package được export để consumer sử dụng các public type.
-- Model package được open cho một module framework cụ thể.
-- Open package không tự trở thành package được export cho truy cập Java thông thường.
+- The API package is exported so consumers can use public types.
+- The model package is opened to a specific framework module.
+- An open package does not automatically become an exported package for normal Java access.
 
-Chỉ mở đúng package và đúng module thực hiện reflection. Nếu dùng JPA/Hibernate hoặc framework khác, module đích có thể không phải Jackson; cần xem runtime configuration thực tế.
+Only open the exact package and the exact module performing reflection. If using JPA/Hibernate or another framework, the target module may not be Jackson; check the actual runtime configuration.
 
-Tránh dùng `open module` cho toàn bộ module khi chỉ có một package cần reflection. Điều đó làm rộng phạm vi truy cập reflective hơn nhu cầu ban đầu.
+Avoid using `open module` for the entire module when only one package needs reflection. That widens the reflective access scope beyond the original need.
 
-## 16. Tránh split package giữa các named module
+## 16. Avoiding Split Packages Between Named Modules
 
-Một sai lầm khi tách module là đưa cùng package `com.acme.inventory.common` vào cả API module và provider module:
+A common mistake when splitting modules is putting the same package `com.acme.inventory.common` into both the API module and the provider module:
 
 ~~~text
 com.acme.inventory.api module:
@@ -559,28 +559,28 @@ com.acme.inventory.provider module:
     com.acme.inventory.common
 ~~~
 
-Các cấu hình JPMS có quy tắc nghiêm ngặt đối với package trùng tên giữa các module. Việc tách một package thành hai JAR có thể gây lỗi compile hoặc module resolution khi các module cùng tham gia module graph.
+JPMS configurations have strict rules regarding duplicate package names across modules. Splitting a package across two JARs can cause compilation or module resolution errors when those modules participate in the same module graph.
 
-Hãy phân chia package rõ ràng:
+Separate packages clearly:
 
 ~~~text
 com.acme.inventory.api
 com.acme.inventory.provider.internal
 ~~~
 
-Hai package có chung prefix nhưng khác tên đầy đủ là hợp lệ. Không có yêu cầu mỗi module phải sở hữu một namespace prefix duy nhất, nhưng **một package có cùng tên đầy đủ không nên bị chia giữa nhiều named module**.
+Two packages sharing a common prefix but having different full names are valid. There is no requirement for each module to own a unique namespace prefix, but **a package with the same full name should not be split across multiple named modules**.
 
-Nếu cần type dùng chung, đặt chúng ở module API và để provider/consumer dùng cùng class identity, thay vì copy class.
+If shared types are needed, place them in the API module and let providers/consumers use the same class identity instead of copying classes.
 
-## 17. Kiểm tra package đã export bằng công cụ JDK
+## 17. Inspecting Exported Packages with JDK Tools
 
-Sau khi build modular JAR:
+After building the modular JAR:
 
 ~~~bash
 jar --describe-module --file build/libs/inventory.jar
 ~~~
 
-Ví dụ output minh họa:
+Illustrative output:
 
 ~~~text
 com.acme.inventory
@@ -589,16 +589,16 @@ exports com.acme.inventory.api
 contains com.acme.inventory.internal
 ~~~
 
-`contains` nếu được công cụ hiển thị nghĩa là package có trong module, không có nghĩa package đã export.
+`contains`, when shown by the tool, means the package is present in the module, not that the package is exported.
 
-Với module output trên module path:
+With module output on the module path:
 
 ~~~bash
 java --module-path mods \
   --describe-module com.acme.inventory
 ~~~
 
-Có thể kiểm tra runtime Module API:
+You can check at runtime with the Module API:
 
 ~~~java
 Module provider = InventoryService.class.getModule();
@@ -613,69 +613,69 @@ boolean internalExported =
         provider.isExported("com.acme.inventory.internal", consumer);
 ~~~
 
-Với explicit named modules, descriptor chỉ export `api` và không có launcher flag mở quyền bổ sung, `apiExported` thường là `true` và `internalExported` là `false`. `readsProvider` phụ thuộc quan hệ readability.
+With explicit named modules where the descriptor only exports `api` and there are no launcher flags granting extra access, `apiExported` is typically `true` and `internalExported` is `false`. `readsProvider` depends on the readability relationship.
 
-Một phép thử kiến trúc hữu ích là viết consumer cố import implementation class và xác nhận compiler từ chối. Đó là dấu hiệu ranh giới module đang hoạt động như mong muốn, không phải lỗi cần chữa bằng `--add-exports`.
+A useful architectural test is to write a consumer that tries to import an implementation class and confirm the compiler rejects it. That is a sign the module boundary is working as intended, not a bug to be fixed with `--add-exports`.
 
-## 18. Những phản ví dụ cần tránh
+## 18. Anti-Patterns to Avoid
 
-| Cách làm | Hậu quả |
+| Practice | Consequence |
 |---|---|
-| Đặt public implementation trong cùng package API | Consumer có thể tạo coupling trực tiếp với class cụ thể |
-| Export package tên `internal` | Tên package không còn giúp thực thi encapsulation |
-| Public API trả về persistence entity nội bộ | Contract bị ràng buộc với công nghệ lưu trữ |
-| API module `requires` provider implementation module | Đảo ngược hướng dependency mong muốn |
-| Sao chép API class vào từng plugin/provider JAR | Dễ gây split package hoặc class identity mismatch |
-| Export implementation package chỉ để ServiceLoader phát hiện provider | Không cần khi khai báo `provides` phù hợp |
-| Thêm `--add-exports` mọi nơi để consumer import internal | Làm suy yếu ranh giới và khó bảo trì |
-| Dùng `open module` chỉ vì framework cần một model package | Mở quá rộng phạm vi deep reflection |
+| Placing public implementations in the same API package | Consumers can create direct coupling to concrete classes |
+| Exporting a package named `internal` | Package naming no longer helps enforce encapsulation |
+| Public API returning an internal persistence entity | Contract becomes tied to storage technology |
+| API module `requires` the provider implementation module | Reverses the desired dependency direction |
+| Copying API classes into each plugin/provider JAR | Easily causes split packages or class identity mismatches |
+| Exporting the implementation package just for ServiceLoader to discover the provider | Unnecessary when `provides` is declared properly |
+| Adding `--add-exports` everywhere so consumers can import internal | Weakens boundaries and increases maintenance difficulty |
+| Using `open module` just because a framework needs one model package | Opens deep reflection scope too broadly |
 
-JPMS cung cấp công cụ thực thi boundary, nhưng việc lựa chọn đâu là contract lâu dài vẫn là trách nhiệm thiết kế của nhóm phát triển.
+JPMS provides tools to enforce boundaries, but choosing what constitutes the long-term contract remains a design responsibility of the development team.
 
-## 19. Quy trình chuyển từ thư viện legacy sang thiết kế có encapsulation
+## 19. Process for Transitioning a Legacy Library to an Encapsulated Design
 
-Khi modular hóa một thư viện Java cũ:
+When modularizing an old Java library:
 
-1. Liệt kê những package đang được các project bên ngoài import.
-2. Xác định public contract cần được tiếp tục hỗ trợ.
-3. Chuyển interface, DTO/record, enum và public exception vào package API.
-4. Chuyển repository, database mapper, cache và adapter sang implementation package.
-5. Kiểm tra chữ ký API để loại bỏ implementation type bị lộ.
-6. Tạo `module-info.java` và chỉ export package được hỗ trợ.
-7. Thêm qualified exports nếu có integration contract đặc biệt.
-8. Mở package bằng `opens` khi framework thực sự cần deep reflection.
-9. Nếu có nhiều implementation, cân nhắc API module + provider modules + `ServiceLoader`.
-10. Biên dịch consumer trên module path để phát hiện import package nội bộ.
-11. Dùng `jar --describe-module` xác nhận descriptor đã đóng gói.
-12. Kiểm thử service discovery, reflection và những luồng nghiệp vụ sử dụng API.
+1. List the packages currently imported by external projects.
+2. Identify the public contract that needs continued support.
+3. Move interfaces, DTOs/records, enums, and public exceptions into the API package.
+4. Move repositories, database mappers, caches, and adapters into the implementation package.
+5. Inspect API signatures to eliminate exposed implementation types.
+6. Create `module-info.java` and export only supported packages.
+7. Add qualified exports if there are special integration contracts.
+8. Open packages with `opens` when a framework genuinely needs deep reflection.
+9. If there are multiple implementations, consider an API module + provider modules + `ServiceLoader`.
+10. Compile consumers on the module path to detect imports of internal packages.
+11. Use `jar --describe-module` to verify the packaged descriptor.
+12. Test service discovery, reflection, and business flows using the API.
 
-Có thể dùng `jdeps` hỗ trợ phân tích dependency:
+You can use `jdeps` to assist with dependency analysis:
 
 ~~~bash
 jdeps --list-deps build/libs/inventory.jar
 ~~~
 
-Phân tích tĩnh chỉ là một phần. Các dependency dùng qua reflection, ServiceLoader hoặc class name trong configuration cần được kiểm tra bằng runtime test phù hợp.
+Static analysis is only part of the picture. Dependencies used via reflection, ServiceLoader, or class names in configuration need to be verified with appropriate runtime tests.
 
-## 20. Checklist trước khi phát hành
+## 20. Pre-Release Checklist
 
-- [ ] API package chứa contract ổn định mà consumer cần.
-- [ ] Implementation và helper nằm ngoài package được export.
-- [ ] Descriptor chỉ export package thật sự được hỗ trợ.
-- [ ] Public type không lộ kiểu internal trong method signature.
-- [ ] Consumer chỉ `requires` module API cần thiết, không phụ thuộc implementation vô cớ.
-- [ ] Provider module dùng chung service type của API module.
-- [ ] `uses` và `provides` đúng khi dùng ServiceLoader.
-- [ ] Không export provider implementation package chỉ vì service loading.
-- [ ] Reflection chỉ được mở bằng `opens` đúng phạm vi.
-- [ ] Không split package giữa các named module.
-- [ ] Đã kiểm tra descriptor của modular JAR và module path.
-- [ ] Đã thử biên dịch một consumer chỉ sử dụng contract công khai.
+- [ ] API packages contain the stable contract that consumers need.
+- [ ] Implementations and helpers reside outside exported packages.
+- [ ] The descriptor exports only genuinely supported packages.
+- [ ] Public types do not expose internal types in method signatures.
+- [ ] Consumers only `requires` necessary API modules, without unwarranted implementation dependencies.
+- [ ] Provider modules share the service type from the API module.
+- [ ] `uses` and `provides` are accurate when using ServiceLoader.
+- [ ] Provider implementation packages are not exported solely for service loading.
+- [ ] Reflection is only opened via `opens` within the proper scope.
+- [ ] There are no split packages between named modules.
+- [ ] Descriptors of modular JARs and the module path have been inspected.
+- [ ] Compiling a consumer using only the public contract has been tested.
 
-## 21. Ghi nhớ
+## 21. Key Takeaways
 
-**Chia package theo API và implementation là bước thực tế nhất để tận dụng strong encapsulation của JPMS.** Package API chứa những kiểu mà consumer được phép phụ thuộc; implementation package chứa chi tiết có thể thay đổi độc lập.
+**Splitting packages by API and implementation is the most practical step to leverage JPMS strong encapsulation.** API packages contain the types consumers are allowed to depend on; implementation packages contain details that can change independently.
 
-Với thư viện nhỏ, một module có thể chứa cả `api` và `internal` nhưng chỉ export `api`. Với plugin hoặc nhiều implementation thay thế nhau, có thể tách module API và provider, rồi dùng ServiceLoader để khám phá implementation mà không công bố class nội bộ.
+For small libraries, a single module can contain both `api` and `internal` while exporting only `api`. For plugins or multiple interchangeable implementations, you can separate API and provider modules, then use ServiceLoader to discover implementations without exposing internal classes.
 
-Nguyên tắc chung: **consumer phụ thuộc contract, implementation triển khai contract, còn module descriptor công bố đúng các package cần thiết**. Tên package truyền đạt ý định, còn `requires`, `exports`, `opens` và quan hệ module graph thực thi ranh giới đó.
+General rule: **consumers depend on the contract, implementations implement the contract, and the module descriptor exposes exactly the needed packages**. Package names communicate intent, while `requires`, `exports`, `opens`, and module graph relationships enforce that boundary.

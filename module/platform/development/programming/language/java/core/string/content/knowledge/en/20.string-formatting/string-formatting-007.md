@@ -1,33 +1,33 @@
-# Đối số `null` và các `IllegalFormatException` thường gặp trong Java
+# `null` Arguments and Common `IllegalFormatException`s in Java
 
-## Mục tiêu
+## Objectives
 
-Sau bài này, bạn có thể dự đoán cách `String.format()` xử lý đối số `null`, phân biệt lỗi do giá trị đối số với lỗi do chuỗi định dạng, nhận diện các ngoại lệ định dạng thường gặp và chọn cách xử lý thích hợp khi tạo thông báo, log hoặc chuỗi hiển thị.
+After this lesson, you will be able to predict how `String.format()` handles `null` arguments, distinguish errors caused by argument values from errors caused by format strings, recognize common formatting exceptions, and choose appropriate handling when creating messages, logs, or display strings.
 
-## 1. Vì sao định dạng chuỗi có thể thất bại?
+## 1. Why Can String Formatting Fail?
 
-`String.format()`, `System.out.printf()`, `Formatter.format()` và `String.formatted()` sử dụng các quy tắc của `java.util.Formatter`. Một đặc tả thường có dạng:
+`String.format()`, `System.out.printf()`, `Formatter.format()`, and `String.formatted()` use the rules of `java.util.Formatter`. A typical specifier has the form:
 
 ```text
 %[argument_index$][flags][width][.precision]conversion
 ```
 
-Ví dụ: `%2$-10.3s` lấy đối số thứ hai, canh trái trong độ rộng tối thiểu 10 và lấy tối đa 3 ký tự chuỗi. `%d` dành cho số nguyên, `%f` dành cho số thực, `%s` biểu diễn chuỗi của đối tượng, `%b` biểu diễn logic; `%tY` định dạng năm của giá trị ngày/giờ. Hai đặc tả `%%` (ký tự phần trăm) và `%n` (dấu xuống dòng theo nền tảng) không tiêu thụ đối số.
+For example: `%2$-10.3s` takes the second argument, left-aligns it in a minimum width of 10, and takes at most 3 string characters. `%d` is for integers, `%f` is for floating-point numbers, `%s` renders an object's string representation, `%b` renders a boolean representation, and `%tY` formats the year of a date/time value. The two specifiers `%%` (percent character) and `%n` (platform-specific newline) do not consume arguments.
 
-`Formatter` kiểm tra cú pháp, cờ, độ rộng, độ chính xác, chỉ số đối số và tính tương thích của kiểu dữ liệu. Nếu không hợp lệ, nó ném một lớp con của `IllegalFormatException` (ngoại lệ unchecked, thuộc họ `IllegalArgumentException`). Trường hợp riêng là chuỗi format bằng `null`: ví dụ `String.format((String) null, "x")` ném `NullPointerException`, không phải `IllegalFormatException`.
+`Formatter` validates syntax, flags, width, precision, argument indices, and data type compatibility. If invalid, it throws a subclass of `IllegalFormatException` (an unchecked exception in the `IllegalArgumentException` family). A distinct case is a `null` format string: for example, `String.format((String) null, "x")` throws `NullPointerException`, not `IllegalFormatException`.
 
-## 2. Đối số `null`: kết quả cụ thể
+## 2. `null` Arguments: Concrete Results
 
-Một hiểu lầm phổ biến là mọi đối số `null` đều gây `NullPointerException` hoặc `IllegalFormatConversionException`. Theo đặc tả `Formatter`, đối với các phép chuyển đổi tổng quát, ký tự, số và ngày/giờ, `null` thường được biểu diễn bằng chữ `null`; `%b`/`%B` là ngoại lệ đáng chú ý vì `null` được biểu diễn thành `false`/`FALSE`.
+A common misconception is that every `null` argument causes `NullPointerException` or `IllegalFormatConversionException`. According to the `Formatter` specification, for general, character, numeric, and date/time conversions, `null` is normally represented by the text `null`; `%b`/`%B` is a notable exception because `null` is represented as `false`/`FALSE`.
 
-| Đặc tả | Đối số thực sự là `null` | Kết quả |
+| Specifier | Actual Argument Is `null` | Output |
 | --- | --- | --- |
 | `%s` / `%S` | `(Object) null` | `null` / `NULL` |
 | `%b` / `%B` | `(Object) null` | `false` / `FALSE` |
 | `%h` / `%H` | `(Object) null` | `null` / `NULL` |
 | `%d`, `%f`, `%c`, `%tY` | `(Object) null` | `null` |
 
-Ví dụ đầy đủ, chạy được trên Java 17+:
+Complete example, runnable on Java 17+:
 
 ```java
 import java.util.Locale;
@@ -48,14 +48,14 @@ public class FormatterNullDemo {
 }
 ```
 
-Lưu dưới tên `FormatterNullDemo.java`, rồi chạy:
+Save as `FormatterNullDemo.java`, then run:
 
 ```bash
 javac FormatterNullDemo.java
 java FormatterNullDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 string=[null]
@@ -68,43 +68,43 @@ year=[null]
 uppercase=[NULL]
 ```
 
-Cần phân biệt ba điều:
+Three distinctions must be made:
 
-- `null` **không phải** một số nguyên, số thực hay ngày hợp lệ; `Formatter` dùng quy tắc biểu diễn đặc biệt cho giá trị vắng mặt. Giá trị **khác `null` nhưng sai kiểu** vẫn có thể gây lỗi: `String.format("%d", "42")` ném `IllegalFormatConversionException` vì `"42"` là `String`, không phải kiểu số nguyên được `%d` chấp nhận.
-- `%b` không thực hiện ép kiểu chuỗi sang boolean. Với đối số `Boolean.TRUE`, kết quả là `true`; với `Boolean.FALSE` hoặc `null`, kết quả là `false`; **mọi đối tượng khác `null` mà không thuộc kiểu `Boolean`** cũng được biểu diễn thành `true`. Vì vậy `String.format("%b", "false")` cho ra `true`.
-- `null` có thể che giấu dữ liệu bị thiếu. Ví dụ một cột số tiền hiển thị `null` hoặc cờ tùy chọn hiển thị `false` không chứng minh dữ liệu nguồn hợp lệ.
+- `null` **is not** a valid integer, float, or date; `Formatter` uses a special display rule for absent values. A **non-null value of the wrong type** still causes an error: `String.format("%d", "42")` throws `IllegalFormatConversionException` because `"42"` is a `String`, not an integer type accepted by `%d`.
+- `%b` does not coerce strings to booleans. With `Boolean.TRUE`, the output is `true`; with `Boolean.FALSE` or `null`, the output is `false`; **any non-null object that is not a `Boolean`** is also formatted as `true`. Thus `String.format("%b", "false")` yields `true`.
+- `null` can mask missing data. For instance, an amount column showing `null` or an optional flag showing `false` does not prove the source data is valid.
 
-### Lưu ý varargs: `null` đơn lẻ và mảng đối số `null`
+### Varargs Note: Single `null` vs. `null` Argument Array
 
-Chữ ký `String.format(String format, Object... args)` sử dụng varargs. Khi cần **một đối số** có giá trị `null`, viết rõ `(Object) null` hoặc truyền một biến `Object` bằng `null`:
+The signature `String.format(String format, Object... args)` uses varargs. When you need **one argument** whose value is `null`, write `(Object) null` explicitly or pass an `Object` variable set to `null`:
 
 ```java
 String oneNull = String.format("%s", (Object) null);
 String twoNulls = String.format("%s|%s", (Object[]) null);
 ```
 
-`oneNull` là `"null"`. Trong `Formatter`, mảng varargs `null` ở ví dụ thứ hai được xử lý như các đối số đều `null`, nên `twoNulls` là `"null|null"`. Dù kết quả trông tương tự, **`(Object) null` và `(Object[]) null` không biểu đạt cùng một ý định ở cấp lời gọi**. Viết `String.format("%s", null)` trực tiếp có thể tạo cảnh báo của trình biên dịch về lời gọi varargs không rõ ràng; ép kiểu hoặc dùng biến rõ ràng giúp loại bỏ sự nhập nhằng.
+`oneNull` is `"null"`. In `Formatter`, the `null` varargs array in the second example is treated as all arguments being `null`, so `twoNulls` is `"null|null"`. Even though the outputs look similar, **`(Object) null` and `(Object[]) null` do not express the same intent at the call site**. Writing `String.format("%s", null)` directly can produce a compiler warning about an ambiguous varargs call; casting or using an explicit variable removes the ambiguity.
 
-## 3. Nhận diện các `IllegalFormatException` thường gặp
+## 3. Recognizing Common `IllegalFormatException`s
 
-Các lớp dưới đây thuộc `java.util`; tên lớp con thường cho biết phần nào của đặc tả sai. Bảng dùng các ví dụ cố ý thất bại, độc lập với nhau.
+The classes below belong to `java.util`; the subclass name usually indicates which part of the specifier is wrong. The table uses intentionally failing examples that are independent of one another.
 
-| Ngoại lệ | Ví dụ | Nguyên nhân và hướng sửa |
+| Exception | Example | Cause and Fix |
 | --- | --- | --- |
-| `IllegalFormatConversionException` | `String.format("%d", "42")` | Chuyển đổi không chấp nhận kiểu đối số; đổi sang số `42` hoặc sử dụng `%s`. |
-| `MissingFormatArgumentException` | `String.format("%s %s", "A")` | Đặc tả cần thêm đối số; truyền đủ hoặc sửa số placeholder. |
-| `UnknownFormatConversionException` | `String.format("%q", 1)` | `q` không phải ký tự chuyển đổi hợp lệ; dùng `%s` hoặc loại hợp lệ khác. |
-| `FormatFlagsConversionMismatchException` | `String.format("%#s", "A")` | Cờ `#` không được hỗ trợ cho `%s` với `String` thông thường; bỏ cờ. |
-| `DuplicateFormatFlagsException` | `String.format("%--5s", "A")` | Cờ `-` bị lặp; đổi thành `%-5s`. |
-| `IllegalFormatFlagsException` | `String.format("%-05d", 42)` | Hai cờ `-` và `0` xung đột; chỉ dùng một cách căn chỉnh. |
-| `MissingFormatWidthException` | `String.format("%0d", 42)` | Cờ `0` cần độ rộng; ví dụ dùng `%05d`. |
-| `IllegalFormatPrecisionException` | `String.format("%.2d", 42)` | `%d` không hỗ trợ precision; dùng `%d` hoặc tự định dạng giá trị trước. |
-| `IllegalFormatWidthException` | `String.format("%5n")` | `%n` không chấp nhận width; dùng `%n`. |
-| `IllegalFormatCodePointException` | `String.format("%c", 0x110000)` | Mã Unicode nằm ngoài phạm vi code point hợp lệ; kiểm tra bằng `Character.isValidCodePoint()`. |
+| `IllegalFormatConversionException` | `String.format("%d", "42")` | Conversion does not accept the argument type; change to number `42` or use `%s`. |
+| `MissingFormatArgumentException` | `String.format("%s %s", "A")` | Specifier requires another argument; pass enough arguments or fix placeholder count. |
+| `UnknownFormatConversionException` | `String.format("%q", 1)` | `q` is not a valid conversion character; use `%s` or another valid type. |
+| `FormatFlagsConversionMismatchException` | `String.format("%#s", "A")` | Flag `#` is not supported for `%s` with an ordinary `String`; remove the flag. |
+| `DuplicateFormatFlagsException` | `String.format("%--5s", "A")` | Flag `-` is repeated; change to `%-5s`. |
+| `IllegalFormatFlagsException` | `String.format("%-05d", 42)` | Flags `-` and `0` conflict; use only one alignment style. |
+| `MissingFormatWidthException` | `String.format("%0d", 42)` | Flag `0` requires a width; e.g., use `%05d`. |
+| `IllegalFormatPrecisionException` | `String.format("%.2d", 42)` | `%d` does not support precision; use `%d` or format the value beforehand. |
+| `IllegalFormatWidthException` | `String.format("%5n")` | `%n` does not accept width; use `%n`. |
+| `IllegalFormatCodePointException` | `String.format("%c", 0x110000)` | Unicode code is outside valid code point range; validate with `Character.isValidCodePoint()`. |
 
-Không nên cho rằng tên lớp ngoại lệ luôn thể hiện mọi chi tiết nguyên nhân: cùng một chuỗi định dạng có thể mắc nhiều lỗi và `Formatter` sẽ báo lỗi đầu tiên theo quá trình kiểm tra của nó. `IllegalFormatException` cũng có các lớp con ít gặp hơn như `UnknownFormatFlagsException`; không cần tự tạo các lớp ngoại lệ này khi chỉ định dạng chuỗi.
+Do not assume an exception class name always reveals every detail of the cause: a single format string may contain multiple errors, and `Formatter` reports the first one encountered during validation. `IllegalFormatException` also has rarer subclasses such as `UnknownFormatFlagsException`; there is no need to instantiate these exception classes yourself when merely formatting strings.
 
-### Chạy thử và đọc đúng tên ngoại lệ
+### Running a Test and Reading Exact Exception Names
 
 ```java
 import java.util.IllegalFormatException;
@@ -141,14 +141,14 @@ public class FormatErrorsDemo {
 }
 ```
 
-Lưu thành `FormatErrorsDemo.java`, biên dịch và chạy:
+Save as `FormatErrorsDemo.java`, compile, and run:
 
 ```bash
 javac FormatErrorsDemo.java
 java FormatErrorsDemo
 ```
 
-Kết quả xác định:
+Deterministic output:
 
 ```text
 wrong-type => IllegalFormatConversionException
@@ -163,25 +163,25 @@ invalid-width => IllegalFormatWidthException
 invalid-codepoint => IllegalFormatCodePointException
 ```
 
-Chương trình trên chỉ bắt `IllegalFormatException` để phục vụ việc học. Trong ứng dụng thực tế, thường nên sửa chuỗi format ngay tại nơi viết code; không nên bắt rộng rồi âm thầm nuốt ngoại lệ khiến dữ liệu sai tiếp tục đi qua hệ thống.
+The program above catches `IllegalFormatException` strictly for learning purposes. In real applications, it is usually best to fix the format string right where the code is written; do not catch broadly and silently swallow exceptions, allowing invalid data to keep flowing through the system.
 
-## 4. Lỗi do đếm và chọn đối số
+## 4. Errors from Counting and Selecting Arguments
 
-Chú ý `%s`, `%d`, `%f` đều tiêu thụ đối số; `%%` và `%n` thì không. `Formatter` có ba cách chọn đối số:
+Note that `%s`, `%d`, and `%f` consume arguments; `%%` and `%n` do not. `Formatter` has three ways to select arguments:
 
-- **Tuần tự**: `"%s %d"` lần lượt dùng đối số 1 và 2.
-- **Theo vị trí**: `"%2$s %1$s"` lấy đối số thứ hai trước, rồi thứ nhất; thứ tự chỉ số bắt đầu từ 1.
-- **Tái dùng đối số trước**: `"%s %<s"` dùng một đối số hai lần; `%<s` đứng đầu, khi chưa có đối số trước đó, gây `MissingFormatArgumentException`.
+- **Sequential**: `"%s %d"` uses arguments 1 and 2 in order.
+- **Positional**: `"%2$s %1$s"` takes the second argument first, then the first; indices are 1-based.
+- **Reusing the previous argument**: `"%s %<s"` uses one argument twice; `%<s` at the start, with no preceding argument, causes `MissingFormatArgumentException`.
 
-`String.format("%s", "A", "B")` chỉ cho ra `"A"`: đối số thừa bị bỏ qua, **không** gây ngoại lệ. Ngược lại, `String.format("%2$s", "A")` ném `MissingFormatArgumentException` vì chỉ số thứ hai không tồn tại. Việc truyền `null` và việc **không truyền đủ đối số** là hai tình huống khác nhau; chỉ tình huống thứ hai tạo lỗi thiếu đối số.
+`String.format("%s", "A", "B")` simply yields `"A"`: extra arguments are ignored and do **not** throw an exception. Conversely, `String.format("%2$s", "A")` throws `MissingFormatArgumentException` because index 2 does not exist. Passing `null` and **failing to pass enough arguments** are two distinct situations; only the latter produces a missing-argument error.
 
-Khi kiểm tra thông báo nhiều placeholder, hãy ghi số lượng, kiểu dữ liệu và chỉ số của từng đối số rồi so sánh với đặc tả. Nếu cần dấu `%` trong lời văn, dùng `%%`; nếu cần kết thúc dòng theo nền tảng, dùng `%n`; nếu đầu ra yêu cầu LF cố định, dùng ký tự `\n` trong chuỗi Java.
+When checking messages with multiple placeholders, write down the count, data type, and index of each argument and compare them against the specifiers. If you need a literal `%` in the text, use `%%`; if you need a platform-dependent line ending, use `%n`; if output requires a fixed LF, use `\n` in the Java string.
 
-## 5. Cách xử lý an toàn trong code thực tế
+## 5. Safe Handling in Real Code
 
-### Xác định chính sách khi dữ liệu có thể `null`
+### Define a Policy When Data May Be `null`
 
-Nếu `null` không hợp lệ về nghiệp vụ, kiểm tra nó trước khi định dạng thay vì để `Formatter` in chữ `null`:
+If `null` is invalid under business rules, check it before formatting instead of letting `Formatter` print the word `null`:
 
 ```java
 import java.util.Locale;
@@ -195,7 +195,7 @@ public class RequiredAmount {
 }
 ```
 
-Đây là phương thức minh họa (không có `main`). `Objects.requireNonNull` báo lỗi sớm bằng `NullPointerException` có thông điệp rõ ràng; nó thể hiện yêu cầu **bắt buộc có dữ liệu**, khác với một lỗi cú pháp format. Nếu `null` là trạng thái hợp lệ, hãy biểu diễn nó một cách có chủ đích:
+This is an illustrative method (no `main`). `Objects.requireNonNull` fails early with a `NullPointerException` carrying a clear message; it expresses a requirement that **data must be present**, distinct from a format syntax error. If `null` is a valid state, represent it intentionally:
 
 ```java
 import java.util.Locale;
@@ -203,44 +203,44 @@ import java.util.Locale;
 public class OptionalAmount {
     public static String label(Integer amount) {
         return amount == null
-                ? "Amount: chưa có dữ liệu"
+                ? "Amount: no data yet"
                 : String.format(Locale.ROOT, "Amount: %d", amount);
     }
 }
 ```
 
-Nếu cần chuỗi từ một đối tượng bất kỳ, `String.valueOf(value)` cũng trả về `"null"` khi `value == null`; chỉ dùng nó khi biểu diễn ấy thực sự phù hợp. Với cờ logic ba trạng thái (`true`, `false`, `null`), không sử dụng `%b` để bảo toàn phân biệt giữa "chưa biết" và `false`.
+If you need a string from an arbitrary object, `String.valueOf(value)` also returns `"null"` when `value == null`; use it only when that representation is genuinely appropriate. For a three-state boolean flag (`true`, `false`, `null`), do not use `%b` in order to preserve the distinction between "unknown" and `false`.
 
-### Giữ chuỗi định dạng cố định và đúng kiểu
+### Keep Format Strings Fixed and Correctly Typed
 
-Thay vì coi dữ liệu nhập từ bên ngoài là chính chuỗi format:
+Instead of treating external input as the format string itself:
 
 ```java
-// Dữ liệu nhập là nội dung, không phải cú pháp định dạng.
-String userText = "giảm 20%";
-String message = String.format(Locale.ROOT, "Ghi chú: %s", userText);
+// Input data is content, not formatting syntax.
+String userText = "20% off";
+String message = String.format(Locale.ROOT, "Note: %s", userText);
 ```
 
-`message` là `"Ghi chú: giảm 20%"`. `%s` sẽ không diễn giải ký tự `%` bên trong `userText` thành placeholder mới. Cách này dễ kiểm soát hơn so với dùng `userText` như đối số `format`, vốn có thể dẫn tới placeholder ngoài ý muốn hoặc ngoại lệ nếu đầu vào chứa `%`.
+`message` is `"Note: 20% off"`. `%s` will not interpret the `%` character inside `userText` as a new placeholder. This is much safer to control than passing `userText` as the `format` argument, which can lead to unintended placeholders or exceptions if input contains `%`.
 
-Ưu tiên constant hoặc chuỗi format có thể kiểm tra bằng test. Dùng `Locale.ROOT`/`Locale.US` khi muốn đầu ra ổn định; dùng `Locale` thực tế của người dùng cho văn bản hiển thị có định dạng số/ngày theo vùng. Nhớ rằng `%f` áp dụng cho kiểu số thực phù hợp, trong khi `%d` áp dụng cho kiểu số nguyên phù hợp; `Formatter` không tự parse `"42"` thành số.
+Prefer constants or format strings verifiable by tests. Use `Locale.ROOT`/`Locale.US` when stable output is desired; use the user's actual `Locale` for display text containing region-formatted numbers or dates. Remember that `%f` applies to compatible floating-point types, whereas `%d` applies to compatible integer types; `Formatter` does not automatically parse `"42"` into a number.
 
-### Xử lý ngoại lệ ở ranh giới thích hợp
+### Handle Exceptions at Appropriate Boundaries
 
-Trong thư viện tạo nội dung động thực sự phải nhận mẫu format từ cấu hình, có thể bắt `IllegalFormatException` tại ranh giới nhận cấu hình để trả về lỗi có ngữ cảnh (mẫu format, danh sách kiểu đối số, vị trí cấu hình). Tránh ghi nội dung nhạy cảm của đối số vào log. Khi lỗi phát sinh từ chuỗi format hard-code, sửa tại nguồn và bổ sung kiểm thử tốt hơn là dùng `catch` để tự động thay bằng `"null"`.
+In dynamic content-generation libraries that genuinely must read format templates from configuration, you can catch `IllegalFormatException` at the configuration boundary to return a contextual error (template pattern, list of argument types, configuration location). Avoid logging sensitive argument contents. When an error comes from a hardcoded format string, fixing it at the source and adding tests is better than using `catch` to silently fall back to `"null"`.
 
-## 6. Những nhầm lẫn cần tránh
+## 6. Misconceptions to Avoid
 
-1. **“`%d` gặp `null` sẽ luôn ném `IllegalFormatConversionException`.”** Sai: `null` được biểu diễn thành `"null"`; đối số **khác null nhưng không tương thích** như `"42"` mới gây ngoại lệ này.
-2. **“`%b` sẽ parse chuỗi `"false"`.”** Sai: mọi đối tượng không phải `Boolean`, nếu khác `null`, đều dẫn đến `true`.
-3. **“Thêm đối số thừa sẽ gây lỗi.”** Sai: đối số không được tham chiếu bị bỏ qua, có thể khiến lỗi logic khó phát hiện.
-4. **“`%n` và `%%` mỗi cái cần một đối số.”** Sai: chúng không tiêu thụ đối số.
-5. **“`%.2d` có nghĩa là in số nguyên với hai chữ số.”** Sai: precision không áp dụng cho `%d`; `%02d` mới yêu cầu độ rộng tối thiểu 2 và đệm bằng số 0.
-6. **“Bắt `IllegalFormatException` sẽ bắt mọi lỗi format.”** Sai: ví dụ format string bằng `null` gây `NullPointerException`; các lỗi khác của code cũng không nhất thiết thuộc họ ngoại lệ này.
+1. **"`%d` encountering `null` will always throw `IllegalFormatConversionException`."** False: `null` is rendered as `"null"`; a **non-null incompatible** argument like `"42"` is what triggers this exception.
+2. **"`%b` parses the string `"false"`."** False: any non-`Boolean` object, if non-`null`, yields `true`.
+3. **"Passing extra arguments causes an error."** False: unreferenced arguments are ignored, which can make logic bugs harder to spot.
+4. **"`%n` and `%%` each take an argument."** False: they do not consume arguments.
+5. **"`%.2d` means print an integer with two digits."** False: precision does not apply to `%d`; `%02d` is what requests minimum width 2 with zero-padding.
+6. **"Catching `IllegalFormatException` catches all formatting errors."** False: for instance, a `null` format string throws `NullPointerException`; other code errors do not necessarily belong to this exception family either.
 
-## 7. Tự kiểm tra
+## 7. Self-Check
 
-Dự đoán đầu ra hoặc ngoại lệ của mỗi lời gọi sau, rồi kiểm chứng với `jshell`:
+Predict the output or exception of each call below, then verify with `jshell`:
 
 ```java
 String.format("%s", (Object) null)
@@ -253,6 +253,6 @@ String.format("100%% %s", "OK")
 String.format("%05d", 42)
 ```
 
-Đáp án theo thứ tự: `"null"`; `"true"`; `"null"`; `IllegalFormatConversionException`; `MissingFormatArgumentException`; `"B-A"`; `"100% OK"`; `"00042"`.
+Answers in order: `"null"`; `"true"`; `"null"`; `IllegalFormatConversionException`; `MissingFormatArgumentException`; `"B-A"`; `"100% OK"`; `"00042"`.
 
-Tài liệu chuẩn để tra cứu thêm: [`java.util.Formatter` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Formatter.html) và [`java.util.IllegalFormatException` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/IllegalFormatException.html).
+Official references for further lookup: [`java.util.Formatter` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Formatter.html) and [`java.util.IllegalFormatException` — Java SE 17](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/IllegalFormatException.html).

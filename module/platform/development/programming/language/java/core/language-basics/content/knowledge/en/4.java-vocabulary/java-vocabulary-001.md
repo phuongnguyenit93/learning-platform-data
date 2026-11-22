@@ -1,60 +1,60 @@
-# Token trong Java: tên định danh, từ khóa, literal, toán tử và dấu phân cách
+# Tokens in Java: Identifiers, Keywords, Literals, Operators, and Separators
 
-> **Java core — language-basics / Từ vựng Java**  
-> **Áp dụng:** Java 17 trở lên, dùng JDK để biên dịch và chạy.  
-> **Mục tiêu:** Nhận diện năm loại token cơ bản trong mã nguồn Java; phân biệt tên định danh với từ khóa, literal với toán tử, và dấu phân cách với nội dung có ý nghĩa ngữ pháp. Tự đọc được một dòng Java dưới góc nhìn của bộ phân tích từ vựng (*lexer*), dự đoán lỗi đặt tên và chạy một chương trình tối thiểu.
+> **Java core — language-basics / Java Vocabulary**  
+> **Applies to:** Java 17 and later, using the JDK to compile and run.  
+> **Objective:** Recognize the five basic token types in Java source code; distinguish identifiers from keywords, literals from operators, and separators from grammatically meaningful content. Read a line of Java from the perspective of a lexical analyzer (*lexer*), predict naming errors, and run a minimal program.
 
-## 1. Token là gì và vì sao cần hiểu?
+## 1. What is a token and why does it matter?
 
-Khi nhìn dòng mã:
+When looking at this line of code:
 
 ~~~java
 int total = quantity * price;
 ~~~
 
-người đọc hiểu đây là phép tính. Trước khi phân tích cấu trúc câu lệnh, Java xử lý mã nguồn thành những đơn vị từ vựng gọi là **token**. Có thể tách dòng trên thành:
+a reader understands it as a calculation. Before analyzing statement structure, Java processes source code into lexical units called **tokens**. The line above can be split into:
 
-| Thứ tự | Token | Loại | Vai trò |
+| Order | Token | Type | Role |
 | ---: | --- | --- | --- |
-| 1 | `int` | Từ khóa | Kiểu số nguyên nguyên thủy |
-| 2 | `total` | Tên định danh | Tên biến nhận kết quả |
-| 3 | `=` | Toán tử | Phép gán |
-| 4 | `quantity` | Tên định danh | Tên biến đầu vào |
-| 5 | `*` | Toán tử | Phép nhân |
-| 6 | `price` | Tên định danh | Tên biến đầu vào |
-| 7 | `;` | Dấu phân cách | Kết thúc câu lệnh khai báo |
+| 1 | `int` | Keyword | Primitive integer type |
+| 2 | `total` | Identifier | Variable name receiving the result |
+| 3 | `=` | Operator | Assignment operation |
+| 4 | `quantity` | Identifier | Input variable name |
+| 5 | `*` | Operator | Multiplication operation |
+| 6 | `price` | Identifier | Input variable name |
+| 7 | `;` | Separator | Ends the declaration statement |
 
-**Token không đồng nghĩa với từ ngữ có nghĩa trong tiếng Anh.** Chẳng hạn, `total` không phải từ khóa Java; đó là tên do lập trình viên tự đặt. Dấu `;` cũng là token dù chỉ dài một ký tự.
+**A token is not synonymous with a meaningful English word.** For example, `total` is not a Java keyword; it is a name chosen by the programmer. The `;` character is also a token even though it is only one character long.
 
-Sơ đồ khái niệm:
+Conceptual diagram:
 
 ~~~mermaid
 flowchart LR
-    A["Ký tự mã nguồn Java"] --> B["Xử lý từ vựng"]
-    B --> C["Dãy token"]
-    C --> D["Phân tích cú pháp"]
-    D --> E["Cấu trúc chương trình"]
+    A["Java source characters"] --> B["Lexical processing"]
+    B --> C["Token sequence"]
+    C --> D["Syntax parsing"]
+    D --> E["Program structure"]
 ~~~
 
-**Khoảng trắng, xuống dòng và chú thích** giúp phân tách hoặc giải thích mã nguồn, nhưng không được tính là token Java theo nhóm năm loại đang học. Riêng dấu cách **bên trong** một chuỗi literal lại là một phần nội dung của literal đó.
+**Whitespace, line breaks, and comments** help separate or explain source code, but are not counted as Java tokens in the five categories studied here. However, spaces **inside** a string literal are part of that literal's content.
 
-## 2. Năm nhóm token theo Java
+## 2. The five token categories in Java
 
-| Nhóm | Ví dụ | Cách nhận diện |
+| Category | Examples | How to identify |
 | --- | --- | --- |
-| **Identifier — tên định danh** | `studentCount`, `totalPrice`, `println` | Tên của biến, lớp, phương thức, package… được khai báo hoặc tham chiếu |
-| **Keyword — từ khóa** | `class`, `public`, `int`, `if`, `return` | Các từ được ngôn ngữ dành riêng theo quy tắc cú pháp |
-| **Literal — giá trị viết trực tiếp** | `42`, `12_000L`, `3.14`, `'A'`, `"Java"`, `true`, `null` | Biểu diễn trực tiếp một giá trị trong mã |
-| **Operator — toán tử** | `+`, `=`, `==`, `&&`, `++`, `->` | Thực hiện phép tính, so sánh, gán hoặc thể hiện thao tác trong biểu thức |
-| **Separator — dấu phân cách** | `( )`, `{ }`, `[ ]`, `;`, `,`, `.`, `@`, `::` | Phân định thành phần, danh sách, khối, truy cập thành viên hoặc cú pháp liên quan |
+| **Identifier** | `studentCount`, `totalPrice`, `println` | Name of a variable, class, method, package, etc. being declared or referenced |
+| **Keyword** | `class`, `public`, `int`, `if`, `return` | Words reserved by the language according to syntax rules |
+| **Literal** | `42`, `12_000L`, `3.14`, `'A'`, `"Java"`, `true`, `null` | Direct representation of a value in code |
+| **Operator** | `+`, `=`, `==`, `&&`, `++`, `->` | Performs arithmetic, comparison, assignment, or represents an operation in an expression |
+| **Separator** | `( )`, `{ }`, `[ ]`, `;`, `,`, `.`, `@`, `::` | Delimits components, lists, blocks, member access, or related syntax |
 
-Các từ như “identifier” hay “operator” là **loại token ở mức từ vựng**. Việc ghép token thành khai báo, biểu thức, câu lệnh hoặc lớp là bước **phân tích cú pháp**; một token hợp lệ chưa bảo đảm toàn bộ dòng mã hợp lệ.
+Terms like "identifier" or "operator" are **lexical-level token types**. Combining tokens into declarations, expressions, statements, or classes is the **syntax parsing** step; a valid token does not guarantee the entire line of code is valid.
 
-Ví dụ `int = ;` gồm những token Java nhận diện được, nhưng không phải câu lệnh khai báo hợp lệ vì thiếu tên biến và giá trị/biểu thức thích hợp.
+For example, `int = ;` consists of recognizable Java tokens, but it is not a valid declaration statement because it is missing a variable name and an appropriate value/expression.
 
-## 3. Tên định danh (identifier): quy tắc và cách đặt tên
+## 3. Identifiers: rules and naming conventions
 
-Tên định danh được dùng cho lớp, phương thức, biến, field, package và nhiều thành phần khác. Java **phân biệt chữ hoa và chữ thường**:
+Identifiers are used for classes, methods, variables, fields, packages, and many other elements. Java is **case-sensitive**:
 
 ~~~java
 int count = 2;
@@ -62,76 +62,76 @@ int Count = 5;
 System.out.println(count + Count); // 7
 ~~~
 
-`count` và `Count` là **hai tên khác nhau**.
+`count` and `Count` are **two different names**.
 
-### Quy tắc tên trong Java 17
+### Naming rules in Java 17
 
-- Ký tự đầu phải hợp lệ cho vị trí bắt đầu identifier theo quy tắc Unicode của Java; những ký tự tiếp theo có thể bao gồm chữ số. Các chữ cái ASCII, `_` và `$` có thể tham gia tên theo quy tắc đó.
-- **Không** bắt đầu một identifier ASCII bằng chữ số: `2items` không phải tên hợp lệ.
-- **Không** sử dụng các từ khóa dành riêng như `class`, `int` hoặc `return` để đặt tên identifier thông thường.
-- Ký tự gạch dưới đơn độc `_` **không được dùng làm identifier** trong Java 17 (từ Java 9 nó là một từ khóa dành riêng).
-- Java hỗ trợ nhiều chữ cái Unicode trong identifier, chẳng hạn `soLuong` và `sốLượng`, nhưng viết tên ổn định, dễ đọc giúp code nhất quán hơn.
+- The first character must be valid for starting an identifier according to Java's Unicode rules; subsequent characters may include digits. ASCII letters, `_`, and `$` can participate in names according to those rules.
+- **Do not** start an ASCII identifier with a digit: `2items` is not a valid name.
+- **Do not** use reserved keywords such as `class`, `int`, or `return` as regular identifier names.
+- A standalone underscore `_` **cannot be used as an identifier** in Java 17 (since Java 9, it is a reserved keyword).
+- Java supports many Unicode letters in identifiers, such as `soLuong` and `sốLượng`, though writing stable, readable names keeps code more consistent.
 
-| Ví dụ | Hợp lệ như tên biến Java 17? | Giải thích |
+| Example | Valid as a Java 17 variable name? | Explanation |
 | --- | --- | --- |
-| `studentCount` | Có | Bắt đầu bằng chữ, các ký tự tiếp theo hợp lệ |
-| `_count` | Có | Dấu `_` kết hợp với ký tự khác, không đứng một mình |
-| `$cache` | Có | `$` được phép, nhưng nên tránh trong tên tự viết nếu không cần |
-| `sốLượng` | Có | Java hỗ trợ identifier Unicode phù hợp |
-| `2ndValue` | Không | Bắt đầu bằng chữ số |
-| `item-count` | Không phải một identifier | Java đọc thành `item`, toán tử `-` và `count` |
-| `class` | Không | Từ khóa dành riêng |
-| `_` | Không | Dấu gạch dưới đơn độc được dành riêng từ Java 9 |
+| `studentCount` | Yes | Starts with a letter, subsequent characters are valid |
+| `_count` | Yes | `_` combined with other characters, not standing alone |
+| `$cache` | Yes | `$` is allowed, though best avoided in hand-written names if unnecessary |
+| `sốLượng` | Yes | Java supports appropriate Unicode identifiers |
+| `2ndValue` | No | Starts with a digit |
+| `item-count` | Not a single identifier | Java reads `item`, operator `-`, and `count` |
+| `class` | No | Reserved keyword |
+| `_` | No | Standalone underscore has been reserved since Java 9 |
 
-**Quy ước nên dùng:** tên biến/method là `lowerCamelCase` (`itemCount`), tên class là `UpperCamelCase` (`InvoiceCalculator`), hằng `static final` thường theo `UPPER_SNAKE_CASE` (`MAX_ITEMS`). Đây là **quy ước đặt tên** chứ không phải các bộ luật khác nhau của lexer.
+**Recommended conventions:** variable/method names use `lowerCamelCase` (`itemCount`), class names use `UpperCamelCase` (`InvoiceCalculator`), and `static final` constants usually follow `UPPER_SNAKE_CASE` (`MAX_ITEMS`). These are **naming conventions**, not separate lexer rule sets.
 
-### Identifier không nhất thiết là từ khóa
+### Identifiers are not necessarily keywords
 
-`String` là tên một lớp chuẩn của Java; `System` là tên một lớp; `println` là tên method; `main` và `args` là tên identifier. Chúng không vì “đặc biệt” hay “được Java dùng nhiều” mà biến thành từ khóa ngôn ngữ.
+`String` is the name of a standard Java class; `System` is the name of a class; `println` is a method name; `main` and `args` are identifiers. Being "special" or "frequently used by Java" does not turn them into language keywords.
 
-## 4. Từ khóa (keyword) và các từ bị hạn chế theo ngữ cảnh
+## 4. Keywords and contextually restricted words
 
-Từ khóa có vai trò do ngôn ngữ Java quy định. Những ví dụ phổ biến:
+Keywords have roles defined by the Java language. Common examples:
 
-| Nhóm ý nghĩa | Một số từ khóa Java 17 | Ví dụ sử dụng |
+| Semantic group | Some Java 17 keywords | Usage example |
 | --- | --- | --- |
-| Khai báo lớp/kiểu | `class`, `interface`, `enum` | `class Person { }` |
-| Quyền truy cập và thành phần | `public`, `private`, `protected`, `static`, `final` | `private int age;` |
-| Điều khiển chương trình | `if`, `else`, `switch`, `for`, `while`, `return`, `break` | `if (ready) { ... }` |
-| Kiểu nguyên thủy | `int`, `long`, `double`, `boolean`, `char`, `void` | `double rate = 1.5;` |
-| Đối tượng và ngoại lệ | `new`, `this`, `super`, `try`, `catch`, `throw` | `new Object()` |
+| Class/type declaration | `class`, `interface`, `enum` | `class Person { }` |
+| Access and member modifiers | `public`, `private`, `protected`, `static`, `final` | `private int age;` |
+| Control flow | `if`, `else`, `switch`, `for`, `while`, `return`, `break` | `if (ready) { ... }` |
+| Primitive types | `int`, `long`, `double`, `boolean`, `char`, `void` | `double rate = 1.5;` |
+| Objects and exceptions | `new`, `this`, `super`, `try`, `catch`, `throw` | `new Object()` |
 
-**Một số trường hợp dễ nhầm:**
+**Some easily confused cases:**
 
-- `true` và `false` là **boolean literals**; `null` là **null literal**. Chúng không nằm trong danh sách từ khóa Java dù cũng không thể dùng làm tên biến thông thường.
-- `const` và `goto` được Java **dành riêng như từ khóa**, dù Java không có những câu lệnh hoạt động bình thường mang hai tên đó.
-- Java 17 có những **restricted/contextual identifiers hoặc keywords** như `var`, `record`, `yield`, `sealed`, `permits` và `non-sealed`. Chúng chịu các quy tắc riêng tùy vị trí cú pháp; **không nên coi mọi lần xuất hiện của chúng giống một từ khóa luôn bị cấm như `class`**.
+- `true` and `false` are **boolean literals**; `null` is the **null literal**. They are not in the list of Java keywords, even though they cannot be used as regular variable names either.
+- `const` and `goto` are **reserved as keywords** by Java, even though Java has no normal functioning statements bearing those two names.
+- Java 17 has **restricted/contextual identifiers or keywords** such as `var`, `record`, `yield`, `sealed`, `permits`, and `non-sealed`. They are governed by specific rules depending on syntactic position; **do not treat every occurrence of them like an always-prohibited keyword such as `class`**.
 
-Ví dụ Java 17:
+Java 17 example:
 
 ~~~java
-var message = "Hello";   // var dùng trong khai báo biến cục bộ có khởi tạo.
+var message = "Hello";   // var is used in local variable declarations with an initializer.
 System.out.println(message);
 ~~~
 
-`var` không phải tên một kiểu class có thể dùng ở bất kỳ chỗ nào; compiler suy luận kiểu của biến trong các ngữ cảnh mà ngôn ngữ cho phép. Bài này chỉ nhằm nhận diện vai trò từ vựng, chưa đi sâu tính năng suy luận kiểu.
+`var` is not a class type name that can be used anywhere; the compiler infers the variable's type in contexts permitted by the language. This lesson only aims to identify lexical roles, without diving deep into type inference yet.
 
-## 5. Literal: giá trị được viết trực tiếp trong mã
+## 5. Literals: values written directly in code
 
-**Literal** là cách đặt một giá trị cụ thể ngay trong mã nguồn, không cần tham chiếu biến.
+A **literal** is a way of placing a specific value directly in source code, without referencing a variable.
 
-| Loại literal | Ví dụ hợp lệ | Ghi chú |
+| Literal type | Valid examples | Notes |
 | --- | --- | --- |
-| Số nguyên thập phân | `0`, `42`, `1_000` | `_` giữa các chữ số tăng khả năng đọc |
-| Số nguyên hệ khác | `0b1010`, `0xFF`, `077` | Nhị phân, thập lục phân và bát phân |
-| Số nguyên `long` | `12_000L` | Hậu tố `L`; chữ `L` hoa dễ phân biệt với số 1 |
-| Số thực | `3.14`, `2.5e3`, `1.5f` | Mặc định là `double`; `f` tạo `float` |
-| Ký tự `char` | `'A'`, `'\n'` | Dùng nháy đơn, có thể dùng escape |
-| Chuỗi `String` | `"Java 17"`, `"A\nB"` | Dùng nháy kép |
-| Boolean | `true`, `false` | Hai giá trị logic |
-| Null | `null` | Giá trị null reference |
+| Decimal integer | `0`, `42`, `1_000` | `_` between digits improves readability |
+| Other radix integers | `0b1010`, `0xFF`, `077` | Binary, hexadecimal, and octal |
+| `long` integer | `12_000L` | `L` suffix; uppercase `L` is easier to distinguish from digit 1 |
+| Floating-point | `3.14`, `2.5e3`, `1.5f` | Defaults to `double`; `f` creates `float` |
+| `char` character | `'A'`, `'\n'` | Uses single quotes, escapes allowed |
+| `String` | `"Java 17"`, `"A\nB"` | Uses double quotes |
+| Boolean | `true`, `false` | Two logical values |
+| Null | `null` | Null reference value |
 
-Trong Java 17, **text block** cũng là cú pháp literal để viết chuỗi nhiều dòng:
+In Java 17, a **text block** is also a literal syntax for writing multi-line strings:
 
 ~~~java
 String message = """
@@ -140,71 +140,71 @@ String message = """
         """;
 ~~~
 
-Dấu `"""` mở đầu text block phải được theo sau bởi một dấu kết thúc dòng; nội dung dòng và xử lý thụt lề theo quy tắc Java text block. Không nhầm dấu `"""` với ba chuỗi rỗng ghép nhau.
+The opening `"""` of a text block must be followed by a line terminator; line contents and indentation processing follow Java text block rules. Do not confuse `"""` with three empty strings concatenated together.
 
-### Ba lỗi lexical/literal thường gặp
+### Three common lexical/literal mistakes
 
-**1. Dấu âm là toán tử riêng.** Ở biểu thức `int temperature = -5;`, lexer nhận dấu `-` và literal số nguyên `5` riêng rẽ. `-5` không phải một “literal âm” đơn lẻ theo cách phân loại token này.
+**1. A minus sign is a separate operator.** In the expression `int temperature = -5;`, the lexer recognizes the `-` token and the integer literal `5` separately. `-5` is not a single "negative literal" under this token classification.
 
-**2. Dấu gạch dưới trong số phải đúng vị trí.** `1_000` hợp lệ, nhưng `_1000` không phải integer literal có dấu gạch dưới: lexer có thể nhận đó là identifier; đặt nó làm giá trị số sẽ lỗi cú pháp/ngữ nghĩa. Dạng `1000_` cũng không phải integer literal hợp lệ.
+**2. Underscores in numbers must be placed properly.** `1_000` is valid, but `_1000` is not an integer literal with an underscore: the lexer may recognize it as an identifier; using it as a numeric value causes a syntax/semantic error. The form `1000_` is also not a valid integer literal.
 
-**3. Nháy đơn và nháy kép không thay thế nhau.** `'A'` là char literal; `"A"` là String literal. `'AB'` không phải một char literal hợp lệ.
+**3. Single quotes and double quotes are not interchangeable.** `'A'` is a char literal; `"A"` is a String literal. `'AB'` is not a valid char literal.
 
-Những từ `true`, `false` và `null` phải được hiểu là **literal**, ngay cả khi xuất hiện tại vị trí mà cú pháp Java không cho phép dùng chúng.
+The words `true`, `false`, and `null` must be understood as **literals**, even when they appear in positions where Java syntax does not allow them.
 
-## 6. Toán tử (operator): đọc đúng token rồi mới hiểu phép toán
+## 6. Operators: read the tokens right before understanding the operation
 
-Các toán tử nhận giá trị hoặc đối tượng theo quy tắc của Java:
+Operators take values or objects according to Java's rules:
 
-| Nhóm | Token tiêu biểu | Ví dụ |
+| Group | Representative tokens | Example |
 | --- | --- | --- |
-| Số học | `+`, `-`, `*`, `/`, `%` | `amount * count` |
-| Gán | `=`, `+=`, `-=`, `*=`, `/=` | `total += 10` |
-| So sánh | `==`, `!=`, `<`, `<=`, `>`, `>=` | `count >= 2` |
-| Logic ngắn mạch | `&&`, `\|\|`, `!` | `ready && enabled` |
-| Tăng/giảm | `++`, `--` | `count++` |
-| Bit và dịch bit | `&`, `\|`, `^`, `~`, `<<`, `>>`, `>>>` | `flags & 0xFF` |
-| Điều kiện và lambda | `?`, `:`, `->` | `ok ? 1 : 0`; `x -> x + 1` |
+| Arithmetic | `+`, `-`, `*`, `/`, `%` | `amount * count` |
+| Assignment | `=`, `+=`, `-=`, `*=`, `/=` | `total += 10` |
+| Comparison | `==`, `!=`, `<`, `<=`, `>`, `>=` | `count >= 2` |
+| Short-circuit logical | `&&`, `\|\|`, `!` | `ready && enabled` |
+| Increment/decrement | `++`, `--` | `count++` |
+| Bitwise and bit shift | `&`, `\|`, `^`, `~`, `<<`, `>>`, `>>>` | `flags & 0xFF` |
+| Conditional and lambda | `?`, `:`, `->` | `ok ? 1 : 0`; `x -> x + 1` |
 
-**Đừng nhầm `=` với `==`:** `=` thực hiện phép gán, `==` dùng để so sánh theo quy tắc kiểu. Đặc biệt, với reference object, `==` so sánh tham chiếu chứ không tự kiểm tra nội dung bằng `equals`.
+**Do not confuse `=` with `==`:** `=` performs assignment, while `==` compares according to type rules. In particular, for object references, `==` compares references rather than automatically checking contents with `equals`.
 
-### Ưu tiên ghép token dài hơn khi có thể
+### Prefer matching longer tokens when possible
 
-Java sử dụng nguyên tắc nhận diện token dài nhất hợp lệ trong quá trình phân tích từ vựng (*maximal munch*). Chẳng hạn:
+Java uses the longest valid token recognition rule during lexical analysis (*maximal munch*). For example:
 
 ~~~java
-count++;         // ++ là một toán tử, không phải hai token + liền nhau.
-total += 3;      // += là một toán tử gán kết hợp.
+count++;         // ++ is a single operator, not two adjacent + tokens.
+total += 3;      // += is a compound assignment operator.
 boolean ok = a >= b && b != 0;
 ~~~
 
-Trong dòng cuối, `>=`, `&&`, `!=` đều là những token toán tử hoàn chỉnh. Khoảng trắng giúp đọc mã nhưng không được dùng để “tách đôi” một toán tử cố định tùy tiện. Ngược lại, `a + +b` dùng **hai toán tử cộng khác nhau** ở hai vị trí cú pháp.
+In the last line, `>=`, `&&`, and `!=` are all complete operator tokens. Whitespace helps code readability but must not be used to arbitrarily "split" a fixed operator in half. Conversely, `a + +b` uses **two different plus operators** in two syntactic positions.
 
-**Phân tích token khác với phân tích thứ tự tính toán.** Nhận ra `+`, `*` và `=` là token chỉ là bước đầu; độ ưu tiên toán tử, kiểu dữ liệu và quy tắc đánh giá biểu thức sẽ quyết định ý nghĩa tính toán.
+**Tokenizing differs from analyzing evaluation order.** Recognizing `+`, `*`, and `=` as tokens is only the first step; operator precedence, data types, and expression evaluation rules determine the computational meaning.
 
-## 7. Dấu phân cách (separator): ranh giới của cấu trúc
+## 7. Separators: boundaries of structure
 
-Các dấu phân cách phổ biến trong Java 17:
+Common separators in Java 17:
 
-| Token | Chức năng quen thuộc | Ví dụ |
+| Token | Familiar function | Example |
 | --- | --- | --- |
-| `(`, `)` | Nhóm điều kiện, tham số, biểu thức | `if (ready)`, `print(x)` |
-| `{`, `}` | Thân class/method/block hoặc initializer | `class App { ... }` |
-| `[`, `]` | Khai báo hoặc truy cập mảng | `int[] a`, `a[0]` |
-| `;` | Kết thúc khai báo/câu lệnh theo ngữ pháp | `int x = 1;` |
-| `,` | Phân tách phần tử, tham số hoặc khai báo phù hợp | `print(a, b)` |
-| `.` | Truy cập tên thành viên/định danh được phân tách | `System.out.println` |
-| `...` | Ký hiệu tham số biến số lượng (*varargs*) | `String... args` |
-| `@` | Mở đầu một annotation | `@Override` |
+| `(`, `)` | Groups conditions, parameters, expressions | `if (ready)`, `print(x)` |
+| `{`, `}` | Body of a class/method/block or initializer | `class App { ... }` |
+| `[`, `]` | Array declaration or access | `int[] a`, `a[0]` |
+| `;` | Terminates a declaration/statement per grammar | `int x = 1;` |
+| `,` | Separates elements, parameters, or matching declarations | `print(a, b)` |
+| `.` | Accesses separated member names/identifiers | `System.out.println` |
+| `...` | Variable-arity parameter (*varargs*) notation | `String... args` |
+| `@` | Begins an annotation | `@Override` |
 | `::` | Method reference | `String::valueOf` |
 
-Trong `System.out.println("OK");`, lexer nhìn thấy các identifier `System`, `out`, `println`, các dấu `.`, `(`, `)`, `;` và chuỗi literal `"OK"`. Không có một token duy nhất tên `System.out.println`.
+In `System.out.println("OK");`, the lexer sees the identifiers `System`, `out`, `println`, the tokens `.`, `(`, `)`, `;`, and the string literal `"OK"`. There is no single token named `System.out.println`.
 
-**Lưu ý:** `::` là dấu phân cách trong phân loại lexical token của Java, còn `->` là toán tử. Chúng thường được nhắc cùng nhau khi học lambda/method reference, nhưng không thuộc cùng một nhóm từ vựng.
+**Note:** `::` is a separator in Java's lexical token classification, whereas `->` is an operator. They are often mentioned together when learning lambdas/method references, but they do not belong to the same lexical category.
 
-## 8. Chương trình Java 17+ minh họa năm nhóm token
+## 8. Java 17+ program demonstrating the five token groups
 
-Tạo một tệp **TokenDemo.java**:
+Create a file **TokenDemo.java**:
 
 ~~~java
 public class TokenDemo {
@@ -223,56 +223,56 @@ public class TokenDemo {
 }
 ~~~
 
-Chạy trong terminal (Bash, PowerShell hoặc Command Prompt) tại thư mục chứa tệp:
+Run in a terminal (Bash, PowerShell, or Command Prompt) in the directory containing the file:
 
 ~~~bash
 javac -encoding UTF-8 TokenDemo.java
 java TokenDemo
 ~~~
 
-Kết quả **chính xác**:
+**Exact** output:
 
 ~~~text
 Java: 36000
 qualified=true, grade=A
 ~~~
 
-Trong mã:
+In the code:
 
-- `public`, `class`, `static`, `void`, `int`, `long`, `boolean` và `char` là **keywords**.
-- `TokenDemo`, `main`, `args`, `quantity`, `unitPrice`, `total`, `qualified`, `String`, `productName` và `grade` là **identifiers** (trong đó `String` là tên lớp).
-- `3`, `12_000L`, `30_000L`, `0`, `"Java"`, `'A'` và các chuỗi truyền cho `println` là **literals**.
-- `=`, `*`, `>=`, `&&`, `>`, `+` là **operators**.
-- `{ }`, `( )`, `[ ]`, `;`, `,` và `.` là **separators**.
+- `public`, `class`, `static`, `void`, `int`, `long`, `boolean`, and `char` are **keywords**.
+- `TokenDemo`, `main`, `args`, `quantity`, `unitPrice`, `total`, `qualified`, `String`, `productName`, and `grade` are **identifiers** (where `String` is a class name).
+- `3`, `12_000L`, `30_000L`, `0`, `"Java"`, `'A'`, and the strings passed to `println` are **literals**.
+- `=`, `*`, `>=`, `&&`, `>`, `+` are **operators**.
+- `{ }`, `( )`, `[ ]`, `;`, `,`, and `.` are **separators**.
 
-Ví dụ có chứa khoảng trắng và dòng trống để dễ đọc; chúng không làm thay đổi loại token. Chương trình sử dụng cú pháp class và `main` quen thuộc, không cần cài thư viện phụ trợ ngoài JDK.
+The example contains spaces and blank lines for readability; they do not alter token types. The program uses familiar class and `main` syntax and requires no external libraries beyond the JDK.
 
-## 9. Các bẫy thường gặp: token hợp lệ nhưng chương trình vẫn lỗi
+## 9. Common traps: valid tokens yet the program still fails
 
-| Mảnh mã hoặc trường hợp | Chẩn đoán | Cách sửa |
+| Code snippet or case | Diagnosis | Fix |
 | --- | --- | --- |
-| `int class = 1;` | `class` là từ khóa, không thể dùng làm identifier | Đổi thành `classCount` hoặc tên thích hợp |
-| `int 2items = 3;` | Chữ số không thể bắt đầu tên biến kiểu này | Dùng `items2` |
-| `int item-count = 3;` | `-` là toán tử, không phải ký tự nối trong identifier | Dùng `itemCount` hoặc `item_count` |
-| `int _ = 1;` | `_` đơn độc là từ khóa dành riêng trong Java 17 | Chọn tên cụ thể như `unusedCount` |
-| `int value = "7";` | Chuỗi literal không gán trực tiếp vào biến `int` | Dùng `7` hoặc chuyển chuỗi với `Integer.parseInt` khi thích hợp |
-| `char c = "A";` | `"A"` là String, không phải char | Dùng `'A'` |
-| `boolean ok = True;` | `True` không phải boolean literal `true`; Java phân biệt hoa/thường | Dùng `true` |
-| `int v = 1__000;` | **Hợp lệ**: nhiều dấu gạch dưới liên tiếp giữa các chữ số được Java chấp nhận | Không tự kết luận mọi `__` đều sai |
-| `int x = -5;` | Dấu trừ là toán tử riêng, không phải thành phần của literal `5` | Đọc token theo `=`, `-`, `5`, `;` |
-| `int n = 8 / 0;` | Token hợp lệ nhưng phép toán số nguyên tại runtime gây lỗi | Kiểm tra mẫu số; cú pháp từ vựng không bảo đảm phép toán an toàn |
+| `int class = 1;` | `class` is a keyword and cannot be used as an identifier | Change to `classCount` or an appropriate name |
+| `int 2items = 3;` | A digit cannot start a variable name like this | Use `items2` |
+| `int item-count = 3;` | `-` is an operator, not a connecting character in an identifier | Use `itemCount` or `item_count` |
+| `int _ = 1;` | Standalone `_` is a reserved keyword in Java 17 | Choose a specific name like `unusedCount` |
+| `int value = "7";` | A string literal cannot be assigned directly to an `int` variable | Use `7` or convert the string with `Integer.parseInt` when appropriate |
+| `char c = "A";` | `"A"` is a String, not a char | Use `'A'` |
+| `boolean ok = True;` | `True` is not the boolean literal `true`; Java is case-sensitive | Use `true` |
+| `int v = 1__000;` | **Valid**: multiple consecutive underscores between digits are accepted by Java | Do not assume every `__` is invalid |
+| `int x = -5;` | The minus sign is a separate operator, not part of literal `5` | Read tokens as `=`, `-`, `5`, `;` |
+| `int n = 8 / 0;` | Valid tokens, but the integer operation throws an error at runtime | Check the denominator; lexical syntax does not guarantee a safe operation |
 
-**Một lưu ý kỹ thuật:** một số lỗi trong bảng có thể được compiler phát hiện ngay khi phân tích cú pháp hoặc kiểm tra kiểu; một số khác chỉ xảy ra lúc chạy. Biết token không thay thế cho kiểm tra **kiểu**, **phạm vi biến** và **ngữ nghĩa chương trình**.
+**A technical note:** some errors in the table can be detected by the compiler immediately during syntax parsing or type checking; others only occur at runtime. Knowing tokens does not replace checking **types**, **variable scope**, and **program semantics**.
 
-## 10. Thực hành phân tích dãy token
+## 10. Practice analyzing token sequences
 
-Hãy thử phân loại dòng sau, không cần chạy trước:
+Try classifying the following line without running it first:
 
 ~~~java
 boolean accepted = total >= 100 && quantity != 0;
 ~~~
 
-| Nhóm | Các token có mặt |
+| Group | Tokens present |
 | --- | --- |
 | Keywords | `boolean` |
 | Identifiers | `accepted`, `total`, `quantity` |
@@ -280,44 +280,44 @@ boolean accepted = total >= 100 && quantity != 0;
 | Operators | `=`, `>=`, `&&`, `!=` |
 | Separators | `;` |
 
-Sau đó thay `>=` thành `> =` và thử biên dịch trong một chương trình có đủ khai báo biến: hai token `>` và `=` **không thay thế được** một toán tử `>=` trong biểu thức so sánh đó.
+Next, replace `>=` with `> =` and try compiling inside a program with full variable declarations: the two tokens `>` and `=` **cannot substitute for** the single `>=` operator in that comparison expression.
 
-Một bài phân tích khác:
+Another analysis exercise:
 
 ~~~java
 System.out.println("Hi");
 ~~~
 
-Hãy đếm: identifier `System`, separator `.`, identifier `out`, separator `.`, identifier `println`, separator `(`, string literal `"Hi"`, separator `)`, separator `;`. Tổng cộng **9 token**.
+Count them: identifier `System`, separator `.`, identifier `out`, separator `.`, identifier `println`, separator `(`, string literal `"Hi"`, separator `)`, separator `;`. **9 tokens** in total.
 
-**Chú thích không biến thành token:** ở `int x = 1; // note`, các token vẫn kết thúc ở `;`; phần `// note` là comment. Ở `String s = "a b";`, dấu cách **nằm trong literal** và vì vậy là một phần giá trị chuỗi.
+**Comments do not become tokens:** in `int x = 1; // note`, the tokens still end at `;`; the `// note` part is a comment. In `String s = "a b";`, the space **lies inside the literal** and is therefore part of the string value.
 
-## 11. Bài tập tự luyện và đáp án định hướng
+## 11. Self-practice exercises and guided answers
 
-**Bài 1 — Nhận diện.** Với `long distance = 10_000L;`, hãy chỉ ra từ khóa, identifier, operator, literal và separator.
+**Exercise 1 — Identification.** Given `long distance = 10_000L;`, identify the keyword, identifier, operator, literal, and separator.
 
-*Đáp án:* `long`; `distance`; `=`; `10_000L`; `;`.
+*Answer:* `long`; `distance`; `=`; `10_000L`; `;`.
 
-**Bài 2 — Đặt tên.** Trong `price2`, `2price`, `price_total`, `total-price`, `_` và `$cache`, tên nào có thể là identifier Java 17? Vì sao vẫn nên hạn chế dùng `$` trong tên tự đặt?
+**Exercise 2 — Naming.** Among `price2`, `2price`, `price_total`, `total-price`, `_`, and `$cache`, which can be Java 17 identifiers? Why should `$` still be limited in self-written names?
 
-*Định hướng:* `price2`, `price_total` và `$cache` hợp lệ; `2price`, `total-price`, `_` không là một identifier hợp lệ. `$` được phép nhưng kém phù hợp với quy ước đặt tên thông thường.
+*Guidance:* `price2`, `price_total`, and `$cache` are valid; `2price`, `total-price`, and `_` are not valid single identifiers. `$` is permitted, but fits poorly with standard naming conventions.
 
-**Bài 3 — Keyword hay literal?** Phân biệt `boolean` với `true`; phân biệt `String` với `class`; giải thích tại sao `null` không phải identifier.
+**Exercise 3 — Keyword or literal?** Distinguish `boolean` from `true`; distinguish `String` from `class`; explain why `null` is not an identifier.
 
-**Bài 4 — Toán tử dài nhất.** Phân tích `i++;` thành các token. Vì sao không đọc thành `i`, `+`, `+`, `;`? Phân tích tiếp `total += 1;`.
+**Exercise 4 — Longest operator.** Break `i++;` down into tokens. Why is it not read as `i`, `+`, `+`, `;`? Next, analyze `total += 1;`.
 
-**Bài 5 — Sửa lỗi.** Sửa `int class = 3;` và `char unit = "A";`. Chỉ ra loại lỗi của mỗi dòng thay vì chỉ đưa đáp án.
+**Exercise 5 — Error fixing.** Fix `int class = 3;` and `char unit = "A";`. Identify the error category of each line instead of just giving the answer.
 
-**Bài 6 — Tự chạy.** Biên dịch `TokenDemo.java`, đổi literal `12_000L` thành `15_000L` và dự đoán cả hai dòng kết quả; tiếp tục thử dùng `'A'` thay cho `"Java"` ở biến `String` để quan sát lỗi kiểu.
+**Exercise 6 — Run it yourself.** Compile `TokenDemo.java`, change literal `12_000L` to `15_000L`, and predict both output lines; then try using `'A'` instead of `"Java"` for the `String` variable to observe the type error.
 
-## 12. Checklist cuối bài
+## 12. End-of-lesson checklist
 
-- [ ] Biết **token là đơn vị từ vựng**, khác với câu lệnh/chương trình hợp lệ.
-- [ ] Phân biệt được identifier, keyword, literal, operator và separator ngay trong một dòng Java.
-- [ ] Nhớ `String`, `System`, `println` không phải từ khóa; `true`, `false`, `null` là literals.
-- [ ] Biết tên biến Java 17 phân biệt chữ hoa/thường, không bắt đầu bằng số, và `_` không là identifier hợp lệ khi đứng đơn độc.
-- [ ] Nhận ra `-5` gồm toán tử `-` và literal `5`; `++` là một token toán tử.
-- [ ] Giải thích được vai trò của `;`, `.`, `( )` và `{ }` mà không nhầm chúng với toán tử.
-- [ ] Tự biên dịch `TokenDemo.java` bằng `javac` và chạy bằng `java`, đối chiếu kết quả.
+- [ ] Know that a **token is a lexical unit**, distinct from a valid statement/program.
+- [ ] Distinguish identifier, keyword, literal, operator, and separator directly within a line of Java.
+- [ ] Remember that `String`, `System`, `println` are not keywords; `true`, `false`, `null` are literals.
+- [ ] Know that Java 17 variable names are case-sensitive, cannot start with a digit, and standalone `_` is not a valid identifier.
+- [ ] Recognize that `-5` consists of operator `-` and literal `5`; `++` is a single operator token.
+- [ ] Explain the roles of `;`, `.`, `( )`, and `{ }` without confusing them with operators.
+- [ ] Independently compile `TokenDemo.java` with `javac`, run it with `java`, and compare the output.
 
-**Tổng kết:** Hiểu từ vựng Java giúp bạn đọc mã chính xác từ từng ký hiệu, chọn tên hợp lệ và phân biệt lỗi token với lỗi cú pháp/kiểu/ngữ nghĩa. Token là **vật liệu đầu vào** để ngôn ngữ ghép thành những cấu trúc chương trình có ý nghĩa.
+**Summary:** Understanding Java's vocabulary helps you read code accurately symbol by symbol, choose valid names, and distinguish token errors from syntax/type/semantic errors. Tokens are the **input building blocks** that the language assembles into meaningful program structures.

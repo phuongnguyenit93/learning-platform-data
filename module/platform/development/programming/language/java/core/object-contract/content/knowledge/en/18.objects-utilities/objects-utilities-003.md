@@ -1,24 +1,24 @@
-# Objects.hashCode() cho một đối tượng
+# `Objects.hashCode()` for a single object
 
-## 1. Mục tiêu: tính hashCode null-safe cho đúng một đối tượng
+## 1. Objective: computing a null-safe hashCode for exactly one object
 
-Trong Java, phương thức **hashCode()** thuộc **java.lang.Object**. Nó trả về một số nguyên **int**, thường được dùng cùng **equals(Object)** trong **HashMap**, **HashSet**, **LinkedHashMap** và các cấu trúc dữ liệu băm khác. Cú pháp **value.hashCode()** có một vấn đề thường gặp: nếu **value == null**, chương trình sẽ ném **NullPointerException**.
+In Java, the **hashCode()** method belongs to **java.lang.Object**. It returns an **int** integer, commonly used alongside **equals(Object)** in **HashMap**, **HashSet**, **LinkedHashMap**, and other hash-based data structures. The syntax **value.hashCode()** has a common issue: if **value == null**, the program throws **NullPointerException**.
 
-Lớp tiện ích **java.util.Objects** có phương thức tĩnh:
+The utility class **java.util.Objects** provides a static method:
 
 ~~~java
 public static int hashCode(Object o)
 ~~~
 
-Ý nghĩa của nó tương đương:
+Its semantics are equivalent to:
 
 ~~~java
 return o == null ? 0 : o.hashCode();
 ~~~
 
-Hai đoạn này mô tả chữ ký và logic của API, không phải một chương trình Java độc lập. Nếu truyền **null**, kết quả là **0**; nếu truyền một object khác **null**, Java gọi phương thức **hashCode()** của chính object đó, theo cơ chế dispatch động. Nó **không tạo thuật toán hash mới**, không tự gom nhiều trường, không xác minh hợp đồng equals và không biến một kiểu mutable thành immutable.
+These two snippets describe the API signature and logic, not a standalone Java program. If **null** is passed, the result is **0**; if a non-**null** object is passed, Java invokes that object's own **hashCode()** method via dynamic dispatch. It **does not invent a new hash algorithm**, does not automatically combine multiple fields, does not verify the equals contract, and does not turn a mutable type into an immutable one.
 
-Ví dụ nhanh:
+Quick example:
 
 ~~~java
 Objects.hashCode(null)   // 0
@@ -26,13 +26,13 @@ Objects.hashCode("A")    // 65
 "A".hashCode()           // 65
 ~~~
 
-Đây là các biểu thức minh họa, cần import **java.util.Objects** khi đặt vào code thật. Hash của String **"A"** là 65 theo thuật toán String.hashCode; nhưng **không phải object nào cũng có hash ổn định và dễ đoán** theo cách này.
+These are illustrative expressions and require importing **java.util.Objects** when placed in real code. The hash of String **"A"** is 65 according to the String.hashCode algorithm; however, **not every object has a hash that is stable and predictable** in this way.
 
-**Ghi nhớ ngay:** **Objects.hashCode(x)** nghĩa là “nếu x có giá trị thì dùng x.hashCode(), còn null thì dùng 0”.
+**Remember immediately:** **Objects.hashCode(x)** means "if x has a value, use x.hashCode(); if null, use 0".
 
-## 2. Ví dụ Java 17 chạy được: null, String và đối tượng tương đương
+## 2. Runnable Java 17 example: null, String, and equivalent objects
 
-Tạo file **SingleObjectHashDemo.java**:
+Create the file **SingleObjectHashDemo.java**:
 
 ~~~java
 import java.util.Objects;
@@ -58,14 +58,14 @@ public class SingleObjectHashDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 trở lên:
+Compile and run with JDK 17 or newer:
 
 ~~~bash
 javac SingleObjectHashDemo.java
 java SingleObjectHashDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 null hash: 0
@@ -77,30 +77,30 @@ one-field Objects.hash: 96
 single-null Objects.hash: 31
 ~~~
 
-**Giải thích từng dòng quan trọng:**
+**Line-by-line explanation of key points:**
 
-1. **Objects.hashCode(missing)** không ném exception mà trả **0**.
-2. **Objects.hashCode(first)** trực tiếp dùng **String.hashCode()**, nên bằng **first.hashCode()**.
-3. Hai instance String được tạo riêng nhưng **equals** true vì có cùng chuỗi ký tự. Vì String tuân thủ hợp đồng equals/hashCode, hai hash bằng nhau.
-4. **Objects.hash(first)** lại trả **96**, không phải **65**, vì đây là API **khác**: nó băm một **mảng tham số varargs**, kể cả khi chỉ có một tham số.
-5. **Objects.hash((Object) null)** trả **31** vì đây là **một phần tử null** trong mảng tham số dài một. Ép kiểu **(Object)** cho biết rõ ý định truyền **một đối tượng null**, tránh nhập nhằng với việc truyền một mảng **Object[]** null.
+1. **Objects.hashCode(missing)** does not throw an exception and returns **0**.
+2. **Objects.hashCode(first)** directly uses **String.hashCode()**, so it equals **first.hashCode()**.
+3. The two separately created String instances have **equals** true because they have the same character sequence. Because String obeys the equals/hashCode contract, the two hashes are equal.
+4. **Objects.hash(first)** returns **96**, not **65**, because this is a **different** API: it hashes a **varargs parameter array**, even when there is only one argument.
+5. **Objects.hash((Object) null)** returns **31** because this is **one null element** inside a parameter array of length one. Casting **(Object)** makes the intent to pass **a single null object** explicit, avoiding ambiguity with passing a null **Object[]** array.
 
-Đừng dùng các kết quả ví dụ này để kết luận hashCode là ID duy nhất hoặc một chữ ký an toàn: nhiều object khác nhau có thể cùng hash 32-bit.
+Do not use these example results to conclude that hashCode is a unique ID or a security signature: many different objects can share the same 32-bit hash.
 
-## 3. Phân biệt Objects.hashCode(Object) với Objects.hash(Object...)
+## 3. Distinguishing Objects.hashCode(Object) from Objects.hash(Object...)
 
-Tên hai phương thức chỉ khác một chút nhưng cơ chế rất khác:
+The two method names differ only slightly, yet their mechanisms are very different:
 
-| Tiêu chí | **Objects.hashCode(Object)** | **Objects.hash(Object...)** |
+| Criterion | **Objects.hashCode(Object)** | **Objects.hash(Object...)** |
 | --- | --- | --- |
-| Số đối tượng về mặt ý nghĩa | **Một** object, có thể null | **Nhiều** giá trị truyền dưới dạng varargs |
-| Cơ chế | **o == null ? 0 : o.hashCode()** | Dựa trên **Arrays.hashCode(Object[])** của các tham số |
-| Một String **"A"** | **65** | **96** vì 31 × 1 + 65 |
-| Một tham số null ép kiểu Object | **0** | **31** |
-| Không truyền tham số | Không có overload không tham số | **Objects.hash()** trả **1** |
-| Dùng ở đâu | Null-safe delegate đến hashCode của một giá trị | Tiện để phối hợp hash của nhiều field |
+| Number of objects semantically | **One** object, possibly null | **Multiple** values passed as varargs |
+| Mechanism | **o == null ? 0 : o.hashCode()** | Based on **Arrays.hashCode(Object[])** of the arguments |
+| A single String **"A"** | **65** | **96** because 31 × 1 + 65 |
+| One null argument cast to Object | **0** | **31** |
+| No arguments passed | No zero-argument overload | **Objects.hash()** returns **1** |
+| Where to use | Null-safe delegate to a single value's hashCode | Convenient for combining hashes of multiple fields |
 
-Để hiểu kết quả 96:
+To understand the result 96:
 
 ~~~text
 Objects.hash("A")
@@ -110,9 +110,9 @@ Objects.hash("A")
     = 96
 ~~~
 
-Điều này **không** có nghĩa **Objects.hash** tính sai. Nó được thiết kế để kết hợp các tham số của **một bộ giá trị**, ví dụ một lớp có **name**, **age**, **department**. Còn **Objects.hashCode** dùng để xử lý hashCode **của một object** theo cách null-safe.
+This does **not** mean **Objects.hash** computes wrongly. It is designed to combine the arguments of **a tuple of values**, for example a class with **name**, **age**, and **department**. Meanwhile, **Objects.hashCode** is for handling the hashCode **of a single object** in a null-safe manner.
 
-### Hai trường hợp null dễ nhầm
+### Two easily confused null cases
 
 ~~~java
 Objects.hashCode((Object) null)    // 0
@@ -120,51 +120,51 @@ Objects.hash((Object) null)        // 31
 Objects.hash((Object[]) null)      // 0
 ~~~
 
-Đây là các biểu thức minh họa. Với **Objects.hash((Object[]) null)**, tham số varargs là **mảng null**, và **Arrays.hashCode((Object[]) null)** trả 0. Với **Objects.hash((Object) null)**, tham số varargs là **mảng có một phần tử null**, nên kết quả 31.
+These are illustrative expressions. With **Objects.hash((Object[]) null)**, the varargs parameter is a **null array**, and **Arrays.hashCode((Object[]) null)** returns 0. With **Objects.hash((Object) null)**, the varargs parameter is an **array with one null element**, so the result is 31.
 
-Khi gọi **Objects.hash(null)** trực tiếp, Java có thể chọn cách diễn giải varargs gây cảnh báo biên dịch hoặc hành vi khiến người đọc hiểu nhầm; nên ghi rõ ép kiểu **(Object)** hoặc **(Object[])** tùy ý định.
+When calling **Objects.hash(null)** directly, Java may choose a varargs interpretation that causes a compiler warning or behavior that misleads readers; explicitly write the **(Object)** or **(Object[])** cast depending on intent.
 
-### Cách chọn đúng
+### Choosing the right one
 
-- Muốn thay **obj.hashCode()** mà tránh NullPointerException: dùng **Objects.hashCode(obj)**.
-- Muốn kết hợp hash của **nhiều thành phần giá trị**: dùng **Objects.hash(field1, field2, ...)** hoặc công thức 31 tự viết cẩn thận.
-- Muốn băm nội dung mảng: dùng **Arrays.hashCode** hoặc **Arrays.deepHashCode** phù hợp với phép so sánh mảng; không mặc định thay bằng một trong hai API trên.
+- To replace **obj.hashCode()** while avoiding NullPointerException: use **Objects.hashCode(obj)**.
+- To combine hashes of **multiple value components**: use **Objects.hash(field1, field2, ...)** or a carefully hand-written 31-multiplier formula.
+- To hash array contents: use **Arrays.hashCode** or **Arrays.deepHashCode** matching the array comparison; do not blindly substitute either of the two APIs above.
 
-## 4. Vai trò của equals: hashCode không quyết định hai object bằng nhau
+## 4. Role of equals: hashCode does not determine whether two objects are equal
 
-Hợp đồng chung của **Object** yêu cầu:
+The general contract of **Object** requires:
 
-1. Nếu **a.equals(b)** là **true**, thì **a.hashCode() == b.hashCode()** bắt buộc đúng, miễn là dữ liệu dùng để so sánh không thay đổi.
-2. Nếu **a.equals(b)** là **false**, hai hash **được phép** bằng nhau: va chạm băm là bình thường.
-3. Khi thông tin được dùng trong equals chưa thay đổi, gọi hashCode nhiều lần trên cùng object phải cho kết quả nhất quán trong một lần chạy ứng dụng theo hợp đồng Java.
-4. Không có yêu cầu hashCode của một object phải giống nhau giữa **các lần khởi chạy JVM** khác nhau.
+1. If **a.equals(b)** is **true**, then **a.hashCode() == b.hashCode()** must hold, provided the data used for comparison does not change.
+2. If **a.equals(b)** is **false**, the two hashes are **allowed** to be equal: hash collisions are normal.
+3. As long as the information used in equals has not changed, calling hashCode multiple times on the same object must return consistent results within a single application execution according to the Java contract.
+4. There is no requirement for an object's hashCode to remain the same across different **JVM launches**.
 
-Vì **Objects.hashCode(x)** chỉ gọi **x.hashCode()** với x khác null, quy tắc trên áp dụng nguyên vẹn. Nếu lớp tự cài **equals** mà quên override **hashCode** tương ứng, việc bọc bằng **Objects.hashCode** **không sửa được lỗi**.
+Because **Objects.hashCode(x)** simply calls **x.hashCode()** for non-null x, the rules above apply intact. If a class implements **equals** itself and forgets to override the corresponding **hashCode**, wrapping with **Objects.hashCode** **does not fix the bug**.
 
-### Không dùng hashCode làm phép kiểm tra bằng nhau
+### Do not use hashCode as an equality check
 
-Sai:
+Wrong:
 
 ~~~java
-// Chỉ minh họa biểu thức, không phải file độc lập:
+// Illustrative expression only, not a standalone file:
 boolean same = Objects.hashCode(a) == Objects.hashCode(b);
 ~~~
 
-Hai object khác nhau có thể trùng mã băm. Muốn so sánh null-safe giữa **hai object**, dùng **Objects.equals(a, b)**; muốn tạo map/set khóa giá trị, cài equals/hashCode đúng cho lớp khóa.
+Two different objects can have the same hash code. To perform a null-safe comparison between **two objects**, use **Objects.equals(a, b)**; to build value-keyed maps/sets, implement equals/hashCode properly on the key class.
 
 ~~~java
 boolean same = Objects.equals(a, b);
 ~~~
 
-Trong chương trình thật, **a** và **b** phải là các biến đã khai báo. Nếu cả hai null, **Objects.equals(a, b)** trả true. Nếu chỉ một bên null, trả false. Nếu cả hai khác null, nó gọi equals của đối tượng thứ nhất. Đây là tác vụ **khác** với Objects.hashCode.
+In a real program, **a** and **b** must be declared variables. If both are null, **Objects.equals(a, b)** returns true. If only one side is null, it returns false. If both are non-null, it calls equals on the first object. This is a **different** task from Objects.hashCode.
 
-**Một lưu ý:** **Objects.hashCode(null) == 0** không có nghĩa hash 0 chỉ dành riêng cho null. Nhiều object hợp lệ có thể trả hash 0; muốn kiểm tra null phải dùng **obj == null**.
+**Note:** **Objects.hashCode(null) == 0** does not mean hash 0 is reserved exclusively for null. Many valid objects can return hash 0; to check for null, you must use **obj == null**.
 
-## 5. Ví dụ: tự cài equals/hashCode cho các trường nullable
+## 5. Example: implementing equals/hashCode for nullable fields
 
-Giả sử khóa **CustomerKey** gồm **tenantId** và **customerCode**; cả hai là String, và ở ví dụ minh họa ta cho phép null. Hai khóa bằng nhau khi từng trường tương ứng bằng nhau, kể cả trường cùng null.
+Suppose a **CustomerKey** key consists of **tenantId** and **customerCode**; both are Strings, and in this illustrative example we allow null. Two keys are equal when each corresponding field is equal, including when both fields are null.
 
-Tạo file **NullableCustomerKeyDemo.java**:
+Create the file **NullableCustomerKeyDemo.java**:
 
 ~~~java
 import java.util.HashSet;
@@ -223,14 +223,14 @@ public class NullableCustomerKeyDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac NullableCustomerKeyDemo.java
 java NullableCustomerKeyDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 first equals second: true
@@ -240,52 +240,52 @@ first equals different: false
 unique keys: 2
 ~~~
 
-**Phân tích:**
+**Analysis:**
 
-- **Objects.equals** xử lý null cho hai trường trong equals.
-- **Objects.hashCode(tenantId)** của khóa đầu tiên là **0**, vì tenantId null.
-- **Objects.hashCode(customerCode)** là **65** với String **"A"**, nên hàm hash tự viết cho khóa đó cho **31 × 0 + 65 = 65**.
-- Hai instance String "A" khác tham chiếu vẫn cho hash như nhau vì equals của String dựa trên nội dung.
-- Khóa khác tenantId không equals khóa đầu tiên; HashSet giữ hai khóa logic.
+- **Objects.equals** handles null for both fields in equals.
+- **Objects.hashCode(tenantId)** of the first key is **0**, because tenantId is null.
+- **Objects.hashCode(customerCode)** is **65** for String **"A"**, so the hand-written hash function for that key produces **31 × 0 + 65 = 65**.
+- Two String "A" instances with different references still produce the same hash because String's equals is content-based.
+- The key with a different tenantId does not equal the first key; HashSet retains two logical keys.
 
-Đây chỉ là **một công thức kết hợp hash hợp lệ**. Hợp đồng Java không bắt mọi lớp phải dùng số nhân 31. Công thức có thể khác và vẫn đúng nếu tất cả cặp object bằng nhau cho hash giống nhau. **Objects.hash(tenantId, customerCode)** cũng là một lựa chọn gọn, vì nó băm nhiều component nhất quán khi các component có hashCode tương thích với equals.
+This is only **one valid hash-combining formula**. The Java contract does not force every class to use multiplier 31. The formula can differ and still be correct as long as all equal object pairs produce identical hashes. **Objects.hash(tenantId, customerCode)** is also a concise option, as it hashes multiple components consistently when those components have hashCodes compatible with equals.
 
-**Quyết định miền nghiệp vụ:** Một hệ thống thật thường không muốn null trong mã định danh; khi ấy nên dùng **Objects.requireNonNull** trong constructor để từ chối đầu vào. Ví dụ cho phép null ở đây nhằm minh họa rõ cơ chế của **Objects.hashCode(Object)**, không phải khuyến nghị dùng null làm khóa khách hàng.
+**Domain decision:** A real system typically does not want null in identifiers; in that case, use **Objects.requireNonNull** in the constructor to reject invalid input. Allowing null here is meant to clearly illustrate the mechanism of **Objects.hashCode(Object)**, not to recommend using null as a customer key.
 
-## 6. Khi field đã có hashCode hoặc đối tượng được bao trong record
+## 6. When a field already has hashCode or an object is wrapped in a record
 
-### Một field nullable trong một phép tính lớn
+### A nullable field inside a larger calculation
 
-Đối với một lớp có một trường object nullable và một trường primitive:
+For a class with one nullable object field and one primitive field:
 
 ~~~java
-// Đoạn mã trong hashCode() của một lớp có các field name, version:
+// Snippet inside hashCode() of a class with fields name, version:
 int result = Objects.hashCode(name);
 result = 31 * result + Integer.hashCode(version);
 return result;
 ~~~
 
-**Integer.hashCode(int)** phù hợp với primitive int, không cần boxing. Không viết **Objects.hashCode(version)** khi chỉ cần tính hash cho int: lời gọi đó yêu cầu boxing sang Integer; kết quả có thể tương đương nhưng không cần chi phí/độ phức tạp đó.
+**Integer.hashCode(int)** is suitable for primitive int without boxing. Do not write **Objects.hashCode(version)** when only hashing an int: that call requires boxing to Integer; the result may be equivalent, but that overhead/complexity is unnecessary.
 
-Với **long**, **boolean**, **double** và các primitive khác, dùng **Long.hashCode**, **Boolean.hashCode**, **Double.hashCode**, v.v. khi muốn hash trực tiếp một giá trị primitive. Với một object như String, enum, LocalDate, record khác hoặc đối tượng nullable, Objects.hashCode rất hữu ích.
+For **long**, **boolean**, **double**, and other primitives, use **Long.hashCode**, **Boolean.hashCode**, **Double.hashCode**, etc. when hashing a primitive value directly. For an object such as String, enum, LocalDate, another record, or a nullable object, Objects.hashCode is very useful.
 
-### Record thường không cần override hashCode
+### Records usually do not need to override hashCode
 
 ~~~java
 record TicketKey(String eventId, int seatNumber) {}
 ~~~
 
-Record tự sinh equals/hashCode từ các component. Nếu ngữ nghĩa giá trị là **cùng eventId và seatNumber**, giữ phương thức sinh sẵn là hợp lý. **Objects.hashCode(ticket)** sẽ delegate đến hashCode do record sinh ra.
+Records automatically generate equals/hashCode from their components. If value semantics are **same eventId and seatNumber**, keeping the generated methods is appropriate. **Objects.hashCode(ticket)** will delegate to the record-generated hashCode.
 
-Không ghi đè equals theo một tập component rồi quên thay hashCode; nếu muốn nhóm theo eventId mà bỏ qua seatNumber, một **record khóa riêng** với chỉ eventId thường rõ nghĩa hơn.
+Do not override equals using one subset of components and forget to change hashCode; if you want to group by eventId while ignoring seatNumber, a **separate key record** with only eventId is usually clearer.
 
-### Trường hợp giá trị nullable tham chiếu đến object khác
+### When a nullable value references another object
 
-Khi field là một record hoặc lớp custom có equals/hashCode đúng, **Objects.hashCode(field)** truyền việc băm cho lớp đó. Nếu field null thì là 0. Nó không tự kiểm tra các field lồng trong object; số băm phụ thuộc hoàn toàn vào **hashCode** thực tế của lớp field.
+When a field is a record or custom class with proper equals/hashCode, **Objects.hashCode(field)** delegates hashing to that class. If the field is null, it returns 0. It does not inspect nested fields inside the object on its own; the hash number depends entirely on the actual **hashCode** of the field's class.
 
-## 7. Cạm bẫy: `Objects.hashCode(array)` không băm nội dung mảng
+## 7. Pitfall: `Objects.hashCode(array)` does not hash array contents
 
-Mảng Java là object nhưng không ghi đè `equals()`/`hashCode()` để dùng nội dung phần tử. Vì vậy `Objects.hashCode(array)` ủy quyền đến hash theo danh tính của **chính mảng**. Nếu một lớp so sánh các trường mảng bằng `Arrays.equals` hoặc `Arrays.deepEquals`, phương thức `hashCode()` của lớp cũng phải dựa trên nội dung bằng `Arrays.hashCode` hoặc `Arrays.deepHashCode` tương ứng.
+Java arrays are objects, but they do not override `equals()`/`hashCode()` to use element contents. Therefore, `Objects.hashCode(array)` delegates to the identity-based hash of **the array itself**. If a class compares array fields using `Arrays.equals` or `Arrays.deepEquals`, the class's `hashCode()` method must also be content-based using `Arrays.hashCode` or `Arrays.deepHashCode` accordingly.
 
 ```java
 int[] a = {1, 2};
@@ -295,65 +295,65 @@ System.out.println(java.util.Arrays.hashCode(a)
         == java.util.Arrays.hashCode(b));            // true
 ```
 
-Những lời gọi trên minh họa trong một phương thức. Hai mảng khác tham chiếu có thể có identity hash khác nhau, nên không thay `Arrays.hashCode(a)` bằng `Objects.hashCode(a)` khi equality xét nội dung. Nếu một lớp bọc mảng được dùng làm khóa `HashMap`, hãy sao chép phòng vệ khi dữ liệu có thể thay đổi. Bài **Objects.deepEquals() khác Objects.equals() ở đối số mảng** trình bày cặp equality/hash cho mảng lồng, còn bài **Objects.hash() cho nhiều giá trị và tình huống truyền mảng** giải thích riêng varargs `Object[]` và `int[]`.
+The calls above are illustrative inside a method. Two arrays with different references can have different identity hashes, so do not replace `Arrays.hashCode(a)` with `Objects.hashCode(a)` when equality examines contents. If a class wrapping an array is used as a `HashMap` key, make defensive copies whenever the data can change. The lesson **Objects.deepEquals() differs from Objects.equals() on array arguments** presents the equality/hash pair for nested arrays, while the lesson **Objects.hash() for multiple values and passing arrays** specifically explains `Object[]` and `int[]` varargs.
 
-## 8. Lỗi với hashCode của đối tượng mutable làm khóa Map hoặc Set
+## 8. Bugs with hashCode of mutable objects as Map or Set keys
 
-**Objects.hashCode(obj)** gọi phương thức hiện tại của obj, nên nếu hashCode phụ thuộc vào trường mutable thì số băm có thể thay đổi. HashMap thường chọn bucket theo hash khi chèn; sau khi key bị sửa, tìm lại key có thể không tìm đúng entry đã lưu.
+**Objects.hashCode(obj)** calls obj's current method, so if hashCode depends on mutable fields, the hash number can change. HashMap typically picks a bucket by hash upon insertion; after a key is mutated, looking up the key may fail to find the stored entry.
 
-Ví dụ tình huống:
+Example scenario:
 
 ~~~java
-// Minh họa: class MutableKey có equals/hashCode dựa trên id có thể sửa.
+// Illustration: class MutableKey has equals/hashCode based on a modifiable id.
 MutableKey key = new MutableKey("A");
 map.put(key, "value");
 
 key.setId("B");
 
-// map.get(key) có thể không tìm được entry đã chèn.
-// Objects.hashCode(key) không sửa vấn đề này.
+// map.get(key) may fail to find the inserted entry.
+// Objects.hashCode(key) does not fix this problem.
 ~~~
 
-Đây là đoạn **minh họa không độc lập**, không phải chương trình chạy được; cần có lớp MutableKey và biến map. Điều cần tránh không chỉ là NullPointerException: **giá trị dùng trong equals và hashCode phải ổn định trong thời gian object làm khóa**.
+This is a **non-standalone illustrative** snippet, not a runnable program; it requires a MutableKey class and a map variable. What needs to be avoided is not just NullPointerException: **the values used in equals and hashCode must remain stable while the object serves as a key**.
 
-Các lựa chọn an toàn:
+Safe options:
 
-- Dùng **String**, **Integer**, **UUID**, **Instant** hoặc record chỉ chứa các component bất biến làm khóa khi phù hợp nghiệp vụ.
-- Dùng lớp khóa với trường final và component thực sự bất biến; nếu chứa mảng/collection mutable, áp dụng defensive copy phù hợp.
-- Nếu thay đổi định danh là nghiệp vụ bắt buộc, **xóa entry cũ và chèn lại bằng khóa mới**, hoặc dựng lại map theo quy tắc mới.
-- Đừng lưu hashCode tính trước rồi tin rằng nó thay cho giá trị khóa hay được phép dùng như ID.
+- Use **String**, **Integer**, **UUID**, **Instant**, or a record containing only immutable components as keys when appropriate for the domain.
+- Use a key class with final fields and genuinely immutable components; if it holds mutable arrays/collections, apply appropriate defensive copying.
+- If changing an identifier is required by business logic, **remove the old entry and reinsert with the new key**, or rebuild the map under the new rules.
+- Do not store a precomputed hashCode and assume it replaces the key value or can act as an ID.
 
-**Phân biệt tính ổn định và tính duy nhất:** Một hàm hash ổn định vẫn có thể va chạm. Cấu trúc hash cần dùng **equals** sau khi xét hash để phân biệt khóa có cùng hash.
+**Distinguish stability from uniqueness:** A stable hash function can still collide. Hash structures must use **equals** after checking the hash to distinguish keys that share the same hash.
 
-## 9. So sánh Object.hashCode, Objects.hashCode, Objects.hash và System.identityHashCode
+## 9. Comparing Object.hashCode, Objects.hashCode, Objects.hash, and System.identityHashCode
 
-| API | Giá trị nhận vào | Ý nghĩa |
+| API | Input accepted | Meaning |
 | --- | --- | --- |
-| **obj.hashCode()** | Một obj khác null | Gọi hashCode động của chính object; null gây NullPointerException |
-| **Objects.hashCode(obj)** | Một object hoặc null | Null-safe delegate: null → 0, còn lại → obj.hashCode() |
-| **Objects.hash(a, b, ...)** | Nhiều giá trị varargs | Kết hợp hash các tham số, thông qua Arrays.hashCode(Object[]) |
-| **System.identityHashCode(obj)** | Object, có thể null | Hash theo cơ chế danh tính, không dùng override hashCode; null → 0 |
+| **obj.hashCode()** | A non-null obj | Calls dynamic hashCode of the object itself; null causes NullPointerException |
+| **Objects.hashCode(obj)** | An object or null | Null-safe delegate: null → 0, otherwise → obj.hashCode() |
+| **Objects.hash(a, b, ...)** | Multiple varargs values | Combines argument hashes via Arrays.hashCode(Object[]) |
+| **System.identityHashCode(obj)** | Object, possibly null | Identity-based hash, ignoring overridden hashCode; null → 0 |
 
-**System.identityHashCode** đôi khi hữu ích cho cơ chế cần ngữ nghĩa danh tính object, ví dụ chẩn đoán tham chiếu hoặc triển khai dựa trên identity. Tuy nhiên, đây **không** là cách thay thế Objects.hashCode khi equals của lớp đã so theo giá trị. Dùng identity hash trong một lớp có equals theo giá trị có thể làm các instance bằng nhau nhưng có hash khác nhau.
+**System.identityHashCode** is sometimes useful for mechanisms requiring object identity semantics, such as reference diagnostics or identity-based implementations. However, it is **not** a substitute for Objects.hashCode when a class's equals compares by value. Using an identity hash in a class with value-based equals can cause equal instances to have different hashes.
 
-**Lưu ý:** Giá trị số của **System.identityHashCode** không phải địa chỉ bộ nhớ được bảo đảm, và cũng không bảo đảm duy nhất giữa mọi object.
+**Note:** The numeric value of **System.identityHashCode** is not a guaranteed memory address, nor is it guaranteed to be unique across all objects.
 
-## 10. Kiểm thử nhỏ nhưng đủ phân biệt các API
+## 10. Small but sufficient tests to distinguish the APIs
 
-Một số tình huống nên có trong bài test cho phương thức hashCode của lớp tự viết:
+Several scenarios should be included in tests for a custom class's hashCode method:
 
-1. **Trường null:** Objects.hashCode(null) là 0; phương thức hashCode của key không ném NullPointerException khi null là đầu vào được cho phép.
-2. **Hai object bằng giá trị nhưng khác instance:** nếu equals true thì hashCode phải bằng nhau; thử hai String tạo riêng, hai record cùng component hoặc hai wrapper mảng cùng nội dung.
-3. **Va chạm:** không kết luận equals chỉ bằng hash; HashSet/HashMap phải phân biệt các khóa khác nhau ngay cả khi cùng hash.
-4. **Trường mutable:** thử thay đổi dữ liệu sau khi làm khóa; nếu lớp cam kết bất biến, hashCode và equals phải không đổi.
-5. **Đúng API theo cấu trúc:** object đơn → Objects.hashCode; nhiều field → Objects.hash hoặc công thức tương thích; mảng nội dung → Arrays.hashCode/deepHashCode.
-6. **Không dùng độ lớn hash làm độ mạnh:** mã băm âm, dương hoặc 0 đều là kết quả hợp lệ; không tự áp dụng trị tuyệt đối vì **Math.abs(Integer.MIN_VALUE)** vẫn âm.
-7. **Không yêu cầu hash khác nhau cho mọi object khác nhau:** đây không phải điều kiện của hợp đồng Object.
-8. **Đối chiếu equals và hashCode:** nếu sửa equals để thay đổi bộ trường quyết định giá trị, phải rà lại hashCode cùng lúc.
+1. **Null field:** Objects.hashCode(null) is 0; the key's hashCode method does not throw NullPointerException when null is an allowed input.
+2. **Two value-equal objects that are distinct instances:** if equals is true, hashCode must be equal; test two separately created Strings, two records with the same components, or two array wrappers with the same contents.
+3. **Collisions:** do not conclude equality from hash alone; HashSet/HashMap must distinguish different keys even when they share a hash.
+4. **Mutable fields:** test modifying data after acting as a key; if the class promises immutability, hashCode and equals must remain unchanged.
+5. **Right API for the structure:** single object → Objects.hashCode; multiple fields → Objects.hash or compatible formula; array contents → Arrays.hashCode/deepHashCode.
+6. **Do not treat hash magnitude as strength:** negative, positive, or 0 hash codes are all valid results; do not manually take absolute values because **Math.abs(Integer.MIN_VALUE)** is still negative.
+7. **Do not require distinct hashes for every distinct object:** this is not a condition of the Object contract.
+8. **Cross-check equals and hashCode:** if modifying equals to change the set of fields determining value, review hashCode at the same time.
 
-### Kiểm tra bằng một chương trình đơn giản
+### Checking with a simple program
 
-Tạo file **HashContractCheckDemo.java**:
+Create the file **HashContractCheckDemo.java**:
 
 ~~~java
 import java.util.Objects;
@@ -377,14 +377,14 @@ public class HashContractCheckDemo {
 }
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 javac HashContractCheckDemo.java
 java HashContractCheckDemo
 ~~~
 
-Kết quả:
+Output:
 
 ~~~text
 a equals b: true
@@ -393,45 +393,45 @@ a equals c: false
 missing hash: 0
 ~~~
 
-Hai instance **Code** bằng nhau vì record so component String theo equals. **Objects.hashCode(a)** dùng hashCode của Code; do đó tuân theo hợp đồng giá trị của record. Trường hợp c khác a minh họa equals false, nhưng ta **không yêu cầu** hash của a và c phải khác nhau.
+The two **Code** instances are equal because the record compares the String component by equals. **Objects.hashCode(a)** uses Code's hashCode; therefore it obeys the record's value contract. The case where c differs from a illustrates equals false, yet we **do not require** the hashes of a and c to be different.
 
-## 11. Câu hỏi thường gặp
+## 11. Frequently asked questions
 
-**Có thể thay mọi lời gọi obj.hashCode() bằng Objects.hashCode(obj) không?**
+**Can every call to obj.hashCode() be replaced with Objects.hashCode(obj)?**
 
-Trong ngữ cảnh muốn nhận giá trị 0 khi obj null, điều đó thường đúng. Nhưng nếu **null là lỗi lập trình hoặc đầu vào không hợp lệ**, việc cho phép null âm thầm có thể che đi vi phạm hợp đồng của ứng dụng. Khi ấy **Objects.requireNonNull(obj)** trước khi dùng có thể phù hợp hơn.
+In contexts where returning 0 when obj is null is desired, that is usually true. However, if **null is a programming bug or invalid input**, silently permitting null can mask a violation of the application's contract. In that case, **Objects.requireNonNull(obj)** beforehand may be more appropriate.
 
-**Objects.hashCode(x) có tự gọi equals(x) không?**
+**Does Objects.hashCode(x) automatically call equals(x)?**
 
-Không. Nó chỉ kiểm tra null và gọi **x.hashCode()**. Hợp đồng giữa equals và hashCode phải được bảo đảm bởi kiểu x.
+No. It only checks for null and calls **x.hashCode()**. The contract between equals and hashCode must be guaranteed by type x.
 
-**Tại sao Objects.hash(x) lại khác Objects.hashCode(x)?**
+**Why does Objects.hash(x) differ from Objects.hashCode(x)?**
 
-Vì Objects.hash tạo hash **cho một bộ tham số** bằng quy tắc Arrays.hashCode(Object[]). Với đúng một tham số khác null, kết quả thường là **31 + x.hashCode()**, nên khác hash trực tiếp của x.
+Because Objects.hash computes a hash **for a tuple of arguments** using the Arrays.hashCode(Object[]) rule. With a single non-null argument, the result is typically **31 + x.hashCode()**, which differs from x's direct hash.
 
-**HashCode có thể là 0 đối với object không null không?**
+**Can hashCode be 0 for a non-null object?**
 
-Có. Ví dụ một object có override hashCode trả 0 là hoàn toàn có thể; điều này không tự làm equals đúng hay sai. Do đó **Objects.hashCode(x) == 0** không chứng minh x null.
+Yes. For example, an object with an overridden hashCode returning 0 is completely possible; this does not by itself make equals right or wrong. Therefore **Objects.hashCode(x) == 0** does not prove x is null.
 
-**Có nên lưu hashCode vào database hoặc gửi như định danh duy nhất không?**
+**Should hashCode be saved into a database or sent as a unique identifier?**
 
-Không nên xem hashCode của Java là khóa định danh toàn cục, chữ ký bảo mật hay mã băm mật mã. Nó là số nguyên phục vụ cấu trúc băm, có khả năng va chạm và không được hợp đồng Object bảo đảm ổn định xuyên JVM. Với định danh nên dùng khóa nghiệp vụ, UUID hoặc ID rõ ràng; với toàn vẹn/bảo mật cần thuật toán chuyên dụng theo yêu cầu.
+Java's hashCode should not be treated as a global identifier key, security signature, or cryptographic hash. It is an integer serving hash structures, can collide, and is not guaranteed by the Object contract to remain stable across JVMs. For identifiers, use business keys, UUIDs, or explicit IDs; for integrity/security, dedicated algorithms are required as needed.
 
-**Khi nào không cần Objects.hashCode?**
+**When is Objects.hashCode not needed?**
 
-Nếu đã có primitive int/long và API tương ứng, dùng **Integer.hashCode**, **Long.hashCode** hoặc cách phối hợp trực tiếp. Nếu record đã sinh hashCode hợp lệ, gọi **record.hashCode()** khi chắc chắn khác null. Nếu đang cần hash một mảng theo nội dung, dùng **Arrays.hashCode** thay vì Objects.hashCode.
+If you already have primitive int/long and corresponding APIs, use **Integer.hashCode**, **Long.hashCode**, or direct combination. If a record already generates a valid hashCode, call **record.hashCode()** when guaranteed non-null. If you need to hash an array by content, use **Arrays.hashCode** instead of Objects.hashCode.
 
-## 12. Quy trình áp dụng
+## 12. Step-by-step application workflow
 
-Khi thấy một lời gọi **hashCode()** có nguy cơ NullPointerException, hãy xác định trước:
+When you see a **hashCode()** call with a risk of NullPointerException, determine first:
 
-1. Giá trị cần tính hash là **một object** hay **một bộ nhiều trường**?
-2. Object có thể null hợp lệ không? Nếu có, **Objects.hashCode(Object)** trả 0. Nếu không, có thể dùng **requireNonNull** để báo lỗi sớm.
-3. equals của kiểu object đang kiểm tra **những thuộc tính nào**? HashCode của kiểu đó phải tương thích với equals.
-4. Nếu object là **array**, có cần so nội dung bằng Arrays.equals/deepEquals không? Nếu cần, dùng hash nội dung tương ứng.
-5. Nếu object là khóa cho HashMap/HashSet, các thành phần ảnh hưởng equals/hashCode có bất biến trong quá trình lưu hay không?
-6. Cuối cùng, xác nhận bằng các trường hợp null, giá trị bằng nhau ở hai instance độc lập, collision và thay đổi trạng thái.
+1. Is the value to hash **a single object** or **a tuple of multiple fields**?
+2. Can the object validly be null? If yes, **Objects.hashCode(Object)** returns 0. If not, **requireNonNull** can be used to fail fast.
+3. **Which properties** does the object type's equals examine? That type's hashCode must be compatible with equals.
+4. If the object is an **array**, does content comparison via Arrays.equals/deepEquals apply? If so, use the corresponding content hash.
+5. If the object is a key for HashMap/HashSet, are the components affecting equals/hashCode immutable while stored?
+6. Finally, verify with null cases, value-equal independent instances, collisions, and state changes.
 
-**Kết luận cần nhớ:** **Objects.hashCode(x)** chỉ là cách **null-safe** để lấy **hashCode của một đối tượng**. Nó không giống **Objects.hash(x)**, không tự tính hash nội dung mảng, không bảo đảm hash là duy nhất và không sửa được một lớp có equals/hashCode sai. Giá trị thực của API nằm ở khả năng sử dụng nhất quán **hashCode của kiểu x** trong các đoạn code xử lý object có thể null.
+**Key takeaway:** **Objects.hashCode(x)** is simply a **null-safe** way to obtain **the hashCode of a single object**. It is not the same as **Objects.hash(x)**, does not automatically compute array content hashes, does not guarantee hash uniqueness, and cannot fix a class with broken equals/hashCode. The API's real value lies in consistently using **type x's hashCode** in code that handles potentially null objects.
 
-Tham khảo: [Java SE 17 – java.util.Objects](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Objects.html).
+Reference: [Java SE 17 – java.util.Objects](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Objects.html).

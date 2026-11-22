@@ -1,8 +1,8 @@
-# Điều kiện phải có kiểu `boolean` hoặc `Boolean` được unboxing — Java 17+
+# Conditions Must Have Type `boolean` or Unboxed `Boolean` — Java 17+
 
-## 1. Quy tắc quan trọng nhất
+## 1. The most important rule
 
-Trong Java, biểu thức đặt trong dấu ngoặc của `if` phải có kiểu **`boolean`** hoặc **`java.lang.Boolean`** có thể được *unboxing* thành `boolean`. Không thể dùng trực tiếp số, chuỗi hoặc tham chiếu đối tượng làm điều kiện chỉ vì chúng “có giá trị”.
+In Java, the expression inside the parentheses of an `if` must have type **`boolean`** or **`java.lang.Boolean`** that can be *unboxed* to `boolean`. You cannot directly use a number, string, or object reference as a condition merely because it “has a value”.
 
 ~~~java
 boolean ready = true;
@@ -18,7 +18,7 @@ if (ready) {
 ready
 ~~~
 
-Với `Boolean`, Java tự gọi chuyển đổi unboxing để lấy `boolean` khi cần:
+With `Boolean`, Java automatically invokes unboxing conversion to obtain a `boolean` when needed:
 
 ~~~java
 Boolean enabled = Boolean.TRUE;
@@ -34,58 +34,58 @@ if (enabled) {
 enabled
 ~~~
 
-**Cảnh báo:** nếu `enabled == null`, unboxing gây `NullPointerException`. Vì vậy cần phân biệt:
+**Warning:** if `enabled == null`, unboxing causes a `NullPointerException`. Therefore, distinguish between:
 
-- **`boolean` nguyên thủy:** chỉ có `true` hoặc `false`, không thể null.
-- **`Boolean` lớp bao:** có thể mang `Boolean.TRUE`, `Boolean.FALSE` hoặc `null`; phải quy định cách xử lý null.
+- **Primitive `boolean`:** only `true` or `false`, cannot be null.
+- **Wrapper class `Boolean`:** can hold `Boolean.TRUE`, `Boolean.FALSE`, or `null`; you must define how null is handled.
 
-Bài này tập trung vào kiểu của điều kiện `if`, không mở rộng sang hệ thống rẽ nhánh hoặc vòng lặp nói chung.
+This lesson focuses on the type of the `if` condition and does not expand into branching systems or loops in general.
 
-## 2. Cú pháp `if` và kiểm tra kiểu tại compile time
+## 2. `if` syntax and compile-time type checking
 
-Cú pháp cơ bản:
+Basic syntax:
 
 ~~~java
 if (condition) {
-    // Chạy nếu condition có giá trị true
+    // Runs if condition evaluates to true
 } else {
-    // Chạy nếu condition có giá trị false
+    // Runs if condition evaluates to false
 }
 ~~~
 
-Compiler phải xác nhận `condition` có kiểu boolean/Boolean thích hợp **trước khi chạy**. Kết quả cụ thể true hay false chỉ quyết định nhánh được thực thi.
+The compiler must verify that `condition` has an appropriate boolean/Boolean type **before running**. The actual true or false result only determines which branch executes.
 
-| Biểu thức trong `if (...)` | Hợp lệ? | Vì sao? |
+| Expression in `if (...)` | Valid? | Why? |
 |---|---|---|
-| `true` | Có | Literal `boolean` |
-| `ready` với `boolean ready` | Có | Biến `boolean` |
-| `enabled` với `Boolean enabled` | Có | `Boolean` được unboxing |
-| `score >= 60` | Có | Phép so sánh trả `boolean` |
-| `value != 0` | Có | Phép so sánh trả `boolean` |
-| `text != null` | Có | Phép so sánh tham chiếu với null trả `boolean` |
-| `score` với `int score` | **Không** | `int` không phải điều kiện boolean |
-| `text` với `String text` | **Không** | Java không coi String rỗng/không rỗng là truthy/falsy |
-| `object` với `Object object` | **Không** | Java không coi object khác null là true |
-| `boxedNumber` với `Integer boxedNumber` | **Không** | Unboxing `Integer` ra `int`, vẫn không phải boolean |
+| `true` | Yes | `boolean` literal |
+| `ready` with `boolean ready` | Yes | `boolean` variable |
+| `enabled` with `Boolean enabled` | Yes | `Boolean` is unboxed |
+| `score >= 60` | Yes | Comparison returns `boolean` |
+| `value != 0` | Yes | Comparison returns `boolean` |
+| `text != null` | Yes | Reference comparison with null returns `boolean` |
+| `score` with `int score` | **No** | `int` is not a boolean condition |
+| `text` with `String text` | **No** | Java does not treat empty/non-empty String as falsy/truthy |
+| `object` with `Object object` | **No** | Java does not treat a non-null object as true |
+| `boxedNumber` with `Integer boxedNumber` | **No** | Unboxing `Integer` yields `int`, still not boolean |
 
-Ví dụ bị lỗi compile (giữ nguyên ở dạng comment để code ví dụ vẫn chạy):
+Compile-error examples (kept commented out so the example code still runs):
 
 ~~~java
 int count = 3;
-// if (count) { } // SAI: int cannot be converted to boolean
+// if (count) { } // WRONG: int cannot be converted to boolean
 
 String title = "Java";
-// if (title) { } // SAI: String cannot be converted to boolean
+// if (title) { } // WRONG: String cannot be converted to boolean
 
 Object object = Boolean.TRUE;
-// if (object) { } // SAI: kiểu tĩnh Object, không phải Boolean
+// if (object) { } // WRONG: static type is Object, not Boolean
 ~~~
 
-Ngay cả khi một biến `Object` **đang trỏ tới object `Boolean.TRUE`**, compiler nhìn thấy kiểu tĩnh `Object` trong `if (object)`. Muốn dùng, phải kiểm tra/chuyển kiểu phù hợp thay vì giả định Java tự đoán kiểu object ở runtime.
+Even when an `Object` variable **is pointing to the `Boolean.TRUE` object**, the compiler sees the static type `Object` in `if (object)`. To use it, you must check/cast the type properly instead of assuming Java infers the object's type at runtime.
 
-## 3. Chuyển ý nghĩa nghiệp vụ thành biểu thức boolean
+## 3. Turning business meaning into boolean expressions
 
-Nếu đầu vào là số, hãy viết **phép so sánh tường minh**:
+If the input is a number, write an **explicit comparison**:
 
 ~~~java
 int count = 3;
@@ -106,7 +106,7 @@ positive
 nonzero
 ~~~
 
-Tương tự, với `String`:
+Similarly, with `String`:
 
 ~~~java
 String title = "Java";
@@ -117,11 +117,11 @@ if (valid) {
 }
 ~~~
 
-Ở đây `title != null`, `!title.isBlank()` và `valid` đều trả hoặc chứa giá trị **boolean**; `title` tự nó không phải điều kiện hợp lệ.
+Here `title != null`, `!title.isBlank()`, and `valid` all return or hold a **boolean** value; `title` by itself is not a valid condition.
 
-### Các biểu thức thường cho kết quả boolean
+### Common expressions that produce boolean results
 
-| Biểu thức | Kiểu kết quả |
+| Expression | Result type |
 |---|---|
 | `a == b`, `a != b` | `boolean` |
 | `x < y`, `x >= y` | `boolean` |
@@ -131,9 +131,9 @@ if (valid) {
 | `name == null` | `boolean` |
 | `Boolean.TRUE.equals(flag)` | `boolean` |
 
-**Đừng dùng giá trị số 0/1 thay `false`/`true`**: Java không thực hiện chuyển kiểu số → boolean ngầm định.
+**Do not use numeric values 0/1 instead of `false`/`true`**: Java does not perform implicit numeric → boolean conversion.
 
-## 4. `Boolean` trong `if`: Java thực hiện unboxing
+## 4. `Boolean` in `if`: Java performs unboxing
 
 ~~~java
 Boolean boxedTrue = Boolean.TRUE;
@@ -157,11 +157,11 @@ true branch
 false branch
 ~~~
 
-Về ý nghĩa, `if (boxedTrue)` cần chuyển giá trị `Boolean` thành `boolean` để quyết định nhánh. Trường hợp này là **unboxing conversion**, không phải so sánh địa chỉ tham chiếu.
+Semantically, `if (boxedTrue)` needs to convert the `Boolean` value to `boolean` to decide the branch. This is an **unboxing conversion**, not a reference address comparison.
 
-`Boolean` thường xuất hiện trong dữ liệu cho phép null, các collection/generic hoặc API trả kết quả ba trạng thái. Unboxing tiện lợi khi giá trị chắc chắn **khác null**, nhưng có thể gây lỗi runtime nếu dữ liệu thiếu.
+`Boolean` commonly appears in nullable data, collections/generics, or APIs returning three-state results. Unboxing is convenient when the value is guaranteed **non-null**, but can cause runtime errors if data is missing.
 
-## 5. `Boolean null`: hợp lệ khi biên dịch, lỗi khi chạy
+## 5. `Boolean null`: valid at compile time, error at runtime
 
 ~~~java
 Boolean flag = null;
@@ -181,20 +181,20 @@ try {
 null Boolean -> NullPointerException
 ~~~
 
-Mã **biên dịch hợp lệ** vì biến có kiểu tĩnh `Boolean`. Tuy nhiên, ở runtime, Java cần unbox giá trị null và ném `NullPointerException` **trước khi chọn nhánh**.
+The code **compiles cleanly** because the variable has static type `Boolean`. However, at runtime, Java needs to unbox the null value and throws `NullPointerException` **before selecting a branch**.
 
-Lỗi không phải do `if` không chấp nhận `Boolean`; lỗi là do giá trị wrapper không thể unbox khi bằng null.
+The error is not because `if` rejects `Boolean`; it is because the wrapper value cannot be unboxed when null.
 
-**Phân biệt hai loại lỗi:**
+**Distinguish the two kinds of errors:**
 
-- `if (123)`: lỗi **compile time** vì điều kiện có kiểu `int`.
-- `Boolean flag = null; if (flag)`: compile được, nhưng lỗi **runtime** khi unboxing.
+- `if (123)`: **compile-time** error because the condition has type `int`.
+- `Boolean flag = null; if (flag)`: compiles, but fails at **runtime** during unboxing.
 
-## 6. Các cách kiểm tra `Boolean` nullable an toàn
+## 6. Safe ways to check a nullable `Boolean`
 
-Giả sử yêu cầu: **chỉ khi giá trị đúng là true mới cho phép**.
+Suppose the requirement is: **allow only when the value is strictly true**.
 
-**Cách 1 — Guard với `&&`:**
+**Approach 1 — Guard with `&&`:**
 
 ~~~java
 Boolean enabled = null;
@@ -202,9 +202,9 @@ boolean allowed = enabled != null && enabled;
 System.out.println(allowed); // false
 ~~~
 
-`&&` bỏ qua toán hạng phải khi `enabled != null` là false. Do đó, `enabled` không bị unbox lúc null.
+`&&` skips the right operand when `enabled != null` is false. Thus, `enabled` is not unboxed when null.
 
-**Cách 2 — Dùng `Boolean.TRUE.equals`:**
+**Approach 2 — Use `Boolean.TRUE.equals`:**
 
 ~~~java
 Boolean enabled = null;
@@ -212,9 +212,9 @@ boolean allowed = Boolean.TRUE.equals(enabled);
 System.out.println(allowed); // false
 ~~~
 
-Lời gọi trên object hằng `Boolean.TRUE` không unbox `enabled`, và an toàn với null.
+Calling on the constant object `Boolean.TRUE` does not unbox `enabled`, and is null-safe.
 
-**Cách 3 — Phân biệt đủ ba trạng thái:**
+**Approach 3 — Distinguish all three states:**
 
 ~~~java
 static String describe(Boolean flag) {
@@ -225,58 +225,58 @@ static String describe(Boolean flag) {
 }
 ~~~
 
-| Giá trị `Boolean` | `Boolean.TRUE.equals(flag)` | `describe(flag)` |
+| `Boolean` value | `Boolean.TRUE.equals(flag)` | `describe(flag)` |
 |---|---|---|
 | `Boolean.TRUE` | true | `ON` |
 | `Boolean.FALSE` | false | `OFF` |
 | `null` | false | `UNKNOWN` |
 
-**Quan trọng:** Nếu null mang ý nghĩa **chưa biết/chưa xác nhận**, không nên tự động coi null là false mà không có quyết định nghiệp vụ. `Boolean.TRUE.equals(flag)` phù hợp với quy tắc “chỉ true mới đạt”, nhưng cố ý không phân biệt false và null trong kết quả boolean.
+**Important:** If null means **unknown/unconfirmed**, do not automatically treat null as false without a business decision. `Boolean.TRUE.equals(flag)` fits a “only true passes” rule, but intentionally does not distinguish false from null in the boolean result.
 
-## 7. `flag == true` không phải null guard
+## 7. `flag == true` is not a null guard
 
 ~~~java
 Boolean flag = null;
 
 // if (flag == true) { }
-// Khi chạy: NullPointerException do phải unbox flag.
+// At runtime: NullPointerException because flag must be unboxed.
 ~~~
 
-So sánh với primitive `true` có thể khiến `Boolean` phải unbox, nên vẫn nguy hiểm khi flag null.
+Comparing with primitive `true` causes `Boolean` to be unboxed, so it is still dangerous when flag is null.
 
-**Nên dùng:**
+**Use instead:**
 
 ~~~java
 if (Boolean.TRUE.equals(flag)) {
-    // Chỉ chạy khi flag khác null và có giá trị true
+    // Runs only when flag is non-null and has value true
 }
 ~~~
 
-Hoặc:
+Or:
 
 ~~~java
 if (flag != null && flag) {
-    // Kiểm tra null trước khi unbox
+    // Check null before unboxing
 }
 ~~~
 
-**Không lẫn hai ý nghĩa:**
+**Do not confuse these meanings:**
 
-- `flag == null`: kiểm tra tham chiếu null, an toàn.
-- `flag == true`: kiểm tra giá trị logic bằng true, có thể unbox và gây NPE.
-- `Boolean.TRUE.equals(flag)`: so **giá trị object** an toàn với null.
+- `flag == null`: reference null check, safe.
+- `flag == true`: logical comparison to true, can unbox and cause NPE.
+- `Boolean.TRUE.equals(flag)`: null-safe **object value** comparison.
 
-Để kiểm tra đúng false (không phải null):
+To check explicitly for false (not null):
 
 ~~~java
 boolean explicitlyFalse = Boolean.FALSE.equals(flag);
 ~~~
 
-Với `flag == null`, cả `Boolean.TRUE.equals(flag)` và `Boolean.FALSE.equals(flag)` đều false.
+When `flag == null`, both `Boolean.TRUE.equals(flag)` and `Boolean.FALSE.equals(flag)` are false.
 
-## 8. `&&` và `||`: đặt guard trước phép dùng giá trị
+## 8. `&&` and `||`: place guards before using the value
 
-Java đánh giá các toán hạng của `&&` và `||` từ trái sang phải, có cơ chế **ngắn mạch**.
+Java evaluates the operands of `&&` and `||` from left to right, with **short-circuiting**.
 
 ~~~java
 Boolean approved = null;
@@ -288,32 +288,32 @@ System.out.println(allowed);         // false
 System.out.println(deniedOrUnknown); // true
 ~~~
 
-- `approved != null && approved`: nếu approved null, bỏ qua vế phải, an toàn.
-- `approved == null || !approved`: nếu approved null, bỏ qua vế phải, an toàn.
-- `approved != null & approved`: toán tử `&` boolean **không ngắn mạch**, phải đánh giá vế phải và có thể NPE.
-- `approved == null | !approved`: `|` cũng **không ngắn mạch**, có thể NPE.
+- `approved != null && approved`: if approved is null, skips the right side, safe.
+- `approved == null || !approved`: if approved is null, skips the right side, safe.
+- `approved != null & approved`: the boolean `&` operator **does not short-circuit**, evaluates the right side, and can throw NPE.
+- `approved == null | !approved`: `|` also **does not short-circuit**, and can throw NPE.
 
-Ví dụ `Boolean` trong **vế phải**:
+Example of `Boolean` on the **right-hand side**:
 
 ~~~java
 Boolean missing = null;
 
-System.out.println(false && missing); // false, không unbox missing
-System.out.println(true || missing);  // true, không unbox missing
+System.out.println(false && missing); // false, does not unbox missing
+System.out.println(true || missing);  // true, does not unbox missing
 ~~~
 
-Nhưng nếu **buộc phải đánh giá** nhánh chứa null, unboxing vẫn ném NPE:
+However, if the branch containing null **must be evaluated**, unboxing still throws NPE:
 
 ~~~java
-// boolean bad = true && missing; // NPE khi chạy
-// boolean bad = false || missing; // NPE khi chạy
+// boolean bad = true && missing; // NPE at runtime
+// boolean bad = false || missing; // NPE at runtime
 ~~~
 
-**Điều kiện bảo vệ phải được đặt trước thao tác nguy hiểm.** Chỉ xuất hiện toán tử `&&` ở đâu đó không đủ tạo an toàn nếu tham chiếu đã bị sử dụng khi chưa kiểm tra.
+**The guard condition must be placed before the unsafe operation.** Simply having `&&` somewhere is not enough for safety if the reference has already been used before being checked.
 
-## 9. Phân biệt `=` với `==` trong điều kiện boolean
+## 9. Distinguishing `=` from `==` in boolean conditions
 
-Một lỗi logic nguy hiểm:
+A dangerous logic bug:
 
 ~~~java
 boolean granted = false;
@@ -332,28 +332,28 @@ entered
 true
 ~~~
 
-`granted = true` là **biểu thức gán** có kiểu và giá trị `boolean`. Nó biên dịch hợp lệ, đặt `granted` thành true rồi khiến nhánh `if` chạy.
+`granted = true` is an **assignment expression** whose type and value are `boolean`. It compiles validly, sets `granted` to true, and causes the `if` branch to run.
 
-Nếu ý định chỉ là **kiểm tra**, hãy viết:
+If the intent is only to **check**, write:
 
 ~~~java
 if (granted) {
-    // Kiểm tra true, không gán
+    // Check true, do not assign
 }
 ~~~
 
-Với số nguyên, `if (number = 1)` lại **không biên dịch** vì biểu thức gán có kiểu `int`, không phải boolean. Đây là lý do lỗi `if (booleanVariable = true)` đặc biệt dễ lọt qua compile time.
+With integers, `if (number = 1)` **does not compile** because the assignment expression has type `int`, not boolean. This is why the `if (booleanVariable = true)` bug easily slips past compile time.
 
-**Khuyến nghị:** tránh gán trạng thái bên trong điều kiện `if` trừ khi có lý do rất rõ; tách phép gán thành câu lệnh riêng.
+**Recommendation:** avoid assigning state inside an `if` condition unless there is a very clear reason; separate assignments into their own statements.
 
-## 10. Chuỗi `"true"` và `"false"` không phải kiểu boolean
+## 10. Strings `"true"` and `"false"` are not boolean types
 
 ~~~java
 String input = "true";
-// if (input) { } // SAI: String không phải boolean/Boolean
+// if (input) { } // WRONG: String is not boolean/Boolean
 ~~~
 
-Nếu dữ liệu đến từ văn bản, cần **phân tích giá trị** trước:
+If data comes from text, you need to **parse the value** first:
 
 ~~~java
 boolean enabled = Boolean.parseBoolean(input);
@@ -368,13 +368,13 @@ if (enabled) {
 parsed true
 ~~~
 
-`Boolean.parseBoolean(String)` trả true **chỉ nếu chuỗi bằng `"true"` không phân biệt chữ hoa/thường**; các giá trị khác (kể cả null) trả false. Do đó:
+`Boolean.parseBoolean(String)` returns true **only if the string equals `"true"` ignoring case**; any other value (including null) returns false. Therefore:
 
 ~~~java
 System.out.println(Boolean.parseBoolean("yes")); // false
 ~~~
 
-Nếu API phải **từ chối văn bản không hợp lệ** thay vì âm thầm coi là false, tự định nghĩa parser nghiêm ngặt:
+If the API must **reject invalid text** instead of silently treating it as false, define a strict parser yourself:
 
 ~~~java
 static boolean parseStrictBoolean(String value) {
@@ -388,11 +388,11 @@ static boolean parseStrictBoolean(String value) {
 }
 ~~~
 
-Parser trên phân biệt `"true"`, `"false"` với `"yes"`, `"1"` hay null. Chính sách trim khoảng trắng hoặc chấp nhận các từ khác phải được định nghĩa theo yêu cầu input cụ thể.
+The parser above distinguishes `"true"` and `"false"` from `"yes"`, `"1"`, or null. Policies for trimming whitespace or accepting other words must be defined according to specific input requirements.
 
-## 11. Ví dụ Java 17 hoàn chỉnh, chạy được bằng CLI
+## 11. Complete Java 17 example, runnable via CLI
 
-Tạo đúng file **`IfBooleanConditionDemo.java`**:
+Create the exact file **`IfBooleanConditionDemo.java`**:
 
 ~~~java
 public final class IfBooleanConditionDemo {
@@ -518,7 +518,7 @@ public final class IfBooleanConditionDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên; terminal đang ở thư mục chứa file. Chương trình chỉ dùng thư viện tiêu chuẩn JDK.
+**Requirements:** JDK 17 or later; terminal in the directory containing the file. The program uses only the JDK standard library.
 
 **Bash (Linux/macOS):**
 
@@ -563,53 +563,53 @@ lenient yes=false
 invalid input=invalid boolean text
 ~~~
 
-### Các điểm cần tự kiểm tra
+### Points to verify yourself
 
-1. `boolean` primitive chạy theo true/false như mong đợi; số nguyên chỉ được dùng thông qua phép so sánh `count > 0`.
-2. `Boolean.TRUE` và `Boolean.FALSE` được unbox để điều khiển `if`.
-3. `if (missing)` biên dịch nhưng ném NPE khi runtime unbox null.
-4. `missing != null && missing` và `Boolean.TRUE.equals(missing)` cho false **mà không ném lỗi**.
-5. `describe(missing)` giữ riêng trạng thái UNKNOWN, không nhập nhằng với false.
-6. `missing == true` và `missing != null & missing` ném NPE vì vẫn yêu cầu unboxing null.
-7. `false && missing` và `true || missing` bỏ qua vế phải, không unbox; ngược lại `true && missing` phải đánh giá vế phải nên NPE.
-8. `if (granted = true)` cho thấy lỗi gán thay vì kiểm tra có thể compile và thay đổi trạng thái.
-9. Parser nghiêm ngặt chấp nhận chữ hoa/thường của `true`/`false`, từ chối `"yes"`; `Boolean.parseBoolean("yes")` lặng lẽ cho false.
+1. Primitive `boolean` behaves as expected for true/false; integers are only used through the comparison `count > 0`.
+2. `Boolean.TRUE` and `Boolean.FALSE` are unboxed to control `if`.
+3. `if (missing)` compiles but throws NPE at runtime when unboxing null.
+4. `missing != null && missing` and `Boolean.TRUE.equals(missing)` evaluate to false **without throwing an error**.
+5. `describe(missing)` preserves the distinct UNKNOWN state, without conflating it with false.
+6. `missing == true` and `missing != null & missing` throw NPE because they still require unboxing null.
+7. `false && missing` and `true || missing` skip the right operand without unboxing; conversely `true && missing` must evaluate the right side, causing an NPE.
+8. `if (granted = true)` demonstrates how assignment instead of a check can compile and mutate state.
+9. The strict parser accepts uppercase/lowercase forms of `true`/`false` and rejects `"yes"`; `Boolean.parseBoolean("yes")` silently returns false.
 
-## 12. Lỗi phổ biến và cách tránh
+## 12. Common mistakes and how to avoid them
 
-| Sai lầm | Hệ quả | Cách phù hợp |
+| Mistake | Consequence | Appropriate approach |
 |---|---|---|
-| `if (1)` | Lỗi compile: int không phải boolean | `if (number != 0)` nếu muốn kiểm tra khác 0 |
-| `if (text)` | Lỗi compile: String không phải boolean | `text != null && !text.isBlank()` |
-| `if (object)` với Object trỏ Boolean.TRUE | Kiểu tĩnh Object không hợp lệ | Dùng Boolean có kiểu rõ hoặc kiểm tra/chuyển kiểu |
-| `if (nullableFlag)` khi null | Runtime NPE do unboxing | Guard hoặc `Boolean.TRUE.equals` |
-| `if (nullableFlag == true)` là null-safe | Vẫn cần unboxing | `Boolean.TRUE.equals(nullableFlag)` |
-| `flag != null & flag` | `&` đánh giá cả vế phải | `flag != null && flag` |
-| `flag == null \| !flag` | `\|` đánh giá cả vế phải | `flag == null \|\| !flag` |
-| Coi `null` là `false` mà không xét nghiệp vụ | Mất thông tin “chưa biết” | Giữ trạng thái UNKNOWN nếu cần |
-| `if (flag = true)` khi định kiểm tra | Gán true rồi nhánh chạy | `if (flag)` |
-| Dùng `Boolean.parseBoolean("yes")` như parser bắt lỗi | Trả false thay vì báo input không hợp lệ | Validate văn bản tường minh |
-| Đổi `Boolean` thành `boolean` khi dữ liệu nullable | Mất trạng thái null hoặc NPE trong quá trình unbox | Xác định hợp đồng dữ liệu trước khi đổi |
+| `if (1)` | Compile error: int is not boolean | `if (number != 0)` if checking non-zero |
+| `if (text)` | Compile error: String is not boolean | `text != null && !text.isBlank()` |
+| `if (object)` with Object pointing to Boolean.TRUE | Static type Object is invalid | Use typed Boolean or type check/cast |
+| `if (nullableFlag)` when null | Runtime NPE due to unboxing | Guard or `Boolean.TRUE.equals` |
+| `if (nullableFlag == true)` thought to be null-safe | Still requires unboxing | `Boolean.TRUE.equals(nullableFlag)` |
+| `flag != null & flag` | `&` evaluates the right side too | `flag != null && flag` |
+| `flag == null \| !flag` | `\|` evaluates the right side too | `flag == null \|\| !flag` |
+| Treating `null` as `false` without business consideration | Loses “unknown” information | Keep UNKNOWN state if needed |
+| `if (flag = true)` when intending to check | Assigns true and runs branch | `if (flag)` |
+| Using `Boolean.parseBoolean("yes")` as a validating parser | Returns false instead of reporting invalid input | Validate text explicitly |
+| Changing `Boolean` to `boolean` when data is nullable | Loses null state or throws NPE during unboxing | Define data contract before changing |
 
-## 13. Bài tập có đáp án
+## 13. Exercises with answers
 
-### Bài A — tại sao `if (number)` sai?
+### Exercise A — why is `if (number)` wrong?
 
 ~~~java
 int number = 5;
 // if (number) { System.out.println("yes"); }
 ~~~
 
-**Đáp án:** `number` có kiểu `int`, Java không cho chuyển `int → boolean` ngầm định. Nếu muốn kiểm tra dương, viết `if (number > 0)`; nếu muốn khác 0, viết `if (number != 0)`.
+**Answer:** `number` has type `int`, and Java does not allow implicit `int → boolean` conversion. To check for positive, write `if (number > 0)`; for non-zero, write `if (number != 0)`.
 
-### Bài B — unboxing null
+### Exercise B — unboxing null
 
 ~~~java
 Boolean accepted = null;
 // if (accepted) { System.out.println("accepted"); }
 ~~~
 
-**Đáp án:** Nếu thực thi câu `if`, chương trình ném `NullPointerException`. Có thể thay bằng:
+**Answer:** If the `if` executes, the program throws `NullPointerException`. You can replace it with:
 
 ~~~java
 if (Boolean.TRUE.equals(accepted)) {
@@ -617,13 +617,13 @@ if (Boolean.TRUE.equals(accepted)) {
 }
 ~~~
 
-Không in gì và không ném NPE.
+Prints nothing and does not throw NPE.
 
-### Bài C — ba trạng thái
+### Exercise C — three states
 
-Yêu cầu `Boolean` nhận true, false hoặc null, tương ứng in `ON`, `OFF`, `UNKNOWN`.
+Require a `Boolean` accepting true, false, or null, printing `ON`, `OFF`, `UNKNOWN` respectively.
 
-**Đáp án:**
+**Answer:**
 
 ~~~java
 static String state(Boolean flag) {
@@ -632,9 +632,9 @@ static String state(Boolean flag) {
 }
 ~~~
 
-Phải kiểm tra null **trước khi** cho `Boolean` tham gia `?:` với hai nhánh logic có thể dùng unboxing.
+You must check for null **before** letting `Boolean` participate in `?:` with two branches that may trigger unboxing.
 
-### Bài D — ngắn mạch khác toán tử `&`
+### Exercise D — short-circuit vs `&` operator
 
 ~~~java
 Boolean flag = null;
@@ -642,9 +642,9 @@ System.out.println(flag != null && flag);
 // System.out.println(flag != null & flag);
 ~~~
 
-**Đáp án:** dòng đầu in `false`, không NPE. Dòng comment nếu thực thi sẽ ném NPE do `&` không short-circuit.
+**Answer:** the first line prints `false` without NPE. The commented line, if executed, throws NPE because `&` does not short-circuit.
 
-### Bài E — gán hay so sánh?
+### Exercise E — assignment or comparison?
 
 ~~~java
 boolean ready = false;
@@ -654,34 +654,34 @@ if (ready = true) {
 System.out.println(ready);
 ~~~
 
-**Đáp án:**
+**Answer:**
 
 ~~~text
 inside
 true
 ~~~
 
-Đây là phép gán `ready = true` hợp lệ về kiểu, nhưng thường sai ý định. Dùng `if (ready)` để kiểm tra biến.
+This is a type-valid assignment `ready = true`, though usually unintended. Use `if (ready)` to check the variable.
 
-### Bài F — xử lý văn bản đầu vào
+### Exercise F — handling text input
 
-Có input `"TRUE"`, `"FALSE"`, `"yes"`. Chỉ hai giá trị đầu được coi hợp lệ, không phân biệt hoa/thường.
+Given inputs `"TRUE"`, `"FALSE"`, `"yes"`. Only the first two values are considered valid, case-insensitively.
 
-**Đáp án:** dùng `parseStrictBoolean` ở chương trình đầy đủ, trả true cho TRUE, false cho FALSE và ném `IllegalArgumentException` với yes. Không dùng riêng `Boolean.parseBoolean` nếu cần phân biệt false hợp lệ với văn bản không hợp lệ.
+**Answer:** use `parseStrictBoolean` from the full program, returning true for TRUE, false for FALSE, and throwing `IllegalArgumentException` for yes. Do not rely solely on `Boolean.parseBoolean` when you need to distinguish a valid false from invalid text.
 
-## 14. Checklist và kết luận
+## 14. Checklist and conclusion
 
-- [ ] Biết điều kiện `if` phải có kiểu `boolean` hoặc `Boolean` được unboxing.
-- [ ] Hiểu Java **không có implicit truthiness** cho số, String hay object.
-- [ ] Biết phép so sánh trả boolean, ví dụ `count > 0`, `text != null`.
-- [ ] Biết `if (Boolean.TRUE)` hợp lệ, nhưng `if ((Boolean) null)` có thể ném NPE.
-- [ ] Phân biệt lỗi kiểu tại compile time và lỗi unboxing null tại runtime.
-- [ ] Dùng `Boolean.TRUE.equals(flag)` cho chính sách “chỉ true”, hoặc `flag != null && flag`.
-- [ ] Không coi null bằng false nếu nghiệp vụ cần đủ ba trạng thái.
-- [ ] Biết `flag == true` có thể unbox null; `flag == null` là kiểm tra null an toàn.
-- [ ] Biết `&&`/`||` ngắn mạch; `&`/`|` boolean không ngắn mạch.
-- [ ] Không dùng nhầm `if (flag = true)` thành phép kiểm tra.
-- [ ] Kiểm tra định dạng String trước khi chuyển thành boolean nếu cần từ chối input sai.
-- [ ] Chạy `IfBooleanConditionDemo.java` bằng Java 17+ và đối chiếu exact stdout.
+- [ ] Know that an `if` condition must have type `boolean` or unboxed `Boolean`.
+- [ ] Understand that Java **has no implicit truthiness** for numbers, String, or objects.
+- [ ] Know that comparisons return boolean, e.g., `count > 0`, `text != null`.
+- [ ] Know that `if (Boolean.TRUE)` is valid, while `if ((Boolean) null)` can throw NPE.
+- [ ] Distinguish compile-time type errors from runtime null-unboxing errors.
+- [ ] Use `Boolean.TRUE.equals(flag)` for a “true only” policy, or `flag != null && flag`.
+- [ ] Do not treat null as false if the business logic needs all three states.
+- [ ] Know that `flag == true` can unbox null; `flag == null` is a safe null check.
+- [ ] Know that `&&`/`||` short-circuit; boolean `&`/`|` do not short-circuit.
+- [ ] Do not mistakenly write `if (flag = true)` as a check.
+- [ ] Validate String format before converting to boolean if invalid inputs must be rejected.
+- [ ] Run `IfBooleanConditionDemo.java` with Java 17+ and compare against exact stdout.
 
-**Kết luận:** Java bắt buộc biểu thức điều kiện của `if` mang kiểu `boolean` hoặc `Boolean`. Với `Boolean`, compiler cho phép **unboxing**, nhưng runtime sẽ ném `NullPointerException` nếu giá trị là null. Viết điều kiện rõ nghĩa, guard null trước khi unbox và chọn chính sách xử lý ba trạng thái có chủ đích sẽ giúp nhánh `if` đúng kiểu, đúng logic và dễ bảo trì.
+**Conclusion:** Java strictly requires the conditional expression of `if` to have type `boolean` or `Boolean`. With `Boolean`, the compiler allows **unboxing**, but runtime will throw `NullPointerException` if the value is null. Writing clear conditions, guarding null before unboxing, and intentionally choosing a three-state handling policy keep `if` branches type-safe, logically sound, and easy to maintain.

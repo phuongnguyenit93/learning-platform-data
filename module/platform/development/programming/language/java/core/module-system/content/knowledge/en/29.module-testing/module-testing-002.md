@@ -1,30 +1,30 @@
-# Test module-info.java và requires static
+# Testing module-info.java and requires static
 
-Java Platform Module System (JPMS) dùng **module-info.java** để mô tả module: module phụ thuộc vào module nào, package nào được export hoặc open, và module sử dụng hay cung cấp service nào. Vì descriptor quyết định cách chương trình biên dịch và chạy, việc kiểm thử JPMS không nên chỉ dựa vào unit test của class nghiệp vụ. Cần kiểm tra thêm **module contract** và hành vi phân giải dependency trong các cấu hình runtime khác nhau.
+The Java Platform Module System (JPMS) uses **module-info.java** to describe a module: which modules it depends on, which packages are exported or opened, and which services it uses or provides. Because the descriptor determines how a program compiles and runs, JPMS testing should not rely solely on unit tests of business classes. You should also verify the **module contract** and dependency resolution behavior across different runtime configurations.
 
-Một trường hợp quan trọng là **requires static**: dependency bắt buộc phải có khi biên dịch module, nhưng có thể vắng mặt khi chạy. Nếu chỉ chạy test với tất cả dependency đều có sẵn, rất dễ bỏ sót việc module vẫn vô tình phụ thuộc vào một thư viện vốn được thiết kế là tùy chọn.
+An important case is **requires static**: a dependency that is mandatory when compiling the module, yet optional at runtime. If tests only run with all dependencies present, it is easy to miss that a module still accidentally depends on a library intended to be optional.
 
-Bài này hướng dẫn cách xây dựng một ví dụ modular nhỏ, kiểm tra **module-info.java** sau biên dịch, và viết cả kiểm thử thành công lẫn kiểm thử thất bại có chủ đích cho **requires static**.
+This article walks through building a small modular example, inspecting **module-info.java** after compilation, and writing both positive tests and intentional failure tests for **requires static**.
 
-## 1. Điều gì cần được kiểm thử trong module-info.java?
+## 1. What Needs to Be Tested in module-info.java?
 
-Các directive trong descriptor thể hiện hợp đồng giữa module và phần còn lại của ứng dụng:
+Directives in the descriptor express the contract between a module and the rest of the application:
 
-| Directive | Ý nghĩa | Hướng kiểm thử |
+| Directive | Meaning | Testing Approach |
 |---|---|---|
-| **requires m;** | Dependency bắt buộc; module m phải được resolve khi chạy. | Chạy khi thiếu m phải thất bại trong module resolution. |
-| **requires transitive m;** | Truyền khả năng đọc m cho các module đọc module hiện tại. | Compile consumer ngoài module và kiểm tra readability. |
-| **requires static m;** | Dependency bắt buộc lúc biên dịch, tùy chọn lúc chạy. | Biên dịch thiếu m phải thất bại; runtime không có m vẫn khởi động nếu code không cần m. |
-| **exports p;** | Công bố public API trong package p. | Consumer ngoài module import được API cho phép, không import được package nội bộ. |
-| **exports p to m;** | Chỉ công bố package p cho module m. | Consumer m dùng được; một module khác không được quyền. |
-| **opens p;** | Mở package p cho deep reflection. | Runtime caller có thể thực hiện reflection phù hợp. |
-| **opens p to m;** | Chỉ mở p cho module m. | Test reflection từ module m và module không được phép. |
-| **uses S;** | Module tiêu thụ service S. | Kiểm tra descriptor và ServiceLoader trong module consumer. |
-| **provides S with P;** | Module đăng ký provider P của service S. | Kiểm tra descriptor và provider discovery/instantiation. |
+| **requires m;** | Mandatory dependency; module m must be resolved at runtime. | Running without m must fail during module resolution. |
+| **requires transitive m;** | Propagates readability of m to modules that read the current module. | Compile an external consumer module and verify readability. |
+| **requires static m;** | Mandatory dependency at compile time, optional at runtime. | Compiling without m must fail; running without m still starts if code does not need m. |
+| **exports p;** | Exposes public API in package p. | External consumer can import allowed API, cannot import internal packages. |
+| **exports p to m;** | Exposes package p only to module m. | Consumer m can use it; another module is denied access. |
+| **opens p;** | Opens package p for deep reflection. | Runtime caller can perform appropriate reflection. |
+| **opens p to m;** | Opens p only to module m. | Test reflection from module m and from an unauthorized module. |
+| **uses S;** | Module consumes service S. | Check descriptor and ServiceLoader in the consumer module. |
+| **provides S with P;** | Module registers provider P of service S. | Check descriptor and provider discovery/instantiation. |
 
-Một bài test có thể chỉ quan tâm một phần contract, nhưng phải phân biệt kết quả của **compiler**, **module resolver** và **class loader**. Ba tầng này có thể thất bại vì những nguyên nhân khác nhau.
+A test may focus on only part of the contract, but it must distinguish outcomes from the **compiler**, **module resolver**, and **class loader**. These three layers can fail for different reasons.
 
-## 2. requires static có ngữ nghĩa chính xác ra sao?
+## 2. What Are the Exact Semantics of requires static?
 
 Descriptor:
 
@@ -34,13 +34,13 @@ module com.acme.app {
 }
 ~~~
 
-Có hai tình huống cần hiểu:
+There are two situations to understand:
 
-**Khi biên dịch:** module **com.acme.annotations** phải được quan sát và phân giải để javac có thể kiểm tra các kiểu mà module ứng dụng tham chiếu. Thiếu dependency sẽ khiến biên dịch module không thành công.
+**At compile time:** the **com.acme.annotations** module must be observable and resolved so javac can check the types referenced by the application module. A missing dependency causes module compilation to fail.
 
-**Khi chạy:** dependency được khai báo bằng **requires static** không bắt buộc phải có trong module configuration. Ứng dụng có thể khởi động mà không có module ấy, miễn là đường thực thi không yêu cầu những kiểu hoặc chức năng runtime đã bị bỏ đi.
+**At runtime:** a dependency declared with **requires static** does not have to be present in the module configuration. The application can start without that module, provided the execution path does not require the omitted runtime types or functionality.
 
-So sánh với **requires** thường:
+Compare with regular **requires**:
 
 ~~~java
 module com.acme.app {
@@ -48,13 +48,13 @@ module com.acme.app {
 }
 ~~~
 
-Nếu đổi thành **requires** thường, việc thiếu module **com.acme.annotations** lúc chạy sẽ khiến resolution của module gốc không thành công, ngay cả khi **main** không gọi API của dependency.
+If changed to regular **requires**, missing **com.acme.annotations** at runtime causes root module resolution to fail, even if **main** never calls the dependency's API.
 
-**requires static** không tự tạo một implementation dự phòng. Nếu code thực sự nạp class thuộc dependency tùy chọn khi dependency vắng mặt, nó vẫn có thể gặp **ClassNotFoundException**, **NoClassDefFoundError** hoặc lỗi liên quan đến liên kết class. Trách nhiệm thiết kế đường chạy tùy chọn thuộc về ứng dụng.
+**requires static** does not automatically provide a fallback implementation. If code actually loads a class from the optional dependency when the dependency is absent, it can still encounter **ClassNotFoundException**, **NoClassDefFoundError**, or class linking errors. Designing the optional execution path is the application's responsibility.
 
-## 3. Ví dụ: module annotations chỉ dùng lúc biên dịch
+## 3. Example: Compile-Only Annotations Module
 
-Giả sử có hai module:
+Suppose there are two modules:
 
 ~~~text
 src/
@@ -67,7 +67,7 @@ src/
     com/acme/app/Main.java
 ~~~
 
-Module annotation:
+Annotation module:
 
 ~~~java
 // src/com.acme.annotations/module-info.java
@@ -76,7 +76,7 @@ module com.acme.annotations {
 }
 ~~~
 
-Định nghĩa annotation:
+Annotation definition:
 
 ~~~java
 // src/com.acme.annotations/com/acme/annotations/ApiMarker.java
@@ -93,9 +93,9 @@ public @interface ApiMarker {
 }
 ~~~
 
-**RetentionPolicy.CLASS** cho phép annotation xuất hiện trong class file nhưng không được giữ để runtime reflection đọc qua Java reflection API. Nó thích hợp cho ví dụ một annotation hỗ trợ công cụ biên dịch hoặc xử lý bytecode mà ứng dụng không cần trực tiếp sử dụng khi chạy.
+**RetentionPolicy.CLASS** allows the annotation to appear in class files without being retained for runtime reflection via the Java reflection API. It is appropriate for an example annotation that supports compiler tools or bytecode processing without the application needing it directly at runtime.
 
-Descriptor của app:
+App descriptor:
 
 ~~~java
 // src/com.acme.app/module-info.java
@@ -104,7 +104,7 @@ module com.acme.app {
 }
 ~~~
 
-Class sử dụng annotation:
+Class using the annotation:
 
 ~~~java
 // src/com.acme.app/com/acme/app/CompileTimeModel.java
@@ -117,7 +117,7 @@ public final class CompileTimeModel {
 }
 ~~~
 
-Main không phụ thuộc annotation tại runtime:
+Main does not depend on the annotation at runtime:
 
 ~~~java
 // src/com.acme.app/com/acme/app/Main.java
@@ -125,18 +125,18 @@ package com.acme.app;
 
 public final class Main {
     public static void main(String[] args) {
-        System.out.println("Ứng dụng modular khởi động thành công");
+        System.out.println("Modular application started successfully");
     }
 }
 ~~~
 
-Ví dụ này có mục đích cụ thể: **javac cần module annotations khi compile**, còn **Main** có thể chạy ngay cả khi module annotations không được cung cấp lúc runtime.
+This example has a specific goal: **javac requires the annotations module at compile time**, while **Main** can run even when the annotations module is not provided at runtime.
 
-Trong dự án thực tế, phải xem xét mọi class được nạp trên đường chạy, đặc biệt khi annotation có retention **RUNTIME**, khi framework đọc annotation bằng reflection hoặc khi public method signature nhắc đến kiểu từ dependency tùy chọn.
+In real projects, you must examine every class loaded along the execution path, especially when annotations have **RUNTIME** retention, when frameworks read annotations via reflection, or when public method signatures mention types from an optional dependency.
 
-## 4. Biên dịch cả hai module
+## 4. Compiling Both Modules
 
-Với cấu trúc **src** ở trên, có thể biên dịch vào thư mục **mods**:
+With the **src** structure above, you can compile into the **mods** directory:
 
 ~~~bash
 javac --module-source-path src \
@@ -144,13 +144,13 @@ javac --module-source-path src \
       -m com.acme.annotations,com.acme.app
 ~~~
 
-Lệnh biên dịch theo chế độ nhiều module:
+Compilation command in multi-module mode:
 
-- **--module-source-path src**: cho javac biết cấu trúc source theo tên module.
-- **-d mods**: chỉ định thư mục output.
-- **-m**: chọn các module nguồn sẽ được biên dịch.
+- **--module-source-path src**: tells javac the module-named source structure.
+- **-d mods**: specifies the output directory.
+- **-m**: selects the source modules to compile.
 
-Sau biên dịch, cấu trúc chính có dạng:
+After compilation, the main structure looks like:
 
 ~~~text
 mods/
@@ -163,7 +163,7 @@ mods/
     com/acme/app/Main.class
 ~~~
 
-Có thể kiểm tra metadata của module app sau khi đóng gói. Ví dụ đóng gói hai module:
+You can inspect the app module's metadata after packaging. Example packaging both modules:
 
 ~~~bash
 jar --create \
@@ -176,13 +176,13 @@ jar --create \
     -C mods/com.acme.app .
 ~~~
 
-Lệnh **--main-class** ghi main class vào module metadata khi đóng gói JAR modular. Nếu không sử dụng metadata này, vẫn có thể chạy bằng cú pháp chỉ định rõ main class sau dấu gạch chéo của **-m**.
+The **--main-class** option records the main class in module metadata when packaging a modular JAR. If this metadata is not used, you can still run by explicitly specifying the main class after the slash in **-m**.
 
-## 5. Positive compile test: dependency có mặt
+## 5. Positive Compile Test: Dependency Present
 
-Bước kiểm thử đầu tiên là xác minh project compile thành công khi module tùy chọn có mặt ở compile-time.
+The first verification step is confirming the project compiles successfully when the optional module is present at compile time.
 
-Ví dụ đã biên dịch cả hai module từ source:
+The example compiled both modules from source:
 
 ~~~bash
 javac --module-source-path src \
@@ -190,23 +190,23 @@ javac --module-source-path src \
       -m com.acme.annotations,com.acme.app
 ~~~
 
-Nếu module annotation không export package **com.acme.annotations**, app có thể không import được **ApiMarker** dù module đã có trên module path.
+If the annotation module does not export the **com.acme.annotations** package, the app cannot import **ApiMarker** even if the module is on the module path.
 
-Vì vậy, positive test xác nhận đồng thời:
+Therefore, the positive test simultaneously verifies:
 
-1. Module dependency tồn tại trong phạm vi compilation.
-2. Tên trong **requires static** khớp tên module thực tế.
-3. Module app được phép đọc dependency ở compile-time.
-4. Package annotation được export cho module app.
-5. Source code sử dụng annotation được biên dịch thành công.
+1. The dependency module exists within compilation scope.
+2. The name in **requires static** matches the actual module name.
+3. The app module is permitted to read the dependency at compile time.
+4. The annotation package is exported to the app module.
+5. Source code using the annotation compiles successfully.
 
-Nếu test chỉ kiểm tra source có chuỗi **requires static**, nó không xác nhận các điều kiện này. Để có bằng chứng chắc chắn, hãy để javac thực sự biên dịch module consumer.
+If a test merely checks that the source contains the string **requires static**, it does not verify these conditions. For solid evidence, let javac actually compile the consumer module.
 
-## 6. Negative compile test: thiếu dependency phải thất bại
+## 6. Negative Compile Test: Missing Dependency Must Fail
 
-Đây là nửa thứ hai của hợp đồng **requires static**. Một dependency tùy chọn **chỉ tùy chọn lúc chạy**, không tùy chọn lúc biên dịch.
+This is the second half of the **requires static** contract. An optional dependency is **only optional at runtime**, not optional at compile time.
 
-Để kiểm thử, compile riêng module app trong một lệnh mà module annotation không có trên module path và cũng không được cung cấp qua module-source-path:
+To test this, compile only the app module in a command where the annotation module is neither on the module path nor provided via module-source-path:
 
 ~~~bash
 mkdir -p empty-module-path
@@ -218,20 +218,20 @@ javac --module-path empty-module-path \
       src/com.acme.app/com/acme/app/CompileTimeModel.java
 ~~~
 
-Lệnh trên được kỳ vọng thất bại với diagnostic tương tự:
+The command above is expected to fail with a diagnostic similar to:
 
 ~~~text
 module not found: com.acme.annotations
 ~~~
 
-Nguyên nhân không phải vì **Main** cần annotation lúc chạy. Nguyên nhân là descriptor yêu cầu **com.acme.annotations** để biên dịch module app.
+The reason is not that **Main** needs the annotation at runtime. The reason is that the descriptor requires **com.acme.annotations** to compile the app module.
 
-Với CI, nên kiểm tra:
+For CI, check:
 
-- Exit code của **javac** khác 0.
-- Diagnostic liên quan đến module **com.acme.annotations** không tìm thấy, thay vì một lỗi cú pháp hoặc đường dẫn source sai.
+- **javac** exit code is non-zero.
+- The diagnostic mentions that module **com.acme.annotations** was not found, rather than a syntax error or wrong source path.
 
-Ví dụ script Bash dùng ý tưởng expected failure:
+Example Bash script illustrating expected failure:
 
 ~~~bash
 set +e
@@ -245,21 +245,21 @@ code=$?
 set -e
 
 if [ "$code" -eq 0 ]; then
-    echo "FAIL: compile thiếu com.acme.annotations vẫn thành công"
+    echo "FAIL: compilation without com.acme.annotations still succeeded"
     exit 1
 fi
 
 grep -q "com.acme.annotations" negative-compile.log || {
-    echo "FAIL: lỗi không liên quan module dependency"
+    echo "FAIL: error is unrelated to the module dependency"
     exit 1
 }
 ~~~
 
-Không nên đánh dấu kiểm thử thành công chỉ vì javac có bất kỳ lỗi nào. Nếu fixture hỏng hoặc lệnh không chạy đúng, phép thử không chứng minh được ngữ nghĩa của **requires static**.
+Do not mark the test as passed just because javac produced any error. If the fixture is broken or the command didn't run properly, the test proves nothing about **requires static** semantics.
 
-## 7. Runtime test: dependency vắng mặt nhưng app vẫn chạy
+## 7. Runtime Test: Dependency Absent Yet App Still Runs
 
-Sau khi biên dịch thành công, sao chép **chỉ module app** vào module path dành cho runtime test.
+After successful compilation, copy **only the app module** into a dedicated module path for the runtime test.
 
 Linux/macOS:
 
@@ -268,7 +268,7 @@ mkdir -p runtime-only
 cp -R mods/com.acme.app runtime-only/
 ~~~
 
-Chạy:
+Run:
 
 ~~~bash
 java --module-path runtime-only \
@@ -276,17 +276,17 @@ java --module-path runtime-only \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Kết quả mong đợi từ **Main**:
+Expected output from **Main**:
 
 ~~~text
-Ứng dụng modular khởi động thành công
+Modular application started successfully
 ~~~
 
-Module **com.acme.annotations** không có trong **runtime-only**, nhưng app vẫn được phép khởi động vì dependency đã được khai báo **requires static**.
+The **com.acme.annotations** module is absent from **runtime-only**, yet the app is allowed to start because the dependency was declared **requires static**.
 
-Để tránh nhầm lẫn giữa classpath và module path, dùng **-m** để chạy named module. Cũng nên giữ riêng thư mục runtime test, thay vì dùng luôn output **mods** chứa cả hai module.
+To avoid confusion between the classpath and module path, use **-m** to run the named module. Also keep a separate runtime test directory instead of reusing the **mods** output containing both modules.
 
-Trên Windows PowerShell, có thể sao chép module bằng:
+On Windows PowerShell, you can copy the module with:
 
 ~~~powershell
 New-Item -ItemType Directory -Force -Path runtime-only
@@ -294,11 +294,11 @@ Copy-Item -Recurse -Path mods/com.acme.app -Destination runtime-only/
 java --module-path runtime-only -m com.acme.app/com.acme.app.Main
 ~~~
 
-Đây là kiểm thử quan trọng vì chứng minh được hợp đồng runtime: **requires static không biến dependency compile-time thành dependency runtime bắt buộc**.
+This is a critical test because it proves the runtime contract: **requires static does not turn a compile-time dependency into a mandatory runtime dependency**.
 
-## 8. Runtime test: dependency có mặt
+## 8. Runtime Test: Dependency Present
 
-Cũng cần kiểm thử một môi trường có module optional. Ví dụ:
+You should also test an environment where the optional module is present. For example:
 
 ~~~bash
 java --module-path mods \
@@ -307,15 +307,15 @@ java --module-path mods \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Ở đây:
+Here:
 
-- Module **com.acme.annotations** có mặt trên module path.
-- **--add-modules com.acme.annotations** chủ động yêu cầu đưa module này vào tập module gốc khi resolution.
-- App vẫn khai báo **requires static**, nên có thể sử dụng dependency nếu nó được resolve trong configuration runtime.
+- The **com.acme.annotations** module is present on the module path.
+- **--add-modules com.acme.annotations** actively requests adding this module to the root set during resolution.
+- The app still declares **requires static**, so it can use the dependency if it gets resolved in the runtime configuration.
 
-Không nên nhầm **JAR có mặt trên module path** với **module chắc chắn đã được resolve**. Với dependency static, việc có thêm module trong đường dẫn chưa tự bảo đảm mọi code của nó đã tham gia module graph. Nếu ứng dụng muốn dùng tính năng tùy chọn tại runtime, cần thiết kế cách bảo đảm module phù hợp đã được resolve, chẳng hạn chọn root module thích hợp hoặc cấu hình service binding phù hợp.
+Do not confuse **a JAR being on the module path** with **a module definitely being resolved**. For a static dependency, merely having the module in the path does not guarantee any of its code participates in the module graph. If the application wants to use an optional feature at runtime, you must design a way to ensure the right module is resolved, such as selecting appropriate root modules or configuring service binding properly.
 
-Có thể in trạng thái để quan sát:
+You can print the status to observe it:
 
 ~~~java
 package com.acme.app;
@@ -331,15 +331,15 @@ public final class Main {
 }
 ~~~
 
-Với **runtime-only**, kết quả được kỳ vọng là **false**. Với lệnh có **--add-modules com.acme.annotations**, kết quả được kỳ vọng là **true**.
+With **runtime-only**, the expected output is **false**. With the command using **--add-modules com.acme.annotations**, the expected output is **true**.
 
-Việc module được resolve không đồng nghĩa ứng dụng phải trực tiếp dùng annotation bằng reflection. Đây là hai khía cạnh tách biệt: module graph và logic nghiệp vụ của chương trình.
+The fact that the module is resolved does not imply the application must directly access the annotation via reflection. These are two separate aspects: the module graph and the program's business logic.
 
-## 9. Kiểm thử descriptor bằng ModuleDescriptor
+## 9. Testing the Descriptor with ModuleDescriptor
 
-Ngoài compile và runtime tests, nên kiểm tra trực tiếp descriptor đã biên dịch để xác nhận dependency không vô tình đổi từ static thành bắt buộc.
+Beyond compile and runtime tests, inspect the compiled descriptor directly to confirm the dependency did not accidentally change from static to mandatory.
 
-API **java.lang.module.ModuleFinder** cho phép tìm module trong artifact:
+The **java.lang.module.ModuleFinder** API lets you locate modules in artifacts:
 
 ~~~java
 import java.lang.module.ModuleDescriptor;
@@ -353,7 +353,7 @@ public final class DescriptorTest {
 
         ModuleReference ref = finder.find("com.acme.app")
             .orElseThrow(() ->
-                new AssertionError("Không tìm thấy com.acme.app"));
+                new AssertionError("com.acme.app not found"));
 
         ModuleDescriptor descriptor = ref.descriptor();
 
@@ -362,14 +362,14 @@ public final class DescriptorTest {
             .filter(r -> r.name().equals("com.acme.annotations"))
             .findFirst()
             .orElseThrow(() ->
-                new AssertionError("Thiếu requires com.acme.annotations"));
+                new AssertionError("Missing requires com.acme.annotations"));
 
         boolean isStatic = dependency.modifiers()
             .contains(ModuleDescriptor.Requires.Modifier.STATIC);
 
         if (!isStatic) {
             throw new AssertionError(
-                "Dependency đã biến thành requires runtime bắt buộc"
+                "Dependency turned into a mandatory runtime requires"
             );
         }
 
@@ -378,33 +378,33 @@ public final class DescriptorTest {
 }
 ~~~
 
-Đây là kiểm thử cấu trúc module descriptor, không cần nạp class nghiệp vụ. Nó kiểm tra:
+This is a structural test of the module descriptor, requiring no business class loading. It verifies:
 
-- Module **com.acme.app** tồn tại trong artifact cần kiểm thử.
-- **requires com.acme.annotations** thực sự có trong descriptor.
-- Dependency có modifier **STATIC**.
+- Module **com.acme.app** exists in the artifact under test.
+- **requires com.acme.annotations** is actually present in the descriptor.
+- The dependency has the **STATIC** modifier.
 
-Nếu muốn kiểm tra chính xác contract, có thể kiểm tra thêm modifier **TRANSITIVE** và các directive **exports**, **opens**, **uses**, **provides** theo allowlist của dự án.
+If you want to verify the exact contract, you can also check the **TRANSITIVE** modifier and the **exports**, **opens**, **uses**, and **provides** directives against the project's allowlist.
 
-Lưu ý: **ModuleDescriptor.requires()** có thể bao gồm dependency **java.base** với modifier **MANDATED** do JPMS bổ sung. Đừng mặc định mọi mục trong tập **requires()** đều được viết trực tiếp trong source **module-info.java**.
+Note: **ModuleDescriptor.requires()** may include a **java.base** dependency with the **MANDATED** modifier added by JPMS. Do not assume every entry in the **requires()** set was written directly in the **module-info.java** source.
 
-## 10. Kiểm thử từ modular JAR cuối cùng
+## 10. Testing from the Final Modular JAR
 
-Để xác định artifact phát hành thực sự giữ lại descriptor, nên kiểm tra modular JAR sau packaging:
+To ensure the release artifact genuinely preserves the descriptor, inspect the modular JAR after packaging:
 
 ~~~bash
 jar --describe-module --file com.acme.app.jar
 ~~~
 
-Công cụ sẽ in tên module và các directive. Khi xem kết quả, tìm dependency **com.acme.annotations** và xác nhận nó có tính chất static. Cách trình bày văn bản có thể khác nhau giữa các JDK, nên với kiểm thử tự động cần ưu tiên API **ModuleDescriptor** thay vì chỉ dựa vào chuỗi output của CLI.
+The tool prints the module name and directives. When reviewing the output, locate the **com.acme.annotations** dependency and confirm it is marked static. Text formatting may vary across JDKs, so for automated tests prefer the **ModuleDescriptor** API instead of relying solely on CLI text output.
 
-Kiểm tra thành phần JAR:
+Inspect JAR contents:
 
 ~~~bash
 jar --list --file com.acme.app.jar
 ~~~
 
-Đảm bảo có:
+Ensure it includes:
 
 ~~~text
 module-info.class
@@ -412,25 +412,25 @@ com/acme/app/Main.class
 com/acme/app/CompileTimeModel.class
 ~~~
 
-Nếu **module-info.class** bị mất do đóng gói, artifact có thể được coi là automatic module khi đặt trên module path. Automatic module có ngữ nghĩa export/open rộng và dependency graph khác với explicit module. Một kiểm thử chỉ chạy code nghiệp vụ trên classpath có thể không phát hiện sai lệch này.
+If **module-info.class** is lost during packaging, the artifact may be treated as an automatic module when placed on the module path. Automatic modules have broad export/open semantics and a different dependency graph than explicit modules. A test that only runs business code on the classpath may fail to detect this discrepancy.
 
-Kiểm tra loại module bằng descriptor:
+Verify the module kind using the descriptor:
 
 ~~~java
 if (descriptor.isAutomatic() || descriptor.isOpen()) {
     throw new AssertionError(
-        "Artifact không còn là explicit module đóng gói theo policy"
+        "Artifact is no longer an explicit closed module per policy"
     );
 }
 ~~~
 
-Ở đây chính sách của ví dụ yêu cầu explicit module không open. Dự án khác có thể cho phép open module, nhưng phải quyết định trước thay vì bỏ qua thay đổi ngoài dự kiến.
+Here, the example policy requires a non-open explicit module. Another project might allow open modules, but that should be decided upfront rather than letting unintended changes slip by.
 
-## 11. requires static không bảo vệ code khỏi lỗi runtime nếu sử dụng dependency
+## 11. requires static Does Not Protect Code from Runtime Errors If the Dependency Is Used
 
-Một hiểu nhầm phổ biến là dependency được đánh dấu static sẽ luôn an toàn khi thiếu module ở runtime. Thực tế, chỉ có **module resolution** cho phép vắng mặt; JVM vẫn cần class tương ứng nếu một đường chạy thực sự sử dụng kiểu từ dependency.
+A common misconception is that a dependency marked static is always safe when missing at runtime. In reality, only **module resolution** permits its absence; the JVM still needs the corresponding class if an execution path actually uses a type from the dependency.
 
-Giả sử:
+Suppose:
 
 ~~~java
 package com.acme.app;
@@ -444,22 +444,22 @@ public final class OptionalFeature {
 }
 ~~~
 
-Khi runtime thiếu **com.acme.annotations**, code gọi **OptionalFeature.markerType()** có thể thất bại trong quá trình nạp hoặc liên kết class vì tham chiếu đến **ApiMarker** không thể được giải quyết.
+When **com.acme.annotations** is absent at runtime, code calling **OptionalFeature.markerType()** can fail during class loading or linking because the reference to **ApiMarker** cannot be resolved.
 
-Vì vậy, khi dùng **requires static** cho một thư viện tùy chọn thực sự có chức năng runtime, cần:
+Therefore, when using **requires static** for an optional library that actually provides runtime functionality, you must:
 
-1. Đặt code sử dụng dependency vào một nhánh chỉ chạy khi tính năng được bật và dependency hiện diện.
-2. Tránh khiến main class, static initializer hoặc public API bắt buộc phải resolve kiểu tùy chọn ngay khi ứng dụng khởi động.
-3. Cân nhắc tách adapter dành cho optional dependency sang module riêng nếu ranh giới phức tạp.
-4. Kiểm thử cả **không có dependency** và **có dependency** bằng các JVM mới, với module path được kiểm soát.
+1. Place code using the dependency behind a branch that runs only when the feature is enabled and the dependency is present.
+2. Avoid having the main class, static initializers, or public API force resolution of optional types immediately at application startup.
+3. Consider isolating an adapter for the optional dependency into its own module if the boundary is complex.
+4. Test both **without the dependency** and **with the dependency** in fresh JVMs with controlled module paths.
 
-Đặc biệt, nếu annotation có retention **RUNTIME** và framework cần đọc annotation để xử lý nghiệp vụ, module annotation không còn đơn thuần là compile-only. Khi đó phải đưa dependency thích hợp vào runtime và kiểm thử xử lý thực tế.
+In particular, if an annotation has **RUNTIME** retention and a framework needs to read it for business processing, the annotation module is no longer purely compile-only. In that case, include the appropriate dependency at runtime and test the actual processing.
 
-## 12. Phân biệt requires static và requires transitive
+## 12. Distinguishing requires static and requires transitive
 
-Hai modifier giải quyết hai nhu cầu khác nhau.
+The two modifiers address two different needs.
 
-**requires static** cho phép dependency vắng mặt lúc chạy:
+**requires static** allows a dependency to be absent at runtime:
 
 ~~~java
 module com.acme.library {
@@ -467,7 +467,7 @@ module com.acme.library {
 }
 ~~~
 
-**requires transitive** truyền khả năng đọc dependency cho module tiêu thụ:
+**requires transitive** propagates readability of a dependency to consuming modules:
 
 ~~~java
 module com.acme.library {
@@ -475,15 +475,15 @@ module com.acme.library {
 }
 ~~~
 
-Trong Java, các modifier có thể kết hợp theo quy tắc ngôn ngữ, nhưng đừng sử dụng kết hợp chỉ để khiến build thành công. Hãy quyết định liệu dependency có thực sự là một phần của API công khai hay chỉ phục vụ biên dịch.
+In Java, modifiers can be combined according to language rules, but do not combine them just to make a build pass. Decide whether the dependency is genuinely part of the public API or only needed for compilation.
 
-Khi một kiểu từ dependency xuất hiện trong public signature, consumer thường cần biết module chứa kiểu để biên dịch. Nếu dependency đó có thể biến mất lúc chạy, chính sách compatibility phải được xem xét cẩn thận. Một module chứa API public phụ thuộc sâu vào kiểu runtime tùy chọn có thể làm consumer gặp lỗi mà **requires static** không thể tự xử lý.
+When a type from a dependency appears in a public signature, consumers generally need to know the module containing that type to compile. If that dependency can disappear at runtime, compatibility policy must be carefully evaluated. A module whose public API deeply depends on an optional runtime type can cause consumer errors that **requires static** cannot resolve on its own.
 
-Test module descriptor có thể kiểm tra đồng thời modifier **STATIC** và **TRANSITIVE** nếu contract thiết kế yêu cầu, nhưng không nên suy luận modifier nào cũng tương đương nhau.
+A module descriptor test can check both **STATIC** and **TRANSITIVE** modifiers if required by the design contract, but do not treat the modifiers as equivalent.
 
-## 13. Negative runtime test: đổi sang requires thường phải thất bại khi thiếu module
+## 13. Negative Runtime Test: Switching to Regular requires Must Fail When Module Is Missing
 
-Để minh họa sự khác biệt rõ ràng, có thể chuẩn bị một phiên bản thử nghiệm của descriptor:
+To clearly demonstrate the difference, you can prepare an experimental version of the descriptor:
 
 ~~~java
 module com.acme.app {
@@ -491,26 +491,26 @@ module com.acme.app {
 }
 ~~~
 
-Biên dịch lại app với dependency đầy đủ. Sau đó chạy trong thư mục **runtime-only** chỉ chứa app:
+Recompile the app with the full dependencies. Then run in the **runtime-only** directory containing only the app:
 
 ~~~bash
 java --module-path runtime-only \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Kết quả được kỳ vọng là lỗi trong khởi tạo module layer hoặc module resolution, thường có thông báo tương tự:
+The expected result is an error during module layer initialization or module resolution, typically with a message similar to:
 
 ~~~text
 Module com.acme.annotations not found, required by com.acme.app
 ~~~
 
-Đây là test đối chứng để chứng minh khác biệt giữa **requires** thường và **requires static**. Không nên dùng phiên bản descriptor đã sửa như bản phát hành thực tế nếu thiết kế ban đầu yêu cầu optional runtime dependency.
+This is a control test proving the difference between regular **requires** and **requires static**. Never use the modified descriptor as the actual release version if the original design requires an optional runtime dependency.
 
-Trong CI, hãy quản lý fixture đối chứng riêng hoặc tạo module test tạm thời để không vô tình thay đổi descriptor của artifact đang phát hành.
+In CI, manage control fixtures separately or create temporary test modules so you never accidentally alter the descriptor of the released artifact.
 
-## 14. Kiểm thử khi sử dụng JUnit
+## 14. Testing When Using JUnit
 
-Nếu sử dụng JUnit để kiểm tra descriptor, test có thể đọc module metadata bằng Java API thay vì dựa vào output của công cụ dòng lệnh:
+If using JUnit to verify the descriptor, tests can read module metadata via Java APIs rather than relying on CLI tool output:
 
 ~~~java
 import static org.junit.jupiter.api.Assertions.*;
@@ -546,15 +546,15 @@ class ModuleContractTest {
 }
 ~~~
 
-Đây là unit test của metadata contract. Cần kết hợp với **integration tests sử dụng javac và java thật**, vì chỉ thấy modifier STATIC không chứng minh toàn bộ ứng dụng sẽ chạy ổn khi dependency vắng mặt.
+This is a unit test of the metadata contract. Combine it with **integration tests using real javac and java**, because seeing the STATIC modifier alone does not prove the whole application runs cleanly when the dependency is absent.
 
-Tùy cách JUnit chạy trên classpath hoặc module path, module test có thể cần cấu hình riêng. Tránh để những flag như **--add-reads**, **--add-exports** hoặc **--patch-module** vô tình che giấu lỗi mà phép thử định phát hiện.
+Depending on whether JUnit runs on the classpath or module path, the test module may need separate configuration. Avoid letting flags like **--add-reads**, **--add-exports**, or **--patch-module** accidentally mask errors the test is meant to catch.
 
-## 15. Maven và Gradle có thay thế requires static không?
+## 15. Do Maven and Gradle Replace requires static?
 
-Build tool quản lý artifact dependency; JPMS quản lý named module dependency. Đây là hai tầng khác nhau.
+Build tools manage artifact dependencies; JPMS manages named module dependencies. These are two different layers.
 
-Trong Gradle, dependency chỉ phục vụ biên dịch thường được cấu hình bằng **compileOnly**:
+In Gradle, a compile-only dependency is typically configured with **compileOnly**:
 
 ~~~groovy
 dependencies {
@@ -562,7 +562,7 @@ dependencies {
 }
 ~~~
 
-Trong Maven, một dependency không được đóng gói như runtime dependency có thể dùng scope như **provided** trong tình huống phù hợp:
+In Maven, a dependency not packaged as a runtime dependency may use a scope such as **provided** in appropriate situations:
 
 ~~~xml
 <dependency>
@@ -573,20 +573,20 @@ Trong Maven, một dependency không được đóng gói như runtime dependenc
 </dependency>
 ~~~
 
-Tuy nhiên, **compileOnly** hoặc **provided** không tự viết **requires static** vào descriptor. Ngược lại, **requires static** cũng không tự tải dependency vào classpath/module path khi chạy build.
+However, **compileOnly** or **provided** does not automatically write **requires static** into the descriptor. Conversely, **requires static** does not automatically pull dependencies onto the classpath/module path during a build.
 
-Cần đồng bộ:
+You must synchronize them:
 
-- Build tool phải cung cấp artifact đúng để javac compile module.
-- **module-info.java** phải khai báo tên JPMS của module, không phải Maven/Gradle artifact coordinates.
-- Runtime packaging phải cố ý quyết định có đưa dependency tùy chọn vào không.
-- Integration tests phải chạy theo module path thực tế, không chỉ classpath của IDE.
+- The build tool must supply the right artifacts for javac to compile the module.
+- **module-info.java** must declare JPMS module names, not Maven/Gradle artifact coordinates.
+- Runtime packaging must deliberately decide whether to include the optional dependency.
+- Integration tests must run on the actual module path, not just the IDE classpath.
 
-Nếu artifact chỉ có **Automatic-Module-Name** hoặc tên module được suy ra từ JAR, hãy kiểm tra tên module thực tế bằng **jar --describe-module** trước khi viết **requires static**.
+If an artifact only has **Automatic-Module-Name** or a derived module name from its JAR, inspect the actual module name with **jar --describe-module** before writing **requires static**.
 
-## 16. Kiểm tra module graph khi chạy
+## 16. Inspecting the Module Graph at Runtime
 
-Tùy chọn **--show-module-resolution** giúp quan sát những module được chọn khi khởi động:
+The **--show-module-resolution** option lets you observe which modules are selected at startup:
 
 ~~~bash
 java --show-module-resolution \
@@ -594,7 +594,7 @@ java --show-module-resolution \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Có thể so sánh với cấu hình chủ động resolve optional module:
+You can compare this with a configuration that actively resolves the optional module:
 
 ~~~bash
 java --show-module-resolution \
@@ -603,58 +603,58 @@ java --show-module-resolution \
      -m com.acme.app/com.acme.app.Main
 ~~~
 
-Khi kiểm tra output, hãy chú ý các root module, **requires** và vị trí module. Đừng kết luận một module đã được resolve chỉ vì JAR xuất hiện trong thư mục được chỉ định bởi **--module-path**.
+When inspecting the output, pay attention to root modules, **requires**, and module locations. Do not conclude a module is resolved just because its JAR appears in a directory specified by **--module-path**.
 
-Có thể dùng:
+You can use:
 
 ~~~bash
 java --module-path mods --list-modules
 ~~~
 
-để quan sát các module có thể được launcher tìm thấy, nhưng lệnh này không tương đương với việc xác nhận mọi module đã được đưa vào runtime configuration của ứng dụng. Để kiểm tra module thực sự trong boot layer, dùng **ModuleLayer.boot().findModule(...)** như ví dụ ở trên.
+to view modules observable by the launcher, but this command is not equivalent to confirming every module is included in the application's runtime configuration. To verify modules actually present in the boot layer, use **ModuleLayer.boot().findModule(...)** as shown in the earlier example.
 
-## 17. Ma trận kiểm thử nên có trong CI
+## 17. Recommended CI Test Matrix
 
-| Kịch bản | Dependency compile-time | Dependency runtime | Kết quả mong đợi |
+| Scenario | Compile-Time Dependency | Runtime Dependency | Expected Outcome |
 |---|---|---|---|
-| A. Compile đầy đủ | Có | Chưa áp dụng | **javac** thành công. |
-| B. Compile thiếu module static | Không | Chưa áp dụng | **javac** thất bại đúng vì thiếu module. |
-| C. Chạy tối giản | Đã biên dịch với module | Không | Main không sử dụng dependency vẫn khởi động. |
-| D. Chạy có module tùy chọn | Đã biên dịch với module | Có và được resolve | App khởi động, module tùy chọn quan sát được. |
-| E. Đổi descriptor thành requires thường | Có | Không | Resolution thất bại khi thiếu module. |
-| F. Đọc artifact đã đóng gói | Có | Không phụ thuộc | Descriptor có đúng **STATIC**, tên module và loại module. |
-| G. Gọi tính năng thật sự cần module tùy chọn | Có | Không | Có thể thất bại; code phải xử lý theo thiết kế tính năng. |
+| A. Full compile | Present | N/A | **javac** succeeds. |
+| B. Compile missing static module | Absent | N/A | **javac** fails specifically due to missing module. |
+| C. Minimal run | Compiled with module | Absent | Main not using the dependency still starts. |
+| D. Run with optional module | Compiled with module | Present and resolved | App starts; optional module is observable. |
+| E. Change descriptor to regular requires | Present | Absent | Resolution fails when module is missing. |
+| F. Read packaged artifact | Present | Independent | Descriptor has exact **STATIC**, module name, and module kind. |
+| G. Invoke feature truly needing optional module | Present | Absent | May fail; code must handle per feature design. |
 
-Chạy matrix bằng các tiến trình JVM riêng để hạn chế ảnh hưởng từ class loader, state và module path của test runner. Khi test một artifact phát hành, hãy trỏ đến đúng JAR đã đóng gói thay vì một bản build khác trong thư mục IDE.
+Run the matrix in separate JVM processes to avoid interference from the test runner's class loaders, state, and module path. When testing a release artifact, point to the exact packaged JAR rather than another build in an IDE folder.
 
-Đối với expected-failure tests, kiểm tra cả exit code và nguyên nhân cụ thể. Một lệnh thất bại vì thiếu Java executable hoặc đường dẫn sai không phải bằng chứng cho contract **requires static**.
+For expected-failure tests, verify both the exit code and the specific cause. A command failing due to a missing Java executable or wrong path is not evidence for the **requires static** contract.
 
-## 18. Những lỗi và nhầm lẫn phổ biến
+## 18. Common Errors and Misconceptions
 
-| Triệu chứng | Nguyên nhân cần xem xét | Cách xử lý |
+| Symptom | Possible Cause | How to Handle |
 |---|---|---|
-| **module not found** trong javac | Module được khai báo **requires static** vắng mặt ở compile-time. | Bổ sung đúng named module vào đường dẫn biên dịch. |
-| Module app chạy được dù thiếu dependency | Đây có thể là hành vi đúng của **requires static**. | Kiểm tra đường chạy không sử dụng kiểu runtime tùy chọn. |
-| Runtime có JAR nhưng **findModule** trả empty | JAR có mặt trên module path nhưng module chưa được resolve. | Cấu hình root/module resolution phù hợp, ví dụ **--add-modules**. |
-| **NoClassDefFoundError** khi gọi optional feature | Code runtime cần kiểu thuộc dependency đã bỏ đi. | Thiết kế ranh giới optional feature hoặc cung cấp dependency. |
-| Test pass trong IDE nhưng lỗi sau đóng gói | IDE dùng classpath hoặc module path khác artifact. | Chạy test trên modular JAR cuối cùng bằng **-m**. |
-| **requires static** biến thành **requires** | Descriptor bị sửa hoặc build dùng artifact khác. | Đọc **ModuleDescriptor.Requires.Modifier.STATIC** từ JAR. |
-| Automatic module thay explicit module | Descriptor bị thiếu hoặc đóng gói không đúng. | Kiểm tra **module-info.class**, **isAutomatic()**. |
-| Negative test báo thành công vì lỗi cú pháp | Script chỉ kiểm tra exit code khác 0. | Xác nhận diagnostic nhắc đúng dependency/module. |
+| **module not found** in javac | Module declared **requires static** is absent at compile time. | Add the right named module to the compilation path. |
+| App module runs even without dependency | This may be the expected behavior of **requires static**. | Verify the execution path does not use optional runtime types. |
+| Runtime has JAR yet **findModule** returns empty | JAR is on the module path but the module has not been resolved. | Configure appropriate roots/module resolution, e.g. **--add-modules**. |
+| **NoClassDefFoundError** when invoking optional feature | Runtime code needs a type from the omitted dependency. | Design an optional feature boundary or supply the dependency. |
+| Tests pass in IDE yet fail after packaging | IDE uses a classpath or module path different from the artifact. | Run tests against the final modular JAR using **-m**. |
+| **requires static** turned into **requires** | Descriptor was edited or build used another artifact. | Read **ModuleDescriptor.Requires.Modifier.STATIC** from the JAR. |
+| Automatic module instead of explicit module | Descriptor missing or packaged incorrectly. | Check **module-info.class** and **isAutomatic()**. |
+| Negative test reports success due to syntax error | Script only checks for non-zero exit code. | Confirm diagnostic mentions the exact dependency/module. |
 
-## 19. Checklist thực hành
+## 19. Practical Checklist
 
-- Xác định dependency nào chỉ bắt buộc lúc compile và thật sự có thể thiếu tại runtime.
-- Khai báo **requires static** bằng tên JPMS module chính xác trong **module-info.java**.
-- Kiểm tra package dependency được export đủ cho code sử dụng ở compile-time.
-- Compile có dependency và xác nhận thành công.
-- Compile thiếu dependency và xác nhận thất bại đúng vì module không tìm thấy.
-- Chạy module app bằng **-m** khi dependency hoàn toàn vắng mặt trên runtime module path.
-- Chạy với dependency đã được resolve và kiểm tra hành vi cần thiết.
-- Đọc descriptor của modular JAR sau packaging bằng **ModuleFinder/ModuleDescriptor**.
-- Xác nhận modifier **STATIC** không bị mất, module không vô tình thành automatic.
-- Chạy runtime test có và không có dependency trong các tiến trình JVM riêng.
-- Không đánh đồng build tool scope với chỉ thị **requires static**.
-- Nếu code dùng dependency tại runtime, thêm kiểm thử tính năng hoặc tách adapter để tránh lỗi nạp class khi module vắng mặt.
+- Identify which dependencies are mandatory only at compile time and can genuinely be absent at runtime.
+- Declare **requires static** using the exact JPMS module name in **module-info.java**.
+- Verify the dependency's packages are sufficiently exported for compile-time usage.
+- Compile with the dependency present and confirm success.
+- Compile without the dependency and confirm failure specifically due to the missing module.
+- Run the app module with **-m** when the dependency is completely absent from the runtime module path.
+- Run with the dependency resolved and verify required behavior.
+- Read the descriptor of the packaged modular JAR using **ModuleFinder/ModuleDescriptor**.
+- Confirm the **STATIC** modifier was not lost and the module did not accidentally become automatic.
+- Run runtime tests with and without the dependency in separate JVM processes.
+- Do not equate build tool scopes with the **requires static** directive.
+- If code uses the dependency at runtime, add feature tests or extract an adapter to avoid class loading failures when the module is absent.
 
-**Test module-info.java và requires static** là kiểm thử một hợp đồng phụ thuộc ở cả hai thời điểm: compile và runtime. Một module được thiết kế đúng phải có đủ dependency cho javac, giữ modifier **STATIC** trong artifact và có đường chạy hợp lệ khi optional module không xuất hiện. Kết hợp descriptor tests, expected-failure compilation tests và runtime tests ở hai cấu hình sẽ giúp phát hiện sớm lỗi JPMS trước khi phát hành.
+**Testing module-info.java and requires static** means testing a dependency contract at both compile time and runtime. A properly designed module must have sufficient dependencies for javac, preserve the **STATIC** modifier in its artifact, and provide a valid execution path when the optional module is absent. Combining descriptor tests, expected-failure compilation tests, and runtime tests in both configurations catches JPMS issues early before release.

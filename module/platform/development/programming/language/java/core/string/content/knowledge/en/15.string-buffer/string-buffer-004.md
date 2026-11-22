@@ -1,15 +1,15 @@
-# Đối tượng nguồn khả biến khi `StringBuffer.append()` hoặc `insert()`
+# Mutable Source Objects During `StringBuffer.append()` or `insert()`
 
-## 1. Vấn đề: dữ liệu nguồn có thể thay đổi
+## 1. The Problem: Source Data Can Change
 
-`StringBuffer` lưu một dãy ký tự **khả biến** (mutable) và hỗ trợ xây dựng chuỗi bằng `append()`, `insert()`, `delete()`, `replace()`, `setCharAt()` và các phương thức khác. Nhiều overload của `append()` và `insert()` nhận dữ liệu từ một `CharSequence` hoặc một `StringBuffer` khác. Các kiểu nguồn đó có thể thay đổi theo thời gian.
+`StringBuffer` stores a **mutable** character sequence and supports building strings with `append()`, `insert()`, `delete()`, `replace()`, `setCharAt()`, and other methods. Many overloads of `append()` and `insert()` accept data from a `CharSequence` or another `StringBuffer`. Those source types can change over time.
 
-Có hai tình huống cần phân biệt:
+There are two situations to distinguish:
 
-1. **Nguồn thay đổi trước hoặc sau mỗi lời gọi:** kết quả chép vào đích dựa trên nội dung nguồn tại thời điểm được đọc. Những ký tự đã chép sang đích là **dữ liệu riêng**, không phải một “liên kết sống” tự đổi theo nguồn.
-2. **Nguồn bị sửa đồng thời trong chính lúc đang chép:** đặc biệt khi nguồn là `StringBuilder` hoặc một `CharSequence` tự viết, không được giả định rằng việc lấy `length()` rồi đọc các `charAt()` khác nhau tạo thành một snapshot nguyên tử. Cần phối hợp luồng hoặc tạo snapshot ổn định.
+1. **The source changes before or after each call:** the result copied into the destination is based on the source's content at the time it is read. The characters copied to the destination are **its own data**, not a "live link" that automatically updates with the source.
+2. **The source is modified concurrently at the exact moment it is being copied:** especially when the source is a `StringBuilder` or a custom `CharSequence`, do not assume that reading `length()` and then reading various `charAt()` positions forms an atomic snapshot. Thread coordination or capturing a stable snapshot is required.
 
-Ví dụ tuần tự, có kết quả xác định:
+Sequential example with deterministic output:
 
 ~~~java
 StringBuffer source = new StringBuffer("A");
@@ -23,48 +23,48 @@ System.out.println(target); // Result:AAB
 System.out.println(source); // AB
 ~~~
 
-Lần append đầu tiên thêm `"A"`; sau đó nguồn trở thành `"AB"`, nên lần append tiếp theo thêm `"AB"`. Lần đầu **không biến thành** `"AB"` chỉ vì nguồn đã thay đổi. Đây là cơ chế sao chép ký tự, **không phải view dùng chung**.
+The first append adds `"A"`; afterward the source becomes `"AB"`, so the next append adds `"AB"`. The first part **does not turn into** `"AB"` just because the source changed. This is a character-copying mechanism, **not a shared view**.
 
-## 2. Những kiểu dữ liệu và overload liên quan
+## 2. Related Data Types and Overloads
 
-`StringBuffer` triển khai `CharSequence`, vì vậy nhận nội dung từ nhiều kiểu nguồn:
+`StringBuffer` implements `CharSequence`, so it accepts content from many source types:
 
-| Dạng lời gọi | Ý nghĩa |
+| Call form | Meaning |
 |---|---|
-| `dest.append(String)` | Nối các ký tự của String bất biến vào cuối |
-| `dest.append(StringBuffer)` | Nối các ký tự từ StringBuffer nguồn |
-| `dest.append(CharSequence)` | Nối toàn bộ dãy ký tự do CharSequence cung cấp |
-| `dest.append(CharSequence, start, end)` | Nối phần nằm trong khoảng `[start, end)` của nguồn |
-| `dest.insert(offset, String)` | Chèn String vào vị trí `offset` của đích |
-| `dest.insert(offset, CharSequence)` | Chèn nội dung CharSequence vào đích |
-| `dest.insert(offset, CharSequence, start, end)` | Chèn một đoạn `[start, end)` của nguồn |
-| `dest.append(Object)` | Chuyển đối tượng thành chuỗi qua cơ chế `String.valueOf`/`toString()`, rồi nối |
+| `dest.append(String)` | Appends characters of an immutable String to the end |
+| `dest.append(StringBuffer)` | Appends characters from a source StringBuffer |
+| `dest.append(CharSequence)` | Appends the entire character sequence provided by CharSequence |
+| `dest.append(CharSequence, start, end)` | Appends the portion within `[start, end)` of the source |
+| `dest.insert(offset, String)` | Inserts a String at `offset` in the destination |
+| `dest.insert(offset, CharSequence)` | Inserts CharSequence content into the destination |
+| `dest.insert(offset, CharSequence, start, end)` | Inserts a segment `[start, end)` of the source |
+| `dest.append(Object)` | Converts the object to a string via `String.valueOf`/`toString()`, then appends |
 
-Đây là các dạng lời gọi tiêu biểu, **không phải danh sách tất cả overload** (còn số nguyên, ký tự, boolean, mảng ký tự, v.v.).
+These are representative call forms, **not a list of all overloads** (there are also integers, characters, booleans, char arrays, etc.).
 
-`String` **bất biến**; nội dung của nó không đổi sau khi tạo. `StringBuilder` và `StringBuffer` **khả biến**. `CharSequence` chỉ là giao diện biểu diễn dãy ký tự, **không cam kết immutable, không cam kết thread-safe**.
+`String` is **immutable**; its content does not change after creation. `StringBuilder` and `StringBuffer` are **mutable**. `CharSequence` is only an interface representing a character sequence; it **promises neither immutability nor thread-safety**.
 
-Ví dụ một `StringBuilder` được truyền vào `StringBuffer` dưới kiểu `CharSequence`:
+Example of passing a `StringBuilder` to `StringBuffer` under the `CharSequence` type:
 
 ~~~java
 StringBuilder source = new StringBuilder("cat");
 StringBuffer target = new StringBuffer();
 
-target.append((CharSequence) source); // chép "cat"
-source.setCharAt(0, 'b');             // nguồn nay là "bat"
+target.append((CharSequence) source); // copies "cat"
+source.setCharAt(0, 'b');             // source is now "bat"
 target.insert(0, (CharSequence) source);
 
 System.out.println(source); // bat
 System.out.println(target); // batcat
 ~~~
 
-Kết quả `"batcat"` gồm phần `"bat"` được chèn sau và phần `"cat"` đã chép từ trước. Không có cơ chế đồng bộ hóa giá trị tự động giữa hai builder.
+The result `"batcat"` consists of `"bat"` inserted afterward and `"cat"` copied earlier. There is no automatic value synchronization between the two builders.
 
-## 3. `append()`: nối phần đọc được từ nguồn vào cuối đích
+## 3. `append()`: Appending Content Read from Source to the End of Destination
 
-### 3.1. Nối toàn bộ nội dung nguồn
+### 3.1. Appending the Entire Source Content
 
-Khi dùng `append(source)`, đích có thêm nội dung của nguồn. Sau khi lời gọi hoàn thành và không có hoạt động đồng thời gây race, việc sửa nguồn không làm thay đổi đoạn đã được append.
+When using `append(source)`, the destination gains the source's content. Once the call completes without concurrent race activity, modifying the source does not alter the already appended segment.
 
 ~~~java
 StringBuffer source = new StringBuffer("red");
@@ -76,13 +76,13 @@ System.out.println(source); // blue
 System.out.println(target); // color=red
 ~~~
 
-Tương tự, sửa `target` sau đó cũng không sửa ngược lại `source`. Hai đối tượng có trạng thái riêng.
+Similarly, modifying `target` afterward does not modify `source` in return. Both objects maintain independent state.
 
-**Điểm cần tránh:** không nên suy ra việc `append(source)` tự tạo một đối tượng `String` trung gian cụ thể trong mọi bản JDK. API mô tả **kết quả nội dung**, còn cách tối ưu lưu trữ/copy có thể khác theo triển khai.
+**Point to avoid:** do not infer that `append(source)` always creates a specific intermediate `String` object in every JDK version. The API specifies the **content result**, while storage/copying optimizations may vary by implementation.
 
-### 3.2. Nối một phần nguồn: `start` tính trên nguồn
+### 3.2. Appending Part of the Source: `start` Is Measured on the Source
 
-Với `append(CharSequence s, int start, int end)`, khoảng `[start, end)` lấy theo **chỉ số UTF-16 code unit của nguồn**, đầu bao gồm và cuối không bao gồm.
+With `append(CharSequence s, int start, int end)`, the range `[start, end)` is taken by **UTF-16 code unit indices of the source**, inclusive at start and exclusive at end.
 
 ~~~java
 StringBuilder source = new StringBuilder("ABCDEFG");
@@ -95,37 +95,37 @@ System.out.println(source); // ABXDEFG
 System.out.println(target); // part=CDE
 ~~~
 
-Ở đây vị trí 2, 3, 4 là `CDE`. Lệnh `setCharAt(2, 'X')` trên nguồn diễn ra **sau khi append** và không thay đổi phần đã copy.
+Here indices 2, 3, 4 are `CDE`. The `setCharAt(2, 'X')` statement on the source occurs **after the append** and does not alter the copied part.
 
-Các ràng buộc chỉ số:
+Index constraints:
 
-- `start` không được âm.
-- `end` không được nhỏ hơn `start`.
-- `end` không được lớn hơn độ dài nguồn hợp lệ tại thời điểm áp dụng.
-- Nếu phạm vi không hợp lệ, phương thức ném ngoại lệ theo hợp đồng API (ví dụ `IndexOutOfBoundsException`); không được coi là “tự cắt đến hết”.
+- `start` must not be negative.
+- `end` must not be less than `start`.
+- `end` must not exceed the valid source length at the time of application.
+- If the range is invalid, the method throws an exception per the API contract (e.g., `IndexOutOfBoundsException`); it must not be assumed to "auto-clamp to the end."
 
-**Cảnh báo:** nếu nguồn bị thay đổi kích thước giữa việc chương trình xác định `start/end` và lời gọi copy, các chỉ số từng hợp lệ có thể trở thành không hợp lệ. Với nguồn đang bị sửa đồng thời, đừng gọi tách rời `length()`, tính chỉ số, rồi `append(...)` mà không có giao thức đồng bộ.
+**Warning:** if the source's size changes between when the program determines `start/end` and the copy call, indices that used to be valid can become invalid. With a source modified concurrently, never separately call `length()`, calculate indices, and then `append(...)` without a synchronization protocol.
 
-### 3.3. Lựa chọn overload và ngữ nghĩa
+### 3.3. Overload Selection and Semantics
 
-Trong Java, compiler chọn overload dựa trên **kiểu khai báo tại vị trí gọi**. Ví dụ:
+In Java, the compiler selects an overload based on the **declared type at the call site**. Example:
 
 ~~~java
 StringBuffer source = new StringBuffer("X");
 CharSequence chars = source;
 
 StringBuffer a = new StringBuffer();
-a.append(source); // overload phù hợp cho StringBuffer
-a.append(chars);  // overload CharSequence
+a.append(source); // overload matching StringBuffer
+a.append(chars);  // CharSequence overload
 
 System.out.println(a); // XX
 ~~~
 
-Về mục đích, cả hai đều thêm nội dung văn bản. Nhưng không nên dựa vào một sự tối ưu hay mức độ khóa nội bộ đặc thù cho tất cả các overload, mọi bản JDK hoặc mọi loại nguồn `CharSequence`. Khi tính đúng đắn yêu cầu một snapshot có thể giải thích rõ ràng, **chủ động lấy `String` bất biến** ở thời điểm đã đồng bộ.
+In terms of intent, both append text content. However, do not rely on a specific optimization or internal locking level across all overloads, all JDK versions, or all `CharSequence` source types. When correctness requires a clearly explainable snapshot, **proactively capture an immutable `String`** at a synchronized point.
 
-## 4. `insert()`: nguồn và vị trí chèn có hai hệ tọa độ
+## 4. `insert()`: Source and Insertion Position Use Two Coordinate Systems
 
-`insert()` giống `append()` ở chỗ lấy ký tự từ nguồn, nhưng đặt đoạn đó vào **một vị trí trong đích**, đẩy phần đuôi đích sang phải.
+`insert()` is similar to `append()` in taking characters from a source, but places that segment at **a position inside the destination**, shifting the destination's tail to the right.
 
 ~~~java
 StringBuilder source = new StringBuilder("ABCDE");
@@ -139,13 +139,13 @@ System.out.println(source); // AxyzE
 System.out.println(target); // [BCD]
 ~~~
 
-Giải thích các chỉ số:
+Explaining the indices:
 
-- `offset=1`: vị trí chèn trong **đích** `"[]"`, nằm giữa `[` và `]`.
-- `start=1`, `end=4`: đoạn ký tự nguồn ở chỉ số 1, 2, 3, tức `"BCD"`.
-- Kết quả của đích là `"[BCD]"`. Việc sửa nguồn thành `"AxyzE"` sau khi gọi không làm đổi dữ liệu đích.
+- `offset=1`: insertion position in the **destination** `"[]"`, located between `[` and `]`.
+- `start=1`, `end=4`: source character slice at indices 1, 2, 3, which is `"BCD"`.
+- The destination's result is `"[BCD]"`. Modifying the source to `"AxyzE"` after the call does not change the destination's data.
 
-Ví dụ khác với `insert(offset, source)`:
+Another example with `insert(offset, source)`:
 
 ~~~java
 StringBuffer source = new StringBuffer("123");
@@ -156,21 +156,21 @@ source.append("4");
 System.out.println(target); // A123B
 ~~~
 
-Tương tự `append()`, phần `CharSequence` nguồn có thể là mutable, và khi nhiều luồng cùng tác động phải có quy tắc đồng bộ riêng.
+Like `append()`, the source `CharSequence` can be mutable, and when multiple threads act concurrently it must have its own synchronization rules.
 
-Đừng nhầm:
+Do not confuse:
 
-- `offset` là vị trí chèn trong **đích**.
-- `start/end` là ranh giới đoạn đọc từ **nguồn**.
-- Vị trí `offset` phải hợp lệ trong đích khi thao tác được thực hiện; một offset tính quá sớm cũng có thể không còn hợp lệ nếu luồng khác thay đổi đích.
+- `offset` is the insertion position in the **destination**.
+- `start/end` are the slice boundaries read from the **source**.
+- The `offset` position must be valid in the destination when the operation executes; an offset computed too early can also become invalid if another thread modifies the destination.
 
-## 5. Nguồn mutable: snapshot theo thời điểm là gì?
+## 5. Mutable Sources: What Is a Point-in-Time Snapshot?
 
-*Snapshot* là biểu diễn ổn định của dữ liệu tại một mốc thời gian được chọn. Trong Java, `String` bất biến là lựa chọn tự nhiên để làm snapshot.
+A *snapshot* is a stable representation of data at a chosen point in time. In Java, an immutable `String` is the natural choice for a snapshot.
 
 ~~~java
 StringBuffer source = new StringBuffer("BEFORE");
-String snapshot = source.toString(); // String bất biến
+String snapshot = source.toString(); // immutable String
 
 source.replace(0, source.length(), "AFTER");
 
@@ -182,7 +182,7 @@ System.out.println(snapshot); // BEFORE
 System.out.println(target);   // value=BEFORE
 ~~~
 
-Khi chương trình muốn **chốt nội dung nguồn trước** rồi thực hiện nhiều thao tác, snapshot giúp mọi thao tác dùng cùng một bản:
+When a program wants to **lock in source content first** and then perform multiple operations, a snapshot ensures all operations use the same version:
 
 ~~~java
 StringBuffer source = new StringBuffer("CODE");
@@ -198,25 +198,25 @@ System.out.println(a); // a:CODE
 System.out.println(b); // b:CODE
 ~~~
 
-Nếu thay `stable` bằng `source` ở cả hai lời gọi, nội dung chép có thể khác nhau khi nguồn bị sửa **giữa hai lời gọi**. Snapshot giải quyết tính nhất quán qua một chuỗi bước, không chỉ một phép copy đơn lẻ.
+If `stable` were replaced with `source` in both calls, the copied content could differ if the source were modified **between the two calls**. A snapshot solves consistency across a sequence of steps, not just a single copy operation.
 
-### Tại sao không dùng `CharSequence` làm “snapshot”?
+### Why Not Use `CharSequence` as a "Snapshot"?
 
-Một biến kiểu `CharSequence` có thể trỏ vào `StringBuilder`, `StringBuffer`, `CharBuffer` hoặc một triển khai tùy ý. Ví dụ:
+A variable of type `CharSequence` can point to a `StringBuilder`, `StringBuffer`, `CharBuffer`, or any custom implementation. Example:
 
 ~~~java
 StringBuilder source = new StringBuilder("old");
-CharSequence view = source; // Cùng đối tượng, không có bản sao.
+CharSequence view = source; // Same object, no copy made.
 
 source.replace(0, 3, "new");
 System.out.println(view); // new
 ~~~
 
-Gán `CharSequence view = source` **chỉ gán tham chiếu**, không chốt nội dung. Muốn snapshot bất biến, tạo `String stable = source.toString()` ở điểm được phép đọc an toàn, rồi truyền `stable` vào `append()`/`insert()`.
+Assigning `CharSequence view = source` **only assigns a reference**; it does not freeze the content. For an immutable snapshot, create `String stable = source.toString()` at a safe reading point, then pass `stable` into `append()`/`insert()`.
 
-### `CharBuffer` cũng có trạng thái vùng đọc
+### `CharBuffer` Also Has Read-Region State
 
-Một `java.nio.CharBuffer` là `CharSequence`, nhưng phần nội dung quan sát được có thể chịu ảnh hưởng của `position` và `limit`:
+A `java.nio.CharBuffer` is a `CharSequence`, yet the observable content can be affected by `position` and `limit`:
 
 ~~~java
 import java.nio.CharBuffer;
@@ -230,16 +230,16 @@ target.append(source);
 System.out.println(target); // ABCDECDE
 ~~~
 
-Lần thứ nhất append `"ABCDE"`; lần thứ hai append phần còn lại `"CDE"`. Không chỉ ký tự bị sửa mới làm thay đổi một `CharSequence`: **trạng thái vị trí** của một số loại nguồn cũng ảnh hưởng nội dung mà giao diện bộc lộ.
+The first call appends `"ABCDE"`; the second appends the remaining `"CDE"`. Not only modifying characters changes a `CharSequence`: the **positional state** of certain source types also affects the content exposed by the interface.
 
-## 6. Đồng thời nhiều luồng: điều gì được bảo đảm?
+## 6. Multi-Threaded Concurrency: What Is Guaranteed?
 
-`StringBuffer` có các thao tác được đồng bộ hóa, khác với `StringBuilder` vốn không có đồng bộ nội bộ. Tuy nhiên, điều này **không có nghĩa mọi quy trình nhiều thao tác trên nguồn và đích là một giao dịch nguyên tử**.
+`StringBuffer` has synchronized operations, unlike `StringBuilder` which has no internal synchronization. However, this **does not mean every multi-operation workflow on source and destination is an atomic transaction**.
 
-Ví dụ một tiến trình gồm hai bước:
+Consider a two-step process:
 
 ~~~java
-// Minh họa thứ tự thao tác, không phải code minh họa race để chạy độc lập.
+// Illustrates operation order, not standalone race demonstration code.
 StringBuffer source = new StringBuffer("A");
 StringBuffer target = new StringBuffer();
 
@@ -248,11 +248,11 @@ source.append("B");
 target.append(source);
 ~~~
 
-Nếu một luồng khác có thể sửa `source` **giữa** hai lần `append`, đích có thể chứa hai phiên bản nguồn khác nhau. Ngay cả khi các phương thức đơn lẻ được đồng bộ hóa, vẫn không có cam kết rằng cả chuỗi bước đọc–sao chép–đọc tự nhiên trở thành một giao dịch.
+If another thread can modify `source` **between** the two `append` calls, the destination can end up containing two different versions of the source. Even when individual methods are synchronized, there is no promise that an entire read–copy–read sequence naturally becomes one transaction.
 
-Đối với `StringBuilder` hoặc `CharSequence` mutable không có đồng bộ, việc **sửa trong lúc** một lời gọi khác đang đọc nhiều ký tự có thể dẫn đến quan sát không nhất quán hoặc ngoại lệ, tùy triển khai. Không dựa vào một thứ tự may mắn của scheduler.
+For `StringBuilder` or an unsynchronized mutable `CharSequence`, **modifying while** another call is reading multiple characters can lead to inconsistent observations or exceptions, depending on implementation. Never rely on lucky scheduler timing.
 
-### Cách 1: snapshot của StringBuffer rồi chép
+### Approach 1: Snapshot the StringBuffer Then Copy
 
 ~~~java
 StringBuffer source = new StringBuffer("READY");
@@ -261,11 +261,11 @@ StringBuffer target = new StringBuffer("state:");
 target.append(snapshot);
 ~~~
 
-Trong API `StringBuffer`, thao tác tạo `String` từ nội dung nguồn dùng cơ chế đồng bộ của đối tượng nguồn. Khi mọi thay đổi nguồn đều đi qua các phương thức `StringBuffer` hợp lệ, `snapshot` trở thành bản bất biến và không bị ảnh hưởng bởi những thay đổi sau đó. Sau khi đã có snapshot, không cần giữ khóa nguồn trong suốt quá trình chép vào đích.
+In the `StringBuffer` API, creating a `String` from the source's content uses the source object's synchronization. When all source modifications go through valid `StringBuffer` methods, `snapshot` becomes immutable and unaffected by subsequent changes. Once the snapshot is obtained, there is no need to hold the source lock while copying to the destination.
 
-### Cách 2: đồng bộ cả thao tác gồm nhiều bước
+### Approach 2: Synchronize the Entire Multi-Step Operation
 
-Nếu cần **kiểm tra và sử dụng nội dung nhất quán với một điều kiện khác**, hãy dùng một giao thức khóa chung, rõ ràng, cho cả reader lẫn writer:
+If you need to **check and use content consistently with another condition**, use a clear, shared locking protocol for both reader and writer:
 
 ~~~java
 StringBuffer source = new StringBuffer("READY");
@@ -281,31 +281,31 @@ StringBuffer target = new StringBuffer();
 target.append(snapshot);
 ~~~
 
-Ví dụ trên đồng bộ bước kiểm tra length với bước snapshot trên **cùng khóa source**. Tuy vậy, không được suy ra rằng một writer bỏ qua giao thức khóa đó vẫn phối hợp an toàn với reader trên các implementation `CharSequence` bất kỳ.
+The example above synchronizes checking length with taking the snapshot on **the same source lock**. Still, do not infer that a writer bypassing that locking protocol will safely coordinate with readers on arbitrary `CharSequence` implementations.
 
-Nếu phải khóa **hai buffer khác nhau** cùng lúc, cần quy ước thứ tự lấy khóa nhất quán trên toàn ứng dụng để tránh deadlock. Nhiều tác vụ chỉ cần snapshot từng nguồn trước khi sửa đích và tránh giữ đồng thời hai khóa.
+If you must lock **two different buffers** simultaneously, a consistent lock-acquisition order across the entire application is needed to avoid deadlock. Many tasks only need to snapshot each source before modifying the destination and avoid holding two locks at once.
 
-### Cách 3: StringBuilder chỉ nên được một luồng sửa, hoặc được bảo vệ
+### Approach 3: StringBuilder Should Only Be Modified by One Thread, or Properly Protected
 
-Nếu chỉ một luồng tạo và sửa `StringBuilder`, có thể copy tuần tự mà không cần đồng bộ. Nếu nhiều luồng cùng truy cập, phải dùng đồng bộ ngoài, truyền qua queue/message cho một luồng sở hữu hoặc chốt `String` trước khi giao cho luồng khác. Bản thân `StringBuilder.toString()` không sửa được race với một writer đang thay đổi builder không đồng bộ.
+If only a single thread creates and modifies a `StringBuilder`, it can be copied sequentially without synchronization. If multiple threads access it, you must use external synchronization, pass it through a queue/message to a single owning thread, or freeze a `String` before handing it to other threads. `StringBuilder.toString()` by itself cannot fix a race against a writer modifying the builder without synchronization.
 
-### Quy tắc tổng quát
+### General Rules
 
-| Tình huống | Điều nên làm |
+| Situation | What to do |
 |---|---|
-| Nguồn `String` bất biến | Dùng trực tiếp |
-| `StringBuffer` nguồn chỉ thay đổi tuần tự | Dùng trực tiếp nếu muốn nội dung tại thời điểm gọi |
-| Hai lần chép phải cùng một phiên bản | Lấy một `String` snapshot và dùng lại |
-| Nguồn `StringBuffer` có nhiều writer | Lấy snapshot dưới cơ chế khóa phù hợp; đồng bộ cả quy trình nếu có invariant nhiều bước |
-| Nguồn `StringBuilder` bị sửa song song | Không đọc/copy thiếu phối hợp; dùng khóa chung hoặc bảo đảm một luồng sở hữu |
-| `CharSequence` tự viết hoặc view | Kiểm tra hợp đồng thread safety, tính ổn định và vùng ký tự |
-| Cần sao chép nguồn đang thay đổi vào đích dùng chung | Chốt nguồn trước rồi gọi API đích trong chiến lược đồng bộ rõ ràng |
+| Immutable `String` source | Use directly |
+| Source `StringBuffer` modified only sequentially | Use directly if content at call time is desired |
+| Two copies must reflect the exact same version | Take one `String` snapshot and reuse it |
+| Source `StringBuffer` has multiple writers | Take snapshot under proper locking; synchronize entire workflow if multi-step invariants exist |
+| Source `StringBuilder` modified concurrently | Do not read/copy uncoordinated; use a shared lock or ensure single-thread ownership |
+| Custom `CharSequence` or view | Check thread-safety contract, stability, and character region |
+| Copying a changing source into a shared destination | Freeze the source first, then call destination APIs under a clear synchronization strategy |
 
-## 7. Chèn/nối chính đối tượng đích: trường hợp tự tham chiếu
+## 7. Inserting/Appending the Destination Into Itself: Self-Reference Cases
 
-Khi cả **nguồn lẫn đích là cùng một builder**, việc sửa đích đồng thời cũng làm thay đổi dữ liệu nguồn được đọc. Đây là trường hợp đặc biệt nhạy cảm với thứ tự copy và các overload. Không nên suy diễn rằng mọi lời gọi self-insert với vùng nguồn chồng lấp luôn cho kết quả mong muốn hoặc có cùng hành vi trên mọi API/phiên bản.
+When **both source and destination are the same builder**, modifying the destination simultaneously changes the source data being read. This case is especially sensitive to copying order and overloads. Do not assume that every self-insert call with overlapping source regions always produces the expected result or behaves identically across every API/version.
 
-Nếu muốn nhân đôi nội dung hiện tại, cách diễn đạt rõ ràng là **chốt một String snapshot trước**:
+If you want to duplicate the current content, the clearest expression is to **capture a String snapshot first**:
 
 ~~~java
 StringBuffer buffer = new StringBuffer("AB");
@@ -314,7 +314,7 @@ buffer.append(original);
 System.out.println(buffer); // ABAB
 ~~~
 
-Nếu muốn chèn phần đầu của chính buffer vào giữa:
+If you want to insert the beginning of the buffer into its own middle:
 
 ~~~java
 StringBuffer buffer = new StringBuffer("WXYZ");
@@ -323,11 +323,11 @@ buffer.insert(2, snapshot.substring(0, 2));
 System.out.println(buffer); // WXWXYZ
 ~~~
 
-Cách này tránh việc một thay đổi ở đích cũng đồng thời thay đổi nội dung mà tham số nguồn đang bộc lộ. Trường hợp tự tham chiếu, đặc biệt với `insert(..., CharSequence, start, end)`, cần quan tâm đến hợp đồng phiên bản JDK và không đưa các quy tắc xử lý chồng lấp tự suy diễn vào code quan trọng.
+This prevents a change to the destination from simultaneously altering the content exposed by the source parameter. Self-referential cases, especially with `insert(..., CharSequence, start, end)`, require attention to the JDK version's contract and avoiding self-inferred overlap rules in critical code.
 
-## 8. `append(Object)` và thời điểm gọi `toString()`
+## 8. `append(Object)` and When `toString()` Is Called
 
-Không chỉ `CharSequence` mới chứa nội dung có thể đổi. Một đối tượng bất kỳ có thể có `toString()` phụ thuộc trạng thái:
+`CharSequence` is not the only thing containing mutable content. Any object can have a `toString()` that depends on state:
 
 ~~~java
 class Counter {
@@ -345,13 +345,13 @@ target.append((Object) counter);
 System.out.println(target); // v=0v=7
 ~~~
 
-Đây là đoạn mã minh họa: đặt `Counter` và phần gọi trong một chương trình hợp lệ. Hai lần chuyển đối tượng sang String được thực hiện tại hai thời điểm khác nhau. Đối tượng đích **không lưu một tham chiếu sống** tới `counter` trong nội dung của `StringBuffer`.
+This is an illustrative snippet: place `Counter` and the calling statements inside a valid program. The two conversions of the object to String happen at two different points in time. The destination object **does not store a live reference** to `counter` inside the `StringBuffer`'s content.
 
-Nếu `toString()` của đối tượng mutable tự đọc nhiều trường trong khi những trường đó bị sửa song song, bản thân việc xây dựng snapshot cũng có thể không nhất quán. Muốn đọc trạng thái đồng bộ phải thiết kế cơ chế riêng, không coi `append(Object)` tự giải quyết concurrency của lớp tùy ý.
+If a mutable object's `toString()` reads multiple fields while those fields are being modified concurrently, constructing the snapshot itself can also be inconsistent. Synchronized state reading requires its own mechanism; do not treat `append(Object)` as automatically solving concurrency for arbitrary classes.
 
-## 9. Các lỗi thường gặp khác
+## 9. Other Common Mistakes
 
-### 9.1. Nhầm append với liên kết tham chiếu
+### 9.1. Confusing append with a Reference Link
 
 ~~~java
 StringBuilder source = new StringBuilder("A");
@@ -361,39 +361,39 @@ source.append("B");
 System.out.println(target); // A
 ~~~
 
-Đích giữ ký tự đã copy, không tự cập nhật thành `"AB"`.
+The destination keeps the copied characters; it does not automatically update to `"AB"`.
 
-### 9.2. Tưởng `StringBuffer` thread-safe nghĩa là cả workflow atomic
+### 9.2. Assuming Thread-Safe `StringBuffer` Means the Whole Workflow Is Atomic
 
-Một cuộc gọi `append()` không tự đồng bộ với các bước kiểm tra, quyết định, chèn, cập nhật sau đó như một giao dịch. Dùng snapshot hoặc khóa đúng phạm vi.
+One `append()` call does not automatically synchronize with subsequent checking, deciding, inserting, and updating steps as a single transaction. Use a snapshot or properly scoped locks.
 
-### 9.3. Tính chỉ số từ một trạng thái rồi nguồn thay đổi
+### 9.3. Computing Indices from One State While the Source Changes
 
 ~~~java
 StringBuilder source = new StringBuilder("ABCDE");
 int end = source.length();
 source.setLength(2);
-// source còn "AB", end=5 đã lỗi thời.
-// target.append(source, 0, end) sẽ có phạm vi không hợp lệ.
+// source now has "AB", end=5 is stale.
+// target.append(source, 0, end) will have an invalid range.
 ~~~
 
-Nếu nguồn có thể thay đổi, cần tính `start/end` dựa trên snapshot ổn định hoặc đồng bộ cả quá trình kiểm tra và chép. Không dùng chỉ số đã cũ.
+If the source can change, compute `start/end` from a stable snapshot or synchronize the entire check-and-copy process. Do not use stale indices.
 
-### 9.4. Nhầm `CharSequence` với String immutable
+### 9.4. Confusing `CharSequence` with Immutable String
 
-Một biến `CharSequence` có thể chỉ vào `StringBuilder`; gán lại tham chiếu không tạo bản sao. Dùng `String snapshot = source.toString()` khi cần dữ liệu ổn định và bảo đảm đọc an toàn.
+A `CharSequence` variable can point to a `StringBuilder`; reassigning a reference does not create a copy. Use `String snapshot = source.toString()` when stable data and safe reads are needed.
 
-### 9.5. Cắt giữa Unicode surrogate pair
+### 9.5. Splitting a Unicode Surrogate Pair
 
-Khoảng `[start,end)` dùng chỉ số UTF-16 code unit; một emoji ngoài BMP thường cần hai `char`. Nếu cắt ở giữa hai surrogate, kết quả có thể chứa mã thay thế không ghép cặp. Nếu mục tiêu là cắt theo Unicode code point hoặc grapheme cluster, phải xác định ranh giới đúng trước khi copy.
+The range `[start,end)` uses UTF-16 code unit indices; an emoji outside the BMP typically requires two `char`s. Splitting between two surrogates can yield an unpaired surrogate. If the goal is slicing by Unicode code points or grapheme clusters, determine proper boundaries before copying.
 
-### 9.6. Xem việc sao chép nội dung như phép so bằng identity
+### 9.6. Treating Content Copying as Identity Equality
 
-`StringBuffer` không override `equals()` để so nội dung. Dùng `toString().equals(...)` hoặc `String.contentEquals(CharSequence)` khi cần so theo ký tự. Đừng dùng `==` hoặc `StringBuffer.equals()` để kiểm tra hai nội dung bằng nhau.
+`StringBuffer` does not override `equals()` for content comparison. Use `toString().equals(...)` or `String.contentEquals(CharSequence)` when comparing by characters. Do not use `==` or `StringBuffer.equals()` to check if two contents are equal.
 
-## 10. Chương trình Java 17 hoàn chỉnh
+## 10. Complete Java 17 Program
 
-Tệp **`MutableSourceBufferDemo.java`** sau kiểm chứng: append ở hai thời điểm; insert một đoạn rồi sửa nguồn; tạo snapshot dùng lại; chèn chính nội dung đích bằng snapshot; nguồn `CharBuffer` thay đổi vùng nhìn thấy.
+The following verified **`MutableSourceBufferDemo.java`** file demonstrates: appending at two points in time; inserting a slice then modifying the source; creating and reusing a snapshot; inserting destination's own content via snapshot; and a `CharBuffer` source changing its visible region.
 
 ~~~java
 import java.nio.CharBuffer;
@@ -454,14 +454,14 @@ public class MutableSourceBufferDemo {
 }
 ~~~
 
-Biên dịch và chạy với JDK 17 hoặc mới hơn, lưu file ở encoding UTF-8:
+Compile and run with JDK 17 or newer, saving the file in UTF-8 encoding:
 
 ~~~bash
 javac -encoding UTF-8 MutableSourceBufferDemo.java
 java MutableSourceBufferDemo
 ~~~
 
-Đầu ra dự kiến:
+Expected output:
 
 ~~~text
 appendResult=Result:AAB
@@ -478,26 +478,26 @@ mutableBuilder=bat
 copyResult=batcat
 ~~~
 
-Điểm cần quan sát:
+Points to observe:
 
-- `appendResult` gồm nội dung nguồn ở **hai thời điểm khác nhau**.
-- `insertResult` vẫn là `[BCD]` dù nguồn đã trở thành `AxyzE`.
-- Hai đích `snapshotLeft` và `snapshotRight` đều giữ `OLD` dù trạng thái nguồn giờ là `NEW`.
-- Self-append/self-insert sử dụng **snapshot** để không chép từ cấu trúc đang đồng thời bị thay đổi.
-- `CharBuffer` với `position=2` cung cấp đoạn còn lại `CDE` cho lần append thứ hai.
-- `copyResult=batcat` cho thấy sửa `StringBuilder` sau append không thay đổi các ký tự cũ trong đích.
+- `appendResult` contains the source's content at **two different points in time**.
+- `insertResult` remains `[BCD]` even after the source becomes `AxyzE`.
+- Both destinations `snapshotLeft` and `snapshotRight` retain `OLD` even though the source's state is now `NEW`.
+- Self-append/self-insert uses a **snapshot** to avoid copying from a structure being modified at the same time.
+- `CharBuffer` with `position=2` provides the remaining slice `CDE` for the second append.
+- `copyResult=batcat` shows that modifying `StringBuilder` after appending does not alter previously copied characters in the destination.
 
-## 11. Checklist thực hành
+## 11. Practice Checklist
 
-- [ ] Xác định nguồn thực tế là `String` bất biến, `StringBuffer`, `StringBuilder`, `CharBuffer` hay `CharSequence` khác.
-- [ ] Khi muốn nội dung “mới nhất”, chấp nhận mỗi lần gọi nhìn thấy một trạng thái nguồn riêng ở thời điểm được đọc.
-- [ ] Khi muốn nhiều lần chép dùng **cùng một phiên bản**, tạo `String` snapshot **một lần** rồi tái sử dụng.
-- [ ] Đừng cho nguồn mutable bị sửa đồng thời với việc đọc nếu không có cơ chế phối hợp được bảo đảm.
-- [ ] Với `StringBuffer`, nhớ rằng đồng bộ hóa từng thao tác không tự biến nhiều bước thành một giao dịch.
-- [ ] Với `StringBuilder`, tránh chia sẻ mutable state không có khóa hoặc quyền sở hữu rõ ràng.
-- [ ] Với `insert()`, phân biệt `offset` của đích và `start/end` của nguồn; kiểm tra chỉ số trên trạng thái ổn định.
-- [ ] Với chính nguồn cũng là đích, ưu tiên `String` snapshot để code dễ hiểu và tránh chồng lấp.
-- [ ] Nếu copy theo đoạn Unicode, nhớ các chỉ số tính bằng UTF-16 code unit.
-- [ ] Kiểm thử cả nguồn thay đổi **giữa các lần** gọi lẫn những trường hợp có nhiều luồng.
+- [ ] Identify whether the actual source is an immutable `String`, `StringBuffer`, `StringBuilder`, `CharBuffer`, or another `CharSequence`.
+- [ ] When wanting the "latest" content, accept that each call sees a separate source state at the time it is read.
+- [ ] When wanting multiple copies to use the **exact same version**, create a `String` snapshot **once** and reuse it.
+- [ ] Never allow a mutable source to be modified concurrently while being read without a guaranteed coordination mechanism.
+- [ ] With `StringBuffer`, remember that per-operation synchronization does not automatically turn multiple steps into one transaction.
+- [ ] With `StringBuilder`, avoid sharing mutable state without locks or clear ownership.
+- [ ] With `insert()`, distinguish destination `offset` from source `start/end`; validate indices against a stable state.
+- [ ] When the source itself is also the destination, prefer a `String` snapshot for clearer code and to avoid overlap issues.
+- [ ] When copying by Unicode ranges, remember that indices are measured in UTF-16 code units.
+- [ ] Test both sources changing **between** calls and cases involving multiple threads.
 
-**Kết luận:** `StringBuffer.append()` và `insert()` **chép ký tự**, không giữ liên kết sống tới nguồn. Nguồn mutable có thể cho nội dung khác nhau qua từng lần chép. Khi cần bảo đảm một phiên bản ổn định hoặc đúng đắn trong môi trường đồng thời, phải dùng **snapshot bất biến và quy tắc đồng bộ phù hợp**; không được suy ra cả workflow tự động an toàn chỉ vì dùng `StringBuffer`.
+**Conclusion:** `StringBuffer.append()` and `insert()` **copy characters**, rather than maintaining a live link to the source. A mutable source can yield different content across copy calls. When a stable version or correctness in a concurrent environment is required, you must use **immutable snapshots and appropriate synchronization rules**; never deduce that an entire workflow is automatically safe simply because `StringBuffer` is used.

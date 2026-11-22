@@ -1,32 +1,32 @@
-# Chữ ký `public boolean equals(Object)` và cách kiểm tra bằng `@Override`
+# The `public boolean equals(Object)` Signature and Verification with `@Override`
 
-Khi tự định nghĩa “hai đối tượng có bằng nhau hay không”, ta phải **ghi đè** phương thức `equals(Object)` được thừa kế từ `java.lang.Object`. Phương thức dành cho việc này có dạng:
+When defining for yourself “whether two objects are equal”, you must **override** the `equals(Object)` method inherited from `java.lang.Object`. The method for this takes the form:
 
 ~~~java
 @Override
 public boolean equals(Object obj) {
-    // Cài đặt phép so sánh bằng nhau
+    // Implement the equality comparison
 }
 ~~~
 
-Điểm cốt lõi của bài: kiểu tham số phải là **`Object`**, không phải tên lớp đang viết. Chú thích `@Override` giúp trình biên dịch phát hiện trường hợp ta tưởng đã ghi đè nhưng thực tế lại khai báo một phương thức khác.
+The core point of this lesson: the parameter type must be **`Object`**, not the name of the class you are writing. The `@Override` annotation helps the compiler catch cases where you think you have overridden the method, when in fact you declared a different method.
 
-## 1. Hiểu đúng từng thành phần
+## 1. Understanding Each Component Correctly
 
-- **`equals`** là tên phương thức. Mọi lớp Java đều thừa kế `equals(Object)` từ `Object`, trừ khi đã có phiên bản ghi đè.
-- **`(Object obj)`** là danh sách tham số: **đúng một tham số** có kiểu `java.lang.Object`. Tên biến (`obj`, `other`, `o`…) có thể đổi mà không ảnh hưởng việc ghi đè. Tham số kiểu `Object` cho phép gọi qua biến tham chiếu bất kỳ kiểu đối tượng nào.
-- **`boolean`** là kiểu trả về bắt buộc: `true` khi hai đối tượng được xem là bằng nhau, `false` khi không. Không dùng `Boolean`, `int` hoặc `void`.
-- **`public`** là mức truy cập bắt buộc khi ghi đè phương thức `public` của `Object`; không được thu hẹp thành `protected`, không có modifier (package-private) hay `private`.
-- Phương thức ghi đè là **phương thức đối tượng**, không phải `static`.
-- **`@Override`** thông báo ý định ghi đè cho trình biên dịch. Nếu khai báo không khớp một phương thức có thể được ghi đè, chương trình không biên dịch được.
+- **`equals`** is the method name. Every Java class inherits `equals(Object)` from `Object`, unless an overridden version already exists.
+- **`(Object obj)`** is the parameter list: **exactly one parameter** of type `java.lang.Object`. The variable name (`obj`, `other`, `o`, …) can be changed without affecting the override. The `Object` parameter type allows calling via a reference variable of any object type.
+- **`boolean`** is the required return type: `true` when the two objects are considered equal, `false` when they are not. Do not use `Boolean`, `int`, or `void`.
+- **`public`** is the required access level when overriding a `public` method of `Object`; you cannot narrow it to `protected`, package-private (no modifier), or `private`.
+- The overridden method is an **instance method**, not `static`.
+- **`@Override`** informs the compiler of your intent to override. If the declaration does not match an overridable method, the program will not compile.
 
-Phân biệt thuật ngữ: trong Java, *method signature* theo nghĩa ngôn ngữ gồm **tên phương thức và kiểu các tham số**; kiểu trả về và mức truy cập không nằm trong signature theo định nghĩa này. Tuy nhiên, để **ghi đè hợp lệ** `Object.equals(Object)`, khai báo vẫn phải thỏa `public` và `boolean`.
+Terminology distinction: in Java, a *method signature* in the language sense consists of **the method name and parameter types**; the return type and access level are not part of the signature under this definition. However, to **validly override** `Object.equals(Object)`, the declaration must still satisfy `public` and `boolean`.
 
-`Object.equals(Object)` mặc định chỉ trả về `true` nếu hai tham chiếu trỏ đến cùng một đối tượng. Ghi đè cho phép định nghĩa **bằng nhau theo giá trị** phù hợp với kiểu dữ liệu, chẳng hạn hai cuốn sách có cùng mã ISBN.
+By default, `Object.equals(Object)` only returns `true` if two references point to the same object. Overriding allows defining **value-based equality** appropriate for the data type, such as two books having the same ISBN.
 
-## 2. Tại sao `equals(Book)` không thay thế được `equals(Object)`?
+## 2. Why Can't `equals(Book)` Replace `equals(Object)`?
 
-Xét khai báo dưới đây (**đoạn minh họa lỗi; không phải chương trình độc lập**):
+Consider the declaration below (**snippet illustrating an error; not a standalone program**):
 
 ~~~java
 final class WrongBook {
@@ -36,20 +36,20 @@ final class WrongBook {
         this.isbn = isbn;
     }
 
-    // Sai nếu mục tiêu là ghi đè Object.equals(Object).
+    // Wrong if the goal is to override Object.equals(Object).
     public boolean equals(WrongBook other) {
         return other != null && isbn.equals(other.isbn);
     }
 }
 ~~~
 
-`equals(WrongBook)` là **overload** (nạp chồng) vì nhận `WrongBook`, khác kiểu tham số `Object`. Nó **không override** `Object.equals(Object)`. Vì thế:
+`equals(WrongBook)` is an **overload** because it takes `WrongBook`, which differs from the `Object` parameter type. It **does not override** `Object.equals(Object)`. Therefore:
 
-- `wrongA.equals(wrongB)` có thể gọi `equals(WrongBook)` khi biểu thức `wrongB` có kiểu tĩnh `WrongBook`.
-- `wrongA.equals((Object) wrongB)` lại gọi `equals(Object)` thừa kế từ `Object`, nên hai thực thể khác nhau thường cho `false` dù có cùng ISBN.
-- Những API như `HashSet`, `HashMap` hay `Objects.equals(a, b)` dựa vào phép so sánh đối tượng `equals(Object)`; overload riêng không thay thế hợp đồng đó.
+- `wrongA.equals(wrongB)` can call `equals(WrongBook)` when the expression `wrongB` has static type `WrongBook`.
+- `wrongA.equals((Object) wrongB)` instead calls `equals(Object)` inherited from `Object`, so two different instances typically yield `false` even if they have the same ISBN.
+- APIs such as `HashSet`, `HashMap`, or `Objects.equals(a, b)` rely on the `equals(Object)` object comparison; a separate overload does not replace that contract.
 
-Nếu thêm `@Override` ngay trên `equals(WrongBook)`:
+If you add `@Override` right above `equals(WrongBook)`:
 
 ~~~java
 @Override
@@ -58,11 +58,11 @@ public boolean equals(WrongBook other) {
 }
 ~~~
 
-`javac` sẽ **báo lỗi biên dịch** vì phương thức này không ghi đè phương thức nào của lớp cha/giao diện trong ví dụ. Đây chính là lợi ích thiết thực của `@Override`: lỗi lộ ra ngay lúc biên dịch, trước khi chạy ứng dụng.
+`javac` will **report a compilation error** because this method does not override any method of a superclass or interface in the example. This is the practical benefit of `@Override`: the bug is exposed right at compile time, before running the application.
 
-## 3. Ví dụ Java 17 chạy được
+## 3. Runnable Java 17 Example
 
-Tạo tệp **`EqualsSignatureDemo.java`**:
+Create the file **`EqualsSignatureDemo.java`**:
 
 ~~~java
 import java.util.HashSet;
@@ -95,7 +95,7 @@ public class EqualsSignatureDemo {
         }
     }
 
-    // Cố tình khai báo overload sai để quan sát sự khác nhau.
+    // Intentionally declare a wrong overload to observe the difference.
     private static final class WrongBook {
         private final String isbn;
 
@@ -135,14 +135,14 @@ public class EqualsSignatureDemo {
 }
 ~~~
 
-Biên dịch và chạy từ thư mục chứa tệp:
+Compile and run from the directory containing the file:
 
 ~~~bash
 javac EqualsSignatureDemo.java
 java EqualsSignatureDemo
 ~~~
 
-**Kết quả chuẩn:**
+**Expected output:**
 
 ~~~text
 true
@@ -155,65 +155,65 @@ true
 false
 ~~~
 
-Giải thích lần lượt:
+Step-by-step explanation:
 
-1. Hai `Book` khác thực thể nhưng cùng ISBN có kết quả `true` vì `Book.equals(Object)` so sánh giá trị `isbn`.
-2. Biến `asObject` có kiểu tĩnh `Object` nhưng vẫn gọi **phiên bản override tại thời điểm chạy** của `Book`; kết quả vẫn là `true`.
-3. `null` và chuỗi `"ISBN-1"` không phải `Book`, nên cho `false`.
-4. Hai `Book` khác ISBN cho `false`.
-5. `HashSet` chỉ giữ hai cuốn sách khác nhau theo ISBN vì `equals(Object)` và `hashCode()` nhất quán.
-6. Với `WrongBook`, lệnh đầu chọn overload `equals(WrongBook)` và in `true`; lệnh sau nhận đối số kiểu `Object`, chọn `Object.equals(Object)` được thừa kế, nên in `false`.
+1. Two `Book` objects that are different instances but have the same ISBN return `true` because `Book.equals(Object)` compares the `isbn` value.
+2. The variable `asObject` has static type `Object` but still invokes the **overridden version at runtime** of `Book`; the result is still `true`.
+3. `null` and the string `"ISBN-1"` are not `Book` instances, so they yield `false`.
+4. Two `Book` instances with different ISBNs yield `false`.
+5. `HashSet` keeps only two distinct books by ISBN because `equals(Object)` and `hashCode()` are consistent.
+6. With `WrongBook`, the first call selects the `equals(WrongBook)` overload and prints `true`; the second call receives an argument of type `Object`, selects the inherited `Object.equals(Object)`, and thus prints `false`.
 
-### Tại sao phương thức đúng kiểm tra theo thứ tự đó?
+### Why Does the Correct Method Check in That Order?
 
-- `this == obj` xử lý nhanh trường hợp cùng tham chiếu và bảo đảm đối tượng bằng chính nó.
-- `obj instanceof Book other` kiểm tra cả kiểu của đối số; `null` không thỏa `instanceof`, nên trả `false` an toàn. Cú pháp pattern matching này được hỗ trợ trên Java 17.
-- `isbn.equals(other.isbn)` so sánh dữ liệu quan trọng khi chắc chắn cả hai đều là `Book`. Constructor dùng `Objects.requireNonNull` để bảo đảm `isbn` khác `null`.
-- Lớp `Book` là `final` để ví dụ không phải xử lý quy tắc bằng nhau khi có lớp con. Quyết định dùng `instanceof` hay `getClass()` trong phân cấp kế thừa cần xem xét riêng nhằm giữ tính đối xứng của `equals`.
+- `this == obj` quickly handles the same-reference case and ensures an object is equal to itself.
+- `obj instanceof Book other` also checks the argument type; `null` does not satisfy `instanceof`, so it safely returns `false`. This pattern matching syntax is supported on Java 17.
+- `isbn.equals(other.isbn)` compares the essential data once both are confirmed to be `Book` instances. The constructor uses `Objects.requireNonNull` to guarantee `isbn` is non-null.
+- The `Book` class is `final` so the example does not have to handle equality rules with subclasses. Deciding whether to use `instanceof` or `getClass()` in an inheritance hierarchy requires separate consideration to preserve the symmetry of `equals`.
 
-Ta viết thêm `hashCode()` vì hai đối tượng được `equals` coi là bằng nhau phải có cùng hash code. `@Override` cũng hữu ích cho phương thức này; tuy nhiên trọng tâm ở đây vẫn là kiểm tra đúng **chữ ký `equals(Object)`**.
+We also write `hashCode()` because two objects considered equal by `equals` must have the same hash code. `@Override` is also useful for this method; however, the focus here remains on verifying the correct **`equals(Object)` signature**.
 
-## 4. Những lỗi khai báo `@Override` sẽ bắt được
+## 4. Declaration Errors That `@Override` Will Catch
 
-Các đoạn dưới đây đều là **mảnh mã cố tình sai**, giả sử chúng nằm trong một lớp bình thường thừa kế trực tiếp từ `Object`. Mỗi đoạn được xét độc lập, không ghép vào chương trình chạy:
+The snippets below are all **intentionally erroneous code fragments**, assuming they reside in a normal class directly inheriting from `Object`. Each snippet is examined independently, not combined into a runnable program:
 
 ~~~java
 @Override
-public boolean equals(Book other) { return true; } // Sai tham số: overload.
+public boolean equals(Book other) { return true; } // Wrong parameter: overload.
 ~~~
 
 ~~~java
 @Override
-protected boolean equals(Object other) { return true; } // Thu hẹp public.
+protected boolean equals(Object other) { return true; } // Narrowing public.
 ~~~
 
 ~~~java
 @Override
-public Boolean equals(Object other) { return true; } // Sai kiểu trả về.
+public Boolean equals(Object other) { return true; } // Wrong return type.
 ~~~
 
 ~~~java
 @Override
-public static boolean equals(Object other) { return true; } // Không thể override bằng static.
+public static boolean equals(Object other) { return true; } // Cannot override with static.
 ~~~
 
 ~~~java
 @Override
-public boolean equals(Object other, int mode) { return true; } // Thừa tham số.
+public boolean equals(Object other, int mode) { return true; } // Extra parameter.
 ~~~
 
-Với từng trường hợp, `javac` từ chối biên dịch; thông báo cụ thể có thể khác nhau tùy loại lỗi và phiên bản trình biên dịch. Riêng trường hợp `equals(Book)` không có `@Override` thì **vẫn có thể biên dịch**, nhưng không đạt mục tiêu ghi đè. Vì vậy, hãy viết annotation ngay lúc khai báo phương thức.
+For each case, `javac` refuses to compile; the exact error message may vary depending on the error type and compiler version. In particular, the `equals(Book)` case without `@Override` **can still compile**, but fails to achieve the goal of overriding. Therefore, always write the annotation right when declaring the method.
 
-Cũng cần phân biệt: `@Override` **không tự kiểm tra logic** bên trong thân phương thức. Một phương thức có đúng chữ ký và annotation vẫn có thể viết sai về ngữ nghĩa (ví dụ so sánh giá trị sai hoặc vi phạm tính đối xứng, bắc cầu). Các lỗi đó cần kiểm thử và tuân thủ hợp đồng `equals`.
+It is also important to distinguish: `@Override` **does not automatically check the logic** inside the method body. A method with the right signature and annotation can still be semantically wrong (for example, comparing the wrong values or violating symmetry or transitivity). Such bugs require testing and adherence to the `equals` contract.
 
-## 5. Cách tự kiểm tra nhanh trong dự án
+## 5. How to Do a Quick Self-Check in Your Project
 
-Khi cài đặt phép bằng nhau cho một lớp dữ liệu:
+When implementing equality for a data class:
 
-1. Gõ đúng `@Override public boolean equals(Object obj)`; tên `obj` tùy chọn.
-2. Để IDE hoặc `javac` xác nhận phương thức thực sự override; không bỏ `@Override` chỉ để “làm hết lỗi”.
-3. Kiểm tra các trường hợp cùng tham chiếu, cùng giá trị, khác giá trị, `null`, sai kiểu.
-4. Đặc biệt, gọi qua **biến kiểu `Object`** để phát hiện kiểu lỗi overload như ví dụ trên.
-5. Khi ghi đè `equals`, cũng cài đặt `hashCode` nhất quán, rồi kiểm tra hành vi của các collection dựa trên hash.
+1. Type `@Override public boolean equals(Object obj)` accurately; the name `obj` is optional.
+2. Let the IDE or `javac` confirm the method actually overrides; do not remove `@Override` just to “make the error go away”.
+3. Test the cases of same reference, same value, different value, `null`, and wrong type.
+4. In particular, call through an **`Object`-typed variable** to catch overload bugs like the example above.
+5. When overriding `equals`, also implement a consistent `hashCode`, then verify the behavior of hash-based collections.
 
-**Ghi nhớ:** `public boolean equals(Object obj)` mới ghi đè đúng phương thức của `Object`. `equals(T obj)` (với `T` là lớp của bạn) chỉ là overload. `@Override` biến sự nhầm lẫn này thành lỗi biên dịch rõ ràng và nên luôn có mặt khi chủ đích là ghi đè.
+**Key takeaway:** Only `public boolean equals(Object obj)` properly overrides `Object`'s method. `equals(T obj)` (where `T` is your class) is only an overload. `@Override` turns this mistake into a clear compile-time error and should always be present when overriding is intended.

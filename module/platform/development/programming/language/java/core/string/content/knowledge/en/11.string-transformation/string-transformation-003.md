@@ -1,19 +1,19 @@
-# Phân biệt replace, replaceFirst và replaceAll trong Java
+# Distinguishing `replace`, `replaceFirst`, and `replaceAll` in Java
 
-Ba phương thức xử lý chuỗi `replace()`, `replaceFirst()` và `replaceAll()` đều tạo kết quả biến đổi từ một `String`. Điểm khác biệt quyết định là **phần cần tìm có được coi là văn bản nguyên vẹn (literal) hay regex**, và **thay một hay nhiều lần**. Ngoài ra, với hai phương thức regex, chuỗi thay thế có cú pháp đặc biệt dành cho các nhóm bắt.
+The three string-processing methods `replace()`, `replaceFirst()`, and `replaceAll()` all produce a transformed result from a `String`. The decisive differences are **whether the search target is treated as literal text or a regex**, and **whether replacement happens once or multiple times**. In addition, for the two regex methods, the replacement string has special syntax for capture groups.
 
-**Quy tắc cốt lõi:** `replace()` tìm literal và thay **tất cả**; `replaceFirst()` tìm regex và thay **khớp đầu tiên**; `replaceAll()` tìm regex và thay **tất cả các khớp không chồng lấp**.
+**Core rule:** `replace()` searches for a literal and replaces **all** occurrences; `replaceFirst()` searches with a regex and replaces the **first match**; `replaceAll()` searches with a regex and replaces **all non-overlapping matches**.
 
-## 1. So sánh API
+## 1. API Comparison
 
-| Phương thức | Cách hiểu phần cần tìm | Số lần thay | Cách hiểu nội dung thay thế |
+| Method | How the search target is interpreted | Number of replacements | How the replacement content is interpreted |
 |---|---|---|---|
-| `replace(char, char)` | Một ký tự `char` theo UTF-16 | Mọi lần xuất hiện | Literal |
-| `replace(CharSequence, CharSequence)` | Chuỗi con literal | Mọi lần xuất hiện không chồng lấp | Literal, kể cả dollar và backslash |
-| `replaceFirst(String regex, String replacement)` | Regex | Khớp đầu tiên | Có cú pháp nhóm bắt như `$1` |
-| `replaceAll(String regex, String replacement)` | Regex | Tất cả các khớp | Có cú pháp nhóm bắt như `$1` |
+| `replace(char, char)` | One `char` by UTF-16 | Every occurrence | Literal |
+| `replace(CharSequence, CharSequence)` | Literal substring | Every non-overlapping occurrence | Literal, including dollar and backslash |
+| `replaceFirst(String regex, String replacement)` | Regex | First match | Supports capture group syntax like `$1` |
+| `replaceAll(String regex, String replacement)` | Regex | All matches | Supports capture group syntax like `$1` |
 
-Ví dụ:
+Example:
 
 ~~~java
 String text = "a.b.a";
@@ -22,27 +22,27 @@ System.out.println(text.replaceFirst(".", "-")); // -.b.a
 System.out.println(text.replaceAll(".", "-"));   // -----
 ~~~
 
-Trong `replace()`, dấu chấm là ký tự chấm thật. Trong regex, dấu chấm thường có nghĩa là khớp một ký tự bất kỳ (trừ một số ký tự kết thúc dòng nếu không bật chế độ DOTALL), nên `replaceAll(".", "-")` thay cả năm ký tự.
+In `replace()`, the dot is a real dot character. In regex, a dot usually means match any single character (except certain line terminators unless DOTALL mode is enabled), so `replaceAll(".", "-")` replaces all five characters.
 
-Với `String` bất biến, ba phép gọi đều **không sửa đối tượng `text`**. Muốn giữ kết quả, phải gán lại biến hoặc chuyển trực tiếp kết quả sang bước xử lý tiếp theo.
+Because `String` is immutable, none of these three calls **modify the `text` object**. To keep the result, you must reassign the variable or pass the result directly to the next processing step.
 
-## 2. replace(): thay mọi chuỗi con literal
+## 2. `replace()`: Replace Every Literal Substring
 
-Hai overload của `String` là:
+The two overloads on `String` are:
 
 ~~~java
 public String replace(char oldChar, char newChar)
 public String replace(CharSequence target, CharSequence replacement)
 ~~~
 
-Đây là **chữ ký API minh họa**, không phải một file Java chạy độc lập.
+These are **illustrative API signatures**, not a standalone runnable Java file.
 
-Đặc tính:
+Characteristics:
 
-- `replace(char,char)` thay mọi code unit bằng `oldChar` bằng `newChar`.
-- `replace(CharSequence,CharSequence)` tìm một đoạn literal và thay mọi lần xuất hiện không chồng lấp.
-- Pattern và replacement đều **không phải regex**. Dấu chấm, dấu sao, dollar, ngoặc vuông hoặc backslash mang nghĩa văn bản thuần.
-- Tên `replace` không có chữ `All`, nhưng phương thức này vẫn thay **tất cả lần xuất hiện** của literal.
+- `replace(char,char)` replaces every code unit equal to `oldChar` with `newChar`.
+- `replace(CharSequence,CharSequence)` searches for a literal segment and replaces all non-overlapping occurrences.
+- Neither the pattern nor the replacement is a **regex**. Dots, asterisks, dollar signs, square brackets, or backslashes carry plain text meaning.
+- The name `replace` does not contain the word `All`, yet this method still replaces **all occurrences** of the literal.
 
 ~~~java
 System.out.println("a.b".replace(".", "-"));         // a-b
@@ -52,93 +52,93 @@ System.out.println("red red".replace("red", "blue")); // blue blue
 System.out.println("aaaa".replace("aa", "X"));       // XX
 ~~~
 
-Ở ví dụ `"aaaa"`, các đoạn `"aa"` được chọn tại vị trí 0 và 2, nên cho `"XX"`. Những lần khớp **không chồng lấp**; phương thức không duyệt mọi đoạn có thể bắt đầu ở từng vị trí.
+In the `"aaaa"` example, the `"aa"` segments are chosen at indices 0 and 2, yielding `"XX"`. Matches are **non-overlapping**; the method does not scan every possible segment starting at every position.
 
-Với emoji như 🚀, một ký tự hiển thị có thể gồm hai UTF-16 `char`, nên muốn thay trọn emoji nên chọn overload nhận `CharSequence`:
+With emojis like 🚀, one displayed character can consist of two UTF-16 `char`s, so to replace the whole emoji you should choose the `CharSequence` overload:
 
 ~~~java
 System.out.println("🚀 + 🚀".replace("🚀", "⭐")); // ⭐ + ⭐
 ~~~
 
-Nếu `target` là chuỗi rỗng, phép thay có thể chèn chuỗi thay vào đầu, giữa các code unit và cuối: `"ab".replace("", "-")` cho `"-a-b-"`. Cần xác thực giá trị tìm kiếm rỗng nếu không muốn hành vi đó.
+If `target` is an empty string, replacement can insert the replacement string at the beginning, between code units, and at the end: `"ab".replace("", "-")` produces `"-a-b-"`. Validate empty search values if you do not want that behavior.
 
-## 3. replaceFirst(): chỉ thay kết quả regex đầu tiên
+## 3. `replaceFirst()`: Replace Only the First Regex Match
 
-Chữ ký:
+Signature:
 
 ~~~java
 public String replaceFirst(String regex, String replacement)
 ~~~
 
-Tham số đầu được biên dịch như regex. Java tìm khớp đầu tiên bên trong chuỗi rồi thay đúng một lần. Nó không yêu cầu toàn bộ chuỗi khớp regex.
+The first argument is compiled as a regex. Java finds the first match inside the string and replaces it exactly once. It does not require the entire string to match the regex.
 
 ~~~java
-String text = "Mã 12, mã 345, mã 67";
+String text = "Code 12, code 345, code 67";
 System.out.println(text.replaceFirst("\\d+", "#"));
-// Mã #, mã 345, mã 67
+// Code #, code 345, code 67
 
 System.out.println("red red".replaceFirst("red", "blue")); // blue red
 System.out.println("abc123def".replaceFirst("\\d+", "#")); // abc#def
 System.out.println("hello".replaceFirst("\\d+", "#")); // hello
 ~~~
 
-Regex `\\d+` biểu diễn một hoặc nhiều chữ số. Vì cần truyền backslash vào regex engine, **mã nguồn Java** phải viết `"\\d+"`, không thể viết ký tự escape Java không hợp lệ. `replaceFirst()` dùng việc tìm *đoạn con* tương tự `Matcher.find()`, khác `String.matches()` kiểm tra **toàn bộ** chuỗi.
+The regex `\\d+` represents one or more digits. Because a backslash must be passed to the regex engine, **Java source code** must write `"\\d+"` and cannot use an invalid Java escape sequence. `replaceFirst()` performs *substring* searching like `Matcher.find()`, unlike `String.matches()`, which checks the **entire** string.
 
-Để thay dấu chấm đầu tiên theo nghĩa literal bằng API regex, cần escape dấu chấm:
+To replace the first dot literally using a regex API, you must escape the dot:
 
 ~~~java
 System.out.println("a.b.c".replaceFirst("\\.", "/")); // a/b.c
 ~~~
 
-Nếu chỉ có một từ cần thay theo nghĩa literal, có thể dùng `Pattern.quote(target)` trước khi gọi `replaceFirst()`, và `Matcher.quoteReplacement(replacement)` khi chuỗi thay có dấu dollar hoặc backslash.
+If you only have a single word to replace literally, you can use `Pattern.quote(target)` before calling `replaceFirst()`, and `Matcher.quoteReplacement(replacement)` when the replacement string contains dollar signs or backslashes.
 
-## 4. replaceAll(): thay mọi kết quả regex
+## 4. `replaceAll()`: Replace Every Regex Match
 
-Chữ ký:
+Signature:
 
 ~~~java
 public String replaceAll(String regex, String replacement)
 ~~~
 
-Nó tìm các match regex không chồng lấp và thay tất cả. Regex linh hoạt hơn literal vì có thể mô tả nhóm ký tự, số lần lặp, ranh giới và các điều kiện khác.
+It finds non-overlapping regex matches and replaces all of them. Regex is more flexible than literals because it can describe character classes, repetition counts, boundaries, and other conditions.
 
 ~~~java
-String text = "Mã 12, mã 345, mã 67";
+String text = "Code 12, code 345, code 67";
 System.out.println(text.replaceAll("\\d+", "#"));
-// Mã #, mã #, mã #
+// Code #, code #, code #
 
 System.out.println("A  B   C".replaceAll(" +", " ")); // A B C
 System.out.println("abc123def456".replaceAll("\\d+", "#")); // abc#def#
 System.out.println("a,b;c".replaceAll("[,;]", "|")); // a|b|c
 ~~~
 
-Regex `\\d+` gom một **chuỗi chữ số liên tiếp** thành một match. Regex `" +"` tìm cụm một hoặc nhiều dấu cách. Nếu cần nhóm whitespace rộng hơn, cân nhắc `\\s+` nhưng phải hiểu quy tắc lớp ký tự và Unicode flags của Java; nó không tự tương đương mọi tiêu chí Unicode whitespace trong ứng dụng.
+The regex `\\d+` groups a **sequence of consecutive digits** into a single match. The regex `" +"` matches clusters of one or more spaces. If you need a broader whitespace group, consider `\\s+` while understanding Java's character class rules and Unicode flags; it does not automatically equate to every application criterion for Unicode whitespace.
 
-Nếu chỉ thay mọi lần xuất hiện một đoạn cố định, `replace()` thường phù hợp hơn `replaceAll()` vì không phải diễn giải regex.
+If you only need to replace all occurrences of a fixed segment, `replace()` is usually more suitable than `replaceAll()` because it does not have to interpret regex.
 
-## 5. Escape: có hai tầng cú pháp khác nhau
+## 5. Escaping: Two Different Syntax Layers
 
-Khi viết Java source, phải phân biệt:
+When writing Java source code, you must distinguish:
 
-1. **Java string literal:** dấu backslash là dấu escape cho Java.
-2. **Regex pattern:** Java regex xử lý các toán tử như `.`, `*`, `+`, `[]`, `()`, `^`, dollar và các character class.
-3. **Regex replacement:** dấu dollar đi cùng chỉ số nhóm như `$1`, `$2` có ý nghĩa thay bằng nhóm được bắt; backslash có thể escape ký tự trong replacement.
+1. **Java string literal:** backslash acts as Java's escape character.
+2. **Regex pattern:** Java regex processes operators such as `.`, `*`, `+`, `[]`, `()`, `^`, dollar, and character classes.
+3. **Regex replacement:** a dollar sign followed by a group index such as `$1`, `$2` means substituting the captured group; backslash can escape characters in the replacement.
 
-### 5.1. Pattern có ký tự đặc biệt
+### 5.1. Patterns with Special Characters
 
-| Mục đích | Java String literal dùng làm regex |
+| Purpose | Java String literal used as regex |
 |---|---|
-| Một hoặc nhiều chữ số | `"\\d+"` |
-| Dấu chấm thật | `"\\."` |
-| Dấu dollar thật | `"\\$"` |
-| Một hoặc nhiều dấu cách ASCII | `" +"` |
-| Chuỗi con literal do người dùng nhập | `Pattern.quote(userText)` |
+| One or more digits | `"\\d+"` |
+| Literal dot | `"\\."` |
+| Literal dollar sign | `"\\$"` |
+| One or more ASCII spaces | `" +"` |
+| User-entered literal substring | `Pattern.quote(userText)` |
 
-Chú ý trong Java 17, Java escape `"\s"` tạo **một dấu cách** trước khi tới regex engine. Nếu muốn regex `\\s`, phải viết `"\\s"` ở source. Đây là một lỗi dễ lọt qua quá trình biên dịch vì `"\s"` là Java String literal hợp lệ trên Java hiện đại nhưng không có nghĩa regex whitespace class.
+Note that in Java 17, the Java escape `"\s"` produces **a single space** before reaching the regex engine. If you want the regex `\\s`, you must write `"\\s"` in source code. This is an easy bug to slip past compilation because `"\s"` is a valid Java String literal in modern Java, yet it does not mean the regex whitespace class.
 
-### 5.2. Replacement có `$1` và các nhóm bắt
+### 5.2. Replacements with `$1` and Capture Groups
 
-Ví dụ đổi thứ tự họ và tên được ngăn cách bởi dấu phẩy:
+Example swapping first and last name separated by a comma:
 
 ~~~java
 String name = "Nguyen, An";
@@ -146,13 +146,13 @@ String result = name.replaceAll("(\\w+),\\s*(\\w+)", "$2 $1");
 System.out.println(result); // An Nguyen
 ~~~
 
-Regex có hai nhóm bắt: nhóm 1 là `Nguyen`, nhóm 2 là `An`. Trong replacement, `$2 $1` lấy nhóm 2 trước rồi đến nhóm 1. Nếu muốn nhóm chỉ để gom cấu trúc mà không đánh số, dùng dạng `(?:...)`; nhóm có tên được khai báo với cú pháp `(?<name>...)` và tham chiếu bằng tên theo tài liệu `Matcher`.
+The regex has two capture groups: group 1 is `Nguyen`, and group 2 is `An`. In the replacement, `$2 $1` takes group 2 first, followed by group 1. If you want a group only for structural grouping without numbering, use the `(?:...)` form; named groups are declared with `(?<name>...)` and referenced by name as documented in `Matcher`.
 
-Trong `replace()`, replacement `"$1"` là literal, không tham chiếu nhóm. Trong `replaceAll()` hoặc `replaceFirst()`, replacement `"$1"` có nghĩa đặc biệt; nếu không có nhóm bắt tương ứng, có thể ném exception. Không trộn hai ngữ nghĩa.
+In `replace()`, the replacement `"$1"` is literal and does not reference a group. In `replaceAll()` or `replaceFirst()`, the replacement `"$1"` has special meaning; if there is no corresponding capture group, it can throw an exception. Do not mix the two semantics.
 
-### 5.3. Dữ liệu replacement có dollar/backslash
+### 5.3. Replacement Data Containing Dollar/Backslash
 
-Nếu replacement đến từ người dùng và cần giữ nguyên tất cả ký tự, dùng `Matcher.quoteReplacement()`:
+If the replacement comes from a user and all characters must be preserved literally, use `Matcher.quoteReplacement()`:
 
 ~~~java
 import java.util.regex.Matcher;
@@ -164,11 +164,11 @@ String result = "abc".replaceAll(
 System.out.println(result.equals("a$1\\tempc")); // true
 ~~~
 
-`quoteReplacement()` bảo đảm dollar và backslash **không bị hiểu như cú pháp replacement**. Hàm này **không** biến regex trong tham số tìm kiếm thành literal.
+`quoteReplacement()` ensures dollar signs and backslashes **are not interpreted as replacement syntax**. This function **does not** turn a regex in the search parameter into a literal.
 
-### 5.4. Dữ liệu tìm kiếm có dấu regex
+### 5.4. Search Data Containing Regex Symbols
 
-Nếu muốn tìm dấu chấm do người dùng nhập, truyền trực tiếp dấu chấm vào `replaceAll()` sẽ gây khớp rộng. Dùng `Pattern.quote()` để bảo vệ bên tìm kiếm:
+If you want to search for a dot entered by a user, passing the dot directly into `replaceAll()` will match too broadly. Use `Pattern.quote()` to protect the search side:
 
 ~~~java
 import java.util.regex.Matcher;
@@ -184,11 +184,11 @@ String converted = source.replaceAll(
 System.out.println(converted.equals("a$5\\xb")); // true
 ~~~
 
-`Pattern.quote()` bảo vệ cú pháp regex **pattern**; `Matcher.quoteReplacement()` bảo vệ cú pháp **replacement**. Nếu cả hai đầu đều literal, viết `source.replace(find, put)` đơn giản và rõ ràng hơn.
+`Pattern.quote()` protects regex **pattern** syntax; `Matcher.quoteReplacement()` protects **replacement** syntax. If both sides are literals, writing `source.replace(find, put)` is simpler and clearer.
 
-## 6. Trường hợp biên quan trọng
+## 6. Important Edge Cases
 
-### Match rỗng hoặc có độ rộng bằng 0
+### Empty or Zero-Width Matches
 
 ~~~java
 System.out.println("ab".replace("", "-"));         // -a-b-
@@ -196,9 +196,9 @@ System.out.println("ab".replaceFirst("", "-"));    // -ab
 System.out.println("ab".replaceAll("", "-"));      // -a-b-
 ~~~
 
-Regex có thể khớp tại **vị trí** không tiêu thụ ký tự, chẳng hạn regex rỗng hay lookahead. Regex engine có quy tắc tiến vị trí để tránh lặp vô hạn trong lúc thay. Vì vậy cần kiểm tra input tìm kiếm rỗng trước nếu đó không phải kết quả mong đợi.
+A regex can match at a **position** without consuming characters, such as an empty regex or a lookahead. The regex engine has position-advancing rules to avoid infinite loops during replacement. Therefore, validate empty search inputs beforehand if that is not the expected outcome.
 
-### Không thay các match chồng lấp
+### Non-Overlapping Match Replacement
 
 ~~~java
 System.out.println("aaaa".replace("aa", "X"));       // XX
@@ -206,17 +206,17 @@ System.out.println("aaaa".replaceFirst("aa", "X"));  // Xaa
 System.out.println("aaaa".replaceAll("aa", "X"));    // XX
 ~~~
 
-Ở đây regex hoặc phép tìm literal xét các match không chồng lấp. Nếu cần một thuật toán đặc biệt xử lý cả các vị trí chồng lấp, hãy thiết kế bài toán riêng với lookaround, vị trí hoặc logic quét chuỗi; không mặc định những API trên làm việc đó.
+Here, both regex and literal search examine non-overlapping matches. If you need a specialized algorithm that handles overlapping positions as well, design a dedicated solution with lookarounds, index tracking, or custom string-scanning logic; do not assume these APIs do that.
 
-### Replacement mới không bị thay tiếp trong cùng lượt
+### Newly Inserted Replacements Are Not Reprocessed in the Same Pass
 
 ~~~java
 System.out.println("aaa".replace("a", "aa")); // aaaaaa
 ~~~
 
-`replace()` thực hiện một lượt trên dữ liệu gốc: ba ký tự `a` được thay thành sáu ký tự `a`. Nó không tự lặp thay trên phần văn bản mới sinh ra cho đến vô hạn.
+`replace()` performs one pass over the original data: three `a` characters are replaced with six `a` characters. It does not recursively keep replacing newly generated text forever.
 
-### Không tự thay đổi String ban đầu
+### Original `String` Is Not Mutated
 
 ~~~java
 String s = "red red";
@@ -226,14 +226,14 @@ s = s.replace("red", "blue");
 System.out.println(s); // blue blue
 ~~~
 
-Nhớ sử dụng giá trị trả về do `String` immutable.
+Remember to use the return value because `String` is immutable.
 
-### Null và regex không hợp lệ
+### Null and Invalid Regex
 
-- Tham chiếu nhận `String` là null: gọi phương thức sẽ ném `NullPointerException`.
-- Target/pattern/replacement cần dữ liệu không null. Phải xác thực trước; không dùng null để diễn đạt “bỏ qua thay thế”.
-- Regex sai cú pháp, ví dụ `"["`, có thể ném `PatternSyntaxException`.
-- Replacement có tham chiếu nhóm không tồn tại có thể ném exception; `Matcher.quoteReplacement()` là cách giải quyết khi muốn literal.
+- Null `String` receiver reference: calling the method throws `NullPointerException`.
+- Target/pattern/replacement must be non-null. Validate beforehand; do not use null to express "skip replacement."
+- Syntactically invalid regex, such as `"["`, can throw `PatternSyntaxException`.
+- A replacement referencing a non-existent group can throw an exception; `Matcher.quoteReplacement()` is the solution when you want literal text.
 
 ~~~java
 try {
@@ -243,13 +243,13 @@ try {
 }
 ~~~
 
-### Unicode và ký tự hiển thị
+### Unicode and Displayed Characters
 
-Overload `char` làm việc theo UTF-16 code unit; emoji thường gồm hai `char`. Dùng overload `CharSequence` khi muốn thay một emoji nguyên vẹn. Đồng thời, `replace()` và regex **không tự chuẩn hóa Unicode**. Hai chuỗi nhìn giống nhau, như `é` dựng sẵn và `e` cộng dấu sắc, có thể không khớp theo dãy code point; nếu cần đối chiếu biểu diễn tương đương, sử dụng `Normalizer` một cách có chủ đích.
+The `char` overload operates on UTF-16 code units; emojis often consist of two `char`s. Use the `CharSequence` overload when you want to replace an entire emoji. At the same time, `replace()` and regex **do not automatically normalize Unicode**. Two visually identical strings, such as precomposed `é` and `e` plus combining acute accent, may not match by code point sequence; if you need to compare equivalent representations, use `Normalizer` deliberately.
 
-## 7. Hiệu năng và an toàn khi xử lý dữ liệu động
+## 7. Performance and Safety When Handling Dynamic Data
 
-Với các literal ngắn hoặc từ khóa cố định, `replace()` thường rõ nghĩa và tránh công việc xử lý regex không cần thiết. Nếu phải áp dụng **một regex lặp lại nhiều lần**, có thể compile `Pattern` một lần rồi dùng `Matcher` trên từng chuỗi:
+For short literals or fixed keywords, `replace()` is usually clearer in intent and avoids unnecessary regex processing work. If you must apply **a single regex repeatedly**, you can compile `Pattern` once and use `Matcher` on each string:
 
 ~~~java
 import java.util.regex.Pattern;
@@ -259,15 +259,15 @@ System.out.println(numbers.matcher("A12").replaceAll("#"));  // A#
 System.out.println(numbers.matcher("B345").replaceAll("#")); // B#
 ~~~
 
-`Pattern` có thể chia sẻ và tái sử dụng; `Matcher` thay đổi trạng thái và không nên dùng đồng thời giữa nhiều thread nếu không quản lý an toàn. Đừng khẳng định regex luôn chậm hơn trong mọi trường hợp; đo bằng profiler/JMH với dữ liệu đại diện khi có yêu cầu hiệu năng.
+`Pattern` can be shared and reused; `Matcher` holds mutable state and should not be used concurrently across multiple threads without proper synchronization. Do not claim regex is always slower in every case; measure with a profiler/JMH on representative data when performance matters.
 
-**Regex nhận từ người dùng** có thể bị lỗi cú pháp và một số mẫu có thể gây xử lý rất chậm với input phù hợp (*ReDoS*). Nếu người dùng chỉ muốn tìm literal, tránh đưa input vào regex nguyên trạng: dùng `replace()` hoặc `Pattern.quote()`. Nếu thật sự cung cấp tính năng regex, giới hạn độ dài input/pattern, kiểm thử worst case và đặt các chính sách bảo vệ tài nguyên. `Pattern.quote()` khiến pattern trở thành literal, không phải cách “làm regex tùy ý an toàn” mà vẫn giữ chức năng regex.
+**User-supplied regex** can contain syntax errors, and certain patterns can cause very slow execution on crafted input (*ReDoS*). If users only want literal search, avoid passing raw input into regex: use `replace()` or `Pattern.quote()`. If you genuinely provide regex functionality, limit input/pattern length, test worst-case inputs, and enforce resource protection policies. `Pattern.quote()` turns the pattern into a literal, not a way to "make arbitrary regex safe" while keeping regex features.
 
-Khi thay liên tiếp trên một `String` lớn trong nhiều vòng lặp, tạo `String` trung gian có thể tốn bộ nhớ; cân nhắc `StringBuilder` hoặc thuật toán xử lý theo luồng tùy bài toán.
+When performing repeated replacements on a large `String` inside many loops, creating intermediate `String`s can consume memory; consider `StringBuilder` or a streaming algorithm depending on the problem.
 
-## 8. Chương trình Java 17 hoàn chỉnh
+## 8. Complete Java 17 Program
 
-Lưu đoạn sau vào file UTF-8 **`ReplaceMethodsDemo.java`**. Khác với các snippet riêng lẻ ở phần trên, đây là một chương trình chạy độc lập.
+Save the following code into a UTF-8 file **`ReplaceMethodsDemo.java`**. Unlike the individual snippets above, this is a standalone runnable program.
 
 ~~~java
 import java.util.regex.Matcher;
@@ -308,14 +308,14 @@ public class ReplaceMethodsDemo {
 }
 ~~~
 
-Biên dịch và chạy trên JDK 17 hoặc mới hơn:
+Compile and run on JDK 17 or newer:
 
 ~~~bash
 javac -encoding UTF-8 ReplaceMethodsDemo.java
 java ReplaceMethodsDemo
 ~~~
 
-Đầu ra:
+Output:
 
 ~~~text
 literal=a-b-a
@@ -335,31 +335,31 @@ emptyTarget=-a-b-
 original=a.b.a
 ~~~
 
-`regexAll` cho năm dấu `-` vì regex `.` khớp toàn bộ từng ký tự của `a.b.a`. `safeLiteral=true` xác minh cả dollar và backslash của replacement được giữ nguyên nhờ `Matcher.quoteReplacement()`. `original=a.b.a` cho thấy các phương thức không đổi nội dung String nguồn.
+`regexAll` produces five `-` characters because the regex `.` matches every single character of `a.b.a`. `safeLiteral=true` verifies that both dollar and backslash in the replacement are preserved literally thanks to `Matcher.quoteReplacement()`. `original=a.b.a` shows that these methods do not alter the source `String` content.
 
-## 9. Lỗi thường gặp
+## 9. Common Mistakes
 
-| Lỗi | Vì sao | Cách xử lý |
+| Mistake | Why | How to handle |
 |---|---|---|
-| `replaceAll(".", "X")` để thay dấu chấm | Dấu chấm là toán tử regex | Dùng `replace(".", "X")` hoặc regex dấu chấm đã escape |
-| Nghĩ `replace()` chỉ thay một lần | Tên phương thức dễ gây nhầm | `replace()` thay tất cả literal |
-| Tìm văn bản từ người dùng qua regex nguyên trạng | Dấu ngoặc/sao/chấm có nghĩa đặc biệt | `replace()` hoặc `Pattern.quote()` |
-| Replacement từ người dùng có dollar | Có thể bị giải nghĩa như nhóm regex | `Matcher.quoteReplacement()` |
-| Viết Java regex `"\d+"` | Dấu escape của Java không hợp lệ | `"\\d+"` |
-| Viết `"\s+"` để tìm whitespace regex | Trong Java mới, `\\s` ở mức Java literal có thể là dấu cách | Viết `"\\s+"` |
-| Không dùng giá trị trả về | String bất biến | Gán lại hoặc chuyển tiếp kết quả |
-| Dùng `replace(char,char)` cho cả emoji | Một emoji có thể gồm hai code unit | Dùng `replace(CharSequence,CharSequence)` |
-| Tưởng thay thế diễn ra đệ quy | Một lượt match trên chuỗi đầu vào | Nếu cần nhiều pha, xây dựng rõ các bước |
-| Chấp nhận regex tùy ý không giới hạn | Có thể lỗi syntax hoặc tiêu tốn CPU | Validate, giới hạn và kiểm thử |
+| `replaceAll(".", "X")` to replace dots | Dot is a regex operator | Use `replace(".", "X")` or an escaped dot regex |
+| Thinking `replace()` only replaces once | Method name is misleading | `replace()` replaces all literals |
+| Searching user text via unescaped regex | Brackets/asterisks/dots have special meaning | `replace()` or `Pattern.quote()` |
+| User replacement containing dollar sign | May be interpreted as a regex group | `Matcher.quoteReplacement()` |
+| Writing Java regex `"\d+"` | Invalid Java escape sequence | `"\\d+"` |
+| Writing `"\s+"` for regex whitespace search | In modern Java, `\\s` at the Java literal level can be a space | Write `"\\s+"` |
+| Ignoring the return value | `String` is immutable | Reassign or pass along the result |
+| Using `replace(char,char)` for a whole emoji | An emoji can consist of two code units | Use `replace(CharSequence,CharSequence)` |
+| Thinking replacement is recursive | Single pass over the input string | If multiple phases are needed, build steps explicitly |
+| Accepting arbitrary unbounded regexes | Can cause syntax errors or high CPU usage | Validate, bound, and test |
 
-## 10. Checklist chọn đúng phương thức
+## 10. Checklist for Choosing the Right Method
 
-1. **Thay literal tại mọi nơi:** chọn `replace()`.
-2. **Thay match regex đầu tiên:** chọn `replaceFirst()`.
-3. **Thay tất cả match regex:** chọn `replaceAll()`.
-4. **Có dấu chấm, dollar, backslash hoặc dấu ngoặc trong input:** phân biệt ký tự thuộc *pattern* hay *replacement*; dùng quote phù hợp nếu phải đi qua regex.
-5. **Input rỗng, null hoặc Unicode phức tạp:** kiểm tra và quyết định ngữ nghĩa từ trước.
-6. **Regex được áp dụng nhiều lần:** có thể compile `Pattern` một lần; dùng `Matcher` mới hoặc được quản lý đúng cho mỗi tác vụ.
-7. **Có nhu cầu tối ưu hay xử lý dữ liệu không tin cậy:** đo hiệu năng và kiểm soát kích thước/độ phức tạp regex.
+1. **Replace a literal everywhere:** choose `replace()`.
+2. **Replace the first regex match:** choose `replaceFirst()`.
+3. **Replace all regex matches:** choose `replaceAll()`.
+4. **Input contains dots, dollar signs, backslashes, or brackets:** distinguish whether characters belong to *pattern* or *replacement*; quote appropriately if going through regex.
+5. **Empty input, null, or complex Unicode:** validate and define semantics upfront.
+6. **Regex applied multiple times:** compile `Pattern` once; use a fresh or properly managed `Matcher` per task.
+7. **Optimization needs or untrusted input:** measure performance and bound regex size/complexity.
 
-**Ghi nhớ:** `replace()` thay mọi literal; `replaceFirst()` thay regex match đầu tiên; `replaceAll()` thay mọi regex match. Với regex, **pattern và replacement có cú pháp khác nhau**, và còn phải escape đúng khi viết Java source.
+**Key takeaway:** `replace()` replaces all literals; `replaceFirst()` replaces the first regex match; `replaceAll()` replaces all regex matches. With regex, **patterns and replacements have different syntaxes**, and both must also be properly escaped in Java source code.

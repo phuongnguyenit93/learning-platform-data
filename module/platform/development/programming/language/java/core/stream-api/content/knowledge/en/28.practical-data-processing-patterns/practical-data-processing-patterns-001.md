@@ -1,76 +1,76 @@
-# Làm sạch, chuẩn hóa và loại dữ liệu không hợp lệ
+# Cleaning, Normalization, and Filtering Out Invalid Data
 
-Trong ứng dụng thực tế, dữ liệu hiếm khi đi vào hệ thống dưới dạng hoàn hảo. Một đơn hàng có thể chứa mã sản phẩm thừa khoảng trắng, số lượng ghi bằng chuỗi, ngày không tồn tại, số tiền sai định dạng hoặc khóa định danh bị trùng. Trước khi dùng dữ liệu ấy để thống kê, phân nhóm hoặc ghi xuống cơ sở dữ liệu, cần **làm sạch, chuẩn hóa, kiểm tra tính hợp lệ và xác định cách xử lý bản ghi lỗi**.
+In real-world applications, data rarely enters a system in a clean, ready-to-use form. An order record may contain a product code with trailing whitespace, a quantity stored as a string, a non-existent calendar date, a malformed monetary amount, or a duplicate identifier key. Before using that data for aggregation, grouping, or database persistence, it is necessary to **clean, normalize, validate, and decide how to handle invalid records**.
 
-**Java Stream API** giúp mô tả quy trình này thành một pipeline khai báo gồm các phép toán trung gian *lazy* như `map`, `filter`, `flatMap`, rồi kích hoạt bằng terminal operation như `collect`. Tuy nhiên, một pipeline viết ngắn chưa chắc đã an toàn: `filter` làm mất thông tin về dữ liệu bị loại, phép chuẩn hóa tùy tiện có thể thay đổi ý nghĩa nghiệp vụ, và parse trực tiếp trong `map` có thể khiến một bản ghi lỗi làm hỏng cả lô.
+The **Java Stream API** helps express this process as a declarative pipeline made of *lazy* intermediate operations such as `map`, `filter`, and `flatMap`, triggered by a terminal operation such as `collect`. However, a short pipeline is not automatically safe: `filter` discards information about rejected data, arbitrary normalization can alter business meaning, and parsing directly inside `map` can allow a single bad record to abort an entire batch.
 
-Bài học thuộc chương **Mẫu xử lý dữ liệu thực tế**. Mục tiêu là xây một luồng xử lý rõ ràng, kiểm thử được, ưu tiên hàm thuần, phân biệt bản ghi hợp lệ với bản ghi bị từ chối, đồng thời giữ được nguyên nhân lỗi để đối soát.
+This lesson belongs to the **Practical Data Processing Patterns** chapter. The goal is to build a clear, testable processing flow that favors pure functions, separates valid records from rejected ones, and preserves rejection reasons for reconciliation.
 
-## 1. Xác định hợp đồng trước khi viết pipeline
+## 1. Define the Contract Before Writing the Pipeline
 
-Giả sử đầu vào là những đơn hàng thô có năm trường: mã đơn, mã sản phẩm, số lượng, đơn giá và ngày đặt. Người dùng có thể nhập tất cả dưới dạng chuỗi.
+Suppose the input consists of raw orders with five fields: order ID, product SKU, quantity, unit price, and order date. Users may enter all of them as strings.
 
-| Bản ghi | Mã đơn | Mã sản phẩm | Số lượng | Đơn giá | Ngày | Kết quả dự kiến |
+| Record | Order ID | SKU | Quantity | Unit Price | Date | Expected Result |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | `" a-001 "` | `" sku-01 "` | `"2"` | `"15.50"` | `"2026-03-05"` | Hợp lệ sau chuẩn hóa. |
-| 2 | `"A-002"` | `"SKU-02"` | `"0"` | `"4.50"` | `"2026-03-05"` | Loại: số lượng phải dương. |
-| 3 | `"A-003"` | `"SKU-03"` | `"1"` | `"7.20"` | `"2026-02-30"` | Loại: ngày không hợp lệ. |
-| 4 | `"A-004"` | `"SKU-04"` | `"3"` | `"7.20"` | `"2026-03-06"` | Hợp lệ. |
-| 5 | `"A-005"` | `"SKU-05"` | `"1"` | `"oops"` | `"2026-03-06"` | Loại: đơn giá sai định dạng. |
+| 1 | `" a-001 "` | `" sku-01 "` | `"2"` | `"15.50"` | `"2026-03-05"` | Valid after normalization. |
+| 2 | `"A-002"` | `"SKU-02"` | `"0"` | `"4.50"` | `"2026-03-05"` | Rejected: quantity must be positive. |
+| 3 | `"A-003"` | `"SKU-03"` | `"1"` | `"7.20"` | `"2026-02-30"` | Rejected: invalid date. |
+| 4 | `"A-004"` | `"SKU-04"` | `"3"` | `"7.20"` | `"2026-03-06"` | Valid. |
+| 5 | `"A-005"` | `"SKU-05"` | `"1"` | `"oops"` | `"2026-03-06"` | Rejected: malformed unit price. |
 
-**Quy tắc nghiệp vụ giả định cho bài tập:** mã đơn và SKU không phân biệt hoa/thường, chỉ chứa `A–Z`, chữ số hoặc dấu gạch nối; số lượng là số nguyên dương không quá sáu chữ số; giá không âm có tối đa hai chữ số thập phân; ngày dùng ISO `yyyy-MM-dd`. Đây là **quy tắc của ví dụ**, không phải định nghĩa đúng cho mọi hệ thống thương mại.
+**Assumed business rules for this exercise:** order IDs and SKUs are case-insensitive and contain only `A–Z`, digits, or hyphens; quantity is a positive integer of at most six digits; price is non-negative with at most two decimal places; dates use ISO `yyyy-MM-dd`. These are **example rules**, not universal definitions for every commerce system.
 
-Một pipeline tốt phải làm rõ:
+A solid pipeline must clarify:
 
-1. **Dữ liệu đầu vào là gì?** Đối tượng Java, văn bản CSV/JSON, hay luồng tệp? Ai chịu trách nhiệm tách trường?
-2. **Chuẩn hóa được phép thay đổi điều gì?** Có được bỏ khoảng trắng và đổi chữ hoa hay không?
-3. **Điều kiện nào là lỗi?** Bỏ trống, sai kiểu, ngoài miền giá trị, sai ngày, trùng khóa hay không khớp danh mục?
-4. **Một bản ghi lỗi được xử lý thế nào?** Từ chối có lý do, yêu cầu sửa, giữ vùng cách ly (*quarantine*) hay dừng cả lô?
-5. **Kết quả cần cho ai?** Danh sách sạch để tính toán, danh sách lỗi để hiển thị, hay cả hai để kiểm toán?
+1. **What is the input data?** Java objects, CSV/JSON text, or a file stream? Who is responsible for splitting fields?
+2. **What is normalization allowed to change?** May leading/trailing whitespace be stripped and characters uppercased?
+3. **Which conditions count as errors?** Blank values, wrong types, out-of-range values, invalid dates, duplicate keys, or catalog mismatches?
+4. **How should an invalid record be handled?** Rejected with a reason, returned for correction, held in *quarantine*, or used to halt the entire batch?
+5. **Who needs the output?** A clean list for calculation, an error list for display, or both for auditing?
 
-## 2. Phân biệt làm sạch, chuẩn hóa, xác thực và loại bỏ
+## 2. Distinguish Cleaning, Normalization, Validation, and Rejection
 
-Các bước liên quan nhưng không đồng nghĩa:
+These steps are related, not synonymous:
 
-| Bước | Ví dụ | Mục đích |
+| Step | Example | Purpose |
 | --- | --- | --- |
-| **Làm sạch** (*cleaning*) | Bỏ khoảng trắng đầu/cuối mã đơn. | Loại nhiễu nhập liệu đã được phép loại. |
-| **Chuẩn hóa** (*normalization*) | `"sku-01"` → `"SKU-01"`. | Đưa các biểu diễn tương đương về một dạng thống nhất. |
-| **Xác thực** (*validation*) | Kiểm tra số lượng lớn hơn 0, ngày tồn tại. | Xác nhận dữ liệu đáp ứng quy tắc. |
-| **Chuyển kiểu** (*parsing*) | `"2"` → `int 2`; `"15.50"` → `BigDecimal`. | Chuyển dạng lưu trữ sang kiểu nghiệp vụ. |
-| **Loại bỏ/cách ly** (*rejection/quarantine*) | Trả lý do `quantity must be positive`. | Không cho dữ liệu sai đi vào báo cáo và không mất dấu vết lỗi. |
+| **Cleaning** | Stripping leading/trailing whitespace from an order ID. | Remove permitted input noise. |
+| **Normalization** | `"sku-01"` → `"SKU-01"`. | Bring equivalent representations into one canonical form. |
+| **Validation** | Checking that quantity is greater than 0 and the date exists. | Confirm the data satisfies the rules. |
+| **Parsing** | `"2"` → `int 2`; `"15.50"` → `BigDecimal`. | Convert storage format into domain types. |
+| **Rejection/Quarantine** | Returning reason `quantity must be positive`. | Prevent bad data from entering reports without losing error trails. |
 
-Một sơ đồ xử lý đề xuất:
+A recommended processing flow:
 
 ```text
-Nguồn dữ liệu thô
+Raw data source
        |
        v
-Tách bản ghi và trường theo đúng định dạng nguồn
+Split records and fields according to the source format
        |
        v
-Làm sạch / chuẩn hóa có kiểm soát
+Controlled cleaning / normalization
        |
        v
-Kiểm tra trường bắt buộc, định dạng và miền giá trị
+Check required fields, format, and value domain
        |
        v
-Chuyển kiểu và xác thực quy tắc liên trường
+Type parsing and cross-field rule validation
        |
        v
-Kết quả phân loại: Valid(order) hoặc Invalid(reason)
+Classification result: Valid(order) or Invalid(reason)
        |                                   |
        v                                   v
-Danh sách hợp lệ                      Danh sách lỗi
+Valid list                            Error list
        |                                   |
-       +--> thống kê, grouping, DB         +--> báo cáo, sửa dữ liệu
+       +--> stats, grouping, DB            +--> reporting, data repair
 ```
 
-Không bắt buộc mọi bước là một lệnh `map` hoặc `filter` riêng. Với dữ liệu có thể sai định dạng, một hàm `parseAndValidate` trả về **giá trị hoặc lỗi** thường rõ ràng hơn việc rải các `try/catch` khó theo dõi trong nhiều lambda.
+Not every step has to be a separate `map` or `filter` call. For data that may be malformed, a `parseAndValidate` function returning **either a value or an error** is usually clearer than scattering hard-to-follow `try/catch` blocks across multiple lambdas.
 
-## 3. Chuẩn hóa chuỗi phải theo ngữ nghĩa của trường
+## 3. String Normalization Must Respect Field Semantics
 
-Ví dụ chuẩn hóa mã định danh không phân biệt hoa/thường (Java 11+):
+Example of normalizing a case-insensitive identifier (Java 11+):
 
 ```java
 import java.util.Locale;
@@ -84,18 +84,18 @@ static String normalizeBusinessKey(String raw) {
 System.out.println(normalizeBusinessKey("  sku-01 ")); // SKU-01
 ```
 
-`strip()` loại các ký tự khoảng trắng đầu/cuối theo quy tắc `Character.isWhitespace` của Java; `trim()` có quy tắc cũ dựa vào các ký tự có mã không vượt `U+0020`. Chúng **không tương đương hoàn toàn** và không phải lời giải cho mọi ký tự trắng Unicode. Nếu nguồn có non-breaking space hoặc ký tự điều khiển đặc biệt, cần chính sách riêng.
+`strip()` removes leading and trailing whitespace according to Java's `Character.isWhitespace` rules; `trim()` uses older rules based on characters with code points no greater than `U+0020`. They are **not completely equivalent**, and neither solves every Unicode whitespace character. If a source includes non-breaking spaces or special control characters, define an explicit policy.
 
-`Locale.ROOT` giúp phép chuyển hoa/thường không phụ thuộc locale mặc định của máy. Tuy nhiên, **không được tự chuyển chữ hoa với mọi trường**:
+`Locale.ROOT` prevents case conversion from depending on the machine's default locale. However, **you must not automatically uppercase every field**:
 
-- Mã SKU được định nghĩa không phân biệt hoa/thường có thể chuẩn hóa về chữ hoa.
-- Mật khẩu, chữ ký số hoặc chuỗi bí mật phải được xử lý theo quy tắc xác thực riêng; tự sửa khác đi có thể phá vỡ nghĩa.
-- Email không phải lúc nào cũng cho phép coi **toàn bộ địa chỉ** là không phân biệt hoa/thường; quy tắc của phần local-part cần được cân nhắc theo hệ thống nhận thư.
-- Tên hiển thị nên giữ nguyên biểu diễn phù hợp với yêu cầu ngôn ngữ và giao diện.
+- SKUs defined as case-insensitive can be normalized to uppercase.
+- Passwords, digital signatures, or secret tokens must follow their own authentication rules; altering them arbitrarily can break their meaning.
+- Email addresses do not always allow treating the **entire address** as case-insensitive; local-part rules depend on the receiving mail system.
+- Display names should preserve the representation appropriate for language and UI requirements.
 
-### Chuẩn hóa Unicode khi thật sự cần
+### Normalize Unicode Only When Truly Needed
 
-Hai chuỗi nhìn giống nhau có thể dùng các chuỗi code point Unicode khác nhau. Java có `Normalizer`:
+Two visually identical strings can use different sequences of Unicode code points. Java provides `Normalizer`:
 
 ```java
 import java.text.Normalizer;
@@ -105,13 +105,13 @@ String canonical = Normalizer.normalize(
 );
 ```
 
-`NFC` là một dạng chuẩn hóa Unicode, hữu ích khi nghiệp vụ coi các dạng tổ hợp ký tự tương đương là cùng giá trị. Tuy nhiên, chuẩn hóa Unicode không tự giải quyết alias nghiệp vụ, bỏ dấu tiếng Việt, phân biệt danh tính hoặc lỗi chính tả. Không dùng `replaceAll("\\s+", "")` để xóa mọi khoảng trắng trong tên người, địa chỉ hoặc dữ liệu có phân cách mang nghĩa.
+`NFC` is one Unicode normalization form, useful when the domain treats combining-character equivalents as the same value. However, Unicode normalization does not automatically resolve business aliases, strip Vietnamese diacritics, disambiguate identities, or fix typos. Do not use `replaceAll("\\s+", "")` to remove all whitespace in personal names, addresses, or data where separators carry meaning.
 
-**Nguyên tắc:** chuẩn hóa phải **có chủ đích và được kiểm thử trên dữ liệu đại diện**; không làm mất thông tin chỉ để tăng tỷ lệ bản ghi “hợp lệ”.
+**Principle:** normalization must be **intentional and tested on representative data**; never discard information just to boost the "valid" record rate.
 
-## 4. Kiểm tra định dạng và miền giá trị trước khi chuyển kiểu
+## 4. Validate Format and Domain Range Before Parsing
 
-Một regex có thể xác nhận **hình dạng chuỗi**, nhưng không thay thế toàn bộ validation.
+A regex can verify **string shape**, but it does not replace full validation.
 
 ```java
 import java.util.regex.Pattern;
@@ -124,22 +124,22 @@ System.out.println(quantityFormat.matcher("2.5").matches()); // false
 System.out.println(quantityFormat.matcher("0").matches());   // true
 ```
 
-Định dạng `"0"` phù hợp regex nhưng **không hợp lệ về miền giá trị** nếu số lượng phải lớn hơn 0. Vì vậy cần cả:
+The string `"0"` matches the regex yet is **invalid in value range** if quantity must be greater than 0. Therefore, you need both:
 
 ```java
 if (!quantityFormat.matcher(text).matches()) {
-    // Sai hình dạng đầu vào.
+    // Invalid input shape.
 } else {
     int quantity = Integer.parseInt(text);
     if (quantity <= 0) {
-        // Hình dạng đúng, nhưng sai quy tắc nghiệp vụ.
+        // Valid shape, but violates the business rule.
     }
 }
 ```
 
-Với ví dụ này, tối đa sáu chữ số bảo đảm `Integer.parseInt` không tràn. Trong hệ thống có số lớn hơn, phải kiểm tra giới hạn hoặc bắt `NumberFormatException` một cách có chủ đích.
+In this example, capping at six digits guarantees `Integer.parseInt` will not overflow. In systems supporting larger numbers, check bounds explicitly or catch `NumberFormatException` intentionally.
 
-### Ngày phải tồn tại, không chỉ khớp mẫu
+### Dates Must Exist, Not Just Match a Pattern
 
 ```java
 import java.time.LocalDate;
@@ -151,13 +151,13 @@ try {
         "2026-02-30", DateTimeFormatter.ISO_LOCAL_DATE
     );
 } catch (DateTimeParseException ex) {
-    System.out.println("Ngày không hợp lệ");
+    System.out.println("Invalid date");
 }
 ```
 
-`2026-02-30` có vẻ đúng hình dạng `yyyy-MM-dd` nhưng không tồn tại. `ISO_LOCAL_DATE` dùng quy tắc giải quyết ngày nghiêm ngặt. Nếu nguồn là timestamp có múi giờ, không được tùy tiện chuyển thành `LocalDate` khi chưa xác định múi giờ nghiệp vụ.
+`2026-02-30` looks like a valid `yyyy-MM-dd` shape, yet does not exist. `ISO_LOCAL_DATE` uses strict date resolution rules. If the source is a timestamp with a time zone, do not arbitrarily convert it to `LocalDate` before establishing the business time zone.
 
-### Số tiền không nên đi qua `double` nếu cần chính xác thập phân
+### Monetary Amounts Should Not Pass Through `double` When Decimal Precision Matters
 
 ```java
 import java.math.BigDecimal;
@@ -169,11 +169,11 @@ BigDecimal price = new BigDecimal("15.50")
 System.out.println(price); // 15.50
 ```
 
-Tạo `BigDecimal` từ chuỗi thập phân đã kiểm tra, thay vì qua `new BigDecimal(0.1)` nếu mong biểu diễn đúng giá trị thập phân `0.1`. Với tiền tệ có quy tắc làm tròn hoặc đơn vị đặc biệt, phải thiết kế giới hạn độ chính xác, scale và chính sách làm tròn riêng.
+Construct `BigDecimal` from a validated decimal string rather than `new BigDecimal(0.1)` when exact decimal representation of `0.1` is required. For currencies with specific rounding rules or special subunits, design explicit precision limits, scale, and rounding policies.
 
-## 5. Khi nào dùng `filter`, `map`, `flatMap`?
+## 5. When to Use `filter`, `map`, and `flatMap`?
 
-`map` biểu diễn phép chuyển **một phần tử thành một kết quả**; `filter` chỉ giữ phần tử phù hợp. Nếu một dòng chỉ cần kiểm tra có khác `null` và khác rỗng không, hai phương thức này đủ:
+`map` represents transforming **one element into one result**; `filter` only retains matching elements. If a line only needs checking for non-`null` and non-empty, these two methods are enough:
 
 ```java
 import java.util.Arrays;
@@ -192,9 +192,9 @@ List<String> cleaned = values.stream()
 System.out.println(cleaned); // [A, B]
 ```
 
-Đây là ví dụ hợp lệ khi **được phép loại toàn bộ dữ liệu rỗng mà không cần ghi lý do**. Với dữ liệu cần đối soát, dòng nào bị loại và vì sao quan trọng: `filter` đơn thuần **không lưu được thông tin đó**.
+This is valid when **discarding all blank data without recording a reason is permitted**. When data requires reconciliation, knowing which rows were dropped and why matters: plain `filter` **cannot preserve that information**.
 
-Một cách thiết kế tốt hơn cho nhập liệu là dùng kiểu kết quả:
+A better ingestion design uses a result type:
 
 ```text
 parseAndValidate(raw)
@@ -204,19 +204,19 @@ parseAndValidate(raw)
        +-- Invalid(rowNumber, field, reason)
 ```
 
-Sau đó mới quyết định thu hai nhánh, hoặc chỉ lấy nhánh hợp lệ khi nghiệp vụ cho phép.
+Afterward, you can choose to collect both branches, or take only the valid branch when business rules allow.
 
-## 6. Dự án hoàn chỉnh: nhập đơn hàng, giữ cả dữ liệu hợp lệ và lỗi
+## 6. Complete Project: Importing Orders While Preserving Both Valid Data and Errors
 
-Ví dụ dưới đây dùng **Java 17+** để có `record` và `Collectors.teeing` (bản thân `teeing` có từ Java 12). `RawOrder` mô tả dữ liệu *đã được parser định dạng nguồn tách thành trường*. Nếu nguồn là CSV, phải dùng parser CSV hỗ trợ quote/escape; không được mặc định `line.split(",")` là đủ cho dữ liệu CSV thực tế.
+The example below uses **Java 17+** for `record` and `Collectors.teeing` (`teeing` itself has existed since Java 12). `RawOrder` represents data *already split into fields by a source-format parser*. If the source is CSV, use a CSV parser that supports quotes and escapes; never assume `line.split(",")` suffices for real-world CSV data.
 
-Chính sách ví dụ:
+Example policy:
 
-- `id`, `sku`: chuỗi ASCII có 1–20 ký tự gồm chữ cái, chữ số, dấu `-`; đầu/cuối được `strip()`, mã được chuẩn hóa chữ hoa.
-- `units`: 1–6 chữ số, giá trị phải lớn hơn 0.
-- `unitPrice`: không âm, có 1–9 chữ số phần nguyên và tối đa 2 chữ số thập phân.
-- `orderedOn`: ngày ISO thực sự tồn tại.
-- Mỗi bản ghi tạo đúng một `Parsed`: hoặc một `Order`, hoặc một `Reject` có số dòng và lý do.
+- `id`, `sku`: ASCII strings of 1–20 characters containing letters, digits, and `-`; leading/trailing whitespace is stripped via `strip()`, and codes are normalized to uppercase.
+- `units`: 1–6 digits, value must be greater than 0.
+- `unitPrice`: non-negative, 1–9 integer digits and at most 2 decimal places.
+- `orderedOn`: a real, existing ISO date.
+- Each record produces exactly one `Parsed`: either an `Order`, or a `Reject` with row number and reason.
 
 ```java
 import java.math.BigDecimal;
@@ -290,7 +290,7 @@ public final class CleanOrderImport {
 
     static Parsed parseRow(int rowNumber, RawOrder raw) {
         if (raw == null) {
-            return Parsed.invalid(rowNumber, "row", "Bản ghi null");
+            return Parsed.invalid(rowNumber, "row", "Null record");
         }
 
         String id = canonicalKey(raw.id());
@@ -301,31 +301,31 @@ public final class CleanOrderImport {
 
         if (id == null || !KEY.matcher(id).matches()) {
             return Parsed.invalid(
-                rowNumber, "id", "Mã đơn rỗng hoặc sai định dạng"
+                rowNumber, "id", "Order ID is empty or malformed"
             );
         }
         if (sku == null || !KEY.matcher(sku).matches()) {
             return Parsed.invalid(
-                rowNumber, "sku", "Mã sản phẩm sai định dạng"
+                rowNumber, "sku", "Malformed SKU"
             );
         }
         if (unitsText == null ||
                 !UNITS.matcher(unitsText).matches()) {
             return Parsed.invalid(
-                rowNumber, "units", "Số lượng không phải số nguyên hợp lệ"
+                rowNumber, "units", "Quantity is not a valid integer"
             );
         }
         int units = Integer.parseInt(unitsText);
         if (units <= 0) {
             return Parsed.invalid(
-                rowNumber, "units", "Số lượng phải lớn hơn 0"
+                rowNumber, "units", "Quantity must be greater than 0"
             );
         }
 
         if (priceText == null ||
                 !PRICE.matcher(priceText).matches()) {
             return Parsed.invalid(
-                rowNumber, "unitPrice", "Giá phải không âm, tối đa 2 số lẻ"
+                rowNumber, "unitPrice", "Price must be non-negative with at most 2 decimal places"
             );
         }
         BigDecimal unitPrice = new BigDecimal(priceText)
@@ -333,7 +333,7 @@ public final class CleanOrderImport {
 
         if (dateText == null || dateText.isEmpty()) {
             return Parsed.invalid(
-                rowNumber, "orderedOn", "Thiếu ngày đặt"
+                rowNumber, "orderedOn", "Missing order date"
             );
         }
         LocalDate orderedOn;
@@ -343,7 +343,7 @@ public final class CleanOrderImport {
             );
         } catch (DateTimeParseException ex) {
             return Parsed.invalid(
-                rowNumber, "orderedOn", "Ngày không tồn tại hoặc sai ISO"
+                rowNumber, "orderedOn", "Non-existent date or invalid ISO format"
             );
         }
 
@@ -411,59 +411,59 @@ public final class CleanOrderImport {
 }
 ```
 
-### Phân tích cách tổ chức code
+### Analysis of How the Code Is Structured
 
-1. **Chuẩn hóa diễn ra trước khi xác thực mã:** `" a-001 "` thành `"A-001"`, rồi kiểm tra định dạng.
-2. **Chỉ parse sau khi kiểm tra cấu trúc:** regex giới hạn chữ số, nên `Integer.parseInt` không tràn trong miền dữ liệu đã quy định.
-3. **Lỗi dữ liệu được biểu diễn thành giá trị:** một ngày sai tạo `Reject`, không làm ngoại lệ thoát ra rồi ngừng toàn bộ pipeline.
-4. **Mỗi hàng được parse một lần:** `IntStream.range` cung cấp chỉ số hàng, `mapToObj` tạo một `Parsed` cho mỗi đầu vào.
-5. **`teeing` thu hai đầu ra trong cùng terminal operation:** nhánh thứ nhất giữ `Order`, nhánh thứ hai giữ `Reject`. Hai downstream cùng nhận mỗi kết quả `Parsed`, nhưng không phải đọc hay parse lại nguồn hai lần.
-6. **Kết quả không sửa đổi được ở cấp danh sách:** `List.copyOf` ngăn thêm/xóa vào các danh sách báo cáo. `Order`, `Reject` là record chỉ chứa kiểu bất biến trong ví dụ; các giá trị `BigDecimal` và `LocalDate` cũng bất biến.
-7. **Doanh thu chỉ tính trên dữ liệu đã được chấp nhận:** `BigDecimal` tránh sai số dấu phẩy động nhị phân trong phép cộng tiền thập phân của bài tập.
+1. **Normalization happens before code validation:** `" a-001 "` becomes `"A-001"`, then format validation runs.
+2. **Parsing runs only after structural validation:** the regex bounds the digit count, so `Integer.parseInt` cannot overflow within the defined data domain.
+3. **Data errors are represented as values:** an invalid date produces a `Reject` rather than letting an exception escape and halt the entire pipeline.
+4. **Each row is parsed once:** `IntStream.range` supplies the row index, and `mapToObj` creates one `Parsed` per input.
+5. **`teeing` collects two outputs in a single terminal operation:** the first branch retains `Order`, and the second branch retains `Reject`. Both downstream collectors receive each `Parsed` result without reading or re-parsing the source twice.
+6. **Results are unmodifiable at the list level:** `List.copyOf` prevents adding or removing elements in the report lists. `Order` and `Reject` are records containing only immutable types in this example; `BigDecimal` and `LocalDate` values are also immutable.
+7. **Revenue is computed only on accepted data:** `BigDecimal` avoids binary floating-point rounding errors in the exercise's decimal monetary summation.
 
-Kết quả này **chưa xử lý trùng mã đơn với các hàng khác**, đối chiếu danh mục SKU, hạn mức giá theo chính sách hay ghi giao dịch xuống database. Đây là các quy tắc validation ở **cấp tập dữ liệu/hệ thống**, cần một bước riêng, không được suy ra từ việc từng hàng đã hợp lệ.
+This result **does not yet handle duplicate order IDs across rows**, SKU catalog lookups, policy price caps, or transactional database writes. Those are **dataset/system-level** validation rules that require a separate step and cannot be inferred from each individual row being valid.
 
-## 7. Không cần báo cáo lỗi? Lấy riêng dữ liệu hợp lệ một cách có chủ đích
+## 7. No Error Report Needed? Intentionally Extract Only Valid Data
 
-Trong những ứng dụng chỉ cần bỏ qua dữ liệu sai **theo hợp đồng nghiệp vụ**, có thể chuyển kết quả parse thành `Optional<T>` rồi dùng `flatMap(Optional::stream)` (Java 9+):
+In applications where invalid data only needs to be skipped **by business contract**, you can turn parse results into `Optional<T>` and use `flatMap(Optional::stream)` (Java 9+):
 
 ```java
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-// Giả sử hàm tryParse nhận String và trả Optional<Integer>.
+// Assume tryParse takes a String and returns Optional<Integer>.
 List<Integer> values = rawTexts.stream()
     .map(this::tryParse)
     .flatMap(Optional::stream)
     .collect(Collectors.toList());
 ```
 
-Đây là **mẫu minh họa** trong một lớp có `tryParse` và `rawTexts` được định nghĩa; không phải một chương trình độc lập. `Optional.empty()` đại diện cho không có giá trị, còn `flatMap` bỏ trường hợp đó khỏi kết quả.
+This is an **illustrative snippet** inside a class where `tryParse` and `rawTexts` are defined; it is not a standalone program. `Optional.empty()` represents the absence of a value, and `flatMap` drops that case from the result.
 
-Ưu điểm là pipeline ngắn, không phải dùng `null` để biểu diễn lỗi. Nhưng nhược điểm là **mất nguyên nhân dữ liệu không hợp lệ**. Nếu nhập lô đơn hàng, thanh toán hoặc hồ sơ cần truy vết, hãy giữ đối tượng lỗi như `Reject` thay vì âm thầm bỏ dòng.
+The advantage is a short pipeline without using `null` to represent failure. The downside is **losing the reason data was invalid**. If importing batches of orders, payments, or records that require audit trails, keep error objects like `Reject` instead of silently dropping rows.
 
-Trên Java 16+, `mapMulti` cũng có thể phát 0 hoặc 1 kết quả hợp lệ mà không cần tạo nhiều stream con. Chỉ dùng nó khi hình dạng đầu ra và khả năng truy vết phù hợp; một cách ngắn hơn không phải luôn là thiết kế tốt hơn.
+On Java 16+, `mapMulti` can also emit 0 or 1 valid results without creating many sub-streams. Use it only when the output shape and traceability fit; a shorter approach is not always a better design.
 
-## 8. Trùng khóa sau chuẩn hóa: phải xác định chính sách
+## 8. Duplicate Keys After Normalization: Define an Explicit Policy
 
-Làm sạch và chuẩn hóa có thể khiến **hai giá trị gốc khác nhau trở thành cùng một khóa**:
+Cleaning and normalization can cause **two different raw values to become the same key**:
 
 ```text
 " a-001 " ---> "A-001"
 "A-001"   ---> "A-001"
 ```
 
-Không được chỉ gọi `distinct()` hoặc `toMap(..., (first, second) -> first)` rồi kết luận bản ghi trùng đã được xử lý đúng. Đôi khi nghiệp vụ muốn giữ bản mới nhất, đôi khi phải từ chối **cả hai** để yêu cầu đối soát, đôi khi muốn gộp số lượng.
+Do not simply call `distinct()` or `toMap(..., (first, second) -> first)` and assume duplicates have been handled properly. Sometimes the business wants to keep the newest record, sometimes it must reject **both** for reconciliation, and sometimes it wants to merge quantities.
 
-Nếu muốn phát hiện những mã đơn xuất hiện nhiều lần trong các `Order` đã parse:
+If you want to detect order IDs that appear multiple times among parsed `Order` objects:
 
 ```java
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-// orders là List<Order>, Order.id() đã được chuẩn hóa.
+// orders is a List<Order> whose Order.id() values are already normalized.
 Map<String, Long> frequency = orders.stream()
     .collect(Collectors.groupingBy(
         Order::id, Collectors.counting()
@@ -474,13 +474,13 @@ List<Order> onlyUniqueIds = orders.stream()
     .collect(Collectors.toList());
 ```
 
-Đây là mẫu **loại tất cả bản ghi có mã trùng** khỏi danh sách chấp nhận. Trong ứng dụng thật, nên tạo **bản ghi lỗi kèm vị trí dòng của từng bản ghi trùng**, không đơn thuần loại chúng rồi mất lý do. `Order` trong ví dụ đầy đủ không lưu chỉ số dòng; có thể chuyển sang lưu chỉ số cùng kết quả parse hoặc đưa vào một DTO nhập liệu có metadata.
+This pattern **excludes all records with duplicate IDs** from the accepted list. In a real application, you should create **error records including the row position of each duplicate**, rather than merely dropping them and losing the reason. `Order` in the full example does not store row index; you can store the index alongside the parse result or place it in an import DTO with metadata.
 
-Nếu chọn `toMap`, overload không có merger có thể ném `IllegalStateException` khi khóa trùng. Merger phải được chọn theo nghiệp vụ, không phải chỉ để làm ngoại lệ biến mất. Với parallel stream, merger còn cần có ngữ nghĩa thích hợp khi cách kết hợp thay đổi.
+If you choose `toMap`, the overload without a merge function throws `IllegalStateException` on duplicate keys. The merge function must be chosen based on business semantics, not merely to make the exception disappear. With parallel streams, the merge function must also have appropriate semantics when combination order changes.
 
-## 9. Chuẩn hóa phải ổn định, có thể tái lập và gần với idempotent
+## 9. Normalization Must Be Stable, Reproducible, and Nearly Idempotent
 
-Một hàm chuẩn hóa tốt thường có tính **idempotent**: chuẩn hóa lần nữa không đổi kết quả đã chuẩn hóa.
+A good normalization function is typically **idempotent**: normalizing again does not change an already-normalized result.
 
 ```java
 import java.util.Locale;
@@ -494,62 +494,62 @@ String twice = normalize(once);
 System.out.println(once.equals(twice)); // true
 ```
 
-Điều này giúp pipeline dễ kiểm thử, tránh phụ thuộc số lần dữ liệu đi qua một bước ETL. Tuy nhiên, idempotence của chuẩn hóa **không bảo đảm** toàn bộ nhập liệu idempotent: lưu cùng đơn hàng hai lần có thể tạo hai giao dịch nếu không có khóa idempotency hoặc ràng buộc duy nhất tại nơi ghi.
+This makes the pipeline easy to test and prevents dependence on how many times data passes through an ETL step. However, normalization idempotence **does not guarantee** the entire import is idempotent: saving the same order twice can still create two transactions without an idempotency key or a uniqueness constraint at the write layer.
 
-Các hàm `parseRow` và `canonicalKey` trong dự án không ghi log ra biến chia sẻ, không gọi mạng và không phụ thuộc thời điểm. Vì thế, trên cùng đầu vào và cùng quy tắc, chúng cho cùng kết quả. Quy tắc có thể phụ thuộc **phiên bản danh mục, đơn vị tiền, múi giờ hoặc ngôn ngữ**; khi có, cần truyền chúng như dữ liệu cấu hình rõ ràng và lưu dấu phiên bản để tái lập kết quả.
+The `parseRow` and `canonicalKey` functions in the project do not log to shared variables, make network calls, or depend on the current time. Therefore, given the same input and the same rules, they produce the same output. Rules may depend on **catalog versions, currencies, time zones, or languages**; when they do, pass them explicitly as configuration data and record version markers to reproduce results.
 
-## 10. Nguyên tắc an toàn khi muốn chuyển sang parallel stream
+## 10. Safety Rules When Switching to a Parallel Stream
 
-Một pipeline làm sạch dữ liệu **có thể** chạy song song khi từng phần tử độc lập, nguồn có thể chia và các lambda tuân thủ hợp đồng Stream. Nhưng xử lý song song có thể không nhanh hơn nếu mỗi bản ghi đơn giản hoặc phần lớn thời gian chờ I/O.
+A data-cleaning pipeline **can** run in parallel when elements are independent, the source is splittable, and lambdas obey the Stream contract. Yet parallel processing may not be faster if each record is trivial or most time is spent waiting on I/O.
 
 ```java
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-// Minh họa trong phạm vi có parseRow và rawRows như chương trình trên.
+// Illustrated in a scope with parseRow and rawRows as in the program above.
 List<Parsed> results = IntStream.range(0, rawRows.size())
     .parallel()
     .mapToObj(i -> parseRow(i + 1, rawRows.get(i)))
     .collect(Collectors.toList());
 ```
 
-Điều kiện để kết quả đúng:
+Conditions for correct results:
 
-- **Không sửa nguồn** trong lúc stream duyệt; tránh thêm/xóa phần tử của `rawRows` khi tác vụ đang chạy.
-- **Không ghi vào một `ArrayList` bên ngoài** trong `parallel().forEach(list::add)`; dùng `collect` hoặc thiết kế result riêng.
-- **Không để parser ghi vào bộ đếm/chú thích dùng chung có thể thay đổi**. Nếu cần thống kê lỗi, tổng hợp từ `Parsed` sau khi parse hoặc dùng collector hợp lệ.
-- **Không dựa vào thứ tự gọi lambda**. Nếu cần số dòng, lấy chỉ số từ nguồn có thứ tự như `IntStream.range` và gắn chỉ số vào result.
-- **Không dùng exception để điều khiển lỗi có thể dự đoán** một cách tùy tiện. Dùng kết quả thành công/thất bại để người đọc hiểu điều kiện loại bỏ.
-- **Đo hiệu năng trước khi bật song song**. Với đầu vào nhỏ, chi phí chia và kết hợp tác vụ thường lớn hơn lợi ích.
+- **Do not modify the source** while the stream iterates; avoid adding or removing elements of `rawRows` while the task runs.
+- **Do not write to an external `ArrayList`** inside `parallel().forEach(list::add)`; use `collect` or design a proper result type.
+- **Do not let the parser write to shared mutable counters or annotations**. If error statistics are needed, aggregate them from `Parsed` afterward or use a compliant collector.
+- **Do not rely on lambda invocation order**. If row numbers are needed, derive indices from an ordered source like `IntStream.range` and attach the index to the result.
+- **Do not use exceptions as arbitrary control flow** for predictable errors. Use success/failure result values so readers understand rejection conditions.
+- **Measure performance before enabling parallelism**. For small inputs, task-splitting and combining overhead often outweighs any gain.
 
-Nguồn `List` có thứ tự và `Collectors.toList()` giữ encounter order trong kết quả, kể cả khi thực thi song song; **thứ tự chạy thực tế của các lambda** không cần giống thứ tự đó. Nếu đổi sang collector `UNORDERED` hoặc nguồn không có encounter order, phải đánh giá lại hợp đồng thứ tự của kết quả.
+A `List` source is ordered, and `Collectors.toList()` preserves encounter order in the result even during parallel execution; the **actual execution order of lambdas** does not need to match that order. If you switch to an `UNORDERED` collector or an unordered source, re-evaluate the result ordering contract.
 
-## 11. Những trường hợp không nên âm thầm “sửa cho hợp lệ”
+## 11. Cases Where You Should Not Silently "Fix to Make Valid"
 
-Không phải dữ liệu sai nào cũng có thể được sửa tự động:
+Not all bad data can be repaired automatically:
 
-| Dữ liệu | Rủi ro của việc tự sửa | Khuyến nghị |
+| Data | Risk of Auto-Fixing | Recommendation |
 | --- | --- | --- |
-| Ngày `2026-02-30` | Chuyển sang tháng sau có thể đổi thời điểm nghiệp vụ. | Từ chối và yêu cầu người nhập xác nhận. |
-| Giá `1.234,50` | Cách dùng dấu `.`/`,` phụ thuộc locale; parse sai có thể đổi giá trị. | Xác định locale/định dạng hợp đồng trước khi chuyển. |
-| Giá `12.345` với thang 2 chữ số | Làm tròn tự động có thể làm thay đổi tiền phải thu. | Dùng quy tắc làm tròn được phê duyệt hoặc từ chối. |
-| Số lượng âm `-3` | Có thể là hàng trả lại, không phải lỗi nhập liệu. | Phân biệt đơn đặt hàng với giao dịch hoàn trả. |
-| Email/tên người có dấu | Loại dấu hoặc chuyển hoa có thể gộp nhầm danh tính. | Chuẩn hóa theo trường và chính sách định danh. |
-| Mã đơn trùng | Bỏ một bản ghi có thể mất giao dịch thật. | Dùng chính sách đối soát và khóa duy nhất. |
-| Thiếu mã định danh | Gán ID giả không kiểm soát gây lỗi truy vết. | Dùng cơ chế sinh ID có hợp đồng hoặc báo lỗi. |
+| Date `2026-02-30` | Shifting into the next month can alter business timing. | Reject and ask the submitter to confirm. |
+| Price `1.234,50` | Usage of `.`/`,` depends on locale; mis-parsing changes the amount. | Define the locale/format contract before converting. |
+| Price `12.345` with 2-decimal scale | Automatic rounding can change the amount due. | Apply an approved rounding rule or reject. |
+| Negative quantity `-3` | May represent returned goods rather than a typo. | Distinguish sales orders from return transactions. |
+| Accented email/person names | Stripping accents or uppercasing can wrongly merge identities. | Normalize per field and identity policy. |
+| Duplicate order ID | Dropping one record may lose a real transaction. | Use a reconciliation policy and uniqueness keys. |
+| Missing identifier | Generating uncontrolled dummy IDs breaks traceability. | Use a contracted ID generator or report an error. |
 
-Một pipeline tốt cần phân biệt **“có thể chuẩn hóa mà không đổi nghĩa”** với **“không đủ thông tin để tự sửa”**. Sự phân biệt này thường quan trọng hơn việc viết được bao nhiêu phép `map`.
+A good pipeline distinguishes **"can normalize without changing meaning"** from **"insufficient information to auto-fix"**. That distinction is often more important than how many `map` calls you can write.
 
-## 12. Thu thập thống kê chất lượng dữ liệu
+## 12. Collecting Data-Quality Metrics
 
-Nếu có cả kết quả hợp lệ và kết quả lỗi, có thể tính những chỉ số phục vụ giám sát chất lượng nhập liệu:
+When both valid results and error results are preserved, you can compute metrics to monitor ingestion quality:
 
 ```java
 import java.util.Map;
 import java.util.stream.Collectors;
 
-// report là ImportReport được tạo ở ví dụ hoàn chỉnh.
+// report is the ImportReport produced in the complete example.
 Map<String, Long> rejectedByField = report.rejected().stream()
     .collect(Collectors.groupingBy(
         Reject::field,
@@ -557,53 +557,53 @@ Map<String, Long> rejectedByField = report.rejected().stream()
     ));
 
 System.out.println(rejectedByField);
-// Ví dụ: {units=1, unitPrice=1, orderedOn=1}
+// Example: {units=1, unitPrice=1, orderedOn=1}
 ```
 
-Ngoài số lượng lỗi theo trường, báo cáo có thể ghi tổng số hàng nhận, số hàng đạt, tỷ lệ từ chối, tần suất trùng khóa, thời gian parse và nguyên nhân phổ biến. **Đừng coi số hàng được `filter` giữ lại là số lượng dữ liệu sạch** nếu bước validation chưa kiểm tra hết các ràng buộc nghiệp vụ.
+Beyond per-field error counts, reports can track total rows received, accepted rows, rejection rate, duplicate-key frequency, parse duration, and common reasons. **Do not treat the row count retained by `filter` as the clean-data count** if validation has not yet checked all business constraints.
 
-Khi xuất thông tin lỗi, tránh đưa toàn bộ dữ liệu thô chứa thông tin cá nhân, token hoặc thông tin thanh toán vào log công khai. Chỉ ghi những trường cần thiết, cân nhắc che dữ liệu nhạy cảm, phân quyền đọc và chính sách lưu giữ.
+When exporting error details, avoid dumping entire raw records containing personal data, tokens, or payment details into public logs. Log only necessary fields, and consider masking sensitive data, read permissions, and retention policies.
 
-## 13. Kiểm thử dữ liệu biên và thuộc tính bất biến
+## 13. Testing Boundary Data and Invariants
 
-Một bộ kiểm thử tối thiểu nên bao gồm:
+A minimal test suite should include:
 
-| Trường hợp | Kỳ vọng |
+| Case | Expectation |
 | --- | --- |
-| Chuỗi đầu/cuối có khoảng trắng | Được làm sạch theo chính sách. |
-| Mã khác hoa/thường | Cùng dạng chuẩn hóa nếu quy tắc định danh cho phép. |
-| Trường bắt buộc là `null` hoặc rỗng | Từ chối có tên trường. |
-| Số lượng `0` hoặc âm | Bị từ chối theo hợp đồng đơn hàng. |
-| Số lượng quá dài | Bị từ chối trước `parseInt`. |
-| Giá âm, sai dấu thập phân, có quá hai chữ số lẻ | Bị từ chối hoặc xử lý theo chính sách rõ ràng. |
-| Ngày không tồn tại hoặc sai ISO | Bị từ chối có lý do. |
-| Hai mã trùng sau chuẩn hóa | Có chính sách trùng khóa rõ ràng ở cấp lô. |
-| Lô rỗng | Danh sách hợp lệ và lỗi đều rỗng. |
-| Cùng dữ liệu xử lý lại | Cùng tập bản ghi và lý do lỗi, không phụ thuộc lịch thực thi. |
+| Strings with leading/trailing whitespace | Cleaned according to policy. |
+| Codes differing in case | Same normalized form if the identifier rule allows. |
+| Required field is `null` or blank | Rejected with the field name. |
+| Quantity `0` or negative | Rejected per the order contract. |
+| Overlong quantity | Rejected before `parseInt`. |
+| Negative price, wrong decimal separator, or >2 decimal places | Rejected or handled per explicit policy. |
+| Non-existent or non-ISO date | Rejected with reason. |
+| Two IDs colliding after normalization | Handled by an explicit batch-level duplicate-key policy. |
+| Empty batch | Both accepted and rejected lists are empty. |
+| Re-processing the same data | Same accepted records and error reasons, independent of execution schedule. |
 
-Với mỗi đầu vào có `n` hàng, nếu mô hình kết quả chỉ có hai trạng thái và mỗi hàng được xử lý đúng một lần, có bất biến:
+For every input of `n` rows, if the result model has only two states and each row is processed exactly once, this invariant holds:
 
 \[
 \text{acceptedCount} + \text{rejectedCount} = n
 \]
 
-Trong bài tập, bất biến này có thể kiểm tra bằng `assert` hoặc ngoại lệ thử nghiệm. Nếu một hàng có **nhiều lỗi** và hệ thống chọn lưu tất cả lỗi, công thức số lỗi có thể **lớn hơn** số bản ghi bị từ chối; khi đó phải phân biệt *số hàng lỗi* và *số lỗi phát hiện*.
+In exercises, this invariant can be checked with `assert` or test assertions. If one row has **multiple errors** and the system chooses to store all of them, the total error count can be **greater than** the rejected record count; in that case, distinguish *rejected row count* from *detected error count*.
 
-Nếu dùng parallel stream, kết quả vẫn phải cùng tập bản ghi được chấp nhận và từ chối. Không bắt buộc thứ tự thực thi lambda giống nhau, nhưng **chỉ số hàng và lý do lỗi** phải được gắn với đúng đầu vào.
+When using a parallel stream, the result must still yield the same set of accepted and rejected records. Lambda execution order does not need to match, but **row indices and error reasons** must stay bound to the right input.
 
-## 14. Hiệu năng và tài nguyên của pipeline làm sạch
+## 14. Performance and Resource Considerations for Cleaning Pipelines
 
-Chi phí chính thường phụ thuộc vào **định dạng nguồn và cách kiểm tra**, không phải chỉ tên phương thức Stream:
+Main costs usually depend on **source format and validation logic**, not merely Stream method names:
 
-- **Regex:** biên dịch trước `Pattern` để tránh biên dịch lại biểu thức ở từng bản ghi; tránh regex quá phức tạp có thể gây backtracking tốn kém trên dữ liệu không tin cậy.
-- **Chuẩn hóa Unicode:** có chi phí tạo chuỗi mới; chỉ áp dụng cho những trường thật sự cần.
-- **Parse ngày và số tiền:** dùng định dạng cụ thể, không tạo formatter hoặc cấu hình locale tùy tiện cho từng phần tử.
-- **Bộ nhớ:** `toList` giữ toàn bộ kết quả; nếu lô quá lớn, cân nhắc chia batch và cơ chế lưu/cách ly lỗi có kiểm soát.
-- **Lazy và ngắn mạch:** `map`/`filter` chỉ chạy khi terminal operation yêu cầu; `findFirst` hoặc `limit` có thể không xử lý tất cả bản ghi.
-- **I/O:** `Files.lines` phải được đóng bằng `try-with-resources`. Terminal operation không tự thay thế trách nhiệm đóng stream.
-- **Song song:** với dữ liệu đủ lớn và parser thuần, có thể thử; khi công việc phụ thuộc DB/network, cần giới hạn kết nối và điều phối tác vụ riêng.
+- **Regex:** precompile `Pattern` instances to avoid recompiling per record; avoid overly complex regexes that can trigger expensive backtracking on untrusted input.
+- **Unicode normalization:** allocates new strings; apply it only to fields that genuinely need it.
+- **Date and currency parsing:** use explicit formats rather than creating formatters or arbitrary locale configs per element.
+- **Memory:** `toList` retains all results; for very large batches, consider chunking into batches and controlled error storage/quarantine.
+- **Laziness and short-circuiting:** `map`/`filter` only run when requested by a terminal operation; `findFirst` or `limit` may not process all records.
+- **I/O:** `Files.lines` must be closed with `try-with-resources`. A terminal operation does not replace closing the stream.
+- **Parallelism:** worth benchmarking on sufficiently large data with pure parsers; when work involves DB or network calls, bound concurrency and coordinate tasks separately.
 
-Ví dụ xử lý các dòng tệp khi chỉ cần đọc một lần:
+Example of processing file lines when reading once:
 
 ```java
 import java.io.IOException;
@@ -624,54 +624,54 @@ static List<String> nonEmptyLines(Path path) throws IOException {
 }
 ```
 
-Đoạn này chỉ làm sạch **dòng văn bản**; không giả vờ rằng mỗi dòng đã được parse/validate thành đơn hàng. Với CSV có dấu ngoặc kép, xuống dòng bên trong trường hoặc encoding phức tạp, phải dùng parser phù hợp trước khi chuẩn hóa trường. Không đưa `Files.lines` vào pipeline vô hạn hay giả định tệp không thể thay đổi khi đang đọc.
+This snippet only cleans **text lines**; do not pretend each line has already been parsed and validated into an order. For CSV with quoted fields, embedded newlines, or complex encodings, use an appropriate parser before normalizing fields. Do not feed `Files.lines` into an infinite pipeline or assume the file cannot change while being read.
 
-## 15. Những lỗi thường gặp
+## 15. Common Pitfalls
 
-| Sai lầm | Hậu quả | Cách làm phù hợp |
+| Mistake | Consequence | Better Approach |
 | --- | --- | --- |
-| `map(Integer::parseInt)` trực tiếp trên dữ liệu nhập thô | Một chuỗi lỗi có thể ném `NumberFormatException` làm hỏng lô. | Xác thực định dạng, phạm vi và biểu diễn lỗi theo bản ghi. |
-| `filter(x -> isValid(x))` rồi bỏ hết bản ghi sai | Không biết dòng nào sai và vì sao. | Dùng `Parsed`/`Reject` hoặc mô hình `Result`. |
-| Xóa mọi khoảng trắng và dấu Unicode | Có thể thay đổi tên, khóa hoặc dữ liệu có nghĩa. | Chuẩn hóa riêng theo trường và hợp đồng. |
-| Dùng `double` để giữ tiền chính xác | Có thể có sai số biểu diễn. | Dùng `BigDecimal` hoặc đơn vị nguyên nhỏ nhất khi thích hợp. |
-| Regex ngày đúng thì cho là ngày hợp lệ | Có thể chấp nhận ngày không tồn tại. | Parse nghiêm ngặt bằng API ngày/giờ. |
-| Gộp mã trùng bằng `distinct()` mà không đối soát | Có thể mất bản ghi hợp lệ của nghiệp vụ. | Xây chính sách phát hiện và xử lý trùng khóa. |
-| Ghi vào `ArrayList` ngoài trong `parallel().forEach` | Race, thiếu dữ liệu hoặc sai thứ tự. | Thu bằng `collect` hoặc collector đúng hợp đồng. |
-| Dùng `peek` để ghi log cho từng bản ghi | Một số pipeline có thể tối ưu hoặc ngắn mạch, không gọi mọi action. | Thu kết quả và lỗi một cách tường minh. |
-| Giả định `List.copyOf` sao chép sâu | Object mutable bên trong vẫn có thể thay đổi. | Dùng kiểu giá trị bất biến hoặc sao chép cấp phần tử. |
-| Không có bộ kiểm thử dữ liệu rỗng hoặc biên | Lỗi chỉ xuất hiện khi nhận dữ liệu thật. | Kiểm thử trường thiếu, lỗi số/ngày, trùng và lô rỗng. |
+| `map(Integer::parseInt)` directly on raw input | A single bad string throws `NumberFormatException` and aborts the batch. | Validate format and range, and represent errors per record. |
+| `filter(x -> isValid(x))` discarding all bad records | No visibility into which rows failed or why. | Use `Parsed`/`Reject` or a `Result` model. |
+| Stripping all whitespace and Unicode diacritics | Can alter names, keys, or meaningful data. | Normalize per field according to contract. |
+| Using `double` for exact money | Introduces representation rounding errors. | Use `BigDecimal` or smallest integer currency units where appropriate. |
+| Treating a matching date regex as a valid date | Can accept non-existent calendar dates. | Parse strictly using date/time APIs. |
+| Deduplicating keys with `distinct()` without reconciliation | Can silently lose valid business records. | Build a duplicate-key detection and handling policy. |
+| Writing to an external `ArrayList` in `parallel().forEach` | Races, missing data, or corrupted order. | Collect via `collect` or a compliant collector. |
+| Using `peek` to log every record | Some pipelines may optimize or short-circuit and skip actions. | Collect results and errors explicitly. |
+| Assuming `List.copyOf` deep-copies elements | Mutable objects inside can still be mutated. | Use immutable value types or copy at element level. |
+| Lacking tests for empty or boundary data | Bugs surface only on real production data. | Test missing fields, number/date errors, duplicates, and empty batches. |
 
-## 16. Bài tập thực hành
+## 16. Practice Exercises
 
-**Bài 1 — Làm sạch có kiểm soát.** Cho `List<String>` chứa `"  SKU-01 "`, `"sku-01"`, `null`, `" SKU 02 "`. Chuẩn hóa theo quy tắc mã SKU chỉ chứa chữ, số và dấu `-`. Giá trị nào hợp lệ? Giá trị nào phải từ chối? Vì sao `"SKU 02"` không nên tự xóa khoảng trắng giữa để biến thành mã khác nếu nghiệp vụ không cho phép?
+**Exercise 1 — Controlled cleaning.** Given a `List<String>` containing `"  SKU-01 "`, `"sku-01"`, `null`, and `" SKU 02 "`. Normalize under the rule that SKUs contain only letters, digits, and `-`. Which values are valid? Which must be rejected? Why should `"SKU 02"` not automatically have its inner space removed to become a different code unless the business allows it?
 
-**Bài 2 — Bảo toàn lỗi.** Sửa pipeline `map(String::strip).filter(...).map(Integer::parseInt)` để mỗi phần tử tạo một `Result<Integer, Error>` (hoặc hai record tương đương), với lỗi bao gồm số dòng. Không để một dòng sai làm ngừng cả lô.
+**Exercise 2 — Preserving errors.** Refactor the pipeline `map(String::strip).filter(...).map(Integer::parseInt)` so each element produces a `Result<Integer, Error>` (or two equivalent records), with the error including the row number. Do not let a single bad row halt the batch.
 
-**Bài 3 — Kiểm tra ngày.** Dùng `DateTimeFormatter.ISO_LOCAL_DATE` xử lý `"2026-02-28"`, `"2026-02-29"`, `"2026-02-30"`. Dự đoán những giá trị được chấp nhận và giải thích năm nhuận.
+**Exercise 3 — Date validation.** Use `DateTimeFormatter.ISO_LOCAL_DATE` to process `"2026-02-28"`, `"2026-02-29"`, and `"2026-02-30"`. Predict which values are accepted and explain leap years.
 
-**Bài 4 — Tiền tệ.** Cho các chuỗi giá `"12.30"`, `"0"`, `"5.123"`, `"-1.00"`. Viết validator cho hợp đồng không âm, tối đa hai số thập phân; tính tổng các giá hợp lệ bằng `BigDecimal` và cho biết vì sao không nên dùng `double`.
+**Exercise 4 — Currency.** Given price strings `"12.30"`, `"0"`, `"5.123"`, and `"-1.00"`. Write a validator for a non-negative contract with at most two decimal places; sum the valid prices with `BigDecimal` and explain why `double` should not be used.
 
-**Bài 5 — Bản ghi trùng.** Sau chuẩn hóa, hai đơn cùng ID `A-001`. Dùng `groupingBy(Order::id, counting())` phát hiện ID trùng, đề xuất chính sách xử lý và cách giữ số dòng lỗi.
+**Exercise 5 — Duplicate records.** After normalization, two orders share ID `A-001`. Use `groupingBy(Order::id, counting())` to detect duplicate IDs, propose a handling policy, and explain how to retain error row numbers.
 
-**Bài 6 — Báo cáo chất lượng.** Với ví dụ `CleanOrderImport`, đếm tổng số bản ghi, số hợp lệ, số từ chối và phân nhóm `Reject` theo tên trường. Xác nhận bất biến `accepted + rejected = input.size()`.
+**Exercise 6 — Quality report.** Using the `CleanOrderImport` example, count total records, valid records, and rejected records, and group `Reject` entries by field name. Verify the invariant `accepted + rejected = input.size()`.
 
-**Bài 7 — Parallel stream.** Chạy cùng hàm parse trên `IntStream.range(...).parallel()`. So sánh kết quả theo số dòng giữa bản tuần tự và song song. Giải thích vì sao dùng `AtomicInteger` để cấp số dòng theo thứ tự gọi lambda là không phù hợp.
+**Exercise 7 — Parallel stream.** Run the same parse function on `IntStream.range(...).parallel()`. Compare results by row number between sequential and parallel runs. Explain why using an `AtomicInteger` to assign row numbers in lambda-call order is inappropriate.
 
-**Bài 8 — Mở rộng dự án.** Thêm kiểm tra mã SKU trong một danh mục hợp lệ, phát hiện giá vượt hạn mức và tách lỗi có thể sửa với lỗi cần chặn. Chỉ ghi cơ sở dữ liệu các đơn đã thỏa mọi quy tắc cần thiết, có cơ chế idempotency và đối soát để không nhập trùng khi chạy lại.
+**Exercise 8 — Project extension.** Add validation for SKUs against an allowed catalog, detect prices exceeding a cap, and separate fixable errors from blocking errors. Write to the database only orders satisfying all required rules, with idempotency and reconciliation mechanisms to prevent duplicate imports on rerun.
 
-## 17. Checklist trước khi dùng trong ứng dụng
+## 17. Pre-Production Checklist
 
-- [ ] Có hợp đồng về dữ liệu bắt buộc, kiểu số, đơn vị, định dạng ngày và locale.
-- [ ] Chỉ chuẩn hóa trường được nghiệp vụ cho phép, không tự làm mất nghĩa.
-- [ ] Kiểm tra hình dạng **và** miền giá trị trước khi chuyển kiểu.
-- [ ] Mỗi bản ghi có kết quả thành công hoặc lỗi có vị trí/nguyên nhân rõ ràng.
-- [ ] Không âm thầm bỏ bản ghi lỗi nếu quy trình cần truy vết.
-- [ ] Có chính sách xử lý khóa trùng và quy tắc ở cấp tập dữ liệu.
-- [ ] Không dùng trạng thái mutable chia sẻ trong các lambda song song.
-- [ ] Đã kiểm thử lô rỗng, trường `null`, giá trị biên, lỗi số/ngày và lô lớn.
-- [ ] Các báo cáo tiền tệ dùng kiểu số và quy tắc làm tròn thích hợp.
-- [ ] Có chính sách bảo vệ dữ liệu nhạy cảm trong thông báo lỗi và log.
-- [ ] Nếu nguồn là I/O, stream được đóng đúng vòng đời.
-- [ ] Các thay đổi về hiệu năng được đo mà không phá vỡ ngữ nghĩa xử lý.
+- [ ] Contracts exist for required fields, numeric types, units, date formats, and locale.
+- [ ] Only fields permitted by business rules are normalized, without silently altering meaning.
+- [ ] Both shape **and** value range are validated before parsing.
+- [ ] Every record yields either a success result or an error with clear location/reason.
+- [ ] Bad records are not silently dropped if the process requires traceability.
+- [ ] Policies exist for duplicate keys and dataset-level rules.
+- [ ] No shared mutable state is used inside parallel lambdas.
+- [ ] Empty batches, `null` fields, boundary values, number/date errors, and large batches are tested.
+- [ ] Monetary reports use appropriate numeric types and rounding rules.
+- [ ] Policies protect sensitive data in error messages and logs.
+- [ ] If the source is I/O-based, the stream is properly closed via its lifecycle.
+- [ ] Performance optimizations are benchmarked without breaking processing semantics.
 
-**Ghi nhớ:** Với dữ liệu thực tế, pipeline `map`–`filter`–`collect` chỉ là công cụ; điều quyết định chất lượng là **hợp đồng chuẩn hóa, kiểm tra tính hợp lệ và khả năng giải thích mỗi bản ghi bị loại**. Hãy tách việc làm sạch khỏi quy tắc nghiệp vụ, dùng kiểu số/ngày chính xác, giữ kết quả lỗi thay vì xóa dấu vết, rồi mới tối ưu hoặc chạy song song. Một bộ dữ liệu “sạch” phải **đáng tin và có thể đối soát**, không đơn thuần là danh sách còn lại sau `filter`.
+**Key takeaway:** For real-world data, a `map`–`filter`–`collect` pipeline is just a tool; what determines quality is **your normalization contract, validation checks, and ability to explain every rejected record**. Separate data cleaning from business rules, use accurate numeric and date types, preserve error outcomes instead of erasing trails, and only then optimize or parallelize. A "clean" dataset must be **trustworthy and reconcilable**, not merely whatever happened to survive a `filter`.

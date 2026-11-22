@@ -1,6 +1,6 @@
-# Phân biệt `String.valueOf(Object)` và `String.valueOf(char[])` khi truyền `null`
+# Distinguishing `String.valueOf(Object)` and `String.valueOf(char[])` When Passing `null`
 
-Cùng một lời gọi `String.valueOf`, cùng dữ liệu `null`, nhưng **kiểu đối số ở thời điểm biên dịch** quyết định overload nào được gọi. Đây là một bẫy dễ gặp trong Java:
+The same `String.valueOf` call, with the same `null` data, yet the **argument type at compile time** determines which overload is invoked. This is a common trap in Java:
 
 ```java
 String a = String.valueOf((Object) null); // "null"
@@ -8,27 +8,27 @@ String b = String.valueOf((char[]) null); // NullPointerException
 String c = String.valueOf(null);          // NullPointerException
 ```
 
-Trong ba câu lệnh trên, `a` được gán thành công. Hai câu lệnh còn lại biên dịch được nhưng **ném `NullPointerException` ở runtime**. Điều này xuất phát từ *overload resolution* của Java chứ không phải do giá trị `null` thay đổi.
+Among the three statements above, `a` is assigned successfully. The other two statements compile, but **throw a `NullPointerException` at runtime**. This comes from Java's *overload resolution*, not because the `null` value changes.
 
-## 1. Hai overload quan trọng của `String.valueOf`
+## 1. Two Important Overloads of `String.valueOf`
 
-`String` có nhiều phương thức static tên `valueOf` để đổi dữ liệu thành chuỗi. Khi truyền `null`, hai overload nhận kiểu tham chiếu dưới đây là trọng tâm:
+`String` has several static methods named `valueOf` to convert data to a string. When passing `null`, the two overloads accepting reference types below are the focus:
 
 ```java
 public static String valueOf(Object obj);
 public static String valueOf(char[] data);
 ```
 
-Các overload dành cho `boolean`, `char`, `int`, `long`, `float` và `double` nhận **kiểu nguyên thủy**. Giá trị `null` không thể chuyển sang kiểu nguyên thủy để gọi trực tiếp, nên chúng không cạnh tranh khi đối số là literal `null`.
+The overloads for `boolean`, `char`, `int`, `long`, `float`, and `double` accept **primitive types**. The `null` value cannot be converted to a primitive type for direct invocation, so they do not compete when the argument is the `null` literal.
 
-| Overload | Với đối số khác `null` | Với `null` |
+| Overload | With a non-`null` argument | With `null` |
 | --- | --- | --- |
-| `valueOf(Object obj)` | Trả về kết quả `obj.toString()` | Trả về **chuỗi gồm bốn ký tự `"null"`** |
-| `valueOf(char[] data)` | Tạo chuỗi gồm nội dung các ký tự của mảng | Ném **`NullPointerException`** |
+| `valueOf(Object obj)` | Returns the result of `obj.toString()` | Returns the **four-character string `"null"`** |
+| `valueOf(char[] data)` | Creates a string containing the characters of the array | Throws **`NullPointerException`** |
 
-### `valueOf(Object)` xử lý `null` đặc biệt
+### `valueOf(Object)` handles `null` specially
 
-Về mặt ý nghĩa, overload `Object` hoạt động tương tự:
+Conceptually, the `Object` overload behaves similarly to:
 
 ```java
 static String objectToText(Object obj) {
@@ -36,7 +36,7 @@ static String objectToText(Object obj) {
 }
 ```
 
-Đây là **mã minh họa hành vi**, không phải bản sao mã nguồn JDK. Khi đối số là `null`, kết quả là đối tượng `String` mang nội dung chữ `null`, **không phải tham chiếu `null`**.
+This is **illustrative behavior code**, not a copy of the JDK source code. When the argument is `null`, the result is a `String` object containing the text `null`, **not a `null` reference**.
 
 ```java
 String result = String.valueOf((Object) null);
@@ -44,9 +44,9 @@ System.out.println(result.equals("null")); // true
 System.out.println(result == null);        // false
 ```
 
-### `valueOf(char[])` cần một mảng thật
+### `valueOf(char[])` requires a real array
 
-Overload nhận `char[]` dùng các phần tử của mảng ký tự để tạo một `String` mới:
+The overload taking `char[]` uses the elements of the character array to create a new `String`:
 
 ```java
 char[] letters = {'J', 'a', 'v', 'a'};
@@ -54,50 +54,50 @@ String text = String.valueOf(letters);
 System.out.println(text); // Java
 ```
 
-Nếu `data` là `null`, không có mảng để đọc. Phương thức **không tự chuyển `null` thành chữ `"null"`**, mà ném `NullPointerException`. Truyền mảng rỗng `new char[0]` thì hợp lệ và tạo chuỗi rỗng `""`: mảng rỗng khác với tham chiếu mảng `null`.
+If `data` is `null`, there is no array to read. The method **does not convert `null` into the text `"null"`**, but throws `NullPointerException`. Passing an empty array `new char[0]` is valid and creates an empty string `""`: an empty array is different from a `null` array reference.
 
-## 2. Vì sao `String.valueOf(null)` gọi overload `char[]`?
+## 2. Why Does `String.valueOf(null)` Call the `char[]` Overload?
 
-Java quyết định phương thức nào được gọi dựa trên **kiểu của biểu thức đối số tại thời điểm biên dịch**, theo các quy tắc lựa chọn overload của ngôn ngữ Java.
+Java decides which method is called based on the **type of the argument expression at compile time**, following the overload selection rules of the Java language.
 
-Với lời gọi:
+With the call:
 
 ```java
 String.valueOf(null)
 ```
 
-Literal `null` có thể được dùng ở vị trí đối số của phương thức nhận **kiểu tham chiếu**. Trong hai overload có thể áp dụng:
+The `null` literal can be used in the argument position of a method accepting a **reference type**. Between the two applicable overloads:
 
 ```java
 String.valueOf(Object obj);
 String.valueOf(char[] data);
 ```
 
-`char[]` là một **kiểu tham chiếu con của `Object`**: mọi mảng Java đều là đối tượng và có thể được gán cho biến kiểu `Object`. Vì vậy `valueOf(char[])` được xem là **cụ thể hơn (more specific)** so với `valueOf(Object)`.
+`char[]` is a **subtype of the reference type `Object`**: every Java array is an object and can be assigned to a variable of type `Object`. Therefore `valueOf(char[])` is considered **more specific** than `valueOf(Object)`.
 
-Java chọn phương thức cụ thể nhất trong các overload áp dụng được. Vì thế:
+Java picks the most specific method among the applicable overloads. Thus:
 
 ```text
-Đối số: null literal
+Argument: null literal
     |
-    +-- valueOf(Object) : áp dụng được
+    +-- valueOf(Object) : applicable
     |
-    +-- valueOf(char[]) : áp dụng được, cụ thể hơn Object
+    +-- valueOf(char[]) : applicable, more specific than Object
                               |
-                              +--> được chọn lúc biên dịch
+                              +--> selected at compile time
                                     |
-                                    +--> thực thi với mảng null
+                                    +--> executed with a null array
                                               |
                                               +--> NullPointerException
 ```
 
-**Không có lỗi “ambiguous method call”** ở đây vì Java có một lựa chọn cụ thể hơn. Cũng **không có bước thử `Object` sau khi overload `char[]` ném lỗi**: overload đã được xác định trước khi thực thi.
+**There is no "ambiguous method call" error** here because Java has a more specific choice. Nor is there **any fallback step to try `Object` after the `char[]` overload throws an error**: the overload is already fixed before execution.
 
-Lưu ý: `char[]` không phải kiểu con của `String`. Java không có overload `String.valueOf(String)`; việc ép kiểu `(String) null` sẽ đi qua `Object`. Nếu một API tự định nghĩa có hai overload nhận các kiểu tham chiếu không liên quan và đều áp dụng được, literal `null` có thể khiến lời gọi trở nên mơ hồ; đây là câu chuyện khác với cặp `Object` và `char[]`.
+Note: `char[]` is not a subtype of `String`. Java does not have a `String.valueOf(String)` overload; casting `(String) null` goes through `Object`. If a custom API has two overloads taking unrelated reference types that are both applicable, a `null` literal may make the call ambiguous; that is a different situation from the `Object` and `char[]` pair.
 
-## 3. So sánh mọi cách truyền `null` thường gặp
+## 3. Comparing All Common Ways of Passing `null`
 
-| Biểu thức Java | Overload được chọn khi biên dịch | Kết quả |
+| Java expression | Overload chosen at compile time | Result |
 | --- | --- | --- |
 | `String.valueOf(null)` | `char[]` | `NullPointerException` |
 | `String.valueOf((Object) null)` | `Object` | `"null"` |
@@ -108,19 +108,19 @@ Lưu ý: `char[]` không phải kiểu con của `String`. Java không có overl
 | `char[] chars = null; String.valueOf(chars)` | `char[]` | `NullPointerException` |
 | `String s = null; String.valueOf(s)` | `Object` | `"null"` |
 
-`(Object) null` là **ép kiểu tường minh**: ta nói với trình biên dịch rằng biểu thức truyền vào mang kiểu `Object`, nên overload `char[]` không còn áp dụng được.
+`(Object) null` is an **explicit cast**: we tell the compiler that the passed expression has type `Object`, so the `char[]` overload is no longer applicable.
 
-`(char[]) null` ép kiểu theo chiều ngược lại: bắt trình biên dịch coi đối số là `char[]`, vì vậy chọn overload `char[]` và gặp lỗi khi dùng mảng null.
+`(char[]) null` casts in the opposite direction: forcing the compiler to treat the argument as `char[]`, thus selecting the `char[]` overload and failing when using a null array.
 
-`(String) null` có kiểu tĩnh là `String`, vốn là con của `Object` nhưng **không** phải con của `char[]`. Do đó nó được xử lý như đối số `Object`.
+`(String) null` has static type `String`, which is a subtype of `Object` but **not** a subtype of `char[]`. Therefore it is treated as an `Object` argument.
 
-Tương tự, `int[]` là một loại mảng nhưng **không thể** chuyển sang `char[]`; vì thế `String.valueOf((int[]) null)` cũng gọi overload `Object`.
+Similarly, `int[]` is an array type but **cannot** be converted to `char[]`; hence `String.valueOf((int[]) null)` also calls the `Object` overload.
 
-**Quan trọng:** Java không dò kiểu của một đối tượng ở runtime để đổi từ overload `Object` sang `char[]`. Chọn overload khác với cơ chế *override* (đa hình phương thức instance).
+**Important:** Java does not inspect an object's runtime type to switch from the `Object` overload to `char[]`. Overload selection differs from *overriding* (instance method polymorphism).
 
-## 4. Ví dụ Java 17+ chạy độc lập
+## 4. Standalone Runnable Java 17+ Example
 
-Tạo file `ValueOfNullOverloadsDemo.java`:
+Create the file `ValueOfNullOverloadsDemo.java`:
 
 ```java
 import java.util.function.Supplier;
@@ -152,7 +152,7 @@ public class ValueOfNullOverloadsDemo {
         char[] data = {'J', 'a', 'v', 'a'};
         System.out.println("char[] content -> " + String.valueOf(data));
 
-        // Không in mã băm đối tượng vì nó có thể đổi giữa các lần chạy.
+        // Do not print the object hash code because it can change across runs.
         String objectText = String.valueOf((Object) data);
         System.out.println("Object-char[] uses array identity -> "
                 + objectText.startsWith("[C@"));
@@ -160,14 +160,14 @@ public class ValueOfNullOverloadsDemo {
 }
 ```
 
-Dùng JDK 17 hoặc mới hơn để chạy:
+Use JDK 17 or newer to run:
 
 ```bash
 javac ValueOfNullOverloadsDemo.java
 java ValueOfNullOverloadsDemo
 ```
 
-Kết quả stdout:
+Stdout result:
 
 ```text
 literal -> NullPointerException
@@ -181,29 +181,29 @@ char[] content -> Java
 Object-char[] uses array identity -> true
 ```
 
-Hàm `check` chủ động bắt `NullPointerException` **chỉ để minh họa và cho phép chương trình tiếp tục chạy** qua mọi trường hợp. Trong chương trình thực tế, hãy kiểm tra dữ liệu trước khi gọi nếu `null` có thể xuất hiện; không cần dùng exception như một nhánh xử lý thông thường.
+The `check` method intentionally catches `NullPointerException` **only to demonstrate and allow the program to continue running** through every case. In real programs, check the data before calling if `null` may appear; do not use exceptions as normal control flow.
 
-Không đưa nội dung `ex.getMessage()` hay stack trace vào stdout vì thông báo lỗi cụ thể có thể thay đổi tùy phiên bản JDK. Ví dụ giữ kết quả rõ ràng và ổn định bằng cách in tên loại exception.
+`ex.getMessage()` or a stack trace is not included in stdout because the exact error message may vary across JDK versions. The example keeps the output clear and stable by printing the exception type name.
 
-## 5. Điều gì xảy ra với mảng `char[]` không phải `null`?
+## 5. What Happens with a Non-`null` `char[]` Array?
 
-Sự khác biệt giữa hai overload tồn tại **ngay cả khi mảng có nội dung**:
+The difference between the two overloads exists **even when the array has content**:
 
 ```java
 char[] data = {'O', 'K'};
 
-String byChars = String.valueOf(data);          // overload char[]
-String byObject = String.valueOf((Object) data); // overload Object
+String byChars = String.valueOf(data);          // char[] overload
+String byObject = String.valueOf((Object) data); // Object overload
 
 System.out.println(byChars);                    // OK
 System.out.println(byObject.startsWith("[C@")); // true
 ```
 
-Khi gọi `valueOf(char[])`, Java chuyển **các phần tử ký tự** thành chuỗi. Khi gọi `valueOf(Object)` với một mảng ký tự, Java gọi `toString()` của chính **đối tượng mảng**. Mảng Java mặc định không ghi đè `Object.toString()` để liệt kê các phần tử, nên thường được biểu diễn bằng tên kiểu và mã nhận dạng, ví dụ `[C@...`, trong đó `[C` là tên kiểu JVM cho `char[]` và phần sau có thể thay đổi.
+When calling `valueOf(char[])`, Java converts **the character elements** into a string. When calling `valueOf(Object)` with a character array, Java calls `toString()` on the **array object** itself. Java arrays by default do not override `Object.toString()` to list their elements, so they are usually represented by their type name and identity code, such as `[C@...`, where `[C` is the JVM type name for `char[]` and the suffix may vary.
 
-Vì vậy, ép kiểu `(Object) data` là cách **chọn overload `Object`** chứ không phải cách chuyển nội dung `char[]` thành chuỗi. Nó chỉ hữu ích trong ngữ cảnh cần dùng quy tắc chuyển đổi kiểu `Object`, đặc biệt khi muốn `null` được biểu diễn thành chữ `"null"`.
+Therefore, casting `(Object) data` is a way to **select the `Object` overload**, not a way to convert `char[]` content to a string. It is only useful in contexts where `Object` conversion rules are needed, especially when you want `null` represented as the string `"null"`.
 
-Ngoài ra, `valueOf(char[])` tạo nội dung chuỗi độc lập với mảng ban đầu:
+In addition, `valueOf(char[])` creates string content independent of the original array:
 
 ```java
 char[] data = {'O', 'K'};
@@ -212,11 +212,11 @@ data[0] = 'N';
 System.out.println(text); // OK
 ```
 
-Mảng có thể thay đổi, còn `String` là immutable; sửa mảng sau khi tạo chuỗi không thay đổi `text`.
+Arrays are mutable, whereas `String` is immutable; modifying the array after creating the string does not change `text`.
 
-## 6. Vì sao biến kiểu `Object` không tự gọi `char[]`?
+## 6. Why Doesn't an `Object` Variable Automatically Call `char[]`?
 
-Xét:
+Consider:
 
 ```java
 char[] source = {'H', 'i'};
@@ -226,9 +226,9 @@ String s1 = String.valueOf(source);   // char[] overload
 String s2 = String.valueOf(asObject); // Object overload
 ```
 
-`source` và `asObject` trỏ tới **cùng một đối tượng mảng**, nhưng trình biên dịch thấy kiểu của chúng lần lượt là `char[]` và `Object`. Vì vậy, `s1` chứa `"Hi"`; `s2` chứa biểu diễn mặc định của đối tượng mảng như `[C@...`.
+`source` and `asObject` point to **the same array object**, yet the compiler sees their types as `char[]` and `Object`, respectively. Hence, `s1` holds `"Hi"`; `s2` holds the default array object representation such as `[C@...`.
 
-Với `null` cũng vậy:
+The same applies to `null`:
 
 ```java
 char[] chars = null;
@@ -238,9 +238,9 @@ String a = String.valueOf(obj);   // "null"
 String b = String.valueOf(chars); // NullPointerException
 ```
 
-Sự khác biệt xuất hiện **do kiểu tĩnh của biểu thức**. Không nên đoán overload theo kiểu mà biến có thể trỏ tới khi chạy.
+The difference arises **from the static type of the expression**. Do not guess the overload based on the runtime type a variable might point to.
 
-Một hàm nhận đối số kiểu `Object` sẽ luôn gọi phiên bản `valueOf(Object)` cho lời gọi bên trong:
+A method taking a parameter of type `Object` will always call the `valueOf(Object)` version for the call inside it:
 
 ```java
 static String convert(Object value) {
@@ -248,23 +248,23 @@ static String convert(Object value) {
 }
 ```
 
-Đây là **đoạn minh họa cần đặt trong một class**, không phải chương trình độc lập. Gọi `convert(null)` trả về `"null"`. Gọi `convert(new char[] {'A', 'B'})` lại không tạo `"AB"`, bởi overload `Object` xử lý mảng như một đối tượng.
+This is an **illustrative snippet that must be placed inside a class**, not a standalone program. Calling `convert(null)` returns `"null"`. Calling `convert(new char[] {'A', 'B'})`, however, does not produce `"AB"`, because the `Object` overload treats the array as an object.
 
-## 7. Cách xử lý an toàn trong code thực tế
+## 7. Safe Handling in Real Code
 
-### Mục tiêu A: mọi `null` đều thành chuỗi `"null"`
+### Goal A: every `null` becomes the string `"null"`
 
-Nếu đối số có thể mang nhiều kiểu và muốn quy ước `null` thành văn bản `"null"`, gọi overload `Object` rõ ràng:
+If the argument can have various types and you want `null` to become the text `"null"`, call the `Object` overload explicitly:
 
 ```java
 String result = String.valueOf((Object) null);
 ```
 
-Với biến tĩnh `Object value`, chỉ cần `String.valueOf(value)`. Tuy nhiên nếu giá trị **không phải null** và lại là mảng, `Object.toString()` không nhất thiết trả về nội dung các phần tử. Hãy chọn theo đúng mục đích.
+With a variable of static type `Object value`, simply use `String.valueOf(value)`. However, if the value is **not null** and happens to be an array, `Object.toString()` does not necessarily return the contents of its elements. Choose according to your exact intent.
 
-### Mục tiêu B: cần nội dung `char[]` và có thể gặp `null`
+### Goal B: need `char[]` content and `null` may occur
 
-Kiểm tra mảng trước khi gọi overload `char[]`:
+Check the array before calling the `char[]` overload:
 
 ```java
 static String safeChars(char[] chars) {
@@ -272,7 +272,7 @@ static String safeChars(char[] chars) {
 }
 ```
 
-Hàm trên cần được khai báo bên trong một class. Nó trả về chuỗi `"null"` khi mảng không tồn tại, và trả về **nội dung ký tự** khi mảng có dữ liệu. Nếu `null` cần có nghĩa “không có giá trị” thay vì chữ `"null"`, hãy dùng quy ước phù hợp, ví dụ:
+The method above must be declared inside a class. It returns the string `"null"` when the array does not exist, and returns the **character content** when the array has data. If `null` should mean "no value" instead of the word `"null"`, use an appropriate convention, for example:
 
 ```java
 static String displayChars(char[] chars) {
@@ -280,48 +280,48 @@ static String displayChars(char[] chars) {
 }
 ```
 
-`"<missing>"` chỉ là placeholder do chương trình định nghĩa; không phải giá trị được Java tự động tạo.
+`"<missing>"` is just a program-defined placeholder; it is not a value automatically produced by Java.
 
-### Mục tiêu C: cần chuỗi mặc định cho đối tượng bất kỳ
+### Goal C: need a default string for any object
 
-`java.util.Objects.toString(obj, nullDefault)` cho phép chỉ định văn bản thay `null`:
+`java.util.Objects.toString(obj, nullDefault)` lets you specify replacement text for `null`:
 
 ```java
 import java.util.Objects;
 
-// Đoạn minh họa bên trong một phương thức.
+// Illustrative snippet inside a method.
 Object obj = null;
 String result = Objects.toString(obj, "<none>");
 System.out.println(result); // <none>
 ```
 
-Nếu `obj` thực tế trỏ tới `char[]` không null, `Objects.toString` vẫn gọi `toString()` của đối tượng mảng, **không** tự chuyển từng ký tự thành một `String`. Phương thức này giúp xử lý `null` theo kiểu `Object`, không thay thế cho `String.valueOf(char[])`.
+If `obj` actually points to a non-null `char[]`, `Objects.toString` still calls `toString()` on the array object, **not** converting each character into a `String`. This method helps handle `null` in the `Object` style, not as a replacement for `String.valueOf(char[])`.
 
-### Mục tiêu D: muốn ký tự `"null"` được in nhưng không cần chọn overload
+### Goal D: want the characters `"null"` printed without worrying about overload selection
 
-Nếu chỉ cần in thông tin chẩn đoán, có thể viết:
+If you only need to print diagnostic information, you can write:
 
 ```java
 System.out.println("value=" + null);
 // value=null
 ```
 
-Đây là quy tắc **nối chuỗi (`String` concatenation)** của Java, không phải lời gọi `String.valueOf(null)` trực tiếp ở mã nguồn. Không nên suy luận từ biểu thức nối chuỗi rằng `String.valueOf(null)` cũng sẽ trả về `"null"`.
+This is Java's **string concatenation (`String` concatenation)** rule, not a direct `String.valueOf(null)` call in source code. Do not infer from a concatenation expression that `String.valueOf(null)` will also return `"null"`.
 
-## 8. Những hiểu nhầm thường gặp
+## 8. Common Misconceptions
 
-1. **“`String.valueOf(null)` luôn trả về `"null"`.”** Sai: lời gọi với null literal chọn `valueOf(char[])` rồi ném `NullPointerException`.
-2. **“Java chọn overload theo dữ liệu runtime.”** Sai trong trường hợp này: lựa chọn overload dựa vào **kiểu tĩnh** tại thời điểm biên dịch. Vì thế biến `Object` và biến `char[]` có thể tạo kết quả khác nhau dù cùng trỏ tới một mảng.
-3. **“Đó là lỗi mơ hồ giữa `Object` và `char[]`.”** Sai: `char[]` là con của `Object`, nên overload `char[]` cụ thể hơn và được chọn.
-4. **“Ép kiểu `(Object)` rồi vẫn nhận nội dung mảng.”** Không đúng với mảng `char[]` không null: chuyển sang overload `Object` khiến `toString()` mặc định của mảng được dùng.
-5. **“`char[]` rỗng tương đương `null`.”** Sai: `new char[0]` là mảng hợp lệ và cho chuỗi rỗng; `(char[]) null` không phải mảng và gây `NullPointerException`.
-6. **“Kết quả `"null"` là Java null.”** Sai: đây là một `String` có bốn ký tự `n`, `u`, `l`, `l`; đối tượng chuỗi tồn tại bình thường.
-7. **“Nên bắt `NullPointerException` để sửa dữ liệu.”** Thường không cần. Nếu `null` được phép xuất hiện, kiểm tra bằng `if` hoặc toán tử ba ngôi và quyết định ý nghĩa thích hợp cho ứng dụng.
-8. **“Dùng `Objects.toString` sẽ đổi mọi mảng ra nội dung.”** Không đúng: với đối tượng mảng không null, nó dùng `toString()` của đối tượng đó.
+1. **"`String.valueOf(null)` always returns `"null"`."** False: calling with the null literal selects `valueOf(char[])` and throws `NullPointerException`.
+2. **"Java chooses overloads based on runtime data."** False in this case: overload selection relies on the **static type** at compile time. Thus an `Object` variable and a `char[]` variable can produce different results even when pointing to the same array.
+3. **"It is an ambiguity error between `Object` and `char[]`."** False: `char[]` is a subtype of `Object`, so the `char[]` overload is more specific and gets selected.
+4. **"Casting to `(Object)` still returns the array content."** False for non-null `char[]` arrays: switching to the `Object` overload causes the array's default `toString()` to be used.
+5. **"An empty `char[]` is equivalent to `null`."** False: `new char[0]` is a valid array and yields an empty string; `(char[]) null` is not an array and causes `NullPointerException`.
+6. **"The result `"null"` is Java null."** False: it is a `String` of four characters `n`, `u`, `l`, `l`; the string object exists normally.
+7. **"You should catch `NullPointerException` to fix the data."** Usually unnecessary. If `null` is allowed to appear, check with `if` or the ternary operator and decide the appropriate meaning for the application.
+8. **"Using `Objects.toString` converts every array to its contents."** False: for a non-null array object, it uses that object's `toString()`.
 
-## 9. Bài luyện tập
+## 9. Practice Exercises
 
-**Câu 1.** Ba biểu thức dưới đây trả về gì?
+**Question 1.** What do the three expressions below return?
 
 ```java
 String.valueOf((Object) null);
@@ -329,41 +329,41 @@ String.valueOf((char[]) null);
 String.valueOf(null);
 ```
 
-Đáp án lần lượt: `"null"`; `NullPointerException`; `NullPointerException`.
+Answers respectively: `"null"`; `NullPointerException`; `NullPointerException`.
 
-**Câu 2.** Với:
+**Question 2.** Given:
 
 ```java
 Object a = null;
 char[] b = null;
 ```
 
-Lời gọi `String.valueOf(a)` và `String.valueOf(b)` khác nhau thế nào?
+How do the calls `String.valueOf(a)` and `String.valueOf(b)` differ?
 
-Đáp án: `a` có kiểu tĩnh `Object` nên nhận chuỗi `"null"`. `b` có kiểu tĩnh `char[]` nên ném `NullPointerException`.
+Answer: `a` has static type `Object`, so it receives the string `"null"`. `b` has static type `char[]`, so it throws `NullPointerException`.
 
-**Câu 3.** Vì sao `String.valueOf((String) null)` trả về `"null"`?
+**Question 3.** Why does `String.valueOf((String) null)` return `"null"`?
 
-Đáp án: `String` là con của `Object` nhưng không tương thích với `char[]`; chỉ overload `Object` có thể nhận đối số này.
+Answer: `String` is a subtype of `Object` but is incompatible with `char[]`; only the `Object` overload can accept this argument.
 
-**Câu 4.** Đổi một biến `char[] chars` có thể null thành văn bản và bảo toàn nội dung ký tự khi mảng không null.
+**Question 4.** Convert a potentially null `char[] chars` variable to text while preserving character content when the array is non-null.
 
-Đáp án:
+Answer:
 
 ```java
 String result = chars == null ? "<empty>" : String.valueOf(chars);
 ```
 
-Ở đây `"<empty>"` là giá trị thay thế theo quy tắc của ứng dụng, không có liên quan trực tiếp tới lựa chọn overload.
+Here `"<empty>"` is an application-defined replacement value and has no direct connection to overload selection.
 
-**Câu 5.** Với `Object data = new char[] {'A', 'B'};`, `String.valueOf(data)` có trả về `"AB"` không?
+**Question 5.** Given `Object data = new char[] {'A', 'B'};`, does `String.valueOf(data)` return `"AB"`?
 
-Đáp án: không. Overload nhận `Object` được chọn theo kiểu tĩnh `Object` của `data`. Nó dùng `toString()` của đối tượng mảng nên cho biểu diễn kiểu `[C@...`, không phải các ký tự nối lại.
+Answer: no. The `Object` overload is selected based on the static type `Object` of `data`. It uses the array object's `toString()`, producing a representation like `[C@...`, not the concatenated characters.
 
-**Ghi nhớ:** `String.valueOf(null)` nguy hiểm vì `char[]` là overload cụ thể hơn `Object`. Muốn chọn xử lý `null` theo `Object`, ép kiểu `(Object) null` hoặc truyền biến mang kiểu `Object`. Muốn lấy nội dung của mảng ký tự, dùng `valueOf(char[])` với mảng **khác null** và kiểm tra null rõ ràng.
+**Key takeaway:** `String.valueOf(null)` is dangerous because `char[]` is a more specific overload than `Object`. To handle `null` via `Object`, cast `(Object) null` or pass a variable of type `Object`. To get the content of a character array, use `valueOf(char[])` with a **non-null** array and check for null explicitly.
 
-## Tài liệu chính thức
+## Official Documentation
 
-- [`String.valueOf(Object)` và `String.valueOf(char[])` — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html)
+- [`String.valueOf(Object)` and `String.valueOf(char[])` — Java SE 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/String.html)
 - [JLS §15.12.2 — Compile-Time Step 2: Determine Method Signature](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.12.2)
 - [JLS §15.12.2.5 — Choosing the Most Specific Method](https://docs.oracle.com/javase/specs/jls/se21/html/jls-15.html#jls-15.12.2.5)

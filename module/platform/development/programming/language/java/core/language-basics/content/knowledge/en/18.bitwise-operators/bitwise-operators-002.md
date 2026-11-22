@@ -1,21 +1,21 @@
-# AND, OR, XOR và NOT theo từng bit trong Java
+# Bitwise AND, OR, XOR, and NOT in Java
 
-> **Java core — language-basics / Toán tử bit**  
-> **Môi trường:** JDK 17+; chỉ sử dụng thư viện chuẩn Java.  
-> **Mục tiêu:** Hiểu `&`, `|`, `^` và `~` trên các bit của số nguyên; đọc bảng chân trị, thao tác bit mask, xử lý đúng số âm và quy tắc nâng kiểu.
+> **Java core — language-basics / Bitwise operators**  
+> **Environment:** JDK 17+; standard Java library only.  
+> **Goal:** Understand `&`, `|`, `^`, and `~` on integer bits; read truth tables, manipulate bit masks, and handle negative numbers and numeric promotion rules properly.
 
-## 1. Toán tử bit hoạt động như thế nào?
+## 1. How Do Bitwise Operators Work?
 
-Mỗi số nguyên được lưu dưới dạng dãy bit 0/1. Các phép toán bit xử lý **từng vị trí bit tương ứng** của toán hạng:
+Every integer is stored as a sequence of 0/1 bits. Bitwise operations process **each corresponding bit position** of the operands:
 
-| Toán tử | Tên | Quy tắc cho từng vị trí bit |
+| Operator | Name | Rule for each bit position |
 | --- | --- | --- |
-| `&` | AND | Kết quả là 1 **chỉ khi cả hai bit đều là 1** |
-| `\|` | OR | Kết quả là 1 khi **ít nhất một bit là 1** |
-| `^` | XOR | Kết quả là 1 khi **hai bit khác nhau** |
-| `~` | NOT (bù bit) | **Đảo từng bit:** 0 → 1; 1 → 0 |
+| `&` | AND | Result is 1 **only when both bits are 1** |
+| `\|` | OR | Result is 1 when **at least one bit is 1** |
+| `^` | XOR | Result is 1 when **the two bits are different** |
+| `~` | NOT (bitwise complement) | **Inverts each bit:** 0 → 1; 1 → 0 |
 
-Ví dụ với hai số `int`:
+Example with two `int` values:
 
 ~~~java
 int a = 0b1100; // 12
@@ -26,11 +26,11 @@ int or  = a | b; // 0b1110 = 14
 int xor = a ^ b; // 0b0110 = 6
 ~~~
 
-`0b` là tiền tố literal nhị phân trong Java. Dấu gạch dưới có thể giúp đọc nhóm bit, chẳng hạn `0b1100_1010`.
+`0b` is the binary literal prefix in Java. Underscores can help make bit groups easier to read, such as `0b1100_1010`.
 
-## 2. Bảng chân trị AND, OR, XOR, NOT
+## 2. Truth Table for AND, OR, XOR, NOT
 
-Xem `A` và `B` là **một bit đơn lẻ**:
+Treat `A` and `B` as **a single bit**:
 
 | A | B | A AND B | A OR B | A XOR B | NOT A |
 | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -39,9 +39,9 @@ Xem `A` và `B` là **một bit đơn lẻ**:
 | 1 | 0 | 0 | 1 | 1 | 0 |
 | 1 | 1 | 1 | 1 | 0 | 0 |
 
-`NOT A` chỉ phụ thuộc vào `A`, không phụ thuộc `B`.
+`NOT A` depends only on `A`, not on `B`.
 
-Có thể hình dung phép toán theo cột bit:
+You can visualize the operations column by column:
 
 ~~~text
    a  = 1100  (12)
@@ -51,77 +51,77 @@ a | b = 1110  (14)
 a ^ b = 0110  ( 6)
 ~~~
 
-Từ bảng chân trị suy ra:
+From the truth table, it follows that:
 
-- `x & 0` luôn bằng 0; `x | 0` bằng `x`.
-- `x ^ 0` bằng `x`; `x ^ x` bằng 0.
-- `x & x` và `x | x` đều bằng `x`.
+- `x & 0` is always 0; `x | 0` equals `x`.
+- `x ^ 0` equals `x`; `x ^ x` equals 0.
+- `x & x` and `x | x` both equal `x`.
 
-Những tính chất này hữu ích để bật, tắt, đảo và kiểm tra cờ (*flags*).
+These properties are useful for setting, clearing, toggling, and checking flags.
 
-## 3. `~` đảo **toàn bộ** bit, không chỉ những bit đang nhìn thấy
+## 3. `~` Inverts **All** Bits, Not Just the Visible Ones
 
-Với `int`, Java sử dụng **32 bit có dấu**. Vì vậy `~a` đảo **cả 32 bit**, không chỉ bốn bit `1100` được viết trong literal:
+For `int`, Java uses **32 signed bits**. Thus `~a` inverts **all 32 bits**, not just the four bits `1100` written in the literal:
 
 ~~~java
 int a = 0b1100; // 12
-System.out.println(~a); // -13, không phải 3.
+System.out.println(~a); // -13, not 3.
 ~~~
 
-Số nguyên có dấu dùng biểu diễn **bù hai** (*two's complement*). Với `int`/`long`, ta có hệ thức:
+Signed integers use **two's complement** representation. For `int`/`long`, the following identity holds:
 
 ~~~text
 ~n == -n - 1
 ~12 == -13
 ~~~
 
-Nếu chỉ muốn xét bốn bit thấp, dùng **mask**:
+If you only want to examine the low four bits, use a **mask**:
 
 ~~~java
 int lowFour = (~a) & 0b1111; // 0b0011 = 3.
 ~~~
 
-Đây là khác biệt giữa `~a` (đảo mọi bit của một giá trị kiểu `int`) và `(~a) & 0b1111` (giữ **4 bit thấp** sau khi đảo).
+This is the difference between `~a` (inverting every bit of an `int` value) and `(~a) & 0b1111` (keeping the **low 4 bits** after inversion).
 
-`int` có độ rộng 32 bit, `long` 64 bit. `~` không áp dụng được lên `boolean`; phủ định logic boolean dùng `!`.
+`int` is 32 bits wide and `long` is 64 bits wide. `~` cannot be applied to `boolean`; boolean logical negation uses `!`.
 
-## 4. Ứng dụng ngắn: đọc, bật, tắt và đảo một bit
+## 4. Short Application: Reading, Setting, Clearing, and Toggling a Bit
 
-Một *bit mask* đặt bit 1 tại vị trí cần thao tác. Từ bảng chân trị của AND, OR và XOR, có bốn quy tắc đủ để thử trên số nguyên:
+A *bit mask* places a 1 bit at the position to manipulate. From the truth tables of AND, OR, and XOR, four rules are enough to try on integers:
 
 ```java
-int flags = 0b0101;             // Bit 0 và bit 2 đang bật.
-int mask = 0b0010;              // Chọn bit 1.
+int flags = 0b0101;             // Bit 0 and bit 2 are set.
+int mask = 0b0010;              // Select bit 1.
 boolean hasBit = (flags & mask) != 0; // false.
-int set = flags | mask;         // 0b0111, bật bit 1.
-int cleared = flags & ~0b0100; // 0b0001, tắt bit 2.
-int toggled = flags ^ 0b0001;  // 0b0100, đảo bit 0.
+int set = flags | mask;         // 0b0111, set bit 1.
+int cleared = flags & ~0b0100; // 0b0001, clear bit 2.
+int toggled = flags ^ 0b0001;  // 0b0100, toggle bit 0.
 ```
 
-**AND lọc bit**, **OR bật bit**, **AND với NOT tắt bit**, **XOR đảo bit**. Hai phép `flags & mask` và `flags | mask` đều có kết quả là **số nguyên**, không phải `boolean`: muốn kiểm tra trong `if`, so sánh `(flags & mask) != 0` (ít nhất một bit bật) hoặc `(flags & mask) == mask` (mọi bit trong mask đều bật).
+**AND filters bits**, **OR sets bits**, **AND with NOT clears bits**, **XOR toggles bits**. Both `flags & mask` and `flags | mask` produce an **integer** result, not a `boolean`: to test in an `if`, compare `(flags & mask) != 0` (at least one bit is set) or `(flags & mask) == mask` (all bits in the mask are set).
 
-Đây chỉ là **ứng dụng trực tiếp của bảng chân trị**. Khi quản lý nhiều cờ thực tế, còn phải xem mask có bằng 0 không, cờ có nằm trong miền hợp lệ không, cách kiểm tra *any/all* và vấn đề đồng bộ; các thao tác này không được suy ra là một hệ thống phân quyền an toàn chỉ từ phép toán bit.
+This is only a **direct application of the truth table**. When managing multiple flags in practice, you also have to consider whether the mask is 0, whether flags fall within a valid range, how *any/all* checks are written, and concurrency concerns; these operations must not be assumed to constitute a secure authorization system purely from bitwise math.
 
-## 5. Kiểu dữ liệu và nâng kiểu số nguyên
+## 5. Data Types and Integer Numeric Promotion
 
-Toán tử bit dành cho các kiểu **nguyên** (`byte`, `short`, `char`, `int`, `long`). Khi dùng `&`, `|`, `^` với số nguyên, Java áp dụng *binary numeric promotion*:
+Bitwise operators apply to **integral** types (`byte`, `short`, `char`, `int`, `long`). When using `&`, `|`, `^` with integers, Java applies *binary numeric promotion*:
 
-- Các toán hạng `byte`, `short` và `char` được nâng lên ít nhất `int`.
-- Nếu một toán hạng có kiểu `long` thì phép toán số nguyên thực hiện ở kiểu `long`.
-- `~` với `byte`, `short`, `char` cũng cho kết quả kiểu `int` sau khi nâng kiểu.
-- `float` và `double` không được dùng với các phép toán bit này.
+- Operands of type `byte`, `short`, and `char` are promoted to at least `int`.
+- If either operand has type `long`, the integer operation is performed in `long`.
+- `~` on `byte`, `short`, or `char` also produces an `int` result after unary numeric promotion.
+- `float` and `double` cannot be used with these bitwise operators.
 
 ~~~java
 byte small = 0b0000_1111; // 15
-int inverse = ~small;    // -16 (int), không phải byte.
-int lowEight = inverse & 0xFF; // 240: giữ 8 bit thấp.
+int inverse = ~small;    // -16 (int), not byte.
+int lowEight = inverse & 0xFF; // 240: keep the low 8 bits.
 
-// byte invalid = ~small; // Lỗi biên dịch: int không tự gán sang byte.
+// byte invalid = ~small; // Compile error: int cannot be implicitly assigned to byte.
 ~~~
 
-Với byte âm, Java chuyển sang `int` có mở rộng dấu trước khi thực hiện nhiều phép toán. Khi muốn biểu diễn một byte như số **không dấu trong miền 0..255**, dùng `value & 0xFF` hoặc `Byte.toUnsignedInt(value)`.
+With negative bytes, Java converts them to `int` with sign extension before performing many operations. When you want to treat a byte as an **unsigned number in the range 0..255**, use `value & 0xFF` or `Byte.toUnsignedInt(value)`.
 
-Ví dụ `long`:
+`long` example:
 
 ~~~java
 long bits = 0x1_0000_0005L;
@@ -129,11 +129,11 @@ long mask = 0x1_0000_0000L;
 long highFlag = bits & mask; // 4294967296.
 ~~~
 
-Hằng `L` và kiểu `long` rất quan trọng khi cờ nằm ở vị trí bit cao vượt miền `int`.
+The `L` suffix and `long` type are crucial when flags sit at high bit positions beyond the range of `int`.
 
-## 6. Đừng nhầm toán tử bit với toán tử logic
+## 6. Do Not Confuse Bitwise Operators with Logical Operators
 
-Trên `boolean`, Java cũng cho phép `&`, `|`, `^` nhưng chúng thực hiện **phép logic boolean**, không phải thao tác bit trên số:
+On `boolean`, Java also allows `&`, `|`, and `^`, but they perform **boolean logical operations**, not bit manipulation on numbers:
 
 ~~~java
 boolean a = true;
@@ -144,20 +144,20 @@ boolean one = a ^ b;    // true.
 boolean not = !a;      // false.
 ~~~
 
-| Toán tử | Với số nguyên | Với boolean |
+| Operator | On integers | On booleans |
 | --- | --- | --- |
-| `&`, `\|`, `^` | AND/OR/XOR theo từng bit | AND/OR/XOR logic, **đánh giá cả hai vế** |
-| `~` | Đảo bit của số nguyên | **Không hợp lệ** |
-| `!` | **Không hợp lệ** | Phủ định logic |
-| `&&`, `\|\|` | **Không hợp lệ** | AND/OR logic **ngắn mạch** |
+| `&`, `\|`, `^` | Bitwise AND/OR/XOR | Logical AND/OR/XOR, **evaluates both sides** |
+| `~` | Bitwise inversion of an integer | **Invalid** |
+| `!` | **Invalid** | Logical negation |
+| `&&`, `\|\|` | **Invalid** | **Short-circuiting** logical AND/OR |
 
-Khác biệt quan trọng: `false & check()` **vẫn gọi** `check()`; `false && check()` **bỏ qua** lời gọi. Tương tự, `true | check()` vẫn gọi `check()`, còn `true || check()` không gọi.
+Important difference: `false & check()` **still calls** `check()`; `false && check()` **skips** the call. Similarly, `true | check()` still calls `check()`, whereas `true || check()` does not.
 
-Độ ưu tiên của các toán tử bit nhị phân là **`&` cao hơn `^`, cao hơn `|`**. Nên viết ngoặc khi trộn nhiều toán tử, đặc biệt các biểu thức mask có phép so sánh.
+The precedence of binary bitwise operators is **`&` higher than `^`, higher than `|`**. Use parentheses when mixing multiple operators, especially mask expressions with comparison operators.
 
-## 7. Ví dụ Java 17+ chạy độc lập
+## 7. Standalone Runnable Java 17+ Example
 
-Tạo file **BitwiseOperatorsDemo.java**:
+Create the file **BitwiseOperatorsDemo.java**:
 
 ~~~java
 public final class BitwiseOperatorsDemo {
@@ -207,14 +207,14 @@ public final class BitwiseOperatorsDemo {
 }
 ~~~
 
-Chạy trong thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 BitwiseOperatorsDemo.java
 java BitwiseOperatorsDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 a=1100,b=1010
@@ -234,29 +234,29 @@ longMask=4294967296
 booleanAnd=false,booleanOr=true,booleanXor=true
 ~~~
 
-`not=-13` do `~` đảo đủ 32 bit của `int`; `low4=0011` chỉ hiển thị bốn bit thấp. `byteNot=-16` vì `byte` được nâng thành `int`; `low8=240` là tám bit thấp. Kết quả mask cho thấy cách thao tác từng cờ mà không làm thay đổi những bit không được chọn.
+`not=-13` because `~` inverts all 32 bits of `int`; `low4=0011` displays only the low four bits. `byteNot=-16` because `byte` is promoted to `int`; `low8=240` is the low eight bits. The mask results show how to manipulate individual flags without altering unselected bits.
 
-## 8. Lỗi thường gặp và bài tập
+## 8. Common Pitfalls and Exercises
 
-| Nhầm lẫn | Kết luận đúng |
+| Misconception | Correct conclusion |
 | --- | --- |
-| Nghĩ `~0b1100` chỉ ra `0b0011` | `~` đảo **toàn bộ 32 bit `int`**; mask mới giữ bốn bit thấp |
-| Dùng `if (flags & mask)` | Java yêu cầu boolean; viết `if ((flags & mask) != 0)` |
-| Dùng `~true` hoặc `!12` | `~` chỉ dùng với số nguyên, `!` dùng với boolean |
-| Cho rằng `&`/`\|` trên boolean short-circuit | Không: cả hai vế đều được đánh giá |
-| Gán `~byteValue` thẳng vào `byte` | Kết quả được nâng thành `int` |
-| Nghĩ XOR giống OR | XOR bằng 0 khi cả hai bit đều 1 |
+| Thinking `~0b1100` yields just `0b0011` | `~` inverts **all 32 bits of `int`**; a mask is needed to keep the low four bits |
+| Writing `if (flags & mask)` | Java requires a boolean; write `if ((flags & mask) != 0)` |
+| Using `~true` or `!12` | `~` is only for integers, `!` is for booleans |
+| Assuming `&`/`\|` on booleans short-circuit | No: both sides are evaluated |
+| Assigning `~byteValue` directly to a `byte` | The result is promoted to `int` |
+| Thinking XOR is the same as OR | XOR produces 0 when both bits are 1 |
 
-**Bài 1.** Tính `0b0110 & 0b1010`, `0b0110 | 0b1010` và `0b0110 ^ 0b1010`. Viết kết quả thành bốn bit.
+**Exercise 1.** Compute `0b0110 & 0b1010`, `0b0110 | 0b1010`, and `0b0110 ^ 0b1010`. Write each result in four bits.
 
-**Bài 2.** Cho `int flags = 0b0011;`. Viết lệnh bật bit thứ ba (đếm bit thấp nhất là bit 0), tắt bit 0 và đảo bit 1.
+**Exercise 2.** Given `int flags = 0b0011;`, write statements to set the third bit (counting the lowest bit as bit 0), clear bit 0, and toggle bit 1.
 
-**Bài 3.** Giải thích vì sao `~12 == -13` trong Java, còn `(~12) & 0b1111 == 3`.
+**Exercise 3.** Explain why `~12 == -13` in Java, whereas `(~12) & 0b1111 == 3`.
 
-**Bài 4.** Cho `byte b = 15;`. Dự đoán kiểu và giá trị của `~b`. Muốn xem tám bit thấp dưới dạng số 0..255, nên dùng phép mask nào?
+**Exercise 4.** Given `byte b = 15;`, predict the type and value of `~b`. To inspect the low eight bits as a number in 0..255, what mask should you use?
 
-**Bài 5.** So sánh `false & check()` với `false && check()` nếu `check()` tăng bộ đếm hoặc có thể ném ngoại lệ.
+**Exercise 5.** Compare `false & check()` with `false && check()` if `check()` increments a counter or can throw an exception.
 
-### Ghi nhớ
+### Key Takeaways
 
-**`&` (AND), `|` (OR), `^` (XOR) kết hợp các bit; `~` (NOT) đảo mọi bit của kiểu số nguyên.** Với `int`/`long` có dấu, `~n = -n - 1`; muốn xét một số bit nhất định thì dùng mask. Với `byte`/`short`/`char`, chú ý phép nâng kiểu lên `int`. Dùng mask và ngoặc rõ ràng, phân biệt toán tử bit với logic boolean ngắn mạch.
+**`&` (AND), `|` (OR), and `^` (XOR) combine bits; `~` (NOT) inverts every bit of an integer type.** For signed `int`/`long`, `~n = -n - 1`; to examine specific bits, apply a mask. For `byte`/`short`/`char`, watch out for promotion to `int`. Use masks and parentheses clearly, and distinguish bitwise operators from short-circuiting boolean logic.

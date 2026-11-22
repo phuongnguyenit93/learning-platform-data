@@ -1,30 +1,30 @@
-# Không phụ thuộc vào việc kết quả trích xuất chuỗi có dùng chung đối tượng hoặc bộ nhớ nội bộ
+# Do Not Depend on Whether String Extraction Results Share Objects or Internal Memory
 
-## 1. Mục tiêu và vấn đề cần hiểu
+## 1. Goal and Problem to Understand
 
-Khi gọi `String.substring(...)`, điều ứng dụng **được phép dựa vào** là **chuỗi ký tự kết quả**, phạm vi trích xuất và tính bất biến của `String`. Ứng dụng **không được suy luận** rằng kết quả luôn là một đối tượng `String` mới, luôn dùng chung đối tượng với chuỗi gốc, luôn chia sẻ mảng bên trong hay luôn sở hữu một bản sao bộ nhớ riêng.
+When calling `String.substring(...)`, what an application is **allowed to rely on** is the **resulting character sequence**, the extracted range, and the immutability of `String`. An application **must not infer** that the result is always a new `String` object, always shares the same object with the source string, always shares the underlying internal array, or always owns a separate memory copy.
 
-Điều này liên quan trực tiếp đến bài toán **trích xuất chuỗi**. Ví dụ:
+This relates directly to **string extraction**. Example:
 
 ~~~java
 String source = "order:12345";
 String id = source.substring(6); // "12345"
 ~~~
 
-Phần nghiệp vụ có thể khẳng định:
+The business logic can assert:
 
-- `id` chứa đúng năm ký tự `"12345"`.
+- `id` contains the exact five characters `"12345"`.
 - `id.length() == 5`.
-- `id.equals("12345")` là `true`.
-- Không thể thay đổi nội dung `source` hoặc `id` bằng cách “sửa ký tự bên trong String”.
+- `id.equals("12345")` is `true`.
+- Neither `source` nor `id` can have its content altered by “modifying characters inside the String”.
 
-Tuy nhiên **không cần** và **không nên** khẳng định `source` và `id` có sử dụng chung một mảng `char[]`/`byte[]` hoặc có địa chỉ lưu trữ cụ thể. Các yếu tố đó thuộc cách JVM/JDK triển khai và tối ưu hóa.
+However, you **do not need** and **should not** assert whether `source` and `id` share a `char[]`/`byte[]` array or have specific storage addresses. Those factors belong to JVM/JDK implementation details and optimizations.
 
-Sau bài học, bạn sẽ biết đọc đúng hợp đồng của `substring`, tránh dùng `==` cho so sánh nội dung, phân biệt copy/alias/bất biến, hiểu hệ quả bộ nhớ của các phiên bản Java, và tổ chức mã ổn định khi thay đổi JDK.
+After this lesson, you will know how to read the `substring` contract accurately, avoid using `==` for content comparison, distinguish copying/aliasing/immutability, understand memory implications across Java versions, and structure code that stays stable when changing JDKs.
 
-## 2. Hợp đồng của `substring` quy định những gì?
+## 2. What Does the `substring` Contract Specify?
 
-Hai overload có hợp đồng **nội dung** rõ ràng: `s.substring(begin)` lấy từ `begin` đến hết, còn `s.substring(begin, end)` lấy `[begin, end)`. Với `n = s.length()`, điều kiện lần lượt là `0 <= begin <= n` và `0 <= begin <= end <= n`; độ dài kết quả hai tham số là `end - begin` UTF-16 code unit. Biên bằng nhau hợp lệ trả chuỗi rỗng; phạm vi sai ném `IndexOutOfBoundsException`.
+Both overloads have a clear **content** contract: `s.substring(begin)` takes from `begin` to the end, and `s.substring(begin, end)` takes `[begin, end)`. With `n = s.length()`, the conditions are `0 <= begin <= n` and `0 <= begin <= end <= n`, respectively; the two-parameter result length is `end - begin` UTF-16 code units. Valid equal bounds return an empty string; invalid ranges throw `IndexOutOfBoundsException`.
 
 ```java
 String s = "programming";
@@ -33,68 +33,68 @@ String suffix = s.substring(7);     // "ming"
 String empty = s.substring(7, 7);   // ""
 ```
 
-Đây là các **giá trị ký tự** có thể dựa vào. Hợp đồng không đòi kết quả dùng cùng instance, instance khác, mảng sao chép hay mảng chia sẻ. `String.subSequence(begin, end)` có nội dung tương đương trên đối tượng `String` nhưng khai báo kiểu trả về là `CharSequence`.
+These are the **character values** you can rely on. The contract does not require the result to use the same instance, a different instance, a copied array, or a shared array. `String.subSequence(begin, end)` has equivalent content on a `String` object, though its declared return type is `CharSequence`.
 
-## 3. Ba khái niệm khác nhau: giá trị, identity và backing storage
+## 3. Three Distinct Concepts: Value, Identity, and Backing Storage
 
-**Giá trị (value):** dãy code unit UTF-16 của chuỗi. Đây là những gì `equals`, `length`, `charAt`, `substring` và nhiều API công khai làm việc cùng.
+**Value:** the sequence of UTF-16 code units of the string. This is what `equals`, `length`, `charAt`, `substring`, and many public APIs work with.
 
-**Identity (định danh đối tượng):** hai biến có trỏ đến cùng một instance `String` hay không; dùng `==` giữa hai tham chiếu để kiểm tra. Đây là quan hệ đối tượng, **không phải quan hệ nội dung**.
+**Identity (object identity):** whether two variables point to the same `String` instance; checked using `==` between two references. This is an object relationship, **not a content relationship**.
 
-**Backing storage (vùng lưu trữ nội bộ):** cơ chế JDK dùng để biểu diễn ký tự, chẳng hạn mảng byte kèm thông tin mã hóa nội bộ ở một số triển khai. Hai đối tượng khác nhau có thể dùng chung tài nguyên nội bộ; cùng một đối tượng thì hiển nhiên dùng trạng thái nội bộ của chính nó. `==` không cho biết hai instance khác nhau có dùng chung backing array hay không.
+**Backing storage:** the internal mechanism the JDK uses to represent characters, such as a byte array paired with an internal encoding coder in some implementations. Two different objects may share internal resources; the same object obviously uses its own internal state. `==` does not tell you whether two different instances share a backing array.
 
-| Câu hỏi | Công cụ phù hợp | Kết luận cho chương trình |
+| Question | Appropriate Tool | Program Conclusion |
 | --- | --- | --- |
-| Hai chuỗi có **cùng nội dung** không? | `a.equals(b)` | Phù hợp để so sánh giá trị |
-| Hai tham chiếu có cùng **đối tượng** không? | `a == b` | Chỉ có ý nghĩa khi thực sự cần identity |
-| Hai đối tượng có cùng backing array không? | Không có hợp đồng công khai của `String` để yêu cầu việc này | Không thể suy luận từ `equals` hay `==` |
-| `substring` có giữ cả vùng lưu trữ lớn không? | Phân tích phiên bản JDK, heap profiler và thử nghiệm | Quyết định tối ưu dựa trên bằng chứng từng môi trường |
+| Do two strings have the **same content**? | `a.equals(b)` | Appropriate for comparing values |
+| Do two references point to the same **object**? | `a == b` | Meaningful only when object identity is actually needed |
+| Do two objects share a backing array? | No public `String` contract guarantees this | Cannot be inferred from `equals` or `==` |
+| Does `substring` retain a large backing buffer? | JDK version analysis, heap profiler, and testing | Base optimization decisions on environment-specific evidence |
 
-Ví dụ:
+Example:
 
 ~~~java
 String a = new String(new char[] {'a', 'b', 'c'});
 String b = new String(new char[] {'a', 'b', 'c'});
 
 System.out.println(a.equals(b)); // true
-System.out.println(a == b);      // false: hai lần tạo đối tượng String mới
+System.out.println(a == b);      // false: two separate new String creations
 ~~~
 
-Hai chuỗi có cùng nội dung dù là hai đối tượng khác nhau. Ngược lại, nếu một triển khai trả về chính `this` khi gọi `substring(0, length())`, điều đó không làm thay đổi **ý nghĩa giá trị** của kết quả. Bạn không cần nhánh xử lý riêng cho tình huống đó.
+The two strings have the same content even though they are distinct objects. Conversely, if an implementation returns `this` when calling `substring(0, length())`, that does not change the **value semantics** of the result. You do not need a separate branch to handle that situation.
 
-### Đừng lấy kết quả của `==` làm bằng chứng về cách lưu trữ
+### Do Not Treat `==` Results as Proof of Storage Layout
 
 ~~~java
 String source = "ABCD";
 String whole = source.substring(0, source.length());
 String half = source.substring(0, 2);
 
-// Đừng viết điều kiện nghiệp vụ phụ thuộc các so sánh identity này.
+// Do not write business conditions depending on these identity comparisons.
 boolean wholeSameObject = (whole == source);
 boolean halfSameObject = (half == source);
 
-// Nội dung được xác định bởi API.
+// Content is defined by the API.
 boolean wholeCorrect = whole.equals("ABCD"); // true
 boolean halfCorrect = half.equals("AB");     // true
 ~~~
 
-`wholeSameObject` và `halfSameObject` không giúp kiểm tra dữ liệu trích xuất có đúng không. Chúng cũng không chứng minh có sao chép bộ đệm hoặc giữ tham chiếu đến bộ đệm lớn hay không.
+`wholeSameObject` and `halfSameObject` do not verify whether the extracted data is correct. Nor do they prove whether a buffer was copied or whether a reference to a large buffer is retained.
 
-## 4. Lợi ích của tính bất biến: kết quả không bị sửa ngầm
+## 4. Benefit of Immutability: Results Cannot Be Mutated Behind Your Back
 
-`String` là immutable: sau khi tạo, **dãy ký tự của instance đó không bị chỉnh sửa** qua API công khai. Vì vậy ứng dụng có thể truyền một `String` trích xuất sang hàm khác mà không sợ hàm đó sửa trực tiếp nội dung chuỗi.
+`String` is immutable: once created, **that instance's character sequence cannot be modified** through public APIs. Thus an application can pass an extracted `String` to another function without worrying that the function will directly mutate the string's content.
 
 ~~~java
 String source = "hello-world";
 String part = source.substring(6); // "world"
 
-source = "changed";   // gán biến sang một String khác
+source = "changed";   // reassign variable to a different String
 System.out.println(part); // "world"
 ~~~
 
-Phép gán `source = "changed"` chỉ thay **tham chiếu trong biến `source`**. Nó **không** chỉnh sửa instance nguồn cũ, không thay đổi `part`. Kết quả này không chứng minh `part` có mảng bộ nhớ riêng: dù dữ liệu được copy hay chia sẻ an toàn, **giá trị công khai** vẫn ổn định do các `String` là bất biến.
+The assignment `source = "changed"` only changes the **reference stored in variable `source`**. It does **not** edit the old source instance and does not change `part`. This outcome does not prove `part` has its own memory array: whether data is copied or safely shared, the **public value** stays stable because `String`s are immutable.
 
-Với một mảng `char[]` có thể sửa, `String.toCharArray()` tạo **mảng mới** chứa ký tự hiện có:
+For a mutable `char[]` array, `String.toCharArray()` creates a **new array** containing the current characters:
 
 ~~~java
 String part = "world";
@@ -105,9 +105,9 @@ System.out.println(new String(editable)); // "World"
 System.out.println(part);                 // "world"
 ~~~
 
-Thay đổi `editable` chỉ tác động đến mảng mới. Đây là **hợp đồng rõ ràng của `toCharArray`**, khác với suy luận mơ hồ về mảng nội bộ mà `substring` có thể dùng.
+Modifying `editable` only affects the new array. This is an **explicit contract of `toCharArray`**, unlike vague assumptions about internal arrays that `substring` might use.
 
-Ngay cả `StringBuilder` là đối tượng **mutable**, khi lấy kết quả `String` bằng `substring` thì kết quả có giá trị tại thời điểm trích xuất:
+Even though `StringBuilder` is **mutable**, extracting a `String` result via `substring` captures the value at the time of extraction:
 
 ~~~java
 StringBuilder builder = new StringBuilder("mutable");
@@ -118,38 +118,38 @@ System.out.println(builder); // "Mutable"
 System.out.println(saved);   // "muta"
 ~~~
 
-Ở đây `saved` là `String`; các sửa đổi tương lai trên `builder` không làm nội dung `saved` thay đổi. Đó là điều cần cho nghiệp vụ. Không cần biết cách hai kiểu đối tượng quản lý mảng nội bộ.
+Here `saved` is a `String`; subsequent modifications to `builder` do not alter the content of `saved`. That is what business logic needs. You do not need to know how either class manages its internal arrays.
 
-## 5. Java từng thay đổi cách lưu trữ chuỗi — không biến nó thành hợp đồng API
+## 5. Java Has Changed String Storage Before — Do Not Make It an API Contract
 
-Cách tổ chức `String` đã thay đổi theo phiên bản JDK:
+How `String` is organized has changed across JDK versions:
 
-- **Một số JDK cũ trước Java 7u6** triển khai `substring` bằng cách giữ một view gồm offset/length vào mảng ký tự lớn của nguồn. Nếu ứng dụng giữ lại đoạn con rất nhỏ nhưng bỏ chuỗi lớn, mảng lớn **có thể** bị giữ lại lâu hơn dự kiến.
-- **Các bản OpenJDK/JDK hiện đại**, bao gồm Java 17, không còn cơ chế view `String` kiểu offset/count đó. Trong mã nguồn OpenJDK 17, nhánh `substring(0, length())` có thể trả về chính đối tượng `this`; các nhánh khác tạo biểu diễn chuỗi con qua helper tương ứng.
-- **Java 9 trở lên** có cơ chế *Compact Strings* ở các triển khai OpenJDK phổ biến: biểu diễn nội bộ có thể dùng `byte[]` và thông tin coder. Bởi vậy không nên mô tả mọi `String` Java hiện đại là “một mảng `char[]`”.
-- Java có thể tiếp tục thay đổi tối ưu hóa, chia sẻ dữ liệu nội bộ hoặc cách cấp phát. `java.lang.String` API **không hứa** lượng bộ nhớ chính xác, identity của mỗi kết quả `substring` hay khả năng thu gom một mảng cụ thể tại một thời điểm cụ thể.
+- **Some older JDKs prior to Java 7u6** implemented `substring` by keeping an offset/length view into the source's large character array. If an application retained a very small slice while dropping the large string, the large array **could** remain retained longer than expected.
+- **Modern OpenJDK/JDK releases**, including Java 17, no longer use that offset/count `String` view mechanism. In OpenJDK 17 source code, the `substring(0, length())` branch may return `this` itself; other branches construct the substring representation via the corresponding helper.
+- **Java 9 and later** feature *Compact Strings* in common OpenJDK implementations: internal representation may use `byte[]` and a coder flag. Hence modern Java `String`s should not be described as “a `char[]` array”.
+- Java may continue changing optimizations, internal data sharing, or allocation strategies. The `java.lang.String` API **does not promise** exact memory footprint, object identity for every `substring` result, or when a specific array can be garbage-collected.
 
-Điểm cần giữ khi chuyển JDK: **logic chương trình dựa vào ký tự và API**. Nếu yêu cầu là giảm bộ nhớ, phải kiểm tra thông tin triển khai của **JDK đang chạy** và đo đúng tải sử dụng.
+What to preserve when upgrading JDKs: **program logic based on characters and the API**. If the requirement is to reduce memory usage, inspect the implementation details of the **running JDK** and measure under realistic workloads.
 
-### Vì sao đoạn con nhỏ có thể liên quan đến bộ nhớ lớn?
+### Why Could a Small Slice Involve Large Memory?
 
-Tưởng tượng xử lý một bản ghi văn bản dài, chỉ giữ vài ký tự:
+Imagine processing a large text record and keeping only a few characters:
 
 ~~~java
 String largeRecord = loadRecord();
 String key = largeRecord.substring(0, 8);
-// Các bước khác chỉ giữ key.
+// Subsequent steps only retain key.
 ~~~
 
-*`loadRecord()` là hàm giả định; đoạn trên minh họa luồng dữ liệu, không phải một chương trình độc lập.*
+*`loadRecord()` is a hypothetical function; the snippet above illustrates data flow, not a standalone program.*
 
-Trên một triển khai dùng chung backing array, `key` có thể giữ gián tiếp dữ liệu lớn. Trên một triển khai sao chép dải con, khả năng giữ bộ nhớ và chi phí copy khác đi. Nhưng **không có một quy tắc cấp phát cho mọi JVM**, và `key.equals(...)` vẫn đúng ở cả hai.
+On an implementation that shares backing arrays, `key` could indirectly retain the large data. On an implementation that copies the subrange, memory retention and copy cost differ. Yet **there is no single allocation rule across all JVMs**, and `key.equals(...)` remains correct on both.
 
-Với các hệ thống xử lý lượng lớn dữ liệu, quan sát heap dump, allocation profile, khả năng sống lâu của object và benchmark đại diện. Tránh đưa thêm các bản sao chỉ vì nghe nói `substring` “luôn chia sẻ mảng” hoặc “luôn tạo mảng riêng”.
+For systems handling large data volumes, inspect heap dumps, allocation profiles, object lifetimes, and representative benchmarks. Avoid adding extra copies simply because you heard `substring` “always shares arrays” or “always allocates its own array”.
 
-## 6. Một ví dụ Java 17+ có thể chạy và kiểm tra được
+## 6. A Runnable and Verifiable Java 17+ Example
 
-Tệp **`SubstringIndependenceDemo.java`**:
+File **`SubstringIndependenceDemo.java`**:
 
 ~~~java
 public class SubstringIndependenceDemo {
@@ -191,14 +191,14 @@ public class SubstringIndependenceDemo {
 }
 ~~~
 
-Biên dịch/chạy:
+Compile/run:
 
 ~~~bash
 javac -encoding UTF-8 SubstringIndependenceDemo.java
 java SubstringIndependenceDemo
 ~~~
 
-Kết quả `stdout` đã kiểm tra với trình biên dịch và JVM thực tế:
+Verified `stdout` output with an actual compiler and JVM:
 
 ~~~text
 part=alpha
@@ -215,117 +215,117 @@ utf16End=3
 prefixCodePoints=2
 ~~~
 
-Giải thích:
+Explanation:
 
-1. `substring(start, end)` lấy đúng ký tự giữa `:` và `|`, nên `part` là `"alpha"`. `part.equals(other)` đúng dù `other` được tạo qua constructor khác.
-2. `source.substring(6, 6)` là chuỗi rỗng vì hai ranh giới bằng nhau. Đây là kết quả hợp lệ; không cần đoán có reuse instance `""` hay không.
-3. Chỉnh `editableCopy[0]` thành `'X'` không thể làm `part` đổi nội dung vì `toCharArray` trả mảng mới.
-4. Gán `source` sang `"reassigned"` không làm đổi `part`.
-5. Đổi nội dung `StringBuilder` thành `"Mutable"` không làm chuỗi snapshot `"muta"` đổi theo.
-6. `offsetByCodePoints(0, 2)` trả index UTF-16 `3` cho hai code point đầu của `"A😀B"`. `substring(0, 3)` tạo đoạn có hai code point, tránh cắt giữa surrogate pair.
+1. `substring(start, end)` extracts the characters between `:` and `|`, so `part` is `"alpha"`. `part.equals(other)` is true even though `other` was created via a different constructor.
+2. `source.substring(6, 6)` is an empty string because both boundaries are equal. This is a valid result; there is no need to guess whether the `""` instance is reused.
+3. Changing `editableCopy[0]` to `'X'` cannot change `part`'s content because `toCharArray` returns a new array.
+4. Reassigning `source` to `"reassigned"` does not alter `part`.
+5. Changing `StringBuilder`'s content to `"Mutable"` does not alter the snapshot string `"muta"`.
+6. `offsetByCodePoints(0, 2)` returns UTF-16 index `3` for the first two code points of `"A😀B"`. `substring(0, 3)` produces a slice with two code points, avoiding cutting mid-surrogate-pair.
 
-Chú ý: chương trình **không in identity của `substring`**, vì identity không cần để chứng minh tất cả kết quả mong muốn ở trên.
+Note: the program **does not print the object identity of `substring`**, because identity is not needed to prove any of the desired results above.
 
-## 7. Chọn đúng phép so sánh trong nghiệp vụ
+## 7. Choosing the Right Comparison in Business Logic
 
-Sai khi mục tiêu là so sánh nội dung:
+Wrong when the goal is comparing content:
 
 ~~~java
 String input = getInput();
 String token = input.substring(0, 3);
 
 if (token == "ABC") {
-    // Sai: phụ thuộc identity của token và literal.
+    // Wrong: depends on identity of token and literal.
 }
 ~~~
 
-*`getInput()` là hàm minh họa, không định nghĩa trong snippet; không phải chương trình chạy độc lập.*
+*`getInput()` is an illustrative function, not defined in the snippet; this is not a standalone runnable program.*
 
-Đúng:
+Right:
 
 ~~~java
 String input = "ABC-123";
 String token = input.substring(0, 3);
 
 if ("ABC".equals(token)) {
-    System.out.println("Đúng mã ABC");
+    System.out.println("Matched ABC");
 }
 ~~~
 
-`"ABC".equals(token)` không phụ thuộc token có được intern hay có chung đối tượng với literal. Đặt literal bên trái cũng tránh `NullPointerException` nếu token có thể null, dù `substring` của một `String` không null tự nó sẽ trả về một `String`.
+`"ABC".equals(token)` does not depend on whether `token` is interned or shares the same object as the literal. Putting the literal on the left also avoids `NullPointerException` if `token` could be null, although `substring` on a non-null `String` always returns a `String`.
 
-Nếu bài toán cần so sánh không phân biệt chữ hoa/chữ thường, cân nhắc `equalsIgnoreCase` theo ngữ nghĩa ứng dụng; đó là quyết định **so sánh giá trị**, không liên quan đến object identity. Nếu cần nhận diện chính xác một đối tượng được chia sẻ như một sentinel do ứng dụng sở hữu, `==` có thể có ý nghĩa, nhưng đó là một hợp đồng khác hẳn so với “hai chuỗi có cùng văn bản”.
+If the problem requires case-insensitive comparison, consider `equalsIgnoreCase` per application semantics; that is a **value comparison** decision, unrelated to object identity. If you need to recognize a specific shared sentinel object owned by the application, `==` may make sense, but that is a completely different contract from “two strings have the same text”.
 
-### `intern()` có làm thay đổi quy tắc trên không?
+### Does `intern()` Change the Rules Above?
 
-`String.intern()` trả về một biểu diễn canonical trong string pool với cơ chế quy ước identity của chính API `intern`. Nhưng **không cần gọi `intern()` để so sánh văn bản**; `equals` hoạt động trực tiếp trên nội dung.
+`String.intern()` returns a canonical representation in the string pool with identity semantics defined by the `intern` API itself. However, **you do not need `intern()` to compare text**; `equals` operates directly on content.
 
-`intern` cũng không phải một mẹo chung để tiết kiệm bộ nhớ khi trích xuất: nó ảnh hưởng đến vòng đời/tài nguyên của string pool và phải được đánh giá trên kiểu dữ liệu, cardinality và tải thực tế. Đừng tạo phụ thuộc mới vào `intern` chỉ để khiến phép `==` tình cờ đúng.
+`intern` is also not a universal memory-saving trick for extraction: it affects string pool lifetimes/resources and must be evaluated against data types, cardinality, and actual workload. Do not introduce a dependency on `intern` merely to make `==` happen to evaluate to true.
 
-## 8. Cẩn thận về bộ nhớ và hiệu năng
+## 8. Be Careful About Memory and Performance
 
-Một số đánh đổi không thể suy ra chỉ từ cú pháp `substring`:
+Several trade-offs cannot be deduced from `substring` syntax alone:
 
-| Câu hỏi thực tế | Điều có thể nói chắc | Cần làm gì nếu quan trọng? |
+| Practical Question | What Can Be Stated with Certainty | What to Do If It Matters? |
 | --- | --- | --- |
-| Trích xuất 100 ký tự có cấp phát mảng 100 ký tự không? | API không cam kết cách cấp phát | Kiểm tra JDK và allocation profiler |
-| Giữ đoạn 10 ký tự có kéo dài vòng đời một buffer 1 MB không? | Tùy cơ chế lưu trữ và tham chiếu | Heap dump, theo dõi retained size |
-| `substring(0, length())` có trả `this` không? | Giá trị bằng nguồn; identity không nên là điều kiện nghiệp vụ | Không branch theo `==` |
-| `new String(existing)` có ép sao chép backing array không? | Constructor tạo một object `String` mới biểu diễn cùng nội dung, nhưng không hứa **deep copy** backing storage | Không dùng để “ép giải phóng buffer” một cách mù quáng |
-| Dùng `toCharArray()` có tạo mảng mới không? | **Có** theo tài liệu API, với các UTF-16 code unit của chuỗi | Chỉ dùng khi thật sự cần mảng `char[]` độc lập và có thể sửa |
-| Cắt chuỗi nhiều lần có nhanh hơn giữ offset không? | Tùy cách dùng, bộ nhớ, khả năng tối ưu của JVM | Benchmark với JDK, dữ liệu và tải thật |
+| Does extracting 100 characters allocate a 100-character array? | The API does not commit to an allocation strategy | Inspect the JDK and allocation profiler |
+| Does retaining a 10-character slice extend the lifetime of a 1 MB buffer? | Depends on storage layout and references | Heap dump, inspect retained size |
+| Does `substring(0, length())` return `this`? | Its value equals the source; identity should not be a business condition | Do not branch on `==` |
+| Does `new String(existing)` force copying the backing array? | The constructor creates a new `String` object representing the same content, but does not promise a **deep copy** of backing storage | Do not use it to blindly “force buffer release” |
+| Does `toCharArray()` create a new array? | **Yes**, per API documentation, containing the string's UTF-16 code units | Use only when you genuinely need an independent, mutable `char[]` |
+| Is slicing multiple times faster than keeping offsets? | Depends on usage, memory, and JVM optimizations | Benchmark with the target JDK, data, and real workload |
 
-Đừng nhầm “không phụ thuộc vào nội bộ” với “không quan tâm hiệu năng”. Nghiệp vụ nên thiết kế theo giá trị; còn tối ưu hiệu năng được quyết định bởi **bằng chứng đo lường**. Nếu phải tương tác với API yêu cầu một `char[]` có thể sửa, `toCharArray()` là cách có hợp đồng rõ ràng. Nếu chỉ cần nội dung chuỗi, thường không cần tạo bản sao thêm.
+Do not confuse “not depending on internals” with “not caring about performance”. Business logic should be designed around values; performance optimization is driven by **empirical measurement**. If you must interact with an API requiring a mutable `char[]`, `toCharArray()` has a clear contract. If you only need string content, creating extra copies is usually unnecessary.
 
-## 9. Lưu ý ranh giới Unicode khi trích xuất
+## 9. Note Unicode Boundaries When Extracting
 
-Cách lưu bộ nhớ và tính bất biến không giúp sửa **chỉ số UTF-16 sai mục tiêu**. Chẳng hạn, `substring(0, 2)` trên `"A😀B"` cắt sau high surrogate, còn muốn lấy hai code point đầu phải chuyển biên bằng `s.offsetByCodePoints(0, 2)` (trả offset `3`) trước khi gọi `substring(0, 3)`.
+Memory layout and immutability do not fix **mis-targeted UTF-16 indices**. For example, `substring(0, 2)` on `"A😀B"` cuts after the high surrogate, whereas getting the first two code points requires converting the boundary with `s.offsetByCodePoints(0, 2)` (returning offset `3`) before calling `substring(0, 3)`.
 
-Với dấu kết hợp hoặc emoji gồm nhiều code point, cần xét ranh giới grapheme cluster khi sản phẩm đòi “ký tự người dùng nhìn thấy”. Đó là vấn đề **chọn đúng dãy ký tự**, độc lập với identity và backing storage của kết quả.
+With combining marks or multi-code-point emojis, consider grapheme cluster boundaries when the product requires “user-visible characters”. That is a matter of **selecting the right character sequence**, independent of the result's identity and backing storage.
 
-## 10. Các lỗi tư duy cần tránh
+## 10. Mental Traps to Avoid
 
-1. **“Kết quả `substring` chắc chắn là object mới.”** Sai như một giả định có thể mang sang mọi JDK/cách gọi. Giá trị mới trích xuất là điều API quy định; identity là chuyện khác.
-2. **“Hai chuỗi `==` nhau thì là cách duy nhất để biết nội dung bằng nhau.”** Sai. `==` so tham chiếu; `equals` so nội dung.
-3. **“Hai chuỗi khác object thì chắc chắn không thể chia sẻ mảng.”** Không suy ra được backing storage từ identity hai `String`.
-4. **“String bất biến nên JVM chắc chắn đã copy toàn bộ buffer.”** Tính bất biến cho phép nhiều chiến lược tối ưu khác nhau, kể cả dùng chung dữ liệu nội bộ an toàn.
-5. **“`new String(s)` luôn ép backing array được sao chép sâu.”** Không có bảo đảm đó từ constructor nhận một `String`; ví dụ OpenJDK 17 có thể tái sử dụng biểu diễn nội bộ.
-6. **“Thấy một bản JDK copy thì mọi JDK đều copy và chi phí không đổi.”** Chiến lược cấp phát và biểu diễn có thể thay đổi theo phiên bản/runtime.
-7. **“Cắt từ index 0 đến 2 luôn là hai ký tự Unicode.”** Không đúng với code point bổ sung; chỉ số `substring` tính theo UTF-16 code unit.
-8. **“Đổi biến nguồn sẽ làm đoạn trích xuất đổi theo.”** Phép gán lại biến nguồn không làm nội dung `String` cũ hay kết quả trích xuất thay đổi.
-9. **“Chạy một lần thấy nhanh/chậm là đủ kết luận.”** Không. Benchmark cần warmup, tải đại diện, nhiều mẫu và quan sát bộ nhớ khi kết quả được giữ sống lâu.
+1. **“A `substring` result is definitely a new object.”** Wrong as an assumption portable across all JDKs/calls. A newly extracted value is what the API specifies; identity is another matter.
+2. **“`==` between two strings is the only way to tell content is equal.”** Wrong. `==` compares references; `equals` compares content.
+3. **“Two strings that are different objects definitely cannot share an array.”** Backing storage cannot be inferred from the identity of two `String`s.
+4. **“Because `String` is immutable, the JVM definitely copied the whole buffer.”** Immutability enables many optimization strategies, including safely sharing internal data.
+5. **“`new String(s)` always forces a deep copy of the backing array.”** There is no such guarantee from the `String`-copy constructor; for example, OpenJDK 17 can reuse the internal representation.
+6. **“Seeing one JDK copy means every JDK copies with identical cost.”** Allocation and representation strategies can change across versions and runtimes.
+7. **“Slicing from index 0 to 2 is always two Unicode characters.”** False for supplementary code points; `substring` indices are measured in UTF-16 code units.
+8. **“Reassigning the source variable changes the extracted slice.”** Reassigning the source variable does not change the old `String` content or the extracted result.
+9. **“Running once and seeing fast/slow timing is enough to conclude.”** No. Benchmarks need warmup, representative loads, multiple samples, and memory observation when results are long-lived.
 
-## 11. Tự kiểm tra
+## 11. Self-Check
 
-**Câu 1:** Với `String s = "Java"; String t = s.substring(0, 4);`, phải kiểm tra `t.equals(s)` hay `t == s` nếu chỉ quan tâm kết quả có đúng nội dung không?
+**Question 1:** Given `String s = "Java"; String t = s.substring(0, 4);`, should you check `t.equals(s)` or `t == s` if you only care whether the result has the right content?
 
-**Đáp án:** `t.equals(s)`. Việc `t` có là cùng instance `s` không liên quan đến tính đúng của kết quả.
+**Answer:** `t.equals(s)`. Whether `t` is the same instance as `s` is irrelevant to content correctness.
 
-**Câu 2:** Vì sao thay `char[] copy = extracted.toCharArray(); copy[0] = 'X';` không sửa `extracted`?
+**Question 2:** Why does `char[] copy = extracted.toCharArray(); copy[0] = 'X';` not modify `extracted`?
 
-**Đáp án:** `toCharArray()` tạo mảng mới; `String` vẫn bất biến.
+**Answer:** `toCharArray()` creates a new array; `String` remains immutable.
 
-**Câu 3:** Nếu một JVM cũ dùng chung backing array giữa chuỗi nguồn dài và đoạn ngắn, ứng dụng nghiệp vụ có cần kiểm tra identity để bảo vệ nội dung không?
+**Question 3:** If an older JVM shares a backing array between a long source string and a short slice, does business logic need identity checks to protect the content?
 
-**Đáp án:** không. Dù cùng hay khác backing array, nội dung của `String` giữ nguyên. Điều có thể cần đánh giá riêng là **retained heap memory** trên JVM cũ đó.
+**Answer:** No. Whether backing arrays are shared or separate, the `String`'s content remains intact. What may need separate evaluation is **retained heap memory** on that older JVM.
 
-**Câu 4:** `new String(existing)` có phải cách bảo đảm bản sao vật lý hoàn toàn độc lập của mảng bên trong không?
+**Question 4:** Is `new String(existing)` a guaranteed way to obtain a completely independent physical copy of the internal array?
 
-**Đáp án:** không. Constructor có thể tạo object mới cùng giá trị nhưng chiến lược backing storage là chi tiết triển khai.
+**Answer:** No. The constructor may create a new object with the same value, yet backing storage strategy is an implementation detail.
 
-**Câu 5:** Lấy hai code point đầu từ `"A😀B"` bằng cách nào?
+**Question 5:** How do you extract the first two code points from `"A😀B"`?
 
-**Đáp án:** `int end = s.offsetByCodePoints(0, 2); String first = s.substring(0, end);`. `end` bằng `3` tính theo UTF-16.
+**Answer:** `int end = s.offsetByCodePoints(0, 2); String first = s.substring(0, end);`. `end` equals `3` in UTF-16 units.
 
-**Câu 6:** Khi hiệu năng trích xuất bất thường trên bản JDK cụ thể, nên sửa logic thành so sánh `==` hay làm gì?
+**Question 6:** When extraction performance is abnormal on a specific JDK version, should you change the logic to `==` comparisons, or what should you do?
 
-**Đáp án:** giữ logic đúng theo giá trị; đo cấp phát, retained size và profiling/benchmark trên workload và JDK cụ thể để xác định tối ưu.
+**Answer:** Keep value-based logic correct; measure allocations, retained size, and profile/benchmark on the specific workload and JDK to identify optimizations.
 
-## 12. Tài liệu tham khảo
+## 12. References
 
-- [Java SE 17 — `String.substring`, `String.equals`, `String.toCharArray`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): hợp đồng nội dung, biên chỉ số, tính bất biến và sao chép mảng `char[]`.
-- [Java SE 17 — `StringBuilder.substring`, `setCharAt`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html): kết quả `String` của chuỗi nguồn mutable.
-- [OpenJDK 17 — mã nguồn `String.java`](https://github.com/openjdk/jdk17/blob/master/src/java.base/share/classes/java/lang/String.java): ví dụ chi tiết thực thi có thể trả `this` cho toàn chuỗi hoặc tạo biểu diễn kết quả cho đoạn con; chỉ dùng để tìm hiểu triển khai, không dùng thay hợp đồng API.
-- [JEP 254 — Compact Strings](https://openjdk.org/jeps/254): lý do và kỹ thuật biểu diễn bộ nhớ `String` thay đổi trong OpenJDK.
+- [Java SE 17 — `String.substring`, `String.equals`, `String.toCharArray`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html): content contract, index bounds, immutability, and `char[]` array copying.
+- [Java SE 17 — `StringBuilder.substring`, `setCharAt`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/StringBuilder.html): `String` results from a mutable source sequence.
+- [OpenJDK 17 — `String.java` source](https://github.com/openjdk/jdk17/blob/master/src/java.base/share/classes/java/lang/String.java): example implementation details that may return `this` for the whole string or construct a result representation for a slice; use only to understand implementation, not as a replacement for the API contract.
+- [JEP 254 — Compact Strings](https://openjdk.org/jeps/254): rationale and techniques for changing `String` memory representation in OpenJDK.
 
-**Ghi nhớ:** `substring` phải cho ra **đúng dãy ký tự yêu cầu**, còn identity của đối tượng và việc chia sẻ/copy bộ nhớ nội bộ không phải cơ sở thiết kế nghiệp vụ. So sánh bằng `equals`, dựa vào tính bất biến của `String`, dùng index Unicode phù hợp và chỉ kết luận về hiệu năng sau khi đo trên JDK thực tế.
+**Key takeaway:** `substring` must produce the **exact requested character sequence**, while object identity and internal memory sharing/copying are not bases for business design. Compare with `equals`, rely on `String` immutability, use appropriate Unicode indices, and draw performance conclusions only after measuring on the actual JDK.

@@ -1,48 +1,48 @@
-# Thành phần mảng trong Java record không tự động được so sánh sâu
+# Array Components in Java Records Are Not Automatically Deep-Compared
 
-## 1. Điều gì xảy ra với mảng trong một record?
+## 1. What Happens with Arrays in a Record?
 
-Java `record` là một kiểu class giúp khai báo gọn dữ liệu, ví dụ:
+A Java `record` is a class form for concisely declaring data, for example:
 
 ```java
 record Packet(byte[] payload) {}
 ```
 
-Nếu không tự khai báo, Java sinh constructor, accessor `payload()` và các phương thức `equals(Object)`, `hashCode()`, `toString()`. Nhưng **record không có cơ chế tự động so sánh sâu các phần tử của mảng**.
+If not manually declared, Java generates the constructor, `payload()` accessor, and `equals(Object)`, `hashCode()`, and `toString()` methods. However, **records have no mechanism to automatically deep-compare array elements**.
 
-Giả sử hai object `Packet` đều chứa dãy byte `{1, 2, 3}`. Nếu mỗi object nhận một mảng được tạo riêng, generated `equals` coi chúng là **khác nhau**. Nguyên nhân là mảng Java dùng `Object.equals` theo **identity tham chiếu**, không so sánh giá trị từng phần tử.
+Suppose two `Packet` objects both contain the byte sequence `{1, 2, 3}`. If each object receives a separately allocated array, generated `equals` treats them as **different**. The reason is that Java arrays use `Object.equals` by **reference identity**, without comparing individual element values.
 
-Phân biệt ba điều kiện:
+Distinguish three conditions:
 
-- **Cùng tham chiếu:** `arrayA == arrayB` — hai biến trỏ tới chính một đối tượng mảng.
-- **Cùng nội dung mảng một chiều:** `Arrays.equals(arrayA, arrayB)` — cùng độ dài và phần tử tương ứng bằng nhau.
-- **Cùng nội dung nhiều tầng mảng:** `Arrays.deepEquals(arrayA, arrayB)` với các kiểu mảng tham chiếu/lồng phù hợp — xét sâu các mảng con.
+- **Same reference:** `arrayA == arrayB` — two variables point to the exact same array object.
+- **Same 1D array contents:** `Arrays.equals(arrayA, arrayB)` — same length and corresponding elements equal.
+- **Same multi-level array contents:** `Arrays.deepEquals(arrayA, arrayB)` for appropriate reference/nested array types — deeply inspects sub-arrays.
 
-Không có quy tắc chung nói rằng vì một record “mang giá trị” nên mọi thành phần mutable hoặc dạng mảng tự động có value equality. Ta phải chọn ngữ nghĩa equality phù hợp bài toán.
+There is no general rule saying that because a record "carries values", every mutable or array-shaped component automatically gets value equality. You must choose equality semantics that fit the problem.
 
-## 2. Hợp đồng Java SE 17 quy định thế nào?
+## 2. What Does the Java SE 17 Contract Specify?
 
-Tài liệu `java.lang.Record` và Java Language Specification §8.10 xác định generated `equals` kiểm tra cùng class record và equality của **từng component field**:
+The `java.lang.Record` documentation and Java Language Specification §8.10 specify that generated `equals` checks for the same record class and equality of **each component field**:
 
-1. Component kiểu nguyên thủy được so sánh theo quy tắc tương ứng với wrapper `compare`; chẳng hạn hai component `int` có cùng số thì bằng nhau.
-2. Component kiểu tham chiếu dùng ngữ nghĩa tương đương `Objects.equals(a, b)`.
-3. Quy tắc `Objects.equals` coi hai tham chiếu bằng nhau khi cùng object hoặc khi `a.equals(b)` trả `true` (có xử lý `null`).
+1. Primitive-type components are compared according to the corresponding wrapper's `compare` rule; for instance, two `int` components with the same number are equal.
+2. Reference-type components use semantics equivalent to `Objects.equals(a, b)`.
+3. The `Objects.equals` rule considers two references equal when they are the same object or when `a.equals(b)` returns `true` (with `null` handling).
 
-Class mảng trong Java không override `Object.equals` để duyệt phần tử; hai mảng khác tham chiếu dù chứa giá trị giống nhau vẫn khác nhau.
+Array classes in Java do not override `Object.equals` to traverse elements; two arrays with different references remain unequal even when holding identical values.
 
-| Component | Generated equality của record | Ví dụ |
+| Component | Generated Record Equality | Example |
 | --- | --- | --- |
-| `int number` | Theo giá trị nguyên thủy | `4` bằng `4` |
-| `String title` | Theo `String.equals` | Hai String có cùng nội dung bằng nhau |
-| `List<String> items` | Theo `List.equals` | List so sánh các phần tử theo thứ tự |
-| `byte[] data` | Theo tham chiếu của mảng | Hai mảng mới chứa `{1, 2}` không bằng |
-| `int[][] matrix` | Theo tham chiếu của mảng ngoài | Không tự duyệt các hàng |
+| `int number` | By primitive value | `4` equals `4` |
+| `String title` | By `String.equals` | Two `String`s with the same contents are equal |
+| `List<String> items` | By `List.equals` | `List` compares elements in order |
+| `byte[] data` | By array reference | Two new arrays containing `{1, 2}` are not equal |
+| `int[][] matrix` | By outer array reference | Does not automatically traverse rows |
 
-Generated `hashCode` được tạo từ các component và tương thích với generated `equals`. **Đừng nhầm với `Arrays.hashCode` hoặc `Arrays.deepHashCode`**: record không tự áp đặt cách tính hash theo nội dung mảng. Thuật toán kết hợp hash chính xác cũng không được Java cam kết chung, vì vậy không nên phụ thuộc vào số hash cụ thể hoặc tin rằng mã băm có thể dùng làm ID bền vững.
+Generated `hashCode` is derived from the components and is compatible with generated `equals`. **Do not confuse this with `Arrays.hashCode` or `Arrays.deepHashCode`**: a record does not automatically compute hashes based on array contents. Nor is the exact hash combining algorithm promised by Java in general, so you should not rely on specific hash numbers or believe hash codes can serve as durable IDs.
 
-Generated `toString` cũng dựa trên component, nhưng nó không cam kết một cách in mảng theo toàn bộ phần tử như `Arrays.toString`. Khi muốn hiển thị nội dung byte, hãy chủ động định dạng.
+Generated `toString` is also based on components, yet it does not commit to printing arrays across all elements like `Arrays.toString`. When you want to display byte contents, format them explicitly.
 
-## 3. Ví dụ Java 17 có thể chạy: cùng phần tử vẫn không bằng
+## 3. Runnable Java 17 Example: Same Elements Still Not Equal
 
 ```java
 import java.util.Arrays;
@@ -71,14 +71,14 @@ public class RecordArrayDemo {
 }
 ```
 
-Lưu chương trình thành `RecordArrayDemo.java` và chạy:
+Save the program as `RecordArrayDemo.java` and run:
 
 ```bash
 javac RecordArrayDemo.java
 java RecordArrayDemo
 ```
 
-Đầu ra xác định:
+Deterministic output:
 
 ```text
 false
@@ -90,22 +90,22 @@ true
 1
 ```
 
-**Phân tích:**
+**Analysis:**
 
-- `firstArray == secondArray` là `false` vì hai lần tạo mảng cấp phát hai đối tượng.
-- `Arrays.equals(firstArray, secondArray)` là `true` vì tại thời điểm so sánh, nội dung của chúng giống nhau.
-- `a.equals(b)` là `false` do hai component `payload` không cùng tham chiếu mảng.
-- `a.equals(c)` là `true` vì cùng dùng `firstArray` và cùng kiểu record.
-- Accessor `payload()` mặc định trả tham chiếu field, nên `a.payload() == firstArray` là `true`.
-- Sửa `firstArray[0] = 9` làm dữ liệu thấy qua `a.payload()` đổi thành `9`, nhưng mảng của `b` vẫn chứa `1` ở phần tử đầu.
+- `firstArray == secondArray` is `false` because creating two arrays allocates two objects.
+- `Arrays.equals(firstArray, secondArray)` is `true` because at the time of comparison, their contents match.
+- `a.equals(b)` is `false` because the two `payload` components do not share the same array reference.
+- `a.equals(c)` is `true` because both use `firstArray` and the same record type.
+- The default `payload()` accessor returns the field reference, so `a.payload() == firstArray` is `true`.
+- Modifying `firstArray[0] = 9` changes the data visible through `a.payload()` to `9`, while `b`'s array still holds `1` at the first element.
 
-Kết quả trên làm rõ hai vấn đề khác nhau: **generated equality không so sánh nội dung mảng**, và **record không bảo đảm bất biến sâu**.
+The results above clarify two distinct issues: **generated equality does not compare array contents**, and **records do not guarantee deep immutability**.
 
-## 4. Vì sao record chỉ bất biến nông?
+## 4. Why Are Records Only Shallowly Immutable?
 
-Đối với một record, mỗi component có field tương ứng `private final`. Với mảng, điều này ngăn field được gán sang tham chiếu mới sau khi khởi tạo, **không ngăn sửa các phần tử trong mảng đang được tham chiếu**.
+For a record, each component has a corresponding `private final` field. For an array, this prevents the field from being reassigned to a new reference after initialization, **without preventing modification of the elements inside the referenced array**.
 
-Ví dụ minh họa (đặt trong phương thức có thể truy cập kiểu `Numbers`):
+Illustrative example (placed inside a method with access to the `Numbers` type):
 
 ```java
 record Numbers(int[] values) {}
@@ -114,22 +114,22 @@ Numbers numbers = new Numbers(new int[] {1, 2});
 numbers.values()[0] = 99;
 ```
 
-Đây là đoạn khái niệm gồm khai báo record và câu lệnh sử dụng; nếu đưa vào tệp hoàn chỉnh thì khai báo `record Numbers...` ở vị trí khai báo kiểu, hai câu lệnh còn lại trong phương thức. Giá trị mảng được nhìn qua accessor có thể đổi dù field record mang tính final.
+This is a conceptual snippet consisting of a record declaration and usage statements; if placed into a complete file, the `record Numbers...` declaration goes where type declarations are valid, and the remaining two statements go inside a method. Array values seen through the accessor can change even though the record field is final.
 
-Tương tự, với `record Item(List<String> tags) {}`, nếu truyền vào một `ArrayList` rồi giữ tham chiếu bên ngoài, việc sửa `ArrayList` có thể làm thay đổi dữ liệu record nhìn thấy, trừ khi constructor đã sao chép/phòng vệ. `List.equals` so sánh theo nội dung, nên các thay đổi ấy còn có thể tác động đến kết quả `equals` và `hashCode`. Với mảng, generated equality vẫn xét identity tham chiếu, nhưng dữ liệu người dùng đọc được qua record có thể thay đổi.
+Similarly, with `record Item(List<String> tags) {}`, if an `ArrayList` is passed in and an external reference is kept, modifying the `ArrayList` can change the data the record sees, unless the constructor copied/defended against it. `List.equals` compares by contents, so those changes can also affect `equals` and `hashCode` results. With arrays, generated equality still checks reference identity, yet the data users read through the record can change.
 
-**Bất biến nông** mô tả tính cố định của các field; **bất biến sâu** cần xem xét khả năng biến đổi của toàn bộ cấu trúc dữ liệu được field tham chiếu.
+**Shallow immutability** describes the fixedness of the fields; **deep immutability** requires examining the mutability of the entire data structure referenced by the fields.
 
-## 5. Mảng một chiều và mảng đa chiều cần phương thức khác nhau
+## 5. One-Dimensional and Multi-Dimensional Arrays Need Different Methods
 
-Với mảng một chiều nguyên thủy như `byte[]`, `int[]`, `long[]`, dùng cặp:
+For 1D primitive arrays such as `byte[]`, `int[]`, `long[]`, use the pair:
 
-- `Arrays.equals(a, b)` nếu muốn so sánh theo từng phần tử.
-- `Arrays.hashCode(a)` nếu muốn tạo hash phù hợp với equality đó.
+- `Arrays.equals(a, b)` when comparing element-by-element.
+- `Arrays.hashCode(a)` when producing a hash consistent with that equality.
 
-Với mảng tham chiếu một chiều như `String[]`, `Arrays.equals` cũng so sánh các phần tử tương ứng theo equality của từng phần tử. Nhưng nếu mỗi phần tử lại là **một mảng**, equality mảng lồng vẫn theo identity. Để đi sâu vào mảng con, cần `Arrays.deepEquals` và `Arrays.deepHashCode` với kiểu phù hợp.
+For 1D reference arrays such as `String[]`, `Arrays.equals` also compares corresponding elements using each element's equality. However, if each element is itself **an array**, nested array equality remains by identity. To descend into child arrays, `Arrays.deepEquals` and `Arrays.deepHashCode` are needed for appropriate types.
 
-Ví dụ chương trình độc lập:
+Standalone program example:
 
 ```java
 import java.util.Arrays;
@@ -149,14 +149,14 @@ public class NestedArrayDemo {
 }
 ```
 
-Lưu vào `NestedArrayDemo.java`:
+Save to `NestedArrayDemo.java`:
 
 ```bash
 javac NestedArrayDemo.java
 java NestedArrayDemo
 ```
 
-Đầu ra:
+Output:
 
 ```text
 false
@@ -165,15 +165,15 @@ true
 false
 ```
 
-Dòng thứ hai là `false` vì `Arrays.equals` ở mảng ngoài sẽ so sánh các `int[]` hàng với nhau bằng equality tham chiếu. `Arrays.deepEquals` đệ quy qua các hàng nên trả `true`. Record `Matrix` lại chỉ so sánh hai component `cells` ở mức tham chiếu mảng ngoài, nên generated equality là `false`.
+The second line is `false` because `Arrays.equals` on the outer array compares the `int[]` rows with each other using reference equality. `Arrays.deepEquals` recurses through the rows and thus returns `true`. The `Matrix` record only compares the two `cells` components at the outer array reference level, so generated equality is `false`.
 
-Với `int[][]`, `clone()` của mảng ngoài chỉ tạo bản sao **các tham chiếu hàng**, không tự sao chép từng `int[]` bên trong. Muốn bất biến sâu phải tạo các hàng mới (và tiếp tục xuống sâu khi dữ liệu còn nhiều cấp).
+For `int[][]`, `clone()` on the outer array only creates a copy of **the row references**, without automatically copying each inner `int[]`. Deep immutability requires creating new rows (and continuing deeper when data has more levels).
 
-## 6. Record đại diện chuỗi byte: chọn content equality rõ ràng
+## 6. Records Representing Byte Sequences: Choose Explicit Content Equality
 
-Nếu miền nghiệp vụ định nghĩa hai `Packet` bằng nhau khi chứa cùng dãy byte, hãy override **cả `equals` và `hashCode`** theo nội dung. Để kiểu đó còn an toàn khi dùng làm khóa `HashMap`/`HashSet`, cần tránh việc mảng nội bộ bị sửa sau khi khởi tạo.
+If the business domain defines two `Packet`s as equal when they contain the same byte sequence, override **both `equals` and `hashCode`** by contents. For that type to also be safe as a `HashMap`/`HashSet` key, prevent the internal array from being mutated after initialization.
 
-Ví dụ sau bảo vệ cả constructor lẫn accessor:
+The following example protects both the constructor and the accessor:
 
 ```java
 import java.util.Arrays;
@@ -237,14 +237,14 @@ public class SafePacketDemo {
 }
 ```
 
-Lưu tệp `SafePacketDemo.java` rồi chạy:
+Save the file `SafePacketDemo.java` and run:
 
 ```bash
 javac -encoding UTF-8 SafePacketDemo.java
 java SafePacketDemo
 ```
 
-Kết quả:
+Output:
 
 ```text
 true
@@ -256,23 +256,23 @@ true
 ContentPacket[payload=[1, 2, 3]]
 ```
 
-Đọc đoạn code theo contract:
+Reading the code against the contract:
 
-1. Constructor compact của record sao chép tham số mảng qua `payload.clone()`; compiler lưu tham số đã xử lý vào field component. `ContentPacket` không giữ tham chiếu đến mảng input bên ngoài.
-2. Accessor được override để trả **bản sao**, nên code gọi getter không thể sửa trực tiếp mảng nội bộ.
-3. `equals` dùng `Arrays.equals` để so nội dung; hai input khác object nhưng cùng byte trở thành hai record bằng nhau.
-4. `hashCode` dùng `Arrays.hashCode`, bảo đảm cặp giá trị bằng nhau nhận cùng hash.
-5. `HashSet.contains(b)` thành công sau khi thêm `a` do cả equality và hash nhất quán.
-6. Sửa mảng `left` hoặc bản sao accessor trả về không ảnh hưởng dữ liệu của `a`, nên record giữ equality/hash ổn định.
-7. `toString` tự định dạng nội dung một chiều bằng `Arrays.toString` để tiện quan sát.
+1. The record's compact constructor copies the array parameter via `payload.clone()`; the compiler stores the processed parameter into the component field. `ContentPacket` does not retain a reference to the external input array.
+2. The accessor is overridden to return **a copy**, so code calling the getter cannot directly mutate the internal array.
+3. `equals` uses `Arrays.equals` to compare contents; two inputs with different objects yet identical bytes become two equal records.
+4. `hashCode` uses `Arrays.hashCode`, ensuring equal value pairs receive the same hash.
+5. `HashSet.contains(b)` succeeds after adding `a` because both equality and hash are consistent.
+6. Modifying the `left` array or the copy returned by the accessor does not affect `a`'s data, so the record maintains stable equality/hash.
+7. `toString` formats the 1D contents itself using `Arrays.toString` for convenient inspection.
 
-**Cần cả hai phía của defensive copy:** Chỉ copy constructor vẫn để lộ mảng qua accessor mặc định; chỉ copy accessor vẫn giữ mảng input gốc có thể sửa. Khi mục tiêu là value object bất biến về nội dung, phải kiểm soát mọi đường giữ và trả tham chiếu mutable.
+**Both sides of defensive copying are required:** Copying only in the constructor still exposes the array via the default accessor; copying only in the accessor still keeps the mutable original input array. When the goal is a content-immutable value object, every path holding or returning mutable references must be controlled.
 
-Ví dụ dùng `byte[]` nên `clone()` sao chép toàn bộ dữ liệu nguyên thủy. Mảng nhiều chiều và array chứa object mutable phải được xem xét sâu hơn; copy mảng ngoài không đảm bảo copy nội dung các object phần tử.
+The example uses `byte[]` so `clone()` copies all primitive data. Multi-dimensional arrays and arrays containing mutable objects must be examined more deeply; copying the outer array does not guarantee copying the contents of element objects.
 
-## 7. Một hướng khác: dùng List có equality theo phần tử
+## 7. Another Approach: Using a List with Element-Based Equality
 
-Với dữ liệu thực sự là danh sách có thứ tự, có thể dùng `List` trong record thay vì mảng. `List.equals` đã định nghĩa so sánh các phần tử tương ứng.
+For data that is genuinely an ordered list, you can use `List` in a record instead of an array. `List.equals` already defines comparison of corresponding elements.
 
 ```java
 import java.util.List;
@@ -294,98 +294,98 @@ public class ListValueDemo {
 }
 ```
 
-Lưu tệp `ListValueDemo.java`, chạy `javac ListValueDemo.java` và `java ListValueDemo`:
+Save the file `ListValueDemo.java`, run `javac ListValueDemo.java` and `java ListValueDemo`:
 
 ```text
 true
 true
 ```
 
-Vì component là `List<String>`, generated record equality dùng `List.equals`; `String` bất biến nên dễ giữ ổn định. `List.copyOf` tạo danh sách không cho sửa cấu trúc, đồng thời không cho chứa phần tử `null`.
+Because the component is `List<String>`, generated record equality uses `List.equals`; `String` is immutable so it is easy to keep stable. `List.copyOf` creates a structurally unmodifiable list and also disallows `null` elements.
 
-Điều này **không có nghĩa `List.copyOf` sao chép sâu**. Nếu danh sách gồm object mutable, việc thay đổi nội dung object phần tử vẫn có thể tác động đến equality/hash. Chọn kiểu dữ liệu và chính sách bất biến theo hợp đồng thực tế, không chỉ theo mức độ thuận tiện khi viết code.
+This **does not mean `List.copyOf` deep-copies**. If the list consists of mutable objects, mutating an element object's contents can still affect equality/hash. Choose data types and immutability policies according to the actual contract, not merely coding convenience.
 
-## 8. Có khi nào generated equality theo mảng là điều ta muốn?
+## 8. Are There Cases Where Generated Array Equality Is What You Want?
 
-Có. Nếu mục tiêu của record là **đánh dấu một vùng đệm cụ thể** hoặc giữ identity của một tài nguyên thay vì giá trị byte, hai mảng riêng dù chứa cùng dữ liệu có thể được xem là hai đối tượng khác nhau. Khi ấy generated equality có thể đúng ý định.
+Yes. If the goal of the record is to **tag a specific buffer** or hold the identity of a resource rather than byte values, two separate arrays even with the same data may be treated as two distinct objects. In that case, generated equality can match the intent.
 
-Nhưng nếu record biểu diễn:
+However, if the record represents:
 
-- Dữ liệu nhị phân của một thông điệp;
-- Vector giá trị số;
-- Ma trận, bảng số liệu dạng mảng;
-- Bản chụp dữ liệu cần so sánh theo từng phần tử;
+- Binary payload of a message;
+- A vector of numeric values;
+- A matrix or numeric table in array form;
+- A data snapshot needing element-by-element comparison;
 
-thì thường cần xem xét so sánh theo nội dung. Không có một quy tắc thiết kế áp dụng cho mọi class, nhưng **cần xác định contract trước khi tin vào generated equality**.
+then content comparison usually needs to be considered. There is no single design rule applicable to every class, yet **the contract must be defined before trusting generated equality**.
 
-## 9. Hợp đồng hashCode và collection
+## 9. The hashCode Contract and Collections
 
-Ràng buộc bắt buộc:
+Mandatory constraint:
 
 `a.equals(b) ⇒ a.hashCode() == b.hashCode()`
 
-Nếu override `equals` để gọi `Arrays.equals` nhưng để nguyên generated `hashCode`, kết quả hash vẫn dựa trên các component theo hợp đồng được sinh, tức chưa được ràng buộc theo nội dung mảng. Hai mảng cùng phần tử nhưng khác identity có thể cho hash khác, trong khi `equals` mới trả `true`: **vi phạm contract**.
+If you override `equals` to call `Arrays.equals` while leaving the generated `hashCode` intact, the hash result remains based on the components under the generated contract, i.e., not bound to array contents. Two arrays with identical elements but different identities can produce different hashes while the new `equals` returns `true`: **a contract violation**.
 
-Chọn cặp phương thức phù hợp:
+Choose the appropriate pair of methods:
 
-| Ngữ nghĩa cần có | Equality | Hash tương thích |
+| Desired Semantics | Equality | Compatible Hash |
 | --- | --- | --- |
-| Mảng nguyên thủy một chiều | `Arrays.equals` | `Arrays.hashCode` |
-| Mảng tham chiếu một chiều | `Arrays.equals` | `Arrays.hashCode` |
-| Mảng lồng với yêu cầu so sánh đệ quy | `Arrays.deepEquals` | `Arrays.deepHashCode` |
-| Identity của mảng | Generated record equality | Generated record hashCode |
-| List có thứ tự với equality theo phần tử | `List.equals` | `List.hashCode` |
+| 1D primitive array | `Arrays.equals` | `Arrays.hashCode` |
+| 1D reference array | `Arrays.equals` | `Arrays.hashCode` |
+| Nested array requiring recursive comparison | `Arrays.deepEquals` | `Arrays.deepHashCode` |
+| Array identity | Generated record equality | Generated record hashCode |
+| Ordered list with element-based equality | `List.equals` | `List.hashCode` |
 
-Nếu nội dung mảng tham gia equality/hash, việc sửa mảng khi record nằm trong `HashSet` hoặc làm khóa `HashMap` có thể khiến tra cứu không còn đáng tin cậy. Đây là lý do defensive copy đi cùng chiến lược value equality.
+If array contents participate in equality/hash, mutating the array while the record is in a `HashSet` or used as a `HashMap` key can make lookups unreliable. This is why defensive copying accompanies a value equality strategy.
 
-Đừng kiểm thử rằng hai giá trị khác nhau luôn phải cho hash khác nhau. Va chạm hash được phép. Cũng đừng phụ thuộc vào một số hash cụ thể hoặc định dạng generated `toString` như dữ liệu giao thức.
+Do not assert in tests that two unequal values must always produce different hashes. Hash collisions are permitted. Nor should you depend on a specific hash number or generated `toString` format as protocol data.
 
-## 10. Những cách sửa chưa đủ
+## 10. Incomplete Fixes
 
-**Chỉ thêm `Arrays.equals` ở một điểm gọi:** Điều đó không đổi `record.equals`, nên khi record đi vào thư viện khác hay dùng làm khóa `Map`, generated equality vẫn theo identity mảng.
+**Adding `Arrays.equals` at only one call site:** That does not change `record.equals`, so when the record enters another library or is used as a `Map` key, generated equality still uses array identity.
 
-**Chỉ override `equals` mà giữ `hashCode` cũ:** Không còn bảo đảm cặp bằng nhau có cùng hash. Phải override hash tương ứng.
+**Overriding only `equals` while keeping the old `hashCode`:** Equal pairs are no longer guaranteed to have the same hash. You must override hash accordingly.
 
-**Chỉ clone mảng ở constructor:** Bảo vệ khỏi sửa tham số bên ngoài nhưng hai record sở hữu hai bản copy khác nhau vẫn không bằng nhau theo generated equality. Ngoài ra, accessor có thể trả mảng nội bộ và bị sửa.
+**Cloning the array only in the constructor:** Protects against external input mutation, yet two records holding two different copies still are not equal under generated equality. Moreover, the accessor may return the internal array and allow mutation.
 
-**Chỉ clone trong accessor:** Không giải quyết việc constructor giữ tham chiếu tới mảng input đã bị caller sửa; cũng không biến generated equality thành content equality. Generated equality/hash dùng component fields chứ không nhất thiết gọi accessor của record.
+**Cloning only in the accessor:** Does not solve the constructor holding a reference to an input array already mutated by the caller; nor does it turn generated equality into content equality. Generated equality/hash use component fields and do not necessarily call the record's accessor.
 
-**Dùng `Arrays.equals` cho `int[][]` rồi nghĩ đã so mọi số:** Mảng ngoài có các phần tử là mảng con; so nông chỉ thấy identity của các mảng con. Nếu cần so sâu, chọn `Arrays.deepEquals` và `Arrays.deepHashCode`, đồng thời cân nhắc defensive deep copy.
+**Using `Arrays.equals` for `int[][]` and thinking all numbers are compared:** The outer array has child arrays as elements; shallow comparison only sees the identity of child arrays. If deep comparison is needed, choose `Arrays.deepEquals` and `Arrays.deepHashCode`, and also consider defensive deep copying.
 
-## 11. Câu hỏi tự luyện
+## 11. Self-Practice Questions
 
-**Câu 1.** Hai `record R(int[] data) {}` được tạo bằng hai mảng độc lập cùng chứa `{1, 2}`. Generated `equals` trả gì?
+**Question 1.** Two `record R(int[] data) {}` instances are created with two independent arrays both containing `{1, 2}`. What does generated `equals` return?
 
-**Đáp án:** `false` vì component `int[]` dùng equality tham chiếu.
+**Answer:** `false` because the `int[]` component uses reference equality.
 
-**Câu 2.** Hai record cùng kiểu nhận chính **một** mảng làm component. Generated equality có thể trả `true` không?
+**Question 2.** Two records of the same type receive the exact **same** array as their component. Can generated equality return `true`?
 
-**Đáp án:** Có, khi mọi component còn lại cũng bằng nhau. Với component mảng, hai bên cùng tham chiếu nên bằng nhau.
+**Answer:** Yes, when all remaining components are also equal. For the array component, both sides share the same reference so they are equal.
 
-**Câu 3.** Một record dùng `Arrays.equals` cho `equals` nhưng không override `hashCode`. Vấn đề ở đâu?
+**Question 3.** A record uses `Arrays.equals` for `equals` but does not override `hashCode`. Where is the flaw?
 
-**Đáp án:** Hai mảng khác tham chiếu nhưng cùng nội dung có thể bằng nhau theo `equals` trong khi hash sinh theo component không bảo đảm bằng nhau, vi phạm `Object` contract. Dùng `Arrays.hashCode` cho cùng nội dung mảng.
+**Answer:** Two arrays with different references yet identical contents can be equal under `equals` while component-generated hashes are not guaranteed to match, violating the `Object` contract. Use `Arrays.hashCode` on the same array contents.
 
-**Câu 4.** Với `int[][]`, tại sao `Arrays.equals(a, b)` có thể `false` khi `Arrays.deepEquals(a, b)` là `true`?
+**Question 4.** With `int[][]`, why can `Arrays.equals(a, b)` be `false` while `Arrays.deepEquals(a, b)` is `true`?
 
-**Đáp án:** So nông ở mảng ngoài gặp từng phần tử `int[]` và so identity của mảng con. So sâu đi vào từng hàng để so các số nguyên.
+**Answer:** Shallow comparison on the outer array encounters each `int[]` element and compares child array identity. Deep comparison descends into each row to compare the integers.
 
-**Câu 5.** Một record copy `byte[]` trong constructor, nhưng accessor trả trực tiếp field. Nó đã bất biến theo nội dung chưa?
+**Question 5.** A record copies `byte[]` in the constructor, yet the accessor returns the field directly. Is it immutable by contents yet?
 
-**Đáp án:** Chưa. Người dùng có thể sửa mảng qua accessor. Cần copy khi trả ra hoặc dùng biểu diễn thực sự immutable.
+**Answer:** Not yet. Users can mutate the array through the accessor. You need to copy on return or use a truly immutable representation.
 
-**Câu 6.** Khi nào generated equality với component `byte[]` có thể phù hợp?
+**Question 6.** When can generated equality with a `byte[]` component be appropriate?
 
-**Đáp án:** Khi hợp đồng kiểu dữ liệu thực sự muốn identity của **đối tượng mảng** thay vì nội dung của dãy byte.
+**Answer:** When the data type's contract genuinely wants the identity of the **array object** rather than the contents of the byte sequence.
 
-## 12. Ghi nhớ
+## 12. Key Takeaways
 
-1. Generated `equals` của record dùng ngữ nghĩa equality của từng **component**, không tự so sánh sâu mọi cấu trúc.
-2. Mảng Java dùng equality theo **tham chiếu**; hai mảng cùng nội dung không tự làm hai record bằng nhau.
-3. `Arrays.equals` phù hợp khi so mảng một chiều; `Arrays.deepEquals` phù hợp với mảng lồng cần so đệ quy.
-4. Khi định nghĩa equality theo nội dung mảng, phải định nghĩa hash tương ứng bằng `Arrays.hashCode` hoặc `Arrays.deepHashCode`.
-5. Record chỉ **bất biến nông**; final field không bảo vệ nội dung của mảng hoặc object mutable.
-6. Để xây dựng value object ổn định dựa trên mảng, cần defensive copy **khi nhận** và **khi trả** dữ liệu, đồng thời xem xét deep copy khi có cấu trúc lồng.
-7. Nếu bài toán cần identity mảng thay vì content equality, generated equality có thể được giữ nguyên; hãy viết rõ ý nghĩa đó trong thiết kế.
+1. A record's generated `equals` uses the equality semantics of each **component**, without automatically deep-comparing all structures.
+2. Java arrays use **reference** equality; two arrays with identical contents do not automatically make two records equal.
+3. `Arrays.equals` fits comparing 1D arrays; `Arrays.deepEquals` fits nested arrays needing recursive comparison.
+4. When defining equality by array contents, you must define the corresponding hash using `Arrays.hashCode` or `Arrays.deepHashCode`.
+5. Records are only **shallowly immutable**; a final field does not protect the contents of an array or mutable object.
+6. To build a stable value object based on arrays, defensive copying is needed **on input** and **on output**, along with considering deep copying when nested structures exist.
+7. If the problem needs array identity rather than content equality, generated equality can be kept; document that intent clearly in the design.
 
-Tài liệu chính thức: [`java.lang.Record` (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Record.html), [JLS §8.10 – Record Classes](https://docs.oracle.com/javase/specs/jls/se17/html/jls-8.html#jls-8.10), [`java.util.Arrays`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Arrays.html) và [`Objects.equals`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Objects.html#equals(java.lang.Object,java.lang.Object)).
+Official documentation: [`java.lang.Record` (Java SE 17)](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Record.html), [JLS §8.10 – Record Classes](https://docs.oracle.com/en/java/javase/specs/jls/se17/html/jls-8.html#jls-8.10), [`java.util.Arrays`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Arrays.html), and [`Objects.equals`](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Objects.html#equals(java.lang.Object,java.lang.Object)).

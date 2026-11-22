@@ -1,12 +1,12 @@
-# Dạng mũi tên `->` và phạm vi của khối nhánh trong Java
+# Arrow Form `->` and Branch Block Scope in Java
 
 > **Java core — language-basics / Switch**  
-> **Môi trường:** JDK 17+, không bật preview, không dùng thư viện ngoài.  
-> **Mục tiêu:** Viết đúng `switch` dạng `case ... ->`, phân biệt `switch` **statement** và **expression**, hiểu phạm vi biến trong mỗi khối `{ ... }`, biết khi nào cần `yield` và vì sao không xảy ra *fall-through* như dạng `case ...:`.
+> **Environment:** JDK 17+, preview disabled, no external libraries.  
+> **Goal:** Write `case ... ->` switches correctly, distinguish `switch` **statements** from **expressions**, understand variable scope inside each `{ ... }` block, know when `yield` is needed, and understand why *fall-through* does not occur as in `case ...:`.
 
-## 1. Quy tắc cơ bản của dạng mũi tên
+## 1. Basic Rules of the Arrow Form
 
-Dạng truyền thống sử dụng nhãn `case ...:` và thường cần `break`. Dạng mũi tên `case ... ->` được hỗ trợ chính thức ở Java 17 và **chỉ chạy nhánh được chọn**, không tự chuyển sang mã của nhánh tiếp theo:
+The traditional form uses `case ...:` labels and usually requires `break`. The arrow form `case ... ->` is officially supported in Java 17 and **executes only the selected branch**, without automatically falling into the next branch's code:
 
 ~~~java
 int code = 2;
@@ -15,12 +15,12 @@ switch (code) {
     case 2 -> System.out.println("TWO");
     default -> System.out.println("OTHER");
 }
-// Chỉ in TWO.
+// Prints only TWO.
 ~~~
 
-Cấu trúc `switch` này là một **statement**, tức thao tác điều khiển, không phải biểu thức trả về giá trị.
+This `switch` construct is a **statement**, meaning a control-flow action rather than an expression returning a value.
 
-Một nhánh mũi tên trong switch statement có thể là một **statement expression** (ví dụ lời gọi phương thức), **block `{...}`** hoặc câu lệnh `throw`. Nếu phải thực hiện nhiều câu lệnh trong nhánh, đặt chúng trong một khối:
+An arrow branch in a switch statement can be a **statement expression** (such as a method call), a **block `{...}`**, or a `throw` statement. If multiple statements must run in a branch, place them inside a block:
 
 ~~~java
 switch (code) {
@@ -33,17 +33,17 @@ switch (code) {
 }
 ~~~
 
-Không cần `break` sau nhánh `->`. Việc thêm ngoặc nhọn là để nhóm nhiều câu lệnh và xác định phạm vi biến, **không phải để ngăn fall-through** như dạng `:`.
+No `break` is needed after a `->` branch. Adding curly braces groups multiple statements and defines variable scope, **not to prevent fall-through** as in the `:` form.
 
-## 2. Statement và expression đều có thể dùng `->`
+## 2. Both Statements and Expressions Can Use `->`
 
-`switch (code) { case 1 -> System.out.println("ONE"); default -> System.out.println("OTHER"); }` là **statement** thực hiện thao tác. Ngược lại, `String label = switch (code) { case 1 -> "ONE"; default -> "OTHER"; };` là **expression** tạo giá trị.
+`switch (code) { case 1 -> System.out.println("ONE"); default -> System.out.println("OTHER"); }` is a **statement** performing an action. Conversely, `String label = switch (code) { case 1 -> "ONE"; default -> "OTHER"; };` is an **expression** producing a value.
 
-Cả hai đều không fall-through. Expression còn phải bao phủ các trường hợp và tạo kết quả đúng kiểu; những bài sau phân tích riêng điều này. Ở đây trọng tâm là rule mũi tên và phạm vi biến.
+Neither falls through. An expression must also cover all cases and produce a result of the right type; later lessons analyze that separately. Here the focus is on arrow rules and variable scope.
 
-## 3. Phạm vi biến cục bộ của khối nhánh
+## 3. Local Variable Scope of a Branch Block
 
-Mỗi khối `{ ... }` của một nhánh mũi tên là một **phạm vi cục bộ riêng**:
+Each `{ ... }` block of an arrow branch is a **separate local scope**:
 
 ~~~java
 int code = 1;
@@ -53,30 +53,30 @@ switch (code) {
         System.out.println(amount);
     }
     case 2 -> {
-        int amount = 20; // HỢP LỆ: biến khác, trong khối khác.
+        int amount = 20; // VALID: different variable, in a different block.
         System.out.println(amount);
     }
     default -> System.out.println("OTHER");
 }
 ~~~
 
-Biến `amount` của nhánh 1 không nhìn thấy ở nhánh 2 hoặc sau `switch`. Nhánh 2 có thể khai báo **tên giống hệt** vì phạm vi hai biến không giao nhau. Biến cục bộ chỉ tồn tại trong **khối khai báo của nó**; nó không tự trở thành biến dùng chung giữa các case.
+Branch 1's `amount` variable is not visible in branch 2 or after `switch`. Branch 2 can declare the **exact same name** because the two variables' scopes do not overlap. A local variable exists only within **the block where it is declared**; it does not automatically become shared across cases.
 
 ~~~java
-// KHÔNG BIÊN DỊCH nếu đặt sau switch ở ví dụ trên:
+// DOES NOT COMPILE if placed after switch in the example above:
 // System.out.println(amount); // Cannot find symbol.
 ~~~
 
-Nếu dữ liệu phải được sử dụng **sau `switch`**, chọn một trong hai cách:
+If data must be used **after `switch`**, choose one of two approaches:
 
-- Với dữ liệu là **một giá trị**, ưu tiên `String result = switch (...) { ... };`.
-- Với statement cần cập nhật biến có sẵn, khai báo biến ngoài switch rồi gán rõ ràng theo từng nhánh; đảm bảo mọi đường đi cần thiết đều gán giá trị.
+- When the data is **a single value**, prefer `String result = switch (...) { ... };`.
+- For a statement that needs to update an existing variable, declare the variable outside the switch and assign it explicitly in each branch; ensure all required paths assign a value.
 
-Không dựa vào thụt lề để tạo scope: Java dựa vào dấu `{ }` và vị trí khai báo. Việc dùng cùng tên ở nhiều nhánh giúp minh họa phạm vi, nhưng thực tế vẫn nên đặt tên có ý nghĩa.
+Do not rely on indentation to create scope: Java relies on `{ }` braces and declaration placement. Reusing the same name across branches helps illustrate scope, though in practice meaningful names should still be used.
 
-## 4. Khi block cần trả giá trị
+## 4. When a Block Needs to Return a Value
 
-Trong switch expression, nhánh đơn có thể là `case 0 -> "ZERO";`. Nếu nhánh cần nhiều lệnh, block trả kết quả qua `yield`:
+In a switch expression, a single-expression branch can be `case 0 -> "ZERO";`. If the branch needs multiple statements, the block returns its result via `yield`:
 
 ~~~java
 String result = switch (code) {
@@ -88,11 +88,11 @@ String result = switch (code) {
 };
 ~~~
 
-Switch statement có block thì chỉ thực hiện lệnh và **không cần** `yield`. Bài `yield` phân tích đường đi, `break` và `throw` chi tiết hơn.
+A switch statement with a block simply executes statements and **does not need** `yield`. The `yield` lesson analyzes paths, `break`, and `throw` in greater detail.
 
-## 5. Gộp nhãn, `default`, `throw` và nhánh không được chọn
+## 5. Grouping Labels, `default`, `throw`, and Unselected Branches
 
-Có thể nhóm nhiều giá trị khác nhau trên một nhánh mũi tên:
+You can group multiple distinct values on a single arrow branch:
 
 ~~~java
 String group = switch (code) {
@@ -102,9 +102,9 @@ String group = switch (code) {
 };
 ~~~
 
-`case 1, 2` không chạy nhánh hai lần; đó là **một nhánh** được chọn khi code là 1 **hoặc** 2. Các nhãn trùng giá trị trong cùng switch bị từ chối khi biên dịch.
+`case 1, 2` does not run the branch twice; it is **one branch** selected when `code` is 1 **or** 2. Duplicate label values within the same switch are rejected at compile time.
 
-Một nhánh biểu thức có thể ném ngoại lệ, thay vì tạo giá trị:
+An expression branch can throw an exception instead of producing a value:
 
 ~~~java
 static String positiveLabel(int value) {
@@ -119,13 +119,13 @@ static String positiveLabel(int value) {
 }
 ~~~
 
-Nếu `value == 0` thì **không chạy** khối `default`. Nếu `value == -1` thì ném ngoại lệ từ nhánh được chọn. Trong cả hai trường hợp, Java không chạy mã của nhánh khác chỉ vì nó xuất hiện bên dưới.
+If `value == 0`, the `default` block **does not run**. If `value == -1`, the exception is thrown from the selected branch. In both cases, Java does not run another branch's code just because it appears below.
 
-Trong Java 17 không bật preview, selector `String`/`enum`/wrapper có giá trị `null` có thể gây `NullPointerException`; `default` không tự bắt null. Hãy kiểm tra null trước nếu dữ liệu cho phép vắng mặt.
+In Java 17 without preview enabled, a `String`/`enum`/wrapper selector with value `null` can cause `NullPointerException`; `default` does not automatically catch null. Check for null beforehand if data may be absent.
 
-## 6. So sánh phạm vi và fall-through với dạng dấu hai chấm
+## 6. Comparing Scope and Fall-Through with the Colon Form
 
-`switch` dạng dấu hai chấm dùng **nhóm câu lệnh** `case ...:`; nếu thiếu `break`, mã có thể chạy xuyên tới nhóm tiếp theo:
+A colon-style `switch` uses `case ...:` **statement groups**; if `break` is missing, code can run straight into the next group:
 
 ~~~java
 static String colonDemo(int code) {
@@ -145,22 +145,22 @@ static String colonDemo(int code) {
 // colonDemo(2) = "+TWO".
 ~~~
 
-Ngược lại, `case 1 -> log.append("ONE");` trong switch statement mũi tên **không** tự thực hiện case 2.
+By contrast, `case 1 -> log.append("ONE");` in an arrow switch statement **does not** automatically execute case 2.
 
-| Vấn đề | Dạng `case ...:` | Dạng `case ... ->` |
+| Aspect | `case ...:` form | `case ... ->` form |
 | --- | --- | --- |
-| Fall-through ngoài ý muốn | Có thể xảy ra nếu thiếu `break` | Không có |
-| Khối cục bộ `{...}` | Nên thêm khi cần scope riêng | Rõ ràng theo từng nhánh block |
-| Nhiều nhãn dùng chung | Nhiều `case` liên tiếp | `case 1, 2 ->` |
-| Nhiều lệnh trong nhánh | Các statement tới `break` hoặc nhóm tiếp | Viết `{ statement1; statement2; }` |
+| Unintended fall-through | Can happen if `break` is missing | None |
+| Local block `{...}` | Should be added when separate scope is needed | Explicit per block branch |
+| Multiple labels sharing code | Multiple consecutive `case`s | `case 1, 2 ->` |
+| Multiple statements in a branch | Statements until `break` or next group | Write `{ statement1; statement2; }` |
 
-Với case dạng dấu hai chấm, các biến khai báo trực tiếp trong cùng khối switch có thể gây xung đột tên hoặc lỗi *definite assignment* khi luồng nhảy vào nhãn khác. Đặt khối `{...}` cho từng nhóm cũng giúp tránh nhầm scope trong dạng truyền thống.
+With colon-style cases, variables declared directly in the same switch block can cause name collisions or *definite assignment* errors when control jumps to another label. Wrapping each group in `{...}` also helps prevent scope confusion in the traditional form.
 
-**Không trộn** `case ...:` và `case ... ->` trong cùng một `switch`.
+**Do not mix** `case ...:` and `case ... ->` in the same `switch`.
 
-## 7. Ví dụ Java 17+ chạy độc lập
+## 7. Standalone Java 17+ Example
 
-Tạo file **ArrowSwitchScopeDemo.java**:
+Create file **`ArrowSwitchScopeDemo.java`**:
 
 ~~~java
 public final class ArrowSwitchScopeDemo {
@@ -175,7 +175,7 @@ public final class ArrowSwitchScopeDemo {
                 log.append("ONE=").append(local);
             }
             case 2 -> {
-                int local = code + 20; // Hợp lệ: scope riêng.
+                int local = code + 20; // Valid: separate scope.
                 log.append("TWO=").append(local);
             }
             default -> log.append("UNKNOWN");
@@ -256,14 +256,14 @@ public final class ArrowSwitchScopeDemo {
 }
 ~~~
 
-Biên dịch/chạy tại thư mục chứa file (Bash, PowerShell hoặc Command Prompt):
+Compile/run in the directory containing the file (Bash, PowerShell, or Command Prompt):
 
 ~~~bash
 javac -encoding UTF-8 ArrowSwitchScopeDemo.java
 java ArrowSwitchScopeDemo
 ~~~
 
-**Expected stdout chính xác:**
+**Exact expected stdout:**
 
 ~~~text
 stmt0=ZERO
@@ -284,30 +284,30 @@ guard3=DOUBLE=6
 guardNegative=IllegalArgumentException
 ~~~
 
-Hai nhánh statement của `code=1`/`code=2` đều khai báo biến `local` mà không xung đột vì có scope riêng. Các dòng `expr1`/`expr2` minh họa `yield` từ block. `colon1=ONE+TWO` đối chiếu fall-through của `:` với việc `->` chỉ thực hiện một nhánh.
+The two statement branches for `code=1`/`code=2` both declare a `local` variable without conflict because each has its own scope. The lines `expr1`/`expr2` demonstrate `yield` from a block. `colon1=ONE+TWO` contrasts `:` fall-through with `->` executing only one branch.
 
-## 8. Lỗi thường gặp và bài tập
+## 8. Common Mistakes and Exercises
 
-| Trường hợp | Cách xử lý |
+| Case | How to handle |
 | --- | --- |
-| Muốn thực hiện nhiều statement sau `->` | Đặt chúng trong `{ ... }` |
-| Đọc biến cục bộ của nhánh ở bên ngoài khối | Khai báo biến dùng chung ở ngoài hoặc trả giá trị bằng switch expression |
-| Khối của switch expression không trả giá trị | Viết `yield value;` trên đường đi hoàn thành bình thường |
-| Cố dùng `break value;` thay `yield` | Dùng `yield value;` |
-| Lo phải thêm `break` sau nhánh `->` | Không cần; arrow rule không fall-through |
-| Muốn nhóm nhiều giá trị | `case 1, 2 -> ...` |
-| Selector nullable trong Java17 | Kiểm tra `null` trước switch |
+| Want to run multiple statements after `->` | Place them inside `{ ... }` |
+| Reading a branch's local variable outside the block | Declare a shared variable outside or return a value with a switch expression |
+| Switch expression block does not return a value | Write `yield value;` on normal completion paths |
+| Trying to use `break value;` instead of `yield` | Use `yield value;` |
+| Worrying about adding `break` after a `->` branch | Not needed; arrow rules do not fall through |
+| Want to group multiple values | `case 1, 2 -> ...` |
+| Nullable selector in Java17 | Check for `null` before switch |
 
-**Bài 1.** Viết `switch` statement dùng `->` với mã 1, 2, mặc định. Ở mỗi nhánh, thêm hai câu lệnh in; xác định có cần `break` không.
+**Exercise 1.** Write a `switch` statement using `->` with codes 1, 2, and default. In each branch, add two print statements; determine whether `break` is needed.
 
-**Bài 2.** Trong hai khối `case 1 -> { int x = 1; ... }` và `case 2 -> { int x = 2; ... }`, tại sao cùng tên `x` không gây lỗi? Thử dùng `x` sau switch để xem vấn đề scope.
+**Exercise 2.** In the two blocks `case 1 -> { int x = 1; ... }` and `case 2 -> { int x = 2; ... }`, why does the same name `x` not cause an error? Try using `x` after the switch to observe the scope issue.
 
-**Bài 3.** Chuyển `switch` statement tính nhãn thành `switch` expression. Khi một nhánh cần tạo biến rồi trả giá trị, dùng từ khóa nào?
+**Exercise 3.** Convert a label-computing `switch` statement into a `switch` expression. When a branch needs to create a variable and then return a value, which keyword is used?
 
-**Bài 4.** Dự đoán kết quả của `colonDemo(1)` và giải thích vì sao switch dạng `->` không có cùng hiện tượng.
+**Exercise 4.** Predict the result of `colonDemo(1)` and explain why a `->` switch does not exhibit the same behavior.
 
-**Bài 5.** Viết switch expression trên enum chứa đủ các hằng để không cần `default`. Kiểm tra riêng trường hợp selector `null` trong Java 17.
+**Exercise 5.** Write a switch expression on an enum covering all constants so `default` is not needed. Separately check the `null` selector case in Java 17.
 
-### Ghi nhớ
+### Key Takeaway
 
-**`case ... ->` không fall-through.** Một nhánh có nhiều câu lệnh cần `{...}`, cũng là nơi giới hạn phạm vi biến cục bộ. Với **switch expression**, nhánh đơn có thể trả biểu thức trực tiếp; nhánh block nhiều lệnh dùng **`yield`** để trả giá trị. `switch statement` thực hiện thao tác, còn `switch expression` tính giá trị và phải bao phủ các trường hợp hợp lệ.
+**`case ... ->` does not fall through.** A branch with multiple statements needs `{...}`, which also bounds local variable scope. In a **switch expression**, a single-expression branch can return an expression directly; a multi-statement block branch uses **`yield`** to return its value. A `switch statement` performs actions, whereas a `switch expression` computes a value and must cover all valid cases.

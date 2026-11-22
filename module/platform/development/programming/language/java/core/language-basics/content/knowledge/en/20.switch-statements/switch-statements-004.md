@@ -1,8 +1,8 @@
-# `break` để kết thúc switch statement — Java 17+
+# `break` to Terminate a Switch Statement — Java 17+
 
-## 1. `break` làm gì trong `switch`?
+## 1. What Does `break` Do in a `switch`?
 
-Trong **switch statement** dùng cú pháp truyền thống `case ...:`, lệnh `break;` **kết thúc ngay switch gần nhất đang bao quanh nó**. Chương trình tiếp tục từ câu lệnh **sau** switch, không phải sau nhãn `case` kế tiếp.
+In a **switch statement** using the traditional `case ...:` syntax, the `break;` statement **immediately terminates the innermost enclosing switch**. Execution continues at the statement **after** the switch, not after the next `case` label.
 
 ~~~java
 int choice = 2;
@@ -26,37 +26,37 @@ Two
 After switch
 ~~~
 
-Nếu thiếu `break;` sau `case 2`, thực thi có thể **rơi xuống nhánh `default`**, dù `choice` không khớp `default`. Đây là *fall-through*, nguồn lỗi thường gặp trong switch dạng dấu hai chấm.
+Without `break;` after `case 2`, execution can **fall into the `default` branch**, even though `choice` does not match `default`. This is *fall-through*, a common source of bugs in colon-style switches.
 
-Sau bài, bạn cần phân biệt `break` với `return` và `continue`, biết `break` thoát switch nào khi lồng nhau, khi nào có thể bỏ `break`, và cách dùng `case ... ->` trong Java 17 để tránh fall-through.
+After this lesson, you should be able to distinguish `break` from `return` and `continue`, know which switch `break` exits when nested, when `break` can be omitted, and how to use `case ... ->` in Java 17 to avoid fall-through.
 
-## 2. Luồng chạy switch dạng dấu hai chấm
+## 2. Execution Flow of Colon-Style Switch
 
 ~~~mermaid
 flowchart TD
-    A["Đánh giá selector"] --> B{"Nhãn case khớp?"}
-    B -- "Có" --> C["Bắt đầu chạy từ case khớp"]
-    B -- "Không" --> D{"Có default?"}
-    D -- "Không" --> H["Sau switch"]
-    D -- "Có" --> E["Bắt đầu chạy từ default"]
-    C --> F{"Gặp break thoát switch?"}
+    A["Evaluate selector"] --> B{"Case label matches?"}
+    B -- "Yes" --> C["Start executing from matching case"]
+    B -- "No" --> D{"Has default?"}
+    D -- "No" --> H["After switch"]
+    D -- "Yes" --> E["Start executing from default"]
+    C --> F{"Hit break exiting switch?"}
     E --> F
-    F -- "Có" --> H
-    F -- "Không" --> G["Tiếp tục câu lệnh và có thể fall-through"]
+    F -- "Yes" --> H
+    F -- "No" --> G["Continue statements and possibly fall through"]
     G --> F
 ~~~
 
-Các bước quan trọng:
+Key steps:
 
-1. Selector được đánh giá.
-2. Java xác định nhãn `case` khớp hoặc `default` nếu không có `case` khớp.
-3. Với dạng `case:`, thực thi bắt đầu tại nhãn đã chọn và **tiến theo thứ tự câu lệnh**, không tự dừng ở cuối nhóm lệnh của nhãn.
-4. Gặp `break;` không có nhãn thì thoát **switch hoặc vòng lặp gần nhất bao quanh**.
-5. Nếu chạy tới hết switch mà không gặp `break`, chương trình cũng ra khỏi switch theo cách bình thường.
+1. The selector is evaluated.
+2. Java identifies the matching `case` label, or `default` if no `case` matches.
+3. With the `case:` form, execution starts at the selected label and **proceeds sequentially through statements**, without stopping automatically at the end of that label's group.
+4. Encountering an unlabeled `break;` exits the **innermost enclosing switch or loop**.
+5. If execution reaches the end of the switch without encountering `break`, control also exits the switch normally.
 
-`break` **không phải bắt buộc về cú pháp ở mọi `case`**. Nó quan trọng khi cần ngăn chạy tiếp sang các nhãn phía sau.
+`break` **is not syntactically required in every `case`**. It matters when you need to prevent continuing into subsequent labels.
 
-## 3. Ví dụ thiếu `break`
+## 3. Example Without `break`
 
 ~~~java
 switch (2) {
@@ -66,11 +66,11 @@ switch (2) {
 }
 ~~~
 
-Kết quả lần lượt là `Two`, `Three`: sau khi chọn case 2, Java chạy tiếp đến `break` mà không so lại nhãn case 3. Trọng tâm ở đây là vị trí đặt lệnh thoát; bài dạng dấu hai chấm đã mô tả chi tiết mọi đường fall-through.
+The output is `Two` followed by `Three`: after selecting case 2, Java executes through until `break` without re-checking the case 3 label. The focus here is exit placement; the colon-style lesson describes all fall-through paths in detail.
 
-## 4. Đặt `break` ở đúng vị trí
+## 4. Placing `break` in the Right Position
 
-Nếu chỉ muốn xử lý một mã, đặt `break` sau các câu lệnh của mã đó:
+If you only want to handle one code, place `break` after that code's statements:
 
 ~~~java
 switch (code) {
@@ -85,9 +85,9 @@ switch (code) {
 }
 ~~~
 
-Ví dụ trên các hàm `handleOne`, `handleTwo`, `handleOther` là những hàm nghiệp vụ do bạn tự định nghĩa; đoạn này minh họa **vị trí `break`**, không phải một chương trình độc lập.
+In the snippet above, `handleOne`, `handleTwo`, and `handleOther` are domain methods you define yourself; this excerpt illustrates **`break` placement**, not a standalone program.
 
-Có thể viết cả khối để giữ biến cục bộ theo phạm vi:
+You can write a block to keep local variables scoped:
 
 ~~~java
 switch (code) {
@@ -106,11 +106,11 @@ switch (code) {
 }
 ~~~
 
-Ngoặc `{ ... }` **không làm `break` chỉ thoát khối ngoặc**: `break;` vẫn kết thúc switch bao quanh.
+Braces `{ ... }` **do not make `break` exit only the brace block**: `break;` still terminates the enclosing switch.
 
-**Ghi chú:** nếu một `case` đã kết thúc bằng `return` hoặc `throw`, không cần đặt thêm `break` phía sau — dòng `break` đó có thể thành *unreachable statement* và gây lỗi biên dịch.
+**Note:** if a `case` already ends with `return` or `throw`, do not place another `break` afterward — that `break` line can become an *unreachable statement* and cause a compile error.
 
-## 5. Dừng sau thân chung của nhiều nhãn
+## 5. Stopping After a Shared Body of Multiple Labels
 
 ~~~java
 switch (day) {
@@ -123,22 +123,22 @@ switch (day) {
 }
 ~~~
 
-Hai nhãn liên tiếp cố ý dùng chung thân lệnh; `break` nằm **sau thân chung**. Nếu một nhánh thực hiện hành động riêng rồi rơi tiếp sang nhánh khác, cần xác nhận đó là chủ ý và ghi chú rõ.
+Two consecutive labels intentionally share one statement body; `break` sits **after the shared body**. If one branch performs its own action and then falls through into another branch, verify that it is intentional and document it clearly.
 
-## 6. `default` có cần `break`?
+## 6. Does `default` Need `break`?
 
-Nếu `default` là nhãn cuối và switch kết thúc ngay sau thân của nó thì không cần `break`. Khi `default` nằm giữa các `case:`, thiếu `break` vẫn gây fall-through. Hãy quyết định dựa trên **đường thực thi**, không dựa vào tên nhãn. Bài nhãn `case/default` có ví dụ đối chiếu vị trí.
+If `default` is the last label and the switch ends immediately after its body, `break` is unnecessary. When `default` sits between `case:` labels, omitting `break` still causes fall-through. Decide based on the **execution path**, not the label name. The `case/default` labels lesson includes examples comparing placement.
 
-## 7. `break` khác `return` và `continue`
+## 7. `break` vs. `return` and `continue`
 
-| Câu lệnh | Hiệu ứng chính | Sau khi thực hiện |
+| Statement | Primary effect | After execution |
 |---|---|---|
-| `break;` | Thoát switch hoặc vòng lặp gần nhất | Tiếp tục sau cấu trúc đã thoát |
-| `return;` / `return value;` | Thoát **toàn bộ phương thức** | Không chạy câu lệnh sau switch trong cùng method |
-| `continue;` | Bỏ phần còn lại của **lần lặp**, chỉ hợp lệ trong vòng lặp | Chuyển sang bước cập nhật/điều kiện của vòng lặp |
-| `throw ...;` | Ném ngoại lệ | Chuyển điều khiển theo cơ chế exception |
+| `break;` | Exits the innermost switch or loop | Continues after the exited construct |
+| `return;` / `return value;` | Exits the **entire method** | Does not run statements after the switch in the same method |
+| `continue;` | Skips the remainder of the **iteration**, valid only inside a loop | Advances to the loop's update/condition step |
+| `throw ...;` | Throws an exception | Transfers control via the exception mechanism |
 
-Ví dụ `break` chỉ kết thúc switch:
+Example where `break` terminates only the switch:
 
 ~~~java
 static void printChoice(int choice) {
@@ -153,7 +153,7 @@ static void printChoice(int choice) {
 }
 ~~~
 
-Ví dụ `return` kết thúc method:
+Example where `return` terminates the method:
 
 ~~~java
 static String label(int choice) {
@@ -166,18 +166,18 @@ static String label(int choice) {
 }
 ~~~
 
-**Không thể thay máy móc `break` bằng `return`**: nếu phương thức còn xử lý sau switch, `return` sẽ bỏ qua phần xử lý đó.
+**Do not mechanically replace `break` with `return`**: if the method still has processing after the switch, `return` will skip that processing.
 
-`continue;` **không thay thế `break;` trong switch độc lập**; nó cần có vòng lặp bao quanh. Khi switch ở bên trong vòng lặp, `continue;` áp dụng cho vòng lặp ấy.
+`continue;` **cannot replace `break;` in a standalone switch**; it requires an enclosing loop. When a switch is inside a loop, `continue;` applies to that loop.
 
-## 8. Switch bên trong vòng lặp: `break` không thoát vòng lặp
+## 8. Switch Inside a Loop: `break` Does Not Exit the Loop
 
 ~~~java
 for (int i = 0; i < 3; i++) {
     switch (i) {
         case 1:
             System.out.println("case one");
-            break; // Thoát switch, KHÔNG thoát for.
+            break; // Exits switch, NOT for.
         default:
             System.out.println("other " + i);
     }
@@ -196,16 +196,16 @@ other 2
 after switch 2
 ~~~
 
-Khi `i == 1`, `break;` kết thúc switch, sau đó `System.out.println("after switch " + i)` vẫn chạy và vòng `for` tiếp tục.
+When `i == 1`, `break;` terminates the switch, after which `System.out.println("after switch " + i)` still executes and the `for` loop continues.
 
-Nếu cần thoát chính vòng lặp, đặt điều kiện `break` ở **ngoài switch**, hoặc dùng **labeled break** có chủ đích:
+If you need to exit the loop itself, place a `break` condition **outside the switch**, or use a **labeled break** intentionally:
 
 ~~~java
 outer:
 for (int i = 0; i < 5; i++) {
     switch (i) {
         case 2:
-            break outer; // Thoát hẳn vòng lặp có nhãn outer.
+            break outer; // Exits the outer labeled loop completely.
         default:
             System.out.println(i);
     }
@@ -219,9 +219,9 @@ for (int i = 0; i < 5; i++) {
 1
 ~~~
 
-Sử dụng nhãn khi thực sự cần thoát một cấu trúc bao ngoài; không lạm dụng để thay cho việc thiết kế vòng lặp rõ ràng.
+Use labels when you genuinely need to exit an outer construct; do not overuse them as a substitute for clear loop design.
 
-## 9. Switch lồng nhau: `break` thoát switch gần nhất
+## 9. Nested Switches: `break` Exits the Innermost Switch
 
 ~~~java
 int outer = 1;
@@ -232,12 +232,12 @@ switch (outer) {
         switch (inner) {
             case 7:
                 System.out.println("inner seven");
-                break; // Chỉ thoát switch(inner).
+                break; // Only exits switch(inner).
             default:
                 System.out.println("inner other");
         }
         System.out.println("after inner");
-        break; // Thoát switch(outer).
+        break; // Exits switch(outer).
     default:
         System.out.println("outer other");
 }
@@ -250,19 +250,19 @@ inner seven
 after inner
 ~~~
 
-Nếu bỏ `break` của switch ngoài, có thể tiếp tục fall-through sang nhãn phía sau của switch ngoài. **Mỗi switch có luồng điều khiển của riêng nó**.
+If you omit the `break` of the outer switch, execution can continue falling through into later labels of the outer switch. **Each switch has its own control flow**.
 
-## 10. Đối chiếu với nhánh mũi tên
+## 10. Comparison with Arrow Branches
 
-Trong switch statement Java 17, `case 1 -> action();` không cần `break` để chống fall-through. Nếu nhánh cần nhiều lệnh thì dùng block `{ ... }`. Khi sửa switch dạng `case:` cũ, chỉ bỏ `break` khi đã chủ đích chuyển cú pháp sang rule mũi tên.
+In a Java 17 switch statement, `case 1 -> action();` does not need `break` to prevent fall-through. If a branch needs multiple statements, use a `{ ... }` block. When refactoring old `case:` switches, remove `break` only when intentionally converting the syntax to arrow rules.
 
-## 11. `break` khác `yield`
+## 11. `break` vs. `yield`
 
-`break;` thoát switch statement hoặc vòng lặp thích hợp, không tạo giá trị. Switch **expression** với block `case 2 -> { ... }` cần `yield value;` trên đường đi bình thường. Không thay `yield` bằng `break` hoặc `break value`. Những đường đi có điều kiện, kết quả và ngoại lệ thuộc bài `yield`.
+`break;` exits a switch statement or an appropriate loop without producing a value. A switch **expression** with a block `case 2 -> { ... }` needs `yield value;` on normal completion paths. Do not replace `yield` with `break` or `break value`. Conditional paths, results, and exceptions are covered in the `yield` lesson.
 
-## 12. Ví dụ Java 17 hoàn chỉnh, chạy bằng CLI
+## 12. Complete Java 17 Example, Runnable via CLI
 
-Tạo file đúng tên **`SwitchBreakDemo.java`**:
+Create a file named **`SwitchBreakDemo.java`**:
 
 ~~~java
 public final class SwitchBreakDemo {
@@ -414,7 +414,7 @@ public final class SwitchBreakDemo {
 }
 ~~~
 
-**Yêu cầu:** JDK 17 trở lên, terminal tại thư mục chứa `SwitchBreakDemo.java`; không cần Maven/Gradle, không sử dụng tính năng preview hoặc thư viện ngoài JDK.
+**Requirements:** JDK 17 or higher, terminal in the directory containing `SwitchBreakDemo.java`; no Maven/Gradle needed, no preview features or external libraries beyond the JDK used.
 
 **Bash (Linux/macOS):**
 
@@ -464,37 +464,37 @@ block:after-switch
 expression=TWO
 ~~~
 
-### Đọc kết quả
+### Reading the Output
 
-- `classify` dùng `break` để bảo đảm mỗi mã chỉ được gán một kết quả.
-- `fallThrough(1)` in cả `fall:one` và `fall:two` theo **chủ ý** thiếu `break`; `fallThrough(2)` chỉ in `fall:two`.
-- `arrow` không fall-through, dù không có `break;`.
-- `withReturn` trả trực tiếp từ phương thức, không chạy thêm câu lệnh trong method.
-- `nested` cho thấy `break` của switch trong không tự thoát switch ngoài.
-- `loopWithSwitch` vẫn chạy `for` sau khi switch dùng `break;`.
-- `labeledBreak` thoát vòng `for` được gắn nhãn `outer`.
-- `blockBreak` xác nhận `break` rời switch ngay cả khi nằm trong `case` có `{ ... }`.
-- `yield` cung cấp `"TWO"` cho switch expression.
+- `classify` uses `break` to ensure each code is assigned only one result.
+- `fallThrough(1)` prints both `fall:one` and `fall:two` by **intentionally** omitting `break`; `fallThrough(2)` prints only `fall:two`.
+- `arrow` does not fall through, even without `break;`.
+- `withReturn` returns directly from the method, running no further statements in the method.
+- `nested` shows that an inner switch's `break` does not automatically exit the outer switch.
+- `loopWithSwitch` continues running `for` after the switch executes `break;`.
+- `labeledBreak` exits the `for` loop labeled `outer`.
+- `blockBreak` confirms `break` exits the switch even when inside a `case` with `{ ... }`.
+- `yield` supplies `"TWO"` for the switch expression.
 
-## 13. Bảng lỗi thường gặp
+## 13. Common Mistakes Table
 
-| Sai lầm | Hậu quả | Cách xử lý |
+| Mistake | Consequence | How to fix |
 |---|---|---|
-| Quên `break` sau `case:` | Chạy tiếp câu lệnh của case sau | Thêm `break;` hoặc dùng `->` |
-| Nghĩ Java kiểm tra lại case sau fall-through | Diễn giải sai kết quả | Hiểu rằng thực thi chỉ tiếp tục tuần tự |
-| Nghĩ `default` luôn tự kết thúc switch | Default đặt giữa vẫn fall-through | Thêm `break` nếu cần |
-| Đặt `break` ngay sau `return` | Code không thể đạt tới, có thể lỗi biên dịch | Chọn một cơ chế thoát đúng mục đích |
-| Dùng `break` rồi mong thoát cả phương thức | Method vẫn tiếp tục sau switch | Dùng `return` nếu muốn thoát method |
-| Dùng `break` trong switch bên trong `for` để kết thúc `for` | Chỉ thoát switch | Đặt break ngoài switch hoặc dùng nhãn |
-| Nghĩ `break` trong switch con thoát cả switch cha | Chỉ thoát cấu trúc gần nhất | Quản lý riêng từng mức hoặc dùng return khi phù hợp |
-| Dùng `continue` trong switch không có vòng lặp | Không hợp lệ | `break` để thoát switch |
-| Đặt `break;` để trả giá trị của switch expression | Không cung cấp kết quả | Dùng `yield` cho nhánh có block |
-| Trộn cú pháp `case:` với `case ->` trong cùng switch | Lỗi biên dịch | Chọn một kiểu nhãn nhất quán |
-| Dùng fall-through cho nhiều nhánh giống nhau nhưng không ghi chú | Người đọc tưởng thiếu break | Dùng nhãn rỗng liên tiếp hoặc `case 1, 2 ->` |
+| Forgetting `break` after `case:` | Executes into the next case's statements | Add `break;` or use `->` |
+| Thinking Java re-checks the next case after fall-through | Misinterpreting the output | Understand that execution simply proceeds sequentially |
+| Thinking `default` always ends a switch automatically | A `default` in the middle still falls through | Add `break` if needed |
+| Putting `break` right after `return` | Unreachable code, possible compile error | Choose one exit mechanism appropriate to the intent |
+| Using `break` expecting to exit the entire method | The method continues after the switch | Use `return` if you want to exit the method |
+| Using `break` in a switch inside `for` to end `for` | Only exits the switch | Place break outside the switch or use a label |
+| Thinking `break` in an inner switch exits the outer switch | Only exits the innermost construct | Manage each level separately or use return when appropriate |
+| Using `continue` in a switch without a loop | Invalid | Use `break` to exit the switch |
+| Putting `break;` to return a value from a switch expression | Does not supply a result | Use `yield` for branches with blocks |
+| Mixing `case:` and `case ->` syntax in the same switch | Compile error | Pick one consistent label style |
+| Using fall-through across similar branches without comments | Readers think `break` was forgotten | Use consecutive empty labels or `case 1, 2 ->` |
 
-## 14. Bài tập có đáp án
+## 14. Exercises with Solutions
 
-### Bài A — dự đoán fall-through
+### Exercise A — Predicting fall-through
 
 ~~~java
 int x = 1;
@@ -509,20 +509,20 @@ switch (x) {
 }
 ~~~
 
-**Đáp án:**
+**Solution:**
 
 ~~~text
 A
 B
 ~~~
 
-`case 1` khớp nhưng không có `break`, nên chạy tiếp lệnh của `case 2`.
+`case 1` matches but lacks `break`, so execution continues into `case 2`'s statement.
 
-### Bài B — chỉ chạy case đã chọn
+### Exercise B — Running only the selected case
 
-Viết lại ví dụ trên để `x == 1` chỉ in A.
+Rewrite the example above so that `x == 1` prints only A.
 
-**Một đáp án:**
+**One solution:**
 
 ~~~java
 switch (x) {
@@ -537,9 +537,9 @@ switch (x) {
 }
 ~~~
 
-Cũng có thể dùng nhánh `case 1 -> System.out.println("A");` trong Java 17.
+You can also use `case 1 -> System.out.println("A");` branches in Java 17.
 
-### Bài C — `break` trong vòng lặp
+### Exercise C — `break` inside a loop
 
 ~~~java
 for (int i = 0; i < 2; i++) {
@@ -553,7 +553,7 @@ for (int i = 0; i < 2; i++) {
 }
 ~~~
 
-**Đáp án:**
+**Solution:**
 
 ~~~text
 after 0
@@ -561,9 +561,9 @@ default
 after 1
 ~~~
 
-Lệnh `break;` chỉ kết thúc switch ở vòng đầu tiên, không kết thúc `for`.
+The `break;` statement terminates only the switch on the first iteration, not the `for` loop.
 
-### Bài D — switch lồng nhau
+### Exercise D — Nested switches
 
 ~~~java
 switch (1) {
@@ -578,20 +578,20 @@ switch (1) {
 }
 ~~~
 
-**Đáp án:**
+**Solution:**
 
 ~~~text
 inner
 outer continues
 ~~~
 
-Break trong chỉ thoát switch trong; câu lệnh của case ngoài vẫn chạy.
+The inner break exits only the inner switch; the outer case's statements still execute.
 
-### Bài E — switch expression
+### Exercise E — Switch expression
 
-Cần tạo một `String` từ switch có nhánh xử lý gồm nhiều câu lệnh. Nên dùng `break` hay `yield`?
+You need to produce a `String` from a switch whose branch executes multiple statements. Should you use `break` or `yield`?
 
-**Đáp án:** trong switch **expression**, dùng `yield value;` để trả giá trị từ block:
+**Solution:** In a switch **expression**, use `yield value;` to return a value from a block:
 
 ~~~java
 String label = switch (code) {
@@ -603,19 +603,19 @@ String label = switch (code) {
 };
 ~~~
 
-## 15. Checklist và kết luận
+## 15. Checklist and Conclusion
 
-- [ ] Hiểu `break;` kết thúc switch gần nhất và chương trình tiếp tục **sau switch**.
-- [ ] Biết `case:` không tự dừng; thiếu `break` có thể fall-through.
-- [ ] Biết khi nào fall-through là chủ ý (gộp case hoặc luồng đã được thiết kế).
-- [ ] Không xem `default` là nơi tự động dừng nếu nó không đứng cuối.
-- [ ] Phân biệt `break` thoát switch với `return` thoát phương thức.
-- [ ] Phân biệt `break` với `continue` của vòng lặp.
-- [ ] Hiểu `break` trong switch lồng `for` không thoát vòng `for`.
-- [ ] Hiểu `break` trong switch con không tự thoát switch cha.
-- [ ] Biết `case ->` của Java 17 **không fall-through**, không cần `break` để chống rơi nhánh.
-- [ ] Biết switch expression dùng `yield` để trả giá trị từ block.
-- [ ] Không đặt `break` sau một `return` không thể quay lại.
-- [ ] Chạy `SwitchBreakDemo.java` bằng JDK 17+ và đối chiếu exact stdout.
+- [ ] Understand that `break;` terminates the innermost switch and execution continues **after the switch**.
+- [ ] Know that `case:` does not stop automatically; omitting `break` can fall through.
+- [ ] Know when fall-through is intentional (grouping cases or deliberately designed flow).
+- [ ] Do not treat `default` as an automatic stop if it is not last.
+- [ ] Distinguish `break` (exiting a switch) from `return` (exiting a method).
+- [ ] Distinguish `break` from loop `continue`.
+- [ ] Understand that `break` in a switch nested in `for` does not exit the `for` loop.
+- [ ] Understand that `break` in an inner switch does not automatically exit the outer switch.
+- [ ] Know that Java 17's `case ->` **does not fall through** and needs no `break` to prevent falling through.
+- [ ] Know that switch expressions use `yield` to return a value from a block.
+- [ ] Do not place `break` after an unconditional `return`.
+- [ ] Run `SwitchBreakDemo.java` with JDK 17+ and verify exact stdout.
 
-**Kết luận:** Với switch statement dạng `case:`, lệnh `break;` là cách rõ ràng để **ngăn fall-through** và rời switch tại vị trí mong muốn. Nó không rời phương thức hay tự thoát vòng lặp bao ngoài. Trong Java 17, cú pháp `case ->` là lựa chọn tốt khi mỗi case chỉ nên chạy một nhánh mà không cần `break`.
+**Conclusion:** For `case:`-style switch statements, `break;` is the explicit way to **prevent fall-through** and exit the switch at the desired point. It neither exits the method nor automatically exits an enclosing loop. In Java 17, `case ->` syntax is a good choice when each case should run only one branch without needing `break`.

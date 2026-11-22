@@ -1,30 +1,30 @@
-# Phân biệt Stream tuần tự, Stream song song và lập trình phản ứng
+# Distinguishing Sequential Streams, Parallel Streams, and Reactive Programming
 
-Khi xử lý dữ liệu trong Java, ba khái niệm **Stream tuần tự** (sequential stream), **Stream song song** (parallel stream) và **lập trình phản ứng** (reactive programming) dễ bị nhầm lẫn vì đều có thể mô tả một chuỗi biến đổi dữ liệu. Tuy nhiên, chúng giải quyết những nhu cầu khác nhau:
+When processing data in Java, three concepts—**sequential stream**, **parallel stream**, and **reactive programming**—are easily confused because all three can describe a chain of data transformations. However, they solve different needs:
 
-- **Stream tuần tự**: mô tả cách xử lý một nguồn dữ liệu qua pipeline, thường thực hiện trên một luồng thực thi.
-- **Stream song song**: vẫn sử dụng Java Stream API nhưng cho phép chia công việc giữa nhiều luồng để khai thác nhiều lõi CPU.
-- **Lập trình phản ứng**: mô hình xử lý các giá trị/sự kiện xuất hiện theo thời gian, thường dùng trong hệ thống bất đồng bộ; có thể hỗ trợ cơ chế điều tiết tốc độ phát và nhận dữ liệu (*backpressure*).
+- **Sequential stream**: describes how to process a data source through a pipeline, typically executed on a single thread.
+- **Parallel stream**: still uses the Java Stream API, but allows splitting work across multiple threads to utilize multiple CPU cores.
+- **Reactive programming**: a model for handling values/events that arrive over time, commonly used in asynchronous systems; it can support demand-regulation mechanisms (*backpressure*).
 
-Bài học thuộc chương **Tổng quan Stream API** của module **JAVA_STREAM_API**. Mục tiêu là nhận biết mô hình thực thi và giới hạn của mỗi cách tiếp cận trước khi sử dụng các thao tác `filter`, `map`, `reduce`, `collect`, collector tùy chỉnh, `Spliterator` hoặc xử lý song song trong Java. Khái niệm *Stream* dưới đây chủ yếu chỉ `java.util.stream.Stream`, không phải `java.io.InputStream`.
+This lesson belongs to the **Stream API Overview** chapter of the **JAVA_STREAM_API** module. The goal is to recognize the execution model and limitations of each approach before using `filter`, `map`, `reduce`, `collect`, custom collectors, `Spliterator`, or parallel processing in Java. Here, *Stream* refers primarily to `java.util.stream.Stream`, not `java.io.InputStream`.
 
-## 1. Java Stream API: cùng một pipeline, hai chế độ thực thi
+## 1. Java Stream API: one pipeline, two execution modes
 
-Java Stream API (từ Java 8) cung cấp cách **khai báo phép biến đổi dữ liệu**: nói *cần tính gì* thay vì viết trực tiếp mọi vòng lặp và bộ tích lũy. Một pipeline thường có ba thành phần:
+The Java Stream API (since Java 8) provides a **declarative way to transform data**: stating *what to compute* rather than explicitly writing every loop and accumulator. A pipeline typically has three parts:
 
-1. **Nguồn**: `List`, mảng, `IntStream.range(...)`, nguồn do `Spliterator` cung cấp, v.v.
-2. **Thao tác trung gian**: `filter`, `map`, `distinct`, `sorted`, `limit`, ...; thường *lazy*, chưa duyệt dữ liệu ngay.
-3. **Thao tác kết thúc**: `sum`, `count`, `reduce`, `collect`, `forEach`, ...; khởi động việc duyệt và tạo kết quả hoặc hiệu ứng.
+1. **Source**: `List`, array, `IntStream.range(...)`, a source backed by a `Spliterator`, etc.
+2. **Intermediate operations**: `filter`, `map`, `distinct`, `sorted`, `limit`, ...; usually *lazy*, not traversing data immediately.
+3. **Terminal operation**: `sum`, `count`, `reduce`, `collect`, `forEach`, ...; starts traversal and produces a result or side effect.
 
 ```text
-Nguồn dữ liệu -> filter -> map -> ... -> thao tác kết thúc
-                  |       |
-          thao tác trung gian lazy
+Data source -> filter -> map -> ... -> terminal operation
+                |       |
+        lazy intermediate operations
 ```
 
-Chế độ **tuần tự/song song** là một thuộc tính của pipeline. Phần lớn thao tác được viết giống nhau; khác biệt chính là cách runtime tổ chức việc duyệt, chia việc và kết hợp kết quả khi thao tác kết thúc chạy.
+The **sequential/parallel** mode is a property of the pipeline. Most operations are written identically; the main difference is how the runtime organizes traversal, work splitting, and result combining when the terminal operation runs.
 
-### Ví dụ 1: Một phép tính, hai chế độ
+### Example 1: One computation, two modes
 
 ```java
 import java.util.Arrays;
@@ -34,12 +34,12 @@ public class StreamModes {
     public static void main(String[] args) {
         List<Integer> scores = Arrays.asList(10, -3, 7, 12, 0, 4);
 
-        int sequentialTotal = scores.stream()       // tuần tự
+        int sequentialTotal = scores.stream()       // sequential
                 .filter(score -> score > 0)
                 .mapToInt(score -> score * 2)
                 .sum();
 
-        int parallelTotal = scores.parallelStream() // song song
+        int parallelTotal = scores.parallelStream() // parallel
                 .filter(score -> score > 0)
                 .mapToInt(score -> score * 2)
                 .sum();
@@ -50,29 +50,29 @@ public class StreamModes {
 }
 ```
 
-Hai phiên bản có **cùng ý nghĩa nghiệp vụ**: lọc điểm dương, nhân đôi và tính tổng. Phép cộng trong ví dụ thích hợp để kết hợp từng phần, nên hai kết quả bằng nhau. Điều này **không** có nghĩa bản song song luôn nhanh hơn; trên sáu phần tử, chi phí chia việc thường lớn hơn lợi ích.
+Both versions share the **same business semantics**: keep positive scores, double them, and sum. Addition in this example is suitable for partial combination, so both results match. This does **not** mean the parallel version is always faster; on six elements, work-splitting overhead typically outweighs the benefit.
 
-Có thể chuyển một pipeline giữa hai chế độ bằng `stream.parallel()` và `stream.sequential()`. Với một pipeline, cấu hình tuần tự/song song có hiệu lực khi chạy thao tác kết thúc; không nên hình dung `parallel()` là một thao tác trung gian tự tạo kết quả mới.
+You can switch a pipeline between modes using `stream.parallel()` and `stream.sequential()`. For a single pipeline, the sequential/parallel setting takes effect when the terminal operation runs; do not think of `parallel()` as an intermediate operation that immediately creates a new result.
 
-## 2. So sánh trực diện
+## 2. Direct comparison
 
-| Khía cạnh | Stream tuần tự | Stream song song | Lập trình phản ứng |
+| Aspect | Sequential stream | Parallel stream | Reactive programming |
 |---|---|---|---|
-| API điển hình | `collection.stream()` | `collection.parallelStream()`, `stream.parallel()` | `Flow.Publisher`/`Subscriber` (Java 9+), Reactor `Flux`, RxJava |
-| Bài toán phù hợp | Biến đổi, tổng hợp dữ liệu theo pipeline | Tính toán có thể chia nhỏ, độc lập và đủ lớn | Nhận và xử lý dữ liệu/sự kiện đến theo thời gian |
-| Tổ chức thực thi | Pipeline được duyệt tuần tự | Công việc có thể chia giữa nhiều worker, rồi kết hợp | Do publisher, subscriber và bộ lập lịch của thư viện/quy trình quyết định |
-| Tính bất đồng bộ | Thao tác kết thúc thông thường chạy đồng bộ | Thao tác kết thúc thông thường vẫn đợi kết quả dù có worker song song | Thường có luồng dữ liệu bất đồng bộ; không mặc định mọi pipeline đều chạy khác luồng |
-| Dữ liệu đầu vào | Hữu hạn hoặc có thể vô hạn nếu tự tạo nguồn | Tương tự Stream tuần tự | Có thể là dãy hữu hạn hoặc sự kiện kéo dài liên tục |
-| Kiểm soát tốc độ | Duyệt theo nhu cầu của thao tác kết thúc, không có giao thức `request(n)` bất đồng bộ | Tương tự; chia việc không phải backpressure | Reactive Streams/`Flow` có `request(n)` để biểu thị nhu cầu nhận |
-| Thứ tự | Có thể giữ *encounter order* nếu nguồn có thứ tự | Có thể giữ thứ tự nhưng một số thao tác tốn thêm chi phí; `forEach` không bảo đảm thứ tự | Phụ thuộc hợp đồng publisher, các toán tử và mô hình đồng thời |
-| Xử lý lỗi | Exception thường thoát khỏi thao tác kết thúc | Exception có thể xuất hiện khi thực thi phần việc; vẫn phải được xử lý tại lời gọi kết thúc | Thường có tín hiệu lỗi cuối luồng như `onError` |
-| Kết thúc | Kết thúc sau terminal operation; Stream không thể dùng lại | Tương tự | Có thể phát `onComplete`, `onError` hoặc bị hủy; một số nguồn chạy lâu dài |
+| Typical API | `collection.stream()` | `collection.parallelStream()`, `stream.parallel()` | `Flow.Publisher`/`Subscriber` (Java 9+), Reactor `Flux`, RxJava |
+| Suitable problems | Pipeline-style data transformation and aggregation | Independent, sufficiently large computations that can be split | Receiving and processing data/events arriving over time |
+| Execution model | Pipeline is traversed sequentially | Work may be split across multiple workers and then combined | Determined by publisher, subscriber, and the library/pipeline scheduler |
+| Asynchrony | Typical terminal operations run synchronously | Typical terminal operations still block waiting for the result despite parallel workers | Often features asynchronous data flows; not every pipeline runs off-thread by default |
+| Input data | Finite, or potentially infinite with a custom generator source | Same as sequential Stream | Can be a finite sequence or a continuous stream of events |
+| Rate control | Pulls on demand of the terminal operation; no async `request(n)` protocol | Same; splitting work is not backpressure | Reactive Streams/`Flow` uses `request(n)` to signal demand |
+| Ordering | Can preserve *encounter order* if the source is ordered | Can preserve order, though some operations add extra cost; `forEach` does not guarantee order | Depends on publisher contract, operators, and concurrency model |
+| Error handling | Exceptions typically propagate out of the terminal operation | Exceptions may occur while executing sub-tasks; still handled at the terminal call | Usually has an end-of-stream error signal such as `onError` |
+| Termination | Ends after the terminal operation; Stream cannot be reused | Same | Can emit `onComplete`, `onError`, or be cancelled; some sources are long-lived |
 
-**Điểm phân biệt quan trọng:** `parallelStream()` không biến pipeline thành Reactive Streams. Chạy nhiều luồng để tăng tốc một phép tính và xử lý dòng sự kiện với tín hiệu nhu cầu `request(n)` là hai vấn đề khác nhau.
+**Key distinction:** `parallelStream()` does not turn a pipeline into Reactive Streams. Running multiple threads to speed up a computation and handling an event stream with `request(n)` demand signals are two different problems.
 
-## 3. Stream tuần tự: ưu tiên cho xử lý dữ liệu thông thường
+## 3. Sequential stream: default choice for ordinary data processing
 
-Ở chế độ tuần tự, các phần tử đi qua pipeline theo cách duyệt tuần tự. Các thao tác trung gian lazy giúp Java có thể xử lý từng phần tử qua nhiều bước mà không buộc phải tạo bộ sưu tập tạm cho mỗi bước.
+In sequential mode, elements flow through the pipeline in sequential traversal order. Lazy intermediate operations allow Java to pass each element through multiple steps without forcing a temporary collection at every step.
 
 ```java
 import java.util.Arrays;
@@ -89,27 +89,27 @@ List<String> result = names.stream()
 System.out.println(result); // [AN, ANH]
 ```
 
-Việc gọi `filter` hoặc `map` riêng lẻ chưa chạy toàn bộ phép tính; `collect` mới là thao tác kết thúc. Lưu ý `Stream` thường **chỉ tiêu thụ một lần**: muốn tính lại, tạo pipeline mới từ nguồn.
+Calling `filter` or `map` alone does not execute the full computation; `collect` is the terminal operation. Remember that a `Stream` is typically **consumed only once**: to compute again, create a new pipeline from the source.
 
-Stream tuần tự thường thích hợp khi dữ liệu vừa hoặc nhỏ, mỗi phần tử xử lý nhanh, yêu cầu dễ đọc/dễ kiểm thử, hoặc thứ tự gặp phần tử có ý nghĩa. Sử dụng tuần tự cũng tránh chi phí điều phối song song không cần thiết.
+Sequential streams are generally suitable when data is small or moderate, per-element work is fast, readability/testability is prioritized, or encounter order matters. Staying sequential also avoids unnecessary parallel coordination overhead.
 
-## 4. Stream song song: tăng thông lượng tính toán khi đủ điều kiện
+## 4. Parallel stream: increasing throughput when conditions are met
 
-Khi một Stream được đặt ở chế độ song song, Java có thể dùng cơ chế chia nguồn (gắn với `Spliterator`), cho worker xử lý các phần dữ liệu và gộp kết quả. Các parallel stream thường dùng `ForkJoinPool.commonPool()`, vì vậy công việc chặn luồng hoặc tác vụ khác dùng chung pool có thể ảnh hưởng thông lượng.
+When a Stream is placed in parallel mode, Java can use a source-splitting mechanism (tied to `Spliterator`), let workers process chunks, and combine the results. Parallel streams commonly use `ForkJoinPool.commonPool()`, so blocking operations or other tasks sharing the pool can affect throughput.
 
 ```text
-                Nguồn dữ liệu lớn
+                Large data source
                   /     |     \
-              phần A  phần B  phần C
+              part A  part B  part C
                  \      |      /
-                kết hợp kết quả
+                combine results
 ```
 
-Hiệu quả phụ thuộc vào **khả năng chia nguồn**, **số lượng phần tử**, **chi phí xử lý mỗi phần tử**, **chi phí gộp kết quả** và **phần công việc phải giữ thứ tự/trạng thái**. Mảng và `ArrayList` thường dễ chia hơn nguồn phải duyệt tuần tự hoặc nguồn I/O chậm.
+Effectiveness depends on **source splittability**, **element count**, **per-element processing cost**, **combining cost**, and **how much work must preserve order or state**. Arrays and `ArrayList` generally split more easily than sequentially traversed sources or slow I/O sources.
 
-### 4.1. Phép gộp cần phù hợp với xử lý song song
+### 4.1. Combining operations must be parallel-safe
 
-Một phép `reduce` có thể chia việc an toàn khi có giá trị đồng nhất (*identity*) thích hợp và phép kết hợp (*accumulator/combiner*) tuân theo yêu cầu kết hợp nhóm (*associativity*). Phép cộng số nguyên là ví dụ quen thuộc:
+A `reduce` operation can be safely split when it has a proper *identity* value and its combining function (*accumulator/combiner*) obeys *associativity*. Integer addition is a familiar example:
 
 ```java
 int total = Arrays.asList(1, 2, 3, 4)
@@ -117,19 +117,19 @@ int total = Arrays.asList(1, 2, 3, 4)
         .reduce(0, Integer::sum); // 10
 ```
 
-**Không dùng phép trừ tùy ý như phép gộp song song:**
+**Do not use arbitrary subtraction as a parallel reduction:**
 
 ```java
 int unstable = Arrays.asList(1, 2, 3, 4)
         .parallelStream()
         .reduce(0, (left, right) -> left - right);
-// Không được coi đây là phép reduce song song hợp lệ:
-// (a - b) - c khác a - (b - c).
+// Do not treat this as a valid parallel reduce:
+// (a - b) - c differs from a - (b - c).
 ```
 
-Ngoài tính kết hợp nhóm, các hàm trong pipeline nên **không can thiệp vào nguồn** (*non-interfering*) và, trong đa số trường hợp, **không có trạng thái dùng chung** (*stateless*). Không được phụ thuộc vào thứ tự hoàn thành của từng worker.
+Besides associativity, functions in the pipeline should be **non-interfering** and, in most cases, **stateless** without shared state. Never depend on the completion order of individual workers.
 
-### 4.2. Tránh sửa bộ sưu tập dùng chung từ `forEach`
+### 4.2. Avoid mutating a shared collection from `forEach`
 
 ```java
 import java.util.ArrayList;
@@ -138,55 +138,55 @@ import java.util.stream.Collectors;
 
 List<Integer> source = Arrays.asList(1, 2, 3, 4, 5, 6);
 
-// SAI: nhiều worker cùng thay đổi một ArrayList không thread-safe.
+// WRONG: multiple workers concurrently mutating a non-thread-safe ArrayList.
 List<Integer> unsafe = new ArrayList<>();
 source.parallelStream().forEach(unsafe::add);
 
-// ĐÚNG: để collect phối hợp bộ tích lũy và phép kết hợp.
+// RIGHT: let collect coordinate accumulators and combiners.
 List<Integer> safe = source.parallelStream()
         .filter(number -> number % 2 == 0)
         .collect(Collectors.toList());
 ```
 
-`Collectors.toList()` không cam kết trả về đúng một kiểu `List` cụ thể; quan trọng là quá trình `collect` được Stream API điều phối theo hợp đồng của collector. Không suy ra rằng có thể chia sẻ và sửa cùng một `ArrayList` từ nhiều worker.
+`Collectors.toList()` does not guarantee returning one specific `List` implementation; what matters is that `collect` is coordinated by the Stream API according to the collector's contract. Do not assume you can share and mutate the same `ArrayList` across multiple workers.
 
-### 4.3. Thứ tự, trạng thái và hiệu năng
+### 4.3. Ordering, state, and performance
 
 ```java
 List<Integer> values = Arrays.asList(1, 2, 3, 4, 5);
 
 values.parallelStream().forEach(System.out::println);
-// Thứ tự in ra có thể khác 1, 2, 3, 4, 5.
+// Print order may differ from 1, 2, 3, 4, 5.
 
 values.parallelStream().forEachOrdered(System.out::println);
-// Với nguồn List có thứ tự, in theo encounter order.
+// With an ordered List source, prints in encounter order.
 ```
 
-`forEachOrdered` giúp giữ thứ tự quan sát được, nhưng việc áp đặt thứ tự có thể giảm lợi ích song song. Các thao tác có trạng thái như `sorted`, `distinct`, `limit` trên nguồn có thứ tự hoặc việc nhóm dữ liệu cũng có thể tăng chi phí điều phối. `findAny` cho phép tự do chọn một phần tử phù hợp; `findFirst` phải tôn trọng phần tử đầu tiên theo encounter order khi thứ tự tồn tại.
+`forEachOrdered` preserves observable order, but enforcing order can reduce parallel gains. Stateful operations such as `sorted`, `distinct`, `limit` on ordered sources, or grouping can also increase coordination cost. `findAny` is free to select any matching element; `findFirst` must respect the first element in encounter order when order exists.
 
-Không nên dùng parallel stream cho lời gọi HTTP, truy vấn cơ sở dữ liệu hoặc I/O chặn luồng theo thói quen: worker của pool có thể phải chờ mạng thay vì làm việc CPU. Tính nhanh/chậm cần đo trên dữ liệu và môi trường thực tế; nếu benchmark Java nghiêm túc, dùng công cụ như JMH, có warm-up và kiểm soát kích thước đầu vào.
+Do not routinely use parallel streams for HTTP calls, database queries, or blocking I/O: pool workers end up waiting on the network instead of performing CPU work. Actual speedup or slowdown must be measured on realistic data and environments; for serious Java benchmarking, use a tool like JMH with warm-up and controlled input sizes.
 
-## 5. Lập trình phản ứng: xử lý sự kiện theo thời gian
+## 5. Reactive programming: handling events over time
 
-Lập trình phản ứng mô hình hóa những giá trị đến **theo thời gian**: tín hiệu cảm biến, thông báo giao dịch, dữ liệu WebSocket, sự kiện giao diện, phản hồi HTTP bất đồng bộ. Một pipeline phản ứng có thể biến đổi, kết hợp, lọc hoặc gom các sự kiện; đồng thời quan tâm đến thời điểm phát, hủy đăng ký, lỗi và khả năng người nhận xử lý kịp.
+Reactive programming models values arriving **over time**: sensor readings, transaction notifications, WebSocket messages, UI events, and asynchronous HTTP responses. A reactive pipeline can transform, combine, filter, or batch events while also managing emission timing, unsubscription, errors, and whether consumers can keep up.
 
-Trong Java, `java.util.concurrent.Flow` (Java 9+) định nghĩa các vai trò nền tảng tương thích về ý tưởng với đặc tả Reactive Streams:
+In Java, `java.util.concurrent.Flow` (Java 9+) defines foundational roles conceptually compatible with the Reactive Streams specification:
 
-- **`Flow.Publisher<T>`**: nguồn cung cấp phần tử.
-- **`Flow.Subscriber<T>`**: bên nhận tín hiệu `onSubscribe`, `onNext`, `onError`, `onComplete`.
-- **`Flow.Subscription`**: đăng ký mà subscriber dùng để `request(n)` hoặc `cancel()`.
-- **`Flow.Processor<T, R>`**: vừa là subscriber ở đầu vào, vừa là publisher ở đầu ra.
+- **`Flow.Publisher<T>`**: source supplying elements.
+- **`Flow.Subscriber<T>`**: receiver of `onSubscribe`, `onNext`, `onError`, and `onComplete` signals.
+- **`Flow.Subscription`**: subscription used by the subscriber to call `request(n)` or `cancel()`.
+- **`Flow.Processor<T, R>`**: both a subscriber on input and a publisher on output.
 
 ```text
 Publisher  -- onNext(item) / onError / onComplete --> Subscriber
-Publisher  <-- request(n) / cancel() --------------- Subscription (Subscriber giữ)
+Publisher  <-- request(n) / cancel() --------------- Subscription (held by Subscriber)
 ```
 
-Với `Flow`/Reactive Streams, một subscriber cần báo **nhu cầu nhận** bằng `request(n)` trước khi publisher được phép phát tối đa số phần tử tương ứng theo đăng ký. Cơ chế này gọi là *backpressure*: người nhận biểu thị khả năng tiếp nhận để nguồn có thể điều tiết. Nó không tự động làm mọi nguồn dữ liệu trở nên an toàn vô hạn; chiến lược hàng đợi, bộ đệm, thất thoát dữ liệu hoặc chặn producer vẫn phụ thuộc triển khai.
+With `Flow`/Reactive Streams, a subscriber must signal **demand** via `request(n)` before the publisher is allowed to emit up to that many elements for the subscription. This mechanism is called *backpressure*: the receiver signals its capacity so the source can regulate emission. It does not automatically make every data source infinitely safe; queue policies, buffering, drops, or producer blocking still depend on the implementation.
 
-### Ví dụ 2: Publisher và subscriber có điều tiết nhu cầu
+### Example 2: Publisher and subscriber with demand regulation
 
-Ví dụ dưới đây chỉ dùng JDK (Java 9+), với `SubmissionPublisher` để phát một dãy sự kiện. Subscriber yêu cầu từng phần tử một.
+The example below uses only the JDK (Java 9+), with `SubmissionPublisher` emitting a sequence of events. The subscriber requests one element at a time.
 
 ```java
 import java.util.concurrent.CountDownLatch;
@@ -206,13 +206,13 @@ public class FlowExample {
                 @Override
                 public void onSubscribe(Flow.Subscription s) {
                     subscription = s;
-                    s.request(1); // Cho phép gửi 1 phần tử đầu tiên.
+                    s.request(1); // Allow sending the first 1 element.
                 }
 
                 @Override
                 public void onNext(Integer item) {
-                    System.out.println("Nhận sự kiện: " + item);
-                    subscription.request(1); // Xử lý xong mới yêu cầu tiếp.
+                    System.out.println("Received event: " + item);
+                    subscription.request(1); // Request the next one only after processing.
                 }
 
                 @Override
@@ -230,63 +230,63 @@ public class FlowExample {
             for (int value = 1; value <= 5; value++) {
                 publisher.submit(value);
             }
-            // Đóng publisher khi ra khỏi khối try; phát onComplete.
+            // Closes the publisher on exiting the try block; emits onComplete.
         }
 
-        finished.await(); // Chờ subscriber nhận tín hiệu kết thúc.
+        finished.await(); // Wait for the subscriber to receive the completion signal.
     }
 }
 ```
 
-Trong ví dụ này, `submit` đưa dữ liệu vào cơ chế phát bất đồng bộ của `SubmissionPublisher`; `onNext` thường được gọi trên worker riêng của executor. `request(1)` là tín hiệu nhu cầu, **không** đồng nghĩa publisher chỉ có thể lưu đúng một phần tử trong bộ đệm. `SubmissionPublisher.submit` có thể phải chờ khi bộ đệm đầy. Vì vậy, demo thể hiện hợp đồng nhận/phát và hoàn tất, chưa phải giải pháp I/O phi chặn hoặc pipeline sản xuất hoàn chỉnh.
+In this example, `submit` feeds data into `SubmissionPublisher`'s asynchronous delivery mechanism; `onNext` is typically invoked on the executor's worker thread. `request(1)` is a demand signal, **not** a guarantee that the publisher buffers only a single element. `SubmissionPublisher.submit` can block when its buffer is full. Thus, this demo illustrates the subscribe/emit/complete contract rather than a full non-blocking I/O or production pipeline.
 
-Các thư viện như Project Reactor (ví dụ `Flux`) hoặc RxJava cung cấp nhiều toán tử biến đổi/phối hợp sự kiện hơn giao diện `Flow` có sẵn. Tuy nhiên, chỉ dùng một API phản ứng **không tự động tạo bất đồng bộ**: cách lập lịch, nguồn dữ liệu và toán tử cụ thể mới quyết định luồng nào thực thi.
+Libraries like Project Reactor (e.g., `Flux`) or RxJava provide far more operators for transforming and coordinating events than the built-in `Flow` interfaces. However, merely using a reactive API **does not automatically create asynchrony**: scheduling, the data source, and specific operators determine which threads execute what.
 
-## 6. Lazy, đa luồng và backpressure là ba thuộc tính khác nhau
+## 6. Laziness, parallelism, and backpressure are three separate properties
 
-Vì tên gọi có chữ “stream”, người học thường gộp ba ý tưởng sau thành một:
+Because the word "stream" appears in the name, learners often merge these three ideas into one:
 
-**Lazy evaluation** nghĩa là trì hoãn xử lý đến khi có nhu cầu. Với Java Stream, nhiều thao tác trung gian chỉ thực hiện khi có terminal operation. Trong thư viện phản ứng, nhiều publisher chỉ bắt đầu phát khi có đăng ký, nhưng việc này phụ thuộc loại publisher (nguồn *cold* hay *hot*).
+**Lazy evaluation** means deferring work until needed. With Java Streams, many intermediate operations run only when a terminal operation is invoked. In reactive libraries, many publishers start emitting only upon subscription, though this depends on the publisher type (*cold* vs. *hot* sources).
 
-**Parallelism** nghĩa là nhiều công việc có thể thực thi đồng thời trên các tài nguyên xử lý khác nhau. `parallelStream()` yêu cầu runtime khai thác khả năng này khi duyệt pipeline; lời gọi terminal operation thông thường vẫn **đồng bộ đối với bên gọi**: phương thức chỉ trả kết quả sau khi tính xong.
+**Parallelism** means multiple tasks can execute concurrently across different processing resources. `parallelStream()` asks the runtime to leverage this when traversing the pipeline; the terminal operation call is still **synchronous to the caller**: the method returns only after computation finishes.
 
-**Asynchrony và backpressure** liên quan đến giao tiếp giữa bên phát và bên nhận theo thời gian. Một API phản ứng có thể truyền các tín hiệu mà không buộc bên gọi chờ hoàn tất toàn bộ dãy sự kiện. `request(n)` của `Flow`/Reactive Streams điều tiết số phần tử phát theo từng subscription. Không có giao thức `request(n)` tương đương trong `java.util.stream.Stream`; thao tác duyệt đồng bộ của Stream tự kéo dữ liệu từ nguồn khi cần.
+**Asynchrony and backpressure** relate to communication between producer and consumer over time. A reactive API can push signals without forcing the caller to wait for the entire event sequence to finish. `request(n)` in `Flow`/Reactive Streams regulates how many elements are emitted per subscription. There is no equivalent `request(n)` protocol in `java.util.stream.Stream`; Stream's synchronous traversal pulls data from the source as needed.
 
-Chẳng hạn, chuyển `orders.stream()` thành `orders.parallelStream()` **không** khiến nó có `subscribe()`, `onNext()` hay `cancel()`. Ngược lại, một `Flux` không gắn scheduler vẫn có thể xử lý toán tử đồng bộ trên luồng gọi `subscribe()`.
+For example, changing `orders.stream()` to `orders.parallelStream()` does **not** give it `subscribe()`, `onNext()`, or `cancel()`. Conversely, a `Flux` without a scheduler can still execute operators synchronously on the thread calling `subscribe()`.
 
-## 7. Khi nào chọn cách nào?
+## 7. When to choose which approach?
 
-| Tình huống | Cách phù hợp | Lý do |
+| Scenario | Suitable approach | Reason |
 |---|---|---|
-| Lọc danh sách sản phẩm, tính tổng hóa đơn, tạo báo cáo nhỏ | Stream tuần tự | Pipeline ngắn gọn, ít chi phí tổ chức thực thi |
-| Tính một hàm CPU tốn kém trên hàng triệu phần tử độc lập của mảng | Cân nhắc Stream song song, sau khi đo | Có thể chia nguồn và kết hợp các kết quả |
-| Nhận giá cổ phiếu hoặc sự kiện WebSocket liên tục | Reactive programming | Theo dõi sự kiện, hủy đăng ký, điều tiết khi consumer chậm |
-| Thực hiện nhiều yêu cầu HTTP chờ mạng | Client bất đồng bộ, `CompletableFuture` hoặc thư viện phản ứng có I/O phù hợp | Chờ I/O là vấn đề khác với chia phép tính CPU trên Stream |
-| Tính kết quả yêu cầu cập nhật biến mutable chung hoặc giữ thứ tự nghiêm ngặt ở mọi bước | Thường bắt đầu bằng Stream tuần tự hoặc thiết kế lại phép tổng hợp | Tránh race condition và chi phí điều phối thứ tự |
+| Filter a product list, sum invoice totals, generate a small report | Sequential stream | Concise pipeline, minimal execution orchestration overhead |
+| Compute an expensive CPU function over millions of independent array elements | Consider parallel Stream, after benchmarking | Source can be split and results combined |
+| Receive stock prices or continuous WebSocket events | Reactive programming | Observe events, cancel subscriptions, regulate when consumers are slow |
+| Make many network-bound HTTP requests | Async client, `CompletableFuture`, or reactive library with suitable I/O | Waiting on I/O is a different problem from splitting CPU work in a Stream |
+| Compute results requiring shared mutable updates or strict ordering at every step | Usually start with sequential Stream or redesign the aggregation | Avoid race conditions and ordering coordination costs |
 
-Quy trình lựa chọn thực tế:
+Practical selection workflow:
 
-1. **Dữ liệu đã có trong bộ nhớ và cần một kết quả kết thúc?** Bắt đầu bằng Stream tuần tự.
-2. **Công việc chủ yếu dùng CPU, các phần tử độc lập, dữ liệu lớn và dễ chia?** Kiểm tra tính đúng của phép gộp, thử `parallel()` rồi đo hiệu năng.
-3. **Dữ liệu xuất hiện dần, cần nhận nhiều sự kiện, điều khiển tốc độ hoặc hủy đăng ký?** Xem xét `Flow`/Reactive Streams và thư viện phản ứng phù hợp.
-4. **Chỉ cần kết quả bất đồng bộ từ một tác vụ?** `CompletableFuture` có thể đơn giản hơn một pipeline phản ứng nhiều phần tử.
+1. **Data is already in memory and you need one final result?** Start with a sequential Stream.
+2. **Work is primarily CPU-bound, elements are independent, and data is large and easily splittable?** Verify the combining operation's correctness, test `parallel()`, and measure performance.
+3. **Data arrives gradually, multiple events must be received, or rate control/cancellation is needed?** Consider `Flow`/Reactive Streams and an appropriate reactive library.
+4. **Only need an asynchronous result from a single task?** `CompletableFuture` can be simpler than a multi-element reactive pipeline.
 
-## 8. Những nhầm lẫn cần tránh
+## 8. Misconceptions to avoid
 
-| Nhận định dễ nhầm | Cách hiểu chính xác hơn |
+| Common misconception | More accurate understanding |
 |---|---|
-| “`parallelStream()` luôn nhanh hơn `stream()`.” | Song song có chi phí chia việc, chuyển giao và gộp kết quả; dữ liệu ít hoặc tác vụ nhẹ thường không có lợi. |
-| “Stream tuần tự và song song luôn trả cùng thứ tự.” | Phép tính đúng có thể cho cùng kết quả, nhưng `forEach` song song không bảo đảm thứ tự; `forEachOrdered` có ràng buộc khác. |
-| “`reduce` nào cũng có thể chạy song song.” | Phải có identity đúng và phép kết hợp tuân thủ tính kết hợp nhóm; side effect có thể phá tính đúng đắn. |
-| “Stream API là Reactive Streams.” | `java.util.stream` xử lý pipeline theo thao tác kết thúc; `Flow`/Reactive Streams mô tả giao thức publisher–subscriber có nhu cầu `request(n)`. |
-| “Reactive đồng nghĩa với đa luồng hoặc phi chặn trong mọi trường hợp.” | Phụ thuộc nguồn, executor, scheduler và toán tử; một đoạn xử lý phản ứng vẫn có thể đồng bộ hoặc chặn. |
-| “Có backpressure là không bao giờ đầy bộ nhớ.” | Vẫn phải lựa chọn chính sách bộ đệm và cách ứng xử khi producer nhanh hơn consumer. |
-| “Đặt side effect trong `map`/`peek` để sửa biến chung là ổn.” | Stream có thể thực thi lazy, khác thứ tự hoặc trên nhiều worker; nên dùng hàm không trạng thái và collector thích hợp. |
+| "`parallelStream()` is always faster than `stream()`." | Parallelism has splitting, handoff, and combining overhead; small datasets or light tasks rarely benefit. |
+| "Sequential and parallel Streams always return the same order." | Correct calculations can yield the same result, but parallel `forEach` does not guarantee order; `forEachOrdered` has different constraints. |
+| "Any `reduce` can run in parallel." | It must have a proper identity and an associative combining operation; side effects can break correctness. |
+| "Stream API is Reactive Streams." | `java.util.stream` executes pipelines via a terminal operation; `Flow`/Reactive Streams defines a publisher–subscriber protocol with `request(n)` demand. |
+| "Reactive always means multi-threaded or non-blocking." | It depends on the source, executor, scheduler, and operators; a reactive chain can still run synchronously or block. |
+| "Having backpressure means memory can never fill up." | You must still choose buffering policies and behavior when the producer outpaces the consumer. |
+| "Putting side effects in `map`/`peek` to mutate shared variables is fine." | Streams may execute lazily, out of order, or across multiple workers; use stateless functions and proper collectors. |
 
-## 9. Tự kiểm tra
+## 9. Self-check
 
-1. Có 500 bản ghi đang nằm trong `List` và cần lọc theo trạng thái rồi đếm. **Chọn gì?** Bắt đầu bằng Stream tuần tự; không có cơ sở để thêm chi phí song song.
-2. Có 10 triệu phần tử mảng, mỗi phần tử cần tính độc lập một hàm toán học nặng, kết quả gộp bằng phép kết hợp hợp lệ. **Chọn gì?** Stream song song là ứng viên đáng thử; đo so với tuần tự và xác nhận kết quả.
-3. Một dashboard nhận liên tục dữ liệu cảm biến, có thể cần tạm ngừng hoặc hủy đăng ký nếu người dùng rời màn hình. **Chọn gì?** Mô hình phản ứng phù hợp hơn pipeline Stream dùng một lần; cần kiểm tra khả năng backpressure của toàn bộ hệ thống.
+1. There are 500 records in a `List` to filter by status and count. **What to choose?** Start with a sequential Stream; there is no basis for adding parallel overhead.
+2. There are 10 million array elements, each needing an independent heavy math calculation combined with a valid associative operation. **What to choose?** A parallel Stream is a strong candidate to test; benchmark against sequential and verify results.
+3. A dashboard continuously receives sensor data and may need to pause or unsubscribe if the user leaves the screen. **What to choose?** A reactive model fits better than a single-use Stream pipeline; verify backpressure support across the full system.
 
-Từ các ví dụ trên, tiêu chí quyết định không phải pipeline có dùng `filter`/`map` hay không, mà là **dữ liệu đến như thế nào, công việc có chia độc lập được không, có cần xử lý bất đồng bộ và điều tiết nhu cầu nhận không**. Nắm được ranh giới này giúp sử dụng đúng Java Stream API và xác định khi nào cần chuyển sang mô hình xử lý sự kiện.
+From the examples above, the deciding factor is not whether the pipeline uses `filter`/`map`, but **how data arrives, whether work splits independently, and whether asynchronous execution and demand regulation are needed**. Understanding these boundaries helps you use the Java Stream API properly and recognize when to move to an event-processing model.

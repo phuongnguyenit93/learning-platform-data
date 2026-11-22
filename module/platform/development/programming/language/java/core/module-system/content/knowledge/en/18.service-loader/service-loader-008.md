@@ -1,34 +1,34 @@
-# Context class loader với service discovery
+# Context class loader with service discovery
 
-## 1. Context class loader là gì?
+## 1. What is the context class loader?
 
-Mỗi lớp Java được định nghĩa bởi một class loader. Có thể xem loader đã định nghĩa một lớp bằng **Class.getClassLoader()**. Tuy nhiên, một thread còn có một loader ngữ cảnh riêng, gọi là **context class loader (TCCL)**, lấy bằng **Thread.currentThread().getContextClassLoader()**.
+Every Java class is defined by a class loader. You can check the loader that defined a class using **Class.getClassLoader()**. However, a thread also has its own contextual loader, called the **context class loader (TCCL)**, obtained via **Thread.currentThread().getContextClassLoader()**.
 
     ClassLoader definingLoader = Codec.class.getClassLoader();
     ClassLoader contextLoader =
             Thread.currentThread().getContextClassLoader();
 
-Hai loader này có thể giống hoặc khác nhau:
+These two loaders may be the same or different:
 
-- **Defining class loader** là loader đã nạp và định nghĩa lớp cụ thể. Danh tính lớp trong JVM phụ thuộc vào tên nhị phân và loader định nghĩa nó.
-- **Context class loader** là loader được gắn với thread để mã đang chạy trên thread có thể dùng khi tìm lớp hoặc tài nguyên. Nó là một ngữ cảnh được truyền cho thư viện và framework.
+- **Defining class loader** is the loader that loaded and defined a specific class. A class's identity in the JVM depends on its binary name and its defining loader.
+- **Context class loader** is the loader attached to a thread so code running on that thread can use it when looking up classes or resources. It is a context passed down to libraries and frameworks.
 
-TCCL giải quyết một tình huống phổ biến: một thư viện được nạp bởi loader của framework cần tìm implementation do ứng dụng hoặc plugin cung cấp. Nếu thư viện chỉ dùng loader định nghĩa chính nó, loader đó có thể không nhìn thấy các lớp nằm trong vùng nạp của ứng dụng. TCCL cho phép thread mang theo loader phù hợp với ứng dụng đang thực hiện công việc.
+TCCL solves a common scenario: a library loaded by a framework's loader needs to find implementations supplied by an application or plugin. If the library only uses the loader that defined itself, that loader may not be able to see classes inside the application's loading scope. TCCL allows the thread to carry the loader appropriate for the application performing the work.
 
-TCCL được đọc và thay đổi qua:
+TCCL is read and modified via:
 
     Thread thread = Thread.currentThread();
     ClassLoader loader = thread.getContextClassLoader();
 
     thread.setContextClassLoader(loader);
 
-Khi một thread mới được tạo, context class loader ban đầu thường được kế thừa từ thread cha tại thời điểm tạo thread. Vì vậy, giá trị này có thể khác nhau giữa các thread. Với thread pool, thread worker có thể được tạo từ lâu và tiếp tục giữ context loader cũ nếu ứng dụng không quản lý nó rõ ràng.
+When a new thread is created, its initial context class loader is typically inherited from the parent thread at thread creation time. Therefore, this value can differ across threads. With thread pools, worker threads may have been created long ago and continue holding an old context loader unless the application manages it explicitly.
 
-## 2. Vì sao ServiceLoader dùng context class loader?
+## 2. Why does ServiceLoader use the context class loader?
 
-**ServiceLoader** là cơ chế chuẩn của Java để tìm và tạo các implementation của một service mà không buộc ứng dụng phụ thuộc trực tiếp vào lớp implementation.
+**ServiceLoader** is Java's standard mechanism for finding and creating implementations of a service without forcing the application to depend directly on implementation classes.
 
-Một service thường là interface hoặc abstract class. Ví dụ:
+A service is typically an interface or an abstract class. For example:
 
     package com.example.codec;
 
@@ -37,7 +37,7 @@ Một service thường là interface hoặc abstract class. Ví dụ:
         byte[] encode(String input);
     }
 
-Thư viện chỉ cần biết kiểu **Codec**. Các module hoặc JAR khác có thể cung cấp implementation như **JsonCodec** hay **XmlCodec**. Ứng dụng yêu cầu các provider thông qua ServiceLoader:
+A library only needs to know the **Codec** type. Other modules or JARs can provide implementations such as **JsonCodec** or **XmlCodec**. The application requests providers through ServiceLoader:
 
     ServiceLoader<Codec> codecs =
             ServiceLoader.load(Codec.class);
@@ -46,64 +46,64 @@ Thư viện chỉ cần biết kiểu **Codec**. Các module hoặc JAR khác c�
         System.out.println(codec.name());
     }
 
-Overload **ServiceLoader.load(Class)** sử dụng context class loader của thread hiện tại. Về mặt API, lời gọi:
+The **ServiceLoader.load(Class)** overload uses the current thread's context class loader. At the API level, the call:
 
     ServiceLoader.load(Codec.class);
 
-tương đương:
+is equivalent to:
 
     ServiceLoader.load(
             Codec.class,
             Thread.currentThread().getContextClassLoader());
 
-Đây là lý do TCCL thường xuất hiện trong service discovery. Một thư viện có thể gọi ServiceLoader mà không cần biết loader riêng của từng ứng dụng. Thread đã mang context loader do môi trường chạy hoặc ứng dụng thiết lập; ServiceLoader dùng loader đó làm điểm bắt đầu để tìm provider.
+This is why TCCL frequently appears in service discovery. A library can call ServiceLoader without knowing each application's specific loader. The thread already carries the context loader set by the runtime environment or application; ServiceLoader uses that loader as the starting point to locate providers.
 
-TCCL chỉ ảnh hưởng đến những API thực sự sử dụng nó. Việc đổi TCCL không làm thay đổi loader đã định nghĩa các lớp hiện có và cũng không tự động thay đổi mọi thao tác nạp lớp trong JVM.
+TCCL only affects APIs that actually use it. Changing TCCL does not alter the defining loader of existing classes and does not automatically change all class-loading operations in the JVM.
 
-## 3. Service discovery trên classpath
+## 3. Service discovery on the classpath
 
-Khi provider được đóng gói dưới dạng JAR trên classpath, ServiceLoader nhận diện provider thông qua file cấu hình trong thư mục **META-INF/services**.
+When providers are packaged as JARs on the classpath, ServiceLoader identifies providers via configuration files in the **META-INF/services** directory.
 
-Tên file là tên nhị phân đầy đủ của service. Với service **com.example.codec.Codec**, JAR provider có file:
+The file name is the fully qualified binary name of the service. For the service **com.example.codec.Codec**, the provider JAR contains the file:
 
     META-INF/services/com.example.codec.Codec
 
-Nội dung file liệt kê tên nhị phân đầy đủ của các provider, mỗi provider trên một dòng:
+The file contents list the fully qualified binary names of the providers, one provider per line:
 
     com.example.codec.json.JsonCodec
     com.example.codec.xml.XmlCodec
 
-File được mã hóa UTF-8. Dòng trống và khoảng trắng quanh tên provider được bỏ qua; ký tự **#** mở đầu phần chú thích trên dòng. Một provider trùng lặp được bỏ qua.
+The file is UTF-8 encoded. Blank lines and whitespace around provider names are ignored; the **#** character begins a comment on a line. Duplicate providers are ignored.
 
-Khi gọi **ServiceLoader.load(Codec.class)**, TCCL được dùng để tìm các tài nguyên cấu hình service và nạp các lớp provider được liệt kê. Provider phải nhìn thấy được từ loader được dùng để tìm kiếm. Vì thế, một file META-INF/services tồn tại trong JAR chưa đủ để bảo đảm provider được phát hiện: JAR đó và provider class phải nằm trong phạm vi mà loader có thể truy cập.
+When **ServiceLoader.load(Codec.class)** is called, TCCL is used to locate service configuration resources and load the listed provider classes. Providers must be visible from the loader used for discovery. Therefore, having a META-INF/services file inside a JAR is not enough to guarantee provider discovery: that JAR and the provider class must be within the scope accessible to the loader.
 
-Có thể truyền loader tường minh khi ứng dụng đã biết loader cần dùng:
+You can pass a loader explicitly when the application already knows which loader to use:
 
     ClassLoader pluginLoader = getPluginClassLoader();
 
     ServiceLoader<Codec> codecs =
             ServiceLoader.load(Codec.class, pluginLoader);
 
-Cách này làm rõ phạm vi discovery và không phụ thuộc giá trị TCCL ngầm định của thread.
+This makes the discovery scope explicit and independent of the thread's implicit TCCL value.
 
-## 4. Service discovery trên module path với JPMS
+## 4. Service discovery on the module path with JPMS
 
-Khi provider được đóng gói trong named module, metadata service nằm trong **module-info.java** thay vì dựa vào file META-INF/services.
+When providers are packaged in named modules, service metadata resides in **module-info.java** rather than relying on META-INF/services files.
 
-Module chứa service công khai kiểu service:
+The module containing the service exports the service type:
 
     module com.example.codec.api {
         exports com.example.codec;
     }
 
-Module ứng dụng khai báo rằng nó sử dụng service:
+The application module declares that it uses the service:
 
     module com.example.application {
         requires com.example.codec.api;
         uses com.example.codec.Codec;
     }
 
-Module cung cấp implementation khai báo provider:
+The module supplying the implementation declares the provider:
 
     module com.example.codec.json {
         requires com.example.codec.api;
@@ -112,37 +112,37 @@ Module cung cấp implementation khai báo provider:
             with com.example.codec.json.JsonCodec;
     }
 
-Directive **uses** cho biết module ứng dụng có nhu cầu tìm provider của service. Nếu caller nằm trong explicit named module mà module descriptor không khai báo uses cho service, các phương thức load tương ứng có thể ném **ServiceConfigurationError**.
+The **uses** directive indicates that the application module needs to discover providers for the service. If the caller is in an explicit named module whose module descriptor does not declare uses for the service, the corresponding load methods may throw **ServiceConfigurationError**.
 
-Directive **provides ... with ...** đăng ký provider với JPMS. Package chứa implementation thường không cần export cho ứng dụng tiêu thụ service; ứng dụng làm việc thông qua kiểu service công khai. Điều này giúp module provider giữ kín chi tiết triển khai.
+The **provides ... with ...** directive registers the provider with JPMS. The package containing the implementation generally does not need to be exported to the consuming application; the application works through the public service type. This allows the provider module to keep implementation details private.
 
-ServiceLoader hỗ trợ cả provider trên classpath lẫn provider trong named module. Với overload nhận class loader, quá trình tìm kiếm xét provider trong các named module liên quan đến loader và các loader cha, sau đó xét provider trong unnamed module thông qua các file cấu hình service mà loader tìm được. Nếu một loader thuộc module layer, việc tìm provider named module có thể bao gồm các module trong layer đó, kể cả module được định nghĩa bởi loader khác trong cùng layer.
+ServiceLoader supports both providers on the classpath and providers in named modules. With the overload accepting a class loader, discovery examines providers in named modules associated with the loader and its parent loaders, and then examines providers in unnamed modules through service configuration files found by the loader. If a loader belongs to a module layer, discovering named module providers can include modules in that layer, even modules defined by another loader in the same layer.
 
-Khi ứng dụng muốn chỉ rõ module layer cần tra cứu, dùng:
+When the application wants to specify the exact module layer to search, use:
 
     ModuleLayer pluginLayer = ...;
 
     ServiceLoader<Codec> codecs =
             ServiceLoader.load(pluginLayer, Codec.class);
 
-Overload này tìm provider trong module layer được chỉ định và các layer cha của nó. Nó không tìm provider trong unnamed module. Đây là lựa chọn rõ ràng cho hệ thống plugin tạo module layer động và cần giới hạn discovery theo layer.
+This overload searches for providers in the specified module layer and its parent layers. It does not search for providers in unnamed modules. This is a clean choice for plugin systems that create dynamic module layers and need to restrict discovery by layer.
 
-## 5. Chọn overload ServiceLoader phù hợp
+## 5. Choosing the right ServiceLoader overload
 
-| API | Phạm vi discovery | Khi nên dùng |
+| API | Discovery scope | When to use |
 |---|---|---|
-| **ServiceLoader.load(service)** | Dùng TCCL hiện tại làm loader bắt đầu tìm provider | Thư viện hoặc framework muốn tôn trọng loader ngữ cảnh của ứng dụng |
-| **ServiceLoader.load(service, loader)** | Dùng loader được truyền vào để tìm provider trong named và unnamed modules mà loader có thể truy cập | Ứng dụng biết rõ plugin loader cần sử dụng |
-| **ServiceLoader.load(layer, service)** | Tìm provider trong named modules thuộc layer và các layer cha; không tìm unnamed modules | Ứng dụng quản lý module layer riêng |
-| **ServiceLoader.loadInstalled(service)** | Dùng platform class loader | Chỉ muốn provider được cài đặt ở phạm vi platform |
+| **ServiceLoader.load(service)** | Uses the current TCCL as the starting loader to find providers | Libraries or frameworks that want to respect the application's context loader |
+| **ServiceLoader.load(service, loader)** | Uses the passed loader to find providers in named and unnamed modules accessible to that loader | Applications that know the exact plugin loader to use |
+| **ServiceLoader.load(layer, service)** | Finds providers in named modules belonging to the layer and its parent layers; does not search unnamed modules | Applications managing their own module layers |
+| **ServiceLoader.loadInstalled(service)** | Uses the platform class loader | Only wanting providers installed at the platform level |
 
-Không nên chọn overload chỉ theo thói quen. Hãy xác định provider được triển khai trên classpath, module path hay module layer động, rồi chọn loader hoặc layer thể hiện đúng phạm vi mong muốn.
+Do not pick an overload merely out of habit. Identify whether providers are deployed on the classpath, module path, or a dynamic module layer, then choose the loader or layer that expresses the exact intended scope.
 
-**loadInstalled** không phải lựa chọn thay thế chung cho **load**. Nó dùng platform class loader, nên provider chỉ có trên application classpath hoặc application module path sẽ không được tìm thấy qua overload này.
+**loadInstalled** is not a general replacement for **load**. It uses the platform class loader, so providers present only on the application classpath or application module path will not be discovered through this overload.
 
-## 6. Thiết lập TCCL có kiểm soát
+## 6. Setting TCCL in a controlled manner
 
-Một framework đôi khi cần đặt TCCL thành loader của ứng dụng hoặc plugin trong lúc chạy một đoạn mã. Hãy lưu giá trị cũ và khôi phục trong khối **finally**:
+A framework sometimes needs to set TCCL to an application or plugin loader while running a block of code. Save the old value and restore it in a **finally** block:
 
     Thread thread = Thread.currentThread();
     ClassLoader previous = thread.getContextClassLoader();
@@ -160,59 +160,59 @@ Một framework đôi khi cần đặt TCCL thành loader của ứng dụng ho�
         thread.setContextClassLoader(previous);
     }
 
-Việc khôi phục đặc biệt quan trọng khi dùng thread pool. Worker thread được tái sử dụng cho nhiều tác vụ; nếu một tác vụ để lại TCCL của plugin, tác vụ tiếp theo có thể phát hiện nhầm provider hoặc giữ tham chiếu tới loader cũ. Tham chiếu đó cũng có thể giữ lại class loader và các lớp của plugin, khiến việc unload plugin hoặc thu hồi bộ nhớ khó khăn.
+Restoring is especially important when using thread pools. Worker threads are reused across many tasks; if a task leaves a plugin's TCCL behind, the next task may discover the wrong providers or hold a reference to the old loader. That reference can also retain the plugin's class loader and classes, making plugin unloading or memory reclamation difficult.
 
-Nếu chỉ cần một lần service discovery, truyền loader tường minh thường đơn giản hơn việc thay đổi TCCL:
+If only a single service discovery call is needed, passing an explicit loader is usually simpler than mutating TCCL:
 
     ServiceLoader<Codec> codecs =
             ServiceLoader.load(Codec.class, pluginLoader);
 
-Chỉ thay đổi TCCL khi mã được gọi hoặc framework cần đọc context loader từ thread. Không đặt TCCL thành plugin loader rồi quên khôi phục.
+Only change TCCL when called code or a framework needs to read the context loader from the thread. Do not set TCCL to a plugin loader and forget to restore it.
 
-TCCL ban đầu của thread con thường được kế thừa tại thời điểm thread được tạo. Điều này có nghĩa thread được tạo trước khi ứng dụng đổi TCCL có thể không mang loader mới. Với executor hoặc thread pool, cần xác định ai chịu trách nhiệm đặt và khôi phục loader cho từng tác vụ.
+A child thread's initial TCCL is usually inherited at the time the thread is created. This means threads created before the application changes TCCL may not carry the new loader. With executors or thread pools, establish who is responsible for setting and restoring the loader for each task.
 
-## 7. Discovery là lazy và provider được cache
+## 7. Discovery is lazy and providers are cached
 
-Việc tạo **ServiceLoader** chưa có nghĩa tất cả provider đã được nạp và khởi tạo. Provider được tìm, nạp và tạo instance theo nhu cầu khi ứng dụng duyệt **iterator()** hoặc xử lý **stream()**.
+Creating a **ServiceLoader** does not mean all providers have been loaded and instantiated. Providers are discovered, loaded, and instantiated on demand as the application iterates **iterator()** or processes **stream()**.
 
     ServiceLoader<Codec> codecs =
             ServiceLoader.load(Codec.class);
 
     for (Codec codec : codecs) {
-        // Provider được khởi tạo khi iterator duyệt đến provider đó.
+        // The provider is instantiated when the iterator reaches that provider.
         System.out.println(codec.name());
     }
 
-Nếu chỉ muốn xem thông tin kiểu provider trước khi tạo instance, có thể dùng **stream()** và **ServiceLoader.Provider**:
+If you only want to inspect provider type information before creating instances, you can use **stream()** and **ServiceLoader.Provider**:
 
     ServiceLoader.load(Codec.class)
             .stream()
             .map(provider -> provider.type().getName())
             .forEach(System.out::println);
 
-Gọi **Provider.type()** cho phép xem lớp provider mà chưa cần lấy instance. Gọi **Provider.get()** mới lấy instance từ provider.
+Calling **Provider.type()** lets you view the provider class without needing to obtain an instance. Calling **Provider.get()** obtains the instance from the provider.
 
-Một ServiceLoader lưu cache các provider đã được nạp. Các lần duyệt tiếp theo sử dụng các provider đã cache trước, rồi mới tiếp tục tìm provider còn lại. Gọi **reload()** để xóa cache và cho phép nạp lại provider:
+A ServiceLoader caches loaded providers. Subsequent iterations use cached providers first before continuing to search for remaining providers. Call **reload()** to clear the cache and allow providers to be loaded again:
 
     codecs.reload();
 
-ServiceLoader được tạo với loader tại thời điểm gọi **load**. Thay đổi TCCL sau đó không tự chuyển ServiceLoader hiện có sang loader mới. Nếu cần discovery theo loader mới, hãy tạo ServiceLoader mới bằng overload phù hợp.
+A ServiceLoader is created with the loader active at the time **load** is called. Changing TCCL afterward does not automatically switch an existing ServiceLoader to the new loader. If discovery against a new loader is needed, create a new ServiceLoader using the appropriate overload.
 
-## 8. Lỗi thường gặp khi service discovery
+## 8. Common errors during service discovery
 
-### Không tìm thấy provider
+### Provider not found
 
-Kiểm tra các điểm sau:
+Check the following points:
 
-- TCCL của thread có phải loader mà ứng dụng mong muốn không?
-- JAR provider có nằm trong phạm vi tìm kiếm của loader không?
-- File **META-INF/services** có đúng tên service và đúng vị trí không?
-- Tên provider trong file có phải tên nhị phân đầy đủ và lớp có thể được loader nhìn thấy không?
-- Với named module, provider module có khai báo **provides** đúng service không?
-- Module layer chứa provider có nằm trong phạm vi discovery không?
-- Caller trong explicit named module đã khai báo **uses** chưa?
+- Is the thread's TCCL the loader the application expects?
+- Is the provider JAR within the search scope of the loader?
+- Does the **META-INF/services** file have the exact service name and location?
+- Is the provider name in the file the fully qualified binary name, and is the class visible to the loader?
+- For named modules, does the provider module declare **provides** for the right service?
+- Is the module layer containing the provider within the discovery scope?
+- Has the caller in an explicit named module declared **uses**?
 
-Có thể in thông tin loader để chẩn đoán:
+You can print loader details for diagnosis:
 
     Thread thread = Thread.currentThread();
 
@@ -224,53 +224,53 @@ Có thể in thông tin loader để chẩn đoán:
     System.out.println("Service module: "
             + Codec.class.getModule());
 
-### Provider không tương thích kiểu service
+### Provider incompatible with service type
 
-Service type và provider phải tương thích về danh tính kiểu tại runtime. Nếu ứng dụng và plugin cùng nạp hai bản sao của interface **Codec** bằng hai loader độc lập, JVM có thể xem chúng là hai kiểu khác nhau dù tên package và tên lớp giống hệt nhau.
+The service type and provider must be compatible in runtime type identity. If the application and a plugin load two copies of the **Codec** interface via two independent loaders, the JVM may treat them as two different types even though their package and class names are identical.
 
-Khi đó provider có thể không được xem là implementation của service mà ứng dụng đang dùng, hoặc phát sinh lỗi liên quan đến kiểu khi nạp và sử dụng provider. Nên đặt API service dùng chung ở một loader/module được chia sẻ giữa host và plugin; tránh đóng gói bản sao độc lập của API đó vào từng plugin.
+In that case, the provider may not be recognized as an implementation of the service the application uses, or type-related errors may arise when loading and using the provider. Place the shared service API in a loader/module shared between the host and plugins; avoid packaging an independent copy of that API inside each plugin.
 
 ### ServiceConfigurationError
 
-**ServiceConfigurationError** có thể xuất hiện khi ServiceLoader không đọc được cấu hình, không nạp được provider, provider không tương thích với service, thiếu constructor/provider method hợp lệ hoặc quá trình tạo provider thất bại. Với explicit named module, thiếu directive **uses** cũng là nguyên nhân cần kiểm tra.
+**ServiceConfigurationError** can occur when ServiceLoader cannot read configuration, cannot load a provider, a provider is incompatible with the service, a valid constructor/provider method is missing, or provider creation fails. For explicit named modules, a missing **uses** directive is also a cause to check.
 
-Lỗi có thể xuất hiện khi duyệt iterator, kể cả ở **hasNext()** hoặc **next()**, hoặc khi thực hiện thao tác trên stream khiến provider được tìm hay nạp. Vì quá trình là lazy, không nên chỉ kiểm tra việc tạo ServiceLoader rồi kết luận discovery đã thành công.
+Errors can occur while iterating the iterator, including at **hasNext()** or **next()**, or when performing stream operations that cause providers to be located or loaded. Because the process is lazy, do not merely check that creating the ServiceLoader succeeded and conclude discovery worked.
 
-### Dùng chung ServiceLoader giữa nhiều thread
+### Sharing a ServiceLoader across multiple threads
 
-Các instance **ServiceLoader** không an toàn khi nhiều thread cùng sử dụng đồng thời. Không nên chia sẻ một instance mutable cho nhiều thread mà không có đồng bộ. Thông thường, tạo loader riêng theo phạm vi tác vụ hoặc đồng bộ hóa rõ ràng nếu cần chia sẻ.
+**ServiceLoader** instances are not safe for concurrent use by multiple threads. Do not share a single mutable instance across multiple threads without synchronization. Typically, create a dedicated loader scoped to the task or synchronize explicitly if sharing is required.
 
-### Cache ServiceLoader trên toàn JVM
+### Caching ServiceLoader across the whole JVM
 
-Không nên cache một ServiceLoader tạo bằng **ServiceLoader.load(service)** ở phạm vi toàn JVM khi môi trường có nhiều ứng dụng hoặc plugin. Mỗi thread có thể có TCCL khác nhau; provider tìm thấy trong ngữ cảnh của một ứng dụng có thể không phù hợp với ứng dụng khác. Cache như vậy còn có thể giữ tham chiếu tới plugin class loader và gây rò rỉ bộ nhớ.
+Do not cache a ServiceLoader created with **ServiceLoader.load(service)** globally across the JVM when the environment hosts multiple applications or plugins. Each thread may have a different TCCL; providers found in one application's context may be inappropriate for another application. Such caching can also retain references to plugin class loaders and cause memory leaks.
 
-## 9. Quy trình chẩn đoán nhanh
+## 9. Quick diagnostic workflow
 
-Khi service discovery không tìm thấy provider hoặc tìm nhầm provider, có thể lần lượt kiểm tra:
+When service discovery fails to find a provider or finds the wrong provider, check step by step:
 
-1. Xác định kiểu service đang dùng: gọi **Codec.class.getModule()** và **Codec.class.getClassLoader()**.
-2. Xác định TCCL tại đúng thread thực hiện lời gọi: **Thread.currentThread().getContextClassLoader()**.
-3. Xác định overload ServiceLoader: mặc định dùng TCCL, truyền loader tường minh hay chỉ định module layer.
-4. Kiểm tra nơi triển khai provider: file META-INF/services trên classpath hay directive provides trong module descriptor.
-5. Với named module, kiểm tra **uses**, **provides**, module path và module layer.
-6. Kiểm tra service interface có bị nạp thành nhiều bản sao bởi các loader khác nhau không.
-7. Duyệt iterator hoặc stream và ghi nhận **ServiceConfigurationError** thực tế; discovery diễn ra lazy nên lỗi có thể chỉ xuất hiện khi duyệt.
+1. Identify the service type being used: call **Codec.class.getModule()** and **Codec.class.getClassLoader()**.
+2. Identify the TCCL on the exact thread making the call: **Thread.currentThread().getContextClassLoader()**.
+3. Identify the ServiceLoader overload: default using TCCL, explicit loader passed, or module layer specified.
+4. Check how the provider is deployed: a META-INF/services file on the classpath or a provides directive in a module descriptor.
+5. For named modules, check **uses**, **provides**, the module path, and module layers.
+6. Check whether the service interface has been loaded as multiple copies by different loaders.
+7. Iterate the iterator or stream and record any actual **ServiceConfigurationError**; discovery is lazy, so errors may appear only during iteration.
 
-## 10. Ghi nhớ
+## 10. Key takeaways
 
-- TCCL là loader ngữ cảnh của thread; defining loader là loader đã định nghĩa một lớp. Hai giá trị có thể khác nhau.
-- **ServiceLoader.load(service)** sử dụng TCCL của thread hiện tại.
-- **ServiceLoader.load(service, loader)** dùng loader được chỉ định, phù hợp khi muốn kiểm soát rõ phạm vi tìm provider.
-- **ServiceLoader.load(layer, service)** tìm provider trong module layer và các layer cha, không tìm provider trong unnamed modules.
-- Provider trên classpath được khai báo bằng **META-INF/services/**; provider trong named module được khai báo bằng **provides** và consumer module khai báo **uses**.
-- TCCL không cấp quyền JPMS và không sửa đổi danh tính của lớp đã được nạp.
-- Khôi phục TCCL trong **finally**, nhất là khi dùng thread pool hoặc plugin.
-- ServiceLoader nạp provider lazy, cache các provider đã nạp và không an toàn cho nhiều thread dùng chung.
-- Khi provider không được tìm thấy, kiểm tra loader, module layer, cấu hình service và danh tính lớp service trước khi thay đổi cấu hình runtime.
+- TCCL is a thread's contextual loader; defining loader is the loader that defined a class. The two values may differ.
+- **ServiceLoader.load(service)** uses the current thread's TCCL.
+- **ServiceLoader.load(service, loader)** uses the specified loader, suitable when you want explicit control over the provider search scope.
+- **ServiceLoader.load(layer, service)** searches providers in the module layer and its parent layers, not in unnamed modules.
+- Providers on the classpath are declared with **META-INF/services/**; providers in named modules are declared with **provides** and the consumer module declares **uses**.
+- TCCL does not grant JPMS permissions and does not alter the identity of already loaded classes.
+- Restore TCCL in **finally**, especially when using thread pools or plugins.
+- ServiceLoader loads providers lazily, caches loaded providers, and is not safe for concurrent shared use across threads.
+- When a provider is not found, check the loader, module layer, service configuration, and service class identity before changing runtime configuration.
 
-**Context class loader là cầu nối để thư viện tìm thấy implementation do ứng dụng hoặc plugin cung cấp.** Khi kết hợp với ServiceLoader, cần chọn đúng loader hoặc module layer và quản lý vòng đời của nó theo từng thread/tác vụ.
+**The context class loader is the bridge that lets a library discover implementations supplied by an application or plugin.** When combined with ServiceLoader, choose the right loader or module layer and manage its lifecycle per thread or task.
 
-## Tài liệu tham khảo
+## References
 
 - Java SE 21 API — ServiceLoader: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/ServiceLoader.html
 - Java SE 21 API — Thread: https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Thread.html

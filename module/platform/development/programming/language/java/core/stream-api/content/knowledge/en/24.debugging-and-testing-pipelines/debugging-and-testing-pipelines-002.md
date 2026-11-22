@@ -1,121 +1,121 @@
-# Tách pipeline dài thành các bước có tên và hợp đồng rõ ràng
+# Splitting Long Pipelines into Named Steps with Clear Contracts
 
-## 1. Mục tiêu và bối cảnh
+## 1. Goal and Context
 
-Trong module **`JAVA_STREAM_API`**, việc xử lý dữ liệu khai báo bằng Java Stream API thường bắt đầu với một nguồn, đi qua các thao tác trung gian lazy như `filter`, `map` và `flatMap`, rồi kết thúc bằng `reduce`, `collect` hoặc một terminal operation khác. Khi thêm quy tắc nghiệp vụ, grouping, sorting và xử lý lỗi, một pipeline ngắn ban đầu có thể trở thành **một chuỗi lambda rất dài**.
+In the **`JAVA_STREAM_API`** module, declarative data processing with the Java Stream API usually starts from a source, passes through lazy intermediate operations like `filter`, `map`, and `flatMap`, and finishes with `reduce`, `collect`, or another terminal operation. As business rules, grouping, sorting, and error handling are added, an initially short pipeline can grow into **a very long chain of lambdas**.
 
-Vấn đề của pipeline dài không phải chỉ là số dòng. Nó làm khó việc trả lời các câu hỏi quan trọng:
+The problem with a long pipeline isn't just its line count. It makes it hard to answer essential questions:
 
-- Đầu vào được kỳ vọng ở định dạng nào? `null`, chuỗi rỗng và số âm xử lý ra sao?
-- Một bước đang **chuẩn hóa**, **kiểm tra hợp lệ**, **lọc** hay **tổng hợp**?
-- Khi dữ liệu sai, hệ thống ném lỗi, bỏ bản ghi hay thu vào danh sách lỗi?
-- Khi kết quả bất thường, bước nào làm mất hoặc nhân đôi phần tử?
-- Thứ tự kết quả có ý nghĩa không? `groupingBy` và `parallel` có thay đổi giả định đó không?
-- Có thể kiểm thử từng quy tắc mà không cần chạy cả ứng dụng không?
+- What input format is expected? How are `null`, empty strings, and negative numbers handled?
+- Is a step **normalizing**, **validating**, **filtering**, or **aggregating**?
+- When data is invalid, does the system throw an exception, drop the record, or collect it into an error list?
+- When results look wrong, which step dropped or duplicated elements?
+- Does the result order carry meaning? Do `groupingBy` and `parallel` alter that assumption?
+- Can individual rules be tested without running the entire application?
 
-Bài học thuộc chương **Gỡ lỗi và kiểm thử pipeline**, hướng dẫn cách **tách pipeline dài thành các bước có tên và hợp đồng rõ ràng**. Ta sẽ thực hành trên ví dụ đơn hàng, chuyển từ một biểu thức khó bảo trì sang các hàm Java 8+ dễ đọc, kiểm thử, đo lường và thay đổi.
+This lesson belongs to the **Debugging and Testing Pipelines** chapter and explains how to **split long pipelines into named steps with clear contracts**. We will work through an order-processing example, refactoring a hard-to-maintain expression into readable Java 8+ functions that are easy to test, measure, and evolve.
 
-Sau bài học, bạn có thể:
+After this lesson, you will be able to:
 
-1. Xác định **ranh giới nghiệp vụ** để tách các thao tác trong pipeline.
-2. Ghi hợp đồng của từng bước: kiểu vào/ra, tiền điều kiện, hậu điều kiện, thứ tự, side effect và chính sách lỗi.
-3. Viết các hàm `normalize`, `paidOnly`, `summarize` bằng kiểu dữ liệu và tên có ý nghĩa.
-4. Phân biệt **hàm trên một phần tử**, **hàm nhận/trả `Stream`** và **terminal operation trả kết quả hữu hình**.
-5. Kiểm thử riêng từng quy tắc và đối chiếu kết quả đầu-cuối với thuật toán tham chiếu.
-6. Dùng log, `peek` và materialize tạm thời để chẩn đoán mà không phụ thuộc side effect.
-7. Giữ đúng tính lazy, một-lần-tiêu-thụ, quản lý I/O và các điều kiện song song hóa.
+1. Identify **business boundaries** for splitting operations in a pipeline.
+2. Specify each step's contract: input/output types, preconditions, postconditions, ordering, side effects, and error policy.
+3. Write functions like `normalize`, `paidOnly`, and `summarize` with meaningful types and names.
+4. Distinguish **single-element functions**, **functions taking/returning `Stream`**, and **terminal operations returning materialized results**.
+5. Test individual rules independently and verify end-to-end results against a reference algorithm.
+6. Use logging, `peek`, and temporary materialization for diagnostics without relying on side effects.
+7. Preserve laziness, single-use semantics, I/O resource management, and parallelization conditions.
 
-## 2. Nhận diện một pipeline khó gỡ lỗi
+## 2. Recognizing a Hard-to-Debug Pipeline
 
-Giả sử nghiệp vụ nhận các giao dịch gồm mã đơn hàng, khách hàng, trạng thái và số tiền tính bằng **cent**. Yêu cầu:
+Suppose the business receives transactions consisting of an order ID, customer ID, status, and amount in **cents**. Requirements:
 
-- Chuẩn hóa khoảng trắng của mã đơn và mã khách hàng.
-- Chuẩn hóa trạng thái thành chữ hoa theo `Locale.ROOT`.
-- **Từ chối** bản ghi không hợp lệ: `null`, mã rỗng, trạng thái không hỗ trợ hoặc số tiền âm.
-- Chỉ giữ những đơn **PAID**.
-- Tính tổng số tiền và số đơn theo khách hàng.
-- Sắp xếp kết quả theo tổng tiền **giảm dần**, nếu bằng nhau theo mã khách hàng **tăng dần**.
+- Trim whitespace from the order ID and customer ID.
+- Normalize the status to uppercase using `Locale.ROOT`.
+- **Reject** invalid records: `null`, blank IDs, unsupported statuses, or negative amounts.
+- Keep only **PAID** orders.
+- Compute the total amount and order count per customer.
+- Sort results by total amount **descending**, breaking ties by customer ID **ascending**.
 
-Một pipeline có thể bị viết dồn:
+A pipeline might be written all crammed together:
 
 ```java
 List<CustomerSummary> result = source.stream()
-    .map(row -> /* nhiều nhánh normalize và validate */)
+    .map(row -> /* multiple normalize and validate branches */)
     .filter(sale -> "PAID".equals(sale.status))
     .collect(Collectors.groupingBy(
         sale -> sale.customerId,
         Collectors.summarizingLong(sale -> sale.amountCents)
     ))
     .entrySet().stream()
-    .map(entry -> /* dựng CustomerSummary */)
-    .sorted(/* comparator có nhiều điều kiện */)
+    .map(entry -> /* build CustomerSummary */)
+    .sorted(/* multi-criteria comparator */)
     .collect(Collectors.toList());
 ```
 
-Đoạn minh họa cố ý để trống những chi tiết được chuyển thành **hàm có tên** ở phần sau. Khi đọc dòng `map` đầu tiên, ta chưa biết quy tắc nào đang được thực hiện; nếu sau này thêm xử lý `null` hoặc refund, phần còn lại dễ bị ảnh hưởng ngoài ý muốn.
+This illustration intentionally leaves blanks for details that are extracted into **named functions** later. Reading the first `map` line, you can't tell which rules are enforced; if `null` or refund handling is added later, the rest of the pipeline can easily break unintentionally.
 
-**Dấu hiệu cần refactor:**
+**Signs refactoring is needed:**
 
-- Lambda nhiều dòng vừa biến đổi dữ liệu vừa kiểm tra lỗi và ghi log.
-- Biểu thức có nhiều phép `collect` lồng nhau khiến kiểu dữ liệu khó nhận biết.
-- Mỗi nơi sử dụng pipeline lại sao chép cùng một đoạn `filter`/`map`.
-- Không xác định được bước nào làm thay đổi số phần tử.
-- Quy tắc xử lý lỗi bị ẩn trong `filter(x -> x != null)` hoặc `catch` trả giá trị mặc định.
-- Test chỉ so sánh kết quả cuối với một vài mẫu "đẹp", không có ca lỗi hay dữ liệu rỗng.
+- Multi-line lambdas that transform data, validate errors, and write logs all at once.
+- Expressions with deeply nested `collect` calls whose types are hard to trace.
+- Every caller using the pipeline duplicates the same `filter`/`map` sequence.
+- It is unclear which step alters element cardinality.
+- Error-handling rules are hidden inside `filter(x -> x != null)` or a `catch` returning a default value.
+- Tests only compare the final output on a few "happy" samples, missing error cases or empty inputs.
 
-**Mục tiêu refactor không phải tạo càng nhiều hàm càng tốt.** Mục tiêu là làm cho mỗi tên bước thể hiện một quy tắc có thể mô tả, kiểm chứng và thay đổi riêng.
+**The goal of refactoring is not to create as many functions as possible.** The goal is for each step name to represent one rule that can be described, verified, and changed independently.
 
-## 3. Hợp đồng của một bước xử lý nên ghi gì?
+## 3. What Should a Processing Step's Contract State?
 
-Đối với mỗi bước, có thể ghi ngắn gọn:
+For each step, briefly document:
 
-| Thành phần | Câu hỏi |
+| Component | Question |
 | --- | --- |
-| **Tên và trách nhiệm** | Bước giải quyết một quy tắc nào? Tên có phản ánh đúng quy tắc không? |
-| **Kiểu dữ liệu vào/ra** | Nhận `RawSale` hay `Sale`? Trả `Stream<Sale>`, `List<Sale>` hay `Map`? |
-| **Tiền điều kiện** | Dữ liệu phải khác `null`? Đã chuẩn hóa? Có thứ tự? |
-| **Hậu điều kiện** | Kết quả luôn hợp lệ? Có thể rỗng? Có giữ thứ tự/giá trị trùng không? |
-| **Chính sách lỗi** | Ném ngoại lệ, loại bỏ bản ghi hay thu lỗi riêng? |
-| **Số lượng phần tử** | Một-một, loại bớt, phát nhiều hay tổng hợp? |
-| **Tác dụng phụ** | Có sửa nguồn, gọi I/O, cập nhật biến dùng chung không? |
-| **Lazy/eager** | Chỉ xây pipeline hay thực sự tiêu thụ và giữ kết quả trong RAM? |
+| **Name and responsibility** | Which single rule does this step enforce? Does the name reflect it? |
+| **Input/output types** | Does it take `RawSale` or `Sale`? Does it return `Stream<Sale>`, `List<Sale>`, or `Map`? |
+| **Preconditions** | Must data be non-null? Already normalized? Ordered? |
+| **Postconditions** | Is the output always valid? Can it be empty? Does it preserve order/duplicates? |
+| **Error policy** | Throws an exception, skips the record, or collects errors separately? |
+| **Cardinality** | One-to-one, filtering, expanding, or aggregating? |
+| **Side effects** | Does it mutate the source, perform I/O, or update shared variables? |
+| **Lazy/eager** | Does it only build the pipeline, or actually consume it and hold results in RAM? |
 
-Hợp đồng có thể trình bày bằng Javadoc, bảng ngắn hoặc test; không nhất thiết viết tài liệu quá dài cho một hàm nhỏ.
+A contract can be expressed via Javadoc, a short table, or tests; you don't need lengthy documentation for a small helper.
 
-### 3.1. Hợp đồng của các bước trong ví dụ
+### 3.1. Contracts of the steps in our example
 
-| Bước | Đầu vào → Đầu ra | Quy tắc | Cardinality |
+| Step | Input → Output | Rule | Cardinality |
 | --- | --- | --- | --- |
-| `normalizeSale` | `RawSale → Sale` | Kiểm tra hợp lệ, trim mã, chuẩn hóa status; sai thì ném `IllegalArgumentException` | 1 → 1 hoặc lỗi |
-| `normalize` | `Stream<RawSale> → Stream<Sale>` | Áp dụng `normalizeSale` lazily cho từng phần tử | Bảo toàn số lượng khi không lỗi |
-| `paidOnly` | `Stream<Sale> → Stream<Sale>` | Chỉ giữ đơn `PAID` | 0 hoặc 1 đầu ra/đầu vào |
-| `summarize` | `Stream<Sale> → List<CustomerSummary>` | Nhóm, cộng tiền, đếm đơn, sắp xếp | Nhiều đơn → một dòng/khách |
-| `process` | `List<RawSale> → List<CustomerSummary>` | Kết nối các bước; trả list không cho sửa | Kết quả hữu hình |
+| `normalizeSale` | `RawSale → Sale` | Validate, trim IDs, normalize status; throw `IllegalArgumentException` if invalid | 1 → 1 or error |
+| `normalize` | `Stream<RawSale> → Stream<Sale>` | Lazily apply `normalizeSale` to each element | Preserves count when error-free |
+| `paidOnly` | `Stream<Sale> → Stream<Sale>` | Keep only `PAID` orders | 0 or 1 output per input |
+| `summarize` | `Stream<Sale> → List<CustomerSummary>` | Group, sum amounts, count orders, sort | Many orders → one row/customer |
+| `process` | `List<RawSale> → List<CustomerSummary>` | Wire steps together; return an unmodifiable list | Materialized result |
 
-**Thứ tự chạy logic:** `normalize` trước `paidOnly` nghĩa là **mọi bản ghi đều được kiểm tra**, kể cả bản ghi sau đó không được chọn để tổng hợp. Nếu doanh nghiệp muốn bỏ qua dòng `PENDING` bị lỗi mà không báo, đó là **một chính sách khác**, phải được định nghĩa riêng, không tự đổi vị trí bộ lọc để "sửa lỗi".
+**Logical execution order:** `normalize` before `paidOnly` means **every record is validated**, even records not subsequently selected for aggregation. If the business wants to silently ignore malformed `PENDING` rows without failing, that is **a different policy** that must be defined explicitly rather than reordering filters to "fix a bug."
 
-### 3.2. Hợp đồng phải ghi rõ thứ tự
+### 3.2. Contracts must specify ordering
 
-Một nguồn `List` có encounter order; `map` và `filter` trên ordered stream giữ thứ tự logic của các phần tử còn lại. Nhưng `Collectors.groupingBy` mặc định **không cam kết thứ tự duyệt các khóa trong `Map`**.
+A `List` source has an encounter order; `map` and `filter` on an ordered stream preserve the logical order of remaining elements. However, `Collectors.groupingBy` does **not guarantee iteration order of keys in the resulting `Map`** by default.
 
-Vì vậy, sau nhóm cần **sắp xếp tường minh** theo tổng tiền và mã khách hàng nếu báo cáo yêu cầu thứ tự xác định. Đừng dựa vào thứ tự hiển thị của một `HashMap` trong lần chạy hiện tại.
+Therefore, after grouping you must **sort explicitly** by total amount and customer ID if the report requires deterministic order. Never rely on the display order of a `HashMap` in the current run.
 
-## 4. Tách hai cấp: hàm biến đổi một bản ghi và hàm xử lý stream
+## 4. Separating Two Levels: Single-Record Transformation and Stream Processing
 
-Một cách tách rõ ràng là:
+A clean separation looks like this:
 
 ```text
 RawSale
    |
-normalizeSale(RawSale)            // Quy tắc cấp bản ghi
+normalizeSale(RawSale)            // Record-level rule
    |
 Sale
    |
-normalize(Stream<RawSale>)       // Bước trung gian lazy
+normalize(Stream<RawSale>)       // Lazy intermediate step
    |
 Stream<Sale>
    |
-paidOnly(Stream<Sale>)           // Lọc theo nghiệp vụ
+paidOnly(Stream<Sale>)           // Business filter
    |
 Stream<Sale>
    |
@@ -124,17 +124,17 @@ summarize(Stream<Sale>)          // Terminal: grouping + sort
 List<CustomerSummary>
 ```
 
-Tên `normalizeSale` khác `normalize` có chủ đích:
+Naming `normalizeSale` differently from `normalize` is intentional:
 
-- `normalizeSale` là **hàm thuần** ở cấp bản ghi, thích hợp cho unit test trực tiếp.
-- `normalize` là **hàm xây pipeline**. Nó chưa kiểm tra mọi bản ghi ngay khi được gọi; việc kiểm tra diễn ra trong quá trình tiêu thụ.
-- `summarize` là **điểm kết thúc**: gọi `collect` và tạo `List`. Nó không còn lazy.
+- `normalizeSale` is a **pure record-level function**, ideal for direct unit testing.
+- `normalize` is a **pipeline-building function**. It does not validate all records when called; validation happens during consumption.
+- `summarize` is the **terminal boundary**: it calls `collect` and creates a `List`. It is no longer lazy.
 
-Nếu chỉ đặt tên cho một biến `Stream<Sale> stage1` hoặc `Stream<Sale> stage2` thì chưa giải quyết vấn đề hợp đồng. Hãy đặt tên theo **quy tắc hoặc ý nghĩa dữ liệu**, không theo số thứ tự.
+Merely naming variables `Stream<Sale> stage1` or `Stream<Sale> stage2` does not solve the contract problem. Name steps after **business rules or data meaning**, not sequence numbers.
 
-## 5. Chương trình Java 8+ hoàn chỉnh: pipeline có tên
+## 5. Complete Java 8+ Program: Named Pipeline
 
-Tạo file `NamedPipelineExample.java`. Chương trình không dùng `record`, `Stream.toList()` hay API chỉ có ở các JDK mới, nên phù hợp với Java 8.
+Create `NamedPipelineExample.java`. The program avoids `record`, `Stream.toList()`, or APIs added only in newer JDKs, making it compatible with Java 8.
 
 ```java
 import java.util.Arrays;
@@ -200,7 +200,7 @@ public class NamedPipelineExample {
         }
     }
 
-    // Hợp đồng: null/rỗng không hợp lệ; trả chuỗi đã trim.
+    // Contract: null/empty is invalid; returns trimmed string.
     static String requiredText(String text, String field) {
         if (text == null || text.trim().isEmpty()) {
             throw new IllegalArgumentException(
@@ -209,8 +209,8 @@ public class NamedPipelineExample {
         return text.trim();
     }
 
-    // Hợp đồng: một RawSale hợp lệ -> một Sale chuẩn hóa;
-    // dữ liệu sai -> IllegalArgumentException.
+    // Contract: one valid RawSale -> one normalized Sale;
+    // invalid data -> IllegalArgumentException.
     static Sale normalizeSale(RawSale raw) {
         if (raw == null) {
             throw new IllegalArgumentException(
@@ -240,7 +240,7 @@ public class NamedPipelineExample {
             orderId, customerId, status, raw.amountCents);
     }
 
-    // Chỉ xây một intermediate stage, chưa tiêu thụ nguồn.
+    // Builds an intermediate stage only; does not consume the source.
     static Stream<Sale> normalize(
             Stream<RawSale> source) {
         Objects.requireNonNull(source, "source");
@@ -248,14 +248,14 @@ public class NamedPipelineExample {
             NamedPipelineExample::normalizeSale);
     }
 
-    // Hợp đồng: đầu vào đã chuẩn hóa; chỉ giữ PAID.
+    // Contract: input is already normalized; keeps only PAID.
     static Stream<Sale> paidOnly(Stream<Sale> sales) {
         Objects.requireNonNull(sales, "sales");
         return sales.filter(
             sale -> "PAID".equals(sale.status));
     }
 
-    // Terminal stage: grouping, đếm/tổng tiền, sort.
+    // Terminal stage: grouping, count/sum amounts, sort.
     static List<CustomerSummary> summarize(
             Stream<Sale> paidSales) {
         Objects.requireNonNull(paidSales, "paidSales");
@@ -284,8 +284,8 @@ public class NamedPipelineExample {
             .collect(Collectors.toList());
     }
 
-    // Điểm vào nghiệp vụ: không sửa source;
-    // trả list không cho sửa về mặt cấu trúc.
+    // Business entry point: does not mutate source;
+    // returns a structurally unmodifiable list.
     static List<CustomerSummary> process(
             List<RawSale> source) {
         Objects.requireNonNull(source, "source");
@@ -319,43 +319,43 @@ public class NamedPipelineExample {
 }
 ```
 
-Kết quả mong đợi:
+Expected output:
 
 ```text
 KH-A total=6000 count=3
 KH-B total=3000 count=2
 ```
 
-### 5.1. Vì sao cách tách này dễ kiểm thử?
+### 5.1. Why is this separation easy to test?
 
-- `normalizeSale` kiểm thử bằng **một bản ghi** mà không cần dựng toàn bộ luồng.
-- `paidOnly` kiểm thử số phần tử còn lại từ một stream nhỏ đã chuẩn hóa.
-- `summarize` kiểm thử riêng quy tắc grouping, số lượng, tổng và thứ tự.
-- `process` có một test đầu-cuối xác nhận các bước tương tác đúng.
-- Tên phương thức và kiểu trả về thể hiện rõ **điểm chuyển từ lazy sang eager**.
+- `normalizeSale` is tested with **a single record** without constructing an entire pipeline.
+- `paidOnly` tests the remaining element count on a small already-normalized stream.
+- `summarize` tests grouping, counts, totals, and sorting rules in isolation.
+- `process` has an end-to-end test confirming the steps compose properly.
+- Method names and return types clearly show **where lazy execution transitions to eager execution**.
 
-Trong ứng dụng thực, các lớp dữ liệu có thể được tách thành file riêng. Ở đây đặt trong một lớp để ví dụ **tự chứa** và dễ biên dịch.
+In real applications, data classes can live in separate files. Here they are placed inside one class so the example is **self-contained** and easy to compile.
 
-### 5.2. Hợp đồng có giới hạn về miền số
+### 5.2. Contracts have numeric-range limits
 
-`amountCents` dùng `long`, còn `Collectors.summarizingLong` tổng hợp theo `long`. Nếu tổng tiền có thể vượt `Long.MAX_VALUE`, kết quả có nguy cơ tràn số. Ví dụ giả định **tổng nằm trong miền long**; nghiệp vụ đòi tính tiền chính xác ngoài miền này nên dùng thuật toán kiểm tra tràn hoặc `BigInteger`.
+`amountCents` uses `long`, and `Collectors.summarizingLong` aggregates using `long`. If totals can exceed `Long.MAX_VALUE`, the result risks overflowing. The example assumes **totals fit in `long`**; business domains requiring exact arithmetic beyond that range should use overflow-checked arithmetic or `BigInteger`.
 
-Đơn hàng `REFUNDED` được **loại khỏi báo cáo**, không tự động tạo số âm để khấu trừ. Nếu nghiệp vụ cần doanh thu ròng, phải định nghĩa rõ cách xử lý refund và viết một bước riêng; không âm thầm đổi `paidOnly`.
+`REFUNDED` orders are **excluded from the report**, rather than turning into negative amounts to subtract. If the business requires net revenue, define refund handling explicitly and write a dedicated step instead of quietly altering `paidOnly`.
 
-### 5.3. Không lẫn dữ liệu được chuẩn hóa với dữ liệu thô
+### 5.3. Don't mix normalized data with raw data
 
-`RawSale` và `Sale` là hai kiểu khác nhau, dù có các trường gần giống nhau. Việc tách kiểu giúp tránh:
+`RawSale` and `Sale` are distinct types, even though their fields look almost identical. Separating the types prevents:
 
 ```java
-// Ý tưởng không nên dùng:
-// paidOnly(source.stream()); // Không phải Stream<Sale>.
+// Idea to avoid:
+// paidOnly(source.stream()); // Not a Stream<Sale>.
 ```
 
-Compiler sẽ không cho truyền `Stream<RawSale>` vào phương thức nhận `Stream<Sale>`. Hợp đồng kiểm tra hợp lệ không còn chỉ nằm trong bình luận mà được hỗ trợ một phần bằng **hệ thống kiểu**.
+The compiler refuses to pass `Stream<RawSale>` into a method expecting `Stream<Sale>`. The validation contract no longer lives only in comments—it is partially enforced by the **type system**.
 
-## 6. Hàm có tên không làm mất tính lazy của Stream
+## 6. Named Functions Preserve Stream Laziness
 
-Phân biệt hai lớp thao tác:
+Distinguish between two kinds of operations:
 
 ```java
 Stream<NamedPipelineExample.Sale> pipeline =
@@ -363,15 +363,15 @@ Stream<NamedPipelineExample.Sale> pipeline =
         NamedPipelineExample.normalize(input.stream())
     );
 
-// Tại đây, normalizeSale chưa được bảo đảm đã chạy.
-long count = pipeline.count(); // Terminal: tiêu thụ pipeline.
+// Here, normalizeSale is not guaranteed to have run yet.
+long count = pipeline.count(); // Terminal: consumes the pipeline.
 ```
 
-`normalize` và `paidOnly` trả `Stream` để xây pipeline. Chúng không tự tạo list trung gian. Vì vậy, bạn có thể tách code theo trách nhiệm **mà vẫn giữ khả năng xử lý lazy**.
+`normalize` and `paidOnly` return a `Stream` to assemble the pipeline. They do not allocate intermediate lists. Thus, you can split code by responsibility **while keeping lazy evaluation**.
 
-Nhưng `summarize` gọi `collect`; đó là điểm **terminal**. Sau khi `summarize(stream)` trả kết quả, stream đầu vào đã bị tiêu thụ và không thể dùng lại.
+However, `summarize` calls `collect`; that is a **terminal** boundary. Once `summarize(stream)` returns, the input stream has been consumed and cannot be reused.
 
-### 6.1. Sai: dùng một stream cho hai phép kết thúc
+### 6.1. Wrong: using one stream for two terminal operations
 
 ```java
 Stream<NamedPipelineExample.Sale> sales =
@@ -379,47 +379,47 @@ Stream<NamedPipelineExample.Sale> sales =
 
 long count = sales.count();
 
-// KHÔNG ĐƯỢC: Stream đã tiêu thụ.
+// NOT ALLOWED: Stream has already been consumed.
 // List<NamedPipelineExample.Sale> data =
 //     sales.collect(Collectors.toList());
 ```
 
-Nếu cần đếm và liệt kê trên một tập **hữu hạn, nhỏ**, có thể thu một lần vào `List` rồi tạo các stream mới từ list. Nếu muốn giữ xử lý lazy, hãy tạo một stream mới từ **nguồn có thể mở lại** cho mỗi terminal operation. Không phải nguồn nào (đặc biệt nguồn I/O) cũng có thể đọc lại miễn phí.
+If you need both a count and a list over a **small, finite** dataset, collect once into a `List` and open new streams from that list. If you want to preserve lazy processing, create a fresh stream from a **re-openable source** for each terminal operation. Not every source (especially I/O sources) can be re-read for free.
 
-### 6.2. Không đánh đồng xây pipeline với chạy validation
+### 6.2. Do not equate building a pipeline with running validation
 
-Đặt `normalizeSale` trong `map` khiến việc kiểm tra hợp lệ diễn ra **khi phần tử được tiêu thụ**:
+Putting `normalizeSale` inside `map` causes validation to happen **when elements are consumed**:
 
 ```java
 Stream<NamedPipelineExample.Sale> sales =
     NamedPipelineExample.normalize(input.stream());
 
-// Lúc này dữ liệu sai chưa nhất thiết gây lỗi.
+// At this point, invalid data has not necessarily thrown an error yet.
 List<NamedPipelineExample.Sale> checked =
     sales.collect(Collectors.toList());
 ```
 
-Ngoài ra, một terminal operation **short-circuiting** như `findFirst` có thể không duyệt mọi bản ghi; một số tối ưu hóa như `count` với nguồn có kích thước đã biết còn có thể bỏ những phép `map` không làm đổi số phần tử. Do đó, **không dùng `map` như một lời hứa rằng toàn bộ nguồn chắc chắn đã được kiểm tra**.
+Furthermore, a **short-circuiting** terminal operation like `findFirst` may not inspect every record; optimizations like `count` on a sized source may even skip `map` steps that do not change cardinality. Hence, **never use `map` as a guarantee that the entire source was validated**.
 
-Nếu yêu cầu là "kiểm tra tất cả bản ghi trước khi cho phép tiếp tục", hãy có **một giai đoạn xác thực được tiêu thụ hết** hoặc một vòng lặp kiểm tra rõ ràng, không chỉ xây một pipeline rồi giả định validation đã hoàn tất.
+If the requirement is "validate all records before proceeding," provide **a fully consumed validation phase** or an explicit validation loop—do not merely build a pipeline and assume validation completed.
 
 
-## 7. Kiểm thử từng hợp đồng thay vì chỉ kiểm thử kết quả cuối
+## 7. Test Each Contract Instead of Only the Final Output
 
-Một pipeline dài thường được kiểm thử qua một bộ dữ liệu mẫu rồi so sánh đầu ra cuối. Điều đó chưa đủ: nếu nhiều bước cùng có lỗi và triệt tiêu nhau, test đầu-cuối vẫn có thể tình cờ vượt qua.
+A long pipeline is often tested only by passing a sample dataset and checking the final output. That is insufficient: if two steps have bugs that cancel each other out, an end-to-end test can still pass by accident.
 
-Khi đã tách hàm có tên, hãy thử:
+Once functions are named and separated, test:
 
-- **`normalizeSale`:** giá trị hợp lệ được chuẩn hóa; `null`, mã trống, trạng thái sai, số âm đều bị từ chối.
-- **`paidOnly`:** chỉ những đơn `PAID` còn lại, giữ thứ tự và những giá trị trùng phù hợp.
-- **`summarize`:** số lượng và tổng theo khách hàng đúng; khóa cùng tổng được sắp theo mã.
-- **`process`:** các bước kết nối đúng với dữ liệu xen kẽ trạng thái và số tiền.
-- **Dữ liệu biên:** nguồn rỗng, một phần tử, không đơn nào PAID, nhiều khách cùng tổng, khách có nhiều đơn.
-- **Tính không can thiệp:** không sửa nguồn hoặc biến trạng thái gốc; danh sách trả ra không cho sửa cấu trúc theo hợp đồng do ta chọn.
+- **`normalizeSale`:** valid values are normalized; `null`, blank IDs, invalid statuses, and negative numbers are rejected.
+- **`paidOnly`:** only `PAID` orders remain, preserving order and valid duplicates.
+- **`summarize`:** per-customer counts and totals are accurate; tied totals sort by ID.
+- **`process`:** steps connect properly with mixed statuses and amounts.
+- **Boundary inputs:** empty source, single element, no PAID orders, multiple customers with tied totals, customer with multiple orders.
+- **Non-interference:** neither the source nor shared state is mutated; the returned list is unmodifiable per our chosen contract.
 
-### 7.1. Chương trình kiểm thử Java 8+ tự chứa
+### 7.1. Self-contained Java 8+ test program
 
-Tạo file `NamedPipelineTest.java` cùng thư mục với `NamedPipelineExample.java` ở mục 5:
+Create `NamedPipelineTest.java` in the same directory as `NamedPipelineExample.java` from Section 5:
 
 ```java
 import java.util.Arrays;
@@ -584,7 +584,7 @@ public class NamedPipelineTest {
 }
 ```
 
-Để tự biên dịch và chạy:
+To compile and run it yourself:
 
 ```text
 javac NamedPipelineExample.java NamedPipelineTest.java
@@ -592,71 +592,71 @@ java NamedPipelineExample
 java NamedPipelineTest
 ```
 
-Khi chương trình và các kiểm tra đều đúng, `NamedPipelineTest` in:
+When the program and all checks pass, `NamedPipelineTest` prints:
 
 ```text
 PASS: named pipeline contracts
 ```
 
-Đây là **mẫu kiểm thử tự chạy**, không phải tuyên bố đã thực sự biên dịch trong lúc soạn bài. Test xác nhận các hợp đồng được chọn, không chứng minh mọi dữ liệu có thể xuất hiện trong sản phẩm đều đúng.
+This is a **self-runnable test template**, not a claim that it was compiled during lesson authoring. The tests verify the selected contracts, not that every possible production input is covered.
 
-### 7.2. Vì sao các kiểm tra này có giá trị?
+### 7.2. Why are these tests valuable?
 
-- Test `normalizeSale` chỉ cần **một bản ghi** để xác định quy tắc.
-- Test `paidOnly` kiểm tra cả số lượng và **thứ tự sau lọc**.
-- Test `summarize` thông qua `process` xác nhận số lượng nhóm và tổng, không chỉ giá trị dòng đầu.
-- Test hòa tổng tiền buộc code có **khóa phụ tăng dần**; nếu thiếu, thứ tự `Map` có thể làm test không ổn định.
-- Test dữ liệu không hợp lệ xác nhận **chính sách fail-fast**, thay vì silently drop.
-- Test nguồn rỗng xác nhận không tự tạo nhóm giả.
-- Test không sửa nguồn và list kết quả xác nhận hợp đồng về trạng thái.
+- Testing `normalizeSale` needs only **one record** to verify the rule.
+- Testing `paidOnly` checks both count and **post-filter order**.
+- Testing `summarize` via `process` verifies group count and totals, not just the first row's values.
+- Testing tied totals forces code to include an **ascending secondary key**; without it, `Map` iteration order could make tests flaky.
+- Testing invalid data verifies the **fail-fast policy**, rather than silent drops.
+- Testing an empty source confirms no bogus groups are synthesized.
+- Testing immutability of the source and result list verifies the state contract.
 
-Với hệ thống thực tế, bổ sung test về tràn số nguyên, mã khách hàng có Unicode, dữ liệu rất lớn, số bản ghi trùng mã và các ca đồng thời nếu chúng thuộc yêu cầu nghiệp vụ.
+In production systems, add tests for integer overflow, Unicode customer IDs, very large inputs, duplicate order IDs, and concurrency cases if required by the domain.
 
-## 8. Cách đặt tên để hợp đồng hiển thị ngay khi đọc code
+## 8. Naming So Contracts Are Visible When Reading Code
 
-Một pipeline được tách tốt phải dễ đọc ở lớp orchestration:
+A well-split pipeline should read clearly at the orchestration layer:
 
 ```java
 List<CustomerSummary> result =
     summarize(paidOnly(normalize(source.stream())));
 ```
 
-Tên thể hiện luồng: **chuẩn hóa → lọc đã thanh toán → tổng hợp**.
+The names express the flow: **normalize → keep paid → summarize**.
 
-### 8.1. Tên theo nghiệp vụ, không theo chi tiết ngẫu nhiên
+### 8.1. Name by business intent, not incidental detail
 
-| Tên mơ hồ | Tên nên cân nhắc | Lý do |
+| Vague name | Better name | Reason |
 | --- | --- | --- |
-| `step1` | `normalize` | Thể hiện quy tắc, không phải vị trí. |
-| `fixData` | `normalizeSale` | Cho biết biến đổi bản ghi gì. |
-| `filterData` | `paidOnly` | Cho biết điều kiện lọc. |
-| `process2` | `summarize` | Cho biết loại kết quả. |
-| `doSomething` | `calculateCustomerTotals` | Diễn đạt ý nghĩa tổng hợp. |
-| `check` | `validateStatus` | Nêu điều kiện được kiểm tra. |
+| `step1` | `normalize` | Expresses the rule, not the position. |
+| `fixData` | `normalizeSale` | States what record transformation happens. |
+| `filterData` | `paidOnly` | States the filtering predicate. |
+| `process2` | `summarize` | States the kind of output. |
+| `doSomething` | `calculateCustomerTotals` | Conveys aggregation intent. |
+| `check` | `validateStatus` | Names the condition being checked. |
 
-Một tên như `paidOnly` phù hợp nếu trạng thái là điều kiện duy nhất. Nếu nghiệp vụ thay đổi thành chỉ nhận đơn vừa thanh toán vừa vượt một ngưỡng tiền, cân nhắc tên `eligibleForRevenue` và ghi hợp đồng mới thay vì bí mật nhét thêm điều kiện vào `paidOnly`.
+A name like `paidOnly` fits when status is the sole condition. If the business later changes the rule to require both paid status and an amount threshold, consider renaming to `eligibleForRevenue` with an updated contract instead of secretly sneaking another condition into `paidOnly`.
 
-### 8.2. Chọn chữ ký theo mục đích
+### 8.2. Pick signatures by purpose
 
-Có ba hình thức phổ biến:
+There are three common forms:
 
 ```java
-// Quy tắc trên một phần tử: thuần, dễ unit test.
+// Single-element rule: pure, easy to unit test.
 static Sale normalizeSale(RawSale raw);
 
-// Bước trung gian: giữ pipeline lazy.
+// Intermediate step: keeps the pipeline lazy.
 static Stream<Sale> normalize(Stream<RawSale> source);
 
-// Ranh giới tổng hợp: trả kết quả đã materialize.
+// Aggregation boundary: returns a materialized result.
 static List<CustomerSummary> summarize(
     Stream<Sale> paidSales);
 ```
 
-Nếu một bước cần trả **cả dữ liệu thành công và lỗi**, `Stream<T>` đơn lẻ có thể không phản ánh đầy đủ hợp đồng. Khi đó, hãy thiết kế `ValidationResult`, `Either` hoặc đối tượng kết quả có hai collection rõ ràng, thay vì giấu lỗi trong `peek`.
+If a step must return **both valid results and errors**, a plain `Stream<T>` may not capture the contract cleanly. In that case, design a `ValidationResult`, `Either`, or result object with two explicit collections rather than hiding errors inside `peek`.
 
-### 8.3. Có cần viết hàm cho từng `map` và `filter`?
+### 8.3. Do you need a named function for every `map` and `filter`?
 
-Không nhất thiết:
+Not necessarily:
 
 ```java
 List<String> names = users.stream()
@@ -665,19 +665,19 @@ List<String> names = users.stream()
     .collect(Collectors.toList());
 ```
 
-Nếu hai phương thức và ý nghĩa đã rõ, tách thành `activeUsers` và `extractNames` chỉ để rút một dòng có thể làm code khó đọc hơn. Nên tách khi:
+When two method references are already self-explanatory, wrapping them in `activeUsers` and `extractNames` just to shorten one line can actually hurt readability. Extract a function when:
 
-- Quy tắc có tên nghiệp vụ rõ ràng.
-- Có nhánh hoặc kiểm tra dữ liệu đáng kể.
-- Nhiều nơi cần tái sử dụng cùng quy tắc.
-- Cần test độc lập một hành vi.
-- Cần thay chính sách lỗi mà không chạm toàn pipeline.
+- The rule has a clear domain name.
+- There is non-trivial branching or validation.
+- Multiple places reuse the same rule.
+- A behavior needs independent unit tests.
+- You need to swap an error policy without touching the whole pipeline.
 
-Mục tiêu là **ranh giới có ích**, không phải số lượng phương thức.
+The goal is **meaningful boundaries**, not maximizing method count.
 
-## 9. Dùng `peek` và log để tìm lỗi, không để thực hiện nghiệp vụ
+## 9. Use `peek` and Logging to Find Bugs, Not to Run Business Logic
 
-`peek` là intermediate operation cho phép quan sát phần tử được tiêu thụ ở một vị trí trong pipeline. Nó thường hữu ích để ghi log tạm thời:
+`peek` is an intermediate operation that lets you observe elements consumed at a point in the pipeline. It is often handy for temporary logging:
 
 ```java
 List<CustomerSummary> result = summarize(
@@ -690,7 +690,7 @@ List<CustomerSummary> result = summarize(
 );
 ```
 
-Khi chạy với terminal `summarize`, log này giúp xem bản ghi sau chuẩn hóa **trước khi lọc trạng thái**. Để quan sát sau bộ lọc:
+When executed with the terminal `summarize`, this log reveals records after normalization **before status filtering**. To observe after filtering:
 
 ```java
 Stream<NamedPipelineExample.Sale> paid =
@@ -703,11 +703,11 @@ List<NamedPipelineExample.Sale> snapshot = paid
     .collect(Collectors.toList());
 ```
 
-`peek` không nhất thiết được gọi cho từng phần tử nguồn trong **mọi pipeline**. Terminal operation có thể short-circuit và một số phép toán có thể tối ưu hóa, nhất là khi phần tử bị loại hoặc không cần được tính để quyết định kết quả.
+`peek` is not guaranteed to be invoked for every source element in **every pipeline**. Terminal operations can short-circuit and some operations can be optimized away, especially when elements are skipped or unneeded to compute the final result.
 
-### 9.1. Không dùng `peek` để cập nhật trạng thái nghiệp vụ
+### 9.1. Do not use `peek` to update business state
 
-Sai:
+Wrong:
 
 ```java
 List<String> audit = new ArrayList<>();
@@ -716,22 +716,22 @@ long count = source.stream()
     .peek(sale -> audit.add(sale.orderId))
     .count();
 
-// KHÔNG ĐƯỢC suy ra audit chứa toàn bộ mã đơn.
+// DO NOT assume audit contains all order IDs.
 ```
 
-Với nguồn có kích thước xác định và `count()`, runtime có thể **không chạy `peek`** nếu không cần duyệt để biết số phần tử. Trong parallel stream, việc thêm vào `ArrayList` chung còn không an toàn.
+With a sized source and `count()`, the runtime may **skip executing `peek`** if traversal isn't needed to determine the count. In a parallel stream, adding to a shared `ArrayList` is also thread-unsafe.
 
-Nếu yêu cầu là ghi audit đầy đủ, hãy xây dựng một **bước nghiệp vụ tường minh** với chính sách thất bại, độ bền và retry phù hợp. `peek` dùng để **chẩn đoán**, không phải một phần thiết yếu của thuật toán.
+If full audit logging is a requirement, build an **explicit business step** with proper failure, durability, and retry policies. `peek` is for **diagnostics**, not an essential part of the algorithm.
 
-### 9.2. Log không nên làm rò dữ liệu nhạy cảm
+### 9.2. Logs must not leak sensitive data
 
-Trong ứng dụng thật, một bản ghi có thể chứa email, thông tin cá nhân, token hoặc dữ liệu thanh toán. Đừng in nguyên đối tượng hay tiền lương/doanh thu nhạy cảm ra log không kiểm soát.
+In real applications, a record may hold email addresses, personal information, tokens, or payment details. Never dump full objects or sensitive salary/revenue figures into uncontrolled logs.
 
-Ví dụ chỉ ghi **mã đã ẩn một phần** hoặc một số đếm tổng hợp; gắn correlation ID của yêu cầu, mức log phù hợp, và tắt debug quá chi tiết sau khi giải quyết sự cố. Đây cũng là lợi ích của việc có bước tên rõ ràng: log có thể ghi `stage=normalize` thay vì `step=3` mơ hồ.
+For example, log only **partially masked IDs** or aggregate counts; attach a request correlation ID, choose an appropriate log level, and turn off verbose debug logs once the incident is resolved. This is another benefit of named steps: logs can emit `stage=normalize` instead of an ambiguous `step=3`.
 
-## 10. Materialize một bước để quan sát: hữu ích nhưng có đánh đổi
+## 10. Materializing a Step to Inspect It: Useful, With Trade-offs
 
-Đối với nguồn trong bộ nhớ hữu hạn, có thể **tạm thời** chèn một điểm kết thúc rồi thu kết quả của từng bước:
+For finite in-memory sources, you can **temporarily** insert a terminal operation to capture each step's output:
 
 ```java
 List<NamedPipelineExample.Sale> normalized =
@@ -750,29 +750,29 @@ List<NamedPipelineExample.CustomerSummary> result =
     NamedPipelineExample.summarize(paid.stream());
 ```
 
-Cách này tạo được ba mốc rõ ràng: **sau chuẩn hóa**, **sau lọc** và **sau tổng hợp**. Bạn có thể dùng debugger kiểm tra số dòng, trường dữ liệu, thứ tự và ví dụ gây lỗi tại mỗi mốc.
+This creates three clear checkpoints: **after normalization**, **after filtering**, and **after summarization**. You can attach a debugger to inspect row counts, field values, ordering, and failing examples at each checkpoint.
 
-Nhưng materialization có chi phí:
+However, materialization has costs:
 
-| Lợi ích | Chi phí/rủi ro |
+| Benefit | Cost / Risk |
 | --- | --- |
-| Dễ quan sát danh sách của mỗi bước | Tạo collection và tham chiếu trung gian |
-| Có thể kiểm tra số lượng/trùng lặp độc lập | Giảm lợi ích lazy, có thể tiêu thụ toàn bộ nguồn |
-| Dễ đặt breakpoint trên dữ liệu nhỏ | Không thích hợp cho stream rất lớn/vô hạn |
-| Dễ so sánh dữ liệu trước/sau một bước | Thay đổi thời điểm phát sinh lỗi, thời gian và bộ nhớ |
-| Dùng được nhiều stream mới từ collection đã thu | Không còn tương đương hoàn toàn với nguồn I/O thay đổi theo thời gian |
+| Easy to inspect each step's list | Allocates intermediate collections and references |
+| Easy to check counts/duplicates independently | Loses laziness; may consume the entire source |
+| Easy to set breakpoints on small data | Unsuitable for very large or infinite streams |
+| Easy to compare data before/after a step | Alters when errors surface, timing, and memory usage |
+| Can open multiple new streams from the collected list | No longer identical to a time-varying I/O source |
 
-**Điểm cốt lõi:** materialize là **kỹ thuật chẩn đoán hoặc ranh giới dữ liệu có chủ đích**, không phải mục tiêu mặc định của refactor. Khi hoàn tất gỡ lỗi, hãy cân nhắc trở về pipeline lazy nếu không có yêu cầu giữ snapshot.
+**Core takeaway:** materialization is a **diagnostic technique or intentional data boundary**, not the default goal of refactoring. Once debugging is complete, consider returning to a lazy pipeline if keeping snapshots isn't required.
 
-### 10.1. Không nên vật chất hóa nguồn vô hạn
+### 10.1. Never materialize an infinite source
 
 ```java
-// KHÔNG NÊN: nguồn vô hạn và terminal collect không giới hạn.
+// AVOID: infinite source with an unbounded terminal collect.
 // List<Integer> all = Stream.iterate(0, n -> n + 1)
 //     .collect(Collectors.toList());
 ```
 
-Đặt giới hạn rõ hoặc viết phép tổng hợp hữu hạn:
+Set an explicit bound or write a finite aggregation:
 
 ```java
 List<Integer> firstTen = Stream.iterate(0, n -> n + 1)
@@ -782,34 +782,34 @@ List<Integer> firstTen = Stream.iterate(0, n -> n + 1)
 System.out.println(firstTen); // [0,1,2,3,4,5,6,7,8,9]
 ```
 
-Với stream I/O, `collect` cũng không tự giải quyết quyền sở hữu tài nguyên; phần sau sẽ làm rõ cách đóng nguồn đúng cách.
+With I/O streams, `collect` does not automatically solve resource ownership either; a later section explains proper resource closing.
 
-## 11. Chọn chính sách lỗi trước khi tách pipeline
+## 11. Choose an Error Policy Before Splitting the Pipeline
 
-Ba chính sách thường gặp:
+Three common policies:
 
-| Chính sách | Hành vi | Khi thích hợp |
+| Policy | Behavior | When appropriate |
 | --- | --- | --- |
-| **Fail-fast** | Gặp bản ghi sai thì ném lỗi, không công bố kết quả như thành công | Báo cáo tài chính, dữ liệu phải hoàn toàn hợp lệ |
-| **Skip invalid** | Bỏ bản ghi sai và tiếp tục | Nghiệp vụ đã cho phép bỏ với điều kiện có thống kê lỗi |
-| **Collect errors** | Thu đồng thời dữ liệu hợp lệ và danh sách lỗi | Nhập file hàng loạt, ETL, kiểm tra chất lượng dữ liệu |
+| **Fail-fast** | Throw on an invalid record; do not publish partial results as success | Financial reports, data that must be 100% valid |
+| **Skip invalid** | Drop invalid records and continue | Business allows skipping provided errors are tracked |
+| **Collect errors** | Collect valid data and an error list together | Batch file imports, ETL, data-quality checks |
 
-Ví dụ `NamedPipelineExample` chọn **fail-fast**. Thay `normalizeSale` bằng `map` tự bắt mọi lỗi rồi trả `null` và lọc `Objects::nonNull` sẽ âm thầm đổi hợp đồng:
+`NamedPipelineExample` uses **fail-fast**. Replacing `normalizeSale` with a `map` that catches all errors, returns `null`, and filters `Objects::nonNull` silently changes the contract:
 
 ```java
-// KHÔNG NÊN nếu nghiệp vụ yêu cầu từ chối dữ liệu lỗi:
+// AVOID if the business requires rejecting invalid data:
 source.stream()
     .map(raw -> {
         try {
             return NamedPipelineExample.normalizeSale(raw);
         } catch (IllegalArgumentException ex) {
-            return null; // Nuốt lỗi và mất thông tin.
+            return null; // Swallows the error and loses information.
         }
     })
     .filter(Objects::nonNull);
 ```
 
-Nếu mục tiêu là nhập liệu với lỗi được báo riêng, một vòng lặp **đơn giản, minh bạch** có thể tốt hơn một pipeline cố nhét cả hai luồng kết quả:
+If the goal is importing data with per-row error reporting, a **simple, transparent loop** can be better than trying to cram two output streams into one pipeline:
 
 ```java
 List<NamedPipelineExample.Sale> valid =
@@ -833,13 +833,13 @@ System.out.println("Valid: " + valid.size());
 System.out.println("Errors: " + errors.size());
 ```
 
-Đoạn trên minh họa **một chính sách khác** với fail-fast; khi triển khai cần quyết định có dừng nếu quá nhiều lỗi, có che thông tin nhạy cảm trong thông báo lỗi và thứ tự báo lỗi có quan trọng hay không.
+This snippet illustrates **a different policy** from fail-fast; when implementing it, decide whether to abort past an error threshold, whether to mask sensitive fields in error messages, and whether error reporting order matters.
 
-Điều quan trọng là **hợp đồng đã được gọi tên**: hàm kiểu `validateAll`, `partitionValidInvalid` hoặc `rejectInvalid` sẽ rõ hơn một `map` bí mật nuốt exception.
+What matters is that **the contract is explicitly named**: functions like `validateAll`, `partitionValidInvalid`, or `rejectInvalid` are far clearer than a `map` that secretly swallows exceptions.
 
-### 11.1. Ngoại lệ xảy ra ở lúc nào?
+### 11.1. When do exceptions happen?
 
-Với một bước lazy:
+With a lazy step:
 
 ```java
 Stream<NamedPipelineExample.Sale> stage =
@@ -847,22 +847,22 @@ Stream<NamedPipelineExample.Sale> stage =
         source.stream());
 ```
 
-`normalizeSale` chưa nhất thiết chạy. Khi terminal operation tiêu thụ, `IllegalArgumentException` có thể được ném từ một bản ghi không hợp lệ. Nếu pipeline chạy song song và có nhiều bản ghi lỗi, **không nên phụ thuộc bản ghi nào được báo trước**, vì lịch xử lý không được bảo đảm.
+`normalizeSale` has not necessarily executed yet. When the terminal operation consumes elements, `IllegalArgumentException` may be thrown from an invalid record. If the pipeline runs in parallel and multiple records are invalid, **do not depend on which record fails first**, as scheduling order is not guaranteed.
 
-Nếu yêu cầu phải báo **tất cả lỗi theo thứ tự dòng**, hãy chạy một lượt xác thực có kiểm soát và lưu danh sách lỗi trước khi tổng hợp, thay vì dựa vào thứ tự exception của parallel stream.
+If you must report **all errors in row order**, run a controlled validation pass and collect errors before parallelizing valid records, instead of relying on parallel stream exception order.
 
-## 12. Chọn ranh giới rõ giữa xử lý và tài nguyên I/O
+## 12. Draw a Clear Boundary Between Processing and I/O Resources
 
-Một hàm trả `Stream<T>` có thể là hợp đồng tốt khi nguồn là `List`. Nhưng với `Files.lines`, `Files.walk` hoặc một cursor, stream có thể giữ tài nguyên I/O cần đóng.
+Returning `Stream<T>` can be a clean contract when the source is a `List`. But with `Files.lines`, `Files.walk`, or a database cursor, the stream may hold an I/O resource that needs closing.
 
-Sai:
+Wrong:
 
 ```java
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-// KHÔNG NÊN: trả stream đã bị đóng.
+// AVOID: returns an already-closed stream.
 static Stream<String> brokenLines(Path path)
         throws IOException {
     try (Stream<String> lines = Files.lines(path)) {
@@ -871,9 +871,9 @@ static Stream<String> brokenLines(Path path)
 }
 ```
 
-Khi hàm trả về, `try-with-resources` đã đóng `lines`. Bên ngoài không thể tiêu thụ pipeline như dự định.
+When the method returns, `try-with-resources` has already closed `lines`. The caller cannot consume the pipeline as intended.
 
-Phương án đúng: **tiêu thụ nguồn ngay trong phạm vi sở hữu tài nguyên**, hoặc chuyển quyền đóng cho bên gọi thông qua API có tài liệu rõ ràng.
+Correct approaches: **consume the source inside the resource-owning scope**, or transfer closing responsibility to the caller via a clearly documented API.
 
 ```java
 import java.io.IOException;
@@ -898,20 +898,20 @@ static List<String> firstNonEmptyLines(Path path)
 }
 ```
 
-Đây là một bước **eager có kiểm soát**: trả list tối đa 10 dòng, đóng nguồn đúng lúc. Lưu ý lỗi I/O có thể phát sinh lúc mở tệp (`IOException`) hoặc trong quá trình duyệt lazy (`UncheckedIOException`). Không gom mọi lỗi thành list rỗng, vì "không có dòng" khác với "không đọc được tệp".
+This is a **controlled eager step**: it returns a list of up to 10 lines and closes the resource on time. Note that I/O errors can occur when opening the file (`IOException`) or lazily during traversal (`UncheckedIOException`). Do not collapse all failures into an empty list, because "no lines" is different from "failed to read file."
 
-### 12.1. Một phương thức cho phép bên gọi tự đóng
+### 12.1. A method allowing the caller to close
 
-Nếu buộc phải trả stream nguồn I/O, hợp đồng phải ghi rằng bên gọi **sở hữu việc đóng**:
+If you must return an I/O-backed stream, the contract must state that the caller **owns closing it**:
 
 ```java
-// Ví dụ API với hợp đồng trách nhiệm rõ:
+// Example API with an explicit responsibility contract:
 static Stream<String> openLines(Path path)
         throws IOException {
     return Files.lines(path, StandardCharsets.UTF_8);
 }
 
-// Bên gọi:
+// Caller:
 try (Stream<String> lines = openLines(path)) {
     long count = lines
         .filter(s -> !s.trim().isEmpty())
@@ -919,27 +919,27 @@ try (Stream<String> lines = openLines(path)) {
 }
 ```
 
-Trong ứng dụng dịch vụ, có thể ưu tiên API nhận callback để giữ phạm vi đóng tập trung. Dù chọn kiểu nào, việc tách pipeline thành bước có tên **không được làm mất trách nhiệm giải phóng nguồn**.
+In service applications, callback-accepting APIs are often preferred to keep closing centralized. Either way, splitting a pipeline into named steps **must never drop resource-cleanup ownership**.
 
 
-## 13. Thứ tự, grouping và cardinality phải là một phần của hợp đồng
+## 13. Ordering, Grouping, and Cardinality Must Be Part of the Contract
 
-Khi tách pipeline, không nên ghi chung chung "bước này giữ nguyên dữ liệu". Cần chỉ rõ **bao nhiêu phần tử đi vào, bao nhiêu phần tử có thể đi ra**, cũng như thứ tự đầu ra.
+When splitting a pipeline, don't write vaguely "this step preserves the data." Specify **how many elements enter, how many can exit**, and the output ordering.
 
-| Thao tác | Quan hệ số phần tử | Ghi chú về thứ tự |
+| Operation | Cardinality relationship | Ordering notes |
 | --- | --- | --- |
-| `map` | Một-một nếu không có ngoại lệ | Giữ thứ tự logic nếu nguồn ordered. |
-| `filter` | Tối đa một cho mỗi đầu vào | Giữ thứ tự tương đối của những phần tử còn lại. |
-| `flatMap` | Không, một hoặc nhiều cho mỗi đầu vào | Phụ thuộc thứ tự nguồn và các stream con. |
-| `distinct` | Không làm tăng số phần tử | Với ordered stream giữ lần xuất hiện đầu theo `equals`. |
-| `sorted` | Bảo toàn số phần tử | Tạo thứ tự theo comparator. |
-| `skip` / `limit` | Loại/bớt theo số lượng | Phụ thuộc encounter order nếu nguồn ordered. |
-| `groupingBy` | Nhiều phần tử thành các nhóm | Không cam kết thứ tự duyệt khóa map mặc định. |
-| `summarize` của bài | Nhiều đơn thành một dòng/khách | Sắp xếp tổng giảm dần, khách tăng dần khi hòa. |
+| `map` | One-to-one if no exception | Preserves logical order if source is ordered. |
+| `filter` | At most one per input | Preserves relative order of remaining elements. |
+| `flatMap` | Zero, one, or many per input | Depends on source order and sub-streams. |
+| `distinct` | Never increases element count | On ordered streams keeps first occurrence per `equals`. |
+| `sorted` | Preserves element count | Establishes order via comparator. |
+| `skip` / `limit` | Drops/caps by count | Depends on encounter order if source is ordered. |
+| `groupingBy` | Many elements into groups | No default map key iteration order guaranteed. |
+| Lesson's `summarize` | Many orders into one row/customer | Sorts total descending, customer ascending on ties. |
 
-### 13.1. Đừng coi `Map` là danh sách có thứ tự
+### 13.1. Never treat a `Map` as an ordered list
 
-Ví dụ:
+Example:
 
 ```java
 Map<String, Long> totals = sales.stream()
@@ -949,39 +949,39 @@ Map<String, Long> totals = sales.stream()
             sale -> sale.amountCents)));
 ```
 
-Mã minh họa giả định `sales` là `Stream<Sale>` với các trường tương ứng. `groupingBy` trả `Map`; không dựa vào thứ tự `totals.entrySet()` để nói khách hàng nào đứng đầu.
+This snippet assumes `sales` is a `Stream<Sale>` with those fields. `groupingBy` returns a `Map`; do not rely on the order of `totals.entrySet()` to decide which customer comes first.
 
-Nếu báo cáo yêu cầu "doanh thu lớn nhất trước", phải sắp xếp dựa trên **giá trị tổng** sau khi nhóm. Comparator cần **khóa phụ** khi tổng bằng nhau để kết quả kiểm thử có tính xác định.
+If the report asks for "highest revenue first," sort by **the aggregated total** after grouping. The comparator needs a **secondary key** when totals tie so tests are deterministic.
 
-### 13.2. Phân biệt "không có dữ liệu" với "lỗi tính toán"
+### 13.2. Distinguish "no data" from "computation error"
 
-Trên nguồn rỗng, `groupingBy` trả một map rỗng và `summarize` trả list rỗng. Đó là **kết quả hợp lệ**.
+On an empty source, `groupingBy` returns an empty map and `summarize` returns an empty list. That is a **valid result**.
 
-Ngược lại, khi `normalizeSale` gặp một bản ghi `null` và ném `IllegalArgumentException`, không được diễn giải lỗi thành "không có doanh thu". Hai trạng thái này có ý nghĩa nghiệp vụ khác nhau và cần test riêng.
+By contrast, when `normalizeSale` sees a `null` record and throws `IllegalArgumentException`, do not interpret the failure as "zero revenue." These two states have distinct business meanings and require separate tests.
 
-### 13.3. Đừng bỏ qua ràng buộc trùng mã đơn
+### 13.3. Do not overlook duplicate order ID constraints
 
-Ví dụ tổng hợp hiện tại tính **mỗi bản ghi PAID là một đơn**, chưa loại đơn trùng `orderId`. Nếu một file chứa hai dòng cùng mã, tổng và số đếm có thể bị nhân đôi. Đây không phải lỗi ngẫu nhiên của `groupingBy` mà là **một hợp đồng chưa được bổ sung**.
+The current aggregation counts **each PAID record as one order**, without deduplicating `orderId`. If a file contains two rows with the same ID, totals and counts are doubled. That is not a random bug in `groupingBy`, but **an unspecified contract requirement**.
 
-Nếu nghiệp vụ yêu cầu mỗi `orderId` duy nhất, hãy đặt một bước `rejectDuplicateOrderIds` hoặc `deduplicateById` có chính sách rõ:
+If the business requires unique `orderId`s, introduce a `rejectDuplicateOrderIds` or `deduplicateById` step with an explicit policy:
 
-- Với trùng mã, báo lỗi hay chọn bản ghi nào?
-- Nếu hai dòng có cùng mã nhưng số tiền khác, có được bỏ một dòng không?
-- Thứ tự gặp có quyết định bản ghi được giữ hay không?
-- Cần bộ nhớ để theo dõi những mã đã thấy không?
+- On duplicate IDs, throw an error or pick one record?
+- If two rows share an ID but differ in amount, is dropping one allowed?
+- Does encounter order decide which record is kept?
+- Is memory needed to track seen IDs?
 
-**Không tự dùng `distinct()` để giải quyết** nếu `Sale` chưa định nghĩa `equals`/`hashCode` theo nghiệp vụ, hoặc nếu yêu cầu là bắt lỗi chứ không loại trùng. Một bước trùng mã có thể cần cấu trúc `Set` và được thiết kế cẩn thận trước khi chạy song song.
+**Do not blindly use `distinct()`** if `Sale` does not define domain `equals`/`hashCode`, or if the requirement is to reject duplicates rather than deduplicate. A duplicate-check step may require a `Set` of seen IDs and careful design before parallel execution.
 
-## 14. Hợp đồng của bước có thay đổi khi gọi `parallel()` không?
+## 14. Do Step Contracts Change When Calling `parallel()`?
 
-Một pipeline được tách thành các hàm có tên **không mặc định an toàn hơn khi chạy song song**. Tính đúng vẫn phụ thuộc:
+A pipeline split into named functions is **not automatically thread-safe in parallel**. Correctness still depends on:
 
-- Những callback **stateless** và **non-interfering**.
-- Phép tổng hợp và `combiner` đáp ứng hợp đồng.
-- Nguồn, trạng thái và collector phù hợp với cách chia.
-- Các yêu cầu về encounter order được thực thi qua phép toán có bảo đảm thứ tự.
+- **Stateless** and **non-interfering** callbacks.
+- Reduction operations and `combiner`s satisfying their contracts.
+- Sources, state, and collectors suitable for splitting.
+- Encounter-order requirements enforced via order-preserving operations.
 
-Trong ví dụ:
+In our example:
 
 ```java
 List<NamedPipelineExample.CustomerSummary> parallel =
@@ -991,9 +991,9 @@ List<NamedPipelineExample.CustomerSummary> parallel =
                 source.parallelStream())));
 ```
 
-`normalizeSale` tạo đối tượng mới, không thay đổi dữ liệu gốc. `paidOnly` chỉ kiểm tra status. `Collectors.groupingBy` với `summarizingLong` có combiner do collector chuẩn cung cấp. Kết quả cuối được sắp xếp, nên **có thể** nhận cùng kết quả như chạy tuần tự trong miền số đã xác định. Điều đó **không khẳng định chạy nhanh hơn** hoặc đồng nghĩa mọi cải tiến về sau đều an toàn.
+`normalizeSale` constructs a new object without mutating source data. `paidOnly` only checks status. `Collectors.groupingBy` with `summarizingLong` uses combiners provided by standard collectors. The final output is sorted, so it **can** match sequential execution within the specified numeric range. That **does not guarantee it runs faster** or that future edits remain safe.
 
-### 14.1. Test tính đúng tuần tự và song song
+### 14.1. Testing sequential vs. parallel equivalence
 
 ```java
 List<NamedPipelineExample.CustomerSummary> sequential =
@@ -1024,11 +1024,11 @@ for (int i = 0; i < sequential.size(); i++) {
 }
 ```
 
-Ví dụ có thể đặt vào một phương thức kiểm thử Java 8+ cùng package với `NamedPipelineExample`. Chúng ta so sánh **giá trị trường**, vì `CustomerSummary` trong mã mẫu không override `equals`. Không dùng `==` để so sánh object kết quả.
+This snippet can be placed in a Java 8+ test method in the same package as `NamedPipelineExample`. We compare **field values**, since `CustomerSummary` in the sample does not override `equals`. Never use `==` to compare result objects.
 
-### 14.2. Những thay đổi nhỏ có thể phá hợp đồng
+### 14.2. Small changes can break the contract
 
-Sai:
+Wrong:
 
 ```java
 List<String> seen = new ArrayList<>();
@@ -1039,21 +1039,21 @@ Stream<NamedPipelineExample.Sale> stage =
     .peek(sale -> seen.add(sale.orderId));
 ```
 
-`ArrayList` không an toàn khi nhiều thread cùng ghi, và `peek` không bảo đảm được gọi cho mọi phần tử. Đây không phải cách duy trì nhật ký nghiệp vụ hoặc đếm đơn.
+`ArrayList` is not safe for concurrent writes from multiple threads, and `peek` is not guaranteed to run for every element. This is not a valid way to maintain an audit log or count orders.
 
-Tương tự, đổi `summarize` thành `reduce` sửa một `HashMap` chung bằng side effect có thể gây race condition. Dùng collector chuẩn hoặc thiết kế collector với supplier/accumulator/combiner hợp lệ thay vì dùng một biến tích lũy bên ngoài.
+Similarly, replacing `summarize` with a `reduce` that mutates a shared `HashMap` via side effects can introduce race conditions. Use standard collectors or design a collector with proper supplier/accumulator/combiner instead of mutating an external accumulator.
 
-### 14.3. Thứ tự ngoại lệ có thể khác
+### 14.3. Exception order may differ
 
-Nếu có nhiều dòng sai, parallel stream có thể phát hiện một dòng lỗi không phải dòng đầu theo encounter order. Vì vậy, để thông báo lỗi theo thứ tự file, nên **tách một lượt xác thực tuần tự** hoặc thu toàn bộ lỗi có thứ tự trước khi xử lý song song những bản ghi hợp lệ.
+If multiple rows are invalid, a parallel stream may discover a failing row that is not the first one in encounter order. Thus, to report errors in file order, **separate a sequential validation pass** or collect all errors in order before processing valid records in parallel.
 
-**Tóm lại:** tính đúng ở chế độ tuần tự là điều kiện cần, không phải bằng chứng đủ cho song song. Test cả hai khi dự án thực sự dùng `parallel()`, và đo hiệu năng độc lập.
+**Summary:** sequential correctness is a necessary condition, not sufficient proof for parallel execution. Test both whenever a project actually uses `parallel()`, and benchmark performance separately.
 
-## 15. Dùng một thuật toán tham chiếu độc lập để kiểm chứng
+## 15. Use an Independent Reference Algorithm for Verification
 
-Một cách tránh sai sót là so kết quả pipeline với **vòng lặp tham chiếu** trên tập nhỏ. Không nên viết test mà chính expected cũng gọi lại toàn bộ `normalize`, `paidOnly` và `summarize`: nếu một quy tắc sai ở cả hai phía, test có thể không phát hiện.
+One way to catch subtle bugs is comparing the pipeline's output against a **reference loop** on small datasets. Avoid writing tests where the expected result is computed by calling `normalize`, `paidOnly`, and `summarize` again: if a rule is wrong in both places, the test won't catch it.
 
-Ví dụ độc lập cho tổng tiền (giả định dữ liệu đã được chuẩn hóa và không tràn `long`):
+Independent reference example for totals (assuming normalized data and no `long` overflow):
 
 ```java
 import java.util.HashMap;
@@ -1074,53 +1074,53 @@ for (NamedPipelineExample.Sale sale : normalizedSales) {
 }
 ```
 
-Giờ so từng tổng với kết quả `summarize` thay vì chỉ so số nhóm. Vòng lặp tham chiếu cũng có thể sai, nhưng hai cách viết khác nhau giúp giảm nguy cơ **chia sẻ cùng một lỗi triển khai**.
+Now compare every total against `summarize`, rather than only checking group counts. A reference loop can have bugs too, but two independent implementations greatly reduce the chance of **sharing the same implementation mistake**.
 
-### 15.1. Những thuộc tính (*properties*) đáng kiểm chứng
+### 15.1. Properties worth verifying
 
-Với dữ liệu hợp lệ, tổng không tràn, chính sách "chỉ PAID":
+For valid data, non-overflowing sums, and the "PAID only" policy:
 
-1. **Không phát sinh khách hàng giả:** mọi `customerId` trong kết quả phải có ít nhất một đơn PAID ở đầu vào.
-2. **Số đơn:** tổng `orderCount` của các nhóm bằng số dòng PAID.
-3. **Tổng tiền:** tổng `totalCents` của các nhóm bằng tổng `amountCents` của dòng PAID.
-4. **Bảo toàn phần tử khi chuẩn hóa:** nếu không có lỗi, `normalize` không làm mất hoặc nhân đôi dòng.
-5. **Lọc không nhân đôi:** `paidOnly` không làm tăng số dòng.
-6. **Đầu ra có thứ tự:** hai nhóm liên tiếp phải thỏa comparator đã công bố.
-7. **Không phụ thuộc nguồn đầu vào theo thứ tự:** nếu chỉ yêu cầu tổng theo khách và kết quả được sort, việc tráo thứ tự dòng hợp lệ không được thay đổi **giá trị báo cáo**.
-8. **Không can thiệp:** dữ liệu thô không bị sửa bởi pipeline.
+1. **No phantom customers:** every `customerId` in the result must have at least one PAID order in the input.
+2. **Order count:** sum of `orderCount` across all groups equals the number of PAID rows.
+3. **Total amount:** sum of `totalCents` across all groups equals the sum of `amountCents` of PAID rows.
+4. **Element preservation on normalization:** when error-free, `normalize` neither drops nor duplicates rows.
+5. **Filtering never multiplies:** `paidOnly` never increases row count.
+6. **Ordered output:** any two adjacent groups satisfy the published comparator.
+7. **Input-order independence:** when only per-customer sums are required and output is sorted, shuffling valid rows must not change **the report values**.
+8. **Non-interference:** raw input data is never mutated by the pipeline.
 
-Cần tránh property giả: "mọi thay đổi thứ tự đầu vào đều không ảnh hưởng kết quả" **không đúng với mọi Stream**. Các phép `findFirst`, `limit` hay nối chuỗi có thể chủ ý phụ thuộc thứ tự; mỗi bước phải ghi hợp đồng riêng.
+Avoid false properties: "changing input order never affects the result" is **not true for all Streams**. Operations like `findFirst`, `limit`, or string concatenation may intentionally depend on order; each step must state its own contract.
 
-### 15.2. Những ca kiểm thử đáng có
+### 15.2. Valuable test cases
 
-| Ca | Đầu vào | Kết quả/chính sách |
+| Case | Input | Expected result / policy |
 | --- | --- | --- |
-| Nguồn rỗng | `[]` | Trả list rỗng. |
-| Một đơn PAID | Một bản ghi hợp lệ | Một nhóm, count 1, đúng tiền. |
-| Không có PAID | Chỉ PENDING/REFUNDED | Trả list rỗng. |
-| Trộn trạng thái | PAID và REFUNDED | Chỉ tính PAID. |
-| Khoảng trắng/case | Mã có space, `paid` | Chuẩn hóa theo hợp đồng. |
-| Dữ liệu lỗi | `null`, mã rỗng, status lạ | Ném `IllegalArgumentException`. |
-| Tổng hòa | Hai khách cùng tổng | Sort theo mã phụ. |
-| Mã đơn trùng | Hai dòng cùng mã | Theo chính sách doanh nghiệp; mẫu hiện tại **chưa tự loại trùng**. |
-| Ngưỡng số | Tổng gần `Long.MAX_VALUE` | Thiết kế kiểm tra tràn nếu nghiệp vụ yêu cầu. |
-| Parallel | Nguồn đủ lớn, dữ liệu hợp lệ | Kết quả bằng tuần tự theo hợp đồng. |
+| Empty source | `[]` | Returns empty list. |
+| Single PAID order | One valid record | One group, count 1, exact amount. |
+| No PAID orders | Only PENDING/REFUNDED | Returns empty list. |
+| Mixed statuses | PAID and REFUNDED | Counts only PAID. |
+| Whitespace/casing | Padded IDs, `paid` | Normalized per contract. |
+| Invalid data | `null`, blank ID, unknown status | Throws `IllegalArgumentException`. |
+| Tied totals | Two customers with equal sums | Sorted by secondary ID key. |
+| Duplicate order IDs | Two rows with same ID | Follows business policy; current sample **does not auto-deduplicate**. |
+| Numeric limits | Sums near `Long.MAX_VALUE` | Design overflow checks if domain requires. |
+| Parallel | Sufficiently large, valid source | Matches sequential result per contract. |
 
-Với test dữ liệu sinh ngẫu nhiên, hãy **giữ seed tái lập** và lưu trường hợp nhỏ nhất gây lỗi, thay vì chỉ in "random test failed". Điều đó giúp tái hiện lỗi và xác định bước vi phạm hợp đồng.
+For randomized property tests, **save a reproducible seed** and capture the smallest failing input instead of just printing "random test failed." That lets you reproduce the failure and pinpoint which step violated its contract.
 
-## 16. Refactor pipeline dài theo quy trình có kiểm soát
+## 16. Refactoring a Long Pipeline Under Control
 
-Một quy trình thực tế nên thực hiện theo thứ tự:
+Follow a practical step-by-step workflow:
 
-### Bước 1 — Đóng băng hành vi hiện tại bằng kiểm thử
+### Step 1 — Freeze current behavior with tests
 
-Lấy một bộ dữ liệu đại diện có cả trạng thái bình thường và dữ liệu biên. Ghi lại **hành vi cần giữ**, không nhất thiết giữ những lỗi không mong muốn.
+Take a representative dataset with both normal and boundary cases. Capture **the behavior to preserve**, without necessarily locking in undesired bugs.
 
-Nếu kết quả hiện tại chưa rõ đúng/sai, ghi rõ các giả định nghiệp vụ chưa được xác nhận. Refactor cấu trúc code không tự quyết định chính sách null, hoàn tiền hoặc loại trùng.
+If current behavior is ambiguous, document unconfirmed business assumptions explicitly. Structural refactoring must not silently decide null, refund, or deduplication policies.
 
-### Bước 2 — Xác định ranh giới dựa trên kiểu và trách nhiệm
+### Step 2 — Identify boundaries by type and responsibility
 
-Đọc pipeline và đánh dấu các vùng:
+Read the pipeline and mark its regions:
 
 ```text
 input
@@ -1133,48 +1133,48 @@ input
   → output
 ```
 
-Không nhất thiết pipeline nào cũng cần đủ các bước; chỉ tách những ranh giới tồn tại thật.
+Not every pipeline has all stages; extract only the boundaries that genuinely exist.
 
-### Bước 3 — Viết hợp đồng cho mỗi vùng
+### Step 3 — Write the contract for each region
 
-Ghi kiểu dữ liệu, điều kiện lỗi, thứ tự và số phần tử. Ví dụ:
+Record types, error conditions, ordering, and cardinality. For example:
 
 ```text
 normalizeSale:
-  input  : RawSale khác null
-  output : Sale với mã đã trim và status uppercase
-  error  : IllegalArgumentException nếu dữ liệu thiếu/sai
-  order  : không áp dụng ở cấp một phần tử
-  effect : không sửa RawSale
+  input  : non-null RawSale
+  output : Sale with trimmed IDs and uppercase status
+  error  : IllegalArgumentException on missing/invalid fields
+  order  : not applicable at single-element level
+  effect : does not mutate RawSale
 
 paidOnly:
-  input  : Stream<Sale> đã chuẩn hóa
-  output : Stream<Sale> chỉ PAID
-  order  : giữ encounter order nếu nguồn ordered
-  effect : không sửa Sale
+  input  : normalized Stream<Sale>
+  output : Stream<Sale> with PAID only
+  order  : preserves encounter order if source is ordered
+  effect : does not mutate Sale
 ```
 
-### Bước 4 — Trích hàm nhỏ nhất trước
+### Step 4 — Extract the smallest pure functions first
 
-Bắt đầu bằng hàm xử lý một phần tử như `normalizeSale`, vì dễ kiểm thử nhất. Sau đó mới đặt tên cho những nhóm thao tác stream như `paidOnly`. Tránh đổi đồng thời chính sách lỗi và thuật toán tổng hợp nếu mục tiêu ban đầu chỉ là làm rõ cấu trúc.
+Start with single-element functions like `normalizeSale`, as they are easiest to test. Only then name groups of stream operations like `paidOnly`. Avoid changing error policies and aggregation algorithms simultaneously when the initial goal is clarifying structure.
 
-### Bước 5 — Tách điểm terminal rõ ràng
+### Step 5 — Separate terminal boundaries cleanly
 
-Đảm bảo người đọc biết đâu là bước vẫn lazy, đâu là bước tiêu thụ `Stream`. Một phương thức tên `summarize` trả `List` hoặc `Map` là ranh giới rõ hơn một phương thức vừa trả stream vừa âm thầm gọi nhiều terminal operation.
+Make sure readers know which steps stay lazy and which consume the `Stream`. A method named `summarize` returning a `List` or `Map` is a much clearer boundary than a method returning a stream while quietly invoking multiple terminal operations.
 
-### Bước 6 — Chạy lại kiểm thử và đối chiếu metadata
+### Step 6 — Re-run tests and check metadata
 
-Kiểm tra những bất biến về số dòng, tổng tiền, thứ tự và ngoại lệ. Nếu có sử dụng `parallel`, đối chiếu thêm chế độ đó.
+Verify invariants on row counts, total amounts, ordering, and exceptions. If `parallel` is used, verify that mode too.
 
-### Bước 7 — Đo hiệu năng khi cần, rồi bỏ dụng cụ debug tạm
+### Step 7 — Measure performance when needed, then remove temporary diagnostics
 
-Sau refactor, nhiều hàm nhỏ **không nhất thiết** khiến pipeline chạy chậm; JIT và Stream runtime có thể tối ưu các lời gọi. Nhưng materialize quá nhiều list, thêm `sorted` không cần thiết hoặc ghi log trên mỗi bản ghi có thể gây chậm đáng kể.
+After refactoring, having small named functions **does not necessarily** slow down a pipeline; the JIT and Stream runtime optimize calls well. However, materializing too many lists, adding unnecessary `sorted` steps, or logging every record can degrade performance significantly.
 
-Không quyết định dựa vào cảm giác "nhiều hàm nên chậm". Hãy benchmark workload đại diện, warm-up phù hợp, cân nhắc JMH và phân biệt chi phí tính toán thực với chi phí nguồn I/O.
+Never decide based on a hunch that "more methods means slower." Benchmark representative workloads with proper warm-up (considering JMH) and separate actual computation cost from I/O source cost.
 
-## 17. Thực hành một lỗi khó: đếm đúng nhưng danh sách debug rỗng
+## 17. Walkthrough of a Tricky Bug: Right Count, Empty Debug List
 
-Giả sử developer thêm log vào `map`:
+Suppose a developer adds logging inside `map`:
 
 ```java
 List<String> visited = new ArrayList<>();
@@ -1190,17 +1190,17 @@ System.out.println(count);
 System.out.println(visited.size());
 ```
 
-Với nguồn `List` có kích thước biết trước, `count()` có thể tối ưu mà không chạy mapper, vì `map` không thay đổi số phần tử. Khi đó `count` đúng bằng kích thước nguồn nhưng `visited` có thể rỗng.
+For a `List` source with known size, `count()` can optimize away running the mapper because `map` does not alter cardinality. Then `count` equals the source size while `visited` may be empty.
 
-### 17.1. Cách chẩn đoán đúng
+### 17.1. How to diagnose it properly
 
-Hãy xác định mục đích:
+Clarify the goal:
 
-- Nếu cần **đếm phần tử**, chỉ gọi `source.size()` hoặc `source.stream().count()`.
-- Nếu cần **biến đổi rồi lấy kết quả**, dùng `map(...).collect(Collectors.toList())` và kiểm tra kết quả.
-- Nếu cần **bắt buộc xử lý từng bản ghi vì nghiệp vụ**, hãy viết một bước thao tác có hợp đồng tường minh, không gắn side effect vào `map` hoặc `peek` rồi kết thúc bằng `count`.
+- To **count elements**, call `source.size()` or `source.stream().count()`.
+- To **transform and inspect results**, use `map(...).collect(Collectors.toList())` and inspect the collected result.
+- To **guarantee per-record processing for business reasons**, write an operation step with an explicit contract instead of attaching side effects to `map` or `peek` followed by `count`.
 
-Ví dụ để kiểm tra dữ liệu đã chuẩn hóa:
+Example for inspecting normalized data:
 
 ```java
 List<NamedPipelineExample.Sale> checked =
@@ -1210,11 +1210,11 @@ List<NamedPipelineExample.Sale> checked =
 System.out.println(checked.size());
 ```
 
-`collect` vào list cần thu giá trị trả về của từng phần tử hợp lệ, nên thích hợp hơn một `map` chỉ dùng để cập nhật `visited`. Tuy nhiên, vẫn không nên đặt side effect bắt buộc trong mapper; `normalizeSale` của bài nên trả đối tượng mới và không can thiệp nguồn.
+`collect` into a list requires obtaining the mapped value of each valid element, making it proper where `map` updating `visited` was wrong. Still, avoid placing mandatory side effects inside mappers; `normalizeSale` should return a new object without interfering with the source.
 
-### 17.2. Với `findFirst` và `anyMatch`
+### 17.2. Regarding `findFirst` and `anyMatch`
 
-Các terminal operation này có thể kết thúc **trước khi duyệt hết nguồn**:
+These terminal operations can finish **before traversing the entire source**:
 
 ```java
 boolean anyPaid = source.stream()
@@ -1222,38 +1222,38 @@ boolean anyPaid = source.stream()
     .anyMatch(sale -> "PAID".equals(sale.status));
 ```
 
-Kết quả `anyPaid` chỉ xác nhận **có ít nhất một** đơn PAID trong phần dữ liệu đủ để xác định kết quả. Nó **không xác nhận** mọi dòng còn lại đã được chuẩn hóa, kiểm tra lỗi hay ghi log.
+`anyPaid` only confirms that **at least one** PAID order exists within the prefix examined to reach a decision. It **does not guarantee** that all remaining rows were normalized, validated, or logged.
 
-Nếu hợp đồng là "mọi dòng phải hợp lệ", phải xác thực toàn bộ trước; không dùng `anyMatch` để xác nhận điều kiện toàn tập.
+If the contract says "all rows must be valid," validate the whole dataset first; never use `anyMatch` to validate an entire collection.
 
-## 18. Những lỗi thiết kế và biện pháp khắc phục
+## 18. Design Pitfalls and Remedies
 
-| Lỗi | Hậu quả | Cách khắc phục |
+| Pitfall | Consequence | Remedy |
 | --- | --- | --- |
-| Tách pipeline thành `step1`, `step2`, `step3` | Không tăng tính tự mô tả | Đặt tên theo trách nhiệm nghiệp vụ. |
-| Một hàm vừa validate, log, lọc, tổng hợp | Khó test và thay đổi chính sách | Tách quy tắc một bản ghi, bước lazy, terminal. |
-| Chỉ viết comment, không có test biên | Hợp đồng dễ bị vi phạm khi refactor | Thêm test null, rỗng, status, hòa thứ tự. |
-| Dùng `filter(Objects::nonNull)` để nuốt lỗi không báo | Mất bản ghi âm thầm | Chọn fail-fast hoặc collect errors rõ ràng. |
-| Gọi `count` rồi dùng lại cùng `Stream` | `IllegalStateException` | Tạo stream mới hoặc materialize có chủ đích. |
-| Gọi `normalize` rồi nghĩ toàn bộ đã validate | Intermediate operation lazy | Tiêu thụ bằng terminal phù hợp khi cần kiểm tra hết. |
-| Đặt tác dụng phụ trong `peek`/`map` | Callback có thể bị bỏ qua hoặc chạy khác thứ tự | Dùng kết quả trả về hoặc bước nghiệp vụ riêng. |
-| Thu tất cả intermediate list chỉ để tiện debug | Tăng bộ nhớ, đổi thời điểm xử lý | Dùng khi cần chẩn đoán, tránh giữ lâu trên dữ liệu lớn. |
-| Grouping xong dựa vào thứ tự `Map` | Kết quả không ổn định | Sắp xếp với comparator và tie-breaker. |
-| Dùng `distinct()` để bắt trùng mã đơn | Có thể bỏ dữ liệu sai chính sách | Định nghĩa khóa, xử lý lỗi trùng rõ ràng. |
-| `reduce` với mutable identity dùng chung | Sai kết quả khi song song | Dùng collector hợp lệ hoặc accumulator không chia sẻ. |
-| `parallel` và bộ đếm/list ngoài lambda | Race condition, thứ tự không xác định | Hàm stateless, collector chuẩn, test song song. |
-| Ghi log toàn bộ bản ghi nhạy cảm | Rò rỉ dữ liệu và chậm | Log có kiểm soát, ẩn trường nhạy cảm. |
-| Trả stream ra ngoài `try-with-resources` | Stream bị đóng trước khi dùng | Tiêu thụ bên trong hoặc chuyển quyền đóng rõ ràng. |
-| Bỏ qua `UncheckedIOException` từ nguồn lazy | Tưởng nguồn không có dữ liệu | Phân biệt lỗi I/O với tập rỗng. |
-| Tổng tiền kiểu `long` có thể tràn | Báo cáo sai số mà không báo lỗi | Xác định miền, dùng addExact/BigInteger khi cần. |
-| Lặp lại toàn pipeline để tính nhiều metadata | Tốn CPU/I/O, có thể không nhất quán | Dùng snapshot hoặc thiết kế tổng hợp một lần khi phù hợp. |
-| Dùng `Stream.toList()` trong ví dụ Java 8 | Không biên dịch với Java 8 | Dùng `collect(Collectors.toList())` trong mẫu Java 8. |
+| Splitting pipeline into `step1`, `step2`, `step3` | Adds no self-documentation | Name steps after business responsibilities. |
+| One method validates, logs, filters, and aggregates | Hard to test and evolve policies | Separate record rule, lazy step, terminal boundary. |
+| Writing comments only, no boundary tests | Contracts break silently on refactor | Add tests for null, empty, status, tie-breaking. |
+| Using `filter(Objects::nonNull)` to swallow errors | Silently drops records | Choose fail-fast or explicit error collection. |
+| Calling `count` then reusing the same `Stream` | `IllegalStateException` | Create a new stream or materialize intentionally. |
+| Calling `normalize` and assuming all items are validated | Intermediate operations are lazy | Consume with an appropriate terminal operation when full validation is needed. |
+| Putting side effects in `peek`/`map` | Callbacks may be skipped or reordered | Use returned values or a dedicated business step. |
+| Collecting intermediate lists everywhere just for debugging | Increases memory, shifts execution timing | Use only for diagnosis; avoid holding large snapshots. |
+| Relying on `Map` order after grouping | Unstable results | Sort with comparator and tie-breaker. |
+| Using `distinct()` to catch duplicate order IDs | May drop data under wrong policy | Define key and handle duplicate errors explicitly. |
+| `reduce` with a shared mutable identity | Wrong results in parallel | Use a valid collector or non-shared accumulator. |
+| `parallel` with external counters/lists | Race conditions, non-deterministic order | Stateless functions, standard collectors, parallel tests. |
+| Logging full sensitive records | Data leaks and slowdowns | Controlled logging, mask sensitive fields. |
+| Returning a stream out of `try-with-resources` | Stream closed before consumption | Consume inside or transfer closing ownership explicitly. |
+| Ignoring `UncheckedIOException` from lazy sources | Mistakes I/O failures for empty data | Distinguish I/O errors from empty sets. |
+| `long` totals that can overflow | Silent wrong numbers in reports | Define bounds; use `addExact`/`BigInteger` when needed. |
+| Re-running the entire pipeline for multiple metadata | Wastes CPU/I/O, risks inconsistency | Snapshot or design a single-pass aggregation when appropriate. |
+| Using `Stream.toList()` in Java 8 examples | Fails to compile on Java 8 | Use `collect(Collectors.toList())` in Java 8 code. |
 
-## 19. Bài tập thực hành
+## 19. Practice Exercises
 
-### Bài 1 — Xác định ranh giới
+### Exercise 1 — Identify boundaries
 
-Cho pipeline:
+Given the pipeline:
 
 ```java
 List<String> result = names.stream()
@@ -1266,53 +1266,53 @@ List<String> result = names.stream()
     .collect(Collectors.toList());
 ```
 
-Hãy đề xuất hai hoặc ba hàm có tên phản ánh nhóm quy tắc. Nêu dữ liệu vào/ra, thứ tự và chính sách `null`.
+Propose two or three named functions reflecting groups of rules. State input/output types, ordering, and the `null` policy.
 
-### Bài 2 — Đặt hợp đồng cho bộ lọc
+### Exercise 2 — Specify a filter contract
 
-Viết `paidOnly(Stream<Sale>)` theo yêu cầu chỉ giữ trạng thái `PAID`. Có nên kiểm tra null/trạng thái lạ ở đây hay đã thuộc `normalizeSale`? Giải thích.
+Write `paidOnly(Stream<Sale>)` keeping only `PAID` status. Should null/unknown status checks live here or already belong in `normalizeSale`? Explain.
 
-### Bài 3 — Kiểm tra dữ liệu rỗng
+### Exercise 3 — Checking empty data
 
-Với danh sách không chứa đơn PAID, `process` nên trả gì? Có cần tạo một `CustomerSummary` với tổng bằng 0 cho mọi khách từng xuất hiện không?
+Given a list with no PAID orders, what should `process` return? Should it synthesize a `CustomerSummary` with total 0 for every customer seen?
 
-### Bài 4 — Kết quả có thứ tự xác định
+### Exercise 4 — Deterministic output order
 
-Hai khách có tổng tiền bằng nhau. Vì sao chỉ sắp xếp giảm dần theo tổng tiền chưa đủ cho báo cáo ổn định? Viết comparator có khóa phụ.
+Two customers have equal total amounts. Why is sorting descending by total amount alone insufficient for a stable report? Write a comparator with a tie-breaker.
 
-### Bài 5 — Bẫy của `peek`
+### Exercise 5 — The `peek` trap
 
-`source.stream().peek(logAction).count()` có bảo đảm `logAction` được gọi cho mọi phần tử không? `parallel()` có làm mọi log xuất hiện theo thứ tự nguồn không?
+Does `source.stream().peek(logAction).count()` guarantee `logAction` runs for every element? Does `parallel()` make all logs appear in source order?
 
-### Bài 6 — Tránh tiêu thụ Stream hai lần
+### Exercise 6 — Avoiding double stream consumption
 
-Bạn cần cả `count` và `List` sau bước chuẩn hóa trên một `List<RawSale>` hữu hạn. Đề xuất một cách làm không dùng lại stream đã tiêu thụ và nêu đánh đổi về bộ nhớ.
+You need both a `count` and a `List` after normalization on a finite `List<RawSale>`. Propose a way to avoid reusing a consumed stream and state the memory trade-off.
 
-### Bài 7 — Phát hiện chính sách lỗi
+### Exercise 7 — Spotting error-policy drift
 
-Vì sao bắt `IllegalArgumentException` trong `map`, trả `null` rồi thêm `filter(Objects::nonNull)` có thể làm sai hợp đồng fail-fast? Nếu cần thu lỗi theo từng dòng, dùng cách nào?
+Why can catching `IllegalArgumentException` inside `map`, returning `null`, and adding `filter(Objects::nonNull)` break a fail-fast contract? How should you collect per-row errors if needed?
 
-### Bài 8 — I/O và vòng đời
+### Exercise 8 — I/O and lifecycle
 
-Một hàm `openLines(Path)` trả `Files.lines(path)`. Ai đóng stream? Vì sao không nên mở `Files.lines` trong một khối try rồi trả lại stream để bên ngoài đọc?
+An `openLines(Path)` method returns `Files.lines(path)`. Who closes the stream? Why shouldn't a method open `Files.lines` inside a `try` block and return the stream for external reading?
 
-### Bài 9 — Tính đúng khi song song
+### Exercise 9 — Parallel correctness
 
-Nếu `normalizeSale` được sửa để tăng một biến `static int counter` trong mỗi lần gọi, có thể gây vấn đề gì khi chạy `parallel()`? Dùng giải pháp gì nếu mục tiêu chỉ là đếm các bản ghi PAID?
+If `normalizeSale` is modified to increment a `static int counter` on each call, what issues can arise under `parallel()`? What should you use instead if the goal is merely counting PAID records?
 
-### Bài 10 — Thiết kế thêm bước kiểm tra trùng mã
+### Exercise 10 — Designing a duplicate-ID check step
 
-Nghiệp vụ không cho phép hai đơn có cùng `orderId` trong một báo cáo. Hãy đặt tên bước mới, ghi rõ chính sách lỗi, vị trí của bước trong pipeline và đề xuất cách kiểm thử.
+The business forbids two orders with the same `orderId` in one report. Name the new step, state its error policy, choose its position in the pipeline, and propose how to test it.
 
-## 20. Đáp án và gợi ý
+## 20. Answers and Hints
 
-**Bài 1.** Có thể tạo `normalizeNames(Stream<String>)` để loại null, trim, loại chuỗi trống và uppercase, rồi `uniqueSortedNames(Stream<String>)` để `distinct` và `sorted`. Hoặc tách `normalizeName(String)` cho quy tắc trên một chuỗi và định nghĩa hợp đồng null rõ ràng. Nhớ rằng nếu loại null bằng filter thì chính sách là **skip invalid**, không phải fail-fast.
+**Exercise 1.** You can create `normalizeNames(Stream<String>)` to drop nulls, trim, drop empty strings, and uppercase, then `uniqueSortedNames(Stream<String>)` for `distinct` and `sorted`. Or extract `normalizeName(String)` for the single-string rule and define an explicit null contract. Remember that filtering out nulls implements a **skip invalid** policy, not fail-fast.
 
-**Bài 2.** Nếu có một giai đoạn chuẩn hóa/validate độc lập, `paidOnly` nên chỉ giữ `"PAID".equals(sale.status)` và không lặp lại tất cả quy tắc. Nếu đầu vào có thể đến từ caller khác không được bảo đảm hợp lệ, cần viết rõ tiền điều kiện hoặc kiểm tra ở ranh giới API.
+**Exercise 2.** When an independent normalize/validate phase exists, `paidOnly` should only check `"PAID".equals(sale.status)` without repeating all rules. If input may arrive from unvalidated callers, document the precondition or validate at the API boundary.
 
-**Bài 3.** `process` trả list rỗng theo hợp đồng của bài, vì chỉ tổng hợp đơn PAID. Tạo nhóm 0 cho khách chưa có đơn PAID là nghiệp vụ khác và cần nguồn danh sách khách hàng riêng.
+**Exercise 3.** `process` returns an empty list per our contract, because it aggregates only PAID orders. Creating zero-total groups for customers without PAID orders is a different requirement that needs a separate customer master list.
 
-**Bài 4.**
+**Exercise 4.**
 
 ```java
 Comparator<CustomerSummary> cmp =
@@ -1322,55 +1322,55 @@ Comparator<CustomerSummary> cmp =
         .thenComparing(s -> s.customerId);
 ```
 
-Comparator mẫu đặt trong phạm vi có kiểu `CustomerSummary`. Khóa phụ giúp thứ tự tổng khi hai khách có cùng số tiền.
+This comparator assumes `CustomerSummary` is in scope. The secondary key guarantees deterministic ordering when two customers have equal totals.
 
-**Bài 5.** Không. `peek` có thể không được đánh giá nếu `count` suy được kích thước nguồn. Khi song song, thứ tự log càng không được cam kết. Dùng logging chẩn đoán, không dùng làm audit bắt buộc.
+**Exercise 5.** No. `peek` may not even be evaluated if `count` can determine the source size directly. In parallel mode, log ordering is even less guaranteed. Use logging for diagnostics, not mandatory auditing.
 
-**Bài 6.** Trước hết thu `List<Sale> normalized = normalize(source.stream()).collect(Collectors.toList());`, sau đó lấy `long count = normalized.size();` và tái sử dụng list. Đổi lại sẽ materialize toàn bộ dữ liệu, tốn bộ nhớ theo kích thước nguồn và làm mất lợi ích lazy đối với dữ liệu rất lớn.
+**Exercise 6.** Collect once into `List<Sale> normalized = normalize(source.stream()).collect(Collectors.toList());`, then read `long count = normalized.size();` and reuse the list. The trade-off is materializing the entire dataset in memory proportional to source size and losing laziness on very large inputs.
 
-**Bài 7.** Hành vi ấy biến lỗi thành bản ghi bị mất, khiến báo cáo trông hợp lệ nhưng thiếu dữ liệu. Nếu nghiệp vụ chọn fail-fast thì để exception đi qua. Nếu chọn collect errors, duyệt tất cả dòng và thu riêng danh sách bản ghi hợp lệ cùng các lỗi có chỉ số, có thể dùng vòng lặp hoặc đối tượng kết quả chuyên dụng.
+**Exercise 7.** That turns validation failures into silently dropped records, making a report look valid while missing data. If the business requires fail-fast, let the exception propagate. If it requires collecting errors, iterate through all rows and collect valid records separately alongside indexed errors using a loop or a dedicated result object.
 
-**Bài 8.** Bên gọi `openLines` phải đóng bằng `try (Stream<String> lines = openLines(path)) { ... }` nếu API chuyển quyền sở hữu. Trả stream từ trong try của chính hàm mở là sai vì try kết thúc trước khi bên ngoài tiêu thụ.
+**Exercise 8.** The caller of `openLines` must close it with `try (Stream<String> lines = openLines(path)) { ... }` when the API transfers ownership. Returning a stream from inside the opening method's `try-with-resources` fails because the block exits and closes the stream before the caller consumes it.
 
-**Bài 9.** `static int counter` không có đồng bộ hóa có thể bị race condition; ngay cả `AtomicInteger` cũng không khiến số thứ tự tương ứng encounter order. Nếu chỉ cần đếm đơn PAID, dùng `normalize(...).filter(...).count()` trên nguồn phù hợp; không đếm bằng side effect trong mapper.
+**Exercise 9.** An unsynchronized `static int counter` causes race conditions; even `AtomicInteger` will not yield numbers matching encounter order. If you only need to count PAID records, use `normalize(...).filter(...).count()` on an appropriate source; do not count via side effects in a mapper.
 
-**Bài 10.** Đặt `rejectDuplicateOrderIds` sau bước chuẩn hóa để so mã đã trim, trước `paidOnly` nếu chính sách kiểm tra trùng áp dụng **toàn bộ nguồn**, hoặc sau `paidOnly` nếu chỉ quan tâm trùng trong đơn PAID. Hợp đồng: nếu phát hiện mã trùng, ném lỗi có thông tin phù hợp; nếu không, bảo toàn đầy đủ dữ liệu và thứ tự. Test với mã trùng, mã khác nhau, mã có khoảng trắng, nguồn rỗng và trạng thái xen kẽ. Nếu dùng `Set` lưu mã đã thấy, hãy tránh predicate có trạng thái chia sẻ trong parallel stream; chọn một bước kiểm tra tách biệt có kiểm soát.
+**Exercise 10.** Place `rejectDuplicateOrderIds` after normalization (to compare trimmed IDs)—either before `paidOnly` if uniqueness applies to **the entire source**, or after `paidOnly` if duplicates matter only among PAID orders. Contract: if a duplicate ID is detected, throw an informative error; otherwise, preserve all records and order. Test with duplicate IDs, distinct IDs, padded IDs, empty sources, and mixed statuses. If using a `Set` to track seen IDs, avoid shared-state predicates in parallel streams; use a controlled, separate checking step.
 
-## 21. Checklist áp dụng khi refactor pipeline
+## 21. Refactoring Checklist for Pipelines
 
-- [ ] Đã xác định trách nhiệm thật sự của từng stage, không chỉ tách theo số dòng.
-- [ ] Tên hàm thể hiện **quy tắc nghiệp vụ**, tránh `step1` hoặc `doWork`.
-- [ ] Kiểu đầu vào/đầu ra của từng stage rõ ràng, tránh dùng `Object` không cần thiết.
-- [ ] Có tiền điều kiện và hậu điều kiện về `null`, chuỗi trống, số âm, trạng thái.
-- [ ] Có chính sách lỗi tường minh: fail-fast, skip invalid hay collect errors.
-- [ ] Đã ghi quy tắc về **cardinality** và encounter order.
-- [ ] Những hàm biến đổi phần tử thuần và có unit test trực tiếp.
-- [ ] Có test cho bước lọc và tổng hợp, không chỉ test đầu-cuối.
-- [ ] Bước grouping có sắp xếp rõ ràng nếu đầu ra yêu cầu thứ tự.
-- [ ] Có ca kiểm thử hòa tiêu chí, dữ liệu rỗng, không match và dữ liệu sai.
-- [ ] Không dùng lại một `Stream` sau terminal operation.
-- [ ] Không dựa vào `peek`/`map` có side effect để bảo đảm mọi bản ghi được xử lý.
-- [ ] Không vật chất hóa mọi bước trên nguồn vô hạn hoặc rất lớn.
-- [ ] Nếu có nguồn I/O, quyền sở hữu `close` được mô tả và thực hiện đúng.
-- [ ] Dữ liệu không bị sửa trong lúc pipeline đang duyệt nếu nguồn không hỗ trợ concurrency.
-- [ ] `reduce`/`collect` có hợp đồng phù hợp khi chạy song song.
-- [ ] Đã phân biệt tính đúng và hiệu năng; chỉ tối ưu sau khi có phép đo.
-- [ ] Các ví dụ dùng API tương thích với mức Java mục tiêu.
+- [ ] Identified each stage's true responsibility, not just split by line count.
+- [ ] Function names express **business rules**, avoiding `step1` or `doWork`.
+- [ ] Each stage's input/output types are explicit, avoiding unnecessary `Object`.
+- [ ] Preconditions and postconditions cover `null`, blank strings, negative numbers, and statuses.
+- [ ] Error policy is explicit: fail-fast, skip invalid, or collect errors.
+- [ ] Documented rules for **cardinality** and encounter order.
+- [ ] Element-level transformations are pure and directly unit-tested.
+- [ ] Filter and aggregation steps have their own tests, not just end-to-end tests.
+- [ ] Grouping steps sort explicitly when output order matters.
+- [ ] Test cases cover ties, empty input, no matches, and invalid records.
+- [ ] Never reuse a `Stream` after a terminal operation.
+- [ ] Do not rely on `peek`/`map` side effects to guarantee every record was processed.
+- [ ] Do not materialize every step on infinite or very large sources.
+- [ ] For I/O sources, `close` ownership is documented and enforced.
+- [ ] Source data is not mutated during pipeline traversal unless concurrent mutation is supported.
+- [ ] `reduce`/`collect` satisfy parallel contracts if parallelized.
+- [ ] Separated correctness from performance; optimize only after measuring.
+- [ ] Examples use APIs compatible with the target Java version.
 
-## 22. Tổng kết
+## 22. Summary
 
-Một pipeline dễ bảo trì cần rõ **dữ liệu đi qua những quy tắc nào**, và **quy tắc nào đang được kiểm tra**:
+A maintainable pipeline makes clear **which rules data passes through** and **which rule is currently under test**:
 
 ```text
 RawSale
    |
  normalizeSale / normalize
-   |       (kiểm tra và chuẩn hóa, có thể lỗi)
+   |       (validate and normalize, may fail)
    v
  Sale
    |
  paidOnly
-   |       (lọc theo trạng thái PAID)
+   |       (filter by PAID status)
    v
  Stream<Sale>
    |
@@ -1380,14 +1380,14 @@ RawSale
  List<CustomerSummary>
 ```
 
-Từ đó, hãy giữ các nguyên tắc:
+Keep these principles in mind:
 
-1. **Một tên — một trách nhiệm:** đặt tên stage theo ngữ nghĩa nghiệp vụ.
-2. **Hợp đồng có thể kiểm chứng:** nêu tiền điều kiện, hậu điều kiện, xử lý lỗi, số phần tử, thứ tự và side effect.
-3. **Giữ lazy đúng chỗ:** hàm trả `Stream` thường chỉ xây pipeline; hàm terminal tạo kết quả hữu hình.
-4. **Test theo lớp:** unit test quy tắc từng bản ghi, test step, test end-to-end, kiểm chứng bằng nguồn tham chiếu khi hữu ích.
-5. **Dùng debug có chủ đích:** `peek` để quan sát, không thực hiện hành động nghiệp vụ; materialize khi cần chẩn đoán và hiểu chi phí.
-6. **Tránh lỗi tài nguyên và trạng thái:** không tái sử dụng stream đã tiêu thụ, không để lọt stream I/O ra ngoài phạm vi đóng, không sửa nguồn trong pipeline.
-7. **Giữ ngữ nghĩa khi tối ưu:** grouping và sorting phải có thứ tự rõ; parallel không chữa được các hàm có side effect hoặc phép gộp sai.
+1. **One name — one responsibility:** name stages after business semantics.
+2. **Testable contracts:** state preconditions, postconditions, error handling, cardinality, ordering, and side effects.
+3. **Keep laziness where appropriate:** stream-returning functions build pipelines; terminal functions produce materialized results.
+4. **Test in layers:** unit test single-record rules, test intermediate steps, test end-to-end, and cross-check against a reference implementation when useful.
+5. **Debug purposefully:** use `peek` to observe, not to run business actions; materialize when diagnosing and understand its cost.
+6. **Avoid resource and state bugs:** never reuse a consumed stream, never leak an I/O stream outside its closing scope, and never mutate the source mid-pipeline.
+7. **Preserve semantics when optimizing:** grouping and sorting require explicit ordering; `parallel()` never fixes side effects or broken combiners.
 
-Tách pipeline dài thành **các bước có tên và hợp đồng rõ ràng** không chỉ giúp code ngắn gọn hơn ở lớp điều phối; quan trọng hơn, nó giúp bạn nhìn thấy điểm dữ liệu thay đổi, thiết kế kiểm thử đáng tin cậy, chẩn đoán nhanh vấn đề và mở rộng Java Stream API mà không làm lệch quy tắc nghiệp vụ.
+Splitting long pipelines into **named steps with clear contracts** does more than tidy up orchestration code; more importantly, it lets you see where data changes, write reliable tests, diagnose issues quickly, and evolve Java Stream API pipelines without drifting from business rules.
